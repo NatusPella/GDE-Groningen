@@ -1,0 +1,318 @@
+#!/usr/bin/env python3
+"""Convert raw Overpass OSM JSON (Groningen) into a compact game map format.
+
+Projects lat/lon to local meters (equirectangular, centered on the bbox),
+so 1 unit = 1 meter. Y grows downward (south) to match canvas coordinates.
+"""
+import json
+import math
+import sys
+
+SRC = "data/groningen_raw.json"
+SRC_EXTRA = "data/groningen_extra.json"
+DST = "game/citymap.json"
+
+BBOX_SOUTH, BBOX_WEST = 53.204, 6.538
+BBOX_NORTH, BBOX_EAST = 53.235, 6.592
+
+LAT0 = (BBOX_SOUTH + BBOX_NORTH) / 2
+LON0 = (BBOX_WEST + BBOX_EAST) / 2
+
+M_PER_DEG_LAT = 110574.0
+M_PER_DEG_LON = 111320.0 * math.cos(math.radians(LAT0))
+
+ROAD_SPEC = {
+    "trunk":            {"width": 12, "speed": 22, "lanes": 2, "cat": "major"},
+    "trunk_link":       {"width": 9,  "speed": 16, "lanes": 1, "cat": "major"},
+    "secondary":        {"width": 9,  "speed": 16, "lanes": 2, "cat": "major"},
+    "secondary_link":   {"width": 7,  "speed": 13, "lanes": 1, "cat": "major"},
+    "tertiary":         {"width": 8,  "speed": 14, "lanes": 2, "cat": "normal"},
+    "tertiary_link":    {"width": 6,  "speed": 11, "lanes": 1, "cat": "normal"},
+    "residential":      {"width": 6.5,"speed": 11, "lanes": 2, "cat": "normal"},
+    "unclassified":     {"width": 6,  "speed": 11, "lanes": 2, "cat": "normal"},
+    "living_street":    {"width": 5,  "speed": 7,  "lanes": 1, "cat": "minor"},
+    "service":          {"width": 4,  "speed": 6,  "lanes": 1, "cat": "minor"},
+    "pedestrian":       {"width": 4,  "speed": 0,  "lanes": 0, "cat": "foot"},
+    "footway":          {"width": 1.8,"speed": 0,  "lanes": 0, "cat": "foot"},
+    "steps":            {"width": 1.8,"speed": 0,  "lanes": 0, "cat": "foot"},
+    "track":            {"width": 3,  "speed": 4,  "lanes": 1, "cat": "minor"},
+    "cycleway":         {"width": 2,  "speed": 0,  "lanes": 0, "cat": "cycle"},
+}
+
+TREE_ROW_SPACING = 6.0  # meters between canopies sampled along a tree_row way
+
+
+def project(lat, lon):
+    x = (lon - LON0) * M_PER_DEG_LON
+    y = (LAT0 - lat) * M_PER_DEG_LAT
+    return [round(x, 1), round(y, 1)]
+
+
+def is_closed(coords):
+    return len(coords) >= 3 and coords[0] == coords[-1]
+
+
+# --- clipping against the play-area rectangle (raw OSM ways aren't cut at the
+# query bbox, so a road/way that only clips a corner can carry a point many km
+# away; clip everything back to the intended world rect + a small margin) ---
+PAD = 120.0
+
+
+def _clip_edge(points, inside, intersect):
+    """Sutherland-Hodgman: clip a closed polygon against one half-plane."""
+    out = []
+    n = len(points)
+    for i in range(n):
+        cur, prv = points[i], points[i - 1]
+        cur_in, prv_in = inside(cur), inside(prv)
+        if cur_in:
+            if not prv_in:
+                out.append(intersect(prv, cur))
+            out.append(cur)
+        elif prv_in:
+            out.append(intersect(prv, cur))
+    return out
+
+
+def clip_polygon(coords, rect):
+    minx, miny, maxx, maxy = rect
+    pts = coords[:-1] if coords[:1] == coords[-1:] else coords[:]
+    for inside, intersect in (
+        (lambda p: p[0] >= minx, lambda a, b: _lerp_x(a, b, minx)),
+        (lambda p: p[0] <= maxx, lambda a, b: _lerp_x(a, b, maxx)),
+        (lambda p: p[1] >= miny, lambda a, b: _lerp_y(a, b, miny)),
+        (lambda p: p[1] <= maxy, lambda a, b: _lerp_y(a, b, maxy)),
+    ):
+        if not pts:
+            return []
+        pts = _clip_edge(pts, inside, intersect)
+    if len(pts) >= 3:
+        pts.append(pts[0])
+    return pts
+
+
+def _lerp_x(a, b, x):
+    t = (x - a[0]) / (b[0] - a[0]) if b[0] != a[0] else 0
+    return [x, a[1] + t * (b[1] - a[1])]
+
+
+def _lerp_y(a, b, y):
+    t = (y - a[1]) / (b[1] - a[1]) if b[1] != a[1] else 0
+    return [a[0] + t * (b[0] - a[0]), y]
+
+
+def clip_polyline(coords, rect):
+    """Cohen-Sutherland-ish segment clip; returns a list of sub-polylines."""
+    minx, miny, maxx, maxy = rect
+
+    def code(p):
+        c = 0
+        if p[0] < minx: c |= 1
+        if p[0] > maxx: c |= 2
+        if p[1] < miny: c |= 4
+        if p[1] > maxy: c |= 8
+        return c
+
+    def clip_seg(p0, p1):
+        c0, c1 = code(p0), code(p1)
+        p0, p1 = list(p0), list(p1)
+        for _ in range(8):
+            if not (c0 | c1):
+                return (p0, p1)
+            if c0 & c1:
+                return None
+            co = c0 or c1
+            if co & 8:
+                x = p0[0] + (p1[0]-p0[0])*(maxy-p0[1])/(p1[1]-p0[1]); y = maxy
+            elif co & 4:
+                x = p0[0] + (p1[0]-p0[0])*(miny-p0[1])/(p1[1]-p0[1]); y = miny
+            elif co & 2:
+                y = p0[1] + (p1[1]-p0[1])*(maxx-p0[0])/(p1[0]-p0[0]); x = maxx
+            else:
+                y = p0[1] + (p1[1]-p0[1])*(minx-p0[0])/(p1[0]-p0[0]); x = minx
+            if co == c0:
+                p0 = [x, y]; c0 = code(p0)
+            else:
+                p1 = [x, y]; c1 = code(p1)
+        return None
+
+    lines, cur = [], []
+    for i in range(len(coords) - 1):
+        seg = clip_seg(coords[i], coords[i + 1])
+        if seg is None:
+            if len(cur) >= 2:
+                lines.append(cur)
+            cur = []
+            continue
+        a, b = seg
+        if not cur:
+            cur = [a, b]
+        elif cur[-1] == a:
+            cur.append(b)
+        else:
+            if len(cur) >= 2:
+                lines.append(cur)
+            cur = [a, b]
+    if len(cur) >= 2:
+        lines.append(cur)
+    return lines
+
+
+def sample_along(pts, spacing):
+    out = []
+    carry = 0.0
+    for i in range(len(pts) - 1):
+        ax, ay = pts[i]
+        bx, by = pts[i + 1]
+        seg_len = math.hypot(bx - ax, by - ay)
+        if seg_len < 1e-6:
+            continue
+        d = carry
+        while d < seg_len:
+            t = d / seg_len
+            out.append((ax + (bx - ax) * t, ay + (by - ay) * t))
+            d += spacing
+        carry = d - seg_len
+    return out
+
+
+def main():
+    with open(SRC) as f:
+        data = json.load(f)
+    elements = list(data["elements"])
+    try:
+        with open(SRC_EXTRA) as f:
+            elements += json.load(f)["elements"]
+    except FileNotFoundError:
+        pass
+
+    wx0, wy0 = project(BBOX_SOUTH, BBOX_WEST)
+    wx1, wy1 = project(BBOX_NORTH, BBOX_EAST)
+    world_rect = (min(wx0, wx1) - PAD, min(wy0, wy1) - PAD,
+                  max(wx0, wx1) + PAD, max(wy0, wy1) + PAD)
+    rminx, rminy, rmaxx, rmaxy = world_rect
+
+    roads, buildings, water, green, trees = [], [], [], [], []
+
+    for el in elements:
+        if el.get("type") == "node" and el.get("tags", {}).get("natural") == "tree":
+            x, y = project(el["lat"], el["lon"])
+            if rminx <= x <= rmaxx and rminy <= y <= rmaxy:
+                trees.append([x, y])
+            continue
+
+        if el.get("type") != "way" or "geometry" not in el:
+            continue
+        tags = el.get("tags", {})
+        geom = el["geometry"]
+        if any(pt is None for pt in geom) or len(geom) < 2:
+            continue
+        coords = [project(pt["lat"], pt["lon"]) for pt in geom]
+
+        if tags.get("natural") == "tree_row":
+            for line in clip_polyline(coords, world_rect):
+                for x, y in sample_along(line, TREE_ROW_SPACING):
+                    trees.append([round(x, 1), round(y, 1)])
+            continue
+
+        if "building" in tags:
+            if not is_closed(coords) or len(coords) < 4:
+                continue
+            poly = clip_polygon(coords, world_rect)
+            if len(poly) < 4:
+                continue
+            levels = tags.get("building:levels")
+            try:
+                levels = max(1, int(float(levels)))
+            except (TypeError, ValueError):
+                levels = 2 if tags.get("building") in ("house", "detached") else 3
+            buildings.append({
+                "pts": poly,
+                "h": levels,
+                "name": tags.get("name"),
+                "type": tags.get("building") or "yes",
+            })
+            continue
+
+        hw = tags.get("highway")
+        if hw in ROAD_SPEC:
+            spec = ROAD_SPEC[hw]
+            width = spec["width"]
+            tag_width = tags.get("width") or tags.get("est_width")
+            if tag_width:
+                try:
+                    width = max(2.5, float(str(tag_width).split()[0].replace(",", ".")))
+                except ValueError:
+                    pass
+            elif tags.get("lanes"):
+                # no explicit width tag, but a lane count is a real signal -
+                # ~3.1m/lane plus a little for shoulders/markings, only ever
+                # used to widen (never narrow) the category default
+                try:
+                    lane_count = int(str(tags["lanes"]).split(";")[0])
+                    width = max(width, lane_count * 3.1 + 0.6)
+                except ValueError:
+                    pass
+            # junction=roundabout implies oneway even without an explicit tag -
+            # otherwise traffic AI happily routes the wrong way around a circle
+            is_roundabout = tags.get("junction") == "roundabout"
+            oneway = is_roundabout or tags.get("oneway") in ("yes", "1", "true")
+            for line in clip_polyline(coords, world_rect):
+                roads.append({
+                    "pts": line,
+                    "type": hw,
+                    "cat": spec["cat"],
+                    "width": width,
+                    "speed": spec["speed"],
+                    "oneway": oneway,
+                    "roundabout": is_roundabout,
+                    "name": tags.get("name"),
+                })
+            continue
+
+        if tags.get("natural") == "water" or tags.get("waterway") == "riverbank":
+            if not is_closed(coords) or len(coords) < 4:
+                continue
+            poly = clip_polygon(coords, world_rect)
+            if len(poly) < 4:
+                continue
+            water.append({"pts": poly, "name": tags.get("name")})
+            continue
+
+        if tags.get("leisure") in ("park", "garden", "playground", "pitch", "dog_park") or \
+           tags.get("landuse") in ("grass", "forest", "meadow", "cemetery"):
+            if not is_closed(coords) or len(coords) < 4:
+                continue
+            poly = clip_polygon(coords, world_rect)
+            if len(poly) < 4:
+                continue
+            green.append({"pts": poly, "kind": tags.get("leisure") or tags.get("landuse")})
+            continue
+
+    minx, miny, maxx, maxy = world_rect
+    out = {
+        "meta": {
+            "origin": {"lat": LAT0, "lon": LON0},
+            "bounds": [minx, miny, maxx, maxy],
+            "mPerDegLat": M_PER_DEG_LAT,
+            "mPerDegLon": M_PER_DEG_LON,
+        },
+        "roads": roads,
+        "buildings": buildings,
+        "water": water,
+        "green": green,
+        "trees": trees,
+    }
+
+    with open(DST, "w") as f:
+        json.dump(out, f, separators=(",", ":"))
+
+    print(f"roads={len(roads)} buildings={len(buildings)} water={len(water)} green={len(green)} trees={len(trees)}")
+    print(f"world bounds: x[{minx:.0f},{maxx:.0f}] y[{miny:.0f},{maxy:.0f}]  "
+          f"({maxx-minx:.0f}m x {maxy-miny:.0f}m)")
+    import os
+    print(f"output size: {os.path.getsize(DST)/1024:.0f} KB -> {DST}")
+
+
+if __name__ == "__main__":
+    main()

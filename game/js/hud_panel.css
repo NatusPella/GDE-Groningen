@@ -1,0 +1,146 @@
+#hud {
+  --hud-fg: #f2f2f2;
+  --hud-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.9);
+}
+
+#hud .hud-top-left {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 170px;
+}
+
+#hud .hud-bar {
+  position: relative;
+  width: 100%;
+  height: 13px;
+  margin-bottom: 5px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#hud .hud-bar-fill {
+  height: 100%;
+  transition: width 0.15s linear;
+}
+
+#hud .hud-bar-fill.health { background: #3fbf3f; }
+#hud .hud-bar-fill.health.low { background: #d93f3f; }
+#hud .hud-bar-fill.armor { background: #4a90d9; }
+
+#hud .hud-top-right {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  text-align: right;
+  color: var(--hud-fg);
+  text-shadow: var(--hud-shadow);
+  font-weight: bold;
+}
+
+#hud .hud-wanted {
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: #e8c93a;
+  line-height: 1;
+}
+
+#hud .hud-wanted .off { color: rgba(255, 255, 255, 0.25); }
+
+#hud .hud-money {
+  margin-top: 4px;
+  font-size: 20px;
+  color: #3fbf3f;
+}
+
+#hud .hud-weapon {
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+#hud .hud-mission {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: var(--hud-fg);
+  text-shadow: var(--hud-shadow);
+  max-width: 60vw;
+}
+
+#hud .hud-mission-label {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#hud .hud-mission-timer {
+  font-size: 20px;
+  color: #e8c93a;
+}
+
+#hud .hud-toasts {
+  position: absolute;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+#hud .hud-toast {
+  color: var(--hud-fg);
+  text-shadow: var(--hud-shadow);
+  font-size: 16px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+#hud .hud-toast.big {
+  font-size: 34px;
+  letter-spacing: 3px;
+  color: #d93f3f;
+}
+
+#hud .hud-location {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  color: var(--hud-fg);
+  text-shadow: var(--hud-shadow);
+  text-align: left;
+}
+
+#hud .hud-district {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+#hud .hud-street {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+#hud .hud-minimap-wrap {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(230, 230, 230, 0.85);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.5);
+  background: #1a1c1e;
+}
+
+#hud .hud-minimap-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

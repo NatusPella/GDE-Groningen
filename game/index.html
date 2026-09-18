@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>GTE VI - Grand Theft Eierbal VI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; }
+  #game, #game3d { display: block; width: 100vw; height: 100vh; cursor: crosshair; position: fixed; inset: 0; }
+  #game3d { display: none; }
+  #hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Arial Narrow', Arial, sans-serif; }
+  #loading { position: fixed; inset: 0; background: #111; color: #eee; display: flex;
+             align-items: center; justify-content: center; font: 20px/1.4 sans-serif; z-index: 10; }
+
+  #start-screen {
+    position: fixed; inset: 0; z-index: 20; display: none;
+    background: radial-gradient(ellipse at center, #2a2f26 0%, #14160f 75%);
+    color: #f0ede4; font-family: 'Arial Narrow', Arial, sans-serif;
+    align-items: center; justify-content: center;
+  }
+  #start-screen.visible { display: flex; }
+  #start-card { max-width: 480px; padding: 32px 40px; text-align: center; }
+  #start-card h1 { font-size: 42px; margin: 0 0 4px; letter-spacing: 2px; color: #e8c93a; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+  #start-card .sub { font-size: 15px; opacity: 0.75; margin: 0 0 24px; }
+  #controls-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; text-align: left; font-size: 15px; margin: 0 auto 28px; width: fit-content; }
+  #controls-grid .key { color: #e8c93a; font-weight: bold; text-align: right; }
+  #start-btn {
+    font: bold 20px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #14160f;
+    background: #e8c93a; border: none; border-radius: 4px; padding: 12px 40px; cursor: pointer;
+  }
+  #start-btn:hover { background: #f2d54c; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<canvas id="game3d"></canvas>
+<div id="hud"></div>
+<div id="loading">Groningen laden…</div>
+<div id="start-screen">
+  <div id="start-card">
+    <h1>GTE VI</h1>
+    <p class="sub">Grand Theft Eierbal VI - sandbox in de echte straten van de Grunn</p>
+    <div id="controls-grid">
+      <div class="key">WASD / pijltjes</div><div>lopen (Shift = rennen)</div>
+      <div class="key">E of F</div><div>voertuig in/uit stappen</div>
+      <div class="key">W/S in voertuig</div><div>gas / achteruit</div>
+      <div class="key">A/D in voertuig</div><div>sturen</div>
+      <div class="key">Spatie</div><div>remmen</div>
+      <div class="key">Muis</div><div>richten, klik = aanvallen</div>
+      <div class="key">1-4</div><div>wapen wisselen</div>
+      <div class="key">M</div><div>kaart tonen/verbergen</div>
+      <div class="key">V</div><div>camera: top-down / echte 3D (follow-cam)</div>
+      <div class="key">U</div><div>geluid aan/uit</div>
+    </div>
+    <button id="start-btn">Start</button>
+  </div>
+</div>
+<script type="module" src="js/main2.js"></script>
+</body>
+</html>
