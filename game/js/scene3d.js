@@ -44,7 +44,7 @@ let followYaw = 0;
 // orbit radius kept constant so pitch changes swing the camera around the
 // player like a real GTA camera (higher/steeper looking down, lower/flatter
 // looking up) instead of just sliding the camera height up and down in place
-const ORBIT_RADIUS = Math.hypot(5.5, 5.2 - 1.3);
+const ORBIT_RADIUS = Math.hypot(3.5, 3.5);
 const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
 const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overhead angle
 let followPitch = Math.atan2(5.2 - 1.3, 9);
