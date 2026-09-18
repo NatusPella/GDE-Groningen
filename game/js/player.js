@@ -1,6 +1,7 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon } from './util.js';
 import { findNearestVehicle, resolveVehicleBuildingCollision } from './vehicle.js';
 import { playAutoGejatLine } from './audio.js';
+import { respawnPlayer } from './world.js';
 
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
@@ -14,6 +15,7 @@ const KISS_COOLDOWN = 3;
 let kissReadyAt = 0;
 const JUMP_SPEED = 5.2;
 const GRAVITY = 16;
+const DROWN_RATE = 12; // health/sec while on foot in water
 
 export class Player {
   constructor(x, y) {
@@ -85,7 +87,19 @@ export class Player {
     // walking along a quay/canal edge slides instead of just sticking dead,
     // which matters a lot here given how much of central Groningen is
     // waterfront (the Diepenring, canals, ...)
-    if (isInWater(nextX, nextY, map)) {
+    //
+    // If the player is somehow ALREADY inside water (teleport, a future
+    // terrain-hole edge case, being shoved in) this same block used to
+    // freeze them solid: every direction out of a wide canal is "into
+    // water" too, so all three branches below failed and both next*
+    // values collapsed back to the current position, forever. Skip the
+    // block entirely in that case - let them swim - and drown instead,
+    // same "mensen lopen niet in water, dan verzuipen ze" consequence the
+    // block was built for, just not as an unrecoverable soft-lock.
+    if (isInWater(this.x, this.y, map)) {
+      world.health = Math.max(0, world.health - DROWN_RATE * dt);
+      if (world.health <= 0) { world.health = 0; respawnPlayer(world); }
+    } else if (isInWater(nextX, nextY, map)) {
       if (!isInWater(nextX, this.y, map)) nextY = this.y;
       else if (!isInWater(this.x, nextY, map)) nextX = this.x;
       else { nextX = this.x; nextY = this.y; }

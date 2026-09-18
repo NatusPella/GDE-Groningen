@@ -146,7 +146,7 @@ export function init3D(map) {
   // background right at ground level - looked like holes in the world.
   // Sits below WATER_Y (-0.35) so it never hides water the way the old
   // plane did (that one rendered at y=0, right over water's -0.35).
-  terrainMesh = buildTerrainMesh3D(map.meta.bounds);
+  terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
   scene.add(terrainMesh);
 
   playerMesh = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);

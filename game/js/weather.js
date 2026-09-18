@@ -1,5 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { clamp, lerp } from './util.js';
+import { playSikkomLine } from './audio.js';
 
 const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
 
@@ -108,6 +109,10 @@ export function updateWeather(dt, world) {
       w.windAngle = Math.random() * Math.PI * 2;
       w.nextToppleAt = w.duration * (0.25 + Math.random() * 0.2);
       world.addMessage('Code Rood: storm boven Groningen, hou je fiets vast!', 4);
+      if (world.phoneNotifications) {
+        world.phoneNotifications.push({ text: 'SIKKOM: code rood, storm raast over de Grunn', duration: 4 });
+        playSikkomLine('weather_storm_start');
+      }
     }
     return;
   }
@@ -127,6 +132,10 @@ export function updateWeather(dt, world) {
     w.active = false;
     w.timer = rollTimer();
     world.addMessage('Storm trekt weg, Groningen droogt weer op.', 3);
+    if (world.phoneNotifications) {
+      world.phoneNotifications.push({ text: 'SIKKOM: storm trekt weg, Groningen droogt weer op', duration: 4 });
+      playSikkomLine('weather_storm_end');
+    }
   }
 }
 
