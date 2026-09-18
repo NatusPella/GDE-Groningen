@@ -242,13 +242,17 @@ function buildCarMesh(v) {
   windshield.position.set(cabinX + cabinLen / 2 - wsLen / 2 + 0.01, cabinY, 0);
   group.add(windshield);
 
+  const wheels = [];
   for (const ax of [hl * 0.62, -hl * 0.62]) {
     for (const sz of [hw - 0.05, -(hw - 0.05)]) {
       const w = wheel();
       w.position.set(ax, WHEEL_R, sz);
       group.add(w);
+      wheels.push(w);
     }
   }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = WHEEL_R;
 
   const lit = v.wrecked ? 0 : 0.3;
   for (const sz of [hw - 0.15, -(hw - 0.15)]) {
@@ -321,13 +325,17 @@ function buildFordEscortGroup(color, len = HERO_LEN, wid = HERO_WID, wrecked = f
   windshield.position.set(cabinLen / 2 - wsLen / 2 + 0.01, cabinY, 0);
   group.add(windshield);
 
+  const wheels = [];
   for (const ax of [hl * 0.62, -hl * 0.62]) {
     for (const sz of [hw - 0.05, -(hw - 0.05)]) {
       const w = wheel();
       w.position.set(ax, WHEEL_R, sz);
       group.add(w);
+      wheels.push(w);
     }
   }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = WHEEL_R;
 
   const lit = wrecked ? 0 : 0.35;
   for (const sz of [hw * 0.55, -hw * 0.55]) {
@@ -393,11 +401,15 @@ function buildBikeMesh(v) {
   group.add(tubeBetween(bbX, bbY, -hl * 0.55, seatY, 0.05, color, v.wrecked));
   group.add(tubeBetween(-hl * 0.55, seatY, hl * 0.55, barY, 0.05, color, v.wrecked));
 
+  const wheels = [];
   for (const sx of [hl * 0.85, -hl * 0.85]) {
     const w = bikeWheel(wheelR);
     w.position.set(sx, wheelR, 0);
     group.add(w);
+    wheels.push(w);
   }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = wheelR;
 
   const rider = buildRiderMesh(v.model.rider, seatY);
   rider.position.set(-hl * 0.2, 0, 0);
@@ -419,11 +431,15 @@ function buildScooterMesh(v) {
   group.add(tubeBetween(colX, deckY, colX, barY, 0.05, color, v.wrecked));
   group.add(tubeBetween(-hl * 0.2, deckY, colX, barY * 0.72, 0.03, color, v.wrecked));
 
+  const wheels = [];
   for (const sx of [hl * 0.75, -hl * 0.75]) {
     const w = bikeWheel(wheelR);
     w.position.set(sx, wheelR, 0);
     group.add(w);
+    wheels.push(w);
   }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = wheelR;
 
   // Standing scooter rider: raised so their feet land on the deck (not
   // sunk to y=0 the way a bike-style torsoY of ~0.62 would leave them,
@@ -500,14 +516,18 @@ function buildBusMesh(v) {
   windshield.position.set(hl - 0.02, bodyY + bodyH * 0.14, 0);
   group.add(windshield);
 
+  const wheels = [];
   for (const ax of [hl * 0.72, jointX, -hl * 0.78]) {
     for (const sz of [hw - 0.1, -(hw - 0.1)]) {
       const w = wheel();
       w.scale.setScalar(wheelR / WHEEL_R);
       w.position.set(ax, wheelR, sz);
       group.add(w);
+      wheels.push(w);
     }
   }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = wheelR;
 
   const lit = v.wrecked ? 0 : 0.3;
   for (const sz of [hw - 0.25, -(hw - 0.25)]) {
@@ -592,6 +612,19 @@ function buildBoatMesh(v) {
   }
 
   return group;
+}
+
+// --- wheel spin ---------------------------------------------------------
+
+// Rolls every wheel group of a vehicle mesh built above by the distance it
+// travelled this frame (arc length = speed*dt, angle = arc/radius). No-op
+// for meshes that never set userData.wheels (boats, or any future vehicle
+// type that doesn't call a wheel builder).
+export function updateVehicleWheelSpin(mesh, speed, dt) {
+  const wheels = mesh.userData.wheels;
+  if (!wheels || !wheels.length) return;
+  const delta = (speed / mesh.userData.wheelRadius) * dt;
+  for (const w of wheels) w.rotation.z += delta;
 }
 
 // --- dispatch ---------------------------------------------------------------

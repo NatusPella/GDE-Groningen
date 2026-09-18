@@ -130,10 +130,180 @@ function archetypeOf(b) {
   return 'generic';
 }
 
+// --- footprint sanitization ------------------------------------------------
+// Real OSM building footprints occasionally carry defects that make THREE's
+// earcut-style cap triangulation (ExtrudeGeometry -> ShapeUtils.triangulateShape,
+// used below via buildMainGeometry) misbehave into a wrong-looking sliver,
+// spike or self-crossing edge WITHOUT ever throwing or producing NaN:
+//   (a) consecutive near-duplicate points (near-zero-length edges)
+//   (b) runs of 3+ collinear points (contribute nothing to the silhouette)
+//   (c) genuine self-intersecting ("bowtie") rings - a real, rare OSM error
+// (a)/(b) are cleaned below; (c), and anything left with under 3 usable
+// points, falls back to the convex hull of the cleaned point set - a hull
+// is never self-intersecting and always triangulates cleanly. b.pts itself
+// is left untouched (mapview2.js's 2D minimap and hud_panel.js's minimap
+// dot both still read the original ring directly), so all of this only
+// ever affects the local copy used to build this building's 3D geometry.
+// Buildings are built once and cached (b._geo3dParts, see buildBuildingMesh
+// below and scene3d.js's buildingMeshes map), so this one-off per-building
+// cost is fine even though it's O(n^2) in footprint point count.
+const DEDUP_EPS = 0.02; // meters - collapse points closer together than this
+const COLLINEAR_EPS = 0.02; // meters - perpendicular deviation below which a vertex sits "on" the line through its neighbours
+const PARAM_EPS = 1e-7; // parametric slack for the segment-intersection test below, so a shared endpoint between adjacent edges never counts as a crossing
+
+function distSq(a, b) {
+  const dx = a[0] - b[0], dy = a[1] - b[1];
+  return dx * dx + dy * dy;
+}
+
+// Strips the single standard OSM closed-ring duplicate (last point == first)
+// if present. THREE's own triangulateShape already strips exactly this one
+// internally (removeDupEndPts), so doing it here too is just so this
+// module's own before/after point counts reflect genuine interior defects,
+// not the expected closure convention every footprint already follows.
+function stripClosingDuplicate(pts) {
+  if (pts.length > 1 && distSq(pts[0], pts[pts.length - 1]) <= DEDUP_EPS * DEDUP_EPS) return pts.slice(0, -1);
+  return pts.slice();
+}
+
+// Collapses consecutive points (cyclically - the wrap-around edge counts
+// too) closer together than DEDUP_EPS. Called after stripClosingDuplicate,
+// so every removal here is a genuine interior duplicate/zero-length edge.
+function dedupeInterior(open) {
+  const out = [];
+  for (const p of open) {
+    if (out.length === 0 || distSq(out[out.length - 1], p) > DEDUP_EPS * DEDUP_EPS) out.push(p);
+  }
+  while (out.length > 1 && distSq(out[0], out[out.length - 1]) <= DEDUP_EPS * DEDUP_EPS) out.pop();
+  return out;
+}
+
+// Drops any vertex whose perpendicular deviation from the line through its
+// immediate neighbours is below COLLINEAR_EPS - it lies on that line, so it
+// contributes nothing to the silhouette and is pure triangulation risk.
+// Runs several passes so a whole run of 3+ collinear points collapses down
+// to just its two endpoints; never drops below a triangle.
+function collapseCollinear(ring) {
+  let cur = ring;
+  for (let pass = 0; pass < 4; pass++) {
+    const n = cur.length;
+    if (n < 4) break;
+    const next = [];
+    let changed = false;
+    for (let i = 0; i < n; i++) {
+      const prev = cur[(i - 1 + n) % n], p = cur[i], nxt = cur[(i + 1) % n];
+      const ex = nxt[0] - prev[0], ey = nxt[1] - prev[1];
+      const segLen = Math.hypot(ex, ey);
+      if (segLen > 1e-9) {
+        const cross = (p[0] - prev[0]) * ey - (p[1] - prev[1]) * ex;
+        if (Math.abs(cross) / segLen < COLLINEAR_EPS) { changed = true; continue; }
+      }
+      next.push(p);
+    }
+    if (next.length < 3) break;
+    cur = next;
+    if (!changed) break;
+  }
+  return cur;
+}
+
+// Exact parametric segment-intersection test (not a sign heuristic): true
+// only for a genuine transversal crossing strictly inside BOTH segments
+// (0 < t < 1 and 0 < u < 1) - a shared endpoint between adjacent ring edges
+// lands at t or u == 0/1 and is excluded by construction.
+function segmentsCross(a, b, c, d) {
+  const d1x = b[0] - a[0], d1y = b[1] - a[1];
+  const d2x = d[0] - c[0], d2y = d[1] - c[1];
+  const denom = d1x * d2y - d1y * d2x;
+  if (Math.abs(denom) < 1e-12) return false; // parallel/collinear - not a transversal crossing
+  const t = ((c[0] - a[0]) * d2y - (c[1] - a[1]) * d2x) / denom;
+  const u = ((c[0] - a[0]) * d1y - (c[1] - a[1]) * d1x) / denom;
+  return t > PARAM_EPS && t < 1 - PARAM_EPS && u > PARAM_EPS && u < 1 - PARAM_EPS;
+}
+
+// O(n^2) over every non-adjacent edge pair - footprints are small (well
+// under 50 points typically, rarely into the low hundreds), and this only
+// ever runs once per building thanks to the buildBuildingMesh cache.
+function ringSelfIntersects(ring) {
+  const n = ring.length;
+  if (n < 4) return false;
+  for (let i = 0; i < n; i++) {
+    const a = ring[i], b = ring[(i + 1) % n];
+    for (let j = i + 2; j < n; j++) {
+      if (i === 0 && j === n - 1) continue; // shares a vertex with edge i via the wrap-around, not a real crossing
+      const c = ring[j], d = ring[(j + 1) % n];
+      if (segmentsCross(a, b, c, d)) return true;
+    }
+  }
+  return false;
+}
+
+function crossZ(o, a, b) {
+  return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+}
+
+// Standard monotone-chain convex hull - never self-intersecting, always
+// triangulates cleanly. Used as the safe substitute silhouette for any
+// footprint too broken to trust to ExtrudeGeometry's triangulator; this
+// makes an already-malformed OSM building render as its convex hull instead
+// of its broken exact footprint, which at building scale is unnoticeable.
+function convexHull(points) {
+  const pts = points.slice().sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+  const n = pts.length;
+  if (n < 3) return pts;
+  const lower = [];
+  for (const p of pts) {
+    while (lower.length >= 2 && crossZ(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+    lower.push(p);
+  }
+  const upper = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const p = pts[i];
+    while (upper.length >= 2 && crossZ(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+    upper.push(p);
+  }
+  lower.pop(); upper.pop();
+  const hull = lower.concat(upper);
+  return hull.length >= 3 ? hull : pts.slice(0, Math.min(3, pts.length));
+}
+
+// Cleans a raw footprint ring (b.pts, as-is - untouched by this function)
+// for safe triangulation. Never throws and never returns fewer than 3
+// points. Exported only so a Node harness can verify/count this pipeline
+// directly against the shipped citymap.json without duplicating the logic.
+export function sanitizeFootprint(pts) {
+  const open = stripClosingDuplicate(pts);
+  const deduped = dedupeInterior(open);
+  const collinearCleaned = collapseCollinear(deduped);
+  const dedupRemoved = open.length - deduped.length;
+  const collinearRemoved = deduped.length - collinearCleaned.length;
+
+  let ring = collinearCleaned;
+  let hullUsed = false;
+  if (ring.length < 3 || ringSelfIntersects(ring)) {
+    hullUsed = true;
+    const hullSrc = deduped.length >= 3 ? deduped : (open.length >= 3 ? open : ring);
+    let hull = convexHull(hullSrc);
+    hull = collapseCollinear(hull);
+    if (hull.length < 3) {
+      // Last-ditch fallback for a footprint with under 3 distinct points
+      // even before any of this - a tiny square so callers always get a
+      // safely-triangulable ring. Not hit by any real citymap.json building
+      // (see verification), but keeps this function total.
+      const p = hull[0] || open[0] || pts[0];
+      const e = 0.5;
+      hull = [[p[0] - e, p[1] - e], [p[0] + e, p[1] - e], [p[0] + e, p[1] + e], [p[0] - e, p[1] + e]];
+    }
+    ring = hull;
+  }
+  return { pts: ring, neededCleanup: dedupRemoved > 0 || collinearRemoved > 0, hullUsed, dedupRemoved, collinearRemoved };
+}
+
 function shapeFromPts(pts) {
+  const { pts: ring } = sanitizeFootprint(pts);
   const shape = new THREE.Shape();
-  shape.moveTo(pts[0][0], -pts[0][1]);
-  for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i][0], -pts[i][1]);
+  shape.moveTo(ring[0][0], -ring[0][1]);
+  for (let i = 1; i < ring.length; i++) shape.lineTo(ring[i][0], -ring[i][1]);
   return shape;
 }
 

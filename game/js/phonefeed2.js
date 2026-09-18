@@ -17,7 +17,7 @@ function injectStyle() {
 #hud .phonefeed-card {
   position: absolute;
   left: 50%;
-  bottom: 20px;
+  bottom: 90px;
   width: min(360px, calc(100vw - 32px));
   transform: translate(-50%, 160%);
   opacity: 0;

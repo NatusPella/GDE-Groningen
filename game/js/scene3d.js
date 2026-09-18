@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
-import { buildVehicleMesh } from './models3d_vehicles.js';
-import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
+import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { applyWeatherToScene3D } from './weather2.js';
 import { buildFlitspaalMesh3D } from './flitspaal2.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca2.js';
@@ -477,6 +477,7 @@ export function update3D(dt, world) {
     if (mesh) {
       mesh.position.set(v.x, v.isBoat ? WATER_Y : 0, v.y);
       mesh.rotation.y = -v.angle;
+      updateVehicleWheelSpin(mesh, v.speed, dt);
     }
   }
 
@@ -491,6 +492,7 @@ export function update3D(dt, world) {
     if (mesh) {
       mesh.position.set(p.x, 0, p.y);
       mesh.rotation.y = -p.angle;
+      animatePersonWalk(mesh, p.speed || 0, dt);
     }
   }
   syncSpeechBubbles(world);
@@ -714,6 +716,7 @@ export function update3D(dt, world) {
     playerMesh.position.set(player.x, player.z || 0, player.y);
     playerMesh.rotation.y = -player.angle;
     playerMesh.scale.y = player.crouching ? 0.6 : 1;
+    animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), dt);
   }
 
   // companion (Tammo/Anita, whichever the player isn't controlling) -
@@ -735,6 +738,7 @@ export function update3D(dt, world) {
     if (!comp.inVehicle) {
       companionMesh.position.set(comp.x, 0, comp.y);
       companionMesh.rotation.y = -comp.angle;
+      animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), dt);
     } else {
       const v = comp.inVehicle;
       const hl = v.model.len / 2, hw = v.model.wid / 2;
@@ -771,21 +775,56 @@ export function update3D(dt, world) {
   let desiredZ = player.y - Math.sin(targetAngle) * horizDist;
   let desiredY = orbitHeight;
 
-  const dx = desiredX - eyeX, dy = desiredY - eyeY, dz = desiredZ - eyeZ;
-  const fullDist = Math.hypot(dx, dy, dz) || 1;
-  camRaycaster.set(new THREE.Vector3(eyeX, eyeY, eyeZ), new THREE.Vector3(dx / fullDist, dy / fullDist, dz / fullDist));
-  camRaycaster.far = fullDist;
-  camRaycaster.near = 0.1;
   // recursive: true - each building is now a Group of several child meshes
   // (roof/window-band/steeple/...), not one flat Mesh, so a non-recursive
   // raycast against the Group itself would never hit anything
-  const hits = camRaycaster.intersectObjects(Array.from(buildingMeshes.values()), true);
-  if (hits.length) {
-    const d = Math.max(1.2, hits[0].distance - 0.4);
-    const t = d / fullDist;
-    desiredX = eyeX + dx * t;
-    desiredY = eyeY + dy * t;
-    desiredZ = eyeZ + dz * t;
+  function raycastBuildingDist(dx, dy, dz, dist) {
+    camRaycaster.set(new THREE.Vector3(eyeX, eyeY, eyeZ), new THREE.Vector3(dx / dist, dy / dist, dz / dist));
+    camRaycaster.far = dist;
+    camRaycaster.near = 0.1;
+    const hits = camRaycaster.intersectObjects(Array.from(buildingMeshes.values()), true);
+    return hits.length ? hits[0].distance : null;
+  }
+
+  const dx = desiredX - eyeX, dy = desiredY - eyeY, dz = desiredZ - eyeZ;
+  const fullDist = Math.hypot(dx, dy, dz) || 1;
+  const hitDist = raycastBuildingDist(dx, dy, dz, fullDist);
+  if (hitDist !== null) {
+    // the ideal orbit view is blocked - real Gronings streets are often
+    // narrower than ORBIT_RADIUS, so this triggers constantly in the
+    // Binnenstad. Pulling the camera straight in along the same low ray
+    // (the old behaviour) used to shove it almost into the ground/wall at
+    // as little as 1.2m, leaving nothing visible but a blank close-up patch
+    // - "a floor slab covering everything". Try a near-overhead vantage
+    // first instead: looking down a street from above the rooftops clears
+    // the adjacent wall far more often than squeezing past it at eye level.
+    const steepPitch = Math.max(followPitch, 75 * Math.PI / 180);
+    const steepHoriz = Math.cos(steepPitch) * ORBIT_RADIUS;
+    const steepHeight = eyeY + Math.sin(steepPitch) * ORBIT_RADIUS;
+    const altX = player.x - Math.cos(targetAngle) * steepHoriz;
+    const altZ = player.y - Math.sin(targetAngle) * steepHoriz;
+    const altDx = altX - eyeX, altDy = steepHeight - eyeY, altDz = altZ - eyeZ;
+    const altFullDist = Math.hypot(altDx, altDy, altDz) || 1;
+    const altHit = raycastBuildingDist(altDx, altDy, altDz, altFullDist);
+    if (altHit === null || altHit > 3.0) {
+      desiredX = altX; desiredY = steepHeight; desiredZ = altZ;
+      if (altHit !== null) {
+        const d = Math.max(2.2, altHit - 0.4);
+        const t = d / altFullDist;
+        desiredX = eyeX + altDx * t;
+        desiredY = eyeY + altDy * t;
+        desiredZ = eyeZ + altDz * t;
+      }
+    } else {
+      // even near-overhead is blocked (under an overhang/bridge) - fall
+      // back to pulling in on the original ray, with a less punishing
+      // minimum distance than before
+      const d = Math.max(2.2, hitDist - 0.4);
+      const t = d / fullDist;
+      desiredX = eyeX + dx * t;
+      desiredY = eyeY + dy * t;
+      desiredZ = eyeZ + dz * t;
+    }
   }
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;

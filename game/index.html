@@ -28,8 +28,22 @@
   }
   #start-card .sub { font-size: 15px; opacity: 0.8; margin: 0 0 4px; }
   #start-card .hint-note { font-size: 12px; opacity: 0.6; margin: 0 0 20px; font-style: italic; }
-  #controls-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; text-align: left; font-size: 15px; margin: 0 auto 28px; width: fit-content; }
-  #controls-grid .key { color: var(--gron-green-light); font-weight: bold; text-align: right; }
+  #controls-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; text-align: left; font-size: 15px; margin: 0 auto 28px; width: fit-content; align-items: center; }
+  /* Same keycap-chip recipe as .hud-key in hud_panel.css - that stylesheet
+     is scoped to #hud (injected by hud_panel.js) so it can't be reused
+     directly here; this is the single approved keycap look duplicated for
+     the one screen that renders outside #hud. */
+  #controls-grid .key {
+    display: inline-flex; align-items: center; justify-content: center;
+    justify-self: end; min-width: 20px; height: 22px; padding: 0 8px;
+    background: linear-gradient(180deg, #4a4f47, #2a2e28);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-bottom: 2px solid rgba(0,0,0,0.6);
+    border-radius: 4px;
+    color: var(--gron-green-light);
+    font-weight: bold; font-size: 12px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset;
+  }
   #start-btn {
     font: bold 20px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #0c140e;
     background: var(--gron-green); border: none; border-radius: 4px; padding: 12px 40px; cursor: pointer;

@@ -42,6 +42,18 @@ const TORSO_TOP_Y = HIP_Y + TORSO_H;
 const HEAD_BOTTOM_Y = HEAD_Y - HEAD_R;
 const NECK_H = HEAD_BOTTOM_Y - TORSO_TOP_Y;
 
+// Walk-cycle tuning. Phase advances with distance travelled (speed * dt), not
+// wall-clock time, so cadence scales with movement speed instead of ticking
+// at a fixed rate while standing still. WALK_BLEND_SPEED is the speed at
+// which swing amplitude reaches its full value; below it the swing eases
+// down toward 0 instead of snapping, so an idle character settles into the
+// rest pose rather than freezing mid-stride or twitching.
+const WALK_STRIDE_FREQ = 2.2; // rad of phase per meter travelled
+const WALK_BLEND_SPEED = 1.5; // m/s at which swing amplitude saturates
+const WALK_BLEND_RATE = 8; // 1/s ease rate for the amplitude blend
+const LEG_SWING_AMPLITUDE = 0.55; // rad, hip pivot swing at full blend
+const ARM_SWING_AMPLITUDE = 0.35; // rad, shoulder pivot swing at full blend (smaller than legs)
+
 export const TAMMO_APPEARANCE = { shirt: 0x2f5c9e, skin: 0xe0b48a, hair: 0x2b1f14, variant: 'male', character: 'tammo', cap: DEFAULT_CAP };
 export const ANITA_APPEARANCE = { shirt: 0xb5483a, skin: 0xc98f66, hair: 0x3c2418, variant: 'female', character: 'anita' };
 
@@ -82,14 +94,28 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
 
   const group = new THREE.Group();
 
+  // Each leg is its own Group pivoted at the hip (y = HIP_Y) instead of a
+  // bare mesh positioned by its own center, so animatePersonWalk() below can
+  // rotate the whole leg (cylinder + shoe) around that hip. The leg/shoe
+  // meshes are offset DOWN from the pivot by exactly the amount the pivot
+  // itself moved up, so at rest (pivot rotation 0) they land at the exact
+  // same world position/points as the original ungrouped version - this is
+  // a pure rest-pose refactor, not a visual change.
   for (const side of [1, -1]) {
+    const legPivot = new THREE.Group();
+    legPivot.position.set(0, HIP_Y, side * (LEG_R + 0.02));
+    group.add(legPivot);
+
     const leg = cylinderPart(LEG_R, LEG_R * 0.78, LEG_LEN, pantsMat);
-    leg.position.set(0, LEG_LEN / 2, side * (LEG_R + 0.02));
-    group.add(leg);
+    leg.position.set(0, -LEG_LEN / 2, 0);
+    legPivot.add(leg);
 
     const shoe = new THREE.Mesh(new THREE.BoxGeometry(SHOE_LEN, SHOE_H, SHOE_WID), shoeMat);
-    shoe.position.set(LEG_R * 0.55, SHOE_H / 2, side * (LEG_R + 0.02));
-    group.add(shoe);
+    shoe.position.set(LEG_R * 0.55, SHOE_H / 2 - HIP_Y, 0);
+    legPivot.add(shoe);
+
+    if (side === 1) group.userData.legL = legPivot;
+    else group.userData.legR = legPivot;
   }
 
   const torso = new THREE.Mesh(
@@ -103,17 +129,28 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   neck.position.y = TORSO_TOP_Y + NECK_H / 2;
   group.add(neck);
 
+  // Same pivot-group treatment as the legs above, this time at the shoulder,
+  // so animatePersonWalk() can swing each arm. The arm keeps its own slight
+  // rotation.x "embed" tilt (unrelated to walking) exactly as before; the
+  // pivot only ever adds a rotation.z swing on top of that, defaulting to 0.
   const shoulderY = HIP_Y + TORSO_H - 0.04;
   for (const side of [1, -1]) {
-    const arm = cylinderPart(ARM_R * 0.9, ARM_R * 0.7, ARM_LEN, clothMat);
+    const armPivot = new THREE.Group();
     // offset is a slight embed (not a gap) so the arm visually attaches to
     // the torso's side face instead of floating next to it
-    arm.position.set(0, shoulderY - ARM_LEN / 2, side * (shoulderW / 2 + ARM_R * 0.15));
+    armPivot.position.set(0, shoulderY, side * (shoulderW / 2 + ARM_R * 0.15));
+    group.add(armPivot);
+
+    const arm = cylinderPart(ARM_R * 0.9, ARM_R * 0.7, ARM_LEN, clothMat);
+    arm.position.set(0, -ARM_LEN / 2, 0);
     arm.rotation.x = side * -0.12;
     const hand = new THREE.Mesh(new THREE.SphereGeometry(HAND_R, 6, 5), skinMat);
     hand.position.set(0, -ARM_LEN / 2, 0);
     arm.add(hand);
-    group.add(arm);
+    armPivot.add(arm);
+
+    if (side === 1) group.userData.armL = armPivot;
+    else group.userData.armR = armPivot;
   }
 
   const head = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R, 8, 6), skinMat);
@@ -151,4 +188,41 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
 
   group.scale.set(buildScale, heightScale, buildScale);
   return group;
+}
+
+// Drives the walk cycle for a mesh built by buildPersonMesh(). Call once per
+// frame per character (player, companion, every pedestrian) with that
+// character's current ground speed in m/s; safe to call for a mesh that
+// isn't a person (e.g. missing the pivot groups) since it just no-ops.
+//
+// Rotates each leg/arm pivot around local Z only - these figures face local
+// +X and stand as vertical cylinders, so a Z rotation of the pivot tips the
+// leg/arm forward/backward along X, which is the sagittal swing plane a real
+// stride moves in. Opposite-side legs swing in opposite phase; each arm
+// swings in the same phase as the opposite-side leg (natural counter-swing),
+// at a smaller amplitude. Never touches mesh.scale - that's reserved for
+// per-character build/height (buildPersonMesh) and crouch (the integrator).
+export function animatePersonWalk(mesh, speed, dt) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.legL || !ud.legR || !ud.armL || !ud.armR) return;
+
+  const s = Number.isFinite(speed) ? Math.max(0, speed) : 0;
+  const step = Number.isFinite(dt) ? Math.max(0, dt) : 0;
+
+  const phase = (ud.walkPhase || 0) + s * WALK_STRIDE_FREQ * step;
+  ud.walkPhase = phase % (Math.PI * 2);
+
+  const targetBlend = Math.min(1, s / WALK_BLEND_SPEED);
+  const prevBlend = ud.walkBlend || 0;
+  const blend = prevBlend + (targetBlend - prevBlend) * Math.min(1, step * WALK_BLEND_RATE);
+  ud.walkBlend = blend;
+
+  const swing = Math.sin(phase) * blend;
+  const legSwing = swing * LEG_SWING_AMPLITUDE;
+  const armSwing = swing * ARM_SWING_AMPLITUDE;
+
+  ud.legL.rotation.z = legSwing;
+  ud.legR.rotation.z = -legSwing;
+  ud.armL.rotation.z = -armSwing;
+  ud.armR.rotation.z = armSwing;
 }
