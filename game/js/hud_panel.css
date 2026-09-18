@@ -71,13 +71,6 @@
   font-size: 15px;
 }
 
-#hud .hud-radio {
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--gron-green-light);
-  opacity: 0.9;
-}
-
 #hud .hud-mission {
   position: absolute;
   top: 14px;

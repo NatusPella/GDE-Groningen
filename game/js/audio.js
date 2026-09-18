@@ -41,11 +41,9 @@ const ANITA_LINES = {
 };
 const GMUSIC_JINGLES = {
   station_id: './audio/gmusic/jingles/station_id.wav',
-  instappen: './audio/gmusic/jingles/instappen.wav',
   nummerovergang: './audio/gmusic/jingles/nummerovergang.wav',
   rij_knipoog: './audio/gmusic/jingles/rij_knipoog.wav',
   hoge_wanted: './audio/gmusic/jingles/hoge_wanted.wav',
-  uitstappen: './audio/gmusic/jingles/uitstappen.wav',
 };
 const AMBIENT_JINGLE_KEYS = ['station_id', 'nummerovergang', 'rij_knipoog'];
 
@@ -78,7 +76,6 @@ let siren = null;
 let prev = null;
 let seenMessages = null;
 let muted = false;
-let wasDriving = false;
 const engineState = { freq: 42, gain: 0 };
 const sirenState = { gain: 0 };
 const musicState = { gain: GMUSIC_VOLUME };
@@ -348,6 +345,7 @@ async function loadGMusicManifest() {
     gmusic.elements = tracks.map((filename) => {
       const el = new Audio('./audio/gmusic/' + filename);
       el.preload = 'auto';
+      el.gmusicTitle = filename.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
       const srcNode = ctx.createMediaElementSource(el);
       srcNode.connect(musicBus);
       return { el, filename, srcNode };
@@ -369,6 +367,10 @@ let gmusicCurrentEl = null;
 let gmusicStarted = false;
 let gmusicFadingIn = false;
 let gmusicPending = false;
+// Set whenever a genuine track (not a jingle) starts playing; updateGMusic
+// flushes it into a HUD toast on the next tick, since it's the one place
+// that already runs every frame with `world` in scope.
+let pendingTrackAnnounce = null;
 
 function buildGmusicCycle() {
   const jingleKey = AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)];
@@ -416,6 +418,7 @@ function startGmusicRandomly() {
     if (isFinite(dur) && dur > 1) el.currentTime = Math.random() * dur * 0.8;
     el.addEventListener('ended', advanceGmusicQueue, { once: true });
     el.play().catch(() => {});
+    if (el.gmusicTitle) pendingTrackAnnounce = el.gmusicTitle;
   };
   if (el.readyState >= 1) startPlayback();
   else el.addEventListener('loadedmetadata', startPlayback, { once: true });
@@ -430,6 +433,7 @@ function advanceGmusicQueue() {
   gmusicCurrentEl.currentTime = 0;
   gmusicCurrentEl.addEventListener('ended', advanceGmusicQueue, { once: true });
   gmusicCurrentEl.play().catch(() => {});
+  if (gmusicCurrentEl.gmusicTitle) pendingTrackAnnounce = gmusicCurrentEl.gmusicTitle;
 }
 
 export function initAudio(world) {
@@ -519,6 +523,11 @@ function updateGMusic(dt, world) {
   if (!gmusicStarted && gmusic.elements.length) startGmusicRandomly();
   else if (gmusicStarted && !gmusicPending && (!gmusicCurrentEl || gmusicCurrentEl.paused) && gmusic.elements.length) advanceGmusicQueue();
 
+  if (pendingTrackAnnounce) {
+    world.addMessage('🎵 Nu op G-Music: ' + pendingTrackAnnounce, 4);
+    pendingTrackAnnounce = null;
+  }
+
   // Fixed-gain duck (not real-time ducking analysis) whenever the engine is
   // working hard or the siren is audible, per spec - same lerp-toward-target
   // shape as engineBus/sirenBus above. Slower while fading in from a fresh
@@ -582,10 +591,6 @@ export function updateAudio(dt, world) {
     }
   }
 
-  const driving = !!world.player.inVehicle;
-  if (driving && !wasDriving) playGMusicJingle('instappen');
-  else if (!driving && wasDriving) playGMusicJingle('uitstappen');
-  wasDriving = driving;
   if (world.wanted > 0 && prev.wanted === 0) {
     playGMusicJingle('hoge_wanted');
     playRandomChaseStartBark();
