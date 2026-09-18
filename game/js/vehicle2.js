@@ -1,4 +1,5 @@
-import { closestPointOnSegment, normalizeAngle, clamp, pointInPolygon, lerp } from './util2.js';
+import { closestPointOnSegment, normalizeAngle, clamp, pointInPolygon } from './util2.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const MODELS = [
   // Dutch daily traffic skews heavily toward grey/black/white/silver compacts
@@ -90,6 +91,12 @@ export class Vehicle {
     this.passenger = null; // 'companion' | null - the non-driving Tammo/Anita riding along
     this.horn = false;
 
+    // Residual world-space sideways velocity (m/s) left over from a
+    // resolveVehicleVehicleCollisions impulse - see applyControls below.
+    // Zero outside of a collision's immediate aftermath.
+    this.driftX = 0;
+    this.driftY = 0;
+
     // traffic AI path state
     this.road = null;
     this.dir = 1;
@@ -129,44 +136,26 @@ export class Vehicle {
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
-    if (this.isBus) pushBusTrail(this);
-  }
-}
-
-// Rolling history of a bus's own pose, sampled by distance travelled (not
-// frame count) so the trailing "harmonica" unit tracks correctly regardless
-// of framerate or speed. Runs off applyControls so it keeps working whether
-// the bus is AI-driven or the player is at the wheel.
-function pushBusTrail(v) {
-  if (!v.trailHistory) {
-    v.trailHistory = [{ x: v.x, y: v.y, angle: v.angle, dist: 0 }];
-    v.trailDist = 0;
-    return;
-  }
-  const last = v.trailHistory[v.trailHistory.length - 1];
-  const d = Math.hypot(v.x - last.x, v.y - last.y);
-  if (d < 0.01) return;
-  v.trailDist += d;
-  v.trailHistory.push({ x: v.x, y: v.y, angle: v.angle, dist: v.trailDist });
-  const keepFrom = v.trailDist - v.model.len * 1.6;
-  while (v.trailHistory.length > 2 && v.trailHistory[1].dist < keepFrom) v.trailHistory.shift();
-}
-
-function sampleBusTrail(v, backDist) {
-  const hist = v.trailHistory;
-  if (!hist || hist.length < 2) return { x: v.x, y: v.y, angle: v.angle };
-  const targetDist = v.trailDist - backDist;
-  if (targetDist <= hist[0].dist) return { x: hist[0].x, y: hist[0].y, angle: hist[0].angle };
-  for (let i = hist.length - 1; i > 0; i--) {
-    if (hist[i - 1].dist <= targetDist) {
-      const a = hist[i - 1], b = hist[i];
-      const span = b.dist - a.dist;
-      const t = span > 1e-6 ? clamp((targetDist - a.dist) / span, 0, 1) : 0;
-      return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), angle: a.angle + normalizeAngle(b.angle - a.angle) * t };
+    // Sideways leftover from a collision impulse (resolveVehicleVehicleCollisions)
+    // rides along independently of the forward speed/angle model above, and
+    // decays away quickly - a brief post-hit nudge, not a steering change.
+    if (this.driftX || this.driftY) {
+      this.x += this.driftX * dt;
+      this.y += this.driftY * dt;
+      const decay = Math.exp(-DRIFT_DECAY_RATE * dt);
+      this.driftX *= decay;
+      this.driftY *= decay;
+      if (Math.hypot(this.driftX, this.driftY) < 0.03) { this.driftX = 0; this.driftY = 0; }
     }
+
   }
-  return { x: hist[0].x, y: hist[0].y, angle: hist[0].angle };
 }
+
+// Half-life of ~0.12s (ln2/6) - a collision's lateral shove is felt for a
+// beat and then fades, rather than permanently steering the vehicle off its
+// facing angle.
+const DRIFT_DECAY_RATE = 6;
+const MAX_DRIFT_SPEED = 6; // m/s, safety clamp against pathological multi-hit stacking in one frame
 
 // Right-hand-traffic offset from the road centerline, consistently used both
 // to place a vehicle at spawn and as the steering target while driving -
@@ -603,7 +592,68 @@ function closestPointsBetweenSegments(s1, s2) {
   return { p1x, p1y, p2x, p2y, dist2: bestD2 };
 }
 
+// Footprint-area proxy for mass (len*wid) - no real-world weight data exists
+// in this codebase's model definitions, but this at least makes a bus barely
+// budge for a bike while a bike gets thrown clear by a bus, using numbers
+// that are already part of each model rather than inventing new ones.
+function vehicleMass(v) {
+  return Math.max(0.3, v.model.len * v.model.wid);
+}
+
+const COLLISION_RESTITUTION = 0.4; // arcade-y, not a full elastic bounce (spec: ~0.3-0.5)
+const HARD_HIT_CLOSING_SPEED = 3; // m/s of closing speed along the normal before a hit counts as "hard" (sparks/damage)
+const IMPACT_DAMAGE_PER_MPS = 3.5; // health lost per m/s of closing speed above HARD_HIT_CLOSING_SPEED
+const MAX_IMPACT_DAMAGE = 30; // per-hit cap so one big head-on doesn't insta-wreck
+
+// Splits v's current (speed, angle) scalar motion into a component along the
+// vehicle's own facing (the new v.speed - this model has no independent
+// heading-vs-velocity split, so this IS "the vehicle's speed" going forward)
+// and a leftover sideways component, which is handed to v.driftX/driftY
+// (applyControls integrates + decays it) rather than discarded - see
+// deviationsFromSpec for why facing angle itself is left untouched here.
+function applyImpactVelocity(v, vx, vy) {
+  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  const px = -fy, py = fx;
+  const forward = vx * fx + vy * fy;
+  const lateral = vx * px + vy * py;
+  v.speed = forward;
+  const driftX = clamp(v.driftX + px * lateral, -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
+  const driftY = clamp(v.driftY + py * lateral, -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
+  v.driftX = driftX;
+  v.driftY = driftY;
+}
+
+function applyImpactDamage(v, dmg) {
+  if (dmg <= 0 || v.wrecked) return;
+  v.health = Math.max(0, v.health - dmg);
+  if (v.health <= 0) { v.wrecked = true; v.speed = 0; }
+}
+
+// Rewritten from a position-only separation + flat 0.75x speed scalar (which
+// never redirected velocity, so a vehicle at speed 0 stayed at speed 0 no
+// matter how hard it got hit - the root cause of the "chasing cop rams the
+// player and both just vibrate in place" report) into a proper 1D impulse
+// along the collision normal: each vehicle's velocity is decomposed into
+// normal/tangential components, the normal components exchange momentum
+// with restitution (COLLISION_RESTITUTION), and the tangential components
+// are left alone - which, as a side effect, gives exactly the "glancing
+// hits barely slow either vehicle, head-on hits lose much more speed"
+// behaviour the report asked for, since a glancing hit has a small normal
+// (closing) component to begin with. The position-separation half is
+// unchanged from before (still needed so capsules don't tunnel/stack).
+//
+// Also now the single place that flags "a hard hit just happened" for the
+// 3D damage-effect exports below: v.hitThisFrame/v.hitX/v.hitY/v.hitImpactSpeed,
+// reset for every vehicle at the top of each call so it's a fresh per-frame
+// signal by the time scene3d.js's render pass reads it afterwards (see
+// integrationNotes). Hard hits also now chip away at v.health/v.wrecked,
+// since previously nothing but bullets/water ever wrecked a vehicle - a
+// vehicle rammed to death by traffic never had anything to make it explode.
 export function resolveVehicleVehicleCollisions(vehicles) {
+  for (const v of vehicles) {
+    v.hitThisFrame = false;
+  }
+
   for (let i = 0; i < vehicles.length; i++) {
     const a = vehicles[i];
     if (a.wrecked) continue;
@@ -616,17 +666,55 @@ export function resolveVehicleVehicleCollisions(vehicles) {
       let dist = Math.sqrt(d2);
       const minDist = capA.r + capB.r;
       if (dist >= minDist) continue;
-      if (dist < 1e-4) dist = 1e-4;
+      // Two capsule axes lying exactly collinear (dead-on on a straight
+      // one-lane road) give a near-zero gap vector, which used to make both
+      // the position push AND (now) the impulse normal undefined - fall
+      // back to the centre-to-centre direction, which is well-defined
+      // unless the two vehicles occupy the exact same point.
+      let nx, ny;
+      if (dist < 1e-4) {
+        dist = 1e-4;
+        const ccx = b.x - a.x, ccy = b.y - a.y;
+        const ccLen = Math.hypot(ccx, ccy);
+        if (ccLen > 1e-4) { nx = ccx / ccLen; ny = ccy / ccLen; }
+        else { nx = 1; ny = 0; }
+      } else {
+        nx = (p2x - p1x) / dist; ny = (p2y - p1y) / dist;
+      }
       const overlap = minDist - dist;
-      const nx = (p2x - p1x) / dist, ny = (p2y - p1y) / dist;
       const pushA = overlap * (capB.r / minDist);
       const pushB = overlap * (capA.r / minDist);
       a.x -= nx * pushA; a.y -= ny * pushA;
       b.x += nx * pushB; b.y += ny * pushB;
-      const impactSpeed = Math.abs(a.speed) + Math.abs(b.speed);
-      if (impactSpeed > 2) {
-        a.speed *= 0.75;
-        b.speed *= 0.75;
+
+      const tx = -ny, ty = nx;
+      const vAx = Math.cos(a.angle) * a.speed, vAy = Math.sin(a.angle) * a.speed;
+      const vBx = Math.cos(b.angle) * b.speed, vBy = Math.sin(b.angle) * b.speed;
+      const vAn = vAx * nx + vAy * ny, vAt = vAx * tx + vAy * ty;
+      const vBn = vBx * nx + vBy * ny, vBt = vBx * tx + vBy * ty;
+
+      // relN > 0 means A is closing on B along the normal - two vehicles
+      // still overlapping (e.g. from last frame's push not fully clearing
+      // them) but already moving apart along the normal get no impulse, so
+      // they don't get glued back together.
+      const relN = vAn - vBn;
+      if (relN <= 0) continue;
+
+      const mA = vehicleMass(a), mB = vehicleMass(b);
+      const totalMass = mA + mB;
+      const newVAn = vAn - (1 + COLLISION_RESTITUTION) * (mB / totalMass) * relN;
+      const newVBn = vBn + (1 + COLLISION_RESTITUTION) * (mA / totalMass) * relN;
+
+      applyImpactVelocity(a, newVAn * nx + vAt * tx, newVAn * ny + vAt * ty);
+      applyImpactVelocity(b, newVBn * nx + vBt * tx, newVBn * ny + vBt * ty);
+
+      if (relN > HARD_HIT_CLOSING_SPEED) {
+        const dmg = clamp((relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS, 0, MAX_IMPACT_DAMAGE);
+        applyImpactDamage(a, dmg);
+        applyImpactDamage(b, dmg);
+        const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
+        a.hitThisFrame = true; a.hitX = hx; a.hitY = hy; a.hitImpactSpeed = relN;
+        b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
       }
     }
   }
@@ -668,333 +756,178 @@ export function vehicleCorners(v) {
   return pts.map(([lx, ly]) => [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos]);
 }
 
-function drawBike(ctx, v) {
-  ctx.save();
-  ctx.translate(v.x, v.y);
-  ctx.rotate(v.angle);
-  const hl = v.halfLen;
+// --- vehicle damage effects (3D) ---------------------------------------
+// Three.js particle/billboard effects for report 2 ("meer aandacht voor
+// schade"). Local +X/+Z/+Y follow the same convention as combat2.js's
+// buildSparkBurstMesh3D etc - the integrator (scene3d.js) sets
+// mesh.position/rotation every frame, nothing here bakes those in, and
+// every mesh below is built fresh per call (own geometries/materials, never
+// module-scope-shared) so it's always safe for scene3d.js's usual
+// `mesh.traverse(o => o.material && o.material.dispose())` cleanup.
 
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath();
-  ctx.ellipse(0.05, 0.05, hl, hl * 0.32, 0, 0, Math.PI * 2);
-  ctx.fill();
+// 1) One-shot spark/debris burst - triggered from v.hitThisFrame (set by
+// resolveVehicleVehicleCollisions above) on a hard vehicle-vehicle impact.
+const IMPACT_SPARK_LIFETIME = 0.35;
 
-  ctx.strokeStyle = v.model.color;
-  ctx.lineWidth = 0.06;
-  ctx.beginPath();
-  ctx.moveTo(-hl * 0.85, 0);
-  ctx.lineTo(hl * 0.2, -0.18);
-  ctx.lineTo(hl * 0.85, 0);
-  ctx.lineTo(hl * 0.2, -0.18);
-  ctx.lineTo(-hl * 0.3, 0.05);
-  ctx.lineTo(-hl * 0.85, 0);
-  ctx.stroke();
-
-  ctx.fillStyle = '#111';
-  const wheelR = v.model.fat ? hl * 0.34 : hl * 0.22;
-  ctx.beginPath(); ctx.arc(-hl * 0.85, 0, wheelR, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(hl * 0.85, 0, wheelR, 0, Math.PI * 2); ctx.fill();
-  if (v.model.fat) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-    ctx.lineWidth = 0.035;
-    ctx.beginPath(); ctx.arc(-hl * 0.85, 0, wheelR * 0.6, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(hl * 0.85, 0, wheelR * 0.6, 0, Math.PI * 2); ctx.stroke();
+export function buildVehicleImpactSparkMesh3D() {
+  const group = new THREE.Group();
+  const chips = [];
+  const n = 7;
+  for (let i = 0; i < n; i++) {
+    const fiery = i % 2 === 0;
+    const mat = new THREE.MeshBasicMaterial({ color: fiery ? 0xffb347 : 0x2b2b2b, transparent: true });
+    const size = fiery ? 0.05 : 0.08;
+    const chip = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), mat);
+    const a = (i / n) * Math.PI * 2 + Math.random() * 0.6;
+    const speed = 1.4 + Math.random() * 1.8;
+    chip.userData.vx = Math.cos(a) * speed;
+    chip.userData.vz = Math.sin(a) * speed;
+    chip.userData.vy = 1.2 + Math.random() * 1.6;
+    chip.position.set(0, 0.3, 0);
+    group.add(chip);
+    chips.push(chip);
   }
-
-  // rider, seen from directly above: shoulders + head, shifted slightly
-  // toward the rear seat position
-  ctx.fillStyle = v.model.rider || '#2f5c8a';
-  ctx.beginPath();
-  ctx.ellipse(-hl * 0.1, 0, hl * 0.5, v.halfWid * 1.05, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#e0b48a';
-  ctx.beginPath();
-  ctx.arc(hl * 0.15, 0, hl * 0.28, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
+  group.userData.chips = chips;
+  group.userData.age = 0;
+  return group;
 }
 
-// Standing rider, seen from above, reads as a tight torso circle near the
-// deck's centre rather than drawBike's elongated seated-rider ellipse.
-function drawScooter(ctx, v) {
-  ctx.save();
-  ctx.translate(v.x, v.y);
-  ctx.rotate(v.angle);
-  const hl = v.halfLen, hw = v.halfWid;
-
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath();
-  ctx.ellipse(0.04, 0.04, hl, hl * 0.3, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = v.model.color;
-  ctx.lineWidth = 0.05;
-  ctx.beginPath();
-  ctx.moveTo(-hl * 0.8, 0);
-  ctx.lineTo(hl * 0.3, 0);
-  ctx.lineTo(hl * 0.3, -hl * 0.35);
-  ctx.stroke();
-
-  ctx.fillStyle = '#111';
-  const wheelR = hl * 0.2;
-  ctx.beginPath(); ctx.arc(-hl * 0.8, 0, wheelR, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(hl * 0.7, 0, wheelR, 0, Math.PI * 2); ctx.fill();
-
-  ctx.fillStyle = v.model.rider || '#2f5c8a';
-  ctx.beginPath();
-  ctx.ellipse(-hl * 0.05, 0, hw * 1.15, hw, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#e0b48a';
-  ctx.beginPath();
-  ctx.arc(hl * 0.05, 0, hl * 0.22, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
+// Returns true while still alive, false once its lifetime has elapsed - the
+// integrator's cue to scene.remove() + dispose + drop it from its cache.
+export function updateVehicleImpactSparkMesh3D(mesh, dt) {
+  mesh.userData.age += dt;
+  const t = mesh.userData.age / IMPACT_SPARK_LIFETIME;
+  if (t >= 1) return false;
+  for (const chip of mesh.userData.chips) {
+    chip.position.x += chip.userData.vx * dt;
+    chip.position.z += chip.userData.vz * dt;
+    chip.userData.vy -= 9 * dt;
+    chip.position.y = Math.max(0, chip.position.y + chip.userData.vy * dt);
+    chip.material.opacity = 1 - t;
+    chip.scale.setScalar(1 - t * 0.4);
+  }
+  return true;
 }
 
-const BUS_FRONT_FRAC = 0.58;
-const BUS_REAR_FRAC = 0.5;
+// 2) Fire+smoke that stays attached to a damaged-but-not-wrecked vehicle.
+// Not self-expiring (loops for as long as the integrator keeps calling
+// update) - vehicleNeedsFireEffect below is the health-threshold check that
+// decides when to attach/detach it.
+export const VEHICLE_FIRE_HEALTH_THRESHOLD = 30;
 
-// Articulated ("harmonica") bus: draws a shorter tractor unit at the
-// vehicle's real (collision/AI) pose, a shorter trailing unit at a pose
-// sampled from its own trail history, and a bellows joint stretched/skewed
-// between the two attachment points - render-only, no effect on driving.
-function drawBus(ctx, v) {
-  const hl = v.halfLen, hw = v.halfWid;
-  const frontHl = hl * BUS_FRONT_FRAC;
-  const rearHl = hl * BUS_REAR_FRAC;
-  const rearHw = hw * 0.92;
-  const rearPose = sampleBusTrail(v, v.model.len);
-
-  drawBusUnit(ctx, rearPose.x, rearPose.y, rearPose.angle, rearHl, rearHw, v.model, v.wrecked, false);
-  drawBusJoint(ctx, v, frontHl, hw, rearPose, rearHl, rearHw);
-  drawBusUnit(ctx, v.x, v.y, v.angle, frontHl, hw, v.model, v.wrecked, true);
+export function vehicleNeedsFireEffect(v) {
+  return !v.wrecked && v.health <= VEHICLE_FIRE_HEALTH_THRESHOLD;
 }
 
-function drawBusUnit(ctx, cx, cy, angle, hl, hw, model, wrecked, isFront) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(angle);
+export function buildVehicleFireMesh3D() {
+  const group = new THREE.Group();
 
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.beginPath();
-  ctx.roundRect(-hl + 0.15, -hw + 0.15, hl * 2, hw * 2, 0.5);
-  ctx.fill();
+  const flame = new THREE.Mesh(
+    new THREE.ConeGeometry(0.18, 0.55, 6),
+    new THREE.MeshBasicMaterial({ color: 0xff7020, transparent: true, opacity: 0.85 })
+  );
+  flame.position.y = 0.28;
+  group.add(flame);
+  group.userData.flame = flame;
 
-  ctx.fillStyle = '#161616';
-  const wheelLen = 0.55;
-  const axles = isFront ? [hl * 0.55, -hl * 0.55] : [hl * 0.5, -hl * 0.7];
-  for (const ax of axles) {
-    for (const side of [-1, 1]) {
-      ctx.beginPath();
-      ctx.roundRect(ax - wheelLen / 2, side * hw - 0.08, wheelLen, 0.16, 0.05);
-      ctx.fill();
-    }
+  const smokePuffs = [];
+  for (let i = 0; i < 4; i++) {
+    const puff = new THREE.Mesh(
+      new THREE.SphereGeometry(0.16 + i * 0.03, 6, 5),
+      new THREE.MeshBasicMaterial({ color: 0x3a3a3a, transparent: true, opacity: 0.5 })
+    );
+    puff.userData.riseSpeed = 0.55 + i * 0.12;
+    puff.userData.phase = i * 0.6;
+    group.add(puff);
+    smokePuffs.push(puff);
   }
-
-  ctx.fillStyle = wrecked ? '#3a3a3a' : model.color;
-  ctx.beginPath();
-  ctx.roundRect(-hl, -hw, hl * 2, hw * 2, 0.5);
-  ctx.fill();
-
-  ctx.fillStyle = model.stripe || '#eae6da';
-  ctx.fillRect(-hl + 0.25, -hw * 0.15, hl * 2 - 0.5, hw * 0.3);
-
-  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-  ctx.lineWidth = 0.06;
-  ctx.stroke();
-
-  ctx.fillStyle = 'rgba(150,180,200,0.85)';
-  const winCount = isFront ? 3 : 3;
-  const winSpan = hl * 1.55;
-  const winW = winSpan / winCount - 0.12;
-  for (let i = 0; i < winCount; i++) {
-    const wx = -winSpan / 2 + i * (winSpan / winCount) + 0.06;
-    ctx.beginPath();
-    ctx.roundRect(wx, -hw + 0.16, winW, hw - 0.32, 0.08);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(wx, 0.16, winW, hw - 0.32, 0.08);
-    ctx.fill();
-  }
-
-  if (isFront) {
-    ctx.fillStyle = 'rgba(150,180,200,0.9)';
-    ctx.beginPath();
-    ctx.roundRect(hl - 0.5, -hw + 0.2, 0.35, hw * 2 - 0.4, 0.1);
-    ctx.fill();
-
-    ctx.fillStyle = '#e0c020';
-    ctx.fillRect(hl - 0.7, -hw * 0.4, 0.2, hw * 0.8);
-  }
-
-  ctx.restore();
+  group.userData.smokePuffs = smokePuffs;
+  group.userData.age = 0;
+  return group;
 }
 
-// Dark accordion-bellows band bridging the tractor's rear edge to the
-// trailer's front edge - drawn as a quad in world space (not a local
-// rotated transform) since the two units can sit at different angles while
-// cornering, which is exactly what gives it the concertina look.
-function drawBusJoint(ctx, v, frontHl, frontHw, rearPose, rearHl, rearHw) {
-  const jointFrontHw = frontHw * 0.72;
-  const fx = v.x - Math.cos(v.angle) * frontHl, fy = v.y - Math.sin(v.angle) * frontHl;
-  const fnx = -Math.sin(v.angle), fny = Math.cos(v.angle);
-  const flx = fx + fnx * jointFrontHw, fly = fy + fny * jointFrontHw;
-  const frx = fx - fnx * jointFrontHw, fry = fy - fny * jointFrontHw;
+export function updateVehicleFireMesh3D(mesh, dt) {
+  mesh.userData.age += dt;
+  const t = mesh.userData.age;
 
-  const jointRearHw = rearHw * 0.72;
-  const rx = rearPose.x + Math.cos(rearPose.angle) * rearHl, ry = rearPose.y + Math.sin(rearPose.angle) * rearHl;
-  const rnx = -Math.sin(rearPose.angle), rny = Math.cos(rearPose.angle);
-  const rlx = rx + rnx * jointRearHw, rly = ry + rny * jointRearHw;
-  const rrx = rx - rnx * jointRearHw, rry = ry - rny * jointRearHw;
+  const flame = mesh.userData.flame;
+  const flick = 0.85 + Math.sin(t * 18) * 0.1 + Math.random() * 0.05;
+  flame.scale.set(flick, 0.9 + Math.sin(t * 22) * 0.15, flick);
 
-  ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath();
-  ctx.moveTo(flx, fly);
-  ctx.lineTo(rlx, rly);
-  ctx.lineTo(rrx, rry);
-  ctx.lineTo(frx, fry);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-  ctx.lineWidth = 0.05;
-  for (let i = 1; i <= 3; i++) {
-    const t = i / 4;
-    ctx.beginPath();
-    ctx.moveTo(lerp(flx, rlx, t), lerp(fly, rly, t));
-    ctx.lineTo(lerp(frx, rrx, t), lerp(fry, rry, t));
-    ctx.stroke();
+  const cycle = 1.6;
+  for (const puff of mesh.userData.smokePuffs) {
+    const local = (t + puff.userData.phase) % cycle;
+    const p = local / cycle;
+    puff.position.y = 0.3 + p * 1.8 * puff.userData.riseSpeed;
+    puff.position.x = Math.sin(t * 1.3 + puff.userData.phase) * 0.08;
+    puff.material.opacity = 0.5 * (1 - p);
+    puff.scale.setScalar(0.6 + p * 0.9);
   }
-
-  ctx.fillStyle = 'rgba(40,40,40,0.9)';
-  ctx.beginPath();
-  ctx.arc((fx + rx) / 2, (fy + ry) / 2, frontHw * 0.28, 0, Math.PI * 2);
-  ctx.fill();
 }
 
-// A handful of fading dots trailing the stern - cheap stand-in for a wake,
-// only drawn while actually moving.
-function drawBoatWake(ctx, v) {
-  if (Math.abs(v.speed) < 0.3) return;
-  const bx = -Math.cos(v.angle), by = -Math.sin(v.angle);
-  for (let i = 1; i <= 3; i++) {
-    const d = v.halfLen + i * 0.9;
-    ctx.globalAlpha = 0.35 * (1 - i / 4);
-    ctx.fillStyle = 'rgba(220,235,240,0.9)';
-    ctx.beginPath();
-    ctx.arc(v.x + bx * d, v.y + by * d, 0.18 + i * 0.05, 0, Math.PI * 2);
-    ctx.fill();
+// 3) One-shot explosion (particle burst + brief bright flash) - fired
+// exactly once per vehicle the first frame v.wrecked flips true.
+// vehicleJustWrecked owns the "exactly once" guard via v._exploded, since
+// nothing else on the vehicle tracks that transition.
+export function vehicleJustWrecked(v) {
+  if (v.wrecked && !v._exploded) {
+    v._exploded = true;
+    return true;
   }
-  ctx.globalAlpha = 1;
+  return false;
 }
 
-function drawBoat(ctx, v) {
-  drawBoatWake(ctx, v);
+const EXPLOSION_LIFETIME = 0.65;
 
-  ctx.save();
-  ctx.translate(v.x, v.y);
-  ctx.rotate(v.angle);
-  const hl = v.halfLen, hw = v.halfWid;
+export function buildVehicleExplosionMesh3D() {
+  const group = new THREE.Group();
 
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath();
-  ctx.ellipse(0.08, 0.08, hl, hw, 0, 0, Math.PI * 2);
-  ctx.fill();
+  const flash = new THREE.Mesh(
+    new THREE.SphereGeometry(0.9, 10, 8),
+    new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 1 })
+  );
+  group.add(flash);
+  group.userData.flash = flash;
 
-  ctx.fillStyle = v.wrecked ? '#3a3a3a' : v.model.color;
-  ctx.beginPath();
-  ctx.moveTo(hl, 0);
-  ctx.lineTo(hl * 0.3, -hw);
-  ctx.lineTo(-hl, -hw * 0.85);
-  ctx.lineTo(-hl, hw * 0.85);
-  ctx.lineTo(hl * 0.3, hw);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-  ctx.lineWidth = 0.06;
-  ctx.stroke();
-
-  ctx.fillStyle = v.model.cabin || '#2f3a44';
-  ctx.beginPath();
-  ctx.roundRect(-hl * 0.35, -hw * 0.55, hl * 0.7, hw * 1.1, 0.12);
-  ctx.fill();
-
-  ctx.restore();
+  const chips = [];
+  const n = 14;
+  for (let i = 0; i < n; i++) {
+    const fiery = i % 2 === 0;
+    const mat = new THREE.MeshBasicMaterial({ color: fiery ? 0xff6a1a : 0x2a2a2a, transparent: true });
+    const chip = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.1, 0.14), mat);
+    const a = (i / n) * Math.PI * 2 + Math.random() * 0.4;
+    const elevation = 0.6 + Math.random() * 0.8;
+    const speed = 3 + Math.random() * 3.5;
+    chip.userData.vx = Math.cos(a) * speed;
+    chip.userData.vz = Math.sin(a) * speed;
+    chip.userData.vy = elevation * speed;
+    group.add(chip);
+    chips.push(chip);
+  }
+  group.userData.chips = chips;
+  group.userData.age = 0;
+  return group;
 }
 
-export function drawVehicle(ctx, v) {
-  if (v.isBike) { drawBike(ctx, v); return; }
-  if (v.isScooter) { drawScooter(ctx, v); return; }
-  if (v.isBus) { drawBus(ctx, v); return; }
-  if (v.isBoat) { drawBoat(ctx, v); return; }
-  ctx.save();
-  ctx.translate(v.x, v.y);
-  ctx.rotate(v.angle);
-  const hl = v.halfLen, hw = v.halfWid;
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.beginPath();
-  ctx.roundRect(-hl + 0.15, -hw + 0.15, hl * 2, hw * 2, 0.4);
-  ctx.fill();
+// Returns true while still alive, false once its lifetime has elapsed - same
+// "done" contract as updateVehicleImpactSparkMesh3D.
+export function updateVehicleExplosionMesh3D(mesh, dt) {
+  mesh.userData.age += dt;
+  const t = mesh.userData.age / EXPLOSION_LIFETIME;
+  if (t >= 1) return false;
 
-  ctx.fillStyle = '#161616';
-  const wheelLen = hl * 0.34, wheelWid = 0.14;
-  const axleF = hl * 0.55, axleR = -hl * 0.58;
-  for (const ax of [axleF, axleR]) {
-    for (const side of [-1, 1]) {
-      ctx.beginPath();
-      ctx.roundRect(ax - wheelLen / 2, side * hw - wheelWid / 2, wheelLen, wheelWid, 0.05);
-      ctx.fill();
-    }
+  const flash = mesh.userData.flash;
+  flash.material.opacity = Math.max(0, 1 - t * 3.2);
+  flash.scale.setScalar(1 + t * 1.8);
+
+  for (const chip of mesh.userData.chips) {
+    chip.position.x += chip.userData.vx * dt;
+    chip.position.z += chip.userData.vz * dt;
+    chip.userData.vy -= 10 * dt;
+    chip.position.y = Math.max(0, chip.position.y + chip.userData.vy * dt);
+    chip.material.opacity = 1 - t;
   }
-
-  ctx.fillStyle = v.wrecked ? '#3a3a3a' : v.model.color;
-  ctx.beginPath();
-  ctx.roundRect(-hl, -hw, hl * 2, hw * 2, 0.45);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-  ctx.lineWidth = 0.06;
-  ctx.stroke();
-
-  // cabin: windshield + roof + rear window, split by pillars so it doesn't
-  // read as one flat window band
-  const cabinX0 = -hl * 0.18, cabinX1 = hl * 0.62;
-  ctx.fillStyle = 'rgba(60,64,70,0.9)';
-  ctx.beginPath();
-  ctx.roundRect(cabinX0, -hw + 0.16, cabinX1 - cabinX0, hw * 2 - 0.32, 0.22);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(175,205,225,0.9)';
-  ctx.beginPath();
-  ctx.roundRect(cabinX0 + 0.08, -hw + 0.22, (cabinX1 - cabinX0) * 0.32, hw * 2 - 0.44, 0.16);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.roundRect(cabinX0 + (cabinX1 - cabinX0) * 0.58, -hw + 0.22, (cabinX1 - cabinX0) * 0.36, hw * 2 - 0.44, 0.16);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(150,180,200,0.85)';
-  ctx.beginPath();
-  ctx.roundRect(-hl * 0.72, -hw + 0.22, hl * 0.32, hw * 2 - 0.44, 0.14);
-  ctx.fill();
-
-  ctx.fillStyle = '#161616';
-  ctx.beginPath(); ctx.arc(hl * 0.25, -hw - 0.02, 0.11, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(hl * 0.25, hw + 0.02, 0.11, 0, Math.PI * 2); ctx.fill();
-
-  if (v.isPolice) {
-    ctx.fillStyle = '#2255dd';
-    ctx.fillRect(-hl * 0.15, -hw * 0.35, 0.3, hw * 0.35);
-    ctx.fillStyle = '#dd2222';
-    ctx.fillRect(-hl * 0.15, 0, 0.3, hw * 0.35);
-  }
-
-  ctx.fillStyle = '#fff7c2';
-  ctx.fillRect(hl - 0.1, -hw + 0.15, 0.15, 0.25);
-  ctx.fillRect(hl - 0.1, hw - 0.4, 0.15, 0.25);
-  ctx.fillStyle = '#661111';
-  ctx.fillRect(-hl - 0.05, -hw + 0.15, 0.12, 0.25);
-  ctx.fillRect(-hl - 0.05, hw - 0.4, 0.12, 0.25);
-
-  ctx.restore();
+  return true;
 }
 
 // A vehicle that drives (or is knocked) into open water is wrecked on the
@@ -1027,31 +960,5 @@ export function checkVehicleWater(v, map, world) {
   return false;
 }
 
-// Draws (and expires) the splash particles checkVehicleWater pushes into
-// world.particles - kind 'splash', same {x,y,until} shape combat.js's own
-// 'spark' particles use, filtered the same way so the two kinds coexist.
-export function drawSplash(ctx, world) {
-  world.particles = world.particles.filter((p) => p.kind !== 'splash' || p.until > world.time);
-
-  for (const p of world.particles) {
-    if (p.kind !== 'splash') continue;
-    const t = 1 - clamp((p.until - world.time) / 1.1, 0, 1);
-    const r = lerp(0.3, 2.1, t);
-    ctx.globalAlpha = 1 - t;
-    ctx.strokeStyle = 'rgba(210,230,240,0.9)';
-    ctx.lineWidth = 0.08;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-    ctx.stroke();
-
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + t * 1.5;
-      ctx.beginPath();
-      ctx.arc(p.x + Math.cos(a) * r * 0.5, p.y + Math.sin(a) * r * 0.5, 0.15 * (1 - t * 0.6), 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  }
-  ctx.globalAlpha = 1;
-}
 
 export { MODELS };

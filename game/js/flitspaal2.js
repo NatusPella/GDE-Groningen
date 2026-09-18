@@ -10,7 +10,6 @@ const SPEED_MARGIN_KMH = 25; // "a good margin" over the local limit
 const FLAT_LIMIT_KMH = 60; // fallback when a road has no usable speed field
 const MIN_FINE = 35;
 const MAX_FINE = 75;
-const DRAW_CUTOFF2 = 60 * 60;
 
 function pickPoint(road) {
   if (!road.pts || road.pts.length < 3) return null;
@@ -71,33 +70,6 @@ export function updateFlitspaal(dt, world) {
       `Geflitst! Boete: €${fine} (u reed ${Math.round(speedKmh)} km/u waar ${Math.round(limitKmh)} was toegestaan)`,
       4
     );
-  }
-}
-
-export function drawFlitspaal(ctx, world) {
-  const cams = world.flitspaalen;
-  if (!cams || !cams.length) return;
-  const cx = world.player.x, cy = world.player.y;
-
-  for (const cam of cams) {
-    const dx = cam.x - cx, dy = cam.y - cy;
-    if (dx * dx + dy * dy > DRAW_CUTOFF2) continue;
-
-    ctx.save();
-    ctx.translate(cam.x, cam.y);
-    ctx.rotate(cam.angle);
-
-    ctx.fillStyle = '#7d8489';
-    ctx.fillRect(-0.09, -2.6, 0.18, 2.6);
-
-    ctx.fillStyle = '#e0a020';
-    ctx.fillRect(-0.05, -2.85, 0.55, 0.42);
-    ctx.fillStyle = '#2a2a2a';
-    ctx.beginPath();
-    ctx.arc(0.5, -2.64, 0.14, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
   }
 }
 

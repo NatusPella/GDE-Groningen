@@ -74,28 +74,6 @@ export function updateTrafficLights(dt, world) {
 
 const PHASE_COLORS = { green: '#2ecc40', yellow: '#f1c40f', red: '#e74c3c' };
 
-export function drawTrafficLights(ctx, world) {
-  for (const light of lights) {
-    const phase = phaseAt(light.t);
-    ctx.strokeStyle = '#3a3a3a';
-    ctx.lineWidth = 0.12;
-    ctx.beginPath();
-    ctx.moveTo(light.x, light.y);
-    ctx.lineTo(light.x, light.y - 2.6);
-    ctx.stroke();
-
-    ctx.fillStyle = '#26282b';
-    ctx.beginPath();
-    ctx.roundRect(light.x - 0.28, light.y - 3.3, 0.56, 0.9, 0.1);
-    ctx.fill();
-
-    ctx.fillStyle = PHASE_COLORS[phase];
-    ctx.beginPath();
-    ctx.arc(light.x, light.y - 2.85, 0.22, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
 export function buildTrafficLightMesh3D() {
   const group = new THREE.Group();
 

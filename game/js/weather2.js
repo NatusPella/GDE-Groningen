@@ -81,44 +81,6 @@ function toppleRandomBike(world) {
   v.speed = 0;
 }
 
-export function drawWeather(ctx, world) {
-  const w = world.weather;
-  if (!w || w.intensity <= 0) return;
-
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  const width = ctx.canvas.width, height = ctx.canvas.height;
-
-  ctx.globalAlpha = w.intensity * 0.4;
-  ctx.fillStyle = '#3a4550';
-  ctx.fillRect(0, 0, width, height);
-
-  const streakCount = Math.round(lerp(0, 110, w.intensity));
-  if (streakCount > 0) {
-    ctx.globalAlpha = clamp(w.intensity * 0.5, 0, 0.6);
-    ctx.strokeStyle = '#c9d6e0';
-    ctx.lineWidth = 1;
-    const dx = Math.cos(w.windAngle), dy = Math.sin(w.windAngle);
-    const len = 18;
-    const speed = 420;
-    for (let i = 0; i < streakCount; i++) {
-      const seedX = (i * 137.51) % width;
-      const seedY = (i * 91.7) % height;
-      const travel = (world.time * speed + i * 53) % (width + height);
-      const x = (seedX + dx * travel) % width;
-      const y = (seedY + dy * travel) % height;
-      const px = ((x % width) + width) % width;
-      const py = ((y % height) + height) % height;
-      ctx.beginPath();
-      ctx.moveTo(px, py);
-      ctx.lineTo(px - dx * len, py - dy * len);
-      ctx.stroke();
-    }
-  }
-
-  ctx.restore();
-}
-
 export function applyWeatherToScene3D(scene, renderer, world) {
   const w = world.weather;
   if (!w) return;

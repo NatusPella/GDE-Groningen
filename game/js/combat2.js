@@ -185,41 +185,6 @@ function spawnSpark(world, x, y) {
   world.particles.push({ x, y, until: world.time + 0.25, kind: 'spark' });
 }
 
-export function drawCombat(ctx, world) {
-  ctx.fillStyle = '#3d3d3d';
-  for (const p of world.particles) {
-    if (p.kind !== 'spark') continue;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 0.08, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = '#ffe9a8';
-  for (const b of world.bullets) {
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, 0.06, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  if (!effect || effect.until <= world.time) { effect = null; return; }
-
-  const p = world.player;
-  if (effect.type === 'muzzle') {
-    ctx.strokeStyle = '#ffd45c';
-    ctx.lineWidth = 0.08;
-    ctx.beginPath();
-    ctx.moveTo(p.x + Math.cos(effect.angle) * 0.4, p.y + Math.sin(effect.angle) * 0.4);
-    ctx.lineTo(p.x + Math.cos(effect.angle) * 0.9, p.y + Math.sin(effect.angle) * 0.9);
-    ctx.stroke();
-  } else {
-    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-    ctx.lineWidth = 0.1;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 0.9, effect.angle - Math.PI / 4, effect.angle + Math.PI / 4);
-    ctx.stroke();
-  }
-}
-
 // local +X is the elongated/forward axis for all four shapes below, so an
 // integrator that does mesh.position.set(x, y, z); mesh.rotation.y = -angle
 // (the same convention scene3d.js already uses for vehicles/peds/wildlife)

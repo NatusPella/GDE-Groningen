@@ -11,7 +11,6 @@ const POP_TARGET = 16;
 const SPAWN_RADIUS = 70;
 const DESPAWN_DIST = 150;
 const MAINTAIN_INTERVAL = 2.5;
-const DRAW_DIST = 90;
 
 const FARM_CHANCE = 1 / 6; // rare: roughly 1 in 5-8 of the wildlife budget
 const BIAS_SEARCH_RADIUS = 100;
@@ -167,93 +166,6 @@ export function updateWildlife(dt, world) {
   for (const a of list) {
     if (a.kind === 'seagull') updateSeagull(a, dt);
     else updateGrazer(a, dt);
-  }
-}
-
-function drawSeagull(ctx, a, t) {
-  const flap = Math.sin(t * 5 + a.flapSeed);
-  ctx.save();
-  ctx.translate(a.x, a.y);
-  ctx.rotate(a.angle);
-  const spread = 0.42 + flap * 0.14;
-  ctx.strokeStyle = 'rgba(232,231,222,0.92)';
-  ctx.lineWidth = 0.1;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(-0.42, -spread);
-  ctx.moveTo(0, 0);
-  ctx.lineTo(-0.42, spread);
-  ctx.stroke();
-  ctx.fillStyle = '#f2f1ea';
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 0.28, 0.11, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawGrazer(ctx, a, t) {
-  ctx.save();
-  ctx.translate(a.x, a.y);
-  ctx.fillStyle = 'rgba(0,0,0,0.22)';
-  ctx.beginPath();
-  ctx.ellipse(0.05, 0.05, 0.55, 0.32, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.rotate(a.angle);
-  const bob = Math.sin(t * 2.2 + a.bobSeed) * 0.02;
-
-  ctx.strokeStyle = 'rgba(30,28,24,0.8)';
-  ctx.lineWidth = 0.09;
-  for (const lx of [-0.32, 0.32]) {
-    for (const ly of [-0.22, 0.22]) {
-      ctx.beginPath();
-      ctx.moveTo(lx, ly);
-      ctx.lineTo(lx, ly * 1.6);
-      ctx.stroke();
-    }
-  }
-
-  if (a.kind === 'cow') {
-    ctx.fillStyle = '#f2f0e8';
-    ctx.beginPath();
-    ctx.ellipse(0, bob, 0.55, 0.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#242220';
-    for (const p of a.patches || []) {
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y + bob, p.r, p.r * 0.7, p.rot, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.fillStyle = '#f2f0e8';
-    ctx.beginPath();
-    ctx.ellipse(0.5, bob, 0.16, 0.13, 0, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    ctx.fillStyle = '#e8e4d6';
-    ctx.beginPath();
-    ctx.ellipse(-0.15, -0.1 + bob, 0.28, 0.22, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(0, bob, 0.5, 0.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(0.15, 0.1 + bob, 0.26, 0.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#3a352c';
-    ctx.beginPath();
-    ctx.ellipse(0.48, bob, 0.13, 0.1, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-export function drawWildlife(ctx, world) {
-  const p = world.player;
-  for (const a of world.wildlife || []) {
-    if (dist(a.x, a.y, p.x, p.y) > DRAW_DIST) continue;
-    if (a.kind === 'seagull') drawSeagull(ctx, a, world.time);
-    else drawGrazer(ctx, a, world.time);
   }
 }
 
