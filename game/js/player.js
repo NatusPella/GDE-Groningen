@@ -193,7 +193,12 @@ function isInWater(x, y, map) {
 // Push a circle out of any nearby building polygon it overlaps.
 export function resolveBuildingCollisions(x, y, radius, map) {
   const nearby = map.buildingsNear(x, y, radius + 2);
-  for (let iter = 0; iter < 2; iter++) {
+  // 2 passes wasn't always enough in a tight gap between two close
+  // buildings - each pass could push back toward the other wall without
+  // fully resolving, reading as "stuck" even though it's slowly still
+  // making progress frame to frame. More passes converge properly within
+  // a single call instead of relying on that slow multi-frame creep.
+  for (let iter = 0; iter < 5; iter++) {
     for (const b of nearby) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (x < minx - radius || x > maxx + radius || y < miny - radius || y > maxy + radius) continue;
