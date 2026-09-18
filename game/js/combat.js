@@ -62,7 +62,7 @@ function meleeAttack(world, angle, weapon) {
       damagePed(world, t, weapon.damage);
     } else {
       t.health -= weapon.damage * 0.4;
-      if (t.health <= 0) { t.health = 0; t.wrecked = true; t.speed = 0; }
+      if (t.health <= 0) { t.health = 0; t.wrecked = true; t.wreckedByPlayer = true; t.speed = 0; }
     }
   }
 }
@@ -124,6 +124,7 @@ function hitVehicles(world, b) {
     if (v.health <= 0) {
       v.health = 0;
       v.wrecked = true;
+      if (b.owner === 'player') v.wreckedByPlayer = true;
       v.speed = 0;
       if (v.isPolice) {
         world.stats.kills++;
