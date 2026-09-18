@@ -1,5 +1,5 @@
-import { normalizeAngle, pointInPolygon } from './util2.js';
-import { respawnPlayer } from './world2.js';
+import { normalizeAngle, pointInPolygon } from './util.js';
+import { respawnPlayer } from './world.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 export const WEAPONS = {

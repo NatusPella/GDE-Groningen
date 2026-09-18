@@ -1,10 +1,10 @@
-import { dist, angleLerp, pointInPolygon, polygonBounds, SeededRng } from './util2.js';
+import { dist, angleLerp, pointInPolygon, polygonBounds, SeededRng } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 // Ambient GTA6-marketing-parody wildlife: seagulls near water/the Diepenring,
 // the occasional cow/sheep in Noorderplantsoen-style green space. Pure
 // atmosphere - no health, no combat, no collision with the player/vehicles.
-// Mirrors pedestrians2.js's spawn-near/despawn-by-distance + wander-waypoint
+// Mirrors pedestrians.js's spawn-near/despawn-by-distance + wander-waypoint
 // pattern, but simpler (no flee/dead states).
 
 const POP_TARGET = 16;

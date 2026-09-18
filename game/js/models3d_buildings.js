@@ -141,7 +141,7 @@ function archetypeOf(b) {
 // (a)/(b) are cleaned below; (c), and anything left with under 3 usable
 // points, falls back to the convex hull of the cleaned point set - a hull
 // is never self-intersecting and always triangulates cleanly. b.pts itself
-// is left untouched (mapview2.js's 2D minimap and hud_panel.js's minimap
+// is left untouched (mapview.js's 2D minimap and hud_panel.js's minimap
 // dot both still read the original ring directly), so all of this only
 // ever affects the local copy used to build this building's 3D geometry.
 // Buildings are built once and cached (b._geo3dParts, see buildBuildingMesh

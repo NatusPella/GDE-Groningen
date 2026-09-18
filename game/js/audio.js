@@ -1,4 +1,4 @@
-import { clamp } from './util2.js';
+import { clamp } from './util.js';
 
 const MASTER_VOLUME = 0.55;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
@@ -8,6 +8,40 @@ const SIREN_LOW_FREQ = 440;
 const SIREN_HIGH_FREQ = 660;
 const SIREN_HOLD_MIN = 0.5;
 const SIREN_HOLD_MAX = 0.7;
+
+// Pre-recorded TTS voicelines - Tammo/Anita only, never reused by NPCs/
+// police/anyone else. The script is intentionally asymmetric (not every
+// character has every line) - playVoiceline() below just no-ops on a
+// missing key rather than substituting the wrong character's line.
+const TAMMO_LINES = {
+  wapen_opgepakt: './audio/voicelines/tammo/wapen_opgepakt.wav',
+  geld_opgepakt: './audio/voicelines/tammo/geld_opgepakt.wav',
+  auto_gejat: './audio/voicelines/tammo/auto_gejat.wav',
+  missie_gestart: './audio/voicelines/tammo/missie_gestart.wav',
+  missie_gelukt: './audio/voicelines/tammo/missie_gelukt.wav',
+  missie_mislukt: './audio/voicelines/tammo/missie_mislukt.wav',
+  opgepakt: './audio/voicelines/tammo/opgepakt.wav',
+  water_panic: './audio/voicelines/tammo/water_panic.wav',
+};
+const ANITA_LINES = {
+  wapen_opgepakt: './audio/voicelines/anita/wapen_opgepakt.wav',
+  geld_opgepakt: './audio/voicelines/anita/geld_opgepakt.wav',
+  missie_gestart: './audio/voicelines/anita/missie_gestart.wav',
+  missie_gelukt: './audio/voicelines/anita/missie_gelukt.wav',
+  missie_mislukt: './audio/voicelines/anita/missie_mislukt.wav',
+  opgepakt: './audio/voicelines/anita/opgepakt.wav',
+  kus: './audio/voicelines/anita/kus.wav',
+};
+const GMUSIC_JINGLES = {
+  station_id: './audio/gmusic/jingles/station_id.wav',
+  instappen: './audio/gmusic/jingles/instappen.wav',
+  nummerovergang: './audio/gmusic/jingles/nummerovergang.wav',
+  rij_knipoog: './audio/gmusic/jingles/rij_knipoog.wav',
+  hoge_wanted: './audio/gmusic/jingles/hoge_wanted.wav',
+  uitstappen: './audio/gmusic/jingles/uitstappen.wav',
+};
+const AMBIENT_JINGLE_KEYS = ['station_id', 'nummerovergang', 'rij_knipoog'];
+const AMBIENT_JINGLE_MIN = 90, AMBIENT_JINGLE_MAX = 150;
 
 let ctx = null;
 let master = null;
@@ -23,6 +57,8 @@ let siren = null;
 let prev = null;
 let seenMessages = null;
 let muted = false;
+let ambientJingleTimer = 0;
+let wasDriving = false;
 const engineState = { freq: 42, gain: 0 };
 const sirenState = { gain: 0 };
 const musicState = { gain: GMUSIC_VOLUME };
@@ -188,6 +224,38 @@ function playMissionJingle() {
   notes.forEach((f, i) => playTone({ freq: f, type: 'triangle', duration: 0.16, gain: 0.24, delay: i * 0.09 }));
 }
 
+// One-shot playback for the pre-recorded voicelines/jingles above - routed
+// through sfxBus (not its own bus) since these are conceptually just
+// another kind of one-shot sound effect, same as every playX() above,
+// just sourced from a real audio file instead of a synthesized oscillator.
+// A missing/unplayable file (network hiccup, or an asymmetric-script key
+// with no recording for this character) fails silently, never throws.
+function playClip(src) {
+  if (!ctx || muted) return;
+  const el = new Audio(src);
+  try {
+    const node = ctx.createMediaElementSource(el);
+    node.connect(sfxBus);
+  } catch (e) {
+    // ignore - playback still works without the Web Audio graph attached
+  }
+  el.play().catch(() => {});
+}
+
+function playVoiceline(character, key) {
+  const src = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];
+  if (src) playClip(src);
+}
+
+function playGMusicJingle(key) {
+  const src = GMUSIC_JINGLES[key];
+  if (src) playClip(src);
+}
+
+export function playAutoGejatLine(world) {
+  if (world.player.character === 'tammo') playVoiceline('tammo', 'auto_gejat');
+}
+
 // Fire-and-forget: initAudio() stays sync, this just fills in gmusic.elements
 // whenever the manifest (and the track files it lists) resolve. An empty or
 // missing manifest leaves gmusic.elements empty, which every gmusic playback
@@ -257,7 +325,9 @@ export function initAudio(world) {
     money: world.money,
     weapon: world.weapon,
     missionPhase: world.mission ? world.mission.phase : null,
+    wanted: world.wanted,
   };
+  ambientJingleTimer = AMBIENT_JINGLE_MIN + Math.random() * (AMBIENT_JINGLE_MAX - AMBIENT_JINGLE_MIN);
   seenMessages = new WeakSet();
   for (const m of world.messages) seenMessages.add(m);
 }
@@ -340,13 +410,45 @@ export function updateAudio(dt, world) {
   if (world.weapon !== prev.weapon) playSwitchClick();
 
   const missionPhase = world.mission ? world.mission.phase : null;
-  if (missionPhase === 'active' && prev.missionPhase !== 'active') playMissionJingle();
+  if (missionPhase === 'active' && prev.missionPhase !== 'active') {
+    playMissionJingle();
+    playVoiceline(world.player.character, 'missie_gestart');
+  }
 
   for (const m of world.messages) {
     if (seenMessages.has(m)) continue;
     seenMessages.add(m);
-    if (m.text === 'DOOD' || m.text === 'OPGEPAKT') playDeathSting();
-    else if (m.text.indexOf('voltooid') !== -1) playMissionJingle();
+    if (m.text === 'DOOD' || m.text === 'OPGEPAKT') {
+      playDeathSting();
+      if (m.text === 'OPGEPAKT') playVoiceline(world.player.character, 'opgepakt');
+    } else if (m.text.indexOf('voltooid') !== -1) {
+      playMissionJingle();
+    } else if (m.text.indexOf('geklaard!') !== -1) {
+      playVoiceline(world.player.character, 'missie_gelukt');
+    } else if (m.text.indexOf('mislukt') !== -1) {
+      playVoiceline(world.player.character, 'missie_mislukt');
+    } else if (m.text.endsWith('ammo')) {
+      playVoiceline(world.player.character, 'wapen_opgepakt');
+    } else if (m.text.startsWith('+ €')) {
+      playVoiceline(world.player.character, 'geld_opgepakt');
+    } else if (m.text.startsWith('Kusje voor')) {
+      playVoiceline(world.companion ? world.companion.character : null, 'kus');
+    } else if (m.text === 'Nat geworden!') {
+      playVoiceline(world.player.character, 'water_panic');
+    }
+  }
+
+  const driving = !!world.player.inVehicle;
+  if (driving && !wasDriving) playGMusicJingle('instappen');
+  else if (!driving && wasDriving) playGMusicJingle('uitstappen');
+  wasDriving = driving;
+  if (world.wanted > 0 && prev.wanted === 0 && driving) playGMusicJingle('hoge_wanted');
+  prev.wanted = world.wanted;
+
+  ambientJingleTimer -= dt;
+  if (ambientJingleTimer <= 0) {
+    ambientJingleTimer = AMBIENT_JINGLE_MIN + Math.random() * (AMBIENT_JINGLE_MAX - AMBIENT_JINGLE_MIN);
+    if (driving) playGMusicJingle(AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)]);
   }
 
   prev.kills = world.stats.kills;

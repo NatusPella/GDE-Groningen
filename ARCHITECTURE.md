@@ -11,9 +11,9 @@ radians, `0` = facing +x (east), increasing clockwise (since +y is down).
 ## Files that already exist (read them for exact signatures — this doc is a
 ## summary, the code is ground truth)
 
-- `game/js/util2.js` — math helpers: `clamp`, `lerp`, `dist`, `closestPointOnSegment`,
+- `game/js/util.js` — math helpers: `clamp`, `lerp`, `dist`, `closestPointOnSegment`,
   `pointInPolygon`, `polygonBounds`, `normalizeAngle`, `SeededRng`.
-- `game/js/mapdata2.js` — `GameMap` class wrapping the loaded `citymap.json`
+- `game/js/mapdata.js` — `GameMap` class wrapping the loaded `citymap.json`
   (roads/buildings/water/green polygons, each with a precomputed grid index).
   Key methods: `buildingsNear(x,y,r)`, `roadsNear(x,y,r)`, `waterNear(x,y,r)`,
   `greenNear(x,y,r)`, `queryView(minx,miny,maxx,maxy)`, `nearestRoadPoint(x,y)`.
@@ -22,26 +22,26 @@ radians, `0` = facing +x (east), increasing clockwise (since +y is down).
   speed (m/s cruise speed), oneway, name}`.
 - `game/js/camera2.js` — `Camera{x,y,zoom (px/m),w,h}`, `worldToScreen`,
   `screenToWorld`, `viewBounds(margin)`.
-- `game/js/input2.js` — `Input{isDown(key), wasPressed(key) (edge-triggered,
+- `game/js/input.js` — `Input{isDown(key), wasPressed(key) (edge-triggered,
   cleared every frame by main.js calling input.endFrame()), axis() -> [x,y]
   from WASD/arrows, mouse:{x,y (canvas-space pixels),down,rightDown,wheel}}`.
 - `game/js/render2.js` — `applyCameraTransform(ctx,camera)` (sets the canvas
   transform so subsequent draws use raw world-meter coordinates),
   `drawGround`, `drawGreen`, `drawWater`, `drawRoads`, `drawBuildings`.
-- `game/js/world2.js` — `World` class, the single shared mutable state object
+- `game/js/world.js` — `World` class, the single shared mutable state object
   (see below), and `respawnPlayer(world, {busted, moneyPenalty})`.
-- `game/js/vehicle2.js` — `Vehicle` class (`x,y,angle,speed,model{len,wid,
+- `game/js/vehicle.js` — `Vehicle` class (`x,y,angle,speed,model{len,wid,
   maxSpeed,accel,brake,turnRate,color},health,wrecked,driver,isPolice`),
   `spawnVehicleOnRoad(map, road, isPolice, rng)`, `findNearestVehicle(x,y,
   vehicles,maxDist)`, `resolveVehicleBuildingCollision(v,map)`,
   `updateTrafficAI(v,dt,map,world,rng)`, `drawVehicle(ctx,v)`,
   `vehicleCorners(v)`.
-- `game/js/player2.js` — `Player` class (`x,y,angle,radius,inVehicle`),
+- `game/js/player.js` — `Player` class (`x,y,angle,radius,inVehicle`),
   `player.update(dt, world)` (reads `world.input/map/vehicles`, handles
   on-foot movement + collision + enter/exit vehicles on 'e'/'f'), and the
   exported `resolveBuildingCollisions(x,y,radius,map) -> [x,y]` helper (push
   a circle out of any building it overlaps — reuse this, don't reimplement).
-- `game/js/main2.js` — boot + the render/update game loop. Currently wires up
+- `game/js/main.js` — boot + the render/update game loop. Currently wires up
   map, camera, input, player, traffic vehicles. **You do not need to edit
   this file** — write your module so `main.js` can import 1-3 functions from
   it; the integrator (a human, already familiar with this codebase) will
@@ -103,7 +103,7 @@ transform from hud.js.
 
 ## Module specs to build (one file each, independent of one another)
 
-### 1. `game/js/pedestrians2.js`
+### 1. `game/js/pedestrians.js`
 - `class Pedestrian { x, y, angle, speed, radius (~0.3), state: 'wander'|
   'flee'|'dead', health (~30), isCop: false, deadUntil }`
 - `spawnPedestriansNear(map, x, y, count, rng=Math.random)` — place `count`
@@ -139,7 +139,7 @@ transform from hud.js.
   `spawnPedestriansNear` (e.g. periodically near the camera) and prune far
   ones.
 
-### 2. `game/js/combat2.js`
+### 2. `game/js/combat.js`
 Classic GTA1 weapon set: fists, pistol, uzi (fast/low-damage), shotgun
 (short range/high damage, spread). Exports:
 - `WEAPONS` — object keyed by name: `{fists:{damage,range,cooldown,ammo:
@@ -171,7 +171,7 @@ Classic GTA1 weapon set: fists, pistol, uzi (fast/low-damage), shotgun
   muzzle-flash / melee-swing effect (use `world.particles` if you want, or
   your own local array — your call, just don't rename `world.bullets`).
 
-### 3. `game/js/police2.js`
+### 3. `game/js/police.js`
 - `updatePolice(dt, world)`:
   - Wanted decay: if no new stars were added recently (track via
     `world.wantedDecayTimer`, e.g. reset it to 0 whenever you notice
@@ -201,7 +201,7 @@ Classic GTA1 weapon set: fists, pistol, uzi (fast/low-damage), shotgun
     `world.js`).
 - No foot police in this pass — police presence is cars only.
 
-### 4. `game/js/missions2.js`
+### 4. `game/js/missions.js`
 - `initMissions(world)` — set up a short chain of 3-4 simple GTA1-style
   missions anchored near `world.spawnPoint` (walking/driving distance):
   e.g. (a) "Steal a car and deliver it to marker X" (drive a
