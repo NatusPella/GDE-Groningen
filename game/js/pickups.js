@@ -1,4 +1,4 @@
-import { dist, pointInPolygon } from './util2.js';
+import { dist, pointInPolygon } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const WEAPON_KEYS = ['pistol', 'uzi', 'shotgun'];

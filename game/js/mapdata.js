@@ -1,4 +1,4 @@
-import { polygonBounds, closestPointOnSegment, pointInPolygon } from './util2.js';
+import { polygonBounds, closestPointOnSegment, pointInPolygon } from './util.js';
 
 const CELL = 80; // meters per grid cell
 
@@ -145,7 +145,7 @@ export class GameMap {
   }
 
   // A vehicle's (x,y) can fall inside a water polygon that a bridge actually
-  // spans above - checkVehicleWater in vehicle2.js calls this first so it
+  // spans above - checkVehicleWater in vehicle.js calls this first so it
   // doesn't "drown" cars safely crossing on a bridge deck.
   isOnBridge(x, y) {
     for (const road of this.roadsNear(x, y, 8)) {

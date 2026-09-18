@@ -54,7 +54,7 @@ function injectStyles() {
       box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
       z-index: ${OVERLAY_Z};
       pointer-events: none;
-      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
       color: #f2f2f2;
     }
     .mapview-canvas { pointer-events: auto; cursor: default; }
@@ -181,7 +181,7 @@ function drawLandmarks(ctx, landmarks) {
   const r = px(4);
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
-  ctx.font = px(12) + 'px "Arial Narrow", Arial, sans-serif';
+  ctx.font = px(12) + 'px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
   for (const l of landmarks) {
     ctx.beginPath();
     ctx.arc(l.x, l.y, r, 0, Math.PI * 2);

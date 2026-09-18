@@ -1,4 +1,4 @@
-import { getPickupsForRender } from './pickups2.js';
+import { getPickupsForRender } from './pickups.js';
 
 const MINIMAP_SIZE = 160;
 const MM_SCALE = 0.5; // px per meter (css pixels)
@@ -91,7 +91,7 @@ export function updateHud(dt, world) {
   drawMinimap(world);
 }
 
-// G-Music is the one real station (actual playback lives in audio2.js) -
+// G-Music is the one real station (actual playback lives in audio.js) -
 // the others are flavor-only fake stations with no audio behind them, so
 // showing G-Music consistently while driving is what actually matches what
 // you hear, instead of randomly relabeling a station that never changes.

@@ -1,6 +1,6 @@
-import { dist, pointInPolygon, closestPointOnSegment } from './util2.js';
-import { resolveBuildingCollisions } from './player2.js';
-import { respawnPlayer } from './world2.js';
+import { dist, pointInPolygon, closestPointOnSegment } from './util.js';
+import { resolveBuildingCollisions } from './player.js';
+import { respawnPlayer } from './world.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.4;
@@ -21,7 +21,7 @@ const COP_CLOTHING = '#1c3fae';
 const COP_SEEK_SPEED = 3.1;
 const COP_SEEK_TRIGGER_RADIUS = 14;
 const COP_SEEK_GIVEUP_RADIUS = 22;
-const COP_BUST_FAST_SPEED = 9; // matches police2.js's BUST_FAST_SPEED
+const COP_BUST_FAST_SPEED = 9; // matches police.js's BUST_FAST_SPEED
 const COP_BUST_CONTACT_MARGIN = 0.1;
 
 const GRONINGS_PHRASES = [
@@ -93,7 +93,7 @@ export function spawnPedestriansNear(map, x, y, count, rng = Math.random) {
 }
 
 // Same placement machinery as spawnPedestriansNear (roads-near + building
-// rejection) - police2.js calls this to grow/replace its foot-police pool
+// rejection) - police.js calls this to grow/replace its foot-police pool
 // as world.wanted rises, exactly like it calls spawnVehicleOnRoad for cars.
 export function spawnCopPedestriansNear(map, x, y, count, rng = Math.random) {
   const cops = spawnPedestriansNear(map, x, y, count, rng);
@@ -168,7 +168,7 @@ function checkVehicleImpact(ped, world) {
   }
 }
 
-// Mirrors police2.js's checkBusted for police vehicles - contact with a
+// Mirrors police.js's checkBusted for police vehicles - contact with a
 // seeking cop on foot busts the player exactly the same way (same
 // moneyPenalty formula, same fast-getaway exemption), just triggered by a
 // Pedestrian instead of a Vehicle.

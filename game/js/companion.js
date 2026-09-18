@@ -1,11 +1,11 @@
-import { dist, pointInPolygon } from './util2.js';
-import { resolveBuildingCollisions } from './player2.js';
+import { dist, pointInPolygon } from './util.js';
+import { resolveBuildingCollisions } from './player.js';
 
 // Tammo and Anita are always out together: whichever one the player is NOT
 // controlling is this module's "companion" - an AI-controlled buddy that
 // follows on foot, rides along as a passenger when the player drives, and
 // respawns-and-walks-back if it gets killed. Swapping control (the 'c' key,
-// handled in player2.js) just trades physical state between world.player
+// handled in player.js) just trades physical state between world.player
 // and world.companion - this file never touches which one is "the player".
 
 const FOLLOW_DIST = 3.2;

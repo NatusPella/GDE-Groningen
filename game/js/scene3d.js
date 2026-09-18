@@ -1,21 +1,27 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
+import {
+  buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
+  vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
+  vehicleJustWrecked, buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D,
+} from './vehicle.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
-import { applyWeatherToScene3D } from './weather2.js';
-import { buildFlitspaalMesh3D } from './flitspaal2.js';
-import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca2.js';
-import { buildSeagullMesh3D, buildCowMesh3D, buildSheepMesh3D } from './wildlife2.js';
-import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions2.js';
+import { applyWeatherToScene3D } from './weather.js';
+import { buildFlitspaalMesh3D } from './flitspaal.js';
+import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
+import { buildSeagullMesh3D, buildCowMesh3D, buildSheepMesh3D } from './wildlife.js';
+import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import {
   getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
   buildHealthPickupMesh3D, buildArmorPickupMesh3D, buildGaragePickupMesh3D,
-} from './pickups2.js';
-import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D } from './trafficlights2.js';
-import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat2.js';
+} from './pickups.js';
+import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D } from './trafficlights.js';
+import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial } from './water3d.js';
-import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police2.js';
-import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops2.js';
+import { buildFallenTreeMesh3D, updateFallenTreeMesh3D } from './treeprops.js';
+import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
+import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -48,6 +54,10 @@ const roadMeshes = new Map();
 const greenMeshes = new Map();
 const waterMeshes = new Map();
 const treeMeshes = new Map();
+const fallenTreeMeshes = new Map();
+const vehicleFireMeshes = new Map();
+let impactSparkEffects = [];
+let vehicleExplosionEffects = [];
 const vehicleMeshes = new Map();
 const pedMeshes = new Map();
 const wildlifeMeshes = new Map();
@@ -347,6 +357,8 @@ function syncTrees(world, px, py) {
   const view = world.map.treesNear(px, py, TREE_DIST);
   const seen = new Set();
   for (const t of view) {
+    // knocked over (falling/resting) - rendered by syncFallenTrees instead
+    if (t._treeProp && t._treeProp.state !== 'standing') continue;
     seen.add(t);
     if (!treeMeshes.has(t)) {
       const mesh = buildTreeMesh(t[0], t[1]);
@@ -359,6 +371,31 @@ function syncTrees(world, px, py) {
     scene.remove(mesh);
     for (const child of mesh.children) child.material.dispose();
     treeMeshes.delete(t);
+  }
+}
+
+function syncFallenTrees(world, px, py) {
+  if (!world.treeProps) return;
+  const seen = new Set();
+  for (const tree of world.treeProps) {
+    if (tree.state === 'standing') continue;
+    if (Math.hypot(tree.x0 - px, tree.y0 - py) > TREE_DIST) continue;
+    seen.add(tree);
+    if (!fallenTreeMeshes.has(tree)) {
+      const mesh = buildFallenTreeMesh3D(tree);
+      scene.add(mesh);
+      fallenTreeMeshes.set(tree, mesh);
+    }
+    const mesh = fallenTreeMeshes.get(tree);
+    mesh.position.set(tree.x, 0, tree.y);
+    mesh.rotation.y = -tree.fallAngle;
+    updateFallenTreeMesh3D(mesh, tree);
+  }
+  for (const [tree, mesh] of fallenTreeMeshes) {
+    if (seen.has(tree)) continue;
+    scene.remove(mesh);
+    mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+    fallenTreeMeshes.delete(tree);
   }
 }
 
@@ -381,7 +418,7 @@ function syncActors(list, cache, builder, idOf) {
   }
 }
 
-// Same as syncActors, but never disposes materials on removal - pickups2.js
+// Same as syncActors, but never disposes materials on removal - pickups.js
 // deliberately shares materials/geometries at module scope across every
 // live pickup of a kind, so disposing one would corrupt every other one
 // still on screen (same hazard buildings/mission-dots already guard against).
@@ -465,6 +502,7 @@ export function update3D(dt, world) {
   if (waterMaterial) updateWaterMaterial(waterMaterial, world.time);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
+  syncFallenTrees(world, player.x, player.y);
 
   syncActors(
     world.vehicles.filter((v) => !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
@@ -472,6 +510,7 @@ export function update3D(dt, world) {
     buildVehicleMesh,
     (v) => v.id
   );
+  const fireSeenIds = new Set();
   for (const v of world.vehicles) {
     const mesh = vehicleMeshes.get(v.id);
     if (mesh) {
@@ -479,7 +518,55 @@ export function update3D(dt, world) {
       mesh.rotation.y = -v.angle;
       updateVehicleWheelSpin(mesh, v.speed, dt);
     }
+
+    // damage VFX - checked regardless of `mesh` (a just-wrecked vehicle's
+    // mesh is already gone by the time syncActors filters !v.wrecked out)
+    if (v.hitThisFrame) {
+      const spark = buildVehicleImpactSparkMesh3D();
+      spark.position.set(v.hitX, 0.3, v.hitY);
+      scene.add(spark);
+      impactSparkEffects.push(spark);
+    }
+    if (vehicleJustWrecked(v)) {
+      const boom = buildVehicleExplosionMesh3D();
+      boom.position.set(v.x, 0.2, v.y);
+      scene.add(boom);
+      vehicleExplosionEffects.push(boom);
+    }
+    if (vehicleNeedsFireEffect(v)) {
+      fireSeenIds.add(v.id);
+      let fire = vehicleFireMeshes.get(v.id);
+      if (!fire) {
+        fire = buildVehicleFireMesh3D();
+        scene.add(fire);
+        vehicleFireMeshes.set(v.id, fire);
+      }
+      fire.position.set(v.x, 0.4, v.y);
+      updateVehicleFireMesh3D(fire, dt);
+    }
   }
+  for (const [id, fire] of vehicleFireMeshes) {
+    if (fireSeenIds.has(id)) continue;
+    scene.remove(fire);
+    fire.traverse((o) => { if (o.material) o.material.dispose(); });
+    vehicleFireMeshes.delete(id);
+  }
+  impactSparkEffects = impactSparkEffects.filter((mesh) => {
+    const alive = updateVehicleImpactSparkMesh3D(mesh, dt);
+    if (!alive) {
+      scene.remove(mesh);
+      mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+    }
+    return alive;
+  });
+  vehicleExplosionEffects = vehicleExplosionEffects.filter((mesh) => {
+    const alive = updateVehicleExplosionMesh3D(mesh, dt);
+    if (!alive) {
+      scene.remove(mesh);
+      mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+    }
+    return alive;
+  });
 
   syncActors(
     world.pedestrians.filter((p) => p.state !== 'dead' && Math.hypot(p.x - player.x, p.y - player.y) < DRAW_DIST),
@@ -604,7 +691,7 @@ export function update3D(dt, world) {
   }
 
   // pickups: money/weapons/health/armor/garages all share module-scope
-  // materials in pickups2.js, so removal must never call material.dispose()
+  // materials in pickups.js, so removal must never call material.dispose()
   const pu = getPickupsForRender();
   syncPickupActors(pu.money, moneyMeshes, () => buildMoneyPickupMesh3D(), (m) => m);
   for (const m of pu.money) {

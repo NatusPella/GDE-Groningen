@@ -4,10 +4,13 @@
 <meta charset="utf-8">
 <title>GTE VI - Grand Theft Eierbal VI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   html, body { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; }
   #game3d { display: block; width: 100vw; height: 100vh; cursor: none; position: fixed; inset: 0; }
-  #hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Arial Narrow', Arial, sans-serif; }
+  #hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; }
   #loading { position: fixed; inset: 0; background: #111; color: #eee; display: flex;
              align-items: center; justify-content: center; font: 20px/1.4 sans-serif; z-index: 10; }
 
@@ -17,7 +20,7 @@
   #start-screen {
     position: fixed; inset: 0; z-index: 20; display: none;
     background: radial-gradient(ellipse at center, #17301f 0%, #0c140e 75%);
-    color: #f0ede4; font-family: 'Arial Narrow', Arial, sans-serif;
+    color: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
     align-items: center; justify-content: center;
   }
   #start-screen.visible { display: flex; }
@@ -45,7 +48,7 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset;
   }
   #start-btn {
-    font: bold 20px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #0c140e;
+    font: bold 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.5px; color: #0c140e;
     background: var(--gron-green); border: none; border-radius: 4px; padding: 12px 40px; cursor: pointer;
   }
   #start-btn:hover { background: var(--gron-green-light); }
@@ -69,6 +72,6 @@
     <button id="start-btn">Start</button>
   </div>
 </div>
-<script type="module" src="js/main2.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

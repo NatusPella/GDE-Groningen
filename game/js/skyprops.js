@@ -112,7 +112,7 @@ export function buildTraumaHeliMesh3D() {
 }
 
 // Spins the main + tail rotor - call once per frame after repositioning
-// (mirrors police2.js's updatePoliceHeliMesh3D). Optional: skipping it just
+// (mirrors police.js's updatePoliceHeliMesh3D). Optional: skipping it just
 // leaves the blades static, which still reads fine at this altitude/distance.
 export function updateTraumaHeliMesh3D(mesh, time) {
   mesh.userData.rotor.rotation.y = time * HELI_ROTOR_SPEED;

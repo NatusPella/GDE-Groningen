@@ -1,4 +1,4 @@
-import { dist } from './util2.js';
+import { dist } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;

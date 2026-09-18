@@ -26,12 +26,23 @@ for the mission/waypoint marker (matches the existing GTA-marker language)
 
 ## Typography
 
-- Font stack: `'Arial Narrow', Arial, sans-serif` everywhere (already the
-  project convention - a tall condensed sans reads closest to GTA's own
-  chrome without licensing an actual GTA font).
+- Font stack: `'Bebas Neue', 'Arial Narrow', Arial, sans-serif` everywhere.
+  Bebas Neue is a free Google Font - tall, condensed, all-caps-leaning -
+  that reads much closer to a real GTA HUD/poster than plain Arial Narrow
+  without copying an actual Rockstar typeface. Loaded once via a
+  `<link>` in `game/index.html`'s `<head>` (Google Fonts, no build step);
+  every other file just references the family name and gets it for free
+  via the cascade or by repeating the same font-family string. `Arial
+  Narrow` stays in the stack as the immediate fallback (same tall/
+  condensed character) if the webfont hasn't loaded yet.
 - Headings / wordmarks: bold, `letter-spacing: 1-2px`, uppercase where it's
   a label (SIKKOM, station names) not a sentence.
 - Body/HUD text: normal weight is fine, keep letter-spacing subtle (0.3px).
+- Exception: pedestrian speech bubbles (`scene3d.js`'s `syncSpeechBubbles`)
+  deliberately stay on plain `'Arial Narrow', Arial, sans-serif` - short
+  conversational chat text at ~13px reads better in a normal-case body
+  font than in a display face like Bebas Neue, which is designed for
+  short, large, punchy labels, not sentences.
 
 ## Chrome (the "GTA poster" look)
 
@@ -57,8 +68,8 @@ for the mission/waypoint marker (matches the existing GTA-marker language)
 
 - `game/index.html` - start screen, buttons, controls grid
 - `game/js/hud_panel.css` - in-game HUD, keycap chips, minimap border
-- `game/js/phonefeed2.js` - phone-notification card accent bar
-- `game/js/mapview2.js` - full map view chrome (bring into line if it still
+- `game/js/phonefeed.js` - phone-notification card accent bar
+- `game/js/mapview.js` - full map view chrome (bring into line if it still
   shows the old yellow accent - check `#e8c93a`/`#cfcfcf` in its injected
   `<style>` block and swap for the tokens above)
 

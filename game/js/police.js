@@ -1,7 +1,7 @@
-import { normalizeAngle, clamp, closestPointOnSegment } from './util2.js';
-import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater } from './vehicle2.js';
-import { respawnPlayer } from './world2.js';
-import { spawnCopPedestriansNear } from './pedestrians2.js';
+import { normalizeAngle, clamp, closestPointOnSegment } from './util.js';
+import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater } from './vehicle.js';
+import { respawnPlayer } from './world.js';
+import { spawnCopPedestriansNear } from './pedestrians.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const DECAY_TIME = 20;
@@ -11,7 +11,7 @@ const FIRE_RANGE = 28;
 const BUST_FAST_SPEED = 9;
 
 // "Politie ook te voet" - a small pool of cop Pedestrians (see
-// spawnCopPedestriansNear in pedestrians2.js), grown only once there's
+// spawnCopPedestriansNear in pedestrians.js), grown only once there's
 // something to respond to.
 const COP_PED_WANTED_THRESHOLD = 1;
 const COP_PED_TARGET_PER_WANTED = 1;
@@ -137,7 +137,7 @@ function checkBusted(v, world) {
 }
 
 // --- foot police --------------------------------------------------------
-// Actual seek/bust behavior for a cop Pedestrian lives in pedestrians2.js's
+// Actual seek/bust behavior for a cop Pedestrian lives in pedestrians.js's
 // updatePedestrians (mirrors the civilian flee-trigger pattern, inverted) -
 // this module only decides how many should exist and where they come from,
 // the same split it already has with spawnVehicleOnRoad for cars.

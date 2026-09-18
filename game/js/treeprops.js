@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { clamp, closestPointOnSegment } from './util2.js';
+import { clamp, closestPointOnSegment } from './util.js';
 
-// Live, mutable roadside-tree state layered on top of mapdata2.js's static
+// Live, mutable roadside-tree state layered on top of mapdata.js's static
 // tree list, so vehicles can knock trees over GTA-style. Trees themselves
 // stay pure map data (world.map.trees / treesNear) - this module snapshots
 // that data once at boot into world.treeProps (one record per tree, in the
@@ -9,7 +9,7 @@ import { clamp, closestPointOnSegment } from './util2.js';
 // to a tree afterwards: standing -> falling (tip + slide) -> resting.
 //
 // Identity: each treeProp keeps `.raw`, the exact [x,y] array reference
-// mapdata2.js's treesNear() returns for that tree, and mapdata2.js's own
+// mapdata.js's treesNear() returns for that tree, and mapdata.js's own
 // grid still returns that same reference once knocked (it never stops being
 // "a tree" as far as the map is concerned). To let scene3d.js's existing,
 // unmodified-otherwise syncTrees() cheaply tell a knocked tree apart from a
@@ -45,7 +45,7 @@ const treePropByRaw = new Map();
 // vehicle.id -> last-seen {x,y}, used to sweep a segment (previous position
 // -> current position) through the hit test instead of a single point-in-
 // circle check against only the current frame's position. At the top
-// vehicle speeds here (~40 m/s) and the frame-time cap in main2.js's
+// vehicle speeds here (~40 m/s) and the frame-time cap in main.js's
 // frame() (dt clamped to 0.05s), a vehicle can move over 2m in one frame -
 // comfortably enough to step clean over a single-point check and "phase
 // through" a tree it visibly plowed into. Segment-vs-point is barely more

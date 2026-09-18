@@ -1,5 +1,6 @@
-import { closestPointOnSegment, normalizeAngle, pointInPolygon } from './util2.js';
-import { findNearestVehicle, resolveVehicleBuildingCollision } from './vehicle2.js';
+import { closestPointOnSegment, normalizeAngle, pointInPolygon } from './util.js';
+import { findNearestVehicle, resolveVehicleBuildingCollision } from './vehicle.js';
+import { playAutoGejatLine } from './audio.js';
 
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
@@ -34,7 +35,11 @@ export class Player {
     const { input, map, vehicles } = world;
     this.updateCharacterSwitch(world);
     if (input.wasPressed('e') || input.wasPressed('f')) {
-      if (!this.tryKiss(world)) this.tryEnterExit(map, vehicles);
+      if (!this.tryKiss(world)) {
+        const wasInVehicle = !!this.inVehicle;
+        this.tryEnterExit(map, vehicles);
+        if (!wasInVehicle && this.inVehicle) playAutoGejatLine(world);
+      }
     }
 
     if (this.inVehicle) {
@@ -90,7 +95,7 @@ export class Player {
     this.y = nextY;
   }
 
-  // Tammo and Anita are always both out in the world (see companion2.js) -
+  // Tammo and Anita are always both out in the world (see companion.js) -
   // switching just trades physical state (position/velocity/vehicle) between
   // this Player and world.companion, it never changes which object IS "the
   // player" elsewhere in the codebase. Blocked while driving without the

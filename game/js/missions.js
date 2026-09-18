@@ -1,5 +1,5 @@
-import { dist, closestPointOnSegment } from './util2.js';
-import { spawnVehicleOnRoad } from './vehicle2.js';
+import { dist, closestPointOnSegment } from './util.js';
+import { spawnVehicleOnRoad } from './vehicle.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
