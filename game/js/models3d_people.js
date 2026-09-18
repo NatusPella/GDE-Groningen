@@ -1,9 +1,18 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { HABBO_PALETTE, habboMaterial, buildOutline } from './pixelart3d.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, and bike/scooter
 // riders. Origin (0,0,0) sits at ground level between the feet, facing local
 // +X (mirrors the old snowman placeholder's convention) - the caller sets
 // group.position/rotation.y every frame, this module never touches either.
+//
+// Habbo Hotel look: flat HABBO_PALETTE colors via habboMaterial (2-step toon
+// shading), bold black outlines on every major silhouette part, and a big
+// round head - the single most recognizable Habbo trait. HEAD_Y stays fixed
+// (scene3d.js positions/animates this rig but never reads HEAD_Y itself, so
+// nothing outside this file depends on it - still, the brief asks to keep it
+// put rather than move the head, so only HEAD_R grew here); the shorter torso
+// below closes the neck gap that a bigger head would otherwise open up.
 
 function hash2(x, y) {
   const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
@@ -11,36 +20,45 @@ function hash2(x, y) {
 }
 
 const LEG_LEN = 0.82;
-const LEG_R = 0.095;
+const LEG_R = 0.115;
 const HIP_Y = LEG_LEN;
-const TORSO_H = 0.55;
-const TORSO_THICK = 0.24;
-const SHOULDER_W = 0.46;
+const TORSO_H = 0.44;
+const TORSO_THICK = 0.3;
+const SHOULDER_W = 0.44;
 const HEAD_Y = 1.6;
-const HEAD_R = 0.155;
-const ARM_LEN = 0.58;
-const ARM_R = 0.062;
-const HAND_R = 0.075;
-const NECK_R = 0.075;
-const DEFAULT_HAIR = 0x1c1c1c;
-const DEFAULT_CAP = 0x1c2b3d;
+const HEAD_R = 0.3;
+const ARM_LEN = 0.48;
+const ARM_R = 0.078;
+const HAND_R = 0.095;
+const NECK_R = 0.09;
+const DEFAULT_HAIR = HABBO_PALETTE.black;
+const DEFAULT_CAP = HABBO_PALETTE.brickOrange;
 
-const SHOE_H = 0.085;
+const SHOE_H = 0.11;
 const SHOE_LEN = LEG_R * 2.6;
 const SHOE_WID = LEG_R * 2.1;
 
-const CLOTH_ROUGHNESS = 0.88;
-const SKIN_ROUGHNESS = 0.75;
-const HAIR_ROUGHNESS = 0.4;
-const SHOE_ROUGHNESS = 0.55;
-const CAP_ROUGHNESS = 0.55;
-
 // Neck is sized to exactly span torso-top -> head-bottom, whatever those
 // constants happen to be, so raising/lowering HEAD_Y or TORSO_H can never
-// reopen a gap (or punch an overlap) at the neck seam.
+// reopen a gap (or punch an overlap) at the neck seam. Clamped to a small
+// positive minimum since a big Habbo head can otherwise push HEAD_BOTTOM_Y
+// below TORSO_TOP_Y (a slight head/torso overlap - harmless, hidden by the
+// outlines - rather than a degenerate/negative-height neck cylinder).
 const TORSO_TOP_Y = HIP_Y + TORSO_H;
 const HEAD_BOTTOM_Y = HEAD_Y - HEAD_R;
-const NECK_H = HEAD_BOTTOM_Y - TORSO_TOP_Y;
+const NECK_H = Math.max(0.02, HEAD_BOTTOM_Y - TORSO_TOP_Y);
+
+// Bold black outline as a sibling of a part that has its own position/
+// rotation/scale (pixelart3d.js's buildOutline only builds the mesh; siblings
+// with a non-identity transform need that transform copied on manually).
+function addOutline(parent, mesh, thickness = 0.08) {
+  const outline = buildOutline(mesh.geometry, thickness);
+  outline.position.copy(mesh.position);
+  outline.rotation.copy(mesh.rotation);
+  outline.scale.copy(mesh.scale).multiplyScalar(1 + thickness);
+  parent.add(outline);
+  return outline;
+}
 
 // Walk-cycle tuning. Phase advances with distance travelled (speed * dt), not
 // wall-clock time, so cadence scales with movement speed instead of ticking
@@ -54,8 +72,8 @@ const WALK_BLEND_RATE = 8; // 1/s ease rate for the amplitude blend
 const LEG_SWING_AMPLITUDE = 0.55; // rad, hip pivot swing at full blend
 const ARM_SWING_AMPLITUDE = 0.35; // rad, shoulder pivot swing at full blend (smaller than legs)
 
-export const TAMMO_APPEARANCE = { shirt: 0x2f5c9e, skin: 0xe0b48a, hair: 0x2b1f14, variant: 'male', character: 'tammo', cap: DEFAULT_CAP };
-export const ANITA_APPEARANCE = { shirt: 0xb5483a, skin: 0xc98f66, hair: 0x3c2418, variant: 'female', character: 'anita' };
+export const TAMMO_APPEARANCE = { shirt: HABBO_PALETTE.roofBlue, skin: HABBO_PALETTE.woodLight, hair: HABBO_PALETTE.woodDark, variant: 'male', character: 'tammo', cap: DEFAULT_CAP };
+export const ANITA_APPEARANCE = { shirt: HABBO_PALETTE.brickRed, skin: HABBO_PALETTE.woodMid, hair: HABBO_PALETTE.black, variant: 'female', character: 'anita' };
 
 function cylinderPart(rTop, rBottom, h, mat) {
   return new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, h, 6), mat);
@@ -86,11 +104,11 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   const pants = opts.pants ?? shadeColor(shirt, 0.55);
   const shoes = opts.shoes ?? shadeColor(pants, 0.5);
 
-  const clothMat = new THREE.MeshStandardMaterial({ color: shirt, roughness: CLOTH_ROUGHNESS, metalness: 0 });
-  const pantsMat = new THREE.MeshStandardMaterial({ color: pants, roughness: CLOTH_ROUGHNESS, metalness: 0 });
-  const skinMat = new THREE.MeshStandardMaterial({ color: skin, roughness: SKIN_ROUGHNESS, metalness: 0 });
-  const hairMat = new THREE.MeshStandardMaterial({ color: hair, roughness: HAIR_ROUGHNESS, metalness: 0 });
-  const shoeMat = new THREE.MeshStandardMaterial({ color: shoes, roughness: SHOE_ROUGHNESS, metalness: 0 });
+  const clothMat = habboMaterial(shirt);
+  const pantsMat = habboMaterial(pants);
+  const skinMat = habboMaterial(skin);
+  const hairMat = habboMaterial(hair);
+  const shoeMat = habboMaterial(shoes);
 
   const group = new THREE.Group();
 
@@ -109,10 +127,12 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     const leg = cylinderPart(LEG_R, LEG_R * 0.78, LEG_LEN, pantsMat);
     leg.position.set(0, -LEG_LEN / 2, 0);
     legPivot.add(leg);
+    addOutline(legPivot, leg, 0.14);
 
     const shoe = new THREE.Mesh(new THREE.BoxGeometry(SHOE_LEN, SHOE_H, SHOE_WID), shoeMat);
     shoe.position.set(LEG_R * 0.55, SHOE_H / 2 - HIP_Y, 0);
     legPivot.add(shoe);
+    addOutline(legPivot, shoe, 0.12);
 
     if (side === 1) group.userData.legL = legPivot;
     else group.userData.legR = legPivot;
@@ -124,10 +144,12 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   );
   torso.position.y = HIP_Y + TORSO_H / 2;
   group.add(torso);
+  addOutline(group, torso, 0.05);
 
   const neck = cylinderPart(NECK_R, NECK_R * 1.15, NECK_H, skinMat);
   neck.position.y = TORSO_TOP_Y + NECK_H / 2;
   group.add(neck);
+  addOutline(group, neck, 0.15);
 
   // Same pivot-group treatment as the legs above, this time at the shoulder,
   // so animatePersonWalk() can swing each arm. The arm keeps its own slight
@@ -147,21 +169,25 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     const hand = new THREE.Mesh(new THREE.SphereGeometry(HAND_R, 6, 5), skinMat);
     hand.position.set(0, -ARM_LEN / 2, 0);
     arm.add(hand);
+    addOutline(arm, hand, 0.12);
     armPivot.add(arm);
+    addOutline(armPivot, arm, 0.16);
 
     if (side === 1) group.userData.armL = armPivot;
     else group.userData.armR = armPivot;
   }
 
-  const head = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R, 8, 6), skinMat);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R, 10, 8), skinMat);
   head.position.y = HEAD_Y;
   group.add(head);
+  addOutline(group, head, 0.05);
 
   if (isFemale) {
     const ponytail = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R * 0.48, 6, 5), hairMat);
     ponytail.scale.set(1, 1.9, 1);
     ponytail.position.set(-HEAD_R * 0.95, HEAD_Y - HEAD_R * 0.3, 0);
     group.add(ponytail);
+    addOutline(group, ponytail, 0.08);
   } else {
     // radius is well under HEAD_R and it sits high on the crown, so most of
     // the head sphere stays visible/skin-colored instead of being englobed
@@ -169,21 +195,24 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     hairCap.scale.set(1, 0.6, 1);
     hairCap.position.set(-HEAD_R * 0.12, HEAD_Y + HEAD_R * 0.55, 0);
     group.add(hairCap);
+    addOutline(group, hairCap, 0.08);
   }
 
   // Tammo/Anita need to read as "the same two specific people" everywhere
   // they appear (player, companion, passenger), so each gets exactly one
   // extra silhouette primitive on top of the generic variant look above.
   if (opts.character === 'tammo') {
-    const capMat = new THREE.MeshStandardMaterial({ color: opts.cap ?? DEFAULT_CAP, roughness: CAP_ROUGHNESS, metalness: 0 });
+    const capMat = habboMaterial(opts.cap ?? DEFAULT_CAP);
     const cap = new THREE.Mesh(new THREE.CylinderGeometry(HEAD_R * 0.75, HEAD_R * 1.05, HEAD_R * 0.58, 8), capMat);
     cap.position.set(-HEAD_R * 0.08, HEAD_Y + HEAD_R * 0.9, 0);
     group.add(cap);
+    addOutline(group, cap, 0.08);
   } else if (opts.character === 'anita') {
     const fringe = new THREE.Mesh(new THREE.BoxGeometry(HEAD_R * 0.5, HEAD_R * 0.85, HEAD_R * 1.5), hairMat);
     fringe.position.set(HEAD_R * 0.62, HEAD_Y + HEAD_R * 0.05, 0);
     fringe.rotation.z = 0.15;
     group.add(fringe);
+    addOutline(group, fringe, 0.08);
   }
 
   group.scale.set(buildScale, heightScale, buildScale);
