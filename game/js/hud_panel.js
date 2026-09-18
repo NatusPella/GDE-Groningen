@@ -27,8 +27,7 @@ export function initHud(world) {
   topRight.innerHTML =
     '<div class="hud-wanted"></div>' +
     '<div class="hud-money"></div>' +
-    '<div class="hud-weapon"></div>' +
-    '<div class="hud-radio"></div>';
+    '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
 
   const hint = document.createElement('div');
@@ -66,7 +65,6 @@ export function initHud(world) {
     wanted: topRight.querySelector('.hud-wanted'),
     money: topRight.querySelector('.hud-money'),
     weapon: topRight.querySelector('.hud-weapon'),
-    radio: topRight.querySelector('.hud-radio'),
     hint,
     missionLabel: mission.querySelector('.hud-mission-label'),
     missionTimer: mission.querySelector('.hud-mission-timer'),
@@ -83,25 +81,11 @@ export function updateHud(dt, world) {
   updateBars(world);
   updateWanted(world);
   updateMoneyWeapon(world);
-  updateRadio(world);
   updateMission(world);
   updateToasts(world);
   updateLocation(world);
   updateHint(world);
   drawMinimap(world);
-}
-
-// G-Music is the one real station (actual playback lives in audio.js) -
-// the others are flavor-only fake stations with no audio behind them, so
-// showing G-Music consistently while driving is what actually matches what
-// you hear, instead of randomly relabeling a station that never changes.
-const RADIO_STATIONS = ['G-Music'];
-
-function updateRadio(world) {
-  const v = world.player.inVehicle;
-  if (!v) { els.radio.textContent = ''; return; }
-  const station = RADIO_STATIONS[Math.abs(Math.floor(v.id || 0)) % RADIO_STATIONS.length];
-  els.radio.textContent = '📻 ' + station;
 }
 
 // Context-aware on-screen prompts, shown only when relevant, instead of a
