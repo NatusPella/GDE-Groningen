@@ -23,6 +23,7 @@ import { buildFallenTreeMesh3D, updateFallenTreeMesh3D } from './treeprops.js';
 import { buildTerrainMesh3D, updateTerrainMaterial } from './terrain3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
+import { pointInPolygon, polygonBounds } from './util.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -35,8 +36,12 @@ const LEVEL_HEIGHT = 3.1;
 const DRAW_DIST = 140;
 // Canals/Diepenring sit visibly below street level (a real quay is a step
 // down, not flush with the road) - also keeps water from ever competing
-// with the ground/road planes for the same depth-buffer range
-const WATER_Y = -0.35;
+// with the ground/road planes for the same depth-buffer range. Was -0.35,
+// only 5cm below the terrain's own -0.4 base (and well within the terrain
+// shader's own bump displacement range) - nowhere near enough of a drop to
+// read as "the canal sits below street level" from a close-up 3rd person
+// camera; pushed meaningfully lower instead.
+const WATER_Y = -1.1;
 const UNLOAD_DIST = 175;
 const TREE_DIST = 90;
 
@@ -177,12 +182,79 @@ function shapeFromPoly(pts) {
   return shape;
 }
 
-function buildFlatMesh(poly, color, y) {
-  if (!poly._geoFlat) {
-    const shape = shapeFromPoly(poly.pts);
-    poly._geoFlat = new THREE.ShapeGeometry(shape);
-    poly._geoFlat.rotateX(-Math.PI / 2);
+// Grid-tessellated fallback fill, same robust technique terrain3d.js already
+// uses to cut real water holes: tile the polygon's own bbox and keep only
+// triangles whose centroid passes a plain point-in-polygon test. Immune to
+// the self-intersection assumption ShapeGeometry/earcut needs - which some
+// real water/green polygons violate on purpose (e.g. a canal "ring" like
+// the Diepenring, whose point list traces the outer edge forward then the
+// inner edge backward specifically so the ray-cast tests used everywhere
+// else in this codebase read it as a ring with a hole).
+function buildGridFillGeometry(pts) {
+  const [minx, miny, maxx, maxy] = polygonBounds(pts);
+  const w = Math.max(maxx - minx, 1e-3), d = Math.max(maxy - miny, 1e-3);
+  const targetSegs = 80;
+  const cell = Math.max(w, d) / targetSegs;
+  const segsX = Math.max(1, Math.round(w / cell));
+  const segsZ = Math.max(1, Math.round(d / cell));
+  const nx = segsX + 1, nz = segsZ + 1;
+
+  const positions = new Float32Array(nx * nz * 3);
+  for (let j = 0; j < nz; j++) {
+    const wy = miny + (d * j) / segsZ;
+    for (let i = 0; i < nx; i++) {
+      const wx = minx + (w * i) / segsX;
+      const idx = (j * nx + i) * 3;
+      positions[idx] = wx; positions[idx + 1] = 0; positions[idx + 2] = wy;
+    }
   }
+
+  const maxTriangles = segsX * segsZ * 2;
+  const indices = new Uint32Array(maxTriangles * 3);
+  let indexCount = 0;
+  for (let j = 0; j < segsZ; j++) {
+    for (let i = 0; i < segsX; i++) {
+      const a = j * nx + i, b = j * nx + i + 1, c = (j + 1) * nx + i, dd = (j + 1) * nx + i + 1;
+      const ax = positions[a * 3], ay = positions[a * 3 + 2];
+      const bx = positions[b * 3], by = positions[b * 3 + 2];
+      const cx = positions[c * 3], cy = positions[c * 3 + 2];
+      const dx = positions[dd * 3], dy = positions[dd * 3 + 2];
+
+      const cx1 = (ax + cx + bx) / 3, cy1 = (ay + cy + by) / 3;
+      if (pointInPolygon(cx1, cy1, pts)) { indices[indexCount++] = a; indices[indexCount++] = c; indices[indexCount++] = b; }
+
+      const cx2 = (bx + cx + dx) / 3, cy2 = (by + cy + dy) / 3;
+      if (pointInPolygon(cx2, cy2, pts)) { indices[indexCount++] = b; indices[indexCount++] = c; indices[indexCount++] = dd; }
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setIndex(new THREE.BufferAttribute(indices.subarray(0, indexCount), 1));
+  geo.computeBoundingSphere();
+  return geo;
+}
+
+// earcut (via ShapeGeometry) silently collapses to a near-empty mesh on a
+// self-intersecting contour instead of throwing - caught here by checking
+// the triangulated vertex count against the input point count, since a
+// healthy triangulation never drops points. Falls back to the grid fill
+// above only for the rare polygons that actually need it; the cheap earcut
+// path stays the default for every ordinary simple polygon (most ponds/
+// parks), since building a full grid per polygon is needlessly expensive.
+function buildPolyGeometry(pts) {
+  const shape = shapeFromPoly(pts);
+  const geo = new THREE.ShapeGeometry(shape);
+  if (geo.attributes.position.count < pts.length * 0.5) {
+    geo.dispose();
+    return buildGridFillGeometry(pts);
+  }
+  geo.rotateX(-Math.PI / 2);
+  return geo;
+}
+
+function buildFlatMesh(poly, color, y) {
+  if (!poly._geoFlat) poly._geoFlat = buildPolyGeometry(poly.pts);
   const mesh = new THREE.Mesh(poly._geoFlat, new THREE.MeshLambertMaterial({ color }));
   mesh.position.y = y;
   return mesh;
@@ -192,11 +264,7 @@ function buildFlatMesh(poly, color, y) {
 // once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
 let waterMaterial = null;
 function buildWaterMesh(poly, y) {
-  if (!poly._geoFlat) {
-    const shape = shapeFromPoly(poly.pts);
-    poly._geoFlat = new THREE.ShapeGeometry(shape);
-    poly._geoFlat.rotateX(-Math.PI / 2);
-  }
+  if (!poly._geoFlat) poly._geoFlat = buildPolyGeometry(poly.pts);
   if (!waterMaterial) waterMaterial = createWaterMaterial();
   const mesh = new THREE.Mesh(poly._geoFlat, waterMaterial);
   mesh.position.y = y;
