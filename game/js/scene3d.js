@@ -30,7 +30,14 @@ const UNLOAD_DIST = 175;
 const TREE_DIST = 90;
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
-let followYaw = 0, followDist = 9, followHeight = 5.2;
+let followYaw = 0;
+// orbit radius kept constant so pitch changes swing the camera around the
+// player like a real GTA camera (higher/steeper looking down, lower/flatter
+// looking up) instead of just sliding the camera height up and down in place
+const ORBIT_RADIUS = Math.hypot(9, 5.2 - 1.3);
+const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
+const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overhead angle
+let followPitch = Math.atan2(5.2 - 1.3, 9);
 
 const buildingMeshes = new Map();
 const roadMeshes = new Map();
@@ -664,10 +671,20 @@ export function update3D(dt, world) {
   const targetAngle = player.inVehicle ? player.inVehicle.angle : player.angle;
   followYaw += normalizeAngleDelta(-targetAngle - followYaw) * Math.min(1, dt * 5);
 
+  // mouse Y pans the camera up/down around the player, GTA-style - top of
+  // the screen swings the camera down to a lower, more level angle ("looking
+  // up"), bottom of the screen swings it up to a steeper overhead angle
+  const pitchT = Math.min(1, Math.max(0, (world.input.mouse.y || 0) / (innerHeight || 1)));
+  const targetPitchDeg = PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT;
+  const targetPitch = targetPitchDeg * Math.PI / 180;
+  followPitch += (targetPitch - followPitch) * Math.min(1, dt * 6);
+
   const eyeX = player.x, eyeY = 1.3, eyeZ = player.y;
-  let desiredX = player.x - Math.cos(targetAngle) * followDist;
-  let desiredZ = player.y - Math.sin(targetAngle) * followDist;
-  let desiredY = followHeight;
+  const horizDist = Math.cos(followPitch) * ORBIT_RADIUS;
+  const orbitHeight = eyeY + Math.sin(followPitch) * ORBIT_RADIUS;
+  let desiredX = player.x - Math.cos(targetAngle) * horizDist;
+  let desiredZ = player.y - Math.sin(targetAngle) * horizDist;
+  let desiredY = orbitHeight;
 
   const dx = desiredX - eyeX, dy = desiredY - eyeY, dz = desiredZ - eyeZ;
   const fullDist = Math.hypot(dx, dy, dz) || 1;
