@@ -27,7 +27,8 @@
     font-size: 38px; margin: 0 0 4px; letter-spacing: 2px; color: var(--gron-green-light);
     text-shadow: 0 2px 6px rgba(0,0,0,0.6), 0 0 22px rgba(63,201,122,0.35);
   }
-  #start-card .sub { font-size: 15px; opacity: 0.8; margin: 0 0 24px; }
+  #start-card .sub { font-size: 15px; opacity: 0.8; margin: 0 0 4px; }
+  #start-card .hint-note { font-size: 12px; opacity: 0.6; margin: 0 0 20px; font-style: italic; }
   #controls-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; text-align: left; font-size: 15px; margin: 0 auto 28px; width: fit-content; }
   #controls-grid .key { color: var(--gron-green-light); font-weight: bold; text-align: right; }
   #start-btn {
@@ -46,17 +47,13 @@
   <div id="start-card">
     <h1>GTE VI - Grand Theft Eierbal VI</h1>
     <p class="sub">Een sandbox in de echte straten van de Grunn</p>
+    <p class="hint-note">Besturing verschijnt in beeld zodra 'ie relevant is (instappen, wapens, ...)</p>
     <div id="controls-grid">
-      <div class="key">WASD / pijltjes</div><div>lopen (Shift = rennen)</div>
-      <div class="key">E of F</div><div>voertuig in/uit stappen</div>
-      <div class="key">W/S in voertuig</div><div>gas / achteruit</div>
-      <div class="key">A/D in voertuig</div><div>sturen</div>
-      <div class="key">Spatie</div><div>remmen</div>
-      <div class="key">Muis</div><div>richten, klik = aanvallen</div>
-      <div class="key">1-4</div><div>wapen wisselen</div>
-      <div class="key">M</div><div>kaart tonen/verbergen</div>
-      <div class="key">V</div><div>camera: top-down / echte 3D (follow-cam)</div>
-      <div class="key">U</div><div>geluid aan/uit</div>
+      <div class="key">WASD</div><div>lopen / rijden</div>
+      <div class="key">V</div><div>camera: top-down / echte 3D</div>
+      <div class="key">M</div><div>kaart</div>
+      <div class="key">C</div><div>wissel Tammo / Anita</div>
+      <div class="key">U</div><div>geluid</div>
     </div>
     <button id="start-btn">Start</button>
   </div>

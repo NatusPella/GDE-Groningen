@@ -1,6 +1,8 @@
 #hud {
   --hud-fg: #f2f2f2;
   --hud-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.9);
+  --gron-green: #1e9e56;
+  --gron-green-light: #3fc97a;
 }
 
 #hud .hud-top-left {
@@ -11,7 +13,7 @@
 }
 
 #hud .hud-character {
-  color: var(--hud-fg);
+  color: var(--gron-green-light);
   text-shadow: var(--hud-shadow);
   font-size: 15px;
   font-weight: bold;
@@ -67,6 +69,13 @@
 #hud .hud-weapon {
   margin-top: 4px;
   font-size: 15px;
+}
+
+#hud .hud-radio {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--gron-green-light);
+  opacity: 0.9;
 }
 
 #hud .hud-mission {
@@ -128,7 +137,29 @@
   font-size: 20px;
   font-weight: bold;
   letter-spacing: 0.5px;
+  color: var(--gron-green-light);
 }
+
+#hud .hud-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  color: var(--hud-fg);
+  text-shadow: var(--hud-shadow);
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  background: rgba(15, 30, 20, 0.45);
+  border: 1px solid rgba(63, 201, 122, 0.5);
+  border-radius: 4px;
+  padding: 4px 12px;
+  max-width: min(70vw, calc(100vw - 220px));
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#hud .hud-hint:empty { display: none; }
 
 #hud .hud-street {
   font-size: 14px;
@@ -143,7 +174,7 @@
   height: 160px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid rgba(230, 230, 230, 0.85);
+  border: 3px solid rgba(63, 201, 122, 0.85);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.5);
   background: #1a1c1e;
 }

@@ -25,8 +25,13 @@ export function initHud(world) {
   topRight.innerHTML =
     '<div class="hud-wanted"></div>' +
     '<div class="hud-money"></div>' +
-    '<div class="hud-weapon"></div>';
+    '<div class="hud-weapon"></div>' +
+    '<div class="hud-radio"></div>';
   root.appendChild(topRight);
+
+  const hint = document.createElement('div');
+  hint.className = 'hud-hint';
+  root.appendChild(hint);
 
   const mission = document.createElement('div');
   mission.className = 'hud-mission';
@@ -59,6 +64,8 @@ export function initHud(world) {
     wanted: topRight.querySelector('.hud-wanted'),
     money: topRight.querySelector('.hud-money'),
     weapon: topRight.querySelector('.hud-weapon'),
+    radio: topRight.querySelector('.hud-radio'),
+    hint,
     missionLabel: mission.querySelector('.hud-mission-label'),
     missionTimer: mission.querySelector('.hud-mission-timer'),
     district: location.querySelector('.hud-district'),
@@ -74,10 +81,58 @@ export function updateHud(dt, world) {
   updateBars(world);
   updateWanted(world);
   updateMoneyWeapon(world);
+  updateRadio(world);
   updateMission(world);
   updateToasts(world);
   updateLocation(world);
+  updateHint(world);
   drawMinimap(world);
+}
+
+const RADIO_STATIONS = [
+  'FM Sikkom', 'Radio Eierbal', 'Ommelander Beats', 'Grunn Grondig FM', 'Diepenring Live',
+];
+
+function updateRadio(world) {
+  const v = world.player.inVehicle;
+  if (!v) { els.radio.textContent = ''; return; }
+  const station = RADIO_STATIONS[Math.abs(Math.floor(v.id || 0)) % RADIO_STATIONS.length];
+  els.radio.textContent = '📻 ' + station;
+}
+
+// Context-aware on-screen prompts, shown only when relevant, instead of a
+// static always-visible controls list on the start screen.
+const TUTORIAL_HINT_DURATION = 9;
+function updateHint(world) {
+  const player = world.player;
+
+  if (player.inVehicle) {
+    els.hint.textContent = '[E] Uitstappen   [SPATIE] Remmen';
+    return;
+  }
+
+  let nearestVehicleDist = Infinity;
+  for (const v of world.vehicles) {
+    if (v.wrecked || v.driver) continue;
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d < nearestVehicleDist) nearestVehicleDist = d;
+  }
+  if (nearestVehicleDist < 3) {
+    els.hint.textContent = '[E] Instappen';
+    return;
+  }
+
+  if (world.wanted > 0) {
+    els.hint.textContent = '[Muis] Richten/aanvallen   [1-4] Wapen wisselen';
+    return;
+  }
+
+  if (world.time < TUTORIAL_HINT_DURATION) {
+    els.hint.textContent = '[WASD] Lopen  ·  [E] Instappen  ·  [V] 3D  ·  [M] Kaart';
+    return;
+  }
+
+  els.hint.textContent = '';
 }
 
 function pointInPoly(px, py, pts) {
