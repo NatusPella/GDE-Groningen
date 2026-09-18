@@ -2,9 +2,8 @@
 // police, missions, hud) receives this same object and reads/writes the
 // arrays and fields it owns. See ARCHITECTURE.md for the full contract.
 export class World {
-  constructor(map, camera, input, player) {
+  constructor(map, input, player) {
     this.map = map;
-    this.camera = camera;
     this.input = input;
     this.player = player;
 

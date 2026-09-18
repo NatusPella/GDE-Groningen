@@ -4,7 +4,14 @@ import { buildVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { applyWeatherToScene3D } from './weather2.js';
 import { buildFlitspaalMesh3D } from './flitspaal2.js';
-import { buildSeagullMesh3D, buildCowMesh3D } from './wildlife2.js';
+import { buildSeagullMesh3D, buildCowMesh3D, buildSheepMesh3D } from './wildlife2.js';
+import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions2.js';
+import {
+  getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
+  buildHealthPickupMesh3D, buildArmorPickupMesh3D, buildGaragePickupMesh3D,
+} from './pickups2.js';
+import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D } from './trafficlights2.js';
+import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat2.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -15,11 +22,14 @@ import { buildSeagullMesh3D, buildCowMesh3D } from './wildlife2.js';
 
 const LEVEL_HEIGHT = 3.1;
 const DRAW_DIST = 140;
+// Canals/Diepenring sit visibly below street level (a real quay is a step
+// down, not flush with the road) - also keeps water from ever competing
+// with the ground/road planes for the same depth-buffer range
+const WATER_Y = -0.35;
 const UNLOAD_DIST = 175;
 const TREE_DIST = 90;
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
-let active = false;
 let followYaw = 0, followDist = 9, followHeight = 5.2;
 
 const buildingMeshes = new Map();
@@ -35,6 +45,22 @@ let billboardRoot = null;
 let flitspaalBuilt = false;
 let playerMesh = null;
 let playerCharacter = 'tammo';
+let companionMesh = null;
+let companionCharacter = null;
+let passengerMesh = null;
+let missionMarkerMesh = null;
+const missionWaypointDotMeshes = new Map();
+let missionWaypointSetKey = null;
+const trafficLightMeshes = new Map();
+const moneyMeshes = new Map();
+const weaponMeshes = new Map();
+const healthMeshes = new Map();
+const armorMeshes = new Map();
+const garageMeshes = new Map();
+const bulletMeshes = new Map();
+const sparkMeshes = new Map();
+let muzzleFlashMesh = null;
+let meleeSwipeMesh = null;
 let sun = null;
 const camRaycaster = new THREE.Raycaster();
 let lastPx = null, lastPy = null;
@@ -95,13 +121,6 @@ export function resize3D() {
   cam.updateProjectionMatrix();
 }
 
-export function is3DActive() { return active; }
-
-export function set3DActive(on) {
-  active = on;
-  document.getElementById('game').style.display = on ? 'none' : 'block';
-  canvas3.style.display = on ? 'block' : 'none';
-}
 
 // --- shape helpers -----------------------------------------------------
 
@@ -123,34 +142,50 @@ function buildFlatMesh(poly, color, y) {
   return mesh;
 }
 
-function buildRoadMesh(road) {
-  if (!road._geoRoad) {
-    const half = road.width / 2;
-    const verts = [];
-    const idx = [];
-    const pts = road.pts;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
-      const dx = bx - ax, dy = by - ay;
-      const len = Math.hypot(dx, dy) || 1;
-      const nx = -dy / len * half, ny = dx / len * half;
-      const base = verts.length / 3;
-      verts.push(ax + nx, 0, ay + ny);
-      verts.push(ax - nx, 0, ay - ny);
-      verts.push(bx + nx, 0, by + ny);
-      verts.push(bx - nx, 0, by - ny);
-      idx.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-    geo.setIndex(idx);
-    geo.computeVertexNormals();
-    road._geoRoad = geo;
+function ribbonGeometry(pts, half) {
+  const verts = [];
+  const idx = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+    const dx = bx - ax, dy = by - ay;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len * half, ny = dx / len * half;
+    const base = verts.length / 3;
+    verts.push(ax + nx, 0, ay + ny);
+    verts.push(ax - nx, 0, ay - ny);
+    verts.push(bx + nx, 0, by + ny);
+    verts.push(bx - nx, 0, by - ny);
+    idx.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
   }
-  const color = road.cat === 'cycle' ? 0xa1402f : road.cat === 'foot' ? 0xa89f8d : road.cat === 'major' ? 0x565c53 : 0x43464c;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+// Darker, more saturated asphalt than the earlier pass - against the tan
+// ground fill these read unmistakably as "a road" instead of blending into
+// a same-toned gray; major/normal roads also get a painted centerline
+// (the single strongest "this is a street" visual cue a real road has).
+const ROAD_COLORS3D = { cycle: 0xa1402f, foot: 0x9a9284, major: 0x33363a, normal: 0x26282b, minor: 0x26282b };
+const CENTERLINE_MAT = new THREE.MeshBasicMaterial({ color: 0xe8d24a });
+
+function buildRoadMesh(road) {
+  if (!road._geoRoad) road._geoRoad = ribbonGeometry(road.pts, road.width / 2);
+  const color = ROAD_COLORS3D[road.cat] || ROAD_COLORS3D.normal;
+  const group = new THREE.Group();
   const mesh = new THREE.Mesh(road._geoRoad, new THREE.MeshLambertMaterial({ color }));
   mesh.position.y = 0.03;
-  return mesh;
+  group.add(mesh);
+
+  if (road.cat === 'major' || road.cat === 'normal') {
+    if (!road._geoLine) road._geoLine = ribbonGeometry(road.pts, Math.min(0.12, road.width * 0.06));
+    const line = new THREE.Mesh(road._geoLine, CENTERLINE_MAT);
+    line.position.y = 0.035;
+    group.add(line);
+  }
+  return group;
 }
 
 function buildTreeMesh(x, y) {
@@ -236,7 +271,10 @@ function syncRoads(world, px, py) {
   for (const [r, mesh] of roadMeshes) {
     if (seen.has(r)) continue;
     scene.remove(mesh);
-    mesh.material.dispose();
+    // buildRoadMesh returns a Group (surface + optional centerline), not a
+    // plain Mesh, since the centerline stripe was added - the centerline
+    // material is shared (CENTERLINE_MAT) so only dispose the surface's own
+    mesh.traverse((o) => { if (o.material && o.material !== CENTERLINE_MAT) o.material.dispose(); });
     roadMeshes.delete(r);
   }
 }
@@ -275,6 +313,28 @@ function syncActors(list, cache, builder, idOf) {
     if (seen.has(id)) continue;
     scene.remove(mesh);
     mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+    cache.delete(id);
+  }
+}
+
+// Same as syncActors, but never disposes materials on removal - pickups2.js
+// deliberately shares materials/geometries at module scope across every
+// live pickup of a kind, so disposing one would corrupt every other one
+// still on screen (same hazard buildings/mission-dots already guard against).
+function syncPickupActors(list, cache, builder, idOf) {
+  const seen = new Set();
+  for (const item of list) {
+    const id = idOf(item);
+    seen.add(id);
+    if (!cache.has(id)) {
+      const mesh = builder(item);
+      scene.add(mesh);
+      cache.set(id, mesh);
+    }
+  }
+  for (const [id, mesh] of cache) {
+    if (seen.has(id)) continue;
+    scene.remove(mesh);
     cache.delete(id);
   }
 }
@@ -333,12 +393,11 @@ function syncSpeechBubbles(world) {
 }
 
 export function update3D(dt, world) {
-  if (!active) return;
   const player = world.player;
 
   syncBuildings(world, player.x, player.y);
   syncFlat(world.map.greenNear(player.x, player.y, DRAW_DIST), greenMeshes, 0x5c8a4d, 0.015, player.x, player.y);
-  syncFlat(world.map.waterNear(player.x, player.y, DRAW_DIST), waterMeshes, 0x2f6f9e, 0.01, player.x, player.y);
+  syncFlat(world.map.waterNear(player.x, player.y, DRAW_DIST), waterMeshes, 0x2f6f9e, WATER_Y, player.x, player.y);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
 
@@ -351,7 +410,7 @@ export function update3D(dt, world) {
   for (const v of world.vehicles) {
     const mesh = vehicleMeshes.get(v.id);
     if (mesh) {
-      mesh.position.set(v.x, 0, v.y);
+      mesh.position.set(v.x, v.isBoat ? WATER_Y : 0, v.y);
       mesh.rotation.y = -v.angle;
     }
   }
@@ -385,7 +444,7 @@ export function update3D(dt, world) {
     syncActors(
       world.wildlife.filter((a) => Math.hypot(a.x - player.x, a.y - player.y) < DRAW_DIST),
       wildlifeMeshes,
-      (a) => (a.kind === 'seagull' ? buildSeagullMesh3D() : buildCowMesh3D()),
+      (a) => (a.kind === 'seagull' ? buildSeagullMesh3D() : a.kind === 'sheep' ? buildSheepMesh3D() : buildCowMesh3D(a.bobSeed)),
       (a) => a
     );
     for (const a of world.wildlife) {
@@ -395,6 +454,125 @@ export function update3D(dt, world) {
         mesh.position.set(a.x, y, a.y);
         mesh.rotation.y = -a.angle;
       }
+    }
+  }
+
+  // mission marker: a single persistent beacon, repositioned/recolored -
+  // world.mission is one long-lived object (the chain loops forever), never
+  // an array, so this is a create-once singleton, not a Map-keyed sync
+  if (world.mission) {
+    if (!missionMarkerMesh) {
+      missionMarkerMesh = buildMissionMarker3D();
+      scene.add(missionMarkerMesh);
+    }
+    missionMarkerMesh.position.set(world.mission.marker.x, 0, world.mission.marker.y);
+    updateMissionMarker3D(missionMarkerMesh, world.time, world.mission.phase);
+  } else if (missionMarkerMesh) {
+    scene.remove(missionMarkerMesh);
+    missionMarkerMesh = null;
+  }
+
+  // remaining-waypoint preview dots (checkpoint/boat missions only) - the
+  // whole set is torn down/rebuilt on wpIndex change rather than diffed,
+  // since the plain {x,y} waypoint objects have no stable identity
+  if (world.mission && world.mission.remainingWaypoints.length) {
+    const wpKey = `${world.mission.index}:${world.mission.wpIndex}`;
+    if (wpKey !== missionWaypointSetKey) {
+      missionWaypointSetKey = wpKey;
+      for (const mesh of missionWaypointDotMeshes.values()) scene.remove(mesh);
+      missionWaypointDotMeshes.clear();
+      world.mission.remainingWaypoints.forEach((wp, i) => {
+        const mesh = buildWaypointDotMesh3D();
+        mesh.position.set(wp.x, 0.4, wp.y);
+        scene.add(mesh);
+        missionWaypointDotMeshes.set(i, mesh);
+      });
+    }
+  } else if (missionWaypointSetKey !== null) {
+    for (const mesh of missionWaypointDotMeshes.values()) scene.remove(mesh);
+    missionWaypointDotMeshes.clear();
+    missionWaypointSetKey = null;
+  }
+
+  // pickups: money/weapons/health/armor/garages all share module-scope
+  // materials in pickups2.js, so removal must never call material.dispose()
+  const pu = getPickupsForRender();
+  syncPickupActors(pu.money, moneyMeshes, () => buildMoneyPickupMesh3D(), (m) => m);
+  for (const m of pu.money) {
+    const mesh = moneyMeshes.get(m);
+    if (mesh) {
+      mesh.position.set(m.x, 0.55 + Math.sin(world.time * 3 + (m.amount || 0)) * 0.05, m.y);
+      mesh.rotation.y = world.time * 2.2;
+    }
+  }
+  syncPickupActors(pu.weapons, weaponMeshes, (w) => buildWeaponPickupMesh3D(w.key), (w) => w);
+  for (const w of pu.weapons) {
+    const mesh = weaponMeshes.get(w);
+    if (mesh) { mesh.position.set(w.x, 0, w.y); mesh.rotation.y = world.time * 1.3; }
+  }
+  syncPickupActors(pu.health ? [pu.health] : [], healthMeshes, () => buildHealthPickupMesh3D(), (h) => h);
+  if (pu.health) {
+    const mesh = healthMeshes.get(pu.health);
+    if (mesh) mesh.position.set(pu.health.x, 0, pu.health.y);
+  }
+  syncPickupActors(pu.armor ? [pu.armor] : [], armorMeshes, () => buildArmorPickupMesh3D(), (a) => a);
+  if (pu.armor) {
+    const mesh = armorMeshes.get(pu.armor);
+    if (mesh) mesh.position.set(pu.armor.x, 0, pu.armor.y);
+  }
+  syncPickupActors(pu.garages, garageMeshes, () => buildGaragePickupMesh3D(), (g) => g);
+  for (const g of pu.garages) {
+    const mesh = garageMeshes.get(g);
+    if (mesh) mesh.position.set(g.x, 0, g.y);
+  }
+
+  // traffic lights: static positions, built once, only the lamp color changes
+  for (const light of getTrafficLights()) {
+    let mesh = trafficLightMeshes.get(light);
+    if (!mesh) {
+      mesh = buildTrafficLightMesh3D();
+      mesh.position.set(light.x, 0, light.y);
+      scene.add(mesh);
+      trafficLightMeshes.set(light, mesh);
+    }
+    setTrafficLightPhase3D(mesh, getTrafficLightPhase(light));
+  }
+
+  // combat: bullets (Map-keyed like any other actor), spark bursts (pruned
+  // by world.time > until), and a single shared muzzle-flash/melee-swipe
+  // slot (only one of the two effect types can be active at once)
+  syncActors(world.bullets, bulletMeshes, buildBulletMesh3D, (b) => b);
+  for (const b of world.bullets) {
+    const mesh = bulletMeshes.get(b);
+    if (mesh) {
+      mesh.position.set(b.x, 1.15, b.y);
+      mesh.rotation.y = -Math.atan2(b.vy, b.vx);
+    }
+  }
+  for (const p of world.particles) {
+    if (p.kind !== 'spark' || sparkMeshes.has(p)) continue;
+    const mesh = buildSparkBurstMesh3D();
+    mesh.position.set(p.x, 1.15, p.y);
+    scene.add(mesh);
+    sparkMeshes.set(p, mesh);
+  }
+  for (const [p, mesh] of sparkMeshes) {
+    if (world.time <= p.until) continue;
+    scene.remove(mesh);
+    mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+    sparkMeshes.delete(p);
+  }
+  if (!muzzleFlashMesh) { muzzleFlashMesh = buildMuzzleFlashMesh3D(); scene.add(muzzleFlashMesh); }
+  if (!meleeSwipeMesh) { meleeSwipeMesh = buildMeleeSwipeMesh3D(); scene.add(meleeSwipeMesh); }
+  {
+    const fx = getCombatEffect();
+    const fxActive = fx && world.time < fx.until;
+    muzzleFlashMesh.visible = !!(fxActive && fx.type === 'muzzle');
+    meleeSwipeMesh.visible = !!(fxActive && fx.type === 'melee');
+    if (fxActive) {
+      const activeMesh = fx.type === 'muzzle' ? muzzleFlashMesh : meleeSwipeMesh;
+      activeMesh.position.set(player.x, 1.15, player.y);
+      activeMesh.rotation.y = -fx.angle;
     }
   }
 
@@ -413,6 +591,38 @@ export function update3D(dt, world) {
     playerMesh.position.set(player.x, 0, player.y);
     playerMesh.rotation.y = -player.angle;
   }
+
+  // companion (Tammo/Anita, whichever the player isn't controlling) -
+  // walks alongside on foot, or rides along as a visible passenger
+  const comp = world.companion;
+  if (comp) {
+    if (comp.character !== companionCharacter) {
+      companionCharacter = comp.character;
+      const appearance = companionCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+      if (companionMesh) scene.remove(companionMesh);
+      companionMesh = buildPersonMesh(appearance.shirt, appearance.skin, appearance);
+      scene.add(companionMesh);
+      if (passengerMesh) scene.remove(passengerMesh);
+      passengerMesh = buildPersonMesh(appearance.shirt, appearance.skin, appearance);
+      passengerMesh.visible = false;
+      scene.add(passengerMesh);
+    }
+    companionMesh.visible = !comp.inVehicle;
+    if (!comp.inVehicle) {
+      companionMesh.position.set(comp.x, 0, comp.y);
+      companionMesh.rotation.y = -comp.angle;
+    } else {
+      const v = comp.inVehicle;
+      const hl = v.model.len / 2, hw = v.model.wid / 2;
+      const offX = hl * 0.05, offZ = -hw * 0.32;
+      const wx = v.x + Math.cos(v.angle) * offX - Math.sin(v.angle) * offZ;
+      const wy = v.y + Math.sin(v.angle) * offX + Math.cos(v.angle) * offZ;
+      passengerMesh.visible = true;
+      passengerMesh.position.set(wx, 0, wy);
+      passengerMesh.rotation.y = -v.angle;
+    }
+  }
+  if (passengerMesh && (!comp || !comp.inVehicle)) passengerMesh.visible = false;
 
   // third-person follow: smoothly settle behind whatever the player is
   // currently facing (on foot or driving), GTA3-style - with a wall-aware

@@ -120,19 +120,26 @@ export class GameMap {
   // straight to its nearest edge + margin, however deep inside it is - the
   // small-radius circle collision in player.js only nudges near an edge, it
   // won't rescue a point that's dozens of meters from the nearest wall.
+  // Looped (not a single push) because in a dense block - most of the
+  // Binnenstad - escaping building A can land you a few cm inside its direct
+  // neighbour building B; one pass alone was reported spawning players
+  // inside buildings often enough to notice.
   escapeBuilding(x, y, margin = 0.6) {
-    for (const b of this.buildingsNear(x, y, 1)) {
-      const [minx, miny, maxx, maxy] = b.bounds;
-      if (x < minx || x > maxx || y < miny || y > maxy) continue;
-      if (!pointInPolygon(x, y, b.pts)) continue;
-      const pts = b.pts;
+    for (let iter = 0; iter < 6; iter++) {
+      const hit = this.buildingsNear(x, y, 1).find((b) => {
+        const [minx, miny, maxx, maxy] = b.bounds;
+        return x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts);
+      });
+      if (!hit) break;
+      const pts = hit.pts;
       let bestDist2 = Infinity, bestX = x, bestY = y;
       for (let i = 0; i < pts.length - 1; i++) {
         const cp = closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
         if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; bestX = cp.x; bestY = cp.y; }
       }
       const d = Math.sqrt(bestDist2) || 0.01;
-      return [x + (bestX - x) / d * (d + margin), y + (bestY - y) / d * (d + margin)];
+      x += (bestX - x) / d * (d + margin);
+      y += (bestY - y) / d * (d + margin);
     }
     return [x, y];
   }

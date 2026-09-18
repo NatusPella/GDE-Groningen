@@ -70,9 +70,30 @@ export class Player {
     this.y = nextY;
   }
 
+  // Tammo and Anita are always both out in the world (see companion2.js) -
+  // switching just trades physical state (position/velocity/vehicle) between
+  // this Player and world.companion, it never changes which object IS "the
+  // player" elsewhere in the codebase. Blocked while driving without the
+  // companion in the very same vehicle - there's no sensible "teleport into
+  // a car you were never in" swap, only "swap seats" or "swap on foot".
   updateCharacterSwitch(world) {
     if (!world.input.wasPressed('c')) return;
-    this.character = this.character === 'tammo' ? 'anita' : 'tammo';
+    const c = world.companion;
+    if (!c || c.state === 'dead') return;
+    if (this.inVehicle && this.inVehicle !== c.inVehicle) {
+      const other = this.character === 'tammo' ? 'Anita' : 'Tammo';
+      world.addMessage(`${other} moet eerst instappen`, 2.5);
+      return;
+    }
+    [this.x, c.x] = [c.x, this.x];
+    [this.y, c.y] = [c.y, this.y];
+    [this.angle, c.angle] = [c.angle, this.angle];
+    [this.vx, c.vx] = [c.vx, this.vx];
+    [this.vy, c.vy] = [c.vy, this.vy];
+    [this.inVehicle, c.inVehicle] = [c.inVehicle, this.inVehicle];
+    [this.character, c.character] = [c.character, this.character];
+    if (this.inVehicle) this.inVehicle.driver = 'player';
+    if (c.inVehicle) c.inVehicle.passenger = 'companion';
     world.addMessage(this.character === 'tammo' ? 'Je bestuurt nu Tammo' : 'Je bestuurt nu Anita');
   }
 

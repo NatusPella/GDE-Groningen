@@ -17,10 +17,19 @@ const ARCH_COLOR = 0x141414;
 const GLASS_COLOR = 0x3f4650;
 const HERO_LEN = 4.0;
 const HERO_WID = 1.65;
+// Scene3d's water plane renders at y=0.01 (see syncFlat's water call in
+// scene3d.js) - boats share the generic vehicle sync loop that always sets
+// mesh.position.y=0, so the hull's float height has to be baked in here.
+const WATER_LINE = 0.03;
 
+// CylinderGeometry's default axis is Y, so a bare wheel lies flat like a
+// coin (round face up). Rotating it about X (not Z) swings that round face
+// into the X-Y plane with the thin axle running along Z, which is what
+// makes it read as a circle from the side (Z) instead of from the front/
+// back (X) - confirmed with a throwaway raycast-silhouette check.
 function wheel() {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(WHEEL_R, WHEEL_R, WHEEL_W, 10), new THREE.MeshLambertMaterial({ color: 0x161616 }));
-  m.rotation.z = Math.PI / 2;
+  m.rotation.x = Math.PI / 2;
   return m;
 }
 
@@ -29,10 +38,10 @@ function wheel() {
 function bikeWheel(radius) {
   const group = new THREE.Group();
   const tire = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 0.05, 12), new THREE.MeshLambertMaterial({ color: 0x111111 }));
-  tire.rotation.z = Math.PI / 2;
+  tire.rotation.x = Math.PI / 2;
   group.add(tire);
   const rim = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.6, radius * 0.6, 0.07, 8), new THREE.MeshLambertMaterial({ color: 0x9a9a9a }));
-  rim.rotation.z = Math.PI / 2;
+  rim.rotation.x = Math.PI / 2;
   group.add(rim);
   return group;
 }
@@ -54,16 +63,22 @@ function wheelArch(x, y, wid) {
   return m;
 }
 
-// Crouched rider seen from the side: capsule torso leaned toward the front
-// wheel plus a head, deliberately not the full standing pedestrian mesh.
-function buildRiderMesh(shirt) {
+// Crouched/standing rider seen from the side: capsule torso leaned toward
+// the front wheel plus a head, deliberately not the full standing
+// pedestrian mesh. torsoY is an absolute height (in the vehicle's own local
+// space) for the torso centre, so callers can stand the rider on whatever
+// surface the vehicle actually offers (bike seat vs. scooter deck) instead
+// of always anchoring it to y=0; lean controls the forward crouch (a
+// scooter rider stands more upright than a cyclist); sizeMul scales the
+// whole rider so it still reads clearly next to a small vehicle.
+function buildRiderMesh(shirt, torsoY = 0.62, lean = -0.5, sizeMul = 1) {
   const group = new THREE.Group();
-  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.42, 2, 5), new THREE.MeshLambertMaterial({ color: shirt || 0x2f5c8a }));
-  torso.rotation.z = -0.5;
-  torso.position.set(0.05, 0.62, 0);
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.2 * sizeMul, 0.42 * sizeMul, 2, 5), new THREE.MeshLambertMaterial({ color: shirt || 0x2f5c8a }));
+  torso.rotation.z = lean;
+  torso.position.set(0.05 * sizeMul, torsoY, 0);
   group.add(torso);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 7, 6), new THREE.MeshLambertMaterial({ color: 0xe0b48a }));
-  head.position.set(0.28, 0.92, 0);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15 * sizeMul, 7, 6), new THREE.MeshLambertMaterial({ color: 0xe0b48a }));
+  head.position.set(0.28 * sizeMul, torsoY + 0.3 * sizeMul, 0);
   group.add(head);
   return group;
 }
@@ -151,8 +166,11 @@ function buildFordEscortGroup(color, len = HERO_LEN, wid = HERO_WID, wrecked = f
 
   // Boxier, more upright greenhouse than the generic car, and it eats up
   // more of the total length - shorter front/rear overhangs, per the brief.
+  // Width is closer to the full chassis (0.94 vs. the generic car's 0.88)
+  // so the slab-sided retro silhouette reads clearly even though this
+  // model is itself narrower than every generic car variant.
   const cabinLen = len * 0.62, cabinH = 0.58;
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(cabinLen, cabinH, wid * 0.86), new THREE.MeshLambertMaterial({ color: GLASS_COLOR }));
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(cabinLen, cabinH, wid * 0.94), new THREE.MeshLambertMaterial({ color: GLASS_COLOR }));
   cabin.position.set(0, chassisY + chassisH / 2 + cabinH / 2 - 0.05, 0);
   group.add(cabin);
 
@@ -204,7 +222,7 @@ function buildBikeMesh(v) {
     group.add(w);
   }
 
-  const rider = buildRiderMesh(v.model.rider);
+  const rider = buildRiderMesh(v.model.rider, seatY);
   rider.position.set(-hl * 0.2, 0, 0);
   group.add(rider);
 
@@ -230,8 +248,12 @@ function buildScooterMesh(v) {
     group.add(w);
   }
 
-  const rider = buildRiderMesh(v.model.rider);
-  rider.scale.setScalar(0.92);
+  // Standing scooter rider: raised so their feet land on the deck (not
+  // sunk to y=0 the way a bike-style torsoY of ~0.62 would leave them,
+  // since the deck itself sits well above ground here) and scaled up
+  // rather than down so a full-size adult clearly reads next to the small
+  // deck/frame instead of blending into it.
+  const rider = buildRiderMesh(v.model.rider, deckY + 0.56, -0.22, 1.15);
   rider.position.set(colX - 0.2, 0, 0);
   group.add(rider);
 
@@ -335,7 +357,7 @@ function buildBoatMesh(v) {
   const hullColor = v.wrecked ? 0x3a3a3a : v.model.color;
 
   const hull = new THREE.Mesh(new THREE.BoxGeometry(hullLen, hullH, wid), new THREE.MeshLambertMaterial({ color: hullColor }));
-  hull.position.set(hl - bowLen - hullLen / 2, hullH / 2, 0);
+  hull.position.set(hl - bowLen - hullLen / 2, hullH / 2 + WATER_LINE, 0);
   group.add(hull);
 
   // bow wedge: a cone laid on its side and flattened vertically so it tapers
@@ -343,23 +365,23 @@ function buildBoatMesh(v) {
   const bow = new THREE.Mesh(new THREE.ConeGeometry(hw, bowLen, 6), new THREE.MeshLambertMaterial({ color: hullColor }));
   bow.rotation.z = -Math.PI / 2;
   bow.scale.x = hullH / (hw * 2);
-  bow.position.set(hl - bowLen / 2, hullH / 2, 0);
+  bow.position.set(hl - bowLen / 2, hullH / 2 + WATER_LINE, 0);
   group.add(bow);
 
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(len * 0.32, 0.5, wid * 0.78), new THREE.MeshLambertMaterial({ color: v.model.cabin || 0x2f3a44 }));
-  cabin.position.set(-hl * 0.05, hullH + 0.25, 0);
+  cabin.position.set(-hl * 0.05, hullH + 0.25 + WATER_LINE, 0);
   group.add(cabin);
 
   if (hash2(v.id, 5.3) < 0.5) {
     const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.1, 6), new THREE.MeshLambertMaterial({ color: 0x1c1c1c }));
-    mast.position.set(-hl * 0.05, hullH + 0.5 + 0.55, 0);
+    mast.position.set(-hl * 0.05, hullH + 0.5 + 0.55 + WATER_LINE, 0);
     group.add(mast);
     const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), new THREE.MeshLambertMaterial({ color: 0xdd2222 }));
-    beacon.position.set(-hl * 0.05, hullH + 0.5 + 1.1, 0);
+    beacon.position.set(-hl * 0.05, hullH + 0.5 + 1.1 + WATER_LINE, 0);
     group.add(beacon);
   } else {
     const arch = buildRadarArch(hw);
-    arch.position.set(-hl * 0.05, hullH + 0.5, 0);
+    arch.position.set(-hl * 0.05, hullH + 0.5 + WATER_LINE, 0);
     group.add(arch);
   }
 

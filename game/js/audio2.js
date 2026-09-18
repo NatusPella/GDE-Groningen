@@ -5,12 +5,10 @@ const MASTER_VOLUME = 0.55;
 let ctx = null;
 let master = null;
 let sfxBus = null;
-let ambientBus = null;
 let engineBus = null;
 let sirenBus = null;
 let noiseBuffer = null;
 
-let pad = null;
 let engine = null;
 let siren = null;
 
@@ -19,7 +17,6 @@ let seenMessages = null;
 let muted = false;
 const engineState = { freq: 42, gain: 0 };
 const sirenState = { gain: 0 };
-const tensionState = { value: 0 };
 
 function buildNoiseBuffer(seconds) {
   const len = Math.floor(ctx.sampleRate * seconds);
@@ -27,68 +24,6 @@ function buildNoiseBuffer(seconds) {
   const data = buf.getChannelData(0);
   for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
   return buf;
-}
-
-function buildAmbientPad() {
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 380;
-  filter.Q.value = 0.7;
-  filter.connect(ambientBus);
-
-  // wide fifth/octave spacing (55 / 82.4 / 110 Hz = root-fifth-octave)
-  // instead of closely-stacked tones - closely-spaced low oscillators beat
-  // against each other and read as an unpleasant "brom" (hum/buzz) rather
-  // than a pad, especially at any real volume
-  const oscA = ctx.createOscillator();
-  oscA.type = 'sine';
-  oscA.frequency.value = 55;
-  const gainA = ctx.createGain();
-  gainA.gain.value = 0.22;
-  oscA.connect(gainA).connect(filter);
-  oscA.start();
-
-  const oscB = ctx.createOscillator();
-  oscB.type = 'triangle';
-  oscB.frequency.value = 82.4;
-  oscB.detune.value = -4;
-  const gainB = ctx.createGain();
-  gainB.gain.value = 0.14;
-  oscB.connect(gainB).connect(filter);
-  oscB.start();
-
-  const oscC = ctx.createOscillator();
-  oscC.type = 'sine';
-  oscC.frequency.value = 110;
-  oscC.detune.value = 3;
-  const gainC = ctx.createGain();
-  gainC.gain.value = 0.09;
-  oscC.connect(gainC).connect(filter);
-  oscC.start();
-
-  // Slow filter-cutoff wobble is what keeps the drone from sounding like a
-  // dead flat tone - depth/rate scale up with wanted level for tension.
-  const lfo = ctx.createOscillator();
-  lfo.type = 'sine';
-  lfo.frequency.value = 0.07;
-  const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 90;
-  lfo.connect(lfoGain).connect(filter.frequency);
-  lfo.start();
-
-  const noiseFilter = ctx.createBiquadFilter();
-  noiseFilter.type = 'bandpass';
-  noiseFilter.frequency.value = 600;
-  noiseFilter.Q.value = 0.6;
-  const noiseGain = ctx.createGain();
-  noiseGain.gain.value = 0.045;
-  const noiseSrc = ctx.createBufferSource();
-  noiseSrc.buffer = noiseBuffer;
-  noiseSrc.loop = true;
-  noiseSrc.connect(noiseFilter).connect(noiseGain).connect(ambientBus);
-  noiseSrc.start();
-
-  return { filter, lfo, lfoGain };
 }
 
 function buildEngine() {
@@ -261,10 +196,6 @@ export function initAudio(world) {
   sfxBus.gain.value = 0.9;
   sfxBus.connect(master);
 
-  ambientBus = ctx.createGain();
-  ambientBus.gain.value = 0.16;
-  ambientBus.connect(master);
-
   engineBus = ctx.createGain();
   engineBus.gain.value = 0;
   engineBus.connect(master);
@@ -274,7 +205,6 @@ export function initAudio(world) {
   sirenBus.connect(master);
 
   noiseBuffer = buildNoiseBuffer(2);
-  pad = buildAmbientPad();
   engine = buildEngine();
   siren = buildSiren();
 
@@ -314,16 +244,6 @@ function updateSiren(dt, world) {
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;
   siren.lfo.frequency.value = 0.75 + intensity * 0.9;
-}
-
-function updateTension(dt, world) {
-  const target = clamp(world.wanted / 5, 0, 1);
-  tensionState.value += (target - tensionState.value) * Math.min(1, dt * 0.8);
-  const t = tensionState.value;
-  pad.filter.frequency.value = 380 + t * 900;
-  pad.lfo.frequency.value = 0.07 + t * 0.5;
-  pad.lfoGain.gain.value = 90 + t * 260;
-  ambientBus.gain.value = 0.4 + t * 0.12;
 }
 
 export function updateAudio(dt, world) {
@@ -366,5 +286,4 @@ export function updateAudio(dt, world) {
 
   updateEngine(dt, world);
   updateSiren(dt, world);
-  updateTension(dt, world);
 }

@@ -81,6 +81,7 @@ export class Vehicle {
     this.health = 100;
     this.wrecked = false;
     this.driver = null; // 'player' | ai-controlled marker | null
+    this.passenger = null; // 'companion' | null - the non-driving Tammo/Anita riding along
     this.horn = false;
 
     // traffic AI path state

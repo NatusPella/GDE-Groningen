@@ -128,7 +128,7 @@ function updateHint(world) {
   }
 
   if (world.time < TUTORIAL_HINT_DURATION) {
-    els.hint.textContent = '[WASD] Lopen  ·  [E] Instappen  ·  [V] 3D  ·  [M] Kaart';
+    els.hint.textContent = '[WASD] Lopen  ·  [E] Instappen  ·  [C] Wissel  ·  [M] Kaart';
     return;
   }
 
