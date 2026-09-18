@@ -199,13 +199,26 @@ function isPointInAnyWater(x, y, waterList) {
 //
 // opts.pad: extra meters added beyond the map bounds on every side
 // (default: 15% of the larger extent). opts.cellSize: target grid cell
-// size in meters (default: derived so the larger axis gets ~100 segments).
-// opts.segments: override the per-axis segment count directly (applied to
-// both axes), clamped to [40, 100] unless explicitly overridden this way.
+// size in meters (default: 10 - see below). opts.segments: override the
+// per-axis segment count directly (applied to both axes), clamped to
+// [40, 900] unless explicitly overridden this way.
 // opts.y: world Y to place the mesh at (default: -0.4 - at/below WATER_Y
 // (-0.35) in scene3d.js; now redundant as a water-hiding safeguard since
 // water polygons are real holes, but kept as the sane default height for
 // a ground surface relative to roads (0.03)/sidewalks (0.02)/green (0.015)).
+//
+// Cell size used to be derived as "whole map / 100 segments" (~50m/cell on
+// this map) - a fixed SEGMENT COUNT regardless of map size, not a fixed
+// real-world resolution. That's far coarser than the real features this
+// grid has to cut holes for: the smallest water polygons on this map are
+// only ~5-8m wide, so a single 50m-wide sample triangle spanning one of
+// them dropped (or kept) up to ~2500m² of ground based on one centroid
+// test - visibly wrong-shaped/oversized holes ("iets gaat mis met het
+// terrein"), not just a jagged edge as the old comment here assumed. Fixed
+// at a real-world target size instead, so resolution scales with map size
+// and stays meaningful regardless of how big the map is.
+const TARGET_CELL_SIZE_M = 10;
+
 export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   const [minx, miny, maxx, maxy] = bounds;
   const width = maxx - minx;
@@ -217,9 +230,9 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   const totalD = maxY - minY;
   const y = opts.y ?? -0.4;
 
-  const cellSize = opts.cellSize ?? Math.max(totalW, totalD) / 100;
-  const segsX = opts.segments ?? clamp(Math.round(totalW / cellSize), 40, 100);
-  const segsZ = opts.segments ?? clamp(Math.round(totalD / cellSize), 40, 100);
+  const cellSize = opts.cellSize ?? TARGET_CELL_SIZE_M;
+  const segsX = opts.segments ?? clamp(Math.round(totalW / cellSize), 40, 900);
+  const segsZ = opts.segments ?? clamp(Math.round(totalD / cellSize), 40, 900);
   const nx = segsX + 1, nz = segsZ + 1;
 
   const waterList = waterPolys.map((w) => ({
