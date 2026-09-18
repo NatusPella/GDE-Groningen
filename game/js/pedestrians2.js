@@ -1,5 +1,6 @@
 import { dist, pointInPolygon, closestPointOnSegment } from './util2.js';
 import { resolveBuildingCollisions } from './player2.js';
+import { respawnPlayer } from './world2.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.4;
@@ -11,6 +12,17 @@ const VEHICLE_HIT_SPEED = 4;
 const SPEECH_DURATION = 3;
 const SPEECH_MIN_INTERVAL = 15;
 const SPEECH_MAX_INTERVAL = 30;
+
+// Foot police: cops are plain Pedestrians with isCop:true, a distinct
+// uniform color (so the existing 3D ped sync in scene3d.js, which reads
+// clothing straight off the Pedestrian, needs zero changes), and a 'seek'
+// state mirroring 'flee' but steering toward the player instead of away.
+const COP_CLOTHING = '#1c3fae';
+const COP_SEEK_SPEED = 3.1;
+const COP_SEEK_TRIGGER_RADIUS = 14;
+const COP_SEEK_GIVEUP_RADIUS = 22;
+const COP_BUST_FAST_SPEED = 9; // matches police2.js's BUST_FAST_SPEED
+const COP_BUST_CONTACT_MARGIN = 0.1;
 
 const GRONINGS_PHRASES = [
   'Moi!', 'Hoi, alles goud?', 't Is mooi weer vandoag, net?',
@@ -80,6 +92,19 @@ export function spawnPedestriansNear(map, x, y, count, rng = Math.random) {
   return peds;
 }
 
+// Same placement machinery as spawnPedestriansNear (roads-near + building
+// rejection) - police2.js calls this to grow/replace its foot-police pool
+// as world.wanted rises, exactly like it calls spawnVehicleOnRoad for cars.
+export function spawnCopPedestriansNear(map, x, y, count, rng = Math.random) {
+  const cops = spawnPedestriansNear(map, x, y, count, rng);
+  for (const cop of cops) {
+    cop.isCop = true;
+    cop.clothing = COP_CLOTHING;
+    cop.hasBag = false;
+  }
+  return cops;
+}
+
 function isInsideBuilding(map, x, y) {
   for (const b of map.buildingsNear(x, y, 0.5)) {
     if (pointInPolygon(x, y, b.pts)) return true;
@@ -143,6 +168,19 @@ function checkVehicleImpact(ped, world) {
   }
 }
 
+// Mirrors police2.js's checkBusted for police vehicles - contact with a
+// seeking cop on foot busts the player exactly the same way (same
+// moneyPenalty formula, same fast-getaway exemption), just triggered by a
+// Pedestrian instead of a Vehicle.
+function checkCopBust(ped, world) {
+  const player = world.player;
+  if (player.inVehicle && Math.abs(player.inVehicle.speed) > COP_BUST_FAST_SPEED) return;
+  const contact = ped.radius + (player.radius || 0.35) + COP_BUST_CONTACT_MARGIN;
+  if (dist(ped.x, ped.y, player.x, player.y) <= contact) {
+    respawnPlayer(world, { busted: true, moneyPenalty: world.wanted * 150 });
+  }
+}
+
 export function updatePedestrians(dt, world) {
   const { map, player } = world;
   const peds = world.pedestrians;
@@ -158,7 +196,15 @@ export function updatePedestrians(dt, world) {
     }
 
     const dPlayer = dist(ped.x, ped.y, player.x, player.y);
-    if (ped.state === 'wander' && aiming && dPlayer < FLEE_TRIGGER_RADIUS) {
+    if (ped.isCop) {
+      if (ped.state === 'wander' && world.wanted > 0 && dPlayer < COP_SEEK_TRIGGER_RADIUS) {
+        ped.state = 'seek';
+      } else if (ped.state === 'seek' && (world.wanted === 0 || dPlayer > COP_SEEK_GIVEUP_RADIUS)) {
+        ped.state = 'wander';
+        ped.waypoint = null;
+        ped.waypointTimer = 0;
+      }
+    } else if (ped.state === 'wander' && aiming && dPlayer < FLEE_TRIGGER_RADIUS) {
       ped.state = 'flee';
     } else if (ped.state === 'flee' && dPlayer > FLEE_SAFE_RADIUS) {
       ped.state = 'wander';
@@ -171,6 +217,12 @@ export function updatePedestrians(dt, world) {
       const len = Math.hypot(dx, dy) || 1;
       ped.angle = Math.atan2(dy / len, dx / len);
       ped.speed = FLEE_SPEED;
+      ped.speechUntil = 0;
+    } else if (ped.state === 'seek') {
+      const dx = player.x - ped.x, dy = player.y - ped.y;
+      const len = Math.hypot(dx, dy) || 1;
+      ped.angle = Math.atan2(dy / len, dx / len);
+      ped.speed = COP_SEEK_SPEED;
       ped.speechUntil = 0;
     } else {
       ped.speechTimer -= dt;
@@ -200,6 +252,7 @@ export function updatePedestrians(dt, world) {
     ped.x = nx;
     ped.y = ny;
 
+    if (ped.state === 'seek') checkCopBust(ped, world);
     checkVehicleImpact(ped, world);
   }
 }

@@ -1,12 +1,20 @@
 import { clamp } from './util2.js';
 
 const MASTER_VOLUME = 0.55;
+const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
+const GMUSIC_VOLUME = 0.5;
+const GMUSIC_DUCK_VOLUME = 0.2;
+const SIREN_LOW_FREQ = 440;
+const SIREN_HIGH_FREQ = 660;
+const SIREN_HOLD_MIN = 0.5;
+const SIREN_HOLD_MAX = 0.7;
 
 let ctx = null;
 let master = null;
 let sfxBus = null;
 let engineBus = null;
 let sirenBus = null;
+let musicBus = null;
 let noiseBuffer = null;
 
 let engine = null;
@@ -17,6 +25,9 @@ let seenMessages = null;
 let muted = false;
 const engineState = { freq: 42, gain: 0 };
 const sirenState = { gain: 0 };
+const musicState = { gain: GMUSIC_VOLUME };
+const gmusic = { tracks: [], elements: [], index: 0 };
+let gmusicDriving = false;
 
 function buildNoiseBuffer(seconds) {
   const len = Math.floor(ctx.sampleRate * seconds);
@@ -51,27 +62,22 @@ function buildEngine() {
 }
 
 function buildSiren() {
+  // NL/EU two-tone "hi-lo" wail: bandpass retuned from the old 800Hz center
+  // (tuned for a 480-920Hz continuous sweep) down to sit between the two
+  // fixed step tones below instead of muffling the low one.
   const filter = ctx.createBiquadFilter();
   filter.type = 'bandpass';
-  filter.frequency.value = 800;
-  filter.Q.value = 4;
+  filter.frequency.value = 545;
+  filter.Q.value = 1.4;
   filter.connect(sirenBus);
 
   const osc = ctx.createOscillator();
   osc.type = 'sine';
-  osc.frequency.value = 700;
+  osc.frequency.value = SIREN_LOW_FREQ;
   osc.connect(filter);
   osc.start();
 
-  const lfo = ctx.createOscillator();
-  lfo.type = 'sine';
-  lfo.frequency.value = 0.9;
-  const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 220;
-  lfo.connect(lfoGain).connect(osc.frequency);
-  lfo.start();
-
-  return { osc, lfo, lfoGain, filter };
+  return { osc, filter, toneHigh: false, nextToggle: 0 };
 }
 
 function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null }) {
@@ -182,6 +188,35 @@ function playMissionJingle() {
   notes.forEach((f, i) => playTone({ freq: f, type: 'triangle', duration: 0.16, gain: 0.24, delay: i * 0.09 }));
 }
 
+// Fire-and-forget: initAudio() stays sync, this just fills in gmusic.elements
+// whenever the manifest (and the track files it lists) resolve. An empty or
+// missing manifest leaves gmusic.elements empty, which every gmusic playback
+// path below already treats as "nothing to play" - never throws.
+async function loadGMusicManifest() {
+  try {
+    const res = await fetch(GMUSIC_MANIFEST_URL);
+    if (!res.ok) return;
+    const data = await res.json();
+    const tracks = Array.isArray(data.tracks) ? data.tracks : [];
+    gmusic.tracks = tracks;
+    gmusic.elements = tracks.map((filename) => {
+      const el = new Audio('./audio/gmusic/' + filename);
+      el.preload = 'auto';
+      el.addEventListener('ended', () => {
+        gmusic.index = (gmusic.index + 1) % gmusic.elements.length;
+        if (!gmusicDriving) return;
+        const next = gmusic.elements[gmusic.index];
+        if (next) next.el.play().catch(() => {});
+      });
+      const srcNode = ctx.createMediaElementSource(el);
+      srcNode.connect(musicBus);
+      return { el, filename, srcNode };
+    });
+  } catch (e) {
+    // no manifest yet / bad JSON / fetch blocked - G-Music just stays silent
+  }
+}
+
 export function initAudio(world) {
   if (ctx) return;
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -204,9 +239,14 @@ export function initAudio(world) {
   sirenBus.gain.value = 0;
   sirenBus.connect(master);
 
+  musicBus = ctx.createGain();
+  musicBus.gain.value = GMUSIC_VOLUME;
+  musicBus.connect(master);
+
   noiseBuffer = buildNoiseBuffer(2);
   engine = buildEngine();
   siren = buildSiren();
+  loadGMusicManifest();
 
   prev = {
     kills: world.stats.kills,
@@ -243,7 +283,41 @@ function updateSiren(dt, world) {
   const targetGain = chaseActive ? 0.18 + intensity * 0.22 : 0;
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;
-  siren.lfo.frequency.value = 0.75 + intensity * 0.9;
+
+  // Stepped hi-lo alternation, not a swept wail: hold each fixed pitch for
+  // 0.5-0.7s (higher wanted level = faster alternation, still in range) and
+  // jump with setValueAtTime so the switch is an abrupt step, not a glide.
+  const hold = SIREN_HOLD_MAX - intensity * (SIREN_HOLD_MAX - SIREN_HOLD_MIN);
+  if (ctx.currentTime >= siren.nextToggle) {
+    siren.toneHigh = !siren.toneHigh;
+    siren.osc.frequency.setValueAtTime(siren.toneHigh ? SIREN_HIGH_FREQ : SIREN_LOW_FREQ, ctx.currentTime);
+    siren.nextToggle = ctx.currentTime + hold;
+  }
+}
+
+function updateGMusic(dt, world) {
+  // Idempotent play/pause (checked every frame via el.paused) rather than an
+  // edge-triggered flag on world.player.inVehicle: a manifest that resolves
+  // mid-drive (fetch races the player already being in a car) still starts
+  // itself the next frame instead of waiting for the next enter-vehicle edge.
+  const driving = !!world.player.inVehicle;
+  gmusicDriving = driving;
+  if (driving) {
+    const cur = gmusic.elements[gmusic.index];
+    if (cur && cur.el.paused) cur.el.play().catch(() => {});
+  } else {
+    for (const t of gmusic.elements) {
+      if (!t.el.paused) t.el.pause();
+    }
+  }
+
+  // Fixed-gain duck (not real-time ducking analysis) whenever the engine is
+  // working hard or the siren is audible, per spec - same lerp-toward-target
+  // shape as engineBus/sirenBus above.
+  const ducked = sirenState.gain > 0.05 || engineState.gain > 0.4;
+  const targetGain = ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
+  musicState.gain += (targetGain - musicState.gain) * Math.min(1, dt * 3);
+  musicBus.gain.value = musicState.gain;
 }
 
 export function updateAudio(dt, world) {
@@ -286,4 +360,5 @@ export function updateAudio(dt, world) {
 
   updateEngine(dt, world);
   updateSiren(dt, world);
+  updateGMusic(dt, world);
 }

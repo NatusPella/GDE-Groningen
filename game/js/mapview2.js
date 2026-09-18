@@ -1,5 +1,8 @@
 const PADDING = 0.94;
 const OVERLAY_Z = 15;
+const MAX_ZOOM = 8;
+const ZOOM_WHEEL_K = 0.0016;
+const DRAG_THRESHOLD_PX = 4;
 
 const ROAD_COLORS = {
   major: '#e8c93a',
@@ -46,7 +49,7 @@ function injectStyles() {
       display: none;
       flex-direction: column;
       background: rgba(10, 12, 9, 0.95);
-      border: 2px solid #e8c93a;
+      border: 2px solid #1e9e56;
       border-radius: 8px;
       box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
       z-index: ${OVERLAY_Z};
@@ -59,7 +62,7 @@ function injectStyles() {
       position: absolute;
       pointer-events: none;
       background: rgba(20, 22, 18, 0.92);
-      border: 1px solid rgba(232, 201, 58, 0.6);
+      border: 1px solid rgba(63, 201, 122, 0.6);
       border-radius: 4px;
       padding: 3px 8px;
       font-size: 13px;
@@ -76,9 +79,9 @@ function injectStyles() {
       padding: 10px 18px;
       letter-spacing: 1px;
       font-weight: bold;
-      color: #e8c93a;
+      color: #3fc97a;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-      border-bottom: 1px solid rgba(232, 201, 58, 0.35);
+      border-bottom: 1px solid rgba(63, 201, 122, 0.35);
     }
     .mapview-hint {
       font-weight: normal;

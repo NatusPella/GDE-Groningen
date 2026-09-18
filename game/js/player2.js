@@ -4,12 +4,15 @@ import { findNearestVehicle, resolveVehicleBuildingCollision } from './vehicle2.
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
+const CROUCH_SPEED = 2.0;
 const TURN_RATE = 3.4; // rad/s, on-foot facing turn speed
 const REVERSE_FACTOR = 0.6;
 const KISS_DIST = 1.8;
 const KISS_HEAL = 25;
 const KISS_COOLDOWN = 3;
 let kissReadyAt = 0;
+const JUMP_SPEED = 5.2;
+const GRAVITY = 16;
 
 export class Player {
   constructor(x, y) {
@@ -22,6 +25,9 @@ export class Player {
     this.radius = RADIUS;
     this.inVehicle = null;
     this.character = 'tammo'; // 'tammo' | 'anita' - cosmetic only, 3D layer reads this to pick a model preset
+    this.z = 0; // on-foot jump height above ground, meters - vehicles ignore this entirely
+    this.vz = 0;
+    this.crouching = false;
   }
 
   update(dt, world) {
@@ -36,12 +42,22 @@ export class Player {
       else { this.driveVehicle(dt, input, map); return; }
     }
 
+    // jump/crouch - on foot only; SPACE is also "remmen" while driving
+    // (handled in driveVehicle, never reached here) and crouching just
+    // slows movement and shrinks the 3D model, no real collision-height
+    // change since building/water collision is 2D (x/y) anyway
+    if (input.wasPressed(' ') && this.z <= 0) this.vz = JUMP_SPEED;
+    this.vz -= GRAVITY * dt;
+    this.z = Math.max(0, this.z + this.vz * dt);
+    if (this.z <= 0) this.vz = 0;
+    this.crouching = input.isDown('control') && this.z <= 0;
+
     // tank controls, GTA3-style: A/D turn the character (and with it the 3D
     // follow-cam, which derives its yaw from this.angle), W/S move forward/
     // back along the current facing - a raw world-axis "D always moves you
     // toward +x" scheme feels wrong once the camera can be facing any way
     const [ax, ay] = input.axis();
-    const speed = input.isDown('shift') ? RUN_SPEED : WALK_SPEED;
+    const speed = this.crouching ? CROUCH_SPEED : input.isDown('shift') ? RUN_SPEED : WALK_SPEED;
 
     this.angle = normalizeAngle(this.angle + ax * TURN_RATE * dt);
 

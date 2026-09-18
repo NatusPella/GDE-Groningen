@@ -1,3 +1,5 @@
+import { getPickupsForRender } from './pickups2.js';
+
 const MINIMAP_SIZE = 160;
 const MM_SCALE = 0.5; // px per meter (css pixels)
 const MM_RADIUS_M = MINIMAP_SIZE / 2 / MM_SCALE;
@@ -144,7 +146,7 @@ function updateHint(world) {
   }
 
   if (world.time < TUTORIAL_HINT_DURATION) {
-    els.hint.innerHTML = hintHtml([['WASD', 'Lopen'], ['E', 'Instappen'], ['C', 'Wissel'], ['M', 'Kaart']]);
+    els.hint.innerHTML = hintHtml([['WASD', 'Lopen'], ['SPATIE', 'Springen'], ['CTRL', 'Kruipen'], ['E', 'Instappen'], ['C', 'Wissel'], ['M', 'Kaart']]);
     return;
   }
 
@@ -300,6 +302,9 @@ function drawMinimap(world) {
     fillPoly(ctx, b.pts);
   }
 
+  drawLandmarkIcons(ctx, world, player);
+  drawPickupIcons(ctx, world, player);
+
   const dotR = 2.5 / MM_SCALE;
   for (const v of world.vehicles) {
     if (!v.isPolice || !v.driver) continue;
@@ -311,12 +316,11 @@ function drawMinimap(world) {
   }
 
   const target = missionTarget(world.mission);
+  let targetOffscreen = null;
   if (target) {
-    ctx.beginPath();
-    ctx.arc(target.x, target.y, 3 / MM_SCALE, 0, Math.PI * 2);
-    ctx.strokeStyle = '#e8c93a';
-    ctx.lineWidth = 1 / MM_SCALE;
-    ctx.stroke();
+    const dx = target.x - player.x, dy = target.y - player.y;
+    if (Math.hypot(dx, dy) <= MM_RADIUS_M) drawMissionRing(ctx, world, target);
+    else targetOffscreen = Math.atan2(dy, dx);
   }
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -332,6 +336,174 @@ function drawMinimap(world) {
   ctx.lineTo(-4, -4);
   ctx.closePath();
   ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  if (targetOffscreen != null) drawMissionEdgeArrow(ctx, world, cx, cy, targetOffscreen);
+}
+
+function inMinimapRange(player, x, y) {
+  return Math.abs(x - player.x) <= MM_RADIUS_M && Math.abs(y - player.y) <= MM_RADIUS_M;
+}
+
+const LANDMARK_COLOR = '#f5f0e6';
+function drawLandmarkIcons(ctx, world, player) {
+  const landmarks = world.map.meta.landmarks;
+  if (!landmarks) return;
+  for (const lm of landmarks) {
+    if (!inMinimapRange(player, lm.x, lm.y)) continue;
+    drawStarIcon(ctx, lm.x, lm.y, 3.2 / MM_SCALE, LANDMARK_COLOR);
+  }
+}
+
+function drawPickupIcons(ctx, world, player) {
+  const p = getPickupsForRender();
+
+  for (const m of p.money) {
+    if (!inMinimapRange(player, m.x, m.y)) continue;
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, 1.8 / MM_SCALE, 0, Math.PI * 2);
+    ctx.fillStyle = '#3fbf3f';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    ctx.lineWidth = 0.5 / MM_SCALE;
+    ctx.stroke();
+  }
+
+  for (const w of p.weapons) {
+    if (!inMinimapRange(player, w.x, w.y)) continue;
+    drawTriangleIcon(ctx, w.x, w.y, 2.2 / MM_SCALE, '#ff9500');
+  }
+
+  if (p.health && inMinimapRange(player, p.health.x, p.health.y)) {
+    drawCrossIcon(ctx, p.health.x, p.health.y, 2.1 / MM_SCALE, '#ff4d6d');
+  }
+  if (p.armor && inMinimapRange(player, p.armor.x, p.armor.y)) {
+    drawSquareIcon(ctx, p.armor.x, p.armor.y, 1.9 / MM_SCALE, '#4a90d9');
+  }
+
+  for (const g of p.garages) {
+    if (!inMinimapRange(player, g.x, g.y)) continue;
+    drawDiamondIcon(ctx, g.x, g.y, 2.6 / MM_SCALE, '#b06fe0');
+  }
+}
+
+function drawStarIcon(ctx, x, y, r, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const oa = -Math.PI / 2 + i * (Math.PI * 2 / 5);
+    const ia = oa + Math.PI / 5;
+    if (i === 0) ctx.moveTo(Math.cos(oa) * r, Math.sin(oa) * r);
+    else ctx.lineTo(Math.cos(oa) * r, Math.sin(oa) * r);
+    ctx.lineTo(Math.cos(ia) * r * 0.45, Math.sin(ia) * r * 0.45);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.lineWidth = 0.5 / MM_SCALE;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawTriangleIcon(ctx, x, y, r, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  ctx.moveTo(0, -r);
+  ctx.lineTo(r * 0.87, r * 0.6);
+  ctx.lineTo(-r * 0.87, r * 0.6);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.lineWidth = 0.5 / MM_SCALE;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSquareIcon(ctx, x, y, r, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.lineWidth = 0.5 / MM_SCALE;
+  ctx.strokeRect(x - r, y - r, r * 2, r * 2);
+}
+
+function drawDiamondIcon(ctx, x, y, r, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = color;
+  ctx.fillRect(-r * 0.75, -r * 0.75, r * 1.5, r * 1.5);
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.lineWidth = 0.5 / MM_SCALE;
+  ctx.strokeRect(-r * 0.75, -r * 0.75, r * 1.5, r * 1.5);
+  ctx.restore();
+}
+
+function drawCrossIcon(ctx, x, y, r, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.lineWidth = 0.4 / MM_SCALE;
+  ctx.stroke();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 0.6 / MM_SCALE;
+  const a = r * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(x - a, y);
+  ctx.lineTo(x + a, y);
+  ctx.moveTo(x, y - a);
+  ctx.lineTo(x, y + a);
+  ctx.stroke();
+}
+
+// A static ring blends into the gold major-road strokes at a glance, so this
+// pulses size/width/alpha over world.time and adds a bright core dot -
+// nothing else on the minimap animates, which is what makes it read as
+// "the objective" instead of just another gold shape.
+function drawMissionRing(ctx, world, target) {
+  const pulse = 0.5 + 0.5 * Math.sin(world.time * 5);
+  ctx.beginPath();
+  ctx.arc(target.x, target.y, (3 + pulse * 1.4) / MM_SCALE, 0, Math.PI * 2);
+  ctx.strokeStyle = '#e8c93a';
+  ctx.lineWidth = (1.6 - pulse * 0.5) / MM_SCALE;
+  ctx.globalAlpha = 0.65 + pulse * 0.35;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.arc(target.x, target.y, 1 / MM_SCALE, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff6d0';
+  ctx.fill();
+}
+
+// GTA-style edge-of-radar arrow: once the mission target scrolls outside the
+// minimap's visible circle, its ring (drawn in world-space) simply never
+// gets painted, so without this the player loses all sense of direction -
+// this draws in the already-reset screen-space transform, at a fixed pixel
+// radius just inside the minimap's circular mask, pointing along the same
+// player-to-target angle the in-range ring would sit at.
+function drawMissionEdgeArrow(ctx, world, cx, cy, angle) {
+  const pulse = 0.5 + 0.5 * Math.sin(world.time * 5);
+  const R = MINIMAP_SIZE / 2 - 11;
+  const size = 7 + pulse * 1.5;
+  ctx.save();
+  ctx.translate(cx + Math.cos(angle) * R, cy + Math.sin(angle) * R);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(size, 0);
+  ctx.lineTo(-size * 0.6, size * 0.62);
+  ctx.lineTo(-size * 0.6, -size * 0.62);
+  ctx.closePath();
+  ctx.fillStyle = '#e8c93a';
+  ctx.fill();
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1.2;
   ctx.stroke();
   ctx.restore();
 }

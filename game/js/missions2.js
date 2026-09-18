@@ -82,7 +82,7 @@ function buildDefs(world) {
   return [
     {
       type: 'deliver',
-      label: 'Jat een auto en lever hem af',
+      label: 'Bommen Berend wil zn bakkie',
       timeLimit: 90,
       reward: 250,
       start: resolveSpot(map, sp, 15, 12, true),
@@ -90,7 +90,7 @@ function buildDefs(world) {
     },
     {
       type: 'rampage',
-      label: 'Rampage: maak 8 mensen af',
+      label: 'Chaos op de Grote Markt',
       timeLimit: 45,
       reward: 300,
       targetKills: 8,
@@ -98,7 +98,7 @@ function buildDefs(world) {
     },
     {
       type: 'checkpoint',
-      label: 'Checkpoint race',
+      label: 'KEI-weekrace door Grunn',
       timeLimit: 55,
       checkpointBonus: 8,
       reward: 350,
@@ -112,7 +112,7 @@ function buildDefs(world) {
     },
     {
       type: 'deliver',
-      label: 'De grote klus: lever de auto snel af',
+      label: 'Spoedklus voor Noorderzon',
       timeLimit: 75,
       reward: 500,
       start: resolveSpot(map, sp, 40, -20, true),
@@ -120,7 +120,7 @@ function buildDefs(world) {
     },
     {
       type: 'checkpoint',
-      label: 'Rondje Ring: race langs de ringweg',
+      label: 'Ringweg-race: eindelijk klaar?',
       timeLimit: 70,
       checkpointBonus: 40,
       reward: 750,
@@ -129,7 +129,7 @@ function buildDefs(world) {
     },
     {
       type: 'checkpoint',
-      label: 'Horeca-tour: doe de kroegentocht',
+      label: 'Kroegentocht: Poelestraat plat',
       timeLimit: 100,
       checkpointBonus: 20,
       reward: 320,
@@ -138,7 +138,7 @@ function buildDefs(world) {
     },
     {
       type: 'fatbike',
-      label: 'Fatbike-gauntlet: ontwijk de fatbikes',
+      label: 'Fatbike-terreur: blijf overeind',
       timeLimit: 35,
       reward: 275,
       maxHits: 2,
@@ -147,7 +147,7 @@ function buildDefs(world) {
     },
     {
       type: 'boat',
-      label: 'Bootje door de Diepenring',
+      label: 'Rondvaart met valse papieren',
       timeLimit: 90,
       checkpointBonus: 25,
       reward: 400,
@@ -227,7 +227,7 @@ function syncPub(world) {
 function succeed(world, def) {
   world.money += def.reward;
   world.stats.missionsDone++;
-  world.addMessage(`${def.label} voltooid! +€${def.reward}`, 4);
+  world.addMessage(`${def.label} geklaard! +€${def.reward}`, 4);
   chain.index = (chain.index + 1) % chain.defs.length;
   chain.phase = 'idle';
   chain.wpIndex = 0;
@@ -266,7 +266,7 @@ function checkFatbikeHits(world, chain) {
       nowTouching.add(v.id);
       if (!chain.fatbikeContact.has(v.id)) {
         chain.fatbikeHits++;
-        world.addMessage(`Geraakt door een fatbike! (${chain.fatbikeHits}/${chain.defs[chain.index].maxHits})`, 2);
+        world.addMessage(`Geschept door een fatbike! (${chain.fatbikeHits}/${chain.defs[chain.index].maxHits})`, 2);
       }
     }
   }
@@ -295,7 +295,7 @@ export function updateMissions(dt, world) {
 
   chain.timeLeft -= dt;
   if (chain.timeLeft <= 0) {
-    fail(world, def, 'tijd op');
+    fail(world, def, 'tijd op, sukkel');
     syncPub(world);
     return;
   }
@@ -320,7 +320,7 @@ export function updateMissions(dt, world) {
   } else if (def.type === 'fatbike') {
     checkFatbikeHits(world, chain);
     if (chain.fatbikeHits > def.maxHits) {
-      fail(world, def, 'te vaak een fatbike geraakt');
+      fail(world, def, 'geveld door de fatbikes, typisch Grunn');
       syncPub(world);
       return;
     }
@@ -420,33 +420,65 @@ export function drawMissions(ctx, world) {
 export const MARKER_COLOR_ACTIVE = 0x3fd0ff;
 export const MARKER_COLOR_IDLE = 0xffd23f;
 
+// Earlier pass: a 0.07m-radius, 3.2m-tall beam at opacity 0.4 with no
+// blending. At any real driving/on-foot distance that is a few pixels of
+// faint tint against sky/fog - technically positioned correctly (syncPub's
+// pub.marker.x/y is always a real, current point, never NaN) but invisible
+// in practice, which matches the "ik zie geen waypoints in 3D" report.
+// Fix: much thicker/taller beam, additive ("glow") blending instead of
+// plain alpha so it reads as light rather than a tinted sliver, a ground
+// glow disc for close-range readability, and a bigger ring/core cluster.
 const markerBeamMaterial = new THREE.MeshBasicMaterial({
   color: MARKER_COLOR_IDLE,
   transparent: true,
-  opacity: 0.4,
+  opacity: 0.75,
   depthWrite: false,
+  blending: THREE.AdditiveBlending,
 });
-const markerRingMaterial = new THREE.MeshBasicMaterial({ color: MARKER_COLOR_IDLE, transparent: true, opacity: 0.9 });
+const markerRingMaterial = new THREE.MeshBasicMaterial({
+  color: MARKER_COLOR_IDLE,
+  transparent: true,
+  opacity: 1,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+});
 const markerCoreMaterial = new THREE.MeshBasicMaterial({ color: MARKER_COLOR_IDLE });
+const markerGroundMaterial = new THREE.MeshBasicMaterial({
+  color: MARKER_COLOR_IDLE,
+  transparent: true,
+  opacity: 0.5,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  side: THREE.DoubleSide,
+});
 
-// One floating waypoint beacon: a translucent glow-beam with a ring and a
-// pulsing core near the top. There is only ever one active mission, so the
-// integrator builds a single instance of this and repositions it every
-// frame - it does not need Map-based bookkeeping like the dots below.
+const BEAM_HEIGHT = 38;
+
+// One floating waypoint beacon: a ground glow disc, a tall glow-beam (tall
+// enough to clear most rooftops so it reads from across a neighbourhood),
+// a ring and a pulsing core near head height for close-up readability.
+// There is only ever one active mission, so the integrator builds a single
+// instance of this and repositions it every frame - it does not need
+// Map-based bookkeeping like the dots below.
 export function buildMissionMarker3D() {
   const group = new THREE.Group();
 
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.2, 8, 1, true), markerBeamMaterial);
-  beam.position.y = 1.6;
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(2.2, 24), markerGroundMaterial);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = 0.05;
+  group.add(ground);
+
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, BEAM_HEIGHT, 12, 1, true), markerBeamMaterial);
+  beam.position.y = BEAM_HEIGHT / 2;
   group.add(beam);
 
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.07, 8, 20), markerRingMaterial);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.16, 10, 24), markerRingMaterial);
   ring.rotation.x = Math.PI / 2;
-  ring.position.y = 2.4;
+  ring.position.y = 2.6;
   group.add(ring);
 
-  const core = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), markerCoreMaterial);
-  core.position.y = 3.05;
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.55, 12, 10), markerCoreMaterial);
+  core.position.y = 3.6;
   group.add(core);
 
   group.userData.ring = ring;
@@ -464,19 +496,21 @@ export function updateMissionMarker3D(group, time, phase) {
   markerBeamMaterial.color.setHex(hex);
   markerRingMaterial.color.setHex(hex);
   markerCoreMaterial.color.setHex(hex);
+  markerGroundMaterial.color.setHex(hex);
 
   const pulse = 1 + Math.sin(time * 4) * 0.25;
   group.userData.ring.scale.setScalar(pulse);
-  group.userData.ring.position.y = 2.4 + Math.sin(time * 2) * 0.15;
-  group.userData.core.scale.setScalar(0.8 + Math.sin(time * 4) * 0.25);
+  group.userData.ring.position.y = 2.6 + Math.sin(time * 2) * 0.2;
+  group.userData.core.scale.setScalar(0.85 + Math.sin(time * 4) * 0.25);
 }
 
-const waypointDotGeometry = new THREE.SphereGeometry(0.5, 10, 8);
+const waypointDotGeometry = new THREE.SphereGeometry(1.1, 12, 10);
 const waypointDotMaterial = new THREE.MeshBasicMaterial({
   color: MARKER_COLOR_ACTIVE,
   transparent: true,
-  opacity: 0.35,
+  opacity: 0.6,
   depthWrite: false,
+  blending: THREE.AdditiveBlending,
 });
 
 // Cheap translucent preview dot for one entry of world.mission.remainingWaypoints

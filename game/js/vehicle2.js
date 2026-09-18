@@ -58,6 +58,12 @@ const BOAT_MODELS = [
   { name: 'boat', len: 4.2, wid: 1.7, maxSpeed: 4.3, accel: 1.5, brake: 2.0, turnRate: 1.2, color: '#c7c9cc', cabin: '#1c1c1c' },
 ];
 
+// Politie-livery variant for spawnPoliceBoatOnWater - same white-hull family
+// as the regular fleet, dark-navy cabin matching the rest of the police
+// fleet's accent tone, with enough extra accel/turn to actually run down a
+// fleeing player instead of just keeping pace.
+const POLICE_BOAT_MODEL = { name: 'boat', len: 4.1, wid: 1.65, maxSpeed: 6.5, accel: 2.4, brake: 2.8, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
+
 // Regional OV city bus - teal/blue livery, roomier turning circle, only
 // spawned on the bigger through-roads (see manageBusPopulation).
 // Qbuzz runs the Groningen-Drenthe concession: deep navy body with a cyan
@@ -357,18 +363,31 @@ export function spawnBoatOnWater(map, waterPoly, rng = Math.random) {
   return v;
 }
 
+// Same placement as spawnBoatOnWater, forced into the police livery/model
+// and flagged isPolice so updateBoatAI's chase branch (below) and the
+// regular vehicle render/sync path both treat it like any other cop unit.
+export function spawnPoliceBoatOnWater(map, waterPoly, rng = Math.random) {
+  const v = spawnBoatOnWater(map, waterPoly, rng);
+  v.model = POLICE_BOAT_MODEL;
+  v.isPolice = true;
+  return v;
+}
+
 // Mirrors manageBikePopulation's despawn/spawn-quota shape, but candidates
-// are water bodies near the player instead of roads.
+// are water bodies near the player instead of roads. Police boats are
+// excluded here exactly like manageTrafficPopulation excludes police cars -
+// police2.js owns their spawn/despawn lifecycle on its own wanted-driven
+// schedule, not the ambient civilian quota.
 export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMax = 180, despawnDist = 260 } = {}) {
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (!v.isBoat || v.driver === 'player') continue;
+    if (!v.isBoat || v.isPolice || v.driver === 'player') continue;
     if (v.wrecked || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBoat && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBoat && !v.isPolice && v.driver !== 'player') count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
   let guard = 0;
@@ -401,10 +420,19 @@ const BOAT_WAYPOINT_MAX = 9;
 export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   if (!v.waterPoly) { v.applyControls(dt, 0, 0, true); return; }
 
-  v.waypointTimer = (v.waypointTimer || 0) - dt;
-  if (!v.waypoint || v.waypointTimer <= 0 || Math.hypot(v.waypoint[0] - v.x, v.waypoint[1] - v.y) < 4) {
-    v.waypoint = pickBoatWaypoint(v, rng);
-    v.waypointTimer = BOAT_WAYPOINT_MIN + rng() * (BOAT_WAYPOINT_MAX - BOAT_WAYPOINT_MIN);
+  // Police pursuit: reuses the exact steer-toward-v.waypoint code below,
+  // just fed the player's live position every frame instead of a picked
+  // wander point - "biased toward the player" rather than a separate
+  // pursuit function.
+  const chasing = v.isPolice && world.wanted > 0;
+  if (chasing) {
+    v.waypoint = [world.player.x, world.player.y];
+  } else {
+    v.waypointTimer = (v.waypointTimer || 0) - dt;
+    if (!v.waypoint || v.waypointTimer <= 0 || Math.hypot(v.waypoint[0] - v.x, v.waypoint[1] - v.y) < 4) {
+      v.waypoint = pickBoatWaypoint(v, rng);
+      v.waypointTimer = BOAT_WAYPOINT_MIN + rng() * (BOAT_WAYPOINT_MAX - BOAT_WAYPOINT_MIN);
+    }
   }
 
   const dx = v.waypoint[0] - v.x, dy = v.waypoint[1] - v.y;
@@ -412,15 +440,19 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
 
   // heading would carry the boat outside the water body - re-pick now rather
   // than let it run aground, same defensive check pedestrians2.js's
-  // pickWaypoint uses before committing to a spot
+  // pickWaypoint uses before committing to a spot. A chasing police boat
+  // keeps steering at the player instead (its waypoint IS the player) - it
+  // just brakes rather than beaching itself until the player is reachable
+  // by water again.
   const aheadX = v.x + Math.cos(v.angle) * (v.model.len + 1);
   const aheadY = v.y + Math.sin(v.angle) * (v.model.len + 1);
-  if (!pointInPolygon(aheadX, aheadY, v.waterPoly.pts)) {
+  const aground = !pointInPolygon(aheadX, aheadY, v.waterPoly.pts);
+  if (aground && !chasing) {
     v.waypoint = pickBoatWaypoint(v, rng);
     v.waypointTimer = BOAT_WAYPOINT_MIN;
   }
 
-  v.applyControls(dt, 1, clamp(steerErr * 1.2, -1, 1), false);
+  v.applyControls(dt, aground && chasing ? 0 : 1, clamp(steerErr * 1.2, -1, 1), aground && chasing);
 }
 
 export function findNearestVehicle(x, y, vehicles, maxDist = 2.5) {
@@ -538,29 +570,57 @@ function findVehicleAhead(v, vehicles, maxDist) {
 // straight through one another. Approximate each vehicle as a circle
 // (average of its half-length/half-width) and push overlapping pairs apart,
 // bleeding off speed proportional to the combined impact speed.
+// Each vehicle as a capsule: an axis segment (front-to-rear, shrunk by its
+// own half-width so the rounded caps land exactly on the bumpers) plus a
+// half-width radius. A plain circle-per-vehicle (the old approach) only
+// ever compared centre-to-centre distance, so it caught side-by-side lane
+// overlap but completely missed nose-to-tail contact (a car's front end
+// could sit visually inside the car ahead's rear end with zero collision
+// response) - exactly the "collision doesn't match the vehicle's shape"
+// complaint. The capsule's ends now cover the actual front/rear bumpers.
+function vehicleCapsule(v) {
+  const segHalf = Math.max(0, v.halfLen - v.halfWid);
+  const dx = Math.cos(v.angle) * segHalf, dy = Math.sin(v.angle) * segHalf;
+  return { ax: v.x - dx, ay: v.y - dy, bx: v.x + dx, by: v.y + dy, r: v.halfWid + 0.2 };
+}
+
+// Approximate min distance/closest-point-pair between two segments by
+// checking each segment's two endpoints against the other segment - exact
+// when the segments don't cross, and a good approximation for the shallow
+// crossing angles two cars on a road actually produce (near-parallel lanes,
+// or a T-bone where one segment is short relative to the gap).
+function closestPointsBetweenSegments(s1, s2) {
+  let p1x = s1.ax, p1y = s1.ay, p2x = s2.ax, p2y = s2.ay;
+  let bestD2 = Infinity;
+  let c = closestPointOnSegment(s1.ax, s1.ay, s2.ax, s2.ay, s2.bx, s2.by);
+  if (c.dist2 < bestD2) { bestD2 = c.dist2; p1x = s1.ax; p1y = s1.ay; p2x = c.x; p2y = c.y; }
+  c = closestPointOnSegment(s1.bx, s1.by, s2.ax, s2.ay, s2.bx, s2.by);
+  if (c.dist2 < bestD2) { bestD2 = c.dist2; p1x = s1.bx; p1y = s1.by; p2x = c.x; p2y = c.y; }
+  c = closestPointOnSegment(s2.ax, s2.ay, s1.ax, s1.ay, s1.bx, s1.by);
+  if (c.dist2 < bestD2) { bestD2 = c.dist2; p2x = s2.ax; p2y = s2.ay; p1x = c.x; p1y = c.y; }
+  c = closestPointOnSegment(s2.bx, s2.by, s1.ax, s1.ay, s1.bx, s1.by);
+  if (c.dist2 < bestD2) { bestD2 = c.dist2; p2x = s2.bx; p2y = s2.by; p1x = c.x; p1y = c.y; }
+  return { p1x, p1y, p2x, p2y, dist2: bestD2 };
+}
+
 export function resolveVehicleVehicleCollisions(vehicles) {
   for (let i = 0; i < vehicles.length; i++) {
     const a = vehicles[i];
     if (a.wrecked) continue;
-    // Radius close to the actual half-width (not an average with the much
-    // bigger half-length) - two cars in adjacent lanes sit ~2.8m apart
-    // centre-to-centre, and a radius as big as (halfLen+halfWid)/2 (~1.5m
-    // per car) made every oncoming car in its own lane register as a
-    // "collision" and brake, gridlocking entire streets.
-    const ra = a.halfWid + 0.25;
+    const capA = vehicleCapsule(a);
     for (let j = i + 1; j < vehicles.length; j++) {
       const b = vehicles[j];
       if (b.wrecked) continue;
-      const rb = b.halfWid + 0.25;
-      const dx = b.x - a.x, dy = b.y - a.y;
-      let dist = Math.hypot(dx, dy);
-      const minDist = ra + rb;
+      const capB = vehicleCapsule(b);
+      const { p1x, p1y, p2x, p2y, dist2: d2 } = closestPointsBetweenSegments(capA, capB);
+      let dist = Math.sqrt(d2);
+      const minDist = capA.r + capB.r;
       if (dist >= minDist) continue;
       if (dist < 1e-4) dist = 1e-4;
       const overlap = minDist - dist;
-      const nx = dx / dist, ny = dy / dist;
-      const pushA = overlap * (rb / minDist);
-      const pushB = overlap * (ra / minDist);
+      const nx = (p2x - p1x) / dist, ny = (p2y - p1y) / dist;
+      const pushA = overlap * (capB.r / minDist);
+      const pushB = overlap * (capA.r / minDist);
       a.x -= nx * pushA; a.y -= ny * pushA;
       b.x += nx * pushB; b.y += ny * pushB;
       const impactSpeed = Math.abs(a.speed) + Math.abs(b.speed);

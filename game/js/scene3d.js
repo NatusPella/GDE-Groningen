@@ -4,6 +4,7 @@ import { buildVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { applyWeatherToScene3D } from './weather2.js';
 import { buildFlitspaalMesh3D } from './flitspaal2.js';
+import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca2.js';
 import { buildSeagullMesh3D, buildCowMesh3D, buildSheepMesh3D } from './wildlife2.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions2.js';
 import {
@@ -12,6 +13,9 @@ import {
 } from './pickups2.js';
 import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D } from './trafficlights2.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat2.js';
+import { createWaterMaterial, updateWaterMaterial } from './water3d.js';
+import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police2.js';
+import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops2.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -50,6 +54,9 @@ const wildlifeMeshes = new Map();
 const speechBubbleEls = new Map();
 let billboardRoot = null;
 let flitspaalBuilt = false;
+let horecaBuilt = false;
+let policeHeliMesh = null;
+const skyPropMeshes = new Map();
 let playerMesh = null;
 let playerCharacter = 'tammo';
 let companionMesh = null;
@@ -165,6 +172,21 @@ function buildFlatMesh(poly, color, y) {
   return mesh;
 }
 
+// One shared animated ShaderMaterial for every water polygon (uTime updated
+// once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
+let waterMaterial = null;
+function buildWaterMesh(poly, y) {
+  if (!poly._geoFlat) {
+    const shape = shapeFromPoly(poly.pts);
+    poly._geoFlat = new THREE.ShapeGeometry(shape);
+    poly._geoFlat.rotateX(-Math.PI / 2);
+  }
+  if (!waterMaterial) waterMaterial = createWaterMaterial();
+  const mesh = new THREE.Mesh(poly._geoFlat, waterMaterial);
+  mesh.position.y = y;
+  return mesh;
+}
+
 function ribbonGeometry(pts, half) {
   const verts = [];
   const idx = [];
@@ -276,6 +298,25 @@ function syncFlat(items, cache, color, y, px, py) {
     if (seen.has(poly)) continue;
     scene.remove(mesh);
     mesh.material.dispose();
+    cache.delete(poly);
+  }
+}
+
+// Same create/remove bookkeeping as syncFlat, but for water: never disposes
+// the mesh's material since every water mesh shares the ONE waterMaterial.
+function syncWater(items, cache, y) {
+  const seen = new Set();
+  for (const poly of items) {
+    seen.add(poly);
+    if (!cache.has(poly)) {
+      const mesh = buildWaterMesh(poly, y);
+      scene.add(mesh);
+      cache.set(poly, mesh);
+    }
+  }
+  for (const [poly, mesh] of cache) {
+    if (seen.has(poly)) continue;
+    scene.remove(mesh);
     cache.delete(poly);
   }
 }
@@ -420,7 +461,8 @@ export function update3D(dt, world) {
 
   syncBuildings(world, player.x, player.y);
   syncFlat(world.map.greenNear(player.x, player.y, DRAW_DIST), greenMeshes, 0x5c8a4d, 0.015, player.x, player.y);
-  syncFlat(world.map.waterNear(player.x, player.y, DRAW_DIST), waterMeshes, 0x2f6f9e, WATER_Y, player.x, player.y);
+  syncWater(world.map.waterNear(player.x, player.y, DRAW_DIST), waterMeshes, WATER_Y);
+  if (waterMaterial) updateWaterMaterial(waterMaterial, world.time);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
 
@@ -463,6 +505,18 @@ export function update3D(dt, world) {
     }
   }
 
+  if (!horecaBuilt) {
+    const horecaSpots = getHorecaForRender();
+    if (horecaSpots.length) {
+      horecaBuilt = true;
+      for (const h of horecaSpots) {
+        const mesh = buildHorecaMarkerMesh3D();
+        mesh.position.set(h.x, 0, h.y);
+        scene.add(mesh);
+      }
+    }
+  }
+
   if (world.wildlife) {
     syncActors(
       world.wildlife.filter((a) => Math.hypot(a.x - player.x, a.y - player.y) < DRAW_DIST),
@@ -476,6 +530,36 @@ export function update3D(dt, world) {
         const y = a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0;
         mesh.position.set(a.x, y, a.y);
         mesh.rotation.y = -a.angle;
+      }
+    }
+  }
+
+  if (world.policeHeli) {
+    if (!policeHeliMesh) {
+      policeHeliMesh = buildPoliceHeliMesh3D();
+      scene.add(policeHeliMesh);
+    }
+    policeHeliMesh.position.set(world.policeHeli.x, world.policeHeli.z, world.policeHeli.y);
+    policeHeliMesh.rotation.y = -world.policeHeli.angle;
+    updatePoliceHeliMesh3D(policeHeliMesh, world.time);
+  } else if (policeHeliMesh) {
+    scene.remove(policeHeliMesh);
+    policeHeliMesh = null;
+  }
+
+  if (world.skyProps) {
+    syncActors(
+      world.skyProps,
+      skyPropMeshes,
+      (p) => (p.kind === 'balloon' ? buildBalloonMesh3D() : buildTraumaHeliMesh3D()),
+      (p) => p
+    );
+    for (const p of world.skyProps) {
+      const mesh = skyPropMeshes.get(p);
+      if (mesh) {
+        mesh.position.set(p.x, p.z, p.y);
+        mesh.rotation.y = -p.angle;
+        if (p.kind === 'traumaheli') updateTraumaHeliMesh3D(mesh, world.time);
       }
     }
   }
@@ -627,8 +711,9 @@ export function update3D(dt, world) {
 
   playerMesh.visible = !player.inVehicle;
   if (!player.inVehicle) {
-    playerMesh.position.set(player.x, 0, player.y);
+    playerMesh.position.set(player.x, player.z || 0, player.y);
     playerMesh.rotation.y = -player.angle;
+    playerMesh.scale.y = player.crouching ? 0.6 : 1;
   }
 
   // companion (Tammo/Anita, whichever the player isn't controlling) -

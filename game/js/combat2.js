@@ -4,9 +4,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 export const WEAPONS = {
   fists: { damage: 12, range: 1.1, cooldown: 0.45, ammo: Infinity },
-  pistol: { damage: 20, range: 26, cooldown: 0.32, speed: 55, startAmmo: 40 },
-  uzi: { damage: 9, range: 20, cooldown: 0.08, speed: 60, startAmmo: 90 },
-  shotgun: { damage: 16, range: 11, cooldown: 0.85, speed: 48, pellets: 6, spread: 0.3, startAmmo: 16 },
+  pistol: { damage: 20, range: 26, cooldown: 0.32, speed: 55 },
+  uzi: { damage: 9, range: 20, cooldown: 0.08, speed: 60 },
+  shotgun: { damage: 16, range: 11, cooldown: 0.85, speed: 48, pellets: 6, spread: 0.3 },
 };
 
 const WEAPON_KEYS = ['fists', 'pistol', 'uzi', 'shotgun'];
@@ -16,17 +16,7 @@ let effect = null; // {type:'muzzle'|'melee', angle, until} — local fx state, 
 
 export function getCombatEffect() { return effect; }
 
-function ensureAmmo(world) {
-  if (world.ammoInitialized) return;
-  world.ammoInitialized = true;
-  for (const key of WEAPON_KEYS) {
-    const w = WEAPONS[key];
-    if (w.startAmmo !== undefined) world.ammo[key] = w.startAmmo;
-  }
-}
-
 export function updateCombat(dt, world) {
-  ensureAmmo(world);
   fireTimer = Math.max(0, fireTimer - dt);
 
   const { input } = world;

@@ -10,6 +10,7 @@ import { updatePolice } from './police2.js';
 import { initMissions, updateMissions } from './missions2.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initPickups, updatePickups } from './pickups2.js';
+import { initHoreca, updateHoreca } from './horeca2.js';
 import { initMapView, updateMapView } from './mapview2.js';
 import { initAudio, updateAudio } from './audio2.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights2.js';
@@ -17,7 +18,9 @@ import { init3D, update3D, resize3D } from './scene3d.js';
 import { initWeather, updateWeather } from './weather2.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal2.js';
 import { initWildlife, updateWildlife } from './wildlife2.js';
+import { initSkyProps, updateSkyProps } from './skyprops2.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed2.js';
+import { initPhoneFeed, updatePhoneFeed } from './phonefeed2.js';
 import { dist } from './util2.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
@@ -86,11 +89,14 @@ async function boot() {
   world.pedestrians = spawnPedestriansNear(map, player.x, player.y, PED_TARGET, Math.random);
   initMissions(world);
   initPickups(world);
+  initHoreca(world);
   initTrafficLights(world);
   initWeather(world);
   initFlitspaal(world);
   initWildlife(world);
+  initSkyProps(world);
   initSikkomFeed(world);
+  initPhoneFeed(world);
   initHud(world);
   initMapView(world);
 
@@ -145,9 +151,12 @@ async function boot() {
     updateBullets(dt, world);
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
+    updateSkyProps(dt, world);
     updateMissions(dt, world);
     updateSikkomFeed(dt, world);
+    updatePhoneFeed(dt, world);
     updatePickups(dt, world);
+    updateHoreca(dt, world);
     updateFlitspaal(dt, world);
     updateAudio(dt, world);
     updateWeather(dt, world);

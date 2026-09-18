@@ -4,6 +4,35 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 const WEAPON_KEYS = ['pistol', 'uzi', 'shotgun'];
 const WEAPON_AMMO = { pistol: 30, uzi: 60, shotgun: 10 };
 
+// Curated per-wijk flavor: which real Groningen neighbourhood plausibly
+// "owns" which weapon, so pickups cluster somewhere good-naturedly fitting
+// instead of pure random noise. Deliberately not exhaustive over all 66
+// neighbourhoodPoints - unlisted wijken (or none nearby) just fall back to
+// the old uniform random pick, see maintainWeapons() below.
+const WEAPON_DISTRICTS = {
+  // stately centre/canal quarters - the classy sidearm
+  pistol: [
+    'Binnenstad', 'Binnenstad-Oost', 'A-kwartier', 'Ebbingekwartier',
+    'Bisschopskwartier', 'Schildersbuurt', 'Hortusbuurt', 'Herewegbuurt',
+    'Zuiderpark', 'Professorenbuurt', 'Bernoullipleinbuurt',
+  ],
+  // studentenflats & uitgaansbuurten - cheap, fast, spray-and-pray
+  uzi: [
+    'Studentenbuurt', 'Paddepoel', 'Paddepoel-Noord', 'Paddepoel-Zuid',
+    'Selwerd', 'Selwerderwijk', 'Tuinwijk', 'Concordiabuurt', 'Oranjewijk',
+    'Oosterpoort',
+  ],
+  // havens, industrieterreinen & het platteland aan de stadsrand - the
+  // farmer's/dockworker's jachtgeweer
+  shotgun: [
+    'Eemskanaal', 'Damsterdiep', 'Metalenkwartier', 'Suikerfabriekterrein',
+    'Cortinghborg', 'Hoendiep', 'Reitdiepswaard', 'Van Starkenborgh',
+    'Ulgersmaborg', 'Martini Trade Park', 'Kostverloren', 'De Velden',
+  ],
+};
+const WEAPON_DISTRICT_MAX_DIST = 65;
+const WEAPON_DISTRICT_SPOT_RADIUS = 45;
+
 const MONEY_TARGET = 6;
 const MONEY_RADIUS = 70;
 const MONEY_PICKUP_DIST = 1.1;
@@ -28,6 +57,16 @@ let healthRespawnAt = 0;
 let armor = null;
 let armorRespawnAt = 0;
 let garages = [];
+let weaponDistrictPoints = { pistol: [], uzi: [], shotgun: [] };
+
+function buildWeaponDistrictPoints(neighbourhoodPoints) {
+  const byName = new Map(neighbourhoodPoints.map((p) => [p.name, p]));
+  const result = {};
+  for (const key of WEAPON_KEYS) {
+    result[key] = (WEAPON_DISTRICTS[key] || []).map((name) => byName.get(name)).filter(Boolean);
+  }
+  return result;
+}
 
 function isInsideBuilding(map, x, y) {
   for (const b of map.buildingsNear(x, y, 0.5)) {
@@ -63,6 +102,7 @@ function randomRoadSpot(map, x, y, radius) {
 export function initPickups(world) {
   garages = world.map.meta.garages || [];
   for (const g of garages) g.cooldownUntil = 0;
+  weaponDistrictPoints = buildWeaponDistrictPoints(world.map.meta.neighbourhoodPoints || []);
   money = [];
   weapons = [];
   health = null;
@@ -84,16 +124,34 @@ function maintainMoney(world) {
   }
 }
 
+function nearbyWeaponDistrict(player) {
+  const nearby = [];
+  for (const key of WEAPON_KEYS) {
+    for (const p of weaponDistrictPoints[key]) {
+      if (dist(p.x, p.y, player.x, player.y) < WEAPON_DISTRICT_MAX_DIST) nearby.push({ x: p.x, y: p.y, key });
+    }
+  }
+  if (!nearby.length) return null;
+  return nearby[Math.floor(Math.random() * nearby.length)];
+}
+
 function maintainWeapons(world) {
   const { map, player } = world;
   weapons = weapons.filter((w) => dist(w.x, w.y, player.x, player.y) < WEAPON_RADIUS * 1.6);
   let guard = 0;
   while (weapons.length < WEAPON_TARGET && guard++ < WEAPON_TARGET * 4) {
-    const spot = randomRoadSpot(map, player.x, player.y, WEAPON_RADIUS);
+    const district = nearbyWeaponDistrict(player);
+    let spot = district && randomRoadSpot(map, district.x, district.y, WEAPON_DISTRICT_SPOT_RADIUS);
+    if (spot && dist(spot[0], spot[1], player.x, player.y) > WEAPON_RADIUS) spot = null;
+    let key = spot ? district.key : null;
+    if (!spot) {
+      spot = randomRoadSpot(map, player.x, player.y, WEAPON_RADIUS);
+      key = WEAPON_KEYS[Math.floor(Math.random() * WEAPON_KEYS.length)];
+    }
     if (!spot) break;
     const [x, y] = spot;
     if (dist(x, y, player.x, player.y) < 8) continue;
-    weapons.push({ x, y, key: WEAPON_KEYS[Math.floor(Math.random() * WEAPON_KEYS.length)] });
+    weapons.push({ x, y, key });
   }
 }
 

@@ -23,6 +23,17 @@ const ARM_R = 0.062;
 const HAND_R = 0.075;
 const NECK_R = 0.075;
 const DEFAULT_HAIR = 0x1c1c1c;
+const DEFAULT_CAP = 0x1c2b3d;
+
+const SHOE_H = 0.085;
+const SHOE_LEN = LEG_R * 2.6;
+const SHOE_WID = LEG_R * 2.1;
+
+const CLOTH_ROUGHNESS = 0.88;
+const SKIN_ROUGHNESS = 0.75;
+const HAIR_ROUGHNESS = 0.4;
+const SHOE_ROUGHNESS = 0.55;
+const CAP_ROUGHNESS = 0.55;
 
 // Neck is sized to exactly span torso-top -> head-bottom, whatever those
 // constants happen to be, so raising/lowering HEAD_Y or TORSO_H can never
@@ -31,11 +42,18 @@ const TORSO_TOP_Y = HIP_Y + TORSO_H;
 const HEAD_BOTTOM_Y = HEAD_Y - HEAD_R;
 const NECK_H = HEAD_BOTTOM_Y - TORSO_TOP_Y;
 
-export const TAMMO_APPEARANCE = { shirt: 0x2f5c9e, skin: 0xe0b48a, hair: 0x2b1f14, variant: 'male' };
-export const ANITA_APPEARANCE = { shirt: 0xb5483a, skin: 0xc98f66, hair: 0x3c2418, variant: 'female' };
+export const TAMMO_APPEARANCE = { shirt: 0x2f5c9e, skin: 0xe0b48a, hair: 0x2b1f14, variant: 'male', character: 'tammo', cap: DEFAULT_CAP };
+export const ANITA_APPEARANCE = { shirt: 0xb5483a, skin: 0xc98f66, hair: 0x3c2418, variant: 'female', character: 'anita' };
 
 function cylinderPart(rTop, rBottom, h, mat) {
   return new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, h, 6), mat);
+}
+
+function shadeColor(hex, factor) {
+  const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * factor));
+  const g = Math.min(255, Math.round(((hex >> 8) & 0xff) * factor));
+  const b = Math.min(255, Math.round((hex & 0xff) * factor));
+  return (r << 16) | (g << 8) | b;
 }
 
 export function buildPersonMesh(shirt, skin, opts = {}) {
@@ -49,16 +67,29 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   const heightScale = 0.93 + hash2(shirt, skin) * 0.14;
   const buildScale = 0.94 + hash2(skin, shirt) * 0.12;
 
-  const clothMat = new THREE.MeshLambertMaterial({ color: shirt });
-  const skinMat = new THREE.MeshLambertMaterial({ color: skin });
-  const hairMat = new THREE.MeshLambertMaterial({ color: hair });
+  // Pants/shoes are derived from the shirt color rather than added as new
+  // required opts fields, so every existing call site (which only ever
+  // passes shirt+skin, or the two named-character opts) keeps working
+  // unchanged while still getting a two-tone body instead of one flat color.
+  const pants = opts.pants ?? shadeColor(shirt, 0.55);
+  const shoes = opts.shoes ?? shadeColor(pants, 0.5);
+
+  const clothMat = new THREE.MeshStandardMaterial({ color: shirt, roughness: CLOTH_ROUGHNESS, metalness: 0 });
+  const pantsMat = new THREE.MeshStandardMaterial({ color: pants, roughness: CLOTH_ROUGHNESS, metalness: 0 });
+  const skinMat = new THREE.MeshStandardMaterial({ color: skin, roughness: SKIN_ROUGHNESS, metalness: 0 });
+  const hairMat = new THREE.MeshStandardMaterial({ color: hair, roughness: HAIR_ROUGHNESS, metalness: 0 });
+  const shoeMat = new THREE.MeshStandardMaterial({ color: shoes, roughness: SHOE_ROUGHNESS, metalness: 0 });
 
   const group = new THREE.Group();
 
   for (const side of [1, -1]) {
-    const leg = cylinderPart(LEG_R, LEG_R * 0.78, LEG_LEN, clothMat);
+    const leg = cylinderPart(LEG_R, LEG_R * 0.78, LEG_LEN, pantsMat);
     leg.position.set(0, LEG_LEN / 2, side * (LEG_R + 0.02));
     group.add(leg);
+
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(SHOE_LEN, SHOE_H, SHOE_WID), shoeMat);
+    shoe.position.set(LEG_R * 0.55, SHOE_H / 2, side * (LEG_R + 0.02));
+    group.add(shoe);
   }
 
   const torso = new THREE.Mesh(
@@ -101,6 +132,21 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     hairCap.scale.set(1, 0.6, 1);
     hairCap.position.set(-HEAD_R * 0.12, HEAD_Y + HEAD_R * 0.55, 0);
     group.add(hairCap);
+  }
+
+  // Tammo/Anita need to read as "the same two specific people" everywhere
+  // they appear (player, companion, passenger), so each gets exactly one
+  // extra silhouette primitive on top of the generic variant look above.
+  if (opts.character === 'tammo') {
+    const capMat = new THREE.MeshStandardMaterial({ color: opts.cap ?? DEFAULT_CAP, roughness: CAP_ROUGHNESS, metalness: 0 });
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(HEAD_R * 0.75, HEAD_R * 1.05, HEAD_R * 0.58, 8), capMat);
+    cap.position.set(-HEAD_R * 0.08, HEAD_Y + HEAD_R * 0.9, 0);
+    group.add(cap);
+  } else if (opts.character === 'anita') {
+    const fringe = new THREE.Mesh(new THREE.BoxGeometry(HEAD_R * 0.5, HEAD_R * 0.85, HEAD_R * 1.5), hairMat);
+    fringe.position.set(HEAD_R * 0.62, HEAD_Y + HEAD_R * 0.05, 0);
+    fringe.rotation.z = 0.15;
+    group.add(fringe);
   }
 
   group.scale.set(buildScale, heightScale, buildScale);
