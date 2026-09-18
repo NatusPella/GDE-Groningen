@@ -58,7 +58,7 @@ function maintainPedestrians(world) {
 
 async function boot() {
   const map = await loadMap('citymap.json');
-  init3D();
+  init3D(map);
   resize3D();
   window.addEventListener('resize', resize3D);
 

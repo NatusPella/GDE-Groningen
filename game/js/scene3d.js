@@ -20,6 +20,7 @@ import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTra
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial } from './water3d.js';
 import { buildFallenTreeMesh3D, updateFallenTreeMesh3D } from './treeprops.js';
+import { buildTerrainMesh3D, updateTerrainMaterial } from './terrain3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
 
@@ -40,11 +41,12 @@ const UNLOAD_DIST = 175;
 const TREE_DIST = 90;
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
+let terrainMesh = null;
 let followYaw = 0;
 // orbit radius kept constant so pitch changes swing the camera around the
 // player like a real GTA camera (higher/steeper looking down, lower/flatter
 // looking up) instead of just sliding the camera height up and down in place
-const ORBIT_RADIUS = Math.hypot(3.5, 3.5);
+const ORBIT_RADIUS = Math.hypot(2.6, 2.6);
 const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
 const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overhead angle
 let followPitch = Math.atan2(5.2 - 1.3, 9);
@@ -110,7 +112,7 @@ function hash2(x, y) {
   return h - Math.floor(h);
 }
 
-export function init3D() {
+export function init3D(map) {
   canvas3 = document.getElementById('game3d');
   renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
@@ -136,12 +138,16 @@ export function init3D() {
   scene.add(sun);
   scene.add(sun.target);
 
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(6000, 6000),
-    new THREE.MeshLambertMaterial({ color: 0x6b6459 })
-  );
-  ground.rotation.x = -Math.PI / 2;
-  scene.add(ground);
+  // Real terrain mesh built from the map's actual bounds (vertices/faces,
+  // not a flat "magic floor") with its own shader - replaces the old
+  // infinite flat plane per feedback. Tried removing the backdrop entirely
+  // first, but real map data (roads/sidewalks/green/buildings) doesn't
+  // cover 100% of the navigable area, so gaps showed the sky-colored scene
+  // background right at ground level - looked like holes in the world.
+  // Sits below WATER_Y (-0.35) so it never hides water the way the old
+  // plane did (that one rendered at y=0, right over water's -0.35).
+  terrainMesh = buildTerrainMesh3D(map.meta.bounds);
+  scene.add(terrainMesh);
 
   playerMesh = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
   scene.add(playerMesh);
@@ -517,6 +523,7 @@ export function update3D(dt, world) {
   syncFlat(world.map.greenNear(player.x, player.y, DRAW_DIST), greenMeshes, 0x5c8a4d, 0.015, player.x, player.y);
   syncWater(world.map.waterNear(player.x, player.y, DRAW_DIST), waterMeshes, WATER_Y);
   if (waterMaterial) updateWaterMaterial(waterMaterial, world.time);
+  if (terrainMesh) updateTerrainMaterial(terrainMesh.material, world.time);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
   syncFallenTrees(world, player.x, player.y);
@@ -910,10 +917,10 @@ export function update3D(dt, world) {
     const altDx = altX - eyeX, altDy = steepHeight - eyeY, altDz = altZ - eyeZ;
     const altFullDist = Math.hypot(altDx, altDy, altDz) || 1;
     const altHit = raycastBuildingDist(altDx, altDy, altDz, altFullDist);
-    if (altHit === null || altHit > 3.0) {
+    if (altHit === null || altHit > 2.2) {
       desiredX = altX; desiredY = steepHeight; desiredZ = altZ;
       if (altHit !== null) {
-        const d = Math.max(2.2, altHit - 0.4);
+        const d = Math.max(1.6, altHit - 0.4);
         const t = d / altFullDist;
         desiredX = eyeX + altDx * t;
         desiredY = eyeY + altDy * t;
@@ -923,7 +930,7 @@ export function update3D(dt, world) {
       // even near-overhead is blocked (under an overhang/bridge) - fall
       // back to pulling in on the original ray, with a less punishing
       // minimum distance than before
-      const d = Math.max(2.2, hitDist - 0.4);
+      const d = Math.max(1.6, hitDist - 0.4);
       const t = d / fullDist;
       desiredX = eyeX + dx * t;
       desiredY = eyeY + dy * t;

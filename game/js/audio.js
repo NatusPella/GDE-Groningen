@@ -41,7 +41,6 @@ const GMUSIC_JINGLES = {
   uitstappen: './audio/gmusic/jingles/uitstappen.wav',
 };
 const AMBIENT_JINGLE_KEYS = ['station_id', 'nummerovergang', 'rij_knipoog'];
-const AMBIENT_JINGLE_MIN = 90, AMBIENT_JINGLE_MAX = 150;
 
 // NPC ambient chatter, police barks, Sikkom phone-feed lines - each key has
 // a few voice variants recorded for it; playX() below always picks one at
@@ -72,7 +71,6 @@ let siren = null;
 let prev = null;
 let seenMessages = null;
 let muted = false;
-let ambientJingleTimer = 0;
 let wasDriving = false;
 const engineState = { freq: 42, gain: 0 };
 const sirenState = { gain: 0 };
@@ -256,9 +254,44 @@ function playClip(src) {
   el.play().catch(() => {});
 }
 
+// Voicelines/police/Sikkom - the "important", event-driven spoken lines -
+// share one global cooldown so simultaneous triggers (walking through a
+// cluster of pickups) can't stack into overlapping voices. Returns whether
+// it actually played, so callers that only want a visual (e.g. a speech
+// bubble) to show up TOGETHER with real audio can check first.
+const SPOKEN_MIN_GAP = 1.4;
+let lastSpokenAt = -Infinity;
+
+function playSpokenClip(src) {
+  if (!ctx) return false;
+  const now = ctx.currentTime;
+  if (now - lastSpokenAt < SPOKEN_MIN_GAP) return false;
+  lastSpokenAt = now;
+  playClip(src);
+  return true;
+}
+
+// NPC ambient chatter gets its OWN, much longer cooldown, entirely separate
+// from the one above - with up to ~45 pedestrians nearby, sharing a single
+// short cooldown with real gameplay events (money/weapon pickups, mission
+// beats, busted) let ambient chatter starve out the lines that actually
+// matter. Per explicit feedback ("nog steeds veel te veel en te vaak") this
+// is deliberately strict.
+const NPC_SPOKEN_MIN_GAP = 14;
+let lastNpcSpokenAt = -Infinity;
+
+function playNpcSpokenClip(src) {
+  if (!ctx) return false;
+  const now = ctx.currentTime;
+  if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP) return false;
+  lastNpcSpokenAt = now;
+  playClip(src);
+  return true;
+}
+
 function playVoiceline(character, key) {
   const src = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];
-  if (src) playClip(src);
+  return src ? playSpokenClip(src) : false;
 }
 
 function playGMusicJingle(key) {
@@ -271,12 +304,14 @@ export function playAutoGejatLine(world) {
 }
 
 function playRandomVariant(paths) {
-  if (!paths || !paths.length) return;
-  playClip(paths[Math.floor(Math.random() * paths.length)]);
+  if (!paths || !paths.length) return false;
+  return playSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
 }
 
 export function playNpcPhrase(index) {
-  playRandomVariant(NPC_PHRASE_AUDIO[index]);
+  const paths = NPC_PHRASE_AUDIO[index];
+  if (!paths || !paths.length) return false;
+  return playNpcSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
 }
 
 export function playPoliceBark(key) {
@@ -305,11 +340,6 @@ async function loadGMusicManifest() {
     gmusic.elements = tracks.map((filename) => {
       const el = new Audio('./audio/gmusic/' + filename);
       el.preload = 'auto';
-      el.addEventListener('ended', () => {
-        gmusic.index = (gmusic.index + 1) % gmusic.elements.length;
-        const next = gmusic.elements[gmusic.index];
-        if (next) next.el.play().catch(() => {});
-      });
       const srcNode = ctx.createMediaElementSource(el);
       srcNode.connect(musicBus);
       return { el, filename, srcNode };
@@ -317,6 +347,81 @@ async function loadGMusicManifest() {
   } catch (e) {
     // no manifest yet / bad JSON / fetch blocked - G-Music just stays silent
   }
+}
+
+// Sequenced "radio" playback per feedback: jingle, 2 random tracks, jingle,
+// 2 random tracks, ... (not a raw sequential track order, and jingles are
+// woven INTO the sequence rather than firing on their own unrelated timer
+// and overlapping whatever track happens to be playing). One shared queue
+// drives everything through the SAME 'ended' chain, whether the current
+// item is a freshly-built jingle Audio or one of the persistent track
+// elements from gmusic.elements.
+let gmusicQueue = [];
+let gmusicCurrentEl = null;
+let gmusicStarted = false;
+let gmusicFadingIn = false;
+let gmusicPending = false;
+
+function buildGmusicCycle() {
+  const jingleKey = AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)];
+  const jingleEl = new Audio(GMUSIC_JINGLES[jingleKey]);
+  try { ctx.createMediaElementSource(jingleEl).connect(musicBus); } catch (e) { /* ignore */ }
+  const items = [jingleEl];
+  for (let i = 0; i < 2 && gmusic.elements.length; i++) {
+    items.push(gmusic.elements[Math.floor(Math.random() * gmusic.elements.length)].el);
+  }
+  return items;
+}
+
+// Boot behaviour per feedback: "tune in" like a real running station -
+// start mid-way through a random track (or occasionally a jingle) instead
+// of always starting a fresh cycle at position 0, with a subtle fade-in
+// (musicState.gain reset to 0, gmusicFadingIn slows updateGMusic's normal
+// duck-lerp for the first ~1.5s) rather than an abrupt full-volume start.
+function startGmusicRandomly() {
+  gmusicStarted = true;
+  gmusicPending = true;
+  gmusicFadingIn = true;
+  musicState.gain = 0;
+  musicBus.gain.value = 0;
+
+  const startAsJingle = Math.random() < 0.25;
+  let el;
+  if (startAsJingle) {
+    const jingleKey = AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)];
+    el = new Audio(GMUSIC_JINGLES[jingleKey]);
+    try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
+  } else {
+    el = gmusic.elements[Math.floor(Math.random() * gmusic.elements.length)].el;
+  }
+  gmusicQueue = buildGmusicCycle();
+  gmusicCurrentEl = el;
+
+  // gmusicPending stays true (blocking updateGMusic's own re-trigger check)
+  // until .play() actually gets called below - otherwise, while this waits
+  // on 'loadedmetadata', gmusicCurrentEl.paused still reads true and
+  // updateGMusic would call advanceGmusicQueue() and start a SECOND element
+  // in the meantime, playing two things at once.
+  const startPlayback = () => {
+    gmusicPending = false;
+    const dur = el.duration;
+    if (isFinite(dur) && dur > 1) el.currentTime = Math.random() * dur * 0.8;
+    el.addEventListener('ended', advanceGmusicQueue, { once: true });
+    el.play().catch(() => {});
+  };
+  if (el.readyState >= 1) startPlayback();
+  else el.addEventListener('loadedmetadata', startPlayback, { once: true });
+}
+
+function advanceGmusicQueue() {
+  if (!gmusicQueue.length) {
+    if (!gmusic.elements.length) return; // manifest not loaded yet - nothing to sequence
+    gmusicQueue = buildGmusicCycle();
+  }
+  gmusicCurrentEl = gmusicQueue.shift();
+  gmusicCurrentEl.currentTime = 0;
+  gmusicCurrentEl.addEventListener('ended', advanceGmusicQueue, { once: true });
+  gmusicCurrentEl.play().catch(() => {});
 }
 
 export function initAudio(world) {
@@ -361,7 +466,6 @@ export function initAudio(world) {
     missionPhase: world.mission ? world.mission.phase : null,
     wanted: world.wanted,
   };
-  ambientJingleTimer = AMBIENT_JINGLE_MIN + Math.random() * (AMBIENT_JINGLE_MAX - AMBIENT_JINGLE_MIN);
   seenMessages = new WeakSet();
   for (const m of world.messages) seenMessages.add(m);
 }
@@ -400,19 +504,23 @@ function updateSiren(dt, world) {
 }
 
 function updateGMusic(dt, world) {
-  // G-Music plays continuously, on foot or driving - idempotent (checked
-  // every frame via el.paused) so a manifest that resolves after boot just
-  // starts itself the next frame instead of needing an edge to trigger on.
-  const cur = gmusic.elements[gmusic.index];
-  if (cur && cur.el.paused) cur.el.play().catch(() => {});
+  // G-Music plays continuously, on foot or driving. First start "tunes in"
+  // mid-broadcast (see startGmusicRandomly); after that, jingle/track/track
+  // sequencing self-sustains via advanceGmusicQueue's 'ended' chain, and
+  // this is just an idempotent safety net in case something ever stalls.
+  if (!gmusicStarted && gmusic.elements.length) startGmusicRandomly();
+  else if (gmusicStarted && !gmusicPending && (!gmusicCurrentEl || gmusicCurrentEl.paused) && gmusic.elements.length) advanceGmusicQueue();
 
   // Fixed-gain duck (not real-time ducking analysis) whenever the engine is
   // working hard or the siren is audible, per spec - same lerp-toward-target
-  // shape as engineBus/sirenBus above.
+  // shape as engineBus/sirenBus above. Slower while fading in from a fresh
+  // start so that fade actually reads as subtle instead of near-instant.
   const ducked = sirenState.gain > 0.05 || engineState.gain > 0.4;
   const targetGain = ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
-  musicState.gain += (targetGain - musicState.gain) * Math.min(1, dt * 3);
+  const lerpRate = gmusicFadingIn ? dt * 0.8 : dt * 3;
+  musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
   musicBus.gain.value = musicState.gain;
+  if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
 }
 
 export function updateAudio(dt, world) {
@@ -476,11 +584,6 @@ export function updateAudio(dt, world) {
   }
   prev.wanted = world.wanted;
 
-  ambientJingleTimer -= dt;
-  if (ambientJingleTimer <= 0) {
-    ambientJingleTimer = AMBIENT_JINGLE_MIN + Math.random() * (AMBIENT_JINGLE_MAX - AMBIENT_JINGLE_MIN);
-    playGMusicJingle(AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)]);
-  }
 
   prev.kills = world.stats.kills;
   prev.copKills = world.stats.copKills;
