@@ -86,7 +86,14 @@ export function habboFlatMaterial(color, opts = {}) {
 // has. Call this once per mesh/geometry you build (not per frame) and add
 // the returned outline mesh as a SIBLING of the real mesh (same parent,
 // same transform) - it inherits position/rotation/scale from there on.
-const OUTLINE_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
+// Exported (in addition to buildOutline/habboMesh below) so callers whose
+// geometry is NOT centered on its own local origin - e.g. models3d_buildings.js's
+// building extrusions, which bake absolute OSM world coordinates directly into
+// their vertex positions - can build their own correctly-pivoted outline
+// wrapper (scale-from-footprint-center instead of scale-from-world-origin)
+// while still sharing this exact one material/singleton, so there is still
+// only ever ONE black outline material for the whole game.
+export const OUTLINE_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
 export function buildOutline(geometry, thickness = 0.02) {
   const mesh = new THREE.Mesh(geometry, OUTLINE_MAT);
   mesh.scale.setScalar(1 + thickness);

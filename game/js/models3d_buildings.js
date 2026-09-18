@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { HABBO_PALETTE, habboMaterial, habboFlatMaterial, OUTLINE_MAT, createWindowTexture } from './pixelart3d.js';
 
 // Replaces the old one-flat-box-per-building placeholder. Buildings read as
 // belonging to one street block via a two-step hash: a COARSE hash of the
@@ -22,88 +23,59 @@ function hash2(x, y) {
   return h - Math.floor(h);
 }
 
-// Extends the same muted satellite-derived palette render2.js uses for the
-// 2D view (BUILDING_PALETTE there, BUILDING_PALETTE3D in the old scene3d.js
-// placeholder) into families of related tones instead of one flat color.
+// Habbo pass: families of related tones instead of one flat color, same as
+// before, but every tone now comes straight from HABBO_PALETTE (flat/vibrant,
+// no invented hexes) and every mesh built from these is toon-shaded, not PBR.
 const PALETTE_FAMILIES = [
-  { wall: [0x8a6b52, 0x7d6049, 0x967357, 0x6f5540], roof: 0x3a3d38 },
-  { wall: [0x969887, 0x878972, 0x7b7c72, 0xa3a496], roof: 0x4f544d },
-  { wall: [0x66695f, 0x54574e, 0x74776b, 0x494c45], roof: 0x232522 },
-  { wall: [0xb4b2a2, 0xc4c2b0, 0xa39f8c, 0x9b9884], roof: 0x625044 },
-  { wall: [0x9c7a5c, 0x8a6a4e, 0xae8a68, 0x7a5c42], roof: 0x5c4632 },
+  { wall: ['brickRed', 'brickOrange', 'woodMid', 'wallCream'], roof: 'roofGreen' },
+  { wall: ['wallCream', 'wallYellow', 'woodLight', 'wallPink'], roof: 'roofBlue' },
+  { wall: ['wallMint', 'skyBlue', 'wallCream', 'wallPink'], roof: 'roofBlue' },
+  { wall: ['woodMid', 'woodDark', 'brickOrange', 'woodLight'], roof: 'roofGreen' },
+  { wall: ['stoneGrey', 'wallCream', 'woodLight', 'metalGrey'], roof: 'roofGreen' },
 ];
-const INDUSTRIAL_WALLS = [0x6c6c66, 0x5c5c57, 0x7a7a72, 0x50504b];
-const INDUSTRIAL_ROOF = 0x3d3d38;
+const INDUSTRIAL_WALLS = ['metalGrey', 'stoneGrey', 'woodDark'];
+const INDUSTRIAL_ROOF = 'metalGrey';
 const LANDMARK_COLOR3D = {
-  tower: 0x783c28, church: 0x5a5560, modern: 0x3c6e82, museum: 0xb44628,
-  station: 0x465a6e, university: 0x503c2d, historic: 0x8c6e32, mall: 0x46648c, stadium: 0x3c7846,
+  tower: 'brickRed', church: 'stoneGrey', modern: 'skyBlue', museum: 'brickOrange',
+  station: 'metalGrey', university: 'woodDark', historic: 'woodMid', mall: 'wallYellow', stadium: 'grassGreen',
 };
-const LANDMARK_STONE = { university: 0xcfc3a0, historic: 0xd9cdae };
-const ACCENT_COLOR = { museum: 0xe0a23a, modern: 0xdfe4e6, mall: 0xe3c23c };
-// Per-landmark-kind PBR finish - glass/steel modern buildings (station,
-// modern, museum, mall) read glossier/slightly metallic, masonry ones
-// (tower, church, university, historic) stay matte like real stone/brick.
-const LANDMARK_FINISH = {
-  tower: { roughness: 0.82, metalness: 0 },
-  church: { roughness: 0.85, metalness: 0 },
-  modern: { roughness: 0.2, metalness: 0.3 },
-  museum: { roughness: 0.4, metalness: 0.35 },
-  station: { roughness: 0.3, metalness: 0.25 },
-  university: { roughness: 0.85, metalness: 0 },
-  historic: { roughness: 0.75, metalness: 0.05 },
-  mall: { roughness: 0.5, metalness: 0.15 },
-  stadium: { roughness: 0.5, metalness: 0.1 },
-};
-
-// Round 2: MeshStandardMaterial (was MeshLambertMaterial) so walls actually
-// react to roughness/metalness under the scene's HemisphereLight+
-// DirectionalLight instead of shading flat - brick/stucco/stone stay matte
-// (high roughness), modern glass-and-steel landmarks read glossier (low
-// roughness, a little metalness). Small helper keeps the many instances
-// below terse.
-const stdMat = (color, roughness, metalness = 0, extra) => new THREE.MeshStandardMaterial({ color, roughness, metalness, ...extra });
+const LANDMARK_STONE = { university: 'stoneGrey', historic: 'wallCream' };
+const ACCENT_COLOR = { museum: 'wallYellow', modern: 'white', mall: 'brickOrange' };
 
 // Every mesh below reuses one of these - never allocate a material per
 // building. Only ~30-100 buildings are ever live at once but they stream
 // in/out of view constantly as the player moves, so this runs a lot.
-const wallMaterials = PALETTE_FAMILIES.map((f) => f.wall.map((c) => stdMat(c, 0.88)));
-const roofMaterials = PALETTE_FAMILIES.map((f) => stdMat(f.roof, 0.78, 0, { side: THREE.DoubleSide }));
-const industrialWallMaterials = INDUSTRIAL_WALLS.map((c) => stdMat(c, 0.55, 0.25));
-const industrialRoofMaterial = stdMat(INDUSTRIAL_ROOF, 0.5, 0.3, { side: THREE.DoubleSide });
-const landmarkMaterials = Object.fromEntries(Object.entries(LANDMARK_COLOR3D).map(([k, c]) => {
-  const f = LANDMARK_FINISH[k] || { roughness: 0.8, metalness: 0 };
-  return [k, stdMat(c, f.roughness, f.metalness, { side: THREE.DoubleSide })];
-}));
-const landmarkStoneMaterials = Object.fromEntries(Object.entries(LANDMARK_STONE).map(([k, c]) => [k, stdMat(c, 0.8, 0, { side: THREE.DoubleSide })]));
-const accentMaterials = Object.fromEntries(Object.entries(ACCENT_COLOR).map(([k, c]) => [k, stdMat(c, 0.3, 0.2, { side: THREE.DoubleSide })]));
-// A vertical wall lit only by HemisphereLight + one DirectionalLight goes
-// near-black whenever it faces away from the sun (extremely common up close,
-// e.g. first-person-adjacent camera facing straight at a shaded facade) - if
-// the window/shopfront detail were just a slightly different shade of the
-// same wall-color family, it would vanish into that same near-black exactly
-// when it matters most. `emissive` makes these read as lit windows
-// regardless of ambient light/facing direction (also just a nicer "living
-// city at any hour" look) - kept modest so it reads as windows, not a glow.
-// Low roughness + a touch of metalness on top of that gives the glass pane
-// itself a faint sheen instead of the same matte response as brick.
-// Round 3: `vertexColors:true` + a plain white base color, so this single
-// shared material just displays whatever glass/frame colors are baked into
-// each building's window-row geometry (see buildWindowRowGeometry) - the
-// per-window grid pattern lives entirely in geometry vertex colors, not in
-// per-building materials, so this stays ONE material for every building.
-const WINDOW_GLASS_COLOR = new THREE.Color(0x141a22);
-const WINDOW_FRAME_COLOR = new THREE.Color(0xdcd6c4);
-const windowBandMaterial = stdMat(0xffffff, 0.35, 0.08, {
-  vertexColors: true, emissive: 0x2a1d0e, emissiveIntensity: 0.15, side: THREE.DoubleSide,
-});
-const shopfrontMaterial = stdMat(0x17242b, 0.25, 0.1, { emissive: 0xffcf80, emissiveIntensity: 0.5, side: THREE.DoubleSide });
-const corniceMaterial = stdMat(0xd8cdb0, 0.75, 0, { side: THREE.DoubleSide });
-const canopyMaterial = stdMat(0x565c53, 0.5, 0.2, { side: THREE.DoubleSide });
-// Round 2 additions: a dark gutter/eave trim strip, a near-black door-recess
-// box, and a small gilded accent for spire/cross finials.
-const eaveTrimMaterial = stdMat(0x2b2a26, 0.55, 0.3, { side: THREE.DoubleSide });
-const doorMaterial = stdMat(0x110d0a, 0.95, 0, { side: THREE.DoubleSide });
-const finialMaterial = stdMat(0xcfa227, 0.35, 0.55, { side: THREE.DoubleSide });
+// habboMaterial() gives a hard 2-step toon gradient (flat/minimal shading,
+// per the real Habbo look) instead of the old PBR roughness/metalness finish
+// - there is no more glossy-vs-matte distinction between landmark kinds,
+// every wall/roof reads as the same flat painted material family.
+const wallMaterials = PALETTE_FAMILIES.map((f) => f.wall.map((k) => habboMaterial(HABBO_PALETTE[k])));
+const roofMaterials = PALETTE_FAMILIES.map((f) => habboMaterial(HABBO_PALETTE[f.roof], { side: THREE.DoubleSide }));
+const industrialWallMaterials = INDUSTRIAL_WALLS.map((k) => habboMaterial(HABBO_PALETTE[k]));
+const industrialRoofMaterial = habboMaterial(HABBO_PALETTE[INDUSTRIAL_ROOF], { side: THREE.DoubleSide });
+const landmarkMaterials = Object.fromEntries(Object.entries(LANDMARK_COLOR3D).map(([k, key]) => [k, habboMaterial(HABBO_PALETTE[key], { side: THREE.DoubleSide })]));
+const landmarkStoneMaterials = Object.fromEntries(Object.entries(LANDMARK_STONE).map(([k, key]) => [k, habboMaterial(HABBO_PALETTE[key], { side: THREE.DoubleSide })]));
+const accentMaterials = Object.fromEntries(Object.entries(ACCENT_COLOR).map(([k, key]) => [k, habboMaterial(HABBO_PALETTE[key], { side: THREE.DoubleSide })]));
+// Round 4 (Habbo pass): windows are now a genuine small pixel-art canvas
+// texture (see createWindowTexture in pixelart3d.js - a tiled dark-glass/
+// light-frame grid, NearestFilter so it stays crisp/blocky) instead of the
+// old per-vertex glass/frame color hack baked into buildWindowRowGeometry.
+// ONE shared texture + ONE shared flat/unlit material for every window row
+// on every building (unlit on purpose - Habbo windows read as flat painted
+// glass, not something that needs to react to the sun), tiled once per
+// window bay via each row's UVs (see buildWindowRowGeometry).
+const windowTexture = createWindowTexture('glassBlue', 'wallCream');
+const windowBandMaterial = habboFlatMaterial(0xffffff, { map: windowTexture, side: THREE.DoubleSide });
+const shopfrontMaterial = habboFlatMaterial(HABBO_PALETTE.glassBlue, { side: THREE.DoubleSide });
+const corniceMaterial = habboMaterial(HABBO_PALETTE.wallCream, { side: THREE.DoubleSide });
+const canopyMaterial = habboMaterial(HABBO_PALETTE.metalGrey, { side: THREE.DoubleSide });
+// A dark gutter/eave trim strip (flat/unlit so it reads as a consistent dark
+// line regardless of light direction), a painted-wood door-recess box, and a
+// small gilded (Habbo palette has no literal gold, wallYellow reads as the
+// closest flat "gilded" accent) trim for spire/cross finials.
+const eaveTrimMaterial = habboFlatMaterial(HABBO_PALETTE.black, { side: THREE.DoubleSide });
+const doorMaterial = habboMaterial(HABBO_PALETTE.woodDark, { side: THREE.DoubleSide });
+const finialMaterial = habboMaterial(HABBO_PALETTE.wallYellow, { side: THREE.DoubleSide });
 
 // Shared unit primitives for every small protruding detail (window/shopfront
 // bands' end caps aside, this covers cornices, canopies, steeples, tower
@@ -125,6 +97,66 @@ function bboxOf(b) {
 function familyIndexFor(box) {
   const gx = Math.round(box.cx / 20) * 20, gy = Math.round(box.cy / 20) * 20;
   return Math.floor(hash2(gx, gy) * PALETTE_FAMILIES.length);
+}
+
+// --- Habbo black outlines ---------------------------------------------------
+// pixelart3d.js's buildOutline()/habboMesh() give any mesh a bold black rim
+// by duplicating its geometry, rendering it BackSide-black, and scaling that
+// duplicate up slightly - correct as long as the geometry is centered on its
+// own local origin (true for every small prop the toolkit was written for).
+// It is NOT true here for the big per-building geometries (buildMainGeometry/
+// buildRidgeGeometry etc.): those bake ABSOLUTE OSM world coordinates
+// straight into their vertices (so this file's other absolute-coordinate
+// helpers, e.g. buildBandGeometry, can work directly off b.bounds), so a
+// plain uniform scale-about-origin would fly the outline off to the side by
+// a fraction of the building's distance from world (0,0) instead of merely
+// inflating it. addAbsoluteOutline() below reproduces the exact same
+// "scaled-up duplicate, BackSide, black" technique via a tiny wrapper Group,
+// so it inflates the silhouette in place; it still renders with the
+// toolkit's own shared OUTLINE_MAT, so there is only ever one black-outline
+// material for the whole game. Thickness is derived per-geometry (not a
+// fixed percentage) so a 4m garage and a 95m tower both get a rim that reads
+// as roughly the same real-world thickness instead of a fixed 2%.
+// Pivots off the GEOMETRY's own bounding box (not the footprint box a caller
+// happens to have handy) - this matters on the Y axis specifically: the main
+// wall spans y=[0, depth] so a footprint-box-based pivot at y=0 would happen
+// to work for it, but the roof ridge geometry sits high up at y=[depth,
+// depth+ridgeHeight], and scaling that "around the ground" would fly the
+// roof outline upward by a fraction of the WHOLE building's height instead
+// of just inflating the small ridge shape in place. Using the geometry's own
+// bounding-box center on all three axes is correct for either case (or any
+// other absolute-coordinate geometry this file might outline later) with no
+// extra parameters. Thickness is likewise derived from that same bounding
+// box so a small ridge cap and a big tower shaft each get a rim that reads
+// as roughly the same real-world thickness instead of a fixed percentage.
+function addAbsoluteOutline(group, geometry) {
+  if (!geometry.boundingBox) geometry.computeBoundingBox();
+  const bb = geometry.boundingBox;
+  const cx = (bb.min.x + bb.max.x) / 2, cy = (bb.min.y + bb.max.y) / 2, cz = (bb.min.z + bb.max.z) / 2;
+  const span = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z, 3);
+  const thickness = Math.min(0.05, Math.max(0.01, 0.18 / span));
+  const wrapper = new THREE.Group();
+  wrapper.position.set(cx, cy, cz);
+  wrapper.scale.setScalar(1 + thickness);
+  const inner = new THREE.Mesh(geometry, OUTLINE_MAT);
+  inner.position.set(-cx, -cy, -cz);
+  wrapper.add(inner);
+  group.add(wrapper);
+}
+
+// Sibling-outline helper for the OTHER kind of detail mesh in this file: the
+// shared UNIT_BOX/UNIT_CONE primitives, always used centered-geometry +
+// per-instance position/scale (steeples, tower stages, canopies, cornices,
+// door insets, ...). Those ARE safe for the toolkit's plain technique since
+// the geometry itself is centered - this just also has to copy the caller's
+// own (often non-uniform) instance scale rather than always using a uniform
+// 1+thickness, since e.g. a door is scaled very differently on each axis.
+function addUnitOutline(group, mesh, thickness = 0.08) {
+  const outline = new THREE.Mesh(mesh.geometry, OUTLINE_MAT);
+  outline.position.copy(mesh.position);
+  outline.rotation.copy(mesh.rotation);
+  outline.scale.set(mesh.scale.x * (1 + thickness), mesh.scale.y * (1 + thickness), mesh.scale.z * (1 + thickness));
+  group.add(outline);
 }
 
 function archetypeOf(b) {
@@ -362,11 +394,13 @@ function buildBandGeometry(box, thickness, outset = 0.06) {
 //
 // WINDOW_ROW_HEIGHT is now a real fraction of a floor (not a hairline), and
 // buildWindowRowGeometry subdivides each of the 4 bbox sides into window-bay
-// quads that alternate a dark "glass" vertex color and a light "frame"
-// vertex color - a real per-window grid pattern baked into geometry (no
-// image texture, per the project having no texture pipeline), still exactly
-// ONE mesh + ONE shared material per floor row, same cost discipline as the
-// band it replaces. windowBandMaterial just renders whatever this bakes in.
+// quads. Habbo pass: instead of baking an alternating glass/frame vertex
+// color into the geometry, each bay now gets UVs that tile pixelart3d.js's
+// createWindowTexture() once per bay - a genuine small pixel-art bitmap
+// (dark glass, light frame cross, NearestFilter) rather than a flat color
+// hack - while staying exactly ONE mesh + ONE shared textured material per
+// floor row, same cost discipline as before. windowBandMaterial just renders
+// whatever texture tiling this geometry's UVs describe.
 const LEVEL_HEIGHT_ROW = LEVEL_HEIGHT;
 const WINDOW_ROW_HEIGHT = 1.7;
 const WINDOW_ROW_OUTSET = 0.05;
@@ -390,7 +424,7 @@ function buildWindowRowGeometry(box, height = WINDOW_ROW_HEIGHT, outset = WINDOW
     [[x1, z1], [x0, z1]],
     [[x0, z1], [x0, z0]],
   ];
-  const verts = [], colors = [], idx = [];
+  const verts = [], uvs = [], idx = [];
   for (const [[ax, az], [bx, bz]] of sides) {
     const len = Math.hypot(bx - ax, bz - az);
     const segs = segsForSide(len);
@@ -401,13 +435,16 @@ function buildWindowRowGeometry(box, height = WINDOW_ROW_HEIGHT, outset = WINDOW
       const base = verts.length / 3;
       verts.push(p0x, 0, p0z, p0x, height, p0z, p1x, height, p1z, p1x, 0, p1z);
       idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
-      const c = (s % 2 === 0) ? WINDOW_GLASS_COLOR : WINDOW_FRAME_COLOR;
-      for (let i = 0; i < 4; i++) colors.push(c.r, c.g, c.b);
+      // One texture tile per bay (u goes s -> s+1, RepeatWrapping on the
+      // shared texture handles the rest) instead of an alternating color -
+      // createWindowTexture's own frame border reads as the mullion between
+      // adjacent bays once tiled.
+      uvs.push(s, 0, s, 1, s + 1, 1, s + 1, 0);
     }
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geo.setIndex(idx);
   geo.computeVertexNormals();
   return geo;
@@ -499,9 +536,13 @@ function pickMaterials(b, box, archetype, fine) {
 // Ground-level door recess, roughly centered on whichever bbox face runs
 // along the footprint's LONGER axis (the "street-facing" side, absent real
 // street-adjacency data) - a small near-black inset box straddling the wall
-// plane, matte so it reads as a shadowed opening rather than another glossy
-// surface. `sideFine` (a hash decorrelated from the material-shade pick)
-// chooses which of the two long faces gets the door, for variety.
+// plane, painted a flat Habbo wood tone with its own thin black outline
+// (per-door outlines are cheap - one extra mesh sharing UNIT_BOX + the one
+// shared OUTLINE_MAT - and a black-rimmed door is one of the single
+// strongest "this facade has a specific, readable entrance" cues at a
+// glance, so unlike the thin bands/window rows this one earns its outline).
+// `sideFine` (a hash decorrelated from the material-shade pick) chooses
+// which of the two long faces gets the door, for variety.
 function addDoorInset(group, box, sideFine) {
   const longX = box.w >= box.d;
   const span = longX ? box.w : box.d;
@@ -520,6 +561,7 @@ function addDoorInset(group, box, sideFine) {
     door.position.set(x, doorH / 2, box.cy);
   }
   group.add(door);
+  addUnitOutline(group, door);
 }
 
 // Thin dark trim ring right under the roofline/parapet - the single
@@ -544,12 +586,14 @@ function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
   steeple.scale.set(sw, steepleH, sw);
   steeple.position.set(x, steepleH / 2, z);
   group.add(steeple);
+  addUnitOutline(group, steeple);
 
   const capH = sw * 1.1;
   const cap = new THREE.Mesh(UNIT_CONE, roofMat);
   cap.scale.set(sw * 0.75, capH, sw * 0.75);
   cap.position.set(x, steepleH + capH / 2, z);
   group.add(cap);
+  addUnitOutline(group, cap);
 
   // Small gilded cross/finial on the spire tip - two thin crossed boxes,
   // 24 triangles total, but it is the single strongest "this is a church,
@@ -571,6 +615,7 @@ function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
     parts.roof = buildRidgeGeometry(box, depth, ridgeH);
   }
   group.add(new THREE.Mesh(parts.roof, roofMat));
+  addAbsoluteOutline(group, parts.roof);
 }
 
 function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
@@ -592,11 +637,13 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
     stage2.scale.set(s2w, stage2H, s2d);
     stage2.position.set(box.cx, y + stage2H / 2, box.cz);
     group.add(stage2);
+    addUnitOutline(group, stage2);
     y += stage2H;
     const stage3 = new THREE.Mesh(UNIT_BOX, roofMat);
     stage3.scale.set(s3w, stage3H, s3d);
     stage3.position.set(box.cx, y + stage3H / 2, box.cz);
     group.add(stage3);
+    addUnitOutline(group, stage3);
     y += stage3H;
     const capRad = Math.max(1.3, (s3w + s3d) / 4.2);
     const capH = TOWER_HEIGHT * 0.1;
@@ -604,6 +651,7 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
     cap.scale.set(capRad, capH, capRad);
     cap.position.set(box.cx, y + capH / 2, box.cz);
     group.add(cap);
+    addUnitOutline(group, cap);
     y += capH;
     const finialH = TOWER_HEIGHT * 0.035;
     const finial = new THREE.Mesh(UNIT_CONE, finialMaterial);
@@ -619,6 +667,7 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
     canopy.scale.set(box.w + margin * 2, 0.4, box.d + margin * 2);
     canopy.position.set(box.cx, canopyY, box.cz);
     group.add(canopy);
+    addUnitOutline(group, canopy);
 
     // Repeating support pillars along both long edges under the canopy -
     // real station train sheds read unmistakably from the row of columns,
@@ -646,6 +695,7 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
     band.scale.set(box.w + 0.3, bandH, box.d + 0.3);
     band.position.set(box.cx, depth * 0.6, box.cz);
     group.add(band);
+    addUnitOutline(group, band);
     // Slim roofline accent trim - a second, thinner band right at the top
     // edge gives the glass-box massing a finished cap instead of a bare
     // extrusion edge.
@@ -659,6 +709,7 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
     band.scale.set(box.w + 0.4, bandH, box.d + 0.4);
     band.position.set(box.cx, depth - bandH * 0.7, box.cz);
     group.add(band);
+    addUnitOutline(group, band);
     // Small entrance canopy jutting off the shorter face - breaks up the
     // big-box mall silhouette with a porte-cochere cue.
     const canopyW = Math.min(box.w, box.d) * 0.4;
@@ -666,11 +717,13 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
     canopy.scale.set(canopyW, 0.35, canopyW * 0.6);
     canopy.position.set(box.cx, depth * 0.35, box.miny - canopyW * 0.3);
     group.add(canopy);
+    addUnitOutline(group, canopy);
   } else if (kind === 'university' || kind === 'historic') {
     const cornice = new THREE.Mesh(UNIT_BOX, corniceMaterial);
     cornice.scale.set(box.w + 0.5, 0.35, box.d + 0.5);
     cornice.position.set(box.cx, depth - 0.5, box.cz);
     group.add(cornice);
+    addUnitOutline(group, cornice);
   }
   // stadium: the brief's per-kind design list doesn't call out a shape for
   // it, so it keeps the plain landmark-tinted extrusion only.
@@ -694,6 +747,9 @@ export function buildBuildingMesh(b) {
   const { wallMat, roofMat } = pickMaterials(b, box, archetype, fine);
   const group = new THREE.Group();
   group.add(new THREE.Mesh(parts.main, wallMat));
+  // Every building's main wall silhouette gets a black outline, no
+  // exceptions - the one Habbo cue the brief calls "at minimum".
+  addAbsoluteOutline(group, parts.main);
 
   if (b.landmark) {
     addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2);
@@ -711,6 +767,7 @@ export function buildBuildingMesh(b) {
       parts.roof = buildRidgeGeometry(box, depth, ridgeH);
     }
     group.add(new THREE.Mesh(parts.roof, [wallMat, roofMat]));
+    addAbsoluteOutline(group, parts.roof);
     addEaveTrim(group, box, parts, depth);
     addDoorInset(group, box, fine2);
     addWindowBands(group, box, parts, depth, fine2);
