@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, habboFlatMaterial, OUTLINE_MAT, createWindowTexture } from './pixelart3d.js';
+import { getLandmarkModel } from './landmarkmodels.js';
 
 // Replaces the old one-flat-box-per-building placeholder. Buildings read as
 // belonging to one street block via a two-step hash: a COARSE hash of the
@@ -730,6 +731,24 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
 }
 
 export function buildBuildingMesh(b) {
+  // Real (non-procedural) landmark models, generated externally and dropped
+  // into game/models/ (see docs/3d-model-prompts.md) - take over from the
+  // procedural addLandmarkDetail() path entirely for the landmarks that
+  // have one. getLandmarkModel() returns null (falls through below) for
+  // any landmark without a model yet, or while it's still loading, so this
+  // is a pure upgrade with no risk of a missing/blank building.
+  if (b.landmark && b.name) {
+    const model = getLandmarkModel(b.name);
+    if (model) {
+      const box = bboxOf(b);
+      const group = new THREE.Group();
+      model.position.x += box.cx;
+      model.position.z += box.cy;
+      group.add(model);
+      return group;
+    }
+  }
+
   const box = bboxOf(b);
   const archetype = archetypeOf(b);
   const fine = hash2(box.cx, box.cy);
