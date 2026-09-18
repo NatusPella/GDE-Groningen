@@ -1,5 +1,6 @@
 import { dist, angleLerp, pointInPolygon, polygonBounds, SeededRng } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { HABBO_PALETTE, habboMaterial, habboFlatMaterial, buildOutline } from './pixelart3d.js';
 
 // Ambient GTA6-marketing-parody wildlife: seagulls near water/the Diepenring,
 // the occasional cow/sheep in Noorderplantsoen-style green space. Pure
@@ -192,12 +193,43 @@ const SHEEP_BODY_LEN = 0.6, SHEEP_BODY_H = 0.38, SHEEP_BODY_W = 0.4;
 const SHEEP_LEG_LEN = 0.26, SHEEP_LEG_R = 0.026;
 const SHEEP_HEAD_DIAM = 0.17;
 
-function meshOf(geometry, color) {
-  return new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color }));
+// Habbo-style flat palette colors for every species below, in place of the
+// old bespoke hexes - see pixelart3d.js for the shared toolkit these pull
+// from (HABBO_PALETTE/habboMaterial/buildOutline).
+const SEAGULL_BODY_COLOR = HABBO_PALETTE.white;
+const SEAGULL_WINGTIP_COLOR = HABBO_PALETTE.black;
+const SEAGULL_BEAK_COLOR = HABBO_PALETTE.brickOrange;
+const COW_HIDE_COLOR = HABBO_PALETTE.white;
+const COW_PATCH_COLOR = HABBO_PALETTE.black;
+const SHEEP_WOOL_COLOR = HABBO_PALETTE.white;
+const SHEEP_DARK_COLOR = HABBO_PALETTE.black;
+
+// Flat toon material + inverted-hull black outline (the pixelart3d.js
+// "bold black outlines around every major shape" technique), wrapped in a
+// Group so every existing meshOf() call site keeps working unchanged -
+// Group exposes the same position/rotation/scale API a Mesh does, and
+// callers below reparent/add children onto the returned object exactly as
+// they did when it was a plain Mesh. `thickness` is exposed per-call since
+// buildOutline()'s scale-up is relative to each part's own size, so small
+// parts (thin legs, ears, a beak) need a larger relative thickness than
+// big parts (a body, a wing) to read as an outline at all.
+function meshOf(geometry, color, thickness = 0.025) {
+  const group = new THREE.Group();
+  const mesh = new THREE.Mesh(geometry, habboMaterial(color));
+  group.add(mesh);
+  group.add(buildOutline(geometry, thickness));
+  group.userData.mainMesh = mesh;
+  return group;
+}
+
+// Fully flat/unlit, no outline - for small decorative markings (cow spots)
+// that sit flush on an already-outlined body and don't need their own rim.
+function flatMeshOf(geometry, color) {
+  return new THREE.Mesh(geometry, habboFlatMaterial(color));
 }
 
 function legMesh3D(color, len, radius = 0.032) {
-  return meshOf(new THREE.CylinderGeometry(radius, radius, len, 6), color);
+  return meshOf(new THREE.CylinderGeometry(radius, radius, len, 6), color, 0.08);
 }
 
 function grazerLegs(group, color, legLen, legRadius, bodyLen, bodyWidth) {
@@ -218,14 +250,14 @@ function seagullWing3D(sign) {
 
   const root = meshOf(
     new THREE.BoxGeometry(SEAGULL_BODY_LEN * 0.36, SEAGULL_BODY_DIAM * 0.14, rootLen),
-    0xe9e7de
+    SEAGULL_BODY_COLOR
   );
   root.position.z = sign * rootLen / 2;
   group.add(root);
 
   const tip = meshOf(
     new THREE.BoxGeometry(SEAGULL_BODY_LEN * 0.2, SEAGULL_BODY_DIAM * 0.1, tipLen),
-    0x2f2b26
+    SEAGULL_WINGTIP_COLOR
   );
   tip.position.z = sign * (rootLen + tipLen / 2);
   tip.rotation.y = -sign * SEAGULL_WINGTIP_SWEEP;
@@ -241,22 +273,22 @@ function seagullWing3D(sign) {
 export function buildSeagullMesh3D() {
   const group = new THREE.Group();
 
-  const body = meshOf(new THREE.SphereGeometry(1, 8, 6), 0xf3f2ea);
+  const body = meshOf(new THREE.SphereGeometry(1, 8, 6), SEAGULL_BODY_COLOR);
   body.scale.set(SEAGULL_BODY_LEN / 2, SEAGULL_BODY_DIAM / 2, SEAGULL_BODY_DIAM / 2);
   group.add(body);
 
-  const head = meshOf(new THREE.SphereGeometry(SEAGULL_HEAD_DIAM / 2, 6, 5), 0xf3f2ea);
+  const head = meshOf(new THREE.SphereGeometry(SEAGULL_HEAD_DIAM / 2, 6, 5), SEAGULL_BODY_COLOR);
   head.position.set(SEAGULL_BODY_LEN * 0.42, SEAGULL_BODY_DIAM * 0.12, 0);
   group.add(head);
 
-  const beak = meshOf(new THREE.ConeGeometry(SEAGULL_HEAD_DIAM * 0.22, SEAGULL_BEAK_LEN, 6), 0xd98c2b);
+  const beak = meshOf(new THREE.ConeGeometry(SEAGULL_HEAD_DIAM * 0.22, SEAGULL_BEAK_LEN, 6), SEAGULL_BEAK_COLOR, 0.05);
   beak.rotation.z = -Math.PI / 2;
   beak.position.set(SEAGULL_BODY_LEN * 0.42 + SEAGULL_HEAD_DIAM * 0.42, SEAGULL_BODY_DIAM * 0.08, 0);
   group.add(beak);
 
   const tail = meshOf(
     new THREE.BoxGeometry(SEAGULL_BODY_LEN * 0.3, SEAGULL_BODY_DIAM * 0.18, SEAGULL_BODY_DIAM * 1.05),
-    0xf3f2ea
+    SEAGULL_BODY_COLOR
   );
   tail.position.set(-SEAGULL_BODY_LEN * 0.56, 0, 0);
   group.add(tail);
@@ -298,15 +330,15 @@ function seededCowPatches(seed) {
 
 export function buildCowMesh3D(seed = 0) {
   const group = new THREE.Group();
-  const hide = 0xf2f0e8;
+  const hide = COW_HIDE_COLOR;
 
   grazerLegs(group, hide, COW_LEG_LEN, COW_LEG_R, COW_BODY_LEN, COW_BODY_W);
 
   const bodyY = COW_LEG_LEN + COW_BODY_H / 2;
-  const body = meshOf(new THREE.BoxGeometry(COW_BODY_LEN, COW_BODY_H, COW_BODY_W), hide);
+  const body = meshOf(new THREE.BoxGeometry(COW_BODY_LEN, COW_BODY_H, COW_BODY_W), hide, 0.018);
   body.position.y = bodyY;
   for (const p of seededCowPatches(seed)) {
-    const patch = meshOf(new THREE.CylinderGeometry(p.r, p.r, 0.05, 8), 0x242220);
+    const patch = flatMeshOf(new THREE.CylinderGeometry(p.r, p.r, 0.05, 8), COW_PATCH_COLOR);
     patch.scale.z = p.squashZ;
     patch.rotation.y = p.rot;
     // sits mostly embedded in the body with just a proud sliver above the
@@ -325,16 +357,16 @@ export function buildCowMesh3D(seed = 0) {
   headGroup.position.set(COW_BODY_LEN / 2, bodyY + COW_BODY_H * 0.18, 0);
   headGroup.rotation.z = -COW_HEAD_DROOP;
 
-  const neck = meshOf(new THREE.BoxGeometry(COW_NECK_LEN, 0.18, 0.26), hide);
+  const neck = meshOf(new THREE.BoxGeometry(COW_NECK_LEN, 0.18, 0.26), hide, 0.04);
   neck.position.x = COW_NECK_LEN / 2;
   headGroup.add(neck);
 
-  const head = meshOf(new THREE.BoxGeometry(COW_HEAD, COW_HEAD * 0.85, COW_HEAD), hide);
+  const head = meshOf(new THREE.BoxGeometry(COW_HEAD, COW_HEAD * 0.85, COW_HEAD), hide, 0.04);
   head.position.set(COW_NECK_LEN + COW_HEAD * 0.4, -0.01, 0);
   headGroup.add(head);
 
   for (const sz of [1, -1]) {
-    const ear = meshOf(new THREE.BoxGeometry(0.03, 0.08, 0.09), hide);
+    const ear = meshOf(new THREE.BoxGeometry(0.03, 0.08, 0.09), hide, 0.08);
     ear.position.set(head.position.x - 0.05, head.position.y + 0.07, sz * 0.13);
     headGroup.add(ear);
   }
@@ -351,7 +383,7 @@ export function buildCowMesh3D(seed = 0) {
 // poking out front, instead of the cow's boxy hide-colored head.
 export function buildSheepMesh3D() {
   const group = new THREE.Group();
-  const wool = 0xece7d8, dark = 0x2c2924;
+  const wool = SHEEP_WOOL_COLOR, dark = SHEEP_DARK_COLOR;
 
   grazerLegs(group, dark, SHEEP_LEG_LEN, SHEEP_LEG_R, SHEEP_BODY_LEN, SHEEP_BODY_W);
 
@@ -362,18 +394,18 @@ export function buildSheepMesh3D() {
     [SHEEP_BODY_LEN * 0.32, SHEEP_BODY_LEN * 0.26, SHEEP_BODY_H * 0.38, SHEEP_BODY_W * 0.38],
   ];
   for (const [dx, sx, sy, sz] of lumps) {
-    const lump = meshOf(new THREE.SphereGeometry(1, 7, 6), wool);
+    const lump = meshOf(new THREE.SphereGeometry(1, 7, 6), wool, 0.022);
     lump.scale.set(sx, sy, sz);
     lump.position.set(dx, bodyY, 0);
     group.add(lump);
   }
 
-  const head = meshOf(new THREE.SphereGeometry(SHEEP_HEAD_DIAM / 2, 6, 5), dark);
+  const head = meshOf(new THREE.SphereGeometry(SHEEP_HEAD_DIAM / 2, 6, 5), dark, 0.05);
   head.position.set(SHEEP_BODY_LEN * 0.56, bodyY - SHEEP_BODY_H * 0.1, 0);
   group.add(head);
 
   for (const sz of [1, -1]) {
-    const ear = meshOf(new THREE.BoxGeometry(0.02, 0.03, 0.1), dark);
+    const ear = meshOf(new THREE.BoxGeometry(0.02, 0.03, 0.1), dark, 0.08);
     ear.rotation.z = sz * 0.5;
     ear.position.set(head.position.x - 0.05, head.position.y + 0.02, sz * 0.1);
     group.add(ear);

@@ -5,6 +5,19 @@ map view, phone notifications, future menus) should read as *one* system:
 fresh Gronings green, on dark GTA-poster chrome, in a tall condensed
 GTA-style font. If a screen doesn't match this, it's a bug.
 
+**This file covers 2D screen-space UI only.** The 3D world itself (buildings,
+vehicles, people, wildlife - everything scene3d.js renders as an actual
+model) follows a *different*, deliberately distinct visual language per
+explicit direction: "de menu's en UI mogen meer GTA-stijl zijn, maar de
+wereld zelf (modellen, gebouwen, poppetjes, dieren, etc.) moeten allemaal in
+die klassieke pixel art stijl van Habbo Hotel." See `game/js/pixelart3d.js`
+for that system's shared palette/materials/outline/pixel-texture helpers -
+every 3D model file should build through it instead of inventing its own
+materials, the same way UI files pull from the tokens below instead of
+inventing colors. The two styles intentionally don't match each other -
+GTA-poster chrome floating over a Habbo-style pixel-art world is the point,
+not a bug to reconcile.
+
 ## Color
 
 Use these exact tokens everywhere - never invent a near-miss hex.

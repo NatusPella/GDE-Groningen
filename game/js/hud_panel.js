@@ -268,7 +268,17 @@ function drawMinimap(world) {
   ctx.clearRect(0, 0, els.mmCanvas.width, els.mmCanvas.height);
 
   const cx = MINIMAP_SIZE / 2, cy = MINIMAP_SIZE / 2;
-  ctx.setTransform(MM_SCALE * dpr, 0, 0, MM_SCALE * dpr, (cx - player.x * MM_SCALE) * dpr, (cy - player.y * MM_SCALE) * dpr);
+  // GTA5-style: the map itself rotates so the player's facing direction
+  // always points up on screen, instead of a fixed north-up map with a
+  // rotating player arrow. mapRotation is the screen-space angle any
+  // world-space angle needs to add to become correct on screen post-
+  // rotation (derived once here, reused below for the player arrow, the
+  // off-screen mission arrow, and the new north indicator).
+  const mapRotation = -Math.PI / 2 - player.angle;
+  ctx.translate(cx * dpr, cy * dpr);
+  ctx.rotate(mapRotation);
+  ctx.scale(MM_SCALE * dpr, MM_SCALE * dpr);
+  ctx.translate(-player.x, -player.y);
 
   ctx.fillStyle = '#22262a';
   ctx.fillRect(player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, MM_RADIUS_M * 2, MM_RADIUS_M * 2);
@@ -324,22 +334,54 @@ function drawMinimap(world) {
   }
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // the map itself now rotates to keep the player's heading pointing up
+  // (see mapRotation above), so the player marker is always just "up" -
+  // no rotation needed here any more, unlike the old fixed-north map
+  // where this arrow had to carry the player's own heading.
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(player.angle);
   ctx.fillStyle = '#ffcc33';
   ctx.strokeStyle = '#1a1a1a';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(6, 0);
+  ctx.moveTo(0, -6);
   ctx.lineTo(-4, 4);
-  ctx.lineTo(-4, -4);
+  ctx.lineTo(4, 4);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
   ctx.restore();
 
-  if (targetOffscreen != null) drawMissionEdgeArrow(ctx, world, cx, cy, targetOffscreen);
+  // North indicator: a fixed point in the WORLD (north = world angle
+  // -PI/2, since y increases south per ARCHITECTURE.md) swept through
+  // mapRotation into screen space, same conversion the mission edge
+  // arrow already needs - swings around the minimap's rim as the player
+  // turns, always pointing toward true north, GTA5-style.
+  drawNorthIndicator(ctx, cx, cy, mapRotation + -Math.PI / 2);
+
+  if (targetOffscreen != null) drawMissionEdgeArrow(ctx, world, cx, cy, targetOffscreen + mapRotation);
+}
+
+function drawNorthIndicator(ctx, cx, cy, screenAngle) {
+  const R = MINIMAP_SIZE / 2 - 5;
+  ctx.save();
+  ctx.translate(cx + Math.cos(screenAngle) * R, cy + Math.sin(screenAngle) * R);
+  ctx.rotate(screenAngle + Math.PI / 2);
+  ctx.fillStyle = '#3fc97a';
+  ctx.strokeStyle = '#0c140e';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, -5);
+  ctx.lineTo(-3.5, 3.5);
+  ctx.lineTo(3.5, 3.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.font = 'bold 8px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('N', 0, 6);
+  ctx.restore();
 }
 
 function inMinimapRange(player, x, y) {
