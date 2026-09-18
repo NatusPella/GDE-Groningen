@@ -17,6 +17,7 @@ const DEAD_DURATION = 3;
 const RADIUS = 0.35;
 
 function isInWater(map, x, y) {
+  if (map.isOnBridge(x, y)) return false;
   for (const w of map.waterNear(x, y, 0.5)) {
     if (pointInPolygon(x, y, w.pts)) return true;
   }
