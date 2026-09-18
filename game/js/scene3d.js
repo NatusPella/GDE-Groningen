@@ -24,6 +24,7 @@ import { buildTerrainMesh3D, updateTerrainMaterial } from './terrain3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
 import { pointInPolygon, polygonBounds } from './util.js';
+import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -57,6 +58,18 @@ const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overh
 let followPitch = Math.atan2(5.2 - 1.3, 9);
 
 const buildingMeshes = new Map();
+// Buildings are only ever built once and cached above - if a landmark's real
+// model finishes loading (async) after its building already got its
+// procedural-fallback mesh cached, drop that cache entry so the next
+// syncBuildings() call rebuilds it with the real model instead of leaving
+// it procedural for the rest of the session.
+onLandmarkModelLoaded((name) => {
+  for (const [b, mesh] of buildingMeshes) {
+    if (b.name !== name) continue;
+    scene.remove(mesh);
+    buildingMeshes.delete(b);
+  }
+});
 const roadMeshes = new Map();
 const greenMeshes = new Map();
 const waterMeshes = new Map();
@@ -118,6 +131,7 @@ function hash2(x, y) {
 }
 
 export function init3D(map) {
+  preloadLandmarkModels();
   canvas3 = document.getElementById('game3d');
   renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));

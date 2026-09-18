@@ -72,6 +72,18 @@
     <button id="start-btn">Start</button>
   </div>
 </div>
+<!-- GLTFLoader.js (used by landmarkmodels.js) imports the bare specifier
+     "three" internally rather than a full CDN URL like every other module
+     in this project - this import map resolves that one bare specifier to
+     the exact same three.js build everything else already loads, without
+     switching the rest of the codebase off its existing direct-URL imports. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
