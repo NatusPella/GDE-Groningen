@@ -33,9 +33,14 @@ function pickIndexed(list) {
   return [list[i], i];
 }
 
+// Ambient AI traffic wrecks itself constantly in a busy city - only count
+// wrecks the player actually caused (own driving, ramming, shooting), same
+// "don't blame/credit the player for something they didn't do" rule the
+// pedKills/copKills stats already follow, or Sikkom pinged on every random
+// two-NPC-cars fender-bender across the whole map.
 function countWrecked(world) {
   let n = 0;
-  for (const v of world.vehicles) if (v.wrecked) n++;
+  for (const v of world.vehicles) if (v.wrecked && v.wreckedByPlayer) n++;
   return n;
 }
 

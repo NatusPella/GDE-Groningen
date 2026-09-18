@@ -659,10 +659,14 @@ function applyImpactVelocity(v, vx, vy) {
   v.driftY = driftY;
 }
 
-function applyImpactDamage(v, dmg) {
+function applyImpactDamage(v, dmg, playerInvolved) {
   if (dmg <= 0 || v.wrecked) return;
   v.health = Math.max(0, v.health - dmg);
-  if (v.health <= 0) { v.wrecked = true; v.speed = 0; }
+  if (v.health <= 0) {
+    v.wrecked = true;
+    v.speed = 0;
+    if (playerInvolved) v.wreckedByPlayer = true;
+  }
 }
 
 // Rewritten from a position-only separation + flat 0.75x speed scalar (which
@@ -746,8 +750,13 @@ export function resolveVehicleVehicleCollisions(vehicles) {
 
       if (relN > HARD_HIT_CLOSING_SPEED) {
         const dmg = clamp((relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS, 0, MAX_IMPACT_DAMAGE);
-        applyImpactDamage(a, dmg);
-        applyImpactDamage(b, dmg);
+        // Only the player's own driving should ever surface as a "total loss"
+        // Sikkom notification - ambient traffic-vs-traffic wrecks still happen
+        // (city stays messy) but must not blame/credit the player, same rule
+        // pedestrians.js's checkVehicleImpact already applies to pedKills.
+        const playerInvolved = a.driver === 'player' || b.driver === 'player';
+        applyImpactDamage(a, dmg, playerInvolved);
+        applyImpactDamage(b, dmg, playerInvolved);
         const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
         a.hitThisFrame = true; a.hitX = hx; a.hitY = hy; a.hitImpactSpeed = relN;
         b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
@@ -1309,6 +1318,7 @@ export function checkVehicleWater(v, map, world) {
 
     v.wrecked = true;
     v.speed = 0;
+    if (v.driver === 'player') v.wreckedByPlayer = true;
     world.particles.push({ x: v.x, y: v.y, until: world.time + 1.1, kind: 'splash' });
 
     if (v.driver === 'player') {
