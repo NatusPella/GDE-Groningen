@@ -89,9 +89,11 @@ export function updateHud(dt, world) {
   drawMinimap(world);
 }
 
-const RADIO_STATIONS = [
-  'FM Sikkom', 'Radio Eierbal', 'Ommelander Beats', 'Grunn Grondig FM', 'Diepenring Live',
-];
+// G-Music is the one real station (actual playback lives in audio2.js) -
+// the others are flavor-only fake stations with no audio behind them, so
+// showing G-Music consistently while driving is what actually matches what
+// you hear, instead of randomly relabeling a station that never changes.
+const RADIO_STATIONS = ['G-Music'];
 
 function updateRadio(world) {
   const v = world.player.inVehicle;
@@ -101,13 +103,21 @@ function updateRadio(world) {
 }
 
 // Context-aware on-screen prompts, shown only when relevant, instead of a
-// static always-visible controls list on the start screen.
+// static always-visible controls list on the start screen. Each key renders
+// as a little keycap chip instead of plain "[X]" bracket text.
+function keycap(key) {
+  return '<span class="hud-key">' + escapeHtml(key) + '</span>';
+}
+function hintHtml(pairs) {
+  return pairs.map(([key, label]) => keycap(key) + '<span class="hud-hint-label">' + escapeHtml(label) + '</span>').join('');
+}
+
 const TUTORIAL_HINT_DURATION = 9;
 function updateHint(world) {
   const player = world.player;
 
   if (player.inVehicle) {
-    els.hint.textContent = '[E] Uitstappen   [SPATIE] Remmen';
+    els.hint.innerHTML = hintHtml([['E', 'Uitstappen'], ['SPATIE', 'Remmen']]);
     return;
   }
 
@@ -117,22 +127,28 @@ function updateHint(world) {
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < nearestVehicleDist) nearestVehicleDist = d;
   }
+  const nearCompanion = world.companion && !world.companion.inVehicle
+    && Math.hypot(world.companion.x - player.x, world.companion.y - player.y) < 1.8;
+  if (nearCompanion) {
+    els.hint.innerHTML = hintHtml([['E', 'Kus']]);
+    return;
+  }
   if (nearestVehicleDist < 3) {
-    els.hint.textContent = '[E] Instappen';
+    els.hint.innerHTML = hintHtml([['E', 'Instappen']]);
     return;
   }
 
   if (world.wanted > 0) {
-    els.hint.textContent = '[Muis] Richten/aanvallen   [1-4] Wapen wisselen';
+    els.hint.innerHTML = hintHtml([['A/D', 'Richten'], ['KLIK', 'Aanvallen'], ['1-4', 'Wapen']]);
     return;
   }
 
   if (world.time < TUTORIAL_HINT_DURATION) {
-    els.hint.textContent = '[WASD] Lopen  ·  [E] Instappen  ·  [C] Wissel  ·  [M] Kaart';
+    els.hint.innerHTML = hintHtml([['WASD', 'Lopen'], ['E', 'Instappen'], ['C', 'Wissel'], ['M', 'Kaart']]);
     return;
   }
 
-  els.hint.textContent = '';
+  els.hint.innerHTML = '';
 }
 
 function pointInPoly(px, py, pts) {

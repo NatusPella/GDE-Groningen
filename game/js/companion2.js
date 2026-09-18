@@ -25,11 +25,15 @@ function isInWater(map, x, y) {
 
 export function initCompanion(world) {
   const p = world.player;
-  const ang = Math.random() * Math.PI * 2;
+  // spawn shoulder-to-shoulder, not scattered off at follow-distance - they
+  // arrive at the landmark together, the follow AI only kicks in once
+  // the player actually starts moving away
+  const ang = p.angle + Math.PI / 2;
+  const sideStep = 0.9;
   world.companion = {
-    x: p.x + Math.cos(ang) * FOLLOW_DIST,
-    y: p.y + Math.sin(ang) * FOLLOW_DIST,
-    angle: ang,
+    x: p.x + Math.cos(ang) * sideStep,
+    y: p.y + Math.sin(ang) * sideStep,
+    angle: p.angle,
     vx: 0,
     vy: 0,
     radius: RADIUS,

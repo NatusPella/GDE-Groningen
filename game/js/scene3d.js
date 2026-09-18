@@ -59,6 +59,22 @@ const armorMeshes = new Map();
 const garageMeshes = new Map();
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
+const kissMeshes = new Map();
+const KISS_HEART_MAT = new THREE.MeshBasicMaterial({ color: 0xff4d8a });
+function buildKissHeartMesh() {
+  const group = new THREE.Group();
+  const lobeL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 7), KISS_HEART_MAT);
+  lobeL.position.set(-0.11, 0.08, 0);
+  group.add(lobeL);
+  const lobeR = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 7), KISS_HEART_MAT);
+  lobeR.position.set(0.11, 0.08, 0);
+  group.add(lobeR);
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.32, 8), KISS_HEART_MAT);
+  tip.rotation.z = Math.PI;
+  tip.position.set(0, -0.12, 0);
+  group.add(tip);
+  return group;
+}
 let muzzleFlashMesh = null;
 let meleeSwipeMesh = null;
 let sun = null;
@@ -561,6 +577,22 @@ export function update3D(dt, world) {
     scene.remove(mesh);
     mesh.traverse((o) => { if (o.material) o.material.dispose(); });
     sparkMeshes.delete(p);
+  }
+  for (const p of world.particles) {
+    if (p.kind !== 'kiss' || kissMeshes.has(p)) continue;
+    const mesh = buildKissHeartMesh();
+    mesh.position.set(p.x, 1.6, p.y);
+    mesh.userData.born = world.time;
+    scene.add(mesh);
+    kissMeshes.set(p, mesh);
+  }
+  for (const [p, mesh] of kissMeshes) {
+    const life = (world.time - mesh.userData.born) / Math.max(0.01, p.until - mesh.userData.born);
+    mesh.position.y = 1.6 + life * 0.8;
+    mesh.scale.setScalar(1 + Math.sin(life * Math.PI) * 0.3);
+    if (world.time <= p.until) continue;
+    scene.remove(mesh); // no dispose: KISS_HEART_MAT is shared across every heart
+    kissMeshes.delete(p);
   }
   if (!muzzleFlashMesh) { muzzleFlashMesh = buildMuzzleFlashMesh3D(); scene.add(muzzleFlashMesh); }
   if (!meleeSwipeMesh) { meleeSwipeMesh = buildMeleeSwipeMesh3D(); scene.add(meleeSwipeMesh); }

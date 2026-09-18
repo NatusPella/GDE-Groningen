@@ -6,6 +6,10 @@ const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
 const TURN_RATE = 3.4; // rad/s, on-foot facing turn speed
 const REVERSE_FACTOR = 0.6;
+const KISS_DIST = 1.8;
+const KISS_HEAL = 25;
+const KISS_COOLDOWN = 3;
+let kissReadyAt = 0;
 
 export class Player {
   constructor(x, y) {
@@ -24,7 +28,7 @@ export class Player {
     const { input, map, vehicles } = world;
     this.updateCharacterSwitch(world);
     if (input.wasPressed('e') || input.wasPressed('f')) {
-      this.tryEnterExit(map, vehicles);
+      if (!this.tryKiss(world)) this.tryEnterExit(map, vehicles);
     }
 
     if (this.inVehicle) {
@@ -95,6 +99,28 @@ export class Player {
     if (this.inVehicle) this.inVehicle.driver = 'player';
     if (c.inVehicle) c.inVehicle.passenger = 'companion';
     world.addMessage(this.character === 'tammo' ? 'Je bestuurt nu Tammo' : 'Je bestuurt nu Anita');
+  }
+
+  // E near your companion (on foot, both out of any vehicle) is a kiss
+  // instead of a vehicle interaction - shows a heart above them and heals
+  // whichever one isn't currently being controlled. Returns true if it
+  // fired, so tryEnterExit is skipped for this keypress.
+  tryKiss(world) {
+    const c = world.companion;
+    if (!c || c.state === 'dead' || this.inVehicle || c.inVehicle) return false;
+    if (Math.hypot(c.x - this.x, c.y - this.y) > KISS_DIST) return false;
+    if (world.time < kissReadyAt) return false;
+    kissReadyAt = world.time + KISS_COOLDOWN;
+    c.health = Math.min(100, c.health + KISS_HEAL);
+    world.particles.push({
+      x: (this.x + c.x) / 2,
+      y: (this.y + c.y) / 2,
+      until: world.time + 1.4,
+      kind: 'kiss',
+    });
+    const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
+    world.addMessage(`Kusje voor ${name}! (+${KISS_HEAL} health)`, 2.5);
+    return true;
   }
 
   tryEnterExit(map, vehicles) {
