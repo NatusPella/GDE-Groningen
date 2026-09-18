@@ -198,6 +198,7 @@ export class Player {
 }
 
 function isInWater(x, y, map) {
+  if (map.isOnBridge(x, y)) return false;
   for (const w of map.waterNear(x, y, 0.5)) {
     if (pointInPolygon(x, y, w.pts)) return true;
   }

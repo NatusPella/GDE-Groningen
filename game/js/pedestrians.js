@@ -116,6 +116,7 @@ function isInsideBuilding(map, x, y) {
 // Pedestrians can't swim - a candidate wander spot inside a water polygon
 // (canal, Diepenring, ...) is rejected exactly like a building interior.
 function isInWater(map, x, y) {
+  if (map.isOnBridge(x, y)) return false;
   for (const w of map.waterNear(x, y, 0.5)) {
     if (pointInPolygon(x, y, w.pts)) return true;
   }
