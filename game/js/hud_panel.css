@@ -10,6 +10,15 @@
   width: 170px;
 }
 
+#hud .hud-character {
+  color: var(--hud-fg);
+  text-shadow: var(--hud-shadow);
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
 #hud .hud-bar {
   position: relative;
   width: 100%;

@@ -15,6 +15,7 @@ export function initHud(world) {
   const topLeft = document.createElement('div');
   topLeft.className = 'hud-top-left';
   topLeft.innerHTML =
+    '<div class="hud-character"></div>' +
     '<div class="hud-bar"><div class="hud-bar-fill health"></div></div>' +
     '<div class="hud-bar"><div class="hud-bar-fill armor"></div></div>';
   root.appendChild(topLeft);
@@ -52,6 +53,7 @@ export function initHud(world) {
   mmCanvas.height = MINIMAP_SIZE * dpr;
 
   els = {
+    character: topLeft.querySelector('.hud-character'),
     healthFill: topLeft.querySelector('.health'),
     armorFill: topLeft.querySelector('.armor'),
     wanted: topRight.querySelector('.hud-wanted'),
@@ -68,6 +70,7 @@ export function initHud(world) {
 }
 
 export function updateHud(dt, world) {
+  updateCharacter(world);
   updateBars(world);
   updateWanted(world);
   updateMoneyWeapon(world);
@@ -118,6 +121,12 @@ function updateLocation(world) {
   const street = rp && rp.road && rp.road.name;
   els.district.textContent = district || '';
   els.street.textContent = street || '';
+}
+
+const CHARACTER_LABELS = { tammo: 'Tammo', anita: 'Anita' };
+
+function updateCharacter(world) {
+  els.character.textContent = CHARACTER_LABELS[world.player.character] || 'Tammo';
 }
 
 function updateBars(world) {

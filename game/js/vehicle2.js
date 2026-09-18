@@ -16,6 +16,10 @@ const MODELS = [
   { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 42, accel: 12, brake: 19, turnRate: 3.2, color: '#8a1414' },
 ];
 
+// Signature red Ford Escort - GTE VI's hero car, spawned once via
+// spawnHeroCarNear rather than picked from MODELS by the regular traffic RNG.
+const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 34, accel: 10, brake: 17, turnRate: 3.4, color: '#a11f1f' };
+
 const BIKE_MODELS = [
   { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6, color: '#1c1c1c', rider: '#2f5c8a' },
   { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6, color: '#2b2b2b', rider: '#7a2e2e' },
@@ -211,6 +215,19 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   return v;
 }
 
+// The one-off hero car for GTE VI: same placement machinery as a regular
+// traffic spawn (spawnVehicleOnRoad with atPoint), but forces the Escort
+// model regardless of the RNG pick and flags it so it's never swept up by
+// the ambient traffic population manager.
+export function spawnHeroCarNear(map, x, y, rng = Math.random) {
+  const point = map.nearestRoadPoint(x, y, 200, true);
+  if (!point) return null;
+  const v = spawnVehicleOnRoad(map, point.road, false, rng, false, false, point);
+  v.model = HERO_CAR_MODEL;
+  v.isHeroCar = true;
+  return v;
+}
+
 // Keep a believable amount of traffic around the player without simulating
 // the whole city: despawn cars that have drifted far away, spawn fresh ones
 // on roads just outside the view so they appear to already be driving by
@@ -219,7 +236,7 @@ export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spa
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (v.driver === 'player' || v.isPolice || v.isBike || v.isBus) continue;
+    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.isBike || v.isBus) continue;
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
@@ -228,7 +245,7 @@ export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spa
   }
 
   let count = 0;
-  for (const v of vehicles) if (!v.isPolice && !v.isBike && !v.isBus && v.driver !== 'player') count++;
+  for (const v of vehicles) if (!v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle');
   let guard = 0;
@@ -925,6 +942,7 @@ export function drawVehicle(ctx, v) {
 export function checkVehicleWater(v, map, world) {
   if (v.isBoat) return false;
   if (v.wrecked) return false;
+  if (map.isOnBridge(v.x, v.y)) return false;
   for (const w of map.waterNear(v.x, v.y, 3)) {
     const [minx, miny, maxx, maxy] = w.bounds;
     if (v.x < minx || v.x > maxx || v.y < miny || v.y > maxy) continue;

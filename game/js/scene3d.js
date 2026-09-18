@@ -51,7 +51,11 @@ export function init3D() {
   scene.background = new THREE.Color(0x9cc4e0);
   scene.fog = new THREE.Fog(0x9cc4e0, DRAW_DIST * 0.45, DRAW_DIST * 1.05);
 
-  cam = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.15, DRAW_DIST * 1.4);
+  // near=0.5 (not something tiny like 0.15) keeps depth-buffer precision
+  // usable out at DRAW_DIST - too-small a near plane collapses the ground
+  // vs. road/water/green y-offsets into the same depth bucket at range,
+  // which read as "roads just don't render" (ground always won the z-test)
+  cam = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.5, DRAW_DIST * 1.4);
 
   scene.add(new THREE.HemisphereLight(0xdcefff, 0x3f4a38, 3));
   sun = new THREE.DirectionalLight(0xfff2d8, 4.5);

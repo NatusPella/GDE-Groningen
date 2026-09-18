@@ -16,24 +16,24 @@ export class Input {
     target.addEventListener('keyup', (e) => this.keys.delete(e.key.toLowerCase()));
     window.addEventListener('blur', () => { this.keys.clear(); });
 
-    const canvas = document.getElementById('game');
-    if (canvas) {
-      canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        this.mouse.x = e.clientX - rect.left;
-        this.mouse.y = e.clientY - rect.top;
-      });
-      canvas.addEventListener('mousedown', (e) => {
-        if (e.button === 0) this.mouse.down = true;
-        if (e.button === 2) this.mouse.rightDown = true;
-      });
-      canvas.addEventListener('mouseup', (e) => {
-        if (e.button === 0) this.mouse.down = false;
-        if (e.button === 2) this.mouse.rightDown = false;
-      });
-      canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-      canvas.addEventListener('wheel', (e) => { this.mouse.wheel += e.deltaY; e.preventDefault(); }, { passive: false });
-    }
+    // bound to window (not the #game canvas) so aiming keeps working when
+    // the 2D canvas is hidden behind #game3d in the WebGL follow-cam view -
+    // both canvases are always position:fixed;inset:0, so clientX/Y are
+    // already canvas-local coordinates without needing a per-canvas rect
+    window.addEventListener('mousemove', (e) => {
+      this.mouse.x = e.clientX;
+      this.mouse.y = e.clientY;
+    });
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === 0) this.mouse.down = true;
+      if (e.button === 2) this.mouse.rightDown = true;
+    });
+    window.addEventListener('mouseup', (e) => {
+      if (e.button === 0) this.mouse.down = false;
+      if (e.button === 2) this.mouse.rightDown = false;
+    });
+    window.addEventListener('contextmenu', (e) => e.preventDefault());
+    window.addEventListener('wheel', (e) => { this.mouse.wheel += e.deltaY; e.preventDefault(); }, { passive: false });
   }
 
   isDown(k) { return this.keys.has(k); }

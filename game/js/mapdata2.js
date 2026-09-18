@@ -137,6 +137,22 @@ export class GameMap {
     return [x, y];
   }
 
+  // A vehicle's (x,y) can fall inside a water polygon that a bridge actually
+  // spans above - checkVehicleWater in vehicle2.js calls this first so it
+  // doesn't "drown" cars safely crossing on a bridge deck.
+  isOnBridge(x, y) {
+    for (const road of this.roadsNear(x, y, 8)) {
+      if (!road.bridge) continue;
+      const pts = road.pts;
+      const threshold = road.width / 2 + 1.5;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const cp = closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+        if (cp.dist2 <= threshold * threshold) return true;
+      }
+    }
+    return false;
+  }
+
   queryView(minx, miny, maxx, maxy) {
     return {
       roads: this.roadGrid.query(minx, miny, maxx, maxy),

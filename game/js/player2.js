@@ -15,10 +15,12 @@ export class Player {
     this.moving = false;
     this.radius = RADIUS;
     this.inVehicle = null;
+    this.character = 'tammo'; // 'tammo' | 'anita' - cosmetic only, 3D layer reads this to pick a model preset
   }
 
   update(dt, world) {
     const { input, map, vehicles } = world;
+    this.updateCharacterSwitch(world);
     if (input.wasPressed('e') || input.wasPressed('f')) {
       this.tryEnterExit(map, vehicles);
     }
@@ -49,6 +51,12 @@ export class Player {
 
     this.x = nextX;
     this.y = nextY;
+  }
+
+  updateCharacterSwitch(world) {
+    if (!world.input.wasPressed('c')) return;
+    this.character = this.character === 'tammo' ? 'anita' : 'tammo';
+    world.addMessage(this.character === 'tammo' ? 'Je bestuurt nu Tammo' : 'Je bestuurt nu Anita');
   }
 
   tryEnterExit(map, vehicles) {

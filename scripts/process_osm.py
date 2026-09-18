@@ -257,6 +257,13 @@ def main():
             # otherwise traffic AI happily routes the wrong way around a circle
             is_roundabout = tags.get("junction") == "roundabout"
             oneway = is_roundabout or tags.get("oneway") in ("yes", "1", "true")
+            bridge_tag = tags.get("bridge")
+            is_bridge = bridge_tag is not None and bridge_tag != "no"
+            if not is_bridge and tags.get("layer") is not None:
+                try:
+                    is_bridge = int(tags["layer"]) > 0
+                except ValueError:
+                    pass
             for line in clip_polyline(coords, world_rect):
                 roads.append({
                     "pts": line,
@@ -267,6 +274,7 @@ def main():
                     "oneway": oneway,
                     "roundabout": is_roundabout,
                     "name": tags.get("name"),
+                    "bridge": is_bridge,
                 })
             continue
 
