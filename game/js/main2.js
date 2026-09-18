@@ -3,7 +3,7 @@ import { Camera } from './camera2.js';
 import { Input } from './input2.js';
 import { Player } from './player2.js';
 import { World } from './world2.js';
-import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, drawVehicle, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, checkVehicleWater, drawSplash, spawnHeroCarNear } from './vehicle2.js';
+import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, drawVehicle, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, drawSplash, spawnHeroCarNear } from './vehicle2.js';
 import { applyCameraTransform, drawGround, drawGreen, drawWater, drawRoads, drawRoadLabels, drawBuildings, drawLandmarkLabels, drawTrees, drawFilmGrain, drawViewModeGrade } from './render2.js';
 import { spawnPedestriansNear, updatePedestrians, drawPedestrians } from './pedestrians2.js';
 import { updateCombat, updateBullets, drawCombat } from './combat2.js';
@@ -123,6 +123,8 @@ async function boot() {
   manageTrafficPopulation(world);
   manageBikePopulation(world);
   manageBusPopulation(world);
+  manageScooterPopulation(world);
+  manageBoatPopulation(world);
   world.pedestrians = spawnPedestriansNear(map, player.x, player.y, PED_TARGET, Math.random);
   initMissions(world);
   initPickups(world);
@@ -153,6 +155,8 @@ async function boot() {
       manageTrafficPopulation(world);
       manageBikePopulation(world);
       manageBusPopulation(world);
+      manageScooterPopulation(world);
+      manageBoatPopulation(world);
     }
     pedTimer -= dt;
     if (pedTimer <= 0) {
@@ -165,9 +169,12 @@ async function boot() {
 
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
-      if (v.driver === 'player' || v.isPolice) continue;
+      if (v.driver === 'player' || v.isPolice || v.isBoat) continue;
       updateTrafficAI(v, dt, map, world, Math.random);
       resolveVehicleBuildingCollision(v, map);
+    }
+    for (const v of world.vehicles) {
+      if (v.isBoat && v.driver !== 'player') updateBoatAI(v, dt, map, world, Math.random);
     }
 
     updatePolice(dt, world);
