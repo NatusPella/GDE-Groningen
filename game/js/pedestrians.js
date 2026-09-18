@@ -1,6 +1,7 @@
 import { dist, pointInPolygon, closestPointOnSegment } from './util.js';
 import { resolveBuildingCollisions } from './player.js';
 import { respawnPlayer } from './world.js';
+import { playNpcPhrase } from './audio.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.4;
@@ -227,9 +228,14 @@ export function updatePedestrians(dt, world) {
     } else {
       ped.speechTimer -= dt;
       if (ped.speechTimer <= 0) {
-        ped.speechText = GRONINGS_PHRASES[Math.floor(Math.random() * GRONINGS_PHRASES.length)];
+        const phraseIdx = Math.floor(Math.random() * GRONINGS_PHRASES.length);
+        ped.speechText = GRONINGS_PHRASES[phraseIdx];
         ped.speechUntil = world.time + SPEECH_DURATION;
         ped.speechTimer = SPEECH_MIN_INTERVAL + Math.random() * (SPEECH_MAX_INTERVAL - SPEECH_MIN_INTERVAL);
+        // "een selectie" van de spraakballonen krijgt geluid, niet allemaal -
+        // met tot ~45 peds tegelijk in beeld zou elke bubble laten praten een
+        // kakofonie van overlappende stemmen geven
+        if (Math.random() < 0.4) playNpcPhrase(phraseIdx);
       }
       if (!ped.waypoint || dist(ped.x, ped.y, ped.waypoint[0], ped.waypoint[1]) < 1.5) {
         ped.waypointTimer -= dt;

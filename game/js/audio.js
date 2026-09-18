@@ -43,6 +43,21 @@ const GMUSIC_JINGLES = {
 const AMBIENT_JINGLE_KEYS = ['station_id', 'nummerovergang', 'rij_knipoog'];
 const AMBIENT_JINGLE_MIN = 90, AMBIENT_JINGLE_MAX = 150;
 
+// NPC ambient chatter, police barks, Sikkom phone-feed lines - each key has
+// a few voice variants recorded for it; playX() below always picks one at
+// random so the same trigger doesn't sound identical every time.
+const NPC_PHRASE_AUDIO = Array.from({ length: 10 }, (_, i) =>
+  [0, 1, 2].map((v) => `./audio/npc/phrase_${i}_v${v}.wav`));
+
+const POLICE_BARK_KEYS = ['stop_politie', 'zet_kant', 'verdachte_voertuig', 'handen_omhoog', 'achtervolging', 'aangehouden'];
+const POLICE_BARK_AUDIO = {};
+for (const k of POLICE_BARK_KEYS) POLICE_BARK_AUDIO[k] = [0, 1].map((v) => `./audio/police/${k}_v${v}.wav`);
+const POLICE_CHASE_START_KEYS = ['stop_politie', 'zet_kant', 'verdachte_voertuig', 'handen_omhoog', 'achtervolging'];
+
+const SIKKOM_AUDIO_KEYS = ['wanted_up_1', 'wanted_up_2', 'wrecked_up_1', 'wrecked_up_2', 'copkill_up', 'pedkill_up', 'kill_up', 'mission_up'];
+const SIKKOM_AUDIO = {};
+for (const k of SIKKOM_AUDIO_KEYS) SIKKOM_AUDIO[k] = [0, 1].map((v) => `./audio/sikkom/${k}_v${v}.wav`);
+
 let ctx = null;
 let master = null;
 let sfxBus = null;
@@ -63,7 +78,6 @@ const engineState = { freq: 42, gain: 0 };
 const sirenState = { gain: 0 };
 const musicState = { gain: GMUSIC_VOLUME };
 const gmusic = { tracks: [], elements: [], index: 0 };
-let gmusicDriving = false;
 
 function buildNoiseBuffer(seconds) {
   const len = Math.floor(ctx.sampleRate * seconds);
@@ -256,6 +270,27 @@ export function playAutoGejatLine(world) {
   if (world.player.character === 'tammo') playVoiceline('tammo', 'auto_gejat');
 }
 
+function playRandomVariant(paths) {
+  if (!paths || !paths.length) return;
+  playClip(paths[Math.floor(Math.random() * paths.length)]);
+}
+
+export function playNpcPhrase(index) {
+  playRandomVariant(NPC_PHRASE_AUDIO[index]);
+}
+
+export function playPoliceBark(key) {
+  playRandomVariant(POLICE_BARK_AUDIO[key]);
+}
+
+function playRandomChaseStartBark() {
+  playPoliceBark(POLICE_CHASE_START_KEYS[Math.floor(Math.random() * POLICE_CHASE_START_KEYS.length)]);
+}
+
+export function playSikkomLine(key) {
+  playRandomVariant(SIKKOM_AUDIO[key]);
+}
+
 // Fire-and-forget: initAudio() stays sync, this just fills in gmusic.elements
 // whenever the manifest (and the track files it lists) resolve. An empty or
 // missing manifest leaves gmusic.elements empty, which every gmusic playback
@@ -272,7 +307,6 @@ async function loadGMusicManifest() {
       el.preload = 'auto';
       el.addEventListener('ended', () => {
         gmusic.index = (gmusic.index + 1) % gmusic.elements.length;
-        if (!gmusicDriving) return;
         const next = gmusic.elements[gmusic.index];
         if (next) next.el.play().catch(() => {});
       });
@@ -366,20 +400,11 @@ function updateSiren(dt, world) {
 }
 
 function updateGMusic(dt, world) {
-  // Idempotent play/pause (checked every frame via el.paused) rather than an
-  // edge-triggered flag on world.player.inVehicle: a manifest that resolves
-  // mid-drive (fetch races the player already being in a car) still starts
-  // itself the next frame instead of waiting for the next enter-vehicle edge.
-  const driving = !!world.player.inVehicle;
-  gmusicDriving = driving;
-  if (driving) {
-    const cur = gmusic.elements[gmusic.index];
-    if (cur && cur.el.paused) cur.el.play().catch(() => {});
-  } else {
-    for (const t of gmusic.elements) {
-      if (!t.el.paused) t.el.pause();
-    }
-  }
+  // G-Music plays continuously, on foot or driving - idempotent (checked
+  // every frame via el.paused) so a manifest that resolves after boot just
+  // starts itself the next frame instead of needing an edge to trigger on.
+  const cur = gmusic.elements[gmusic.index];
+  if (cur && cur.el.paused) cur.el.play().catch(() => {});
 
   // Fixed-gain duck (not real-time ducking analysis) whenever the engine is
   // working hard or the siren is audible, per spec - same lerp-toward-target
@@ -420,7 +445,10 @@ export function updateAudio(dt, world) {
     seenMessages.add(m);
     if (m.text === 'DOOD' || m.text === 'OPGEPAKT') {
       playDeathSting();
-      if (m.text === 'OPGEPAKT') playVoiceline(world.player.character, 'opgepakt');
+      if (m.text === 'OPGEPAKT') {
+        playVoiceline(world.player.character, 'opgepakt');
+        playPoliceBark('aangehouden');
+      }
     } else if (m.text.indexOf('voltooid') !== -1) {
       playMissionJingle();
     } else if (m.text.indexOf('geklaard!') !== -1) {
@@ -442,13 +470,16 @@ export function updateAudio(dt, world) {
   if (driving && !wasDriving) playGMusicJingle('instappen');
   else if (!driving && wasDriving) playGMusicJingle('uitstappen');
   wasDriving = driving;
-  if (world.wanted > 0 && prev.wanted === 0 && driving) playGMusicJingle('hoge_wanted');
+  if (world.wanted > 0 && prev.wanted === 0) {
+    playGMusicJingle('hoge_wanted');
+    playRandomChaseStartBark();
+  }
   prev.wanted = world.wanted;
 
   ambientJingleTimer -= dt;
   if (ambientJingleTimer <= 0) {
     ambientJingleTimer = AMBIENT_JINGLE_MIN + Math.random() * (AMBIENT_JINGLE_MAX - AMBIENT_JINGLE_MIN);
-    if (driving) playGMusicJingle(AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)]);
+    playGMusicJingle(AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)]);
   }
 
   prev.kills = world.stats.kills;
