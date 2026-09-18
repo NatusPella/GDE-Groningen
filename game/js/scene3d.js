@@ -1,4 +1,10 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { buildBuildingMesh } from './models3d_buildings.js';
+import { buildVehicleMesh } from './models3d_vehicles.js';
+import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { applyWeatherToScene3D } from './weather2.js';
+import { buildFlitspaalMesh3D } from './flitspaal2.js';
+import { buildSeagullMesh3D, buildCowMesh3D } from './wildlife2.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -12,14 +18,6 @@ const DRAW_DIST = 140;
 const UNLOAD_DIST = 175;
 const TREE_DIST = 90;
 
-const BUILDING_PALETTE3D = [
-  0x66695f, 0x7b7c72, 0x4f544d, 0x3a3d38, 0x969887, 0x232522, 0xb4b2a2, 0x625044,
-];
-const LANDMARK_COLOR3D = {
-  tower: 0x783c28, church: 0x5a5560, modern: 0x3c6e82, museum: 0xb44628,
-  station: 0x465a6e, university: 0x503c2d, historic: 0x8c6e32, mall: 0x46648c, stadium: 0x3c7846,
-};
-
 let renderer = null, scene = null, cam = null, canvas3 = null;
 let active = false;
 let followYaw = 0, followDist = 9, followHeight = 5.2;
@@ -31,7 +29,10 @@ const waterMeshes = new Map();
 const treeMeshes = new Map();
 const vehicleMeshes = new Map();
 const pedMeshes = new Map();
+const wildlifeMeshes = new Map();
+let flitspaalBuilt = false;
 let playerMesh = null;
+let playerCharacter = 'tammo';
 let sun = null;
 const camRaycaster = new THREE.Raycaster();
 let lastPx = null, lastPy = null;
@@ -70,7 +71,7 @@ export function init3D() {
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
 
-  playerMesh = buildPersonMesh(0x2f5c9e, 0xe0b48a);
+  playerMesh = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
   scene.add(playerMesh);
 
   resize3D();
@@ -101,22 +102,6 @@ function shapeFromPoly(pts) {
   shape.moveTo(pts[0][0], -pts[0][1]);
   for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i][0], -pts[i][1]);
   return shape;
-}
-
-function buildBuildingMesh(b) {
-  if (!b._geo3d) {
-    const shape = shapeFromPoly(b.pts);
-    // Martinitoren is really ~95m, not "3 building:levels" like its footprint tag says
-    const depth = b.landmarkKind === 'tower' ? 95 : Math.max(2.4, b.h * LEVEL_HEIGHT);
-    const geo = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false });
-    geo.rotateX(-Math.PI / 2);
-    b._geo3d = geo;
-  }
-  const h = hash2(b.pts[0][0], b.pts[0][1]);
-  const color = (b.landmark && LANDMARK_COLOR3D[b.landmarkKind]) ?? BUILDING_PALETTE3D[Math.floor(h * BUILDING_PALETTE3D.length)];
-  const mat = new THREE.MeshLambertMaterial({ color });
-  const mesh = new THREE.Mesh(b._geo3d, mat);
-  return mesh;
 }
 
 function buildFlatMesh(poly, color, y) {
@@ -182,88 +167,6 @@ function buildTreeMesh(x, y) {
   return group;
 }
 
-function buildPersonMesh(shirt, skin) {
-  const group = new THREE.Group();
-  const body = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.28, 0.75, 3, 6),
-    new THREE.MeshLambertMaterial({ color: shirt })
-  );
-  body.position.y = 0.9;
-  group.add(body);
-  const head = new THREE.Mesh(
-    new THREE.SphereGeometry(0.22, 8, 7),
-    new THREE.MeshLambertMaterial({ color: skin })
-  );
-  head.position.y = 1.55;
-  group.add(head);
-  const nose = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.06, 0.06), new THREE.MeshLambertMaterial({ color: 0x222222 }));
-  nose.position.set(0.2, 1.55, 0);
-  group.add(nose);
-  return group;
-}
-
-function wheel() {
-  const m = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.32, 0.32, 0.24, 10),
-    new THREE.MeshLambertMaterial({ color: 0x161616 })
-  );
-  m.rotation.z = Math.PI / 2;
-  return m;
-}
-
-function buildVehicleMesh(v) {
-  const group = new THREE.Group();
-  const len = v.model.len, wid = v.model.wid;
-  const hl = len / 2, hw = wid / 2;
-
-  if (v.isBike || v.isScooter) {
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.06), new THREE.MeshLambertMaterial({ color: v.model.color || 0x222222 }));
-    frame.position.y = 0.55;
-    group.add(frame);
-    const w1 = wheel(), w2 = wheel();
-    w1.scale.setScalar(0.7); w2.scale.setScalar(0.7);
-    w1.position.set(hl * 0.8, 0.32, 0);
-    w2.position.set(-hl * 0.8, 0.32, 0);
-    group.add(w1, w2);
-    const rider = buildPersonMesh(v.model.rider || 0x2f5c8a, 0xe0b48a);
-    rider.scale.setScalar(0.95);
-    rider.position.y = -0.05;
-    group.add(rider);
-  } else if (v.isBoat) {
-    const hull = new THREE.Mesh(new THREE.BoxGeometry(len, 0.5, wid), new THREE.MeshLambertMaterial({ color: v.model.color || 0x8a5a3c }));
-    hull.position.y = 0.25;
-    group.add(hull);
-    const cabin = new THREE.Mesh(new THREE.BoxGeometry(len * 0.35, 0.5, wid * 0.8), new THREE.MeshLambertMaterial({ color: 0xe8e6de }));
-    cabin.position.set(hl * 0.1, 0.75, 0);
-    group.add(cabin);
-  } else {
-    const bodyH = v.isBus ? 2.6 : 1.15;
-    const body = new THREE.Mesh(new THREE.BoxGeometry(len, bodyH, wid), new THREE.MeshLambertMaterial({ color: v.model.color || 0x888888 }));
-    body.position.y = bodyH / 2 + 0.35;
-    group.add(body);
-    const cabin = new THREE.Mesh(
-      new THREE.BoxGeometry(len * (v.isBus ? 0.85 : 0.55), bodyH * 0.7, wid * 0.92),
-      new THREE.MeshLambertMaterial({ color: 0x9fc2d8, transparent: true, opacity: 0.75 })
-    );
-    cabin.position.set(v.isBus ? 0 : hl * 0.05, bodyH + 0.35 + (bodyH * 0.7) / 2 - 0.05, 0);
-    group.add(cabin);
-    const wheelY = 0.36;
-    for (const sx of [hl * 0.65, -hl * 0.65]) {
-      for (const sz of [hw - 0.15, -(hw - 0.15)]) {
-        const w = wheel();
-        w.position.set(sx, wheelY, sz);
-        group.add(w);
-      }
-    }
-    if (v.isPolice) {
-      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.15, wid * 0.7), new THREE.MeshLambertMaterial({ color: 0x1c1c1c, emissive: 0x2244ff, emissiveIntensity: 0.6 }));
-      bar.position.set(0.1, bodyH + 0.35 + 0.08, 0);
-      group.add(bar);
-    }
-  }
-  return group;
-}
-
 // --- per-frame sync ------------------------------------------------------
 
 function syncBuildings(world, px, py) {
@@ -283,8 +186,11 @@ function syncBuildings(world, px, py) {
     if (seen.has(b)) continue;
     const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
     if (Math.hypot(cx - px, cy - py) > UNLOAD_DIST) {
+      // no dispose here: buildBuildingMesh's children reuse shared,
+      // module-scope materials/geometry cached on b._geo3dParts across the
+      // building's lifetime - disposing would corrupt every other building
+      // still on screen that shares the same style/family material
       scene.remove(mesh);
-      mesh.material.dispose();
       buildingMeshes.delete(b);
     }
   }
@@ -403,6 +309,43 @@ export function update3D(dt, world) {
     }
   }
 
+  if (!flitspaalBuilt && world.flitspaalen && world.flitspaalen.length) {
+    flitspaalBuilt = true;
+    for (const fc of world.flitspaalen) {
+      const mesh = buildFlitspaalMesh3D();
+      mesh.position.set(fc.x, 0, fc.y);
+      mesh.rotation.y = -fc.angle;
+      scene.add(mesh);
+    }
+  }
+
+  if (world.wildlife) {
+    syncActors(
+      world.wildlife.filter((a) => Math.hypot(a.x - player.x, a.y - player.y) < DRAW_DIST),
+      wildlifeMeshes,
+      (a) => (a.kind === 'seagull' ? buildSeagullMesh3D() : buildCowMesh3D()),
+      (a) => a
+    );
+    for (const a of world.wildlife) {
+      const mesh = wildlifeMeshes.get(a);
+      if (mesh) {
+        const y = a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0;
+        mesh.position.set(a.x, y, a.y);
+        mesh.rotation.y = -a.angle;
+      }
+    }
+  }
+
+  applyWeatherToScene3D(scene, renderer, world);
+
+  if (player.character !== playerCharacter) {
+    playerCharacter = player.character;
+    scene.remove(playerMesh);
+    const appearance = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+    playerMesh = buildPersonMesh(appearance.shirt, appearance.skin, appearance);
+    scene.add(playerMesh);
+  }
+
   playerMesh.visible = !player.inVehicle;
   if (!player.inVehicle) {
     playerMesh.position.set(player.x, 0, player.y);
@@ -427,7 +370,10 @@ export function update3D(dt, world) {
   camRaycaster.set(new THREE.Vector3(eyeX, eyeY, eyeZ), new THREE.Vector3(dx / fullDist, dy / fullDist, dz / fullDist));
   camRaycaster.far = fullDist;
   camRaycaster.near = 0.1;
-  const hits = camRaycaster.intersectObjects(Array.from(buildingMeshes.values()), false);
+  // recursive: true - each building is now a Group of several child meshes
+  // (roof/window-band/steeple/...), not one flat Mesh, so a non-recursive
+  // raycast against the Group itself would never hit anything
+  const hits = camRaycaster.intersectObjects(Array.from(buildingMeshes.values()), true);
   if (hits.length) {
     const d = Math.max(1.2, hits[0].distance - 0.4);
     const t = d / fullDist;

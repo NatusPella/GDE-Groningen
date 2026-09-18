@@ -3,7 +3,7 @@ import { Camera } from './camera2.js';
 import { Input } from './input2.js';
 import { Player } from './player2.js';
 import { World } from './world2.js';
-import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, drawVehicle, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, checkVehicleWater, drawSplash } from './vehicle2.js';
+import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, drawVehicle, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, checkVehicleWater, drawSplash, spawnHeroCarNear } from './vehicle2.js';
 import { applyCameraTransform, drawGround, drawGreen, drawWater, drawRoads, drawRoadLabels, drawBuildings, drawLandmarkLabels, drawTrees, drawFilmGrain, drawViewModeGrade } from './render2.js';
 import { spawnPedestriansNear, updatePedestrians, drawPedestrians } from './pedestrians2.js';
 import { updateCombat, updateBullets, drawCombat } from './combat2.js';
@@ -15,6 +15,10 @@ import { initMapView, updateMapView } from './mapview2.js';
 import { initAudio, updateAudio } from './audio2.js';
 import { initTrafficLights, updateTrafficLights, drawTrafficLights } from './trafficlights2.js';
 import { init3D, update3D, resize3D, set3DActive } from './scene3d.js';
+import { initWeather, updateWeather, drawWeather } from './weather2.js';
+import { initFlitspaal, updateFlitspaal, drawFlitspaal } from './flitspaal2.js';
+import { initWildlife, updateWildlife, drawWildlife } from './wildlife2.js';
+import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed2.js';
 import { dist } from './util2.js';
 
 const canvas = document.getElementById('game');
@@ -110,6 +114,8 @@ async function boot() {
   camera.y = player.y;
 
   const world = new World(map, camera, input, player);
+  const hero = spawnHeroCarNear(map, sx, sy);
+  if (hero) world.vehicles.push(hero);
   if (pick.name) {
     world.spawnLandmarkName = pick.name;
     world.addMessage(`Je begint bij ${pick.name}`, 4);
@@ -121,6 +127,10 @@ async function boot() {
   initMissions(world);
   initPickups(world);
   initTrafficLights(world);
+  initWeather(world);
+  initFlitspaal(world);
+  initWildlife(world);
+  initSikkomFeed(world);
   initHud(world);
   initMapView(world);
 
@@ -168,9 +178,13 @@ async function boot() {
     updateCombat(dt, world);
     updateBullets(dt, world);
     updatePedestrians(dt, world);
+    updateWildlife(dt, world);
     updateMissions(dt, world);
+    updateSikkomFeed(dt, world);
     updatePickups(dt, world);
+    updateFlitspaal(dt, world);
     updateAudio(dt, world);
+    updateWeather(dt, world);
 
     if (input.wasPressed('v')) {
       view3d = !view3d;
@@ -207,7 +221,9 @@ async function boot() {
       drawTrafficLights(ctx, world);
       drawMissions(ctx, world);
       drawPickups(ctx, world);
+      drawFlitspaal(ctx, world);
       drawPedestrians(ctx, world);
+      drawWildlife(ctx, world);
 
       for (const v of world.vehicles) {
         if (v.x < minx - 10 || v.x > maxx + 10 || v.y < miny - 10 || v.y > maxy + 10) continue;
@@ -217,6 +233,7 @@ async function boot() {
       if (!player.inVehicle) drawPlayerOnFoot(ctx, player);
       drawCombat(ctx, world);
       drawSplash(ctx, world);
+      drawWeather(ctx, world);
       drawFilmGrain(ctx);
       drawViewModeGrade(ctx, camera.tilt);
     }

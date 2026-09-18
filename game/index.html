@@ -12,23 +12,29 @@
   #loading { position: fixed; inset: 0; background: #111; color: #eee; display: flex;
              align-items: center; justify-content: center; font: 20px/1.4 sans-serif; z-index: 10; }
 
+  /* Gronings groen - the city/FC Groningen green, used as the game's
+     primary accent throughout the menus/HUD instead of a generic GTA yellow */
+  :root { --gron-green: #1e9e56; --gron-green-light: #3fc97a; --gron-green-dark: #0f5c30; }
   #start-screen {
     position: fixed; inset: 0; z-index: 20; display: none;
-    background: radial-gradient(ellipse at center, #2a2f26 0%, #14160f 75%);
+    background: radial-gradient(ellipse at center, #17301f 0%, #0c140e 75%);
     color: #f0ede4; font-family: 'Arial Narrow', Arial, sans-serif;
     align-items: center; justify-content: center;
   }
   #start-screen.visible { display: flex; }
   #start-card { max-width: 480px; padding: 32px 40px; text-align: center; }
-  #start-card h1 { font-size: 42px; margin: 0 0 4px; letter-spacing: 2px; color: #e8c93a; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
-  #start-card .sub { font-size: 15px; opacity: 0.75; margin: 0 0 24px; }
-  #controls-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; text-align: left; font-size: 15px; margin: 0 auto 28px; width: fit-content; }
-  #controls-grid .key { color: #e8c93a; font-weight: bold; text-align: right; }
-  #start-btn {
-    font: bold 20px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #14160f;
-    background: #e8c93a; border: none; border-radius: 4px; padding: 12px 40px; cursor: pointer;
+  #start-card h1 {
+    font-size: 38px; margin: 0 0 4px; letter-spacing: 2px; color: var(--gron-green-light);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6), 0 0 22px rgba(63,201,122,0.35);
   }
-  #start-btn:hover { background: #f2d54c; }
+  #start-card .sub { font-size: 15px; opacity: 0.8; margin: 0 0 24px; }
+  #controls-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; text-align: left; font-size: 15px; margin: 0 auto 28px; width: fit-content; }
+  #controls-grid .key { color: var(--gron-green-light); font-weight: bold; text-align: right; }
+  #start-btn {
+    font: bold 20px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #0c140e;
+    background: var(--gron-green); border: none; border-radius: 4px; padding: 12px 40px; cursor: pointer;
+  }
+  #start-btn:hover { background: var(--gron-green-light); }
 </style>
 </head>
 <body>
