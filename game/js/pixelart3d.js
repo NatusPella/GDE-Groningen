@@ -50,8 +50,8 @@ export function randomHabboColor(rng = Math.random) {
 let sharedGradientMap = null;
 function getToonGradientMap() {
   if (sharedGradientMap) return sharedGradientMap;
-  const data = new Uint8Array([80, 80, 80, 255, 255, 255]);
-  const tex = new THREE.DataTexture(data, 2, 1, THREE.RGBFormat);
+  const data = new Uint8Array([80, 80, 80, 255, 255, 255, 255, 255]);
+  const tex = new THREE.DataTexture(data, 2, 1, THREE.RGBAFormat);
   tex.needsUpdate = true;
   tex.magFilter = THREE.NearestFilter;
   tex.minFilter = THREE.NearestFilter;
