@@ -44,7 +44,7 @@ let followYaw = 0;
 // orbit radius kept constant so pitch changes swing the camera around the
 // player like a real GTA camera (higher/steeper looking down, lower/flatter
 // looking up) instead of just sliding the camera height up and down in place
-const ORBIT_RADIUS = Math.hypot(9, 5.2 - 1.3);
+const ORBIT_RADIUS = Math.hypot(5.5, 5.2 - 1.3);
 const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
 const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overhead angle
 let followPitch = Math.atan2(5.2 - 1.3, 9);
@@ -225,11 +225,28 @@ function ribbonGeometry(pts, half) {
 // (the single strongest "this is a street" visual cue a real road has).
 const ROAD_COLORS3D = { cycle: 0xa1402f, foot: 0x9a9284, major: 0x33363a, normal: 0x26282b, minor: 0x26282b };
 const CENTERLINE_MAT = new THREE.MeshBasicMaterial({ color: 0xe8d24a });
+// Real streets have a sidewalk/verge buffer between the road edge and the
+// building line - most residential OSM ways don't map that as a separate
+// footway, so without this the asphalt runs straight up to building
+// footprints and every street reads as far narrower than it actually is.
+// Skipped for cycle/foot categories - those already ARE the pedestrian/
+// cycle surface, they don't get a sidewalk of their own.
+const SIDEWALK_EXTRA = 1.8;
+const SIDEWALK_COLOR = 0x8f8a7c;
+const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
 
 function buildRoadMesh(road) {
+  const group = new THREE.Group();
+
+  if (SIDEWALK_CATS.has(road.cat)) {
+    if (!road._geoSidewalk) road._geoSidewalk = ribbonGeometry(road.pts, road.width / 2 + SIDEWALK_EXTRA);
+    const sidewalk = new THREE.Mesh(road._geoSidewalk, new THREE.MeshLambertMaterial({ color: SIDEWALK_COLOR }));
+    sidewalk.position.y = 0.02;
+    group.add(sidewalk);
+  }
+
   if (!road._geoRoad) road._geoRoad = ribbonGeometry(road.pts, road.width / 2);
   const color = ROAD_COLORS3D[road.cat] || ROAD_COLORS3D.normal;
-  const group = new THREE.Group();
   const mesh = new THREE.Mesh(road._geoRoad, new THREE.MeshLambertMaterial({ color }));
   mesh.position.y = 0.03;
   group.add(mesh);
@@ -788,7 +805,7 @@ export function update3D(dt, world) {
     }
   }
 
-  applyWeatherToScene3D(scene, renderer, world);
+  applyWeatherToScene3D(scene, renderer, world, dt, player.x, player.y);
 
   if (player.character !== playerCharacter) {
     playerCharacter = player.character;
