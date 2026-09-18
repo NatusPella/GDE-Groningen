@@ -77,7 +77,7 @@ export function updateFlitspaal(dt, world) {
 export function drawFlitspaal(ctx, world) {
   const cams = world.flitspaalen;
   if (!cams || !cams.length) return;
-  const cx = world.camera.x, cy = world.camera.y;
+  const cx = world.player.x, cy = world.player.y;
 
   for (const cam of cams) {
     const dx = cam.x - cx, dy = cam.y - cy;

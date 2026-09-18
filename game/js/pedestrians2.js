@@ -87,6 +87,15 @@ function isInsideBuilding(map, x, y) {
   return false;
 }
 
+// Pedestrians can't swim - a candidate wander spot inside a water polygon
+// (canal, Diepenring, ...) is rejected exactly like a building interior.
+function isInWater(map, x, y) {
+  for (const w of map.waterNear(x, y, 0.5)) {
+    if (pointInPolygon(x, y, w.pts)) return true;
+  }
+  return false;
+}
+
 // A candidate wander spot counts as "on the road" if it falls inside a
 // drivable road's width (peds should mostly stick to sidewalks/plazas;
 // occasional crossings still happen because this only rejects clearly-in-lane
@@ -109,7 +118,7 @@ function pickWaypoint(map, x, y) {
     const ang = Math.random() * Math.PI * 2;
     const r = 4 + Math.random() * WAYPOINT_RADIUS;
     const wx = x + Math.cos(ang) * r, wy = y + Math.sin(ang) * r;
-    if (!isOnRoad(map, wx, wy) && !isInsideBuilding(map, wx, wy)) return [wx, wy];
+    if (!isOnRoad(map, wx, wy) && !isInsideBuilding(map, wx, wy) && !isInWater(map, wx, wy)) return [wx, wy];
   }
   return [x, y];
 }

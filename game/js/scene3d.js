@@ -30,6 +30,8 @@ const treeMeshes = new Map();
 const vehicleMeshes = new Map();
 const pedMeshes = new Map();
 const wildlifeMeshes = new Map();
+const speechBubbleEls = new Map();
+let billboardRoot = null;
 let flitspaalBuilt = false;
 let playerMesh = null;
 let playerCharacter = 'tammo';
@@ -58,7 +60,11 @@ export function init3D() {
   // which read as "roads just don't render" (ground always won the z-test)
   cam = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.5, DRAW_DIST * 1.4);
 
-  scene.add(new THREE.HemisphereLight(0xdcefff, 0x3f4a38, 3));
+  // ground color kept close to neutral gray (not saturated green) - a
+  // strongly-tinted hemisphere ground color bleeds onto every downward-
+  // facing surface everywhere (birds, car undersides, roof overhangs),
+  // which read as "wrong color" complaints unrelated to the actual ground
+  scene.add(new THREE.HemisphereLight(0xdcefff, 0x55524a, 3));
   sun = new THREE.DirectionalLight(0xfff2d8, 4.5);
   sun.position.set(120, 180, 60);
   scene.add(sun);
@@ -73,6 +79,8 @@ export function init3D() {
 
   playerMesh = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
   scene.add(playerMesh);
+
+  billboardRoot = document.getElementById('hud');
 
   resize3D();
   window.addEventListener('resize', resize3D);
@@ -271,6 +279,59 @@ function syncActors(list, cache, builder, idOf) {
   }
 }
 
+// --- DOM billboards (speech bubbles, etc.) -------------------------------
+// The 3D view has no 2D canvas to draw HTML-quality text/bubbles onto, so
+// these are plain positioned <div>s living in the existing #hud overlay
+// (already a full-viewport, pointer-events:none layer), reprojected to
+// screen space every frame from the same THREE.Camera the world renders
+// through - the standard cheap "billboard" trick for a handful of labels.
+const _projVec = new THREE.Vector3();
+function projectToScreen(x, y, z) {
+  _projVec.set(x, y, z).project(cam);
+  if (_projVec.z > 1) return null; // behind the camera
+  return {
+    x: (_projVec.x * 0.5 + 0.5) * renderer.domElement.clientWidth,
+    y: (1 - (_projVec.y * 0.5 + 0.5)) * renderer.domElement.clientHeight,
+  };
+}
+
+function speechBubbleEl() {
+  const el = document.createElement('div');
+  el.style.position = 'absolute';
+  el.style.transform = 'translate(-50%, -100%)';
+  el.style.background = 'rgba(242,240,234,0.92)';
+  el.style.border = '1px solid rgba(20,20,22,0.6)';
+  el.style.borderRadius = '8px';
+  el.style.padding = '3px 9px';
+  el.style.color = '#20201e';
+  el.style.font = 'bold 13px "Arial Narrow", Arial, sans-serif';
+  el.style.whiteSpace = 'nowrap';
+  el.style.pointerEvents = 'none';
+  billboardRoot.appendChild(el);
+  return el;
+}
+
+function syncSpeechBubbles(world) {
+  const seen = new Set();
+  for (const p of world.pedestrians) {
+    if (!p.speechText || world.time >= p.speechUntil) continue;
+    seen.add(p);
+    let el = speechBubbleEls.get(p);
+    if (!el) { el = speechBubbleEl(); speechBubbleEls.set(p, el); }
+    const scr = projectToScreen(p.x, 2.1, p.y);
+    if (!scr) { el.style.display = 'none'; continue; }
+    el.textContent = p.speechText;
+    el.style.display = 'block';
+    el.style.left = scr.x + 'px';
+    el.style.top = scr.y + 'px';
+  }
+  for (const [p, el] of speechBubbleEls) {
+    if (seen.has(p)) continue;
+    el.remove();
+    speechBubbleEls.delete(p);
+  }
+}
+
 export function update3D(dt, world) {
   if (!active) return;
   const player = world.player;
@@ -308,6 +369,7 @@ export function update3D(dt, world) {
       mesh.rotation.y = -p.angle;
     }
   }
+  syncSpeechBubbles(world);
 
   if (!flitspaalBuilt && world.flitspaalen && world.flitspaalen.length) {
     flitspaalBuilt = true;

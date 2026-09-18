@@ -1,5 +1,6 @@
 import { dist, closestPointOnSegment } from './util2.js';
 import { spawnVehicleOnRoad } from './vehicle2.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
 const RETRY_COOLDOWN = 5;
@@ -168,7 +169,7 @@ export function initMissions(world) {
     cooldownTimer: 0,
     killBaseline: 0,
     wpIndex: 0,
-    pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 } },
+    pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, remainingWaypoints: [] },
   };
   world.mission = chain.pub;
   syncPub(world);
@@ -213,6 +214,13 @@ function syncPub(world) {
     pub.fatbikeHits = st.fatbikeHits;
     pub.fatbikeMaxHits = def.maxHits;
   }
+  // Mirrors the old 2D drawMissions()'s "remaining waypoints preview" gate
+  // exactly ((type is checkpoint/boat) && phase==='active') so 3D code can
+  // draw the same dots without reaching into chain/def (module-private).
+  pub.remainingWaypoints =
+    (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active'
+      ? def.waypoints.slice(st.wpIndex + 1).map((wp) => ({ x: wp.x, y: wp.y }))
+      : [];
   world.mission = pub;
 }
 
@@ -400,4 +408,83 @@ export function drawMissions(ctx, world) {
     }
     ctx.restore();
   }
+}
+
+// --- 3D representation ---------------------------------------------------
+// Local origin at ground level (y=0) for both builders below; the integrator
+// positions groups/meshes at (worldX, y, worldY) per the ARCHITECTURE.md
+// mapping (three.x=world.x, three.z=world.y). Colors match the old 2D
+// marker palette: cyan while a mission is active, yellow while idle/on
+// cooldown (i.e. showing where to go to START the next mission).
+
+export const MARKER_COLOR_ACTIVE = 0x3fd0ff;
+export const MARKER_COLOR_IDLE = 0xffd23f;
+
+const markerBeamMaterial = new THREE.MeshBasicMaterial({
+  color: MARKER_COLOR_IDLE,
+  transparent: true,
+  opacity: 0.4,
+  depthWrite: false,
+});
+const markerRingMaterial = new THREE.MeshBasicMaterial({ color: MARKER_COLOR_IDLE, transparent: true, opacity: 0.9 });
+const markerCoreMaterial = new THREE.MeshBasicMaterial({ color: MARKER_COLOR_IDLE });
+
+// One floating waypoint beacon: a translucent glow-beam with a ring and a
+// pulsing core near the top. There is only ever one active mission, so the
+// integrator builds a single instance of this and repositions it every
+// frame - it does not need Map-based bookkeeping like the dots below.
+export function buildMissionMarker3D() {
+  const group = new THREE.Group();
+
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.2, 8, 1, true), markerBeamMaterial);
+  beam.position.y = 1.6;
+  group.add(beam);
+
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.07, 8, 20), markerRingMaterial);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 2.4;
+  group.add(ring);
+
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), markerCoreMaterial);
+  core.position.y = 3.05;
+  group.add(core);
+
+  group.userData.ring = ring;
+  group.userData.core = core;
+  return group;
+}
+
+// Recolors (MARKER_COLOR_ACTIVE when phase==='active', else MARKER_COLOR_IDLE)
+// and pulses/bobs the beacon built by buildMissionMarker3D(). Call once per
+// frame, after positioning the group, with world.time and world.mission.phase.
+// Mutates the shared marker materials directly - safe since only one marker
+// mesh ever exists at a time.
+export function updateMissionMarker3D(group, time, phase) {
+  const hex = phase === 'active' ? MARKER_COLOR_ACTIVE : MARKER_COLOR_IDLE;
+  markerBeamMaterial.color.setHex(hex);
+  markerRingMaterial.color.setHex(hex);
+  markerCoreMaterial.color.setHex(hex);
+
+  const pulse = 1 + Math.sin(time * 4) * 0.25;
+  group.userData.ring.scale.setScalar(pulse);
+  group.userData.ring.position.y = 2.4 + Math.sin(time * 2) * 0.15;
+  group.userData.core.scale.setScalar(0.8 + Math.sin(time * 4) * 0.25);
+}
+
+const waypointDotGeometry = new THREE.SphereGeometry(0.5, 10, 8);
+const waypointDotMaterial = new THREE.MeshBasicMaterial({
+  color: MARKER_COLOR_ACTIVE,
+  transparent: true,
+  opacity: 0.35,
+  depthWrite: false,
+});
+
+// Cheap translucent preview dot for one entry of world.mission.remainingWaypoints
+// (checkpoint/boat missions only). Geometry and material are shared module-
+// scope singletons per-file convention here, since several of these can be
+// live at once - callers must NOT call .dispose() on an individual dot
+// mesh's material when tearing one down (every dot mesh shares the same
+// material instance); just remove the mesh from the scene.
+export function buildWaypointDotMesh3D() {
+  return new THREE.Mesh(waypointDotGeometry, waypointDotMaterial);
 }

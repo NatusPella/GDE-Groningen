@@ -249,9 +249,9 @@ function drawGrazer(ctx, a, t) {
 }
 
 export function drawWildlife(ctx, world) {
-  const cam = world.camera;
+  const p = world.player;
   for (const a of world.wildlife || []) {
-    if (dist(a.x, a.y, cam.x, cam.y) > DRAW_DIST) continue;
+    if (dist(a.x, a.y, p.x, p.y) > DRAW_DIST) continue;
     if (a.kind === 'seagull') drawSeagull(ctx, a, world.time);
     else drawGrazer(ctx, a, world.time);
   }

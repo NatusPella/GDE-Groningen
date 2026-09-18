@@ -1,9 +1,11 @@
-import { closestPointOnSegment } from './util2.js';
+import { closestPointOnSegment, normalizeAngle, pointInPolygon } from './util2.js';
 import { findNearestVehicle, resolveVehicleBuildingCollision } from './vehicle2.js';
 
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
+const TURN_RATE = 3.4; // rad/s, on-foot facing turn speed
+const REVERSE_FACTOR = 0.6;
 
 export class Player {
   constructor(x, y) {
@@ -30,16 +32,20 @@ export class Player {
       else { this.driveVehicle(dt, input, map); return; }
     }
 
+    // tank controls, GTA3-style: A/D turn the character (and with it the 3D
+    // follow-cam, which derives its yaw from this.angle), W/S move forward/
+    // back along the current facing - a raw world-axis "D always moves you
+    // toward +x" scheme feels wrong once the camera can be facing any way
     const [ax, ay] = input.axis();
-    const len = Math.hypot(ax, ay);
-    this.moving = len > 0.01;
     const speed = input.isDown('shift') ? RUN_SPEED : WALK_SPEED;
 
+    this.angle = normalizeAngle(this.angle + ax * TURN_RATE * dt);
+
+    const throttle = ay < 0 ? 1 : ay > 0 ? -REVERSE_FACTOR : 0;
+    this.moving = throttle !== 0;
     if (this.moving) {
-      const nx = ax / len, ny = ay / len;
-      this.vx = nx * speed;
-      this.vy = ny * speed;
-      this.angle = Math.atan2(ny, nx);
+      this.vx = Math.cos(this.angle) * speed * throttle;
+      this.vy = Math.sin(this.angle) * speed * throttle;
     } else {
       this.vx = 0;
       this.vy = 0;
@@ -48,6 +54,17 @@ export class Player {
     let nextX = this.x + this.vx * dt;
     let nextY = this.y + this.vy * dt;
     [nextX, nextY] = resolveBuildingCollisions(nextX, nextY, this.radius, map);
+
+    // people don't swim - water blocks on-foot movement exactly like a
+    // building wall (boats are the only way to cross). Tried per-axis so
+    // walking along a quay/canal edge slides instead of just sticking dead,
+    // which matters a lot here given how much of central Groningen is
+    // waterfront (the Diepenring, canals, ...)
+    if (isInWater(nextX, nextY, map)) {
+      if (!isInWater(nextX, this.y, map)) nextY = this.y;
+      else if (!isInWater(this.x, nextY, map)) nextX = this.x;
+      else { nextX = this.x; nextY = this.y; }
+    }
 
     this.x = nextX;
     this.y = nextY;
@@ -96,6 +113,13 @@ export class Player {
     this.y = v.y;
     this.angle = v.angle;
   }
+}
+
+function isInWater(x, y, map) {
+  for (const w of map.waterNear(x, y, 0.5)) {
+    if (pointInPolygon(x, y, w.pts)) return true;
+  }
+  return false;
 }
 
 // Push a circle out of any nearby building polygon it overlaps.

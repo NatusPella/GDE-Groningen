@@ -20,14 +20,16 @@ function getState(world) {
   return s;
 }
 
-function findSpawnRoad(map, camera, px, py) {
+// 60-120m out is far enough to be off-screen in both the 3D follow-cam
+// (140m draw distance, but a chase-cam's forward FOV covers a small slice
+// of that radius) and the minimap, without needing a camera/viewport
+// dependency here at all.
+function findSpawnRoad(map, px, py) {
   for (let attempt = 0; attempt < 6; attempt++) {
     const ang = Math.random() * Math.PI * 2;
     const d = 60 + Math.random() * 60;
     const x = px + Math.cos(ang) * d;
     const y = py + Math.sin(ang) * d;
-    const [vminx, vminy, vmaxx, vmaxy] = camera.viewBounds(20);
-    if (x > vminx && x < vmaxx && y > vminy && y < vmaxy) continue;
     const rp = map.nearestRoadPoint(x, y, 200, true);
     if (rp) return rp.road;
   }
@@ -38,7 +40,7 @@ function trySpawnPolice(world, state) {
   const alive = world.vehicles.filter((v) => v.isPolice && !v.wrecked);
   const target = world.wanted === 0 ? 1 : Math.min(8, world.wanted + 1);
   if (alive.length >= target || world.time < state.nextSpawnAt) return;
-  const road = findSpawnRoad(world.map, world.camera, world.player.x, world.player.y);
+  const road = findSpawnRoad(world.map, world.player.x, world.player.y);
   if (!road) return;
   world.vehicles.push(spawnVehicleOnRoad(world.map, road, true, Math.random));
   state.nextSpawnAt = world.time + SPAWN_STAGGER;
