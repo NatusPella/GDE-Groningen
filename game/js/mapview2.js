@@ -54,6 +54,20 @@ function injectStyles() {
       font-family: 'Arial Narrow', Arial, sans-serif;
       color: #f2f2f2;
     }
+    .mapview-canvas { pointer-events: auto; cursor: default; }
+    .mapview-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(20, 22, 18, 0.92);
+      border: 1px solid rgba(232, 201, 58, 0.6);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 13px;
+      color: #f2f2f2;
+      transform: translate(10px, -50%);
+      white-space: nowrap;
+      display: none;
+    }
     .mapview-overlay.open { display: flex; }
     .mapview-header {
       display: flex;
@@ -130,6 +144,36 @@ function drawRoadsSimple(ctx, roads) {
   }
 }
 
+// Every named wijk gets a small, dim, clickable dot too (not just the 14
+// hand-picked landmarks) - meta.neighbourhoodPoints already has exactly one
+// entry per named wijk (it's what the HUD's "which wijk am I in" readout
+// uses), so this is a free way to guarantee full teleport coverage without
+// needing any new data.
+function drawWijkPoints(ctx, points) {
+  const r = px(2.4);
+  for (const p of points) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(200, 200, 190, 0.55)';
+    ctx.fill();
+    ctx.lineWidth = px(1);
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.stroke();
+  }
+}
+
+// Combined list of everything clickable-to-teleport-to on the map.
+function buildTeleportTargets(world) {
+  const targets = [];
+  for (const l of world.map.meta.landmarks || []) {
+    targets.push({ x: l.x, y: l.y, name: l.name, kind: 'landmark' });
+  }
+  for (const p of world.map.meta.neighbourhoodPoints || []) {
+    targets.push({ x: p.x, y: p.y, name: p.name, kind: 'wijk' });
+  }
+  return targets;
+}
+
 function drawLandmarks(ctx, landmarks) {
   const r = px(4);
   ctx.textBaseline = 'middle';
@@ -180,9 +224,11 @@ function buildStaticLayer(world) {
   for (const b of view.buildings) fillPoly(sctx, b.pts);
 
   drawRoadsSimple(sctx, view.roads);
+  drawWijkPoints(sctx, world.map.meta.neighbourhoodPoints || []);
   drawLandmarks(sctx, world.map.meta.landmarks || []);
 
   state.ctx = prevCtx;
+  state.targets = buildTeleportTargets(world);
 }
 
 function drawMissionMarker(ctx, world) {
@@ -219,6 +265,30 @@ function drawPlayerMarker(ctx, world) {
   ctx.restore();
 }
 
+const HOVER_PX = 14;
+function findNearestTarget(offsetX, offsetY) {
+  let best = null, bestD2 = HOVER_PX * HOVER_PX;
+  for (const t of state.targets || []) {
+    const sx = t.x * state.scale + state.ox, sy = t.y * state.scale + state.oy;
+    const d2 = (sx - offsetX) ** 2 + (sy - offsetY) ** 2;
+    if (d2 < bestD2) { bestD2 = d2; best = t; }
+  }
+  return best;
+}
+
+function teleportTo(world, target) {
+  const spot = world.map.nearestRoadPoint(target.x, target.y, 400) || { x: target.x, y: target.y };
+  const [sx, sy] = world.map.escapeBuilding(spot.x, spot.y);
+  if (world.player.inVehicle) {
+    world.player.inVehicle.x = sx;
+    world.player.inVehicle.y = sy;
+  }
+  world.player.x = sx;
+  world.player.y = sy;
+  world.addMessage(`Geteleporteerd naar ${target.name}`, 3);
+  closeMap();
+}
+
 function openMap(world) {
   state.open = true;
   state.overlay.classList.add('open');
@@ -230,6 +300,7 @@ function openMap(world) {
 function closeMap() {
   state.open = false;
   state.overlay.classList.remove('open');
+  state.tooltip.style.display = 'none';
 }
 
 function render(world) {
@@ -249,21 +320,42 @@ export function initMapView(world) {
   overlay.className = 'mapview-overlay';
   overlay.innerHTML =
     '<div class="mapview-header"><span>KAART VAN GRONINGEN</span>' +
-    '<span class="mapview-hint">M — sluiten</span></div>' +
-    '<canvas class="mapview-canvas"></canvas>';
+    '<span class="mapview-hint">Klik een punt om te teleporteren — M sluiten</span></div>' +
+    '<canvas class="mapview-canvas"></canvas>' +
+    '<div class="mapview-tooltip"></div>';
   document.body.appendChild(overlay);
 
   state = {
     open: false,
     overlay,
     canvas: overlay.querySelector('canvas'),
+    tooltip: overlay.querySelector('.mapview-tooltip'),
     staticCanvas: null,
     scale: 1,
     ox: 0,
     oy: 0,
     dpr: window.devicePixelRatio || 1,
+    targets: [],
   };
   state.ctx = state.canvas.getContext('2d');
+
+  state.canvas.addEventListener('mousemove', (e) => {
+    const t = findNearestTarget(e.offsetX, e.offsetY);
+    state.canvas.style.cursor = t ? 'pointer' : 'default';
+    if (t) {
+      state.tooltip.textContent = t.name;
+      state.tooltip.style.left = e.offsetX + 'px';
+      state.tooltip.style.top = e.offsetY + 'px';
+      state.tooltip.style.display = 'block';
+    } else {
+      state.tooltip.style.display = 'none';
+    }
+  });
+  state.canvas.addEventListener('mouseleave', () => { state.tooltip.style.display = 'none'; });
+  state.canvas.addEventListener('click', (e) => {
+    const t = findNearestTarget(e.offsetX, e.offsetY);
+    if (t) teleportTo(world, t);
+  });
 
   window.addEventListener('resize', () => {
     if (!state.open) return;

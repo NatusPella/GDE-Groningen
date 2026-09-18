@@ -1,5 +1,6 @@
 import { normalizeAngle, pointInPolygon } from './util2.js';
 import { respawnPlayer } from './world2.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 export const WEAPONS = {
   fists: { damage: 12, range: 1.1, cooldown: 0.45, ammo: Infinity },
@@ -12,6 +13,8 @@ const WEAPON_KEYS = ['fists', 'pistol', 'uzi', 'shotgun'];
 
 let fireTimer = 0;
 let effect = null; // {type:'muzzle'|'melee', angle, until} — local fx state, not shared on world
+
+export function getCombatEffect() { return effect; }
 
 function ensureAmmo(world) {
   if (world.ammoInitialized) return;
@@ -225,4 +228,70 @@ export function drawCombat(ctx, world) {
     ctx.arc(p.x, p.y, 0.9, effect.angle - Math.PI / 4, effect.angle + Math.PI / 4);
     ctx.stroke();
   }
+}
+
+// local +X is the elongated/forward axis for all four shapes below, so an
+// integrator that does mesh.position.set(x, y, z); mesh.rotation.y = -angle
+// (the same convention scene3d.js already uses for vehicles/peds/wildlife)
+// gets correct orientation for free — see integrationNotes for exact angles.
+
+export function buildBulletMesh3D() {
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.055, 6, 5),
+    new THREE.MeshBasicMaterial({ color: 0xfff0a8 })
+  );
+  mesh.scale.set(3, 1, 1);
+  return mesh;
+}
+
+export function buildSparkBurstMesh3D() {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffb347 });
+  const n = 5;
+  for (let i = 0; i < n; i++) {
+    const chip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.05), mat);
+    const a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
+    const r = 0.06 + Math.random() * 0.1;
+    chip.position.set(Math.cos(a) * r, (Math.random() - 0.3) * 0.12, Math.sin(a) * r);
+    group.add(chip);
+  }
+  return group;
+}
+
+export function buildMuzzleFlashMesh3D() {
+  const cone = new THREE.Mesh(
+    new THREE.ConeGeometry(0.16, 0.6, 6),
+    new THREE.MeshBasicMaterial({ color: 0xffd45c })
+  );
+  cone.rotation.z = -Math.PI / 2;
+  cone.position.x = 0.65;
+  cone.visible = false;
+  return cone;
+}
+
+export function buildMeleeSwipeMesh3D() {
+  const segments = 8;
+  const innerR = 0.5, outerR = 0.95;
+  const halfSpread = Math.PI / 4;
+  const positions = [];
+  const indices = [];
+  for (let i = 0; i <= segments; i++) {
+    const phi = -halfSpread + (i / segments) * halfSpread * 2;
+    const cx = Math.cos(phi), sz = Math.sin(phi);
+    positions.push(cx * innerR, 0, sz * innerR, cx * outerR, 0, sz * outerR);
+  }
+  for (let i = 0; i < segments; i++) {
+    const a = i * 2, b = a + 1, c = a + 2, d = a + 3;
+    indices.push(a, b, c, b, d, c);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  const mesh = new THREE.Mesh(
+    geo,
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75, side: THREE.DoubleSide })
+  );
+  mesh.visible = false;
+  return mesh;
 }

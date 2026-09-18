@@ -49,8 +49,16 @@ const industrialRoofMaterial = new THREE.MeshLambertMaterial({ color: INDUSTRIAL
 const landmarkMaterials = Object.fromEntries(Object.entries(LANDMARK_COLOR3D).map(([k, c]) => [k, new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide })]));
 const landmarkStoneMaterials = Object.fromEntries(Object.entries(LANDMARK_STONE).map(([k, c]) => [k, new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide })]));
 const accentMaterials = Object.fromEntries(Object.entries(ACCENT_COLOR).map(([k, c]) => [k, new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide })]));
-const windowBandMaterial = new THREE.MeshLambertMaterial({ color: 0x1b222c, side: THREE.DoubleSide });
-const shopfrontMaterial = new THREE.MeshLambertMaterial({ color: 0x17242b, side: THREE.DoubleSide });
+// A vertical wall lit only by HemisphereLight + one DirectionalLight goes
+// near-black whenever it faces away from the sun (extremely common up close,
+// e.g. first-person-adjacent camera facing straight at a shaded facade) - if
+// the window/shopfront detail were just a slightly different shade of the
+// same wall-color family, it would vanish into that same near-black exactly
+// when it matters most. `emissive` makes these read as lit windows
+// regardless of ambient light/facing direction (also just a nicer "living
+// city at any hour" look) - kept modest so it reads as windows, not a glow.
+const windowBandMaterial = new THREE.MeshLambertMaterial({ color: 0x1b222c, emissive: 0xffcf80, emissiveIntensity: 0.4, side: THREE.DoubleSide });
+const shopfrontMaterial = new THREE.MeshLambertMaterial({ color: 0x17242b, emissive: 0xffcf80, emissiveIntensity: 0.5, side: THREE.DoubleSide });
 const corniceMaterial = new THREE.MeshLambertMaterial({ color: 0xd8cdb0, side: THREE.DoubleSide });
 const canopyMaterial = new THREE.MeshLambertMaterial({ color: 0x565c53, side: THREE.DoubleSide });
 
@@ -66,7 +74,7 @@ function bboxOf(b) {
   const [minx, miny, maxx, maxy] = b.bounds;
   return {
     minx, miny, maxx, maxy, w: maxx - minx, d: maxy - miny,
-    cx: (minx + maxx) / 2, cy: (miny + maxy) / 2, cz: -(miny + maxy) / 2,
+    cx: (minx + maxx) / 2, cy: (miny + maxy) / 2, cz: (miny + maxy) / 2,
   };
 }
 
@@ -110,7 +118,7 @@ function buildMainGeometry(b, depth) {
 // regardless of footprint complexity.
 function buildBandGeometry(box, thickness, outset = 0.06) {
   const x0 = box.minx - outset, x1 = box.maxx + outset;
-  const z0 = -(box.maxy + outset), z1 = -(box.miny - outset);
+  const z0 = box.miny - outset, z1 = box.maxy + outset;
   const corners = [[x0, z0], [x1, z0], [x1, z1], [x0, z1], [x0, z0]];
   const verts = [], idx = [];
   for (let i = 0; i < corners.length - 1; i++) {
@@ -138,12 +146,12 @@ function buildRidgeGeometry(box, baseY, ridgeHeight) {
   const verts = [];
   const push = (p) => verts.push(p[0], p[1], p[2]);
   if (w >= d) {
-    const x0 = minx, x1 = maxx, z0 = -maxy, z1 = -miny, zMid = (z0 + z1) / 2;
+    const x0 = minx, x1 = maxx, z0 = miny, z1 = maxy, zMid = (z0 + z1) / 2;
     const A = [x0, baseY, z0], B = [x0, baseY, z1], R0 = [x0, topY, zMid];
     const C = [x1, baseY, z0], D = [x1, baseY, z1], R1 = [x1, topY, zMid];
     for (const t of [[A, B, R0], [D, C, R1], [A, C, R1], [A, R1, R0], [B, D, R1], [B, R1, R0]]) for (const p of t) push(p);
   } else {
-    const x0 = minx, x1 = maxx, z0 = -maxy, z1 = -miny, xMid = (x0 + x1) / 2;
+    const x0 = minx, x1 = maxx, z0 = miny, z1 = maxy, xMid = (x0 + x1) / 2;
     const A = [x0, baseY, z0], B = [x1, baseY, z0], P0 = [xMid, topY, z0];
     const C = [x0, baseY, z1], D = [x1, baseY, z1], P1 = [xMid, topY, z1];
     for (const t of [[A, P0, B], [C, D, P1], [A, C, P1], [A, P1, P0], [B, P1, D], [B, P0, P1]]) for (const p of t) push(p);
@@ -174,7 +182,7 @@ function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
   const sw = Math.min(shortAxis * 0.55, 6);
   const steepleH = depth * 1.8 + 3;
   const x = longX ? box.minx + sw * 0.7 : box.cx;
-  const z = longX ? box.cz : -box.miny - sw * 0.7;
+  const z = longX ? box.cz : box.miny + sw * 0.7;
 
   const steeple = new THREE.Mesh(UNIT_BOX, wallMat);
   steeple.scale.set(sw, steepleH, sw);

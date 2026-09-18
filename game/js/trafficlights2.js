@@ -1,3 +1,5 @@
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
 const GREEN_TIME = 8;
 const YELLOW_TIME = 2;
 const RED_TIME = 8;
@@ -14,6 +16,14 @@ function phaseAt(t) {
   if (t < GREEN_TIME) return 'green';
   if (t < GREEN_TIME + YELLOW_TIME) return 'yellow';
   return 'red';
+}
+
+export function getTrafficLights() {
+  return lights;
+}
+
+export function getTrafficLightPhase(light) {
+  return phaseAt(light.t);
 }
 
 export function initTrafficLights(world) {
@@ -84,4 +94,39 @@ export function drawTrafficLights(ctx, world) {
     ctx.arc(light.x, light.y - 2.85, 0.22, 0, Math.PI * 2);
     ctx.fill();
   }
+}
+
+export function buildTrafficLightMesh3D() {
+  const group = new THREE.Group();
+
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.07, 0.07, 2.6, 8),
+    new THREE.MeshLambertMaterial({ color: 0x3a3a3a })
+  );
+  pole.position.y = 1.3;
+  group.add(pole);
+
+  const housing = new THREE.Mesh(
+    new THREE.BoxGeometry(0.32, 0.5, 0.24),
+    new THREE.MeshLambertMaterial({ color: 0x26282b })
+  );
+  housing.position.y = 2.75;
+  group.add(housing);
+
+  const lampHead = new THREE.Mesh(
+    new THREE.SphereGeometry(0.17, 10, 8),
+    new THREE.MeshLambertMaterial({ color: PHASE_COLORS.red, emissive: PHASE_COLORS.red, emissiveIntensity: 1.1 })
+  );
+  lampHead.position.y = 2.85;
+  group.add(lampHead);
+
+  group.userData.lampHead = lampHead;
+  return group;
+}
+
+export function setTrafficLightPhase3D(group, phase) {
+  const color = PHASE_COLORS[phase] || PHASE_COLORS.red;
+  const material = group.userData.lampHead.material;
+  material.color.set(color);
+  material.emissive.set(color);
 }

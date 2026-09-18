@@ -1,4 +1,5 @@
 import { dist, pointInPolygon } from './util2.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const WEAPON_KEYS = ['pistol', 'uzi', 'shotgun'];
 const WEAPON_AMMO = { pistol: 30, uzi: 60, shotgun: 10 };
@@ -171,6 +172,10 @@ export function updatePickups(dt, world) {
   updateGarages(world);
 }
 
+export function getPickupsForRender() {
+  return { money, weapons, health, armor, garages };
+}
+
 function drawCoin(ctx, x, y) {
   ctx.save();
   ctx.translate(x, y);
@@ -278,4 +283,212 @@ export function drawPickups(ctx, world) {
   for (const w of weapons) drawWeaponPickup(ctx, w.x, w.y, w.key);
   if (health) drawCross(ctx, health.x, health.y);
   if (armor) drawShield(ctx, armor.x, armor.y);
+}
+
+// --- 3D representations --------------------------------------------------
+// Local origin at ground level (y=0) for every builder below. Money/weapon
+// icons bake their own hover offset into local geometry so the integrator
+// can just do mesh.position.set(x, 0, y) like vehicles/peds; the money coin
+// additionally wants a slow spin applied via mesh.rotation.y each frame
+// (see integrationNotes). Materials/geometries are shared at module scope
+// since many pickups can be alive at once - never call .dispose() on them
+// from a removal path, only on the shared consts if the module is torn down
+// (which never happens here).
+
+const moneyCoinGeometry = new THREE.CylinderGeometry(0.42, 0.42, 0.1, 20);
+moneyCoinGeometry.rotateZ(Math.PI / 2);
+const moneyFaceMaterial = new THREE.MeshLambertMaterial({ color: 0xe0c020 });
+const moneyRimMaterial = new THREE.MeshLambertMaterial({ color: 0x8a6a10 });
+
+export function buildMoneyPickupMesh3D() {
+  return new THREE.Mesh(moneyCoinGeometry, [moneyRimMaterial, moneyFaceMaterial, moneyFaceMaterial]);
+}
+
+const weaponPadGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.05, 16);
+const weaponPadMaterial = new THREE.MeshLambertMaterial({ color: 0x141414, transparent: true, opacity: 0.55 });
+
+const weaponBodyMaterials = {
+  pistol: new THREE.MeshLambertMaterial({ color: 0x9aa0a6 }),
+  uzi: new THREE.MeshLambertMaterial({ color: 0x3a3a3a }),
+  shotgun: new THREE.MeshLambertMaterial({ color: 0x6b4a2a }),
+};
+
+const pistolBodyGeo = new THREE.BoxGeometry(0.34, 0.16, 0.16);
+const pistolBarrelGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.26, 8);
+pistolBarrelGeo.rotateZ(Math.PI / 2);
+const pistolGripGeo = new THREE.BoxGeometry(0.12, 0.22, 0.12);
+
+const uziBodyGeo = new THREE.BoxGeometry(0.5, 0.14, 0.14);
+const uziMagGeo = new THREE.BoxGeometry(0.09, 0.26, 0.09);
+const uziStockGeo = new THREE.BoxGeometry(0.18, 0.09, 0.09);
+
+const shotgunBarrelGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.62, 8);
+shotgunBarrelGeo.rotateZ(Math.PI / 2);
+const shotgunPumpGeo = new THREE.BoxGeometry(0.16, 0.09, 0.15);
+const shotgunStockGeo = new THREE.BoxGeometry(0.24, 0.13, 0.11);
+
+function buildPistolIcon() {
+  const group = new THREE.Group();
+  const mat = weaponBodyMaterials.pistol;
+  group.add(new THREE.Mesh(pistolBodyGeo, mat));
+  const barrel = new THREE.Mesh(pistolBarrelGeo, mat);
+  barrel.position.set(0.28, 0.02, 0);
+  group.add(barrel);
+  const grip = new THREE.Mesh(pistolGripGeo, mat);
+  grip.position.set(-0.1, -0.16, 0);
+  grip.rotation.z = 0.35;
+  group.add(grip);
+  return group;
+}
+
+function buildUziIcon() {
+  const group = new THREE.Group();
+  const mat = weaponBodyMaterials.uzi;
+  group.add(new THREE.Mesh(uziBodyGeo, mat));
+  const mag = new THREE.Mesh(uziMagGeo, mat);
+  mag.position.set(-0.05, -0.18, 0);
+  mag.rotation.z = -0.15;
+  group.add(mag);
+  const stock = new THREE.Mesh(uziStockGeo, mat);
+  stock.position.set(-0.32, -0.02, 0);
+  group.add(stock);
+  return group;
+}
+
+function buildShotgunIcon() {
+  const group = new THREE.Group();
+  const mat = weaponBodyMaterials.shotgun;
+  const barrel = new THREE.Mesh(shotgunBarrelGeo, mat);
+  barrel.position.set(0.05, 0.02, 0);
+  group.add(barrel);
+  const pump = new THREE.Mesh(shotgunPumpGeo, mat);
+  pump.position.set(0.02, -0.06, 0);
+  group.add(pump);
+  const stock = new THREE.Mesh(shotgunStockGeo, mat);
+  stock.position.set(-0.34, -0.02, 0);
+  group.add(stock);
+  return group;
+}
+
+const WEAPON_ICON_BUILDERS = { pistol: buildPistolIcon, uzi: buildUziIcon, shotgun: buildShotgunIcon };
+
+export function buildWeaponPickupMesh3D(key) {
+  const group = new THREE.Group();
+  const pad = new THREE.Mesh(weaponPadGeometry, weaponPadMaterial);
+  pad.position.y = 0.03;
+  group.add(pad);
+  const icon = (WEAPON_ICON_BUILDERS[key] || buildPistolIcon)();
+  icon.position.y = 0.34;
+  group.add(icon);
+  return group;
+}
+
+const healthPadGeometry = new THREE.BoxGeometry(0.9, 0.14, 0.9);
+const healthPadMaterial = new THREE.MeshLambertMaterial({ color: 0xf0efe8 });
+const healthArmXGeometry = new THREE.BoxGeometry(0.62, 0.2, 0.2);
+const healthArmZGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.62);
+const healthCrossMaterial = new THREE.MeshLambertMaterial({ color: 0xd1382f });
+
+export function buildHealthPickupMesh3D() {
+  const group = new THREE.Group();
+  const pad = new THREE.Mesh(healthPadGeometry, healthPadMaterial);
+  pad.position.y = 0.07;
+  group.add(pad);
+  const armX = new THREE.Mesh(healthArmXGeometry, healthCrossMaterial);
+  armX.position.y = 0.24;
+  group.add(armX);
+  const armZ = new THREE.Mesh(healthArmZGeometry, healthCrossMaterial);
+  armZ.position.y = 0.24;
+  group.add(armZ);
+  return group;
+}
+
+const ARMOR_SHIELD_SHAPE = (() => {
+  const s = new THREE.Shape();
+  s.moveTo(0, -0.4);
+  s.lineTo(0.32, -0.22);
+  s.lineTo(0.32, 0.12);
+  s.quadraticCurveTo(0.32, 0.36, 0, 0.44);
+  s.quadraticCurveTo(-0.32, 0.36, -0.32, 0.12);
+  s.lineTo(-0.32, -0.22);
+  s.closePath();
+  return s;
+})();
+const armorShieldGeometry = new THREE.ExtrudeGeometry(ARMOR_SHIELD_SHAPE, {
+  depth: 0.14,
+  bevelEnabled: true,
+  bevelThickness: 0.03,
+  bevelSize: 0.03,
+  bevelSegments: 2,
+});
+armorShieldGeometry.scale(1.3, 1.3, 1);
+armorShieldGeometry.translate(0, 0, -0.07);
+const armorShieldMaterial = new THREE.MeshLambertMaterial({ color: 0x3f6bd4 });
+const armorRimGeometry = new THREE.ShapeGeometry(ARMOR_SHIELD_SHAPE);
+armorRimGeometry.scale(1.42, 1.42, 1);
+const armorRimMaterial = new THREE.MeshLambertMaterial({ color: 0x1c3a8a, side: THREE.DoubleSide });
+const armorPadGeometry = new THREE.CylinderGeometry(0.55, 0.55, 0.05, 16);
+const armorPadMaterial = new THREE.MeshLambertMaterial({ color: 0x1c3a8a, transparent: true, opacity: 0.4 });
+
+export function buildArmorPickupMesh3D() {
+  const group = new THREE.Group();
+  const pad = new THREE.Mesh(armorPadGeometry, armorPadMaterial);
+  pad.position.y = 0.03;
+  group.add(pad);
+  const rim = new THREE.Mesh(armorRimGeometry, armorRimMaterial);
+  rim.position.y = 0.55;
+  rim.position.z = -0.09;
+  group.add(rim);
+  const shield = new THREE.Mesh(armorShieldGeometry, armorShieldMaterial);
+  shield.position.y = 0.55;
+  group.add(shield);
+  return group;
+}
+
+const garageDiscGeometry = new THREE.CylinderGeometry(1.4, 1.4, 0.05, 24);
+const garageDiscMaterial = new THREE.MeshLambertMaterial({ color: 0xf5f5f0 });
+const garageRingGeometry = new THREE.TorusGeometry(1.4, 0.09, 8, 24);
+const garageRingMaterial = new THREE.MeshLambertMaterial({ color: 0xd1382f });
+const garagePostGeometry = new THREE.BoxGeometry(0.16, 2.1, 0.16);
+const garageBarGeometry = new THREE.BoxGeometry(2.3, 0.2, 0.2);
+const garageFrameMaterial = new THREE.MeshLambertMaterial({ color: 0xf5f5f0 });
+const garageTrimMaterial = new THREE.MeshLambertMaterial({ color: 0xd1382f });
+const garageWrenchHandleGeometry = new THREE.CylinderGeometry(0.045, 0.045, 0.7, 8);
+const garageWrenchHeadGeometry = new THREE.TorusGeometry(0.12, 0.045, 6, 10);
+const garageWrenchMaterial = new THREE.MeshLambertMaterial({ color: 0x2a2a2a });
+
+export function buildGaragePickupMesh3D() {
+  const group = new THREE.Group();
+
+  const disc = new THREE.Mesh(garageDiscGeometry, garageDiscMaterial);
+  disc.position.y = 0.03;
+  group.add(disc);
+
+  const ring = new THREE.Mesh(garageRingGeometry, garageRingMaterial);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.06;
+  group.add(ring);
+
+  const postL = new THREE.Mesh(garagePostGeometry, garageFrameMaterial);
+  postL.position.set(-1.05, 1.05, 0);
+  group.add(postL);
+  const postR = new THREE.Mesh(garagePostGeometry, garageFrameMaterial);
+  postR.position.set(1.05, 1.05, 0);
+  group.add(postR);
+
+  const bar = new THREE.Mesh(garageBarGeometry, garageTrimMaterial);
+  bar.position.set(0, 2.1, 0);
+  group.add(bar);
+
+  const wrenchHandle = new THREE.Mesh(garageWrenchHandleGeometry, garageWrenchMaterial);
+  wrenchHandle.position.set(0, 2.1, 0.18);
+  wrenchHandle.rotation.z = Math.PI / 4;
+  group.add(wrenchHandle);
+
+  const wrenchHead = new THREE.Mesh(garageWrenchHeadGeometry, garageWrenchMaterial);
+  wrenchHead.position.set(0.24, 2.34, 0.18);
+  wrenchHead.rotation.x = Math.PI / 2;
+  group.add(wrenchHead);
+
+  return group;
 }

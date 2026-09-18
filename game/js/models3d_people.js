@@ -16,12 +16,20 @@ const HIP_Y = LEG_LEN;
 const TORSO_H = 0.55;
 const TORSO_THICK = 0.24;
 const SHOULDER_W = 0.46;
-const HEAD_Y = 1.55;
+const HEAD_Y = 1.6;
 const HEAD_R = 0.155;
 const ARM_LEN = 0.58;
 const ARM_R = 0.062;
 const HAND_R = 0.075;
+const NECK_R = 0.075;
 const DEFAULT_HAIR = 0x1c1c1c;
+
+// Neck is sized to exactly span torso-top -> head-bottom, whatever those
+// constants happen to be, so raising/lowering HEAD_Y or TORSO_H can never
+// reopen a gap (or punch an overlap) at the neck seam.
+const TORSO_TOP_Y = HIP_Y + TORSO_H;
+const HEAD_BOTTOM_Y = HEAD_Y - HEAD_R;
+const NECK_H = HEAD_BOTTOM_Y - TORSO_TOP_Y;
 
 export const TAMMO_APPEARANCE = { shirt: 0x2f5c9e, skin: 0xe0b48a, hair: 0x2b1f14, variant: 'male' };
 export const ANITA_APPEARANCE = { shirt: 0xb5483a, skin: 0xc98f66, hair: 0x3c2418, variant: 'female' };
@@ -60,10 +68,16 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   torso.position.y = HIP_Y + TORSO_H / 2;
   group.add(torso);
 
+  const neck = cylinderPart(NECK_R, NECK_R * 1.15, NECK_H, skinMat);
+  neck.position.y = TORSO_TOP_Y + NECK_H / 2;
+  group.add(neck);
+
   const shoulderY = HIP_Y + TORSO_H - 0.04;
   for (const side of [1, -1]) {
     const arm = cylinderPart(ARM_R * 0.9, ARM_R * 0.7, ARM_LEN, clothMat);
-    arm.position.set(0, shoulderY - ARM_LEN / 2, side * (shoulderW / 2 + ARM_R + 0.02));
+    // offset is a slight embed (not a gap) so the arm visually attaches to
+    // the torso's side face instead of floating next to it
+    arm.position.set(0, shoulderY - ARM_LEN / 2, side * (shoulderW / 2 + ARM_R * 0.15));
     arm.rotation.x = side * -0.12;
     const hand = new THREE.Mesh(new THREE.SphereGeometry(HAND_R, 6, 5), skinMat);
     hand.position.set(0, -ARM_LEN / 2, 0);
@@ -81,9 +95,11 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
     ponytail.position.set(-HEAD_R * 0.95, HEAD_Y - HEAD_R * 0.3, 0);
     group.add(ponytail);
   } else {
-    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R * 0.94, 7, 5), hairMat);
-    hairCap.scale.set(1, 0.55, 1.02);
-    hairCap.position.set(-HEAD_R * 0.15, HEAD_Y + HEAD_R * 0.35, 0);
+    // radius is well under HEAD_R and it sits high on the crown, so most of
+    // the head sphere stays visible/skin-colored instead of being englobed
+    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R * 0.72, 7, 5), hairMat);
+    hairCap.scale.set(1, 0.6, 1);
+    hairCap.position.set(-HEAD_R * 0.12, HEAD_Y + HEAD_R * 0.55, 0);
     group.add(hairCap);
   }
 
