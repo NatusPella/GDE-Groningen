@@ -86,7 +86,16 @@ const accentMaterials = Object.fromEntries(Object.entries(ACCENT_COLOR).map(([k,
 // city at any hour" look) - kept modest so it reads as windows, not a glow.
 // Low roughness + a touch of metalness on top of that gives the glass pane
 // itself a faint sheen instead of the same matte response as brick.
-const windowBandMaterial = stdMat(0x1b222c, 0.3, 0.1, { emissive: 0xffcf80, emissiveIntensity: 0.4, side: THREE.DoubleSide });
+// Round 3: `vertexColors:true` + a plain white base color, so this single
+// shared material just displays whatever glass/frame colors are baked into
+// each building's window-row geometry (see buildWindowRowGeometry) - the
+// per-window grid pattern lives entirely in geometry vertex colors, not in
+// per-building materials, so this stays ONE material for every building.
+const WINDOW_GLASS_COLOR = new THREE.Color(0x141a22);
+const WINDOW_FRAME_COLOR = new THREE.Color(0xdcd6c4);
+const windowBandMaterial = stdMat(0xffffff, 0.35, 0.08, {
+  vertexColors: true, emissive: 0x2a1d0e, emissiveIntensity: 0.15, side: THREE.DoubleSide,
+});
 const shopfrontMaterial = stdMat(0x17242b, 0.25, 0.1, { emissive: 0xffcf80, emissiveIntensity: 0.5, side: THREE.DoubleSide });
 const corniceMaterial = stdMat(0xd8cdb0, 0.75, 0, { side: THREE.DoubleSide });
 const canopyMaterial = stdMat(0x565c53, 0.5, 0.2, { side: THREE.DoubleSide });
@@ -340,6 +349,104 @@ function buildBandGeometry(box, thickness, outset = 0.06) {
   return geo;
 }
 
+// Round 3 window rows. The old per-floor "window band" (still visible above
+// in windowBandMaterial's comment) was a flat 0.18m-tall strip - at normal
+// street distance/lighting that reads as a hairline, not a window, which
+// (together with several archetypes never calling it at all - see the
+// archetype dispatch in buildBuildingMesh) was the real, measured cause of
+// "no visible windows" flagged this round: a Node harness against the full
+// citymap.json corpus showed 34% of all buildings (mostly untagged
+// building=yes footprints, archetype 'generic') got zero detail meshes
+// beyond the bare wall extrusion, and even 'house'/'apartments' archetypes
+// that DID call the old band never got anything wide enough to read.
+//
+// WINDOW_ROW_HEIGHT is now a real fraction of a floor (not a hairline), and
+// buildWindowRowGeometry subdivides each of the 4 bbox sides into window-bay
+// quads that alternate a dark "glass" vertex color and a light "frame"
+// vertex color - a real per-window grid pattern baked into geometry (no
+// image texture, per the project having no texture pipeline), still exactly
+// ONE mesh + ONE shared material per floor row, same cost discipline as the
+// band it replaces. windowBandMaterial just renders whatever this bakes in.
+const LEVEL_HEIGHT_ROW = LEVEL_HEIGHT;
+const WINDOW_ROW_HEIGHT = 1.7;
+const WINDOW_ROW_OUTSET = 0.05;
+const WINDOW_ROW_MARGIN = (LEVEL_HEIGHT_ROW - WINDOW_ROW_HEIGHT) / 2;
+const WINDOW_SEG_TARGET = 2.4; // meters per window bay, before clamping segment count
+
+function floorCountFor(depth) {
+  return Math.min(9, Math.max(1, Math.round(depth / LEVEL_HEIGHT_ROW)));
+}
+
+function segsForSide(len) {
+  return Math.max(2, Math.min(10, Math.round(len / WINDOW_SEG_TARGET)));
+}
+
+function buildWindowRowGeometry(box, height = WINDOW_ROW_HEIGHT, outset = WINDOW_ROW_OUTSET) {
+  const x0 = box.minx - outset, x1 = box.maxx + outset;
+  const z0 = box.miny - outset, z1 = box.maxy + outset;
+  const sides = [
+    [[x0, z0], [x1, z0]],
+    [[x1, z0], [x1, z1]],
+    [[x1, z1], [x0, z1]],
+    [[x0, z1], [x0, z0]],
+  ];
+  const verts = [], colors = [], idx = [];
+  for (const [[ax, az], [bx, bz]] of sides) {
+    const len = Math.hypot(bx - ax, bz - az);
+    const segs = segsForSide(len);
+    for (let s = 0; s < segs; s++) {
+      const t0 = s / segs, t1 = (s + 1) / segs;
+      const p0x = ax + (bx - ax) * t0, p0z = az + (bz - az) * t0;
+      const p1x = ax + (bx - ax) * t1, p1z = az + (bz - az) * t1;
+      const base = verts.length / 3;
+      verts.push(p0x, 0, p0z, p0x, height, p0z, p1x, height, p1z, p1x, 0, p1z);
+      idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+      const c = (s % 2 === 0) ? WINDOW_GLASS_COLOR : WINDOW_FRAME_COLOR;
+      for (let i = 0; i < 4; i++) colors.push(c.r, c.g, c.b);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+// Adds one window-row mesh per upper floor (never the ground floor - that's
+// the door's job). `opts.startFloor` skips lower floors already covered by
+// something else (e.g. retail's ground-level shopfront glazing spans more
+// than one floor's height). `opts.colorBandEvery` reproduces apartments'
+// existing "every Nth floor gets a broader accent band in a different shade
+// from the same coarse-hash family" facade banding on top of the window row,
+// unchanged from Round 2 - block cohesion still comes from the same family.
+function addWindowBands(group, box, parts, depth, fine2, opts = {}) {
+  const startFloor = opts.startFloor ?? 1;
+  const floorCount = floorCountFor(depth);
+  if (floorCount <= startFloor) return;
+  if (!parts.windowRow) parts.windowRow = buildWindowRowGeometry(box);
+  const jitter = (fine2 - 0.5) * 0.3;
+  const colorBandEvery = opts.colorBandEvery || 0;
+  let bandMat = null;
+  if (colorBandEvery) {
+    const familyIdx = familyIndexFor(box);
+    const famWalls = PALETTE_FAMILIES[familyIdx].wall;
+    const fine = hash2(box.cx, box.cy);
+    bandMat = wallMaterials[familyIdx][(Math.floor(fine * famWalls.length) + 2) % famWalls.length];
+    if (!parts.colorBand) parts.colorBand = buildBandGeometry(box, 0.5, 0.03);
+  }
+  for (let i = startFloor; i < floorCount; i++) {
+    const row = new THREE.Mesh(parts.windowRow, windowBandMaterial);
+    row.position.y = i * LEVEL_HEIGHT_ROW + WINDOW_ROW_MARGIN + jitter;
+    group.add(row);
+    if (colorBandEvery && i % colorBandEvery === 0) {
+      const band = new THREE.Mesh(parts.colorBand, bandMat);
+      band.position.y = i * LEVEL_HEIGHT_ROW + jitter - 0.6;
+      group.add(band);
+    }
+  }
+}
+
 // Gabled roof cap: a triangular prism whose ridge runs along the LONGER
 // axis of the footprint's bounding box (two slanted quads + two triangular
 // end caps - real gable-end walls, not just a ridge line). Winding per axis
@@ -590,7 +697,14 @@ export function buildBuildingMesh(b) {
 
   if (b.landmark) {
     addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2);
-  } else if (archetype === 'house') {
+  } else if (archetype === 'house' || archetype === 'generic') {
+    // 'generic' covers every footprint OSM never tagged with a specific
+    // building type (overwhelmingly plain building=yes) - measured at 34%
+    // of the whole citymap.json corpus. It used to fall through to nothing
+    // at all beyond the bare wall extrusion (the actual root cause behind
+    // "buildings are still nothing"), even though it's architecturally just
+    // an untagged ordinary rowhouse/townhouse - so it now gets the exact
+    // same treatment as 'house' rather than a separate, lesser one.
     if (!parts.roof) {
       const shortAxis = Math.min(box.w, box.d);
       const ridgeH = Math.min(0.9 + fine2 * 1.1, Math.max(0.4, shortAxis * 0.6), 3.2);
@@ -599,42 +713,36 @@ export function buildBuildingMesh(b) {
     group.add(new THREE.Mesh(parts.roof, [wallMat, roofMat]));
     addEaveTrim(group, box, parts, depth);
     addDoorInset(group, box, fine2);
+    addWindowBands(group, box, parts, depth, fine2);
   } else if (archetype === 'apartments') {
-    if (!parts.band) parts.band = buildBandGeometry(box, 0.18);
-    if (!parts.colorBand) parts.colorBand = buildBandGeometry(box, 0.5, 0.03);
-    const floorCount = Math.min(9, Math.max(1, Math.round(depth / LEVEL_HEIGHT)));
-    const jitter = (fine2 - 0.5) * LEVEL_HEIGHT * 0.3;
-    // Facade color banding: every 3rd floor line gets a broader band in a
-    // DIFFERENT shade from the same coarse-hash family (never a foreign
-    // color), so blocks still cohere while each apartment building reads
-    // less like one flat-tinted slab.
-    const familyIdx = familyIndexFor(box);
-    const famWalls = PALETTE_FAMILIES[familyIdx].wall;
-    const shadeIdx = Math.floor(fine * famWalls.length);
-    const bandMat = wallMaterials[familyIdx][(shadeIdx + 2) % famWalls.length];
-    for (let i = 1; i < floorCount; i++) {
-      const band = new THREE.Mesh(parts.band, windowBandMaterial);
-      band.position.y = i * LEVEL_HEIGHT + jitter;
-      group.add(band);
-      if (i % 3 === 0) {
-        const colorBand = new THREE.Mesh(parts.colorBand, bandMat);
-        colorBand.position.y = i * LEVEL_HEIGHT + jitter - 0.6;
-        group.add(colorBand);
-      }
-    }
+    addWindowBands(group, box, parts, depth, fine2, { colorBandEvery: 3 });
     addEaveTrim(group, box, parts, depth);
     addDoorInset(group, box, fine2);
   } else if (archetype === 'retail') {
-    if (!parts.band) parts.band = buildBandGeometry(box, Math.min(3, Math.max(1.2, depth - 0.3)), 0.09);
+    const shopfrontH = Math.min(3, Math.max(1.2, depth - 0.3));
+    if (!parts.band) parts.band = buildBandGeometry(box, shopfrontH, 0.09);
     group.add(new THREE.Mesh(parts.band, shopfrontMaterial));
     addEaveTrim(group, box, parts, depth);
     addDoorInset(group, box, fine2);
+    // Taller retail buildings (shop below, flats above - common on real
+    // streets) get ordinary window rows above the shopfront glazing.
+    addWindowBands(group, box, parts, depth, fine2, { startFloor: Math.ceil(shopfrontH / LEVEL_HEIGHT) });
   } else if (archetype === 'church') {
     addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2);
     addEaveTrim(group, box, parts, depth);
     addDoorInset(group, box, fine2);
+  } else if (archetype === 'industrial') {
+    // Kept deliberately plainer than house/apartments (no roof cap, no eave
+    // trim, no facade banding) so industrial sheds/garages/warehouses still
+    // read as a distinct, more utilitarian archetype - but every "ordinary
+    // building" gets a visible door per this round's brief, and a tall shed
+    // gets one high clerestory-style window row instead of a blank wall.
+    addDoorInset(group, box, fine2);
+    const floorCount = floorCountFor(depth);
+    if (floorCount >= 2) addWindowBands(group, box, parts, depth, fine2, { startFloor: floorCount - 1 });
   }
-  // industrial/houseboat/generic: plain box is the whole point, nothing more to add.
+  // houseboat: small floating single-story structures - plain box remains
+  // the whole point here, per the original design intent.
 
   return group;
 }

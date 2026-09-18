@@ -228,14 +228,19 @@ export function updatePedestrians(dt, world) {
     } else {
       ped.speechTimer -= dt;
       if (ped.speechTimer <= 0) {
-        const phraseIdx = Math.floor(Math.random() * GRONINGS_PHRASES.length);
-        ped.speechText = GRONINGS_PHRASES[phraseIdx];
-        ped.speechUntil = world.time + SPEECH_DURATION;
         ped.speechTimer = SPEECH_MIN_INTERVAL + Math.random() * (SPEECH_MAX_INTERVAL - SPEECH_MIN_INTERVAL);
-        // "een selectie" van de spraakballonen krijgt geluid, niet allemaal -
-        // met tot ~45 peds tegelijk in beeld zou elke bubble laten praten een
-        // kakofonie van overlappende stemmen geven
-        if (Math.random() < 0.4) playNpcPhrase(phraseIdx);
+        // The speech bubble only shows up TOGETHER with real audio - no
+        // silently-floating text - and NPC chatter is deliberately rare
+        // (per feedback: with ~45 peds nearby, anything more frequent was
+        // way too much/too often). Both the per-ped roll AND audio.js's own
+        // long shared cooldown across ALL peds have to allow it.
+        if (Math.random() < 0.12) {
+          const phraseIdx = Math.floor(Math.random() * GRONINGS_PHRASES.length);
+          if (playNpcPhrase(phraseIdx)) {
+            ped.speechText = GRONINGS_PHRASES[phraseIdx];
+            ped.speechUntil = world.time + SPEECH_DURATION;
+          }
+        }
       }
       if (!ped.waypoint || dist(ped.x, ped.y, ped.waypoint[0], ped.waypoint[1]) < 1.5) {
         ped.waypointTimer -= dt;
