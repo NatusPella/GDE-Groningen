@@ -13,24 +13,31 @@ const SIREN_HOLD_MAX = 0.7;
 // police/anyone else. The script is intentionally asymmetric (not every
 // character has every line) - playVoiceline() below just no-ops on a
 // missing key rather than substituting the wrong character's line.
+// Each key now has 3 phrasing variants (same character voice/delivery,
+// different words) picked at random - the first is the original file, _v1/
+// _v2 are the newer additions, per feedback that a single fixed line per
+// trigger got repetitive fast.
+function variants(dir, key) {
+  return [`./audio/voicelines/${dir}/${key}.wav`, `./audio/voicelines/${dir}/${key}_v1.wav`, `./audio/voicelines/${dir}/${key}_v2.wav`];
+}
 const TAMMO_LINES = {
-  wapen_opgepakt: './audio/voicelines/tammo/wapen_opgepakt.wav',
-  geld_opgepakt: './audio/voicelines/tammo/geld_opgepakt.wav',
-  auto_gejat: './audio/voicelines/tammo/auto_gejat.wav',
-  missie_gestart: './audio/voicelines/tammo/missie_gestart.wav',
-  missie_gelukt: './audio/voicelines/tammo/missie_gelukt.wav',
-  missie_mislukt: './audio/voicelines/tammo/missie_mislukt.wav',
-  opgepakt: './audio/voicelines/tammo/opgepakt.wav',
-  water_panic: './audio/voicelines/tammo/water_panic.wav',
+  wapen_opgepakt: variants('tammo', 'wapen_opgepakt'),
+  geld_opgepakt: variants('tammo', 'geld_opgepakt'),
+  auto_gejat: variants('tammo', 'auto_gejat'),
+  missie_gestart: variants('tammo', 'missie_gestart'),
+  missie_gelukt: variants('tammo', 'missie_gelukt'),
+  missie_mislukt: variants('tammo', 'missie_mislukt'),
+  opgepakt: variants('tammo', 'opgepakt'),
+  water_panic: variants('tammo', 'water_panic'),
 };
 const ANITA_LINES = {
-  wapen_opgepakt: './audio/voicelines/anita/wapen_opgepakt.wav',
-  geld_opgepakt: './audio/voicelines/anita/geld_opgepakt.wav',
-  missie_gestart: './audio/voicelines/anita/missie_gestart.wav',
-  missie_gelukt: './audio/voicelines/anita/missie_gelukt.wav',
-  missie_mislukt: './audio/voicelines/anita/missie_mislukt.wav',
-  opgepakt: './audio/voicelines/anita/opgepakt.wav',
-  kus: './audio/voicelines/anita/kus.wav',
+  wapen_opgepakt: variants('anita', 'wapen_opgepakt'),
+  geld_opgepakt: variants('anita', 'geld_opgepakt'),
+  missie_gestart: variants('anita', 'missie_gestart'),
+  missie_gelukt: variants('anita', 'missie_gelukt'),
+  missie_mislukt: variants('anita', 'missie_mislukt'),
+  opgepakt: variants('anita', 'opgepakt'),
+  kus: variants('anita', 'kus'),
 };
 const GMUSIC_JINGLES = {
   station_id: './audio/gmusic/jingles/station_id.wav',
@@ -53,7 +60,7 @@ const POLICE_BARK_AUDIO = {};
 for (const k of POLICE_BARK_KEYS) POLICE_BARK_AUDIO[k] = [0, 1].map((v) => `./audio/police/${k}_v${v}.wav`);
 const POLICE_CHASE_START_KEYS = ['stop_politie', 'zet_kant', 'verdachte_voertuig', 'handen_omhoog', 'achtervolging'];
 
-const SIKKOM_AUDIO_KEYS = ['wanted_up_1', 'wanted_up_2', 'wrecked_up_1', 'wrecked_up_2', 'copkill_up', 'pedkill_up', 'kill_up', 'mission_up'];
+const SIKKOM_AUDIO_KEYS = ['wanted_up_1', 'wanted_up_2', 'wrecked_up_1', 'wrecked_up_2', 'copkill_up', 'pedkill_up', 'kill_up', 'mission_up', 'weather_storm_start', 'weather_storm_end'];
 const SIKKOM_AUDIO = {};
 for (const k of SIKKOM_AUDIO_KEYS) SIKKOM_AUDIO[k] = [0, 1].map((v) => `./audio/sikkom/${k}_v${v}.wav`);
 
@@ -290,8 +297,9 @@ function playNpcSpokenClip(src) {
 }
 
 function playVoiceline(character, key) {
-  const src = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];
-  return src ? playSpokenClip(src) : false;
+  const paths = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];
+  if (!paths || !paths.length) return false;
+  return playSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
 }
 
 function playGMusicJingle(key) {
