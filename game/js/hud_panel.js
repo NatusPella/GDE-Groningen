@@ -1,4 +1,5 @@
 import { getPickupsForRender } from './pickups.js';
+import { getHorecaForRender } from './horeca.js';
 import { isMuted } from './audio.js';
 
 const MINIMAP_SIZE = 160;
@@ -258,31 +259,297 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
 
-function missionTarget(mission) {
-  if (!mission) return null;
-  if (mission.marker && typeof mission.marker.x === 'number') return mission.marker;
-  if (typeof mission.x === 'number' && typeof mission.y === 'number') return { x: mission.x, y: mission.y };
-  if (mission.target && typeof mission.target.x === 'number') return mission.target;
-  if (Array.isArray(mission.waypoints) && mission.waypoints.length) return mission.waypoints[0];
-  return null;
+const C = {
+  green: '#1e9e56',
+  greenLight: '#3fc97a',
+  greenDark: '#0f5c30',
+  dark: '#0c140e',
+  cream: '#f0ede4',
+  landmark: '#f5f0e6',
+  red: '#d93f3f',
+  policeBlue: '#3f6fd9',
+  yellow: '#e8c93a',
+  yellowHalf: 'rgba(232, 201, 58, 0.5)',
+  horeca: '#c9622a',
+  grey: '#c7c7c2',
+  greyDark: '#2a2e28',
+};
+
+function outline(ctx, s, color = C.dark, w = 1.2) {
+  ctx.lineWidth = w * s;
+  ctx.strokeStyle = color;
+  ctx.stroke();
 }
+
+function pulseAt(t, speed = 5) {
+  return 0.5 + 0.5 * Math.sin(t * speed);
+}
+
+// Draws one map marker in CSS-pixel space centred on (x, y); shared by the
+// minimap, the full map and its legend so all three always match.
+export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
+  const t = opts.t ?? performance.now() / 1000;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.lineJoin = 'round';
+  switch (kind) {
+    case 'player': {
+      ctx.rotate(opts.angle ?? -Math.PI / 2);
+      ctx.beginPath();
+      ctx.moveTo(7 * s, 0);
+      ctx.lineTo(-5 * s, 4.6 * s);
+      ctx.lineTo(-2.6 * s, 0);
+      ctx.lineTo(-5 * s, -4.6 * s);
+      ctx.closePath();
+      ctx.fillStyle = C.greenLight;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.6);
+      break;
+    }
+    case 'companion': {
+      ctx.beginPath();
+      ctx.arc(0, 0, 3.2 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.cream;
+      ctx.fill();
+      outline(ctx, s);
+      break;
+    }
+    case 'car': {
+      ctx.beginPath();
+      ctx.roundRect(-5.5 * s, -2 * s, 11 * s, 5 * s, 1.4 * s);
+      ctx.moveTo(-3 * s, -2 * s);
+      ctx.lineTo(-1.8 * s, -4.4 * s);
+      ctx.lineTo(2 * s, -4.4 * s);
+      ctx.lineTo(3.2 * s, -2 * s);
+      ctx.fillStyle = C.greenDark;
+      ctx.fill();
+      outline(ctx, s, C.dark, 3);
+      outline(ctx, s, C.greenLight, 1.4);
+      ctx.beginPath();
+      ctx.arc(-3 * s, 3 * s, 1.2 * s, 0, Math.PI * 2);
+      ctx.arc(3 * s, 3 * s, 1.2 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.greenLight;
+      ctx.fill();
+      break;
+    }
+    case 'missionIdle': {
+      const pulse = pulseAt(t);
+      ctx.beginPath();
+      ctx.arc(0, 0, (4.5 + pulse * 2) * s, 0, Math.PI * 2);
+      outline(ctx, s, 'rgba(0,0,0,0.6)', 3.4);
+      ctx.globalAlpha = (opts.alpha ?? 1) * (0.65 + pulse * 0.35);
+      outline(ctx, s, C.yellow, 2);
+      break;
+    }
+    case 'missionActive': {
+      const pulse = pulseAt(t);
+      ctx.beginPath();
+      ctx.arc(0, 0, (5.5 + pulse * 1.2) * s, 0, Math.PI * 2);
+      outline(ctx, s, 'rgba(0,0,0,0.6)', 3.4);
+      outline(ctx, s, C.yellow, 2);
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.6 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.yellow;
+      ctx.fill();
+      outline(ctx, s, C.dark, 0.8);
+      break;
+    }
+    case 'waypoint': {
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.4 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.yellowHalf;
+      ctx.fill();
+      break;
+    }
+    case 'money': {
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.6 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.green;
+      ctx.fill();
+      outline(ctx, s, C.greenLight, 1);
+      break;
+    }
+    case 'weapon': {
+      ctx.beginPath();
+      ctx.moveTo(0, -3.6 * s);
+      ctx.lineTo(3.4 * s, 2.6 * s);
+      ctx.lineTo(-3.4 * s, 2.6 * s);
+      ctx.closePath();
+      ctx.fillStyle = C.greenDark;
+      ctx.fill();
+      outline(ctx, s, C.dark, 2.6);
+      outline(ctx, s, C.greenLight, 1.2);
+      break;
+    }
+    case 'health': {
+      ctx.beginPath();
+      ctx.roundRect(-4 * s, -4 * s, 8 * s, 8 * s, 1.6 * s);
+      ctx.fillStyle = C.cream;
+      ctx.fill();
+      outline(ctx, s);
+      ctx.fillStyle = C.red;
+      ctx.fillRect(-1.1 * s, -3 * s, 2.2 * s, 6 * s);
+      ctx.fillRect(-3 * s, -1.1 * s, 6 * s, 2.2 * s);
+      break;
+    }
+    case 'armor': {
+      ctx.beginPath();
+      ctx.moveTo(0, -4.2 * s);
+      ctx.lineTo(3.6 * s, -2.8 * s);
+      ctx.quadraticCurveTo(3.4 * s, 2.4 * s, 0, 4.4 * s);
+      ctx.quadraticCurveTo(-3.4 * s, 2.4 * s, -3.6 * s, -2.8 * s);
+      ctx.closePath();
+      ctx.fillStyle = C.grey;
+      ctx.fill();
+      outline(ctx, s);
+      ctx.beginPath();
+      ctx.moveTo(0, -2.8 * s);
+      ctx.lineTo(0, 3 * s);
+      outline(ctx, s, C.cream, 1);
+      break;
+    }
+    case 'garage': {
+      ctx.rotate(Math.PI / 4);
+      ctx.beginPath();
+      ctx.rect(-2.9 * s, -2.9 * s, 5.8 * s, 5.8 * s);
+      ctx.fillStyle = C.greenDark;
+      ctx.fill();
+      outline(ctx, s, C.dark, 2.8);
+      outline(ctx, s, C.greenLight, 1.3);
+      break;
+    }
+    case 'horeca': {
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.4 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.horeca;
+      ctx.fill();
+      outline(ctx, s);
+      ctx.beginPath();
+      ctx.moveTo(-1.9 * s, -2.4 * s);
+      ctx.lineTo(1.9 * s, -2.4 * s);
+      ctx.lineTo(1.3 * s, 2.4 * s);
+      ctx.lineTo(-1.3 * s, 2.4 * s);
+      ctx.closePath();
+      ctx.fillStyle = C.cream;
+      ctx.fill();
+      break;
+    }
+    case 'flitspaal': {
+      ctx.beginPath();
+      ctx.roundRect(-4 * s, -2.8 * s, 8 * s, 5.6 * s, 1 * s);
+      ctx.fillStyle = C.greyDark;
+      ctx.fill();
+      outline(ctx, s, C.dark, 2.6);
+      outline(ctx, s, C.grey, 1);
+      ctx.beginPath();
+      ctx.arc(0.4 * s, 0, 1.6 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.grey;
+      ctx.fill();
+      ctx.fillRect(-3.2 * s, -4 * s, 2.2 * s, 1.2 * s);
+      break;
+    }
+    case 'landmark': {
+      const r = 5 * s;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const oa = -Math.PI / 2 + i * (Math.PI * 2 / 5);
+        const ia = oa + Math.PI / 5;
+        if (i === 0) ctx.moveTo(Math.cos(oa) * r, Math.sin(oa) * r);
+        else ctx.lineTo(Math.cos(oa) * r, Math.sin(oa) * r);
+        ctx.lineTo(Math.cos(ia) * r * 0.45, Math.sin(ia) * r * 0.45);
+      }
+      ctx.closePath();
+      ctx.fillStyle = C.landmark;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1);
+      break;
+    }
+    case 'police': {
+      const blue = Math.floor(t * 6) % 2 === 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, 3.2 * s, 0, Math.PI * 2);
+      ctx.fillStyle = blue ? C.policeBlue : C.red;
+      ctx.fill();
+      outline(ctx, s, C.cream, 1);
+      break;
+    }
+  }
+  ctx.restore();
+}
+
+export function drawEdgeArrow(ctx, x, y, angle, color, s = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(7 * s, 0);
+  ctx.lineTo(-4.2 * s, 4.4 * s);
+  ctx.lineTo(-4.2 * s, -4.4 * s);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 1.2 * s;
+  ctx.strokeStyle = C.dark;
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function drawRoute(ctx, pts, s = 1) {
+  if (pts.length < 2) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.setLineDash([3 * s, 3 * s]);
+  ctx.lineWidth = 1.4 * s;
+  ctx.strokeStyle = C.yellowHalf;
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Horeca is dense (hundreds of spots), so keep at most one icon per world
+// grid cell; a world-space grid stays stable while the minimap rotates.
+export function declutter(items, cellM) {
+  const seen = new Set();
+  return items.filter((it) => {
+    const key = Math.floor(it.x / cellM) * 100003 + Math.floor(it.y / cellM);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+export function getHeroCar(world) {
+  return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;
+}
+
+export function forEachPoliceUnit(world, fn) {
+  for (const v of world.vehicles) {
+    if (v.isPolice && !v.hijacked && !v.wrecked) fn(v.x, v.y);
+  }
+  for (const p of world.pedestrians) {
+    if (p.isCop && p.state !== 'dead') fn(p.x, p.y);
+  }
+  if (world.policeHeli) fn(world.policeHeli.x, world.policeHeli.y);
+}
+
+const MM_ICON = 0.85;
+let horecaMini = null;
 
 function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
   const dpr = window.devicePixelRatio || 1;
   const player = world.player;
+  const t = performance.now() / 1000;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, els.mmCanvas.width, els.mmCanvas.height);
 
   const cx = MINIMAP_SIZE / 2, cy = MINIMAP_SIZE / 2;
-  // GTA5-style: the map itself rotates so the player's facing direction
-  // always points up on screen, instead of a fixed north-up map with a
-  // rotating player arrow. mapRotation is the screen-space angle any
-  // world-space angle needs to add to become correct on screen post-
-  // rotation (derived once here, reused below for the player arrow, the
-  // off-screen mission arrow, and the new north indicator).
+  // The map rotates so the player's heading always points up; any world
+  // angle plus mapRotation gives its on-screen angle.
   const mapRotation = -Math.PI / 2 - player.angle;
+  const cosR = Math.cos(mapRotation), sinR = Math.sin(mapRotation);
   ctx.translate(cx * dpr, cy * dpr);
   ctx.rotate(mapRotation);
   ctx.scale(MM_SCALE * dpr, MM_SCALE * dpr);
@@ -309,65 +576,78 @@ function drawMinimap(dt, world) {
     ctx.beginPath();
     ctx.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
-    ctx.strokeStyle = r.cat === 'major' ? '#e8c93a' : r.cat === 'cycle' ? '#c9603f' : '#a8ada2';
+    ctx.strokeStyle = r.cat === 'major' ? '#f0ede4' : r.cat === 'cycle' ? '#c9603f' : '#a8ada2';
     ctx.lineWidth = Math.max(r.width, 3);
     ctx.stroke();
   }
 
   const MM_BUILDING_COLORS = ['#b98a6a', '#9a8a7a', '#c9a876', '#8a96a0', '#a88a9a'];
   for (const b of view.buildings) {
-    ctx.fillStyle = b.landmark ? '#ffd23f' : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
+    ctx.fillStyle = b.landmark ? '#8a8474' : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
     fillPoly(ctx, b.pts);
   }
 
-  drawLandmarkIcons(ctx, world, player);
-  drawPickupIcons(ctx, world, player);
-
-  const dotR = 2.5 / MM_SCALE;
-  for (const v of world.vehicles) {
-    if (!v.isPolice || v.hijacked || !v.driver) continue;
-    if (Math.abs(v.x - player.x) > MM_RADIUS_M || Math.abs(v.y - player.y) > MM_RADIUS_M) continue;
-    ctx.beginPath();
-    ctx.arc(v.x, v.y, dotR, 0, Math.PI * 2);
-    ctx.fillStyle = '#dd2222';
-    ctx.fill();
-  }
-
-  const target = missionTarget(world.mission);
-  let targetOffscreen = null;
-  if (target) {
-    const dx = target.x - player.x, dy = target.y - player.y;
-    if (Math.hypot(dx, dy) <= MM_RADIUS_M) drawMissionRing(ctx, world, target);
-    else targetOffscreen = Math.atan2(dy, dx);
-  }
-
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  // the map itself now rotates to keep the player's heading pointing up
-  // (see mapRotation above), so the player marker is always just "up" -
-  // no rotation needed here any more, unlike the old fixed-north map
-  // where this arrow had to carry the player's own heading.
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.fillStyle = '#ffcc33';
-  ctx.strokeStyle = '#1a1a1a';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(0, -6);
-  ctx.lineTo(-4, 4);
-  ctx.lineTo(4, 4);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
 
-  // North indicator: a fixed point in the WORLD (north = world angle
-  // -PI/2, since y increases south per ARCHITECTURE.md) swept through
-  // mapRotation into screen space, same conversion the mission edge
-  // arrow already needs - swings around the minimap's rim as the player
-  // turns, always pointing toward true north, GTA5-style.
+  const iconRangeM = MM_RADIUS_M - 5 / MM_SCALE;
+  const toScreen = (x, y) => {
+    const dx = x - player.x, dy = y - player.y;
+    return [cx + (dx * cosR - dy * sinR) * MM_SCALE, cy + (dx * sinR + dy * cosR) * MM_SCALE];
+  };
+  const inRange = (x, y) => (x - player.x) ** 2 + (y - player.y) ** 2 <= iconRangeM * iconRangeM;
+  const icon = (kind, x, y, opts) => {
+    if (!inRange(x, y)) return false;
+    const [sx, sy] = toScreen(x, y);
+    drawMapIcon(ctx, kind, sx, sy, MM_ICON, { t, ...opts });
+    return true;
+  };
+  const edgeAngle = (x, y) => Math.atan2(y - player.y, x - player.x) + mapRotation;
+
+  for (const lm of world.map.meta.landmarks || []) icon('landmark', lm.x, lm.y);
+
+  const p = getPickupsForRender();
+  for (const m of p.money) icon('money', m.x, m.y);
+  for (const w of p.weapons) icon('weapon', w.x, w.y);
+  if (p.health) icon('health', p.health.x, p.health.y);
+  if (p.armor) icon('armor', p.armor.x, p.armor.y);
+  for (const g of p.garages) icon('garage', g.x, g.y);
+  if (!horecaMini) horecaMini = declutter(getHorecaForRender(), 14 / MM_SCALE);
+  for (const h of horecaMini) icon('horeca', h.x, h.y);
+  for (const f of world.flitspaalen || []) icon('flitspaal', f.x, f.y);
+
+  const m = world.mission;
+  let missionEdge = null;
+  if (m && m.marker && m.phase !== 'cooldown') {
+    const wps = m.phase === 'active' ? m.remainingWaypoints || [] : [];
+    if (wps.length) {
+      drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), MM_ICON);
+      for (const w of wps) icon('waypoint', w.x, w.y);
+    }
+    const kind = m.phase === 'active' ? 'missionActive' : 'missionIdle';
+    if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
+  }
+
+  const hero = getHeroCar(world);
+  let heroEdge = null;
+  if (hero && player.inVehicle !== hero && !icon('car', hero.x, hero.y)) heroEdge = edgeAngle(hero.x, hero.y);
+
+  const c = world.companion;
+  if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', c.x, c.y);
+
+  forEachPoliceUnit(world, (x, y) => icon('police', x, y));
+
+  drawMapIcon(ctx, 'player', cx, cy, 1.15, { angle: -Math.PI / 2 });
+
   drawNorthIndicator(ctx, cx, cy, mapRotation + -Math.PI / 2);
 
-  if (targetOffscreen != null) drawMissionEdgeArrow(ctx, world, cx, cy, targetOffscreen + mapRotation);
+  const edgeR = MINIMAP_SIZE / 2 - 11;
+  if (heroEdge != null) {
+    drawEdgeArrow(ctx, cx + Math.cos(heroEdge) * edgeR, cy + Math.sin(heroEdge) * edgeR, heroEdge, C.greenLight, 0.9);
+  }
+  if (missionEdge != null) {
+    const s = 1 + pulseAt(t) * 0.2;
+    drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, s);
+  }
 }
 
 function drawNorthIndicator(ctx, cx, cy, screenAngle) {
@@ -389,172 +669,6 @@ function drawNorthIndicator(ctx, cx, cy, screenAngle) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('N', 0, 6);
-  ctx.restore();
-}
-
-function inMinimapRange(player, x, y) {
-  return Math.abs(x - player.x) <= MM_RADIUS_M && Math.abs(y - player.y) <= MM_RADIUS_M;
-}
-
-const LANDMARK_COLOR = '#f5f0e6';
-function drawLandmarkIcons(ctx, world, player) {
-  const landmarks = world.map.meta.landmarks;
-  if (!landmarks) return;
-  for (const lm of landmarks) {
-    if (!inMinimapRange(player, lm.x, lm.y)) continue;
-    drawStarIcon(ctx, lm.x, lm.y, 3.2 / MM_SCALE, LANDMARK_COLOR);
-  }
-}
-
-function drawPickupIcons(ctx, world, player) {
-  const p = getPickupsForRender();
-
-  for (const m of p.money) {
-    if (!inMinimapRange(player, m.x, m.y)) continue;
-    ctx.beginPath();
-    ctx.arc(m.x, m.y, 1.8 / MM_SCALE, 0, Math.PI * 2);
-    ctx.fillStyle = '#3fbf3f';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-    ctx.lineWidth = 0.5 / MM_SCALE;
-    ctx.stroke();
-  }
-
-  for (const w of p.weapons) {
-    if (!inMinimapRange(player, w.x, w.y)) continue;
-    drawTriangleIcon(ctx, w.x, w.y, 2.2 / MM_SCALE, '#ff9500');
-  }
-
-  if (p.health && inMinimapRange(player, p.health.x, p.health.y)) {
-    drawCrossIcon(ctx, p.health.x, p.health.y, 2.1 / MM_SCALE, '#ff4d6d');
-  }
-  if (p.armor && inMinimapRange(player, p.armor.x, p.armor.y)) {
-    drawSquareIcon(ctx, p.armor.x, p.armor.y, 1.9 / MM_SCALE, '#4a90d9');
-  }
-
-  for (const g of p.garages) {
-    if (!inMinimapRange(player, g.x, g.y)) continue;
-    drawDiamondIcon(ctx, g.x, g.y, 2.6 / MM_SCALE, '#b06fe0');
-  }
-}
-
-function drawStarIcon(ctx, x, y, r, color) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.beginPath();
-  for (let i = 0; i < 5; i++) {
-    const oa = -Math.PI / 2 + i * (Math.PI * 2 / 5);
-    const ia = oa + Math.PI / 5;
-    if (i === 0) ctx.moveTo(Math.cos(oa) * r, Math.sin(oa) * r);
-    else ctx.lineTo(Math.cos(oa) * r, Math.sin(oa) * r);
-    ctx.lineTo(Math.cos(ia) * r * 0.45, Math.sin(ia) * r * 0.45);
-  }
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-  ctx.lineWidth = 0.5 / MM_SCALE;
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawTriangleIcon(ctx, x, y, r, color) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.beginPath();
-  ctx.moveTo(0, -r);
-  ctx.lineTo(r * 0.87, r * 0.6);
-  ctx.lineTo(-r * 0.87, r * 0.6);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-  ctx.lineWidth = 0.5 / MM_SCALE;
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawSquareIcon(ctx, x, y, r, color) {
-  ctx.fillStyle = color;
-  ctx.fillRect(x - r, y - r, r * 2, r * 2);
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-  ctx.lineWidth = 0.5 / MM_SCALE;
-  ctx.strokeRect(x - r, y - r, r * 2, r * 2);
-}
-
-function drawDiamondIcon(ctx, x, y, r, color) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(Math.PI / 4);
-  ctx.fillStyle = color;
-  ctx.fillRect(-r * 0.75, -r * 0.75, r * 1.5, r * 1.5);
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-  ctx.lineWidth = 0.5 / MM_SCALE;
-  ctx.strokeRect(-r * 0.75, -r * 0.75, r * 1.5, r * 1.5);
-  ctx.restore();
-}
-
-function drawCrossIcon(ctx, x, y, r, color) {
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-  ctx.lineWidth = 0.4 / MM_SCALE;
-  ctx.stroke();
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 0.6 / MM_SCALE;
-  const a = r * 0.5;
-  ctx.beginPath();
-  ctx.moveTo(x - a, y);
-  ctx.lineTo(x + a, y);
-  ctx.moveTo(x, y - a);
-  ctx.lineTo(x, y + a);
-  ctx.stroke();
-}
-
-// A static ring blends into the gold major-road strokes at a glance, so this
-// pulses size/width/alpha over world.time and adds a bright core dot -
-// nothing else on the minimap animates, which is what makes it read as
-// "the objective" instead of just another gold shape.
-function drawMissionRing(ctx, world, target) {
-  const pulse = 0.5 + 0.5 * Math.sin(world.time * 5);
-  ctx.beginPath();
-  ctx.arc(target.x, target.y, (3 + pulse * 1.4) / MM_SCALE, 0, Math.PI * 2);
-  ctx.strokeStyle = '#e8c93a';
-  ctx.lineWidth = (1.6 - pulse * 0.5) / MM_SCALE;
-  ctx.globalAlpha = 0.65 + pulse * 0.35;
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-  ctx.beginPath();
-  ctx.arc(target.x, target.y, 1 / MM_SCALE, 0, Math.PI * 2);
-  ctx.fillStyle = '#fff6d0';
-  ctx.fill();
-}
-
-// GTA-style edge-of-radar arrow: once the mission target scrolls outside the
-// minimap's visible circle, its ring (drawn in world-space) simply never
-// gets painted, so without this the player loses all sense of direction -
-// this draws in the already-reset screen-space transform, at a fixed pixel
-// radius just inside the minimap's circular mask, pointing along the same
-// player-to-target angle the in-range ring would sit at.
-function drawMissionEdgeArrow(ctx, world, cx, cy, angle) {
-  const pulse = 0.5 + 0.5 * Math.sin(world.time * 5);
-  const R = MINIMAP_SIZE / 2 - 11;
-  const size = 7 + pulse * 1.5;
-  ctx.save();
-  ctx.translate(cx + Math.cos(angle) * R, cy + Math.sin(angle) * R);
-  ctx.rotate(angle);
-  ctx.beginPath();
-  ctx.moveTo(size, 0);
-  ctx.lineTo(-size * 0.6, size * 0.62);
-  ctx.lineTo(-size * 0.6, -size * 0.62);
-  ctx.closePath();
-  ctx.fillStyle = '#e8c93a';
-  ctx.fill();
-  ctx.strokeStyle = '#1a1a1a';
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
   ctx.restore();
 }
 
