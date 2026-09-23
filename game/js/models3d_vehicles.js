@@ -49,7 +49,7 @@ const WRECKED_COLOR = 0x4a4a4a;
 // Side/rear glazing reads as a darker tinted privacy blue; the windshield
 // gets a lighter blue and lower opacity (more see-through) so the two read
 // as distinct surfaces instead of one uniform "cabin" block.
-const SIDE_GLASS_COLOR = HABBO_PALETTE.roofBlue;
+const SIDE_GLASS_COLOR = HABBO_PALETTE.glassBlue;
 const SIDE_GLASS_OPACITY = 0.85;
 const WINDSHIELD_COLOR = HABBO_PALETTE.glassBlue;
 const WINDSHIELD_OPACITY = 0.5;
@@ -197,7 +197,7 @@ function buildRiderMesh(shirt, torsoY = 0.62, lean = -0.5, sizeMul = 1) {
 function buildLightBar(wid, y) {
   const group = new THREE.Group();
   const half = wid / 2 - 0.08;
-  const blue = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, half), lampMaterial(HABBO_PALETTE.roofBlue, 0.9));
+  const blue = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, half), lampMaterial(0x2f6bff, 0.9));
   blue.position.set(0.05, y, -half / 2);
   group.add(blue);
   const red = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, half), lampMaterial(HABBO_PALETTE.brickRed, 0.9));
@@ -590,7 +590,7 @@ function buildBoatMesh(v) {
   bow.position.set(hl - bowLen / 2, hullH / 2 + WATER_LINE, 0);
   group.add(bow);
 
-  const cabin = outlinedMesh(new THREE.BoxGeometry(len * 0.32, 0.5, wid * 0.78), glassMaterial(v.model.cabin || HABBO_PALETTE.roofBlue, 0.85, v.wrecked));
+  const cabin = outlinedMesh(new THREE.BoxGeometry(len * 0.32, 0.5, wid * 0.78), glassMaterial(v.model.cabin || HABBO_PALETTE.glassBlue, 0.85, v.wrecked));
   cabin.position.set(-hl * 0.05, hullH + 0.25 + WATER_LINE, 0);
   group.add(cabin);
 

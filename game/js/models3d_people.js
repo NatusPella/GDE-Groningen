@@ -72,7 +72,7 @@ const WALK_BLEND_RATE = 8; // 1/s ease rate for the amplitude blend
 const LEG_SWING_AMPLITUDE = 0.55; // rad, hip pivot swing at full blend
 const ARM_SWING_AMPLITUDE = 0.35; // rad, shoulder pivot swing at full blend (smaller than legs)
 
-export const TAMMO_APPEARANCE = { shirt: HABBO_PALETTE.roofBlue, skin: HABBO_PALETTE.woodLight, hair: HABBO_PALETTE.woodDark, variant: 'male', character: 'tammo', cap: DEFAULT_CAP };
+export const TAMMO_APPEARANCE = { shirt: 0x3f6ea8, skin: HABBO_PALETTE.woodLight, hair: HABBO_PALETTE.woodDark, variant: 'male', character: 'tammo', cap: DEFAULT_CAP };
 export const ANITA_APPEARANCE = { shirt: HABBO_PALETTE.brickRed, skin: HABBO_PALETTE.woodMid, hair: HABBO_PALETTE.black, variant: 'female', character: 'anita' };
 
 function cylinderPart(rTop, rBottom, h, mat) {
