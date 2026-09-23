@@ -16,7 +16,7 @@ import {
   getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
   buildHealthPickupMesh3D, buildArmorPickupMesh3D, buildGaragePickupMesh3D,
 } from './pickups.js';
-import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D } from './trafficlights.js';
+import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D, placeTrafficLight } from './trafficlights.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial } from './water3d.js';
 import { buildFallenTreeMesh3D, updateFallenTreeMesh3D } from './treeprops.js';
@@ -25,6 +25,7 @@ import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
 import { pointInPolygon, polygonBounds } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
+import { OUTLINE_MAT } from './pixelart3d.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -140,6 +141,20 @@ function nearbyCamTargets(px, py) {
     camTargetList.push(mesh);
   }
   return camTargetList;
+}
+
+// Materials reused across many actors - disposing one would force every
+// remaining user to re-upload/recompile it on the next frame.
+const SHARED_MATERIALS = new Set([OUTLINE_MAT, KISS_HEART_MAT]);
+
+// Actors/effects build their own geometries per instance, so on despawn both
+// geometry and material must be freed or GPU memory grows all session.
+function disposeObject(root) {
+  root.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of mats) if (!SHARED_MATERIALS.has(m)) m.dispose();
+  });
 }
 
 function hash2(x, y) {
@@ -509,7 +524,7 @@ function syncTrees(world, px, py) {
   for (const [t, mesh] of treeMeshes) {
     if (seen.has(t)) continue;
     scene.remove(mesh);
-    for (const child of mesh.children) child.material.dispose();
+    disposeObject(mesh);
     treeMeshes.delete(t);
   }
 }
@@ -534,7 +549,7 @@ function syncFallenTrees(world, px, py) {
   for (const [tree, mesh] of fallenTreeMeshes) {
     if (seen.has(tree)) continue;
     scene.remove(mesh);
-    mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+    disposeObject(mesh);
     fallenTreeMeshes.delete(tree);
   }
 }
@@ -553,7 +568,7 @@ function syncActors(list, cache, builder, idOf) {
   for (const [id, mesh] of cache) {
     if (seen.has(id)) continue;
     scene.remove(mesh);
-    mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+    disposeObject(mesh);
     cache.delete(id);
   }
 }
@@ -689,14 +704,14 @@ export function update3D(dt, world) {
   for (const [id, fire] of vehicleFireMeshes) {
     if (fireSeenIds.has(id)) continue;
     scene.remove(fire);
-    fire.traverse((o) => { if (o.material) o.material.dispose(); });
+    disposeObject(fire);
     vehicleFireMeshes.delete(id);
   }
   impactSparkEffects = impactSparkEffects.filter((mesh) => {
     const alive = updateVehicleImpactSparkMesh3D(mesh, dt);
     if (!alive) {
       scene.remove(mesh);
-      mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+      disposeObject(mesh);
     }
     return alive;
   });
@@ -704,7 +719,7 @@ export function update3D(dt, world) {
     const alive = updateVehicleExplosionMesh3D(mesh, dt);
     if (!alive) {
       scene.remove(mesh);
-      mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+      disposeObject(mesh);
     }
     return alive;
   });
@@ -868,11 +883,14 @@ export function update3D(dt, world) {
     let mesh = trafficLightMeshes.get(light);
     if (!mesh) {
       mesh = buildTrafficLightMesh3D();
-      mesh.position.set(light.x, 0, light.y);
+      const spot = placeTrafficLight(light, world.map);
+      mesh.position.set(spot.x, 0, spot.y);
+      mesh.rotation.y = -spot.angle;
       scene.add(mesh);
       trafficLightMeshes.set(light, mesh);
     }
-    setTrafficLightPhase3D(mesh, getTrafficLightPhase(light));
+    mesh.visible = Math.abs(light.x - player.x) < DRAW_DIST && Math.abs(light.y - player.y) < DRAW_DIST;
+    if (mesh.visible) setTrafficLightPhase3D(mesh, getTrafficLightPhase(light));
   }
 
   // combat: bullets (Map-keyed like any other actor), spark bursts (pruned
@@ -896,7 +914,7 @@ export function update3D(dt, world) {
   for (const [p, mesh] of sparkMeshes) {
     if (world.time <= p.until) continue;
     scene.remove(mesh);
-    mesh.traverse((o) => { if (o.material) o.material.dispose(); });
+    disposeObject(mesh);
     sparkMeshes.delete(p);
   }
   for (const p of world.particles) {
@@ -912,7 +930,8 @@ export function update3D(dt, world) {
     mesh.position.y = 1.6 + life * 0.8;
     mesh.scale.setScalar(1 + Math.sin(life * Math.PI) * 0.3);
     if (world.time <= p.until) continue;
-    scene.remove(mesh); // no dispose: KISS_HEART_MAT is shared across every heart
+    scene.remove(mesh);
+    disposeObject(mesh);
     kissMeshes.delete(p);
   }
   if (!muzzleFlashMesh) { muzzleFlashMesh = buildMuzzleFlashMesh3D(); scene.add(muzzleFlashMesh); }
