@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { HABBO_PALETTE, habboMaterial, habboFlatMaterial, OUTLINE_MAT, createWindowTexture } from './pixelart3d.js';
+import { HABBO_PALETTE, habboMaterial, habboFlatMaterial, OUTLINE_MAT, OUTLINES_ENABLED, createWindowTexture } from './pixelart3d.js';
 import { getLandmarkModel } from './landmarkmodels.js';
 import { pointInPolygon } from './util.js';
 
@@ -67,15 +67,20 @@ const accentMaterials = Object.fromEntries(Object.entries(ACCENT_COLOR).map(([k,
 // glass, not something that needs to react to the sun), tiled once per
 // window bay via each row's UVs (see buildWindowRowGeometry).
 const windowTexture = createWindowTexture('glassBlue', 'wallCream');
-const windowBandMaterial = habboFlatMaterial(0xffffff, { map: windowTexture, side: THREE.DoubleSide });
-const shopfrontMaterial = habboFlatMaterial(HABBO_PALETTE.glassBlue, { side: THREE.DoubleSide });
+windowTexture.magFilter = THREE.LinearFilter;
+windowTexture.minFilter = THREE.LinearMipmapLinearFilter;
+windowTexture.generateMipmaps = true;
+windowTexture.colorSpace = THREE.SRGBColorSpace;
+windowTexture.needsUpdate = true;
+const windowBandMaterial = new THREE.MeshStandardMaterial({ map: windowTexture, roughness: 0.35, metalness: 0.1, side: THREE.DoubleSide });
+const shopfrontMaterial = new THREE.MeshStandardMaterial({ color: HABBO_PALETTE.glassBlue, roughness: 0.25, metalness: 0.2, side: THREE.DoubleSide });
 const corniceMaterial = habboMaterial(HABBO_PALETTE.wallCream, { side: THREE.DoubleSide });
 const canopyMaterial = habboMaterial(HABBO_PALETTE.metalGrey, { side: THREE.DoubleSide });
 // A dark gutter/eave trim strip (flat/unlit so it reads as a consistent dark
 // line regardless of light direction), a painted-wood door-recess box, and a
 // small gilded (Habbo palette has no literal gold, wallYellow reads as the
 // closest flat "gilded" accent) trim for spire/cross finials.
-const eaveTrimMaterial = habboFlatMaterial(HABBO_PALETTE.black, { side: THREE.DoubleSide });
+const eaveTrimMaterial = habboMaterial(0x3a3531, { side: THREE.DoubleSide });
 const doorMaterial = habboMaterial(HABBO_PALETTE.woodDark, { side: THREE.DoubleSide });
 const finialMaterial = habboMaterial(HABBO_PALETTE.wallYellow, { side: THREE.DoubleSide });
 
@@ -178,6 +183,7 @@ function familyIndexFor(box) {
 // box so a small ridge cap and a big tower shaft each get a rim that reads
 // as roughly the same real-world thickness instead of a fixed percentage.
 function addAbsoluteOutline(group, geometry) {
+  if (!OUTLINES_ENABLED) return;
   if (!geometry.boundingBox) geometry.computeBoundingBox();
   const bb = geometry.boundingBox;
   const cx = (bb.min.x + bb.max.x) / 2, cy = (bb.min.y + bb.max.y) / 2, cz = (bb.min.z + bb.max.z) / 2;
@@ -200,6 +206,7 @@ function addAbsoluteOutline(group, geometry) {
 // own (often non-uniform) instance scale rather than always using a uniform
 // 1+thickness, since e.g. a door is scaled very differently on each axis.
 function addUnitOutline(group, mesh, thickness = 0.08) {
+  if (!OUTLINES_ENABLED) return;
   const outline = new THREE.Mesh(mesh.geometry, OUTLINE_MAT);
   outline.position.copy(mesh.position);
   outline.rotation.copy(mesh.rotation);

@@ -1,14 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// Shared building blocks for the "Habbo Hotel" visual language: flat,
-// vibrant, near-unshaded colors, bold black outlines around every major
-// shape, and genuine small-canvas pixel-art textures where a surface
-// benefits from one (brick, wood grain, roof tile, window glass) - not
-// just "chunky low-poly", actual pixelated bitmap art. Every model file
-// (buildings/vehicles/people/wildlife) should build its materials/outlines
-// through this file so the whole world reads as one consistent style.
-// UI/HUD/menus are explicitly NOT part of this - those stay on the
-// GTA-poster look in DESIGN_SYSTEM.md.
+// Shared materials/palette for every procedural model, styled to match the
+// real Martinitoren GLB (game/models/): architectural low-poly, faceted PBR,
+// earthy Groningen colours, no outlines. The HABBO_* names are kept only so
+// existing model files don't all need renaming; the Habbo look is retired.
 
 // --- palette --------------------------------------------------------------
 // Real Habbo-style palette: warm wood/furniture browns, bright saturated
@@ -16,24 +11,24 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 // world-content file should pull from this instead of inventing new hexes,
 // same discipline DESIGN_SYSTEM.md already asks for on the UI side.
 export const HABBO_PALETTE = {
-  woodDark: 0x8a5a2e,
-  woodMid: 0xc9873f,
-  woodLight: 0xe0b168,
-  brickRed: 0xc9453a,
-  brickOrange: 0xe8823a,
-  roofGreen: 0x3fa34d,
-  roofBlue: 0x3f7fd1,
-  wallCream: 0xf0e0b8,
-  wallPink: 0xe89ab0,
-  wallMint: 0x8fd9c4,
-  wallYellow: 0xf0d23f,
-  skyBlue: 0x5fc2e8,
-  grassGreen: 0x6fc23f,
-  stoneGrey: 0xb0aa9a,
-  glassBlue: 0x8fd4e8,
-  metalGrey: 0x9a9a9a,
-  black: 0x1a1a1a,
-  white: 0xf5f0e0,
+  woodDark: 0x5a3d26,
+  woodMid: 0x8a6440,
+  woodLight: 0xb8956a,
+  brickRed: 0x8f4634,     // Groningen red-brown brick
+  brickOrange: 0xa9623f,
+  roofGreen: 0x5b3a2e,    // dark terracotta roof tiles
+  roofBlue: 0x3e4449,     // anthracite roof tiles
+  wallCream: 0xd6cab0,
+  wallPink: 0xc2a293,
+  wallMint: 0xa3b2a0,
+  wallYellow: 0xcfb46c,
+  skyBlue: 0x8a9ea8,
+  grassGreen: 0x5f7d45,
+  stoneGrey: 0x9a958a,
+  glassBlue: 0x51666f,
+  metalGrey: 0x7b7e82,
+  black: 0x232323,
+  white: 0xe6e1d6,
 };
 export const HABBO_PALETTE_KEYS = Object.keys(HABBO_PALETTE);
 
@@ -41,32 +36,15 @@ export function randomHabboColor(rng = Math.random) {
   return HABBO_PALETTE[HABBO_PALETTE_KEYS[Math.floor(rng() * HABBO_PALETTE_KEYS.length)]];
 }
 
-// --- flat/toon shading ------------------------------------------------------
-// A 2-step gradient map gives MeshToonMaterial a hard light/shadow split
-// instead of a smooth gradient - "minimal/no shading" per the real Habbo
-// look, while still reading direction-of-light for depth in a moving 3D
-// scene (a fully unlit MeshBasicMaterial reads as flatter but loses that
-// cue entirely - use it only for genuinely flat surfaces like signage).
-let sharedGradientMap = null;
-function getToonGradientMap() {
-  if (sharedGradientMap) return sharedGradientMap;
-  const data = new Uint8Array([80, 80, 80, 255, 255, 255, 255, 255]);
-  const tex = new THREE.DataTexture(data, 2, 1, THREE.RGBAFormat);
-  tex.needsUpdate = true;
-  tex.magFilter = THREE.NearestFilter;
-  tex.minFilter = THREE.NearestFilter;
-  sharedGradientMap = tex;
-  return sharedGradientMap;
-}
-
-// The one material factory every model file should use for ordinary flat-
-// colored parts (walls, panels, limbs, fur, ...). `color` should usually
-// come from HABBO_PALETTE. Never add roughness/metalness-style PBR params
-// here - flat toon shading is the whole point.
+// --- materials --------------------------------------------------------------
+// Faceted, matte PBR like the Martinitoren model. Callers may still pass
+// emissive/transparent/side options.
 export function habboMaterial(color, opts = {}) {
-  return new THREE.MeshToonMaterial({
+  return new THREE.MeshStandardMaterial({
     color,
-    gradientMap: getToonGradientMap(),
+    roughness: 0.85,
+    metalness: 0,
+    flatShading: true,
     ...opts,
   });
 }
@@ -94,7 +72,11 @@ export function habboFlatMaterial(color, opts = {}) {
 // while still sharing this exact one material/singleton, so there is still
 // only ever ONE black outline material for the whole game.
 export const OUTLINE_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
+// Outlines belonged to the retired Habbo look. Kept switchable; while off,
+// callers get an empty node so no duplicate hull mesh is drawn at all.
+export const OUTLINES_ENABLED = false;
 export function buildOutline(geometry, thickness = 0.02) {
+  if (!OUTLINES_ENABLED) return new THREE.Object3D();
   const mesh = new THREE.Mesh(geometry, OUTLINE_MAT);
   mesh.scale.setScalar(1 + thickness);
   return mesh;

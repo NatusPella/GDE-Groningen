@@ -185,7 +185,7 @@ export function init3D(map) {
   // which read as "wrong color" complaints unrelated to the actual ground
   // Toon/Lambert materials without tone mapping clip to white well before
   // hemisphere+sun reach the old 3+4.5 - pale facades lost all colour.
-  scene.add(new THREE.HemisphereLight(0xdcefff, 0x55524a, 1.4));
+  scene.add(new THREE.HemisphereLight(0xdcefff, 0x6a655a, 2.0));
   sun = new THREE.DirectionalLight(0xfff2d8, 2.2);
   sun.position.set(120, 180, 60);
   scene.add(sun);
