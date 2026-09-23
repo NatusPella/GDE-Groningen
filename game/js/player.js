@@ -1,4 +1,4 @@
-import { closestPointOnSegment, normalizeAngle, pointInPolygon } from './util.js';
+import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater } from './util.js';
 import { findNearestVehicle, resolveVehicleBuildingCollision } from './vehicle.js';
 import { playAutoGejatLine } from './audio.js';
 import { respawnPlayer } from './world.js';
@@ -78,10 +78,6 @@ export class Player {
       this.vy = 0;
     }
 
-    let nextX = this.x + this.vx * dt;
-    let nextY = this.y + this.vy * dt;
-    [nextX, nextY] = resolveBuildingCollisions(nextX, nextY, this.radius, map);
-
     // people don't swim - water blocks on-foot movement exactly like a
     // building wall (boats are the only way to cross). Tried per-axis so
     // walking along a quay/canal edge slides instead of just sticking dead,
@@ -89,24 +85,29 @@ export class Player {
     // waterfront (the Diepenring, canals, ...)
     //
     // If the player is somehow ALREADY inside water (teleport, a future
-    // terrain-hole edge case, being shoved in) this same block used to
-    // freeze them solid: every direction out of a wide canal is "into
-    // water" too, so all three branches below failed and both next*
-    // values collapsed back to the current position, forever. Skip the
-    // block entirely in that case - let them swim - and drown instead,
-    // same "mensen lopen niet in water, dan verzuipen ze" consequence the
-    // block was built for, just not as an unrecoverable soft-lock.
-    if (isInWater(this.x, this.y, map)) {
+    // terrain-hole edge case, being shoved in) the block is skipped - every
+    // direction out of a wide canal is "into water" too, so blocking would
+    // soft-lock them - and they drown instead.
+    if (isInWater(map, this.x, this.y)) {
       world.health = Math.max(0, world.health - DROWN_RATE * dt);
-      if (world.health <= 0) { world.health = 0; respawnPlayer(world); }
-    } else if (isInWater(nextX, nextY, map)) {
-      if (!isInWater(nextX, this.y, map)) nextY = this.y;
-      else if (!isInWater(this.x, nextY, map)) nextX = this.x;
-      else { nextX = this.x; nextY = this.y; }
+      if (world.health <= 0) { world.health = 0; respawnPlayer(world); return; }
     }
 
-    this.x = nextX;
-    this.y = nextY;
+    // a single step longer than the radius can tunnel past a thin wall edge
+    const steps = Math.max(1, Math.ceil(Math.hypot(this.vx, this.vy) * dt / (this.radius * 0.9)));
+    const sdt = dt / steps;
+    for (let s = 0; s < steps; s++) {
+      let nextX = this.x + this.vx * sdt;
+      let nextY = this.y + this.vy * sdt;
+      [nextX, nextY] = resolveBuildingCollisions(nextX, nextY, this.radius, map);
+      if (!isInWater(map, this.x, this.y) && isInWater(map, nextX, nextY)) {
+        if (!isInWater(map, nextX, this.y)) nextY = this.y;
+        else if (!isInWater(map, this.x, nextY)) nextX = this.x;
+        else { nextX = this.x; nextY = this.y; }
+      }
+      this.x = nextX;
+      this.y = nextY;
+    }
   }
 
   // Tammo and Anita are always both out in the world (see companion.js) -
@@ -154,7 +155,7 @@ export class Player {
       kind: 'kiss',
     });
     const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
-    world.addMessage(`Kusje voor ${name}! (+${KISS_HEAL} health)`, 2.5);
+    world.addMessage(`Kusje voor ${name}! (+${KISS_HEAL} gezondheid)`, 2.5);
     return true;
   }
 
@@ -167,6 +168,7 @@ export class Player {
     if (v && !v.driver && !v.wrecked) {
       v.driver = 'player';
       v.road = null; // player takes manual control
+      if (v.isPolice) v.hijacked = true;
       this.inVehicle = v;
     }
   }
@@ -175,12 +177,8 @@ export class Player {
     const v = this.inVehicle;
     v.driver = null;
     this.inVehicle = null;
-    const nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
-    let ex = v.x + nx * (v.halfWid + 0.7);
-    let ey = v.y + ny * (v.halfWid + 0.7);
-    [ex, ey] = resolveBuildingCollisions(ex, ey, this.radius, map);
-    this.x = ex;
-    this.y = ey;
+    stopVehicle(v);
+    [this.x, this.y] = findExitSpot(v, this.radius, map, EXIT_LEFT_FIRST);
     this.angle = v.angle;
   }
 
@@ -190,22 +188,48 @@ export class Player {
     const throttle = ay < 0 ? 1 : ay > 0 ? -1 : 0;
     const brake = input.isDown(' ');
     v.applyControls(dt, throttle, ax, brake && v.speed !== 0);
-    resolveVehicleBuildingCollision(v, map);
+    resolveVehicleBuildingCollision(v, map, dt);
     this.x = v.x;
     this.y = v.y;
     this.angle = v.angle;
   }
 }
 
-function isInWater(x, y, map) {
-  if (map.isOnBridge(x, y)) return false;
-  for (const w of map.waterNear(x, y, 0.5)) {
-    if (pointInPolygon(x, y, w.pts)) return true;
+export function stopVehicle(v) {
+  v.speed = 0;
+  v.driftX = 0;
+  v.driftY = 0;
+}
+
+function isInsideBuilding(map, x, y) {
+  for (const b of map.buildingsNear(x, y, 0.5)) {
+    const [minx, miny, maxx, maxy] = b.bounds;
+    if (x < minx || x > maxx || y < miny || y > maxy) continue;
+    if (pointInPolygon(x, y, b.pts)) return true;
   }
   return false;
 }
 
-// Push a circle out of any nearby building polygon it overlaps.
+// Sides as multipliers of the vehicle's (-sin, cos) normal, which is its
+// right-hand side (three.z = world.y). Drivers get out on the left (NL),
+// passengers on the right.
+export const EXIT_LEFT_FIRST = [-1, 1];
+export const EXIT_RIGHT_FIRST = [1, -1];
+
+export function findExitSpot(v, radius, map, sides = EXIT_LEFT_FIRST) {
+  const nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
+  const off = v.halfWid + 0.7;
+  for (const s of sides) {
+    const ex = v.x + nx * off * s, ey = v.y + ny * off * s;
+    if (isInsideBuilding(map, ex, ey) || isInWater(map, ex, ey)) continue;
+    return resolveBuildingCollisions(ex, ey, radius, map);
+  }
+  return map.escapeBuilding(v.x + nx * off * sides[0], v.y + ny * off * sides[0]);
+}
+
+// Push a circle out of any nearby building polygon it overlaps - including
+// when its centre is already inside, where the nearest-edge vector points
+// outward rather than away from the wall.
 export function resolveBuildingCollisions(x, y, radius, map) {
   const nearby = map.buildingsNear(x, y, radius + 2);
   // 2 passes wasn't always enough in a tight gap between two close
@@ -218,19 +242,28 @@ export function resolveBuildingCollisions(x, y, radius, map) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (x < minx - radius || x > maxx + radius || y < miny - radius || y > maxy + radius) continue;
       const pts = b.pts;
-      let bestDist2 = Infinity, bestX = 0, bestY = 0;
+      let bestDist2 = Infinity, bestX = 0, bestY = 0, bestI = 0;
       for (let i = 0; i < pts.length - 1; i++) {
         const cp = closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
-        if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; bestX = cp.x; bestY = cp.y; }
+        if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; bestX = cp.x; bestY = cp.y; bestI = i; }
       }
       const d = Math.sqrt(bestDist2);
-      if (d < radius && d > 1e-6) {
-        const push = (radius - d) / d;
-        x += (x - bestX) * push;
-        y += (y - bestY) * push;
-      } else if (d <= 1e-6) {
-        x += radius;
+      const inside = pointInPolygon(x, y, pts);
+      if (!inside && d >= radius) continue;
+      let ox, oy;
+      if (d > 1e-6) {
+        ox = (x - bestX) / d;
+        oy = (y - bestY) / d;
+        if (inside) { ox = -ox; oy = -oy; }
+      } else {
+        const ex = pts[bestI + 1][0] - pts[bestI][0], ey = pts[bestI + 1][1] - pts[bestI][1];
+        const el = Math.hypot(ex, ey) || 1;
+        ox = -ey / el;
+        oy = ex / el;
+        if (pointInPolygon(bestX + ox * radius, bestY + oy * radius, pts)) { ox = -ox; oy = -oy; }
       }
+      x = bestX + ox * radius;
+      y = bestY + oy * radius;
     }
   }
   return [x, y];

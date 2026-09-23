@@ -11,7 +11,7 @@ import { initMissions, updateMissions } from './missions.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initPickups, updatePickups } from './pickups.js';
 import { initHoreca, updateHoreca } from './horeca.js';
-import { initMapView, updateMapView } from './mapview.js';
+import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { init3D, update3D, resize3D } from './scene3d.js';
@@ -33,11 +33,33 @@ const startBtn = document.getElementById('start-btn');
 function waitForStart() {
   return new Promise((resolve) => {
     startScreen.classList.add('visible');
-    startBtn.addEventListener('click', () => {
+    startBtn.focus();
+    const start = () => {
+      startBtn.removeEventListener('click', start);
+      window.removeEventListener('keydown', onKey, true);
       startScreen.classList.remove('visible');
       resolve();
-    }, { once: true });
+    };
+    const onKey = (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      start();
+    };
+    startBtn.addEventListener('click', start);
+    window.addEventListener('keydown', onKey, true);
   });
+}
+
+let errorShown = false;
+function showFrameError(err) {
+  console.error(err);
+  if (errorShown) return;
+  errorShown = true;
+  const el = document.createElement('div');
+  el.className = 'frame-error';
+  el.setAttribute('role', 'alert');
+  el.textContent = 'Er ging iets mis: ' + (err && err.message ? err.message : String(err));
+  document.body.appendChild(el);
 }
 
 const PED_TARGET = 45;
@@ -111,6 +133,25 @@ async function boot() {
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
+    try {
+      frameBody(dt);
+    } catch (err) {
+      showFrameError(err);
+    }
+    input.endFrame();
+    requestAnimationFrame(frame);
+  }
+
+  function frameBody(dt) {
+    updateMapView(dt, world);
+    world.paused = isMapOpen();
+    if (!world.paused) updateGameplay(dt);
+    updateAudio(dt, world);
+    update3D(dt, world);
+    updateHud(dt, world);
+  }
+
+  function updateGameplay(dt) {
     world.time += dt;
 
     trafficTimer -= dt;
@@ -130,20 +171,19 @@ async function boot() {
 
     player.update(dt, world);
     updateCompanion(dt, world);
-    updateMapView(dt, world);
 
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
       if (v.driver === 'player' || v.isPolice || v.isBoat) continue;
       updateTrafficAI(v, dt, map, world, Math.random);
-      resolveVehicleBuildingCollision(v, map);
+      resolveVehicleBuildingCollision(v, map, dt);
     }
     for (const v of world.vehicles) {
       if (v.isBoat && v.driver !== 'player') updateBoatAI(v, dt, map, world, Math.random);
     }
 
     updatePolice(dt, world);
-    resolveVehicleVehicleCollisions(world.vehicles);
+    resolveVehicleVehicleCollisions(world.vehicles, world);
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
@@ -158,15 +198,10 @@ async function boot() {
     updatePickups(dt, world);
     updateHoreca(dt, world);
     updateFlitspaal(dt, world);
-    updateAudio(dt, world);
     updateWeather(dt, world);
-
-    update3D(dt, world);
-    updateHud(dt, world);
-
-    input.endFrame();
-    requestAnimationFrame(frame);
   }
+
+  input.reset();
   requestAnimationFrame(frame);
 }
 

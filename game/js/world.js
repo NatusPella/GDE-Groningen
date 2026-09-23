@@ -20,7 +20,8 @@ export class World {
     this.weapon = 'fists';
     this.ammo = {};
     this.mission = null; // {type, label, timeLeft, ...} for hud.js to render
-    this.stats = { kills: 0, pedKills: 0, copKills: 0, missionsDone: 0 };
+    this.stats = { kills: 0, pedKills: 0, copKills: 0, missionsDone: 0, playerWrecks: 0 };
+    this.onRespawn = []; // (world, {busted}) callbacks, run at the end of respawnPlayer
 
     this.spawnPoint = { x: player.x, y: player.y };
     this.time = 0;
@@ -37,7 +38,16 @@ export class World {
 // module) so neither has to import the other.
 export function respawnPlayer(world, { busted = false, moneyPenalty = 0 } = {}) {
   const p = world.player;
-  if (p.inVehicle) { p.inVehicle.driver = null; p.inVehicle = null; }
+  if (p.inVehicle) {
+    const v = p.inVehicle;
+    v.driver = null;
+    v.speed = 0;
+    v.driftX = 0;
+    v.driftY = 0;
+    p.inVehicle = null;
+  }
+  p.vx = 0;
+  p.vy = 0;
   const landmarks = world.map.meta.landmarks || [];
   const pick = landmarks.length ? landmarks[Math.floor(Math.random() * landmarks.length)] : world.spawnPoint;
   const spot = world.map.nearestRoadPoint(pick.x, pick.y, 400) || pick;
@@ -52,4 +62,5 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0 } = {}) 
   world.money = Math.max(0, world.money - moneyPenalty);
   world.addMessage(busted ? 'OPGEPAKT' : 'DOOD', 3.5);
   if (pick.name) world.addMessage(`Je respawnt bij ${pick.name}`, 4);
+  for (const fn of world.onRespawn) fn(world, { busted });
 }

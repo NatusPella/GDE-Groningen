@@ -41,6 +41,18 @@
 #hud .hud-bar-fill.health.low { background: #d93f3f; }
 #hud .hud-bar-fill.armor { background: #4a90d9; }
 
+#hud .hud-mute {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 6px;
+  font-size: 14px;
+  line-height: 1.2;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+}
+#hud .hud-mute[hidden] { display: none; }
+
 #hud .hud-top-right {
   position: absolute;
   top: 14px;
@@ -87,6 +99,12 @@
   font-weight: bold;
 }
 
+#hud .hud-mission-progress {
+  font-size: 15px;
+  color: var(--gron-green-light);
+}
+#hud .hud-mission-progress:empty { display: none; }
+
 #hud .hud-mission-timer {
   font-size: 20px;
   color: #e8c93a;
@@ -101,6 +119,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  width: min(60vw, 520px);
 }
 
 #hud .hud-toast {
@@ -108,7 +127,10 @@
   text-shadow: var(--hud-shadow);
   font-size: 16px;
   font-weight: bold;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 #hud .hud-toast.big {

@@ -1,4 +1,4 @@
-import { closestPointOnSegment, normalizeAngle, clamp, pointInPolygon } from './util.js';
+import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const MODELS = [
@@ -150,6 +150,24 @@ export class Vehicle {
 
     if (this.isBus) pushBusTrail(this);
   }
+}
+
+// world.stats.playerWrecks is a monotonic counter (sikkomfeed diffs it), so
+// each vehicle may only add to it once. Callers without a world (the
+// collision pass) queue the count until the next call that has one.
+let pendingPlayerWrecks = 0;
+
+export function markWreckedByPlayer(v, world) {
+  if (v.wreckedByPlayer) return;
+  v.wreckedByPlayer = true;
+  pendingPlayerWrecks++;
+  if (world) syncPlayerWrecks(world);
+}
+
+export function syncPlayerWrecks(world) {
+  if (!pendingPlayerWrecks) return;
+  world.stats.playerWrecks = (world.stats.playerWrecks || 0) + pendingPlayerWrecks;
+  pendingPlayerWrecks = 0;
 }
 
 // Half-life of ~0.12s (ln2/6) - a collision's lateral shove is felt for a
@@ -372,14 +390,17 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
 // Boats don't follow the road graph at all - they free-roam a water polygon,
 // so spawning one just needs a point that is actually inside it rather than
 // a road/lane placement.
+// Returns null when no valid spot turns up - the bbox centre of a winding
+// canal polygon is often dry land.
 export function spawnBoatOnWater(map, waterPoly, rng = Math.random) {
   const [minx, miny, maxx, maxy] = waterPoly.bounds;
-  let x = (minx + maxx) / 2, y = (miny + maxy) / 2;
+  let x = null, y = null;
   for (let attempt = 0; attempt < 20; attempt++) {
     const cx = minx + rng() * (maxx - minx);
     const cy = miny + rng() * (maxy - miny);
-    if (pointInPolygon(cx, cy, waterPoly.pts)) { x = cx; y = cy; break; }
+    if (pointInPolygon(cx, cy, waterPoly.pts) && !map.isOnBridge(cx, cy)) { x = cx; y = cy; break; }
   }
+  if (x === null) return null;
   const angle = rng() * Math.PI * 2 - Math.PI;
   const model = BOAT_MODELS[Math.floor(rng() * BOAT_MODELS.length)];
   const v = new Vehicle(x, y, angle, model);
@@ -393,6 +414,7 @@ export function spawnBoatOnWater(map, waterPoly, rng = Math.random) {
 // regular vehicle render/sync path both treat it like any other cop unit.
 export function spawnPoliceBoatOnWater(map, waterPoly, rng = Math.random) {
   const v = spawnBoatOnWater(map, waterPoly, rng);
+  if (!v) return null;
   v.model = POLICE_BOAT_MODEL;
   v.isPolice = true;
   return v;
@@ -419,6 +441,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   while (count < target && candidates.length && guard++ < target * 6) {
     const poly = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnBoatOnWater(map, poly, Math.random);
+    if (!v) continue;
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax) continue;
     vehicles.push(v);
@@ -443,13 +466,14 @@ const BOAT_WAYPOINT_MAX = 9;
 // (v.waterPoly, set by spawnBoatOnWater) - no road graph involved, so this
 // stands entirely apart from updateTrafficAI.
 export function updateBoatAI(v, dt, map, world, rng = Math.random) {
+  if (v.wrecked) return;
   if (!v.waterPoly) { v.applyControls(dt, 0, 0, true); return; }
 
   // Police pursuit: reuses the exact steer-toward-v.waypoint code below,
   // just fed the player's live position every frame instead of a picked
   // wander point - "biased toward the player" rather than a separate
   // pursuit function.
-  const chasing = v.isPolice && world.wanted > 0;
+  const chasing = v.isPolice && !v.hijacked && world.wanted > 0;
   if (chasing) {
     v.waypoint = [world.player.x, world.player.y];
   } else {
@@ -514,6 +538,7 @@ function findConnectingRoad(map, point, excludeRoad, rng, allowCycle = false, mi
 }
 
 export function updateTrafficAI(v, dt, map, world, rng = Math.random) {
+  if (v.wrecked) return;
   if (v.waitTimer > 0) {
     v.waitTimer -= dt;
     v.applyControls(dt, 0, 0, true);
@@ -565,9 +590,9 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random) {
 
   // Rare, purely-cosmetic loss of control: a sharp turn taken too fast can
   // spin a car out. Kept rare on purpose (~1.5%/frame while the condition
-  // holds) so it reads as a surprise, not a constant hazard. Chasing police
+  // holds, at 60fps) so it reads as a surprise, not a constant hazard. Chasing police
   // skip this entirely so pursuits stay predictable.
-  if (!v.isPolice && Math.abs(steerErr) > 1.2 && Math.abs(v.speed) > v.model.maxSpeed * 0.5 && rng() < 0.015) {
+  if (!v.isPolice && Math.abs(steerErr) > 1.2 && Math.abs(v.speed) > v.model.maxSpeed * 0.5 && rng() < 0.015 * dt * 60) {
     v.angle = normalizeAngle(v.angle + (rng() < 0.5 ? -1 : 1) * (1.6 + rng() * 1.4));
     v.speed *= 0.3;
   }
@@ -659,13 +684,13 @@ function applyImpactVelocity(v, vx, vy) {
   v.driftY = driftY;
 }
 
-function applyImpactDamage(v, dmg, playerInvolved) {
+function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   v.health = Math.max(0, v.health - dmg);
   if (v.health <= 0) {
     v.wrecked = true;
     v.speed = 0;
-    if (playerInvolved) v.wreckedByPlayer = true;
+    if (playerInvolved) markWreckedByPlayer(v, world);
   }
 }
 
@@ -689,7 +714,7 @@ function applyImpactDamage(v, dmg, playerInvolved) {
 // integrationNotes). Hard hits also now chip away at v.health/v.wrecked,
 // since previously nothing but bullets/water ever wrecked a vehicle - a
 // vehicle rammed to death by traffic never had anything to make it explode.
-export function resolveVehicleVehicleCollisions(vehicles) {
+export function resolveVehicleVehicleCollisions(vehicles, world = null) {
   for (const v of vehicles) {
     v.hitThisFrame = false;
   }
@@ -701,6 +726,9 @@ export function resolveVehicleVehicleCollisions(vehicles) {
     for (let j = i + 1; j < vehicles.length; j++) {
       const b = vehicles[j];
       if (b.wrecked) continue;
+      const reach = a.halfLen + b.halfLen + 0.4; // capsule tip-to-tip upper bound
+      const cdx = b.x - a.x, cdy = b.y - a.y;
+      if (cdx * cdx + cdy * cdy > reach * reach) continue;
       const capB = vehicleCapsule(b);
       const { p1x, p1y, p2x, p2y, dist2: d2 } = closestPointsBetweenSegments(capA, capB);
       let dist = Math.sqrt(d2);
@@ -755,8 +783,8 @@ export function resolveVehicleVehicleCollisions(vehicles) {
         // (city stays messy) but must not blame/credit the player, same rule
         // pedestrians.js's checkVehicleImpact already applies to pedKills.
         const playerInvolved = a.driver === 'player' || b.driver === 'player';
-        applyImpactDamage(a, dmg, playerInvolved);
-        applyImpactDamage(b, dmg, playerInvolved);
+        applyImpactDamage(a, dmg, playerInvolved, world);
+        applyImpactDamage(b, dmg, playerInvolved, world);
         const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
         a.hitThisFrame = true; a.hitX = hx; a.hitY = hy; a.hitImpactSpeed = relN;
         b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
@@ -765,7 +793,8 @@ export function resolveVehicleVehicleCollisions(vehicles) {
   }
 }
 
-export function resolveVehicleBuildingCollision(v, map) {
+// Without dt (legacy callers) the scrape slowdown is applied once per call.
+export function resolveVehicleBuildingCollision(v, map, dt) {
   // Only a corner that has actually penetrated a building footprint counts as
   // a collision (checked via point-in-polygon) - a corner merely passing
   // close to a wall (common: buildings sit right up against the street) must
@@ -790,7 +819,7 @@ export function resolveVehicleBuildingCollision(v, map) {
       hit = true;
     }
   }
-  if (hit) v.speed *= 0.4;
+  if (hit) v.speed *= dt === undefined ? 0.4 : Math.pow(0.4, dt * 60);
   return hit;
 }
 
@@ -1310,15 +1339,15 @@ export function drawVehicle(ctx, v) {
 export function checkVehicleWater(v, map, world) {
   if (v.isBoat) return false;
   if (v.wrecked) return false;
-  if (map.isOnBridge(v.x, v.y)) return false;
   for (const w of map.waterNear(v.x, v.y, 3)) {
     const [minx, miny, maxx, maxy] = w.bounds;
     if (v.x < minx || v.x > maxx || v.y < miny || v.y > maxy) continue;
     if (!pointInPolygon(v.x, v.y, w.pts)) continue;
+    if (map.isOnBridge(v.x, v.y)) return false;
 
     v.wrecked = true;
     v.speed = 0;
-    if (v.driver === 'player') v.wreckedByPlayer = true;
+    if (v.driver === 'player') markWreckedByPlayer(v, world);
     world.particles.push({ x: v.x, y: v.y, until: world.time + 1.1, kind: 'splash' });
 
     if (v.driver === 'player') {

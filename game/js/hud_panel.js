@@ -1,4 +1,5 @@
 import { getPickupsForRender } from './pickups.js';
+import { isMuted } from './audio.js';
 
 const MINIMAP_SIZE = 160;
 const MM_SCALE = 0.5; // px per meter (css pixels)
@@ -19,7 +20,8 @@ export function initHud(world) {
   topLeft.innerHTML =
     '<div class="hud-character"></div>' +
     '<div class="hud-bar"><div class="hud-bar-fill health"></div></div>' +
-    '<div class="hud-bar"><div class="hud-bar-fill armor"></div></div>';
+    '<div class="hud-bar"><div class="hud-bar-fill armor"></div></div>' +
+    '<div class="hud-mute" role="status" aria-label="Geluid uit" title="Geluid uit (U)" hidden>🔇</div>';
   root.appendChild(topLeft);
 
   const topRight = document.createElement('div');
@@ -36,11 +38,12 @@ export function initHud(world) {
 
   const mission = document.createElement('div');
   mission.className = 'hud-mission';
-  mission.innerHTML = '<div class="hud-mission-label"></div><div class="hud-mission-timer"></div>';
+  mission.innerHTML = '<div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-mission-timer"></div>';
   root.appendChild(mission);
 
   const toasts = document.createElement('div');
   toasts.className = 'hud-toasts';
+  toasts.setAttribute('aria-live', 'polite');
   root.appendChild(toasts);
 
   const location = document.createElement('div');
@@ -62,11 +65,13 @@ export function initHud(world) {
     character: topLeft.querySelector('.hud-character'),
     healthFill: topLeft.querySelector('.health'),
     armorFill: topLeft.querySelector('.armor'),
+    mute: topLeft.querySelector('.hud-mute'),
     wanted: topRight.querySelector('.hud-wanted'),
     money: topRight.querySelector('.hud-money'),
     weapon: topRight.querySelector('.hud-weapon'),
     hint,
     missionLabel: mission.querySelector('.hud-mission-label'),
+    missionProgress: mission.querySelector('.hud-mission-progress'),
     missionTimer: mission.querySelector('.hud-mission-timer'),
     district: location.querySelector('.hud-district'),
     street: location.querySelector('.hud-street'),
@@ -79,13 +84,14 @@ export function initHud(world) {
 export function updateHud(dt, world) {
   updateCharacter(world);
   updateBars(world);
+  els.mute.hidden = !isMuted();
   updateWanted(world);
   updateMoneyWeapon(world);
   updateMission(world);
   updateToasts(world);
-  updateLocation(world);
+  updateLocation(dt, world);
   updateHint(world);
-  drawMinimap(world);
+  drawMinimap(dt, world);
 }
 
 // Context-aware on-screen prompts, shown only when relevant, instead of a
@@ -169,8 +175,8 @@ function currentDistrict(world) {
 }
 
 let locationTimer = 0;
-function updateLocation(world) {
-  locationTimer -= 1 / 60;
+function updateLocation(dt, world) {
+  locationTimer -= dt;
   if (locationTimer > 0) return;
   locationTimer = 0.5;
   const district = currentDistrict(world);
@@ -213,21 +219,39 @@ function updateMission(world) {
   const m = world.mission;
   if (!m) {
     els.missionLabel.textContent = '';
+    els.missionProgress.textContent = '';
     els.missionTimer.textContent = '';
     return;
   }
   els.missionLabel.textContent = m.label || '';
+  els.missionProgress.textContent = missionProgressText(m);
   els.missionTimer.textContent = m.timeLeft != null ? Math.ceil(m.timeLeft) + 's' : '';
 }
 
+// missions.js leaves these fields set after a mission ends, so gate on the
+// current type and phase instead of trusting their presence.
+function missionProgressText(m) {
+  if (m.phase !== 'active') return '';
+  if (m.type === 'rampage' && m.killTarget != null) return `Kills: ${Math.max(0, m.killProgress || 0)}/${m.killTarget}`;
+  if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) return `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
+  if (m.type === 'fatbike' && m.fatbikeMaxHits != null) return `Geschept: ${m.fatbikeHits || 0}/${m.fatbikeMaxHits}`;
+  return '';
+}
+
+// Only touch the DOM when the list changes, so the aria-live region
+// doesn't get re-announced every frame.
+let lastToastHtml = '';
 function updateToasts(world) {
   world.messages = world.messages.filter((m) => m.until >= world.time);
-  els.toasts.innerHTML = world.messages
+  const html = world.messages
     .map((m) => {
       const big = m.text === 'DOOD' || m.text === 'OPGEPAKT';
       return `<div class="hud-toast${big ? ' big' : ''}">${escapeHtml(m.text)}</div>`;
     })
     .join('');
+  if (html === lastToastHtml) return;
+  lastToastHtml = html;
+  els.toasts.innerHTML = html;
 }
 
 function escapeHtml(s) {
@@ -243,7 +267,7 @@ function missionTarget(mission) {
   return null;
 }
 
-function drawMinimap(world) {
+function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
   const dpr = window.devicePixelRatio || 1;
   const player = world.player;
@@ -272,7 +296,7 @@ function drawMinimap(world) {
     player.x + MM_RADIUS_M, player.y + MM_RADIUS_M
   );
 
-  drawNeighbourhoodBorders(ctx, world, player);
+  drawNeighbourhoodBorders(ctx, dt, world, player);
 
   ctx.fillStyle = '#6b9450';
   for (const g of view.green) fillPoly(ctx, g.pts);
@@ -301,7 +325,7 @@ function drawMinimap(world) {
 
   const dotR = 2.5 / MM_SCALE;
   for (const v of world.vehicles) {
-    if (!v.isPolice || !v.driver) continue;
+    if (!v.isPolice || v.hijacked || !v.driver) continue;
     if (Math.abs(v.x - player.x) > MM_RADIUS_M || Math.abs(v.y - player.y) > MM_RADIUS_M) continue;
     ctx.beginPath();
     ctx.arc(v.x, v.y, dotR, 0, Math.PI * 2);
@@ -555,14 +579,14 @@ function mmHash(x, y) {
 // HUD instead of showing unrelated administrative lines.
 let borderCache = null; // {ox, oy, rects}
 let borderCacheTimer = 0;
-function drawNeighbourhoodBorders(ctx, world, player) {
+function drawNeighbourhoodBorders(ctx, dt, world, player) {
   const points = world.map.meta.neighbourhoodPoints;
   if (!points || !points.length) return;
   const cell = 14; // meters
   const half = Math.ceil(MM_RADIUS_M / cell) + 1;
   const ox = Math.round(player.x / cell), oy = Math.round(player.y / cell);
 
-  borderCacheTimer -= 1 / 60;
+  borderCacheTimer -= dt;
   if (!borderCache || borderCacheTimer <= 0 || borderCache.ox !== ox || borderCache.oy !== oy) {
     borderCacheTimer = 0.3;
     const rects = [];

@@ -1,8 +1,5 @@
 const PADDING = 0.94;
 const OVERLAY_Z = 15;
-const MAX_ZOOM = 8;
-const ZOOM_WHEEL_K = 0.0016;
-const DRAG_THRESHOLD_PX = 4;
 
 const ROAD_COLORS = {
   major: '#e8c93a',
@@ -280,11 +277,17 @@ function findNearestTarget(offsetX, offsetY) {
 }
 
 function teleportTo(world, target) {
+  const vehicle = world.player.inVehicle;
+  if (vehicle && vehicle.isBoat) {
+    world.addMessage('Met een boot kun je niet teleporteren', 2.5);
+    return;
+  }
   const spot = world.map.nearestRoadPoint(target.x, target.y, 400) || { x: target.x, y: target.y };
   const [sx, sy] = world.map.escapeBuilding(spot.x, spot.y);
-  if (world.player.inVehicle) {
-    world.player.inVehicle.x = sx;
-    world.player.inVehicle.y = sy;
+  if (vehicle) {
+    vehicle.x = sx;
+    vehicle.y = sy;
+    vehicle.speed = 0;
   }
   world.player.x = sx;
   world.player.y = sy;
@@ -342,6 +345,9 @@ export function initMapView(world) {
   };
   state.ctx = state.canvas.getContext('2d');
 
+  // Input listens on window; a map click must not also register as firing.
+  overlay.addEventListener('mousedown', (e) => e.stopPropagation());
+
   state.canvas.addEventListener('mousemove', (e) => {
     const t = findNearestTarget(e.offsetX, e.offsetY);
     state.canvas.style.cursor = t ? 'pointer' : 'default';
@@ -366,6 +372,10 @@ export function initMapView(world) {
     computeTransform(world);
     buildStaticLayer(world);
   });
+}
+
+export function isMapOpen() {
+  return !!(state && state.open);
 }
 
 export function updateMapView(dt, world) {

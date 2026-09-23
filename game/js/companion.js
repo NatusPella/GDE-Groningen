@@ -1,5 +1,5 @@
-import { dist, pointInPolygon } from './util.js';
-import { resolveBuildingCollisions } from './player.js';
+import { dist, isInWater } from './util.js';
+import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST } from './player.js';
 
 // Tammo and Anita are always out together: whichever one the player is NOT
 // controlling is this module's "companion" - an AI-controlled buddy that
@@ -15,14 +15,7 @@ const BOARD_DIST = 3;
 const VEHICLE_HIT_SPEED = 4;
 const DEAD_DURATION = 3;
 const RADIUS = 0.35;
-
-function isInWater(map, x, y) {
-  if (map.isOnBridge(x, y)) return false;
-  for (const w of map.waterNear(x, y, 0.5)) {
-    if (pointInPolygon(x, y, w.pts)) return true;
-  }
-  return false;
-}
+const TELEPORT_DIST = 60;
 
 export function initCompanion(world) {
   const p = world.player;
@@ -44,6 +37,12 @@ export function initCompanion(world) {
     state: 'alive',
     deadUntil: 0,
   };
+  world.onRespawn.push(() => {
+    const c = world.companion;
+    if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
+    if (c.state === 'dead') { c.state = 'alive'; c.health = 100; }
+    teleportNearPlayer(c, world.player, world.map);
+  });
 }
 
 function respawnCompanion(world) {
@@ -63,6 +62,16 @@ function respawnCompanion(world) {
   world.addMessage(`${name} komt er weer aan`, 3);
 }
 
+function teleportNearPlayer(c, p, map) {
+  for (const side of [1, -1]) {
+    const ang = p.angle + side * Math.PI / 2;
+    const [x, y] = map.escapeBuilding(p.x + Math.cos(ang) * 0.9, p.y + Math.sin(ang) * 0.9);
+    if (side === -1 || !isInWater(map, x, y)) { c.x = x; c.y = y; break; }
+  }
+  c.vx = 0;
+  c.vy = 0;
+}
+
 function seekTowards(c, tx, ty, speed, dt, map) {
   const d = dist(c.x, c.y, tx, ty);
   if (d < 0.25) { c.vx = 0; c.vy = 0; return; }
@@ -72,7 +81,8 @@ function seekTowards(c, tx, ty, speed, dt, map) {
   c.vy = Math.sin(c.angle) * s;
   let nx = c.x + c.vx * dt, ny = c.y + c.vy * dt;
   [nx, ny] = resolveBuildingCollisions(nx, ny, c.radius, map);
-  if (isInWater(map, nx, ny)) {
+  // already wet: let it wade out instead of freezing in place (same as player.js)
+  if (!isInWater(map, c.x, c.y) && isInWater(map, nx, ny)) {
     if (!isInWater(map, nx, c.y)) ny = c.y;
     else if (!isInWater(map, c.x, ny)) nx = c.x;
     else { nx = c.x; ny = c.y; }
@@ -112,12 +122,14 @@ export function updateCompanion(dt, world) {
   if (c.inVehicle) {
     const v = c.inVehicle;
     v.passenger = null;
-    const nx = Math.sin(v.angle), ny = -Math.cos(v.angle);
-    let ex = v.x + nx * (v.halfWid + 0.7), ey = v.y + ny * (v.halfWid + 0.7);
-    [ex, ey] = resolveBuildingCollisions(ex, ey, c.radius, world.map);
-    c.x = ex;
-    c.y = ey;
+    stopVehicle(v);
+    [c.x, c.y] = findExitSpot(v, c.radius, world.map, EXIT_RIGHT_FIRST);
     c.inVehicle = null;
+    return;
+  }
+
+  if (dist(c.x, c.y, p.x, p.y) > TELEPORT_DIST) {
+    teleportNearPlayer(c, p, world.map);
     return;
   }
 

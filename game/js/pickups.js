@@ -1,8 +1,9 @@
-import { dist, pointInPolygon } from './util.js';
+import { dist, pointInPolygon, isInWater } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const WEAPON_KEYS = ['pistol', 'uzi', 'shotgun'];
 const WEAPON_AMMO = { pistol: 30, uzi: 60, shotgun: 10 };
+const WEAPON_LABELS = { pistol: 'Pistool', uzi: 'Uzi', shotgun: 'Hagelgeweer' };
 
 // Curated per-wijk flavor: which real Groningen neighbourhood plausibly
 // "owns" which weapon, so pickups cluster somewhere good-naturedly fitting
@@ -46,6 +47,7 @@ const ARMOR_TARGET = 1;
 const HEALTH_RADIUS = 100;
 const HEALTH_RESPAWN_DELAY = 25;
 const HEALTH_PICKUP_DIST = 1.1;
+const HEALTH_REPLACE_DIST = 250;
 
 const GARAGE_RADIUS = 6;
 const GARAGE_COOLDOWN = 10;
@@ -93,7 +95,7 @@ function randomRoadSpot(map, x, y, radius) {
     const px2 = px + nx * offset * side;
     const py2 = py + ny * offset * side;
     if (dist(px2, py2, x, y) > radius) continue;
-    if (isInsideBuilding(map, px2, py2)) continue;
+    if (isInsideBuilding(map, px2, py2) || isInWater(map, px2, py2)) continue;
     return [px2, py2];
   }
   return null;
@@ -157,6 +159,8 @@ function maintainWeapons(world) {
 
 function maintainHealthArmor(world) {
   const { map, player } = world;
+  if (health && dist(health.x, health.y, player.x, player.y) > HEALTH_REPLACE_DIST) health = null;
+  if (armor && dist(armor.x, armor.y, player.x, player.y) > HEALTH_REPLACE_DIST) armor = null;
   if (!health && world.time >= healthRespawnAt) {
     const spot = randomRoadSpot(map, player.x, player.y, HEALTH_RADIUS);
     if (spot) health = { x: spot[0], y: spot[1] };
@@ -185,21 +189,21 @@ function collectFoot(world) {
     const w = weapons[i];
     if (dist(px, py, w.x, w.y) < WEAPON_PICKUP_DIST) {
       world.ammo[w.key] = (world.ammo[w.key] || 0) + WEAPON_AMMO[w.key];
-      world.addMessage(`${w.key} +${WEAPON_AMMO[w.key]} ammo`, 1.8);
+      world.addMessage(`${WEAPON_LABELS[w.key] || w.key} +${WEAPON_AMMO[w.key]} munitie`, 1.8);
       weapons.splice(i, 1);
     }
   }
 
   if (health && dist(px, py, health.x, health.y) < HEALTH_PICKUP_DIST) {
     world.health = Math.min(100, world.health + 100);
-    world.addMessage('Health opgekrikt', 1.8);
+    world.addMessage('Gezondheid opgekrikt', 1.8);
     health = null;
     healthRespawnAt = world.time + HEALTH_RESPAWN_DELAY;
   }
 
   if (armor && dist(px, py, armor.x, armor.y) < HEALTH_PICKUP_DIST) {
     world.armor = Math.min(100, world.armor + 100);
-    world.addMessage('Armor opgekrikt', 1.8);
+    world.addMessage('Pantser opgekrikt', 1.8);
     armor = null;
     armorRespawnAt = world.time + HEALTH_RESPAWN_DELAY;
   }
@@ -213,10 +217,12 @@ function updateGarages(world) {
     if (dist(v.x, v.y, g.x, g.y) < GARAGE_RADIUS) {
       v.health = 100;
       v.wrecked = false;
+      v.wreckedByPlayer = false;
+      v._exploded = false;
       world.health = 100;
       world.armor = 100;
       world.wanted = 0;
-      world.addMessage("Pay 'n Spray", 2.2);
+      world.addMessage('Spuit & Klaar: als nieuw!', 2.2);
       g.cooldownUntil = world.time + GARAGE_COOLDOWN;
     }
   }

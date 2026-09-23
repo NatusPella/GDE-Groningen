@@ -1,5 +1,6 @@
 import { normalizeAngle, pointInPolygon } from './util.js';
 import { respawnPlayer } from './world.js';
+import { markWreckedByPlayer } from './vehicle.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 export const WEAPONS = {
@@ -59,10 +60,10 @@ function meleeAttack(world, angle, weapon) {
     const off = Math.abs(normalizeAngle(Math.atan2(dy, dx) - angle));
     if (off > Math.PI / 3) continue;
     if ('radius' in t) {
-      damagePed(world, t, weapon.damage);
+      damagePed(world, t, weapon.damage, true);
     } else {
       t.health -= weapon.damage * 0.4;
-      if (t.health <= 0) { t.health = 0; t.wrecked = true; t.wreckedByPlayer = true; t.speed = 0; }
+      if (t.health <= 0) wreckVehicle(world, t, true);
     }
   }
 }
@@ -102,7 +103,7 @@ export function updateBullets(dt, world) {
     remaining.push(b);
   }
   world.bullets = remaining;
-  world.particles = world.particles.filter((p) => p.kind !== 'spark' || p.until > world.time);
+  world.particles = world.particles.filter((p) => p.until === undefined || p.until > world.time);
 }
 
 function hitsBuilding(map, b) {
@@ -117,24 +118,27 @@ function hitsBuilding(map, b) {
 function hitVehicles(world, b) {
   for (const v of world.vehicles) {
     if (v.wrecked) continue;
-    if (b.owner === 'police' && v.isPolice) continue;
+    if (b.owner === 'police' && v.isPolice && !v.hijacked) continue;
     if (b.owner === 'player' && v.driver === 'player') continue;
     if (Math.hypot(v.x - b.x, v.y - b.y) > v.halfLen) continue;
     v.health -= b.damage;
-    if (v.health <= 0) {
-      v.health = 0;
-      v.wrecked = true;
-      if (b.owner === 'player') v.wreckedByPlayer = true;
-      v.speed = 0;
-      if (v.isPolice) {
-        world.stats.kills++;
-        world.stats.copKills++;
-        world.wanted = Math.min(5, world.wanted + 2);
-      }
-    }
+    if (v.health <= 0) wreckVehicle(world, v, b.owner === 'player');
     return true;
   }
   return false;
+}
+
+function wreckVehicle(world, v, byPlayer) {
+  v.health = 0;
+  v.wrecked = true;
+  v.speed = 0;
+  if (!byPlayer) return;
+  markWreckedByPlayer(v, world);
+  if (v.isPolice && !v.hijacked) {
+    world.stats.kills++;
+    world.stats.copKills++;
+    world.wanted = Math.min(5, world.wanted + 2);
+  }
 }
 
 function hitPedestrians(world, b) {
@@ -142,17 +146,18 @@ function hitPedestrians(world, b) {
     if (ped.state === 'dead') continue;
     if (b.owner === 'police' && ped.isCop) continue;
     if (Math.hypot(ped.x - b.x, ped.y - b.y) > ped.radius + 0.12) continue;
-    damagePed(world, ped, b.damage);
+    damagePed(world, ped, b.damage, b.owner === 'player');
     return true;
   }
   return false;
 }
 
-function damagePed(world, ped, damage) {
+function damagePed(world, ped, damage, byPlayer) {
   ped.health -= damage;
   if (ped.health > 0 || ped.state === 'dead') return;
   ped.state = 'dead';
   ped.deadUntil = world.time + 2.5;
+  if (!byPlayer) return;
   world.stats.kills++;
   if (ped.isCop) {
     world.stats.copKills++;
