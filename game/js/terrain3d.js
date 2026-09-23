@@ -54,8 +54,12 @@ void main() {
   // doesn't ripple like water, it just isn't perfectly flat. Low frequency,
   // small amplitude: enough for the fragment shader's fake diffuse term to
   // have something to work with, not enough to read as hills.
-  float bump = sin(pos.x * 0.018 + pos.z * 0.021) * 0.35
-             + sin(pos.x * 0.05 - pos.z * 0.037) * 0.15;
+  // Kept to a few centimetres: the terrain sits just under road/sidewalk/
+  // green planes (0.015-0.035) and people stand at y=0, so any real relief
+  // pokes through the streets and leaves feet floating. The shading normal
+  // uses an exaggerated slope so the patchwork stays legible anyway.
+  float bump = sin(pos.x * 0.018 + pos.z * 0.021) * 0.012
+             + sin(pos.x * 0.05 - pos.z * 0.037) * 0.006;
   pos.y += bump;
 
   float dHdx = cos(pos.x * 0.018 + pos.z * 0.021) * (0.018 * 0.35)
@@ -130,6 +134,7 @@ void main() {
 
   gl_FragColor = vec4(color, 1.0);
 
+  #include <colorspace_fragment>
   #include <fog_fragment>
 }
 `;
@@ -202,7 +207,7 @@ function isPointInAnyWater(x, y, waterList) {
 // size in meters (default: 10 - see below). opts.segments: override the
 // per-axis segment count directly (applied to both axes), clamped to
 // [40, 900] unless explicitly overridden this way.
-// opts.y: world Y to place the mesh at (default: -0.4 - at/below WATER_Y
+// opts.y: world Y to place the mesh at (default: -0.05 - at/below WATER_Y
 // (-0.35) in scene3d.js; now redundant as a water-hiding safeguard since
 // water polygons are real holes, but kept as the sane default height for
 // a ground surface relative to roads (0.03)/sidewalks (0.02)/green (0.015)).
@@ -228,7 +233,7 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   const minY = miny - pad, maxY = maxy + pad;
   const totalW = maxX - minX;
   const totalD = maxY - minY;
-  const y = opts.y ?? -0.4;
+  const y = opts.y ?? -0.05;
 
   const cellSize = opts.cellSize ?? TARGET_CELL_SIZE_M;
   const segsX = opts.segments ?? clamp(Math.round(totalW / cellSize), 40, 900);

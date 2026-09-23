@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, habboFlatMaterial, OUTLINE_MAT, createWindowTexture } from './pixelart3d.js';
 import { getLandmarkModel } from './landmarkmodels.js';
+import { pointInPolygon } from './util.js';
 
 // Replaces the old one-flat-box-per-building placeholder. Buildings read as
 // belonging to one street block via a two-step hash: a COARSE hash of the
@@ -89,10 +90,56 @@ const UNIT_CONE = new THREE.ConeGeometry(1, 1, 8);
 
 function bboxOf(b) {
   const [minx, miny, maxx, maxy] = b.bounds;
+  if (!b._ring) b._ring = outwardEdges(sanitizeFootprint(b.pts).pts);
   return {
     minx, miny, maxx, maxy, w: maxx - minx, d: maxy - miny,
     cx: (minx + maxx) / 2, cy: (miny + maxy) / 2, cz: (miny + maxy) / 2,
+    edges: b._ring,
   };
+}
+
+// Footprint edges with their outward unit normal, so facade details (window
+// rows, trims, doors) sit on the real walls. They used to be built around the
+// axis-aligned bounding box, which for any rotated or L-shaped building left
+// floating, walk-through glass/trim strips out in the street.
+function outwardEdges(ring) {
+  let area2 = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i], c = ring[(i + 1) % ring.length];
+    area2 += a[0] * c[1] - c[0] * a[1];
+  }
+  const sign = area2 >= 0 ? 1 : -1;
+  const edges = [];
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i], c = ring[(i + 1) % ring.length];
+    const dx = c[0] - a[0], dy = c[1] - a[1];
+    const len = Math.hypot(dx, dy);
+    if (len < 0.05) continue;
+    edges.push({ ax: a[0], ay: a[1], bx: c[0], by: c[1], len, nx: sign * dy / len, ny: -sign * dx / len });
+  }
+  edges.area = Math.abs(area2) / 2;
+  return edges;
+}
+
+// Minimum-area oriented rectangle over the footprint's edge directions.
+// Returns null unless the footprint fills most of it - a gable roof only makes
+// sense on a (roughly) rectangular building.
+const RIDGE_MIN_FILL = 0.85;
+function rectangularFrame(edges) {
+  let best = null;
+  for (const e of edges) {
+    const ux = (e.bx - e.ax) / e.len, uy = (e.by - e.ay) / e.len;
+    let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+    for (const p of edges) {
+      const u = p.ax * ux + p.ay * uy, v = -p.ax * uy + p.ay * ux;
+      if (u < u0) u0 = u; if (u > u1) u1 = u;
+      if (v < v0) v0 = v; if (v > v1) v1 = v;
+    }
+    const area = (u1 - u0) * (v1 - v0);
+    if (!best || area < best.area) best = { ux, uy, u0, u1, v0, v1, area };
+  }
+  if (!best || edges.area / best.area < RIDGE_MIN_FILL) return null;
+  return best;
 }
 
 function familyIndexFor(box) {
@@ -365,12 +412,10 @@ function buildMainGeometry(b, depth) {
 // regardless of footprint complexity. Reused as-is for eave trim and the
 // apartment facade color band (different thickness/outset per caller).
 function buildBandGeometry(box, thickness, outset = 0.06) {
-  const x0 = box.minx - outset, x1 = box.maxx + outset;
-  const z0 = box.miny - outset, z1 = box.maxy + outset;
-  const corners = [[x0, z0], [x1, z0], [x1, z1], [x0, z1], [x0, z0]];
   const verts = [], idx = [];
-  for (let i = 0; i < corners.length - 1; i++) {
-    const [ax, az] = corners[i], [bx, bz] = corners[i + 1];
+  for (const e of box.edges) {
+    const ox = e.nx * outset, oy = e.ny * outset;
+    const ax = e.ax + ox, az = e.ay + oy, bx = e.bx + ox, bz = e.by + oy;
     const base = verts.length / 3;
     verts.push(ax, 0, az, ax, thickness, az, bx, thickness, bz, bx, 0, bz);
     idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
@@ -412,22 +457,18 @@ function floorCountFor(depth) {
   return Math.min(9, Math.max(1, Math.round(depth / LEVEL_HEIGHT_ROW)));
 }
 
+const WINDOW_MIN_SIDE = 1.6;
 function segsForSide(len) {
-  return Math.max(2, Math.min(10, Math.round(len / WINDOW_SEG_TARGET)));
+  return Math.max(1, Math.min(10, Math.round(len / WINDOW_SEG_TARGET)));
 }
 
 function buildWindowRowGeometry(box, height = WINDOW_ROW_HEIGHT, outset = WINDOW_ROW_OUTSET) {
-  const x0 = box.minx - outset, x1 = box.maxx + outset;
-  const z0 = box.miny - outset, z1 = box.maxy + outset;
-  const sides = [
-    [[x0, z0], [x1, z0]],
-    [[x1, z0], [x1, z1]],
-    [[x1, z1], [x0, z1]],
-    [[x0, z1], [x0, z0]],
-  ];
   const verts = [], uvs = [], idx = [];
-  for (const [[ax, az], [bx, bz]] of sides) {
-    const len = Math.hypot(bx - ax, bz - az);
+  for (const e of box.edges) {
+    const len = e.len;
+    if (len < WINDOW_MIN_SIDE) continue;
+    const ax = e.ax + e.nx * outset, az = e.ay + e.ny * outset;
+    const bx = e.bx + e.nx * outset, bz = e.by + e.ny * outset;
     const segs = segsForSide(len);
     for (let s = 0; s < segs; s++) {
       const t0 = s / segs, t1 = (s + 1) / segs;
@@ -496,22 +537,20 @@ function addWindowBands(group, box, parts, depth, fine2, opts = {}) {
 // brick gable end under a tiled roof can pass `[wallMat, roofMat]` to the
 // Mesh constructor - callers that pass a single material (e.g. the church's
 // plain roof) are unaffected, three.js ignores groups without an array.
-function buildRidgeGeometry(box, baseY, ridgeHeight) {
-  const { minx, miny, maxx, maxy, w, d } = box;
-  const topY = baseY + ridgeHeight;
+function buildRidgeGeometry(frame, baseY, ridgeHeight) {
+  const { ux, uy } = frame;
+  // ridge runs along the frame's longer local axis
+  const alongU = frame.u1 - frame.u0 >= frame.v1 - frame.v0;
+  const toWorld = (u, v, y) => [u * ux - v * uy, y, u * uy + v * ux];
+  let a0, a1, c0, c1;
+  if (alongU) { a0 = frame.u0; a1 = frame.u1; c0 = frame.v0; c1 = frame.v1; }
+  else { a0 = frame.v0; a1 = frame.v1; c0 = frame.u0; c1 = frame.u1; }
+  const P = (a, c, y) => (alongU ? toWorld(a, c, y) : toWorld(c, a, y));
+  const topY = baseY + ridgeHeight, cMid = (c0 + c1) / 2;
+  const A = P(a0, c0, baseY), B = P(a0, c1, baseY), R0 = P(a0, cMid, topY);
+  const C = P(a1, c0, baseY), D = P(a1, c1, baseY), R1 = P(a1, cMid, topY);
   const verts = [];
-  const push = (p) => verts.push(p[0], p[1], p[2]);
-  if (w >= d) {
-    const x0 = minx, x1 = maxx, z0 = miny, z1 = maxy, zMid = (z0 + z1) / 2;
-    const A = [x0, baseY, z0], B = [x0, baseY, z1], R0 = [x0, topY, zMid];
-    const C = [x1, baseY, z0], D = [x1, baseY, z1], R1 = [x1, topY, zMid];
-    for (const t of [[A, B, R0], [D, C, R1], [A, C, R1], [A, R1, R0], [B, D, R1], [B, R1, R0]]) for (const p of t) push(p);
-  } else {
-    const x0 = minx, x1 = maxx, z0 = miny, z1 = maxy, xMid = (x0 + x1) / 2;
-    const A = [x0, baseY, z0], B = [x1, baseY, z0], P0 = [xMid, topY, z0];
-    const C = [x0, baseY, z1], D = [x1, baseY, z1], P1 = [xMid, topY, z1];
-    for (const t of [[A, P0, B], [C, D, P1], [A, C, P1], [A, P1, P0], [B, P1, D], [B, P0, P1]]) for (const p of t) push(p);
-  }
+  for (const t of [[A, B, R0], [D, C, R1], [A, C, R1], [A, R1, R0], [B, D, R1], [B, R1, R0]]) for (const p of t) verts.push(p[0], p[1], p[2]);
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   geo.computeVertexNormals();
@@ -545,22 +584,16 @@ function pickMaterials(b, box, archetype, fine) {
 // `sideFine` (a hash decorrelated from the material-shade pick) chooses
 // which of the two long faces gets the door, for variety.
 function addDoorInset(group, box, sideFine) {
-  const longX = box.w >= box.d;
-  const span = longX ? box.w : box.d;
-  if (span < 3) return;
-  const doorW = Math.min(1.7, span * 0.24);
+  const candidates = box.edges.filter((e) => e.len >= 3).sort((p, q) => q.len - p.len);
+  if (!candidates.length) return;
+  const e = candidates[sideFine < 0.5 || candidates.length < 2 ? 0 : 1];
+  const doorW = Math.min(1.7, e.len * 0.24);
   const doorH = 2.3;
   const outset = 0.15;
   const door = new THREE.Mesh(UNIT_BOX, doorMaterial);
-  if (longX) {
-    door.scale.set(doorW, doorH, outset * 2);
-    const z = sideFine < 0.5 ? box.miny - outset : box.maxy + outset;
-    door.position.set(box.cx, doorH / 2, z);
-  } else {
-    door.scale.set(outset * 2, doorH, doorW);
-    const x = sideFine < 0.5 ? box.minx - outset : box.maxx + outset;
-    door.position.set(x, doorH / 2, box.cy);
-  }
+  door.scale.set(doorW, doorH, outset * 2);
+  door.position.set((e.ax + e.bx) / 2 + e.nx * outset, doorH / 2, (e.ay + e.by) / 2 + e.ny * outset);
+  door.rotation.y = -Math.atan2(e.by - e.ay, e.bx - e.ax);
   group.add(door);
   addUnitOutline(group, door);
 }
@@ -580,8 +613,12 @@ function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
   const shortAxis = Math.min(box.w, box.d);
   const sw = Math.min(shortAxis * 0.55, 6);
   const steepleH = depth * 1.8 + 3;
-  const x = longX ? box.minx + sw * 0.7 : box.cx;
-  const z = longX ? box.cz : box.miny + sw * 0.7;
+  let x = longX ? box.minx + sw * 0.7 : box.cx;
+  let z = longX ? box.cz : box.miny + sw * 0.7;
+  if (!pointInPolygon(x, z, box.edges.map((e) => [e.ax, e.ay]))) {
+    x = box.edges.reduce((acc, e) => acc + e.ax, 0) / box.edges.length;
+    z = box.edges.reduce((acc, e) => acc + e.ay, 0) / box.edges.length;
+  }
 
   const steeple = new THREE.Mesh(UNIT_BOX, wallMat);
   steeple.scale.set(sw, steepleH, sw);
@@ -611,12 +648,20 @@ function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
   hBar.position.set(x, crossBase + crossH * 0.6, z);
   group.add(hBar);
 
-  if (!parts.roof) {
-    const ridgeH = Math.min(0.7 + fine2 * 0.6, shortAxis * 0.35, 2.4);
-    parts.roof = buildRidgeGeometry(box, depth, ridgeH);
+  if (parts.roof === undefined) {
+    const frame = rectangularFrame(box.edges);
+    if (frame) {
+      const frameShort = Math.min(frame.u1 - frame.u0, frame.v1 - frame.v0);
+      const ridgeH = Math.min(0.7 + fine2 * 0.6, frameShort * 0.35, 2.4);
+      parts.roof = buildRidgeGeometry(frame, depth, ridgeH);
+    } else {
+      parts.roof = null;
+    }
   }
-  group.add(new THREE.Mesh(parts.roof, roofMat));
-  addAbsoluteOutline(group, parts.roof);
+  if (parts.roof) {
+    group.add(new THREE.Mesh(parts.roof, roofMat));
+    addAbsoluteOutline(group, parts.roof);
+  }
 }
 
 function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
@@ -780,13 +825,20 @@ export function buildBuildingMesh(b) {
     // "buildings are still nothing"), even though it's architecturally just
     // an untagged ordinary rowhouse/townhouse - so it now gets the exact
     // same treatment as 'house' rather than a separate, lesser one.
-    if (!parts.roof) {
-      const shortAxis = Math.min(box.w, box.d);
-      const ridgeH = Math.min(0.9 + fine2 * 1.1, Math.max(0.4, shortAxis * 0.6), 3.2);
-      parts.roof = buildRidgeGeometry(box, depth, ridgeH);
+    if (parts.roof === undefined) {
+      const frame = rectangularFrame(box.edges);
+      if (frame) {
+        const shortAxis = Math.min(frame.u1 - frame.u0, frame.v1 - frame.v0);
+        const ridgeH = Math.min(0.9 + fine2 * 1.1, Math.max(0.4, shortAxis * 0.6), 3.2);
+        parts.roof = buildRidgeGeometry(frame, depth, ridgeH);
+      } else {
+        parts.roof = null;
+      }
     }
-    group.add(new THREE.Mesh(parts.roof, [wallMat, roofMat]));
-    addAbsoluteOutline(group, parts.roof);
+    if (parts.roof) {
+      group.add(new THREE.Mesh(parts.roof, [wallMat, roofMat]));
+      addAbsoluteOutline(group, parts.roof);
+    }
     addEaveTrim(group, box, parts, depth);
     addDoorInset(group, box, fine2);
     addWindowBands(group, box, parts, depth, fine2);

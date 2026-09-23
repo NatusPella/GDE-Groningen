@@ -123,7 +123,24 @@ let muzzleFlashMesh = null;
 let meleeSwipeMesh = null;
 let sun = null;
 const camRaycaster = new THREE.Raycaster();
+const camRayOrigin = new THREE.Vector3();
+const camRayDir = new THREE.Vector3();
+const CAM_CLEARANCE = 0.9; // must stay above the camera's 0.5m near plane
+const CAM_PUSH_DIRS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]];
+const CAM_TARGET_RADIUS = ORBIT_RADIUS + CAM_CLEARANCE + 2;
+const camTargetList = [];
 let lastPx = null, lastPy = null;
+
+function nearbyCamTargets(px, py) {
+  camTargetList.length = 0;
+  for (const [b, mesh] of buildingMeshes) {
+    const [minx, miny, maxx, maxy] = b.bounds;
+    if (px < minx - CAM_TARGET_RADIUS || px > maxx + CAM_TARGET_RADIUS) continue;
+    if (py < miny - CAM_TARGET_RADIUS || py > maxy + CAM_TARGET_RADIUS) continue;
+    camTargetList.push(mesh);
+  }
+  return camTargetList;
+}
 
 function hash2(x, y) {
   const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
@@ -151,8 +168,10 @@ export function init3D(map) {
   // strongly-tinted hemisphere ground color bleeds onto every downward-
   // facing surface everywhere (birds, car undersides, roof overhangs),
   // which read as "wrong color" complaints unrelated to the actual ground
-  scene.add(new THREE.HemisphereLight(0xdcefff, 0x55524a, 3));
-  sun = new THREE.DirectionalLight(0xfff2d8, 4.5);
+  // Toon/Lambert materials without tone mapping clip to white well before
+  // hemisphere+sun reach the old 3+4.5 - pale facades lost all colour.
+  scene.add(new THREE.HemisphereLight(0xdcefff, 0x55524a, 1.4));
+  sun = new THREE.DirectionalLight(0xfff2d8, 2.2);
   sun.position.set(120, 180, 60);
   scene.add(sun);
   scene.add(sun.target);
@@ -167,6 +186,20 @@ export function init3D(map) {
   // plane did (that one rendered at y=0, right over water's -0.35).
   terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
   scene.add(terrainMesh);
+
+  // Opaque canal bed under the whole map: terrain holes are cut per grid
+  // triangle, so their jagged edges never line up exactly with the water
+  // polygons, and the transparent water would otherwise blend against the
+  // sky colour through the gaps.
+  const [bx0, by0, bx1, by1] = map.meta.bounds;
+  const bedPad = Math.max(bx1 - bx0, by1 - by0) * 0.15;
+  const bed = new THREE.Mesh(
+    new THREE.PlaneGeometry(bx1 - bx0 + bedPad * 2, by1 - by0 + bedPad * 2),
+    new THREE.MeshBasicMaterial({ color: 0x1e2a2c }),
+  );
+  bed.rotation.x = -Math.PI / 2;
+  bed.position.set((bx0 + bx1) / 2, WATER_Y - 0.5, (by0 + by1) / 2);
+  scene.add(bed);
 
   playerMesh = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
   scene.add(playerMesh);
@@ -298,7 +331,9 @@ function ribbonGeometry(pts, half) {
     verts.push(ax - nx, 0, ay - ny);
     verts.push(bx + nx, 0, by + ny);
     verts.push(bx - nx, 0, by - ny);
-    idx.push(base, base + 1, base + 2, base + 1, base + 3, base + 2);
+    // counter-clockwise seen from above, so the faces point up (+Y) and
+    // survive single-sided back-face culling
+    idx.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
@@ -312,7 +347,7 @@ function ribbonGeometry(pts, half) {
 // a same-toned gray; major/normal roads also get a painted centerline
 // (the single strongest "this is a street" visual cue a real road has).
 const ROAD_COLORS3D = { cycle: 0xa1402f, foot: 0x9a9284, major: 0x33363a, normal: 0x26282b, minor: 0x26282b };
-const CENTERLINE_MAT = new THREE.MeshBasicMaterial({ color: 0xe8d24a });
+const CENTERLINE_MAT = new THREE.MeshBasicMaterial({ color: 0xf2f0e6 }); // Dutch road markings are white
 // Real streets have a sidewalk/verge buffer between the road edge and the
 // building line - most residential OSM ways don't map that as a separate
 // footway, so without this the asphalt runs straight up to building
@@ -971,12 +1006,18 @@ export function update3D(dt, world) {
   // recursive: true - each building is now a Group of several child meshes
   // (roof/window-band/steeple/...), not one flat Mesh, so a non-recursive
   // raycast against the Group itself would never hit anything
-  function raycastBuildingDist(dx, dy, dz, dist) {
-    camRaycaster.set(new THREE.Vector3(eyeX, eyeY, eyeZ), new THREE.Vector3(dx / dist, dy / dist, dz / dist));
+  const camTargets = nearbyCamTargets(player.x, player.y);
+  function raycastFrom(ox, oy, oz, dx, dy, dz, dist) {
+    camRayOrigin.set(ox, oy, oz);
+    camRayDir.set(dx / dist, dy / dist, dz / dist);
+    camRaycaster.set(camRayOrigin, camRayDir);
     camRaycaster.far = dist;
-    camRaycaster.near = 0.1;
-    const hits = camRaycaster.intersectObjects(Array.from(buildingMeshes.values()), true);
+    camRaycaster.near = 0.05;
+    const hits = camRaycaster.intersectObjects(camTargets, true);
     return hits.length ? hits[0].distance : null;
+  }
+  function raycastBuildingDist(dx, dy, dz, dist) {
+    return raycastFrom(eyeX, eyeY, eyeZ, dx, dy, dz, dist);
   }
 
   const dx = desiredX - eyeX, dy = desiredY - eyeY, dz = desiredZ - eyeZ;
@@ -1002,7 +1043,7 @@ export function update3D(dt, world) {
     if (altHit === null || altHit > 2.2) {
       desiredX = altX; desiredY = steepHeight; desiredZ = altZ;
       if (altHit !== null) {
-        const d = Math.max(1.6, altHit - 0.4);
+        const d = Math.max(1.6, altHit - CAM_CLEARANCE);
         const t = d / altFullDist;
         desiredX = eyeX + altDx * t;
         desiredY = eyeY + altDy * t;
@@ -1012,13 +1053,27 @@ export function update3D(dt, world) {
       // even near-overhead is blocked (under an overhang/bridge) - fall
       // back to pulling in on the original ray, with a less punishing
       // minimum distance than before
-      const d = Math.max(1.6, hitDist - 0.4);
+      const d = Math.max(1.0, hitDist - CAM_CLEARANCE);
       const t = d / fullDist;
       desiredX = eyeX + dx * t;
       desiredY = eyeY + dy * t;
       desiredZ = eyeZ + dz * t;
     }
   }
+
+  // The rays above only test the line from eye to camera, so a wall or roof
+  // edge running alongside the camera still ends up inside the 0.5m near
+  // plane and gets cut open (sky-coloured voids, see-through walls). Push
+  // the camera away from anything closer than CAM_CLEARANCE on each axis.
+  for (const [ax, ay, az] of CAM_PUSH_DIRS) {
+    const hit = raycastFrom(desiredX, desiredY, desiredZ, ax, ay, az, CAM_CLEARANCE);
+    if (hit === null) continue;
+    const push = CAM_CLEARANCE - hit;
+    desiredX -= ax * push;
+    desiredY -= ay * push;
+    desiredZ -= az * push;
+  }
+  desiredY = Math.max(desiredY, 0.6);
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   const lerpT = teleported ? 1 : Math.min(1, dt * 6);
