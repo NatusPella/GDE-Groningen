@@ -1,7 +1,12 @@
+// With Shift held e.key is '!' etc., so digits are also tracked via e.code.
+function digitFromCode(code) {
+  const m = /^(?:Digit|Numpad)([0-9])$/.exec(code || '');
+  return m ? m[1] : null;
+}
+
 export class Input {
   constructor(target = window) {
     this.keys = new Set();
-    this.pressed = new Set(); // keys down this frame only
     this.mouse = { x: 0, y: 0, down: false, rightDown: false, wheel: 0 };
     this._justPressed = new Set();
 
@@ -9,12 +14,24 @@ export class Input {
       const k = e.key.toLowerCase();
       if (!this.keys.has(k)) this._justPressed.add(k);
       this.keys.add(k);
+      const digit = digitFromCode(e.code);
+      if (digit && digit !== k) {
+        if (!this.keys.has(digit)) this._justPressed.add(digit);
+        this.keys.add(digit);
+      }
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) {
         e.preventDefault();
       }
     });
-    target.addEventListener('keyup', (e) => this.keys.delete(e.key.toLowerCase()));
-    window.addEventListener('blur', () => { this.keys.clear(); });
+    target.addEventListener('keyup', (e) => {
+      this.keys.delete(e.key.toLowerCase());
+      const digit = digitFromCode(e.code);
+      if (digit) this.keys.delete(digit);
+    });
+    window.addEventListener('blur', () => this.reset());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.reset();
+    });
 
     // bound to window (not the #game canvas) so aiming keeps working when
     // the 2D canvas is hidden behind #game3d in the WebGL follow-cam view -
@@ -33,11 +50,23 @@ export class Input {
       if (e.button === 2) this.mouse.rightDown = false;
     });
     window.addEventListener('contextmenu', (e) => e.preventDefault());
-    window.addEventListener('wheel', (e) => { this.mouse.wheel += e.deltaY; e.preventDefault(); }, { passive: false });
+    window.addEventListener('wheel', (e) => {
+      if (e.ctrlKey) return;
+      this.mouse.wheel += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
   }
 
   isDown(k) { return this.keys.has(k); }
   wasPressed(k) { return this._justPressed.has(k); }
+
+  reset() {
+    this.keys.clear();
+    this._justPressed.clear();
+    this.mouse.down = false;
+    this.mouse.rightDown = false;
+    this.mouse.wheel = 0;
+  }
 
   endFrame() {
     this._justPressed.clear();

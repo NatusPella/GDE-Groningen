@@ -4,8 +4,7 @@ export const dist = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
 export const dist2 = (x1, y1, x2, y2) => { const dx = x2 - x1, dy = y2 - y1; return dx * dx + dy * dy; };
 
 export function angleLerp(a, b, t) {
-  let diff = ((b - a + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-  return a + diff * t;
+  return a + normalizeAngle(b - a) * t;
 }
 
 export function normalizeAngle(a) {
@@ -37,6 +36,18 @@ export function pointInPolygon(px, py, poly) {
     if (intersect) inside = !inside;
   }
   return inside;
+}
+
+// On-foot water test shared by player/companion/peds/pickups. The polygon
+// test runs first because map.isOnBridge scans nearby roads and is only
+// needed to veto a hit.
+export function isInWater(map, x, y) {
+  for (const w of map.waterNear(x, y, 0.5)) {
+    const [minx, miny, maxx, maxy] = w.bounds;
+    if (x < minx || x > maxx || y < miny || y > maxy) continue;
+    if (pointInPolygon(x, y, w.pts)) return !map.isOnBridge(x, y);
+  }
+  return false;
 }
 
 export function polygonBounds(poly) {

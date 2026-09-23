@@ -73,13 +73,32 @@ let noiseBuffer = null;
 let engine = null;
 let siren = null;
 
+const MUTE_STORAGE_KEY = 'gte-muted';
+const PLAYER_HURT_MIN_GAP = 0.4;
+
+function loadMuted() {
+  try { return localStorage.getItem(MUTE_STORAGE_KEY) === '1'; } catch (e) { return false; }
+}
+
+function saveMuted() {
+  try { localStorage.setItem(MUTE_STORAGE_KEY, muted ? '1' : '0'); } catch (e) { /* ignore */ }
+}
+
 let prev = null;
 let seenMessages = null;
-let muted = false;
+let muted = loadMuted();
+let lastHurtAt = -Infinity;
 const engineState = { freq: 42, gain: 0 };
 const sirenState = { gain: 0 };
 const musicState = { gain: GMUSIC_VOLUME };
-const gmusic = { tracks: [], elements: [], index: 0 };
+
+function nowSec() {
+  return performance.now() / 1000;
+}
+
+export function isMuted() {
+  return muted;
+}
 
 function buildNoiseBuffer(seconds) {
   const len = Math.floor(ctx.sampleRate * seconds);
@@ -206,6 +225,9 @@ function playPedSting() {
 }
 
 function playPlayerHurt() {
+  const now = nowSec();
+  if (now - lastHurtAt < PLAYER_HURT_MIN_GAP) return;
+  lastHurtAt = now;
   playTone({ freq: 160, freqEnd: 55, type: 'sine', duration: 0.22, gain: 0.4 });
   playNoiseBurst({ duration: 0.15, freq: 300, freqEnd: 90, q: 0.6, gain: 0.3 });
 }
@@ -299,11 +321,6 @@ function playVoiceline(character, key) {
   return playSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
 }
 
-function playGMusicJingle(key) {
-  const src = GMUSIC_JINGLES[key];
-  if (src) playClip(src);
-}
-
 export function playAutoGejatLine(world) {
   if (world.player.character === 'tammo') playVoiceline('tammo', 'auto_gejat');
 }
@@ -331,119 +348,206 @@ export function playSikkomLine(key) {
   playRandomVariant(SIKKOM_AUDIO[key]);
 }
 
-// Fire-and-forget: initAudio() stays sync, this just fills in gmusic.elements
-// whenever the manifest (and the track files it lists) resolve. An empty or
-// missing manifest leaves gmusic.elements empty, which every gmusic playback
-// path below already treats as "nothing to play" - never throws.
+// Fire-and-forget: initAudio() stays sync, this just fills in gmusicTracks
+// whenever the manifest resolves. An empty or missing manifest leaves it
+// empty, which every playback path below treats as "nothing to play".
 async function loadGMusicManifest() {
   try {
     const res = await fetch(GMUSIC_MANIFEST_URL);
     if (!res.ok) return;
     const data = await res.json();
     const tracks = Array.isArray(data.tracks) ? data.tracks : [];
-    gmusic.tracks = tracks;
-    gmusic.elements = tracks.map((filename) => {
-      const el = new Audio('./audio/gmusic/' + filename);
+    gmusicTracks = tracks.map((filename) => {
+      const el = wireGmusicEl(new Audio('./audio/gmusic/' + filename));
       el.preload = 'auto';
       el.gmusicTitle = filename.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
-      const srcNode = ctx.createMediaElementSource(el);
-      srcNode.connect(musicBus);
-      return { el, filename, srcNode };
+      return el;
     });
   } catch (e) {
     // no manifest yet / bad JSON / fetch blocked - G-Music just stays silent
   }
 }
 
-// Sequenced "radio" playback per feedback: jingle, 2 random tracks, jingle,
-// 2 random tracks, ... (not a raw sequential track order, and jingles are
-// woven INTO the sequence rather than firing on their own unrelated timer
-// and overlapping whatever track happens to be playing). One shared queue
-// drives everything through the SAME 'ended' chain, whether the current
-// item is a freshly-built jingle Audio or one of the persistent track
-// elements from gmusic.elements.
+// Station-style playback: jingle, 2 shuffled tracks, jingle, ... all through
+// ONE queue and ONE current element, so two items can never play at once.
+// Every event handler ignores events from anything but gmusicCurrentEl, and
+// the per-frame safety net in updateGMusic only ever resumes the current
+// element - advancing happens exclusively via its 'ended' event.
+const GMUSIC_RETRY_MIN = 0.5;
+const GMUSIC_RETRY_MAX = 8;
+const GMUSIC_PENDING_TIMEOUT = 5;
+
+let gmusicTracks = [];
+let gmusicBag = [];
+let gmusicLastTrack = null;
 let gmusicQueue = [];
 let gmusicCurrentEl = null;
 let gmusicStarted = false;
 let gmusicFadingIn = false;
-let gmusicPending = false;
-// Set whenever a genuine track (not a jingle) starts playing; updateGMusic
-// flushes it into a HUD toast on the next tick, since it's the one place
-// that already runs every frame with `world` in scope.
+let gmusicPendingSince = null;
+let gmusicSuspended = false;
+let gmusicRetryAt = 0;
+let gmusicRetryDelay = GMUSIC_RETRY_MIN;
+let gmusicAnnounceOnPlay = false;
+// Set once a genuine track (not a jingle) is actually playing; updateGMusic
+// flushes it into a HUD toast since it runs every frame with `world` in scope.
 let pendingTrackAnnounce = null;
 
-function buildGmusicCycle() {
-  const jingleKey = AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)];
-  const jingleEl = new Audio(GMUSIC_JINGLES[jingleKey]);
-  try { ctx.createMediaElementSource(jingleEl).connect(musicBus); } catch (e) { /* ignore */ }
-  const items = [jingleEl];
-  for (let i = 0; i < 2 && gmusic.elements.length; i++) {
-    items.push(gmusic.elements[Math.floor(Math.random() * gmusic.elements.length)].el);
-  }
-  return items;
+function wireGmusicEl(el) {
+  try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
+  el.addEventListener('ended', onGmusicEnded);
+  el.addEventListener('playing', onGmusicPlaying);
+  return el;
 }
 
-// Boot behaviour per feedback: "tune in" like a real running station -
-// start mid-way through a random track (or occasionally a jingle) instead
-// of always starting a fresh cycle at position 0, with a subtle fade-in
-// (musicState.gain reset to 0, gmusicFadingIn slows updateGMusic's normal
-// duck-lerp for the first ~1.5s) rather than an abrupt full-volume start.
+function makeJingleEl(key) {
+  const el = wireGmusicEl(new Audio(GMUSIC_JINGLES[key]));
+  el.gmusicJingleKey = key;
+  return el;
+}
+
+function randomAmbientJingleEl() {
+  return makeJingleEl(AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)]);
+}
+
+function nextTrackEl() {
+  if (!gmusicBag.length) {
+    gmusicBag = gmusicTracks.slice();
+    for (let i = gmusicBag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [gmusicBag[i], gmusicBag[j]] = [gmusicBag[j], gmusicBag[i]];
+    }
+    const last = gmusicBag.length - 1;
+    if (last > 0 && gmusicBag[last] === gmusicLastTrack) [gmusicBag[0], gmusicBag[last]] = [gmusicBag[last], gmusicBag[0]];
+  }
+  gmusicLastTrack = gmusicBag.pop();
+  return gmusicLastTrack;
+}
+
+function buildGmusicCycle() {
+  return [randomAmbientJingleEl(), nextTrackEl(), nextTrackEl()];
+}
+
+function onGmusicEnded(e) {
+  if (e.target !== gmusicCurrentEl) return;
+  advanceGmusicQueue();
+}
+
+function onGmusicPlaying(e) {
+  if (e.target !== gmusicCurrentEl) return;
+  gmusicRetryDelay = GMUSIC_RETRY_MIN;
+  if (gmusicAnnounceOnPlay) {
+    gmusicAnnounceOnPlay = false;
+    if (e.target.gmusicTitle) pendingTrackAnnounce = e.target.gmusicTitle;
+  }
+}
+
+function playGmusicCurrent() {
+  const el = gmusicCurrentEl;
+  if (!el || el.gmusicPlayInFlight || gmusicSuspended) return;
+  el.gmusicPlayInFlight = true;
+  el.play().then(() => {
+    el.gmusicPlayInFlight = false;
+  }, () => {
+    el.gmusicPlayInFlight = false;
+    if (el !== gmusicCurrentEl) return;
+    gmusicRetryAt = nowSec() + gmusicRetryDelay;
+    gmusicRetryDelay = Math.min(GMUSIC_RETRY_MAX, gmusicRetryDelay * 2);
+  });
+}
+
+// "Tune in" like a real running station: start mid-way through a random
+// track (or occasionally a jingle) with a subtle fade-in.
 function startGmusicRandomly() {
   gmusicStarted = true;
-  gmusicPending = true;
+  gmusicPendingSince = nowSec();
   gmusicFadingIn = true;
   musicState.gain = 0;
   musicBus.gain.value = 0;
 
   const startAsJingle = Math.random() < 0.25;
-  let el;
-  if (startAsJingle) {
-    const jingleKey = AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)];
-    el = new Audio(GMUSIC_JINGLES[jingleKey]);
-    try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
-  } else {
-    el = gmusic.elements[Math.floor(Math.random() * gmusic.elements.length)].el;
-  }
+  const el = startAsJingle ? randomAmbientJingleEl() : nextTrackEl();
   gmusicQueue = buildGmusicCycle();
+  if (startAsJingle) gmusicQueue.shift();
   gmusicCurrentEl = el;
+  gmusicAnnounceOnPlay = true;
 
-  // gmusicPending stays true (blocking updateGMusic's own re-trigger check)
-  // until .play() actually gets called below - otherwise, while this waits
-  // on 'loadedmetadata', gmusicCurrentEl.paused still reads true and
-  // updateGMusic would call advanceGmusicQueue() and start a SECOND element
-  // in the meantime, playing two things at once.
   const startPlayback = () => {
-    gmusicPending = false;
+    if (gmusicPendingSince === null || el !== gmusicCurrentEl) return;
+    gmusicPendingSince = null;
     const dur = el.duration;
     if (isFinite(dur) && dur > 1) el.currentTime = Math.random() * dur * 0.8;
-    el.addEventListener('ended', advanceGmusicQueue, { once: true });
-    el.play().catch(() => {});
-    if (el.gmusicTitle) pendingTrackAnnounce = el.gmusicTitle;
+    playGmusicCurrent();
   };
   if (el.readyState >= 1) startPlayback();
-  else el.addEventListener('loadedmetadata', startPlayback, { once: true });
+  else {
+    el.addEventListener('loadedmetadata', startPlayback, { once: true });
+    el.addEventListener('error', () => { gmusicPendingSince = null; }, { once: true });
+  }
 }
 
 function advanceGmusicQueue() {
   if (!gmusicQueue.length) {
-    if (!gmusic.elements.length) return; // manifest not loaded yet - nothing to sequence
+    if (!gmusicTracks.length) return;
     gmusicQueue = buildGmusicCycle();
   }
-  gmusicCurrentEl = gmusicQueue.shift();
-  gmusicCurrentEl.currentTime = 0;
-  gmusicCurrentEl.addEventListener('ended', advanceGmusicQueue, { once: true });
-  gmusicCurrentEl.play().catch(() => {});
-  if (gmusicCurrentEl.gmusicTitle) pendingTrackAnnounce = gmusicCurrentEl.gmusicTitle;
+  const prevEl = gmusicCurrentEl;
+  const el = gmusicQueue.shift();
+  gmusicCurrentEl = el;
+  if (prevEl && prevEl !== el && !prevEl.paused) prevEl.pause();
+  try { el.currentTime = 0; } catch (e) { /* not seekable yet */ }
+  gmusicAnnounceOnPlay = true;
+  playGmusicCurrent();
+}
+
+// Queued rather than layered over the running track: it replaces the next
+// ambient jingle so music never overlaps.
+function enqueueGmusicJingle(key) {
+  if (!gmusicStarted) return;
+  const next = gmusicQueue[0];
+  if (next && next.gmusicJingleKey === key) return;
+  const el = makeJingleEl(key);
+  if (next && next.gmusicJingleKey) gmusicQueue[0] = el;
+  else gmusicQueue.unshift(el);
+}
+
+function onVisibilityChange() {
+  if (!ctx) return;
+  if (document.hidden) {
+    gmusicSuspended = true;
+    if (gmusicCurrentEl && !gmusicCurrentEl.paused) gmusicCurrentEl.pause();
+    ctx.suspend().catch(() => {});
+  } else {
+    gmusicSuspended = false;
+    gmusicRetryAt = 0;
+    ctx.resume().catch(() => {});
+  }
+}
+
+// Safari only lets an AudioContext/media element start inside a real user
+// gesture; retry on every pointer/key press until audio is actually running.
+function unlockAudio() {
+  if (!ctx || document.hidden) return;
+  const el = gmusicCurrentEl;
+  if (el && el.paused && !el.ended && gmusicPendingSince === null) playGmusicCurrent();
+  ctx.resume().then(() => {
+    if (ctx.state !== 'running' || !gmusicCurrentEl || gmusicCurrentEl.paused) return;
+    window.removeEventListener('pointerdown', unlockAudio, true);
+    window.removeEventListener('keydown', unlockAudio, true);
+  }).catch(() => {});
 }
 
 export function initAudio(world) {
   if (ctx) return;
   const AC = window.AudioContext || window.webkitAudioContext;
   ctx = new AC();
-  if (ctx.state === 'suspended') ctx.resume();
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  window.addEventListener('pointerdown', unlockAudio, true);
+  window.addEventListener('keydown', unlockAudio, true);
+  document.addEventListener('visibilitychange', onVisibilityChange);
 
   master = ctx.createGain();
-  master.gain.value = MASTER_VOLUME;
+  master.gain.value = muted ? 0 : MASTER_VOLUME;
   master.connect(ctx.destination);
 
   sfxBus = ctx.createGain();
@@ -516,12 +620,19 @@ function updateSiren(dt, world) {
 }
 
 function updateGMusic(dt, world) {
-  // G-Music plays continuously, on foot or driving. First start "tunes in"
-  // mid-broadcast (see startGmusicRandomly); after that, jingle/track/track
-  // sequencing self-sustains via advanceGmusicQueue's 'ended' chain, and
-  // this is just an idempotent safety net in case something ever stalls.
-  if (!gmusicStarted && gmusic.elements.length) startGmusicRandomly();
-  else if (gmusicStarted && !gmusicPending && (!gmusicCurrentEl || gmusicCurrentEl.paused) && gmusic.elements.length) advanceGmusicQueue();
+  if (!gmusicStarted) {
+    if (gmusicTracks.length) startGmusicRandomly();
+  } else if (gmusicPendingSince !== null) {
+    if (nowSec() - gmusicPendingSince > GMUSIC_PENDING_TIMEOUT) gmusicPendingSince = null;
+  } else {
+    // Resume-only safety net (autoplay block, media-key pause, tab switch);
+    // a broken file is skipped, an ended one is left to its 'ended' event.
+    const el = gmusicCurrentEl;
+    if (el && el.paused && !el.ended && !el.gmusicPlayInFlight && !gmusicSuspended && nowSec() >= gmusicRetryAt) {
+      if (el.error) advanceGmusicQueue();
+      else playGmusicCurrent();
+    }
+  }
 
   if (pendingTrackAnnounce) {
     world.addMessage('🎵 Nu op G-Music: ' + pendingTrackAnnounce, 4);
@@ -540,12 +651,15 @@ function updateGMusic(dt, world) {
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
 }
 
+let lastDeathAt = -Infinity;
+
 export function updateAudio(dt, world) {
   if (!ctx) return;
-  if (ctx.state === 'suspended') ctx.resume();
+  if (ctx.state === 'suspended' && !document.hidden) ctx.resume().catch(() => {});
 
   if (world.input.wasPressed('u')) {
     muted = !muted;
+    saveMuted();
     master.gain.setTargetAtTime(muted ? 0 : MASTER_VOLUME, ctx.currentTime, 0.05);
     world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5);
   }
@@ -569,18 +683,20 @@ export function updateAudio(dt, world) {
     if (seenMessages.has(m)) continue;
     seenMessages.add(m);
     if (m.text === 'DOOD' || m.text === 'OPGEPAKT') {
+      lastDeathAt = world.time;
       playDeathSting();
       if (m.text === 'OPGEPAKT') {
         playVoiceline(world.player.character, 'opgepakt');
         playPoliceBark('aangehouden');
       }
-    } else if (m.text.indexOf('voltooid') !== -1) {
-      playMissionJingle();
     } else if (m.text.indexOf('geklaard!') !== -1) {
+      playMissionJingle();
       playVoiceline(world.player.character, 'missie_gelukt');
     } else if (m.text.indexOf('mislukt') !== -1) {
+      // a mission failed by dying/arrest already got the death voiceline
+      if (world.time - lastDeathAt < 3) continue;
       playVoiceline(world.player.character, 'missie_mislukt');
-    } else if (m.text.endsWith('ammo')) {
+    } else if (m.text.endsWith('munitie')) {
       playVoiceline(world.player.character, 'wapen_opgepakt');
     } else if (m.text.startsWith('+ €')) {
       playVoiceline(world.player.character, 'geld_opgepakt');
@@ -592,12 +708,10 @@ export function updateAudio(dt, world) {
   }
 
   if (world.wanted > 0 && prev.wanted === 0) {
-    playGMusicJingle('hoge_wanted');
+    enqueueGmusicJingle('hoge_wanted');
     playRandomChaseStartBark();
   }
   prev.wanted = world.wanted;
-
-
   prev.kills = world.stats.kills;
   prev.copKills = world.stats.copKills;
   prev.pedKills = world.stats.pedKills;

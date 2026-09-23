@@ -52,6 +52,13 @@
     background: var(--gron-green); border: none; border-radius: 4px; padding: 12px 40px; cursor: pointer;
   }
   #start-btn:hover { background: var(--gron-green-light); }
+  #start-btn:focus-visible { outline: 3px solid #f0ede4; outline-offset: 3px; background: var(--gron-green-light); }
+  .frame-error {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 30;
+    max-width: calc(100vw - 32px); box-sizing: border-box; padding: 10px 16px;
+    background: rgba(90, 16, 16, 0.92); border: 1px solid #d93f3f; border-radius: 4px;
+    color: #f2f2f2; font: 14px/1.4 sans-serif;
+  }
 </style>
 </head>
 <body>
@@ -69,7 +76,7 @@
       <div class="key">C</div><div>wissel Tammo / Anita</div>
       <div class="key">U</div><div>geluid</div>
     </div>
-    <button id="start-btn">Start</button>
+    <button id="start-btn" type="button" autofocus>Start</button>
   </div>
 </div>
 <!-- GLTFLoader.js (used by landmarkmodels.js) imports the bare specifier

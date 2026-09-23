@@ -82,7 +82,7 @@ function buildDefs(world) {
   return [
     {
       type: 'deliver',
-      label: 'Bommen Berend wil zn bakkie',
+      label: "Bommen Berend wil z'n bakkie",
       timeLimit: 90,
       reward: 250,
       start: resolveSpot(map, sp, 15, 12, true),
@@ -173,6 +173,16 @@ export function initMissions(world) {
   };
   world.mission = chain.pub;
   syncPub(world);
+  world.onRespawn.push((w, { busted }) => {
+    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood');
+  });
+}
+
+export function failActiveMission(world, reason) {
+  if (!chain || chain.phase !== 'active') return false;
+  endInFailure(world, reason);
+  syncPub(world);
+  return true;
 }
 
 function syncPub(world) {
@@ -234,7 +244,11 @@ function succeed(world, def) {
 }
 
 function fail(world, def, reason) {
-  world.addMessage(`${def.label} mislukt${reason ? ' — ' + reason : ''}`, 3.5);
+  endInFailure(world, `${def.label} mislukt${reason ? ' — ' + reason : ''}`);
+}
+
+function endInFailure(world, text) {
+  world.addMessage(text, 3.5);
   chain.phase = 'cooldown';
   chain.cooldownTimer = RETRY_COOLDOWN;
   chain.wpIndex = 0;

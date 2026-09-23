@@ -66,7 +66,7 @@ function findSpawnRoad(map, px, py) {
 }
 
 function trySpawnPolice(world, state) {
-  const alive = world.vehicles.filter((v) => v.isPolice && !v.wrecked);
+  const alive = world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked);
   const target = world.wanted === 0 ? 1 : Math.min(8, world.wanted + 1);
   if (alive.length >= target || world.time < state.nextSpawnAt) return;
   const road = findSpawnRoad(world.map, world.player.x, world.player.y);
@@ -108,7 +108,7 @@ function updateChase(v, dt, world) {
   const d = Math.hypot(dx, dy) || 0.001;
   const steerErr = normalizeAngle(Math.atan2(dy, dx) - v.angle);
   v.applyControls(dt, d > 3 ? 1 : 0, clamp(steerErr * 2.2, -1, 1), d < 2.5);
-  resolveVehicleBuildingCollision(v, world.map);
+  resolveVehicleBuildingCollision(v, world.map, dt);
 }
 
 function maybeFire(v, dt, world) {
@@ -171,13 +171,14 @@ function isPlayerNearWater(world) {
 function trySpawnPoliceBoat(world, state) {
   if (world.wanted < BOAT_WANTED_THRESHOLD || world.time < state.nextBoatSpawnAt) return;
   if (!isPlayerNearWater(world)) return;
-  const alive = world.vehicles.filter((v) => v.isBoat && v.isPolice && !v.wrecked);
+  const alive = world.vehicles.filter((v) => v.isBoat && v.isPolice && !v.hijacked && !v.wrecked);
   if (alive.length >= 1) return;
   const polys = world.map.waterNear(world.player.x, world.player.y, BOAT_SPAWN_MAX_DIST);
   if (!polys.length) return;
   const poly = polys[Math.floor(Math.random() * polys.length)];
-  world.vehicles.push(spawnPoliceBoatOnWater(world.map, poly, Math.random));
   state.nextBoatSpawnAt = world.time + BOAT_SPAWN_STAGGER;
+  const boat = spawnPoliceBoatOnWater(world.map, poly, Math.random);
+  if (boat) world.vehicles.push(boat);
 }
 
 function despawnFarPoliceBoats(world) {
@@ -241,7 +242,8 @@ export function updatePolice(dt, world) {
 
   const chasing = world.wanted > 0;
   for (const v of world.vehicles) {
-    if (!v.isPolice || v.wrecked || v.driver === 'player') continue;
+    // boats chase via updateBoatAI; a stolen police car is just a car now
+    if (!v.isPolice || v.hijacked || v.isBoat || v.wrecked || v.driver === 'player') continue;
 
     if (chasing !== v._chasing) {
       if (!chasing) resnapToRoad(v, world.map);
@@ -254,7 +256,7 @@ export function updatePolice(dt, world) {
       checkBusted(v, world);
     } else {
       updateTrafficAI(v, dt, world.map, world, Math.random);
-      resolveVehicleBuildingCollision(v, world.map);
+      resolveVehicleBuildingCollision(v, world.map, dt);
     }
   }
 }

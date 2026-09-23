@@ -1,4 +1,4 @@
-import { dist, pointInPolygon, closestPointOnSegment } from './util.js';
+import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
 import { resolveBuildingCollisions } from './player.js';
 import { respawnPlayer } from './world.js';
 import { playNpcPhrase } from './audio.js';
@@ -86,7 +86,7 @@ export function spawnPedestriansNear(map, x, y, count, rng = Math.random) {
 
     if (dist(fx, fy, x, y) > 60) continue;
 
-    if (isInsideBuilding(map, fx, fy)) continue;
+    if (isInsideBuilding(map, fx, fy) || isInWater(map, fx, fy)) continue;
 
     peds.push(new Pedestrian(fx, fy, rng() * Math.PI * 2 - Math.PI));
   }
@@ -109,16 +109,6 @@ export function spawnCopPedestriansNear(map, x, y, count, rng = Math.random) {
 function isInsideBuilding(map, x, y) {
   for (const b of map.buildingsNear(x, y, 0.5)) {
     if (pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
-}
-
-// Pedestrians can't swim - a candidate wander spot inside a water polygon
-// (canal, Diepenring, ...) is rejected exactly like a building interior.
-function isInWater(map, x, y) {
-  if (map.isOnBridge(x, y)) return false;
-  for (const w of map.waterNear(x, y, 0.5)) {
-    if (pointInPolygon(x, y, w.pts)) return true;
   }
   return false;
 }
@@ -261,6 +251,13 @@ export function updatePedestrians(dt, world) {
     let nx = ped.x + Math.cos(ped.angle) * ped.speed * dt;
     let ny = ped.y + Math.sin(ped.angle) * ped.speed * dt;
     [nx, ny] = resolveBuildingCollisions(nx, ny, ped.radius, map);
+    // peds can't swim: slide along quays like the player, but a ped that is
+    // somehow already in water may walk out
+    if (!isInWater(map, ped.x, ped.y) && isInWater(map, nx, ny)) {
+      if (!isInWater(map, nx, ped.y)) ny = ped.y;
+      else if (!isInWater(map, ped.x, ny)) nx = ped.x;
+      else { nx = ped.x; ny = ped.y; }
+    }
     ped.x = nx;
     ped.y = ny;
 

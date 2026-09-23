@@ -1,4 +1,5 @@
 import { playSikkomLine } from './audio.js';
+import { syncPlayerWrecks } from './vehicle.js';
 
 const CHECK_INTERVAL = 0.5;
 const COOLDOWN = 9;
@@ -33,25 +34,18 @@ function pickIndexed(list) {
   return [list[i], i];
 }
 
-// Ambient AI traffic wrecks itself constantly in a busy city - only count
-// wrecks the player actually caused (own driving, ramming, shooting), same
-// "don't blame/credit the player for something they didn't do" rule the
-// pedKills/copKills stats already follow, or Sikkom pinged on every random
-// two-NPC-cars fender-bender across the whole map.
-function countWrecked(world) {
-  let n = 0;
-  for (const v of world.vehicles) if (v.wrecked && v.wreckedByPlayer) n++;
-  return n;
-}
-
+// Only wrecks the player caused count (ambient traffic wrecks itself
+// constantly). A monotonic counter rather than a scan of world.vehicles,
+// because wrecked vehicles get despawned and would make the count drop.
 function snapshot(world) {
+  syncPlayerWrecks(world);
   return {
     wanted: world.wanted,
     kills: world.stats.kills,
     pedKills: world.stats.pedKills,
     copKills: world.stats.copKills,
     missionsDone: world.stats.missionsDone,
-    wrecked: countWrecked(world),
+    wrecked: world.stats.playerWrecks || 0,
   };
 }
 

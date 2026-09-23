@@ -90,7 +90,7 @@ export function initPhoneFeed(world) {
       '<span class="phonefeed-wordmark">Sikkom</span>' +
       '<span class="phonefeed-time">nu</span>' +
     '</div>' +
-    '<div class="phonefeed-body"></div>';
+    '<div class="phonefeed-body" aria-live="polite"></div>';
   root.appendChild(card);
   bodyEl = card.querySelector('.phonefeed-body');
 
