@@ -317,10 +317,13 @@ function buildPolyGeometry(pts) {
 
 function buildFlatMesh(poly, color, y) {
   if (!poly._geoFlat) poly._geoFlat = buildPolyGeometry(poly.pts);
-  const mesh = new THREE.Mesh(poly._geoFlat, new THREE.MeshLambertMaterial({ color }));
+  let mat = flatMaterials.get(color);
+  if (!mat) flatMaterials.set(color, mat = groundMaterial(color, GROUND_LAYER.green));
+  const mesh = new THREE.Mesh(poly._geoFlat, mat);
   mesh.position.y = y;
   return mesh;
 }
+const flatMaterials = new Map();
 
 // One shared animated ShaderMaterial for every water polygon (uTime updated
 // once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
@@ -362,7 +365,16 @@ function ribbonGeometry(pts, half) {
 // a same-toned gray; major/normal roads also get a painted centerline
 // (the single strongest "this is a street" visual cue a real road has).
 const ROAD_COLORS3D = { cycle: 0xa1402f, foot: 0x9a9284, major: 0x33363a, normal: 0x26282b, minor: 0x26282b };
-const CENTERLINE_MAT = new THREE.MeshBasicMaterial({ color: 0xf2f0e6 }); // Dutch road markings are white
+// Ground decals (green, sidewalks, road categories, markings) overlap at
+// every junction a few millimetres apart - far below depth-buffer precision
+// at street distance, so they flickered. Each layer gets a fixed
+// polygonOffset step instead, which resolves in depth-buffer space and so
+// holds at any distance; higher layers always win.
+const GROUND_LAYER = { green: 1, sidewalk: 2, foot: 3, cycle: 4, minor: 5, normal: 6, major: 7, marking: 8 };
+function groundMaterial(color, layer, Mat = THREE.MeshLambertMaterial) {
+  return new Mat({ color, polygonOffset: true, polygonOffsetFactor: -layer, polygonOffsetUnits: -layer * 4 });
+}
+const CENTERLINE_MAT = groundMaterial(0xf2f0e6, GROUND_LAYER.marking, THREE.MeshBasicMaterial); // Dutch road markings are white
 // Real streets have a sidewalk/verge buffer between the road edge and the
 // building line - most residential OSM ways don't map that as a separate
 // footway, so without this the asphalt runs straight up to building
@@ -372,20 +384,21 @@ const CENTERLINE_MAT = new THREE.MeshBasicMaterial({ color: 0xf2f0e6 }); // Dutc
 const SIDEWALK_EXTRA = 1.8;
 const SIDEWALK_COLOR = 0x8f8a7c;
 const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
+const SIDEWALK_MAT = groundMaterial(SIDEWALK_COLOR, GROUND_LAYER.sidewalk);
+const ROAD_MATS = Object.fromEntries(Object.entries(ROAD_COLORS3D).map(([cat, color]) => [cat, groundMaterial(color, GROUND_LAYER[cat])]));
 
 function buildRoadMesh(road) {
   const group = new THREE.Group();
 
   if (SIDEWALK_CATS.has(road.cat)) {
     if (!road._geoSidewalk) road._geoSidewalk = ribbonGeometry(road.pts, road.width / 2 + SIDEWALK_EXTRA);
-    const sidewalk = new THREE.Mesh(road._geoSidewalk, new THREE.MeshLambertMaterial({ color: SIDEWALK_COLOR }));
+    const sidewalk = new THREE.Mesh(road._geoSidewalk, SIDEWALK_MAT);
     sidewalk.position.y = 0.02;
     group.add(sidewalk);
   }
 
   if (!road._geoRoad) road._geoRoad = ribbonGeometry(road.pts, road.width / 2);
-  const color = ROAD_COLORS3D[road.cat] || ROAD_COLORS3D.normal;
-  const mesh = new THREE.Mesh(road._geoRoad, new THREE.MeshLambertMaterial({ color }));
+  const mesh = new THREE.Mesh(road._geoRoad, ROAD_MATS[road.cat] || ROAD_MATS.normal);
   mesh.position.y = 0.03;
   group.add(mesh);
 
@@ -462,7 +475,6 @@ function syncFlat(items, cache, color, y, px, py) {
   for (const [poly, mesh] of cache) {
     if (seen.has(poly)) continue;
     scene.remove(mesh);
-    mesh.material.dispose();
     cache.delete(poly);
   }
 }
@@ -499,11 +511,7 @@ function syncRoads(world, px, py) {
   }
   for (const [r, mesh] of roadMeshes) {
     if (seen.has(r)) continue;
-    scene.remove(mesh);
-    // buildRoadMesh returns a Group (surface + optional centerline), not a
-    // plain Mesh, since the centerline stripe was added - the centerline
-    // material is shared (CENTERLINE_MAT) so only dispose the surface's own
-    mesh.traverse((o) => { if (o.material && o.material !== CENTERLINE_MAT) o.material.dispose(); });
+    scene.remove(mesh); // geometry is cached on the road, materials are shared per layer
     roadMeshes.delete(r);
   }
 }
