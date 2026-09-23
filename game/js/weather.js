@@ -180,8 +180,10 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py) {
   }
 
   if (scene && Array.isArray(scene.children)) {
-    for (const obj of scene.children) {
-      if (!obj || (obj.type !== 'DirectionalLight' && obj.type !== 'HemisphereLight')) continue;
+    if (!scene.userData._weatherLights) {
+      scene.userData._weatherLights = scene.children.filter((o) => o && (o.type === 'DirectionalLight' || o.type === 'HemisphereLight'));
+    }
+    for (const obj of scene.userData._weatherLights) {
       if (obj.userData._weatherBaseIntensity === undefined) obj.userData._weatherBaseIntensity = obj.intensity;
       obj.intensity = obj.userData._weatherBaseIntensity * (1 - t * 0.4);
     }
