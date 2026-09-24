@@ -1,4 +1,5 @@
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon } from './util.js';
+import { getTrafficLights, trafficLightPhaseFor } from './trafficlights.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const MODELS = [
@@ -96,11 +97,14 @@ export class Vehicle {
     // Zero outside of a collision's immediate aftermath.
     this.driftX = 0;
     this.driftY = 0;
+    this.yawVel = 0; // rad/s of spin from an off-centre impact, decays in applyControls
 
-    // traffic AI path state
+    // traffic AI path state: current segment runs road.pts[segIdx] ->
+    // road.pts[segIdx + dir]; plan holds the upcoming junction choices
     this.road = null;
     this.dir = 1;
     this.segIdx = 0;
+    this.plan = [];
     this.isPolice = false;
     this.waitTimer = 0;
   }
@@ -113,36 +117,68 @@ export class Vehicle {
     return [this.x - r, this.y - r, this.x + r, this.y + r];
   }
 
-  // Player/AI driving physics shared by both control sources.
+  // Player/AI driving physics shared by both control sources. brakeInput may
+  // be a boolean or a 0..1 pedal amount; throttle against the direction of
+  // travel brakes first and only then reverses.
   applyControls(dt, throttle, steerInput, brakeInput) {
     const m = this.model;
-    if (brakeInput) {
-      const dec = m.brake * dt;
-      if (this.speed > 0) this.speed = Math.max(0, this.speed - dec);
-      else this.speed = Math.min(0, this.speed + dec);
+    const isPlayer = this.driver === 'player';
+    const brake = brakeInput === true ? 1 : brakeInput || 0;
+    const absSpeed = Math.abs(this.speed);
+    const handbrakeDrift = isPlayer && brake > 0 && absSpeed > 9 && Math.abs(steerInput) > 0.3;
+    const against = throttle !== 0 && absSpeed > 0.3 && Math.sign(throttle) !== Math.sign(this.speed);
+    let decel = brake * m.brake * (handbrakeDrift ? 0.45 : 1);
+    if (against) decel = Math.max(decel, m.brake * 0.85 * Math.abs(throttle));
+    if (decel > 0) {
+      const dec = decel * dt;
+      this.speed = this.speed > 0 ? Math.max(0, this.speed - dec) : Math.min(0, this.speed + dec);
     } else if (throttle !== 0) {
-      this.speed += throttle * m.accel * dt;
+      const top = throttle > 0 ? m.maxSpeed : m.maxSpeed * REVERSE_FACTOR;
+      const headroom = clamp(1 - absSpeed / top, 0, 1);
+      this.speed += throttle * m.accel * (0.3 + 0.7 * headroom) * dt;
     } else {
       const drag = 3.2 * dt;
       if (this.speed > 0) this.speed = Math.max(0, this.speed - drag);
       else this.speed = Math.min(0, this.speed + drag);
     }
-    this.speed = clamp(this.speed, -m.maxSpeed * 0.4, m.maxSpeed);
+    this.speed = clamp(this.speed, -m.maxSpeed * REVERSE_FACTOR, m.maxSpeed);
 
-    const speedFactor = clamp(Math.abs(this.speed) / 4, 0.15, 1);
-    const turn = steerInput * m.turnRate * speedFactor * (this.speed < 0 ? -1 : 1) * dt;
-    this.angle = normalizeAngle(this.angle + turn);
+    const target = clamp(steerInput, -1, 1);
+    if (isPlayer) {
+      const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
+      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * dt;
+      this.steer += clamp(target - this.steer, -rate, rate);
+    } else {
+      this.steer = target;
+    }
+    const yaw = this.steer * maxYawRate(this) * (handbrakeDrift ? 1.6 : 1) * (this.speed < 0 ? -1 : 1);
+    const oldAngle = this.angle;
+    this.angle = normalizeAngle(this.angle + (yaw + this.yawVel) * dt);
+    if (this.yawVel) {
+      this.yawVel *= Math.exp(-SPIN_DECAY_RATE * dt);
+      if (Math.abs(this.yawVel) < 0.02) this.yawVel = 0;
+    }
+
+    // Past the grip limit (handbrake, or flat-out with full lock) part of the
+    // old velocity carries on sideways - a mild, recoverable slide.
+    if (isPlayer) {
+      const grip = handbrakeDrift ? 0.5 : absSpeed > m.maxSpeed * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
+      if (grip < 1) {
+        const k = (1 - grip) * this.speed;
+        this.driftX = clamp(this.driftX + k * (Math.cos(oldAngle) - Math.cos(this.angle)), -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
+        this.driftY = clamp(this.driftY + k * (Math.sin(oldAngle) - Math.sin(this.angle)), -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
+      }
+    }
 
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
-    // Sideways leftover from a collision impulse (resolveVehicleVehicleCollisions)
-    // rides along independently of the forward speed/angle model above, and
-    // decays away quickly - a brief post-hit nudge, not a steering change.
+    // Sideways velocity left by a collision impulse or a slide rides along
+    // independently of the forward speed/angle model and decays away.
     if (this.driftX || this.driftY) {
       this.x += this.driftX * dt;
       this.y += this.driftY * dt;
-      const decay = Math.exp(-DRIFT_DECAY_RATE * dt);
+      const decay = Math.exp(-(handbrakeDrift ? SLIDE_DECAY_RATE : DRIFT_DECAY_RATE) * dt);
       this.driftX *= decay;
       this.driftY *= decay;
       if (Math.hypot(this.driftX, this.driftY) < 0.03) { this.driftX = 0; this.driftY = 0; }
@@ -170,11 +206,47 @@ export function syncPlayerWrecks(world) {
   pendingPlayerWrecks = 0;
 }
 
-// Half-life of ~0.12s (ln2/6) - a collision's lateral shove is felt for a
-// beat and then fades, rather than permanently steering the vehicle off its
-// facing angle.
-const DRIFT_DECAY_RATE = 6;
-const MAX_DRIFT_SPEED = 6; // m/s, safety clamp against pathological multi-hit stacking in one frame
+// Half-life of ~0.15s - a collision's lateral shove is felt for a beat and
+// then fades, rather than permanently steering the vehicle off its facing.
+const DRIFT_DECAY_RATE = 4.5;
+const SLIDE_DECAY_RATE = 2.2; // while handbrake-drifting the slide lingers longer
+const SPIN_DECAY_RATE = 2.5;
+const MAX_DRIFT_SPEED = 8; // m/s, safety clamp against pathological multi-hit stacking in one frame
+const MAX_SPIN = 3.5; // rad/s
+
+const REVERSE_FACTOR = 0.25; // top speed in reverse, as a fraction of maxSpeed
+const PLAYER_STEER_RATE = 5; // 1/s: how fast the wheel follows a digital key
+const PLAYER_STEER_RETURN = 9;
+
+function minTurnRadius(m) {
+  if (m.name === 'bus') return 9;
+  if (m.name === 'bike' || m.name === 'scooter') return 1.8;
+  return m.len * 1.25;
+}
+
+// Sideways acceleration the tyres hold before the turn rate is capped -
+// this is what makes steering speed-dependent (tight at walking pace, wide
+// arcs at speed) instead of a constant rad/s at every speed.
+function lateralGrip(m) {
+  if (m.name === 'bus') return 4.5;
+  if (m.name === 'bike' || m.name === 'scooter') return 5;
+  if (m.name === 'boat') return 2.5;
+  return 16;
+}
+
+// tightTurn: AI turning round at a dead end or hairpin gets a shorter
+// radius instead of a multi-point turn - at walking pace nobody notices.
+export function maxYawRate(v, speed = v.speed) {
+  const s = Math.abs(speed);
+  if (s < 1e-3) return 0;
+  const radius = minTurnRadius(v.model) * (v.tightTurn && v.driver !== 'player' ? 0.45 : 1);
+  return Math.min(s / radius, v.model.turnRate, lateralGrip(v.model) / s);
+}
+
+export function maxCurvature(v) {
+  const s = Math.abs(v.speed);
+  return s > 0.5 ? maxYawRate(v) / s : 1 / (minTurnRadius(v.model) * (v.tightTurn && v.driver !== 'player' ? 0.45 : 1));
+}
 
 // Rolling history of a bus's own pose, sampled by distance travelled (not
 // frame count) so the trailing "harmonica" unit tracks correctly regardless
@@ -211,12 +283,79 @@ export function sampleBusTrail(v, backDist) {
   return { x: hist[0].x, y: hist[0].y, angle: hist[0].angle };
 }
 
-// Right-hand-traffic offset from the road centerline, consistently used both
-// to place a vehicle at spawn and as the steering target while driving -
-// without this, traffic AI aimed straight at the centerline and every
-// vehicle (both directions) drove down the middle of the street.
-function laneOffset(road, isBike) {
-  return isBike ? (road.cat === 'cycle' ? 0.5 : road.width / 2 - 0.6) : Math.min(1.6, road.width / 2 - 0.9);
+// Right-hand-traffic offset from the road centerline (to the right of the
+// direction of travel), used both at spawn and for the driving path.
+function laneOffset(road, v, half = road.width / 2) {
+  const halfWid = v.model.wid / 2;
+  if (v.isBike || v.isScooter) {
+    if (road.cat === 'cycle') return road.oneway ? 0 : Math.min(0.6, half / 2);
+    return Math.max(0.3, half - 0.7);
+  }
+  if (road.oneway) return clamp(half - halfWid - 1.2, 0, 1);
+  return clamp(half / 2, 0.3, Math.max(0.3, half - halfWid - 0.25));
+}
+
+function pointInAnyBuilding(buildings, x, y) {
+  for (const b of buildings) {
+    const [minx, miny, maxx, maxy] = b.bounds;
+    if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
+  }
+  return false;
+}
+
+// OSM widths are per road class, so a 'normal' street squeezed between
+// facades is often narrower than its nominal width: measure the free space
+// to the nearest building on either side at every point (lazily, cached).
+function roadHalfWidths(map, road) {
+  if (road._half) return road._half;
+  const nrm = roadNormals(road);
+  road._half = road.pts.map((p, i) => {
+    const nominal = road.width / 2;
+    const near = map.buildingsNear(p[0], p[1], nominal + 1);
+    if (!near.length || pointInAnyBuilding(near, p[0], p[1])) return nominal;
+    const L = Math.hypot(nrm[i][0], nrm[i][1]) || 1;
+    const ux = nrm[i][0] / L, uy = nrm[i][1] / L;
+    let half = nominal;
+    for (const side of [1, -1]) {
+      for (let d = 0.75; d < half; d += 0.5) {
+        if (pointInAnyBuilding(near, p[0] + ux * d * side, p[1] + uy * d * side)) { half = Math.max(1.2, d - 0.3); break; }
+      }
+    }
+    return half;
+  });
+  return road._half;
+}
+
+// Per-point right-hand normal of the road's own direction, mitred at
+// corners so an offset lane stays parallel to the centerline.
+function roadNormals(road) {
+  if (road._nrm) return road._nrm;
+  const p = road.pts, n = p.length;
+  const segN = [];
+  for (let i = 0; i < n - 1; i++) {
+    const dx = p[i + 1][0] - p[i][0], dy = p[i + 1][1] - p[i][1];
+    const L = Math.hypot(dx, dy);
+    segN.push(L > 1e-6 ? [-dy / L, dx / L] : null);
+  }
+  const out = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const a = segN[i - 1] || segN[i] || [0, 0];
+    const b = segN[i] || segN[i - 1] || [0, 0];
+    let sx = a[0] + b[0], sy = a[1] + b[1];
+    const L = Math.hypot(sx, sy);
+    if (L < 1e-6) { out[i] = a; continue; }
+    sx /= L; sy /= L;
+    const miter = 1 / Math.max(0.55, sx * a[0] + sy * a[1]);
+    out[i] = [sx * miter, sy * miter];
+  }
+  road._nrm = out;
+  return out;
+}
+
+function lanePoint(map, road, i, dir, v) {
+  const lane = laneOffset(road, v, roadHalfWidths(map, road)[i]);
+  const p = road.pts[i], nrm = roadNormals(road)[i];
+  return [p[0] + nrm[0] * lane * dir, p[1] + nrm[1] * lane * dir];
 }
 
 export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.random, isBike = false, isBus = false, atPoint = null, isScooter = false) {
@@ -252,17 +391,50 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
     : isBus
     ? BUS_MODELS[Math.floor(rng() * BUS_MODELS.length)]
     : MODELS[Math.floor(rng() * MODELS.length)];
-  const lane = laneOffset(road, isBike || isScooter);
-  const nx = -Math.sin(angle), ny = Math.cos(angle);
-  const v = new Vehicle(x + nx * lane * dir, y + ny * lane * dir, angle, model);
-  v.road = road;
-  v.dir = dir;
-  v.segIdx = dir > 0 ? i : i + 1;
+  const v = new Vehicle(x, y, angle, model);
   v.isPolice = isPolice;
   v.isBike = isBike;
   v.isBus = isBus;
   v.isScooter = isScooter;
+  // right of travel is (-sin, cos) of the travel heading
+  const halves = roadHalfWidths(map, road);
+  const lane = laneOffset(road, v, Math.min(halves[i], halves[i + 1]));
+  v.x += -Math.sin(angle) * lane;
+  v.y += Math.cos(angle) * lane;
+  v.road = road;
+  v.dir = dir;
+  v.segIdx = dir > 0 ? i : i + 1;
+  v.cruiseScale = 0.9 + rng() * 0.2;
   return v;
+}
+
+// Put a vehicle that has been driving freely (police pursuit) back on the
+// road graph, without moving it: the path follower steers it into lane.
+export function attachToNearestRoad(v, map) {
+  const rp = map.nearestRoadPoint(v.x, v.y, 150, true);
+  if (!rp) return false;
+  const pts = rp.road.pts;
+  let bestI = 0, bestDist2 = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const cp = closestPointOnSegment(v.x, v.y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+    if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; bestI = i; }
+  }
+  const segAngle = Math.atan2(pts[bestI + 1][1] - pts[bestI][1], pts[bestI + 1][0] - pts[bestI][0]);
+  let dir = Math.cos(v.angle - segAngle) >= 0 ? 1 : -1;
+  if (rp.road.oneway) dir = 1;
+  v.road = rp.road;
+  v.dir = dir;
+  v.segIdx = dir > 0 ? bestI : bestI + 1;
+  v.plan = [];
+  v.waitTimer = 0;
+  return true;
+}
+
+function spawnSpotFree(vehicles, v, clearance = 9) {
+  for (const o of vehicles) {
+    if (Math.hypot(o.x - v.x, o.y - v.y) < clearance + o.halfLen) return false;
+  }
+  return true;
 }
 
 // The one-off hero car for GTE VI: same placement machinery as a regular
@@ -291,19 +463,19 @@ export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spa
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
     // real connection) is cleared the same way rather than left oscillating.
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if (v.wrecked || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
   for (const v of vehicles) if (!v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && v.driver !== 'player') count++;
 
-  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle');
+  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3);
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -317,7 +489,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if (v.wrecked || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -330,7 +502,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -343,7 +515,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isScooter || v.driver === 'player') continue;
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if (v.wrecked || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -356,7 +528,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -369,7 +541,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBus || v.driver === 'player') continue;
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if (v.wrecked || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -381,7 +553,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -443,7 +615,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     const v = spawnBoatOnWater(map, poly, Math.random);
     if (!v) continue;
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -514,131 +686,507 @@ export function findNearestVehicle(x, y, vehicles, maxDist = 2.5) {
   return best;
 }
 
-// --- simplified traffic AI: follow the current road's polyline, and hop to a
-// connecting road when reaching an endpoint (approximating an intersection). ---
+// --- traffic AI: pure-pursuit path following over a junction graph built
+// from shared OSM nodes (road ends as well as mid-road crossings). ---
 
-function roadEndpoint(road, dir) {
-  return dir > 0 ? road.pts[road.pts.length - 1] : road.pts[0];
-}
+const graphCache = new WeakMap();
+const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
 
-function findConnectingRoad(map, point, excludeRoad, rng, allowCycle = false, minWidth = 0) {
-  const candidates = [];
-  for (const r of map.roadsNear(point[0], point[1], 7)) {
-    if (r.cat === 'foot' || (r.cat === 'cycle' && !allowCycle)) continue;
-    if (r.width < minWidth) continue;
-    const d0 = Math.hypot(r.pts[0][0] - point[0], r.pts[0][1] - point[1]);
-    const d1 = Math.hypot(r.pts[r.pts.length - 1][0] - point[0], r.pts[r.pts.length - 1][1] - point[1]);
-    if (d0 < 6) candidates.push({ road: r, dir: 1 });
-    if (d1 < 6 && r.pts.length > 1 && !r.oneway) candidates.push({ road: r, dir: -1 });
+function roadGraph(map) {
+  let g = graphCache.get(map);
+  if (g) return g;
+  const nodes = new Map();
+  const nodeOf = new Map();
+  const drivable = map.roads.filter((r) => r.cat !== 'foot' && r.pts.length > 1);
+  for (const r of drivable) {
+    nodeOf.set(r, r.pts.map((p, idx) => {
+      const k = nodeKey(p);
+      let n = nodes.get(k);
+      if (!n) { n = []; nodes.set(k, n); }
+      n.push({ road: r, idx });
+      return n;
+    }));
   }
-  const fresh = candidates.filter((c) => c.road !== excludeRoad);
-  const pool = fresh.length ? fresh : candidates;
-  if (!pool.length) return null;
-  return pool[Math.floor(rng() * pool.length)];
-}
-
-export function updateTrafficAI(v, dt, map, world, rng = Math.random) {
-  if (v.wrecked) return;
-  if (v.waitTimer > 0) {
-    v.waitTimer -= dt;
-    v.applyControls(dt, 0, 0, true);
-    return;
-  }
-  if (!v.road) return;
-
-  const pts = v.road.pts;
-  let targetIdx = v.segIdx + v.dir;
-  if (targetIdx < 0 || targetIdx >= pts.length) {
-    const endPoint = roadEndpoint(v.road, v.dir);
-    const minWidth = v.model.wid + 0.6;
-    const next = findConnectingRoad(map, endPoint, v.road, rng, v.isBike || v.isScooter, minWidth);
-    if (next) {
-      v.road = next.road;
-      v.dir = next.dir;
-      v.segIdx = next.dir > 0 ? 0 : next.road.pts.length - 1;
-      v.deadEndBounces = 0;
-    } else {
-      v.dir *= -1; // dead end: u-turn
-      v.segIdx = clamp(v.segIdx, 0, pts.length - 1);
-      v.deadEndBounces = (v.deadEndBounces || 0) + 1;
+  // OSM ways that should meet sometimes stop a metre or two short
+  for (const r of drivable) {
+    const arr = nodeOf.get(r);
+    for (const idx of [0, r.pts.length - 1]) {
+      if (arr[idx].length > 1) continue;
+      const p = r.pts[idx];
+      let best = null, bestD2 = 16;
+      for (const o of map.roadsNear(p[0], p[1], 4)) {
+        const on = nodeOf.get(o);
+        if (o === r || !on) continue;
+        o.pts.forEach((q, j) => {
+          const d2 = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2;
+          if (d2 < bestD2) { bestD2 = d2; best = on[j]; }
+        });
+      }
+      if (best) { best.push({ road: r, idx }); arr[idx] = best; }
     }
+  }
+  g = { nodeOf };
+  graphCache.set(map, g);
+  return g;
+}
+
+function roadNode(map, road, i) {
+  const arr = roadGraph(map).nodeOf.get(road);
+  return arr ? arr[i] : null;
+}
+
+function isJunction(map, road, i) {
+  if (i === 0 || i === road.pts.length - 1) return true;
+  const node = roadNode(map, road, i);
+  return !!node && node.length > 1;
+}
+
+function canUseRoad(v, r) {
+  if (r.cat === 'foot') return false;
+  const small = v.isBike || v.isScooter;
+  if (r.cat === 'cycle' && !small) return false;
+  return small || r.width >= v.model.wid + 1.1;
+}
+
+function segHeading(road, i, j) {
+  const a = road.pts[i], b = road.pts[j];
+  return Math.atan2(b[1] - a[1], b[0] - a[0]);
+}
+
+function chooseTurn(v, map, road, at, dir, rng, goal) {
+  const node = roadNode(map, road, at) || [{ road, idx: at }];
+  const inHeading = segHeading(road, at - dir, at);
+  const opts = [];
+  for (const e of node) {
+    if (e.road !== road && !canUseRoad(v, e.road)) continue;
+    for (const d of [1, -1]) {
+      const j = e.idx + d;
+      if (j < 0 || j >= e.road.pts.length) continue;
+      if (e.road.oneway && d < 0) continue;
+      if (e.road === road && e.idx === at && d === -dir) continue;
+      opts.push({ road: e.road, dir: d, idx: e.idx, turn: normalizeAngle(segHeading(e.road, e.idx, j) - inHeading) });
+    }
+  }
+  let pool = opts.filter((o) => Math.abs(o.turn) < 2);
+  if (!pool.length) pool = opts.filter((o) => Math.abs(o.turn) < 2.6);
+  if (!pool.length) pool = opts;
+  if (!pool.length) return { road, dir: -dir, idx: at, uturn: true, from: road, at };
+
+  let pick = pool[pool.length - 1];
+  if (goal) {
+    const p = road.pts[at];
+    const gx = goal.x - p[0], gy = goal.y - p[1], gl = Math.hypot(gx, gy) || 1;
+    let best = -Infinity;
+    for (const o of pool) {
+      const h = segHeading(o.road, o.idx, o.idx + o.dir);
+      const score = (Math.cos(h) * gx + Math.sin(h) * gy) / gl + rng() * 0.15;
+      if (score > best) { best = score; pick = o; }
+    }
+    if (best < -0.4 && !road.oneway) pick = { road, dir: -dir, idx: at, uturn: true };
+  } else {
+    const small = v.isBike || v.isScooter;
+    const weights = pool.map((o) => {
+      let w = Math.abs(o.turn) < 0.45 ? 3 : 1;
+      if (v.isBus && (o.road.cat === 'major' || o.road.cat === 'normal')) w *= 3;
+      if (small && o.road.cat === 'cycle') w *= 2;
+      return w;
+    });
+    let r = rng() * weights.reduce((a, b) => a + b, 0);
+    for (let k = 0; k < pool.length; k++) {
+      r -= weights[k];
+      if (r <= 0) { pick = pool[k]; break; }
+    }
+  }
+  return { road: pick.road, dir: pick.dir, idx: pick.idx, uturn: !!pick.uturn, from: road, at };
+}
+
+function nextTurn(v, map, rng, goal, k, road, at, dir) {
+  let t = v.plan[k];
+  if (!t || t.from !== road || t.at !== at) {
+    t = chooseTurn(v, map, road, at, dir, rng, goal);
+    v.plan.length = k;
+    v.plan.push(t);
+  }
+  return t;
+}
+
+// A* over the junction graph to the drivable point nearest (gx, gy); the
+// result replaces v.plan with one entry per junction along the route.
+const ROUTE_MAX_EXPANSIONS = 6000;
+
+function findRoute(v, map, gx, gy) {
+  const target = map.nearestRoadPoint(gx, gy, 300, true);
+  if (!target || !canUseRoad(v, target.road)) return false;
+  const tp = target.road.pts;
+  let ti = 0, tBest = Infinity;
+  tp.forEach((p, i) => { const d = Math.hypot(p[0] - target.x, p[1] - target.y); if (d < tBest) { tBest = d; ti = i; } });
+  const goalNode = roadNode(map, target.road, ti);
+  const { nodeOf } = roadGraph(map);
+  const stateKey = (road, idx, dir) => (isJunction(map, road, idx) ? nodeOf.get(road)[idx] : road.pts[idx][0] + ',' + road.pts[idx][1] + ',' + dir);
+  const b = v.segIdx + v.dir;
+  const start = { road: v.road, idx: b, dir: v.dir, g: Math.hypot(v.road.pts[b][0] - v.x, v.road.pts[b][1] - v.y), prev: null };
+  const h = (p) => Math.hypot(p[0] - tp[ti][0], p[1] - tp[ti][1]);
+  start.f = start.g + h(v.road.pts[b]);
+  const open = [start];
+  const push = (x) => {
+    open.push(x);
+    for (let i = open.length - 1; i > 0;) {
+      const p = (i - 1) >> 1;
+      if (open[p].f <= open[i].f) break;
+      [open[p], open[i]] = [open[i], open[p]];
+      i = p;
+    }
+  };
+  const pop = () => {
+    const top = open[0], last = open.pop();
+    if (open.length) {
+      open[0] = last;
+      for (let i = 0; ;) {
+        const l = 2 * i + 1, r = l + 1;
+        let m = i;
+        if (l < open.length && open[l].f < open[m].f) m = l;
+        if (r < open.length && open[r].f < open[m].f) m = r;
+        if (m === i) break;
+        [open[m], open[i]] = [open[i], open[m]];
+        i = m;
+      }
+    }
+    return top;
+  };
+  const best = new Map([[stateKey(v.road, b, v.dir), start.g]]);
+  let found = null;
+  for (let n = 0; n < ROUTE_MAX_EXPANSIONS && open.length; n++) {
+    const cur = pop();
+    const node = nodeOf.get(cur.road)[cur.idx];
+    if (node === goalNode) { found = cur; break; }
+    const exits = isJunction(map, cur.road, cur.idx) ? node : [{ road: cur.road, idx: cur.idx }];
+    for (const e of exits) {
+      if (!canUseRoad(v, e.road)) continue;
+      for (const d of [1, -1]) {
+        if (!isJunction(map, cur.road, cur.idx) && d !== cur.dir) continue;
+        const j = e.idx + d;
+        if (j < 0 || j >= e.road.pts.length) continue;
+        // a pursuing police car may take a one-way street the wrong way
+        const wrongWay = e.road.oneway && d < 0;
+        if (wrongWay && !v.isPolice) continue;
+        const a = e.road.pts[e.idx], q = e.road.pts[j];
+        const g = cur.g + Math.hypot(q[0] - a[0], q[1] - a[1]) * (wrongWay ? 1.6 : 1) + (e.road === cur.road && d === -cur.dir ? 25 : 0);
+        const key = stateKey(e.road, j, d);
+        if (g >= (best.get(key) ?? Infinity)) continue;
+        best.set(key, g);
+        push({ road: e.road, idx: j, dir: d, g, f: g + h(q), prev: cur, exitIdx: e.idx });
+      }
+    }
+  }
+  if (!found) return false;
+  const steps = [];
+  for (let s = found; s.prev; s = s.prev) steps.push(s);
+  steps.reverse();
+  const plan = [];
+  let arrRoad = v.road, arrIdx = b;
+  for (const st of steps) {
+    if (isJunction(map, arrRoad, arrIdx)) {
+      plan.push({ road: st.road, dir: st.dir, idx: st.exitIdx, uturn: false, from: arrRoad, at: arrIdx });
+    }
+    arrRoad = st.road; arrIdx = st.idx;
+  }
+  v.plan = plan;
+  v.routeEnd = { road: target.road, idx: ti };
+  return true;
+}
+
+// Move segIdx forward once the vehicle has passed the end of its segment, or
+// is already closer to the next one (a corner that got cut).
+function advanceAlongRoad(v, map, rng, goal) {
+  for (let k = 0; k < 6; k++) {
+    const road = v.road, b = v.segIdx + v.dir;
+    const A = lanePoint(map, road, v.segIdx, v.dir, v), B = lanePoint(map, road, b, v.dir, v);
+    const cur = closestPointOnSegment(v.x, v.y, A[0], A[1], B[0], B[1]);
+    let t = null, nRoad = road, nDir = v.dir, nIdx = b;
+    if (isJunction(map, road, b)) {
+      t = nextTurn(v, map, rng, goal, 0, road, b, v.dir);
+      nRoad = t.road; nDir = t.dir; nIdx = t.idx;
+    }
+    const C = lanePoint(map, nRoad, nIdx, nDir, v), D = lanePoint(map, nRoad, nIdx + nDir, nDir, v);
+    const nxt = closestPointOnSegment(v.x, v.y, C[0], C[1], D[0], D[1]);
+    if (cur.t < 1 && !(nxt.t > 0 && nxt.dist2 < cur.dist2)) break;
+    if (t) {
+      v.plan.shift();
+      v.deadEndBounces = t.uturn ? (v.deadEndBounces || 0) + 1 : 0;
+    }
+    v.road = nRoad; v.dir = nDir; v.segIdx = nIdx;
+  }
+}
+
+const PATH_LEN = 45;
+const PLAN_DEPTH = 4;
+
+// Lane-offset polyline ahead of the vehicle, following its planned turns.
+// Points flagged j are junction nodes.
+function buildPath(v, map, rng, goal) {
+  let road = v.road, dir = v.dir, idx = v.segIdx + dir;
+  const A = lanePoint(map, road, v.segIdx, dir, v), B = lanePoint(map, road, idx, dir, v);
+  const start = closestPointOnSegment(v.x, v.y, A[0], A[1], B[0], B[1]);
+  const path = [{ x: start.x, y: start.y, s: 0, j: false }];
+  let px = start.x, py = start.y, s = 0, k = 0;
+  const push = (q, j) => {
+    s += Math.hypot(q[0] - px, q[1] - py);
+    px = q[0]; py = q[1];
+    path.push({ x: px, y: py, s, j, r: road, i: idx });
+  };
+  for (let guard = 0; guard < 120 && s < PATH_LEN; guard++) {
+    const junction = isJunction(map, road, idx);
+    push(lanePoint(map, road, idx, dir, v), junction);
+    if (junction) {
+      const jp = path[path.length - 1];
+      jp.node = roadNode(map, road, idx);
+      jp.from = road;
+      jp.fromDir = dir;
+      if (k >= PLAN_DEPTH) break;
+      const t = nextTurn(v, map, rng, goal, k++, road, idx, dir);
+      road = t.road; dir = t.dir; idx = t.idx;
+      push(lanePoint(map, road, idx, dir, v), false);
+    }
+    idx += dir;
+  }
+  return path;
+}
+
+function pointAlong(path, s) {
+  for (let i = 1; i < path.length; i++) {
+    if (path[i].s < s) continue;
+    const a = path[i - 1], b = path[i];
+    const span = b.s - a.s;
+    const t = span > 1e-6 ? (s - a.s) / span : 0;
+    return [lerp(a.x, b.x, t), lerp(a.y, b.y, t)];
+  }
+  const last = path[path.length - 1];
+  return [last.x, last.y];
+}
+
+function projectOnPath(path, x, y) {
+  let best = null, bestD2 = Infinity;
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1], b = path[i];
+    if (b.s - a.s < 0.05) continue;
+    const cp = closestPointOnSegment(x, y, a.x, a.y, b.x, b.y);
+    if (cp.dist2 < bestD2) { bestD2 = cp.dist2; best = { i, t: cp.t }; }
+  }
+  if (!best) return null;
+  const a = path[best.i - 1], b = path[best.i];
+  const L = b.s - a.s;
+  return { s: a.s + L * best.t, lat: Math.sqrt(bestD2), tx: (b.x - a.x) / L, ty: (b.y - a.y) / L };
+}
+
+// Fastest speed now that still lets the vehicle take every upcoming bend at
+// a comfortable sideways acceleration, braking at `decel`.
+function curveSpeedLimit(v, path, aLat, decel) {
+  let vmax = Infinity;
+  const end = path[path.length - 1].s;
+  for (let s = 3; s < end - 3; s += 2) {
+    const p0 = pointAlong(path, s - 3), p1 = pointAlong(path, s), p2 = pointAlong(path, s + 3);
+    const h1 = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]);
+    const h2 = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
+    const turn = Math.abs(normalizeAngle(h2 - h1));
+    if (turn < 0.08) continue;
+    const vc = Math.max(2.5, Math.sqrt(aLat * 3 / turn));
+    vmax = Math.min(vmax, Math.sqrt(vc * vc + 2 * decel * Math.max(0, s - v.halfLen)));
+  }
+  return vmax;
+}
+
+// Car-following: keep a stopping distance plus a time gap to whatever sits
+// on our path ahead - same-direction traffic, crossing traffic at a
+// junction, or something oncoming in our own lane.
+function followSpeedLimit(v, path, world, decel, chase) {
+  let vmax = Infinity, leader = null;
+  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  const stopGap = chase ? 1 : v.isBike || v.isScooter ? 0.8 : 1.8;
+  const timeGap = chase ? 0.35 : 0.9;
+  const corridor = v.halfLen + 3 + Math.abs(v.speed) * 0.8;
+  const creeping = world.time < (v.creepUntil || 0);
+  for (const o of world.vehicles) {
+    if (o === v || o.wrecked || o.isBoat) continue;
+    const dx = o.x - v.x, dy = o.y - v.y;
+    if (dx * dx + dy * dy > (PATH_LEN + 5) ** 2) continue;
+    if (creeping && Math.cos(o.angle - v.angle) < 0.5) continue;
+    const ofx = Math.cos(o.angle), ofy = Math.sin(o.angle);
+    const reach = v.halfWid + o.halfWid + 0.3;
+    let hit = null;
+    for (const k of [0, 0.8, -0.8]) {
+      const qx = o.x + ofx * o.halfLen * k, qy = o.y + ofy * o.halfLen * k;
+      const fwd = (qx - v.x) * fx + (qy - v.y) * fy;
+      if (fwd < 0.3) continue;
+      const pr = projectOnPath(path, qx, qy);
+      if (pr && pr.lat < reach && (!hit || pr.s < hit.s)) hit = pr;
+      // right in front of the bumper counts even where the path bends away
+      const side = Math.abs((qy - v.y) * fx - (qx - v.x) * fy);
+      if (fwd < corridor && side < reach - 0.2 && (!hit || fwd < hit.s)) hit = { s: fwd, lat: side, tx: fx, ty: fy };
+    }
+    if (!hit) continue;
+    let along = (ofx * o.speed + o.driftX) * hit.tx + (ofy * o.speed + o.driftY) * hit.ty;
+    if (along < -1) {
+      const pc = projectOnPath(path, o.x, o.y);
+      if (!pc || pc.lat > v.halfWid + o.halfWid - 0.1) continue;
+      along = 0;
+    }
+    const lead = Math.max(0, along);
+    const gap = hit.s - v.halfLen - Math.max(o.halfWid, o.halfLen * 0.2);
+    const vf = Math.max(0, Math.min(
+      lead + 0.5 * (gap - stopGap - timeGap * Math.max(0, v.speed)),
+      Math.sqrt(Math.max(0, 2 * decel * (gap - stopGap))) + lead * 0.7,
+    ));
+    if (vf < vmax) { vmax = vf; leader = o; }
+  }
+  return { vmax, leader };
+}
+
+// Speed that brings the vehicle to a halt at the stop line of a red (or a
+// still-stoppable yellow) light on its path.
+function trafficLightLimit(v, path, world) {
+  const lights = getTrafficLights();
+  if (!lights.length) return Infinity;
+  const decel = v.model.brake * 0.45;
+  const reach = Math.max(3.5, laneOffset(v.road, v) + 1.5);
+  let vmax = Infinity;
+  for (const L of lights) {
+    const dx = L.x - v.x, dy = L.y - v.y;
+    if (dx * dx + dy * dy > 55 * 55) continue;
+    // once through a junction on green, its other signals (the far side,
+    // the cross road we turned into) are not ours to stop for
+    if (L.ctrl === v.clearedCtrl && world.time - v.clearedAt < 10) continue;
+    const pr = projectOnPath(path, L.x, L.y);
+    if (!pr || pr.lat > reach) continue;
+    let after = null;
+    for (const p of path) if (p.j && p.s >= pr.s - 1) { after = p.s; break; }
+    const stopS = Math.min(pr.s - 1.5, (after ?? pr.s) - 4) - v.halfLen;
+    const phase = trafficLightPhaseFor(L, Math.atan2(pr.ty, pr.tx));
+    const go = phase === 'green' || stopS < -1.5 ||
+      (phase === 'yellow' && (v.speed * v.speed) / (2 * v.model.brake * 0.7) > stopS);
+    if (go) {
+      if (stopS < 3) { v.clearedCtrl = L.ctrl; v.clearedAt = world.time; }
+      continue;
+    }
+    vmax = Math.min(vmax, Math.sqrt(2 * decel * Math.max(0, stopS)));
+  }
+  return vmax;
+}
+
+// Unsignalled junction priority: whoever gets to the node first goes, ties
+// broken by id so there is always a strict order (no four-way deadlock).
+// Vehicles held by a light or a queue don't claim, so they can't block
+// traffic that actually has the green.
+function junctionYieldLimit(v, path, world, decel, claim) {
+  let first = null;
+  for (const p of path) if (p.j && p.s > 0.5) { first = p; break; }
+  if (!first || first.s > 18 || !first.node || first.node.length < 2) return Infinity;
+  const claims = first.node.claims || (first.node.claims = new Map());
+  const eta = first.s / Math.max(Math.abs(v.speed), 1.5);
+  if (claim) claims.set(v.id, { eta, time: world.time, from: first.from, fromDir: first.fromDir });
+  else claims.delete(v.id);
+  for (const [id, c] of claims) {
+    if (id === v.id) continue;
+    if (world.time - c.time > 0.25) { claims.delete(id); continue; }
+    if (c.from === first.from && c.fromDir === first.fromDir) continue;
+    if (c.eta < eta - 0.25 || (Math.abs(c.eta - eta) <= 0.25 && id < v.id)) {
+      const stopS = first.s - 4 - v.halfLen;
+      return stopS < -0.5 ? Infinity : Math.sqrt(2 * decel * Math.max(0, stopS));
+    }
+  }
+  return Infinity;
+}
+
+// opts.goal ({x, y}) steers junction choices toward a target; opts.chase
+// drives faster, tighter and ignores traffic lights (police pursuit).
+export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = null) {
+  if (v.wrecked || !v.road) return;
+  if (!v.plan) v.plan = [];
+  const goal = (opts && opts.goal) || null;
+  const chase = !!(opts && opts.chase);
+  if (goal && world.time - (v.planAt || 0) > 1.5) {
+    v.planAt = world.time;
+    if (!findRoute(v, map, goal.x, goal.y)) { v.plan.length = Math.min(v.plan.length, 1); v.routeEnd = null; }
+  }
+
+  advanceAlongRoad(v, map, rng, goal);
+  const path = buildPath(v, map, rng, goal);
+  const m = v.model;
+  const small = v.isBike || v.isScooter;
+
+  const lookahead = clamp(2 + Math.abs(v.speed) * 0.55, small ? 2.5 : 3.2, 15) + (v.isBus ? 3 : 0);
+  const [tx, ty] = pointAlong(path, lookahead);
+  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  const dx = tx - v.x, dy = ty - v.y;
+  const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;
+  const alpha = Math.atan2(lat, fwd);
+  v.tightTurn = Math.abs(alpha) > 1.1 && Math.abs(v.speed) < 5;
+  const curvature = 2 * lat / Math.max(1, dx * dx + dy * dy);
+  const steer = Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(curvature / maxCurvature(v), -1, 1);
+
+  const decel = m.brake * (chase ? 0.7 : 0.4);
+  const aLat = chase ? lateralGrip(m) * 0.6 : small ? 2.2 : v.isBus ? 1.6 : 3;
+  let cruise = (v.road.speed || (small ? m.maxSpeed : 8)) * (v.cruiseScale || 1);
+  if (chase) cruise = Math.max(cruise * 1.5, 16);
+  cruise = Math.min(cruise, m.maxSpeed * (small ? 0.9 : 0.95));
+
+  let vTarget = Math.min(cruise, curveSpeedLimit(v, path, aLat, decel));
+  const follow = followSpeedLimit(v, path, world, decel, chase);
+  const lightV = chase ? Infinity : trafficLightLimit(v, path, world);
+  vTarget = Math.min(vTarget, follow.vmax, lightV);
+  const creeping = world.time < (v.creepUntil || 0);
+  if (!chase && !creeping) vTarget = Math.min(vTarget, junctionYieldLimit(v, path, world, decel, Math.min(follow.vmax, lightV) > 1));
+  if (Math.abs(alpha) > 1) vTarget = Math.min(vTarget, 3.5);
+  if (v.waitTimer > 0) { v.waitTimer -= dt; vTarget = 0; }
+  if (goal && v.routeEnd) {
+    const end = path.find((p) => p.r === v.routeEnd.road && p.i === v.routeEnd.idx);
+    if (end) vTarget = Math.min(vTarget, Math.sqrt(2 * decel * Math.max(0, end.s - 3)));
+  }
+  if (creeping) vTarget = Math.min(vTarget, 2.5);
+
+  // Gridlock (junction standoff, head-on in a narrow street, an abandoned
+  // car in the lane): after a while stop yielding to cross/oncoming traffic
+  // and creep through at walking pace. Queues behind a light are left alone.
+  const o = follow.leader;
+  const standoff = o && follow.vmax < 0.5 && Math.abs(v.speed) < 0.5 && lightV > 1 && o.driver !== 'player' &&
+    (!o.road || (o.blockedFor || 0) > 0 || (o.stuckFor || 0) > 6 || Math.cos(o.angle - v.angle) < 0.5);
+  v.blockedFor = standoff ? (v.blockedFor || 0) + dt : Math.max(0, (v.blockedFor || 0) - dt * 0.5);
+  if (v.blockedFor > 3 + (v.id % 5) * 0.6) {
+    v.creepUntil = world.time + 3;
+    v.blockedFor = 0;
+  }
+  const blockedByPlayer = !!o && o.driver === 'player' && follow.vmax < 0.5 && Math.abs(v.speed) < 0.5;
+  v.hornFor = blockedByPlayer ? (v.hornFor || 0) + dt : 0;
+  v.horn = v.hornFor > 1.5 && v.hornFor < 2.2;
+  v.stuckFor = Math.abs(v.speed) < 0.6 && vTarget > 2 ? (v.stuckFor || 0) + dt : 0;
+
+  // pinned against a wall: back off with opposite lock, then try again
+  if (v.stuckFor > 1.5 && world.time - (v.reverseAt || -99) > 4) v.reverseAt = world.time;
+  if (world.time - (v.reverseAt || -99) < 1.2) {
+    v.applyControls(dt, -0.6, -steer, 0);
     return;
   }
-
-  const target = pts[targetIdx];
-  const prevPt = pts[v.segIdx];
-  const segAngle = Math.atan2(target[1] - prevPt[1], target[0] - prevPt[0]);
-  const lane = laneOffset(v.road, v.isBike || v.isScooter);
-  const nx = -Math.sin(segAngle), ny = Math.cos(segAngle);
-  const targetX = target[0] + nx * lane * v.dir;
-  const targetY = target[1] + ny * lane * v.dir;
-  const dx = targetX - v.x, dy = targetY - v.y;
-  const distToTarget = Math.hypot(dx, dy);
-  if (distToTarget < 1.5) {
-    v.segIdx = targetIdx;
-  }
-
-  const targetAngle = Math.atan2(dy, dx);
-  let steerErr = normalizeAngle(targetAngle - v.angle);
-
-  let cruiseSpeed = (v.road.speed || 10) * (v.isPolice ? 1.15 : 1);
-  const ahead = findVehicleAhead(v, world.vehicles, v.halfLen + 7);
-  if (ahead) cruiseSpeed = Math.min(cruiseSpeed, Math.max(0, ahead.speed - 1));
-
-  const wantBrake = v.speed > cruiseSpeed + 0.5;
-  const throttle = wantBrake ? 0 : 1;
-
-  // Rare, purely-cosmetic loss of control: a sharp turn taken too fast can
-  // spin a car out. Kept rare on purpose (~1.5%/frame while the condition
-  // holds, at 60fps) so it reads as a surprise, not a constant hazard. Chasing police
-  // skip this entirely so pursuits stay predictable.
-  if (!v.isPolice && Math.abs(steerErr) > 1.2 && Math.abs(v.speed) > v.model.maxSpeed * 0.5 && rng() < 0.015 * dt * 60) {
-    v.angle = normalizeAngle(v.angle + (rng() < 0.5 ? -1 : 1) * (1.6 + rng() * 1.4));
-    v.speed *= 0.3;
-  }
-
-  v.applyControls(dt, throttle, clamp(steerErr * 1.4, -1, 1), wantBrake);
+  const err = vTarget - v.speed;
+  let throttle = 0, brake = 0;
+  if (err > 0.25) throttle = clamp(err * 0.6, 0.2, 1);
+  else if (err < -0.5) brake = clamp(-err * 0.3, 0.1, 1);
+  if (vTarget < 0.3 && Math.abs(v.speed) < 1.2) brake = 1;
+  v.applyControls(dt, throttle, steer, brake);
 }
 
-function findVehicleAhead(v, vehicles, maxDist) {
-  let best = null, bestD = maxDist;
-  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-  for (const other of vehicles) {
-    if (other === v || other.wrecked) continue;
-    const dx = other.x - v.x, dy = other.y - v.y;
-    const fwd = dx * fx + dy * fy;
-    if (fwd <= 0 || fwd > maxDist) continue;
-    const lat = Math.abs(dx * -fy + dy * fx);
-    if (lat > 2.2) continue;
-    if (fwd < bestD) { bestD = fwd; best = other; }
-  }
-  return best;
-}
-
-// Cars/bikes/buses were never actually solid to each other - only to
-// buildings - so at intersections and during chases they could sail
-// straight through one another. Approximate each vehicle as a circle
-// (average of its half-length/half-width) and push overlapping pairs apart,
-// bleeding off speed proportional to the combined impact speed.
-// Each vehicle as a capsule: an axis segment (front-to-rear, shrunk by its
-// own half-width so the rounded caps land exactly on the bumpers) plus a
-// half-width radius. A plain circle-per-vehicle (the old approach) only
-// ever compared centre-to-centre distance, so it caught side-by-side lane
-// overlap but completely missed nose-to-tail contact (a car's front end
-// could sit visually inside the car ahead's rear end with zero collision
-// response) - exactly the "collision doesn't match the vehicle's shape"
-// complaint. The capsule's ends now cover the actual front/rear bumpers.
+// --- collisions ------------------------------------------------------------
+// Each vehicle is a capsule: an axis segment (front-to-rear, shrunk by its
+// half-width so the rounded caps land on the bumpers) plus a half-width
+// radius, so nose-to-tail contact is caught as well as side-by-side.
 function vehicleCapsule(v) {
   const segHalf = Math.max(0, v.halfLen - v.halfWid);
   const dx = Math.cos(v.angle) * segHalf, dy = Math.sin(v.angle) * segHalf;
-  return { ax: v.x - dx, ay: v.y - dy, bx: v.x + dx, by: v.y + dy, r: v.halfWid + 0.2 };
+  return { ax: v.x - dx, ay: v.y - dy, bx: v.x + dx, by: v.y + dy, r: v.halfWid + 0.05 };
 }
 
 // Approximate min distance/closest-point-pair between two segments by
 // checking each segment's two endpoints against the other segment - exact
 // when the segments don't cross, and a good approximation for the shallow
-// crossing angles two cars on a road actually produce (near-parallel lanes,
-// or a T-bone where one segment is short relative to the gap).
+// crossing angles two cars on a road actually produce.
 function closestPointsBetweenSegments(s1, s2) {
   let p1x = s1.ax, p1y = s1.ay, p2x = s2.ax, p2y = s2.ay;
   let bestD2 = Infinity;
@@ -653,35 +1201,77 @@ function closestPointsBetweenSegments(s1, s2) {
   return { p1x, p1y, p2x, p2y, dist2: bestD2 };
 }
 
-// Footprint-area proxy for mass (len*wid) - no real-world weight data exists
-// in this codebase's model definitions, but this at least makes a bus barely
-// budge for a bike while a bike gets thrown clear by a bus, using numbers
-// that are already part of each model rather than inventing new ones.
+// Footprint area as a mass proxy: a bus barely budges for a bike while the
+// bike gets thrown clear.
 function vehicleMass(v) {
   return Math.max(0.3, v.model.len * v.model.wid);
 }
 
-const COLLISION_RESTITUTION = 0.4; // arcade-y, not a full elastic bounce (spec: ~0.3-0.5)
-const HARD_HIT_CLOSING_SPEED = 3; // m/s of closing speed along the normal before a hit counts as "hard" (sparks/damage)
-const IMPACT_DAMAGE_PER_MPS = 3.5; // health lost per m/s of closing speed above HARD_HIT_CLOSING_SPEED
-const MAX_IMPACT_DAMAGE = 30; // per-hit cap so one big head-on doesn't insta-wreck
+function inverseInertia(v) {
+  return 12 / (vehicleMass(v) * (v.model.len ** 2 + v.model.wid ** 2));
+}
 
-// Splits v's current (speed, angle) scalar motion into a component along the
-// vehicle's own facing (the new v.speed - this model has no independent
-// heading-vs-velocity split, so this IS "the vehicle's speed" going forward)
-// and a leftover sideways component, which is handed to v.driftX/driftY
-// (applyControls integrates + decays it) rather than discarded - see
-// deviationsFromSpec for why facing angle itself is left untouched here.
-function applyImpactVelocity(v, vx, vy) {
+const COLLISION_RESTITUTION = 0.3;
+const RESTING_SPEED = 1; // closing speed below which contacts don't bounce at all (no ping-pong)
+const CRUNCH_SPEED = 9; // above this, hits absorb most of their energy instead of bouncing
+const CONTACT_FRICTION = 0.35;
+const WALL_FRICTION = 0.25;
+const IMPACT_EVENT_SPEED = 1.5;
+const HARD_HIT_CLOSING_SPEED = 3; // m/s of closing speed before a hit counts as "hard" (sparks/damage)
+const IMPACT_DAMAGE_PER_MPS = 3.5;
+const MAX_IMPACT_DAMAGE = 30;
+const WALL_DAMAGE_SPEED = 7;
+const MAX_WALL_DAMAGE = 20;
+
+function velocityOf(v) {
+  return [Math.cos(v.angle) * v.speed + v.driftX, Math.sin(v.angle) * v.speed + v.driftY];
+}
+
+// Forward part becomes v.speed, the sideways rest becomes drift (decays in
+// applyControls) - the facing angle only changes through yawVel.
+function setVelocity(v, vx, vy) {
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-  const px = -fy, py = fx;
-  const forward = vx * fx + vy * fy;
-  const lateral = vx * px + vy * py;
-  v.speed = forward;
-  const driftX = clamp(v.driftX + px * lateral, -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
-  const driftY = clamp(v.driftY + py * lateral, -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
-  v.driftX = driftX;
-  v.driftY = driftY;
+  v.speed = clamp(vx * fx + vy * fy, -v.model.maxSpeed, v.model.maxSpeed);
+  const lat = vy * fx - vx * fy;
+  v.driftX = clamp(-fy * lat, -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
+  v.driftY = clamp(fx * lat, -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
+}
+
+// Rigid-body impulse at contact point (cx, cy) with normal n pointing from a
+// into b (b null: an immovable wall). Restitution + Coulomb friction, and
+// off-centre hits spin the vehicle. Returns the closing speed resolved.
+function contactImpulse(a, b, cx, cy, nx, ny, friction) {
+  const [vax, vay] = velocityOf(a);
+  const rax = cx - a.x, ray = cy - a.y;
+  let vbx = 0, vby = 0, rbx = 0, rby = 0, pbx = 0, pby = 0;
+  if (b) {
+    [vbx, vby] = velocityOf(b);
+    rbx = cx - b.x; rby = cy - b.y;
+    pbx = vbx - b.yawVel * rby; pby = vby + b.yawVel * rbx;
+  }
+  const rvx = vax - a.yawVel * ray - pbx, rvy = vay + a.yawVel * rax - pby;
+  const vn = rvx * nx + rvy * ny;
+  if (vn <= 0) return 0;
+  const ima = 1 / vehicleMass(a), imb = b ? 1 / vehicleMass(b) : 0;
+  let iia = inverseInertia(a), iib = b ? inverseInertia(b) : 0;
+  const raN = rax * ny - ray * nx, rbN = rbx * ny - rby * nx;
+  const resting = vn < RESTING_SPEED;
+  // resting contacts don't spin anything, so bodies pressed together sit still
+  if (resting) { iia = 0; iib = 0; }
+  const e = resting ? 0 : vn > CRUNCH_SPEED ? 0.12 : COLLISION_RESTITUTION;
+  const jn = (1 + e) * vn / (ima + imb + raN * raN * iia + rbN * rbN * iib);
+  const tx = -ny, ty = nx;
+  const vt = rvx * tx + rvy * ty;
+  const raT = rax * ty - ray * tx, rbT = rbx * ty - rby * tx;
+  const jt = clamp(-vt / (ima + imb + raT * raT * iia + rbT * rbT * iib), -friction * jn, friction * jn);
+  const jx = -jn * nx + jt * tx, jy = -jn * ny + jt * ty;
+  setVelocity(a, vax + jx * ima, vay + jy * ima);
+  a.yawVel = clamp(a.yawVel + (rax * jy - ray * jx) * iia, -MAX_SPIN, MAX_SPIN);
+  if (b) {
+    setVelocity(b, vbx - jx * imb, vby - jy * imb);
+    b.yawVel = clamp(b.yawVel - (rbx * jy - rby * jx) * iib, -MAX_SPIN, MAX_SPIN);
+  }
+  return vn;
 }
 
 function applyImpactDamage(v, dmg, playerInvolved, world) {
@@ -694,29 +1284,28 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
   }
 }
 
-// Rewritten from a position-only separation + flat 0.75x speed scalar (which
-// never redirected velocity, so a vehicle at speed 0 stayed at speed 0 no
-// matter how hard it got hit - the root cause of the "chasing cop rams the
-// player and both just vibrate in place" report) into a proper 1D impulse
-// along the collision normal: each vehicle's velocity is decomposed into
-// normal/tangential components, the normal components exchange momentum
-// with restitution (COLLISION_RESTITUTION), and the tangential components
-// are left alone - which, as a side effect, gives exactly the "glancing
-// hits barely slow either vehicle, head-on hits lose much more speed"
-// behaviour the report asked for, since a glancing hit has a small normal
-// (closing) component to begin with. The position-separation half is
-// unchanged from before (still needed so capsules don't tunnel/stack).
-//
-// Also now the single place that flags "a hard hit just happened" for the
-// 3D damage-effect exports below: v.hitThisFrame/v.hitX/v.hitY/v.hitImpactSpeed,
-// reset for every vehicle at the top of each call so it's a fresh per-frame
-// signal by the time scene3d.js's render pass reads it afterwards (see
-// integrationNotes). Hard hits also now chip away at v.health/v.wrecked,
-// since previously nothing but bullets/water ever wrecked a vehicle - a
-// vehicle rammed to death by traffic never had anything to make it explode.
+// Feedback hook: an 'impact' particle for effects, and world.lastImpact for
+// camera shake when the player is involved. strength is 0..1.
+export function reportImpact(world, x, y, closingSpeed, playerInvolved) {
+  if (!world) return;
+  const strength = clamp(closingSpeed / 14, 0, 1);
+  world.particles.push({ kind: 'impact', x, y, strength, until: world.time + 0.4 });
+  if (playerInvolved) world.lastImpact = { strength, time: world.time, x, y };
+}
+
+// Also the single place that flags v.hitThisFrame/hitX/hitY/hitImpactSpeed
+// for the 3D spark effect (reset per call, read by scene3d's render pass),
+// including hits queued by resolveVehicleBuildingCollision earlier this frame.
 export function resolveVehicleVehicleCollisions(vehicles, world = null) {
   for (const v of vehicles) {
     v.hitThisFrame = false;
+    const p = v.pendingImpact;
+    if (!p) continue;
+    v.pendingImpact = null;
+    reportImpact(world, p.x, p.y, p.speed, v.driver === 'player');
+    if (p.speed > HARD_HIT_CLOSING_SPEED) {
+      v.hitThisFrame = true; v.hitX = p.x; v.hitY = p.y; v.hitImpactSpeed = p.speed;
+    }
   }
 
   for (let i = 0; i < vehicles.length; i++) {
@@ -726,7 +1315,7 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
     for (let j = i + 1; j < vehicles.length; j++) {
       const b = vehicles[j];
       if (b.wrecked) continue;
-      const reach = a.halfLen + b.halfLen + 0.4; // capsule tip-to-tip upper bound
+      const reach = a.halfLen + b.halfLen + 0.2;
       const cdx = b.x - a.x, cdy = b.y - a.y;
       if (cdx * cdx + cdy * cdy > reach * reach) continue;
       const capB = vehicleCapsule(b);
@@ -734,58 +1323,31 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       let dist = Math.sqrt(d2);
       const minDist = capA.r + capB.r;
       if (dist >= minDist) continue;
-      // Two capsule axes lying exactly collinear (dead-on on a straight
-      // one-lane road) give a near-zero gap vector, which used to make both
-      // the position push AND (now) the impulse normal undefined - fall
-      // back to the centre-to-centre direction, which is well-defined
-      // unless the two vehicles occupy the exact same point.
       let nx, ny;
       if (dist < 1e-4) {
         dist = 1e-4;
-        const ccx = b.x - a.x, ccy = b.y - a.y;
-        const ccLen = Math.hypot(ccx, ccy);
-        if (ccLen > 1e-4) { nx = ccx / ccLen; ny = ccy / ccLen; }
+        const ccLen = Math.hypot(cdx, cdy);
+        if (ccLen > 1e-4) { nx = cdx / ccLen; ny = cdy / ccLen; }
         else { nx = 1; ny = 0; }
       } else {
         nx = (p2x - p1x) / dist; ny = (p2y - p1y) / dist;
       }
-      const overlap = minDist - dist;
-      const pushA = overlap * (capB.r / minDist);
-      const pushB = overlap * (capA.r / minDist);
-      a.x -= nx * pushA; a.y -= ny * pushA;
-      b.x += nx * pushB; b.y += ny * pushB;
-
-      const tx = -ny, ty = nx;
-      const vAx = Math.cos(a.angle) * a.speed, vAy = Math.sin(a.angle) * a.speed;
-      const vBx = Math.cos(b.angle) * b.speed, vBy = Math.sin(b.angle) * b.speed;
-      const vAn = vAx * nx + vAy * ny, vAt = vAx * tx + vAy * ty;
-      const vBn = vBx * nx + vBy * ny, vBt = vBx * tx + vBy * ty;
-
-      // relN > 0 means A is closing on B along the normal - two vehicles
-      // still overlapping (e.g. from last frame's push not fully clearing
-      // them) but already moving apart along the normal get no impulse, so
-      // they don't get glued back together.
-      const relN = vAn - vBn;
-      if (relN <= 0) continue;
-
       const mA = vehicleMass(a), mB = vehicleMass(b);
-      const totalMass = mA + mB;
-      const newVAn = vAn - (1 + COLLISION_RESTITUTION) * (mB / totalMass) * relN;
-      const newVBn = vBn + (1 + COLLISION_RESTITUTION) * (mA / totalMass) * relN;
+      const corr = Math.max(0, minDist - dist - 0.01);
+      const shareA = mB / (mA + mB);
+      a.x -= nx * corr * shareA; a.y -= ny * corr * shareA;
+      b.x += nx * corr * (1 - shareA); b.y += ny * corr * (1 - shareA);
 
-      applyImpactVelocity(a, newVAn * nx + vAt * tx, newVAn * ny + vAt * ty);
-      applyImpactVelocity(b, newVBn * nx + vBt * tx, newVBn * ny + vBt * ty);
-
+      const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
+      const relN = contactImpulse(a, b, hx, hy, nx, ny, CONTACT_FRICTION);
+      if (relN < IMPACT_EVENT_SPEED) continue;
+      // Only the player's own driving should ever count as a player wreck.
+      const playerInvolved = a.driver === 'player' || b.driver === 'player';
+      reportImpact(world, hx, hy, relN, playerInvolved);
       if (relN > HARD_HIT_CLOSING_SPEED) {
-        const dmg = clamp((relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS, 0, MAX_IMPACT_DAMAGE);
-        // Only the player's own driving should ever surface as a "total loss"
-        // Sikkom notification - ambient traffic-vs-traffic wrecks still happen
-        // (city stays messy) but must not blame/credit the player, same rule
-        // pedestrians.js's checkVehicleImpact already applies to pedKills.
-        const playerInvolved = a.driver === 'player' || b.driver === 'player';
-        applyImpactDamage(a, dmg, playerInvolved, world);
-        applyImpactDamage(b, dmg, playerInvolved, world);
-        const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
+        const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
+        applyImpactDamage(a, clamp(base * clamp(2 * mB / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+        applyImpactDamage(b, clamp(base * clamp(2 * mA / (mA + mB), 0.25, 1.6), 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
         a.hitThisFrame = true; a.hitX = hx; a.hitY = hy; a.hitImpactSpeed = relN;
         b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
       }
@@ -793,19 +1355,42 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
   }
 }
 
-// Without dt (legacy callers) the scrape slowdown is applied once per call.
+// OSM routes some streets and cycleways under station canopies, market
+// halls and building passages: where the road's own centerline runs inside
+// the footprint, that part of it is not a wall.
+function onRoadThroughBuilding(map, x, y, building) {
+  for (const r of map.roadsNear(x, y, 6)) {
+    if (r.cat === 'foot') continue;
+    const half = r.width / 2 - 0.2;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
+      if (cp.dist2 < half * half && pointInPolygon(cp.x, cp.y, building.pts)) return true;
+    }
+  }
+  return false;
+}
+
+function collisionProbes(v) {
+  const pts = v.halfLen > 3 ? [[v.halfLen, v.halfWid], [v.halfLen, -v.halfWid], [0, -v.halfWid], [-v.halfLen, -v.halfWid], [-v.halfLen, v.halfWid], [0, v.halfWid]] : null;
+  if (!pts) return vehicleCorners(v);
+  const cos = Math.cos(v.angle), sin = Math.sin(v.angle);
+  return pts.map(([lx, ly]) => [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos]);
+}
+
+// A body corner that has penetrated a footprint is pushed out along the
+// nearest wall's normal; the impulse removes only the into-wall velocity
+// (plus friction), so a glancing scrape slides along while a head-on stops
+// dead, and an off-centre hit swings the car round. dt is unused but kept
+// for callers.
 export function resolveVehicleBuildingCollision(v, map, dt) {
-  // Only a corner that has actually penetrated a building footprint counts as
-  // a collision (checked via point-in-polygon) - a corner merely passing
-  // close to a wall (common: buildings sit right up against the street) must
-  // NOT brake the car, or traffic would stall on almost every block.
-  const corners = vehicleCorners(v);
-  let hit = false;
-  for (const b of map.buildingsNear(v.x, v.y, v.halfLen + 3)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    for (const c of corners) {
+  let hit = false, worst = 0, hx = 0, hy = 0;
+  const count = collisionProbes(v).length;
+  for (let k = 0; k < count; k++) {
+    const c = collisionProbes(v)[k];
+    for (const b of map.buildingsNear(c[0], c[1], 1)) {
+      const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
-      if (!pointInPolygon(c[0], c[1], b.pts)) continue;
+      if (!pointInPolygon(c[0], c[1], b.pts) || onRoadThroughBuilding(map, c[0], c[1], b)) continue;
       const pts = b.pts;
       let bestDist2 = Infinity, bestX = 0, bestY = 0;
       for (let i = 0; i < pts.length - 1; i++) {
@@ -813,14 +1398,36 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
         if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; bestX = cp.x; bestY = cp.y; }
       }
       const d = Math.sqrt(bestDist2) || 0.01;
-      const move = d + 0.08;
-      v.x += (bestX - c[0]) / d * move;
-      v.y += (bestY - c[1]) / d * move;
+      const nx = (bestX - c[0]) / d, ny = (bestY - c[1]) / d;
+      v.x += nx * (d + 0.03);
+      v.y += ny * (d + 0.03);
+      const vn = contactImpulse(v, null, c[0], c[1], -nx, -ny, WALL_FRICTION);
+      if (vn > worst) { worst = vn; hx = bestX; hy = bestY; }
       hit = true;
+      break;
     }
   }
-  if (hit) v.speed *= dt === undefined ? 0.4 : Math.pow(0.4, dt * 60);
+  if (worst > IMPACT_EVENT_SPEED && worst > ((v.pendingImpact && v.pendingImpact.speed) || 0)) {
+    v.pendingImpact = { x: hx, y: hy, speed: worst };
+  }
+  if (worst > WALL_DAMAGE_SPEED) {
+    applyImpactDamage(v, Math.min(MAX_WALL_DAMAGE, (worst - WALL_DAMAGE_SPEED) * 2.5), v.driver === 'player', null);
+  }
   return hit;
+}
+
+// Push a circle (pedestrian, player on foot) out of a vehicle's capsule.
+// Returns the corrected position and the push normal, or null if clear.
+export function pushCircleOutOfVehicle(x, y, radius, v) {
+  const cap = vehicleCapsule(v);
+  const cp = closestPointOnSegment(x, y, cap.ax, cap.ay, cap.bx, cap.by);
+  const min = cap.r + radius;
+  if (cp.dist2 >= min * min) return null;
+  const d = Math.sqrt(cp.dist2);
+  let nx, ny;
+  if (d < 1e-4) { nx = -Math.sin(v.angle); ny = Math.cos(v.angle); }
+  else { nx = (x - cp.x) / d; ny = (y - cp.y) / d; }
+  return { x: cp.x + nx * min, y: cp.y + ny * min, nx, ny };
 }
 
 export function vehicleCorners(v) {
@@ -829,6 +1436,7 @@ export function vehicleCorners(v) {
   const pts = [[hl, hw], [hl, -hw], [-hl, -hw], [-hl, hw]];
   return pts.map(([lx, ly]) => [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos]);
 }
+
 
 // --- vehicle damage effects (3D) ---------------------------------------
 // Three.js particle/billboard effects for report 2 ("meer aandacht voor

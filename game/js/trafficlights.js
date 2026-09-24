@@ -2,15 +2,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const GREEN_TIME = 8;
 const YELLOW_TIME = 2;
-const RED_TIME = 8;
+const RED_TIME = GREEN_TIME + YELLOW_TIME;
 const CYCLE_TIME = GREEN_TIME + YELLOW_TIME + RED_TIME;
 
-const APPROACH_DIST = 12;
-const APPROACH_DOT = 0.55;
-const PLAYER_APPROACH_DIST = 14;
-const PLAYER_SPEED_CAP = 2;
+// OSM tags one signal node per approach; nodes this close share one
+// controller so a junction's approaches alternate instead of conflicting.
+const CONTROLLER_RADIUS = 30;
 
 let lights = [];
+let controllers = [];
 
 function phaseAt(t) {
   if (t < GREEN_TIME) return 'green';
@@ -22,54 +22,54 @@ export function getTrafficLights() {
   return lights;
 }
 
+// Phase seen by traffic travelling at `heading`: the controller's main axis
+// runs the first half of the cycle, the cross axis the second half.
+export function trafficLightPhaseFor(light, heading) {
+  const c = light.ctrl;
+  const main = Math.abs(Math.cos(heading - c.axis)) >= Math.SQRT1_2;
+  return phaseAt(main ? c.t : (c.t + RED_TIME) % CYCLE_TIME);
+}
+
+// What the lamp shows: the phase for traffic along the light's own road.
 export function getTrafficLightPhase(light) {
-  return phaseAt(light.t);
+  return trafficLightPhaseFor(light, light.axis);
+}
+
+function roadAxisAt(map, x, y) {
+  let best = null, bestD2 = Infinity;
+  for (const road of map.roadsNear(x, y, 12)) {
+    if (road.cat === 'foot' || road.cat === 'cycle') continue;
+    for (let i = 0; i < road.pts.length - 1; i++) {
+      const [ax, ay] = road.pts[i], [bx, by] = road.pts[i + 1];
+      const dx = bx - ax, dy = by - ay;
+      const len2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / len2));
+      const d2 = (x - ax - dx * t) ** 2 + (y - ay - dy * t) ** 2;
+      if (d2 < bestD2) { bestD2 = d2; best = Math.atan2(dy, dx); }
+    }
+  }
+  return best ?? 0;
 }
 
 export function initTrafficLights(world) {
   const positions = world.map.meta.trafficLights || [];
-  lights = positions.map((p) => ({
-    x: p.x,
-    y: p.y,
-    t: Math.random() * CYCLE_TIME,
-  }));
+  lights = positions.map((p) => ({ x: p.x, y: p.y, t: 0, axis: roadAxisAt(world.map, p.x, p.y), ctrl: null }));
+  controllers = [];
+  for (const light of lights) {
+    if (light.ctrl) continue;
+    const ctrl = { t: Math.random() * CYCLE_TIME, axis: light.axis };
+    controllers.push(ctrl);
+    for (const o of lights) {
+      if (!o.ctrl && Math.hypot(o.x - light.x, o.y - light.y) < CONTROLLER_RADIUS) o.ctrl = ctrl;
+    }
+  }
+  for (const light of lights) light.t = light.ctrl.t;
 }
 
+// AI traffic reads the lights itself (see trafficLightLimit in vehicle.js).
 export function updateTrafficLights(dt, world) {
-  for (const light of lights) {
-    light.t = (light.t + dt) % CYCLE_TIME;
-  }
-  if (!lights.length) return;
-
-  for (const v of world.vehicles) {
-    if (v.wrecked || v.driver === 'player' || !v.road) continue;
-    const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-    for (const light of lights) {
-      if (phaseAt(light.t) !== 'red') continue;
-      const dx = light.x - v.x, dy = light.y - v.y;
-      const d = Math.hypot(dx, dy);
-      if (d > APPROACH_DIST) continue;
-      const dot = (dx * fx + dy * fy) / (d || 1);
-      if (dot < APPROACH_DOT) continue;
-      v.waitTimer = 0.3;
-      break;
-    }
-  }
-
-  const pv = world.player.inVehicle;
-  if (pv && !pv.wrecked) {
-    const fx = Math.cos(pv.angle), fy = Math.sin(pv.angle);
-    for (const light of lights) {
-      if (phaseAt(light.t) !== 'red') continue;
-      const dx = light.x - pv.x, dy = light.y - pv.y;
-      const d = Math.hypot(dx, dy);
-      if (d > PLAYER_APPROACH_DIST) continue;
-      const dot = (dx * fx + dy * fy) / (d || 1);
-      if (dot < APPROACH_DOT) continue;
-      pv.speed = Math.min(pv.speed, PLAYER_SPEED_CAP);
-      break;
-    }
-  }
+  for (const c of controllers) c.t = (c.t + dt) % CYCLE_TIME;
+  for (const light of lights) light.t = light.ctrl.t;
 }
 
 const PHASE_COLORS = { green: 0x2ecc40, yellow: 0xf1c40f, red: 0xe74c3c };
