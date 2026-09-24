@@ -153,7 +153,7 @@ export function updateWeather(dt, world) {
       w.nextToppleAt = w.duration * (0.25 + Math.random() * 0.2);
       world.addMessage('Code Rood: storm boven Groningen, hou je fiets vast!', 4);
       if (world.phoneNotifications) {
-        world.phoneNotifications.push({ text: 'SIKKOM: code rood, storm raast over de Grunn', duration: 4 });
+        world.phoneNotifications.push({ text: 'SIKKOM: code rood, storm raast over Grunn', duration: 4 });
         playSikkomLine('weather_storm_start');
       }
     }
