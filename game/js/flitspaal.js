@@ -1,5 +1,6 @@
 import { dist } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { GeoBuilder, vcMaterial } from './pixelart3d.js';
 
 const TARGET_COUNT = 12;
 const MIN_COUNT = 8;
@@ -74,29 +75,15 @@ export function updateFlitspaal(dt, world) {
 }
 
 export function buildFlitspaalMesh3D() {
-  const group = new THREE.Group();
-
-  const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.08, 0.08, 2.6, 8),
-    new THREE.MeshLambertMaterial({ color: 0x7d8489 })
-  );
-  pole.position.y = 1.3;
-  group.add(pole);
-
-  const head = new THREE.Mesh(
-    new THREE.BoxGeometry(0.55, 0.42, 0.3),
-    new THREE.MeshLambertMaterial({ color: 0xe0a020 })
-  );
-  head.position.set(0.25, 2.4, 0);
-  group.add(head);
-
-  const lens = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.12, 0.12, 0.1, 10),
-    new THREE.MeshLambertMaterial({ color: 0x2a2a2a })
-  );
-  lens.rotation.z = Math.PI / 2;
-  lens.position.set(0.55, 2.4, 0);
-  group.add(lens);
-
-  return group;
+  const B = new GeoBuilder(2);
+  B.box(0, 0.08, 0, 0.5, 0.16, 0.5, 0x8f8c86);
+  B.box(0, 1.6, 0, 0.16, 3.1, 0.16, 0x6f7479);
+  B.box(0, 0.5, 0, 0.17, 0.25, 0.17, 0xd9b12a);
+  B.box(0, 0.78, 0, 0.17, 0.12, 0.17, 0x1e1e1e);
+  B.box(0.08, 3.05, 0, 0.5, 0.75, 0.46, 0x5d6166);
+  B.box(0.08, 3.46, 0, 0.58, 0.06, 0.52, 0x4a4d52);
+  B.box(0.335, 3.2, 0, 0.02, 0.2, 0.3, 0x1b2226, 1);
+  B.box(0.335, 2.88, 0, 0.02, 0.16, 0.3, 0xdad6c8, 1);
+  B.box(0.36, 3.2, 0, 0.06, 0.04, 0.36, 0x4a4d52);
+  return new THREE.Mesh(B.build(), [vcMaterial({ roughness: 0.7 }), vcMaterial({ roughness: 0.15, metalness: 0.3 })]);
 }

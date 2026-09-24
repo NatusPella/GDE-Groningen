@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { buildBuildingMesh } from './models3d_buildings.js';
+import { buildBuildingMesh, setBuildingMap } from './models3d_buildings.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
@@ -169,9 +169,9 @@ const SHARED_GEOMETRIES = new Set();
 // geometry and material must be freed or GPU memory grows all session.
 function disposeObject(root) {
   root.traverse((o) => {
-    if (o.geometry && !SHARED_GEOMETRIES.has(o.geometry)) o.geometry.dispose();
+    if (o.geometry && !SHARED_GEOMETRIES.has(o.geometry) && !o.geometry.userData.shared) o.geometry.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
-    for (const m of mats) if (!SHARED_MATERIALS.has(m)) m.dispose();
+    for (const m of mats) if (!SHARED_MATERIALS.has(m) && !m.userData.shared) m.dispose();
   });
 }
 
@@ -267,6 +267,7 @@ function hash2(x, y) {
 
 export function init3D(map) {
   preloadLandmarkModels();
+  setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
   renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
@@ -932,7 +933,11 @@ export function update3D(dt, world) {
   syncActors(
     world.pedestrians.filter((p) => Math.hypot(p.x - player.x, p.y - player.y) < DRAW_DIST),
     pedMeshes,
-    (p) => buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a),
+    (p) => {
+      // stable per-ped look, so a ped doesn't change clothes when it streams back in
+      if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
+      return buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, { seed: p._lookSeed });
+    },
     (p) => p
   );
   for (const p of world.pedestrians) {

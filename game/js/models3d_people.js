@@ -1,236 +1,239 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { HABBO_PALETTE, habboMaterial, buildOutline } from './pixelart3d.js';
+import { HABBO_PALETTE, GeoBuilder, vcMaterial, composeMatrix } from './pixelart3d.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, and bike/scooter
-// riders. Origin (0,0,0) sits at ground level between the feet, facing local
-// +X (mirrors the old snowman placeholder's convention) - the caller sets
-// group.position/rotation.y every frame, this module never touches either.
-//
-// Habbo Hotel look: flat HABBO_PALETTE colors via habboMaterial (2-step toon
-// shading), bold black outlines on every major silhouette part, and a big
-// round head - the single most recognizable Habbo trait. HEAD_Y stays fixed
-// (scene3d.js positions/animates this rig but never reads HEAD_Y itself, so
-// nothing outside this file depends on it - still, the brief asks to keep it
-// put rather than move the head, so only HEAD_R grew here); the shorter torso
-// below closes the neck gap that a bigger head would otherwise open up.
+// riders. Origin sits at ground level between the feet, facing local +X; the
+// caller owns group.position/rotation. Five meshes per person (static body +
+// four limb pivots userData.legL/legR/armL/armR that animatePersonWalk swings
+// about Z), all sharing one per-person vertex-colour material.
 
 function hash2(x, y) {
   const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return h - Math.floor(h);
 }
 
-const LEG_LEN = 0.82;
-const LEG_R = 0.115;
-const HIP_Y = LEG_LEN;
-const TORSO_H = 0.44;
-const TORSO_THICK = 0.3;
-const SHOULDER_W = 0.44;
-const HEAD_Y = 1.6;
-const HEAD_R = 0.3;
-const ARM_LEN = 0.48;
-const ARM_R = 0.078;
-const HAND_R = 0.095;
-const NECK_R = 0.09;
-const DEFAULT_HAIR = HABBO_PALETTE.black;
+const HIP_Y = 0.93;
+const SHOULDER_Y = 1.41;
+const HEAD_Y = 1.665;
 const DEFAULT_CAP = HABBO_PALETTE.brickOrange;
 
-const SHOE_H = 0.11;
-const SHOE_LEN = LEG_R * 2.6;
-const SHOE_WID = LEG_R * 2.1;
+const WALK_STRIDE_FREQ = 2.2;
+const WALK_BLEND_SPEED = 1.5;
+const WALK_BLEND_RATE = 8;
+const LEG_SWING_AMPLITUDE = 0.55;
+const ARM_SWING_AMPLITUDE = 0.35;
 
-// Neck is sized to exactly span torso-top -> head-bottom, whatever those
-// constants happen to be, so raising/lowering HEAD_Y or TORSO_H can never
-// reopen a gap (or punch an overlap) at the neck seam. Clamped to a small
-// positive minimum since a big Habbo head can otherwise push HEAD_BOTTOM_Y
-// below TORSO_TOP_Y (a slight head/torso overlap - harmless, hidden by the
-// outlines - rather than a degenerate/negative-height neck cylinder).
-const TORSO_TOP_Y = HIP_Y + TORSO_H;
-const HEAD_BOTTOM_Y = HEAD_Y - HEAD_R;
-const NECK_H = Math.max(0.02, HEAD_BOTTOM_Y - TORSO_TOP_Y);
+export const TAMMO_APPEARANCE = { shirt: 0x3f6ea8, skin: HABBO_PALETTE.woodLight, hair: HABBO_PALETTE.woodDark, variant: 'male', character: 'tammo', cap: DEFAULT_CAP, pants: 0x2f3b52, shoes: 0xd8d4cc, hairStyle: 'short', seed: 11 };
+export const ANITA_APPEARANCE = { shirt: HABBO_PALETTE.brickRed, skin: HABBO_PALETTE.woodMid, hair: HABBO_PALETTE.black, variant: 'female', character: 'anita', pants: 0x26262a, shoes: 0x2a1d14, hairStyle: 'long', seed: 23 };
 
-// Bold black outline as a sibling of a part that has its own position/
-// rotation/scale (pixelart3d.js's buildOutline only builds the mesh; siblings
-// with a non-identity transform need that transform copied on manually).
-function addOutline(parent, mesh, thickness = 0.08) {
-  const outline = buildOutline(mesh.geometry, thickness);
-  outline.position.copy(mesh.position);
-  outline.rotation.copy(mesh.rotation);
-  outline.scale.copy(mesh.scale).multiplyScalar(1 + thickness);
-  parent.add(outline);
-  return outline;
-}
+const HAIR_COLORS = [0x2a1d14, 0x3b2a1e, 0x5a3d26, 0x7a5636, 0xb08f5c, 0xcdb485, 0x8a8580, 0x93462a, 0x1b1b1d];
+const PANTS_COLORS = [0x2f3b52, 0x44567a, 0x232326, 0x3a3b3f, 0x7f7258, 0x4a3a2a, 0x5b5f63, 0x3b4a3a];
+const SHOE_COLORS = [0x1e1e1e, 0x3b2a1e, 0xd8d4cc, 0x5a3d26, 0x2a2f38, 0x1e1e1e];
+const COAT_COLORS = [0x2b2f36, 0x3f4a3b, 0x5c4630, 0x1f2a3a, 0x6b2a24, 0x7a6a4a, 0x8a8478, 0x3a3f47];
+const BAG_COLORS = [0x232326, 0x3b2a1e, 0x4a5a4a, 0x6b2a24, 0x2f3b52];
+const HAT_COLORS = [0x2b2f36, 0x6b2a24, 0x3f4a3b, 0xb8a27a, 0x1f2a3a];
+const COP_BLUE = 0x1c3fae;
+const COP_NAVY = 0x1d2740;
 
-// Walk-cycle tuning. Phase advances with distance travelled (speed * dt), not
-// wall-clock time, so cadence scales with movement speed instead of ticking
-// at a fixed rate while standing still. WALK_BLEND_SPEED is the speed at
-// which swing amplitude reaches its full value; below it the swing eases
-// down toward 0 instead of snapping, so an idle character settles into the
-// rest pose rather than freezing mid-stride or twitching.
-const WALK_STRIDE_FREQ = 2.2; // rad of phase per meter travelled
-const WALK_BLEND_SPEED = 1.5; // m/s at which swing amplitude saturates
-const WALK_BLEND_RATE = 8; // 1/s ease rate for the amplitude blend
-const LEG_SWING_AMPLITUDE = 0.55; // rad, hip pivot swing at full blend
-const ARM_SWING_AMPLITUDE = 0.35; // rad, shoulder pivot swing at full blend (smaller than legs)
-
-export const TAMMO_APPEARANCE = { shirt: 0x3f6ea8, skin: HABBO_PALETTE.woodLight, hair: HABBO_PALETTE.woodDark, variant: 'male', character: 'tammo', cap: DEFAULT_CAP };
-export const ANITA_APPEARANCE = { shirt: HABBO_PALETTE.brickRed, skin: HABBO_PALETTE.woodMid, hair: HABBO_PALETTE.black, variant: 'female', character: 'anita' };
-
-function cylinderPart(rTop, rBottom, h, mat) {
-  return new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, h, 6), mat);
-}
-
-function shadeColor(hex, factor) {
-  const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * factor));
-  const g = Math.min(255, Math.round(((hex >> 8) & 0xff) * factor));
-  const b = Math.min(255, Math.round((hex & 0xff) * factor));
+function shade(hex, f) {
+  const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * f));
+  const g = Math.min(255, Math.round(((hex >> 8) & 0xff) * f));
+  const b = Math.min(255, Math.round((hex & 0xff) * f));
   return (r << 16) | (g << 8) | b;
 }
 
-export function buildPersonMesh(shirt, skin, opts = {}) {
-  const isFemale = opts.variant === 'female';
-  const hair = opts.hair ?? DEFAULT_HAIR;
-  const shoulderW = isFemale ? SHOULDER_W * 0.86 : SHOULDER_W;
+function pick(arr, t) {
+  return arr[Math.min(arr.length - 1, Math.floor(t * arr.length))];
+}
 
-  // No (x,y) is passed into this function, so the color pair stands in for
-  // "position" - keeps every ped sharing a palette entry from being an exact
-  // clone while staying deterministic frame to frame like the rest of scene3d.
-  const heightScale = 0.93 + hash2(shirt, skin) * 0.14;
-  const buildScale = 0.94 + hash2(skin, shirt) * 0.12;
+let pedSeedCounter = 0;
 
-  // Pants/shoes are derived from the shirt color rather than added as new
-  // required opts fields, so every existing call site (which only ever
-  // passes shirt+skin, or the two named-character opts) keeps working
-  // unchanged while still getting a two-tone body instead of one flat color.
-  const pants = opts.pants ?? shadeColor(shirt, 0.55);
-  const shoes = opts.shoes ?? shadeColor(pants, 0.5);
+function resolveLook(shirt, skin, opts) {
+  const seed = opts.seed ?? (++pedSeedCounter * 7.31 + hash2(shirt % 997, skin % 991) * 50);
+  const r = (k) => hash2(seed * 1.37 + k * 17.13, seed * 0.71 + k * 5.71);
+  const cop = shirt === COP_BLUE && !opts.character;
+  const female = opts.variant ? opts.variant === 'female' : (!cop && r(1) < 0.5);
+  let hairStyle = opts.hairStyle;
+  if (!hairStyle) {
+    const t = r(2);
+    hairStyle = female
+      ? (t < 0.35 ? 'long' : t < 0.6 ? 'ponytail' : t < 0.78 ? 'bun' : t < 0.9 ? 'bob' : 'curly')
+      : (t < 0.55 ? 'short' : t < 0.7 ? 'buzz' : t < 0.82 ? 'bald' : 'curly');
+  }
+  const outer = r(3);
+  const coat = cop ? 'jacket' : (female && outer < 0.22 ? 'skirt' : outer < 0.45 ? 'coat' : outer < 0.75 ? 'jacket' : 'none');
+  const hatRoll = r(4);
+  return {
+    seed, r, cop, female, hairStyle, coat,
+    hair: opts.hair ?? pick(HAIR_COLORS, r(5)),
+    pants: opts.pants ?? (cop ? COP_NAVY : pick(PANTS_COLORS, r(6))),
+    shoes: opts.shoes ?? (cop ? 0x1a1a1a : pick(SHOE_COLORS, r(7))),
+    under: cop ? 0x9fb4d8 : shade(shirt, r(8) < 0.5 ? 1.35 : 0.7),
+    hat: cop ? 'police' : opts.character ? null : (hatRoll < 0.1 ? 'beanie' : hatRoll < 0.15 ? 'cap' : null),
+    hatColor: pick(HAT_COLORS, r(9)),
+    bag: cop || opts.character ? null : (r(10) < 0.16 ? 'backpack' : r(10) < 0.28 ? 'shoulder' : null),
+    bagColor: pick(BAG_COLORS, r(11)),
+    tights: r(12) < 0.5 ? 0x26262a : shade(skin, 0.95),
+    heightScale: opts.character ? 1 : (female ? 0.94 : 1) * (0.96 + r(13) * 0.09),
+    buildScale: opts.character ? 1 : 0.94 + r(14) * 0.12,
+  };
+}
 
-  const clothMat = habboMaterial(shirt);
-  const pantsMat = habboMaterial(pants);
-  const skinMat = habboMaterial(skin);
-  const hairMat = habboMaterial(hair);
-  const shoeMat = habboMaterial(shoes);
+// Elliptic, tapered ring section between y0 and y1 (radius x = depth, z = width).
+function taper(B, y0, y1, d0, w0, d1, w1, color, sides = 8, x = 0) {
+  const geo = new THREE.CylinderGeometry(1, 1, 1, sides, 1, false);
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const top = pos.getY(i) > 0;
+    pos.setXYZ(i, pos.getX(i) * (top ? d1 : d0) + x, top ? y1 : y0, pos.getZ(i) * (top ? w1 : w0));
+  }
+  B.geo(geo, null, color);
+}
 
-  const group = new THREE.Group();
-
-  // Each leg is its own Group pivoted at the hip (y = HIP_Y) instead of a
-  // bare mesh positioned by its own center, so animatePersonWalk() below can
-  // rotate the whole leg (cylinder + shoe) around that hip. The leg/shoe
-  // meshes are offset DOWN from the pivot by exactly the amount the pivot
-  // itself moved up, so at rest (pivot rotation 0) they land at the exact
-  // same world position/points as the original ungrouped version - this is
-  // a pure rest-pose refactor, not a visual change.
-  for (const side of [1, -1]) {
-    const legPivot = new THREE.Group();
-    legPivot.position.set(0, HIP_Y, side * (LEG_R + 0.02));
-    group.add(legPivot);
-
-    const leg = cylinderPart(LEG_R, LEG_R * 0.78, LEG_LEN, pantsMat);
-    leg.position.set(0, -LEG_LEN / 2, 0);
-    legPivot.add(leg);
-    addOutline(legPivot, leg, 0.14);
-
-    const shoe = new THREE.Mesh(new THREE.BoxGeometry(SHOE_LEN, SHOE_H, SHOE_WID), shoeMat);
-    shoe.position.set(LEG_R * 0.55, SHOE_H / 2 - HIP_Y, 0);
-    legPivot.add(shoe);
-    addOutline(legPivot, shoe, 0.12);
-
-    if (side === 1) group.userData.legL = legPivot;
-    else group.userData.legR = legPivot;
+function addHead(B, L, skin, hairColor) {
+  B.geo(new THREE.SphereGeometry(1, 8, 6), composeMatrix(0, HEAD_Y, 0, 0, 0, 0, 0.1, 0.122, 0.088), skin);
+  B.box(0.098, HEAD_Y - 0.01, 0, 0.035, 0.045, 0.03, shade(skin, 0.9));
+  for (const s of [1, -1]) B.box(0.0, HEAD_Y, s * 0.087, 0.035, 0.05, 0.02, shade(skin, 0.92));
+  const capGeo = () => new THREE.SphereGeometry(1, 8, 4, 0, Math.PI * 2, 0, Math.PI * 0.55);
+  const style = L.hairStyle;
+  if (style !== 'bald') {
+    const k = style === 'buzz' ? 1.02 : style === 'curly' ? 1.18 : 1.07;
+    B.geo(capGeo(), composeMatrix(-0.012, HEAD_Y + 0.012, 0, 0, 0, 0.42, 0.1 * k, 0.124 * k, 0.09 * k), hairColor);
+  }
+  if (style === 'long') {
+    B.box(-0.075, HEAD_Y - 0.1, 0, 0.07, 0.3, 0.18, hairColor);
+    for (const s of [1, -1]) B.box(-0.01, HEAD_Y - 0.08, s * 0.085, 0.1, 0.22, 0.03, hairColor);
+  } else if (style === 'bob') {
+    B.box(-0.05, HEAD_Y - 0.05, 0, 0.11, 0.17, 0.2, hairColor);
+  } else if (style === 'ponytail') {
+    B.geo(new THREE.SphereGeometry(1, 5, 4), composeMatrix(-0.125, HEAD_Y - 0.05, 0, 0, 0, -0.3, 0.045, 0.1, 0.045), hairColor);
+  } else if (style === 'bun') {
+    B.geo(new THREE.SphereGeometry(1, 6, 4), composeMatrix(-0.07, HEAD_Y + 0.115, 0, 0, 0, 0, 0.055, 0.05, 0.055), hairColor);
   }
 
-  const torso = new THREE.Mesh(
-    new THREE.BoxGeometry(TORSO_THICK, TORSO_H, shoulderW),
-    clothMat
-  );
-  torso.position.y = HIP_Y + TORSO_H / 2;
-  group.add(torso);
-  addOutline(group, torso, 0.05);
-
-  const neck = cylinderPart(NECK_R, NECK_R * 1.15, NECK_H, skinMat);
-  neck.position.y = TORSO_TOP_Y + NECK_H / 2;
-  group.add(neck);
-  addOutline(group, neck, 0.15);
-
-  // Same pivot-group treatment as the legs above, this time at the shoulder,
-  // so animatePersonWalk() can swing each arm. The arm keeps its own slight
-  // rotation.x "embed" tilt (unrelated to walking) exactly as before; the
-  // pivot only ever adds a rotation.z swing on top of that, defaulting to 0.
-  const shoulderY = HIP_Y + TORSO_H - 0.04;
-  for (const side of [1, -1]) {
-    const armPivot = new THREE.Group();
-    // offset is a slight embed (not a gap) so the arm visually attaches to
-    // the torso's side face instead of floating next to it
-    armPivot.position.set(0, shoulderY, side * (shoulderW / 2 + ARM_R * 0.15));
-    group.add(armPivot);
-
-    const arm = cylinderPart(ARM_R * 0.9, ARM_R * 0.7, ARM_LEN, clothMat);
-    arm.position.set(0, -ARM_LEN / 2, 0);
-    arm.rotation.x = side * -0.12;
-    const hand = new THREE.Mesh(new THREE.SphereGeometry(HAND_R, 6, 5), skinMat);
-    hand.position.set(0, -ARM_LEN / 2, 0);
-    arm.add(hand);
-    addOutline(arm, hand, 0.12);
-    armPivot.add(arm);
-    addOutline(armPivot, arm, 0.16);
-
-    if (side === 1) group.userData.armL = armPivot;
-    else group.userData.armR = armPivot;
+  if (L.hat === 'beanie') {
+    B.geo(capGeo(), composeMatrix(-0.008, HEAD_Y + 0.03, 0, 0, 0, 0.25, 0.115, 0.13, 0.102), L.hatColor);
+  } else if (L.hat === 'cap' || L.hat === 'tammo') {
+    const c = L.hat === 'tammo' ? L.capColor : L.hatColor;
+    B.geo(capGeo(), composeMatrix(-0.01, HEAD_Y + 0.035, 0, 0, 0, 0.12, 0.112, 0.11, 0.1), c);
+    B.box(0.12, HEAD_Y + 0.045, 0, 0.1, 0.018, 0.16, shade(c, 0.85), 0, 0, 0, -0.12);
+  } else if (L.hat === 'police') {
+    taper(B, HEAD_Y + 0.05, HEAD_Y + 0.13, 0.1, 0.092, 0.118, 0.108, COP_NAVY, 8);
+    B.box(0.11, HEAD_Y + 0.055, 0, 0.08, 0.015, 0.15, 0x111111, 0, 0, 0, -0.2);
+    taper(B, HEAD_Y + 0.05, HEAD_Y + 0.075, 0.102, 0.094, 0.104, 0.096, 0xd8d4cc, 8);
   }
+}
 
-  const head = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R, 10, 8), skinMat);
-  head.position.y = HEAD_Y;
-  group.add(head);
-  addOutline(group, head, 0.05);
+function buildBody(L, top, skin) {
+  const B = new GeoBuilder(1);
+  const f = L.female;
+  const shW = f ? 0.175 : 0.205, waistW = f ? 0.13 : 0.155, hipW = f ? 0.165 : 0.155;
+  const dep = f ? 0.1 : 0.115;
+  const legColor = L.coat === 'skirt' ? L.tights : L.pants;
 
-  if (isFemale) {
-    const ponytail = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R * 0.48, 6, 5), hairMat);
-    ponytail.scale.set(1, 1.9, 1);
-    ponytail.position.set(-HEAD_R * 0.95, HEAD_Y - HEAD_R * 0.3, 0);
-    group.add(ponytail);
-    addOutline(group, ponytail, 0.08);
+  taper(B, HIP_Y - 0.1, HIP_Y + 0.08, dep * 0.95, hipW, dep, waistW, legColor);
+  taper(B, HIP_Y + 0.06, SHOULDER_Y - 0.03, dep, waistW, dep * 1.08, shW, top);
+  taper(B, SHOULDER_Y - 0.03, SHOULDER_Y + 0.05, dep * 1.08, shW, 0.06, 0.07, top);
+  taper(B, SHOULDER_Y + 0.02, HEAD_Y - 0.09, 0.045, 0.045, 0.042, 0.042, skin, 6);
+
+  if (L.coat === 'coat') {
+    taper(B, HIP_Y - 0.3, HIP_Y + 0.1, dep * 1.25, hipW * 1.18, dep * 1.08, waistW * 1.06, top);
+    B.box(0.06, SHOULDER_Y - 0.02, 0, 0.1, 0.07, shW * 0.9, shade(top, 0.8));
+  } else if (L.coat === 'jacket') {
+    taper(B, HIP_Y - 0.08, HIP_Y + 0.1, dep * 1.1, hipW * 1.08, dep * 1.06, waistW * 1.06, top);
+    B.box(dep * 1.03, SHOULDER_Y - 0.2, 0, 0.03, 0.36, 0.07, L.under);
+  } else if (L.coat === 'skirt') {
+    taper(B, HIP_Y - 0.36, HIP_Y + 0.08, dep * 1.7, hipW * 1.35, dep, waistW, L.pants === legColor ? 0x3a3b3f : L.pants);
   } else {
-    // radius is well under HEAD_R and it sits high on the crown, so most of
-    // the head sphere stays visible/skin-colored instead of being englobed
-    const hairCap = new THREE.Mesh(new THREE.SphereGeometry(HEAD_R * 0.72, 7, 5), hairMat);
-    hairCap.scale.set(1, 0.6, 1);
-    hairCap.position.set(-HEAD_R * 0.12, HEAD_Y + HEAD_R * 0.55, 0);
-    group.add(hairCap);
-    addOutline(group, hairCap, 0.08);
+    B.box(dep * 0.98, SHOULDER_Y - 0.035, 0, 0.02, 0.05, 0.1, L.under);
+  }
+  if (L.cop) {
+    taper(B, HIP_Y + 0.04, HIP_Y + 0.1, dep * 1.12, waistW * 1.1, dep * 1.12, waistW * 1.1, 0x111111);
+    B.box(0.02, SHOULDER_Y - 0.12, 0, dep * 2.25, 0.04, shW * 2.02, 0xc8ccd0);
   }
 
-  // Tammo/Anita need to read as "the same two specific people" everywhere
-  // they appear (player, companion, passenger), so each gets exactly one
-  // extra silhouette primitive on top of the generic variant look above.
-  if (opts.character === 'tammo') {
-    const capMat = habboMaterial(opts.cap ?? DEFAULT_CAP);
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(HEAD_R * 0.75, HEAD_R * 1.05, HEAD_R * 0.58, 8), capMat);
-    cap.position.set(-HEAD_R * 0.08, HEAD_Y + HEAD_R * 0.9, 0);
-    group.add(cap);
-    addOutline(group, cap, 0.08);
-  } else if (opts.character === 'anita') {
-    const fringe = new THREE.Mesh(new THREE.BoxGeometry(HEAD_R * 0.5, HEAD_R * 0.85, HEAD_R * 1.5), hairMat);
-    fringe.position.set(HEAD_R * 0.62, HEAD_Y + HEAD_R * 0.05, 0);
-    fringe.rotation.z = 0.15;
-    group.add(fringe);
-    addOutline(group, fringe, 0.08);
+  if (L.bag === 'backpack') {
+    B.box(-dep - 0.07, SHOULDER_Y - 0.2, 0, 0.14, 0.36, 0.27, L.bagColor);
+    B.box(-dep - 0.14, SHOULDER_Y - 0.28, 0, 0.03, 0.16, 0.2, shade(L.bagColor, 0.8));
+    for (const s of [1, -1]) B.box(0.0, SHOULDER_Y - 0.02, s * shW * 0.55, dep * 2.1, 0.03, 0.04, shade(L.bagColor, 0.7));
+  } else if (L.bag === 'shoulder') {
+    B.box(0.02, HIP_Y + 0.02, hipW + 0.07, 0.24, 0.2, 0.08, L.bagColor);
+    B.box(0.0, (HIP_Y + SHOULDER_Y) / 2 + 0.08, 0, dep * 2.15, 0.035, 0.035, shade(L.bagColor, 0.7), 0, 0, 0.9, 0);
   }
 
-  group.scale.set(buildScale, heightScale, buildScale);
+  addHead(B, L, skin, L.hair);
+  return B.build();
+}
+
+function buildLeg(L) {
+  const B = new GeoBuilder(1);
+  const bare = L.coat === 'skirt';
+  const c = bare ? L.tights : L.pants;
+  const thigh = L.female ? 0.075 : 0.08;
+  taper(B, -0.46, 0, 0.06, 0.06, thigh, thigh, c, 6);
+  taper(B, -0.86, -0.44, 0.045, 0.045, 0.058, 0.058, c, 6);
+  B.box(0.045, 0.045 - HIP_Y, 0, 0.26, 0.09, 0.1, L.shoes);
+  B.box(0.045, 0.012 - HIP_Y, 0, 0.27, 0.024, 0.108, shade(L.shoes, L.shoes > 0xa00000 ? 0.75 : 1.6));
+  return B.build();
+}
+
+function buildArm(L, sleeve, skin, side) {
+  const B = new GeoBuilder(1);
+  const lean = side * 0.07;
+  const m = (y) => [0, y * Math.cos(lean), -y * Math.sin(lean)];
+  const len = L.female ? 0.54 : 0.58;
+  const [x0, y0, z0] = m(0.02);
+  const [x1, y1, z1] = m(-len * 0.5);
+  const [x2, y2, z2] = m(-len);
+  const seg = (a, b, r0, r1, c) => {
+    const geo = new THREE.CylinderGeometry(r1, r0, 1, 6, 1, true);
+    const dir = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    const l = dir.length();
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+    B.geo(geo, new THREE.Matrix4().compose(new THREE.Vector3((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2), q, new THREE.Vector3(1, l, 1)), c);
+  };
+  seg([x0, y0, z0], [x1, y1, z1], 0.052, 0.045, sleeve);
+  seg([x1, y1, z1], [x2, y2, z2], 0.045, 0.036, sleeve);
+  B.geo(new THREE.SphereGeometry(1, 5, 3), composeMatrix(x2 + 0.01, y2 - 0.055, z2, 0, 0, 0, 0.04, 0.065, 0.028), skin);
+  return B.build();
+}
+
+export function buildPersonMesh(shirt, skin, opts = {}) {
+  const L = resolveLook(shirt, skin, opts);
+  if (opts.character === 'tammo') { L.hat = 'tammo'; L.capColor = opts.cap ?? DEFAULT_CAP; L.coat = 'jacket'; L.under = 0xd8d4cc; }
+  if (opts.character === 'anita') { L.coat = 'coat'; }
+  const top = L.cop ? COP_BLUE : shirt;
+  const mat = vcMaterial({ roughness: 0.9 });
+  const group = new THREE.Group();
+  group.add(new THREE.Mesh(buildBody(L, top, skin), mat));
+
+  const legGeo = buildLeg(L);
+  const hipZ = L.female ? 0.085 : 0.09;
+  for (const side of [1, -1]) {
+    const pivot = new THREE.Group();
+    pivot.position.set(0, HIP_Y, side * hipZ);
+    pivot.add(new THREE.Mesh(legGeo, mat));
+    group.add(pivot);
+    if (side === 1) group.userData.legL = pivot;
+    else group.userData.legR = pivot;
+  }
+
+  const shW = L.female ? 0.175 : 0.205;
+  for (const side of [1, -1]) {
+    const pivot = new THREE.Group();
+    pivot.position.set(0, SHOULDER_Y - 0.01, side * (shW + 0.03));
+    pivot.add(new THREE.Mesh(buildArm(L, top, skin, side), mat));
+    group.add(pivot);
+    if (side === 1) group.userData.armL = pivot;
+    else group.userData.armR = pivot;
+  }
+
+  group.scale.set(L.buildScale, L.heightScale, L.buildScale);
   return group;
 }
 
-// Drives the walk cycle for a mesh built by buildPersonMesh(). Call once per
-// frame per character (player, companion, every pedestrian) with that
-// character's current ground speed in m/s; safe to call for a mesh that
-// isn't a person (e.g. missing the pivot groups) since it just no-ops.
-//
-// Rotates each leg/arm pivot around local Z only - these figures face local
-// +X and stand as vertical cylinders, so a Z rotation of the pivot tips the
-// leg/arm forward/backward along X, which is the sagittal swing plane a real
-// stride moves in. Opposite-side legs swing in opposite phase; each arm
-// swings in the same phase as the opposite-side leg (natural counter-swing),
-// at a smaller amplitude. Never touches mesh.scale - that's reserved for
-// per-character build/height (buildPersonMesh) and crouch (the integrator).
+// Drives the walk cycle for a mesh built by buildPersonMesh(). Phase advances
+// with distance travelled; amplitude eases toward 0 when standing still.
 export function animatePersonWalk(mesh, speed, dt) {
   const ud = mesh && mesh.userData;
   if (!ud || !ud.legL || !ud.legR || !ud.armL || !ud.armR) return;

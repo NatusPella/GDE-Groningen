@@ -1,6 +1,6 @@
 import { dist, angleLerp, pointInPolygon, polygonBounds, SeededRng } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { HABBO_PALETTE, habboMaterial, habboFlatMaterial, buildOutline } from './pixelart3d.js';
+import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry } from './pixelart3d.js';
 
 // Ambient GTA6-marketing-parody wildlife: seagulls near water/the Diepenring,
 // the occasional cow/sheep in Noorderplantsoen-style green space. Pure
@@ -170,255 +170,158 @@ export function updateWildlife(dt, world) {
   }
 }
 
-// Real gulls read as birds from a torpedo-shaped torso (3-4x longer than
-// wide) plus wings that dwarf the body (~2.5-3x body length EACH, spread
-// wide) - the old cone wings were themselves nearly as long as the whole
-// body and had no flat "wing plane" to read as anything but a blade. Wings
-// here are two flattened, tapered box segments (broad root + narrower,
-// swept "hand") on a shallow dihedral, mirroring a gliding gull's silhouette.
+// --- 3D models (1 unit = 1 m, facing +X) ------------------------------------------
+// Each animal is a few merged vertex-coloured meshes sharing one per-animal
+// material; animated parts stay separate (seagull wings, grazer heads).
+
 const SEAGULL_BODY_LEN = 0.5;
-const SEAGULL_BODY_DIAM = SEAGULL_BODY_LEN / 3.3;
-const SEAGULL_HEAD_DIAM = SEAGULL_BODY_DIAM * 0.72;
-const SEAGULL_BEAK_LEN = SEAGULL_HEAD_DIAM * 0.9;
-const SEAGULL_WING_LEN = SEAGULL_BODY_LEN * 2.6;
-const SEAGULL_WING_ROOT_FRAC = 0.62;
-const SEAGULL_DIHEDRAL = 0.24;
-const SEAGULL_WINGTIP_SWEEP = 0.3;
+const SEAGULL_BODY_DIAM = 0.15;
+const SEAGULL_WING_LEN = 0.68;
+const SEAGULL_DIHEDRAL = 0.18;
 
-const COW_BODY_LEN = 0.95, COW_BODY_H = 0.5, COW_BODY_W = 0.42;
-const COW_LEG_LEN = 0.42, COW_LEG_R = 0.035;
-const COW_HEAD = 0.24, COW_NECK_LEN = 0.2, COW_HEAD_DROOP = 0.32;
+const GULL_WHITE = 0xeeeeea;
+const GULL_GREY = 0xa9b1b6;
+const GULL_TIP = 0x1e1f21;
+const GULL_BEAK = 0xe0b331;
+const COW_WHITE = 0xe9e6de;
+const COW_BLACK = 0x1f1e1d;
+const COW_PINK = 0xd9a7a0;
+const SHEEP_WOOL = 0xdcd6c6;
+const SHEEP_DARK = 0x2a2624;
 
-const SHEEP_BODY_LEN = 0.6, SHEEP_BODY_H = 0.38, SHEEP_BODY_W = 0.4;
-const SHEEP_LEG_LEN = 0.26, SHEEP_LEG_R = 0.026;
-const SHEEP_HEAD_DIAM = 0.17;
-
-// Habbo-style flat palette colors for every species below, in place of the
-// old bespoke hexes - see pixelart3d.js for the shared toolkit these pull
-// from (HABBO_PALETTE/habboMaterial/buildOutline).
-const SEAGULL_BODY_COLOR = HABBO_PALETTE.white;
-const SEAGULL_WINGTIP_COLOR = HABBO_PALETTE.black;
-const SEAGULL_BEAK_COLOR = HABBO_PALETTE.brickOrange;
-const COW_HIDE_COLOR = HABBO_PALETTE.white;
-const COW_PATCH_COLOR = HABBO_PALETTE.black;
-const SHEEP_WOOL_COLOR = HABBO_PALETTE.white;
-const SHEEP_DARK_COLOR = HABBO_PALETTE.black;
-
-// Flat toon material + inverted-hull black outline (the pixelart3d.js
-// "bold black outlines around every major shape" technique), wrapped in a
-// Group so every existing meshOf() call site keeps working unchanged -
-// Group exposes the same position/rotation/scale API a Mesh does, and
-// callers below reparent/add children onto the returned object exactly as
-// they did when it was a plain Mesh. `thickness` is exposed per-call since
-// buildOutline()'s scale-up is relative to each part's own size, so small
-// parts (thin legs, ears, a beak) need a larger relative thickness than
-// big parts (a body, a wing) to read as an outline at all.
-function meshOf(geometry, color, thickness = 0.025) {
-  const group = new THREE.Group();
-  const mesh = new THREE.Mesh(geometry, habboMaterial(color));
-  group.add(mesh);
-  group.add(buildOutline(geometry, thickness));
-  group.userData.mainMesh = mesh;
-  return group;
+function mat() {
+  return vcMaterial({ roughness: 0.95 });
 }
 
-// Fully flat/unlit, no outline - for small decorative markings (cow spots)
-// that sit flush on an already-outlined body and don't need their own rim.
-function flatMeshOf(geometry, color) {
-  return new THREE.Mesh(geometry, habboFlatMaterial(color));
-}
-
-function legMesh3D(color, len, radius = 0.032) {
-  return meshOf(new THREE.CylinderGeometry(radius, radius, len, 6), color, 0.08);
-}
-
-function grazerLegs(group, color, legLen, legRadius, bodyLen, bodyWidth) {
-  const lx = bodyLen / 2 * 0.74, lz = bodyWidth / 2 * 0.7;
-  for (const sx of [1, -1]) {
-    for (const sz of [1, -1]) {
-      const leg = legMesh3D(color, legLen, legRadius);
-      leg.position.set(sx * lx, legLen / 2, sz * lz);
-      group.add(leg);
-    }
-  }
-}
-
-function seagullWing3D(sign) {
-  const rootLen = SEAGULL_WING_LEN * SEAGULL_WING_ROOT_FRAC;
-  const tipLen = SEAGULL_WING_LEN - rootLen;
-  const group = new THREE.Group();
-
-  const root = meshOf(
-    new THREE.BoxGeometry(SEAGULL_BODY_LEN * 0.36, SEAGULL_BODY_DIAM * 0.14, rootLen),
-    SEAGULL_BODY_COLOR
-  );
-  root.position.z = sign * rootLen / 2;
-  group.add(root);
-
-  const tip = meshOf(
-    new THREE.BoxGeometry(SEAGULL_BODY_LEN * 0.2, SEAGULL_BODY_DIAM * 0.1, tipLen),
-    SEAGULL_WINGTIP_COLOR
-  );
-  tip.position.z = sign * (rootLen + tipLen / 2);
-  tip.rotation.y = -sign * SEAGULL_WINGTIP_SWEEP;
-  group.add(tip);
-
-  // root/tip geometry always extends toward +Z; negating the dihedral
-  // together with the mirrored position keeps BOTH wingtips lifted, instead
-  // of the mirrored wing dipping down when sign flips
-  group.rotation.x = -sign * SEAGULL_DIHEDRAL;
-  return group;
+function seagullWing(sign) {
+  const B = new GeoBuilder(1);
+  const root = SEAGULL_WING_LEN * 0.55, tip = SEAGULL_WING_LEN - root;
+  B.box(0, 0, sign * root / 2, 0.2, 0.025, root, GULL_GREY);
+  B.box(-0.02, -0.004, sign * root / 2, 0.21, 0.012, root * 0.98, GULL_WHITE);
+  B.box(-0.03, 0, sign * (root + tip / 2), 0.13, 0.018, tip, GULL_TIP, 0, 0, -sign * 0.35, 0);
+  B.box(-0.035, 0.005, sign * (root + tip * 0.8), 0.04, 0.02, 0.05, GULL_WHITE, 0, 0, -sign * 0.35, 0);
+  return B.build();
 }
 
 export function buildSeagullMesh3D() {
   const group = new THREE.Group();
-
-  const body = meshOf(new THREE.SphereGeometry(1, 8, 6), SEAGULL_BODY_COLOR);
-  body.scale.set(SEAGULL_BODY_LEN / 2, SEAGULL_BODY_DIAM / 2, SEAGULL_BODY_DIAM / 2);
-  group.add(body);
-
-  const head = meshOf(new THREE.SphereGeometry(SEAGULL_HEAD_DIAM / 2, 6, 5), SEAGULL_BODY_COLOR);
-  head.position.set(SEAGULL_BODY_LEN * 0.42, SEAGULL_BODY_DIAM * 0.12, 0);
-  group.add(head);
-
-  const beak = meshOf(new THREE.ConeGeometry(SEAGULL_HEAD_DIAM * 0.22, SEAGULL_BEAK_LEN, 6), SEAGULL_BEAK_COLOR, 0.05);
-  beak.rotation.z = -Math.PI / 2;
-  beak.position.set(SEAGULL_BODY_LEN * 0.42 + SEAGULL_HEAD_DIAM * 0.42, SEAGULL_BODY_DIAM * 0.08, 0);
-  group.add(beak);
-
-  const tail = meshOf(
-    new THREE.BoxGeometry(SEAGULL_BODY_LEN * 0.3, SEAGULL_BODY_DIAM * 0.18, SEAGULL_BODY_DIAM * 1.05),
-    SEAGULL_BODY_COLOR
-  );
-  tail.position.set(-SEAGULL_BODY_LEN * 0.56, 0, 0);
-  group.add(tail);
-
-  const shoulderX = SEAGULL_BODY_LEN * 0.08;
-  const shoulderY = SEAGULL_BODY_DIAM * 0.35;
-  const shoulderZ = SEAGULL_BODY_DIAM * 0.42;
+  const m = mat();
+  const B = new GeoBuilder(1);
+  B.geo(new THREE.SphereGeometry(1, 8, 5), composeMatrix(0, 0, 0, 0, 0, 0, SEAGULL_BODY_LEN / 2, SEAGULL_BODY_DIAM / 2, SEAGULL_BODY_DIAM / 2), GULL_WHITE);
+  B.geo(new THREE.SphereGeometry(1, 6, 4), composeMatrix(SEAGULL_BODY_LEN * 0.42, 0.035, 0, 0, 0, 0, 0.065, 0.055, 0.05), GULL_WHITE);
+  B.geo(new THREE.ConeGeometry(0.018, 0.07, 4).rotateZ(-Math.PI / 2), composeMatrix(SEAGULL_BODY_LEN * 0.42 + 0.085, 0.03, 0), GULL_BEAK);
+  B.box(SEAGULL_BODY_LEN * 0.42 + 0.075, 0.02, 0, 0.012, 0.012, 0.022, 0xb8322a);
+  B.box(-SEAGULL_BODY_LEN * 0.52, 0.005, 0, 0.14, 0.02, 0.13, GULL_WHITE);
+  B.box(-SEAGULL_BODY_LEN * 0.08, 0.05, 0, 0.18, 0.03, 0.1, GULL_GREY);
+  group.add(new THREE.Mesh(B.build(), m));
   const wings = [];
   for (const sign of [1, -1]) {
-    const wing = seagullWing3D(sign);
-    wing.position.set(shoulderX, shoulderY, sign * shoulderZ);
+    const wing = new THREE.Group();
+    wing.add(new THREE.Mesh(seagullWing(sign), m));
+    wing.position.set(SEAGULL_BODY_LEN * 0.05, 0.03, sign * SEAGULL_BODY_DIAM * 0.35);
+    wing.rotation.x = -sign * SEAGULL_DIHEDRAL;
     wing.userData.sign = sign;
     group.add(wing);
     wings.push(wing);
   }
   group.userData.wings = wings;
-
   return group;
 }
 
-// Deterministic per-animal so a cow's markings don't visibly "reroll" every
-// time buildCowMesh3D() is called again on respawn-into-view (Math.random()
-// previously ran fresh on every call). Seeded off the animal's own bobSeed
-// (a float in [0, 2*PI)) - scaled up before flooring so nearby bobSeed
-// values don't collide into the same SeededRng seed.
+const COW_LEN = 1.7, COW_BODY_H = 0.72, COW_W = 0.62, COW_LEG = 0.68;
+
 function seededCowPatches(seed) {
   const rng = new SeededRng(Math.floor(seed * 1e6));
-  const n = 2 + Math.floor(rng.next() * 2);
-  const maxR = Math.min(COW_BODY_LEN, COW_BODY_W) * 0.18;
+  const n = 3 + Math.floor(rng.next() * 3);
   const patches = [];
   for (let i = 0; i < n; i++) {
-    const r = maxR * (0.6 + rng.next() * 0.4);
     patches.push({
-      x: (rng.next() * 2 - 1) * (COW_BODY_LEN / 2 - r),
-      z: (rng.next() * 2 - 1) * (COW_BODY_W / 2 - r),
-      r,
-      squashZ: 0.55 + rng.next() * 0.3,
-      rot: rng.next() * Math.PI,
+      x: (rng.next() * 2 - 1) * COW_LEN * 0.36,
+      y: (rng.next() * 2 - 1) * COW_BODY_H * 0.25,
+      side: rng.next() < 0.5 ? 1 : -1,
+      w: 0.25 + rng.next() * 0.35,
+      h: 0.2 + rng.next() * 0.3,
+      top: rng.next() < 0.4,
     });
   }
   return patches;
 }
 
+function grazerLegs(B, legLen, r, lx, lz, color, hoof) {
+  for (const sx of [1, -1]) {
+    for (const sz of [1, -1]) {
+      B.geo(new THREE.CylinderGeometry(r * 0.8, r, legLen, 5, 1, true), composeMatrix(sx * lx, legLen / 2 + 0.06, sz * lz), color);
+      B.box(sx * lx + 0.01, 0.035, sz * lz, r * 2.4, 0.07, r * 2.2, hoof);
+    }
+  }
+}
+
 export function buildCowMesh3D(seed = 0) {
   const group = new THREE.Group();
-  const hide = COW_HIDE_COLOR;
-
-  grazerLegs(group, hide, COW_LEG_LEN, COW_LEG_R, COW_BODY_LEN, COW_BODY_W);
-
-  const bodyY = COW_LEG_LEN + COW_BODY_H / 2;
-  const body = meshOf(new THREE.BoxGeometry(COW_BODY_LEN, COW_BODY_H, COW_BODY_W), hide, 0.018);
-  body.position.y = bodyY;
+  const m = mat();
+  const B = new GeoBuilder(1);
+  const bodyY = COW_LEG + COW_BODY_H / 2;
+  grazerLegs(B, COW_LEG - 0.06, 0.06, COW_LEN * 0.36, COW_W * 0.3, COW_WHITE, 0x2a2622);
+  const body = new THREE.CylinderGeometry(1, 1, 1, 8, 1);
+  body.rotateZ(Math.PI / 2);
+  B.geo(body, composeMatrix(0, bodyY, 0, 0, 0, 0, COW_LEN, COW_BODY_H / 2, COW_W / 2), COW_WHITE);
+  B.box(-COW_LEN * 0.36, bodyY + 0.08, 0, 0.45, COW_BODY_H * 0.9, COW_W * 0.92, COW_WHITE);
   for (const p of seededCowPatches(seed)) {
-    const patch = flatMeshOf(new THREE.CylinderGeometry(p.r, p.r, 0.05, 8), COW_PATCH_COLOR);
-    patch.scale.z = p.squashZ;
-    patch.rotation.y = p.rot;
-    // sits mostly embedded in the body with just a proud sliver above the
-    // top face - fully inside would leave it invisible, fully outside would
-    // poke past the body's silhouette (the original bug)
-    patch.position.set(p.x, COW_BODY_H / 2 - 0.015, p.z);
-    body.add(patch);
+    if (p.top) B.box(p.x, bodyY + COW_BODY_H / 2 + 0.005, 0, p.w, 0.02, COW_W * 0.55, COW_BLACK);
+    else B.box(p.x, bodyY + p.y, p.side * (COW_W / 2 * 0.93), p.w, p.h, 0.03, COW_BLACK);
   }
-  group.add(body);
+  B.geo(new THREE.SphereGeometry(0.13, 6, 4), composeMatrix(-COW_LEN * 0.18, COW_LEG + 0.02, 0, 0, 0, 0, 1.2, 0.7, 1), COW_PINK);
+  B.geo(tubeGeometry([-COW_LEN / 2, bodyY + 0.25, 0], [-COW_LEN / 2 - 0.08, bodyY - 0.35, 0], 0.02, 0.015, 4), null, COW_WHITE);
+  B.box(-COW_LEN / 2 - 0.09, bodyY - 0.4, 0, 0.06, 0.12, 0.06, COW_BLACK);
+  group.add(new THREE.Mesh(B.build(), m));
 
-  // neck+head is one rigid, hinged group so it can never end up floating
-  // disconnected from the body regardless of the droop angle: neck and head
-  // are laid out consecutively along local +X, then the whole assembly
-  // rotates together about its body-anchored hinge point
   const headGroup = new THREE.Group();
-  headGroup.position.set(COW_BODY_LEN / 2, bodyY + COW_BODY_H * 0.18, 0);
-  headGroup.rotation.z = -COW_HEAD_DROOP;
-
-  const neck = meshOf(new THREE.BoxGeometry(COW_NECK_LEN, 0.18, 0.26), hide, 0.04);
-  neck.position.x = COW_NECK_LEN / 2;
-  headGroup.add(neck);
-
-  const head = meshOf(new THREE.BoxGeometry(COW_HEAD, COW_HEAD * 0.85, COW_HEAD), hide, 0.04);
-  head.position.set(COW_NECK_LEN + COW_HEAD * 0.4, -0.01, 0);
-  headGroup.add(head);
-
-  for (const sz of [1, -1]) {
-    const ear = meshOf(new THREE.BoxGeometry(0.03, 0.08, 0.09), hide, 0.08);
-    ear.position.set(head.position.x - 0.05, head.position.y + 0.07, sz * 0.13);
-    headGroup.add(ear);
+  headGroup.position.set(COW_LEN / 2 - 0.05, bodyY + 0.12, 0);
+  headGroup.rotation.z = -0.35;
+  const H = new GeoBuilder(1);
+  H.box(0.18, 0, 0, 0.36, 0.34, 0.36, COW_WHITE);
+  H.box(0.46, -0.02, 0, 0.3, 0.3, 0.26, COW_BLACK);
+  H.box(0.62, -0.06, 0, 0.1, 0.2, 0.24, COW_PINK);
+  for (const s of [1, -1]) {
+    H.box(0.38, 0.1, s * 0.19, 0.08, 0.06, 0.14, COW_BLACK, 0, 0, s * 0.3, 0);
+    H.geo(new THREE.ConeGeometry(0.025, 0.1, 4), composeMatrix(0.36, 0.2, s * 0.1, s * -0.5, 0, 0), 0xd8d0b8);
+    H.box(0.5, 0.06, s * 0.12, 0.03, 0.03, 0.02, 0x111111);
   }
-
+  headGroup.add(new THREE.Mesh(H.build(), m));
   group.add(headGroup);
   group.userData.head = headGroup;
   group.userData.headBaseRotZ = headGroup.rotation.z;
   return group;
 }
 
-// scene3d.js currently has no separate sheep path - it reuses
-// buildCowMesh3D() for kind==='sheep' too (see integrationNotes). The 2D
-// drawGrazer already gives sheep a distinct fluffy/lighter look, so 3D
-// should too: a lumpy wool-colored body (3 overlapping spheres, same trick
-// the 2D version uses with ellipses) with a small dark, bare-looking head
-// poking out front, instead of the cow's boxy hide-colored head.
+const SHEEP_LEN = 1.0, SHEEP_H = 0.55, SHEEP_W = 0.6, SHEEP_LEG = 0.36;
+
 export function buildSheepMesh3D() {
   const group = new THREE.Group();
-  const wool = SHEEP_WOOL_COLOR, dark = SHEEP_DARK_COLOR;
-
-  grazerLegs(group, dark, SHEEP_LEG_LEN, SHEEP_LEG_R, SHEEP_BODY_LEN, SHEEP_BODY_W);
-
-  const bodyY = SHEEP_LEG_LEN + SHEEP_BODY_H / 2;
-  const lumps = [
-    [0, SHEEP_BODY_LEN / 2, SHEEP_BODY_H / 2, SHEEP_BODY_W / 2],
-    [-SHEEP_BODY_LEN * 0.34, SHEEP_BODY_LEN * 0.3, SHEEP_BODY_H * 0.42, SHEEP_BODY_W * 0.42],
-    [SHEEP_BODY_LEN * 0.32, SHEEP_BODY_LEN * 0.26, SHEEP_BODY_H * 0.38, SHEEP_BODY_W * 0.38],
-  ];
-  for (const [dx, sx, sy, sz] of lumps) {
-    const lump = meshOf(new THREE.SphereGeometry(1, 7, 6), wool, 0.022);
-    lump.scale.set(sx, sy, sz);
-    lump.position.set(dx, bodyY, 0);
-    group.add(lump);
+  const m = mat();
+  const B = new GeoBuilder(1);
+  grazerLegs(B, SHEEP_LEG - 0.05, 0.035, SHEEP_LEN * 0.32, SHEEP_W * 0.26, SHEEP_DARK, 0x1a1817);
+  const bodyY = SHEEP_LEG + SHEEP_H / 2;
+  const lumps = [[0, 0.02, 0, 0.55, 0.3, 0.32], [-0.3, 0, 0, 0.3, 0.27, 0.29], [0.28, 0.03, 0, 0.28, 0.26, 0.28], [0, 0.14, 0.12, 0.3, 0.2, 0.2], [0, 0.14, -0.12, 0.3, 0.2, 0.2]];
+  for (const [dx, dy, dz, sx, sy, sz] of lumps) {
+    B.geo(new THREE.IcosahedronGeometry(1, 0), composeMatrix(dx, bodyY + dy, dz, 0, dx * 3, 0, sx, sy, sz), SHEEP_WOOL);
   }
+  B.geo(new THREE.IcosahedronGeometry(1, 0), composeMatrix(-SHEEP_LEN * 0.5, bodyY + 0.05, 0, 0, 0, 0, 0.08, 0.08, 0.07), SHEEP_WOOL);
+  group.add(new THREE.Mesh(B.build(), m));
 
-  const head = meshOf(new THREE.SphereGeometry(SHEEP_HEAD_DIAM / 2, 6, 5), dark, 0.05);
-  head.position.set(SHEEP_BODY_LEN * 0.56, bodyY - SHEEP_BODY_H * 0.1, 0);
+  const head = new THREE.Group();
+  head.position.set(SHEEP_LEN * 0.5, bodyY + 0.02, 0);
+  const H = new GeoBuilder(1);
+  H.box(0.06, 0.04, 0, 0.18, 0.2, 0.2, SHEEP_WOOL);
+  H.geo(new THREE.CylinderGeometry(0.06, 0.085, 0.24, 6).rotateZ(-Math.PI / 2 + 0.5), composeMatrix(0.2, -0.04, 0), SHEEP_DARK);
+  for (const s of [1, -1]) {
+    H.box(0.12, 0.05, s * 0.12, 0.05, 0.03, 0.12, SHEEP_DARK, 0, 0, 0, -0.3);
+    H.box(0.24, 0.02, s * 0.06, 0.025, 0.025, 0.015, 0x0d0d0d);
+  }
+  head.add(new THREE.Mesh(H.build(), m));
   group.add(head);
   group.userData.head = head;
   group.userData.headBaseY = head.position.y;
-
-  for (const sz of [1, -1]) {
-    const ear = meshOf(new THREE.BoxGeometry(0.02, 0.03, 0.1), dark, 0.08);
-    ear.rotation.z = sz * 0.5;
-    ear.position.set(head.position.x - 0.05, head.position.y + 0.02, sz * 0.1);
-    group.add(ear);
-  }
-
   return group;
 }
 
@@ -438,5 +341,5 @@ export function animateWildlifeMesh3D(mesh, a, time) {
   if (!ud.head) return;
   const graze = walking ? Math.sin(time * 7 + seed) * 0.05 : 0.35 + Math.sin(time * 1.3 + seed) * 0.12;
   if (ud.headBaseRotZ !== undefined) ud.head.rotation.z = ud.headBaseRotZ - graze;
-  else ud.head.position.y = ud.headBaseY - graze * 0.25;
+  else ud.head.position.y = ud.headBaseY - graze * 0.5;
 }
