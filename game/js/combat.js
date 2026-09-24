@@ -1,5 +1,5 @@
 import { normalizeAngle, pointInPolygon } from './util.js';
-import { respawnPlayer } from './world.js';
+import { requestRespawn } from './world.js';
 import { markWreckedByPlayer } from './vehicle.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -183,7 +183,7 @@ function damagePlayer(world, damage) {
   world.health -= damage;
   if (world.health <= 0) {
     world.health = 0;
-    respawnPlayer(world);
+    requestRespawn(world);
   }
 }
 

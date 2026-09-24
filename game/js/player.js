@@ -1,13 +1,15 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater } from './util.js';
 import { findNearestVehicle, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact } from './vehicle.js';
 import { playAutoGejatLine } from './audio.js';
-import { respawnPlayer } from './world.js';
+import { requestRespawn } from './world.js';
+import { getSettings } from './settings.js';
 
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
 const CROUCH_SPEED = 2.0;
-const TURN_RATE = 3.4; // rad/s, on-foot facing turn speed
+const TURN_RATE = 3.4;
+const MOUSE_TURN_PER_PX = 0.0025; // rad/s, on-foot facing turn speed
 const REVERSE_FACTOR = 0.6;
 const KISS_DIST = 1.8;
 const KISS_HEAL = 25;
@@ -43,13 +45,13 @@ export class Player {
     if (input.wasPressed('e') || input.wasPressed('f')) {
       if (!this.tryKiss(world)) {
         const wasInVehicle = !!this.inVehicle;
-        this.tryEnterExit(map, vehicles);
+        this.tryEnterExit(map, vehicles, world);
         if (!wasInVehicle && this.inVehicle) playAutoGejatLine(world);
       }
     }
 
     if (this.inVehicle) {
-      if (this.inVehicle.wrecked) { this.exitVehicle(map); }
+      if (this.inVehicle.wrecked) { this.exitVehicle(map, world); }
       else { this.driveVehicle(dt, input, map); return; }
     }
 
@@ -70,7 +72,10 @@ export class Player {
     const [ax, ay] = input.axis();
     const speed = this.crouching ? CROUCH_SPEED : input.isDown('shift') ? RUN_SPEED : WALK_SPEED;
 
-    this.angle = normalizeAngle(this.angle + ax * TURN_RATE * dt);
+    // with the mouse captured, horizontal mouse motion turns Tammo/Anita
+    // (and with them the camera and the aim), third-person-shooter style
+    const mouseTurn = input.lookActive() ? input.mouse.dx * MOUSE_TURN_PER_PX * getSettings().mouseSensitivity : 0;
+    this.angle = normalizeAngle(this.angle + ax * TURN_RATE * dt + mouseTurn);
 
     const throttle = ay < 0 ? 1 : ay > 0 ? -REVERSE_FACTOR : 0;
     this.moving = throttle !== 0;
@@ -94,7 +99,7 @@ export class Player {
     // soft-lock them - and they drown instead.
     if (isInWater(map, this.x, this.y)) {
       world.health = Math.max(0, world.health - DROWN_RATE * dt);
-      if (world.health <= 0) { world.health = 0; respawnPlayer(world); return; }
+      if (world.health <= 0) { world.health = 0; requestRespawn(world); return; }
     }
 
     // a single step longer than the radius can tunnel past a thin wall edge
@@ -206,9 +211,9 @@ export class Player {
     return true;
   }
 
-  tryEnterExit(map, vehicles) {
+  tryEnterExit(map, vehicles, world = null) {
     if (this.inVehicle) {
-      this.exitVehicle(map);
+      this.exitVehicle(map, world);
       return;
     }
     const v = findNearestVehicle(this.x, this.y, vehicles, 2.5);
@@ -217,13 +222,18 @@ export class Player {
       v.road = null; // player takes manual control
       if (v.isPolice) v.hijacked = true;
       this.inVehicle = v;
+      pushVehicleAudio(world, v, 'door_open', 'engine_start');
     }
   }
 
-  exitVehicle(map) {
+  exitVehicle(map, world = null) {
     const v = this.inVehicle;
     v.driver = null;
+    v.horn = false;
+    v.handbrake = false;
+    v.throttle = 0;
     this.inVehicle = null;
+    pushVehicleAudio(world, v, v.wrecked ? null : 'engine_stop', 'door_close');
     stopVehicle(v);
     [this.x, this.y] = findExitSpot(v, this.radius, map, EXIT_LEFT_FIRST);
     this.angle = v.angle;
@@ -234,12 +244,24 @@ export class Player {
     const [ax, ay] = input.axis();
     const throttle = ay < 0 ? 1 : ay > 0 ? -1 : 0;
     const brake = input.isDown(' ');
+    v.handbrake = brake;
+    v.throttle = throttle;
+    v.horn = input.isDown('h');
     v.applyControls(dt, throttle, ax, brake && v.speed !== 0);
     resolveVehicleBuildingCollision(v, map, dt);
     this.x = v.x;
     this.y = v.y;
     this.angle = v.angle;
   }
+}
+
+// Door/engine cues for audio.js; bikes and steps have neither.
+function pushVehicleAudio(world, v, first, second) {
+  if (!world || v.isBike || v.isScooter) return;
+  const q = world.audioEvents || (world.audioEvents = []);
+  const door = !v.isBoat;
+  if (first && (door || !first.startsWith('door'))) q.push({ kind: first, x: v.x, y: v.y });
+  if (second && (door || !second.startsWith('door'))) q.push({ kind: second, x: v.x, y: v.y });
 }
 
 export function stopVehicle(v) {

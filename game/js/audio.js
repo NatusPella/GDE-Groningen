@@ -1,6 +1,7 @@
 import { clamp } from './util.js';
 import { getCamera } from './scene3d.js';
 import { getSettings, onSettingsChange } from './settings.js';
+import { vehicleContacts } from './vehicle.js';
 
 const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
@@ -111,7 +112,7 @@ let prev = null;
 let seenMessages = null;
 let muted = loadMuted();
 let lastHurtAt = -Infinity;
-const engineState = { freq: 42, gain: 0 };
+const engineState = { freq: 42, gain: 0, gear: 0, shiftUntil: 0, startAt: 0 };
 const sirenState = { gain: 0 };
 const musicState = { gain: GMUSIC_VOLUME };
 
@@ -438,12 +439,123 @@ function playExplosion(x, y) {
   playTone({ freq: 90, freqEnd: 28, type: 'sine', duration: 0.9, gain: 0.55, out });
 }
 
+// Layered by strength: body thud, crunch, an inharmonic panel ring, and for
+// hard hits a rattle of debris and glass.
 function playCrash(x, y, impact) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1 });
   if (!out) return;
-  const k = clamp(impact / 15, 0.35, 1);
-  playNoiseBurst({ duration: 0.25, freq: 900, freqEnd: 180, q: 0.7, gain: 0.55 * k, out });
-  playTone({ freq: 110, freqEnd: 45, type: 'square', duration: 0.16, gain: 0.25 * k, filterFreq: 600, out });
+  const k = clamp(impact / 14, 0.08, 1);
+  playTone({ freq: 90 + k * 20, freqEnd: 36, type: 'sine', duration: 0.16 + k * 0.28, gain: 0.2 + k * 0.45, out });
+  playNoiseBurst({ duration: 0.1 + k * 0.35, freq: 650 + k * 700, freqEnd: 140, q: 0.8, gain: 0.22 + k * 0.45, out });
+  if (k < 0.2) return;
+  const base = 190 + Math.random() * 140;
+  const ring = 0.2 + k * 0.45;
+  playTone({ freq: base, freqEnd: base * 0.94, type: 'square', duration: ring, gain: 0.05 * k, filterFreq: 1800 + k * 2500, out });
+  playTone({ freq: base * 2.76, freqEnd: base * 2.6, type: 'triangle', duration: ring * 0.8, gain: 0.06 * k, out });
+  playTone({ freq: base * 5.4, type: 'sine', duration: ring * 0.6, gain: 0.04 * k, out });
+  playNoiseBurst({ duration: 0.06 + k * 0.1, freq: 2600, freqEnd: 1200, q: 1.6, gain: 0.18 * k, type: 'bandpass', delay: 0.015, out });
+  if (k < 0.4) return;
+  const ticks = 3 + Math.floor(k * 5);
+  for (let i = 0; i < ticks; i++) {
+    const d = 0.06 + Math.random() * (0.25 + k * 0.35);
+    if (Math.random() < 0.5) playTone({ freq: 3000 + Math.random() * 3500, type: 'sine', duration: 0.05 + Math.random() * 0.08, gain: 0.03 + 0.04 * k, delay: d, out });
+    else playNoiseBurst({ duration: 0.03 + Math.random() * 0.05, freq: 1800 + Math.random() * 2500, q: 2, gain: 0.08 * k, type: 'bandpass', delay: d, out });
+  }
+}
+
+function playScrape(x, y, slide) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1.1, range: 60 });
+  if (!out) return;
+  const k = clamp(slide / 12, 0.2, 1);
+  const f = 1400 + Math.random() * 1600;
+  playNoiseBurst({ duration: 0.16, freq: f, freqEnd: f * 0.8, q: 3.5, gain: 0.12 + k * 0.18, type: 'bandpass', out });
+  playTone({ freq: 700 + Math.random() * 500, freqEnd: 600, type: 'sawtooth', duration: 0.12, gain: 0.025 * k, filterFreq: 2400, out });
+}
+
+function playBell(x, y) {
+  const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 45 });
+  if (!out) return;
+  const f = 2750 + Math.random() * 250;
+  for (const d of [0, 0.14]) {
+    playTone({ freq: f, type: 'sine', duration: 0.55, gain: 0.12, delay: d, out });
+    playTone({ freq: f * 1.49, type: 'sine', duration: 0.4, gain: 0.05, delay: d, out });
+    playTone({ freq: f * 2.43, type: 'sine', duration: 0.25, gain: 0.025, delay: d, out });
+    playNoiseBurst({ duration: 0.012, freq: 5200, q: 2, gain: 0.1, type: 'bandpass', delay: d, out });
+  }
+}
+
+// Short vowel-ish "hé!" from a buzzy source through two formant filters.
+function playShout(x, y, strength = 0.5) {
+  const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 50, h: 1.6 });
+  if (!out) return;
+  const t0 = ctx.currentTime;
+  const dur = 0.22 + strength * 0.12;
+  const f0 = (Math.random() < 0.5 ? 140 : 230) * (0.9 + Math.random() * 0.25) * (1 + strength * 0.15);
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(f0 * 0.9, t0);
+  osc.frequency.linearRampToValueAtTime(f0 * 1.12, t0 + dur * 0.3);
+  osc.frequency.exponentialRampToValueAtTime(f0 * 0.72, t0 + dur);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.16 + strength * 0.12, t0 + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  const f1 = ctx.createBiquadFilter();
+  f1.type = 'bandpass'; f1.frequency.value = 550 + Math.random() * 250; f1.Q.value = 5;
+  const f2 = ctx.createBiquadFilter();
+  f2.type = 'bandpass'; f2.frequency.value = 1500 + Math.random() * 500; f2.Q.value = 7;
+  const mix2 = ctx.createGain();
+  mix2.gain.value = 0.6;
+  osc.connect(f1).connect(g);
+  osc.connect(f2).connect(mix2).connect(g);
+  g.connect(out.node);
+  out.hold();
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.03);
+  osc.onended = () => {
+    osc.disconnect(); f1.disconnect(); f2.disconnect(); mix2.disconnect(); g.disconnect();
+    out.release();
+  };
+  playNoiseBurst({ duration: 0.05, freq: 2400, q: 0.8, gain: 0.08, type: 'highpass', out });
+}
+
+function playDoor(x, y, open) {
+  const out = spatialOut(x, y, { ref: 3, rolloff: 1.2, range: 40 });
+  if (!out) return;
+  if (open) {
+    playNoiseBurst({ duration: 0.03, freq: 3200, q: 2, gain: 0.25, type: 'bandpass', out });
+    playNoiseBurst({ duration: 0.16, freq: 900, freqEnd: 600, q: 4, gain: 0.08, type: 'bandpass', delay: 0.04, out });
+  } else {
+    playTone({ freq: 95, freqEnd: 48, type: 'sine', duration: 0.16, gain: 0.45, out });
+    playNoiseBurst({ duration: 0.1, freq: 500, freqEnd: 160, q: 0.7, gain: 0.3, type: 'lowpass', out });
+    playNoiseBurst({ duration: 0.025, freq: 2800, q: 2, gain: 0.2, type: 'bandpass', delay: 0.02, out });
+  }
+}
+
+function playEngineStart(x, y, delay) {
+  const out = spatialOut(x, y, { ref: 4, rolloff: 1, range: 60 });
+  if (!out) return;
+  for (let i = 0; i < 5; i++) {
+    playTone({ freq: 140 + i * 6, freqEnd: 115, type: 'sawtooth', duration: 0.09, gain: 0.07, filterFreq: 700, delay: delay + i * 0.095, out });
+  }
+  playTone({ freq: 45, freqEnd: 110, type: 'sawtooth', duration: 0.22, gain: 0.16, filterFreq: 650, delay: delay + 0.48, out });
+  playTone({ freq: 110, freqEnd: 44, type: 'sawtooth', duration: 0.35, gain: 0.12, filterFreq: 520, delay: delay + 0.7, out });
+}
+
+function playEngineStop(x, y) {
+  const out = spatialOut(x, y, { ref: 4, rolloff: 1, range: 50 });
+  if (!out) return;
+  playTone({ freq: 46, freqEnd: 22, type: 'sawtooth', duration: 0.45, gain: 0.1, filterFreq: 380, out });
+  playNoiseBurst({ duration: 0.08, freq: 300, q: 1, gain: 0.08, type: 'lowpass', delay: 0.35, out });
+}
+
+function playShiftBlip(up, freq) {
+  if (up) {
+    playNoiseBurst({ duration: 0.04, freq: 1600, q: 1.5, gain: 0.07, type: 'bandpass' });
+    playTone({ freq: freq * 2.2, freqEnd: freq * 1.3, type: 'sawtooth', duration: 0.12, gain: 0.06, filterFreq: 900 });
+  } else {
+    playTone({ freq: freq * 1.2, freqEnd: freq * 2.1, type: 'sawtooth', duration: 0.14, gain: 0.07, filterFreq: 1000 });
+  }
 }
 
 function playSplash(x, y) {
@@ -452,11 +564,11 @@ function playSplash(x, y) {
   playNoiseBurst({ duration: 0.7, freq: 1600, freqEnd: 220, q: 0.5, gain: 0.5, type: 'lowpass', out });
 }
 
-function playHorn(x, y) {
+function playHorn(x, y, duration = 0.4) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 80 });
   if (!out) return;
-  playTone({ freq: 415, type: 'square', duration: 0.4, gain: 0.1, filterFreq: 1800, out });
-  playTone({ freq: 523, type: 'square', duration: 0.4, gain: 0.08, filterFreq: 1800, out });
+  playTone({ freq: 415, type: 'square', duration, gain: 0.1, filterFreq: 1800, out });
+  playTone({ freq: 523, type: 'square', duration, gain: 0.08, filterFreq: 1800, out });
 }
 
 function playPlayerHurt() {
@@ -832,6 +944,7 @@ function unlockAudio() {
 const SILENT_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('stil');
 
 export function initAudio(world) {
+  if (!world.audioEvents) world.audioEvents = [];
   if (ctx || SILENT_MODE) return;
   const AC = window.AudioContext || window.webkitAudioContext;
   ctx = new AC();
@@ -873,6 +986,10 @@ export function initAudio(world) {
   sirenVoices = Array.from({ length: SIREN_VOICES }, buildSirenVoice);
   engineVoices = Array.from({ length: ENGINE_VOICES }, buildEngineVoice);
   heliVoice = buildHeliVoice();
+  squealVoice = buildSquealVoice();
+  rumbleVoice = buildRumbleVoice();
+  hornVoice = buildHornVoice();
+  contactCursor = vehicleContacts.head;
   loadGMusicManifest();
 
   for (const b of world.bullets) seenBullets.add(b);
@@ -895,19 +1012,261 @@ export function initAudio(world) {
   for (const m of world.messages) seenMessages.add(m);
 }
 
+// Fraction of top speed at which each gear runs out; the engine note climbs
+// through each band and drops on the upshift.
+const GEAR_TOPS = [0.15, 0.3, 0.48, 0.7, 1.05];
+
+function gearFor(frac, current) {
+  let g = current;
+  while (g < GEAR_TOPS.length - 1 && frac > GEAR_TOPS[g]) g++;
+  while (g > 0 && frac < GEAR_TOPS[g - 1] - 0.04) g--;
+  return g;
+}
+
 function updateEngine(dt, world) {
   const v = world.player.inVehicle;
-  const speed = v ? Math.abs(v.speed) : 0;
-  const targetGain = v ? clamp(0.12 + speed * 0.012, 0.12, 0.55) : 0;
-  const targetFreq = 42 + speed * 3.4;
-  const k = Math.min(1, dt * 4);
+  const motor = v && !v.isBike;
+  const speed = motor ? Math.abs(v.speed) : 0;
+  const t = ctx.currentTime;
+  let targetGain = 0, targetFreq = 42, cutoff = 300;
+  if (motor && v.isScooter) {
+    targetGain = speed > 0.2 ? 0.05 + speed * 0.01 : 0;
+    targetFreq = 160 + speed * 45;
+    cutoff = 1600;
+  } else if (motor) {
+    const frac = speed / (v.model.maxSpeed || 30);
+    const g = v.speed < 0 ? 0 : gearFor(frac, engineState.gear);
+    if (g !== engineState.gear) {
+      const up = g > engineState.gear;
+      engineState.gear = g;
+      if (!v.isBoat && speed > 2) {
+        engineState.shiftUntil = t + (up ? 0.13 : 0.08);
+        playShiftBlip(up, engineState.freq);
+      }
+    }
+    const lo = g ? GEAR_TOPS[g - 1] : 0;
+    const rpm = clamp((frac - lo) / (GEAR_TOPS[g] - lo), 0, 1);
+    const load = v.throttle > 0 ? 1 : 0.55;
+    targetFreq = 40 + rpm * 62 + g * 5;
+    targetGain = clamp((0.12 + rpm * 0.2 + speed * 0.004) * load, 0.1, 0.5);
+    cutoff = 260 + rpm * 900 * load + speed * 6;
+    if (t < engineState.startAt) targetGain = 0;
+    if (t < engineState.shiftUntil) { targetGain *= 0.35; targetFreq *= 0.8; }
+  }
+  const k = Math.min(1, dt * (t < engineState.shiftUntil ? 14 : 6));
   engineState.gain += (targetGain - engineState.gain) * k;
   engineState.freq += (targetFreq - engineState.freq) * k;
 
   engineBus.gain.value = engineState.gain;
   engine.osc1.frequency.value = engineState.freq;
   engine.osc2.frequency.value = engineState.freq * 2 + 4;
-  engine.filter.frequency.value = 300 + speed * 18;
+  engine.filter.frequency.value = cutoff;
+}
+
+// --- tyre squeal, surface rumble, player horn ---------------------------------
+
+const SQUEAL_RANGE = 55;
+const NO_VEHICLES = [];
+let squealVoice = null;
+let rumbleVoice = null;
+let hornVoice = null;
+let contactCursor = 0;
+let lastScrapeAt = -Infinity;
+let bellReadyAt = 0;
+
+function buildSquealVoice() {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer;
+  src.loop = true;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = 1300;
+  band.Q.value = 9;
+  const osc = ctx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.value = 1100;
+  const oscGain = ctx.createGain();
+  oscGain.gain.value = 0.12;
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  const panner = makePanner({ ref: 6, rolloff: 1, model: 'equalpower' });
+  src.connect(band).connect(gain);
+  osc.connect(oscGain).connect(gain);
+  gain.connect(panner).connect(sfxBus);
+  src.start();
+  osc.start();
+  return { band, osc, gain, panner, level: 0, target: null, fresh: true };
+}
+
+function buildRumbleVoice() {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer;
+  src.loop = true;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 200;
+  filter.Q.value = 0.8;
+  const am = ctx.createGain();
+  am.gain.value = 1;
+  const lfo = ctx.createOscillator();
+  lfo.type = 'square';
+  lfo.frequency.value = 20;
+  const lfoDepth = ctx.createGain();
+  lfoDepth.gain.value = 0;
+  lfo.connect(lfoDepth).connect(am.gain);
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  src.connect(filter).connect(am).connect(gain).connect(sfxBus);
+  src.start();
+  lfo.start();
+  return { filter, am, lfo, lfoDepth, gain };
+}
+
+function buildHornVoice() {
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 1800;
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  const a = ctx.createOscillator();
+  a.type = 'square';
+  a.frequency.value = 415;
+  const b = ctx.createOscillator();
+  b.type = 'square';
+  b.frequency.value = 523;
+  const bGain = ctx.createGain();
+  bGain.gain.value = 0.8;
+  a.connect(filter);
+  b.connect(bGain).connect(filter);
+  filter.connect(gain).connect(sfxBus);
+  a.start();
+  b.start();
+  return { a, b, gain, on: false };
+}
+
+function updateSqueal(dt, world) {
+  let best = null, bestScore = 0;
+  for (const v of world.paused ? NO_VEHICLES : world.vehicles) {
+    const slip = v.slip || 0;
+    if (slip < 0.3 || v.wrecked || v.isBoat || v.surface === 'gras') continue;
+    if (Math.abs(v.speed) < 1.5 && !v._burnout) continue;
+    const d = distToListener(v.x, v.y, 0.4);
+    if (d > SQUEAL_RANGE) continue;
+    const score = slip * (v.driver === 'player' ? 2 : 1) / (1 + d * 0.05);
+    if (score > bestScore) { bestScore = score; best = v; }
+  }
+  const voice = squealVoice;
+  const t = ctx.currentTime;
+  if (best !== voice.target) { voice.target = best; voice.fresh = true; }
+  let target = 0;
+  if (best) {
+    const slip = best.slip;
+    const small = best.isBike || best.isScooter;
+    target = clamp((slip - 0.3) / 0.6, 0, 1) * (small ? 0.12 : 0.34);
+    const wob = Math.sin(t * 23) * 60 + Math.sin(t * 7.3) * 90;
+    const f = (small ? 2200 : 950) + slip * 700 + wob;
+    voice.band.frequency.setTargetAtTime(f, t, 0.05);
+    voice.osc.frequency.setTargetAtTime(f * 0.99, t, 0.05);
+    setPannerPos(voice.panner, best.x, best.y, 0.4, !voice.fresh);
+    voice.fresh = false;
+  }
+  voice.level += (target - voice.level) * Math.min(1, dt * (target > voice.level ? 12 : 5));
+  if (voice.level < 0.002 && target === 0) voice.level = 0;
+  voice.gain.gain.setTargetAtTime(voice.level, t, 0.03);
+}
+
+const RUMBLE = {
+  klinkers: { freq: 190, q: 0.9, rate: 4.2, depth: 0.85, gain: 0.014, max: 0.32 },
+  asfalt: { freq: 140, q: 0.6, rate: 1.2, depth: 0.08, gain: 0.005, max: 0.12 },
+  fietspad: { freq: 160, q: 0.6, rate: 1.5, depth: 0.12, gain: 0.006, max: 0.13 },
+  gras: { freq: 320, q: 0.5, rate: 1.6, depth: 0.55, gain: 0.011, max: 0.26 },
+};
+
+function updateRumble(dt, world) {
+  const v = world.player.inVehicle;
+  const t = ctx.currentTime;
+  const r = rumbleVoice;
+  if (!v || v.isBoat || v.wrecked || world.paused) { r.gain.gain.setTargetAtTime(0, t, 0.1); return; }
+  const p = RUMBLE[v.surface] || RUMBLE.asfalt;
+  const speed = Math.abs(v.speed);
+  const scale = v.isBike || v.isScooter ? 0.45 : v.isBus ? 1.3 : 1;
+  const g = Math.min(p.max, speed * p.gain) * scale * clamp(speed / 1.5, 0, 1);
+  r.filter.frequency.setTargetAtTime(p.freq * (v.isBus ? 0.7 : 1), t, 0.1);
+  r.filter.Q.setTargetAtTime(p.q, t, 0.1);
+  r.lfo.frequency.setTargetAtTime(clamp(speed * p.rate, 2, 90), t, 0.05);
+  r.lfoDepth.gain.setTargetAtTime(p.depth * 0.5, t, 0.1);
+  r.am.gain.setTargetAtTime(1 - p.depth * 0.5, t, 0.1);
+  r.gain.gain.setTargetAtTime(g, t, 0.12);
+}
+
+function updatePlayerHorn(world) {
+  const v = world.player.inVehicle;
+  const t = ctx.currentTime;
+  const pressing = !!(v && v.horn && !v.wrecked && !world.paused);
+  const bell = v && (v.isBike || v.isScooter);
+  if (pressing && bell) {
+    if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
+  } else if (!pressing) bellReadyAt = 0;
+  const on = pressing && !bell;
+  if (on && !hornVoice.on) {
+    const low = v.isBoat ? 0.45 : v.isBus ? 0.72 : 1;
+    hornVoice.a.frequency.setValueAtTime(415 * low, t);
+    hornVoice.b.frequency.setValueAtTime(523 * low, t);
+  }
+  if (on !== hornVoice.on) {
+    hornVoice.on = on;
+    hornVoice.gain.gain.setTargetAtTime(on ? 0.075 : 0, t, on ? 0.008 : 0.03);
+  }
+}
+
+// Collision contacts recorded by vehicle.js: crunches scaled by closing
+// speed, rate-limited scrapes while sliding along walls or cars.
+function updateContactAudio(world) {
+  const vc = vehicleContacts;
+  if (vc.head - contactCursor > vc.cap) contactCursor = vc.head - vc.cap;
+  for (; contactCursor < vc.head; contactCursor++) {
+    const c = vc.list[contactCursor % vc.cap];
+    if (!c.a) continue;
+    if (c.impact >= 1.5) {
+      const la = lastCrashAt.get(c.a) ?? -Infinity;
+      const lb = c.b ? lastCrashAt.get(c.b) ?? -Infinity : -Infinity;
+      if (world.time - Math.max(la, lb) >= CRASH_MIN_GAP) {
+        playCrash(c.x, c.y, c.impact);
+        lastCrashAt.set(c.a, world.time);
+        if (c.b) lastCrashAt.set(c.b, world.time);
+      }
+    } else if (c.slide > 3 && !c.a.isBike && !c.a.isScooter && world.time - lastScrapeAt > 0.11) {
+      lastScrapeAt = world.time;
+      playScrape(c.x, c.y, c.slide);
+    }
+  }
+}
+
+const MAX_EVENTS_PER_FRAME = 8;
+
+// world.audioEvents: [{kind, x, y, strength?}], drained every frame.
+function playAudioEvents(world) {
+  const q = world.audioEvents;
+  const n = Math.min(q.length, MAX_EVENTS_PER_FRAME);
+  let doorDelay = 0;
+  for (let i = 0; i < n; i++) {
+    const e = q[i];
+    const x = e.x ?? world.player.x, y = e.y ?? world.player.y;
+    switch (e.kind) {
+      case 'bell': playBell(x, y); break;
+      case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4); break;
+      case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'door_open': playDoor(x, y, true); doorDelay = 0.3; break;
+      case 'door_close': playDoor(x, y, false); break;
+      case 'engine_start':
+        playEngineStart(x, y, doorDelay);
+        engineState.startAt = ctx.currentTime + doorDelay + 0.75;
+        engineState.gear = 0;
+        break;
+      case 'engine_stop': playEngineStop(x, y); break;
+      default: break;
+    }
+  }
 }
 
 // Keeps each voice on the same source while it stays among the nearest;
@@ -1070,18 +1429,9 @@ function updateWorldEvents(world) {
     newlyDead.push(ped);
   }
 
+  if (!world.paused) updateContactAudio(world);
   const newlyWrecked = [];
   for (const v of world.vehicles) {
-    if (v.hitThisFrame && !world.paused) {
-      const last = lastCrashAt.get(v) ?? -Infinity;
-      if (world.time - last >= CRASH_MIN_GAP) {
-        playCrash(v.hitX, v.hitY, v.hitImpactSpeed || 0);
-        // both parties of a collision carry the same hit point
-        for (const o of world.vehicles) {
-          if (o.hitThisFrame && o.hitX === v.hitX && o.hitY === v.hitY) lastCrashAt.set(o, world.time);
-        }
-      }
-    }
     if (!v.wrecked || seenWrecks.has(v)) continue;
     seenWrecks.add(v);
     newlyWrecked.push(v);
@@ -1138,7 +1488,10 @@ function updateGMusic(dt, world) {
 let lastDeathAt = -Infinity;
 
 export function updateAudio(dt, world) {
-  if (!ctx) return;
+  const events = world.audioEvents || (world.audioEvents = []);
+  if (!ctx) { events.length = 0; return; }
+  if (!muted) playAudioEvents(world);
+  events.length = 0;
   if (ctx.state === 'suspended' && !document.hidden) ctx.resume().catch(() => {});
 
   if (world.input.wasPressed('u')) {
@@ -1209,6 +1562,9 @@ export function updateAudio(dt, world) {
   prev.missionPhase = missionPhase;
 
   updateEngine(dt, world);
+  updateSqueal(dt, world);
+  updateRumble(dt, world);
+  updatePlayerHorn(world);
   updateSiren(dt, world);
   updateTrafficAudio(dt, world);
   updateGMusic(dt, world);

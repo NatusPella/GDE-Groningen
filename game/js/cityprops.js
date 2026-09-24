@@ -1,3 +1,667 @@
-// Ambient city life scenes (market stalls, terraces, small set pieces).
-export function initCityProps(world) {}
-export function updateCityProps(dt, world, scene) {}
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
+import { Pedestrian, setPedPose, isInsideBuilding, isOnRoad, CITY_CENTRE } from './pedestrians.js';
+import { spawnVehicleOnRoad } from './vehicle.js';
+import { isInWater, dist, SeededRng } from './util.js';
+
+// Ambient city life: benches, bins, bike racks, café terraces, market stalls,
+// canal anglers. Streamed per CELL around the player; each cell merges all its
+// props into one static mesh plus one market mesh (daytime only). Seated and
+// standing scene people are real Pedestrians (state 'idle', ped.scene set) so
+// they get speech bubbles and panic like everyone else.
+
+const CELL = 60;
+const BUILD_RADIUS = 120;
+const DROP_RADIUS = 150;
+const GEN_PER_FRAME = 1;
+const MAX_SCENE_PEDS = 18;
+const DRIVE_CATS = ['major', 'normal', 'minor', 'cycle'];
+
+const MARKETS = [
+  { name: 'Grote Markt', x: 162, y: 78, r: 34 },
+  { name: 'Vismarkt', x: 18, y: 244, r: 38 },
+];
+
+const VENDOR_LINES = ['Verse haring, moi!', 'Kom moar kieken!', 'Twee kilo appels, twee euro!', 'Lekker stoet, vers van vandoag!'];
+
+let group = null;
+let material = null;
+let protos = null;
+const cells = new Map();
+let genQueue = [];
+let world = null;
+let studentTimer = 20;
+let slotTimer = 0;
+let hauler = null;
+
+function hash(cx, cy) {
+  return ((cx * 73856093) ^ (cy * 19349663) ^ 0x5bd1e995) >>> 0;
+}
+
+function isFree(map, x, y, r, footOk = true) {
+  if (isInWater(map, x, y) || isInsideBuilding(map, x, y)) return false;
+  for (const [dx, dy] of [[r, 0], [-r, 0], [0, r], [0, -r]]) {
+    if (isInsideBuilding(map, x + dx, y + dy) || isInWater(map, x + dx, y + dy)) return false;
+  }
+  if (isOnRoad(map, x, y, r, DRIVE_CATS)) return false;
+  if (!footOk && isOnRoad(map, x, y, 0, ['foot'])) return false;
+  for (const t of map.treesNear(x, y, r + 1)) {
+    if (Math.hypot(t[0] - x, t[1] - y) < r + 0.7) return false;
+  }
+  return true;
+}
+
+// --- prototype geometry (local space, +X forward, y up) --------------------
+
+function buildBench() {
+  const B = new GeoBuilder(1);
+  const wood = HABBO_PALETTE.woodMid, iron = 0x2b2f2a;
+  for (let i = 0; i < 3; i++) B.box(0.12 - i * 0.14, 0.45, 0, 0.12, 0.04, 1.6, wood);
+  for (let i = 0; i < 2; i++) B.box(-0.2, 0.62 + i * 0.14, 0, 0.03, 0.1, 1.6, wood, 0, 0, 0, 0.12);
+  for (const z of [-0.65, 0.65]) {
+    B.box(-0.02, 0.22, z, 0.42, 0.44, 0.05, iron);
+    B.box(-0.2, 0.62, z, 0.05, 0.36, 0.05, iron);
+  }
+  return B.build();
+}
+
+function buildBin() {
+  const B = new GeoBuilder(1);
+  B.geo(new THREE.CylinderGeometry(0.24, 0.21, 0.85, 8), composeMatrix(0, 0.425, 0), 0x2f4a3a);
+  B.geo(new THREE.CylinderGeometry(0.26, 0.26, 0.06, 8), composeMatrix(0, 0.87, 0), 0x3d5a47);
+  B.geo(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 5), composeMatrix(-0.3, 0.45, 0), 0x2b2f2a);
+  return B.build();
+}
+
+function buildOmafiets(color) {
+  const B = new GeoBuilder(1);
+  const r = 0.33, black = 0x1a1a1a, chrome = 0x9a9a98;
+  for (const x of [-0.52, 0.52]) {
+    B.geo(new THREE.TorusGeometry(r, 0.028, 3, 12), composeMatrix(x, r, 0), black);
+    B.geo(tubeGeometry([x, r, 0], [x, r + 0.05, 0], 0.02), null, chrome);
+    B.box(x, r + 0.34, 0, 0.5, 0.02, 0.07, color, 0, 0, 0, x > 0 ? -0.35 : 0.35);
+  }
+  const hub = [-0.52, r, 0], bb = [0, 0.3, 0], seat = [-0.18, 0.86, 0], head = [0.4, 0.88, 0], fork = [0.52, r, 0];
+  B.geo(tubeGeometry(hub, bb, 0.02), null, color);
+  B.geo(tubeGeometry(hub, seat, 0.02), null, color);
+  B.geo(tubeGeometry(bb, seat, 0.025), null, color);
+  B.geo(tubeGeometry(bb, [0.22, 0.42, 0], 0.028), null, color);
+  B.geo(tubeGeometry([0.22, 0.42, 0], head, 0.028), null, color);
+  B.geo(tubeGeometry(head, fork, 0.022), null, color);
+  B.geo(tubeGeometry(head, [0.34, 1.05, 0], 0.02), null, chrome);
+  B.geo(tubeGeometry([0.3, 1.05, -0.28], [0.3, 1.05, 0.28], 0.015), null, chrome);
+  B.box(-0.2, 0.92, 0, 0.26, 0.06, 0.14, 0x2a1d14);
+  B.box(-0.55, 0.72, 0, 0.42, 0.03, 0.2, black);
+  B.box(-0.18, 0.34, 0.06, 0.5, 0.12, 0.02, color);
+  return B.build();
+}
+
+function buildRackRail(n) {
+  const B = new GeoBuilder(1);
+  const len = n * 0.7;
+  B.geo(tubeGeometry([0, 0.4, -len / 2], [0, 0.4, len / 2], 0.025), null, 0x6b6e70);
+  for (let i = 0; i <= n; i++) {
+    const z = -len / 2 + i * 0.7;
+    B.geo(tubeGeometry([0, 0, z], [0, 0.4, z], 0.02), null, 0x6b6e70);
+  }
+  return B.build();
+}
+
+function buildTableSet(chairColor) {
+  const B = new GeoBuilder(1);
+  B.geo(new THREE.CylinderGeometry(0.36, 0.36, 0.035, 10), composeMatrix(0, 0.73, 0), 0xd8d4cc);
+  B.geo(tubeGeometry([0, 0, 0], [0, 0.72, 0], 0.03), null, 0x2b2f2a);
+  B.geo(new THREE.CylinderGeometry(0.22, 0.24, 0.03, 8), composeMatrix(0, 0.015, 0), 0x2b2f2a);
+  B.geo(new THREE.CylinderGeometry(0.04, 0.035, 0.12, 6), composeMatrix(0.1, 0.81, 0.05), 0xe8e2d0);
+  for (const s of [1, -1]) {
+    const x = s * 0.7;
+    B.box(x, 0.45, 0, 0.4, 0.04, 0.4, chairColor);
+    B.box(x + s * 0.2, 0.68, 0, 0.04, 0.42, 0.38, chairColor);
+    for (const [dx, dz] of [[0.17, 0.17], [-0.17, 0.17], [0.17, -0.17], [-0.17, -0.17]]) {
+      B.geo(tubeGeometry([x + dx, 0, dz], [x + dx, 0.44, dz], 0.015, 0.015, 4), null, 0x2b2f2a);
+    }
+  }
+  return B.build();
+}
+
+function buildParasol(color) {
+  const B = new GeoBuilder(1);
+  B.geo(tubeGeometry([0, 0, 0], [0, 2.35, 0], 0.035), null, 0xd8d4cc);
+  B.geo(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 8), composeMatrix(0, 0.04, 0), 0x3a3b3f);
+  B.geo(new THREE.ConeGeometry(1.5, 0.45, 8, 1, true), composeMatrix(0, 2.2, 0), color);
+  B.geo(new THREE.CylinderGeometry(1.5, 1.5, 0.14, 8, 1, true), composeMatrix(0, 1.92, 0), color);
+  return B.build();
+}
+
+const PRODUCE = [0xb8352a, 0x6f9a3a, 0xd98a2b, 0xe0c24a, 0x7a3b5a, 0x9ab84a, 0xc9a07a];
+
+function buildStall(stripe, seed) {
+  const rng = new SeededRng(seed);
+  const B = new GeoBuilder(1);
+  const W = 2.8, D = 1.9, H = 2.25;
+  for (const x of [-D / 2, D / 2]) {
+    for (const z of [-W / 2, W / 2]) B.geo(tubeGeometry([x, 0, z], [x, x > 0 ? H - 0.25 : H, z], 0.035), null, 0x6b6e70);
+  }
+  const stripes = 7;
+  for (let i = 0; i < stripes; i++) {
+    const z = -W / 2 + (i + 0.5) * (W / stripes);
+    B.box(0, H - 0.1, z, D + 0.35, 0.04, W / stripes, i % 2 ? stripe : 0xece8de, 0, 0, 0, -0.14);
+  }
+  B.box(D / 2 + 0.17, H - 0.42, 0, 0.02, 0.3, W + 0.02, stripe);
+  B.box(0.45, 0.45, 0, 0.8, 0.9, W - 0.1, 0x6e4a2f);
+  B.box(0.45, 0.91, 0, 0.84, 0.02, W - 0.05, 0xd6cab0);
+  for (let i = 0; i < 6; i++) {
+    const z = -W / 2 + 0.3 + (i % 3) * 0.95 + rng.range(-0.05, 0.05);
+    const x = i < 3 ? 0.65 : 0.25;
+    const c = PRODUCE[Math.floor(rng.next() * PRODUCE.length)];
+    B.box(x, 1.0, z, 0.36, 0.16, 0.7, 0x9a7048, 0, 0, 0, i < 3 ? 0 : 0);
+    for (let k = 0; k < 3; k++) {
+      B.geo(new THREE.IcosahedronGeometry(0.1, 0), composeMatrix(x + rng.range(-0.08, 0.08), 1.12, z - 0.2 + k * 0.2), c);
+    }
+  }
+  B.box(-0.6, 0.25, 0.9, 0.45, 0.5, 0.45, 0x9a7048);
+  B.box(-0.6, 0.25, -0.9, 0.45, 0.5, 0.45, 0x9a7048);
+  return B.build();
+}
+
+function buildSunkenBike() {
+  const B = new GeoBuilder(1);
+  const rust = 0x7a4a2a;
+  const bike = buildOmafiets(rust);
+  B.geo(bike, composeMatrix(0, -1.05, 0, 0.25, 0, 1.0), rust);
+  return B.build();
+}
+
+function initProtos() {
+  const bikeColors = [0x1e1e1e, 0x1e1e1e, 0x23324a, 0x2f4a3a, 0x5a2a24, 0x3a3b3f];
+  protos = {
+    bench: buildBench(),
+    bin: buildBin(),
+    bikes: bikeColors.map(buildOmafiets),
+    rails: [3, 4, 5, 6].map(buildRackRail),
+    tables: [0x2f4a3a, 0x6b2a24, 0x23324a].map(buildTableSet),
+    parasols: [0xe6e1d6, 0x8f2f2a, 0x2f5a3f, 0xc99a3a].map(buildParasol),
+    stalls: [0x8f2f2a, 0x2f5a3f, 0x23428a, 0xc99a3a].map((c, i) => buildStall(c, 17 + i * 31)),
+    sunkenBike: buildSunkenBike(),
+  };
+}
+
+// Colours bake into each proto; GeoBuilder.geo re-colours uniformly, so
+// instances are merged by copying attributes instead.
+function mergeInstances(list) {
+  let total = 0;
+  for (const it of list) total += it.geo.attributes.position.count;
+  if (!total) return null;
+  const pos = new Float32Array(total * 3), nor = new Int8Array(total * 3), col = new Uint8Array(total * 3);
+  const v = new THREE.Vector3(), n = new THREE.Vector3(), nm = new THREE.Matrix3();
+  let o = 0;
+  for (const { geo, m } of list) {
+    const P = geo.attributes.position, N = geo.attributes.normal, C = geo.attributes.color;
+    nm.getNormalMatrix(m);
+    for (let i = 0; i < P.count; i++) {
+      v.fromBufferAttribute(P, i).applyMatrix4(m);
+      pos[o * 3] = v.x; pos[o * 3 + 1] = v.y; pos[o * 3 + 2] = v.z;
+      n.set(N.getX(i), N.getY(i), N.getZ(i)).applyMatrix3(nm).normalize();
+      nor[o * 3] = Math.round(n.x * 127); nor[o * 3 + 1] = Math.round(n.y * 127); nor[o * 3 + 2] = Math.round(n.z * 127);
+      col[o * 3] = C.array[i * 3]; col[o * 3 + 1] = C.array[i * 3 + 1]; col[o * 3 + 2] = C.array[i * 3 + 2];
+      o++;
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(nor, 3, true));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+  g.computeBoundingSphere();
+  return g;
+}
+
+function place(x, y, angle, y0 = 0) {
+  return composeMatrix(x, y0, y, 0, -angle, 0);
+}
+
+// --- cell generation --------------------------------------------------------
+
+function roadSamples(roads, cx0, cy0, cats, spacing, rng, fn) {
+  for (const r of roads) {
+    if (!cats.includes(r.cat)) continue;
+    const pts = r.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (len < 4) continue;
+      const segA = Math.atan2(b[1] - a[1], b[0] - a[0]);
+      for (let t = rng.range(0, spacing); t < len; t += spacing) {
+        const x = a[0] + (b[0] - a[0]) * (t / len), y = a[1] + (b[1] - a[1]) * (t / len);
+        if (x < cx0 || x >= cx0 + CELL || y < cy0 || y >= cy0 + CELL) continue;
+        fn(r, x, y, segA);
+      }
+    }
+  }
+}
+
+function generateCell(map, cx, cy) {
+  const rng = new SeededRng(hash(cx, cy));
+  const cx0 = cx * CELL, cy0 = cy * CELL;
+  const mid = { x: cx0 + CELL / 2, y: cy0 + CELL / 2 };
+  const items = [], market = [], slots = [];
+  const taken = [];
+  const clear = (x, y, r) => taken.every((t) => Math.hypot(t[0] - x, t[1] - y) > t[2] + r);
+  const take = (x, y, r) => taken.push([x, y, r]);
+  const centreD = dist(mid.x, mid.y, CITY_CENTRE.x, CITY_CENTRE.y);
+  const roads = map.roadsNear(mid.x, mid.y, CELL * 0.75);
+
+  for (const mk of MARKETS) {
+    if (mk.x < cx0 || mk.x >= cx0 + CELL || mk.y < cy0 || mk.y >= cy0 + CELL) continue;
+    const rowA = nearestRoadAngle(map, mk.x, mk.y);
+    const fx = Math.cos(rowA), fy = Math.sin(rowA), nx = -fy, ny = fx;
+    let n = 0;
+    for (const row of [0, 1, -1, 2, -2]) {
+      let inRow = 0;
+      for (const col of [0, 1, -1, 2, -2, 3, -3, 4, -4]) {
+        if (n >= 12 || inRow >= 5) break;
+        const x = mk.x + fx * col * 3.3 + nx * row * 6, y = mk.y + fy * col * 3.3 + ny * row * 6;
+        if (Math.hypot(x - mk.x, y - mk.y) > mk.r) continue;
+        if (!isFree(map, x, y, 1.7) || !clear(x, y, 1.6)) continue;
+        take(x, y, 1.6);
+        const face = rowA + (row % 2 ? Math.PI / 2 : -Math.PI / 2);
+        market.push({ geo: protos.stalls[Math.floor(rng.next() * protos.stalls.length)], m: place(x, y, face) });
+        if (rng.next() < 0.75) {
+          slots.push({ kind: 'vendor', x: x - Math.cos(face) * 0.55, y: y - Math.sin(face) * 0.55, angle: face, pose: 'vendor', day: true, occ: 0 });
+        }
+        n++;
+        inRow++;
+      }
+    }
+  }
+
+  const horeca = (map.meta.horeca || []).filter((h) => h.x >= cx0 && h.x < cx0 + CELL && h.y >= cy0 && h.y < cy0 + CELL);
+  let terraces = 0;
+  for (const h of horeca) {
+    if (terraces >= 3 || dist(h.x, h.y, CITY_CENTRE.x, CITY_CENTRE.y) > 1100) break;
+    const spot = findTerraceSpot(map, h, clear);
+    if (!spot) continue;
+    terraces++;
+    const { x, y, angle } = spot;
+    const px = -Math.sin(angle), py = Math.cos(angle);
+    const sets = [[x + px * 1.1, y + py * 1.1], [x - px * 1.1, y - py * 1.1]].filter(([sx, sy]) => isFree(map, sx, sy, 0.9));
+    if (!sets.length) sets.push([x, y]);
+    const tableProto = protos.tables[Math.floor(rng.next() * protos.tables.length)];
+    for (const [sx, sy] of sets) {
+      take(sx, sy, 1.1);
+      items.push({ geo: tableProto, m: place(sx, sy, angle) });
+      for (const s of [1, -1]) {
+        const chx = sx + Math.cos(angle) * 0.7 * s, chy = sy + Math.sin(angle) * 0.7 * s;
+        slots.push({ kind: 'terrace', x: chx, y: chy, angle: angle + (s > 0 ? Math.PI : 0), pose: 'sit', occ: rng.next() });
+      }
+    }
+    items.push({ geo: protos.parasols[Math.floor(rng.next() * protos.parasols.length)], m: place(x, y, angle) });
+  }
+
+  roadSamples(roads, cx0, cy0, ['foot'], 26, rng, (r, x, y, segA) => {
+    if (rng.next() > 0.45) return;
+    const side = rng.next() < 0.5 ? 1 : -1;
+    const off = (r.width || 4) / 2 + 0.9;
+    const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
+    const bx = x + nx * off, by = y + ny * off;
+    if (!isFree(map, bx, by, 0.9) || !clear(bx, by, 1)) return;
+    take(bx, by, 1);
+    const face = Math.atan2(-ny, -nx);
+    items.push({ geo: protos.bench, m: place(bx, by, face) });
+    const tx = bx + Math.cos(segA) * 1.4, ty = by + Math.sin(segA) * 1.4;
+    if (rng.next() < 0.6 && isFree(map, tx, ty, 0.35) && clear(tx, ty, 0.4)) {
+      take(tx, ty, 0.4);
+      items.push({ geo: protos.bin, m: place(tx, ty, face) });
+    }
+  });
+
+  if (centreD < 900) {
+    roadSamples(roads, cx0, cy0, ['normal', 'major', 'minor'], 38, rng, (r, x, y, segA) => {
+      if (rng.next() > (centreD < 450 ? 0.5 : 0.25)) return;
+      const side = rng.next() < 0.5 ? 1 : -1;
+      const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
+      const off = (r.width || 6) / 2 + 1.7;
+      const rx = x + nx * off, ry = y + ny * off;
+      const n = 3 + Math.floor(rng.next() * 4);
+      const len = n * 0.7;
+      const fx = Math.cos(segA), fy = Math.sin(segA);
+      const ends = [[rx + fx * len / 2, ry + fy * len / 2], [rx - fx * len / 2, ry - fy * len / 2]];
+      if (!clear(rx, ry, len / 2 + 0.5)) return;
+      if (!isFree(map, rx + nx * 0.6, ry + ny * 0.6, 0.5) || !isFree(map, rx - nx * 0.6, ry - ny * 0.6, 0.3)) return;
+      if (ends.some(([ex, ey]) => !isFree(map, ex, ey, 0.4))) return;
+      take(rx, ry, len / 2 + 0.5);
+      items.push({ geo: protos.rails[n - 3], m: place(rx, ry, segA + Math.PI / 2) });
+      const bikeA = Math.atan2(ny, nx);
+      for (let i = 0; i < n; i++) {
+        if (rng.next() < 0.18) continue;
+        const t = -len / 2 + 0.35 + i * 0.7;
+        const bx = rx + fx * t, by = ry + fy * t;
+        items.push({ geo: protos.bikes[Math.floor(rng.next() * protos.bikes.length)], m: place(bx, by, bikeA + (i % 2 ? Math.PI : 0) + rng.range(-0.08, 0.08)) });
+      }
+    });
+    roadSamples(roads, cx0, cy0, ['normal', 'minor'], 55, rng, (r, x, y, segA) => {
+      if (rng.next() > 0.35) return;
+      const side = rng.next() < 0.5 ? 1 : -1;
+      const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
+      const off = (r.width || 6) / 2 + 1.2;
+      const bx = x + nx * off, by = y + ny * off;
+      if (!isFree(map, bx, by, 0.35) || !clear(bx, by, 0.5)) return;
+      take(bx, by, 0.5);
+      items.push({ geo: protos.bin, m: place(bx, by, segA) });
+    });
+  }
+
+  if (rng.next() < 0.35) {
+    const spot = findQuaySpot(map, cx0, cy0, rng);
+    if (spot && clear(spot.x, spot.y, 1)) {
+      take(spot.x, spot.y, 1);
+      slots.push({ kind: 'fisher', x: spot.x, y: spot.y, angle: spot.angle, pose: 'fish', occ: 0 });
+    }
+  }
+  if (hauler && hauler.x >= cx0 && hauler.x < cx0 + CELL && hauler.y >= cy0 && hauler.y < cy0 + CELL) {
+    const { x, y, angle } = hauler;
+    const bx = x + Math.cos(angle) * 1.9, by = y + Math.sin(angle) * 1.9;
+    items.push({ geo: protos.sunkenBike, m: place(bx, by, angle + Math.PI / 2) });
+    items.push({ geo: ropeGeometry(), m: place(x, y, angle) });
+    slots.push({ kind: 'hauler', x, y, angle, pose: 'haul', occ: 0 });
+  }
+
+  return { cx, cy, items, market, slots, mesh: null, marketMesh: null, active: false };
+}
+
+let ropeGeo = null;
+function ropeGeometry() {
+  if (!ropeGeo) {
+    const B = new GeoBuilder(1);
+    B.geo(tubeGeometry([0.45, 1.05, 0], [1.9, -0.55, 0], 0.012, 0.012, 3), null, 0xd8c89a);
+    B.box(1.9, -0.6, 0, 0.12, 0.08, 0.12, 0x6b6e70);
+    ropeGeo = B.build();
+  }
+  return ropeGeo;
+}
+
+function nearestRoadAngle(map, x, y) {
+  const rp = map.nearestRoadPoint(x, y, 120, true);
+  if (!rp) return 0;
+  const pts = rp.road.pts;
+  let best = Infinity, a = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+    const d = Math.hypot(mx - rp.x, my - rp.y);
+    if (d < best) { best = d; a = Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0]); }
+  }
+  return a;
+}
+
+function findTerraceSpot(map, h, clear) {
+  let best = null;
+  for (const r of [2.2, 3.2, 4.2, 5.5, 7]) {
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * Math.PI * 2;
+      const x = h.x + Math.cos(a) * r, y = h.y + Math.sin(a) * r;
+      if (!isFree(map, x, y, 1.3) || !clear(x, y, 2.2)) continue;
+      const back = x - Math.cos(a) * 3.5, backY = y - Math.sin(a) * 3.5;
+      if (!isInsideBuilding(map, back, backY) && !isInsideBuilding(map, h.x, h.y)) continue;
+      best = { x, y, angle: a };
+      break;
+    }
+    if (best) break;
+  }
+  return best;
+}
+
+// A walkable point right at a quay edge, facing the water.
+function findQuaySpot(map, cx0, cy0, rng) {
+  const polys = map.waterNear(cx0 + CELL / 2, cy0 + CELL / 2, CELL / 2);
+  for (const w of polys) {
+    const pts = w.pts;
+    const start = Math.floor(rng.next() * pts.length);
+    for (let j = 0; j < Math.min(pts.length, 60); j++) {
+      const i = (start + j) % (pts.length - 1);
+      const a = pts[i], b = pts[i + 1];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (len < 4) continue;
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+      if (mx < cx0 || mx >= cx0 + CELL || my < cy0 || my >= cy0 + CELL) continue;
+      const nx = -(b[1] - a[1]) / len, ny = (b[0] - a[0]) / len;
+      for (const s of [1, -1]) {
+        const ox = mx + nx * s * 0.7, oy = my + ny * s * 0.7;
+        const wx = mx - nx * s * 1.5, wy = my - ny * s * 1.5;
+        if (!isInWater(map, wx, wy) || isInWater(map, ox, oy)) continue;
+        if (!isFree(map, ox + nx * s * 0.4, oy + ny * s * 0.4, 0.4) || isInsideBuilding(map, ox, oy)) continue;
+        return { x: ox, y: oy, angle: Math.atan2(-ny * s, -nx * s) };
+      }
+    }
+  }
+  return null;
+}
+
+function findHaulerSpot(map) {
+  const rng = new SeededRng(4242);
+  const target = { x: 10, y: 370 };
+  let best = null, bestD = Infinity;
+  for (let gx = -4; gx <= 4; gx++) {
+    for (let gy = -4; gy <= 4; gy++) {
+      const cx0 = Math.floor(target.x / CELL + gx) * CELL, cy0 = Math.floor(target.y / CELL + gy) * CELL;
+      const s = findQuaySpot(map, cx0, cy0, rng);
+      if (!s) continue;
+      const d = Math.hypot(s.x - target.x, s.y - target.y);
+      if (d < bestD) { bestD = d; best = s; }
+    }
+  }
+  return best;
+}
+
+// --- streaming ------------------------------------------------------------
+
+function buildCellMeshes(cell) {
+  const g = mergeInstances(cell.items);
+  if (g) {
+    cell.mesh = new THREE.Mesh(g, material);
+    cell.mesh.castShadow = true;
+    cell.mesh.receiveShadow = true;
+    group.add(cell.mesh);
+  }
+  const mg = mergeInstances(cell.market);
+  if (mg) {
+    cell.marketMesh = new THREE.Mesh(mg, material);
+    cell.marketMesh.castShadow = true;
+    cell.marketMesh.receiveShadow = true;
+    group.add(cell.marketMesh);
+  }
+  cell.active = true;
+}
+
+function dropCell(cell) {
+  for (const m of [cell.mesh, cell.marketMesh]) {
+    if (!m) continue;
+    group.remove(m);
+    m.geometry.dispose();
+  }
+  cell.mesh = cell.marketMesh = null;
+  cell.active = false;
+  for (const s of cell.slots) removeSlotPed(s);
+}
+
+function removeSlotPed(slot) {
+  const ped = slot.ped;
+  slot.ped = null;
+  if (!ped || !ped.scene) return;
+  setPedPose(ped, null);
+  const i = world.pedestrians.indexOf(ped);
+  if (i >= 0) world.pedestrians.splice(i, 1);
+}
+
+function isNight() {
+  return (world.dayNight?.night ?? 0) > 0.5;
+}
+
+function slotWanted(slot, night) {
+  if (slot.kind === 'vendor') return !night;
+  if (slot.kind === 'terrace') return slot.occ < (night ? 0.8 : 0.4);
+  if (slot.kind === 'fisher') return !night;
+  return true;
+}
+
+function updateSlots(activeCells) {
+  const night = isNight();
+  const alive = new Set(world.pedestrians);
+  let count = 0;
+  for (const cell of activeCells) for (const s of cell.slots) if (s.ped && s.ped.scene && alive.has(s.ped)) count++;
+  const p = world.player;
+  const ordered = [];
+  for (const cell of activeCells) for (const s of cell.slots) ordered.push(s);
+  ordered.sort((a, b) => (a.kind === 'terrace') - (b.kind === 'terrace'));
+  {
+    for (const s of ordered) {
+      if (s.ped && (!s.ped.scene || !alive.has(s.ped) || s.ped.state === 'dead')) {
+        if (s.ped.scene && alive.has(s.ped)) removeSlotPed(s);
+        s.ped = null;
+        s.cooldownUntil = world.time + 90;
+      }
+      const want = slotWanted(s, night);
+      if (s.ped && !want) { removeSlotPed(s); count--; continue; }
+      if (s.ped || !want || count >= MAX_SCENE_PEDS || world.time < (s.cooldownUntil || 0)) continue;
+      if (dist(s.x, s.y, p.x, p.y) < 25 && world.time > 5) continue;
+      const ped = new Pedestrian(s.x, s.y, s.angle);
+      ped.state = 'idle';
+      ped.scene = { x: s.x, y: s.y, angle: s.angle, pose: s.pose, kind: s.kind };
+      setPedPose(ped, s.pose);
+      world.pedestrians.push(ped);
+      s.ped = ped;
+      count++;
+    }
+  }
+}
+
+let vendorLineAt = -Infinity;
+let haulerSpoke = false;
+function sceneChatter(activeCells) {
+  const p = world.player;
+  for (const cell of activeCells) {
+    for (const s of cell.slots) {
+      const ped = s.ped;
+      if (!ped || !ped.scene || ped.state !== 'idle') continue;
+      const d = dist(ped.x, ped.y, p.x, p.y);
+      if (s.kind === 'hauler' && !haulerSpoke && d < 9) {
+        haulerSpoke = true;
+        ped.speechText = 'Alweer n fiets uut t Diep, joh!';
+        ped.speechUntil = world.time + 4;
+      } else if (s.kind === 'vendor' && d < 8 && world.time - vendorLineAt > 35) {
+        vendorLineAt = world.time;
+        ped.speechText = VENDOR_LINES[Math.floor(Math.random() * VENDOR_LINES.length)];
+        ped.speechUntil = world.time + 3;
+      }
+    }
+  }
+}
+
+// Groups of students cycling together through the centre in daytime.
+function spawnStudentGroup() {
+  const { map, player } = world;
+  if (dist(player.x, player.y, CITY_CENTRE.x, CITY_CENTRE.y) > CITY_CENTRE.r + 400 || isNight()) return;
+  const bikes = world.vehicles.filter((v) => v.isBike).length;
+  if (bikes > 26) return;
+  const roads = map.roadsNear(player.x, player.y, 110).filter((r) => (r.cat === 'cycle' || r.cat === 'minor') && r.pts.length >= 2);
+  for (let attempt = 0; attempt < 6 && roads.length; attempt++) {
+    const road = roads[Math.floor(Math.random() * roads.length)];
+    const lead = spawnVehicleOnRoad(map, road, false, Math.random, true);
+    const d = dist(lead.x, lead.y, player.x, player.y);
+    if (d < 55 || d > 115) continue;
+    if (world.vehicles.some((v) => dist(v.x, v.y, lead.x, lead.y) < 10)) continue;
+    const n = 3 + Math.floor(Math.random() * 2);
+    const riders = ['#3f5c8a', '#c94b3a', '#1f4a2e', '#c9a227', '#4a3a54', '#e8e6e0'];
+    const group = [lead];
+    const bx = Math.cos(lead.angle), by = Math.sin(lead.angle);
+    for (let k = 1; k < n; k++) {
+      const v = spawnVehicleOnRoad(map, road, false, Math.random, true, false, { x: lead.x, y: lead.y });
+      v.angle = lead.angle;
+      v.dir = lead.dir;
+      v.segIdx = lead.segIdx;
+      v.x = lead.x - bx * 2.4 * k + -by * (k % 2 ? 0.5 : -0.1);
+      v.y = lead.y - by * 2.4 * k + bx * (k % 2 ? 0.5 : -0.1);
+      if (isInsideBuilding(map, v.x, v.y) || isInWater(map, v.x, v.y)) continue;
+      group.push(v);
+    }
+    for (const v of group) {
+      v.model = { ...v.model, rider: riders[Math.floor(Math.random() * riders.length)], maxSpeed: 5.4 };
+      v.studentGroup = true;
+    }
+    world.vehicles.push(...group);
+    return;
+  }
+}
+
+export function initCityProps(w) {
+  world = w;
+  initProtos();
+  material = vcMaterial({ roughness: 0.9 });
+  hauler = findHaulerSpot(w.map);
+}
+
+export function updateCityProps(dt, w, scene) {
+  if (!protos || !scene) return;
+  world = w;
+  if (!group) {
+    group = new THREE.Group();
+    group.name = 'cityprops';
+    scene.add(group);
+  }
+  const p = w.player;
+  const pcx = Math.floor(p.x / CELL), pcy = Math.floor(p.y / CELL);
+  const span = Math.ceil(BUILD_RADIUS / CELL);
+  const activeCells = [];
+
+  for (let gx = pcx - span; gx <= pcx + span; gx++) {
+    for (let gy = pcy - span; gy <= pcy + span; gy++) {
+      const dx = Math.max(0, Math.abs(p.x - (gx + 0.5) * CELL) - CELL / 2);
+      const dy = Math.max(0, Math.abs(p.y - (gy + 0.5) * CELL) - CELL / 2);
+      if (Math.hypot(dx, dy) > BUILD_RADIUS) continue;
+      const key = gx + ',' + gy;
+      if (!cells.has(key)) {
+        if (!genQueue.includes(key)) genQueue.push(key);
+        continue;
+      }
+      const cell = cells.get(key);
+      if (!cell.active) buildCellMeshes(cell);
+    }
+  }
+
+  genQueue = genQueue.filter((key) => {
+    const [gx, gy] = key.split(',').map(Number);
+    return Math.hypot(p.x - (gx + 0.5) * CELL, p.y - (gy + 0.5) * CELL) < BUILD_RADIUS + CELL;
+  });
+  genQueue.sort((a, b) => {
+    const [ax, ay] = a.split(',').map(Number), [bx, by] = b.split(',').map(Number);
+    return Math.hypot(ax - pcx, ay - pcy) - Math.hypot(bx - pcx, by - pcy);
+  });
+  for (let i = 0; i < GEN_PER_FRAME && genQueue.length; i++) {
+    const key = genQueue.shift();
+    const [gx, gy] = key.split(',').map(Number);
+    cells.set(key, generateCell(w.map, gx, gy));
+  }
+
+  const night = isNight();
+  for (const cell of cells.values()) {
+    if (!cell.active) continue;
+    const cxm = (cell.cx + 0.5) * CELL, cym = (cell.cy + 0.5) * CELL;
+    if (Math.hypot(p.x - cxm, p.y - cym) > DROP_RADIUS + CELL / 2) { dropCell(cell); continue; }
+    if (cell.marketMesh) cell.marketMesh.visible = !night;
+    activeCells.push(cell);
+  }
+  if (cells.size > 400) {
+    for (const [key, cell] of cells) if (!cell.active) cells.delete(key);
+  }
+
+  if (w.paused) return;
+  slotTimer -= dt;
+  if (slotTimer <= 0) {
+    slotTimer = 0.5;
+    updateSlots(activeCells);
+  }
+  sceneChatter(activeCells);
+  studentTimer -= dt;
+  if (studentTimer <= 0) {
+    studentTimer = 25 + Math.random() * 20;
+    spawnStudentGroup();
+  }
+}

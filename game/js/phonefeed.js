@@ -1,3 +1,5 @@
+import { getClockText } from './hud_panel.js';
+
 // Renders world.phoneNotifications ({text, duration}[], oldest first) as a
 // single reused phone-notification card that slides up from below the
 // viewport, holds, then slides back down before the next one takes its turn.
@@ -78,6 +80,7 @@ function injectStyle() {
 
 export function initPhoneFeed(world) {
   if (!world.phoneNotifications) world.phoneNotifications = [];
+  if (!world.phoneHistory) world.phoneHistory = [];
   injectStyle();
 
   const root = document.getElementById('hud');
@@ -106,6 +109,9 @@ export function updatePhoneFeed(dt, world) {
     const next = world.phoneNotifications.shift();
     if (!next) return;
     bodyEl.textContent = next.text;
+    if (!world.phoneHistory) world.phoneHistory = [];
+    world.phoneHistory.unshift({ text: next.text, at: getClockText(world) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) });
+    if (world.phoneHistory.length > 30) world.phoneHistory.length = 30;
     card.classList.add('phonefeed-visible');
     timer = Math.max(1.5, next.duration || HOLD_DEFAULT);
     queueState = 'hold';

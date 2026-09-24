@@ -36,7 +36,15 @@ export class World {
 // Shared "player died / got busted" recovery flow — used by combat.js (health
 // hits 0) and police.js (busted while wanted). Lives here (not in either
 // module) so neither has to import the other.
-export function respawnPlayer(world, { busted = false, moneyPenalty = 0 } = {}) {
+// Death/arrest: announce it now and let cinematics.js play the DOOD /
+// OPGEPAKT slow-motion shot, which calls respawnPlayer when it ends.
+export function requestRespawn(world, opts = {}) {
+  if (world.pendingRespawn) return;
+  world.pendingRespawn = { ...opts, announced: true };
+  world.addMessage(opts.busted ? 'OPGEPAKT' : 'DOOD', 3.5);
+}
+
+export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announced = false } = {}) {
   const p = world.player;
   if (p.inVehicle) {
     const v = p.inVehicle;
@@ -60,7 +68,7 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0 } = {}) 
   world.wanted = 0;
   world.wantedDecayTimer = 0;
   world.money = Math.max(0, world.money - moneyPenalty);
-  world.addMessage(busted ? 'OPGEPAKT' : 'DOOD', 3.5);
+  if (!announced) world.addMessage(busted ? 'OPGEPAKT' : 'DOOD', 3.5);
   if (pick.name) world.addMessage(`Je respawnt bij ${pick.name}`, 4);
   for (const fn of world.onRespawn) fn(world, { busted });
 }

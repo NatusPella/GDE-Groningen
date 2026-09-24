@@ -16,11 +16,11 @@ import { initAudio, updateAudio } from './audio.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { init3D, update3D, resize3D, getScene } from './scene3d.js';
 import { updateStreetSigns } from './streetsigns.js';
-import { initPauseMenu, isPauseMenuOpen } from './pausemenu.js';
+import { initPauseMenu, isPauseMenuOpen, openPauseMenu } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
 import { updateFx3D } from './fx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
-import { initPhone, updatePhone } from './phone.js';
+import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
 import { initSaveGame, updateSaveGame } from './savegame.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
@@ -28,33 +28,16 @@ import { initWildlife, updateWildlife } from './wildlife.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
+import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen } from './startscreen.js';
 import { dist } from './util.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
 // every system that used to have a 2D-only draw path now also has a 3D one.
-const loadingEl = document.getElementById('loading');
-const startScreen = document.getElementById('start-screen');
-const startBtn = document.getElementById('start-btn');
+initLoading();
 
-function waitForStart() {
-  return new Promise((resolve) => {
-    startScreen.classList.add('visible');
-    startBtn.focus();
-    const start = () => {
-      startBtn.removeEventListener('click', start);
-      window.removeEventListener('keydown', onKey, true);
-      startScreen.classList.remove('visible');
-      resolve();
-    };
-    const onKey = (e) => {
-      if (e.key !== 'Enter' && e.key !== ' ') return;
-      e.preventDefault();
-      start();
-    };
-    startBtn.addEventListener('click', start);
-    window.addEventListener('keydown', onKey, true);
-  });
+function waitForStart(world) {
+  return runStartScreen(world, { render: (dt) => update3D(dt, world) });
 }
 
 let errorShown = false;
@@ -87,8 +70,10 @@ function maintainPedestrians(world) {
 
 async function boot() {
   const map = await loadMap('citymap.json');
+  setLoadProgress(0.6);
   init3D(map);
   resize3D();
+  setLoadProgress(0.8);
   window.addEventListener('resize', resize3D);
 
   // spawn in front of a random real Groningen landmark each game, snapped to
@@ -129,14 +114,21 @@ async function boot() {
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
+  // mouse-look: clicking the game captures the mouse; Esc releases it (the
+  // browser swallows that Esc keypress), which opens the pause menu instead
+  const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen();
+  input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  document.addEventListener('pointerlockchange', () => {
+    if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
+  });
   initDayNight(world);
   initCityProps(world);
   initPhone(world);
   initSaveGame(world);
 
-  loadingEl.style.display = 'none';
   window.__debug = { player, map, input, world };
-  await waitForStart();
+  finishLoading();
+  await waitForStart(world);
   document.body.classList.add('game-started');
   initAudio(world);
 
@@ -158,6 +150,7 @@ async function boot() {
   function frameBody(dt) {
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || !!world.uiPaused;
+    if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1));
     if (!world.paused) updateGameplay(gameDt);
@@ -227,6 +220,6 @@ async function boot() {
 }
 
 boot().catch((err) => {
-  loadingEl.textContent = 'Fout bij laden: ' + err.message;
+  showLoadError(err.message);
   console.error(err);
 });

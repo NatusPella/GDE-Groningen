@@ -20,6 +20,10 @@ const DEFAULTS = {
   showMinimap: true,
   showHints: true,
   showFog: true,
+  cinematicMoments: true,
+  drawDistance: 'normaal',
+  mouseSensitivity: 1,
+  invertY: false,
 };
 
 function load() {

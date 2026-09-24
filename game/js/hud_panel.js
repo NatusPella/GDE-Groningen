@@ -33,14 +33,25 @@ export function initHud(world) {
   const topRight = document.createElement('div');
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
+    '<div class="hud-clock"></div>' +
     '<div class="hud-wanted"></div>' +
     '<div class="hud-money"></div>' +
+    '<div class="hud-money-delta"></div>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
+
+  const damage = document.createElement('div');
+  damage.className = 'hud-damage';
+  root.insertBefore(damage, root.firstChild);
 
   const hint = document.createElement('div');
   hint.className = 'hud-hint';
   root.appendChild(hint);
+
+  const speedo = document.createElement('div');
+  speedo.className = 'hud-speedo';
+  speedo.innerHTML = '<b></b><span>km/h</span>';
+  root.appendChild(speedo);
 
   const mission = document.createElement('div');
   mission.className = 'hud-mission';
@@ -78,7 +89,12 @@ export function initHud(world) {
     armorFill: topLeft.querySelector('.armor'),
     mute: topLeft.querySelector('.hud-mute'),
     wanted: topRight.querySelector('.hud-wanted'),
+    clock: topRight.querySelector('.hud-clock'),
     money: topRight.querySelector('.hud-money'),
+    moneyDelta: topRight.querySelector('.hud-money-delta'),
+    damage,
+    speedo,
+    speedoValue: speedo.querySelector('b'),
     weapon: topRight.querySelector('.hud-weapon'),
     hint,
     missionLabel: mission.querySelector('.hud-mission-label'),
@@ -99,7 +115,10 @@ export function updateHud(dt, world) {
   updateBars(world);
   els.mute.hidden = !isMuted();
   updateWanted(world);
-  updateMoneyWeapon(world);
+  updateMoneyWeapon(dt, world);
+  updateClock(world);
+  updateDamage(dt, world);
+  updateSpeedo(world);
   updateMission(world);
   updateToasts(world);
   updateLocation(dt, world);
@@ -140,7 +159,7 @@ function updateHint(world) {
   const player = world.player;
 
   if (player.inVehicle) {
-    els.hint.innerHTML = hintHtml([['E', 'Uitstappen'], ['SPATIE', 'Remmen']]);
+    els.hint.innerHTML = hintHtml([['E', 'Uitstappen'], ['SPATIE', 'Remmen'], ['V', 'Filmcamera']]);
     return;
   }
 
@@ -167,7 +186,7 @@ function updateHint(world) {
   }
 
   if (world.time < TUTORIAL_HINT_DURATION) {
-    els.hint.innerHTML = hintHtml([['WASD', 'Lopen'], ['SPATIE', 'Springen'], ['CTRL', 'Kruipen'], ['E', 'Instappen'], ['C', 'Wissel'], ['M', 'Kaart']]);
+    els.hint.innerHTML = hintHtml([['WASD', 'Lopen'], ['SPATIE', 'Springen'], ['CTRL', 'Kruipen'], ['E', 'Instappen'], ['C', 'Wissel'], ['M', 'Kaart'], ['T', 'Telefoon']]);
     return;
   }
 
@@ -229,18 +248,80 @@ function updateBars(world) {
   els.armorFill.style.width = Math.max(0, Math.min(100, world.armor)) + '%';
 }
 
+let wantedKey = '';
 function updateWanted(world) {
+  const searching = !!(world.police && world.police.searching);
+  const key = world.wanted + (searching ? 's' : '');
+  if (key === wantedKey) return;
+  wantedKey = key;
   let html = '';
   for (let i = 0; i < 5; i++) {
-    html += i < world.wanted ? '★' : '<span class="off">★</span>';
+    html += i < world.wanted ? '<span class="on">★</span>' : '<span class="off">★</span>';
   }
   els.wanted.innerHTML = html;
+  els.wanted.classList.toggle('searching', searching && world.wanted > 0);
+  els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5${searching ? ', politie zoekt je' : ''}`);
+}
+
+export function getClockText(world) {
+  const h = world && world.dayNight ? world.dayNight.hour : undefined;
+  if (typeof h !== 'number' || !Number.isFinite(h)) return '';
+  const total = Math.floor((((h % 24) + 24) % 24) * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+let clockShown = null;
+function updateClock(world) {
+  const t = getClockText(world);
+  if (t === clockShown) return;
+  clockShown = t;
+  els.clock.textContent = t;
+}
+
+let lastHp = null;
+let flash = 0;
+function updateDamage(dt, world) {
+  const hp = world.health + world.armor;
+  if (lastHp != null && hp < lastHp - 0.5) flash = Math.min(1, flash + 0.35 + (lastHp - hp) / 30);
+  lastHp = hp;
+  flash = Math.max(0, flash - dt * 1.8);
+  const low = world.health < 30 && world.health > 0 ? 0.35 + 0.15 * Math.sin(performance.now() / 260) : 0;
+  const o = Math.max(flash, low);
+  els.damage.style.opacity = o.toFixed(3);
+}
+
+function updateSpeedo(world) {
+  const v = world.player.inVehicle;
+  els.speedo.classList.toggle('visible', !!v);
+  if (!v) return;
+  els.speedoValue.textContent = String(Math.round(Math.abs(v.speed || 0) * 3.6));
 }
 
 const WEAPON_LABELS = { fists: 'VUISTEN', pistol: 'PISTOOL', uzi: 'UZI', shotgun: 'HAGELGEWEER' };
 
-function updateMoneyWeapon(world) {
-  els.money.textContent = '€' + Math.max(0, Math.floor(world.money)).toLocaleString('nl-NL');
+let moneyShown = null;
+let moneyTarget = 0;
+let deltaSum = 0;
+let deltaTimer = 0;
+function updateMoneyWeapon(dt, world) {
+  const target = Math.max(0, Math.floor(world.money));
+  if (moneyShown == null) moneyShown = moneyTarget = target;
+  if (target !== moneyTarget) {
+    deltaSum = (deltaTimer > 0 ? deltaSum : 0) + (target - moneyTarget);
+    deltaTimer = 2.2;
+    moneyTarget = target;
+    els.moneyDelta.textContent = (deltaSum > 0 ? '+ €' : '− €') + Math.abs(deltaSum).toLocaleString('nl-NL');
+    els.moneyDelta.dataset.sign = deltaSum > 0 ? 'plus' : 'min';
+    els.moneyDelta.classList.add('visible');
+  }
+  if (deltaTimer > 0 && (deltaTimer -= dt) <= 0) els.moneyDelta.classList.remove('visible');
+  const diff = moneyTarget - moneyShown;
+  if (diff !== 0) {
+    const step = Math.max(1, Math.abs(diff) * Math.min(1, dt * 5));
+    moneyShown = Math.abs(diff) <= step ? moneyTarget : moneyShown + Math.sign(diff) * step;
+  }
+  els.money.textContent = '€' + Math.round(moneyShown).toLocaleString('nl-NL');
+  els.money.classList.toggle('rolling', diff !== 0);
   const ammo = world.ammo ? world.ammo[world.weapon] : undefined;
   const ammoText = ammo === undefined ? '' : ammo === Infinity ? ' ∞' : ' ' + ammo;
   els.weapon.textContent = (WEAPON_LABELS[world.weapon] || 'VUISTEN') + ammoText;
@@ -275,10 +356,8 @@ let lastToastHtml = '';
 function updateToasts(world) {
   world.messages = world.messages.filter((m) => m.until >= world.time);
   const html = world.messages
-    .map((m) => {
-      const big = m.text === 'DOOD' || m.text === 'OPGEPAKT';
-      return `<div class="hud-toast${big ? ' big' : ''}">${escapeHtml(m.text)}</div>`;
-    })
+    .filter((m) => m.text !== 'DOOD' && m.text !== 'OPGEPAKT')
+    .map((m) => `<div class="hud-toast">${escapeHtml(m.text)}</div>`)
     .join('');
   if (html === lastToastHtml) return;
   lastToastHtml = html;
@@ -523,6 +602,40 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
   ctx.restore();
 }
 
+// Pulsing red/blue police search ring; (x, y) and r in screen pixels.
+export function drawSearchArea(ctx, x, y, r, t = performance.now() / 1000) {
+  if (!(r > 0)) return;
+  const pulse = pulseAt(t, 4);
+  const blue = Math.floor(t * 2.5) % 2 === 1;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = blue ? 'rgba(63, 111, 217, 0.22)' : 'rgba(217, 63, 63, 0.26)';
+  ctx.fill();
+  ctx.lineWidth = 4.5;
+  ctx.strokeStyle = 'rgba(12, 20, 14, 0.7)';
+  ctx.stroke();
+  ctx.lineWidth = 2.5 + pulse * 1.2;
+  ctx.strokeStyle = blue ? C.policeBlue : C.red;
+  ctx.globalAlpha = 0.6 + pulse * 0.4;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x, y, r * (0.55 + pulse * 0.45), 0, Math.PI * 2);
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.35 * (1 - pulse);
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function getPoliceSearch(world) {
+  const s = world.police;
+  if (!s || !s.searching || !s.searchCenter) return null;
+  const { x, y } = s.searchCenter;
+  const r = s.searchRadius;
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(r) || r <= 0) return null;
+  return { x, y, r };
+}
+
 export function drawEdgeArrow(ctx, x, y, angle, color, s = 1) {
   ctx.save();
   ctx.translate(x, y);
@@ -663,6 +776,12 @@ function drawMinimap(dt, world) {
     const dx = x - player.x, dy = y - player.y;
     return [cx + (dx * cosR - dy * sinR) * mmScale, cy + (dx * sinR + dy * cosR) * mmScale];
   };
+
+  const search = getPoliceSearch(world);
+  if (search) {
+    const [sx, sy] = toScreen(search.x, search.y);
+    drawSearchArea(ctx, sx, sy, search.r * mmScale, t);
+  }
 
   const route = getActiveRoute();
   const ahead = route && getRouteAhead(MM_RADIUS_M * 2.5);

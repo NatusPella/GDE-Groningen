@@ -922,6 +922,22 @@ function touchParts(b) {
   }
 }
 
+// Massing + rough colours for the far LOD layer (farlod.js).
+export function buildingLodStyle(b) {
+  const box = bboxOf(b);
+  const archetype = archetypeOf(b);
+  const fine = hash2(box.cx, box.cy);
+  const depth = archetype === 'houseboat' ? Math.min(HOUSEBOAT_MAX_DEPTH, Math.max(1.6, b.h * LEVEL_HEIGHT)) : Math.max(2.4, b.h * LEVEL_HEIGHT);
+  const { wallHex, roofHex } = pickColors(b, box, archetype, fine);
+  const pitched = archetype === 'house' || (archetype !== 'industrial' && b.h <= 3 && Math.min(box.w, box.d) <= 11);
+  return {
+    ring: sanitizeFootprint(b.pts).pts,
+    depth: pitched ? depth + 1.5 : depth,
+    wallHex: BRICKS.has(wallHex) ? shade(wallHex, 0.95) : shade(wallHex, 0.9),
+    roofHex: pitched ? shade(roofHex, 0.9) : 0x68686a,
+  };
+}
+
 export function buildBuildingMesh(b) {
   if (b.landmark && b.name) {
     const model = getLandmarkModel(b.name);
