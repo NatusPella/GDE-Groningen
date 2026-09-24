@@ -827,8 +827,12 @@ function unlockAudio() {
   }).catch(() => {});
 }
 
+// ?stil in the URL: never create any audio (for automated/test sessions),
+// without touching the player's saved mute setting.
+const SILENT_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('stil');
+
 export function initAudio(world) {
-  if (ctx) return;
+  if (ctx || SILENT_MODE) return;
   const AC = window.AudioContext || window.webkitAudioContext;
   ctx = new AC();
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
