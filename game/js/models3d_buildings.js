@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
 import { getLandmarkModel } from './landmarkmodels.js';
+import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
 import { pointInPolygon } from './util.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
@@ -87,35 +88,9 @@ function roofMaterial(hex) {
 }
 const flatRoofMaterial = habboMaterial(0x68686a);
 const detailMaterial = vcMaterial({ side: THREE.DoubleSide });
-const glassMaterial = vcMaterial({ roughness: 0.18, metalness: 0.35 });
-
-// Night glow: window glass carries a per-window rank in uv.x and a marker in
-// uv.y (-20..-19 homes, -40..-39 shops); a window lights up once the lit
-// fraction passes its rank, so lights come on (and go off) one by one.
-const windowGlow = { uNightGlow: { value: 0 }, uLitFrac: { value: 0 }, uShopFrac: { value: 0 } };
-glassMaterial.onBeforeCompile = (shader) => {
-  Object.assign(shader.uniforms, windowGlow);
-  shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nvarying vec2 vWinUv;')
-    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWinUv = uv;');
-  shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nvarying vec2 vWinUv;\nuniform float uNightGlow, uLitFrac, uShopFrac;')
-    .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-      if (vWinUv.y < -10.0 && uNightGlow > 0.0) {
-        bool shop = vWinUv.y < -30.0;
-        float rank = vWinUv.x;
-        float on = step(rank, shop ? uShopFrac : uLitFrac);
-        float v = shop ? vWinUv.y + 40.0 : vWinUv.y + 20.0;
-        vec3 warm = mix(vec3(1.0, 0.56, 0.24), vec3(1.0, 0.76, 0.48), fract(rank * 7.13));
-        if (!shop && fract(rank * 13.7) > 0.88) warm = vec3(0.5, 0.66, 1.0);
-        totalEmissiveRadiance += warm * on * uNightGlow * mix(0.7, 1.0, v) * (shop ? 1.5 : 1.0);
-      }`);
-};
 
 export function setNightFactor(glow, litFrac, shopFrac = litFrac) {
-  windowGlow.uNightGlow.value = glow;
-  windowGlow.uLitFrac.value = litFrac;
-  windowGlow.uShopFrac.value = shopFrac;
+  setGlassNight(glow, litFrac, shopFrac);
 }
 
 // Darkens the bottom metre of walls a little: cheap contact shadow where
@@ -403,16 +378,15 @@ function wallQuad(B, e, s0, s1, y0, y1, d, color, group = G_DETAIL, uvs = null) 
   B.quadOut(wp(e, s0, y0, d), wp(e, s1, y0, d), wp(e, s1, y1, d), wp(e, s0, y1, d), [e.nx, 0, e.ny], color, group, uvs);
 }
 
-function glowUV(rank, shop = false) {
-  const v = shop ? -40 : -20;
-  return [rank, v, rank, v, rank, v + 1, rank, v + 1];
+function edgePaneUV(e, rank, kind, w, h, bay) {
+  return paneUV(rank, kind, w, h, e.tx, e.ty, e.nx, e.ny, bay);
 }
 
 function addWindow(B, e, c, w, y0, y1, S, seed) {
   const f = 0.07;
   wallQuad(B, e, c - w / 2 - f, c + w / 2 + f, y0 - f, y1 + f, 0.04, S.frame);
   const glass = GLASS_TONES[Math.floor(hash2(seed, y0 * 3.1) * GLASS_TONES.length)];
-  wallQuad(B, e, c - w / 2, c + w / 2, y0, y1, 0.056, glass, G_GLASS, glowUV(hash2(seed * 1.31, y0 * 7.7 + c)));
+  wallQuad(B, e, c - w / 2, c + w / 2, y0, y1, 0.056, glass, G_GLASS, edgePaneUV(e, hash2(seed * 1.31, y0 * 7.7 + c), y0 < 2 ? PANE_GROUND : PANE_HOME, w, y1 - y0));
   const tY = y0 + (y1 - y0) * 0.72;
   wallQuad(B, e, c - w / 2, c + w / 2, tY - 0.03, tY + 0.03, 0.06, S.frame);
   if (w > 0.85) wallQuad(B, e, c - 0.03, c + 0.03, y0, tY, 0.06, S.frame);
@@ -439,17 +413,18 @@ function addShopfront(B, e, s0, s1, top, S, seed) {
   const n = Math.max(1, Math.round(span / 1.9));
   const bw = span / n;
   const doorBay = Math.floor(hash2(seed, 2.2) * n);
-  const shopUV = glowUV(hash2(seed, 5.5), true);
+  const shopRank = hash2(seed, 5.5);
+  const shopUV = (s0, s1, y0, y1, bay) => wallQuad(B, e, s0, s1, y0, y1, 0.056, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
   for (let i = 0; i < n; i++) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
     if (i === doorBay && bw > 1.1) {
       const dc = (a + b) / 2;
-      wallQuad(B, e, dc - 0.5, dc + 0.5, 0.05, top - 0.55, 0.056, 0x1c2328, G_GLASS);
-      wallQuad(B, e, dc - 0.5, dc + 0.5, top - 0.48, top - 0.07, 0.056, GLASS_TONES[2], G_GLASS, shopUV);
-      wallQuad(B, e, a, dc - 0.57, 0.47, top - 0.07, 0.056, GLASS_TONES[3], G_GLASS, shopUV);
-      wallQuad(B, e, dc + 0.57, b, 0.47, top - 0.07, 0.056, GLASS_TONES[3], G_GLASS, shopUV);
+      shopUV(dc - 0.5, dc + 0.5, 0.05, top - 0.55, i);
+      shopUV(dc - 0.5, dc + 0.5, top - 0.48, top - 0.07, i);
+      shopUV(a, dc - 0.57, 0.47, top - 0.07, i + 3);
+      shopUV(dc + 0.57, b, 0.47, top - 0.07, i + 5);
     } else {
-      wallQuad(B, e, a, b, 0.47, top - 0.07, 0.056, GLASS_TONES[(i + Math.floor(seed * 7)) % 4 + 1], G_GLASS, shopUV);
+      shopUV(a, b, 0.47, top - 0.07, i);
     }
   }
   wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, S.sign);
@@ -624,7 +599,7 @@ function addPitchedRoof(B, R, baseY, H, S, opts) {
     const gy0 = yF + 0.1, gy1 = yT - 0.32;
     const fp = (a, y, d) => R.P(a, cF + side * d, y);
     B.quadOut(fp(dm.a - gw / 2 - 0.06, gy0 - 0.06, 0.02), fp(dm.a + gw / 2 + 0.06, gy0 - 0.06, 0.02), fp(dm.a + gw / 2 + 0.06, gy1 + 0.06, 0.02), fp(dm.a - gw / 2 - 0.06, gy1 + 0.06, 0.02), outF, S.frame);
-    B.quadOut(fp(dm.a - gw / 2, gy0, 0.03), fp(dm.a + gw / 2, gy0, 0.03), fp(dm.a + gw / 2, gy1, 0.03), fp(dm.a - gw / 2, gy1, 0.03), outF, GLASS_TONES[2], G_GLASS, glowUV(hash2(dm.a * 1.7, gy0 * 3.3)));
+    B.quadOut(fp(dm.a - gw / 2, gy0, 0.03), fp(dm.a + gw / 2, gy0, 0.03), fp(dm.a + gw / 2, gy1, 0.03), fp(dm.a - gw / 2, gy1, 0.03), outF, GLASS_TONES[2], G_GLASS, paneUV(hash2(dm.a * 1.7, gy0 * 3.3), PANE_HOME, gw, gy1 - gy0, R.A[0], R.A[2], outF[0], outF[2]));
     B.quadOut(fp(dm.a - 0.03, gy0, 0.035), fp(dm.a + 0.03, gy0, 0.035), fp(dm.a + 0.03, gy1, 0.035), fp(dm.a - 0.03, gy1, 0.035), outF, S.frame);
   }
 }
@@ -705,7 +680,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
         }
         if (windows >= MAX_WINDOWS) continue;
         if (industrial) {
-          wallQuad(B, e, c - w, c + w, y0, y0 + 0.7, 0.03, GLASS_TONES[2], G_GLASS, glowUV(0.3 + hash2(seed + c, y0) * 0.7));
+          wallQuad(B, e, c - w, c + w, y0, y0 + 0.7, 0.03, GLASS_TONES[2], G_GLASS, edgePaneUV(e, 0.3 + hash2(seed + c, y0) * 0.7, PANE_OFFICE, 2 * w, 0.7));
           wallBox(B, e, c - w - 0.05, c + w + 0.05, y0 - 0.06, y0, 0, 0.06, S.frame, G_DETAIL, FACE_FRONT | FACE_TOP);
         } else {
           addWindow(B, e, c, w, y0, y1, S, seed + i * 7.7 + f * 3.1 + e.ax);
