@@ -317,6 +317,11 @@ export function init3D(map) {
   window.__scene3d = { scene, cam, renderer };
 }
 
+// Read-only access for systems that need the view pose (e.g. the 3D audio listener).
+export function getCamera() {
+  return cam;
+}
+
 export function resize3D() {
   if (!renderer) return;
   const w = innerWidth, h = innerHeight;
