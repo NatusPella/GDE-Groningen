@@ -6,6 +6,9 @@ const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
 const LIGHTNING_COLOR = new THREE.Color(0.85, 0.88, 0.95);
 const STORM_ZENITH_COLOR = new THREE.Color(0.2, 0.23, 0.27);
 const STORM_MOOD = 0.65;
+const _stormFog = new THREE.Color();
+const RAIN_COLOR = new THREE.Color(0x9fb0bf);
+const _stormZenith = new THREE.Color();
 
 // Rain: a fixed box of streaks centred on the player every frame rather than
 // a per-drop world simulation. Each drop is a thin quad stretched along its
@@ -39,7 +42,7 @@ function buildRain() {
   geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(RAIN_COUNT * 12), 3));
   geo.setIndex(new THREE.BufferAttribute(index, 1));
   const mat = new THREE.MeshBasicMaterial({
-    color: 0x9fb0bf, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide,
+    color: RAIN_COLOR, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.frustumCulled = false;
@@ -205,39 +208,33 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   updateRain(dt, world, px, py, cam);
   const flash = updateLightning(dt, w.active ? t : 0);
   const moodT = t * STORM_MOOD;
+  scene.userData.lightningFlash = flash;
+
+  // Base (clear-weather) mood is written by scene3d every frame from the
+  // day/night cycle; storm colours darken with it so night storms stay dark.
+  const base = scene.userData.lightBase;
+  if (!base) return;
+  const dayK = 0.14 + 0.86 * base.daylight;
+  rainMesh.material.color.copy(RAIN_COLOR).multiplyScalar(0.3 + 0.7 * base.daylight);
+  _stormFog.copy(STORM_FOG_COLOR).multiplyScalar(dayK);
+  _stormZenith.copy(STORM_ZENITH_COLOR).multiplyScalar(dayK);
 
   if (scene.fog) {
-    if (!scene.userData._weatherBaseFog) {
-      scene.userData._weatherBaseFog = {
-        color: scene.fog.color ? scene.fog.color.clone() : null,
-        near: scene.fog.near,
-        far: scene.fog.far,
-        density: scene.fog.density,
-      };
-    }
-    const base = scene.userData._weatherBaseFog;
-    if (scene.fog.color && base.color) {
-      scene.fog.color.copy(base.color).lerp(STORM_FOG_COLOR, moodT).lerp(LIGHTNING_COLOR, flash * 0.5);
-    }
-    if (typeof base.near === 'number') scene.fog.near = lerp(base.near, base.near * 0.4, t);
-    if (typeof base.far === 'number') scene.fog.far = lerp(base.far, base.far * 0.45, t);
-    if (typeof base.density === 'number') scene.fog.density = lerp(base.density, base.density * 2.2, t);
+    scene.fog.color.copy(base.fog).lerp(_stormFog, moodT).lerp(LIGHTNING_COLOR, flash * 0.5);
+    scene.fog.near = lerp(base.fogNear, base.fogNear * 0.4, t);
+    scene.fog.far = lerp(base.fogFar, base.fogFar * 0.45, t);
   }
-
   if (scene.background && scene.background.isColor) {
-    if (!scene.userData._weatherBaseBackground) scene.userData._weatherBaseBackground = scene.background.clone();
-    scene.background.copy(scene.userData._weatherBaseBackground).lerp(STORM_FOG_COLOR, moodT).lerp(LIGHTNING_COLOR, flash * 0.6);
+    scene.background.copy(base.fog).lerp(_stormFog, moodT).lerp(LIGHTNING_COLOR, flash * 0.6);
   }
 
   const sky = scene.userData.sky;
   if (sky) {
     const u = sky.uniforms;
-    if (!sky.base) sky.base = { zenith: u.uZenith.value.clone(), horizon: u.uHorizon.value.clone(), sun: u.uSunStrength.value };
-    u.uZenith.value.copy(sky.base.zenith).lerp(STORM_ZENITH_COLOR, t * 0.9).lerp(LIGHTNING_COLOR, flash * 0.6);
-    u.uHorizon.value.copy(sky.base.horizon).lerp(STORM_FOG_COLOR, t * 0.9).lerp(LIGHTNING_COLOR, flash * 0.5);
-    u.uSunStrength.value = sky.base.sun * (1 - t);
-    const env = t > 0.5 ? sky.envStorm : sky.envClear;
-    if (env && scene.environment !== env) scene.environment = env;
+    u.uZenith.value.copy(base.zenith).lerp(_stormZenith, t * 0.9).lerp(LIGHTNING_COLOR, flash * 0.6);
+    u.uHorizon.value.copy(base.horizon).lerp(_stormFog, t * 0.9).lerp(LIGHTNING_COLOR, flash * 0.5);
+    u.uSunStrength.value = base.sunStrength * (1 - t);
+    if (u.uGlow) u.uGlow.value = base.glow * (1 - t);
   }
 
   if (!scene.userData._weatherLights) {
@@ -246,7 +243,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   // Overcast kills most direct sun (and so the shadows) but keeps sky fill.
   for (const obj of scene.userData._weatherLights) {
     if (obj.userData._weatherBaseIntensity === undefined) obj.userData._weatherBaseIntensity = obj.intensity;
-    const dim = obj.type === 'DirectionalLight' ? 0.85 : 0.35;
-    obj.intensity = obj.userData._weatherBaseIntensity * (1 - t * dim + flash * 1.6);
+    const sunLight = obj.type === 'DirectionalLight';
+    obj.intensity = obj.userData._weatherBaseIntensity * (1 - t * (sunLight ? 0.85 : 0.35)) + flash * (sunLight ? 3 : 1.2);
   }
 }

@@ -35,14 +35,13 @@ const TERRAIN_COLOR_A = 0x827b72; // warm grey klinker paving
 const TERRAIN_COLOR_B = 0x7a6a5e; // reddish brick patches
 const TERRAIN_COLOR_DETAIL = 0x9a9282; // dusty light fleck / joint tone
 
-// Lambert + onBeforeCompile instead of a raw ShaderMaterial so the ground
-// gets real sun/hemisphere lighting, shadows, fog and tone mapping for free;
-// only the albedo is procedural.
+// Built-in material + onBeforeCompile instead of a raw ShaderMaterial so the
+// ground gets real lighting, shadows, fog and tone mapping for free; only
+// the albedo is procedural.
 const ALBEDO_GLSL = `
 uniform vec3 uColorA;
 uniform vec3 uColorB;
 uniform vec3 uColorDetail;
-varying vec2 vTerrainXZ;
 
 float tHash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -78,8 +77,69 @@ vec3 terrainAlbedo(vec2 p) {
 }
 `;
 
+// Wet-ground layer shared by the terrain and every road/sidewalk material:
+// one uniform set, so rain darkens and glosses all ground in one write.
+export const WET_UNIFORMS = {
+  uWet: { value: 0 },
+  uRainTime: { value: 0 },
+};
+
+const WET_GLSL = `
+uniform float uWet;
+uniform float uRainTime;
+varying vec2 vWetXZ;
+float wHash(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+float wNoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(wHash(i), wHash(i + vec2(1.0, 0.0)), u.x), mix(wHash(i + vec2(0.0, 1.0)), wHash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+vec2 wRipple(vec2 p) {
+  vec2 cell = floor(p), f = fract(p) - 0.5;
+  float h = wHash(cell);
+  float t = fract(uRainTime * 0.8 + h);
+  vec2 d = f - (vec2(wHash(cell + 1.7), wHash(cell + 5.3)) - 0.5) * 0.5;
+  float r = length(d);
+  float ring = sin((r - t * 0.5) * 60.0) * smoothstep(0.1, 0.0, abs(r - t * 0.5)) * (1.0 - t);
+  return d / max(r, 1e-3) * ring;
+}
+`;
+
+function wetOnBeforeCompile(shader) {
+  Object.assign(shader.uniforms, WET_UNIFORMS);
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', '#include <common>\nvarying vec2 vWetXZ;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWetXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', '#include <common>\n' + WET_GLSL + (shader.__terrain ? ALBEDO_GLSL : ''))
+    .replace('#include <color_fragment>', `#include <color_fragment>
+      ${shader.__terrain ? 'diffuseColor.rgb *= terrainAlbedo(vWetXZ);' : ''}
+      float wetP = wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3;
+      float puddle = smoothstep(0.74 - 0.12 * uWet, 0.8 - 0.12 * uWet, wetP) * uWet;
+      diffuseColor.rgb *= mix(1.0, 0.58, uWet) * mix(1.0, 0.5, puddle);`)
+    .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+      roughnessFactor = mix(roughnessFactor, 0.34, uWet);
+      roughnessFactor = mix(roughnessFactor, 0.04, puddle);`)
+    .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+      if (puddle > 0.01) {
+        vec2 rip = wRipple(vWetXZ * 1.6) + wRipple(vWetXZ * 2.3 + 11.0);
+        normal = normalize(normal + vec3(rip.x, rip.y, 0.0) * 0.25 * puddle);
+      }`);
+}
+
+export function applyWetGround(material) {
+  material.onBeforeCompile = wetOnBeforeCompile;
+  return material;
+}
+
+// Standard (not Lambert) so wet ground can drop its roughness and pick up
+// sky reflections from scene.environment.
 export function createTerrainMaterial() {
-  const material = new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+  const material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, side: THREE.DoubleSide });
   const uniforms = {
     uColorA: { value: new THREE.Color(TERRAIN_COLOR_A) },
     uColorB: { value: new THREE.Color(TERRAIN_COLOR_B) },
@@ -88,12 +148,8 @@ export function createTerrainMaterial() {
   material.userData.uniforms = uniforms;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec2 vTerrainXZ;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTerrainXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\n' + ALBEDO_GLSL)
-      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= terrainAlbedo(vTerrainXZ);');
+    shader.__terrain = true;
+    wetOnBeforeCompile(shader);
   };
   return material;
 }

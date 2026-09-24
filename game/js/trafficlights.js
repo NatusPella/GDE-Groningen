@@ -78,6 +78,10 @@ const POLE_MAT = new THREE.MeshLambertMaterial({ color: 0x9a9d9f });
 const HOUSING_MAT = new THREE.MeshLambertMaterial({ color: 0x1b1d1f });
 const LAMP_OFF = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.MeshBasicMaterial({ color: new THREE.Color(PHASE_COLORS[p]).multiplyScalar(0.18) })]));
 const LAMP_ON = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.MeshBasicMaterial({ color: PHASE_COLORS[p] })]));
+// Lit lamps are pushed above 1.0 at night so the bloom pass picks them up.
+export function setTrafficLightGlow(k) {
+  for (const p of LAMP_ORDER) LAMP_ON[p].color.setHex(PHASE_COLORS[p]).multiplyScalar(k);
+}
 const POLE_GEO = new THREE.CylinderGeometry(0.09, 0.09, 2.9, 8);
 const HOUSING_GEO = new THREE.BoxGeometry(0.26, 1.0, 0.34);
 const LAMP_GEO = new THREE.CircleGeometry(0.12, 12);
