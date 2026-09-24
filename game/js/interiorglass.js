@@ -144,7 +144,8 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   float lit = step(q.rank, shop ? uShopFrac : uLitFrac) * (shop ? mix(0.5, 1.0, night) : night);
   vec3 lampCol = igLampColor(q);
   float lampI = lit * (shop ? 1.3 : office ? 1.0 : 0.8) * mix(0.8, 1.05, fract(q.rank * 3.3));
-  if (!shop && !office && fract(q.rank * 13.7) > 0.88) lampI *= 0.55 + 0.25 * sin(uTime * 9.0 + q.rank * 60.0) * sin(uTime * 2.3 + q.rank * 11.0);
+  // TV glow: a slow, gentle drift - fast flicker read as flashing lights
+  if (!shop && !office && fract(q.rank * 13.7) > 0.88) lampI *= 0.7 + 0.1 * sin(uTime * 1.7 + q.rank * 60.0) * sin(uTime * 0.6 + q.rank * 11.0);
   float dayI = pow(1.0 - night, 3.0) * (1.0 - 0.5 * uStorm);
   const vec3 DAY = vec3(1.0, 0.96, 0.9);
   float detail = smoothstep(90.0, 30.0, dist);
@@ -240,9 +241,9 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   } else {
     alb = vec3(0.86);
     vec2 lp = hp.xz - vec2(0.0, D * 0.45);
-    if (shop) emit += lampCol * lampI * 2.5 * step(fract(hp.z / 1.4), 0.14) * step(abs(hp.x), RW * 0.3);
-    else if (office) emit += lampCol * lampI * 2.0 * step(abs(fract(hp.z / 1.2) - 0.5), 0.2) * step(abs(fract(hp.x / 1.2 + 0.5) - 0.5), 0.2);
-    else emit += lampCol * lampI * (4.0 * smoothstep(0.17, 0.12, length(lp)) + 0.5 * exp(-dot(lp, lp) * 3.0));
+    if (shop) emit += lampCol * lampI * 1.2 * step(fract(hp.z / 1.4), 0.14) * step(abs(hp.x), RW * 0.3);
+    else if (office) emit += lampCol * lampI * 1.0 * step(abs(fract(hp.z / 1.2) - 0.5), 0.2) * step(abs(fract(hp.x / 1.2 + 0.5) - 0.5), 0.2);
+    else emit += lampCol * lampI * (1.5 * smoothstep(0.17, 0.12, length(lp)) + 0.35 * exp(-dot(lp, lp) * 3.0));
   }
 
   vec3 lampP = vec3(0.0, cY - 0.35, D * 0.45);
@@ -251,7 +252,8 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   float ndl = max(dot(n, L * inversesqrt(d2)), 0.0);
   vec3 E = lampCol * lampI * (0.12 + 1.1 * ndl / (1.0 + d2 * 0.35));
   E += DAY * dayI * (0.12 + 0.5 * exp(-hp.z * 0.5)) * (0.8 + 0.2 * n.y);
-  E += vec3(0.003, 0.0035, 0.005);
+  // unlit rooms at night still catch street and moon light near the window
+  E += vec3(0.003, 0.0035, 0.005) + vec3(0.030, 0.032, 0.045) * night * (1.0 - lit) * (0.45 + 0.55 * exp(-hp.z * 0.6));
   vec3 dd = min(hp - b0, b1 - hp) + abs(n) * 10.0;
   float ao = hitF > 0 ? 0.85 : 0.5 + 0.5 * smoothstep(0.0, 0.7, min(dd.x, min(dd.y, dd.z)));
   if (hitF == 0 && n.y > 0.5 && ft != 4 && ft < 10) {
