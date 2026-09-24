@@ -17,6 +17,11 @@ import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { init3D, update3D, resize3D, getScene } from './scene3d.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen } from './pausemenu.js';
+import { initDayNight, updateDayNight } from './daynight.js';
+import { updateFx3D } from './fx3d.js';
+import { initCityProps, updateCityProps } from './cityprops.js';
+import { initPhone, updatePhone } from './phone.js';
+import { initSaveGame, updateSaveGame } from './savegame.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
@@ -124,6 +129,10 @@ async function boot() {
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
+  initDayNight(world);
+  initCityProps(world);
+  initPhone(world);
+  initSaveGame(world);
 
   loadingEl.style.display = 'none';
   window.__debug = { player, map, input, world };
@@ -152,6 +161,10 @@ async function boot() {
     if (!world.paused) updateGameplay(dt);
     updateAudio(dt, world);
     updateStreetSigns(dt, world, getScene());
+    updateFx3D(dt, world, getScene());
+    updateCityProps(dt, world, getScene());
+    updatePhone(dt, world);
+    updateSaveGame(dt, world);
     update3D(dt, world);
     updateHud(dt, world);
   }
@@ -204,6 +217,7 @@ async function boot() {
     updateHoreca(dt, world);
     updateFlitspaal(dt, world);
     updateWeather(dt, world);
+    updateDayNight(dt, world);
   }
 
   input.reset();
