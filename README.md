@@ -56,6 +56,7 @@ generate 3D models.
 Overpass API and projects them onto a flat meter grid (`game/citymap.json`).
 The other `scripts/add_*.py` scripts enrich that file with districts,
 landmarks, horeca, garages and traffic lights.
+`scripts/add_pois.py` adds `meta.pois`: pickup spots for health (huisarts, apotheek, ziekenhuis), money (pinautomaten, kantoren, winkels), weapons (industrieterrein, kades, steegjes) and armor (sportscholen).
 
 ## Known limits
 
