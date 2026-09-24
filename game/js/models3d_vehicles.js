@@ -203,6 +203,7 @@ function buildLightBar(wid, y) {
   const red = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, half), lampMaterial(HABBO_PALETTE.brickRed, 0.9));
   red.position.set(0.05, y, half / 2);
   group.add(red);
+  group.userData.lamps = [blue, red];
   return group;
 }
 
@@ -285,7 +286,11 @@ function buildCarMesh(v) {
     group.add(mirror);
   }
 
-  if (v.isPolice) group.add(buildLightBar(wid, cabinTopY + 0.08));
+  if (v.isPolice) {
+    const bar = buildLightBar(wid, cabinTopY + 0.08);
+    group.add(bar);
+    group.userData.policeLamps = bar.userData.lamps;
+  }
 
   return group;
 }
@@ -450,29 +455,38 @@ function buildScooterMesh(v) {
   return group;
 }
 
-// --- bus (articulated "harmonica" livery) --------------------------------
+// --- bus (articulated "harmonica") ---------------------------------------
+// Front unit is the vehicle's real pose; the rear unit hangs off a pivot at
+// the joint (userData.busRear) that scene3d swings every frame from the bus's
+// trail history, so the harmonica bends through corners.
 
 const BUS_JOINT_FRAC = 0.6;
+const BUS_JOINT_GAP = 0.2;
 
-function busWindowRow(len, hw, bodyH, jointX, bodyY, wrecked) {
+function busWindowRow(x0, x1, hw, bodyH, bodyY, wrecked) {
   const group = new THREE.Group();
   const winY = bodyY + bodyH * 0.15;
   const winH = bodyH * 0.34;
-  const segments = [[-len / 2 + 0.5, jointX - 0.35], [jointX + 0.35, len / 2 - 0.5]];
+  const span = x1 - x0;
+  if (span < 0.6) return group;
+  const count = Math.max(2, Math.round(span / 1.3));
+  const step = span / count;
   for (const side of [hw + 0.01, -(hw + 0.01)]) {
-    for (const [x0, x1] of segments) {
-      const span = x1 - x0;
-      if (span < 0.6) continue;
-      const count = Math.max(2, Math.round(span / 1.3));
-      const step = span / count;
-      for (let i = 0; i < count; i++) {
-        const win = outlinedMesh(new THREE.BoxGeometry(step * 0.72, winH, 0.04), glassMaterial(SIDE_GLASS_COLOR, SIDE_GLASS_OPACITY, wrecked), 0.05);
-        win.position.set(x0 + step * (i + 0.5), winY, side);
-        group.add(win);
-      }
+    for (let i = 0; i < count; i++) {
+      const win = outlinedMesh(new THREE.BoxGeometry(step * 0.72, winH, 0.04), glassMaterial(SIDE_GLASS_COLOR, SIDE_GLASS_OPACITY, wrecked), 0.05);
+      win.position.set(x0 + step * (i + 0.5), winY, side);
+      group.add(win);
     }
   }
   return group;
+}
+
+function busWheel(x, z, wheelR, wheels) {
+  const w = wheel();
+  w.scale.setScalar(wheelR / WHEEL_R);
+  w.position.set(x, wheelR, z);
+  wheels.push(w);
+  return w;
 }
 
 function buildBusMesh(v) {
@@ -484,26 +498,23 @@ function buildBusMesh(v) {
   const bodyY = wheelR * 0.5 + bodyH / 2;
   const jointX = hl - len * BUS_JOINT_FRAC;
   const bodyColor = v.wrecked ? WRECKED_COLOR : v.model.color;
+  const stripeColor = v.model.stripe || HABBO_PALETTE.wallMint;
+  const wheels = [];
 
-  const body = outlinedMesh(new THREE.BoxGeometry(len, bodyH, wid), paintMaterial(bodyColor, v.wrecked));
-  body.position.y = bodyY;
-  group.add(body);
-
-  // cosmetic accordion-joint cue at ~60% of the body length from the front -
-  // real hinge is not simulated, this is a static livery band
-  const joint = new THREE.Mesh(new THREE.BoxGeometry(0.4, bodyH + 0.04, wid + 0.02), plasticMaterial(HABBO_PALETTE.black));
-  joint.position.set(jointX, bodyY, 0);
-  group.add(joint);
-
-  const stripe = new THREE.Mesh(new THREE.BoxGeometry(len + 0.02, bodyH * 0.18, wid + 0.02), paintMaterial(v.model.stripe || HABBO_PALETTE.wallMint, v.wrecked));
-  stripe.position.set(0, bodyY - bodyH * 0.23, 0);
-  group.add(stripe);
+  // front unit: local x in [jointX + gap, hl]
+  const frontLen = hl - jointX - BUS_JOINT_GAP;
+  const frontX = hl - frontLen / 2;
+  const frontBody = outlinedMesh(new THREE.BoxGeometry(frontLen, bodyH, wid), paintMaterial(bodyColor, v.wrecked));
+  frontBody.position.set(frontX, bodyY, 0);
+  group.add(frontBody);
+  const frontStripe = new THREE.Mesh(new THREE.BoxGeometry(frontLen + 0.02, bodyH * 0.18, wid + 0.02), paintMaterial(stripeColor, v.wrecked));
+  frontStripe.position.set(frontX, bodyY - bodyH * 0.23, 0);
+  group.add(frontStripe);
 
   const sign = new THREE.Mesh(new THREE.BoxGeometry(0.06, bodyH * 0.16, wid * 0.6), lampMaterial(v.model.accent || HABBO_PALETTE.white, v.wrecked ? 0 : 0.25));
   sign.position.set(hl - 0.05, bodyY + bodyH * 0.34, 0);
   group.add(sign);
-
-  group.add(busWindowRow(len, hw, bodyH, jointX, bodyY, v.wrecked));
+  group.add(busWindowRow(jointX + 0.35, hl - 0.5, hw, bodyH, bodyY, v.wrecked));
 
   // front windshield: a wider, lighter/clearer panel across the very front
   // face - distinguishes "the driver can see through this" from the tinted
@@ -512,18 +523,34 @@ function buildBusMesh(v) {
   windshield.position.set(hl - 0.02, bodyY + bodyH * 0.14, 0);
   group.add(windshield);
 
-  const wheels = [];
-  for (const ax of [hl * 0.72, jointX, -hl * 0.78]) {
-    for (const sz of [hw - 0.1, -(hw - 0.1)]) {
-      const w = wheel();
-      w.scale.setScalar(wheelR / WHEEL_R);
-      w.position.set(ax, wheelR, sz);
-      group.add(w);
-      wheels.push(w);
-    }
+  for (const ax of [hl * 0.72, jointX + 1.0]) {
+    for (const sz of [hw - 0.1, -(hw - 0.1)]) group.add(busWheel(ax, sz, wheelR, wheels));
   }
+
+  // bellows: a round drum at the pivot so the gap stays closed at any bend
+  const joint = new THREE.Mesh(new THREE.CylinderGeometry(hw * 0.97, hw * 0.97, bodyH - 0.1, 10), plasticMaterial(HABBO_PALETTE.black));
+  joint.position.set(jointX, bodyY, 0);
+  group.add(joint);
+
+  // rear unit: pivot at the joint, geometry laid out along local -X
+  const rear = new THREE.Group();
+  rear.position.x = jointX;
+  group.add(rear);
+  const rearLen = jointX + hl - BUS_JOINT_GAP;
+  const rearX = -BUS_JOINT_GAP - rearLen / 2;
+  const rearBody = outlinedMesh(new THREE.BoxGeometry(rearLen, bodyH, wid), paintMaterial(bodyColor, v.wrecked));
+  rearBody.position.set(rearX, bodyY, 0);
+  rear.add(rearBody);
+  const rearStripe = new THREE.Mesh(new THREE.BoxGeometry(rearLen + 0.02, bodyH * 0.18, wid + 0.02), paintMaterial(stripeColor, v.wrecked));
+  rearStripe.position.set(rearX, bodyY - bodyH * 0.23, 0);
+  rear.add(rearStripe);
+  rear.add(busWindowRow(-(jointX + hl) + 0.5, -0.35, hw, bodyH, bodyY, v.wrecked));
+  for (const sz of [hw - 0.1, -(hw - 0.1)]) rear.add(busWheel(-hl * 0.78 - jointX, sz, wheelR, wheels));
+
   group.userData.wheels = wheels;
   group.userData.wheelRadius = wheelR;
+  group.userData.busRear = rear;
+  group.userData.busSections = { frontLen, frontX, rearLen, rearX };
 
   const lit = v.wrecked ? 0 : 0.3;
   for (const sz of [hw - 0.25, -(hw - 0.25)]) {
@@ -531,12 +558,13 @@ function buildBusMesh(v) {
     front.position.set(hl * 0.99, bodyY - bodyH * 0.32, sz);
     group.add(front);
 
-    const rear = buildLamp(HABBO_PALETTE.brickRed, 0.06, 0.24, 0.3, lit * 0.7);
-    rear.position.set(-hl * 0.99, bodyY - bodyH * 0.32, sz);
-    group.add(rear);
+    const tail = -hl * 0.99 - jointX;
+    const rearLamp = buildLamp(HABBO_PALETTE.brickRed, 0.06, 0.24, 0.3, lit * 0.7);
+    rearLamp.position.set(tail, bodyY - bodyH * 0.32, sz);
+    rear.add(rearLamp);
     const rearAccent = buildLamp(HABBO_PALETTE.brickOrange, 0.05, 0.14, 0.12, lit * 0.8);
-    rearAccent.position.set(-hl * 0.99, bodyY - bodyH * 0.32, sz > 0 ? sz - 0.2 : sz + 0.2);
-    group.add(rearAccent);
+    rearAccent.position.set(tail, bodyY - bodyH * 0.32, sz > 0 ? sz - 0.2 : sz + 0.2);
+    rear.add(rearAccent);
   }
 
   for (const side of [1, -1]) {
@@ -546,9 +574,40 @@ function buildBusMesh(v) {
     group.add(mirror);
   }
 
-  if (v.isPolice) group.add(buildLightBar(wid, bodyY + bodyH / 2 + 0.08));
+  if (v.isPolice) {
+    const bar = buildLightBar(wid, bodyY + bodyH / 2 + 0.08);
+    group.add(bar);
+    group.userData.policeLamps = bar.userData.lamps;
+  }
 
   return group;
+}
+
+// Swings the rear unit of a buildBusMesh() group to rearAngle (radians, world
+// heading like v.angle), clamped so a trail glitch can never fold it double.
+export function setBusRearAngle(mesh, busAngle, rearAngle) {
+  const rear = mesh.userData.busRear;
+  if (!rear) return;
+  let d = (rearAngle - busAngle) % (Math.PI * 2);
+  if (d > Math.PI) d -= Math.PI * 2;
+  else if (d < -Math.PI) d += Math.PI * 2;
+  rear.rotation.y = -Math.max(-0.75, Math.min(0.75, d));
+}
+
+// Police light bar: alternating red/blue flash while chasing, dim otherwise.
+export function updatePoliceLamps(mesh, time, chasing) {
+  const lamps = mesh.userData.policeLamps;
+  if (!lamps) return;
+  if (!chasing) {
+    lamps[0].material.emissiveIntensity = 0.25;
+    lamps[1].material.emissiveIntensity = 0.25;
+    return;
+  }
+  const phase = (time * 3) % 1;
+  const blueOn = phase < 0.5 && (phase % 0.25) < 0.16;
+  const redOn = phase >= 0.5 && (phase % 0.25) < 0.16;
+  lamps[0].material.emissiveIntensity = blueOn ? 3 : 0.1;
+  lamps[1].material.emissiveIntensity = redOn ? 3 : 0.1;
 }
 
 // --- boat ------------------------------------------------------------------

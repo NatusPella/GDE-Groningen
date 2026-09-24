@@ -296,11 +296,15 @@ export function buildSeagullMesh3D() {
   const shoulderX = SEAGULL_BODY_LEN * 0.08;
   const shoulderY = SEAGULL_BODY_DIAM * 0.35;
   const shoulderZ = SEAGULL_BODY_DIAM * 0.42;
+  const wings = [];
   for (const sign of [1, -1]) {
     const wing = seagullWing3D(sign);
     wing.position.set(shoulderX, shoulderY, sign * shoulderZ);
+    wing.userData.sign = sign;
     group.add(wing);
+    wings.push(wing);
   }
+  group.userData.wings = wings;
 
   return group;
 }
@@ -372,6 +376,8 @@ export function buildCowMesh3D(seed = 0) {
   }
 
   group.add(headGroup);
+  group.userData.head = headGroup;
+  group.userData.headBaseRotZ = headGroup.rotation.z;
   return group;
 }
 
@@ -403,6 +409,8 @@ export function buildSheepMesh3D() {
   const head = meshOf(new THREE.SphereGeometry(SHEEP_HEAD_DIAM / 2, 6, 5), dark, 0.05);
   head.position.set(SHEEP_BODY_LEN * 0.56, bodyY - SHEEP_BODY_H * 0.1, 0);
   group.add(head);
+  group.userData.head = head;
+  group.userData.headBaseY = head.position.y;
 
   for (const sz of [1, -1]) {
     const ear = meshOf(new THREE.BoxGeometry(0.02, 0.03, 0.1), dark, 0.08);
@@ -412,4 +420,23 @@ export function buildSheepMesh3D() {
   }
 
   return group;
+}
+
+// Seagulls alternate flapping and gliding; grazers step-bob while walking
+// and dip their head to graze while standing.
+export function animateWildlifeMesh3D(mesh, a, time) {
+  const ud = mesh.userData;
+  const seed = a.flapSeed || a.bobSeed || 0;
+  if (ud.wings) {
+    const glide = Math.max(0, Math.sin(time * 0.45 + seed));
+    const flap = Math.sin(time * 9 + seed) * 0.6 * (1 - glide);
+    for (const w of ud.wings) w.rotation.x = -w.userData.sign * (SEAGULL_DIHEDRAL + flap);
+    return;
+  }
+  const walking = a.speed > 0.05;
+  mesh.position.y = walking ? Math.abs(Math.sin(time * 7 + seed)) * 0.035 : 0;
+  if (!ud.head) return;
+  const graze = walking ? Math.sin(time * 7 + seed) * 0.05 : 0.35 + Math.sin(time * 1.3 + seed) * 0.12;
+  if (ud.headBaseRotZ !== undefined) ud.head.rotation.z = ud.headBaseRotZ - graze;
+  else ud.head.position.y = ud.headBaseY - graze * 0.25;
 }
