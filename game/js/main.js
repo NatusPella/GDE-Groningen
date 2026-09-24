@@ -16,6 +16,7 @@ import { initAudio, updateAudio } from './audio.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { init3D, update3D, resize3D, getScene } from './scene3d.js';
 import { updateStreetSigns } from './streetsigns.js';
+import { initPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
@@ -122,10 +123,12 @@ async function boot() {
   initPhoneFeed(world);
   initHud(world);
   initMapView(world);
+  initPauseMenu(world);
 
   loadingEl.style.display = 'none';
   window.__debug = { player, map, input, world };
   await waitForStart();
+  document.body.classList.add('game-started');
   initAudio(world);
 
   let last = performance.now();
@@ -145,7 +148,7 @@ async function boot() {
 
   function frameBody(dt) {
     updateMapView(dt, world);
-    world.paused = isMapOpen();
+    world.paused = isMapOpen() || isPauseMenuOpen();
     if (!world.paused) updateGameplay(dt);
     updateAudio(dt, world);
     updateStreetSigns(dt, world, getScene());

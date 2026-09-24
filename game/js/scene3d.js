@@ -27,6 +27,7 @@ import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
 import { pointInPolygon, polygonBounds } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
+import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, buildEnvironmentMaps, SKY_HORIZON } from './sky3d.js';
 
@@ -144,7 +145,7 @@ const camRayOrigin = new THREE.Vector3();
 const camRayDir = new THREE.Vector3();
 const CAM_CLEARANCE = 0.9; // must stay above the camera's 0.5m near plane
 const CAM_PUSH_DIRS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]];
-const CAM_TARGET_RADIUS = ORBIT_RADIUS + CAM_CLEARANCE + 2;
+const CAM_TARGET_RADIUS = ORBIT_RADIUS * 1.6 + CAM_CLEARANCE + 2;
 const camTargetList = [];
 let lastPx = null, lastPy = null;
 
@@ -298,6 +299,7 @@ export function init3D(map) {
   sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
   Object.assign(sun.shadow.camera, { left: -SHADOW_HALF, right: SHADOW_HALF, top: SHADOW_HALF, bottom: -SHADOW_HALF, near: 1, far: SUN_DIST + 140 });
   sun.shadow.camera.updateProjectionMatrix();
+  onSettingsChange(applyViewSettings);
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.04;
   scene.add(sun);
@@ -345,6 +347,24 @@ export function getCamera() {
 
 export function getScene() {
   return scene;
+}
+
+let orbitRadius = ORBIT_RADIUS;
+
+function applyViewSettings(st) {
+  if (!renderer) return;
+  const preset = QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog;
+  renderer.setPixelRatio(Math.min(preset.pixelRatio, window.devicePixelRatio || 1));
+  resize3D();
+  const shadows = st.shadows && preset.shadows;
+  if (sun.castShadow !== shadows) sun.castShadow = shadows;
+  if (sun.shadow.mapSize.x !== preset.shadowMapSize) {
+    sun.shadow.mapSize.set(preset.shadowMapSize, preset.shadowMapSize);
+    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+  }
+  cam.fov = st.fov;
+  cam.updateProjectionMatrix();
+  orbitRadius = ORBIT_RADIUS * st.cameraDistance;
 }
 
 export function resize3D() {
@@ -1238,8 +1258,8 @@ export function update3D(dt, world) {
   followPitch += (targetPitch - followPitch) * Math.min(1, dt * 6);
 
   const eyeX = player.x, eyeY = 1.3, eyeZ = player.y;
-  const horizDist = Math.cos(followPitch) * ORBIT_RADIUS;
-  const orbitHeight = eyeY + Math.sin(followPitch) * ORBIT_RADIUS;
+  const horizDist = Math.cos(followPitch) * orbitRadius;
+  const orbitHeight = eyeY + Math.sin(followPitch) * orbitRadius;
   let desiredX = player.x - Math.cos(targetAngle) * horizDist;
   let desiredZ = player.y - Math.sin(targetAngle) * horizDist;
   let desiredY = orbitHeight;
@@ -1274,8 +1294,8 @@ export function update3D(dt, world) {
     // first instead: looking down a street from above the rooftops clears
     // the adjacent wall far more often than squeezing past it at eye level.
     const steepPitch = Math.max(followPitch, 75 * Math.PI / 180);
-    const steepHoriz = Math.cos(steepPitch) * ORBIT_RADIUS;
-    const steepHeight = eyeY + Math.sin(steepPitch) * ORBIT_RADIUS;
+    const steepHoriz = Math.cos(steepPitch) * orbitRadius;
+    const steepHeight = eyeY + Math.sin(steepPitch) * orbitRadius;
     const altX = player.x - Math.cos(targetAngle) * steepHoriz;
     const altZ = player.y - Math.sin(targetAngle) * steepHoriz;
     const altDx = altX - eyeX, altDy = steepHeight - eyeY, altDz = altZ - eyeZ;

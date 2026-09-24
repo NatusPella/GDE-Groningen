@@ -1,5 +1,6 @@
 import { clamp } from './util.js';
 import { getCamera } from './scene3d.js';
+import { getSettings, onSettingsChange } from './settings.js';
 
 const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
@@ -73,6 +74,7 @@ for (const k of SIKKOM_AUDIO_KEYS) SIKKOM_AUDIO[k] = [0, 1].map((v) => `./audio/
 let ctx = null;
 let master = null;
 let sfxBus = null;
+let worldBus = null;
 let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
@@ -116,6 +118,16 @@ const musicState = { gain: GMUSIC_VOLUME };
 function nowSec() {
   return performance.now() / 1000;
 }
+
+function masterLevel() {
+  return MASTER_VOLUME * getSettings().masterVolume;
+}
+
+onSettingsChange((st) => {
+  if (!ctx) return;
+  if (master && !muted) master.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
+  if (worldBus) worldBus.gain.setTargetAtTime(st.sfxVolume, ctx.currentTime, 0.05);
+});
 
 export function isMuted() {
   return muted;
@@ -825,20 +837,24 @@ export function initAudio(world) {
   document.addEventListener('visibilitychange', onVisibilityChange);
 
   master = ctx.createGain();
-  master.gain.value = muted ? 0 : MASTER_VOLUME;
+  master.gain.value = muted ? 0 : masterLevel();
   master.connect(ctx.destination);
+
+  worldBus = ctx.createGain();
+  worldBus.gain.value = getSettings().sfxVolume;
+  worldBus.connect(master);
 
   sfxBus = ctx.createGain();
   sfxBus.gain.value = 0.9;
-  sfxBus.connect(master);
+  sfxBus.connect(worldBus);
 
   engineBus = ctx.createGain();
   engineBus.gain.value = 0;
-  engineBus.connect(master);
+  engineBus.connect(worldBus);
 
   sirenBus = ctx.createGain();
   sirenBus.gain.value = 0;
-  sirenBus.connect(master);
+  sirenBus.connect(worldBus);
 
   musicBus = ctx.createGain();
   musicBus.gain.value = GMUSIC_VOLUME;
@@ -846,7 +862,7 @@ export function initAudio(world) {
 
   trafficBus = ctx.createGain();
   trafficBus.gain.value = 1;
-  trafficBus.connect(master);
+  trafficBus.connect(worldBus);
 
   noiseBuffer = buildNoiseBuffer(2);
   engine = buildEngine();
@@ -1111,7 +1127,7 @@ function updateGMusic(dt, world) {
   const targetGain = ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
   const lerpRate = gmusicFadingIn ? dt * 0.8 : dt * 3;
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
-  musicBus.gain.value = musicState.gain;
+  musicBus.gain.value = musicState.gain * getSettings().musicVolume;
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
 }
 
@@ -1124,7 +1140,7 @@ export function updateAudio(dt, world) {
   if (world.input.wasPressed('u')) {
     muted = !muted;
     saveMuted();
-    master.gain.setTargetAtTime(muted ? 0 : MASTER_VOLUME, ctx.currentTime, 0.05);
+    master.gain.setTargetAtTime(muted ? 0 : masterLevel(), ctx.currentTime, 0.05);
     world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5);
   }
 
