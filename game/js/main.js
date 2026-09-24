@@ -157,15 +157,17 @@ async function boot() {
 
   function frameBody(dt) {
     updateMapView(dt, world);
-    world.paused = isMapOpen() || isPauseMenuOpen();
-    if (!world.paused) updateGameplay(dt);
+    world.paused = isMapOpen() || isPauseMenuOpen() || !!world.uiPaused;
+    // world.timeScale: slow-motion for cinematic moments (1 = normal)
+    const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1));
+    if (!world.paused) updateGameplay(gameDt);
     updateAudio(dt, world);
     updateStreetSigns(dt, world, getScene());
     updateFx3D(dt, world, getScene());
     updateCityProps(dt, world, getScene());
     updatePhone(dt, world);
     updateSaveGame(dt, world);
-    update3D(dt, world);
+    update3D(world.paused ? dt : gameDt, world);
     updateHud(dt, world);
   }
 
