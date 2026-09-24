@@ -1,42 +1,56 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { HABBO_PALETTE, habboMaterial, habboFlatMaterial, OUTLINE_MAT, OUTLINES_ENABLED, createWindowTexture } from './pixelart3d.js';
+import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
 import { getLandmarkModel } from './landmarkmodels.js';
 import { pointInPolygon } from './util.js';
 
-// Replaces the old one-flat-box-per-building placeholder. Buildings read as
-// belonging to one street block via a two-step hash: a COARSE hash of the
-// footprint centroid rounded to a 20m grid cell picks a shared palette
-// "family" (a few closely related brick/roof tones) for every building on
-// that block, then a FINE hash of the building's own exact centroid picks
-// the specific shade within that family plus small per-building jitter
-// (roof height, window row offset) - so a row of neighbours shares
-// materials but each one still reads as its own building. See
-// buildBuildingMesh below and familyIndexFor/pickMaterials for where this
-// happens. Round 2 keeps this hashing system untouched and reuses it for
-// the new facade color-banding (a second, less-emphasized shade from the
-// SAME family/fine index, not a new hash key) so block cohesion holds.
+// Procedural Groningen buildings. Geometry bakes absolute world coordinates
+// (x, height, map-y) and is cached per building on b._geo3dParts: the wall
+// extrusion plus one merged "detail" geometry (windows, doors, shopfronts,
+// roofs, dormers, chimneys) drawn with four shared materials. Facade detail
+// follows the real footprint edges; edges that touch a neighbouring building
+// (party walls) get none, so terraces show their fronts and gables instead.
 
 const LEVEL_HEIGHT = 3.1;
 const TOWER_HEIGHT = 95;
 const HOUSEBOAT_MAX_DEPTH = 3.5;
+const CITY_CENTRE = [100, 77];
+const CITY_CENTRE_R = 650;
+const PART_CACHE_MAX = 800;
+const MAX_WINDOWS = 420;
 
 function hash2(x, y) {
   const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return h - Math.floor(h);
 }
 
-// Habbo pass: families of related tones instead of one flat color, same as
-// before, but every tone now comes straight from HABBO_PALETTE (flat/vibrant,
-// no invented hexes) and every mesh built from these is toon-shaded, not PBR.
+function shade(hex, f) {
+  const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * f));
+  const g = Math.min(255, Math.round(((hex >> 8) & 0xff) * f));
+  const b = Math.min(255, Math.round((hex & 0xff) * f));
+  return (r << 16) | (g << 8) | b;
+}
+
+// --- palette ------------------------------------------------------------------
+
+const P = HABBO_PALETTE;
+const BRICKS = new Set([P.brickRed, P.brickOrange, P.brickDark, P.brickBrown, P.brickBuff, 0x9a5a44, 0x84503c]);
 const PALETTE_FAMILIES = [
-  { wall: ['brickRed', 'brickOrange', 'woodMid', 'wallCream'], roof: 'roofGreen' },
-  { wall: ['wallCream', 'wallYellow', 'woodLight', 'wallPink'], roof: 'roofBlue' },
-  { wall: ['wallMint', 'skyBlue', 'wallCream', 'wallPink'], roof: 'roofBlue' },
-  { wall: ['woodMid', 'woodDark', 'brickOrange', 'woodLight'], roof: 'roofGreen' },
-  { wall: ['stoneGrey', 'wallCream', 'woodLight', 'metalGrey'], roof: 'roofGreen' },
+  { wall: [P.brickRed, P.brickBrown, P.brickOrange, P.plasterWhite], roof: P.roofTerracotta, frame: P.frameWhite },
+  { wall: [P.brickDark, P.brickRed, P.brickBrown, 0x9a5a44], roof: P.roofSlate, frame: P.frameWhite },
+  { wall: [P.plasterWhite, P.wallCream, P.brickRed, 0xc9b99a], roof: P.roofSlate, frame: P.frameGreen },
+  { wall: [P.brickBuff, P.brickOrange, P.brickBrown, P.wallCream], roof: 0x6b3a2a, frame: P.frameWhite },
+  { wall: [P.brickBrown, P.brickDark, 0x84503c, P.brickRed], roof: P.roofBlue, frame: P.wallCream },
 ];
-const INDUSTRIAL_WALLS = ['metalGrey', 'stoneGrey', 'woodDark'];
-const INDUSTRIAL_ROOF = 'metalGrey';
+const INDUSTRIAL_WALLS = [0x7b7e82, 0x8c8a82, 0x5f6468, 0x6e5a48];
+const INDUSTRIAL_ROOF = 0x5a5d60;
+const DOOR_COLORS = [0x2f4a3a, 0x6b2a24, 0x1f2a3a, 0x4a3322, 0x232323, 0x3a5a6a];
+const SIGN_COLORS = [0x2f4a3a, 0x5a1f22, 0x1f2a3a, 0x232323, 0xd6cab0, 0x7a5a2a];
+const AWNING_COLORS = [0x2f5a3a, 0x7a2424, 0x24386a, 0x8a6a2a, 0x3a3a3c];
+const GLASS_TONES = [0x26323a, 0x2c3a44, 0x34434d, 0x4b5b64, 0x5a4a3a, 0x2c3a44];
+const STONE = 0xcdc8bd;
+const HARDSTONE = P.hardstone;
+const TRIM_DARK = 0x2e2c2a;
+
 const LANDMARK_COLOR3D = {
   tower: 'brickRed', church: 'stoneGrey', modern: 'skyBlue', museum: 'brickOrange',
   station: 'metalGrey', university: 'woodDark', historic: 'woodMid', mall: 'wallYellow', stadium: 'grassGreen',
@@ -44,54 +58,60 @@ const LANDMARK_COLOR3D = {
 const LANDMARK_STONE = { university: 'stoneGrey', historic: 'wallCream' };
 const ACCENT_COLOR = { museum: 'wallYellow', modern: 'white', mall: 'brickOrange' };
 
-// Every mesh below reuses one of these - never allocate a material per
-// building. Only ~30-100 buildings are ever live at once but they stream
-// in/out of view constantly as the player moves, so this runs a lot.
-// habboMaterial() gives a hard 2-step toon gradient (flat/minimal shading,
-// per the real Habbo look) instead of the old PBR roughness/metalness finish
-// - there is no more glossy-vs-matte distinction between landmark kinds,
-// every wall/roof reads as the same flat painted material family.
-const wallMaterials = PALETTE_FAMILIES.map((f) => f.wall.map((k) => habboMaterial(HABBO_PALETTE[k])));
-const roofMaterials = PALETTE_FAMILIES.map((f) => habboMaterial(HABBO_PALETTE[f.roof], { side: THREE.DoubleSide }));
-const industrialWallMaterials = INDUSTRIAL_WALLS.map((k) => habboMaterial(HABBO_PALETTE[k]));
-const industrialRoofMaterial = habboMaterial(HABBO_PALETTE[INDUSTRIAL_ROOF], { side: THREE.DoubleSide });
-const landmarkMaterials = Object.fromEntries(Object.entries(LANDMARK_COLOR3D).map(([k, key]) => [k, habboMaterial(HABBO_PALETTE[key], { side: THREE.DoubleSide })]));
-const landmarkStoneMaterials = Object.fromEntries(Object.entries(LANDMARK_STONE).map(([k, key]) => [k, habboMaterial(HABBO_PALETTE[key], { side: THREE.DoubleSide })]));
-const accentMaterials = Object.fromEntries(Object.entries(ACCENT_COLOR).map(([k, key]) => [k, habboMaterial(HABBO_PALETTE[key], { side: THREE.DoubleSide })]));
-// Round 4 (Habbo pass): windows are now a genuine small pixel-art canvas
-// texture (see createWindowTexture in pixelart3d.js - a tiled dark-glass/
-// light-frame grid, NearestFilter so it stays crisp/blocky) instead of the
-// old per-vertex glass/frame color hack baked into buildWindowRowGeometry.
-// ONE shared texture + ONE shared flat/unlit material for every window row
-// on every building (unlit on purpose - Habbo windows read as flat painted
-// glass, not something that needs to react to the sun), tiled once per
-// window bay via each row's UVs (see buildWindowRowGeometry).
-const windowTexture = createWindowTexture('glassBlue', 'wallCream');
-windowTexture.magFilter = THREE.LinearFilter;
-windowTexture.minFilter = THREE.LinearMipmapLinearFilter;
-windowTexture.generateMipmaps = true;
-windowTexture.colorSpace = THREE.SRGBColorSpace;
-windowTexture.needsUpdate = true;
-const windowBandMaterial = new THREE.MeshStandardMaterial({ map: windowTexture, roughness: 0.35, metalness: 0.1, side: THREE.DoubleSide });
-const shopfrontMaterial = new THREE.MeshStandardMaterial({ color: HABBO_PALETTE.glassBlue, roughness: 0.25, metalness: 0.2, side: THREE.DoubleSide });
-const corniceMaterial = habboMaterial(HABBO_PALETTE.wallCream, { side: THREE.DoubleSide });
-const canopyMaterial = habboMaterial(HABBO_PALETTE.metalGrey, { side: THREE.DoubleSide });
-// A dark gutter/eave trim strip (flat/unlit so it reads as a consistent dark
-// line regardless of light direction), a painted-wood door-recess box, and a
-// small gilded (Habbo palette has no literal gold, wallYellow reads as the
-// closest flat "gilded" accent) trim for spire/cross finials.
-const eaveTrimMaterial = habboMaterial(0x3a3531, { side: THREE.DoubleSide });
-const doorMaterial = habboMaterial(HABBO_PALETTE.woodDark, { side: THREE.DoubleSide });
-const finialMaterial = habboMaterial(HABBO_PALETTE.wallYellow, { side: THREE.DoubleSide });
+// --- shared materials ------------------------------------------------------------
 
-// Shared unit primitives for every small protruding detail (window/shopfront
-// bands' end caps aside, this covers cornices, canopies, steeples, tower
-// caps, door insets, eave trim, tower stages, finials) - scaled/positioned
-// per building instead of ever generating new geometry for them, so their
-// GPU cost is fixed at two geometries total no matter how many buildings or
-// how much extra per-archetype detail is on screen.
+const brickTexture = createBrickDetailTexture();
+brickTexture.repeat.set(2, 2);
+const tileTexture = createRoofTileTexture();
+
+const wallMatCache = new Map();
+function wallMaterial(hex) {
+  let m = wallMatCache.get(hex);
+  if (!m) {
+    m = BRICKS.has(hex)
+      ? habboMaterial(shade(hex, 1.1), { map: brickTexture, side: THREE.DoubleSide })
+      : habboMaterial(hex, { side: THREE.DoubleSide });
+    wallMatCache.set(hex, m);
+  }
+  return m;
+}
+const roofMatCache = new Map();
+function roofMaterial(hex) {
+  let m = roofMatCache.get(hex);
+  if (!m) {
+    m = habboMaterial(shade(hex, 1.08), { map: tileTexture, side: THREE.DoubleSide });
+    roofMatCache.set(hex, m);
+  }
+  return m;
+}
+const flatRoofMaterial = habboMaterial(0x68686a);
+const detailMaterial = vcMaterial({ side: THREE.DoubleSide });
+const glassMaterial = vcMaterial({ roughness: 0.18, metalness: 0.35 });
+
+const landmarkMaterials = Object.fromEntries(Object.entries(LANDMARK_COLOR3D).map(([k, key]) => [k, habboMaterial(P[key], { side: THREE.DoubleSide })]));
+const landmarkStoneMaterials = Object.fromEntries(Object.entries(LANDMARK_STONE).map(([k, key]) => [k, habboMaterial(P[key], { side: THREE.DoubleSide })]));
+const accentMaterials = Object.fromEntries(Object.entries(ACCENT_COLOR).map(([k, key]) => [k, habboMaterial(P[key], { side: THREE.DoubleSide })]));
+const corniceMaterial = habboMaterial(P.wallCream, { side: THREE.DoubleSide });
+const canopyMaterial = habboMaterial(P.metalGrey, { side: THREE.DoubleSide });
+const eaveTrimMaterial = habboMaterial(0x3a3531, { side: THREE.DoubleSide });
+const finialMaterial = habboMaterial(0xc9a04a, { side: THREE.DoubleSide, metalness: 0.4, roughness: 0.5 });
+
 const UNIT_BOX = new THREE.BoxGeometry(1, 1, 1);
 const UNIT_CONE = new THREE.ConeGeometry(1, 1, 8);
+
+const G_DETAIL = 0, G_GLASS = 1, G_WALL = 2, G_ROOF = 3;
+
+// --- optional neighbour lookup for party-wall detection ----------------------------
+
+let buildingMap = null;
+export function setBuildingMap(map) {
+  buildingMap = map;
+}
+function mapRef() {
+  return buildingMap || (typeof window !== 'undefined' && window.__debug && window.__debug.map) || null;
+}
+
+// --- footprint helpers ---------------------------------------------------------
 
 function bboxOf(b) {
   const [minx, miny, maxx, maxy] = b.bounds;
@@ -103,10 +123,7 @@ function bboxOf(b) {
   };
 }
 
-// Footprint edges with their outward unit normal, so facade details (window
-// rows, trims, doors) sit on the real walls. They used to be built around the
-// axis-aligned bounding box, which for any rotated or L-shaped building left
-// floating, walk-through glass/trim strips out in the street.
+// Footprint edges with their outward unit normal (nx, ny) and tangent (tx, ty).
 function outwardEdges(ring) {
   let area2 = 0;
   for (let i = 0; i < ring.length; i++) {
@@ -120,20 +137,19 @@ function outwardEdges(ring) {
     const dx = c[0] - a[0], dy = c[1] - a[1];
     const len = Math.hypot(dx, dy);
     if (len < 0.05) continue;
-    edges.push({ ax: a[0], ay: a[1], bx: c[0], by: c[1], len, nx: sign * dy / len, ny: -sign * dx / len });
+    edges.push({ ax: a[0], ay: a[1], bx: c[0], by: c[1], len, tx: dx / len, ty: dy / len, nx: sign * dy / len, ny: -sign * dx / len, party: false });
   }
   edges.area = Math.abs(area2) / 2;
   return edges;
 }
 
-// Minimum-area oriented rectangle over the footprint's edge directions.
-// Returns null unless the footprint fills most of it - a gable roof only makes
-// sense on a (roughly) rectangular building.
+// Minimum-area oriented rectangle over the footprint's edge directions; null
+// unless the footprint fills most of it (pitched roofs need a rectangle).
 const RIDGE_MIN_FILL = 0.85;
 function rectangularFrame(edges) {
   let best = null;
   for (const e of edges) {
-    const ux = (e.bx - e.ax) / e.len, uy = (e.by - e.ay) / e.len;
+    const ux = e.tx, uy = e.ty;
     let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
     for (const p of edges) {
       const u = p.ax * ux + p.ay * uy, v = -p.ax * uy + p.ay * ux;
@@ -147,71 +163,29 @@ function rectangularFrame(edges) {
   return best;
 }
 
+function markPartyWalls(b, edges) {
+  if (edges.partyChecked) return;
+  const map = mapRef();
+  if (!map) return;
+  edges.partyChecked = true;
+  const [minx, miny, maxx, maxy] = b.bounds;
+  const near = map.buildingsNear((minx + maxx) / 2, (miny + maxy) / 2, Math.max(maxx - minx, maxy - miny) / 2 + 2)
+    .filter((o) => o !== b && o.pts && o.bounds);
+  if (!near.length) return;
+  const inside = (x, y) => near.some((o) => x >= o.bounds[0] && x <= o.bounds[2] && y >= o.bounds[1] && y <= o.bounds[3] && pointInPolygon(x, y, o.pts));
+  for (const e of edges) {
+    const ts = e.len > 3 ? [0.2, 0.5, 0.8] : [0.5];
+    let hits = 0;
+    for (const t of ts) {
+      if (inside(e.ax + e.tx * e.len * t + e.nx * 0.6, e.ay + e.ty * e.len * t + e.ny * 0.6)) hits++;
+    }
+    e.party = hits * 2 > ts.length;
+  }
+}
+
 function familyIndexFor(box) {
   const gx = Math.round(box.cx / 20) * 20, gy = Math.round(box.cy / 20) * 20;
   return Math.floor(hash2(gx, gy) * PALETTE_FAMILIES.length);
-}
-
-// --- Habbo black outlines ---------------------------------------------------
-// pixelart3d.js's buildOutline()/habboMesh() give any mesh a bold black rim
-// by duplicating its geometry, rendering it BackSide-black, and scaling that
-// duplicate up slightly - correct as long as the geometry is centered on its
-// own local origin (true for every small prop the toolkit was written for).
-// It is NOT true here for the big per-building geometries (buildMainGeometry/
-// buildRidgeGeometry etc.): those bake ABSOLUTE OSM world coordinates
-// straight into their vertices (so this file's other absolute-coordinate
-// helpers, e.g. buildBandGeometry, can work directly off b.bounds), so a
-// plain uniform scale-about-origin would fly the outline off to the side by
-// a fraction of the building's distance from world (0,0) instead of merely
-// inflating it. addAbsoluteOutline() below reproduces the exact same
-// "scaled-up duplicate, BackSide, black" technique via a tiny wrapper Group,
-// so it inflates the silhouette in place; it still renders with the
-// toolkit's own shared OUTLINE_MAT, so there is only ever one black-outline
-// material for the whole game. Thickness is derived per-geometry (not a
-// fixed percentage) so a 4m garage and a 95m tower both get a rim that reads
-// as roughly the same real-world thickness instead of a fixed 2%.
-// Pivots off the GEOMETRY's own bounding box (not the footprint box a caller
-// happens to have handy) - this matters on the Y axis specifically: the main
-// wall spans y=[0, depth] so a footprint-box-based pivot at y=0 would happen
-// to work for it, but the roof ridge geometry sits high up at y=[depth,
-// depth+ridgeHeight], and scaling that "around the ground" would fly the
-// roof outline upward by a fraction of the WHOLE building's height instead
-// of just inflating the small ridge shape in place. Using the geometry's own
-// bounding-box center on all three axes is correct for either case (or any
-// other absolute-coordinate geometry this file might outline later) with no
-// extra parameters. Thickness is likewise derived from that same bounding
-// box so a small ridge cap and a big tower shaft each get a rim that reads
-// as roughly the same real-world thickness instead of a fixed percentage.
-function addAbsoluteOutline(group, geometry) {
-  if (!OUTLINES_ENABLED) return;
-  if (!geometry.boundingBox) geometry.computeBoundingBox();
-  const bb = geometry.boundingBox;
-  const cx = (bb.min.x + bb.max.x) / 2, cy = (bb.min.y + bb.max.y) / 2, cz = (bb.min.z + bb.max.z) / 2;
-  const span = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z, 3);
-  const thickness = Math.min(0.05, Math.max(0.01, 0.18 / span));
-  const wrapper = new THREE.Group();
-  wrapper.position.set(cx, cy, cz);
-  wrapper.scale.setScalar(1 + thickness);
-  const inner = new THREE.Mesh(geometry, OUTLINE_MAT);
-  inner.position.set(-cx, -cy, -cz);
-  wrapper.add(inner);
-  group.add(wrapper);
-}
-
-// Sibling-outline helper for the OTHER kind of detail mesh in this file: the
-// shared UNIT_BOX/UNIT_CONE primitives, always used centered-geometry +
-// per-instance position/scale (steeples, tower stages, canopies, cornices,
-// door insets, ...). Those ARE safe for the toolkit's plain technique since
-// the geometry itself is centered - this just also has to copy the caller's
-// own (often non-uniform) instance scale rather than always using a uniform
-// 1+thickness, since e.g. a door is scaled very differently on each axis.
-function addUnitOutline(group, mesh, thickness = 0.08) {
-  if (!OUTLINES_ENABLED) return;
-  const outline = new THREE.Mesh(mesh.geometry, OUTLINE_MAT);
-  outline.position.copy(mesh.position);
-  outline.rotation.copy(mesh.rotation);
-  outline.scale.set(mesh.scale.x * (1 + thickness), mesh.scale.y * (1 + thickness), mesh.scale.z * (1 + thickness));
-  group.add(outline);
 }
 
 function archetypeOf(b) {
@@ -219,52 +193,32 @@ function archetypeOf(b) {
   if (t === 'house' || t === 'detached' || t === 'terrace' || t === 'semidetached_house') return 'house';
   if (t === 'apartments' || t === 'residential' || t === 'dormitory' || t === 'school' || t === 'hospital' || t === 'civic' || t === 'public' || t === 'hotel' || t === 'sports_centre') return 'apartments';
   if (t === 'retail' || t === 'commercial' || t === 'office') return 'retail';
-  if (t === 'industrial' || t === 'shed' || t === 'garage' || t === 'garages' || t === 'service' || t === 'construction' || t === 'carport' || t === 'guardhouse' || t === 'static_caravan' || t === 'water_tower') return 'industrial';
+  if (t === 'industrial' || t === 'shed' || t === 'garage' || t === 'garages' || t === 'service' || t === 'construction' || t === 'carport' || t === 'guardhouse' || t === 'static_caravan' || t === 'water_tower' || t === 'roof') return 'industrial';
   if (t === 'houseboat') return 'houseboat';
   if (t === 'church' || t === 'cathedral') return 'church';
   if (t === 'yes' && b.h >= 5) return 'retail';
   return 'generic';
 }
 
-// --- footprint sanitization ------------------------------------------------
-// Real OSM building footprints occasionally carry defects that make THREE's
-// earcut-style cap triangulation (ExtrudeGeometry -> ShapeUtils.triangulateShape,
-// used below via buildMainGeometry) misbehave into a wrong-looking sliver,
-// spike or self-crossing edge WITHOUT ever throwing or producing NaN:
-//   (a) consecutive near-duplicate points (near-zero-length edges)
-//   (b) runs of 3+ collinear points (contribute nothing to the silhouette)
-//   (c) genuine self-intersecting ("bowtie") rings - a real, rare OSM error
-// (a)/(b) are cleaned below; (c), and anything left with under 3 usable
-// points, falls back to the convex hull of the cleaned point set - a hull
-// is never self-intersecting and always triangulates cleanly. b.pts itself
-// is left untouched (mapview.js's 2D minimap and hud_panel.js's minimap
-// dot both still read the original ring directly), so all of this only
-// ever affects the local copy used to build this building's 3D geometry.
-// Buildings are built once and cached (b._geo3dParts, see buildBuildingMesh
-// below and scene3d.js's buildingMeshes map), so this one-off per-building
-// cost is fine even though it's O(n^2) in footprint point count.
-const DEDUP_EPS = 0.02; // meters - collapse points closer together than this
-const COLLINEAR_EPS = 0.02; // meters - perpendicular deviation below which a vertex sits "on" the line through its neighbours
-const PARAM_EPS = 1e-7; // parametric slack for the segment-intersection test below, so a shared endpoint between adjacent edges never counts as a crossing
+// --- footprint sanitization ---------------------------------------------------------
+// Cleans near-duplicate points, collinear runs and self-intersecting rings (the
+// latter fall back to the convex hull) so ExtrudeGeometry triangulates cleanly.
+// b.pts itself is never modified (the 2D minimap reads it).
+
+const DEDUP_EPS = 0.02;
+const COLLINEAR_EPS = 0.02;
+const PARAM_EPS = 1e-7;
 
 function distSq(a, b) {
   const dx = a[0] - b[0], dy = a[1] - b[1];
   return dx * dx + dy * dy;
 }
 
-// Strips the single standard OSM closed-ring duplicate (last point == first)
-// if present. THREE's own triangulateShape already strips exactly this one
-// internally (removeDupEndPts), so doing it here too is just so this
-// module's own before/after point counts reflect genuine interior defects,
-// not the expected closure convention every footprint already follows.
 function stripClosingDuplicate(pts) {
   if (pts.length > 1 && distSq(pts[0], pts[pts.length - 1]) <= DEDUP_EPS * DEDUP_EPS) return pts.slice(0, -1);
   return pts.slice();
 }
 
-// Collapses consecutive points (cyclically - the wrap-around edge counts
-// too) closer together than DEDUP_EPS. Called after stripClosingDuplicate,
-// so every removal here is a genuine interior duplicate/zero-length edge.
 function dedupeInterior(open) {
   const out = [];
   for (const p of open) {
@@ -274,11 +228,6 @@ function dedupeInterior(open) {
   return out;
 }
 
-// Drops any vertex whose perpendicular deviation from the line through its
-// immediate neighbours is below COLLINEAR_EPS - it lies on that line, so it
-// contributes nothing to the silhouette and is pure triangulation risk.
-// Runs several passes so a whole run of 3+ collinear points collapses down
-// to just its two endpoints; never drops below a triangle.
 function collapseCollinear(ring) {
   let cur = ring;
   for (let pass = 0; pass < 4; pass++) {
@@ -303,30 +252,23 @@ function collapseCollinear(ring) {
   return cur;
 }
 
-// Exact parametric segment-intersection test (not a sign heuristic): true
-// only for a genuine transversal crossing strictly inside BOTH segments
-// (0 < t < 1 and 0 < u < 1) - a shared endpoint between adjacent ring edges
-// lands at t or u == 0/1 and is excluded by construction.
 function segmentsCross(a, b, c, d) {
   const d1x = b[0] - a[0], d1y = b[1] - a[1];
   const d2x = d[0] - c[0], d2y = d[1] - c[1];
   const denom = d1x * d2y - d1y * d2x;
-  if (Math.abs(denom) < 1e-12) return false; // parallel/collinear - not a transversal crossing
+  if (Math.abs(denom) < 1e-12) return false;
   const t = ((c[0] - a[0]) * d2y - (c[1] - a[1]) * d2x) / denom;
   const u = ((c[0] - a[0]) * d1y - (c[1] - a[1]) * d1x) / denom;
   return t > PARAM_EPS && t < 1 - PARAM_EPS && u > PARAM_EPS && u < 1 - PARAM_EPS;
 }
 
-// O(n^2) over every non-adjacent edge pair - footprints are small (well
-// under 50 points typically, rarely into the low hundreds), and this only
-// ever runs once per building thanks to the buildBuildingMesh cache.
 function ringSelfIntersects(ring) {
   const n = ring.length;
   if (n < 4) return false;
   for (let i = 0; i < n; i++) {
     const a = ring[i], b = ring[(i + 1) % n];
     for (let j = i + 2; j < n; j++) {
-      if (i === 0 && j === n - 1) continue; // shares a vertex with edge i via the wrap-around, not a real crossing
+      if (i === 0 && j === n - 1) continue;
       const c = ring[j], d = ring[(j + 1) % n];
       if (segmentsCross(a, b, c, d)) return true;
     }
@@ -338,11 +280,6 @@ function crossZ(o, a, b) {
   return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
 }
 
-// Standard monotone-chain convex hull - never self-intersecting, always
-// triangulates cleanly. Used as the safe substitute silhouette for any
-// footprint too broken to trust to ExtrudeGeometry's triangulator; this
-// makes an already-malformed OSM building render as its convex hull instead
-// of its broken exact footprint, which at building scale is unnoticeable.
 function convexHull(points) {
   const pts = points.slice().sort((p, q) => p[0] - q[0] || p[1] - q[1]);
   const n = pts.length;
@@ -363,10 +300,7 @@ function convexHull(points) {
   return hull.length >= 3 ? hull : pts.slice(0, Math.min(3, pts.length));
 }
 
-// Cleans a raw footprint ring (b.pts, as-is - untouched by this function)
-// for safe triangulation. Never throws and never returns fewer than 3
-// points. Exported only so a Node harness can verify/count this pipeline
-// directly against the shipped citymap.json without duplicating the logic.
+// Exported so a Node harness can verify this pipeline against citymap.json.
 export function sanitizeFootprint(pts) {
   const open = stripClosingDuplicate(pts);
   const deduped = dedupeInterior(open);
@@ -382,10 +316,6 @@ export function sanitizeFootprint(pts) {
     let hull = convexHull(hullSrc);
     hull = collapseCollinear(hull);
     if (hull.length < 3) {
-      // Last-ditch fallback for a footprint with under 3 distinct points
-      // even before any of this - a tiny square so callers always get a
-      // safely-triangulable ring. Not hit by any real citymap.json building
-      // (see verification), but keeps this function total.
       const p = hull[0] || open[0] || pts[0];
       const e = 0.5;
       hull = [[p[0] - e, p[1] - e], [p[0] + e, p[1] - e], [p[0] + e, p[1] + e], [p[0] - e, p[1] + e]];
@@ -409,155 +339,423 @@ function buildMainGeometry(b, depth) {
   return geo;
 }
 
-// A thin quad-strip ring around the footprint's bounding box (not the exact
-// polygon - real OSM footprints run up to 500+ vertices, and this geometry
-// is reused, just translated in Y, once per floor line, so following the
-// exact perimeter would multiply an already-large main extrusion by every
-// floor). Built as an uncapped 4-segment ring, a small margin outside the
-// wall, so it protrudes just enough to read as a "string course"/window-
-// band line of real geometry (no texture) at a fixed, tiny triangle cost
-// regardless of footprint complexity. Reused as-is for eave trim and the
-// apartment facade color band (different thickness/outset per caller).
-function buildBandGeometry(box, thickness, outset = 0.06) {
-  const verts = [], idx = [];
-  for (const e of box.edges) {
-    const ox = e.nx * outset, oy = e.ny * outset;
-    const ax = e.ax + ox, az = e.ay + oy, bx = e.bx + ox, bz = e.by + oy;
-    const base = verts.length / 3;
-    verts.push(ax, 0, az, ax, thickness, az, bx, thickness, bz, bx, 0, bz);
-    idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+// --- facade primitives (wall-local: s along edge, y up, d outward) --------------------
+
+function wp(e, s, y, d) {
+  return [e.ax + e.tx * s + e.nx * d, y, e.ay + e.ty * s + e.ny * d];
+}
+
+const FACE_FRONT = 1, FACE_TOP = 2, FACE_BOTTOM = 4, FACE_SIDES = 8, FACE_ALL = 15;
+
+function wallBox(B, e, s0, s1, y0, y1, d0, d1, color, group = G_DETAIL, faces = FACE_ALL) {
+  const n = [e.nx, 0, e.ny], t = [e.tx, 0, e.ty];
+  if (faces & FACE_FRONT) B.quadOut(wp(e, s0, y0, d1), wp(e, s1, y0, d1), wp(e, s1, y1, d1), wp(e, s0, y1, d1), n, color, group);
+  if (faces & FACE_TOP) B.quadOut(wp(e, s0, y1, d0), wp(e, s1, y1, d0), wp(e, s1, y1, d1), wp(e, s0, y1, d1), [0, 1, 0], color, group);
+  if (faces & FACE_BOTTOM) B.quadOut(wp(e, s0, y0, d0), wp(e, s1, y0, d0), wp(e, s1, y0, d1), wp(e, s0, y0, d1), [0, -1, 0], color, group);
+  if (faces & FACE_SIDES) {
+    B.quadOut(wp(e, s0, y0, d0), wp(e, s0, y0, d1), wp(e, s0, y1, d1), wp(e, s0, y1, d0), [-t[0], 0, -t[2]], color, group);
+    B.quadOut(wp(e, s1, y0, d0), wp(e, s1, y0, d1), wp(e, s1, y1, d1), wp(e, s1, y1, d0), t, color, group);
   }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  geo.setIndex(idx);
-  geo.computeVertexNormals();
-  return geo;
 }
 
-// Round 3 window rows. The old per-floor "window band" (still visible above
-// in windowBandMaterial's comment) was a flat 0.18m-tall strip - at normal
-// street distance/lighting that reads as a hairline, not a window, which
-// (together with several archetypes never calling it at all - see the
-// archetype dispatch in buildBuildingMesh) was the real, measured cause of
-// "no visible windows" flagged this round: a Node harness against the full
-// citymap.json corpus showed 34% of all buildings (mostly untagged
-// building=yes footprints, archetype 'generic') got zero detail meshes
-// beyond the bare wall extrusion, and even 'house'/'apartments' archetypes
-// that DID call the old band never got anything wide enough to read.
-//
-// WINDOW_ROW_HEIGHT is now a real fraction of a floor (not a hairline), and
-// buildWindowRowGeometry subdivides each of the 4 bbox sides into window-bay
-// quads. Habbo pass: instead of baking an alternating glass/frame vertex
-// color into the geometry, each bay now gets UVs that tile pixelart3d.js's
-// createWindowTexture() once per bay - a genuine small pixel-art bitmap
-// (dark glass, light frame cross, NearestFilter) rather than a flat color
-// hack - while staying exactly ONE mesh + ONE shared textured material per
-// floor row, same cost discipline as before. windowBandMaterial just renders
-// whatever texture tiling this geometry's UVs describe.
-const LEVEL_HEIGHT_ROW = LEVEL_HEIGHT;
-const WINDOW_ROW_HEIGHT = 1.7;
-const WINDOW_ROW_OUTSET = 0.05;
-const WINDOW_ROW_MARGIN = (LEVEL_HEIGHT_ROW - WINDOW_ROW_HEIGHT) / 2;
-const WINDOW_SEG_TARGET = 2.4; // meters per window bay, before clamping segment count
-
-function floorCountFor(depth) {
-  return Math.min(9, Math.max(1, Math.round(depth / LEVEL_HEIGHT_ROW)));
+function wallQuad(B, e, s0, s1, y0, y1, d, color, group = G_DETAIL) {
+  B.quadOut(wp(e, s0, y0, d), wp(e, s1, y0, d), wp(e, s1, y1, d), wp(e, s0, y1, d), [e.nx, 0, e.ny], color, group);
 }
 
-const WINDOW_MIN_SIDE = 1.6;
-function segsForSide(len) {
-  return Math.max(1, Math.min(10, Math.round(len / WINDOW_SEG_TARGET)));
+function addWindow(B, e, c, w, y0, y1, S, seed) {
+  const f = 0.07;
+  wallQuad(B, e, c - w / 2 - f, c + w / 2 + f, y0 - f, y1 + f, 0.04, S.frame);
+  const glass = GLASS_TONES[Math.floor(hash2(seed, y0 * 3.1) * GLASS_TONES.length)];
+  wallQuad(B, e, c - w / 2, c + w / 2, y0, y1, 0.056, glass, G_GLASS);
+  const tY = y0 + (y1 - y0) * 0.72;
+  wallQuad(B, e, c - w / 2, c + w / 2, tY - 0.03, tY + 0.03, 0.06, S.frame);
+  if (w > 0.85) wallQuad(B, e, c - 0.03, c + 0.03, y0, tY, 0.06, S.frame);
+  wallBox(B, e, c - w / 2 - f - 0.06, c + w / 2 + f + 0.06, y0 - f - 0.07, y0 - f, 0, 0.13, S.sill, G_DETAIL, FACE_FRONT | FACE_TOP);
+  if (S.lintel) wallQuad(B, e, c - w / 2 - f - 0.05, c + w / 2 + f + 0.05, y1 + f, y1 + f + 0.16, 0.012, S.lintel);
 }
 
-function buildWindowRowGeometry(box, height = WINDOW_ROW_HEIGHT, outset = WINDOW_ROW_OUTSET) {
-  const verts = [], uvs = [], idx = [];
-  for (const e of box.edges) {
-    const len = e.len;
-    if (len < WINDOW_MIN_SIDE) continue;
-    const ax = e.ax + e.nx * outset, az = e.ay + e.ny * outset;
-    const bx = e.bx + e.nx * outset, bz = e.by + e.ny * outset;
-    const segs = segsForSide(len);
-    for (let s = 0; s < segs; s++) {
-      const t0 = s / segs, t1 = (s + 1) / segs;
-      const p0x = ax + (bx - ax) * t0, p0z = az + (bz - az) * t0;
-      const p1x = ax + (bx - ax) * t1, p1z = az + (bz - az) * t1;
-      const base = verts.length / 3;
-      verts.push(p0x, 0, p0z, p0x, height, p0z, p1x, height, p1z, p1x, 0, p1z);
-      idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
-      // One texture tile per bay (u goes s -> s+1, RepeatWrapping on the
-      // shared texture handles the rest) instead of an alternating color -
-      // createWindowTexture's own frame border reads as the mullion between
-      // adjacent bays once tiled.
-      uvs.push(s, 0, s, 1, s + 1, 1, s + 1, 0);
+function addDoor(B, e, c, w, S, opts = {}) {
+  const h = opts.h ?? 2.2;
+  const f = 0.08;
+  wallBox(B, e, c - w / 2 - f, c + w / 2 + f, 0.12, h + 0.5 + f, 0, 0.06, S.frame, G_DETAIL, FACE_FRONT | FACE_SIDES | FACE_TOP);
+  wallQuad(B, e, c - w / 2, c + w / 2, 0.15, h, 0.065, S.door);
+  if (w > 1.3) wallQuad(B, e, c - 0.025, c + 0.025, 0.15, h, 0.07, shade(S.door, 0.7));
+  wallQuad(B, e, c - w / 2, c + w / 2, h + 0.08, h + 0.5, 0.065, GLASS_TONES[1], G_GLASS);
+  wallBox(B, e, c - w / 2 - 0.2, c + w / 2 + 0.2, 0, 0.15, 0, 0.4, STONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
+  if (opts.canopy) wallBox(B, e, c - w / 2 - 0.35, c + w / 2 + 0.35, h + 0.62, h + 0.74, 0, 0.9, TRIM_DARK);
+}
+
+function addShopfront(B, e, s0, s1, top, S, seed) {
+  const span = s1 - s0;
+  wallBox(B, e, s0, s1, 0, 0.4, 0, 0.07, HARDSTONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
+  const frameC = S.shopFrame;
+  wallBox(B, e, s0, s1, 0.4, top, 0, 0.05, frameC, G_DETAIL, FACE_FRONT | FACE_SIDES);
+  const n = Math.max(1, Math.round(span / 1.9));
+  const bw = span / n;
+  const doorBay = Math.floor(hash2(seed, 2.2) * n);
+  for (let i = 0; i < n; i++) {
+    const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
+    if (i === doorBay && bw > 1.1) {
+      const dc = (a + b) / 2;
+      wallQuad(B, e, dc - 0.5, dc + 0.5, 0.05, top - 0.55, 0.056, 0x1c2328, G_GLASS);
+      wallQuad(B, e, dc - 0.5, dc + 0.5, top - 0.48, top - 0.07, 0.056, GLASS_TONES[2], G_GLASS);
+      wallQuad(B, e, a, dc - 0.57, 0.47, top - 0.07, 0.056, GLASS_TONES[3], G_GLASS);
+      wallQuad(B, e, dc + 0.57, b, 0.47, top - 0.07, 0.056, GLASS_TONES[3], G_GLASS);
+    } else {
+      wallQuad(B, e, a, b, 0.47, top - 0.07, 0.056, GLASS_TONES[(i + Math.floor(seed * 7)) % 4 + 1], G_GLASS);
     }
   }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geo.setIndex(idx);
-  geo.computeVertexNormals();
-  return geo;
-}
-
-// Adds one window-row mesh per upper floor (never the ground floor - that's
-// the door's job). `opts.startFloor` skips lower floors already covered by
-// something else (e.g. retail's ground-level shopfront glazing spans more
-// than one floor's height). `opts.colorBandEvery` reproduces apartments'
-// existing "every Nth floor gets a broader accent band in a different shade
-// from the same coarse-hash family" facade banding on top of the window row,
-// unchanged from Round 2 - block cohesion still comes from the same family.
-function addWindowBands(group, box, parts, depth, fine2, opts = {}) {
-  const startFloor = opts.startFloor ?? 1;
-  const floorCount = floorCountFor(depth);
-  if (floorCount <= startFloor) return;
-  if (!parts.windowRow) parts.windowRow = buildWindowRowGeometry(box);
-  const jitter = (fine2 - 0.5) * 0.3;
-  const colorBandEvery = opts.colorBandEvery || 0;
-  let bandMat = null;
-  if (colorBandEvery) {
-    const familyIdx = familyIndexFor(box);
-    const famWalls = PALETTE_FAMILIES[familyIdx].wall;
-    const fine = hash2(box.cx, box.cy);
-    bandMat = wallMaterials[familyIdx][(Math.floor(fine * famWalls.length) + 2) % famWalls.length];
-    if (!parts.colorBand) parts.colorBand = buildBandGeometry(box, 0.5, 0.03);
-  }
-  for (let i = startFloor; i < floorCount; i++) {
-    const row = new THREE.Mesh(parts.windowRow, windowBandMaterial);
-    row.position.y = i * LEVEL_HEIGHT_ROW + WINDOW_ROW_MARGIN + jitter;
-    group.add(row);
-    if (colorBandEvery && i % colorBandEvery === 0) {
-      const band = new THREE.Mesh(parts.colorBand, bandMat);
-      band.position.y = i * LEVEL_HEIGHT_ROW + jitter - 0.6;
-      group.add(band);
+  wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, S.sign);
+  if (S.awning) {
+    const a0 = s0 + 0.15, a1 = s1 - 0.15, ya = top - 0.05, yb = top - 0.6, da = 0.12, db = 1.25;
+    const strips = Math.max(1, Math.round((a1 - a0) / 0.45));
+    const sw = (a1 - a0) / strips;
+    const up = [e.nx * 0.45, 1, e.ny * 0.45];
+    for (let i = 0; i < strips; i++) {
+      const c = i % 2 ? 0xe3ddd0 : S.awning;
+      const p0 = a0 + i * sw, p1 = p0 + sw;
+      B.quadOut(wp(e, p0, ya, da), wp(e, p1, ya, da), wp(e, p1, yb, db), wp(e, p0, yb, db), up, c);
+      B.quadOut(wp(e, p0, ya, da), wp(e, p1, ya, da), wp(e, p1, yb, db), wp(e, p0, yb, db), [-up[0], -1, -up[2]], shade(c, 0.6));
+      wallQuad(B, e, p0, p1, yb - 0.22, yb, db, c);
     }
   }
 }
 
-// Gabled roof cap: a triangular prism whose ridge runs along the LONGER
-// axis of the footprint's bounding box (two slanted quads + two triangular
-// end caps - real gable-end walls, not just a ridge line). Winding per axis
-// case below is hand-verified (cross product) to face outward; every
-// roof-ish material is also set to DoubleSide above as a belt-and-suspenders
-// safety net since these are small stylized caps, not load-bearing geometry.
-// The two end-cap triangles (verts 0-5) and the four roof-slant triangles
-// (verts 6-17) are split into geometry groups so callers that want a real
-// brick gable end under a tiled roof can pass `[wallMat, roofMat]` to the
-// Mesh constructor - callers that pass a single material (e.g. the church's
-// plain roof) are unaffected, three.js ignores groups without an array.
+// --- roofs --------------------------------------------------------------------------
+
+function frameMapper(frame) {
+  const { ux, uy } = frame;
+  const alongU = frame.u1 - frame.u0 >= frame.v1 - frame.v0;
+  const toWorld = (u, v, y) => [u * ux - v * uy, y, u * uy + v * ux];
+  const R = alongU
+    ? { a0: frame.u0, a1: frame.u1, c0: frame.v0, c1: frame.v1, P: (a, c, y) => toWorld(a, c, y), A: [ux, 0, uy], C: [-uy, 0, ux] }
+    : { a0: frame.v0, a1: frame.v1, c0: frame.u0, c1: frame.u1, P: (a, c, y) => toWorld(c, a, y), A: [-uy, 0, ux], C: [ux, 0, uy] };
+  R.cMid = (R.c0 + R.c1) / 2;
+  R.half = (R.c1 - R.c0) / 2;
+  R.len = R.a1 - R.a0;
+  return R;
+}
+
+function sideOpen(edges, dir, minLen) {
+  return edges.some((e) => !e.party && e.len >= minLen && e.nx * dir[0] + e.ny * dir[2] > 0.9);
+}
+
+function steppedGable(B, R, aEnd, inward, baseY, H, color) {
+  const n = R.half * 2 > 6.5 ? 4 : 3;
+  const sw = (R.half * 2) / (2 * n + 1);
+  const sh = H / (n + 0.5) + 0.22;
+  const pts = [[R.c0, baseY]];
+  for (let i = 0; i < n; i++) {
+    const y = baseY + (i + 1) * sh;
+    pts.push([R.c0 + i * sw, y], [R.c0 + (i + 1) * sw, y]);
+  }
+  const crown = baseY + (n + 1) * sh;
+  pts.push([R.cMid - sw / 2, crown], [R.cMid + sw / 2, crown]);
+  for (let i = n - 1; i >= 0; i--) {
+    const y = baseY + (i + 1) * sh;
+    pts.push([R.c1 - (i + 1) * sw, y], [R.c1 - i * sw, y]);
+  }
+  pts.push([R.c1, baseY]);
+  const t = 0.32;
+  const outDir = [-R.A[0] * inward, 0, -R.A[2] * inward];
+  const a1 = aEnd + inward * t;
+  for (let i = 0; i < pts.length; i++) {
+    const [c0, y0] = pts[i], [c1, y1] = pts[(i + 1) % pts.length];
+    const q = [R.P(aEnd, c0, y0), R.P(aEnd, c1, y1), R.P(a1, c1, y1), R.P(a1, c0, y0)];
+    const mid = [(c0 + c1) / 2 - R.cMid, (y0 + y1) / 2];
+    const nrm = Math.abs(y1 - y0) < 1e-6 ? [0, y0 > baseY + 0.01 ? 1 : -1, 0] : [R.C[0] * Math.sign(mid[0]), 0, R.C[2] * Math.sign(mid[0])];
+    B.quadOut(q[0], q[1], q[2], q[3], nrm, color, G_WALL);
+  }
+  for (const [a, dir] of [[aEnd, outDir], [a1, [-outDir[0], 0, -outDir[2]]]]) {
+    for (let i = 0; i < n; i++) {
+      const y = baseY + (i + 1) * sh;
+      const yPrev = baseY + i * sh;
+      const l0 = R.c0 + i * sw, r0 = R.c1 - i * sw;
+      B.quadOut(R.P(a, l0, yPrev), R.P(a, r0, yPrev), R.P(a, r0, y), R.P(a, l0, y), dir, color, G_WALL);
+    }
+    const yTop = baseY + n * sh;
+    B.quadOut(R.P(a, R.cMid - sw / 2, yTop), R.P(a, R.cMid + sw / 2, yTop), R.P(a, R.cMid + sw / 2, crown), R.P(a, R.cMid - sw / 2, crown), dir, color, G_WALL);
+  }
+  for (let i = 0; i <= n; i++) {
+    const y = i < n ? baseY + (i + 1) * sh : crown;
+    const spans = i < n ? [[R.c0 + i * sw, R.c0 + (i + 1) * sw], [R.c1 - (i + 1) * sw, R.c1 - i * sw]] : [[R.cMid - sw / 2, R.cMid + sw / 2]];
+    for (const [l, r] of spans) {
+      B.quadOut(R.P(aEnd - inward * 0.05, l - 0.04, y), R.P(aEnd - inward * 0.05, r + 0.04, y), R.P(a1, r + 0.04, y), R.P(a1, l - 0.04, y), [0, 1, 0], STONE);
+    }
+  }
+}
+
+function addPitchedRoof(B, R, baseY, H, S, opts) {
+  const ov = opts.overhang ?? 0.3;
+  const ovG = opts.hip ? ov : (opts.gableOverhang ?? 0.12);
+  const slope = H / R.half;
+  const topY = baseY + H;
+  const yE = baseY - ov * slope;
+  const th = 0.1;
+  const roofC = S.roof;
+  const fascia = S.fascia;
+  const st = opts.stepped || [false, false];
+  const a0 = R.a0 - (st[0] ? -0.18 : ovG), a1 = R.a1 + (st[1] ? -0.18 : ovG);
+  const halfO = R.half + ov;
+  let r0 = R.a0, r1 = R.a1;
+  if (opts.hip) {
+    r0 = a0 + halfO;
+    r1 = a1 - halfO;
+    if (r1 < r0) r0 = r1 = (a0 + a1) / 2;
+  } else {
+    r0 = a0;
+    r1 = a1;
+  }
+  const slopeLen = Math.hypot(halfO, halfO * slope);
+  for (const side of [-1, 1]) {
+    const cE = side < 0 ? R.c0 - ov : R.c1 + ov;
+    const out = [R.C[0] * side, 1 / Math.max(0.2, slope), R.C[2] * side];
+    const E0 = R.P(a0, cE, yE), E1 = R.P(a1, cE, yE), T1 = R.P(r1, R.cMid, topY), T0 = R.P(r0, R.cMid, topY);
+    B.quadOut(E0, E1, T1, T0, out, roofC, G_ROOF, [a0, slopeLen, a1, slopeLen, r1, 0, r0, 0]);
+    const d = (p) => [p[0], p[1] - th, p[2]];
+    B.quadOut(d(E0), d(E1), d(T1), d(T0), [-out[0], -1, -out[2]], shade(roofC, 0.55));
+    B.quadOut(d(E0), d(E1), E1, E0, [R.C[0] * side, 0, R.C[2] * side], fascia);
+    if (!opts.hip) {
+      for (const [a, sgn] of [[a0, -1], [a1, 1]]) {
+        const top = R.P(a, R.cMid, topY), eave = R.P(a, cE, yE);
+        B.quadOut(eave, top, d(top), d(eave), [R.A[0] * sgn, 0, R.A[2] * sgn], fascia);
+      }
+    }
+  }
+  if (opts.hip) {
+    for (const [a, r, sgn] of [[a0, r0, -1], [a1, r1, 1]]) {
+      const L = R.P(a, R.c0 - ov, yE), Rr = R.P(a, R.c1 + ov, yE), T = R.P(r, R.cMid, topY);
+      const endLen = Math.hypot(Math.abs(r - a), H + ov * slope);
+      B.triOut(L, Rr, T, [R.A[0] * sgn, 1, R.A[2] * sgn], roofC, G_ROOF, [R.c0, endLen, R.c1, endLen, R.cMid, 0]);
+      B.quadOut(R.P(a, R.c0 - ov, yE - th), R.P(a, R.c1 + ov, yE - th), Rr, L, [R.A[0] * sgn, 0, R.A[2] * sgn], fascia);
+    }
+  } else {
+    for (const [a, sgn] of [[R.a0, -1], [R.a1, 1]]) {
+      const stepped = opts.stepped && opts.stepped[sgn < 0 ? 0 : 1];
+      if (stepped) {
+        steppedGable(B, R, a, -sgn, baseY, H, S.wall);
+      } else {
+        B.triOut(R.P(a, R.c0, baseY), R.P(a, R.c1, baseY), R.P(a, R.cMid, topY), [R.A[0] * sgn, 0, R.A[2] * sgn], S.wall, G_WALL);
+      }
+    }
+  }
+
+  if (opts.chimney) {
+    const ca = R.a0 + R.len * (0.2 + 0.6 * opts.chimney.t);
+    const cc = R.cMid + opts.chimney.side * Math.min(0.7, R.half * 0.35);
+    const yBase = topY - Math.abs(cc - R.cMid) * slope - 0.4;
+    const hC = topY + 0.9 - yBase;
+    const c = R.P(ca, cc, yBase + hC / 2);
+    const ry = Math.atan2(-R.A[2], R.A[0]);
+    B.box(c[0], c[1], c[2], 0.6, hC, 0.6, shade(S.wallHex, 0.85), G_DETAIL, 0, ry, 0);
+    B.box(c[0], yBase + hC + 0.04, c[2], 0.72, 0.08, 0.72, STONE, G_DETAIL, 0, ry, 0);
+  }
+
+  for (const dm of opts.dormers || []) {
+    const side = dm.side;
+    const dE = R.half * 0.42;
+    const cF = (side < 0 ? R.c0 : R.c1) - side * dE;
+    const yF = baseY + dE * slope;
+    const hD = Math.min(1.45, topY - yF - 0.25);
+    if (hD < 0.9) continue;
+    const w = dm.w;
+    const aL = dm.a - w / 2, aR = dm.a + w / 2;
+    const cB = R.cMid;
+    const yT = yF + hD;
+    const yB = yF - 0.5;
+    const outF = [R.C[0] * side, 0, R.C[2] * side];
+    B.quadOut(R.P(aL, cF, yB), R.P(aR, cF, yB), R.P(aR, cF, yT), R.P(aL, cF, yT), outF, dm.wall);
+    for (const [a, sg] of [[aL, -1], [aR, 1]]) {
+      B.quadOut(R.P(a, cF, yB), R.P(a, cB, yB), R.P(a, cB, yT), R.P(a, cF, yT), [R.A[0] * sg, 0, R.A[2] * sg], dm.cheek);
+    }
+    const ov2 = 0.12;
+    const tl = [R.P(aL - ov2, cF + side * ov2, yT), R.P(aR + ov2, cF + side * ov2, yT), R.P(aR + ov2, cB, yT), R.P(aL - ov2, cB, yT)];
+    B.quadOut(tl[0], tl[1], tl[2], tl[3], [0, 1, 0], TRIM_DARK);
+    const fb = (a, y) => R.P(a, cF + side * ov2, y);
+    B.quadOut(fb(aL - ov2, yT - 0.2), fb(aR + ov2, yT - 0.2), fb(aR + ov2, yT), fb(aL - ov2, yT), outF, S.fascia);
+    const gw = w - 0.36;
+    const gy0 = yF + 0.1, gy1 = yT - 0.32;
+    const fp = (a, y, d) => R.P(a, cF + side * d, y);
+    B.quadOut(fp(dm.a - gw / 2 - 0.06, gy0 - 0.06, 0.02), fp(dm.a + gw / 2 + 0.06, gy0 - 0.06, 0.02), fp(dm.a + gw / 2 + 0.06, gy1 + 0.06, 0.02), fp(dm.a - gw / 2 - 0.06, gy1 + 0.06, 0.02), outF, S.frame);
+    B.quadOut(fp(dm.a - gw / 2, gy0, 0.03), fp(dm.a + gw / 2, gy0, 0.03), fp(dm.a + gw / 2, gy1, 0.03), fp(dm.a - gw / 2, gy1, 0.03), outF, GLASS_TONES[2], G_GLASS);
+    B.quadOut(fp(dm.a - 0.03, gy0, 0.035), fp(dm.a + 0.03, gy0, 0.035), fp(dm.a + 0.03, gy1, 0.035), fp(dm.a - 0.03, gy1, 0.035), outF, S.frame);
+  }
+}
+
+// --- detail geometry per building ---------------------------------------------------
+
+function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roofHex, famFrame) {
+  const edges = box.edges;
+  markPartyWalls(b, edges);
+  const B = new GeoBuilder(4);
+  const seed = fine * 1000 + fine2 * 37;
+  const r = (k) => hash2(seed + k * 13.37, fine2 * 91 + k * 3.3);
+  const centre = Math.hypot(box.cx - CITY_CENTRE[0], box.cy - CITY_CENTRE[1]) < CITY_CENTRE_R;
+  const industrial = archetype === 'industrial';
+  const houseboat = archetype === 'houseboat';
+  const brick = BRICKS.has(wallHex);
+
+  const S = {
+    wall: wallHex,
+    wallHex,
+    roof: roofHex,
+    frame: industrial ? 0x4a4d50 : (r(1) < 0.8 ? famFrame : P.frameWhite),
+    sill: brick ? STONE : shade(wallHex, 0.85),
+    lintel: brick ? shade(wallHex, 0.78) : null,
+    door: DOOR_COLORS[Math.floor(r(2) * DOOR_COLORS.length)],
+    fascia: r(3) < 0.7 ? P.frameWhite : TRIM_DARK,
+    sign: SIGN_COLORS[Math.floor(r(4) * SIGN_COLORS.length)],
+    shopFrame: r(5) < 0.5 ? 0x2a2b2d : P.frameWhite,
+    awning: r(6) < 0.55 ? AWNING_COLORS[Math.floor(r(7) * AWNING_COLORS.length)] : null,
+  };
+
+  const floorCount = houseboat ? 1 : Math.min(14, Math.max(1, Math.round(depth / 3)));
+  const floorH = depth / floorCount;
+  const open = edges.filter((e) => !e.party && e.len >= 1.6);
+  const mainEdge = (open.length ? open : edges).slice().sort((p, q) => q.len - p.len)[r(8) < 0.75 || open.length < 2 ? 0 : 1];
+
+  const tallHistoric = centre && r(9) < 0.5;
+  let style;
+  if (industrial) style = { w: 1.6, bay: 4.5, hRatio: 0.35 };
+  else if (archetype === 'apartments') style = { w: 1.3 + r(10) * 0.3, bay: 2.7 + r(11) * 0.5, hRatio: 0.52 };
+  else if (houseboat) style = { w: 1.0, bay: 1.7, hRatio: 0.42 };
+  else style = { w: tallHistoric ? 1.05 : 1.0 + r(10) * 0.3, bay: 2.1 + r(11) * 0.5, hRatio: tallHistoric ? 0.6 : 0.5 };
+
+  let shopEdge = null;
+  if (!industrial && !houseboat && mainEdge && !mainEdge.party && mainEdge.len >= 3.5 && floorH >= 2.6) {
+    if (archetype === 'retail' || (centre && r(12) < 0.55)) shopEdge = mainEdge;
+  }
+  const shopTop = Math.min(floorH - 0.35, 3.2);
+
+  if (!industrial) {
+    const plinthH = houseboat ? 0.7 : 0.4;
+    const plinthC = houseboat ? 0x2a2f38 : HARDSTONE;
+    for (const e of open) wallBox(B, e, 0, e.len, 0, plinthH, 0, 0.035, plinthC, G_DETAIL, FACE_FRONT | FACE_TOP);
+  }
+
+  let windows = 0;
+  const doorWide = archetype === 'apartments' || archetype === 'retail';
+  for (const e of open) {
+    const n = Math.max(1, Math.floor((e.len - 0.4) / style.bay));
+    const bw = e.len / n;
+    let w = Math.min(style.w, bw - 0.55);
+    if (w < 0.45) continue;
+    const doorHere = e === mainEdge && !shopEdge && !houseboat;
+    const doorBay = doorWide ? Math.floor(n / 2) : (r(13) < 0.5 ? 0 : n - 1);
+    for (let f = 0; f < floorCount; f++) {
+      if (f === 0 && e === shopEdge) continue;
+      if (industrial && f < floorCount - 1 && floorCount > 1) continue;
+      const winH = Math.min(1.9, Math.max(0.8, floorH * style.hRatio));
+      const y0 = f * floorH + Math.max(0.55, (floorH - winH) * 0.55);
+      const y1 = Math.min(y0 + winH, (f + 1) * floorH - 0.3);
+      if (y1 - y0 < 0.6) continue;
+      for (let i = 0; i < n; i++) {
+        const c = (i + 0.5) * bw;
+        if (f === 0 && doorHere && i === doorBay) {
+          const dw = doorWide ? Math.min(1.7, bw - 0.4) : Math.min(1.0, bw - 0.4);
+          if (dw > 0.7) addDoor(B, e, c, dw, S, { h: Math.min(2.25, floorH - 0.65), canopy: archetype === 'apartments' });
+          continue;
+        }
+        if (windows >= MAX_WINDOWS) continue;
+        if (industrial) {
+          wallQuad(B, e, c - w, c + w, y0, y0 + 0.7, 0.03, GLASS_TONES[2], G_GLASS);
+          wallBox(B, e, c - w - 0.05, c + w + 0.05, y0 - 0.06, y0, 0, 0.06, S.frame, G_DETAIL, FACE_FRONT | FACE_TOP);
+        } else {
+          addWindow(B, e, c, w, y0, y1, S, seed + i * 7.7 + f * 3.1 + e.ax);
+        }
+        windows++;
+      }
+    }
+    if (industrial && e === mainEdge && e.len > 4) {
+      const dw = Math.min(3.5, e.len * 0.4);
+      const c = e.len * (0.3 + 0.4 * r(14));
+      const dh = Math.min(3.2, depth - 0.5);
+      wallBox(B, e, c - dw / 2 - 0.1, c + dw / 2 + 0.1, 0, dh + 0.1, 0, 0.05, 0x3a3c3e, G_DETAIL, FACE_FRONT | FACE_SIDES | FACE_TOP);
+      wallQuad(B, e, c - dw / 2, c + dw / 2, 0, dh, 0.055, 0x8a8c8e);
+      for (let k = 1; k < 6; k++) wallQuad(B, e, c - dw / 2, c + dw / 2, (dh * k) / 6 - 0.02, (dh * k) / 6 + 0.02, 0.06, 0x6a6c6e);
+    } else if (industrial && e === mainEdge) {
+      addDoor(B, e, e.len / 2, Math.min(1, e.len - 0.6), S, { h: Math.min(2.1, depth - 0.3) });
+    }
+  }
+  if (shopEdge) addShopfront(B, shopEdge, 0.15, shopEdge.len - 0.15, shopTop, S, seed);
+
+  if (!industrial && archetype !== 'house' && floorCount >= 3 && r(15) < 0.45) {
+    for (let f = 1; f < floorCount; f++) {
+      for (const e of open) wallBox(B, e, 0, e.len, f * floorH - 0.08, f * floorH + 0.06, 0, 0.04, shade(wallHex, brick ? 1.35 : 0.88), G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+    }
+  }
+
+  const frame = rectangularFrame(edges);
+  let roofKind = 'flat';
+  if (frame && archetype !== 'church') {
+    const shortSpan = Math.min(frame.u1 - frame.u0, frame.v1 - frame.v0);
+    if ((archetype === 'house' || archetype === 'generic') && shortSpan <= 14) roofKind = 'pitched';
+    else if (archetype === 'apartments' && floorCount <= 4 && shortSpan <= 13 && r(16) < 0.55) roofKind = 'pitched';
+    else if (archetype === 'retail' && floorCount <= 3 && shortSpan <= 10 && r(16) < 0.6) roofKind = 'pitched';
+    else if (industrial && shortSpan <= 24 && shortSpan >= 3 && r(16) < 0.55) roofKind = 'shed';
+  }
+
+  if (roofKind === 'pitched' || roofKind === 'shed') {
+    const R = frameMapper(frame);
+    const pitch = roofKind === 'shed' ? 0.26 : (archetype === 'house' ? 0.8 + r(17) * 0.2 : 0.7 + r(17) * 0.15);
+    const H = Math.min(roofKind === 'shed' ? 3 : 7, R.half * Math.tan(pitch));
+    const detached = !edges.some((e) => e.party);
+    const endsOpen = [sideOpen(edges, [-R.A[0], 0, -R.A[2]], R.half), sideOpen(edges, R.A, R.half)];
+    const hip = roofKind === 'pitched' && detached && R.len / (R.half * 2) < 2.6 && r(18) < 0.35;
+    const steppedOK = roofKind === 'pitched' && !hip && R.half * 2 <= 8.5 && R.half * 2 >= 4 && (centre ? r(19) < 0.45 : r(19) < 0.12);
+    const opts = {
+      hip,
+      overhang: roofKind === 'shed' ? 0.2 : 0.3,
+      stepped: steppedOK ? endsOpen : null,
+      chimney: roofKind === 'pitched' && r(20) < 0.6 ? { t: r(21), side: r(22) < 0.5 ? -1 : 1 } : null,
+      dormers: [],
+    };
+    if (roofKind === 'pitched' && H >= 2.1 && R.len >= 4.5) {
+      const dormerWall = r(23) < 0.5 ? P.frameWhite : 0x3e4449;
+      for (const side of [-1, 1]) {
+        const dir = [R.C[0] * side, 0, R.C[2] * side];
+        if (!sideOpen(edges, dir, R.len * 0.6) || r(24 + side) > 0.6) continue;
+        const count = R.len > 10 ? 2 : 1;
+        for (let k = 0; k < count; k++) {
+          opts.dormers.push({ side, a: R.a0 + (R.len * (k + 1)) / (count + 1), w: Math.min(2.2, R.len / (count + 1) - 0.6), wall: dormerWall, cheek: dormerWall });
+        }
+      }
+      opts.dormers = opts.dormers.filter((d) => d.w > 1.1);
+    }
+    addPitchedRoof(B, R, depth, H, S, opts);
+  } else if (!houseboat) {
+    const copeC = BRICKS.has(wallHex) ? STONE : shade(wallHex, 0.8);
+    for (const e of open) wallBox(B, e, 0, e.len, depth - 0.18, depth + 0.3, -0.12, 0.08, copeC, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+    if (floorCount >= 3 && edges.area > 120) {
+      const [minx, miny, maxx, maxy] = b.bounds;
+      for (let k = 0; k < 2; k++) {
+        const x = minx + (maxx - minx) * (0.3 + 0.4 * r(30 + k)), z = miny + (maxy - miny) * (0.3 + 0.4 * r(32 + k));
+        if (!pointInPolygon(x, z, b.pts)) continue;
+        const sx = 2 + r(34 + k) * 2.5, sz = 2 + r(36 + k) * 2, sy = 1.2 + r(38 + k) * 1.3;
+        B.box(x, depth + sy / 2, z, sx, sy, sz, k ? 0x9a9690 : shade(wallHex, 0.9), G_DETAIL, 0, Math.atan2(-edges[0].ty, edges[0].tx), 0);
+      }
+    }
+  } else {
+    for (const e of open) wallBox(B, e, 0, e.len, depth - 0.1, depth + 0.08, -0.05, 0.12, 0x3a3c3e, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+  }
+  return { geo: B.build(), roofKind };
+}
+
+// --- landmarks / churches (unchanged massing, new materials) ------------------------
+
 function buildRidgeGeometry(frame, baseY, ridgeHeight) {
   const { ux, uy } = frame;
-  // ridge runs along the frame's longer local axis
   const alongU = frame.u1 - frame.u0 >= frame.v1 - frame.v0;
   const toWorld = (u, v, y) => [u * ux - v * uy, y, u * uy + v * ux];
   let a0, a1, c0, c1;
   if (alongU) { a0 = frame.u0; a1 = frame.u1; c0 = frame.v0; c1 = frame.v1; }
   else { a0 = frame.v0; a1 = frame.v1; c0 = frame.u0; c1 = frame.u1; }
-  const P = (a, c, y) => (alongU ? toWorld(a, c, y) : toWorld(c, a, y));
+  const Pm = (a, c, y) => (alongU ? toWorld(a, c, y) : toWorld(c, a, y));
   const topY = baseY + ridgeHeight, cMid = (c0 + c1) / 2;
-  const A = P(a0, c0, baseY), B = P(a0, c1, baseY), R0 = P(a0, cMid, topY);
-  const C = P(a1, c0, baseY), D = P(a1, c1, baseY), R1 = P(a1, cMid, topY);
+  const A = Pm(a0, c0, baseY), Bp = Pm(a0, c1, baseY), R0 = Pm(a0, cMid, topY);
+  const C = Pm(a1, c0, baseY), D = Pm(a1, c1, baseY), R1 = Pm(a1, cMid, topY);
   const verts = [];
-  for (const t of [[A, B, R0], [D, C, R1], [A, C, R1], [A, R1, R0], [B, D, R1], [B, R1, R0]]) for (const p of t) verts.push(p[0], p[1], p[2]);
+  for (const t of [[A, Bp, R0], [D, C, R1], [A, C, R1], [A, R1, R0], [Bp, D, R1], [Bp, R1, R0]]) for (const p of t) verts.push(p[0], p[1], p[2]);
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   geo.computeVertexNormals();
@@ -566,53 +764,12 @@ function buildRidgeGeometry(frame, baseY, ridgeHeight) {
   return geo;
 }
 
-function pickMaterials(b, box, archetype, fine) {
-  if (b.landmark) {
-    const stone = (b.landmarkKind === 'university' || b.landmarkKind === 'historic') ? landmarkStoneMaterials[b.landmarkKind] : null;
-    const base = landmarkMaterials[b.landmarkKind] || wallMaterials[0][0];
-    return { wallMat: stone || base, roofMat: base };
-  }
-  if (archetype === 'industrial') {
-    return { wallMat: industrialWallMaterials[Math.floor(fine * industrialWallMaterials.length)], roofMat: industrialRoofMaterial };
-  }
-  const familyIdx = familyIndexFor(box);
-  const fam = PALETTE_FAMILIES[familyIdx];
-  return { wallMat: wallMaterials[familyIdx][Math.floor(fine * fam.wall.length)], roofMat: roofMaterials[familyIdx] };
-}
-
-// Ground-level door recess, roughly centered on whichever bbox face runs
-// along the footprint's LONGER axis (the "street-facing" side, absent real
-// street-adjacency data) - a small near-black inset box straddling the wall
-// plane, painted a flat Habbo wood tone with its own thin black outline
-// (per-door outlines are cheap - one extra mesh sharing UNIT_BOX + the one
-// shared OUTLINE_MAT - and a black-rimmed door is one of the single
-// strongest "this facade has a specific, readable entrance" cues at a
-// glance, so unlike the thin bands/window rows this one earns its outline).
-// `sideFine` (a hash decorrelated from the material-shade pick) chooses
-// which of the two long faces gets the door, for variety.
-function addDoorInset(group, box, sideFine) {
-  const candidates = box.edges.filter((e) => e.len >= 3).sort((p, q) => q.len - p.len);
-  if (!candidates.length) return;
-  const e = candidates[sideFine < 0.5 || candidates.length < 2 ? 0 : 1];
-  const doorW = Math.min(1.7, e.len * 0.24);
-  const doorH = 2.3;
-  const outset = 0.15;
-  const door = new THREE.Mesh(UNIT_BOX, doorMaterial);
-  door.scale.set(doorW, doorH, outset * 2);
-  door.position.set((e.ax + e.bx) / 2 + e.nx * outset, doorH / 2, (e.ay + e.by) / 2 + e.ny * outset);
-  door.rotation.y = -Math.atan2(e.by - e.ay, e.bx - e.ax);
-  group.add(door);
-  addUnitOutline(group, door);
-}
-
-// Thin dark trim ring right under the roofline/parapet - the single
-// cheapest "this building has a finished edge, not just an extruded box"
-// cue available (real eaves/gutters read as a dark line exactly here).
-function addEaveTrim(group, box, parts, depth) {
-  if (!parts.eave) parts.eave = buildBandGeometry(box, 0.14, 0.1);
-  const eave = new THREE.Mesh(parts.eave, eaveTrimMaterial);
-  eave.position.y = depth - 0.14;
-  group.add(eave);
+function unit(group, geo, mat, sx, sy, sz, x, y, z) {
+  const m = new THREE.Mesh(geo, mat);
+  m.scale.set(sx, sy, sz);
+  m.position.set(x, y, z);
+  group.add(m);
+  return m;
 }
 
 function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
@@ -626,169 +783,99 @@ function addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2) {
     x = box.edges.reduce((acc, e) => acc + e.ax, 0) / box.edges.length;
     z = box.edges.reduce((acc, e) => acc + e.ay, 0) / box.edges.length;
   }
-
-  const steeple = new THREE.Mesh(UNIT_BOX, wallMat);
-  steeple.scale.set(sw, steepleH, sw);
-  steeple.position.set(x, steepleH / 2, z);
-  group.add(steeple);
-  addUnitOutline(group, steeple);
-
-  const capH = sw * 1.1;
-  const cap = new THREE.Mesh(UNIT_CONE, roofMat);
-  cap.scale.set(sw * 0.75, capH, sw * 0.75);
-  cap.position.set(x, steepleH + capH / 2, z);
-  group.add(cap);
-  addUnitOutline(group, cap);
-
-  // Small gilded cross/finial on the spire tip - two thin crossed boxes,
-  // 24 triangles total, but it is the single strongest "this is a church,
-  // not a tower" silhouette cue a steeple can have.
+  unit(group, UNIT_BOX, wallMat, sw, steepleH, sw, x, steepleH / 2, z);
+  unit(group, UNIT_BOX, eaveTrimMaterial, sw + 0.3, 0.4, sw + 0.3, x, steepleH - 0.2, z);
+  const capH = sw * 1.6;
+  unit(group, UNIT_CONE, roofMat, sw * 0.72, capH, sw * 0.72, x, steepleH + capH / 2, z);
   const crossBase = steepleH + capH;
-  const crossH = sw * 0.85;
-  const barT = Math.max(0.12, sw * 0.1);
-  const vBar = new THREE.Mesh(UNIT_BOX, finialMaterial);
-  vBar.scale.set(barT, crossH, barT);
-  vBar.position.set(x, crossBase + crossH / 2, z);
-  group.add(vBar);
-  const hBar = new THREE.Mesh(UNIT_BOX, finialMaterial);
-  hBar.scale.set(sw * 0.5, barT, barT);
-  hBar.position.set(x, crossBase + crossH * 0.6, z);
-  group.add(hBar);
+  const crossH = sw * 0.6;
+  const barT = Math.max(0.12, sw * 0.08);
+  unit(group, UNIT_BOX, finialMaterial, barT, crossH, barT, x, crossBase + crossH / 2, z);
+  unit(group, UNIT_BOX, finialMaterial, sw * 0.35, barT, barT, x, crossBase + crossH * 0.62, z);
 
   if (parts.roof === undefined) {
     const frame = rectangularFrame(box.edges);
     if (frame) {
       const frameShort = Math.min(frame.u1 - frame.u0, frame.v1 - frame.v0);
-      const ridgeH = Math.min(0.7 + fine2 * 0.6, frameShort * 0.35, 2.4);
-      parts.roof = buildRidgeGeometry(frame, depth, ridgeH);
+      parts.roof = buildRidgeGeometry(frame, depth, Math.min(frameShort * 0.55, 9));
     } else {
       parts.roof = null;
     }
   }
-  if (parts.roof) {
-    group.add(new THREE.Mesh(parts.roof, roofMat));
-    addAbsoluteOutline(group, parts.roof);
-  }
+  if (parts.roof) group.add(new THREE.Mesh(parts.roof, [wallMat, roofMat]));
 }
 
 function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
   const kind = b.landmarkKind;
   if (kind === 'tower') {
-    // Instead of one box+cap, taper the top of the shaft through two
-    // narrowing box stages (matching Martinitoren's real silhouette: a
-    // square brick shaft narrowing in stages toward the top) before the
-    // cone spire and a small gilded finial - `depth` for tower landmarks is
-    // already reduced to a fraction of TOWER_HEIGHT (see buildBuildingMesh)
-    // specifically to leave room for these stages while keeping roughly the
-    // same overall height as before.
     const s2w = Math.max(1.6, box.w * 0.7), s2d = Math.max(1.6, box.d * 0.7);
     const s3w = Math.max(1.1, box.w * 0.45), s3d = Math.max(1.1, box.d * 0.45);
     const stage2H = TOWER_HEIGHT * 0.17;
     const stage3H = TOWER_HEIGHT * 0.1;
     let y = depth;
-    const stage2 = new THREE.Mesh(UNIT_BOX, roofMat);
-    stage2.scale.set(s2w, stage2H, s2d);
-    stage2.position.set(box.cx, y + stage2H / 2, box.cz);
-    group.add(stage2);
-    addUnitOutline(group, stage2);
+    unit(group, UNIT_BOX, roofMat, s2w, stage2H, s2d, box.cx, y + stage2H / 2, box.cz);
     y += stage2H;
-    const stage3 = new THREE.Mesh(UNIT_BOX, roofMat);
-    stage3.scale.set(s3w, stage3H, s3d);
-    stage3.position.set(box.cx, y + stage3H / 2, box.cz);
-    group.add(stage3);
-    addUnitOutline(group, stage3);
+    unit(group, UNIT_BOX, roofMat, s3w, stage3H, s3d, box.cx, y + stage3H / 2, box.cz);
     y += stage3H;
     const capRad = Math.max(1.3, (s3w + s3d) / 4.2);
     const capH = TOWER_HEIGHT * 0.1;
-    const cap = new THREE.Mesh(UNIT_CONE, roofMat);
-    cap.scale.set(capRad, capH, capRad);
-    cap.position.set(box.cx, y + capH / 2, box.cz);
-    group.add(cap);
-    addUnitOutline(group, cap);
+    unit(group, UNIT_CONE, landmarkMaterials.station, capRad, capH, capRad, box.cx, y + capH / 2, box.cz);
     y += capH;
     const finialH = TOWER_HEIGHT * 0.035;
-    const finial = new THREE.Mesh(UNIT_CONE, finialMaterial);
-    finial.scale.set(capRad * 0.22, finialH, capRad * 0.22);
-    finial.position.set(box.cx, y + finialH / 2, box.cz);
-    group.add(finial);
+    unit(group, UNIT_CONE, finialMaterial, capRad * 0.22, finialH, capRad * 0.22, box.cx, y + finialH / 2, box.cz);
   } else if (kind === 'church') {
-    addChurchDetail(group, box, parts, depth, roofMat, roofMat, fine2);
+    addChurchDetail(group, box, parts, depth, roofMat, landmarkMaterials.station, fine2);
   } else if (kind === 'station') {
     const margin = 2;
     const canopyY = depth + 1.2;
-    const canopy = new THREE.Mesh(UNIT_BOX, canopyMaterial);
-    canopy.scale.set(box.w + margin * 2, 0.4, box.d + margin * 2);
-    canopy.position.set(box.cx, canopyY, box.cz);
-    group.add(canopy);
-    addUnitOutline(group, canopy);
-
-    // Repeating support pillars along both long edges under the canopy -
-    // real station train sheds read unmistakably from the row of columns,
-    // not from the flat canopy slab alone. Plain boxes (cheapest primitive
-    // available) read fine as steel supports at this scale/distance.
+    unit(group, UNIT_BOX, canopyMaterial, box.w + margin * 2, 0.4, box.d + margin * 2, box.cx, canopyY, box.cz);
     const longX = box.w >= box.d;
     const spanLen = (longX ? box.w : box.d) + margin * 2;
     const pillarCount = Math.max(3, Math.min(8, Math.round(spanLen / 8)));
     const edgeOffset = (longX ? box.d : box.w) / 2 + margin - 0.4;
-    const pillarSize = 0.32;
     for (let i = 0; i < pillarCount; i++) {
       const t = pillarCount > 1 ? (i / (pillarCount - 1) - 0.5) : 0;
-      const along = t * (spanLen - pillarSize * 2);
+      const along = t * (spanLen - 0.64);
       for (const side of [-1, 1]) {
-        const pillar = new THREE.Mesh(UNIT_BOX, canopyMaterial);
-        pillar.scale.set(pillarSize, canopyY, pillarSize);
-        if (longX) pillar.position.set(box.cx + along, canopyY / 2, box.cz + side * edgeOffset);
-        else pillar.position.set(box.cx + side * edgeOffset, canopyY / 2, box.cz + along);
-        group.add(pillar);
+        if (longX) unit(group, UNIT_BOX, canopyMaterial, 0.32, canopyY, 0.32, box.cx + along, canopyY / 2, box.cz + side * edgeOffset);
+        else unit(group, UNIT_BOX, canopyMaterial, 0.32, canopyY, 0.32, box.cx + side * edgeOffset, canopyY / 2, box.cz + along);
       }
     }
   } else if (kind === 'museum' || kind === 'modern') {
     const bandH = Math.min(2.2, depth * 0.18);
-    const band = new THREE.Mesh(UNIT_BOX, accentMaterials[kind]);
-    band.scale.set(box.w + 0.3, bandH, box.d + 0.3);
-    band.position.set(box.cx, depth * 0.6, box.cz);
-    group.add(band);
-    addUnitOutline(group, band);
-    // Slim roofline accent trim - a second, thinner band right at the top
-    // edge gives the glass-box massing a finished cap instead of a bare
-    // extrusion edge.
-    if (!parts.topcap) parts.topcap = buildBandGeometry(box, 0.22, 0.08);
-    const topcap = new THREE.Mesh(parts.topcap, accentMaterials[kind]);
-    topcap.position.y = depth - 0.22;
-    group.add(topcap);
+    unit(group, UNIT_BOX, accentMaterials[kind], box.w + 0.3, bandH, box.d + 0.3, box.cx, depth * 0.6, box.cz);
   } else if (kind === 'mall') {
     const bandH = Math.min(3, depth * 0.22);
-    const band = new THREE.Mesh(UNIT_BOX, accentMaterials.mall);
-    band.scale.set(box.w + 0.4, bandH, box.d + 0.4);
-    band.position.set(box.cx, depth - bandH * 0.7, box.cz);
-    group.add(band);
-    addUnitOutline(group, band);
-    // Small entrance canopy jutting off the shorter face - breaks up the
-    // big-box mall silhouette with a porte-cochere cue.
-    const canopyW = Math.min(box.w, box.d) * 0.4;
-    const canopy = new THREE.Mesh(UNIT_BOX, canopyMaterial);
-    canopy.scale.set(canopyW, 0.35, canopyW * 0.6);
-    canopy.position.set(box.cx, depth * 0.35, box.miny - canopyW * 0.3);
-    group.add(canopy);
-    addUnitOutline(group, canopy);
+    unit(group, UNIT_BOX, accentMaterials.mall, box.w + 0.4, bandH, box.d + 0.4, box.cx, depth - bandH * 0.7, box.cz);
   } else if (kind === 'university' || kind === 'historic') {
-    const cornice = new THREE.Mesh(UNIT_BOX, corniceMaterial);
-    cornice.scale.set(box.w + 0.5, 0.35, box.d + 0.5);
-    cornice.position.set(box.cx, depth - 0.5, box.cz);
-    group.add(cornice);
-    addUnitOutline(group, cornice);
+    unit(group, UNIT_BOX, corniceMaterial, box.w + 0.5, 0.35, box.d + 0.5, box.cx, depth - 0.5, box.cz);
   }
-  // stadium: the brief's per-kind design list doesn't call out a shape for
-  // it, so it keeps the plain landmark-tinted extrusion only.
+}
+
+function pickColors(b, box, archetype, fine) {
+  if (archetype === 'industrial') {
+    return { wallHex: INDUSTRIAL_WALLS[Math.floor(fine * INDUSTRIAL_WALLS.length)], roofHex: INDUSTRIAL_ROOF, frame: 0x4a4d50 };
+  }
+  const fam = PALETTE_FAMILIES[familyIndexFor(box)];
+  return { wallHex: fam.wall[Math.floor(fine * fam.wall.length)], roofHex: fam.roof, frame: fam.frame };
+}
+
+// Bounded LRU over cached building geometry: evicted entries are disposed and
+// rebuilt on demand. (A mesh still on screen just re-uploads its buffers.)
+const partLRU = new Map();
+function touchParts(b) {
+  partLRU.delete(b);
+  partLRU.set(b, true);
+  while (partLRU.size > PART_CACHE_MAX) {
+    const old = partLRU.keys().next().value;
+    partLRU.delete(old);
+    const parts = old._geo3dParts;
+    if (parts) for (const k of Object.keys(parts)) if (parts[k] && parts[k].dispose) parts[k].dispose();
+    old._geo3dParts = null;
+  }
 }
 
 export function buildBuildingMesh(b) {
-  // Real (non-procedural) landmark models, generated externally and dropped
-  // into game/models/ (see docs/3d-model-prompts.md) - take over from the
-  // procedural addLandmarkDetail() path entirely for the landmarks that
-  // have one. getLandmarkModel() returns null (falls through below) for
-  // any landmark without a model yet, or while it's still loading, so this
-  // is a pure upgrade with no risk of a missing/blank building.
   if (b.landmark && b.name) {
     const model = getLandmarkModel(b.name);
     if (model) {
@@ -812,72 +899,30 @@ export function buildBuildingMesh(b) {
   else depth = Math.max(2.4, b.h * LEVEL_HEIGHT);
 
   if (!b._geo3dParts) b._geo3dParts = {};
+  touchParts(b);
   const parts = b._geo3dParts;
   if (!parts.main) parts.main = buildMainGeometry(b, depth);
-
-  const { wallMat, roofMat } = pickMaterials(b, box, archetype, fine);
   const group = new THREE.Group();
-  group.add(new THREE.Mesh(parts.main, wallMat));
-  // Every building's main wall silhouette gets a black outline, no
-  // exceptions - the one Habbo cue the brief calls "at minimum".
-  addAbsoluteOutline(group, parts.main);
 
   if (b.landmark) {
-    addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2);
-  } else if (archetype === 'house' || archetype === 'generic') {
-    // 'generic' covers every footprint OSM never tagged with a specific
-    // building type (overwhelmingly plain building=yes) - measured at 34%
-    // of the whole citymap.json corpus. It used to fall through to nothing
-    // at all beyond the bare wall extrusion (the actual root cause behind
-    // "buildings are still nothing"), even though it's architecturally just
-    // an untagged ordinary rowhouse/townhouse - so it now gets the exact
-    // same treatment as 'house' rather than a separate, lesser one.
-    if (parts.roof === undefined) {
-      const frame = rectangularFrame(box.edges);
-      if (frame) {
-        const shortAxis = Math.min(frame.u1 - frame.u0, frame.v1 - frame.v0);
-        const ridgeH = Math.min(0.9 + fine2 * 1.1, Math.max(0.4, shortAxis * 0.6), 3.2);
-        parts.roof = buildRidgeGeometry(frame, depth, ridgeH);
-      } else {
-        parts.roof = null;
-      }
-    }
-    if (parts.roof) {
-      group.add(new THREE.Mesh(parts.roof, [wallMat, roofMat]));
-      addAbsoluteOutline(group, parts.roof);
-    }
-    addEaveTrim(group, box, parts, depth);
-    addDoorInset(group, box, fine2);
-    addWindowBands(group, box, parts, depth, fine2);
-  } else if (archetype === 'apartments') {
-    addWindowBands(group, box, parts, depth, fine2, { colorBandEvery: 3 });
-    addEaveTrim(group, box, parts, depth);
-    addDoorInset(group, box, fine2);
-  } else if (archetype === 'retail') {
-    const shopfrontH = Math.min(3, Math.max(1.2, depth - 0.3));
-    if (!parts.band) parts.band = buildBandGeometry(box, shopfrontH, 0.09);
-    group.add(new THREE.Mesh(parts.band, shopfrontMaterial));
-    addEaveTrim(group, box, parts, depth);
-    addDoorInset(group, box, fine2);
-    // Taller retail buildings (shop below, flats above - common on real
-    // streets) get ordinary window rows above the shopfront glazing.
-    addWindowBands(group, box, parts, depth, fine2, { startFloor: Math.ceil(shopfrontH / LEVEL_HEIGHT) });
-  } else if (archetype === 'church') {
-    addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2);
-    addEaveTrim(group, box, parts, depth);
-    addDoorInset(group, box, fine2);
-  } else if (archetype === 'industrial') {
-    // Kept deliberately plainer than house/apartments (no roof cap, no eave
-    // trim, no facade banding) so industrial sheds/garages/warehouses still
-    // read as a distinct, more utilitarian archetype - but every "ordinary
-    // building" gets a visible door per this round's brief, and a tall shed
-    // gets one high clerestory-style window row instead of a blank wall.
-    addDoorInset(group, box, fine2);
-    const floorCount = floorCountFor(depth);
-    if (floorCount >= 2) addWindowBands(group, box, parts, depth, fine2, { startFloor: floorCount - 1 });
+    const stone = LANDMARK_STONE[b.landmarkKind] ? landmarkStoneMaterials[b.landmarkKind] : null;
+    const base = landmarkMaterials[b.landmarkKind] || wallMaterial(P.brickRed);
+    group.add(new THREE.Mesh(parts.main, stone || base));
+    addLandmarkDetail(group, b, box, parts, depth, base, fine2);
+    return group;
   }
-  // houseboat: small floating single-story structures - plain box remains
-  // the whole point here, per the original design intent.
 
+  const { wallHex, roofHex, frame } = pickColors(b, box, archetype, fine);
+  const wallMat = wallMaterial(wallHex);
+  const roofMat = roofMaterial(roofHex);
+  group.add(new THREE.Mesh(parts.main, [flatRoofMaterial, wallMat]));
+
+  if (archetype === 'church') {
+    addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2);
+    return group;
+  }
+
+  if (!parts.detail) parts.detail = buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roofHex, frame).geo;
+  group.add(new THREE.Mesh(parts.detail, [detailMaterial, glassMaterial, wallMat, roofMat]));
   return group;
 }

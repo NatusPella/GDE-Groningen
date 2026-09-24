@@ -1,29 +1,13 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { HABBO_PALETTE, habboMaterial, buildOutline } from './pixelart3d.js';
+import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
+import { buildPersonMesh } from './models3d_people.js';
 
-// Low-poly recognizable vehicle silhouettes. Group origin = vehicle centre at
-// ground level (y=0, where wheels touch the road), facing local +X - the
-// caller positions/rotates the whole group every frame, nothing here bakes
-// in position/rotation. Everything is sized off v.model.len/wid so the mesh
-// always matches the vehicle's real collision footprint.
-//
-// Habbo Hotel restyle pass: every part below is flat/near-flat toon shading
-// via pixelart3d.js's habboMaterial() (a hard 2-step gradient, "minimal
-// shading") plus a bold black outline on the major body panels/wheels via
-// pixelart3d.js's buildOutline() (the shared, never-vehicle-specific
-// OUTLINE_MAT - safe to reuse across every vehicle since it is always the
-// same flat black, unlike a PAINT color). Every build*Mesh() call below
-// still makes its own fresh PAINT/GLASS/CHROME material instances (never a
-// shared module-scope material) - critical because scene3d.js's syncActors
-// disposes a vehicle's materials on despawn (`mesh.traverse(o =>
-// o.material?.dispose())`); a truly shared paint material would get
-// disposed out from under every other vehicle still using it. Canvas pixel-
-// art textures (createWindowTexture() etc. in pixelart3d.js) are
-// deliberately NOT used here: that same dispose path never calls
-// `material.map?.dispose()`, so a CanvasTexture attached to a vehicle
-// material would leak on every one of the constant traffic spawn/despawn
-// cycles - flat palette colors carry the "genuine pixel art" glass look
-// safely instead.
+// Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
+// facing local +X, right-hand side on +Z; sized off v.model.len/wid.
+// Body geometry is merged per model variant into a few vertex-coloured meshes
+// and cached across instances (geometry.userData.shared). Materials are made
+// per vehicle so scene3d can dispose them on despawn; police lamps need their
+// own anyway since updatePoliceLamps animates them.
 
 function hash2(x, y) {
   const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
@@ -31,555 +15,565 @@ function hash2(x, y) {
 }
 
 const WHEEL_R = 0.32;
-const WHEEL_W = 0.24;
+const WHEEL_W = 0.22;
 const HERO_LEN = 4.0;
 const HERO_WID = 1.65;
-// Scene3d's water plane renders at y=0.01 (see syncFlat's water call in
-// scene3d.js) - boats share the generic vehicle sync loop that always sets
-// mesh.position.y=0, so the hull's float height has to be baked in here.
-const WATER_LINE = 0.03;
-
-// Wrecked vehicles have no roughness/metalness channel to dull anymore
-// (flat Habbo toon materials don't have one) - color shift is the only
-// lever left, so every finish (paint, glass, chrome) grays toward this
-// when v.wrecked is set, including bikes/scooters/mirrors that previously
-// only got a duller PBR finish and kept their original hue.
 const WRECKED_COLOR = 0x4a4a4a;
 
-// Side/rear glazing reads as a darker tinted privacy blue; the windshield
-// gets a lighter blue and lower opacity (more see-through) so the two read
-// as distinct surfaces instead of one uniform "cabin" block.
-const SIDE_GLASS_COLOR = HABBO_PALETTE.glassBlue;
-const SIDE_GLASS_OPACITY = 0.85;
-const WINDSHIELD_COLOR = HABBO_PALETTE.glassBlue;
-const WINDSHIELD_OPACITY = 0.5;
+const G_BODY = 0, G_GLASS = 1, G_LAMP = 2;
+const TRIM = 0x1f2022;
+const CHROME = 0xb9bcbf;
+const GLASS = 0x2b3740;
+const HEADLAMP = 0xf2efe4;
+const TAIL = 0xa3211b;
+const INDICATOR = 0xd9822b;
+const PLATE = 0xe3bb1c;
+const TIRE = 0x1b1b1c;
+const RIM = 0x9ea2a6;
 
-// --- material factories -----------------------------------------------
-// Every part below is one of a handful of flat Habbo finishes (paint/glass/
-// tire/chrome/plastic/lamp) via the factory functions right after the
-// constants - each build*Mesh() call still makes its own fresh material
-// instances (never a shared module-scope material), matching scene3d.js's
-// syncActors, which disposes a vehicle's materials on despawn; a truly
-// shared material would get disposed out from under every other vehicle
-// still using it.
-
-function paintMaterial(color, wrecked) {
-  return habboMaterial(wrecked ? WRECKED_COLOR : color);
+const geoCache = new Map();
+function cached(key, build) {
+  let g = geoCache.get(key);
+  if (!g) {
+    g = markShared(build());
+    geoCache.set(key, g);
+  }
+  return g;
 }
 
-function heroPaintMaterial(color, wrecked) {
-  return paintMaterial(color, wrecked);
+function toHex(c, fallback) {
+  if (typeof c === 'number') return c;
+  if (typeof c === 'string') return new THREE.Color(c).getHex();
+  return fallback;
 }
 
-function glassMaterial(color, opacity, wrecked) {
-  return habboMaterial(wrecked ? HABBO_PALETTE.stoneGrey : color, {
-    transparent: true,
-    opacity: wrecked ? Math.min(0.98, opacity + 0.12) : opacity,
-  });
-}
-
-function chromeMaterial(color = HABBO_PALETTE.metalGrey, wrecked) {
-  return habboMaterial(wrecked ? HABBO_PALETTE.stoneGrey : color);
-}
-
-function tireMaterial() {
-  return habboMaterial(HABBO_PALETTE.black);
-}
-
-function plasticMaterial(color = HABBO_PALETTE.black) {
-  return habboMaterial(color);
+function vehicleMaterials() {
+  return [
+    vcMaterial({ roughness: 0.5, metalness: 0.1 }),
+    vcMaterial({ roughness: 0.18, metalness: 0.3 }),
+    new THREE.MeshBasicMaterial({ vertexColors: true }),
+  ];
 }
 
 function lampMaterial(color, emissiveIntensity = 0) {
   return habboMaterial(color, { emissive: color, emissiveIntensity });
 }
 
-function buildLamp(color, w, h, d, emissiveIntensity = 0) {
-  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), lampMaterial(color, emissiveIntensity));
+// --- shared wheels ------------------------------------------------------------
+
+function carWheelGeometry(r, w) {
+  return cached(`wheel|${r}|${w}`, () => {
+    const B = new GeoBuilder(1);
+    const axleZ = (geo) => geo.rotateX(Math.PI / 2);
+    B.geo(axleZ(new THREE.CylinderGeometry(r, r, w, 12, 1)), null, TIRE);
+    B.geo(axleZ(new THREE.CylinderGeometry(r * 0.64, r * 0.64, w + 0.02, 10, 1)), null, RIM);
+    B.geo(axleZ(new THREE.CylinderGeometry(r * 0.18, r * 0.18, w + 0.05, 6, 1)), null, 0x6a6d70);
+    for (let k = 0; k < 3; k++) B.box(0, 0, 0, r * 1.2, r * 0.12, w + 0.035, 0x6a6d70, 0, 0, 0, (k / 3) * Math.PI);
+    return B.build();
+  });
 }
 
-// Wraps a geometry + already-built material into a Group with the real mesh
-// plus a sibling black-outline mesh (via pixelart3d.js's buildOutline(),
-// which reuses its one shared, never-disposed OUTLINE_MAT) - the "major
-// body panel" look. Callers position/rotate/scale the returned GROUP
-// instead of a bare mesh so the outline always inherits the same transform.
-function outlinedMesh(geometry, material, outlineThickness = 0.02) {
+function bikeWheelGeometry(r, tire, spokes = true) {
+  return cached(`bwheel|${r}|${tire}|${spokes}`, () => {
+    const B = new GeoBuilder(1);
+    B.geo(new THREE.TorusGeometry(r - tire, tire, 4, 16), null, TIRE);
+    B.geo(new THREE.TorusGeometry(r - tire * 2 - 0.008, 0.01, 3, 16), null, RIM);
+    B.geo(new THREE.CylinderGeometry(0.025, 0.025, 0.1, 6).rotateX(Math.PI / 2), null, RIM);
+    if (spokes) {
+      for (let k = 0; k < 4; k++) B.box(0, 0, 0, (r - tire * 2) * 2, 0.008, 0.008, 0x8a8e92, 0, 0, 0, (k / 4) * Math.PI);
+    } else {
+      for (let k = 0; k < 5; k++) B.box(0, 0, 0, (r - tire) * 1.9, 0.03, 0.02, 0x3a3a3c, 0, 0, 0, (k / 5) * Math.PI);
+    }
+    return B.build();
+  });
+}
+
+function addWheel(group, geo, mat, x, y, z, wheels) {
+  const w = new THREE.Mesh(geo, mat);
+  w.position.set(x, y, z);
+  group.add(w);
+  wheels.push(w);
+  return w;
+}
+
+// --- generic helpers ------------------------------------------------------------
+
+function extrudeProfile(pts, depth, bevel = 0.04) {
+  const shape = new THREE.Shape();
+  shape.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i][0], pts[i][1]);
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    depth: Math.max(0.01, depth - bevel * 2),
+    bevelEnabled: bevel > 0,
+    bevelThickness: bevel,
+    bevelSize: bevel * 0.8,
+    bevelOffset: -bevel * 0.8,
+    bevelSegments: 1,
+    curveSegments: 1,
+  });
+  geo.translate(0, 0, -(depth - bevel * 2) / 2);
+  return geo;
+}
+
+// Bottom edge from rear to front with semicircular arches over each wheel.
+function archedSill(x0, x1, sillY, arches) {
+  const pts = [[x0, sillY + 0.02]];
+  for (const { x, r, cy } of arches) {
+    pts.push([x - r, sillY]);
+    for (let k = 1; k < 7; k++) {
+      const a = Math.PI - (k / 7) * Math.PI;
+      pts.push([x + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+    pts.push([x + r, sillY]);
+  }
+  pts.push([x1, sillY + 0.02]);
+  return pts;
+}
+
+// Thin slab lying on a side (z = +-), or along a slope, as a box between two
+// profile points (x,y) at a given lateral z.
+function sideStrip(B, ax, ay, bx, by, z, thick, depth, color, group = G_BODY) {
+  const len = Math.hypot(bx - ax, by - ay);
+  B.box((ax + bx) / 2, (ay + by) / 2, z, len, thick, depth, color, group, 0, 0, Math.atan2(by - ay, bx - ax));
+}
+
+function archLiners(B, arches, W) {
+  for (const { x, r, cy } of arches) {
+    const geo = new THREE.CylinderGeometry(r - 0.035, r - 0.035, W - 0.16, 8, 1, true, Math.PI / 2, Math.PI);
+    geo.rotateX(Math.PI / 2);
+    geo.scale(1, 1, -1);
+    B.geo(geo, composeMatrix(x, cy, 0), 0x151516);
+  }
+}
+
+// --- cars -------------------------------------------------------------------------
+
+// Side profile keyed off half-length. y values in metres.
+function carProfile(type, hl) {
+  switch (type) {
+    case 'sedan': return { nose: 0.6, hood: 0.84, belt: 0.95, roof: 1.45, xA: hl - 1.3, xB: hl - 2.0, xC: -hl + 1.35, xD: -hl + 0.8, deck: 0.98, tail: 0.8, fw: hl - 0.85, rw: -hl + 0.95 };
+    case 'wagon': return { nose: 0.6, hood: 0.85, belt: 0.95, roof: 1.5, xA: hl - 1.25, xB: hl - 1.95, xC: -hl + 0.3, xD: -hl + 0.1, deck: 0.98, tail: 0.92, fw: hl - 0.9, rw: -hl + 1.0 };
+    case 'sport': return { nose: 0.45, hood: 0.7, belt: 0.82, roof: 1.25, xA: hl - 1.5, xB: hl - 2.2, xC: -hl + 1.25, xD: -hl + 0.35, deck: 0.86, tail: 0.74, fw: hl - 0.9, rw: -hl + 0.95 };
+    case 'escort': return { nose: 0.7, hood: 0.82, belt: 0.9, roof: 1.38, xA: hl - 1.05, xB: hl - 1.6, xC: -hl + 0.55, xD: -hl + 0.15, deck: 0.94, tail: 0.9, fw: hl - 0.75, rw: -hl + 0.75, boxy: true };
+    case 'van': return { nose: 0.85, hood: 1.05, belt: 1.08, roof: 2.08, xA: hl - 0.45, xB: hl - 1.1, xC: -hl + 0.04, xD: -hl + 0.02, deck: 2.08, tail: 2.02, fw: hl - 0.8, rw: -hl + 1.05, van: true };
+    default: return { nose: 0.58, hood: 0.82, belt: 0.93, roof: 1.47, xA: hl - 1.0, xB: hl - 1.75, xC: -hl + 0.5, xD: -hl + 0.12, deck: 0.98, tail: 0.94, fw: hl - 0.75, rw: -hl + 0.7 };
+  }
+}
+
+function buildCarGeometry(type, L, W, paint, opts) {
+  const hl = L / 2, hw = W / 2;
+  const P = carProfile(type, hl);
+  const B = new GeoBuilder(3);
+  const r = opts.wheelR;
+  const R = r + 0.09;
+  const arches = [{ x: P.rw, r: R, cy: r }, { x: P.fw, r: R, cy: r }];
+  const sill = 0.3;
+
+  const top = P.van
+    ? [[hl, P.nose], [hl - 0.12, P.hood], [P.xA, P.belt], [P.xB, P.roof - 0.12], [P.xB - 0.3, P.roof], [-hl + 0.06, P.roof], [-hl, P.roof - 0.06]]
+    : [[hl, P.nose], [hl - (P.boxy ? 0.05 : 0.14), P.hood], [P.xA, P.belt], [P.xD, P.belt], [-hl + (P.boxy ? 0.04 : 0.1), P.deck], [-hl, P.tail]];
+  const outline = [...top, [-hl, sill + 0.08], ...archedSill(-hl, hl, sill, arches), [hl, sill + 0.08]];
+  B.geo(extrudeProfile(outline, W, P.boxy ? 0.025 : 0.05), null, paint);
+  archLiners(B, arches, W);
+
+  if (P.van) {
+    sideStrip(B, P.xA + 0.02, P.belt + 0.03, P.xB + 0.02, P.roof - 0.13, 0, 0.02, W * 0.86, GLASS, G_GLASS);
+    for (const s of [1, -1]) {
+      B.quadOut([P.xA - 0.08, P.belt + 0.08, s * (hw + 0.005)], [P.xB - 0.05, P.roof - 0.2, s * (hw + 0.005)], [P.xB - 0.75, P.roof - 0.2, s * (hw + 0.005)], [P.xB - 0.75, P.belt + 0.08, s * (hw + 0.005)], [0, 0, s], GLASS, G_GLASS);
+      sideStrip(B, P.xB - 0.8, P.belt + 0.05, P.xB - 0.8, P.roof - 0.15, s * (hw + 0.006), 0.05, 0.01, TRIM);
+      sideStrip(B, -hl + 1.6, 1.0, -hl + 1.6, P.roof - 0.1, s * (hw + 0.004), 0.015, 0.01, shadeHex(paint, 0.7));
+    }
+    B.box(-hl - 0.004, (P.belt + P.roof) / 2 + 0.2, 0, 0.012, 0.5, W * 0.06, TRIM);
+    for (const s of [1, -1]) B.box(-hl - 0.004, P.roof - 0.4, s * hw * 0.5, 0.012, 0.42, hw * 0.75, GLASS, G_GLASS);
+  } else {
+    const gh = [[P.xA + 0.03, P.belt - 0.03], [P.xB, P.roof - 0.07], [P.xC, P.roof - 0.07], [P.xD + 0.03, P.belt - 0.03]];
+    B.geo(extrudeProfile(gh, W * 0.84, 0.03), null, GLASS, G_GLASS);
+    const roofPts = [[P.xB + 0.07, P.roof - 0.09], [P.xB - 0.04, P.roof], [P.xC + 0.04, P.roof], [P.xC - 0.07, P.roof - 0.09]];
+    B.geo(extrudeProfile(roofPts, W * 0.87, 0.025), null, paint);
+    const pz = W * 0.42;
+    for (const s of [1, -1]) {
+      sideStrip(B, P.xA + 0.02, P.belt - 0.01, P.xB + 0.02, P.roof - 0.05, s * pz, 0.07, 0.05, paint);
+      sideStrip(B, P.xC - 0.02, P.roof - 0.05, P.xD, P.belt - 0.01, s * pz, type === 'sedan' || type === 'sport' ? 0.09 : 0.16, 0.05, paint);
+      const bx = (P.xB + P.xC) / 2 + 0.15;
+      sideStrip(B, bx, P.belt, bx - 0.06, P.roof - 0.06, s * (pz + 0.005), 0.07, 0.04, TRIM);
+      sideStrip(B, P.xA + 0.02, P.belt + 0.005, P.xD, P.belt + 0.005, s * (pz + 0.01), 0.025, 0.03, TRIM);
+    }
+  }
+
+  const bumper = P.boxy ? CHROME : 0x2a2b2d;
+  B.box(hl + 0.02, 0.38, 0, 0.12, 0.14, W - 0.04, bumper);
+  B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
+  B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM);
+  B.box(hl + 0.085, 0.38, 0, 0.012, 0.1, 0.48, PLATE);
+  B.box(-hl - 0.008, P.van ? 0.62 : Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
+  const lampY = P.nose - 0.06;
+  for (const s of [1, -1]) {
+    B.box(hl + 0.006, lampY, s * (hw - 0.26), 0.03, P.boxy ? 0.14 : 0.1, 0.3, HEADLAMP, G_LAMP);
+    B.box(hl + 0.006, lampY - (P.boxy ? 0.1 : 0.09), s * (hw - 0.1), 0.03, 0.05, 0.1, INDICATOR, G_LAMP);
+    const tailY = P.van ? 0.95 : P.tail - 0.1;
+    B.box(-hl - 0.006, tailY, s * (hw - 0.18), 0.03, P.van ? 0.3 : 0.12, P.van ? 0.14 : 0.3, TAIL, G_LAMP);
+    B.box((P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM);
+    const mx = P.van ? P.xA - 0.12 : P.xA - 0.08;
+    B.box(mx, P.belt + 0.1, s * (hw + 0.08), 0.1, 0.09, 0.14, paint);
+    B.box(mx + 0.02, P.belt + 0.05, s * (hw + 0.02), 0.05, 0.04, 0.06, TRIM);
+    if (!P.van) {
+      for (const dx of [P.xA - 0.04, (P.xB + P.xC) / 2 + 0.15]) B.box(dx, (sill + P.belt) / 2 + 0.1, s * (hw + 0.003), 0.012, P.belt - sill - 0.25, 0.01, shadeHex(paint, 0.6));
+      B.box((P.xB + P.xC) / 2 + 0.05, P.belt - 0.08, s * (hw + 0.006), 0.12, 0.025, 0.012, shadeHex(paint, 0.7));
+    }
+  }
+
+  if (opts.police) {
+    for (const s of [1, -1]) {
+      const z = s * (hw + 0.007);
+      B.box(0, 0.84, z, L - 0.3, 0.13, 0.012, 0x1f3f8f);
+      B.box(0, 0.755, z, L - 0.3, 0.025, 0.012, 0xd9772b);
+    }
+    B.box((P.xB + P.xC) / 2, P.roof + 0.05, 0, 0.3, 0.07, W * 0.72, TRIM);
+  }
+  if (type === 'sport') {
+    B.box(-hl + 0.12, P.deck + 0.1, 0, 0.18, 0.03, W * 0.84, paint);
+    for (const s of [1, -1]) B.box(-hl + 0.14, P.deck + 0.05, s * W * 0.34, 0.06, 0.08, 0.04, TRIM);
+  }
+  if (type === 'wagon' && !opts.police) {
+    for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.roof + 0.03, s * W * 0.36, (P.xB - P.xC) * 0.8, 0.04, 0.04, TRIM);
+  }
+  return B.build();
+}
+
+function shadeHex(hex, f) {
+  const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * f));
+  const g = Math.min(255, Math.round(((hex >> 8) & 0xff) * f));
+  const b = Math.min(255, Math.round((hex & 0xff) * f));
+  return (r << 16) | (g << 8) | b;
+}
+
+function assembleCar(type, L, W, paint, { police = false, wrecked = false, wheelR = WHEEL_R } = {}) {
+  const color = wrecked ? WRECKED_COLOR : paint;
+  const geo = cached(`car|${type}|${L}|${W}|${color}|${police}`, () => buildCarGeometry(type, L, W, color, { police, wheelR }));
+  const mats = vehicleMaterials();
   const group = new THREE.Group();
-  group.add(new THREE.Mesh(geometry, material));
-  group.add(buildOutline(geometry, outlineThickness));
+  group.add(new THREE.Mesh(geo, mats));
+  const P = carProfile(type, L / 2);
+  const wgeo = carWheelGeometry(wheelR, WHEEL_W);
+  const wheels = [];
+  for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - WHEEL_W / 2 - 0.04), wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = wheelR;
+  if (police) {
+    const barY = P.roof + 0.14;
+    const lamps = [];
+    for (const s of [1, -1]) {
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, W * 0.3), lampMaterial(0x2f6bff, 0.25));
+      lamp.position.set((P.xB + P.xC) / 2, barY, s * W * 0.2);
+      group.add(lamp);
+      lamps.push(lamp);
+    }
+    group.userData.policeLamps = lamps;
+  }
   return group;
 }
 
-// CylinderGeometry's default axis is Y, so a bare wheel lies flat like a
-// coin (round face up). Rotating it about X (not Z) swings that round face
-// into the X-Y plane with the thin axle running along Z, which is what
-// makes it read as a circle from the side (Z) instead of from the front/
-// back (X) - confirmed with a throwaway raycast-silhouette check.
-// Two-tone tire+chrome-hub wheel - still just a Group like before, so every
-// existing `.position.set`/`.scale.setScalar` call site keeps working. The
-// rotation.x that used to sit on the bare tire/hub meshes now sits on their
-// outlined wrapper groups instead, so the outline follows the same tilt.
-function wheel() {
-  const group = new THREE.Group();
-  const tire = outlinedMesh(new THREE.CylinderGeometry(WHEEL_R, WHEEL_R, WHEEL_W, 12), tireMaterial(), 0.1);
-  tire.rotation.x = Math.PI / 2;
-  group.add(tire);
-  const hub = outlinedMesh(new THREE.CylinderGeometry(WHEEL_R * 0.55, WHEEL_R * 0.55, WHEEL_W + 0.03, 10), chromeMaterial(), 0.1);
-  hub.rotation.x = Math.PI / 2;
-  group.add(hub);
-  return group;
+function carType(v) {
+  if (v.isPolice) return 'wagon';
+  const n = v.model.name;
+  return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' ? n : 'hatch';
 }
-
-// Two-tone rim+tire wheel for bikes/scooters - a dark tire cylinder with a
-// slightly smaller chrome rim nested inside it, seen edge-on.
-function bikeWheel(radius) {
-  const group = new THREE.Group();
-  const tire = outlinedMesh(new THREE.CylinderGeometry(radius, radius, 0.05, 12), tireMaterial(), 0.15);
-  tire.rotation.x = Math.PI / 2;
-  group.add(tire);
-  const rim = outlinedMesh(new THREE.CylinderGeometry(radius * 0.6, radius * 0.6, 0.07, 8), chromeMaterial(), 0.15);
-  rim.rotation.x = Math.PI / 2;
-  group.add(rim);
-  return group;
-}
-
-// A thin outlined box stretched and angled between two points in the local
-// X-Y (side profile) plane - used to build bike/scooter frame tubes without
-// needing a dedicated tube geometry.
-function tubeBetween(ax, ay, bx, by, thickness, color, wrecked) {
-  const len = Math.hypot(bx - ax, by - ay) || 0.01;
-  const group = outlinedMesh(new THREE.BoxGeometry(len, thickness, thickness), paintMaterial(color, wrecked), 0.2);
-  group.position.set((ax + bx) / 2, (ay + by) / 2, 0);
-  group.rotation.z = Math.atan2(by - ay, bx - ax);
-  return group;
-}
-
-function wheelArch(x, y, wid) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.26, wid + 0.08), plasticMaterial(HABBO_PALETTE.black));
-  m.position.set(x, y, 0);
-  return m;
-}
-
-// Small side mirror (stalk + head) in local space, pointing outward along
-// +/-Z per `side` (1 or -1) - the caller positions the whole group at the
-// mount point on the body (roughly the base of the windshield).
-function buildMirror(bodyColor, side, wrecked) {
-  const group = new THREE.Group();
-  const stalk = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.12), plasticMaterial(HABBO_PALETTE.black));
-  stalk.position.set(0, 0, side * 0.06);
-  group.add(stalk);
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.1, 0.07), paintMaterial(bodyColor, wrecked));
-  head.position.set(0.02, 0.01, side * 0.15);
-  group.add(head);
-  return group;
-}
-
-// Crouched/standing rider seen from the side: outlined capsule torso leaned
-// toward the front wheel plus an outlined head, deliberately not the full
-// standing pedestrian mesh. torsoY is an absolute height (in the vehicle's
-// own local space) for the torso centre, so callers can stand the rider on
-// whatever surface the vehicle actually offers (bike seat vs. scooter deck)
-// instead of always anchoring it to y=0; lean controls the forward crouch (a
-// scooter rider stands more upright than a cyclist); sizeMul scales the
-// whole rider so it still reads clearly next to a small vehicle.
-function buildRiderMesh(shirt, torsoY = 0.62, lean = -0.5, sizeMul = 1) {
-  const group = new THREE.Group();
-  const torso = outlinedMesh(new THREE.CapsuleGeometry(0.2 * sizeMul, 0.42 * sizeMul, 2, 5), habboMaterial(shirt || HABBO_PALETTE.roofBlue), 0.06);
-  torso.rotation.z = lean;
-  torso.position.set(0.05 * sizeMul, torsoY, 0);
-  group.add(torso);
-  const head = outlinedMesh(new THREE.SphereGeometry(0.15 * sizeMul, 7, 6), habboMaterial(HABBO_PALETTE.woodLight), 0.08);
-  head.position.set(0.28 * sizeMul, torsoY + 0.3 * sizeMul, 0);
-  group.add(head);
-  return group;
-}
-
-function buildLightBar(wid, y) {
-  const group = new THREE.Group();
-  const half = wid / 2 - 0.08;
-  const blue = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, half), lampMaterial(0x2f6bff, 0.9));
-  blue.position.set(0.05, y, -half / 2);
-  group.add(blue);
-  const red = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, half), lampMaterial(HABBO_PALETTE.brickRed, 0.9));
-  red.position.set(0.05, y, half / 2);
-  group.add(red);
-  group.userData.lamps = [blue, red];
-  return group;
-}
-
-// --- regular car ---------------------------------------------------------
 
 function buildCarMesh(v) {
-  const group = new THREE.Group();
-  const len = v.model.len, wid = v.model.wid;
-  const hl = len / 2, hw = wid / 2;
-  const bodyColor = v.wrecked ? WRECKED_COLOR : (v.model.color || HABBO_PALETTE.metalGrey);
-
-  const chassisH = 0.7;
-  const chassisY = WHEEL_R * 0.55 + chassisH / 2;
-  const chassis = outlinedMesh(new THREE.BoxGeometry(len * 0.94, chassisH, wid), paintMaterial(bodyColor, v.wrecked));
-  chassis.position.y = chassisY;
-  group.add(chassis);
-
-  group.add(wheelArch(hl * 0.55, chassisY - chassisH / 2, wid));
-  group.add(wheelArch(-hl * 0.6, chassisY - chassisH / 2, wid));
-
-  const cabinLen = len * 0.48, cabinH = 0.6;
-  const cabinTopY = chassisY + chassisH / 2 + cabinH - 0.06;
-  const cabinX = hl * 0.02;
-  const cabinY = cabinTopY - cabinH / 2;
-  const cabin = outlinedMesh(new THREE.BoxGeometry(cabinLen, cabinH, wid * 0.88), glassMaterial(SIDE_GLASS_COLOR, SIDE_GLASS_OPACITY, v.wrecked));
-  cabin.position.set(cabinX, cabinY, 0);
-  group.add(cabin);
-
-  // windshield: a lighter, more see-through slab set into the very front of
-  // the cabin box - the cheap way to read "clear windshield" vs "tinted
-  // side glass" without modelling an actual angled A-pillar
-  const wsLen = cabinLen * 0.24;
-  const windshield = outlinedMesh(new THREE.BoxGeometry(wsLen, cabinH * 0.94, wid * 0.86), glassMaterial(WINDSHIELD_COLOR, WINDSHIELD_OPACITY, v.wrecked));
-  windshield.position.set(cabinX + cabinLen / 2 - wsLen / 2 + 0.01, cabinY, 0);
-  group.add(windshield);
-
-  const wheels = [];
-  for (const ax of [hl * 0.62, -hl * 0.62]) {
-    for (const sz of [hw - 0.05, -(hw - 0.05)]) {
-      const w = wheel();
-      w.position.set(ax, WHEEL_R, sz);
-      group.add(w);
-      wheels.push(w);
-    }
-  }
-  group.userData.wheels = wheels;
-  group.userData.wheelRadius = WHEEL_R;
-
-  const lit = v.wrecked ? 0 : 0.3;
-  for (const sz of [hw - 0.15, -(hw - 0.15)]) {
-    const inboardZ = sz > 0 ? sz - 0.09 : sz + 0.09;
-    const front = buildLamp(HABBO_PALETTE.white, 0.06, 0.14, 0.22, lit);
-    front.position.set(hl * 0.97, chassisY, sz);
-    group.add(front);
-    const frontAccent = buildLamp(HABBO_PALETTE.wallYellow, 0.05, 0.08, 0.08, lit * 0.8);
-    frontAccent.position.set(hl * 0.97, chassisY - 0.02, inboardZ);
-    group.add(frontAccent);
-
-    const rear = buildLamp(HABBO_PALETTE.brickRed, 0.05, 0.12, 0.16, lit * 0.7);
-    rear.position.set(-hl * 0.97, chassisY, sz);
-    group.add(rear);
-    const rearAccent = buildLamp(HABBO_PALETTE.brickOrange, 0.045, 0.09, 0.06, lit * 0.8);
-    rearAccent.position.set(-hl * 0.97, chassisY, inboardZ);
-    group.add(rearAccent);
-  }
-
-  // Sport model gets a small rear spoiler - the one detail that reads at a
-  // glance without adding real geometry cost.
-  if (v.model.name === 'sport') {
-    const spoiler = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, wid * 0.8), paintMaterial(bodyColor, v.wrecked));
-    spoiler.position.set(-hl * 0.88, cabinTopY + 0.03, 0);
-    group.add(spoiler);
-  }
-
-  // side mirrors at the base of the windshield - cheap 2-piece detail every
-  // hatch/sedan/wagon/van silhouette was otherwise missing entirely
-  for (const side of [1, -1]) {
-    const mirror = buildMirror(bodyColor, side, v.wrecked);
-    mirror.position.set(cabinX + cabinLen * 0.28, cabinY + cabinH * 0.1, side * (hw + 0.02));
-    group.add(mirror);
-  }
-
-  if (v.isPolice) {
-    const bar = buildLightBar(wid, cabinTopY + 0.08);
-    group.add(bar);
-    group.userData.policeLamps = bar.userData.lamps;
-  }
-
-  return group;
+  const police = !!v.isPolice;
+  const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
+  return assembleCar(carType(v), v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR: v.model.name === 'van' ? 0.34 : WHEEL_R });
 }
 
-// --- Ford Escort hero car -------------------------------------------------
-
 function buildFordEscortGroup(color, len = HERO_LEN, wid = HERO_WID, wrecked = false) {
-  const group = new THREE.Group();
-  const hl = len / 2, hw = wid / 2;
-  const bodyColor = wrecked ? WRECKED_COLOR : (color ?? HABBO_PALETTE.brickRed);
-
-  const chassisH = 0.82;
-  const chassisY = WHEEL_R * 0.6 + chassisH / 2;
-  const chassis = outlinedMesh(new THREE.BoxGeometry(len * 0.98, chassisH, wid), heroPaintMaterial(bodyColor, wrecked));
-  chassis.position.y = chassisY;
-  group.add(chassis);
-
-  group.add(wheelArch(hl * 0.62, chassisY - chassisH / 2, wid));
-  group.add(wheelArch(-hl * 0.66, chassisY - chassisH / 2, wid));
-
-  // Boxier, more upright greenhouse than the generic car, and it eats up
-  // more of the total length - shorter front/rear overhangs, per the brief.
-  // Width is closer to the full chassis (0.94 vs. the generic car's 0.88)
-  // so the slab-sided retro silhouette reads clearly even though this
-  // model is itself narrower than every generic car variant.
-  const cabinLen = len * 0.62, cabinH = 0.58;
-  const cabinY = chassisY + chassisH / 2 + cabinH / 2 - 0.05;
-  const cabin = outlinedMesh(new THREE.BoxGeometry(cabinLen, cabinH, wid * 0.94), glassMaterial(SIDE_GLASS_COLOR, SIDE_GLASS_OPACITY, wrecked));
-  cabin.position.set(0, cabinY, 0);
-  group.add(cabin);
-
-  const wsLen = cabinLen * 0.26;
-  const windshield = outlinedMesh(new THREE.BoxGeometry(wsLen, cabinH * 0.94, wid * 0.9), glassMaterial(WINDSHIELD_COLOR, WINDSHIELD_OPACITY, wrecked));
-  windshield.position.set(cabinLen / 2 - wsLen / 2 + 0.01, cabinY, 0);
-  group.add(windshield);
-
-  const wheels = [];
-  for (const ax of [hl * 0.62, -hl * 0.62]) {
-    for (const sz of [hw - 0.05, -(hw - 0.05)]) {
-      const w = wheel();
-      w.position.set(ax, WHEEL_R, sz);
-      group.add(w);
-      wheels.push(w);
-    }
-  }
-  group.userData.wheels = wheels;
-  group.userData.wheelRadius = WHEEL_R;
-
-  const lit = wrecked ? 0 : 0.35;
-  for (const sz of [hw * 0.55, -hw * 0.55]) {
-    const headlight = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.06, 10), lampMaterial(HABBO_PALETTE.white, lit));
-    headlight.rotation.z = Math.PI / 2;
-    headlight.position.set(hl * 0.99, chassisY + 0.02, sz);
-    group.add(headlight);
-
-    // chrome bezel ring, set slightly back from the lens so the lamp itself
-    // still reads as the frontmost surface
-    const bezel = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.145, 0.03, 12), chromeMaterial(HABBO_PALETTE.metalGrey, wrecked));
-    bezel.rotation.z = Math.PI / 2;
-    bezel.position.set(hl * 0.965, chassisY + 0.02, sz);
-    group.add(bezel);
-  }
-
-  const taillightL = buildLamp(HABBO_PALETTE.brickRed, 0.05, 0.14, wid * 0.34, lit * 0.7);
-  taillightL.position.set(-hl * 0.99, chassisY + 0.05, hw * 0.42);
-  group.add(taillightL);
-  const taillightR = buildLamp(HABBO_PALETTE.brickRed, 0.05, 0.14, wid * 0.34, lit * 0.7);
-  taillightR.position.set(-hl * 0.99, chassisY + 0.05, -hw * 0.42);
-  group.add(taillightR);
-  const turnSignal = buildLamp(HABBO_PALETTE.brickOrange, 0.045, 0.1, wid * 0.16, lit * 0.8);
-  turnSignal.position.set(-hl * 0.99, chassisY + 0.05, 0);
-  group.add(turnSignal);
-
-  // Chrome front/rear bumpers - the single most recognisable period detail
-  // that separates this silhouette from every generic bodystyle in the file.
-  const bumperY = chassisY - chassisH * 0.34;
-  const frontBumper = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.13, wid * 0.92), chromeMaterial(HABBO_PALETTE.metalGrey, wrecked));
-  frontBumper.position.set(hl * 0.98, bumperY, 0);
-  group.add(frontBumper);
-  const rearBumper = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.13, wid * 0.92), chromeMaterial(HABBO_PALETTE.metalGrey, wrecked));
-  rearBumper.position.set(-hl * 0.98, bumperY, 0);
-  group.add(rearBumper);
-
-  for (const side of [1, -1]) {
-    const mirror = buildMirror(bodyColor, side, wrecked);
-    mirror.position.set(cabinLen * 0.34, cabinY + cabinH * 0.05, side * (hw + 0.02));
-    group.add(mirror);
-  }
-
-  return group;
+  return assembleCar('escort', len, wid, toHex(color, HABBO_PALETTE.brickRed), { wrecked, wheelR: 0.3 });
 }
 
 export function buildFordEscortMesh(color) {
   return buildFordEscortGroup(color);
 }
 
-// --- bike / scooter --------------------------------------------------------
+// --- bike / scooter ----------------------------------------------------------------
+
+function riderFor(v, shirtHex) {
+  const skins = [0xe8b48a, 0xcaa06f, 0x8a5a3c, 0x5c3d28, 0xf0c9a0];
+  const seed = (v.id || 0) * 3.7 + 1;
+  return buildPersonMesh(shirtHex, skins[Math.floor(hash2(seed, 2.1) * skins.length)], { seed });
+}
+
+function poseRider(rider, legBase, armAngle, lean) {
+  const ud = rider.userData;
+  rider.rotation.z = lean;
+  ud.armL.rotation.z = armAngle;
+  ud.armR.rotation.z = armAngle;
+  ud.legL.rotation.z = legBase;
+  ud.legR.rotation.z = legBase;
+}
+
+function buildBikeGeometry(color, fat, stepThrough) {
+  return cached(`bike|${color}|${fat}|${stepThrough}`, () => {
+    const B = new GeoBuilder(3);
+    const r = fat ? 0.3 : 0.34;
+    const wb = fat ? 0.52 : 0.56;
+    const t = fat ? 0.028 : 0.018;
+    const F = [wb, r, 0], R = [-wb, r, 0];
+    const BB = [-0.05, 0.3, 0];
+    const S = [-0.24, fat ? 0.72 : 0.84, 0];
+    const H1 = [0.4, fat ? 0.82 : 0.93, 0], H0 = [0.45, fat ? 0.66 : 0.72, 0];
+    const tube = (a, b, rr = t, c = color) => B.geo(tubeGeometry(a, b, rr, rr, 5), null, c);
+    tube(H0, H1, t * 1.3);
+    tube(S, BB);
+    for (const s of [1, -1]) {
+      tube([BB[0], BB[1], s * 0.04], [R[0], R[1], s * 0.05], t * 0.8);
+      tube([S[0], S[1], s * 0.02], [R[0], R[1], s * 0.05], t * 0.8);
+      tube([H0[0], H0[1], s * 0.04], [F[0], F[1], s * 0.05], t * 0.85);
+    }
+    if (stepThrough && !fat) {
+      tube([0.42, 0.86, 0], [0.05, 0.4, 0]);
+      tube([0.05, 0.4, 0], BB);
+      tube([0.44, 0.78, 0], [0.12, 0.36, 0], t * 0.8);
+      tube([0.12, 0.36, 0], [-0.02, 0.29, 0], t * 0.8);
+    } else {
+      tube(H1, [S[0] + 0.02, S[1] - 0.02, 0]);
+      tube(H0, BB, t * 1.1);
+    }
+    const saddle = [S[0] - 0.03, S[1] + (fat ? 0.2 : 0.14), 0];
+    tube(S, saddle, 0.013, 0x8a8e92);
+    B.box(saddle[0] - 0.02, saddle[1] + 0.03, 0, 0.27, 0.06, 0.16, 0x2a1d14);
+    const stemTop = [H1[0] - 0.02, H1[1] + 0.14, 0];
+    tube(H1, stemTop, 0.014, 0x8a8e92);
+    for (const s of [1, -1]) {
+      const grip = [stemTop[0] - 0.2, stemTop[1] - 0.02, s * 0.28];
+      tube(stemTop, [stemTop[0] - 0.02, stemTop[1], s * 0.12], 0.012, 0x8a8e92);
+      tube([stemTop[0] - 0.02, stemTop[1], s * 0.12], grip, 0.012, 0x8a8e92);
+      tube(grip, [grip[0] - 0.1, grip[1] - 0.01, grip[2]], 0.018, 0x1b1b1c);
+    }
+    for (const [x] of [F, R]) {
+      const guard = new THREE.TorusGeometry(r + 0.03, fat ? 0.05 : 0.028, 3, 9, Math.PI * 0.85);
+      guard.scale(1, 1, fat ? 1.2 : 1);
+      B.geo(guard, composeMatrix(x, r, 0, 0, 0, Math.PI * 0.08), color);
+    }
+    if (!fat) {
+      B.box(-0.33, 0.44, 0.075, 0.62, 0.13, 0.03, color, 0, 0, 0, 0.07);
+      B.box(-0.5, 0.78, 0, 0.44, 0.02, 0.15, 0x2a2a2b);
+      for (const s of [1, -1]) tube([-0.66, 0.78, s * 0.07], [R[0], R[1], s * 0.06], 0.01, 0x2a2a2b);
+      B.geo(new THREE.CylinderGeometry(0.045, 0.035, 0.07, 7).rotateZ(Math.PI / 2), composeMatrix(H0[0] + 0.07, H0[1] + 0.04, 0), 0x2a2a2b);
+      B.box(H0[0] + 0.11, H0[1] + 0.04, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
+      B.box(-0.73, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
+    }
+    for (const s of [1, -1]) B.box(BB[0], BB[1], s * 0.1, 0.1, 0.02, 0.08, 0x2a2a2b);
+    return B.build();
+  });
+}
 
 function buildBikeMesh(v) {
   const group = new THREE.Group();
-  const hl = v.model.len / 2;
-  const wheelR = v.model.fat ? hl * 0.34 : hl * 0.22;
-  const seatY = wheelR + 0.42;
-  const barY = wheelR + 0.38;
-  const bbX = -hl * 0.15, bbY = wheelR;
-  const color = v.model.color || HABBO_PALETTE.black;
-
-  // diamond frame: down tube, seat tube, top tube
-  group.add(tubeBetween(bbX, bbY, hl * 0.55, barY, 0.05, color, v.wrecked));
-  group.add(tubeBetween(bbX, bbY, -hl * 0.55, seatY, 0.05, color, v.wrecked));
-  group.add(tubeBetween(-hl * 0.55, seatY, hl * 0.55, barY, 0.05, color, v.wrecked));
-
+  const fat = !!v.model.fat;
+  const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
+  const stepThrough = hash2(v.id || 0, 4.2) < 0.5;
+  const mats = vehicleMaterials();
+  group.add(new THREE.Mesh(buildBikeGeometry(color, fat, stepThrough), mats));
+  const r = fat ? 0.3 : 0.34;
+  const wb = fat ? 0.52 : 0.56;
+  const wgeo = bikeWheelGeometry(r, fat ? 0.07 : 0.022);
   const wheels = [];
-  for (const sx of [hl * 0.85, -hl * 0.85]) {
-    const w = bikeWheel(wheelR);
-    w.position.set(sx, wheelR, 0);
-    group.add(w);
-    wheels.push(w);
-  }
+  addWheel(group, wgeo, mats[0], wb, r, 0, wheels);
+  addWheel(group, wgeo, mats[0], -wb, r, 0, wheels);
   group.userData.wheels = wheels;
-  group.userData.wheelRadius = wheelR;
+  group.userData.wheelRadius = r;
 
-  const rider = buildRiderMesh(v.model.rider, seatY);
-  rider.position.set(-hl * 0.2, 0, 0);
+  const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
+  const hipY = fat ? 0.93 : 1.02;
+  rider.position.set(fat ? -0.26 : -0.3, hipY - 0.93 * rider.scale.y, 0);
+  poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, -0.08);
   group.add(rider);
-
+  group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: fat ? 0.55 : 0.33, amp: 0.2 };
   return group;
+}
+
+function buildScooterGeometry(color) {
+  return cached(`step|${color}`, () => {
+    const B = new GeoBuilder(3);
+    B.box(-0.05, 0.13, 0, 0.72, 0.045, 0.16, color);
+    B.box(-0.05, 0.155, 0, 0.66, 0.008, 0.13, 0x2a2a2b);
+    B.geo(tubeGeometry([0.3, 0.13, 0], [0.42, 0.11, 0], 0.02, 0.02, 5), null, color);
+    B.geo(tubeGeometry([0.42, 0.11, 0], [0.36, 1.03, 0], 0.024, 0.02, 6), null, color);
+    B.geo(tubeGeometry([0.36, 1.03, -0.24], [0.36, 1.03, 0.24], 0.015, 0.015, 5), null, 0x2a2a2b);
+    for (const s of [1, -1]) B.geo(tubeGeometry([0.36, 1.03, s * 0.17], [0.36, 1.03, s * 0.25], 0.02, 0.02, 5), null, 0x1b1b1c);
+    B.box(0.405, 0.4, 0, 0.03, 0.05, 0.06, HEADLAMP, G_LAMP);
+    B.box(-0.42, 0.2, 0, 0.12, 0.02, 0.12, color, 0, 0, 0, 0.3);
+    B.box(-0.47, 0.22, 0, 0.012, 0.025, 0.06, TAIL, G_LAMP);
+    return B.build();
+  });
 }
 
 function buildScooterMesh(v) {
   const group = new THREE.Group();
-  const hl = v.model.len / 2;
-  const wheelR = hl * 0.28;
-  const deckY = wheelR + 0.05;
-  const colX = hl * 0.5;
-  const barY = wheelR + 0.55;
-  const color = v.model.color || HABBO_PALETTE.black;
-
-  group.add(tubeBetween(-hl * 0.75, wheelR, colX, deckY, 0.045, color, v.wrecked));
-  group.add(tubeBetween(colX, deckY, colX, barY, 0.05, color, v.wrecked));
-  group.add(tubeBetween(-hl * 0.2, deckY, colX, barY * 0.72, 0.03, color, v.wrecked));
-
+  const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
+  const mats = vehicleMaterials();
+  group.add(new THREE.Mesh(buildScooterGeometry(color), mats));
+  const r = 0.11;
+  const wgeo = bikeWheelGeometry(r, 0.035, false);
   const wheels = [];
-  for (const sx of [hl * 0.75, -hl * 0.75]) {
-    const w = bikeWheel(wheelR);
-    w.position.set(sx, wheelR, 0);
-    group.add(w);
-    wheels.push(w);
-  }
+  addWheel(group, wgeo, mats[0], 0.42, r, 0, wheels);
+  addWheel(group, wgeo, mats[0], -0.42, r, 0, wheels);
   group.userData.wheels = wheels;
-  group.userData.wheelRadius = wheelR;
-
-  // Standing scooter rider: raised so their feet land on the deck (not
-  // sunk to y=0 the way a bike-style torsoY of ~0.62 would leave them,
-  // since the deck itself sits well above ground here) and scaled up
-  // rather than down so a full-size adult clearly reads next to the small
-  // deck/frame instead of blending into it.
-  const rider = buildRiderMesh(v.model.rider, deckY + 0.56, -0.22, 1.15);
-  rider.position.set(colX - 0.2, 0, 0);
+  group.userData.wheelRadius = r;
+  const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
+  rider.position.set(-0.08, 0.155, 0);
+  poseRider(rider, 0, 0.66, -0.03);
+  rider.userData.legL.rotation.z = 0.12;
+  rider.userData.legR.rotation.z = -0.1;
   group.add(rider);
-
   return group;
 }
 
-// --- bus (articulated "harmonica") ---------------------------------------
-// Front unit is the vehicle's real pose; the rear unit hangs off a pivot at
-// the joint (userData.busRear) that scene3d swings every frame from the bus's
-// trail history, so the harmonica bends through corners.
+// --- bus (articulated "harmonica") ---------------------------------------------
+// Front unit is the vehicle's real pose; the rear unit hangs off a pivot at the
+// joint (userData.busRear) that scene3d swings from the bus's trail history.
 
 const BUS_JOINT_FRAC = 0.6;
 const BUS_JOINT_GAP = 0.2;
+const BUS_WHITE = 0xe9e9e4;
+const BUS_GREEN = 0x2f7d46;
+const BUS_LIME = 0x9cc24a;
+const BUS_ROOF = 3.0;
+const BUS_SILL = 0.32;
+const BUS_WHEEL_R = 0.5;
 
-function busWindowRow(x0, x1, hw, bodyH, bodyY, wrecked) {
-  const group = new THREE.Group();
-  const winY = bodyY + bodyH * 0.15;
-  const winH = bodyH * 0.34;
-  const span = x1 - x0;
-  if (span < 0.6) return group;
-  const count = Math.max(2, Math.round(span / 1.3));
-  const step = span / count;
-  for (const side of [hw + 0.01, -(hw + 0.01)]) {
-    for (let i = 0; i < count; i++) {
-      const win = outlinedMesh(new THREE.BoxGeometry(step * 0.72, winH, 0.04), glassMaterial(SIDE_GLASS_COLOR, SIDE_GLASS_OPACITY, wrecked), 0.05);
-      win.position.set(x0 + step * (i + 0.5), winY, side);
-      group.add(win);
-    }
+// One bus section from x0 (rear) to x1 (front); rounded roof edge at whichever
+// end is exposed. doorXs: door centre positions on the kerb (+Z) side.
+function spansBetween(x0, x1, arches, pad = 0.02) {
+  const out = [];
+  let a = x0;
+  for (const { x, r } of arches) {
+    if (x - r - pad > a) out.push([a, x - r - pad]);
+    a = Math.max(a, x + r + pad);
   }
-  return group;
+  if (x1 > a) out.push([a, x1]);
+  return out;
 }
 
-function busWheel(x, z, wheelR, wheels) {
-  const w = wheel();
-  w.scale.setScalar(wheelR / WHEEL_R);
-  w.position.set(x, wheelR, z);
-  wheels.push(w);
-  return w;
+function busSection(B, x0, x1, W, { front, rear, wheelXs, doorXs }) {
+  const hw = W / 2;
+  const R = BUS_WHEEL_R + 0.1;
+  const arches = wheelXs.slice().sort((a, b) => a - b).map((x) => ({ x, r: R, cy: BUS_WHEEL_R }));
+  const top = [[x1, BUS_SILL + 0.1]];
+  if (front) top.push([x1 + 0.03, 1.0], [x1, 2.7], [x1 - 0.25, BUS_ROOF]);
+  else top.push([x1, BUS_ROOF]);
+  if (rear) top.push([x0 + 0.25, BUS_ROOF], [x0, 2.75], [x0, BUS_SILL + 0.1]);
+  else top.push([x0, BUS_ROOF], [x0, BUS_SILL + 0.1]);
+  const outline = [...top, ...archedSill(x0, x1, BUS_SILL, arches)];
+  B.geo(extrudeProfile(outline, W, 0.06), null, BUS_WHITE);
+  archLiners(B, arches, W);
+
+  const zs = hw + 0.006;
+  const winY0 = 1.15, winY1 = 2.6;
+  const inner0 = x0 + (rear ? 0.35 : 0.1), inner1 = x1 - (front ? 0.3 : 0.1);
+  for (const s of [1, -1]) {
+    const z = s * zs;
+    for (const [a, b] of spansBetween(x0 + 0.03, x1 - 0.03, arches)) {
+      B.box((a + b) / 2, 0.55, z, b - a, 0.42, 0.012, BUS_GREEN);
+      B.box((a + b) / 2, 0.8, z, b - a, 0.07, 0.012, BUS_LIME);
+    }
+    B.box((inner0 + inner1) / 2, (winY0 + winY1) / 2, z, inner1 - inner0, winY1 - winY0, 0.012, GLASS, G_GLASS);
+    const n = Math.max(2, Math.round((inner1 - inner0) / 1.45));
+    for (let i = 0; i <= n; i++) {
+      const x = inner0 + ((inner1 - inner0) * i) / n;
+      B.box(x, (winY0 + winY1) / 2, s * (zs + 0.004), 0.09, winY1 - winY0 + 0.02, 0.01, TRIM);
+    }
+    B.box((inner0 + inner1) / 2, winY1 + 0.03, s * (zs + 0.004), inner1 - inner0, 0.05, 0.01, TRIM);
+    B.box((inner0 + inner1) / 2, winY0 - 0.02, s * (zs + 0.004), inner1 - inner0, 0.04, 0.01, TRIM);
+    if (s === 1) {
+      for (const dx of doorXs) {
+        B.box(dx, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.008), 1.25, winY1 - BUS_SILL - 0.05, 0.012, 0x3a4550, G_GLASS);
+        B.box(dx, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.05, winY1 - BUS_SILL - 0.05, 0.01, TRIM);
+        for (const e of [-0.64, 0.64]) B.box(dx + e, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.06, winY1 - BUS_SILL, 0.012, TRIM);
+      }
+    }
+  }
+  if (front) {
+    B.box(x1 + 0.035, 1.8, 0, 0.012, 1.55, W - 0.24, GLASS, G_GLASS);
+    B.box(x1 + 0.04, 2.8, 0, 0.012, 0.22, W * 0.7, 0x1b1b1c);
+    B.box(x1 + 0.046, 2.8, 0, 0.01, 0.13, W * 0.55, 0xf0b33a, G_LAMP);
+    B.box(x1 + 0.018, 0.6, 0, 0.012, 0.35, W - 0.1, BUS_GREEN);
+    for (const s of [1, -1]) {
+      B.box(x1 + 0.03, 0.62, s * (hw - 0.28), 0.02, 0.14, 0.34, HEADLAMP, G_LAMP);
+      B.box(x1 - 0.35, 2.35, s * (hw + 0.28), 0.08, 0.34, 0.12, TRIM);
+      B.box(x1 - 0.2, 2.55, s * (hw + 0.14), 0.05, 0.04, 0.3, TRIM);
+    }
+    B.box(x1 + 0.03, 0.47, 0, 0.012, 0.1, 0.48, PLATE);
+  }
+  if (rear) {
+    B.box(x0 - 0.035, 2.1, 0, 0.012, 0.9, W - 0.5, GLASS, G_GLASS);
+    B.box(x0 - 0.04, 0.95, 0, 0.012, 0.5, W - 0.6, 0x3a3b3d);
+    for (const s of [1, -1]) {
+      B.box(x0 - 0.045, 0.75, s * (hw - 0.25), 0.02, 0.35, 0.18, TAIL, G_LAMP);
+      B.box(x0 - 0.045, 1.0, s * (hw - 0.25), 0.02, 0.1, 0.18, INDICATOR, G_LAMP);
+    }
+    B.box(x0 - 0.06, 0.45, 0, 0.012, 0.1, 0.48, PLATE);
+  }
+  const podLen = Math.min(4, (x1 - x0) * 0.45);
+  B.box((x0 + x1) / 2 + (front ? 0.6 : -0.3), BUS_ROOF + 0.14, 0, podLen, 0.28, W * 0.72, 0xd6d6d0);
+  B.box((x0 + x1) / 2 + (front ? 0.6 : -0.3), BUS_ROOF + 0.29, 0, podLen - 0.3, 0.03, W * 0.6, 0xa9aaa6);
 }
 
 function buildBusMesh(v) {
   const group = new THREE.Group();
   const len = v.model.len, wid = v.model.wid;
-  const hl = len / 2, hw = wid / 2;
-  const wheelR = 0.42;
-  const bodyH = 2.6;
-  const bodyY = wheelR * 0.5 + bodyH / 2;
+  const hl = len / 2;
   const jointX = hl - len * BUS_JOINT_FRAC;
-  const bodyColor = v.wrecked ? WRECKED_COLOR : v.model.color;
-  const stripeColor = v.model.stripe || HABBO_PALETTE.wallMint;
-  const wheels = [];
-
-  // front unit: local x in [jointX + gap, hl]
   const frontLen = hl - jointX - BUS_JOINT_GAP;
   const frontX = hl - frontLen / 2;
-  const frontBody = outlinedMesh(new THREE.BoxGeometry(frontLen, bodyH, wid), paintMaterial(bodyColor, v.wrecked));
-  frontBody.position.set(frontX, bodyY, 0);
-  group.add(frontBody);
-  const frontStripe = new THREE.Mesh(new THREE.BoxGeometry(frontLen + 0.02, bodyH * 0.18, wid + 0.02), paintMaterial(stripeColor, v.wrecked));
-  frontStripe.position.set(frontX, bodyY - bodyH * 0.23, 0);
-  group.add(frontStripe);
+  const rearLen = jointX + hl - BUS_JOINT_GAP;
+  const rearX = -BUS_JOINT_GAP - rearLen / 2;
+  const x0f = jointX + BUS_JOINT_GAP;
+  const fwX = hl - 2.7, mwX = x0f + 1.0;
+  const rwX = -hl * 0.78 - jointX;
+  const key = `bus|${len}|${wid}|${!!v.wrecked}`;
+  const mats = vehicleMaterials();
 
-  const sign = new THREE.Mesh(new THREE.BoxGeometry(0.06, bodyH * 0.16, wid * 0.6), lampMaterial(v.model.accent || HABBO_PALETTE.white, v.wrecked ? 0 : 0.25));
-  sign.position.set(hl - 0.05, bodyY + bodyH * 0.34, 0);
-  group.add(sign);
-  group.add(busWindowRow(jointX + 0.35, hl - 0.5, hw, bodyH, bodyY, v.wrecked));
+  const frontGeo = cached(key + '|f', () => {
+    const B = new GeoBuilder(3);
+    busSection(B, x0f, hl, wid, { front: true, rear: false, wheelXs: [fwX, mwX], doorXs: [hl - 1.05, (fwX + mwX) / 2] });
+    const bel = new THREE.CylinderGeometry(wid / 2 * 0.96, wid / 2 * 0.96, BUS_ROOF - 0.45, 12, 1, true);
+    B.geo(bel, composeMatrix(jointX, (BUS_ROOF + 0.45) / 2, 0), 0x2a2a2c);
+    for (let i = 0; i < 3; i++) B.geo(new THREE.TorusGeometry(wid / 2 * 0.965, 0.025, 3, 12).rotateX(Math.PI / 2), composeMatrix(jointX, 0.9 + i * 0.75, 0), 0x3a3a3c);
+    return B.build();
+  });
+  group.add(new THREE.Mesh(frontGeo, mats));
 
-  // front windshield: a wider, lighter/clearer panel across the very front
-  // face - distinguishes "the driver can see through this" from the tinted
-  // side glazing busWindowRow builds
-  const windshield = outlinedMesh(new THREE.BoxGeometry(0.05, bodyH * 0.38, wid * 0.82), glassMaterial(WINDSHIELD_COLOR, WINDSHIELD_OPACITY, v.wrecked));
-  windshield.position.set(hl - 0.02, bodyY + bodyH * 0.14, 0);
-  group.add(windshield);
-
-  for (const ax of [hl * 0.72, jointX + 1.0]) {
-    for (const sz of [hw - 0.1, -(hw - 0.1)]) group.add(busWheel(ax, sz, wheelR, wheels));
-  }
-
-  // bellows: a round drum at the pivot so the gap stays closed at any bend
-  const joint = new THREE.Mesh(new THREE.CylinderGeometry(hw * 0.97, hw * 0.97, bodyH - 0.1, 10), plasticMaterial(HABBO_PALETTE.black));
-  joint.position.set(jointX, bodyY, 0);
-  group.add(joint);
-
-  // rear unit: pivot at the joint, geometry laid out along local -X
   const rear = new THREE.Group();
   rear.position.x = jointX;
   group.add(rear);
-  const rearLen = jointX + hl - BUS_JOINT_GAP;
-  const rearX = -BUS_JOINT_GAP - rearLen / 2;
-  const rearBody = outlinedMesh(new THREE.BoxGeometry(rearLen, bodyH, wid), paintMaterial(bodyColor, v.wrecked));
-  rearBody.position.set(rearX, bodyY, 0);
-  rear.add(rearBody);
-  const rearStripe = new THREE.Mesh(new THREE.BoxGeometry(rearLen + 0.02, bodyH * 0.18, wid + 0.02), paintMaterial(stripeColor, v.wrecked));
-  rearStripe.position.set(rearX, bodyY - bodyH * 0.23, 0);
-  rear.add(rearStripe);
-  rear.add(busWindowRow(-(jointX + hl) + 0.5, -0.35, hw, bodyH, bodyY, v.wrecked));
-  for (const sz of [hw - 0.1, -(hw - 0.1)]) rear.add(busWheel(-hl * 0.78 - jointX, sz, wheelR, wheels));
+  const rearGeo = cached(key + '|r', () => {
+    const B = new GeoBuilder(3);
+    busSection(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doorXs: [-BUS_JOINT_GAP - 1.2] });
+    return B.build();
+  });
+  rear.add(new THREE.Mesh(rearGeo, mats));
+
+  const wgeo = carWheelGeometry(BUS_WHEEL_R, 0.3);
+  const wheels = [];
+  const wz = wid / 2 - 0.2;
+  for (const x of [fwX, mwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * wz, wheels);
+  for (const s of [1, -1]) addWheel(rear, wgeo, mats[0], rwX, BUS_WHEEL_R, s * wz, wheels);
 
   group.userData.wheels = wheels;
-  group.userData.wheelRadius = wheelR;
+  group.userData.wheelRadius = BUS_WHEEL_R;
   group.userData.busRear = rear;
   group.userData.busSections = { frontLen, frontX, rearLen, rearX };
 
-  const lit = v.wrecked ? 0 : 0.3;
-  for (const sz of [hw - 0.25, -(hw - 0.25)]) {
-    const front = buildLamp(HABBO_PALETTE.white, 0.06, 0.22, 0.3, lit);
-    front.position.set(hl * 0.99, bodyY - bodyH * 0.32, sz);
-    group.add(front);
-
-    const tail = -hl * 0.99 - jointX;
-    const rearLamp = buildLamp(HABBO_PALETTE.brickRed, 0.06, 0.24, 0.3, lit * 0.7);
-    rearLamp.position.set(tail, bodyY - bodyH * 0.32, sz);
-    rear.add(rearLamp);
-    const rearAccent = buildLamp(HABBO_PALETTE.brickOrange, 0.05, 0.14, 0.12, lit * 0.8);
-    rearAccent.position.set(tail, bodyY - bodyH * 0.32, sz > 0 ? sz - 0.2 : sz + 0.2);
-    rear.add(rearAccent);
-  }
-
-  for (const side of [1, -1]) {
-    const mirror = buildMirror(bodyColor, side, v.wrecked);
-    mirror.scale.setScalar(1.6);
-    mirror.position.set(hl - 1.3, bodyY + bodyH * 0.22, side * (hw + 0.04));
-    group.add(mirror);
-  }
-
   if (v.isPolice) {
-    const bar = buildLightBar(wid, bodyY + bodyH / 2 + 0.08);
-    group.add(bar);
-    group.userData.policeLamps = bar.userData.lamps;
+    const lamps = [];
+    for (const s of [1, -1]) {
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.14, wid * 0.3), lampMaterial(0x2f6bff, 0.25));
+      lamp.position.set(hl - 1, BUS_ROOF + 0.1, s * wid * 0.2);
+      group.add(lamp);
+      lamps.push(lamp);
+    }
+    group.userData.policeLamps = lamps;
   }
-
   return group;
 }
 
@@ -594,7 +588,7 @@ export function setBusRearAngle(mesh, busAngle, rearAngle) {
   rear.rotation.y = -Math.max(-0.75, Math.min(0.75, d));
 }
 
-// Police light bar: alternating red/blue flash while chasing, dim otherwise.
+// Dutch police flash blue only: the two bar halves alternate while chasing.
 export function updatePoliceLamps(mesh, time, chasing) {
   const lamps = mesh.userData.policeLamps;
   if (!lamps) return;
@@ -604,85 +598,136 @@ export function updatePoliceLamps(mesh, time, chasing) {
     return;
   }
   const phase = (time * 3) % 1;
-  const blueOn = phase < 0.5 && (phase % 0.25) < 0.16;
-  const redOn = phase >= 0.5 && (phase % 0.25) < 0.16;
-  lamps[0].material.emissiveIntensity = blueOn ? 3 : 0.1;
-  lamps[1].material.emissiveIntensity = redOn ? 3 : 0.1;
+  const aOn = phase < 0.5 && (phase % 0.25) < 0.16;
+  const bOn = phase >= 0.5 && (phase % 0.25) < 0.16;
+  lamps[0].material.emissiveIntensity = aOn ? 3 : 0.1;
+  lamps[1].material.emissiveIntensity = bOn ? 3 : 0.1;
 }
 
-// --- boat ------------------------------------------------------------------
+// --- boat ---------------------------------------------------------------------
+// Lofted sloep hull: gunwale and chine outlines per station, pointed bow, flat
+// transom. The keel sits below y=0 (scene3d parks the group at water level).
 
-// Small gantry/radar-arch alternative to the mast, picked per-vehicle via
-// hash2(v.id, ...) so the fleet has variety without storing extra state.
-function buildRadarArch(hw) {
-  const group = new THREE.Group();
-  const postH = 0.75;
-  for (const sz of [hw * 0.4, -hw * 0.4]) {
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.04, postH, 0.04), plasticMaterial(HABBO_PALETTE.black));
-    post.position.set(0, postH / 2, sz);
-    group.add(post);
-  }
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, hw * 0.8 + 0.06), plasticMaterial(HABBO_PALETTE.black));
-  bar.position.set(0, postH, 0);
-  group.add(bar);
-  return group;
+function hullStations(L, W) {
+  const hl = L / 2;
+  const ts = [0, 0.14, 0.32, 0.52, 0.68, 0.8, 0.9, 1];
+  return ts.map((t) => {
+    const f = t < 0.55 ? 0.86 + 0.14 * Math.sin((t / 0.55) * Math.PI / 2) : Math.cos(((t - 0.55) / 0.45) * Math.PI / 2);
+    const x = -hl + t * L;
+    const hw = (W / 2) * Math.max(0, f);
+    const bowRise = Math.max(0, (t - 0.6) / 0.4);
+    return {
+      x, t, hw,
+      top: 0.5 + 0.22 * t * t,
+      chineW: hw * 0.72,
+      chine: -0.08 + 0.3 * bowRise * bowRise,
+      keel: -0.2 + 0.42 * bowRise * bowRise * bowRise,
+    };
+  });
+}
+
+function buildBoatGeometry(L, W, hull, trim, cabin, police) {
+  return cached(`boat|${L}|${W}|${hull}|${trim}|${cabin}|${police}`, () => {
+    const B = new GeoBuilder(3);
+    const st = hullStations(L, W);
+    const floorY = 0.14;
+    const WOOD = 0x9a7048, DECK = 0xb08658;
+    for (let i = 0; i < st.length - 1; i++) {
+      const a = st[i], b = st[i + 1];
+      for (const s of [1, -1]) {
+        const out = [0, 0, s];
+        const aT = [a.x, a.top, s * a.hw], bT = [b.x, b.top, s * b.hw];
+        const aS = [a.x, a.top - 0.09, s * a.hw * 0.995], bS = [b.x, b.top - 0.09, s * b.hw * 0.995];
+        const aC = [a.x, a.chine, s * a.chineW], bC = [b.x, b.chine, s * b.chineW];
+        const aK = [a.x, a.keel, 0], bK = [b.x, b.keel, 0];
+        B.quadOut(aS, bS, bT, aT, out, trim);
+        B.quadOut(aC, bC, bS, aS, out, hull);
+        B.quadOut(aK, bK, bC, aC, [0, -1, s * 0.5], 0x5a2a22);
+        const aI = [a.x, a.top, s * Math.max(0, a.hw - 0.06)], bI = [b.x, b.top, s * Math.max(0, b.hw - 0.06)];
+        B.quadOut(aT, bT, bI, aI, [0, 1, 0], WOOD);
+        const aF = [a.x, floorY, s * Math.max(0, a.hw - 0.12)], bF = [b.x, floorY, s * Math.max(0, b.hw - 0.12)];
+        B.quadOut(aI, bI, bF, aF, [0, 0, -s], shadeHex(hull, 0.9));
+        B.quadOut(aF, bF, [b.x, floorY, 0], [a.x, floorY, 0], [0, 1, 0], DECK);
+      }
+    }
+    const s0 = st[0];
+    B.quadOut([s0.x, s0.top, s0.hw], [s0.x, s0.top, -s0.hw], [s0.x, s0.chine, -s0.chineW], [s0.x, s0.chine, s0.chineW], [-1, 0, 0], hull);
+    B.triOut([s0.x, s0.chine, s0.chineW], [s0.x, s0.chine, -s0.chineW], [s0.x, s0.keel, 0], [-1, 0, 0], 0x5a2a22);
+    B.quadOut([s0.x + 0.001, s0.top, s0.hw - 0.12], [s0.x + 0.001, s0.top, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, s0.hw - 0.12], [1, 0, 0], shadeHex(hull, 0.9));
+
+    const hl = L / 2;
+    const benchW = W * 0.8;
+    B.box(-hl + 0.3, 0.36, 0, 0.36, 0.06, benchW * 0.95, WOOD);
+    B.box(-hl + 0.3, 0.25, 0, 0.3, 0.2, benchW * 0.8, shadeHex(hull, 0.85));
+    for (const s of [1, -1]) B.box(-hl + 0.9, 0.36, s * (benchW / 2 - 0.12), 1.0, 0.06, 0.24, WOOD);
+    B.box(hl * 0.35, 0.36, 0, 0.28, 0.06, W * 0.62, WOOD);
+
+    if (cabin) {
+      const cx0 = -hl * 0.35, cx1 = hl * 0.35;
+      const cw = W * 0.72;
+      const cabinTop = 1.2;
+      B.box((cx0 + cx1) / 2, (0.14 + 0.85) / 2, 0, cx1 - cx0, 0.71, cw, police ? 0xeceae4 : shadeHex(hull, 0.95));
+      B.box((cx0 + cx1) / 2 - 0.03, 1.02, 0, cx1 - cx0 - 0.08, 0.34, cw - 0.04, GLASS, G_GLASS);
+      B.box((cx0 + cx1) / 2, cabinTop + 0.02, 0, cx1 - cx0 + 0.15, 0.07, cw + 0.06, cabin);
+      for (const s of [1, -1]) B.box(cx0 + 0.03, 1.02, s * (cw / 2 - 0.03), 0.06, 0.34, 0.06, cabin);
+    } else {
+      const cx = hl * 0.05;
+      B.box(cx, 0.45, W * 0.18, 0.4, 0.62, 0.36, shadeHex(hull, 0.9));
+      B.box(cx + 0.19, 0.86, W * 0.18, 0.02, 0.2, 0.4, GLASS, G_GLASS, 0, 0, 0.35);
+      B.geo(new THREE.TorusGeometry(0.1, 0.012, 3, 10).rotateY(Math.PI / 2), composeMatrix(cx - 0.24, 0.86, W * 0.18, 0, 0, 0.5), 0x2a2a2b);
+    }
+    const sx = -hl + 0.05;
+    B.geo(tubeGeometry([sx, 0.5, 0], [sx - 0.05, 1.3, 0], 0.012, 0.01, 4), null, 0x6a5038);
+    const fc = [0xae1c28, 0xf2f0ea, 0x21468b];
+    for (let i = 0; i < 3; i++) B.box(sx - 0.2, 1.24 - i * 0.06, 0, 0.3, 0.06, 0.006, fc[i]);
+    B.box(hl - 0.05, st[st.length - 2].top + 0.05, 0, 0.06, 0.04, 0.06, 0xe8e6e0, G_LAMP);
+    return B.build();
+  });
 }
 
 function buildBoatMesh(v) {
   const group = new THREE.Group();
   const len = v.model.len, wid = v.model.wid;
-  const hl = len / 2, hw = wid / 2;
-  const hullH = 0.5;
-  const bowLen = len * 0.34;
-  const hullLen = len - bowLen;
-  const hullColor = v.wrecked ? WRECKED_COLOR : v.model.color;
-
-  const hull = outlinedMesh(new THREE.BoxGeometry(hullLen, hullH, wid), paintMaterial(hullColor, v.wrecked));
-  hull.position.set(hl - bowLen - hullLen / 2, hullH / 2 + WATER_LINE, 0);
-  group.add(hull);
-
-  // bow wedge: a cone laid on its side and flattened vertically so it tapers
-  // to a point in the horizontal plane like a real hull, not a spike
-  const bow = outlinedMesh(new THREE.ConeGeometry(hw, bowLen, 6), paintMaterial(hullColor, v.wrecked));
-  bow.rotation.z = -Math.PI / 2;
-  bow.scale.x = hullH / (hw * 2);
-  bow.position.set(hl - bowLen / 2, hullH / 2 + WATER_LINE, 0);
-  group.add(bow);
-
-  const cabin = outlinedMesh(new THREE.BoxGeometry(len * 0.32, 0.5, wid * 0.78), glassMaterial(v.model.cabin || HABBO_PALETTE.glassBlue, 0.85, v.wrecked));
-  cabin.position.set(-hl * 0.05, hullH + 0.25 + WATER_LINE, 0);
-  group.add(cabin);
-
-  if (hash2(v.id, 5.3) < 0.5) {
-    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.1, 6), plasticMaterial(HABBO_PALETTE.black));
-    mast.position.set(-hl * 0.05, hullH + 0.5 + 0.55 + WATER_LINE, 0);
-    group.add(mast);
-    const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), lampMaterial(HABBO_PALETTE.brickRed, v.wrecked ? 0 : 0.5));
-    beacon.position.set(-hl * 0.05, hullH + 0.5 + 1.1 + WATER_LINE, 0);
-    group.add(beacon);
-  } else {
-    const arch = buildRadarArch(hw);
-    arch.position.set(-hl * 0.05, hullH + 0.5 + WATER_LINE, 0);
-    group.add(arch);
+  const police = !!v.isPolice;
+  const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
+  const cabinColor = toHex(v.model.cabin, 0x2f3a44);
+  const withCabin = police || hash2(v.id || 0, 5.3) < 0.4;
+  const trim = police ? 0x1f3f8f : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048][Math.floor(hash2(v.id || 0, 8.1) * 4)];
+  group.add(new THREE.Mesh(buildBoatGeometry(len, wid, hull, trim, withCabin ? cabinColor : 0, police), vehicleMaterials()));
+  if (police) {
+    const lamps = [];
+    for (const s of [1, -1]) {
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.24), lampMaterial(0x2f6bff, 0.25));
+      lamp.position.set(0, 1.3, s * 0.18);
+      group.add(lamp);
+      lamps.push(lamp);
+    }
+    group.userData.policeLamps = lamps;
   }
-
   return group;
 }
 
-// --- wheel spin ---------------------------------------------------------
+// --- wheel spin ---------------------------------------------------------------
 
-// Rolls every wheel group of a vehicle mesh built above by the distance it
-// travelled this frame (arc length = speed*dt, angle = arc/radius). No-op
-// for meshes that never set userData.wheels (boats, or any future vehicle
-// type that doesn't call a wheel builder).
+// Rolls every wheel by the distance travelled this frame; bike riders pedal
+// in step. No-op for meshes without userData.wheels (boats).
 export function updateVehicleWheelSpin(mesh, speed, dt) {
-  const wheels = mesh.userData.wheels;
+  const ud = mesh.userData;
+  const wheels = ud.wheels;
   if (!wheels || !wheels.length) return;
-  const delta = (speed / mesh.userData.wheelRadius) * dt;
-  for (const w of wheels) w.rotation.z += delta;
+  const delta = (speed / ud.wheelRadius) * dt;
+  for (const w of wheels) w.rotation.z -= delta;
+  const rl = ud.riderLegs;
+  if (rl) {
+    ud.pedalPhase = ((ud.pedalPhase || 0) + delta * 0.45) % (Math.PI * 2);
+    const moving = Math.min(1, Math.abs(speed) / 1.5);
+    const sw = Math.sin(ud.pedalPhase) * rl.amp * moving;
+    rl.legs[0].rotation.z = rl.base + sw;
+    rl.legs[1].rotation.z = rl.base - sw;
+  }
 }
 
-// --- dispatch ---------------------------------------------------------------
+// --- dispatch -------------------------------------------------------------------
 
 export function buildVehicleMesh(v) {
   if (v.isBike) return buildBikeMesh(v);
