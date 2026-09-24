@@ -22,12 +22,13 @@ import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTra
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial } from './water3d.js';
 import { buildFallenTreeMesh3D, updateFallenTreeMesh3D } from './treeprops.js';
-import { buildTerrainMesh3D, updateTerrainMaterial } from './terrain3d.js';
+import { buildTerrainMesh3D } from './terrain3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
 import { pointInPolygon, polygonBounds } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
+import { createSkyUniforms, buildSkyDome, buildEnvironmentMaps, SKY_HORIZON } from './sky3d.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -128,6 +129,16 @@ function buildKissHeartMesh() {
 let muzzleFlashMesh = null;
 let meleeSwipeMesh = null;
 let sun = null;
+let skyDome = null;
+let skyUniforms = null;
+// Low golden-hour sun (~38 deg elevation) so facades get long, readable shadows.
+const SUN_DIR = new THREE.Vector3(120, 110, 70).normalize();
+const SUN_DIST = 160;
+const SHADOW_HALF = 45;
+const SHADOW_MAP_SIZE = 2048;
+const _lightRight = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUN_DIR).normalize();
+const _lightUp = new THREE.Vector3().crossVectors(SUN_DIR, _lightRight).normalize();
+const _shadowCenter = new THREE.Vector3();
 const camRaycaster = new THREE.Raycaster();
 const camRayOrigin = new THREE.Vector3();
 const camRayDir = new THREE.Vector3();
@@ -184,8 +195,8 @@ function buildBlobShadowTexture() {
   c.width = c.height = 64;
   const ctx = c.getContext('2d');
   const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-  g.addColorStop(0, 'rgba(0,0,0,0.5)');
-  g.addColorStop(0.5, 'rgba(0,0,0,0.42)');
+  g.addColorStop(0, 'rgba(0,0,0,0.38)');
+  g.addColorStop(0.5, 'rgba(0,0,0,0.24)');
   g.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 64, 64);
@@ -222,7 +233,7 @@ function buildVehicleActor(v) {
 function buildPersonActor(shirt, skin, appearance) {
   const mesh = buildPersonMesh(shirt, skin, appearance);
   addBlobShadow(mesh, 0.85, 0.85);
-  return mesh;
+  return enableShadows(mesh, false);
 }
 
 // V-shaped foam trail behind a moving boat, unit length along local -X from
@@ -258,11 +269,20 @@ export function init3D(map) {
   canvas3 = document.getElementById('game3d');
   renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: true });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-  renderer.shadowMap.enabled = false;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x9cc4e0);
-  scene.fog = new THREE.Fog(0x9cc4e0, DRAW_DIST * 0.45, DRAW_DIST * 1.05);
+  scene.background = new THREE.Color(SKY_HORIZON);
+  scene.fog = new THREE.Fog(SKY_HORIZON, DRAW_DIST * 0.45, DRAW_DIST * 1.05);
+  skyUniforms = createSkyUniforms(SUN_DIR);
+  skyDome = buildSkyDome(skyUniforms);
+  scene.add(skyDome);
+  const env = buildEnvironmentMaps(renderer, SUN_DIR);
+  scene.environment = env.clear;
+  scene.userData.sky = { uniforms: skyUniforms, envClear: env.clear, envStorm: env.storm };
 
   // near=0.5 (not something tiny like 0.15) keeps depth-buffer precision
   // usable out at DRAW_DIST - too-small a near plane collapses the ground
@@ -270,15 +290,16 @@ export function init3D(map) {
   // which read as "roads just don't render" (ground always won the z-test)
   cam = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.5, DRAW_DIST * 1.4);
 
-  // ground color kept close to neutral gray (not saturated green) - a
-  // strongly-tinted hemisphere ground color bleeds onto every downward-
-  // facing surface everywhere (birds, car undersides, roof overhangs),
-  // which read as "wrong color" complaints unrelated to the actual ground
-  // Toon/Lambert materials without tone mapping clip to white well before
-  // hemisphere+sun reach the old 3+4.5 - pale facades lost all colour.
-  scene.add(new THREE.HemisphereLight(0xdcefff, 0x6a655a, 2.0));
-  sun = new THREE.DirectionalLight(0xfff2d8, 2.2);
-  sun.position.set(120, 180, 60);
+  // Hemisphere ground stays a muted warm grey: a saturated ground colour
+  // bleeds onto every downward-facing surface (car undersides, eaves).
+  scene.add(new THREE.HemisphereLight(0xb4cdea, 0x6f6454, 0.9));
+  sun = new THREE.DirectionalLight(0xffd29a, 3.3);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+  Object.assign(sun.shadow.camera, { left: -SHADOW_HALF, right: SHADOW_HALF, top: SHADOW_HALF, bottom: -SHADOW_HALF, near: 1, far: SUN_DIST + 140 });
+  sun.shadow.camera.updateProjectionMatrix();
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.04;
   scene.add(sun);
   scene.add(sun.target);
 
@@ -320,6 +341,10 @@ export function init3D(map) {
 // Read-only access for systems that need the view pose (e.g. the 3D audio listener).
 export function getCamera() {
   return cam;
+}
+
+export function getScene() {
+  return scene;
 }
 
 export function resize3D() {
@@ -417,6 +442,7 @@ function buildFlatMesh(poly, color, y) {
   if (!mat) flatMaterials.set(color, mat = groundMaterial(color, GROUND_LAYER.green));
   const mesh = new THREE.Mesh(poly._geoFlat, mat);
   mesh.position.y = y;
+  mesh.receiveShadow = true;
   return mesh;
 }
 const flatMaterials = new Map();
@@ -426,7 +452,7 @@ const flatMaterials = new Map();
 let waterMaterial = null;
 function buildWaterMesh(poly, y) {
   if (!poly._geoFlat) poly._geoFlat = buildPolyGeometry(poly.pts);
-  if (!waterMaterial) waterMaterial = createWaterMaterial();
+  if (!waterMaterial) waterMaterial = createWaterMaterial(skyUniforms);
   const mesh = new THREE.Mesh(poly._geoFlat, waterMaterial);
   mesh.position.y = y;
   return mesh;
@@ -460,7 +486,7 @@ function ribbonGeometry(pts, half) {
 // ground fill these read unmistakably as "a road" instead of blending into
 // a same-toned gray; major/normal roads also get a painted centerline
 // (the single strongest "this is a street" visual cue a real road has).
-const ROAD_COLORS3D = { cycle: 0xa1402f, foot: 0x9a9284, major: 0x33363a, normal: 0x26282b, minor: 0x26282b };
+const ROAD_COLORS3D = { cycle: 0x94412f, foot: 0x837d71, major: 0x57595c, normal: 0x4b4d50, minor: 0x4b4d50 };
 // Ground decals (green, sidewalks, road categories, markings) overlap at
 // every junction a few millimetres apart - far below depth-buffer precision
 // at street distance, so they flickered. Each layer gets a fixed
@@ -478,7 +504,7 @@ const CENTERLINE_MAT = groundMaterial(0xf2f0e6, GROUND_LAYER.marking, THREE.Mesh
 // Skipped for cycle/foot categories - those already ARE the pedestrian/
 // cycle surface, they don't get a sidewalk of their own.
 const SIDEWALK_EXTRA = 1.8;
-const SIDEWALK_COLOR = 0x8f8a7c;
+const SIDEWALK_COLOR = 0x7b776d;
 const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
 const SIDEWALK_MAT = groundMaterial(SIDEWALK_COLOR, GROUND_LAYER.sidewalk);
 const ROAD_MATS = Object.fromEntries(Object.entries(ROAD_COLORS3D).map(([cat, color]) => [cat, groundMaterial(color, GROUND_LAYER[cat])]));
@@ -504,27 +530,78 @@ function buildRoadMesh(road) {
     line.position.y = 0.035;
     group.add(line);
   }
+  for (const m of group.children) m.receiveShadow = true;
   return group;
 }
 
+// minCastRadius: small parts (window bands, trims, trunks) still receive
+// but skip the shadow pass - each caster is a full extra draw call.
+function enableShadows(root, receive = true, minCastRadius = 0) {
+  const casters = [];
+  root.traverse((o) => {
+    if (!o.isMesh || o === root.userData.shadow) return;
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    if (!m || m.transparent || m.isMeshBasicMaterial || m.isShaderMaterial) return;
+    o.receiveShadow = receive;
+    if (minCastRadius > 0) {
+      if (m.map) return;
+      if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+      let scale = 1;
+      for (let p = o; p && p !== root.parent; p = p.parent) scale *= Math.abs(p.scale.x);
+      if (o.geometry.boundingSphere.radius * scale < minCastRadius) return;
+    }
+    o.castShadow = true;
+    casters.push(o);
+  });
+  root.userData.shadowCasters = casters;
+  return root;
+}
+
+// People are ~20 meshes each; only those near the player cast real shadows
+// (the rest keep their blob), which keeps the shadow pass cheap in crowds.
+const ACTOR_SHADOW_DIST = 28;
+function limitActorShadows(cache, px, py) {
+  for (const mesh of cache.values()) {
+    const casters = mesh.userData.shadowCasters;
+    if (!casters) continue;
+    const near = Math.abs(mesh.position.x - px) < ACTOR_SHADOW_DIST && Math.abs(mesh.position.z - py) < ACTOR_SHADOW_DIST;
+    if (mesh.userData.castNear === near) continue;
+    mesh.userData.castNear = near;
+    for (const o of casters) o.castShadow = near;
+  }
+}
+
+const TREE_TRUNK_MAT = new THREE.MeshStandardMaterial({ color: 0x4d3a28, roughness: 0.9, flatShading: true });
+const TREE_CANOPY_MATS = [0x3f6634, 0x4a7236, 0x56793a].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 0.85, flatShading: true }));
+const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0, 0.5, 0);
+const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
+SHARED_MATERIALS.add(TREE_TRUNK_MAT);
+for (const m of TREE_CANOPY_MATS) SHARED_MATERIALS.add(m);
+SHARED_GEOMETRIES.add(TREE_TRUNK_GEO);
+SHARED_GEOMETRIES.add(TREE_CANOPY_GEO);
+
 function buildTreeMesh(x, y) {
   const h = hash2(x, y);
+  const h2 = hash2(y, x);
   const group = new THREE.Group();
   const trunkH = 2.2 + h * 1.2;
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.16, 0.22, trunkH, 6),
-    new THREE.MeshLambertMaterial({ color: 0x4a3a28 })
-  );
-  trunk.position.y = trunkH / 2;
+  const trunk = new THREE.Mesh(TREE_TRUNK_GEO, TREE_TRUNK_MAT);
+  trunk.scale.set(1, trunkH, 1);
   group.add(trunk);
   const r = 1.6 + h * 1.3;
-  const canopy = new THREE.Mesh(
-    new THREE.SphereGeometry(r, 7, 6),
-    new THREE.MeshLambertMaterial({ color: 0x3f6b3f })
-  );
-  canopy.scale.y = 0.85;
+  const mat = TREE_CANOPY_MATS[Math.floor(h2 * TREE_CANOPY_MATS.length)];
+  const canopy = new THREE.Mesh(TREE_CANOPY_GEO, mat);
+  canopy.scale.set(r, r * 0.85, r);
+  canopy.rotation.y = h2 * Math.PI * 2;
   canopy.position.y = trunkH + r * 0.7;
   group.add(canopy);
+  const lobe = new THREE.Mesh(TREE_CANOPY_GEO, mat);
+  const lr = r * (0.55 + h2 * 0.15);
+  lobe.scale.set(lr, lr * 0.85, lr);
+  lobe.position.set(Math.cos(h2 * 6.3) * r * 0.55, trunkH + r * 0.95, Math.sin(h2 * 6.3) * r * 0.55);
+  group.add(lobe);
+  canopy.castShadow = true;
+  lobe.receiveShadow = canopy.receiveShadow = trunk.receiveShadow = true;
   group.position.set(x, 0, y);
   return group;
 }
@@ -539,7 +616,7 @@ function syncBuildings(world, px, py) {
     if (Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py) > DRAW_DIST) continue;
     seen.add(b);
     if (!buildingMeshes.has(b)) {
-      const mesh = buildBuildingMesh(b);
+      const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
       scene.add(mesh);
       buildingMeshes.set(b, mesh);
     }
@@ -664,7 +741,7 @@ function syncActors(list, cache, builder, idOf) {
     const id = idOf(item);
     seen.add(id);
     if (!cache.has(id)) {
-      const mesh = builder(item);
+      const mesh = enableShadows(builder(item), false);
       scene.add(mesh);
       cache.set(id, mesh);
     }
@@ -759,7 +836,6 @@ export function update3D(dt, world) {
   syncFlat(world.map.greenNear(player.x, player.y, DRAW_DIST), greenMeshes, 0x5c8a4d, 0.015, player.x, player.y);
   syncWater(world.map.waterNear(player.x, player.y, DRAW_DIST), waterMeshes, WATER_Y);
   if (waterMaterial) updateWaterMaterial(waterMaterial, world.time);
-  if (terrainMesh) updateTerrainMaterial(terrainMesh.material, world.time);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
   syncFallenTrees(world, player.x, player.y);
@@ -1248,10 +1324,28 @@ export function update3D(dt, world) {
   lastPx = player.x; lastPy = player.y;
   cam.lookAt(player.x, 1.3, player.y);
 
-  sun.position.set(player.x + 120, 180, player.y + 60);
-  sun.target.position.set(player.x, 0, player.y);
+  updateSunAndSky(player);
+  limitActorShadows(pedMeshes, player.x, player.y);
+  limitActorShadows(vehicleMeshes, player.x, player.y);
+  limitActorShadows(wildlifeMeshes, player.x, player.y);
 
   renderer.render(scene, cam);
+}
+
+// Shadow frustum centred a little ahead of the camera, snapped to whole
+// shadow-map texels in light space so edges don't crawl as the player moves.
+function updateSunAndSky(player) {
+  const fx = player.x - cam.position.x, fz = player.y - cam.position.z;
+  const fl = Math.hypot(fx, fz) || 1;
+  _shadowCenter.set(player.x + (fx / fl) * SHADOW_HALF * 0.4, 0, player.y + (fz / fl) * SHADOW_HALF * 0.4);
+  const texel = (SHADOW_HALF * 2) / SHADOW_MAP_SIZE;
+  const r = Math.round(_shadowCenter.dot(_lightRight) / texel) * texel;
+  const u = Math.round(_shadowCenter.dot(_lightUp) / texel) * texel;
+  const d = _shadowCenter.dot(SUN_DIR);
+  _shadowCenter.copy(_lightRight).multiplyScalar(r).addScaledVector(_lightUp, u).addScaledVector(SUN_DIR, d);
+  sun.target.position.copy(_shadowCenter);
+  sun.position.copy(_shadowCenter).addScaledVector(SUN_DIR, SUN_DIST);
+  skyDome.position.copy(cam.position);
 }
 
 function withShadow(mesh, size) {

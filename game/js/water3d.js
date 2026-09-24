@@ -1,8 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// A genuinely animated water look (deep Gronings-canal teal, rolling swell,
-// scrolling sparkle/fresnel) to replace the flat MeshLambertMaterial(0x2f6f9e)
-// scene3d.js currently paints every water polygon with. Pure material - this
+// Animated canal water: rolling swell, Schlick-fresnel sky reflection and
+// a sun glint. Pure material - this
 // file has no idea how many water meshes exist or whether they share one
 // instance; see the two exports below.
 //
@@ -55,8 +54,12 @@ const FRAGMENT_SHADER = `
 uniform float uTime;
 uniform vec3 uDeepColor;
 uniform vec3 uShallowColor;
-uniform vec3 uFresnelColor;
 uniform vec3 uSparkleColor;
+uniform vec3 uZenith;
+uniform vec3 uHorizon;
+uniform vec3 uSunColor;
+uniform vec3 uSunDir;
+uniform float uSunStrength;
 uniform float uOpacity;
 
 varying vec3 vWorldPos;
@@ -83,45 +86,50 @@ float valueNoise(vec2 p) {
 }
 
 void main() {
-  vec3 n = normalize(vNormalW);
-  vec3 v = normalize(vViewDir);
-  float fresnel = pow(1.0 - clamp(dot(n, v), 0.0, 1.0), 2.2);
-
-  // slow, large-scale murk/depth variation - not tied to the wave uniforms
-  // above, so it reads as "patchy water clarity", not "the same ripple again"
-  float depthMix = 0.5 + 0.5 * sin(vWorldPos.x * 0.045 + vWorldPos.z * 0.05 + uTime * 0.25);
-  vec3 baseColor = mix(uDeepColor, uShallowColor, depthMix * 0.55);
-
-  // two noise layers scrolling at different speeds/directions/scales so the
-  // sparkle field never looks like one texture sliding uniformly
+  // two scrolling noise layers perturb the analytic wave normal into ripples
   vec2 p1 = vWorldPos.xz * 0.4 + vec2(uTime * 0.05, uTime * 0.03);
   vec2 p2 = vWorldPos.xz * 1.15 + vec2(-uTime * 0.09, uTime * 0.07);
-  float sparkleField = valueNoise(p1) * 0.5 + valueNoise(p2) * 0.5;
-  float sparkle = smoothstep(0.72, 0.95, sparkleField);
+  float n1 = valueNoise(p1), n2 = valueNoise(p2);
+  vec3 n = normalize(vNormalW + vec3(n1 - 0.5, 0.0, n2 - 0.5) * 0.12);
+  vec3 v = normalize(vViewDir);
+  float cosV = clamp(dot(n, v), 0.0, 1.0);
+  float fresnel = 0.02 + 0.98 * pow(1.0 - cosV, 5.0);
 
-  vec3 color = baseColor + uFresnelColor * fresnel * 0.55 + uSparkleColor * sparkle * 0.85;
-  float alpha = clamp(uOpacity + fresnel * 0.18 + sparkle * 0.1, 0.0, 1.0);
+  float depthMix = 0.5 + 0.5 * sin(vWorldPos.x * 0.045 + vWorldPos.z * 0.05 + uTime * 0.25);
+  vec3 body = mix(uDeepColor, uShallowColor, depthMix * 0.5);
 
+  vec3 r = reflect(-v, n);
+  vec3 sky = mix(uHorizon, uZenith, pow(clamp(r.y, 0.0, 1.0), 0.55));
+  vec3 color = mix(body, sky, clamp(fresnel * 0.9, 0.0, 0.85));
+
+  float spec = pow(max(dot(r, uSunDir), 0.0), 220.0);
+  float sparkle = smoothstep(0.74, 0.96, n1 * 0.5 + n2 * 0.5) * pow(max(dot(r, uSunDir), 0.0), 6.0);
+  color += uSunColor * uSunStrength * (spec * 3.5 + sparkle * 0.6) + uSparkleColor * sparkle * 0.05;
+
+  float alpha = clamp(uOpacity + fresnel * 0.15, 0.0, 1.0);
   gl_FragColor = vec4(color, alpha);
 
+  #include <tonemapping_fragment>
   #include <colorspace_fragment>
   #include <fog_fragment>
 }
 `;
 
-// Deep blue-teal Gronings-canal tones (murky, not swimming-pool cyan), a
-// cool cyan-white rim for the fresnel term and a warm pale glint for the
-// scrolling sparkle - two different highlight colors read as "sun glints on
-// moving water" instead of one flat brightening.
-export function createWaterMaterial() {
+// Dark, murky canal body; the colour mostly comes from the sky reflection
+// (fresnel) and the sun glint. Pass the sky uniforms so storms grey it too.
+export function createWaterMaterial(sky = null) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
-      uDeepColor: { value: new THREE.Color(0x123240) },
-      uShallowColor: { value: new THREE.Color(0x1f5b5e) },
-      uFresnelColor: { value: new THREE.Color(0xb9e6df) },
+      uDeepColor: { value: new THREE.Color(0x0a1d20) },
+      uShallowColor: { value: new THREE.Color(0x173f3d) },
       uSparkleColor: { value: new THREE.Color(0xfff3d2) },
-      uOpacity: { value: 0.84 },
+      uZenith: sky ? sky.uZenith : { value: new THREE.Color(0x5b93cf) },
+      uHorizon: sky ? sky.uHorizon : { value: new THREE.Color(0xd9e3e4) },
+      uSunColor: sky ? sky.uSunColor : { value: new THREE.Color(0xffd49a) },
+      uSunDir: sky ? sky.uSunDir : { value: new THREE.Vector3(0.6, 0.6, 0.4).normalize() },
+      uSunStrength: sky ? sky.uSunStrength : { value: 1 },
+      uOpacity: { value: 0.9 },
       fogColor: { value: new THREE.Color(0xffffff) },
       fogNear: { value: 1 },
       fogFar: { value: 2000 },

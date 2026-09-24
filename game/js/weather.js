@@ -4,6 +4,7 @@ import { playSikkomLine } from './audio.js';
 
 const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
 const LIGHTNING_COLOR = new THREE.Color(0.85, 0.88, 0.95);
+const STORM_ZENITH_COLOR = new THREE.Color(0.2, 0.23, 0.27);
 const STORM_MOOD = 0.65;
 
 // Rain: a fixed box of streaks centred on the player every frame rather than
@@ -228,11 +229,24 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     scene.background.copy(scene.userData._weatherBaseBackground).lerp(STORM_FOG_COLOR, moodT).lerp(LIGHTNING_COLOR, flash * 0.6);
   }
 
+  const sky = scene.userData.sky;
+  if (sky) {
+    const u = sky.uniforms;
+    if (!sky.base) sky.base = { zenith: u.uZenith.value.clone(), horizon: u.uHorizon.value.clone(), sun: u.uSunStrength.value };
+    u.uZenith.value.copy(sky.base.zenith).lerp(STORM_ZENITH_COLOR, t * 0.9).lerp(LIGHTNING_COLOR, flash * 0.6);
+    u.uHorizon.value.copy(sky.base.horizon).lerp(STORM_FOG_COLOR, t * 0.9).lerp(LIGHTNING_COLOR, flash * 0.5);
+    u.uSunStrength.value = sky.base.sun * (1 - t);
+    const env = t > 0.5 ? sky.envStorm : sky.envClear;
+    if (env && scene.environment !== env) scene.environment = env;
+  }
+
   if (!scene.userData._weatherLights) {
     scene.userData._weatherLights = scene.children.filter((o) => o && (o.type === 'DirectionalLight' || o.type === 'HemisphereLight'));
   }
+  // Overcast kills most direct sun (and so the shadows) but keeps sky fill.
   for (const obj of scene.userData._weatherLights) {
     if (obj.userData._weatherBaseIntensity === undefined) obj.userData._weatherBaseIntensity = obj.intensity;
-    obj.intensity = obj.userData._weatherBaseIntensity * (1 - t * 0.4 + flash * 1.6);
+    const dim = obj.type === 'DirectionalLight' ? 0.85 : 0.35;
+    obj.intensity = obj.userData._weatherBaseIntensity * (1 - t * dim + flash * 1.6);
   }
 }
