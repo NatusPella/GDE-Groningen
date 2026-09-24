@@ -13,7 +13,7 @@ import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
 import { buildSeagullMesh3D, buildCowMesh3D, buildSheepMesh3D, animateWildlifeMesh3D } from './wildlife.js';
-import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D, buildMissionArrow3D, updateMissionArrow3D } from './missions.js';
+import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import {
   getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
   buildHealthPickupMesh3D, buildArmorPickupMesh3D, buildGaragePickupMesh3D,
@@ -99,7 +99,6 @@ let companionMesh = null;
 let companionCharacter = null;
 let passengerMesh = null;
 let missionMarkerMesh = null;
-let missionArrowMesh = null;
 const splashMeshes = new Map();
 const wakeMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
@@ -1046,16 +1045,6 @@ export function update3D(dt, world) {
   } else if (missionMarkerMesh) {
     scene.remove(missionMarkerMesh);
     missionMarkerMesh = null;
-  }
-  if (!missionArrowMesh) {
-    missionArrowMesh = buildMissionArrow3D();
-    scene.add(missionArrowMesh);
-  }
-  if (world.mission && world.mission.distanceToMarker !== undefined) {
-    const radius = player.inVehicle ? player.inVehicle.model.len / 2 + 1.6 : 2.2;
-    updateMissionArrow3D(missionArrowMesh, world.mission, player.x, player.y, radius, world.time);
-  } else {
-    missionArrowMesh.visible = false;
   }
   updateRouteRibbon3D(dt, world);
 
