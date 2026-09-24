@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { buildBuildingMesh, setBuildingMap } from './models3d_buildings.js';
+import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
@@ -18,11 +18,11 @@ import {
   getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
   buildHealthPickupMesh3D, buildArmorPickupMesh3D, buildGaragePickupMesh3D,
 } from './pickups.js';
-import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D, placeTrafficLight } from './trafficlights.js';
+import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D, placeTrafficLight, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial } from './water3d.js';
 import { buildFallenTreeMesh3D, updateFallenTreeMesh3D } from './treeprops.js';
-import { buildTerrainMesh3D } from './terrain3d.js';
+import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
 import { pointInPolygon, polygonBounds } from './util.js';
@@ -30,7 +30,10 @@ import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.j
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
-import { createSkyUniforms, buildSkyDome, buildEnvironmentMaps, SKY_HORIZON } from './sky3d.js';
+import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
+import { computeLighting } from './daynight.js';
+import { createPostFX } from './postfx3d.js';
+import { initNightLights, setNightLightQuality, updateNightLights } from './nightlights3d.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -130,15 +133,20 @@ function buildKissHeartMesh() {
 let muzzleFlashMesh = null;
 let meleeSwipeMesh = null;
 let sun = null;
+let hemi = null;
 let skyDome = null;
 let skyUniforms = null;
-// Low golden-hour sun (~38 deg elevation) so facades get long, readable shadows.
-const SUN_DIR = new THREE.Vector3(120, 110, 70).normalize();
+let envUpdater = null;
+let postfx = null;
+let bedMaterial = null;
+// Direction towards the sun (or moon at night); driven by daynight.js.
+const sunDir = new THREE.Vector3(120, 110, 70).normalize();
 const SUN_DIST = 160;
 const SHADOW_HALF = 45;
 const SHADOW_MAP_SIZE = 2048;
-const _lightRight = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), SUN_DIR).normalize();
-const _lightUp = new THREE.Vector3().crossVectors(SUN_DIR, _lightRight).normalize();
+const _yAxis = new THREE.Vector3(0, 1, 0);
+const _lightRight = new THREE.Vector3();
+const _lightUp = new THREE.Vector3();
 const _shadowCenter = new THREE.Vector3();
 const camRaycaster = new THREE.Raycaster();
 const camRayOrigin = new THREE.Vector3();
@@ -283,12 +291,13 @@ export function init3D(map) {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(SKY_HORIZON);
   scene.fog = new THREE.Fog(SKY_HORIZON, DRAW_DIST * 0.45, DRAW_DIST * 1.05);
-  skyUniforms = createSkyUniforms(SUN_DIR);
+  skyUniforms = createSkyUniforms(sunDir);
   skyDome = buildSkyDome(skyUniforms);
   scene.add(skyDome);
-  const env = buildEnvironmentMaps(renderer, SUN_DIR);
-  scene.environment = env.clear;
-  scene.userData.sky = { uniforms: skyUniforms, envClear: env.clear, envStorm: env.storm };
+  envUpdater = createEnvironmentUpdater(renderer, sunDir);
+  scene.environment = envUpdater.update(skyUniforms.uZenith.value, skyUniforms.uHorizon.value, new THREE.Color(0x6e6250), sunDir, skyUniforms.uSunColor.value, 0.45);
+  scene.userData.sky = { uniforms: skyUniforms };
+  scene.userData.lightBase = lightBase;
 
   // near=0.5 (not something tiny like 0.15) keeps depth-buffer precision
   // usable out at DRAW_DIST - too-small a near plane collapses the ground
@@ -298,13 +307,13 @@ export function init3D(map) {
 
   // Hemisphere ground stays a muted warm grey: a saturated ground colour
   // bleeds onto every downward-facing surface (car undersides, eaves).
-  scene.add(new THREE.HemisphereLight(0xb4cdea, 0x6f6454, 0.9));
+  hemi = new THREE.HemisphereLight(0xb4cdea, 0x6f6454, 0.9);
+  scene.add(hemi);
   sun = new THREE.DirectionalLight(0xffd29a, 3.3);
   sun.castShadow = true;
   sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
   Object.assign(sun.shadow.camera, { left: -SHADOW_HALF, right: SHADOW_HALF, top: SHADOW_HALF, bottom: -SHADOW_HALF, near: 1, far: SUN_DIST + 140 });
   sun.shadow.camera.updateProjectionMatrix();
-  onSettingsChange(applyViewSettings);
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.04;
   scene.add(sun);
@@ -327,9 +336,10 @@ export function init3D(map) {
   // sky colour through the gaps.
   const [bx0, by0, bx1, by1] = map.meta.bounds;
   const bedPad = Math.max(bx1 - bx0, by1 - by0) * 0.15;
+  bedMaterial = new THREE.MeshBasicMaterial({ color: 0x1e2a2c });
   const bed = new THREE.Mesh(
     new THREE.PlaneGeometry(bx1 - bx0 + bedPad * 2, by1 - by0 + bedPad * 2),
-    new THREE.MeshBasicMaterial({ color: 0x1e2a2c }),
+    bedMaterial,
   );
   bed.rotation.x = -Math.PI / 2;
   bed.position.set((bx0 + bx1) / 2, WATER_Y - 0.5, (by0 + by1) / 2);
@@ -340,9 +350,12 @@ export function init3D(map) {
 
   billboardRoot = document.getElementById('hud');
 
+  postfx = createPostFX(renderer, scene, cam);
+  initNightLights(scene);
+  onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer };
+  window.__scene3d = { scene, cam, renderer, postfx };
 }
 
 // Read-only access for systems that need the view pose (e.g. the 3D audio listener).
@@ -355,19 +368,25 @@ export function getScene() {
 }
 
 let orbitRadius = ORBIT_RADIUS;
+let baseFov = 64;
 
 function applyViewSettings(st) {
   if (!renderer) return;
-  const preset = QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog;
+  const level = QUALITY_PRESETS[st.quality] ? st.quality : 'hoog';
+  const preset = QUALITY_PRESETS[level];
+  const prevRatio = renderer.getPixelRatio();
   renderer.setPixelRatio(Math.min(preset.pixelRatio, window.devicePixelRatio || 1));
   resize3D();
+  setNightLightQuality(level);
+  if (postfx.level !== level) postfx.setLevel(level);
+  else if (prevRatio !== renderer.getPixelRatio()) postfx.rebuild();
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) sun.castShadow = shadows;
   if (sun.shadow.mapSize.x !== preset.shadowMapSize) {
     sun.shadow.mapSize.set(preset.shadowMapSize, preset.shadowMapSize);
     if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
   }
-  cam.fov = st.fov;
+  cam.fov = baseFov = st.fov;
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
 }
@@ -376,6 +395,7 @@ export function resize3D() {
   if (!renderer) return;
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h, false);
+  if (postfx) postfx.setSize(w, h);
   cam.aspect = w / h;
   cam.updateProjectionMatrix();
 }
@@ -521,7 +541,14 @@ const GROUND_LAYER = { green: 1, sidewalk: 2, foot: 3, cycle: 4, minor: 5, norma
 function groundMaterial(color, layer, Mat = THREE.MeshLambertMaterial) {
   return new Mat({ color, polygonOffset: true, polygonOffsetFactor: -layer, polygonOffsetUnits: -layer * 4 });
 }
-const CENTERLINE_MAT = groundMaterial(0xf2f0e6, GROUND_LAYER.marking, THREE.MeshBasicMaterial); // Dutch road markings are white
+// Paved surfaces are Standard + the shared wet-ground shader so rain can
+// darken and gloss them in one uniform write.
+function pavedMaterial(color, layer, roughness) {
+  const m = groundMaterial(color, layer, THREE.MeshStandardMaterial);
+  m.roughness = roughness;
+  return applyWetGround(m);
+}
+const CENTERLINE_MAT = pavedMaterial(0xf2f0e6, GROUND_LAYER.marking, 0.7); // Dutch road markings are white
 // Real streets have a sidewalk/verge buffer between the road edge and the
 // building line - most residential OSM ways don't map that as a separate
 // footway, so without this the asphalt runs straight up to building
@@ -531,8 +558,9 @@ const CENTERLINE_MAT = groundMaterial(0xf2f0e6, GROUND_LAYER.marking, THREE.Mesh
 const SIDEWALK_EXTRA = 1.8;
 const SIDEWALK_COLOR = 0x7b776d;
 const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
-const SIDEWALK_MAT = groundMaterial(SIDEWALK_COLOR, GROUND_LAYER.sidewalk);
-const ROAD_MATS = Object.fromEntries(Object.entries(ROAD_COLORS3D).map(([cat, color]) => [cat, groundMaterial(color, GROUND_LAYER[cat])]));
+const SIDEWALK_MAT = pavedMaterial(SIDEWALK_COLOR, GROUND_LAYER.sidewalk, 0.93);
+const ROAD_MATS = Object.fromEntries(Object.entries(ROAD_COLORS3D).map(([cat, color]) => [cat, pavedMaterial(color, GROUND_LAYER[cat], 0.88)]));
+const PAVED_MATS = [CENTERLINE_MAT, SIDEWALK_MAT, ...Object.values(ROAD_MATS)];
 
 function buildRoadMesh(road) {
   const group = new THREE.Group();
@@ -860,7 +888,7 @@ export function update3D(dt, world) {
   syncBuildings(world, player.x, player.y);
   syncFlat(world.map.greenNear(player.x, player.y, DRAW_DIST), greenMeshes, 0x5c8a4d, 0.015, player.x, player.y);
   syncWater(world.map.waterNear(player.x, player.y, DRAW_DIST), waterMeshes, WATER_Y);
-  if (waterMaterial) updateWaterMaterial(waterMaterial, world.time);
+  if (waterMaterial) updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
   syncFallenTrees(world, player.x, player.y);
@@ -1189,7 +1217,9 @@ export function update3D(dt, world) {
     }
   }
 
+  applyTimeOfDay(dt, world);
   applyWeatherToScene3D(scene, renderer, world, dt, player.x, player.y, cam);
+  updateEnvironment(dt);
 
   if (player.character !== playerCharacter) {
     playerCharacter = player.character;
@@ -1358,29 +1388,160 @@ export function update3D(dt, world) {
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
     cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
   }
-  cam.lookAt(player.x, veh ? eyeY * 0.85 : 1.3, player.y);
+  applyCameraOverride(dt, world, player.x, veh ? eyeY * 0.85 : 1.3, player.y);
 
   updateSunAndSky(player);
   limitActorShadows(pedMeshes, player.x, player.y);
   limitActorShadows(vehicleMeshes, player.x, player.y);
   limitActorShadows(wildlifeMeshes, player.x, player.y);
+  updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness);
 
-  renderer.render(scene, cam);
+  postfx.render();
+}
+
+// world.cameraOverride = { position: {x, y, z}, lookAt: {x, y, z}, fov? } in
+// world coordinates (x/y on the map, z = height in metres). The camera eases
+// in from the follow cam, tracks the override smoothly, and eases back out
+// once it is cleared.
+const CAM_OVERRIDE_BLEND_S = 0.9;
+let overrideBlend = 0;
+let overrideActive = false;
+const overridePos = new THREE.Vector3();
+const overrideLook = new THREE.Vector3();
+const _camLook = new THREE.Vector3();
+const _camTmp = new THREE.Vector3();
+
+function applyCameraOverride(dt, world, lx, ly, lz) {
+  const o = world.cameraOverride;
+  const valid = !!(o && o.position && o.lookAt);
+  _camLook.set(lx, ly, lz);
+  if (valid) {
+    if (!overrideActive) {
+      overrideActive = true;
+      overridePos.copy(cam.position);
+      overrideLook.copy(_camLook);
+    }
+    const k = Math.min(1, dt * 3);
+    overridePos.lerp(_camTmp.set(o.position.x, o.position.z ?? 10, o.position.y), k);
+    overrideLook.lerp(_camTmp.set(o.lookAt.x, o.lookAt.z ?? 1.3, o.lookAt.y), k);
+    overrideBlend = Math.min(1, overrideBlend + dt / CAM_OVERRIDE_BLEND_S);
+  } else {
+    overrideBlend = Math.max(0, overrideBlend - dt / CAM_OVERRIDE_BLEND_S);
+    if (overrideBlend === 0) overrideActive = false;
+  }
+  const t = overrideBlend * overrideBlend * (3 - 2 * overrideBlend);
+  if (t > 0) {
+    cam.position.lerp(overridePos, t);
+    _camLook.lerp(overrideLook, t);
+  }
+  cam.lookAt(_camLook);
+  const targetFov = valid && o.fov ? o.fov : baseFov;
+  if (cam.fov !== targetFov) {
+    cam.fov = Math.abs(targetFov - cam.fov) < 0.05 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
+    cam.updateProjectionMatrix();
+  }
+}
+
+// --- time of day ---------------------------------------------------------
+
+const lightState = {};
+const lightBase = {
+  fog: new THREE.Color(SKY_HORIZON), fogNear: DRAW_DIST * 0.45, fogFar: DRAW_DIST * 1.05,
+  zenith: new THREE.Color(), horizon: new THREE.Color(), sunStrength: 1, glow: 0, daylight: 1,
+};
+const MOON_COLOR = new THREE.Color(0xdfe6f5);
+const BED_COLOR = new THREE.Color(0x1e2a2c);
+const WINDOW_LIT = [[0, 0.24], [1, 0.16], [3, 0.08], [5, 0.1], [6.5, 0.28], [8, 0.15], [17, 0.22], [19, 0.4], [22.5, 0.4], [24, 0.24]];
+const SHOP_LIT = [[0, 0.12], [1, 0.05], [6, 0.05], [8, 0.8], [18, 0.9], [21, 0.7], [22.5, 0.25], [24, 0.12]];
+let wetness = 0;
+let envTimer = 0;
+const _envGround = new THREE.Color();
+const _envSun = new THREE.Color();
+
+function curveAt(curve, h) {
+  for (let i = 1; i < curve.length; i++) {
+    if (h <= curve[i][0]) {
+      const [h0, v0] = curve[i - 1], [h1, v1] = curve[i];
+      return v0 + (v1 - v0) * (h - h0) / (h1 - h0);
+    }
+  }
+  return curve[curve.length - 1][1];
+}
+
+function applyTimeOfDay(dt, world) {
+  const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
+  const storm = world.weather ? Math.min(1, Math.max(0, world.weather.intensity)) : 0;
+
+  sunDir.copy(L.lightDir);
+  sun.color.copy(L.sun);
+  sun.userData._weatherBaseIntensity = L.sunI;
+  hemi.color.copy(L.hemiSky);
+  hemi.groundColor.copy(L.hemiGnd);
+  hemi.userData._weatherBaseIntensity = L.hemiI;
+
+  const u = skyUniforms;
+  if (L.isMoon) {
+    u.uSunDir.value.copy(L.moonDir);
+    u.uSunColor.value.copy(MOON_COLOR);
+    lightBase.sunStrength = 0.5 * L.night;
+  } else {
+    u.uSunDir.value.copy(L.sunDir);
+    u.uSunColor.value.copy(L.sun);
+    lightBase.sunStrength = 1 - L.night;
+  }
+  u.uGlowColor.value.copy(L.glow);
+  u.uGlowDir.value.copy(L.sunDir);
+  lightBase.glow = L.glowI;
+  lightBase.zenith.copy(L.zenith);
+  lightBase.horizon.copy(L.horizon);
+  lightBase.fog.copy(L.fog);
+  lightBase.daylight = L.daylight;
+
+  renderer.toneMappingExposure = L.exp;
+  setStarOpacity(skyDome, L.night * (1 - storm));
+  setNightFactor(1.5 * L.night, curveAt(WINDOW_LIT, L.hour), curveAt(SHOP_LIT, L.hour));
+  setTrafficLightGlow(1 + 3 * L.night);
+  bedMaterial.color.copy(BED_COLOR).multiplyScalar(0.3 + 0.7 * L.daylight);
+
+  // Streets get wet quickly in rain and dry off slowly afterwards.
+  wetness += (storm - wetness) * Math.min(1, dt / (storm > wetness ? 6 : 40));
+  WET_UNIFORMS.uWet.value = wetness;
+  const envBoost = 1 + wetness * 3;
+  for (const m of PAVED_MATS) m.envMapIntensity = envBoost;
+  terrainMesh.material.envMapIntensity = envBoost;
+  WET_UNIFORMS.uRainTime.value = world.time;
+
+  postfx.apply(L, storm);
+}
+
+// Re-bake the IBL from the (weather-adjusted) sky about once a second.
+function updateEnvironment(dt) {
+  envTimer -= dt;
+  if (envTimer > 0 || (scene.userData.lightningFlash || 0) > 0) return;
+  envTimer = 1;
+  const u = skyUniforms;
+  _envGround.copy(hemi.groundColor).multiplyScalar(0.35 + 0.65 * lightBase.daylight);
+  _envSun.copy(sun.color).multiplyScalar(Math.min(1, sun.intensity / 3));
+  scene.environment = envUpdater.update(u.uZenith.value, u.uHorizon.value, _envGround, sunDir, _envSun, 0.45);
 }
 
 // Shadow frustum centred a little ahead of the camera, snapped to whole
 // shadow-map texels in light space so edges don't crawl as the player moves.
 function updateSunAndSky(player) {
+  _lightRight.crossVectors(_yAxis, sunDir);
+  if (_lightRight.lengthSq() < 1e-8) _lightRight.set(1, 0, 0);
+  _lightRight.normalize();
+  _lightUp.crossVectors(sunDir, _lightRight).normalize();
   const fx = player.x - cam.position.x, fz = player.y - cam.position.z;
   const fl = Math.hypot(fx, fz) || 1;
   _shadowCenter.set(player.x + (fx / fl) * SHADOW_HALF * 0.4, 0, player.y + (fz / fl) * SHADOW_HALF * 0.4);
-  const texel = (SHADOW_HALF * 2) / SHADOW_MAP_SIZE;
+  const texel = (SHADOW_HALF * 2) / sun.shadow.mapSize.x;
   const r = Math.round(_shadowCenter.dot(_lightRight) / texel) * texel;
   const u = Math.round(_shadowCenter.dot(_lightUp) / texel) * texel;
-  const d = _shadowCenter.dot(SUN_DIR);
-  _shadowCenter.copy(_lightRight).multiplyScalar(r).addScaledVector(_lightUp, u).addScaledVector(SUN_DIR, d);
+  const d = _shadowCenter.dot(sunDir);
+  _shadowCenter.copy(_lightRight).multiplyScalar(r).addScaledVector(_lightUp, u).addScaledVector(sunDir, d);
   sun.target.position.copy(_shadowCenter);
-  sun.position.copy(_shadowCenter).addScaledVector(SUN_DIR, SUN_DIST);
+  sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
 }
 

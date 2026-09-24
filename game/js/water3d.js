@@ -61,6 +61,7 @@ uniform vec3 uSunColor;
 uniform vec3 uSunDir;
 uniform float uSunStrength;
 uniform float uOpacity;
+uniform float uRain;
 
 varying vec3 vWorldPos;
 varying vec3 vNormalW;
@@ -85,12 +86,26 @@ float valueNoise(vec2 p) {
   return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
 
+vec2 rainRipple(vec2 p, float speed) {
+  vec2 cell = floor(p), f = fract(p) - 0.5;
+  float h = hash2(cell);
+  float t = fract(uTime * speed + h);
+  vec2 d = f - (vec2(hash2(cell + 1.7), hash2(cell + 5.3)) - 0.5) * 0.5;
+  float r = length(d);
+  float ring = sin((r - t * 0.5) * 55.0) * smoothstep(0.12, 0.0, abs(r - t * 0.5)) * (1.0 - t);
+  return d / max(r, 1e-3) * ring;
+}
+
 void main() {
   // two scrolling noise layers perturb the analytic wave normal into ripples
   vec2 p1 = vWorldPos.xz * 0.4 + vec2(uTime * 0.05, uTime * 0.03);
   vec2 p2 = vWorldPos.xz * 1.15 + vec2(-uTime * 0.09, uTime * 0.07);
   float n1 = valueNoise(p1), n2 = valueNoise(p2);
   vec3 n = normalize(vNormalW + vec3(n1 - 0.5, 0.0, n2 - 0.5) * 0.12);
+  if (uRain > 0.01) {
+    vec2 rip = rainRipple(vWorldPos.xz * 1.4, 0.9) + rainRipple(vWorldPos.xz * 2.1 + 7.0, 1.1);
+    n = normalize(n + vec3(rip.x, 0.0, rip.y) * 0.3 * uRain);
+  }
   vec3 v = normalize(vViewDir);
   float cosV = clamp(dot(n, v), 0.0, 1.0);
   float fresnel = 0.02 + 0.98 * pow(1.0 - cosV, 5.0);
@@ -130,6 +145,7 @@ export function createWaterMaterial(sky = null) {
       uSunDir: sky ? sky.uSunDir : { value: new THREE.Vector3(0.6, 0.6, 0.4).normalize() },
       uSunStrength: sky ? sky.uSunStrength : { value: 1 },
       uOpacity: { value: 0.9 },
+      uRain: { value: 0 },
       fogColor: { value: new THREE.Color(0xffffff) },
       fogNear: { value: 1 },
       fogFar: { value: 2000 },
@@ -141,6 +157,7 @@ export function createWaterMaterial(sky = null) {
   });
 }
 
-export function updateWaterMaterial(material, time) {
+export function updateWaterMaterial(material, time, rain = 0) {
   material.uniforms.uTime.value = time;
+  material.uniforms.uRain.value = rain;
 }

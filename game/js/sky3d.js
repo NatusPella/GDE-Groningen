@@ -23,6 +23,9 @@ uniform vec3 uHorizon;
 uniform vec3 uSunColor;
 uniform vec3 uSunDir;
 uniform float uSunStrength;
+uniform vec3 uGlowColor;
+uniform vec3 uGlowDir;
+uniform float uGlow;
 uniform vec3 fogColor;
 uniform float uFogBlend;
 varying vec3 vDir;
@@ -32,7 +35,11 @@ void main() {
   vec3 col = mix(uHorizon, uZenith, pow(smoothstep(0.0, 1.0, h), 0.55));
   float sd = max(dot(d, uSunDir), 0.0);
   col += uSunColor * uSunStrength * (pow(sd, 900.0) * 6.0 + pow(sd, 24.0) * 0.28 + pow(sd, 4.0) * 0.08);
+  vec2 hd = normalize(d.xz + 1e-5), hs = normalize(uGlowDir.xz + 1e-5);
+  float toward = pow(max(dot(hd, hs), 0.0), 2.0) * 0.8 + 0.2;
+  col = mix(col, uGlowColor, uGlow * toward * (1.0 - smoothstep(-0.05, 0.42, d.y)));
   gl_FragColor = vec4(col, 1.0);
+  #include <tonemapping_fragment>
   #include <colorspace_fragment>
   float band = 1.0 - smoothstep(-0.02, 0.16, d.y);
   gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, band * uFogBlend);
@@ -46,6 +53,9 @@ export function createSkyUniforms(sunDir) {
     uSunColor: { value: new THREE.Color(SKY_SUN) },
     uSunDir: { value: sunDir.clone().normalize() },
     uSunStrength: { value: 1 },
+    uGlowColor: { value: new THREE.Color(0xff8a3c) },
+    uGlowDir: { value: sunDir.clone().normalize() },
+    uGlow: { value: 0 },
   };
 }
 
@@ -64,12 +74,42 @@ export function buildSkyDome(uniforms) {
     depthWrite: false,
     depthTest: false,
     fog: true,
-    toneMapped: false,
   });
   const mesh = new THREE.Mesh(new THREE.SphereGeometry(100, 32, 16), mat);
   mesh.frustumCulled = false;
   mesh.renderOrder = -10;
+  mesh.userData.stars = buildStars();
+  mesh.add(mesh.userData.stars);
   return mesh;
+}
+
+// Fixed star field on the upper dome; fades with the night factor.
+function buildStars(count = 1400) {
+  const pos = new Float32Array(count * 3), col = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const y = 0.06 + Math.pow(Math.random(), 0.7) * 0.94;
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(1 - y * y);
+    pos[i * 3] = Math.cos(a) * r * 90; pos[i * 3 + 1] = y * 90; pos[i * 3 + 2] = Math.sin(a) * r * 90;
+    const b = 0.35 + Math.pow(Math.random(), 3) * 1.6, warm = Math.random();
+    col[i * 3] = b * (0.85 + warm * 0.15); col[i * 3 + 1] = b * 0.92; col[i * 3 + 2] = b * (1 - warm * 0.12);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 1.6, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: 0,
+    depthTest: false, depthWrite: false, fog: false, blending: THREE.AdditiveBlending,
+  });
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false;
+  pts.renderOrder = -9;
+  return pts;
+}
+
+export function setStarOpacity(dome, opacity) {
+  const stars = dome.userData.stars;
+  stars.material.opacity = opacity;
+  stars.visible = opacity > 0.01;
 }
 
 // Low-intensity sky/ground environment for window/paint reflections and a
@@ -101,10 +141,25 @@ function buildEnvScene(zenith, horizon, ground, sunDir, sunColor, gain) {
   return scene;
 }
 
-export function buildEnvironmentMaps(renderer, sunDir) {
+// Re-bakes the PMREM environment from the current sky colours so IBL and
+// reflections follow the time of day and storms.
+export function createEnvironmentUpdater(renderer, sunDir) {
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const clear = pmrem.fromScene(buildEnvScene(SKY_ZENITH, SKY_HORIZON, 0x6e6250, sunDir, SKY_SUN, 0.45), 0.02).texture;
-  const storm = pmrem.fromScene(buildEnvScene(0x4a525c, 0x6c747c, 0x3a3a36, sunDir, 0x000000, 0.35), 0.02).texture;
-  pmrem.dispose();
-  return { clear, storm };
+  const envScene = buildEnvScene(SKY_ZENITH, SKY_HORIZON, 0x6e6250, sunDir, SKY_SUN, 1);
+  const u = envScene.children[0].material.uniforms;
+  let current = null;
+  return {
+    get texture() { return current; },
+    update(zenith, horizon, ground, dir, sunColor, gain) {
+      u.uZenith.value.copy(zenith).multiplyScalar(gain);
+      u.uHorizon.value.copy(horizon).multiplyScalar(gain);
+      u.uGround.value.copy(ground).multiplyScalar(gain);
+      u.uSun.value.copy(sunColor).multiplyScalar(gain * 12);
+      u.uSunDir.value.copy(dir);
+      const rt = pmrem.fromScene(envScene, 0.02);
+      if (current) current.dispose();
+      current = rt;
+      return rt.texture;
+    },
+  };
 }
