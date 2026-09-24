@@ -1,3 +1,5 @@
+import { pointInPolygon } from './util.js';
+
 const STRAY_M = 25;
 const TELEPORT_M = 150;
 const MIN_RECOMPUTE_S = 2;
@@ -12,6 +14,25 @@ let lastComputeAt = -Infinity;
 const stats = { buildMs: 0, lastMs: 0, maxMs: 0, avgMs: 0, runs: 0, nodes: 0, driveEdges: 0, walkEdges: 0, lastSettled: 0 };
 
 const isDrivable = (road) => road.cat !== 'foot' && road.cat !== 'cycle';
+// Some OSM footways/service roads cross building footprints (passages,
+// courtyards); still usable, but routes should strongly prefer streets.
+const THROUGH_BUILDING_COST = 8;
+// Straight connectors from the player/target to the road network are only
+// drawn when short; longer ones would cut through blocks.
+const CONNECTOR_MAX_M = 15;
+
+function throughBuilding(map, ax, ay, bx, by) {
+  const samples = Math.hypot(bx - ax, by - ay) > 6 ? [0.25, 0.5, 0.75] : [0.5];
+  for (const t of samples) {
+    const x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+    for (const b of map.buildingsNear(x, y, 1)) {
+      const [minx, miny, maxx, maxy] = b.bounds;
+      if (x < minx || x > maxx || y < miny || y > maxy) continue;
+      if (pointInPolygon(x, y, b.pts)) return true;
+    }
+  }
+  return false;
+}
 
 function buildGraph(map) {
   const t0 = performance.now();
@@ -39,7 +60,8 @@ function buildGraph(map) {
     for (let i = 0; i < n - 1; i++) {
       const a = rn[i], b = rn[i + 1];
       if (a === b) continue;
-      const len = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
+      const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
+      const len = throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
       walk.push(a, b, len, b, a, len);
       if (canDrive) {
         drive.push(a, b, len);
@@ -255,11 +277,16 @@ function computeRoute(world, target, mode) {
       if (fw && tw) pts = astar(fw, tw, true);
     }
   }
+  // no route found: no line at all rather than a straight one through town
   if (!pts) pts = [[p.x, p.y]];
-  const first = pts[0];
-  if (Math.hypot(first[0] - p.x, first[1] - p.y) > 0.5) pts.unshift([p.x, p.y]);
-  const last = pts[pts.length - 1];
-  if (Math.hypot(last[0] - target.x, last[1] - target.y) > 0.5) pts.push([target.x, target.y]);
+  else {
+    const first = pts[0];
+    const dFirst = Math.hypot(first[0] - p.x, first[1] - p.y);
+    if (dFirst > 0.5 && dFirst <= CONNECTOR_MAX_M) pts.unshift([p.x, p.y]);
+    const last = pts[pts.length - 1];
+    const dLast = Math.hypot(last[0] - target.x, last[1] - target.y);
+    if (dLast > 0.5 && dLast <= CONNECTOR_MAX_M) pts.push([target.x, target.y]);
+  }
 
   const cum = new Float64Array(pts.length);
   for (let i = 1; i < pts.length; i++) cum[i] = cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);

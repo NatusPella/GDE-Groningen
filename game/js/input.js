@@ -13,6 +13,7 @@ export class Input {
 
     target.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
+      if (k !== 'escape') this.tryLock();
       if (!this.keys.has(k)) this._justPressed.add(k);
       this.keys.add(k);
       const digit = digitFromCode(e.code);
@@ -53,18 +54,7 @@ export class Input {
     window.addEventListener('mousedown', (e) => {
       // the click that captures the mouse for looking around shouldn't also fire
       const onUi = e.target && e.target.closest && e.target.closest('button, input, select, a, #pause-menu, #start-screen, .phone, [role="dialog"]');
-      const canvas = document.getElementById('game3d');
-      if (!this.lookFallback && this.canLock && this.canLock() && !this.mouse.locked && !onUi && canvas && canvas.requestPointerLock) {
-        // embedded browsers (e.g. an app's preview pane) refuse pointer lock:
-        // fall back to looking with the plain cursor movement over the game
-        try {
-          const req = canvas.requestPointerLock();
-          if (req && req.catch) req.catch(() => { this.lookFallback = true; });
-        } catch (err) {
-          this.lookFallback = true;
-        }
-        return;
-      }
+      if (!onUi && this.tryLock()) return;
       if (e.button === 0) this.mouse.down = true;
       if (e.button === 2) this.mouse.rightDown = true;
     });
@@ -78,6 +68,21 @@ export class Input {
       this.mouse.wheel += e.deltaY;
       e.preventDefault();
     }, { passive: false });
+  }
+
+  // Captures the mouse for looking around; needs a user gesture (click or
+  // key). Embedded browsers (e.g. an app's preview pane) refuse pointer
+  // lock, so then plain cursor movement over the game steers instead.
+  tryLock() {
+    const canvas = document.getElementById('game3d');
+    if (this.lookFallback || this.mouse.locked || !this.canLock || !this.canLock() || !canvas || !canvas.requestPointerLock) return false;
+    try {
+      const req = canvas.requestPointerLock();
+      if (req && req.catch) req.catch(() => { this.lookFallback = true; });
+    } catch (err) {
+      this.lookFallback = true;
+    }
+    return true;
   }
 
   // true while mouse motion should steer the camera: pointer captured, or the
