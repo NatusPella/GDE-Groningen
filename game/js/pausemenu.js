@@ -107,7 +107,10 @@ export function initPauseMenu(world) {
     e.preventDefault();
     setOpen(!open);
   });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) setOpen(true); });
+  // ?stil marks an automated test session, whose tab is often hidden
+  if (!new URLSearchParams(location.search).has('stil')) {
+    document.addEventListener('visibilitychange', () => { if (document.hidden) setOpen(true); });
+  }
 }
 
 function slider(key, label) {
