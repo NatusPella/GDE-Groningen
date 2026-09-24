@@ -36,21 +36,60 @@ const WEAPON_DISTRICT_SPOT_RADIUS = 45;
 
 const MONEY_TARGET = 6;
 const MONEY_RADIUS = 70;
+const MONEY_POI_RADIUS = 150;
 const MONEY_PICKUP_DIST = 1.1;
 
 const WEAPON_TARGET = 3;
 const WEAPON_RADIUS = 90;
+const WEAPON_POI_RADIUS = 150;
 const WEAPON_PICKUP_DIST = 1.1;
 
 const HEALTH_TARGET = 1;
 const ARMOR_TARGET = 1;
 const HEALTH_RADIUS = 100;
+const HEALTH_POI_RADIUS = 180;
 const HEALTH_RESPAWN_DELAY = 25;
 const HEALTH_PICKUP_DIST = 1.1;
 const HEALTH_REPLACE_DIST = 250;
 
 const GARAGE_RADIUS = 6;
 const GARAGE_COOLDOWN = 10;
+
+const MAINTAIN_INTERVAL = 0.5;
+const SPOT_MIN_PLAYER_DIST = 8;
+const SPOT_RESPAWN = { money: 45, weapons: 75, health: 60, armor: 90 };
+
+const MONEY_BY_KIND = {
+  atm: [90, 160], bank: [80, 140], bureau_de_change: [60, 120],
+  supermarket: [15, 35], department_store: [20, 40], mall: [20, 40],
+  marketplace: [10, 30], office: [10, 30], building: [10, 25],
+};
+const MONEY_SINGLE_KINDS = new Set(['atm', 'bank', 'bureau_de_change']);
+const MONEY_CLUSTER_OFFSETS = [[1.6, 0.4], [-1.2, 1.3], [0.3, -1.7], [-1.5, -0.9]];
+const MONEY_PLACE = {
+  atm: 'bij de pinautomaat', bank: 'bij de bank', bureau_de_change: 'bij het wisselkantoor',
+  supermarket: 'bij de supermarkt', department_store: 'bij het warenhuis', mall: 'bij het winkelcentrum',
+  marketplace: 'op de markt', office: 'bij een kantoor', building: 'bij een bedrijfspand',
+};
+const WEAPON_BY_KIND = {
+  industrial: 'shotgun', scrapyard: 'shotgun', harbour: 'shotgun',
+  railyard: 'uzi', parking: 'uzi', alley: 'pistol', bridge: 'pistol',
+};
+const WEAPON_PLACE = {
+  industrial: 'Op het industrieterrein', scrapyard: 'Op de schroothoop', harbour: 'Aan de kade',
+  railyard: 'Bij het rangeerterrein', parking: 'In de parkeergarage', alley: 'In een steegje',
+  bridge: 'Onder de brug',
+};
+const HEALTH_MESSAGE = {
+  hospital: 'Opgelapt bij het ziekenhuis', clinic: 'Opgelapt bij de kliniek',
+  doctors: 'Pleister gescoord bij de huisarts', pharmacy: 'Pijnstillers gescoord bij de apotheek',
+  dentist: 'Pleister gescoord bij de tandarts', healthcare: 'Pleister gescoord bij de zorgpraktijk',
+};
+const ARMOR_MESSAGE = {
+  fitness: 'Kogelwerend vest gescoord bij de sportschool', sports: 'Kogelwerend vest gescoord bij het sportcentrum',
+  outdoor: 'Kogelwerend vest gescoord bij de outdoorwinkel', military: 'Kogelwerend vest gescoord bij de dumpwinkel',
+  workwear: 'Kogelwerend vest gescoord bij de werkkledingzaak',
+};
 
 let money = [];
 let weapons = [];
@@ -60,6 +99,8 @@ let armor = null;
 let armorRespawnAt = 0;
 let garages = [];
 let weaponDistrictPoints = { pistol: [], uzi: [], shotgun: [] };
+let poiSpots = { money: [], weapons: [], health: [], armor: [] };
+let nextMaintainAt = 0;
 
 function buildWeaponDistrictPoints(neighbourhoodPoints) {
   const byName = new Map(neighbourhoodPoints.map((p) => [p.name, p]));
@@ -68,6 +109,55 @@ function buildWeaponDistrictPoints(neighbourhoodPoints) {
     result[key] = (WEAPON_DISTRICTS[key] || []).map((name) => byName.get(name)).filter(Boolean);
   }
   return result;
+}
+
+function buildPoiSpots(pois) {
+  const result = {};
+  for (const cat of Object.keys(poiSpots)) {
+    result[cat] = (pois[cat] || []).map((p) => ({ x: p.x, y: p.y, kind: p.kind, taken: false, live: 0, collected: false, respawnAt: 0 }));
+  }
+  return result;
+}
+
+// Weighted towards nearer spots. `inRange` is true when POIs exist here but
+// are all taken or refilling, so callers skip the random-road fallback.
+function pickPoiSpot(cat, cx, cy, radius, time) {
+  const cands = [];
+  let total = 0;
+  let inRange = false;
+  for (const s of poiSpots[cat]) {
+    if (Math.abs(s.x - cx) > radius || Math.abs(s.y - cy) > radius) continue;
+    const d = dist(s.x, s.y, cx, cy);
+    if (d > radius) continue;
+    inRange = true;
+    if (s.taken || time < s.respawnAt || d < SPOT_MIN_PLAYER_DIST) continue;
+    const w = 1 / (d + 25);
+    cands.push([s, w]);
+    total += w;
+  }
+  if (!cands.length) return { spot: null, inRange };
+  let r = Math.random() * total;
+  for (const [s, w] of cands) {
+    r -= w;
+    if (r <= 0) return { spot: s, inRange };
+  }
+  return { spot: cands[cands.length - 1][0], inRange };
+}
+
+function releaseSpot(pickup, time, collected) {
+  const s = pickup && pickup.spot;
+  if (!s) return;
+  if (collected) s.collected = true;
+  if (--s.live > 0) return;
+  s.taken = false;
+  if (s.collected) s.respawnAt = time + SPOT_RESPAWN[pickup.cat] * (0.8 + Math.random() * 0.4);
+  s.collected = false;
+}
+
+function claimSpot(spot, cat, extra, x = spot.x, y = spot.y) {
+  spot.taken = true;
+  spot.live = (spot.live || 0) + 1;
+  return { x, y, kind: spot.kind, spot, cat, ...extra };
 }
 
 function isInsideBuilding(map, x, y) {
@@ -105,24 +195,56 @@ export function initPickups(world) {
   garages = world.map.meta.garages || [];
   for (const g of garages) g.cooldownUntil = 0;
   weaponDistrictPoints = buildWeaponDistrictPoints(world.map.meta.neighbourhoodPoints || []);
+  poiSpots = buildPoiSpots(world.map.meta.pois || {});
   money = [];
   weapons = [];
   health = null;
   armor = null;
   healthRespawnAt = 0;
   armorRespawnAt = 0;
+  nextMaintainAt = 0;
+}
+
+function randInt([lo, hi]) {
+  return lo + Math.floor(Math.random() * (hi - lo + 1));
 }
 
 function maintainMoney(world) {
   const { map, player } = world;
-  money = money.filter((m) => dist(m.x, m.y, player.x, player.y) < MONEY_RADIUS * 1.6);
+  money = money.filter((m) => {
+    const keep = dist(m.x, m.y, player.x, player.y) < (m.spot ? MONEY_POI_RADIUS : MONEY_RADIUS) * 1.4;
+    if (!keep) releaseSpot(m, world.time, false);
+    return keep;
+  });
   let guard = 0;
   while (money.length < MONEY_TARGET && guard++ < MONEY_TARGET * 4) {
-    const spot = randomRoadSpot(map, player.x, player.y, MONEY_RADIUS);
-    if (!spot) break;
-    const [x, y] = spot;
-    if (dist(x, y, player.x, player.y) < 8) continue;
+    const { spot, inRange } = pickPoiSpot('money', player.x, player.y, MONEY_POI_RADIUS, world.time);
+    if (spot) {
+      spawnMoneyCluster(map, spot);
+      continue;
+    }
+    if (inRange) break;
+    const rs = randomRoadSpot(map, player.x, player.y, MONEY_RADIUS);
+    if (!rs) break;
+    const [x, y] = rs;
+    if (dist(x, y, player.x, player.y) < SPOT_MIN_PLAYER_DIST) continue;
     money.push({ x, y, amount: 50 + Math.floor(Math.random() * 101) });
+  }
+}
+
+function spawnMoneyCluster(map, spot) {
+  const range = MONEY_BY_KIND[spot.kind] || [20, 50];
+  money.push(claimSpot(spot, 'money', { amount: randInt(range) }));
+  if (MONEY_SINGLE_KINDS.has(spot.kind)) return;
+  const extra = 1 + Math.floor(Math.random() * 2);
+  const start = Math.floor(Math.random() * MONEY_CLUSTER_OFFSETS.length);
+  let added = 0;
+  for (let i = 0; i < MONEY_CLUSTER_OFFSETS.length && added < extra; i++) {
+    const [ox, oy] = MONEY_CLUSTER_OFFSETS[(start + i) % MONEY_CLUSTER_OFFSETS.length];
+    const x = spot.x + ox, y = spot.y + oy;
+    if (isInsideBuilding(map, x, y) || isInWater(map, x, y)) continue;
+    money.push(claimSpot(spot, 'money', { amount: randInt(range) }, x, y));
+    added++;
   }
 }
 
@@ -139,9 +261,20 @@ function nearbyWeaponDistrict(player) {
 
 function maintainWeapons(world) {
   const { map, player } = world;
-  weapons = weapons.filter((w) => dist(w.x, w.y, player.x, player.y) < WEAPON_RADIUS * 1.6);
+  weapons = weapons.filter((w) => {
+    const keep = dist(w.x, w.y, player.x, player.y) < (w.spot ? WEAPON_POI_RADIUS : WEAPON_RADIUS) * 1.4;
+    if (!keep) releaseSpot(w, world.time, false);
+    return keep;
+  });
   let guard = 0;
   while (weapons.length < WEAPON_TARGET && guard++ < WEAPON_TARGET * 4) {
+    const poi = pickPoiSpot('weapons', player.x, player.y, WEAPON_POI_RADIUS, world.time);
+    if (poi.spot) {
+      const key = WEAPON_BY_KIND[poi.spot.kind] || WEAPON_KEYS[Math.floor(Math.random() * WEAPON_KEYS.length)];
+      weapons.push(claimSpot(poi.spot, 'weapons', { key }));
+      continue;
+    }
+    if (poi.inRange) break;
     const district = nearbyWeaponDistrict(player);
     let spot = district && randomRoadSpot(map, district.x, district.y, WEAPON_DISTRICT_SPOT_RADIUS);
     if (spot && dist(spot[0], spot[1], player.x, player.y) > WEAPON_RADIUS) spot = null;
@@ -152,23 +285,31 @@ function maintainWeapons(world) {
     }
     if (!spot) break;
     const [x, y] = spot;
-    if (dist(x, y, player.x, player.y) < 8) continue;
+    if (dist(x, y, player.x, player.y) < SPOT_MIN_PLAYER_DIST) continue;
     weapons.push({ x, y, key });
   }
 }
 
-function maintainHealthArmor(world) {
+function spawnSingle(world, cat) {
   const { map, player } = world;
-  if (health && dist(health.x, health.y, player.x, player.y) > HEALTH_REPLACE_DIST) health = null;
-  if (armor && dist(armor.x, armor.y, player.x, player.y) > HEALTH_REPLACE_DIST) armor = null;
-  if (!health && world.time >= healthRespawnAt) {
-    const spot = randomRoadSpot(map, player.x, player.y, HEALTH_RADIUS);
-    if (spot) health = { x: spot[0], y: spot[1] };
+  const { spot } = pickPoiSpot(cat, player.x, player.y, HEALTH_POI_RADIUS, world.time);
+  if (spot) return claimSpot(spot, cat, {});
+  const rs = randomRoadSpot(map, player.x, player.y, HEALTH_RADIUS);
+  return rs ? { x: rs[0], y: rs[1] } : null;
+}
+
+function maintainHealthArmor(world) {
+  const { player } = world;
+  if (health && dist(health.x, health.y, player.x, player.y) > HEALTH_REPLACE_DIST) {
+    releaseSpot(health, world.time, false);
+    health = null;
   }
-  if (!armor && world.time >= armorRespawnAt) {
-    const spot = randomRoadSpot(map, player.x, player.y, HEALTH_RADIUS);
-    if (spot) armor = { x: spot[0], y: spot[1] };
+  if (armor && dist(armor.x, armor.y, player.x, player.y) > HEALTH_REPLACE_DIST) {
+    releaseSpot(armor, world.time, false);
+    armor = null;
   }
+  if (!health && world.time >= healthRespawnAt) health = spawnSingle(world, 'health');
+  if (!armor && world.time >= armorRespawnAt) armor = spawnSingle(world, 'armor');
 }
 
 function collectFoot(world) {
@@ -180,7 +321,9 @@ function collectFoot(world) {
     const m = money[i];
     if (dist(px, py, m.x, m.y) < MONEY_PICKUP_DIST) {
       world.money += m.amount;
-      world.addMessage(`+ €${m.amount}`, 1.6);
+      const place = MONEY_PLACE[m.kind];
+      world.addMessage(place ? `+ €${m.amount} gevonden ${place}` : `+ €${m.amount}`, 1.8);
+      releaseSpot(m, world.time, true);
       money.splice(i, 1);
     }
   }
@@ -189,21 +332,26 @@ function collectFoot(world) {
     const w = weapons[i];
     if (dist(px, py, w.x, w.y) < WEAPON_PICKUP_DIST) {
       world.ammo[w.key] = (world.ammo[w.key] || 0) + WEAPON_AMMO[w.key];
-      world.addMessage(`${WEAPON_LABELS[w.key] || w.key} +${WEAPON_AMMO[w.key]} munitie`, 1.8);
+      const place = WEAPON_PLACE[w.kind];
+      const text = `${WEAPON_LABELS[w.key] || w.key} +${WEAPON_AMMO[w.key]} munitie`;
+      world.addMessage(place ? `${place}: ${text}` : text, 2);
+      releaseSpot(w, world.time, true);
       weapons.splice(i, 1);
     }
   }
 
   if (health && dist(px, py, health.x, health.y) < HEALTH_PICKUP_DIST) {
     world.health = Math.min(100, world.health + 100);
-    world.addMessage('Gezondheid opgekrikt', 1.8);
+    world.addMessage(HEALTH_MESSAGE[health.kind] || 'Gezondheid opgekrikt', 2);
+    releaseSpot(health, world.time, true);
     health = null;
     healthRespawnAt = world.time + HEALTH_RESPAWN_DELAY;
   }
 
   if (armor && dist(px, py, armor.x, armor.y) < HEALTH_PICKUP_DIST) {
     world.armor = Math.min(100, world.armor + 100);
-    world.addMessage('Pantser opgekrikt', 1.8);
+    world.addMessage(ARMOR_MESSAGE[armor.kind] || 'Pantser opgekrikt', 2);
+    releaseSpot(armor, world.time, true);
     armor = null;
     armorRespawnAt = world.time + HEALTH_RESPAWN_DELAY;
   }
@@ -229,9 +377,12 @@ function updateGarages(world) {
 }
 
 export function updatePickups(dt, world) {
-  maintainMoney(world);
-  maintainWeapons(world);
-  maintainHealthArmor(world);
+  if (world.time >= nextMaintainAt) {
+    nextMaintainAt = world.time + MAINTAIN_INTERVAL;
+    maintainMoney(world);
+    maintainWeapons(world);
+    maintainHealthArmor(world);
+  }
   collectFoot(world);
   updateGarages(world);
 }
