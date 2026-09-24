@@ -59,6 +59,51 @@
     background: rgba(90, 16, 16, 0.92); border: 1px solid #d93f3f; border-radius: 4px;
     color: #f2f2f2; font: 14px/1.4 sans-serif;
   }
+
+  #pause-menu {
+    position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(23,48,31,0.88) 0%, rgba(12,20,14,0.94) 70%);
+    font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4;
+  }
+  #pause-menu.visible { display: flex; }
+  #pause-menu .pm-card {
+    width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow-y: auto;
+    border: 2px solid var(--gron-green); border-radius: 6px; padding: 24px 28px;
+    background: radial-gradient(ellipse at top, #17301f 0%, #0c140e 100%);
+  }
+  #pause-menu h1 { margin: 0 0 14px; font-size: 44px; letter-spacing: 2px; color: var(--gron-green-light); text-shadow: 0 0 12px rgba(63,201,122,0.35); }
+  #pause-menu h2 { margin: 18px 0 6px; font-size: 20px; letter-spacing: 1px; color: var(--gron-green-light); }
+  #pause-menu .pm-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  #pause-menu .pm-tabs button {
+    flex: 1; font: inherit; font-size: 18px; letter-spacing: 1px; padding: 8px 0; cursor: pointer;
+    background: transparent; color: #f0ede4; border: 1px solid rgba(63,201,122,0.45); border-radius: 4px;
+  }
+  #pause-menu .pm-tabs button[aria-selected="true"] { background: var(--gron-green-dark); border-color: var(--gron-green-light); color: var(--gron-green-light); }
+  #pause-menu .pm-panel { display: flex; flex-direction: column; gap: 8px; }
+  #pause-menu .pm-panel[hidden] { display: none; }
+  #pause-menu .pm-primary, #pause-menu .pm-secondary {
+    font: inherit; font-size: 22px; letter-spacing: 1px; padding: 12px; border-radius: 4px; cursor: pointer;
+  }
+  #pause-menu .pm-primary { background: var(--gron-green); color: #0c140e; border: none; }
+  #pause-menu .pm-primary:hover { background: var(--gron-green-light); }
+  #pause-menu .pm-secondary { background: transparent; color: #f0ede4; border: 1px solid rgba(63,201,122,0.6); }
+  #pause-menu .pm-secondary:hover { border-color: var(--gron-green-light); color: var(--gron-green-light); }
+  #pause-menu button:focus-visible, #pause-menu input:focus-visible, #pause-menu select:focus-visible { outline: 3px solid #f0ede4; outline-offset: 2px; }
+  #pause-menu .pm-row {
+    display: grid; grid-template-columns: 1fr 1.4fr 48px; align-items: center; gap: 10px;
+    font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; letter-spacing: 0.3px;
+  }
+  #pause-menu .pm-row input[type="checkbox"] { justify-self: start; width: 20px; height: 20px; accent-color: var(--gron-green); }
+  #pause-menu .pm-row input[type="range"] { accent-color: var(--gron-green); width: 100%; }
+  #pause-menu .pm-row select { font: inherit; background: #0c140e; color: #f0ede4; border: 1px solid rgba(63,201,122,0.6); border-radius: 4px; padding: 4px; }
+  #pause-menu .pm-row output { text-align: right; color: var(--gron-green-light); }
+  #pause-menu .pm-disabled { opacity: 0.45; }
+  #pause-menu .pm-controls { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; align-items: center;
+    font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; }
+  #pause-menu .pm-controls dd { margin: 0; }
+  #pause-menu .pm-footer { margin: 16px 0 0; text-align: center; font-size: 15px; opacity: 0.7; letter-spacing: 1px; }
+  body.hide-minimap .hud-minimap-wrap { display: none; }
+  body.hide-hints .hud-hint { display: none; }
 </style>
 </head>
 <body>
@@ -75,6 +120,7 @@
       <div class="key">M</div><div>kaart</div>
       <div class="key">C</div><div>wissel Tammo / Anita</div>
       <div class="key">U</div><div>geluid</div>
+      <div class="key">Esc</div><div>menu &amp; instellingen</div>
     </div>
     <button id="start-btn" type="button" autofocus>Start</button>
   </div>
