@@ -146,9 +146,13 @@ const camRayOrigin = new THREE.Vector3();
 const camRayDir = new THREE.Vector3();
 const CAM_CLEARANCE = 0.9; // must stay above the camera's 0.5m near plane
 const CAM_PUSH_DIRS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]];
-const CAM_TARGET_RADIUS = ORBIT_RADIUS * 1.6 + CAM_CLEARANCE + 2;
+const CAM_TARGET_RADIUS = ORBIT_RADIUS * 5 + CAM_CLEARANCE + 2;
 const camTargetList = [];
 let lastPx = null, lastPy = null;
+const camBase = new THREE.Vector3();
+let camBaseInit = false;
+const CAM_SHAKE_TIME = 0.6;
+const CAM_SHAKE_MAX = 0.28;
 
 function nearbyCamTargets(px, py) {
   camTargetList.length = 0;
@@ -1264,9 +1268,14 @@ export function update3D(dt, world) {
   const targetPitch = targetPitchDeg * Math.PI / 180;
   followPitch += (targetPitch - followPitch) * Math.min(1, dt * 6);
 
-  const eyeX = player.x, eyeY = 1.3, eyeZ = player.y;
-  const horizDist = Math.cos(followPitch) * orbitRadius;
-  const orbitHeight = eyeY + Math.sin(followPitch) * orbitRadius;
+  // vehicles get a longer, higher orbit scaled to their length, so the car
+  // doesn't fill the lower half of the screen
+  const veh = player.inVehicle;
+  const camScale = veh ? Math.min(3.2, Math.max(1.35, veh.model.len / 2.4)) : 1;
+  const radius = orbitRadius * camScale;
+  const eyeX = player.x, eyeY = veh ? 1.3 + (camScale - 1) * 0.55 : 1.3, eyeZ = player.y;
+  const horizDist = Math.cos(followPitch) * radius;
+  const orbitHeight = eyeY + Math.sin(followPitch) * radius;
   let desiredX = player.x - Math.cos(targetAngle) * horizDist;
   let desiredZ = player.y - Math.sin(targetAngle) * horizDist;
   let desiredY = orbitHeight;
@@ -1301,8 +1310,8 @@ export function update3D(dt, world) {
     // first instead: looking down a street from above the rooftops clears
     // the adjacent wall far more often than squeezing past it at eye level.
     const steepPitch = Math.max(followPitch, 75 * Math.PI / 180);
-    const steepHoriz = Math.cos(steepPitch) * orbitRadius;
-    const steepHeight = eyeY + Math.sin(steepPitch) * orbitRadius;
+    const steepHoriz = Math.cos(steepPitch) * radius;
+    const steepHeight = eyeY + Math.sin(steepPitch) * radius;
     const altX = player.x - Math.cos(targetAngle) * steepHoriz;
     const altZ = player.y - Math.sin(targetAngle) * steepHoriz;
     const altDx = altX - eyeX, altDy = steepHeight - eyeY, altDz = altZ - eyeZ;
@@ -1345,11 +1354,22 @@ export function update3D(dt, world) {
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   const lerpT = teleported ? 1 : Math.min(1, dt * 6);
-  cam.position.x += (desiredX - cam.position.x) * lerpT;
-  cam.position.y += (desiredY - cam.position.y) * lerpT;
-  cam.position.z += (desiredZ - cam.position.z) * lerpT;
+  if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
+  camBase.x += (desiredX - camBase.x) * lerpT;
+  camBase.y += (desiredY - camBase.y) * lerpT;
+  camBase.z += (desiredZ - camBase.z) * lerpT;
   lastPx = player.x; lastPy = player.y;
-  cam.lookAt(player.x, 1.3, player.y);
+  cam.position.copy(camBase);
+  const imp = world.lastImpact;
+  const shakeAge = imp ? world.time - imp.time : Infinity;
+  if (shakeAge >= 0 && shakeAge < CAM_SHAKE_TIME) {
+    const amp = Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7);
+    const t = world.time * 47;
+    cam.position.x += Math.sin(t) * amp;
+    cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
+    cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
+  }
+  cam.lookAt(player.x, veh ? eyeY * 0.85 : 1.3, player.y);
 
   updateSunAndSky(player);
   limitActorShadows(pedMeshes, player.x, player.y);
