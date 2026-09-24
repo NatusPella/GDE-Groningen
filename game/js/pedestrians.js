@@ -2,6 +2,7 @@ import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.j
 import { resolveBuildingCollisions } from './player.js';
 import { respawnPlayer } from './world.js';
 import { playNpcPhrase } from './audio.js';
+import { pushCircleOutOfVehicle, reportImpact } from './vehicle.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.4;
@@ -10,6 +11,7 @@ const FLEE_SAFE_RADIUS = 16;
 export const DEAD_DURATION = 2.5;
 const WAYPOINT_RADIUS = 15;
 const VEHICLE_HIT_SPEED = 4;
+const KNOCK_DECAY = 3.5; // 1/s, how fast a knocked-down ped's slide bleeds off
 const SPEECH_DURATION = 3;
 const SPEECH_MIN_INTERVAL = 15;
 const SPEECH_MAX_INTERVAL = 30;
@@ -142,21 +144,37 @@ function pickWaypoint(map, x, y) {
 
 function checkVehicleImpact(ped, world) {
   for (const v of world.vehicles) {
-    if (v.wrecked || Math.abs(v.speed) < VEHICLE_HIT_SPEED) continue;
-    if (dist(ped.x, ped.y, v.x, v.y) < v.halfWid * 0.9 + ped.radius) {
-      ped.state = 'dead';
-      ped.health = 0;
-      ped.speed = 0;
-      ped.deadUntil = world.time + DEAD_DURATION;
-      // Only the player's own driving racks up wanted/kill stats - ambient
-      // AI traffic accidents still kill the ped (city stays alive/messy)
-      // but must not blame or credit the player for something they didn't do.
-      if (v.driver === 'player') {
-        world.wanted = Math.min(5, world.wanted + 1);
-        world.stats.pedKills++;
-      }
-      return;
+    if (v.wrecked || v.isBoat) continue;
+    if (Math.abs(v.x - ped.x) > v.halfLen + 1 || Math.abs(v.y - ped.y) > v.halfLen + 1) continue;
+    const push = pushCircleOutOfVehicle(ped.x, ped.y, ped.radius, v);
+    if (!push) continue;
+    if (Math.abs(v.speed) < VEHICLE_HIT_SPEED) {
+      // a slow bump just nudges the ped aside
+      ped.x = push.x;
+      ped.y = push.y;
+      continue;
     }
+    const vx = Math.cos(v.angle) * v.speed, vy = Math.sin(v.angle) * v.speed;
+    const away = Math.abs(v.speed) * 0.35;
+    ped.knockVX = vx * 0.85 + push.nx * away;
+    ped.knockVY = vy * 0.85 + push.ny * away;
+    ped.angle = Math.atan2(-ped.knockVY, -ped.knockVX);
+    ped.x = push.x;
+    ped.y = push.y;
+    v.speed *= v.isBike || v.isScooter ? 0.6 : 0.94;
+    reportImpact(world, ped.x, ped.y, Math.abs(v.speed) * 0.5, v.driver === 'player');
+    ped.state = 'dead';
+    ped.health = 0;
+    ped.speed = 0;
+    ped.deadUntil = world.time + DEAD_DURATION;
+    // Only the player's own driving racks up wanted/kill stats - ambient
+    // AI traffic accidents still kill the ped (city stays alive/messy)
+    // but must not blame or credit the player for something they didn't do.
+    if (v.driver === 'player') {
+      world.wanted = Math.min(5, world.wanted + 1);
+      world.stats.pedKills++;
+    }
+    return;
   }
 }
 
@@ -183,6 +201,13 @@ export function updatePedestrians(dt, world) {
 
     if (ped.state === 'dead') {
       ped.speechUntil = 0;
+      if (ped.knockVX || ped.knockVY) {
+        [ped.x, ped.y] = resolveBuildingCollisions(ped.x + ped.knockVX * dt, ped.y + ped.knockVY * dt, ped.radius, map);
+        const decay = Math.exp(-KNOCK_DECAY * dt);
+        ped.knockVX *= decay;
+        ped.knockVY *= decay;
+        if (Math.hypot(ped.knockVX, ped.knockVY) < 0.1) { ped.knockVX = 0; ped.knockVY = 0; }
+      }
       if (world.time >= ped.deadUntil) peds.splice(i, 1);
       continue;
     }
@@ -227,7 +252,7 @@ export function updatePedestrians(dt, world) {
         // long shared cooldown across ALL peds have to allow it.
         if (Math.random() < 0.12) {
           const phraseIdx = Math.floor(Math.random() * GRONINGS_PHRASES.length);
-          if (playNpcPhrase(phraseIdx)) {
+          if (playNpcPhrase(phraseIdx, ped.x, ped.y)) {
             ped.speechText = GRONINGS_PHRASES[phraseIdx];
             ped.speechUntil = world.time + SPEECH_DURATION;
           }

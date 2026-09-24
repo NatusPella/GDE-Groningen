@@ -1,5 +1,5 @@
-import { normalizeAngle, clamp, closestPointOnSegment } from './util.js';
-import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater } from './vehicle.js';
+import { clamp, closestPointOnSegment, pointInPolygon } from './util.js';
+import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { respawnPlayer } from './world.js';
 import { spawnCopPedestriansNear } from './pedestrians.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -9,6 +9,7 @@ const DESPAWN_DIST = 260;
 const SPAWN_STAGGER = 1.4;
 const FIRE_RANGE = 28;
 const BUST_FAST_SPEED = 9;
+const DIRECT_CHASE_DIST = 30;
 
 // "Politie ook te voet" - a small pool of cop Pedestrians (see
 // spawnCopPedestriansNear in pedestrians.js), grown only once there's
@@ -80,34 +81,59 @@ function despawnFarPolice(world) {
   for (let i = world.vehicles.length - 1; i >= 0; i--) {
     const v = world.vehicles[i];
     if (!v.isPolice || v.driver === 'player') continue;
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || Math.hypot(v.x - px, v.y - py) > DESPAWN_DIST) world.vehicles.splice(i, 1);
+    const d = Math.hypot(v.x - px, v.y - py);
+    if (v.wrecked || (v.deadEndBounces || 0) > 2 || ((v.stuckFor || 0) > 25 && d > 40) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
   }
 }
 
-// Give a car that just stopped chasing a plausible road/segment to resume
-// updateTrafficAI from, since free-roam pursuit leaves it off any polyline.
-function resnapToRoad(v, map) {
-  const rp = map.nearestRoadPoint(v.x, v.y, 150, true);
-  if (!rp) return;
-  const pts = rp.road.pts;
-  let bestI = 0, bestDist2 = Infinity;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const cp = closestPointOnSegment(v.x, v.y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
-    if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; bestI = i; }
+function hasLineOfSight(map, ax, ay, bx, by) {
+  const d = Math.hypot(bx - ax, by - ay);
+  const steps = Math.ceil(d / 3);
+  for (let k = 1; k < steps; k++) {
+    const x = ax + (bx - ax) * k / steps, y = ay + (by - ay) * k / steps;
+    for (const b of map.buildingsNear(x, y, 0.5)) {
+      const [minx, miny, maxx, maxy] = b.bounds;
+      if (x < minx || x > maxx || y < miny || y > maxy) continue;
+      if (pointInPolygon(x, y, b.pts)) return false;
+    }
   }
-  const segAngle = Math.atan2(pts[bestI + 1][1] - pts[bestI][1], pts[bestI + 1][0] - pts[bestI][0]);
-  v.road = rp.road;
-  v.dir = Math.cos(v.angle - segAngle) >= 0 ? 1 : -1;
-  v.segIdx = v.dir > 0 ? bestI : bestI + 1;
-  v.waitTimer = 0;
+  return true;
 }
 
+// Far away or around a corner the car drives the road network toward the
+// player; with a clear line of sight close by it goes straight for them.
 function updateChase(v, dt, world) {
   const p = world.player;
-  const dx = p.x - v.x, dy = p.y - v.y;
-  const d = Math.hypot(dx, dy) || 0.001;
-  const steerErr = normalizeAngle(Math.atan2(dy, dx) - v.angle);
-  v.applyControls(dt, d > 3 ? 1 : 0, clamp(steerErr * 2.2, -1, 1), d < 2.5);
+  const pv = p.inVehicle;
+  const d = Math.hypot(p.x - v.x, p.y - v.y);
+  v._losTimer = (v._losTimer || 0) - dt;
+  if (v._losTimer <= 0) {
+    v._losTimer = 0.25;
+    v._direct = d < DIRECT_CHASE_DIST && hasLineOfSight(world.map, v.x, v.y, p.x, p.y);
+  }
+  if (!v._direct && v.road && !v._wasDirect) {
+    updateTrafficAI(v, dt, world.map, world, Math.random, { goal: p, chase: true });
+  } else if (!v._direct) {
+    if (!attachToNearestRoad(v, world.map)) v._direct = true;
+    v._wasDirect = false;
+    updateTrafficAI(v, dt, world.map, world, Math.random, { goal: p, chase: true });
+  } else {
+    v._wasDirect = true;
+    const lead = pv ? 0.5 : 0;
+    const tvx = pv ? Math.cos(pv.angle) * pv.speed : 0, tvy = pv ? Math.sin(pv.angle) * pv.speed : 0;
+    const dx = p.x + tvx * lead - v.x, dy = p.y + tvy * lead - v.y;
+    const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+    const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;
+    const alpha = Math.atan2(lat, fwd);
+    const steer = Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(2 * lat / Math.max(1, dx * dx + dy * dy) / maxCurvature(v), -1, 1);
+    let vTarget = pv ? Math.hypot(tvx, tvy) + clamp(d - 4, -4, 20) * 0.8 : clamp((d - 2) * 1.2, 0, 12);
+    if (Math.abs(alpha) > 0.7) vTarget = Math.min(vTarget, 7);
+    vTarget = Math.min(vTarget, v.model.maxSpeed);
+    const err = vTarget - v.speed;
+    const throttle = err > 0.25 ? clamp(err * 0.6, 0.2, 1) : 0;
+    const brake = err < -0.5 ? clamp(-err * 0.35, 0.1, 1) : 0;
+    v.applyControls(dt, throttle, steer, brake);
+  }
   resolveVehicleBuildingCollision(v, world.map, dt);
 }
 
@@ -130,8 +156,15 @@ function maybeFire(v, dt, world) {
 function checkBusted(v, world) {
   const p = world.player;
   if (p.inVehicle && Math.abs(p.inVehicle.speed) > BUST_FAST_SPEED) return;
-  const contact = v.halfWid + (p.radius || 0.35) + 0.15;
-  if (Math.hypot(v.x - p.x, v.y - p.y) <= contact) {
+  let dist = Math.hypot(v.x - p.x, v.y - p.y);
+  let contact = v.halfWid + (p.radius || 0.35) + 0.15;
+  if (!p.inVehicle) {
+    // on foot the player is solid against cars, so measure to the body
+    const h = Math.max(0, v.halfLen - v.halfWid), fx = Math.cos(v.angle) * h, fy = Math.sin(v.angle) * h;
+    dist = Math.sqrt(closestPointOnSegment(p.x, p.y, v.x - fx, v.y - fy, v.x + fx, v.y + fy).dist2);
+    contact = v.halfWid + (p.radius || 0.35) + 0.4;
+  }
+  if (dist <= contact) {
     respawnPlayer(world, { busted: true, moneyPenalty: world.wanted * 150 });
   }
 }
@@ -246,7 +279,7 @@ export function updatePolice(dt, world) {
     if (!v.isPolice || v.hijacked || v.isBoat || v.wrecked || v.driver === 'player') continue;
 
     if (chasing !== v._chasing) {
-      if (!chasing) resnapToRoad(v, world.map);
+      if (!chasing) { attachToNearestRoad(v, world.map); v._direct = false; v._wasDirect = false; }
       v._chasing = chasing;
     }
 

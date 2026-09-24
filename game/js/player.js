@@ -1,5 +1,5 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater } from './util.js';
-import { findNearestVehicle, resolveVehicleBuildingCollision } from './vehicle.js';
+import { findNearestVehicle, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact } from './vehicle.js';
 import { playAutoGejatLine } from './audio.js';
 import { respawnPlayer } from './world.js';
 
@@ -16,6 +16,8 @@ let kissReadyAt = 0;
 const JUMP_SPEED = 5.2;
 const GRAVITY = 16;
 const DROWN_RATE = 12; // health/sec while on foot in water
+const SHOVE_DECAY = 6; // 1/s
+const MAX_SHOVE = 7; // m/s
 
 export class Player {
   constructor(x, y) {
@@ -31,6 +33,8 @@ export class Player {
     this.z = 0; // on-foot jump height above ground, meters - vehicles ignore this entirely
     this.vz = 0;
     this.crouching = false;
+    this.shoveX = 0; // m/s of push-back from bumping into cars/people, decays
+    this.shoveY = 0;
   }
 
   update(dt, world) {
@@ -107,6 +111,49 @@ export class Player {
       }
       this.x = nextX;
       this.y = nextY;
+    }
+    this.resolveBodyContacts(dt, world);
+  }
+
+  // On foot the player is solid against vehicles and people: pushed out of
+  // their footprint, with a shove that scales with how fast they were moving.
+  resolveBodyContacts(dt, world) {
+    const { map } = world;
+    for (const v of world.vehicles) {
+      if (v.isBoat || Math.abs(v.x - this.x) > v.halfLen + 1 || Math.abs(v.y - this.y) > v.halfLen + 1) continue;
+      const push = pushCircleOutOfVehicle(this.x, this.y, this.radius, v);
+      if (!push) continue;
+      [this.x, this.y] = resolveBuildingCollisions(push.x, push.y, this.radius, map);
+      const closing = (Math.cos(v.angle) * v.speed + v.driftX) * push.nx + (Math.sin(v.angle) * v.speed + v.driftY) * push.ny;
+      if (closing > 1) {
+        const fresh = Math.hypot(this.shoveX, this.shoveY) < 1;
+        const kick = Math.min(MAX_SHOVE, 1 + closing * 0.6);
+        this.shoveX += push.nx * kick;
+        this.shoveY += push.ny * kick;
+        if (fresh) reportImpact(world, this.x, this.y, closing * 0.6, true);
+      }
+    }
+    for (const p of world.pedestrians || []) {
+      if (p.state === 'dead') continue;
+      const dx = this.x - p.x, dy = this.y - p.y;
+      const min = this.radius + (p.radius || 0.35);
+      const d2 = dx * dx + dy * dy;
+      if (d2 >= min * min || d2 < 1e-8) continue;
+      const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, overlap = min - d;
+      this.x += nx * overlap * 0.5; this.y += ny * overlap * 0.5;
+      p.x -= nx * overlap * 0.5; p.y -= ny * overlap * 0.5;
+      this.shoveX += nx * 6 * dt; this.shoveY += ny * 6 * dt;
+    }
+    const sh = Math.hypot(this.shoveX, this.shoveY);
+    if (sh > MAX_SHOVE) { this.shoveX *= MAX_SHOVE / sh; this.shoveY *= MAX_SHOVE / sh; }
+    if (sh > 0.05) {
+      [this.x, this.y] = resolveBuildingCollisions(this.x + this.shoveX * dt, this.y + this.shoveY * dt, this.radius, map);
+      const decay = Math.exp(-SHOVE_DECAY * dt);
+      this.shoveX *= decay;
+      this.shoveY *= decay;
+    } else {
+      this.shoveX = 0;
+      this.shoveY = 0;
     }
   }
 
