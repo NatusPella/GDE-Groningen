@@ -5,7 +5,7 @@ const CHECK_INTERVAL = 0.5;
 const COOLDOWN = 9;
 
 const WANTED_UP = [
-  'SIKKOM MELDT: onrust in de Grunn, politie massaal op pad',
+  'SIKKOM MELDT: onrust in Grunn, politie massaal op pad',
   'SIKKOM: sirenes gierend door het centrum, politie kan niet wegblijven van jou',
 ];
 const WRECKED_UP = [
