@@ -1,7 +1,12 @@
 import { clamp } from './util.js';
 import { getCamera } from './scene3d.js';
 import { getSettings, onSettingsChange } from './settings.js';
+import { isThemeActive } from './theme.js';
 import { vehicleContacts } from './vehicle.js';
+import { createBank, buildImpulse } from './sfx/dsp.js';
+import { initAmbience, updateAmbience, ambienceStats } from './sfx/ambience.js';
+import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
+import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 
 const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
@@ -80,7 +85,69 @@ let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
 let trafficBus = null;
+let ambBus = null;
+let uiBus = null;
+let stingBus = null;
+let reverb = null;
+let bank = null;
+let kit = null;
 let noiseBuffer = null;
+let worldReady = false;
+
+// One-shot voice budget by priority: 0 ambience/foley, 1 normal, 2 must-play.
+const VOICE_CAPS = [26, 54, 76];
+let activeVoices = 0;
+function voiceOk(prio = 1) { return activeVoices < VOICE_CAPS[prio]; }
+
+const AMB_LEVEL = 0.9;
+const duckState = { amount: 0, until: 0, level: 0, musicUntil: 0 };
+
+function duckAmbience(amount, hold) {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  if (t > duckState.until) duckState.amount = 0;
+  duckState.amount = Math.max(duckState.amount, amount);
+  duckState.until = Math.max(duckState.until, t + hold);
+}
+
+function duckMusic(hold) {
+  if (ctx) duckState.musicUntil = Math.max(duckState.musicUntil, ctx.currentTime + hold);
+}
+
+function updateDucking(dt) {
+  const t = ctx.currentTime;
+  if (sirenAudible > 0.05) duckAmbience(clamp(sirenAudible * 3, 0, 0.5), 0.2);
+  if (t > duckState.until) duckState.amount = 0;
+  const target = duckState.amount;
+  duckState.level += (target - duckState.level) * Math.min(1, dt * (target > duckState.level ? 12 : 1.5));
+  ambBus.gain.value = AMB_LEVEL * (1 - duckState.level);
+}
+
+// Street canyon vs open square: two generated impulse responses, wet levels
+// set from building density around the listener (see sfx/ambience.js).
+function buildReverb() {
+  const send = ctx.createGain();
+  send.gain.value = 0.18;
+  const canyon = ctx.createConvolver();
+  canyon.buffer = buildImpulse(ctx, 1.1, { decay: 3.2, damp: 0.25, seed: 7, early: [[0.011, 0.5], [0.019, 0.4], [0.031, 0.35], [0.047, 0.25]] });
+  const open = ctx.createConvolver();
+  open.buffer = buildImpulse(ctx, 2.2, { decay: 2.2, damp: 0.45, seed: 11, early: [[0.06, 0.2], [0.11, 0.12]] });
+  const canyonGain = ctx.createGain();
+  canyonGain.gain.value = 0.3;
+  const openGain = ctx.createGain();
+  openGain.gain.value = 0.15;
+  send.connect(canyon).connect(canyonGain).connect(worldBus);
+  send.connect(open).connect(openGain).connect(worldBus);
+  return { send, canyonGain, openGain };
+}
+
+function setReverb(density, openness, closedCabin) {
+  if (!reverb) return;
+  const t = ctx.currentTime;
+  reverb.canyonGain.gain.setTargetAtTime(0.08 + density * 0.55, t, 0.5);
+  reverb.openGain.gain.setTargetAtTime(0.05 + openness * 0.4 + (1 - density) * 0.05, t, 0.5);
+  reverb.send.gain.setTargetAtTime(closedCabin ? 0.05 : 0.2, t, 0.3);
+}
 
 let engine = null;
 let sirenVoices = [];
@@ -172,13 +239,13 @@ function buildEngine() {
 const listenerPos = { x: 0, y: 0, z: 0 };
 const listenerVel = { x: 0, y: 0 };
 
-function makePanner({ ref = 5, rolloff = 1, model = 'HRTF' } = {}) {
+function makePanner({ ref = 5, rolloff = 1, model = 'HRTF', maxDist = MAX_DISTANCE } = {}) {
   const p = ctx.createPanner();
   p.panningModel = model;
   p.distanceModel = 'inverse';
   p.refDistance = ref;
   p.rolloffFactor = rolloff;
-  p.maxDistance = MAX_DISTANCE;
+  p.maxDistance = maxDist;
   return p;
 }
 
@@ -210,16 +277,19 @@ function inverseGain(d, ref, rolloff) {
 // A ref-counted panner that every node of one positional one-shot feeds;
 // it disconnects once the last of them has ended. null = out of range.
 function spatialOut(x, y, opts = {}) {
-  if (!ctx || muted) return null;
+  if (!ctx || muted || !voiceOk(opts.prio ?? 1)) return null;
   const h = opts.h ?? SOURCE_HEIGHT;
   if (distToListener(x, y, h) > (opts.range ?? MAX_DISTANCE)) return null;
   const panner = makePanner(opts);
   setPannerPos(panner, x, y, h);
   panner.connect(opts.bus || sfxBus);
   let refs = 0;
+  let used = false;
+  // a group whose every voice was refused by the budget never gets a release
+  queueMicrotask(() => { if (!used) panner.disconnect(); });
   return {
     node: panner,
-    hold() { refs++; },
+    hold() { refs++; used = true; },
     release() { if (--refs <= 0) panner.disconnect(); },
   };
 }
@@ -333,7 +403,9 @@ function buildHeliVoice() {
   return { gain, panner };
 }
 
-function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null, out = null }) {
+function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null, out = null, bus = null, prio = 1 }) {
+  if (!voiceOk(prio)) return;
+  activeVoices++;
   const t0 = ctx.currentTime + delay;
   const t1 = t0 + duration;
   const osc = ctx.createOscillator();
@@ -355,12 +427,13 @@ function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, d
     osc.connect(filter);
     tail = filter;
   }
-  tail.connect(g).connect(out ? out.node : sfxBus);
+  tail.connect(g).connect(out ? out.node : bus || sfxBus);
   if (out) out.hold();
 
   osc.start(t0);
   osc.stop(t1 + 0.03);
   osc.onended = () => {
+    activeVoices--;
     osc.disconnect();
     g.disconnect();
     if (filter) filter.disconnect();
@@ -368,7 +441,9 @@ function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, d
   };
 }
 
-function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0.5, type = 'bandpass', delay = 0, out = null }) {
+function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0.5, type = 'bandpass', delay = 0, out = null, bus = null, prio = 1 }) {
+  if (!voiceOk(prio)) return;
+  activeVoices++;
   const t0 = ctx.currentTime + delay;
   const t1 = t0 + duration;
   const src = ctx.createBufferSource();
@@ -384,16 +459,49 @@ function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0
   g.gain.setValueAtTime(gain, t0);
   g.gain.exponentialRampToValueAtTime(0.0001, t1);
 
-  src.connect(filter).connect(g).connect(out ? out.node : sfxBus);
+  src.connect(filter).connect(g).connect(out ? out.node : bus || sfxBus);
   if (out) out.hold();
-  src.start(t0);
+  src.start(t0, Math.random() * Math.max(0, 1.9 - duration));
   src.stop(t1 + 0.03);
   src.onended = () => {
+    activeVoices--;
     src.disconnect();
     filter.disconnect();
     g.disconnect();
     if (out) out.release();
   };
+}
+
+// One-shot from the procedural sample bank (sfx/dsp.js); silently skipped
+// while the buffer is still being rendered or the voice budget is spent.
+function playBuf(name, { out = null, bus = null, gain = 0.5, rate = 1, delay = 0, prio = 1, lp = 0 } = {}) {
+  if (!ctx || !bank || !voiceOk(prio)) return null;
+  const buffer = bank.get(name);
+  if (!buffer) return null;
+  activeVoices++;
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  src.playbackRate.value = rate;
+  const g = ctx.createGain();
+  g.gain.value = gain;
+  let filter = null;
+  if (lp) {
+    filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = lp;
+    src.connect(filter).connect(g);
+  } else src.connect(g);
+  g.connect(out ? out.node : bus || sfxBus);
+  if (out) out.hold();
+  src.start(ctx.currentTime + delay);
+  src.onended = () => {
+    activeVoices--;
+    src.disconnect();
+    g.disconnect();
+    if (filter) filter.disconnect();
+    if (out) out.release();
+  };
+  return src;
 }
 
 function playHit(out) {
@@ -428,15 +536,28 @@ function playGunshot(x, y, weapon) {
 function playRicochet(x, y) {
   const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 60 });
   if (!out) return;
-  playNoiseBurst({ duration: 0.05, freq: 3200, freqEnd: 1500, q: 1.5, gain: 0.22, type: 'highpass', out });
-  playTone({ freq: 2600, freqEnd: 1400, type: 'sine', duration: 0.09, gain: 0.06, out });
+  const r = Math.random();
+  const k = 0.85 + Math.random() * 0.35;
+  if (r < 0.3) {
+    playBuf('ric_whine', { out, gain: 0.12, rate: k });
+    return;
+  }
+  playNoiseBurst({ duration: 0.05, freq: 3200 * k, freqEnd: 1500, q: 1.5, gain: 0.22, type: 'highpass', out });
+  if (r < 0.65) playTone({ freq: 2600 * k, freqEnd: 1400 * k, type: 'sine', duration: 0.09, gain: 0.06, out });
+  else playTone({ freq: 1900 * k, freqEnd: 3100 * k, type: 'triangle', duration: 0.12, gain: 0.035, out });
+  if (Math.random() < 0.4) playNoiseBurst({ duration: 0.12, freq: 700, freqEnd: 300, q: 0.8, gain: 0.08, type: 'lowpass', delay: 0.01, out });
 }
 
 function playExplosion(x, y) {
-  const out = spatialOut(x, y, { ref: 10, rolloff: 0.7 });
+  const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, prio: 2 });
   if (!out) return;
-  playNoiseBurst({ duration: 1.1, freq: 1400, freqEnd: 70, q: 0.5, gain: 0.85, type: 'lowpass', out });
-  playTone({ freq: 90, freqEnd: 28, type: 'sine', duration: 0.9, gain: 0.55, out });
+  duckAmbience(0.75, 1.6);
+  duckMusic(1.2);
+  playNoiseBurst({ duration: 1.1, freq: 1400, freqEnd: 70, q: 0.5, gain: 0.85, type: 'lowpass', out, prio: 2 });
+  playTone({ freq: 90, freqEnd: 28, type: 'sine', duration: 0.9, gain: 0.55, out, prio: 2 });
+  playNoiseBurst({ duration: 1.7, freq: 500, freqEnd: 60, q: 0.6, gain: 0.25, type: 'lowpass', delay: 0.2, out, prio: 2 });
+  playBuf('glass', { out, gain: 0.2, rate: 0.8, delay: 0.03 });
+  for (let i = 0; i < 5; i++) playBuf('prop_metal', { out, gain: 0.05, rate: 0.6 + Math.random() * 0.8, delay: 0.5 + Math.random() * 1.4 });
 }
 
 // Layered by strength: body thud, crunch, an inharmonic panel ring, and for
@@ -447,6 +568,8 @@ function playCrash(x, y, impact) {
   const k = clamp(impact / 14, 0.08, 1);
   playTone({ freq: 90 + k * 20, freqEnd: 36, type: 'sine', duration: 0.16 + k * 0.28, gain: 0.2 + k * 0.45, out });
   playNoiseBurst({ duration: 0.1 + k * 0.35, freq: 650 + k * 700, freqEnd: 140, q: 0.8, gain: 0.22 + k * 0.45, out });
+  if (k > 0.45) duckAmbience(0.35 * k, 0.6);
+  if (k > 0.7) playBuf('glass', { out, gain: 0.12 + (k - 0.7) * 0.5, rate: 0.9 + Math.random() * 0.2, delay: 0.02 });
   if (k < 0.2) return;
   const base = 190 + Math.random() * 140;
   const ring = 0.2 + k * 0.45;
@@ -599,12 +722,15 @@ function playSwitchClick() {
 }
 
 function playDeathSting() {
+  duckMusic(2);
+  duckAmbience(0.6, 2.5);
   playTone({ freq: 220, freqEnd: 55, type: 'sawtooth', duration: 0.5, gain: 0.35, filterFreq: 1200 });
   playTone({ freq: 165, freqEnd: 45, type: 'sawtooth', duration: 0.55, gain: 0.3, delay: 0.04, filterFreq: 900 });
   playNoiseBurst({ duration: 0.3, freq: 700, freqEnd: 150, q: 0.6, gain: 0.3 });
 }
 
 function playMissionJingle() {
+  duckMusic(1.4);
   const notes = [523.25, 659.25, 784, 1046.5];
   notes.forEach((f, i) => playTone({ freq: f, type: 'triangle', duration: 0.16, gain: 0.24, delay: i * 0.09 }));
 }
@@ -654,6 +780,8 @@ function playSpokenClip(src, pos = null) {
   if (now - lastSpokenAt < SPOKEN_MIN_GAP) return false;
   lastSpokenAt = now;
   playClip(src, pos);
+  duckAmbience(0.45, 2.2);
+  duckMusic(2.2);
   return true;
 }
 
@@ -943,19 +1071,24 @@ function unlockAudio() {
 // without touching the player's saved mute setting.
 const SILENT_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('stil');
 
-export function initAudio(world) {
-  if (!world.audioEvents) world.audioEvents = [];
-  if (ctx || SILENT_MODE) return;
-  const AC = window.AudioContext || window.webkitAudioContext;
-  ctx = new AC();
-  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-  window.addEventListener('pointerdown', unlockAudio, true);
-  window.addEventListener('keydown', unlockAudio, true);
-  document.addEventListener('visibilitychange', onVisibilityChange);
+// Unity below 0.6, then a tanh knee towards 1: stacked big moments saturate
+// gently instead of clipping, without the makeup gain a compressor adds.
+function buildSoftClip() {
+  const n = 2048;
+  const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1, a = Math.abs(x);
+    curve[i] = Math.sign(x) * (a < 0.6 ? a : 0.6 + 0.4 * Math.tanh((a - 0.6) / 0.4));
+  }
+  const ws = ctx.createWaveShaper();
+  ws.curve = curve;
+  return ws;
+}
 
+function buildGraph() {
   master = ctx.createGain();
   master.gain.value = muted ? 0 : masterLevel();
-  master.connect(ctx.destination);
+  master.connect(buildSoftClip()).connect(ctx.destination);
 
   worldBus = ctx.createGain();
   worldBus.gain.value = getSettings().sfxVolume;
@@ -981,7 +1114,26 @@ export function initAudio(world) {
   trafficBus.gain.value = 1;
   trafficBus.connect(worldBus);
 
+  ambBus = ctx.createGain();
+  ambBus.gain.value = AMB_LEVEL;
+  ambBus.connect(worldBus);
+
+  uiBus = ctx.createGain();
+  uiBus.gain.value = 0.8;
+  uiBus.connect(worldBus);
+
+  stingBus = ctx.createGain();
+  stingBus.gain.value = 0.8;
+  stingBus.connect(worldBus);
+
+  reverb = buildReverb();
+  sfxBus.connect(reverb.send);
+  const ambSend = ctx.createGain();
+  ambSend.gain.value = 0.5;
+  ambBus.connect(ambSend).connect(reverb.send);
+
   noiseBuffer = buildNoiseBuffer(2);
+  bank = createBank(ctx);
   engine = buildEngine();
   sirenVoices = Array.from({ length: SIREN_VOICES }, buildSirenVoice);
   engineVoices = Array.from({ length: ENGINE_VOICES }, buildEngineVoice);
@@ -989,9 +1141,43 @@ export function initAudio(world) {
   squealVoice = buildSquealVoice();
   rumbleVoice = buildRumbleVoice();
   hornVoice = buildHornVoice();
+
+  kit = {
+    ctx, bank,
+    buses: { sfx: sfxBus, amb: ambBus, ui: uiBus, sting: stingBus, world: worldBus },
+    tone: playTone, noise: playNoiseBurst, buf: playBuf, spatial: spatialOut,
+    dist: distToListener, listener: listenerPos, makePanner, setPannerPos,
+    duckAmb: duckAmbience, duckMusic, setReverb, muted: () => muted,
+  };
+  initUiSfx(kit);
+}
+
+// Created lazily: on game start, or earlier by a menu gesture on the title
+// screen so its UI ticks are audible.
+function ensureCtx() {
+  if (ctx) return true;
+  if (SILENT_MODE) return false;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return false;
+  ctx = new AC();
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  window.addEventListener('pointerdown', unlockAudio, true);
+  window.addEventListener('keydown', unlockAudio, true);
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  buildGraph();
+  return true;
+}
+
+export function initAudio(world) {
+  if (!world.audioEvents) world.audioEvents = [];
+  if (worldReady || SILENT_MODE || !ensureCtx()) return;
+  worldReady = true;
   contactCursor = vehicleContacts.head;
   loadGMusicManifest();
+  primeWorld(world);
+}
 
+function primeWorld(world) {
   for (const b of world.bullets) seenBullets.add(b);
   for (const pt of world.particles) seenParticles.add(pt);
   for (const ped of world.pedestrians) if (ped.state === 'dead') seenDeadPeds.add(ped);
@@ -1010,6 +1196,24 @@ export function initAudio(world) {
   };
   seenMessages = new WeakSet();
   for (const m of world.messages) seenMessages.add(m);
+  initAmbience(kit, world);
+  initFoley(kit, world);
+  uiWorldInit(world);
+}
+
+function onUiDom(kind, e) {
+  if (!ctx) {
+    if (kind === 'focus' || kind === 'pointer' || !isUiGestureTarget(kind, e) || !ensureCtx()) return;
+  }
+  uiDomEvent(kind, e);
+}
+
+if (!SILENT_MODE && typeof document !== 'undefined') {
+  document.addEventListener('focusin', (e) => onUiDom('focus', e), true);
+  document.addEventListener('click', (e) => onUiDom('click', e), true);
+  document.addEventListener('input', (e) => onUiDom('input', e), true);
+  window.addEventListener('pointerdown', (e) => onUiDom('pointer', e), true);
+  window.addEventListener('keydown', (e) => onUiDom('key', e), true);
 }
 
 // Fraction of top speed at which each gear runs out; the engine note climbs
@@ -1264,9 +1468,32 @@ function playAudioEvents(world) {
         engineState.gear = 0;
         break;
       case 'engine_stop': playEngineStop(x, y); break;
+      case 'prop_hit': propHit(e, x, y); break;
+      case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'splash': playSplash(x, y); break;
+      case 'notify':
+        playTone({ freq: 1568, type: 'sine', duration: 0.3, gain: 0.08, bus: uiBus, prio: 2 });
+        playTone({ freq: 2093, type: 'sine', duration: 0.25, gain: 0.06, delay: 0.08, bus: uiBus, prio: 2 });
+        break;
+      case 'achievement':
+        [784, 988, 1175, 1568].forEach((f, j) => playTone({ freq: f, type: 'triangle', duration: 0.22, gain: 0.08, delay: j * 0.07, bus: stingBus, prio: 2 }));
+        duckMusic(1);
+        break;
       default: break;
     }
   }
+}
+
+function playCritterEvent(kind, x, y, k) {
+  const out = spatialOut(x, y, { ref: 3, rolloff: 1.3, range: 40, model: 'equalpower', h: 0.6 });
+  if (!out) return;
+  const r = 0.92 + Math.random() * 0.16;
+  if (kind === 'coo') playBuf('pigeon', { out, gain: 0.12 + k * 0.12, rate: r });
+  else if (kind === 'flap') playBuf('flutter', { out, gain: 0.08 + k * 0.14, rate: r * 1.1 });
+  else if (kind === 'bonk') { playBuf('punch', { out, gain: 0.2 + k * 0.15, rate: 1.4 * r }); playTone({ freq: 700, freqEnd: 380, type: 'triangle', duration: 0.12, gain: 0.05, out }); }
+  else if (kind === 'poop') playNoiseBurst({ duration: 0.09, freq: 500, freqEnd: 180, q: 1.2, gain: 0.12, type: 'bandpass', out });
+  else if (kind === 'splat') playBuf('step_wet_' + Math.floor(Math.random() * 4), { out, gain: 0.25 + k * 0.1, rate: 0.75 * r });
+  else if (kind === 'plop') playTone({ freq: 700, freqEnd: 240, type: 'sine', duration: 0.07, gain: 0.08 + k * 0.08, out });
 }
 
 // Keeps each voice on the same source while it stays among the nearest;
@@ -1455,6 +1682,8 @@ function updateWorldEvents(world) {
 
 function updateGMusic(dt, world) {
   if (!gmusicStarted) {
+    // the theme song owns the music until it ends, then G-Music takes over
+    if (isThemeActive()) return;
     if (gmusicTracks.length) startGmusicRandomly();
   } else if (gmusicPendingSince !== null) {
     if (nowSec() - gmusicPendingSince > GMUSIC_PENDING_TIMEOUT) gmusicPendingSince = null;
@@ -1477,7 +1706,7 @@ function updateGMusic(dt, world) {
   // working hard or the siren is audible, per spec - same lerp-toward-target
   // shape as engineBus/sirenBus above. Slower while fading in from a fresh
   // start so that fade actually reads as subtle instead of near-instant.
-  const ducked = sirenAudible > 0.05 || engineState.gain > 0.4;
+  const ducked = sirenAudible > 0.05 || engineState.gain > 0.4 || ctx.currentTime < duckState.musicUntil;
   const targetGain = ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
   const lerpRate = gmusicFadingIn ? dt * 0.8 : dt * 3;
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
@@ -1489,7 +1718,7 @@ let lastDeathAt = -Infinity;
 
 export function updateAudio(dt, world) {
   const events = world.audioEvents || (world.audioEvents = []);
-  if (!ctx) { events.length = 0; return; }
+  if (!ctx || !worldReady) { events.length = 0; return; }
   if (!muted) playAudioEvents(world);
   events.length = 0;
   if (ctx.state === 'suspended' && !document.hidden) ctx.resume().catch(() => {});
@@ -1567,5 +1796,18 @@ export function updateAudio(dt, world) {
   updatePlayerHorn(world);
   updateSiren(dt, world);
   updateTrafficAudio(dt, world);
+  updateAmbience(dt, world);
+  updateFoley(dt, world);
+  updateUiSfx(dt, world);
+  updateDucking(dt);
+  if (bank.pending() === 0 && warmList.length) bank.warm([warmList.pop()]);
   updateGMusic(dt, world);
+}
+
+const warmList = ['glass', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
+  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3'];
+
+export function getAudioStats() {
+  if (!ctx) return null;
+  return { activeVoices, buffers: bank ? bank.size() : 0, duck: duckState.level, ...ambienceStats(), ...foleyStats() };
 }
