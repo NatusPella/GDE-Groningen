@@ -1,31 +1,70 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { closestPointOnSegment, pointInPolygon } from './util.js';
 
-// Dutch-style street-name signs (blue plate, white letters, on a grey pole)
-// at both ends of every named road way - OSM splits streets at junctions, so
-// way ends are almost always street corners. Only signs near the player are
-// built; plate textures are cached per name while in use.
+// Street names at both ends of every named road way (OSM splits streets at
+// junctions, so way ends are almost always corners). Like real Dutch street
+// plates they hang on the corner facade; where no facade runs along the
+// street, the name is painted on the road surface instead. Only names near
+// the player are built; textures are cached per name while in use.
 
 const SIGN_RADIUS = 70;
 const REFRESH_INTERVAL = 0.5;
 const DEDUPE_DIST = 25;
-const INSET_ALONG = 3;
-const KERB_GAP = 1.3;
-const POLE_H = 2.7;
-const PLATE_H = 0.62;
+const INSET_ALONG = 4;
+const FACADE_SEARCH = 9;
+const FACADE_MIN_PARALLEL = 0.85;
+const FACADE_MIN_LEN = 2.5;
+const PLATE_H = 0.5;
+const PLATE_Y = 2.9;
+const ROAD_TEXT_H = 1.8;
+const ROAD_INSET = 7;
 const TEXT_PX = 96;
 const PLATE_COLOR = '#1f3f8f';
 
-const POLE_GEO = new THREE.CylinderGeometry(0.035, 0.035, POLE_H, 6);
-const POLE_MAT = new THREE.MeshStandardMaterial({ color: 0x8d9195, roughness: 0.6, metalness: 0.4 });
-const PLATE_GEO = new THREE.BoxGeometry(1, 1, 0.03);
-const PLATE_EDGE_MAT = new THREE.MeshStandardMaterial({ color: PLATE_COLOR, roughness: 0.5 });
-const FACE_GEO = new THREE.PlaneGeometry(1, 1);
+const PLANE_GEO = new THREE.PlaneGeometry(1, 1);
+const PLATE_BACK_GEO = new THREE.BoxGeometry(1, 1, 0.025);
+const PLATE_BACK_MAT = new THREE.MeshStandardMaterial({ color: PLATE_COLOR, roughness: 0.5 });
 
 let signs = null;
 let group = null;
 let refreshTimer = 0;
 const active = new Map();
-const faceMaterials = new Map();
+const textures = new Map();
+
+function roadEnds(road) {
+  const n = road.pts.length;
+  return [[road.pts[0], road.pts[1]], [road.pts[n - 1], road.pts[n - 2]]];
+}
+
+// Nearest building edge that runs along the street near (x, y); returns the
+// mount point on the wall and the wall's outward normal (towards the street).
+function findFacade(map, x, y, ux, uy, cx, cy) {
+  let best = null;
+  for (const b of map.buildingsNear(x, y, FACADE_SEARCH)) {
+    const pts = b.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+      const ex = bx - ax, ey = by - ay;
+      const len = Math.hypot(ex, ey);
+      if (len < FACADE_MIN_LEN) continue;
+      if (Math.abs((ex * ux + ey * uy) / len) < FACADE_MIN_PARALLEL) continue;
+      const cp = closestPointOnSegment(x, y, ax, ay, bx, by);
+      const d = Math.sqrt(cp.dist2);
+      if (d > FACADE_SEARCH || (best && d >= best.d)) continue;
+      // keep the plate away from the wall's corners
+      const t = ((cp.x - ax) * ex + (cp.y - ay) * ey) / (len * len);
+      const margin = Math.min(0.45, 0.9 / len);
+      const tc = Math.min(1 - margin, Math.max(margin, t));
+      const mx = ax + ex * tc, my = ay + ey * tc;
+      let nx = -ey / len, ny = ex / len;
+      if (pointInPolygon(mx + nx * 0.3, my + ny * 0.3, pts)) { nx = -nx; ny = -ny; }
+      // the facade must face the street centreline, not a back yard
+      if ((cx - mx) * nx + (cy - my) * ny <= 0) continue;
+      best = { d, x: mx, y: my, nx, ny };
+    }
+  }
+  return best;
+}
 
 function buildSignIndex(map) {
   const list = [];
@@ -33,18 +72,24 @@ function buildSignIndex(map) {
   for (const road of map.roads) {
     if (!road.name || road.pts.length < 2 || road.bridge) continue;
     if (road.cat === 'foot' || road.cat === 'cycle') continue;
-    const n = road.pts.length;
-    for (const [a, b] of [[road.pts[0], road.pts[1]], [road.pts[n - 1], road.pts[n - 2]]]) {
+    for (const [a, b] of roadEnds(road)) {
       const dx = b[0] - a[0], dy = b[1] - a[1];
       const len = Math.hypot(dx, dy);
-      if (len < INSET_ALONG * 2) continue;
+      if (len < ROAD_INSET * 1.5) continue;
       const ux = dx / len, uy = dy / len;
-      const off = (road.width || 6) / 2 + KERB_GAP;
-      const x = a[0] + ux * INSET_ALONG - uy * off;
-      const y = a[1] + uy * INSET_ALONG + ux * off;
+      const half = (road.width || 6) / 2;
+      const kx = a[0] + ux * INSET_ALONG - uy * (half + 1.5);
+      const ky = a[1] + uy * INSET_ALONG + ux * (half + 1.5);
       const same = byName.get(road.name) || [];
-      if (same.some((s) => Math.hypot(s.x - x, s.y - y) < DEDUPE_DIST)) continue;
-      const sign = { name: road.name, x, y, angle: Math.atan2(uy, ux) };
+      if (same.some((s) => Math.hypot(s.x - kx, s.y - ky) < DEDUPE_DIST)) continue;
+      const facade = findFacade(map, kx, ky, ux, uy, a[0] + ux * INSET_ALONG, a[1] + uy * INSET_ALONG);
+      let sign;
+      if (facade && facade.d < half + 6) {
+        sign = { name: road.name, kind: 'facade', x: facade.x, y: facade.y, nx: facade.nx, ny: facade.ny };
+      } else {
+        // painted across the lane, readable when driving into the street
+        sign = { name: road.name, kind: 'road', x: a[0] + ux * ROAD_INSET, y: a[1] + uy * ROAD_INSET, ux, uy, half };
+      }
       same.push(sign);
       byName.set(road.name, same);
       list.push(sign);
@@ -53,8 +98,9 @@ function buildSignIndex(map) {
   return list;
 }
 
-function faceMaterial(name) {
-  let entry = faceMaterials.get(name);
+function textTexture(name, kind) {
+  const key = kind + '|' + name;
+  let entry = textures.get(key);
   if (entry) { entry.users++; return entry; }
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -63,54 +109,69 @@ function faceMaterial(name) {
   const textW = Math.ceil(ctx.measureText(name).width);
   canvas.width = textW + TEXT_PX;
   canvas.height = Math.round(TEXT_PX * 1.45);
-  ctx.fillStyle = PLATE_COLOR;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 6;
-  ctx.strokeRect(9, 9, canvas.width - 18, canvas.height - 18);
+  if (kind === 'facade') {
+    ctx.fillStyle = PLATE_COLOR;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(9, 9, canvas.width - 18, canvas.height - 18);
+  }
   ctx.font = font;
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = kind === 'road' ? 'rgba(242,240,230,0.92)' : '#ffffff';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(name, canvas.width / 2, canvas.height / 2 + TEXT_PX * 0.04);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
-  const material = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 });
-  entry = { material, aspect: canvas.width / canvas.height, users: 1 };
-  faceMaterials.set(name, entry);
+  tex.anisotropy = 8;
+  const material = kind === 'road'
+    ? new THREE.MeshStandardMaterial({
+      map: tex, transparent: true, depthWrite: false, roughness: 0.8,
+      polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -34,
+    })
+    : new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 });
+  entry = { material, aspect: canvas.width / canvas.height, users: 1, key };
+  textures.set(key, entry);
   return entry;
 }
 
-function releaseFace(name) {
-  const entry = faceMaterials.get(name);
+function releaseTexture(sign) {
+  const key = sign.kind + '|' + sign.name;
+  const entry = textures.get(key);
   if (!entry || --entry.users > 0) return;
   entry.material.map.dispose();
   entry.material.dispose();
-  faceMaterials.delete(name);
+  textures.delete(key);
 }
 
 function buildSignMesh(sign) {
   const g = new THREE.Group();
-  const pole = new THREE.Mesh(POLE_GEO, POLE_MAT);
-  pole.position.y = POLE_H / 2;
-  g.add(pole);
-  const face = faceMaterial(sign.name);
-  const w = PLATE_H * face.aspect;
-  const plate = new THREE.Mesh(PLATE_GEO, PLATE_EDGE_MAT);
-  plate.scale.set(w, PLATE_H, 1);
-  plate.position.y = POLE_H + PLATE_H / 2 - 0.05;
-  g.add(plate);
-  for (const side of [1, -1]) {
-    const text = new THREE.Mesh(FACE_GEO, face.material);
+  const face = textTexture(sign.name, sign.kind);
+  if (sign.kind === 'facade') {
+    const w = PLATE_H * face.aspect;
+    const back = new THREE.Mesh(PLATE_BACK_GEO, PLATE_BACK_MAT);
+    back.scale.set(w + 0.04, PLATE_H + 0.04, 1);
+    back.position.z = 0.02;
+    g.add(back);
+    const text = new THREE.Mesh(PLANE_GEO, face.material);
     text.scale.set(w, PLATE_H, 1);
-    text.position.set(0, plate.position.y, side * 0.016);
-    if (side < 0) text.rotation.y = Math.PI;
+    text.position.z = 0.034;
     g.add(text);
+    g.position.set(sign.x, PLATE_Y, sign.y);
+    g.rotation.y = Math.atan2(sign.nx, sign.ny);
+  } else {
+    const w = Math.min(ROAD_TEXT_H * face.aspect, sign.half * 2 - 0.6);
+    const h = w / face.aspect;
+    const text = new THREE.Mesh(PLANE_GEO, face.material);
+    text.scale.set(w, h, 1);
+    text.rotation.x = -Math.PI / 2;
+    text.renderOrder = 1;
+    g.add(text);
+    g.position.set(sign.x, 0.05, sign.y);
+    // text baseline across the road, letters upright for traffic entering
+    g.rotation.y = Math.atan2(-sign.ux, -sign.uy);
+    text.receiveShadow = true;
   }
-  g.position.set(sign.x, 0, sign.y);
-  g.rotation.y = -sign.angle;
-  g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   return g;
 }
 
@@ -140,7 +201,7 @@ export function updateStreetSigns(dt, world, scene) {
   for (const [s, mesh] of active) {
     if (wanted.has(s)) continue;
     group.remove(mesh);
-    releaseFace(s.name);
+    releaseTexture(s);
     active.delete(s);
   }
 }
