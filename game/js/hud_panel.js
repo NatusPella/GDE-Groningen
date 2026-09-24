@@ -2,6 +2,7 @@ import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
 import { isMuted } from './audio.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
+import { initPrompts, updatePrompts } from './prompts.js';
 
 const MINIMAP_SIZE = 160;
 const MM_SCALE = 0.5; // px per meter (css pixels) when standing still
@@ -43,10 +44,6 @@ export function initHud(world) {
   const damage = document.createElement('div');
   damage.className = 'hud-damage';
   root.insertBefore(damage, root.firstChild);
-
-  const hint = document.createElement('div');
-  hint.className = 'hud-hint';
-  root.appendChild(hint);
 
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
@@ -96,7 +93,6 @@ export function initHud(world) {
     speedo,
     speedoValue: speedo.querySelector('b'),
     weapon: topRight.querySelector('.hud-weapon'),
-    hint,
     missionLabel: mission.querySelector('.hud-mission-label'),
     missionProgress: mission.querySelector('.hud-mission-progress'),
     missionTimer: mission.querySelector('.hud-mission-timer'),
@@ -108,6 +104,7 @@ export function initHud(world) {
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
   };
+  initPrompts(root);
 }
 
 export function updateHud(dt, world) {
@@ -122,7 +119,7 @@ export function updateHud(dt, world) {
   updateMission(world);
   updateToasts(world);
   updateLocation(dt, world);
-  updateHint(world);
+  updatePrompts(dt, world);
   updateRouteChip(world);
   drawMinimap(dt, world);
 }
@@ -142,55 +139,6 @@ function updateRouteChip(world) {
   els.routeText = text;
   els.routeChip.textContent = text;
   els.routeChip.dataset.kind = kind;
-}
-
-// Context-aware on-screen prompts, shown only when relevant, instead of a
-// static always-visible controls list on the start screen. Each key renders
-// as a little keycap chip instead of plain "[X]" bracket text.
-function keycap(key) {
-  return '<span class="hud-key">' + escapeHtml(key) + '</span>';
-}
-function hintHtml(pairs) {
-  return pairs.map(([key, label]) => keycap(key) + '<span class="hud-hint-label">' + escapeHtml(label) + '</span>').join('');
-}
-
-const TUTORIAL_HINT_DURATION = 9;
-function updateHint(world) {
-  const player = world.player;
-
-  if (player.inVehicle) {
-    els.hint.innerHTML = hintHtml([['E', 'Uitstappen'], ['SPATIE', 'Remmen'], ['V', 'Filmcamera']]);
-    return;
-  }
-
-  let nearestVehicleDist = Infinity;
-  for (const v of world.vehicles) {
-    if (v.wrecked || v.driver) continue;
-    const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < nearestVehicleDist) nearestVehicleDist = d;
-  }
-  const nearCompanion = world.companion && !world.companion.inVehicle
-    && Math.hypot(world.companion.x - player.x, world.companion.y - player.y) < 1.8;
-  if (nearCompanion) {
-    els.hint.innerHTML = hintHtml([['E', 'Kus']]);
-    return;
-  }
-  if (nearestVehicleDist < 3) {
-    els.hint.innerHTML = hintHtml([['E', 'Instappen']]);
-    return;
-  }
-
-  if (world.wanted > 0) {
-    els.hint.innerHTML = hintHtml([['A/D', 'Richten'], ['KLIK', 'Aanvallen'], ['1-4', 'Wapen']]);
-    return;
-  }
-
-  if (world.time < TUTORIAL_HINT_DURATION) {
-    els.hint.innerHTML = hintHtml([['WASD', 'Lopen'], ['SPATIE', 'Springen'], ['CTRL', 'Kruipen'], ['E', 'Instappen'], ['C', 'Wissel'], ['M', 'Kaart'], ['T', 'Telefoon']]);
-    return;
-  }
-
-  els.hint.innerHTML = '';
 }
 
 function pointInPoly(px, py, pts) {
