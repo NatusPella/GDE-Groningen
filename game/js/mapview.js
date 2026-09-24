@@ -1,4 +1,4 @@
-import { drawMapIcon, drawRoute, drawRoadRoute, getHeroCar, forEachPoliceUnit, declutter, ROUTE_COLORS } from './hud_panel.js';
+import { drawMapIcon, drawRoute, drawRoadRoute, getHeroCar, forEachPoliceUnit, declutter, ROUTE_COLORS, drawSearchArea, getPoliceSearch } from './hud_panel.js';
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
 import { getSettings, onSettingsChange } from './settings.js';
@@ -67,6 +67,12 @@ function injectStyles() {
       overflow: hidden;
     }
     .mapview-overlay.open { display: flex; }
+    .mapview-overlay.embedded {
+      position: absolute; inset: 0; z-index: auto;
+      border: none; border-radius: 0; box-shadow: none; background: transparent;
+    }
+    .mapview-overlay.embedded .mapview-title, .mapview-overlay.embedded .mapview-footer { display: none; }
+    .mapview-canvas:focus { outline: none; }
     .mapview-header {
       display: flex;
       align-items: center;
@@ -773,6 +779,11 @@ function drawDynamicMarkers(ctx, world) {
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', 'companion', c.x, c.y, c.character === 'tammo' ? 'Tammo' : 'Anita', {}, 'Maat');
 
+  const search = getPoliceSearch(world);
+  if (search && layerOn('police')) {
+    const [sx, sy] = toScreen(search.x, search.y);
+    drawSearchArea(ctx, sx, sy, search.r * state.scale, t);
+  }
   if (world.wanted > 0) forEachPoliceUnit(world, (x, y) => icon('police', 'police', x, y, 'Politie'));
 
   const wp = getUserWaypoint();
@@ -1005,7 +1016,8 @@ function teleportTo(world, target) {
   world.player.x = sx;
   world.player.y = sy;
   world.addMessage(`Geteleporteerd naar ${target.name}`, 3);
-  closeMap();
+  if (closeHandler) closeHandler();
+  else closeMap();
 }
 
 function handleClick(world, sx, sy, shift) {
@@ -1217,7 +1229,7 @@ export function initMapView(world) {
     '<div class="mapview-zoom"><button type="button" data-act="in" aria-label="Inzoomen">+</button><button type="button" data-act="out" aria-label="Uitzoomen">−</button></div>' +
     '<div class="mapview-tooltip"></div><aside class="mapview-legend"></aside></div>' +
     '<div class="mapview-footer"><b>Klik</b> bestemming zetten/wissen · <b>Shift+klik</b> teleporteren · ' +
-    '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> bestemming wissen · <b>M</b> sluiten</div>';
+    '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> bestemming wissen · <b>Q / E</b> tabblad · <b>M / Esc</b> sluiten</div>';
   document.body.appendChild(overlay);
 
   const compose = document.createElement('canvas');
@@ -1262,6 +1274,7 @@ export function initMapView(world) {
     perf: { composeMs: 0, frameMs: 0, avgMs: 0, maxMs: 0 },
   };
   state.ctx = state.canvas.getContext('2d');
+  state.canvas.tabIndex = -1;
   state.searchIndex = buildSearchIndex(world);
   initFog(world);
   buildLegend(overlay.querySelector('.mapview-legend'));
@@ -1369,6 +1382,28 @@ export function isMapOpen() {
   return !!(state && state.open);
 }
 
+let closeHandler = null;
+
+export function setMapCloseHandler(fn) {
+  closeHandler = fn;
+}
+
+// Re-parents the map UI into a host element (the pause menu's Kaart panel).
+export function mountMapView(host) {
+  if (!state || !host) return;
+  state.overlay.classList.add('embedded');
+  host.appendChild(state.overlay);
+}
+
+export function setMapActive(world, on) {
+  if (!state || on === state.open) return;
+  if (on) {
+    openMap(world);
+    centreOn(world.player.x, world.player.y, 2);
+    state.canvas.focus({ preventScroll: true });
+  } else closeMap();
+}
+
 export function getMapViewStats() {
   if (!state) return null;
   return { ...state.perf, zoom: state.zoom, tiles: state.tiles.size, level: levelFor(state.zoom) };
@@ -1384,12 +1419,6 @@ export function updateMapView(dt, world) {
   if (!state) return;
   updateFog(world);
   updateRouting(dt, world);
-  const input = world.input;
-  if (input.wasPressed('m') && document.activeElement !== state.searchInput) {
-    if (state.open) closeMap(); else openMap(world);
-  } else if (state.open && input.wasPressed('escape')) {
-    closeMap();
-  }
   if (!state.open) return;
   handleKeys(dt, world);
   render(world);

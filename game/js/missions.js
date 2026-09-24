@@ -1,5 +1,7 @@
 import { dist, closestPointOnSegment } from './util.js';
 import { spawnVehicleOnRoad } from './vehicle.js';
+import { setUserWaypoint } from './routing.js';
+import { playMissionIntro, playMissionOutro, playMissionFailed } from './cinematics.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
@@ -83,6 +85,8 @@ function buildDefs(world) {
     {
       type: 'deliver',
       label: "Bommen Berend wil z'n bakkie",
+      intro: ['Bommen Berend belde. Z\'n bakkie staat hier, hij wil \'m vóór de koffie terug.', 'Rij \'m heel naar hem toe. Heel, hè. Niet zoals de vorige keer.'],
+      outro: 'Berend heeft z\'n bakkie terug. Hij zei zowaar \'dank je\'.',
       timeLimit: 90,
       reward: 250,
       start: resolveSpot(map, sp, 15, 12, true),
@@ -91,6 +95,8 @@ function buildDefs(world) {
     {
       type: 'rampage',
       label: 'Chaos op de Grote Markt',
+      intro: ['Iemand op Sikkom schreef dat de Grote Markt saai is geworden.', 'Laat maar zien dat dat niet klopt. Acht stuks, 45 seconden.'],
+      outro: 'De Grote Markt is weer eens flink wakker geschud.',
       timeLimit: 45,
       reward: 300,
       targetKills: 8,
@@ -99,6 +105,8 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'KEI-weekrace door Grunn',
+      intro: ['De KEI-week is begonnen en de eerstejaars denken dat ze snel zijn.', 'Laat ze je achterlichten zien. Alle checkpoints, niet treuzelen.'],
+      outro: 'De eerstejaars zijn nog steeds aan het bijkomen.',
       timeLimit: 55,
       checkpointBonus: 8,
       reward: 350,
@@ -113,6 +121,8 @@ function buildDefs(world) {
     {
       type: 'deliver',
       label: 'Spoedklus voor Noorderzon',
+      intro: ['Noorderzon mist een lading spullen en de voorstelling begint zo.', 'Pak die auto en rij door. Stoplichten zijn in Grunn meer een suggestie.'],
+      outro: 'Het doek kan op. Noorderzon is gered.',
       timeLimit: 75,
       reward: 500,
       start: resolveSpot(map, sp, 40, -20, true),
@@ -121,6 +131,8 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'Ringweg-race: eindelijk klaar?',
+      intro: ['Ze zijn eindelijk klaar met de Zuidelijke Ringweg. Zeggen ze.', 'Eén rondje om de stad, vol gas. Kijken of \'t klopt.'],
+      outro: 'De ringweg is getest. Hij ligt er nog. Grotendeels.',
       timeLimit: 70,
       checkpointBonus: 40,
       reward: 750,
@@ -130,6 +142,8 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'Kroegentocht: Poelestraat plat',
+      intro: ['Kroegentocht! Vier kroegen, één avond, nul excuses.', 'En niet verdwalen tussen de Poelestraat en de Peperstraat.'],
+      outro: 'Vier kroegen gehaald. Morgen wordt zwaar.',
       timeLimit: 100,
       checkpointBonus: 20,
       reward: 320,
@@ -139,6 +153,8 @@ function buildDefs(world) {
     {
       type: 'fatbike',
       label: 'Fatbike-terreur: blijf overeind',
+      intro: ['De fatbikes zijn los en ze stoppen voor niemand.', 'Kom heelhuids aan de overkant. Twee keer geschept mag, meer niet.'],
+      outro: 'Overeind gebleven tussen de fatbikes. Knap werk.',
       timeLimit: 35,
       reward: 275,
       maxHits: 2,
@@ -148,6 +164,8 @@ function buildDefs(world) {
     {
       type: 'boat',
       label: 'Rondvaart met valse papieren',
+      intro: ['Er is een rondvaartboot \'vrijgekomen\'. Vraag maar niet hoe.', 'Vaar het rondje over de Diepenring en doe alsof je gids bent.'],
+      outro: 'Rondvaart voltooid. Niemand vroeg naar je papieren.',
       timeLimit: 90,
       checkpointBonus: 25,
       reward: 400,
@@ -169,20 +187,104 @@ export function initMissions(world) {
     cooldownTimer: 0,
     killBaseline: 0,
     wpIndex: 0,
+    completed: new Set(),
+    run: null,
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
   };
   world.mission = chain.pub;
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
-    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood');
+    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood', busted ? 'Opgepakt door de politie' : 'Je bent dood');
   });
 }
 
-export function failActiveMission(world, reason) {
+export function failActiveMission(world, reason, bannerReason) {
   if (!chain || chain.phase !== 'active') return false;
+  const def = chain.defs[chain.index];
+  playMissionFailed(world, { reason: bannerReason || reason, stats: runStats(world, def) }, false);
   endInFailure(world, reason);
   syncPub(world);
   return true;
+}
+
+function speakerName(world) {
+  const c = world.companion;
+  if (c && c.character) return c.character === 'tammo' ? 'Tammo' : 'Anita';
+  return world.player.character === 'tammo' ? 'Anita' : 'Tammo';
+}
+
+function statusOf(i) {
+  if (chain.phase === 'active' && i === chain.index) return 'actief';
+  if (i === chain.index) return 'volgende';
+  return chain.completed.has(i) ? 'geklaard' : 'open';
+}
+
+export function getMissionList() {
+  if (!chain) return [];
+  return chain.defs.map((d, i) => ({ index: i, label: d.label, type: d.type, reward: d.reward, status: statusOf(i), start: { x: d.start.x, y: d.start.y } }));
+}
+
+export function getNextMission() {
+  if (!chain) return null;
+  const d = chain.defs[chain.index];
+  return { index: chain.index, label: d.label, reward: d.reward, active: chain.phase === 'active' };
+}
+
+export function isMissionActive() {
+  return !!chain && chain.phase === 'active';
+}
+
+// Makes mission i the next one in the chain and routes the player to its start.
+export function trackMission(world, i) {
+  if (!chain || !chain.defs[i]) return false;
+  if (chain.phase === 'active') return i === chain.index;
+  chain.index = i;
+  chain.phase = 'idle';
+  chain.wpIndex = 0;
+  const d = chain.defs[i];
+  setUserWaypoint(d.start.x, d.start.y, d.label);
+  syncPub(world);
+  return true;
+}
+
+export function getMissionProgress() {
+  if (!chain) return null;
+  return { index: chain.index, completed: [...chain.completed] };
+}
+
+export function setMissionProgress(world, prog) {
+  if (!chain || !prog) return;
+  const n = chain.defs.length;
+  chain.index = Number.isInteger(prog.index) && prog.index >= 0 && prog.index < n ? prog.index : 0;
+  chain.completed = new Set((prog.completed || []).filter((i) => Number.isInteger(i) && i >= 0 && i < n));
+  chain.phase = 'idle';
+  chain.wpIndex = 0;
+  chain.run = null;
+  syncPub(world);
+}
+
+function fmtTime(s) {
+  const t = Math.max(0, Math.round(s));
+  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+}
+
+function runStats(world, def) {
+  const r = chain.run;
+  if (!r) return [];
+  const stats = [['Tijd', fmtTime(r.elapsed)]];
+  const kills = world.stats.kills - r.kills;
+  if (def.type === 'rampage' || kills > 0) stats.push(['Kills', String(Math.max(0, kills))]);
+  stats.push(['Schade', `${Math.round(r.damage)}%`]);
+  return stats;
+}
+
+function trackRun(dt, world) {
+  const r = chain.run;
+  if (!r) return;
+  r.elapsed += dt;
+  const hp = world.health + world.armor;
+  if (hp < r.hp) r.damage += r.hp - hp;
+  r.hp = hp;
 }
 
 function syncPub(world) {
@@ -239,12 +341,17 @@ function succeed(world, def) {
   world.money += def.reward;
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! +€${def.reward}`, 4);
+  playMissionOutro(world, { reason: def.outro || def.label, reward: def.reward, stats: runStats(world, def) });
+  chain.completed.add(chain.index);
+  chain.run = null;
   chain.index = (chain.index + 1) % chain.defs.length;
   chain.phase = 'idle';
   chain.wpIndex = 0;
 }
 
 function fail(world, def, reason) {
+  const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : def.label;
+  playMissionFailed(world, { reason: pretty, stats: runStats(world, def) });
   endInFailure(world, `${def.label} mislukt${reason ? ' — ' + reason : ''}`);
 }
 
@@ -253,21 +360,34 @@ function endInFailure(world, text) {
   chain.phase = 'cooldown';
   chain.cooldownTimer = RETRY_COOLDOWN;
   chain.wpIndex = 0;
+  chain.run = null;
 }
 
 function startMission(world, def) {
   chain.phase = 'active';
   chain.timeLeft = def.timeLimit;
   chain.wpIndex = 0;
+  chain.run = { elapsed: 0, kills: world.stats.kills, hp: world.health + world.armor, damage: 0 };
   if (def.type === 'rampage') {
     chain.killBaseline = world.stats.pedKills;
   } else if (def.type === 'deliver' && def.start.road) {
-    world.vehicles.push(spawnVehicleOnRoad(world.map, def.start.road, false, Math.random, false, false, def.start));
+    // the car to steal: parked and waiting, not driving off as traffic
+    const car = spawnVehicleOnRoad(world.map, def.start.road, false, Math.random, false, false, def.start);
+    car.road = null;
+    car.speed = 0;
+    car.missionCar = true;
+    world.vehicles.push(car);
   } else if (def.type === 'fatbike') {
     chain.fatbikeHits = 0;
     chain.fatbikeContact = new Set();
   }
-  world.addMessage(def.label, 3);
+  const who = speakerName(world);
+  playMissionIntro(world, {
+    kicker: `Missie ${chain.index + 1}/${chain.defs.length}`,
+    title: `Missie: ${def.label}`,
+    lines: (def.intro || []).map((text) => ({ speaker: who, text })),
+    objective: def.dest || (def.waypoints && def.waypoints[0]) || def.start,
+  });
 }
 
 // Only counts a hit once per fatbike per continuous touch, so lingering
@@ -308,6 +428,7 @@ export function updateMissions(dt, world) {
     return;
   }
 
+  trackRun(dt, world);
   chain.timeLeft -= dt;
   if (chain.timeLeft <= 0) {
     fail(world, def, 'tijd op, sukkel');

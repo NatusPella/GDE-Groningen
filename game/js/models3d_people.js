@@ -229,7 +229,140 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   }
 
   group.scale.set(L.buildScale, L.heightScale, L.buildScale);
+  if (opts.seed !== undefined) group.userData.lookSeed = opts.seed;
   return group;
+}
+
+// Static seated pose for vehicle occupants: thighs forward, hands on the
+// wheel (driver) or in the lap. Callers lower the mesh by SEATED_DROP.
+export const SEATED_DROP = 0.55;
+export function seatPerson(mesh, driving = false) {
+  const ud = mesh.userData;
+  ud.legL.rotation.set(0, 0, 1.5);
+  ud.legR.rotation.set(0, 0, 1.5);
+  ud.armL.rotation.set(0, 0, driving ? 1.15 : 0.45);
+  ud.armR.rotation.set(0, 0, driving ? 1.15 : 0.45);
+  ud.seated = true;
+}
+
+// Pose hook: gameplay code registers the object (a Pedestrian) whose `pose`
+// field should drive the mesh built with the same appearance seed.
+const poseSources = new Map();
+export function registerPoseSource(seed, src) { poseSources.set(seed, src); }
+export function unregisterPoseSource(seed) { poseSources.delete(seed); }
+export function prunePoseSources(alive) {
+  for (const [seed, src] of poseSources) if (!alive.has(src)) poseSources.delete(seed);
+}
+
+const PHONE_GEO = new THREE.BoxGeometry(0.02, 0.13, 0.07);
+const PHONE_MAT = new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.4, emissive: 0x33506a, emissiveIntensity: 0.6 });
+const ROD_GEO = (() => {
+  const g = new THREE.CylinderGeometry(0.008, 0.016, 2.4, 4);
+  g.translate(0, 1.2, 0);
+  return g;
+})();
+const ROD_MAT = new THREE.MeshStandardMaterial({ color: 0x3a2c1f, roughness: 0.8 });
+
+function propOn(ud, key, geo, mat, build) {
+  let m = ud[key];
+  if (!m) {
+    m = new THREE.Mesh(geo, mat);
+    build(m);
+    ud.armR.add(m);
+    ud[key] = m;
+  }
+  return m;
+}
+
+function setPropVisible(ud, key, on) {
+  if (ud[key]) ud[key].visible = on;
+}
+
+const POSE_DROP = { crouch: 0.42, sit: 0.46, fish: 0.5 };
+
+function applyPose(mesh, pose, t) {
+  const ud = mesh.userData;
+  const drop = POSE_DROP[pose] || 0;
+  mesh.position.y -= drop;
+  if (ud.shadow) {
+    if (ud.shadowBaseY === undefined) ud.shadowBaseY = ud.shadow.position.y;
+    ud.shadow.position.y = ud.shadowBaseY + drop / (mesh.scale.y || 1);
+  }
+  mesh.rotation.z = 0;
+  setPropVisible(ud, 'phoneProp', pose === 'phone' || pose === 'call');
+  setPropVisible(ud, 'rodProp', pose === 'fish');
+  switch (pose) {
+    case 'crouch': {
+      const shake = Math.sin(t * 23) * 0.04;
+      mesh.rotation.z = -0.55 + shake;
+      ud.legL.rotation.z = 1.35;
+      ud.legR.rotation.z = -0.35;
+      ud.armL.rotation.z = 2.7;
+      ud.armR.rotation.z = 2.7;
+      break;
+    }
+    case 'phone':
+      propOn(ud, 'phoneProp', PHONE_GEO, PHONE_MAT, (m) => m.position.set(0.03, -0.62, 0));
+      ud.armR.rotation.z = 1.75;
+      ud.armL.rotation.z = 0.25;
+      break;
+    case 'call':
+      propOn(ud, 'phoneProp', PHONE_GEO, PHONE_MAT, (m) => m.position.set(0.03, -0.62, 0));
+      ud.armR.rotation.z = 2.75;
+      ud.armR.rotation.x = -0.5;
+      ud.armL.rotation.z = 0.1;
+      break;
+    case 'sit':
+      ud.legL.rotation.z = 1.2;
+      ud.legR.rotation.z = 1.1;
+      ud.armL.rotation.z = 0.7 + Math.sin(t * 0.7) * 0.08;
+      ud.armR.rotation.z = 0.9 + Math.sin(t * 1.3 + 1) * 0.15;
+      break;
+    case 'fish': {
+      propOn(ud, 'rodProp', ROD_GEO, ROD_MAT, (m) => { m.position.set(0.02, -0.6, 0); m.rotation.z = -0.9; });
+      ud.legL.rotation.z = 1.25;
+      ud.legR.rotation.z = 1.1;
+      const bob = Math.sin(t * 0.9) * 0.05;
+      ud.armL.rotation.z = 0.9 + bob;
+      ud.armR.rotation.z = 1.0 + bob;
+      break;
+    }
+    case 'haul': {
+      const pull = (Math.sin(t * 2.2) + 1) * 0.5;
+      mesh.rotation.z = 0.15 + pull * 0.2;
+      ud.armL.rotation.z = 1.1 + pull * 0.5;
+      ud.armR.rotation.z = 1.1 + pull * 0.5;
+      ud.legL.rotation.z = 0.35;
+      ud.legR.rotation.z = -0.25;
+      break;
+    }
+    case 'angry':
+      ud.armR.rotation.z = 2.9 + Math.sin(t * 14) * 0.25;
+      ud.armL.rotation.z = 0.3;
+      break;
+    case 'vendor':
+      ud.armL.rotation.z = 0.35 + Math.sin(t * 1.1) * 0.25;
+      ud.armR.rotation.z = 0.35 + Math.sin(t * 1.7 + 2) * 0.35;
+      break;
+  }
+}
+
+function updatePose(mesh) {
+  const ud = mesh.userData;
+  const src = ud.lookSeed !== undefined ? poseSources.get(ud.lookSeed) : null;
+  const pose = src && src.state !== 'dead' ? src.pose : null;
+  if (pose) {
+    ud.posed = true;
+    if (pose !== 'call') ud.armR.rotation.x = 0;
+    applyPose(mesh, pose, performance.now() / 1000);
+  } else if (ud.posed) {
+    ud.posed = false;
+    if (!src || src.state !== 'dead') mesh.rotation.z = 0;
+    ud.armR.rotation.x = 0;
+    if (ud.shadow && ud.shadowBaseY !== undefined) ud.shadow.position.y = ud.shadowBaseY;
+    setPropVisible(ud, 'phoneProp', false);
+    setPropVisible(ud, 'rodProp', false);
+  }
 }
 
 // Drives the walk cycle for a mesh built by buildPersonMesh(). Phase advances
@@ -257,4 +390,5 @@ export function animatePersonWalk(mesh, speed, dt) {
   ud.legR.rotation.z = -legSwing;
   ud.armL.rotation.z = -armSwing;
   ud.armR.rotation.z = armSwing;
+  updatePose(mesh);
 }

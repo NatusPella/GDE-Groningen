@@ -8,7 +8,7 @@ import {
   sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedestrians.js';
-import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, seatPerson, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
@@ -27,13 +27,14 @@ import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
 import { pointInPolygon, polygonBounds } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
-import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
+import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights } from './nightlights3d.js';
+import { createFarLOD } from './farlod.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -52,8 +53,17 @@ const DRAW_DIST = 140;
 // read as "the canal sits below street level" from a close-up 3rd person
 // camera; pushed meaningfully lower instead.
 const WATER_Y = -1.1;
-const UNLOAD_DIST = 175;
 const TREE_DIST = 90;
+const VIEW_DISTANCES = { kort: 150, normaal: 350, ver: 600 };
+let viewDist = VIEW_DISTANCES.normaal;
+let farLod = null;
+const landmarkBuildings = [];
+// Per quality level: shadow map size and frustum half-width (m).
+const SHADOW_LEVELS = {
+  laag: { size: 1024, half: 40, radius: 1.5, normalBias: 0.05 },
+  middel: { size: 2048, half: 36, radius: 1.5, normalBias: 0.03 },
+  hoog: { size: 4096, half: 32, radius: 1.2, normalBias: 0.02 },
+};
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
 let terrainMesh = null;
@@ -65,6 +75,11 @@ const ORBIT_RADIUS = Math.hypot(2.6, 2.6);
 const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
 const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overhead angle
 let followPitch = Math.atan2(5.2 - 1.3, 9);
+let lookPitchTarget = followPitch;
+let lookYaw = 0;
+let lookYawIdle = 0;
+const MOUSE_LOOK_PER_PX = 0.0025;
+const LOOK_RECENTER_DELAY = 1.4;
 
 const buildingMeshes = new Map();
 // Buildings are only ever built once and cached above - if a landmark's real
@@ -94,6 +109,7 @@ const speechBubbleEls = new Map();
 let billboardRoot = null;
 let flitspaalBuilt = false;
 let horecaBuilt = false;
+const staticProps = [];
 let policeHeliMesh = null;
 const skyPropMeshes = new Map();
 let playerMesh = null;
@@ -142,8 +158,7 @@ let bedMaterial = null;
 // Direction towards the sun (or moon at night); driven by daynight.js.
 const sunDir = new THREE.Vector3(120, 110, 70).normalize();
 const SUN_DIST = 160;
-const SHADOW_HALF = 45;
-const SHADOW_MAP_SIZE = 2048;
+let shadowHalf = SHADOW_LEVELS.hoog.half;
 const _yAxis = new THREE.Vector3(0, 1, 0);
 const _lightRight = new THREE.Vector3();
 const _lightUp = new THREE.Vector3();
@@ -159,6 +174,7 @@ let lastPx = null, lastPy = null;
 const camBase = new THREE.Vector3();
 let camBaseInit = false;
 const CAM_SHAKE_TIME = 0.6;
+const DRIVER_FIGURE_DIST = 70;
 const CAM_SHAKE_MAX = 0.28;
 
 function nearbyCamTargets(px, py) {
@@ -240,7 +256,33 @@ function buildVehicleActor(v) {
   } else {
     addBlobShadow(mesh, len * 1.12, wid * 1.3);
   }
+  if (!v.isBoat && !v.isBike && !v.isScooter) {
+    // seated NPC driver, shown only while AI traffic drives this vehicle
+    const seed = (v.id || 0) * 5.3 + 11;
+    const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, { seed });
+    seatPerson(driver, true);
+    const seat = seatOffset(v, true);
+    driver.position.set(seat.x, -SEATED_DROP, seat.z);
+    driver.visible = false;
+    mesh.add(driver);
+    mesh.userData.driverFigure = driver;
+  }
   return mesh;
+}
+
+// Local seat position inside a vehicle facing +x; Dutch cars are left-hand
+// drive, and left of +x is -z in three.js (north for a car facing east).
+function seatOffset(v, driverSeat) {
+  const hl = v.model.len / 2, hw = v.model.wid / 2;
+  if (v.isBus) return { x: hl - 1.3, z: driverSeat ? -hw * 0.45 : hw * 0.3 };
+  return { x: -hl * 0.06, z: (driverSeat ? -1 : 1) * hw * 0.34 };
+}
+
+function placeSeated(personMesh, v, driverSeat) {
+  const seat = seatOffset(v, driverSeat);
+  const c = Math.cos(v.angle), sn = Math.sin(v.angle);
+  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : 0) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
+  personMesh.rotation.set(0, -v.angle, 0);
 }
 
 function buildPersonActor(shirt, skin, appearance) {
@@ -286,7 +328,7 @@ export function init3D(map) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(SKY_HORIZON);
@@ -311,11 +353,11 @@ export function init3D(map) {
   scene.add(hemi);
   sun = new THREE.DirectionalLight(0xffd29a, 3.3);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
-  Object.assign(sun.shadow.camera, { left: -SHADOW_HALF, right: SHADOW_HALF, top: SHADOW_HALF, bottom: -SHADOW_HALF, near: 1, far: SUN_DIST + 140 });
+  applyShadowLevel('hoog');
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = SUN_DIST + 140;
   sun.shadow.camera.updateProjectionMatrix();
-  sun.shadow.bias = -0.0004;
-  sun.shadow.normalBias = 0.04;
+  sun.shadow.bias = -0.0003;
   scene.add(sun);
   scene.add(sun.target);
 
@@ -352,10 +394,16 @@ export function init3D(map) {
 
   postfx = createPostFX(renderer, scene, cam);
   initNightLights(scene);
+  for (const b of map.buildings) if (b.landmark) landmarkBuildings.push(b);
+  farLod = createFarLOD(scene, map, {
+    flatGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)),
+    colors: { roads: ROAD_COLORS3D, sidewalk: SIDEWALK_COLOR, green: GREEN_COLOR },
+    sidewalkExtra: SIDEWALK_EXTRA,
+  });
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod };
 }
 
 // Read-only access for systems that need the view pose (e.g. the 3D audio listener).
@@ -382,13 +430,30 @@ function applyViewSettings(st) {
   else if (prevRatio !== renderer.getPixelRatio()) postfx.rebuild();
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) sun.castShadow = shadows;
-  if (sun.shadow.mapSize.x !== preset.shadowMapSize) {
-    sun.shadow.mapSize.set(preset.shadowMapSize, preset.shadowMapSize);
-    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
-  }
+  applyShadowLevel(level);
+  viewDist = VIEW_DISTANCES[st.drawDistance] || VIEW_DISTANCES.normaal;
+  cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
+  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
+  lightBase.fogFar = viewDist * 1.02;
   cam.fov = baseFov = st.fov;
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
+}
+
+function applyShadowLevel(level) {
+  const s = SHADOW_LEVELS[level] || SHADOW_LEVELS.hoog;
+  shadowHalf = s.half;
+  const c = sun.shadow.camera;
+  if (c.right !== s.half) {
+    Object.assign(c, { left: -s.half, right: s.half, top: s.half, bottom: -s.half });
+    c.updateProjectionMatrix();
+  }
+  sun.shadow.radius = s.radius;
+  sun.shadow.normalBias = s.normalBias;
+  if (sun.shadow.mapSize.x !== s.size) {
+    sun.shadow.mapSize.set(s.size, s.size);
+    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+  }
 }
 
 export function resize3D() {
@@ -532,6 +597,7 @@ function ribbonGeometry(pts, half) {
 // a same-toned gray; major/normal roads also get a painted centerline
 // (the single strongest "this is a street" visual cue a real road has).
 const ROAD_COLORS3D = { cycle: 0x94412f, foot: 0x837d71, major: 0x57595c, normal: 0x4b4d50, minor: 0x4b4d50 };
+const GREEN_COLOR = 0x5c8a4d;
 // Ground decals (green, sidewalks, road categories, markings) overlap at
 // every junction a few millimetres apart - far below depth-buffer precision
 // at street distance, so they flickered. Each layer gets a fixed
@@ -662,30 +728,61 @@ function buildTreeMesh(x, y) {
 // --- per-frame sync ------------------------------------------------------
 
 function syncBuildings(world, px, py) {
+  // Detail set must be exactly "centre within DRAW_DIST": farlod.js hides
+  // its copy of a building by the same test, so no unload hysteresis here.
   const view = world.map.buildingsNear(px, py, DRAW_DIST);
   const seen = new Set();
-  for (const b of view) {
-    const dx = b.bounds[0] - px, dy = b.bounds[1] - py;
-    if (Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py) > DRAW_DIST) continue;
+  const want = (b, r) => {
+    if (Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py) > r) return;
     seen.add(b);
     if (!buildingMeshes.has(b)) {
       const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
+      if (isSkyline(b)) useSkylineMaterials(mesh);
       scene.add(mesh);
       buildingMeshes.set(b, mesh);
     }
-  }
+  };
+  for (const b of view) if (!b.landmark) want(b, DRAW_DIST);
+  for (const b of landmarkBuildings) want(b, isSkyline(b) ? landmarkDist() : Math.max(DRAW_DIST, viewDist));
   for (const [b, mesh] of buildingMeshes) {
     if (seen.has(b)) continue;
-    const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
-    if (Math.hypot(cx - px, cy - py) > UNLOAD_DIST) {
-      // no dispose here: buildBuildingMesh's children reuse shared,
-      // module-scope materials/geometry cached on b._geo3dParts across the
-      // building's lifetime - disposing would corrupt every other building
-      // still on screen that shares the same style/family material
-      scene.remove(mesh);
-      buildingMeshes.delete(b);
-    }
+    // no dispose: parts geometry and materials are shared/cached per building
+    scene.remove(mesh);
+    buildingMeshes.delete(b);
   }
+}
+
+const isSkyline = (b) => b.landmarkKind === 'tower';
+function landmarkDist() {
+  return viewDist > DRAW_DIST + 20 ? Math.min(1500, viewDist * 3) : DRAW_DIST;
+}
+
+// Landmarks stay readable on the skyline: their fog is capped at 55% up to
+// fog.far and only fades out completely at 3x fog.far.
+const skylineMats = new Map();
+function skylineMaterial(m) {
+  let s = skylineMats.get(m);
+  if (!s) {
+    s = m.clone();
+    s.userData.shared = true;
+    const prev = m.onBeforeCompile;
+    s.onBeforeCompile = (shader, r) => {
+      if (prev) prev.call(s, shader, r);
+      shader.fragmentShader = shader.fragmentShader.replace('#include <fog_fragment>', `#ifdef USE_FOG
+  float skyFog = min(smoothstep(fogNear, fogFar, vFogDepth), 0.55 + 0.4 * smoothstep(fogFar, fogFar * 3.0, vFogDepth));
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, skyFog);
+#endif`);
+    };
+    s.customProgramCacheKey = () => (m.customProgramCacheKey ? m.customProgramCacheKey() : '') + 'skyline';
+    skylineMats.set(m, s);
+  }
+  return s;
+}
+function useSkylineMaterials(root) {
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    o.material = Array.isArray(o.material) ? o.material.map(skylineMaterial) : skylineMaterial(o.material);
+  });
 }
 
 function syncFlat(items, cache, color, y, px, py) {
@@ -886,8 +983,8 @@ export function update3D(dt, world) {
   const player = world.player;
 
   syncBuildings(world, player.x, player.y);
-  syncFlat(world.map.greenNear(player.x, player.y, DRAW_DIST), greenMeshes, 0x5c8a4d, 0.015, player.x, player.y);
-  syncWater(world.map.waterNear(player.x, player.y, DRAW_DIST), waterMeshes, WATER_Y);
+  syncFlat(world.map.greenNear(player.x, player.y, DRAW_DIST), greenMeshes, GREEN_COLOR, 0.015, player.x, player.y);
+  syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y);
   if (waterMaterial) updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
@@ -910,6 +1007,8 @@ export function update3D(dt, world) {
       if (v.isBoat) animateBoat(mesh, v, world.time);
       else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.isPolice) updatePoliceLamps(mesh, world.time, policeChasing && !v.hijacked && v.driver !== 'player');
+      const df = mesh.userData.driverFigure;
+      if (df) df.visible = !!v.road && !v.wrecked && v.driver !== 'player' && Math.abs(v.x - player.x) + Math.abs(v.y - player.y) < DRIVER_FIGURE_DIST;
     }
 
     // damage VFX - checked regardless of `mesh` (a just-wrecked vehicle's
@@ -997,6 +1096,7 @@ export function update3D(dt, world) {
       mesh.position.set(fc.x, 0, fc.y);
       mesh.rotation.y = -fc.angle;
       scene.add(mesh);
+      staticProps.push(mesh);
     }
   }
 
@@ -1008,9 +1108,11 @@ export function update3D(dt, world) {
         const mesh = buildHorecaMarkerMesh3D();
         mesh.position.set(h.x, 0, h.y);
         scene.add(mesh);
+        staticProps.push(mesh);
       }
     }
   }
+  for (const mesh of staticProps) mesh.visible = Math.abs(mesh.position.x - player.x) < DRAW_DIST && Math.abs(mesh.position.z - player.y) < DRAW_DIST;
 
   if (world.wildlife) {
     syncActors(
@@ -1220,6 +1322,7 @@ export function update3D(dt, world) {
   applyTimeOfDay(dt, world);
   applyWeatherToScene3D(scene, renderer, world, dt, player.x, player.y, cam);
   updateEnvironment(dt);
+  farLod.update(player.x, player.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, DRAW_DIST);
 
   if (player.character !== playerCharacter) {
     playerCharacter = player.character;
@@ -1229,8 +1332,18 @@ export function update3D(dt, world) {
     scene.add(playerMesh);
   }
 
-  playerMesh.visible = !player.inVehicle;
-  if (!player.inVehicle) {
+  const pv = player.inVehicle;
+  const seatedInPv = pv && !pv.isBike && !pv.isScooter;
+  playerMesh.visible = !pv || seatedInPv;
+  if (seatedInPv) {
+    seatPerson(playerMesh, true);
+    playerMesh.scale.y = 1;
+    placeSeated(playerMesh, pv, true);
+    playerMesh.userData.shadow.visible = false;
+  } else if (!pv) {
+    playerMesh.userData.shadow.visible = true;
+    playerMesh.rotation.x = 0;
+    playerMesh.rotation.z = 0;
     playerMesh.position.set(player.x, player.z || 0, player.y);
     playerMesh.rotation.y = -player.angle;
     playerMesh.scale.y = player.crouching ? 0.6 : 1;
@@ -1260,13 +1373,9 @@ export function update3D(dt, world) {
       animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), dt);
     } else {
       const v = comp.inVehicle;
-      const hl = v.model.len / 2, hw = v.model.wid / 2;
-      const offX = hl * 0.05, offZ = -hw * 0.32;
-      const wx = v.x + Math.cos(v.angle) * offX - Math.sin(v.angle) * offZ;
-      const wy = v.y + Math.sin(v.angle) * offX + Math.cos(v.angle) * offZ;
-      passengerMesh.visible = true;
-      passengerMesh.position.set(wx, 0, wy);
-      passengerMesh.rotation.y = -v.angle;
+      passengerMesh.visible = !v.isBike && !v.isScooter;
+      seatPerson(passengerMesh, false);
+      placeSeated(passengerMesh, v, v.driver !== 'player');
     }
   }
   if (passengerMesh && (!comp || !comp.inVehicle)) passengerMesh.visible = false;
@@ -1282,10 +1391,28 @@ export function update3D(dt, world) {
   // mouse Y pans the camera up/down around the player, GTA-style - top of
   // the screen swings the camera down to a lower, more level angle ("looking
   // up"), bottom of the screen swings it up to a steeper overhead angle
-  const pitchT = Math.min(1, Math.max(0, (world.input.mouse.y || 0) / (innerHeight || 1)));
-  const targetPitchDeg = PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT;
-  const targetPitch = targetPitchDeg * Math.PI / 180;
-  followPitch += (targetPitch - followPitch) * Math.min(1, dt * 6);
+  // captured mouse (mouse-look): relative motion tilts the camera and, in a
+  // vehicle, orbits it around the car; it drifts back behind the car after
+  // a moment without mouse input. Uncaptured: the old absolute mouse-Y tilt.
+  const mouse = world.input.mouse;
+  const looking = world.input.lookActive ? world.input.lookActive() : mouse.locked;
+  const lookK = MOUSE_LOOK_PER_PX * getSettings().mouseSensitivity;
+  if (looking) {
+    lookPitchTarget += mouse.dy * lookK * (getSettings().invertY ? -1 : 1);
+    lookPitchTarget = Math.min(PITCH_MAX_DEG, Math.max(PITCH_MIN_DEG - 4, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
+  } else {
+    const pitchT = Math.min(1, Math.max(0, (mouse.y || 0) / (innerHeight || 1)));
+    lookPitchTarget = (PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT) * Math.PI / 180;
+  }
+  followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 14 : 6));
+  if (player.inVehicle && looking && mouse.dx !== 0) {
+    lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
+    lookYawIdle = 0;
+  } else {
+    lookYawIdle += dt;
+    if (!player.inVehicle || lookYawIdle > LOOK_RECENTER_DELAY) lookYaw *= Math.exp(-dt * (player.inVehicle ? 2.5 : 12));
+  }
+  const camAngle = targetAngle + lookYaw;
 
   // vehicles get a longer, higher orbit scaled to their length, so the car
   // doesn't fill the lower half of the screen
@@ -1295,8 +1422,8 @@ export function update3D(dt, world) {
   const eyeX = player.x, eyeY = veh ? 1.3 + (camScale - 1) * 0.55 : 1.3, eyeZ = player.y;
   const horizDist = Math.cos(followPitch) * radius;
   const orbitHeight = eyeY + Math.sin(followPitch) * radius;
-  let desiredX = player.x - Math.cos(targetAngle) * horizDist;
-  let desiredZ = player.y - Math.sin(targetAngle) * horizDist;
+  let desiredX = player.x - Math.cos(camAngle) * horizDist;
+  let desiredZ = player.y - Math.sin(camAngle) * horizDist;
   let desiredY = orbitHeight;
 
   // recursive: true - each building is now a Group of several child meshes
@@ -1331,8 +1458,8 @@ export function update3D(dt, world) {
     const steepPitch = Math.max(followPitch, 75 * Math.PI / 180);
     const steepHoriz = Math.cos(steepPitch) * radius;
     const steepHeight = eyeY + Math.sin(steepPitch) * radius;
-    const altX = player.x - Math.cos(targetAngle) * steepHoriz;
-    const altZ = player.y - Math.sin(targetAngle) * steepHoriz;
+    const altX = player.x - Math.cos(camAngle) * steepHoriz;
+    const altZ = player.y - Math.sin(camAngle) * steepHoriz;
     const altDx = altX - eyeX, altDy = steepHeight - eyeY, altDz = altZ - eyeZ;
     const altFullDist = Math.hypot(altDx, altDy, altDz) || 1;
     const altHit = raycastBuildingDist(altDx, altDy, altDz, altFullDist);
@@ -1421,10 +1548,10 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
       overridePos.copy(cam.position);
       overrideLook.copy(_camLook);
     }
-    const k = Math.min(1, dt * 3);
+    const k = o.cut ? 1 : Math.min(1, dt * 3);
     overridePos.lerp(_camTmp.set(o.position.x, o.position.z ?? 10, o.position.y), k);
     overrideLook.lerp(_camTmp.set(o.lookAt.x, o.lookAt.z ?? 1.3, o.lookAt.y), k);
-    overrideBlend = Math.min(1, overrideBlend + dt / CAM_OVERRIDE_BLEND_S);
+    overrideBlend = o.cut ? 1 : Math.min(1, overrideBlend + dt / CAM_OVERRIDE_BLEND_S);
   } else {
     overrideBlend = Math.max(0, overrideBlend - dt / CAM_OVERRIDE_BLEND_S);
     if (overrideBlend === 0) overrideActive = false;
@@ -1437,7 +1564,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   cam.lookAt(_camLook);
   const targetFov = valid && o.fov ? o.fov : baseFov;
   if (cam.fov !== targetFov) {
-    cam.fov = Math.abs(targetFov - cam.fov) < 0.05 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
+    cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();
   }
 }
@@ -1500,6 +1627,9 @@ function applyTimeOfDay(dt, world) {
   renderer.toneMappingExposure = L.exp;
   setStarOpacity(skyDome, L.night * (1 - storm));
   setNightFactor(1.5 * L.night, curveAt(WINDOW_LIT, L.hour), curveAt(SHOP_LIT, L.hour));
+  farLod.setNight(1.5 * L.night, curveAt(WINDOW_LIT, L.hour));
+  scene.fog.near = lightBase.fogNear;
+  scene.fog.far = lightBase.fogFar;
   setTrafficLightGlow(1 + 3 * L.night);
   bedMaterial.color.copy(BED_COLOR).multiplyScalar(0.3 + 0.7 * L.daylight);
 
@@ -1534,8 +1664,8 @@ function updateSunAndSky(player) {
   _lightUp.crossVectors(sunDir, _lightRight).normalize();
   const fx = player.x - cam.position.x, fz = player.y - cam.position.z;
   const fl = Math.hypot(fx, fz) || 1;
-  _shadowCenter.set(player.x + (fx / fl) * SHADOW_HALF * 0.4, 0, player.y + (fz / fl) * SHADOW_HALF * 0.4);
-  const texel = (SHADOW_HALF * 2) / sun.shadow.mapSize.x;
+  _shadowCenter.set(player.x + (fx / fl) * shadowHalf * 0.4, 0, player.y + (fz / fl) * shadowHalf * 0.4);
+  const texel = (shadowHalf * 2) / sun.shadow.mapSize.x;
   const r = Math.round(_shadowCenter.dot(_lightRight) / texel) * texel;
   const u = Math.round(_shadowCenter.dot(_lightUp) / texel) * texel;
   const d = _shadowCenter.dot(sunDir);

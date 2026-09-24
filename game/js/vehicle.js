@@ -447,6 +447,12 @@ export function spawnHeroCarNear(map, x, y, rng = Math.random) {
   const v = spawnVehicleOnRoad(map, point.road, false, rng, false, false, point);
   v.model = HERO_CAR_MODEL;
   v.isHeroCar = true;
+  // parked at the kerb, waiting for the player - not driving off as traffic
+  const kerb = Math.max(0, (point.road.width || 6) / 2 - HERO_CAR_MODEL.wid / 2 - 0.3);
+  v.x += -Math.sin(v.angle) * kerb;
+  v.y += Math.cos(v.angle) * kerb;
+  v.road = null;
+  v.speed = 0;
   return v;
 }
 
@@ -458,7 +464,7 @@ export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spa
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.isBike || v.isBus) continue;
+    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus) continue;
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
@@ -674,6 +680,33 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   }
 
   v.applyControls(dt, aground && chasing ? 0 : 1, clamp(steerErr * 1.2, -1, 1), aground && chasing);
+}
+
+// What the tyres are on: 'asfalt' | 'fietspad' | 'klinkers' | 'gras'. The
+// ground between mapped roads is rendered as klinker paving.
+export function surfaceUnder(map, x, y) {
+  let best = null;
+  for (const r of map.roadsNear(x, y, 8)) {
+    const half = r.width / 2 + 0.3;
+    const pts = r.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const ax = pts[i][0], ay = pts[i][1], bx = pts[i + 1][0], by = pts[i + 1][1];
+      const abx = bx - ax, aby = by - ay, l2 = abx * abx + aby * aby;
+      const t = l2 > 1e-9 ? clamp(((x - ax) * abx + (y - ay) * aby) / l2, 0, 1) : 0;
+      const dx = ax + abx * t - x, dy = ay + aby * t - y;
+      if (dx * dx + dy * dy > half * half) continue;
+      if (r.cat === 'foot') best = best || 'klinkers';
+      else if (r.cat === 'cycle') { if (best !== 'asfalt') best = 'fietspad'; }
+      else return 'asfalt';
+      break;
+    }
+  }
+  if (best) return best;
+  for (const g of map.greenNear(x, y, 1)) {
+    const [minx, miny, maxx, maxy] = g.bounds;
+    if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, g.pts)) return 'gras';
+  }
+  return 'klinkers';
 }
 
 export function findNearestVehicle(x, y, vehicles, maxDist = 2.5) {
@@ -1222,6 +1255,7 @@ const IMPACT_DAMAGE_PER_MPS = 3.5;
 const MAX_IMPACT_DAMAGE = 30;
 const WALL_DAMAGE_SPEED = 7;
 const MAX_WALL_DAMAGE = 20;
+const SCRAPE_SPEED = 3;
 
 function velocityOf(v) {
   return [Math.cos(v.angle) * v.speed + v.driftX, Math.sin(v.angle) * v.speed + v.driftY];
@@ -1272,6 +1306,27 @@ function contactImpulse(a, b, cx, cy, nx, ny, friction) {
     b.yawVel = clamp(b.yawVel - (rbx * jy - rby * jx) * iib, -MAX_SPIN, MAX_SPIN);
   }
   return vn;
+}
+
+// Fixed ring of recent contacts for effects/audio; readers keep their own
+// cursor against `head` and skip what has been overwritten.
+const CONTACT_CAP = 64;
+export const vehicleContacts = {
+  head: 0,
+  cap: CONTACT_CAP,
+  list: Array.from({ length: CONTACT_CAP }, () => ({ a: null, b: null, x: 0, y: 0, nx: 0, ny: 0, impact: 0, slide: 0 })),
+};
+
+function recordContact(a, b, x, y, nx, ny, impact, slide) {
+  const c = vehicleContacts.list[vehicleContacts.head % CONTACT_CAP];
+  vehicleContacts.head++;
+  c.a = a; c.b = b; c.x = x; c.y = y; c.nx = nx; c.ny = ny; c.impact = impact; c.slide = slide;
+}
+
+function tangentialSpeed(a, b, nx, ny) {
+  let vx = Math.cos(a.angle) * a.speed + a.driftX, vy = Math.sin(a.angle) * a.speed + a.driftY;
+  if (b) { vx -= Math.cos(b.angle) * b.speed + b.driftX; vy -= Math.sin(b.angle) * b.speed + b.driftY; }
+  return Math.abs(-vx * ny + vy * nx);
 }
 
 function applyImpactDamage(v, dmg, playerInvolved, world) {
@@ -1339,7 +1394,9 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       b.x += nx * corr * (1 - shareA); b.y += ny * corr * (1 - shareA);
 
       const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
+      const slide = tangentialSpeed(a, b, nx, ny);
       const relN = contactImpulse(a, b, hx, hy, nx, ny, CONTACT_FRICTION);
+      if (relN >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(a, b, hx, hy, nx, ny, relN, slide);
       if (relN < IMPACT_EVENT_SPEED) continue;
       // Only the player's own driving should ever count as a player wreck.
       const playerInvolved = a.driver === 'player' || b.driver === 'player';
@@ -1401,7 +1458,9 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       const nx = (bestX - c[0]) / d, ny = (bestY - c[1]) / d;
       v.x += nx * (d + 0.03);
       v.y += ny * (d + 0.03);
+      const slide = tangentialSpeed(v, null, nx, ny);
       const vn = contactImpulse(v, null, c[0], c[1], -nx, -ny, WALL_FRICTION);
+      if (vn >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(v, null, bestX, bestY, -nx, -ny, vn, slide);
       if (vn > worst) { worst = vn; hx = bestX; hy = bestY; }
       hit = true;
       break;

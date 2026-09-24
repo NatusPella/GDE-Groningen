@@ -7,7 +7,8 @@ function digitFromCode(code) {
 export class Input {
   constructor(target = window) {
     this.keys = new Set();
-    this.mouse = { x: 0, y: 0, down: false, rightDown: false, wheel: 0 };
+    // dx/dy: relative mouse motion this frame while the pointer is locked
+    this.mouse = { x: 0, y: 0, dx: 0, dy: 0, locked: false, down: false, rightDown: false, wheel: 0 };
     this._justPressed = new Set();
 
     target.addEventListener('keydown', (e) => {
@@ -40,8 +41,30 @@ export class Input {
     window.addEventListener('mousemove', (e) => {
       this.mouse.x = e.clientX;
       this.mouse.y = e.clientY;
+      if (this.lookActive()) {
+        this.mouse.dx += e.movementX || 0;
+        this.mouse.dy += e.movementY || 0;
+      }
+    });
+    document.addEventListener('pointerlockchange', () => {
+      this.mouse.locked = !!document.pointerLockElement;
+      if (!this.mouse.locked) this.mouse.down = false;
     });
     window.addEventListener('mousedown', (e) => {
+      // the click that captures the mouse for looking around shouldn't also fire
+      const onUi = e.target && e.target.closest && e.target.closest('button, input, select, a, #pause-menu, #start-screen, .phone, [role="dialog"]');
+      const canvas = document.getElementById('game3d');
+      if (!this.lookFallback && this.canLock && this.canLock() && !this.mouse.locked && !onUi && canvas && canvas.requestPointerLock) {
+        // embedded browsers (e.g. an app's preview pane) refuse pointer lock:
+        // fall back to looking with the plain cursor movement over the game
+        try {
+          const req = canvas.requestPointerLock();
+          if (req && req.catch) req.catch(() => { this.lookFallback = true; });
+        } catch (err) {
+          this.lookFallback = true;
+        }
+        return;
+      }
       if (e.button === 0) this.mouse.down = true;
       if (e.button === 2) this.mouse.rightDown = true;
     });
@@ -57,6 +80,12 @@ export class Input {
     }, { passive: false });
   }
 
+  // true while mouse motion should steer the camera: pointer captured, or the
+  // uncaptured fallback while playing (no menu open)
+  lookActive() {
+    return this.mouse.locked || (!!this.lookFallback && !!this.canLock && this.canLock());
+  }
+
   isDown(k) { return this.keys.has(k); }
   wasPressed(k) { return this._justPressed.has(k); }
 
@@ -66,11 +95,15 @@ export class Input {
     this.mouse.down = false;
     this.mouse.rightDown = false;
     this.mouse.wheel = 0;
+    this.mouse.dx = 0;
+    this.mouse.dy = 0;
   }
 
   endFrame() {
     this._justPressed.clear();
     this.mouse.wheel = 0;
+    this.mouse.dx = 0;
+    this.mouse.dy = 0;
   }
 
   axis() {

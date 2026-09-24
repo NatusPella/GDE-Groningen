@@ -201,10 +201,14 @@ function buildCarGeometry(type, L, W, paint, opts) {
   }
 
   const bumper = P.boxy ? CHROME : 0x2a2b2d;
+  const vcount = () => B.groups[G_BODY].p.length / 3;
+  const f0 = vcount();
   B.box(hl + 0.02, 0.38, 0, 0.12, 0.14, W - 0.04, bumper);
-  B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
-  B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM);
   B.box(hl + 0.085, 0.38, 0, 0.012, 0.1, 0.48, PLATE);
+  const f1 = vcount();
+  B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
+  const r1 = vcount();
+  B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM);
   B.box(-hl - 0.008, P.van ? 0.62 : Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
   const lampY = P.nose - 0.06;
   for (const s of [1, -1]) {
@@ -237,7 +241,13 @@ function buildCarGeometry(type, L, W, paint, opts) {
   if (type === 'wagon' && !opts.police) {
     for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.roof + 0.03, s * W * 0.36, (P.xB - P.xC) * 0.8, 0.04, 0.04, TRIM);
   }
-  return B.build();
+  const geo = B.build();
+  geo.userData.parts = {
+    hl, hw, hood: P.hood, bumperColor: bumper,
+    front: { start: f0, end: f1, y: 0.38, x: hl + 0.02 },
+    rear: { start: f1, end: r1, y: 0.4, x: -hl - 0.02 },
+  };
+  return geo;
 }
 
 function shadeHex(hex, f) {
@@ -252,7 +262,9 @@ function assembleCar(type, L, W, paint, { police = false, wrecked = false, wheel
   const geo = cached(`car|${type}|${L}|${W}|${color}|${police}`, () => buildCarGeometry(type, L, W, color, { police, wheelR }));
   const mats = vehicleMaterials();
   const group = new THREE.Group();
-  group.add(new THREE.Mesh(geo, mats));
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
   const P = carProfile(type, L / 2);
   const wgeo = carWheelGeometry(wheelR, WHEEL_W);
   const wheels = [];
@@ -729,11 +741,342 @@ export function updateVehicleWheelSpin(mesh, speed, dt) {
 
 // --- dispatch -------------------------------------------------------------------
 
-export function buildVehicleMesh(v) {
+function buildVehicleMeshFor(v) {
   if (v.isBike) return buildBikeMesh(v);
   if (v.isScooter) return buildScooterMesh(v);
   if (v.isBus) return buildBusMesh(v);
   if (v.isBoat) return buildBoatMesh(v);
   if (v.isHeroCar) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);
   return buildCarMesh(v);
+}
+
+// vehicle id -> the live mesh built for it; entries go stale once scene3d
+// drops the mesh (parent null) and are pruned by pruneVehicleMeshes().
+const meshRegistry = new Map();
+
+export function buildVehicleMesh(v) {
+  const group = buildVehicleMeshFor(v);
+  group.userData.vehicleId = v.id;
+  group.userData.builtAt = performance.now();
+  meshRegistry.set(v.id, group);
+  if (v.damage) restoreDamage(group, v);
+  return group;
+}
+
+export function getVehicleMesh(id) {
+  const m = meshRegistry.get(id);
+  return m && m.parent ? m : null;
+}
+
+export function pruneVehicleMeshes() {
+  const now = performance.now();
+  for (const [id, m] of meshRegistry) if (!m.parent && now - m.userData.builtAt > 2000) meshRegistry.delete(id);
+}
+
+// --- damage ---------------------------------------------------------------------
+// The body geometry is cached and shared, so the first dent swaps in a private
+// copy. Each impact first refines the mesh around the hit (so the dent has
+// vertices to move), then pushes them in. v.damage keeps the arrays so a mesh
+// rebuilt after streaming back in looks the same.
+
+const MAX_DENT = 0.42;
+const MAX_DAMAGE_VERTS = 9000;
+const CRAZED_GLASS = [0.62, 0.66, 0.68];
+const BROKEN_LAMP = [0.05, 0.05, 0.05];
+const DENT_Y = 0.55;
+
+function posHash(x, y, z) {
+  const h = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453;
+  return h - Math.floor(h);
+}
+
+// Per corner: x y z (current), bx by bz (undamaged), r g b, u v.
+const ST = 11;
+
+// Red-green refinement: an edge is split iff it is long and its undamaged
+// midpoint lies near the impact - both triangles sharing it agree, so the
+// mesh stays crack-free.
+function refine(tris, maxLen, px, pz, reach) {
+  const L2 = maxLen * maxLen, R2 = reach * reach;
+  const split = (t, a, b) => {
+    const i = a * ST, j = b * ST;
+    const dx = t[i + 3] - t[j + 3], dy = t[i + 4] - t[j + 4], dz = t[i + 5] - t[j + 5];
+    if (dx * dx + dy * dy + dz * dz <= L2) return false;
+    const mx = (t[i + 3] + t[j + 3]) * 0.5 - px, my = ((t[i + 4] + t[j + 4]) * 0.5 - DENT_Y) * 0.7, mz = (t[i + 5] + t[j + 5]) * 0.5 - pz;
+    return mx * mx + my * my + mz * mz < R2;
+  };
+  const corner = (t, a) => t.slice(a * ST, a * ST + ST);
+  const mid = (A, B) => {
+    const m = new Array(ST);
+    for (let k = 0; k < ST; k++) m[k] = (A[k] + B[k]) * 0.5;
+    return m;
+  };
+  for (let iter = 0; iter < 4; iter++) {
+    const out = [];
+    let changed = false;
+    for (const t of tris) {
+      const e0 = split(t, 0, 1), e1 = split(t, 1, 2), e2 = split(t, 2, 0);
+      const n = e0 + e1 + e2;
+      if (!n) { out.push(t); continue; }
+      changed = true;
+      const r = n === 1 ? (e0 ? 0 : e1 ? 1 : 2) : n === 2 ? (!e2 ? 0 : !e0 ? 1 : 2) : 0;
+      const A = corner(t, r), B = corner(t, (r + 1) % 3), C = corner(t, (r + 2) % 3);
+      const mAB = mid(A, B), mBC = mid(B, C), mCA = mid(C, A);
+      if (n === 1) out.push([...A, ...mAB, ...C], [...mAB, ...B, ...C]);
+      else if (n === 2) out.push([...A, ...mAB, ...mBC], [...mAB, ...B, ...mBC], [...A, ...mBC, ...C]);
+      else out.push([...A, ...mAB, ...mCA], [...mAB, ...B, ...mBC], [...mCA, ...mBC, ...C], [...mAB, ...mBC, ...mCA]);
+    }
+    tris = out;
+    if (!changed) break;
+  }
+  return tris;
+}
+
+function readTris(g, start, end) {
+  const pos = g.attributes.position.array, col = g.attributes.color.array, uv = g.attributes.uv.array;
+  const base = g.userData.base || pos;
+  const tris = [];
+  for (let v = start; v < end; v += 3) {
+    const t = new Array(ST * 3);
+    for (let k = 0; k < 3; k++) {
+      const i = v + k, o = k * ST;
+      t[o] = pos[i * 3]; t[o + 1] = pos[i * 3 + 1]; t[o + 2] = pos[i * 3 + 2];
+      t[o + 3] = base[i * 3]; t[o + 4] = base[i * 3 + 1]; t[o + 5] = base[i * 3 + 2];
+      t[o + 6] = col[i * 3]; t[o + 7] = col[i * 3 + 1]; t[o + 8] = col[i * 3 + 2];
+      t[o + 9] = uv[i * 2]; t[o + 10] = uv[i * 2 + 1];
+    }
+    tris.push(t);
+  }
+  return tris;
+}
+
+function buildDamagedGeometry(lists, parts) {
+  let total = 0;
+  for (const l of lists) total += l.tris.length * 3;
+  const pos = new Float32Array(total * 3), base = new Float32Array(total * 3), col = new Uint8Array(total * 3), uv = new Float32Array(total * 2);
+  const g = new THREE.BufferGeometry();
+  let v = 0;
+  for (const l of lists) {
+    const start = v;
+    for (const t of l.tris) {
+      for (let k = 0; k < 3; k++, v++) {
+        const o = k * ST;
+        pos[v * 3] = t[o]; pos[v * 3 + 1] = t[o + 1]; pos[v * 3 + 2] = t[o + 2];
+        base[v * 3] = t[o + 3]; base[v * 3 + 1] = t[o + 4]; base[v * 3 + 2] = t[o + 5];
+        col[v * 3] = t[o + 6]; col[v * 3 + 1] = t[o + 7]; col[v * 3 + 2] = t[o + 8];
+        uv[v * 2] = t[o + 9]; uv[v * 2 + 1] = t[o + 10];
+      }
+    }
+    g.addGroup(start, v - start, l.mi);
+  }
+  return fromArrays(pos, base, col, uv, groupsOf(g), parts);
+}
+
+function groupsOf(g) {
+  return g.groups.map((q) => ({ start: q.start, count: q.count, materialIndex: q.materialIndex }));
+}
+
+function fromArrays(pos, base, col, uv, groups, parts) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(new Int8Array(pos.length), 3, true));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  for (const q of groups) g.addGroup(q.start, q.count, q.materialIndex);
+  g.userData = { damaged: true, parts, base };
+  recomputeFlatNormals(g);
+  return g;
+}
+
+// Refines the body around (px, pz) and swaps the result into the mesh. The
+// bumper ranges stay verbatim at the front of the body group.
+function refineBodyAround(mesh, px, pz, reach) {
+  const body = mesh.userData.body;
+  const g = body.geometry;
+  const parts = g.userData.parts;
+  if (g.userData.damaged && g.attributes.position.count > MAX_DAMAGE_VERTS) return g;
+  const lists = [];
+  for (const grp of groupsOf(g).sort((a, b) => a.start - b.start)) {
+    const s0 = grp.start, s1 = grp.start + grp.count;
+    if (grp.materialIndex === G_BODY) {
+      const keep = readTris(g, parts.front.start, parts.rear.end);
+      const rest = readTris(g, s0, parts.front.start).concat(readTris(g, parts.rear.end, s1));
+      lists.push({ mi: grp.materialIndex, tris: keep.concat(refine(rest, 0.3, px, pz, reach)) });
+    } else if (grp.materialIndex === G_GLASS) {
+      lists.push({ mi: grp.materialIndex, tris: refine(readTris(g, s0, s1), 0.4, px, pz, reach * 1.5) });
+    } else {
+      lists.push({ mi: grp.materialIndex, tris: readTris(g, s0, s1) });
+    }
+  }
+  const fLen = parts.front.end - parts.front.start, rLen = parts.rear.end - parts.rear.start;
+  const newParts = { ...parts, front: { ...parts.front, start: 0, end: fLen }, rear: { ...parts.rear, start: fLen, end: fLen + rLen } };
+  const out = buildDamagedGeometry(lists, newParts);
+  if (g.userData.damaged) g.dispose();
+  body.geometry = out;
+  return out;
+}
+
+function recomputeFlatNormals(g) {
+  const pos = g.attributes.position.array, nor = g.attributes.normal.array;
+  for (let i = 0; i < pos.length; i += 9) {
+    const ux = pos[i + 3] - pos[i], uy = pos[i + 4] - pos[i + 1], uz = pos[i + 5] - pos[i + 2];
+    const vx = pos[i + 6] - pos[i], vy = pos[i + 7] - pos[i + 1], vz = pos[i + 8] - pos[i + 2];
+    let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    const l = Math.hypot(nx, ny, nz) || 1;
+    nx = Math.round((nx / l) * 127); ny = Math.round((ny / l) * 127); nz = Math.round((nz / l) * 127);
+    for (let k = 0; k < 9; k += 3) { nor[i + k] = nx; nor[i + k + 1] = ny; nor[i + k + 2] = nz; }
+  }
+  g.attributes.normal.needsUpdate = true;
+}
+
+function paintTriangles(g, groupIdx, px, py, pz, r, rgb, chance) {
+  const grp = g.groups.find((q) => q.materialIndex === groupIdx);
+  if (!grp) return;
+  const pos = g.attributes.position.array, col = g.attributes.color.array;
+  const r2 = r * r;
+  for (let v = grp.start; v < grp.start + grp.count; v += 3) {
+    const i = v * 3;
+    const cx = (pos[i] + pos[i + 3] + pos[i + 6]) / 3, cy = (pos[i + 1] + pos[i + 4] + pos[i + 7]) / 3, cz = (pos[i + 2] + pos[i + 5] + pos[i + 8]) / 3;
+    const dx = cx - px, dy = cy - py, dz = cz - pz;
+    if (dx * dx + dy * dy + dz * dz > r2) continue;
+    const h = posHash(cx, cy, cz);
+    if (h > chance) continue;
+    const shade = 0.85 + h * 0.3;
+    for (let k = 0; k < 9; k += 3) {
+      col[i + k] = Math.min(255, rgb[0] * shade * 255);
+      col[i + k + 1] = Math.min(255, rgb[1] * shade * 255);
+      col[i + k + 2] = Math.min(255, rgb[2] * shade * 255);
+    }
+  }
+  g.attributes.color.needsUpdate = true;
+}
+
+function transformPart(g, part, fn) {
+  const pos = g.attributes.position.array, base = g.userData.base;
+  for (let v = part.start; v < part.end; v++) {
+    const i = v * 3;
+    fn(base[i], base[i + 1], base[i + 2], pos, i);
+  }
+  g.attributes.position.needsUpdate = true;
+}
+
+function hangBumper(g, part, side) {
+  const hw = g.userData.parts.hw, pz = side * hw, py = part.y;
+  const th = 0.38, c = Math.cos(th), s = Math.sin(th);
+  transformPart(g, part, (x, y, z, pos, i) => {
+    const ry = y - py, rz = z - pz;
+    pos[i] = x + Math.sign(part.x) * 0.05;
+    pos[i + 1] = Math.max(0.03, py + ry * c + side * rz * s);
+    pos[i + 2] = pz + rz * c - side * ry * s;
+  });
+}
+
+function dropBumper(g, part) {
+  const inX = part.x * 0.8;
+  transformPart(g, part, (x, y, z, pos, i) => { pos[i] = inX; pos[i + 1] = 0.4; pos[i + 2] = 0; });
+}
+
+function applyBumperState(g, v) {
+  const parts = g.userData.parts, d = v.damage;
+  for (const end of ['front', 'rear']) {
+    const st = d[end + 'State'];
+    if (st === 1) hangBumper(g, parts[end], d[end + 'Side']);
+    else if (st === 2) dropBumper(g, parts[end]);
+  }
+}
+
+function syncDamageMaterials(mesh, v) {
+  const mats = mesh.userData.body && mesh.userData.body.material;
+  if (!Array.isArray(mats)) return;
+  const k = Math.min(1, v.damage.glass);
+  mats[1].color.setScalar(1 - k * 0.3);
+  mats[1].roughness = 0.18 + k * 0.5;
+  mats[0].roughness = 0.5 + Math.min(1, v.damage.total / 3) * 0.25;
+}
+
+function storeDamage(v, g) {
+  const d = v.damage;
+  d.pos = g.attributes.position.array;
+  d.base = g.userData.base;
+  d.col = g.attributes.color.array;
+  d.uv = g.attributes.uv.array;
+  d.groups = groupsOf(g);
+  d.parts = g.userData.parts;
+}
+
+function restoreDamage(mesh, v) {
+  const body = mesh.userData.body, d = v.damage;
+  if (!body || !d.pos) return;
+  const g = fromArrays(d.pos, d.base, d.col, d.uv, d.groups, d.parts);
+  body.geometry = g;
+  storeDamage(v, g);
+  syncDamageMaterials(mesh, v);
+}
+
+// Local-space impact (lx forward, lz right, metres from the centre), strength
+// 0..1. Returns 'front'/'rear' when that bumper just fell off, else null.
+export function applyVehicleDamage(mesh, v, lx, lz, strength) {
+  const body = mesh.userData.body;
+  if (!body || !body.geometry.userData.parts) return null;
+  const parts0 = body.geometry.userData.parts;
+  const hl = parts0.hl, hw = parts0.hw;
+  const px = Math.max(-hl - 0.05, Math.min(hl + 0.05, lx));
+  const pz = Math.max(-hw - 0.05, Math.min(hw + 0.05, lz));
+  const R = 0.5 + strength * 0.6;
+  const g = refineBodyAround(mesh, px, pz, R);
+  if (!v.damage) v.damage = { total: 0, glass: 0, front: 0, rear: 0, frontState: 0, rearState: 0, frontSide: 1, rearSide: 1 };
+  const d = v.damage;
+  const endness = Math.abs(px) / hl, sideness = Math.abs(pz) / hw;
+  let ix = endness > 0.55 ? -Math.sign(px) * endness : 0;
+  let iz = sideness > 0.45 ? -Math.sign(pz) * sideness : 0;
+  if (!ix && !iz) ix = -Math.sign(px || 1);
+  const il = Math.hypot(ix, iz);
+  ix /= il; iz /= il;
+  const depth = 0.06 + strength * 0.28;
+  const pos = g.attributes.position.array, base = g.userData.base;
+  const R2 = R * R;
+  const skipFrom = g.userData.parts.front.start, skipTo = g.userData.parts.rear.end;
+  for (let i = 0; i < pos.length; i += 3) {
+    const vi = i / 3;
+    if (vi >= skipFrom && vi < skipTo) continue;
+    const bx = base[i], by = base[i + 1], bz = base[i + 2];
+    const dx = bx - px, dy = (by - DENT_Y) * 0.7, dz = bz - pz;
+    const dd = dx * dx + dy * dy + dz * dz;
+    if (dd > R2) continue;
+    const f = 1 - Math.sqrt(dd) / R;
+    const n = posHash(bx, by, bz) - 0.5;
+    const m = depth * f * f * (1 + n * 1.1);
+    const buckle = Math.sin(bx * 11 + bz * 7 + by * 5) * 0.35 - 0.25 * Math.max(0, by - 0.3);
+    let x = pos[i] + ix * m, y = pos[i + 1] + m * buckle, z = pos[i + 2] + iz * m;
+    const ox = x - bx, oy = y - by, oz = z - bz;
+    const ol = Math.hypot(ox, oy, oz);
+    if (ol > MAX_DENT) { const k = MAX_DENT / ol; x = bx + ox * k; y = by + oy * k; z = bz + oz * k; }
+    pos[i] = x; pos[i + 1] = Math.max(0.02, y); pos[i + 2] = z;
+  }
+  g.attributes.position.needsUpdate = true;
+  d.total += strength;
+  if (strength > 0.25) {
+    paintTriangles(g, G_GLASS, px, 1.05, pz, R * 1.9, CRAZED_GLASS, 0.35 + strength * 0.6);
+    d.glass += strength * 0.6;
+  }
+  paintTriangles(g, G_LAMP, px, 0.6, pz, R * 0.9, BROKEN_LAMP, strength * 1.4);
+
+  let dropped = null;
+  const end = px > hl * 0.5 ? 'front' : px < -hl * 0.5 ? 'rear' : null;
+  if (end) {
+    d[end] += strength;
+    const prevState = d[end + 'State'];
+    if (prevState < 2 && d[end] > 1.3) { d[end + 'State'] = 2; dropped = end; }
+    else if (prevState < 1 && d[end] > 0.45) { d[end + 'State'] = 1; d[end + 'Side'] = pz > 0 ? -1 : 1; }
+    if (d[end + 'State'] !== prevState) applyBumperState(g, v);
+  }
+  recomputeFlatNormals(g);
+  storeDamage(v, g);
+  syncDamageMaterials(mesh, v);
+  return dropped;
+}
+
+export function vehicleDamageParts(mesh) {
+  const body = mesh.userData.body;
+  return body ? body.geometry.userData.parts : null;
 }
