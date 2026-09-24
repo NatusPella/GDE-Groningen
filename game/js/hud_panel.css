@@ -148,7 +148,21 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
 #hud .hud-weapon {
   margin-top: 4px;
   font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
+
+#hud .hud-weapon-icon {
+  width: 52px;
+  height: 26px;
+  fill: var(--hud-fg, #f0ede4);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+}
+
+#hud .hud-weapon.switched .hud-weapon-icon { animation: hud-weapon-pop 0.35s ease-out; }
+@keyframes hud-weapon-pop { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
 
 #hud .hud-mission {
   position: absolute;

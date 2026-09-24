@@ -298,6 +298,13 @@ function updateSpeedo(world) {
 }
 
 const WEAPON_LABELS = { fists: 'VUISTEN', pistol: 'PISTOOL', uzi: 'UZI', shotgun: 'HAGELGEWEER' };
+// Simple original silhouettes (48x24 viewBox), drawn in the HUD foreground colour.
+const WEAPON_ICONS = {
+  fists: '<path d="M14 7h14a4 4 0 0 1 4 4v2h2a3 3 0 0 1 0 6H18a5 5 0 0 1-5-5V9z"/><path d="M17 7v5M21 7v5M25 7v5" stroke="rgba(0,0,0,.45)" stroke-width="1.2" fill="none"/>',
+  pistol: '<path d="M8 6h30v6H22l-2 3h-5l-2 7H7l2-10H8z"/><rect x="38" y="7" width="3" height="3"/>',
+  uzi: '<path d="M6 7h32v6H27v9h-5v-9h-4l-2 5h-6l2-5H6z"/><rect x="38" y="8.5" width="5" height="2.5"/><path d="M2 8h4v4H2z"/>',
+  shotgun: '<path d="M2 8h28v2l16 0v3H30v1h-8l-3 2H13l-2 4H4l2-5H2z"/><rect x="24" y="13" width="7" height="3" rx="1"/>',
+};
 
 let moneyShown = null;
 let moneyTarget = 0;
@@ -324,7 +331,17 @@ function updateMoneyWeapon(dt, world) {
   els.money.classList.toggle('rolling', diff !== 0);
   const ammo = world.ammo ? world.ammo[world.weapon] : undefined;
   const ammoText = ammo === undefined ? '' : ammo === Infinity ? ' ∞' : ' ' + ammo;
-  els.weapon.textContent = (WEAPON_LABELS[world.weapon] || 'VUISTEN') + ammoText;
+  const weaponKey = WEAPON_ICONS[world.weapon] ? world.weapon : 'fists';
+  if (els.weapon.dataset.key !== weaponKey) {
+    els.weapon.dataset.key = weaponKey;
+    els.weapon.innerHTML = `<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true">${WEAPON_ICONS[weaponKey]}</svg><span class="hud-weapon-text"></span>`;
+    els.weapon.classList.remove('switched');
+    void els.weapon.offsetWidth;
+    els.weapon.classList.add('switched');
+  }
+  const label = (WEAPON_LABELS[world.weapon] || 'VUISTEN') + ammoText;
+  const textEl = els.weapon.querySelector('.hud-weapon-text');
+  if (textEl.textContent !== label) textEl.textContent = label;
 }
 
 function updateMission(world) {
