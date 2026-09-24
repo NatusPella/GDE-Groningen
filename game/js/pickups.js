@@ -1,4 +1,5 @@
 import { dist, pointInPolygon, isInWater } from './util.js';
+import { weaponDps } from './combat.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const WEAPON_KEYS = ['pistol', 'uzi', 'shotgun'];
@@ -335,6 +336,10 @@ function collectFoot(world) {
       const place = WEAPON_PLACE[w.kind];
       const text = `${WEAPON_LABELS[w.key] || w.key} +${WEAPON_AMMO[w.key]} munitie`;
       world.addMessage(place ? `${place}: ${text}` : text, 2);
+      // pick up something stronger (or anything when the current gun is empty): switch to it
+      const cur = world.weapon;
+      const curEmpty = cur !== 'fists' && !(world.ammo[cur] > 0);
+      if (w.key !== cur && (curEmpty || weaponDps(w.key) > weaponDps(cur))) world.weapon = w.key;
       releaseSpot(w, world.time, true);
       weapons.splice(i, 1);
     }

@@ -12,6 +12,12 @@ export const WEAPONS = {
 
 const WEAPON_KEYS = ['fists', 'pistol', 'uzi', 'shotgun'];
 
+// Damage per second, used to decide whether a picked-up gun beats the one in hand.
+export function weaponDps(key) {
+  const w = WEAPONS[key];
+  return w ? (w.damage * (w.pellets || 1)) / w.cooldown : 0;
+}
+
 let fireTimer = 0;
 let effect = null; // {type:'muzzle'|'melee', angle, until} — local fx state, not shared on world
 
