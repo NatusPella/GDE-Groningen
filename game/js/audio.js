@@ -1,6 +1,14 @@
 import { clamp } from './util.js';
+import { getCamera } from './scene3d.js';
 
 const MASTER_VOLUME = 0.55;
+const MAX_DISTANCE = 120;
+const SOURCE_HEIGHT = 1;
+const SPEED_OF_SOUND = 343;
+const ENGINE_VOICES = 4;
+const ENGINE_RANGE = 60;
+const SIREN_VOICES = 3;
+const SPEECH_RANGE = 45;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
 const GMUSIC_VOLUME = 0.5;
 const GMUSIC_DUCK_VOLUME = 0.2;
@@ -68,10 +76,23 @@ let sfxBus = null;
 let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
+let trafficBus = null;
 let noiseBuffer = null;
 
 let engine = null;
-let siren = null;
+let sirenVoices = [];
+let engineVoices = [];
+let heliVoice = null;
+let sirenAudible = 0;
+
+let seenBullets = new WeakSet();
+let seenParticles = new WeakSet();
+let seenDeadPeds = new WeakSet();
+let seenWrecks = new WeakSet();
+const lastCrashAt = new WeakMap();
+const hornWasOn = new WeakMap();
+const MAX_RICOCHETS_PER_FRAME = 3;
+const CRASH_MIN_GAP = 0.35;
 
 const MUTE_STORAGE_KEY = 'gte-muted';
 const PLAYER_HURT_MIN_GAP = 0.4;
@@ -132,26 +153,174 @@ function buildEngine() {
   return { osc1, osc2, filter };
 }
 
-function buildSiren() {
-  // NL/EU two-tone "hi-lo" wail: bandpass retuned from the old 800Hz center
-  // (tuned for a 480-920Hz continuous sweep) down to sit between the two
-  // fixed step tones below instead of muffling the low one.
+// --- 3D positioning -------------------------------------------------------
+// World (x, y) maps to three/WebAudio (x, z); the listener follows the 3D
+// camera, so the same right-handed frame is shared by picture and sound.
+const listenerPos = { x: 0, y: 0, z: 0 };
+const listenerVel = { x: 0, y: 0 };
+
+function makePanner({ ref = 5, rolloff = 1, model = 'HRTF' } = {}) {
+  const p = ctx.createPanner();
+  p.panningModel = model;
+  p.distanceModel = 'inverse';
+  p.refDistance = ref;
+  p.rolloffFactor = rolloff;
+  p.maxDistance = MAX_DISTANCE;
+  return p;
+}
+
+function setPannerPos(p, x, y, h = SOURCE_HEIGHT, smooth = false) {
+  if (p.positionX) {
+    if (smooth) {
+      const t = ctx.currentTime;
+      p.positionX.setTargetAtTime(x, t, 0.03);
+      p.positionY.setTargetAtTime(h, t, 0.03);
+      p.positionZ.setTargetAtTime(y, t, 0.03);
+    } else {
+      p.positionX.value = x;
+      p.positionY.value = h;
+      p.positionZ.value = y;
+    }
+  } else {
+    p.setPosition(x, h, y);
+  }
+}
+
+function distToListener(x, y, h = SOURCE_HEIGHT) {
+  return Math.hypot(x - listenerPos.x, h - listenerPos.y, y - listenerPos.z);
+}
+
+function inverseGain(d, ref, rolloff) {
+  return ref / (ref + rolloff * (Math.max(d, ref) - ref));
+}
+
+// A ref-counted panner that every node of one positional one-shot feeds;
+// it disconnects once the last of them has ended. null = out of range.
+function spatialOut(x, y, opts = {}) {
+  if (!ctx || muted) return null;
+  const h = opts.h ?? SOURCE_HEIGHT;
+  if (distToListener(x, y, h) > (opts.range ?? MAX_DISTANCE)) return null;
+  const panner = makePanner(opts);
+  setPannerPos(panner, x, y, h);
+  panner.connect(opts.bus || sfxBus);
+  let refs = 0;
+  return {
+    node: panner,
+    hold() { refs++; },
+    release() { if (--refs <= 0) panner.disconnect(); },
+  };
+}
+
+function rotateByQuat(q, vx, vy, vz) {
+  const tx = 2 * (q.y * vz - q.z * vy);
+  const ty = 2 * (q.z * vx - q.x * vz);
+  const tz = 2 * (q.x * vy - q.y * vx);
+  return [
+    vx + q.w * tx + (q.y * tz - q.z * ty),
+    vy + q.w * ty + (q.z * tx - q.x * tz),
+    vz + q.w * tz + (q.x * ty - q.y * tx),
+  ];
+}
+
+function updateListener(world) {
+  const p = world.player;
+  const cam = getCamera();
+  let fwd, up;
+  if (cam) {
+    listenerPos.x = cam.position.x;
+    listenerPos.y = cam.position.y;
+    listenerPos.z = cam.position.z;
+    fwd = rotateByQuat(cam.quaternion, 0, 0, -1);
+    up = rotateByQuat(cam.quaternion, 0, 1, 0);
+  } else {
+    listenerPos.x = p.x;
+    listenerPos.y = SOURCE_HEIGHT;
+    listenerPos.z = p.y;
+    fwd = [Math.cos(p.angle || 0), 0, Math.sin(p.angle || 0)];
+    up = [0, 1, 0];
+  }
+  const v = p.inVehicle;
+  listenerVel.x = v ? Math.cos(v.angle) * v.speed : (p.vx || 0);
+  listenerVel.y = v ? Math.sin(v.angle) * v.speed : (p.vy || 0);
+
+  const L = ctx.listener;
+  if (L.positionX) {
+    const t = ctx.currentTime;
+    const tau = 0.02;
+    L.positionX.setTargetAtTime(listenerPos.x, t, tau);
+    L.positionY.setTargetAtTime(listenerPos.y, t, tau);
+    L.positionZ.setTargetAtTime(listenerPos.z, t, tau);
+    L.forwardX.setTargetAtTime(fwd[0], t, tau);
+    L.forwardY.setTargetAtTime(fwd[1], t, tau);
+    L.forwardZ.setTargetAtTime(fwd[2], t, tau);
+    L.upX.setTargetAtTime(up[0], t, tau);
+    L.upY.setTargetAtTime(up[1], t, tau);
+    L.upZ.setTargetAtTime(up[2], t, tau);
+  } else {
+    L.setPosition(listenerPos.x, listenerPos.y, listenerPos.z);
+    L.setOrientation(fwd[0], fwd[1], fwd[2], up[0], up[1], up[2]);
+  }
+}
+
+// NL/EU two-tone "hi-lo" wail, one pooled voice per nearby police unit.
+function buildSirenVoice() {
   const filter = ctx.createBiquadFilter();
   filter.type = 'bandpass';
   filter.frequency.value = 545;
   filter.Q.value = 1.4;
-  filter.connect(sirenBus);
 
   const osc = ctx.createOscillator();
   osc.type = 'sine';
   osc.frequency.value = SIREN_LOW_FREQ;
-  osc.connect(filter);
+
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  const panner = makePanner({ ref: 8, rolloff: 0.9, model: 'equalpower' });
+  osc.connect(filter).connect(gain).connect(panner).connect(sirenBus);
   osc.start();
 
-  return { osc, filter, toneHigh: false, nextToggle: 0 };
+  return { osc, gain, panner, target: null, level: 0, toneHigh: false, nextToggle: Math.random() * 0.6 };
 }
 
-function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null }) {
+function buildEngineVoice() {
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.value = 40;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 400;
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  const panner = makePanner({ ref: 4, rolloff: 1.3, model: 'equalpower' });
+  osc.connect(filter).connect(gain).connect(panner).connect(trafficBus);
+  osc.start();
+  return { osc, filter, gain, panner, target: null, level: 0 };
+}
+
+function buildHeliVoice() {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer;
+  src.loop = true;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 320;
+  const chop = ctx.createGain();
+  chop.gain.value = 0.5;
+  const lfo = ctx.createOscillator();
+  lfo.frequency.value = 11;
+  const lfoDepth = ctx.createGain();
+  lfoDepth.gain.value = 0.5;
+  lfo.connect(lfoDepth).connect(chop.gain);
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  const panner = makePanner({ ref: 12, rolloff: 0.8, model: 'equalpower' });
+  src.connect(filter).connect(chop).connect(gain).connect(panner).connect(trafficBus);
+  src.start();
+  lfo.start();
+  return { gain, panner };
+}
+
+function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null, out = null }) {
   const t0 = ctx.currentTime + delay;
   const t1 = t0 + duration;
   const osc = ctx.createOscillator();
@@ -173,7 +342,8 @@ function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, d
     osc.connect(filter);
     tail = filter;
   }
-  tail.connect(g).connect(sfxBus);
+  tail.connect(g).connect(out ? out.node : sfxBus);
+  if (out) out.hold();
 
   osc.start(t0);
   osc.stop(t1 + 0.03);
@@ -181,10 +351,11 @@ function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, d
     osc.disconnect();
     g.disconnect();
     if (filter) filter.disconnect();
+    if (out) out.release();
   };
 }
 
-function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0.5, type = 'bandpass', delay = 0 }) {
+function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0.5, type = 'bandpass', delay = 0, out = null }) {
   const t0 = ctx.currentTime + delay;
   const t1 = t0 + duration;
   const src = ctx.createBufferSource();
@@ -200,28 +371,80 @@ function playNoiseBurst({ duration = 0.12, freq = 1200, freqEnd, q = 1, gain = 0
   g.gain.setValueAtTime(gain, t0);
   g.gain.exponentialRampToValueAtTime(0.0001, t1);
 
-  src.connect(filter).connect(g).connect(sfxBus);
+  src.connect(filter).connect(g).connect(out ? out.node : sfxBus);
+  if (out) out.hold();
   src.start(t0);
   src.stop(t1 + 0.03);
   src.onended = () => {
     src.disconnect();
     filter.disconnect();
     g.disconnect();
+    if (out) out.release();
   };
 }
 
-function playHit() {
-  playNoiseBurst({ duration: 0.09, freq: 1800, freqEnd: 400, q: 0.8, gain: 0.5 });
-  playTone({ freq: 140, freqEnd: 60, type: 'triangle', duration: 0.08, gain: 0.35 });
+function playHit(out) {
+  playNoiseBurst({ duration: 0.09, freq: 1800, freqEnd: 400, q: 0.8, gain: 0.5, out });
+  playTone({ freq: 140, freqEnd: 60, type: 'triangle', duration: 0.08, gain: 0.35, out });
 }
 
-function playCopSting() {
-  playTone({ freq: 260, freqEnd: 70, type: 'sawtooth', duration: 0.35, gain: 0.3, filterFreq: 900 });
-  playNoiseBurst({ duration: 0.2, freq: 500, freqEnd: 120, q: 0.7, gain: 0.25, delay: 0.02 });
+function playCopSting(out) {
+  playTone({ freq: 260, freqEnd: 70, type: 'sawtooth', duration: 0.35, gain: 0.3, filterFreq: 900, out });
+  playNoiseBurst({ duration: 0.2, freq: 500, freqEnd: 120, q: 0.7, gain: 0.25, delay: 0.02, out });
 }
 
-function playPedSting() {
-  playTone({ freq: 900, freqEnd: 500, type: 'sine', duration: 0.12, gain: 0.28 });
+function playPedSting(out) {
+  playTone({ freq: 900, freqEnd: 500, type: 'sine', duration: 0.12, gain: 0.28, out });
+}
+
+function playGunshot(x, y, weapon) {
+  const out = spatialOut(x, y, { ref: 8, rolloff: 0.8 });
+  if (!out) return;
+  if (weapon === 'shotgun') {
+    playNoiseBurst({ duration: 0.28, freq: 1600, freqEnd: 250, q: 0.6, gain: 0.6, out });
+    playTone({ freq: 120, freqEnd: 40, type: 'triangle', duration: 0.2, gain: 0.45, out });
+  } else if (weapon === 'uzi') {
+    playNoiseBurst({ duration: 0.06, freq: 2800, freqEnd: 900, q: 0.9, gain: 0.38, out });
+    playTone({ freq: 200, freqEnd: 80, type: 'triangle', duration: 0.05, gain: 0.22, out });
+  } else {
+    playNoiseBurst({ duration: 0.12, freq: 2400, freqEnd: 600, q: 0.8, gain: 0.5, out });
+    playTone({ freq: 170, freqEnd: 50, type: 'triangle', duration: 0.1, gain: 0.35, out });
+  }
+}
+
+function playRicochet(x, y) {
+  const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 60 });
+  if (!out) return;
+  playNoiseBurst({ duration: 0.05, freq: 3200, freqEnd: 1500, q: 1.5, gain: 0.22, type: 'highpass', out });
+  playTone({ freq: 2600, freqEnd: 1400, type: 'sine', duration: 0.09, gain: 0.06, out });
+}
+
+function playExplosion(x, y) {
+  const out = spatialOut(x, y, { ref: 10, rolloff: 0.7 });
+  if (!out) return;
+  playNoiseBurst({ duration: 1.1, freq: 1400, freqEnd: 70, q: 0.5, gain: 0.85, type: 'lowpass', out });
+  playTone({ freq: 90, freqEnd: 28, type: 'sine', duration: 0.9, gain: 0.55, out });
+}
+
+function playCrash(x, y, impact) {
+  const out = spatialOut(x, y, { ref: 6, rolloff: 1 });
+  if (!out) return;
+  const k = clamp(impact / 15, 0.35, 1);
+  playNoiseBurst({ duration: 0.25, freq: 900, freqEnd: 180, q: 0.7, gain: 0.55 * k, out });
+  playTone({ freq: 110, freqEnd: 45, type: 'square', duration: 0.16, gain: 0.25 * k, filterFreq: 600, out });
+}
+
+function playSplash(x, y) {
+  const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 80 });
+  if (!out) return;
+  playNoiseBurst({ duration: 0.7, freq: 1600, freqEnd: 220, q: 0.5, gain: 0.5, type: 'lowpass', out });
+}
+
+function playHorn(x, y) {
+  const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 80 });
+  if (!out) return;
+  playTone({ freq: 415, type: 'square', duration: 0.4, gain: 0.1, filterFreq: 1800, out });
+  playTone({ freq: 523, type: 'square', duration: 0.4, gain: 0.08, filterFreq: 1800, out });
 }
 
 function playPlayerHurt() {
@@ -232,9 +455,9 @@ function playPlayerHurt() {
   playNoiseBurst({ duration: 0.15, freq: 300, freqEnd: 90, q: 0.6, gain: 0.3 });
 }
 
-function playArmorUp() {
-  playTone({ freq: 700, type: 'triangle', duration: 0.09, gain: 0.3 });
-  playTone({ freq: 1050, type: 'triangle', duration: 0.12, gain: 0.3, delay: 0.07 });
+function playArmorUp(out) {
+  playTone({ freq: 700, type: 'triangle', duration: 0.09, gain: 0.3, out });
+  playTone({ freq: 1050, type: 'triangle', duration: 0.12, gain: 0.3, delay: 0.07, out });
 }
 
 function playArmorDown() {
@@ -242,9 +465,9 @@ function playArmorDown() {
   playTone({ freq: 500, freqEnd: 260, type: 'square', duration: 0.07, gain: 0.15 });
 }
 
-function playCashChime() {
+function playCashChime(out) {
   const notes = [660, 880, 1320];
-  notes.forEach((f, i) => playTone({ freq: f, type: 'sine', duration: 0.14, gain: 0.22, delay: i * 0.05 }));
+  notes.forEach((f, i) => playTone({ freq: f, type: 'sine', duration: 0.14, gain: 0.22, delay: i * 0.05, out }));
 }
 
 function playSwitchClick() {
@@ -268,16 +491,29 @@ function playMissionJingle() {
 // just sourced from a real audio file instead of a synthesized oscillator.
 // A missing/unplayable file (network hiccup, or an asymmetric-script key
 // with no recording for this character) fails silently, never throws.
-function playClip(src) {
+// pos = {x, y} places the clip in the world; omitted = plain stereo.
+function playClip(src, pos = null) {
   if (!ctx || muted) return;
   const el = new Audio(src);
+  const nodes = [];
   try {
     const node = ctx.createMediaElementSource(el);
-    node.connect(sfxBus);
+    nodes.push(node);
+    if (pos) {
+      const panner = makePanner({ ref: 4, rolloff: 1.2 });
+      setPannerPos(panner, pos.x, pos.y, pos.h ?? 1.6);
+      node.connect(panner).connect(sfxBus);
+      nodes.push(panner);
+    } else {
+      node.connect(sfxBus);
+    }
   } catch (e) {
     // ignore - playback still works without the Web Audio graph attached
   }
-  el.play().catch(() => {});
+  const cleanup = () => { for (const n of nodes) n.disconnect(); nodes.length = 0; };
+  el.addEventListener('ended', cleanup, { once: true });
+  el.addEventListener('error', cleanup, { once: true });
+  el.play().catch(cleanup);
 }
 
 // Voicelines/police/Sikkom - the "important", event-driven spoken lines -
@@ -288,12 +524,12 @@ function playClip(src) {
 const SPOKEN_MIN_GAP = 1.4;
 let lastSpokenAt = -Infinity;
 
-function playSpokenClip(src) {
+function playSpokenClip(src, pos = null) {
   if (!ctx) return false;
   const now = ctx.currentTime;
   if (now - lastSpokenAt < SPOKEN_MIN_GAP) return false;
   lastSpokenAt = now;
-  playClip(src);
+  playClip(src, pos);
   return true;
 }
 
@@ -306,12 +542,12 @@ function playSpokenClip(src) {
 const NPC_SPOKEN_MIN_GAP = 14;
 let lastNpcSpokenAt = -Infinity;
 
-function playNpcSpokenClip(src) {
+function playNpcSpokenClip(src, pos) {
   if (!ctx) return false;
   const now = ctx.currentTime;
   if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP) return false;
   lastNpcSpokenAt = now;
-  playClip(src);
+  playClip(src, pos);
   return true;
 }
 
@@ -325,23 +561,65 @@ export function playAutoGejatLine(world) {
   if (world.player.character === 'tammo') playVoiceline('tammo', 'auto_gejat');
 }
 
-function playRandomVariant(paths) {
+function playRandomVariant(paths, pos = null) {
   if (!paths || !paths.length) return false;
-  return playSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
+  return playSpokenClip(paths[Math.floor(Math.random() * paths.length)], pos);
 }
 
-export function playNpcPhrase(index) {
+// Returns false (bubble stays hidden, cooldown untouched) when the speaker is
+// too far away to be heard.
+export function playNpcPhrase(index, x, y) {
   const paths = NPC_PHRASE_AUDIO[index];
   if (!paths || !paths.length) return false;
-  return playNpcSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
+  const pos = x === undefined ? null : { x, y };
+  if (pos && distToListener(x, y) > SPEECH_RANGE) return false;
+  return playNpcSpokenClip(paths[Math.floor(Math.random() * paths.length)], pos);
 }
 
-export function playPoliceBark(key) {
-  playRandomVariant(POLICE_BARK_AUDIO[key]);
+export function playPoliceBark(key, x, y) {
+  return playRandomVariant(POLICE_BARK_AUDIO[key], x === undefined ? null : { x, y });
 }
 
-function playRandomChaseStartBark() {
-  playPoliceBark(POLICE_CHASE_START_KEYS[Math.floor(Math.random() * POLICE_CHASE_START_KEYS.length)]);
+function nearestPoliceSource(world) {
+  const p = world.player;
+  let best = null;
+  let bestD = Infinity;
+  const consider = (x, y) => {
+    const d = Math.hypot(x - p.x, y - p.y);
+    if (d < bestD) { bestD = d; best = { x, y, d }; }
+  };
+  for (const v of world.vehicles) {
+    if (v.isPolice && !v.hijacked && !v.wrecked && v.driver !== 'player') consider(v.x, v.y);
+  }
+  for (const ped of world.pedestrians) {
+    if (ped.isCop && ped.state !== 'dead') consider(ped.x, ped.y);
+  }
+  return best;
+}
+
+const CHASE_BARK_NEAR = 45;
+const CHASE_BARK_WAIT = 5;
+const CHASE_BARK_FALLBACK_DIST = 30;
+let chaseBarkDeadline = null;
+
+// Waits briefly for a unit to come within earshot; otherwise the bark is
+// placed in the direction of the nearest unit at a still-audible distance.
+function updateChaseBark(world) {
+  if (chaseBarkDeadline === null) return;
+  if (world.wanted === 0) { chaseBarkDeadline = null; return; }
+  const src = nearestPoliceSource(world);
+  const expired = world.time >= chaseBarkDeadline;
+  if (!(src && src.d <= CHASE_BARK_NEAR) && !expired) return;
+  chaseBarkDeadline = null;
+  const p = world.player;
+  let x = p.x, y = p.y;
+  if (src) {
+    const k = src.d > CHASE_BARK_FALLBACK_DIST ? CHASE_BARK_FALLBACK_DIST / src.d : 1;
+    x = p.x + (src.x - p.x) * k;
+    y = p.y + (src.y - p.y) * k;
+  }
+  const key = POLICE_CHASE_START_KEYS[Math.floor(Math.random() * POLICE_CHASE_START_KEYS.length)];
+  playPoliceBark(key, x, y);
 }
 
 export function playSikkomLine(key) {
@@ -566,10 +844,21 @@ export function initAudio(world) {
   musicBus.gain.value = GMUSIC_VOLUME;
   musicBus.connect(master);
 
+  trafficBus = ctx.createGain();
+  trafficBus.gain.value = 1;
+  trafficBus.connect(master);
+
   noiseBuffer = buildNoiseBuffer(2);
   engine = buildEngine();
-  siren = buildSiren();
+  sirenVoices = Array.from({ length: SIREN_VOICES }, buildSirenVoice);
+  engineVoices = Array.from({ length: ENGINE_VOICES }, buildEngineVoice);
+  heliVoice = buildHeliVoice();
   loadGMusicManifest();
+
+  for (const b of world.bullets) seenBullets.add(b);
+  for (const pt of world.particles) seenParticles.add(pt);
+  for (const ped of world.pedestrians) if (ped.state === 'dead') seenDeadPeds.add(ped);
+  for (const v of world.vehicles) if (v.wrecked) seenWrecks.add(v);
 
   prev = {
     kills: world.stats.kills,
@@ -601,6 +890,54 @@ function updateEngine(dt, world) {
   engine.filter.frequency.value = 300 + speed * 18;
 }
 
+// Keeps each voice on the same source while it stays among the nearest;
+// a voice is only handed to a new source once it has faded out.
+function assignVoices(voices, candidates) {
+  const wanted = new Set(candidates);
+  for (const voice of voices) if (voice.target && !wanted.has(voice.target)) voice.target = null;
+  const taken = new Set();
+  for (const voice of voices) if (voice.target) taken.add(voice.target);
+  for (const c of candidates) {
+    if (taken.has(c)) continue;
+    const free = voices.find((voice) => !voice.target && voice.level < 0.005);
+    if (!free) break;
+    free.target = c;
+    free.fresh = true;
+    taken.add(c);
+  }
+}
+
+function nearestSorted(items, range, max) {
+  const list = [];
+  for (const it of items) {
+    const d = distToListener(it.x, it.y);
+    if (d <= range) list.push({ it, d });
+  }
+  list.sort((a, b) => a.d - b.d);
+  return list.slice(0, max).map((e) => e.it);
+}
+
+function fadeVoice(voice, target, dt, rate) {
+  voice.level = voice.level || 0;
+  voice.level += (target - voice.level) * Math.min(1, dt * rate);
+  if (voice.level < 0.002 && target === 0) voice.level = 0;
+  voice.gain.gain.setTargetAtTime(voice.level, ctx.currentTime, 0.04);
+}
+
+function placeVoice(voice, x, y, h = SOURCE_HEIGHT) {
+  setPannerPos(voice.panner, x, y, h, !voice.fresh);
+  voice.fresh = false;
+}
+
+function dopplerCents(src, svx, svy) {
+  const dx = listenerPos.x - src.x, dy = listenerPos.z - src.y;
+  const d = Math.hypot(dx, dy) || 1;
+  const ux = dx / d, uy = dy / d;
+  const vs = clamp(svx * ux + svy * uy, -60, 60);
+  const vl = clamp(-(listenerVel.x * ux + listenerVel.y * uy), -60, 60);
+  return 1200 * Math.log2((SPEED_OF_SOUND + vl) / (SPEED_OF_SOUND - vs));
+}
+
 function updateSiren(dt, world) {
   const chaseActive = world.wanted > 0;
   const intensity = clamp(world.wanted / 5, 0, 1);
@@ -608,14 +945,141 @@ function updateSiren(dt, world) {
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;
 
+  const units = chaseActive
+    ? world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked && v.driver !== 'player')
+    : [];
+  assignVoices(sirenVoices, nearestSorted(units, MAX_DISTANCE, SIREN_VOICES));
+
   // Stepped hi-lo alternation, not a swept wail: hold each fixed pitch for
   // 0.5-0.7s (higher wanted level = faster alternation, still in range) and
   // jump with setValueAtTime so the switch is an abrupt step, not a glide.
   const hold = SIREN_HOLD_MAX - intensity * (SIREN_HOLD_MAX - SIREN_HOLD_MIN);
-  if (ctx.currentTime >= siren.nextToggle) {
-    siren.toneHigh = !siren.toneHigh;
-    siren.osc.frequency.setValueAtTime(siren.toneHigh ? SIREN_HIGH_FREQ : SIREN_LOW_FREQ, ctx.currentTime);
-    siren.nextToggle = ctx.currentTime + hold;
+  const t = ctx.currentTime;
+  let audible = 0;
+  for (const voice of sirenVoices) {
+    const v = voice.target;
+    fadeVoice(voice, v ? 1 : 0, dt, 3);
+    if (v) {
+      placeVoice(voice, v.x, v.y, 1.6);
+      const cents = dopplerCents(v, Math.cos(v.angle) * v.speed, Math.sin(v.angle) * v.speed);
+      voice.osc.detune.setTargetAtTime(cents, t, 0.1);
+      audible = Math.max(audible, voice.level * inverseGain(distToListener(v.x, v.y, 1.6), 8, 0.9));
+    }
+    if (voice.level > 0 && t >= voice.nextToggle) {
+      voice.toneHigh = !voice.toneHigh;
+      voice.osc.frequency.setValueAtTime(voice.toneHigh ? SIREN_HIGH_FREQ : SIREN_LOW_FREQ, t);
+      voice.nextToggle = t + hold;
+    }
+  }
+  sirenAudible = sirenState.gain * audible;
+}
+
+function vehicleVoiceParams(v) {
+  const s = Math.abs(v.speed);
+  if (v.isBoat) return { type: 'sawtooth', freq: 28 + s * 7, cutoff: 240 + s * 40, gain: 0.1 + s * 0.02 };
+  if (v.isScooter) return { type: 'square', freq: 95 + s * 9, cutoff: 1100 + s * 40, gain: 0.04 + s * 0.006 };
+  if (v.isBus) return { type: 'sawtooth', freq: 30 + s * 2.4, cutoff: 280 + s * 14, gain: 0.12 + s * 0.008 };
+  return { type: 'sawtooth', freq: 40 + s * 3.2, cutoff: 300 + s * 16, gain: 0.06 + s * 0.009 };
+}
+
+function isEngineRunning(v) {
+  if (v.wrecked || v.isBike || v.driver === 'player') return false;
+  if (Math.abs(v.speed) > 0.2) return true;
+  return v.isBoat || (!!v.road && !v.isHeroCar);
+}
+
+function updateTrafficAudio(dt, world) {
+  const running = [];
+  for (const v of world.vehicles) {
+    if (isEngineRunning(v)) running.push(v);
+    const horn = !!v.horn;
+    if (horn && !hornWasOn.get(v) && v.driver !== 'player') playHorn(v.x, v.y);
+    hornWasOn.set(v, horn);
+  }
+  assignVoices(engineVoices, nearestSorted(running, ENGINE_RANGE, ENGINE_VOICES));
+  const t = ctx.currentTime;
+  for (const voice of engineVoices) {
+    const v = voice.target;
+    if (!v) { fadeVoice(voice, 0, dt, 4); continue; }
+    const p = vehicleVoiceParams(v);
+    if (voice.osc.type !== p.type) voice.osc.type = p.type;
+    voice.osc.frequency.setTargetAtTime(p.freq, t, voice.fresh ? 0.001 : 0.08);
+    voice.filter.frequency.setTargetAtTime(p.cutoff, t, 0.08);
+    placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
+    fadeVoice(voice, Math.min(0.3, p.gain), dt, 4);
+  }
+
+  const heli = world.policeHeli;
+  if (heli) setPannerPos(heliVoice.panner, heli.x, heli.y, heli.z ?? 30, true);
+  heliVoice.gain.gain.setTargetAtTime(heli ? 0.35 : 0, t, 0.4);
+}
+
+function spatialAt(x, y, opts) {
+  return spatialOut(x, y, opts || { ref: 5 });
+}
+
+function updateWorldEvents(world) {
+  const p = world.player;
+
+  let playerFired = false;
+  for (const b of world.bullets) {
+    if (seenBullets.has(b)) continue;
+    seenBullets.add(b);
+    if (b.owner === 'player') { playerFired = true; continue; }
+    const sp = Math.hypot(b.vx, b.vy) || 1;
+    playGunshot(b.x - (b.vx / sp) * b.traveled, b.y - (b.vy / sp) * b.traveled, 'pistol');
+  }
+  if (playerFired) {
+    const src = p.inVehicle || p;
+    playGunshot(src.x, src.y, world.weapon);
+  }
+
+  let ricochets = 0;
+  const splashes = [];
+  for (const pt of world.particles) {
+    if (seenParticles.has(pt)) continue;
+    seenParticles.add(pt);
+    if (pt.kind === 'spark' && ricochets < MAX_RICOCHETS_PER_FRAME) { ricochets++; playRicochet(pt.x, pt.y); }
+    else if (pt.kind === 'splash') { splashes.push(pt); playSplash(pt.x, pt.y); }
+  }
+
+  const newlyDead = [];
+  for (const ped of world.pedestrians) {
+    if (ped.state !== 'dead' || seenDeadPeds.has(ped)) continue;
+    seenDeadPeds.add(ped);
+    newlyDead.push(ped);
+  }
+
+  const newlyWrecked = [];
+  for (const v of world.vehicles) {
+    if (v.hitThisFrame && !world.paused) {
+      const last = lastCrashAt.get(v) ?? -Infinity;
+      if (world.time - last >= CRASH_MIN_GAP) {
+        playCrash(v.hitX, v.hitY, v.hitImpactSpeed || 0);
+        // both parties of a collision carry the same hit point
+        for (const o of world.vehicles) {
+          if (o.hitThisFrame && o.hitX === v.hitX && o.hitY === v.hitY) lastCrashAt.set(o, world.time);
+        }
+      }
+    }
+    if (!v.wrecked || seenWrecks.has(v)) continue;
+    seenWrecks.add(v);
+    newlyWrecked.push(v);
+    if (!splashes.some((s) => Math.hypot(s.x - v.x, s.y - v.y) < 3)) playExplosion(v.x, v.y);
+  }
+
+  const at = (src) => spatialAt((src || p).x, (src || p).y);
+  if (world.stats.kills > prev.kills) {
+    const out = at(newlyDead[0] || newlyWrecked[0]);
+    if (out) playHit(out);
+  }
+  if (world.stats.copKills > prev.copKills) {
+    const out = at(newlyDead.find((d) => d.isCop) || newlyWrecked.find((v) => v.isPolice));
+    if (out) playCopSting(out);
+  }
+  if (world.stats.pedKills > prev.pedKills) {
+    const out = at(newlyDead.find((d) => !d.isCop));
+    if (out) playPedSting(out);
   }
 }
 
@@ -643,7 +1107,7 @@ function updateGMusic(dt, world) {
   // working hard or the siren is audible, per spec - same lerp-toward-target
   // shape as engineBus/sirenBus above. Slower while fading in from a fresh
   // start so that fade actually reads as subtle instead of near-instant.
-  const ducked = sirenState.gain > 0.05 || engineState.gain > 0.4;
+  const ducked = sirenAudible > 0.05 || engineState.gain > 0.4;
   const targetGain = ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
   const lerpRate = gmusicFadingIn ? dt * 0.8 : dt * 3;
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
@@ -664,13 +1128,13 @@ export function updateAudio(dt, world) {
     world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5);
   }
 
-  if (world.stats.kills > prev.kills) playHit();
-  if (world.stats.copKills > prev.copKills) playCopSting();
-  if (world.stats.pedKills > prev.pedKills) playPedSting();
+  updateListener(world);
+  updateWorldEvents(world);
+  const pickupOut = () => spatialAt(world.player.x, world.player.y);
   if (world.health < prev.health) playPlayerHurt();
-  if (world.armor > prev.armor) playArmorUp();
+  if (world.armor > prev.armor) { const o = pickupOut(); if (o) playArmorUp(o); }
   else if (world.armor < prev.armor) playArmorDown();
-  if (world.money > prev.money) playCashChime();
+  if (world.money > prev.money) { const o = pickupOut(); if (o) playCashChime(o); }
   if (world.weapon !== prev.weapon) playSwitchClick();
 
   const missionPhase = world.mission ? world.mission.phase : null;
@@ -687,7 +1151,9 @@ export function updateAudio(dt, world) {
       playDeathSting();
       if (m.text === 'OPGEPAKT') {
         playVoiceline(world.player.character, 'opgepakt');
-        playPoliceBark('aangehouden');
+        const cop = nearestPoliceSource(world);
+        if (cop && cop.d < SPEECH_RANGE) playPoliceBark('aangehouden', cop.x, cop.y);
+        else playPoliceBark('aangehouden');
       }
     } else if (m.text.indexOf('geklaard!') !== -1) {
       playMissionJingle();
@@ -709,8 +1175,9 @@ export function updateAudio(dt, world) {
 
   if (world.wanted > 0 && prev.wanted === 0) {
     enqueueGmusicJingle('hoge_wanted');
-    playRandomChaseStartBark();
+    chaseBarkDeadline = world.time + CHASE_BARK_WAIT;
   }
+  updateChaseBark(world);
   prev.wanted = world.wanted;
   prev.kills = world.stats.kills;
   prev.copKills = world.stats.copKills;
@@ -723,5 +1190,6 @@ export function updateAudio(dt, world) {
 
   updateEngine(dt, world);
   updateSiren(dt, world);
+  updateTrafficAudio(dt, world);
   updateGMusic(dt, world);
 }
