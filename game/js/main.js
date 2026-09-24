@@ -130,6 +130,7 @@ async function boot() {
   finishLoading();
   await waitForStart(world);
   document.body.classList.add('game-started');
+  input.tryLock();
   initAudio(world);
 
   let last = performance.now();

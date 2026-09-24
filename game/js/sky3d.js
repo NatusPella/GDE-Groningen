@@ -98,8 +98,17 @@ function buildStars(count = 1400) {
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
   const mat = new THREE.PointsMaterial({
     size: 1.6, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: 0,
-    depthTest: false, depthWrite: false, fog: false, blending: THREE.AdditiveBlending,
+    depthTest: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending,
   });
+  // Stars live on a 90 m shell around the camera but are drawn in the
+  // transparent pass, after the city: push them to the far plane so every
+  // building (near or far LOD) that wrote depth hides them.
+  mat.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader.replace(
+      '#include <project_vertex>',
+      '#include <project_vertex>\n  gl_Position.z = gl_Position.w * 0.99995;',
+    );
+  };
   const pts = new THREE.Points(geo, mat);
   pts.frustumCulled = false;
   pts.renderOrder = -9;

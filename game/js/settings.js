@@ -2,6 +2,7 @@
 // subscribe with onSettingsChange() to apply changes live.
 
 const STORAGE_KEY = 'gte-settings';
+const SETTINGS_VERSION = 2;
 
 export const QUALITY_PRESETS = {
   laag: { pixelRatio: 1, shadows: false, shadowMapSize: 1024 },
@@ -21,7 +22,7 @@ const DEFAULTS = {
   showHints: true,
   showFog: true,
   cinematicMoments: true,
-  drawDistance: 'normaal',
+  drawDistance: 'ver',
   mouseSensitivity: 1,
   invertY: false,
 };
@@ -34,6 +35,9 @@ function load() {
       if (typeof raw[k] === typeof DEFAULTS[k]) out[k] = raw[k];
     }
     if (!QUALITY_PRESETS[out.quality]) out.quality = DEFAULTS.quality;
+    // v2 made the long view distance the default; older saves stored the
+    // previous default without the player ever choosing it
+    if (raw.v !== SETTINGS_VERSION) out.drawDistance = DEFAULTS.drawDistance;
     return out;
   } catch (e) {
     return { ...DEFAULTS };
@@ -50,7 +54,7 @@ export function getSettings() {
 export function setSetting(key, value) {
   if (!(key in DEFAULTS) || settings[key] === value) return;
   settings[key] = value;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (e) { /* ignore */ }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
   applyHudClasses();
   for (const cb of listeners) cb(settings, key);
 }
