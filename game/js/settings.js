@@ -19,6 +19,7 @@ const DEFAULTS = {
   cameraDistance: 1,
   showMinimap: true,
   showHints: true,
+  showFog: true,
 };
 
 function load() {
