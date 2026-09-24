@@ -1,10 +1,15 @@
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
 import { isMuted } from './audio.js';
+import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
 
 const MINIMAP_SIZE = 160;
-const MM_SCALE = 0.5; // px per meter (css pixels)
-const MM_RADIUS_M = MINIMAP_SIZE / 2 / MM_SCALE;
+const MM_SCALE = 0.5; // px per meter (css pixels) when standing still
+const MM_SCALE_FAST = 0.22;
+const MM_FAST_SPEED = 28;
+let mmScale = MM_SCALE;
+
+export const ROUTE_COLORS = { user: '#f0ede4', mission: '#e8c93a' };
 
 let els = null;
 
@@ -52,6 +57,11 @@ export function initHud(world) {
   location.innerHTML = '<div class="hud-district"></div><div class="hud-street"></div>';
   root.appendChild(location);
 
+  const routeChip = document.createElement('div');
+  routeChip.className = 'hud-route';
+  routeChip.setAttribute('aria-live', 'off');
+  root.appendChild(routeChip);
+
   const mmWrap = document.createElement('div');
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
@@ -77,6 +87,8 @@ export function initHud(world) {
     district: location.querySelector('.hud-district'),
     street: location.querySelector('.hud-street'),
     toasts,
+    routeChip,
+    routeText: '',
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
   };
@@ -92,7 +104,25 @@ export function updateHud(dt, world) {
   updateToasts(world);
   updateLocation(dt, world);
   updateHint(world);
+  updateRouteChip(world);
   drawMinimap(dt, world);
+}
+
+function updateRouteChip(world) {
+  const route = getActiveRoute();
+  let text = '', kind = '';
+  if (route && route.remaining > 12) {
+    kind = route.kind;
+    text = `${kind === 'user' ? 'Bestemming' : 'Missie'}: ${formatDistance(route.remaining)}`;
+  } else if (!route && getUserWaypoint()) {
+    const wp = getUserWaypoint();
+    kind = 'user';
+    text = `Bestemming: ${formatDistance(Math.hypot(wp.x - world.player.x, wp.y - world.player.y))}`;
+  }
+  if (text === els.routeText) return;
+  els.routeText = text;
+  els.routeChip.textContent = text;
+  els.routeChip.dataset.kind = kind;
 }
 
 // Context-aware on-screen prompts, shown only when relevant, instead of a
@@ -354,6 +384,22 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       outline(ctx, s, C.dark, 0.8);
       break;
     }
+    case 'userWaypoint': {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-1.2 * s, -3 * s, -4.6 * s, -4.6 * s, -4.6 * s, -8 * s);
+      ctx.arc(0, -8 * s, 4.6 * s, Math.PI, 0);
+      ctx.bezierCurveTo(4.6 * s, -4.6 * s, 1.2 * s, -3 * s, 0, 0);
+      ctx.closePath();
+      ctx.fillStyle = C.cream;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.6);
+      ctx.beginPath();
+      ctx.arc(0, -8 * s, 1.9 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.greenDark;
+      ctx.fill();
+      break;
+    }
     case 'waypoint': {
       ctx.beginPath();
       ctx.arc(0, 0, 2.4 * s, 0, Math.PI * 2);
@@ -507,6 +553,24 @@ export function drawRoute(ctx, pts, s = 1) {
   ctx.restore();
 }
 
+// Thick along-the-road route line with a dark casing; pts in screen space.
+export function drawRoadRoute(ctx, pts, color, width = 4) {
+  if (pts.length < 2) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = width + 3;
+  ctx.strokeStyle = 'rgba(12, 20, 14, 0.85)';
+  ctx.stroke();
+  ctx.lineWidth = width;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.restore();
+}
+
 // Horeca is dense (hundreds of spots), so keep at most one icon per world
 // grid cell; a world-space grid stays stable while the minimap rotates.
 export function declutter(items, cellM) {
@@ -545,6 +609,11 @@ function drawMinimap(dt, world) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, els.mmCanvas.width, els.mmCanvas.height);
 
+  const speed = player.inVehicle ? Math.abs(player.inVehicle.speed || 0) : 0;
+  const targetScale = MM_SCALE - (MM_SCALE - MM_SCALE_FAST) * Math.min(1, speed / MM_FAST_SPEED);
+  mmScale += (targetScale - mmScale) * Math.min(1, dt * 1.2);
+  const MM_RADIUS_M = MINIMAP_SIZE / 2 / mmScale;
+
   const cx = MINIMAP_SIZE / 2, cy = MINIMAP_SIZE / 2;
   // The map rotates so the player's heading always points up; any world
   // angle plus mapRotation gives its on-screen angle.
@@ -552,7 +621,7 @@ function drawMinimap(dt, world) {
   const cosR = Math.cos(mapRotation), sinR = Math.sin(mapRotation);
   ctx.translate(cx * dpr, cy * dpr);
   ctx.rotate(mapRotation);
-  ctx.scale(MM_SCALE * dpr, MM_SCALE * dpr);
+  ctx.scale(mmScale * dpr, mmScale * dpr);
   ctx.translate(-player.x, -player.y);
 
   ctx.fillStyle = '#22262a';
@@ -563,7 +632,7 @@ function drawMinimap(dt, world) {
     player.x + MM_RADIUS_M, player.y + MM_RADIUS_M
   );
 
-  drawNeighbourhoodBorders(ctx, dt, world, player);
+  drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M);
 
   ctx.fillStyle = '#6b9450';
   for (const g of view.green) fillPoly(ctx, g.pts);
@@ -589,11 +658,17 @@ function drawMinimap(dt, world) {
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  const iconRangeM = MM_RADIUS_M - 5 / MM_SCALE;
+  const iconRangeM = MM_RADIUS_M - 5 / mmScale;
   const toScreen = (x, y) => {
     const dx = x - player.x, dy = y - player.y;
-    return [cx + (dx * cosR - dy * sinR) * MM_SCALE, cy + (dx * sinR + dy * cosR) * MM_SCALE];
+    return [cx + (dx * cosR - dy * sinR) * mmScale, cy + (dx * sinR + dy * cosR) * mmScale];
   };
+
+  const route = getActiveRoute();
+  const ahead = route && getRouteAhead(MM_RADIUS_M * 2.5);
+  if (ahead && ahead.length > 1) {
+    drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind], 3.2);
+  }
   const inRange = (x, y) => (x - player.x) ** 2 + (y - player.y) ** 2 <= iconRangeM * iconRangeM;
   const icon = (kind, x, y, opts) => {
     if (!inRange(x, y)) return false;
@@ -627,6 +702,10 @@ function drawMinimap(dt, world) {
     if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
   }
 
+  const wp = getUserWaypoint();
+  let wpEdge = null;
+  if (wp && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
+
   const hero = getHeroCar(world);
   let heroEdge = null;
   if (hero && player.inVehicle !== hero && !icon('car', hero.x, hero.y)) heroEdge = edgeAngle(hero.x, hero.y);
@@ -645,8 +724,12 @@ function drawMinimap(dt, world) {
     drawEdgeArrow(ctx, cx + Math.cos(heroEdge) * edgeR, cy + Math.sin(heroEdge) * edgeR, heroEdge, C.greenLight, 0.9);
   }
   if (missionEdge != null) {
+    const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
+    drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, wp ? 0.8 : s);
+  }
+  if (wpEdge != null) {
     const s = 1 + pulseAt(t) * 0.2;
-    drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, s);
+    drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, C.cream, s);
   }
 }
 
@@ -693,7 +776,7 @@ function mmHash(x, y) {
 // HUD instead of showing unrelated administrative lines.
 let borderCache = null; // {ox, oy, rects}
 let borderCacheTimer = 0;
-function drawNeighbourhoodBorders(ctx, dt, world, player) {
+function drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M) {
   const points = world.map.meta.neighbourhoodPoints;
   if (!points || !points.length) return;
   const cell = 14; // meters
@@ -701,7 +784,7 @@ function drawNeighbourhoodBorders(ctx, dt, world, player) {
   const ox = Math.round(player.x / cell), oy = Math.round(player.y / cell);
 
   borderCacheTimer -= dt;
-  if (!borderCache || borderCacheTimer <= 0 || borderCache.ox !== ox || borderCache.oy !== oy) {
+  if (!borderCache || borderCacheTimer <= 0 || borderCache.ox !== ox || borderCache.oy !== oy || borderCache.half !== half) {
     borderCacheTimer = 0.3;
     const rects = [];
     const width = half * 2 + 2;
@@ -723,7 +806,7 @@ function drawNeighbourhoodBorders(ctx, dt, world, player) {
       }
       prevRow = curRow;
     }
-    borderCache = { ox, oy, rects };
+    borderCache = { ox, oy, half, rects };
   }
 
   ctx.fillStyle = 'rgba(255,255,255,0.35)';

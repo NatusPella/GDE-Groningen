@@ -12,7 +12,7 @@ const CONTROLS = [
   ['1–4', 'vuisten / pistool / uzi / hagelgeweer'],
   ['Muis omhoog/omlaag', 'camerahoek'],
   ['C', 'wissel Tammo / Anita'],
-  ['M', 'kaart'],
+  ['M', 'kaart (klik: bestemming, Shift+klik: teleporteren)'],
   ['U', 'geluid aan/uit'],
   ['Esc', 'menu'],
 ];
@@ -63,6 +63,8 @@ export function initPauseMenu(world) {
         <h2>HUD</h2>
         ${toggle('showMinimap', 'Minimap')}
         ${toggle('showHints', 'Toetshints')}
+        <h2>Kaart</h2>
+        ${toggle('showFog', 'Verkende gebieden tonen')}
         <button type="button" class="pm-secondary" data-action="reset">Standaardinstellingen</button>
       </section>
       <section data-panel="controls" class="pm-panel" hidden>

@@ -28,6 +28,7 @@ import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } fro
 import { pointInPolygon, polygonBounds } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
+import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, buildEnvironmentMaps, SKY_HORIZON } from './sky3d.js';
 
@@ -1052,6 +1053,7 @@ export function update3D(dt, world) {
   } else {
     missionArrowMesh.visible = false;
   }
+  updateRouteRibbon3D(dt, world);
 
   // remaining-waypoint preview dots (checkpoint/boat missions only) - the
   // whole set is torn down/rebuilt on wpIndex change rather than diffed,
@@ -1435,4 +1437,142 @@ function normalizeAngleDelta(a) {
   if (a > Math.PI) a -= Math.PI * 2;
   if (a < -Math.PI) a += Math.PI * 2;
   return a;
+}
+
+// Route ribbon: flat chevron strip on the road for the next stretch of the
+// active route. Its polygonOffset sits above road markings (-8) and below
+// blob shadows (-10) so cars and people still cast onto it.
+const RIBBON_AHEAD_M = 80;
+const RIBBON_HALF_W = 0.8;
+const RIBBON_CHEVRON_M = 3;
+const ROUTE_COLOR_3D = { user: 0xf0ede4, mission: 0xe8c93a };
+let routeRibbonMesh = null;
+let routeRibbonKey = '';
+let waypointBeacon = null;
+
+function buildChevronTexture() {
+  const c = document.createElement('canvas');
+  c.width = 64;
+  c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.fillRect(0, 0, 64, 64);
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.moveTo(32, 10);
+  ctx.lineTo(58, 36);
+  ctx.lineTo(58, 50);
+  ctx.lineTo(32, 24);
+  ctx.lineTo(6, 50);
+  ctx.lineTo(6, 36);
+  ctx.closePath();
+  ctx.fill();
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+function buildRouteRibbonGeometry(pts, along0) {
+  const n = pts.length;
+  const pos = new Float32Array(n * 2 * 3), uv = new Float32Array(n * 2 * 2), col = new Float32Array(n * 2 * 4);
+  const idx = [];
+  let dist = 0;
+  const total = (() => { let t = 0; for (let i = 1; i < n; i++) t += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return t; })();
+  for (let i = 0; i < n; i++) {
+    if (i > 0) dist += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)];
+    let dx = b[0] - a[0], dy = b[1] - a[1];
+    const l = Math.hypot(dx, dy) || 1;
+    dx /= l; dy /= l;
+    const nx = -dy * RIBBON_HALF_W, ny = dx * RIBBON_HALF_W;
+    const alpha = Math.min(1, dist / 3, (total - dist) / 15 + 0.05);
+    for (let k = 0; k < 2; k++) {
+      const side = k === 0 ? 1 : -1;
+      const j = i * 2 + k;
+      pos[j * 3] = pts[i][0] + nx * side;
+      pos[j * 3 + 1] = 0;
+      pos[j * 3 + 2] = pts[i][1] + ny * side;
+      uv[j * 2] = k;
+      uv[j * 2 + 1] = (along0 + dist) / RIBBON_CHEVRON_M;
+      col[j * 4] = col[j * 4 + 1] = col[j * 4 + 2] = 1;
+      col[j * 4 + 3] = alpha;
+    }
+    if (i < n - 1) {
+      const q = i * 2;
+      idx.push(q, q + 2, q + 1, q + 1, q + 2, q + 3);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 4));
+  g.setIndex(idx);
+  return g;
+}
+
+function buildWaypointBeacon3D() {
+  const group = new THREE.Group();
+  const beam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.45, 40, 12, 1, true),
+    new THREE.MeshBasicMaterial({ color: ROUTE_COLOR_3D.user, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide })
+  );
+  beam.position.y = 20;
+  group.add(beam);
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(1.5, 2.1, 32).rotateX(-Math.PI / 2),
+    new THREE.MeshBasicMaterial({
+      color: ROUTE_COLOR_3D.user, transparent: true, opacity: 0.8, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -36,
+    })
+  );
+  ring.position.y = 0.045;
+  ring.renderOrder = 1;
+  group.add(ring);
+  group.userData.ring = ring;
+  return group;
+}
+
+function updateRouteRibbon3D(dt, world) {
+  const wp = getUserWaypoint();
+  if (wp) {
+    if (!waypointBeacon) {
+      waypointBeacon = buildWaypointBeacon3D();
+      scene.add(waypointBeacon);
+    }
+    waypointBeacon.visible = true;
+    waypointBeacon.position.set(wp.x, 0, wp.y);
+    const pulse = 1 + Math.sin(performance.now() / 260) * 0.08;
+    waypointBeacon.userData.ring.scale.set(pulse, 1, pulse);
+  } else if (waypointBeacon) {
+    waypointBeacon.visible = false;
+  }
+
+  const route = getActiveRoute();
+  if (!routeRibbonMesh) {
+    routeRibbonMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({
+      map: buildChevronTexture(), vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -36,
+    }));
+    routeRibbonMesh.position.y = 0.045;
+    routeRibbonMesh.renderOrder = 1;
+    routeRibbonMesh.frustumCulled = false;
+    scene.add(routeRibbonMesh);
+  }
+  const ahead = route && route.remaining > 10 ? getRouteAhead(RIBBON_AHEAD_M) : null;
+  if (!ahead || ahead.length < 2) {
+    routeRibbonMesh.visible = false;
+    routeRibbonKey = '';
+    return;
+  }
+  routeRibbonMesh.visible = true;
+  const key = `${route.version}:${Math.round(route.px / 2)}:${Math.round(route.py / 2)}`;
+  if (key !== routeRibbonKey) {
+    routeRibbonKey = key;
+    routeRibbonMesh.geometry.dispose();
+    const p0 = route.pts[route.idx];
+    routeRibbonMesh.geometry = buildRouteRibbonGeometry(ahead, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]));
+    routeRibbonMesh.material.color.setHex(ROUTE_COLOR_3D[route.kind] || ROUTE_COLOR_3D.mission);
+  }
+  routeRibbonMesh.material.map.offset.y -= dt * 0.8;
 }
