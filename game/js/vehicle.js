@@ -195,7 +195,7 @@ function pushBusTrail(v) {
   while (v.trailHistory.length > 2 && v.trailHistory[1].dist < keepFrom) v.trailHistory.shift();
 }
 
-function sampleBusTrail(v, backDist) {
+export function sampleBusTrail(v, backDist) {
   const hist = v.trailHistory;
   if (!hist || hist.length < 2) return { x: v.x, y: v.y, angle: v.angle };
   const targetDist = v.trailDist - backDist;
@@ -1004,335 +1004,6 @@ export function updateVehicleExplosionMesh3D(mesh, dt) {
   return true;
 }
 
-function drawBike(ctx, v) {
-  ctx.save();
-  ctx.translate(v.x, v.y);
-  ctx.rotate(v.angle);
-  const hl = v.halfLen;
-
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath();
-  ctx.ellipse(0.05, 0.05, hl, hl * 0.32, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = v.model.color;
-  ctx.lineWidth = 0.06;
-  ctx.beginPath();
-  ctx.moveTo(-hl * 0.85, 0);
-  ctx.lineTo(hl * 0.2, -0.18);
-  ctx.lineTo(hl * 0.85, 0);
-  ctx.lineTo(hl * 0.2, -0.18);
-  ctx.lineTo(-hl * 0.3, 0.05);
-  ctx.lineTo(-hl * 0.85, 0);
-  ctx.stroke();
-
-  ctx.fillStyle = '#111';
-  const wheelR = v.model.fat ? hl * 0.34 : hl * 0.22;
-  ctx.beginPath(); ctx.arc(-hl * 0.85, 0, wheelR, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(hl * 0.85, 0, wheelR, 0, Math.PI * 2); ctx.fill();
-  if (v.model.fat) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-    ctx.lineWidth = 0.035;
-    ctx.beginPath(); ctx.arc(-hl * 0.85, 0, wheelR * 0.6, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(hl * 0.85, 0, wheelR * 0.6, 0, Math.PI * 2); ctx.stroke();
-  }
-
-  // rider, seen from directly above: shoulders + head, shifted slightly
-  // toward the rear seat position
-  ctx.fillStyle = v.model.rider || '#2f5c8a';
-  ctx.beginPath();
-  ctx.ellipse(-hl * 0.1, 0, hl * 0.5, v.halfWid * 1.05, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#e0b48a';
-  ctx.beginPath();
-  ctx.arc(hl * 0.15, 0, hl * 0.28, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
-}
-
-// Standing rider, seen from above, reads as a tight torso circle near the
-// deck's centre rather than drawBike's elongated seated-rider ellipse.
-function drawScooter(ctx, v) {
-  ctx.save();
-  ctx.translate(v.x, v.y);
-  ctx.rotate(v.angle);
-  const hl = v.halfLen, hw = v.halfWid;
-
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath();
-  ctx.ellipse(0.04, 0.04, hl, hl * 0.3, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.strokeStyle = v.model.color;
-  ctx.lineWidth = 0.05;
-  ctx.beginPath();
-  ctx.moveTo(-hl * 0.8, 0);
-  ctx.lineTo(hl * 0.3, 0);
-  ctx.lineTo(hl * 0.3, -hl * 0.35);
-  ctx.stroke();
-
-  ctx.fillStyle = '#111';
-  const wheelR = hl * 0.2;
-  ctx.beginPath(); ctx.arc(-hl * 0.8, 0, wheelR, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(hl * 0.7, 0, wheelR, 0, Math.PI * 2); ctx.fill();
-
-  ctx.fillStyle = v.model.rider || '#2f5c8a';
-  ctx.beginPath();
-  ctx.ellipse(-hl * 0.05, 0, hw * 1.15, hw, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#e0b48a';
-  ctx.beginPath();
-  ctx.arc(hl * 0.05, 0, hl * 0.22, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
-}
-
-const BUS_FRONT_FRAC = 0.58;
-const BUS_REAR_FRAC = 0.5;
-
-// Articulated ("harmonica") bus: draws a shorter tractor unit at the
-// vehicle's real (collision/AI) pose, a shorter trailing unit at a pose
-// sampled from its own trail history, and a bellows joint stretched/skewed
-// between the two attachment points - render-only, no effect on driving.
-function drawBus(ctx, v) {
-  const hl = v.halfLen, hw = v.halfWid;
-  const frontHl = hl * BUS_FRONT_FRAC;
-  const rearHl = hl * BUS_REAR_FRAC;
-  const rearHw = hw * 0.92;
-  const rearPose = sampleBusTrail(v, v.model.len);
-
-  drawBusUnit(ctx, rearPose.x, rearPose.y, rearPose.angle, rearHl, rearHw, v.model, v.wrecked, false);
-  drawBusJoint(ctx, v, frontHl, hw, rearPose, rearHl, rearHw);
-  drawBusUnit(ctx, v.x, v.y, v.angle, frontHl, hw, v.model, v.wrecked, true);
-}
-
-function drawBusUnit(ctx, cx, cy, angle, hl, hw, model, wrecked, isFront) {
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(angle);
-
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.beginPath();
-  ctx.roundRect(-hl + 0.15, -hw + 0.15, hl * 2, hw * 2, 0.5);
-  ctx.fill();
-
-  ctx.fillStyle = '#161616';
-  const wheelLen = 0.55;
-  const axles = isFront ? [hl * 0.55, -hl * 0.55] : [hl * 0.5, -hl * 0.7];
-  for (const ax of axles) {
-    for (const side of [-1, 1]) {
-      ctx.beginPath();
-      ctx.roundRect(ax - wheelLen / 2, side * hw - 0.08, wheelLen, 0.16, 0.05);
-      ctx.fill();
-    }
-  }
-
-  ctx.fillStyle = wrecked ? '#3a3a3a' : model.color;
-  ctx.beginPath();
-  ctx.roundRect(-hl, -hw, hl * 2, hw * 2, 0.5);
-  ctx.fill();
-
-  ctx.fillStyle = model.stripe || '#eae6da';
-  ctx.fillRect(-hl + 0.25, -hw * 0.15, hl * 2 - 0.5, hw * 0.3);
-
-  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-  ctx.lineWidth = 0.06;
-  ctx.stroke();
-
-  ctx.fillStyle = 'rgba(150,180,200,0.85)';
-  const winCount = isFront ? 3 : 3;
-  const winSpan = hl * 1.55;
-  const winW = winSpan / winCount - 0.12;
-  for (let i = 0; i < winCount; i++) {
-    const wx = -winSpan / 2 + i * (winSpan / winCount) + 0.06;
-    ctx.beginPath();
-    ctx.roundRect(wx, -hw + 0.16, winW, hw - 0.32, 0.08);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(wx, 0.16, winW, hw - 0.32, 0.08);
-    ctx.fill();
-  }
-
-  if (isFront) {
-    ctx.fillStyle = 'rgba(150,180,200,0.9)';
-    ctx.beginPath();
-    ctx.roundRect(hl - 0.5, -hw + 0.2, 0.35, hw * 2 - 0.4, 0.1);
-    ctx.fill();
-
-    ctx.fillStyle = '#e0c020';
-    ctx.fillRect(hl - 0.7, -hw * 0.4, 0.2, hw * 0.8);
-  }
-
-  ctx.restore();
-}
-
-// Dark accordion-bellows band bridging the tractor's rear edge to the
-// trailer's front edge - drawn as a quad in world space (not a local
-// rotated transform) since the two units can sit at different angles while
-// cornering, which is exactly what gives it the concertina look.
-function drawBusJoint(ctx, v, frontHl, frontHw, rearPose, rearHl, rearHw) {
-  const jointFrontHw = frontHw * 0.72;
-  const fx = v.x - Math.cos(v.angle) * frontHl, fy = v.y - Math.sin(v.angle) * frontHl;
-  const fnx = -Math.sin(v.angle), fny = Math.cos(v.angle);
-  const flx = fx + fnx * jointFrontHw, fly = fy + fny * jointFrontHw;
-  const frx = fx - fnx * jointFrontHw, fry = fy - fny * jointFrontHw;
-
-  const jointRearHw = rearHw * 0.72;
-  const rx = rearPose.x + Math.cos(rearPose.angle) * rearHl, ry = rearPose.y + Math.sin(rearPose.angle) * rearHl;
-  const rnx = -Math.sin(rearPose.angle), rny = Math.cos(rearPose.angle);
-  const rlx = rx + rnx * jointRearHw, rly = ry + rny * jointRearHw;
-  const rrx = rx - rnx * jointRearHw, rry = ry - rny * jointRearHw;
-
-  ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath();
-  ctx.moveTo(flx, fly);
-  ctx.lineTo(rlx, rly);
-  ctx.lineTo(rrx, rry);
-  ctx.lineTo(frx, fry);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-  ctx.lineWidth = 0.05;
-  for (let i = 1; i <= 3; i++) {
-    const t = i / 4;
-    ctx.beginPath();
-    ctx.moveTo(lerp(flx, rlx, t), lerp(fly, rly, t));
-    ctx.lineTo(lerp(frx, rrx, t), lerp(fry, rry, t));
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = 'rgba(40,40,40,0.9)';
-  ctx.beginPath();
-  ctx.arc((fx + rx) / 2, (fy + ry) / 2, frontHw * 0.28, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-// A handful of fading dots trailing the stern - cheap stand-in for a wake,
-// only drawn while actually moving.
-function drawBoatWake(ctx, v) {
-  if (Math.abs(v.speed) < 0.3) return;
-  const bx = -Math.cos(v.angle), by = -Math.sin(v.angle);
-  for (let i = 1; i <= 3; i++) {
-    const d = v.halfLen + i * 0.9;
-    ctx.globalAlpha = 0.35 * (1 - i / 4);
-    ctx.fillStyle = 'rgba(220,235,240,0.9)';
-    ctx.beginPath();
-    ctx.arc(v.x + bx * d, v.y + by * d, 0.18 + i * 0.05, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-}
-
-function drawBoat(ctx, v) {
-  drawBoatWake(ctx, v);
-
-  ctx.save();
-  ctx.translate(v.x, v.y);
-  ctx.rotate(v.angle);
-  const hl = v.halfLen, hw = v.halfWid;
-
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath();
-  ctx.ellipse(0.08, 0.08, hl, hw, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = v.wrecked ? '#3a3a3a' : v.model.color;
-  ctx.beginPath();
-  ctx.moveTo(hl, 0);
-  ctx.lineTo(hl * 0.3, -hw);
-  ctx.lineTo(-hl, -hw * 0.85);
-  ctx.lineTo(-hl, hw * 0.85);
-  ctx.lineTo(hl * 0.3, hw);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.45)';
-  ctx.lineWidth = 0.06;
-  ctx.stroke();
-
-  ctx.fillStyle = v.model.cabin || '#2f3a44';
-  ctx.beginPath();
-  ctx.roundRect(-hl * 0.35, -hw * 0.55, hl * 0.7, hw * 1.1, 0.12);
-  ctx.fill();
-
-  ctx.restore();
-}
-
-export function drawVehicle(ctx, v) {
-  if (v.isBike) { drawBike(ctx, v); return; }
-  if (v.isScooter) { drawScooter(ctx, v); return; }
-  if (v.isBus) { drawBus(ctx, v); return; }
-  if (v.isBoat) { drawBoat(ctx, v); return; }
-  ctx.save();
-  ctx.translate(v.x, v.y);
-  ctx.rotate(v.angle);
-  const hl = v.halfLen, hw = v.halfWid;
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.beginPath();
-  ctx.roundRect(-hl + 0.15, -hw + 0.15, hl * 2, hw * 2, 0.4);
-  ctx.fill();
-
-  ctx.fillStyle = '#161616';
-  const wheelLen = hl * 0.34, wheelWid = 0.14;
-  const axleF = hl * 0.55, axleR = -hl * 0.58;
-  for (const ax of [axleF, axleR]) {
-    for (const side of [-1, 1]) {
-      ctx.beginPath();
-      ctx.roundRect(ax - wheelLen / 2, side * hw - wheelWid / 2, wheelLen, wheelWid, 0.05);
-      ctx.fill();
-    }
-  }
-
-  ctx.fillStyle = v.wrecked ? '#3a3a3a' : v.model.color;
-  ctx.beginPath();
-  ctx.roundRect(-hl, -hw, hl * 2, hw * 2, 0.45);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-  ctx.lineWidth = 0.06;
-  ctx.stroke();
-
-  // cabin: windshield + roof + rear window, split by pillars so it doesn't
-  // read as one flat window band
-  const cabinX0 = -hl * 0.18, cabinX1 = hl * 0.62;
-  ctx.fillStyle = 'rgba(60,64,70,0.9)';
-  ctx.beginPath();
-  ctx.roundRect(cabinX0, -hw + 0.16, cabinX1 - cabinX0, hw * 2 - 0.32, 0.22);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(175,205,225,0.9)';
-  ctx.beginPath();
-  ctx.roundRect(cabinX0 + 0.08, -hw + 0.22, (cabinX1 - cabinX0) * 0.32, hw * 2 - 0.44, 0.16);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.roundRect(cabinX0 + (cabinX1 - cabinX0) * 0.58, -hw + 0.22, (cabinX1 - cabinX0) * 0.36, hw * 2 - 0.44, 0.16);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(150,180,200,0.85)';
-  ctx.beginPath();
-  ctx.roundRect(-hl * 0.72, -hw + 0.22, hl * 0.32, hw * 2 - 0.44, 0.14);
-  ctx.fill();
-
-  ctx.fillStyle = '#161616';
-  ctx.beginPath(); ctx.arc(hl * 0.25, -hw - 0.02, 0.11, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(hl * 0.25, hw + 0.02, 0.11, 0, Math.PI * 2); ctx.fill();
-
-  if (v.isPolice) {
-    ctx.fillStyle = '#2255dd';
-    ctx.fillRect(-hl * 0.15, -hw * 0.35, 0.3, hw * 0.35);
-    ctx.fillStyle = '#dd2222';
-    ctx.fillRect(-hl * 0.15, 0, 0.3, hw * 0.35);
-  }
-
-  ctx.fillStyle = '#fff7c2';
-  ctx.fillRect(hl - 0.1, -hw + 0.15, 0.15, 0.25);
-  ctx.fillRect(hl - 0.1, hw - 0.4, 0.15, 0.25);
-  ctx.fillStyle = '#661111';
-  ctx.fillRect(-hl - 0.05, -hw + 0.15, 0.12, 0.25);
-  ctx.fillRect(-hl - 0.05, hw - 0.4, 0.12, 0.25);
-
-  ctx.restore();
-}
-
 // A vehicle that drives (or is knocked) into open water is wrecked on the
 // spot and splashes; the player, if driving it, is ejected right where the
 // vehicle went in.
@@ -1364,31 +1035,53 @@ export function checkVehicleWater(v, map, world) {
   return false;
 }
 
-// Draws (and expires) the splash particles checkVehicleWater pushes into
-// world.particles - kind 'splash', same {x,y,until} shape combat.js's own
-// 'spark' particles use, filtered the same way so the two kinds coexist.
-export function drawSplash(ctx, world) {
-  world.particles = world.particles.filter((p) => p.kind !== 'splash' || p.until > world.time);
+// Splash for the 'splash' particles checkVehicleWater pushes (expired by
+// combat.js's particle prune): an expanding ring on the water plus a few
+// ballistic droplets. The caller sets the group's position at water level.
+export const SPLASH_LIFETIME = 1.1;
+const SPLASH_DROPS = 7;
+const SPLASH_WATER_COLOR = 0xd2e2ea;
 
-  for (const p of world.particles) {
-    if (p.kind !== 'splash') continue;
-    const t = 1 - clamp((p.until - world.time) / 1.1, 0, 1);
-    const r = lerp(0.3, 2.1, t);
-    ctx.globalAlpha = 1 - t;
-    ctx.strokeStyle = 'rgba(210,230,240,0.9)';
-    ctx.lineWidth = 0.08;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-    ctx.stroke();
-
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + t * 1.5;
-      ctx.beginPath();
-      ctx.arc(p.x + Math.cos(a) * r * 0.5, p.y + Math.sin(a) * r * 0.5, 0.15 * (1 - t * 0.6), 0, Math.PI * 2);
-      ctx.stroke();
-    }
+export function buildSplashMesh3D() {
+  const group = new THREE.Group();
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.82, 1, 28),
+    new THREE.MeshBasicMaterial({
+      color: SPLASH_WATER_COLOR, transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide,
+      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -16,
+    }),
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.03;
+  group.add(ring);
+  const dropGeo = new THREE.IcosahedronGeometry(0.09, 0);
+  const dropMat = new THREE.MeshStandardMaterial({ color: SPLASH_WATER_COLOR, roughness: 0.3, flatShading: true, transparent: true });
+  const drops = [];
+  for (let i = 0; i < SPLASH_DROPS; i++) {
+    const drop = new THREE.Mesh(dropGeo, dropMat);
+    const a = (i / SPLASH_DROPS) * Math.PI * 2 + Math.random() * 0.6;
+    const out = 1.2 + Math.random() * 1.4;
+    drop.userData.vx = Math.cos(a) * out;
+    drop.userData.vz = Math.sin(a) * out;
+    drop.userData.vy = 3.2 + Math.random() * 2.2;
+    group.add(drop);
+    drops.push(drop);
   }
-  ctx.globalAlpha = 1;
+  group.userData.ring = ring;
+  group.userData.drops = drops;
+  return group;
+}
+
+export function updateSplashMesh3D(mesh, age) {
+  const t = clamp(age / SPLASH_LIFETIME, 0, 1);
+  const ring = mesh.userData.ring;
+  ring.scale.setScalar(lerp(0.3, 2.3, 1 - (1 - t) * (1 - t)));
+  ring.material.opacity = 0.8 * (1 - t);
+  for (const d of mesh.userData.drops) {
+    d.position.set(d.userData.vx * age, Math.max(0, d.userData.vy * age - 4.9 * age * age), d.userData.vz * age);
+    d.visible = d.position.y > 0 || age < 0.1;
+  }
+  mesh.userData.drops[0].material.opacity = 1 - t * 0.6;
 }
 
 export { MODELS };

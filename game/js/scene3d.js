@@ -1,17 +1,19 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
-import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
   vehicleJustWrecked, buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D,
+  sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
 } from './vehicle.js';
+import { DEAD_DURATION } from './pedestrians.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
-import { buildSeagullMesh3D, buildCowMesh3D, buildSheepMesh3D } from './wildlife.js';
-import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
+import { buildSeagullMesh3D, buildCowMesh3D, buildSheepMesh3D, animateWildlifeMesh3D } from './wildlife.js';
+import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D, buildMissionArrow3D, updateMissionArrow3D } from './missions.js';
 import {
   getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
   buildHealthPickupMesh3D, buildArmorPickupMesh3D, buildGaragePickupMesh3D,
@@ -94,6 +96,9 @@ let companionMesh = null;
 let companionCharacter = null;
 let passengerMesh = null;
 let missionMarkerMesh = null;
+let missionArrowMesh = null;
+const splashMeshes = new Map();
+const wakeMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
 const trafficLightMeshes = new Map();
@@ -146,15 +151,101 @@ function nearbyCamTargets(px, py) {
 // Materials reused across many actors - disposing one would force every
 // remaining user to re-upload/recompile it on the next frame.
 const SHARED_MATERIALS = new Set([OUTLINE_MAT, KISS_HEART_MAT]);
+const SHARED_GEOMETRIES = new Set();
 
 // Actors/effects build their own geometries per instance, so on despawn both
 // geometry and material must be freed or GPU memory grows all session.
 function disposeObject(root) {
   root.traverse((o) => {
-    if (o.geometry) o.geometry.dispose();
+    if (o.geometry && !SHARED_GEOMETRIES.has(o.geometry)) o.geometry.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
     for (const m of mats) if (!SHARED_MATERIALS.has(m)) m.dispose();
   });
+}
+
+// Soft blob shadow: one texture/geometry/material for every actor. The
+// polygon offset outranks every ground decal layer (GROUND_LAYER tops out
+// at -8/-32), so it sits on roads and markings instead of under them.
+const BLOB_SHADOW_GEO = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+const BLOB_SHADOW_MAT = new THREE.MeshBasicMaterial({
+  map: buildBlobShadowTexture(),
+  color: 0x000000,
+  transparent: true,
+  depthWrite: false,
+  polygonOffset: true,
+  polygonOffsetFactor: -10,
+  polygonOffsetUnits: -40,
+});
+SHARED_GEOMETRIES.add(BLOB_SHADOW_GEO);
+SHARED_MATERIALS.add(BLOB_SHADOW_MAT);
+
+function buildBlobShadowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(0,0,0,0.5)');
+  g.addColorStop(0.5, 'rgba(0,0,0,0.42)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+function addBlobShadow(parent, sx, sz, x = 0) {
+  const shadow = new THREE.Mesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT);
+  shadow.position.set(x, 0.02, 0);
+  shadow.scale.set(sx, 1, sz);
+  shadow.renderOrder = 1;
+  parent.add(shadow);
+  parent.userData.shadow = shadow;
+  return shadow;
+}
+
+function buildVehicleActor(v) {
+  const mesh = buildVehicleMesh(v);
+  const { len, wid } = v.model;
+  if (v.isBoat) {
+    mesh.rotation.order = 'YXZ';
+  } else if (v.isBus) {
+    const sec = mesh.userData.busSections;
+    addBlobShadow(mesh, sec.frontLen * 1.08, wid * 1.3, sec.frontX);
+    addBlobShadow(mesh.userData.busRear, sec.rearLen * 1.08, wid * 1.3, sec.rearX);
+  } else if (v.isBike || v.isScooter) {
+    addBlobShadow(mesh, len * 1.1, 0.6);
+  } else {
+    addBlobShadow(mesh, len * 1.12, wid * 1.3);
+  }
+  return mesh;
+}
+
+function buildPersonActor(shirt, skin, appearance) {
+  const mesh = buildPersonMesh(shirt, skin, appearance);
+  addBlobShadow(mesh, 0.85, 0.85);
+  return mesh;
+}
+
+// V-shaped foam trail behind a moving boat, unit length along local -X from
+// the stern; alpha fades via RGBA vertex colours. Material is per boat.
+const WAKE_GEO = (() => {
+  const pos = [], col = [];
+  const tri = (pts) => { for (const [x, z, a] of pts) { pos.push(x, 0, z); col.push(1, 1, 1, a); } };
+  for (const s of [1, -1]) tri([[0.05, s * 0.12, 0.9], [-1, s * 0.34, 0], [-1, s * 0.52, 0]]);
+  tri([[0.05, 0.28, 0.55], [0.05, -0.28, 0.55], [-0.45, 0, 0]]);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
+  return g;
+})();
+SHARED_GEOMETRIES.add(WAKE_GEO);
+
+function buildWakeMesh() {
+  const mesh = new THREE.Mesh(WAKE_GEO, new THREE.MeshBasicMaterial({
+    color: 0xe4eef2, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -16,
+  }));
+  mesh.renderOrder = 1;
+  return mesh;
 }
 
 function hash2(x, y) {
@@ -216,7 +307,7 @@ export function init3D(map) {
   bed.position.set((bx0 + bx1) / 2, WATER_Y - 0.5, (by0 + by1) / 2);
   scene.add(bed);
 
-  playerMesh = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
+  playerMesh = buildPersonActor(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
   scene.add(playerMesh);
 
   billboardRoot = document.getElementById('hud');
@@ -671,16 +762,20 @@ export function update3D(dt, world) {
   syncActors(
     world.vehicles.filter((v) => !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
     vehicleMeshes,
-    buildVehicleMesh,
+    buildVehicleActor,
     (v) => v.id
   );
   const fireSeenIds = new Set();
+  const policeChasing = world.wanted > 0;
   for (const v of world.vehicles) {
     const mesh = vehicleMeshes.get(v.id);
     if (mesh) {
       mesh.position.set(v.x, v.isBoat ? WATER_Y : 0, v.y);
       mesh.rotation.y = -v.angle;
       updateVehicleWheelSpin(mesh, v.speed, dt);
+      if (v.isBoat) animateBoat(mesh, v, world.time);
+      else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
+      if (v.isPolice) updatePoliceLamps(mesh, world.time, policeChasing && !v.hijacked && v.driver !== 'player');
     }
 
     // damage VFX - checked regardless of `mesh` (a just-wrecked vehicle's
@@ -709,6 +804,7 @@ export function update3D(dt, world) {
       updateVehicleFireMesh3D(fire, dt);
     }
   }
+  syncBoatWakes(world);
   for (const [id, fire] of vehicleFireMeshes) {
     if (fireSeenIds.has(id)) continue;
     scene.remove(fire);
@@ -733,18 +829,26 @@ export function update3D(dt, world) {
   });
 
   syncActors(
-    world.pedestrians.filter((p) => p.state !== 'dead' && Math.hypot(p.x - player.x, p.y - player.y) < DRAW_DIST),
+    world.pedestrians.filter((p) => Math.hypot(p.x - player.x, p.y - player.y) < DRAW_DIST),
     pedMeshes,
-    (p) => buildPersonMesh(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a),
+    (p) => buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a),
     (p) => p
   );
   for (const p of world.pedestrians) {
     const mesh = pedMeshes.get(p);
-    if (mesh) {
-      mesh.position.set(p.x, 0, p.y);
-      mesh.rotation.y = -p.angle;
-      animatePersonWalk(mesh, p.speed || 0, dt);
+    if (!mesh) continue;
+    if (p.state === 'dead') {
+      // topple backwards over ~0.3s, then lie flat until the ped is removed
+      const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);
+      mesh.position.set(p.x, 0.14 * fall, p.y);
+      mesh.rotation.set(0, -p.angle, fall * fall * Math.PI / 2);
+      mesh.userData.shadow.visible = false;
+      animatePersonWalk(mesh, 0, dt);
+      continue;
     }
+    mesh.position.set(p.x, 0, p.y);
+    mesh.rotation.y = -p.angle;
+    animatePersonWalk(mesh, p.speed || 0, dt);
   }
   syncSpeechBubbles(world);
 
@@ -774,7 +878,7 @@ export function update3D(dt, world) {
     syncActors(
       world.wildlife.filter((a) => Math.hypot(a.x - player.x, a.y - player.y) < DRAW_DIST),
       wildlifeMeshes,
-      (a) => (a.kind === 'seagull' ? buildSeagullMesh3D() : a.kind === 'sheep' ? buildSheepMesh3D() : buildCowMesh3D(a.bobSeed)),
+      buildWildlifeActor,
       (a) => a
     );
     for (const a of world.wildlife) {
@@ -783,6 +887,7 @@ export function update3D(dt, world) {
         const y = a.kind === 'seagull' ? 6 + Math.sin(world.time * 2 + (a.flapSeed || 0)) * 1.2 : 0;
         mesh.position.set(a.x, y, a.y);
         mesh.rotation.y = -a.angle;
+        animateWildlifeMesh3D(mesh, a, world.time);
       }
     }
   }
@@ -831,6 +936,16 @@ export function update3D(dt, world) {
     scene.remove(missionMarkerMesh);
     missionMarkerMesh = null;
   }
+  if (!missionArrowMesh) {
+    missionArrowMesh = buildMissionArrow3D();
+    scene.add(missionArrowMesh);
+  }
+  if (world.mission && world.mission.distanceToMarker !== undefined) {
+    const radius = player.inVehicle ? player.inVehicle.model.len / 2 + 1.6 : 2.2;
+    updateMissionArrow3D(missionArrowMesh, world.mission, player.x, player.y, radius, world.time);
+  } else {
+    missionArrowMesh.visible = false;
+  }
 
   // remaining-waypoint preview dots (checkpoint/boat missions only) - the
   // whole set is torn down/rebuilt on wpIndex change rather than diffed,
@@ -857,25 +972,26 @@ export function update3D(dt, world) {
   // pickups: money/weapons/health/armor/garages all share module-scope
   // materials in pickups.js, so removal must never call material.dispose()
   const pu = getPickupsForRender();
-  syncPickupActors(pu.money, moneyMeshes, () => buildMoneyPickupMesh3D(), (m) => m);
+  syncPickupActors(pu.money, moneyMeshes, () => withShadow(buildMoneyPickupMesh3D(), 0.7), (m) => m);
   for (const m of pu.money) {
     const mesh = moneyMeshes.get(m);
     if (mesh) {
       mesh.position.set(m.x, 0.55 + Math.sin(world.time * 3 + (m.amount || 0)) * 0.05, m.y);
       mesh.rotation.y = world.time * 2.2;
+      mesh.userData.shadow.position.y = 0.02 - mesh.position.y;
     }
   }
-  syncPickupActors(pu.weapons, weaponMeshes, (w) => buildWeaponPickupMesh3D(w.key), (w) => w);
+  syncPickupActors(pu.weapons, weaponMeshes, (w) => withShadow(buildWeaponPickupMesh3D(w.key), 0.9), (w) => w);
   for (const w of pu.weapons) {
     const mesh = weaponMeshes.get(w);
     if (mesh) { mesh.position.set(w.x, 0, w.y); mesh.rotation.y = world.time * 1.3; }
   }
-  syncPickupActors(pu.health ? [pu.health] : [], healthMeshes, () => buildHealthPickupMesh3D(), (h) => h);
+  syncPickupActors(pu.health ? [pu.health] : [], healthMeshes, () => withShadow(buildHealthPickupMesh3D(), 0.9), (h) => h);
   if (pu.health) {
     const mesh = healthMeshes.get(pu.health);
     if (mesh) mesh.position.set(pu.health.x, 0, pu.health.y);
   }
-  syncPickupActors(pu.armor ? [pu.armor] : [], armorMeshes, () => buildArmorPickupMesh3D(), (a) => a);
+  syncPickupActors(pu.armor ? [pu.armor] : [], armorMeshes, () => withShadow(buildArmorPickupMesh3D(), 0.9), (a) => a);
   if (pu.armor) {
     const mesh = armorMeshes.get(pu.armor);
     if (mesh) mesh.position.set(pu.armor.x, 0, pu.armor.y);
@@ -926,6 +1042,22 @@ export function update3D(dt, world) {
     sparkMeshes.delete(p);
   }
   for (const p of world.particles) {
+    if (p.kind !== 'splash' || splashMeshes.has(p)) continue;
+    const mesh = buildSplashMesh3D();
+    mesh.position.set(p.x, WATER_Y, p.y);
+    scene.add(mesh);
+    splashMeshes.set(p, mesh);
+  }
+  for (const [p, mesh] of splashMeshes) {
+    if (world.time <= p.until) {
+      updateSplashMesh3D(mesh, world.time - (p.until - SPLASH_LIFETIME));
+      continue;
+    }
+    scene.remove(mesh);
+    disposeObject(mesh);
+    splashMeshes.delete(p);
+  }
+  for (const p of world.particles) {
     if (p.kind !== 'kiss' || kissMeshes.has(p)) continue;
     const mesh = buildKissHeartMesh();
     mesh.position.set(p.x, 1.6, p.y);
@@ -956,13 +1088,13 @@ export function update3D(dt, world) {
     }
   }
 
-  applyWeatherToScene3D(scene, renderer, world, dt, player.x, player.y);
+  applyWeatherToScene3D(scene, renderer, world, dt, player.x, player.y, cam);
 
   if (player.character !== playerCharacter) {
     playerCharacter = player.character;
     scene.remove(playerMesh);
     const appearance = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
-    playerMesh = buildPersonMesh(appearance.shirt, appearance.skin, appearance);
+    playerMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
     scene.add(playerMesh);
   }
 
@@ -971,6 +1103,7 @@ export function update3D(dt, world) {
     playerMesh.position.set(player.x, player.z || 0, player.y);
     playerMesh.rotation.y = -player.angle;
     playerMesh.scale.y = player.crouching ? 0.6 : 1;
+    playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
     animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), dt);
   }
 
@@ -982,7 +1115,7 @@ export function update3D(dt, world) {
       companionCharacter = comp.character;
       const appearance = companionCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
       if (companionMesh) scene.remove(companionMesh);
-      companionMesh = buildPersonMesh(appearance.shirt, appearance.skin, appearance);
+      companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
       scene.add(companionMesh);
       if (passengerMesh) scene.remove(passengerMesh);
       passengerMesh = buildPersonMesh(appearance.shirt, appearance.skin, appearance);
@@ -1114,6 +1247,59 @@ export function update3D(dt, world) {
   sun.target.position.set(player.x, 0, player.y);
 
   renderer.render(scene, cam);
+}
+
+function withShadow(mesh, size) {
+  addBlobShadow(mesh, size, size);
+  return mesh;
+}
+
+function buildWildlifeActor(a) {
+  if (a.kind === 'seagull') return buildSeagullMesh3D();
+  const mesh = a.kind === 'sheep' ? buildSheepMesh3D() : buildCowMesh3D(a.bobSeed);
+  addBlobShadow(mesh, a.kind === 'sheep' ? 0.9 : 1.3, a.kind === 'sheep' ? 0.6 : 0.75, 0.05);
+  return mesh;
+}
+
+// Gentle swell: heave, roll and pitch from world.time plus a bow lift with
+// speed. Needs rotation.order 'YXZ' (set in buildVehicleActor) so roll and
+// pitch stay in the hull's own frame after the yaw.
+function animateBoat(mesh, v, time) {
+  const seed = (v.id || 0) * 1.7;
+  const speedT = Math.min(1, Math.abs(v.speed) / (v.model.maxSpeed || 6));
+  mesh.position.y = WATER_Y + Math.sin(time * 1.6 + seed) * 0.05;
+  mesh.rotation.x = Math.sin(time * 1.1 + seed) * 0.045;
+  mesh.rotation.z = Math.sin(time * 1.4 + seed * 0.7) * 0.025 + speedT * 0.06;
+}
+
+function syncBoatWakes(world) {
+  for (const v of world.vehicles) {
+    if (!v.isBoat) continue;
+    const moving = !v.wrecked && Math.abs(v.speed) > 0.3 && vehicleMeshes.has(v.id);
+    let wake = wakeMeshes.get(v.id);
+    if (!moving) {
+      if (wake) wake.visible = false;
+      continue;
+    }
+    if (!wake) {
+      wake = buildWakeMesh();
+      scene.add(wake);
+      wakeMeshes.set(v.id, wake);
+    }
+    const speed = Math.abs(v.speed);
+    const hl = v.model.len / 2;
+    wake.visible = true;
+    wake.position.set(v.x - Math.cos(v.angle) * hl, WATER_Y + 0.03, v.y - Math.sin(v.angle) * hl);
+    wake.rotation.y = -v.angle;
+    wake.scale.set(3 + speed * 1.3, 1, v.model.wid * (1.2 + speed * 0.35));
+    wake.material.opacity = Math.min(1, speed / 3) * 0.75;
+  }
+  for (const [id, wake] of wakeMeshes) {
+    if (vehicleMeshes.has(id)) continue;
+    scene.remove(wake);
+    disposeObject(wake);
+    wakeMeshes.delete(id);
+  }
 }
 
 function colorFromHex(hex) {
