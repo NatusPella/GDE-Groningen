@@ -11,11 +11,7 @@ import { pointInPolygon, polygonBounds } from './util.js';
 // built as an actual tessellated mesh sized to the real map bounds, shaded
 // with a cheap procedural earth/dirt material instead of one flat color.
 //
-// Same pattern as water3d.js: this file owns geometry + a custom
-// ShaderMaterial and exports a builder plus a per-frame uniform updater.
-// Nothing here is baked in about the caller's position - scene3d.js decides
-// when to build it (once, at boot) and when to call the updater (once per
-// frame, if it wants the subtle time-based shimmer to animate).
+// This file owns geometry + a lit material with procedural paving albedo.
 //
 // Coordinate convention matches every other ground-level mesh in this
 // codebase: three.x = world.x, three.z = world.y, three.y = up. Unlike the
@@ -35,134 +31,71 @@ import { pointInPolygon, polygonBounds } from './util.js';
 // different layer in scene3d.js, rendered above whatever the terrain looks
 // like underneath, water hole or not.
 
-const TERRAIN_COLOR_A = 0x6b6459; // same tone as the old flat plane, kept as one end of the blend for continuity
-const TERRAIN_COLOR_B = 0x554f3f; // darker, slightly greener-brown patch tone
-const TERRAIN_COLOR_DETAIL = 0x8a8170; // lighter dusty fleck tone for fine mottling
+const TERRAIN_COLOR_A = 0x827b72; // warm grey klinker paving
+const TERRAIN_COLOR_B = 0x7a6a5e; // reddish brick patches
+const TERRAIN_COLOR_DETAIL = 0x9a9282; // dusty light fleck / joint tone
 
-const VERTEX_SHADER = `
-uniform float uTime;
-
-varying vec3 vWorldPos;
-varying vec3 vNormalW;
-
-#include <fog_pars_vertex>
-
-void main() {
-  vec3 pos = position;
-
-  // Gentle, purely static rolling undulation (no uTime term) - real ground
-  // doesn't ripple like water, it just isn't perfectly flat. Low frequency,
-  // small amplitude: enough for the fragment shader's fake diffuse term to
-  // have something to work with, not enough to read as hills.
-  // Kept to a few centimetres: the terrain sits just under road/sidewalk/
-  // green planes (0.015-0.035) and people stand at y=0, so any real relief
-  // pokes through the streets and leaves feet floating. The shading normal
-  // uses an exaggerated slope so the patchwork stays legible anyway.
-  float bump = sin(pos.x * 0.018 + pos.z * 0.021) * 0.012
-             + sin(pos.x * 0.05 - pos.z * 0.037) * 0.006;
-  pos.y += bump;
-
-  float dHdx = cos(pos.x * 0.018 + pos.z * 0.021) * (0.018 * 0.35)
-             + cos(pos.x * 0.05 - pos.z * 0.037) * (0.05 * 0.15);
-  float dHdz = cos(pos.x * 0.018 + pos.z * 0.021) * (0.021 * 0.35)
-             - cos(pos.x * 0.05 - pos.z * 0.037) * (0.037 * 0.15);
-  vec3 bumpNormal = normalize(vec3(-dHdx, 1.0, -dHdz));
-
-  vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
-  vWorldPos = worldPosition.xyz;
-  vNormalW = normalize(mat3(modelMatrix) * bumpNormal);
-
-  vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-  gl_Position = projectionMatrix * mvPosition;
-
-  #include <fog_vertex>
-}
-`;
-
-const FRAGMENT_SHADER = `
-uniform float uTime;
+// Lambert + onBeforeCompile instead of a raw ShaderMaterial so the ground
+// gets real sun/hemisphere lighting, shadows, fog and tone mapping for free;
+// only the albedo is procedural.
+const ALBEDO_GLSL = `
 uniform vec3 uColorA;
 uniform vec3 uColorB;
 uniform vec3 uColorDetail;
+varying vec2 vTerrainXZ;
 
-varying vec3 vWorldPos;
-varying vec3 vNormalW;
-
-#include <fog_pars_fragment>
-
-float hash2(vec2 p) {
+float tHash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
   return fract(p.x * p.y);
 }
 
-float valueNoise(vec2 p) {
+float tNoise(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
-  float a = hash2(i);
-  float b = hash2(i + vec2(1.0, 0.0));
-  float c = hash2(i + vec2(0.0, 1.0));
-  float d = hash2(i + vec2(1.0, 1.0));
   vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  return mix(mix(tHash(i), tHash(i + vec2(1.0, 0.0)), u.x),
+             mix(tHash(i + vec2(0.0, 1.0)), tHash(i + vec2(1.0, 1.0)), u.x), u.y);
 }
 
-void main() {
-  // large-scale patchwork between two earth tones - reads as "uneven ground
-  // material", not one dead-flat color
-  float macro = valueNoise(vWorldPos.xz * 0.006);
-  vec3 baseColor = mix(uColorA, uColorB, smoothstep(0.3, 0.7, macro));
+vec3 terrainAlbedo(vec2 p) {
+  float macro = tNoise(p * 0.02) * 0.65 + tNoise(p * 0.07) * 0.35;
+  vec3 c = mix(uColorA, uColorB, smoothstep(0.35, 0.75, macro));
+  c = mix(c, uColorDetail, tNoise(p * 0.6) * 0.12);
 
-  // finer mottling on top for close-up texture
-  float micro = valueNoise(vWorldPos.xz * 0.08);
-  baseColor = mix(baseColor, uColorDetail, micro * 0.18);
-
-  // cheap fake diffuse against a fixed light-ish direction, using the static
-  // bump normal from the vertex shader - this material is unlit (same as
-  // water3d.js's fresnel-only approach, no scene light dependency), this is
-  // just enough shading variation to keep the undulation visually legible
-  vec3 lightDir = normalize(vec3(0.45, 0.82, 0.35));
-  float ndotl = max(dot(normalize(vNormalW), lightDir), 0.0);
-  vec3 color = baseColor * (0.75 + 0.35 * ndotl);
-
-  // very subtle, slow, static-noise detail shimmer - far calmer/rarer than
-  // water's sparkle, just a light dusting of glinting grit so the surface
-  // doesn't look perfectly inert up close
-  float shimmerField = valueNoise(vWorldPos.xz * 0.6 + vec2(uTime * 0.015, -uTime * 0.01));
-  float shimmer = smoothstep(0.93, 0.99, shimmerField);
-  color += shimmer * 0.05;
-
-  gl_FragColor = vec4(color, 1.0);
-
-  #include <colorspace_fragment>
-  #include <fog_fragment>
+  // running-bond brick pavers (0.22 x 0.11 m), faded out before they alias
+  vec2 b = p / vec2(0.22, 0.11);
+  b.x += step(1.0, mod(floor(b.y), 2.0)) * 0.5;
+  vec2 cell = floor(b);
+  vec2 f = fract(b);
+  vec2 fw = max(fwidth(b), vec2(1e-4));
+  vec2 edge = smoothstep(vec2(0.0), fw * 1.5, f) * smoothstep(vec2(0.0), fw * 1.5, 1.0 - f);
+  float joint = 1.0 - edge.x * edge.y;
+  float detail = 1.0 - smoothstep(0.25, 0.9, max(fw.x, fw.y));
+  c *= 1.0 + (tHash(cell) - 0.5) * 0.14 * detail;
+  c = mix(c, c * 0.72, joint * detail * 0.7);
+  return c;
 }
 `;
 
 export function createTerrainMaterial() {
-  return new THREE.ShaderMaterial({
-    uniforms: {
-      uTime: { value: 0 },
-      uColorA: { value: new THREE.Color(TERRAIN_COLOR_A) },
-      uColorB: { value: new THREE.Color(TERRAIN_COLOR_B) },
-      uColorDetail: { value: new THREE.Color(TERRAIN_COLOR_DETAIL) },
-      fogColor: { value: new THREE.Color(0xffffff) },
-      fogNear: { value: 1 },
-      fogFar: { value: 2000 },
-    },
-    vertexShader: VERTEX_SHADER,
-    fragmentShader: FRAGMENT_SHADER,
-    fog: true,
-    // DoubleSide: cheap insurance against winding-order surprises from the
-    // manually-built, hole-punched index buffer in buildTerrainMesh3D - the
-    // shader has no per-pixel cost worth protecting on a mesh this size, so
-    // there's no real tradeoff here.
-    side: THREE.DoubleSide,
-  });
-}
-
-export function updateTerrainMaterial(material, time) {
-  material.uniforms.uTime.value = time;
+  const material = new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+  const uniforms = {
+    uColorA: { value: new THREE.Color(TERRAIN_COLOR_A) },
+    uColorB: { value: new THREE.Color(TERRAIN_COLOR_B) },
+    uColorDetail: { value: new THREE.Color(TERRAIN_COLOR_DETAIL) },
+  };
+  material.userData.uniforms = uniforms;
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vTerrainXZ;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTerrainXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\n' + ALBEDO_GLSL)
+      .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= terrainAlbedo(vTerrainXZ);');
+  };
+  return material;
 }
 
 function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
@@ -296,14 +229,19 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
     }
   }
 
+  const normals = new Float32Array(nx * nz * 3);
+  for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
+
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
   geo.setIndex(new THREE.BufferAttribute(indices.subarray(0, indexCount), 1));
   geo.computeBoundingSphere();
 
   const material = createTerrainMaterial();
   const mesh = new THREE.Mesh(geo, material);
   mesh.position.set(0, y, 0);
+  mesh.receiveShadow = true;
   mesh.userData.isTerrain = true;
   mesh.userData.droppedTriangles = droppedTriangles;
   mesh.userData.totalTriangles = maxTriangles;

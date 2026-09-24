@@ -14,7 +14,8 @@ import { initHoreca, updateHoreca } from './horeca.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
-import { init3D, update3D, resize3D } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene } from './scene3d.js';
+import { updateStreetSigns } from './streetsigns.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
@@ -147,6 +148,7 @@ async function boot() {
     world.paused = isMapOpen();
     if (!world.paused) updateGameplay(dt);
     updateAudio(dt, world);
+    updateStreetSigns(dt, world, getScene());
     update3D(dt, world);
     updateHud(dt, world);
   }
