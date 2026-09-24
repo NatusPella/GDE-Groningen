@@ -121,14 +121,27 @@ function updateLightning(dt, t) {
 //                      on start, used internally to time the toppled-bike
 //                      throttling; harmless to ignore from outside)
 //   elapsed    sec   - time since the current storm started (internal)
-const STORM_CHANCE_MIN = 90, STORM_CHANCE_MAX = 180;
-const STORM_DURATION_MIN = 20, STORM_DURATION_MAX = 40;
+const DRY_MIN = 150, DRY_MAX = 390;
+// Most showers are just rain; only the rare full storm is a "code rood".
+// peak = target intensity (lightning starts ~0.75, rain density scales with it).
+const WEATHER_KINDS = [
+  { kind: 'motregen', weight: 45, peak: 0.3, dur: [40, 90] },
+  { kind: 'regenbui', weight: 35, peak: 0.6, dur: [40, 80] },
+  { kind: 'onweer', weight: 15, peak: 0.85, dur: [50, 90] },
+  { kind: 'storm', weight: 5, peak: 1, dur: [30, 55] },
+];
+
+function pickWeatherKind() {
+  let r = Math.random() * WEATHER_KINDS.reduce((sum, k) => sum + k.weight, 0);
+  for (const k of WEATHER_KINDS) { r -= k.weight; if (r <= 0) return k; }
+  return WEATHER_KINDS[0];
+}
 const RAMP_TIME = 9;
 const TOPPLE_RANGE = 40;
 const TOPPLE_THRESHOLD = 0.5;
 
 function rollTimer() {
-  return STORM_CHANCE_MIN + Math.random() * (STORM_CHANCE_MAX - STORM_CHANCE_MIN);
+  return DRY_MIN + Math.random() * (DRY_MAX - DRY_MIN);
 }
 
 export function initWeather(world) {
@@ -149,15 +162,22 @@ export function updateWeather(dt, world) {
     w.intensity = Math.max(0, w.intensity - dt / RAMP_TIME);
     w.timer -= dt;
     if (w.timer <= 0) {
+      const k = pickWeatherKind();
       w.active = true;
+      w.kind = k.kind;
+      w.peak = k.peak;
       w.elapsed = 0;
-      w.duration = STORM_DURATION_MIN + Math.random() * (STORM_DURATION_MAX - STORM_DURATION_MIN);
+      w.duration = k.dur[0] + Math.random() * (k.dur[1] - k.dur[0]);
       w.windAngle = Math.random() * Math.PI * 2;
       w.nextToppleAt = w.duration * (0.25 + Math.random() * 0.2);
-      world.addMessage('Code Rood: storm boven Groningen, hou je fiets vast!', 4);
-      if (world.phoneNotifications) {
-        world.phoneNotifications.push({ text: 'SIKKOM: code rood, storm raast over Grunn', duration: 4 });
-        playSikkomLine('weather_storm_start');
+      if (k.kind === 'storm') {
+        world.addMessage('Code Rood: storm boven Grunn, hou je fiets vast!', 4);
+        if (world.phoneNotifications) {
+          world.phoneNotifications.push({ text: 'SIKKOM: code rood, storm raast over Grunn', duration: 4 });
+          playSikkomLine('weather_storm_start');
+        }
+      } else if (k.kind === 'onweer') {
+        world.addMessage('Onweer boven Grunn', 3);
       }
     }
     return;
@@ -165,11 +185,11 @@ export function updateWeather(dt, world) {
 
   w.elapsed += dt;
   const fadeStart = w.duration - RAMP_TIME;
-  const target = w.elapsed > fadeStart ? 0 : 1;
+  const target = w.elapsed > fadeStart ? 0 : (w.peak ?? 1);
   const rate = dt / RAMP_TIME;
-  w.intensity = target > w.intensity ? Math.min(1, w.intensity + rate) : Math.max(0, w.intensity - rate);
+  w.intensity = target > w.intensity ? Math.min(target, w.intensity + rate) : Math.max(target, w.intensity - rate);
 
-  if (w.intensity > TOPPLE_THRESHOLD && w.elapsed >= w.nextToppleAt) {
+  if (w.kind === 'storm' && w.intensity > TOPPLE_THRESHOLD && w.elapsed >= w.nextToppleAt) {
     w.nextToppleAt = w.elapsed + w.duration / (3 + Math.random() * 2);
     toppleRandomBike(world);
   }
@@ -177,10 +197,12 @@ export function updateWeather(dt, world) {
   if (w.elapsed >= w.duration) {
     w.active = false;
     w.timer = rollTimer();
-    world.addMessage('Storm trekt weg, Groningen droogt weer op.', 3);
-    if (world.phoneNotifications) {
-      world.phoneNotifications.push({ text: 'SIKKOM: storm trekt weg, Groningen droogt weer op', duration: 4 });
-      playSikkomLine('weather_storm_end');
+    if (w.kind === 'storm') {
+      world.addMessage('Storm trekt weg, Grunn droogt weer op.', 3);
+      if (world.phoneNotifications) {
+        world.phoneNotifications.push({ text: 'SIKKOM: storm trekt weg, Groningen droogt weer op', duration: 4 });
+        playSikkomLine('weather_storm_end');
+      }
     }
   }
 }
