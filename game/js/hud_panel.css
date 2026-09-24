@@ -236,29 +236,6 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
   color: var(--gron-green-light);
 }
 
-#hud .hud-hint {
-  position: absolute;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--hud-fg);
-  text-shadow: var(--hud-shadow);
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-  background: rgba(15, 30, 20, 0.45);
-  border: 1px solid rgba(63, 201, 122, 0.5);
-  border-radius: 4px;
-  padding: 5px 12px;
-  max-width: min(70vw, calc(100vw - 220px));
-  overflow: hidden;
-}
-#hud .hud-hint:empty { display: none; }
-
 #hud .hud-key, #cine .hud-key {
   display: inline-flex;
   align-items: center;
@@ -276,8 +253,6 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
   font-weight: bold;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
 }
-#hud .hud-hint-label { margin-right: 10px; font-weight: normal; opacity: 0.95; }
-#hud .hud-hint-label:last-child { margin-right: 0; }
 
 #hud .hud-street {
   font-size: 14px;
