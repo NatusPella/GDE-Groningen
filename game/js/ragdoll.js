@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { pointInPolygon, closestPointOnSegment, isInWater, WATER_Y } from './util.js';
 import { PERSON_RIG as RIG } from './models3d_people.js';
+import { inPassage } from './collision.js';
 
 // Verlet ragdoll for every mesh built by buildPersonMesh (player, companion,
 // all pedestrians incl. cops, scene NPCs and thrown-off riders). Gameplay code
@@ -510,6 +511,7 @@ function pushOutBuildings(rd, p) {
     for (let i = 0; i < N; i++) {
       const x = p[i * 3], z = p[i * 3 + 2], r = RAD[i];
       if (x < minx - r || x > maxx + r || z < miny - r || z > maxy + r) continue;
+      if (inPassage(rd.world.map, b, x, z)) continue;
       let best = Infinity, bx = 0, bz = 0;
       for (let j = 0; j < pts.length - 1; j++) {
         const cp = closestPointOnSegment(x, z, pts[j][0], pts[j][1], pts[j + 1][0], pts[j + 1][1]);
@@ -736,7 +738,8 @@ export function syncBikeRider(mesh, v, time) {
   if (ud.riderFig === undefined) ud.riderFig = mesh.children.find((c) => c.userData && c.userData.legL) || null;
   if (v.driver === 'player' && v.riderOff) v.riderOff = false;
   const down = !!v.riderOff;
-  if (ud.riderFig) ud.riderFig.visible = !down;
+  // a bike standing parked (taken from the clutter, or left by the player) has nobody on it
+  if (ud.riderFig) ud.riderFig.visible = !down && (!!v.driver || !!v.road || !!v.sinking || (v.isPolice && !v.hijacked));
   if (down) {
     const k = smooth(Math.min(1, (time - (v.riderOffAt || 0)) / 0.45));
     mesh.rotation.order = 'YXZ';

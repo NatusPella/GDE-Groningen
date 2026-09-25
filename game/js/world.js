@@ -58,8 +58,8 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announc
   p.vy = 0;
   const landmarks = world.map.meta.landmarks || [];
   const pick = landmarks.length ? landmarks[Math.floor(Math.random() * landmarks.length)] : world.spawnPoint;
-  const spot = world.map.nearestRoadPoint(pick.x, pick.y, 400) || pick;
-  const [sx, sy] = world.map.escapeBuilding(spot.x, spot.y);
+  const spot = world.map.findOpenSpawn(pick.x, pick.y, 400) || pick;
+  const sx = spot.x, sy = spot.y;
   p.x = sx;
   p.y = sy;
   if (pick.name) world.spawnLandmarkName = pick.name;

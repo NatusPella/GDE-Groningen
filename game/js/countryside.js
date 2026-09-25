@@ -1,19 +1,29 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { createTerrainMaterial } from './terrain3d.js';
 import {
-  BLOCK, PW, PL, DITCH_HW, MAIN_HW, ROAD_IN, ROAD_W,
-  chash, countryWeight, countryRect, edgeDistance, parcelAt, parcelUse, blockToWorld, edgeRoad, countrySurface,
+  BLOCK, PW, PL, DITCH_HW, MAIN_HW, MAAR_HW, MAAR_WATER, ROAD_IN, ROAD_W,
+  chash, countryWeight, countryRect, edgeDistance, parcelAt, parcelUse, blockToWorld, edgeRoad, countrySurface, maarX, maarY, villageOf,
 } from './countryfield.js';
-import { GeoBuilder, SkinBuilder, vcMaterial, composeMatrix, tubeGeometry, loftGeometry, markShared } from './pixelart3d.js';
+import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
 import { surfaceUnder } from './vehicle.js';
 import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D } from './wildlife.js';
+import * as M3 from './countrymodels.js';
+import {
+  ROAD_C, FARM_TYPES, TREE_ROW_P, WILLOW_ROW_P, HEDGE_ROW_P, WIRE_ROW_P, ROAD_ROW,
+  openLand, blockPlan, farmDetail, villagePlan, blockSigns, farmAt, inVillage, pushOutOfPlan, onFarmPaving,
+} from './countryplan.js';
+import { updateSkyline, skylineStats } from './countryskyline.js';
+import { updateCountryLife, lifeStats } from './countrylife.js';
+import { buildSign, disposeSign } from './countrysigns.js';
 
-// Endless meadows past the real map: a ground ring that follows the player
-// (same terrain shader, so the feathered edge in terrain3d continues without
-// a seam), deterministic prop tiles streamed around the player within a
-// per-frame budget (tree rows, hedges, fences, gates, bales, reeds, kop-hals-
-// romp farms), and grazing herds that react to the player. Everything is
-// instanced per prop type; only the nearest animals get animated rigs.
+// Endless Ommelanden past the real map: a ground ring that follows the
+// player (same terrain shader, so the feathered edge in terrain3d continues
+// without a seam), deterministic prop tiles streamed around the player
+// within a per-frame budget, and grazing herds that react to the player.
+// What stands where comes from countryplan (farmsteads every few hundred
+// metres, wierde villages, gas sites, mills); the skyline layer draws the
+// tall and distant things and countrylife the traffic, boats and birds.
+// Everything is instanced per prop type; only the nearest animals get rigs.
 
 const TILE = 160;
 const GROUND_Y = -0.05;
@@ -26,7 +36,7 @@ const SIM_R = 170;
 const SKIN_R = 90;
 const SKIN_MAX = 28;
 const SHADOW_MAX = 8;
-const FULL = 0.92;
+const SIGN_R = 260;
 
 let S = null;
 
@@ -47,178 +57,6 @@ function loftX(rings, sides = 8) {
   const out = new THREE.BufferGeometry();
   out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   return out;
-}
-
-function jitterIco(r, detail, seed, sx = 1, sy = 1, sz = 1) {
-  const g = new THREE.IcosahedronGeometry(r, detail);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-    const j = 1 + (chash(Math.round(x * 30) + seed, Math.round(y * 30) * 7 + Math.round(z * 30) * 13) - 0.5) * 0.28;
-    p.setXYZ(i, x * sx * j, y * sy * j, z * sz * j);
-  }
-  return g;
-}
-
-const leafShade = (base) => (x, y, z) => {
-  const h = chash(Math.round(x * 9) + 11, Math.round(y * 9) * 3 + Math.round(z * 9) * 5);
-  return h < 0.33 ? base[0] : h < 0.7 ? base[1] : base[2];
-};
-
-function roundTreeGeometry() {
-  const B = new GeoBuilder();
-  B.geo(tubeGeometry([0, 0, 0], [0, 3.4, 0], 0.26, 0.18, 6), null, 0x4d3a28);
-  B.geo(tubeGeometry([0, 2.6, 0], [0.9, 4.2, 0.3], 0.12, 0.08, 5), null, 0x4d3a28);
-  const leaves = leafShade([0x3f6a32, 0x4a7a3c, 0x567f3e]);
-  B.geo(jitterIco(2.6, 1, 3), composeMatrix(0, 5.6, 0), leaves);
-  B.geo(jitterIco(1.7, 1, 9), composeMatrix(1.3, 4.9, 0.6), leaves);
-  B.geo(jitterIco(1.6, 1, 17), composeMatrix(-1.1, 5.1, -0.8), leaves);
-  return B.build();
-}
-
-function poplarGeometry() {
-  const B = new GeoBuilder();
-  B.geo(tubeGeometry([0, 0, 0], [0, 4, 0], 0.24, 0.14, 6), null, 0x5a4a38);
-  B.geo(jitterIco(1, 1, 5, 1.9, 7.5, 1.9), composeMatrix(0, 10, 0), leafShade([0x44703a, 0x507c40, 0x5c8646]));
-  return B.build();
-}
-
-// Knotwilg: short fat pollard trunk with a bushy head of shoots.
-function willowGeometry() {
-  const B = new GeoBuilder();
-  B.geo(tubeGeometry([0, 0, 0], [0.1, 2.1, 0], 0.34, 0.4, 7), null, 0x5d5044);
-  B.geo(jitterIco(0.45, 0, 1), composeMatrix(0.1, 2.15, 0), 0x5d5044);
-  const leaves = leafShade([0x7a9258, 0x88a064, 0x6b8450]);
-  B.geo(jitterIco(1.9, 1, 21, 1, 1.15, 1), composeMatrix(0.1, 3.6, 0), leaves);
-  return B.build();
-}
-
-function hedgeGeometry() {
-  const B = new GeoBuilder();
-  const leaves = leafShade([0x3a5f2c, 0x44693a, 0x355628]);
-  B.geo(jitterIco(0.5, 1, 31, 1.05, 1, 1), composeMatrix(0, 0.55, 0, 0, 0, 0, 1, 1.2, 1.1), leaves);
-  return B.build();
-}
-
-function boxGeometry(sx, sy, sz, color, y0 = 0) {
-  const B = new GeoBuilder();
-  B.box(0, y0 + sy / 2, 0, sx, sy, sz, color);
-  return B.build();
-}
-
-function gateGeometry() {
-  const B = new GeoBuilder();
-  const G = 0xb9bec0, W = 0x8a6440;
-  B.box(-2.1, 0.7, 0, 0.18, 1.4, 0.18, W);
-  B.box(2.1, 0.7, 0, 0.18, 1.4, 0.18, W);
-  for (let i = 0; i < 5; i++) B.box(0, 0.25 + i * 0.22, 0, 4.0, 0.05, 0.05, G);
-  B.box(-1.95, 0.7, 0, 0.06, 1.0, 0.06, G);
-  B.box(1.95, 0.7, 0, 0.06, 1.0, 0.06, G);
-  B.geo(tubeGeometry([-1.9, 0.27, 0], [1.9, 1.13, 0], 0.03, 0.03, 4), null, G);
-  return B.build();
-}
-
-function baleGeometry() {
-  const B = new GeoBuilder();
-  B.geo(new THREE.CylinderGeometry(0.75, 0.75, 1.2, 12).rotateX(Math.PI / 2), composeMatrix(0, 0.75, 0), 0xffffff);
-  return B.build();
-}
-
-// Roedenberg: four poles and a liftable pyramid roof over a hay stack.
-function barrackGeometry() {
-  const B = new GeoBuilder();
-  const pole = 0x5a4632, hay = 0xc4ad62, roof = 0x6a5a3a;
-  for (const [x, z] of [[-2.4, -2.4], [2.4, -2.4], [2.4, 2.4], [-2.4, 2.4]]) B.box(x, 3.6, z, 0.2, 7.2, 0.2, pole);
-  B.box(0, 1.6, 0, 4.5, 3.2, 4.5, hay);
-  B.geo(new THREE.ConeGeometry(4.0, 1.8, 4, 1).rotateY(Math.PI / 4), composeMatrix(0, 4.9, 0), roof);
-  B.box(0, 4.0, 0, 5.2, 0.12, 5.2, pole);
-  return B.build();
-}
-
-function reedGeometry() {
-  const B = new GeoBuilder();
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2 + chash(i, 3) * 0.8;
-    const r = 0.08 + chash(i, 5) * 0.22;
-    const x = Math.cos(a) * r, z = Math.sin(a) * r;
-    const h = 0.9 + chash(i, 7) * 0.8;
-    const lx = x + Math.cos(a) * 0.25, lz = z + Math.sin(a) * 0.25;
-    const w = 0.045;
-    const col = i % 3 === 0 ? 0x8f8a52 : i % 3 === 1 ? 0x6f8444 : 0x7c8c4a;
-    B.tri([x - w * Math.sin(a), 0, z + w * Math.cos(a)], [x + w * Math.sin(a), 0, z - w * Math.cos(a)], [lx, h, lz], col);
-    if (i % 2 === 0) B.box(lx, h + 0.1, lz, 0.05, 0.22, 0.05, 0x5a3a22);
-  }
-  return B.build();
-}
-
-// Groningen kop-hals-romp farm along +X: the house (kop) faces the road at
-// x = 0, a low neck (hals) and the huge barn (romp) with its hipped roof.
-const FARM_LOOKS = [
-  { brick: 0x8f4634, kopRoof: 0x3e4449, barnRoof: 0x9a4a30, trim: 0xece8de, door: 0x2f4a3a },
-  { brick: 0x6e3a2c, kopRoof: 0x464b52, barnRoof: 0x4a4e54, trim: 0xece8de, door: 0x6b2a24 },
-  { brick: 0xe3ddd0, kopRoof: 0x3e4449, barnRoof: 0x8a7a52, trim: 0x2f4a3a, door: 0x2f4a3a, plaster: true },
-];
-
-function gableRoofX(B, x0, x1, hw, he, hr, color, wallColor) {
-  const o = 0.45;
-  B.quadOut([x0 - o, he - 0.2, hw + o], [x1 + o, he - 0.2, hw + o], [x1 + o, hr, 0], [x0 - o, hr, 0], [0, 1, 1], color);
-  B.quadOut([x0 - o, he - 0.2, -hw - o], [x0 - o, hr, 0], [x1 + o, hr, 0], [x1 + o, he - 0.2, -hw - o], [0, 1, -1], color);
-  B.triOut([x0, he, hw], [x0, he, -hw], [x0, hr - 0.3, 0], [-1, 0, 0], wallColor);
-  B.triOut([x1, he, hw], [x1, hr - 0.3, 0], [x1, he, -hw], [1, 0, 0], wallColor);
-}
-
-function gableRoofZ(B, x0, x1, hw, he, hr, color, wallColor) {
-  const o = 0.45, xm = (x0 + x1) / 2;
-  B.quadOut([x0 - o, he - 0.2, -hw - o], [x0 - o, he - 0.2, hw + o], [xm, hr, hw + o], [xm, hr, -hw - o], [-1, 1, 0], color);
-  B.quadOut([x1 + o, he - 0.2, -hw - o], [xm, hr, -hw - o], [xm, hr, hw + o], [x1 + o, he - 0.2, hw + o], [1, 1, 0], color);
-  B.triOut([x0, he, hw], [x1, he, hw], [xm, hr - 0.3, hw], [0, 0, 1], wallColor);
-  B.triOut([x0, he, -hw], [xm, hr - 0.3, -hw], [x1, he, -hw], [0, 0, -1], wallColor);
-}
-
-function hipRoof(B, x0, x1, hw, he, hr, inset, color) {
-  const o = 0.5;
-  const A = [x0 - o, he, -hw - o], Bq = [x1 + o, he, -hw - o], C = [x1 + o, he, hw + o], D = [x0 - o, he, hw + o];
-  const R0 = [x0 + inset, hr, 0], R1 = [x1 - inset, hr, 0];
-  B.quadOut(D, C, R1, R0, [0, 1, 1], color);
-  B.quadOut(A, R0, R1, Bq, [0, 1, -1], color);
-  B.triOut(A, D, R0, [-1, 1, 0], color);
-  B.triOut(Bq, R1, C, [1, 1, 0], color);
-}
-
-function windowAt(B, x, y, z, nx, nz, w, h, L) {
-  const t = 0.12;
-  if (nx) {
-    B.box(x + nx * 0.03, y, z, t, h + 0.16, w + 0.16, L.trim);
-    B.box(x + nx * 0.09, y, z, t, h, w, 0x2a3236);
-  } else {
-    B.box(x, y, z + nz * 0.03, w + 0.16, h + 0.16, t, L.trim);
-    B.box(x, y, z + nz * 0.09, w, h, t, 0x2a3236);
-  }
-}
-
-function farmGeometry(L) {
-  const B = new GeoBuilder();
-  // kop: two-storey house, ridge across the farm axis
-  B.box(5, 3, 0, 10, 6, 13, L.brick);
-  gableRoofZ(B, 0, 10, 6.5, 6, 11, L.kopRoof, L.brick);
-  for (const y of [1.6, 4.3]) for (const z of [-4.2, 4.2]) windowAt(B, 0, y, z, -1, 0, 1.2, 1.5, L);
-  windowAt(B, 0, 4.3, 0, -1, 0, 1.2, 1.5, L);
-  B.box(-0.08, 1.15, 0, 0.18, 2.3, 1.2, L.door);
-  B.box(-0.12, 2.5, 0, 0.14, 0.5, 1.5, L.trim);
-  for (const x of [2.5, 7.5]) for (const s of [-1, 1]) windowAt(B, x, 1.6, s * 6.5, 0, s, 1.1, 1.4, L);
-  B.box(5, 11.4, 5.2, 0.8, 1.6, 0.8, 0x6e3a2c);
-  // hals
-  B.box(13.5, 1.9, 0, 7, 3.8, 8, L.brick);
-  gableRoofX(B, 10, 17, 4, 3.8, 7.6, L.kopRoof, L.brick);
-  for (const s of [-1, 1]) windowAt(B, 13.5, 1.7, s * 4, 0, s, 1.0, 1.2, L);
-  // romp: low walls, huge hipped roof
-  B.box(33.5, 1.6, 0, 33, 3.2, 24, L.plaster ? 0x8f4634 : L.brick);
-  hipRoof(B, 17, 50, 12, 3.2, 15.5, 8, L.barnRoof);
-  B.box(30, 1.8, 12.08, 5, 3.6, 0.16, L.door);
-  B.box(30, 3.9, 12.1, 5.4, 0.4, 0.2, L.trim);
-  B.box(50.08, 1.7, 0, 0.16, 3.4, 4.2, L.door);
-  for (const x of [22, 38, 44]) windowAt(B, x, 1.9, -12, 0, -1, 1.4, 0.9, L);
-  return B.build();
 }
 
 // ------------------------------------------------------------------ horse
@@ -363,7 +201,7 @@ function templateGeometry(key) {
 function newAnimal(kind, variant, x, y, rect, rng) {
   return {
     kind, variant, x, y, angle: rng() * Math.PI * 2, speed: 0, stride: 0, bobSeed: rng(),
-    rect, hx: x, hy: y, tx: x, ty: y, timer: rng() * 6, flee: 0, fx: 0, fy: 0, state: 'swim', stateTimer: 5, stateAge: 0,
+    rect, hx: x, hy: y, tx: x, ty: y, timer: rng() * 6, flee: 0, fx: 0, fy: 0, state: 'swim', stateTimer: 5, stateAge: 0, size: 1,
   };
 }
 
@@ -393,62 +231,20 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
   list.c.push(_c.r * j, _c.g * j, _c.b * j);
 }
 
-// Farm per polder block (or none), facing the block edge that has a road.
-const farmCache = new Map();
-function farmOf(bx, by) {
-  const key = bx + ',' + by;
-  if (farmCache.has(key)) return farmCache.get(key);
-  let f = null;
-  if (chash(bx * 17 + 5, by * 23 + 9) < 0.62) {
-    // prefer the block edges with a polder road, then any edge in open land
-    const sides = [0, 1, 2, 3].sort((u, v) => (u < 2 && edgeRoad(bx, by, u) ? 0 : 1) - (v < 2 && edgeRoad(bx, by, v) ? 0 : 1));
-    const along = (Math.floor((0.18 + 0.64 * chash(bx * 31 + 1, by * 37 + 2)) * BLOCK / PW) + 0.5) * PW;
-    for (const s of sides) {
-      const perp = s < 2 ? ROAD_IN + ROAD_W + 11 : BLOCK - 14;
-      const x = bx * BLOCK + (s % 2 === 0 ? perp : along);
-      const y = by * BLOCK + (s % 2 === 0 ? along : perp);
-      const angle = [0, Math.PI / 2, Math.PI, -Math.PI / 2][s];
-      const ca = Math.cos(angle), sa = Math.sin(angle);
-      if (!openLand(x - 30 * sa, y + 30 * ca) || !openLand(x + 30 * sa, y - 30 * ca) || !openLand(x + ca * 64, y + sa * 64) || !openLand(x - ca * 8, y - sa * 8)) continue;
-      if (countryWeight(x, y) < 0.99) continue;
-      f = { x, y, angle, ca, sa, look: Math.floor(chash(bx + 77, by - 5) * FARM_LOOKS.length), seed: chash(bx - 3, by + 11) };
-      break;
-    }
-  }
-  farmCache.set(key, f);
-  return f;
-}
-
-function farmLocal(f, x, y) {
-  const dx = x - f.x, dy = y - f.y;
-  return [dx * f.ca + dy * f.sa, -dx * f.sa + dy * f.ca];
-}
-function farmWorld(f, lx, lz) {
-  return [f.x + lx * f.ca - lz * f.sa, f.y + lx * f.sa + lz * f.ca];
-}
-function inFarmYard(x, y) {
-  const f = farmOf(Math.floor(x / BLOCK), Math.floor(y / BLOCK));
-  if (!f) return false;
-  const [lx, lz] = farmLocal(f, x, y);
-  return lx > -8 && lx < 64 && Math.abs(lz) < 26;
-}
-
-// Props and animals stay just outside the real map data: the meadow shader
-// already feathers into the map edge, but real roads and plots run up to it.
-const EDGE_CLEAR = 4;
-function openLand(x, y) {
-  return edgeDistance(x, y) > EDGE_CLEAR && countryWeight(x, y) >= FULL;
-}
-
 function okSpot(x, y, clearDitch = 0) {
-  if (!openLand(x, y) || inFarmYard(x, y)) return false;
+  if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 3)) return false;
   const p = parcelAt(x, y);
-  if (p.road || p.dMain < MAIN_HW + 0.6) return false;
+  if (p.road || p.dMain < MAIN_HW + 0.6 || p.dMaar < MAAR_HW + 0.8) return false;
   return p.dDitch >= clearDitch;
 }
 
+function inTile(tile, x, y) {
+  const x0 = tile.tx * TILE, y0 = tile.ty * TILE;
+  return x >= x0 && x < x0 + TILE && y >= y0 && y < y0 + TILE;
+}
+
 function genTile(tx, ty) {
-  const tile = { tx, ty, items: {}, animals: [], farm: null, cx: (tx + 0.5) * TILE, cy: (ty + 0.5) * TILE };
+  const tile = { tx, ty, items: {}, animals: [], flocks: [], signs: [], farms: 0, cx: (tx + 0.5) * TILE, cy: (ty + 0.5) * TILE };
   const x0 = tx * TILE, y0 = ty * TILE;
   const bx = Math.floor(x0 / BLOCK), by = Math.floor(y0 / BLOCK);
   const rot = chash(bx * 7 + 3, by * 13 + 1) < 0.5;
@@ -458,6 +254,7 @@ function genTile(tx, ty) {
   const R = mulberry(chash(tx * 3 + 1, ty * 5 + 2));
   const W = (a, b) => blockToWorld(bx, by, rot, a, b);
   const lineAng = rot ? 0 : Math.PI / 2; // three rotY that lays local +X along the strip direction b
+  const plan = blockPlan(bx, by);
 
   // strip-boundary lines: tree rows, hedges, electric fences
   for (let col = Math.ceil(aMin / PW); col * PW < aMax; col++) {
@@ -465,20 +262,20 @@ function genTile(tx, ty) {
     const a = col * PW;
     const lh = chash(col + bx * 131 + 900, by * 977 + (rot ? 7 : 3));
     const side = chash(col + 3, by + bx) < 0.5 ? -1 : 1;
-    if (lh < 0.08) {
-      const willow = lh < 0.045;
+    if (lh < TREE_ROW_P) {
+      const willow = lh < WILLOW_ROW_P;
       for (let b = Math.ceil(bMin / 7) * 7; b < bMax; b += 7) {
         const [x, y] = W(a + side * 2.1, b + (R() - 0.5) * 1.5);
         if (!okSpot(x, y, 1.6)) continue;
         push(tile, willow ? 'willow' : 'tree', x, y, R() * 6.28, 0.85 + R() * 0.3, 0.85 + R() * 0.35, 0.85 + R() * 0.3, 0xffffff, 0.1);
       }
-    } else if (lh < 0.13) {
+    } else if (lh < HEDGE_ROW_P) {
       for (let b = Math.ceil(bMin / 2.2) * 2.2; b < bMax; b += 2.2) {
         const [x, y] = W(a + side * 2.0, b);
         if (!okSpot(x, y, 1.5)) continue;
         push(tile, 'hedge', x, y, lineAng + (R() - 0.5) * 0.3, 2.6, 0.9 + R() * 0.35, 1.3, 0xffffff, 0.08);
       }
-    } else if (lh < 0.3) {
+    } else if (lh < WIRE_ROW_P) {
       let run = null;
       const flush = () => {
         if (!run || run.n < 2) { run = null; return; }
@@ -499,19 +296,20 @@ function genTile(tx, ty) {
     }
   }
 
-  // polder-road verges: tree rows (lanes of oaks / poplars)
+  // polder-road verges: tree lanes of oaks / poplars
   for (const s of [0, 1]) {
     if (!edgeRoad(bx, by, s)) continue;
     const onEdge = s === 0 ? lx0 === 0 : ly0 === 0;
     if (!onEdge) continue;
-    const kind = chash(bx * 5 + s, by * 9) < 0.5 ? 'poplar' : chash(bx + s, by) < 0.75 ? 'tree' : null;
+    const kind = ROAD_ROW(bx, by, s);
     if (!kind) continue;
     const step = kind === 'poplar' ? 8 : 10;
     for (let t = step / 2; t < TILE; t += step) {
       for (const off of [ROAD_IN - 1.4, ROAD_IN + ROAD_W + 1.6]) {
         const x = s === 0 ? x0 + off : x0 + t, y = s === 0 ? y0 + t : y0 + off;
-        if (!openLand(x, y) || inFarmYard(x, y)) continue;
-        if (parcelAt(x, y).dDitch < 1.4) continue;
+        if (!openLand(x, y) || farmAt(x, y, 2) || inVillage(x, y, 2)) continue;
+        const p = parcelAt(x, y);
+        if (p.dDitch < 1.4 || p.dMaar < MAAR_HW + 0.5) continue;
         push(tile, kind, x, y, R() * 6.28, 0.9 + R() * 0.2, 0.9 + R() * 0.25, 0.9 + R() * 0.2, 0xffffff, 0.1);
       }
     }
@@ -532,12 +330,19 @@ function genTile(tx, ty) {
     }
   }
 
-  // the block's farm, if its house sits in this tile
-  const f = farmOf(bx, by);
-  if (f && f.x >= x0 && f.x < x0 + TILE && f.y >= y0 && f.y < y0 + TILE) {
-    tile.farm = f;
-    genFarmYard(tile, f);
+  // farmsteads whose house stands in this tile
+  for (const f of plan.farms) {
+    if (!inTile(tile, f.x, f.y)) continue;
+    genFarm(tile, farmDetail(f));
+    tile.farms++;
   }
+  if (plan.gas && inTile(tile, plan.gas.x, plan.gas.y)) push(tile, 'gas', plan.gas.x, plan.gas.y, 0, 1, 1, 1, 0xffffff, 0);
+  for (const v of [plan.village, villageOf(bx + 1, by)]) {
+    if (!v || v.x + v.r < x0 || v.x - v.r > x0 + TILE || v.y + v.r < y0 || v.y - v.r > y0 + TILE) continue;
+    genVillage(tile, v);
+  }
+  genBridges(tile, bx, by);
+  for (const sg of blockSigns(bx, by)) if (inTile(tile, sg.x, sg.y)) tile.signs.push(sg);
 
   for (const k in tile.items) {
     const it = tile.items[k];
@@ -547,12 +352,69 @@ function genTile(tx, ty) {
   return tile;
 }
 
+const FARM_POOL = { khr: 'fkhr', olda: 'folda', small: 'fsmall', dairy: 'fdairy' };
+const PAIRED = { tractor: ['tractorBody', 'tractorBase'], trailer: ['trailerBody', 'trailerBase'] };
+
+function genFarm(tile, f) {
+  push(tile, FARM_POOL[f.type] + f.look, f.x, f.y, -f.angle, 1, 1, 1, 0xffffff, 0.04);
+  for (const it of f.items) {
+    const rotY = -f.angle + it.rot;
+    const pair = PAIRED[it.kind];
+    if (pair) {
+      push(tile, pair[0], it.x, it.y, rotY, it.sx, it.sy, it.sz, it.color, 0.06);
+      push(tile, pair[1], it.x, it.y, rotY, it.sx, it.sy, it.sz, 0xffffff, 0);
+    } else if (it.kind === 'slab') {
+      // plain yard paving follows the farm axes (always a quarter turn)
+      push(tile, 'slab', it.x, it.y, -f.angle, it.sx, 1, it.sz, it.color, 0.05);
+    } else {
+      push(tile, it.kind, it.x, it.y, rotY, it.sx, it.sy, it.sz, it.color, it.kind === 'tree' || it.kind === 'poplar' ? 0.1 : 0.04, it.h);
+    }
+  }
+  if (f.lane) {
+    // two dirt ruts with grass between them, from the road to the yard
+    const [lx0, ly0, lx1, ly1] = f.lane;
+    const alongX = lx1 - lx0 > ly1 - ly0;
+    const mx = (lx0 + lx1) / 2, my = (ly0 + ly1) / 2, len = alongX ? lx1 - lx0 : ly1 - ly0;
+    for (const o of [-0.85, 0.85]) {
+      push(tile, 'slab', alongX ? mx : mx + o, alongX ? my + o : my, 0, alongX ? len : 0.75, 1, alongX ? 0.75 : len, 0x8a7a62, 0.05);
+    }
+  }
+}
+
+function genVillage(tile, v) {
+  const V = villagePlan(v);
+  const x0 = tile.tx * TILE, y0 = tile.ty * TILE;
+  const here = (x, y) => x >= x0 && x < x0 + TILE && y >= y0 && y < y0 + TILE;
+  if (here(v.x, v.y)) {
+    push(tile, 'mound', v.x, v.y, 0, 1, 1, 1, 0xffffff, 0);
+    for (let i = 0; i < 28; i++) {
+      const a = (i / 28) * Math.PI * 2;
+      if (Math.abs(Math.cos(a) + 1) < 0.02) continue;
+      push(tile, 'hedge', v.x + Math.cos(a) * 16, v.y + Math.sin(a) * 16, -a + Math.PI / 2, 1.9, 0.8, 1.0, 0xffffff, 0.08, M3.TERP_H - 0.1);
+    }
+  }
+  for (const h of V.houses) if (here(h.x, h.y)) push(tile, 'house' + h.kind + (h.look % 2), h.x, h.y, -h.angle, 1, 1, 1, 0xffffff, 0.06);
+  for (const t of V.trees) {
+    if (!here(t.x, t.y)) continue;
+    const onTerp = Math.hypot(t.x - v.x, t.y - v.y) < 29;
+    push(tile, t.poplar ? 'poplar' : 'tree', t.x, t.y, chash(Math.round(t.x), Math.round(t.y)) * 6.28, t.s, t.s, t.s, 0xffffff, 0.1, onTerp ? M3.TERP_H * 0.25 : 0);
+  }
+  for (const g of V.graves) if (here(g.x, g.y)) push(tile, 'grave', g.x, g.y, g.rot, g.s, g.s, g.s, 0xffffff, 0.12, M3.TERP_H - 0.1);
+}
+
+// Bridges where a polder road carries on over a maar.
+function genBridges(tile, bx, by) {
+  const X = bx * BLOCK, Y = by * BLOCK;
+  if (maarY(by) && edgeRoad(bx, by, 0) && edgeRoad(bx, by - 1, 0) && inTile(tile, X + ROAD_C, Y)) push(tile, 'bridge', X + ROAD_C, Y, -Math.PI / 2, 1, 1, 1, 0xffffff, 0);
+  if (maarX(bx) && edgeRoad(bx, by, 1) && edgeRoad(bx - 1, by, 1) && inTile(tile, X, Y + ROAD_C)) push(tile, 'bridge', X, Y + ROAD_C, 0, 1, 1, 1, 0xffffff, 0);
+}
+
 function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const seed = chash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   const use = parcelUse(seed);
   const R = mulberry(chash(Math.floor(seed * 1e7), 91));
   const [cx, cy] = W((a0 + a1) / 2, (b0 + b1) / 2);
-  if (!openLand(cx, cy)) return;
+  if (!openLand(cx, cy) || inVillage(cx, cy, -10)) return;
   const inset = 3;
   const c0 = W(a0 + inset, b0 + inset), c1 = W(a1 - inset, b1 - inset);
   const rect = [Math.min(c0[0], c1[0]), Math.min(c0[1], c1[1]), Math.max(c0[0], c1[0]), Math.max(c0[1], c1[1])];
@@ -577,11 +439,11 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
     }
   }
 
-  // round bales on mown / hay strips
-  if ((use === 'hay' || use === 'mown') && R() < 0.35) {
-    const colors = [0xe8e8e2, 0x2a2a2a, 0x9fb58a, 0xc9b26a];
+  // round bales on mown / hay strips, sometimes in long rows
+  if ((use === 'hay' || use === 'mown') && R() < 0.45) {
+    const colors = [0xe8e8e2, 0x2a2a2a, 0x9fb58a, 0xc9b26a, 0xc9b26a];
     const color = colors[Math.floor(R() * colors.length)];
-    const n = 3 + Math.floor(R() * 7);
+    const n = 4 + Math.floor(R() * 10);
     const ba = a0 + 8 + R() * (PW - 16), bb = b0 + 15 + R() * Math.max(1, b1 - b0 - 30);
     const rowWise = R() < 0.5;
     for (let i = 0; i < n; i++) {
@@ -591,33 +453,41 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
     }
   }
 
+  // lapwings / starlings resting on open arable and mown strips
+  if (use !== 'pasture' && R() < 0.22 && herdsOk) {
+    const [fx, fy] = W(a0 + PW / 2 + (R() - 0.5) * 16, b0 + 20 + R() * Math.max(1, b1 - b0 - 40));
+    if (okSpot(fx, fy, 3)) tile.flocks.push({ x: fx, y: fy, n: 8 + Math.floor(R() * 16), kind: R() < 0.7 ? 'lapwing' : 'starling', seed: R() });
+  }
+
   if (!herdsOk || (use !== 'pasture' && !(use === 'mown' && R() < 0.3))) return;
+  if (farmAt(cx, cy, 20)) return;
   const k = R();
-  let kind = null, variant = null, n = 0, spread = 10;
-  if (k < 0.3) { kind = 'cow'; n = 5 + Math.floor(R() * 8); spread = 13; }
-  else if (k < 0.42) { kind = 'cow'; variant = 'red'; n = 4 + Math.floor(R() * 7); spread = 12; }
-  else if (k < 0.6) { kind = 'sheep'; n = 8 + Math.floor(R() * 12); spread = 9; }
-  else if (k < 0.67) { kind = 'horse'; variant = Math.floor(R() * HORSE_COATS.length); n = 2 + Math.floor(R() * 3); spread = 14; }
+  let kind = null, variant = null, n = 0, spread = 10, young = 0;
+  if (k < 0.3) { kind = 'cow'; n = 6 + Math.floor(R() * 10); spread = 14; young = 0.15; }
+  else if (k < 0.42) { kind = 'cow'; variant = 'red'; n = 4 + Math.floor(R() * 8); spread = 12; young = 0.2; }
+  else if (k < 0.64) { kind = 'sheep'; n = 10 + Math.floor(R() * 16); spread = 10; young = R() < 0.6 ? 0.35 : 0; }
+  else if (k < 0.73) { kind = 'horse'; variant = Math.floor(R() * HORSE_COATS.length); n = 2 + Math.floor(R() * 4); spread = 15; young = 0.25; }
   if (kind) {
     const hc = W(a0 + PW / 2 + (R() - 0.5) * (PW - 16), b0 + 20 + R() * Math.max(1, b1 - b0 - 40));
     for (let i = 0; i < n; i++) {
       const x = Math.min(rect[2], Math.max(rect[0], hc[0] + (R() - 0.5) * spread * 2));
       const y = Math.min(rect[3], Math.max(rect[1], hc[1] + (R() - 0.5) * spread * 2));
-      if (inFarmYard(x, y)) continue;
+      if (farmAt(x, y, 1)) continue;
       const a = newAnimal(kind, kind === 'horse' ? (variant + (R() < 0.3 ? 1 : 0)) % HORSE_COATS.length : variant, x, y, rect, R);
       a.hx = hc[0]; a.hy = hc[1]; a.spread = spread;
+      if (R() < young) a.size = kind === 'sheep' ? 0.6 : kind === 'horse' ? 0.62 : 0.66;
       tile.animals.push(a);
     }
   }
   // a flock of geese grazing near the ditch, or a pair of ducks in it
-  if (R() < 0.12) {
+  if (R() < 0.14) {
     const gb = R() < 0.5 ? b0 + 5 : b1 - 5;
     const hc = W(a0 + 6 + R() * (PW - 12), gb);
-    const m = 6 + Math.floor(R() * 9);
+    const m = 6 + Math.floor(R() * 12);
     for (let i = 0; i < m; i++) {
       const x = Math.min(rect[2], Math.max(rect[0], hc[0] + (R() - 0.5) * 10));
       const y = Math.min(rect[3], Math.max(rect[1], hc[1] + (R() - 0.5) * 10));
-      if (inFarmYard(x, y)) continue;
+      if (farmAt(x, y, 1)) continue;
       const g = newAnimal('goose', null, x, y, rect, R);
       g.hx = hc[0]; g.hy = hc[1]; g.spread = 6;
       tile.animals.push(g);
@@ -628,7 +498,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
     const drect = [Math.min(dx0, dx1) - 0.25, Math.min(dy0, dy1) - 0.25, Math.max(dx0, dx1) + 0.25, Math.max(dy0, dy1) + 0.25];
     for (let i = 0; i < 2; i++) {
       const [x, y] = W(a0, db + i * 1.2);
-      if (!openLand(x, y) || parcelAt(x, y).road) continue;
+      if (!openLand(x, y) || parcelAt(x, y).road || farmAt(x, y, 1)) continue;
       const d = newAnimal('duck', null, x, y, drect, R);
       d.hx = x; d.hy = y; d.spread = 25;
       tile.animals.push(d);
@@ -636,56 +506,42 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   }
 }
 
-function genFarmYard(tile, f) {
-  const R = mulberry(f.seed);
-  const W = (lx, lz) => farmWorld(f, lx, lz);
-  // shelter belt of trees round the yard, open towards the road
-  for (let lx = 4; lx <= 62; lx += 7) {
-    for (const s of [-1, 1]) {
-      if (R() < 0.18) continue;
-      const [x, y] = W(lx + (R() - 0.5) * 2, s * (16.5 + R() * 2));
-      push(tile, R() < 0.7 ? 'tree' : 'poplar', x, y, R() * 6.28, 0.9 + R() * 0.3, 0.9 + R() * 0.3, 0.9 + R() * 0.3, 0xffffff, 0.1);
-    }
-  }
-  for (let lz = -16; lz <= 16; lz += 7) {
-    const [x, y] = W(60 + (R() - 0.5) * 2, lz);
-    push(tile, 'tree', x, y, R() * 6.28, 0.9 + R() * 0.3, 0.9 + R() * 0.3, 0.9 + R() * 0.3, 0xffffff, 0.1);
-  }
-  // stack of wrapped bales and a hay barrack in the yard
-  const wrap = R() < 0.5 ? 0xe8e8e2 : 0x2a2a2a;
-  const baseAng = -f.angle;
-  for (const [layer, count] of [[0, 4], [1, 3], [2, 2]]) {
-    for (let k = 0; k < count; k++) {
-      const [x, y] = W(26 + k * 1.3 + layer * 0.65, 14.2);
-      const list = tile.items.bale || (tile.items.bale = { m: [], c: [] });
-      _e.set(0, baseAng, 0);
-      _q.setFromEuler(_e);
-      _m4.compose(_p.set(x, GROUND_Y + layer * 1.3, y), _q, _s.set(0.86, 0.86, 0.86));
-      for (let e = 0; e < 16; e++) list.m.push(_m4.elements[e]);
-      _c.set(wrap);
-      list.c.push(_c.r, _c.g, _c.b);
-    }
-  }
-  if (R() < 0.8) {
-    const [x, y] = W(55, 6);
-    push(tile, 'barrack', x, y, baseAng, 1, 1, 1, 0xffffff, 0.05);
-  }
-}
-
 // ------------------------------------------------------------------ pools
 
+const farmGeo = (fn, looks) => looks.map((L) => () => fn(L));
 const PROP_TYPES = {
-  tree: { geo: roundTreeGeometry, cap: 7000, shadow: true },
-  poplar: { geo: poplarGeometry, cap: 5000, shadow: true },
-  willow: { geo: willowGeometry, cap: 4000, shadow: true },
-  hedge: { geo: hedgeGeometry, cap: 6000, shadow: false },
-  post: { geo: () => boxGeometry(0.11, 1.15, 0.11, 0x8d8474), cap: 9000, shadow: false },
-  wire: { geo: () => boxGeometry(1, 0.025, 0.025, 0xdad6c8), cap: 5000, shadow: false },
-  gate: { geo: gateGeometry, cap: 1500, shadow: false },
-  bale: { geo: baleGeometry, cap: 4000, shadow: true },
-  barrack: { geo: barrackGeometry, cap: 200, shadow: true },
-  reed: { geo: reedGeometry, cap: 14000, shadow: false, near: true, double: true },
+  tree: { geo: M3.roundTreeGeometry, cap: 9000, shadow: true },
+  poplar: { geo: M3.poplarGeometry, cap: 6000, shadow: true },
+  willow: { geo: M3.willowGeometry, cap: 4000, shadow: true },
+  hedge: { geo: M3.hedgeGeometry, cap: 8000, shadow: false },
+  post: { geo: () => M3.boxGeometry(0.11, 1.15, 0.11, 0x8d8474), cap: 9000, shadow: false },
+  wire: { geo: () => M3.boxGeometry(1, 0.025, 0.025, 0xdad6c8), cap: 6000, shadow: false },
+  gate: { geo: M3.gateGeometry, cap: 1500, shadow: false },
+  bale: { geo: M3.baleGeometry, cap: 6000, shadow: true },
+  barrack: { geo: M3.barrackGeometry, cap: 300, shadow: true },
+  reed: { geo: M3.reedGeometry, cap: 14000, shadow: false, near: true, double: true },
+  slab: { geo: M3.slabGeometry, cap: 3000, shadow: false, paving: true },
+  grid: { geo: M3.cattleGridGeometry, cap: 400, shadow: false },
+  shed: { geo: M3.shedGeometry, cap: 300, shadow: true },
+  mestsilo: { geo: M3.mestSiloGeometry, cap: 300, shadow: true },
+  towersilo: { geo: M3.towerSiloGeometry, cap: 200, shadow: true },
+  feedsilo: { geo: M3.feedSiloGeometry, cap: 300, shadow: true },
+  clamp: { geo: M3.clampGeometry, cap: 200, shadow: true },
+  tractorBody: { geo: M3.tractorBodyGeometry, cap: 500, shadow: true },
+  tractorBase: { geo: M3.tractorBaseGeometry, cap: 500, shadow: true },
+  trailerBody: { geo: M3.trailerBodyGeometry, cap: 400, shadow: true },
+  trailerBase: { geo: M3.trailerBaseGeometry, cap: 400, shadow: false },
+  plough: { geo: M3.ploughGeometry, cap: 300, shadow: false },
+  mound: { geo: M3.moundGeometry, cap: 40, shadow: false },
+  grave: { geo: M3.graveGeometry, cap: 3000, shadow: false },
+  gas: { geo: M3.gasSiteGeometry, cap: 40, shadow: true },
+  bridge: { geo: M3.bridgeGeometry, cap: 60, shadow: true },
 };
+farmGeo(M3.farmKHRGeometry, M3.FARM_LOOKS).forEach((g, i) => { PROP_TYPES['fkhr' + i] = { geo: g, cap: 120, shadow: true }; });
+farmGeo(M3.farmOldaGeometry, M3.OLDA_LOOKS).forEach((g, i) => { PROP_TYPES['folda' + i] = { geo: g, cap: 120, shadow: true }; });
+farmGeo(M3.farmSmallGeometry, M3.SMALL_LOOKS).forEach((g, i) => { PROP_TYPES['fsmall' + i] = { geo: g, cap: 120, shadow: true }; });
+farmGeo(M3.farmDairyGeometry, M3.FARM_LOOKS).forEach((g, i) => { PROP_TYPES['fdairy' + i] = { geo: g, cap: 120, shadow: true }; });
+for (let k = 0; k < 4; k++) for (let l = 0; l < 2; l++) PROP_TYPES['house' + k + l] = { geo: () => M3.houseGeometry(k, M3.HOUSE_LOOKS[l]), cap: 400, shadow: true };
 
 function makePool(geo, mat, cap, shadow) {
   const mesh = new THREE.InstancedMesh(geo, mat, cap);
@@ -707,17 +563,25 @@ function init(scene) {
   scene.add(group);
   const propMat = markShared(vcMaterial({ roughness: 0.9 }));
   const reedMat = markShared(vcMaterial({ roughness: 0.9, side: THREE.DoubleSide }));
+  const pavingMat = markShared(vcMaterial({ roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
   const pools = {};
-  for (const [k, T] of Object.entries(PROP_TYPES)) {
-    pools[k] = makePool(T.geo(), T.double ? reedMat : propMat, T.cap, T.shadow);
-    group.add(pools[k]);
-  }
+  // pools are created on first use so an empty type costs nothing
+  S = {
+    group, pools, groundKey: '', blobs: null, propMat, reedMat, pavingMat,
+    tiles: new Map(), queue: [], wantKey: '', repackTimer: 0, dirty: true, reedKey: '',
+    animals: [], animalDirty: true,
+    skinned: new Map(), meshPool: new Map(), herdPools: new Map(),
+    farmCount: 0, signs: new Map(), flocks: [], poolWarm: Object.keys(PROP_TYPES),
+    prev: null, surf: null, splashAt: 0,
+    audible: [],
+  };
   const groundMat = createTerrainMaterial();
   const ground = new THREE.Mesh(new THREE.BufferGeometry(), groundMat);
   ground.position.y = GROUND_Y;
   ground.receiveShadow = true;
   ground.userData.isTerrain = true;
   group.add(ground);
+  S.ground = ground;
 
   const blobTex = (() => {
     const c = document.createElement('canvas');
@@ -736,17 +600,20 @@ function init(scene) {
   blobs.frustumCulled = false;
   blobs.matrixAutoUpdate = false;
   group.add(blobs);
-
-  S = {
-    group, pools, ground, groundKey: '', blobs,
-    tiles: new Map(), queue: [], wantKey: '', repackTimer: 0, dirty: true, reedKey: '',
-    animals: [], animalDirty: true,
-    skinned: new Map(), meshPool: new Map(), herdPools: new Map(),
-    farms: new Map(), farmGeos: [], farmMat: propMat,
-    prev: null, surf: null, splashAt: 0,
-    audible: [],
-  };
+  S.blobs = blobs;
   window.__countryside = S;
+}
+
+function poolOf(k) {
+  let p = S.pools[k];
+  if (!p) {
+    const T = PROP_TYPES[k];
+    p = makePool(markShared(T.geo()), T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, T.cap, T.shadow);
+    if (T.paving) p.renderOrder = -1;
+    S.group.add(p);
+    S.pools[k] = p;
+  }
+  return p;
 }
 
 // ------------------------------------------------------------------ ground ring
@@ -842,18 +709,14 @@ function syncTiles(px, py, viewDist, budgetEnd) {
 function loadTile(t) {
   for (const a of t.animals) S.animals.push(a);
   if (t.animals.length) S.animalDirty = true;
-  if (t.farm) {
-    const f = t.farm;
-    const geo = S.farmGeos[f.look] || (S.farmGeos[f.look] = markShared(farmGeometry(FARM_LOOKS[f.look])));
-    const m = new THREE.Mesh(geo, S.farmMat);
-    m.position.set(f.x, GROUND_Y, f.y);
-    m.rotation.y = -f.angle;
-    m.castShadow = true;
-    m.receiveShadow = true;
-    m.updateMatrix();
-    m.matrixAutoUpdate = false;
-    S.group.add(m);
-    S.farms.set(t, m);
+  for (const f of t.flocks) S.flocks.push(f);
+  S.farmCount += t.farms;
+  if (t.signs.length) {
+    t.signMeshes = t.signs.map((sg) => {
+      const m = buildSign(sg);
+      S.group.add(m);
+      return m;
+    });
   }
 }
 
@@ -864,8 +727,15 @@ function unloadTile(t) {
     for (const a of t.animals) releaseSkin(a);
     S.animalDirty = true;
   }
-  const m = S.farms.get(t);
-  if (m) { S.group.remove(m); S.farms.delete(t); }
+  if (t.flocks.length) {
+    const gone = new Set(t.flocks);
+    S.flocks = S.flocks.filter((f) => !gone.has(f));
+  }
+  S.farmCount -= t.farms;
+  if (t.signMeshes) {
+    for (const m of t.signMeshes) { S.group.remove(m); disposeSign(m); }
+    t.signMeshes = null;
+  }
 }
 
 function repack(px, py) {
@@ -877,6 +747,7 @@ function repack(px, py) {
     for (const k in t.items) {
       if (PROP_TYPES[k].near && !nearReed) continue;
       const pool = S.pools[k];
+      if (!pool) { S.dirty = true; continue; }
       const it = t.items[k];
       const n = it.c.length / 3;
       const cap = PROP_TYPES[k].cap;
@@ -908,7 +779,8 @@ function addReeds(t) {
     const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
     if (clump > 0.42 || !openLand(x, y)) return;
     const p = parcelAt(x, y);
-    if (p.road || p.dMain < MAIN_HW * 0.8 || (p.dDitch < DITCH_HW * 0.72 && p.dMain > MAIN_HW + 0.5)) return;
+    if (p.road || p.dMain < MAIN_HW * 0.8 || p.dMaar < MAAR_WATER || (p.dDitch < DITCH_HW * 0.72 && p.dMain > MAIN_HW + 0.5)) return;
+    if (farmAt(x, y, 0) || inVillage(x, y, 0)) return;
     const h = chash(Math.round(x * 3), Math.round(y * 3));
     push(tmp, 'reed', x, y, h * 6.28, 0.9 + h * 0.3, 0.6 + clump * 1.1, 0.9 + h * 0.3, 0xffffff, 0.12);
   };
@@ -933,6 +805,22 @@ function addReeds(t) {
       }
     }
   }
+  // maar banks
+  for (const [on, vert, c] of [[maarX(bx), true, bx * BLOCK], [maarX(bx + 1), true, (bx + 1) * BLOCK], [maarY(by), false, by * BLOCK], [maarY(by + 1), false, (by + 1) * BLOCK]]) {
+    if (!on) continue;
+    const lo = vert ? x0 : y0;
+    if (c < lo - 6 || c > lo + TILE + 6) continue;
+    for (let q = 0.6; q < TILE; q += 1.1) {
+      for (const sd of [-1, 1]) {
+        const o = sd * (MAAR_WATER + 0.25 + chash(Math.round(q * 4), sd + 7) * 0.4);
+        const x = vert ? c + o : x0 + q, y = vert ? y0 + q : c + o;
+        const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
+        if (clump > 0.5 || !openLand(x, y) || parcelAt(x, y).road || farmAt(x, y, 0)) continue;
+        const h = chash(Math.round(x * 3), Math.round(y * 3));
+        push(tmp, 'reed', x, y, h * 6.28, 1 + h * 0.3, 0.8 + clump * 1.2, 1 + h * 0.3, 0xffffff, 0.12);
+      }
+    }
+  }
   const it = tmp.items.reed;
   t.items.reed = it ? { m: new Float32Array(it.m), c: new Float32Array(it.c) } : { m: new Float32Array(0), c: new Float32Array(0) };
 }
@@ -944,6 +832,8 @@ function acquireSkin(a) {
   const pool = S.meshPool.get(key);
   let mesh = pool && pool.length ? pool.pop() : buildAnimalMesh(a);
   mesh.userData.poolKey = key;
+  if (mesh.userData.baseScale === undefined) mesh.userData.baseScale = mesh.scale.x;
+  mesh.scale.setScalar(mesh.userData.baseScale * (a.size || 1));
   mesh.visible = true;
   S.group.add(mesh);
   S.skinned.set(a, mesh);
@@ -1124,7 +1014,7 @@ function updateAnimals(dt, world, time, simulate) {
       const pool = herdPool(key);
       const n = counts.get(key) || 0;
       if (n >= 2500) continue;
-      const sc = pool.userData.scale || 1;
+      const sc = (pool.userData.scale || 1) * (a.size || 1);
       _e.set(0, -a.angle, 0);
       _q.setFromEuler(_e);
       _m4.compose(_p.set(a.x, a.kind === 'goose' ? 0.2 : a.kind === 'duck' ? -0.06 : 0, a.y), _q, _s.set(sc, sc, sc));
@@ -1170,33 +1060,12 @@ function updateAnimals(dt, world, time, simulate) {
 
 // ------------------------------------------------------------------ gameplay
 
-// Footprints of kop, hals and romp in farm-local space: [x0, x1, halfZ].
-const FARM_BOXES = [[-0.2, 10.2, 6.7], [10, 17, 4.2], [16.8, 50.3, 12.3]];
-
-function pushOutOfFarms(obj, radius) {
-  const f = farmOf(Math.floor(obj.x / BLOCK), Math.floor(obj.y / BLOCK));
-  if (!f) return false;
-  let [lx, lz] = farmLocal(f, obj.x, obj.y);
-  let hit = false;
-  for (const [bx0, bx1, hz] of FARM_BOXES) {
-    const x0 = bx0 - radius, x1 = bx1 + radius, z0 = -hz - radius, z1 = hz + radius;
-    if (lx <= x0 || lx >= x1 || lz <= z0 || lz >= z1) continue;
-    const opts = [[lx - x0, x0, lz], [x1 - lx, x1, lz], [lz - z0, lx, z0], [z1 - lz, lx, z1]];
-    opts.sort((u, v) => u[0] - v[0]);
-    lx = opts[0][1]; lz = opts[0][2];
-    hit = true;
-  }
-  if (!hit) return false;
-  const [wx, wy] = farmWorld(f, lx, lz);
-  obj.x = wx; obj.y = wy;
-  return true;
-}
-
 // Countryside ground under (x, y), or null where a real mapped road or
 // plot takes precedence (the meadow feathers a little into the map).
 function groundAt(map, x, y) {
   const cs = countrySurface(x, y);
   if (!cs || cs === 'weg') return cs;
+  if (countryWeight(x, y) > 0.99 && onFarmPaving(x, y)) return 'weg';
   if (edgeDistance(x, y) > 0) return cs;
   return surfaceUnder(map, x, y) === 'gras' ? 'gras' : null;
 }
@@ -1205,6 +1074,11 @@ function gameplay(dt, world) {
   const p = world.player;
   if (world.pigeonMode || world.paused) { S.prev = null; return; }
   const v = p.inVehicle;
+  // AI vehicles out here (police giving chase, parked cars) stay out of barns too
+  for (const o of world.vehicles || []) {
+    if (o === v || o.isBoat || o.wrecked || Math.abs(o.x - p.x) > 250 || Math.abs(o.y - p.y) > 250) continue;
+    if (countryWeight(o.x, o.y) > 0.5 && pushOutOfPlan(o, 1.2)) o.speed *= 0.3;
+  }
   if (v && !v.isBoat && !v.sinking && !v.wrecked) {
     const surf = groundAt(world.map, v.x, v.y);
     const sp = Math.abs(v.speed);
@@ -1216,7 +1090,7 @@ function gameplay(dt, world) {
       v.angle += Math.sin(world.time * 13.7 + v.x * 0.9) * Math.sin(world.time * 5.3 + v.y) * dt * 0.35 * k;
     }
     if (surf === 'sloot' && S.surf !== 'sloot' && sp > 1.5) splash(world, v.x, v.y);
-    if (pushOutOfFarms(v, 1.2)) v.speed *= -0.25;
+    if (countryWeight(v.x, v.y) > 0.5 && pushOutOfPlan(v, 1.2)) v.speed *= -0.25;
     S.surf = surf;
     S.prev = null;
     return;
@@ -1231,7 +1105,7 @@ function gameplay(dt, world) {
   if (wading && (p.z || 0) <= 0.001 && !(p.vz > 0)) p.z = -0.32;
   else if (!wading && p.z < 0 && !p.water) p.z = 0;
   if (wading && S.surf !== 'sloot') splash(world, p.x, p.y);
-  pushOutOfFarms(p, p.radius || 0.35);
+  if (countryWeight(p.x, p.y) > 0.5) pushOutOfPlan(p, p.radius || 0.35);
   S.surf = surf;
   S.prev = [p.x, p.y];
 }
@@ -1267,6 +1141,8 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
         break;
       }
     }
+    // build one missing prop pool per frame, before tiles need it
+    if (S.poolWarm.length) poolOf(S.poolWarm.shift());
     S.repackTimer -= dt;
     if (S.dirty && S.repackTimer <= 0) {
       S.repackTimer = REPACK_EVERY;
@@ -1284,6 +1160,8 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
   }
   S.idle = !(near || S.tiles.size);
   gameplay(dt, world);
+  updateSkyline(dt, world, scene, cam);
+  updateCountryLife(dt, world, scene, S.idle ? [] : S.flocks, scene.fog ? scene.fog.far : viewDist);
   const ms = performance.now() - t0;
   S.ms = (S.ms || 0) * 0.95 + ms * 0.05;
   S.maxMs = Math.max((S.maxMs || 0) * 0.995, ms);
@@ -1295,5 +1173,9 @@ export function countrysideStats() {
   for (const [k, m] of Object.entries(S.pools)) pools[k] = m.count;
   let herd = 0;
   for (const m of S.herdPools.values()) herd += m.count;
-  return { ms: +(S.ms || 0).toFixed(3), maxMs: +(S.maxMs || 0).toFixed(2), tiles: S.tiles.size, queue: S.queue.length, animals: S.animals.length, skinned: S.skinned.size, herd, farms: S.farms.size, pools };
+  return {
+    ms: +(S.ms || 0).toFixed(3), maxMs: +(S.maxMs || 0).toFixed(2), tiles: S.tiles.size, queue: S.queue.length,
+    animals: S.animals.length, skinned: S.skinned.size, herd, farms: S.farmCount, flocks: S.flocks.length, pools,
+    skyline: skylineStats(), life: lifeStats(),
+  };
 }

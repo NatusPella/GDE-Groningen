@@ -437,6 +437,16 @@ function buildScooterMesh(v) {
   rider.userData.legL.rotation.z = 0.12;
   rider.userData.legR.rotation.z = -0.1;
   group.add(rider);
+  if (v.isPolice) {
+    const lamps = [];
+    for (const s of [1, -1]) {
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.07), lampMaterial(0x2f6bff, 0.25));
+      lamp.position.set(0.39, 1.1, s * 0.09);
+      group.add(lamp);
+      lamps.push(lamp);
+    }
+    group.userData.policeLamps = lamps;
+  }
   return group;
 }
 
@@ -600,20 +610,26 @@ export function setBusRearAngle(mesh, busAngle, rearAngle) {
   rear.rotation.y = -Math.max(-0.75, Math.min(0.75, d));
 }
 
-// Dutch police flash blue only: the two bar halves alternate while chasing.
-export function updatePoliceLamps(mesh, time, chasing) {
+// Dutch police flash blue only: the two bar halves alternate while chasing,
+// a double flash per side. Returns 1 (left half), -1 (right half) or 0 (dark);
+// each unit gets its own phase so a convoy doesn't strobe in lockstep.
+export function policeFlash(time, id = 0) {
+  const off = ((id * 0.6180339) % 1 + 1) % 1;
+  const phase = (time * 3 + off) % 1;
+  if ((phase % 0.25) >= 0.16) return 0;
+  return phase < 0.5 ? 1 : -1;
+}
+
+export function updatePoliceLamps(mesh, time, chasing, id = 0) {
   const lamps = mesh.userData.policeLamps;
   if (!lamps) return;
   if (!chasing) {
-    lamps[0].material.emissiveIntensity = 0.25;
-    lamps[1].material.emissiveIntensity = 0.25;
+    for (const l of lamps) l.material.emissiveIntensity = 0.25;
     return;
   }
-  const phase = (time * 3) % 1;
-  const aOn = phase < 0.5 && (phase % 0.25) < 0.16;
-  const bOn = phase >= 0.5 && (phase % 0.25) < 0.16;
-  lamps[0].material.emissiveIntensity = aOn ? 3 : 0.1;
-  lamps[1].material.emissiveIntensity = bOn ? 3 : 0.1;
+  const f = policeFlash(time, id);
+  lamps[0].material.emissiveIntensity = f === 1 ? 3 : 0.1;
+  if (lamps[1]) lamps[1].material.emissiveIntensity = f === -1 ? 3 : 0.1;
 }
 
 // --- boat ---------------------------------------------------------------------

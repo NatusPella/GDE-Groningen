@@ -3,7 +3,8 @@
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH } from './railway.js';
-import { pointInPolygon } from './util.js';
+import { pointInPolygon, WATER_Y } from './util.js';
+import { addStaticCollider } from './breakables.js';
 
 const CHUNK = 250;
 const VIEW = 190;
@@ -37,6 +38,8 @@ const EMBANK_MAT = new THREE.MeshStandardMaterial({
 const PIER_GEO = new THREE.BoxGeometry(0.9, 1, 3.4).translate(0, 0.5, 0);
 const DECK_Z = 2.6;
 const DECK_DEPTH = 0.9;
+// Low decks over a canal stay as thin as the road bridges so boats fit under.
+const WATER_DECK_DEPTH = 0.5;
 const DECK_HALF = 2.5;
 const RAIL_TOP_COLOR = new THREE.Color(0xc9ccd0);
 const RAIL_SIDE_COLOR = new THREE.Color(0x5e4a3c);
@@ -222,7 +225,7 @@ function embankProfile(s) {
 }
 
 function deckProfile(s) {
-  const z = s.z, b = z - DECK_DEPTH, h = DECK_HALF;
+  const z = s.z, b = z - (s.water && z < DECK_Z ? WATER_DECK_DEPTH : DECK_DEPTH), h = DECK_HALF;
   return [
     [[-h, z + 0.12], [-h, b], [h, b], [h, z + 0.12]],
     [[-h + 0.1, z + 1.15], [-h + 0.1, z + 0.12]],
@@ -279,8 +282,8 @@ function deckPiers(list) {
       const a = run[i - 1], b = run[i];
       acc += Math.hypot(b.x - a.x, b.y - a.y);
       if (acc < 15) continue;
-      const bottom = b.z - DECK_DEPTH;
-      const y0 = b.water ? -1.2 : 0;
+      const bottom = b.z - (b.water && b.z < DECK_Z ? WATER_DECK_DEPTH : DECK_DEPTH);
+      const y0 = b.water ? WATER_Y - 0.1 : 0;
       if (bottom - y0 < 0.4 || onCarRoad(b.x, b.y)) continue;
       acc = 0;
       out.push({ x: b.x, y: b.y, angle: Math.atan2(b.sy, b.sx), y0, h: bottom - y0 });
@@ -321,6 +324,8 @@ function buildChunk(c) {
         o.scale.set(1, p.h, 1);
         o.updateMatrix();
         inst.setMatrixAt(i, o.matrix);
+        // solid for whatever passes underneath: 3.4 m across the track, 0.9 m along it
+        addStaticCollider('pier', p.x, p.y, 0.45, 1.25, p.angle + Math.PI / 2, p.y0 < 0);
       });
       inst.castShadow = true;
       inst.computeBoundingSphere();
@@ -478,6 +483,7 @@ function updateCrossings(px, py, night) {
     if (!near) continue;
     const phase = c.warn ? Math.floor(c.flash * 1.9) % 2 : -1;
     const ease = c.boom * c.boom * (3 - 2 * c.boom);
+    view.parts.forEach((p, i) => { p.pivot.visible = !(c.snapped && c.snapped[i]); });
     for (const p of view.parts) {
       p.lamps[0].material = phase === 0 ? LAMP_ON : LAMP_OFF;
       p.lamps[1].material = phase === 1 ? LAMP_ON : LAMP_OFF;

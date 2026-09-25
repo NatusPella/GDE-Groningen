@@ -5,6 +5,7 @@
 import { requestRespawn } from './world.js';
 import { DEAD_DURATION } from './pedestrians.js';
 import { knockDown } from './ragdoll.js';
+import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -320,6 +321,7 @@ function updateCrossings(dt, world) {
     } else {
       c.boom = Math.max(0, c.boom - dt / BOOM_UP_S);
       c.flash = 0;
+      if (c.boom === 0) c.snapped = null;
     }
   }
 }
@@ -403,6 +405,20 @@ function hitPlayer(t, car, push, world) {
   if (world.health <= 0) { world.health = 0; requestRespawn(world); }
 }
 
+function hitCompanion(c, t, car, push, world) {
+  c.x += push.nx * push.depth;
+  c.y += push.ny * push.depth;
+  if (t.v < 1.5 || c._trainHitAt > world.time - HIT_COOLDOWN) return;
+  c._trainHitAt = world.time;
+  const tv = t.v * t.dir;
+  c.health = Math.max(0, (c.health ?? 100) - (25 + t.v * 3.5));
+  const dead = c.health <= 0;
+  if (dead) { c.state = 'dead'; c.deadUntil = world.time + DEAD_DURATION; }
+  c.vx = 0; c.vy = 0;
+  knockDown(c, world, { kind: 'hit', dead, vx: Math.cos(car.angle) * tv * 0.5 + push.nx * 6, vy: Math.sin(car.angle) * tv * 0.5 + push.ny * 6, vz: 4 + Math.min(4, t.v * 0.25), lieFor: 2.5 });
+  world.addMessage(`${c.character === 'tammo' ? 'Tammo' : 'Anita'} is aangereden door de trein!`, 3);
+}
+
 function hitPedestrian(ped, t, car, push, world) {
   ped.x += push.nx * push.depth;
   ped.y += push.ny * push.depth;
@@ -416,7 +432,9 @@ function hitPedestrian(ped, t, car, push, world) {
   ped._hp = 0;
   ped.speed = 0;
   ped.deadUntil = world.time + DEAD_DURATION;
+  if (t.v >= GIB_SPEED && splatterPed(ped, world, { vx: ped.knockVX, vy: ped.knockVY, vz: 3 + t.v * 0.15 })) return;
   knockDown(ped, world, { kind: 'hit', dead: true, vx: ped.knockVX * 1.1, vy: ped.knockVY * 1.1, vz: 3 + t.v * 0.2 });
+  bleedPed(ped, world);
 }
 
 function resolveContacts(world) {
@@ -442,6 +460,11 @@ function resolveContacts(world) {
         const push = pushOut(car, hl, p.x, p.y, p.radius || 0.35);
         if (push) hitPlayer(t, car, push, world);
       }
+      const c = world.companion;
+      if (c && !c.inVehicle && !c.water && c.state !== 'dead' && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !inRailBridgeZone(c.x, c.y)) {
+        const push = pushOut(car, hl, c.x, c.y, c.radius || 0.35);
+        if (push) hitCompanion(c, t, car, push, world);
+      }
       for (const ped of world.pedestrians) {
         if (Math.abs(ped.x - car.x) > reach || Math.abs(ped.y - car.y) > reach) continue;
         const push = pushOut(car, hl, ped.x, ped.y, ped.radius || 0.35);
@@ -457,6 +480,42 @@ export function updateRailway(dt, world) {
   updateCrossings(dt, world);
   updateThrown(dt, world);
   resolveContacts(world);
+}
+
+// Boom arms as game-plane segments, in the same approach order railway3d
+// builds them (roads x travel directions), mirroring its placement.
+function boomsOf(c) {
+  if (c._booms) return c._booms;
+  c._booms = [];
+  for (const r of c.roads) {
+    for (const sign of r.oneway ? [1] : [1, -1]) {
+      const ux = r.ux * sign, uy = r.uy * sign;
+      const rx = -uy, ry = ux;
+      const tEdge = sign > 0 ? r.t0 - 3.4 : r.t1 + 3.4;
+      const half = r.width / 2;
+      const small = r.cat === 'cycle' || r.cat === 'foot';
+      const len = (r.oneway || small ? r.width : half) + 0.3;
+      const px = r.x + r.ux * tEdge + rx * (half + 0.55) + ux * 0.3;
+      const py = r.y + r.uy * tEdge + ry * (half + 0.55) + uy * 0.3;
+      c._booms.push({ c, i: c._booms.length, ax: px - rx * 0.1, ay: py - ry * 0.1, bx: px - rx * (len + 0.1), by: py - ry * (len + 0.1) });
+    }
+  }
+  return c._booms;
+}
+
+// Lowered (and not snapped off) booms near (x, y), for vehicle collisions.
+export function loweredBoomsNear(x, y, r = 30) {
+  const out = [];
+  for (const c of crossings) {
+    if (c.boom < 0.6 || Math.abs(c.x - x) > r + 15 || Math.abs(c.y - y) > r + 15) continue;
+    for (const b of boomsOf(c)) if (!(c.snapped && c.snapped[b.i])) out.push(b);
+  }
+  return out;
+}
+
+export function snapBoom(b) {
+  const c = b.c;
+  (c.snapped || (c.snapped = []))[b.i] = true;
 }
 
 // Traffic AI hook (vehicle.js): speed that halts the vehicle before a

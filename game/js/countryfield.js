@@ -15,6 +15,14 @@ export const DITCH_HW = 1.1;
 export const MAIN_HW = 2.1;
 export const ROAD_IN = 5;
 export const ROAD_W = 5;
+export const ROAD_P = 0.5;
+// maaren: wide canals along some block-boundary lines, running for km
+export const MAAR_HW = 4.2;
+export const MAAR_WATER = 3.5;
+// wierden (terp villages): centred beside a block's low-x polder road
+export const VILLAGE_P = 0.2;
+export const VILLAGE_X = ROAD_IN + ROAD_W / 2 + 48;
+export const VILLAGE_RING = 34;
 
 const FEATHER_IN = 180;
 const FEATHER_OUT = 20;
@@ -78,13 +86,57 @@ export function countryWeight(x, y) {
 // Whether the edge of block (bx, by) on side s carries a polder road
 // (s: 0 = low-x edge, 1 = low-y edge; roads run just inside that edge).
 export function edgeRoad(bx, by, s) {
-  return chash(bx * 3 + s * 7919, by * 5 + 101) < 0.42;
+  return chash(bx * 3 + s * 7919, by * 5 + 101) < ROAD_P;
+}
+
+// Maar along the vertical line x = i * BLOCK / horizontal line y = j * BLOCK.
+export function maarX(i) {
+  return chash(i * 37 + 11, 4441) < 0.18;
+}
+export function maarY(j) {
+  return chash(j * 41 + 17, 5557) < 0.18;
+}
+
+// Village of block (bx, by): { x, y, r } or null. Its disc reaches into the
+// block to the west, never across a horizontal block edge.
+const villageCache = new Map();
+export function villageOf(bx, by) {
+  const key = bx * 100003 + by;
+  let v = villageCache.get(key);
+  if (v !== undefined) return v;
+  v = null;
+  if (chash(bx * 29 + 7, by * 31 + 3) < VILLAGE_P && edgeRoad(bx, by, 0) && !maarX(bx)) {
+    const x = bx * BLOCK + VILLAGE_X, y = by * BLOCK + 250 + chash(bx + 71, by - 13) * 460;
+    const r = 100 + chash(bx - 9, by + 17) * 30;
+    if (edgeDistance(x, y) >= r + 260) v = { x, y, r, bx, by };
+  }
+  villageCache.set(key, v);
+  return v;
+}
+
+// Village whose disc contains (x, y), with d = distance / radius.
+export function villageAt(x, y) {
+  const bx = Math.floor(x / BLOCK), by = Math.floor(y / BLOCK);
+  for (const v of [villageOf(bx, by), villageOf(bx + 1, by)]) {
+    if (!v) continue;
+    const d = Math.hypot(x - v.x, y - v.y) / v.r;
+    if (d < 1) return { v, d };
+  }
+  return null;
+}
+
+// Brick village streets: the ring round the church terp and the spur from
+// the polder road.
+export function villageStreet(v, x, y) {
+  const d = Math.hypot(x - v.x, y - v.y);
+  if (Math.abs(d - VILLAGE_RING) < 2.6) return true;
+  return Math.abs(y - v.y) < 2.3 && x > v.x - VILLAGE_X + ROAD_IN && x < v.x - VILLAGE_RING;
 }
 
 // Parcel lookup; fills and returns a shared scratch object.
 const P = {
   bx: 0, by: 0, rot: false, col: 0, row: 0, a: 0, b: 0,
-  a0: 0, a1: 0, b0: 0, b1: 0, dDitch: 0, dMain: 0, road: false, seed: 0,
+  a0: 0, a1: 0, b0: 0, b1: 0, dDitch: 0, dMain: 0, dMaar: 1e3, road: false, cont: false, seed: 0,
 };
 export function parcelAt(x, y) {
   const bx = Math.floor(x / BLOCK), by = Math.floor(y / BLOCK);
@@ -100,8 +152,14 @@ export function parcelAt(x, y) {
   P.a0 = a0; P.a1 = a1; P.b0 = b0; P.b1 = b1;
   P.dDitch = Math.min(a - a0, a1 - a, b - b0, b1 - b);
   P.dMain = Math.min(lx, BLOCK - lx, ly, BLOCK - ly);
-  P.road = (edgeRoad(bx, by, 0) && lx > ROAD_IN && lx < ROAD_IN + ROAD_W)
-    || (edgeRoad(bx, by, 1) && ly > ROAD_IN && ly < ROAD_IN + ROAD_W);
+  const rv = edgeRoad(bx, by, 0) && lx > ROAD_IN && lx < ROAD_IN + ROAD_W;
+  const rh = edgeRoad(bx, by, 1) && ly > ROAD_IN && ly < ROAD_IN + ROAD_W;
+  P.road = rv || rh;
+  // a road that carries on into the next block crosses the ditch on a
+  // culvert (or a bridge over a maar)
+  P.cont = (rv && edgeRoad(bx, ly < BLOCK / 2 ? by - 1 : by + 1, 0))
+    || (rh && edgeRoad(lx < BLOCK / 2 ? bx - 1 : bx + 1, by, 1));
+  P.dMaar = Math.min(maarX(bx) ? lx : 1e3, maarX(bx + 1) ? BLOCK - lx : 1e3, maarY(by) ? ly : 1e3, maarY(by + 1) ? BLOCK - ly : 1e3);
   P.seed = chash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   return P;
 }
@@ -123,9 +181,16 @@ export function parcelUse(seed) {
 export function countrySurface(x, y) {
   const w = countryWeight(x, y);
   if (w < 0.5) return null;
+  const vi = w > 0.99 ? villageAt(x, y) : null;
+  if (vi && vi.d < 0.9) {
+    if (villageStreet(vi.v, x, y)) return 'weg';
+    const p = parcelAt(x, y);
+    return p.road ? 'weg' : 'gras';
+  }
   const p = parcelAt(x, y);
   const wet = w > 0.92;
-  if (wet && p.dMain < MAIN_HW * 0.8) return 'sloot';
+  if (wet && p.dMaar < MAAR_WATER) return p.road && p.cont ? 'weg' : 'sloot';
+  if (wet && p.dMain < MAIN_HW * 0.8 && !(p.road && p.cont)) return 'sloot';
   if (p.road) return 'weg';
   if (wet && p.dDitch < DITCH_HW * 0.72) return 'sloot';
   return 'gras';
@@ -143,6 +208,9 @@ const float C_DITCH = ${DITCH_HW.toFixed(2)};
 const float C_MAIN = ${MAIN_HW.toFixed(2)};
 const float C_ROAD_IN = ${ROAD_IN.toFixed(1)};
 const float C_ROAD_W = ${ROAD_W.toFixed(1)};
+const float C_ROAD_P = ${ROAD_P.toFixed(3)};
+const float C_MAAR = ${MAAR_HW.toFixed(2)};
+const float C_MAAR_WATER = ${MAAR_WATER.toFixed(2)};
 
 float cHash(int x, int y) {
   uint h = (uint(x) * 1597334677u) ^ (uint(y) * 3812015801u);
@@ -157,6 +225,18 @@ float cNoise(vec2 p) {
   return a + (b - a) * u.x + (c - a) * u.y + (a - b - c + d) * u.x * u.y;
 }
 vec3 cLin(float r, float g, float b) { return pow(vec3(r, g, b) / 255.0, vec3(2.2)); }
+bool cRoad(int bx, int by, int s) { return cHash(bx * 3 + s * 7919, by * 5 + 101) < C_ROAD_P; }
+bool cMaarX(int i) { return cHash(i * 37 + 11, 4441) < 0.18; }
+bool cMaarY(int j) { return cHash(j * 41 + 17, 5557) < 0.18; }
+vec3 cVillage(int bx, int by) {
+  if (cHash(bx * 29 + 7, by * 31 + 3) >= ${VILLAGE_P.toFixed(3)} || !cRoad(bx, by, 0) || cMaarX(bx)) return vec3(0.0);
+  float x = float(bx) * C_BLOCK + ${VILLAGE_X.toFixed(2)};
+  float y = float(by) * C_BLOCK + 250.0 + cHash(bx + 71, by - 13) * 460.0;
+  float r = 100.0 + cHash(bx - 9, by + 17) * 30.0;
+  vec2 q = abs(vec2(x, y) - uCountryRect.xy) - uCountryRect.zw;
+  if (max(q.x, q.y) < r + 260.0) return vec3(0.0);
+  return vec3(x, y, r);
+}
 
 float countryWeight(vec2 p) {
   vec2 q = abs(p - uCountryRect.xy) - uCountryRect.zw;
@@ -227,18 +307,32 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   }
   c *= 1.0 + (n3 - 0.5) * 0.1 * detail;
 
+  // wierde village: tidy lawns and gardens instead of parcels
+  vec3 vA = cVillage(bx, by), vB = cVillage(bx + 1, by);
+  vec3 vv = vA.z > 0.0 && length(p - vA.xy) < vA.z ? vA : vB;
+  float vd = vv.z > 0.0 ? length(p - vv.xy) / vv.z : 2.0;
+  float vil = 1.0 - smoothstep(0.82, 1.0, vd);
+  if (vil > 0.0) {
+    float gard = smoothstep(0.55, 0.75, cNoise(p * 0.08 + 31.0));
+    vec3 lawn = mix(cLin(92.0, 132.0, 58.0), cLin(84.0, 112.0, 60.0), gard) * (0.9 + 0.2 * n3);
+    c = mix(c, lawn, vil);
+  }
+
   // lush darker verge along every ditch
   float hw = C_DITCH;
-  float verge = 1.0 - smoothstep(hw, hw + 1.4, dD);
-  float vergeM = 1.0 - smoothstep(C_MAIN, C_MAIN + 2.0, dM);
+  float verge = (1.0 - smoothstep(hw, hw + 1.4, dD)) * (1.0 - vil);
+  float vergeM = (1.0 - smoothstep(C_MAIN, C_MAIN + 2.0, dM)) * (1.0 - vil);
   c = mix(c, cLin(62.0, 94.0, 42.0) * (0.85 + 0.3 * n3), max(verge, vergeM) * 0.75);
 
   // polder roads just inside some block edges
-  bool rx = cHash(bx * 3, by * 5 + 101) < 0.42;
-  bool ry = cHash(bx * 3 + 7919, by * 5 + 101) < 0.42;
-  float dr = 1e3;
-  if (rx) dr = min(dr, abs(l.x - (C_ROAD_IN + C_ROAD_W * 0.5)));
-  if (ry) dr = min(dr, abs(l.y - (C_ROAD_IN + C_ROAD_W * 0.5)));
+  bool rx = cRoad(bx, by, 0);
+  bool ry = cRoad(bx, by, 1);
+  float drV = rx ? abs(l.x - (C_ROAD_IN + C_ROAD_W * 0.5)) : 1e3;
+  float drH = ry ? abs(l.y - (C_ROAD_IN + C_ROAD_W * 0.5)) : 1e3;
+  float dr = min(drV, drH);
+  bool contV = rx && cRoad(bx, l.y < C_BLOCK * 0.5 ? by - 1 : by + 1, 0);
+  bool contH = ry && cRoad(l.x < C_BLOCK * 0.5 ? bx - 1 : bx + 1, by, 1);
+  float dCont = min(contV ? drV : 1e3, contH ? drH : 1e3);
   float roadM = 1.0 - smoothstep(C_ROAD_W * 0.5 - px, C_ROAD_W * 0.5 + px, dr);
   float shoulder = (1.0 - smoothstep(C_ROAD_W * 0.5 + 0.2, C_ROAD_W * 0.5 + 0.9, dr)) * (1.0 - roadM);
   vec3 asphalt = cLin(74.0, 74.0, 76.0) * (0.9 + 0.2 * n3);
@@ -249,15 +343,38 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   sRough -= roadM * 0.1;
   sDip += roadM * 0.4 - 0.2;
 
+  // village streets in red klinkers
+  if (vil > 0.0) {
+    float vr = length(p - vv.xy);
+    float dS = abs(vr - ${VILLAGE_RING.toFixed(1)});
+    float spX = p.x - (vv.x - ${VILLAGE_X.toFixed(2)} + C_ROAD_IN);
+    if (spX > 0.0 && p.x < vv.x - ${VILLAGE_RING.toFixed(1)}) dS = min(dS, abs(p.y - vv.y) + 0.3);
+    float st = (1.0 - smoothstep(2.4 - px, 2.6 + px, dS)) * vil;
+    vec3 klinker = cLin(132.0, 72.0, 58.0) * (0.85 + 0.25 * n3);
+    float herr = abs(fract((p.x + p.y) * 2.2) - 0.5);
+    klinker *= 1.0 - 0.08 * smoothstep(0.35, 0.5, herr) * detail;
+    c = mix(c, klinker, st);
+    sRough -= st * 0.06;
+  }
+
   // ditch water (the wide main ditches win over the road verges)
   float culvert = 1.0 - smoothstep(C_ROAD_W * 0.5 + 0.8, C_ROAD_W * 0.5 + 1.6, dr);
-  float wD = (1.0 - smoothstep(hw * 0.72 - px, hw * 0.72 + px, dD)) * (1.0 - culvert);
-  float wM = 1.0 - smoothstep(C_MAIN * 0.8 - px, C_MAIN * 0.8 + px, dM);
-  float water = max(wD, wM) * smoothstep(0.86, 0.98, cw);
-  float bank = max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert), 1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - water);
+  float culvM = 1.0 - smoothstep(C_ROAD_W * 0.5 + 0.2, C_ROAD_W * 0.5 + 0.9, dCont);
+  float dQ = 1e3;
+  if (cMaarX(bx)) dQ = min(dQ, l.x);
+  if (cMaarX(bx + 1)) dQ = min(dQ, C_BLOCK - l.x);
+  if (cMaarY(by)) dQ = min(dQ, l.y);
+  if (cMaarY(by + 1)) dQ = min(dQ, C_BLOCK - l.y);
+  float dry = 1.0 - vil;
+  float wD = (1.0 - smoothstep(hw * 0.72 - px, hw * 0.72 + px, dD)) * (1.0 - culvert) * dry;
+  float wM = (1.0 - smoothstep(C_MAIN * 0.8 - px, C_MAIN * 0.8 + px, dM)) * (1.0 - culvM) * dry;
+  float wQ = 1.0 - smoothstep(C_MAAR_WATER - px, C_MAAR_WATER + px, dQ);
+  float water = max(max(wD, wM), wQ) * smoothstep(0.86, 0.98, cw);
+  float bank = max(max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert), (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - culvM)) * dry, 1.0 - smoothstep(C_MAAR_WATER, C_MAAR, dQ)) * (1.0 - water);
   c = mix(c, cLin(70.0, 72.0, 44.0) * (0.8 + 0.3 * n3), bank * 0.8 * smoothstep(0.86, 0.98, cw));
   vec3 wc = mix(cLin(22.0, 36.0, 36.0), cLin(30.0, 46.0, 40.0), n2);
-  float weed = smoothstep(0.62, 0.8, cNoise(p * 0.35 + 40.0) * 0.7 + n3 * 0.3);
+  wc = mix(wc, cLin(52.0, 76.0, 86.0) * (0.9 + 0.2 * n1), wQ);
+  float weed = smoothstep(0.62, 0.8, cNoise(p * 0.35 + 40.0) * 0.7 + n3 * 0.3) * (1.0 - wQ * 0.8);
   wc = mix(wc, cLin(98.0, 128.0, 44.0), weed * 0.8);
   c = mix(c, wc, water);
   sRough -= water * (1.0 - weed) * 0.12;
@@ -303,6 +420,18 @@ export function drawCountryMinimap(ctx, x0, y0, x1, y1) {
         }
       }
       ctx.stroke();
+      ctx.lineWidth = MAAR_WATER * 2;
+      ctx.beginPath();
+      if (maarX(bx)) { ctx.moveTo(ox, oy); ctx.lineTo(ox, oy + BLOCK); }
+      if (maarY(by)) { ctx.moveTo(ox, oy); ctx.lineTo(ox + BLOCK, oy); }
+      ctx.stroke();
+      const v = villageOf(bx, by);
+      if (v) {
+        ctx.fillStyle = 'rgba(138, 106, 85, 0.55)';
+        ctx.beginPath();
+        ctx.arc(v.x, v.y, v.r * 0.85, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.strokeStyle = '#a8ada2';
       ctx.lineWidth = 3;
       ctx.beginPath();

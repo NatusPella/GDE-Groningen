@@ -1,8 +1,10 @@
 import { clamp, closestPointOnSegment, pointInPolygon } from './util.js';
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
-import { spawnCopPedestriansNear, isInsideBuilding } from './pedestrians.js';
+import { spawnCopPedestriansNear, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
+import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 
 const DECAY_TIME = 14;
 const LOSE_AFTER = 5;
@@ -24,16 +26,40 @@ const MOTOR_MODEL = { name: 'scooter', len: 1.3, wid: 0.45, maxSpeed: 17, accel:
 const DESPAWN_DIST = 260;
 const SPAWN_STAGGER = 1.4;
 const FIRE_RANGE = 28;
-const BUST_FAST_SPEED = 9;
 const DIRECT_CHASE_DIST = 30;
+
+// Units come in from out of sight: far enough to need a few seconds to
+// arrive, hidden from the camera (see isSpawnHidden) and never on top of
+// other traffic.
+const SPAWN_MIN_DIST = 90;
+const SPAWN_MAX_DIST = 180;
+const SEARCH_SPAWN_MIN_DIST = 70;
+const COP_PED_MIN_DIST = 40;
+
+// Top speed per wanted level (index = stars); a regular sedan does 33.
+const POLICE_TOP_SPEED = [28, 29, 30.5, 32, 33.5, 35];
+const POLICE_ACCEL = [8, 8, 8.5, 9, 9.5, 10];
+const RUBBER_BAND_DIST = 110;
+const RUBBER_BAND_BOOST = 1.06;
+
+// GTA-style arrests: never on contact. On foot a cop has to stand next to
+// you for a moment while you're (nearly) stopped; in a car you have to be
+// boxed in and stopped with police right beside you.
+const FOOT_BUST_RANGE = 1.3;
+const FOOT_BUST_MAX_SPEED = 2.5;
+const FOOT_BUST_TIME = 0.8;
+const CAR_BUST_MAX_SPEED = 1.2;
+const CAR_BUST_CAR_GAP = 2.2;
+const CAR_BUST_COP_RANGE = 3.2;
+const CAR_BUST_TIME = 2.5;
 
 // "Politie ook te voet" - a small pool of cop Pedestrians (see
 // spawnCopPedestriansNear in pedestrians.js), grown only once there's
 // something to respond to.
 const COP_PED_WANTED_THRESHOLD = 1;
 const COP_PED_TARGET_PER_WANTED = 1;
-const COP_PED_TARGET_MAX = 4;
-const COP_PED_TARGET_MAX_HIGH = 7;
+const COP_PED_TARGET_MAX = 3;
+const COP_PED_TARGET_MAX_HIGH = 5;
 const COP_PED_SPAWN_STAGGER = 2.2;
 const COP_PED_DESPAWN_DIST = 140;
 
@@ -45,6 +71,7 @@ const BOAT_SPAWN_STAGGER = 3;
 const BOAT_SPAWN_MAX_DIST = 200;
 const WATER_PROXIMITY = 25;
 const BOAT_DESPAWN_DIST = 280;
+const BOAT_SPAWN_MIN_DIST = 60;
 
 // "Politie per heli" - a single always-circling unit at high wanted, no
 // collision, purely a lerp-follow overhead presence (see updatePoliceHeli).
@@ -53,6 +80,8 @@ const HELI_ALTITUDE = 30;
 const HELI_ORBIT_RADIUS = 22;
 const HELI_ORBIT_SPEED = 0.6;
 const HELI_FOLLOW_LERP = 1.1;
+const HELI_MAX_SPEED = 26;
+const HELI_SPAWN_DIST = 220;
 const HELI_ROTOR_SPEED = 22;
 
 // Per-world scratch state that doesn't belong on the shared World contract
@@ -68,34 +97,69 @@ function getState(world) {
   return s;
 }
 
-// 60-120m out is far enough to be off-screen in both the 3D follow-cam
-// (140m draw distance, but a chase-cam's forward FOV covers a small slice
-// of that radius) and the minimap, without needing a camera/viewport
-// dependency here at all.
-function findSpawnRoad(map, px, py) {
-  for (let attempt = 0; attempt < 6; attempt++) {
-    const ang = Math.random() * Math.PI * 2;
-    const d = 60 + Math.random() * 60;
-    const x = px + Math.cos(ang) * d;
-    const y = py + Math.sin(ang) * d;
-    const rp = map.nearestRoadPoint(x, y, 200, true);
-    if (rp) return rp.road;
+function spawnSpotHidden(world, x, y, angle = 0, half = 0) {
+  if (!isSpawnHidden(world, x, y)) return false;
+  if (!half) return true;
+  const fx = Math.cos(angle) * half, fy = Math.sin(angle) * half;
+  return isSpawnHidden(world, x + fx, y + fy) && isSpawnHidden(world, x - fx, y - fy);
+}
+
+function vehicleClearance(world, x, y, r) {
+  for (const o of world.vehicles) if (Math.abs(o.x - x) < r && Math.abs(o.y - y) < r && Math.hypot(o.x - x, o.y - y) < r) return false;
+  return true;
+}
+
+// A road point SPAWN_MIN..MAX_DIST from (cx, cy), at least minFromPlayer from
+// the player and out of the camera's sight, preferring spots behind or
+// beside the player when they're driving.
+function findSpawnPoint(world, cx, cy, minFromPlayer = SPAWN_MIN_DIST) {
+  const { map, player: p } = world;
+  const pv = p.inVehicle;
+  const heading = pv ? (pv.speed >= 0 ? pv.angle : pv.angle + Math.PI) : null;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    let ang = Math.random() * Math.PI * 2;
+    if (heading !== null && Math.abs(pv.speed) > 6 && attempt < 6) ang = heading + Math.PI / 2 + Math.random() * Math.PI;
+    const d = SPAWN_MIN_DIST + Math.random() * (SPAWN_MAX_DIST - SPAWN_MIN_DIST);
+    const rp = map.nearestRoadPoint(cx + Math.cos(ang) * d, cy + Math.sin(ang) * d, 40, true);
+    if (!rp || rp.road.bridge) continue;
+    const dp = Math.hypot(rp.x - p.x, rp.y - p.y);
+    if (dp < minFromPlayer || dp > SPAWN_MAX_DIST + 20) continue;
+    if (!spawnSpotHidden(world, rp.x, rp.y, 0, 0) || !vehicleClearance(world, rp.x, rp.y, 8)) continue;
+    return rp;
   }
   return null;
 }
 
+function spawnPoliceVehicleAt(world, rp, opts = {}) {
+  const v = spawnVehicleOnRoad(world.map, rp.road, !opts.motor, Math.random, false, false, { x: rp.x, y: rp.y }, !!opts.motor);
+  if (!spawnSpotHidden(world, v.x, v.y, v.angle, v.halfLen || 2.2)) return null;
+  if (isInsideBuilding(world.map, v.x, v.y)) return null;
+  return v;
+}
+
 function trySpawnPolice(world, state) {
   const alive = world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked && !v._roadblock && !v._motor && !v.isBoat);
-  const target = world.wanted === 0 ? 1 : Math.min(8, world.wanted + 1);
+  const target = Math.max(1, Math.min(5, world.wanted));
   if (alive.length >= target || world.time < state.nextSpawnAt) return;
+  state.nextSpawnAt = world.time + 0.5;
   const pol = world.police;
   const c = pol && pol.searching && pol.searchCenter ? pol.searchCenter : world.player;
-  const road = findSpawnRoad(world.map, c.x, c.y);
-  if (!road) return;
-  const v = spawnVehicleOnRoad(world.map, road, true, Math.random);
-  if (pol && pol.searching && Math.hypot(v.x - world.player.x, v.y - world.player.y) < 70) return;
+  const rp = findSpawnPoint(world, c.x, c.y, pol && pol.searching ? SEARCH_SPAWN_MIN_DIST : SPAWN_MIN_DIST);
+  if (!rp) return;
+  const v = spawnPoliceVehicleAt(world, rp);
+  if (!v) return;
+  tunePoliceCar(v, world);
   world.vehicles.push(v);
   state.nextSpawnAt = world.time + SPAWN_STAGGER;
+}
+
+// The police model object is per car (spawnVehicleOnRoad builds a fresh
+// one), so it can follow the wanted level.
+function tunePoliceCar(v, world, boost = 1) {
+  if (v._motor || v.isBoat || v.model.name !== 'police') return;
+  const w = clamp(world.wanted, 0, 5);
+  v.model.maxSpeed = POLICE_TOP_SPEED[w] * boost;
+  v.model.accel = POLICE_ACCEL[w];
 }
 
 function despawnFarPolice(world) {
@@ -141,6 +205,7 @@ function updateChase(v, dt, world) {
     v._sees = d < SEE_RANGE_CAR && hasLineOfSight(world.map, v.x, v.y, p.x, p.y);
     v._direct = d < DIRECT_CHASE_DIST && v._sees && !pol.searching;
   }
+  tunePoliceCar(v, world, d > RUBBER_BAND_DIST && !v._sees ? RUBBER_BAND_BOOST : 1);
   let goal = p;
   if (pol.searching) {
     if (!v._searchGoal || Math.hypot(v._searchGoal.x - v.x, v._searchGoal.y - v.y) < 12 || world.time > (v._searchGoalUntil || 0)) {
@@ -149,12 +214,13 @@ function updateChase(v, dt, world) {
     }
     goal = v._searchGoal;
   }
+  const cruise = pursuitCruise(v, d, pv, pol.searching);
   if (!v._direct && v.road && !v._wasDirect) {
-    updateTrafficAI(v, dt, world.map, world, Math.random, { goal, chase: true });
+    updateTrafficAI(v, dt, world.map, world, Math.random, { goal, chase: true, cruise });
   } else if (!v._direct) {
     if (!attachToNearestRoad(v, world.map)) v._direct = true;
     v._wasDirect = false;
-    updateTrafficAI(v, dt, world.map, world, Math.random, { goal, chase: true });
+    updateTrafficAI(v, dt, world.map, world, Math.random, { goal, chase: true, cruise });
   } else {
     v._wasDirect = true;
     const lead = pv ? 0.5 : 0;
@@ -163,16 +229,30 @@ function updateChase(v, dt, world) {
     const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
     const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;
     const alpha = Math.atan2(lat, fwd);
-    const steer = Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(2 * lat / Math.max(1, dx * dx + dy * dy) / maxCurvature(v), -1, 1);
-    let vTarget = pv ? Math.hypot(tvx, tvy) + clamp(d - 4, -4, 20) * 0.8 : clamp((d - 2) * 1.2, 0, 12);
-    if (Math.abs(alpha) > 0.7) vTarget = Math.min(vTarget, 7);
+    const curv = 2 * lat / Math.max(1, dx * dx + dy * dy);
+    const steer = Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(curv / maxCurvature(v), -1, 1);
+    // close in gently: a few m/s over the player's speed, never a lunge
+    let vTarget = pv ? Math.hypot(tvx, tvy) + clamp((d - 6) * 0.35, -4, 4) : clamp((d - 3) * 0.8, 0, 9);
+    vTarget = Math.min(vTarget, Math.sqrt(5.5 / Math.max(1e-3, Math.abs(curv))));
+    if (Math.abs(alpha) > 0.7) vTarget = Math.min(vTarget, 6);
     vTarget = Math.min(vTarget, v.model.maxSpeed);
     const err = vTarget - v.speed;
-    const throttle = err > 0.25 ? clamp(err * 0.6, 0.2, 1) : 0;
-    const brake = err < -0.5 ? clamp(-err * 0.35, 0.1, 1) : 0;
+    const throttle = err > 0.25 ? clamp(err * 0.4, 0.15, 1) : 0;
+    const brake = err < -0.5 ? clamp(-err * 0.3, 0.1, 1) : 0;
     v.applyControls(dt, throttle, steer, brake);
   }
   resolveVehicleBuildingCollision(v, world.map, dt);
+}
+
+// Road-following pursuit speed: close to top speed while catching up, only
+// a little over the player's own speed once on their tail, patrol pace
+// while searching. Corner braking stays with the traffic AI.
+function pursuitCruise(v, d, pv, searching) {
+  const top = v.model.maxSpeed;
+  if (searching) return top * 0.55;
+  if (d > 70) return top * 0.88;
+  const ps = pv ? Math.abs(pv.speed) : 7;
+  return clamp(ps + 2 + d * 0.06, 10, top * 0.92);
 }
 
 function maybeFire(v, dt, world) {
@@ -191,20 +271,74 @@ function maybeFire(v, dt, world) {
   });
 }
 
-function checkBusted(v, world) {
+// Arrest state lives on world.police.bust (0..1 progress) so the HUD or
+// audio can pick it up.
+function updateBust(dt, world) {
+  const pol = world.police;
   const p = world.player;
-  if (p.inVehicle && Math.abs(p.inVehicle.speed) > BUST_FAST_SPEED) return;
-  let dist = Math.hypot(v.x - p.x, v.y - p.y);
-  let contact = v.halfWid + (p.radius || 0.35) + 0.15;
-  if (!p.inVehicle) {
-    // on foot the player is solid against cars, so measure to the body
-    const h = Math.max(0, v.halfLen - v.halfWid), fx = Math.cos(v.angle) * h, fy = Math.sin(v.angle) * h;
-    dist = Math.sqrt(closestPointOnSegment(p.x, p.y, v.x - fx, v.y - fy, v.x + fx, v.y + fy).dist2);
-    contact = v.halfWid + (p.radius || 0.35) + 0.4;
+  const bust = pol.bust || (pol.bust = { t: 0, progress: 0, mode: null, warned: false });
+  let mode = null;
+  if (world.wanted > 0 && !world.pendingRespawn && !isKnockedDown(p, world)) {
+    const pv = p.inVehicle;
+    if (!pv) {
+      if (Math.hypot(p.vx || 0, p.vy || 0) < FOOT_BUST_MAX_SPEED && !p.water && copPedWithin(world, FOOT_BUST_RANGE)) mode = 'foot';
+    } else if (!pv.isBoat && Math.abs(pv.speed) < CAR_BUST_MAX_SPEED && (policeCarBeside(world, pv) || copPedWithin(world, pv.halfWid + CAR_BUST_COP_RANGE))) {
+      mode = 'car';
+    }
   }
-  if (dist <= contact) {
+  if (!mode) {
+    bust.t = Math.max(0, bust.t - dt * 2);
+    if (bust.t === 0) { bust.mode = null; bust.warned = false; }
+  } else {
+    if (bust.mode !== mode) bust.t = 0;
+    bust.mode = mode;
+    bust.t += dt;
+  }
+  const need = bust.mode === 'car' ? CAR_BUST_TIME : FOOT_BUST_TIME;
+  bust.progress = bust.mode ? Math.min(1, bust.t / need) : 0;
+  if (bust.mode === 'car' && !bust.warned && bust.t > 0.6) {
+    bust.warned = true;
+    world.addMessage('Je bent klemgereden, wegwezen!', 2);
+  }
+  if (bust.mode && bust.t >= need) {
+    bust.t = 0;
+    bust.progress = 0;
+    bust.mode = null;
     requestRespawn(world, { busted: true, moneyPenalty: world.wanted * 150 });
   }
+}
+
+function copPedWithin(world, r) {
+  const p = world.player;
+  for (const c of world.pedestrians) {
+    if (!c.isCop || c.state === 'dead' || c.ragdoll) continue;
+    if (Math.abs(c.x - p.x) < r + 0.5 && Math.abs(c.y - p.y) < r + 0.5 && Math.hypot(c.x - p.x, c.y - p.y) < r + (c.radius || 0.35)) return true;
+  }
+  return false;
+}
+
+// A stopped police car whose body is within a couple of metres of the
+// player's car (side-by-side, nose to door, bumper to bumper).
+function policeCarBeside(world, pv) {
+  for (const v of world.vehicles) {
+    if (!v.isPolice || v === pv || v.isBoat || v.wrecked || v.hijacked || v.driver === 'player' || Math.abs(v.speed) > 3) continue;
+    const reach = pv.halfLen + v.halfLen + CAR_BUST_CAR_GAP;
+    if (Math.abs(v.x - pv.x) > reach || Math.abs(v.y - pv.y) > reach) continue;
+    if (bodyGap(pv, v) < CAR_BUST_CAR_GAP) return true;
+  }
+  return false;
+}
+
+function bodyGap(a, b) {
+  const ha = Math.max(0, a.halfLen - a.halfWid), hb = Math.max(0, b.halfLen - b.halfWid);
+  const ax = Math.cos(a.angle) * ha, ay = Math.sin(a.angle) * ha;
+  const bx = Math.cos(b.angle) * hb, by = Math.sin(b.angle) * hb;
+  let best = Infinity;
+  for (const t of [-1, -0.5, 0, 0.5, 1]) {
+    const cp = closestPointOnSegment(b.x + bx * t, b.y + by * t, a.x - ax, a.y - ay, a.x + ax, a.y + ay);
+    best = Math.min(best, cp.dist2);
+  }
+  return Math.sqrt(best) - a.halfWid - b.halfWid;
 }
 
 // --- foot police --------------------------------------------------------
@@ -220,8 +354,13 @@ function trySpawnCopPeds(world, state) {
   const target = Math.min(max, Math.ceil(world.wanted * COP_PED_TARGET_PER_WANTED * (world.wanted >= MOTOR_WANTED ? 1.5 : 1)));
   if (alive.length >= target) return;
   const pol = world.police;
-  const c = pol.searching ? randomPointInSearch(pol) : world.player;
-  world.pedestrians.push(...spawnCopPedestriansNear(world.map, c.x, c.y, 1, Math.random));
+  const p = world.player;
+  const c = pol.searching ? randomPointInSearch(pol) : p;
+  state.nextCopPedSpawnAt = world.time + 0.6;
+  const cops = spawnCopPedestriansNear(world.map, c.x, c.y, 1, Math.random, true, COP_PED_MIN_DIST)
+    .filter((cop) => Math.hypot(cop.x - p.x, cop.y - p.y) >= COP_PED_MIN_DIST);
+  if (!cops.length) return;
+  world.pedestrians.push(...cops);
   state.nextCopPedSpawnAt = world.time + COP_PED_SPAWN_STAGGER;
 }
 
@@ -252,7 +391,10 @@ function trySpawnPoliceBoat(world, state) {
   const poly = polys[Math.floor(Math.random() * polys.length)];
   state.nextBoatSpawnAt = world.time + BOAT_SPAWN_STAGGER;
   const boat = spawnPoliceBoatOnWater(world.map, poly, Math.random);
-  if (boat) world.vehicles.push(boat);
+  if (!boat) return;
+  const d = Math.hypot(boat.x - world.player.x, boat.y - world.player.y);
+  if (d < BOAT_SPAWN_MIN_DIST || !spawnSpotHidden(world, boat.x, boat.y, boat.angle, 2)) { state.nextBoatSpawnAt = world.time + 0.5; return; }
+  world.vehicles.push(boat);
 }
 
 function despawnFarPoliceBoats(world) {
@@ -272,8 +414,11 @@ function despawnFarPoliceBoats(world) {
 function updatePoliceHeli(dt, world) {
   const active = world.wanted >= HELI_WANTED_THRESHOLD;
   if (active && !world.policeHeli) {
+    const view = world.pedView;
+    const back = view ? Math.atan2(view.camY - world.player.y, view.camX - world.player.x) : Math.random() * Math.PI * 2;
+    const a = back + (Math.random() - 0.5) * 1.2;
     world.policeHeli = {
-      x: world.player.x + 60, y: world.player.y + 60, z: HELI_ALTITUDE,
+      x: world.player.x + Math.cos(a) * HELI_SPAWN_DIST, y: world.player.y + Math.sin(a) * HELI_SPAWN_DIST, z: HELI_ALTITUDE,
       angle: 0, orbitAngle: Math.random() * Math.PI * 2,
       spotX: world.player.x, spotY: world.player.y, spotOn: false, sweep: 0,
     };
@@ -291,8 +436,11 @@ function updatePoliceHeli(dt, world) {
   const targetX = center.x + Math.cos(heli.orbitAngle) * orbit;
   const targetY = center.y + Math.sin(heli.orbitAngle) * orbit;
   const t = Math.min(1, dt * HELI_FOLLOW_LERP);
-  heli.x += (targetX - heli.x) * t;
-  heli.y += (targetY - heli.y) * t;
+  let mx = (targetX - heli.x) * t, my = (targetY - heli.y) * t;
+  const m = Math.hypot(mx, my), maxStep = HELI_MAX_SPEED * dt;
+  if (m > maxStep) { mx *= maxStep / m; my *= maxStep / m; }
+  heli.x += mx;
+  heli.y += my;
   heli.z += (HELI_ALTITUDE - heli.z) * Math.min(1, dt * 0.8);
   heli.angle = Math.atan2(targetY - heli.y, targetX - heli.x);
 
@@ -308,7 +456,8 @@ function updatePoliceHeli(dt, world) {
   const dx = sx - heli.spotX, dy = sy - heli.spotY, d = Math.hypot(dx, dy);
   const step = Math.min(d, HELI_SPOT_SPEED * dt);
   if (d > 0.01) { heli.spotX += dx / d * step; heli.spotY += dy / d * step; }
-  heli.spotOn = world.wanted >= 5 && (world.dayNight?.night ?? 0) > 0.5;
+  heli.spotOn = (world.dayNight?.night ?? 0) > 0.3;
+  heli.spotK = (heli.spotK || 0) + ((heli.spotOn ? 1 : 0) - (heli.spotK || 0)) * Math.min(1, dt * 2);
 }
 
 // --- line of sight / search ---------------------------------------------
@@ -444,10 +593,11 @@ function tryRoadblock(world, state) {
   if (world.vehicles.some((v) => v._roadblock)) return;
   state.nextRoadblockAt = world.time + 3;
   const heading = pv.speed >= 0 ? pv.angle : pv.angle + Math.PI;
-  const ahead = 75 + Math.min(40, Math.abs(pv.speed) * 2.5);
+  const ahead = 95 + Math.min(45, Math.abs(pv.speed) * 2.5);
   const tx = p.x + Math.cos(heading) * ahead, ty = p.y + Math.sin(heading) * ahead;
   const rp = world.map.nearestRoadPoint(tx, ty, 30, true);
-  if (!rp || Math.hypot(rp.x - p.x, rp.y - p.y) < 55) return;
+  if (!rp || Math.hypot(rp.x - p.x, rp.y - p.y) < 70) return;
+  if (!spawnSpotHidden(world, rp.x, rp.y, 0, 0) || !spawnSpotHidden(world, rp.x, rp.y, heading, 5)) return;
   const road = rp.road;
   if (road.bridge) return;
   const pts = road.pts;
@@ -512,9 +662,10 @@ function trySpawnMotor(world, state) {
   const alive = world.vehicles.filter((v) => v._motor && !v.wrecked && !v.hijacked);
   if (alive.length >= MOTOR_MAX) return;
   state.nextMotorAt = world.time + 3;
-  const road = findSpawnRoad(world.map, world.player.x, world.player.y);
-  if (!road) return;
-  const v = spawnVehicleOnRoad(world.map, road, false, Math.random, false, false, null, true);
+  const rp = findSpawnPoint(world, world.player.x, world.player.y);
+  if (!rp) return;
+  const v = spawnPoliceVehicleAt(world, rp, { motor: true });
+  if (!v) return;
   v.model = MOTOR_MODEL;
   v.isPolice = true;
   v._motor = true;
@@ -540,13 +691,14 @@ export function updatePolice(dt, world) {
   tryRoadblock(world, state);
   updateRoadblocks(world);
   updatePoliceHeli(dt, world);
+  updateBust(dt, world);
 
   const chasing = world.wanted > 0;
   const seen = world.police.seenRecently;
   for (const v of world.vehicles) {
     // boats chase via updateBoatAI; a stolen police car is just a car now
     if (!v.isPolice || v.hijacked || v.isBoat || v.wrecked || v.driver === 'player') continue;
-    if (v._roadblock) { checkBusted(v, world); continue; }
+    if (v._roadblock) continue;
 
     if (chasing !== v._chasing) {
       if (!chasing) { attachToNearestRoad(v, world.map); v._direct = false; v._wasDirect = false; }
@@ -556,7 +708,6 @@ export function updatePolice(dt, world) {
     if (chasing) {
       updateChase(v, dt, world);
       if (world.wanted >= 3 && seen && v._sees) maybeFire(v, dt, world);
-      checkBusted(v, world);
     } else if (v._motor) {
       v._motor = false;
       v.isPolice = false;
@@ -626,41 +777,28 @@ export function buildPoliceHeliMesh3D() {
   beacon.position.set(0.3, 0.7, 0);
   group.add(beacon);
 
-  const searchlight = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.24, 8), heliMat(0xdddddd));
+  const lensMat = new THREE.MeshBasicMaterial({ color: 0x9a9a9a });
+  const searchlight = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.24, 8), lensMat);
   searchlight.rotation.z = Math.PI / 2;
   searchlight.position.set(1.1, -0.45, 0);
   group.add(searchlight);
 
-  const cone = new THREE.Mesh(SPOT_CONE_GEO, SPOT_CONE_MAT);
+  if (!SPOT_CONE.geo) { SPOT_CONE.geo = makeBeamGeometry(20); SPOT_CONE.mat = makeBeamMaterial(0xfff1c8); }
+  const cone = new THREE.Mesh(SPOT_CONE.geo, SPOT_CONE.mat);
   cone.visible = false;
   cone.renderOrder = 5;
+  cone.frustumCulled = false;
   group.add(cone);
-  const disc = new THREE.Mesh(SPOT_DISC_GEO, SPOT_DISC_MAT);
-  disc.visible = false;
-  disc.renderOrder = 5;
-  group.add(disc);
   group.userData.spotCone = cone;
-  group.userData.spotDisc = disc;
+  group.userData.lensMat = lensMat;
 
   return group;
 }
 
-const SPOT_CONE_GEO = (() => {
-  const g = new THREE.ConeGeometry(1, 1, 14, 1, true);
-  g.translate(0, -0.5, 0);
-  return g;
-})();
-const SPOT_CONE_MAT = new THREE.MeshBasicMaterial({
-  color: 0xfff1c8, transparent: true, opacity: 0.11, depthWrite: false,
-  blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
-});
-const SPOT_DISC_GEO = new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2);
-const SPOT_DISC_MAT = new THREE.MeshBasicMaterial({
-  color: 0xfff4d6, transparent: true, opacity: 0.45, depthWrite: false,
-  blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2,
-});
+const SPOT_CONE = { geo: null, mat: null };
 const _spotV = new THREE.Vector3();
 const _spotO = new THREE.Vector3();
+const _spotW = new THREE.Vector3();
 const _down = new THREE.Vector3(0, -1, 0);
 
 // Spins the main + tail rotor. Call once per frame after repositioning the
@@ -669,20 +807,24 @@ const _down = new THREE.Vector3(0, -1, 0);
 export function updatePoliceHeliMesh3D(mesh, time) {
   mesh.userData.rotor.rotation.y = time * HELI_ROTOR_SPEED;
   mesh.userData.tailRotor.rotation.x = time * HELI_ROTOR_SPEED * 1.6;
-  const { spotCone: cone, spotDisc: disc } = mesh.userData;
+  const { spotCone: cone, lensMat } = mesh.userData;
   const heli = heliRender.heli;
-  const on = !!(cone && heli && heli.spotOn);
-  if (cone) { cone.visible = on; disc.visible = on; }
+  const reach = heli ? Math.hypot(heli.spotX - heli.x, heli.spotY - heli.y) : 0;
+  const k = heli ? (heli.spotK || 0) * (1 - Math.min(1, Math.max(0, (reach - 55) / 55))) : 0;
+  const on = !!(cone && k > 0.01);
+  if (lensMat) lensMat.color.setScalar(0.6 + 2.4 * k);
+  if (cone) cone.visible = on;
   if (!on) return;
   mesh.updateMatrixWorld(true);
   const origin = _spotO.set(1.1, -0.45, 0);
   const target = mesh.worldToLocal(_spotV.set(heli.spotX, 0.06, heli.spotY));
-  disc.position.copy(target);
   const r = HELI_SEE_RADIUS * 0.75;
-  disc.scale.set(r, 1, r);
   const dir = target.clone().sub(origin);
   const len = dir.length();
   cone.position.copy(origin);
   cone.quaternion.setFromUnitVectors(_down, dir.normalize());
   cone.scale.set(r, len, r);
+  cone.material.uniforms.uOpacity.value = 0.3 * k;
+  mesh.localToWorld(_spotW.copy(origin));
+  requestSearchlight(_spotW.x, _spotW.y, _spotW.z, heli.spotX, 0, heli.spotY, r, k, 1);
 }

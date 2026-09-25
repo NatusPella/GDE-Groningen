@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { helipadInfo, DECK_RAISE } from './skyprops.js';
 import { pointInPolygon } from './util.js';
+import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 
 // 3D side of skyprops.js: the UMCG rooftop helipad, the trauma helicopter
 // and hot-air balloons. Meshes are local +X forward like every other actor.
@@ -227,18 +228,9 @@ function buildHeli() {
 }
 
 function buildBeam() {
-  const geo = new THREE.ConeGeometry(1, 1, 20, 1, true);
-  geo.translate(0, -0.5, 0);
+  const geo = makeBeamGeometry(20);
   geo.rotateX(-Math.PI / 2);
-  const p = geo.attributes.position, cols = [];
-  for (let i = 0; i < p.count; i++) {
-    const k = Math.pow(1 - p.getZ(i), 1.6);
-    cols.push(k, k * 0.97, k * 0.9);
-  }
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
-  const beam = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
-    vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, side: THREE.FrontSide,
-  }));
+  const beam = new THREE.Mesh(geo, makeBeamMaterial(0xfff4e0));
   beam.frustumCulled = false;
   const spot = new THREE.Mesh(new THREE.CircleGeometry(1, 28), new THREE.MeshBasicMaterial({
     map: glowTexture(), color: 0xfff1d6, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
@@ -424,10 +416,11 @@ function updateHeli3D(world, pad, dt) {
     beam.beam.position.copy(_v);
     beam.beam.lookAt(_q);
     beam.beam.scale.set(len * spread, len * spread, len);
-    beam.beam.material.opacity = 0.07 * sl;
+    beam.beam.material.uniforms.uOpacity.value = 0.2 * sl;
     beam.spot.position.set(_q.x, ty3, _q.z);
     beam.spot.scale.setScalar(Math.max(2.5, len * spread * 1.2));
-    beam.spot.material.opacity = 0.5 * sl * Math.min(1, 70 / len);
+    beam.spot.material.opacity = 0.2 * sl * Math.min(1, 70 / len);
+    requestSearchlight(_v.x, _v.y, _v.z, _q.x, _q.y, _q.z, len * spread * 1.2, sl * smoothstep(260, 140, Math.hypot(h.x - world.player.x, h.y - world.player.y)));
   }
   updateDust(h, dt);
 }

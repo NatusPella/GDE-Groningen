@@ -1,8 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetailTexture, createRoofTileTexture, composeMatrix } from './pixelart3d.js';
 import { getLandmarkModel } from './landmarkmodels.js';
+import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
-import { pointInPolygon } from './util.js';
+import { pointInPolygon, WATER_Y } from './util.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -13,7 +14,13 @@ import { pointInPolygon } from './util.js';
 
 const LEVEL_HEIGHT = 3.1;
 const TOWER_HEIGHT = 95;
-const HOUSEBOAT_MAX_DEPTH = 3.5;
+const HOUSEBOAT_MAX_DEPTH = 4.2, HOUSEBOAT_MIN_DEPTH = 2.6;
+// Houseboats are built from y=0 like any building, then the whole group is
+// sunk so the hull sits HOUSEBOAT_DRAFT deep in the canal.
+const HOUSEBOAT_DRAFT = 0.3;
+export const HOUSEBOAT_BASE_Y = WATER_Y - HOUSEBOAT_DRAFT;
+const HOUSEBOAT_HULL_H = 0.85;
+const HOUSEBOAT_WALLS = [0x6b8a5a, 0x3f6f8a, 0x8a5a3c, 0xd6cab0, 0xcfb46c, 0x5b3a2e, 0xa3b2a0, 0x2f4a3a];
 const CITY_CENTRE = [100, 77];
 const CITY_CENTRE_R = 650;
 const PART_CACHE_MAX = 800;
@@ -75,6 +82,13 @@ function wallMaterial(hex) {
     m.onBeforeCompile = wallContactOnBeforeCompile;
     wallMatCache.set(hex, m);
   }
+  return m;
+}
+// No street-contact darkening: a houseboat's walls start below street level.
+const boatWallMatCache = new Map();
+function houseboatWallMaterial(hex) {
+  let m = boatWallMatCache.get(hex);
+  if (!m) boatWallMatCache.set(hex, m = habboMaterial(hex, { side: THREE.DoubleSide }));
   return m;
 }
 const roofMatCache = new Map();
@@ -141,6 +155,7 @@ const detailMaterial = vcMaterial({ side: THREE.DoubleSide });
 
 export function setNightFactor(glow, litFrac, shopFrac = litFrac) {
   setGlassNight(glow, litFrac, shopFrac);
+  setLandmarkNight(glow);
 }
 
 // Darkens the bottom metre of walls a little: cheap contact shadow where
@@ -913,9 +928,15 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   const shopTop = Math.min(floorH - 0.35, 3.2);
 
   if (!industrial) {
-    const plinthH = houseboat ? 0.7 : 0.4;
+    const plinthH = houseboat ? HOUSEBOAT_HULL_H : 0.4;
     const plinthC = houseboat ? 0x2a2f38 : HARDSTONE;
     for (const e of open) wallBox(B, e, 0, e.len, 0, plinthH, 0, 0.035, plinthC, G_DETAIL, FACE_FRONT | FACE_TOP);
+    if (houseboat) {
+      for (const e of edges) {
+        wallBox(B, e, -0.08, e.len + 0.08, plinthH - 0.1, plinthH, 0, 0.1, 0x8a6440, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+        wallBox(B, e, 0, e.len, HOUSEBOAT_DRAFT + 0.03, HOUSEBOAT_DRAFT + 0.15, 0, 0.045, 0x6e2e26, G_DETAIL, FACE_FRONT);
+      }
+    }
   }
 
   let windows = 0;
@@ -1144,6 +1165,9 @@ function pickColors(b, box, archetype, fine) {
   if (archetype === 'industrial') {
     return { wallHex: INDUSTRIAL_WALLS[Math.floor(fine * INDUSTRIAL_WALLS.length)], roofHex: INDUSTRIAL_ROOF, frame: 0x4a4d50 };
   }
+  if (archetype === 'houseboat') {
+    return { wallHex: HOUSEBOAT_WALLS[Math.floor(fine * HOUSEBOAT_WALLS.length)], roofHex: 0x3a3b3d, frame: 0xece8de };
+  }
   const fam = PALETTE_FAMILIES[familyIndexFor(box)];
   return { wallHex: fam.wall[Math.floor(fine * fam.wall.length)], roofHex: fam.roof, frame: fam.frame };
 }
@@ -1168,11 +1192,12 @@ export function buildingLodStyle(b) {
   const box = bboxOf(b);
   const archetype = archetypeOf(b);
   const fine = hash2(box.cx, box.cy);
-  const depth = archetype === 'houseboat' ? Math.min(HOUSEBOAT_MAX_DEPTH, Math.max(1.6, b.h * LEVEL_HEIGHT)) : Math.max(2.4, b.h * LEVEL_HEIGHT) + (b.lift || 0);
+  const depth = archetype === 'houseboat' ? Math.min(HOUSEBOAT_MAX_DEPTH, Math.max(HOUSEBOAT_MIN_DEPTH, b.h * LEVEL_HEIGHT)) : Math.max(2.4, b.h * LEVEL_HEIGHT) + (b.lift || 0);
   const { wallHex, roofHex } = pickColors(b, box, archetype, fine);
-  const pitched = archetype === 'house' || (archetype !== 'industrial' && b.h <= 3 && Math.min(box.w, box.d) <= 11);
+  const pitched = archetype === 'house' || (archetype !== 'industrial' && archetype !== 'houseboat' && b.h <= 3 && Math.min(box.w, box.d) <= 11);
   return {
     ring: sanitizeFootprint(b.pts).pts,
+    base: archetype === 'houseboat' ? HOUSEBOAT_BASE_Y : 0,
     depth: pitched ? depth + 1.5 : depth,
     wallHex: BRICKS.has(wallHex) ? shade(wallHex, 0.95) : shade(wallHex, 0.9),
     roofHex: pitched ? shade(roofHex, 0.9) : 0x68686a,
@@ -1192,6 +1217,20 @@ export function buildBuildingMesh(b) {
     }
   }
 
+  if (hasLandmarkModel(b)) {
+    const box = bboxOf(b);
+    markPartyWalls(b, box.edges);
+    if (!b._geo3dParts) b._geo3dParts = {};
+    touchParts(b);
+    const parts = b._geo3dParts;
+    if (parts.landmark === undefined) parts.landmark = buildLandmarkGeometry(b, sanitizeFootprint(b.pts).pts, box.edges);
+    if (parts.landmark) {
+      const group = new THREE.Group();
+      group.add(new THREE.Mesh(parts.landmark, LANDMARK_MATERIALS));
+      return group;
+    }
+  }
+
   const box = bboxOf(b);
   const archetype = archetypeOf(b);
   const fine = hash2(box.cx, box.cy);
@@ -1199,7 +1238,7 @@ export function buildBuildingMesh(b) {
 
   let depth;
   if (b.landmark && b.landmarkKind === 'tower') depth = TOWER_HEIGHT * 0.6;
-  else if (archetype === 'houseboat') depth = Math.min(HOUSEBOAT_MAX_DEPTH, Math.max(1.6, b.h * LEVEL_HEIGHT));
+  else if (archetype === 'houseboat') depth = Math.min(HOUSEBOAT_MAX_DEPTH, Math.max(HOUSEBOAT_MIN_DEPTH, b.h * LEVEL_HEIGHT));
   else depth = Math.max(2.4, b.h * LEVEL_HEIGHT) + (b.lift || 0);
 
   if (!b._geo3dParts) b._geo3dParts = {};
@@ -1207,6 +1246,7 @@ export function buildBuildingMesh(b) {
   const parts = b._geo3dParts;
   if (!parts.main) parts.main = buildMainGeometry(b, depth);
   const group = new THREE.Group();
+  if (archetype === 'houseboat') group.position.y = HOUSEBOAT_BASE_Y;
 
   if (b.landmark) {
     const stone = LANDMARK_STONE[b.landmarkKind] ? landmarkStoneMaterials[b.landmarkKind] : null;
@@ -1217,7 +1257,7 @@ export function buildBuildingMesh(b) {
   }
 
   const { wallHex, roofHex, frame } = pickColors(b, box, archetype, fine);
-  const wallMat = wallMaterial(wallHex);
+  const wallMat = archetype === 'houseboat' ? houseboatWallMaterial(wallHex) : wallMaterial(wallHex);
   const roofMat = roofMaterial(roofHex);
   const flatRoofMat = flatRoofMaterials[Math.floor(hash2(fine * 7.1, fine2 * 3.3) * flatRoofMaterials.length)];
   group.add(new THREE.Mesh(parts.main, [flatRoofMat, wallMat]));

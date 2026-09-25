@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { reportImpact, markWreckedByPlayer, vehicleContacts, CRASH_DAMAGE_SCALE } from './vehicle.js';
+import { reportImpact, markWreckedByPlayer, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
 import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 import { streamTreeProps } from './treeprops.js';
 import { streamTrafficLightProps } from './trafficlights.js';
@@ -56,6 +56,22 @@ export function propKey(kind, x, y) {
 
 export function isPropBroken(key) {
   return broken.has(key);
+}
+
+export function propsInRadius(x, y, r, kinds = null) {
+  const out = [];
+  propsNear(x, y, r, out);
+  return out.filter((p) => (!kinds || kinds.includes(p.kind)) && Math.hypot(p.x - x, p.y - y) <= r);
+}
+
+// Takes a prop out of the world without breaking it (e.g. a parked bike that
+// is ridden away): hidden like a broken one, back with the usual respawn.
+export function claimProp(p) {
+  if (broken.has(p.key)) return false;
+  removeProp(p);
+  broken.set(p.key, { t: world ? world.time : 0, x: p.x, y: p.y, restore: p.onRestore || null });
+  if (p.onBreak) p.onBreak(p);
+  return true;
 }
 
 // opts: kind + x, y, optional angle (axis direction for capsule props), any
@@ -123,7 +139,8 @@ function carKg(v) {
 
 function setCarVelocity(v, vx, vy) {
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-  v.speed = clamp(vx * fx + vy * fy, -v.model.maxSpeed, v.model.maxSpeed);
+  const cap = speedCap(v);
+  v.speed = clamp(vx * fx + vy * fy, -cap, cap);
   const lat = vy * fx - vx * fy;
   v.driftX = clamp(-fy * lat, -MAX_DRIFT, MAX_DRIFT);
   v.driftY = clamp(fx * lat, -MAX_DRIFT, MAX_DRIFT);
@@ -185,7 +202,7 @@ export function resolvePropCollisions(vehicles, w) {
   world = w;
   const pl = w.player;
   for (const v of vehicles) {
-    if (v.wrecked || v.isBoat) continue;
+    if (v.wrecked || v.sinking) continue;
     const mine = v.driver === 'player';
     if (!mine && (v.isBike || v.isScooter)) continue;
     const dx = v.x - pl.x, dy = v.y - pl.y;
@@ -204,8 +221,9 @@ export function resolvePropCollisions(vehicles, w) {
 function collideVehicle(v, prev, near) {
   const step = Math.hypot(v.x - prev.x, v.y - prev.y);
   const n = step > 0.5 && step < 6 ? Math.ceil(step / 0.5) : 1;
+  const boat = !!v.isBoat;
   for (const p of near) {
-    if (!p.cell) continue;
+    if (!p.cell || !!p.water !== boat) continue;
     for (let i = 1; i <= n; i++) {
       const t = i / n;
       const x = prev.x + (v.x - prev.x) * t, y = prev.y + (v.y - prev.y) * t;
@@ -741,4 +759,52 @@ export function breakablesStats() {
   for (const l of grid.values()) n += l.length;
   return { props: n, bodies: bodies.length, broken: broken.size, recent: [...broken.keys()].slice(-4),
     list: bodies.map((b) => ({ kind: b.p.kind, x: +b.obj.position.x.toFixed(1), y: +b.obj.position.y.toFixed(2), z: +b.obj.position.z.toFixed(1), theta: b.topple ? +b.theta.toFixed(2) : undefined, sleep: b.sleep })) };
+}
+
+// --- walkers (player, companion, pedestrians, animals) --------------------------
+
+const WALK_KICK_MASS = 20;
+const WALK_KICK_SPEED = 1.8;
+const SEAT_KINDS = new Set(['bench', 'chair', 'table']);
+// low street clutter that AI walkers weave through: their routes follow the
+// facades where Groningen parks its bikes, and pressing into a bike row
+// only gets them stuck
+const PED_PASSABLE = new Set(['bike', 'nietje', 'scooter', 'chair', 'table', 'parasol', 'bin', 'kliko', 'stoepbord']);
+const _walk = [];
+
+// Pushes a walking circle out of every prop it overlaps. Light props (bins,
+// chairs, parked bikes...) bumped at a jog or faster are kicked over instead.
+// opts: { kick = true, byPlayer = false, skipSeats = false, ped = false }
+export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null) {
+  if (!grid.size) return [x, y];
+  const near = propsNear(x, y, radius + 2, _walk);
+  if (!near.length) return [x, y];
+  const kick = world && (!opts || opts.kick !== false);
+  const sp = Math.hypot(vx, vy);
+  for (const p of near) {
+    if (!p.cell || (opts && ((opts.skipSeats && SEAT_KINDS.has(p.kind)) || (opts.ped && PED_PASSABLE.has(p.kind))))) continue;
+    const c = closestPointOnSegment(x, y, p.x - p.hx, p.y - p.hy, p.x + p.hx, p.y + p.hy);
+    const rr = p.r + radius;
+    if (c.dist2 >= rr * rr) continue;
+    if (kick && p.mass <= WALK_KICK_MASS && sp >= WALK_KICK_SPEED) {
+      breakProp(p, { vx: vx * 0.9, vy: vy * 0.9, speed: sp * 0.6, lift: 0.5, nx: vx / sp, ny: vy / sp, byPlayer: !!(opts && opts.byPlayer) });
+      continue;
+    }
+    const d = Math.sqrt(c.dist2);
+    let nx, ny;
+    if (d > 1e-4) { nx = (x - c.x) / d; ny = (y - c.y) / d; }
+    else if (sp > 1e-3) { nx = -vx / sp; ny = -vy / sp; }
+    else { nx = 1; ny = 0; }
+    x = c.x + nx * rr;
+    y = c.y + ny * rr;
+  }
+  return [x, y];
+}
+
+// Fixed scenery that only needs a collider (canopy posts, viaduct piers):
+// registered once, never broken. `water` props only meet boats and swimmers.
+export function addStaticCollider(kind, x, y, r, half = 0, angle = 0, water = false) {
+  const p = makeProp(kind, x, y, { r, half, angle, h: 4, mass: 1e5, material: 'metal', breakSpeed: Infinity, breakCost: 0, water, key: propKey(kind, x, y) });
+  addProp(p);
+  return p;
 }

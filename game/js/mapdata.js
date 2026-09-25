@@ -1,4 +1,4 @@
-import { polygonBounds, closestPointOnSegment, pointInPolygon } from './util.js';
+import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 
 const CELL = 80; // meters per grid cell
 
@@ -85,14 +85,34 @@ function liftNestedRoofs(list, grid) {
 }
 
 function buildingsOverRails(buildings, rails) {
+  return buildingsCrossedBy(buildings, rails.map((r) => r.pts || r), 4);
+}
+
+// Low footprints a bridge deck runs through at the waterside are bridge
+// machinery / abutments mapped as buildings; extruded they become a solid
+// wall straight across the carriageway, so they are dropped.
+function bridgeStructures(buildings, roads, water) {
+  const crossed = buildingsCrossedBy(buildings, roads.filter((r) => r.bridge).map((r) => r.pts), 1);
   const out = new Set();
-  if (!rails.length) return out;
+  const wet = (x, y) => water.some((w) => {
+    const [minx, miny, maxx, maxy] = w.bounds || (w.bounds = polygonBounds(w.pts));
+    return x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, w.pts);
+  });
+  for (const b of crossed) {
+    if (b.h > 4 || b.name || b.landmark || b.type === 'houseboat') continue;
+    if (b.pts.some(([x, y]) => [[0, 0], [3, 0], [-3, 0], [0, 3], [0, -3]].some(([dx, dy]) => wet(x + dx, y + dy)))) out.add(b);
+  }
+  return out;
+}
+
+function buildingsCrossedBy(buildings, lines, step) {
+  const out = new Set();
+  if (!lines.length) return out;
   const samples = [];
-  for (const r of rails) {
-    const P = r.pts || r;
+  for (const P of lines) {
     for (let i = 0; i < P.length - 1; i++) {
       const [ax, ay] = P[i], [bx, by] = P[i + 1];
-      const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 4));
+      const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
       for (let k = 0; k < n; k++) samples.push([ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n]);
     }
   }
@@ -124,9 +144,13 @@ export class GameMap {
     // kept out of the building grid so nothing collides with or spawns in them
     // Footprints a railway runs through are platform roofs / station halls
     // mapped as buildings; they become canopies too so trains pass under.
-    const all = dedupeBuildings(data.buildings);
+    const bridgeParts = bridgeStructures(data.buildings, data.roads, data.water);
+    const all = dedupeBuildings(data.buildings.filter((b) => !bridgeParts.has(b)));
     const overRails = buildingsOverRails(all, data.rails || []);
-    const isCanopy = (b) => b.type === 'roof' || overRails.has(b);
+    // Same for the covers/overpasses the ring road runs under (the sunken
+    // Zuidelijke Ringweg): extruded they are a block across the carriageway.
+    const overRing = buildingsCrossedBy(all, data.roads.filter((r) => r.type === 'trunk' && !r.bridge).map((r) => r.pts), 2);
+    const isCanopy = (b) => b.type === 'roof' || overRails.has(b) || overRing.has(b);
     this.canopies = all.filter(isCanopy);
     this.buildings = all.filter((b) => !isCanopy(b));
     this.water = data.water;
@@ -230,6 +254,77 @@ export class GameMap {
       y += (bestY - y) / d * (d + margin);
     }
     return [x, y];
+  }
+
+  // Can someone standing at (x,y) walk at least `reach` metres away? A 1 m
+  // flood fill over building footprints: catches courtyards that the
+  // footprints close off completely (e.g. behind the Academiegebouw), where a
+  // spawn looks fine but you can never leave.
+  canWalkOut(x, y, reach = 70, cell = 1, clearance = 0.35) {
+    const R = reach + 2;
+    const N = Math.ceil((2 * R) / cell) + 1;
+    const c0 = Math.floor(N / 2);
+    const seen = new Uint8Array(N * N);
+    const free = (px, py) => {
+      if (isInWater(this, px, py)) return false;
+      for (const b of this.buildingsNear(px, py, clearance + 0.5)) {
+        const [minx, miny, maxx, maxy] = b.bounds;
+        if (px < minx - clearance || px > maxx + clearance || py < miny - clearance || py > maxy + clearance) continue;
+        if (pointInPolygon(px, py, b.pts)) return false;
+      }
+      return true;
+    };
+    const stack = [c0 * N + c0];
+    seen[c0 * N + c0] = 1;
+    while (stack.length) {
+      const k = stack.pop();
+      const i = k % N, j = (k - i) / N;
+      const px = x + (i - c0) * cell, py = y + (j - c0) * cell;
+      if (Math.hypot(px - x, py - y) >= reach) return true;
+      for (const [a, b] of [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]) {
+        if (a < 0 || b < 0 || a >= N || b >= N) continue;
+        const kk = b * N + a;
+        if (seen[kk]) continue;
+        seen[kk] = 1;
+        if (free(x + (a - c0) * cell, y + (b - c0) * cell)) stack.push(kk);
+      }
+    }
+    return false;
+  }
+
+  // Where to put the player near (x,y): the nearest road point, pushed out of
+  // buildings, that you can actually walk away from. Falls back to further
+  // road points (proper streets first) and finally to the plain nearest one.
+  findOpenSpawn(x, y, searchRadius = 400) {
+    const first = this.nearestRoadPoint(x, y, searchRadius);
+    const tryPoint = (p) => {
+      if (!p) return null;
+      const [sx, sy] = this.escapeBuilding(p.x, p.y);
+      return this.canWalkOut(sx, sy) ? { x: sx, y: sy, road: p.road || null } : null;
+    };
+    const ok = tryPoint(first);
+    if (ok) return ok;
+    const cands = [];
+    for (const road of this.roadsNear(x, y, 160)) {
+      const pts = road.pts;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+        const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / 8));
+        for (let k = 0; k <= n; k++) {
+          const px = ax + ((bx - ax) * k) / n, py = ay + ((by - ay) * k) / n;
+          const pref = road.cat === 'foot' || road.cat === 'cycle' ? 25 : 0;
+          cands.push({ x: px, y: py, road, score: Math.hypot(px - x, py - y) + pref });
+        }
+      }
+    }
+    cands.sort((a, b) => a.score - b.score);
+    for (let i = 0; i < cands.length && i < 60; i += 3) {
+      const hit = tryPoint(cands[i]);
+      if (hit) return hit;
+    }
+    if (!first) return null;
+    const [sx, sy] = this.escapeBuilding(first.x, first.y);
+    return { x: sx, y: sy, road: first.road || null };
   }
 
   // A vehicle's (x,y) can fall inside a water polygon that a bridge actually

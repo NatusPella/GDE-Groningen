@@ -215,6 +215,15 @@ function begin(spec) {
   r.classList.remove('has-sub');
   document.body.classList.toggle('cine-hide-hud', !!active.hideHud);
   r.classList.add('active');
+  // a pausing cutscene brings the player's vehicle to a stop, so resuming
+  // doesn't launch you onward at full speed
+  if (active.pause && world && world.player && world.player.inVehicle) {
+    const v = world.player.inVehicle;
+    v.speed = 0;
+    v.driftX = 0;
+    v.driftY = 0;
+    v.yawVel = 0;
+  }
   if (active.onStart) active.onStart();
 }
 
@@ -738,6 +747,7 @@ function playWantedFive(w) {
 
 function setCamMode(m) {
   camMode = m;
+  camHeading = null; // start each camera straight behind/ahead of the car
   els.chip.textContent = m ? `Filmcamera: ${CAM_MODES[m]}` : 'Filmcamera uit';
   els.chip.classList.add('visible');
   chipTimer = 1.6;
@@ -751,13 +761,43 @@ function cycleCinemaCam(w) {
   setCamMode((camMode + 1) % CAM_MODES.length);
 }
 
+// The car cameras used to lock rigidly onto v.angle, so every drift, bump
+// and collision spin swung the view instantly - disorienting, above all in
+// the bumper view. The camera stays on the car but its heading eases after
+// it (partly towards the direction of travel) with a capped turn rate.
+let camHeading = null;
+let camHeadingT = 0;
+const CAM_HEADING_TAU = 0.25; // s
+const CAM_MAX_TURN = 2.2; // rad/s
+function smoothCamHeading(v, a) {
+  const now = performance.now() / 1000;
+  const dt = camHeading === null ? 0 : Math.min(0.1, Math.max(0, now - camHeadingT));
+  camHeadingT = now;
+  // blend in the direction of travel when drifting, so the view looks where you go
+  const vx = Math.cos(a) * (v.speed || 0) + (v.driftX || 0), vy = Math.sin(a) * (v.speed || 0) + (v.driftY || 0);
+  const moving = Math.hypot(vx, vy) > 3 && (v.speed || 0) > 0;
+  const travel = moving ? Math.atan2(vy, vx) : a;
+  const target = a + normAngle(travel - a) * 0.5;
+  if (camHeading === null) { camHeading = target; return camHeading; }
+  let d = normAngle(target - camHeading) * Math.min(1, dt / CAM_HEADING_TAU);
+  const cap = CAM_MAX_TURN * dt;
+  if (d > cap) d = cap; else if (d < -cap) d = -cap;
+  camHeading = normAngle(camHeading + d);
+  return camHeading;
+}
+function normAngle(x) {
+  x = (x + Math.PI) % (Math.PI * 2);
+  if (x < 0) x += Math.PI * 2;
+  return x - Math.PI;
+}
+
 function cinemaCamPose(w) {
   const v = w.player.inVehicle;
-  const a = v.angle != null ? v.angle : w.player.angle;
+  const a = smoothCamHeading(v, v.angle != null ? v.angle : w.player.angle);
   const fx = Math.cos(a), fy = Math.sin(a), nx = -fy, ny = fx;
   const x = v.x, y = v.y;
   switch (camMode) {
-    case 1: return { position: W(x + fx * 2.8, 0.8, y + fy * 2.8), lookAt: W(x + fx * 25, 1, y + fy * 25), fov: 74, cut: true };
+    case 1: return { position: W(x + fx * 2.8, 0.85, y + fy * 2.8), lookAt: W(x + fx * 30, 1, y + fy * 30), fov: 68, cut: true };
     case 2: return { position: W(x + nx * 6.5 - fx * 1.2, 1.3, y + ny * 6.5 - fy * 1.2), lookAt: W(x + fx * 1.5, 0.9, y + fy * 1.5), fov: 55, cut: true };
     case 3: return { position: W(x - fx * 16 + nx * 6, 24, y - fy * 16 + ny * 6), lookAt: W(x + fx * 8, 0, y + fy * 8), fov: 50, cut: true };
     case 4: return { position: W(x - fx * 22 + nx * 5, 4, y - fy * 22 + ny * 5), lookAt: W(x + fx * 5, 1, y + fy * 5), fov: 34, cut: true };

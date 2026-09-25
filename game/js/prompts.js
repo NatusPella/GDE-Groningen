@@ -2,7 +2,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getCamera } from './scene3d.js';
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender, nearestHorecaSpot, horecaState } from './horeca.js';
+import { shopPrimaryPrompt, shopSecondaryPrompts } from './shops.js';
 import { vehicleDisplayLabel } from './vehiclenames.js';
+import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
+import { findRideableProp } from './rideprops.js';
 import { getSettings } from './settings.js';
 import { isPhoneOpen } from './phone.js';
 import { isPauseMenuOpen } from './pausemenu.js';
@@ -11,7 +14,6 @@ import { lineOfSight } from './pedestrians.js';
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
 const MASTER_USES = 8;
-const ENTER_DIST = 2.5;
 const KISS_DIST = 1.8;
 const KISS_COOLDOWN = 3;
 const SECONDARY_INTERVAL = 0.15;
@@ -206,6 +208,7 @@ function vehicleVerb(v) {
   const moving = Math.abs(v.speed || 0) > 0.3;
   const occupied = v.isBoat ? moving : !v.isHeroCar && !!v.road;
   if (v.isPolice) return { label: 'Jatten', steal: true };
+  if (v.parked) return { label: v.isBus ? 'Bus jatten' : 'Auto jatten', steal: true };
   if (v.isBoat) return occupied ? { label: 'Kapen', steal: true } : { label: 'Aan boord' };
   if (v.isBike) return occupied ? { label: 'Fiets jatten', steal: true } : { label: 'Opstappen' };
   if (v.isScooter) return occupied ? { label: 'Jatten', steal: true } : { label: 'Opstappen' };
@@ -215,6 +218,7 @@ function vehicleVerb(v) {
 
 function vehicleName(v) {
   if (v.isHeroCar) return 'Jouw ouwe Fjord Escapade';
+  if (v.playerOwned) return 'Jouw ' + vehicleDisplayLabel(v);
   return vehicleDisplayLabel(v);
 }
 
@@ -230,15 +234,6 @@ function doorAnchor(v, p) {
   };
 }
 
-function nearestVehicle(world, p, maxDist) {
-  let best = null, bestD = maxDist;
-  for (const v of world.vehicles) {
-    if (v.wrecked) continue;
-    const d = Math.hypot(v.x - p.x, v.y - p.y);
-    if (d < bestD) { bestD = d; best = v; }
-  }
-  return best;
-}
 
 function facing(world) {
   const cam = getCamera();
@@ -273,6 +268,8 @@ function pedInReach(world, range, cone) {
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = world.player;
+  const shop = shopPrimaryPrompt(world);
+  if (shop) return shop;
   if (p.inVehicle) return null;
   if (p.swimming) {
     if (!p.canClimbOut) return null;
@@ -297,8 +294,15 @@ function findPrimary(world) {
     const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
     return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'E', label: 'Kusje', sub: learning('kiss') ? `Geef ${name} een smakkerd: +25 gezondheid` : name, learn: learning('kiss'), ring: true, cooldown: 0 };
   }
-  const v = nearestVehicle(world, p, ENTER_DIST);
-  if (v && !v.driver) {
+  const v = findEnterableVehicle(p.x, p.y, world.vehicles);
+  const pr = findRideableProp(p.x, p.y);
+  if (pr && (!v || pr.dist < distToVehicleBody(v, p.x, p.y))) {
+    const scooter = pr.prop.kind === 'scooter';
+    const label = scooter ? 'Scooter jatten' : 'Fiets jatten';
+    const sub = pr.prop.locked ? 'Op slot: even het slot kraken' : scooter ? 'Staat gewoon los geparkeerd' : 'Staat niet eens op slot';
+    return { id: 'prop-' + pr.prop.key, x: pr.prop.x, y: pr.prop.y, h: 1.25, key: 'E', label, sub, ring: true, steal: true };
+  }
+  if (v) {
     const verb = vehicleVerb(v);
     const a = doorAnchor(v, p);
     const learn = learning('enter');
@@ -359,6 +363,7 @@ function findSecondary(world, primary) {
       add({ id: 'h' + i, x: s.x, y: s.y, h: 1.9, label: s.name || 'Kroeg', sub: 'Loop erheen en druk E voor een hapje', kind: 'place' }, 10);
     }
   }
+  for (const c of shopSecondaryPrompts(world)) add(c, 14);
   const m = world.mission;
   if (m && (m.phase === 'idle') && m.label) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, sub: 'Loop of rij de marker in', kind: 'mission' }, 60);

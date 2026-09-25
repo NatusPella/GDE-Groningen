@@ -30,6 +30,11 @@ const MIME = {
 // GTE VI everywhere, also when run unpackaged (npm start): menu, About
 // panel, Dock, Windows taskbar grouping
 app.setName('GTE VI');
+// test runs (--stil / --smoke-test) get a throwaway profile, so they never
+// touch the player's saves, settings or achievements
+if (process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test'))) {
+  app.setPath('userData', path.join(require('os').tmpdir(), 'gte-vi-test-profile'));
+}
 if (process.platform === 'win32') app.setAppUserModelId('nl.natuspella.gte-vi');
 
 protocol.registerSchemesAsPrivileged([
@@ -126,6 +131,72 @@ function createWindow() {
           fullscreenToggle: !!document.querySelector('[data-desktop="fullscreen"]'),
         })`);
         console.log('[smoke]', info);
+        if (process.argv.includes('--perf-test')) {
+          const perf = await win.webContents.executeJavaScript(`(async () => {
+            const key = (k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); };
+            key('Enter', 'Enter');
+            await new Promise((r) => setTimeout(r, 2500));
+            const w = window.__debug && window.__debug.world;
+            for (let i = 0; i < 25 && w && w.paused; i++) { key(' ', 'Space'); await new Promise((r) => setTimeout(r, 700)); }
+            await new Promise((r) => setTimeout(r, 3000));
+            const measure = async (ms) => {
+              const t = []; let last = performance.now(); const t0 = last;
+              await new Promise((res) => { const f = () => { const n = performance.now(); t.push(n - last); last = n; if (n - t0 < ms) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
+              t.sort((a, b) => a - b);
+              const avg = t.reduce((a, b) => a + b, 0) / t.length;
+              return { fps: +(1000 / avg).toFixed(1), p50: +t[Math.floor(t.length * 0.5)].toFixed(1), p95: +t[Math.floor(t.length * 0.95)].toFixed(1) };
+            };
+            const r = window.__scene3d && window.__scene3d.renderer;
+            // draw calls / triangles per frame, main view vs shadow map
+            const sc = window.__scene3d;
+            let calls = 0, tris = 0, shadowCalls = 0, frames = 0;
+            const orig = r.render.bind(r);
+            r.render = function (scene, camera) { const c0 = r.info.render.calls, t0 = r.info.render.triangles; orig(scene, camera); calls += r.info.render.calls; tris += r.info.render.triangles; };
+            const sm = r.shadowMap; const origSm = sm.render.bind(sm);
+            sm.render = function (...a) { const before = r.info.render.calls; origSm(...a); shadowCalls += r.info.render.calls - before; };
+            r.info.autoReset = true;
+            const tc = performance.now();
+            await new Promise((res) => { const f = () => { frames++; if (performance.now() - tc < 3000) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
+            r.render = orig; sm.render = origSm;
+            const counts = { callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), shadowCallsPerFrame: Math.round(shadowCalls / frames), geometries: r.info.memory.geometries, textures: r.info.memory.textures, programs: r.info.programs.length };
+            let meshes = 0, visibleMeshes = 0, instanced = 0; sc.scene.traverse((o) => { if (o.isMesh) { meshes++; if (o.visible) visibleMeshes++; if (o.isInstancedMesh) instanced++; } });
+            counts.meshes = meshes; counts.visibleMeshes = visibleMeshes; counts.instanced = instanced;
+            const out = { counts, dpr: window.devicePixelRatio, css: [innerWidth, innerHeight], vehicles: w ? w.vehicles.length : 0, peds: w ? w.pedestrians.length : 0 };
+            for (const pr of [r ? r.getPixelRatio() : 0, 1.5, 1]) {
+              if (r && pr) { r.setPixelRatio(pr); window.dispatchEvent(new Event('resize')); await new Promise((res) => setTimeout(res, 800)); }
+              out['pr' + pr] = await measure(5000);
+            }
+            return JSON.stringify(out);
+          })()`);
+          console.log('[perf]', perf);
+          if (process.argv.includes('--profile')) {
+            const dbg = win.webContents.debugger;
+            dbg.attach('1.3');
+            await dbg.sendCommand('Profiler.enable');
+            await dbg.sendCommand('Profiler.setSamplingInterval', { interval: 200 });
+            await dbg.sendCommand('Profiler.start');
+            await new Promise((r) => setTimeout(r, 6000));
+            const { profile } = await dbg.sendCommand('Profiler.stop');
+            const byId = new Map(profile.nodes.map((n) => [n.id, n]));
+            const self = new Map();
+            const dtSum = profile.timeDeltas.reduce((a, b) => a + b, 0);
+            const per = new Map();
+            profile.samples.forEach((id, i) => per.set(id, (per.get(id) || 0) + (profile.timeDeltas[i] || 0)));
+            for (const [id, us] of per) {
+              const n = byId.get(id); const cf = n.callFrame;
+              const key = `${cf.functionName || '(anon)'} ${cf.url.split('/').pop()}:${cf.lineNumber + 1}`;
+              self.set(key, (self.get(key) || 0) + us);
+            }
+            const top = [...self.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30);
+            console.log('[profile] total ms', (dtSum / 1000).toFixed(0));
+            for (const [k, us] of top) console.log('[profile]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', k);
+            // per file
+            const byFile = new Map();
+            for (const [k, us] of self) { const f = k.split(' ').pop().split(':')[0] || '(native)'; byFile.set(f, (byFile.get(f) || 0) + us); }
+            for (const [f, us] of [...byFile.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20)) console.log('[profile-file]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', f);
+            dbg.detach();
+          }
+        }
       } catch (err) {
         console.log('[smoke error]', err && err.message);
       }

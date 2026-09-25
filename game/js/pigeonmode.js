@@ -4,9 +4,9 @@ import { buildBuildingMesh } from './models3d_buildings.js';
 import { onLandmarkModelLoaded } from './landmarkmodels.js';
 import { getSettings } from './settings.js';
 import { pushAudioEvent } from './pedestrians.js';
-import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle } from './util.js';
+import { unlockAchievement } from './achievements.js';
+import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';
 
-const WATER_Y = -1.1;
 const LEVEL_H = 3.1;
 const G = 9.8;
 const MAX_ALT = 120;
@@ -586,6 +586,7 @@ function achieve(id, line = '') {
   achCd.set(id, now + 30);
   const fresh = !store.ach.includes(id);
   if (fresh) { store.ach.push(id); saveStore(); }
+  unlockAchievement(world, 'duif_' + id, { silent: true });
   card(fresh ? 'Nieuwe prestatie' : 'Prestatie', ACH[id], line);
   sfx('achievement', P.x, P.y, 0.7);
   return true;
@@ -601,6 +602,8 @@ function checkPerch(floor) {
   }
   const b = floor.b;
   if (!b) return;
+  const pad = world.map.meta.helipad;
+  if (pad && Math.hypot(P.x - pad.x, P.y - pad.y) < pad.r + 2 && P.z > 12) unlockAchievement(world, 'umcg_heli');
   const name = b.landmark || b.name || '';
   if ((b.landmarkKind === 'tower' || name === 'Martinitoren') && P.z > 55) {
     if (achieve('martini', 'Heel Grunn ligt aan je pootjes.')) { cam.orbitT = 6; cam.orbitA = cam.yaw + Math.PI; }

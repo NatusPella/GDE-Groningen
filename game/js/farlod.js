@@ -150,9 +150,9 @@ function addBuilding(B, b) {
   }
   const pts = area2 > 0 ? ring.slice().reverse() : ring;
   const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
-  const wall = rgb8(s.wallHex), roof = rgb8(s.roofHex), h = s.depth;
+  const wall = rgb8(s.wallHex), roof = rgb8(s.roofHex), y0 = s.base || 0, h = y0 + s.depth;
   const base = B.vertCount;
-  for (const [x, y] of pts) B.vert(x, 0, y, wall, cx, cy);
+  for (const [x, y] of pts) B.vert(x, y0, y, wall, cx, cy);
   for (const [x, y] of pts) B.vert(x, h, y, wall, cx, cy);
   for (const [x, y] of pts) B.vert(x, h, y, roof, cx, cy);
   for (let i = 0; i < n; i++) {

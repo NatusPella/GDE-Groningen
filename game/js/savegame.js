@@ -2,6 +2,8 @@ import { getMissionProgress, setMissionProgress } from './missions.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { WEAPONS } from './combat.js';
 import { isCinematicActive } from './cinematics.js';
+import { getShopSave, applyShopSave } from './shops.js';
+import { getAchievementSaveData, applyAchievementSaveData } from './achievements.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
@@ -61,6 +63,8 @@ function serialize(w) {
     pos,
     missions: getMissionProgress(),
     visitedLandmarks: [...(w.visitedLandmarks instanceof Set ? w.visitedLandmarks : [])],
+    shops: getShopSave(),
+    prestaties: getAchievementSaveData(),
   };
 }
 
@@ -80,8 +84,8 @@ export function saveGame(w = world, { toast = true } = {}) {
 function placeAt(w, x, y) {
   const map = w.map;
   const p = w.player;
-  const spot = map.nearestRoadPoint(x, y, 80) || { x, y };
-  const [sx, sy] = map.escapeBuilding(spot.x, spot.y);
+  const spot = map.findOpenSpawn(x, y, 80) || { x, y };
+  const sx = spot.x, sy = spot.y;
   if (p.inVehicle) {
     const v = p.inVehicle;
     v.driver = null;
@@ -132,6 +136,8 @@ export function applySave(w, d) {
     w.pendingRespawn = null;
     setMissionProgress(w, d.missions);
     w.visitedLandmarks = new Set(Array.isArray(d.visitedLandmarks) ? d.visitedLandmarks.filter((s) => typeof s === 'string') : []);
+    applyShopSave(w, d.shops);
+    applyAchievementSaveData(d.prestaties);
     w.loadedFromSave = true;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
     lastMissionsDone = w.stats.missionsDone;

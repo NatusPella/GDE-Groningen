@@ -181,7 +181,7 @@ function initProtos() {
   protos = {
     bench: buildBench(),
     bin: buildBin(),
-    bikes: bikeColors.map(buildOmafiets),
+    bikes: bikeColors.map((c) => { const g = buildOmafiets(c); g.userData.tint = c; return g; }),
     rails: [3, 4, 5, 6].map(buildRackRail),
     table: buildTable(),
     chairs: [0x2f4a3a, 0x6b2a24, 0x23324a].map(buildChair),
@@ -356,7 +356,9 @@ function generateCell(map, cx, cy) {
         if (rng.next() < 0.18) continue;
         const t = -len / 2 + 0.35 + i * 0.7;
         const bx = rx + fx * t, by = ry + fy * t;
-        items.push(propItem(protos.bikes[Math.floor(rng.next() * protos.bikes.length)], 'bike', bx, by, bikeA + (i % 2 ? Math.PI : 0) + rng.range(-0.08, 0.08)));
+        const geo = protos.bikes[Math.floor(rng.next() * protos.bikes.length)];
+        const ba = bikeA + (i % 2 ? Math.PI : 0) + rng.range(-0.08, 0.08);
+        items.push(propItem(geo, 'bike', bx, by, ba, ba, { locked: true, tint: geo.userData.tint }));
       }
     });
     roadSamples(roads, cx0, cy0, ['normal', 'minor'], 55, rng, (r, x, y, segA) => {
@@ -494,6 +496,9 @@ function registerItems(cell, list, mesh) {
         ...d.opts,
         key,
         angle: d.axis,
+        face: d.face,
+        tint: d.tint,
+        locked: !!d.locked,
         ...(d.half ? { half: d.half } : null),
         makeMesh: () => {
           const m = new THREE.Mesh(it.geo, material);

@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { pointInPolygon } from './util.js';
+import { pointInPolygon, WATER_Y } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakables.js';
+import { policeFlash } from './models3d_vehicles.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -24,12 +25,21 @@ const CONE_MAX = 96;
 const VEH_LIGHT_DIST = 95;
 const SPOT_I = 28;
 const PROP_RADIUS = 80;
+const POLICE_COLOR = new THREE.Color(0x2a56ff);
+const POLICE_I = 46;
+const POLICE_RANGE = 19;
+const POLICE_VIEW = 75;
+const SEARCH_COLOR = new THREE.Color(0xfff2dc);
+const SEARCH_LUX = 10;
 
 let scene = null;
 let poleMesh = null, headMesh = null, poolMesh = null;
 let coneMesh = null, tailMesh = null;
 const pointLights = [];
 const spotLights = [];
+const policeLights = [];
+let searchSpot = null;
+let searchReq = null;
 const lampGrid = new Map();
 let visible = [];
 let propLamps = [];
@@ -136,6 +146,10 @@ export function initNightLights(targetScene) {
     m.renderOrder = 2;
     scene.add(m);
   }
+
+  searchSpot = new THREE.SpotLight(SEARCH_COLOR, 0, 0, 0.3, 0.45, 2);
+  scene.add(searchSpot);
+  scene.add(searchSpot.target);
 }
 
 // Real light count is fixed per quality preset (changing it recompiles
@@ -158,6 +172,71 @@ export function setNightLightQuality(level) {
     scene.add(s.target);
   }
   for (const l of pointLights) l.userData.lamp = null;
+  const nPolice = level === 'hoog' ? 3 : level === 'middel' ? 2 : 1;
+  while (policeLights.length > nPolice) scene.remove(policeLights.pop());
+  while (policeLights.length < nPolice) {
+    const l = new THREE.PointLight(POLICE_COLOR, 0, POLICE_RANGE, 1.5);
+    policeLights.push(l);
+    scene.add(l);
+  }
+  for (const l of policeLights) l.userData.unit = null;
+}
+
+// Helicopter searchlights ask for the single shared SpotLight each frame;
+// the strongest request wins (police over the trauma heli via `priority`).
+export function requestSearchlight(ox, oy, oz, tx, ty, tz, radius, strength, priority = 0) {
+  const score = strength + priority;
+  if (strength <= 0.01 || (searchReq && searchReq.score >= score)) return;
+  searchReq = { ox, oy, oz, tx, ty, tz, radius, strength, score };
+}
+
+function updateSearchlight() {
+  if (!searchSpot) return;
+  const r = searchReq;
+  searchReq = null;
+  if (!r) { searchSpot.intensity = 0; return; }
+  searchSpot.position.set(r.ox, r.oy, r.oz);
+  searchSpot.target.position.set(r.tx, r.ty, r.tz);
+  searchSpot.target.updateMatrixWorld();
+  const len = Math.max(1, Math.hypot(r.tx - r.ox, r.ty - r.oy, r.tz - r.oz));
+  searchSpot.angle = Math.min(0.9, Math.atan(r.radius / len) * 1.25);
+  // decay 2 with no cutoff: scale by len^2 so the pool is equally bright at any altitude
+  searchSpot.intensity = SEARCH_LUX * r.strength * len * len;
+}
+
+function policeUnitActive(world, v) {
+  return v.isPolice && world.wanted > 0 && !v.hijacked && !v.wrecked && v.driver !== 'player' && !v.sinking;
+}
+
+function updatePoliceLights(world, vehicleMeshes, px, py, night) {
+  if (!policeLights.length) return;
+  const near = [];
+  for (const v of world.vehicles) {
+    if (!policeUnitActive(world, v) || !vehicleMeshes.has(v.id)) continue;
+    const d = Math.hypot(v.x - px, v.y - py);
+    if (d < POLICE_VIEW) near.push({ v, d });
+  }
+  near.sort((a, b) => a.d - b.d);
+  const keep = new Set(near.slice(0, policeLights.length).map((n) => n.v));
+  for (const l of policeLights) if (l.userData.unit && !keep.has(l.userData.unit)) l.userData.unit = null;
+  for (const v of keep) {
+    if (policeLights.some((l) => l.userData.unit === v)) continue;
+    const free = policeLights.find((l) => !l.userData.unit);
+    if (free) free.userData.unit = v;
+  }
+  const bright = 0.18 + 0.82 * smoothstep(0.05, 0.45, night);
+  for (const l of policeLights) {
+    const v = l.userData.unit;
+    const f = v ? policeFlash(world.time, v.id) : 0;
+    if (!f) { l.intensity = 0; continue; }
+    const small = v.isScooter || v.isBike;
+    const side = f * ((v.model.wid || 1.8) * 0.5 + (small ? 0.25 : 0.55));
+    const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
+    const y = v.isBoat ? WATER_Y + 1.6 : small ? 1.3 : v.isBus ? 3.4 : 2.05;
+    l.position.set(v.x - sa * side, y, v.y + ca * side);
+    const d = Math.hypot(v.x - px, v.y - py);
+    l.intensity = POLICE_I * bright * (small ? 0.45 : 1) * (1 - smoothstep(POLICE_VIEW * 0.7, POLICE_VIEW, d));
+  }
 }
 
 function hash(x, y) {
@@ -415,4 +494,63 @@ export function updateNightLights(world, vehicleMeshes, px, py, night, wet) {
   }
   updateRealLampLights(px, py);
   updateVehicleLights(world, vehicleMeshes, px, py, smoothstep(0.04, 0.3, night));
+  updatePoliceLights(world, vehicleMeshes, px, py, night);
+  updateSearchlight();
+}
+
+// Unit open cone for a light beam: apex at the origin, base radius 1 at y=-1.
+export function makeBeamGeometry(segments = 24) {
+  const g = new THREE.ConeGeometry(1, 1, segments, 6, true);
+  g.translate(0, -0.5, 0);
+  const p = g.attributes.position, along = new Float32Array(p.count);
+  for (let i = 0; i < p.count; i++) along[i] = -p.getY(i);
+  g.setAttribute('aAlong', new THREE.BufferAttribute(along, 1));
+  return g;
+}
+
+// Additive "volumetric" beam: brightest along the core (soft silhouette via
+// the view/normal angle), fading with length and towards the ground so the
+// cut where the cone meets the street never shows, and dimmed by scene fog.
+export function makeBeamMaterial(color = 0xfff1c8) {
+  return new THREE.ShaderMaterial({
+    uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
+      uColor: { value: new THREE.Color(color) },
+      uOpacity: { value: 0 },
+    }]),
+    vertexShader: `
+      attribute float aAlong;
+      varying float vAlong;
+      varying vec3 vN;
+      varying vec3 vV;
+      #include <fog_pars_vertex>
+      void main() {
+        vAlong = aAlong;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vN = normalize(normalMatrix * normal);
+        vV = normalize(-mvPosition.xyz);
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }`,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uOpacity;
+      varying float vAlong;
+      varying vec3 vN;
+      varying vec3 vV;
+      #include <fog_pars_fragment>
+      void main() {
+        float core = pow(abs(dot(normalize(vN), normalize(vV))), 1.6);
+        float len = mix(1.0, 0.4, vAlong) * (1.0 - smoothstep(0.75, 1.0, vAlong)) * smoothstep(0.0, 0.04, vAlong);
+        float a = uOpacity * core * len;
+        #ifdef USE_FOG
+          a *= 1.0 - 0.85 * smoothstep(fogNear, fogFar, vFogDepth);
+        #endif
+        gl_FragColor = vec4(uColor * a, 1.0);
+      }`,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    fog: true,
+  });
 }
