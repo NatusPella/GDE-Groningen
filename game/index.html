@@ -83,6 +83,7 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
   }
   #start-screen .ss-credit { position: absolute; right: 4vw; top: 4vh; margin: 0; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: rgba(240,237,228,0.7); text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
+  #start-screen .ss-credit .ss-ver { margin-left: 10px; color: rgba(63,201,122,0.85); letter-spacing: 1.5px; }
   #start-screen .ss-credit .heart { display: inline-block; animation: ss-beat 1.6s ease-in-out infinite; }
   @keyframes ss-beat { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.18); } }
   @media (prefers-reduced-motion: reduce) { #start-screen .ss-credit .heart { animation: none; } }
@@ -206,7 +207,7 @@
     <nav class="ss-menu" role="menu" aria-label="Hoofdmenu"></nav>
   </div>
   <p class="ss-foot"><span class="key">Esc</span> in het spel: menu, kaart &amp; besturing</p>
-  <p class="ss-credit">Made with <span class="heart" aria-label="love">❤️</span> in Groningen, with AI</p>
+  <p class="ss-credit">Made with <span class="heart" aria-label="love">❤️</span> in Groningen, with AI<span class="ss-ver"></span></p>
 </div>
 <!-- GLTFLoader.js (used by landmarkmodels.js) imports the bare specifier
      "three" internally rather than a full CDN URL like every other module

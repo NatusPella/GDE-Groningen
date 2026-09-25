@@ -1,0 +1,82 @@
+{
+  "name": "gte-vi",
+  "productName": "GTE VI",
+  "version": "0.0.0",
+  "description": "GTE VI - Grand Theft Eierbal VI",
+  "author": "NatusPella",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "stage": "node build.mjs",
+    "start": "npm run stage && electron .",
+    "dist:mac": "npm run stage && electron-builder --mac --universal",
+    "dist:win": "npm run stage && electron-builder --win --x64",
+    "dist": "npm run stage && electron-builder --mac --universal && electron-builder --win --x64",
+    "release": "sh release.sh"
+  },
+  "build": {
+    "appId": "nl.natuspella.gte-vi",
+    "productName": "GTE VI",
+    "directories": {
+      "output": "dist",
+      "buildResources": "resources"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/game",
+        "to": "game"
+      }
+    ],
+    "asar": true,
+    "mac": {
+      "target": [
+        {
+          "target": "dmg"
+        }
+      ],
+      "category": "public.app-category.games",
+      "icon": "resources/icon.png",
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "GTE VI ${version}",
+      "artifactName": "GTE-VI-${version}-mac.${ext}"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signExecutable": false,
+      "icon": "resources/icon.png",
+      "legalTrademarks": "GTE VI"
+    },
+    "portable": {
+      "artifactName": "GTE-VI-${version}-windows-portable.exe",
+      "unpackDirName": "GTE-VI"
+    },
+    "toolsets": {
+      "nsis": "1.2.1"
+    },
+    "copyright": "\u00a9 2026 NatusPella",
+    "nsis": {
+      "shortcutName": "GTE VI"
+    },
+    "afterPack": "scripts/adhoc-sign.cjs"
+  },
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3"
+  }
+}
