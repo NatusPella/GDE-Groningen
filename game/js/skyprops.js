@@ -8,8 +8,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const SPAWN_MIN_INTERVAL = 90;
 const SPAWN_MAX_INTERVAL = 180;
-const SPAWN_DIST = 130; // just past scene3d.js's 140m DRAW_DIST, so it fades in at the edge rather than popping in mid-sky
-const DESPAWN_DIST = 170;
+// beyond the far view distance (up to 600 m) so they drift in out of the haze
+// instead of popping into view mid-sky
+const SPAWN_DIST = 620;
+const DESPAWN_DIST = 680;
 const ALT_MIN = 40, ALT_MAX = 60;
 const SPEED_MIN = 4, SPEED_MAX = 7;
 const HEADING_SPREAD = 1.0; // rad, keeps it from always flying the exact same line

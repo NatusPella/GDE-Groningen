@@ -267,9 +267,16 @@ function computeRoute(world, target, mode) {
   const map = world.map;
   const p = world.player;
   let pts = null;
-  const driveOnly = mode === 'drive';
+  let driveOnly = mode === 'drive';
+  let to = snapToRoad(map, target.x, target.y, driveOnly);
+  // targets in car-free areas (Grote Markt, Poelestraat): the player can
+  // still drive there, so route over the walk network instead of stopping
+  // at the nearest car street
+  if (driveOnly && to && Math.hypot(to.x - target.x, to.y - target.y) > CONNECTOR_MAX_M) {
+    const tw = snapToRoad(map, target.x, target.y, false);
+    if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { driveOnly = false; to = tw; }
+  }
   const from = snapToRoad(map, p.x, p.y, driveOnly);
-  const to = snapToRoad(map, target.x, target.y, driveOnly);
   if (from && to) {
     pts = astar(from, to, !driveOnly);
     if (!pts && driveOnly) {

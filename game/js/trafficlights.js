@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { makeProp, addProp, removeProp } from './breakables.js';
 
 const GREEN_TIME = 8;
 const YELLOW_TIME = 2;
@@ -11,6 +12,8 @@ const CONTROLLER_RADIUS = 30;
 
 let lights = [];
 let controllers = [];
+let map = null;
+const PROP_RADIUS = 70;
 
 function phaseAt(t) {
   if (t < GREEN_TIME) return 'green';
@@ -25,6 +28,7 @@ export function getTrafficLights() {
 // Phase seen by traffic travelling at `heading`: the controller's main axis
 // runs the first half of the cycle, the cross axis the second half.
 export function trafficLightPhaseFor(light, heading) {
+  if (light.broken) return 'green';
   const c = light.ctrl;
   const main = Math.abs(Math.cos(heading - c.axis)) >= Math.SQRT1_2;
   return phaseAt(main ? c.t : (c.t + RED_TIME) % CYCLE_TIME);
@@ -52,6 +56,7 @@ function roadAxisAt(map, x, y) {
 }
 
 export function initTrafficLights(world) {
+  map = world.map;
   const positions = world.map.meta.trafficLights || [];
   lights = positions.map((p) => ({ x: p.x, y: p.y, t: 0, axis: roadAxisAt(world.map, p.x, p.y), ctrl: null }));
   controllers = [];
@@ -70,6 +75,30 @@ export function initTrafficLights(world) {
 export function updateTrafficLights(dt, world) {
   for (const c of controllers) c.t = (c.t + dt) % CYCLE_TIME;
   for (const light of lights) light.t = light.ctrl.t;
+}
+
+// A knocked-down signal stops controlling its arm until it respawns.
+export function streamTrafficLightProps(world, px, py) {
+  for (const light of lights) {
+    const near = Math.abs(light.x - px) < PROP_RADIUS && Math.abs(light.y - py) < PROP_RADIUS;
+    if (!near || light.broken) {
+      if (light.prop) { removeProp(light.prop); light.prop = null; }
+      continue;
+    }
+    if (light.prop) continue;
+    const spot = light.spot || (light.spot = placeTrafficLight(light, map));
+    const prop = makeProp('trafficlight', spot.x, spot.y, {
+      onBreak: () => { light.broken = true; light.prop = null; },
+      onRestore: () => { light.broken = false; },
+      makeMesh: () => {
+        const g = buildTrafficLightMesh3D();
+        setTrafficLightPhase3D(g, 'off');
+        g.rotation.y = -spot.angle;
+        return g;
+      },
+    });
+    if (addProp(prop)) light.prop = prop;
+  }
 }
 
 const PHASE_COLORS = { green: 0x2ecc40, yellow: 0xf1c40f, red: 0xe74c3c };

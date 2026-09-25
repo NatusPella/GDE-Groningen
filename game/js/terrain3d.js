@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { pointInPolygon, polygonBounds } from './util.js';
+import { polygonBounds } from './util.js';
+import { createWaterIndex } from './waterindex.js';
 
 // Replaces the old flat 2-triangle "fallback floor" PlaneGeometry(6000,6000)
 // + single-color MeshLambertMaterial that used to live in scene3d.js's
@@ -43,10 +44,11 @@ uniform vec3 uColorA;
 uniform vec3 uColorB;
 uniform vec3 uColorDetail;
 
+// scaled down first so large map coordinates keep float precision (no stripes)
 float tHash(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
 }
 
 float tNoise(vec2 p) {
@@ -88,10 +90,11 @@ const WET_GLSL = `
 uniform float uWet;
 uniform float uRainTime;
 varying vec2 vWetXZ;
+// scaled down first so large map coordinates keep float precision (no stripes)
 float wHash(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
 }
 float wNoise(vec2 p) {
   vec2 i = floor(p), f = fract(p);
@@ -109,30 +112,37 @@ vec2 wRipple(vec2 p) {
 }
 `;
 
-function wetOnBeforeCompile(shader) {
+// surf (optional): extra GLSL from roadsurface.js. Its color code may set
+// sDip (puddle bias), sRough (roughness delta) and sHeight (bump, metres).
+function wetOnBeforeCompile(shader, surf) {
   Object.assign(shader.uniforms, WET_UNIFORMS);
   shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nvarying vec2 vWetXZ;')
-    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWetXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
+    .replace('#include <common>', '#include <common>\nvarying vec2 vWetXZ;\n' + (surf ? surf.vertexCommon : ''))
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWetXZ = (modelMatrix * vec4(transformed, 1.0)).xz;\n' + (surf ? surf.vertexMain : ''));
   shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\n' + WET_GLSL + (shader.__terrain ? ALBEDO_GLSL : ''))
+    .replace('#include <common>', '#include <common>\n' + WET_GLSL + (shader.__terrain ? ALBEDO_GLSL : '') + (surf ? surf.fragmentCommon : ''))
     .replace('#include <color_fragment>', `#include <color_fragment>
+      float sDip = 0.0, sRough = 0.0, sHeight = 0.0;
       ${shader.__terrain ? 'diffuseColor.rgb *= terrainAlbedo(vWetXZ);' : ''}
-      float wetP = wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3;
+      ${surf ? surf.color : ''}
+      float wetP = wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3 + sDip * 0.35;
       float puddle = smoothstep(0.74 - 0.12 * uWet, 0.8 - 0.12 * uWet, wetP) * uWet;
       diffuseColor.rgb *= mix(1.0, 0.58, uWet) * mix(1.0, 0.5, puddle);`)
     .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+      roughnessFactor = clamp(roughnessFactor + sRough, 0.03, 1.0);
       roughnessFactor = mix(roughnessFactor, 0.34, uWet);
       roughnessFactor = mix(roughnessFactor, 0.04, puddle);`)
     .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+      ${surf ? surf.normal : ''}
       if (puddle > 0.01) {
         vec2 rip = wRipple(vWetXZ * 1.6) + wRipple(vWetXZ * 2.3 + 11.0);
         normal = normalize(normal + vec3(rip.x, rip.y, 0.0) * 0.25 * puddle);
       }`);
 }
 
-export function applyWetGround(material) {
-  material.onBeforeCompile = wetOnBeforeCompile;
+export function applyWetGround(material, surf) {
+  material.onBeforeCompile = surf ? (shader) => wetOnBeforeCompile(shader, surf) : wetOnBeforeCompile;
+  if (surf) material.customProgramCacheKey = () => surf.key;
   return material;
 }
 
@@ -156,20 +166,28 @@ export function createTerrainMaterial() {
 
 function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
 
-// Cheap bbox-then-ray-cast point-in-any-water test. waterList entries are
-// {pts, bounds} (bounds = [minx,miny,maxx,maxy], same shape GameMap already
-// stamps onto every map.water[i] in mapdata.js). The bbox check is what
-// keeps 155 polygons affordable against a ~10k-vertex/~20k-triangle grid -
-// the real ray-cast (pointInPolygon) only runs for polygons whose bbox
-// actually contains the point, which for a sparse water layer is rare.
-function isPointInAnyWater(x, y, waterList) {
-  for (let i = 0; i < waterList.length; i++) {
-    const w = waterList[i];
-    const b = w.bounds;
-    if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
-    if (pointInPolygon(x, y, w.pts)) return true;
-  }
-  return false;
+function segTouchesTri(px, py, qx, qy, x0, y0, x1, y1, x2, y2) {
+  if (Math.max(px, qx) < Math.min(x0, x1, x2) || Math.min(px, qx) > Math.max(x0, x1, x2)) return false;
+  if (Math.max(py, qy) < Math.min(y0, y1, y2) || Math.min(py, qy) > Math.max(y0, y1, y2)) return false;
+  if (inTri(px, py, x0, y0, x1, y1, x2, y2) || inTri(qx, qy, x0, y0, x1, y1, x2, y2)) return true;
+  return segSeg(px, py, qx, qy, x0, y0, x1, y1) || segSeg(px, py, qx, qy, x1, y1, x2, y2) || segSeg(px, py, qx, qy, x2, y2, x0, y0);
+}
+
+function inTri(px, py, x0, y0, x1, y1, x2, y2) {
+  const d1 = (px - x1) * (y0 - y1) - (x0 - x1) * (py - y1);
+  const d2 = (px - x2) * (y1 - y2) - (x1 - x2) * (py - y2);
+  const d3 = (px - x0) * (y2 - y0) - (x2 - x0) * (py - y0);
+  return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+}
+
+function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
+  const d1x = p1x - p0x, d1y = p1y - p0y, d2x = q1x - q0x, d2y = q1y - q0y;
+  const den = d1x * d2y - d1y * d2x;
+  if (Math.abs(den) < 1e-12) return false;
+  const wx = q0x - p0x, wy = q0y - p0y;
+  const t = (wx * d2y - wy * d2x) / den;
+  const u = (wx * d1y - wy * d1x) / den;
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1;
 }
 
 // bounds = [minx, miny, maxx, maxy] in world meters (world.map.meta.bounds).
@@ -251,9 +269,49 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   }
 
   const maxTriangles = segsX * segsZ * 2;
-  const indices = new Uint32Array(maxTriangles * 3);
-  let indexCount = 0;
+  const indices = [];
   let droppedTriangles = 0;
+  const index = waterList.length ? createWaterIndex(waterList) : null;
+
+  // Triangles crossed by a water edge are subdivided down to ~2.5 m and
+  // every leaf still touching an edge is dropped, so ground never overhangs
+  // the water; the quay walls/banks cover the narrow remaining gap.
+  const extra = [];
+  const midKeys = new Map();
+  const mid = (i, j) => {
+    const k = i < j ? i * 4294967296 + j : j * 4294967296 + i;
+    let v = midKeys.get(k);
+    if (v === undefined) {
+      v = nx * nz + extra.length / 3;
+      extra.push((vx(i) + vx(j)) / 2, 0, (vz(i) + vz(j)) / 2);
+      midKeys.set(k, v);
+    }
+    return v;
+  };
+  const vx = (i) => (i < nx * nz ? positions[i * 3] : extra[(i - nx * nz) * 3]);
+  const vz = (i) => (i < nx * nz ? positions[i * 3 + 2] : extra[(i - nx * nz) * 3 + 2]);
+  const emit = (a, b, c, cand, depth) => {
+    const x0 = vx(a), y0 = vz(a), x1 = vx(b), y1 = vz(b), x2 = vx(c), y2 = vz(c);
+    const hit = cand.filter((i) => segTouchesTri(index.ax[i], index.ay[i], index.bx[i], index.by[i], x0, y0, x1, y1, x2, y2));
+    if (!hit.length) {
+      if (index.inWater((x0 + x1 + x2) / 3, (y0 + y1 + y2) / 3)) droppedTriangles++;
+      else indices.push(a, b, c);
+      return;
+    }
+    if (depth >= 2) { droppedTriangles++; return; }
+    const ab = mid(a, b), bc = mid(b, c), ca = mid(c, a);
+    emit(a, ab, ca, hit, depth + 1);
+    emit(ab, b, bc, hit, depth + 1);
+    emit(ca, bc, c, hit, depth + 1);
+    emit(ab, bc, ca, hit, depth + 1);
+  };
+  const tri = (a, b, c) => {
+    if (!index) { indices.push(a, b, c); return; }
+    const xs = [vx(a), vx(b), vx(c)], zs = [vz(a), vz(b), vz(c)];
+    const cand = [];
+    index.edgesIn(Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs), (i) => cand.push(i));
+    emit(a, b, c, cand, 0);
+  };
 
   for (let j = 0; j < segsZ; j++) {
     for (let i = 0; i < segsX; i++) {
@@ -261,37 +319,23 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
       const b = j * nx + i + 1;
       const c = (j + 1) * nx + i;
       const d = (j + 1) * nx + i + 1;
-
-      const ax = positions[a * 3], ay = positions[a * 3 + 2];
-      const bx = positions[b * 3], by = positions[b * 3 + 2];
-      const cx = positions[c * 3], cy = positions[c * 3 + 2];
-      const dx = positions[d * 3], dy = positions[d * 3 + 2];
-
-      // triangle 1: a, c, b
-      const cx1 = (ax + cx + bx) / 3, cy1 = (ay + cy + by) / 3;
-      if (waterList.length && isPointInAnyWater(cx1, cy1, waterList)) {
-        droppedTriangles++;
-      } else {
-        indices[indexCount++] = a; indices[indexCount++] = c; indices[indexCount++] = b;
-      }
-
-      // triangle 2: b, c, d
-      const cx2 = (bx + cx + dx) / 3, cy2 = (by + cy + dy) / 3;
-      if (waterList.length && isPointInAnyWater(cx2, cy2, waterList)) {
-        droppedTriangles++;
-      } else {
-        indices[indexCount++] = b; indices[indexCount++] = c; indices[indexCount++] = d;
-      }
+      tri(a, c, b);
+      tri(b, c, d);
     }
   }
 
-  const normals = new Float32Array(nx * nz * 3);
+  const allPositions = new Float32Array(positions.length + extra.length);
+  allPositions.set(positions);
+  allPositions.set(extra, positions.length);
+  const indexCount = indices.length;
+
+  const normals = new Float32Array(allPositions.length);
   for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
 
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('position', new THREE.BufferAttribute(allPositions, 3));
   geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-  geo.setIndex(new THREE.BufferAttribute(indices.subarray(0, indexCount), 1));
+  geo.setIndex(new THREE.BufferAttribute(new Uint32Array(indices.slice(0, indexCount)), 1));
   geo.computeBoundingSphere();
 
   const material = createTerrainMaterial();

@@ -12,7 +12,7 @@ import { buildPersonMesh, animatePersonWalk, seatPerson, SEATED_DROP, TAMMO_APPE
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
-import { buildSeagullMesh3D, buildCowMesh3D, buildSheepMesh3D, animateWildlifeMesh3D } from './wildlife.js';
+import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import {
   getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
@@ -20,8 +20,10 @@ import {
 } from './pickups.js';
 import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D, placeTrafficLight, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
-import { createWaterMaterial, updateWaterMaterial } from './water3d.js';
-import { buildFallenTreeMesh3D, updateFallenTreeMesh3D } from './treeprops.js';
+import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
+import { buildShore, updateShore } from './quaywalls.js';
+import { getWaterIndex } from './waterindex.js';
+import { setTreeMeshBuilder } from './treeprops.js';
 import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
@@ -35,6 +37,8 @@ import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
+import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
+import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -95,10 +99,8 @@ onLandmarkModelLoaded((name) => {
   }
 });
 const roadMeshes = new Map();
-const greenMeshes = new Map();
 const waterMeshes = new Map();
 const treeMeshes = new Map();
-const fallenTreeMeshes = new Map();
 const vehicleFireMeshes = new Map();
 let impactSparkEffects = [];
 let vehicleExplosionEffects = [];
@@ -281,7 +283,7 @@ function seatOffset(v, driverSeat) {
 function placeSeated(personMesh, v, driverSeat) {
   const seat = seatOffset(v, driverSeat);
   const c = Math.cos(v.angle), sn = Math.sin(v.angle);
-  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : 0) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
+  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : v.sinking ? v.sinking.z : 0) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
   personMesh.rotation.set(0, -v.angle, 0);
 }
 
@@ -397,9 +399,11 @@ export function init3D(map) {
   for (const b of map.buildings) if (b.landmark) landmarkBuildings.push(b);
   farLod = createFarLOD(scene, map, {
     flatGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)),
-    colors: { roads: ROAD_COLORS3D, sidewalk: SIDEWALK_COLOR, green: GREEN_COLOR },
+    colors: { roads: ROAD_COLORS3D, sidewalk: SIDEWALK_COLOR, green: GREEN_COLOR, greenOf: grassFarColor, greenRank: grassFarRank },
     sidewalkExtra: SIDEWALK_EXTRA,
+    roadColorOf: roadFarColor,
   });
+  initGrass(scene, map, { polyGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)) });
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
@@ -546,112 +550,27 @@ function buildPolyGeometry(pts) {
   return geo;
 }
 
-function buildFlatMesh(poly, color, y) {
-  if (!poly._geoFlat) poly._geoFlat = buildPolyGeometry(poly.pts);
-  let mat = flatMaterials.get(color);
-  if (!mat) flatMaterials.set(color, mat = groundMaterial(color, GROUND_LAYER.green));
-  const mesh = new THREE.Mesh(poly._geoFlat, mat);
-  mesh.position.y = y;
-  mesh.receiveShadow = true;
-  return mesh;
-}
-const flatMaterials = new Map();
-
 // One shared animated ShaderMaterial for every water polygon (uTime updated
 // once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
 let waterMaterial = null;
-function buildWaterMesh(poly, y) {
-  if (!poly._geoFlat) poly._geoFlat = buildPolyGeometry(poly.pts);
+function buildWaterMesh(poly, y, map) {
+  if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map));
   if (!waterMaterial) waterMaterial = createWaterMaterial(skyUniforms);
-  const mesh = new THREE.Mesh(poly._geoFlat, waterMaterial);
+  const group = new THREE.Group();
+  const mesh = new THREE.Mesh(poly._geoWater, waterMaterial);
   mesh.position.y = y;
-  return mesh;
-}
-
-function ribbonGeometry(pts, half) {
-  const verts = [];
-  const idx = [];
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
-    const dx = bx - ax, dy = by - ay;
-    const len = Math.hypot(dx, dy) || 1;
-    const nx = -dy / len * half, ny = dx / len * half;
-    const base = verts.length / 3;
-    verts.push(ax + nx, 0, ay + ny);
-    verts.push(ax - nx, 0, ay - ny);
-    verts.push(bx + nx, 0, by + ny);
-    verts.push(bx - nx, 0, by - ny);
-    // counter-clockwise seen from above, so the faces point up (+Y) and
-    // survive single-sided back-face culling
-    idx.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  geo.setIndex(idx);
-  geo.computeVertexNormals();
-  return geo;
+  group.add(mesh);
+  const shore = buildShore(poly, map, { waterY: y, apronMaterial: terrainMesh.material });
+  if (shore) group.add(shore);
+  return group;
 }
 
 // Darker, more saturated asphalt than the earlier pass - against the tan
 // ground fill these read unmistakably as "a road" instead of blending into
-// a same-toned gray; major/normal roads also get a painted centerline
-// (the single strongest "this is a street" visual cue a real road has).
+// a same-toned gray. The far LOD uses these flat colours.
 const ROAD_COLORS3D = { cycle: 0x94412f, foot: 0x837d71, major: 0x57595c, normal: 0x4b4d50, minor: 0x4b4d50 };
 const GREEN_COLOR = 0x5c8a4d;
-// Ground decals (green, sidewalks, road categories, markings) overlap at
-// every junction a few millimetres apart - far below depth-buffer precision
-// at street distance, so they flickered. Each layer gets a fixed
-// polygonOffset step instead, which resolves in depth-buffer space and so
-// holds at any distance; higher layers always win.
-const GROUND_LAYER = { green: 1, sidewalk: 2, foot: 3, cycle: 4, minor: 5, normal: 6, major: 7, marking: 8 };
-function groundMaterial(color, layer, Mat = THREE.MeshLambertMaterial) {
-  return new Mat({ color, polygonOffset: true, polygonOffsetFactor: -layer, polygonOffsetUnits: -layer * 4 });
-}
-// Paved surfaces are Standard + the shared wet-ground shader so rain can
-// darken and gloss them in one uniform write.
-function pavedMaterial(color, layer, roughness) {
-  const m = groundMaterial(color, layer, THREE.MeshStandardMaterial);
-  m.roughness = roughness;
-  return applyWetGround(m);
-}
-const CENTERLINE_MAT = pavedMaterial(0xf2f0e6, GROUND_LAYER.marking, 0.7); // Dutch road markings are white
-// Real streets have a sidewalk/verge buffer between the road edge and the
-// building line - most residential OSM ways don't map that as a separate
-// footway, so without this the asphalt runs straight up to building
-// footprints and every street reads as far narrower than it actually is.
-// Skipped for cycle/foot categories - those already ARE the pedestrian/
-// cycle surface, they don't get a sidewalk of their own.
-const SIDEWALK_EXTRA = 1.8;
 const SIDEWALK_COLOR = 0x7b776d;
-const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
-const SIDEWALK_MAT = pavedMaterial(SIDEWALK_COLOR, GROUND_LAYER.sidewalk, 0.93);
-const ROAD_MATS = Object.fromEntries(Object.entries(ROAD_COLORS3D).map(([cat, color]) => [cat, pavedMaterial(color, GROUND_LAYER[cat], 0.88)]));
-const PAVED_MATS = [CENTERLINE_MAT, SIDEWALK_MAT, ...Object.values(ROAD_MATS)];
-
-function buildRoadMesh(road) {
-  const group = new THREE.Group();
-
-  if (SIDEWALK_CATS.has(road.cat)) {
-    if (!road._geoSidewalk) road._geoSidewalk = ribbonGeometry(road.pts, road.width / 2 + SIDEWALK_EXTRA);
-    const sidewalk = new THREE.Mesh(road._geoSidewalk, SIDEWALK_MAT);
-    sidewalk.position.y = 0.02;
-    group.add(sidewalk);
-  }
-
-  if (!road._geoRoad) road._geoRoad = ribbonGeometry(road.pts, road.width / 2);
-  const mesh = new THREE.Mesh(road._geoRoad, ROAD_MATS[road.cat] || ROAD_MATS.normal);
-  mesh.position.y = 0.03;
-  group.add(mesh);
-
-  if (road.cat === 'major' || road.cat === 'normal') {
-    if (!road._geoLine) road._geoLine = ribbonGeometry(road.pts, Math.min(0.12, road.width * 0.06));
-    const line = new THREE.Mesh(road._geoLine, CENTERLINE_MAT);
-    line.position.y = 0.035;
-    group.add(line);
-  }
-  for (const m of group.children) m.receiveShadow = true;
-  return group;
-}
 
 // minCastRadius: small parts (window bands, trims, trunks) still receive
 // but skip the shadow pass - each caster is a full extra draw call.
@@ -691,7 +610,11 @@ function limitActorShadows(cache, px, py) {
 }
 
 const TREE_TRUNK_MAT = new THREE.MeshStandardMaterial({ color: 0x4d3a28, roughness: 0.9, flatShading: true });
-const TREE_CANOPY_MATS = [0x3f6634, 0x4a7236, 0x56793a].map((color) => new THREE.MeshStandardMaterial({ color, roughness: 0.85, flatShading: true }));
+// Leaves let light through: a little emissive fill (plus brighter greens)
+// keeps canopies from turning into black blobs at dusk and in shade.
+const TREE_CANOPY_MATS = [0x4a7a3c, 0x568440, 0x648c46].map((color) => new THREE.MeshStandardMaterial({
+  color, roughness: 0.85, flatShading: true, emissive: new THREE.Color(color).multiplyScalar(0.09),
+}));
 const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0, 0.5, 0);
 const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
 SHARED_MATERIALS.add(TREE_TRUNK_MAT);
@@ -724,6 +647,7 @@ function buildTreeMesh(x, y) {
   group.position.set(x, 0, y);
   return group;
 }
+setTreeMeshBuilder(buildTreeMesh);
 
 // --- per-frame sync ------------------------------------------------------
 
@@ -785,31 +709,14 @@ function useSkylineMaterials(root) {
   });
 }
 
-function syncFlat(items, cache, color, y, px, py) {
-  const seen = new Set();
-  for (const poly of items) {
-    seen.add(poly);
-    if (!cache.has(poly)) {
-      const mesh = buildFlatMesh(poly, color, y);
-      scene.add(mesh);
-      cache.set(poly, mesh);
-    }
-  }
-  for (const [poly, mesh] of cache) {
-    if (seen.has(poly)) continue;
-    scene.remove(mesh);
-    cache.delete(poly);
-  }
-}
-
-// Same create/remove bookkeeping as syncFlat, but for water: never disposes
+// Create/remove bookkeeping for water polygons: never disposes
 // the mesh's material since every water mesh shares the ONE waterMaterial.
-function syncWater(items, cache, y) {
+function syncWater(items, cache, y, map) {
   const seen = new Set();
   for (const poly of items) {
     seen.add(poly);
     if (!cache.has(poly)) {
-      const mesh = buildWaterMesh(poly, y);
+      const mesh = buildWaterMesh(poly, y, map);
       scene.add(mesh);
       cache.set(poly, mesh);
     }
@@ -821,13 +728,20 @@ function syncWater(items, cache, y) {
   }
 }
 
+let roadQuality = getRoadQualityVersion();
 function syncRoads(world, px, py) {
+  setRoadNetwork(world.map);
+  if (roadQuality !== getRoadQualityVersion()) {
+    roadQuality = getRoadQualityVersion();
+    for (const mesh of roadMeshes.values()) scene.remove(mesh);
+    roadMeshes.clear();
+  }
   const view = world.map.roadsNear(px, py, DRAW_DIST);
   const seen = new Set();
   for (const r of view) seen.add(r);
   for (const r of view) {
     if (!roadMeshes.has(r)) {
-      const mesh = buildRoadMesh(r);
+      const mesh = buildRoadGroup(r);
       scene.add(mesh);
       roadMeshes.set(r, mesh);
     }
@@ -843,8 +757,7 @@ function syncTrees(world, px, py) {
   const view = world.map.treesNear(px, py, TREE_DIST);
   const seen = new Set();
   for (const t of view) {
-    // knocked over (falling/resting) - rendered by syncFallenTrees instead
-    if (t._treeProp && t._treeProp.state !== 'standing') continue;
+    if (t._broken) continue;
     seen.add(t);
     if (!treeMeshes.has(t)) {
       const mesh = buildTreeMesh(t[0], t[1]);
@@ -857,31 +770,6 @@ function syncTrees(world, px, py) {
     scene.remove(mesh);
     disposeObject(mesh);
     treeMeshes.delete(t);
-  }
-}
-
-function syncFallenTrees(world, px, py) {
-  if (!world.treeProps) return;
-  const seen = new Set();
-  for (const tree of world.treeProps) {
-    if (tree.state === 'standing') continue;
-    if (Math.hypot(tree.x0 - px, tree.y0 - py) > TREE_DIST) continue;
-    seen.add(tree);
-    if (!fallenTreeMeshes.has(tree)) {
-      const mesh = buildFallenTreeMesh3D(tree);
-      scene.add(mesh);
-      fallenTreeMeshes.set(tree, mesh);
-    }
-    const mesh = fallenTreeMeshes.get(tree);
-    mesh.position.set(tree.x, 0, tree.y);
-    mesh.rotation.y = -tree.fallAngle;
-    updateFallenTreeMesh3D(mesh, tree);
-  }
-  for (const [tree, mesh] of fallenTreeMeshes) {
-    if (seen.has(tree)) continue;
-    scene.remove(mesh);
-    disposeObject(mesh);
-    fallenTreeMeshes.delete(tree);
   }
 }
 
@@ -980,18 +868,21 @@ function syncSpeechBubbles(world) {
 }
 
 export function update3D(dt, world) {
+  // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
+  const animDt = world.paused ? 0 : dt;
   const player = world.player;
 
   syncBuildings(world, player.x, player.y);
-  syncFlat(world.map.greenNear(player.x, player.y, DRAW_DIST), greenMeshes, GREEN_COLOR, 0.015, player.x, player.y);
-  syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y);
-  if (waterMaterial) updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0);
+  updateGrass(dt, world, cam, DRAW_DIST);
+  syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map);
+  const waterNight = world.dayNight ? world.dayNight.night : 0;
+  if (waterMaterial) updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
+  updateShore(waterNight, cam);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
-  syncFallenTrees(world, player.x, player.y);
 
   syncActors(
-    world.vehicles.filter((v) => !v.wrecked && Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
+    world.vehicles.filter((v) => (!v.wrecked || v.sinking) && Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
     vehicleMeshes,
     buildVehicleActor,
     (v) => v.id
@@ -1003,9 +894,10 @@ export function update3D(dt, world) {
     if (mesh) {
       mesh.position.set(v.x, v.isBoat ? WATER_Y : 0, v.y);
       mesh.rotation.y = -v.angle;
-      updateVehicleWheelSpin(mesh, v.speed, dt);
+      updateVehicleWheelSpin(mesh, v.speed, animDt);
       if (v.isBoat) animateBoat(mesh, v, world.time);
       else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
+      if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
       if (v.isPolice) updatePoliceLamps(mesh, world.time, policeChasing && !v.hijacked && v.driver !== 'player');
       const df = mesh.userData.driverFigure;
       if (df) df.visible = !!v.road && !v.wrecked && v.driver !== 'player' && Math.abs(v.x - player.x) + Math.abs(v.y - player.y) < DRIVER_FIGURE_DIST;
@@ -1034,7 +926,7 @@ export function update3D(dt, world) {
         vehicleFireMeshes.set(v.id, fire);
       }
       fire.position.set(v.x, 0.4, v.y);
-      updateVehicleFireMesh3D(fire, dt);
+      updateVehicleFireMesh3D(fire, animDt);
     }
   }
   syncBoatWakes(world);
@@ -1045,7 +937,7 @@ export function update3D(dt, world) {
     vehicleFireMeshes.delete(id);
   }
   impactSparkEffects = impactSparkEffects.filter((mesh) => {
-    const alive = updateVehicleImpactSparkMesh3D(mesh, dt);
+    const alive = updateVehicleImpactSparkMesh3D(mesh, animDt);
     if (!alive) {
       scene.remove(mesh);
       disposeObject(mesh);
@@ -1053,7 +945,7 @@ export function update3D(dt, world) {
     return alive;
   });
   vehicleExplosionEffects = vehicleExplosionEffects.filter((mesh) => {
-    const alive = updateVehicleExplosionMesh3D(mesh, dt);
+    const alive = updateVehicleExplosionMesh3D(mesh, animDt);
     if (!alive) {
       scene.remove(mesh);
       disposeObject(mesh);
@@ -1080,12 +972,12 @@ export function update3D(dt, world) {
       mesh.position.set(p.x, 0.14 * fall, p.y);
       mesh.rotation.set(0, -p.angle, fall * fall * Math.PI / 2);
       mesh.userData.shadow.visible = false;
-      animatePersonWalk(mesh, 0, dt);
+      animatePersonWalk(mesh, 0, animDt);
       continue;
     }
     mesh.position.set(p.x, 0, p.y);
     mesh.rotation.y = -p.angle;
-    animatePersonWalk(mesh, p.speed || 0, dt);
+    animatePersonWalk(mesh, p.speed || 0, animDt);
   }
   syncSpeechBubbles(world);
 
@@ -1093,10 +985,11 @@ export function update3D(dt, world) {
     flitspaalBuilt = true;
     for (const fc of world.flitspaalen) {
       const mesh = buildFlitspaalMesh3D();
-      mesh.position.set(fc.x, 0, fc.y);
+      mesh.position.set(fc.px ?? fc.x, 0, fc.py ?? fc.y);
       mesh.rotation.y = -fc.angle;
       scene.add(mesh);
       staticProps.push(mesh);
+      fc.mesh = mesh;
     }
   }
 
@@ -1112,7 +1005,7 @@ export function update3D(dt, world) {
       }
     }
   }
-  for (const mesh of staticProps) mesh.visible = Math.abs(mesh.position.x - player.x) < DRAW_DIST && Math.abs(mesh.position.z - player.y) < DRAW_DIST;
+  for (const mesh of staticProps) mesh.visible = !mesh.userData.broken && Math.abs(mesh.position.x - player.x) < DRAW_DIST && Math.abs(mesh.position.z - player.y) < DRAW_DIST;
 
   if (world.wildlife) {
     syncActors(
@@ -1176,7 +1069,7 @@ export function update3D(dt, world) {
     scene.remove(missionMarkerMesh);
     missionMarkerMesh = null;
   }
-  updateRouteRibbon3D(dt, world);
+  updateRouteRibbon3D(animDt, world);
 
   // remaining-waypoint preview dots (checkpoint/boat missions only) - the
   // whole set is torn down/rebuilt on wpIndex change rather than diffed,
@@ -1198,6 +1091,14 @@ export function update3D(dt, world) {
     for (const mesh of missionWaypointDotMeshes.values()) scene.remove(mesh);
     missionWaypointDotMeshes.clear();
     missionWaypointSetKey = null;
+  }
+  // no mission beacon, route or waypoint in the title screen / pigeon mode / cutscenes
+  const navVisible = document.body.classList.contains('game-started') && !world.pigeonMode && !world.cinematicHideNav;
+  if (missionMarkerMesh) missionMarkerMesh.visible = navVisible;
+  for (const mesh of missionWaypointDotMeshes.values()) mesh.visible = navVisible;
+  if (!navVisible) {
+    if (waypointBeacon) waypointBeacon.visible = false;
+    if (routeRibbonMesh) routeRibbonMesh.visible = false;
   }
 
   // pickups: money/weapons/health/armor/garages all share module-scope
@@ -1244,7 +1145,7 @@ export function update3D(dt, world) {
       scene.add(mesh);
       trafficLightMeshes.set(light, mesh);
     }
-    mesh.visible = Math.abs(light.x - player.x) < DRAW_DIST && Math.abs(light.y - player.y) < DRAW_DIST;
+    mesh.visible = !light.broken && Math.abs(light.x - player.x) < DRAW_DIST && Math.abs(light.y - player.y) < DRAW_DIST;
     if (mesh.visible) setTrafficLightPhase3D(mesh, getTrafficLightPhase(light));
   }
 
@@ -1334,21 +1235,21 @@ export function update3D(dt, world) {
 
   const pv = player.inVehicle;
   const seatedInPv = pv && !pv.isBike && !pv.isScooter;
-  playerMesh.visible = !pv || seatedInPv;
+  playerMesh.visible = (!pv || seatedInPv) && !world.pigeonMode && !world.menuCam && !world.cinematicHidePlayers;
   if (seatedInPv) {
     seatPerson(playerMesh, true);
     playerMesh.scale.y = 1;
     placeSeated(playerMesh, pv, true);
     playerMesh.userData.shadow.visible = false;
   } else if (!pv) {
-    playerMesh.userData.shadow.visible = true;
+    playerMesh.userData.shadow.visible = !player.swimming;
     playerMesh.rotation.x = 0;
-    playerMesh.rotation.z = 0;
+    playerMesh.rotation.z = player.swimTilt || 0;
     playerMesh.position.set(player.x, player.z || 0, player.y);
     playerMesh.rotation.y = -player.angle;
     playerMesh.scale.y = player.crouching ? 0.6 : 1;
     playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
-    animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), dt);
+    animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
   }
 
   // companion (Tammo/Anita, whichever the player isn't controlling) -
@@ -1366,14 +1267,16 @@ export function update3D(dt, world) {
       passengerMesh.visible = false;
       scene.add(passengerMesh);
     }
-    companionMesh.visible = !comp.inVehicle;
+    companionMesh.visible = !comp.inVehicle && !world.pigeonMode && !world.menuCam && !world.cinematicHidePlayers;
     if (!comp.inVehicle) {
-      companionMesh.position.set(comp.x, 0, comp.y);
+      companionMesh.position.set(comp.x, comp.z || 0, comp.y);
+      companionMesh.rotation.z = comp.swimTilt || 0;
+      if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !comp.swimming;
       companionMesh.rotation.y = -comp.angle;
-      animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), dt);
+      animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
     } else {
       const v = comp.inVehicle;
-      passengerMesh.visible = !v.isBike && !v.isScooter;
+      passengerMesh.visible = !v.isBike && !v.isScooter && !world.cinematicHidePlayers;
       seatPerson(passengerMesh, false);
       placeSeated(passengerMesh, v, v.driver !== 'player');
     }
@@ -1497,6 +1400,18 @@ export function update3D(dt, world) {
     desiredZ -= az * push;
   }
   desiredY = Math.max(desiredY, 0.6);
+  // vehicles aren't in the building raycast: never let the camera sit
+  // inside a car/bus parked right behind the player - rise above its roof
+  for (const v of world.vehicles) {
+    if (v === player.inVehicle || v.isBoat) continue;
+    const dx = desiredX - v.x, dz = desiredZ - v.y;
+    if (dx * dx + dz * dz > 100) continue;
+    const c = Math.cos(v.angle), sn = Math.sin(v.angle);
+    const lx = dx * c + dz * sn, lz = -dx * sn + dz * c;
+    if (Math.abs(lx) < v.model.len / 2 + 0.6 && Math.abs(lz) < v.model.wid / 2 + 0.6) {
+      desiredY = Math.max(desiredY, (v.isBus ? 3.3 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
+    }
+  }
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   const lerpT = teleported ? 1 : Math.min(1, dt * 6);
@@ -1578,7 +1493,7 @@ const lightBase = {
 };
 const MOON_COLOR = new THREE.Color(0xdfe6f5);
 const BED_COLOR = new THREE.Color(0x1e2a2c);
-const WINDOW_LIT = [[0, 0.24], [1, 0.16], [3, 0.08], [5, 0.1], [6.5, 0.28], [8, 0.15], [17, 0.22], [19, 0.4], [22.5, 0.4], [24, 0.24]];
+const WINDOW_LIT = [[0, 0.32], [1, 0.24], [3, 0.14], [5, 0.14], [6.5, 0.3], [8, 0.15], [17, 0.25], [19, 0.5], [22.5, 0.5], [24, 0.32]];
 const SHOP_LIT = [[0, 0.12], [1, 0.05], [6, 0.05], [8, 0.8], [18, 0.9], [21, 0.7], [22.5, 0.25], [24, 0.12]];
 let wetness = 0;
 let envTimer = 0;
@@ -1681,9 +1596,9 @@ function withShadow(mesh, size) {
 }
 
 function buildWildlifeActor(a) {
-  if (a.kind === 'seagull') return buildSeagullMesh3D();
-  const mesh = a.kind === 'sheep' ? buildSheepMesh3D() : buildCowMesh3D(a.bobSeed);
-  addBlobShadow(mesh, a.kind === 'sheep' ? 0.9 : 1.3, a.kind === 'sheep' ? 0.6 : 0.75, 0.05);
+  const mesh = buildWildlifeMesh3D(a);
+  const blob = wildlifeShadowSize(a.kind);
+  if (blob) addBlobShadow(mesh, blob[0], blob[1], 0.05);
   return mesh;
 }
 
@@ -1833,6 +1748,33 @@ function buildWaypointBeacon3D() {
   return group;
 }
 
+// Driving routes follow the right-hand lane (Dutch traffic): shift each
+// point to the lane centre of the road it lies on; one-way roads stay centred.
+function keepRight(pts, map) {
+  const out = [];
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const [x, y] = pts[i];
+    let best = null, bestD = 16;
+    for (const road of map.roadsNear(x, y, 4)) {
+      if (road.cat === 'foot' || road.cat === 'cycle') continue;
+      const rp = road.pts;
+      for (let k = 0; k < rp.length - 1; k++) {
+        const ex = rp[k + 1][0] - rp[k][0], ey = rp[k + 1][1] - rp[k][1];
+        const l2 = ex * ex + ey * ey || 1;
+        const t = Math.max(0, Math.min(1, ((x - rp[k][0]) * ex + (y - rp[k][1]) * ey) / l2));
+        const d = (x - rp[k][0] - ex * t) ** 2 + (y - rp[k][1] - ey * t) ** 2;
+        if (d < bestD) { bestD = d; best = road; }
+      }
+    }
+    const off = best && !best.oneway ? Math.min(2.2, (best.width || 6) / 4) : 0;
+    out.push([x - (dy / len) * off, y + (dx / len) * off]);
+  }
+  return out;
+}
+
 function updateRouteRibbon3D(dt, world) {
   const wp = getUserWaypoint();
   if (wp) {
@@ -1871,7 +1813,8 @@ function updateRouteRibbon3D(dt, world) {
     routeRibbonKey = key;
     routeRibbonMesh.geometry.dispose();
     const p0 = route.pts[route.idx];
-    routeRibbonMesh.geometry = buildRouteRibbonGeometry(ahead, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]));
+    const lane = route.mode === 'drive' ? keepRight(ahead, world.map) : ahead;
+    routeRibbonMesh.geometry = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]));
     routeRibbonMesh.material.color.setHex(ROUTE_COLOR_3D[route.kind] || ROUTE_COLOR_3D.mission);
   }
   routeRibbonMesh.material.map.offset.y -= dt * 0.8;

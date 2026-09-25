@@ -3,7 +3,7 @@ import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscover
 import { getMissionList, trackMission } from './missions.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
-import { isCinematicActive } from './cinematics.js';
+import { isCinematicActive, replayIntro } from './cinematics.js';
 
 const CONTROLS = [
   ['W / S', 'lopen of gas geven / achteruit'],
@@ -80,37 +80,46 @@ export function initPauseMenu(w) {
         <div class="pm-missions"></div>
       </div></section>
       <section data-panel="settings" class="pm-panel pm-col" hidden><div class="pm-inner">
-        <h2>Geluid</h2>
-        ${slider('masterVolume', 'Hoofdvolume')}
-        ${slider('musicVolume', 'G-Music')}
-        ${slider('sfxVolume', 'Effecten')}
-        <h2>Beeld</h2>
-        <label class="pm-row"><span>Kwaliteit</span>
-          <select data-setting="quality">
-            ${Object.keys(QUALITY_PRESETS).map((q) => `<option value="${q}">${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}
-          </select>
-        </label>
-        ${toggle('shadows', 'Schaduwen')}
-        <label class="pm-row"><span>Zichtafstand</span>
-          <select data-setting="drawDistance">
-            <option value="kort">Kort</option><option value="normaal">Normaal</option><option value="ver">Ver</option>
-          </select>
-        </label>
-        <label class="pm-row"><span>Beeldhoek</span>
-          <input type="range" min="50" max="90" step="1" data-setting="fov"><output></output></label>
-        <label class="pm-row"><span>Camera-afstand</span>
-          <input type="range" min="0.8" max="1.6" step="0.05" data-setting="cameraDistance"><output></output></label>
-        ${toggle('cinematicMoments', 'Filmische momenten')}
-        <p class="pm-note">Oriëntatiepunten, crashes en vijf sterren in beeld. Intro’s, missies en de filmcamera (V) blijven.</p>
-        <h2>Muis</h2>
-        <label class="pm-row"><span>Gevoeligheid</span>
-          <input type="range" min="0.3" max="2.5" step="0.05" data-setting="mouseSensitivity"><output></output></label>
-        ${toggle('invertY', 'Omhoog/omlaag omkeren')}
-        <h2>HUD</h2>
-        ${toggle('showMinimap', 'Minimap')}
-        ${toggle('showHints', 'Toetshints')}
-        <h2>Kaart</h2>
-        ${toggle('showFog', 'Verkende gebieden tonen')}
+        <nav class="pm-subtabs" role="tablist" aria-label="Instellingen">
+          <button type="button" role="tab" data-subtab="sound" aria-selected="true">Geluid</button>
+          <button type="button" role="tab" data-subtab="video" aria-selected="false">Beeld</button>
+          <button type="button" role="tab" data-subtab="camera" aria-selected="false">Camera &amp; muis</button>
+          <button type="button" role="tab" data-subtab="display" aria-selected="false">Weergave</button>
+        </nav>
+        <div data-sub="sound">
+          ${slider('masterVolume', 'Hoofdvolume')}
+          ${slider('musicVolume', 'G-Music')}
+          ${slider('sfxVolume', 'Effecten')}
+        </div>
+        <div data-sub="video" hidden>
+          <label class="pm-row"><span>Kwaliteit</span>
+            <select data-setting="quality">
+              ${Object.keys(QUALITY_PRESETS).map((q) => `<option value="${q}">${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}
+            </select>
+          </label>
+          ${toggle('shadows', 'Schaduwen')}
+          <label class="pm-row"><span>Zichtafstand</span>
+            <select data-setting="drawDistance">
+              <option value="kort">Kort</option><option value="normaal">Normaal</option><option value="ver">Ver</option>
+            </select>
+          </label>
+        </div>
+        <div data-sub="camera" hidden>
+          <label class="pm-row"><span>Beeldhoek</span>
+            <input type="range" min="50" max="90" step="1" data-setting="fov"><output></output></label>
+          <label class="pm-row"><span>Camera-afstand</span>
+            <input type="range" min="0.8" max="1.6" step="0.05" data-setting="cameraDistance"><output></output></label>
+          <label class="pm-row"><span>Muisgevoeligheid</span>
+            <input type="range" min="0.3" max="2.5" step="0.05" data-setting="mouseSensitivity"><output></output></label>
+          ${toggle('invertY', 'Omhoog/omlaag omkeren')}
+        </div>
+        <div data-sub="display" hidden>
+          ${toggle('showMinimap', 'Minimap')}
+          ${toggle('showHints', 'Toetshints')}
+          ${toggle('showFog', 'Verkende gebieden op de kaart')}
+          ${toggle('cinematicMoments', 'Filmische momenten')}
+          <p class="pm-note">Oriëntatiepunten, wijken, crashes en vijf sterren in beeld. Intro’s, missies en de filmcamera (V) blijven.</p>
+        </div>
         <button type="button" class="pm-secondary" data-action="reset">Standaardinstellingen</button>
       </div></section>
       <section data-panel="controls" class="pm-panel pm-col" hidden><div class="pm-inner">
@@ -123,6 +132,9 @@ export function initPauseMenu(w) {
         <button type="button" class="pm-secondary" data-action="save">Opslaan</button>
         <button type="button" class="pm-secondary" data-action="load">Laatste save laden</button>
         <button type="button" class="pm-secondary" data-action="restart">Opnieuw beginnen</button>
+        <button type="button" class="pm-secondary" data-action="intro">Intro opnieuw bekijken</button>
+        <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
+        <button type="button" class="pm-danger" data-action="quit" data-pigeon hidden>Stop duif-modus</button>
         <div class="pm-confirm" hidden>
           <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
           <button type="button" class="pm-secondary" data-action="load">Laatste save laden</button>
@@ -144,6 +156,8 @@ export function initPauseMenu(w) {
   root.addEventListener('click', (e) => {
     const t = e.target.closest('button[data-tab]');
     if (t) return showTab(t.dataset.tab);
+    const st = e.target.closest('button[data-subtab]');
+    if (st) return showSubtab(st.dataset.subtab);
     const m = e.target.closest('[data-mission]');
     if (m) return chooseMission(Number(m.dataset.mission));
     const action = e.target.closest('[data-action]');
@@ -210,7 +224,11 @@ function runAction(a) {
     syncGamePanel();
     confirmEl.querySelector('button').focus();
   } else if (a === 'cancel') confirmEl.hidden = true;
-  else if (a === 'new') {
+  else if (a === 'quit') location.reload();
+  else if (a === 'intro') { setOpen(false); replayIntro(world); }
+  else if (a === 'pigeon-home') {
+    if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
+  } else if (a === 'new') {
     clearSave();
     location.reload();
   } else if (a === 'reset') {
@@ -237,6 +255,11 @@ function chooseMission(i) {
   }
   showTab('map');
   setMapView(m.start.x, m.start.y, 3);
+}
+
+function showSubtab(name) {
+  for (const b of root.querySelectorAll('[data-subtab]')) b.setAttribute('aria-selected', String(b.dataset.subtab === name));
+  for (const p of root.querySelectorAll('[data-sub]')) p.hidden = p.dataset.sub !== name;
 }
 
 function slider(key, label) {
@@ -277,6 +300,7 @@ function renderMissions() {
 }
 
 function syncGamePanel() {
+  if (world && world.pigeonMode) { status('Duif-modus: er wordt niks opgeslagen.'); return; }
   const saved = hasSave();
   for (const b of root.querySelectorAll('[data-action="load"]')) b.disabled = !saved;
   const s = getSaveSummary();
@@ -288,7 +312,7 @@ function syncGamePanel() {
 
 function refreshInfo() {
   if (!world) return;
-  const c = world.player.character === 'anita' ? 'Anita' : 'Tammo';
+  const c = world.pigeonMode ? 'Duif' : world.player.character === 'anita' ? 'Anita' : 'Tammo';
   root.querySelector('[data-info="char"]').textContent = c;
   const clock = getClockText(world);
   root.querySelector('[data-info="clock"]').textContent = clock;
@@ -309,6 +333,9 @@ function showTab(name) {
   if (name === 'missions') renderMissions();
   if (name === 'settings') syncControls();
   if (name === 'game') {
+    const pigeon = !!(world && world.pigeonMode);
+    for (const b of root.querySelectorAll('.pm-game > [data-action]')) b.hidden = b.hasAttribute('data-pigeon') ? !pigeon : pigeon && b.dataset.action !== 'resume';
+    if (pigeon) root.querySelector('[data-action="pigeon-home"]').hidden = !(world.pigeonActions && world.pigeonActions.hasHome());
     root.querySelector('.pm-confirm').hidden = true;
     root.querySelector('.pm-status').textContent = '';
     syncGamePanel();

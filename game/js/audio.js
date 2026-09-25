@@ -1471,6 +1471,17 @@ function playAudioEvents(world) {
       case 'prop_hit': propHit(e, x, y); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
+      case 'caw': case 'peck': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'whoosh': playBuf('whoosh', { out: spatialOut(x, y, { ref: 6, range: 60 }) || undefined, gain: 0.18 + clamp(e.strength ?? 0.5, 0, 1) * 0.2 }); break;
+      case 'camera_shutter':
+        playNoiseBurst({ duration: 0.025, freq: 3200, q: 2, gain: 0.07, type: 'bandpass', bus: uiBus });
+        playNoiseBurst({ duration: 0.03, freq: 2400, q: 2, gain: 0.06, type: 'bandpass', delay: 0.07, bus: uiBus });
+        break;
+      case 'alarm': {
+        const out = spatialOut(x, y, { ref: 6, range: 90 });
+        if (out) for (let j = 0; j < 6; j++) playTone({ freq: j % 2 ? 900 : 1300, type: 'square', duration: 0.22, gain: 0.035, delay: j * 0.24, out });
+        break;
+      }
       case 'notify':
         playTone({ freq: 1568, type: 'sine', duration: 0.3, gain: 0.08, bus: uiBus, prio: 2 });
         playTone({ freq: 2093, type: 'sine', duration: 0.25, gain: 0.06, delay: 0.08, bus: uiBus, prio: 2 });
@@ -1494,6 +1505,8 @@ function playCritterEvent(kind, x, y, k) {
   else if (kind === 'poop') playNoiseBurst({ duration: 0.09, freq: 500, freqEnd: 180, q: 1.2, gain: 0.12, type: 'bandpass', out });
   else if (kind === 'splat') playBuf('step_wet_' + Math.floor(Math.random() * 4), { out, gain: 0.25 + k * 0.1, rate: 0.75 * r });
   else if (kind === 'plop') playTone({ freq: 700, freqEnd: 240, type: 'sine', duration: 0.07, gain: 0.08 + k * 0.08, out });
+  else if (kind === 'caw') playBuf(Math.random() < 0.5 ? 'gull_0' : 'gull_1', { out, gain: 0.16 + k * 0.1, rate: r });
+  else if (kind === 'peck') playTone({ freq: 2400, freqEnd: 1800, type: 'triangle', duration: 0.03, gain: 0.05 + k * 0.04, out });
 }
 
 // Keeps each voice on the same source while it stays among the nearest;

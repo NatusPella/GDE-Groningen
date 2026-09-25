@@ -1,51 +1,55 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { polygonBounds } from './util.js';
+import { onSettingsChange } from './settings.js';
 
-// Animated canal water: rolling swell, Schlick-fresnel sky reflection and
-// a sun glint. Pure material - this
-// file has no idea how many water meshes exist or whether they share one
-// instance; see the two exports below.
-//
-// The vertex displacement only ever reads the flat plane's OWN local x/z
-// (no neighbor lookups), so cost is strictly O(vertices), safe for the big
-// Diepenring polygon. The wave's analytic partial derivatives (dHdx/dHdz)
-// give a cheap per-vertex normal for the fresnel term without a second pass
-// or computeVertexNormals() - this fakes bumpiness well at water scale even
-// though ShapeGeometry itself has no per-vertex height, only a flat plane.
+// Stylised canal water: a grid-filled surface clipped exactly to each water
+// polygon, low-poly faceted swell (derivative normals), a per-vertex
+// distance-to-shore attribute that drives the depth gradient, foam line,
+// duckweed and a flow direction along the canal. Reflections are faked:
+// sky gradient, a stepped skyline band of quay houses and, at night, warm
+// window/lamp streaks.
+
+const QUALITY = { laag: 0, middel: 1, hoog: 2 };
+let quality = 2;
+const materials = new Set();
+onSettingsChange((st) => {
+  const q = QUALITY[st.quality] ?? 2;
+  if (q === quality) return;
+  quality = q;
+  for (const m of materials) { m.defines.WATER_Q = q; m.needsUpdate = true; }
+});
 
 const VERTEX_SHADER = `
+attribute float aEdge;
+attribute vec2 aFlow;
 uniform float uTime;
+uniform float uWave;
 
 varying vec3 vWorldPos;
-varying vec3 vNormalW;
-varying vec3 vViewDir;
+varying float vEdge;
+varying vec2 vFlow;
 
 #include <fog_pars_vertex>
 
+float waveH(vec2 p, float t) {
+  return sin(dot(p, vec2(0.52, 0.24)) + t * 1.1) * 0.5
+       + sin(dot(p, vec2(-0.27, 0.58)) - t * 0.9) * 0.35
+       + sin(dot(p, vec2(0.83, -0.66)) + t * 1.7) * 0.15;
+}
+
 void main() {
   vec3 pos = position;
-
-  float w1 = sin(pos.x * 0.15 + uTime * 0.85) * 0.07;
-  float w2 = sin(pos.z * 0.21 - uTime * 0.6) * 0.05;
-  float w3 = sin((pos.x + pos.z) * 0.085 + uTime * 1.05) * 0.04;
-  float w4 = sin((pos.x - pos.z) * 0.33 + uTime * 1.6) * 0.018;
-  pos.y += w1 + w2 + w3 + w4;
-
-  float dHdx = cos(pos.x * 0.15 + uTime * 0.85) * (0.15 * 0.07)
-             + cos((pos.x + pos.z) * 0.085 + uTime * 1.05) * (0.085 * 0.04)
-             + cos((pos.x - pos.z) * 0.33 + uTime * 1.6) * (0.33 * 0.018);
-  float dHdz = cos(pos.z * 0.21 - uTime * 0.6) * (0.21 * 0.05)
-             + cos((pos.x + pos.z) * 0.085 + uTime * 1.05) * (0.085 * 0.04)
-             - cos((pos.x - pos.z) * 0.33 + uTime * 1.6) * (0.33 * 0.018);
-  vec3 waveNormal = normalize(vec3(-dHdx, 1.0, -dHdz));
-
+  vec4 wp0 = modelMatrix * vec4(pos, 1.0);
+#if WATER_Q > 0
+  float amp = smoothstep(0.15, 5.0, aEdge) * uWave;
+  pos.y += waveH(wp0.xz + aFlow * uTime * 0.25, uTime) * amp;
+#endif
   vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
   vWorldPos = worldPosition.xyz;
-  vNormalW = normalize(mat3(modelMatrix) * waveNormal);
-  vViewDir = normalize(cameraPosition - worldPosition.xyz);
-
-  vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+  vEdge = aEdge;
+  vFlow = aFlow;
+  vec4 mvPosition = viewMatrix * worldPosition;
   gl_Position = projectionMatrix * mvPosition;
-
   #include <fog_vertex>
 }
 `;
@@ -54,7 +58,11 @@ const FRAGMENT_SHADER = `
 uniform float uTime;
 uniform vec3 uDeepColor;
 uniform vec3 uShallowColor;
-uniform vec3 uSparkleColor;
+uniform vec3 uFoamColor;
+uniform vec3 uDuckweedColor;
+uniform vec3 uFacadeColor;
+uniform vec3 uWindowColor;
+uniform vec3 uLampColor;
 uniform vec3 uZenith;
 uniform vec3 uHorizon;
 uniform vec3 uSunColor;
@@ -62,10 +70,12 @@ uniform vec3 uSunDir;
 uniform float uSunStrength;
 uniform float uOpacity;
 uniform float uRain;
+uniform float uLight;
+uniform float uNight;
 
 varying vec3 vWorldPos;
-varying vec3 vNormalW;
-varying vec3 vViewDir;
+varying float vEdge;
+varying vec2 vFlow;
 
 #include <fog_pars_fragment>
 
@@ -78,12 +88,9 @@ float hash2(vec2 p) {
 float valueNoise(vec2 p) {
   vec2 i = floor(p);
   vec2 f = fract(p);
-  float a = hash2(i);
-  float b = hash2(i + vec2(1.0, 0.0));
-  float c = hash2(i + vec2(0.0, 1.0));
-  float d = hash2(i + vec2(1.0, 1.0));
   vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  return mix(mix(hash2(i), hash2(i + vec2(1.0, 0.0)), u.x),
+             mix(hash2(i + vec2(0.0, 1.0)), hash2(i + vec2(1.0, 1.0)), u.x), u.y);
 }
 
 vec2 rainRipple(vec2 p, float speed) {
@@ -97,32 +104,103 @@ vec2 rainRipple(vec2 p, float speed) {
 }
 
 void main() {
-  // two scrolling noise layers perturb the analytic wave normal into ripples
-  vec2 p1 = vWorldPos.xz * 0.4 + vec2(uTime * 0.05, uTime * 0.03);
-  vec2 p2 = vWorldPos.xz * 1.15 + vec2(-uTime * 0.09, uTime * 0.07);
-  float n1 = valueNoise(p1), n2 = valueNoise(p2);
-  vec3 n = normalize(vNormalW + vec3(n1 - 0.5, 0.0, n2 - 0.5) * 0.12);
-  if (uRain > 0.01) {
-    vec2 rip = rainRipple(vWorldPos.xz * 1.4, 0.9) + rainRipple(vWorldPos.xz * 2.1 + 7.0, 1.1);
-    n = normalize(n + vec3(rip.x, 0.0, rip.y) * 0.3 * uRain);
-  }
-  vec3 v = normalize(vViewDir);
-  float cosV = clamp(dot(n, v), 0.0, 1.0);
-  float fresnel = 0.02 + 0.98 * pow(1.0 - cosV, 5.0);
+  vec2 p = vWorldPos.xz;
+  vec3 v = normalize(cameraPosition - vWorldPos);
 
-  float depthMix = 0.5 + 0.5 * sin(vWorldPos.x * 0.045 + vWorldPos.z * 0.05 + uTime * 0.25);
-  vec3 body = mix(uDeepColor, uShallowColor, depthMix * 0.5);
+#if WATER_Q > 0
+  vec3 n = normalize(cross(dFdx(vWorldPos), dFdy(vWorldPos)));
+  if (n.y < 0.0) n = -n;
+  float ph0 = fract(uTime * 0.05), ph1 = fract(uTime * 0.05 + 0.5);
+  float fw = abs(ph0 * 2.0 - 1.0);
+  vec2 drift0 = vFlow * ph0 * 6.0, drift1 = vFlow * ph1 * 6.0;
+  float r0 = valueNoise((p - drift0) * 0.9), r1 = valueNoise((p - drift1) * 0.9 + 17.0);
+  float rq = mix(r0, r1, fw);
+  float rq2 = valueNoise((p + vec2(uTime * 0.21, -uTime * 0.17)) * 2.3);
+  n = normalize(n + vec3(rq - 0.5, 0.0, rq2 - 0.5) * 0.035);
+  if (uRain > 0.01) {
+    vec2 rip = rainRipple(p * 1.4, 0.9) + rainRipple(p * 2.1 + 7.0, 1.1);
+    n = normalize(n + vec3(rip.x, 0.0, rip.y) * 0.35 * uRain);
+  }
+#else
+  vec3 n = vec3(0.0, 1.0, 0.0);
+  float fw = 0.0, rq = 0.5;
+  vec2 drift0 = vec2(0.0), drift1 = vec2(0.0);
+#endif
+
+  float cosV = clamp(dot(n, v), 0.0, 1.0);
+  float fresnel = 0.03 + 0.97 * pow(1.0 - cosV, 5.0);
+
+  float deep = smoothstep(0.3, 9.0, vEdge);
+  vec3 body = mix(uShallowColor, uDeepColor, deep) * uLight;
+#if WATER_Q > 0
+  vec2 lxz = normalize(uSunDir.xz + vec2(1e-3));
+  body *= clamp(1.0 + dot(n.xz, lxz) * 3.2 + n.x * 0.8, 0.55, 1.6);
+#endif
 
   vec3 r = reflect(-v, n);
-  vec3 sky = mix(uHorizon, uZenith, pow(clamp(r.y, 0.0, 1.0), 0.55));
-  vec3 color = mix(body, sky, clamp(fresnel * 0.9, 0.0, 0.85));
+  float ry = max(r.y, 0.0);
+  vec3 sky = mix(uHorizon, uZenith, pow(ry, 0.55));
 
-  float spec = pow(max(dot(r, uSunDir), 0.0), 220.0);
-  float sparkle = smoothstep(0.74, 0.96, n1 * 0.5 + n2 * 0.5) * pow(max(dot(r, uSunDir), 0.0), 6.0);
-  color += uSunColor * uSunStrength * (spec * 3.5 + sparkle * 0.6) + uSparkleColor * sparkle * 0.05;
+  vec2 toP = vWorldPos.xz - cameraPosition.xz;
+  float th = atan(toP.y, toP.x) + (n.x + n.z) * 0.22;
+  float bin = floor(th * 38.0);
+  float roof = 0.1 + 0.16 * hash2(vec2(bin, 1.3));
+  float fac = 1.0 - smoothstep(roof - 0.015, roof + 0.015, ry);
+  vec3 facade = uFacadeColor * (0.55 + 0.45 * hash2(vec2(bin, 8.1))) * uLight;
+  sky = mix(sky, facade, fac * 0.85);
 
-  float alpha = clamp(uOpacity + fresnel * 0.15, 0.0, 1.0);
-  gl_FragColor = vec4(color, alpha);
+#if WATER_Q > 0
+  if (uNight > 0.01) {
+    float wcol = floor(th * 150.0);
+    float lit = step(0.68, hash2(vec2(wcol, 3.7)));
+    float row = floor(ry * 55.0 + rq * 3.0);
+    float dash = step(0.4, hash2(vec2(wcol, row)));
+    float inCol = smoothstep(0.5, 0.15, abs(fract(th * 150.0) - 0.5));
+    vec3 wc = mix(uWindowColor, uLampColor, hash2(vec2(wcol, 9.2)));
+    sky += wc * lit * dash * inCol * fac * uNight * uNight * 1.8;
+    float lcol = floor(th * 22.0);
+    float lamp = step(0.78, hash2(vec2(lcol, 5.1)));
+    float lIn = smoothstep(0.5, 0.05, abs(fract(th * 22.0) - 0.5));
+    float lDash = step(0.35, hash2(vec2(lcol, floor(ry * 30.0 + rq * 4.0))));
+    sky += uLampColor * lamp * lIn * lDash * (1.0 - smoothstep(0.0, roof + 0.08, ry)) * uNight * uNight * 2.4;
+  }
+#endif
+
+  vec3 color = mix(body, sky, clamp(fresnel * 0.95, 0.0, 0.9));
+
+#if WATER_Q > 0
+  float spec = pow(max(dot(r, uSunDir), 0.0), 90.0) * 2.4 + pow(max(dot(r, uSunDir), 0.0), 900.0) * 6.0;
+#else
+  float spec = pow(max(dot(r, uSunDir), 0.0), 220.0) * 3.0;
+#endif
+  color += uSunColor * uSunStrength * spec;
+
+  float alpha = uOpacity + fresnel * 0.1;
+
+#if WATER_Q > 0
+  float fn = valueNoise(p * 1.1 - drift0 * 0.5 + uTime * 0.15);
+  float foam = (1.0 - smoothstep(0.0, 0.45 + 0.5 * fn, vEdge)) * (0.25 + 0.2 * fn);
+  color = mix(color, uFoamColor * (0.35 + 0.65 * uLight), foam);
+
+  vec3 litCol = vec3(uLight) * 0.45 + uSunColor * uSunStrength * max(uSunDir.y, 0.0) * 0.3;
+  float nearEdge = 1.0 - smoothstep(0.6, 2.0 + 3.0 * valueNoise(p * 0.043), vEdge);
+  float dw = mix(valueNoise((p - drift0 * 0.3) * 0.21), valueNoise((p - drift1 * 0.3) * 0.21 + 31.0), fw);
+  float kroos = smoothstep(0.7, 0.74, dw * (0.55 + 0.45 * nearEdge) + valueNoise(p * 2.5) * 0.08) * nearEdge;
+  color = mix(color, uDuckweedColor * litCol * (0.8 + 0.35 * valueNoise(p * 5.0)), kroos * 0.9);
+  alpha = mix(alpha, 1.0, kroos);
+#endif
+
+#if WATER_Q > 1
+  vec2 lp0 = (p - drift0 * 0.6) * 1.3, lp1 = (p - drift1 * 0.6) * 1.3 + 5.0;
+  float leaf0 = step(0.992, hash2(floor(lp0))) * smoothstep(0.32, 0.18, length(fract(lp0) - 0.5));
+  float leaf1 = step(0.992, hash2(floor(lp1))) * smoothstep(0.32, 0.18, length(fract(lp1) - 0.5));
+  float leaf = mix(leaf0, leaf1, fw) * (1.0 - smoothstep(1.0, 7.0, vEdge));
+  vec3 leafCol = mix(vec3(0.36, 0.2, 0.07), vec3(0.55, 0.42, 0.12), hash2(floor(lp0) + 3.0));
+  color = mix(color, leafCol * litCol, leaf);
+  alpha = mix(alpha, 1.0, leaf);
+#endif
+
+  gl_FragColor = vec4(color, clamp(alpha, 0.0, 1.0));
 
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -130,34 +208,181 @@ void main() {
 }
 `;
 
-// Dark, murky canal body; the colour mostly comes from the sky reflection
-// (fresnel) and the sun glint. Pass the sky uniforms so storms grey it too.
 export function createWaterMaterial(sky = null) {
-  return new THREE.ShaderMaterial({
+  const m = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
-      uDeepColor: { value: new THREE.Color(0x0a1d20) },
-      uShallowColor: { value: new THREE.Color(0x173f3d) },
-      uSparkleColor: { value: new THREE.Color(0xfff3d2) },
+      uWave: { value: 0.12 },
+      uDeepColor: { value: new THREE.Color(0x0b2420) },
+      uShallowColor: { value: new THREE.Color(0x2c4a38) },
+      uFoamColor: { value: new THREE.Color(0xb9c2b0) },
+      uDuckweedColor: { value: new THREE.Color(0x5d7f2c) },
+      uFacadeColor: { value: new THREE.Color(0x5e4034) },
+      uWindowColor: { value: new THREE.Color(0xffc877) },
+      uLampColor: { value: new THREE.Color(0xffa84a) },
       uZenith: sky ? sky.uZenith : { value: new THREE.Color(0x5b93cf) },
       uHorizon: sky ? sky.uHorizon : { value: new THREE.Color(0xd9e3e4) },
       uSunColor: sky ? sky.uSunColor : { value: new THREE.Color(0xffd49a) },
       uSunDir: sky ? sky.uSunDir : { value: new THREE.Vector3(0.6, 0.6, 0.4).normalize() },
       uSunStrength: sky ? sky.uSunStrength : { value: 1 },
-      uOpacity: { value: 0.9 },
+      uOpacity: { value: 0.88 },
       uRain: { value: 0 },
+      uLight: { value: 1 },
+      uNight: { value: 0 },
       fogColor: { value: new THREE.Color(0xffffff) },
       fogNear: { value: 1 },
       fogFar: { value: 2000 },
     },
+    defines: { WATER_Q: quality },
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,
     transparent: true,
     fog: true,
   });
+  materials.add(m);
+  return m;
 }
 
-export function updateWaterMaterial(material, time, rain = 0) {
-  material.uniforms.uTime.value = time;
-  material.uniforms.uRain.value = rain;
+export function updateWaterMaterial(material, time, rain = 0, night = 0) {
+  const u = material.uniforms;
+  u.uTime.value = time;
+  u.uRain.value = rain;
+  u.uNight.value = night;
+  u.uLight.value = (0.14 + 0.86 * (1 - night)) * (1 - 0.3 * Math.min(1, rain));
+  u.uWave.value = 0.12 + 0.08 * Math.min(1, rain);
+}
+
+// --- geometry ------------------------------------------------------------
+
+function clipAxis(src, axis, val, keepGreater) {
+  const out = [];
+  const n = src.length / 2;
+  for (let i = 0; i < n; i++) {
+    const ax = src[i * 2], ay = src[i * 2 + 1];
+    const j = (i + 1) % n;
+    const bx = src[j * 2], by = src[j * 2 + 1];
+    const ca = axis ? ay : ax, cb = axis ? by : bx;
+    const ina = keepGreater ? ca >= val : ca <= val;
+    const inb = keepGreater ? cb >= val : cb <= val;
+    if (ina) out.push(ax, ay);
+    if (ina !== inb) {
+      const t = (val - ca) / (cb - ca);
+      out.push(ax + (bx - ax) * t, ay + (by - ay) * t);
+    }
+  }
+  return out;
+}
+
+function clipBox(src, x0, y0, x1, y1) {
+  let p = clipAxis(src, 0, x0, true);
+  if (p.length < 6) return p;
+  p = clipAxis(p, 0, x1, false);
+  if (p.length < 6) return p;
+  p = clipAxis(p, 1, y0, true);
+  if (p.length < 6) return p;
+  return clipAxis(p, 1, y1, false);
+}
+
+function flatArea(p) {
+  let s = 0;
+  const n = p.length / 2;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    s += p[i * 2] * p[j * 2 + 1] - p[j * 2] * p[i * 2 + 1];
+  }
+  return s / 2;
+}
+
+function jitterHash(x, y) {
+  const s = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+  return s - Math.floor(s);
+}
+
+// Grid inside, exact polygon clip at the boundary cells (quadtree of
+// Sutherland-Hodgman box clips - robust for the Diepenring's slit ring).
+export function buildWaterGeometry(poly, index) {
+  const src = [];
+  for (const [x, y] of poly.pts) src.push(x, y);
+  const [minx, miny, maxx, maxy] = poly.bounds || polygonBounds(poly.pts);
+  const area = Math.abs(flatArea(src));
+  const cell = area > 40000 ? 4 : 3;
+  const ox = Math.floor(minx / cell) * cell, oy = Math.floor(miny / cell) * cell;
+  let size = cell;
+  while (ox + size < maxx || oy + size < maxy) size *= 2;
+
+  const pos = [];
+  const idx = [];
+  const keys = new Map();
+  const vert = (x, y) => {
+    const k = Math.round(x * 64) * 1e7 + Math.round(y * 64);
+    let v = keys.get(k);
+    if (v === undefined) { v = pos.length / 2; pos.push(x, y); keys.set(k, v); }
+    return v;
+  };
+  const tri = (a, b, c) => {
+    if (a === b || b === c || a === c) return;
+    const cr = (pos[b * 2 + 1] - pos[a * 2 + 1]) * (pos[c * 2] - pos[a * 2]) - (pos[b * 2] - pos[a * 2]) * (pos[c * 2 + 1] - pos[a * 2 + 1]);
+    if (Math.abs(cr) < 1e-6) return;
+    if (cr > 0) idx.push(a, b, c); else idx.push(a, c, b);
+  };
+
+  const rec = (piece, x0, y0, s) => {
+    const p = clipBox(piece, x0, y0, x0 + s, y0 + s);
+    if (p.length < 6) return;
+    const a = Math.abs(flatArea(p));
+    if (a < 1e-4) return;
+    if (a >= s * s * 0.99999) {
+      const n = Math.round(s / cell);
+      for (let j = 0; j < n; j++) {
+        for (let i = 0; i < n; i++) {
+          const xa = x0 + i * cell, ya = y0 + j * cell;
+          const v00 = vert(xa, ya), v10 = vert(xa + cell, ya), v01 = vert(xa, ya + cell), v11 = vert(xa + cell, ya + cell);
+          if ((i + j) & 1) { tri(v00, v10, v11); tri(v00, v11, v01); } else { tri(v00, v10, v01); tri(v10, v11, v01); }
+        }
+      }
+      return;
+    }
+    if (s <= cell + 1e-6) {
+      const contour = [];
+      for (let i = 0; i < p.length; i += 2) {
+        const q = contour[contour.length - 1];
+        if (q && Math.abs(q.x - p[i]) < 1e-4 && Math.abs(q.y - p[i + 1]) < 1e-4) continue;
+        contour.push(new THREE.Vector2(p[i], p[i + 1]));
+      }
+      if (contour.length > 1 && contour[0].distanceTo(contour[contour.length - 1]) < 1e-4) contour.pop();
+      if (contour.length < 3) return;
+      const ids = contour.map((c) => vert(c.x, c.y));
+      if (contour.length === 3) { tri(ids[0], ids[1], ids[2]); return; }
+      for (const t of THREE.ShapeUtils.triangulateShape(contour, [])) tri(ids[t[0]], ids[t[1]], ids[t[2]]);
+      return;
+    }
+    const h = s / 2;
+    rec(p, x0, y0, h); rec(p, x0 + h, y0, h); rec(p, x0, y0 + h, h); rec(p, x0 + h, y0 + h, h);
+  };
+  rec(src, ox, oy, size);
+
+  const nv = pos.length / 2;
+  const positions = new Float32Array(nv * 3);
+  const edge = new Float32Array(nv);
+  const flow = new Float32Array(nv * 2);
+  for (let i = 0; i < nv; i++) {
+    let x = pos[i * 2], y = pos[i * 2 + 1];
+    const ns = index ? index.nearestShore(x, y, 24) : { d: 24, i: -1, tx: 1, ty: 0 };
+    let tx = ns.tx, ty = ns.ty;
+    if (tx * 0.8 + ty * 0.6 < 0) { tx = -tx; ty = -ty; }
+    if (ns.d > cell * 1.2) {
+      x += (jitterHash(x, y) - 0.5) * cell * 0.45;
+      y += (jitterHash(y, x) - 0.5) * cell * 0.45;
+    }
+    positions[i * 3] = x; positions[i * 3 + 2] = y;
+    edge[i] = ns.i >= 0 ? ns.d : 24;
+    flow[i * 2] = tx; flow[i * 2 + 1] = ty;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1));
+  geo.setAttribute('aFlow', new THREE.BufferAttribute(flow, 2));
+  geo.setIndex(new THREE.BufferAttribute(new Uint32Array(idx), 1));
+  geo.computeBoundingSphere();
+  return geo;
 }

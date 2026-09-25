@@ -198,13 +198,14 @@ function addPolyGeometry(B, geo, c) {
 }
 
 export function createFarLOD(scene, map, opts) {
-  const { flatGeometry, colors, sidewalkExtra } = opts;
+  const { flatGeometry, colors, sidewalkExtra, roadColorOf } = opts;
   const roadColor = Object.fromEntries(Object.entries(colors.roads).map(([k, hex]) => {
     const a = new THREE.Color(hex), s = new THREE.Color(colors.sidewalk);
     const mixed = (k === 'major' || k === 'normal' || k === 'minor') ? a.lerp(s, 0.3) : a;
     return [k, rgb8(mixed.getHex())];
   }));
   const greenColor = rgb8(colors.green);
+  const tintCache = new Map();
 
   const tiles = new Map();
   const tileOf = (x, y) => {
@@ -231,6 +232,8 @@ export function createFarLOD(scene, map, opts) {
     if (!g.bounds || g.pts.length < 3) continue;
     tileOf((g.bounds[0] + g.bounds[2]) / 2, (g.bounds[1] + g.bounds[3]) / 2).green.push(g);
   }
+  if (colors.greenRank) for (const t of tiles.values()) t.green.sort((x, y) => colors.greenRank(x) - colors.greenRank(y));
+  const greenOf = colors.greenOf ? (g) => rgb8(colors.greenOf(g)) : () => greenColor;
 
   const queue = [];
   const root = new THREE.Group();
@@ -263,11 +266,19 @@ export function createFarLOD(scene, map, opts) {
           const a = r.pts[s], c = r.pts[s + 1];
           const car = r.cat === 'major' || r.cat === 'normal' || r.cat === 'minor';
           const half = r.width / 2 + (car ? sidewalkExtra * 0.6 : 0);
-          addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, roadColor[r.cat] || roadColor.normal);
+          const tint = roadColorOf && roadColorOf(r);
+          let col = roadColor[r.cat] || roadColor.normal;
+          if (tint) {
+            const key = tint + (car ? 'c' : 'p');
+            col = tintCache.get(key);
+            if (!col) tintCache.set(key, col = rgb8(new THREE.Color(tint).lerp(new THREE.Color(colors.sidewalk), car ? 0.3 : 0).getHex()));
+          }
+          addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, col);
         }
       } else if (J.phase === 2) {
         if (J.i >= t.green.length) { J.phase = 3; continue; }
-        addPolyGeometry(J.green, flatGeometry(t.green[J.i++]), greenColor);
+        const g = t.green[J.i++];
+        addPolyGeometry(J.green, flatGeometry(g), greenOf(g));
       } else {
         finishJob(t);
         return true;

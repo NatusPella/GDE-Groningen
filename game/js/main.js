@@ -13,6 +13,7 @@ import { initPickups, updatePickups } from './pickups.js';
 import { initHoreca, updateHoreca } from './horeca.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
+import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { init3D, update3D, resize3D, getScene } from './scene3d.js';
 import { updateStreetSigns } from './streetsigns.js';
@@ -29,6 +30,7 @@ import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen } from './startscreen.js';
+import { initPigeonGuards, startPigeonMode, updatePigeonMode, updatePigeonCamera } from './pigeonmode.js';
 import { dist } from './util.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
@@ -37,7 +39,32 @@ import { dist } from './util.js';
 initLoading();
 
 function waitForStart(world) {
-  return runStartScreen(world, { render: (dt) => update3D(dt, world) });
+  const relocate = (x, y) => {
+    world.player.x = x;
+    world.player.y = y;
+    maintainPedestrians(world);
+    manageTrafficPopulation(world, { spawnMin: 12 });
+    manageBikePopulation(world, { spawnMin: 8 });
+    manageBusPopulation(world, { spawnMin: 25 });
+    manageScooterPopulation(world, { spawnMin: 8 });
+    manageBoatPopulation(world, { spawnMin: 5 });
+  };
+  const tick = (dt) => {
+    world.time += dt;
+    updateTrafficLights(dt, world);
+    for (const v of world.vehicles) {
+      if (v.driver === 'player' || v.isPolice) continue;
+      if (v.isBoat) updateBoatAI(v, dt, world.map, world, Math.random);
+      else {
+        updateTrafficAI(v, dt, world.map, world, Math.random);
+        resolveVehicleBuildingCollision(v, world.map, dt);
+      }
+    }
+    resolveVehicleVehicleCollisions(world.vehicles, world);
+    updatePedestrians(dt, world);
+    updateWildlife(dt, world);
+  };
+  return runStartScreen(world, { render: (dt) => update3D(dt, world), relocate, tick });
 }
 
 let errorShown = false;
@@ -69,6 +96,7 @@ function maintainPedestrians(world) {
 }
 
 async function boot() {
+  initTheme();
   const map = await loadMap('citymap.json');
   setLoadProgress(0.6);
   init3D(map);
@@ -111,6 +139,7 @@ async function boot() {
   initSkyProps(world);
   initSikkomFeed(world);
   initPhoneFeed(world);
+  initPigeonGuards(world);
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
@@ -128,7 +157,8 @@ async function boot() {
 
   window.__debug = { player, map, input, world };
   finishLoading();
-  await waitForStart(world);
+  const mode = await waitForStart(world);
+  if (mode === 'pigeon') startPigeonMode(world);
   document.body.classList.add('game-started');
   input.tryLock();
   initAudio(world);
@@ -157,10 +187,14 @@ async function boot() {
     if (!world.paused) updateGameplay(gameDt);
     updateAudio(dt, world);
     updateStreetSigns(dt, world, getScene());
-    updateFx3D(dt, world, getScene());
-    updateCityProps(dt, world, getScene());
-    updatePhone(dt, world);
-    updateSaveGame(dt, world);
+    const animDt = world.paused ? 0 : gameDt;
+    updateFx3D(animDt, world, getScene());
+    updateCityProps(animDt, world, getScene());
+    if (world.pigeonMode) updatePigeonCamera(dt, world);
+    else {
+      updatePhone(dt, world);
+      updateSaveGame(dt, world);
+    }
     update3D(world.paused ? dt : gameDt, world);
     updateHud(dt, world);
   }
@@ -183,8 +217,11 @@ async function boot() {
       maintainPedestrians(world);
     }
 
-    player.update(dt, world);
-    updateCompanion(dt, world);
+    if (world.pigeonMode) updatePigeonMode(dt, world);
+    else {
+      player.update(dt, world);
+      updateCompanion(dt, world);
+    }
 
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
@@ -196,22 +233,26 @@ async function boot() {
       if (v.isBoat && v.driver !== 'player') updateBoatAI(v, dt, map, world, Math.random);
     }
 
-    updatePolice(dt, world);
+    if (!world.pigeonMode) updatePolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
-    updateCombat(dt, world);
-    updateBullets(dt, world);
+    if (!world.pigeonMode) {
+      updateCombat(dt, world);
+      updateBullets(dt, world);
+    }
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
     updateSkyProps(dt, world);
-    updateMissions(dt, world);
-    updateSikkomFeed(dt, world);
-    updatePhoneFeed(dt, world);
-    updatePickups(dt, world);
-    updateHoreca(dt, world);
-    updateFlitspaal(dt, world);
+    if (!world.pigeonMode) {
+      updateMissions(dt, world);
+      updateSikkomFeed(dt, world);
+      updatePhoneFeed(dt, world);
+      updatePickups(dt, world);
+      updateHoreca(dt, world);
+      updateFlitspaal(dt, world);
+    }
     updateWeather(dt, world);
     updateDayNight(dt, world);
   }

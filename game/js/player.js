@@ -1,5 +1,5 @@
-import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater } from './util.js';
-import { findNearestVehicle, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact } from './vehicle.js';
+import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp } from './util.js';
+import { findNearestVehicle, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
 import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
 import { getSettings } from './settings.js';
@@ -17,9 +17,24 @@ const KISS_COOLDOWN = 3;
 let kissReadyAt = 0;
 const JUMP_SPEED = 5.2;
 const GRAVITY = 16;
-const DROWN_RATE = 12; // health/sec while on foot in water
 const SHOVE_DECAY = 6; // 1/s
 const MAX_SHOVE = 7; // m/s
+export const SWIM_SPEED = 1.8;
+const SWIM_SPRINT = 3.0;
+const SWIM_TILT_MOVING = -0.85;
+const SWIM_TILT_IDLE = -0.25;
+const SWIM_EXHAUSTED_AFTER = 150; // s in the water before it starts to hurt
+const EXHAUST_RATE = 2; // health/sec
+export const CLIMB_TIME = 0.6;
+const CLIMB_REACH = 1.3;
+const CLIMB_SCAN_INTERVAL = 0.15;
+const SPLASH_LIFE = 1.1;
+
+const STEAL_HOLD_S = 0.4;
+// AI traffic being driven (or a police car) is stolen, not just entered
+function isStealTarget(v) {
+  return !v.driver && !v.wrecked && !v.sinking && !v.isBoat && !v.isHeroCar && !v.missionCar && (!!v.road || (v.isPolice && !v.hijacked));
+}
 
 export class Player {
   constructor(x, y) {
@@ -37,22 +52,66 @@ export class Player {
     this.crouching = false;
     this.shoveX = 0; // m/s of push-back from bumping into cars/people, decays
     this.shoveY = 0;
+    this.water = null; // null | 'fall' | 'swim' | 'climb'
+    this.swimming = false;
+    this.swimTilt = 0;
+    this.swimStamina = 1;
+    this.waterTime = 0;
+    this.canClimbOut = false;
+    this.climb = null;
+    this.climbSpot = null;
+    this.climbScanAt = 0;
   }
 
   update(dt, world) {
     const { input, map, vehicles } = world;
+    tickSinkingVehicles(world);
     this.updateCharacterSwitch(world);
     if (input.wasPressed('e') || input.wasPressed('f')) {
-      if (!this.tryKiss(world)) {
-        const wasInVehicle = !!this.inVehicle;
-        this.tryEnterExit(map, vehicles, world);
-        if (!wasInVehicle && this.inVehicle) playAutoGejatLine(world);
+      if (this.water) {
+        if (this.water === 'swim' && !this.inVehicle) this.swimInteract(world);
+      } else if (!this.tryKiss(world)) {
+        const target = this.inVehicle ? null : findNearestVehicle(this.x, this.y, vehicles, 2.5);
+        if (target && isStealTarget(target)) {
+          // yanking someone out of a moving car takes a short hold of E
+          this.stealHold = { v: target, t: 0 };
+        } else {
+          const wasInVehicle = !!this.inVehicle;
+          this.tryEnterExit(map, vehicles, world);
+          if (!wasInVehicle && this.inVehicle) playAutoGejatLine(world);
+        }
+      }
+    }
+    if (this.stealHold) {
+      const h = this.stealHold;
+      const held = input.isDown('e') || input.isDown('f');
+      const near = Math.hypot(h.v.x - this.x, h.v.y - this.y) < 3.2;
+      if (!held || !near || this.inVehicle || h.v.driver || h.v.wrecked) {
+        this.stealHold = null;
+        world.promptHold = 0;
+      } else {
+        h.t += dt;
+        world.promptHold = Math.min(1, h.t / STEAL_HOLD_S);
+        if (h.t >= STEAL_HOLD_S) {
+          this.stealHold = null;
+          world.promptHold = 0;
+          this.tryEnterExit(map, vehicles, world);
+          if (this.inVehicle) playAutoGejatLine(world);
+        }
       }
     }
 
     if (this.inVehicle) {
-      if (this.inVehicle.wrecked) { this.exitVehicle(map, world); }
+      const v = this.inVehicle;
+      if (v.sinking) { this.x = v.x; this.y = v.y; this.angle = v.angle; return; }
+      if (v.wrecked) { this.exitVehicle(map, world); }
       else { this.driveVehicle(dt, input, map); return; }
+    }
+
+    if (this.water || isInWater(map, this.x, this.y)) {
+      if (!this.water) this.startWaterFall();
+      this.updateWater(dt, world);
+      return;
     }
 
     // jump/crouch - on foot only; SPACE is also "remmen" while driving
@@ -87,21 +146,6 @@ export class Player {
       this.vy = 0;
     }
 
-    // people don't swim - water blocks on-foot movement exactly like a
-    // building wall (boats are the only way to cross). Tried per-axis so
-    // walking along a quay/canal edge slides instead of just sticking dead,
-    // which matters a lot here given how much of central Groningen is
-    // waterfront (the Diepenring, canals, ...)
-    //
-    // If the player is somehow ALREADY inside water (teleport, a future
-    // terrain-hole edge case, being shoved in) the block is skipped - every
-    // direction out of a wide canal is "into water" too, so blocking would
-    // soft-lock them - and they drown instead.
-    if (isInWater(map, this.x, this.y)) {
-      world.health = Math.max(0, world.health - DROWN_RATE * dt);
-      if (world.health <= 0) { world.health = 0; requestRespawn(world); return; }
-    }
-
     // a single step longer than the radius can tunnel past a thin wall edge
     const steps = Math.max(1, Math.ceil(Math.hypot(this.vx, this.vy) * dt / (this.radius * 0.9)));
     const sdt = dt / steps;
@@ -109,15 +153,157 @@ export class Player {
       let nextX = this.x + this.vx * sdt;
       let nextY = this.y + this.vy * sdt;
       [nextX, nextY] = resolveBuildingCollisions(nextX, nextY, this.radius, map);
-      if (!isInWater(map, this.x, this.y) && isInWater(map, nextX, nextY)) {
-        if (!isInWater(map, nextX, this.y)) nextY = this.y;
-        else if (!isInWater(map, this.x, nextY)) nextX = this.x;
-        else { nextX = this.x; nextY = this.y; }
-      }
       this.x = nextX;
       this.y = nextY;
+      if (isInWater(map, nextX, nextY)) { this.startWaterFall(); return; }
     }
     this.resolveBodyContacts(dt, world);
+  }
+
+  startWaterFall() {
+    this.water = 'fall';
+    this.swimming = true;
+    this.crouching = false;
+    this.waterTime = 0;
+    this.shoveX = 0;
+    this.shoveY = 0;
+  }
+
+  enterSwim(z = WATER_Y) {
+    this.water = 'swim';
+    this.swimming = true;
+    this.crouching = false;
+    this.z = Math.min(this.z, z);
+    this.vz = 0;
+    this.vx = 0;
+    this.vy = 0;
+    this.waterTime = 0;
+    this.climbScanAt = 0;
+  }
+
+  leaveWater() {
+    this.water = null;
+    this.swimming = false;
+    this.z = 0;
+    this.vz = 0;
+    this.swimTilt = 0;
+    this.canClimbOut = false;
+    this.climb = null;
+    this.climbSpot = null;
+    this.waterTime = 0;
+  }
+
+  // Called by vehicle.js when the bike/scooter/car the player sits in goes
+  // under; drops them into the water next to it.
+  ejectIntoWater(v, world) {
+    if (this.inVehicle !== v) return;
+    v.driver = null;
+    v.horn = false;
+    v.throttle = 0;
+    this.inVehicle = null;
+    const nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
+    const off = (v.halfWid || 0.5) + 0.5;
+    this.x = v.x; this.y = v.y;
+    for (const s of EXIT_LEFT_FIRST) {
+      const ex = v.x + nx * off * s, ey = v.y + ny * off * s;
+      if (inWaterPoly(world.map, ex, ey)) { this.x = ex; this.y = ey; break; }
+    }
+    this.angle = v.angle;
+    this.z = v.sinking ? v.sinking.z : WATER_Y;
+    this.enterSwim(WATER_Y);
+  }
+
+  updateWater(dt, world) {
+    const { map, input } = world;
+    if (this.water !== 'climb' && !inWaterPoly(map, this.x, this.y)) { this.leaveWater(); return; }
+
+    if (this.water === 'fall') {
+      this.vz -= GRAVITY * dt;
+      this.z += this.vz * dt;
+      const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
+      if (inWaterPoly(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
+      if (this.z <= WATER_Y) {
+        world.particles.push({ kind: 'splash', x: this.x, y: this.y, until: world.time + SPLASH_LIFE });
+        const keepZ = this.z;
+        this.enterSwim(WATER_Y);
+        this.z = keepZ;
+      }
+      this.canClimbOut = false;
+      return;
+    }
+
+    if (this.water === 'climb') {
+      const c = this.climb;
+      c.t += dt;
+      const k = Math.min(1, c.t / CLIMB_TIME);
+      const e = k * k * (3 - 2 * k);
+      const lift = Math.min(1, k / 0.6);
+      const slide = Math.max(0, (k - 0.45) / 0.55);
+      this.x = c.fromX + (c.toX - c.fromX) * slide * slide * (3 - 2 * slide);
+      this.y = c.fromY + (c.toY - c.fromY) * slide * slide * (3 - 2 * slide);
+      this.z = c.fromZ + (0.15 - c.fromZ) * Math.sin(lift * Math.PI / 2) - 0.15 * e;
+      this.swimTilt = -0.9 * (1 - e);
+      this.vx = 0; this.vy = 0;
+      this.canClimbOut = false;
+      if (k >= 1) { this.leaveWater(); [this.x, this.y] = resolveBuildingCollisions(this.x, this.y, this.radius, map); }
+      return;
+    }
+
+    const [ax, ay] = input.axis();
+    const mouseTurn = input.lookActive() ? input.mouse.dx * MOUSE_TURN_PER_PX * getSettings().mouseSensitivity : 0;
+    this.angle = normalizeAngle(this.angle + ax * TURN_RATE * 0.8 * dt + mouseTurn);
+    const throttle = ay < 0 ? 1 : ay > 0 ? -0.5 : 0;
+    const sprint = input.isDown('shift') && throttle > 0 && this.swimStamina > 0;
+    this.swimStamina = clamp(this.swimStamina + (sprint ? -dt / 6 : dt / 5), 0, 1);
+    const speed = (sprint ? SWIM_SPRINT : SWIM_SPEED) * throttle;
+    const k = Math.min(1, dt * 3);
+    this.vx += (Math.cos(this.angle) * speed - this.vx) * k;
+    this.vy += (Math.sin(this.angle) * speed - this.vy) * k;
+    this.moving = throttle !== 0;
+
+    let blocked = false;
+    const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
+    if (inWaterPoly(map, nx, ny)) { this.x = nx; this.y = ny; }
+    else {
+      blocked = true;
+      if (inWaterPoly(map, nx, this.y)) this.x = nx;
+      else if (inWaterPoly(map, this.x, ny)) this.y = ny;
+    }
+
+    const tiltTarget = this.moving ? SWIM_TILT_MOVING : SWIM_TILT_IDLE;
+    this.swimTilt += (tiltTarget - this.swimTilt) * Math.min(1, dt * 4);
+    this.z += (swimDepth(this.swimTilt, world.time) - this.z) * Math.min(1, dt * 5);
+
+    if (world.time >= this.climbScanAt) {
+      this.climbScanAt = world.time + CLIMB_SCAN_INTERVAL;
+      this.climbSpot = findClimbSpot(map, this.x, this.y, this.angle);
+    }
+    this.canClimbOut = !!this.climbSpot;
+    if (this.climbSpot && this.climbSpot.bank && blocked && throttle > 0) this.startClimb(this.climbSpot);
+
+    this.waterTime += dt;
+    if (this.waterTime > SWIM_EXHAUSTED_AFTER) {
+      if (!this.exhaustWarned) { this.exhaustWarned = true; world.addMessage('Je raakt uitgeput, klim eruit!', 3); }
+      world.health = Math.max(0, world.health - EXHAUST_RATE * dt);
+      if (world.health <= 0) { this.leaveWater(); requestRespawn(world); }
+    } else this.exhaustWarned = false;
+  }
+
+  swimInteract(world) {
+    const boat = findNearestVehicle(this.x, this.y, world.vehicles, 2.8);
+    if (boat && boat.isBoat && !boat.driver && !boat.wrecked) {
+      this.leaveWater();
+      this.tryEnterExit(world.map, world.vehicles, world);
+      return;
+    }
+    if (this.climbSpot) this.startClimb(this.climbSpot);
+  }
+
+  startClimb(spot) {
+    this.water = 'climb';
+    this.climb = { t: 0, fromX: this.x, fromY: this.y, fromZ: this.z, toX: spot.x, toY: spot.y };
+    this.angle = Math.atan2(spot.y - this.y, spot.x - this.x);
+    this.canClimbOut = false;
   }
 
   // On foot the player is solid against vehicles and people: pushed out of
@@ -184,6 +370,10 @@ export class Player {
     [this.vy, c.vy] = [c.vy, this.vy];
     [this.inVehicle, c.inVehicle] = [c.inVehicle, this.inVehicle];
     [this.character, c.character] = [c.character, this.character];
+    for (const k of ['water', 'swimming', 'z', 'vz', 'swimTilt', 'climb']) [this[k], c[k]] = [c[k] ?? null, this[k]];
+    this.swimming = !!this.water; this.z = this.z || 0; this.vz = this.vz || 0; this.swimTilt = this.swimTilt || 0;
+    if (this.water === 'swim') this.climbScanAt = 0;
+    this.canClimbOut = false;
     if (this.inVehicle) this.inVehicle.driver = 'player';
     if (c.inVehicle) c.inVehicle.passenger = 'companion';
     world.addMessage(this.character === 'tammo' ? 'Je bestuurt nu Tammo' : 'Je bestuurt nu Anita');
@@ -213,11 +403,12 @@ export class Player {
 
   tryEnterExit(map, vehicles, world = null) {
     if (this.inVehicle) {
+      if (this.inVehicle.sinking && this.inVehicle.sinking.phase === 'fall') return;
       this.exitVehicle(map, world);
       return;
     }
     const v = findNearestVehicle(this.x, this.y, vehicles, 2.5);
-    if (v && !v.driver && !v.wrecked) {
+    if (v && !v.driver && !v.wrecked && !v.sinking) {
       v.driver = 'player';
       v.road = null; // player takes manual control
       if (v.isPolice) v.hijacked = true;
@@ -228,6 +419,7 @@ export class Player {
 
   exitVehicle(map, world = null) {
     const v = this.inVehicle;
+    if (v.sinking && world) { this.ejectIntoWater(v, world); return; }
     v.driver = null;
     v.horn = false;
     v.handbrake = false;
@@ -247,8 +439,18 @@ export class Player {
     v.handbrake = brake;
     v.throttle = throttle;
     v.horn = input.isDown('h');
+    const px = v.x, py = v.y, pa = v.angle;
     v.applyControls(dt, throttle, ax, brake && v.speed !== 0);
     resolveVehicleBuildingCollision(v, map, dt);
+    if (v.isBoat) {
+      // boats stay on the water: the hull (centre and bow/stern) can't leave it
+      const h = (v.model.len || 4) * 0.45 * Math.sign(v.speed || 1);
+      const bowX = v.x + Math.cos(v.angle) * h, bowY = v.y + Math.sin(v.angle) * h;
+      if (!inWaterPoly(map, v.x, v.y) || !inWaterPoly(map, bowX, bowY)) {
+        v.x = px; v.y = py; v.angle = pa;
+        v.speed *= -0.25;
+      }
+    }
     this.x = v.x;
     this.y = v.y;
     this.angle = v.angle;
@@ -268,6 +470,37 @@ export function stopVehicle(v) {
   v.speed = 0;
   v.driftX = 0;
   v.driftY = 0;
+}
+
+// Mesh-origin height that keeps the head just above the surface at a given
+// forward lean, with a gentle bob.
+export function swimDepth(tilt, time, phase = 0) {
+  return WATER_Y + 0.1 - 1.6 * Math.cos(tilt) + Math.sin(time * 2.4 + phase) * 0.04;
+}
+
+const CLIMB_DIRS = 16;
+// Nearest dry, walkable spot along the waterline within reach, preferring
+// the direction the swimmer faces. `bank` marks park/grass banks, which
+// are low enough to just walk out of.
+export function findClimbSpot(map, x, y, angle, reach = CLIMB_REACH) {
+  for (let r = 0.45; r <= reach; r += 0.2) {
+    let best = null, bestScore = -Infinity;
+    for (let i = 0; i < CLIMB_DIRS; i++) {
+      const a = (i / CLIMB_DIRS) * Math.PI * 2;
+      const cx = Math.cos(a), cy = Math.sin(a);
+      const sx = x + cx * r, sy = y + cy * r;
+      if (inWaterPoly(map, sx, sy)) continue;
+      const lx = sx + cx * 0.5, ly = sy + cy * 0.5;
+      if (inWaterPoly(map, lx, ly) || isInsideBuilding(map, lx, ly)) continue;
+      const score = Math.cos(normalizeAngle(a - angle));
+      if (score > bestScore) { bestScore = score; best = { x: lx, y: ly }; }
+    }
+    if (best) {
+      best.bank = map.greenNear(best.x, best.y, 0.5).some((g) => pointInPolygon(best.x, best.y, g.pts));
+      return best;
+    }
+  }
+  return null;
 }
 
 function isInsideBuilding(map, x, y) {

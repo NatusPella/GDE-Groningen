@@ -1,96 +1,44 @@
-import { dist, closestPointOnSegment } from './util.js';
-import { spawnVehicleOnRoad } from './vehicle.js';
+import { dist, pointInPolygon, closestPointOnSegment } from './util.js';
+import { spawnVehicleOnRoad, Vehicle } from './vehicle.js';
 import { setUserWaypoint } from './routing.js';
-import { playMissionIntro, playMissionOutro, playMissionFailed } from './cinematics.js';
+import { playMissionIntro, playMissionFailed } from './cinematics.js';
+import { playStoryIntro, playStoryOutro, playStoryFail } from './missionstory.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
+const CHECKPOINT_RADIUS = 6;
 const RETRY_COOLDOWN = 5;
 const FATBIKE_TOUCH_RADIUS = 1.5;
+const FATBIKE_MIN_SPEED = 1;
+const FATBIKE_COUNT = 8;
+const ABANDON_DIST = 45;
+const HINT_INTERVAL = 4;
 
-function resolveSpot(map, spawn, dx, dy, drivable = false) {
-  const p = map.nearestRoadPoint(spawn.x + dx, spawn.y + dy, 400, drivable);
-  return p || { x: spawn.x + dx, y: spawn.y + dy, road: null };
+const MISSION_BOAT_MODEL = { name: 'boat', len: 4.4, wid: 1.8, maxSpeed: 4.6, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#f2efe6', cabin: '#1f4a6e' };
+
+function roadSpot(map, x, y, drivable = false) {
+  return map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
 }
 
-// Nearest point on a 'major'-tagged road only - used to snap ring-race
-// waypoints onto the city's biggest through-roads instead of any street.
-function nearestMajorRoadPoint(map, x, y, maxRadius = 1200) {
-  let r = 60, best = null, bestDist2 = Infinity;
-  while (!best && r <= maxRadius) {
-    for (const road of map.roadsNear(x, y, r)) {
-      if (road.cat !== 'major') continue;
-      for (let i = 0; i < road.pts.length - 1; i++) {
-        const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
-        if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; best = { x: cp.x, y: cp.y, road }; }
-      }
-    }
-    r *= 2;
-  }
-  return best;
-}
-
-// Waypoints spread around an ellipse sized to the map's real bounds, each
-// snapped to the nearest major road - "roughly a loop around the city" per
-// ARCHITECTURE.md's ring-race spec, not a geometrically exact ring.
-function ringWaypoints(map, count) {
-  const [minx, miny, maxx, maxy] = map.meta.bounds;
-  const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
-  const rx = (maxx - minx) * 0.36, ry = (maxy - miny) * 0.36;
-  const pts = [];
-  for (let i = 0; i < count; i++) {
-    const a = (i / count) * Math.PI * 2;
-    const tx = cx + Math.cos(a) * rx, ty = cy + Math.sin(a) * ry;
-    const hit = nearestMajorRoadPoint(map, tx, ty, 900) || map.nearestRoadPoint(tx, ty, 900, true);
-    pts.push(hit || { x: tx, y: ty, road: null });
-  }
-  return pts;
-}
-
-// Random sample of real bar/restaurant/cafe spots from meta.horeca (see
-// scripts/add_horeca.py), each snapped to the nearest street so the trigger
-// point sits reachable on foot rather than inside a building footprint.
-function horecaWaypoints(map, spawn, count) {
-  const horeca = map.meta.horeca || [];
-  if (horeca.length < count) {
-    return [
-      resolveSpot(map, spawn, 45, 30),
-      resolveSpot(map, spawn, -45, 60),
-      resolveSpot(map, spawn, 70, -40),
-      resolveSpot(map, spawn, -30, -70),
-    ].slice(0, count);
-  }
-  const pool = horeca.slice();
-  const picked = [];
-  for (let i = 0; i < count && pool.length; i++) {
-    picked.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-  }
-  return picked.map((h) => map.nearestRoadPoint(h.x, h.y, 150) || { x: h.x, y: h.y, road: null });
-}
-
-// The Diepenring's water polygon in citymap.json passes near the world
-// origin twice (both banks of the same canal strip); these four points were
-// picked by hand off its northern arc (Noorderhaven-ish) - the closest
-// ring-shaped water body to (0,0). See task notes for how they were found.
-const DIEPENRING_WAYPOINTS = [
-  { x: -271.6, y: -157.8 },
-  { x: 11.6, y: -278.9 },
-  { x: 178.7, y: -309.3 },
-  { x: 336.0, y: -216.8 },
-];
-
+// Fixed spots in and around the binnenstad, picked so every leg is a real
+// route on the road graph: car legs on the drivable network (the inner city
+// is largely one-way and car-free, so straight-line distance lies), foot legs
+// on the walk network, boat legs through the Diepenring's water polygon.
 function buildDefs(world) {
-  const { map, spawnPoint: sp } = world;
+  const { map } = world;
+  const drive = (x, y) => roadSpot(map, x, y, true);
+  const walk = (x, y) => roadSpot(map, x, y);
+  const kroeg = (name, x, y) => ({ ...walk(x, y), name });
   return [
     {
       type: 'deliver',
       label: "Bommen Berend wil z'n bakkie",
-      intro: ['Bommen Berend belde. Z\'n bakkie staat hier, hij wil \'m vóór de koffie terug.', 'Rij \'m heel naar hem toe. Heel, hè. Niet zoals de vorige keer.'],
+      intro: ['Bommen Berend belde. Z\'n bakkie staat hier, hij wil \'m vóór de koffie terug.', 'Rij \'m heel naar het Boterdiep. Heel, hè. Niet zoals de vorige keer.'],
       outro: 'Berend heeft z\'n bakkie terug. Hij zei zowaar \'dank je\'.',
-      timeLimit: 90,
+      timeLimit: 85,
       reward: 250,
-      start: resolveSpot(map, sp, 15, 12, true),
-      dest: resolveSpot(map, sp, 130, -70),
+      start: drive(224, -27),
+      dest: drive(-14, -489),
     },
     {
       type: 'rampage',
@@ -100,77 +48,80 @@ function buildDefs(world) {
       timeLimit: 45,
       reward: 300,
       targetKills: 8,
-      start: resolveSpot(map, sp, -60, 25),
+      start: walk(204, 113),
     },
     {
       type: 'checkpoint',
       label: 'KEI-weekrace door Grunn',
       intro: ['De KEI-week is begonnen en de eerstejaars denken dat ze snel zijn.', 'Laat ze je achterlichten zien. Alle checkpoints, niet treuzelen.'],
       outro: 'De eerstejaars zijn nog steeds aan het bijkomen.',
-      timeLimit: 55,
-      checkpointBonus: 8,
+      timeLimit: 65,
+      checkpointBonus: 35,
       reward: 350,
-      start: resolveSpot(map, sp, -20, -55),
-      waypoints: [
-        resolveSpot(map, sp, -90, -90),
-        resolveSpot(map, sp, -140, -20),
-        resolveSpot(map, sp, -70, 40),
-        resolveSpot(map, sp, -20, -55),
-      ],
+      start: drive(-153, 62),
+      waypoints: [drive(-35, 13), drive(-216, -358), drive(-327, -286), drive(-153, 62)],
     },
     {
       type: 'deliver',
       label: 'Spoedklus voor Noorderzon',
-      intro: ['Noorderzon mist een lading spullen en de voorstelling begint zo.', 'Pak die auto en rij door. Stoplichten zijn in Grunn meer een suggestie.'],
+      intro: ['Noorderzon mist een lading spullen en de voorstelling in het Noorderplantsoen begint zo.', 'Pak die auto en rij door. Stoplichten zijn in Grunn meer een suggestie.'],
       outro: 'Het doek kan op. Noorderzon is gered.',
-      timeLimit: 75,
+      timeLimit: 140,
       reward: 500,
-      start: resolveSpot(map, sp, 40, -20, true),
-      dest: resolveSpot(map, sp, -160, 110),
+      start: drive(787, -95),
+      dest: drive(189, -590),
     },
     {
       type: 'checkpoint',
       label: 'Ringweg-race: eindelijk klaar?',
-      intro: ['Ze zijn eindelijk klaar met de Zuidelijke Ringweg. Zeggen ze.', 'Eén rondje om de stad, vol gas. Kijken of \'t klopt.'],
+      intro: ['Ze zijn eindelijk klaar met de Zuidelijke Ringweg. Zeggen ze.', 'Eén rondje om de binnenstad, vol gas. Kijken of \'t klopt.'],
       outro: 'De ringweg is getest. Hij ligt er nog. Grotendeels.',
-      timeLimit: 70,
-      checkpointBonus: 40,
+      timeLimit: 90,
+      checkpointBonus: 65,
       reward: 750,
-      start: resolveSpot(map, sp, 70, -90, true),
-      waypoints: ringWaypoints(map, 6),
+      start: drive(667, 35),
+      waypoints: [drive(317, 452), drive(-48, 542), drive(-354, 107), drive(-102, -200), drive(305, -302), drive(667, 35)],
     },
     {
       type: 'checkpoint',
       label: 'Kroegentocht: Poelestraat plat',
-      intro: ['Kroegentocht! Vier kroegen, één avond, nul excuses.', 'En niet verdwalen tussen de Poelestraat en de Peperstraat.'],
+      intro: ['Kroegentocht! Vier kroegen, één avond, nul excuses.', 'Te voet, hè. En niet verdwalen tussen de Poelestraat en de Peperstraat.'],
       outro: 'Vier kroegen gehaald. Morgen wordt zwaar.',
-      timeLimit: 100,
+      timeLimit: 90,
       checkpointBonus: 20,
       reward: 320,
-      start: resolveSpot(map, sp, -100, 70),
-      waypoints: horecaWaypoints(map, sp, 4),
+      onFoot: true,
+      start: walk(250, 115),
+      waypoints: [
+        kroeg('Het Concerthuis', 368, 118.6),
+        kroeg("'t Pakhuis", 410.5, 170.9),
+        kroeg('Nachtcafé Warhol', 352.6, 224.7),
+        kroeg('Groote Griet', 213.6, 135.9),
+      ],
     },
     {
       type: 'fatbike',
       label: 'Fatbike-terreur: blijf overeind',
-      intro: ['De fatbikes zijn los en ze stoppen voor niemand.', 'Kom heelhuids aan de overkant. Twee keer geschept mag, meer niet.'],
+      intro: ['De fatbikes op het Zuiderpark zijn los en ze stoppen voor niemand.', 'Loop over het fietspad naar het eind. Twee keer geschept mag, meer niet.'],
       outro: 'Overeind gebleven tussen de fatbikes. Knap werk.',
-      timeLimit: 35,
+      timeLimit: 40,
       reward: 275,
       maxHits: 2,
-      start: resolveSpot(map, sp, 100, 80),
-      dest: resolveSpot(map, sp, 150, 130),
+      onFoot: true,
+      start: walk(590, 676),
+      dest: walk(415, 785),
     },
     {
       type: 'boat',
       label: 'Rondvaart met valse papieren',
-      intro: ['Er is een rondvaartboot \'vrijgekomen\'. Vraag maar niet hoe.', 'Vaar het rondje over de Diepenring en doe alsof je gids bent.'],
+      intro: ['Er ligt een rondvaartboot \'vrijgekomen\' aan de kade. Vraag maar niet hoe.', 'Vaar het rondje over de Diepenring en doe alsof je gids bent.'],
       outro: 'Rondvaart voltooid. Niemand vroeg naar je papieren.',
-      timeLimit: 90,
-      checkpointBonus: 25,
+      timeLimit: 60,
+      checkpointBonus: 40,
       reward: 400,
-      start: map.nearestRoadPoint(DIEPENRING_WAYPOINTS[0].x, DIEPENRING_WAYPOINTS[0].y, 300) || DIEPENRING_WAYPOINTS[0],
-      waypoints: DIEPENRING_WAYPOINTS,
+      start: { x: -33.8, y: -261.6 },
+      boatAt: { x: -33.0, y: -259.5, angle: -0.37 },
+      waypoints: [{ x: 84, y: -304 }, { x: 183, y: -295 }, { x: 273, y: -250 }, { x: 369, y: -196 }],
     },
   ];
 }
@@ -188,7 +139,13 @@ export function initMissions(world) {
     killBaseline: 0,
     wpIndex: 0,
     completed: new Set(),
+    seen: new Set(),
     run: null,
+    vehicle: null,
+    leftover: null,
+    boarded: false,
+    armed: true,
+    hintAt: -Infinity,
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
   };
   world.mission = chain.pub;
@@ -240,6 +197,7 @@ export function trackMission(world, i) {
   if (chain.phase === 'active') return i === chain.index;
   chain.index = i;
   chain.phase = 'idle';
+  chain.armed = true;
   chain.wpIndex = 0;
   const d = chain.defs[i];
   setUserWaypoint(d.start.x, d.start.y, d.label);
@@ -249,15 +207,19 @@ export function trackMission(world, i) {
 
 export function getMissionProgress() {
   if (!chain) return null;
-  return { index: chain.index, completed: [...chain.completed] };
+  return { index: chain.index, completed: [...chain.completed], seen: [...chain.seen] };
 }
 
 export function setMissionProgress(world, prog) {
   if (!chain || !prog) return;
   const n = chain.defs.length;
+  releaseMissionVehicle(world);
   chain.index = Number.isInteger(prog.index) && prog.index >= 0 && prog.index < n ? prog.index : 0;
-  chain.completed = new Set((prog.completed || []).filter((i) => Number.isInteger(i) && i >= 0 && i < n));
+  const valid = (list) => (Array.isArray(list) ? list : []).filter((i) => Number.isInteger(i) && i >= 0 && i < n);
+  chain.completed = new Set(valid(prog.completed));
+  chain.seen = new Set([...valid(prog.seen), ...chain.completed]);
   chain.phase = 'idle';
+  chain.armed = true;
   chain.wpIndex = 0;
   chain.run = null;
   syncPub(world);
@@ -268,11 +230,13 @@ function fmtTime(s) {
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }
 
+const killCount = (world) => world.stats.pedKills + world.stats.copKills;
+
 function runStats(world, def) {
   const r = chain.run;
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
-  const kills = world.stats.kills - r.kills;
+  const kills = killCount(world) - r.kills;
   if (def.type === 'rampage' || kills > 0) stats.push(['Kills', String(Math.max(0, kills))]);
   stats.push(['Schade', `${Math.round(r.damage)}%`]);
   return stats;
@@ -287,6 +251,17 @@ function trackRun(dt, world) {
   r.hp = hp;
 }
 
+// Until the player sits in the mission car/boat, point them at it rather
+// than at the destination they can't complete without it.
+function vehicleToBoard(world, def) {
+  if (def.type !== 'deliver' && def.type !== 'boat') return null;
+  const v = chain.vehicle;
+  const p = world.player;
+  if (!v || v.wrecked) return null;
+  if (def.type === 'deliver' ? p.inVehicle === v : p.inVehicle && p.inVehicle.isBoat) return null;
+  return v;
+}
+
 function syncPub(world) {
   const st = chain;
   const def = st.defs[st.index];
@@ -297,26 +272,17 @@ function syncPub(world) {
   pub.timeLeft = st.phase === 'active' ? st.timeLeft : null;
   pub.index = st.index;
   pub.total = st.defs.length;
-  if (st.phase === 'idle' || st.phase === 'cooldown') {
-    pub.marker.x = def.start.x;
-    pub.marker.y = def.start.y;
-  } else if (def.type === 'deliver') {
-    pub.marker.x = def.dest.x;
-    pub.marker.y = def.dest.y;
-  } else if (def.type === 'checkpoint' || def.type === 'boat') {
-    const wp = def.waypoints[st.wpIndex];
-    pub.marker.x = wp.x;
-    pub.marker.y = wp.y;
-  } else if (def.type === 'rampage') {
-    pub.marker.x = def.start.x;
-    pub.marker.y = def.start.y;
-  } else if (def.type === 'fatbike') {
-    pub.marker.x = def.dest.x;
-    pub.marker.y = def.dest.y;
-  }
+  const board = st.phase === 'active' ? vehicleToBoard(world, def) : null;
+  let target;
+  if (st.phase !== 'active' || def.type === 'rampage') target = def.start;
+  else if (board) target = board;
+  else if (def.type === 'deliver' || def.type === 'fatbike') target = def.dest;
+  else target = def.waypoints[st.wpIndex];
+  pub.marker.x = target.x;
+  pub.marker.y = target.y;
   pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
   if (def.type === 'rampage' && st.phase === 'active') {
-    pub.killProgress = world.stats.pedKills - st.killBaseline;
+    pub.killProgress = killCount(world) - st.killBaseline;
     pub.killTarget = def.targetKills;
   }
   if (def.type === 'checkpoint' || def.type === 'boat') {
@@ -327,21 +293,46 @@ function syncPub(world) {
     pub.fatbikeHits = st.fatbikeHits;
     pub.fatbikeMaxHits = def.maxHits;
   }
-  // Mirrors the old 2D drawMissions()'s "remaining waypoints preview" gate
-  // exactly ((type is checkpoint/boat) && phase==='active') so 3D code can
-  // draw the same dots without reaching into chain/def (module-private).
   pub.remainingWaypoints =
-    (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active'
+    (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' && !board
       ? def.waypoints.slice(st.wpIndex + 1).map((wp) => ({ x: wp.x, y: wp.y }))
       : [];
   world.mission = pub;
+}
+
+// The car/boat stays in the world after the mission, but as ordinary
+// traffic that the population managers may despawn.
+function releaseMissionVehicle(world) {
+  const v = chain.vehicle;
+  if (!v) return;
+  v.missionCar = false;
+  if (v.isBoat) v.waterPoly = world.map.waterNear(v.x, v.y, 1).find((w) => pointInPolygon(v.x, v.y, w.pts)) || null;
+  chain.leftover = v;
+  chain.vehicle = null;
+}
+
+function removeLeftover(world) {
+  const v = chain.leftover;
+  chain.leftover = null;
+  if (!v || v.driver === 'player' || v.passenger) return;
+  const i = world.vehicles.indexOf(v);
+  if (i >= 0) world.vehicles.splice(i, 1);
+}
+
+// How far the Tammo/Anita story has got for mission i: normally i itself,
+// lower when missions were played out of order.
+function storyStage(i) {
+  const before = chain.completed.size - (chain.completed.has(i) ? 1 : 0);
+  return Math.min(i, before);
 }
 
 function succeed(world, def) {
   world.money += def.reward;
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! +€${def.reward}`, 4);
-  playMissionOutro(world, { reason: def.outro || def.label, reward: def.reward, stats: runStats(world, def) });
+  const i = chain.index;
+  playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward: def.reward, stats: runStats(world, def), reason: def.outro || def.label });
+  releaseMissionVehicle(world);
   chain.completed.add(chain.index);
   chain.run = null;
   chain.index = (chain.index + 1) % chain.defs.length;
@@ -351,61 +342,165 @@ function succeed(world, def) {
 
 function fail(world, def, reason) {
   const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : def.label;
-  playMissionFailed(world, { reason: pretty, stats: runStats(world, def) });
+  playStoryFail(world, chain.index, { reason: pretty, stats: runStats(world, def) });
   endInFailure(world, `${def.label} mislukt${reason ? ' — ' + reason : ''}`);
 }
 
 function endInFailure(world, text) {
   world.addMessage(text, 3.5);
+  releaseMissionVehicle(world);
   chain.phase = 'cooldown';
+  chain.armed = false;
   chain.cooldownTimer = RETRY_COOLDOWN;
   chain.wpIndex = 0;
   chain.run = null;
 }
 
+// A point `offset` metres along the road from p, towards whichever end has
+// room, so the parked car doesn't spawn on top of the player at the marker.
+function pointAlongRoad(road, p, offset) {
+  const pts = road.pts;
+  let seg = 0, t = 0, best = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const cp = closestPointOnSegment(p.x, p.y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+    if (cp.dist2 < best) { best = cp.dist2; seg = i; t = cp.t; }
+  }
+  const segLen = (i) => Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+  let ahead = segLen(seg) * (1 - t), behind = segLen(seg) * t;
+  for (let i = seg + 1; i < pts.length - 1; i++) ahead += segLen(i);
+  for (let i = seg - 1; i >= 0; i--) behind += segLen(i);
+  const dir = ahead >= behind ? 1 : -1;
+  let left = Math.min(offset, Math.max(ahead, behind));
+  let i = seg, x = p.x, y = p.y;
+  while (left > 0 && i >= 0 && i < pts.length - 1) {
+    const [tx, ty] = dir > 0 ? pts[i + 1] : pts[i];
+    const d = Math.hypot(tx - x, ty - y);
+    if (d >= left) { x += (tx - x) / d * left; y += (ty - y) / d * left; break; }
+    left -= d; x = tx; y = ty; i += dir;
+  }
+  return { x, y };
+}
+
+function spawnMissionCar(world, def) {
+  const at = pointAlongRoad(def.start.road, def.start, world.player.inVehicle ? 10 : 6);
+  const car = spawnVehicleOnRoad(world.map, def.start.road, false, Math.random, false, false, at);
+  car.road = null;
+  car.speed = 0;
+  car.missionCar = true;
+  return car;
+}
+
+function spawnMissionBoat(def) {
+  const b = def.boatAt;
+  const boat = new Vehicle(b.x, b.y, b.angle, MISSION_BOAT_MODEL);
+  boat.isBoat = true;
+  boat.missionCar = true;
+  return boat;
+}
+
+// Fatbikes riding the cycle paths along the walk; the model is picked at
+// random inside spawnVehicleOnRoad, so re-roll until it comes up fat.
+function spawnFatbikes(world, def) {
+  const { map, player } = world;
+  for (let i = 0; i < FATBIKE_COUNT; i++) {
+    const t = (i + 0.5) / FATBIKE_COUNT;
+    const pt = { x: def.start.x + (def.dest.x - def.start.x) * t, y: def.start.y + (def.dest.y - def.start.y) * t };
+    const near = (r) => r.pts.some((q, k) => k < r.pts.length - 1 && closestPointOnSegment(pt.x, pt.y, q[0], q[1], r.pts[k + 1][0], r.pts[k + 1][1]).dist2 < 15 * 15);
+    const rideable = map.roadsNear(pt.x, pt.y, 15).filter((r) => (r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor') && near(r));
+    const cycle = rideable.filter((r) => r.cat === 'cycle');
+    const roads = cycle.length ? cycle : rideable;
+    if (!roads.length) continue;
+    for (let tries = 0; tries < 40; tries++) {
+      const v = spawnVehicleOnRoad(map, roads[Math.floor(Math.random() * roads.length)], false, Math.random, true, false, pt);
+      if (!v.model.fat) continue;
+      if (dist(v.x, v.y, player.x, player.y) < 10) break;
+      v.missionFatbike = true;
+      world.vehicles.push(v);
+      break;
+    }
+  }
+}
+
 function startMission(world, def) {
+  removeLeftover(world);
   chain.phase = 'active';
   chain.timeLeft = def.timeLimit;
   chain.wpIndex = 0;
-  chain.run = { elapsed: 0, kills: world.stats.kills, hp: world.health + world.armor, damage: 0 };
+  chain.boarded = false;
+  chain.hintAt = -Infinity;
+  chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, damage: 0 };
   if (def.type === 'rampage') {
-    chain.killBaseline = world.stats.pedKills;
+    chain.killBaseline = killCount(world);
   } else if (def.type === 'deliver' && def.start.road) {
-    // the car to steal: parked and waiting, not driving off as traffic
-    const car = spawnVehicleOnRoad(world.map, def.start.road, false, Math.random, false, false, def.start);
-    car.road = null;
-    car.speed = 0;
-    car.missionCar = true;
-    world.vehicles.push(car);
+    chain.vehicle = spawnMissionCar(world, def);
+    world.vehicles.push(chain.vehicle);
+  } else if (def.type === 'boat') {
+    chain.vehicle = spawnMissionBoat(def);
+    world.vehicles.push(chain.vehicle);
   } else if (def.type === 'fatbike') {
     chain.fatbikeHits = 0;
     chain.fatbikeContact = new Set();
+    spawnFatbikes(world, def);
   }
-  const who = speakerName(world);
-  playMissionIntro(world, {
-    kicker: `Missie ${chain.index + 1}/${chain.defs.length}`,
-    title: `Missie: ${def.label}`,
-    lines: (def.intro || []).map((text) => ({ speaker: who, text })),
-    objective: def.dest || (def.waypoints && def.waypoints[0]) || def.start,
-  });
+  const i = chain.index;
+  const kicker = `Missie ${i + 1}/${chain.defs.length}`;
+  const title = def.label;
+  const objective = chain.vehicle || def.dest || (def.waypoints && def.waypoints[0]) || def.start;
+  const shown = playStoryIntro(world, i, { stage: storyStage(i), short: chain.seen.has(i), kicker, title, target: objective });
+  if (!shown) {
+    const who = speakerName(world);
+    playMissionIntro(world, { kicker, title: `Missie: ${title}`, lines: (def.intro || []).map((text) => ({ speaker: who, text })), objective });
+  }
+  chain.seen.add(i);
 }
 
 // Only counts a hit once per fatbike per continuous touch, so lingering
 // next to one for several frames doesn't burn through maxHits instantly.
-function checkFatbikeHits(world, chain) {
+function checkFatbikeHits(world) {
   const p = world.player;
   const nowTouching = new Set();
   for (const v of world.vehicles) {
-    if (!v.isBike || !v.model.fat || v.wrecked) continue;
-    if (dist(p.x, p.y, v.x, v.y) < FATBIKE_TOUCH_RADIUS) {
-      nowTouching.add(v.id);
-      if (!chain.fatbikeContact.has(v.id)) {
-        chain.fatbikeHits++;
-        world.addMessage(`Geschept door een fatbike! (${chain.fatbikeHits}/${chain.defs[chain.index].maxHits})`, 2);
-      }
+    if (!v.isBike || !v.model.fat || v.wrecked || v.driver === 'player') continue;
+    if (dist(p.x, p.y, v.x, v.y) >= FATBIKE_TOUCH_RADIUS) continue;
+    nowTouching.add(v.id);
+    if (!chain.fatbikeContact.has(v.id) && Math.abs(v.speed) > FATBIKE_MIN_SPEED) {
+      chain.fatbikeHits++;
+      world.addMessage(`Geschept door een fatbike! (${chain.fatbikeHits}/${chain.defs[chain.index].maxHits})`, 2);
     }
   }
   chain.fatbikeContact = nowTouching;
+}
+
+function hint(world, text) {
+  if (world.time - chain.hintAt < HINT_INTERVAL) return;
+  chain.hintAt = world.time;
+  world.addMessage(text, 2.5);
+}
+
+// Returns a failure reason when the mission car/boat is gone or left behind.
+function vehicleProblem(world, def) {
+  const v = chain.vehicle;
+  const p = world.player;
+  if (!v || !world.vehicles.includes(v)) return def.type === 'boat' ? 'de boot is weg' : 'de auto is weg';
+  if (v.wrecked) return def.type === 'boat' ? 'de boot is naar de bodem' : 'de auto is total loss';
+  if (p.inVehicle === v) { chain.boarded = true; return null; }
+  if (def.type === 'boat' && p.inVehicle && p.inVehicle.isBoat) return null;
+  if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {
+    const what = def.type === 'boat' ? 'de boot' : 'de auto';
+    return chain.boarded ? `${what} achtergelaten` : `je liet ${what} gewoon staan`;
+  }
+  return null;
+}
+
+function reachCheckpoint(world, def) {
+  const wp = def.waypoints[chain.wpIndex];
+  chain.wpIndex++;
+  chain.timeLeft += def.checkpointBonus;
+  if (chain.wpIndex >= def.waypoints.length) {
+    succeed(world, def);
+    return;
+  }
+  if (wp.name) world.addMessage(`Proost bij ${wp.name}! Door naar ${def.waypoints[chain.wpIndex].name}.`, 3);
 }
 
 export function updateMissions(dt, world) {
@@ -421,9 +516,9 @@ export function updateMissions(dt, world) {
   }
 
   if (chain.phase === 'idle') {
-    if (dist(p.x, p.y, def.start.x, def.start.y) < TRIGGER_RADIUS) {
-      startMission(world, def);
-    }
+    const d = dist(p.x, p.y, def.start.x, def.start.y);
+    if (d > TRIGGER_RADIUS + 2) chain.armed = true;
+    else if (d < TRIGGER_RADIUS && chain.armed) startMission(world, def);
     syncPub(world);
     return;
   }
@@ -436,43 +531,48 @@ export function updateMissions(dt, world) {
     return;
   }
 
+  if (def.type === 'deliver' || def.type === 'boat') {
+    const problem = vehicleProblem(world, def);
+    if (problem) {
+      fail(world, def, problem);
+      syncPub(world);
+      return;
+    }
+  }
+  if (def.onFoot && def.type === 'fatbike' && p.inVehicle) {
+    fail(world, def, 'je moest lopen, niet rijden');
+    syncPub(world);
+    return;
+  }
+
   if (def.type === 'deliver') {
-    if (p.inVehicle && dist(p.x, p.y, def.dest.x, def.dest.y) < TRIGGER_RADIUS + 2) {
+    if (p.inVehicle === chain.vehicle && dist(p.x, p.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS) {
       succeed(world, def);
     }
   } else if (def.type === 'rampage') {
-    if (world.stats.pedKills - chain.killBaseline >= def.targetKills) {
+    if (killCount(world) - chain.killBaseline >= def.targetKills) {
       succeed(world, def);
     }
   } else if (def.type === 'checkpoint') {
     const wp = def.waypoints[chain.wpIndex];
-    if (dist(p.x, p.y, wp.x, wp.y) < TRIGGER_RADIUS + 2) {
-      chain.wpIndex++;
-      chain.timeLeft = Math.min(def.timeLimit, chain.timeLeft + def.checkpointBonus);
-      if (chain.wpIndex >= def.waypoints.length) {
-        succeed(world, def);
-      }
+    if (dist(p.x, p.y, wp.x, wp.y) < CHECKPOINT_RADIUS) {
+      if (def.onFoot && p.inVehicle) hint(world, 'Eerst uitstappen: je gaat niet dronken rijden, hè.');
+      else reachCheckpoint(world, def);
     }
   } else if (def.type === 'fatbike') {
-    checkFatbikeHits(world, chain);
+    checkFatbikeHits(world);
     if (chain.fatbikeHits > def.maxHits) {
       fail(world, def, 'geveld door de fatbikes, typisch Grunn');
       syncPub(world);
       return;
     }
-    if (dist(p.x, p.y, def.dest.x, def.dest.y) < TRIGGER_RADIUS + 2) {
+    if (dist(p.x, p.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS) {
       succeed(world, def);
     }
   } else if (def.type === 'boat') {
     if (p.inVehicle && p.inVehicle.isBoat) {
       const wp = def.waypoints[chain.wpIndex];
-      if (dist(p.x, p.y, wp.x, wp.y) < TRIGGER_RADIUS + 2) {
-        chain.wpIndex++;
-        chain.timeLeft = Math.min(def.timeLimit, chain.timeLeft + def.checkpointBonus);
-        if (chain.wpIndex >= def.waypoints.length) {
-          succeed(world, def);
-        }
-      }
+      if (dist(p.x, p.y, wp.x, wp.y) < CHECKPOINT_RADIUS + 2) reachCheckpoint(world, def);
     }
   }
 

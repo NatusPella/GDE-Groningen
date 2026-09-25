@@ -64,6 +64,7 @@ export function setRoomDepth(f) {
 const DECODE = /* glsl */`
 varying vec2 vWinUv;
 varying vec3 vWPos;
+varying vec3 vWNrm;
 uniform float uNightGlow, uLitFrac, uShopFrac, uStorm, uTime, uRoomDepth;
 
 struct IgPane { vec2 p; vec2 size; float K; float kind; float rank; };
@@ -132,12 +133,12 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   float s1 = igH(vec2(q.K + q.kind * 17.0, W * 3.1 + H * 7.7));
   float s2 = fract(s1 * 13.37 + 0.21), s3 = fract(s1 * 71.93 + 0.47), s4 = fract(s1 * 31.17 + 0.83), s5 = fract(s1 * 5.71 + 0.13);
 
-  vec3 T = normalize(vec3(N.z, 0.0, -N.x));
+  vec3 T = length(N.xz) > 1e-3 ? normalize(vec3(N.z, 0.0, -N.x)) : vec3(1.0, 0.0, 0.0);
   vec3 rd = vec3(dot(V, T), V.y, -dot(V, N));
   rd.x = abs(rd.x) < 1e-4 ? 1e-4 : rd.x;
   rd.y = abs(rd.y) < 1e-4 ? 1e-4 : rd.y;
   rd.z = max(rd.z, 1e-3);
-  fres = 0.04 + 0.96 * pow(1.0 - rd.z, 5.0);
+  fres = 0.04 + 0.96 * pow(clamp(1.0 - rd.z, 0.0, 1.0), 5.0);
   vec3 ro = vec3(q.p, 0.0);
   vec3 ird = 1.0 / rd;
 
@@ -250,7 +251,7 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   vec3 lampP = vec3(0.0, cY - 0.35, D * 0.45);
   vec3 L = lampP - hp;
   float d2 = dot(L, L);
-  float ndl = max(dot(n, L * inversesqrt(d2)), 0.0);
+  float ndl = max(dot(n, L * inversesqrt(max(d2, 1e-4))), 0.0);
   vec3 E = lampCol * lampI * (0.1 + 0.6 * ndl / (1.0 + d2 * 0.35));
   E += DAY * dayI * (0.12 + 0.5 * exp(-hp.z * 0.5)) * (0.8 + 0.2 * n.y);
   // unlit rooms at night still catch street and moon light near the window
@@ -304,8 +305,8 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
 glassMaterial.onBeforeCompile = (shader) => {
   Object.assign(shader.uniforms, uniforms);
   shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nvarying vec2 vWinUv;\nvarying vec3 vWPos;')
-    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWinUv = uv;\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    .replace('#include <common>', '#include <common>\nvarying vec2 vWinUv;\nvarying vec3 vWPos;\nvarying vec3 vWNrm;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWinUv = uv;\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvWNrm = mat3(modelMatrix) * objectNormal;');
   shader.fragmentShader = (interiorOn ? '#define INTERIOR_GLASS\n' : '') + shader.fragmentShader
     .replace('#include <common>', `#include <common>\n${DECODE}\n#ifdef INTERIOR_GLASS\n${INTERIOR}\n#endif`)
     .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
@@ -315,10 +316,17 @@ glassMaterial.onBeforeCompile = (shader) => {
         vec3 igV = vWPos - cameraPosition;
         float igDist = length(igV);
         igV /= igDist;
-        vec3 igN = normalize(cross(dFdx(vWPos), dFdy(vWPos)));
+        // geometry normal, not pixel derivatives: those degenerate to zero at
+        // edges and the resulting NaN spread through bloom into black screens
+        vec3 igN = vWNrm;
+        if (dot(igN, igN) < 1e-8) igN = vec3(0.0, 0.0, 1.0);
+        igN = normalize(igN);
         if (dot(igN, igV) > 0.0) igN = -igN;
         float igF;
-        vec3 igCol = igInterior(q, igN, igV, igDist, igF);
+        vec3 igCol = igInterior(q, igN, igV, max(igDist, 1e-3), igF);
+        if (any(isnan(igCol)) || any(isinf(igCol)) || isnan(igF)) { igCol = vec3(0.02); igF = 0.2; }
+        igCol = clamp(igCol, 0.0, 4.0);
+        igF = clamp(igF, 0.0, 1.0);
         // capped so a lit room glows instead of blooming into a white blotch
         totalEmissiveRadiance += min(igCol, vec3(1.1)) * (1.0 - igF) * 0.85 + igF * vec3(0.02, 0.026, 0.04) * clamp(uNightGlow, 0.0, 1.0);
         diffuseColor.rgb *= 0.12;
