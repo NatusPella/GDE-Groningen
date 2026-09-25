@@ -1,0 +1,22 @@
+GTE VI - Grand Theft Eierbal VI
+================================
+
+Spelen op Windows:
+
+1. Dubbelklik op "START DE GAME.bat".
+   (Werkt direct vanuit de ZIP. Uitpakken mag ook.)
+2. Geeft Windows de melding "Windows heeft uw pc beveiligd"?
+   Klik op "Meer info" en dan op "Toch uitvoeren".
+3. De game opent vanzelf in je standaardbrowser.
+   Laat het zwarte venster open zolang je speelt; sluit het om te stoppen.
+
+De eerste keer wordt (als je nog geen Python hebt) een portable Python van
+python.org gedownload, ongeveer 11 MB. Daarna start alles meteen.
+
+Tips:
+- Je hebt internet nodig tijdens het spelen.
+- Chrome of Edge werkt het best. Zet in de browserinstellingen
+  "Hardwareversnelling gebruiken" aan.
+- Esc in het spel: menu, kaart en besturing.
+
+Made with love in Groningen, with AI.
