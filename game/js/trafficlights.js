@@ -1,119 +1,497 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { makeProp, addProp, removeProp } from './breakables.js';
 
-const GREEN_TIME = 8;
-const YELLOW_TIME = 2;
-const RED_TIME = GREEN_TIME + YELLOW_TIME;
-const CYCLE_TIME = GREEN_TIME + YELLOW_TIME + RED_TIME;
+// Two-phase fixed-time controllers: main axis green -> amber -> all red ->
+// cross axis green (or the pedestrian phase) -> amber -> all red.
+const MAIN_GREEN = 11;
+const CROSS_GREEN = 8;
+const PED_GREEN = 6;
+const CROSSING_MAIN_GREEN = 14;
+const AMBER = 3;
+const ALL_RED = 2;
 
-// OSM tags one signal node per approach; nodes this close share one
-// controller so a junction's approaches alternate instead of conflicting.
-const CONTROLLER_RADIUS = 30;
-
-let lights = [];
-let controllers = [];
-let map = null;
+const CLUSTER_RADIUS = 28;
+const APPROACH_REACH = 45;
+const CAR_CATS = new Set(['major', 'normal', 'minor']);
+const CAT_RANK = { major: 3, normal: 2, minor: 1, cycle: 0 };
+const GRID = 64;
 const PROP_RADIUS = 70;
 
-function phaseAt(t) {
-  if (t < GREEN_TIME) return 'green';
-  if (t < GREEN_TIME + YELLOW_TIME) return 'yellow';
-  return 'red';
-}
+// heads: one per approach (the traffic stream that stops at one stop line).
+// x, y: stop point on the road centreline; hx, hy: travel direction of the
+// traffic it controls; poles: kerb positions where a signal head stands.
+let heads = [];
+let controllers = [];
+let grid = new Map();
+let map = null;
+
+const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
 
 export function getTrafficLights() {
-  return lights;
+  return heads;
 }
 
-// Phase seen by traffic travelling at `heading`: the controller's main axis
-// runs the first half of the cycle, the cross axis the second half.
-export function trafficLightPhaseFor(light, heading) {
-  if (light.broken) return 'green';
-  const c = light.ctrl;
-  const main = Math.abs(Math.cos(heading - c.axis)) >= Math.SQRT1_2;
-  return phaseAt(main ? c.t : (c.t + RED_TIME) % CYCLE_TIME);
+export function trafficSignalsNear(x, y) {
+  return grid.get(Math.floor(x / GRID) + ',' + Math.floor(y / GRID)) || EMPTY;
+}
+const EMPTY = [];
+
+function controllerPhase(c, group) {
+  const t = c.t;
+  const s0 = c.g0, s1 = s0 + AMBER, s2 = s1 + ALL_RED, s3 = s2 + c.g1, s4 = s3 + AMBER;
+  if (group === 0) return t < s0 ? 'green' : t < s1 ? 'yellow' : 'red';
+  return t >= s2 && t < s3 ? 'green' : t >= s3 && t < s4 ? 'yellow' : 'red';
 }
 
-// What the lamp shows: the phase for traffic along the light's own road.
-export function getTrafficLightPhase(light) {
-  return trafficLightPhaseFor(light, light.axis);
+export function getTrafficLightPhase(head) {
+  if (head.broken) return 'off';
+  return controllerPhase(head.ctrl, head.group);
 }
 
-function roadAxisAt(map, x, y) {
-  let best = null, bestD2 = Infinity;
-  for (const road of map.roadsNear(x, y, 12)) {
-    if (road.cat === 'foot' || road.cat === 'cycle') continue;
+// Phase for traffic travelling at `heading` through this head's controller.
+export function trafficLightPhaseFor(head, heading) {
+  if (head.broken) return 'green';
+  const main = Math.abs(Math.cos(heading - head.ctrl.axis)) >= Math.SQRT1_2;
+  return controllerPhase(head.ctrl, main ? 0 : 1);
+}
+
+// ---------------------------------------------------------------- network
+
+let nodes = null;
+
+function buildNodes(m) {
+  nodes = new Map();
+  for (const r of m.roads) {
+    if (r.cat === 'foot' || r.pts.length < 2) continue;
+    r.pts.forEach((p, idx) => {
+      const k = nodeKey(p);
+      let a = nodes.get(k);
+      if (!a) nodes.set(k, a = []);
+      a.push({ road: r, idx });
+    });
+  }
+}
+
+const isCar = (r) => CAR_CATS.has(r.cat);
+
+// Branches leaving a node; d is the road direction pointing away from it.
+function branches(k, carOnly) {
+  const out = [];
+  for (const e of nodes.get(k) || EMPTY) {
+    if (carOnly && !isCar(e.road)) continue;
+    if (e.idx > 0) out.push({ road: e.road, idx: e.idx, d: -1 });
+    if (e.idx < e.road.pts.length - 1) out.push({ road: e.road, idx: e.idx, d: 1 });
+  }
+  return out;
+}
+
+function unit(ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, l = Math.hypot(dx, dy) || 1;
+  return [dx / l, dy / l];
+}
+
+function nearestSegment(x, y, filter) {
+  let best = null;
+  for (const road of map.roadsNear(x, y, 4)) {
+    if (!filter(road)) continue;
     for (let i = 0; i < road.pts.length - 1; i++) {
       const [ax, ay] = road.pts[i], [bx, by] = road.pts[i + 1];
       const dx = bx - ax, dy = by - ay;
-      const len2 = dx * dx + dy * dy || 1;
-      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / len2));
+      const l2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2));
       const d2 = (x - ax - dx * t) ** 2 + (y - ay - dy * t) ** 2;
-      if (d2 < bestD2) { bestD2 = d2; best = Math.atan2(dy, dx); }
+      if (!best || d2 < best.d2) best = { d2, road, i, t, x: ax + dx * t, y: ay + dy * t };
     }
   }
-  return best ?? 0;
+  return best;
+}
+
+// Walk from a point on segment (i, i+1) in road direction `dir` through
+// plain continuations until a junction (3+ branches) is reached.
+function walkToJunction(road, i, x, y, dir, carOnly, maxDist) {
+  let idx = dir > 0 ? i + 1 : i;
+  let dist = Math.hypot(road.pts[idx][0] - x, road.pts[idx][1] - y);
+  let r = road;
+  for (let guard = 0; guard < 60 && dist <= maxDist; guard++) {
+    const k = nodeKey(r.pts[idx]);
+    const br = branches(k, carOnly);
+    if (br.length >= 3) return { key: k, x: r.pts[idx][0], y: r.pts[idx][1], dist };
+    if (br.length !== 2) return null;
+    const next = br.find((b) => !(b.road === r && b.idx === idx && b.d === -dir));
+    if (!next) return null;
+    r = next.road; dir = next.d;
+    const ni = next.idx + dir;
+    dist += Math.hypot(r.pts[ni][0] - r.pts[next.idx][0], r.pts[ni][1] - r.pts[next.idx][1]);
+    idx = ni;
+  }
+  return null;
+}
+
+// Point `dist` metres from vertex idx along road direction d (same road only).
+function alongRoad(road, idx, d, dist) {
+  let i = idx;
+  while (true) {
+    const j = i + d;
+    if (j < 0 || j >= road.pts.length) {
+      const p = road.pts[i], q = road.pts[i - d] || p;
+      const [ux, uy] = unit(q[0], q[1], p[0], p[1]);
+      return { x: p[0], y: p[1], hx: ux, hy: uy };
+    }
+    const p = road.pts[i], q = road.pts[j];
+    const L = Math.hypot(q[0] - p[0], q[1] - p[1]);
+    if (L >= dist) {
+      const t = L > 1e-6 ? dist / L : 0;
+      const [ux, uy] = unit(p[0], p[1], q[0], q[1]);
+      return { x: p[0] + (q[0] - p[0]) * t, y: p[1] + (q[1] - p[1]) * t, hx: ux, hy: uy };
+    }
+    dist -= L;
+    i = j;
+  }
+}
+
+function junctionClearance(k) {
+  let w = 0;
+  for (const e of nodes.get(k) || EMPTY) if (isCar(e.road)) w = Math.max(w, e.road.width || 6);
+  return Math.max(4, Math.min(14, w / 2 + 2.5));
+}
+
+// ---------------------------------------------------------------- build
+
+function addApproach(list, o) {
+  list.push({
+    x: o.x, y: o.y, hx: o.hx, hy: o.hy, road: o.road, bike: !!o.bike,
+    ax: o.ax, ay: o.ay, key: o.key || null, crossing: !!o.crossing,
+    ctrl: null, group: 0, broken: false, poles: [],
+  });
+}
+
+function approachesFromSignal(sig, list) {
+  const bike = !!sig.bike;
+  const seg = nearestSegment(sig.x, sig.y, bike ? (r) => r.cat === 'cycle' : isCar);
+  if (!seg || seg.d2 > 9) return;
+  const road = seg.road;
+  const [ux, uy] = unit(road.pts[seg.i][0], road.pts[seg.i][1], road.pts[seg.i + 1][0], road.pts[seg.i + 1][1]);
+  const atVertex = seg.t < 1e-3 ? seg.i : seg.t > 1 - 1e-3 ? seg.i + 1 : -1;
+  const carOnly = !bike;
+
+  if (!sig.crossing && atVertex >= 0) {
+    const k = nodeKey(road.pts[atVertex]);
+    if (branches(k, carOnly).length >= 3) {
+      list.junctions.push({ key: k, x: road.pts[atVertex][0], y: road.pts[atVertex][1], rank: CAT_RANK[road.cat] ?? 0 });
+      return;
+    }
+  }
+
+  const dirs = road.oneway ? [1] : [1, -1];
+  let best = null;
+  if (!sig.crossing) {
+    for (const dir of dirs) {
+      const j = walkToJunction(road, seg.i, seg.x, seg.y, dir, carOnly, APPROACH_REACH);
+      if (j && (!best || j.dist < best.j.dist)) best = { j, dir };
+    }
+  }
+  if (best) {
+    const { j, dir } = best;
+    const clear = bike ? 2.5 : junctionClearance(j.key);
+    const back = Math.max(0, clear - j.dist);
+    const hx = ux * dir, hy = uy * dir;
+    addApproach(list, {
+      x: seg.x - hx * back, y: seg.y - hy * back, hx, hy, road, bike,
+      ax: j.x, ay: j.y, key: j.key,
+    });
+    if (!bike) list.junctions.push({ key: j.key, x: j.x, y: j.y, rank: CAT_RANK[road.cat] ?? 0, implied: true });
+    return;
+  }
+  // signalised crossing (or a signal with no junction in reach): stop both ways
+  for (const dir of dirs) {
+    const hx = ux * dir, hy = uy * dir;
+    const back = bike ? 1.5 : 3;
+    addApproach(list, {
+      x: seg.x - hx * back, y: seg.y - hy * back, hx, hy, road, bike, crossing: true,
+      ax: seg.x, ay: seg.y,
+    });
+  }
+}
+
+// OSM often tags only some arms of a signalised junction; every car arm
+// entering a controlled junction gets a signal so no stream drives blind.
+function fillJunctionArms(ctrl, list) {
+  const keys = new Set(ctrl.keys);
+  for (const k of keys) {
+    const [kx, ky] = k.split(',').map((n) => n / 10);
+    const clear = junctionClearance(k);
+    for (const b of branches(k, true)) {
+      const road = b.road;
+      if (road.type === 'service' || road.type === 'track') continue;
+      if (road.oneway && b.d > 0) continue;
+      const np = road.pts[b.idx + b.d];
+      const [ox, oy] = unit(road.pts[b.idx][0], road.pts[b.idx][1], np[0], np[1]);
+      const inner = walkToJunction(road, b.d > 0 ? b.idx : b.idx - 1, road.pts[b.idx][0], road.pts[b.idx][1], b.d, true, 40);
+      if (inner && keys.has(inner.key)) continue;
+      const hx = -ox, hy = -oy;
+      const covered = ctrl.approaches.some((a) => {
+        if (a.bike || a.hx * hx + a.hy * hy < 0.75) return false;
+        const rx = kx - a.x, ry = ky - a.y;
+        const along = rx * hx + ry * hy;
+        return along > -2 && along < APPROACH_REACH + 5 && Math.abs(rx * hy - ry * hx) < 8;
+      });
+      if (covered) continue;
+      const p = alongRoad(road, b.idx, b.d, clear);
+      addApproach(list, { x: p.x, y: p.y, hx: -p.hx, hy: -p.hy, road, ax: kx, ay: ky, key: k });
+      const a = list[list.length - 1];
+      a.ctrl = ctrl;
+      ctrl.approaches.push(a);
+    }
+  }
+}
+
+function placePoles(a) {
+  const half = (a.road.width || (a.bike ? 2 : 6)) / 2;
+  const rx = -a.hy, ry = a.hx;
+  const off = half + (a.bike ? 0.5 : 0.8);
+  const angle = Math.atan2(a.hy, a.hx);
+  a.poles.push({ x: a.x + rx * off, y: a.y + ry * off, angle, head: a, broken: false, prop: null, bike: a.bike });
+  // wide one-way carriageways get a repeater on the left kerb too
+  if (!a.bike && a.road.oneway && (a.road.width || 0) >= 7) {
+    a.poles.push({ x: a.x - rx * off, y: a.y - ry * off, angle, head: a, broken: false, prop: null, bike: false });
+  }
 }
 
 export function initTrafficLights(world) {
   map = world.map;
-  const positions = world.map.meta.trafficLights || [];
-  lights = positions.map((p) => ({ x: p.x, y: p.y, t: 0, axis: roadAxisAt(world.map, p.x, p.y), ctrl: null }));
+  buildNodes(map);
+  const signals = map.meta.trafficLights || [];
+  const list = [];
+  list.junctions = [];
+  for (const s of signals) approachesFromSignal(s, list);
+
+  // cluster junction nodes (and crossings) into controllers, strongest road first
   controllers = [];
-  for (const light of lights) {
-    if (light.ctrl) continue;
-    const ctrl = { t: Math.random() * CYCLE_TIME, axis: light.axis };
-    controllers.push(ctrl);
-    for (const o of lights) {
-      if (!o.ctrl && Math.hypot(o.x - light.x, o.y - light.y) < CONTROLLER_RADIUS) o.ctrl = ctrl;
+  const anchors = [
+    ...list.junctions,
+    ...list.filter((a) => !a.key || a.bike).map((a) => ({ x: a.ax, y: a.ay, rank: a.bike ? -1 : CAT_RANK[a.road.cat] ?? 0 })),
+  ].sort((a, b) => b.rank - a.rank);
+  const ctrlOf = new Map();
+  for (const an of anchors) {
+    let c = controllers.find((o) => Math.hypot(o.x - an.x, o.y - an.y) < CLUSTER_RADIUS);
+    if (!c) {
+      c = { x: an.x, y: an.y, n: 0, keys: new Set(), approaches: [], t: 0, g0: MAIN_GREEN, g1: PED_GREEN, axis: 0, cycle: 0 };
+      controllers.push(c);
+    }
+    c.x = (c.x * c.n + an.x) / (c.n + 1);
+    c.y = (c.y * c.n + an.y) / (c.n + 1);
+    c.n++;
+    if (an.key && !an.implied) c.keys.add(an.key);
+    if (an.key) ctrlOf.set(an.key, c);
+  }
+  for (const a of list) {
+    const c = (a.key && !a.bike && ctrlOf.get(a.key)) ||
+      controllers.reduce((b, o) => (!b || Math.hypot(o.x - a.ax, o.y - a.ay) < Math.hypot(b.x - a.ax, b.y - a.ay) ? o : b), null);
+    if (!c) continue;
+    a.ctrl = c;
+    c.approaches.push(a);
+  }
+  for (const c of controllers) {
+    for (const a of c.approaches) if (a.key && !a.crossing && !a.bike) c.keys.add(a.key);
+    fillJunctionArms(c, list);
+  }
+
+  heads = [];
+  for (const c of controllers) {
+    if (!c.approaches.length) continue;
+    let lead = c.approaches[0];
+    for (const a of c.approaches) {
+      const ra = (CAT_RANK[a.road.cat] ?? 0) * 100 + (a.road.width || 0);
+      const rl = (CAT_RANK[lead.road.cat] ?? 0) * 100 + (lead.road.width || 0);
+      if (ra > rl) lead = a;
+    }
+    c.axis = Math.atan2(lead.hy, lead.hx);
+    let crossCars = false, allCrossing = true;
+    for (const a of c.approaches) {
+      a.group = Math.abs(Math.cos(Math.atan2(a.hy, a.hx) - c.axis)) >= Math.SQRT1_2 ? 0 : 1;
+      if (a.group === 1 && !a.bike) crossCars = true;
+      if (!a.crossing) allCrossing = false;
+      placePoles(a);
+      heads.push(a);
+    }
+    c.g0 = allCrossing ? CROSSING_MAIN_GREEN : MAIN_GREEN;
+    c.g1 = crossCars ? CROSS_GREEN : PED_GREEN;
+    c.cycle = c.g0 + c.g1 + 2 * (AMBER + ALL_RED);
+    c.t = Math.random() * c.cycle;
+  }
+  controllers = controllers.filter((c) => c.approaches.length);
+
+  grid = new Map();
+  for (const h of heads) {
+    const cx = Math.floor(h.x / GRID), cy = Math.floor(h.y / GRID);
+    for (let ix = cx - 1; ix <= cx + 1; ix++) {
+      for (let iy = cy - 1; iy <= cy + 1; iy++) {
+        const k = ix + ',' + iy;
+        let a = grid.get(k);
+        if (!a) grid.set(k, a = []);
+        a.push(h);
+      }
     }
   }
-  for (const light of lights) light.t = light.ctrl.t;
+  poles = heads.flatMap((h) => h.poles);
+  if (instanced) disposeInstanced();
 }
 
 // AI traffic reads the lights itself (see trafficLightLimit in vehicle.js).
-export function updateTrafficLights(dt, world) {
-  for (const c of controllers) c.t = (c.t + dt) % CYCLE_TIME;
-  for (const light of lights) light.t = light.ctrl.t;
+export function updateTrafficLights(dt) {
+  for (const c of controllers) c.t = (c.t + dt) % c.cycle;
 }
 
-// A knocked-down signal stops controlling its arm until it respawns.
+// A knocked-down head stops controlling its approach until it respawns.
 export function streamTrafficLightProps(world, px, py) {
-  for (const light of lights) {
-    const near = Math.abs(light.x - px) < PROP_RADIUS && Math.abs(light.y - py) < PROP_RADIUS;
-    if (!near || light.broken) {
-      if (light.prop) { removeProp(light.prop); light.prop = null; }
+  for (const pole of poles) {
+    const near = Math.abs(pole.x - px) < PROP_RADIUS && Math.abs(pole.y - py) < PROP_RADIUS;
+    if (!near || pole.broken) {
+      if (pole.prop) { removeProp(pole.prop); pole.prop = null; }
       continue;
     }
-    if (light.prop) continue;
-    const spot = light.spot || (light.spot = placeTrafficLight(light, map));
-    const prop = makeProp('trafficlight', spot.x, spot.y, {
-      onBreak: () => { light.broken = true; light.prop = null; },
-      onRestore: () => { light.broken = false; },
+    if (pole.prop) continue;
+    const prop = makeProp('trafficlight', pole.x, pole.y, {
+      onBreak: () => { pole.broken = true; pole.prop = null; refreshBroken(pole.head); },
+      onRestore: () => { pole.broken = false; refreshBroken(pole.head); },
       makeMesh: () => {
         const g = buildTrafficLightMesh3D();
         setTrafficLightPhase3D(g, 'off');
-        g.rotation.y = -spot.angle;
+        g.rotation.y = -pole.angle;
+        if (pole.bike) g.scale.setScalar(BIKE_SCALE);
         return g;
       },
     });
-    if (addProp(prop)) light.prop = prop;
+    if (addProp(prop)) pole.prop = prop;
   }
 }
 
-const PHASE_COLORS = { green: 0x2ecc40, yellow: 0xf1c40f, red: 0xe74c3c };
+function refreshBroken(head) {
+  head.broken = head.poles[0].broken;
+  matricesDirty = true;
+}
+
+// ---------------------------------------------------------------- rendering
+
+const PHASE_COLORS = { green: 0x2ecc40, yellow: 0xf1a90f, red: 0xe74c3c };
 const LAMP_ORDER = ['red', 'yellow', 'green'];
-const POLE_MAT = new THREE.MeshLambertMaterial({ color: 0x9a9d9f });
-const HOUSING_MAT = new THREE.MeshLambertMaterial({ color: 0x1b1d1f });
-const LAMP_OFF = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.MeshBasicMaterial({ color: new THREE.Color(PHASE_COLORS[p]).multiplyScalar(0.18) })]));
+const BIKE_SCALE = 0.72;
+const POLE_MAT = new THREE.MeshLambertMaterial({ color: 0x8e9193 });
+const HOUSING_MAT = new THREE.MeshLambertMaterial({ color: 0x17191b });
+const LAMP_MAT = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const LAMP_OFF = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.MeshBasicMaterial({ color: new THREE.Color(PHASE_COLORS[p]).multiplyScalar(0.16) })]));
 const LAMP_ON = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.MeshBasicMaterial({ color: PHASE_COLORS[p] })]));
+const OFF_COLORS = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.Color(PHASE_COLORS[p]).multiplyScalar(0.16)]));
+let glow = 1;
+
 // Lit lamps are pushed above 1.0 at night so the bloom pass picks them up.
 export function setTrafficLightGlow(k) {
+  if (Math.abs(k - glow) < 0.02) return;
+  glow = k;
   for (const p of LAMP_ORDER) LAMP_ON[p].color.setHex(PHASE_COLORS[p]).multiplyScalar(k);
+  colorsDirty = true;
 }
-const POLE_GEO = new THREE.CylinderGeometry(0.09, 0.09, 2.9, 8);
-const HOUSING_GEO = new THREE.BoxGeometry(0.26, 1.0, 0.34);
-const LAMP_GEO = new THREE.CircleGeometry(0.12, 12);
+
+// Head geometry in local space: the controlled traffic drives along +X, so
+// the lenses face -X, toward it.
+const POLE_GEO = new THREE.CylinderGeometry(0.07, 0.08, 3.0, 8).translate(0, 1.5, 0);
+const HOUSING_GEO = new THREE.BoxGeometry(0.28, 1.0, 0.34).translate(0, 3.35, 0);
+const PLATE_GEO = new THREE.BoxGeometry(0.03, 1.22, 0.56).translate(0.155, 3.35, 0);
+const LAMP_GEOS = LAMP_ORDER.map((_, i) => new THREE.CircleGeometry(0.115, 14).rotateY(-Math.PI / 2).translate(-0.145, 3.66 - i * 0.31, 0));
+const VISOR_GEO = mergeVisors();
+
+function mergeVisors() {
+  const parts = LAMP_ORDER.map((_, i) => new THREE.BoxGeometry(0.14, 0.02, 0.26).translate(-0.21, 3.78 - i * 0.31, 0));
+  const pos = [], nrm = [], idx = [];
+  let base = 0;
+  for (const g of parts) {
+    pos.push(...g.attributes.position.array);
+    nrm.push(...g.attributes.normal.array);
+    for (const k of g.index.array) idx.push(k + base);
+    base += g.attributes.position.count;
+    g.dispose();
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  geo.setIndex(idx);
+  return geo;
+}
+
+let poles = [];
+let instanced = null;
+let matricesDirty = false;
+let colorsDirty = true;
+
+function disposeInstanced() {
+  for (const m of instanced.parts) m.parent?.remove(m);
+  for (const m of instanced.lamps) m.parent?.remove(m);
+  instanced = null;
+}
+
+function buildInstanced(scene) {
+  const n = Math.max(1, poles.length);
+  const mk = (geo, mat) => {
+    const m = new THREE.InstancedMesh(geo, mat, n);
+    m.count = poles.length;
+    m.frustumCulled = false;
+    m.matrixAutoUpdate = false;
+    scene.add(m);
+    return m;
+  };
+  instanced = {
+    parts: [mk(POLE_GEO, POLE_MAT), mk(HOUSING_GEO, HOUSING_MAT), mk(PLATE_GEO, HOUSING_MAT), mk(VISOR_GEO, HOUSING_MAT)],
+    lamps: LAMP_GEOS.map((g) => mk(g, LAMP_MAT)),
+  };
+  const white = new THREE.Color(1, 1, 1);
+  for (const m of instanced.lamps) for (let i = 0; i < poles.length; i++) m.setColorAt(i, white);
+  for (const p of poles) p.shown = null;
+  matricesDirty = true;
+  colorsDirty = true;
+}
+
+const _m = new THREE.Matrix4();
+const _q = new THREE.Quaternion();
+const _p = new THREE.Vector3();
+const _s = new THREE.Vector3();
+const _up = new THREE.Vector3(0, 1, 0);
+
+function writeMatrices() {
+  poles.forEach((pole, i) => {
+    _p.set(pole.x, 0, pole.y);
+    _q.setFromAxisAngle(_up, -pole.angle);
+    _s.setScalar(pole.broken ? 0 : pole.bike ? BIKE_SCALE : 1);
+    _m.compose(_p, _q, _s);
+    for (const m of instanced.parts) m.setMatrixAt(i, _m);
+    for (const m of instanced.lamps) m.setMatrixAt(i, _m);
+  });
+  for (const m of [...instanced.parts, ...instanced.lamps]) m.instanceMatrix.needsUpdate = true;
+  matricesDirty = false;
+}
+
+const _c = new THREE.Color();
+
+// Called once per frame by the renderer: all heads live in a handful of
+// instanced meshes, only lamp colours change.
+export function syncTrafficLights3D(scene) {
+  if (!poles.length) return;
+  if (!instanced) buildInstanced(scene);
+  if (matricesDirty) writeMatrices();
+  let changed = false;
+  poles.forEach((pole, i) => {
+    const phase = getTrafficLightPhase(pole.head);
+    if (!colorsDirty && pole.shown === phase) return;
+    pole.shown = phase;
+    changed = true;
+    LAMP_ORDER.forEach((p, k) => {
+      if (p === phase) _c.setHex(PHASE_COLORS[p]).multiplyScalar(glow);
+      else _c.copy(OFF_COLORS[p]);
+      instanced.lamps[k].setColorAt(i, _c);
+    });
+  });
+  if (changed) for (const m of instanced.lamps) m.instanceColor.needsUpdate = true;
+  colorsDirty = false;
+}
 
 // Traffic light nodes sit on the road centerline in OSM; stand the pole on
 // the kerb next to it instead, facing along the road.
@@ -137,24 +515,18 @@ export function placeTrafficLight(light, map) {
   return { x: light.x + nx * off, y: light.y + ny * off, angle: Math.atan2(best.dy, best.dx) };
 }
 
+// Standalone head (used for the tumbling copy of a knocked-down signal).
 export function buildTrafficLightMesh3D() {
   const group = new THREE.Group();
-  const pole = new THREE.Mesh(POLE_GEO, POLE_MAT);
-  pole.position.y = 1.45;
-  group.add(pole);
-  const housing = new THREE.Mesh(HOUSING_GEO, HOUSING_MAT);
-  housing.position.y = 3.2;
-  group.add(housing);
+  group.add(new THREE.Mesh(POLE_GEO, POLE_MAT));
+  group.add(new THREE.Mesh(HOUSING_GEO, HOUSING_MAT));
+  group.add(new THREE.Mesh(PLATE_GEO, HOUSING_MAT));
+  group.add(new THREE.Mesh(VISOR_GEO, HOUSING_MAT));
   const lamps = {};
   LAMP_ORDER.forEach((phase, i) => {
-    // one lamp face per side so the light reads from both approach directions
-    for (const side of [1, -1]) {
-      const lamp = new THREE.Mesh(LAMP_GEO, LAMP_OFF[phase]);
-      lamp.position.set(side * 0.131, 3.5 - i * 0.3, 0);
-      lamp.rotation.y = side * Math.PI / 2;
-      group.add(lamp);
-      (lamps[phase] ||= []).push(lamp);
-    }
+    const lamp = new THREE.Mesh(LAMP_GEOS[i], LAMP_OFF[phase]);
+    group.add(lamp);
+    lamps[phase] = [lamp];
   });
   group.userData.lamps = lamps;
   group.userData.phase = null;

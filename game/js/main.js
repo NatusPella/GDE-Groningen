@@ -15,6 +15,7 @@ import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
+import { initRailway, updateRailway } from './railway.js';
 import { init3D, update3D, resize3D, getScene } from './scene3d.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu } from './pausemenu.js';
@@ -29,7 +30,7 @@ import { initWildlife, updateWildlife } from './wildlife.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
-import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen } from './startscreen.js';
+import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint } from './startscreen.js';
 import { initPigeonGuards, startPigeonMode, updatePigeonMode, updatePigeonCamera } from './pigeonmode.js';
 import { dist } from './util.js';
 
@@ -61,6 +62,7 @@ function waitForStart(world) {
       }
     }
     resolveVehicleVehicleCollisions(world.vehicles, world);
+    updateRailway(dt, world);
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
   };
@@ -97,11 +99,13 @@ function maintainPedestrians(world) {
 
 async function boot() {
   initTheme();
-  const map = await loadMap('citymap.json');
-  setLoadProgress(0.6);
+  const map = await loadMap('citymap.json', (f) => setLoadProgress(0.05 + f * 0.45));
+  setLoadProgress(0.55);
+  await yieldToPaint();
   init3D(map);
   resize3D();
   setLoadProgress(0.8);
+  await yieldToPaint();
   window.addEventListener('resize', resize3D);
 
   // spawn in front of a random real Groningen landmark each game, snapped to
@@ -133,6 +137,7 @@ async function boot() {
   initPickups(world);
   initHoreca(world);
   initTrafficLights(world);
+  initRailway(world);
   initWeather(world);
   initFlitspaal(world);
   initWildlife(world);
@@ -143,6 +148,8 @@ async function boot() {
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
+  setLoadProgress(0.92);
+  await yieldToPaint();
   // mouse-look: clicking the game captures the mouse; Esc releases it (the
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen();
@@ -156,7 +163,7 @@ async function boot() {
   initSaveGame(world);
 
   window.__debug = { player, map, input, world };
-  finishLoading();
+  await finishLoading();
   const mode = await waitForStart(world);
   if (mode === 'pigeon') startPigeonMode(world);
   document.body.classList.add('game-started');
@@ -235,6 +242,7 @@ async function boot() {
 
     if (!world.pigeonMode) updatePolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
+    updateRailway(dt, world);
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }

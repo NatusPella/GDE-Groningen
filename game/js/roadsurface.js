@@ -358,7 +358,7 @@ export function setRoadNetwork(map) {
       a.push(r, i);
     }
   }
-  lights = (map.meta && map.meta.trafficLights) || [];
+  lights = ((map.meta && map.meta.trafficLights) || []).filter((l) => !l.bike);
 }
 
 function roadHash(r) {

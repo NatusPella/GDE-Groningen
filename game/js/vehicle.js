@@ -1,6 +1,7 @@
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, WATER_Y } from './util.js';
-import { getTrafficLights, trafficLightPhaseFor } from './trafficlights.js';
+import { trafficSignalsNear, getTrafficLightPhase } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
+import { crossingSpeedLimit } from './railway.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const MODELS = [
@@ -461,8 +462,21 @@ export function spawnHeroCarNear(map, x, y, rng = Math.random) {
 // the whole city: despawn cars that have drifted far away, spawn fresh ones
 // on roads just outside the view so they appear to already be driving by
 // the time they're on screen.
+// Wrecks stay where they died (smoking) until the player is far away; only
+// when too many pile up does the farthest one go, so the scene stays light.
+const MAX_WRECKS = 12;
+function pruneWrecks(world) {
+  const { player, vehicles } = world;
+  const wrecks = vehicles.filter((v) => v.wrecked && !v.sinking && v.driver !== 'player' && !v.missionCar);
+  if (wrecks.length <= MAX_WRECKS) return;
+  const d = (v) => Math.hypot(v.x - player.x, v.y - player.y);
+  wrecks.sort((a, b) => d(b) - d(a));
+  for (const v of wrecks.slice(0, wrecks.length - MAX_WRECKS)) vehicles.splice(vehicles.indexOf(v), 1);
+}
+
 export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spawnMax = 170, despawnDist = 260 } = {}) {
   const { map, player, vehicles } = world;
+  pruneWrecks(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus) continue;
@@ -470,11 +484,11 @@ export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spa
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
     // real connection) is cleared the same way rather than left oscillating.
-    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25)) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (!v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && v.driver !== 'player') count++;
+  for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3);
   let guard = 0;
@@ -496,11 +510,11 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
-    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25)) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBike && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBike && !v.wrecked && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
@@ -522,11 +536,11 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isScooter || v.driver === 'player') continue;
-    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25)) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isScooter && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isScooter && !v.wrecked && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
@@ -548,11 +562,11 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBus || v.driver === 'player') continue;
-    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25)) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBus && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal');
   let guard = 0;
@@ -609,11 +623,11 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBoat || v.isPolice || v.driver === 'player') continue;
-    if (v.wrecked || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if (Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBoat && !v.isPolice && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player') count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
   let guard = 0;
@@ -1076,29 +1090,34 @@ function followSpeedLimit(v, path, world, decel, chase) {
 }
 
 // Speed that brings the vehicle to a halt at the stop line of a red (or a
-// still-stoppable yellow) light on its path.
+// still-stoppable amber) signal on its path. Each signal head controls one
+// approach direction; once past a stop line on green the rest of that
+// junction's heads are not ours to stop for.
 function trafficLightLimit(v, path, world) {
-  const lights = getTrafficLights();
-  if (!lights.length) return Infinity;
+  const near = trafficSignalsNear(v.x, v.y);
+  if (!near.length) return Infinity;
+  const small = v.isBike || v.isScooter;
   const decel = v.model.brake * 0.45;
-  const reach = Math.max(3.5, laneOffset(v.road, v) + 1.5);
+  const reach = Math.max(3.5, laneOffset(v.road, v) + 2);
+  const since = world.time - (v.clearedAt || -99);
+  const cc = v.clearedCtrl;
+  const cleared = cc && (since < 12 || (since < 40 && Math.hypot(v.x - cc.x, v.y - cc.y) < 40)) ? cc : null;
   let vmax = Infinity;
-  for (const L of lights) {
-    const dx = L.x - v.x, dy = L.y - v.y;
+  for (const A of near) {
+    if (A.broken || (A.bike && !small) || A.ctrl === cleared) continue;
+    const dx = A.x - v.x, dy = A.y - v.y;
     if (dx * dx + dy * dy > 55 * 55) continue;
-    // once through a junction on green, its other signals (the far side,
-    // the cross road we turned into) are not ours to stop for
-    if (L.ctrl === v.clearedCtrl && world.time - v.clearedAt < 10) continue;
-    const pr = projectOnPath(path, L.x, L.y);
+    const pr = projectOnPath(path, A.x, A.y);
     if (!pr || pr.lat > reach) continue;
-    let after = null;
-    for (const p of path) if (p.j && p.s >= pr.s - 1) { after = p.s; break; }
-    const stopS = Math.min(pr.s - 1.5, (after ?? pr.s) - 4) - v.halfLen;
-    const phase = trafficLightPhaseFor(L, Math.atan2(pr.ty, pr.tx));
-    const go = phase === 'green' || stopS < -1.5 ||
+    // tangent over a few metres: lane joins at way ends leave tiny kinks
+    const [ax, ay] = pointAlong(path, Math.max(0, pr.s - 2)), [bx, by] = pointAlong(path, pr.s + 2);
+    if ((bx - ax) * A.hx + (by - ay) * A.hy < 0.6 * Math.hypot(bx - ax, by - ay)) continue;
+    const stopS = pr.s - v.halfLen - 1.2;
+    const phase = getTrafficLightPhase(A);
+    const go = phase === 'green' || stopS < -1 ||
       (phase === 'yellow' && (v.speed * v.speed) / (2 * v.model.brake * 0.7) > stopS);
     if (go) {
-      if (stopS < 3) { v.clearedCtrl = L.ctrl; v.clearedAt = world.time; }
+      if (stopS < 3) { v.clearedCtrl = A.ctrl; v.clearedAt = world.time; }
       continue;
     }
     vmax = Math.min(vmax, Math.sqrt(2 * decel * Math.max(0, stopS)));
@@ -1165,7 +1184,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
 
   let vTarget = Math.min(cruise, curveSpeedLimit(v, path, aLat, decel));
   const follow = followSpeedLimit(v, path, world, decel, chase);
-  const lightV = chase ? Infinity : trafficLightLimit(v, path, world);
+  const lightV = chase ? Infinity : Math.min(trafficLightLimit(v, path, world), crossingSpeedLimit(v, path, projectOnPath));
   vTarget = Math.min(vTarget, follow.vmax, lightV);
   const creeping = world.time < (v.creepUntil || 0);
   if (!chase && !creeping) vTarget = Math.min(vTarget, junctionYieldLimit(v, path, world, decel, Math.min(follow.vmax, lightV) > 1));
@@ -1366,11 +1385,12 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
 
   for (let i = 0; i < vehicles.length; i++) {
     const a = vehicles[i];
-    if (a.wrecked) continue;
+    if (a.sinking) continue;
     const capA = vehicleCapsule(a);
     for (let j = i + 1; j < vehicles.length; j++) {
       const b = vehicles[j];
-      if (b.wrecked) continue;
+      // wrecks are solid, heavy obstacles; two wrecks never interact
+      if (b.sinking || (a.wrecked && b.wrecked)) continue;
       const reach = a.halfLen + b.halfLen + 0.2;
       const cdx = b.x - a.x, cdy = b.y - a.y;
       if (cdx * cdx + cdy * cdy > reach * reach) continue;
@@ -1388,7 +1408,7 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       } else {
         nx = (p2x - p1x) / dist; ny = (p2y - p1y) / dist;
       }
-      const mA = vehicleMass(a), mB = vehicleMass(b);
+      const mA = vehicleMass(a) * (a.wrecked ? 3 : 1), mB = vehicleMass(b) * (b.wrecked ? 3 : 1);
       const corr = Math.max(0, minDist - dist - 0.01);
       const shareA = mB / (mA + mB);
       a.x -= nx * corr * shareA; a.y -= ny * corr * shareA;
@@ -1397,6 +1417,7 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
       const slide = tangentialSpeed(a, b, nx, ny);
       const relN = contactImpulse(a, b, hx, hy, nx, ny, CONTACT_FRICTION);
+      for (const w of [a, b]) if (w.wrecked) { w.speed = 0; w.driftX = 0; w.driftY = 0; }
       if (relN >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(a, b, hx, hy, nx, ny, relN, slide);
       if (relN < IMPACT_EVENT_SPEED) continue;
       // Only the player's own driving should ever count as a player wreck.
@@ -1558,8 +1579,12 @@ export function updateVehicleImpactSparkMesh3D(mesh, dt) {
 // decides when to attach/detach it.
 export const VEHICLE_FIRE_HEALTH_THRESHOLD = 30;
 
-export function vehicleNeedsFireEffect(v) {
-  return !v.wrecked && v.health <= VEHICLE_FIRE_HEALTH_THRESHOLD;
+// Wrecks keep burning for a while after the explosion, then only smoke.
+export const WRECK_FIRE_S = 25;
+
+export function vehicleNeedsFireEffect(v, time = 0) {
+  if (v.wrecked) return !v.isBike && !v.isBoat && !v.sinking && v.wreckedAt !== undefined && time - v.wreckedAt < WRECK_FIRE_S;
+  return v.health <= VEHICLE_FIRE_HEALTH_THRESHOLD;
 }
 
 export function buildVehicleFireMesh3D() {

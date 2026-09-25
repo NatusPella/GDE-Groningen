@@ -4,6 +4,7 @@ import { Pedestrian, setPedPose, isInsideBuilding, isOnRoad, CITY_CENTRE, releas
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { isInWater, dist, SeededRng } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables } from './breakables.js';
+import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -188,6 +189,7 @@ function initProtos() {
     stalls: [0x8f2f2a, 0x2f5a3f, 0x23428a, 0xc99a3a].map((c, i) => buildStall(c, 17 + i * 31)),
     sunkenBike: buildSunkenBike(),
   };
+  for (const v of Object.values(protos)) for (const g of Array.isArray(v) ? v : [v]) whiteUV(g);
 }
 
 // Colours bake into each proto; GeoBuilder.geo re-colours uniformly, so
@@ -196,14 +198,14 @@ function mergeInstances(list) {
   let total = 0;
   for (const it of list) total += it.geo.attributes.position.count;
   if (!total) return null;
-  const pos = new Float32Array(total * 3), nor = new Int8Array(total * 3), col = new Uint8Array(total * 3);
+  const pos = new Float32Array(total * 3), nor = new Int8Array(total * 3), col = new Uint8Array(total * 3), uvs = new Uint16Array(total * 2);
   const v = new THREE.Vector3(), n = new THREE.Vector3(), nm = new THREE.Matrix3();
   let o = 0;
   for (const it of list) {
     const { geo, m } = it;
     it.v0 = o;
     it.vn = geo.attributes.position.count;
-    const P = geo.attributes.position, N = geo.attributes.normal, C = geo.attributes.color;
+    const P = geo.attributes.position, N = geo.attributes.normal, C = geo.attributes.color, U = geo.attributes.uv;
     nm.getNormalMatrix(m);
     for (let i = 0; i < P.count; i++) {
       v.fromBufferAttribute(P, i).applyMatrix4(m);
@@ -211,6 +213,7 @@ function mergeInstances(list) {
       n.set(N.getX(i), N.getY(i), N.getZ(i)).applyMatrix3(nm).normalize();
       nor[o * 3] = Math.round(n.x * 127); nor[o * 3 + 1] = Math.round(n.y * 127); nor[o * 3 + 2] = Math.round(n.z * 127);
       col[o * 3] = C.array[i * 3]; col[o * 3 + 1] = C.array[i * 3 + 1]; col[o * 3 + 2] = C.array[i * 3 + 2];
+      uvs[o * 2] = Math.round(U.array[i * 2] * 65535); uvs[o * 2 + 1] = Math.round(U.array[i * 2 + 1] * 65535);
       o++;
     }
   }
@@ -218,6 +221,7 @@ function mergeInstances(list) {
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   g.setAttribute('normal', new THREE.BufferAttribute(nor, 3, true));
   g.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+  g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2, true));
   g.computeBoundingSphere();
   return g;
 }
@@ -382,6 +386,8 @@ function generateCell(map, cx, cy) {
     slots.push({ kind: 'hauler', x, y, angle, pose: 'haul', occ: 0 });
   }
 
+  generateClutter({ map, rng, cx0, cy0, CELL, centreD, roads, items, clear, take, horeca });
+
   return { cx, cy, items, market, slots, mesh: null, marketMesh: null, active: false };
 }
 
@@ -391,7 +397,7 @@ function ropeGeometry() {
     const B = new GeoBuilder(1);
     B.geo(tubeGeometry([0.45, 1.05, 0], [1.9, -0.55, 0], 0.012, 0.012, 3), null, 0xd8c89a);
     B.box(1.9, -0.6, 0, 0.12, 0.08, 0.12, 0x6b6e70);
-    ropeGeo = B.build();
+    ropeGeo = whiteUV(B.build());
   }
   return ropeGeo;
 }
@@ -485,12 +491,14 @@ function registerItems(cell, list, mesh) {
     if (isPropBroken(key)) { collapseItem(mesh, it); continue; }
     if (!it.p) {
       it.p = makeProp(d.kind, d.x, d.y, {
+        ...d.opts,
         key,
         angle: d.axis,
         ...(d.half ? { half: d.half } : null),
         makeMesh: () => {
           const m = new THREE.Mesh(it.geo, material);
-          m.rotation.y = -d.face;
+          if (d.tilted) m.quaternion.setFromRotationMatrix(it.m);
+          else m.rotation.y = -d.face;
           return m;
         },
       });
@@ -663,8 +671,9 @@ function spawnStudentGroup() {
 
 export function initCityProps(w) {
   world = w;
+  const atlas = initClutter();
   initProtos();
-  material = vcMaterial({ roughness: 0.9 });
+  material = vcMaterial({ roughness: 0.9, map: atlas });
   hauler = findHaulerSpot(w.map);
 }
 

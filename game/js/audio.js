@@ -12,15 +12,15 @@ const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
 const SOURCE_HEIGHT = 1;
 const SPEED_OF_SOUND = 343;
-const ENGINE_VOICES = 4;
-const ENGINE_RANGE = 60;
+const ENGINE_VOICES = 6;
+const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
 const GMUSIC_VOLUME = 0.5;
 const GMUSIC_DUCK_VOLUME = 0.2;
 const SIREN_LOW_FREQ = 440;
-const SIREN_HIGH_FREQ = 660;
+const SIREN_HIGH_FREQ = 587;
 const SIREN_HOLD_MIN = 0.5;
 const SIREN_HOLD_MAX = 0.7;
 
@@ -179,7 +179,7 @@ let prev = null;
 let seenMessages = null;
 let muted = loadMuted();
 let lastHurtAt = -Infinity;
-const engineState = { freq: 42, gain: 0, gear: 0, shiftUntil: 0, startAt: 0 };
+const engineState = { freq: 42, gain: 0, gear: 0, shiftUntil: 0, startAt: 0, vehicle: null, kind: 0, startDelay: -1, prevThr: 0, blipUntil: 0, limiter: 0 };
 const sirenState = { gain: 0 };
 const musicState = { gain: GMUSIC_VOLUME };
 
@@ -349,17 +349,19 @@ function updateListener(world) {
 function buildSirenVoice() {
   const filter = ctx.createBiquadFilter();
   filter.type = 'bandpass';
-  filter.frequency.value = 545;
-  filter.Q.value = 1.4;
+  filter.frequency.value = 1100;
+  filter.Q.value = 0.45;
 
   const osc = ctx.createOscillator();
-  osc.type = 'sine';
+  osc.setPeriodicWave(sirenTone());
   osc.frequency.value = SIREN_LOW_FREQ;
 
   const gain = ctx.createGain();
   gain.gain.value = 0;
+  const level = ctx.createGain();
+  level.gain.value = 0.55;
   const panner = makePanner({ ref: 8, rolloff: 0.9, model: 'equalpower' });
-  osc.connect(filter).connect(gain).connect(panner).connect(sirenBus);
+  osc.connect(filter).connect(level).connect(gain).connect(panner).connect(sirenBus);
   osc.start();
 
   return { osc, gain, panner, target: null, level: 0, toneHigh: false, nextToggle: Math.random() * 0.6 };
@@ -403,13 +405,95 @@ function buildHeliVoice() {
   return { gain, panner };
 }
 
+// --- synthesized engines (sfx/engineworklet.js) ---------------------------
+// Until the worklet has loaded, or where AudioWorklet is missing (non-secure
+// origins), the oscillator engines above stay in charge.
+let synth = { player: null, traffic: null };
+
+async function loadEngineWorklet() {
+  if (!ctx.audioWorklet || typeof AudioWorkletNode === 'undefined') return;
+  try {
+    await ctx.audioWorklet.addModule(new URL('./sfx/engineworklet.js', import.meta.url));
+  } catch (e) {
+    return;
+  }
+  const player = new AudioWorkletNode(ctx, 'gte-engine', {
+    numberOfInputs: 0, numberOfOutputs: 2, outputChannelCount: [1, 1], processorOptions: { voices: 1, road: true },
+  });
+  const traffic = new AudioWorkletNode(ctx, 'gte-engine', {
+    numberOfInputs: 0, numberOfOutputs: ENGINE_VOICES, outputChannelCount: Array(ENGINE_VOICES).fill(1),
+    processorOptions: { voices: ENGINE_VOICES, running: true },
+  });
+  engine.osc1.stop(); engine.osc2.stop(); engine.filter.disconnect();
+  engineBus.gain.cancelScheduledValues(ctx.currentTime);
+  engineBus.gain.value = 1;
+  player.connect(engineBus, 0);
+  const roadGain = ctx.createGain();
+  player.connect(roadGain, 1);
+  roadGain.connect(worldBus);
+  rumbleVoice.gain.gain.cancelScheduledValues(ctx.currentTime);
+  rumbleVoice.gain.gain.value = 0;
+  engineVoices.forEach((voice, i) => { voice.osc.stop(); voice.gain.disconnect(); traffic.connect(voice.panner, i); });
+  engineState.vehicle = null;
+  synth = { player, traffic };
+}
+
+let brassWave = null;
+let sirenWave = null;
+
+// Horn discs and siren compression drivers: bright, buzzy harmonic series.
+function hornWave() {
+  if (!brassWave) {
+    const n = 18, re = new Float32Array(n), im = new Float32Array(n);
+    for (let k = 1; k < n; k++) im[k] = Math.pow(k, -0.8) * (k % 2 ? 1 : 0.6);
+    brassWave = ctx.createPeriodicWave(re, im);
+  }
+  return brassWave;
+}
+
+function sirenTone() {
+  if (!sirenWave) {
+    const n = 12, re = new Float32Array(n), im = new Float32Array(n);
+    for (let k = 1; k < n; k++) im[k] = k % 2 ? Math.pow(k, -1.1) : 0.18 / k;
+    sirenWave = ctx.createPeriodicWave(re, im);
+  }
+  return sirenWave;
+}
+
+// Continuous metal-on-metal/stone grind while a vehicle slides along a wall
+// or another car; fed by collision contacts, fades once they stop.
+function buildScrapeVoice() {
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuffer;
+  src.loop = true;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = 1600;
+  band.Q.value = 2.5;
+  const ring = ctx.createBiquadFilter();
+  ring.type = 'bandpass';
+  ring.frequency.value = 3400;
+  ring.Q.value = 14;
+  const ringGain = ctx.createGain();
+  ringGain.gain.value = 2.2;
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  const panner = makePanner({ ref: 5, rolloff: 1.1, model: 'equalpower' });
+  src.connect(band).connect(gain);
+  src.connect(ring).connect(ringGain).connect(gain);
+  gain.connect(panner).connect(sfxBus);
+  src.start();
+  return { band, ring, gain, panner, level: 0, target: 0, until: 0, fresh: true };
+}
+
 function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null, out = null, bus = null, prio = 1 }) {
   if (!voiceOk(prio)) return;
   activeVoices++;
   const t0 = ctx.currentTime + delay;
   const t1 = t0 + duration;
   const osc = ctx.createOscillator();
-  osc.type = type;
+  if (type === 'horn') osc.setPeriodicWave(hornWave());
+  else osc.type = type;
   osc.frequency.setValueAtTime(freq, t0);
   if (freqEnd !== undefined) osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), t1);
 
@@ -567,7 +651,8 @@ function playCrash(x, y, impact) {
   if (!out) return;
   const k = clamp(impact / 14, 0.08, 1);
   playTone({ freq: 90 + k * 20, freqEnd: 36, type: 'sine', duration: 0.16 + k * 0.28, gain: 0.2 + k * 0.45, out });
-  playNoiseBurst({ duration: 0.1 + k * 0.35, freq: 650 + k * 700, freqEnd: 140, q: 0.8, gain: 0.22 + k * 0.45, out });
+  const crunch = k > 0.15 && playBuf('crunch_' + Math.floor(Math.random() * 3), { out, gain: 0.18 + k * 0.5, rate: 1.3 - k * 0.45 + Math.random() * 0.1, lp: 2500 + k * 6000 });
+  playNoiseBurst({ duration: 0.1 + k * 0.35, freq: 650 + k * 700, freqEnd: 140, q: 0.8, gain: (0.22 + k * 0.45) * (crunch ? 0.4 : 1), out });
   if (k > 0.45) duckAmbience(0.35 * k, 0.6);
   if (k > 0.7) playBuf('glass', { out, gain: 0.12 + (k - 0.7) * 0.5, rate: 0.9 + Math.random() * 0.2, delay: 0.02 });
   if (k < 0.2) return;
@@ -598,12 +683,40 @@ function playScrape(x, y, slide) {
 function playBell(x, y) {
   const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 45 });
   if (!out) return;
+  if (playBuf('bikebell', { out, gain: 0.2, rate: 0.96 + Math.random() * 0.08 })) return;
   const f = 2750 + Math.random() * 250;
   for (const d of [0, 0.14]) {
     playTone({ freq: f, type: 'sine', duration: 0.55, gain: 0.12, delay: d, out });
     playTone({ freq: f * 1.49, type: 'sine', duration: 0.4, gain: 0.05, delay: d, out });
     playTone({ freq: f * 2.43, type: 'sine', duration: 0.25, gain: 0.025, delay: d, out });
     playNoiseBurst({ duration: 0.012, freq: 5200, q: 2, gain: 0.1, type: 'bandpass', delay: d, out });
+  }
+}
+
+// Level-crossing bell: one hard metallic strike per event (railway.js repeats it).
+function playCrossingBell(x, y) {
+  const out = spatialOut(x, y, { ref: 6, rolloff: 1.1, range: 130, h: 2.5 });
+  if (!out) return;
+  playTone({ freq: 1480, type: 'triangle', duration: 0.28, gain: 0.16, out });
+  playTone({ freq: 1480 * 2.76, type: 'sine', duration: 0.16, gain: 0.05, out });
+  playNoiseBurst({ duration: 0.015, freq: 4200, q: 2, gain: 0.12, type: 'bandpass', out });
+}
+
+function playTrainHorn(x, y) {
+  const out = spatialOut(x, y, { ref: 10, rolloff: 0.8, range: 260, h: 3 });
+  if (!out) return;
+  playTone({ freq: 370, type: 'sawtooth', duration: 0.55, gain: 0.08, filterFreq: 1400, out });
+  playTone({ freq: 466, type: 'sawtooth', duration: 0.55, gain: 0.07, filterFreq: 1400, out });
+  playTone({ freq: 311, type: 'sawtooth', duration: 0.7, gain: 0.08, filterFreq: 1300, delay: 0.62, out });
+}
+
+// Wheel sets over a rail joint: "dadam".
+function playTrainClack(x, y, k) {
+  const out = spatialOut(x, y, { ref: 8, rolloff: 1, range: 140, h: 0.5 });
+  if (!out) return;
+  for (const d of [0, 0.09]) {
+    playNoiseBurst({ duration: 0.07, freq: 320 + k * 180, freqEnd: 120, q: 1.4, gain: 0.12 + k * 0.18, type: 'bandpass', delay: d, out });
+    playTone({ freq: 95, freqEnd: 60, type: 'sine', duration: 0.1, gain: 0.08 + k * 0.1, delay: d, out });
   }
 }
 
@@ -687,11 +800,23 @@ function playSplash(x, y) {
   playNoiseBurst({ duration: 0.7, freq: 1600, freqEnd: 220, q: 0.5, gain: 0.5, type: 'lowpass', out });
 }
 
-function playHorn(x, y, duration = 0.4) {
-  const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 80 });
+// Gearbox clunk and clutch thump; the engine note itself does the rest.
+function playGearClunk(heavy) {
+  playNoiseBurst({ duration: 0.035, freq: heavy ? 900 : 1300, q: 2.5, gain: heavy ? 0.05 : 0.035, type: 'bandpass', bus: engineBus, prio: 0 });
+  playTone({ freq: heavy ? 70 : 110, freqEnd: 50, type: 'sine', duration: 0.07, gain: 0.05, bus: engineBus, prio: 0 });
+}
+
+// Two slightly detuned horn discs; low < 1 for vans/buses, boats honk deep.
+function playHorn(x, y, duration = 0.4, low = 1) {
+  const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 90 });
   if (!out) return;
-  playTone({ freq: 415, type: 'square', duration, gain: 0.1, filterFreq: 1800, out });
-  playTone({ freq: 523, type: 'square', duration, gain: 0.08, filterFreq: 1800, out });
+  const d = 1 + (Math.random() - 0.5) * 0.04;
+  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.075, filterFreq: 2600, out });
+  playTone({ freq: 523 * low * d * 1.004, type: 'horn', duration, gain: 0.06, filterFreq: 2600, out });
+}
+
+function hornPitch(v) {
+  return v.isBoat ? 0.45 : v.isBus ? 0.7 : v.model && v.model.name === 'van' ? 0.85 : v.isHeroCar ? 0.96 : 1;
 }
 
 function playPlayerHurt() {
@@ -803,7 +928,49 @@ function playNpcSpokenClip(src, pos) {
   return true;
 }
 
+// Mission story cutscene dialogue: one line at a time, straight into the
+// world bus (no reverb). While a story scene runs, the generic mission
+// voicelines stay quiet so they don't talk over it.
+let storyScene = false;
+let storyVoice = null;
+
+export function setStoryScene(on) {
+  storyScene = on;
+  if (!on) stopStoryVoice();
+}
+
+export function stopStoryVoice() {
+  const v = storyVoice;
+  storyVoice = null;
+  if (!v) return;
+  v.el.pause();
+  if (v.node) v.node.disconnect();
+}
+
+export function playStoryVoice(src) {
+  stopStoryVoice();
+  if (!ctx || muted) return;
+  const v = { el: new Audio(src), node: null };
+  try {
+    v.node = ctx.createMediaElementSource(v.el);
+    v.node.connect(worldBus);
+  } catch (e) {
+    // ignore - plays without the Web Audio graph
+  }
+  storyVoice = v;
+  const done = () => { if (storyVoice === v) stopStoryVoice(); };
+  v.el.addEventListener('ended', done, { once: true });
+  v.el.addEventListener('error', done, { once: true });
+  v.el.addEventListener('loadedmetadata', () => {
+    const hold = (Number.isFinite(v.el.duration) ? v.el.duration : 3) + 0.4;
+    duckAmbience(0.5, hold);
+    duckMusic(hold);
+  }, { once: true });
+  v.el.play().catch(done);
+}
+
 function playVoiceline(character, key) {
+  if (storyScene) return false;
   const paths = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];
   if (!paths || !paths.length) return false;
   return playSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
@@ -1141,6 +1308,8 @@ function buildGraph() {
   squealVoice = buildSquealVoice();
   rumbleVoice = buildRumbleVoice();
   hornVoice = buildHornVoice();
+  scrapeVoice = buildScrapeVoice();
+  loadEngineWorklet();
 
   kit = {
     ctx, bank,
@@ -1148,6 +1317,7 @@ function buildGraph() {
     tone: playTone, noise: playNoiseBurst, buf: playBuf, spatial: spatialOut,
     dist: distToListener, listener: listenerPos, makePanner, setPannerPos,
     duckAmb: duckAmbience, duckMusic, setReverb, muted: () => muted,
+    engineSynth: () => !!synth.traffic,
   };
   initUiSfx(kit);
 }
@@ -1220,14 +1390,154 @@ if (!SILENT_MODE && typeof document !== 'undefined') {
 // through each band and drops on the upshift.
 const GEAR_TOPS = [0.15, 0.3, 0.48, 0.7, 1.05];
 
-function gearFor(frac, current) {
-  let g = current;
-  while (g < GEAR_TOPS.length - 1 && frac > GEAR_TOPS[g]) g++;
-  while (g > 0 && frac < GEAR_TOPS[g - 1] - 0.04) g--;
+const BUS_GEAR_TOPS = [0.22, 0.45, 0.72, 1.05];
+
+function gearFor(frac, current, tops = GEAR_TOPS) {
+  let g = Math.min(current, tops.length - 1);
+  while (g < tops.length - 1 && frac > tops[g]) g++;
+  while (g > 0 && frac < tops[g - 1] - 0.04) g--;
   return g;
 }
 
+// Mirrors the worklet's PROFILES: idle/redline rpm, upshift torque-cut time,
+// output level. 0 petrol four, 1 hero Escort, 2 bus diesel, 3 brommer,
+// 4 outboard, 5 V8, 6 van diesel.
+const ENGINE_SPECS = [
+  { idle: 800, red: 6200, shift: 0.2, level: 0.42, pops: 0.4 },
+  { idle: 850, red: 6200, shift: 0.3, level: 0.46, pops: 0.75 },
+  { idle: 600, red: 2300, shift: 0.45, level: 0.42, pops: 0 },
+  { idle: 1900, red: 9500, shift: 0, level: 0.34, pops: 0 },
+  { idle: 900, red: 5500, shift: 0, level: 0.4, pops: 0 },
+  { idle: 750, red: 7000, shift: 0.16, level: 0.42, pops: 0.5 },
+  { idle: 750, red: 4300, shift: 0.25, level: 0.42, pops: 0 },
+];
+
+function engineKind(v) {
+  if (v.isScooter) return 3;
+  if (v.isBoat) return 4;
+  if (v.isBus) return 2;
+  if (v.isHeroCar) return 1;
+  const name = v.model && v.model.name;
+  if (name === 'sport' || name === 'police' || v.isPolice) return 5;
+  if (name === 'van') return 6;
+  return 0;
+}
+
+// rpm for a vehicle from its speed, gear and throttle. st carries gear state.
+function engineRpm(v, st, kind, throttle, t) {
+  const S = ENGINE_SPECS[kind];
+  const speed = Math.abs(v.speed);
+  const frac = speed / (v.model.maxSpeed || 30);
+  let shifted = 0;
+  if (kind === 3) return { rpm: throttle > 0 ? 5200 + 3600 * Math.min(1, frac) : S.idle + 2300 * Math.min(1, frac), shifted };
+  if (kind === 4) return { rpm: S.idle + (S.red - S.idle) * (throttle !== 0 ? 0.35 + 0.6 * Math.min(1, frac) : frac * 0.4), shifted };
+  if (v.speed < -0.2) { st.gear = 0; return { rpm: S.idle + (S.red * 0.7 - S.idle) * clamp(speed / (v.model.maxSpeed * 0.25), 0, 1), shifted }; }
+  const tops = kind === 2 ? BUS_GEAR_TOPS : GEAR_TOPS;
+  const g = gearFor(frac, st.gear, tops);
+  if (g !== st.gear) { shifted = g > st.gear ? 1 : -1; st.gear = g; }
+  let rpm = Math.max(S.idle, S.red * 0.93 * frac / tops[g]);
+  if (g === 0 && throttle > 0 && speed < 5) rpm = Math.max(rpm, S.idle + (kind === 2 ? 700 : 1900) * (1 - speed / 6));
+  return { rpm, shifted };
+}
+
+function synthPost(node, msg) {
+  if (node) node.port.postMessage(msg);
+}
+
+const SURFACE_CODE = { asfalt: 0, klinkers: 1, gras: 2, fietspad: 3 };
+
+function updateEngineSynth(dt, world) {
+  const S = engineState;
+  const v = world.player.inVehicle;
+  const t = ctx.currentTime;
+  const motor = !!(v && !v.isBike && !v.wrecked);
+  if (motor && v !== S.vehicle) {
+    S.vehicle = v;
+    S.kind = engineKind(v);
+    S.gear = 0;
+    S.shiftUntil = 0;
+    S.prevThr = 0;
+    if (S.startDelay < 0 && Math.abs(v.speed) > 1) synthPost(synth.player, { type: 'run', i: 0, kind: S.kind });
+    else synthPost(synth.player, { type: 'start', i: 0, kind: S.kind, at: t + Math.max(0, S.startDelay) });
+  } else if (!motor && S.vehicle) {
+    S.vehicle = null;
+    synthPost(synth.player, { type: 'stop', i: 0 });
+  }
+  S.startDelay = -1;
+
+  const rain = clamp(world.weather ? world.weather.intensity || 0 : 0, 0, 1);
+  let road = { gain: 0 };
+  if (v && !v.wrecked && !world.paused) {
+    const speed = Math.abs(v.speed);
+    const small = v.isBike || v.isScooter;
+    const surface = v.isBoat ? 4 : SURFACE_CODE[v.surface] ?? 0;
+    const coasting = v.isBike && !(v.throttle > 0) && speed > 0.8;
+    road = {
+      speed, surface, small: small ? 1 : 0,
+      wet: surface === 2 || v.isBoat ? 0 : rain,
+      water: v.isBoat ? 1 : 0,
+      wind: small ? 1 : v.isBoat ? 0.8 : v.isBus ? 0.25 : 0.4,
+      free: coasting ? speed * 9 : 0,
+      gain: clamp(speed / 1.2, v.isBoat ? 1 : 0, 1) * (v.isBus ? 0.55 : small ? 0.45 : 0.5),
+    };
+  }
+
+  if (!S.vehicle) {
+    S.gain += (0 - S.gain) * Math.min(1, dt * 4);
+    synthPost(synth.player, { type: 'p', v: [], road });
+    return;
+  }
+  const spec = ENGINE_SPECS[S.kind];
+  const thr = world.paused ? 0 : v.throttle || 0;
+  const speed = Math.abs(v.speed);
+  const { rpm: baseRpm, shifted } = engineRpm(v, S, S.kind, thr, t);
+  let rpm = baseRpm;
+  let load = thr > 0 ? 1 : thr < 0 && v.speed > 0.3 ? 0.04 : speed < 0.4 ? 0.22 : 0.07;
+  if (thr < 0 && v.speed <= 0.3) load = 0.85;
+  if (shifted && speed > 2) {
+    if (shifted > 0 && thr > 0 && spec.shift) S.shiftUntil = t + spec.shift;
+    if (shifted < 0 && thr <= 0 && S.kind !== 2) S.blipUntil = t + 0.13;
+    if (S.kind !== 2) playGearClunk(S.kind === 1);
+  }
+  if (speed < 0.5 && thr > 0 && v.handbrake) rpm = spec.red * 0.82;
+  if (thr > 0) rpm += (v.slip || 0) * spec.red * 0.25;
+  if (t < S.shiftUntil) { load = 0.03; rpm *= 0.94; }
+  if (t < S.blipUntil) { load = 0.55; rpm *= 1.18; }
+  if (rpm > spec.red * 0.97) {
+    S.limiter = (S.limiter + dt) % 0.12;
+    rpm = spec.red * 0.97;
+    if (S.limiter > 0.06) { load = 0.05; rpm -= spec.red * 0.05; }
+  }
+
+  if (spec.pops && S.prevThr > 0 && thr <= 0 && rpm > spec.red * 0.5 && Math.random() < spec.pops) {
+    synthPost(synth.player, { type: 'pop', i: 0, n: 2 + Math.floor(Math.random() * 5) });
+  } else if (spec.pops && thr <= 0 && speed > 8 && rpm > spec.red * 0.45 && Math.random() < dt * spec.pops * 0.8) {
+    synthPost(synth.player, { type: 'pop', i: 0, n: 1 + Math.floor(Math.random() * 2) });
+  }
+  S.prevThr = thr;
+
+  const gain = spec.level * (world.paused ? 0.5 : 1);
+  S.gain += (clamp(0.15 + 0.35 * load * rpm / spec.red, 0, 0.5) - S.gain) * Math.min(1, dt * 4);
+  synthPost(synth.player, { type: 'p', v: [{ i: 0, kind: S.kind, rpm, load, gain, pitch: 1 }], road });
+}
+
+const trafficEngine = new WeakMap();
+
+function trafficEngineParams(v, dt, fresh) {
+  let st = trafficEngine.get(v);
+  const speed = Math.abs(v.speed);
+  if (!st) { st = { gear: 0, prev: speed, load: 0.3 }; trafficEngine.set(v, st); }
+  const acc = dt > 0 ? (speed - st.prev) / dt : 0;
+  st.prev = speed;
+  const target = acc > 0.3 ? clamp(0.45 + acc / (v.model.accel || 8) * 0.6, 0, 1) : acc < -0.6 ? 0.04 : speed < 0.3 ? 0.22 : 0.35;
+  st.load += (target - st.load) * Math.min(1, dt * 5);
+  const kind = engineKind(v);
+  const { rpm } = engineRpm(v, st, kind, acc > 0.3 ? 1 : 0, 0);
+  return { kind, rpm, load: st.load, snap: fresh };
+}
+
 function updateEngine(dt, world) {
+  if (synth.player) { updateEngineSynth(dt, world); return; }
   const v = world.player.inVehicle;
   const motor = v && !v.isBike;
   const speed = motor ? Math.abs(v.speed) : 0;
@@ -1274,6 +1584,7 @@ const NO_VEHICLES = [];
 let squealVoice = null;
 let rumbleVoice = null;
 let hornVoice = null;
+let scrapeVoice = null;
 let contactCursor = 0;
 let lastScrapeAt = -Infinity;
 let bellReadyAt = 0;
@@ -1329,14 +1640,14 @@ function buildRumbleVoice() {
 function buildHornVoice() {
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.value = 1800;
+  filter.frequency.value = 2600;
   const gain = ctx.createGain();
   gain.gain.value = 0;
   const a = ctx.createOscillator();
-  a.type = 'square';
+  a.setPeriodicWave(hornWave());
   a.frequency.value = 415;
   const b = ctx.createOscillator();
-  b.type = 'square';
+  b.setPeriodicWave(hornWave());
   b.frequency.value = 523;
   const bGain = ctx.createGain();
   bGain.gain.value = 0.8;
@@ -1345,7 +1656,7 @@ function buildHornVoice() {
   filter.connect(gain).connect(sfxBus);
   a.start();
   b.start();
-  return { a, b, gain, on: false };
+  return { a, b, bGain, gain, on: false };
 }
 
 function updateSqueal(dt, world) {
@@ -1367,7 +1678,7 @@ function updateSqueal(dt, world) {
     const slip = best.slip;
     const small = best.isBike || best.isScooter;
     target = clamp((slip - 0.3) / 0.6, 0, 1) * (small ? 0.12 : 0.34);
-    const wob = Math.sin(t * 23) * 60 + Math.sin(t * 7.3) * 90;
+    const wob = Math.sin(t * 23) * 60 + Math.sin(t * 7.3) * 90 + (Math.random() - 0.5) * 120;
     const f = (small ? 2200 : 950) + slip * 700 + wob;
     voice.band.frequency.setTargetAtTime(f, t, 0.05);
     voice.osc.frequency.setTargetAtTime(f * 0.99, t, 0.05);
@@ -1390,6 +1701,7 @@ function updateRumble(dt, world) {
   const v = world.player.inVehicle;
   const t = ctx.currentTime;
   const r = rumbleVoice;
+  if (synth.player) return;
   if (!v || v.isBoat || v.wrecked || world.paused) { r.gain.gain.setTargetAtTime(0, t, 0.1); return; }
   const p = RUMBLE[v.surface] || RUMBLE.asfalt;
   const speed = Math.abs(v.speed);
@@ -1407,19 +1719,21 @@ function updatePlayerHorn(world) {
   const v = world.player.inVehicle;
   const t = ctx.currentTime;
   const pressing = !!(v && v.horn && !v.wrecked && !world.paused);
-  const bell = v && (v.isBike || v.isScooter);
+  const bell = v && v.isBike;
   if (pressing && bell) {
     if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
   } else if (!pressing) bellReadyAt = 0;
   const on = pressing && !bell;
   if (on && !hornVoice.on) {
-    const low = v.isBoat ? 0.45 : v.isBus ? 0.72 : 1;
+    const low = v.isScooter ? 1.55 : hornPitch(v);
+    const single = v.isScooter || v.isHeroCar;
     hornVoice.a.frequency.setValueAtTime(415 * low, t);
-    hornVoice.b.frequency.setValueAtTime(523 * low, t);
+    hornVoice.b.frequency.setValueAtTime(523 * low * 1.004, t);
+    hornVoice.bGain.gain.setValueAtTime(single ? 0 : 0.8, t);
   }
   if (on !== hornVoice.on) {
     hornVoice.on = on;
-    hornVoice.gain.gain.setTargetAtTime(on ? 0.075 : 0, t, on ? 0.008 : 0.03);
+    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.04 : 0.06) : 0, t, on ? 0.008 : 0.03);
   }
 }
 
@@ -1439,11 +1753,35 @@ function updateContactAudio(world) {
         lastCrashAt.set(c.a, world.time);
         if (c.b) lastCrashAt.set(c.b, world.time);
       }
-    } else if (c.slide > 3 && !c.a.isBike && !c.a.isScooter && world.time - lastScrapeAt > 0.11) {
-      lastScrapeAt = world.time;
-      playScrape(c.x, c.y, c.slide);
+    } else if (c.slide > 3 && !c.a.isBike && !c.a.isScooter) {
+      const sv = scrapeVoice;
+      if (world.time > sv.until) sv.fresh = true;
+      sv.until = world.time + 0.16;
+      sv.target = Math.max(sv.fresh ? 0 : sv.target, clamp(c.slide / 12, 0.2, 1));
+      sv.x = c.x; sv.y = c.y;
+      if (world.time - lastScrapeAt > 0.11 && Math.random() < 0.35) {
+        lastScrapeAt = world.time;
+        playScrape(c.x, c.y, c.slide);
+      }
     }
   }
+}
+
+function updateScrape(dt, world) {
+  const sv = scrapeVoice;
+  const t = ctx.currentTime;
+  const on = !world.paused && world.time < sv.until;
+  const target = on ? sv.target : 0;
+  sv.target *= Math.max(0, 1 - dt * 2);
+  sv.level += (target - sv.level) * Math.min(1, dt * (target > sv.level ? 20 : 8));
+  if (sv.level < 0.002 && !on) { sv.level = 0; sv.target = 0; }
+  if (sv.level > 0) {
+    setPannerPos(sv.panner, sv.x, sv.y, 0.5, !sv.fresh);
+    sv.fresh = false;
+    sv.band.frequency.setTargetAtTime(1300 + sv.level * 1400 + (Math.random() - 0.5) * 500, t, 0.03);
+    sv.ring.frequency.setTargetAtTime(3100 + (Math.random() - 0.5) * 400, t, 0.05);
+  }
+  sv.gain.gain.setTargetAtTime(sv.level * 0.2, t, 0.03);
 }
 
 const MAX_EVENTS_PER_FRAME = 8;
@@ -1458,16 +1796,20 @@ function playAudioEvents(world) {
     const x = e.x ?? world.player.x, y = e.y ?? world.player.y;
     switch (e.kind) {
       case 'bell': playBell(x, y); break;
+      case 'crossing_bell': playCrossingBell(x, y); break;
+      case 'train_horn': playTrainHorn(x, y); break;
+      case 'train_clack': playTrainClack(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4); break;
       case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'door_open': playDoor(x, y, true); doorDelay = 0.3; break;
       case 'door_close': playDoor(x, y, false); break;
       case 'engine_start':
+        if (synth.player) { engineState.startDelay = doorDelay; break; }
         playEngineStart(x, y, doorDelay);
         engineState.startAt = ctx.currentTime + doorDelay + 0.75;
         engineState.gear = 0;
         break;
-      case 'engine_stop': playEngineStop(x, y); break;
+      case 'engine_stop': if (!synth.player) playEngineStop(x, y); break;
       case 'prop_hit': propHit(e, x, y); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
@@ -1571,7 +1913,7 @@ function updateSiren(dt, world) {
 
   // Stepped hi-lo alternation, not a swept wail: hold each fixed pitch for
   // 0.5-0.7s (higher wanted level = faster alternation, still in range) and
-  // jump with setValueAtTime so the switch is an abrupt step, not a glide.
+  // step within ~30ms, like a two-tone horn, not a glide.
   const hold = SIREN_HOLD_MAX - intensity * (SIREN_HOLD_MAX - SIREN_HOLD_MIN);
   const t = ctx.currentTime;
   let audible = 0;
@@ -1586,7 +1928,7 @@ function updateSiren(dt, world) {
     }
     if (voice.level > 0 && t >= voice.nextToggle) {
       voice.toneHigh = !voice.toneHigh;
-      voice.osc.frequency.setValueAtTime(voice.toneHigh ? SIREN_HIGH_FREQ : SIREN_LOW_FREQ, t);
+      voice.osc.frequency.setTargetAtTime(voice.toneHigh ? SIREN_HIGH_FREQ : SIREN_LOW_FREQ, t, 0.012);
       voice.nextToggle = t + hold;
     }
   }
@@ -1612,12 +1954,30 @@ function updateTrafficAudio(dt, world) {
   for (const v of world.vehicles) {
     if (isEngineRunning(v)) running.push(v);
     const horn = !!v.horn;
-    if (horn && !hornWasOn.get(v) && v.driver !== 'player') playHorn(v.x, v.y);
+    if (horn && !hornWasOn.get(v) && v.driver !== 'player') playHorn(v.x, v.y, 0.4, hornPitch(v));
     hornWasOn.set(v, horn);
   }
   assignVoices(engineVoices, nearestSorted(running, ENGINE_RANGE, ENGINE_VOICES));
   const t = ctx.currentTime;
-  for (const voice of engineVoices) {
+  if (synth.traffic) {
+    const msg = [];
+    engineVoices.forEach((voice, i) => {
+      const v = voice.target;
+      if (!v) {
+        fadeVoice(voice, 0, dt, 4);
+        msg.push({ i, gain: voice.level });
+        return;
+      }
+      const p = trafficEngineParams(v, dt, voice.fresh);
+      const pitch = Math.pow(2, clamp(dopplerCents(v, Math.cos(v.angle) * v.speed, Math.sin(v.angle) * v.speed), -600, 600) / 1200);
+      placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
+      const level = v.isBus ? 0.55 : v.isBoat ? 0.5 : v.isScooter ? 0.4 : 0.32 + p.load * 0.2;
+      fadeVoice(voice, level, dt, 4);
+      msg.push({ i, kind: p.kind, rpm: p.rpm, load: p.load, gain: voice.level, pitch, snap: p.snap });
+    });
+    synthPost(synth.traffic, { type: 'p', v: msg });
+  }
+  for (const voice of synth.traffic ? [] : engineVoices) {
     const v = voice.target;
     if (!v) { fadeVoice(voice, 0, dt, 4); continue; }
     const p = vehicleVoiceParams(v);
@@ -1806,6 +2166,7 @@ export function updateAudio(dt, world) {
   updateEngine(dt, world);
   updateSqueal(dt, world);
   updateRumble(dt, world);
+  updateScrape(dt, world);
   updatePlayerHorn(world);
   updateSiren(dt, world);
   updateTrafficAudio(dt, world);
@@ -1817,10 +2178,11 @@ export function updateAudio(dt, world) {
   updateGMusic(dt, world);
 }
 
-const warmList = ['glass', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
+const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
   'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3'];
 
 export function getAudioStats() {
   if (!ctx) return null;
-  return { activeVoices, buffers: bank ? bank.size() : 0, duck: duckState.level, ...ambienceStats(), ...foleyStats() };
+  const engineSynth = synth.player ? { kind: engineState.kind, gear: engineState.gear, level: +engineState.gain.toFixed(3), traffic: engineVoices.filter((voice) => voice.target).length } : null;
+  return { activeVoices, buffers: bank ? bank.size() : 0, duck: duckState.level, engineSynth, ...ambienceStats(), ...foleyStats() };
 }

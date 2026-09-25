@@ -8,9 +8,8 @@ const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
 const CROUCH_SPEED = 2.0;
-const TURN_RATE = 3.4;
-const MOUSE_TURN_PER_PX = 0.0025; // rad/s, on-foot facing turn speed
-const REVERSE_FACTOR = 0.6;
+const FACE_TURN_RATE = 12; // rad/s the body turns toward its movement direction
+const MOUSE_TURN_PER_PX = 0.0025; // rad per px of mouse motion, camera orbit
 const KISS_DIST = 1.8;
 const KISS_HEAL = 25;
 const KISS_COOLDOWN = 3;
@@ -65,6 +64,12 @@ export class Player {
 
   update(dt, world) {
     const { input, map, vehicles } = world;
+    if (world.camYaw == null) world.camYaw = this.angle;
+    // on foot the mouse orbits the camera (world.camYaw, the horizontal
+    // direction it looks in); in a vehicle scene3d.js owns the orbit
+    if (!this.inVehicle && input.lookActive()) {
+      world.camYaw = normalizeAngle(world.camYaw + input.mouse.dx * MOUSE_TURN_PER_PX * getSettings().mouseSensitivity);
+    }
     tickSinkingVehicles(world);
     this.updateCharacterSwitch(world);
     if (input.wasPressed('e') || input.wasPressed('f')) {
@@ -124,23 +129,17 @@ export class Player {
     if (this.z <= 0) this.vz = 0;
     this.crouching = input.isDown('control') && this.z <= 0;
 
-    // tank controls, GTA3-style: A/D turn the character (and with it the 3D
-    // follow-cam, which derives its yaw from this.angle), W/S move forward/
-    // back along the current facing - a raw world-axis "D always moves you
-    // toward +x" scheme feels wrong once the camera can be facing any way
-    const [ax, ay] = input.axis();
+    // GTA V-style: WASD moves relative to the camera, the body turns to face
+    // the movement; while attacking/aiming the body faces the camera instead
     const speed = this.crouching ? CROUCH_SPEED : input.isDown('shift') ? RUN_SPEED : WALK_SPEED;
-
-    // with the mouse captured, horizontal mouse motion turns Tammo/Anita
-    // (and with them the camera and the aim), third-person-shooter style
-    const mouseTurn = input.lookActive() ? input.mouse.dx * MOUSE_TURN_PER_PX * getSettings().mouseSensitivity : 0;
-    this.angle = normalizeAngle(this.angle + ax * TURN_RATE * dt + mouseTurn);
-
-    const throttle = ay < 0 ? 1 : ay > 0 ? -REVERSE_FACTOR : 0;
-    this.moving = throttle !== 0;
-    if (this.moving) {
-      this.vx = Math.cos(this.angle) * speed * throttle;
-      this.vy = Math.sin(this.angle) * speed * throttle;
+    const aiming = input.mouse.down || input.mouse.rightDown;
+    const dir = cameraRelativeMove(input, world.camYaw);
+    this.moving = !!dir;
+    if (aiming) this.angle = world.camYaw;
+    else if (dir) this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * dt);
+    if (dir) {
+      this.vx = Math.cos(dir.angle) * speed;
+      this.vy = Math.sin(dir.angle) * speed;
     } else {
       this.vx = 0;
       this.vy = 0;
@@ -249,10 +248,9 @@ export class Player {
       return;
     }
 
-    const [ax, ay] = input.axis();
-    const mouseTurn = input.lookActive() ? input.mouse.dx * MOUSE_TURN_PER_PX * getSettings().mouseSensitivity : 0;
-    this.angle = normalizeAngle(this.angle + ax * TURN_RATE * 0.8 * dt + mouseTurn);
-    const throttle = ay < 0 ? 1 : ay > 0 ? -0.5 : 0;
+    const dir = cameraRelativeMove(input, world.camYaw);
+    if (dir) this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * 0.6 * dt);
+    const throttle = dir ? 1 : 0;
     const sprint = input.isDown('shift') && throttle > 0 && this.swimStamina > 0;
     this.swimStamina = clamp(this.swimStamina + (sprint ? -dt / 6 : dt / 5), 0, 1);
     const speed = (sprint ? SWIM_SPRINT : SWIM_SPEED) * throttle;
@@ -455,6 +453,21 @@ export class Player {
     this.y = v.y;
     this.angle = v.angle;
   }
+}
+
+// WASD relative to the camera heading: W away from the camera, A/D strafe.
+// (-sin, cos) is the right-hand side of a heading (three.z = world.y).
+function cameraRelativeMove(input, camYaw) {
+  const [ax, ay] = input.axis();
+  if (!ax && !ay) return null;
+  const c = Math.cos(camYaw), s = Math.sin(camYaw);
+  const mx = c * -ay - s * ax, my = s * -ay + c * ax;
+  return { angle: Math.atan2(my, mx) };
+}
+
+function turnToward(from, to, maxStep) {
+  const d = normalizeAngle(to - from);
+  return normalizeAngle(from + Math.max(-maxStep, Math.min(maxStep, d)));
 }
 
 // Door/engine cues for audio.js; bikes and steps have neither.

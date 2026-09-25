@@ -539,7 +539,7 @@ function buildTorso(B, L, skin) {
     B.bone = BONE.chest;
     const bx = -ringAt(rings, 1.22).d - 0.07;
     B.box(bx, 1.2, 0, 0.13, 0.34, 0.27, L.bagColor);
-    B.geo(new THREE.CylinderGeometry(1, 1, 0.27, 6, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(Math.PI / 2), composeMatrix(bx, 1.37, 0, 0, 0, 0, 0.065, 1, 0.065), L.bagColor);
+    B.geo(new THREE.CylinderGeometry(1, 1, 0.27, 6, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(Math.PI / 2), composeMatrix(bx, 1.37, 0, 0, 0, 0, 0.065, 0.065, 1), L.bagColor);
     B.box(bx - 0.075, 1.12, 0, 0.03, 0.14, 0.2, shade(L.bagColor, 0.8));
     for (const s of [1, -1]) B.box(0.01, 1.3, s * 0.1, ringAt(rings, 1.3).d * 2.1, 0.035, 0.035, shade(L.bagColor, 0.65), 0, 0, 0, 0);
     B.bone = W_TORSO;

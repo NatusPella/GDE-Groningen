@@ -1,6 +1,7 @@
 import { drawMapIcon, drawRoute, drawRoadRoute, getHeroCar, forEachPoliceUnit, declutter, ROUTE_COLORS, drawSearchArea, getPoliceSearch } from './hud_panel.js';
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
+import { drawRailsOnMap } from './railway.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
@@ -457,6 +458,7 @@ function renderTile(L, tx, ty) {
     c.stroke();
     c.globalAlpha = 1;
   }
+  drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px(z < MID_ZOOM ? 1.6 : 2.6));
   return canvas;
 }
 

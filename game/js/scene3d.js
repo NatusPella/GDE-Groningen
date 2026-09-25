@@ -18,7 +18,7 @@ import {
   getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
   buildHealthPickupMesh3D, buildArmorPickupMesh3D, buildGaragePickupMesh3D,
 } from './pickups.js';
-import { getTrafficLights, getTrafficLightPhase, buildTrafficLightMesh3D, setTrafficLightPhase3D, placeTrafficLight, setTrafficLightGlow } from './trafficlights.js';
+import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
 import { buildShore, updateShore } from './quaywalls.js';
@@ -37,6 +37,8 @@ import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
+import { initRailway3D, updateRailway3D } from './railway3d.js';
+import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
@@ -83,7 +85,8 @@ let lookPitchTarget = followPitch;
 let lookYaw = 0;
 let lookYawIdle = 0;
 const MOUSE_LOOK_PER_PX = 0.0025;
-const LOOK_RECENTER_DELAY = 1.4;
+const LOOK_RECENTER_DELAY = 1.7;
+let camWasInVehicle = false;
 
 const buildingMeshes = new Map();
 // Buildings are only ever built once and cached above - if a landmark's real
@@ -124,7 +127,6 @@ const splashMeshes = new Map();
 const wakeMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
-const trafficLightMeshes = new Map();
 const moneyMeshes = new Map();
 const weaponMeshes = new Map();
 const healthMeshes = new Map();
@@ -246,6 +248,7 @@ function addBlobShadow(parent, sx, sz, x = 0) {
 
 function buildVehicleActor(v) {
   const mesh = buildVehicleMesh(v);
+  mesh.userData.wreckModel = !!v.wrecked;
   const { len, wid } = v.model;
   if (v.isBoat) {
     mesh.rotation.order = 'YXZ';
@@ -403,6 +406,8 @@ export function init3D(map) {
     sidewalkExtra: SIDEWALK_EXTRA,
     roadColorOf: roadFarColor,
   });
+  initRailway3D(scene, map);
+  scene.add(buildCanopies(map));
   initGrass(scene, map, { polyGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)) });
   onSettingsChange(applyViewSettings);
   resize3D();
@@ -880,9 +885,10 @@ export function update3D(dt, world) {
   updateShore(waterNight, cam);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
+  updateRailway3D(dt, world);
 
   syncActors(
-    world.vehicles.filter((v) => (!v.wrecked || v.sinking) && Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
+    world.vehicles.filter((v) => Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
     vehicleMeshes,
     buildVehicleActor,
     (v) => v.id
@@ -890,7 +896,14 @@ export function update3D(dt, world) {
   const fireSeenIds = new Set();
   const policeChasing = world.wanted > 0;
   for (const v of world.vehicles) {
-    const mesh = vehicleMeshes.get(v.id);
+    let mesh = vehicleMeshes.get(v.id);
+    // a car that just died swaps to its burnt-out model (rebuilt next frame)
+    if (mesh && v.wrecked && !mesh.userData.wreckModel) {
+      scene.remove(mesh);
+      disposeObject(mesh);
+      vehicleMeshes.delete(v.id);
+      mesh = null;
+    }
     if (mesh) {
       mesh.position.set(v.x, v.isBoat ? WATER_Y : 0, v.y);
       mesh.rotation.y = -v.angle;
@@ -904,7 +917,7 @@ export function update3D(dt, world) {
     }
 
     // damage VFX - checked regardless of `mesh` (a just-wrecked vehicle's
-    // mesh is already gone by the time syncActors filters !v.wrecked out)
+    // mesh is rebuilt as a wreck on the next frame)
     if (v.hitThisFrame) {
       const spark = buildVehicleImpactSparkMesh3D();
       spark.position.set(v.hitX, 0.3, v.hitY);
@@ -912,12 +925,13 @@ export function update3D(dt, world) {
       impactSparkEffects.push(spark);
     }
     if (vehicleJustWrecked(v)) {
+      v.wreckedAt = world.time;
       const boom = buildVehicleExplosionMesh3D();
       boom.position.set(v.x, 0.2, v.y);
       scene.add(boom);
       vehicleExplosionEffects.push(boom);
     }
-    if (vehicleNeedsFireEffect(v)) {
+    if (vehicleNeedsFireEffect(v, world.time)) {
       fireSeenIds.add(v.id);
       let fire = vehicleFireMeshes.get(v.id);
       if (!fire) {
@@ -926,6 +940,7 @@ export function update3D(dt, world) {
         vehicleFireMeshes.set(v.id, fire);
       }
       fire.position.set(v.x, 0.4, v.y);
+      fire.scale.setScalar(v.wrecked ? 2.4 : 1);
       updateVehicleFireMesh3D(fire, animDt);
     }
   }
@@ -1135,19 +1150,7 @@ export function update3D(dt, world) {
   }
 
   // traffic lights: static positions, built once, only the lamp color changes
-  for (const light of getTrafficLights()) {
-    let mesh = trafficLightMeshes.get(light);
-    if (!mesh) {
-      mesh = buildTrafficLightMesh3D();
-      const spot = placeTrafficLight(light, world.map);
-      mesh.position.set(spot.x, 0, spot.y);
-      mesh.rotation.y = -spot.angle;
-      scene.add(mesh);
-      trafficLightMeshes.set(light, mesh);
-    }
-    mesh.visible = !light.broken && Math.abs(light.x - player.x) < DRAW_DIST && Math.abs(light.y - player.y) < DRAW_DIST;
-    if (mesh.visible) setTrafficLightPhase3D(mesh, getTrafficLightPhase(light));
-  }
+  syncTrafficLights3D(scene);
 
   // combat: bullets (Map-keyed like any other actor), spark bursts (pruned
   // by world.time > until), and a single shared muzzle-flash/melee-swipe
@@ -1308,14 +1311,27 @@ export function update3D(dt, world) {
     lookPitchTarget = (PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT) * Math.PI / 180;
   }
   followPitch += (lookPitchTarget - followPitch) * Math.min(1, dt * (looking ? 14 : 6));
-  if (player.inVehicle && looking && mouse.dx !== 0) {
-    lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
-    lookYawIdle = 0;
+  // on foot the camera yaw is world.camYaw (orbited by the mouse in
+  // player.js, independent of the facing); in a vehicle the mouse orbits
+  // around the car and the camera eases back behind it after a moment idle
+  if (world.camYaw == null) world.camYaw = targetAngle;
+  let camAngle;
+  if (player.inVehicle) {
+    if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
+    if (looking && mouse.dx !== 0) {
+      lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
+      lookYawIdle = 0;
+    } else {
+      lookYawIdle += dt;
+      if (lookYawIdle > LOOK_RECENTER_DELAY) lookYaw *= Math.exp(-dt * 2.5);
+    }
+    camAngle = targetAngle + lookYaw;
+    world.camYaw = normalizeAngleDelta(camAngle);
   } else {
-    lookYawIdle += dt;
-    if (!player.inVehicle || lookYawIdle > LOOK_RECENTER_DELAY) lookYaw *= Math.exp(-dt * (player.inVehicle ? 2.5 : 12));
+    lookYaw = 0;
+    camAngle = world.camYaw;
   }
-  const camAngle = targetAngle + lookYaw;
+  camWasInVehicle = !!player.inVehicle;
 
   // vehicles get a longer, higher orbit scaled to their length, so the car
   // doesn't fill the lower half of the screen

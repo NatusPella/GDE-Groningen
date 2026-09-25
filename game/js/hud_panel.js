@@ -1,6 +1,7 @@
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
 import { isMuted } from './audio.js';
+import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 
@@ -693,9 +694,9 @@ function drawMinimap(dt, world) {
   const MM_RADIUS_M = MINIMAP_SIZE / 2 / mmScale;
 
   const cx = MINIMAP_SIZE / 2, cy = MINIMAP_SIZE / 2;
-  // The map rotates so the player's heading always points up; any world
+  // The map rotates so the camera heading always points up; any world
   // angle plus mapRotation gives its on-screen angle.
-  const mapRotation = -Math.PI / 2 - player.angle;
+  const mapRotation = -Math.PI / 2 - (world.camYaw ?? player.angle);
   const cosR = Math.cos(mapRotation), sinR = Math.sin(mapRotation);
   ctx.translate(cx * dpr, cy * dpr);
   ctx.rotate(mapRotation);
@@ -727,6 +728,8 @@ function drawMinimap(dt, world) {
     ctx.lineWidth = Math.max(r.width, 3);
     ctx.stroke();
   }
+  drawRailsOnMap(ctx, world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, 3.2);
+  drawTrainsOnMap(ctx);
 
   const MM_BUILDING_COLORS = ['#b98a6a', '#9a8a7a', '#c9a876', '#8a96a0', '#a88a9a'];
   for (const b of view.buildings) {
@@ -799,7 +802,7 @@ function drawMinimap(dt, world) {
 
   forEachPoliceUnit(world, (x, y) => icon('police', x, y));
 
-  drawMapIcon(ctx, 'player', cx, cy, 1.15, { angle: -Math.PI / 2 });
+  drawMapIcon(ctx, 'player', cx, cy, 1.15, { angle: player.angle + mapRotation });
 
   drawNorthIndicator(ctx, cx, cy, mapRotation + -Math.PI / 2);
 

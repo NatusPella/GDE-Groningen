@@ -9,6 +9,8 @@ const STORM_MOOD = 0.65;
 const _stormFog = new THREE.Color();
 const RAIN_COLOR = new THREE.Color(0x9fb0bf);
 const _stormZenith = new THREE.Color();
+const MIST_COLOR = new THREE.Color(0.66, 0.69, 0.72);
+const _mist = new THREE.Color();
 
 // Rain: a fixed box of streaks centred on the player every frame rather than
 // a per-drop world simulation. Each drop is a thin quad stretched along its
@@ -53,7 +55,20 @@ function buildRain() {
 function updateRain(dt, world, px, py, cam) {
   const w = world.weather;
   const t = clamp(w ? w.intensity : 0, 0, 1);
-  rainMesh.position.set(px, 0, py);
+  // The title-screen camera hangs far above the player, so the rain box
+  // follows the lens instead: entirely in front of it (no giant streaks on the lens).
+  let camSide = null;
+  if (world.menuCam && cam) {
+    const dx = px - cam.position.x, dz = py - cam.position.z;
+    const dl = Math.hypot(dx, dz) || 1;
+    const ahead = RAIN_VOLUME_RADIUS + 3;
+    px = cam.position.x + dx / dl * ahead;
+    py = cam.position.z + dz / dl * ahead;
+    rainMesh.position.set(px, cam.position.y - RAIN_HEIGHT * 0.8, py);
+    camSide = [-dz / dl, dx / dl];
+  } else {
+    rainMesh.position.set(px, 0, py);
+  }
   rainMesh.visible = t > 0.02;
   if (!rainMesh.visible) return;
   rainMesh.material.opacity = RAIN_OPACITY * Math.min(1, 0.5 + t);
@@ -65,7 +80,9 @@ function updateRain(dt, world, px, py, cam) {
   const sx = vx * RAIN_STREAK_TIME, sy = vy * RAIN_STREAK_TIME, sz = vz * RAIN_STREAK_TIME;
   // horizontal "right" vector relative to the camera, so quads face it
   let rx = 1, rz = 0;
-  if (cam) {
+  if (camSide) {
+    [rx, rz] = camSide;
+  } else if (cam) {
     const fx = px - cam.position.x, fz = py - cam.position.z;
     const fl = Math.hypot(fx, fz) || 1;
     rx = -fz / fl; rz = fx / fl;
@@ -121,6 +138,8 @@ function updateLightning(dt, t) {
 //                      on start, used internally to time the toppled-bike
 //                      throttling; harmless to ignore from outside)
 //   elapsed    sec   - time since the current storm started (internal)
+//   overcast   0-1   - optional grey sky without rain (title screen shots)
+//   mist       0-1   - optional ground fog without rain (title screen shots)
 const DRY_MIN = 150, DRY_MAX = 390;
 // Most showers are just rain; only the rare full storm is a "code rood".
 // peak = target intensity (lightning starts ~0.75, rain density scales with it).
@@ -229,7 +248,9 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   }
   updateRain(dt, world, px, py, cam);
   const flash = updateLightning(dt, w.active ? t : 0);
-  const moodT = t * STORM_MOOD;
+  const mist = clamp(w.mist || 0, 0, 1);
+  const cloud = Math.max(t, clamp(w.overcast || 0, 0, 1), mist * 0.6);
+  const moodT = cloud * STORM_MOOD;
   scene.userData.lightningFlash = flash;
 
   // Base (clear-weather) mood is written by scene3d every frame from the
@@ -240,23 +261,24 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   rainMesh.material.color.copy(RAIN_COLOR).multiplyScalar(0.3 + 0.7 * base.daylight);
   _stormFog.copy(STORM_FOG_COLOR).multiplyScalar(dayK);
   _stormZenith.copy(STORM_ZENITH_COLOR).multiplyScalar(dayK);
+  _mist.copy(MIST_COLOR).multiplyScalar(0.08 + 0.92 * base.daylight);
 
   if (scene.fog) {
-    scene.fog.color.copy(base.fog).lerp(_stormFog, moodT).lerp(LIGHTNING_COLOR, flash * 0.5);
-    scene.fog.near = lerp(base.fogNear, base.fogNear * 0.4, t);
-    scene.fog.far = lerp(base.fogFar, base.fogFar * 0.45, t);
+    scene.fog.color.copy(base.fog).lerp(_stormFog, moodT).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
+    scene.fog.near = lerp(lerp(base.fogNear, base.fogNear * 0.4, t), 0, mist);
+    scene.fog.far = lerp(lerp(base.fogFar, base.fogFar * 0.45, t), 70, mist);
   }
   if (scene.background && scene.background.isColor) {
-    scene.background.copy(base.fog).lerp(_stormFog, moodT).lerp(LIGHTNING_COLOR, flash * 0.6);
+    scene.background.copy(base.fog).lerp(_stormFog, moodT).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.6);
   }
 
   const sky = scene.userData.sky;
   if (sky) {
     const u = sky.uniforms;
-    u.uZenith.value.copy(base.zenith).lerp(_stormZenith, t * 0.9).lerp(LIGHTNING_COLOR, flash * 0.6);
-    u.uHorizon.value.copy(base.horizon).lerp(_stormFog, t * 0.9).lerp(LIGHTNING_COLOR, flash * 0.5);
-    u.uSunStrength.value = base.sunStrength * (1 - t);
-    if (u.uGlow) u.uGlow.value = base.glow * (1 - t);
+    u.uZenith.value.copy(base.zenith).lerp(_stormZenith, cloud * 0.9).lerp(_mist, mist * 0.85).lerp(LIGHTNING_COLOR, flash * 0.6);
+    u.uHorizon.value.copy(base.horizon).lerp(_stormFog, cloud * 0.9).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
+    u.uSunStrength.value = base.sunStrength * (1 - cloud);
+    if (u.uGlow) u.uGlow.value = base.glow * (1 - cloud);
   }
 
   if (!scene.userData._weatherLights) {
@@ -266,6 +288,6 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
   for (const obj of scene.userData._weatherLights) {
     if (obj.userData._weatherBaseIntensity === undefined) obj.userData._weatherBaseIntensity = obj.intensity;
     const sunLight = obj.type === 'DirectionalLight';
-    obj.intensity = obj.userData._weatherBaseIntensity * (1 - t * (sunLight ? 0.85 : 0.35)) + flash * (sunLight ? 3 : 1.2);
+    obj.intensity = obj.userData._weatherBaseIntensity * (1 - cloud * (sunLight ? 0.85 : 0.35)) + flash * (sunLight ? 3 : 1.2);
   }
 }

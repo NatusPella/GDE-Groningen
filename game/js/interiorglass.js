@@ -129,14 +129,15 @@ vec3 igProducts(vec2 c, float detail, float style) {
 
 vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   bool ground = abs(q.kind - 1.0) < 0.5, shop = abs(q.kind - 2.0) < 0.5, office = q.kind > 2.5;
-  float W = q.size.x, H = q.size.y;
+  float W = max(q.size.x, 0.05), H = max(q.size.y, 0.05);
   float s1 = igH(vec2(q.K + q.kind * 17.0, W * 3.1 + H * 7.7));
   float s2 = fract(s1 * 13.37 + 0.21), s3 = fract(s1 * 71.93 + 0.47), s4 = fract(s1 * 31.17 + 0.83), s5 = fract(s1 * 5.71 + 0.13);
 
   vec3 T = length(N.xz) > 1e-3 ? normalize(vec3(N.z, 0.0, -N.x)) : vec3(1.0, 0.0, 0.0);
   vec3 rd = vec3(dot(V, T), V.y, -dot(V, N));
-  rd.x = abs(rd.x) < 1e-4 ? 1e-4 : rd.x;
-  rd.y = abs(rd.y) < 1e-4 ? 1e-4 : rd.y;
+  // sign-preserving epsilon: 1/rd must stay finite (inf * 0 = NaN in the box tests)
+  if (abs(rd.x) < 1e-4) rd.x = rd.x < 0.0 ? -1e-4 : 1e-4;
+  if (abs(rd.y) < 1e-4) rd.y = rd.y < 0.0 ? -1e-4 : 1e-4;
   rd.z = max(rd.z, 1e-3);
   fres = 0.04 + 0.96 * pow(clamp(1.0 - rd.z, 0.0, 1.0), 5.0);
   vec3 ro = vec3(q.p, 0.0);
@@ -315,7 +316,7 @@ glassMaterial.onBeforeCompile = (shader) => {
       #ifdef INTERIOR_GLASS
         vec3 igV = vWPos - cameraPosition;
         float igDist = length(igV);
-        igV /= igDist;
+        igV /= max(igDist, 1e-4);
         // geometry normal, not pixel derivatives: those degenerate to zero at
         // edges and the resulting NaN spread through bloom into black screens
         vec3 igN = vWNrm;
