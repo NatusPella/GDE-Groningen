@@ -5,6 +5,9 @@ import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './
 import { getClockText } from './hud_panel.js';
 import { isCinematicActive, replayIntro } from './cinematics.js';
 
+// Running inside the desktop app (desktop/preload.js): window mode + quit.
+const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
+
 const CONTROLS = [
   ['W / S', 'vooruit / achteruit (lopen en rijden)'],
   ['A / D', 'draaien / sturen'],
@@ -98,6 +101,7 @@ export function initPauseMenu(w) {
               ${Object.keys(QUALITY_PRESETS).map((q) => `<option value="${q}">${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}
             </select>
           </label>
+          ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm</span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
           ${toggle('shadows', 'Schaduwen')}
           <label class="pm-row"><span>Zichtafstand</span>
             <select data-setting="drawDistance">
@@ -135,7 +139,8 @@ export function initPauseMenu(w) {
         <button type="button" class="pm-secondary" data-action="restart">Opnieuw beginnen</button>
         <button type="button" class="pm-secondary" data-action="intro">Intro opnieuw bekijken</button>
         <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
-        <button type="button" class="pm-danger" data-action="quit" data-pigeon hidden>Duif-modus stoppen</button>
+        <button type="button" class="pm-secondary" data-action="menu" data-both>Terug naar hoofdmenu</button>
+        ${DESKTOP ? '<button type="button" class="pm-danger" data-action="exit" data-both>Spel afsluiten</button>' : ''}
         <div class="pm-confirm" hidden>
           <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
           <button type="button" class="pm-secondary" data-action="load">Laatste save laden</button>
@@ -165,6 +170,10 @@ export function initPauseMenu(w) {
     if (action) runAction(action.dataset.action);
   });
   root.addEventListener('input', (e) => {
+    if (DESKTOP && e.target.dataset && e.target.dataset.desktop === 'fullscreen') {
+      DESKTOP.setFullscreen(e.target.checked);
+      return;
+    }
     const key = e.target.dataset && e.target.dataset.setting;
     if (!key) return;
     const el = e.target;
@@ -173,6 +182,8 @@ export function initPauseMenu(w) {
     syncControls();
   });
 
+  // F11 / the macOS green button also switch modes: keep the checkbox right
+  if (DESKTOP) DESKTOP.onFullscreenChange(() => syncDesktopControls());
   window.addEventListener('keydown', onKey);
   // ?stil marks an automated test session, whose tab is often hidden
   if (!new URLSearchParams(location.search).has('stil')) {
@@ -225,7 +236,13 @@ function runAction(a) {
     syncGamePanel();
     confirmEl.querySelector('button').focus();
   } else if (a === 'cancel') confirmEl.hidden = true;
-  else if (a === 'quit') location.reload();
+  else if (a === 'menu' || a === 'exit') {
+    // normal mode keeps its progress: save, then back to the title screen
+    // (Doorgaan) or close the app; pigeon mode has nothing to keep
+    if (world && !world.pigeonMode) saveGame(world);
+    if (a === 'exit' && DESKTOP) DESKTOP.quit();
+    else location.reload();
+  }
   else if (a === 'intro') { setOpen(false); replayIntro(world); }
   else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
@@ -270,6 +287,11 @@ function slider(key, label) {
 
 function toggle(key, label) {
   return `<label class="pm-row"><span>${label}</span><input type="checkbox" data-setting="${key}"></label>`;
+}
+
+function syncDesktopControls() {
+  const fs = root && root.querySelector('[data-desktop="fullscreen"]');
+  if (fs && DESKTOP) fs.checked = !!DESKTOP.isFullscreen();
 }
 
 function syncControls() {
@@ -332,10 +354,10 @@ function showTab(name) {
   root.querySelector('.pm-foot-tab').innerHTML = prestart ? '' : FOOTERS[name] || '';
   if (world) setMapActive(world, open && name === 'map');
   if (name === 'missions') renderMissions();
-  if (name === 'settings') syncControls();
+  if (name === 'settings') { syncControls(); syncDesktopControls(); }
   if (name === 'game') {
     const pigeon = !!(world && world.pigeonMode);
-    for (const b of root.querySelectorAll('.pm-game > [data-action]')) b.hidden = b.hasAttribute('data-pigeon') ? !pigeon : pigeon && b.dataset.action !== 'resume';
+    for (const b of root.querySelectorAll('.pm-game > [data-action]')) b.hidden = b.hasAttribute('data-both') ? false : b.hasAttribute('data-pigeon') ? !pigeon : pigeon && b.dataset.action !== 'resume';
     if (pigeon) root.querySelector('[data-action="pigeon-home"]').hidden = !(world.pigeonActions && world.pigeonActions.hasHome());
     root.querySelector('.pm-confirm').hidden = true;
     root.querySelector('.pm-status').textContent = '';

@@ -1,4 +1,5 @@
 import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
+import { VERSION } from './version.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 
@@ -25,7 +26,13 @@ function el(id) {
   return document.getElementById(id);
 }
 
+function showVersion() {
+  const v = document.querySelector('#start-screen .ss-ver');
+  if (v && VERSION && VERSION !== 'dev') v.textContent = 'v' + VERSION;
+}
+
 export function initLoading() {
+  showVersion();
   const tip = document.querySelector('#loading .ld-tip');
   if (tip) {
     let i = Math.floor(Math.random() * TIPS.length);
@@ -234,6 +241,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
     items.push({ act: 'pigeon', label: 'Duif-modus', sub: 'Vlieg as n duuf over Grunn. Poepen mag.' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
+    if (window.gteDesktop && window.gteDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     menu.innerHTML = items.map((it, i) =>
       `<button type="button" role="menuitem" class="ss-item" data-i="${i}"><span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`).join('');
     const buttons = [...menu.querySelectorAll('.ss-item')];
@@ -328,6 +336,8 @@ export function runStartScreen(world, { render, relocate, tick }) {
         finish('pigeon');
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
+      } else if (it.act === 'exit') {
+        window.gteDesktop.quit();
       }
     };
     const onKey = (e) => {

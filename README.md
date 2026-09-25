@@ -21,6 +21,25 @@ needed). It then picks a free port, starts the server on 127.0.0.1 and opens
 the game in the browser. Keep the window open while playing. If Windows
 SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
 
+## Desktop builds and releases
+
+`desktop/` wraps the game in Electron: a standalone macOS app (universal,
+Apple Silicon + Intel) and a portable Windows `.exe`, both fully offline
+(three.js and the font are vendored at build time). Built locally, no CI:
+
+```bash
+cd desktop && npm install
+npm start                       # run the desktop app from source
+npm run release -- minor        # new features:  0.3.1 -> 0.4.0
+npm run release -- patch        # bug fixes:     0.3.1 -> 0.3.2
+```
+
+`release` bumps the version (SemVer, `0.x.y` until the real launch at
+1.0.0), builds both platforms, tags `vX.Y.Z` and publishes a GitHub release
+with the `.dmg` and `.exe`. The apps are unsigned (no Apple Developer ID /
+Windows certificate), so testers confirm them once in macOS Privacy &
+Security or Windows SmartScreen.
+
 ## Controls
 
 | Key | On foot | In a vehicle |
