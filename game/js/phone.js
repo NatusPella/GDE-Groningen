@@ -63,7 +63,7 @@ function buddyTalk(w) {
   return {
     line: pick([
       'Heb je eierballen gehaald? Nee? Waarom bel je dan?',
-      'Moi! Als je nou gewoon appt, net als ieder normaal mens.',
+      'Moi! Kun je niet gewoon appen, net als ieder normaal mens?',
       'Sinds ik jou ken heb ik geen rustige dag meer gehad in Grunn.',
     ]),
     actions: c ? [{ label: 'Waar ben je?', run: () => { setUserWaypoint(c.x, c.y, buddyName(w)); flashAndClose(`${buddyName(w)} staat op je kaart`); } }] : [],
@@ -72,7 +72,7 @@ function buddyTalk(w) {
 
 function berendTalk(w, call) {
   const next = getNextMission();
-  if (!next) return { line: 'Ik heb even niks voor je. Kom later maar terug.' };
+  if (!next) return { line: 'Ik heb even niks voor je. Bel later maar terug.' };
   if (next.active) return { line: 'Je bent al bezig, man. Eerst dat afmaken, dan praten we verder.' };
   const list = getMissionList();
   const idx = call.offer != null ? call.offer : next.index;
@@ -92,7 +92,7 @@ function garageTalk(w) {
   if (hero && w.player.inVehicle === hero) return { line: 'Je zit er nu in, slimmerik. Hoor ik ’m nou rammelen?' };
   if (hero) {
     return {
-      line: 'Je Escort staat nog netjes waar je ’m liet. Zal ik ’m op je kaart zetten?',
+      line: 'Je Escapade staat nog netjes waar je ’m liet. Zal ik ’m op je kaart zetten?',
       actions: [{ label: 'Op kaart zetten', run: () => { setUserWaypoint(hero.x, hero.y, 'Jouw auto'); flashAndClose('Je auto staat op de kaart'); } }],
     };
   }
@@ -101,9 +101,9 @@ function garageTalk(w) {
     actions: [{
       label: `Bezorgen (€${GARAGE_PRICE})`,
       run: () => {
-        if (w.money < GARAGE_PRICE) { st.call.line = 'Geen geld, geen Escort. Zo werkt dat hier.'; st.call.actions = []; render(); return; }
+        if (w.money < GARAGE_PRICE) { st.call.line = 'Geen geld, geen Escapade. Zo werkt dat hier.'; st.call.actions = []; render(); return; }
         const car = spawnHeroCarNear(w.map, w.player.x + 6, w.player.y + 6);
-        if (!car) { st.call.line = 'Ik kan je niet vinden. Ga eens bij een weg staan.'; st.call.actions = []; render(); return; }
+        if (!car) { st.call.line = 'Ik kan je niet vinden. Ga eens langs een weg staan.'; st.call.actions = []; render(); return; }
         w.money -= GARAGE_PRICE;
         w.vehicles.push(car);
         flashAndClose('Henk heeft je auto gebracht');
@@ -324,7 +324,7 @@ function render() {
     const items = w.phoneHistory || [];
     html = header('Sikkom') + `<div class="ph-list ph-feed">${items.length ? items.map((n) =>
       `<div class="ph-news"><small>${esc(n.at || '')}</small><p>${esc(n.text)}</p></div>`).join('')
-      : '<p class="ph-empty">Nog geen nieuws. Grunn is rustig… voor nu.</p>'}</div>`;
+      : '<p class="ph-empty">Nog geen nieuws. Grunn is rustig… nog wel.</p>'}</div>`;
   }
   screenEl.innerHTML = html;
 }

@@ -687,7 +687,8 @@ function addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wall
   const yb = depth - 0.05;
   const big = floorCount >= 3 || A > 90;
 
-  const clearAt = (x, z, m) => pointInPolygon(x, z, b.pts) && edges.every((e) => segDist(x, z, e) >= m);
+  const pad = b.helipad && mapRef() && mapRef().meta.helipad;
+  const clearAt = (x, z, m) => pointInPolygon(x, z, b.pts) && edges.every((e) => segDist(x, z, e) >= m) && !(pad && Math.hypot(x - pad.x, z - pad.y) < pad.r + 2.5);
   const fits = (a, c, ha, hc, m) => {
     for (const sa of [-1, 0, 1]) for (const sc of [-1, 0, 1]) {
       const [x, z] = toW(a + sa * ha, c + sc * hc);

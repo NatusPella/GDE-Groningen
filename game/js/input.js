@@ -93,6 +93,8 @@ export class Input {
 
   isDown(k) { return this.keys.has(k); }
   wasPressed(k) { return this._justPressed.has(k); }
+  // swallow a key press so later handlers this frame don't act on it too
+  consume(k) { this._justPressed.delete(k); }
 
   reset() {
     this.keys.clear();

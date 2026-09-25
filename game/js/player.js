@@ -3,11 +3,13 @@ import { findNearestVehicle, resolveVehicleBuildingCollision, pushCircleOutOfVeh
 import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
 import { getSettings } from './settings.js';
+import { knockDown, isKnockedDown } from './ragdoll.js';
 
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
-const CROUCH_SPEED = 2.0;
+const CROUCH_SPEED = 1.7;
+const KNOCKDOWN_CLOSING = 5.5; // m/s a car has to hit you with to floor you
 const FACE_TURN_RATE = 12; // rad/s the body turns toward its movement direction
 const MOUSE_TURN_PER_PX = 0.0025; // rad per px of mouse motion, camera orbit
 const KISS_DIST = 1.8;
@@ -71,6 +73,14 @@ export class Player {
       world.camYaw = normalizeAngle(world.camYaw + input.mouse.dx * MOUSE_TURN_PER_PX * getSettings().mouseSensitivity);
     }
     tickSinkingVehicles(world);
+    if (this.ragdoll) {
+      this.vx = 0; this.vy = 0;
+      this.moving = false;
+      this.crouching = false;
+      this.stealHold = null;
+      isKnockedDown(this, world);
+      if (this.ragdoll) return;
+    }
     this.updateCharacterSwitch(world);
     if (input.wasPressed('e') || input.wasPressed('f')) {
       if (this.water) {
@@ -120,9 +130,8 @@ export class Player {
     }
 
     // jump/crouch - on foot only; SPACE is also "remmen" while driving
-    // (handled in driveVehicle, never reached here) and crouching just
-    // slows movement and shrinks the 3D model, no real collision-height
-    // change since building/water collision is 2D (x/y) anyway
+    // (handled in driveVehicle, never reached here). Crouching slows you
+    // down and plays the crouch pose; collision stays 2D (x/y) anyway
     if (input.wasPressed(' ') && this.z <= 0) this.vz = JUMP_SPEED;
     this.vz -= GRAVITY * dt;
     this.z = Math.max(0, this.z + this.vz * dt);
@@ -320,6 +329,7 @@ export class Player {
         this.shoveX += push.nx * kick;
         this.shoveY += push.ny * kick;
         if (fresh) reportImpact(world, this.x, this.y, closing * 0.6, true);
+        if (closing > KNOCKDOWN_CLOSING && !v.isBike && !v.isScooter && !this.ragdoll) this.knockedByVehicle(world, v, push, closing);
       }
     }
     for (const p of world.pedestrians || []) {
@@ -346,6 +356,19 @@ export class Player {
     }
   }
 
+  knockedByVehicle(world, v, push, closing) {
+    let dmg = Math.round((closing - 4) * 3);
+    if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
+    world.health = Math.max(0, world.health - dmg);
+    const vvx = Math.cos(v.angle) * v.speed + (v.driftX || 0), vvy = Math.sin(v.angle) * v.speed + (v.driftY || 0);
+    knockDown(this, world, {
+      kind: 'hit', dead: world.health <= 0,
+      vx: vvx * 0.8 + push.nx * closing * 0.3, vy: vvy * 0.8 + push.ny * closing * 0.3, vz: 1 + closing * 0.2,
+    });
+    this.shoveX = 0; this.shoveY = 0;
+    if (world.health <= 0) requestRespawn(world);
+  }
+
   // Tammo and Anita are always both out in the world (see companion.js) -
   // switching just trades physical state (position/velocity/vehicle) between
   // this Player and world.companion, it never changes which object IS "the
@@ -355,7 +378,7 @@ export class Player {
   updateCharacterSwitch(world) {
     if (!world.input.wasPressed('c')) return;
     const c = world.companion;
-    if (!c || c.state === 'dead') return;
+    if (!c || c.state === 'dead' || c.ragdoll) return;
     if (this.inVehicle && this.inVehicle !== c.inVehicle) {
       const other = this.character === 'tammo' ? 'Anita' : 'Tammo';
       world.addMessage(`${other} moet eerst instappen`, 2.5);

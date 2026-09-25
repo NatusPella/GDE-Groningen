@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
-import { Pedestrian, setPedPose, isInsideBuilding, isOnRoad, CITY_CENTRE, releaseFromScene } from './pedestrians.js';
+import { Pedestrian, setPedPose, isInsideBuilding, isOnRoad, CITY_CENTRE, releaseFromScene, isSpawnHidden } from './pedestrians.js';
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { isInWater, dist, SeededRng } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables } from './breakables.js';
@@ -600,6 +600,7 @@ function updateSlots(activeCells) {
       if (s.ped && !want) { removeSlotPed(s); count--; continue; }
       if (s.ped || !want || count >= MAX_SCENE_PEDS || world.time < (s.cooldownUntil || 0)) continue;
       if (dist(s.x, s.y, p.x, p.y) < 25 && world.time > 5) continue;
+      if (world.time > 5 && !isSpawnHidden(world, s.x, s.y)) continue;
       const ped = new Pedestrian(s.x, s.y, s.angle);
       ped.state = 'idle';
       ped.scene = { x: s.x, y: s.y, angle: s.angle, pose: s.pose, kind: s.kind };

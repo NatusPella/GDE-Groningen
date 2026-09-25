@@ -29,7 +29,7 @@ const MILESTONES = [
   [2000, 'SIKKOM: Martinitoren krijgt poetsploeg, duif blijft voortvluchtig'],
 ];
 const PED_LINES = ['Bah! Een duif!', 'Hé! Mien jas!', 'Kreng van n duuf!', 'Nee hè, net wassen!', 'Dat brengt geluk, zeggen ze…', 'Wie gooit dat?! O. Een duif.'];
-const COP_LINES = ['Hé! Belediging van n ambtenaar!', 'Die duif is aanhouden!', 'Mien pet! Mien nieuwe pet!'];
+const COP_LINES = ['Hé! Belediging van n ambtenaar!', 'Aanhouden, die duif!', 'Mien pet! Mien nieuwe pet!'];
 const FOOD_LINES = ['Hé! Mien patat!', 'Dat was mien kroket!', 'Rotbeest! Geef terug!'];
 const COO_LINES = ['Ach, wat n dikke duif.', 'Kiek, n duifke!', 'Hou die poten thuis, duif.'];
 const ACH = {
@@ -472,7 +472,7 @@ function initHudDom() {
     <div class="ph-panel">
       <div class="ph-title">Duif-modus</div>
       <div class="ph-row"><span>Hoogte</span><b data-alt>0 m</b></div>
-      <div class="ph-row"><span>Snelheid</span><b data-spd>0 km/h</b></div>
+      <div class="ph-row"><span>Snelheid</span><b data-spd>0 km/u</b></div>
       <div class="ph-row ph-score"><span>Poepscore</span><b data-score>0</b></div>
       <div class="ph-best" data-best></div>
       <div class="ph-combo" data-combo></div>
@@ -532,7 +532,7 @@ function updateHud(dt) {
   if (!hud) return;
   setText('alt', hud.alt, `${Math.max(0, Math.round(P.z))} m`);
   const spd = P.mode === 'fly' ? P.speed : P.mode === 'ride' && P.ride ? Math.abs(P.ride.v.speed || 0) : P.walkSpeed || 0;
-  setText('spd', hud.spd, `${Math.round(spd * 3.6)} km/h`);
+  setText('spd', hud.spd, `${Math.round(spd * 3.6)} km/u`);
   setText('score', hud.score, String(score));
   setText('best', hud.best, `Beste: ${Math.max(store.best, score)}`);
   setText('combo', hud.combo, combo > 1 && elapsed < comboUntil ? `Combo x${Math.min(5, combo)}` : '');
@@ -804,7 +804,7 @@ function updateGround(dt) {
     const f = surfaceAt(P.x, P.y);
     if (f.kind === 'vehicle' && f.h > P.z + 0.5) {
       takeOff();
-      world.addMessage(pick(['Kiek uut, joh!', 'Bijna platgereden!', 'Roekoe?! RIJ DAN OOK UUT!']), 2);
+      world.addMessage(pick(['Kiek uut, joh!', 'Bijna platgereden!', 'Roekoe?! KIJK WAAR JE RIJDT!']), 2);
       return;
     }
     if (f.h < P.z - 0.7) { takeOff(); P.speed = 4; P.pitch = -0.3; return; }

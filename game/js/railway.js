@@ -4,6 +4,7 @@
 // railway3d.js, which only reads the state exported here.
 import { requestRespawn } from './world.js';
 import { DEAD_DURATION } from './pedestrians.js';
+import { knockDown } from './ragdoll.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -50,10 +51,32 @@ let routes = [];
 let trains = [];
 let crossings = [];
 let bridgeZones = [];
+let lifts = [];
+let bounds = null;
 let ready = false;
 
 export function getTrains() { return trains; }
 export function getLevelCrossings() { return crossings; }
+
+// Track height above ground at (x, y): the rail climbs on ramps to cross
+// roads on a viaduct (railLifts from add_railways.py), flat elsewhere.
+export function railZ(x, y) {
+  let z = 0;
+  for (const L of lifts) {
+    const d = Math.hypot(L.x - x, L.y - y);
+    if (d >= L.plateau + L.ramp) continue;
+    const t = Math.max(0, (d - L.plateau) / L.ramp);
+    const h = L.h * (1 - t * t * (3 - 2 * t));
+    if (h > z) z = h;
+  }
+  return z;
+}
+
+// Off the map edge (plus a margin in the fog) the trains are not drawn.
+export function isOffMap(x, y, margin = 40) {
+  if (!bounds) return false;
+  return x < bounds[0] - margin || x > bounds[2] + margin || y < bounds[1] - margin || y > bounds[3] + margin;
+}
 
 function buildRoute(r) {
   const pts = r.pts;
@@ -104,9 +127,9 @@ function findBridgeZones(map) {
       const [x, y] = routePoint(route, at);
       const [x2, y2] = routePoint(route, at + 1);
       const tx = x2 - x, ty = y2 - y, tl = Math.hypot(tx, ty) || 1;
-      if (nearLevelCrossing(x, y)) continue;
+      if (nearLevelCrossing(x, y) || railZ(x, y) > 2) continue;
       for (const road of map.roadsNear(x, y, 12)) {
-        if (road.cat === 'foot' || road.cat === 'cycle') continue;
+        if (road.cat === 'foot') continue;
         const P = road.pts;
         for (let i = 0; i < P.length - 1; i++) {
           const ax = P[i][0], ay = P[i][1], dx = P[i + 1][0] - ax, dy = P[i + 1][1] - ay;
@@ -149,6 +172,8 @@ function makeTrain(route, type, atStop, dir, dwell) {
 
 export function initRailway(world) {
   const map = world.map;
+  lifts = map.railLifts || [];
+  bounds = map.meta.bounds;
   routes = (map.railRoutes || []).map(buildRoute);
   crossings = (map.levelCrossings || []).map((c) => ({
     x: c.x, y: c.y, railAngle: c.railAngle,
@@ -172,7 +197,7 @@ export function initRailway(world) {
     if (route.stops.length < 2) return;
     // alternate starting ends so the shuttles are out of phase
     const end = i % 2 ? 0 : route.stops.length - 1;
-    trains.push(makeTrain(route, route.train, end, end === 0 ? 1 : -1, 4 + i * 9));
+    trains.push(makeTrain(route, route.train, end, end === 0 ? 1 : -1, 4 + i * 12));
   });
   for (const t of trains) placeCars(t);
   ready = true;
@@ -188,6 +213,9 @@ function placeCars(t) {
     car.x = (a[0] + b[0]) / 2;
     car.y = (a[1] + b[1]) / 2;
     car.angle = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    const za = railZ(a[0], a[1]), zb = railZ(b[0], b[1]);
+    car.z = (za + zb) / 2;
+    car.pitch = Math.atan2(zb - za, 2 * bogie);
   }
 }
 
@@ -204,22 +232,37 @@ function audio(world, ev) {
   if (q.length < 64) q.push(ev);
 }
 
+const DWELL_TERMINUS = 35;
+
+function dwellAt(route, idx) {
+  const stop = route.stops[idx];
+  if (stop.offmap) return 70 + Math.random() * 60;
+  return idx === 0 || idx === route.stops.length - 1 ? DWELL_TERMINUS : DWELL;
+}
+
+function nearPlayer(world, t, r) {
+  const p = world.player, car = t.cars[t.cars.length >> 1];
+  return Math.hypot(p.x - car.x, p.y - car.y) < r;
+}
+
 function stepTrain(t, dt, world) {
   const { route, cfg } = t;
+  const stops = route.stops;
   if (t.state === 'dwell') {
     t.timer -= dt;
     if (t.timer <= 0) {
+      const from = stops[t.target];
       t.state = 'run';
-      t.target = t.dir > 0 ? route.stops.length - 1 : 0;
-      audio(world, { kind: 'train_horn', x: t.cars[0].x, y: t.cars[0].y });
-      const p = world.player;
-      if (Math.hypot(p.x - t.cars[0].x, p.y - t.cars[0].y) < 90) {
-        world.addMessage(`${cfg.label} naar ${route.stops[t.target].name} vertrekt`, 3.5);
+      t.target += t.dir;
+      if (!from.offmap) {
+        audio(world, { kind: 'train_horn', x: t.cars[0].x, y: t.cars[0].y });
+        const dest = stops[t.dir > 0 ? stops.length - 1 : 0].name;
+        if (nearPlayer(world, t, 90)) world.addMessage(`${cfg.label} naar ${dest} vertrekt`, 3.5);
       }
     }
     return;
   }
-  const goal = route.stops[t.target].s;
+  const goal = stops[t.target].s;
   const dist = (goal - t.c) * t.dir;
   const vBrake = Math.max(dist > 0.05 ? 0.4 : 0, Math.sqrt(2 * DECEL * Math.max(0, dist)));
   const vWant = Math.min(cfg.vmax, vBrake);
@@ -238,10 +281,10 @@ function stepTrain(t, dt, world) {
     t.c = goal;
     t.v = 0;
     t.state = 'dwell';
-    t.timer = DWELL;
-    t.dir = t.target === 0 ? 1 : -1;
-    const p = world.player;
-    if (Math.hypot(p.x - t.cars[0].x, p.y - t.cars[0].y) < 90) world.addMessage(`${cfg.label} is aangekomen in ${route.stops[t.target].name}`, 3);
+    t.timer = dwellAt(route, t.target);
+    if (t.target === 0) t.dir = 1;
+    else if (t.target === stops.length - 1) t.dir = -1;
+    if (!stops[t.target].offmap && nearPlayer(world, t, 90)) world.addMessage(`${cfg.label} is aangekomen in ${stops[t.target].name}`, 3);
   }
 }
 
@@ -250,7 +293,8 @@ function trainThreatens(t, at) {
   const rel = (at - t.c) * t.dir;
   if (Math.abs(at - t.c) < t.halfLen + WARN_CLEAR_M) return true;
   if (rel < 0) return false;
-  const goal = t.route.stops[t.state === 'dwell' ? (t.dir > 0 ? t.route.stops.length - 1 : 0) : t.target].s;
+  const next = t.state === 'dwell' ? t.target + t.dir : t.target;
+  const goal = t.route.stops[Math.max(0, Math.min(t.route.stops.length - 1, next))].s;
   if ((goal - at) * t.dir < -t.halfLen) return false;
   const eta = (t.state === 'dwell' ? t.timer : 0) + timeToCover(rel - t.halfLen, t.state === 'dwell' ? 0 : t.v, t.cfg.vmax);
   return eta < WARN_AHEAD_S;
@@ -355,6 +399,7 @@ function hitPlayer(t, car, push, world) {
   world.lastImpact = { strength, time: world.time, x: p.x, y: p.y };
   world.particles.push({ kind: 'impact', x: p.x, y: p.y, strength, until: world.time + 0.4 });
   world.addMessage('Aangereden door de trein!', 2.5);
+  knockDown(p, world, { kind: 'hit', dead: world.health <= 0, vx: p.shoveX, vy: p.shoveY, vz: p.vz, lieFor: 2.5 });
   if (world.health <= 0) { world.health = 0; requestRespawn(world); }
 }
 
@@ -371,12 +416,14 @@ function hitPedestrian(ped, t, car, push, world) {
   ped._hp = 0;
   ped.speed = 0;
   ped.deadUntil = world.time + DEAD_DURATION;
+  knockDown(ped, world, { kind: 'hit', dead: true, vx: ped.knockVX * 1.1, vy: ped.knockVY * 1.1, vz: 3 + t.v * 0.2 });
 }
 
 function resolveContacts(world) {
   const p = world.player;
   for (const t of trains) {
     for (const car of t.cars) {
+      if (car.z > 2.2) continue;
       const hl = car.len / 2;
       const reach = hl + 4;
       for (const v of world.vehicles) {

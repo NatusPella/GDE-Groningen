@@ -39,7 +39,7 @@ function buildGraph(map) {
   const ids = new Map();
   const xs = [], ys = [];
   const roadNodes = new Map();
-  const drive = [], walk = [];
+  const drive = [], walk = [], walkRoad = [];
   const nodeOf = (x, y) => {
     const key = (Math.round(x * 2) + 32768) * 65536 + (Math.round(y * 2) + 32768);
     let id = ids.get(key);
@@ -51,7 +51,8 @@ function buildGraph(map) {
     }
     return id;
   };
-  for (const road of map.roads) {
+  for (let ri = 0; ri < map.roads.length; ri++) {
+    const road = map.roads[ri];
     const n = road.pts.length;
     const rn = new Int32Array(n);
     for (let i = 0; i < n; i++) rn[i] = nodeOf(road.pts[i][0], road.pts[i][1]);
@@ -63,6 +64,7 @@ function buildGraph(map) {
       const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
       const len = throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
       walk.push(a, b, len, b, a, len);
+      walkRoad.push(ri, ri);
       if (canDrive) {
         drive.push(a, b, len);
         if (!road.oneway) drive.push(b, a, len);
@@ -70,19 +72,21 @@ function buildGraph(map) {
     }
   }
   const N = xs.length;
-  const csr = (flat) => {
+  const csr = (flat, extra = null) => {
     const m = flat.length / 3;
     const start = new Int32Array(N + 1);
     for (let e = 0; e < m; e++) start[flat[e * 3] + 1]++;
     for (let i = 0; i < N; i++) start[i + 1] += start[i];
     const fill = start.slice(0, N);
     const to = new Int32Array(m), len = new Float32Array(m);
+    const road = extra ? new Int32Array(m) : null;
     for (let e = 0; e < m; e++) {
       const k = fill[flat[e * 3]]++;
       to[k] = flat[e * 3 + 1];
       len[k] = flat[e * 3 + 2];
+      if (road) road[k] = extra[e];
     }
-    return { start, to, len };
+    return { start, to, len, road };
   };
   const components = (adj) => {
     const comp = new Int32Array(N).fill(-1);
@@ -106,7 +110,7 @@ function buildGraph(map) {
     }
     return { comp, main: best };
   };
-  const walkAdj = csr(walk);
+  const walkAdj = csr(walk, walkRoad);
   const driveUndirected = [];
   for (let i = 0; i < drive.length; i += 3) driveUndirected.push(drive[i], drive[i + 1], drive[i + 2], drive[i + 1], drive[i], drive[i + 2]);
   graph = {
@@ -194,7 +198,7 @@ class Heap {
   peekF() { return this.f[0]; }
 }
 
-function astar(fromSnap, toSnap, walkMode) {
+function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   const G = graph;
   const adj = walkMode ? G.walk : G.drive;
   const stamp = ++G.stamp;
@@ -239,13 +243,40 @@ function astar(fromSnap, toSnap, walkMode) {
       relax(m, gn + adj.len[e], n);
     }
   }
-  stats.lastSettled = settled;
+  if (!nodesOut) stats.lastSettled = settled;
   if (bestEnd === -1) return null;
   const pts = [[toSnap.x, toSnap.y]];
-  for (let n = bestEnd; n >= 0; n = G.prev[n]) pts.push([G.x[n], G.y[n]]);
+  for (let n = bestEnd; n >= 0; n = G.prev[n]) {
+    pts.push([G.x[n], G.y[n]]);
+    if (nodesOut) nodesOut.push(n);
+  }
   pts.push([fromSnap.x, fromSnap.y]);
   pts.reverse();
+  if (nodesOut) nodesOut.reverse();
   return pts;
+}
+
+// Walking path for pedestrians: the polyline plus the road each leg follows
+// (legs[i] is the road between pts[i] and pts[i + 1]).
+export function findWalkPath(map, ax, ay, bx, by) {
+  if (!graph) buildGraph(map);
+  const from = snapToRoad(map, ax, ay, false), to = snapToRoad(map, bx, by, false);
+  if (!from || !to) return null;
+  const nodes = [];
+  const pts = astar(from, to, true, nodes);
+  if (!pts) return null;
+  const W = graph.walk;
+  const legs = [from.road];
+  for (let i = 0; i < nodes.length - 1; i++) {
+    const a = nodes[i], b = nodes[i + 1];
+    let road = legs[legs.length - 1];
+    for (let e = W.start[a]; e < W.start[a + 1]; e++) {
+      if (W.to[e] === b) { road = map.roads[W.road[e]]; break; }
+    }
+    legs.push(road);
+  }
+  if (nodes.length) legs.push(to.road);
+  return { pts, legs };
 }
 
 function travelMode(player) {

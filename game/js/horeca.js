@@ -21,68 +21,111 @@ export function initHoreca(world) {
 
 const TOASTS = [
   (name, amount) => `Bakje bitterballen bij ${name} - €${amount} lichter, weer wat op krachten`,
-  (name, amount) => `Snel wat gegeten bij ${name}. Kost €${amount}, voelt al beter`,
+  (name, amount) => `Snel wat gegeten bij ${name}. €${amount} armer, maar je knapt al op`,
   (name, amount) => `Biertje met bittergarnituur bij ${name} - proost! (-€${amount})`,
   (name, amount) => `${name} zet je weer op de been voor €${amount}`,
   (name, amount) => `Even bijgetankt op het terras van ${name} - €${amount} lichter`,
   (name, amount) => `Frikandelbroodje gescoord bij ${name}, -€${amount}`,
 ];
 
-export function updateHoreca(dt, world) {
-  if (!spots.length || world.player.inVehicle || world.money < MIN_SPEND) return;
-  const { x: px, y: py } = world.player;
-  for (const spot of spots) {
-    if (world.time - spot.lastUsed < USE_COOLDOWN) continue;
-    if (dist(px, py, spot.x, spot.y) > TRIGGER_RADIUS) continue;
+// Close enough to order: the prompt (prompts.js) and the E handler share it.
+export const HORECA_USE_RADIUS = 2.4;
 
-    spot.lastUsed = world.time;
-    const amount = Math.min(world.money, MIN_SPEND + Math.floor(Math.random() * (MAX_SPEND - MIN_SPEND + 1)));
-    world.money = Math.max(0, world.money - amount);
-    world.health = Math.min(100, world.health + HEAL_AMOUNT);
-    const name = spot.name || 'de kroeg';
-    const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];
-    world.addMessage(toast(name, amount), TOAST_DURATION);
-    break;
+export function nearestHorecaSpot(world) {
+  if (!spots.length || world.player.inVehicle) return null;
+  const { x: px, y: py } = world.player;
+  let best = null, bestD = HORECA_USE_RADIUS;
+  for (const spot of spots) {
+    const d = dist(px, py, spot.x, spot.y);
+    if (d <= bestD) { best = spot; bestD = d; }
   }
+  return best;
 }
+
+export function horecaState(world, spot) {
+  if (world.time - spot.lastUsed < USE_COOLDOWN) return 'cooldown';
+  if (world.money < MIN_SPEND) return 'broke';
+  return 'ready';
+}
+
+// Runs before the player update so E at a café orders instead of also
+// kissing the companion or opening a car door.
+export function tryHorecaInteract(world) {
+  const { input } = world;
+  if (!input || !(input.wasPressed('e') || input.wasPressed('f'))) return false;
+  const spot = nearestHorecaSpot(world);
+  if (!spot) return false;
+  input.consume('e');
+  input.consume('f');
+  const name = spot.name || 'de kroeg';
+  const state = horecaState(world, spot);
+  if (state === 'cooldown') {
+    world.addMessage(`Je hebt net al wat gehad bij ${name}. Even laten zakken.`, TOAST_DURATION);
+    return true;
+  }
+  if (state === 'broke') {
+    world.addMessage(`Geen geld voor een hapje bij ${name}. Eerst wat verdienen.`, TOAST_DURATION);
+    return true;
+  }
+  spot.lastUsed = world.time;
+  const amount = Math.min(world.money, MIN_SPEND + Math.floor(Math.random() * (MAX_SPEND - MIN_SPEND + 1)));
+  world.money = Math.max(0, world.money - amount);
+  world.health = Math.min(100, world.health + HEAL_AMOUNT);
+  const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];
+  world.addMessage(toast(name, amount), TOAST_DURATION);
+  return true;
+}
+
+// kept for the main loop; ordering is now interactive (tryHorecaInteract)
+export function updateHoreca() {}
 
 export function getHorecaForRender() {
   return spots;
 }
 
 // --- 3D representation ---------------------------------------------------
-// A little café terrace flag on a wooden pole plus a cup on the ground pad -
-// terracotta/cream/wood palette, distinct from pickups' gold/black/white-red/
-// blue and flitspaal's gray-pole-orange-box, so it reads as its own thing at
-// a glance. Static/never removed (see integrationNotes), so materials never
-// need disposing.
-const padGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.05, 16);
-const padMaterial = new THREE.MeshLambertMaterial({ color: 0xc9622a });
-const poleGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1.3, 6);
-const poleMaterial = new THREE.MeshLambertMaterial({ color: 0x3a2c1f });
-const flagGeometry = new THREE.BoxGeometry(0.5, 0.36, 0.04);
-const flagMaterial = new THREE.MeshLambertMaterial({ color: 0xf2ede0 });
-const cupGeometry = new THREE.CylinderGeometry(0.1, 0.08, 0.16, 10);
-const cupMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+// A floating food badge (knife and fork on a terracotta disc) above a small
+// ground pad, bobbing gently - reads as "eten" at a glance, in the horeca
+// colour the minimap uses. Static/never removed, so nothing needs disposing.
+const padGeometry = new THREE.CylinderGeometry(0.55, 0.55, 0.04, 20);
+const padMaterial = new THREE.MeshLambertMaterial({ color: 0xc9622a, transparent: true, opacity: 0.85 });
+
+function drawFoodBadge() {
+  const S = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  g.beginPath(); g.arc(S / 2, S / 2, S / 2 - 6, 0, Math.PI * 2);
+  g.fillStyle = '#c9622a'; g.fill();
+  g.lineWidth = 7; g.strokeStyle = '#f2ede0'; g.stroke();
+  g.fillStyle = '#f2ede0'; g.strokeStyle = '#f2ede0'; g.lineCap = 'round';
+  // fork: three tines, a neck and a handle
+  g.lineWidth = 5;
+  for (const dx of [-9, 0, 9]) { g.beginPath(); g.moveTo(46 + dx, 30); g.lineTo(46 + dx, 50); g.stroke(); }
+  g.beginPath(); g.moveTo(37, 50); g.quadraticCurveTo(46, 62, 55, 50); g.stroke();
+  g.lineWidth = 7; g.beginPath(); g.moveTo(46, 58); g.lineTo(46, 98); g.stroke();
+  // knife: rounded blade and a handle
+  g.beginPath(); g.moveTo(80, 28); g.quadraticCurveTo(96, 44, 90, 66); g.lineTo(80, 66); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(84, 64); g.lineTo(84, 98); g.stroke();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+let badgeMaterial = null;
 
 export function buildHorecaMarkerMesh3D() {
+  if (!badgeMaterial) badgeMaterial = new THREE.SpriteMaterial({ map: drawFoodBadge(), transparent: true, depthWrite: false, fog: true });
   const group = new THREE.Group();
-
   const pad = new THREE.Mesh(padGeometry, padMaterial);
   pad.position.y = 0.03;
   group.add(pad);
-
-  const pole = new THREE.Mesh(poleGeometry, poleMaterial);
-  pole.position.y = 0.68;
-  group.add(pole);
-
-  const flag = new THREE.Mesh(flagGeometry, flagMaterial);
-  flag.position.set(0.24, 1.32, 0);
-  group.add(flag);
-
-  const cup = new THREE.Mesh(cupGeometry, cupMaterial);
-  cup.position.set(-0.2, 0.14, 0.12);
-  group.add(cup);
-
+  const badge = new THREE.Sprite(badgeMaterial);
+  badge.scale.set(0.48, 0.48, 1);
+  const phase = Math.random() * Math.PI * 2;
+  badge.onBeforeRender = () => { badge.position.y = 2.3 + Math.sin(performance.now() / 650 + phase) * 0.06; };
+  badge.position.y = 2.3;
+  group.add(badge);
   return group;
 }

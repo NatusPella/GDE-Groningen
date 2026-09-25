@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Merge Groningen's railway network into game/citymap.json.
 
-Adds four top-level keys and touches nothing else:
+Adds these top-level keys and touches nothing else:
   rails          [{pts, service}]            every railway=rail way (clipped)
   stations       [{name, x, y}]              railway=station nodes
   levelCrossings [{x, y, roads: [...]}]      railway=level_crossing groups
-  railRoutes     [{name, pts, stops}]        shuttle paths the trains drive
+  railRoutes     [{name, train, pts, stops}] service paths the trains drive
+  railLifts      [{x, y, h, plateau, ramp}]  where the track rises over a road
 
 Raw OSM is cached in data/railways_raw.json; delete it to refetch.
 """
@@ -36,13 +37,22 @@ QUERY = (
 STATION_NAMES = {
     "Groningen": "Groningen Hoofdstation",
 }
-# (name, from, to, train type). Each route gets its own track where the
-# network has a parallel one, so the shuttles never share rails.
+# (name, train type, waypoints). Every service starts at Hoofdstation; an
+# ("exit", x, y, destination) waypoint is where the line leaves the map -
+# the track is then extrapolated EXIT_RUN metres further so the train can
+# drive out of view and come back later.
 ROUTES = [
-    ("Stoptrein Noord", "Groningen Noord", "Groningen Hoofdstation", "gtw"),
-    ("Intercity Europapark", "Groningen Hoofdstation", "Groningen Europapark", "virm"),
-    ("Stoptrein Europapark", "Groningen Hoofdstation", "Groningen Europapark", "wink"),
+    ("Stoptrein Roodeschool", "gtw", ["Groningen Hoofdstation", "Groningen Noord", ("exit", -515, -2473, "Roodeschool")]),
+    ("Intercity Zwolle", "virm", ["Groningen Hoofdstation", "Groningen Europapark", ("exit", 2254, 2320, "Zwolle")]),
+    ("Stoptrein Winschoten", "wink", ["Groningen Hoofdstation", "Groningen Europapark", ("exit", 2261, 2311, "Winschoten")]),
+    ("Stoptrein Leeuwarden", "gtw", ["Groningen Hoofdstation", ("exit", -3600, 910, "Leeuwarden")]),
 ]
+EXIT_RUN = 800.0
+# Rail lifted over roads it crosses without a level crossing (OSM: rail
+# bridges, and road bridges we invert so every road stays drivable at y=0).
+LIFT_CAR = 6.0
+LIFT_CYCLE = 3.6
+LIFT_GRADE = 0.05
 MAX_TURN = math.radians(28)
 ROUTE_OVERRUN = 220.0
 CLIP_MARGIN = 150.0
@@ -151,13 +161,13 @@ def main():
     def near_nodes(st, radius):
         return [n for n, (x, y) in nodes_xy.items() if math.hypot(x - st["x"], y - st["y"]) < radius]
 
-    def route(src, dst, penalty):
+    def route(starts, dst, penalty):
         """Dijkstra over (node, came_from) so the path never takes a switch backwards."""
         goals = set(dst)
         pq = []
         best = {}
-        for n in src:
-            heapq.heappush(pq, (0.0, n, None, None))
+        for n, prev in starts:
+            heapq.heappush(pq, (0.0, n, prev, None))
         parent = {}
         while pq:
             d, u, p, par = heapq.heappop(pq)
@@ -220,33 +230,56 @@ def main():
             run += L
         return s, best
 
+    def nearest_node(x, y):
+        return min(nodes_xy, key=lambda n: math.hypot(nodes_xy[n][0] - x, nodes_xy[n][1] - y))
+
     used = set()
     rail_routes = []
-    for name, a, b, train in ROUTES:
-        sa, sb = by_name[a], by_name[b]
-        src = near_nodes(sa, 110 if "Hoofd" not in a else 130)
-        dst = near_nodes(sb, 110 if "Hoofd" not in b else 130)
-        best_path = route(src, dst, used)
-        if not best_path:
-            raise SystemExit(f"no route for {name}")
-        path = extend(best_path, ROUTE_OVERRUN)
-        path = extend(path[::-1], ROUTE_OVERRUN)
+    for name, train, waypoints in ROUTES:
+        first = by_name[waypoints[0]]
+        path = None
+        exit_name = None
+        for wp in waypoints[1:]:
+            if isinstance(wp, tuple):
+                dst = [nearest_node(wp[1], wp[2])]
+                exit_name = wp[3]
+            else:
+                st = by_name[wp]
+                dst = near_nodes(st, 110)
+            if path is None:
+                starts = [(n, None) for n in near_nodes(first, 130)]
+            else:
+                starts = [(path[-1], path[-2])]
+            seg = route(starts, dst, used)
+            if not seg:
+                raise SystemExit(f"no route for {name} to {wp}")
+            path = seg if path is None else path + seg[1:]
+        shared = sum(1 for u, v in zip(path, path[1:]) if frozenset((u, v)) in used)
+        path = extend(path[::-1], ROUTE_OVERRUN)[::-1]
         for u, v in zip(path, path[1:]):
             used.add(frozenset((u, v)))
-        pts = densify([nodes_xy[n] for n in path])
+        raw_pts = [nodes_xy[n] for n in path]
+        (ax, ay), (bx, by) = raw_pts[-2], raw_pts[-1]
+        l = math.hypot(bx - ax, by - ay) or 1
+        raw_pts.append((bx + (bx - ax) / l * EXIT_RUN, by + (by - ay) / l * EXIT_RUN))
+        pts = densify(raw_pts)
+        L = sum(math.hypot(q[0] - p[0], q[1] - p[1]) for p, q in zip(pts, pts[1:]))
         stops = []
-        for st in (sa, sb):
-            s, d = arc_of(pts, st["x"], st["y"])
-            stops.append({"name": st["name"], "s": round(s, 1)})
+        for wp in waypoints:
+            if isinstance(wp, tuple):
+                continue
+            st = by_name[wp]
+            s_at, _ = arc_of(pts, st["x"], st["y"])
+            stops.append({"name": st["name"], "s": round(s_at, 1)})
         stops.sort(key=lambda s: s["s"])
+        stops.append({"name": exit_name, "s": round(L - 120, 1), "offmap": True})
         rail_routes.append({
             "name": name,
             "train": train,
             "pts": [[round(x, 1), round(y, 1)] for x, y in pts],
             "stops": stops,
         })
-        L = sum(math.hypot(q[0] - p[0], q[1] - p[1]) for p, q in zip(pts, pts[1:]))
-        print(f"{name}: {len(pts)} pts, {L:.0f} m, stops {stops}")
+        print(f"{name}: {len(pts)} pts, {L:.0f} m, {shared} edges shared with earlier routes, stops {stops}")
 
     # ---- level crossings -------------------------------------------------------------
     lc_nodes = [project(e["lat"], e["lon"]) for e in elements
@@ -315,6 +348,55 @@ def main():
         })
         print(f"level crossing ({cx:.0f},{cy:.0f}): {[(r['name'], r['cat']) for r in roads_out]}")
 
+    # ---- grade separation ------------------------------------------------------------
+    lc_pts = [(c["x"], c["y"]) for c in crossings]
+    rail_bridge_segs = []
+    for w in ways:
+        br = w["tags"].get("bridge") in ("yes", "viaduct", "movable") or w["tags"].get("layer", "0") not in ("0", "-1")
+        g = [nodes_xy[n] for n in w["nodes"]]
+        for a, b in zip(g, g[1:]):
+            rail_bridge_segs.append((a, b, br))
+    lifts = []
+    for road in data["roads"]:
+        cat = road["cat"]
+        if cat == "foot":
+            continue
+        pts = road["pts"]
+        for a, b in zip(pts, pts[1:]):
+            for ra, rb, is_bridge in rail_bridge_segs:
+                hit = seg_intersect(a, b, ra, rb)
+                if hit is None:
+                    continue
+                hx, hy = a[0] + (b[0] - a[0]) * hit[0], a[1] + (b[1] - a[1]) * hit[0]
+                if any(math.hypot(hx - x, hy - y) < 30 for x, y in lc_pts):
+                    continue
+                if cat == "cycle" and not is_bridge:
+                    continue
+                h = LIFT_CYCLE if cat == "cycle" else LIFT_CAR
+                ux, uy = b[0] - a[0], b[1] - a[1]
+                vx, vy = rb[0] - ra[0], rb[1] - ra[1]
+                sin = abs(ux * vy - uy * vx) / ((math.hypot(ux, uy) * math.hypot(vx, vy)) or 1)
+                plateau = min(35.0, (road.get("width", 6) / 2 + 5) / max(0.35, sin))
+                for L in lifts:
+                    if math.hypot(L["x"] - hx, L["y"] - hy) < 12:
+                        L["h"] = max(L["h"], h)
+                        L["plateau"] = max(L["plateau"], plateau)
+                        break
+                else:
+                    lifts.append({"x": hx, "y": hy, "h": h, "plateau": plateau, "name": road.get("name")})
+    for L in lifts:
+        ramp = L["h"] / LIFT_GRADE
+        for x, y in lc_pts:
+            room = math.hypot(L["x"] - x, L["y"] - y) - L["plateau"] - 15
+            if room < ramp:
+                ramp = max(30.0, room)
+                L["h"] = min(L["h"], ramp * 0.1)
+        L["ramp"] = round(ramp, 1)
+        L["x"], L["y"], L["h"], L["plateau"] = round(L["x"], 1), round(L["y"], 1), round(L["h"], 2), round(L["plateau"], 1)
+        print(f"lift {L['name']}: h {L['h']} plateau {L['plateau']} ramp {L['ramp']}")
+        del L["name"]
+
+    data["railLifts"] = lifts
     data["rails"] = rails
     data["stations"] = stations
     data["levelCrossings"] = crossings

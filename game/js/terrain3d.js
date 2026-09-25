@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { polygonBounds } from './util.js';
 import { createWaterIndex } from './waterindex.js';
+import { COUNTRY_GLSL, COUNTRY_UNIFORMS, setCountryBounds } from './countryfield.js';
 
 // Replaces the old flat 2-triangle "fallback floor" PlaneGeometry(6000,6000)
 // + single-color MeshLambertMaterial that used to live in scene3d.js's
@@ -120,10 +121,12 @@ function wetOnBeforeCompile(shader, surf) {
     .replace('#include <common>', '#include <common>\nvarying vec2 vWetXZ;\n' + (surf ? surf.vertexCommon : ''))
     .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWetXZ = (modelMatrix * vec4(transformed, 1.0)).xz;\n' + (surf ? surf.vertexMain : ''));
   shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\n' + WET_GLSL + (shader.__terrain ? ALBEDO_GLSL : '') + (surf ? surf.fragmentCommon : ''))
+    .replace('#include <common>', '#include <common>\n' + WET_GLSL + (shader.__terrain ? ALBEDO_GLSL + COUNTRY_GLSL : '') + (surf ? surf.fragmentCommon : ''))
     .replace('#include <color_fragment>', `#include <color_fragment>
       float sDip = 0.0, sRough = 0.0, sHeight = 0.0;
-      ${shader.__terrain ? 'diffuseColor.rgb *= terrainAlbedo(vWetXZ);' : ''}
+      ${shader.__terrain ? `diffuseColor.rgb *= terrainAlbedo(vWetXZ);
+      float cw = countryWeight(vWetXZ);
+      if (cw > 0.0) diffuseColor.rgb = mix(diffuseColor.rgb, countryAlbedo(vWetXZ, cw, sRough, sDip), cw);` : ''}
       ${surf ? surf.color : ''}
       float wetP = wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3 + sDip * 0.35;
       float puddle = smoothstep(0.74 - 0.12 * uWet, 0.8 - 0.12 * uWet, wetP) * uWet;
@@ -157,7 +160,7 @@ export function createTerrainMaterial() {
   };
   material.userData.uniforms = uniforms;
   material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms);
+    Object.assign(shader.uniforms, uniforms, COUNTRY_UNIFORMS);
     shader.__terrain = true;
     wetOnBeforeCompile(shader);
   };
@@ -233,6 +236,7 @@ const TARGET_CELL_SIZE_M = 10;
 
 export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   const [minx, miny, maxx, maxy] = bounds;
+  setCountryBounds(bounds);
   const width = maxx - minx;
   const depth = maxy - miny;
   const pad = opts.pad ?? Math.max(width, depth) * 0.15;

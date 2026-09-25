@@ -691,6 +691,7 @@ export function buildSeagullMesh3D() {
 
 const COW_WHITE = 0xe9e6de;
 const COW_BLACK = 0x1f1e1d;
+const COW_RED = 0x7a3520;
 const COW_PINK = 0xd9a7a0;
 const COW_HOOF = 0x2a2622;
 
@@ -704,7 +705,7 @@ const COW_SPEC = [
   ['legBR', 'body', -0.6, 0.95, -0.2],
 ];
 
-function holstein(seed) {
+function holstein(seed, dark = COW_BLACK) {
   const rng = new SeededRng(Math.floor(seed * 1e6) + 7);
   const blobs = [];
   const n = 9 + Math.floor(rng.next() * 4);
@@ -714,16 +715,16 @@ function holstein(seed) {
   return (x, y, z) => {
     for (const b of blobs) {
       const dx = x - b.x, dy = (y - b.y) * 1.3, dz = z - b.z;
-      if (dx * dx + dy * dy + dz * dz < b.r * b.r) return COW_BLACK;
+      if (dx * dx + dy * dy + dz * dz < b.r * b.r) return dark;
     }
     return COW_WHITE;
   };
 }
 
-function cowGeometry(seed) {
+function cowGeometry(seed, dark = COW_BLACK) {
   const I = boneIndex(COW_SPEC);
   const B = new SkinBuilder(1);
-  const coat = holstein(seed);
+  const coat = holstein(seed, dark);
   B.bone = I.body;
   B.geo(loftX([
     { u: -0.9, cy: 1.12, hh: 0.17, hw: 0.14 },
@@ -750,7 +751,7 @@ function cowGeometry(seed) {
   }
   B.bone = I.head;
   const H = composeMatrix(0.62, 1.08, 0, 0, 0, -0.45).multiply(composeMatrix(0.1, 0, 0));
-  const headCoat = (x, y, z) => (Math.abs(z) < 0.04 && y > 0.95 ? COW_WHITE : COW_BLACK);
+  const headCoat = (x, y, z) => (Math.abs(z) < 0.04 && y > 0.95 ? COW_WHITE : dark);
   const hg = loftX([
     { u: -0.22, cy: 0, hh: 0.22, hw: 0.16 },
     { u: 0.2, cy: 0.02, hh: 0.17, hw: 0.12 },
@@ -762,7 +763,7 @@ function cowGeometry(seed) {
   const hm = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => H.clone().multiply(composeMatrix(x, y, z, rx, ry, rz, sx, sy, sz));
   B.geo(new THREE.BoxGeometry(0.05, 0.17, 0.2), hm(0.66, -0.02, 0), COW_PINK);
   for (const s of [1, -1]) {
-    B.geo(new THREE.BoxGeometry(0.1, 0.04, 0.16), hm(0.3, 0.1, s * 0.17, s * 0.4, 0, 0), COW_BLACK);
+    B.geo(new THREE.BoxGeometry(0.1, 0.04, 0.16), hm(0.3, 0.1, s * 0.17, s * 0.4, 0, 0), dark);
     B.geo(new THREE.ConeGeometry(0.022, 0.09, 4), hm(0.33, 0.2, s * 0.08, s * -0.7, 0, -0.2), 0xd8d0b8);
     B.geo(new THREE.BoxGeometry(0.03, 0.03, 0.02), hm(0.44, 0.08, s * 0.125), 0x111111);
     B.geo(new THREE.BoxGeometry(0.01, 0.03, 0.03), hm(0.69, -0.03, s * 0.045), 0x2a1a1a);
@@ -780,9 +781,11 @@ function shadeHex(hex, f) {
   return (r << 16) | (g << 8) | b;
 }
 
-export function buildCowMesh3D(seed = 0) {
+// red: roodbont (MRIJ) coat instead of Holstein black-and-white.
+export function buildCowMesh3D(seed = 0, red = false) {
   const variant = Math.floor(Math.abs(seed * 1000)) % 4;
-  const group = assemble(cachedGeo('cow' + variant, () => cowGeometry(variant + 0.137)), COW_SPEC, 1.6, 0.8);
+  const key = (red ? 'cowred' : 'cow') + variant;
+  const group = assemble(cachedGeo(key, () => cowGeometry(variant + 0.137, red ? COW_RED : COW_BLACK)), COW_SPEC, 1.6, 0.8);
   const b = group.userData.bones;
   group.userData.head = b.head;
   group.userData.headBaseRotZ = 0;
@@ -1108,7 +1111,7 @@ export function buildWildlifeMesh3D(a) {
     case 'pigeon': return buildPigeonMesh3D(Math.floor((a.bobSeed || 0) * 10) % 4);
     case 'cat': return buildCatMesh3D(a.variant || 0);
     case 'dog': return buildDogMesh3D(a.breed || 0, a.color || 0);
-    default: return buildCowMesh3D(a.bobSeed);
+    default: return buildCowMesh3D(a.bobSeed, a.variant === 'red');
   }
 }
 

@@ -2,6 +2,8 @@ import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inW
 import { trafficSignalsNear, getTrafficLightPhase } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
 import { crossingSpeedLimit } from './railway.js';
+import { zebraSpeedLimit } from './pedroutes.js';
+import { countrySurface } from './countryfield.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const MODELS = [
@@ -354,8 +356,13 @@ function roadNormals(road) {
   return out;
 }
 
+// laneMode 'squeeze': hug the right verge so oncoming traffic fits past on a
+// narrow two-way street; 'pass': swing out left around a stopped obstacle.
 function lanePoint(map, road, i, dir, v) {
-  const lane = laneOffset(road, v, roadHalfWidths(map, road)[i]);
+  const half = roadHalfWidths(map, road)[i];
+  let lane = laneOffset(road, v, half);
+  if (v.laneMode === 'squeeze' && !road.oneway) lane = Math.max(lane, half - v.halfWid + 0.4);
+  else if (v.laneMode === 'pass') lane = road.oneway || half < 3.5 ? -Math.max(0.5, half - v.halfWid + 0.6) : -half / 2;
   const p = road.pts[i], nrm = roadNormals(road)[i];
   return [p[0] + nrm[0] * lane * dir, p[1] + nrm[1] * lane * dir];
 }
@@ -484,7 +491,7 @@ export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spa
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
     // real connection) is cleared the same way rather than left oscillating.
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25)) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -510,7 +517,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25)) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -536,7 +543,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isScooter || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25)) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -562,7 +569,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBus || v.driver === 'player') continue;
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25)) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -721,6 +728,8 @@ export function surfaceUnder(map, x, y) {
     const [minx, miny, maxx, maxy] = g.bounds;
     if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, g.pts)) return 'gras';
   }
+  const country = countrySurface(x, y);
+  if (country) return country === 'weg' ? 'asfalt' : 'gras';
   return 'klinkers';
 }
 
@@ -1047,19 +1056,25 @@ function curveSpeedLimit(v, path, aLat, decel) {
 // on our path ahead - same-direction traffic, crossing traffic at a
 // junction, or something oncoming in our own lane.
 function followSpeedLimit(v, path, world, decel, chase) {
-  let vmax = Infinity, leader = null;
+  let vmax = Infinity, leader = null, leaderS = Infinity;
+  const ignoring = world.time < (v.ignoreUntil || 0) ? v.ignoreId : -1;
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
   const stopGap = chase ? 1 : v.isBike || v.isScooter ? 0.8 : 1.8;
   const timeGap = chase ? 0.35 : 0.9;
   const corridor = v.halfLen + 3 + Math.abs(v.speed) * 0.8;
   const creeping = world.time < (v.creepUntil || 0);
   for (const o of world.vehicles) {
-    if (o === v || o.wrecked || o.isBoat) continue;
+    if (o === v || o.isBoat || o.sinking || o.id === ignoring) continue;
     const dx = o.x - v.x, dy = o.y - v.y;
     if (dx * dx + dy * dy > (PATH_LEN + 5) ** 2) continue;
-    if (creeping && Math.cos(o.angle - v.angle) < 0.5) continue;
+    const rel = Math.cos(o.angle - v.angle);
+    if (creeping && rel < 0.5 && !o.wrecked) continue;
+    // same-direction traffic alongside or behind is never our leader (two
+    // vehicles side by side must not both wait for each other)
+    if (rel > 0.8 && dx * Math.cos(v.angle) + dy * Math.sin(v.angle) < 0) continue;
     const ofx = Math.cos(o.angle), ofy = Math.sin(o.angle);
-    const reach = v.halfWid + o.halfWid + 0.3;
+    const reach = v.halfWid + o.halfWid + (rel < -0.5 ? 0.1 : 0.3);
+    const passing = v.laneMode === 'pass' && o.id === v.passId;
     let hit = null;
     for (const k of [0, 0.8, -0.8]) {
       const qx = o.x + ofx * o.halfLen * k, qy = o.y + ofy * o.halfLen * k;
@@ -1069,7 +1084,7 @@ function followSpeedLimit(v, path, world, decel, chase) {
       if (pr && pr.lat < reach && (!hit || pr.s < hit.s)) hit = pr;
       // right in front of the bumper counts even where the path bends away
       const side = Math.abs((qy - v.y) * fx - (qx - v.x) * fy);
-      if (fwd < corridor && side < reach - 0.2 && (!hit || fwd < hit.s)) hit = { s: fwd, lat: side, tx: fx, ty: fy };
+      if (!passing && fwd < corridor && side < reach - 0.2 && (!hit || fwd < hit.s)) hit = { s: fwd, lat: side, tx: fx, ty: fy };
     }
     if (!hit) continue;
     let along = (ofx * o.speed + o.driftX) * hit.tx + (ofy * o.speed + o.driftY) * hit.ty;
@@ -1084,9 +1099,9 @@ function followSpeedLimit(v, path, world, decel, chase) {
       lead + 0.5 * (gap - stopGap - timeGap * Math.max(0, v.speed)),
       Math.sqrt(Math.max(0, 2 * decel * (gap - stopGap))) + lead * 0.7,
     ));
-    if (vf < vmax) { vmax = vf; leader = o; }
+    if (vf < vmax) { vmax = vf; leader = o; leaderS = hit.s; }
   }
-  return { vmax, leader };
+  return { vmax, leader, leaderS };
 }
 
 // Speed that brings the vehicle to a halt at the stop line of a red (or a
@@ -1125,28 +1140,131 @@ function trafficLightLimit(v, path, world) {
   return vmax;
 }
 
-// Unsignalled junction priority: whoever gets to the node first goes, ties
-// broken by id so there is always a strict order (no four-way deadlock).
-// Vehicles held by a light or a queue don't claim, so they can't block
-// traffic that actually has the green.
+// Unsignalled junction priority, Dutch rules: the higher road class goes
+// first (roundabout > major > normal > minor > service), between equals
+// traffic from the right goes first, a left turn yields to oncoming traffic,
+// otherwise whoever arrives first (ties by id). Vehicles held by a light or
+// a queue don't claim, so they can't block traffic that actually can go.
+// If everyone we yield to is itself stuck waiting (rechts-voor-gaat on all
+// four arms), the lowest id among them goes.
+function roadRank(r) {
+  if (!r) return 0;
+  if (r.roundabout) return 5;
+  if (r.type === 'service' || r.type === 'track') return 0;
+  return r.cat === 'major' ? 3 : r.cat === 'normal' ? 2 : 1;
+}
+
+function realJunction(node) {
+  let n = 0;
+  for (const e of node) n += (e.idx > 0 ? 1 : 0) + (e.idx < e.road.pts.length - 1 ? 1 : 0);
+  return n >= 3;
+}
+
+function firstJunction(path) {
+  for (const p of path) if (p.j && p.s > 0.5 && p.node && realJunction(p.node)) return p;
+  return null;
+}
+
 function junctionYieldLimit(v, path, world, decel, claim) {
-  let first = null;
-  for (const p of path) if (p.j && p.s > 0.5) { first = p; break; }
-  if (!first || first.s > 18 || !first.node || first.node.length < 2) return Infinity;
+  const first = firstJunction(path);
+  if (!first || first.s > 18) return Infinity;
   const claims = first.node.claims || (first.node.claims = new Map());
   const eta = first.s / Math.max(Math.abs(v.speed), 1.5);
-  if (claim) claims.set(v.id, { eta, time: world.time, from: first.from, fromDir: first.fromDir });
+  const [ax, ay] = pointAlong(path, Math.max(0, first.s - 3));
+  const [bx, by] = pointAlong(path, first.s + 4);
+  const la = Math.hypot(first.x - ax, first.y - ay) || 1, lb = Math.hypot(bx - first.x, by - first.y) || 1;
+  const hx = (first.x - ax) / la, hy = (first.y - ay) / la;
+  const turnLeft = hx * (by - first.y) / lb - hy * (bx - first.x) / lb < -0.4;
+  const rank = roadRank(first.from);
+  if (claim) claims.set(v.id, { eta, time: world.time, from: first.from, fromDir: first.fromDir, rank, hx, hy, turnLeft, still: v.stillFor || 0 });
   else claims.delete(v.id);
+  let yieldTo = false, othersWaiting = true, minId = v.id;
   for (const [id, c] of claims) {
     if (id === v.id) continue;
     if (world.time - c.time > 0.25) { claims.delete(id); continue; }
     if (c.from === first.from && c.fromDir === first.fromDir) continue;
-    if (c.eta < eta - 0.25 || (Math.abs(c.eta - eta) <= 0.25 && id < v.id)) {
-      const stopS = first.s - 4 - v.halfLen;
-      return stopS < -0.5 ? Infinity : Math.sqrt(2 * decel * Math.max(0, stopS));
+    let must;
+    if (c.eta < 0.8 && c.eta < eta) must = true;
+    else if (c.rank !== rank) must = c.rank > rank && c.eta < 6;
+    else {
+      const cross = hx * c.hy - hy * c.hx;
+      const dot = hx * c.hx + hy * c.hy;
+      if (cross < -0.35) must = c.eta < eta + 3;
+      else if (cross > 0.35) must = c.eta < eta - 2;
+      else if (dot < -0.7 && turnLeft !== c.turnLeft) must = turnLeft && c.eta < eta + 2.5;
+      else must = c.eta < eta - 0.25 || (Math.abs(c.eta - eta) <= 0.25 && id < v.id);
     }
+    if (!must) continue;
+    yieldTo = true;
+    if (c.still < 1.5) othersWaiting = false;
+    if (id < minId) minId = id;
   }
-  return Infinity;
+  if (!yieldTo) return Infinity;
+  const waited = v.yieldWait || 0;
+  if ((waited > 2.5 && othersWaiting && v.id <= minId) || waited > 8 + (v.id % 5)) return Infinity;
+  const stopS = first.s - 4 - v.halfLen;
+  return stopS < -0.5 ? Infinity : Math.sqrt(2 * decel * Math.max(0, stopS));
+}
+
+// Don't drive into a junction whose exit is still blocked by the queue in
+// front: wait at the entry so crossing traffic keeps flowing.
+function junctionBoxLimit(v, path, follow, decel) {
+  const o = follow.leader;
+  if (!o || Math.abs(o.speed) > 1 || follow.leaderS === Infinity) return Infinity;
+  const j = firstJunction(path);
+  if (!j || j.s > 14 || follow.leaderS < j.s) return Infinity;
+  if (follow.leaderS - j.s > v.model.len + 4) return Infinity;
+  const stopS = j.s - 4 - v.halfLen;
+  return stopS < 1 ? Infinity : Math.sqrt(2 * decel * stopS);
+}
+
+function queuedAtLight(v) {
+  let r = v, n = 0;
+  while (r && n++ < 30) { if (r._atLight) return true; r = r._leader; }
+  return false;
+}
+
+// Deadlock breakers, run after the speed limits are known:
+// - a waiting cycle (A waits for B waits for ... A): the lowest id in the
+//   cycle ignores its leader for a moment and goes first;
+// - an oncoming vehicle close ahead on a narrow two-way street: both hug the
+//   right verge so they fit past each other;
+// - a stopped obstacle (wreck, abandoned car, broken-down queue head) in the
+//   lane: swing out and pass it when the other side is clear.
+function resolveDeadlocks(v, dt, world, follow, lightV) {
+  const o = follow.leader;
+  const held = o && follow.vmax < 0.5 && Math.abs(v.speed) < 0.5 && lightV > 1;
+  v._leader = held ? o : null;
+  v._atLight = lightV < 0.5;
+  if (held) {
+    let r = o, minId = v.id, n = 0;
+    while (r && r !== v && n++ < 10) { if (r.id < minId) minId = r.id; r = r._leader; }
+    if (r === v && minId === v.id) { v.ignoreId = o.id; v.ignoreUntil = world.time + 2.5; }
+  }
+
+  const now = world.time;
+  if (v.laneMode && now > v.laneModeUntil) v.laneMode = null;
+  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  // the vehicle in our way is pinned trying to manoeuvre: back off a little
+  if (held && (o.stuckFor || 0) > 1 && Math.cos(o.angle - v.angle) < 0.5 && now - (v.backOffAt || -99) > 6 &&
+    !world.vehicles.some((q) => q !== v && Math.hypot(q.x - v.x + fx * v.halfLen, q.y - v.y + fy * v.halfLen) < v.halfLen + 2.5)) {
+    v.backOffAt = now;
+  }
+  const half = (v.road.width || 6) / 2;
+  if (o && !o.wrecked && o.road && !v.road.oneway && half < 3.6 && Math.cos(o.angle - v.angle) < -0.5 && follow.vmax < 4) {
+    v.laneMode = 'squeeze'; v.laneModeUntil = now + 3;
+  }
+  if (!held || v.laneMode === 'squeeze') return;
+  const obstacle = o.wrecked || !o.road || (o.driver === 'player' && Math.abs(o.speed) < 0.3) || (o.stuckFor || 0) > 3;
+  if (!obstacle || Math.cos(o.angle - v.angle) < -0.5 && !o.wrecked) return;
+  for (const q of world.vehicles) {
+    if (q === v || q === o || q.isBoat) continue;
+    const dx = q.x - v.x, dy = q.y - v.y;
+    const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;
+    if (fwd > v.halfLen && fwd < 30 && lat < 0.5 && lat > -half - 3 && Math.cos(q.angle - v.angle) < 0.3) return;
+  }
+  v.laneMode = 'pass'; v.laneModeUntil = now + 4; v.passId = o.id;
+  v.ignoreId = -1;
 }
 
 // opts.goal ({x, y}) steers junction choices toward a target; opts.chase
@@ -1184,10 +1302,20 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
 
   let vTarget = Math.min(cruise, curveSpeedLimit(v, path, aLat, decel));
   const follow = followSpeedLimit(v, path, world, decel, chase);
-  const lightV = chase ? Infinity : Math.min(trafficLightLimit(v, path, world), crossingSpeedLimit(v, path, projectOnPath));
+  const lightV = chase ? Infinity : Math.min(trafficLightLimit(v, path, world), crossingSpeedLimit(v, path, projectOnPath),
+    small ? Infinity : zebraSpeedLimit(v, path, projectOnPath, world.time));
   vTarget = Math.min(vTarget, follow.vmax, lightV);
   const creeping = world.time < (v.creepUntil || 0);
-  if (!chase && !creeping) vTarget = Math.min(vTarget, junctionYieldLimit(v, path, world, decel, Math.min(follow.vmax, lightV) > 1));
+  let yieldV = Infinity;
+  if (!chase && !creeping) {
+    const boxV = junctionBoxLimit(v, path, follow, decel);
+    yieldV = junctionYieldLimit(v, path, world, decel, Math.min(follow.vmax, lightV, boxV) > 1);
+    vTarget = Math.min(vTarget, boxV, yieldV);
+  }
+  v.stillFor = Math.abs(v.speed) < 0.5 ? (v.stillFor || 0) + dt : 0;
+  if (yieldV < 0.5 && v.stillFor > 0) v.yieldWait = (v.yieldWait || 0) + dt;
+  else if (Math.abs(v.speed) > 2) v.yieldWait = 0;
+  if (!chase) resolveDeadlocks(v, dt, world, follow, lightV);
   if (Math.abs(alpha) > 1) vTarget = Math.min(vTarget, 3.5);
   if (v.waitTimer > 0) { v.waitTimer -= dt; vTarget = 0; }
   if (goal && v.routeEnd) {
@@ -1195,6 +1323,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
     if (end) vTarget = Math.min(vTarget, Math.sqrt(2 * decel * Math.max(0, end.s - 3)));
   }
   if (creeping) vTarget = Math.min(vTarget, 2.5);
+  if (v.laneMode === 'pass') vTarget = Math.min(vTarget, 4);
 
   // Gridlock (junction standoff, head-on in a narrow street, an abandoned
   // car in the lane): after a while stop yielding to cross/oncoming traffic
@@ -1211,7 +1340,19 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   v.hornFor = blockedByPlayer ? (v.hornFor || 0) + dt : 0;
   v.horn = v.hornFor > 1.5 && v.hornFor < 2.2;
   v.stuckFor = Math.abs(v.speed) < 0.6 && vTarget > 2 ? (v.stuckFor || 0) + dt : 0;
+  // held (not by a light) for a long time: turn around and find another way
+  v.waitFor = Math.abs(v.speed) < 0.5 && vTarget < 0.5 && lightV > 1 ? (v.waitFor || 0) + dt : 0;
+  if (!chase && v.waitFor > 35 + (v.id % 10) && !v.road.oneway && !goal && !queuedAtLight(v)) {
+    v.waitFor = 0;
+    v.segIdx += v.dir;
+    v.dir = -v.dir;
+    v.plan.length = 0;
+  }
 
+  if (world.time - (v.backOffAt || -99) < 1.2) {
+    v.applyControls(dt, -0.4, 0, 0);
+    return;
+  }
   // pinned against a wall: back off with opposite lock, then try again
   if (v.stuckFor > 1.5 && world.time - (v.reverseAt || -99) > 4) v.reverseAt = world.time;
   if (world.time - (v.reverseAt || -99) < 1.2) {
@@ -1394,6 +1535,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       const b = vehicles[j];
       // wrecks are solid, heavy obstacles; two wrecks never interact
       if (b.sinking || (a.wrecked && b.wrecked)) continue;
+      // a waiting cycle being broken: the chosen vehicle slips past its partner
+      if (world && ((a.ignoreId === b.id && world.time < a.ignoreUntil) || (b.ignoreId === a.id && world.time < b.ignoreUntil))) continue;
       const reach = a.halfLen + b.halfLen + 0.2;
       const cdx = b.x - a.x, cdy = b.y - a.y;
       if (cdx * cdx + cdy * cdy > reach * reach) continue;

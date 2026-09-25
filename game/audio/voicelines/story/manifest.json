@@ -39,9 +39,9 @@
 "src": "m0/outro_1_anita.mp3",
 "dur": 2.46
 },
-"Bommen Berend|…Dank je. Niet tegen de buren zeggen. Ik heb een reputatie sinds 1672.": {
+"Bommen Berend|…Dank je. Niet tegen de buren zeggen. Ik heb al sinds 1672 een reputatie.": {
 "src": "m0/outro_2_berend.mp3",
-"dur": 5.12
+"dur": 5.54
 },
 "Tammo|Wij zeggen nooit wat. Tegen elkaar al helemaal niet.": {
 "src": "m0/outro_3_tammo.mp3",
@@ -111,9 +111,9 @@
 "src": "m1/fail_1_tammo.mp3",
 "dur": 1.7
 },
-"Sjoerd|KEI-week, man! De eerstejaars zeggen dat niemand hun rondje door de stad kan verslaan.": {
+"Sjoerd|KEI-week, man! De eerstejaars zeggen dat niemand hun rondje door de stad sneller rijdt.": {
 "src": "m2/intro_0_sjoerd.mp3",
-"dur": 4.57
+"dur": 4.64
 },
 "Sjoerd|Rondje vanaf het Academiegebouw. Winnaar krijgt eeuwige roem. En een bierviltje.": {
 "src": "m2/intro_1_sjoerd.mp3",
@@ -527,9 +527,9 @@
 "src": "duo/s5/outro_2_anita.mp3",
 "dur": 1.58
 },
-"Anita|Samen, of niet.": {
+"Anita|Samen, of helemaal niet.": {
 "src": "duo/s6/intro_0_anita.mp3",
-"dur": 1.4
+"dur": 1.5
 },
 "Tammo|Samen.": {
 "src": "duo/s6/intro_1_tammo.mp3",

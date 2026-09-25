@@ -7,6 +7,7 @@ import { createBank, buildImpulse } from './sfx/dsp.js';
 import { initAmbience, updateAmbience, ambienceStats } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
+import { updateSkySfx } from './sfx/sky.js';
 
 const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
@@ -2143,6 +2144,7 @@ export function updateAudio(dt, world) {
   updateTrafficAudio(dt, world);
   updateAmbience(dt, world);
   updateFoley(dt, world);
+  updateSkySfx(dt, world, kit);
   updateUiSfx(dt, world);
   updateDucking(dt);
   if (bank.pending() === 0 && warmList.length) bank.warm([warmList.pop()]);

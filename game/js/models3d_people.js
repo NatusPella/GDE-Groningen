@@ -29,6 +29,8 @@ const DEFAULT_CAP = 0xc8621e;
 
 const BONE = { pelvis: 0, chest: 1, head: 2, thigh: [3, 5], knee: [4, 6], arm: [7, 9], elbow: [8, 10] };
 
+export const PERSON_RIG = { HIP_Y, KNEE_Y, ANKLE_Y, THIGH_LEN, SHIN_LEN, CHEST_Y, SHOULDER_Y, UPPER_ARM, FOREARM, NECK_Y, HEAD_Y };
+
 export const TAMMO_APPEARANCE = { shirt: 0x3f6ea8, skin: HABBO_PALETTE.woodLight, hair: HABBO_PALETTE.woodDark, variant: 'male', character: 'tammo', cap: DEFAULT_CAP, pants: 0x2f3b52, shoes: 0xd8d4cc, hairStyle: 'short', seed: 11 };
 export const ANITA_APPEARANCE = { shirt: 0x9e3027, skin: HABBO_PALETTE.woodMid, hair: 0x1b1716, variant: 'female', character: 'anita', pants: 0x26262a, shoes: 0x2a1d14, hairStyle: 'long', seed: 23 };
 
@@ -251,6 +253,16 @@ function headShape(k = 1, dx = 0, dy = 0) {
   };
 }
 
+// Front surface (x) of the head at height dy above HEAD_Y and side offset z,
+// so painted-on features sit on the face instead of floating in front of it.
+function faceX(dy, z) {
+  const ny = Math.max(-0.99, Math.min(0.99, dy / 0.118));
+  const zf = ny < 0 ? 1 - 0.3 * Math.pow(-ny, 1.4) : 1;
+  const nz = z / (0.086 * zf);
+  const nx = Math.sqrt(Math.max(0, 1 - ny * ny - nz * nz));
+  return nx * 0.097 * (ny < 0 ? 1 - 0.1 * -ny : 1);
+}
+
 // --- builder -----------------------------------------------------------------
 
 function buildHead(B, L, skin) {
@@ -261,21 +273,26 @@ function buildHead(B, L, skin) {
   B.geo(loftGeometry([{ y: 1.44, d: 0.06, w: 0.062 }, { y: 1.52, d: 0.054, w: 0.052 }, { y: HEAD_Y - 0.05, d: 0.05, w: 0.048 }], 6), null, shade(skin, 0.94));
   B.bone = H;
 
-  const nose = new THREE.CylinderGeometry(0.011, 0.019, 0.05, 3).rotateY(Math.PI / 2);
-  B.geo(nose, composeMatrix(0.091, HEAD_Y - 0.012, 0, 0, 0, 0.22), shade(skin, 0.96));
-  B.box(0.084, HEAD_Y + 0.034, 0, 0.022, 0.018, 0.084, shade(skin, 0.95));
+  const nose = new THREE.CylinderGeometry(0.009, 0.016, 0.042, 3).rotateY(Math.PI / 2);
+  B.geo(nose, composeMatrix(faceX(-0.014, 0) - 0.004, HEAD_Y - 0.014, 0, 0, 0, 0.22), shade(skin, 0.96));
   for (const s of [1, -1]) {
-    plate(B, 0.0915, HEAD_Y + 0.012, s * 0.034, 0.0085, 0.013, -s * 0.38, EYE_WHITE);
-    plate(B, 0.0935, HEAD_Y + 0.011, s * 0.0335, 0.0075, 0.0065, -s * 0.38, EYE_DARK);
-    plate(B, 0.0955, HEAD_Y + 0.043, s * 0.034, 0.0045, 0.017, -s * 0.38, shade(L.hair, 0.8), s * 0.12);
-    B.box(-0.004, HEAD_Y + 0.002, s * 0.086, 0.032, 0.046, 0.018, shade(skin, 0.92));
+    const ez = s * 0.033;
+    B.box(faceX(0.034, ez) - 0.006, HEAD_Y + 0.034, ez, 0.014, 0.014, 0.036, shade(skin, 0.95), 0, 0, -s * 0.4, 0);
+    plate(B, faceX(0.01, ez) + 0.0015, HEAD_Y + 0.01, ez, 0.0085, 0.013, -s * 0.4, EYE_WHITE);
+    plate(B, faceX(0.01, ez) + 0.003, HEAD_Y + 0.009, s * 0.032, 0.0075, 0.0065, -s * 0.4, EYE_DARK);
+    plate(B, faceX(0.04, ez) + 0.004, HEAD_Y + 0.04, ez, 0.0045, 0.016, -s * 0.4, shade(L.hair, 0.8), s * 0.12);
+    B.box(-0.004, HEAD_Y + 0.002, s * 0.084, 0.03, 0.044, 0.016, shade(skin, 0.92));
   }
-  plate(B, 0.0865, HEAD_Y - 0.052, 0, 0.005, 0.018, 0, mix(shade(skin, 0.78), 0x8a3a30, 0.3));
+  plate(B, faceX(-0.052, 0) + 0.0015, HEAD_Y - 0.052, 0, 0.005, 0.017, 0, mix(shade(skin, 0.78), 0x8a3a30, 0.3));
 
   if (L.glasses) {
-    for (const s of [1, -1]) B.box(0.1, HEAD_Y + 0.012, s * 0.034, 0.006, 0.026, 0.036, 0x1e1e20);
-    B.box(0.1, HEAD_Y + 0.02, 0, 0.006, 0.006, 0.034, 0x1e1e20);
-    for (const s of [1, -1]) B.box(0.045, HEAD_Y + 0.02, s * 0.083, 0.1, 0.006, 0.005, 0x1e1e20);
+    for (const s of [1, -1]) B.box(faceX(0.012, s * 0.034) + 0.008, HEAD_Y + 0.012, s * 0.034, 0.006, 0.026, 0.036, 0x1e1e20, 0, 0, -s * 0.4, 0);
+    B.box(faceX(0.02, 0) + 0.006, HEAD_Y + 0.02, 0, 0.006, 0.006, 0.03, 0x1e1e20);
+    for (const s of [1, -1]) {
+      const fx = faceX(0.02, s * 0.052) + 0.006;
+      B.geo(tubeGeometry([fx, HEAD_Y + 0.018, s * 0.052], [0.05, HEAD_Y + 0.02, s * 0.079], 0.003, 0.003, 3), null, 0x1e1e20);
+      B.geo(tubeGeometry([0.05, HEAD_Y + 0.02, s * 0.079], [-0.01, HEAD_Y + 0.02, s * 0.087], 0.003, 0.003, 3), null, 0x1e1e20);
+    }
   }
 
   const beardColor = L.facial === 'stubble' ? mix(skin, L.hair, 0.3) : L.hair;
@@ -283,10 +300,10 @@ function buildHead(B, L, skin) {
     const k = L.facial === 'beard' ? 1.08 : 1.02;
     B.geo(ell(8, 3, headShape(k, 0.002), Math.PI * 0.5, Math.PI, Math.PI * 0.56, Math.PI * 0.4), null, beardColor);
   }
-  if (L.facial === 'moustache' || L.facial === 'beard') B.box(0.093, HEAD_Y - 0.037, 0, 0.014, 0.013, 0.05, shade(L.hair, 0.9));
+  if (L.facial === 'moustache' || L.facial === 'beard') B.box(faceX(-0.037, 0) - 0.002, HEAD_Y - 0.037, 0, 0.012, 0.012, 0.046, shade(L.hair, 0.9));
   if (L.facial === 'goatee') {
-    B.box(0.093, HEAD_Y - 0.037, 0, 0.012, 0.011, 0.046, L.hair);
-    B.box(0.082, HEAD_Y - 0.085, 0, 0.022, 0.04, 0.036, L.hair);
+    B.box(faceX(-0.037, 0) - 0.002, HEAD_Y - 0.037, 0, 0.011, 0.011, 0.042, L.hair);
+    B.box(faceX(-0.085, 0) - 0.008, HEAD_Y - 0.085, 0, 0.02, 0.038, 0.034, L.hair);
   }
 
   buildHair(B, L);
@@ -301,8 +318,19 @@ function plate(B, x, y, z, h, w, ry, color, rx = 0) {
   B.quadOut(v(-h, -w), v(-h, w), v(h, w), v(h, -w), n, color);
 }
 
+// Tilt about the head centre (not the ground origin), nudged slightly back.
+function headTilt(tilt) {
+  return composeMatrix(0, HEAD_Y, 0, 0, 0, tilt).multiply(composeMatrix(-0.006, -HEAD_Y, 0));
+}
+
+// Hair/cap shell over the scalp; its lower rim is pulled onto the head so
+// the shell never reads as a hat floating above it.
 function hairCap(B, L, k, tilt, color, thLen = Math.PI * 0.52) {
-  const g = ell(10, 4, headShape(k, -0.006, 0.004), 0, Math.PI * 2, 0, thLen);
+  const rimNy = Math.cos(thLen);
+  const g = ell(10, 4, (nx, ny, nz) => {
+    const t = Math.min(1, Math.max(0, (ny - rimNy) / 0.45));
+    return headShape(0.99 + (k - 0.99) * t, -0.006 * t, 0.004 * t)(nx, ny, nz);
+  }, 0, Math.PI * 2, 0, thLen);
   B.geo(g, composeMatrix(0, HEAD_Y, 0, 0, 0, tilt).multiply(composeMatrix(0, -HEAD_Y, 0)), color);
 }
 
@@ -326,7 +354,7 @@ function buildHair(B, L) {
       if (L.age === 'old') B.geo(ell(8, 2, headShape(1.03, -0.004), -Math.PI * 0.3, Math.PI * 0.6, Math.PI * 0.42, Math.PI * 0.16), null, c);
       break;
     case 'buzz':
-      hairCap(B, L, 1.02, 0.42, capped ? c : mix(c, 0x6a5a4a, 0.15));
+      hairCap(B, L, 1.015, 0.32, capped ? c : mix(c, 0x6a5a4a, 0.15));
       break;
     case 'curly':
       if (capped) hairCap(B, L, 1.06, 0.4, c);
@@ -339,10 +367,10 @@ function buildHair(B, L) {
     case 'hijab':
       break;
     default:
-      hairCap(B, L, 1.07, 0.42, c);
+      hairCap(B, L, style === 'short' ? 1.04 : 1.055, 0.3, c);
   }
   if (style === 'short' || style === 'buzz') {
-    for (const s of [1, -1]) B.box(0.05, HEAD_Y + 0.0, s * 0.087, 0.02, 0.05, 0.012, c);
+    for (const s of [1, -1]) B.box(0.028, HEAD_Y + 0.004, s * 0.084, 0.022, 0.045, 0.01, c);
   }
   if (style === 'long') {
     const back = new THREE.CylinderGeometry(1, 1, 1, 8, 1, true, Math.PI * 0.72, Math.PI * 1.56);
@@ -389,20 +417,20 @@ function buildHat(B, L) {
   }
   if (hat === 'beanie') {
     hairCap(B, L, 1.14, 0.22, L.hatColor, Math.PI * 0.5);
-    B.geo(loftGeometry([{ y: HEAD_Y + 0.02, d: 0.113, w: 0.1 }, { y: HEAD_Y + 0.055, d: 0.114, w: 0.101 }], 10), composeMatrix(-0.006, 0, 0, 0, 0, 0.12), shade(L.hatColor, 0.85));
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.02, d: 0.113, w: 0.1 }, { y: HEAD_Y + 0.055, d: 0.114, w: 0.101 }], 10), headTilt(0.12), shade(L.hatColor, 0.85));
   } else if (hat === 'cap' || hat === 'tammo') {
     const c = hat === 'tammo' ? L.capColor : L.hatColor;
     hairCap(B, L, 1.12, 0.12, c, Math.PI * 0.5);
     const brim = new THREE.CylinderGeometry(1, 1, 0.014, 8, 1, false, 0, Math.PI);
-    B.geo(brim, composeMatrix(0.045, HEAD_Y + 0.045, 0, 0, 0, -0.14, 0.135, 1, 0.1), shade(c, 0.82));
+    B.geo(brim, composeMatrix(0.075, HEAD_Y + 0.045, 0, 0, 0, -0.16, 0.095, 1, 0.098), shade(c, 0.82));
     B.geo(new THREE.SphereGeometry(1, 5, 2, 0, Math.PI * 2, 0, Math.PI / 2), composeMatrix(-0.01, HEAD_Y + 0.13, 0, 0, 0, 0.12, 0.014, 0.01, 0.014), shade(c, 0.8));
     if (hat === 'tammo') {
-      B.geo(loftGeometry([{ y: HEAD_Y + 0.03, d: 0.108, w: 0.098 }, { y: HEAD_Y + 0.05, d: 0.109, w: 0.099 }], 10), composeMatrix(-0.006, 0, 0, 0, 0, 0.12), shade(c, 0.7));
-      B.box(0.098, HEAD_Y + 0.085, 0, 0.012, 0.045, 0.06, 0xe6e1d6, 0, 0, 0, -0.5);
+      B.geo(loftGeometry([{ y: HEAD_Y + 0.03, d: 0.108, w: 0.098 }, { y: HEAD_Y + 0.05, d: 0.109, w: 0.099 }], 10), headTilt(0.12), shade(c, 0.7));
+      B.box(0.094, HEAD_Y + 0.078, 0, 0.01, 0.032, 0.044, 0xe6e1d6, 0, 0, 0, -0.5);
     }
   } else if (hat === 'flatcap') {
     hairCap(B, L, 1.1, 0.25, L.hatColor, Math.PI * 0.42);
-    B.box(0.06, HEAD_Y + 0.06, 0, 0.13, 0.02, 0.19, shade(L.hatColor, 0.9), 0, 0, 0, -0.28);
+    B.box(0.075, HEAD_Y + 0.058, 0, 0.1, 0.018, 0.18, shade(L.hatColor, 0.9), 0, 0, 0, -0.28);
   } else if (hat === 'police') {
     const crown = loftGeometry([
       { y: HEAD_Y + 0.035, d: 0.104, w: 0.094 },
@@ -410,11 +438,11 @@ function buildHat(B, L) {
       { y: HEAD_Y + 0.12, d: 0.124, w: 0.112 },
       { y: HEAD_Y + 0.13, d: 0.118, w: 0.106 },
     ], 10);
-    B.geo(crown, composeMatrix(-0.006, 0, 0, 0, 0, 0.05), COP_NAVY);
+    B.geo(crown, headTilt(0.05), COP_NAVY);
     B.geo(new THREE.CircleGeometry(1, 10).rotateX(-Math.PI / 2), composeMatrix(-0.006, HEAD_Y + 0.13, 0, 0, 0, 0.05, 0.118, 1, 0.106), shade(COP_NAVY, 1.15));
-    B.geo(loftGeometry([{ y: HEAD_Y + 0.045, d: 0.107, w: 0.097 }, { y: HEAD_Y + 0.07, d: 0.108, w: 0.098 }], 10), composeMatrix(-0.006, 0, 0, 0, 0, 0.05), 0xc8ccd0);
+    B.geo(loftGeometry([{ y: HEAD_Y + 0.045, d: 0.107, w: 0.097 }, { y: HEAD_Y + 0.07, d: 0.108, w: 0.098 }], 10), headTilt(0.05), 0xc8ccd0);
     const brim = new THREE.CylinderGeometry(1, 1, 0.012, 8, 1, false, 0, Math.PI);
-    B.geo(brim, composeMatrix(0.05, HEAD_Y + 0.04, 0, 0, 0, -0.3, 0.1, 1, 0.095), 0x111214);
+    B.geo(brim, composeMatrix(0.07, HEAD_Y + 0.04, 0, 0, 0, -0.3, 0.08, 1, 0.09), 0x111214);
     B.box(0.112, HEAD_Y + 0.1, 0, 0.01, 0.028, 0.022, 0xb8a060);
   }
 }
@@ -580,6 +608,9 @@ function buildLegs(B, L, skin) {
       B.geo(loftUp(slice(legRings, 0.1, hemY), 7), M, skin);
       B.geo(loftGeometry(slice(legRings, hemY - 0.005, hemY + 0.03, 1.12), 7, Math.PI / 7), M, shade(L.pants, 0.85));
     }
+    B.bone = BONE.pelvis;
+    const top = upper[upper.length - 1];
+    B.geo(new THREE.SphereGeometry(Math.max(top.d, top.w) * 0.85, 8, 6), composeMatrix(0, HIP_Y, s * hipZ), legColor);
     B.bone = BONE.knee[k];
     buildShoe(B, L, M, skin);
   }
@@ -621,6 +652,9 @@ function buildArms(B, L, skin, shZ) {
     const sleeve = slice(armRings, sleeveEnd, 0.05, 1.04);
     if (L.top !== 'tee' && L.top !== 'dress' && !(L.top === 'longsleeve' && L.rolled)) sleeve[0] = { ...sleeve[0], d: sleeve[0].d * 1.12, w: sleeve[0].w * 1.12 };
     B.geo(loftUp(sleeve, 6), M, sleeveColor);
+    // round cap around the shoulder pivot so no gap opens in any arm pose
+    const top = sleeve[sleeve.length - 1];
+    B.part(new THREE.SphereGeometry(Math.max(top.d, top.w) * 0.98, 8, 5), composeMatrix(0, SHOULDER_Y - 0.012, s * (shZ - 0.012), 0, 0, 0, 1, 0.9, 1), sleeveColor, BONE.chest);
     B.geo(loftUp(slice(armRings, -0.53, sleeveEnd), 6), M, skin);
     B.geo(loftGeometry(slice(armRings, sleeveEnd - 0.03, sleeveEnd + 0.005, cuffK), 6), M, shade(sleeveColor, 0.82));
     if (L.cop) B.geo(loftGeometry(slice(armRings, -0.14, -0.1, 1.09), 6), M, REFLECT_YELLOW);
@@ -989,7 +1023,9 @@ export function animatePersonWalk(mesh, speed, dt) {
   ud.animT = (ud.animT || 0) + step;
   const t = ud.animT + ud.animOffset;
   const gait = ud.gait || 1;
-  const cadence = Math.min(1.45, (0.42 + 0.3 * s) * gait);
+  const cb = ud.crouchBlend = approach(ud.crouchBlend || 0, ud.crouch ? 1 : 0, step / CROUCH_BLEND_TIME);
+  const crouch = cb * cb * (3 - 2 * cb);
+  const cadence = Math.min(1.45, (0.42 + 0.3 * s) * gait) * (1 - crouch) + Math.min(1.6, 0.35 + s / 1.1) * crouch;
   const moving = Math.min(1, s / 0.25);
   const phase = ((ud.walkPhase || 0) + TAU * cadence * step * moving) % TAU;
   ud.walkPhase = phase;
@@ -1050,5 +1086,53 @@ export function animatePersonWalk(mesh, speed, dt) {
     arm.rotation.set(-side * (0.03 + 0.1 * r * w), 0, swing + 0.08 * r * w + 0.02 * breath * idle);
     elbow.rotation.z = elbowBase + 0.35 * w * Math.max(0, Math.sin(-ph)) * (1 - r) + 0.06 * idle;
   }
+  if (crouch > 0) applyCrouch(ud, crouch, phase, w, s, cadence);
   updatePose(mesh);
+}
+
+const CROUCH_BLEND_TIME = 0.2;
+const CROUCH_DROP = 0.36;
+
+function approach(v, target, maxStep) {
+  return v < target ? Math.min(target, v + maxStep) : Math.max(target, v - maxStep);
+}
+
+// Thigh/knee angles that put the ankle at (fx, fy) from the hip (see legIK).
+function legAngles(fx, fy) {
+  const d = Math.min(THIGH_LEN + SHIN_LEN - 1e-3, Math.max(0.05, Math.hypot(fx, fy)));
+  const cosA = (THIGH_LEN * THIGH_LEN + d * d - SHIN_LEN * SHIN_LEN) / (2 * THIGH_LEN * d);
+  const cosK = (THIGH_LEN * THIGH_LEN + SHIN_LEN * SHIN_LEN - d * d) / (2 * THIGH_LEN * SHIN_LEN);
+  return [Math.atan2(fx, -fy) + Math.acos(Math.max(-1, Math.min(1, cosA))), -(Math.PI - Math.acos(Math.max(-1, Math.min(1, cosK))))];
+}
+
+// Crouched stance blended over the walk cycle: pelvis dropped and tipped
+// forward, feet kept on the ground by leg IK, with short sneaking steps whose
+// length matches the ground speed so the planted foot doesn't slide.
+function applyCrouch(ud, c, phase, w, s, cadence) {
+  const pelvis = ud.pelvis, chest = ud.chest, head = ud.head;
+  const pitch = -0.2 * c;
+  const hipY = pelvis.position.y + (HIP_Y - CROUCH_DROP + 0.012 * w * Math.cos(2 * phase) - pelvis.position.y) * c;
+  pelvis.position.set(-0.05 * c, hipY, pelvis.position.z * (1 - c));
+  pelvis.rotation.z = pitch;
+  const lean = -0.3 * c;
+  chest.rotation.z += lean;
+  head.rotation.z -= (pitch + lean) * 0.8;
+
+  const stride = cadence > 0 ? Math.min(0.3, s / (4 * cadence)) : 0;
+  const cp = Math.cos(-pitch), sp = Math.sin(-pitch);
+  const legs = [[ud.legL, ud.kneeL, phase, 0.1], [ud.legR, ud.kneeR, phase + Math.PI, -0.04]];
+  for (const [leg, knee, ph, stagger] of legs) {
+    const fx = stride * Math.sin(ph) * w + stagger * (1 - w) + 0.05 * c;
+    const fy = ANKLE_Y + 0.07 * w * Math.max(0, Math.cos(ph)) - hipY;
+    const [tz, kz] = legAngles(fx * cp - fy * sp, fx * sp + fy * cp);
+    const k0 = knee.rotation.z;
+    leg.rotation.z += (tz - leg.rotation.z) * c;
+    knee.rotation.z = k0 + (kz - k0) * c;
+  }
+  for (const [arm, elbow] of [[ud.armL, ud.elbowL], [ud.armR, ud.elbowR]]) {
+    if (arm === ud.armL && ud.umbrella && !ud.posed) continue;
+    const e0 = elbow.rotation.z;
+    arm.rotation.z = arm.rotation.z * (1 - 0.5 * c) + 0.45 * c;
+    elbow.rotation.z = e0 + (0.9 - e0) * c;
+  }
 }
