@@ -46,7 +46,7 @@ function hash(a, b, c) {
 }
 
 function parkable(r) {
-  return r.cat === 'normal' && ROAD_P[r.type] !== undefined && !r.bridge && !r.roundabout && r.pts.length > 1 && (r.width || 0) >= 5.5;
+  return r.cat === 'normal' && ROAD_P[r.type] !== undefined && !r.bridge && !r.z && !r.roundabout && r.pts.length > 1 && (r.width || 0) >= 5.5;
 }
 
 function inBuilding(map, x, y) {

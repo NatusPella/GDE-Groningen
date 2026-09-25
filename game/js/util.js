@@ -41,11 +41,16 @@ export function pointInPolygon(px, py, poly) {
 // On-foot water test shared by player/companion/peds/pickups. The polygon
 // test runs first because map.isOnBridge scans nearby roads and is only
 // needed to veto a hit.
-export function isInWater(map, x, y) {
+// z (absolute height, optional): below the canal in an aqueduct is dry.
+export function isInWater(map, x, y, z = 0) {
   for (const w of map.waterNear(x, y, 0.5)) {
     const [minx, miny, maxx, maxy] = w.bounds;
     if (x < minx || x > maxx || y < miny || y > maxy) continue;
-    if (pointInPolygon(x, y, w.pts)) return !map.isOnBridge(x, y);
+    if (pointInPolygon(x, y, w.pts)) {
+      if (z < -3 && map.coveredAt && map.coveredAt(x, y)) return false;
+      if (z > 1.5) return false;
+      return !map.isOnBridge(x, y);
+    }
   }
   return false;
 }

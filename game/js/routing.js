@@ -288,6 +288,8 @@ function travelMode(player) {
 
 function currentTarget(world) {
   if (userWaypoint) return { x: userWaypoint.x, y: userWaypoint.y, kind: 'user', name: userWaypoint.name };
+  const job = world.sideJob;
+  if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label } : null;
   const m = world.mission;
   if (m && m.marker && m.phase !== 'cooldown') return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
   return null;

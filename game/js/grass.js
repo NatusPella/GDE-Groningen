@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { applyWetGround, WET_UNIFORMS } from './terrain3d.js';
+import { applyCutMask } from './cutmask3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon } from './util.js';
 import { getWaterIndex } from './waterindex.js';
@@ -274,6 +275,7 @@ function withUniforms(m, surf, own) {
     wet(shader, r);
   };
   m.userData.shared = true;
+  applyCutMask(m, 'vWetXZ');
   GRASS_MATS.push(m);
   return m;
 }
@@ -576,6 +578,7 @@ gl_Position = projectionMatrix * mvPosition;`);
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.45, uWet);');
   };
   m.customProgramCacheKey = () => 'grasstuft1';
+  applyCutMask(m);
   return m;
 }
 

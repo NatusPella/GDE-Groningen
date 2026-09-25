@@ -1,29 +1,42 @@
 #!/usr/bin/env python3
 """Convert raw Overpass OSM JSON (Groningen) into a compact game map format.
 
-Projects lat/lon to local meters (equirectangular, centered on the bbox),
+Projects lat/lon to local meters (equirectangular around a fixed origin),
 so 1 unit = 1 meter. Y grows downward (south) to match canvas coordinates.
+
+Sources: the city-core extract (data/groningen_raw.json + _extra.json) plus
+the ringweg surroundings from scripts/fetch_osm.py (data/ring_*.json.gz).
+Run everything through scripts/build_map.py.
 """
+import gzip
 import json
 import math
+import os
 import sys
 
-SRC = "data/groningen_raw.json"
-SRC_EXTRA = "data/groningen_extra.json"
+SRC = ["data/groningen_raw.json", "data/groningen_extra.json", "data/ring_raw.json.gz", "data/ring_extra.json.gz"]
 DST = "game/citymap.json"
 
-BBOX_SOUTH, BBOX_WEST = 53.204, 6.538
-BBOX_NORTH, BBOX_EAST = 53.235, 6.592
+# the world covers the whole ringweg loop with ~300 m to spare
+BBOX_SOUTH, BBOX_WEST = 53.1975, 6.5225
+BBOX_NORTH, BBOX_EAST = 53.2525, 6.626
 
-LAT0 = (BBOX_SOUTH + BBOX_NORTH) / 2
-LON0 = (BBOX_WEST + BBOX_EAST) / 2
+# The origin stays at the centre of the original city-core bbox
+# (53.204..53.235, 6.538..6.592): every saved position, mission and
+# hand-placed coordinate in the game is relative to it.
+LAT0 = (53.204 + 53.235) / 2
+LON0 = (6.538 + 6.592) / 2
 
 M_PER_DEG_LAT = 110574.0
 M_PER_DEG_LON = 111320.0 * math.cos(math.radians(LAT0))
 
 ROAD_SPEC = {
+    "motorway":         {"width": 12, "speed": 25, "lanes": 2, "cat": "major"},
+    "motorway_link":    {"width": 9,  "speed": 16, "lanes": 1, "cat": "major"},
     "trunk":            {"width": 12, "speed": 22, "lanes": 2, "cat": "major"},
     "trunk_link":       {"width": 9,  "speed": 16, "lanes": 1, "cat": "major"},
+    "primary":          {"width": 10, "speed": 18, "lanes": 2, "cat": "major"},
+    "primary_link":     {"width": 7,  "speed": 13, "lanes": 1, "cat": "major"},
     "secondary":        {"width": 9,  "speed": 16, "lanes": 2, "cat": "major"},
     "secondary_link":   {"width": 7,  "speed": 13, "lanes": 1, "cat": "major"},
     "tertiary":         {"width": 8,  "speed": 14, "lanes": 2, "cat": "normal"},
@@ -176,15 +189,116 @@ def sample_along(pts, spacing):
     return out
 
 
-def main():
-    with open(SRC) as f:
-        data = json.load(f)
-    elements = list(data["elements"])
+# Outside the original city core only the ring and REGION_MARGIN metres
+# around it are kept; beyond that the procedural Ommelanden take over
+# (countryedge.js derives its edge from where the data stops).
+CORE_RECT = (-1919.6, -1833.9, 1919.6, 1833.9)
+REGION_MARGIN = 320.0
+REGION_CELL = 20.0
+
+
+def region_mask(roads, world_rect):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from ringloop import route_loop
+    loop = [(p[0], p[1]) for p in route_loop(roads)]
+    x0, y0, x1, y1 = world_rect
+    w, h = int((x1 - x0) / REGION_CELL) + 1, int((y1 - y0) / REGION_CELL) + 1
+    cells = bytearray(w * h)
+    # inside the loop: scanline fill per cell row
+    for j in range(h):
+        cy = y0 + (j + 0.5) * REGION_CELL
+        xs = []
+        for (ax, ay), (bx, by) in zip(loop, loop[1:] + loop[:1]):
+            if (ay <= cy) != (by <= cy):
+                xs.append(ax + (cy - ay) * (bx - ax) / (by - ay))
+        xs.sort()
+        for a, b in zip(xs[::2], xs[1::2]):
+            for i in range(max(0, int((a - x0) / REGION_CELL)), min(w, int((b - x0) / REGION_CELL) + 1)):
+                cells[j * w + i] = 1
+    # margin around the loop
+    r = int(REGION_MARGIN / REGION_CELL) + 1
+    for (ax, ay), (bx, by) in zip(loop, loop[1:] + loop[:1]):
+        L = math.hypot(bx - ax, by - ay)
+        for k in range(int(L / REGION_CELL) + 1):
+            t = k * REGION_CELL / L if L else 0
+            px, py = ax + (bx - ax) * t, ay + (by - ay) * t
+            ci, cj = int((px - x0) / REGION_CELL), int((py - y0) / REGION_CELL)
+            for dj in range(-r, r + 1):
+                for di in range(-r, r + 1):
+                    i, j = ci + di, cj + dj
+                    if 0 <= i < w and 0 <= j < h and (di * di + dj * dj) * REGION_CELL ** 2 <= REGION_MARGIN ** 2:
+                        cells[j * w + i] = 1
+
+    def inside(x, y):
+        if CORE_RECT[0] <= x <= CORE_RECT[2] and CORE_RECT[1] <= y <= CORE_RECT[3]:
+            return True
+        i, j = int((x - x0) / REGION_CELL), int((y - y0) / REGION_CELL)
+        return 0 <= i < w and 0 <= j < h and cells[j * w + i] == 1
+    return inside, loop
+
+
+def centroid(pts):
+    xs, ys = [p[0] for p in pts[:-1]] or [0], [p[1] for p in pts[:-1]] or [0]
+    return sum(xs) / len(xs), sum(ys) / len(ys)
+
+
+def crop_to_ring(roads, buildings, water, green, trees, world_rect):
+    inside, loop = region_mask(roads, world_rect)
+    out_roads = []
+    for r in roads:
+        pts = r["pts"]
+        flags = [inside(*p) for p in pts]
+        if all(flags):
+            out_roads.append(r)
+            continue
+        # keep runs inside the region plus one vertex beyond each end
+        i, n = 0, len(pts)
+        while i < n:
+            if not flags[i]:
+                i += 1
+                continue
+            j = i
+            while j + 1 < n and flags[j + 1]:
+                j += 1
+            a, b = max(0, i - 1), min(n - 1, j + 1)
+            if b > a:
+                out_roads.append({**r, "pts": pts[a:b + 1]})
+            i = j + 1
+    out_bld = [b for b in buildings if inside(*centroid(b["pts"]))]
+    out_water = [w for w in water if any(inside(*p) for p in w["pts"])]
+    out_green = [g for g in green if inside(*centroid(g["pts"])) or sum(inside(*p) for p in g["pts"]) * 2 > len(g["pts"])]
+    out_trees = [t for t in trees if inside(*t)]
+    L = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(loop, loop[1:] + loop[:1]))
+    print(f"ring loop {L:.0f} m; kept roads {len(out_roads)}/{len(roads)} buildings {len(out_bld)}/{len(buildings)} "
+          f"water {len(out_water)}/{len(water)} green {len(out_green)}/{len(green)} trees {len(out_trees)}/{len(trees)}")
+    return out_roads, out_bld, out_water, out_green, out_trees
+
+
+def load_elements():
+    elements, seen = [], set()
+    for path in SRC:
+        if not os.path.exists(path):
+            print(f"missing {path} (run scripts/fetch_osm.py)", file=sys.stderr)
+            continue
+        with (gzip.open(path, "rt") if path.endswith(".gz") else open(path)) as f:
+            for el in json.load(f)["elements"]:
+                key = (el.get("type"), el.get("id"))
+                if key in seen:
+                    continue
+                seen.add(key)
+                elements.append(el)
+    return elements
+
+
+def int_tag(tags, key):
     try:
-        with open(SRC_EXTRA) as f:
-            elements += json.load(f)["elements"]
-    except FileNotFoundError:
-        pass
+        return int(str(tags.get(key, "0")).split(";")[0])
+    except ValueError:
+        return 0
+
+
+def main():
+    elements = load_elements()
 
     wx0, wy0 = project(BBOX_SOUTH, BBOX_WEST)
     wx1, wy1 = project(BBOX_NORTH, BBOX_EAST)
@@ -264,6 +378,20 @@ def main():
                     is_bridge = int(tags["layer"]) > 0
                 except ValueError:
                     pass
+            # grade-separation tags, read by add_elevation.py
+            grade = {}
+            layer = int_tag(tags, "layer")
+            if layer:
+                grade["layer"] = layer
+            if tags.get("tunnel") in ("yes", "culvert"):
+                grade["tunnel"] = True
+            if bridge_tag == "viaduct":
+                grade["viaduct"] = True
+            for k in ("cutting", "embankment"):
+                if tags.get(k) not in (None, "no"):
+                    grade[k] = True
+            if tags.get("ref"):
+                grade["ref"] = tags["ref"]
             for line in clip_polyline(coords, world_rect):
                 roads.append({
                     "pts": line,
@@ -275,6 +403,7 @@ def main():
                     "roundabout": is_roundabout,
                     "name": tags.get("name"),
                     "bridge": is_bridge,
+                    **grade,
                 })
             continue
 
@@ -296,6 +425,8 @@ def main():
                 continue
             green.append({"pts": poly, "kind": tags.get("leisure") or tags.get("landuse")})
             continue
+
+    roads, buildings, water, green, trees = crop_to_ring(roads, buildings, water, green, trees, world_rect)
 
     minx, miny, maxx, maxy = world_rect
     out = {

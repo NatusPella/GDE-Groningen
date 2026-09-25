@@ -661,7 +661,7 @@ export function generateClutter(ctx) {
 
   // Bridges: railings with bikes locked to them.
   for (const r of roads) {
-    if (!r.bridge || r.pts.length < 2) continue;
+    if (!r.bridge || r.z || r.pts.length < 2) continue;
     const off = railingOffset(r);
     const bikesOk = hasSidewalk(r) || r.cat === 'foot' || r.cat === 'cycle';
     for (let i = 0; i < r.pts.length - 1; i++) {

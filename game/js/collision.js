@@ -6,6 +6,7 @@ import { resolveWalkerProps } from './breakables.js';
 import { countryWeight } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { resolveRailings } from './bridgerails.js';
+import { resolveElevWalls } from './elevation.js';
 
 // A way that enters a footprint and leaves it again within this length is a
 // building passage (OSM tunnel=building_passage, arcades, poortjes); longer
@@ -220,7 +221,14 @@ export function resolveBuildingCollisions(x, y, radius, map) {
 // buildings, which always win. `vx, vy` is the walker's velocity - fast enough
 // and light props get kicked over instead of blocking; `opts.kick` false keeps
 // every prop solid, `opts.skipSeats` lets a ped reach its bench or chair.
-export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null) {
+// z: the walker's absolute height (ring viaducts, cuttings - elevation.js);
+// up on a deck or down in a cutting the street-level buildings don't apply.
+export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z = 0) {
+  if (map.elev && map.elev.has) {
+    const w = resolveElevWalls(map.elev, x, y, z, radius);
+    if (w) [x, y] = w;
+    if (z > 4 || z < -3.5) return [x, y];
+  }
   [x, y] = resolveWalkerProps(x, y, radius, vx, vy, opts);
   [x, y] = resolveRailings(x, y, radius, map);
   return resolveBuildingCollisions(x, y, radius, map);

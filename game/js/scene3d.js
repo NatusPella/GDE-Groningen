@@ -29,6 +29,8 @@ import { buildShore, updateShore } from './quaywalls.js';
 import { getWaterIndex } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
 import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
+import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
+import { buildRailDecks } from './roadstructures3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
@@ -206,6 +208,15 @@ function nearbyCamTargets(px, py) {
     if (px < minx - CAM_TARGET_RADIUS || px > maxx + CAM_TARGET_RADIUS) continue;
     if (py < miny - CAM_TARGET_RADIUS || py > maxy + CAM_TARGET_RADIUS) continue;
     camTargetList.push(mesh);
+  }
+  // viaduct decks, cutting walls and tunnel roofs of the ring (roadstructures3d)
+  for (const r of roadMeshes.keys()) {
+    const g = r._geoStruct;
+    if (!g || !g.parent) continue;
+    const [minx, miny, maxx, maxy] = r.bounds;
+    if (px < minx - CAM_TARGET_RADIUS || px > maxx + CAM_TARGET_RADIUS) continue;
+    if (py < miny - CAM_TARGET_RADIUS || py > maxy + CAM_TARGET_RADIUS) continue;
+    camTargetList.push(g);
   }
   return camTargetList;
 }
@@ -435,7 +446,7 @@ function seatOffset(v, driverSeat) {
 function placeSeated(personMesh, v, driverSeat) {
   const seat = seatOffset(v, driverSeat);
   const c = Math.cos(v.angle), sn = Math.sin(v.angle);
-  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : v.sinking ? v.sinking.z : 0) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
+  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : v.sinking ? v.sinking.z : v.z || 0) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
   personMesh.rotation.set(0, -v.angle, 0);
 }
 
@@ -526,7 +537,8 @@ export function init3D(map) {
   // sky colour through the gaps.
   const [bx0, by0, bx1, by1] = map.meta.bounds;
   const bedPad = Math.max(bx1 - bx0, by1 - by0) * 0.15;
-  bedMaterial = new THREE.MeshBasicMaterial({ color: 0x1e2a2c });
+  bedMaterial = applyCutMask(new THREE.MeshBasicMaterial({ color: 0x1e2a2c }));
+  initCutMask(map);
   const bed = new THREE.Mesh(
     new THREE.PlaneGeometry(bx1 - bx0 + bedPad * 2, by1 - by0 + bedPad * 2),
     bedMaterial,
@@ -550,6 +562,8 @@ export function init3D(map) {
     roadColorOf: roadFarColor,
   });
   initRailway3D(scene, map);
+  const railDecks = buildRailDecks(map);
+  if (railDecks) scene.add(railDecks);
   scene.add(buildCanopies(map));
   initGrass(scene, map, { polyGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)) });
   onSettingsChange(applyViewSettings);
@@ -1157,13 +1171,13 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (p.state === 'dead') {
       // topple backwards over ~0.3s, then lie flat until the ped is removed
       const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);
-      mesh.position.set(p.x, 0.14 * fall, p.y);
+      mesh.position.set(p.x, 0.14 * fall + (p.gz || 0), p.y);
       mesh.rotation.set(0, -p.angle, fall * fall * Math.PI / 2);
       ud.shadow.visible = false;
       animatePersonWalk(mesh, 0, animDt);
       continue;
     }
-    mesh.position.set(p.x, 0, p.y);
+    mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
     animatePersonWalk(mesh, p.speed || 0, animDt);
   }
@@ -1259,6 +1273,7 @@ export function update3D(dt, world) {
   const player = world.player;
 
   syncBuildings(world, player.x, player.y);
+  setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
   updateGrass(dt, world, cam, DRAW_DIST);
   syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, player.x, player.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
@@ -1289,8 +1304,9 @@ export function update3D(dt, world) {
       mesh = null;
     }
     if (mesh) {
-      mesh.position.set(v.x, v.isBoat ? WATER_Y : 0, v.y);
+      mesh.position.set(v.x, v.isBoat ? WATER_Y : v.z || 0, v.y);
       mesh.rotation.y = -v.angle;
+      if (!v.sinking && !v.isBoat) { mesh.rotation.order = 'YZX'; mesh.rotation.z = v.pitch || 0; }
       updateVehicleWheelSpin(mesh, v.speed, animDt);
       if (v.isBoat) animateBoat(mesh, v, world.time);
       else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
@@ -1307,14 +1323,14 @@ export function update3D(dt, world) {
     // mesh is rebuilt as a wreck on the next frame)
     if (v.hitThisFrame) {
       const spark = buildVehicleImpactSparkMesh3D();
-      spark.position.set(v.hitX, 0.3, v.hitY);
+      spark.position.set(v.hitX, 0.3 + (v.z || 0), v.hitY);
       scene.add(spark);
       impactSparkEffects.push(spark);
     }
     if (vehicleJustWrecked(v)) {
       v.wreckedAt = world.time;
       const boom = buildVehicleExplosionMesh3D();
-      boom.position.set(v.x, 0.2, v.y);
+      boom.position.set(v.x, 0.2 + (v.z || 0), v.y);
       scene.add(boom);
       vehicleExplosionEffects.push(boom);
     }
@@ -1326,7 +1342,7 @@ export function update3D(dt, world) {
         scene.add(fire);
         vehicleFireMeshes.set(v.id, fire);
       }
-      fire.position.set(v.x, 0.4, v.y);
+      fire.position.set(v.x, 0.4 + (v.z || 0), v.y);
       fire.scale.setScalar(v.wrecked ? 2.4 : 1);
       updateVehicleFireMesh3D(fire, animDt);
     }
@@ -1429,7 +1445,7 @@ export function update3D(dt, world) {
       missionMarkerMesh = buildMissionMarker3D();
       scene.add(missionMarkerMesh);
     }
-    missionMarkerMesh.position.set(world.mission.marker.x, 0, world.mission.marker.y);
+    missionMarkerMesh.position.set(world.mission.marker.x, world.mission.marker.z || 0, world.mission.marker.y);
     updateMissionMarker3D(missionMarkerMesh, world.time, world.mission.phase);
   } else if (missionMarkerMesh) {
     scene.remove(missionMarkerMesh);
@@ -1448,7 +1464,7 @@ export function update3D(dt, world) {
       missionWaypointDotMeshes.clear();
       world.mission.remainingWaypoints.forEach((wp, i) => {
         const mesh = buildWaypointDotMesh3D();
-        mesh.position.set(wp.x, 0.4, wp.y);
+        mesh.position.set(wp.x, 0.4 + (wp.z || 0), wp.y);
         scene.add(mesh);
         missionWaypointDotMeshes.set(i, mesh);
       });
@@ -1460,8 +1476,10 @@ export function update3D(dt, world) {
   }
   // no mission beacon, route or waypoint in the title screen / pigeon mode / cutscenes
   const navVisible = document.body.classList.contains('game-started') && !world.pigeonMode && !world.cinematicHideNav;
-  if (missionMarkerMesh) missionMarkerMesh.visible = navVisible;
-  for (const mesh of missionWaypointDotMeshes.values()) mesh.visible = navVisible;
+  // a running bijbaantje (sidejobs.js) has its own beacon; missions wait
+  const jobBusy = !!(world.sideJob && world.sideJob.active);
+  if (missionMarkerMesh) missionMarkerMesh.visible = navVisible && !jobBusy;
+  for (const mesh of missionWaypointDotMeshes.values()) mesh.visible = navVisible && !jobBusy;
   if (!navVisible) {
     if (waypointBeacon) waypointBeacon.visible = false;
     if (routeRibbonMesh) routeRibbonMesh.visible = false;
@@ -1470,19 +1488,23 @@ export function update3D(dt, world) {
   // pickups: money/weapons/health/armor/garages all share module-scope
   // materials in pickups.js, so removal must never call material.dispose()
   const pu = getPickupsForRender();
+  const puZ = (o) => {
+    if (o._gz === undefined) o._gz = world.map.elev && world.map.elev.has ? world.map.groundHeightAt(o.x, o.y, player.inVehicle ? player.inVehicle.z || 0 : player.gz || 0) : 0;
+    return o._gz;
+  };
   syncPickupActors(pu.money, moneyMeshes, () => withShadow(buildMoneyPickupMesh3D(), 0.7), (m) => m);
   for (const m of pu.money) {
     const mesh = moneyMeshes.get(m);
     if (mesh) {
-      mesh.position.set(m.x, 0.55 + Math.sin(world.time * 3 + (m.amount || 0)) * 0.05, m.y);
+      mesh.position.set(m.x, puZ(m) + 0.55 + Math.sin(world.time * 3 + (m.amount || 0)) * 0.05, m.y);
       mesh.rotation.y = world.time * 2.2;
-      mesh.userData.shadow.position.y = 0.02 - mesh.position.y;
+      mesh.userData.shadow.position.y = 0.02 + puZ(m) - mesh.position.y;
     }
   }
   syncPickupActors(pu.weapons, weaponMeshes, (w) => withShadow(buildWeaponPickupMesh3D(w.key), 0.9), (w) => w);
   for (const w of pu.weapons) {
     const mesh = weaponMeshes.get(w);
-    if (mesh) { mesh.position.set(w.x, 0, w.y); mesh.rotation.y = world.time * 1.3; }
+    if (mesh) { mesh.position.set(w.x, puZ(w), w.y); mesh.rotation.y = world.time * 1.3; }
   }
   syncPickupActors(pu.health ? [pu.health] : [], healthMeshes, () => withShadow(buildHealthPickupMesh3D(), 0.9), (h) => h);
   if (pu.health) {
@@ -1589,7 +1611,7 @@ export function update3D(dt, world) {
 
   const pv = player.inVehicle;
   const seatedInPv = pv && !pv.isBike && !pv.isScooter;
-  playerMesh.visible = (!pv || seatedInPv) && !world.pigeonMode && !world.menuCam && !world.cinematicHidePlayers;
+  playerMesh.visible = (!pv || seatedInPv) && (!world.pigeonMode || world.pigeonIntro) && !world.menuCam && !world.cinematicHidePlayers;
   if (seatedInPv) {
     seatPerson(playerMesh, true);
     playerMesh.scale.y = 1;
@@ -1599,7 +1621,7 @@ export function update3D(dt, world) {
     playerMesh.userData.shadow.visible = !player.swimming;
     playerMesh.rotation.x = 0;
     playerMesh.rotation.z = player.swimTilt || 0;
-    playerMesh.position.set(player.x, player.z || 0, player.y);
+    playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0), player.y);
     playerMesh.rotation.y = -player.angle;
     playerMesh.scale.y = 1;
     playerMesh.userData.crouch = !!player.crouching;
@@ -1623,10 +1645,10 @@ export function update3D(dt, world) {
       passengerMesh.visible = false;
       scene.add(passengerMesh);
     }
-    companionMesh.visible = !comp.inVehicle && !world.pigeonMode && !world.menuCam && !world.cinematicHidePlayers;
+    companionMesh.visible = !comp.inVehicle && (!world.pigeonMode || world.pigeonIntro) && !world.menuCam && !world.cinematicHidePlayers;
     if (!comp.inVehicle) {
       if (!driveRagdoll(comp, companionMesh, world, animDt)) {
-        companionMesh.position.set(comp.x, comp.z || 0, comp.y);
+        companionMesh.position.set(comp.x, (comp.gz || 0) + (comp.z || 0), comp.y);
         companionMesh.rotation.z = comp.swimTilt || 0;
         if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !comp.swimming;
         companionMesh.rotation.y = -comp.angle;
@@ -1694,7 +1716,9 @@ export function update3D(dt, world) {
   const veh = player.inVehicle;
   const camScale = veh ? Math.min(3.2, Math.max(1.35, veh.model.len / 2.4)) : 1;
   const radius = orbitRadius * camScale;
-  const eyeX = player.x, eyeY = veh ? 1.3 + (camScale - 1) * 0.55 : 1.3, eyeZ = player.y;
+  // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
+  const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
+  const eyeX = player.x, eyeY = baseH + (veh ? 1.3 + (camScale - 1) * 0.55 : 1.3), eyeZ = player.y;
   const horizDist = Math.cos(followPitch) * radius;
   const orbitHeight = eyeY + Math.sin(followPitch) * radius;
   let desiredX = player.x - Math.cos(camAngle) * horizDist;
@@ -1747,7 +1771,13 @@ export function update3D(dt, world) {
     desiredY -= ay * push;
     desiredZ -= az * push;
   }
-  desiredY = Math.max(desiredY, 0.6);
+  if (world.map.elev && world.map.elev.has) {
+    // never below the surface under the camera, never above a tunnel roof / deck over the player
+    const gCam = world.map.groundHeightAt(desiredX, desiredZ, baseH + 1.5);
+    desiredY = Math.max(desiredY, Math.min(gCam, baseH + 3) + 0.6);
+    const ceil = Math.min(world.map.ceilingAt(desiredX, desiredZ, baseH + 0.5), world.map.ceilingAt(player.x, player.y, baseH + 0.5));
+    if (ceil < Infinity) desiredY = Math.min(desiredY, ceil - 0.45);
+  } else desiredY = Math.max(desiredY, 0.6);
   // vehicles aren't in the building raycast: never let the camera sit
   // inside a car/bus parked right behind the player - rise above its roof
   for (const v of world.vehicles) {
@@ -1757,7 +1787,7 @@ export function update3D(dt, world) {
     const c = Math.cos(v.angle), sn = Math.sin(v.angle);
     const lx = dx * c + dz * sn, lz = -dx * sn + dz * c;
     if (Math.abs(lx) < v.model.len / 2 + 0.6 && Math.abs(lz) < v.model.wid / 2 + 0.6) {
-      desiredY = Math.max(desiredY, (v.isBus ? 3.3 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
+      if (Math.abs((v.z || 0) - baseH) < 2.5) desiredY = Math.max(desiredY, (v.z || 0) + (v.isBus ? 3.3 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
     }
   }
 
@@ -1779,7 +1809,7 @@ export function update3D(dt, world) {
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
     cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
   }
-  applyCameraOverride(dt, world, player.x, veh ? eyeY * 0.85 : 1.3, player.y);
+  applyCameraOverride(dt, world, player.x, veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3, player.y);
 
   updateSunAndSky(player);
   limitActorShadows(pedMeshes, player.x, player.y);
@@ -2046,7 +2076,7 @@ function normalizeAngleDelta(a) {
 const RIBBON_AHEAD_M = 80;
 const RIBBON_HALF_W = 0.8;
 const RIBBON_CHEVRON_M = 3;
-const ROUTE_COLOR_3D = { user: 0xf0ede4, mission: 0xe8c93a };
+const ROUTE_COLOR_3D = { user: 0xf0ede4, mission: 0xe8c93a, job: 0xff9a3c };
 let routeRibbonMesh = null;
 let routeRibbonKey = '';
 let waypointBeacon = null;
@@ -2074,8 +2104,14 @@ function buildChevronTexture() {
   return tex;
 }
 
-function buildRouteRibbonGeometry(pts, along0) {
+function buildRouteRibbonGeometry(pts, along0, map = null, z0 = 0) {
   const n = pts.length;
+  // follow the ring's ramps: each point takes the surface nearest the previous one
+  const zs = new Float32Array(n);
+  if (map && map.elev && map.elev.has) {
+    let h = z0;
+    for (let i = 0; i < n; i++) { h = map.groundHeightAt(pts[i][0], pts[i][1], h); zs[i] = h; }
+  }
   const pos = new Float32Array(n * 2 * 3), uv = new Float32Array(n * 2 * 2), col = new Float32Array(n * 2 * 4);
   const idx = [];
   let dist = 0;
@@ -2092,7 +2128,7 @@ function buildRouteRibbonGeometry(pts, along0) {
       const side = k === 0 ? 1 : -1;
       const j = i * 2 + k;
       pos[j * 3] = pts[i][0] + nx * side;
-      pos[j * 3 + 1] = 0;
+      pos[j * 3 + 1] = zs[i];
       pos[j * 3 + 2] = pts[i][1] + ny * side;
       uv[j * 2] = k;
       uv[j * 2 + 1] = (along0 + dist) / RIBBON_CHEVRON_M;
@@ -2169,7 +2205,7 @@ function updateRouteRibbon3D(dt, world) {
       scene.add(waypointBeacon);
     }
     waypointBeacon.visible = true;
-    waypointBeacon.position.set(wp.x, 0, wp.y);
+    waypointBeacon.position.set(wp.x, wp.z || 0, wp.y);
     const pulse = 1 + Math.sin(performance.now() / 260) * 0.08;
     waypointBeacon.userData.ring.scale.set(pulse, 1, pulse);
   } else if (waypointBeacon) {
@@ -2200,7 +2236,8 @@ function updateRouteRibbon3D(dt, world) {
     routeRibbonMesh.geometry.dispose();
     const p0 = route.pts[route.idx];
     const lane = route.mode === 'drive' ? keepRight(ahead, world.map) : ahead;
-    routeRibbonMesh.geometry = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]));
+    const pl = world.player;
+    routeRibbonMesh.geometry = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]), world.map, pl.inVehicle ? pl.inVehicle.z || 0 : pl.gz || 0);
     routeRibbonMesh.material.color.setHex(ROUTE_COLOR_3D[route.kind] || ROUTE_COLOR_3D.mission);
   }
   routeRibbonMesh.material.map.offset.y -= dt * 0.8;

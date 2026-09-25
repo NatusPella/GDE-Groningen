@@ -1,11 +1,14 @@
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, getOwnedVehiclesForRender, drawShopMapIcon } from './shops.js';
+import { getShopsDecluttered, getOwnedVehiclesForRender, drawShopMapIcon } from './shops.js';
+import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
+import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
+import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap } from './countryfield.js';
+import { drawCountryMinimap } from './countrymap.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 
@@ -15,7 +18,7 @@ const MM_SCALE_FAST = 0.36;
 const MM_FAST_SPEED = 28;
 let mmScale = MM_SCALE;
 
-export const ROUTE_COLORS = { user: '#f0ede4', mission: '#e8c93a' };
+export const ROUTE_COLORS = { user: '#f0ede4', mission: '#e8c93a', job: '#ff9a3c' };
 
 let els = null;
 
@@ -168,7 +171,7 @@ function updateRouteChip(world) {
   let text = '', kind = '';
   if (route && route.remaining > 12) {
     kind = route.kind;
-    text = `${kind === 'user' ? 'Bestemming' : 'Missie'}: ${formatDistance(route.remaining)}`;
+    text = `${kind === 'user' ? 'Bestemming' : kind === 'job' ? 'Klus' : 'Missie'}: ${formatDistance(route.remaining)}`;
   } else if (!route && getUserWaypoint()) {
     const wp = getUserWaypoint();
     kind = 'user';
@@ -345,6 +348,15 @@ function updateMoneyWeapon(dt, world) {
 
 function updateMission(world) {
   const m = world.mission;
+  const job = world.sideJob;
+  if (job && job.active) {
+    const timer = job.timeLeft != null ? Math.ceil(job.timeLeft) + 's' : '';
+    if (els.missionLabel.textContent) els.missionLabel.textContent = '';
+    if (els.missionProgress.textContent !== job.progress) els.missionProgress.textContent = job.progress;
+    if (els.missionTimer.textContent !== timer) els.missionTimer.textContent = timer;
+    els.mission.hidden = !job.progress && !timer;
+    return;
+  }
   if (!m) {
     els.missionLabel.textContent = '';
     els.missionProgress.textContent = '';
@@ -623,6 +635,9 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
     }
     default:
       if (kind.startsWith('shop-')) drawShopMapIcon(ctx, kind.slice(5), s);
+      else if (kind === 'pigeon') drawPigeonMapIcon(ctx, s);
+      else if (kind === 'station') drawStationMapIcon(ctx, s);
+      else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
   }
   ctx.restore();
 }
@@ -764,7 +779,7 @@ function drawMinimap(dt, world) {
 
   ctx.fillStyle = '#22262a';
   ctx.fillRect(player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, MM_RADIUS_M * 2, MM_RADIUS_M * 2);
-  drawCountryMinimap(ctx, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M);
+  drawCountryMinimap(ctx, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, mmScale);
 
   const view = world.map.queryView(
     player.x - MM_RADIUS_M, player.y - MM_RADIUS_M,
@@ -836,12 +851,20 @@ function drawMinimap(dt, world) {
   if (!horecaMini) horecaMini = declutter(getHorecaForRender(), 14 / MM_SCALE);
   for (const h of horecaMini) icon('horeca', h.x, h.y);
   for (const f of world.flitspaalen || []) icon('flitspaal', f.x, f.y);
-  for (const sh of getShopsForRender()) icon('shop-' + sh.type, sh.x, sh.y);
+  for (const sh of getShopsDecluttered(14 / MM_SCALE)) icon('shop-' + sh.type, sh.x, sh.y);
+  for (const ps of getPigeonSpotsForRender()) icon('pigeon', ps.x, ps.y);
+  for (const st of getStationsForRender()) icon('station', st.x, st.y);
+  for (const sj of getSideJobSpotsForRender()) icon('sj-' + sj.job.id, sj.x, sj.y);
   for (const o of getOwnedVehiclesForRender()) if (player.inVehicle !== o.v) icon('car', o.v.x, o.v.y);
 
   const m = world.mission;
-  let missionEdge = null;
-  if (m && m.marker && m.phase !== 'cooldown') {
+  const job = world.sideJob && world.sideJob.active ? world.sideJob : null;
+  let missionEdge = null, jobEdge = null;
+  if (job) {
+    for (const d of job.dots) icon('sj-dot', d.x, d.y);
+    if (job.marker && !icon('sj-target', job.marker.x, job.marker.y)) jobEdge = edgeAngle(job.marker.x, job.marker.y);
+  }
+  if (m && m.marker && m.phase !== 'cooldown' && !job) {
     const wps = m.phase === 'active' ? m.remainingWaypoints || [] : [];
     if (wps.length) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), MM_ICON);
@@ -871,6 +894,10 @@ function drawMinimap(dt, world) {
   const edgeR = MINIMAP_SIZE / 2 - 11;
   if (heroEdge != null) {
     drawEdgeArrow(ctx, cx + Math.cos(heroEdge) * edgeR, cy + Math.sin(heroEdge) * edgeR, heroEdge, C.greenLight, 0.9);
+  }
+  if (jobEdge != null) {
+    const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
+    drawEdgeArrow(ctx, cx + Math.cos(jobEdge) * edgeR, cy + Math.sin(jobEdge) * edgeR, jobEdge, JOB_TARGET_COLOR, wp ? 0.8 : s);
   }
   if (missionEdge != null) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);

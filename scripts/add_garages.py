@@ -4,28 +4,23 @@ merge them into game/citymap.json's meta as meta.garages, for the Pay 'n
 Spray pickup spots.
 """
 import json
-import subprocess
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import bbox_str, cached, map_bbox, near_data  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 
-OVERPASS_URL = "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
-OVERPASS_QUERY = (
-    '[out:json][timeout:60];'
-    'nwr["shop"~"^(car_repair|car|tyres)$"](53.204,6.538,53.235,6.592);'
-    'out center tags;'
-)
+CACHE_PATH = "data/garages_raw.json"
 
 
-def fetch_garages():
-    result = subprocess.run(
-        [
-            "curl", "-s", "-A", "Mozilla/5.0",
-            "--data-urlencode", f"data={OVERPASS_QUERY}",
-            OVERPASS_URL,
-        ],
-        capture_output=True, text=True, check=True,
-    )
-    data = json.loads(result.stdout)
+def overpass_query(bbox):
+    return '[out:json][timeout:90];nwr["shop"~"^(car_repair|car|tyres)$"]' + bbox_str(bbox) + ';out center tags;'
+
+
+def fetch_garages(meta):
+    data = cached(CACHE_PATH, map_bbox(meta), overpass_query)
     out = []
     for el in data.get("elements", []):
         if "lat" in el and "lon" in el:
@@ -49,10 +44,13 @@ def main():
     def project(lat, lon):
         return (lon - lon0) * m_lon, (lat0 - lat) * m_lat
 
-    garages_raw = fetch_garages()
+    garages_raw = fetch_garages(meta)
+    ok = near_data(data)
     out_garages = []
     for name, lat, lon in garages_raw:
         x, y = project(lat, lon)
+        if not ok(x, y):
+            continue
         out_garages.append({"name": name, "x": round(x, 1), "y": round(y, 1)})
 
     meta["garages"] = out_garages

@@ -18,21 +18,33 @@ import subprocess
 
 MAP_PATH = "game/citymap.json"
 RAW_PATH = "data/railways_raw.json"
-BBOX = "53.200,6.530,53.240,6.600"
 OVERPASS_URLS = [
     "https://overpass.private.coffee/api/interpreter",
     "https://overpass-api.de/api/interpreter",
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
-QUERY = (
-    "[out:json][timeout:90];("
-    f'way["railway"="rail"]({BBOX});'
-    f'way["railway"="platform"]({BBOX});'
-    f'node["railway"="level_crossing"]({BBOX});'
-    f'node["railway"="station"]({BBOX});'
-    f'node["railway"="halt"]({BBOX});'
-    ");out geom;"
-)
+
+
+def bbox_for(meta, pad=0.004):
+    """lat/lon box around the map bounds (plus a little for the lines out)."""
+    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
+    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
+    x0, y0, x1, y1 = meta["bounds"]
+    return (round(lat0 - y1 / m_lat - pad, 3), round(lon0 + x0 / m_lon - pad, 3),
+            round(lat0 - y0 / m_lat + pad, 3), round(lon0 + x1 / m_lon + pad, 3))
+
+
+def query_for(bbox):
+    b = ",".join(str(v) for v in bbox)
+    return (
+        "[out:json][timeout:90];("
+        f'way["railway"="rail"]({b});'
+        f'way["railway"="platform"]({b});'
+        f'node["railway"="level_crossing"]({b});'
+        f'node["railway"="station"]({b});'
+        f'node["railway"="halt"]({b});'
+        ");out geom;"
+    )
 
 STATION_NAMES = {
     "Groningen": "Groningen Hoofdstation",
@@ -42,7 +54,7 @@ STATION_NAMES = {
 # the track is then extrapolated EXIT_RUN metres further so the train can
 # drive out of view and come back later.
 ROUTES = [
-    ("Stoptrein Roodeschool", "gtw", ["Groningen Hoofdstation", "Groningen Noord", ("exit", -515, -2473, "Roodeschool")]),
+    ("Stoptrein Roodeschool", "gtw", ["Groningen Hoofdstation", "Groningen Noord", ("exit", -1000, -4400, "Roodeschool")]),
     ("Intercity Zwolle", "virm", ["Groningen Hoofdstation", "Groningen Europapark", ("exit", 2254, 2320, "Zwolle")]),
     ("Stoptrein Winschoten", "wink", ["Groningen Hoofdstation", "Groningen Europapark", ("exit", 2261, 2311, "Winschoten")]),
     ("Stoptrein Leeuwarden", "gtw", ["Groningen Hoofdstation", ("exit", -3600, 910, "Leeuwarden")]),
@@ -58,26 +70,32 @@ ROUTE_OVERRUN = 220.0
 CLIP_MARGIN = 150.0
 
 
-def fetch():
+def fetch(bbox):
     for url in OVERPASS_URLS:
         r = subprocess.run(
-            ["curl", "-s", "-m", "150", "-A", "Mozilla/5.0", "--data-urlencode", f"data={QUERY}", url],
+            ["curl", "-s", "-m", "150", "-A", "Mozilla/5.0", "--data-urlencode", f"data={query_for(bbox)}", url],
             capture_output=True, text=True,
         )
         if r.returncode == 0 and r.stdout.lstrip().startswith("{"):
+            raw = json.loads(r.stdout)
+            raw["bbox"] = list(bbox)
             with open(RAW_PATH, "w") as f:
-                f.write(r.stdout)
-            return json.loads(r.stdout)["elements"]
+                json.dump(raw, f)
+            return raw["elements"]
     raise SystemExit("all Overpass endpoints failed")
 
 
-def load_raw():
+def load_raw(bbox):
+    """Cached rail data; refetched when the cache does not cover bbox."""
     if os.path.exists(RAW_PATH):
         with open(RAW_PATH) as f:
             txt = f.read()
         if txt.lstrip().startswith("{"):
-            return json.loads(txt)["elements"]
-    return fetch()
+            raw = json.loads(txt)
+            have = raw.get("bbox")
+            if have and have[0] <= bbox[0] and have[1] <= bbox[1] and have[2] >= bbox[2] and have[3] >= bbox[3]:
+                return raw["elements"]
+    return fetch(bbox)
 
 
 def seg_intersect(a, b, c, d):
@@ -109,7 +127,7 @@ def main():
     def inside(p, margin=CLIP_MARGIN):
         return bx0 - margin <= p[0] <= bx1 + margin and by0 - margin <= p[1] <= by1 + margin
 
-    elements = load_raw()
+    elements = load_raw(bbox_for(meta))
     ways = [e for e in elements if e["type"] == "way" and e.get("tags", {}).get("railway") == "rail"]
     nodes_xy = {}
     adj = {}
@@ -362,10 +380,14 @@ def main():
         if cat == "foot":
             continue
         pts = road["pts"]
-        for a, b in zip(pts, pts[1:]):
+        zs = road.get("z")
+        for i, (a, b) in enumerate(zip(pts, pts[1:])):
             for ra, rb, is_bridge in rail_bridge_segs:
                 hit = seg_intersect(a, b, ra, rb)
                 if hit is None:
+                    continue
+                # the ring already passes over / under the track here (add_elevation.py)
+                if zs and abs(zs[i] + (zs[i + 1] - zs[i]) * hit[0]) > 3:
                     continue
                 hx, hy = a[0] + (b[0] - a[0]) * hit[0], a[1] + (b[1] - a[1]) * hit[0]
                 if any(math.hypot(hx - x, hy - y) < 30 for x, y in lc_pts):

@@ -1,8 +1,13 @@
 import { drawMapIcon, drawRoute, drawRoadRoute, getHeroCar, forEachPoliceUnit, declutter, ROUTE_COLORS, drawSearchArea, getPoliceSearch } from './hud_panel.js';
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, getOwnedVehiclesForRender, SHOP_TYPES } from './shops.js';
+import { getShopsForRender, getShopsDecluttered, getOwnedVehiclesForRender, SHOP_TYPES } from './shops.js';
+import { getPigeonSpotsForRender } from './pigeonspots.js';
+import { getStationsForRender } from './stationtravel.js';
+import { getSideJobSpotsForRender } from './sidejobs.js';
 import { drawRailsOnMap } from './railway.js';
+import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
+import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
@@ -12,7 +17,9 @@ const PADDING = 0.94;
 const ICON = 1.25;
 const FONT = '"Bebas Neue", "Arial Narrow", Arial, sans-serif';
 const OVERLAY_Z = 15;
-const MIN_ZOOM = 1;
+const MIN_ZOOM = 0.55;
+// the map extends this far past the real data, over the Ommelanden
+const COUNTRY_MARGIN = 3200;
 const MAX_ZOOM = 12;
 const TILE_PX = 512;
 const MAX_TILES = 72;
@@ -264,7 +271,11 @@ function initFog(world) {
     img.data[i * 4] = 12;
     img.data[i * 4 + 1] = 20;
     img.data[i * 4 + 2] = 14;
-    img.data[i * 4 + 3] = bits[i >> 3] & (1 << (i & 7)) ? 0 : 150;
+    // the unexplored tint fades out over the last cells before the map edge,
+    // so it does not draw a hard frame against the Ommelanden
+    const cx = i % w, cy = (i - cx) / w;
+    const edge = Math.min(cx, cy, w - 1 - cx, h - 1 - cy);
+    img.data[i * 4 + 3] = bits[i >> 3] & (1 << (i & 7)) ? 0 : Math.round(150 * Math.min(1, (edge + 0.5) / 5));
   }
   fctx.putImageData(img, 0, 0);
   state.fog = { w, h, minx, miny, bits, canvas, fctx, img, cell: -1, saveAt: 0, dirtySave: false };
@@ -334,7 +345,7 @@ function sizeCanvas() {
   state.canvas.height = Math.max(1, Math.round(rect.height * dpr));
   state.compose.width = state.canvas.width;
   state.compose.height = state.canvas.height;
-  const [minx, miny, maxx, maxy] = state.bounds;
+  const [minx, miny, maxx, maxy] = state.real;
   const base = Math.min(state.cw / (maxx - minx), state.ch / (maxy - miny)) * PADDING;
   if (base !== state.baseScale || dpr !== state.tileDpr) {
     state.baseScale = base;
@@ -393,6 +404,7 @@ function viewRect(marginPx = 0) {
 
 function clearTiles() {
   if (state) {
+    state.level0 = false;
     for (const t of state.tiles.values()) if (state.pool.length < 8) state.pool.push(t.canvas);
     state.tiles.clear();
     state.dirty = true;
@@ -423,10 +435,16 @@ function renderTile(L, tx, ty) {
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, TILE_PX, TILE_PX);
   c.setTransform(s, 0, 0, s, -wx0 * s, -wy0 * s);
+  const [rx0, ry0, rx1, ry1] = state.real;
   c.fillStyle = LAND;
-  c.fillRect(Math.max(minx, wx0), Math.max(miny, wy0), Math.min(maxx, wx0 + tws) - Math.max(minx, wx0), Math.min(maxy, wy0 + tws) - Math.max(miny, wy0));
+  if (wx0 < rx1 && wx0 + tws > rx0 && wy0 < ry1 && wy0 + tws > ry0) {
+    c.fillRect(Math.max(rx0, wx0), Math.max(ry0, wy0), Math.min(rx1, wx0 + tws) - Math.max(rx0, wx0), Math.min(ry1, wy0 + tws) - Math.max(ry0, wy0));
+  }
+  drawCountryBase(c, wx0, wy0, wx0 + tws, wy0 + tws, MAP_STYLE);
 
-  const view = state.map.queryView(wx0, wy0, wx0 + tws, wy0 + tws);
+  // the city data only exists inside the real bounds
+  const qx0 = Math.max(wx0, rx0 - 50), qy0 = Math.max(wy0, ry0 - 50), qx1 = Math.min(wx0 + tws, rx1 + 50), qy1 = Math.min(wy0 + tws, ry1 + 50);
+  const view = qx0 < qx1 && qy0 < qy1 ? state.map.queryView(qx0, qy0, qx1, qy1) : { roads: [], buildings: [], water: [], green: [], trees: [] };
   const cssPerM = state.baseScale * z;
   const px = (n) => n / cssPerM;
 
@@ -472,6 +490,7 @@ function renderTile(L, tx, ty) {
     c.stroke();
     c.globalAlpha = 1;
   }
+  drawCountryDetail(c, wx0, wy0, wx0 + tws, wy0 + tws, cssPerM, MAP_STYLE);
   drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px(z < MID_ZOOM ? 1.6 : 2.6));
   return canvas;
 }
@@ -492,12 +511,17 @@ function visibleTiles(L) {
   return { tws, out };
 }
 
+// The overview tiles over the real map at once; the countryside ones
+// arrive through fillTiles within its time budget.
 function ensureLevel0() {
   const tws = tileWorldSize(0);
   const [minx, miny, maxx, maxy] = state.bounds;
+  const [rx0, ry0, rx1, ry1] = state.real;
   const nx = Math.ceil((maxx - minx) / tws), ny = Math.ceil((maxy - miny) / tws);
   for (let ty = 0; ty < ny; ty++) {
     for (let tx = 0; tx < nx; tx++) {
+      const ax = minx + tx * tws, ay = miny + ty * tws;
+      if (ax > rx1 || ax + tws < rx0 || ay > ry1 || ay + tws < ry0) continue;
       const k = tileKey(0, tx, ty);
       if (!state.tiles.has(k)) state.tiles.set(k, { canvas: renderTile(0, tx, ty), used: 0, L: 0 });
     }
@@ -665,6 +689,23 @@ function drawStaticOverlay(ctx) {
     }
   }
 
+  // villages out in the Ommelanden
+  {
+    const [vx0, vy0, vx1, vy1] = viewRect(60);
+    ctx.font = `${z < MID_ZOOM ? 12 : 14}px ${FONT}`;
+    ctx.textBaseline = 'middle';
+    for (const v of villageLabels(vx0, vy0, vx1, vy1)) {
+      const [sx, sy] = toScreen(v.x, v.y);
+      const label = v.name.toUpperCase();
+      const w = ctx.measureText(label).width;
+      const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
+      if (collides(boxes, box)) continue;
+      boxes.push(box);
+      drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.8)', 'center');
+      hover.push({ sx, sy, name: v.name, sub: 'Dorp in het Ommeland' });
+    }
+  }
+
   if (layerOn('wijken') && z < 6) {
     ctx.font = `${z < MID_ZOOM ? 12 : 15}px ${FONT}`;
     ctx.textBaseline = 'middle';
@@ -723,9 +764,9 @@ function compose() {
   c.fillRect(0, 0, state.compose.width, state.compose.height);
   c.imageSmoothingEnabled = true;
 
-  if (!state.tiles.has(tileKey(0, 0, 0))) ensureLevel0();
+  if (!state.level0) { state.level0 = true; ensureLevel0(); }
   const L = levelFor(state.zoom);
-  const ready = L === 0 || fillTiles(L);
+  const ready = fillTiles(L);
   const { tws, out } = visibleTiles(L);
   if (!ready) {
     const v0 = visibleTiles(0);
@@ -781,7 +822,12 @@ function drawDynamicMarkers(ctx, world) {
   if (p.armor) icon('armor', 'armor', p.armor.x, p.armor.y, 'Kogelwerend vest');
 
   const m = world.mission;
-  if (m && m.marker && m.phase !== 'cooldown' && layerOn('mission')) {
+  const job = world.sideJob && world.sideJob.active ? world.sideJob : null;
+  if (job) {
+    for (const d of job.dots) icon(null, 'sj-dot', d.x, d.y, d.label || job.label);
+    if (job.marker) icon(null, 'sj-target', job.marker.x, job.marker.y, job.label, {}, job.goal ? job.goal.label : 'Klus');
+  }
+  if (m && m.marker && m.phase !== 'cooldown' && layerOn('mission') && !job) {
     const wps = m.phase === 'active' ? m.remainingWaypoints || [] : [];
     if (wps.length) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), ICON);
@@ -794,7 +840,10 @@ function drawDynamicMarkers(ctx, world) {
   const hero = getHeroCar(world);
   if (hero && world.player.inVehicle !== hero) icon('car', 'car', hero.x, hero.y, 'Jouw auto');
   for (const o of getOwnedVehiclesForRender()) if (world.player.inVehicle !== o.v) icon('car', 'car', o.v.x, o.v.y, 'Jouw ' + o.label);
-  for (const sh of getShopsForRender()) icon('shops', 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label);
+  for (const sh of getShopsDecluttered(z >= NEAR_ZOOM ? 1 : 26 / state.scale)) icon(SHOP_TYPES[sh.type].group, 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label);
+  for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif');
+  for (const sj of getSideJobSpotsForRender()) icon('bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, 'Bijbaantje: ' + sj.job.blurb.toLowerCase());
+  for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, 'Reizen met de trein');
 
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', 'companion', c.x, c.y, c.character === 'tammo' ? 'Tammo' : 'Anita', {}, 'Maat');
@@ -890,6 +939,8 @@ function buildSearchIndex(world) {
   for (const h of world.map.meta.horeca || []) if (h.name) entries.push({ label: h.name, kind: 'Horeca', pri: 3, x: h.x, y: h.y, zoom: 8 });
   for (const g of world.map.meta.garages || []) if (g.name) entries.push({ label: g.name, kind: 'Garage', pri: 4, x: g.x, y: g.y, zoom: 7 });
   for (const sh of getShopsForRender()) entries.push({ label: sh.name, kind: SHOP_TYPES[sh.type].label, pri: 3, x: sh.x, y: sh.y, zoom: 8 });
+  for (const sj of getSideJobSpotsForRender()) entries.push({ label: sj.job.name, kind: 'Bijbaantje', pri: 1, x: sj.x, y: sj.y, zoom: 8 });
+  for (const st of getStationsForRender()) entries.push({ label: st.name, kind: 'Treinstation', pri: 0, x: st.x, y: st.y, zoom: 7 });
   for (const e of entries) {
     e.norm = normalize(e.label);
     e.compact = e.norm.replace(/ /g, '');
@@ -1002,11 +1053,16 @@ function updateTooltip(sx, sy) {
     sub = h.sub || '';
   } else {
     const [wx, wy] = toWorld(sx, sy);
-    const [minx, miny, maxx, maxy] = state.bounds;
-    if (wx < minx || wy < miny || wx > maxx || wy > maxy) { tip.style.display = 'none'; return; }
-    main = streetAt(wx, wy, Math.max(4, 10 / state.scale)) || '';
-    sub = wijkAt(wx, wy) || '';
-    if (!main) { main = sub; sub = ''; }
+    const [minx, miny, maxx, maxy] = state.real;
+    if (wx < minx || wy < miny || wx > maxx || wy > maxy) {
+      const v = villageLabels(wx - 150, wy - 150, wx + 150, wy + 150).find((q) => Math.hypot(q.x - wx, q.y - wy) < q.r);
+      main = v ? v.name : 'Ommeland';
+      sub = v ? 'Dorp in het Ommeland' : '';
+    } else {
+      main = streetAt(wx, wy, Math.max(4, 10 / state.scale)) || '';
+      sub = wijkAt(wx, wy) || '';
+      if (!main) { main = sub; sub = ''; }
+    }
   }
   if (!main) { tip.style.display = 'none'; return; }
   tip.textContent = main;
@@ -1103,7 +1159,12 @@ const LEGEND = [
   { kind: 'armor', label: 'Kogelwerend vest', layer: 'armor' },
   { kind: 'garage', label: 'Garage', layer: 'garage' },
   { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
-  { kind: 'shop-kleding', label: 'Winkels', note: 'wapens, kleding, kapper, fietsen, auto\'s, loten', layer: 'shops' },
+  { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks', layer: 'shops' },
+  { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten', layer: 'shopsVoertuigen' },
+  { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', layer: 'shopsWapens' },
+  { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },
+  { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
+  { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },
   { kind: 'flitspaal', label: 'Flitspaal', layer: 'flitspaal' },
   { kind: 'landmark', label: 'Bezienswaardigheid', layer: 'landmark' },
   { kind: 'police', label: 'Politie', note: 'alleen met sterren', layer: 'police' },
@@ -1194,6 +1255,7 @@ function buildLegend(root) {
 }
 
 function openMap(world) {
+  ensureCountryEdge(world.map);
   state.open = true;
   state.overlay.classList.add('open');
   sizeCanvas();
@@ -1274,7 +1336,8 @@ export function initMapView(world) {
     open: false,
     world,
     map: world.map,
-    bounds: world.map.meta.bounds,
+    real: world.map.meta.bounds,
+    bounds: world.map.meta.bounds.map((v, i) => v + (i < 2 ? -COUNTRY_MARGIN : COUNTRY_MARGIN)),
     overlay,
     canvas: overlay.querySelector('canvas'),
     tooltip: overlay.querySelector('.mapview-tooltip'),

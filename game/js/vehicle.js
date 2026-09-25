@@ -3,6 +3,7 @@ import { trafficSignalsNear, getTrafficLightPhase } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
 import { inPassage } from './collision.js';
 import { railingContact } from './bridgerails.js';
+import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
 import { countrySurface } from './countryfield.js';
@@ -101,6 +102,9 @@ export class Vehicle {
     this.id = nextId++;
     this.x = x;
     this.y = y;
+    this.z = 0; // absolute height of the wheels (ring viaducts / sunken sections, elevation.js)
+    this.vz = 0;
+    this.pitch = 0;
     this.angle = angle;
     this.speed = 0;
     this.steer = 0;
@@ -469,6 +473,10 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   v.dir = dir;
   v.segIdx = dir > 0 ? i : i + 1;
   v.cruiseScale = 0.9 + rng() * 0.2;
+  if (road.z) {
+    v.z = road.z[i] + (road.z[i + 1] - road.z[i]) * t;
+    v.pitch = Math.atan2((road.z[i + 1] - road.z[i]) * dir, Math.hypot(b[0] - a[0], b[1] - a[1]) || 1);
+  }
   return v;
 }
 
@@ -506,7 +514,7 @@ function spawnSpotFree(vehicles, v, clearance = 9) {
 // model regardless of the RNG pick and flags it so it's never swept up by
 // the ambient traffic population manager.
 export function spawnHeroCarNear(map, x, y, rng = Math.random) {
-  const point = map.nearestRoadPoint(x, y, 200, true);
+  const point = map.nearestRoadPoint(x, y, 200, true, true);
   if (!point) return null;
   const v = spawnVehicleOnRoad(map, point.road, false, rng, false, false, point);
   v.model = HERO_CAR_MODEL;
@@ -1654,6 +1662,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       // wrecks are solid, heavy obstacles; two wrecks never interact
       // a boat and a car only ever share x/y with a bridge deck between them
       if (b.sinking || (a.wrecked && b.wrecked) || !a.isBoat !== !b.isBoat) continue;
+      // one on the viaduct, the other on the street below (or in the cutting)
+      if (Math.abs((a.z || 0) - (b.z || 0)) > 2.5) continue;
       // a waiting cycle being broken: the chosen vehicle slips past its partner
       if (world && ((a.ignoreId === b.id && world.time < a.ignoreUntil) || (b.ignoreId === a.id && world.time < b.ignoreUntil))) continue;
       const reach = a.halfLen + b.halfLen + 0.2;
@@ -1722,6 +1732,45 @@ function collisionProbes(v) {
   return pts.map(([lx, ly]) => [v.x + lx * cos - ly * sin, v.y + lx * sin + ly * cos]);
 }
 
+const FALL_G = 9.8;
+const LAND_DAMAGE_SPEED = 7;
+
+// Keep the wheels on the surface under the car (map.groundHeightAt): up and
+// down the ring's ramps, over viaducts, through the cuttings. Driving off an
+// edge (or over a crest too fast) goes ballistic until it lands; a hard
+// landing damages the car. Pitch follows the surface under the axles.
+export function settleVehicleHeight(v, map, dt) {
+  if (v.isBoat || v.sinking || !map.groundHeightAt || !dt) return;
+  const z = v.z || 0;
+  const g = map.groundHeightAt(v.x, v.y, z);
+  if (v.airborne) {
+    v.vz -= FALL_G * dt;
+    v.z = z + v.vz * dt;
+    if (v.z <= g) {
+      const hit = -v.vz;
+      v.z = g;
+      v.vz = 0;
+      v.airborne = false;
+      if (hit > LAND_DAMAGE_SPEED) {
+        applyImpactDamage(v, Math.min(60, (hit - LAND_DAMAGE_SPEED) * 7), v.driver === 'player', null);
+        v.pendingImpact = { x: v.x, y: v.y, speed: hit * 1.5 };
+      }
+    }
+  } else if (z - g > 0.6 + Math.abs(v.speed) * dt * 0.2) {
+    // off the edge: keep the vertical speed the slope gave it
+    v.airborne = true;
+    v.vz = Math.sin(v.pitch || 0) * v.speed;
+  } else {
+    v.z = g;
+  }
+  if (!g && !z && !v.pitch) return;
+  const h = Math.min(v.halfLen * 0.75, 2.4);
+  const c = Math.cos(v.angle) * h, s = Math.sin(v.angle) * h;
+  const zf = map.groundHeightAt(v.x + c, v.y + s, v.z), zr = map.groundHeightAt(v.x - c, v.y - s, v.z);
+  const target = v.airborne ? (v.pitch || 0) * 0.98 : Math.atan2(zf - zr, 2 * h);
+  v.pitch = (v.pitch || 0) + (Math.max(-0.35, Math.min(0.35, target)) - (v.pitch || 0)) * Math.min(1, dt * 10);
+}
+
 // A body corner that has penetrated a footprint is pushed out along the
 // nearest wall's normal; the impulse removes only the into-wall velocity
 // (plus friction), so a glancing scrape slides along while a head-on stops
@@ -1729,12 +1778,15 @@ function collisionProbes(v) {
 // for callers.
 export function resolveVehicleBuildingCollision(v, map, dt) {
   if (v.parked && !v.speed && !v.driftX && !v.driftY && !v.yawVel) return false;
+  settleVehicleHeight(v, map, dt);
   let hit = false, worst = 0, hx = 0, hy = 0;
   const light = v.isBike || v.isScooter;
   const count = collisionProbes(v).length;
+  // up on a viaduct or down in the cutting nothing at street level is in the way
+  const offLevel = (v.z || 0) > 4 || (v.z || 0) < -3.5;
   for (let k = 0; k < count; k++) {
     const c = collisionProbes(v)[k];
-    for (const b of map.buildingsNear(c[0], c[1], 1)) {
+    for (const b of offLevel ? [] : map.buildingsNear(c[0], c[1], 1)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
       if (!pointInPolygon(c[0], c[1], b.pts) || onRoadThroughBuilding(map, c[0], c[1], b) || (light && inPassage(map, b, c[0], c[1]))) continue;
@@ -1755,7 +1807,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       hit = true;
       break;
     }
-    const rc = v.isBoat || v.sinking ? null : railingContact(map, c[0], c[1]);
+    const rc = v.isBoat || v.sinking ? null : (offLevel ? null : railingContact(map, c[0], c[1])) || (map.elev ? elevWallContact(map.elev, c[0], c[1], v.z || 0) : null);
     if (rc) {
       v.x += rc.nx * rc.depth;
       v.y += rc.ny * rc.depth;
@@ -2028,6 +2080,9 @@ export function checkVehicleWater(v, map, world) {
   if (v.sinking && !v.wrecked) { v.x = v.sinking.x; v.y = v.sinking.y; v.speed = 0; return false; }
   if (v.isBoat || v.wrecked || v.sinking || (v.parked && !v.speed)) return false;
   if (!inWaterPoly(map, v.x, v.y) || map.isOnBridge(v.x, v.y)) return false;
+  // over the canal on a viaduct, or under it through the aqueduct
+  const z = v.z || 0;
+  if (v.airborne || z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(v.x, v.y))) return false;
   startVehicleFall(v, world);
   return true;
 }

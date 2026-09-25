@@ -47,7 +47,42 @@ export function countryRect() {
 // accepts arrays for vec4 uniforms.
 export const COUNTRY_UNIFORMS = {
   uCountryRect: { value: [0, 0, 1e9, 1e9] },
+  // roads and canals carrying on from the map edge (countryedge.js)
+  uEdgeTex: { value: null },
+  // lookup grid: per cell up to 8 segment indices (+1), two texels per cell
+  uEdgeGrid: { value: null },
+  uEdgeGridRect: { value: [0, 0, 64, 0] },
+  uEdgeGridSize: { value: [0, 0, 0, 0] },
+  // coverage mask of the real map data (signed distance, see setCountryMask)
+  uMaskTex: { value: null },
+  uMaskRect: { value: [0, 0, 1, 0] },
+  uMaskSize: { value: [0, 0, 0, 0] },
 };
+
+// countryedge.js registers its road / canal lookup here (this module stays
+// import-free so the shader source can be shared).
+let edgeQuery = null;
+export function setEdgeQuery(fn) {
+  edgeQuery = fn;
+}
+
+// Near the city the thin ditches thin out: a ditch only runs if its hash
+// is under this ramp, so the ditch grid fades in instead of starting on a line.
+export function ditchRamp(x, y) {
+  const d = edgeDistance(x, y);
+  return d >= 450 ? 1 : smooth(20, 450, d);
+}
+export function thinDitchOn(p) {
+  const r = ditchRamp(p.x, p.y);
+  if (r >= 1) return true;
+  const dA = Math.min(p.a - p.a0, p.a1 - p.a), dB = Math.min(p.b - p.b0, p.b1 - p.b);
+  if (dA < dB) {
+    const ci = p.a - p.a0 < p.a1 - p.a ? p.col : p.col + 1;
+    return chash(ci + p.bx * 131 + 5, p.by * 977 + 61) < r;
+  }
+  const ri = p.b - p.b0 < p.b1 - p.b ? p.row : p.row + 1;
+  return chash(p.col * 31 + p.bx * 7 + ri * 131, p.by * 977 + 71) < r;
+}
 
 export function chash(x, y) {
   let h = Math.imul(x | 0, 1597334677) ^ Math.imul(y | 0, 3812015801 | 0);
@@ -70,8 +105,32 @@ function smooth(e0, e1, x) {
 }
 
 // Signed distance past the map edge (negative inside), Chebyshev.
+// Beyond the bounds rectangle this is the plain rectangle distance; inside
+// it (and a margin round it) a coverage mask of where real map data exists
+// takes over, so the countryside follows the actual shape of the data.
 export function edgeDistance(x, y) {
-  return Math.max(Math.abs(x - rect.cx) - rect.hx, Math.abs(y - rect.cy) - rect.hy);
+  const r = Math.max(Math.abs(x - rect.cx) - rect.hx, Math.abs(y - rect.cy) - rect.hy);
+  const M = mask;
+  if (!M) return r;
+  const gx = (x - M.x0) / M.cell - 0.5, gy = (y - M.y0) / M.cell - 0.5;
+  if (gx < 0 || gy < 0 || gx >= M.w - 1 || gy >= M.h - 1) return r;
+  const ix = Math.floor(gx), iy = Math.floor(gy), fx = gx - ix, fy = gy - iy;
+  const d = M.data, i = iy * M.w + ix;
+  const a = d[i] + (d[i + 1] - d[i]) * fx, b = d[i + M.w] + (d[i + M.w + 1] - d[i + M.w]) * fx;
+  return Math.max(r, a + (b - a) * fy);
+}
+
+// Coverage mask: { x0, y0, cell, w, h, data: Float32Array signed distance
+// (m, negative inside the data) at cell centres }. Clears derived caches.
+let mask = null;
+export function setCountryMask(m) {
+  mask = m;
+  villageCache.clear();
+  COUNTRY_UNIFORMS.uMaskRect.value = [m.x0, m.y0, m.cell, 0];
+  COUNTRY_UNIFORMS.uMaskSize.value = [m.w, m.h, 0, 0];
+}
+export function countryMask() {
+  return mask;
 }
 
 // 0 inside the real map, 1 in open countryside, noisy feather between.
@@ -136,7 +195,7 @@ export function villageStreet(v, x, y) {
 // Parcel lookup; fills and returns a shared scratch object.
 const P = {
   bx: 0, by: 0, rot: false, col: 0, row: 0, a: 0, b: 0,
-  a0: 0, a1: 0, b0: 0, b1: 0, dDitch: 0, dMain: 0, dMaar: 1e3, road: false, cont: false, seed: 0,
+  a0: 0, a1: 0, b0: 0, b1: 0, dDitch: 0, dMain: 0, dMaar: 1e3, road: false, cont: false, seed: 0, x: 0, y: 0,
 };
 export function parcelAt(x, y) {
   const bx = Math.floor(x / BLOCK), by = Math.floor(y / BLOCK);
@@ -148,6 +207,7 @@ export function parcelAt(x, y) {
   const row = Math.floor((b + off) / PL);
   const b0 = Math.max(0, row * PL - off), b1 = Math.min(BLOCK, (row + 1) * PL - off);
   const a0 = col * PW, a1 = a0 + PW;
+  P.x = x; P.y = y;
   P.bx = bx; P.by = by; P.rot = rot; P.col = col; P.row = row; P.a = a; P.b = b;
   P.a0 = a0; P.a1 = a1; P.b0 = b0; P.b1 = b1;
   P.dDitch = Math.min(a - a0, a1 - a, b - b0, b1 - b);
@@ -179,6 +239,10 @@ export function parcelUse(seed) {
 // Ground kind under (x, y) for gameplay: null (real map), 'gras', 'weg'
 // (polder road) or 'sloot' (ditch water).
 export function countrySurface(x, y) {
+  if (edgeQuery) {
+    const e = edgeQuery(x, y);
+    if (e) return e === 'sloot' && parcelAt(x, y).road ? 'weg' : e;
+  }
   const w = countryWeight(x, y);
   if (w < 0.5) return null;
   const vi = w > 0.99 ? villageAt(x, y) : null;
@@ -192,7 +256,9 @@ export function countrySurface(x, y) {
   if (wet && p.dMaar < MAAR_WATER) return p.road && p.cont ? 'weg' : 'sloot';
   if (wet && p.dMain < MAIN_HW * 0.8 && !(p.road && p.cont)) return 'sloot';
   if (p.road) return 'weg';
-  if (wet && p.dDitch < DITCH_HW * 0.72) return 'sloot';
+  if (wet && p.dDitch < DITCH_HW * 0.72) {
+    if (thinDitchOn(p)) return 'sloot';
+  }
   return 'gras';
 }
 
@@ -201,6 +267,13 @@ export function countrySurface(x, y) {
 // and sDip (puddle bias) declared by terrain3d's wet-ground code.
 export const COUNTRY_GLSL = `
 uniform vec4 uCountryRect;
+uniform sampler2D uEdgeTex;
+uniform sampler2D uEdgeGrid;
+uniform vec4 uEdgeGridRect;
+uniform vec4 uEdgeGridSize;
+uniform sampler2D uMaskTex;
+uniform vec4 uMaskRect;
+uniform vec4 uMaskSize;
 const float C_BLOCK = ${BLOCK.toFixed(1)};
 const float C_PW = ${PW.toFixed(1)};
 const float C_PL = ${PL.toFixed(1)};
@@ -225,6 +298,21 @@ float cNoise(vec2 p) {
   return a + (b - a) * u.x + (c - a) * u.y + (a - b - c + d) * u.x * u.y;
 }
 vec3 cLin(float r, float g, float b) { return pow(vec3(r, g, b) / 255.0, vec3(2.2)); }
+// Signed distance past the real data (negative inside): the coverage mask
+// where it exists, the bounds rectangle beyond it. Mirrors edgeDistance().
+float cEdgeDist(vec2 p) {
+  vec2 q = abs(p - uCountryRect.xy) - uCountryRect.zw;
+  float r = max(q.x, q.y);
+  if (uMaskSize.x < 2.0) return r;
+  vec2 g = (p - uMaskRect.xy) / uMaskRect.z - 0.5;
+  if (g.x < 0.0 || g.y < 0.0 || g.x >= uMaskSize.x - 1.0 || g.y >= uMaskSize.y - 1.0) return r;
+  ivec2 i = ivec2(floor(g));
+  vec2 f = g - vec2(i);
+  float a = texelFetch(uMaskTex, i, 0).r, b = texelFetch(uMaskTex, i + ivec2(1, 0), 0).r;
+  float c = texelFetch(uMaskTex, i + ivec2(0, 1), 0).r, d = texelFetch(uMaskTex, i + ivec2(1, 1), 0).r;
+  return max(r, mix(mix(a, b, f.x), mix(c, d, f.x), f.y));
+}
+
 bool cRoad(int bx, int by, int s) { return cHash(bx * 3 + s * 7919, by * 5 + 101) < C_ROAD_P; }
 bool cMaarX(int i) { return cHash(i * 37 + 11, 4441) < 0.18; }
 bool cMaarY(int j) { return cHash(j * 41 + 17, 5557) < 0.18; }
@@ -233,17 +321,49 @@ vec3 cVillage(int bx, int by) {
   float x = float(bx) * C_BLOCK + ${VILLAGE_X.toFixed(2)};
   float y = float(by) * C_BLOCK + 250.0 + cHash(bx + 71, by - 13) * 460.0;
   float r = 100.0 + cHash(bx - 9, by + 17) * 30.0;
-  vec2 q = abs(vec2(x, y) - uCountryRect.xy) - uCountryRect.zw;
-  if (max(q.x, q.y) < r + 260.0) return vec3(0.0);
+  if (cEdgeDist(vec2(x, y)) < r + 260.0) return vec3(0.0);
   return vec3(x, y, r);
 }
 
+// Roads (x) and canals (y) carried on from the map edge; z = distance to
+// the painted edge line of the nearest such road.
+vec3 cEdge(vec2 p, float px) {
+  float road = 0.0, canal = 0.0, line = 1e3;
+  vec2 g = (p - uEdgeGridRect.xy) / uEdgeGridRect.z;
+  if (g.x < 0.0 || g.y < 0.0 || g.x >= uEdgeGridSize.x || g.y >= uEdgeGridSize.y) return vec3(0.0, 0.0, 1e3);
+  ivec2 c = ivec2(floor(g));
+  vec4 s0 = texelFetch(uEdgeGrid, ivec2(c.x * 2, c.y), 0);
+  if (s0.x < 0.5) return vec3(0.0, 0.0, 1e3);
+  vec4 s1 = texelFetch(uEdgeGrid, ivec2(c.x * 2 + 1, c.y), 0);
+  for (int k = 0; k < 8; k++) {
+    float id = k < 4 ? s0[k] : s1[k - 4];
+    if (id < 0.5) break;
+    int i = int(id) - 1;
+    vec4 A = texelFetch(uEdgeTex, ivec2(i, 0), 0);
+    vec2 ab = A.zw - A.xy;
+    float t = clamp(dot(p - A.xy, ab) / max(dot(ab, ab), 1e-3), 0.0, 1.0);
+    float d = length(p - A.xy - ab * t);
+    vec4 W = texelFetch(uEdgeTex, ivec2(i, 1), 0);
+    float hw = mix(W.x, W.y, t);
+    if (d > hw + 2.5) continue;
+    float cov = 1.0 - smoothstep(hw - px - 0.05, hw + px + 0.05, d);
+    if (W.z < 0.5) { road = max(road, cov); line = min(line, abs(d - (hw - 0.3))); }
+    else canal = max(canal, 1.0 - smoothstep(hw - 1.2 - px, hw - 1.2 + px, d));
+  }
+  return vec3(road, canal, line);
+}
+
 float countryWeight(vec2 p) {
-  vec2 q = abs(p - uCountryRect.xy) - uCountryRect.zw;
-  float d = max(q.x, q.y);
+  float d = cEdgeDist(p);
   if (d < -${(FEATHER_IN + FEATHER_NOISE).toFixed(1)}) return 0.0;
   float n = (cNoise(p * 0.012) + 0.5 * cNoise(p * 0.05 + vec2(17.0, 3.0))) / 1.5;
-  return smoothstep(-${FEATHER_IN.toFixed(1)}, ${FEATHER_OUT.toFixed(1)}, d + (n - 0.5) * ${FEATHER_NOISE.toFixed(1)});
+  float cw = smoothstep(-${FEATHER_IN.toFixed(1)}, ${FEATHER_OUT.toFixed(1)}, d + (n - 0.5) * ${FEATHER_NOISE.toFixed(1)});
+  // the roads and canals running off the map are fully country from the edge on
+  if (cw < 1.0 && d > -16.0 && d < 90.0) {
+    vec3 e = cEdge(p, 0.5);
+    cw = max(cw, max(e.x, e.y));
+  }
+  return cw;
 }
 
 vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
@@ -265,6 +385,14 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float dM = min(min(l.x, C_BLOCK - l.x), min(l.y, C_BLOCK - l.y));
   float seed = cHash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   float seed2 = fract(seed * 7.31);
+  // thin ditches fade in over the first few hundred metres past the city
+  float edD = cEdgeDist(p);
+  float keepD = 1.0;
+  float ramp = smoothstep(20.0, 450.0, edD);
+  if (ramp < 1.0) {
+    if (dA < dB) { int ci = (a - a0 < a0 + C_PW - a) ? col : col + 1; keepD = step(cHash(ci + bx * 131 + 5, by * 977 + 61), ramp); }
+    else { int ri = (b - b0 < b1 - b) ? row : row + 1; keepD = step(cHash(col * 31 + bx * 7 + ri * 131, by * 977 + 71), ramp); }
+  }
 
   float n1 = cNoise(p * 0.03), n2 = cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
   vec3 grassA = cLin(88.0, 122.0, 54.0), grassB = cLin(79.0, 114.0, 52.0), grassC = cLin(104.0, 138.0, 62.0);
@@ -320,7 +448,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
 
   // lush darker verge along every ditch
   float hw = C_DITCH;
-  float verge = (1.0 - smoothstep(hw, hw + 1.4, dD)) * (1.0 - vil);
+  float verge = (1.0 - smoothstep(hw, hw + 1.4, dD)) * (1.0 - vil) * keepD;
   float vergeM = (1.0 - smoothstep(C_MAIN, C_MAIN + 2.0, dM)) * (1.0 - vil);
   c = mix(c, cLin(62.0, 94.0, 42.0) * (0.85 + 0.3 * n3), max(verge, vergeM) * 0.75);
 
@@ -342,6 +470,18 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   c = mix(c, asphalt, roadM);
   sRough -= roadM * 0.1;
   sDip += roadM * 0.4 - 0.2;
+
+  // roads and canals carried on from the city
+  vec3 ce = vec3(0.0, 0.0, 1e3);
+  if (edD > -20.0 && edD < 4300.0) ce = cEdge(p, px);
+  if (ce.x > 0.0) {
+    vec3 asph = cLin(74.0, 74.0, 76.0) * (0.9 + 0.2 * n3);
+    float el = (1.0 - smoothstep(0.08, 0.08 + px, ce.z)) * detail;
+    asph = mix(asph, cLin(214.0, 210.0, 198.0), el * 0.85);
+    c = mix(c, asph, ce.x);
+    sRough -= ce.x * 0.1;
+    roadM = max(roadM, ce.x);
+  }
 
   // village streets in red klinkers
   if (vil > 0.0) {
@@ -366,11 +506,14 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   if (cMaarY(by)) dQ = min(dQ, l.y);
   if (cMaarY(by + 1)) dQ = min(dQ, C_BLOCK - l.y);
   float dry = 1.0 - vil;
-  float wD = (1.0 - smoothstep(hw * 0.72 - px, hw * 0.72 + px, dD)) * (1.0 - culvert) * dry;
-  float wM = (1.0 - smoothstep(C_MAIN * 0.8 - px, C_MAIN * 0.8 + px, dM)) * (1.0 - culvM) * dry;
-  float wQ = 1.0 - smoothstep(C_MAAR_WATER - px, C_MAAR_WATER + px, dQ);
-  float water = max(max(wD, wM), wQ) * smoothstep(0.86, 0.98, cw);
-  float bank = max(max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert), (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - culvM)) * dry, 1.0 - smoothstep(C_MAAR_WATER, C_MAAR, dQ)) * (1.0 - water);
+  float dryE = 1.0 - ce.x;
+  float wD = (1.0 - smoothstep(hw * 0.72 - px, hw * 0.72 + px, dD)) * (1.0 - culvert) * dry * keepD * dryE;
+  float wM = (1.0 - smoothstep(C_MAIN * 0.8 - px, C_MAIN * 0.8 + px, dM)) * (1.0 - culvM) * dry * dryE;
+  float wQ = (1.0 - smoothstep(C_MAAR_WATER - px, C_MAAR_WATER + px, dQ)) * dryE;
+  float wC = ce.y * (1.0 - roadM);
+  wQ = max(wQ, wC);
+  float water = max(max(wD, wM), wQ) * smoothstep(0.86, 0.98, max(cw, wC));
+  float bank = max(max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert) * keepD, (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - culvM)) * dry * dryE, (1.0 - smoothstep(C_MAAR_WATER, C_MAAR, dQ)) * dryE) * (1.0 - water);
   c = mix(c, cLin(70.0, 72.0, 44.0) * (0.8 + 0.3 * n3), bank * 0.8 * smoothstep(0.86, 0.98, cw));
   vec3 wc = mix(cLin(22.0, 36.0, 36.0), cLin(30.0, 46.0, 40.0), n2);
   wc = mix(wc, cLin(52.0, 76.0, 86.0) * (0.9 + 0.2 * n1), wQ);
@@ -382,64 +525,3 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   return c;
 }
 `;
-
-// Minimap: meadow green past the map edge with the ditch grid and polder
-// roads, drawn in world units into an already world-transformed context.
-export function drawCountryMinimap(ctx, x0, y0, x1, y1) {
-  if (edgeDistance(x0, y0) < 0 && edgeDistance(x1, y1) < 0 && edgeDistance(x0, y1) < 0 && edgeDistance(x1, y0) < 0) return;
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x0, y0, x1 - x0, y1 - y0);
-  ctx.rect(rect.cx - rect.hx, rect.cy - rect.hy, rect.hx * 2, rect.hy * 2);
-  ctx.clip('evenodd');
-  ctx.fillStyle = '#4f7a3e';
-  ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-  ctx.strokeStyle = '#3f7f95';
-  for (let bx = Math.floor(x0 / BLOCK); bx * BLOCK < x1; bx++) {
-    for (let by = Math.floor(y0 / BLOCK); by * BLOCK < y1; by++) {
-      const ox = bx * BLOCK, oy = by * BLOCK;
-      const rot = chash(bx * 7 + 3, by * 13 + 1) < 0.5;
-      const line = (a0, b0, a1, b1) => {
-        const [xa, ya] = blockToWorld(bx, by, rot, a0, b0), [xb, yb] = blockToWorld(bx, by, rot, a1, b1);
-        if (Math.max(xa, xb) < x0 || Math.min(xa, xb) > x1 || Math.max(ya, yb) < y0 || Math.min(ya, yb) > y1) return;
-        ctx.moveTo(xa, ya);
-        ctx.lineTo(xb, yb);
-      };
-      ctx.lineWidth = MAIN_HW * 2;
-      ctx.beginPath();
-      ctx.rect(ox, oy, BLOCK, BLOCK);
-      ctx.stroke();
-      ctx.lineWidth = Math.max(1.6, DITCH_HW * 2);
-      ctx.beginPath();
-      for (let col = 1; col < BLOCK / PW; col++) {
-        line(col * PW, 0, col * PW, BLOCK);
-        const off = chash(col - 1 + bx * 131 + by * 977, rot ? 18 : 17) * PL;
-        for (let row = 1; row * PL - off < BLOCK; row++) {
-          const b = row * PL - off;
-          if (b > 0) line((col - 1) * PW, b, col * PW, b);
-        }
-      }
-      ctx.stroke();
-      ctx.lineWidth = MAAR_WATER * 2;
-      ctx.beginPath();
-      if (maarX(bx)) { ctx.moveTo(ox, oy); ctx.lineTo(ox, oy + BLOCK); }
-      if (maarY(by)) { ctx.moveTo(ox, oy); ctx.lineTo(ox + BLOCK, oy); }
-      ctx.stroke();
-      const v = villageOf(bx, by);
-      if (v) {
-        ctx.fillStyle = 'rgba(138, 106, 85, 0.55)';
-        ctx.beginPath();
-        ctx.arc(v.x, v.y, v.r * 0.85, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.strokeStyle = '#a8ada2';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      if (edgeRoad(bx, by, 0)) { ctx.moveTo(ox + ROAD_IN + ROAD_W / 2, oy); ctx.lineTo(ox + ROAD_IN + ROAD_W / 2, oy + BLOCK); }
-      if (edgeRoad(bx, by, 1)) { ctx.moveTo(ox, oy + ROAD_IN + ROAD_W / 2); ctx.lineTo(ox + BLOCK, oy + ROAD_IN + ROAD_W / 2); }
-      ctx.stroke();
-      ctx.strokeStyle = '#3f7f95';
-    }
-  }
-  ctx.restore();
-}

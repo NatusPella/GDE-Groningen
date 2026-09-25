@@ -36,7 +36,7 @@ function buildDefs(world) {
   // Route guidance between checkpoints along the streets, so the line to the
   // next marker never runs through a block; passed automatically (see waypointReached).
   const via = (spot) => ({ ...spot, via: true });
-  const ring = (i) => ({ x: RING_ROUTE[i][0], y: RING_ROUTE[i][1], road: null });
+  const ring = (i) => ({ x: RING_ROUTE[i][0], y: RING_ROUTE[i][1], z: map.spawnZ ? map.spawnZ(RING_ROUTE[i][0], RING_ROUTE[i][1]) : 0, road: null });
   return [
     {
       type: 'deliver',
@@ -88,8 +88,8 @@ function buildDefs(world) {
       intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de stad over de ringweg, tegen vier gekken. Alleen het podium telt.'],
       outro: 'Podium op de ringweg! Hij ligt er nog. Op een paar pionnen na.',
       race: true,
-      timeLimit: 90,
-      checkpointBonus: 22,
+      timeLimit: 60,
+      checkpointBonus: 16,
       reward: 750,
       start: ring(0),
       waypoints: [...RING_CHECKPOINTS.slice(1).map(ring), ring(0)],
@@ -514,7 +514,8 @@ function startMission(world, def) {
     chain.fatbikeContact = new Set();
     spawnFatbikes(world, def);
   } else if (def.race) {
-    chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS);
+    // the full ringweg is ~17.5 km: tuned-up race cars keep a lap near six minutes
+    chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3 });
   }
   const i = chain.index;
   const kicker = `Missie ${i + 1}/${chain.defs.length}`;
@@ -617,7 +618,13 @@ export function updateMissions(dt, world) {
   if (chain.phase === 'idle') {
     const d = dist(p.x, p.y, def.start.x, def.start.y);
     if (d > TRIGGER_RADIUS + 2) chain.armed = true;
-    else if (d < TRIGGER_RADIUS && chain.armed) startMission(world, def);
+    else if (d < TRIGGER_RADIUS && chain.armed) {
+      // a running bijbaantje (sidejobs.js) first has to be finished or stopped
+      if (world.sideJob && world.sideJob.active) {
+        chain.armed = false;
+        world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
+      } else startMission(world, def);
+    }
     syncPub(world);
     return;
   }

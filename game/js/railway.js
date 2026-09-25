@@ -204,6 +204,8 @@ export function initRailway(world) {
   ready = true;
 }
 
+export { placeCars as placeTrain };
+
 function placeCars(t) {
   const { route } = t;
   for (const car of t.cars) {

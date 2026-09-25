@@ -12,16 +12,20 @@ import math
 import os
 import random
 import subprocess
+import sys
 import time
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import bbox_str, cached, map_bbox  # noqa: E402
+
 MAP_PATH = "game/citymap.json"
-BBOX = "(53.204,6.538,53.235,6.592)"
+CACHE_PATH = "data/pois_raw.json"
 OVERPASS_URLS = [
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
 ]
-OVERPASS_QUERY = (
+QUERY_TEMPLATE = (
     "[out:json][timeout:120];("
     'nwr["amenity"~"^(hospital|clinic|doctors|pharmacy|dentist)$"]{b};'
     'nwr["healthcare"]{b};'
@@ -40,7 +44,7 @@ OVERPASS_QUERY = (
     'nwr["leisure"="marina"]{b};'
     'nwr["waterway"="dock"]{b};'
     ");out tags geom;"
-).format(b=BBOX)
+)
 
 SPACING = {"health": 40, "money": 40, "weapons": 45, "armor": 40}
 KIND_SPACING = {"alley": 110, "bridge": 60}
@@ -56,30 +60,10 @@ ARMOR_RANK = {"outdoor": 0, "military": 0, "workwear": 0, "fitness": 1, "sports"
 CAR_CATS = {"major", "normal", "minor"}
 
 
-def fetch():
-    cache = os.environ.get("OVERPASS_CACHE")
-    if cache and os.path.exists(cache):
-        with open(cache) as f:
-            return json.load(f)["elements"]
-    delay = 5
-    for attempt in range(6):
-        url = OVERPASS_URLS[attempt % len(OVERPASS_URLS)]
-        try:
-            res = subprocess.run(
-                ["curl", "-s", "-f", "-m", "180", "-A", "Mozilla/5.0",
-                 "--data-urlencode", f"data={OVERPASS_QUERY}", url],
-                capture_output=True, text=True, check=True,
-            )
-            elements = json.loads(res.stdout)["elements"]
-            if cache:
-                with open(cache, "w") as f:
-                    json.dump({"elements": elements}, f)
-            return elements
-        except (subprocess.CalledProcessError, ValueError, KeyError) as e:
-            print(f"overpass {url} failed ({e.__class__.__name__}), retry in {delay}s")
-            time.sleep(delay)
-            delay *= 2
-    raise SystemExit("overpass unavailable")
+def fetch(meta):
+    """POI elements over the whole map (cached in data/pois_raw.json; OVERPASS_CACHE overrides the path)."""
+    path = os.environ.get("OVERPASS_CACHE") or CACHE_PATH
+    return cached(path, map_bbox(meta), lambda b: QUERY_TEMPLATE.format(b=bbox_str(b)))["elements"]
 
 
 def point_in_poly(x, y, pts):
@@ -358,7 +342,7 @@ def main():
     world = World(data)
     raw = {"health": [], "money": [], "weapons": [], "armor": []}
 
-    for el in fetch():
+    for el in fetch(meta):
         tags = el.get("tags", {})
         pts, line = element_points(el, project)
         if not pts:

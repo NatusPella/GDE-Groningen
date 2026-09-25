@@ -24,6 +24,7 @@ export const CATEGORIES = [
   ['sociaal', 'Sociaal & geld'],
   ['verzamelen', 'Verzamelen'],
   ['duif', 'Duif-modus'],
+  ['bijbaan', 'Bijbaantjes'],
 ];
 
 // Per mission (index order of missions.js): medal times in seconds, the
@@ -92,6 +93,8 @@ export const ACHIEVEMENTS = [
 
   { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: GTW, WINK en de Intercity', set: 'trains', goal: 3 },
   { id: 'trein_race', cat: 'spoor', title: 'Sneller dan de sprinter', desc: 'Rij een rijdende trein voorbij', hidden: true },
+  { id: 'trein_1', cat: 'spoor', title: 'Instappen, deuren sluiten', desc: 'Reis met de trein naar een ander station', stat: 'trainTrips', goal: 1 },
+  { id: 'forens', cat: 'spoor', title: 'Forens', desc: 'Reis 10 keer met de trein', stat: 'trainTrips', goal: 10 },
   { id: 'overweg', cat: 'spoor', title: 'Netjes gewacht', desc: 'Wacht keurig voor een dichte overweg tot de trein voorbij is', hidden: true },
   { id: 'storm', cat: 'spoor', title: 'Code Rood', desc: 'Rij een halve minuut door een storm' },
   { id: 'onweer', cat: 'spoor', title: 'Donder en bliksem', desc: 'Maak een onweersbui mee' },
@@ -118,6 +121,19 @@ export const ACHIEVEMENTS = [
   { id: 'duif_auto', cat: 'duif', title: 'Liftduif', desc: 'Rij mee op een auto' },
   { id: 'duif_loft', cat: 'duif', title: 'Thuis bij de duivenmelker', desc: 'Vind het hok van duivenmelker Harm', hidden: true },
   { id: 'duif_meeuw', cat: 'duif', title: 'Meeuw te slim af', desc: 'Laat een meeuw met lege snavel achter', hidden: true },
+
+  { id: 'sj_eerste', cat: 'bijbaan', title: 'Eerste loonstrookje', desc: 'Rond een klus af bij een bijbaantje', stat: 'sjRounds', goal: 1 },
+  { id: 'sj_50', cat: 'bijbaan', title: 'Harde werker', desc: 'Rond 50 klussen af bij bijbaantjes', stat: 'sjRounds', goal: 50 },
+  { id: 'sj_alle', cat: 'bijbaan', title: 'Duizendpoot', desc: 'Rond bij alle zes bijbaantjes een klus af', set: 'sjJobs', goal: 6 },
+  { id: 'sj_geld', cat: 'bijbaan', title: 'Eerlijk verdiend', desc: 'Verdien in totaal €5.000 met bijbaantjes', stat: 'sjEarned', goal: 5000, unit: '€' },
+  { id: 'sj_bezorger', cat: 'bijbaan', title: 'Nog warm!', desc: 'Bezorg 8 bestellingen op rij in één dienst', stat: 'sj_bezorger_streak', goal: 8 },
+  { id: 'sj_taxi', cat: 'bijbaan', title: 'Moi, waar mag het heen?', desc: 'Rijd 6 taxiritten op rij in één dienst', stat: 'sj_taxi_streak', goal: 6 },
+  { id: 'sj_bus', cat: 'bijbaan', title: 'Keurig op tijd', desc: 'Rijd een hele buslijn zonder één keer te laat te zijn' },
+  { id: 'sj_rondvaart', cat: 'bijbaan', title: 'Links ziet u...', desc: 'Vaar een rondvaart zonder één stukje uitleg te missen' },
+  { id: 'sj_fietsdepot', cat: 'bijbaan', title: 'Stationsplein leeg', desc: 'Ruim 5 rondes foutgeparkeerde fietsen op in één dienst', stat: 'sj_fietsdepot_streak', goal: 5 },
+  { id: 'sj_verhuizing', cat: 'bijbaan', title: 'Niks gebroken', desc: 'Verhuis een student zonder dat er iets sneuvelt' },
+  { id: 'sj_legende', cat: 'bijbaan', title: 'Legende van Grunn', desc: 'Haal niveau 5 bij een bijbaantje' },
+  { id: 'sj_kots', cat: 'bijbaan', title: 'Kotszakje vergeten', desc: 'Een student kotst je taxi onder', hidden: true },
 ];
 const BY_ID = new Map(ACHIEVEMENTS.map((a) => [a.id, a]));
 
@@ -363,6 +379,7 @@ export function getLifetimeStats() {
   return {
     driven: s.driven || 0, walked: s.walked || 0, swum: s.swum || 0, topSpeed: s.topSpeed || 0,
     nearMiss: s.nearMiss || 0, stolen: s.stolen || 0, kisses: s.kisses || 0, wrecks: s.wrecks || 0,
+    trainTrips: s.trainTrips || 0,
     wijken: (life.sets.wijken || []).length, eierballen: getSaveSet('eierballen').size,
   };
 }

@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { BLOCK, PW, chash, edgeDistance, edgeRoad, villageOf } from './countryfield.js';
 import {
   ROAD_C, FARM_TYPES, openLand, blockPlan, blockPlanCached, villagePlan, turbineRow, turbineValid, pylonsAround, isPlanned, farmWorld,
-  TREE_ROW_P, WILLOW_ROW_P, ROAD_ROW,
+  TREE_ROW_P, WILLOW_ROW_P, ROAD_ROW, planVersion,
 } from './countryplan.js';
 import {
   churchGeometry, turbineTowerGeometry, turbineRotorGeometry, lightGeometry, millBodyGeometry, millSailsGeometry,
@@ -302,7 +302,7 @@ export function updateSkyline(dt, world, scene, cam) {
   const p = world.player;
   const ed = edgeDistance(p.x, p.y);
   // the belts are a horizon trick: from high up they would read as walls
-  const fadeT = smooth(-2600, -700, ed), fadeB = smooth(-900, -250, ed) * (1 - smooth(70, 200, cam.position.y));
+  const fadeT = smooth(-2600, -700, ed), fadeB = smooth(-900, -250, ed) * (1 - smooth(35, 110, cam.position.y));
   U.uTime.value = world.time || 0;
   U.uFadeT.value = fadeT;
   U.uFadeB.value = fadeB;
@@ -334,6 +334,7 @@ export function updateSkyline(dt, world, scene, cam) {
     K.dirty = true;
   }
 
+  if (K.planVersion !== planVersion) { K.planVersion = planVersion; K.warmKey = ''; K.gather = null; K.buildAt = null; }
   const moved = !K.buildAt || Math.hypot(p.x - K.buildAt[0], p.y - K.buildAt[1]) > 220;
   if (!K.gather && (moved || (K.dirty && !K.warm.length))) {
     K.dirty = false;

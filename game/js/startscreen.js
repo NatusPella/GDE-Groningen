@@ -14,7 +14,7 @@ const TIPS = [
   'Tip: regen in Grunn is geen weer, het is een levenshouding.',
   'Tip: V wisselt tijdens het rijden tussen filmcamera’s.',
   'Tip: M opent de kaart. Klik om een bestemming te zetten.',
-  'Tip: in de Duif-modus mag je op alles poepen. Ook op de Martinitoren.',
+  'Tip: zie je een duivenbord in de stad? Druk E en word zelf een duif. Poepen mag, ook op de Martinitoren.',
 ];
 const TIP_MS = 3800;
 
@@ -231,7 +231,7 @@ function summaryText(s) {
 }
 
 // Title screen over the live city, cycling through highlights. Resolves with
-// 'game' (Doorgaan / Nieuw spel) or 'pigeon' (Duif-modus).
+// 'game' (Doorgaan / Nieuw spel).
 export function runStartScreen(world, { render, relocate, tick }) {
   return new Promise((resolve) => {
     const screen = el('start-screen');
@@ -240,7 +240,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
-    items.push({ act: 'pigeon', label: 'Duif-modus', sub: 'Vlieg as n duuf over Grunn. Poepen mag.' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     if (window.gteDesktop && window.gteDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     const pct = getAchievementSummary().pct;
@@ -332,11 +331,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
         restoreWorld();
         clearSave();
         finish('game');
-      } else if (it.act === 'pigeon') {
-        world.menuCam = false;
-        world.clock = homeClock;
-        world.weather = homeWeather;
-        finish('pigeon');
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
       } else if (it.act === 'exit') {

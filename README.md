@@ -48,7 +48,7 @@ Security or Windows SmartScreen.
 | A/D or ←/→ | strafe left/right relative to the camera | steer |
 | Space | jump | brake |
 | Ctrl | crouch | – |
-| E or F | enter nearest vehicle, or kiss your companion when next to them | exit |
+| E or F | enter nearest vehicle, kiss your companion when next to them, or become a pigeon at a pigeon sign | exit |
 | Left mouse | attack (fists or the equipped gun); you turn to where the camera looks | – |
 | Right mouse | aim: face the camera direction while moving | – |
 | 1–4 | fists / pistol / uzi / shotgun | – |
@@ -57,6 +57,7 @@ Security or Windows SmartScreen.
 | C | switch between Tammo and Anita | swap seats |
 | M | city map (click a wijk to travel there) | |
 | U | sound on/off | |
+| X | as a pigeon: turn back into Tammo/Anita where you are | |
 
 ## What's in it
 
@@ -68,7 +69,13 @@ Security or Windows SmartScreen.
   seagulls/cows/sheep, weather with storms, helicopters and balloons.
 - **Gameplay**: driving and on-foot movement, combat, wanted level with
   police cars, foot cops, boats and a helicopter, pickups, 8 missions,
-  Sikkom news feed and phone notifications.
+  Sikkom news feed and phone notifications. Duif-modus as an in-game
+  activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,
+  Noorderplantsoen, Stationsplein and a duiventil at the volkstuinen) press E
+  to become a pigeon, fly and poop over the wijk you are in, and press X (or
+  "Duif-modus stoppen" in the menu) to land as Tammo/Anita on the nearest
+  safe street spot. Not while wanted or during a mission. The poop score and
+  pigeon achievements are kept in the save.
 - **Audio**: G-Music plays in the city all the time (a shuffled playlist with
   jingles in between; a toast shows the title of each new track), plus
   voicelines, police barks and synthesised effects.
@@ -80,15 +87,44 @@ generate 3D models.
 
 ## Map data
 
-`scripts/process_osm.py` pulls roads, buildings, water and parks from the
-Overpass API and projects them onto a flat meter grid (`game/citymap.json`).
-The other `scripts/add_*.py` scripts enrich that file with districts,
-landmarks, horeca, garages and traffic lights.
-`scripts/add_pois.py` adds `meta.pois`: pickup spots for health (huisarts, apotheek, ziekenhuis), money (pinautomaten, kantoren, winkels), weapons (industrieterrein, kades, steegjes) and armor (sportscholen).
+`game/citymap.json` is built from OpenStreetMap data in one go:
+
+```
+python3 scripts/build_map.py            # from the caches in data/ (fetches what is missing)
+python3 scripts/build_map.py --refresh  # refetch every Overpass cache first
+```
+
+The map covers the whole ringweg (Westelijke, Noordelijke, Oostelijke and
+Zuidelijke Ringweg with Julianaplein, Europaplein, Euvelgunne and
+Noorderhoogebrug) plus ~300 m around it; beyond that the procedural
+Ommelanden take over. The origin stays at the centre of the original city
+core, so all coordinates in the game keep their meaning. The steps, in order:
+
+1. `fetch_osm.py`: the ways around the city core into `data/ring_raw.json.gz`
+   and `data/ring_extra.json.gz` (only if missing). The core itself comes
+   from `data/groningen_raw.json` and `data/groningen_extra.json`.
+2. `process_osm.py`: roads (with their grade tags: layer, tunnel, viaduct),
+   buildings, water, green and trees, cropped to the ring and its margin
+   (`ringloop.py` finds the ring loop on the road graph).
+3. `add_elevation.py`: heights for the ring and its grade-separated
+   junctions (`road.z` per vertex): sunken Zuidelijke Ringweg, viaducts,
+   ramps at most ~5%, everything else flat.
+4. `add_landmarks.py`, `add_districts.py`, `add_garages.py`, `add_horeca.py`,
+   `add_traffic_lights.py`, `add_pois.py` (pickup spots for health, money,
+   weapons and armor).
+5. `add_railways.py`: rails, stations, level crossings, train routes and the
+   rail lifts (not where the ring already passes over or under the track).
+6. `add_helipad.py`, `add_landmark_footprints.py`, `add_shops.py`.
+7. `gen_ringroute.py`: writes `game/js/ringroute.js`, the ring race lap.
+
+Overpass responses are cached in `data/` together with the box they cover
+(`osmfetch.py`) and refetched when the map outgrows them. Keys another tool
+added to `citymap.json` are carried over by `build_map.py`.
 
 ## Known limits
 
-- The map covers the city core, not all of Groningen.
+- The map covers the city inside the ringweg plus ~300 m around it, not all
+  of Groningen.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.

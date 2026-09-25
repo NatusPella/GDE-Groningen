@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { dist, closestPointOnSegment, isInWater } from './util.js';
+import { dist, closestPointOnSegment, isInWater, pointInPolygon } from './util.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
-import { spawnVehicleOnRoad } from './vehicle.js';
+import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
@@ -15,26 +15,32 @@ const OUTFIT_WANTED_COOLDOWN = 60;
 const MAX_OWNED_VEHICLES = 4;
 const REDELIVERY_FEE = 25;
 
+// Chains: every branch carries the chain name plus a local suffix
+// (wijk or street). group = map-legend layer.
 export const SHOP_TYPES = {
-  wapens: { color: '#b8322a', label: 'Wapenwinkel' },
-  kleding: { color: '#7a4fb0', label: 'Kledingwinkel' },
-  kapper: { color: '#23948a', label: 'Kapper' },
-  fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel' },
-  auto: { color: '#c98a16', label: 'Autodealer' },
-  tabak: { color: '#c23f78', label: 'Tabak & loterij' },
-  spuit: { color: '#1e9e56', label: 'Spuiterij' },
+  wapens: { color: '#b8322a', label: 'Wapenwinkel', chain: 'Pang & Zo', tagline: 'Wapens, munitie en vesten. Geen vragen.', group: 'shopsWapens' },
+  pand: { color: '#7d6a3a', label: 'Pandjeshuis', chain: 'Pand & Poen', tagline: 'Wij kopen alles. Echt alles.', group: 'shopsWapens' },
+  kleding: { color: '#7a4fb0', label: 'Kledingwinkel', chain: 'Stoer & Stads', tagline: 'Kleding voor de Stadjer met smaak', group: 'shops' },
+  kapper: { color: '#23948a', label: 'Kapper', chain: 'Knip & Kuif', tagline: 'Kapsalon, ook zonder afspraak', group: 'shops' },
+  tabak: { color: '#c23f78', label: 'Tabak & loterij', chain: 'Rook & Geluk', tagline: 'Kraskaarten, loten en een eierbal uit de muur', group: 'shops' },
+  super: { color: '#3b8f3b', label: 'Avondwinkel', chain: 'Nait Duur', tagline: 'Open tot laat, goedkoop tot op de cent', group: 'shops' },
+  snack: { color: '#d0652a', label: 'Snackbar', chain: 'Frituur Vet & Lekker', tagline: 'Vers uit het vet, met of zonder', group: 'shops' },
+  fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, fatbikes en brommers', group: 'shopsVoertuigen' },
+  fietsenmaker: { color: '#4f86a8', label: 'Fietsenmaker', chain: 'Spaak & Band', tagline: 'Plakken, poetsen en opvoeren', group: 'shopsVoertuigen' },
+  auto: { color: '#c98a16', label: 'Autodealer', chain: 'Ome Harm Occasions', tagline: 'Nait zeuren, gewoon rijden', group: 'shopsVoertuigen' },
+  tuning: { color: '#8c3fa8', label: 'Tuning', chain: 'Knal & Kolder Tuning', tagline: 'Meer vermogen, meer herrie', group: 'shopsVoertuigen' },
+  boot: { color: '#2a8fb0', label: 'Botenverhuur', chain: 'Bootje Huren', tagline: 'De stad vanaf het water', group: 'shopsVoertuigen' },
+  spuit: { color: '#1e9e56', label: 'Spuiterij', chain: 'Spuit & Klaar', tagline: 'Nieuwe kleur, nieuwe kans', group: null },
 };
 
-// Anchor points sit on the named street (citymap.json has no shop data);
-// initShops snaps each one to the nearest facade on that street.
-const SHOP_DEFS = [
-  { id: 'pang', type: 'wapens', name: 'Pang & Zo', tagline: 'Wapens, munitie en vesten. Geen vragen.', street: 'Oude Ebbingestraat', at: [75, -135] },
-  { id: 'stoer', type: 'kleding', name: 'Stoer & Stads', tagline: 'Kleding voor de Stadjer met smaak', street: 'Herestraat', at: [150, 262] },
-  { id: 'knip', type: 'kapper', name: 'Knip & Kuif', tagline: 'Kapsalon, ook zonder afspraak', street: 'Folkingestraat', at: [-30, 392] },
-  { id: 'trap', type: 'fietsen', name: 'Trap & Toeter', tagline: 'Fietsen, fatbikes en brommers', street: 'Oosterstraat', at: [338, 258] },
-  { id: 'harm', type: 'auto', name: 'Ome Harm Occasions', tagline: 'Nait zeuren, gewoon rijden', street: 'Damsterdiep', at: [740, 226] },
-  { id: 'rook', type: 'tabak', name: 'Rook & Geluk', tagline: 'Kraskaarten, loten en een eierbal uit de muur', street: 'Gelkingestraat', at: [240, 262] },
-];
+// Jetties for boat rental: a kade street next to open water.
+const BOAT_JETTIES = ['Hoge der A', 'Oosterkade', 'Noorderhaven', 'Eendrachtskade', 'Winschoterkade'];
+
+const STREAM_IN = 170;
+const STREAM_OUT = 220;
+const BUILDS_PER_TICK = 2;
+const WORKSHOP_RADIUS = 9;
+const SELL_RADIUS = 25;
 
 // --- stock ------------------------------------------------------------------
 
@@ -105,6 +111,37 @@ const PAINTS = [
 ];
 const PAINT_PRICE = 120;
 
+// mult: factors on the vehicle model; once per vehicle
+const BIKE_UPGRADES = [
+  { id: 'banden', label: 'Racebanden', desc: 'Dunner, harder, rapper: +15% topsnelheid', price: 60, mult: { maxSpeed: 1.15 } },
+  { id: 'versnelling', label: 'Zeven versnellingen', desc: 'Sneller op gang bij het stoplicht', price: 45, mult: { accel: 1.3 } },
+  { id: 'motor', label: 'Opgevoerde accu', desc: 'Stiekem e-motortje erin: hard en stil', price: 220, mult: { maxSpeed: 1.35, accel: 1.4 } },
+];
+const CAR_UPGRADES = [
+  { id: 'motor', label: 'Opgevoerde motor', desc: 'Chip erin, filter eruit: +12% top, +20% trekkracht', price: 450, mult: { maxSpeed: 1.12, accel: 1.2 } },
+  { id: 'remmen', label: 'Sportremmen', desc: 'Staat stil voor je het weet', price: 220, mult: { brake: 1.35 } },
+  { id: 'grip', label: 'Brede banden', desc: 'Scherper door de bocht', price: 260, mult: { turnRate: 1.15 } },
+  { id: 'turbo', label: 'Turbo "Tinus"', desc: 'Pssssjoew! +22% top, +35% trekkracht', price: 950, mult: { maxSpeed: 1.22, accel: 1.35 } },
+];
+
+const SUPER_ITEMS = [
+  ['krentenbol', 'Krentenbol', 'Zak van zes, eentje meteen op', 1, 3],
+  ['koffie', 'Koude bak koffie', 'Uit het koelvak, met een rietje', 2, 6],
+  ['drop', 'Zak drop', 'Zoute, natuurlijk', 2, 5],
+  ['energie', 'Energiedrankje "Grunn Bull"', 'Hart op hol, benen weer vol', 3, 12],
+  ['ehbo', 'EHBO-doos', 'Pleisters, verband en paracetamol', 25, 45],
+];
+const SNACK_ITEMS = [
+  ['kroket', 'Kroket', 'Uit de muur of vers', 3, 8],
+  ['frikandel', 'Frikandel speciaal', 'Mayo, curry, uitjes', 3, 9],
+  ['eierbal', 'Eierbal', 'De Grunneger specialiteit', 4, 12],
+  ['oorlog', 'Patatje oorlog', 'Mayo, satésaus en uitjes', 4, 13],
+  ['kapsalon', 'Kapsalon', 'Friet, shoarma, kaas, sla. Hou je vast', 8, 30],
+];
+
+// pawn shop prices for a vehicle the player drove there
+const RESALE = { bike: 15, scooter: 60, hatch: 150, sedan: 200, wagon: 180, van: 220, sport: 450, escort: 0, police: 500 };
+
 // --- state --------------------------------------------------------------------
 
 let shops = [];
@@ -114,6 +151,8 @@ const state = {
   hair: { tammo: { color: 'naturel', style: 'short' }, anita: { color: 'naturel', style: 'long' } },
   vehicles: [], // { spec, color, v, x, y, angle }
   heroColor: null,
+  heroUpgrades: [],
+  rental: null,
   lastStealthAt: -Infinity,
 };
 let baseLook = null;
@@ -124,64 +163,180 @@ const snapshot = (a) => ({ shirt: a.shirt, pants: a.pants, shoes: a.shoes, hair:
 
 // --- placement ---------------------------------------------------------------
 
-function facadeFor(map, x, y) {
-  let best = null;
-  for (const b of map.buildingsNear(x, y, 22)) {
-    const pts = b.pts;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
-      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, b, ax: pts[i][0], ay: pts[i][1], bx: pts[i + 1][0], by: pts[i + 1][1] };
-    }
-  }
-  if (!best || best.d2 < 0.01) return null;
-  let nx = -(best.by - best.ay), ny = best.bx - best.ax;
-  const l = Math.hypot(nx, ny) || 1;
-  nx /= l; ny /= l;
-  if (nx * (x - best.x) + ny * (y - best.y) < 0) { nx = -nx; ny = -ny; }
-  return { x: best.x, y: best.y, nx, ny, h: Math.max(2.4, (best.b.h || 3) * 3.1) };
-}
+const WALK_ROAD = (r) => r.type !== 'footway' && r.type !== 'cycleway' && r.type !== 'path' && r.type !== 'steps' && r.type !== 'service' && r.type !== 'track';
 
-function nearestOnStreet(map, name, x, y) {
+function nearestStreetPoint(map, x, y, r = 60) {
   let best = null;
-  for (const r of map.roadsNear(x, y, 120)) {
-    if (r.name !== name) continue;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
-      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, dx: r.pts[i + 1][0] - r.pts[i][0], dy: r.pts[i + 1][1] - r.pts[i][1] };
+  for (const road of map.roadsNear(x, y, r)) {
+    if (!WALK_ROAD(road)) continue;
+    for (let i = 0; i < road.pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
+      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, road };
     }
   }
   return best;
 }
 
-function placeShop(map, def, horeca) {
-  const street = nearestOnStreet(map, def.street, def.at[0], def.at[1]) || { x: def.at[0], y: def.at[1], dx: 1, dy: 0 };
-  const l = Math.hypot(street.dx, street.dy) || 1;
-  const tx = street.dx / l, ty = street.dy / l;
-  for (let k = 0; k < 12; k++) {
-    const off = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 4;
-    const sx = street.x + tx * off, sy = street.y + ty * off;
-    const f = facadeFor(map, sx, sy);
-    if (!f) continue;
+function containingBuilding(map, x, y) {
+  return map.buildingsNear(x, y, 1).find((b) => {
+    const [x0, y0, x1, y1] = b.bounds;
+    return x >= x0 && x <= x1 && y >= y0 && y <= y1 && pointInPolygon(x, y, b.pts);
+  }) || null;
+}
+
+// The wall of `b` (or of the nearest building) that faces street point (sx, sy).
+function facadeToward(map, b, sx, sy) {
+  let best = null;
+  for (const bb of b ? [b] : map.buildingsNear(sx, sy, 25)) {
+    const pts = bb.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const cp = closestPointOnSegment(sx, sy, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, b: bb, ax: pts[i][0], ay: pts[i][1], bx: pts[i + 1][0], by: pts[i + 1][1] };
+    }
+  }
+  if (!best || best.d2 < 0.01 || best.d2 > 40 * 40) return null;
+  let nx = -(best.by - best.ay), ny = best.bx - best.ax;
+  const l = Math.hypot(nx, ny) || 1;
+  nx /= l; ny /= l;
+  if (nx * (sx - best.x) + ny * (sy - best.y) < 0) { nx = -nx; ny = -ny; }
+  const el = Math.hypot(best.bx - best.ax, best.by - best.ay) || 1;
+  return { x: best.x, y: best.y, nx, ny, tx: (best.bx - best.ax) / el, ty: (best.by - best.ay) / el, h: Math.max(2.4, (best.b.h || 3) * 3.1) };
+}
+
+function doorClear(x, y, horeca, taken) {
+  return !horeca.some((h) => dist(h.x, h.y, x, y) < 4.5) && !taken.some((t) => dist(t.x, t.y, x, y) < 5);
+}
+
+// A shop mapped inside its building gets the wall nearest the POI (its own
+// frontage, also in malls where that is an inner passage); one mapped on the
+// pavement gets the nearest wall facing it.
+function facadeForPoi(map, poi) {
+  const b = containingBuilding(map, poi.x, poi.y);
+  if (!b) return facadeToward(map, null, poi.x, poi.y);
+  const f = facadeToward(map, b, poi.x, poi.y);
+  if (!f) return null;
+  f.nx = -f.nx; f.ny = -f.ny;
+  return f;
+}
+
+function placeAtPoi(map, poi, horeca, taken) {
+  const st = nearestStreetPoint(map, poi.x, poi.y, 80);
+  const f0 = facadeForPoi(map, poi);
+  if (!f0) return kioskAt(map, poi, st, horeca, taken);
+  for (const off of [0, 4, -4, 8, -8]) {
+    const f = { ...f0, x: f0.x + f0.tx * off, y: f0.y + f0.ty * off };
     const [dx, dy] = map.escapeBuilding(f.x + f.nx * 1.3, f.y + f.ny * 1.3, 0.8);
-    if (isInWater(map, dx, dy)) continue;
-    if (horeca.some((h) => dist(h.x, h.y, dx, dy) < 4.5)) continue;
-    return { ...def, x: dx, y: dy, face: f };
+    if (isInWater(map, dx, dy) || !doorClear(dx, dy, horeca, taken)) continue;
+    return { x: dx, y: dy, face: f, street: (st && st.road.name) || '' };
   }
   return null;
+}
+
+// No wall to hang the sign on: a free-standing sign on posts, facing the street.
+function kioskAt(map, poi, st, horeca, taken) {
+  if (!st) return null;
+  const [x, y] = map.escapeBuilding(poi.x, poi.y, 0.8);
+  if (isInWater(map, x, y) || !doorClear(x, y, horeca, taken)) return null;
+  const d = Math.hypot(st.x - x, st.y - y) || 1;
+  return { x, y, kiosk: { nx: (st.x - x) / d, ny: (st.y - y) / d }, street: st.road.name || '' };
+}
+
+function placeJetty(map, street, horeca, taken) {
+  let best = null;
+  for (const road of map.roads) {
+    if (road.name !== street) continue;
+    for (const [px, py] of road.pts) {
+      for (const w of map.waterNear(px, py, 30)) {
+        const pts = w.pts;
+        for (let i = 0; i < pts.length - 1; i++) {
+          const cp = closestPointOnSegment(px, py, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+          if (cp.dist2 < 4 || cp.dist2 > 26 * 26) continue;
+          if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, px, py, wx: cp.x, wy: cp.y, w };
+        }
+      }
+    }
+  }
+  if (!best) return null;
+  const d = Math.sqrt(best.d2);
+  const ux = (best.wx - best.px) / d, uy = (best.wy - best.py) / d;
+  let wx = best.wx + ux * 3.5, wy = best.wy + uy * 3.5;
+  if (!pointInPolygon(wx, wy, best.w.pts)) return null;
+  const [x, y] = map.escapeBuilding(best.wx - ux * 1.6, best.wy - uy * 1.6, 0.8);
+  if (isInWater(map, x, y) || !doorClear(x, y, horeca, taken)) return null;
+  // kiosk sign faces the street, away from the water
+  return { x, y, water: { x: wx, y: wy, angle: Math.atan2(-ux, uy) }, kiosk: { nx: -ux, ny: -uy }, street };
+}
+
+function nameBranches(list) {
+  const byType = {};
+  for (const s of list) (byType[s.type] = byType[s.type] || []).push(s);
+  for (const [type, branches] of Object.entries(byType)) {
+    const count = {};
+    for (const b of branches) count[b.wijk] = (count[b.wijk] || 0) + 1;
+    const used = new Set();
+    branches.forEach((b, i) => {
+      let suffix = b.wijk && count[b.wijk] === 1 ? b.wijk : b.street || b.wijk || String(i + 1);
+      if (used.has(suffix)) suffix = `${suffix} ${i + 1}`;
+      used.add(suffix);
+      b.id = type + '-' + i;
+      b.suffix = suffix;
+      b.name = `${SHOP_TYPES[type].chain} ${suffix}`;
+      b.tagline = SHOP_TYPES[type].tagline;
+    });
+  }
+}
+
+function wijkAt(map, x, y) {
+  let best = '', bd = Infinity;
+  for (const h of map.meta.neighbourhoodPoints || []) {
+    const d = (h.x - x) ** 2 + (h.y - y) ** 2;
+    if (d < bd) { bd = d; best = h.name; }
+  }
+  return best;
 }
 
 export function initShops(world) {
   worldRef = world;
   initShopUi(world);
   baseLook = { tammo: snapshot(TAMMO_APPEARANCE), anita: snapshot(ANITA_APPEARANCE) };
+  const map = world.map;
   const horeca = getHorecaForRender();
-  shops = SHOP_DEFS.map((d) => placeShop(world.map, d, horeca)).filter(Boolean);
-  const scene = getScene();
-  if (scene) for (const s of shops) scene.add(buildShopFront3D(s));
+  const placed = [];
+  for (const poi of map.meta.shops || []) {
+    if (!SHOP_TYPES[poi.t]) continue;
+    const p = placeAtPoi(map, poi, horeca, placed);
+    if (p) placed.push({ ...p, type: poi.t, wijk: poi.wijk || wijkAt(map, p.x, p.y), street: p.street || poi.street });
+  }
+  for (const street of BOAT_JETTIES) {
+    const p = placeJetty(map, street, horeca, placed);
+    if (p && !placed.some((q) => q.type === 'boot' && dist(q.x, q.y, p.x, p.y) < 150)) placed.push({ ...p, type: 'boot', wijk: street });
+  }
+  nameBranches(placed);
+  shops = placed;
+  declutterCache.clear();
 }
 
 export function getShopsForRender() {
   return shops;
+}
+
+// One icon per type per grid cell, for the minimap and zoomed-out map.
+const declutterCache = new Map();
+export function getShopsDecluttered(cellM) {
+  cellM = 2 ** Math.round(Math.log2(Math.max(0.5, cellM)));
+  const key = cellM;
+  let out = declutterCache.get(key);
+  if (out) return out;
+  const seen = new Set();
+  out = [];
+  for (const s of shops) {
+    const k = s.type + ':' + Math.floor(s.x / cellM) + ',' + Math.floor(s.y / cellM);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(s);
+  }
+  declutterCache.set(key, out);
+  return out;
 }
 
 export function getOwnedVehiclesForRender() {
@@ -195,6 +350,7 @@ export function nearestShop(world) {
   const { x, y } = world.player;
   let best = null, bestD = SHOP_USE_RADIUS;
   for (const s of shops) {
+    if (Math.abs(s.x - x) > bestD || Math.abs(s.y - y) > bestD) continue;
     const d = dist(x, y, s.x, s.y);
     if (d <= bestD) { best = s; bestD = d; }
   }
@@ -214,6 +370,21 @@ function garageForPaint(world) {
   return null;
 }
 
+const isTwoWheeler = (v) => !!(v && (v.isBike || v.isScooter));
+const isCar = (v) => paintableVehicle(v) && !v.isBike && !v.isScooter;
+
+// Stopped in the right vehicle at a fietsenmaker / tuning shop.
+function workshopFor(world) {
+  const v = world.player.inVehicle;
+  if (!v || Math.abs(v.speed) > 2) return null;
+  const type = isTwoWheeler(v) ? 'fietsenmaker' : isCar(v) ? 'tuning' : null;
+  if (!type) return null;
+  for (const s of shops) {
+    if (s.type === type && dist(v.x, v.y, s.x, s.y) < WORKSHOP_RADIUS) return s;
+  }
+  return null;
+}
+
 function policeWatching(world) {
   return world.wanted > 0 && !!(world.police && world.police.seenRecently);
 }
@@ -221,10 +392,12 @@ function policeWatching(world) {
 export function shopPrimaryPrompt(world) {
   const g = garageForPaint(world);
   if (g) return { id: 'paint-' + g.x, x: g.x, y: g.y, h: 2.6, key: 'R', label: 'Nieuwe lak', sub: `Spuit & Klaar: kies een kleur, €${PAINT_PRICE}`, ring: true };
+  const ws = workshopFor(world);
+  if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : 'Laten sleutelen', sub: ws.name, ring: true };
   const s = nearestShop(world);
   if (!s) return null;
   if (policeWatching(world)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Binnenlopen', sub: `${s.name}: deur op slot, politie op je hielen`, ring: true, dim: true };
-  return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Binnenlopen', sub: `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
+  return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: s.type === 'boot' ? 'Bootje huren' : 'Binnenlopen', sub: `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
 }
 
 export function shopSecondaryPrompts(world) {
@@ -239,14 +412,19 @@ export function shopSecondaryPrompts(world) {
 }
 
 // Runs before the horeca/player E handlers so E at a shop door opens the
-// menu; R at a Spuit & Klaar opens the paint menu (E there still exits).
+// menu; R in a vehicle at Spuit & Klaar / a workshop opens that menu (E
+// there still exits the vehicle).
 export function tryShopInteract(world) {
   const { input } = world;
   if (!input || isShopOpen() || isCinematicActive()) return false;
-  if (input.wasPressed('r') && garageForPaint(world)) {
-    input.consume('r');
-    openShopMenu(world, paintShop(world));
-    return true;
+  if (input.wasPressed('r')) {
+    const g = garageForPaint(world);
+    const ws = g ? null : workshopFor(world);
+    if (g || ws) {
+      input.consume('r');
+      openShopMenu(world, g ? paintShop(world) : shopMenu(world, ws));
+      return true;
+    }
   }
   if (!(input.wasPressed('e') || input.wasPressed('f'))) return false;
   const s = nearestShop(world);
@@ -275,8 +453,200 @@ const hexCss = (n) => '#' + n.toString(16).padStart(6, '0');
 const broke = (world, price) => world.money < price ? 'Te weinig geld' : '';
 
 function shopMenu(world, s) {
-  const build = { wapens: weaponSections, kleding: outfitSections, kapper: hairSections, fietsen: (w) => vehicleSections(w, 'fietsen'), auto: (w) => vehicleSections(w, 'auto'), tabak: tabakSections }[s.type];
+  const build = {
+    wapens: weaponSections, kleding: outfitSections, kapper: hairSections, tabak: tabakSections,
+    fietsen: (w) => vehicleSections(w, 'fietsen', s), auto: (w) => vehicleSections(w, 'auto', s),
+    super: (w) => foodSections(w, 'Uit de schappen', SUPER_ITEMS), snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
+    fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
+    pand: (w) => pandSections(w, s), boot: (w) => bootSections(w, s),
+  }[s.type];
   return { name: s.name, type: s.type, tagline: s.tagline, color: SHOP_TYPES[s.type].color, sections: () => build(world) };
+}
+
+function foodSections(world, title, list) {
+  const items = list.map(([id, label, desc, price, hp]) => ({
+    id: 'f-' + id, label, desc: `${desc} · +${hp} gezondheid`, price, keepFocus: true,
+    disabled: world.health >= 100 ? 'Je zit vol' : broke(world, price),
+    buy() {
+      if (!pay(world, price)) return null;
+      world.health = Math.min(100, world.health + hp);
+      return `${label}: lekker! Gezondheid ${Math.round(world.health)}`;
+    },
+  }));
+  return [{ title, note: `Gezondheid nu ${Math.round(world.health)}`, items }];
+}
+
+// --- upgrades --------------------------------------------------------------------
+
+const PERF_KEYS = ['maxSpeed', 'accel', 'brake', 'turnRate'];
+
+function applyUpgrades(v) {
+  if (!v.upgrades || !v.upgrades.length) return;
+  if (!v._baseModel) v._baseModel = { ...v.model };
+  const list = isTwoWheeler(v) ? BIKE_UPGRADES : CAR_UPGRADES;
+  const m = { ...v.model };
+  for (const k of PERF_KEYS) m[k] = v._baseModel[k];
+  for (const id of v.upgrades) {
+    const u = list.find((x) => x.id === id);
+    if (u) for (const [k, f] of Object.entries(u.mult)) m[k] = +(m[k] * f).toFixed(3);
+  }
+  v.model = m;
+}
+
+// The ride being worked on: the one you sit on, else your own parked by the door.
+function upgradeTarget(world, shop, twoWheel) {
+  const fits = (x) => x && !x.wrecked && !x.isBoat && (twoWheel ? isTwoWheeler(x) : isCar(x));
+  const pv = world.player.inVehicle;
+  if (fits(pv)) return pv;
+  let best = null, bd = 15;
+  for (const x of world.vehicles) {
+    if (!fits(x) || x.driver || !(x.playerOwned || x.isHeroCar)) continue;
+    const d = dist(x.x, x.y, shop.x, shop.y);
+    if (d < bd) { bd = d; best = x; }
+  }
+  return best;
+}
+
+function rememberUpgrades(v) {
+  if (v.isHeroCar) state.heroUpgrades = [...v.upgrades];
+  const o = state.vehicles.find((x) => x.v === v);
+  if (o) o.upgrades = [...v.upgrades];
+}
+
+function workshopSections(world, shop, twoWheel) {
+  const v = upgradeTarget(world, shop, twoWheel);
+  const what = twoWheel ? 'fiets of brommer' : 'auto';
+  if (!v) return [{ title: 'Werkplaats', note: `Kom erop of erin aanrijden en druk R, of zet je eigen ${what} voor de deur`, items: [] }];
+  const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
+  const have = new Set(v.upgrades || []);
+  const name = v.isHeroCar ? 'Escapade' : vehicleName(v);
+  const items = list.map((u) => ({
+    id: 'u-' + u.id, label: u.label, desc: u.desc, price: u.price,
+    tag: have.has(u.id) ? 'Zit erop' : '',
+    disabled: have.has(u.id) ? 'Al gedaan' : broke(world, u.price),
+    buy() {
+      if (!pay(world, u.price)) return null;
+      v.upgrades = [...have, u.id];
+      applyUpgrades(v);
+      rememberUpgrades(v);
+      return `${u.label} erop. Je ${name} gaat als een speer!`;
+    },
+  }));
+  const fixPrice = twoWheel ? 10 : 60;
+  items.push({
+    id: 'u-fix', label: twoWheel ? 'Band plakken & rechtzetten' : 'Deuken eruit', desc: 'Weer helemaal heel', price: fixPrice,
+    disabled: (v.health ?? 100) >= 100 && !v.riderOff ? 'Mankeert niks' : broke(world, fixPrice),
+    buy() {
+      if (!pay(world, fixPrice)) return null;
+      v.health = 100;
+      v.riderOff = false;
+      return 'Als nieuw';
+    },
+  });
+  return [{ title: `Aan je ${name}`, note: v.playerOwned || v.isHeroCar ? '' : 'Let op: niet jouw voertuig. Upgrades blijven er niet aan hangen', items }];
+}
+
+function vehicleName(v) {
+  const o = state.vehicles.find((x) => x.v === v);
+  if (o) return o.spec.label;
+  return v.isScooter ? 'brommer' : v.isBike ? (v.model.fat ? 'fatbike' : 'fiets') : 'bak';
+}
+
+// --- pawn shop ----------------------------------------------------------------------
+
+function resaleValue(v) {
+  const base = v.isPolice ? RESALE.police : v.isBike && v.model.fat ? 45 : RESALE[v.model.name] ?? 100;
+  return Math.round(base * Math.max(0.3, Math.min(1, (v.health ?? 100) / 100)));
+}
+
+function pandSections(world, shop) {
+  const sell = [];
+  for (const w of WEAPON_STOCK) {
+    const n = world.ammo[w.key] || 0;
+    if (n <= 0) continue;
+    const income = Math.round(w.gun * 0.3 + n * 0.4);
+    sell.push({
+      id: 's-' + w.key, label: `${w.label.split(' ')[0]} verkopen`, desc: `Met ${n} patronen, geen vragen`, price: 0, income,
+      buy() {
+        world.ammo[w.key] = 0;
+        if (world.weapon === w.key) world.weapon = 'fists';
+        world.money += income;
+        return `+€${income}. Nooit gezien, dat ding`;
+      },
+    });
+  }
+  if (world.armor >= 10) {
+    const income = Math.round(world.armor * 0.6);
+    sell.push({ id: 's-armor', label: 'Vest verkopen', desc: `Pantser ${Math.round(world.armor)}, bijna niet gebruikt`, price: 0, income,
+      buy() { world.armor = 0; world.money += income; return `+€${income} voor je vest`; } });
+  }
+  for (const v of world.vehicles) {
+    if (!v.stolenByPlayer || v.playerOwned || v.isHeroCar || v.missionCar || v.wrecked || v.isBoat || v.driver) continue;
+    if (dist(v.x, v.y, shop.x, shop.y) > SELL_RADIUS) continue;
+    const income = resaleValue(v);
+    sell.push({
+      id: 's-v' + v.id, label: `Gejatte ${vehicleName(v)} verkopen`, desc: v.isPolice ? 'Politiewagen! Heel link: de politie komt erachter' : 'Staat voor de deur, wordt vannacht omgekat', price: 0, income,
+      buy() {
+        removeFromWorld(world, v);
+        world.money += income;
+        if (v.isPolice) world.wanted = Math.max(world.wanted, 2);
+        return `+€${income}. Die zie je nooit meer terug`;
+      },
+    });
+  }
+  if (!sell.length) sell.push({ id: 's-none', label: 'Niks te verkopen', desc: 'Kom terug met wapens, een vest of een gejatte bak voor de deur', price: 0, disabled: 'Lege zakken' });
+  const buy = [
+    { id: 'b-vest', label: 'Gebruikt vestje', desc: '+30 pantser, klein gaatje', price: 35,
+      disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, 35),
+      buy() { if (!pay(world, 35)) return null; world.armor = Math.min(100, world.armor + 30); return 'Vestje aan. Past bijna'; } },
+    { id: 'b-pistol', label: 'Pistool uit de achterkamer', desc: 'Met 12 patronen, geen bonnetje', price: 120,
+      disabled: (world.ammo.pistol || 0) >= 250 ? 'Zak zit vol' : broke(world, 120),
+      buy() {
+        if (!pay(world, 120)) return null;
+        world.ammo.pistol = Math.min(250, (world.ammo.pistol || 0) + 12);
+        if (world.weapon === 'fists') world.weapon = 'pistol';
+        return 'Pistool gekocht. Wij hebben elkaar nooit gezien';
+      } },
+  ];
+  return [{ title: 'Verkopen', items: sell }, { title: 'Koopjes uit de achterkamer', items: buy }];
+}
+
+// --- boat rental ---------------------------------------------------------------------
+
+const RENTALS = [
+  { id: 'sloep', label: 'Sloep "Nait Soezen"', desc: 'Rustig tuffen door de grachten', price: 40, nameIdx: 0, model: { name: 'boat', len: 4, wid: 1.6, maxSpeed: 4.5, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#e8e6e0', cabin: '#2f3a44' } },
+  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+];
+
+function bootSections(world, shop) {
+  const items = RENTALS.map((r) => ({
+    id: 'r-' + r.id, label: r.label, desc: `${r.desc} · ligt aan de steiger`, price: r.price, disabled: broke(world, r.price),
+    buy() {
+      if (!pay(world, r.price)) return null;
+      const v = rentBoat(world, shop, r);
+      if (!v) { world.money += r.price; return 'Geen plek aan de steiger, geld terug'; }
+      return `${r.label} ligt klaar aan de steiger. Veel plezier!`;
+    },
+  }));
+  return [{ title: 'Te huur', note: state.rental && !state.rental.wrecked ? 'Je vorige huurboot wordt teruggebracht' : '', items }];
+}
+
+function rentBoat(world, shop, r) {
+  const map = world.map;
+  const poly = map.waterNear(shop.water.x, shop.water.y, 2).find((w) => pointInPolygon(shop.water.x, shop.water.y, w.pts));
+  if (!poly) return null;
+  const v = spawnBoatOnWater(map, poly);
+  if (!v) return null;
+  if (state.rental) removeFromWorld(world, state.rental);
+  v.x = shop.water.x; v.y = shop.water.y; v.angle = shop.water.angle;
+  v.model = { ...r.model };
+  v.waterPoly = null; // no AI wandering: it waits at the jetty
+  v.id = newVehicleId(r.nameIdx);
+  v.playerOwned = true;
+  v.speed = 0;
+  world.vehicles.push(v);
+  state.rental = v;
+  return v;
 }
 
 function weaponSections(world) {
@@ -384,9 +754,8 @@ function hairSections(world) {
   return [{ title: 'Haarkleur', items: colors }, { title: 'Model', items: styles }];
 }
 
-function vehicleSections(world, type) {
+function vehicleSections(world, type, shop) {
   const kinds = type === 'auto' ? ['car'] : ['bike', 'scooter'];
-  const shop = shops.find((s) => s.type === type);
   const items = Object.entries(VEHICLE_STOCK).filter(([, sp]) => kinds.includes(sp.kind)).map(([key, sp]) => ({
     id: 'v-' + key, label: sp.label, desc: `${sp.desc} · wordt voor de deur gezet`, price: sp.price,
     swatch: [sp.color], disabled: broke(world, sp.price),
@@ -542,6 +911,8 @@ function spawnOwned(world, o, x, y, angle = null) {
   v.model = { ...sp.model, color: o.color };
   v.id = newVehicleId(sp.nameIdx);
   v.playerOwned = true;
+  v.upgrades = [...(o.upgrades || [])];
+  applyUpgrades(v);
   setRider(v);
   if (angle == null) {
     const kerb = Math.max(0, (point.road.width || 6) / 2 - sp.model.wid / 2 - 0.3);
@@ -647,6 +1018,37 @@ export function updateShops(dt, world) {
   }
   const hero = world.vehicles.find((v) => v.isHeroCar);
   if (hero && state.heroColor && hero.model.color !== state.heroColor) repaint(world, hero, state.heroColor);
+  if (hero && state.heroUpgrades.length && hero._upgKey !== state.heroUpgrades.join()) {
+    hero.upgrades = [...state.heroUpgrades];
+    hero._upgKey = state.heroUpgrades.join();
+    applyUpgrades(hero);
+  }
+  const pv = world.player.inVehicle;
+  if (pv && !pv.playerOwned && !pv.isHeroCar) pv.stolenByPlayer = true;
+  const r = state.rental;
+  if (r && !r.wrecked && !r.sinking && !world.vehicles.includes(r)) world.vehicles.push(r);
+  streamShopFronts(world);
+}
+
+// Shopfronts exist only near the player: built a couple per tick on the way
+// in, disposed again on the way out.
+function streamShopFronts(world) {
+  const scene = getScene();
+  if (!scene) return;
+  const { x, y } = world.player;
+  let builds = 0;
+  for (const s of shops) {
+    const d = Math.max(Math.abs(s.x - x), Math.abs(s.y - y));
+    if (!s.mesh && d < STREAM_IN && builds < BUILDS_PER_TICK) {
+      s.mesh = buildShopFront3D(s);
+      scene.add(s.mesh);
+      builds++;
+    } else if (s.mesh && d > STREAM_OUT) {
+      scene.remove(s.mesh);
+      disposeShopFront(s.mesh);
+      s.mesh = null;
+    }
+  }
 }
 
 // --- save ----------------------------------------------------------------------
@@ -658,10 +1060,11 @@ export function getShopSave() {
     ownedOutfits: [...state.ownedOutfits],
     hair: { tammo: { ...state.hair.tammo }, anita: { ...state.hair.anita } },
     heroColor: state.heroColor,
+    heroUpgrades: [...state.heroUpgrades],
     vehicles: state.vehicles.slice(-MAX_OWNED_VEHICLES).map((o) => {
       const v = o.v;
       const pos = v && !v.isBoat ? { x: round(v.x), y: round(v.y), angle: round(v.angle) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
-      return { key: o.key, color: o.color, ...pos };
+      return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...pos };
     }),
   };
 }
@@ -678,12 +1081,15 @@ export function applyShopSave(world, d) {
   }
   if (Array.isArray(d.ownedOutfits)) for (const k of d.ownedOutfits) if (typeof k === 'string') state.ownedOutfits.add(k);
   state.heroColor = isColor(d.heroColor) ? d.heroColor : null;
+  state.heroUpgrades = Array.isArray(d.heroUpgrades) ? d.heroUpgrades.filter((id) => CAR_UPGRADES.some((u) => u.id === id)) : [];
   for (const o of state.vehicles) removeFromWorld(world, o.v);
   state.vehicles = [];
   for (const sv of Array.isArray(d.vehicles) ? d.vehicles.slice(-MAX_OWNED_VEHICLES) : []) {
     const spec = VEHICLE_STOCK[sv && sv.key];
     if (!spec) continue;
-    const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, v: null };
+    const valid = spec.kind === 'car' ? CAR_UPGRADES : BIKE_UPGRADES;
+    const upgrades = Array.isArray(sv.upgrades) ? sv.upgrades.filter((id) => valid.some((u) => u.id === id)) : [];
+    const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null };
     const has = Number.isFinite(sv.x) && Number.isFinite(sv.y);
     o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0) : spawnOwned(world, o, world.player.x, world.player.y);
     if (o.v) state.vehicles.push(o);
@@ -757,6 +1163,41 @@ export function drawShopGlyph(g, type, r, bg) {
       g.strokeStyle = bg; g.lineWidth = 0.09;
       g.beginPath(); g.moveTo(0.3, -0.2); g.lineTo(0.56, -0.2); g.moveTo(0.3, 0.02); g.lineTo(0.56, 0.02); g.moveTo(0.3, 0.24); g.lineTo(0.5, 0.24); g.stroke();
       break;
+    case 'pand':
+      g.lineWidth = 0.1;
+      g.moveTo(-0.62, -0.72); g.lineTo(0.62, -0.72); g.stroke();
+      g.beginPath(); g.moveTo(0, -0.72); g.lineTo(0, -0.42); g.moveTo(-0.42, -0.72); g.lineTo(-0.42, 0.06); g.moveTo(0.42, -0.72); g.lineTo(0.42, 0.06); g.stroke();
+      g.beginPath(); g.arc(0, -0.2, 0.25, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(-0.42, 0.34, 0.27, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(0.42, 0.34, 0.27, 0, Math.PI * 2); g.fill();
+      break;
+    case 'super':
+      g.moveTo(-0.78, -0.12); g.lineTo(0.78, -0.12); g.lineTo(0.56, 0.62); g.lineTo(-0.56, 0.62); g.closePath(); g.fill();
+      g.beginPath(); g.lineWidth = 0.13; g.arc(0, -0.12, 0.46, Math.PI, 0); g.stroke();
+      g.strokeStyle = bg; g.lineWidth = 0.08; g.beginPath();
+      for (const bx of [-0.3, 0, 0.3]) { g.moveTo(bx, 0.04); g.lineTo(bx * 0.86, 0.48); }
+      g.stroke();
+      break;
+    case 'snack':
+      g.lineWidth = 0.12;
+      for (const [fx, top] of [[-0.3, -0.62], [-0.1, -0.78], [0.1, -0.66], [0.3, -0.8]]) { g.moveTo(fx, 0); g.lineTo(fx + (fx > 0 ? 0.06 : -0.06), top); }
+      g.stroke();
+      g.beginPath(); g.moveTo(-0.56, -0.12); g.lineTo(0.56, -0.12); g.lineTo(0.3, 0.72); g.lineTo(-0.3, 0.72); g.closePath(); g.fill();
+      break;
+    case 'fietsenmaker':
+      g.rotate(-0.78);
+      g.rect(-0.12, -0.28, 0.24, 1.0); g.fill();
+      g.beginPath(); g.arc(0, -0.48, 0.34, 0, Math.PI * 2); g.fill();
+      g.fillStyle = bg; g.beginPath(); g.rect(-0.12, -0.9, 0.24, 0.42); g.fill();
+      break;
+    case 'tuning':
+      g.moveTo(0.2, -0.86); g.lineTo(-0.5, 0.1); g.lineTo(-0.04, 0.1); g.lineTo(-0.24, 0.86); g.lineTo(0.52, -0.16); g.lineTo(0.06, -0.16); g.closePath(); g.fill();
+      break;
+    case 'boot':
+      g.moveTo(-0.84, 0.24); g.lineTo(0.84, 0.24); g.lineTo(0.54, 0.62); g.lineTo(-0.56, 0.62); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(-0.02, 0.12); g.lineTo(-0.02, -0.82); g.lineTo(0.62, 0.12); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(-0.14, -0.6); g.lineTo(-0.6, 0.12); g.lineTo(-0.14, 0.12); g.closePath(); g.fill();
+      break;
     case 'spuit':
       g.rect(-0.32, -0.3, 0.52, 0.96);
       g.rect(-0.2, -0.5, 0.28, 0.2);
@@ -799,6 +1240,22 @@ export function shopIconUrl(type, px = 64) {
 // --- 3D shopfront ----------------------------------------------------------------
 
 const padGeometry = new THREE.CylinderGeometry(0.55, 0.55, 0.04, 20);
+const signGeometry = new THREE.PlaneGeometry(3.2, 0.8);
+const awningGeometry = new THREE.BoxGeometry(3.4, 0.08, 1.0);
+const postGeometry = new THREE.BoxGeometry(0.1, 2.7, 0.1);
+const postMaterial = new THREE.MeshLambertMaterial({ color: 0x3a3228 });
+const awningMaterials = {};
+
+// signs own their texture/material; geometries and the per-type materials are shared
+function disposeShopFront(root) {
+  root.userData.disposed = true;
+  root.traverse((o) => {
+    if (o.userData.ownMaterial) {
+      if (o.material.map) o.material.map.dispose();
+      o.material.dispose();
+    }
+  });
+}
 const badgeMaterials = {};
 const padMaterials = {};
 
@@ -834,13 +1291,17 @@ function signTexture(shop) {
   g.save(); g.translate(64, H / 2 - 6); drawShopGlyph(g, shop.type, 38, col); g.restore();
   g.fillStyle = '#f2ede0';
   g.textBaseline = 'middle';
+  const chain = SHOP_TYPES[shop.type].chain.toUpperCase();
   let size = 64;
   g.font = `${size}px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif`;
-  while (g.measureText(shop.name.toUpperCase()).width > W - 150 && size > 30) { size -= 4; g.font = `${size}px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif`; }
-  g.fillText(shop.name.toUpperCase(), 124, H / 2 - 10);
-  g.font = "bold 17px 'Arial Narrow', Arial, sans-serif";
+  while (g.measureText(chain).width > W - 150 && size > 28) { size -= 4; g.font = `${size}px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif`; }
+  g.fillText(chain, 124, H / 2 - 10);
+  const sub = `${SHOP_TYPES[shop.type].label} · ${shop.suffix || ''}`.toUpperCase();
+  let small = 17;
+  g.font = `bold ${small}px 'Arial Narrow', Arial, sans-serif`;
+  while (g.measureText(sub).width > W - 140 && small > 11) { small--; g.font = `bold ${small}px 'Arial Narrow', Arial, sans-serif`; }
   g.fillStyle = 'rgba(242,237,224,0.85)';
-  g.fillText(SHOP_TYPES[shop.type].label.toUpperCase(), 126, H - 18);
+  g.fillText(sub, 126, H - 18);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
@@ -870,17 +1331,28 @@ function buildShopFront3D(shop) {
   door.add(badge);
   root.add(door);
 
-  // lit sign board flat on the facade, facing the street
-  const f = shop.face;
+  // lit sign board flat on the facade (or on two posts at a jetty), facing the street
+  const f = shop.face || { x: shop.x, y: shop.y, nx: shop.kiosk.nx, ny: shop.kiosk.ny, h: 3.2 };
+  if (!shop.face) {
+    for (const side of [-1, 1]) {
+      const post = new THREE.Mesh(postGeometry, postMaterial);
+      post.position.set(f.x - f.ny * side * 1.4, 1.35, f.y + f.nx * side * 1.4);
+      root.add(post);
+    }
+  }
   const draw = () => {
-    const signMat = new THREE.MeshBasicMaterial({ map: signTexture(shop), fog: true });
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.8), signMat);
-    const y = Math.max(2.7, Math.min(3.4, f.h - 0.7));
-    sign.position.set(f.x + f.nx * 0.34, y, f.y + f.ny * 0.34);
+    if (root.userData.disposed) return;
+    const signMat = new THREE.MeshBasicMaterial({ map: signTexture(shop), fog: true, side: shop.face ? THREE.FrontSide : THREE.DoubleSide });
+    const sign = new THREE.Mesh(signGeometry, signMat);
+    sign.userData.ownMaterial = true;
+    const y = shop.face ? Math.max(2.7, Math.min(3.4, f.h - 0.7)) : 2.4;
+    const out = shop.face ? 0.34 : 0;
+    sign.position.set(f.x + f.nx * out, y, f.y + f.ny * out);
     sign.rotation.y = Math.atan2(f.nx, f.ny);
     root.add(sign);
-    const awningMat = new THREE.MeshLambertMaterial({ color: col });
-    const awning = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.08, 1.0), awningMat);
+    if (!shop.face) return;
+    if (!awningMaterials[type]) awningMaterials[type] = new THREE.MeshLambertMaterial({ color: col });
+    const awning = new THREE.Mesh(awningGeometry, awningMaterials[type]);
     awning.position.set(f.x + f.nx * 0.8, y - 0.62, f.y + f.ny * 0.8);
     awning.rotation.y = Math.atan2(f.nx, f.ny);
     awning.rotation.x = 0.28;

@@ -8,8 +8,9 @@ it belongs to; nodes on cycle paths only get bike=1, nodes on roads the game
 does not carry are dropped. Only meta.trafficLights is rewritten; every other
 key in the file is preserved.
 
-The raw Overpass response is cached in data/traffic_signals_raw.json; pass
---refresh to fetch it again.
+The raw Overpass response is cached in data/traffic_signals_raw.json with
+the box it covers; it is fetched again when the map outgrows it or with
+--refresh.
 """
 import json
 import math
@@ -78,8 +79,14 @@ def main():
     x0, y0, x1, y1 = meta["bounds"]
     bbox = (lat0 - y1 / m_lat - 0.001, lon0 + x0 / m_lon - 0.001, lat0 - y0 / m_lat + 0.001, lon0 + x1 / m_lon + 0.001)
 
-    if "--refresh" in sys.argv or not os.path.exists(CACHE_PATH):
+    have = None
+    if os.path.exists(CACHE_PATH):
+        with open(CACHE_PATH) as f:
+            have = json.load(f).get("bbox")
+    covered = have and have[0] <= bbox[0] and have[1] <= bbox[1] and have[2] >= bbox[2] and have[3] >= bbox[3]
+    if "--refresh" in sys.argv or not covered:
         raw = fetch(bbox)
+        raw["bbox"] = list(bbox)
         with open(CACHE_PATH, "w") as f:
             json.dump(raw, f)
     with open(CACHE_PATH) as f:

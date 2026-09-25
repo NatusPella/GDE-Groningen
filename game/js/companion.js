@@ -1,5 +1,6 @@
 import { dist, isInWater, inWaterPoly, WATER_Y, normalizeAngle, pointInPolygon, closestPointOnSegment } from './util.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
+import { resolveElevWalls } from './elevation.js';
 import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST, swimDepth, findClimbSpot, SWIM_SPEED, CLIMB_TIME } from './player.js';
 import { findProps } from './breakables.js';
 import { pushCircleOutOfVehicle } from './vehicle.js';
@@ -625,7 +626,23 @@ function walkAlongside(c, p, dt, world) {
 
 export function updateCompanion(dt, world) {
   stepCompanion(dt, world);
+  followGround(world);
   applyPoseSource(world.companion);
+}
+
+// Heights on the ring (elevation.js): stay on the deck / in the cutting the
+// player is on, behind its walls and barriers.
+function followGround(world) {
+  const c = world.companion, map = world.map;
+  if (!c) return;
+  if (c.inVehicle) { c.gz = c.inVehicle.z || 0; return; }
+  if (!map.elev || !map.elev.has || c.water) { c.gz = 0; return; }
+  const p = world.player;
+  const pz = (p.gz || 0) + (p.z || 0);
+  const hint = dist(c.x, c.y, p.x, p.y) < 4 ? pz : c.gz || 0;
+  const w = resolveElevWalls(map.elev, c.x, c.y, hint, c.radius);
+  if (w) [c.x, c.y] = w;
+  c.gz = map.groundHeightAt(c.x, c.y, hint);
 }
 
 function stepCompanion(dt, world) {

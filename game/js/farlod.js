@@ -171,15 +171,18 @@ function addBuilding(B, b) {
   }
 }
 
-function addSegment(B, ax, ay, bx, by, half, c) {
+// za/zb: height of a raised ring road (the far view keeps its viaducts up;
+// sunken sections stay at street level, where the ground covers them anyway)
+function addSegment(B, ax, ay, bx, by, half, c, za = 0, zb = 0) {
   const dx = bx - ax, dy = by - ay;
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len * half, ny = dx / len * half;
   const i = B.vertCount;
-  B.vert(ax + nx, 0, ay + ny, c);
-  B.vert(ax - nx, 0, ay - ny, c);
-  B.vert(bx + nx, 0, by + ny, c);
-  B.vert(bx - nx, 0, by - ny, c);
+  const ya = Math.max(0, za), yb = Math.max(0, zb);
+  B.vert(ax + nx, ya, ay + ny, c);
+  B.vert(ax - nx, ya, ay - ny, c);
+  B.vert(bx + nx, yb, by + ny, c);
+  B.vert(bx - nx, yb, by - ny, c);
   B.tri(i, i + 2, i + 1);
   B.tri(i + 1, i + 2, i + 3);
 }
@@ -273,7 +276,7 @@ export function createFarLOD(scene, map, opts) {
             col = tintCache.get(key);
             if (!col) tintCache.set(key, col = rgb8(new THREE.Color(tint).lerp(new THREE.Color(colors.sidewalk), car ? 0.3 : 0).getHex()));
           }
-          addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, col);
+          addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, col, r.z ? r.z[s] : 0, r.z ? r.z[s + 1] : 0);
         }
       } else if (J.phase === 2) {
         if (J.i >= t.green.length) { J.phase = 3; continue; }

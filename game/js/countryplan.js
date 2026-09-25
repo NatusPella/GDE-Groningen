@@ -2,6 +2,7 @@ import {
   BLOCK, PW, ROAD_IN, ROAD_W, MAIN_HW, MAAR_HW, VILLAGE_RING, VILLAGE_X,
   chash, countryWeight, countryRect, edgeDistance, edgeRoad, maarX, maarY, villageOf, parcelAt,
 } from './countryfield.js';
+import { EDGE, initCountryEdge, edgeBlocked, edgeBlockBoxes, connectorRuns, pushOutOfEdge, FRINGE } from './countryedge.js';
 
 // Deterministic layout of everything built in the Ommelanden, per polder
 // block: farmsteads along the polder roads and on their own terps, wierde
@@ -199,6 +200,23 @@ export function blockPlanCached(bx, by) {
   return blockCache.get(bkey(bx, by)) || null;
 }
 
+// Builds the map-edge layout (once) and forgets plans made without it.
+export function ensureCountryEdge(map) {
+  if (EDGE.ready || !map) return;
+  initCountryEdge(map);
+  clearPlans();
+}
+
+// Forget every plan (the map-edge layout arrived after some were made).
+export let planVersion = 0;
+export function clearPlans() {
+  planVersion++;
+  blockCache.clear();
+  macroCache.clear();
+  pylonCache.clear();
+  villagePlans.clear();
+}
+
 export function isPlanned(x, y) {
   return blockCache.has(bkey(Math.floor(x / BLOCK), Math.floor(y / BLOCK)));
 }
@@ -229,6 +247,7 @@ function buildBlock(bx, by) {
   const X = bx * BLOCK, Y = by * BLOCK;
   const P = { bx, by, farms: [], village: villageOf(bx, by), villageE: villageOf(bx + 1, by), gas: null, mill: null, blocked: [] };
   const inner = [X + 3, Y + 3, X + BLOCK - 3, Y + BLOCK - 3];
+  for (const q of edgeBlockBoxes(bx, by)) P.blocked.push(q);
   const bands = roadBands(bx, by);
   const villages = [P.village, P.villageE].filter(Boolean);
   const nearVillage = (x, y, m) => villages.some((v) => Math.hypot(x - v.x, y - v.y) < v.r + m);
@@ -290,6 +309,19 @@ function buildBlock(bx, by) {
   if (edgeRoad(bx + 1, by, 0) && !maarX(bx + 1)) roads.push({ v: true, fixed: X + BLOCK - 11, angle: Math.PI, front: 16, off: 100 });
   if (edgeRoad(bx, by, 1)) roads.push({ v: false, fixed: Y + ROAD_IN + ROAD_W + 11, angle: Math.PI / 2, front: 11, off: 50 });
   if (edgeRoad(bx, by + 1, 1) && !maarY(by + 1)) roads.push({ v: false, fixed: Y + BLOCK - 11, angle: -Math.PI / 2, front: 16, off: 150 });
+  // and along the roads coming out of the city, past the fringe
+  for (const k of connectorRuns(bx, by)) {
+    for (let t = FRINGE + 40; t < k.runLen - 40; t += 190) {
+      const pos = k.out + k.dir * t;
+      if (pos < (k.vert ? Y : X) + 40 || pos > (k.vert ? Y : X) + BLOCK - 40) continue;
+      for (const side of [-1, 1]) {
+        if (chash(Math.round(t) + side * 7, Math.round(k.c)) > 0.6) continue;
+        const off = k.c + side * (k.wEnd / 2 + 16);
+        const angle = k.vert ? (side > 0 ? 0 : Math.PI) : (side > 0 ? Math.PI / 2 : -Math.PI / 2);
+        tryFarm(k.vert ? off : pos, k.vert ? pos : off, angle, 16, chash(Math.round(t), Math.round(k.c) + side), chash(Math.round(k.c) - side, Math.round(t) + 3));
+      }
+    }
+  }
   roads.forEach((r, ri) => {
     for (let k = 0; k < 5; k++) {
       const h = chash(bx * 97 + ri * 13 + k, by * 89 + k * 7);
@@ -343,7 +375,7 @@ export function villagePlan(v) {
   const roadX = v.x - VILLAGE_X + ROAD_C;
   // angle: world heading of the house's back (its front faces the street)
   const house = (x, y, angle, kind) => {
-    if (!openLand(x, y)) return;
+    if (!openLand(x, y) || edgeBlocked(x, y, 3)) return;
     const p = parcelAt(x, y);
     if (p.road) return;
     V.houses.push({ x, y, angle, kind: kind ?? Math.floor(R() * 4), look: Math.floor(R() * 3) });
@@ -499,7 +531,7 @@ export function turbineValid(t) {
 
 // Open field: no road, ditch, farm yard, village or special within reach.
 function spotClear(x, y, clear, villageClear) {
-  if (edgeDistance(x, y) < 60 || !openLand(x, y)) return false;
+  if (edgeDistance(x, y) < 60 || !openLand(x, y) || edgeBlocked(x, y, clear)) return false;
   const p = parcelAt(x, y);
   if (p.road || p.dMain < clear * 0.6 || p.dMaar < clear || p.dDitch < 2) return false;
   const bx = Math.floor(x / BLOCK), by = Math.floor(y / BLOCK);
@@ -658,6 +690,7 @@ export function pushOutOfPlan(obj, radius) {
       }
     }
   }
+  if (pushOutOfEdge(obj, radius)) hit = true;
   for (const t of turbinesAround(obj.x, obj.y, 12)) if (pushCircle(obj, t.x, t.y, 3.1, radius)) hit = true;
   const { pylons } = pylonsAround(obj.x, obj.y, 12, [], []);
   for (const p of pylons) if (pushCircle(obj, p.x, p.y, 3.4, radius)) hit = true;

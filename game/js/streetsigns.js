@@ -70,7 +70,7 @@ function buildSignIndex(map) {
   const list = [];
   const byName = new Map();
   for (const road of map.roads) {
-    if (!road.name || road.pts.length < 2 || road.bridge) continue;
+    if (!road.name || road.pts.length < 2 || road.bridge || road.z) continue;
     if (road.cat === 'foot' || road.cat === 'cycle') continue;
     for (const [a, b] of roadEnds(road)) {
       const dx = b[0] - a[0], dy = b[1] - a[1];
