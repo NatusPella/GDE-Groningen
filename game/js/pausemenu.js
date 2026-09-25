@@ -3,7 +3,7 @@ import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscover
 import { getMissionList, trackMission } from './missions.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
-import { isCinematicActive, replayIntro } from './cinematics.js';
+import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel, missionRecordHTML } from './achievementsui.js';
 
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
@@ -144,7 +144,6 @@ export function initPauseMenu(w) {
         <button type="button" class="pm-secondary" data-action="save">Opslaan</button>
         <button type="button" class="pm-secondary" data-action="load">Laatste save laden</button>
         <button type="button" class="pm-secondary" data-action="restart">Opnieuw beginnen</button>
-        <button type="button" class="pm-secondary" data-action="intro">Intro opnieuw bekijken</button>
         <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
         <button type="button" class="pm-secondary" data-action="menu" data-both>Terug naar hoofdmenu</button>
         ${DESKTOP ? '<button type="button" class="pm-danger" data-action="exit" data-both>Spel afsluiten</button>' : ''}
@@ -250,7 +249,6 @@ function runAction(a) {
     if (a === 'exit' && DESKTOP) DESKTOP.quit();
     else location.reload();
   }
-  else if (a === 'intro') { setOpen(false); replayIntro(world); }
   else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {

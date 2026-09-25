@@ -1,4 +1,4 @@
-import { dist, pointInPolygon, closestPointOnSegment } from './util.js';
+import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints } from './util.js';
 import { spawnVehicleOnRoad, Vehicle } from './vehicle.js';
 import { setUserWaypoint } from './routing.js';
 import { playMissionIntro, playMissionFailed } from './cinematics.js';
@@ -429,11 +429,44 @@ function spawnMissionCar(world, def) {
   return car;
 }
 
-function spawnMissionBoat(def) {
+// a boat pose is usable when the hull is on water, at least 1.5 m clear of
+// any building (houseboats), and there is ~8 m of free water ahead
+function boatPoseClear(map, boat, x, y, a) {
+  if (boatDryPoints(map, boat, x, y, a) > 0) return false;
+  const c = Math.cos(a), s = Math.sin(a);
+  const h = boat.model.len / 2 + 1.5, w = boat.model.wid / 2 + 1.5;
+  const probes = [[h, 0], [-h, 0], [0, w], [0, -w], [h, w], [h, -w], [-h, w], [-h, -w], [h + 4, 0], [h + 8, 0]];
+  for (const [lx, ly] of probes) {
+    const px = x + lx * c - ly * s, py = y + lx * s + ly * c;
+    if (map.buildingsNear(px, py, 1).some((bd) => pointInPolygon(px, py, bd.pts))) return false;
+    if (Math.abs(ly) < 0.1 && lx > h && boatDryPoints(map, boat, px, py, a) > 2) return false;
+  }
+  return true;
+}
+
+function spawnMissionBoat(def, map) {
   const b = def.boatAt;
   const boat = new Vehicle(b.x, b.y, b.angle, MISSION_BOAT_MODEL);
   boat.isBoat = true;
   boat.missionCar = true;
+  // the hard-coded berth can end up against a quay or houseboat (the water
+  // got deeper and houseboats solid): find the nearest pose with the whole
+  // hull on open water, clear of houseboats, and free water ahead, pointing
+  // roughly at the first waypoint
+  if (map && !boatPoseClear(map, boat, boat.x, boat.y, boat.angle)) {
+    const wp = def.waypoints && def.waypoints[0];
+    const toWp = wp ? Math.atan2(wp.y - b.y, wp.x - b.x) : b.angle;
+    let best = null;
+    for (let r = 0.5; r <= 30 && !best; r += 0.5) {
+      for (let k = 0; k < 24 && !best; k++) {
+        const x = b.x + Math.cos((k / 24) * Math.PI * 2) * r, y = b.y + Math.sin((k / 24) * Math.PI * 2) * r;
+        for (const da of [0, 0.35, -0.35, 0.7, -0.7, 1.1, -1.1]) {
+          if (boatPoseClear(map, boat, x, y, toWp + da)) { best = { x, y, a: toWp + da }; break; }
+        }
+      }
+    }
+    if (best) { boat.x = best.x; boat.y = best.y; boat.angle = best.a; }
+  }
   return boat;
 }
 
@@ -474,7 +507,7 @@ function startMission(world, def) {
     chain.vehicle = spawnMissionCar(world, def);
     world.vehicles.push(chain.vehicle);
   } else if (def.type === 'boat') {
-    chain.vehicle = spawnMissionBoat(def);
+    chain.vehicle = spawnMissionBoat(def, world.map);
     world.vehicles.push(chain.vehicle);
   } else if (def.type === 'fatbike') {
     chain.fatbikeHits = 0;
