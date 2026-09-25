@@ -34,7 +34,7 @@ const uniforms = {
   uRoomDepth: { value: 1.0 },
 };
 
-export const glassMaterial = vcMaterial({ roughness: 0.18, metalness: 0.35 });
+export const glassMaterial = vcMaterial({ roughness: 0.24, metalness: 0.1 });
 
 let interiorOn = true;
 onSettingsChange((st) => {
@@ -53,7 +53,8 @@ export function setGlassNight(glow, litFrac, shopFrac) {
   const w = typeof window !== 'undefined' && window.__debug && window.__debug.world && window.__debug.world.weather;
   const storm = w ? Math.min(1, Math.max(0, w.intensity || 0)) : 0;
   uniforms.uStorm.value = storm;
-  glassMaterial.envMapIntensity = interiorOn ? 1.3 + storm * 2.0 : 1;
+  // modest reflections: mirror-like glass bloomed into glaring sheets of light
+  glassMaterial.envMapIntensity = interiorOn ? 0.5 + storm * 0.5 : 0.55;
 }
 
 export function setRoomDepth(f) {
@@ -321,7 +322,7 @@ glassMaterial.onBeforeCompile = (shader) => {
         totalEmissiveRadiance += igCol * (1.0 - igF) * 0.92 + igF * vec3(0.02, 0.026, 0.04) * clamp(uNightGlow, 0.0, 1.0);
         diffuseColor.rgb *= 0.12;
         metalnessFactor = 0.0;
-        roughnessFactor = 0.06;
+        roughnessFactor = 0.22;
       #else
         if (uNightGlow > 0.0) {
           bool shop = abs(q.kind - 2.0) < 0.5;
