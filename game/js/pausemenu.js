@@ -6,14 +6,15 @@ import { getClockText } from './hud_panel.js';
 import { isCinematicActive, replayIntro } from './cinematics.js';
 
 const CONTROLS = [
-  ['W / S', 'lopen of gas geven / achteruit'],
+  ['W / S', 'vooruit / achteruit (lopen en rijden)'],
   ['A / D', 'draaien / sturen'],
   ['Shift', 'rennen'],
-  ['Spatie', 'springen / remmen'],
+  ['Spatie', 'springen / handrem'],
   ['Ctrl', 'bukken'],
   ['E / F', 'instappen / uitstappen / kusje'],
   ['Muisklik', 'aanvallen / schieten'],
   ['1–4', 'vuisten / pistool / uzi / hagelgeweer'],
+  ['Scrollwiel', 'volgend / vorig wapen'],
   ['Muis omhoog/omlaag', 'camerahoek'],
   ['C', 'wissel Tammo / Anita'],
   ['T', 'telefoon'],
@@ -118,7 +119,7 @@ export function initPauseMenu(w) {
           ${toggle('showHints', 'Toetshints')}
           ${toggle('showFog', 'Verkende gebieden op de kaart')}
           ${toggle('cinematicMoments', 'Filmische momenten')}
-          <p class="pm-note">Oriëntatiepunten, wijken, crashes en vijf sterren in beeld. Intro’s, missies en de filmcamera (V) blijven.</p>
+          <p class="pm-note">Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.</p>
         </div>
         <button type="button" class="pm-secondary" data-action="reset">Standaardinstellingen</button>
       </div></section>
@@ -134,7 +135,7 @@ export function initPauseMenu(w) {
         <button type="button" class="pm-secondary" data-action="restart">Opnieuw beginnen</button>
         <button type="button" class="pm-secondary" data-action="intro">Intro opnieuw bekijken</button>
         <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
-        <button type="button" class="pm-danger" data-action="quit" data-pigeon hidden>Stop duif-modus</button>
+        <button type="button" class="pm-danger" data-action="quit" data-pigeon hidden>Duif-modus stoppen</button>
         <div class="pm-confirm" hidden>
           <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
           <button type="button" class="pm-secondary" data-action="load">Laatste save laden</button>

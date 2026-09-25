@@ -3,7 +3,7 @@ import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 
 const TIPS = [
-  'Tip: in Grunn fiets je altijd voorrang, of je het nou hebt of niet.',
+  'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
   'Tip: de Martinitoren heet hier gewoon d’Olle Grieze.',
   'Tip: een eierbal eet je warm. Koud is een misdaad, ook in Grunn.',
   'Tip: “Moi” is goeiemorgen, goeiemiddag én goeienavond.',

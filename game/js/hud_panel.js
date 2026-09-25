@@ -1,13 +1,16 @@
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
+import { vehicleDisplayName } from './vehiclenames.js';
+import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
+import { drawCountryMinimap } from './countryfield.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 
 const MINIMAP_SIZE = 160;
-const MM_SCALE = 0.5; // px per meter (css pixels) when standing still
-const MM_SCALE_FAST = 0.22;
+const MM_SCALE = 0.8; // px per meter (css pixels) when standing still
+const MM_SCALE_FAST = 0.36;
 const MM_FAST_SPEED = 28;
 let mmScale = MM_SCALE;
 
@@ -48,8 +51,14 @@ export function initHud(world) {
 
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<b></b><span>km/h</span>';
+  speedo.innerHTML = '<b></b><span>km/u</span>';
   root.appendChild(speedo);
+
+  const vehName = document.createElement('div');
+  vehName.className = 'hud-vehname';
+  vehName.setAttribute('aria-live', 'polite');
+  vehName.innerHTML = '<small></small><b></b>';
+  root.appendChild(vehName);
 
   const mission = document.createElement('div');
   mission.className = 'hud-mission';
@@ -94,6 +103,8 @@ export function initHud(world) {
     speedo,
     speedoValue: speedo.querySelector('b'),
     weapon: topRight.querySelector('.hud-weapon'),
+    mission,
+    vehName,
     missionLabel: mission.querySelector('.hud-mission-label'),
     missionProgress: mission.querySelector('.hud-mission-progress'),
     missionTimer: mission.querySelector('.hud-mission-timer'),
@@ -108,7 +119,33 @@ export function initHud(world) {
   initPrompts(root);
 }
 
+// GTA-style: the model name shows for a moment when you get into a vehicle
+let vehNameFor = null;
+let vehNameTimer = 0;
+function updateVehicleName(dt, world) {
+  const v = world.player.inVehicle || null;
+  if (v !== vehNameFor) {
+    vehNameFor = v;
+    if (v) {
+      const { make, model } = vehicleDisplayName(v);
+      els.vehName.querySelector('small').textContent = make;
+      els.vehName.querySelector('b').textContent = model;
+      vehNameTimer = 3.2;
+      els.vehName.classList.remove('on');
+      void els.vehName.offsetWidth;
+      els.vehName.classList.add('on');
+    } else {
+      vehNameTimer = 0;
+    }
+  }
+  if (vehNameTimer > 0) {
+    vehNameTimer -= dt;
+    if (vehNameTimer <= 0) els.vehName.classList.remove('on');
+  } else if (!v) els.vehName.classList.remove('on');
+}
+
 export function updateHud(dt, world) {
+  updateVehicleName(dt, world);
   updateCharacter(world);
   updateBars(world);
   els.mute.hidden = !isMuted();
@@ -231,6 +268,13 @@ let lastHp = null;
 let flash = 0;
 function updateDamage(dt, world) {
   const hp = world.health + world.armor;
+  if (document.body.classList.contains('intro-montage') || !cinematicAllowsDamageFx()) {
+    // no blood screen in cutscenes, and no delayed flash for damage taken during one
+    flash = 0;
+    lastHp = hp;
+    els.damage.style.opacity = '0';
+    return;
+  }
   if (lastHp != null && hp < lastHp - 0.5) flash = Math.min(1, flash + 0.35 + (lastHp - hp) / 30);
   lastHp = hp;
   flash = Math.max(0, flash - dt * 1.8);
@@ -249,7 +293,12 @@ function updateSpeedo(world) {
 const WEAPON_LABELS = { fists: 'VUISTEN', pistol: 'PISTOOL', uzi: 'UZI', shotgun: 'HAGELGEWEER' };
 // Simple original silhouettes (48x24 viewBox), drawn in the HUD foreground colour.
 const WEAPON_ICONS = {
-  fists: '<path d="M14 7h14a4 4 0 0 1 4 4v2h2a3 3 0 0 1 0 6H18a5 5 0 0 1-5-5V9z"/><path d="M17 7v5M21 7v5M25 7v5" stroke="rgba(0,0,0,.45)" stroke-width="1.2" fill="none"/>',
+  // front-on fist: four knuckles, thumb wrapped across, wrist below
+  fists: '<rect x="18.5" y="17" width="11" height="6.5" rx="1.2"/><rect x="13.5" y="6.5" width="21" height="12" rx="4"/>' +
+    '<rect x="13.5" y="1.5" width="5.6" height="10" rx="2.8"/><rect x="18.6" y="0.8" width="5.6" height="10.5" rx="2.8"/><rect x="23.7" y="1.2" width="5.6" height="10.2" rx="2.8"/><rect x="28.8" y="2.4" width="5.2" height="9.2" rx="2.6"/>' +
+    '<path d="M19.1 3v6.4M24.2 2.6v7.1M29.3 3.4v7" stroke="rgba(0,0,0,.45)" stroke-width="1" fill="none" stroke-linecap="round"/>' +
+    '<path d="M13.8 12.2c2.2-1.6 6.2-2.3 10.6-1.9 1.6.2 2.2 1.6 1.2 2.6-.9.9-2.3 1.2-3.6 1.3-3.2.3-5.8.9-8.2 2.2" stroke="rgba(0,0,0,.45)" stroke-width="1" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="M19.5 18.6h9" stroke="rgba(0,0,0,.35)" stroke-width="0.9" fill="none" stroke-linecap="round"/>',
   pistol: '<path d="M8 6h30v6H22l-2 3h-5l-2 7H7l2-10H8z"/><rect x="38" y="7" width="3" height="3"/>',
   uzi: '<path d="M6 7h32v6H27v9h-5v-9h-4l-2 5h-6l2-5H6z"/><rect x="38" y="8.5" width="5" height="2.5"/><path d="M2 8h4v4H2z"/>',
   shotgun: '<path d="M2 8h28v2l16 0v3H30v1h-8l-3 2H13l-2 4H4l2-5H2z"/><rect x="24" y="13" width="7" height="3" rx="1"/>',
@@ -299,11 +348,15 @@ function updateMission(world) {
     els.missionLabel.textContent = '';
     els.missionProgress.textContent = '';
     els.missionTimer.textContent = '';
+    els.mission.hidden = true;
     return;
   }
-  els.missionLabel.textContent = m.label || '';
+  // no permanent objective title at the top: the minimap already shows the
+  // mission distance; only a live counter/timer appears during a mission
+  els.missionLabel.textContent = '';
   els.missionProgress.textContent = missionProgressText(m);
-  els.missionTimer.textContent = m.timeLeft != null ? Math.ceil(m.timeLeft) + 's' : '';
+  els.missionTimer.textContent = m.phase === 'active' && m.timeLeft != null ? Math.ceil(m.timeLeft) + 's' : '';
+  els.mission.hidden = !els.missionProgress.textContent && !els.missionTimer.textContent;
 }
 
 // missions.js leaves these fields set after a mission ends, so gate on the
@@ -705,6 +758,7 @@ function drawMinimap(dt, world) {
 
   ctx.fillStyle = '#22262a';
   ctx.fillRect(player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, MM_RADIUS_M * 2, MM_RADIUS_M * 2);
+  drawCountryMinimap(ctx, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M);
 
   const view = world.map.queryView(
     player.x - MM_RADIUS_M, player.y - MM_RADIUS_M,

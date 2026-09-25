@@ -6,7 +6,7 @@ const COOLDOWN = 9;
 
 const WANTED_UP = [
   'SIKKOM MELDT: onrust in Grunn, politie massaal op pad',
-  'SIKKOM: sirenes gierend door het centrum, politie kan niet wegblijven van jou',
+  'SIKKOM: gierende sirenes in het centrum, politie zit iemand op de hielen',
 ];
 const WRECKED_UP = [
   'SIKKOM: auto total loss in het centrum, buurtbewoners verbijsterd',

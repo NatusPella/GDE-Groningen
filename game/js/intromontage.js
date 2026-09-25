@@ -470,7 +470,7 @@ function buildShots(w) {
   const chaos = {
     dur: 6.0, clock: 18.6, focus: { x: 175, y: 55 }, flare: { x: 12, y: 30, a: 0.6 },
     slow: (t) => (t < 1.1 ? 1 : t < 1.5 ? lerp(1, 0.32, (t - 1.1) / 0.4) : t < 4.8 ? 0.32 : lerp(0.32, 1, (t - 4.8) / 1.2)),
-    lines: [[0.4, 1.8, 'Anita', 'Rennen, Tammo!'], [2.5, 3.2, 'Tammo', 'Ik ren. Dit is gewoon hoe ik ren.']],
+    lines: [[0.4, 1.8, 'Anita', 'Rennen, Tammo!'], [2.5, 3.2, 'Tammo', 'Ik rén. Zo ren ik nou eenmaal.']],
     enter(r, s) {
       const dir = Math.atan2(70 - 32, 160 - 205);
       s.dir = dir;
@@ -699,12 +699,12 @@ function buildShots(w) {
   const card3 = { dur: 3.2, black: true, card: '<div class="im-kicker">Grand Theft Eierbal</div><div class="gte-logo"><span class="gte">GTE</span><span class="vi">VI</span></div>', restore: true };
 
   const swoop = {
-    dur: 6.0, home: true,
+    dur: 7.0, home: true,
     lower: '<div class="im-kicker">Welkom in</div><div class="im-title">Grunn</div>',
     enter(r, s) {
       s.shot = r.flyShot();
     },
-    cams: [[6.0, (u, t, s) => ({ ...s.shot(u), cut: true })]],
+    cams: [[7.0, (u, t, s) => ({ ...s.shot(u), cut: true })]],
   };
 
   return [aerial, chaos, card1, kiss, vismarkt, card2, heist, chase, roof, card3, swoop];

@@ -29,6 +29,8 @@ const LAYERS_KEY = 'gte-map-layers';
 
 const LAND = '#1f2b22';
 const GREEN = '#2f5f37';
+// the endless meadows past the real map (countryside.js)
+const COUNTRY = '#26442b';
 const WATER = '#2d6a86';
 const WATER_EDGE = '#4a8fae';
 const BUILDING = 'rgba(160, 156, 146, 0.62)';
@@ -181,11 +183,22 @@ function injectStyles() {
       display: flex; align-items: center; gap: 8px; font-size: 14px; letter-spacing: 0.3px; line-height: 1;
       padding: 3px 4px; margin: 0 -4px; border-radius: 3px; user-select: none;
     }
-    .mapview-legend li[role="button"] { cursor: pointer; }
-    .mapview-legend li[role="button"]:hover { background: rgba(63, 201, 122, 0.12); }
-    .mapview-legend li[role="button"]:focus-visible { outline: 2px solid #f0ede4; }
-    .mapview-legend li[aria-pressed="false"] { opacity: 0.38; }
-    .mapview-legend li[aria-pressed="false"] span:first-of-type { text-decoration: line-through; }
+    .mapview-legend li[role="checkbox"] { cursor: pointer; }
+    .mapview-legend li[role="checkbox"]:hover { background: rgba(63, 201, 122, 0.12); }
+    .mapview-legend li[role="checkbox"]:focus-visible { outline: 2px solid #f0ede4; }
+    .mapview-legend li[aria-checked="false"] > canvas, .mapview-legend li[aria-checked="false"] > span:not(.chk) { opacity: 0.4; }
+    .mapview-legend .chk {
+      margin-left: auto; flex: 0 0 16px; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px;
+      border: 2px solid rgba(240, 237, 228, 0.6); display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .mapview-legend li[aria-checked="true"] .chk { background: #3fc97a; border-color: #3fc97a; }
+    .mapview-legend li[aria-checked="true"] .chk::after {
+      content: ''; width: 4px; height: 8px; margin-top: -2px; border: solid #0c140e; border-width: 0 2px 2px 0; transform: rotate(45deg);
+    }
+    .mapview-legend .all { margin: 0 0 8px; font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
+    .mapview-legend .all button { background: none; border: 0; padding: 0; font: inherit; color: #3fc97a; cursor: pointer; text-decoration: underline; }
+    .mapview-legend .all button:focus-visible { outline: 2px solid #f0ede4; }
     .mapview-legend canvas { width: 24px; height: 24px; flex: 0 0 24px; }
     .mapview-legend .note { color: rgba(240, 237, 228, 0.55); font-size: 12px; }
     @media (max-width: 900px) { .mapview-footer { display: none; } }
@@ -705,6 +718,8 @@ function compose() {
   const c = state.composeCtx;
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, state.compose.width, state.compose.height);
+  c.fillStyle = COUNTRY;
+  c.fillRect(0, 0, state.compose.width, state.compose.height);
   c.imageSmoothingEnabled = true;
 
   if (!state.tiles.has(tileKey(0, 0, 0))) ensureLevel0();
@@ -1135,14 +1150,19 @@ function buildLegend(root) {
       span.append(document.createElement('br'), n);
     }
     if (row.layer) {
-      li.setAttribute('role', 'button');
+      li.setAttribute('role', 'checkbox');
       li.tabIndex = 0;
-      li.setAttribute('aria-pressed', String(layerOn(row.layer)));
+      li.setAttribute('aria-checked', String(layerOn(row.layer)));
       li.title = 'Klik om aan/uit te zetten';
+      const box = document.createElement('span');
+      box.className = 'chk';
+      box.setAttribute('aria-hidden', 'true');
+      li.appendChild(box);
+      li.dataset.layer = row.layer;
       const toggle = () => {
         const on = !layerOn(row.layer);
         setLayer(row.layer, on);
-        li.setAttribute('aria-pressed', String(on));
+        li.setAttribute('aria-checked', String(on));
       };
       li.addEventListener('click', toggle);
       li.addEventListener('keydown', (e) => {
@@ -1154,7 +1174,17 @@ function buildLegend(root) {
     }
     list.appendChild(li);
   }
-  root.innerHTML = '<h3>LEGENDA</h3><p class="hint">Klik een regel om die laag te verbergen</p>';
+  root.innerHTML = '<h3>LEGENDA</h3><p class="hint">Vink aan wat je op de kaart wilt zien</p>' +
+    '<p class="all"><button type="button" data-all="1">Alles aan</button> · <button type="button" data-all="0">Alles uit</button></p>';
+  for (const b of root.querySelectorAll('[data-all]')) {
+    b.addEventListener('click', () => {
+      const on = b.dataset.all === '1';
+      for (const li of list.querySelectorAll('li[data-layer]')) {
+        setLayer(li.dataset.layer, on);
+        li.setAttribute('aria-checked', String(on));
+      }
+    });
+  }
   root.appendChild(list);
 }
 

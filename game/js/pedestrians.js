@@ -5,12 +5,14 @@ import { playNpcPhrase } from './audio.js';
 import { pushCircleOutOfVehicle, reportImpact } from './vehicle.js';
 import { getCombatEffect } from './combat.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
+import { knockDown, isKnockedDown } from './ragdoll.js';
+import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, makeCompanion } from './pedroutes.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
 const FLEE_TRIGGER_RADIUS = 9;
 const FLEE_SAFE_RADIUS = 34;
-export const DEAD_DURATION = 2.5;
+export const DEAD_DURATION = 20;
 const WAYPOINT_RADIUS = 15;
 const VEHICLE_HIT_SPEED = 4;
 const KNOCK_DECAY = 3.5;
@@ -39,7 +41,7 @@ const NIGHT_HOTSPOTS = [
 const GRONINGS_PHRASES = [
   'Moi!', 'Hoi, alles goud?', 't Is mooi weer vandoag, net?',
   'Kom, we goan derhen.', 'Wat bin je aan het doun?', 'Doe mor gewoon.',
-  'Lekker bakkie doen?', 'Nou, mag ik der wel weer over klagen.',
+  'Lekker bakkie doen?', 'Nou, mag nait klagen, hoor.',
   'Ligt aan die kolde wind, geleuf ik.', 'Tot straks, moi!',
 ];
 
@@ -54,7 +56,7 @@ const COP_LINES = ['Staan blijven! Politie!', 'Handen omhoog!', 'Blijf stoan!'];
 const CALL_LINES = {
   shot: 'Hallo, 112? Hier wordt schoten!',
   boom: '112? Hier ontploft van alles!',
-  hit: 'Politie? Hier slaat een gek mensen!',
+  hit: 'Politie? Een gek slaat hier mensen in elkaar!',
   theft: 'Politie? Der wordt hier een auto jat!',
 };
 
@@ -103,10 +105,42 @@ export function setPedPose(ped, pose) {
 }
 
 let spawnBudget = 45;
+let spawnWorld = null;
+let lastPlayerX = null, lastPlayerY = null;
 
-function spawnPedsRaw(map, x, y, count, rng, minDist = 0) {
+const HIDDEN_MIN_DIST = 18;
+const HIDDEN_MAX_DIST = 70;
+const HIDDEN_FAR_MAX_DIST = 125;
+
+// Whether a new ped at (x, y) would appear out of sight: behind or beside the
+// camera, blocked by a building, or deep in the fog. world.pedView is filled
+// by scene3d; without it (boot, before the first frame) anything goes.
+export function isSpawnHidden(world, x, y) {
+  const view = world && world.pedView;
+  if (!view || world.time < (world.pedFreeSpawnUntil || 0)) return true;
+  if (!view.inView(x, y)) return true;
+  return !clearSight(world.map, view.camX, view.camY, x, y);
+}
+
+// The last couple of metres are skipped: a ped hugging a facade is still
+// visible even though the sight line brushes the building it stands next to.
+function clearSight(map, ax, ay, bx, by) {
+  const d = Math.hypot(bx - ax, by - ay);
+  const steps = Math.floor((d - 2) / 2.5);
+  for (let k = 1; k <= steps; k++) {
+    const t = k * 2.5 / d;
+    if (isInsideBuilding(map, ax + (bx - ax) * t, ay + (by - ay) * t)) return false;
+  }
+  return true;
+}
+
+function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
   const peds = [];
-  const roads = map.roadsNear(x, y, 60).filter((r) => r.pts.length >= 2);
+  const view = hidden && spawnWorld && spawnWorld.pedView && spawnWorld.time >= (spawnWorld.pedFreeSpawnUntil || 0);
+  const pv = spawnWorld && spawnWorld.player && spawnWorld.player.inVehicle;
+  const maxDist = !view ? 60 : pv && Math.abs(pv.speed) > 8 ? HIDDEN_FAR_MAX_DIST : HIDDEN_MAX_DIST;
+  if (view) minDist = Math.max(minDist, HIDDEN_MIN_DIST);
+  const roads = map.roadsNear(x, y, maxDist).filter((r) => r.pts.length >= 2);
   if (!roads.length) return peds;
 
   let attempts = 0;
@@ -127,10 +161,11 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0) {
     const fy = py + ny * offset * side;
 
     const d = dist(fx, fy, x, y);
-    if (d > 60 || d < minDist) continue;
+    if (d > maxDist || d < minDist) continue;
     if (isInsideBuilding(map, fx, fy) || isInWater(map, fx, fy)) continue;
+    if (view && !isSpawnHidden(spawnWorld, fx, fy)) continue;
 
-    peds.push(new Pedestrian(fx, fy, rng() * Math.PI * 2 - Math.PI));
+    peds.push(new Pedestrian(fx, fy, segAngle + (rng() < 0.5 ? 0 : Math.PI)));
   }
   return peds;
 }
@@ -140,11 +175,32 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0) {
 export function spawnPedestriansNear(map, x, y, count, rng = Math.random) {
   const n = Math.max(0, Math.min(count, Math.floor(spawnBudget)));
   spawnBudget -= n;
-  return n ? spawnPedsRaw(map, x, y, n, rng) : [];
+  return n ? addCompanions(map, spawnPedsRaw(map, x, y, n, rng), n) : [];
 }
 
-export function spawnCopPedestriansNear(map, x, y, count, rng = Math.random) {
-  const cops = spawnPedsRaw(map, x, y, count, rng);
+const COMPANION_CHANCE = 0.18;
+
+// Some walkers get a companion at their side; companions take the place of
+// solo walkers so the head count stays within budget.
+function addCompanions(map, peds, max) {
+  const out = [];
+  for (const p of peds) {
+    if (out.length >= max) break;
+    out.push(p);
+    if (out.length >= max || Math.random() >= COMPANION_CHANCE) continue;
+    const s = Math.random() < 0.5 ? 1 : -1;
+    const cx = p.x - Math.sin(p.angle) * 0.85 * s, cy = p.y + Math.cos(p.angle) * 0.85 * s;
+    if (isInsideBuilding(map, cx, cy) || isInWater(map, cx, cy)) continue;
+    const c = new Pedestrian(cx, cy, p.angle);
+    makeCompanion(c, p);
+    c.pairSide = s;
+    out.push(c);
+  }
+  return out;
+}
+
+export function spawnCopPedestriansNear(map, x, y, count, rng = Math.random, hidden = true) {
+  const cops = spawnPedsRaw(map, x, y, count, rng, 0, hidden);
   for (const cop of cops) {
     cop.isCop = true;
     cop.clothing = COP_CLOTHING;
@@ -275,6 +331,7 @@ function gatherEvents(world) {
   for (const v of world.vehicles) {
     if (v.wrecked && !seenWrecks.has(v)) {
       seenWrecks.add(v);
+      if (!v.sinking) blastAt(world, v);
       if (dist(v.x, v.y, player.x, player.y) < 150) events.push({ kind: 'boom', x: v.x, y: v.y, r: 50, crime: !!v.wreckedByPlayer });
     }
     if (!v.wrecked && v.driver !== 'player' && v.road && Math.abs(v.x - player.x) < 8 && Math.abs(v.y - player.y) < 8) aiDrivenAt.set(v, world.time);
@@ -320,8 +377,146 @@ function ejectDriver(world, ev) {
   const [x, y] = findExitSpot(v, 0.3, world.map, [-1, 1]);
   const ped = new Pedestrian(x, y, Math.atan2(v.y - y, v.x - x));
   ped.health = 40;
+  ped.noFade = true;
   world.pedestrians.push(ped);
+  if (Math.abs(v.speed) > 2.5) {
+    // yanked out of a moving car: tumbles along the road for a bit
+    knockDown(ped, world, { kind: 'hit', vx: Math.cos(v.angle) * v.speed * 0.6 + (x - v.x) * 1.5, vy: Math.sin(v.angle) * v.speed * 0.6 + (y - v.y) * 1.5, vz: 1.2, lieFor: 1.2 });
+  }
   return ped;
+}
+
+function killPed(ped, world) {
+  releaseFromScene(ped);
+  setPedPose(ped, null);
+  ped.state = 'dead';
+  ped.health = 0;
+  ped._hp = 0;
+  ped.speed = 0;
+  ped.deadUntil = world.time + DEAD_DURATION;
+}
+
+// --- explosions and cyclists knocked off their bikes ------------------------
+
+const BLAST_RADIUS = 7;
+const BLAST_KILL = 3;
+const PLAYER_BLAST_RADIUS = 5.5;
+
+function blastAt(world, v) {
+  const byPlayer = !!v.wreckedByPlayer;
+  const push = (x, y, reach) => {
+    const dx = x - v.x, dy = y - v.y, d = Math.hypot(dx, dy);
+    if (d > reach) return null;
+    const k = 1 - d / reach, nx = d > 0.01 ? dx / d : 1, ny = d > 0.01 ? dy / d : 0;
+    return { d, k, vx: nx * (3 + 9 * k), vy: ny * (3 + 9 * k), vz: 2 + 5 * k };
+  };
+  for (const ped of world.pedestrians) {
+    const b = push(ped.x, ped.y, BLAST_RADIUS);
+    if (!b || (ped.state === 'dead' && !ped.ragdoll)) continue;
+    const wasDead = ped.state === 'dead';
+    if (!wasDead) ped.health -= b.d < BLAST_KILL ? 999 : 25 * b.k;
+    const dead = ped.health <= 0;
+    releaseFromScene(ped);
+    setPedPose(ped, null);
+    knockDown(ped, world, { kind: 'blast', dead, vx: b.vx, vy: b.vy, vz: b.vz });
+    if (!dead || wasDead) continue;
+    killPed(ped, world);
+    if (byPlayer) {
+      world.stats.kills++;
+      if (ped.isCop) world.stats.copKills++;
+      else world.stats.pedKills++;
+    }
+  }
+  const p = world.player;
+  const bp = !p.inVehicle && v.driver !== 'player' && push(p.x, p.y, PLAYER_BLAST_RADIUS);
+  if (bp) {
+    let dmg = Math.round(30 * bp.k);
+    if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
+    world.health = Math.max(0, world.health - dmg);
+    knockDown(p, world, { kind: 'blast', dead: world.health <= 0, vx: bp.vx, vy: bp.vy, vz: bp.vz });
+    if (world.health <= 0) requestRespawn(world);
+  }
+  const c = world.companion;
+  const bc = c && !c.inVehicle && c.state !== 'dead' && push(c.x, c.y, PLAYER_BLAST_RADIUS);
+  if (bc) {
+    c.health = Math.max(0, c.health - Math.round(30 * bc.k));
+    if (c.health <= 0) { c.state = 'dead'; c.deadUntil = world.time + 5; }
+    knockDown(c, world, { kind: 'blast', dead: c.health <= 0, vx: bc.vx, vy: bc.vy, vz: bc.vz });
+  }
+}
+
+const RIDER_CLOSING = 3.5;
+const RIDER_CLOSING_AMBIENT = 6;
+
+function hash2(x, y) {
+  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+  return h - Math.floor(h);
+}
+
+// A bike or scooter hit hard enough loses its rider: the built-in rider on
+// the bike mesh is hidden (ragdoll.syncBikeRider) and an identical-looking
+// pedestrian - or the player - is launched from the saddle.
+function knockOffRiders(world) {
+  for (const b of world.vehicles) {
+    if (!(b.isBike || b.isScooter) || b.wrecked || b.sinking || b.riderOff) continue;
+    const byPlayerBike = b.driver === 'player';
+    if (!byPlayerBike && !b.road) continue;
+    const bvx = Math.cos(b.angle) * b.speed, bvy = Math.sin(b.angle) * b.speed;
+    for (const u of world.vehicles) {
+      if (u === b || u.isBoat || u.sinking) continue;
+      if (Math.abs(u.x - b.x) > u.halfLen + 1.5 || Math.abs(u.y - b.y) > u.halfLen + 1.5) continue;
+      const push = pushCircleOutOfVehicle(b.x, b.y, 0.55, u);
+      if (!push) continue;
+      const rvx = Math.cos(u.angle) * u.speed + (u.driftX || 0) - bvx;
+      const rvy = Math.sin(u.angle) * u.speed + (u.driftY || 0) - bvy;
+      const closing = rvx * push.nx + rvy * push.ny;
+      const playerInvolved = byPlayerBike || u.driver === 'player';
+      if (closing < (playerInvolved ? RIDER_CLOSING : RIDER_CLOSING_AMBIENT)) continue;
+      throwRider(world, b, u, bvx * 0.8 + rvx * 0.6, bvy * 0.8 + rvy * 0.6, closing, push);
+      break;
+    }
+  }
+}
+
+function throwRider(world, b, u, vx, vy, closing, push) {
+  const vz = 1.8 + closing * 0.2;
+  b.riderOff = true;
+  b.riderOffAt = world.time;
+  b.riderOffSide = (push.nx * -Math.sin(b.angle) + push.ny * Math.cos(b.angle)) > 0 ? -1 : 1;
+  b.road = null;
+  b.throttle = 0;
+  const bx = b.x, by = b.y;
+  if (b.driver === 'player') {
+    const p = world.player;
+    if (p.inVehicle !== b) return;
+    p.exitVehicle(world.map, world);
+    p.x = bx; p.y = by;
+    b.riderOff = true;
+    let dmg = Math.round((closing - 2) * 3);
+    if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
+    world.health = Math.max(0, world.health - dmg);
+    knockDown(p, world, { kind: 'hit', startPose: 'ride', dead: world.health <= 0, vx, vy, vz, lieFor: 1.6 });
+    if (world.health <= 0) requestRespawn(world);
+    return;
+  }
+  b.speed = 0;
+  const seed = (b.id || 0) * 3.7 + 1;
+  const ped = new Pedestrian(bx, by, b.angle);
+  ped._lookSeed = seed;
+  if (b.model.rider) ped.clothing = b.model.rider;
+  ped.skin = SKIN_TONES[Math.floor(hash2(seed, 2.1) * SKIN_TONES.length)];
+  ped.hasBag = false;
+  ped.noFade = true;
+  ped.health -= 6 + closing * 2.5;
+  const dead = ped.health <= 0;
+  world.pedestrians.push(ped);
+  knockDown(ped, world, { kind: 'hit', startPose: 'ride', dead, vx, vy, vz });
+  if (dead) killPed(ped, world);
+  if (u.driver === 'player') {
+    world.wanted = Math.min(5, world.wanted + 1);
+    if (dead) world.stats.pedKills++;
+    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: true });
+  }
 }
 
 function reactToEvent(ped, ev, world, d) {
@@ -481,6 +676,7 @@ function spawnNightGroup(world) {
     const a = Math.random() * Math.PI * 2, r = 3 + Math.random() * 6;
     const cx = h.x + Math.cos(a) * r, cy = h.y + Math.sin(a) * r;
     if (isInsideBuilding(map, cx, cy) || isInWater(map, cx, cy) || isOnRoad(map, cx, cy, 0.5)) continue;
+    if (!isSpawnHidden(world, cx, cy)) continue;
     const n = 2 + Math.floor(Math.random() * 3);
     for (let k = 0; k < n; k++) {
       const ang = (k / n) * Math.PI * 2;
@@ -514,13 +710,14 @@ function managePopulation(world) {
     let excess = walkers - desired;
     for (let i = world.pedestrians.length - 1; i >= 0 && excess > 0; i--) {
       const p = world.pedestrians[i];
-      if (p.isCop || p.scene || p.nightlife || p.state !== 'wander') continue;
-      if (dist(p.x, p.y, player.x, player.y) < 55) continue;
+      if (p.isCop || p.scene || p.nightlife || p.leader || p.state !== 'wander') continue;
+      if (dist(p.x, p.y, player.x, player.y) < 55 || !isSpawnHidden(world, p.x, p.y)) continue;
       world.pedestrians.splice(i, 1);
       excess--;
     }
   } else if (walkers < desired - 4) {
-    const add = spawnPedsRaw(world.map, player.x, player.y, Math.min(12, desired - walkers), Math.random, 30);
+    const n = Math.min(12, desired - walkers);
+    const add = addCompanions(world.map, spawnPedsRaw(world.map, player.x, player.y, n, Math.random, 30), n);
     world.pedestrians.push(...add);
   }
 
@@ -541,6 +738,7 @@ function checkVehicleImpact(ped, world) {
     const push = pushCircleOutOfVehicle(ped.x, ped.y, ped.radius, v);
     if (!push) continue;
     if (Math.abs(v.speed) < VEHICLE_HIT_SPEED) {
+      if (ped.ragdoll) continue;
       ped.x = push.x;
       ped.y = push.y;
       if (v.driver === 'player' && !ped.isCop && world.time > (ped._bumpCd || 0)) {
@@ -552,25 +750,29 @@ function checkVehicleImpact(ped, world) {
       }
       continue;
     }
+    if (ped.ragdoll && world.time - ped.ragdoll.hitAt < 0.6) continue;
+    const speed = Math.abs(v.speed);
+    const light = v.isBike || v.isScooter;
     const vx = Math.cos(v.angle) * v.speed, vy = Math.sin(v.angle) * v.speed;
-    const away = Math.abs(v.speed) * 0.35;
+    const away = speed * 0.35;
     ped.knockVX = vx * 0.85 + push.nx * away;
     ped.knockVY = vy * 0.85 + push.ny * away;
     ped.angle = Math.atan2(-ped.knockVY, -ped.knockVX);
     ped.x = push.x;
     ped.y = push.y;
-    v.speed *= v.isBike || v.isScooter ? 0.6 : 0.94;
+    v.speed *= light ? 0.6 : 0.94;
     reportImpact(world, ped.x, ped.y, Math.abs(v.speed) * 0.5, v.driver === 'player');
     releaseFromScene(ped);
     setPedPose(ped, null);
-    ped.state = 'dead';
-    ped.health = 0;
-    ped._hp = 0;
-    ped.speed = 0;
-    ped.deadUntil = world.time + DEAD_DURATION;
+    // slow cars and bikes floor you, fast cars kill
+    ped.health -= light ? 8 + speed * 2 : speed < 7 ? 10 + speed * 2.5 : 999;
+    const dead = ped.health <= 0;
+    knockDown(ped, world, { kind: 'hit', dead, vx: ped.knockVX, vy: ped.knockVY, vz: (light ? 0.8 : 1.2) + speed * 0.22 });
+    if (dead) killPed(ped, world);
+    else ped.speed = 0;
     if (v.driver === 'player') {
       world.wanted = Math.min(5, world.wanted + 1);
-      world.stats.pedKills++;
+      if (dead) world.stats.pedKills++;
       pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: true });
     }
     return;
@@ -644,6 +846,19 @@ export function updatePedestrians(dt, world) {
   if (events.length) processEvents(world, events);
   updateWitnessCall(world);
   updateBikeBells(world);
+  knockOffRiders(world);
+  processPedPlanQueue(world);
+  buildPedAvoidGrid(peds);
+
+  spawnWorld = world;
+  // after a teleport the new surroundings are empty and the view has just cut,
+  // so filling them in plain sight is fine for a moment
+  if (lastPlayerX !== null && dist(player.x, player.y, lastPlayerX, lastPlayerY) > 60) {
+    world.pedFreeSpawnUntil = world.time + 0.3;
+    popTimer = 0;
+  }
+  lastPlayerX = player.x;
+  lastPlayerY = player.y;
 
   popTimer -= dt;
   if (popTimer <= 0) {
@@ -673,6 +888,17 @@ export function updatePedestrians(dt, world) {
       }
       if (world.time >= ped.deadUntil) peds.splice(i, 1);
       continue;
+    }
+    if (ped.ragdoll && ped.ragdoll.dead) { killPed(ped, world); continue; }
+    if (isKnockedDown(ped, world)) {
+      ped.speed = 0;
+      if (ped.pose) setPedPose(ped, null);
+      checkVehicleImpact(ped, world);
+      continue;
+    }
+    if (ped.gotUpAt) {
+      ped.gotUpAt = 0;
+      if (!ped.isCop) startFlee(ped, world, player.x, player.y, true);
     }
 
     const dPlayer = dist(ped.x, ped.y, player.x, player.y);
@@ -755,6 +981,12 @@ export function updatePedestrians(dt, world) {
               }
             }
           }
+        }
+        if (!ped.anchor && !(ped.isCop && world.police?.searching)) {
+          const walk = walkRoute(ped, world, dt, dPlayer);
+          if (walk === 'enter') { peds.splice(i, 1); continue; }
+          moving = walk;
+          break;
         }
         if (!ped.waypoint || dist(ped.x, ped.y, ped.waypoint[0], ped.waypoint[1]) < 1.5) {
           ped.waypointTimer -= dt;

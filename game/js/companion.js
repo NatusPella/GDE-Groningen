@@ -1,4 +1,5 @@
 import { dist, isInWater, inWaterPoly, WATER_Y } from './util.js';
+import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST, swimDepth, findClimbSpot, SWIM_SPEED, CLIMB_TIME } from './player.js';
 
 // Tammo and Anita are always out together: whichever one the player is NOT
@@ -13,7 +14,7 @@ const ARRIVE_SLACK = 1.1;
 const CATCH_UP_SPEED = 7.5;
 const BOARD_DIST = 3;
 const VEHICLE_HIT_SPEED = 4;
-const DEAD_DURATION = 3;
+const DEAD_DURATION = 5;
 const RADIUS = 0.35;
 const TELEPORT_DIST = 60;
 const SWIM_TELEPORT_DIST = 14;
@@ -216,6 +217,7 @@ export function updateCompanion(dt, world) {
     if (world.time >= c.deadUntil) respawnCompanion(world);
     return;
   }
+  if (isKnockedDown(c, world)) { c.vx = 0; c.vy = 0; return; }
 
   if (c.water && !c.inVehicle) {
     if (dist(c.x, c.y, p.x, p.y) > TELEPORT_DIST) teleportNearPlayer(c, p, world.map);
@@ -282,6 +284,12 @@ export function updateCompanion(dt, world) {
       c.vx = 0;
       c.vy = 0;
       c.deadUntil = world.time + DEAD_DURATION;
+      const away = Math.atan2(c.y - v.y, c.x - v.x), sp = Math.abs(v.speed);
+      knockDown(c, world, {
+        kind: 'hit', dead: true, vz: 1.2 + sp * 0.22,
+        vx: Math.cos(v.angle) * v.speed * 0.9 + Math.cos(away) * sp * 0.35,
+        vy: Math.sin(v.angle) * v.speed * 0.9 + Math.sin(away) * sp * 0.35,
+      });
       const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
       world.addMessage(`${name} is aangereden!`, 3);
       break;

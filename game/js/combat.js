@@ -1,6 +1,8 @@
 import { normalizeAngle, pointInPolygon } from './util.js';
 import { requestRespawn } from './world.js';
 import { markWreckedByPlayer } from './vehicle.js';
+import { knockDown } from './ragdoll.js';
+import { DEAD_DURATION } from './pedestrians.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 export const WEAPONS = {
@@ -23,6 +25,30 @@ let effect = null; // {type:'muzzle'|'melee', angle, until} — local fx state, 
 
 export function getCombatEffect() { return effect; }
 
+// Mouse wheel cycles through the weapons you have ammo for (fists always).
+// Trackpads send many small deltas, so it steps once per WHEEL_STEP of
+// scroll with a short cooldown instead of once per event.
+const WHEEL_STEP = 60;
+const WHEEL_COOLDOWN = 0.12;
+let wheelAcc = 0;
+let wheelCooldown = 0;
+
+function cycleWeaponByWheel(dt, world, input) {
+  wheelCooldown = Math.max(0, wheelCooldown - dt);
+  wheelAcc += input.mouse.wheel || 0;
+  if (Math.abs(wheelAcc) < WHEEL_STEP || wheelCooldown > 0) {
+    if (!input.mouse.wheel) wheelAcc *= 0.9; // forget a half-finished scroll
+    return;
+  }
+  const dir = wheelAcc > 0 ? 1 : -1;
+  wheelAcc = 0;
+  wheelCooldown = WHEEL_COOLDOWN;
+  const usable = WEAPON_KEYS.filter((k) => WEAPONS[k].ammo === Infinity || (world.ammo[k] || 0) > 0);
+  if (usable.length < 2) return;
+  const i = Math.max(0, usable.indexOf(world.weapon));
+  world.weapon = usable[(i + dir + usable.length) % usable.length];
+}
+
 export function updateCombat(dt, world) {
   fireTimer = Math.max(0, fireTimer - dt);
 
@@ -33,6 +59,7 @@ export function updateCombat(dt, world) {
     const w = WEAPONS[key];
     if (w.ammo === Infinity || (world.ammo[key] || 0) > 0) world.weapon = key;
   }
+  cycleWeaponByWheel(dt, world, input);
 
   if (!input.mouse.down || fireTimer > 0) return;
 
@@ -64,7 +91,7 @@ function meleeAttack(world, angle, weapon) {
     const off = Math.abs(normalizeAngle(Math.atan2(dy, dx) - angle));
     if (off > Math.PI / 3) continue;
     if ('radius' in t) {
-      damagePed(world, t, weapon.damage, true);
+      damagePed(world, t, weapon.damage, true, Math.cos(angle), Math.sin(angle), true);
     } else {
       t.health -= weapon.damage * 0.4;
       if (t.health <= 0) wreckVehicle(world, t, true);
@@ -153,17 +180,23 @@ function hitPedestrians(world, b) {
     if (ped.state === 'dead') continue;
     if (b.owner === 'police' && ped.isCop) continue;
     if (Math.hypot(ped.x - b.x, ped.y - b.y) > ped.radius + 0.12) continue;
-    damagePed(world, ped, b.damage, b.owner === 'player');
+    const bl = Math.hypot(b.vx, b.vy) || 1;
+    damagePed(world, ped, b.damage, b.owner === 'player', b.vx / bl, b.vy / bl, false);
     return true;
   }
   return false;
 }
 
-function damagePed(world, ped, damage, byPlayer) {
+function damagePed(world, ped, damage, byPlayer, dx, dy, melee) {
   ped.health -= damage;
-  if (ped.health > 0 || ped.state === 'dead') return;
+  if (ped.state === 'dead') return;
+  if (ped.health > 0) {
+    if (melee && (ped.ragdoll || Math.random() < 0.4)) knockDown(ped, world, { kind: 'punch', vx: dx * 2.6, vy: dy * 2.6, lieFor: 1.2 + Math.random() });
+    return;
+  }
   ped.state = 'dead';
-  ped.deadUntil = world.time + 2.5;
+  ped.deadUntil = world.time + DEAD_DURATION;
+  knockDown(ped, world, { kind: melee ? 'punch' : 'shot', dead: true, vx: dx * (melee ? 3 : 2.4), vy: dy * (melee ? 3 : 2.4) });
   if (!byPlayer) return;
   world.stats.kills++;
   if (ped.isCop) {

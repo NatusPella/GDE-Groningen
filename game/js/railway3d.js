@@ -2,7 +2,8 @@
 // crossings with half barriers and flashing lights, and the trains from
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getTrains, getLevelCrossings, nearLevelCrossing, TRAIN_HALF_WIDTH } from './railway.js';
+import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH } from './railway.js';
+import { pointInPolygon } from './util.js';
 
 const CHUNK = 250;
 const VIEW = 190;
@@ -29,11 +30,20 @@ const PANEL_MAT = new THREE.MeshStandardMaterial({
   color: 0x6d6a64, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -36,
 });
 const SLEEPER_GEO = new THREE.BoxGeometry(0.26, 0.1, 2.5);
+const DECK_MAT = new THREE.MeshStandardMaterial({ color: 0x8e8a83, roughness: 0.9, side: THREE.DoubleSide });
+const EMBANK_MAT = new THREE.MeshStandardMaterial({
+  color: 0x66714b, roughness: 1, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -6,
+});
+const PIER_GEO = new THREE.BoxGeometry(0.9, 1, 3.4).translate(0, 0.5, 0);
+const DECK_Z = 2.6;
+const DECK_DEPTH = 0.9;
+const DECK_HALF = 2.5;
 const RAIL_TOP_COLOR = new THREE.Color(0xc9ccd0);
 const RAIL_SIDE_COLOR = new THREE.Color(0x5e4a3c);
 
 // ---------------------------------------------------------------- track bed
-function classify(x, y, tx, ty) {
+function classify(x, y, tx, ty, z) {
+  if (z > 2) return null;
   let covered = false;
   for (const road of map.roadsNear(x, y, 12)) {
     const P = road.pts;
@@ -58,10 +68,18 @@ function chunkOf(x, y) {
   const key = cx + ',' + cy;
   let c = chunks.get(key);
   if (!c) {
-    c = { key, x: (cx + 0.5) * CHUNK, y: (cy + 0.5) * CHUNK, bed: [], rails: [], sleepers: [], group: null };
+    c = { key, x: (cx + 0.5) * CHUNK, y: (cy + 0.5) * CHUNK, bed: [], rails: [], embank: [], deck: [], sleepers: [], group: null };
     chunks.set(key, c);
   }
   return c;
+}
+
+function overWater(x, y) {
+  for (const w of map.waterNear(x, y, 2)) {
+    const [minx, miny, maxx, maxy] = w.bounds;
+    if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, w.pts)) return true;
+  }
+  return false;
 }
 
 function samplePolyline(pts) {
@@ -82,7 +100,11 @@ function samplePolyline(pts) {
     const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1;
     out[i].sx = dx / l; out[i].sy = dy / l;
   }
-  for (const s of out) if (s.sx === undefined) { s.sx = s.tx; s.sy = s.ty; }
+  for (const s of out) {
+    if (s.sx === undefined) { s.sx = s.tx; s.sy = s.ty; }
+    s.z = railZ(s.x, s.y);
+    s.water = overWater(s.x, s.y);
+  }
   return out;
 }
 
@@ -110,9 +132,11 @@ function buildTrackData() {
   for (const r of map.rails || []) {
     if (r.pts.length < 2) continue;
     const samples = samplePolyline(r.pts);
-    for (const s of samples) s.cls = classify(s.x, s.y, s.sx, s.sy);
+    for (const s of samples) s.cls = classify(s.x, s.y, s.sx, s.sy, s.z);
     runs(samples, (s) => !s.cls, 'bed');
     runs(samples, (s) => s.cls !== 'hidden', 'rails');
+    runs(samples, (s) => !s.water && s.z > 0.05 && s.z < DECK_Z, 'embank');
+    runs(samples, (s) => s.water || s.z >= DECK_Z - 0.05, 'deck');
     let acc = 0;
     for (let i = 0; i < samples.length - 1; i++) {
       const a = samples[i], b = samples[i + 1];
@@ -121,7 +145,7 @@ function buildTrackData() {
         const t = acc / L;
         if (!a.cls && !b.cls) {
           const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
-          chunkOf(x, y).sleepers.push(x, y, Math.atan2(a.ty, a.tx));
+          chunkOf(x, y).sleepers.push(x, y, Math.atan2(a.ty, a.tx), a.z + (b.z - a.z) * t);
         }
         acc += SLEEPER_STEP;
       }
@@ -138,7 +162,7 @@ function bedGeometry(list) {
     const base = pos.length / 3;
     for (const s of run) {
       const nx = -s.sy, ny = s.sx;
-      for (const [o, h] of BED_PROFILE) pos.push(s.x + nx * o, BED_Y + h, s.y + ny * o);
+      for (const [o, h] of BED_PROFILE) pos.push(s.x + nx * o, BED_Y + h + s.z, s.y + ny * o);
     }
     for (let i = 0; i < run.length - 1; i++) {
       for (let k = 0; k < 3; k++) {
@@ -163,13 +187,14 @@ function railGeometry(list) {
       for (const s of run) {
         const nx = -s.sy, ny = s.sx;
         const cx = s.x + nx * GAUGE_HALF * side, cy = s.y + ny * GAUGE_HALF * side;
+        const lo = SLEEPER_TOP + s.z, hi = RAIL_TOP + s.z;
         const pts = [
-          [cx - nx * w, SLEEPER_TOP, cy - ny * w, RAIL_SIDE_COLOR],
-          [cx - nx * w, RAIL_TOP, cy - ny * w, RAIL_SIDE_COLOR],
-          [cx - nx * w, RAIL_TOP, cy - ny * w, RAIL_TOP_COLOR],
-          [cx + nx * w, RAIL_TOP, cy + ny * w, RAIL_TOP_COLOR],
-          [cx + nx * w, RAIL_TOP, cy + ny * w, RAIL_SIDE_COLOR],
-          [cx + nx * w, SLEEPER_TOP, cy + ny * w, RAIL_SIDE_COLOR],
+          [cx - nx * w, lo, cy - ny * w, RAIL_SIDE_COLOR],
+          [cx - nx * w, hi, cy - ny * w, RAIL_SIDE_COLOR],
+          [cx - nx * w, hi, cy - ny * w, RAIL_TOP_COLOR],
+          [cx + nx * w, hi, cy + ny * w, RAIL_TOP_COLOR],
+          [cx + nx * w, hi, cy + ny * w, RAIL_SIDE_COLOR],
+          [cx + nx * w, lo, cy + ny * w, RAIL_SIDE_COLOR],
         ];
         for (const [x, y, z, c] of pts) { pos.push(x, y, z); col.push(c.r, c.g, c.b); }
       }
@@ -189,6 +214,81 @@ function railGeometry(list) {
   return g;
 }
 
+// Cross-section polylines (lateral offset, height) per sample; consecutive
+// samples are stitched into strips. Profiles may be open (walls, slopes).
+function embankProfile(s) {
+  const top = BED_Y + s.z, foot = 2.1 + s.z * 1.3;
+  return [[[-foot, 0.02], [-2.1, top]], [[2.1, top], [foot, 0.02]]];
+}
+
+function deckProfile(s) {
+  const z = s.z, b = z - DECK_DEPTH, h = DECK_HALF;
+  return [
+    [[-h, z + 0.12], [-h, b], [h, b], [h, z + 0.12]],
+    [[-h + 0.1, z + 1.15], [-h + 0.1, z + 0.12]],
+    [[h - 0.1, z + 0.12], [h - 0.1, z + 1.15]],
+  ];
+}
+
+function stripGeometry(list, profileOf) {
+  const pos = [], idx = [];
+  for (const run of list) {
+    const profiles = run.map(profileOf);
+    for (let part = 0; part < profiles[0].length; part++) {
+      const n = profiles[0][part].length;
+      const base = pos.length / 3;
+      run.forEach((s, k) => {
+        const nx = -s.sy, ny = s.sx;
+        for (const [o, h] of profiles[k][part]) pos.push(s.x + nx * o, h, s.y + ny * o);
+      });
+      for (let i = 0; i < run.length - 1; i++) {
+        for (let j = 0; j < n - 1; j++) {
+          const a = base + i * n + j, b = a + 1, c = a + n, d = c + 1;
+          idx.push(a, b, c, b, d, c);
+        }
+      }
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+function onCarRoad(x, y) {
+  for (const road of map.roadsNear(x, y, 14)) {
+    if (road.cat === 'foot') continue;
+    const P = road.pts;
+    for (let i = 0; i < P.length - 1; i++) {
+      const ax = P[i][0], ay = P[i][1], dx = P[i + 1][0] - ax, dy = P[i + 1][1] - ay;
+      const L2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+      if (Math.hypot(ax + dx * t - x, ay + dy * t - y) < road.width / 2 + 2.2) return true;
+    }
+  }
+  return false;
+}
+
+// Piers every ~15 m under the deck, never standing in a road.
+function deckPiers(list) {
+  const out = [];
+  for (const run of list) {
+    let acc = 7;
+    for (let i = 1; i < run.length; i++) {
+      const a = run[i - 1], b = run[i];
+      acc += Math.hypot(b.x - a.x, b.y - a.y);
+      if (acc < 15) continue;
+      const bottom = b.z - DECK_DEPTH;
+      const y0 = b.water ? -1.2 : 0;
+      if (bottom - y0 < 0.4 || onCarRoad(b.x, b.y)) continue;
+      acc = 0;
+      out.push({ x: b.x, y: b.y, angle: Math.atan2(b.sy, b.sx), y0, h: bottom - y0 });
+    }
+  }
+  return out;
+}
+
 function buildChunk(c) {
   const group = new THREE.Group();
   if (c.bed.length) {
@@ -201,13 +301,39 @@ function buildChunk(c) {
     m.receiveShadow = true;
     group.add(m);
   }
-  const n = c.sleepers.length / 3;
+  if (c.embank.length) {
+    const m = new THREE.Mesh(stripGeometry(c.embank, embankProfile), EMBANK_MAT);
+    m.receiveShadow = true;
+    group.add(m);
+  }
+  if (c.deck.length) {
+    const m = new THREE.Mesh(stripGeometry(c.deck, deckProfile), DECK_MAT);
+    m.receiveShadow = true;
+    m.castShadow = true;
+    group.add(m);
+    const piers = deckPiers(c.deck);
+    if (piers.length) {
+      const inst = new THREE.InstancedMesh(PIER_GEO, DECK_MAT, piers.length);
+      const o = new THREE.Object3D();
+      piers.forEach((p, i) => {
+        o.position.set(p.x, p.y0, p.y);
+        o.rotation.set(0, -p.angle, 0);
+        o.scale.set(1, p.h, 1);
+        o.updateMatrix();
+        inst.setMatrixAt(i, o.matrix);
+      });
+      inst.castShadow = true;
+      inst.computeBoundingSphere();
+      group.add(inst);
+    }
+  }
+  const n = c.sleepers.length / 4;
   if (n) {
     const inst = new THREE.InstancedMesh(SLEEPER_GEO, SLEEPER_MAT, n);
     const o = new THREE.Object3D();
     for (let i = 0; i < n; i++) {
-      o.position.set(c.sleepers[i * 3], SLEEPER_TOP - 0.05, c.sleepers[i * 3 + 1]);
-      o.rotation.set(0, -c.sleepers[i * 3 + 2], 0);
+      o.position.set(c.sleepers[i * 4], SLEEPER_TOP - 0.05 + c.sleepers[i * 4 + 3], c.sleepers[i * 4 + 1]);
+      o.rotation.set(0, -c.sleepers[i * 4 + 2], 0);
       o.updateMatrix();
       inst.setMatrixAt(i, o.matrix);
     }
@@ -498,8 +624,10 @@ function updateTrains(px, py, night) {
     if (!near) continue;
     t.cars.forEach((car, i) => {
       const m = view.cars[i];
-      m.position.set(car.x, 0, car.y);
-      m.rotation.y = -car.angle;
+      m.visible = !isOffMap(car.x, car.y);
+      m.position.set(car.x, car.z || 0, car.y);
+      m.rotation.order = 'YZX';
+      m.rotation.set(0, -car.angle, car.pitch || 0);
       const lamps = m.userData.lamps;
       // the leading cab shows white headlights, the trailing one red tail lights
       if (lamps[1]) for (const l of lamps[1]) l.material = t.dir > 0 ? HEAD_MAT : TAIL_MAT;
@@ -510,17 +638,19 @@ function updateTrains(px, py, night) {
 
 // ---------------------------------------------------------------- hooks
 let crossingsBuilt = false;
+let trackBuilt = false;
 
 export function initRailway3D(sceneRef, mapRef) {
   scene = sceneRef;
   map = mapRef;
-  buildTrackData();
 }
 
 export function updateRailway3D(dt, world) {
   if (!scene) return;
   const p = world.player;
   const px = p.inVehicle ? p.inVehicle.x : p.x, py = p.inVehicle ? p.inVehicle.y : p.y;
+  // railway.js (initRailway) must have loaded the lifts before the bed is built
+  if (!trackBuilt) { buildTrackData(); trackBuilt = true; }
   if (!crossingsBuilt && getLevelCrossings().length) { buildCrossings(); crossingsBuilt = true; }
   const night = world.dayNight ? world.dayNight.night || 0 : 0;
   syncChunks(px, py);

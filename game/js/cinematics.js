@@ -162,6 +162,12 @@ export function isCinematicActive(id) {
   return !!active && (id == null || active.id === id);
 }
 
+// The red damage vignette stays off during cutscenes unless the scene asks
+// for it (spec.blood) or it is the death scene itself.
+export function cinematicAllowsDamageFx() {
+  return !active || active.id === 'death' || !!active.blood;
+}
+
 export function cinematicPausesGameplay() {
   return !!(active && active.pause);
 }
@@ -302,6 +308,65 @@ function checkTriggers(dt, w) {
     if (Math.hypot(v.x - p.x, v.y - p.y) < 20) tryCrashReplay(w, v.x, v.y);
   }
   checkLandmarks(w);
+  checkOmmelanden(w);
+}
+
+// --- the Ommelanden: a 'landmark' for leaving the city -----------------------
+
+const OMMELANDEN = 'De Ommelanden';
+const OMMELANDEN_MARGIN = 40; // meters past the last real map data
+let cityBox = null;
+
+function realMapBox(map) {
+  if (cityBox) return cityBox;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const r of map.roads) {
+    const b = r.bounds;
+    if (!b) continue;
+    if (b[0] < x0) x0 = b[0];
+    if (b[1] < y0) y0 = b[1];
+    if (b[2] > x1) x1 = b[2];
+    if (b[3] > y1) y1 = b[3];
+  }
+  cityBox = [x0, y0, x1, y1];
+  return cityBox;
+}
+
+function checkOmmelanden(w) {
+  if (active || !momentsOn() || w.wanted > 0 || w.pendingRespawn || w.pigeonMode) return;
+  if (w.mission && w.mission.phase === 'active') return;
+  const seen = visited(w);
+  if (seen.has(OMMELANDEN)) return;
+  const [x0, y0, x1, y1] = realMapBox(w.map);
+  const p = w.player, m = OMMELANDEN_MARGIN;
+  if (p.x > x0 - m && p.x < x1 + m && p.y > y0 - m && p.y < y1 + m) return;
+  seen.add(OMMELANDEN);
+  playOmmelanden(w);
+}
+
+function playOmmelanden(w) {
+  const p = w.player;
+  const [x0, y0, x1, y1] = realMapBox(w.map);
+  // look away from the city: out over the open land
+  let ox = p.x - (x0 + x1) / 2, oy = p.y - (y0 + y1) / 2;
+  const ol = Math.hypot(ox, oy) || 1;
+  ox /= ol; oy /= ol;
+  const nx = -oy, ny = ox;
+  const b = behindPose(w);
+  const keys = [
+    { pos: W(p.x - ox * 10 + nx * 4, 6, p.y - oy * 10 + ny * 4), look: W(p.x + ox * 30, 2, p.y + oy * 30) },
+    { pos: W(p.x - ox * 6 + nx * 18, 38, p.y - oy * 6 + ny * 18), look: W(p.x + ox * 220, 0, p.y + oy * 220) },
+    { pos: W(p.x + ox * 40 - nx * 26, 52, p.y + oy * 40 - ny * 26), look: W(p.x + ox * 320 + nx * 120, 0, p.y + oy * 320 + ny * 120) },
+    { pos: W(p.x + ox * 16 - nx * 10, 14, p.y + oy * 16 - ny * 10), look: W(p.x, 1.4, p.y) },
+    ...frontSwingKeys(w),
+    b,
+  ];
+  playCinematic({
+    id: 'landmark', priority: 1, duration: 8, pause: true,
+    kicker: 'Bezienswaardigheid', title: OMMELANDEN,
+    lines: [{ speaker: '', text: 'Koeien, sloten en een horizon. Verder niks. Heerlijk.' }],
+    shot: pathShot(clearKeys(w, keys)),
+  });
 }
 
 function visited(w) {
@@ -337,13 +402,29 @@ function behindPose(w, back = 7, up = 3.4) {
   return { pos: W(p.x - Math.cos(a) * back, up, p.y - Math.sin(a) * back), look: W(p.x, 1.3, p.y) };
 }
 
+// End-of-cutscene swing: a low 3/4 shot of the player's face, past their
+// side, then settle behind - so a scene lands on the character, not a back.
+// withFov: only when the surrounding keys carry fov too (pathShot blends fov
+// between two keys only when both have one, otherwise it would jump)
+function frontSwingKeys(w, withFov = false) {
+  const p = w.player, a = heading(w);
+  const fx = Math.cos(a), fy = Math.sin(a), sx = -fy, sy = fx;
+  const keys = [
+    { pos: W(p.x + fx * 3.4 + sx * 1.3, 1.65, p.y + fy * 3.4 + sy * 1.3), look: W(p.x, 1.45, p.y) },
+    { pos: W(p.x + fx * 0.6 + sx * 4, 2.3, p.y + fy * 0.6 + sy * 4), look: W(p.x, 1.4, p.y) },
+  ];
+  if (withFov) { keys[0].fov = 50; keys[1].fov = 54; }
+  return keys;
+}
+
 function flyInShot(w, first) {
   const p = w.player, a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a);
   const keys = [
     first || { pos: W(p.x - fx * 20 + fy * 45, 55, p.y - fy * 20 - fx * 45), look: W(p.x, 4, p.y) },
     { pos: W(p.x - fx * 26 + fy * 14, 30, p.y - fy * 26 - fx * 14), look: W(p.x, 2, p.y) },
-    { pos: W(p.x - fx * 13, 9, p.y - fy * 13), look: W(p.x, 1.2, p.y) },
+    { pos: W(p.x + fx * 10 + fy * 6, 7, p.y + fy * 10 - fx * 6), look: W(p.x, 1.4, p.y) },
+    ...frontSwingKeys(w),
     behindPose(w),
   ];
   return pathShot(clearKeys(w, keys));
@@ -390,7 +471,7 @@ function playGameStart(w) {
     : null;
   const where = w.loadedFromSave ? 'Welkom terug in Grunn' : w.spawnLandmarkName ? `Je begint bij ${w.spawnLandmarkName}` : 'Welkom in Grunn';
   playCinematic({
-    id: 'start', priority: 3, duration: 5.5, pause: true,
+    id: 'start', priority: 3, duration: 6.5, pause: true,
     kicker: 'Grand Theft Eierbal', title: 'GTE VI',
     lines: [{ speaker: '', text: where }],
     shot: flyInShot(w, first),
@@ -419,7 +500,7 @@ const WIJK_GENERIC = [
   'Op elke hoek een snackbar. Grunn op z’n best.',
   'Het waait hier altijd. Ook als het niet waait.',
   'De buren hebben je al gezien. Zwaai maar even.',
-  'Het is hier stil. Dat komt vanzelf goed.',
+  'Het is hier stil. Dat verandert zo.',
 ];
 
 function wijkLine(name) {
@@ -487,10 +568,11 @@ function playWijk(w, wijk) {
     { pos: W(p.x + nx * 38, 52, p.y + ny * 38), look: W(cx, 4, cy), fov: 52 },
     { pos: W(cx + nx * 22, 68, cy + ny * 22), look: W(cx + dx * 60, 0, cy + dy * 60), fov: 50 },
     { pos: W(p.x + nx * 20 - dx * 12, 34, p.y + ny * 20 - dy * 12), look: W(p.x, 1.5, p.y), fov: 54 },
+    ...frontSwingKeys(w, true),
     { pos: b.pos, look: b.look, fov: 58 },
   ];
   playCinematic({
-    id: 'wijk', priority: 1, duration: 5.6, pause: true, queue: true,
+    id: 'wijk', priority: 1, duration: 6.6, pause: true, queue: true,
     kicker: 'Nieuwe wijk', title: wijk.name, lines: [{ speaker: '', text: wijkLine(wijk.name) }],
     shot: pathShot(clearKeys(w, keys)),
   });

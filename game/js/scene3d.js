@@ -9,6 +9,7 @@ import {
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedestrians.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
@@ -26,7 +27,7 @@ import { getWaterIndex } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
 import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
-import { buildTraumaHeliMesh3D, buildBalloonMesh3D, updateTraumaHeliMesh3D } from './skyprops.js';
+import { updateSkyProps3D } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
@@ -40,6 +41,7 @@ import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
+import { updateCountryside } from './countryside.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -48,6 +50,17 @@ import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwor
 // only ever READS world and mirrors it into a Three.js scene with a
 // GTA3-style third-person follow camera. World mapping: three.x = world.x,
 // three.z = world.y, three.y = up (meters, roughly 3m per building level).
+
+// The night-light pool keeps a fixed number of point/spot lights in every lit
+// shader. A light that is dark (daytime) or out of range contributes exactly
+// zero, so its BRDF evaluation is skipped per fragment instead of summed.
+(() => {
+  const call = '\t\tRE_Direct( directLight, geometryPosition, geometryNormal, geometryViewDir, geometryClearcoatNormal, material, reflectedLight );';
+  const parts = THREE.ShaderChunk.lights_fragment_begin.split(call);
+  if (parts.length !== 4) return; // point, spot, directional
+  THREE.ShaderChunk.lights_fragment_begin = parts[0] + '\t\tif ( directLight.visible )\n' + call
+    + parts[1] + '\t\tif ( directLight.visible )\n' + call + parts[2] + call + parts[3];
+})();
 
 const LEVEL_HEIGHT = 3.1;
 const DRAW_DIST = 140;
@@ -103,7 +116,6 @@ onLandmarkModelLoaded((name) => {
 });
 const roadMeshes = new Map();
 const waterMeshes = new Map();
-const treeMeshes = new Map();
 const vehicleFireMeshes = new Map();
 let impactSparkEffects = [];
 let vehicleExplosionEffects = [];
@@ -116,7 +128,6 @@ let flitspaalBuilt = false;
 let horecaBuilt = false;
 const staticProps = [];
 let policeHeliMesh = null;
-const skyPropMeshes = new Map();
 let playerMesh = null;
 let playerCharacter = 'tammo';
 let companionMesh = null;
@@ -192,6 +203,120 @@ function nearbyCamTargets(px, py) {
   return camTargetList;
 }
 
+// Exact equivalent of camRaycaster.intersectObjects(targets, true)[0].distance
+// that only hands three.js the triangle runs whose (lazily cached, local)
+// bounding box the ray segment actually crosses, instead of every triangle of
+// every building part whose bounding sphere it touches.
+const RAY_CHUNK_TRIS = 32;
+const RAY_BOX_EPS = 1e-3;
+const _camHits = [];
+const _camInv = new THREE.Matrix4();
+const _camSphere = new THREE.Sphere();
+const _camRay = new THREE.Ray();
+const _camSphereHit = new THREE.Vector3();
+const _segA = new THREE.Vector3();
+const _segB = new THREE.Vector3();
+
+function rayChunks(g) {
+  const pos = g.attributes.position, idx = g.index;
+  const version = (idx ? idx.version : 0) + pos.version;
+  let c = g.userData.rayChunks;
+  if (c && c.version === version && c.pos === pos && c.idx === idx) return c;
+  const triCount = ((idx ? idx.count : pos.count) / 3) | 0;
+  const n = Math.ceil(triCount / RAY_CHUNK_TRIS);
+  const boxes = new Float32Array(n * 6);
+  for (let k = 0; k < n; k++) {
+    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+    const end = Math.min(triCount, (k + 1) * RAY_CHUNK_TRIS) * 3;
+    for (let v = k * RAY_CHUNK_TRIS * 3; v < end; v++) {
+      const i = idx ? idx.getX(v) : v;
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (y < y0) y0 = y;
+      if (y > y1) y1 = y;
+      if (z < z0) z0 = z;
+      if (z > z1) z1 = z;
+    }
+    const o = k * 6;
+    boxes[o] = x0 - RAY_BOX_EPS; boxes[o + 1] = y0 - RAY_BOX_EPS; boxes[o + 2] = z0 - RAY_BOX_EPS;
+    boxes[o + 3] = x1 + RAY_BOX_EPS; boxes[o + 4] = y1 + RAY_BOX_EPS; boxes[o + 5] = z1 + RAY_BOX_EPS;
+  }
+  c = { boxes, n, triCount, version, pos, idx };
+  g.userData.rayChunks = c;
+  return c;
+}
+
+function segmentHitsChunk(boxes, o) {
+  let t0 = 0, t1 = 1;
+  for (let k = 0; k < 3; k++) {
+    const a = k === 0 ? _segA.x : k === 1 ? _segA.y : _segA.z;
+    const d = (k === 0 ? _segB.x : k === 1 ? _segB.y : _segB.z) - a;
+    const lo = boxes[o + k], hi = boxes[o + 3 + k];
+    if (d === 0) {
+      if (a < lo || a > hi) return false;
+      continue;
+    }
+    let ta = (lo - a) / d, tb = (hi - a) / d;
+    if (ta > tb) { const t = ta; ta = tb; tb = t; }
+    if (ta > t0) t0 = ta;
+    if (tb < t1) t1 = tb;
+    if (t0 > t1) return false;
+  }
+  return true;
+}
+
+function camRaycastMesh(m, rc) {
+  const g = m.geometry;
+  if (m.material === undefined) return;
+  if (m.isInstancedMesh || m.isSkinnedMesh || g.morphAttributes.position) { m.raycast(rc, _camHits); return; }
+  // three.js's own bounding-sphere rejection, done once instead of per chunk
+  if (g.boundingSphere === null) g.computeBoundingSphere();
+  _camSphere.copy(g.boundingSphere).applyMatrix4(m.matrixWorld);
+  _camRay.copy(rc.ray).recast(rc.near);
+  if (_camSphere.containsPoint(_camRay.origin) === false) {
+    if (_camRay.intersectSphere(_camSphere, _camSphereHit) === null) return;
+    if (_camRay.origin.distanceToSquared(_camSphereHit) > (rc.far - rc.near) ** 2) return;
+  }
+  const c = rayChunks(g);
+  if (c.n < 3) { m.raycast(rc, _camHits); return; }
+  _camInv.copy(m.matrixWorld).invert();
+  _segA.copy(rc.ray.origin).addScaledVector(rc.ray.direction, rc.near).applyMatrix4(_camInv);
+  _segB.copy(rc.ray.origin).addScaledVector(rc.ray.direction, rc.far).applyMatrix4(_camInv);
+  const dr = g.drawRange, start = dr.start, count = dr.count;
+  try {
+    for (let k = 0; k < c.n; k++) {
+      if (!segmentHitsChunk(c.boxes, k * 6)) continue;
+      const lo = Math.max(k * RAY_CHUNK_TRIS * 3, start);
+      const hi = Math.min(Math.min(c.triCount, (k + 1) * RAY_CHUNK_TRIS) * 3, start + count);
+      if (hi <= lo) continue;
+      dr.start = lo;
+      dr.count = hi - lo;
+      m.raycast(rc, _camHits);
+    }
+  } finally {
+    dr.start = start;
+    dr.count = count;
+  }
+}
+
+function camRaycastObject(o, rc) {
+  if (o.layers.test(rc.layers)) {
+    if (o.isMesh) camRaycastMesh(o, rc);
+    else o.raycast(rc, _camHits);
+  }
+  const ch = o.children;
+  for (let i = 0; i < ch.length; i++) camRaycastObject(ch[i], rc);
+}
+
+function camNearestHit(targets) {
+  _camHits.length = 0;
+  for (let i = 0; i < targets.length; i++) camRaycastObject(targets[i], camRaycaster);
+  let best = null;
+  for (let i = 0; i < _camHits.length; i++) if (best === null || _camHits[i].distance < best) best = _camHits[i].distance;
+  return best;
+}
+
 // Materials reused across many actors - disposing one would force every
 // remaining user to re-upload/recompile it on the next frame.
 const SHARED_MATERIALS = new Set([OUTLINE_MAT, KISS_HEART_MAT]);
@@ -261,18 +386,35 @@ function buildVehicleActor(v) {
   } else {
     addBlobShadow(mesh, len * 1.12, wid * 1.3);
   }
-  if (!v.isBoat && !v.isBike && !v.isScooter) {
-    // seated NPC driver, shown only while AI traffic drives this vehicle
-    const seed = (v.id || 0) * 5.3 + 11;
-    const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, { seed });
-    seatPerson(driver, true);
-    const seat = seatOffset(v, true);
-    driver.position.set(seat.x, -SEATED_DROP, seat.z);
-    driver.visible = false;
-    mesh.add(driver);
-    mesh.userData.driverFigure = driver;
-  }
+  // seated NPC driver, shown only while AI traffic drives this vehicle;
+  // built by ensureDriverFigure() before the car gets within DRIVER_FIGURE_DIST
+  mesh.userData.needsDriver = !v.isBoat && !v.isBike && !v.isScooter && !v.wrecked;
   return mesh;
+}
+
+// A driver figure is a full person mesh (several ms to build), so it is
+// prepared a little ahead - one per frame - while the car is still beyond
+// the distance at which it can be shown.
+const DRIVER_PREFETCH_DIST = DRIVER_FIGURE_DIST + 30;
+const DRIVER_BUILD_BUDGET_MS = 2;
+function ensureDriverFigure(mesh, v, dist, deadline) {
+  if (!mesh.userData.needsDriver) return;
+  if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
+  mesh.userData.needsDriver = false;
+  const seed = (v.id || 0) * 5.3 + 11;
+  const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, { seed });
+  seatPerson(driver, true);
+  const seat = seatOffset(v, true);
+  driver.position.set(seat.x, -SEATED_DROP, seat.z);
+  driver.visible = false;
+  mesh.add(driver);
+  mesh.userData.driverFigure = driver;
+  const casters = mesh.userData.shadowCasters;
+  const castNear = mesh.userData.castNear;
+  for (const o of enableShadows(driver, false).userData.shadowCasters) {
+    if (castNear !== undefined) o.castShadow = castNear;
+    if (casters) casters.push(o);
+  }
 }
 
 // Local seat position inside a vehicle facing +x; Dutch cars are left-hand
@@ -319,6 +461,19 @@ function buildWakeMesh() {
   return mesh;
 }
 
+// three.js destroys a shader program as soon as its last material is
+// disposed, so every despawned actor type (and the PMREM re-bake's temporary
+// material) would recompile - a sync stall - the next time it appears. An
+// extra reference per program keeps each compiled variant for the session.
+function pinShaderPrograms(r) {
+  const programs = r.info.programs;
+  const push = programs.push;
+  programs.push = function (...added) {
+    for (const p of added) p.usedTimes++;
+    return push.apply(this, added);
+  };
+}
+
 function hash2(x, y) {
   const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return h - Math.floor(h);
@@ -334,8 +489,12 @@ export function init3D(map) {
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
+  pinShaderPrograms(renderer);
 
   scene = new THREE.Scene();
+  // The scene root never moves; with auto-update on it would force every
+  // descendant (including the frozen static ones) to recompute each frame.
+  scene.matrixAutoUpdate = false;
   scene.background = new THREE.Color(SKY_HORIZON);
   scene.fog = new THREE.Fog(SKY_HORIZON, DRAW_DIST * 0.45, DRAW_DIST * 1.05);
   skyUniforms = createSkyUniforms(sunDir);
@@ -577,6 +736,14 @@ const ROAD_COLORS3D = { cycle: 0x94412f, foot: 0x837d71, major: 0x57595c, normal
 const GREEN_COLOR = 0x5c8a4d;
 const SIDEWALK_COLOR = 0x7b776d;
 
+// Static world geometry (buildings, roads, water): matrices are computed once
+// here instead of being recomposed for thousands of objects every frame.
+function freezeStatic(root) {
+  root.updateMatrixWorld(true);
+  root.traverse((o) => { o.matrixAutoUpdate = false; });
+  return root;
+}
+
 // minCastRadius: small parts (window bands, trims, trunks) still receive
 // but skip the shadow pass - each caster is a full extra draw call.
 function enableShadows(root, receive = true, minCastRadius = 0) {
@@ -607,7 +774,8 @@ function limitActorShadows(cache, px, py) {
   for (const mesh of cache.values()) {
     const casters = mesh.userData.shadowCasters;
     if (!casters) continue;
-    const near = Math.abs(mesh.position.x - px) < ACTOR_SHADOW_DIST && Math.abs(mesh.position.z - py) < ACTOR_SHADOW_DIST;
+    const near = Math.abs(mesh.position.x - px) < ACTOR_SHADOW_DIST && Math.abs(mesh.position.z - py) < ACTOR_SHADOW_DIST
+      && !(mesh.userData.fadeLevel < FADE_STEPS);
     if (mesh.userData.castNear === near) continue;
     mesh.userData.castNear = near;
     for (const o of casters) o.castShadow = near;
@@ -627,32 +795,64 @@ for (const m of TREE_CANOPY_MATS) SHARED_MATERIALS.add(m);
 SHARED_GEOMETRIES.add(TREE_TRUNK_GEO);
 SHARED_GEOMETRIES.add(TREE_CANOPY_GEO);
 
-function buildTreeMesh(x, y) {
+// Trunk, canopy and lobe transforms of the tree at (x, y), shared by the
+// tumbling-tree mesh and the instanced standing trees.
+function layoutTree(x, y, trunk, canopy, lobe) {
   const h = hash2(x, y);
   const h2 = hash2(y, x);
-  const group = new THREE.Group();
   const trunkH = 2.2 + h * 1.2;
-  const trunk = new THREE.Mesh(TREE_TRUNK_GEO, TREE_TRUNK_MAT);
   trunk.scale.set(1, trunkH, 1);
-  group.add(trunk);
   const r = 1.6 + h * 1.3;
-  const mat = TREE_CANOPY_MATS[Math.floor(h2 * TREE_CANOPY_MATS.length)];
-  const canopy = new THREE.Mesh(TREE_CANOPY_GEO, mat);
   canopy.scale.set(r, r * 0.85, r);
   canopy.rotation.y = h2 * Math.PI * 2;
   canopy.position.y = trunkH + r * 0.7;
-  group.add(canopy);
-  const lobe = new THREE.Mesh(TREE_CANOPY_GEO, mat);
   const lr = r * (0.55 + h2 * 0.15);
   lobe.scale.set(lr, lr * 0.85, lr);
   lobe.position.set(Math.cos(h2 * 6.3) * r * 0.55, trunkH + r * 0.95, Math.sin(h2 * 6.3) * r * 0.55);
-  group.add(lobe);
-  canopy.castShadow = true;
+  return Math.floor(h2 * TREE_CANOPY_MATS.length);
+}
+
+function buildTreeMesh(x, y) {
+  const group = new THREE.Group();
+  const trunk = new THREE.Mesh(TREE_TRUNK_GEO, TREE_TRUNK_MAT);
+  const canopy = new THREE.Mesh(TREE_CANOPY_GEO, TREE_CANOPY_MATS[0]);
+  const lobe = new THREE.Mesh(TREE_CANOPY_GEO, TREE_CANOPY_MATS[0]);
+  canopy.material = lobe.material = TREE_CANOPY_MATS[layoutTree(x, y, trunk, canopy, lobe)];
+  group.add(trunk, canopy, lobe);
+  canopy.castShadow = lobe.castShadow = trunk.castShadow = true;
   lobe.receiveShadow = canopy.receiveShadow = trunk.receiveShadow = true;
   group.position.set(x, 0, y);
   return group;
 }
 setTreeMeshBuilder(buildTreeMesh);
+
+// Standing trees: one InstancedMesh for the trunks and one per canopy colour
+// (canopy + lobe) instead of three meshes per tree - identical geometry,
+// materials and transforms, but a handful of draw calls in the main and the
+// shadow pass instead of three per tree.
+const treeInstanced = [];
+let treeCapacity = 0;
+let shownTrees = [];
+const _treeGroup = new THREE.Object3D();
+const _treeParts = [new THREE.Object3D(), new THREE.Object3D(), new THREE.Object3D()];
+const _treeMatrix = new THREE.Matrix4();
+
+function ensureTreeCapacity(n) {
+  if (n <= treeCapacity) return;
+  treeCapacity = Math.max(64, treeCapacity * 2, n);
+  for (const m of treeInstanced) { scene.remove(m); m.dispose(); }
+  treeInstanced.length = 0;
+  const make = (geo, mat, cap) => {
+    const m = new THREE.InstancedMesh(geo, mat, cap);
+    m.castShadow = m.receiveShadow = true;
+    m.count = 0;
+    m.matrixAutoUpdate = false;
+    scene.add(m);
+    treeInstanced.push(m);
+  };
+  make(TREE_TRUNK_GEO, TREE_TRUNK_MAT, treeCapacity);
+  for (const mat of TREE_CANOPY_MATS) make(TREE_CANOPY_GEO, mat, treeCapacity * 2);
+}
 
 // --- per-frame sync ------------------------------------------------------
 
@@ -661,12 +861,14 @@ function syncBuildings(world, px, py) {
   // its copy of a building by the same test, so no unload hysteresis here.
   const view = world.map.buildingsNear(px, py, DRAW_DIST);
   const seen = new Set();
+  const centreDist = (b) => Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py);
   const want = (b, r) => {
-    if (Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py) > r) return;
+    if (centreDist(b) > r) return;
     seen.add(b);
     if (!buildingMeshes.has(b)) {
-      const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
-      if (isSkyline(b)) useSkylineMaterials(mesh);
+      let mesh = prefetchedBuildings.get(b);
+      if (mesh) prefetchedBuildings.delete(b);
+      else mesh = makeBuildingMesh(b);
       scene.add(mesh);
       buildingMeshes.set(b, mesh);
     }
@@ -679,6 +881,28 @@ function syncBuildings(world, px, py) {
     scene.remove(mesh);
     buildingMeshes.delete(b);
   }
+  // Build the meshes of buildings just outside the detail radius ahead of
+  // time (within a small per-frame budget), so crossing DRAW_DIST only has
+  // to add an already built mesh to the scene.
+  for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20) prefetchedBuildings.delete(b);
+  const deadline = performance.now() + BUILDING_PREFETCH_MS;
+  for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
+    if (performance.now() > deadline) break;
+    if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
+    const d = centreDist(b);
+    if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
+    prefetchedBuildings.set(b, makeBuildingMesh(b));
+  }
+}
+
+const BUILDING_PREFETCH = 30;
+const BUILDING_PREFETCH_MS = 1.5;
+const prefetchedBuildings = new Map();
+function makeBuildingMesh(b) {
+  const mesh = enableShadows(buildBuildingMesh(b), true, 2.5);
+  if (isSkyline(b)) useSkylineMaterials(mesh);
+  freezeStatic(mesh);
+  return mesh;
 }
 
 const isSkyline = (b) => b.landmarkKind === 'tower';
@@ -716,12 +940,20 @@ function useSkylineMaterials(root) {
 
 // Create/remove bookkeeping for water polygons: never disposes
 // the mesh's material since every water mesh shares the ONE waterMaterial.
-function syncWater(items, cache, y, map) {
+// First-time water/shore builds of polygons still far out in the fog are
+// spread over frames; anything within the detail radius is built at once.
+const WATER_BUILD_BUDGET_MS = 3;
+function syncWater(items, cache, y, map, px, py) {
   const seen = new Set();
+  const deadline = performance.now() + WATER_BUILD_BUDGET_MS;
   for (const poly of items) {
+    if (!cache.has(poly) && performance.now() > deadline) {
+      const [minx, miny, maxx, maxy] = poly.bounds;
+      if (Math.hypot(Math.max(minx - px, 0, px - maxx), Math.max(miny - py, 0, py - maxy)) > DRAW_DIST) continue;
+    }
     seen.add(poly);
     if (!cache.has(poly)) {
-      const mesh = buildWaterMesh(poly, y, map);
+      const mesh = freezeStatic(buildWaterMesh(poly, y, map));
       scene.add(mesh);
       cache.set(poly, mesh);
     }
@@ -746,7 +978,7 @@ function syncRoads(world, px, py) {
   for (const r of view) seen.add(r);
   for (const r of view) {
     if (!roadMeshes.has(r)) {
-      const mesh = buildRoadGroup(r);
+      const mesh = freezeStatic(buildRoadGroup(r));
       scene.add(mesh);
       roadMeshes.set(r, mesh);
     }
@@ -759,22 +991,25 @@ function syncRoads(world, px, py) {
 }
 
 function syncTrees(world, px, py) {
-  const view = world.map.treesNear(px, py, TREE_DIST);
-  const seen = new Set();
-  for (const t of view) {
-    if (t._broken) continue;
-    seen.add(t);
-    if (!treeMeshes.has(t)) {
-      const mesh = buildTreeMesh(t[0], t[1]);
-      scene.add(mesh);
-      treeMeshes.set(t, mesh);
+  const trees = world.map.treesNear(px, py, TREE_DIST).filter((t) => !t._broken);
+  if (trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) return;
+  shownTrees = trees;
+  ensureTreeCapacity(trees.length);
+  const [trunks, ...canopies] = treeInstanced;
+  for (const m of treeInstanced) m.count = 0;
+  const [trunk, canopy, lobe] = _treeParts;
+  for (const t of trees) {
+    _treeGroup.position.set(t[0], 0, t[1]);
+    _treeGroup.updateMatrix();
+    const c = canopies[layoutTree(t[0], t[1], trunk, canopy, lobe)];
+    for (const [part, m] of [[trunk, trunks], [canopy, c], [lobe, c]]) {
+      part.updateMatrix();
+      m.setMatrixAt(m.count++, _treeMatrix.multiplyMatrices(_treeGroup.matrix, part.matrix));
     }
   }
-  for (const [t, mesh] of treeMeshes) {
-    if (seen.has(t)) continue;
-    scene.remove(mesh);
-    disposeObject(mesh);
-    treeMeshes.delete(t);
+  for (const m of treeInstanced) {
+    m.instanceMatrix.needsUpdate = true;
+    m.computeBoundingSphere();
   }
 }
 
@@ -794,6 +1029,161 @@ function syncActors(list, cache, builder, idOf) {
     scene.remove(mesh);
     disposeObject(mesh);
     cache.delete(id);
+  }
+}
+
+// --- pedestrian streaming ------------------------------------------------
+// Peds never pop: they spawn out of sight (pedestrians.js asks world.pedView),
+// fade in/out with a screen-door dither, thin out towards DRAW_DIST, and
+// their meshes (~2 ms each) are built a few per frame instead of in bursts.
+const FADE_STEPS = 16;
+const PED_FADE_TIME = 0.6;
+const PED_EDGE_FADE = 14;
+const PED_BUILD_BUDGET_MS = 2.5;
+const PED_JUMP_DIST = 40;
+const pedFadingOut = [];
+const fadeVariants = new Map();
+let pedClock = 0;
+let pedInstantUntil = 0;
+let pedLastX = null, pedLastY = null;
+let pedFadeWarmed = false;
+
+// Clones share one program per base material (same cache key); only the
+// uFade value differs, and three.js uploads it whenever the material switches.
+function fadeMaterial(base, level) {
+  let arr = fadeVariants.get(base);
+  if (!arr) fadeVariants.set(base, arr = []);
+  let m = arr[level];
+  if (m) return m;
+  m = base.clone();
+  m.userData.shared = true;
+  m.userData.fadeOf = base;
+  const uFade = { value: level / FADE_STEPS };
+  const prev = base.onBeforeCompile;
+  m.onBeforeCompile = (shader, r) => {
+    if (prev) prev.call(m, shader, r);
+    shader.uniforms.uFade = uFade;
+    shader.fragmentShader = shader.fragmentShader.replace('void main() {', `uniform float uFade;
+float pedBayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
+float pedBayer4(vec2 a) { return pedBayer2(0.5 * a) * 0.25 + pedBayer2(a); }
+void main() {
+  if (pedBayer4(gl_FragCoord.xy) >= uFade) discard;`);
+  };
+  m.customProgramCacheKey = () => (base.customProgramCacheKey ? base.customProgramCacheKey() : '') + '|pedfade';
+  arr[level] = m;
+  return m;
+}
+
+function applyPedFade(mesh, fade) {
+  const level = fade >= 1 ? FADE_STEPS : Math.max(0, Math.min(FADE_STEPS - 1, Math.round(fade * FADE_STEPS)));
+  const ud = mesh.userData;
+  if (ud.fadeLevel === level) return;
+  ud.fadeLevel = level;
+  mesh.visible = level > 0;
+  if (level === 0) return;
+  mesh.traverse((o) => {
+    if (!o.material || Array.isArray(o.material)) return;
+    const base = o.material.userData.fadeOf || o.material;
+    o.material = level >= FADE_STEPS ? base : fadeMaterial(base, level);
+  });
+}
+
+function disposePedMesh(mesh) {
+  applyPedFade(mesh, 1);
+  scene.remove(mesh);
+  disposeObject(mesh);
+}
+
+const _pedFrustum = new THREE.Frustum();
+const _pedProj = new THREE.Matrix4();
+const _pedSphere = new THREE.Sphere(new THREE.Vector3(), 1.4);
+let pedViewStamp = -1;
+function pedInView(x, y) {
+  if (pedViewStamp !== pedClock) {
+    pedViewStamp = pedClock;
+    cam.updateMatrixWorld();
+    _pedProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+    _pedFrustum.setFromProjectionMatrix(_pedProj);
+  }
+  const fogFar = scene.fog ? scene.fog.far : DRAW_DIST;
+  if (Math.hypot(x - cam.position.x, y - cam.position.z) > Math.min(DRAW_DIST - PED_EDGE_FADE, fogFar * 0.85)) return false;
+  _pedSphere.center.set(x, 0.9, y);
+  return _pedFrustum.intersectsSphere(_pedSphere);
+}
+const pedView = { inView: pedInView, camX: 0, camY: 0 };
+
+function buildPedActor(p) {
+  // stable per-ped look, so a ped doesn't change clothes when it streams back in
+  if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
+  const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, { seed: p._lookSeed });
+  return enableShadows(mesh, false);
+}
+
+function syncPedestrianMeshes(world, player, animDt) {
+  pedClock += animDt || 1e-4;
+  pedView.camX = cam.position.x;
+  pedView.camY = cam.position.z;
+  world.pedView = pedView;
+  if (pedLastX === null || Math.hypot(player.x - pedLastX, player.y - pedLastY) > PED_JUMP_DIST) pedInstantUntil = pedClock + 0.3;
+  pedLastX = player.x;
+  pedLastY = player.y;
+  const instant = pedClock < pedInstantUntil || world.cinematicHidePlayers;
+
+  const seen = new Set();
+  const deadline = performance.now() + PED_BUILD_BUDGET_MS;
+  let built = 0;
+  for (const p of world.pedestrians) {
+    if (Math.hypot(p.x - player.x, p.y - player.y) >= DRAW_DIST) continue;
+    seen.add(p);
+    if (pedMeshes.has(p)) continue;
+    if (!instant && built > 0 && performance.now() > deadline) continue;
+    const mesh = buildPedActor(p);
+    mesh.userData.fade = instant || p.noFade ? 1 : 0;
+    scene.add(mesh);
+    pedMeshes.set(p, mesh);
+    built++;
+  }
+  for (const [p, mesh] of pedMeshes) {
+    if (seen.has(p)) continue;
+    pedMeshes.delete(p);
+    if (instant || !mesh.visible) disposePedMesh(mesh);
+    else pedFadingOut.push(mesh);
+  }
+
+  // one frame of the dithered variants while the scene still spawns in, so
+  // their shaders compile during loading rather than at the first fade
+  const warm = !pedFadeWarmed && pedMeshes.size > 0;
+  if (warm) pedFadeWarmed = true;
+
+  for (const p of world.pedestrians) {
+    const mesh = pedMeshes.get(p);
+    if (!mesh) continue;
+    const ud = mesh.userData;
+    ud.fade = Math.min(1, ud.fade + animDt / PED_FADE_TIME);
+    const edge = (DRAW_DIST - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
+    applyPedFade(mesh, warm ? (FADE_STEPS - 1) / FADE_STEPS : Math.min(ud.fade, edge));
+    if (driveRagdoll(p, mesh, world, animDt)) continue;
+    if (p.state === 'dead') {
+      // topple backwards over ~0.3s, then lie flat until the ped is removed
+      const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);
+      mesh.position.set(p.x, 0.14 * fall, p.y);
+      mesh.rotation.set(0, -p.angle, fall * fall * Math.PI / 2);
+      ud.shadow.visible = false;
+      animatePersonWalk(mesh, 0, animDt);
+      continue;
+    }
+    mesh.position.set(p.x, 0, p.y);
+    mesh.rotation.y = -p.angle;
+    animatePersonWalk(mesh, p.speed || 0, animDt);
+  }
+
+  for (let i = pedFadingOut.length - 1; i >= 0; i--) {
+    const mesh = pedFadingOut[i];
+    mesh.userData.fade = Math.min(mesh.userData.fade, 1) - animDt / PED_FADE_TIME;
+    if (instant || mesh.userData.fade <= 0) {
+      disposePedMesh(mesh);
+      pedFadingOut.splice(i, 1);
+    } else applyPedFade(mesh, mesh.userData.fade);
   }
 }
 
@@ -879,13 +1269,14 @@ export function update3D(dt, world) {
 
   syncBuildings(world, player.x, player.y);
   updateGrass(dt, world, cam, DRAW_DIST);
-  syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map);
+  syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, player.x, player.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   if (waterMaterial) updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
   syncRoads(world, player.x, player.y);
   syncTrees(world, player.x, player.y);
   updateRailway3D(dt, world);
+  updateCountryside(dt, world, scene, cam, viewDist);
 
   syncActors(
     world.vehicles.filter((v) => Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
@@ -895,6 +1286,7 @@ export function update3D(dt, world) {
   );
   const fireSeenIds = new Set();
   const policeChasing = world.wanted > 0;
+  const driverDeadline = performance.now() + DRIVER_BUILD_BUDGET_MS;
   for (const v of world.vehicles) {
     let mesh = vehicleMeshes.get(v.id);
     // a car that just died swaps to its burnt-out model (rebuilt next frame)
@@ -912,8 +1304,11 @@ export function update3D(dt, world) {
       else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
       if (v.isPolice) updatePoliceLamps(mesh, world.time, policeChasing && !v.hijacked && v.driver !== 'player');
+      const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
+      ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
-      if (df) df.visible = !!v.road && !v.wrecked && v.driver !== 'player' && Math.abs(v.x - player.x) + Math.abs(v.y - player.y) < DRIVER_FIGURE_DIST;
+      if (df) df.visible = !!v.road && !v.wrecked && v.driver !== 'player' && driverDist < DRIVER_FIGURE_DIST;
+      if (v.isBike || v.isScooter) syncBikeRider(mesh, v, world.time);
     }
 
     // damage VFX - checked regardless of `mesh` (a just-wrecked vehicle's
@@ -968,32 +1363,7 @@ export function update3D(dt, world) {
     return alive;
   });
 
-  syncActors(
-    world.pedestrians.filter((p) => Math.hypot(p.x - player.x, p.y - player.y) < DRAW_DIST),
-    pedMeshes,
-    (p) => {
-      // stable per-ped look, so a ped doesn't change clothes when it streams back in
-      if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
-      return buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, { seed: p._lookSeed });
-    },
-    (p) => p
-  );
-  for (const p of world.pedestrians) {
-    const mesh = pedMeshes.get(p);
-    if (!mesh) continue;
-    if (p.state === 'dead') {
-      // topple backwards over ~0.3s, then lie flat until the ped is removed
-      const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);
-      mesh.position.set(p.x, 0.14 * fall, p.y);
-      mesh.rotation.set(0, -p.angle, fall * fall * Math.PI / 2);
-      mesh.userData.shadow.visible = false;
-      animatePersonWalk(mesh, 0, animDt);
-      continue;
-    }
-    mesh.position.set(p.x, 0, p.y);
-    mesh.rotation.y = -p.angle;
-    animatePersonWalk(mesh, p.speed || 0, animDt);
-  }
+  syncPedestrianMeshes(world, player, animDt);
   syncSpeechBubbles(world);
 
   if (!flitspaalBuilt && world.flitspaalen && world.flitspaalen.length) {
@@ -1020,7 +1390,11 @@ export function update3D(dt, world) {
       }
     }
   }
-  for (const mesh of staticProps) mesh.visible = !mesh.userData.broken && Math.abs(mesh.position.x - player.x) < DRAW_DIST && Math.abs(mesh.position.z - player.y) < DRAW_DIST;
+  for (const mesh of staticProps) {
+    mesh.visible = !mesh.userData.broken && Math.abs(mesh.position.x - player.x) < DRAW_DIST && Math.abs(mesh.position.z - player.y) < DRAW_DIST;
+    // hundreds of these exist city-wide; hidden ones need no matrix updates
+    mesh.matrixWorldAutoUpdate = mesh.visible;
+  }
 
   if (world.wildlife) {
     syncActors(
@@ -1053,22 +1427,7 @@ export function update3D(dt, world) {
     policeHeliMesh = null;
   }
 
-  if (world.skyProps) {
-    syncActors(
-      world.skyProps,
-      skyPropMeshes,
-      (p) => (p.kind === 'balloon' ? buildBalloonMesh3D() : buildTraumaHeliMesh3D()),
-      (p) => p
-    );
-    for (const p of world.skyProps) {
-      const mesh = skyPropMeshes.get(p);
-      if (mesh) {
-        mesh.position.set(p.x, p.z, p.y);
-        mesh.rotation.y = -p.angle;
-        if (p.kind === 'traumaheli') updateTraumaHeliMesh3D(mesh, world.time);
-      }
-    }
-  }
+  updateSkyProps3D(world, scene, animDt);
 
   // mission marker: a single persistent beacon, repositioned/recolored -
   // world.mission is one long-lived object (the chain loops forever), never
@@ -1244,13 +1603,14 @@ export function update3D(dt, world) {
     playerMesh.scale.y = 1;
     placeSeated(playerMesh, pv, true);
     playerMesh.userData.shadow.visible = false;
-  } else if (!pv) {
+  } else if (!pv && !driveRagdoll(player, playerMesh, world, animDt)) {
     playerMesh.userData.shadow.visible = !player.swimming;
     playerMesh.rotation.x = 0;
     playerMesh.rotation.z = player.swimTilt || 0;
     playerMesh.position.set(player.x, player.z || 0, player.y);
     playerMesh.rotation.y = -player.angle;
-    playerMesh.scale.y = player.crouching ? 0.6 : 1;
+    playerMesh.scale.y = 1;
+    playerMesh.userData.crouch = !!player.crouching;
     playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
     animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
   }
@@ -1272,11 +1632,13 @@ export function update3D(dt, world) {
     }
     companionMesh.visible = !comp.inVehicle && !world.pigeonMode && !world.menuCam && !world.cinematicHidePlayers;
     if (!comp.inVehicle) {
-      companionMesh.position.set(comp.x, comp.z || 0, comp.y);
-      companionMesh.rotation.z = comp.swimTilt || 0;
-      if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !comp.swimming;
-      companionMesh.rotation.y = -comp.angle;
-      animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
+      if (!driveRagdoll(comp, companionMesh, world, animDt)) {
+        companionMesh.position.set(comp.x, comp.z || 0, comp.y);
+        companionMesh.rotation.z = comp.swimTilt || 0;
+        if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !comp.swimming;
+        companionMesh.rotation.y = -comp.angle;
+        animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
+      }
     } else {
       const v = comp.inVehicle;
       passengerMesh.visible = !v.isBike && !v.isScooter && !world.cinematicHidePlayers;
@@ -1355,8 +1717,7 @@ export function update3D(dt, world) {
     camRaycaster.set(camRayOrigin, camRayDir);
     camRaycaster.far = dist;
     camRaycaster.near = 0.05;
-    const hits = camRaycaster.intersectObjects(camTargets, true);
-    return hits.length ? hits[0].distance : null;
+    return camNearestHit(camTargets);
   }
   function raycastBuildingDist(dx, dy, dz, dist) {
     return raycastFrom(eyeX, eyeY, eyeZ, dx, dy, dz, dist);
@@ -1469,6 +1830,56 @@ const overrideLook = new THREE.Vector3();
 const _camLook = new THREE.Vector3();
 const _camTmp = new THREE.Vector3();
 
+// Cutscene cameras are scripted paths and can swing through walls; keep the
+// line from the subject to the camera free of buildings: pull in at once
+// when blocked, ease back out slowly so the shot doesn't pump.
+let guardFrac = 1;
+const _guardSeen = new Set();
+const _guardTargets = [];
+const _guardDir = new THREE.Vector3();
+function guardTargets() {
+  _guardSeen.clear();
+  _guardTargets.length = 0;
+  const mx = (cam.position.x + _camLook.x) / 2, mz = (cam.position.z + _camLook.z) / 2;
+  for (const [x, z] of [[cam.position.x, cam.position.z], [mx, mz], [_camLook.x, _camLook.z]]) {
+    for (const m of nearbyCamTargets(x, z)) {
+      if (_guardSeen.has(m)) continue;
+      _guardSeen.add(m);
+      _guardTargets.push(m);
+    }
+  }
+  return _guardTargets;
+}
+function guardRay(ox, oy, oz, dx, dy, dz, far, targets) {
+  camRayOrigin.set(ox, oy, oz);
+  camRayDir.set(dx, dy, dz).normalize();
+  camRaycaster.set(camRayOrigin, camRayDir);
+  camRaycaster.near = 0.05;
+  camRaycaster.far = far;
+  return camNearestHit(targets);
+}
+function guardCinematicCamera(dt) {
+  const targets = guardTargets();
+  if (!targets.length) { guardFrac = 1; return; }
+  _guardDir.subVectors(cam.position, _camLook);
+  const full = _guardDir.length();
+  if (full < 0.5) return;
+  const hit = guardRay(_camLook.x, _camLook.y, _camLook.z, _guardDir.x, _guardDir.y, _guardDir.z, full, targets);
+  const allowed = hit === null ? 1 : Math.max(1.2, hit - CAM_CLEARANCE) / full;
+  guardFrac = Math.min(allowed, guardFrac + (1 - guardFrac) * Math.min(1, dt * 1.5));
+  if (guardFrac < 0.999) cam.position.copy(_camLook).addScaledVector(_guardDir, guardFrac);
+  // walls running alongside the camera would still be cut open by the near plane
+  for (const [ax, ay, az] of CAM_PUSH_DIRS) {
+    const h = guardRay(cam.position.x, cam.position.y, cam.position.z, ax, ay, az, CAM_CLEARANCE, targets);
+    if (h === null) continue;
+    const push = CAM_CLEARANCE - h;
+    cam.position.x -= ax * push;
+    cam.position.y -= ay * push;
+    cam.position.z -= az * push;
+  }
+  if (cam.position.y < 0.4) cam.position.y = 0.4;
+}
+
 function applyCameraOverride(dt, world, lx, ly, lz) {
   const o = world.cameraOverride;
   const valid = !!(o && o.position && o.lookAt);
@@ -1491,6 +1902,9 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   if (t > 0) {
     cam.position.lerp(overridePos, t);
     _camLook.lerp(overrideLook, t);
+    guardCinematicCamera(dt);
+  } else {
+    guardFrac = 1;
   }
   cam.lookAt(_camLook);
   const targetFov = valid && o.fov ? o.fov : baseFov;

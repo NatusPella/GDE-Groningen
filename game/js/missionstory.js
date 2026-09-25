@@ -50,7 +50,7 @@ const STORY = [
     outro: [
       ['N', 'Hij staat er nog. Geen kras. Ik weet even niet wat ik moet zeggen.'],
       ['A', 'Probeer eens: dank je, Berend.'],
-      ['N', '…Dank je. Niet tegen de buren zeggen. Ik heb een reputatie sinds 1672.'],
+      ['N', '…Dank je. Niet tegen de buren zeggen. Ik heb al sinds 1672 een reputatie.'],
       ['T', 'Wij zeggen nooit wat. Tegen elkaar al helemaal niet.'],
     ],
     fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Welke Berend? Welk bakkie?']],
@@ -79,7 +79,7 @@ const STORY = [
   {
     npc: 'sjoerd', outroPose: 'cheer', ask: 1,
     intro: [
-      ['N', 'KEI-week, man! De eerstejaars zeggen dat niemand hun rondje door de stad kan verslaan.'],
+      ['N', 'KEI-week, man! De eerstejaars zeggen dat niemand hun rondje door de stad sneller rijdt.'],
       ['N', 'Rondje vanaf het Academiegebouw. Winnaar krijgt eeuwige roem. En een bierviltje.'],
       ['A', 'Tammo heeft hier nog gestudeerd. Twee weken.'],
       ['T', 'Drie. De derde was ik ziek.'],
@@ -209,7 +209,7 @@ const DUO_BY_STAGE = [
   { intro: [['T', 'Laat mij maar praten.'], ['A', 'Dan staan we hier morgen nog.']], outro: [['A', 'Je was er echt, vandaag.'], ['T', 'Ik ben er altijd. Meestal zwijgend.']] },
   { intro: [['A', 'Voorzichtig doen, hè.'], ['T', 'Zegt degene met de rode jas en de haast.']], outro: [['T', 'Je had me door, daar.'], ['A', 'Ik heb je altijd door, droogkloot.']] },
   { intro: [['T', 'Blijf een beetje bij mij in de buurt.'], ['A', 'Moi. Dat klinkt bijna lief.']], outro: [['A', 'Zeg het maar gewoon, Tammo.'], ['T', 'Wat zeggen?'], ['A', 'Laat maar. Ik weet het al.']] },
-  { intro: [['A', 'Samen, of niet.'], ['T', 'Samen.']], outro: [['T', 'Zonder jou lag ik allang in het Reitdiep.'], ['A', 'Weet ik. Daarom blijf ik.']] },
+  { intro: [['A', 'Samen, of helemaal niet.'], ['T', 'Samen.']], outro: [['T', 'Zonder jou lag ik allang in het Reitdiep.'], ['A', 'Weet ik. Daarom blijf ik.']] },
   { intro: [['T', 'Laatste klus?'], ['A', 'Voor vandaag.']], outro: [['A', 'Wij tweeën tegen Grunn?'], ['T', 'Wij tweeën tegen Grunn.']] },
 ];
 

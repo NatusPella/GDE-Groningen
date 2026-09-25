@@ -34,7 +34,7 @@ function buildDefs(world) {
       type: 'deliver',
       label: "Bommen Berend wil z'n bakkie",
       intro: ['Bommen Berend wil z\'n bakkie vóór de koffie terug. Hij staat bij het Martinikerkhof.', 'Rij \'m heel naar het Boterdiep. Berend telt krassen zoals een ander schaapjes.'],
-      outro: 'Berend zei zowaar \'dank je\'. Dat gebeurde sinds 1672 niet meer.',
+      outro: 'Berend zei zowaar \'dank je\'. Dat is sinds 1672 niet meer gebeurd.',
       timeLimit: 85,
       reward: 250,
       start: drive(224, -27),
@@ -43,7 +43,7 @@ function buildDefs(world) {
     {
       type: 'rampage',
       label: 'Chaos op de Grote Markt',
-      intro: ['Sikkom kopt: \'Grote Markt saaier dan een lege mensa\'. Dat laten we niet op ons zitten.', 'Acht stuks in 45 seconden. Voor de clicks, zegt Jelmer.'],
+      intro: ['Sikkom kopt: \'Grote Markt saaier dan een lege mensa\'. Dat laten we niet op ons zitten.', 'Acht man neer in 45 seconden. Voor de clicks, zegt Jelmer.'],
       outro: 'De Grote Markt is weer wakker. D\'Olle Grieze keek ervan op.',
       timeLimit: 45,
       reward: 300,
@@ -86,7 +86,7 @@ function buildDefs(world) {
       type: 'checkpoint',
       label: 'Kroegentocht: Poelestraat plat',
       intro: ['Kroegentocht! Vier kroegen, één avond, nul excuses. Grunn slaapt toch nooit.', 'Te voet, hè. Tussen de Poelestraat en de Peperstraat zijn al sterkere mensen verdwaald.'],
-      outro: 'Vier kroegen gehaald. Morgen wordt een eierbal-ontbijt.',
+      outro: 'Vier kroegen gehaald. Morgen wordt het een eierbalontbijt.',
       timeLimit: 90,
       checkpointBonus: 20,
       reward: 320,
@@ -102,7 +102,7 @@ function buildDefs(world) {
     {
       type: 'fatbike',
       label: 'Fatbike-terreur: blijf overeind',
-      intro: ['Op het Zuiderpark scheuren fatbikes over het fietspad. Remmen hebben ze, gebruiken niet.', 'Loop naar het eind van het pad. Twee keer geschept mag. De derde keer ben je een drempel.'],
+      intro: ['In het Zuiderpark scheuren fatbikes over het fietspad. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop naar het eind van het pad. Twee keer geschept mag. De derde keer ben je een drempel.'],
       outro: 'Overeind gebleven tussen de fatbikes. Oma Trijntje is trots.',
       timeLimit: 40,
       reward: 275,
@@ -487,7 +487,7 @@ function vehicleProblem(world, def) {
   if (def.type === 'boat' && p.inVehicle && p.inVehicle.isBoat) return null;
   if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {
     const what = def.type === 'boat' ? 'de boot' : 'de auto';
-    return chain.boarded ? `${what} gewoon achtergelaten` : `je liet ${what} staan. Parkeren kost hier meer dan de auto`;
+    return chain.boarded ? `je liet ${what} gewoon achter` : `je liet ${what} staan. Parkeren kost hier meer dan de auto`;
   }
   return null;
 }

@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
 import { getPickupsForRender } from './pickups.js';
-import { getHorecaForRender } from './horeca.js';
+import { getHorecaForRender, nearestHorecaSpot, horecaState } from './horeca.js';
+import { vehicleDisplayLabel } from './vehiclenames.js';
 import { getSettings } from './settings.js';
 import { isPhoneOpen } from './phone.js';
 import { isPauseMenuOpen } from './pausemenu.js';
@@ -19,11 +20,6 @@ const MAX_ROWS = 4;
 
 const WEAPON_NAMES = { pistol: 'Pistool', uzi: 'Uzi', shotgun: 'Hagelgeweer' };
 const WEAPON_RANGE = { fists: 1.1, pistol: 26, uzi: 20, shotgun: 11 };
-const MODEL_NAMES = {
-  hatch: 'Hatchback', sedan: 'Sedan', wagon: 'Stationwagen', van: 'Busje', sport: 'Sportwagen',
-  escort: 'Jouw ouwe Escort', police: 'Politieauto', bus: 'Stadsbus', bike: 'Fiets', scooter: 'Scooter', boat: 'Bootje',
-};
-
 let root = null;
 let wps = [];
 let rowsEl = null;
@@ -218,9 +214,8 @@ function vehicleVerb(v) {
 }
 
 function vehicleName(v) {
-  if (v.isPolice) return v.isBoat ? 'Politieboot' : 'Politieauto';
-  if (v.model && v.model.fat) return 'Fatbike';
-  return MODEL_NAMES[v.model && v.model.name] || 'Voertuig';
+  if (v.isHeroCar) return 'Jouw ouwe Fjord Escapade';
+  return vehicleDisplayLabel(v);
 }
 
 function doorAnchor(v, p) {
@@ -282,6 +277,13 @@ function findPrimary(world) {
   if (p.swimming) {
     if (!p.canClimbOut) return null;
     return { id: 'climb', x: p.x, y: p.y, h: 0.6, key: 'E', label: 'Eruit klimmen', sub: learning('climb') ? 'Klim de kade weer op' : '', learn: learning('climb'), ring: true };
+  }
+  const food = nearestHorecaSpot(world);
+  if (food) {
+    const st = horecaState(world, food);
+    const name = food.name || 'Kroeg';
+    if (st === 'ready') return { id: 'food-' + name, x: food.x, y: food.y, h: 2.75, key: 'E', label: 'Iets bestellen', sub: `${name}: hapje + drankje, +15 gezondheid`, ring: true };
+    return { id: 'food-' + name, x: food.x, y: food.y, h: 2.75, key: 'E', label: 'Iets bestellen', sub: st === 'broke' ? 'Te weinig geld (min. €12)' : 'Even laten zakken...', ring: true, dim: true };
   }
   const c = world.companion;
   const kissable = c && c.state !== 'dead' && !c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) <= KISS_DIST;
@@ -354,7 +356,7 @@ function findSecondary(world, primary) {
       const s = spots[i];
       if (Math.abs(s.x - p.x) > 12 || Math.abs(s.y - p.y) > 12) continue;
       if (world.time - s.lastUsed < 60) continue;
-      add({ id: 'h' + i, x: s.x, y: s.y, h: 1.9, label: s.name || 'Kroeg', sub: 'Loop binnen: bittergarnituur', kind: 'place' }, 10);
+      add({ id: 'h' + i, x: s.x, y: s.y, h: 1.9, label: s.name || 'Kroeg', sub: 'Loop erheen en druk E voor een hapje', kind: 'place' }, 10);
     }
   }
   const m = world.mission;
@@ -363,7 +365,7 @@ function findSecondary(world, primary) {
   }
   if (!inV && learning('enter') && !primary) {
     for (const v of world.vehicles) {
-      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escort', sub: 'Loop erheen, dan E', kind: 'place' }, 40);
+      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan E', kind: 'place' }, 40);
     }
   }
   out.sort((a, b) => a.score - b.score);
@@ -470,13 +472,13 @@ function contextRows(world, primary) {
     rows.push(tut('swimfast', ['SHIFT'], 'Snel zwemmen', 'Kost adem, dus niet te lang'));
     if (p.canClimbOut) rows.push(tut('climb', ['E'], 'Eruit klimmen', 'Klim de kade op'));
   } else {
-    rows.push(tut('move', ['WASD'], 'Lopen', 'W van de camera af, A/D opzij'));
+    rows.push(tut('move', ['WASD'], 'Lopen', 'W vooruit, S achteruit, A/D opzij'));
     rows.push(tut('look', ['MOUSE'], 'Rondkijken', 'Muis draait de camera om je heen'));
     if (p.moving) rows.push(tut('sprint', ['SHIFT'], 'Rennen', 'Houd Shift ingedrukt'));
     rows.push(tut('jump', [' '], 'Springen', 'Over hekjes en paaltjes'));
     if (armed) {
       rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
-      rows.push(tut('weapon', ['1-4'], 'Wapen', '1 vuisten, 2 pistool, 3 uzi, 4 hagelgeweer'));
+      rows.push(tut('weapon', ['1-4'], 'Wapen', '1 vuisten, 2 pistool, 3 uzi, 4 hagelgeweer, of scrollen'));
     } else if (world.wanted > 0) {
       rows.push(tut('punch', ['LMB'], 'Slaan', 'Vuisten eerst, vragen later'));
     }

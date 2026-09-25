@@ -26,6 +26,7 @@ disables caching, so edited modules are always reloaded.
 | Left mouse | attack (fists or the equipped gun); you turn to where the camera looks | – |
 | Right mouse | aim: face the camera direction while moving | – |
 | 1–4 | fists / pistol / uzi / shotgun | – |
+| Mouse wheel | next / previous weapon | – |
 | Mouse | orbit the camera around your character | orbit around the car; eases back behind it after ~1.7 s |
 | C | switch between Tammo and Anita | swap seats |
 | M | city map (click a wijk to travel there) | |

@@ -77,7 +77,7 @@ export function updateFlitspaal(dt, world) {
     const fine = MIN_FINE + Math.floor(Math.random() * (MAX_FINE - MIN_FINE + 1));
     world.money = Math.max(0, world.money - fine);
     world.addMessage(
-      `Geflitst! Boete: €${fine} (u reed ${Math.round(speedKmh)} km/u waar ${Math.round(limitKmh)} was toegestaan)`,
+      `Geflitst! Boete: €${fine} (u reed ${Math.round(speedKmh)} km/u, toegestaan is ${Math.round(limitKmh)})`,
       4
     );
   }

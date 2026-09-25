@@ -156,7 +156,15 @@ export function createEnvironmentUpdater(renderer, sunDir) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envScene = buildEnvScene(SKY_ZENITH, SKY_HORIZON, 0x6e6250, sunDir, SKY_SUN, 1);
   const u = envScene.children[0].material.uniforms;
+  // Every re-bake renders into the same target: a fresh texture each time
+  // would make every lit material re-resolve its shader program.
   let current = null;
+  const allocate = pmrem._allocateTargets;
+  pmrem._allocateTargets = function () {
+    if (!current) current = allocate.call(this);
+    return current;
+  };
+  const last = [];
   return {
     get texture() { return current; },
     update(zenith, horizon, ground, dir, sunColor, gain) {
@@ -165,10 +173,11 @@ export function createEnvironmentUpdater(renderer, sunDir) {
       u.uGround.value.copy(ground).multiplyScalar(gain);
       u.uSun.value.copy(sunColor).multiplyScalar(gain * 12);
       u.uSunDir.value.copy(dir);
-      const rt = pmrem.fromScene(envScene, 0.02);
-      if (current) current.dispose();
-      current = rt;
-      return rt.texture;
+      // identical inputs bake an identical environment
+      const inputs = [u.uZenith.value, u.uHorizon.value, u.uGround.value, u.uSun.value].flatMap((c) => [c.r, c.g, c.b]).concat(dir.x, dir.y, dir.z);
+      if (current && inputs.every((v, i) => v === last[i])) return current.texture;
+      last.splice(0, last.length, ...inputs);
+      return pmrem.fromScene(envScene, 0.02).texture;
     },
   };
 }

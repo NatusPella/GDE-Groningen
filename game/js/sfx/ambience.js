@@ -423,7 +423,8 @@ function animalDef(kind) {
 
 function animals(dt, world) {
   timers.animals -= dt;
-  const list = world.wildlife;
+  const extra = world.countryAudible;
+  const list = extra && extra.length ? (world.wildlife || []).concat(extra) : world.wildlife;
   if (!list || !list.length || world.paused) return;
   const check = timers.animals <= 0;
   if (check) timers.animals = 0.4;

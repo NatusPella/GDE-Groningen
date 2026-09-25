@@ -10,7 +10,7 @@ import { updatePolice } from './police.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initPickups, updatePickups } from './pickups.js';
-import { initHoreca, updateHoreca } from './horeca.js';
+import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
 import { initTheme } from './theme.js';
@@ -226,6 +226,7 @@ async function boot() {
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else {
+      tryHorecaInteract(world);
       player.update(dt, world);
       updateCompanion(dt, world);
     }

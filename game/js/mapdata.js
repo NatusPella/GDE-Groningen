@@ -136,6 +136,7 @@ export class GameMap {
     this.stations = data.stations || [];
     this.levelCrossings = data.levelCrossings || [];
     this.railRoutes = data.railRoutes || [];
+    this.railLifts = data.railLifts || [];
 
     this.buildingGrid = new SpatialGrid(CELL);
     for (const b of this.buildings) {
