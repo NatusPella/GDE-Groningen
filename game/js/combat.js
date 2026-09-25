@@ -21,7 +21,8 @@ export function weaponDps(key) {
 }
 
 let fireTimer = 0;
-let effect = null; // {type:'muzzle'|'melee', angle, until} — local fx state, not shared on world
+let effect = null;
+let punchSide = -1; // alternates left/right jabs // {type:'muzzle'|'melee', angle, until} — local fx state, not shared on world
 
 export function getCombatEffect() { return effect; }
 
@@ -81,7 +82,8 @@ export function updateCombat(dt, world) {
 }
 
 function meleeAttack(world, angle, weapon) {
-  effect = { type: 'melee', angle, until: world.time + 0.15 };
+  punchSide = -punchSide;
+  effect = { type: 'melee', angle, until: world.time + 0.15, start: world.time, side: punchSide };
   const targets = [...world.pedestrians, ...world.vehicles];
   for (const t of targets) {
     if (t.state === 'dead' || t.wrecked || t === world.player.inVehicle) continue;
@@ -100,7 +102,7 @@ function meleeAttack(world, angle, weapon) {
 }
 
 function fireGun(world, angle, weapon) {
-  effect = { type: 'muzzle', angle, until: world.time + 0.06 };
+  effect = { type: 'muzzle', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon };
   const shots = weapon.pellets || 1;
   for (let i = 0; i < shots; i++) {
     const a = angle + (weapon.spread ? (Math.random() - 0.5) * weapon.spread : 0);

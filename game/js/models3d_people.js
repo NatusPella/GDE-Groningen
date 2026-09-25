@@ -894,6 +894,41 @@ function setArm(arm, elbow, z, e, x = 0) {
   if (elbow) elbow.rotation.z = e;
 }
 
+// Attack overlay on top of the walk cycle: an alternating jab for fists, an
+// aimed arm with a short recoil kick for guns (two-handed for uzi/shotgun).
+// fx is combat.js's last effect {type, start, side, weapon}; now = world.time.
+const PUNCH_S = 0.32;
+const AIM_HOLD_S = 0.7;
+export function applyAttackPose(mesh, fx, now) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !fx || fx.start === undefined || !ud.armR || !ud.armL) return;
+  const dt = now - fx.start;
+  if (fx.type === 'melee') {
+    if (dt < 0 || dt >= PUNCH_S) return;
+    const u = dt / PUNCH_S;
+    const ext = u < 0.3 ? smoothstep(0, 0.3, u) : 1 - smoothstep(0.3, 1, u);
+    const right = fx.side > 0;
+    const [pa, pe] = right ? [ud.armR, ud.elbowR] : [ud.armL, ud.elbowL];
+    const [ga, ge] = right ? [ud.armL, ud.elbowL] : [ud.armR, ud.elbowR];
+    setArm(pa, pe, 0.5 + 1.05 * ext, 1.9 - 1.82 * ext);
+    setArm(ga, ge, 0.95, 2.1);
+    if (ud.chest) ud.chest.rotation.y = (right ? -1 : 1) * 0.28 * ext;
+    return;
+  }
+  if (fx.type === 'muzzle') {
+    if (dt < 0 || dt >= AIM_HOLD_S) return;
+    const hold = 1 - smoothstep(AIM_HOLD_S - 0.2, AIM_HOLD_S, dt);
+    const kick = Math.max(0, 1 - dt / 0.12);
+    const z = ud.armR.rotation.z + (1.55 + 0.22 * kick - ud.armR.rotation.z) * hold;
+    const e = (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - hold) + (0.06 + 0.3 * kick) * hold;
+    setArm(ud.armR, ud.elbowR, z, e);
+    if (fx.weapon === 'uzi' || fx.weapon === 'shotgun') {
+      const zl = ud.armL.rotation.z + (1.4 + 0.15 * kick - ud.armL.rotation.z) * hold;
+      setArm(ud.armL, ud.elbowL, zl, 0.55 * hold, 0);
+    }
+  }
+}
+
 const POSE_DROP = { crouch: 0.42, sit: 0.46, fish: 0.5 };
 
 function applyPose(mesh, pose, t) {
