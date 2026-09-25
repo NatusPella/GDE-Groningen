@@ -40,10 +40,8 @@ export function updateCombat(dt, world) {
   const hasAmmo = weapon.ammo === Infinity || (world.ammo[world.weapon] || 0) > 0;
   if (!hasAmmo) return;
 
-  // aim = current facing (on foot: tank-turned with A/D; driving: the car's
-  // heading) rather than a mouse->world raycast - there's no single "screen"
-  // to point at once the 3D camera is the only view, and facing-direction
-  // aim matches the tank-style movement controls (turn to aim, then fire)
+  // aim = current facing: on foot player.js turns the body to the camera
+  // heading while the mouse button is held; driving, the car's heading
   const angle = world.player.inVehicle ? world.player.inVehicle.angle : world.player.angle;
   fireTimer = weapon.cooldown;
 

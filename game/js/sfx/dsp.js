@@ -600,6 +600,36 @@ def('tree_fall', 3.6, (c, sr, R) => {
   addNoiseBurst(d, sr, 1.75, R, { type: 'lp', f: 400, q: 0.7, tau: 0.3, amp: 1.2 });
 }, { rate: 22050 });
 
+// Sheet metal folding: a body thud, a dense burst of buckling clicks that
+// thins out, inharmonic panel modes, and a bent-metal groan.
+function crunch(chs, sr, R) {
+  const d = chs[0];
+  thump(d, sr, 0, 70 + R() * 20, 0.09, 1.1);
+  addNoiseBurst(d, sr, 0, R, { type: 'lp', f: 900, q: 0.8, tau: 0.07, amp: 1 });
+  addNoiseBurst(d, sr, 0, R, { f: 1700, q: 0.9, tau: 0.05, amp: 0.8 });
+  let t = 0;
+  for (let k = 0; k < 42; k++) {
+    t += 0.002 + R() * 0.012 * (1 + k / 14);
+    addNoiseBurst(d, sr, t, R, { f: 900 + R() * 3800, q: 2 + R() * 5, tau: 0.003 + R() * 0.008, amp: (0.9 - k / 60) * (0.4 + R() * 0.6) });
+  }
+  const b = 170 + R() * 160;
+  addPartials(d, sr, 0.004, b, [[1, 0.5, 0.22], [2.31, 0.4, 0.16], [3.87, 0.3, 0.11], [5.9, 0.2, 0.07], [8.3, 0.12, 0.05]], 0.6, R);
+  const bend = bq('bp', 700, 5, sr), n = Math.floor(0.35 * sr), s0 = Math.floor(0.04 * sr);
+  for (let i = 0; i < n && s0 + i < d.length; i++) { if ((i & 31) === 0) bend.set(700 - 380 * i / n, 5); d[s0 + i] += bend.run(R() * 2 - 1) * 0.5 * Math.sin(Math.PI * i / n); }
+}
+for (let v = 0; v < 3; v++) def(`crunch_${v}`, 0.9, crunch);
+
+// Dutch thumb-bell: a spinning striker hits the dome a few times per push.
+def('bikebell', 1.1, (c, sr, R) => {
+  const d = c[0], f = 2950 + R() * 150;
+  let t = 0;
+  for (let k = 0; k < 5; k++) {
+    addPartials(d, sr, t, f, [[1, 1, 0.35], [1.51, 0.45, 0.2], [2.48, 0.3, 0.12], [3.7, 0.15, 0.06]], k ? 0.55 + R() * 0.2 : 1, R);
+    addNoiseBurst(d, sr, t, R, { type: 'hp', f: 5000, q: 0.7, tau: 0.002, amp: 0.3 });
+    t += 0.028 + R() * 0.01;
+  }
+});
+
 export const BUFFER_NAMES = Object.keys(S);
 
 export function variantsOf(prefix) {

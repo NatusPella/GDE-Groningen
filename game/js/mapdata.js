@@ -42,20 +42,107 @@ class SpatialGrid {
   }
 }
 
+// OSM sometimes has the same footprint twice (e.g. Forum Groningen). Two
+// identical extrusions z-fight over their whole roof, so keep one - the
+// landmark-tagged copy if there is one.
+function dedupeBuildings(list) {
+  const byKey = new Map();
+  const out = [];
+  for (const b of list) {
+    const [minx, miny, maxx, maxy] = polygonBounds(b.pts);
+    const key = `${Math.round(minx * 4)},${Math.round(miny * 4)},${Math.round(maxx * 4)},${Math.round(maxy * 4)},${b.pts.length}`;
+    const i = byKey.get(key);
+    if (i === undefined) { byKey.set(key, out.length); out.push(b); continue; }
+    const prev = out[i];
+    if (!prev.landmark && b.landmark) out[i] = b;
+    else if (!prev.name && b.name) prev.name = b.name;
+    out[i].h = Math.max(prev.h, b.h);
+  }
+  return out;
+}
+
+// A footprint sitting inside another of the same height (OSM building parts)
+// would share its roof plane and z-fight; lift the inner one 0.4 m so it
+// reads as a deliberate roof step. Renderers add b.lift to the wall depth.
+function liftNestedRoofs(list, grid) {
+  for (const b of list) {
+    const P = b.pts;
+    let a = 0, cx = 0, cy = 0;
+    for (let i = 0, n = P.length; i < n; i++) {
+      const [x0, y0] = P[i], [x1, y1] = P[(i + 1) % n];
+      const c = x0 * y1 - x1 * y0;
+      a += c; cx += (x0 + x1) * c; cy += (y0 + y1) * c;
+    }
+    if (Math.abs(a) < 1e-6) continue;
+    cx /= 3 * a; cy /= 3 * a;
+    for (const o of grid.query(cx, cy, cx, cy)) {
+      if (o === b || o.lift || Math.abs(o.h - b.h) > 0.05) continue;
+      const [minx, miny, maxx, maxy] = o.bounds;
+      if (cx <= minx || cx >= maxx || cy <= miny || cy >= maxy) continue;
+      if (pointInPolygon(cx, cy, o.pts)) { b.lift = 0.4; break; }
+    }
+  }
+}
+
+function buildingsOverRails(buildings, rails) {
+  const out = new Set();
+  if (!rails.length) return out;
+  const samples = [];
+  for (const r of rails) {
+    const P = r.pts || r;
+    for (let i = 0; i < P.length - 1; i++) {
+      const [ax, ay] = P[i], [bx, by] = P[i + 1];
+      const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 4));
+      for (let k = 0; k < n; k++) samples.push([ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n]);
+    }
+  }
+  const G = 40, cells = new Map();
+  for (const p of samples) {
+    const k = Math.floor(p[0] / G) + ',' + Math.floor(p[1] / G);
+    if (!cells.has(k)) cells.set(k, []);
+    cells.get(k).push(p);
+  }
+  for (const b of buildings) {
+    const [minx, miny, maxx, maxy] = polygonBounds(b.pts);
+    search: for (let cx = Math.floor(minx / G); cx <= Math.floor(maxx / G); cx++) {
+      for (let cy = Math.floor(miny / G); cy <= Math.floor(maxy / G); cy++) {
+        for (const [x, y] of cells.get(cx + ',' + cy) || []) {
+          if (x <= minx || x >= maxx || y <= miny || y >= maxy) continue;
+          if (pointInPolygon(x, y, b.pts)) { out.add(b); break search; }
+        }
+      }
+    }
+  }
+  return out;
+}
+
 export class GameMap {
   constructor(data) {
     this.meta = data.meta;
     this.roads = data.roads;
-    this.buildings = data.buildings;
+    // open canopies (building=roof) are not solid: rendered by canopies3d.js,
+    // kept out of the building grid so nothing collides with or spawns in them
+    // Footprints a railway runs through are platform roofs / station halls
+    // mapped as buildings; they become canopies too so trains pass under.
+    const all = dedupeBuildings(data.buildings);
+    const overRails = buildingsOverRails(all, data.rails || []);
+    const isCanopy = (b) => b.type === 'roof' || overRails.has(b);
+    this.canopies = all.filter(isCanopy);
+    this.buildings = all.filter((b) => !isCanopy(b));
     this.water = data.water;
     this.green = data.green;
     this.trees = data.trees || [];
+    this.rails = data.rails || [];
+    this.stations = data.stations || [];
+    this.levelCrossings = data.levelCrossings || [];
+    this.railRoutes = data.railRoutes || [];
 
     this.buildingGrid = new SpatialGrid(CELL);
     for (const b of this.buildings) {
       b.bounds = polygonBounds(b.pts);
       this.buildingGrid.insert(b, b.bounds);
     }
+    liftNestedRoofs(this.buildings, this.buildingGrid);
 
     this.roadGrid = new SpatialGrid(CELL);
     for (const r of this.roads) {
@@ -171,9 +258,29 @@ export class GameMap {
   }
 }
 
-export async function loadMap(url = 'map.json') {
+// onProgress(0..1) reports download progress when the size is known.
+export async function loadMap(url = 'map.json', onProgress = null) {
   const res = await fetch(url);
   if (!res.ok) throw new Error('failed to load map data: ' + res.status);
-  const data = await res.json();
+  const total = +res.headers.get('content-length') || 0;
+  let data;
+  if (onProgress && total && res.body && res.body.getReader) {
+    const reader = res.body.getReader();
+    const chunks = [];
+    let got = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      got += value.length;
+      onProgress(Math.min(1, got / total));
+    }
+    const buf = new Uint8Array(got);
+    let o = 0;
+    for (const c of chunks) { buf.set(c, o); o += c.length; }
+    data = JSON.parse(new TextDecoder().decode(buf));
+  } else {
+    data = await res.json();
+  }
   return new GameMap(data);
 }

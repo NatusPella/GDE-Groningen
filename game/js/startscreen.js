@@ -53,11 +53,18 @@ export function setLoadProgress(p) {
   progress = Math.max(progress, Math.min(1, p));
 }
 
-export function finishLoading() {
+// Lets the browser paint the bar between heavy synchronous boot steps.
+export function yieldToPaint() {
+  return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+}
+
+// Fills the bar to 100%, holds it briefly so it is seen full, then fades.
+export async function finishLoading() {
   progress = 1;
   shown = 1;
-  paint();
   clearInterval(fakeTimer);
+  paint();
+  await new Promise((r) => setTimeout(r, 380));
   clearInterval(tipTimer);
   const l = el('loading');
   if (!l) return;
@@ -82,6 +89,34 @@ const FADE_S = 0.45;
 const BLACK_HOLD_S = 0.3;
 const LEVEL_H = 3.1;
 const SHOT_CLOCKS = [9.5, 12.5, 15, 18.6, 19.3, 20.4, 22.5];
+const SHOT_WEATHER = [
+  { weight: 30 },
+  { weight: 18, overcast: 0.75 },
+  { weight: 14, mist: 0.7, overcast: 0.3 },
+  { weight: 13, rain: 0.35 },
+  { weight: 15, rain: 0.6 },
+  { weight: 7, rain: 0.85 },
+  { weight: 3, rain: 1, kind: 'storm' },
+];
+
+function pickShotWeather(base) {
+  let r = Math.random() * SHOT_WEATHER.reduce((sum, k) => sum + k.weight, 0);
+  let k = SHOT_WEATHER[0];
+  for (const c of SHOT_WEATHER) { r -= c.weight; if (r <= 0) { k = c; break; } }
+  const rain = k.rain || 0;
+  return {
+    ...base,
+    active: rain > 0,
+    kind: k.kind || (rain > 0.7 ? 'onweer' : rain > 0 ? 'regenbui' : undefined),
+    peak: rain,
+    intensity: rain,
+    overcast: k.overcast || 0,
+    mist: k.mist || 0,
+    windAngle: Math.random() * Math.PI * 2,
+    elapsed: 0,
+    duration: Infinity,
+  };
+}
 const EXTRA_SPOTS = [
   { name: 'Hoge der A', x: -471, y: 76, kind: 'canal' },
   { name: 'Noorderhaven', x: -349, y: -78, kind: 'canal' },
@@ -211,6 +246,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const p = world.player;
     const home = { x: p.x, y: p.y };
     const homeClock = world.clock;
+    const homeWeather = world.weather;
     const move = relocate || ((x, y) => { p.x = x; p.y = y; });
     const spots = [...(map.meta.landmarks || []), ...EXTRA_SPOTS];
     let bag = [];
@@ -240,6 +276,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       const spot = nextSpot();
       move(spot.x, spot.y);
       world.clock = SHOT_CLOCKS[Math.floor(Math.random() * SHOT_CLOCKS.length)];
+      if (homeWeather) world.weather = pickShotWeather(homeWeather);
       shot = makeShot(map, spot);
       shotT = 0;
       shotDur = SHOT_MIN_S + Math.random() * (SHOT_MAX_S - SHOT_MIN_S);
@@ -261,6 +298,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const restoreWorld = () => {
       world.menuCam = false;
       world.clock = homeClock;
+      world.weather = homeWeather;
       if (Math.hypot(p.x - home.x, p.y - home.y) > 1) move(home.x, home.y);
     };
     const finish = (mode) => {
@@ -286,6 +324,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       } else if (it.act === 'pigeon') {
         world.menuCam = false;
         world.clock = homeClock;
+        world.weather = homeWeather;
         finish('pigeon');
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });

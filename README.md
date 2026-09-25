@@ -18,14 +18,15 @@ disables caching, so edited modules are always reloaded.
 
 | Key | On foot | In a vehicle |
 |---|---|---|
-| W/S or ↑/↓ | walk forward/back (hold Shift to run) | throttle / reverse |
-| A/D or ←/→ | turn | steer |
+| W/S or ↑/↓ | walk away from / towards the camera (hold Shift to run) | throttle / reverse |
+| A/D or ←/→ | strafe left/right relative to the camera | steer |
 | Space | jump | brake |
 | Ctrl | crouch | – |
 | E or F | enter nearest vehicle, or kiss your companion when next to them | exit |
-| Left mouse | attack (fists or the equipped gun, aimed where you face) | – |
+| Left mouse | attack (fists or the equipped gun); you turn to where the camera looks | – |
+| Right mouse | aim: face the camera direction while moving | – |
 | 1–4 | fists / pistol / uzi / shotgun | – |
-| Mouse Y | camera pitch | camera pitch |
+| Mouse | orbit the camera around your character | orbit around the car; eases back behind it after ~1.7 s |
 | C | switch between Tammo and Anita | swap seats |
 | M | city map (click a wijk to travel there) | |
 | U | sound on/off | |

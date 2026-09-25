@@ -511,6 +511,20 @@ function vehicleFx(v, world, dt) {
   }
 }
 
+// Burnt-out wrecks keep smoking: a thick black column at first that thins
+// to a lazy grey wisp, but never stops entirely.
+function wreckSmoke(v, world, dt) {
+  if (v.sinking || v.isBoat) return;
+  const age = v.wreckedAt === undefined ? 60 : world.time - v.wreckedAt;
+  const k = Math.max(0, 1 - age / 60);
+  const cnt = spawnCount(v.isBike || v.isScooter ? 1.5 : 3 + k * 16, dt);
+  const shade = 0.12 + (1 - k) * 0.3;
+  for (let j = 0; j < cnt; j++) {
+    spawnSmoke(v.x + rand(-0.5, 0.5), 0.9, v.y + rand(-0.5, 0.5), rand(-0.25, 0.25), rand(1.0, 1.6) + k, rand(-0.25, 0.25),
+      rand(2.2, 3.2) + k * 1.5, 0.4, rand(2.6, 3.6) + k * 2, shade, shade, shade * 1.02, 0.22 + k * 0.35, 1.2, 0.5);
+  }
+}
+
 // --- contacts: sparks, debris, dents -----------------------------------------------------------
 
 function nearPlayer(world, x, y, r) {
@@ -620,8 +634,9 @@ export function updateFx3D(dt, world, scene) {
     const vs = world.vehicles;
     for (let i = 0; i < vs.length; i++) {
       const v = vs[i];
-      if (v.wrecked || !nearPlayer(world, v.x, v.y, FX_RANGE)) continue;
-      vehicleFx(v, world, dt);
+      if (!nearPlayer(world, v.x, v.y, FX_RANGE)) continue;
+      if (v.wrecked) wreckSmoke(v, world, dt);
+      else vehicleFx(v, world, dt);
     }
   }
   updateSkidFade(dt);

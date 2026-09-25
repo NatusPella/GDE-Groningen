@@ -3,6 +3,7 @@ import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE 
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater } from './util.js';
+import { playStoryVoice, stopStoryVoice, setStoryScene } from './audio.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Anita's relationship
@@ -10,6 +11,13 @@ import { isInWater } from './util.js';
 
 let sceneMod = null;
 import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
+
+// Recorded dialogue, keyed "<speaker>|<text>" so an edited line simply goes
+// silent instead of playing the wrong recording.
+const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
+let voices = {};
+fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
+const voiceFor = (speaker, text) => voices[speaker + '|' + text] || null;
 
 const SKIN = HABBO_PALETTE;
 const NPC = {
@@ -29,46 +37,50 @@ const STORY = [
   {
     npc: 'berend', outroPose: 'hips', ask: 1,
     intro: [
-      ['N', 'Zo. Jullie zijn die twee waar iedereen het over heeft? Ik had er meer van verwacht.'],
-      ['N', 'Mien bakkie staat hier. Naar het Boterdiep ermee, en geen kras.'],
+      ['N', 'Zo. Jullie zijn dat stel waar heel Grunn over kletst? Ik had er meer van verwacht.'],
+      ['N', 'Mien bakkie staat hier. Naar het Boterdiep ermee, en geen kras. Ik tel ze.'],
       ['A', 'Ik rij.'],
       ['T', 'Jij rijdt als een fietser met een deadline.'],
-      ['A', 'En jij als een fietser zonder fiets.'],
-      ['N', 'Vóór mijn koffie koud is. Hup.'],
+      ['A', 'En jij als een fietser zonder fiets. Sleutels, Berend.'],
+      ['N', 'Vóór mijn koffie koud is. En hij daar blijft van de radio af.'],
+      ['T', 'Ik blijf overal van af.'],
+      ['A', 'Dat is nou precies je probleem, Tammo.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Hij staat er nog. Ik ben verbaasd.'],
-      ['A', 'Zeg maar gewoon dank je, Berend.'],
-      ['N', '…Dank je. Niet tegen de buren zeggen.'],
+      ['N', 'Hij staat er nog. Geen kras. Ik weet even niet wat ik moet zeggen.'],
+      ['A', 'Probeer eens: dank je, Berend.'],
+      ['N', '…Dank je. Niet tegen de buren zeggen. Ik heb een reputatie sinds 1672.'],
       ['T', 'Wij zeggen nooit wat. Tegen elkaar al helemaal niet.'],
     ],
-    fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Welke Berend?']],
+    fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Welke Berend? Welk bakkie?']],
   },
   {
     npc: 'jelmer', outroPose: 'cheer', ask: 0,
     intro: [
-      ['N', 'Moi moi, ik ben live! De chat zegt dat de Grote Markt de saaiste plek van Grunn is.'],
-      ['N', 'Jullie gaan daar iets aan doen, toch? Content, jongens. Content!'],
-      ['T', 'Wij zijn geen content.'],
+      ['N', 'Moi moi chat! Sikkom zegt dat de Grote Markt dood is. Tijd om dat recht te zetten!'],
+      ['N', 'Jullie doen mee, toch? Content, jongens. Content!'],
+      ['T', 'Ik ben geen content. Ik ben Tammo.'],
       ['A', 'Spreek voor jezelf. Ik ben heel veel content.'],
-      ['T', 'Na dat bakkie van Berend dacht ik: rustig aan beginnen.'],
-      ['A', 'Dit ís rustig aan, Tammo.'],
+      ['T', 'Na Berends bakkie wilde ik eigenlijk een eierbal op de bank.'],
+      ['A', 'Die eierbal moet je eerst verdienen. Hup.'],
+      ['N', 'Chat, zeg allemaal moi tegen Tammo!'],
+      ['T', 'Nee.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Tienduizend kijkers! De chat gaat helemaal los!'],
+      ['N', 'Tienduizend kijkers! De Martinitoren is trending!'],
       ['T', 'Zeg tegen de chat dat ik niet op de foto wil.'],
-      ['A', 'Je stond op elke foto. Met die pet.'],
+      ['A', 'Te laat. Je pet heeft al meer volgers dan jij.'],
       ['T', 'De pet blijft.'],
     ],
-    fail: [['A', 'Saai. Zelfs ik val in slaap.'], ['T', 'Dat is het Grote Markt-gevoel.']],
+    fail: [['A', 'Saai. Zelfs de duiven gaan weg.'], ['T', 'Die zijn gewoon naar de Vismarkt.']],
   },
   {
     npc: 'sjoerd', outroPose: 'cheer', ask: 1,
     intro: [
-      ['N', 'KEI-week, man! De eerstejaars zeggen dat niemand hun rondje kan verslaan.'],
-      ['N', 'Vier checkpoints, rond het Academiegebouw. Winnaar krijgt eeuwige roem. En een bierviltje.'],
+      ['N', 'KEI-week, man! De eerstejaars zeggen dat niemand hun rondje door de stad kan verslaan.'],
+      ['N', 'Rondje vanaf het Academiegebouw. Winnaar krijgt eeuwige roem. En een bierviltje.'],
       ['A', 'Tammo heeft hier nog gestudeerd. Twee weken.'],
       ['T', 'Drie. De derde was ik ziek.'],
       ['A', 'Van het studeren?'],
@@ -76,102 +88,104 @@ const STORY = [
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Record! Dit komt op het bierviltje!'],
+      ['N', 'Record! Jullie komen op het bierviltje! Achterkant, maar toch.'],
       ['A', 'Niet slecht voor drie weken studie.'],
-      ['T', 'Ik heb veel geleerd.'],
+      ['T', 'Ik heb veel geleerd, toen.'],
       ['A', 'Zoals?'],
       ['T', 'Dat ik bij jou in de buurt moet blijven.'],
     ],
-    fail: [['T', 'Eerstejaars. Die hebben nog energie.'], ['A', 'Wij hadden dat vorige week ook.']],
+    fail: [['T', 'Eerstejaars. Die hebben nog energie.'], ['A', 'En ouders die de huur betalen.']],
   },
   {
     npc: 'femke', outroPose: 'cheer', ask: 1,
     intro: [
-      ['N', 'Gelukkig, jullie zijn er! Alle spullen voor de voorstelling staan nog hier in de auto.'],
-      ['N', 'Zo begint het in het Noorderplantsoen. Zonder decor is het gewoon mensen in een park.'],
+      ['N', 'Gelukkig, jullie zijn er! Het hele decor ligt nog hier in de auto.'],
+      ['N', 'Zo begint het in het Noorderplantsoen. Zonder decor is het gewoon picknicken.'],
       ['T', 'Wij hebben geen rijbewijs voor theater.'],
       ['A', 'Hij bedoelt: komt goed. Hij wordt altijd een beetje nerveus van kunst.'],
       ['T', 'Ik ben niet nerveus. Ik ben… aandachtig.'],
-      ['N', 'Rijden! Nu!'],
+      ['N', 'Rijden! Het publiek zit al op z\'n meegebrachte kussentje!'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Het decor staat! Komen jullie vanavond kijken?'],
+      ['N', 'Het decor staat! Komen jullie vanavond kijken? Het is een stuk over wind.'],
       ['A', 'Tammo houdt niet van theater.'],
       ['T', 'Wel als jij naast me zit.'],
       ['A', '…Zei je dat nou hardop?'],
-      ['T', 'Nee.'],
+      ['T', 'Nee. Dat was de wind.'],
     ],
-    fail: [['A', 'Dan wordt het moderne dans.'], ['T', 'Minimalistisch. Dat vinden ze hier mooi.']],
+    fail: [['A', 'Dan wordt het moderne dans.'], ['T', 'Zonder decor. Daar krijg je hier subsidie voor.']],
   },
   {
     npc: 'harm', outroPose: 'cheer', ask: 1,
     intro: [
-      ['N', 'Twintig jaar heb ik aan die ringweg gewerkt. Twintig jaar!'],
+      ['N', 'Twintig jaar heb ik aan die ringweg gewerkt. Mijn kleinzoon denkt dat ik een pion ben.'],
       ['N', 'Eén rondje om de stad, vol gas. Als de weg het houdt, mag ik eindelijk met pensioen.'],
       ['A', 'Een rondje? Is dat alles?'],
       ['T', 'Bij het Noorderplantsoen trok jij me nog net voor die bus weg.'],
-      ['A', 'Anders was je nu een verkeersbord. Gordel om.'],
-      ['T', 'Ik had hem heus wel gezien.'],
+      ['A', 'Anders was je nu een bushaltebordje. Gordel om.'],
+      ['T', 'Ik had hem heus wel gezien. Ik liet hem gewoon voorgaan.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Hij ligt er nog! Ik ga met pensioen!'],
+      ['N', 'Hij ligt er nog! Ik ga met pensioen! Eindelijk mag ik er zelf overheen!'],
       ['T', 'Die laatste bocht was spannend.'],
       ['A', 'Je pakte mijn hand.'],
       ['T', 'Voor de grip.'],
       ['A', 'Natuurlijk, Tammo. Voor de grip.'],
     ],
-    fail: [['T', 'De weg is klaar. Wij nog niet.'], ['A', 'Nog een rondje. Ik let op.']],
+    fail: [['T', 'De weg is klaar. Wij nog niet.'], ['A', 'Nog een rondje. Ik let op de pionnen.']],
   },
   {
     npc: 'geert', outroPose: 'hips', ask: 0,
     intro: [
-      ['N', 'Vier kroegen, één avond. Wie het haalt, komt op de muur van de Poelestraat.'],
+      ['N', 'Vier kroegen, één avond, alles te voet. Wie het haalt, komt bij mij aan de muur.'],
       ['N', 'En Anita: mijn nieuwe barman wil heel graag je nummer.'],
       ['T', 'Die barman heeft het druk.'],
       ['A', 'O ja? Sinds wanneer bepaal jij dat?'],
       ['T', 'Sinds nu. En we lopen, hè. Niemand rijdt vanavond.'],
-      ['A', 'Moet je hem zien. Jaloers én verantwoordelijk.'],
+      ['A', 'Jaloers én verantwoordelijk. Wat heb je met Tammo gedaan?'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Alle vier! Morgen hangen jullie aan de muur.'],
+      ['N', 'Alle vier! Morgen hangen jullie aan de muur. Naast de wc, maar toch.'],
       ['A', 'Die barman was best leuk.'],
       ['T', 'Hij had een snor.'],
       ['A', 'Ik hou niet van snorren. Ik hou van petten.'],
-      ['T', '…Goed om te weten.'],
+      ['T', '…Goed om te weten. Eierbal?'],
     ],
     fail: [['A', 'Drie kroegen is ook een tocht.'], ['T', 'Een tochtje. Morgen de rest.']],
   },
   {
     npc: 'trijntje', outroPose: 'hips', ask: 1,
     intro: [
-      ['N', 'Die fatbikes! Ze scheuren hier over het fietspad alsof heel Grunn van hen is.'],
-      ['N', 'Loop jij daar eens heelhuids overheen, dan laat ik de gemeente een filmpje zien.'],
+      ['N', 'Die fatbikes! Ze scheuren over het fietspad alsof heel Grunn van hen is.'],
+      ['N', 'Loop jij daar heelhuids overheen, dan laat ik de gemeente een filmpje zien.'],
       ['A', 'Ik loop wel.'],
       ['T', 'Nee, ik loop. Jij hebt al eens een bus voor me tegengehouden.'],
       ['A', 'Dat was een bus, Tammo. Dit zijn pubers op dikke banden.'],
       ['T', 'Juist daarom.'],
+      ['N', 'Ach, wat een lieverd. Hou dij goud, jong.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Heelhuids! Dat filmpje gaat naar de gemeenteraad.'],
+      ['N', 'Heelhuids! Dat filmpje gaat naar de gemeenteraad. En naar mijn bridgeclub.'],
       ['A', 'Je had kunnen vallen, sukkel.'],
       ['T', 'Maar ik viel niet.'],
       ['A', 'Nooit meer zonder mij.'],
       ['T', 'Afgesproken. Voortaan vallen we samen.'],
     ],
-    fail: [['T', 'Au. Die banden zijn echt dik.'], ['A', 'Kom, ik help je overeind. Weer.']],
+    fail: [['T', 'Au. Ik heb nu profiel op mijn rug.'], ['A', 'Kom, ik help je overeind. Weer.']],
   },
   {
     npc: 'klaas', ask: 1,
     intro: [
-      ['N', 'Die rondvaartboot daar is… tijdelijk van niemand. Jullie varen, ik kijk de andere kant op.'],
+      ['N', 'Die rondvaartboot is… tijdelijk van niemand. Jullie varen, ik kijk de andere kant op.'],
       ['N', 'Eén rondje over de Diepenring. Doe alsof je gids bent, dan vraagt niemand iets.'],
       ['A', 'Tammo als gids. Dit wil ik zien.'],
       ['T', 'Links ziet u Grunn. Rechts ziet u ook Grunn.'],
-      ['A', 'Professioneel. Ik ben onder de indruk.'],
+      ['A', 'En onder ons?'],
+      ['T', 'Vierduizend fietsen. Eentje is van mij.'],
     ],
     outroNpc: false,
     kiss: true,
@@ -180,9 +194,9 @@ const STORY = [
       ['A', 'Die krijg je nog steeds niet.'],
       ['T', 'Maar de rest wel?'],
       ['A', 'De rest wel. Wij tweeën tegen Grunn.'],
-      ['T', 'Wij tweeën tegen Grunn.'],
+      ['T', 'Wij tweeën tegen Grunn. En daarna een eierbal.'],
     ],
-    fail: [['A', 'Gids zijn is moeilijker dan het lijkt.'], ['T', 'Links water. Rechts ook.']],
+    fail: [['A', 'Gids zijn is moeilijker dan het lijkt.'], ['T', 'Links water. Rechts ook. Onder ons: fietsen.']],
   },
 ];
 
@@ -190,12 +204,12 @@ const STORY = [
 // to it (via the phone), so no callback refers to something that hasn't happened.
 const DUO_BY_STAGE = [
   { intro: [['A', 'Ik rij. Geen discussie.'], ['T', 'Er was ook geen discussie. Er was alleen jij.']], outro: [['T', 'Dat ging… verrassend goed.'], ['A', 'Verrassend voor jou.']] },
-  { intro: [['T', 'Ik doe het wel, maar ik vind het niks.'], ['A', 'Dat zeg je elke keer.']], outro: [['A', 'Niet slecht, pet.'], ['T', 'De pet bedankt je.']] },
-  { intro: [['A', 'Bijhouden, hè.'], ['T', 'Ik hou je al de hele week bij.']], outro: [['T', 'We worden hier best goed in.'], ['A', 'Ik werd er al goed in. Jij haakte aan.']] },
-  { intro: [['T', 'Laat mij maar praten.'], ['A', 'Dan zijn we over een uur nog hier.']], outro: [['A', 'Je was er echt, vandaag.'], ['T', 'Ik ben er altijd. Meestal zwijgend.']] },
-  { intro: [['A', 'Voorzichtig doen, hè.'], ['T', 'Zegt degene met de rode jas en de haast.']], outro: [['T', 'Je had me door, daar.'], ['A', 'Ik heb je altijd door.']] },
-  { intro: [['T', 'Blijf een beetje bij mij in de buurt.'], ['A', 'Moi. Klinkt bijna lief.']], outro: [['A', 'Zeg het maar gewoon, Tammo.'], ['T', 'Wat zeggen?'], ['A', 'Laat maar. Ik weet het al.']] },
-  { intro: [['A', 'Samen, of niet.'], ['T', 'Samen.']], outro: [['T', 'Zonder jou was ik allang gevallen.'], ['A', 'Weet ik. Daarom blijf ik.']] },
+  { intro: [['T', 'Ik doe het wel. Maar daarna een eierbal.'], ['A', 'Dat zeg je elke keer.']], outro: [['A', 'Niet slecht, pet.'], ['T', 'De pet bedankt je.']] },
+  { intro: [['A', 'Bijhouden, hè.'], ['T', 'Ik hou je al de hele week bij.']], outro: [['T', 'We worden hier best goed in.'], ['A', 'Ik was al goed. Jij haakte aan.']] },
+  { intro: [['T', 'Laat mij maar praten.'], ['A', 'Dan staan we hier morgen nog.']], outro: [['A', 'Je was er echt, vandaag.'], ['T', 'Ik ben er altijd. Meestal zwijgend.']] },
+  { intro: [['A', 'Voorzichtig doen, hè.'], ['T', 'Zegt degene met de rode jas en de haast.']], outro: [['T', 'Je had me door, daar.'], ['A', 'Ik heb je altijd door, droogkloot.']] },
+  { intro: [['T', 'Blijf een beetje bij mij in de buurt.'], ['A', 'Moi. Dat klinkt bijna lief.']], outro: [['A', 'Zeg het maar gewoon, Tammo.'], ['T', 'Wat zeggen?'], ['A', 'Laat maar. Ik weet het al.']] },
+  { intro: [['A', 'Samen, of niet.'], ['T', 'Samen.']], outro: [['T', 'Zonder jou lag ik allang in het Reitdiep.'], ['A', 'Weet ik. Daarom blijf ik.']] },
   { intro: [['T', 'Laatste klus?'], ['A', 'Voor vandaag.']], outro: [['A', 'Wij tweeën tegen Grunn?'], ['T', 'Wij tweeën tegen Grunn.']] },
 ];
 
@@ -329,8 +343,10 @@ function speakerName(key, npc) {
 function timeline(lines, npc, lead = 0.5) {
   let t = lead;
   const out = lines.map(([who, text]) => {
-    const d = lineDur(text);
-    const l = { who, speaker: speakerName(who, npc), text, at: t, dur: d };
+    const speaker = speakerName(who, npc);
+    const voice = voiceFor(speaker, text);
+    const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : lineDur(text);
+    const l = { who, speaker, text, at: t, dur: d, voice };
     t += d + 0.1;
     return l;
   });
@@ -468,12 +484,18 @@ function play(w, id, r, tl, { kicker, title, cardFor, closing, target, poses = (
       const dt = Math.max(0, Math.min(0.1, t - r.lastT));
       r.lastT = t;
       const cur = lines.find((l) => t >= l.at && t < l.at + l.dur);
+      if (cur && cur !== r.voiced) {
+        r.voiced = cur;
+        if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src);
+        else stopStoryVoice();
+      }
       animate(r, t, dt, cur ? cur.who : null, poses(t, cur));
       const seg = plan.find((p) => t < p.to) || plan[plan.length - 1];
       return seg.fn(clamp01((t - seg.from) / Math.max(0.1, seg.to - seg.from)));
     },
-    onStart: () => { if (banner) showBanner(banner); },
+    onStart: () => { setStoryScene(true); if (banner) showBanner(banner); },
     onEnd: () => {
+      setStoryScene(false);
       cleanupRun(r);
       if (bannerAfter) showBanner(bannerAfter);
     },

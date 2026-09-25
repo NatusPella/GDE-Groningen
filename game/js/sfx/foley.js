@@ -486,7 +486,8 @@ function vehicles(dt, world) {
   } else blinker.on = false;
 
   if (!scooterVoice) scooterVoice = buildLoopVoice('sawtooth', 300, 'bandpass', 900, 3);
-  const sc = paused ? null : nearestOf(world, (v) => v.isScooter && !v.wrecked && Math.abs(v.speed) > 0.3, 45);
+  const synthEngines = K.engineSynth && K.engineSynth();
+  const sc = paused || synthEngines ? null : nearestOf(world, (v) => v.isScooter && !v.wrecked && Math.abs(v.speed) > 0.3, 45);
   if (sc) {
     const s = Math.abs(sc.speed);
     scooterVoice.osc.frequency.setTargetAtTime(260 + s * 75 + Math.sin(t * 9) * 8, t, 0.08);
@@ -508,7 +509,7 @@ function vehicles(dt, world) {
     lfo.start();
     putterVoice.lfo = lfo;
   }
-  const boat = paused ? null : nearestOf(world, (v) => v.isBoat && !v.wrecked, 60);
+  const boat = paused || synthEngines ? null : nearestOf(world, (v) => v.isBoat && !v.wrecked, 60);
   if (boat) {
     const s = Math.abs(boat.speed);
     putterVoice.lfo.frequency.setTargetAtTime(7 + s * 2.2, t, 0.2);

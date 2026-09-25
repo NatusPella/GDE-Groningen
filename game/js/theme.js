@@ -1,8 +1,9 @@
 import { getSettings, onSettingsChange } from './settings.js';
 
 // The GTE VI theme song: starts on the first interaction in the title screen
-// (browsers block audio before a user gesture), keeps playing into the game
-// and then hands over to G-Music, which waits for isThemePlaying() to end.
+// (browsers block audio before a user gesture), loops while the title screen
+// is up, plays its last round into the game and then hands over to G-Music,
+// which waits for isThemePlaying() to end.
 
 const SRC = './audio/theme/miles_past_the_city_square.mp3';
 const BASE_VOLUME = 0.55 * 0.5; // same level as G-Music: master 0.55 x music 0.5
@@ -54,6 +55,7 @@ export function initTheme() {
   if (SILENT_MODE || el) return;
   el = new Audio(SRC);
   el.preload = 'auto';
+  el.loop = true;
   el.addEventListener('ended', finish);
   el.addEventListener('error', finish);
   const onGesture = () => {
@@ -72,5 +74,10 @@ export function initTheme() {
   });
   onSettingsChange(() => { if (el) el.volume = targetVolume(); });
   // mute (U) lives in audio.js; poll its persisted flag instead of coupling
-  fadeTimer = setInterval(() => { if (el && state === 'playing') el.volume = targetVolume(); }, 250);
+  fadeTimer = setInterval(() => {
+    if (!el) return;
+    // loop only on the title screen; once the game runs the song ends normally
+    if (el.loop && document.body.classList.contains('game-started')) el.loop = false;
+    if (state === 'playing') el.volume = targetVolume();
+  }, 250);
 }

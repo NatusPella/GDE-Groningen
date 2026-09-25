@@ -14,19 +14,19 @@ const CELL = 10;
 const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
 const SIDEWALK_EXTRA = 1.8;
 
-// prio picks the polygonOffset step: overlapping polygons (a pitch inside a
-// park) resolve in depth-buffer space; all steps stay below the sidewalk layer.
+// prio orders overlapping kinds (a pitch inside a park); layer gives every
+// kind its own polygonOffset step so no two kinds ever share a depth.
 const KINDS = {
-  park: { prio: 1, base: 0x4f7234, dry: 0.45, moss: 0.6, worn: 0.3, litter: 0, mow: 0.8, wild: 0.08, tuft: 1.3, flower: 0.05, shrub: 0, hedge: 0.3 },
-  meadow: { prio: 2, base: 0x557434, dry: 0.9, moss: 0.3, worn: 0.05, litter: 0, mow: 0, wild: 1, tuft: 3.6, flower: 0.5, shrub: 0.002, hedge: 0 },
-  forest: { prio: 3, base: 0x405e2c, dry: 0.1, moss: 1, worn: 0.15, litter: 1, mow: 0, wild: 0.15, tuft: 0.9, flower: 0, shrub: 0.05, hedge: 0 },
-  grass: { prio: 4, base: 0x4f7234, dry: 0.55, moss: 0.5, worn: 0.2, litter: 0, mow: 0.6, wild: 0.2, tuft: 1.8, flower: 0.08, shrub: 0, hedge: 0.08 },
-  garden: { prio: 5, base: 0x4f7234, dry: 0.35, moss: 0.5, worn: 0.15, litter: 0, mow: 0.7, wild: 0.15, tuft: 1.4, flower: 0.12, shrub: 0.01, hedge: 0.5 },
-  cemetery: { prio: 5, base: 0x4d7133, dry: 0.2, moss: 0.6, worn: 0.05, litter: 0.15, mow: 1, wild: 0, tuft: 0.7, flower: 0.02, shrub: 0.006, hedge: 0.6 },
-  playground: { prio: 6, base: 0x527334, dry: 0.8, moss: 0.3, worn: 0.85, litter: 0, mow: 0.3, wild: 0.05, tuft: 0.7, flower: 0.02, shrub: 0, hedge: 0.2 },
-  dog_park: { prio: 6, base: 0x517234, dry: 0.8, moss: 0.3, worn: 0.75, litter: 0, mow: 0.2, wild: 0.1, tuft: 1, flower: 0.03, shrub: 0, hedge: 0.2 },
-  outdoor_seating: { prio: 6, base: 0x4f7234, dry: 0.6, moss: 0.3, worn: 0.6, litter: 0, mow: 0.3, wild: 0, tuft: 0, flower: 0, shrub: 0, hedge: 0 },
-  pitch: { prio: 7, base: 0x4b7432, dry: 0.1, moss: 0.2, worn: 0.3, litter: 0, mow: 1, wild: 0, tuft: 0.25, flower: 0, shrub: 0, hedge: 0, stripe: 5 },
+  park: { prio: 1, layer: 0, base: 0x4f7234, dry: 0.45, moss: 0.6, worn: 0.3, litter: 0, mow: 0.8, wild: 0.08, tuft: 1.3, flower: 0.05, shrub: 0, hedge: 0.3 },
+  meadow: { prio: 2, layer: 1, base: 0x557434, dry: 0.9, moss: 0.3, worn: 0.05, litter: 0, mow: 0, wild: 1, tuft: 3.6, flower: 0.5, shrub: 0.002, hedge: 0 },
+  forest: { prio: 3, layer: 2, base: 0x405e2c, dry: 0.1, moss: 1, worn: 0.15, litter: 1, mow: 0, wild: 0.15, tuft: 0.9, flower: 0, shrub: 0.05, hedge: 0 },
+  grass: { prio: 4, layer: 3, base: 0x4f7234, dry: 0.55, moss: 0.5, worn: 0.2, litter: 0, mow: 0.6, wild: 0.2, tuft: 1.8, flower: 0.08, shrub: 0, hedge: 0.08 },
+  garden: { prio: 5, layer: 4, base: 0x4f7234, dry: 0.35, moss: 0.5, worn: 0.15, litter: 0, mow: 0.7, wild: 0.15, tuft: 1.4, flower: 0.12, shrub: 0.01, hedge: 0.5 },
+  cemetery: { prio: 5, layer: 5, base: 0x4d7133, dry: 0.2, moss: 0.6, worn: 0.05, litter: 0.15, mow: 1, wild: 0, tuft: 0.7, flower: 0.02, shrub: 0.006, hedge: 0.6 },
+  playground: { prio: 6, layer: 6, base: 0x527334, dry: 0.8, moss: 0.3, worn: 0.85, litter: 0, mow: 0.3, wild: 0.05, tuft: 0.7, flower: 0.02, shrub: 0, hedge: 0.2 },
+  dog_park: { prio: 6, layer: 7, base: 0x517234, dry: 0.8, moss: 0.3, worn: 0.75, litter: 0, mow: 0.2, wild: 0.1, tuft: 1, flower: 0.03, shrub: 0, hedge: 0.2 },
+  outdoor_seating: { prio: 6, layer: 8, base: 0x4f7234, dry: 0.6, moss: 0.3, worn: 0.6, litter: 0, mow: 0.3, wild: 0, tuft: 0, flower: 0, shrub: 0, hedge: 0 },
+  pitch: { prio: 7, layer: 9, base: 0x4b7432, dry: 0.1, moss: 0.2, worn: 0.3, litter: 0, mow: 1, wild: 0, tuft: 0.25, flower: 0, shrub: 0, hedge: 0, stripe: 5 },
 };
 const kindOf = (g) => KINDS[g.kind] || KINDS.grass;
 
@@ -278,28 +278,35 @@ function withUniforms(m, surf, own) {
   return m;
 }
 
+// Depth steps: above the far-LOD green (factor -0.2 / units -0.8, which
+// overlaps near chunks in the LOD ring), below the edge strips and the
+// sidewalk layer (-2 / -8). sub = half step for a polygon that overlaps an
+// earlier one of the same kind.
+const FILL_OFFSET = { factor: 0.36, units: 1.6, factorStep: 0.1, unitsStep: 0.6 };
 const fillMats = new Map();
-function fillMaterial(kind) {
+function fillMaterial(kind, sub = 0) {
   const K = KINDS[kind] || KINDS.grass;
-  let m = fillMats.get(K);
+  const key = K.layer * 2 + sub;
+  let m = fillMats.get(key);
   if (m) return m;
+  const step = K.layer + sub * 0.5;
   m = new THREE.MeshStandardMaterial({
-    // green sits strictly below the sidewalk layer (factor -2 / units -8) and
-    // each overlapping kind gets its own step, so none of them fight
-    color: K.base, roughness: 0.94, polygonOffset: true, polygonOffsetFactor: -0.12 * K.prio, polygonOffsetUnits: -0.8 * K.prio,
+    color: K.base, roughness: 0.94, polygonOffset: true,
+    polygonOffsetFactor: -(FILL_OFFSET.factor + FILL_OFFSET.factorStep * step),
+    polygonOffsetUnits: -(FILL_OFFSET.units + FILL_OFFSET.unitsStep * step),
   });
   m.defines = qualityName === 'laag' ? {} : { GRASS_BUMP: '' };
   withUniforms(m, FILL_SURF, {
     uGP: { value: new THREE.Vector4(K.dry, K.moss, K.worn, K.litter) },
     uGP2: { value: new THREE.Vector4(K.stripe || 1.7, 1, K.flower > 0 ? 1 : 0, 0) },
   });
-  fillMats.set(K, m);
+  fillMats.set(key, m);
   return m;
 }
 
 const edgeMat = withUniforms(new THREE.MeshStandardMaterial({
   color: 0xffffff, roughness: 0.95, transparent: true, depthWrite: false,
-  polygonOffset: true, polygonOffsetFactor: -1.2, polygonOffsetUnits: -6.6,
+  polygonOffset: true, polygonOffsetFactor: -1.5, polygonOffsetUnits: -7.7,
 }), EDGE_SURF, {});
 
 // ---------------------------------------------------------------- chunk geometry
@@ -836,6 +843,7 @@ export function initGrass(sc, mp, opts) {
     c.bounds[2] = Math.max(c.bounds[2], g.bounds[2]); c.bounds[3] = Math.max(c.bounds[3], g.bounds[3]);
   }
   for (const c of chunks.values()) c.polys.sort((a, b) => kindOf(a).prio - kindOf(b).prio);
+  assignSubLayers(map);
 
   const mat = tuftMaterial(0.82, grassFade);
   const shrubMat = tuftMaterial(0.9, shrubFade);
@@ -857,13 +865,46 @@ export function initGrass(sc, mp, opts) {
   }
 }
 
+function polysOverlap(a, b) {
+  const A = a.bounds, B = b.bounds;
+  if (A[2] <= B[0] || B[2] <= A[0] || A[3] <= B[1] || B[3] <= A[1]) return false;
+  const probe = (p, q) => {
+    const r = ringOf(p.pts), n = r.length;
+    for (let i = 0; i < n; i++) {
+      const u = r[i], v = r[(i + 1) % n], w = r[(i + 2) % n];
+      const x = (u[0] + v[0] + w[0]) / 3, y = (u[1] + v[1] + w[1]) / 3;
+      if (inPoly(x, y, p) && inPoly(x, y, q)) return true;
+    }
+    return false;
+  };
+  return probe(a, b) || probe(b, a);
+}
+
+// Two polygons of one kind share a material, so an overlap between them
+// would fight; the later one moves half a depth step up.
+function assignSubLayers(map) {
+  const seen = new Set();
+  for (const g of map.green) {
+    if (!g.bounds || g.pts.length < 3) continue;
+    const b = g.bounds;
+    const used = [false, false];
+    for (const o of map.greenNear((b[0] + b[2]) / 2, (b[1] + b[3]) / 2, Math.max(b[2] - b[0], b[3] - b[1]) / 2 + 2)) {
+      if (o === g || !seen.has(o) || kindOf(o) !== kindOf(g) || !polysOverlap(g, o)) continue;
+      used[o._gSub || 0] = true;
+    }
+    g._gSub = used[0] ? 1 : 0;
+    seen.add(g);
+  }
+}
+
 function buildChunk(c) {
   const groups = new Map();
   const E = { pos: [], attr: [], idx: [] };
   for (const g of c.polys) {
     const K = kindOf(g);
-    let B = groups.get(K);
-    if (!B) groups.set(K, B = { kind: g.kind, pos: [], attr: [], idx: [] });
+    const key = K.layer * 2 + (g._gSub || 0);
+    let B = groups.get(key);
+    if (!B) groups.set(key, B = { kind: g.kind, sub: g._gSub || 0, pos: [], attr: [], idx: [] });
     fillInto(B, g, polyGeometry(g));
     edgesInto(E, g, map);
   }
@@ -872,7 +913,7 @@ function buildChunk(c) {
   for (const B of groups.values()) {
     const geo = toGeometry(B, 'aGrass', 4);
     if (!geo) continue;
-    const mesh = new THREE.Mesh(geo, fillMaterial(B.kind));
+    const mesh = new THREE.Mesh(geo, fillMaterial(B.kind, B.sub));
     mesh.receiveShadow = true;
     group.add(mesh);
   }

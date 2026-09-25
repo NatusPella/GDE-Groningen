@@ -33,8 +33,8 @@ function buildDefs(world) {
     {
       type: 'deliver',
       label: "Bommen Berend wil z'n bakkie",
-      intro: ['Bommen Berend belde. Z\'n bakkie staat hier, hij wil \'m vóór de koffie terug.', 'Rij \'m heel naar het Boterdiep. Heel, hè. Niet zoals de vorige keer.'],
-      outro: 'Berend heeft z\'n bakkie terug. Hij zei zowaar \'dank je\'.',
+      intro: ['Bommen Berend wil z\'n bakkie vóór de koffie terug. Hij staat bij het Martinikerkhof.', 'Rij \'m heel naar het Boterdiep. Berend telt krassen zoals een ander schaapjes.'],
+      outro: 'Berend zei zowaar \'dank je\'. Dat gebeurde sinds 1672 niet meer.',
       timeLimit: 85,
       reward: 250,
       start: drive(224, -27),
@@ -43,8 +43,8 @@ function buildDefs(world) {
     {
       type: 'rampage',
       label: 'Chaos op de Grote Markt',
-      intro: ['Iemand op Sikkom schreef dat de Grote Markt saai is geworden.', 'Laat maar zien dat dat niet klopt. Acht stuks, 45 seconden.'],
-      outro: 'De Grote Markt is weer eens flink wakker geschud.',
+      intro: ['Sikkom kopt: \'Grote Markt saaier dan een lege mensa\'. Dat laten we niet op ons zitten.', 'Acht stuks in 45 seconden. Voor de clicks, zegt Jelmer.'],
+      outro: 'De Grote Markt is weer wakker. D\'Olle Grieze keek ervan op.',
       timeLimit: 45,
       reward: 300,
       targetKills: 8,
@@ -53,8 +53,8 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'KEI-weekrace door Grunn',
-      intro: ['De KEI-week is begonnen en de eerstejaars denken dat ze snel zijn.', 'Laat ze je achterlichten zien. Alle checkpoints, niet treuzelen.'],
-      outro: 'De eerstejaars zijn nog steeds aan het bijkomen.',
+      intro: ['KEI-week: eerstejaars met polsbandjes denken dat ze Grunn al kennen.', 'Laat ze je achterlichten zien. Alle checkpoints, niet stoppen voor gratis tasjes.'],
+      outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
       timeLimit: 65,
       checkpointBonus: 35,
       reward: 350,
@@ -64,8 +64,8 @@ function buildDefs(world) {
     {
       type: 'deliver',
       label: 'Spoedklus voor Noorderzon',
-      intro: ['Noorderzon mist een lading spullen en de voorstelling in het Noorderplantsoen begint zo.', 'Pak die auto en rij door. Stoplichten zijn in Grunn meer een suggestie.'],
-      outro: 'Het doek kan op. Noorderzon is gered.',
+      intro: ['Noorderzon mist een auto vol decor en in het Noorderplantsoen zit het publiek al klaar.', 'Rijden. Stoplichten zijn in Grunn meer een mening dan een regel.'],
+      outro: 'Het decor staat. Het publiek dacht dat de gierende banden bij de show hoorden.',
       timeLimit: 140,
       reward: 500,
       start: drive(787, -95),
@@ -74,8 +74,8 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'Ringweg-race: eindelijk klaar?',
-      intro: ['Ze zijn eindelijk klaar met de Zuidelijke Ringweg. Zeggen ze.', 'Eén rondje om de binnenstad, vol gas. Kijken of \'t klopt.'],
-      outro: 'De ringweg is getest. Hij ligt er nog. Grotendeels.',
+      intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de binnenstad, vol gas. Staat er ergens een afzetting? Dat is traditie.'],
+      outro: 'De ringweg is getest. Hij ligt er nog. Op een paar pionnen na.',
       timeLimit: 90,
       checkpointBonus: 65,
       reward: 750,
@@ -85,8 +85,8 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'Kroegentocht: Poelestraat plat',
-      intro: ['Kroegentocht! Vier kroegen, één avond, nul excuses.', 'Te voet, hè. En niet verdwalen tussen de Poelestraat en de Peperstraat.'],
-      outro: 'Vier kroegen gehaald. Morgen wordt zwaar.',
+      intro: ['Kroegentocht! Vier kroegen, één avond, nul excuses. Grunn slaapt toch nooit.', 'Te voet, hè. Tussen de Poelestraat en de Peperstraat zijn al sterkere mensen verdwaald.'],
+      outro: 'Vier kroegen gehaald. Morgen wordt een eierbal-ontbijt.',
       timeLimit: 90,
       checkpointBonus: 20,
       reward: 320,
@@ -102,8 +102,8 @@ function buildDefs(world) {
     {
       type: 'fatbike',
       label: 'Fatbike-terreur: blijf overeind',
-      intro: ['De fatbikes op het Zuiderpark zijn los en ze stoppen voor niemand.', 'Loop over het fietspad naar het eind. Twee keer geschept mag, meer niet.'],
-      outro: 'Overeind gebleven tussen de fatbikes. Knap werk.',
+      intro: ['Op het Zuiderpark scheuren fatbikes over het fietspad. Remmen hebben ze, gebruiken niet.', 'Loop naar het eind van het pad. Twee keer geschept mag. De derde keer ben je een drempel.'],
+      outro: 'Overeind gebleven tussen de fatbikes. Oma Trijntje is trots.',
       timeLimit: 40,
       reward: 275,
       maxHits: 2,
@@ -114,8 +114,8 @@ function buildDefs(world) {
     {
       type: 'boat',
       label: 'Rondvaart met valse papieren',
-      intro: ['Er ligt een rondvaartboot \'vrijgekomen\' aan de kade. Vraag maar niet hoe.', 'Vaar het rondje over de Diepenring en doe alsof je gids bent.'],
-      outro: 'Rondvaart voltooid. Niemand vroeg naar je papieren.',
+      intro: ['Aan de Spilsluizen ligt een rondvaartboot die \'even van niemand\' is. Vraag maar niet hoe.', 'Vaar het rondje over de Diepenring en doe alsof je gids bent. Glimlachen en wijzen.'],
+      outro: 'Rondvaart voltooid. Niemand vroeg naar je papieren. Twee toeristen gaven fooi.',
       timeLimit: 60,
       checkpointBonus: 40,
       reward: 400,
@@ -465,7 +465,7 @@ function checkFatbikeHits(world) {
     nowTouching.add(v.id);
     if (!chain.fatbikeContact.has(v.id) && Math.abs(v.speed) > FATBIKE_MIN_SPEED) {
       chain.fatbikeHits++;
-      world.addMessage(`Geschept door een fatbike! (${chain.fatbikeHits}/${chain.defs[chain.index].maxHits})`, 2);
+      world.addMessage(`Au! Geschept door een fatbike (${chain.fatbikeHits}/${chain.defs[chain.index].maxHits})`, 2);
     }
   }
   chain.fatbikeContact = nowTouching;
@@ -481,13 +481,13 @@ function hint(world, text) {
 function vehicleProblem(world, def) {
   const v = chain.vehicle;
   const p = world.player;
-  if (!v || !world.vehicles.includes(v)) return def.type === 'boat' ? 'de boot is weg' : 'de auto is weg';
-  if (v.wrecked) return def.type === 'boat' ? 'de boot is naar de bodem' : 'de auto is total loss';
+  if (!v || !world.vehicles.includes(v)) return def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie';
+  if (v.wrecked) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Sikkom heeft al foto\'s';
   if (p.inVehicle === v) { chain.boarded = true; return null; }
   if (def.type === 'boat' && p.inVehicle && p.inVehicle.isBoat) return null;
   if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {
     const what = def.type === 'boat' ? 'de boot' : 'de auto';
-    return chain.boarded ? `${what} achtergelaten` : `je liet ${what} gewoon staan`;
+    return chain.boarded ? `${what} gewoon achtergelaten` : `je liet ${what} staan. Parkeren kost hier meer dan de auto`;
   }
   return null;
 }
@@ -500,7 +500,7 @@ function reachCheckpoint(world, def) {
     succeed(world, def);
     return;
   }
-  if (wp.name) world.addMessage(`Proost bij ${wp.name}! Door naar ${def.waypoints[chain.wpIndex].name}.`, 3);
+  if (wp.name) world.addMessage(`Proost in ${wp.name}! Hup, door naar ${def.waypoints[chain.wpIndex].name}.`, 3);
 }
 
 export function updateMissions(dt, world) {
@@ -526,7 +526,7 @@ export function updateMissions(dt, world) {
   trackRun(dt, world);
   chain.timeLeft -= dt;
   if (chain.timeLeft <= 0) {
-    fail(world, def, 'tijd op, sukkel');
+    fail(world, def, 'tijd op. Zelfs de bus was sneller');
     syncPub(world);
     return;
   }
@@ -540,7 +540,7 @@ export function updateMissions(dt, world) {
     }
   }
   if (def.onFoot && def.type === 'fatbike' && p.inVehicle) {
-    fail(world, def, 'je moest lopen, niet rijden');
+    fail(world, def, 'je moest lopen, niet stiekem rijden');
     syncPub(world);
     return;
   }
@@ -556,13 +556,13 @@ export function updateMissions(dt, world) {
   } else if (def.type === 'checkpoint') {
     const wp = def.waypoints[chain.wpIndex];
     if (dist(p.x, p.y, wp.x, wp.y) < CHECKPOINT_RADIUS) {
-      if (def.onFoot && p.inVehicle) hint(world, 'Eerst uitstappen: je gaat niet dronken rijden, hè.');
+      if (def.onFoot && p.inVehicle) hint(world, 'Uitstappen, jong. Het heet kroegentocht, niet kroegenrit.');
       else reachCheckpoint(world, def);
     }
   } else if (def.type === 'fatbike') {
     checkFatbikeHits(world);
     if (chain.fatbikeHits > def.maxHits) {
-      fail(world, def, 'geveld door de fatbikes, typisch Grunn');
+      fail(world, def, 'platgewalst door dikke banden, typisch Grunn');
       syncPub(world);
       return;
     }

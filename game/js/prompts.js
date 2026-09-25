@@ -196,8 +196,7 @@ function trackUsage(dt, world) {
     if (pressed('h')) used('horn');
     return;
   }
-  if (pressed('w') || pressed('s') || pressed('arrowup') || pressed('arrowdown')) used('move');
-  if (pressed('a') || pressed('d')) used('look');
+  if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('move');
   lookAccum += Math.abs(input.mouse.dx || 0);
   if (lookAccum > 500) { lookAccum = 0; used('look'); }
   if (pressed('shift') && world.player.moving) used('sprint');
@@ -467,16 +466,16 @@ function contextRows(world, primary) {
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', 'Vuren vanuit de auto'));
   } else if (p.swimming) {
-    rows.push(tut('swim', ['WASD'], 'Zwemmen', 'W vooruit, A/D draaien'));
+    rows.push(tut('swim', ['WASD'], 'Zwemmen', 'Zwem de kant op die je kijkt'));
     rows.push(tut('swimfast', ['SHIFT'], 'Snel zwemmen', 'Kost adem, dus niet te lang'));
     if (p.canClimbOut) rows.push(tut('climb', ['E'], 'Eruit klimmen', 'Klim de kade op'));
   } else {
-    rows.push(tut('move', ['WASD'], 'Lopen', 'W vooruit, S achteruit'));
-    rows.push(tut('look', ['MOUSE'], 'Rondkijken', 'Muis of A/D draait je om'));
+    rows.push(tut('move', ['WASD'], 'Lopen', 'W van de camera af, A/D opzij'));
+    rows.push(tut('look', ['MOUSE'], 'Rondkijken', 'Muis draait de camera om je heen'));
     if (p.moving) rows.push(tut('sprint', ['SHIFT'], 'Rennen', 'Houd Shift ingedrukt'));
     rows.push(tut('jump', [' '], 'Springen', 'Over hekjes en paaltjes'));
     if (armed) {
-      rows.push(tut('shoot', ['LMB'], 'Schieten', 'Richt met je kijkrichting'));
+      rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
       rows.push(tut('weapon', ['1-4'], 'Wapen', '1 vuisten, 2 pistool, 3 uzi, 4 hagelgeweer'));
     } else if (world.wanted > 0) {
       rows.push(tut('punch', ['LMB'], 'Slaan', 'Vuisten eerst, vragen later'));
