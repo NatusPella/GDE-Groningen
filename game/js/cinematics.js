@@ -366,8 +366,7 @@ function playOmmelanden(w) {
     { pos: W(p.x - ox * 10 + nx * 4, 6, p.y - oy * 10 + ny * 4), look: W(p.x + ox * 30, 2, p.y + oy * 30) },
     { pos: W(p.x - ox * 6 + nx * 18, 38, p.y - oy * 6 + ny * 18), look: W(p.x + ox * 220, 0, p.y + oy * 220) },
     { pos: W(p.x + ox * 40 - nx * 26, 52, p.y + oy * 40 - ny * 26), look: W(p.x + ox * 320 + nx * 120, 0, p.y + oy * 320 + ny * 120) },
-    { pos: W(p.x + ox * 16 - nx * 10, 14, p.y + oy * 16 - ny * 10), look: W(p.x, 1.4, p.y) },
-    ...frontSwingKeys(w),
+    { pos: W(p.x - ox * 14, 12, p.y - oy * 14), look: W(p.x + ox * 20, 1.5, p.y + oy * 20) },
     b,
   ];
   playCinematic({
@@ -411,29 +410,13 @@ function behindPose(w, back = 7, up = 3.4) {
   return { pos: W(p.x - Math.cos(a) * back, up, p.y - Math.sin(a) * back), look: W(p.x, 1.3, p.y) };
 }
 
-// End-of-cutscene swing: a low 3/4 shot of the player's face, past their
-// side, then settle behind - so a scene lands on the character, not a back.
-// withFov: only when the surrounding keys carry fov too (pathShot blends fov
-// between two keys only when both have one, otherwise it would jump)
-function frontSwingKeys(w, withFov = false) {
-  const p = w.player, a = heading(w);
-  const fx = Math.cos(a), fy = Math.sin(a), sx = -fy, sy = fx;
-  const keys = [
-    { pos: W(p.x + fx * 3.4 + sx * 1.3, 1.65, p.y + fy * 3.4 + sy * 1.3), look: W(p.x, 1.45, p.y) },
-    { pos: W(p.x + fx * 0.6 + sx * 4, 2.3, p.y + fy * 0.6 + sy * 4), look: W(p.x, 1.4, p.y) },
-  ];
-  if (withFov) { keys[0].fov = 50; keys[1].fov = 54; }
-  return keys;
-}
-
 function flyInShot(w, first) {
   const p = w.player, a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a);
   const keys = [
     first || { pos: W(p.x - fx * 20 + fy * 45, 55, p.y - fy * 20 - fx * 45), look: W(p.x, 4, p.y) },
     { pos: W(p.x - fx * 26 + fy * 14, 30, p.y - fy * 26 - fx * 14), look: W(p.x, 2, p.y) },
-    { pos: W(p.x + fx * 10 + fy * 6, 7, p.y + fy * 10 - fx * 6), look: W(p.x, 1.4, p.y) },
-    ...frontSwingKeys(w),
+    { pos: W(p.x - fx * 13, 9, p.y - fy * 13), look: W(p.x, 1.2, p.y) },
     behindPose(w),
   ];
   return pathShot(clearKeys(w, keys));
@@ -481,7 +464,7 @@ function playGameStart(w) {
     : null;
   const where = w.loadedFromSave ? 'Welkom terug in Grunn' : w.spawnLandmarkName ? `Je begint bij ${w.spawnLandmarkName}` : 'Welkom in Grunn';
   playCinematic({
-    id: 'start', priority: 3, duration: 6.5, pause: true,
+    id: 'start', priority: 3, duration: 5.5, pause: true,
     kicker: 'Grand Theft Eierbal', title: 'GTE VI',
     lines: [{ speaker: '', text: where }],
     shot: flyInShot(w, first),
@@ -564,25 +547,41 @@ function checkWijk(dt, w) {
   playWijk(w, p);
 }
 
+// A calm establishing shot of the whole wijk: start high and wide over it,
+// drift slowly around its centre at the same height, then glide down to
+// behind the player. Few keys, one smooth look target, near-constant fov -
+// no whip pans. A wijk only has a centre point, so its size is estimated
+// from the distance to the neighbouring wijk centres.
+function wijkRadius(w, wijk) {
+  const d = (w.map.meta.neighbourhoodPoints || [])
+    .filter((q) => q !== wijk && q.name !== wijk.name)
+    .map((q) => Math.hypot(q.x - wijk.x, q.y - wijk.y))
+    .sort((a, b) => a - b);
+  const near = d.length >= 3 ? (d[0] + d[1] + d[2]) / 3 : d[0] || 300;
+  return Math.min(420, Math.max(130, near * 0.55));
+}
+
 function playWijk(w, wijk) {
   const p = w.player, a = heading(w);
-  let dx = wijk.x - p.x, dy = wijk.y - p.y;
-  const dl = Math.hypot(dx, dy);
-  if (dl < 20) { dx = Math.cos(a); dy = Math.sin(a); } else { dx /= dl; dy /= dl; }
-  const reach = Math.min(70, Math.max(30, dl * 0.5));
-  const nx = -dy, ny = dx;
-  const cx = p.x + dx * reach, cy = p.y + dy * reach;
+  const R = wijkRadius(w, wijk);
+  // look at a point between the wijk centre and the player, so both are in
+  // the frame when the player is off-centre
+  const cx = wijk.x * 0.75 + p.x * 0.25, cy = wijk.y * 0.75 + p.y * 0.25;
+  // approach from behind the player's heading so the final glide ends behind them
+  const back = a + Math.PI;
+  const dist = R * 1.25, high = Math.max(70, R * 0.85);
+  const at = (ang, dd, h) => W(cx + Math.cos(ang) * dd, h, cy + Math.sin(ang) * dd);
+  const look = W(cx, 0, cy);
   const b = behindPose(w, 9, 5);
   const keys = [
-    { pos: W(p.x - dx * 14 + nx * 8, 16, p.y - dy * 14 + ny * 8), look: W(p.x + dx * 10, 2, p.y + dy * 10), fov: 55 },
-    { pos: W(p.x + nx * 38, 52, p.y + ny * 38), look: W(cx, 4, cy), fov: 52 },
-    { pos: W(cx + nx * 22, 68, cy + ny * 22), look: W(cx + dx * 60, 0, cy + dy * 60), fov: 50 },
-    { pos: W(p.x + nx * 20 - dx * 12, 34, p.y + ny * 20 - dy * 12), look: W(p.x, 1.5, p.y), fov: 54 },
-    ...frontSwingKeys(w, true),
+    { pos: at(back - 0.55, dist, high), look, fov: 50 },
+    { pos: at(back - 0.15, dist * 0.95, high * 0.98), look, fov: 50 },
+    { pos: at(back + 0.25, dist * 0.9, high * 0.95), look, fov: 50 },
+    { pos: W(p.x - Math.cos(a) * 34, 30, p.y - Math.sin(a) * 34), look: W(p.x + Math.cos(a) * 20, 1.5, p.y + Math.sin(a) * 20), fov: 54 },
     { pos: b.pos, look: b.look, fov: 58 },
   ];
   playCinematic({
-    id: 'wijk', priority: 1, duration: 6.6, pause: true, queue: true,
+    id: 'wijk', priority: 1, duration: 8, pause: true, queue: true,
     kicker: 'Nieuwe wijk', title: wijk.name, lines: [{ speaker: '', text: wijkLine(wijk.name) }],
     shot: pathShot(clearKeys(w, keys)),
   });
