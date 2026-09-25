@@ -12,7 +12,7 @@ const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
 const SOURCE_HEIGHT = 1;
 const SPEED_OF_SOUND = 343;
-const ENGINE_VOICES = 6;
+const ENGINE_VOICES = 4;
 const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
@@ -179,7 +179,7 @@ let prev = null;
 let seenMessages = null;
 let muted = loadMuted();
 let lastHurtAt = -Infinity;
-const engineState = { freq: 42, gain: 0, gear: 0, shiftUntil: 0, startAt: 0, vehicle: null, kind: 0, startDelay: -1, prevThr: 0, blipUntil: 0, limiter: 0 };
+const engineState = { freq: 42, gain: 0, gear: 0, shiftUntil: 0, startAt: 0, vehicle: null, kind: 0, startDelay: -1, prevThr: 0 };
 const sirenState = { gain: 0 };
 const musicState = { gain: GMUSIC_VOLUME };
 
@@ -348,9 +348,9 @@ function updateListener(world) {
 // NL/EU two-tone "hi-lo" wail, one pooled voice per nearby police unit.
 function buildSirenVoice() {
   const filter = ctx.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.value = 1100;
-  filter.Q.value = 0.45;
+  filter.type = 'lowpass';
+  filter.frequency.value = 1800;
+  filter.Q.value = 0.5;
 
   const osc = ctx.createOscillator();
   osc.setPeriodicWave(sirenTone());
@@ -359,7 +359,7 @@ function buildSirenVoice() {
   const gain = ctx.createGain();
   gain.gain.value = 0;
   const level = ctx.createGain();
-  level.gain.value = 0.55;
+  level.gain.value = 0.7;
   const panner = makePanner({ ref: 8, rolloff: 0.9, model: 'equalpower' });
   osc.connect(filter).connect(level).connect(gain).connect(panner).connect(sirenBus);
   osc.start();
@@ -433,7 +433,16 @@ async function loadEngineWorklet() {
   roadGain.connect(worldBus);
   rumbleVoice.gain.gain.cancelScheduledValues(ctx.currentTime);
   rumbleVoice.gain.gain.value = 0;
-  engineVoices.forEach((voice, i) => { voice.osc.stop(); voice.gain.disconnect(); traffic.connect(voice.panner, i); });
+  engineVoices.forEach((voice, i) => {
+    voice.osc.stop();
+    voice.gain.disconnect();
+    voice.distLp = ctx.createBiquadFilter();
+    voice.distLp.type = 'lowpass';
+    voice.distLp.Q.value = 0.5;
+    voice.distLp.frequency.value = 2000;
+    traffic.connect(voice.distLp, i);
+    voice.distLp.connect(voice.panner);
+  });
   engineState.vehicle = null;
   synth = { player, traffic };
 }
@@ -454,36 +463,32 @@ function hornWave() {
 function sirenTone() {
   if (!sirenWave) {
     const n = 12, re = new Float32Array(n), im = new Float32Array(n);
-    for (let k = 1; k < n; k++) im[k] = k % 2 ? Math.pow(k, -1.1) : 0.18 / k;
+    for (let k = 1; k < n; k++) im[k] = k % 2 ? Math.pow(k, -2.2) : 0.06 / (k * k);
     sirenWave = ctx.createPeriodicWave(re, im);
   }
   return sirenWave;
 }
 
-// Continuous metal-on-metal/stone grind while a vehicle slides along a wall
-// or another car; fed by collision contacts, fades once they stop.
+// Soft, dull scrape while a vehicle slides along a wall or another car; fed
+// by collision contacts, fades once they stop.
 function buildScrapeVoice() {
   const src = ctx.createBufferSource();
   src.buffer = noiseBuffer;
   src.loop = true;
   const band = ctx.createBiquadFilter();
   band.type = 'bandpass';
-  band.frequency.value = 1600;
-  band.Q.value = 2.5;
-  const ring = ctx.createBiquadFilter();
-  ring.type = 'bandpass';
-  ring.frequency.value = 3400;
-  ring.Q.value = 14;
-  const ringGain = ctx.createGain();
-  ringGain.gain.value = 2.2;
+  band.frequency.value = 650;
+  band.Q.value = 0.9;
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 1400;
   const gain = ctx.createGain();
   gain.gain.value = 0;
   const panner = makePanner({ ref: 5, rolloff: 1.1, model: 'equalpower' });
-  src.connect(band).connect(gain);
-  src.connect(ring).connect(ringGain).connect(gain);
+  src.connect(band).connect(lp).connect(gain);
   gain.connect(panner).connect(sfxBus);
   src.start();
-  return { band, ring, gain, panner, level: 0, target: 0, until: 0, fresh: true };
+  return { band, gain, panner, level: 0, target: 0, until: 0, fresh: true };
 }
 
 function playTone({ freq, freqEnd, type = 'sine', duration = 0.15, gain = 0.3, delay = 0, filterFreq = null, out = null, bus = null, prio = 1 }) {
@@ -671,15 +676,6 @@ function playCrash(x, y, impact) {
   }
 }
 
-function playScrape(x, y, slide) {
-  const out = spatialOut(x, y, { ref: 5, rolloff: 1.1, range: 60 });
-  if (!out) return;
-  const k = clamp(slide / 12, 0.2, 1);
-  const f = 1400 + Math.random() * 1600;
-  playNoiseBurst({ duration: 0.16, freq: f, freqEnd: f * 0.8, q: 3.5, gain: 0.12 + k * 0.18, type: 'bandpass', out });
-  playTone({ freq: 700 + Math.random() * 500, freqEnd: 600, type: 'sawtooth', duration: 0.12, gain: 0.025 * k, filterFreq: 2400, out });
-}
-
 function playBell(x, y) {
   const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 45 });
   if (!out) return;
@@ -798,12 +794,6 @@ function playSplash(x, y) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 80 });
   if (!out) return;
   playNoiseBurst({ duration: 0.7, freq: 1600, freqEnd: 220, q: 0.5, gain: 0.5, type: 'lowpass', out });
-}
-
-// Gearbox clunk and clutch thump; the engine note itself does the rest.
-function playGearClunk(heavy) {
-  playNoiseBurst({ duration: 0.035, freq: heavy ? 900 : 1300, q: 2.5, gain: heavy ? 0.05 : 0.035, type: 'bandpass', bus: engineBus, prio: 0 });
-  playTone({ freq: heavy ? 70 : 110, freqEnd: 50, type: 'sine', duration: 0.07, gain: 0.05, bus: engineBus, prio: 0 });
 }
 
 // Two slightly detuned horn discs; low < 1 for vans/buses, boats honk deep.
@@ -1399,17 +1389,17 @@ function gearFor(frac, current, tops = GEAR_TOPS) {
   return g;
 }
 
-// Mirrors the worklet's PROFILES: idle/redline rpm, upshift torque-cut time,
+// Mirrors the worklet's PROFILES: idle/redline rpm, upshift dip time,
 // output level. 0 petrol four, 1 hero Escort, 2 bus diesel, 3 brommer,
 // 4 outboard, 5 V8, 6 van diesel.
 const ENGINE_SPECS = [
-  { idle: 800, red: 6200, shift: 0.2, level: 0.42, pops: 0.4 },
-  { idle: 850, red: 6200, shift: 0.3, level: 0.46, pops: 0.75 },
-  { idle: 600, red: 2300, shift: 0.45, level: 0.42, pops: 0 },
-  { idle: 1900, red: 9500, shift: 0, level: 0.34, pops: 0 },
-  { idle: 900, red: 5500, shift: 0, level: 0.4, pops: 0 },
-  { idle: 750, red: 7000, shift: 0.16, level: 0.42, pops: 0.5 },
-  { idle: 750, red: 4300, shift: 0.25, level: 0.42, pops: 0 },
+  { idle: 800, red: 6200, shift: 0.18, level: 0.38 },
+  { idle: 850, red: 6200, shift: 0.2, level: 0.4 },
+  { idle: 600, red: 2300, shift: 0.3, level: 0.38 },
+  { idle: 1900, red: 9500, shift: 0, level: 0.3 },
+  { idle: 900, red: 5500, shift: 0, level: 0.36 },
+  { idle: 750, red: 7000, shift: 0.16, level: 0.38 },
+  { idle: 750, red: 4300, shift: 0.2, level: 0.38 },
 ];
 
 function engineKind(v) {
@@ -1436,7 +1426,7 @@ function engineRpm(v, st, kind, throttle, t) {
   const g = gearFor(frac, st.gear, tops);
   if (g !== st.gear) { shifted = g > st.gear ? 1 : -1; st.gear = g; }
   let rpm = Math.max(S.idle, S.red * 0.93 * frac / tops[g]);
-  if (g === 0 && throttle > 0 && speed < 5) rpm = Math.max(rpm, S.idle + (kind === 2 ? 700 : 1900) * (1 - speed / 6));
+  if (g === 0 && throttle > 0 && speed < 4) rpm = Math.max(rpm, S.idle + (kind === 2 ? 300 : 700) * (1 - speed / 4));
   return { rpm, shifted };
 }
 
@@ -1478,7 +1468,7 @@ function updateEngineSynth(dt, world) {
       water: v.isBoat ? 1 : 0,
       wind: small ? 1 : v.isBoat ? 0.8 : v.isBus ? 0.25 : 0.4,
       free: coasting ? speed * 9 : 0,
-      gain: clamp(speed / 1.2, v.isBoat ? 1 : 0, 1) * (v.isBus ? 0.55 : small ? 0.45 : 0.5),
+      gain: clamp(speed / 1.2, v.isBoat ? 1 : 0, 1) * (v.isBus ? 0.36 : small ? 0.3 : 0.32),
     };
   }
 
@@ -1492,28 +1482,13 @@ function updateEngineSynth(dt, world) {
   const speed = Math.abs(v.speed);
   const { rpm: baseRpm, shifted } = engineRpm(v, S, S.kind, thr, t);
   let rpm = baseRpm;
-  let load = thr > 0 ? 1 : thr < 0 && v.speed > 0.3 ? 0.04 : speed < 0.4 ? 0.22 : 0.07;
-  if (thr < 0 && v.speed <= 0.3) load = 0.85;
-  if (shifted && speed > 2) {
-    if (shifted > 0 && thr > 0 && spec.shift) S.shiftUntil = t + spec.shift;
-    if (shifted < 0 && thr <= 0 && S.kind !== 2) S.blipUntil = t + 0.13;
-    if (S.kind !== 2) playGearClunk(S.kind === 1);
-  }
-  if (speed < 0.5 && thr > 0 && v.handbrake) rpm = spec.red * 0.82;
-  if (thr > 0) rpm += (v.slip || 0) * spec.red * 0.25;
-  if (t < S.shiftUntil) { load = 0.03; rpm *= 0.94; }
-  if (t < S.blipUntil) { load = 0.55; rpm *= 1.18; }
-  if (rpm > spec.red * 0.97) {
-    S.limiter = (S.limiter + dt) % 0.12;
-    rpm = spec.red * 0.97;
-    if (S.limiter > 0.06) { load = 0.05; rpm -= spec.red * 0.05; }
-  }
-
-  if (spec.pops && S.prevThr > 0 && thr <= 0 && rpm > spec.red * 0.5 && Math.random() < spec.pops) {
-    synthPost(synth.player, { type: 'pop', i: 0, n: 2 + Math.floor(Math.random() * 5) });
-  } else if (spec.pops && thr <= 0 && speed > 8 && rpm > spec.red * 0.45 && Math.random() < dt * spec.pops * 0.8) {
-    synthPost(synth.player, { type: 'pop', i: 0, n: 1 + Math.floor(Math.random() * 2) });
-  }
+  let load = thr > 0 ? 0.9 : speed < 0.4 ? 0.25 : 0.15;
+  if (thr < 0 && v.speed <= 0.3) load = 0.7;
+  if (shifted > 0 && speed > 2 && thr > 0 && spec.shift) S.shiftUntil = t + spec.shift;
+  if (speed < 0.5 && thr > 0 && v.handbrake) rpm = spec.red * 0.6;
+  if (thr > 0) rpm += (v.slip || 0) * spec.red * 0.08;
+  if (t < S.shiftUntil) load = 0.45;
+  rpm = Math.min(rpm, spec.red * 0.95);
   S.prevThr = thr;
 
   const gain = spec.level * (world.paused ? 0.5 : 1);
@@ -1529,8 +1504,8 @@ function trafficEngineParams(v, dt, fresh) {
   if (!st) { st = { gear: 0, prev: speed, load: 0.3 }; trafficEngine.set(v, st); }
   const acc = dt > 0 ? (speed - st.prev) / dt : 0;
   st.prev = speed;
-  const target = acc > 0.3 ? clamp(0.45 + acc / (v.model.accel || 8) * 0.6, 0, 1) : acc < -0.6 ? 0.04 : speed < 0.3 ? 0.22 : 0.35;
-  st.load += (target - st.load) * Math.min(1, dt * 5);
+  const target = acc > 0.3 ? clamp(0.4 + acc / (v.model.accel || 8) * 0.4, 0, 0.8) : acc < -0.6 ? 0.12 : speed < 0.3 ? 0.22 : 0.3;
+  st.load += (target - st.load) * Math.min(1, dt * 2.5);
   const kind = engineKind(v);
   const { rpm } = engineRpm(v, st, kind, acc > 0.3 ? 1 : 0, 0);
   return { kind, rpm, load: st.load, snap: fresh };
@@ -1571,7 +1546,7 @@ function updateEngine(dt, world) {
   engineState.gain += (targetGain - engineState.gain) * k;
   engineState.freq += (targetFreq - engineState.freq) * k;
 
-  engineBus.gain.value = engineState.gain;
+  engineBus.gain.value = engineState.gain * 0.65;
   engine.osc1.frequency.value = engineState.freq;
   engine.osc2.frequency.value = engineState.freq * 2 + 4;
   engine.filter.frequency.value = cutoff;
@@ -1586,7 +1561,6 @@ let rumbleVoice = null;
 let hornVoice = null;
 let scrapeVoice = null;
 let contactCursor = 0;
-let lastScrapeAt = -Infinity;
 let bellReadyAt = 0;
 
 function buildSquealVoice() {
@@ -1678,7 +1652,7 @@ function updateSqueal(dt, world) {
     const slip = best.slip;
     const small = best.isBike || best.isScooter;
     target = clamp((slip - 0.3) / 0.6, 0, 1) * (small ? 0.12 : 0.34);
-    const wob = Math.sin(t * 23) * 60 + Math.sin(t * 7.3) * 90 + (Math.random() - 0.5) * 120;
+    const wob = Math.sin(t * 23) * 60 + Math.sin(t * 7.3) * 90;
     const f = (small ? 2200 : 950) + slip * 700 + wob;
     voice.band.frequency.setTargetAtTime(f, t, 0.05);
     voice.osc.frequency.setTargetAtTime(f * 0.99, t, 0.05);
@@ -1759,10 +1733,6 @@ function updateContactAudio(world) {
       sv.until = world.time + 0.16;
       sv.target = Math.max(sv.fresh ? 0 : sv.target, clamp(c.slide / 12, 0.2, 1));
       sv.x = c.x; sv.y = c.y;
-      if (world.time - lastScrapeAt > 0.11 && Math.random() < 0.35) {
-        lastScrapeAt = world.time;
-        playScrape(c.x, c.y, c.slide);
-      }
     }
   }
 }
@@ -1773,15 +1743,14 @@ function updateScrape(dt, world) {
   const on = !world.paused && world.time < sv.until;
   const target = on ? sv.target : 0;
   sv.target *= Math.max(0, 1 - dt * 2);
-  sv.level += (target - sv.level) * Math.min(1, dt * (target > sv.level ? 20 : 8));
+  sv.level += (target - sv.level) * Math.min(1, dt * (target > sv.level ? 8 : 5));
   if (sv.level < 0.002 && !on) { sv.level = 0; sv.target = 0; }
   if (sv.level > 0) {
     setPannerPos(sv.panner, sv.x, sv.y, 0.5, !sv.fresh);
     sv.fresh = false;
-    sv.band.frequency.setTargetAtTime(1300 + sv.level * 1400 + (Math.random() - 0.5) * 500, t, 0.03);
-    sv.ring.frequency.setTargetAtTime(3100 + (Math.random() - 0.5) * 400, t, 0.05);
+    sv.band.frequency.setTargetAtTime(550 + sv.level * 350, t, 0.12);
   }
-  sv.gain.gain.setTargetAtTime(sv.level * 0.2, t, 0.03);
+  sv.gain.gain.setTargetAtTime(sv.level * 0.07, t, 0.08);
 }
 
 const MAX_EVENTS_PER_FRAME = 8;
@@ -1969,10 +1938,12 @@ function updateTrafficAudio(dt, world) {
         return;
       }
       const p = trafficEngineParams(v, dt, voice.fresh);
-      const pitch = Math.pow(2, clamp(dopplerCents(v, Math.cos(v.angle) * v.speed, Math.sin(v.angle) * v.speed), -600, 600) / 1200);
+      const pitch = Math.pow(2, clamp(dopplerCents(v, Math.cos(v.angle) * v.speed, Math.sin(v.angle) * v.speed), -250, 250) / 1200);
       placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
-      const level = v.isBus ? 0.55 : v.isBoat ? 0.5 : v.isScooter ? 0.4 : 0.32 + p.load * 0.2;
-      fadeVoice(voice, level, dt, 4);
+      const d = distToListener(v.x, v.y, 0.7);
+      voice.distLp.frequency.setTargetAtTime(clamp(2400 / (1 + d / 10), 250, 2400), t, 0.15);
+      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? 0.28 : 0.28 + p.load * 0.1;
+      fadeVoice(voice, level, dt, 3);
       msg.push({ i, kind: p.kind, rpm: p.rpm, load: p.load, gain: voice.level, pitch, snap: p.snap });
     });
     synthPost(synth.traffic, { type: 'p', v: msg });
@@ -1985,7 +1956,7 @@ function updateTrafficAudio(dt, world) {
     voice.osc.frequency.setTargetAtTime(p.freq, t, voice.fresh ? 0.001 : 0.08);
     voice.filter.frequency.setTargetAtTime(p.cutoff, t, 0.08);
     placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
-    fadeVoice(voice, Math.min(0.3, p.gain), dt, 4);
+    fadeVoice(voice, Math.min(0.3, p.gain) * 0.6, dt, 4);
   }
 
   const heli = world.policeHeli;

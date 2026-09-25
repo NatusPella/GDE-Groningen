@@ -433,13 +433,12 @@ function vehicles(dt, world) {
       if (v.isBus) {
         if (d < 70) at('airbrake', v.x, v.y, { h: 1.2, gain: 0.26, rate: rnd(0.95, 1.05), ref: 5, range: 70 });
         st.openDoors = Math.random() < 0.6;
-      } else if (d < 45 && t - lastSquealAt > 0.8 && Math.random() < (v.driver === 'player' ? 0.7 : 0.3)) {
+      } else if (d < 45 && t - lastSquealAt > 2 && Math.random() < (v.driver === 'player' ? 0.15 : 0.06)) {
         lastSquealAt = t;
         const out = K.spatial(v.x, v.y, { h: 0.4, ref: 5, rolloff: 1.1, range: 45, model: 'equalpower' });
         if (out) {
           const f = rnd(2700, 3600);
-          K.tone({ freq: f, freqEnd: f * 0.92, type: 'sine', duration: rnd(0.25, 0.45), gain: 0.05, out });
-          K.tone({ freq: f * 1.5, freqEnd: f * 1.4, type: 'triangle', duration: 0.25, gain: 0.015, out });
+          K.tone({ freq: f, freqEnd: f * 0.92, type: 'sine', duration: rnd(0.25, 0.45), gain: 0.02, out });
         }
       }
     }

@@ -411,13 +411,14 @@ function wp(e, s, y, d) {
   return [e.ax + e.tx * s + e.nx * d, y, e.ay + e.ty * s + e.ny * d];
 }
 
-const FACE_FRONT = 1, FACE_TOP = 2, FACE_BOTTOM = 4, FACE_SIDES = 8, FACE_ALL = 15;
+const FACE_FRONT = 1, FACE_TOP = 2, FACE_BOTTOM = 4, FACE_SIDES = 8, FACE_ALL = 15, FACE_BACK = 16;
 
 function wallBox(B, e, s0, s1, y0, y1, d0, d1, color, group = G_DETAIL, faces = FACE_ALL) {
   const n = [e.nx, 0, e.ny], t = [e.tx, 0, e.ty];
   if (faces & FACE_FRONT) B.quadOut(wp(e, s0, y0, d1), wp(e, s1, y0, d1), wp(e, s1, y1, d1), wp(e, s0, y1, d1), n, color, group);
   if (faces & FACE_TOP) B.quadOut(wp(e, s0, y1, d0), wp(e, s1, y1, d0), wp(e, s1, y1, d1), wp(e, s0, y1, d1), [0, 1, 0], color, group);
   if (faces & FACE_BOTTOM) B.quadOut(wp(e, s0, y0, d0), wp(e, s1, y0, d0), wp(e, s1, y0, d1), wp(e, s0, y0, d1), [0, -1, 0], color, group);
+  if (faces & FACE_BACK) B.quadOut(wp(e, s1, y0, d0), wp(e, s0, y0, d0), wp(e, s0, y1, d0), wp(e, s1, y1, d0), [-n[0], 0, -n[2]], color, group);
   if (faces & FACE_SIDES) {
     B.quadOut(wp(e, s0, y0, d0), wp(e, s0, y0, d1), wp(e, s0, y1, d1), wp(e, s0, y1, d0), [-t[0], 0, -t[2]], color, group);
     B.quadOut(wp(e, s1, y0, d0), wp(e, s1, y0, d1), wp(e, s1, y1, d1), wp(e, s1, y1, d0), t, color, group);
@@ -1011,7 +1012,15 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
     const copeC = metalTrim ? (r(41) < 0.5 ? 0xa9adb1 : 0x4a4d50) : BRICKS.has(wallHex) ? shade(STONE, 0.94 + r(41) * 0.1) : shade(wallHex, 0.8);
     const copeTop = depth + (metalTrim ? 0.16 + r(42) * 0.08 : 0.24 + r(42) * 0.14);
     const copeIn = metalTrim ? -0.07 : -0.1 - r(43) * 0.06;
-    for (const e of open) wallBox(B, e, 0, e.len, depth - 0.18, copeTop, copeIn, 0.08, copeC, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+    // parapet: inner face so it isn't see-through from the roof side, and
+    // stretched past both ends so outside corners close without a notch
+    // (the overlap is same-colour, so no visible z-fight); the inner face
+    // starts at the roof, lower parts would sit inside the building anyway
+    for (const e of open) {
+      const ext = 0.1;
+      wallBox(B, e, -ext, e.len + ext, depth - 0.18, copeTop, copeIn, 0.08, copeC, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
+      wallBox(B, e, -ext, e.len + ext, depth, copeTop, copeIn, 0.08, copeC, G_DETAIL, FACE_BACK);
+    }
     addFlatRoofDetail(B, b, edges, open, depth, floorCount, archetype, wallHex, copeC, r);
   } else {
     for (const e of open) wallBox(B, e, 0, e.len, depth - 0.1, depth + 0.08, -0.05, 0.12, 0x3a3c3e, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_BOTTOM);
