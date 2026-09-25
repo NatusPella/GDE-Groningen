@@ -34,7 +34,10 @@ import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint } from './startscreen.js';
-import { initPigeonGuards, startPigeonMode, updatePigeonMode, updatePigeonCamera } from './pigeonmode.js';
+import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
+import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
+import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
+import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { dist } from './util.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 
@@ -142,13 +145,16 @@ async function boot() {
   initShops(world);
   initTrafficLights(world);
   initRailway(world);
+  initStationTravel(world);
   initWeather(world);
   initFlitspaal(world);
   initWildlife(world);
   initSkyProps(world);
   initSikkomFeed(world);
   initPhoneFeed(world);
-  initPigeonGuards(world);
+  initPigeonMode(world);
+  initPigeonSpots(world);
+  initSideJobs(world);
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
@@ -169,8 +175,7 @@ async function boot() {
   window.__debug = { player, map, input, world };
   initAchievementTracker(world);
   await finishLoading();
-  const mode = await waitForStart(world);
-  if (mode === 'pigeon') startPigeonMode(world);
+  await waitForStart(world);
   document.body.classList.add('game-started');
   input.tryLock();
   initAudio(world);
@@ -203,6 +208,7 @@ async function boot() {
     updateFx3D(animDt, world, getScene());
     updateGore3D(animDt, world, getScene());
     updateCityProps(animDt, world, getScene());
+    updatePigeonAfterglow(animDt);
     if (world.pigeonMode) updatePigeonCamera(dt, world);
     else {
       updatePhone(dt, world);
@@ -232,7 +238,10 @@ async function boot() {
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else {
+      trySideJobInteract(world);
       tryShopInteract(world);
+      tryPigeonSpotInteract(world);
+      tryStationInteract(world);
       tryHorecaInteract(world);
       player.update(dt, world);
       updateCompanion(dt, world);
@@ -261,6 +270,7 @@ async function boot() {
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
     updateSkyProps(dt, world);
+    updatePigeonSpots(dt, world);
     if (!world.pigeonMode) {
       updateMissions(dt, world);
       updateSikkomFeed(dt, world);
@@ -270,6 +280,7 @@ async function boot() {
       updateShops(dt, world);
       updateFlitspaal(dt, world);
     }
+    updateSideJobs(dt, world);
     updateWeather(dt, world);
     updateDayNight(dt, world);
     updateAchievementTracker(dt, world);

@@ -198,6 +198,11 @@ function start(actor, rd, mesh) {
   if (rd.startPose === 'ride') fk(P_RIDE, rd.dims, rd.pos, actor.angle || 0, actor.x, actor.y);
   else if (nearMesh) captureFromMesh(rd, mesh);
   else fk(P_STAND, rd.dims, rd.pos, actor.angle || 0, actor.x, actor.y);
+  // standing on a viaduct / down in a cutting: lift the fresh pose to its ground
+  if (!nearMesh || rd.startPose === 'ride') {
+    const base = actor.gz || 0;
+    if (base) for (let i = 0; i < N; i++) rd.pos[i * 3 + 1] += base;
+  }
   rd.prev.set(rd.pos);
   for (const imp of rd.imp) applyImpulse(rd, imp);
   rd.imp = null;
@@ -468,8 +473,10 @@ function hinge(p, q, j, e, tx, ty, tz, arm) {
 }
 
 function ground(rd, p) {
+  const map = rd.world && rd.world.map;
+  const elev = map && map.elev && map.elev.has;
   for (let i = 0; i < N; i++) {
-    const floor = (rd.wet[i] ? RIVER_BED : 0) + RAD[i];
+    const floor = (rd.wet[i] ? RIVER_BED : elev ? map.groundHeightAt(p[i * 3], p[i * 3 + 2], p[i * 3 + 1]) : 0) + RAD[i];
     if (p[i * 3 + 1] < floor) { p[i * 3 + 1] = floor; contact[i] = 1; }
   }
 }
@@ -618,6 +625,8 @@ function syncActor(actor, rd) {
   const p = rd.pos;
   actor.x = (p[HL * 3] + p[HR * 3]) / 2;
   actor.y = (p[HL * 3 + 2] + p[HR * 3 + 2]) / 2;
+  const map = rd.world && rd.world.map;
+  if (map && map.elev && map.elev.has) actor.gz = map.groundHeightAt(actor.x, actor.y, (p[HL * 3 + 1] + p[HR * 3 + 1]) / 2 - 0.5);
   if (actor.vx !== undefined) { actor.vx = 0; actor.vy = 0; }
   actor.speed = 0;
 }
@@ -634,7 +643,7 @@ function finish(actor, rd, mesh, stood) {
   const ud = mesh.userData;
   mesh.scale.copy(rd.savedScale);
   mesh.rotation.set(0, -(actor.angle || 0), 0);
-  mesh.position.set(actor.x, 0, actor.y);
+  mesh.position.set(actor.x, actor.gz || 0, actor.y);
   for (const b of [ud.pelvis, ud.chest, ud.head, ud.legL, ud.legR, ud.kneeL, ud.kneeR, ud.armL, ud.armR, ud.elbowL, ud.elbowR]) if (b) b.rotation.set(0, 0, 0);
   ud.pelvis.position.set(0, RIG.HIP_Y, 0);
   ud.chest.position.set(0, RIG.CHEST_Y - RIG.HIP_Y, 0);
@@ -744,7 +753,7 @@ export function syncBikeRider(mesh, v, time) {
     const k = smooth(Math.min(1, (time - (v.riderOffAt || 0)) / 0.45));
     mesh.rotation.order = 'YXZ';
     mesh.rotation.x = (v.riderOffSide || 1) * 1.38 * k;
-    mesh.position.y = 0.04 * k;
+    mesh.position.y = (v.z || 0) + 0.04 * k;
     ud.bikeDown = true;
   } else if (ud.bikeDown) {
     ud.bikeDown = false;

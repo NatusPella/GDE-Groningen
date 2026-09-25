@@ -4,28 +4,23 @@ and merge them into game/citymap.json's meta as meta.horeca, for the
 "Horeca-tour" pub-crawl mission.
 """
 import json
-import subprocess
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import bbox_str, cached, map_bbox, near_data  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 
-OVERPASS_URL = "https://maps.mail.ru/osm/tools/overpass/api/interpreter"
-OVERPASS_QUERY = (
-    '[out:json][timeout:60];'
-    'nwr["amenity"~"^(bar|restaurant|cafe|pub)$"](53.204,6.538,53.235,6.592);'
-    'out center tags;'
-)
+CACHE_PATH = "data/horeca_raw.json"
 
 
-def fetch_horeca():
-    result = subprocess.run(
-        [
-            "curl", "-s", "-A", "Mozilla/5.0",
-            "--data-urlencode", f"data={OVERPASS_QUERY}",
-            OVERPASS_URL,
-        ],
-        capture_output=True, text=True, check=True,
-    )
-    data = json.loads(result.stdout)
+def overpass_query(bbox):
+    return '[out:json][timeout:90];nwr["amenity"~"^(bar|restaurant|cafe|pub)$"]' + bbox_str(bbox) + ';out center tags;'
+
+
+def fetch_horeca(meta):
+    data = cached(CACHE_PATH, map_bbox(meta), overpass_query)
     out = []
     for el in data.get("elements", []):
         if "lat" in el and "lon" in el:
@@ -49,10 +44,13 @@ def main():
     def project(lat, lon):
         return (lon - lon0) * m_lon, (lat0 - lat) * m_lat
 
-    horeca_raw = fetch_horeca()
+    horeca_raw = fetch_horeca(meta)
+    ok = near_data(data)
     out_horeca = []
     for name, lat, lon in horeca_raw:
         x, y = project(lat, lon)
+        if not ok(x, y):
+            continue
         out_horeca.append({"name": name, "x": round(x, 1), "y": round(y, 1)})
 
     meta["horeca"] = out_horeca

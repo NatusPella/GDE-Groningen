@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { applyWetGround } from './terrain3d.js';
+import { buildRoadStructure, buildOverpassDeck } from './roadstructures3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon } from './util.js';
 
@@ -578,6 +579,7 @@ function at(r, rs, sAlong, off, out) {
   out[0] = ax + (bx - ax) * t;
   out[1] = ay + (by - ay) * t;
   out[2] = i;
+  out[3] = r.z ? r.z[i] + (r.z[i + 1] - r.z[i]) * Math.min(1, Math.max(0, t)) : 0;
   return out;
 }
 
@@ -605,7 +607,7 @@ function ribbonInto(r, rs, half, B, surfWidth) {
   const base = B.pos.length / 3;
   for (let i = 0; i < n; i++) {
     const p = r.pts[i], m = rs.miter[i];
-    const y = (i === 0 && rs.e0.J > 0) || (i === n - 1 && rs.e1.J > 0) ? JUNCTION_DIP : 0;
+    const y = ((i === 0 && rs.e0.J > 0) || (i === n - 1 && rs.e1.J > 0) ? JUNCTION_DIP : 0) + (r.z ? r.z[i] : 0);
     for (const sg of [1, -1]) {
       B.pos.push(p[0] + m[0] * half * sg, y, p[1] + m[1] * half * sg);
       B.nrm.push(0, 1, 0);
@@ -652,7 +654,7 @@ function kerbIntervals(rs, side) {
 
 function kerbInto(r, rs, B) {
   const hw = rs.hw;
-  const tmp = [0, 0, 0];
+  const tmp = [0, 0, 0, 0];
   for (const side of [1, -1]) {
     for (const [a, b] of kerbIntervals(rs, side)) {
       const st = stations(rs, a, b);
@@ -665,7 +667,8 @@ function kerbInto(r, rs, B) {
         const top = 0.005 + KERB_H * Math.max(0.1, k);
         const pts = prof.map((o) => at(r, rs, sv, o * side, tmp).slice(0, 2));
         const seg = rs.segN[Math.min(tmp[2], rs.segN.length - 1)];
-        return { sv, pts, ys: [-0.01, top, top, 0], nx: seg[0] * side, ny: seg[1] * side, top };
+        const z = tmp[3];
+        return { sv, pts, ys: [z - 0.01, z + top, z + top, z], nx: seg[0] * side, ny: seg[1] * side, top };
       });
       for (let f = 0; f < 3; f++) {
         const base = B.pos.length / 3;
@@ -705,13 +708,13 @@ function markBuf() { return { pos: [], nrm: [], uv: [], idx: [] }; }
 
 function stripAlong(r, rs, M, s0, s1, off, half) {
   if (s1 - s0 < 0.05) return;
-  const tmp = [0, 0, 0];
+  const tmp = [0, 0, 0, 0];
   const base = M.pos.length / 3;
   const st = stations(rs, s0, s1);
   for (const sv of st) {
     for (const o of [off + half, off - half]) {
       at(r, rs, sv, o, tmp);
-      M.pos.push(tmp[0], 0, tmp[1]);
+      M.pos.push(tmp[0], tmp[3], tmp[1]);
       M.nrm.push(0, 1, 0);
       M.uv.push(UV_WHITE[0], UV_WHITE[1]);
     }
@@ -727,13 +730,13 @@ function dashes(r, rs, M, s0, s1, off, half, dash, gap) {
 }
 
 function decal(r, rs, M, sAlong, off, len, wid, uv) {
-  const c = at(r, rs, sAlong, off, [0, 0, 0]);
+  const c = at(r, rs, sAlong, off, [0, 0, 0, 0]);
   const nrmv = rs.segN[Math.min(c[2], rs.segN.length - 1)];
   const fx = nrmv[1], fy = -nrmv[0];
   const base = M.pos.length / 3;
   const corners = [[-1, -1, uv[0], uv[1]], [1, -1, uv[2], uv[1]], [-1, 1, uv[0], uv[3]], [1, 1, uv[2], uv[3]]];
   for (const [u, v, tu, tv] of corners) {
-    M.pos.push(c[0] + fx * u * len / 2 + nrmv[0] * v * wid / 2, 0, c[1] + fy * u * len / 2 + nrmv[1] * v * wid / 2);
+    M.pos.push(c[0] + fx * u * len / 2 + nrmv[0] * v * wid / 2, c[3], c[1] + fy * u * len / 2 + nrmv[1] * v * wid / 2);
     M.nrm.push(0, 1, 0);
     M.uv.push(tu, tv);
   }
@@ -741,11 +744,11 @@ function decal(r, rs, M, sAlong, off, len, wid, uv) {
 }
 
 function triangleMark(r, rs, M, sBase, sApex, off, halfBase) {
-  const tmp = [0, 0, 0];
+  const tmp = [0, 0, 0, 0];
   const base = M.pos.length / 3;
   for (const [sv, o] of [[sBase, off - halfBase], [sBase, off + halfBase], [sApex, off]]) {
     at(r, rs, sv, o, tmp);
-    M.pos.push(tmp[0], 0, tmp[1]);
+    M.pos.push(tmp[0], tmp[3], tmp[1]);
     M.nrm.push(0, 1, 0);
     M.uv.push(UV_WHITE[0], UV_WHITE[1]);
   }
@@ -857,5 +860,10 @@ export function buildRoadGroup(r) {
     group.add(mark);
   }
   for (const m of group.children) m.receiveShadow = true;
+  // viaduct deck, embankment, cutting walls, tunnel roof / deck over a cutting
+  if (netMap && netMap.elev && netMap.elev.has) {
+    const struct = r.z ? buildRoadStructure(r, netMap) : buildOverpassDeck(r, netMap);
+    if (struct) group.add(struct);
+  }
   return group;
 }

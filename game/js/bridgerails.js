@@ -38,7 +38,8 @@ export function railingOpening(map, r, x, y) {
 function buildRails(map) {
   const segs = [];
   for (const r of map.roads) {
-    if (!r.bridge || r.pts.length < 2) continue;
+    // ring viaducts and tunnels have their own barriers and walls (elevation.js)
+    if (!r.bridge || r.z || r.pts.length < 2) continue;
     const off = railingOffset(r);
     for (const side of [1, -1]) {
       let prevEnd = null;

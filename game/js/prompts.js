@@ -10,6 +10,9 @@ import { getSettings } from './settings.js';
 import { isPhoneOpen } from './phone.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { lineOfSight } from './pedestrians.js';
+import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
+import { sideJobPrompt, sideJobSecondary, sideJobGoal } from './sidejobs.js';
+import { stationPrompt, stationSecondary } from './stationtravel.js';
 
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
@@ -268,6 +271,8 @@ function pedInReach(world, range, cone) {
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = world.player;
+  const job = sideJobPrompt(world);
+  if (job) return job;
   const shop = shopPrimaryPrompt(world);
   if (shop) return shop;
   if (p.inVehicle) return null;
@@ -275,6 +280,10 @@ function findPrimary(world) {
     if (!p.canClimbOut) return null;
     return { id: 'climb', x: p.x, y: p.y, h: 0.6, key: 'E', label: 'Eruit klimmen', sub: learning('climb') ? 'Klim de kade weer op' : '', learn: learning('climb'), ring: true };
   }
+  const duif = pigeonSpotPrompt(world);
+  if (duif) return duif;
+  const trein = stationPrompt(world);
+  if (trein) return trein;
   const food = nearestHorecaSpot(world);
   if (food) {
     const st = horecaState(world, food);
@@ -364,8 +373,11 @@ function findSecondary(world, primary) {
     }
   }
   for (const c of shopSecondaryPrompts(world)) add(c, 14);
+  for (const c of pigeonSpotSecondary(world)) add(c, 18);
+  for (const c of sideJobSecondary(world)) add(c, c.maxD || 20);
+  for (const c of stationSecondary(world)) add(c, 22);
   const m = world.mission;
-  if (m && (m.phase === 'idle') && m.label) {
+  if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active)) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, sub: 'Loop of rij de marker in', kind: 'mission' }, 60);
   }
   if (!inV && learning('enter') && !primary) {
@@ -456,6 +468,8 @@ function tut(id, keys, label, desc) {
 function contextRows(world, primary) {
   const p = world.player;
   const rows = [];
+  const job = sideJobGoal(world);
+  if (job) rows.push({ id: 'sidejob', keys: [], label: job.label, desc: job.desc, kind: 'goal' });
   if (world.wanted > 0) {
     const searching = !!(world.police && world.police.searching);
     rows.push({

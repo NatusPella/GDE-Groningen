@@ -38,6 +38,7 @@ const SPLASH_LIFE = 1.1;
 const WALK_OPTS = { byPlayer: true };
 const SWIM_OPTS = { kick: false };
 
+const FALL_HURT_SPEED = 8.5; // m/s landing speed (~3.7 m drop) above which a fall hurts
 const LOCK_CRACK_S = 0.7; // a bike locked to a rack or railing takes a quick jiggle first
 const CRACK_REACH = 2.2;
 
@@ -54,6 +55,7 @@ export class Player {
     this.character = 'tammo'; // 'tammo' | 'anita' - cosmetic only, 3D layer reads this to pick a model preset
     this.z = 0; // on-foot jump height above ground, meters - vehicles ignore this entirely
     this.vz = 0;
+    this.gz = 0; // absolute height of the ground under the player (ring viaducts / cuttings)
     this.crouching = false;
     this.shoveX = 0; // m/s of push-back from bumping into cars/people, decays
     this.shoveY = 0;
@@ -117,10 +119,10 @@ export class Player {
       const v = this.inVehicle;
       if (v.sinking) { this.x = v.x; this.y = v.y; this.angle = v.angle; return; }
       if (v.wrecked) { this.exitVehicle(map, world); }
-      else { this.driveVehicle(dt, input, map, world); return; }
+      else { this.driveVehicle(dt, input, map, world); this.gz = v.z || 0; return; }
     }
 
-    if (this.water || isInWater(map, this.x, this.y)) {
+    if (this.water || isInWater(map, this.x, this.y, this.gz + this.z)) {
       if (!this.water) this.startWaterFall();
       this.updateWater(dt, world);
       return;
@@ -132,12 +134,17 @@ export class Player {
     if (input.wasPressed(' ') && this.z <= 0) this.vz = JUMP_SPEED;
     this.vz -= GRAVITY * dt;
     this.z = Math.max(0, this.z + this.vz * dt);
-    if (this.z <= 0) this.vz = 0;
+    if (this.z <= 0) {
+      // landing after a drop off a viaduct / into a cutting
+      if (this.vz < -FALL_HURT_SPEED && world) this.hurtByFall(world, -this.vz);
+      this.vz = 0;
+    }
     this.crouching = input.isDown('control') && this.z <= 0;
 
     // GTA V-style: WASD moves relative to the camera, the body turns to face
     // the movement; while attacking/aiming the body faces the camera instead
-    const speed = this.crouching ? CROUCH_SPEED : input.isDown('shift') ? RUN_SPEED : WALK_SPEED;
+    // this.carrying: speed factor while hauling a side-job load (sidejobs.js)
+    const speed = (this.crouching ? CROUCH_SPEED : input.isDown('shift') ? RUN_SPEED : WALK_SPEED) * (this.carrying || 1);
     const aiming = input.mouse.down || input.mouse.rightDown;
     const dir = cameraRelativeMove(input, world.camYaw);
     this.moving = !!dir;
@@ -157,12 +164,33 @@ export class Player {
     for (let s = 0; s < steps; s++) {
       let nextX = this.x + this.vx * sdt;
       let nextY = this.y + this.vy * sdt;
-      [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS);
+      [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS, this.gz + this.z);
       this.x = nextX;
       this.y = nextY;
-      if (isInWater(map, nextX, nextY)) { this.startWaterFall(); return; }
+      this.followGround(map);
+      if (isInWater(map, nextX, nextY, this.gz + this.z)) { this.startWaterFall(); return; }
     }
     this.resolveBodyContacts(dt, world);
+  }
+
+  // Keep gz on the surface underfoot; walking off an edge turns the drop
+  // into jump height so gravity takes over (and hurts on landing).
+  followGround(map) {
+    if (!map.elev || !map.elev.has) { this.gz = 0; return; }
+    const g = map.groundHeightAt(this.x, this.y, this.gz + this.z);
+    if (g < this.gz - 0.4) this.z += this.gz - g;
+    this.gz = g;
+  }
+
+  hurtByFall(world, speed) {
+    const dmg = Math.min(100, (speed - FALL_HURT_SPEED) * 9);
+    if (world.armor > 0) {
+      const a = Math.min(world.armor, dmg * 0.5);
+      world.armor -= a;
+      world.health -= dmg - a;
+    } else world.health -= dmg;
+    reportImpact(world, this.x, this.y, speed, true);
+    if (world.health <= 0) { world.health = 0; requestRespawn(world); }
   }
 
   startWaterFall() {
@@ -331,9 +359,10 @@ export class Player {
     const { map } = world;
     for (const v of world.vehicles) {
       if (v.isBoat || Math.abs(v.x - this.x) > v.halfLen + 1 || Math.abs(v.y - this.y) > v.halfLen + 1) continue;
+      if (Math.abs((v.z || 0) - this.gz - this.z) > 2) continue;
       const push = pushCircleOutOfVehicle(this.x, this.y, this.radius, v);
       if (!push) continue;
-      [this.x, this.y] = resolveWalker(push.x, push.y, this.radius, map);
+      [this.x, this.y] = resolveWalker(push.x, push.y, this.radius, map, 0, 0, null, this.gz + this.z);
       const closing = (Math.cos(v.angle) * v.speed + v.driftX) * push.nx + (Math.sin(v.angle) * v.speed + v.driftY) * push.ny;
       if (closing > 1) {
         const fresh = Math.hypot(this.shoveX, this.shoveY) < 1;
@@ -444,14 +473,20 @@ export class Player {
       this.exitVehicle(map, world);
       return;
     }
-    const v = findEnterableVehicle(this.x, this.y, vehicles);
+    const v = findEnterableVehicle(this.x, this.y, this.sameLevel(vehicles));
     if (v) this.enterVehicle(v, world);
+  }
+
+  // vehicles on the player's level (not on the viaduct overhead / in the cutting below)
+  sameLevel(vehicles) {
+    const z = this.gz + this.z;
+    return vehicles.some((v) => Math.abs((v.z || 0) - z) > 2) ? vehicles.filter((v) => Math.abs((v.z || 0) - z) <= 2) : vehicles;
   }
 
   // One press of E: the nearest free vehicle (driving traffic included - its
   // driver gets yanked out) or a parked bike/scooter prop, whichever is closer.
   interact(world) {
-    const v = findEnterableVehicle(this.x, this.y, world.vehicles);
+    const v = findEnterableVehicle(this.x, this.y, this.sameLevel(world.vehicles));
     const pr = findRideableProp(this.x, this.y);
     if (pr && (!v || pr.dist < distToVehicleBody(v, this.x, this.y))) {
       if (pr.prop.locked) this.crack = { prop: pr.prop, t: 0 };
@@ -491,6 +526,19 @@ export class Player {
     stopVehicle(v);
     [this.x, this.y] = findExitSpot(v, this.radius, map, EXIT_LEFT_FIRST);
     this.angle = v.angle;
+    this.z = 0;
+    this.vz = 0;
+    this.gz = v.z || 0;
+    if (map.elev && map.elev.has) {
+      // never step out over the barrier of a viaduct or into the cutting
+      let g = map.groundHeightAt(this.x, this.y, this.gz);
+      if (Math.abs(g - this.gz) > 0.8) {
+        [this.x, this.y] = findExitSpot(v, this.radius, map, [-EXIT_LEFT_FIRST[0]]);
+        g = map.groundHeightAt(this.x, this.y, this.gz);
+        if (Math.abs(g - this.gz) > 0.8) { this.x = v.x; this.y = v.y; g = this.gz; }
+      }
+      this.gz = g;
+    }
   }
 
   driveVehicle(dt, input, map, world = null) {

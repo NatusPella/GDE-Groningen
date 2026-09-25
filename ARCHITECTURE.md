@@ -47,16 +47,47 @@ frame then runs, in order:
 
 | Area | Files |
 |---|---|
-| Map data | `mapdata.js` (`GameMap`: grid-indexed `buildingsNear`, `roadsNear`, `waterNear`, `nearestRoadPoint`, `isOnBridge`, `escapeBuilding`), `util.js` |
+| Map data | `mapdata.js` (`GameMap`: grid-indexed `buildingsNear`, `roadsNear`, `waterNear`, `nearestRoadPoint`, `isOnBridge`, `escapeBuilding`, `groundHeightAt`), `elevation.js` (ring road heights, walls, open cuts), `util.js` |
 | Input | `input.js` (`isDown`, `wasPressed`, `axis`, `mouse`) |
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Anita) |
 | Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water) |
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js`, `police.js` |
-| Game systems | `missions.js`, `pickups.js`, `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js` |
+| Game systems | `missions.js`, `pickups.js`, `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
+| Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), one `sidejob_*.js` per job |
 | UI | `hud_panel.js` + `.css`, `mapview.js`, `phonefeed.js`, `sikkomfeed.js` |
 | Audio | `audio.js` (G-Music, voicelines, synthesised effects) |
-| 3D | `scene3d.js` (scene, streaming, camera), `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
+| 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
+
+## Heights
+
+Groningen is flat and so is the world (y = 0), except the ringweg and its
+grade-separated junctions: roads carrying `z` (one height per vertex, from
+`scripts/add_elevation.py`) run over viaducts and embankments or through
+the sunken Zuidelijke Ringweg (open cuttings and covered sections, under
+the Winschoterdiep as an aqueduct). `elevation.js` builds from them, once
+per map (`map.elev`):
+
+- `map.groundHeightAt(x, y, zHint)`: the highest surface at most ~1.1 m
+  above `zHint` - road decks, cutting floors, embankment slopes, else the
+  street. Everything that has a height keeps its own absolute value and
+  passes it as the hint: vehicles `v.z` (+ `v.pitch`, falling off an edge
+  goes ballistic, hard landings damage), the player and companion `gz`
+  (plus the jump height `z`; drops hurt), pedestrians `gz`, ragdolls.
+- Walls: retaining walls of cuttings (solid from inside, with a fence solid
+  from the street), crash barriers on raised roads, abutments where an
+  embankment meets a road passing underneath. `resolveWalker(..., z)` and
+  `resolveVehicleBuildingCollision` use them.
+- `map.ceilingAt` (tunnel roofs, decks: the follow camera stays under them),
+  `map.coveredAt` (the canal above the aqueduct is not water down there),
+  `map.offStreetLevel` (no clutter, lamps, trees or spawns on the ring's
+  heights), `map.spawnZ`.
+- The open cuts as a mask texture (`cutmask3d.js`): terrain, canal bed and
+  grass discard fragments over them near the player; streets and rails
+  crossing a cutting get a deck.
+
+Nothing else needs to know about heights: vehicles on different levels
+don't collide, and actors are drawn at their height.
 
 ## 3D notes
 

@@ -1,4 +1,5 @@
 import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
+import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, RAISED } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
 
@@ -136,16 +137,17 @@ function buildingsCrossedBy(buildings, lines, step) {
   return out;
 }
 
-// Car roads that run through a water polygon without a bridge tag are
-// aqueducts (the Zuidelijke Ringweg dives under the Winschoterdiep at
-// Europaplein) or culverts under an embankment. The map has no tunnel data
-// and roads are all drawn at street level, so treat them as a covered
-// crossing: dry road with a deck, like a bridge - otherwise cars sink there.
+// Car roads that run through a water polygon without a bridge tag and
+// without a height profile are culverts under an embankment: treat them as
+// a covered crossing, dry road with a deck, like a bridge - otherwise cars
+// sink there. (The Zuidelijke Ringweg's aqueduct under the Winschoterdiep
+// has real heights, see elevation.js.)
 const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
 function markDryCrossings(map) {
   let n = 0;
   for (const r of map.roads) {
-    if (r.bridge || !DRY_CATS.has(r.cat)) continue;
+    // roads with a height profile pass over/under the water for real
+    if (r.bridge || r.z || !DRY_CATS.has(r.cat)) continue;
     const pts = r.pts;
     let wet = false;
     for (let i = 0; i < pts.length - 1 && !wet; i++) {
@@ -170,7 +172,8 @@ function markDryCrossings(map) {
 function onCarriageway(map, x, y) {
   for (const r of map.roadsNear(x, y, 14)) {
     if (!DRY_CATS.has(r.cat)) continue;
-    const hw = r.width / 2 - 0.3;
+    // raised and sunken roads: no trees on the verge, slope or in the cutting either
+    const hw = r.z ? surfaceHalfWidth(r) + 1 : r.width / 2 - 0.3;
     if (hw <= 0) continue;
     for (let i = 0; i < r.pts.length - 1; i++) {
       const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
@@ -232,12 +235,59 @@ export class GameMap {
     }
 
     markDryCrossings(this);
-    this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]));
+    this.elev = buildElevation(this);
+    this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]) && !this.offStreetLevel(t[0], t[1]));
 
     this.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of this.trees) {
       this.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
     }
+  }
+
+  // Height of the surface under (x, y) for something at zHint (absolute m):
+  // viaduct decks, trench floors and embankments of the ring roads, street
+  // level (0) everywhere else. See elevation.js.
+  groundHeightAt(x, y, zHint = 0) {
+    return groundHeightAt(this.elev, x, y, zHint);
+  }
+
+  // Height of road r at (x, y); 0 for flat roads.
+  roadZAt(r, x, y) {
+    return roadZAt(r, x, y);
+  }
+
+  // Height to put a freshly placed car / person at (x, y): on the nearest
+  // drivable road's level (a spot on the ring's viaduct stays on it).
+  spawnZ(x, y) {
+    if (!this.elev.has) return 0;
+    const rp = this.nearestRoadPoint(x, y, 25, true);
+    const hint = rp && rp.road.z ? roadZAt(rp.road, x, y) : 0;
+    return groundHeightAt(this.elev, x, y, hint + 0.3);
+  }
+
+  ceilingAt(x, y, z) {
+    return ceilingAt(this.elev, x, y, z);
+  }
+
+  // Inside a covered (tunnel) section: the canal above an aqueduct is not
+  // water for whoever is down in it.
+  coveredAt(x, y) {
+    return coveredAt(this.elev, x, y);
+  }
+
+  // Is (x, y) on a raised/sunken road, its embankment or cutting (not street level)?
+  offStreetLevel(x, y) {
+    if (!this.elev.has) return false;
+    return Math.abs(groundHeightAt(this.elev, x, y, 50)) > RAISED || Math.abs(groundHeightAt(this.elev, x, y, -50)) > RAISED;
+  }
+
+  inWaterRaw(x, y) {
+    for (const w of this.waterNear(x, y, 0.5)) {
+      const [minx, miny, maxx, maxy] = w.bounds;
+      if (x < minx || x > maxx || y < miny || y > maxy) continue;
+      if (pointInPolygon(x, y, w.pts)) return true;
+    }
+    return false;
   }
 
   buildingsNear(x, y, r) {
@@ -259,11 +309,13 @@ export class GameMap {
   // Nearest point on any road to (x,y) — used to place the player/vehicles
   // on-street instead of risking a spawn inside a building footprint.
   // `drivableOnly` restricts candidates to cat !== 'foot'/'cycle' (car spawns).
-  nearestRoadPoint(x, y, searchRadius = 400, drivableOnly = false) {
+  // `streetLevel` skips the ring's raised/sunken roads (spawn points).
+  nearestRoadPoint(x, y, searchRadius = 400, drivableOnly = false, streetLevel = false) {
     let r = 30, best = null, bestDist2 = Infinity;
     while (!best && r <= searchRadius) {
       for (const road of this.roadsNear(x, y, r)) {
         if (drivableOnly && (road.cat === 'foot' || road.cat === 'cycle')) continue;
+        if (streetLevel && road.z) continue;
         for (let i = 0; i < road.pts.length - 1; i++) {
           const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
           if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; best = { x: cp.x, y: cp.y, road }; }
@@ -343,7 +395,7 @@ export class GameMap {
   // buildings, that you can actually walk away from. Falls back to further
   // road points (proper streets first) and finally to the plain nearest one.
   findOpenSpawn(x, y, searchRadius = 400) {
-    const first = this.nearestRoadPoint(x, y, searchRadius);
+    const first = this.nearestRoadPoint(x, y, searchRadius, false, true);
     const tryPoint = (p) => {
       if (!p) return null;
       const [sx, sy] = this.escapeBuilding(p.x, p.y);
@@ -353,6 +405,7 @@ export class GameMap {
     if (ok) return ok;
     const cands = [];
     for (const road of this.roadsNear(x, y, 160)) {
+      if (road.z) continue;
       const pts = road.pts;
       for (let i = 0; i < pts.length - 1; i++) {
         const [ax, ay] = pts[i], [bx, by] = pts[i + 1];

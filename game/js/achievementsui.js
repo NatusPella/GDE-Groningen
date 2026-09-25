@@ -3,8 +3,9 @@
 
 import {
   getAchievementView, getAchievementSummary, getLifetimeStats, getMissionRecord, formatMissionTime,
-  MISSION_GOALS, MEDALS, EIERBAL_TOTAL, TROPHY_SVG,
+  MISSION_GOALS, MEDALS, EIERBAL_TOTAL, TROPHY_SVG, getStat,
 } from './achievements.js';
+import { SIDE_JOBS } from './sidejobs.js';
 
 const LOCK_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M7 10V8a5 5 0 0 1 10 0v2h1.5v11h-13V10H7zm2 0h6V8a3 3 0 0 0-6 0v2z"/></svg>';
 const HIDDEN_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M11 17h2v2h-2zm1-14a5 5 0 0 1 5 5c0 2.2-1.4 3.2-2.5 4-.9.6-1.5 1-1.5 2v1h-2v-1c0-2 1.3-2.9 2.3-3.6.9-.6 1.7-1.2 1.7-2.4a3 3 0 0 0-6 0H7a5 5 0 0 1 5-5z"/></svg>';
@@ -108,6 +109,16 @@ function medalsBlock() {
   }).join('') + '</div>';
 }
 
+// Lifetime records per bijbaantje (kept in the prestaties storage).
+function jobRecordsBlock() {
+  return '<div class="pa-medals">' + SIDE_JOBS.map((j) => {
+    const streak = getStat(`sj_${j.id}_streak`);
+    const shift = getStat(`sj_${j.id}_shift`);
+    const line = streak ? `record ${streak} op rij · beste dienst €${shift.toLocaleString('nl-NL')}` : 'nog niet gewerkt';
+    return `<div class="pa-medal"><small>${esc(j.name)}</small><small>${line}</small></div>`;
+  }).join('') + '</div>';
+}
+
 export function renderAchievementsPanel(el) {
   if (!el) return;
   ensureStyle();
@@ -123,6 +134,8 @@ export function renderAchievementsPanel(el) {
     ['Rakelings', nl(st.nearMiss)],
     ['Gejat', nl(st.stolen)],
     ['Kusjes', nl(st.kisses)],
+    ['Treinritten', nl(st.trainTrips)],
+    ['Bijbaan-loon', `€${nl(getStat('sjEarned'))}`],
   ];
   const cats = [['alle', 'Alles', sum.done, sum.total], ...view.map((c) => [c.cat, c.label, c.done, c.items.length])];
   if (!cats.some(([id]) => id === filter)) filter = 'alle';
@@ -135,6 +148,7 @@ export function renderAchievementsPanel(el) {
       `<button type="button" role="tab" data-achcat="${id}" aria-selected="${id === filter}">${label}<small>${d}/${t}</small></button>`).join('')}</nav>` +
     shown.map((c) => `<section class="pa-cat"><h3>${c.label} <small>${c.done}/${c.items.length}</small></h3>` +
       (c.cat === 'missies' ? medalsBlock() + '<h3>Missie-prestaties</h3>' : '') +
+      (c.cat === 'bijbaan' ? jobRecordsBlock() : '') +
       `<div class="pa-grid">${c.items.map(card).join('')}</div></section>`).join('');
   if (!el.dataset.bound) {
     el.dataset.bound = '1';

@@ -686,3 +686,60 @@ export function bridgeGeometry() {
   }
   return B.build();
 }
+
+// ------------------------------------------------------------------ fringe
+
+// Kas / tuinkas: small greenhouse on an allotment (unit-ish footprint).
+export function greenhouseGeometry() {
+  const B = new GeoBuilder();
+  B.box(0, 0.9, 0, 1, 1.8, 1, 0xcfe0d8);
+  const o = 0.02;
+  B.quadOut([-0.5 - o, 1.8, 0.5 + o], [0.5 + o, 1.8, 0.5 + o], [0.5 + o, 2.4, 0], [-0.5 - o, 2.4, 0], [0, 1, 1], 0xdcebe4);
+  B.quadOut([-0.5 - o, 1.8, -0.5 - o], [-0.5 - o, 2.4, 0], [0.5 + o, 2.4, 0], [0.5 + o, 1.8, -0.5 - o], [0, 1, -1], 0xdcebe4);
+  for (const x of [-0.5, 0, 0.5]) B.box(x, 1.2, 0, 0.03, 2.4, 1.02, 0x8a9a90);
+  return B.build();
+}
+
+// Sports club canteen with a flat roof and a little veranda.
+export function clubhouseGeometry() {
+  const B = new GeoBuilder();
+  const L = { trim: 0xece8de };
+  B.box(0, 1.6, 0, 16, 3.2, 9, 0x9a5a3e);
+  B.box(0, 3.35, 0, 16.6, 0.3, 9.6, 0x3a3e42);
+  for (const x of [-5, -1.5, 2, 5.5]) windowAt(B, x, 1.7, -4.5, 0, -1, 2.4, 1.4, L);
+  B.box(0, 2.6, -6, 14, 0.15, 3, 0x3a3e42);
+  for (const x of [-6.8, 0, 6.8]) B.box(x, 1.3, -7.3, 0.14, 2.6, 0.14, 0xd8d4c8);
+  B.box(-6, 5, 0, 0.1, 3.2, 0.1, 0xb8bcbc);
+  B.box(-6, 6.2, 0.45, 0.02, 0.8, 0.9, 0x2a6a3a);
+  return B.build();
+}
+
+export function lightMastGeometry() {
+  const B = new GeoBuilder();
+  B.geo(tubeGeometry([0, 0, 0], [0, 15, 0], 0.22, 0.14, 6), null, 0xa8aca8);
+  B.box(0.35, 15.2, 0, 0.4, 0.8, 2.2, 0x6a6e6e);
+  B.box(0.57, 15.2, 0, 0.05, 0.6, 2.0, 0xe8e8d8);
+  return B.build();
+}
+
+export function goalGeometry() {
+  const B = new GeoBuilder();
+  const W = 0xf2f2ea;
+  for (const s of [-1, 1]) {
+    B.box(0, 1.22, s * 3.66, 0.12, 2.44, 0.12, W);
+    B.geo(tubeGeometry([0, 2.44, s * 3.66], [-1.6, 0, s * 3.66], 0.04, 0.04, 4), null, 0xcfcfc6);
+  }
+  B.box(0, 2.44, 0, 0.12, 0.12, 7.44, W);
+  B.box(-0.9, 1.3, 0, 0.02, 2.4, 7.3, 0xdadad2);
+  return B.build();
+}
+
+// Geluidsscherm: unit length (along X) of panels between steel posts.
+export function barrierGeometry() {
+  const B = new GeoBuilder();
+  B.box(0, 1.9, 0, 1, 3.8, 0.22, 0x6f7f6a);
+  B.box(0, 4.1, 0, 1, 0.6, 0.12, 0xa8c0c0);
+  B.box(0, 0.25, 0, 1, 0.5, 0.3, 0x9a968c);
+  for (const x of [-0.5, 0.5]) B.box(x, 2.2, 0, 0.02, 4.4, 0.3, 0x5a5e60);
+  return B.build();
+}

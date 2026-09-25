@@ -5,6 +5,7 @@ import { onLandmarkModelLoaded } from './landmarkmodels.js';
 import { getSettings } from './settings.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement } from './achievements.js';
+import { saveGame } from './savegame.js';
 import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';
 
 const LEVEL_H = 3.1;
@@ -46,10 +47,19 @@ const ACH = {
 const CAR_ROOF = { van: 2.05, sport: 1.22, hatch: 1.45, sedan: 1.42, wagon: 1.5, escort: 1.38 };
 const LOFT_SPOT = { x: 265.2, y: -205.6 };
 
+const INTRO_S = 1.9;
+const CAM_BLEND_S = 0.7;
+const OUTRO_S = 2.6;
+
 let world = null;
 let scene = null;
 let active = false;
-let store = { best: 0, ach: [], home: false };
+let ready = false;
+let store = { best: 0, total: 0, ach: [], home: false };
+let intro = null;
+let outro = null;
+let camBlend = 0;
+let session = null;
 
 const P = {
   x: 0, y: 0, z: 30, yaw: 0, pitch: 0, roll: 0, speed: CRUISE, flapBoost: 0, pitchCmd: 0,
@@ -93,15 +103,36 @@ let hud = null;
 
 // --- storage ---------------------------------------------------------------
 
-function loadStore() {
+function sanitizeStore(d) {
+  return {
+    best: Math.max(0, Math.floor(Number(d.best) || 0)),
+    total: Math.max(0, Math.floor(Number(d.total) || 0)),
+    ach: Array.isArray(d.ach) ? d.ach.filter((a) => typeof a === 'string' && ACH[a]) : [],
+    home: !!d.home,
+  };
+}
+
+// Pigeon progress lives in the savegame; the old standalone-mode key is only
+// read once so earlier high scores carry over.
+function loadLegacyStore() {
   try {
     const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-    if (d && typeof d === 'object') store = { best: Number(d.best) || 0, ach: Array.isArray(d.ach) ? d.ach : [], home: !!d.home };
+    if (d && typeof d === 'object') store = sanitizeStore(d);
   } catch (e) { /* ignore */ }
 }
 
-function saveStore() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { /* ignore */ }
+export function getPigeonSaveData() {
+  return { ...store, ach: [...store.ach] };
+}
+
+export function applyPigeonSaveData(d) {
+  if (!d || typeof d !== 'object') return;
+  const s = sanitizeStore(d);
+  store = { best: Math.max(store.best, s.best), total: Math.max(store.total, s.total), ach: [...new Set([...store.ach, ...s.ach])], home: store.home || s.home };
+}
+
+export function isPigeonIntro() {
+  return !!intro;
 }
 
 // --- helpers ---------------------------------------------------------------
@@ -425,6 +456,7 @@ body.pigeon-mode #hud .hud-top-left, body.pigeon-mode #hud .hud-wanted, body.pig
 body.pigeon-mode #hud .hud-money-delta, body.pigeon-mode #hud .hud-weapon, body.pigeon-mode #hud .hud-mission,
 body.pigeon-mode #hud .hud-speedo, body.pigeon-mode #hud .hud-route,
 body.pigeon-mode #hud .hud-damage { display: none !important; }
+#pigeon-hud[hidden] { display: none; }
 #pigeon-hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; z-index: 5; }
 #pigeon-hud .ph-panel { position: absolute; top: 14px; left: 14px; min-width: 190px; padding: 10px 14px 12px; background: linear-gradient(160deg, rgba(12,20,14,0.78), rgba(12,20,14,0.5)); border-left: 4px solid #3fc97a; border-radius: 0 6px 6px 0; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 #pigeon-hud .ph-title { font-size: 26px; letter-spacing: 3px; color: #3fc97a; line-height: 1; text-shadow: 0 0 14px rgba(63,201,122,0.35); }
@@ -475,6 +507,7 @@ function initHudDom() {
       <div class="ph-row"><span>Snelheid</span><b data-spd>0 km/u</b></div>
       <div class="ph-row ph-score"><span>Poepscore</span><b data-score>0</b></div>
       <div class="ph-best" data-best></div>
+      <div class="ph-best" data-total></div>
       <div class="ph-combo" data-combo></div>
       <div class="ph-boost" data-boost hidden><i></i></div>
       <div class="ph-tag" data-tag></div>
@@ -487,7 +520,7 @@ function initHudDom() {
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
   hud = {
-    root, alt: q('[data-alt]'), spd: q('[data-spd]'), score: q('[data-score]'), best: q('[data-best]'), combo: q('[data-combo]'),
+    root, alt: q('[data-alt]'), spd: q('[data-spd]'), score: q('[data-score]'), best: q('[data-best]'), total: q('[data-total]'), combo: q('[data-combo]'),
     boost: q('[data-boost]'), boostFill: q('[data-boost] i'), tag: q('[data-tag]'), card: q('[data-card]'), pops: q('[data-pops]'),
     warn: q('[data-warn]'), sikkom: q('[data-sikkom]'), hints: q('[data-hints]'), hintKey: '', cardT: 0, sikkomT: 0, last: {},
   };
@@ -534,7 +567,8 @@ function updateHud(dt) {
   const spd = P.mode === 'fly' ? P.speed : P.mode === 'ride' && P.ride ? Math.abs(P.ride.v.speed || 0) : P.walkSpeed || 0;
   setText('spd', hud.spd, `${Math.round(spd * 3.6)} km/u`);
   setText('score', hud.score, String(score));
-  setText('best', hud.best, `Beste: ${Math.max(store.best, score)}`);
+  setText('best', hud.best, `Beste vlucht: ${Math.max(store.best, score)}`);
+  setText('total', hud.total, `Totaal: ${store.total + score}`);
   setText('combo', hud.combo, combo > 1 && elapsed < comboUntil ? `Combo x${Math.min(5, combo)}` : '');
   hud.boost.hidden = P.boostT <= 0;
   if (P.boostT > 0) hud.boostFill.style.transform = `scaleX(${(P.boostT / BOOST_S).toFixed(3)})`;
@@ -554,10 +588,11 @@ function updateHud(dt) {
     hud.hintKey = key;
     const zw = K('Q', flock.length ? 'zwerm wegsturen' : 'zwerm roepen');
     let html;
-    if (key.startsWith('fly')) html = K('Spatie', 'klapwieken') + K('Shift', 'duiken') + K('A / D', 'sturen') + K('W / S', 'sneller / langzamer') + K('E', 'landen') + K('F', 'poepen') + zw;
-    else if (key.startsWith('landing')) html = K('E', 'landen afbreken', true) + K('Spatie', 'klapwieken') + K('F', 'poepen');
-    else if (key.startsWith('ride')) html = K('Spatie', 'opstijgen') + K('A / D', 'draaien') + K('F', 'poepen') + K('C', 'koeren');
-    else html = K('WASD', 'lopen') + K('Spatie', 'opstijgen') + (key.startsWith('ground-food') ? K('E', 'patat pikken', true) : key.startsWith('ground-carry') ? K('E', 'opeten', true) : K('E', 'pikken')) + K('C', 'koeren') + K('F', 'poepen') + zw;
+    const stop = K('X', 'stoppen');
+    if (key.startsWith('fly')) html = K('Spatie', 'klapwieken') + K('Shift', 'duiken') + K('A / D', 'sturen') + K('W / S', 'sneller / langzamer') + K('E', 'landen') + K('F', 'poepen') + zw + stop;
+    else if (key.startsWith('landing')) html = K('E', 'landen afbreken', true) + K('Spatie', 'klapwieken') + K('F', 'poepen') + stop;
+    else if (key.startsWith('ride')) html = K('Spatie', 'opstijgen') + K('A / D', 'draaien') + K('F', 'poepen') + K('C', 'koeren') + stop;
+    else html = K('WASD', 'lopen') + K('Spatie', 'opstijgen') + (key.startsWith('ground-food') ? K('E', 'patat pikken', true) : key.startsWith('ground-carry') ? K('E', 'opeten', true) : K('E', 'pikken')) + K('C', 'koeren') + K('F', 'poepen') + zw + K('X', 'weer mens worden', true);
     hud.hints.innerHTML = html;
   }
   if (hud.cardT > 0 && (hud.cardT -= dt) <= 0) hud.card.classList.remove('on');
@@ -573,7 +608,7 @@ function addScore(base, label) {
   const pts = base * mult;
   score += pts;
   popup(`+${pts}`, mult > 1 ? `${label} x${mult}` : label);
-  if (score > store.best) { store.best = score; saveStore(); }
+  if (score > store.best) store.best = score;
   while (milestoneIdx < MILESTONES.length && score >= MILESTONES[milestoneIdx][0]) {
     sikkom(MILESTONES[milestoneIdx][1]);
     milestoneIdx++;
@@ -585,7 +620,7 @@ function achieve(id, line = '') {
   if (now < (achCd.get(id) || 0)) return false;
   achCd.set(id, now + 30);
   const fresh = !store.ach.includes(id);
-  if (fresh) { store.ach.push(id); saveStore(); }
+  if (fresh) store.ach.push(id);
   unlockAchievement(world, 'duif_' + id, { silent: true });
   card(fresh ? 'Nieuwe prestatie' : 'Prestatie', ACH[id], line);
   sfx('achievement', P.x, P.y, 0.7);
@@ -595,7 +630,7 @@ function achieve(id, line = '') {
 function checkPerch(floor) {
   if (floor.kind === 'loft') {
     if (achieve('loft', 'Duivenmelker Harm: "Moi mien jong! Hier bist thuis. Kom mor weer as t regent."')) {
-      if (!store.home) { store.home = true; saveStore(); world.addMessage('Thuis gevonden! Via het pauzemenu (Spel) vlieg je hierheen terug.', 5); }
+      if (!store.home) { store.home = true; world.addMessage('Thuis gevonden! Via het pauzemenu (Spel) vlieg je hierheen terug.', 5); }
       sfx('coo', P.x, P.y, 0.8);
     }
     return;
@@ -1243,6 +1278,19 @@ function initLoft() {
   loft = { x, y, mesh: g };
 }
 
+// A second duiventil somewhere in the city (the volkstuin trigger spot).
+export function addPigeonLoft(x, y, rotY = 0) {
+  const g = buildLoft();
+  g.position.set(x, 0, y);
+  g.rotation.y = rotY;
+  g.updateMatrixWorld(true);
+  scene.add(g);
+  const meshes = [];
+  g.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  extraColliders.push({ meshes, bounds: [x - 1.6, y - 1.6, x + 1.6, y + 1.6], kind: 'til' });
+  return g;
+}
+
 function goHome() {
   if (!store.home || !loft) return false;
   const a = -0.4 + Math.PI / 2;
@@ -1264,8 +1312,52 @@ function goHome() {
 
 // --- camera ----------------------------------------------------------------
 
+const smooth = (t) => t * t * (3 - 2 * t);
+
+// Intro: over the shoulder of Tammo/Anita at the pigeon, then down behind it.
+// First camera spot from `list` that is outside buildings and sees `to`.
+function openCamSpot(list, to) {
+  for (const c of list) {
+    if (surfaceAt(c.x, c.y, false).h > c.z - 0.4) continue;
+    const d = Math.hypot(to.x - c.x, to.y - c.y, to.z - c.z);
+    if (rayHitDistance(c.x, c.y, c.z, to.x, to.y, to.z) > d - 0.3) return c;
+  }
+  return list[list.length - 1];
+}
+
+function introShots(pl) {
+  const dx = P.x - pl.x, dy = P.y - pl.y, d = Math.hypot(dx, dy) || 1;
+  const ux = dx / d, uy = dy / d;
+  const bird = { x: P.x, y: P.y, z: P.z + 0.25 };
+  const a = [];
+  for (const [back, side, z] of [[2.4, 1.6, 2.5], [2.4, -1.6, 2.5], [1.4, 1.1, 2.3], [1.4, -1.1, 2.3], [0.6, 0.9, 2.6]]) {
+    a.push({ x: pl.x - ux * back - uy * side, y: pl.y - uy * back + ux * side, z });
+  }
+  const c = Math.cos(P.yaw), sn = Math.sin(P.yaw);
+  const b = [1.25, 0.8, 0.45].map((r) => ({ x: P.x - c * r, y: P.y - sn * r, z: P.z + 0.5 }));
+  return { a: openCamSpot(a, bird), b: openCamSpot(b, { x: P.x + c * 4, y: P.y + sn * 4, z: P.z + 1.1 }) };
+}
+
+function introCamera(w) {
+  const pl = w.player;
+  const k = smooth(clamp(intro.t / (INTRO_S * 0.85), 0, 1));
+  if (!intro.shots) intro.shots = introShots(pl);
+  const { x: ax, y: ay, z: az } = intro.shots.a;
+  const { x: bx, y: by, z: bz } = intro.shots.b;
+  const lx0 = P.x, ly0 = P.y, lz0 = P.z + 0.25;
+  const lx1 = P.x + Math.cos(P.yaw) * 4, ly1 = P.y + Math.sin(P.yaw) * 4, lz1 = P.z + 1.1;
+  const mix = (u, v) => u + (v - u) * k;
+  w.cameraOverride = {
+    position: { x: mix(ax, bx), y: mix(ay, by), z: mix(az, bz) + Math.sin(k * Math.PI) * 0.6 },
+    lookAt: { x: mix(lx0, lx1), y: mix(ly0, ly1), z: mix(lz0, lz1) },
+    fov: 55 + k * 5,
+    cut: false,
+  };
+}
+
 export function updatePigeonCamera(dt, w) {
   if (!active) return;
+  if (intro) { introCamera(w); return; }
   const flying = P.mode === 'fly';
   cam.yaw = angleLerp(cam.yaw, P.yaw, 1 - Math.exp(-(flying ? 3.2 : 5) * dt));
   if (flying) cam.pitchOff *= Math.exp(-2 * dt);
@@ -1319,7 +1411,8 @@ export function updatePigeonCamera(dt, w) {
     look = { x: fx + Math.cos(P.yaw) * lead, y: fy + Math.sin(P.yaw) * lead, z: fz + (flying ? P.pitch * 1.2 : 0.1) };
     fov = flying ? clamp(62 + (P.speed - CRUISE) * 0.9, 55, 82) : 58;
   }
-  w.cameraOverride = { position: { x: pos.x, y: pos.y, z: pos.z }, lookAt: look, fov, cut: true };
+  if (camBlend > 0) camBlend -= dt;
+  w.cameraOverride = { position: { x: pos.x, y: pos.y, z: pos.z }, lookAt: look, fov, cut: camBlend <= 0 };
 }
 
 // --- main ------------------------------------------------------------------
@@ -1342,6 +1435,9 @@ export function updatePigeonMode(dt, w) {
   if (!active) return;
   elapsed += dt;
   const pl = w.player;
+  const inp = w.input;
+  if (inp.wasPressed('x')) { inp.consume('x'); stopPigeonMode(w); return; }
+  if (intro) { updateIntro(dt, w); return; }
   if (Math.hypot(pl.x - lastSet.x, pl.y - lastSet.y) > 5) {
     P.x = pl.x; P.y = pl.y;
     syncProxies(P.x, P.y, true);
@@ -1350,7 +1446,6 @@ export function updatePigeonMode(dt, w) {
     cam.pos = null;
   }
   syncProxies(P.x, P.y);
-  const inp = w.input;
   if (P.mode === 'fly') updateFly(dt);
   else if (P.mode === 'ground') updateGround(dt);
   else updateRide(dt);
@@ -1381,6 +1476,193 @@ export function updatePigeonMode(dt, w) {
   updateHud(dt);
 }
 
+function updateIntro(dt, w) {
+  intro.t += dt;
+  const pl = w.player;
+  pl.angle = angleLerp(pl.angle, Math.atan2(P.y - pl.y, P.x - pl.x), Math.min(1, dt * 6));
+  pl.vx = 0; pl.vy = 0;
+  if (!intro.pecked && intro.t > 0.3) { intro.pecked = true; P.peckT = 0.35; sfx('coo', P.x, P.y, 0.8); }
+  if (!intro.hopped && intro.t > 0.95) { intro.hopped = true; P.peckT = 0.3; }
+  placePigeonMesh(dt);
+  if (intro.t >= INTRO_S) beginFlight(w);
+}
+
+// Take-off heading: close to `pref`, but towards open sky rather than a facade.
+function clearestYaw(pref) {
+  let best = pref, bestScore = -Infinity;
+  for (let i = 0; i < 16; i++) {
+    const a = pref + (i / 16) * Math.PI * 2;
+    let clear = 0;
+    for (let d = 2; d <= 32; d += 2) {
+      if (surfaceAt(P.x + Math.cos(a) * d, P.y + Math.sin(a) * d, false).h > P.z + 1 + d * 0.8) break;
+      clear = d;
+    }
+    const score = clear - Math.abs(normalizeAngle(a - pref)) * 3;
+    if (score > bestScore) { bestScore = score; best = a; }
+  }
+  return best;
+}
+
+function beginFlight(w) {
+  intro = null;
+  w.pigeonIntro = false;
+  const pl = w.player;
+  pl.x = lastSet.x = P.x;
+  pl.y = lastSet.y = P.y;
+  takeOff(5);
+  P.pitch = 0.75;
+  P.flapBoost = 7;
+  cam.yaw = P.yaw;
+  cam.pitchOff = 0;
+  cam.pos = null;
+  camBlend = CAM_BLEND_S;
+  hud.root.hidden = false;
+  hud.hintKey = '';
+  w.addMessage(pick(['Moi duuf! Grunn is van joe.', 'Roekoe! De wijk ligt aan je pootjes.', 'Vleugels uit, poep klaar.']) + ' X om weer mens te worden.', 4);
+}
+
+// Where Tammo/Anita reappear: right below the pigeon if that is open, walkable
+// ground; otherwise (roof, water, closed-off courtyard) the nearest street.
+function landingSpot(map) {
+  const f = surfaceAt(P.x, P.y, false);
+  if (f.kind === 'ground' && f.h < 0.3 && !isInWater(map, P.x, P.y)) {
+    const [x, y] = map.escapeBuilding(P.x, P.y);
+    if (!isInWater(map, x, y) && map.canWalkOut(x, y, 40)) return { x, y };
+  }
+  const dry = (x, y) => !isInWater(map, x, y) || map.isOnBridge(x, y);
+  const s = map.findOpenSpawn(P.x, P.y, 400);
+  if (s && dry(s.x, s.y)) return { x: s.x, y: s.y };
+  // kade roads often overlap the canal polygon: walk the nearby street points
+  // outwards until one is dry, outside buildings and not a closed courtyard
+  const cands = [];
+  for (const road of map.roadsNear(P.x, P.y, 150)) {
+    const pts = road.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+      const n = Math.max(1, Math.round(Math.hypot(bx - ax, by - ay) / 4));
+      for (let k = 0; k <= n; k++) {
+        const x = ax + ((bx - ax) * k) / n, y = ay + ((by - ay) * k) / n;
+        cands.push({ x, y, d: Math.hypot(x - P.x, y - P.y) });
+      }
+    }
+  }
+  cands.sort((u, v) => u.d - v.d);
+  let tries = 0;
+  for (const c of cands) {
+    const [x, y] = map.escapeBuilding(c.x, c.y);
+    if (!dry(x, y)) continue;
+    if (map.canWalkOut(x, y, 40)) return { x, y };
+    if (++tries > 20) break;
+  }
+  return session ? { x: session.startX, y: session.startY } : { x: P.x, y: P.y };
+}
+
+function placeCompanion(w, x, y, angle) {
+  const c = w.companion;
+  if (!c) return;
+  const map = w.map;
+  if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
+  let spot = null;
+  for (const r of [0.9, 1.8, 3]) {
+    for (const side of [1, -1, 2, 0]) {
+      const a = angle + side * Math.PI / 2;
+      const [cx, cy] = map.escapeBuilding(x + Math.cos(a) * r, y + Math.sin(a) * r);
+      if (!isInWater(map, cx, cy)) { spot = [cx, cy]; break; }
+    }
+    if (spot) break;
+  }
+  [c.x, c.y] = spot || [x, y];
+  c.vx = 0; c.vy = 0; c.z = 0; c.vz = 0;
+  c.angle = angle;
+  c.water = null; c.swimming = false; c.climb = null;
+  if (c.state === 'dead') { c.state = 'alive'; c.health = 100; }
+}
+
+function clearFlightProps() {
+  for (const d of drops) scene.remove(d.mesh);
+  drops.length = 0;
+  for (const f of foods) scene.remove(f.mesh);
+  foods.length = 0;
+  for (const b of flock) scene.remove(b.mesh);
+  flock.length = 0;
+  if (gull) { scene.remove(gull.mesh); gull = null; }
+  if (P.carry) dropCarry();
+  P.ride = null;
+  P.boostT = 0;
+  for (let i = decals.length - 1; i >= 0; i--) if (decals[i].v) { scene.remove(decals[i].mesh); decals.splice(i, 1); }
+}
+
+// Ends the pigeon activity: Tammo/Anita (and the companion) step out at the
+// spot below the pigeon and normal play resumes; the pigeon flutters off.
+export function stopPigeonMode(w = world) {
+  if (!active) return false;
+  const map = w.map;
+  const pl = w.player;
+  const spot = intro && session ? { x: session.startX, y: session.startY } : landingSpot(map);
+  const flew = !intro;
+  active = false;
+  intro = null;
+  w.pigeonMode = false;
+  w.pigeonIntro = false;
+  document.body.classList.remove('pigeon-mode');
+  hud.root.hidden = true;
+  hud.card.classList.remove('on');
+  hud.sikkom.classList.remove('on');
+  hud.pops.textContent = '';
+  store.total += score;
+  if (score > store.best) store.best = score;
+  clearFlightProps();
+
+  const angle = flew ? P.yaw : pl.angle;
+  pl.x = lastSet.x = spot.x;
+  pl.y = lastSet.y = spot.y;
+  pl.angle = angle;
+  pl.vx = 0; pl.vy = 0; pl.z = 0; pl.vz = 0;
+  pl.inVehicle = null;
+  pl.water = null; pl.swimming = false; pl.climb = null;
+  placeCompanion(w, spot.x, spot.y, angle);
+  w.cameraOverride = null;
+  w.input.reset();
+
+  if (flew) {
+    outro = { t: 0, x: P.x, y: P.y, z: Math.max(P.z, surfaceAt(P.x, P.y, false).h), yaw: P.yaw };
+    const who = pl.character === 'anita' ? 'Anita' : 'Tammo';
+    const wijk = wijkAt(map, spot.x, spot.y);
+    w.addMessage(`Weer ${who}${wijk ? ' in ' + wijk : ''}. ${score} poeppunten deze vlucht (totaal ${store.total}).`, 4.5);
+    sfx('flap', P.x, P.y, 0.8);
+    saveGame(w);
+  } else {
+    pigeon.visible = false;
+    shadow.visible = false;
+  }
+  session = null;
+  return true;
+}
+
+function wijkAt(map, x, y) {
+  let best = null, bd = 900;
+  for (const p of map.meta.neighbourhoodPoints || []) {
+    const d = Math.hypot(p.x - x, p.y - y);
+    if (d < bd) { bd = d; best = p.name; }
+  }
+  return best;
+}
+
+// The pigeon that was just "you" flies off once you're human again.
+export function updatePigeonAfterglow(dt) {
+  if (!outro || active) return;
+  const o = outro;
+  o.t += dt;
+  o.z += dt * (2.5 + o.t * 3);
+  o.x += Math.cos(o.yaw) * dt * 7;
+  o.y += Math.sin(o.yaw) * dt * 7;
+  pigeon.position.set(o.x, o.z, o.y);
+  pigeon.rotation.set(0, -o.yaw, 0.5);
+  poseBird(pigeon, { flapPhase: o.t * 12, amp: 1, fold: 0, grounded: false });
+  shadow.visible = false;
+  if (o.t > OUTRO_S) { pigeon.visible = false; outro = null; }
+}
+
 function coo() {
   P.peckT = 0.3;
   sfx('coo', P.x, P.y, 0.9);
@@ -1392,49 +1674,85 @@ function coo() {
   }
 }
 
-// Registered before phone.js so T can't open the phone while flying.
-export function initPigeonGuards(w) {
+// Registered before phone.js so T can't open the phone while flying. Also
+// builds the (hidden) pigeon, the loft and the HUD once, so the activity can
+// start at any time during normal play.
+export function initPigeonMode(w) {
+  world = w;
+  scene = getScene();
   window.addEventListener('keydown', (e) => {
     if (!w.pigeonMode) return;
     const k = e.key.toLowerCase();
     if (k === 't') { e.stopImmediatePropagation(); return; }
-    if (e.ctrlKey && ['f', 'e', 'q', 'c', 'd', 's'].includes(k)) e.preventDefault();
+    if (e.ctrlKey && ['f', 'e', 'q', 'c', 'd', 's', 'x'].includes(k)) e.preventDefault();
   }, true);
-}
-
-export function startPigeonMode(w) {
-  world = w;
-  scene = getScene();
-  active = true;
-  loadStore();
-  w.pigeonMode = true;
-  document.body.classList.add('pigeon-mode');
-  w.mission = null;
-  w.wanted = 0;
-  w.weapon = 'fists';
-  w.messages = [];
-  w.pigeonActions = { home: goHome, hasHome: () => store.home };
-  if (window.__debug) window.__debug.pigeon = { P, cam, surfaceAt, foods, flock, get gull() { return gull; }, spawnGull, spawnFood };
+  loadLegacyStore();
+  w.pigeonActions = { home: goHome, hasHome: () => store.home, stop: () => stopPigeonMode(w) };
   onLandmarkModelLoaded((name) => { for (const b of [...proxies.keys()]) if (b.name === name || b.landmark === name) proxies.delete(b); });
-
   pigeon = buildBird('pigeon');
+  pigeon.visible = false;
   scene.add(pigeon);
   shadow = new THREE.Mesh(new THREE.CircleGeometry(0.4, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false }));
   shadow.rotation.x = -Math.PI / 2;
+  shadow.visible = false;
   scene.add(shadow);
   initLoft();
   initHudDom();
+  hud.root.hidden = true;
+  ready = true;
+}
 
-  const lm = w.map.meta.landmarks || [];
-  const gm = lm.find((l) => l.name === 'Grote Markt') || { x: w.player.x, y: w.player.y };
-  const mt = lm.find((l) => l.name === 'Martinitoren') || { x: gm.x + 50, y: gm.y };
-  P.x = gm.x - 30; P.y = gm.y + 25; P.z = 34;
-  P.yaw = Math.atan2(mt.y - P.y, mt.x - P.x);
-  cam.yaw = P.yaw;
-  syncProxies(P.x, P.y, true);
-  w.player.x = lastSet.x = P.x;
-  w.player.y = lastSet.y = P.y;
-  w.player.inVehicle = null;
-  w.addMessage('Moi duuf! Grunn is van joe. Vlieg naar de Martinitoren!', 5);
+export function isPigeonActive() {
+  return active;
+}
+
+export { buildBird as buildPigeonBird, poseBird as posePigeonBird };
+
+// Starts the pigeon activity. With a spot ({ x, y }: where a pigeon sits near
+// Tammo/Anita) there is a short intro before it takes off from there; without
+// one the pigeon starts in the air above the player.
+export function startPigeonMode(w, spot = null) {
+  if (active || !ready) return false;
+  world = w;
+  if (window.__debug) window.__debug.pigeon = { P, cam, surfaceAt, foods, flock, get gull() { return gull; }, spawnGull, spawnFood, addScore, store: () => store };
+  const pl = w.player;
+  if (pl.inVehicle) return false;
+  if (outro) { outro = null; }
+  active = true;
+  w.pigeonMode = true;
+  w.pigeonIntro = !!spot;
+  document.body.classList.add('pigeon-mode');
+  score = 0; combo = 0; comboUntil = 0; milestoneIdx = 0;
+  P.boostT = 0; P.carry = null; P.ride = null; P.landing = false; P.peckT = 0; P.roll = 0; P.yawRate = 0; P.pitchCmd = 0;
+  poopCd = 0;
+  prevMouseDown = w.input.mouse.down;
+  session = { startX: pl.x, startY: pl.y };
+  pigeon.visible = true;
+  hud.hintKey = '';
+  hud.root.hidden = true;
+  w.cameraOverride = null;
+
+  if (spot) {
+    P.x = spot.x; P.y = spot.y;
+    syncProxies(P.x, P.y, true);
+    const floor = surfaceAt(P.x, P.y, false).h;
+    P.z = floor < 1.2 ? Math.max(0, floor) : 0;
+    P.mode = 'ground';
+    P.yaw = clearestYaw(Math.atan2(P.y - pl.y, P.x - pl.x));
+    P.speed = 0; P.pitch = 0; P.flapBoost = 0; P.fold = 1; P.flapAmp = 0; P.walkPhase = 0;
+    intro = { t: 0 };
+    placePigeonMesh(0);
+    const who = pl.character === 'anita' ? 'Anita' : 'Tammo';
+    w.addMessage(pick([`${who} kiekt de duif diep in de ogen…`, `${who} wordt wel heel stil van die duif…`, `Roekoe? ${who} voelt zich ineens heel licht…`]), 2.5);
+  } else {
+    intro = null;
+    P.x = pl.x; P.y = pl.y;
+    syncProxies(P.x, P.y, true);
+    P.z = surfaceAt(P.x, P.y).h + 25;
+    P.yaw = pl.angle;
+    P.mode = 'fly'; P.speed = CRUISE; P.pitch = 0;
+    beginFlight(w);
+  }
   updatePigeonCamera(0.016, w);
+  return true;
 }

@@ -4,6 +4,8 @@ import { WEAPONS } from './combat.js';
 import { isCinematicActive } from './cinematics.js';
 import { getShopSave, applyShopSave } from './shops.js';
 import { getAchievementSaveData, applyAchievementSaveData } from './achievements.js';
+import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
+import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
@@ -65,6 +67,8 @@ function serialize(w) {
     visitedLandmarks: [...(w.visitedLandmarks instanceof Set ? w.visitedLandmarks : [])],
     shops: getShopSave(),
     prestaties: getAchievementSaveData(),
+    duif: getPigeonSaveData(),
+    bijbaan: getSideJobSave(),
   };
 }
 
@@ -96,6 +100,9 @@ function placeAt(w, x, y) {
   p.y = sy;
   p.vx = 0;
   p.vy = 0;
+  p.z = 0;
+  p.vz = 0;
+  p.gz = 0;
   const c = w.companion;
   if (c) {
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
@@ -138,6 +145,8 @@ export function applySave(w, d) {
     w.visitedLandmarks = new Set(Array.isArray(d.visitedLandmarks) ? d.visitedLandmarks.filter((s) => typeof s === 'string') : []);
     applyShopSave(w, d.shops);
     applyAchievementSaveData(d.prestaties);
+    applyPigeonSaveData(d.duif);
+    applySideJobSave(w, d.bijbaan);
     w.loadedFromSave = true;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
     lastMissionsDone = w.stats.missionsDone;

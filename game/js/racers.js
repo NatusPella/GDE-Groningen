@@ -25,9 +25,9 @@ const RIVALS = [
   { base: 'hatch', color: '#f2efe6', top: 1.12, skill: 0.93 },
 ];
 
-function modelFor(base, color, topScale = 1) {
+function modelFor(base, color, topScale = 1, accelScale = 1) {
   const m = MODELS.find((q) => q.name === base) || MODELS[0];
-  return { ...m, color, maxSpeed: m.maxSpeed * topScale };
+  return { ...m, color, maxSpeed: m.maxSpeed * topScale, accel: m.accel * accelScale };
 }
 
 function inBuilding(map, x, y, pad) {
@@ -143,7 +143,10 @@ function project(t, px, py, from, count) {
 const wrap = (d, L) => d - Math.round(d / L) * L;
 
 // cps: indices into the route, cps[0] = start/finish line.
-export function createRace(world, route, cps) {
+// opts.topScale / opts.accelScale: tuned-up race cars (the handed-out car and
+// the rivals) for a long, fast track like the full ringweg.
+export function createRace(world, route, cps, opts = {}) {
+  const topScale = opts.topScale || 1, accelScale = opts.accelScale || 1;
   const track = buildTrack(world.map, route);
   const cpS = cps.map((i) => track.s[i]);
   const race = { track, cpS, rivals: [], phase: 'grid', timer: 0, playerProg: 0, playerCar: null, finishers: 0, playerPos: 0, lastBeat: -1 };
@@ -167,7 +170,8 @@ export function createRace(world, route, cps) {
     const lat = playerLat > 0 ? -GRID_LANE : GRID_LANE;
     const spot = { x: at.x + at.nx * lat, y: at.y + at.ny * lat };
     const ang = Math.atan2(-at.nx, at.ny);
-    const v = new Vehicle(spot.x, spot.y, ang, modelFor('sport', '#c8102e'));
+    const v = new Vehicle(spot.x, spot.y, ang, modelFor('sport', '#c8102e', topScale, accelScale));
+    v.z = world.map.spawnZ(spot.x, spot.y);
     // handed to the player: never counts as theft, before or after the race
     v.missionCar = true;
     world.vehicles.push(v);
@@ -196,7 +200,8 @@ export function createRace(world, route, cps) {
   }
   slots.forEach((q, k) => {
     const def = RIVALS[k];
-    const v = new Vehicle(q.x, q.y, q.ang, modelFor(def.base, def.color, def.top));
+    const v = new Vehicle(q.x, q.y, q.ang, modelFor(def.base, def.color, def.top * topScale, accelScale));
+    v.z = world.map.spawnZ(q.x, q.y);
     v.racer = true;
     v.missionCar = true;
     v.driver = 'racer';
@@ -280,10 +285,13 @@ function steerTo(v, tx, ty) {
   return Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(curv / maxCurvature(v), -1, 1);
 }
 
-function respawnOnTrack(r, t) {
+function respawnOnTrack(r, t, map) {
   const at = sample(t, r.sLap);
   r.v.x = at.x + at.nx * at.off;
   r.v.y = at.y + at.ny * at.off;
+  r.v.z = map.spawnZ ? map.spawnZ(r.v.x, r.v.y) : 0;
+  r.v.vz = 0;
+  r.v.airborne = false;
   r.v.angle = Math.atan2(-at.nx, at.ny);
   r.v.speed = 8;
   r.v.driftX = r.v.driftY = r.v.yawVel = 0;
@@ -317,7 +325,7 @@ function driveRival(r, dt, world, race) {
   const pdist = Math.hypot((player.inVehicle || player).x - v.x, (player.inVehicle || player).y - v.y);
 
   if (far.dist > 30 || r.stuckCount > 3) {
-    if (pdist > 70) { respawnOnTrack(r, t); return; }
+    if (pdist > 70) { respawnOnTrack(r, t, world.map); return; }
   }
 
   if (r.reverseT > 0) {
@@ -372,6 +380,9 @@ function driveRival(r, dt, world, race) {
 
   if (sp < 1.5 && vT > 4) r.stuckT += dt;
   else r.stuckT = Math.max(0, r.stuckT - dt * 2);
+  // creeping along a wall without getting anywhere counts as stuck too
+  if (r.progAt === undefined || r.prog - r.progMark > 12) { r.progMark = r.prog; r.progAt = world.time; }
+  else if (world.time - r.progAt > 6) { r.progAt = world.time; r.stuckCount += 2; r.reverseT = 1.1; }
   if (r.stuckT > 1.8) {
     r.stuckT = 0;
     r.reverseT = 1.1;

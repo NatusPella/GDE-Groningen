@@ -5,6 +5,8 @@ import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './
 import { getClockText } from './hud_panel.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel, missionRecordHTML } from './achievementsui.js';
+import { getSideJobList } from './sidejobs.js';
+import { setUserWaypoint } from './routing.js';
 
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
@@ -15,7 +17,7 @@ const CONTROLS = [
   ['Shift', 'rennen'],
   ['Spatie', 'springen / handrem'],
   ['Ctrl', 'bukken'],
-  ['E / F', 'instappen / uitstappen / kusje / winkel in'],
+  ['E / F', 'instappen / uitstappen / kusje / winkel in / word een duif (bij een duivenbord) / bijbaantje beginnen'],
   ['R', 'nieuwe lak (stilstaand bij Spuit & Klaar)'],
   ['Muisklik', 'aanvallen / schieten'],
   ['1–4', 'vuisten / pistool / uzi / hagelgeweer'],
@@ -26,6 +28,7 @@ const CONTROLS = [
   ['V', 'filmcamera (tijdens het rijden)'],
   ['M', 'kaart (in het menu)'],
   ['U', 'geluid aan/uit'],
+  ['X', 'als duif: weer mens worden'],
   ['Esc', 'menu'],
   ['Q / E', 'tabblad wisselen (in het menu)'],
 ];
@@ -86,6 +89,8 @@ export function initPauseMenu(w) {
       <section data-panel="missions" class="pm-panel pm-col" hidden><div class="pm-inner">
         <h2>Missies <small data-info="progress"></small></h2>
         <div class="pm-missions"></div>
+        <h2>Bijbaantjes <small>geld verdienen tussendoor</small></h2>
+        <div class="pm-missions pm-jobs"></div>
       </div></section>
       <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner"></div></section>
       <section data-panel="settings" class="pm-panel pm-col" hidden><div class="pm-inner">
@@ -144,7 +149,9 @@ export function initPauseMenu(w) {
         <button type="button" class="pm-secondary" data-action="save">Opslaan</button>
         <button type="button" class="pm-secondary" data-action="load">Laatste save laden</button>
         <button type="button" class="pm-secondary" data-action="restart">Opnieuw beginnen</button>
+        <button type="button" class="pm-secondary" data-action="pigeon-stop" data-pigeon hidden>Duif-modus stoppen</button>
         <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
+        <button type="button" class="pm-secondary" data-action="job-stop" hidden>Bijbaantje stoppen</button>
         <button type="button" class="pm-secondary" data-action="menu" data-both>Terug naar hoofdmenu</button>
         ${DESKTOP ? '<button type="button" class="pm-danger" data-action="exit" data-both>Spel afsluiten</button>' : ''}
         <div class="pm-confirm" hidden>
@@ -172,6 +179,8 @@ export function initPauseMenu(w) {
     if (st) return showSubtab(st.dataset.subtab);
     const m = e.target.closest('[data-mission]');
     if (m) return chooseMission(Number(m.dataset.mission));
+    const j = e.target.closest('[data-job]');
+    if (j) return chooseJob(j.dataset.job);
     const action = e.target.closest('[data-action]');
     if (action) runAction(action.dataset.action);
   });
@@ -243,13 +252,18 @@ function runAction(a) {
     confirmEl.querySelector('button').focus();
   } else if (a === 'cancel') confirmEl.hidden = true;
   else if (a === 'menu' || a === 'exit') {
-    // normal mode keeps its progress: save, then back to the title screen
-    // (Doorgaan) or close the app; pigeon mode has nothing to keep
-    if (world && !world.pigeonMode) saveGame(world);
+    // save, then back to the title screen (Doorgaan) or close the app; a
+    // pigeon first turns back into Tammo/Anita so the save has a street spot
+    if (world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
+    if (world) saveGame(world);
     if (a === 'exit' && DESKTOP) DESKTOP.quit();
     else location.reload();
   }
-  else if (a === 'pigeon-home') {
+  else if (a === 'pigeon-stop') {
+    if (world.pigeonActions && world.pigeonActions.stop()) setOpen(false);
+  } else if (a === 'job-stop') {
+    if (world.sideJobActions && world.sideJobActions.stop()) setOpen(false);
+  } else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
     clearSave();
@@ -262,6 +276,17 @@ function runAction(a) {
 
 function status(text) {
   root.querySelector('.pm-status').textContent = text;
+}
+
+function chooseJob(id) {
+  const j = getSideJobList().find((x) => x.id === id);
+  if (!j) return;
+  if (!j.active) {
+    setUserWaypoint(j.x, j.y, j.name);
+    world.addMessage(`Route naar bijbaantje ${j.name}`, 3);
+  }
+  showTab('map');
+  setMapView(j.x, j.y, 3);
 }
 
 function chooseMission(i) {
@@ -320,6 +345,11 @@ function renderMissions() {
   const list = getMissionList();
   const done = list.filter((m) => m.status === 'geklaard').length;
   root.querySelector('[data-info="progress"]').textContent = `${done}/${list.length} geklaard`;
+  root.querySelector('.pm-jobs').innerHTML = getSideJobList().map((j, i) =>
+    `<button type="button" class="pm-mission" data-job="${j.id}" data-status="${j.active ? 'actief' : j.rounds ? 'geklaard' : 'open'}">` +
+    `<span class="pm-m-num">${i + 1}</span>` +
+    `<span class="pm-m-text"><b>${esc(j.name)}</b><small>${esc(j.blurb)} · niveau ${j.level}: ${esc(j.title)}${j.bestStreak ? ` · record ${j.bestStreak} op rij` : ''}</small></span>` +
+    `<span class="pm-m-chip">${j.active ? 'Bezig' : 'Route'}</span></button>`).join('');
   root.querySelector('.pm-missions').innerHTML = list.map((m) =>
     `<button type="button" class="pm-mission" data-mission="${m.index}" data-status="${m.status}">` +
     `<span class="pm-m-num">${m.index + 1}</span>` +
@@ -328,7 +358,7 @@ function renderMissions() {
 }
 
 function syncGamePanel() {
-  if (world && world.pigeonMode) { status('Duif-modus: er wordt niks opgeslagen.'); return; }
+  if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om op te slaan; je poepscore gaat mee in je save.'); return; }
   const saved = hasSave();
   for (const b of root.querySelectorAll('[data-action="load"]')) b.disabled = !saved;
   const s = getSaveSummary();
@@ -365,6 +395,10 @@ function showTab(name) {
     const pigeon = !!(world && world.pigeonMode);
     for (const b of root.querySelectorAll('.pm-game > [data-action]')) b.hidden = b.hasAttribute('data-both') ? false : b.hasAttribute('data-pigeon') ? !pigeon : pigeon && b.dataset.action !== 'resume';
     if (pigeon) root.querySelector('[data-action="pigeon-home"]').hidden = !(world.pigeonActions && world.pigeonActions.hasHome());
+    const jobStop = root.querySelector('[data-action="job-stop"]');
+    const jobOn = !!(world && world.sideJobActions && world.sideJobActions.active());
+    jobStop.hidden = !jobOn;
+    if (jobOn) jobStop.textContent = `Stoppen met ${world.sideJobActions.name()}`;
     root.querySelector('.pm-confirm').hidden = true;
     root.querySelector('.pm-status').textContent = '';
     syncGamePanel();

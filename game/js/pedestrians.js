@@ -147,6 +147,7 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
   while (peds.length < count && attempts < count * 25) {
     attempts++;
     const road = roads[Math.floor(rng() * roads.length)];
+    if (road.z) continue; // nobody strolls along the ring's viaducts and cuttings
     const pts = road.pts;
     const i = Math.floor(rng() * (pts.length - 1));
     const a = pts[i], b = pts[i + 1];
@@ -163,6 +164,7 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
     const d = dist(fx, fy, x, y);
     if (d > maxDist || d < minDist) continue;
     if (isInsideBuilding(map, fx, fy) || isInWater(map, fx, fy)) continue;
+    if (map.offStreetLevel && map.offStreetLevel(fx, fy)) continue;
     if (view && !isSpawnHidden(spawnWorld, fx, fy)) continue;
 
     peds.push(new Pedestrian(fx, fy, segAngle + (rng() < 0.5 ? 0 : Math.PI)));
@@ -742,6 +744,7 @@ function checkVehicleImpact(ped, world) {
   for (const v of world.vehicles) {
     if (v.isBoat || v.sinking) continue;
     if (Math.abs(v.x - ped.x) > v.halfLen + 1 || Math.abs(v.y - ped.y) > v.halfLen + 1) continue;
+    if (Math.abs((v.z || 0) - (ped.gz || 0)) > 2) continue;
     const push = pushCircleOutOfVehicle(ped.x, ped.y, ped.radius, v);
     if (!push) continue;
     if (v.wrecked || Math.abs(v.speed) < VEHICLE_HIT_SPEED) {
@@ -1020,7 +1023,7 @@ export function updatePedestrians(dt, world) {
       const vx = Math.cos(ped.angle) * ped.speed, vy = Math.sin(ped.angle) * ped.speed;
       let nx = ped.x + vx * dt;
       let ny = ped.y + vy * dt;
-      [nx, ny] = resolveWalker(nx, ny, ped.radius, map, vx, vy, ped.nav && ped.nav.sit ? PED_SEAT_OPTS : PED_OPTS);
+      [nx, ny] = resolveWalker(nx, ny, ped.radius, map, vx, vy, ped.nav && ped.nav.sit ? PED_SEAT_OPTS : PED_OPTS, ped.gz || 0);
       if (!isInWater(map, ped.x, ped.y) && isInWater(map, nx, ny)) {
         if (!isInWater(map, nx, ped.y)) ny = ped.y;
         else if (!isInWater(map, ped.x, ny)) nx = ped.x;
@@ -1028,6 +1031,7 @@ export function updatePedestrians(dt, world) {
       }
       ped.x = nx;
       ped.y = ny;
+      if (map.elev && map.elev.has) ped.gz = map.groundHeightAt(nx, ny, ped.gz || 0);
     }
 
     checkBump(ped, world);

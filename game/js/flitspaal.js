@@ -29,7 +29,7 @@ function makeCamera(road, p) {
 }
 
 export function initFlitspaal(world) {
-  const roads = world.map.roads.filter((r) => (r.cat === 'major' || r.cat === 'normal') && r.pts && r.pts.length >= 5);
+  const roads = world.map.roads.filter((r) => (r.cat === 'major' || r.cat === 'normal') && !r.z && r.pts && r.pts.length >= 5);
   const shuffled = roads.slice().sort(() => Math.random() - 0.5);
   const cams = [];
   const used = new Set();

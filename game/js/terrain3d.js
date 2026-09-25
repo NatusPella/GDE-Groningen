@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { polygonBounds } from './util.js';
 import { createWaterIndex } from './waterindex.js';
 import { COUNTRY_GLSL, COUNTRY_UNIFORMS, setCountryBounds } from './countryfield.js';
+import { applyCutMask } from './cutmask3d.js';
 
 // Replaces the old flat 2-triangle "fallback floor" PlaneGeometry(6000,6000)
 // + single-color MeshLambertMaterial that used to live in scene3d.js's
@@ -164,6 +165,8 @@ export function createTerrainMaterial() {
     shader.__terrain = true;
     wetOnBeforeCompile(shader);
   };
+  // no ground over the open cuttings of the sunken ring road
+  applyCutMask(material, 'vWetXZ');
   return material;
 }
 

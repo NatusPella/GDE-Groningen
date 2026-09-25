@@ -122,7 +122,7 @@ export function openShopMenu(w, s) {
   panel.style.setProperty('--shop', s.color);
   root.querySelector('#shop-title').textContent = s.name;
   root.querySelector('.sm-tag').textContent = s.tagline || '';
-  root.querySelector('.sm-icon').src = shopIconUrl(s.type, 92);
+  root.querySelector('.sm-icon').src = s.icon || shopIconUrl(s.type, 92);
   setStatus('', '');
   root.classList.add('visible');
   render();
@@ -147,14 +147,14 @@ function currentItems() {
 
 function priceHtml(it) {
   const chip = it.tag ? `<span class="sm-chip">${esc(it.tag)}</span>` : '';
-  const price = it.price > 0 ? `<b>€${it.price}</b>` : '<b class="free">Gratis</b>';
+  const price = it.income > 0 ? `<b class="free">+€${it.income}</b>` : it.price > 0 ? `<b>€${it.price}</b>` : it.disabled ? '' : '<b class="free">Gratis</b>';
   const reason = it.disabled ? `<small class="no">${esc(it.disabled)}</small>` : '';
   return chip + (it.disabled && it.tag ? '' : price) + reason;
 }
 
 function swatchHtml(it) {
   if (it.swatch && it.swatch.length) return it.swatch.map((c) => `<i style="background:${esc(c)}"></i>`).join('');
-  return `<img src="${shopIconUrl(shop.type, 60)}" alt="">`;
+  return `<img src="${shop.icon || shopIconUrl(shop.type, 60)}" alt="">`;
 }
 
 function render() {
