@@ -119,13 +119,16 @@ function hitsBuilding(map, b) {
   return false;
 }
 
+// cars take a bit longer to shoot to a wreck than raw bullet damage implies
+const BULLET_VEHICLE_SCALE = 0.6;
+
 function hitVehicles(world, b) {
   for (const v of world.vehicles) {
     if (v.wrecked) continue;
     if (b.owner === 'police' && v.isPolice && !v.hijacked) continue;
     if (b.owner === 'player' && v.driver === 'player') continue;
     if (Math.hypot(v.x - b.x, v.y - b.y) > v.halfLen) continue;
-    v.health -= b.damage;
+    v.health -= b.damage * BULLET_VEHICLE_SCALE;
     if (v.health <= 0) wreckVehicle(world, v, b.owner === 'player');
     return true;
   }

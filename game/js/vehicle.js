@@ -1273,6 +1273,9 @@ const IMPACT_EVENT_SPEED = 1.5;
 const HARD_HIT_CLOSING_SPEED = 3; // m/s of closing speed before a hit counts as "hard" (sparks/damage)
 const IMPACT_DAMAGE_PER_MPS = 3.5;
 const MAX_IMPACT_DAMAGE = 30;
+// Cars should survive a fair amount of GTA-style driving: every collision
+// (cars, walls, props) does this fraction of its raw damage.
+export const CRASH_DAMAGE_SCALE = 0.4;
 const WALL_DAMAGE_SPEED = 7;
 const MAX_WALL_DAMAGE = 20;
 const SCRAPE_SPEED = 3;
@@ -1351,7 +1354,7 @@ function tangentialSpeed(a, b, nx, ny) {
 
 function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
-  v.health = Math.max(0, v.health - dmg);
+  v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
   if (v.health <= 0) {
     v.wrecked = true;
     v.speed = 0;
