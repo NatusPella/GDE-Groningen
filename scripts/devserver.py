@@ -14,6 +14,26 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
     # (intermittent net::ERR_CONNECTION_RESET on page load).
     protocol_version = "HTTP/1.1"
 
+    # Python reads MIME types from the Windows registry, which on some PCs
+    # maps .js to text/plain - browsers then refuse to run ES modules. Pin
+    # the types the game needs so it works the same on every OS.
+    extensions_map = {
+        **http.server.SimpleHTTPRequestHandler.extensions_map,
+        ".js": "text/javascript",
+        ".mjs": "text/javascript",
+        ".css": "text/css",
+        ".html": "text/html",
+        ".json": "application/json",
+        ".wasm": "application/wasm",
+        ".svg": "image/svg+xml",
+        ".png": "image/png",
+        ".glb": "model/gltf-binary",
+        ".gltf": "model/gltf+json",
+        ".mp3": "audio/mpeg",
+        ".wav": "audio/wav",
+        ".ogg": "audio/ogg",
+    }
+
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
         self.send_header("Pragma", "no-cache")
