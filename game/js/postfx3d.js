@@ -47,6 +47,17 @@ const GradeShader = {
     }`,
 };
 
+const SanitizeShader = {
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+void main() {
+  vec4 c = texture2D(tDiffuse, vUv);
+  if (any(isnan(c)) || any(isinf(c))) c = vec4(0.0, 0.0, 0.0, 1.0);
+  gl_FragColor = vec4(clamp(c.rgb, 0.0, 64.0), c.a);
+}`,
+};
+
 export function createPostFX(renderer, scene, cam) {
   let level = 'laag';
   let composer = null, bloom = null, grade = null;
@@ -70,6 +81,9 @@ export function createPostFX(renderer, scene, cam) {
     });
     composer = new EffectComposer(renderer, rt);
     composer.addPass(new RenderPass(scene, cam));
+    // One NaN/Inf pixel from any shader would otherwise be smeared by the
+    // bloom blur into large black blocks over the whole screen.
+    composer.addPass(new ShaderPass(SanitizeShader));
     if (level === 'hoog') {
       bloom = new UnrealBloomPass(new THREE.Vector2(width, height), 0.2, 0.35, 2.5);
       // Bloom at CSS-pixel resolution regardless of devicePixelRatio: it is

@@ -50,6 +50,19 @@ export function isInWater(map, x, y) {
   return false;
 }
 
+export const WATER_Y = -1.1;
+
+// Raw water-polygon test without the bridge veto: a swimmer under a bridge
+// is still in the water.
+export function inWaterPoly(map, x, y) {
+  for (const w of map.waterNear(x, y, 0.5)) {
+    const [minx, miny, maxx, maxy] = w.bounds;
+    if (x < minx || x > maxx || y < miny || y > maxy) continue;
+    if (pointInPolygon(x, y, w.pts)) return true;
+  }
+  return false;
+}
+
 export function polygonBounds(poly) {
   let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
   for (const [x, y] of poly) {

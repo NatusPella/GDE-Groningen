@@ -1,8 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
-import { Pedestrian, setPedPose, isInsideBuilding, isOnRoad, CITY_CENTRE } from './pedestrians.js';
+import { Pedestrian, setPedPose, isInsideBuilding, isOnRoad, CITY_CENTRE, releaseFromScene } from './pedestrians.js';
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { isInWater, dist, SeededRng } from './util.js';
+import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables } from './breakables.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -107,19 +108,21 @@ function buildRackRail(n) {
   return B.build();
 }
 
-function buildTableSet(chairColor) {
+function buildTable() {
   const B = new GeoBuilder(1);
   B.geo(new THREE.CylinderGeometry(0.36, 0.36, 0.035, 10), composeMatrix(0, 0.73, 0), 0xd8d4cc);
   B.geo(tubeGeometry([0, 0, 0], [0, 0.72, 0], 0.03), null, 0x2b2f2a);
   B.geo(new THREE.CylinderGeometry(0.22, 0.24, 0.03, 8), composeMatrix(0, 0.015, 0), 0x2b2f2a);
   B.geo(new THREE.CylinderGeometry(0.04, 0.035, 0.12, 6), composeMatrix(0.1, 0.81, 0.05), 0xe8e2d0);
-  for (const s of [1, -1]) {
-    const x = s * 0.7;
-    B.box(x, 0.45, 0, 0.4, 0.04, 0.4, chairColor);
-    B.box(x + s * 0.2, 0.68, 0, 0.04, 0.42, 0.38, chairColor);
-    for (const [dx, dz] of [[0.17, 0.17], [-0.17, 0.17], [0.17, -0.17], [-0.17, -0.17]]) {
-      B.geo(tubeGeometry([x + dx, 0, dz], [x + dx, 0.44, dz], 0.015, 0.015, 4), null, 0x2b2f2a);
-    }
+  return B.build();
+}
+
+function buildChair(color) {
+  const B = new GeoBuilder(1);
+  B.box(0, 0.45, 0, 0.4, 0.04, 0.4, color);
+  B.box(0.2, 0.68, 0, 0.04, 0.42, 0.38, color);
+  for (const [dx, dz] of [[0.17, 0.17], [-0.17, 0.17], [0.17, -0.17], [-0.17, -0.17]]) {
+    B.geo(tubeGeometry([dx, 0, dz], [dx, 0.44, dz], 0.015, 0.015, 4), null, 0x2b2f2a);
   }
   return B.build();
 }
@@ -179,7 +182,8 @@ function initProtos() {
     bin: buildBin(),
     bikes: bikeColors.map(buildOmafiets),
     rails: [3, 4, 5, 6].map(buildRackRail),
-    tables: [0x2f4a3a, 0x6b2a24, 0x23324a].map(buildTableSet),
+    table: buildTable(),
+    chairs: [0x2f4a3a, 0x6b2a24, 0x23324a].map(buildChair),
     parasols: [0xe6e1d6, 0x8f2f2a, 0x2f5a3f, 0xc99a3a].map(buildParasol),
     stalls: [0x8f2f2a, 0x2f5a3f, 0x23428a, 0xc99a3a].map((c, i) => buildStall(c, 17 + i * 31)),
     sunkenBike: buildSunkenBike(),
@@ -195,7 +199,10 @@ function mergeInstances(list) {
   const pos = new Float32Array(total * 3), nor = new Int8Array(total * 3), col = new Uint8Array(total * 3);
   const v = new THREE.Vector3(), n = new THREE.Vector3(), nm = new THREE.Matrix3();
   let o = 0;
-  for (const { geo, m } of list) {
+  for (const it of list) {
+    const { geo, m } = it;
+    it.v0 = o;
+    it.vn = geo.attributes.position.count;
     const P = geo.attributes.position, N = geo.attributes.normal, C = geo.attributes.color;
     nm.getNormalMatrix(m);
     for (let i = 0; i < P.count; i++) {
@@ -217,6 +224,11 @@ function mergeInstances(list) {
 
 function place(x, y, angle, y0 = 0) {
   return composeMatrix(x, y0, y, 0, -angle, 0);
+}
+
+// Breakable item: `axis` is the direction of the prop's long side.
+function propItem(geo, kind, x, y, angle, axis = angle, extra = null) {
+  return { geo, m: place(x, y, angle), prop: { kind, x, y, face: angle, axis, ...extra } };
 }
 
 // --- cell generation --------------------------------------------------------
@@ -264,9 +276,11 @@ function generateCell(map, cx, cy) {
         if (!isFree(map, x, y, 1.7) || !clear(x, y, 1.6)) continue;
         take(x, y, 1.6);
         const face = rowA + (row % 2 ? Math.PI / 2 : -Math.PI / 2);
-        market.push({ geo: protos.stalls[Math.floor(rng.next() * protos.stalls.length)], m: place(x, y, face) });
+        const stall = propItem(protos.stalls[Math.floor(rng.next() * protos.stalls.length)], 'stall', x, y, face, face + Math.PI / 2);
+        market.push(stall);
         if (rng.next() < 0.75) {
-          slots.push({ kind: 'vendor', x: x - Math.cos(face) * 0.55, y: y - Math.sin(face) * 0.55, angle: face, pose: 'vendor', day: true, occ: 0 });
+          stall.slot = { kind: 'vendor', x: x - Math.cos(face) * 0.55, y: y - Math.sin(face) * 0.55, angle: face, pose: 'vendor', day: true, occ: 0, propKey: propKey('stall', x, y) };
+          slots.push(stall.slot);
         }
         n++;
         inRow++;
@@ -285,16 +299,19 @@ function generateCell(map, cx, cy) {
     const px = -Math.sin(angle), py = Math.cos(angle);
     const sets = [[x + px * 1.1, y + py * 1.1], [x - px * 1.1, y - py * 1.1]].filter(([sx, sy]) => isFree(map, sx, sy, 0.9));
     if (!sets.length) sets.push([x, y]);
-    const tableProto = protos.tables[Math.floor(rng.next() * protos.tables.length)];
+    const chairProto = protos.chairs[Math.floor(rng.next() * protos.chairs.length)];
     for (const [sx, sy] of sets) {
       take(sx, sy, 1.1);
-      items.push({ geo: tableProto, m: place(sx, sy, angle) });
+      items.push(propItem(protos.table, 'table', sx, sy, angle));
       for (const s of [1, -1]) {
         const chx = sx + Math.cos(angle) * 0.7 * s, chy = sy + Math.sin(angle) * 0.7 * s;
-        slots.push({ kind: 'terrace', x: chx, y: chy, angle: angle + (s > 0 ? Math.PI : 0), pose: 'sit', occ: rng.next() });
+        const chair = propItem(chairProto, 'chair', chx, chy, angle + (s > 0 ? 0 : Math.PI));
+        chair.slot = { kind: 'terrace', x: chx, y: chy, angle: angle + (s > 0 ? Math.PI : 0), pose: 'sit', occ: rng.next(), propKey: propKey('chair', chx, chy) };
+        items.push(chair);
+        slots.push(chair.slot);
       }
     }
-    items.push({ geo: protos.parasols[Math.floor(rng.next() * protos.parasols.length)], m: place(x, y, angle) });
+    items.push(propItem(protos.parasols[Math.floor(rng.next() * protos.parasols.length)], 'parasol', x, y, angle));
   }
 
   roadSamples(roads, cx0, cy0, ['foot'], 26, rng, (r, x, y, segA) => {
@@ -306,11 +323,11 @@ function generateCell(map, cx, cy) {
     if (!isFree(map, bx, by, 0.9) || !clear(bx, by, 1)) return;
     take(bx, by, 1);
     const face = Math.atan2(-ny, -nx);
-    items.push({ geo: protos.bench, m: place(bx, by, face) });
+    items.push(propItem(protos.bench, 'bench', bx, by, face, face + Math.PI / 2));
     const tx = bx + Math.cos(segA) * 1.4, ty = by + Math.sin(segA) * 1.4;
     if (rng.next() < 0.6 && isFree(map, tx, ty, 0.35) && clear(tx, ty, 0.4)) {
       take(tx, ty, 0.4);
-      items.push({ geo: protos.bin, m: place(tx, ty, face) });
+      items.push(propItem(protos.bin, 'bin', tx, ty, face));
     }
   });
 
@@ -329,13 +346,13 @@ function generateCell(map, cx, cy) {
       if (!isFree(map, rx + nx * 0.6, ry + ny * 0.6, 0.5) || !isFree(map, rx - nx * 0.6, ry - ny * 0.6, 0.3)) return;
       if (ends.some(([ex, ey]) => !isFree(map, ex, ey, 0.4))) return;
       take(rx, ry, len / 2 + 0.5);
-      items.push({ geo: protos.rails[n - 3], m: place(rx, ry, segA + Math.PI / 2) });
+      items.push(propItem(protos.rails[n - 3], 'rail', rx, ry, segA + Math.PI / 2, segA, { half: len / 2 }));
       const bikeA = Math.atan2(ny, nx);
       for (let i = 0; i < n; i++) {
         if (rng.next() < 0.18) continue;
         const t = -len / 2 + 0.35 + i * 0.7;
         const bx = rx + fx * t, by = ry + fy * t;
-        items.push({ geo: protos.bikes[Math.floor(rng.next() * protos.bikes.length)], m: place(bx, by, bikeA + (i % 2 ? Math.PI : 0) + rng.range(-0.08, 0.08)) });
+        items.push(propItem(protos.bikes[Math.floor(rng.next() * protos.bikes.length)], 'bike', bx, by, bikeA + (i % 2 ? Math.PI : 0) + rng.range(-0.08, 0.08)));
       }
     });
     roadSamples(roads, cx0, cy0, ['normal', 'minor'], 55, rng, (r, x, y, segA) => {
@@ -346,7 +363,7 @@ function generateCell(map, cx, cy) {
       const bx = x + nx * off, by = y + ny * off;
       if (!isFree(map, bx, by, 0.35) || !clear(bx, by, 0.5)) return;
       take(bx, by, 0.5);
-      items.push({ geo: protos.bin, m: place(bx, by, segA) });
+      items.push(propItem(protos.bin, 'bin', bx, by, segA));
     });
   }
 
@@ -453,13 +470,60 @@ function findHaulerSpot(map) {
 
 // --- streaming ------------------------------------------------------------
 
+function collapseItem(mesh, it) {
+  const pos = mesh.geometry.attributes.position;
+  const a = pos.array, o = it.v0 * 3;
+  for (let i = 3; i < it.vn * 3; i += 3) { a[o + i] = a[o]; a[o + i + 1] = a[o + 1]; a[o + i + 2] = a[o + 2]; }
+  pos.needsUpdate = true;
+}
+
+function registerItems(cell, list, mesh) {
+  for (const it of list) {
+    const d = it.prop;
+    if (!d) continue;
+    const key = propKey(d.kind, d.x, d.y);
+    if (isPropBroken(key)) { collapseItem(mesh, it); continue; }
+    if (!it.p) {
+      it.p = makeProp(d.kind, d.x, d.y, {
+        key,
+        angle: d.axis,
+        ...(d.half ? { half: d.half } : null),
+        makeMesh: () => {
+          const m = new THREE.Mesh(it.geo, material);
+          m.rotation.y = -d.face;
+          return m;
+        },
+      });
+    }
+    it.p.onBreak = () => {
+      if (it.mesh) collapseItem(it.mesh, it);
+      if (it.slot) scareSlotPed(it.slot);
+    };
+    it.p.off = false;
+    it.mesh = mesh;
+    if (addProp(it.p)) cell.props.push(it.p);
+  }
+}
+
+function scareSlotPed(slot) {
+  const ped = slot.ped;
+  slot.ped = null;
+  if (!ped || !ped.scene || ped.state === 'dead') return;
+  releaseFromScene(ped);
+  ped.state = 'flee';
+  ped.stateUntil = world.time + 6 + Math.random() * 3;
+  ped.fleeFrom = { x: slot.x, y: slot.y };
+}
+
 function buildCellMeshes(cell) {
+  cell.props = [];
   const g = mergeInstances(cell.items);
   if (g) {
     cell.mesh = new THREE.Mesh(g, material);
     cell.mesh.castShadow = true;
     cell.mesh.receiveShadow = true;
     group.add(cell.mesh);
+    registerItems(cell, cell.items, cell.mesh);
   }
   const mg = mergeInstances(cell.market);
   if (mg) {
@@ -467,11 +531,16 @@ function buildCellMeshes(cell) {
     cell.marketMesh.castShadow = true;
     cell.marketMesh.receiveShadow = true;
     group.add(cell.marketMesh);
+    registerItems(cell, cell.market, cell.marketMesh);
   }
   cell.active = true;
 }
 
 function dropCell(cell) {
+  for (const p of cell.props || []) removeProp(p);
+  cell.props = [];
+  for (const it of cell.items) it.mesh = null;
+  for (const it of cell.market) it.mesh = null;
   for (const m of [cell.mesh, cell.marketMesh]) {
     if (!m) continue;
     group.remove(m);
@@ -496,6 +565,7 @@ function isNight() {
 }
 
 function slotWanted(slot, night) {
+  if (slot.propKey && isPropBroken(slot.propKey)) return false;
   if (slot.kind === 'vendor') return !night;
   if (slot.kind === 'terrace') return slot.occ < (night ? 0.8 : 0.4);
   if (slot.kind === 'fisher') return !night;
@@ -645,13 +715,17 @@ export function updateCityProps(dt, w, scene) {
     if (!cell.active) continue;
     const cxm = (cell.cx + 0.5) * CELL, cym = (cell.cy + 0.5) * CELL;
     if (Math.hypot(p.x - cxm, p.y - cym) > DROP_RADIUS + CELL / 2) { dropCell(cell); continue; }
-    if (cell.marketMesh) cell.marketMesh.visible = !night;
+    if (cell.marketMesh && cell.marketMesh.visible === night) {
+      cell.marketMesh.visible = !night;
+      for (const it of cell.market) if (it.p) it.p.off = night;
+    }
     activeCells.push(cell);
   }
   if (cells.size > 400) {
     for (const [key, cell] of cells) if (!cell.active) cells.delete(key);
   }
 
+  updateBreakables(dt, w, scene);
   if (w.paused) return;
   slotTimer -= dt;
   if (slotTimer <= 0) {

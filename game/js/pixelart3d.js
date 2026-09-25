@@ -180,11 +180,13 @@ export class GeoBuilder {
   }
 
   // Merges any THREE geometry, transformed by `matrix` (Matrix4 or null).
+  // `color` may be fn(x, y, z) -> hex, evaluated at each triangle centroid.
   geo(geometry, matrix, color, group = 0) {
     const src = geometry.index ? geometry.toNonIndexed() : geometry;
     const pos = src.attributes.position;
     const uv = src.attributes.uv;
-    const rgb = linearRGB(color);
+    const colorFn = typeof color === 'function' ? color : null;
+    let rgb = colorFn ? null : linearRGB(color);
     const flip = matrix ? matrix.determinant() < 0 : false;
     const p = [0, 0, 0].map(() => new THREE.Vector3());
     for (let i = 0; i < pos.count; i += 3) {
@@ -193,6 +195,7 @@ export class GeoBuilder {
         if (matrix) p[k].applyMatrix4(matrix);
       }
       const A = [p[0].x, p[0].y, p[0].z], B = [p[1].x, p[1].y, p[1].z], C = [p[2].x, p[2].y, p[2].z];
+      if (colorFn) rgb = linearRGB(colorFn((A[0] + B[0] + C[0]) / 3, (A[1] + B[1] + C[1]) / 3, (A[2] + B[2] + C[2]) / 3));
       const uvs = uv ? [uv.getX(i), uv.getY(i), uv.getX(i + 1), uv.getY(i + 1), uv.getX(i + 2), uv.getY(i + 2)] : null;
       if (flip) this._push(group, A, C, B, rgb, uvs && [uvs[0], uvs[1], uvs[4], uvs[5], uvs[2], uvs[3]]);
       else this._push(group, A, B, C, rgb, uvs);
@@ -240,6 +243,82 @@ export class GeoBuilder {
     geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     return geometry;
   }
+}
+
+// GeoBuilder that also bakes skin weights for a THREE.SkinnedMesh. Set
+// `builder.bone` before adding parts: a bone index for rigid parts, or
+// fn(x, y, z) -> [boneA, boneB, weightA] evaluated per vertex (bind-pose
+// model space) for parts that bend smoothly across a joint.
+export class SkinBuilder extends GeoBuilder {
+  constructor(groupCount = 1) {
+    super(groupCount);
+    for (const g of this.groups) { g.si = []; g.sw = []; }
+    this.bone = 0;
+  }
+
+  _push(g, a, b, c, rgb, uvs) {
+    super._push(g, a, b, c, rgb, uvs);
+    const G = this.groups[g], spec = this.bone;
+    for (const v of [a, b, c]) {
+      if (typeof spec === 'number') { G.si.push(spec, 0, 0, 0); G.sw.push(1, 0, 0, 0); continue; }
+      const [i0, i1, w0] = spec(v[0], v[1], v[2]);
+      G.si.push(i0, i1, 0, 0);
+      G.sw.push(w0, 1 - w0, 0, 0);
+    }
+  }
+
+  // Same as geo(), for one call with a temporary bone spec.
+  part(geometry, matrix, color, bone, group = 0) {
+    const prev = this.bone;
+    this.bone = bone;
+    this.geo(geometry, matrix, color, group);
+    this.bone = prev;
+    return this;
+  }
+
+  build() {
+    const geometry = super.build();
+    const n = geometry.attributes.position.count;
+    const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+    let start = 0;
+    for (const g of this.groups) {
+      if (!g.p.length) continue;
+      si.set(g.si, start * 4);
+      sw.set(g.sw, start * 4);
+      start += g.p.length / 3;
+    }
+    geometry.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
+    geometry.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
+    return geometry;
+  }
+}
+
+// Elliptic loft through rings {y, d, w, x = 0, sq = 1}: d = half depth (x),
+// w = half width (z), sq < 1 squares the section off (shoulders, boxy
+// clothing). Open-ended; `sides` facets around.
+export function loftGeometry(rings, sides = 8, phase = Math.PI / 8) {
+  const pos = [];
+  const ring = (r) => {
+    const out = [];
+    for (let i = 0; i < sides; i++) {
+      const t = phase + (i / sides) * Math.PI * 2;
+      const c = Math.cos(t), s = Math.sin(t), q = r.sq ?? 1;
+      const cx = Math.sign(c) * Math.pow(Math.abs(c), q), sz = Math.sign(s) * Math.pow(Math.abs(s), q);
+      out.push([(r.x || 0) + cx * r.d * (c > 0 ? (r.front ?? 1) : 1), r.y, sz * r.w]);
+    }
+    return out;
+  };
+  const rs = rings.map(ring);
+  for (let k = 0; k < rs.length - 1; k++) {
+    const A = rs[k], B = rs[k + 1];
+    for (let i = 0; i < sides; i++) {
+      const j = (i + 1) % sides;
+      pos.push(...A[i], ...B[j], ...A[j], ...A[i], ...B[i], ...B[j]);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  return g;
 }
 
 // Tube (low-sided prism) between two 3D points, for frames/rails/limbs.

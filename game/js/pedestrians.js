@@ -665,6 +665,11 @@ export function updatePedestrians(dt, world) {
         ped.knockVX *= decay;
         ped.knockVY *= decay;
         if (Math.hypot(ped.knockVX, ped.knockVY) < 0.1) { ped.knockVX = 0; ped.knockVY = 0; }
+        if (isInWater(map, ped.x, ped.y)) {
+          world.particles.push({ kind: 'splash', x: ped.x, y: ped.y, until: world.time + 1.1 });
+          peds.splice(i, 1);
+          continue;
+        }
       }
       if (world.time >= ped.deadUntil) peds.splice(i, 1);
       continue;

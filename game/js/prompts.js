@@ -178,6 +178,10 @@ function trackUsage(dt, world) {
   if (inV && !prev.inVehicle) used('enter');
   if (!inV && prev.inVehicle) used('exit');
   prev.inVehicle = inV;
+  const swim = !!world.player.swimming;
+  if (swim) used('swim', 0.02);
+  if (prev.swimming && !swim && world.player.water !== 'fall') used('climb');
+  prev.swimming = swim;
 
   if (pressed('e') || pressed('f')) pressFlash = 0.22;
   if (pressed('c')) used('switch');
@@ -276,6 +280,10 @@ function pedInReach(world, range, cone) {
 function findPrimary(world) {
   const p = world.player;
   if (p.inVehicle) return null;
+  if (p.swimming) {
+    if (!p.canClimbOut) return null;
+    return { id: 'climb', x: p.x, y: p.y, h: 0.6, key: 'E', label: 'Eruit klimmen', sub: learning('climb') ? 'Klim de kade weer op' : '', learn: learning('climb'), ring: true };
+  }
   const c = world.companion;
   const kissable = c && c.state !== 'dead' && !c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) <= KISS_DIST;
   const kissReady = world.time >= kissUntil;
@@ -458,6 +466,10 @@ function contextRows(world, primary) {
     rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots'));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', 'Vuren vanuit de auto'));
+  } else if (p.swimming) {
+    rows.push(tut('swim', ['WASD'], 'Zwemmen', 'W vooruit, A/D draaien'));
+    rows.push(tut('swimfast', ['SHIFT'], 'Snel zwemmen', 'Kost adem, dus niet te lang'));
+    if (p.canClimbOut) rows.push(tut('climb', ['E'], 'Eruit klimmen', 'Klim de kade op'));
   } else {
     rows.push(tut('move', ['WASD'], 'Lopen', 'W vooruit, S achteruit'));
     rows.push(tut('look', ['MOUSE'], 'Rondkijken', 'Muis of A/D draait je om'));

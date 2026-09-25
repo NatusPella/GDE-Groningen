@@ -1,6 +1,8 @@
 import { dist } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial } from './pixelart3d.js';
+import { makeProp, addProp, removeProp } from './breakables.js';
+import { placeTrafficLight } from './trafficlights.js';
 
 const TARGET_COUNT = 12;
 const MIN_COUNT = 8;
@@ -11,6 +13,7 @@ const SPEED_MARGIN_KMH = 25; // "a good margin" over the local limit
 const FLAT_LIMIT_KMH = 60; // fallback when a road has no usable speed field
 const MIN_FINE = 35;
 const MAX_FINE = 75;
+const PROP_RADIUS = 70;
 
 function pickPoint(road) {
   if (!road.pts || road.pts.length < 3) return null;
@@ -48,6 +51,12 @@ export function initFlitspaal(world) {
     cams.push(makeCamera(road, p));
   }
 
+  // the pole stands on the right-hand kerb; cam.x/y stays the road trigger point
+  for (const cam of cams) {
+    const kerb = placeTrafficLight(cam, world.map);
+    cam.px = 2 * cam.x - kerb.x;
+    cam.py = 2 * cam.y - kerb.y;
+  }
   world.flitspaalen = cams;
 }
 
@@ -59,7 +68,7 @@ export function updateFlitspaal(dt, world) {
 
   const speedKmh = Math.abs(v.speed) * 3.6;
   for (const cam of cams) {
-    if (world.time - cam.lastFine < FINE_COOLDOWN) continue;
+    if (cam.broken || world.time - cam.lastFine < FINE_COOLDOWN) continue;
     if (dist(v.x, v.y, cam.x, cam.y) > TRIGGER_RADIUS) continue;
     const limitKmh = cam.limitKmh || FLAT_LIMIT_KMH;
     if (speedKmh <= limitKmh + SPEED_MARGIN_KMH) continue;
@@ -71,6 +80,35 @@ export function updateFlitspaal(dt, world) {
       `Geflitst! Boete: €${fine} (u reed ${Math.round(speedKmh)} km/u waar ${Math.round(limitKmh)} was toegestaan)`,
       4
     );
+  }
+}
+
+export function streamFlitspaalProps(world, px, py) {
+  for (const cam of world.flitspaalen || []) {
+    const near = Math.abs(cam.px - px) < PROP_RADIUS && Math.abs(cam.py - py) < PROP_RADIUS;
+    if (!near || cam.broken) {
+      if (cam.prop) { removeProp(cam.prop); cam.prop = null; }
+      continue;
+    }
+    if (cam.prop) continue;
+    const prop = makeProp('flitspaal', cam.px, cam.py, {
+      disposeMesh: true,
+      onBreak: () => {
+        cam.broken = true;
+        cam.prop = null;
+        if (cam.mesh) cam.mesh.userData.broken = true;
+      },
+      onRestore: () => {
+        cam.broken = false;
+        if (cam.mesh) cam.mesh.userData.broken = false;
+      },
+      makeMesh: () => {
+        const m = buildFlitspaalMesh3D();
+        m.rotation.y = -cam.angle;
+        return m;
+      },
+    });
+    if (addProp(prop)) cam.prop = prop;
   }
 }
 

@@ -11,6 +11,11 @@ const TOAST_DURATION = 3.2;
 let spots = [];
 
 export function initHoreca(world) {
+  // OSM places bars/cafés at a point inside their building: move each one out
+  // to the street side (also used by the terrace props in cityprops.js)
+  for (const h of world.map.meta.horeca || []) {
+    [h.x, h.y] = world.map.escapeBuilding(h.x, h.y, 1.2);
+  }
   spots = (world.map.meta.horeca || []).map((h) => ({ x: h.x, y: h.y, name: h.name, lastUsed: -Infinity }));
 }
 

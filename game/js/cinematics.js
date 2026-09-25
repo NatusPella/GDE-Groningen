@@ -12,6 +12,8 @@ const LANDMARK_RADIUS = 55;
 const CRASH_COOLDOWN_MS = 20000;
 const BANNER_TIME = 3.8;
 const CAM_MODES = ['', 'BUMPER', 'ZIJKANT', 'HELIKOPTER', 'TELELENS'];
+const WIJK_KEY = 'gte-wijken-seen';
+const WIJK_DWELL = 1.5;
 
 const LANDMARK_HEIGHT = {
   Martinitoren: 97, Martinikerk: 32, 'Der Aa-kerk': 45, Academiegebouw: 30, 'Groninger Museum': 28,
@@ -33,6 +35,12 @@ let lastCrashAt = -Infinity;
 let scanTimer = 0;
 let respawnFromCine = false;
 const seenWrecks = new WeakSet();
+let introMod = null;
+let introWait = 0;
+let wijkSeen = null;
+let wijkCand = null;
+let wijkDwell = 0;
+let wijkTimer = 0;
 
 const V = (x, y, z) => ({ x, y, z });
 const W = (wx, h, wy) => ({ x: wx, y: wy, z: h });
@@ -61,7 +69,7 @@ export function pathShot(keys, ease = easeInOut) {
 
 const LEVEL_H = 3.1;
 
-function roofAt(map, x, y) {
+export function roofAt(map, x, y) {
   let top = 0;
   for (const b of map.buildingsNear(x, y, 1)) {
     const [x0, y0, x1, y1] = b.bounds;
@@ -72,7 +80,7 @@ function roofAt(map, x, y) {
 }
 
 // Lifts any keyframe that would sit inside a building up over its roof.
-function clearKeys(w, keys) {
+export function clearKeys(w, keys) {
   const lift = keys.map((k) => roofAt(w.map, k.pos.x, k.pos.y));
   for (let i = 0; i + 1 < keys.length; i++) {
     const m = roofAt(w.map, (keys[i].pos.x + keys[i + 1].pos.x) / 2, (keys[i].pos.y + keys[i + 1].pos.y) / 2);
@@ -147,6 +155,7 @@ export function initCinematics(w) {
   });
 
   for (const v of w.vehicles) if (v.wrecked) seenWrecks.add(v);
+  import('./intromontage.js').then((m) => { introMod = m; }).catch((e) => { introWait = Infinity; console.warn('intro', e); });
 }
 
 export function isCinematicActive(id) {
@@ -217,9 +226,12 @@ function finish(skipped, replaced = false) {
 
 function updateSubtitles() {
   const lines = active.lines;
+  if (active.cardFor != null && active.t > active.cardFor) els.root.classList.remove('has-card');
   if (!lines || !lines.length) return;
   const start = 0.5, span = Math.max(0.5, active.duration - start - 0.2);
-  const idx = active.t < start ? -1 : Math.min(lines.length - 1, Math.floor(((active.t - start) / span) * lines.length));
+  const idx = lines[0].at != null
+    ? lines.findIndex((l) => active.t >= l.at && active.t < l.at + l.dur)
+    : active.t < start ? -1 : Math.min(lines.length - 1, Math.floor(((active.t - start) / span) * lines.length));
   if (idx === els.lineIndex) return;
   els.lineIndex = idx;
   const l = lines[idx];
@@ -231,7 +243,7 @@ function updateSubtitles() {
 export function updateCinematics(dt, w) {
   world = w;
   if (!els) initCinematics(w);
-  if (!started && gameStarted()) {
+  if (!started && gameStarted() && (introMod || (introWait += dt) > 3)) {
     started = true;
     prevWanted = w.wanted;
     lastImpactSeen = w.lastImpact || null;
@@ -279,6 +291,7 @@ function checkTriggers(dt, w) {
     if (imp.strength > 0.8) tryCrashReplay(w, imp.x, imp.y);
   }
 
+  checkWijk(dt, w);
   scanTimer -= dt;
   if (scanTimer > 0) return;
   scanTimer = 0.25;
@@ -324,26 +337,161 @@ function behindPose(w, back = 7, up = 3.4) {
   return { pos: W(p.x - Math.cos(a) * back, up, p.y - Math.sin(a) * back), look: W(p.x, 1.3, p.y) };
 }
 
-function playGameStart(w) {
-  markNearbyLandmarksVisited(w, 70);
+function flyInShot(w, first) {
   const p = w.player, a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a);
-  const mp = w._menuCamPose;
-  const first = mp && mp.position && mp.lookAt
-    ? { pos: V(mp.position.x, mp.position.y, mp.position.z), look: V(mp.lookAt.x, mp.lookAt.y, mp.lookAt.z) }
-    : { pos: W(p.x - fx * 20 + fy * 45, 55, p.y - fy * 20 - fx * 45), look: W(p.x, 4, p.y) };
   const keys = [
-    first,
+    first || { pos: W(p.x - fx * 20 + fy * 45, 55, p.y - fy * 20 - fx * 45), look: W(p.x, 4, p.y) },
     { pos: W(p.x - fx * 26 + fy * 14, 30, p.y - fy * 26 - fx * 14), look: W(p.x, 2, p.y) },
     { pos: W(p.x - fx * 13, 9, p.y - fy * 13), look: W(p.x, 1.2, p.y) },
     behindPose(w),
   ];
+  return pathShot(clearKeys(w, keys));
+}
+
+function skyFlyInShot(w) {
+  const p = w.player, a = heading(w);
+  const fx = Math.cos(a), fy = Math.sin(a);
+  return flyInShot(w, { pos: W(p.x - fx * 60 + fy * 70, 130, p.y - fy * 60 - fx * 70), look: W(p.x, 0, p.y) });
+}
+
+function playIntro(w) {
+  if (!introMod) return false;
+  return introMod.playIntroMontage(w, {
+    flyShot: () => skyFlyInShot(w),
+    onDone: (skipped) => {
+      if (!skipped || active) return;
+      const b = behindPose(w);
+      playCinematic({
+        id: 'intro-out', priority: 3, duration: 0.6, pause: true, letterbox: false, skippable: false,
+        shot: () => ({ position: b.pos, lookAt: b.look, cut: true }),
+      });
+    },
+  });
+}
+
+// Pause menu: replays the opening montage from wherever the player is now.
+export function replayIntro(w = world) {
+  if (!w || !gameStarted() || w.pendingRespawn) return false;
+  if (active) finish(true);
+  return playIntro(w);
+}
+
+function playGameStart(w) {
+  markNearbyLandmarksVisited(w, 70);
+  loadWijken(!w.loadedFromSave);
+  const here = currentWijk(w);
+  if (here) markWijk(here);
   w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
+  if (!w.loadedFromSave && !w.pigeonMode && introMod && !introMod.introSeen() && playIntro(w)) return;
+  const mp = w._menuCamPose;
+  const first = mp && mp.position && mp.lookAt
+    ? { pos: V(mp.position.x, mp.position.y, mp.position.z), look: V(mp.lookAt.x, mp.lookAt.y, mp.lookAt.z) }
+    : null;
   const where = w.loadedFromSave ? 'Welkom terug in Grunn' : w.spawnLandmarkName ? `Je begint bij ${w.spawnLandmarkName}` : 'Welkom in Grunn';
   playCinematic({
     id: 'start', priority: 3, duration: 5.5, pause: true,
     kicker: 'Grand Theft Eierbal', title: 'GTE VI',
     lines: [{ speaker: '', text: where }],
+    shot: flyInShot(w, first),
+  });
+}
+
+// --- first visit to a wijk ------------------------------------------------------
+
+const WIJK_LINES = {
+  Binnenstad: 'Het hart van Grunn. Klopt het hardst na middernacht.',
+  Stationsgebied: 'Iedereen komt hier aan. Niet iedereen gaat weer weg.',
+  Ebbingekwartier: 'Hip, nieuw en duur. Hou je portemonnee vast.',
+  Oosterpoort: 'Muziek, kroegen en altijd wel ergens herrie.',
+  Paddepoel: 'Winkelen, wonen en de ringweg om de hoek.',
+  Europapark: 'Voetbal, kantoren en een hoop glas.',
+  'A-kwartier': 'Smalle straatjes, oude grachten, niks zien en niks zeggen.',
+  Schildersbuurt: 'Elke straat een schilder. Elke buur een mening.',
+  Zeeheldenbuurt: 'Genoemd naar helden. De bewoners doen hun best.',
+  Korrewegwijk: 'Stoer, eerlijk en met de fiets tot aan de voordeur.',
+};
+const WIJK_GENERIC = [
+  'Moi. Hier kent iedereen elkaar, dus doe een beetje normaal.',
+  'Rustige straten, drukke fietspaden. Kiek goed uit.',
+  'Hier zeggen ze niks, maar ze zien alles.',
+  'Parkeren kost hier meer dan je auto.',
+  'Op elke hoek een snackbar. Grunn op z’n best.',
+  'Het waait hier altijd. Ook als het niet waait.',
+  'De buren hebben je al gezien. Zwaai maar even.',
+  'Het is hier stil. Dat komt vanzelf goed.',
+];
+
+function wijkLine(name) {
+  if (WIJK_LINES[name]) return WIJK_LINES[name];
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return WIJK_GENERIC[h % WIJK_GENERIC.length];
+}
+
+function currentWijk(w) {
+  const { x, y } = w.player;
+  let best = null, bestD2 = Infinity;
+  for (const p of w.map.meta.neighbourhoodPoints || []) {
+    const d2 = (p.x - x) ** 2 + (p.y - y) ** 2;
+    if (d2 < bestD2) { bestD2 = d2; best = p; }
+  }
+  return best;
+}
+
+function loadWijken(fresh) {
+  wijkSeen = new Set();
+  if (fresh) {
+    try { localStorage.removeItem(WIJK_KEY); } catch (e) { /* ignore */ }
+    return;
+  }
+  try {
+    const list = JSON.parse(localStorage.getItem(WIJK_KEY) || '[]');
+    if (Array.isArray(list)) for (const n of list) if (typeof n === 'string') wijkSeen.add(n);
+  } catch (e) { /* ignore */ }
+}
+
+function markWijk(p) {
+  if (!wijkSeen) wijkSeen = new Set();
+  wijkSeen.add(p.name);
+  try { localStorage.setItem(WIJK_KEY, JSON.stringify([...wijkSeen])); } catch (e) { /* ignore */ }
+}
+
+function checkWijk(dt, w) {
+  if (!wijkSeen || w.pigeonMode) return;
+  wijkTimer -= dt;
+  if (wijkTimer > 0) return;
+  const step = 0.25 - wijkTimer;
+  wijkTimer = 0.25;
+  const p = currentWijk(w);
+  if (!p || wijkSeen.has(p.name)) { wijkCand = null; return; }
+  if (!wijkCand || wijkCand.name !== p.name) { wijkCand = p; wijkDwell = 0; return; }
+  wijkDwell += step;
+  if (wijkDwell < WIJK_DWELL || active || !momentsOn() || w.pendingRespawn || w.wanted > 0) return;
+  markWijk(p);
+  wijkCand = null;
+  playWijk(w, p);
+}
+
+function playWijk(w, wijk) {
+  const p = w.player, a = heading(w);
+  let dx = wijk.x - p.x, dy = wijk.y - p.y;
+  const dl = Math.hypot(dx, dy);
+  if (dl < 20) { dx = Math.cos(a); dy = Math.sin(a); } else { dx /= dl; dy /= dl; }
+  const reach = Math.min(70, Math.max(30, dl * 0.5));
+  const nx = -dy, ny = dx;
+  const cx = p.x + dx * reach, cy = p.y + dy * reach;
+  const b = behindPose(w, 9, 5);
+  const keys = [
+    { pos: W(p.x - dx * 14 + nx * 8, 16, p.y - dy * 14 + ny * 8), look: W(p.x + dx * 10, 2, p.y + dy * 10), fov: 55 },
+    { pos: W(p.x + nx * 38, 52, p.y + ny * 38), look: W(cx, 4, cy), fov: 52 },
+    { pos: W(cx + nx * 22, 68, cy + ny * 22), look: W(cx + dx * 60, 0, cy + dy * 60), fov: 50 },
+    { pos: W(p.x + nx * 20 - dx * 12, 34, p.y + ny * 20 - dy * 12), look: W(p.x, 1.5, p.y), fov: 54 },
+    { pos: b.pos, look: b.look, fov: 58 },
+  ];
+  playCinematic({
+    id: 'wijk', priority: 1, duration: 5.6, pause: true, queue: true,
+    kicker: 'Nieuwe wijk', title: wijk.name, lines: [{ speaker: '', text: wijkLine(wijk.name) }],
     shot: pathShot(clearKeys(w, keys)),
   });
 }

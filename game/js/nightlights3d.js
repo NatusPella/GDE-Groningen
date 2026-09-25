@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { pointInPolygon } from './util.js';
+import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakables.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -22,6 +23,7 @@ const LAMP_REAL_I = 34;
 const CONE_MAX = 96;
 const VEH_LIGHT_DIST = 95;
 const SPOT_I = 28;
+const PROP_RADIUS = 80;
 
 let scene = null;
 let poleMesh = null, headMesh = null, poolMesh = null;
@@ -30,6 +32,7 @@ const pointLights = [];
 const spotLights = [];
 const lampGrid = new Map();
 let visible = [];
+let propLamps = [];
 let lastBuildX = Infinity, lastBuildY = Infinity;
 let lastNight = -1, lastWet = -1;
 
@@ -220,6 +223,7 @@ function lampsForRoad(road, map) {
         angle: Math.atan2(cy - y, cx - x),
         threshold: 0.12 + hash(x, y) * 0.28,
         on: 0,
+        key: propKey('lamp', x, y),
       };
       lamp.lx = x + Math.cos(lamp.angle) * ARM;
       lamp.ly = y + Math.sin(lamp.angle) * ARM;
@@ -231,6 +235,35 @@ function lampsForRoad(road, map) {
   return road._lamps;
 }
 
+function lampProp(l) {
+  if (!l.prop) {
+    l.prop = makeProp('lamp', l.x, l.y, {
+      key: l.key,
+      onBreak: () => breakLamp(l),
+      onRestore: () => { l.broken = false; lastBuildX = Infinity; },
+      makeMesh: () => {
+        const m = new THREE.Mesh(poleMesh.geometry, poleMesh.material);
+        m.rotation.y = -l.angle;
+        return m;
+      },
+    });
+  }
+  return l.prop;
+}
+
+function breakLamp(l) {
+  l.broken = true;
+  l.on = 0;
+  const i = visible.indexOf(l);
+  if (i < 0) return;
+  _m.makeScale(0, 0, 0);
+  poleMesh.setMatrixAt(i, _m);
+  headMesh.setMatrixAt(i, _m);
+  poolMesh.setMatrixAt(i, _m);
+  poleMesh.instanceMatrix.needsUpdate = headMesh.instanceMatrix.needsUpdate = poolMesh.instanceMatrix.needsUpdate = true;
+  for (const pl of pointLights) if (pl.userData.lamp === l) { pl.userData.lamp = null; pl.intensity = 0; }
+}
+
 function rebuildVisible(world, px, py) {
   visible = [];
   const seen = new Set();
@@ -238,16 +271,20 @@ function rebuildVisible(world, px, py) {
     for (const l of lampsForRoad(road, world.map)) {
       if (seen.has(l) || Math.abs(l.x - px) > LAMP_VIEW || Math.abs(l.y - py) > LAMP_VIEW) continue;
       seen.add(l);
+      if (l.broken || isPropBroken(l.key)) { l.broken = true; continue; }
       visible.push(l);
       if (visible.length >= LAMP_MAX) break;
     }
   }
+  for (const l of propLamps) removeProp(l.prop);
+  propLamps = [];
   visible.forEach((l, i) => {
     _q.setFromAxisAngle(_up, -l.angle);
     _m.compose(_p.set(l.x, 0, l.y), _q, _s.set(1, 1, 1));
     poleMesh.setMatrixAt(i, _m);
     headMesh.setMatrixAt(i, _m);
     poolMesh.setMatrixAt(i, _m);
+    if (Math.abs(l.x - px) < PROP_RADIUS && Math.abs(l.y - py) < PROP_RADIUS && addProp(lampProp(l))) propLamps.push(l);
   });
   poleMesh.count = headMesh.count = poolMesh.count = visible.length;
   poleMesh.instanceMatrix.needsUpdate = headMesh.instanceMatrix.needsUpdate = poolMesh.instanceMatrix.needsUpdate = true;
@@ -263,6 +300,7 @@ function updateLampColors(night, wet) {
   const poolK = 0.3 * (1 + wet * 0.8);
   for (let i = 0; i < visible.length; i++) {
     const l = visible[i];
+    if (l.broken) continue;
     l.on = smoothstep(l.threshold, l.threshold + 0.06, night);
     _c.setRGB(0.55, 0.55, 0.52).lerp(_c2.copy(LAMP_COLOR).multiplyScalar(9), l.on);
     headMesh.setColorAt(i, _c);

@@ -1,5 +1,6 @@
-import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon } from './util.js';
+import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, WATER_Y } from './util.js';
 import { getTrafficLights, trafficLightPhaseFor } from './trafficlights.js';
+import { resolvePropCollisions } from './breakables.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const MODELS = [
@@ -469,7 +470,7 @@ export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spa
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
     // real connection) is cleared the same way rather than left oscillating.
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -495,7 +496,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -521,7 +522,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isScooter || v.driver === 'player') continue;
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -547,7 +548,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBus || v.driver === 'player') continue;
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
@@ -1410,6 +1411,7 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       }
     }
   }
+  if (world) resolvePropCollisions(vehicles, world);
 }
 
 // OSM routes some streets and cycleways under station canopies, market
@@ -1671,35 +1673,128 @@ export function updateVehicleExplosionMesh3D(mesh, dt) {
   return true;
 }
 
-// A vehicle that drives (or is knocked) into open water is wrecked on the
-// spot and splashes; the player, if driving it, is ejected right where the
-// vehicle went in.
+// A vehicle whose centre leaves the quay over open water flies on with its
+// momentum, drops to the surface (wrecked on impact), floats a moment and
+// sinks. v.sinking = { phase, z, pitch, roll, ... } drives the 3D mesh.
+const SINK_GRAVITY = 9.8;
+const FLOAT_TIME = 1.6;
+const SINK_TIME = 3.6;
+const SUNK_Z = WATER_Y - 2.8;
+const sinkingVehicles = new Set();
+let sinkTickAt = -1;
+
 export function checkVehicleWater(v, map, world) {
-  if (v.isBoat) return false;
-  if (v.wrecked) return false;
-  for (const w of map.waterNear(v.x, v.y, 3)) {
-    const [minx, miny, maxx, maxy] = w.bounds;
-    if (v.x < minx || v.x > maxx || v.y < miny || v.y > maxy) continue;
-    if (!pointInPolygon(v.x, v.y, w.pts)) continue;
-    if (map.isOnBridge(v.x, v.y)) return false;
+  tickSinkingVehicles(world);
+  if (v.sinking && !v.wrecked) { v.x = v.sinking.x; v.y = v.sinking.y; v.speed = 0; return false; }
+  if (v.isBoat || v.wrecked || v.sinking) return false;
+  if (!inWaterPoly(map, v.x, v.y) || map.isOnBridge(v.x, v.y)) return false;
+  startVehicleFall(v, world);
+  return true;
+}
 
-    v.wrecked = true;
-    v.speed = 0;
-    if (v.driver === 'player') markWreckedByPlayer(v, world);
-    world.particles.push({ x: v.x, y: v.y, until: world.time + 1.1, kind: 'splash' });
+function startVehicleFall(v, world) {
+  const pv = world.player.inVehicle;
+  const byPlayer = v.driver === 'player' || (pv && pv !== v && Math.hypot(pv.x - v.x, pv.y - v.y) < 7 && Math.abs(pv.speed) > 3);
+  v.sinking = {
+    phase: 'fall', t: 0, x: v.x, y: v.y, z: 0, vz: 0, pitch: 0, roll: 0,
+    vx: Math.cos(v.angle) * v.speed + v.driftX,
+    vy: Math.sin(v.angle) * v.speed + v.driftY,
+    dir: v.speed < 0 ? 1 : -1,
+    small: !!(v.isBike || v.isScooter),
+    byPlayer, bubbleAt: 0, seed: Math.random() * 6,
+  };
+  v.speed = 0; v.driftX = 0; v.driftY = 0; v.yawVel = 0;
+  v.road = null; v.throttle = 0; v.horn = false; v.handbrake = false;
+  sinkingVehicles.add(v);
+}
 
-    if (v.driver === 'player') {
-      const player = world.player;
-      v.driver = null;
-      player.inVehicle = null;
-      player.x = v.x;
-      player.y = v.y;
-      world.addMessage('Nat geworden!', 3);
-      world.health = Math.max(0, world.health - 15);
-    }
-    return true;
+// Runs once per game frame (deduped on world.time) from player.update and
+// checkVehicleWater, since main.js stops calling the latter once wrecked.
+export function tickSinkingVehicles(world) {
+  if (sinkTickAt === world.time) return;
+  const dt = sinkTickAt < 0 ? 0 : clamp(world.time - sinkTickAt, 0, 0.1);
+  sinkTickAt = world.time;
+  if (!dt || !sinkingVehicles.size) return;
+  for (const v of sinkingVehicles) {
+    if (!world.vehicles.includes(v)) { sinkingVehicles.delete(v); v.sinking = null; continue; }
+    updateSinking(v, dt, world);
   }
-  return false;
+}
+
+function driftOnWater(v, s, dt, map) {
+  const nx = v.x + s.vx * dt, ny = v.y + s.vy * dt;
+  if (inWaterPoly(map, nx, ny)) { v.x = nx; v.y = ny; } else { s.vx = 0; s.vy = 0; }
+}
+
+function updateSinking(v, dt, world) {
+  const s = v.sinking;
+  const map = world.map;
+  s.t += dt;
+  v.speed = 0;
+  const floatZ = WATER_Y - (s.small ? 0.35 : 0.55);
+
+  if (s.phase === 'fall') {
+    s.vz -= SINK_GRAVITY * dt;
+    s.z += s.vz * dt;
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+    v.x = s.x; v.y = s.y;
+    s.pitch = clamp(s.pitch + s.dir * dt * 1.8, -0.6, 0.6);
+    if (s.z > floatZ) return;
+    s.z = floatZ;
+    s.phase = 'float';
+    s.t = 0;
+    s.vx *= 0.45; s.vy *= 0.45;
+    v.wrecked = true;
+    v._exploded = true;
+    v.health = 0;
+    if (s.byPlayer) markWreckedByPlayer(v, world);
+    const fx = Math.cos(v.angle) * (v.halfLen || 1) * 0.6, fy = Math.sin(v.angle) * (v.halfLen || 1) * 0.6;
+    world.particles.push({ kind: 'splash', x: v.x, y: v.y, until: world.time + SPLASH_LIFETIME });
+    if (!s.small) world.particles.push({ kind: 'splash', x: v.x + fx, y: v.y + fy, until: world.time + SPLASH_LIFETIME });
+    if (v.driver === 'player') {
+      if (s.small) { world.player.ejectIntoWater(v, world); world.addMessage('Nat geworden!', 3); }
+      else world.addMessage('Plons! Je auto zinkt - E om uit te stappen', 3.5);
+      world.health = Math.max(0, world.health - (s.small ? 5 : 10));
+    }
+    return;
+  }
+
+  s.vx *= Math.exp(-2.2 * dt);
+  s.vy *= Math.exp(-2.2 * dt);
+  driftOnWater(v, s, dt, map);
+  const bob = Math.sin(s.t * 2.6 + s.seed) * 0.05;
+
+  if (s.phase === 'float') {
+    const k = Math.min(1, s.t / FLOAT_TIME);
+    s.z = floatZ + bob - k * 0.15;
+    s.pitch += ((s.dir * 0.12) - s.pitch) * Math.min(1, dt * 3);
+    s.roll = Math.sin(s.t * 1.9 + s.seed) * 0.05;
+    if (s.t >= FLOAT_TIME) { s.phase = 'sink'; s.t = 0; s.startZ = s.z; }
+    return;
+  }
+
+  const k = Math.min(1, s.t / (s.small ? SINK_TIME * 0.5 : SINK_TIME));
+  s.z = s.startZ + (SUNK_Z - s.startZ) * k * k + bob * (1 - k);
+  s.pitch += ((s.dir * 0.45) - s.pitch) * Math.min(1, dt * 1.5);
+  s.roll = Math.sin(s.t * 1.3 + s.seed) * 0.08 * (1 - k);
+  if (world.time >= s.bubbleAt && k < 0.9) {
+    s.bubbleAt = world.time + 0.9 + Math.random() * 0.5;
+    world.particles.push({ kind: 'splash', x: v.x + (Math.random() - 0.5), y: v.y + (Math.random() - 0.5), until: world.time + SPLASH_LIFETIME });
+  }
+  if (v.driver === 'player' && s.z < WATER_Y - 1.4) {
+    world.player.ejectIntoWater(v, world);
+    world.addMessage('Je auto is gezonken!', 3);
+  }
+  if (k < 1) return;
+  sinkingVehicles.delete(v);
+  v.sinking = null;
+  v.sunk = true;
+  if (v.driver === 'player') world.player.ejectIntoWater(v, world);
+  if (!v.isHeroCar && !v.missionCar) {
+    const i = world.vehicles.indexOf(v);
+    if (i >= 0) world.vehicles.splice(i, 1);
+  }
 }
 
 // Splash for the 'splash' particles checkVehicleWater pushes (expired by

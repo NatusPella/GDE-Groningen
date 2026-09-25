@@ -104,7 +104,7 @@ function despawnFarPolice(world) {
     const v = world.vehicles[i];
     if (!v.isPolice || v.driver === 'player') continue;
     const d = Math.hypot(v.x - px, v.y - py);
-    if (v.wrecked || (v.deadEndBounces || 0) > 2 || ((v.stuckFor || 0) > 25 && d > 40) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
+    if ((v.wrecked && !v.sinking) || (v.deadEndBounces || 0) > 2 || ((v.stuckFor || 0) > 25 && d > 40) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
   }
 }
 
