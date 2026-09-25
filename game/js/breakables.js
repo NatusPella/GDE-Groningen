@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { reportImpact, markWreckedByPlayer, vehicleContacts } from './vehicle.js';
+import { reportImpact, markWreckedByPlayer, vehicleContacts, CRASH_DAMAGE_SCALE } from './vehicle.js';
 import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 import { streamTreeProps } from './treeprops.js';
 import { streamTrafficLightProps } from './trafficlights.js';
@@ -131,7 +131,7 @@ function setCarVelocity(v, vx, vy) {
 
 function damageCar(v, dmg) {
   if (dmg <= 0 || v.wrecked) return;
-  v.health = Math.max(0, v.health - dmg);
+  v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
   if (v.health <= 0) {
     v.wrecked = true;
     v.speed = 0;
