@@ -136,6 +136,50 @@ function buildingsCrossedBy(buildings, lines, step) {
   return out;
 }
 
+// Car roads that run through a water polygon without a bridge tag are
+// aqueducts (the Zuidelijke Ringweg dives under the Winschoterdiep at
+// Europaplein) or culverts under an embankment. The map has no tunnel data
+// and roads are all drawn at street level, so treat them as a covered
+// crossing: dry road with a deck, like a bridge - otherwise cars sink there.
+const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
+function markDryCrossings(map) {
+  let n = 0;
+  for (const r of map.roads) {
+    if (r.bridge || !DRY_CATS.has(r.cat)) continue;
+    const pts = r.pts;
+    let wet = false;
+    for (let i = 0; i < pts.length - 1 && !wet; i++) {
+      const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+      const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
+      for (let k = 0; k <= steps; k++) {
+        const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
+        for (const w of map.waterNear(x, y, 0.5)) {
+          const [minx, miny, maxx, maxy] = w.bounds;
+          if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, w.pts)) { wet = true; break; }
+        }
+        if (wet) break;
+      }
+    }
+    if (wet) { r.bridge = true; r.dryCrossing = true; n++; }
+  }
+  map.dryCrossings = n;
+}
+
+// OSM tree points a few metres off end up on the carriageway; the game drew
+// them in the middle of the road (the ring race was full of them)
+function onCarriageway(map, x, y) {
+  for (const r of map.roadsNear(x, y, 14)) {
+    if (!DRY_CATS.has(r.cat)) continue;
+    const hw = r.width / 2 - 0.3;
+    if (hw <= 0) continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
+      if (cp.dist2 < hw * hw) return true;
+    }
+  }
+  return false;
+}
+
 export class GameMap {
   constructor(data) {
     this.meta = data.meta;
@@ -186,6 +230,9 @@ export class GameMap {
       g.bounds = polygonBounds(g.pts);
       this.greenGrid.insert(g, g.bounds);
     }
+
+    markDryCrossings(this);
+    this.trees = this.trees.filter((t) => !onCarriageway(this, t[0], t[1]));
 
     this.treeGrid = new SpatialGrid(CELL * 2);
     for (const t of this.trees) {
