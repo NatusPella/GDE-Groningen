@@ -4,6 +4,7 @@ import { getMissionList, trackMission } from './missions.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
 import { isCinematicActive, replayIntro } from './cinematics.js';
+import { renderAchievementsPanel, missionRecordHTML } from './achievementsui.js';
 
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
@@ -14,7 +15,8 @@ const CONTROLS = [
   ['Shift', 'rennen'],
   ['Spatie', 'springen / handrem'],
   ['Ctrl', 'bukken'],
-  ['E / F', 'instappen / uitstappen / kusje'],
+  ['E / F', 'instappen / uitstappen / kusje / winkel in'],
+  ['R', 'nieuwe lak (stilstaand bij Spuit & Klaar)'],
   ['Muisklik', 'aanvallen / schieten'],
   ['1–4', 'vuisten / pistool / uzi / hagelgeweer'],
   ['Scrollwiel', 'volgend / vorig wapen'],
@@ -31,6 +33,7 @@ const CONTROLS = [
 const TABS = [
   ['map', 'Kaart'],
   ['missions', 'Missies'],
+  ['prestaties', 'Prestaties'],
   ['settings', 'Instellingen'],
   ['controls', 'Besturing'],
   ['game', 'Spel'],
@@ -38,7 +41,8 @@ const TABS = [
 
 const FOOTERS = {
   map: '<b>Klik</b> bestemming · <b>Shift+klik</b> teleporteren · <b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> centreren · <b>Del</b> wissen',
-  missions: '<b>Klik</b> op een missie om de route te zetten',
+  missions: '<b>Klik</b> op een missie om de route te zetten · geklaarde missies kun je opnieuw spelen voor een betere medaille',
+  prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
   settings: 'Instellingen worden automatisch bewaard',
   controls: '',
   game: '',
@@ -83,6 +87,7 @@ export function initPauseMenu(w) {
         <h2>Missies <small data-info="progress"></small></h2>
         <div class="pm-missions"></div>
       </div></section>
+      <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner"></div></section>
       <section data-panel="settings" class="pm-panel pm-col" hidden><div class="pm-inner">
         <nav class="pm-subtabs" role="tablist" aria-label="Instellingen">
           <button type="button" role="tab" data-subtab="sound" aria-selected="true">Geluid</button>
@@ -124,6 +129,8 @@ export function initPauseMenu(w) {
           ${toggle('showFog', 'Verkende gebieden op de kaart')}
           ${toggle('cinematicMoments', 'Filmische momenten')}
           <p class="pm-note">Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.</p>
+          ${toggle('gore', 'Bloed en ledematen')}
+          <p class="pm-note">Uit: aangereden en neergeschoten mensen vallen gewoon om, zonder bloed of rondvliegende ledematen.</p>
         </div>
         <button type="button" class="pm-secondary" data-action="reset">Standaardinstellingen</button>
       </div></section>
@@ -318,8 +325,8 @@ function renderMissions() {
   root.querySelector('.pm-missions').innerHTML = list.map((m) =>
     `<button type="button" class="pm-mission" data-mission="${m.index}" data-status="${m.status}">` +
     `<span class="pm-m-num">${m.index + 1}</span>` +
-    `<span class="pm-m-text"><b>${esc(m.label)}</b><small>${TYPE_LABEL[m.type] || ''} · €${m.reward}</small></span>` +
-    `<span class="pm-m-chip">${STATUS_LABEL[m.status]}</span></button>`).join('');
+    `<span class="pm-m-text"><b>${esc(m.label)}</b><small>${TYPE_LABEL[m.type] || ''} · €${m.reward}${missionRecordHTML(m.index)}</small></span>` +
+    `<span class="pm-m-chip">${m.status === 'geklaard' ? 'Opnieuw spelen' : STATUS_LABEL[m.status]}</span></button>`).join('');
 }
 
 function syncGamePanel() {
@@ -354,6 +361,7 @@ function showTab(name) {
   root.querySelector('.pm-foot-tab').innerHTML = prestart ? '' : FOOTERS[name] || '';
   if (world) setMapActive(world, open && name === 'map');
   if (name === 'missions') renderMissions();
+  if (name === 'prestaties') renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner'));
   if (name === 'settings') { syncControls(); syncDesktopControls(); }
   if (name === 'game') {
     const pigeon = !!(world && world.pigeonMode);

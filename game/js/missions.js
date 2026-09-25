@@ -3,6 +3,8 @@ import { spawnVehicleOnRoad, Vehicle } from './vehicle.js';
 import { setUserWaypoint } from './routing.js';
 import { playMissionIntro, playMissionFailed } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail } from './missionstory.js';
+import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
+import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
@@ -13,6 +15,8 @@ const FATBIKE_MIN_SPEED = 1;
 const FATBIKE_COUNT = 8;
 const ABANDON_DIST = 45;
 const HINT_INTERVAL = 4;
+const RACE_CHECKPOINT_RADIUS = 9;
+const PODIUM = 3;
 
 const MISSION_BOAT_MODEL = { name: 'boat', len: 4.4, wid: 1.8, maxSpeed: 4.6, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#f2efe6', cabin: '#1f4a6e' };
 
@@ -29,6 +33,10 @@ function buildDefs(world) {
   const drive = (x, y) => roadSpot(map, x, y, true);
   const walk = (x, y) => roadSpot(map, x, y);
   const kroeg = (name, x, y) => ({ ...walk(x, y), name });
+  // Route guidance between checkpoints along the streets, so the line to the
+  // next marker never runs through a block; passed automatically (see waypointReached).
+  const via = (spot) => ({ ...spot, via: true });
+  const ring = (i) => ({ x: RING_ROUTE[i][0], y: RING_ROUTE[i][1], road: null });
   return [
     {
       type: 'deliver',
@@ -59,7 +67,10 @@ function buildDefs(world) {
       checkpointBonus: 35,
       reward: 350,
       start: drive(-153, 62),
-      waypoints: [drive(-35, 13), drive(-216, -358), drive(-327, -286), drive(-153, 62)],
+      waypoints: [
+        drive(-35, 13), via(drive(-165.1, -224.8)), via(drive(-250.3, -335.6)), drive(-216, -358),
+        drive(-327, -286), via(drive(-343.6, -275.5)), via(drive(-281.6, -153.1)), via(drive(-271, -128.7)), via(drive(-177.3, 71.8)), drive(-153, 62),
+      ],
     },
     {
       type: 'deliver',
@@ -74,13 +85,14 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'Ringweg-race: eindelijk klaar?',
-      intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de binnenstad, vol gas. Staat er ergens een afzetting? Dat is traditie.'],
-      outro: 'De ringweg is getest. Hij ligt er nog. Op een paar pionnen na.',
+      intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de stad over de ringweg, tegen vier gekken. Alleen het podium telt.'],
+      outro: 'Podium op de ringweg! Hij ligt er nog. Op een paar pionnen na.',
+      race: true,
       timeLimit: 90,
-      checkpointBonus: 65,
+      checkpointBonus: 22,
       reward: 750,
-      start: drive(667, 35),
-      waypoints: [drive(317, 452), drive(-48, 542), drive(-354, 107), drive(-102, -200), drive(305, -302), drive(667, 35)],
+      start: ring(0),
+      waypoints: [...RING_CHECKPOINTS.slice(1).map(ring), ring(0)],
     },
     {
       type: 'checkpoint',
@@ -93,9 +105,13 @@ function buildDefs(world) {
       onFoot: true,
       start: walk(250, 115),
       waypoints: [
+        via(walk(304.3, 130.9)),
         kroeg('Het Concerthuis', 368, 118.6),
+        via(walk(416.2, 125.8)),
         kroeg("'t Pakhuis", 410.5, 170.9),
+        via(walk(431.2, 182.1)), via(walk(393.9, 194.8)), via(walk(399.8, 210.6)), via(walk(365.9, 223)),
         kroeg('Nachtcafé Warhol', 352.6, 224.7),
+        via(walk(316.1, 243.9)), via(walk(262.2, 128.3)),
         kroeg('Groote Griet', 213.6, 135.9),
       ],
     },
@@ -121,7 +137,7 @@ function buildDefs(world) {
       reward: 400,
       start: { x: -33.8, y: -261.6 },
       boatAt: { x: -33.0, y: -259.5, angle: -0.37 },
-      waypoints: [{ x: 84, y: -304 }, { x: 183, y: -295 }, { x: 273, y: -250 }, { x: 369, y: -196 }],
+      waypoints: [{ x: 84, y: -304 }, via({ x: 134, y: -305.5 }), { x: 183, y: -295 }, { x: 273, y: -250 }, via({ x: 323.5, y: -227.4 }), { x: 369, y: -196 }],
     },
   ];
 }
@@ -141,6 +157,7 @@ export function initMissions(world) {
     completed: new Set(),
     seen: new Set(),
     run: null,
+    race: null,
     vehicle: null,
     leftover: null,
     boarded: false,
@@ -185,6 +202,15 @@ export function getNextMission() {
   if (!chain) return null;
   const d = chain.defs[chain.index];
   return { index: chain.index, label: d.label, reward: d.reward, active: chain.phase === 'active' };
+}
+
+// Read-only access for debug/test tooling (checkpoint validation).
+export function getMissionDefs() {
+  return chain ? chain.defs : [];
+}
+
+export function getActiveRace() {
+  return chain ? chain.race : null;
 }
 
 export function isMissionActive() {
@@ -239,6 +265,7 @@ function runStats(world, def) {
   const kills = killCount(world) - r.kills;
   if (def.type === 'rampage' || kills > 0) stats.push(['Kills', String(Math.max(0, kills))]);
   stats.push(['Schade', `${Math.round(r.damage)}%`]);
+  if (r.racePos) stats.push(['Positie', `${r.racePos}/${r.raceTotal}`]);
   return stats;
 }
 
@@ -286,8 +313,16 @@ function syncPub(world) {
     pub.killTarget = def.targetKills;
   }
   if (def.type === 'checkpoint' || def.type === 'boat') {
-    pub.wpIndex = st.wpIndex;
-    pub.wpTotal = def.waypoints.length;
+    pub.wpIndex = def.waypoints.slice(0, st.wpIndex).filter((wp) => !wp.via).length;
+    pub.wpTotal = def.waypoints.filter((wp) => !wp.via).length;
+  }
+  if (st.race && st.phase === 'active') {
+    const r = raceStandings(st.race);
+    pub.racePos = r.position;
+    pub.raceTotal = r.total;
+  } else {
+    pub.racePos = null;
+    pub.raceTotal = null;
   }
   if (def.type === 'fatbike' && st.phase === 'active') {
     pub.fatbikeHits = st.fatbikeHits;
@@ -303,6 +338,10 @@ function syncPub(world) {
 // The car/boat stays in the world after the mission, but as ordinary
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
+  if (chain.race) {
+    disposeRace(world, chain.race);
+    chain.race = null;
+  }
   const v = chain.vehicle;
   if (!v) return;
   v.missionCar = false;
@@ -441,6 +480,8 @@ function startMission(world, def) {
     chain.fatbikeHits = 0;
     chain.fatbikeContact = new Set();
     spawnFatbikes(world, def);
+  } else if (def.race) {
+    chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS);
   }
   const i = chain.index;
   const kicker = `Missie ${i + 1}/${chain.defs.length}`;
@@ -492,21 +533,46 @@ function vehicleProblem(world, def) {
   return null;
 }
 
-function reachCheckpoint(world, def) {
+// Index of the waypoint the player is at: the current one or, while the
+// current one is only a `via` (route guidance along the streets), any later
+// via or the next real checkpoint, so cutting a corner never strands you.
+function waypointReached(p, def, radius) {
+  for (let k = chain.wpIndex; k < def.waypoints.length; k++) {
+    const wp = def.waypoints[k];
+    if (dist(p.x, p.y, wp.x, wp.y) < radius) return k;
+    if (!wp.via) break;
+  }
+  return -1;
+}
+
+function reachCheckpoint(world, def, k = chain.wpIndex) {
+  chain.wpIndex = k;
   const wp = def.waypoints[chain.wpIndex];
   chain.wpIndex++;
-  chain.timeLeft += def.checkpointBonus;
+  if (!wp.via) chain.timeLeft += def.checkpointBonus;
   if (chain.wpIndex >= def.waypoints.length) {
+    if (chain.race) {
+      const { position, total } = raceStandings(chain.race);
+      chain.run.racePos = position;
+      chain.run.raceTotal = total;
+      if (position > PODIUM) {
+        fail(world, def, `je werd ${position}e. Alleen het podium telt`);
+        return;
+      }
+      world.addMessage(position === 1 ? 'Gewonnen! Eerste over de streep!' : `Finish! Je werd ${position}e van ${total}.`, 3.5);
+    }
     succeed(world, def);
     return;
   }
-  if (wp.name) world.addMessage(`Proost in ${wp.name}! Hup, door naar ${def.waypoints[chain.wpIndex].name}.`, 3);
+  const next = def.waypoints.slice(chain.wpIndex).find((q) => q.name);
+  if (wp.name && next) world.addMessage(`Proost in ${wp.name}! Hup, door naar ${next.name}.`, 3);
 }
 
 export function updateMissions(dt, world) {
   if (!chain) return;
   const def = chain.defs[chain.index];
   const p = world.player;
+  updateRetiredRacers(dt, world);
 
   if (chain.phase === 'cooldown') {
     chain.cooldownTimer -= dt;
@@ -554,10 +620,21 @@ export function updateMissions(dt, world) {
       succeed(world, def);
     }
   } else if (def.type === 'checkpoint') {
-    const wp = def.waypoints[chain.wpIndex];
-    if (dist(p.x, p.y, wp.x, wp.y) < CHECKPOINT_RADIUS) {
+    if (chain.race) {
+      updateRace(dt, world, chain.race, chain.wpIndex);
+      const r = raceStandings(chain.race);
+      if (r.finished >= PODIUM) {
+        chain.run.racePos = r.position;
+        chain.run.raceTotal = r.total;
+        fail(world, def, 'het podium is al vol. Drie anderen waren eerder binnen');
+        syncPub(world);
+        return;
+      }
+    }
+    const k = waypointReached(p, def, chain.race ? RACE_CHECKPOINT_RADIUS : CHECKPOINT_RADIUS);
+    if (k >= 0) {
       if (def.onFoot && p.inVehicle) hint(world, 'Uitstappen, jong. Het heet kroegentocht, niet kroegenrit.');
-      else reachCheckpoint(world, def);
+      else reachCheckpoint(world, def, k);
     }
   } else if (def.type === 'fatbike') {
     checkFatbikeHits(world);
@@ -571,8 +648,8 @@ export function updateMissions(dt, world) {
     }
   } else if (def.type === 'boat') {
     if (p.inVehicle && p.inVehicle.isBoat) {
-      const wp = def.waypoints[chain.wpIndex];
-      if (dist(p.x, p.y, wp.x, wp.y) < CHECKPOINT_RADIUS + 2) reachCheckpoint(world, def);
+      const k = waypointReached(p, def, CHECKPOINT_RADIUS + 2);
+      if (k >= 0) reachCheckpoint(world, def, k);
     }
   }
 

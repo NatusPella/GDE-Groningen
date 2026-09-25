@@ -1783,6 +1783,7 @@ function playAudioEvents(world) {
       case 'prop_hit': propHit(e, x, y); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
+      case 'gore': case 'gore_splat': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'caw': case 'peck': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'whoosh': playBuf('whoosh', { out: spatialOut(x, y, { ref: 6, range: 60 }) || undefined, gain: 0.18 + clamp(e.strength ?? 0.5, 0, 1) * 0.2 }); break;
       case 'camera_shutter':
@@ -1798,12 +1799,30 @@ function playAudioEvents(world) {
         playTone({ freq: 1568, type: 'sine', duration: 0.3, gain: 0.08, bus: uiBus, prio: 2 });
         playTone({ freq: 2093, type: 'sine', duration: 0.25, gain: 0.06, delay: 0.08, bus: uiBus, prio: 2 });
         break;
+      case 'prestatie':
+        [659, 988, 1319].forEach((f, j) => playTone({ freq: f, type: 'sine', duration: 0.6, gain: 0.045, delay: j * 0.09, filterFreq: 2600, bus: stingBus, prio: 2 }));
+        duckMusic(0.8);
+        break;
       case 'achievement':
         [784, 988, 1175, 1568].forEach((f, j) => playTone({ freq: f, type: 'triangle', duration: 0.22, gain: 0.08, delay: j * 0.07, bus: stingBus, prio: 2 }));
         duckMusic(1);
         break;
       default: break;
     }
+  }
+}
+
+function playGoreEvent(kind, x, y, k) {
+  const out = spatialOut(x, y, { ref: kind === 'gore' ? 7 : 4, rolloff: 1.1, range: kind === 'gore' ? 80 : 45 });
+  if (!out) return;
+  const r = 0.9 + Math.random() * 0.2;
+  if (kind === 'gore') {
+    playBuf('squelch_' + Math.floor(Math.random() * 3), { out, gain: 0.3 + k * 0.22, rate: r, prio: 2 });
+    playBuf('body_hit', { out, gain: 0.22, rate: 0.7 * r });
+  } else if (kind === 'gore_splat') playBuf('gore_splat', { out, gain: 0.12 + k * 0.14, rate: r * (0.85 + Math.random() * 0.4) });
+  else {
+    playBuf('poof', { out, gain: 0.22 + k * 0.1, rate: r });
+    playBuf('flutter', { out, gain: 0.16, rate: r * 1.2 });
   }
 }
 
@@ -1914,9 +1933,9 @@ function vehicleVoiceParams(v) {
 }
 
 function isEngineRunning(v) {
-  if (v.wrecked || v.isBike || v.driver === 'player') return false;
+  if (v.wrecked || v.isBike || v.parked || v.driver === 'player') return false;
   if (Math.abs(v.speed) > 0.2) return true;
-  return v.isBoat || (!!v.road && !v.isHeroCar);
+  return v.isBoat || v.racer || (!!v.road && !v.isHeroCar);
 }
 
 function updateTrafficAudio(dt, world) {
@@ -2152,7 +2171,7 @@ export function updateAudio(dt, world) {
 }
 
 const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
-  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3'];
+  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0'];
 
 export function getAudioStats() {
   if (!ctx) return null;

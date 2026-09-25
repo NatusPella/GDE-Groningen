@@ -1,5 +1,6 @@
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
+import { getShopsForRender, getOwnedVehiclesForRender, drawShopMapIcon } from './shops.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
@@ -364,7 +365,10 @@ function updateMission(world) {
 function missionProgressText(m) {
   if (m.phase !== 'active') return '';
   if (m.type === 'rampage' && m.killTarget != null) return `Kills: ${Math.max(0, m.killProgress || 0)}/${m.killTarget}`;
-  if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) return `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
+  if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) {
+    const cp = `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
+    return m.racePos ? `Positie ${m.racePos}/${m.raceTotal} · ${cp}` : cp;
+  }
   if (m.type === 'fatbike' && m.fatbikeMaxHits != null) return `Geschept: ${m.fatbikeHits || 0}/${m.fatbikeMaxHits}`;
   return '';
 }
@@ -617,6 +621,8 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       outline(ctx, s, C.cream, 1);
       break;
     }
+    default:
+      if (kind.startsWith('shop-')) drawShopMapIcon(ctx, kind.slice(5), s);
   }
   ctx.restore();
 }
@@ -830,6 +836,8 @@ function drawMinimap(dt, world) {
   if (!horecaMini) horecaMini = declutter(getHorecaForRender(), 14 / MM_SCALE);
   for (const h of horecaMini) icon('horeca', h.x, h.y);
   for (const f of world.flitspaalen || []) icon('flitspaal', f.x, f.y);
+  for (const sh of getShopsForRender()) icon('shop-' + sh.type, sh.x, sh.y);
+  for (const o of getOwnedVehiclesForRender()) if (player.inVehicle !== o.v) icon('car', o.v.x, o.v.y);
 
   const m = world.mission;
   let missionEdge = null;

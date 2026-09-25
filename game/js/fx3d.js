@@ -196,6 +196,10 @@ function spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag = 1.5, l
   smoke.colorDirty = true;
 }
 
+export function spawnFxPuff(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag, lift) {
+  if (ready) spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag, lift);
+}
+
 const _camQ = new THREE.Quaternion();
 
 function updateSmoke(dt) {

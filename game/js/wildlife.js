@@ -1,20 +1,22 @@
-import { dist, angleLerp, pointInPolygon, SeededRng, isInWater } from './util.js';
+import { dist, angleLerp, pointInPolygon, SeededRng, isInWater, WATER_Y } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { SkinBuilder, vcMaterial, composeMatrix, tubeGeometry, loftGeometry, markShared } from './pixelart3d.js';
 import { setLeashHolder, setPeopleWeather } from './models3d_people.js';
+import { resolveWalker } from './collision.js';
+import { pushCircleOutOfVehicle } from './vehicle.js';
 
 // Ambient GTA6-marketing-parody wildlife: seagulls over the Diepenring,
 // ducks and geese on the canals, pigeon flocks on the squares, the odd
 // street cat, dogs out for a walk with pedestrians, and the occasional
 // cow/sheep in Noorderplantsoen-style green. Pure atmosphere - no health,
-// no combat, no collision. Streamed around the player per kind.
+// no combat; ground animals only get pushed around (groundContacts).
+// Streamed around the player per kind.
 
 const SPAWN_RADIUS = 70;
 const DESPAWN_DIST = 150;
 const MAINTAIN_INTERVAL = 2.5;
 const BIAS_SEARCH_RADIUS = 100;
-// Matches scene3d's WATER_Y (canal surface below the quay).
-const CANAL_Y = -1.1;
+const CANAL_Y = WATER_Y;
 
 const LIMITS = { seagull: 7, grazer: 3, duck: 6, pigeon: 14, cat: 2, dog: 3 };
 
@@ -530,6 +532,47 @@ export function updateWildlife(dt, world) {
       case 'dog': updateDog(a, dt, world); break;
       default: updateGrazer(a, dt);
     }
+    groundContacts(a, world);
+  }
+}
+
+// Animals on the ground are bodies like any walker: walls and posts stop
+// them, cars shove them aside (and scare them off), the player bumps them.
+const GROUND_RADIUS = { grazer: 0.5, cat: 0.2, dog: 0.25, pigeon: 0.1, seagull: 0.15 };
+function groundContacts(a, world) {
+  if (a.kind === 'duck' || a.gone) return;
+  if ((a.kind === 'pigeon' || a.kind === 'seagull') && a.state !== 'ground') return;
+  const r = GROUND_RADIUS[a.kind] || 0.3;
+  let moved = a.speed > 0;
+  for (const v of world.vehicles) {
+    if (v.isBoat || v.sinking || Math.abs(v.x - a.x) > v.halfLen + 1 || Math.abs(v.y - a.y) > v.halfLen + 1) continue;
+    const push = pushCircleOutOfVehicle(a.x, a.y, r, v);
+    if (!push) continue;
+    a.x = push.x; a.y = push.y;
+    moved = true;
+    if (Math.abs(v.speed) > 1) scareOff(a, world, v.x, v.y);
+  }
+  const p = world.player;
+  if (!p.inVehicle && !p.water) {
+    const dx = a.x - p.x, dy = a.y - p.y, min = r + (p.radius || 0.35), d2 = dx * dx + dy * dy;
+    if (d2 < min * min && d2 > 1e-8) {
+      const d = Math.sqrt(d2);
+      a.x = p.x + dx / d * min; a.y = p.y + dy / d * min;
+      moved = true;
+    }
+  }
+  if (moved) [a.x, a.y] = resolveWalker(a.x, a.y, r, world.map, 0, 0, NO_KICK);
+}
+const NO_KICK = { kick: false };
+
+function scareOff(a, world, fromX, fromY) {
+  if (a.kind === 'seagull') takeOff(a);
+  else if (a.kind === 'pigeon' && a.flock) a.flock.scaredAt = world.time;
+  else if (a.kind === 'cat' && a.state !== 'flee') {
+    a.state = 'flee';
+    a.stateTimer = 2.5;
+    const away = Math.atan2(a.y - fromY, a.x - fromX);
+    a.wanderTarget = { x: a.x + Math.cos(away) * 12, y: a.y + Math.sin(away) * 12 };
   }
 }
 

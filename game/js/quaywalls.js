@@ -194,7 +194,9 @@ function shoreRuns(poly, map, index) {
       const s0 = k / n, s1 = (k + 1) / n, sm = (s0 + s1) / 2;
       const x = a[0] + dx * sm, y = a[1] + dy * sm;
       let cls = null;
-      if (!index.inWater(x + nx * 1.2, y + ny * 1.2) && !nearBridge(map, x, y)) {
+      const dry = !index.inWater(x + nx * 1.2, y + ny * 1.2);
+      if (dry && nearBridge(map, x, y)) cls = 'abut';
+      else if (dry) {
         if (pond || inGreen(map, x + nx * 2.5, y + ny * 2.5)) cls = 'bank';
         else if (Math.hypot(x - CENTRE_X, y - CENTRE_Y) > 1100 && !nearBuilt(map, x + nx * 3, y + ny * 3, 7)) cls = 'bank';
         else cls = 'wall';
@@ -253,7 +255,9 @@ const STONE_DARK = lin(0x7c776d);
 const METAL = lin(0x2a2d2f);
 const RUST = lin(0x4a3527);
 
-function buildWallRun(run, wy, B, index) {
+// bare: abutment under a bridge deck - brick face only, no coping or apron
+// that would poke through the road surface.
+function buildWallRun(run, wy, B, index, bare = false) {
   const { pts, N } = run;
   const mid = pts[pts.length >> 1];
   const wall = B('wall', mid[0], mid[1]), stone = B('stone', mid[0], mid[1]), apron = B('apron', mid[0], mid[1]);
@@ -284,6 +288,7 @@ function buildWallRun(run, wy, B, index) {
     wall.quad(a, b, c, d, -tx, 0, -ty);
   }
 
+  if (bare) return;
   // coping blocks
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[i], p1 = pts[i + 1];
@@ -342,14 +347,15 @@ function buildBankRun(run, wy, B, rnd) {
       [APRON, TERRAIN_Y + 0.003, GRASS],
       [1.7, 0.02 + h * 0.04, mixc(GRASS, GRASS_DARK, h2)],
       [0.3 + (h3 - 0.5) * 0.3, -0.015 + h2 * 0.04, mixc(GRASS_DARK, MUD, 0.2 + h * 0.3)],
-      [-0.7 + (h - 0.5) * 0.4, wy + 0.26 + (h2 - 0.5) * 0.12, mixc(MUD, GRASS_DARK, 0.25)],
-      [-1.4 + (h2 - 0.5) * 0.4, wy - 0.06, mixc(MUD, MUD_DARK, 0.5)],
-      [-2.4, wy - 0.66, MUD_DARK],
+      [-0.5 + (h - 0.5) * 0.2, wy * 0.45, mixc(GRASS_DARK, MUD, 0.45)],
+      [-1.2 + (h - 0.5) * 0.4, wy + 0.26 + (h2 - 0.5) * 0.12, mixc(MUD, GRASS_DARK, 0.25)],
+      [-1.9 + (h2 - 0.5) * 0.4, wy - 0.06, mixc(MUD, MUD_DARK, 0.5)],
+      [-2.9, wy - 0.66, MUD_DARK],
     ];
     cols.push(prof.map(([o, y, c]) => acc.v(p[0] + m[0] * o, y, p[1] + m[1] * o, c)));
   }
   for (let i = 0; i < pts.length - 1; i++) {
-    for (let r = 0; r < 5; r++) {
+    for (let r = 0; r < cols[i].length - 1; r++) {
       acc.tri(cols[i][r], cols[i + 1][r], cols[i + 1][r + 1], 0, 1, 0);
       acc.tri(cols[i][r], cols[i + 1][r + 1], cols[i][r + 1], 0, 1, 0);
     }
@@ -362,7 +368,7 @@ function buildBankRun(run, wy, B, rnd) {
     for (let s = rnd() * 2; s < len; s += 1.2 + rnd() * 2.2) {
       if (rnd() < 0.4) continue;
       const t = s / len;
-      const o = -0.8 - rnd() * 0.7;
+      const o = -1.3 - rnd() * 0.7;
       const x = p0[0] + (p1[0] - p0[0]) * t + n[0] * o, z = p0[1] + (p1[1] - p0[1]) * t + n[1] * o;
       reedTuft(B('extras', x, z), x, wy - 0.08, z, rnd);
     }
@@ -482,7 +488,7 @@ const LEAF = [lin(0x4a7236), lin(0x56793a), lin(0x3f6634)];
 const POT = lin(0x8a4a33);
 const FLOWER = [lin(0xc0392b), lin(0xe07aa0), lin(0xe8c23a)];
 
-function houseboat(acc, glass, T, L, W, rnd) {
+function houseboat(acc, glass, T, L, W, rnd, wy) {
   const hull = HULLS[Math.floor(rnd() * HULLS.length)];
   const cabin = CABINS[Math.floor(rnd() * CABINS.length)];
   const roof = ROOFS[Math.floor(rnd() * ROOFS.length)];
@@ -547,11 +553,18 @@ function houseboat(acc, glass, T, L, W, rnd) {
     box(acc, T, px - 0.2, px + 0.2, 0.46, 0.8, pz - 0.2, pz + 0.2, POT);
     box(acc, T, px - 0.32, px + 0.32, 0.8, 1.3, pz - 0.32, pz + 0.32, LEAF[(k + 1) % 3]);
   }
-  // gangplank to the quay (quay is on local +z)
+  // steep gangway stair up to the quay (quay is on local +z)
   const gx = cx1 + bow * 0.5;
-  const z0 = hw - 0.05, z1 = hw + 0.95, y0 = 0.46, y1 = COPE_TOP + 1.1 + 0.02;
-  acc.hexa([T(gx - 0.3, y0 - 0.05, z0), T(gx + 0.3, y0 - 0.05, z0), T(gx + 0.3, y1 - 0.05, z1), T(gx - 0.3, y1 - 0.05, z1),
-    T(gx - 0.3, y0, z0), T(gx + 0.3, y0, z0), T(gx + 0.3, y1, z1), T(gx - 0.3, y1, z1)], WOOD_DARK);
+  const z0 = hw - 0.05, z1 = hw + 0.95, y0 = 0.46, y1 = COPE_TOP - wy + 0.02;
+  for (const sx of [-0.3, 0.3]) {
+    acc.hexa([T(gx + sx - 0.03, y0 - 0.12, z0), T(gx + sx + 0.03, y0 - 0.12, z0), T(gx + sx + 0.03, y1 - 0.12, z1), T(gx + sx - 0.03, y1 - 0.12, z1),
+      T(gx + sx - 0.03, y0, z0), T(gx + sx + 0.03, y0, z0), T(gx + sx + 0.03, y1, z1), T(gx + sx - 0.03, y1, z1)], WOOD_DARK);
+  }
+  const steps = Math.max(2, Math.round((y1 - y0) / 0.24));
+  for (let k = 1; k <= steps; k++) {
+    const t = k / steps, sy = y0 + (y1 - y0) * t, sz = z0 + (z1 - z0) * t;
+    box(acc, T, gx - 0.27, gx + 0.27, sy - 0.04, sy, sz - 0.1, sz + 0.02, WOOD);
+  }
   for (const fx of [-L * 0.3, L * 0.3]) prism(acc, T, fx, hw + 0.1, 0.12, -0.2, 0.3, 6, METAL);
 }
 
@@ -586,13 +599,66 @@ function placeHouseboats(run, wy, B, map, index, rnd) {
         !nearBridge(map, cx, cz, 12) && !nearBridge(map, cx + dx * L / 2, cz + dz * L / 2, 8) && !nearBridge(map, cx - dx * L / 2, cz - dz * L / 2, 8) &&
         [[-1, -1], [1, -1], [1, 1], [-1, 1]].every(([a, b]) => index.inWater(cx + dx * a * (L / 2 + 0.5) - n[0] * b * (W / 2 + 0.3), cz + dz * a * (L / 2 + 0.5) - n[1] * b * (W / 2 + 0.3)));
       if (ok) {
-        houseboat(B('extras', cx, cz), B('glass', cx, cz), frame(cx, wy, cz, dx, dz, n[0], n[1]), L, W, rnd);
+        houseboat(B('extras', cx, cz), B('glass', cx, cz), frame(cx, wy, cz, dx, dz, n[0], n[1]), L, W, rnd, wy);
         s += L + 2 + rnd() * 5;
       } else {
         s += 4 + rnd() * 6;
       }
     }
   }
+}
+
+// --- bridge decks -----------------------------------------------------------
+// Bridges are just road ribbons at street level; from a boat you would look
+// straight through them. Each bridge gets a DECK_T thick slab (fascia sides,
+// soffit, end caps) over the stretch that crosses this water polygon, run a
+// little onto the abutments.
+
+const DECK_T = 0.5, DECK_OVERRUN = 1.5;
+const DECK_SIDE = lin(0x8d887e), DECK_SOFFIT = lin(0x4a4843);
+const DECK_WIDE = new Set(['major', 'normal', 'minor']);
+
+function buildBridgeDecks(poly, map, B) {
+  const [bx0, by0, bx1, by1] = poly.bounds;
+  const inPoly = (x, y) => x >= bx0 && x <= bx1 && y >= by0 && y <= by1 && pointInPolygon(x, y, poly.pts);
+  for (const r of map.roadGrid.query(bx0, by0, bx1, by1)) {
+    if (!r.bridge || r.pts.length < 2) continue;
+    const half = (r.width || 4) / 2 + (DECK_WIDE.has(r.cat) ? 1.8 : 0.15);
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const a = r.pts[i], b = r.pts[i + 1];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (len < 0.3) continue;
+      const n = Math.max(1, Math.ceil(len));
+      let s0 = -1, s1 = -1;
+      for (let k = 0; k <= n; k++) {
+        const t = k / n;
+        if (!inPoly(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)) continue;
+        if (s0 < 0) s0 = t * len;
+        s1 = t * len;
+      }
+      if (s0 < 0) continue;
+      const ext0 = i === 0 ? DECK_OVERRUN : 0.3, ext1 = i === r.pts.length - 2 ? DECK_OVERRUN : 0.3;
+      deckSlab(B, a, b, len, Math.max(-ext0, s0 - DECK_OVERRUN), Math.min(len + ext1, s1 + DECK_OVERRUN), half);
+    }
+  }
+}
+
+function deckSlab(B, a, b, len, s0, s1, half) {
+  const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len, nx = -ty, ny = tx;
+  const P = (s, o) => [a[0] + tx * s + nx * o, a[1] + ty * s + ny * o];
+  const mid = P((s0 + s1) / 2, 0);
+  const acc = B('stone', mid[0], mid[1]);
+  const top = -0.01, bot = -DECK_T;
+  const face = (q, col, fx, fy, fz) => {
+    const ids = q.map(([x, y, z]) => acc.v(x, y, z, col));
+    acc.quad(ids[0], ids[1], ids[2], ids[3], fx, fy, fz);
+  };
+  const L0 = P(s0, -half), L1 = P(s1, -half), R0 = P(s0, half), R1 = P(s1, half);
+  face([[L0[0], bot, L0[1]], [L1[0], bot, L1[1]], [R1[0], bot, R1[1]], [R0[0], bot, R0[1]]], DECK_SOFFIT, 0, -1, 0);
+  face([[L0[0], bot, L0[1]], [L1[0], bot, L1[1]], [L1[0], top, L1[1]], [L0[0], top, L0[1]]], DECK_SIDE, -nx, 0, -ny);
+  face([[R0[0], bot, R0[1]], [R1[0], bot, R1[1]], [R1[0], top, R1[1]], [R0[0], top, R0[1]]], DECK_SIDE, nx, 0, ny);
+  face([[L0[0], bot, L0[1]], [R0[0], bot, R0[1]], [R0[0], top, R0[1]], [L0[0], top, L0[1]]], DECK_SOFFIT, -tx, 0, -ty);
+  face([[L1[0], bot, L1[1]], [R1[0], bot, R1[1]], [R1[0], top, R1[1]], [L1[0], top, L1[1]]], DECK_SOFFIT, tx, 0, ty);
 }
 
 // --- entry ------------------------------------------------------------------
@@ -624,7 +690,9 @@ export function buildShore(poly, map, { waterY, apronMaterial }) {
   for (const run of runs) {
     if (run.cls === 'wall' && central) placeHouseboats(run, waterY, B, map, index, rnd);
     for (const piece of chop(run, 40)) {
-      if (piece.cls === 'wall') {
+      if (piece.cls === 'abut') {
+        buildWallRun(piece, waterY, B, index, true);
+      } else if (piece.cls === 'wall') {
         buildWallRun(piece, waterY, B, index);
         wallProps(piece, waterY, B, rnd);
       } else {
@@ -632,6 +700,7 @@ export function buildShore(poly, map, { waterY, apronMaterial }) {
       }
     }
   }
+  buildBridgeDecks(poly, map, B);
   const M = materials();
   const group = new THREE.Group();
   for (const acc of buckets.values()) {

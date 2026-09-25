@@ -22,13 +22,16 @@ import {
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
+import { syncBoatWakes3D } from './boatwake3d.js';
+import { sleepingParkedCars } from './parkedcars.js';
+import { syncParkedLayer } from './parked3d.js';
 import { buildShore, updateShore } from './quaywalls.js';
 import { getWaterIndex } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
 import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D } from './skyprops3d.js';
-import { pointInPolygon, polygonBounds } from './util.js';
+import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
@@ -70,8 +73,7 @@ const DRAW_DIST = 140;
 // only 5cm below the terrain's own -0.4 base (and well within the terrain
 // shader's own bump displacement range) - nowhere near enough of a drop to
 // read as "the canal sits below street level" from a close-up 3rd person
-// camera; pushed meaningfully lower instead.
-const WATER_Y = -1.1;
+// camera; pushed meaningfully lower instead (WATER_Y in util.js).
 const TREE_DIST = 90;
 const VIEW_DISTANCES = { kort: 150, normaal: 350, ver: 600 };
 let viewDist = VIEW_DISTANCES.normaal;
@@ -135,7 +137,6 @@ let companionCharacter = null;
 let passengerMesh = null;
 let missionMarkerMesh = null;
 const splashMeshes = new Map();
-const wakeMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
 const moneyMeshes = new Map();
@@ -183,6 +184,12 @@ const camRayOrigin = new THREE.Vector3();
 const camRayDir = new THREE.Vector3();
 const CAM_CLEARANCE = 0.9; // must stay above the camera's 0.5m near plane
 const CAM_PUSH_DIRS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0]];
+// follow-cam pull-in when a wall blocks the orbit (see updateCamera)
+const CAM_MIN_DIST = 1.3;
+const CAM_PULL_OUT_RATE = 3.2; // 1/s: easing back out takes ~0.5 s
+const CAM_PULL_LIFT = 0.7; // m of extra height when fully pulled in
+let camPull = 1;
+let camPullReset = true;
 const CAM_TARGET_RADIUS = ORBIT_RADIUS * 5 + CAM_CLEARANCE + 2;
 const camTargetList = [];
 let lastPx = null, lastPy = null;
@@ -438,29 +445,6 @@ function buildPersonActor(shirt, skin, appearance) {
   return enableShadows(mesh, false);
 }
 
-// V-shaped foam trail behind a moving boat, unit length along local -X from
-// the stern; alpha fades via RGBA vertex colours. Material is per boat.
-const WAKE_GEO = (() => {
-  const pos = [], col = [];
-  const tri = (pts) => { for (const [x, z, a] of pts) { pos.push(x, 0, z); col.push(1, 1, 1, a); } };
-  for (const s of [1, -1]) tri([[0.05, s * 0.12, 0.9], [-1, s * 0.34, 0], [-1, s * 0.52, 0]]);
-  tri([[0.05, 0.28, 0.55], [0.05, -0.28, 0.55], [-0.45, 0, 0]]);
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
-  return g;
-})();
-SHARED_GEOMETRIES.add(WAKE_GEO);
-
-function buildWakeMesh() {
-  const mesh = new THREE.Mesh(WAKE_GEO, new THREE.MeshBasicMaterial({
-    color: 0xe4eef2, vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide,
-    polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -16,
-  }));
-  mesh.renderOrder = 1;
-  return mesh;
-}
-
 // three.js destroys a shader program as soon as its last material is
 // disposed, so every despawned actor type (and the PMREM re-bake's temporary
 // material) would recompile - a sync stall - the next time it appears. An
@@ -581,6 +565,12 @@ export function getCamera() {
 
 export function getScene() {
   return scene;
+}
+
+// Rebuild the Tammo/Anita meshes next frame (their appearance objects changed).
+export function refreshCharacterMeshes() {
+  playerCharacter = null;
+  companionCharacter = null;
 }
 
 let orbitRadius = ORBIT_RADIUS;
@@ -1162,6 +1152,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     ud.fade = Math.min(1, ud.fade + animDt / PED_FADE_TIME);
     const edge = (DRAW_DIST - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
     applyPedFade(mesh, warm ? (FADE_STEPS - 1) / FADE_STEPS : Math.min(ud.fade, edge));
+    if (p.gibbed) { mesh.visible = false; continue; }
     if (driveRagdoll(p, mesh, world, animDt)) continue;
     if (p.state === 'dead') {
       // topple backwards over ~0.3s, then lie flat until the ped is removed
@@ -1278,6 +1269,7 @@ export function update3D(dt, world) {
   updateRailway3D(dt, world);
   updateCountryside(dt, world, scene, cam, viewDist);
 
+  syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, player, DRAW_DIST);
   syncActors(
     world.vehicles.filter((v) => Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
     vehicleMeshes,
@@ -1303,11 +1295,11 @@ export function update3D(dt, world) {
       if (v.isBoat) animateBoat(mesh, v, world.time);
       else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
-      if (v.isPolice) updatePoliceLamps(mesh, world.time, policeChasing && !v.hijacked && v.driver !== 'player');
+      if (v.isPolice) updatePoliceLamps(mesh, world.time, policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
-      if (df) df.visible = !!v.road && !v.wrecked && v.driver !== 'player' && driverDist < DRIVER_FIGURE_DIST;
+      if (df) df.visible = (!!v.road || v.racer) && !v.wrecked && v.driver !== 'player' && driverDist < DRIVER_FIGURE_DIST;
       if (v.isBike || v.isScooter) syncBikeRider(mesh, v, world.time);
     }
 
@@ -1638,6 +1630,7 @@ export function update3D(dt, world) {
         companionMesh.rotation.z = comp.swimTilt || 0;
         if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !comp.swimming;
         companionMesh.rotation.y = -comp.angle;
+        companionMesh.userData.crouch = !!comp.crouching;
         animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
       }
     } else {
@@ -1727,43 +1720,20 @@ export function update3D(dt, world) {
   const dx = desiredX - eyeX, dy = desiredY - eyeY, dz = desiredZ - eyeZ;
   const fullDist = Math.hypot(dx, dy, dz) || 1;
   const hitDist = raycastBuildingDist(dx, dy, dz, fullDist);
-  if (hitDist !== null) {
-    // the ideal orbit view is blocked - real Gronings streets are often
-    // narrower than ORBIT_RADIUS, so this triggers constantly in the
-    // Binnenstad. Pulling the camera straight in along the same low ray
-    // (the old behaviour) used to shove it almost into the ground/wall at
-    // as little as 1.2m, leaving nothing visible but a blank close-up patch
-    // - "a floor slab covering everything". Try a near-overhead vantage
-    // first instead: looking down a street from above the rooftops clears
-    // the adjacent wall far more often than squeezing past it at eye level.
-    const steepPitch = Math.max(followPitch, 75 * Math.PI / 180);
-    const steepHoriz = Math.cos(steepPitch) * radius;
-    const steepHeight = eyeY + Math.sin(steepPitch) * radius;
-    const altX = player.x - Math.cos(camAngle) * steepHoriz;
-    const altZ = player.y - Math.sin(camAngle) * steepHoriz;
-    const altDx = altX - eyeX, altDy = steepHeight - eyeY, altDz = altZ - eyeZ;
-    const altFullDist = Math.hypot(altDx, altDy, altDz) || 1;
-    const altHit = raycastBuildingDist(altDx, altDy, altDz, altFullDist);
-    if (altHit === null || altHit > 2.2) {
-      desiredX = altX; desiredY = steepHeight; desiredZ = altZ;
-      if (altHit !== null) {
-        const d = Math.max(1.6, altHit - CAM_CLEARANCE);
-        const t = d / altFullDist;
-        desiredX = eyeX + altDx * t;
-        desiredY = eyeY + altDy * t;
-        desiredZ = eyeZ + altDz * t;
-      }
-    } else {
-      // even near-overhead is blocked (under an overhang/bridge) - fall
-      // back to pulling in on the original ray, with a less punishing
-      // minimum distance than before
-      const d = Math.max(1.0, hitDist - CAM_CLEARANCE);
-      const t = d / fullDist;
-      desiredX = eyeX + dx * t;
-      desiredY = eyeY + dy * t;
-      desiredZ = eyeZ + dz * t;
-    }
-  }
+  // Blocked view (narrow Gronings streets, turning the camera past a wall):
+  // slide in along the same ray, GTA-style. This used to jump to a 75-degree
+  // overhead vantage or snap to 1 m behind the head, so turning the view
+  // flipped between eye level, top-down and near first person - very
+  // disorienting. Now: in at once (never clip the wall), back out slowly, and
+  // rise a little when close so it reads as an over-the-shoulder view.
+  const wantPull = hitDist === null ? 1 : Math.max(CAM_MIN_DIST, hitDist - CAM_CLEARANCE) / fullDist;
+  if (camPullReset || wantPull < camPull) camPull = wantPull;
+  else camPull += (wantPull - camPull) * (1 - Math.exp(-dt * CAM_PULL_OUT_RATE));
+  camPullReset = false;
+  const pull = Math.min(1, camPull);
+  desiredX = eyeX + dx * pull;
+  desiredY = eyeY + dy * pull + (1 - pull) * CAM_PULL_LIFT;
+  desiredZ = eyeZ + dz * pull;
 
   // The rays above only test the line from eye to camera, so a wall or roof
   // edge running alongside the camera still ends up inside the 0.5m near
@@ -1792,6 +1762,7 @@ export function update3D(dt, world) {
   }
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
+  if (teleported) camPullReset = true;
   const lerpT = teleported ? 1 : Math.min(1, dt * 6);
   if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
   camBase.x += (desiredX - camBase.x) * lerpT;
@@ -1831,23 +1802,22 @@ const overrideLook = new THREE.Vector3();
 const _camLook = new THREE.Vector3();
 const _camTmp = new THREE.Vector3();
 
-// Cutscene cameras are scripted paths and can swing through walls; keep the
-// line from the subject to the camera free of buildings: pull in at once
-// when blocked, ease back out slowly so the shot doesn't pump.
-let guardFrac = 1;
+// Cutscene cameras are scripted paths that can swing through buildings.
+// The camera itself must never be inside one: over a footprint it is lifted
+// clear of the roof (quickly up, slowly back down, so no popping), and walls
+// right next to it push it off so the near plane can't cut them open. The
+// line of sight is left alone on purpose - landmark shots look *at* the
+// building, and flyovers look down past rooftops.
+let guardLift = 0;
 const _guardSeen = new Set();
 const _guardTargets = [];
-const _guardDir = new THREE.Vector3();
 function guardTargets() {
   _guardSeen.clear();
   _guardTargets.length = 0;
-  const mx = (cam.position.x + _camLook.x) / 2, mz = (cam.position.z + _camLook.z) / 2;
-  for (const [x, z] of [[cam.position.x, cam.position.z], [mx, mz], [_camLook.x, _camLook.z]]) {
-    for (const m of nearbyCamTargets(x, z)) {
-      if (_guardSeen.has(m)) continue;
-      _guardSeen.add(m);
-      _guardTargets.push(m);
-    }
+  for (const m of nearbyCamTargets(cam.position.x, cam.position.z)) {
+    if (_guardSeen.has(m)) continue;
+    _guardSeen.add(m);
+    _guardTargets.push(m);
   }
   return _guardTargets;
 }
@@ -1857,26 +1827,37 @@ function guardRay(ox, oy, oz, dx, dy, dz, far, targets) {
   camRaycaster.set(camRayOrigin, camRayDir);
   camRaycaster.near = 0.05;
   camRaycaster.far = far;
-  return camNearestHit(targets);
+  const hits = camRaycaster.intersectObjects(targets, true);
+  return hits.length ? hits[0].distance : null;
 }
-function guardCinematicCamera(dt) {
+const GUARD_SAMPLES = [[0, 0]]; // only the camera point: walls beside it are handled by the push rays
+function roofTopNear(map, x, y) {
+  let top = 0;
+  for (const [dx, dy] of GUARD_SAMPLES) {
+    for (const b of map.buildingsNear(x + dx, y + dy, 1)) {
+      const [x0, y0, x1, y1] = b.bounds;
+      const px = x + dx, py = y + dy;
+      if (px < x0 || px > x1 || py < y0 || py > y1 || !pointInPolygon(px, py, b.pts)) continue;
+      // pitched roofs rise up to ~7 m over the wall top: keep a safe margin
+      top = Math.max(top, (b.h || 3) * LEVEL_HEIGHT + (b.lift || 0) + (b.h <= 4 ? 7.5 : 2.5));
+    }
+  }
+  return top;
+}
+function guardCinematicCamera(dt, world) {
+  const need = world && world.map ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
+  guardLift += (need - guardLift) * Math.min(1, dt * (need > guardLift ? 10 : 1.5));
+  if (guardLift > 0.01) cam.position.y += guardLift;
   const targets = guardTargets();
-  if (!targets.length) { guardFrac = 1; return; }
-  _guardDir.subVectors(cam.position, _camLook);
-  const full = _guardDir.length();
-  if (full < 0.5) return;
-  const hit = guardRay(_camLook.x, _camLook.y, _camLook.z, _guardDir.x, _guardDir.y, _guardDir.z, full, targets);
-  const allowed = hit === null ? 1 : Math.max(1.2, hit - CAM_CLEARANCE) / full;
-  guardFrac = Math.min(allowed, guardFrac + (1 - guardFrac) * Math.min(1, dt * 1.5));
-  if (guardFrac < 0.999) cam.position.copy(_camLook).addScaledVector(_guardDir, guardFrac);
-  // walls running alongside the camera would still be cut open by the near plane
-  for (const [ax, ay, az] of CAM_PUSH_DIRS) {
-    const h = guardRay(cam.position.x, cam.position.y, cam.position.z, ax, ay, az, CAM_CLEARANCE, targets);
-    if (h === null) continue;
-    const push = CAM_CLEARANCE - h;
-    cam.position.x -= ax * push;
-    cam.position.y -= ay * push;
-    cam.position.z -= az * push;
+  if (targets.length) {
+    for (const [ax, ay, az] of CAM_PUSH_DIRS) {
+      const h = guardRay(cam.position.x, cam.position.y, cam.position.z, ax, ay, az, CAM_CLEARANCE, targets);
+      if (h === null) continue;
+      const push = CAM_CLEARANCE - h;
+      cam.position.x -= ax * push;
+      cam.position.y -= ay * push;
+      cam.position.z -= az * push;
+    }
   }
   if (cam.position.y < 0.4) cam.position.y = 0.4;
 }
@@ -1903,9 +1884,9 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   if (t > 0) {
     cam.position.lerp(overridePos, t);
     _camLook.lerp(overrideLook, t);
-    guardCinematicCamera(dt);
+    guardCinematicCamera(dt, world);
   } else {
-    guardFrac = 1;
+    guardLift = 0;
   }
   cam.lookAt(_camLook);
   const targetFov = valid && o.fov ? o.fov : baseFov;
@@ -2045,33 +2026,7 @@ function animateBoat(mesh, v, time) {
 }
 
 function syncBoatWakes(world) {
-  for (const v of world.vehicles) {
-    if (!v.isBoat) continue;
-    const moving = !v.wrecked && Math.abs(v.speed) > 0.3 && vehicleMeshes.has(v.id);
-    let wake = wakeMeshes.get(v.id);
-    if (!moving) {
-      if (wake) wake.visible = false;
-      continue;
-    }
-    if (!wake) {
-      wake = buildWakeMesh();
-      scene.add(wake);
-      wakeMeshes.set(v.id, wake);
-    }
-    const speed = Math.abs(v.speed);
-    const hl = v.model.len / 2;
-    wake.visible = true;
-    wake.position.set(v.x - Math.cos(v.angle) * hl, WATER_Y + 0.03, v.y - Math.sin(v.angle) * hl);
-    wake.rotation.y = -v.angle;
-    wake.scale.set(3 + speed * 1.3, 1, v.model.wid * (1.2 + speed * 0.35));
-    wake.material.opacity = Math.min(1, speed / 3) * 0.75;
-  }
-  for (const [id, wake] of wakeMeshes) {
-    if (vehicleMeshes.has(id)) continue;
-    scene.remove(wake);
-    disposeObject(wake);
-    wakeMeshes.delete(id);
-  }
+  syncBoatWakes3D(scene, world, (v) => vehicleMeshes.has(v.id), world.dayNight?.night ?? 0);
 }
 
 function colorFromHex(hex) {

@@ -2,6 +2,7 @@ import { normalizeAngle, pointInPolygon } from './util.js';
 import { requestRespawn } from './world.js';
 import { markWreckedByPlayer } from './vehicle.js';
 import { knockDown } from './ragdoll.js';
+import { bloodSpray, bleedPed } from './gore3d.js';
 import { DEAD_DURATION } from './pedestrians.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -191,6 +192,7 @@ function hitPedestrians(world, b) {
 
 function damagePed(world, ped, damage, byPlayer, dx, dy, melee) {
   ped.health -= damage;
+  if (!melee) bloodSpray(world, ped.x, ped.y, dx, dy, ped.state === 'dead' ? 0.25 : 0.45);
   if (ped.state === 'dead') return;
   if (ped.health > 0) {
     if (melee && (ped.ragdoll || Math.random() < 0.4)) knockDown(ped, world, { kind: 'punch', vx: dx * 2.6, vy: dy * 2.6, lieFor: 1.2 + Math.random() });
@@ -199,6 +201,7 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee) {
   ped.state = 'dead';
   ped.deadUntil = world.time + DEAD_DURATION;
   knockDown(ped, world, { kind: melee ? 'punch' : 'shot', dead: true, vx: dx * (melee ? 3 : 2.4), vy: dy * (melee ? 3 : 2.4) });
+  bleedPed(ped, world, { size: melee ? 0.7 : 1 });
   if (!byPlayer) return;
   world.stats.kills++;
   if (ped.isCop) {

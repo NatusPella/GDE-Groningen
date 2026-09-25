@@ -1,6 +1,10 @@
-import { dist, isInWater, inWaterPoly, WATER_Y } from './util.js';
+import { dist, isInWater, inWaterPoly, WATER_Y, normalizeAngle, pointInPolygon, closestPointOnSegment } from './util.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST, swimDepth, findClimbSpot, SWIM_SPEED, CLIMB_TIME } from './player.js';
+import { findProps } from './breakables.js';
+import { pushCircleOutOfVehicle } from './vehicle.js';
+import { resolveRailings } from './bridgerails.js';
+import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 
 // Tammo and Anita are always out together: whichever one the player is NOT
 // controlling is this module's "companion" - an AI-controlled buddy that
@@ -20,6 +24,36 @@ const TELEPORT_DIST = 60;
 const SWIM_TELEPORT_DIST = 14;
 const SWIM_STUCK_TIME = 3;
 const GRAVITY = 16;
+
+// walking together (GTA V buddy-style): a slot at the player's shoulder
+const WALK_SPEED = 4.2;
+const SIDE_OFFSET = 1.2;
+const SIDE_OFFSET_CROUCH = 1.0;
+const SHOULDER_LAG = 0.35;
+const FILE_GAP = 1.7;
+const CATCH_UP_START = 9;
+const CATCH_UP_END = 3.5;
+const RUN_CATCH_SPEED = 8.3;
+const ACCEL = 16;
+const BRAKE = 24;
+const GAIN = 1.8;
+const FACE_RATE = 10;
+const SWING_RATE = 7;
+const IDLE_FACE_RATE = 3;
+const SHARP_TURN = 2;
+const SIDE_SWITCH_COOLDOWN = 0.8;
+const SCAN_INTERVAL = 0.15;
+const CRUMB_STEP = 0.75;
+const MAX_CRUMBS = 90;
+const LOST_TIME = 5;
+const LOST_MIN_DIST = 14;
+const STUCK_TIME = 4;
+const COMBAT_HOLD = 5;
+const COMBAT_SIDE = 1.8;
+const COMBAT_BACK = 2.6;
+const PERSONAL_SPACE = 0.8;
+const PED_SPACE = 1.3;
+const POSE_SEEDS = { tammo: TAMMO_APPEARANCE.seed, anita: ANITA_APPEARANCE.seed };
 
 export function initCompanion(world) {
   const p = world.player;
@@ -121,6 +155,7 @@ function seekTowards(c, tx, ty, speed, dt, map, intoWater = false) {
   c.vx = Math.cos(c.angle) * s;
   c.vy = Math.sin(c.angle) * s;
   let nx = c.x + c.vx * dt, ny = c.y + c.vy * dt;
+  [nx, ny] = resolveRailings(nx, ny, c.radius, map);
   [nx, ny] = resolveBuildingCollisions(nx, ny, c.radius, map);
   if (!isInWater(map, c.x, c.y) && isInWater(map, nx, ny) && !intoWater) {
     if (!isInWater(map, nx, c.y)) ny = c.y;
@@ -208,10 +243,396 @@ function updateCompanionWater(c, p, dt, world) {
   c.z += (swimDepth(c.swimTilt, world.time, 1.3) - c.z) * Math.min(1, dt * 5);
 }
 
+function clearIdle(c) {
+  c.crouching = false;
+  c.pose = null;
+}
+
+// the idle gesture (a glance at the phone) goes through the ped pose hook,
+// keyed by the appearance seed of whichever character is the companion
+let posedSeed = null;
+function applyPoseSource(c) {
+  const seed = c.pose ? POSE_SEEDS[c.character] : null;
+  if (posedSeed !== null && posedSeed !== seed) unregisterPoseSource(posedSeed);
+  if (seed !== null) registerPoseSource(seed, c);
+  posedSeed = seed;
+}
+
+function turnToward(a, target, maxStep) {
+  const d = normalizeAngle(target - a);
+  return Math.abs(d) <= maxStep ? target : a + Math.sign(d) * maxStep;
+}
+
+// +1 = the player's left (heading rotated +90deg), -1 = right, 0 = in line
+function spatialSide(c, p, heading) {
+  const lat = -(c.x - p.x) * Math.sin(heading) + (c.y - p.y) * Math.cos(heading);
+  return Math.abs(lat) < 0.15 ? 0 : Math.sign(lat);
+}
+
+function slotAt(p, heading, side, off, back) {
+  const ch = Math.cos(heading), sh = Math.sin(heading);
+  return [p.x - sh * side * off - ch * back, p.y + ch * side * off - sh * back];
+}
+
+function propDist2(pr, x, y) {
+  return closestPointOnSegment(x, y, pr.x - pr.hx, pr.y - pr.hy, pr.x + pr.hx, pr.y + pr.hy).dist2;
+}
+
+// Is a body of radius r at (x, y) in a wall, the water, a street prop or
+// (dynamic) another pedestrian?
+function blockedAt(world, x, y, r, dynamic) {
+  const map = world.map;
+  if (isInWater(map, x, y)) return true;
+  for (const b of map.buildingsNear(x, y, r + 1)) {
+    const [minx, miny, maxx, maxy] = b.bounds;
+    if (x < minx - r || x > maxx + r || y < miny - r || y > maxy + r) continue;
+    const pts = b.pts;
+    if (pointInPolygon(x, y, pts)) return true;
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]).dist2 < r * r) return true;
+    }
+  }
+  if (!dynamic) return false;
+  for (const pr of findProps(x, y, r + 1.5)) if (propDist2(pr, x, y) < (pr.r + r) ** 2) return true;
+  for (const ped of world.pedestrians || []) {
+    if (ped.state === 'dead') continue;
+    const m = r + (ped.radius || 0.35);
+    if ((ped.x - x) ** 2 + (ped.y - y) ** 2 < m * m) return true;
+  }
+  for (const v of world.vehicles || []) {
+    if (v.isBoat || v.sinking || Math.abs(v.x - x) > v.halfLen + 1 || Math.abs(v.y - y) > v.halfLen + 1) continue;
+    if (pushCircleOutOfVehicle(x, y, r, v)) return true;
+  }
+  return false;
+}
+
+// Straight line from a to b crosses a building (or, when walking, water)?
+function lineBlocked(map, ax, ay, bx, by, walking) {
+  const L = Math.hypot(bx - ax, by - ay);
+  if (L < 0.3) return false;
+  const near = map.buildingsNear((ax + bx) / 2, (ay + by) / 2, L / 2 + 1);
+  const n = Math.ceil(L / 0.5);
+  for (let i = 1; i < n; i++) {
+    const t = i / n, x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+    if (walking && isInWater(map, x, y)) return true;
+    for (const b of near) {
+      const [minx, miny, maxx, maxy] = b.bounds;
+      if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
+    }
+  }
+  return false;
+}
+
+function pushOutOfProps(x, y, r) {
+  for (const pr of findProps(x, y, r + 1.5)) {
+    const cp = closestPointOnSegment(x, y, pr.x - pr.hx, pr.y - pr.hy, pr.x + pr.hx, pr.y + pr.hy);
+    const m = pr.r + r;
+    if (cp.dist2 >= m * m || cp.dist2 < 1e-8) continue;
+    const d = Math.sqrt(cp.dist2);
+    x = cp.x + (x - cp.x) / d * m;
+    y = cp.y + (y - cp.y) / d * m;
+  }
+  return [x, y];
+}
+
+function followState(c, p) {
+  let f = c.follow;
+  if (f && f.forChar === c.character) return f;
+  // fresh start or a character swap: adopt the formation from where the
+  // two already stand, so nobody jumps or crosses over
+  const heading = Math.hypot(p.vx, p.vy) > 0.4 ? Math.atan2(p.vy, p.vx) : p.angle;
+  f = c.follow = {
+    forChar: c.character, heading, side: spatialSide(c, p, heading) || 1,
+    lastSwitch: -99, scanAt: 0, pathAt: 0, free: [true, true], single: false, freeScans: 0,
+    crumbs: [{ x: p.x, y: p.y }], via: null, losOk: true, lostT: 0, stuckT: 0, catchUp: false, repos: false,
+    stillT: 0, idleAt: 0, idleFace: c.angle, poseUntil: 0, combatUntil: 0,
+  };
+  return f;
+}
+
+// point `back` meters behind the player along the path they walked
+function trailPoint(f, p, back) {
+  let acc = 0, px = p.x, py = p.y;
+  for (let i = f.crumbs.length - 1; i >= 0; i--) {
+    const k = f.crumbs[i], seg = dist(px, py, k.x, k.y);
+    if (acc + seg >= back) {
+      const u = (back - acc) / (seg || 1);
+      return [px + (k.x - px) * u, py + (k.y - py) * u];
+    }
+    acc += seg;
+    px = k.x;
+    py = k.y;
+  }
+  return [px, py];
+}
+
+// newest breadcrumb of the player's path that the companion can walk to in
+// a straight line - following it threads the same corners and alleys
+function trailVia(f, c, map) {
+  const n = f.crumbs.length;
+  for (let i = n - 1; i >= Math.max(0, n - 45); i--) {
+    const k = f.crumbs[i];
+    if (!lineBlocked(map, c.x, c.y, k.x, k.y, true)) return k;
+  }
+  return null;
+}
+
+// Catch up discreetly: pop back in on the player's own trail, far enough
+// back to be behind the camera or around a corner.
+function sneakBackIn(c, p, world) {
+  const f = c.follow;
+  if (!f || f.crumbs.length < 2) return false;
+  const yaw = world.camYaw ?? p.angle, fx = Math.cos(yaw), fy = Math.sin(yaw);
+  let acc = 0, px = p.x, py = p.y;
+  for (let i = f.crumbs.length - 1; i >= 0; i--) {
+    const k = f.crumbs[i];
+    acc += dist(px, py, k.x, k.y);
+    px = k.x;
+    py = k.y;
+    if (acc < 9) continue;
+    if (acc > 30) break;
+    const hidden = (k.x - p.x) * fx + (k.y - p.y) * fy < -9 || lineBlocked(world.map, p.x, p.y, k.x, k.y, false);
+    if (!hidden || blockedAt(world, k.x, k.y, RADIUS + 0.1, true)) continue;
+    c.x = k.x;
+    c.y = k.y;
+    c.vx = 0;
+    c.vy = 0;
+    c.angle = Math.atan2(p.y - k.y, p.x - k.x);
+    leaveWater(c);
+    f.catchUp = true;
+    f.lostT = 0;
+    f.stuckT = 0;
+    f.via = null;
+    f.pathAt = 0;
+    return true;
+  }
+  return false;
+}
+
+function pushOutOfPeds(x, y, r, world) {
+  for (const ped of world.pedestrians || []) {
+    if (ped.state === 'dead') continue;
+    const dx = x - ped.x, dy = y - ped.y, m = r + (ped.radius || 0.35), d2 = dx * dx + dy * dy;
+    if (d2 >= m * m || d2 < 1e-8) continue;
+    const d = Math.sqrt(d2);
+    x = ped.x + dx / d * m;
+    y = ped.y + dy / d * m;
+  }
+  return [x, y];
+}
+
+function moveWithCollisions(c, dt, world) {
+  const map = world.map;
+  const steps = Math.max(1, Math.ceil(Math.hypot(c.vx, c.vy) * dt / (c.radius * 0.9)));
+  const sdt = dt / steps;
+  for (let i = 0; i < steps; i++) {
+    let nx = c.x + c.vx * sdt, ny = c.y + c.vy * sdt;
+    [nx, ny] = pushOutOfProps(nx, ny, c.radius);
+    [nx, ny] = pushOutOfPeds(nx, ny, c.radius, world);
+    [nx, ny] = resolveRailings(nx, ny, c.radius, map);
+    [nx, ny] = resolveBuildingCollisions(nx, ny, c.radius, map);
+    if (!isInWater(map, c.x, c.y) && isInWater(map, nx, ny)) {
+      if (!isInWater(map, nx, c.y)) ny = c.y;
+      else if (!isInWater(map, c.x, ny)) nx = c.x;
+      else { nx = c.x; ny = c.y; }
+    }
+    c.x = nx;
+    c.y = ny;
+  }
+  if (isInWater(map, c.x, c.y)) startFall(c);
+}
+
+// Rotate the desired velocity off a wall/prop straight ahead, preferring
+// the turn toward the target.
+function steerAround(world, c, f, vx, vy, tx, ty) {
+  const s = Math.hypot(vx, vy);
+  if (s < 0.3) return [vx, vy];
+  const a = Math.atan2(vy, vx), probe = Math.min(1.2, 0.5 + s * 0.12);
+  const free = (ang) => !blockedAt(world, c.x + Math.cos(ang) * probe, c.y + Math.sin(ang) * probe, c.radius * 0.9, true);
+  if (free(a)) { f.steerSide = 0; return [vx, vy]; }
+  // keep going round the same side once picked, or a head-on obstacle
+  // makes it dither left-right forever
+  const pref = f.steerSide || Math.sign(normalizeAngle(Math.atan2(ty - c.y, tx - c.x) - a)) || f.side;
+  for (const d of [0.4, 0.8, 1.2, 1.6]) {
+    for (const sg of [pref, -pref]) {
+      const na = a + d * sg;
+      if (free(na)) { f.steerSide = sg; return [Math.cos(na) * s, Math.sin(na) * s]; }
+    }
+  }
+  return [vx, vy];
+}
+
+function walkAlongside(c, p, dt, world) {
+  const map = world.map, f = followState(c, p), t = world.time, input = world.input;
+
+  const last = f.crumbs[f.crumbs.length - 1];
+  const gap = dist(last.x, last.y, p.x, p.y);
+  if (gap > 6) f.crumbs = [{ x: p.x, y: p.y }];
+  else if (gap > CRUMB_STEP) {
+    f.crumbs.push({ x: p.x, y: p.y });
+    if (f.crumbs.length > MAX_CRUMBS) f.crumbs.shift();
+  }
+
+  const pSpeed = Math.hypot(p.vx, p.vy);
+  const moving = pSpeed > 0.4;
+  if (moving) {
+    const target = Math.atan2(p.vy, p.vx);
+    const dh = normalizeAngle(target - f.heading);
+    if (Math.abs(dh) > SHARP_TURN) {
+      // sharp turn: keep standing on the same physical side and swing round
+      f.heading = target;
+      f.side = spatialSide(c, p, target) || f.side;
+      f.lastSwitch = t;
+    } else f.heading += dh * Math.min(1, dt * 6);
+  }
+
+  const mouse = input && input.mouse;
+  if (mouse && (mouse.rightDown || (mouse.down && world.weapon && world.weapon !== 'fists'))) f.combatUntil = t + COMBAT_HOLD;
+  const combat = t < f.combatUntil;
+  const crouch = !!p.crouching;
+  const off = combat ? COMBAT_SIDE : crouch ? SIDE_OFFSET_CROUCH : SIDE_OFFSET;
+  const back = combat ? COMBAT_BACK : SHOULDER_LAG;
+  const dP = dist(c.x, c.y, p.x, p.y);
+
+  if (t >= f.scanAt) {
+    f.scanAt = t + SCAN_INTERVAL;
+    const h = f.heading, ax = Math.cos(h) * 1.6, ay = Math.sin(h) * 1.6;
+    for (const s of [1, -1]) {
+      const [sx, sy] = slotAt(p, h, s, off, back);
+      // moving, props/peds at the slot are passing by - steer, don't switch
+      f.free[s > 0 ? 0 : 1] = !blockedAt(world, sx, sy, RADIUS + 0.1, !moving)
+        && !lineBlocked(map, p.x, p.y, sx, sy, true)
+        && (!moving || !blockedAt(world, sx + ax, sy + ay, RADIUS + 0.1, false));
+    }
+    const cur = f.free[f.side > 0 ? 0 : 1], other = f.free[f.side > 0 ? 1 : 0];
+    if (!cur && other && t - f.lastSwitch > SIDE_SWITCH_COOLDOWN) { f.side = -f.side; f.lastSwitch = t; }
+    if (!cur && !other) { f.single = true; f.freeScans = 0; }
+    else if (f.single && ++f.freeScans >= 3) f.single = false;
+    f.losOk = !lineBlocked(map, c.x, c.y, p.x, p.y, false);
+  }
+
+  if (dP > CATCH_UP_START) f.catchUp = true;
+  else if (dP < CATCH_UP_END) f.catchUp = false;
+
+  const [tx, ty] = f.single && !combat ? trailPoint(f, p, FILE_GAP) : slotAt(p, f.heading, f.side, off, back);
+  if (t >= f.pathAt) {
+    f.pathAt = t + SCAN_INTERVAL;
+    f.via = lineBlocked(map, c.x, c.y, tx, ty, true) ? trailVia(f, c, map) : null;
+  }
+
+  let vdx = 0, vdy = 0, maxS = 0;
+  if (f.via) {
+    const d = dist(c.x, c.y, f.via.x, f.via.y) || 1;
+    maxS = f.catchUp || dP > 5 ? RUN_CATCH_SPEED : Math.max(pSpeed * 1.1 + 0.4, WALK_SPEED);
+    vdx = (f.via.x - c.x) / d * maxS;
+    vdy = (f.via.y - c.y) / d * maxS;
+  } else {
+    const ex = tx - c.x, ey = ty - c.y, e = Math.hypot(ex, ey);
+    if (moving) f.repos = false;
+    else if (e > 0.7) f.repos = true;
+    else if (e < 0.3) f.repos = false;
+    if (moving || f.repos) {
+      // match the player's velocity, close the remaining gap gently
+      vdx = p.vx + ex * GAIN;
+      vdy = p.vy + ey * GAIN;
+      maxS = f.catchUp ? RUN_CATCH_SPEED : Math.max(pSpeed * 1.1 + 0.4, Math.min(WALK_SPEED, 0.6 + e * 1.4));
+      if (crouch && !f.catchUp) maxS = Math.min(maxS, 2.4);
+      if (!moving && e < 1.5) maxS = Math.min(maxS, 1.3);
+    }
+  }
+  if (dP < PERSONAL_SPACE && dP > 1e-3) {
+    const k = (PERSONAL_SPACE - dP) * 6 / dP;
+    vdx += (c.x - p.x) * k;
+    vdy += (c.y - p.y) * k;
+    maxS = Math.max(maxS, 1.5);
+  }
+  for (const ped of world.pedestrians || []) {
+    if (ped.state === 'dead') continue;
+    const dx = c.x - ped.x, dy = c.y - ped.y, d2 = dx * dx + dy * dy;
+    if (d2 > PED_SPACE * PED_SPACE || d2 < 1e-6) continue;
+    const d = Math.sqrt(d2), k = (PED_SPACE - d) * 3 / d;
+    vdx += dx * k;
+    vdy += dy * k;
+  }
+  const ds = Math.hypot(vdx, vdy);
+  if (maxS > 0 && ds > maxS) { vdx *= maxS / ds; vdy *= maxS / ds; }
+  [vdx, vdy] = steerAround(world, c, f, vdx, vdy, f.via ? f.via.x : tx, f.via ? f.via.y : ty);
+
+  const cs = Math.hypot(c.vx, c.vy), nds = Math.hypot(vdx, vdy);
+  const diff = cs > 1 && nds > 1 ? normalizeAngle(Math.atan2(vdy, vdx) - Math.atan2(c.vy, c.vx)) : 0;
+  const swinging = f.swingDir && t < f.swingEnd && Math.abs(diff) > 0.3;
+  if (!swinging) f.swingDir = 0;
+  if (!swinging && moving && !f.via && !f.blocked && Math.abs(diff) > 2.2) {
+    // reversing: swing round in a small arc away from the player instead of
+    // braking to a halt and snapping 180 degrees; the turn direction is
+    // latched so it can't flip-flop into walking away backwards
+    const away = c.vx * (c.y - p.y) - c.vy * (c.x - p.x);
+    f.swingDir = Math.sign(away) || Math.sign(diff) || 1;
+    f.swingEnd = t + 0.7;
+  }
+  if (f.swingDir) {
+    const na = Math.atan2(c.vy, c.vx) + f.swingDir * Math.min(Math.abs(diff), SWING_RATE * dt);
+    const ns = Math.max(1.2, cs - ACCEL * 0.5 * dt);
+    c.vx = Math.cos(na) * ns;
+    c.vy = Math.sin(na) * ns;
+  } else {
+    const dvx = vdx - c.vx, dvy = vdy - c.vy, dv = Math.hypot(dvx, dvy), lim = (nds < cs ? BRAKE : ACCEL) * dt;
+    if (dv > lim) { c.vx += dvx / dv * lim; c.vy += dvy / dv * lim; }
+    else { c.vx = vdx; c.vy = vdy; }
+  }
+
+  const ox = c.x, oy = c.y;
+  moveWithCollisions(c, dt, world);
+  if (c.water) return;
+
+  const want = Math.hypot(c.vx, c.vy);
+  const made = Math.hypot(c.x - ox, c.y - oy) / dt;
+  f.stuckT = want > 1 && made < want * 0.25 && dP > 4 ? f.stuckT + dt : 0;
+  f.lostT = !f.losOk && dP > LOST_MIN_DIST ? f.lostT + dt : 0;
+  if (f.stuckT > STUCK_TIME || f.lostT > LOST_TIME) {
+    f.stuckT = 0;
+    f.lostT = 0;
+    sneakBackIn(c, p, world);
+  }
+  f.blocked = made < want * 0.9;
+  if (f.blocked) {
+    // sliding along a wall/prop: keep only the motion that actually happened
+    c.vx = (c.x - ox) / dt;
+    c.vy = (c.y - oy) / dt;
+  }
+
+  const sp = Math.hypot(c.vx, c.vy);
+  c.crouching = crouch || (combat && sp < 2.5);
+  if (sp > 0.6 && (moving || f.catchUp || f.via || dP > 3)) {
+    c.angle = turnToward(c.angle, Math.atan2(c.vy, c.vx), FACE_RATE * dt);
+    f.stillT = 0;
+    f.poseUntil = 0;
+    return;
+  }
+  if (moving) return;
+  if (f.stillT === 0) { f.idleFace = p.angle; f.idleAt = t + 2 + Math.random() * 2; }
+  f.stillT += dt;
+  if (t >= f.idleAt) {
+    // idle life: face the other one, look the same way, or glance around
+    const r = Math.random();
+    f.idleFace = r < 0.45 ? Math.atan2(p.y - c.y, p.x - c.x) : r < 0.75 ? p.angle : p.angle + (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random() * 0.6);
+    f.idleAt = t + 3 + Math.random() * 4;
+    if (f.stillT > 6 && !combat && Math.random() < 0.3) f.poseUntil = t + 2.5 + Math.random() * 3;
+  }
+  if (t < f.poseUntil) c.pose = 'phone';
+  c.angle = turnToward(c.angle, f.idleFace, IDLE_FACE_RATE * dt);
+}
+
 export function updateCompanion(dt, world) {
+  stepCompanion(dt, world);
+  applyPoseSource(world.companion);
+}
+
+function stepCompanion(dt, world) {
   const c = world.companion;
   const p = world.player;
   c.character = p.character === 'tammo' ? 'anita' : 'tammo';
+  clearIdle(c);
 
   if (c.state === 'dead') {
     if (world.time >= c.deadUntil) respawnCompanion(world);
@@ -220,6 +641,15 @@ export function updateCompanion(dt, world) {
   if (isKnockedDown(c, world)) { c.vx = 0; c.vy = 0; return; }
 
   if (c.water && !c.inVehicle) {
+    const boat = p.inVehicle && p.inVehicle.isBoat && !p.inVehicle.passenger && !p.inVehicle.sinking ? p.inVehicle : null;
+    if (boat && c.water !== 'climb' && dist(c.x, c.y, boat.x, boat.y) < BOARD_DIST + 1) {
+      leaveWater(c);
+      c.inVehicle = boat;
+      boat.passenger = 'companion';
+      c.vx = 0;
+      c.vy = 0;
+      return;
+    }
     if (dist(c.x, c.y, p.x, p.y) > TELEPORT_DIST) teleportNearPlayer(c, p, world.map);
     else updateCompanionWater(c, p, dt, world);
     return;
@@ -229,10 +659,11 @@ export function updateCompanion(dt, world) {
     if (c.inVehicle === p.inVehicle) return; // already riding along
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
     const v = p.inVehicle;
-    // bikes/scooters/boats only fit the one rider - the companion just
-    // waits/follows on foot near wherever the player parked/boarded
-    const canRide = !v.isBike && !v.isScooter && !v.isBoat && !v.sinking;
-    if (canRide && !v.passenger && dist(c.x, c.y, v.x, v.y) < BOARD_DIST) {
+    // bikes/scooters only fit the one rider - the companion just
+    // waits/follows on foot near wherever the player parked; a boat is
+    // stepped into from the quay edge, so it gets a longer reach
+    const canRide = !v.isBike && !v.isScooter && !v.sinking;
+    if (canRide && !v.passenger && dist(c.x, c.y, v.x, v.y) < (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST)) {
       c.inVehicle = v;
       v.passenger = 'companion';
       c.vx = 0;
@@ -260,25 +691,40 @@ export function updateCompanion(dt, world) {
   }
 
   if (dist(c.x, c.y, p.x, p.y) > TELEPORT_DIST) {
-    teleportNearPlayer(c, p, world.map);
+    if (!sneakBackIn(c, p, world)) teleportNearPlayer(c, p, world.map);
     return;
   }
 
-  // on foot, player on foot - trail a bit behind rather than sitting on top
-  const behindAngle = Math.atan2(p.y - c.y, p.x - c.x);
-  const tx = p.x - Math.cos(behindAngle) * FOLLOW_DIST;
-  const ty = p.y - Math.sin(behindAngle) * FOLLOW_DIST;
-  if (dist(c.x, c.y, p.x, p.y) > ARRIVE_SLACK) {
-    seekTowards(c, tx, ty, CATCH_UP_SPEED, dt, world.map, p.swimming);
-    if (c.water) return;
+  if (p.swimming) {
+    // player went into the water - just head straight after them
+    clearIdle(c);
+    const behindAngle = Math.atan2(p.y - c.y, p.x - c.x);
+    const tx = p.x - Math.cos(behindAngle) * FOLLOW_DIST;
+    const ty = p.y - Math.sin(behindAngle) * FOLLOW_DIST;
+    if (dist(c.x, c.y, p.x, p.y) > ARRIVE_SLACK) {
+      seekTowards(c, tx, ty, CATCH_UP_SPEED, dt, world.map, true);
+      if (c.water) return;
+    } else {
+      c.vx = 0;
+      c.vy = 0;
+    }
   } else {
-    c.vx = 0;
-    c.vy = 0;
+    walkAlongside(c, p, dt, world);
+    if (c.water) return;
   }
 
   for (const v of world.vehicles) {
-    if (v.wrecked || Math.abs(v.speed) < VEHICLE_HIT_SPEED) continue;
-    if (dist(c.x, c.y, v.x, v.y) < v.halfWid * 0.9 + c.radius) {
+    if (v.isBoat || v.sinking || v === c.inVehicle) continue;
+    if (Math.abs(v.x - c.x) > v.halfLen + 1 || Math.abs(v.y - c.y) > v.halfLen + 1) continue;
+    const push = pushCircleOutOfVehicle(c.x, c.y, c.radius, v);
+    if (!push) continue;
+    // parked, slow or wrecked: a solid body to walk around; a bike only
+    // shoves, like it does the player
+    if (v.wrecked || Math.abs(v.speed) < VEHICLE_HIT_SPEED || v.isBike || v.isScooter) {
+      [c.x, c.y] = resolveBuildingCollisions(push.x, push.y, c.radius, world.map);
+      continue;
+    }
+    {
       c.state = 'dead';
       c.health = 0;
       c.vx = 0;

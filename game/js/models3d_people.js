@@ -736,6 +736,18 @@ function buildRig(L, shZ) {
   return { bones, pelvis, chest, head, limbs };
 }
 
+// Main colours of the look buildPersonMesh(shirt, skin, { seed }) produces.
+export function personPalette(shirt, skin, seed) {
+  const L = resolveLook(shirt, skin, { seed });
+  return {
+    top: L.cop ? COP_NAVY : L.top === 'raincoat' ? L.raincoatColor : shirt,
+    pants: L.pants, shoes: L.shoes, skin,
+    hair: L.hairStyle === 'bald' ? null : L.hairStyle === 'hijab' ? L.hijabColor : L.hair,
+    hat: L.hat === 'police' ? COP_NAVY : L.hat ? L.hatColor : null,
+    cop: L.cop,
+  };
+}
+
 export function buildPersonMesh(shirt, skin, opts = {}) {
   const L = resolveLook(shirt, skin, opts);
   L.topColor = L.cop ? COP_NAVY : shirt;

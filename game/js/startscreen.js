@@ -2,6 +2,7 @@ import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './saveg
 import { VERSION } from './version.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
+import { getAchievementSummary } from './achievements.js';
 
 const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -242,8 +243,10 @@ export function runStartScreen(world, { render, relocate, tick }) {
     items.push({ act: 'pigeon', label: 'Duif-modus', sub: 'Vlieg as n duuf over Grunn. Poepen mag.' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     if (window.gteDesktop && window.gteDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
+    const pct = getAchievementSummary().pct;
+    const badge = (it) => it.act === 'continue' && pct > 0 ? `<span class="ss-pct" title="Prestaties behaald" style="font-size:0.5em;letter-spacing:1px;margin-left:12px;opacity:0.8;vertical-align:middle">${pct}% voltooid</span>` : '';
     menu.innerHTML = items.map((it, i) =>
-      `<button type="button" role="menuitem" class="ss-item" data-i="${i}"><span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`).join('');
+      `<button type="button" role="menuitem" class="ss-item" data-i="${i}"><span class="ss-label">${it.label}${badge(it)}</span><small>${it.sub}</small></button>`).join('');
     const buttons = [...menu.querySelectorAll('.ss-item')];
     let sel = 0;
     let confirmNew = false;

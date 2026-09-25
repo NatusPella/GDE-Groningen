@@ -1,39 +1,42 @@
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, WATER_Y } from './util.js';
 import { trafficSignalsNear, getTrafficLightPhase } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
-import { crossingSpeedLimit } from './railway.js';
+import { inPassage } from './collision.js';
+import { railingContact } from './bridgerails.js';
+import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
 import { countrySurface } from './countryfield.js';
+import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const MODELS = [
   // Dutch daily traffic skews heavily toward grey/black/white/silver compacts
   // and hatchbacks, so those are weighted more heavily than the odd flash of
   // color rather than an even split across a bright arcade palette.
-  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 15, turnRate: 3.0, color: '#c7c9cc' },
-  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 15, turnRate: 3.0, color: '#23262a' },
-  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 15, turnRate: 3.0, color: '#e8e6e0' },
-  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 16, turnRate: 2.6, color: '#4a4d52' },
-  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 16, turnRate: 2.6, color: '#2f3a52' },
-  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 16, turnRate: 2.6, color: '#7a1f1f' },
-  { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 32, accel: 8, brake: 15, turnRate: 2.5, color: '#2e4a34' },
-  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 13, turnRate: 2.0, color: '#d9d9d9' },
-  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 13, turnRate: 2.0, color: '#c9541e' },
-  { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 42, accel: 12, brake: 19, turnRate: 3.2, color: '#8a1414' },
+  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 23, turnRate: 3.0, color: '#c7c9cc' },
+  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 23, turnRate: 3.0, color: '#23262a' },
+  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 23, turnRate: 3.0, color: '#e8e6e0' },
+  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#4a4d52' },
+  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#2f3a52' },
+  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#7a1f1f' },
+  { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 32, accel: 8, brake: 23, turnRate: 2.5, color: '#2e4a34' },
+  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0, color: '#d9d9d9' },
+  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0, color: '#c9541e' },
+  { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 42, accel: 12, brake: 27, turnRate: 3.2, color: '#8a1414' },
 ];
 
 // Signature red Ford Escort - GTE VI's hero car, spawned once via
 // spawnHeroCarNear rather than picked from MODELS by the regular traffic RNG.
-const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 34, accel: 10, brake: 17, turnRate: 3.4, color: '#a11f1f' };
+const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 34, accel: 10, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [
   { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6, color: '#1c1c1c', rider: '#2f5c8a' },
   { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6, color: '#2b2b2b', rider: '#7a2e2e' },
   { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.8, accel: 3.4, brake: 6, turnRate: 4.8, color: '#333', rider: '#3f6b3f' },
   { name: 'bike', len: 1.9, wid: 0.55, maxSpeed: 5.6, accel: 2.8, brake: 5.5, turnRate: 4.2, color: '#444', rider: '#c9a227' },
-  // fatbike: chunkier tires, slower and heavier-feeling, seen around town
-  // year-round in Groningen - deliberately rarer than the regular bikes
-  { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 5.2, accel: 2.6, brake: 5, turnRate: 3.8, color: '#20221f', rider: '#8a3a1f' },
+  // e-fatbike: chunky tyres and a motor, so it pulls away from the regular
+  // bikes - seen around town year-round in Groningen, rarer than normal bikes
+  { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.8, accel: 4.2, brake: 6, turnRate: 3.8, color: '#20221f', rider: '#8a3a1f' },
 ];
 const FATBIKE_WEIGHT = 0.12; // fraction of bike spawns that should be a fatbike
 const REGULAR_BIKE_MODELS = BIKE_MODELS.filter((m) => !m.fat);
@@ -57,6 +60,18 @@ function pickScooterModel(rng) {
   return SCOOTER_MODELS[Math.floor(rng() * SCOOTER_MODELS.length)];
 }
 
+// A riderless bike/scooter standing at (x, y), e.g. a street-clutter prop
+// being taken; tint is the prop's frame colour (0xRRGGBB).
+export function makeTwoWheeler(kind, x, y, angle, tint = null, rng = Math.random) {
+  const scooter = kind === 'scooter';
+  const base = scooter ? pickScooterModel(rng) : REGULAR_BIKE_MODELS[Math.floor(rng() * REGULAR_BIKE_MODELS.length)];
+  const model = tint == null ? base : { ...base, color: '#' + tint.toString(16).padStart(6, '0') };
+  const v = new Vehicle(x, y, angle, model);
+  v.isBike = !scooter;
+  v.isScooter = scooter;
+  return v;
+}
+
 // Boats free-roam water polygons rather than following the road graph - slow
 // accel/brake since they're on water, see updateBoatAI/spawnBoatOnWater.
 const BOAT_MODELS = [
@@ -68,15 +83,15 @@ const BOAT_MODELS = [
 // as the regular fleet, dark-navy cabin matching the rest of the police
 // fleet's accent tone, with enough extra accel/turn to actually run down a
 // fleeing player instead of just keeping pace.
-const POLICE_BOAT_MODEL = { name: 'boat', len: 4.1, wid: 1.65, maxSpeed: 6.5, accel: 2.4, brake: 2.8, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
+const POLICE_BOAT_MODEL = { name: 'boat', len: 4.1, wid: 1.65, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
 
 // Regional OV city bus - teal/blue livery, roomier turning circle, only
 // spawned on the bigger through-roads (see manageBusPopulation).
 // Qbuzz runs the Groningen-Drenthe concession: deep navy body with a cyan
 // accent band, not a generic tour-bus livery.
 const BUS_MODELS = [
-  { name: 'bus', len: 11, wid: 2.35, maxSpeed: 20, accel: 4.5, brake: 9, turnRate: 1.1, color: '#132a44', stripe: '#3fc6d4', accent: '#e8e6de' },
-  { name: 'bus', len: 11, wid: 2.35, maxSpeed: 20, accel: 4.5, brake: 9, turnRate: 1.1, color: '#0f3a4a', stripe: '#3fc6d4', accent: '#e8e6de' },
+  { name: 'bus', len: 11, wid: 2.35, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#132a44', stripe: '#3fc6d4', accent: '#e8e6de' },
+  { name: 'bus', len: 11, wid: 2.35, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#0f3a4a', stripe: '#3fc6d4', accent: '#e8e6de' },
 ];
 
 let nextId = 1;
@@ -127,25 +142,39 @@ export class Vehicle {
   applyControls(dt, throttle, steerInput, brakeInput) {
     const m = this.model;
     const isPlayer = this.driver === 'player';
+    const tune = isPlayer ? playerTune(this) : null;
+    const top = tune ? tune.top : m.maxSpeed;
+    const brakeMax = tune ? tune.brake : m.brake;
     const brake = brakeInput === true ? 1 : brakeInput || 0;
     const absSpeed = Math.abs(this.speed);
-    const handbrakeDrift = isPlayer && brake > 0 && absSpeed > 9 && Math.abs(steerInput) > 0.3;
+    const handbrakeDrift = isPlayer && !this.isBoat && brake > 0 && absSpeed > 9 && Math.abs(steerInput) > 0.3;
     const against = throttle !== 0 && absSpeed > 0.3 && Math.sign(throttle) !== Math.sign(this.speed);
-    let decel = brake * m.brake * (handbrakeDrift ? 0.45 : 1);
-    if (against) decel = Math.max(decel, m.brake * 0.85 * Math.abs(throttle));
+    if (isPlayer) this.pedalT = against ? (this.pedalT || 0) + dt : 0;
+    // Braking to a stop with S held pauses a beat before it starts reversing.
+    if (isPlayer && this.holdStill > 0) {
+      if (Math.sign(throttle) !== this.holdSign) this.holdStill = 0;
+      else { this.holdStill -= dt; throttle = 0; }
+    }
+    let decel = brake * brakeMax * (handbrakeDrift ? 0.32 : 1);
+    if (against) {
+      // player pedal bites at 60% and builds to full within ~0.25 s
+      const pedal = isPlayer ? Math.min(1, 0.6 + this.pedalT * 1.6) : 0.85;
+      decel = Math.max(decel, brakeMax * pedal * Math.abs(throttle));
+    }
     if (decel > 0) {
       const dec = decel * dt;
+      if (isPlayer && against && absSpeed <= dec) { this.holdStill = 0.3; this.holdSign = Math.sign(throttle); }
       this.speed = this.speed > 0 ? Math.max(0, this.speed - dec) : Math.min(0, this.speed + dec);
     } else if (throttle !== 0) {
-      const top = throttle > 0 ? m.maxSpeed : m.maxSpeed * REVERSE_FACTOR;
-      const headroom = clamp(1 - absSpeed / top, 0, 1);
-      this.speed += throttle * m.accel * (0.3 + 0.7 * headroom) * dt;
+      const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
+      const headroom = clamp(1 - absSpeed / lim, 0, 1);
+      this.speed += throttle * (tune ? tune.accel : m.accel) * (0.3 + 0.7 * headroom) * dt;
     } else {
-      const drag = 3.2 * dt;
+      const drag = coastDrag(this, isPlayer, absSpeed) * dt;
       if (this.speed > 0) this.speed = Math.max(0, this.speed - drag);
       else this.speed = Math.min(0, this.speed + drag);
     }
-    this.speed = clamp(this.speed, -m.maxSpeed * REVERSE_FACTOR, m.maxSpeed);
+    this.speed = clamp(this.speed, -top * REVERSE_FACTOR, top);
 
     const target = clamp(steerInput, -1, 1);
     if (isPlayer) {
@@ -166,7 +195,7 @@ export class Vehicle {
     // Past the grip limit (handbrake, or flat-out with full lock) part of the
     // old velocity carries on sideways - a mild, recoverable slide.
     if (isPlayer) {
-      const grip = handbrakeDrift ? 0.5 : absSpeed > m.maxSpeed * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
+      const grip = this.isBoat ? 0.72 : handbrakeDrift ? 0.5 : absSpeed > top * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
       if (grip < 1) {
         const k = (1 - grip) * this.speed;
         this.driftX = clamp(this.driftX + k * (Math.cos(oldAngle) - Math.cos(this.angle)), -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
@@ -182,7 +211,7 @@ export class Vehicle {
     if (this.driftX || this.driftY) {
       this.x += this.driftX * dt;
       this.y += this.driftY * dt;
-      const decay = Math.exp(-(handbrakeDrift ? SLIDE_DECAY_RATE : DRIFT_DECAY_RATE) * dt);
+      const decay = Math.exp(-(handbrakeDrift ? SLIDE_DECAY_RATE : isPlayer && this.isBoat ? BOAT_SLIDE_DECAY_RATE : DRIFT_DECAY_RATE) * dt);
       this.driftX *= decay;
       this.driftY *= decay;
       if (Math.hypot(this.driftX, this.driftY) < 0.03) { this.driftX = 0; this.driftY = 0; }
@@ -218,9 +247,35 @@ const SPIN_DECAY_RATE = 2.5;
 const MAX_DRIFT_SPEED = 8; // m/s, safety clamp against pathological multi-hit stacking in one frame
 const MAX_SPIN = 3.5; // rad/s
 
+const BOAT_SLIDE_DECAY_RATE = 1.3; // a player boat carries its sideways momentum on the water
 const REVERSE_FACTOR = 0.25; // top speed in reverse, as a fraction of maxSpeed
 const PLAYER_STEER_RATE = 5; // 1/s: how fast the wheel follows a digital key
 const PLAYER_STEER_RETURN = 9;
+
+// Two-wheelers and boats are tuned for the player separately from the AI
+// fleet's realistic cruising speeds (m/s): a bike is clearly quicker than
+// running (7.5), an e-fatbike quicker still, a scooter quickest.
+function playerTune(v) {
+  const m = v.model;
+  if (v.isBoat) return { top: Math.max(m.maxSpeed, 9.5), accel: Math.max(m.accel, 3.2), brake: Math.max(m.brake, 3.8) };
+  if (v.isScooter) return { top: 17, accel: 6.8, brake: 9.5 };
+  if (v.isBike) return m.fat ? { top: 14.5, accel: 6.2, brake: 9 } : { top: 11.5, accel: 4.6, brake: 8.5 };
+  return null;
+}
+
+export function speedCap(v) {
+  const t = v.driver === 'player' ? playerTune(v) : null;
+  return t ? t.top : v.model.maxSpeed;
+}
+
+// Rolling resistance + engine braking off the throttle (m/s^2). The AI's
+// flat value is what its speed controller was tuned against.
+function coastDrag(v, isPlayer, s) {
+  if (!isPlayer) return 3.2;
+  if (v.isBoat) return 0.45 + 0.05 * s;
+  if (v.isBike || v.isScooter) return 0.8 + 0.06 * s;
+  return 1.6 + 0.09 * s;
+}
 
 function minTurnRadius(m) {
   if (m.name === 'bus') return 9;
@@ -231,11 +286,11 @@ function minTurnRadius(m) {
 // Sideways acceleration the tyres hold before the turn rate is capped -
 // this is what makes steering speed-dependent (tight at walking pace, wide
 // arcs at speed) instead of a constant rad/s at every speed.
-function lateralGrip(m) {
-  if (m.name === 'bus') return 4.5;
-  if (m.name === 'bike' || m.name === 'scooter') return 5;
-  if (m.name === 'boat') return 2.5;
-  return 16;
+function lateralGrip(m, player = false) {
+  if (m.name === 'bus') return player ? 6.5 : 4.5;
+  if (m.name === 'bike' || m.name === 'scooter') return player ? 11 : 5;
+  if (m.name === 'boat') return player ? 5.5 : 2.5;
+  return player ? 23 : 16;
 }
 
 // tightTurn: AI turning round at a dead end or hairpin gets a shorter
@@ -244,7 +299,7 @@ export function maxYawRate(v, speed = v.speed) {
   const s = Math.abs(speed);
   if (s < 1e-3) return 0;
   const radius = minTurnRadius(v.model) * (v.tightTurn && v.driver !== 'player' ? 0.45 : 1);
-  return Math.min(s / radius, v.model.turnRate, lateralGrip(v.model) / s);
+  return Math.min(s / radius, v.model.turnRate, lateralGrip(v.model, v.driver === 'player') / s);
 }
 
 export function maxCurvature(v) {
@@ -392,7 +447,7 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   const dir = road.oneway ? 1 : (rng() < 0.5 ? 1 : -1);
   if (dir < 0) angle = normalizeAngle(angle + Math.PI);
   const model = isPolice
-    ? { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 38, accel: 11, brake: 18, turnRate: 2.8, color: '#1c1c1c' }
+    ? { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 34, accel: 9.5, brake: 18, turnRate: 2.8, color: '#1c1c1c' }
     : isBike
     ? pickBikeModel(rng)
     : isScooter
@@ -481,12 +536,13 @@ function pruneWrecks(world) {
   for (const v of wrecks.slice(0, wrecks.length - MAX_WRECKS)) vehicles.splice(vehicles.indexOf(v), 1);
 }
 
-export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spawnMax = 170, despawnDist = 260 } = {}) {
+export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spawnMax = 170, despawnDist = 260 } = {}) {
   const { map, player, vehicles } = world;
   pruneWrecks(world);
+  manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus) continue;
+    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked) continue;
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
@@ -495,7 +551,7 @@ export function manageTrafficPopulation(world, { target = 22, spawnMin = 70, spa
   }
 
   let count = 0;
-  for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && v.driver !== 'player') count++;
+  for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && !v.isScooter && !v.isBoat && !v.parked && v.driver !== 'player') count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3);
   let guard = 0;
@@ -521,7 +577,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBike && !v.wrecked && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBike && !v.wrecked && v.driver !== 'player' && v.road) count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
@@ -547,7 +603,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isScooter && !v.wrecked && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isScooter && !v.wrecked && v.driver !== 'player' && v.road) count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
@@ -731,6 +787,34 @@ export function surfaceUnder(map, x, y) {
   const country = countrySurface(x, y);
   if (country) return country === 'weg' ? 'asfalt' : 'gras';
   return 'klinkers';
+}
+
+// Distance from a point to the vehicle's body outline (its oriented box),
+// 0 when inside - so a long bus is as easy to reach at the back as a hatch.
+export function distToVehicleBody(v, x, y) {
+  const c = Math.cos(v.angle), s = Math.sin(v.angle);
+  const dx = x - v.x, dy = y - v.y;
+  const lx = Math.abs(dx * c + dy * s) - v.halfLen, ly = Math.abs(dy * c - dx * s) - v.halfWid;
+  return Math.hypot(Math.max(0, lx), Math.max(0, ly));
+}
+
+export const ENTER_REACH = 1.8;
+
+// The free vehicle (no driver of any kind) whose body is nearest, within
+// reach of its outline; moving traffic gets a little extra slack.
+export function findEnterableVehicle(x, y, vehicles, reach = ENTER_REACH) {
+  let best = null, bestScore = Infinity;
+  for (const v of vehicles) {
+    if (v.wrecked || v.sinking || v.driver) continue;
+    const pad = v.halfLen + reach + 1.5;
+    if (Math.abs(v.x - x) > pad || Math.abs(v.y - y) > pad) continue;
+    const r = (v.isBike || v.isScooter ? reach * 0.7 : reach) + Math.min(1, Math.abs(v.speed) * 0.1);
+    const d = distToVehicleBody(v, x, y);
+    if (d > r || d / r >= bestScore) continue;
+    bestScore = d / r;
+    best = v;
+  }
+  return best;
 }
 
 export function findNearestVehicle(x, y, vehicles, maxDist = 2.5) {
@@ -1052,6 +1136,31 @@ function curveSpeedLimit(v, path, aLat, decel) {
   return vmax;
 }
 
+// Planned (comfortable) deceleration for AI speed profiles; the brake pedal
+// itself can still use the model's full m.brake when something jumps out.
+function aiComfortDecel(v) {
+  const m = v.model;
+  return v.isBike || v.isScooter ? m.brake * 0.4 : Math.min(7, m.brake * 0.3);
+}
+
+// The player (or companion) on foot in the lane ahead: traffic tries to stop
+// in front of them, which is what makes carjacking possible at all.
+function walkerAheadLimit(v, path, world, decel) {
+  let vmax = Infinity;
+  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  for (const w of [world.player, world.companion]) {
+    if (!w || w.inVehicle || w.state === 'dead' || w.swimming) continue;
+    const dx = w.x - v.x, dy = w.y - v.y;
+    const fwd = dx * fx + dy * fy;
+    if (fwd < v.halfLen - 0.5 || fwd > 32 || Math.abs(dy * fx - dx * fy) > 6) continue;
+    const pr = projectOnPath(path, w.x, w.y);
+    if (!pr || pr.lat > v.halfWid + 0.9) continue;
+    const stopS = pr.s - v.halfLen - 1.4;
+    vmax = Math.min(vmax, Math.sqrt(2 * decel * Math.max(0, stopS)));
+  }
+  return vmax;
+}
+
 // Car-following: keep a stopping distance plus a time gap to whatever sits
 // on our path ahead - same-direction traffic, crossing traffic at a
 // junction, or something oncoming in our own lane.
@@ -1112,7 +1221,7 @@ function trafficLightLimit(v, path, world) {
   const near = trafficSignalsNear(v.x, v.y);
   if (!near.length) return Infinity;
   const small = v.isBike || v.isScooter;
-  const decel = v.model.brake * 0.45;
+  const decel = aiComfortDecel(v) * 1.1;
   const reach = Math.max(3.5, laneOffset(v.road, v) + 2);
   const since = world.time - (v.clearedAt || -99);
   const cc = v.clearedCtrl;
@@ -1130,7 +1239,7 @@ function trafficLightLimit(v, path, world) {
     const stopS = pr.s - v.halfLen - 1.2;
     const phase = getTrafficLightPhase(A);
     const go = phase === 'green' || stopS < -1 ||
-      (phase === 'yellow' && (v.speed * v.speed) / (2 * v.model.brake * 0.7) > stopS);
+      (phase === 'yellow' && (v.speed * v.speed) / (2 * aiComfortDecel(v) * 1.75) > stopS);
     if (go) {
       if (stopS < 3) { v.clearedCtrl = A.ctrl; v.clearedAt = world.time; }
       continue;
@@ -1270,7 +1379,12 @@ function resolveDeadlocks(v, dt, world, follow, lightV) {
 // opts.goal ({x, y}) steers junction choices toward a target; opts.chase
 // drives faster, tighter and ignores traffic lights (police pursuit).
 export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = null) {
-  if (v.wrecked || !v.road) return;
+  if (v.wrecked) return;
+  if (!v.road) {
+    // parked or abandoned: a shove from a collision rolls out against the handbrake
+    if (!v.driver && !v.sinking && (v.speed || v.driftX || v.driftY || v.yawVel)) v.applyControls(dt, 0, 0, 0.35);
+    return;
+  }
   if (!v.plan) v.plan = [];
   const goal = (opts && opts.goal) || null;
   const chase = !!(opts && opts.chase);
@@ -1294,10 +1408,10 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   const curvature = 2 * lat / Math.max(1, dx * dx + dy * dy);
   const steer = Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(curvature / maxCurvature(v), -1, 1);
 
-  const decel = m.brake * (chase ? 0.7 : 0.4);
+  const decel = chase ? m.brake * 0.7 : aiComfortDecel(v);
   const aLat = chase ? lateralGrip(m) * 0.6 : small ? 2.2 : v.isBus ? 1.6 : 3;
   let cruise = (v.road.speed || (small ? m.maxSpeed : 8)) * (v.cruiseScale || 1);
-  if (chase) cruise = Math.max(cruise * 1.5, 16);
+  if (chase) cruise = opts.cruise || Math.max(cruise * 1.5, 16);
   cruise = Math.min(cruise, m.maxSpeed * (small ? 0.9 : 0.95));
 
   let vTarget = Math.min(cruise, curveSpeedLimit(v, path, aLat, decel));
@@ -1305,6 +1419,8 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   const lightV = chase ? Infinity : Math.min(trafficLightLimit(v, path, world), crossingSpeedLimit(v, path, projectOnPath),
     small ? Infinity : zebraSpeedLimit(v, path, projectOnPath, world.time));
   vTarget = Math.min(vTarget, follow.vmax, lightV);
+  const walkerV = chase ? Infinity : walkerAheadLimit(v, path, world, decel);
+  vTarget = Math.min(vTarget, walkerV);
   const creeping = world.time < (v.creepUntil || 0);
   let yieldV = Infinity;
   if (!chase && !creeping) {
@@ -1336,7 +1452,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
     v.creepUntil = world.time + 3;
     v.blockedFor = 0;
   }
-  const blockedByPlayer = !!o && o.driver === 'player' && follow.vmax < 0.5 && Math.abs(v.speed) < 0.5;
+  const blockedByPlayer = (walkerV < 0.5 || (!!o && o.driver === 'player' && follow.vmax < 0.5)) && Math.abs(v.speed) < 0.5;
   v.hornFor = blockedByPlayer ? (v.hornFor || 0) + dt : 0;
   v.horn = v.hornFor > 1.5 && v.hornFor < 2.2;
   v.stuckFor = Math.abs(v.speed) < 0.6 && vTarget > 2 ? (v.stuckFor || 0) + dt : 0;
@@ -1362,7 +1478,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   const err = vTarget - v.speed;
   let throttle = 0, brake = 0;
   if (err > 0.25) throttle = clamp(err * 0.6, 0.2, 1);
-  else if (err < -0.5) brake = clamp(-err * 0.3, 0.1, 1);
+  else if (err < -0.5) brake = clamp(-err * (walkerV < v.speed ? 0.6 : 0.3), 0.1, 1);
   if (vTarget < 0.3 && Math.abs(v.speed) < 1.2) brake = 1;
   v.applyControls(dt, throttle, steer, brake);
 }
@@ -1429,7 +1545,8 @@ function velocityOf(v) {
 // applyControls) - the facing angle only changes through yawVel.
 function setVelocity(v, vx, vy) {
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-  v.speed = clamp(vx * fx + vy * fy, -v.model.maxSpeed, v.model.maxSpeed);
+  const cap = speedCap(v);
+  v.speed = clamp(vx * fx + vy * fy, -cap, cap);
   const lat = vy * fx - vx * fy;
   v.driftX = clamp(-fy * lat, -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
   v.driftY = clamp(fx * lat, -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
@@ -1516,6 +1633,7 @@ export function reportImpact(world, x, y, closingSpeed, playerInvolved) {
 // for the 3D spark effect (reset per call, read by scene3d's render pass),
 // including hits queued by resolveVehicleBuildingCollision earlier this frame.
 export function resolveVehicleVehicleCollisions(vehicles, world = null) {
+  if (world) tickParkedCars(world);
   for (const v of vehicles) {
     v.hitThisFrame = false;
     const p = v.pendingImpact;
@@ -1534,7 +1652,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
     for (let j = i + 1; j < vehicles.length; j++) {
       const b = vehicles[j];
       // wrecks are solid, heavy obstacles; two wrecks never interact
-      if (b.sinking || (a.wrecked && b.wrecked)) continue;
+      // a boat and a car only ever share x/y with a bridge deck between them
+      if (b.sinking || (a.wrecked && b.wrecked) || !a.isBoat !== !b.isBoat) continue;
       // a waiting cycle being broken: the chosen vehicle slips past its partner
       if (world && ((a.ignoreId === b.id && world.time < a.ignoreUntil) || (b.ignoreId === a.id && world.time < b.ignoreUntil))) continue;
       const reach = a.halfLen + b.halfLen + 0.2;
@@ -1609,14 +1728,16 @@ function collisionProbes(v) {
 // dead, and an off-centre hit swings the car round. dt is unused but kept
 // for callers.
 export function resolveVehicleBuildingCollision(v, map, dt) {
+  if (v.parked && !v.speed && !v.driftX && !v.driftY && !v.yawVel) return false;
   let hit = false, worst = 0, hx = 0, hy = 0;
+  const light = v.isBike || v.isScooter;
   const count = collisionProbes(v).length;
   for (let k = 0; k < count; k++) {
     const c = collisionProbes(v)[k];
     for (const b of map.buildingsNear(c[0], c[1], 1)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
-      if (!pointInPolygon(c[0], c[1], b.pts) || onRoadThroughBuilding(map, c[0], c[1], b)) continue;
+      if (!pointInPolygon(c[0], c[1], b.pts) || onRoadThroughBuilding(map, c[0], c[1], b) || (light && inPassage(map, b, c[0], c[1]))) continue;
       const pts = b.pts;
       let bestDist2 = Infinity, bestX = 0, bestY = 0;
       for (let i = 0; i < pts.length - 1; i++) {
@@ -1634,6 +1755,16 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       hit = true;
       break;
     }
+    const rc = v.isBoat || v.sinking ? null : railingContact(map, c[0], c[1]);
+    if (rc) {
+      v.x += rc.nx * rc.depth;
+      v.y += rc.ny * rc.depth;
+      const slide = tangentialSpeed(v, null, rc.nx, rc.ny);
+      const vn = contactImpulse(v, null, c[0], c[1], -rc.nx, -rc.ny, WALL_FRICTION);
+      if (vn >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(v, null, rc.x, rc.y, -rc.nx, -rc.ny, vn, slide);
+      if (vn > worst) { worst = vn; hx = rc.x; hy = rc.y; }
+      hit = true;
+    }
   }
   if (worst > IMPACT_EVENT_SPEED && worst > ((v.pendingImpact && v.pendingImpact.speed) || 0)) {
     v.pendingImpact = { x: hx, y: hy, speed: worst };
@@ -1642,6 +1773,44 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
     applyImpactDamage(v, Math.min(MAX_WALL_DAMAGE, (worst - WALL_DAMAGE_SPEED) * 2.5), v.driver === 'player', null);
   }
   return hit;
+}
+
+// Lowered level-crossing half barriers are solid for the player's vehicle; a
+// hard enough hit snaps the arm off instead (the train is never involved).
+const BOOM_SNAP_SPEED = 11;
+export function resolveBoomCollisions(v, world) {
+  if (v.isBoat || v.sinking || v.wrecked) return;
+  const booms = loweredBoomsNear(v.x, v.y, v.halfLen + 8);
+  if (!booms.length) return;
+  for (const b of booms) {
+    const cap = vehicleCapsule(v);
+    const q = closestPointsBetweenSegments(cap, { ax: b.ax, ay: b.ay, bx: b.bx, by: b.by });
+    const min = cap.r + 0.05;
+    if (q.dist2 >= min * min) continue;
+    let d = Math.sqrt(q.dist2), nx, ny;
+    if (d > 1e-4) { nx = (q.p2x - q.p1x) / d; ny = (q.p2y - q.p1y) / d; }
+    else {
+      const ex = b.bx - b.ax, ey = b.by - b.ay, el = Math.hypot(ex, ey) || 1;
+      nx = -ey / el; ny = ex / el;
+      if ((q.p2x - v.x) * nx + (q.p2y - v.y) * ny < 0) { nx = -nx; ny = -ny; }
+      d = 0;
+    }
+    const [vx, vy] = velocityOf(v);
+    const closing = vx * nx + vy * ny;
+    if (closing > BOOM_SNAP_SPEED) {
+      snapBoom(b);
+      v.speed *= 0.85;
+      applyImpactDamage(v, 6, v.driver === 'player', world);
+      reportImpact(world, q.p2x, q.p2y, closing, v.driver === 'player');
+      const q2 = world.audioEvents || (world.audioEvents = []);
+      q2.push({ kind: 'prop_hit', x: q.p2x, y: q.p2y, strength: 1, material: 'wood' });
+      continue;
+    }
+    v.x -= nx * (min - d);
+    v.y -= ny * (min - d);
+    const vn = contactImpulse(v, null, q.p2x, q.p2y, nx, ny, WALL_FRICTION);
+    if (vn >= IMPACT_EVENT_SPEED) reportImpact(world, q.p2x, q.p2y, vn, v.driver === 'player');
+  }
 }
 
 // Push a circle (pedestrian, player on foot) out of a vehicle's capsule.
@@ -1857,7 +2026,7 @@ let sinkTickAt = -1;
 export function checkVehicleWater(v, map, world) {
   tickSinkingVehicles(world);
   if (v.sinking && !v.wrecked) { v.x = v.sinking.x; v.y = v.sinking.y; v.speed = 0; return false; }
-  if (v.isBoat || v.wrecked || v.sinking) return false;
+  if (v.isBoat || v.wrecked || v.sinking || (v.parked && !v.speed)) return false;
   if (!inWaterPoly(map, v.x, v.y) || map.isOnBridge(v.x, v.y)) return false;
   startVehicleFall(v, world);
   return true;

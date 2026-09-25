@@ -50,7 +50,9 @@ export function isInWater(map, x, y) {
   return false;
 }
 
-export const WATER_Y = -1.1;
+// Canal surface: real Groningen canals lie 2-2.5 m below the quays, which
+// leaves a seated boater's head clear of the ~0.5 m bridge decks.
+export const WATER_Y = -2.3;
 
 // Raw water-polygon test without the bridge veto: a swimmer under a bridge
 // is still in the water.

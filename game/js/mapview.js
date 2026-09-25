@@ -1,6 +1,7 @@
 import { drawMapIcon, drawRoute, drawRoadRoute, getHeroCar, forEachPoliceUnit, declutter, ROUTE_COLORS, drawSearchArea, getPoliceSearch } from './hud_panel.js';
 import { getPickupsForRender } from './pickups.js';
 import { getHorecaForRender } from './horeca.js';
+import { getShopsForRender, getOwnedVehiclesForRender, SHOP_TYPES } from './shops.js';
 import { drawRailsOnMap } from './railway.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import {
@@ -792,6 +793,8 @@ function drawDynamicMarkers(ctx, world) {
 
   const hero = getHeroCar(world);
   if (hero && world.player.inVehicle !== hero) icon('car', 'car', hero.x, hero.y, 'Jouw auto');
+  for (const o of getOwnedVehiclesForRender()) if (world.player.inVehicle !== o.v) icon('car', 'car', o.v.x, o.v.y, 'Jouw ' + o.label);
+  for (const sh of getShopsForRender()) icon('shops', 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label);
 
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', 'companion', c.x, c.y, c.character === 'tammo' ? 'Tammo' : 'Anita', {}, 'Maat');
@@ -886,6 +889,7 @@ function buildSearchIndex(world) {
   for (const p of world.map.meta.neighbourhoodPoints || []) entries.push({ label: p.name, kind: 'Wijk', pri: 1, x: p.x, y: p.y, zoom: 4 });
   for (const h of world.map.meta.horeca || []) if (h.name) entries.push({ label: h.name, kind: 'Horeca', pri: 3, x: h.x, y: h.y, zoom: 8 });
   for (const g of world.map.meta.garages || []) if (g.name) entries.push({ label: g.name, kind: 'Garage', pri: 4, x: g.x, y: g.y, zoom: 7 });
+  for (const sh of getShopsForRender()) entries.push({ label: sh.name, kind: SHOP_TYPES[sh.type].label, pri: 3, x: sh.x, y: sh.y, zoom: 8 });
   for (const e of entries) {
     e.norm = normalize(e.label);
     e.compact = e.norm.replace(/ /g, '');
@@ -1023,8 +1027,8 @@ function teleportTo(world, target) {
     world.addMessage('Met een boot kun je niet teleporteren', 2.5);
     return;
   }
-  const spot = world.map.nearestRoadPoint(target.x, target.y, 400) || { x: target.x, y: target.y };
-  const [sx, sy] = world.map.escapeBuilding(spot.x, spot.y);
+  const spot = world.map.findOpenSpawn(target.x, target.y, 400) || { x: target.x, y: target.y };
+  const sx = spot.x, sy = spot.y;
   if (vehicle) {
     vehicle.x = sx;
     vehicle.y = sy;
@@ -1099,6 +1103,7 @@ const LEGEND = [
   { kind: 'armor', label: 'Kogelwerend vest', layer: 'armor' },
   { kind: 'garage', label: 'Garage', layer: 'garage' },
   { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
+  { kind: 'shop-kleding', label: 'Winkels', note: 'wapens, kleding, kapper, fietsen, auto\'s, loten', layer: 'shops' },
   { kind: 'flitspaal', label: 'Flitspaal', layer: 'flitspaal' },
   { kind: 'landmark', label: 'Bezienswaardigheid', layer: 'landmark' },
   { kind: 'police', label: 'Politie', note: 'alleen met sterren', layer: 'police' },
@@ -1359,6 +1364,9 @@ export function initMapView(world) {
     if (!state.open) return;
     const [sx, sy] = canvasPos(e);
     const d = state.drag;
+    // released outside the window (no mouseup arrives): stop dragging instead
+    // of leaving the map glued to the cursor
+    if (d && !(e.buttons & 1)) { endDrag(); return; }
     if (d) {
       if (!d.moved && Math.hypot(sx - d.sx, sy - d.sy) > DRAG_PX) {
         d.moved = true;
@@ -1374,11 +1382,16 @@ export function initMapView(world) {
     }
     if (e.target === cv) updateTooltip(sx, sy);
   });
+  const endDrag = () => {
+    state.drag = null;
+    cv.classList.remove('dragging');
+  };
+  window.addEventListener('blur', endDrag);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) endDrag(); });
   window.addEventListener('mouseup', (e) => {
     const d = state.drag;
     if (!d || e.button !== 0) return;
-    state.drag = null;
-    cv.classList.remove('dragging');
+    endDrag();
     if (!d.moved && state.open) {
       const [sx, sy] = canvasPos(e);
       handleClick(world, sx, sy, e.shiftKey);

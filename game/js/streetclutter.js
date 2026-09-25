@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { GeoBuilder, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
 import { isInsideBuilding, isOnRoad } from './pedestrians.js';
 import { isInWater, closestPointOnSegment } from './util.js';
+import { railingOffset, railingOpening } from './bridgerails.js';
 
 // Groningen street clutter for cityprops' per-cell meshes: bikes against
 // facades and bridge railings, kliko's, underground waste containers,
@@ -247,7 +248,13 @@ function buildBike(color, extra = null) {
   } else if (extra === 'basket') {
     B.box(0.6, 0.92, 0, 0.3, 0.2, 0.34, 0x9a7048);
   }
-  return finish(B);
+  return tinted(finish(B), color);
+}
+
+// Frame colour, so a parked bike taken for a ride keeps its look.
+function tinted(geo, color) {
+  geo.userData.tint = color;
+  return geo;
 }
 
 function buildScooter(color) {
@@ -264,7 +271,7 @@ function buildScooter(color) {
   tube(B, [0.4, 1.02, -0.3], [0.4, 1.02, 0.3], 0.018, CHROME);
   B.box(0.47, 1.0, 0, 0.1, 0.1, 0.14, 0xe8e2d0);
   B.box(-0.75, 0.55, 0, 0.06, 0.08, 0.16, 0x8a2a24);
-  return finish(B);
+  return tinted(finish(B), color);
 }
 
 function buildKliko(lid) {
@@ -486,6 +493,8 @@ function item(geo, kind, x, y, angle, opts = {}) {
     const d = CLUTTER_PROPS[kind];
     it.prop = { kind, x, y, face: angle, axis: opts.axis ?? angle, opts: d ? { ...d } : null, tilted: !!opts.tilt };
     if (opts.half) it.prop.half = opts.half;
+    if (geo.userData.tint !== undefined) it.prop.tint = geo.userData.tint;
+    if (opts.locked) it.prop.locked = true;
   }
   return it;
 }
@@ -572,8 +581,8 @@ function leanTilt(a, nx, ny, amt) {
   return (-Math.sin(a) * nx + Math.cos(a) * ny) > 0 ? amt : -amt;
 }
 
-function bikeItem(rng, x, y, a, tilt = 0) {
-  return item(pick(rng, P.bikes), 'bike', x, y, a, { tilt, y0: Math.abs(tilt) > 1 ? 0.04 : 0 });
+function bikeItem(rng, x, y, a, tilt = 0, locked = false) {
+  return item(pick(rng, P.bikes), 'bike', x, y, a, { tilt, y0: Math.abs(tilt) > 1 ? 0.04 : 0, locked });
 }
 
 function fallenBike(rng, x, y, a) {
@@ -653,7 +662,7 @@ export function generateClutter(ctx) {
   // Bridges: railings with bikes locked to them.
   for (const r of roads) {
     if (!r.bridge || r.pts.length < 2) continue;
-    const off = hasSidewalk(r) ? (r.width || 6) / 2 + 1.7 : (r.width || 3) / 2 + 0.08;
+    const off = railingOffset(r);
     const bikesOk = hasSidewalk(r) || r.cat === 'foot' || r.cat === 'cycle';
     for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], b = r.pts[i + 1];
@@ -669,7 +678,7 @@ export function generateClutter(ctx) {
           const t = t0 + 1 + k * 2;
           const x = a[0] + tx * t + nx * off, y = a[1] + ty * t + ny * off;
           if (x < cx0 || x >= cx0 + CELL || y < cy0 || y >= cy0 + CELL) continue;
-          if (isInsideBuilding(map, x, y)) continue;
+          if (isInsideBuilding(map, x, y) || railingOpening(map, r, x, y)) continue;
           items.push(item(P.railing, null, x, y, segA));
           if (!bikesOk || rng.next() > (inner ? 0.55 : mid ? 0.3 : 0.1)) continue;
           const cnt = 1 + Math.floor(rng.next() * 3);
@@ -677,7 +686,7 @@ export function generateClutter(ctx) {
             const s = -0.7 + j * 0.7 + rng.range(-0.1, 0.1);
             const bx = x + tx * s - nx * 0.4, by = y + ty * s - ny * 0.4;
             const ba = segA + (rng.next() < 0.5 ? 0 : Math.PI) + rng.range(-0.05, 0.05);
-            items.push(bikeItem(rng, bx, by, ba, leanTilt(ba, nx, ny, 0.2 + rng.range(0, 0.07))));
+            items.push(bikeItem(rng, bx, by, ba, leanTilt(ba, nx, ny, 0.2 + rng.range(0, 0.07)), true));
           }
         }
       }
@@ -731,7 +740,7 @@ export function generateClutter(ctx) {
         for (const zs of [-0.28, 0.28]) {
           if (rng.next() < 0.22) continue;
           const bx = cx + tx * (s + zs), by = cy + ty * (s + zs);
-          items.push(bikeItem(rng, bx, by, a + (rng.next() < 0.5 ? 0 : Math.PI) + rng.range(-0.1, 0.1)));
+          items.push(bikeItem(rng, bx, by, a + (rng.next() < 0.5 ? 0 : Math.PI) + rng.range(-0.1, 0.1), 0, true));
         }
       }
       if (rng.next() < 0.5) {

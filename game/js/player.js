@@ -1,9 +1,14 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp } from './util.js';
-import { findNearestVehicle, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
+import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
+import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
 import { getSettings } from './settings.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
+import { resolveBuildingCollisions, resolveWalker } from './collision.js';
+import { resolveWalkerProps } from './breakables.js';
+
+export { resolveBuildingCollisions };
 
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
@@ -30,12 +35,11 @@ export const CLIMB_TIME = 0.6;
 const CLIMB_REACH = 1.3;
 const CLIMB_SCAN_INTERVAL = 0.15;
 const SPLASH_LIFE = 1.1;
+const WALK_OPTS = { byPlayer: true };
+const SWIM_OPTS = { kick: false };
 
-const STEAL_HOLD_S = 0.4;
-// AI traffic being driven (or a police car) is stolen, not just entered
-function isStealTarget(v) {
-  return !v.driver && !v.wrecked && !v.sinking && !v.isBoat && !v.isHeroCar && !v.missionCar && (!!v.road || (v.isPolice && !v.hijacked));
-}
+const LOCK_CRACK_S = 0.7; // a bike locked to a rack or railing takes a quick jiggle first
+const CRACK_REACH = 2.2;
 
 export class Player {
   constructor(x, y) {
@@ -77,42 +81,35 @@ export class Player {
       this.vx = 0; this.vy = 0;
       this.moving = false;
       this.crouching = false;
-      this.stealHold = null;
+      this.crack = null;
+      world.promptHold = 0;
       isKnockedDown(this, world);
       if (this.ragdoll) return;
     }
     this.updateCharacterSwitch(world);
-    if (input.wasPressed('e') || input.wasPressed('f')) {
+    if ((input.wasPressed('e') || input.wasPressed('f')) && !this.crack) {
       if (this.water) {
         if (this.water === 'swim' && !this.inVehicle) this.swimInteract(world);
       } else if (!this.tryKiss(world)) {
-        const target = this.inVehicle ? null : findNearestVehicle(this.x, this.y, vehicles, 2.5);
-        if (target && isStealTarget(target)) {
-          // yanking someone out of a moving car takes a short hold of E
-          this.stealHold = { v: target, t: 0 };
-        } else {
-          const wasInVehicle = !!this.inVehicle;
-          this.tryEnterExit(map, vehicles, world);
-          if (!wasInVehicle && this.inVehicle) playAutoGejatLine(world);
-        }
+        if (this.inVehicle) this.tryEnterExit(map, vehicles, world);
+        else this.interact(world);
       }
     }
-    if (this.stealHold) {
-      const h = this.stealHold;
-      const held = input.isDown('e') || input.isDown('f');
-      const near = Math.hypot(h.v.x - this.x, h.v.y - this.y) < 3.2;
-      if (!held || !near || this.inVehicle || h.v.driver || h.v.wrecked) {
-        this.stealHold = null;
+    if (this.crack) {
+      const c = this.crack;
+      c.t += dt;
+      world.promptHold = Math.min(1, c.t / LOCK_CRACK_S);
+      if (this.inVehicle || this.water || Math.hypot(c.prop.x - this.x, c.prop.y - this.y) > CRACK_REACH || !c.prop.cell) {
+        this.crack = null;
         world.promptHold = 0;
+      } else if (c.t >= LOCK_CRACK_S) {
+        this.crack = null;
+        world.promptHold = 0;
+        this.takeProp(world, c.prop);
       } else {
-        h.t += dt;
-        world.promptHold = Math.min(1, h.t / STEAL_HOLD_S);
-        if (h.t >= STEAL_HOLD_S) {
-          this.stealHold = null;
-          world.promptHold = 0;
-          this.tryEnterExit(map, vehicles, world);
-          if (this.inVehicle) playAutoGejatLine(world);
-        }
+        this.vx = 0; this.vy = 0; this.moving = false;
+        this.angle = Math.atan2(c.prop.y - this.y, c.prop.x - this.x);
+        return;
       }
     }
 
@@ -120,7 +117,7 @@ export class Player {
       const v = this.inVehicle;
       if (v.sinking) { this.x = v.x; this.y = v.y; this.angle = v.angle; return; }
       if (v.wrecked) { this.exitVehicle(map, world); }
-      else { this.driveVehicle(dt, input, map); return; }
+      else { this.driveVehicle(dt, input, map, world); return; }
     }
 
     if (this.water || isInWater(map, this.x, this.y)) {
@@ -160,7 +157,7 @@ export class Player {
     for (let s = 0; s < steps; s++) {
       let nextX = this.x + this.vx * sdt;
       let nextY = this.y + this.vy * sdt;
-      [nextX, nextY] = resolveBuildingCollisions(nextX, nextY, this.radius, map);
+      [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS);
       this.x = nextX;
       this.y = nextY;
       if (isInWater(map, nextX, nextY)) { this.startWaterFall(); return; }
@@ -276,6 +273,7 @@ export class Player {
       if (inWaterPoly(map, nx, this.y)) this.x = nx;
       else if (inWaterPoly(map, this.x, ny)) this.y = ny;
     }
+    this.resolveSwimContacts(world);
 
     const tiltTarget = this.moving ? SWIM_TILT_MOVING : SWIM_TILT_IDLE;
     this.swimTilt += (tiltTarget - this.swimTilt) * Math.min(1, dt * 4);
@@ -296,11 +294,25 @@ export class Player {
     } else this.exhaustWarned = false;
   }
 
+  // Swimmers can't pass through houseboats (building footprints in the water),
+  // hulls, or viaduct piers.
+  resolveSwimContacts(world) {
+    const { map } = world;
+    let [x, y] = resolveWalkerProps(this.x, this.y, this.radius, 0, 0, SWIM_OPTS);
+    for (const v of world.vehicles) {
+      if (!v.isBoat || v.sinking || Math.abs(v.x - x) > v.halfLen + 1 || Math.abs(v.y - y) > v.halfLen + 1) continue;
+      const push = pushCircleOutOfVehicle(x, y, this.radius, v);
+      if (push) { x = push.x; y = push.y; }
+    }
+    [x, y] = resolveBuildingCollisions(x, y, this.radius, map);
+    if (inWaterPoly(map, x, y)) { this.x = x; this.y = y; }
+  }
+
   swimInteract(world) {
-    const boat = findNearestVehicle(this.x, this.y, world.vehicles, 2.8);
-    if (boat && boat.isBoat && !boat.driver && !boat.wrecked) {
+    const boat = findEnterableVehicle(this.x, this.y, world.vehicles, 1.4);
+    if (boat && boat.isBoat) {
       this.leaveWater();
-      this.tryEnterExit(world.map, world.vehicles, world);
+      this.enterVehicle(boat, world);
       return;
     }
     if (this.climbSpot) this.startClimb(this.climbSpot);
@@ -321,7 +333,7 @@ export class Player {
       if (v.isBoat || Math.abs(v.x - this.x) > v.halfLen + 1 || Math.abs(v.y - this.y) > v.halfLen + 1) continue;
       const push = pushCircleOutOfVehicle(this.x, this.y, this.radius, v);
       if (!push) continue;
-      [this.x, this.y] = resolveBuildingCollisions(push.x, push.y, this.radius, map);
+      [this.x, this.y] = resolveWalker(push.x, push.y, this.radius, map);
       const closing = (Math.cos(v.angle) * v.speed + v.driftX) * push.nx + (Math.sin(v.angle) * v.speed + v.driftY) * push.ny;
       if (closing > 1) {
         const fresh = Math.hypot(this.shoveX, this.shoveY) < 1;
@@ -332,21 +344,25 @@ export class Player {
         if (closing > KNOCKDOWN_CLOSING && !v.isBike && !v.isScooter && !this.ragdoll) this.knockedByVehicle(world, v, push, closing);
       }
     }
-    for (const p of world.pedestrians || []) {
-      if (p.state === 'dead') continue;
+    const c = world.companion;
+    const bodies = world.pedestrians || [];
+    for (let i = -1; i < bodies.length; i++) {
+      const p = i < 0 ? c : bodies[i];
+      // a ragdoll is simulated by ragdoll.js; people in a car or the water are elsewhere
+      if (!p || p.state === 'dead' || p.ragdoll || p.inVehicle || p.water) continue;
       const dx = this.x - p.x, dy = this.y - p.y;
       const min = this.radius + (p.radius || 0.35);
       const d2 = dx * dx + dy * dy;
       if (d2 >= min * min || d2 < 1e-8) continue;
       const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, overlap = min - d;
       this.x += nx * overlap * 0.5; this.y += ny * overlap * 0.5;
-      p.x -= nx * overlap * 0.5; p.y -= ny * overlap * 0.5;
+      [p.x, p.y] = resolveWalker(p.x - nx * overlap * 0.5, p.y - ny * overlap * 0.5, p.radius || 0.35, map);
       this.shoveX += nx * 6 * dt; this.shoveY += ny * 6 * dt;
     }
     const sh = Math.hypot(this.shoveX, this.shoveY);
     if (sh > MAX_SHOVE) { this.shoveX *= MAX_SHOVE / sh; this.shoveY *= MAX_SHOVE / sh; }
     if (sh > 0.05) {
-      [this.x, this.y] = resolveBuildingCollisions(this.x + this.shoveX * dt, this.y + this.shoveY * dt, this.radius, map);
+      [this.x, this.y] = resolveWalker(this.x + this.shoveX * dt, this.y + this.shoveY * dt, this.radius, map);
       const decay = Math.exp(-SHOVE_DECAY * dt);
       this.shoveX *= decay;
       this.shoveY *= decay;
@@ -428,14 +444,39 @@ export class Player {
       this.exitVehicle(map, world);
       return;
     }
-    const v = findNearestVehicle(this.x, this.y, vehicles, 2.5);
-    if (v && !v.driver && !v.wrecked && !v.sinking) {
-      v.driver = 'player';
-      v.road = null; // player takes manual control
-      if (v.isPolice) v.hijacked = true;
-      this.inVehicle = v;
-      pushVehicleAudio(world, v, 'door_open', 'engine_start');
+    const v = findEnterableVehicle(this.x, this.y, vehicles);
+    if (v) this.enterVehicle(v, world);
+  }
+
+  // One press of E: the nearest free vehicle (driving traffic included - its
+  // driver gets yanked out) or a parked bike/scooter prop, whichever is closer.
+  interact(world) {
+    const v = findEnterableVehicle(this.x, this.y, world.vehicles);
+    const pr = findRideableProp(this.x, this.y);
+    if (pr && (!v || pr.dist < distToVehicleBody(v, this.x, this.y))) {
+      if (pr.prop.locked) this.crack = { prop: pr.prop, t: 0 };
+      else this.takeProp(world, pr.prop);
+      return;
     }
+    if (v) this.enterVehicle(v, world);
+  }
+
+  takeProp(world, prop) {
+    const v = rideProp(world, prop);
+    if (v) this.enterVehicle(v, world);
+  }
+
+  enterVehicle(v, world) {
+    if (!v || v.driver || v.wrecked || v.sinking) return;
+    const stolen = !!v.road || v.parked || (v.isPolice && !v.hijacked);
+    v.carjacked = !!v.road; // its AI driver gets pulled out (pedestrians.js)
+    v.driver = 'player';
+    v.road = null; // player takes manual control
+    v.parked = false;
+    if (v.isPolice) v.hijacked = true;
+    this.inVehicle = v;
+    pushVehicleAudio(world, v, 'door_open', 'engine_start');
+    if (world && stolen && !v.isBike && !v.isScooter && !v.isBoat) playAutoGejatLine(world);
   }
 
   exitVehicle(map, world = null) {
@@ -452,7 +493,7 @@ export class Player {
     this.angle = v.angle;
   }
 
-  driveVehicle(dt, input, map) {
+  driveVehicle(dt, input, map, world = null) {
     const v = this.inVehicle;
     const [ax, ay] = input.axis();
     const throttle = ay < 0 ? 1 : ay > 0 ? -1 : 0;
@@ -463,13 +504,17 @@ export class Player {
     const px = v.x, py = v.y, pa = v.angle;
     v.applyControls(dt, throttle, ax, brake && v.speed !== 0);
     resolveVehicleBuildingCollision(v, map, dt);
+    if (world) resolveBoomCollisions(v, world);
     if (v.isBoat) {
       // boats stay on the water: the hull (centre and bow/stern) can't leave it
-      const h = (v.model.len || 4) * 0.45 * Math.sign(v.speed || 1);
-      const bowX = v.x + Math.cos(v.angle) * h, bowY = v.y + Math.sin(v.angle) * h;
-      if (!inWaterPoly(map, v.x, v.y) || !inWaterPoly(map, bowX, bowY)) {
+      // (bow, stern and both beams too, now that a boat carries a sideways slide)
+      const h = (v.model.len || 4) * 0.45, bw = (v.model.wid || 1.6) * 0.45;
+      const c = Math.cos(v.angle), s = Math.sin(v.angle);
+      const hull = [[0, 0], [h, 0], [-h, 0], [0, bw], [0, -bw]];
+      if (hull.some(([lx, ly]) => !inWaterPoly(map, v.x + lx * c - ly * s, v.y + lx * s + ly * c))) {
         v.x = px; v.y = py; v.angle = pa;
         v.speed *= -0.25;
+        v.driftX = 0; v.driftY = 0;
       }
     }
     this.x = v.x;
@@ -563,46 +608,4 @@ export function findExitSpot(v, radius, map, sides = EXIT_LEFT_FIRST) {
     return resolveBuildingCollisions(ex, ey, radius, map);
   }
   return map.escapeBuilding(v.x + nx * off * sides[0], v.y + ny * off * sides[0]);
-}
-
-// Push a circle out of any nearby building polygon it overlaps - including
-// when its centre is already inside, where the nearest-edge vector points
-// outward rather than away from the wall.
-export function resolveBuildingCollisions(x, y, radius, map) {
-  const nearby = map.buildingsNear(x, y, radius + 2);
-  // 2 passes wasn't always enough in a tight gap between two close
-  // buildings - each pass could push back toward the other wall without
-  // fully resolving, reading as "stuck" even though it's slowly still
-  // making progress frame to frame. More passes converge properly within
-  // a single call instead of relying on that slow multi-frame creep.
-  for (let iter = 0; iter < 5; iter++) {
-    for (const b of nearby) {
-      const [minx, miny, maxx, maxy] = b.bounds;
-      if (x < minx - radius || x > maxx + radius || y < miny - radius || y > maxy + radius) continue;
-      const pts = b.pts;
-      let bestDist2 = Infinity, bestX = 0, bestY = 0, bestI = 0;
-      for (let i = 0; i < pts.length - 1; i++) {
-        const cp = closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
-        if (cp.dist2 < bestDist2) { bestDist2 = cp.dist2; bestX = cp.x; bestY = cp.y; bestI = i; }
-      }
-      const d = Math.sqrt(bestDist2);
-      const inside = pointInPolygon(x, y, pts);
-      if (!inside && d >= radius) continue;
-      let ox, oy;
-      if (d > 1e-6) {
-        ox = (x - bestX) / d;
-        oy = (y - bestY) / d;
-        if (inside) { ox = -ox; oy = -oy; }
-      } else {
-        const ex = pts[bestI + 1][0] - pts[bestI][0], ey = pts[bestI + 1][1] - pts[bestI][1];
-        const el = Math.hypot(ex, ey) || 1;
-        ox = -ey / el;
-        oy = ex / el;
-        if (pointInPolygon(bestX + ox * radius, bestY + oy * radius, pts)) { ox = -ox; oy = -oy; }
-      }
-      x = bestX + ox * radius;
-      y = bestY + oy * radius;
-    }
-  }
-  return [x, y];
 }

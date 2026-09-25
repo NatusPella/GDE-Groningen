@@ -1,4 +1,5 @@
 import { dist } from './util.js';
+import { recordUnique } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
@@ -73,6 +74,7 @@ export function tryHorecaInteract(world) {
   world.health = Math.min(100, world.health + HEAL_AMOUNT);
   const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];
   world.addMessage(toast(name, amount), TOAST_DURATION);
+  recordUnique(world, 'horeca', `${name}@${Math.round(spot.x)},${Math.round(spot.y)}`);
   return true;
 }
 

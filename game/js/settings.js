@@ -22,6 +22,7 @@ const DEFAULTS = {
   showHints: true,
   showFog: true,
   cinematicMoments: true,
+  gore: true,
   drawDistance: 'ver',
   mouseSensitivity: 1,
   invertY: false,

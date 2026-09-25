@@ -1,11 +1,13 @@
 import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
 import { resolveBuildingCollisions, findExitSpot } from './player.js';
+import { resolveWalker } from './collision.js';
 import { requestRespawn } from './world.js';
 import { playNpcPhrase } from './audio.js';
 import { pushCircleOutOfVehicle, reportImpact } from './vehicle.js';
 import { getCombatEffect } from './combat.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
+import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, makeCompanion } from './pedroutes.js';
 
 const WANDER_SPEED = 1.3;
@@ -24,8 +26,6 @@ const COP_CLOTHING = '#1c3fae';
 const COP_SEEK_SPEED = 3.1;
 const COP_SEEK_TRIGGER_RADIUS = 18;
 const COP_SEEK_GIVEUP_RADIUS = 28;
-const COP_BUST_FAST_SPEED = 9;
-const COP_BUST_CONTACT_MARGIN = 0.1;
 
 const WITNESS_RADIUS = 45;
 const CALL_MIN = 5;
@@ -199,8 +199,8 @@ function addCompanions(map, peds, max) {
   return out;
 }
 
-export function spawnCopPedestriansNear(map, x, y, count, rng = Math.random, hidden = true) {
-  const cops = spawnPedsRaw(map, x, y, count, rng, 0, hidden);
+export function spawnCopPedestriansNear(map, x, y, count, rng = Math.random, hidden = true, minDist = 0) {
+  const cops = spawnPedsRaw(map, x, y, count, rng, minDist, hidden);
   for (const cop of cops) {
     cop.isCop = true;
     cop.clothing = COP_CLOTHING;
@@ -334,7 +334,7 @@ function gatherEvents(world) {
       if (!v.sinking) blastAt(world, v);
       if (dist(v.x, v.y, player.x, player.y) < 150) events.push({ kind: 'boom', x: v.x, y: v.y, r: 50, crime: !!v.wreckedByPlayer });
     }
-    if (!v.wrecked && v.driver !== 'player' && v.road && Math.abs(v.x - player.x) < 8 && Math.abs(v.y - player.y) < 8) aiDrivenAt.set(v, world.time);
+    if (!v.wrecked && v.driver !== 'player' && v.road && Math.abs(v.x - player.x) < v.halfLen + 6 && Math.abs(v.y - player.y) < v.halfLen + 6) aiDrivenAt.set(v, world.time);
   }
   for (const pt of world.particles) {
     if (pt.kind !== 'impact' || seenParticles.has(pt)) continue;
@@ -361,9 +361,10 @@ function gatherEvents(world) {
   }
   const v = player.inVehicle;
   if (v && v !== prevInVehicle) {
-    if (!v.isHeroCar && !ownedVehicles.has(v)) {
-      const hadDriver = world.time - (aiDrivenAt.get(v) ?? -Infinity) < 1.5;
-      events.push({ kind: 'theft', x: v.x, y: v.y, r: 30, crime: true, vehicle: v, hadDriver });
+    // the job's own car/boat/bike is handed to you, never stolen
+    if (!v.isHeroCar && !v.missionCar && !v.playerOwned && !ownedVehicles.has(v)) {
+      const hadDriver = !!v.carjacked || world.time - (aiDrivenAt.get(v) ?? -Infinity) < 1.5;
+      events.push({ kind: 'theft', x: v.x, y: v.y, r: 30, crime: hadDriver || !v.petty, vehicle: v, hadDriver });
     }
     ownedVehicles.add(v);
   }
@@ -418,9 +419,12 @@ function blastAt(world, v) {
     const dead = ped.health <= 0;
     releaseFromScene(ped);
     setPedPose(ped, null);
-    knockDown(ped, world, { kind: 'blast', dead, vx: b.vx, vy: b.vy, vz: b.vz });
+    const gib = dead && b.d < BLAST_KILL && splatterPed(ped, world, { vx: b.vx, vy: b.vy, vz: b.vz + 2, blast: true });
+    if (!gib) knockDown(ped, world, { kind: 'blast', dead, vx: b.vx, vy: b.vy, vz: b.vz });
     if (!dead || wasDead) continue;
     killPed(ped, world);
+    if (gib) ped.deadUntil = world.time + 1.5;
+    else bleedPed(ped, world);
     if (byPlayer) {
       world.stats.kills++;
       if (ped.isCop) world.stats.copKills++;
@@ -511,7 +515,7 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   const dead = ped.health <= 0;
   world.pedestrians.push(ped);
   knockDown(ped, world, { kind: 'hit', startPose: 'ride', dead, vx, vy, vz });
-  if (dead) killPed(ped, world);
+  if (dead) { killPed(ped, world); bleedPed(ped, world, { vehicle: u }); }
   if (u.driver === 'player') {
     world.wanted = Math.min(5, world.wanted + 1);
     if (dead) world.stats.pedKills++;
@@ -731,16 +735,19 @@ function managePopulation(world) {
 
 // --- per-ped physics ------------------------------------------------------
 
+const PED_OPTS = { ped: true, kick: false };
+const PED_SEAT_OPTS = { ped: true, kick: false, skipSeats: true };
+
 function checkVehicleImpact(ped, world) {
   for (const v of world.vehicles) {
-    if (v.wrecked || v.isBoat) continue;
+    if (v.isBoat || v.sinking) continue;
     if (Math.abs(v.x - ped.x) > v.halfLen + 1 || Math.abs(v.y - ped.y) > v.halfLen + 1) continue;
     const push = pushCircleOutOfVehicle(ped.x, ped.y, ped.radius, v);
     if (!push) continue;
-    if (Math.abs(v.speed) < VEHICLE_HIT_SPEED) {
+    if (v.wrecked || Math.abs(v.speed) < VEHICLE_HIT_SPEED) {
       if (ped.ragdoll) continue;
-      ped.x = push.x;
-      ped.y = push.y;
+      [ped.x, ped.y] = resolveBuildingCollisions(push.x, push.y, ped.radius, world.map);
+      if (v.wrecked) continue;
       if (v.driver === 'player' && !ped.isCop && world.time > (ped._bumpCd || 0)) {
         ped._bumpCd = world.time + 5;
         say(ped, world, pick(CAR_BUMP_LINES));
@@ -767,9 +774,14 @@ function checkVehicleImpact(ped, world) {
     // slow cars and bikes floor you, fast cars kill
     ped.health -= light ? 8 + speed * 2 : speed < 7 ? 10 + speed * 2.5 : 999;
     const dead = ped.health <= 0;
-    knockDown(ped, world, { kind: 'hit', dead, vx: ped.knockVX, vy: ped.knockVY, vz: (light ? 0.8 : 1.2) + speed * 0.22 });
-    if (dead) killPed(ped, world);
-    else ped.speed = 0;
+    // fast enough to kill outright: Carmageddon-style burst (falls back to the ragdoll with gore off)
+    const gib = dead && !light && speed >= GIB_SPEED && splatterPed(ped, world, { vx: ped.knockVX, vy: ped.knockVY, vz: 3 + speed * 0.15, vehicle: v });
+    if (!gib) knockDown(ped, world, { kind: 'hit', dead, vx: ped.knockVX, vy: ped.knockVY, vz: (light ? 0.8 : 1.2) + speed * 0.22 });
+    if (dead) {
+      killPed(ped, world);
+      if (gib) ped.deadUntil = world.time + 1.5;
+      else bleedPed(ped, world, { vehicle: light ? null : v, spray: { dx: ped.knockVX, dy: ped.knockVY, k: Math.min(1, speed / GIB_SPEED) } });
+    } else ped.speed = 0;
     if (v.driver === 'player') {
       world.wanted = Math.min(5, world.wanted + 1);
       if (dead) world.stats.pedKills++;
@@ -780,15 +792,6 @@ function checkVehicleImpact(ped, world) {
 }
 
 const pendingEvents = [];
-
-function checkCopBust(ped, world) {
-  const player = world.player;
-  if (player.inVehicle && Math.abs(player.inVehicle.speed) > COP_BUST_FAST_SPEED) return;
-  const contact = ped.radius + (player.radius || 0.35) + COP_BUST_CONTACT_MARGIN;
-  if (dist(ped.x, ped.y, player.x, player.y) <= contact) {
-    requestRespawn(world, { busted: true, moneyPenalty: world.wanted * 150 });
-  }
-}
 
 function checkBump(ped, world) {
   const p = world.player;
@@ -1014,9 +1017,10 @@ export function updatePedestrians(dt, world) {
     if (!moving) {
       ped.speed = 0;
     } else {
-      let nx = ped.x + Math.cos(ped.angle) * ped.speed * dt;
-      let ny = ped.y + Math.sin(ped.angle) * ped.speed * dt;
-      [nx, ny] = resolveBuildingCollisions(nx, ny, ped.radius, map);
+      const vx = Math.cos(ped.angle) * ped.speed, vy = Math.sin(ped.angle) * ped.speed;
+      let nx = ped.x + vx * dt;
+      let ny = ped.y + vy * dt;
+      [nx, ny] = resolveWalker(nx, ny, ped.radius, map, vx, vy, ped.nav && ped.nav.sit ? PED_SEAT_OPTS : PED_OPTS);
       if (!isInWater(map, ped.x, ped.y) && isInWater(map, nx, ny)) {
         if (!isInWater(map, nx, ped.y)) ny = ped.y;
         else if (!isInWater(map, ped.x, ny)) nx = ped.x;
@@ -1026,7 +1030,6 @@ export function updatePedestrians(dt, world) {
       ped.y = ny;
     }
 
-    if (ped.state === 'seek') checkCopBust(ped, world);
     checkBump(ped, world);
     checkVehicleImpact(ped, world);
   }

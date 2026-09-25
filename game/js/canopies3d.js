@@ -1,8 +1,11 @@
 import * as THREE from 'three';
+import { closestPointOnSegment } from './util.js';
+import { addStaticCollider } from './breakables.js';
 
 // OSM building=roof footprints are open canopies (market roofs, station and
 // square shelters). They used to render as solid blocks you could spawn in;
-// here they are a thin roof slab on slim posts, with no collision.
+// here they are a thin roof slab on slim posts. Only the posts are solid, and
+// none stands in a carriageway or on the track.
 
 const CANOPY_Y = 5.2;
 const SLAB = 0.28;
@@ -11,6 +14,24 @@ const POST_SPACING = 7;
 
 const slabMat = new THREE.MeshStandardMaterial({ color: 0x5c6166, roughness: 0.7, metalness: 0.3, flatShading: true, side: THREE.DoubleSide });
 const postMat = new THREE.MeshStandardMaterial({ color: 0x3a3d40, roughness: 0.6, metalness: 0.5, flatShading: true });
+
+function nearLine(P, x, y, r) {
+  for (let i = 0; i < P.length - 1; i++) {
+    if (closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2 < r * r) return true;
+  }
+  return false;
+}
+
+function postInTheWay(map, x, y) {
+  for (const r of map.roadsNear(x, y, 10)) {
+    if (r.cat !== 'foot' && r.cat !== 'cycle' && nearLine(r.pts, x, y, (r.width || 5) / 2 + 0.4)) return true;
+  }
+  for (const rail of map.rails || []) {
+    const P = rail.pts || rail;
+    if (nearLine(P, x, y, 2.4)) return true;
+  }
+  return false;
+}
 
 export function buildCanopies(map) {
   const group = new THREE.Group();
@@ -33,7 +54,8 @@ export function buildCanopies(map) {
       const n = Math.max(1, Math.round(len / POST_SPACING));
       for (let k = 0; k < n; k++) {
         const t = k / n;
-        posts.push([ax + (bx - ax) * t, ay + (by - ay) * t]);
+        const px = ax + (bx - ax) * t, py = ay + (by - ay) * t;
+        if (!postInTheWay(map, px, py)) posts.push([px, py]);
       }
     }
   }
@@ -42,7 +64,7 @@ export function buildCanopies(map) {
     geo.translate(0, CANOPY_Y / 2, 0);
     const inst = new THREE.InstancedMesh(geo, postMat, posts.length);
     const m = new THREE.Matrix4();
-    posts.forEach(([x, y], i) => { m.makeTranslation(x, 0, y); inst.setMatrixAt(i, m); });
+    posts.forEach(([x, y], i) => { m.makeTranslation(x, 0, y); inst.setMatrixAt(i, m); addStaticCollider('post', x, y, POST_W * 0.7); });
     inst.castShadow = true;
     group.add(inst);
   }

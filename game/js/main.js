@@ -11,6 +11,8 @@ import { initMissions, updateMissions } from './missions.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initPickups, updatePickups } from './pickups.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
+import { initShops, updateShops, tryShopInteract } from './shops.js';
+import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
 import { initTheme } from './theme.js';
@@ -21,6 +23,7 @@ import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
 import { updateFx3D } from './fx3d.js';
+import { updateGore3D } from './gore3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
 import { initSaveGame, updateSaveGame } from './savegame.js';
@@ -33,6 +36,7 @@ import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
 import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint } from './startscreen.js';
 import { initPigeonGuards, startPigeonMode, updatePigeonMode, updatePigeonCamera } from './pigeonmode.js';
 import { dist } from './util.js';
+import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -112,11 +116,10 @@ async function boot() {
   // the nearest street so the player never appears inside a building
   const landmarks = map.meta.landmarks || [];
   const pick = landmarks.length ? landmarks[Math.floor(Math.random() * landmarks.length)] : { x: 0, y: 0 };
-  const spawn = map.nearestRoadPoint(pick.x, pick.y, 400) || { x: 0, y: 0 };
-  // some "landmark" buildings (station canopies, big public halls) are large
-  // enough that the nearest road point can still land under/inside them -
-  // shove clear of any building before the player ever appears there
-  const [sx, sy] = map.escapeBuilding(spawn.x, spawn.y);
+  // nearest street point, pushed out of buildings, that you can actually walk
+  // away from (not a courtyard the footprints close off)
+  const spawn = map.findOpenSpawn(pick.x, pick.y, 400) || { x: 0, y: 0 };
+  const sx = spawn.x, sy = spawn.y;
   const player = new Player(sx, sy);
 
   const world = new World(map, input, player);
@@ -136,6 +139,7 @@ async function boot() {
   initMissions(world);
   initPickups(world);
   initHoreca(world);
+  initShops(world);
   initTrafficLights(world);
   initRailway(world);
   initWeather(world);
@@ -152,7 +156,7 @@ async function boot() {
   await yieldToPaint();
   // mouse-look: clicking the game captures the mouse; Esc releases it (the
   // browser swallows that Esc keypress), which opens the pause menu instead
-  const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen();
+  const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen();
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
   document.addEventListener('pointerlockchange', () => {
     if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
@@ -163,6 +167,7 @@ async function boot() {
   initSaveGame(world);
 
   window.__debug = { player, map, input, world };
+  initAchievementTracker(world);
   await finishLoading();
   const mode = await waitForStart(world);
   if (mode === 'pigeon') startPigeonMode(world);
@@ -187,7 +192,7 @@ async function boot() {
 
   function frameBody(dt) {
     updateMapView(dt, world);
-    world.paused = isMapOpen() || isPauseMenuOpen() || !!world.uiPaused;
+    world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused;
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1));
@@ -196,6 +201,7 @@ async function boot() {
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused ? 0 : gameDt;
     updateFx3D(animDt, world, getScene());
+    updateGore3D(animDt, world, getScene());
     updateCityProps(animDt, world, getScene());
     if (world.pigeonMode) updatePigeonCamera(dt, world);
     else {
@@ -226,6 +232,7 @@ async function boot() {
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else {
+      tryShopInteract(world);
       tryHorecaInteract(world);
       player.update(dt, world);
       updateCompanion(dt, world);
@@ -260,10 +267,12 @@ async function boot() {
       updatePhoneFeed(dt, world);
       updatePickups(dt, world);
       updateHoreca(dt, world);
+      updateShops(dt, world);
       updateFlitspaal(dt, world);
     }
     updateWeather(dt, world);
     updateDayNight(dt, world);
+    updateAchievementTracker(dt, world);
   }
 
   input.reset();
