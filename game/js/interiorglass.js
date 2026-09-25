@@ -251,7 +251,7 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   vec3 L = lampP - hp;
   float d2 = dot(L, L);
   float ndl = max(dot(n, L * inversesqrt(d2)), 0.0);
-  vec3 E = lampCol * lampI * (0.12 + 1.1 * ndl / (1.0 + d2 * 0.35));
+  vec3 E = lampCol * lampI * (0.1 + 0.6 * ndl / (1.0 + d2 * 0.35));
   E += DAY * dayI * (0.12 + 0.5 * exp(-hp.z * 0.5)) * (0.8 + 0.2 * n.y);
   // unlit rooms at night still catch street and moon light near the window
   E += vec3(0.003, 0.0035, 0.005) + vec3(0.030, 0.032, 0.045) * night * (1.0 - lit) * (0.45 + 0.55 * exp(-hp.z * 0.6));
@@ -319,7 +319,8 @@ glassMaterial.onBeforeCompile = (shader) => {
         if (dot(igN, igV) > 0.0) igN = -igN;
         float igF;
         vec3 igCol = igInterior(q, igN, igV, igDist, igF);
-        totalEmissiveRadiance += igCol * (1.0 - igF) * 0.92 + igF * vec3(0.02, 0.026, 0.04) * clamp(uNightGlow, 0.0, 1.0);
+        // capped so a lit room glows instead of blooming into a white blotch
+        totalEmissiveRadiance += min(igCol, vec3(1.1)) * (1.0 - igF) * 0.85 + igF * vec3(0.02, 0.026, 0.04) * clamp(uNightGlow, 0.0, 1.0);
         diffuseColor.rgb *= 0.12;
         metalnessFactor = 0.0;
         roughnessFactor = 0.22;
