@@ -7,6 +7,13 @@ import { updateTrafficLights } from './trafficlights.js';
 import { refreshDayNight } from './daynight.js';
 import { playCinematic, roofAt } from './cinematics.js';
 import { pointInPolygon } from './util.js';
+import { playStoryVoice, stopStoryVoice, setStoryScene } from './audio.js';
+import { setThemeDuck } from './theme.js';
+
+// Recorded montage dialogue shares the story manifest ("<speaker>|<text>").
+const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
+let voices = {};
+fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
 
 // Opening montage for a fresh game: staged shots at real Grunn highlights with
 // temporary actors, cars and particles, ending in the swoop down to the spawn.
@@ -127,6 +134,11 @@ function setSub(line) {
   const key = line ? line.who + line.text : '';
   if (key === ui.subKey) return;
   ui.subKey = key;
+  // a new line starts its recording; clearing the subtitle lets it finish
+  if (line) {
+    const v = voices[line.who + '|' + line.text];
+    if (v) playStoryVoice(VOICE_DIR + v.src);
+  }
   ui.sub.classList.toggle('on', !!line);
   if (line) ui.sub.innerHTML = (line.who ? `<b>${line.who}:</b>` : '') + line.text;
 }
@@ -833,6 +845,9 @@ function cleanup(r, skipped) {
     setSub(null);
   }
   document.body.classList.remove('intro-montage');
+  stopStoryVoice();
+  setStoryScene(false);
+  setThemeDuck(false);
   markIntroSeen();
   run = null;
 }
@@ -861,6 +876,8 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone } = {}) {
   };
   run = r;
   document.body.classList.add('intro-montage');
+  setStoryScene(true);
+  setThemeDuck(true);
   ui.root.classList.add('on');
   const ok = playCinematic({
     id: 'intro', priority: 6, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true,
