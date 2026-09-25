@@ -48,5 +48,9 @@ class Server(http.server.ThreadingHTTPServer):
 if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
     directory = sys.argv[2] if len(sys.argv) > 2 else "."
+    host = sys.argv[3] if len(sys.argv) > 3 else ""  # "" = all interfaces
     handler = lambda *a, **kw: NoCacheHandler(*a, directory=directory, **kw)
-    Server(("", port), handler).serve_forever()
+    try:
+        Server((host, port), handler).serve_forever()
+    except KeyboardInterrupt:
+        pass
