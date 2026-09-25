@@ -14,6 +14,13 @@ python3 scripts/devserver.py 8765 game
 Then open http://localhost:8765. `devserver.py` is a static file server that
 disables caching, so edited modules are always reloaded.
 
+**Windows:** unzip the project and double-click `start.bat`. It uses an
+installed Python if there is one; otherwise it downloads the official portable
+Python from python.org into `.python\` next to the game (once, no admin rights
+needed). It then picks a free port, starts the server on 127.0.0.1 and opens
+the game in the browser. Keep the window open while playing. If Windows
+SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
+
 ## Controls
 
 | Key | On foot | In a vehicle |
