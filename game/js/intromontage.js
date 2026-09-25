@@ -552,7 +552,7 @@ function buildShots(w) {
     ],
   };
 
-  const card2 = { dur: 2.4, black: true, card: '<div class="im-kicker">Een Grunneger misdaadverhaal</div><div class="im-title">Grand Theft Eierbal</div>' };
+  const card2 = { dur: 2.4, black: true, card: '<div class="im-kicker">Een Grunneger misdaadverhaal</div><div class="im-title">Alles voor <span class="amp">één</span> eierbal</div>' };
 
   const atm = { x: 164.4, y: -14 };
   const heist = {
