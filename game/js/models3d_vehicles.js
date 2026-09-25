@@ -731,7 +731,8 @@ export function updateVehicleWheelSpin(mesh, speed, dt) {
   for (const w of wheels) w.rotation.z -= delta;
   const rl = ud.riderLegs;
   if (rl) {
-    ud.pedalPhase = ((ud.pedalPhase || 0) + delta * 0.45) % (Math.PI * 2);
+    // cranks turn the same way as the wheels (angle decreasing = forward)
+    ud.pedalPhase = ((ud.pedalPhase || 0) - delta * 0.45) % (Math.PI * 2);
     const moving = Math.min(1, Math.abs(speed) / 1.5);
     const sw = Math.sin(ud.pedalPhase) * rl.amp * moving;
     rl.legs[0].rotation.z = rl.base + sw;
