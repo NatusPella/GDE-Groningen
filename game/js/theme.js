@@ -18,9 +18,16 @@ function mutedNow() {
   try { return localStorage.getItem(MUTE_STORAGE_KEY) === '1'; } catch (e) { return false; }
 }
 
+// ducked under spoken dialogue (the opening montage)
+let ducked = false;
+export function setThemeDuck(on) {
+  ducked = !!on;
+  if (el && state === 'playing') el.volume = targetVolume();
+}
+
 function targetVolume() {
   const st = getSettings();
-  return mutedNow() ? 0 : Math.min(1, BASE_VOLUME * st.masterVolume * st.musicVolume);
+  return mutedNow() ? 0 : Math.min(1, BASE_VOLUME * st.masterVolume * st.musicVolume * (ducked ? 0.4 : 1));
 }
 
 function finish() {
