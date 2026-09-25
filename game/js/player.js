@@ -1,4 +1,4 @@
-import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp } from './util.js';
+import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp, boatDryPoints } from './util.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
@@ -506,12 +506,12 @@ export class Player {
     resolveVehicleBuildingCollision(v, map, dt);
     if (world) resolveBoomCollisions(v, world);
     if (v.isBoat) {
-      // boats stay on the water: the hull (centre and bow/stern) can't leave it
-      // (bow, stern and both beams too, now that a boat carries a sideways slide)
-      const h = (v.model.len || 4) * 0.45, bw = (v.model.wid || 1.6) * 0.45;
-      const c = Math.cos(v.angle), s = Math.sin(v.angle);
-      const hull = [[0, 0], [h, 0], [-h, 0], [0, bw], [0, -bw]];
-      if (hull.some(([lx, ly]) => !inWaterPoly(map, v.x + lx * c - ly * s, v.y + lx * s + ly * c))) {
+      // boats stay on the water: bow, stern, both beams and the centre. A move
+      // is only refused when it puts MORE of the hull on land - a boat that
+      // already touches a quay (or spawned against one) can still turn and
+      // sail off instead of being frozen in place.
+      const dryAfter = boatDryPoints(map, v, v.x, v.y, v.angle);
+      if (dryAfter > 0 && dryAfter > boatDryPoints(map, v, px, py, pa)) {
         v.x = px; v.y = py; v.angle = pa;
         v.speed *= -0.25;
         v.driftX = 0; v.driftY = 0;

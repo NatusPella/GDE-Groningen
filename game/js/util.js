@@ -65,6 +65,17 @@ export function inWaterPoly(map, x, y) {
   return false;
 }
 
+// how many of a boat's five hull probes are not on water at (x, y, angle)
+export function boatDryPoints(map, v, x, y, angle) {
+  const h = (v.model.len || 4) * 0.45, bw = (v.model.wid || 1.6) * 0.45;
+  const c = Math.cos(angle), s = Math.sin(angle);
+  let dry = 0;
+  for (const [lx, ly] of [[0, 0], [h, 0], [-h, 0], [0, bw], [0, -bw]]) {
+    if (!inWaterPoly(map, x + lx * c - ly * s, y + lx * s + ly * c)) dry++;
+  }
+  return dry;
+}
+
 export function polygonBounds(poly) {
   let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
   for (const [x, y] of poly) {

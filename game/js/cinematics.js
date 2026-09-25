@@ -473,7 +473,8 @@ function playGameStart(w) {
   const here = currentWijk(w);
   if (here) markWijk(here);
   w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
-  if (!w.loadedFromSave && !w.pigeonMode && introMod && !introMod.introSeen() && playIntro(w)) return;
+  // every new game opens with the montage (continuing a save doesn't)
+  if (!w.loadedFromSave && !w.pigeonMode && introMod && playIntro(w)) return;
   const mp = w._menuCamPose;
   const first = mp && mp.position && mp.lookAt
     ? { pos: V(mp.position.x, mp.position.y, mp.position.z), look: V(mp.lookAt.x, mp.lookAt.y, mp.lookAt.z) }
