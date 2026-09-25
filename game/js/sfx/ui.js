@@ -155,32 +155,27 @@ function wantedUp(level) {
   stab([root, root * 1.189, root * 1.498], { dur: 0.45, gain: 0.05, cutoff: 1400 + level * 300 });
   stab([root * 2, root * 2 * 1.335], { dur: 0.3, gain: 0.035, cutoff: 2600, delay: 0.14 });
   hit(0, 0.18 + level * 0.03);
-  K.duckMusic(1.6);
 }
 
 function wantedDown() {
   stab([392, 330], { dur: 0.22, gain: 0.04, type: 'triangle', cutoff: 3000 });
   stab([294], { dur: 0.35, gain: 0.045, type: 'triangle', cutoff: 3000, delay: 0.18 });
-  K.duckMusic(1);
 }
 
 function lostThem() {
   const notes = [261.6, 329.6, 392, 523.3, 659.3];
   notes.forEach((f, i) => K.tone({ freq: f, type: 'triangle', duration: 1.1 - i * 0.1, gain: 0.09, delay: i * 0.09, bus: sting(), prio: 2 }));
   K.noise({ duration: 1, freq: 6000, freqEnd: 2500, q: 0.8, gain: 0.03, type: 'bandpass', bus: sting(), prio: 2 });
-  K.duckMusic(2);
 }
 
 function roadblockSting() {
   stab([73.4, 77.8, 110], { dur: 1.1, gain: 0.06, cutoff: 700 });
   hit(0, 0.28);
   for (let i = 0; i < 4; i++) K.noise({ duration: 0.04, freq: 7000, q: 1, gain: 0.05, type: 'highpass', delay: 0.35 + i * 0.18, bus: sting(), prio: 2 });
-  K.duckMusic(2.4);
 }
 
 function missionFail() {
   [[440, 0], [370, 0.16], [311, 0.32], [233, 0.5]].forEach(([f, d]) => K.tone({ freq: f, freqEnd: f * 0.98, type: 'sawtooth', duration: d === 0.5 ? 0.7 : 0.18, gain: 0.12, filterFreq: 1400, delay: d, bus: sting(), prio: 2 }));
-  K.duckMusic(1.8);
 }
 
 function healthChime() {

@@ -1,27 +1,31 @@
 // Engine + road-noise synthesis for audio.js. One processor renders several
-// mono voices (one output each, so every voice gets its own panner); the
-// player's node also renders tyre/wind/water noise on an extra output.
+// voices (one output each, so every voice gets its own panner); the player's
+// node renders its engine in stereo plus tyre/wind/water noise on a second
+// output.
 //
-// An engine voice is a band-limited sum of sine harmonics of half the firing
-// rate: even orders are the firing harmonics, odd (half) orders give a mild
-// uneven-engine character. A smooth low-pass tilt keeps it round; every
-// parameter is slewed so nothing steps or zippers.
+// An engine voice is a coherent sum of engine orders (sines at multiples of
+// half the firing rate, so harmonics stay locked and never beat), shaped by
+// a body and an exhaust formant. Each order drifts slowly in level and the
+// odd (half) orders carry per-cylinder variation. On top: exhaust rasp
+// (noise gated by the firing waveform itself, so it stays smooth), intake
+// whoosh and a faint valvetrain tick. All parameters are slewed.
 
 const TAU = Math.PI * 2;
-const MAX_H = 20;
-const MAX_F = 3200;
+const MAX_H = 24;
+const MAX_F = 4200;
 
-// fpr: firings per crank revolution; odd: half-order level; tilt: harmonic
-// roll-off exponent; fc: low-pass corner [off-throttle, full load] in Hz;
-// formant: [centre, width, boost] broad body resonance.
+// fpr: firings per crank revolution; odd: half-order level; tilt: order
+// roll-off; fc: brightness corner [coasting, full load]; body/exh: formant
+// [centre, width, boost] (exhaust centre rises with load by exhRise);
+// rasp/intake/mech: layer levels.
 const PROFILES = [
-  { fpr: 2, idle: 800, red: 6200, odd: 0.06, tilt: 0.85, fc: [320, 900], formant: [180, 140, 0.5], noise: 0.015, wobble: 0.006, out: 0.5, crank: 0.6 },
-  { fpr: 2, idle: 850, red: 6200, odd: 0.16, tilt: 0.8, fc: [300, 850], formant: [160, 130, 0.6], noise: 0.02, wobble: 0.012, out: 0.5, crank: 0.8 },
-  { fpr: 3, idle: 600, red: 2300, odd: 0.1, tilt: 0.95, fc: [220, 620], formant: [120, 100, 0.6], noise: 0.02, wobble: 0.005, out: 0.55, crank: 0.9 },
-  { fpr: 1, idle: 1900, red: 9500, odd: 0, tilt: 1.0, fc: [650, 1500], formant: [0, 1, 0], noise: 0.01, wobble: 0.008, out: 0.4, crank: 0.35 },
-  { fpr: 2, idle: 900, red: 5500, odd: 0.12, tilt: 0.95, fc: [260, 650], formant: [140, 110, 0.4], noise: 0.04, wobble: 0.01, out: 0.5, crank: 0.5 },
-  { fpr: 4, idle: 750, red: 7000, odd: 0.2, tilt: 0.8, fc: [300, 950], formant: [150, 130, 0.6], noise: 0.015, wobble: 0.005, out: 0.5, crank: 0.55 },
-  { fpr: 2, idle: 750, red: 4300, odd: 0.06, tilt: 0.9, fc: [280, 800], formant: [160, 130, 0.4], noise: 0.02, wobble: 0.005, out: 0.5, crank: 0.8 },
+  { fpr: 2, idle: 800, red: 6200, odd: 0.1, tilt: 0.75, fc: [450, 1500], body: [150, 110, 0.9], exh: [380, 220, 0.8], exhRise: 180, rasp: 0.2, intake: 0.1, mech: 0.012, jit: 0.002, wobble: 0.006, out: 0.5, crank: 0.6 },
+  { fpr: 2, idle: 850, red: 6200, odd: 0.2, tilt: 0.7, fc: [420, 1400], body: [135, 100, 1.0], exh: [330, 200, 0.9], exhRise: 160, rasp: 0.28, intake: 0.1, mech: 0.016, jit: 0.004, wobble: 0.012, out: 0.5, crank: 0.8 },
+  { fpr: 3, idle: 600, red: 2300, odd: 0.12, tilt: 0.85, fc: [300, 900], body: [95, 70, 1.0], exh: [260, 160, 0.6], exhRise: 90, rasp: 0.14, intake: 0.06, mech: 0.02, jit: 0.002, wobble: 0.005, out: 0.55, crank: 0.9 },
+  { fpr: 1, idle: 1900, red: 9500, odd: 0, tilt: 0.95, fc: [700, 1700], body: [260, 160, 0.4], exh: [700, 300, 0.5], exhRise: 250, rasp: 0.1, intake: 0.05, mech: 0.006, jit: 0.004, wobble: 0.008, out: 0.4, crank: 0.35 },
+  { fpr: 2, idle: 900, red: 5500, odd: 0.15, tilt: 0.85, fc: [320, 800], body: [130, 100, 0.6], exh: [300, 160, 0.4], exhRise: 80, rasp: 0.08, intake: 0.03, mech: 0.006, jit: 0.003, wobble: 0.01, out: 0.5, crank: 0.5 },
+  { fpr: 4, idle: 750, red: 7000, odd: 0.26, tilt: 0.7, fc: [480, 1700], body: [120, 100, 1.0], exh: [320, 200, 0.9], exhRise: 200, rasp: 0.26, intake: 0.12, mech: 0.01, jit: 0.002, wobble: 0.005, out: 0.5, crank: 0.55 },
+  { fpr: 2, idle: 750, red: 4300, odd: 0.08, tilt: 0.8, fc: [380, 1100], body: [140, 110, 0.8], exh: [340, 200, 0.6], exhRise: 120, rasp: 0.15, intake: 0.06, mech: 0.02, jit: 0.002, wobble: 0.005, out: 0.5, crank: 0.8 },
 ];
 
 class Rng {
@@ -32,8 +36,9 @@ class Rng {
 
 // RBJ band-pass (0 dB peak) / high-pass / low-pass biquads, TDF-II.
 class Biquad {
-  constructor() { this.b0 = 0; this.b1 = 0; this.b2 = 0; this.a1 = 0; this.a2 = 0; this.z1 = 0; this.z2 = 0; }
+  constructor() { this.b0 = 0; this.b1 = 0; this.b2 = 0; this.a1 = 0; this.a2 = 0; this.z1 = 0; this.z2 = 0; this.f = 0; }
   set(type, f, q) {
+    this.f = f;
     const w = TAU * Math.min(f, sampleRate * 0.45) / sampleRate, cs = Math.cos(w), al = Math.sin(w) / (2 * q), a0 = 1 + al;
     if (type === 'bp') { this.b0 = al / a0; this.b1 = 0; this.b2 = -al / a0; }
     else if (type === 'hp') { this.b0 = (1 + cs) / 2 / a0; this.b1 = -(1 + cs) / a0; this.b2 = this.b0; }
@@ -58,19 +63,27 @@ function softclip(x) {
 }
 
 const slew = (tau) => 1 - Math.exp(-1 / (tau * sampleRate));
+const bump = (f, c, w) => { const d = (f - c) / w; return Math.exp(-d * d); };
+const DELAY = 64;
 
 class EngineVoice {
-  constructor(seed, running) {
+  constructor(seed, running, stereo) {
     this.rng = new Rng(seed);
+    this.stereo = stereo;
     this.kind = -1;
     this.mode = running ? RUN : OFF;
-    this.t = { rpm: 800, load: 0.2, gain: 0, pitch: 1 };
+    this.t = { rpm: 800, load: 0.2, gain: 0, pitch: 1, muffle: 20000 };
     this.rpm = 800; this.load = 0.2; this.gain = 0; this.pitch = 1; this.env = running ? 1 : 0;
-    this.theta = 0; this.crankPh = 0; this.starterPh = 0;
-    this.w = new Float64Array(MAX_H + 1);
-    this.brown = 0; this.nlp = 0;
+    this.theta = 0; this.cam = 0; this.crankPh = 0; this.starterPh = 0; this.starterEnv = 0;
+    this.w = new Float64Array(MAX_H + 1); this.wEnd = new Float64Array(MAX_H + 1); this.dw = new Float64Array(MAX_H + 1);
+    this.drift = new Float64Array(MAX_H + 1); this.driftT = new Float64Array(MAX_H + 1);
+    this.jn = 0; this.jn2 = 0; this.nlp = 0;
+    this.raspF = new Biquad(); this.intakeF = new Biquad(); this.mechF = new Biquad();
+    this.mufL = new Biquad(); this.mufR = new Biquad(); this.mufF = 0;
+    this.mechF.set('bp', 3600, 2);
+    this.dl = new Float32Array(DELAY); this.dlI = 0;
     this.modeT = 0; this.crankDur = 0.6; this.startAt = 0; this.flare = 0;
-    this.wob = 0; this.wobS = 0; this.wobT = 0;
+    this.wob = 0; this.wobS = 0; this.wobT = 0; this.driftClock = 0;
     this.setKind(0);
   }
 
@@ -84,20 +97,22 @@ class EngineVoice {
   start(at) { this.mode = CRANK; this.modeT = 0; this.startAt = at; }
   stop() { if (this.mode !== OFF) { this.mode = STOPPING; this.modeT = 0; } }
 
-  // harmonic weights for the block's end state, normalised to unit power
+  // order weights at the block's end state, normalised to unit power
   weights(base, load, rn, out) {
     const P = this.P;
-    const fc = P.fc[0] + (P.fc[1] - P.fc[0]) * Math.min(1, load * (0.4 + 0.6 * rn));
-    const [F, Fw, Fb] = P.formant;
+    const fc = P.fc[0] + (P.fc[1] - P.fc[0]) * Math.pow(Math.min(1, load), 0.8) * (0.45 + 0.55 * Math.min(1, rn));
+    const exC = P.exh[0] + P.exhRise * load, [bC, bW, bB] = P.body, [, eW, eB] = P.exh;
+    const odd = P.odd * (1 + 0.5 * (1 - load));
     let pow = 0;
     for (let k = 1; k <= MAX_H; k++) {
       const f = base * k;
       let w = 0;
       if (f < MAX_F) {
         const r = f / fc, r2 = r * r;
-        w = (k % 2 ? P.odd : 1) * Math.pow(k, -P.tilt) / (1 + r2 * r2);
-        if (Fb) { const d = (f - F) / Fw; w *= 1 + Fb * Math.exp(-d * d); }
-        if (f > MAX_F * 0.7) w *= (MAX_F - f) / (MAX_F * 0.3);
+        w = (k % 2 ? odd : 1) * Math.pow(k, -P.tilt) / (1 + r2 * r2);
+        w *= 1 + bB * bump(f, bC, bW) + eB * (0.5 + 0.5 * load) * bump(f, exC, eW);
+        w *= 1 + this.drift[k] * (k % 2 ? 0.45 : 0.18);
+        if (f > MAX_F * 0.75) w *= (MAX_F - f) / (MAX_F * 0.25);
       }
       out[k] = w;
       pow += w * w;
@@ -106,17 +121,25 @@ class EngineVoice {
     for (let k = 1; k <= MAX_H; k++) out[k] *= norm;
   }
 
-  render(out, n, dtBlock) {
+  render(outs, n, dtBlock) {
     const P = this.P, R = this.rng, T = this.t;
     if (this.gain < 1e-5 && (T.gain < 1e-5 || this.mode === OFF)) { this.gain = 0; if (this.mode === STOPPING) this.mode = OFF; return false; }
     if (this.mode === CRANK && currentTime < this.startAt) return false;
 
-    let rpmT = T.rpm, loadT = T.load, envT = 1, rpmTau = 0.12, starter = 0;
+    let rpmT = T.rpm, loadT = T.load, envT = 1, rpmTau = 0.11, starter = 0;
     this.wobT -= dtBlock;
     if (this.wobT <= 0) { this.wobT = 0.25 + R.next() * 0.35; this.wob = R.bi(); }
     this.wobS += (this.wob - this.wobS) * Math.min(1, dtBlock * 4);
     const idleish = 1 - Math.min(1, Math.max(0, (T.rpm - P.idle) / P.idle));
     rpmT *= 1 + this.wobS * P.wobble * idleish;
+
+    // slow, independent level drift per order: organic without beating
+    this.driftClock -= dtBlock;
+    if (this.driftClock <= 0) {
+      this.driftClock = 0.12;
+      for (let k = 1; k <= MAX_H; k++) this.driftT[k] = R.bi();
+    }
+    for (let k = 1; k <= MAX_H; k++) this.drift[k] += (this.driftT[k] - this.drift[k]) * Math.min(1, dtBlock * 3);
 
     if (this.mode === CRANK) {
       this.modeT += dtBlock;
@@ -134,20 +157,34 @@ class EngineVoice {
 
     const sr = sampleRate;
     const kr = slew(rpmTau), kl = slew(0.12), kg = slew(0.1), kp = slew(0.15), ke = slew(this.mode === STOPPING ? 0.18 : 0.08);
-    // block-end targets for the harmonic weights, approached linearly
     const rpmEnd = this.rpm + (rpmT - this.rpm) * (1 - Math.pow(1 - kr, n));
     const loadEnd = this.load + (loadT - this.load) * (1 - Math.pow(1 - kl, n));
     const pitchEnd = this.pitch + (T.pitch - this.pitch) * (1 - Math.pow(1 - kp, n));
+    const rnEnd = rpmEnd / P.red;
     const baseEnd = Math.max(1, rpmEnd) / 60 * P.fpr * pitchEnd / 2;
-    const wEnd = this.wEnd || (this.wEnd = new Float64Array(MAX_H + 1));
-    this.weights(baseEnd, loadEnd, rpmEnd / P.red, wEnd);
-    const w = this.w, dw = this.dw || (this.dw = new Float64Array(MAX_H + 1));
+    const w = this.w, wEnd = this.wEnd, dw = this.dw;
+    this.weights(baseEnd, loadEnd, rnEnd, wEnd);
     for (let k = 1; k <= MAX_H; k++) dw[k] = (wEnd[k] - w[k]) / n;
 
+    // block-rate noise layer filters follow rpm/load
+    const raspC = 700 + 900 * loadEnd + 500 * Math.min(1, rnEnd);
+    if (Math.abs(raspC - this.raspF.f) > 20) this.raspF.set('bp', raspC, 0.9);
+    const inC = 450 + 1100 * Math.min(1, rnEnd);
+    if (Math.abs(inC - this.intakeF.f) > 20) this.intakeF.set('bp', inC, 1.1);
+    const muf = Math.min(18000, T.muffle || 18000);
+    const doMuf = muf < 17000;
+    if (doMuf && Math.abs(muf - this.mufF) > this.mufF * 0.03) { this.mufF = muf; this.mufL.set('lp', muf, 0.6); this.mufR.set('lp', muf, 0.6); }
+    const raspAmt = P.rasp * Math.pow(loadEnd, 1.3) * (0.35 + 0.65 * Math.min(1, rnEnd)) * 3;
+    const inAmt = P.intake * loadEnd * Math.min(1, rnEnd * 1.3) * 2.5;
+    const mechAmt = P.mech * (0.4 + Math.min(1, rnEnd)) * 3;
+    const lite = !this.stereo;
+
     let rpm = this.rpm, load = this.load, gain = this.gain, pitch = this.pitch, env = this.env;
-    let theta = this.theta, brown = this.brown, nlp = this.nlp;
-    const gainT = T.gain, pitchT = T.pitch, phaseK = TAU * P.fpr / 120 / sr, redInv = 1 / P.red;
-    const noiseAmt = P.noise, out0 = P.out;
+    let theta = this.theta, cam = this.cam, jn = this.jn, jn2 = this.jn2, nlp = this.nlp;
+    const gainT = T.gain, pitchT = T.pitch, phaseK = TAU * P.fpr / 120 / sr, redInv = 1 / P.red, jit = P.jit;
+    const out0 = P.out, L = outs[0], Rt = outs[1] || null, dl = this.dl;
+    const raspF = this.raspF, intakeF = this.intakeF, mechF = this.mechF;
+    let dlI = this.dlI;
     let active = false;
     for (let i = 0; i < n; i++) {
       rpm += (rpmT - rpm) * kr;
@@ -155,32 +192,60 @@ class EngineVoice {
       gain += (gainT - gain) * kg;
       pitch += (pitchT - pitch) * kp;
       env += (envT - env) * ke;
-      theta += (rpm > 0 ? rpm : 0) * phaseK * pitch;
+      const wn = R.bi();
+      // combustion-to-combustion speed variation: band-limited (~20 Hz) jitter
+      jn += (wn - jn) * 0.0026; jn2 += (jn - jn2) * 0.0026;
+      const dth = (rpm > 0 ? rpm : 0) * phaseK * pitch * (1 + jn2 * jit * 40 * (1 + idleish));
+      theta += dth;
       if (theta > TAU) theta -= TAU;
       const s1 = Math.sin(theta), c2 = 2 * Math.cos(theta);
-      let sPrev = 0, sCur = s1, y = 0;
+      let sPrev = 0, sCur = s1, core = 0;
       for (let k = 1; k <= MAX_H; k++) {
         w[k] += dw[k];
-        y += w[k] * sCur;
+        core += w[k] * sCur;
         const sNext = c2 * sCur - sPrev;
         sPrev = sCur; sCur = sNext;
       }
-      brown = brown * 0.995 + R.bi() * 0.05;
-      nlp += (brown - nlp) * 0.05;
-      y = y * (0.55 + 0.45 * load) + nlp * noiseAmt * (1 + load) * 6;
-      if (starter) {
+      core *= 0.55 + 0.45 * load;
+      // exhaust rasp: noise gated by the positive half of the firing wave
+      const gate = core > 0 ? core : 0;
+      const rasp = raspAmt > 0.001 ? raspF.run(wn) * gate * raspAmt : 0;
+      nlp += (wn - nlp) * 0.02;
+      let intake = 0, mech = 0;
+      if (!lite) {
+        intake = inAmt > 0.001 ? intakeF.run(wn) * inAmt : 0;
+        cam += dth * 0.5 / P.fpr;
+        if (cam > TAU) cam -= TAU;
+        const c = 0.5 + 0.5 * Math.cos(cam * 2);
+        mech = mechF.run(wn) * c * c * c * c * mechAmt;
+      }
+      this.starterEnv += (starter - this.starterEnv) * 0.0008;
+      if (this.starterEnv > 1e-4) {
+        const se = this.starterEnv;
         this.crankPh += TAU * 9 / sr;
         this.starterPh += TAU * 240 / sr;
-        y = y * (0.6 + 0.4 * Math.sin(this.crankPh)) + Math.sin(this.starterPh) * 0.12;
+        core = core * (1 - 0.4 * se + 0.4 * se * Math.sin(this.crankPh)) + Math.sin(this.starterPh) * 0.1 * se;
       }
-      const loud = (0.5 + 0.5 * Math.min(1, rpm * redInv * 1.4)) * env;
-      const v = softclip(y * loud * 0.9) * gain * out0;
-      out[i] = v;
-      if (v !== 0) active = true;
+      const loud = (0.5 + 0.5 * Math.min(1, rpm * redInv * 1.4)) * env * gain * out0;
+      let l = core + rasp * 0.9 + intake * 1.2 + mech + nlp * 0.02;
+      if (Rt) {
+        // a few samples of inter-channel delay on the core gives width;
+        // rasp and intake lean to opposite sides (exhaust rear, intake front)
+        const delayed = dl[(dlI + DELAY - 18) & (DELAY - 1)];
+        dl[dlI] = core; dlI = (dlI + 1) & (DELAY - 1);
+        let r = core * 0.6 + delayed * 0.4 + rasp * 1.1 + intake * 0.8 + mech * 0.6;
+        if (doMuf) { l = this.mufL.run(l); r = this.mufR.run(r); }
+        L[i] = softclip(l * loud * 0.9);
+        Rt[i] = softclip(r * loud * 0.9);
+      } else {
+        if (doMuf) l = this.mufL.run(l);
+        L[i] = softclip(l * loud * 0.9);
+      }
+      if (L[i] !== 0) active = true;
     }
     for (let k = 1; k <= MAX_H; k++) w[k] = wEnd[k];
     this.rpm = rpm; this.load = load; this.gain = gain; this.pitch = pitch; this.env = env;
-    this.theta = theta; this.brown = brown; this.nlp = nlp;
+    this.theta = theta; this.cam = cam; this.jn = jn; this.jn2 = jn2; this.nlp = nlp; this.dlI = dlI;
     return active;
   }
 }
@@ -266,7 +331,7 @@ class EngineProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     const o = options.processorOptions || {};
-    this.voices = Array.from({ length: o.voices || 1 }, (_, i) => new EngineVoice(1234 + i * 7919, !!o.running));
+    this.voices = Array.from({ length: o.voices || 1 }, (_, i) => new EngineVoice(1234 + i * 7919, !!o.running, !!o.stereo));
     this.road = o.road ? new RoadVoice() : null;
     this.port.onmessage = (e) => this.onMsg(e.data);
     if (o.init) this.onMsg(o.init);
@@ -297,8 +362,8 @@ class EngineProcessor extends AudioWorkletProcessor {
   process(inputs, outputs) {
     const dtBlock = 128 / sampleRate;
     for (let i = 0; i < this.voices.length; i++) {
-      const out = outputs[i] && outputs[i][0];
-      if (out) this.voices[i].render(out, out.length, dtBlock);
+      const out = outputs[i];
+      if (out && out[0]) this.voices[i].render(out, out[0].length, dtBlock);
     }
     if (this.road) {
       const out = outputs[this.voices.length] && outputs[this.voices.length][0];

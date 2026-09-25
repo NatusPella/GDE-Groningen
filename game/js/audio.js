@@ -4,7 +4,7 @@ import { getSettings, onSettingsChange } from './settings.js';
 import { isThemeActive } from './theme.js';
 import { vehicleContacts } from './vehicle.js';
 import { createBank, buildImpulse } from './sfx/dsp.js';
-import { initAmbience, updateAmbience, ambienceStats } from './sfx/ambience.js';
+import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
@@ -19,7 +19,7 @@ const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
 const GMUSIC_VOLUME = 0.5;
-const GMUSIC_DUCK_VOLUME = 0.2;
+const GMUSIC_DUCK_VOLUME = 0.33;
 const SIREN_LOW_FREQ = 440;
 const SIREN_HIGH_FREQ = 587;
 const SIREN_HOLD_MIN = 0.5;
@@ -85,6 +85,7 @@ let worldBus = null;
 let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
+let musicOut = null;
 let trafficBus = null;
 let ambBus = null;
 let uiBus = null;
@@ -195,6 +196,7 @@ function masterLevel() {
 onSettingsChange((st) => {
   if (!ctx) return;
   if (master && !muted) master.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
+  if (musicOut && !muted) musicOut.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
   if (worldBus) worldBus.gain.setTargetAtTime(st.sfxVolume, ctx.currentTime, 0.05);
 });
 
@@ -419,7 +421,7 @@ async function loadEngineWorklet() {
     return;
   }
   const player = new AudioWorkletNode(ctx, 'gte-engine', {
-    numberOfInputs: 0, numberOfOutputs: 2, outputChannelCount: [1, 1], processorOptions: { voices: 1, road: true },
+    numberOfInputs: 0, numberOfOutputs: 2, outputChannelCount: [2, 1], processorOptions: { voices: 1, road: true, stereo: true },
   });
   const traffic = new AudioWorkletNode(ctx, 'gte-engine', {
     numberOfInputs: 0, numberOfOutputs: ENGINE_VOICES, outputChannelCount: Array(ENGINE_VOICES).fill(1),
@@ -429,6 +431,8 @@ async function loadEngineWorklet() {
   engineBus.gain.cancelScheduledValues(ctx.currentTime);
   engineBus.gain.value = 1;
   player.connect(engineBus, 0);
+  engineEarly = buildEarlyReflections();
+  player.connect(engineEarly.input, 0);
   const roadGain = ctx.createGain();
   player.connect(roadGain, 1);
   roadGain.connect(worldBus);
@@ -446,6 +450,31 @@ async function loadEngineWorklet() {
   });
   engineState.vehicle = null;
   synth = { player, traffic };
+}
+
+let engineEarly = null;
+
+// Two short, darkened slap-backs off the facades, cross-fed L/R; level
+// follows how built-up the street is. Subtle by design.
+function buildEarlyReflections() {
+  const input = ctx.createGain();
+  const level = ctx.createGain();
+  level.gain.value = 0;
+  const split = ctx.createChannelSplitter(2);
+  const merge = ctx.createChannelMerger(2);
+  const tone = ctx.createBiquadFilter();
+  tone.type = 'lowpass';
+  tone.frequency.value = 2200;
+  input.connect(tone).connect(split);
+  [[0, 1, 0.011], [1, 0, 0.017]].forEach(([from, to, time]) => {
+    const d = ctx.createDelay(0.05);
+    d.delayTime.value = time;
+    const g = ctx.createGain();
+    g.gain.value = 0.5;
+    split.connect(d, from).connect(g).connect(merge, 0, to);
+  });
+  merge.connect(level).connect(engineBus);
+  return { input, level };
 }
 
 let brassWave = null;
@@ -642,7 +671,6 @@ function playExplosion(x, y) {
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, prio: 2 });
   if (!out) return;
   duckAmbience(0.75, 1.6);
-  duckMusic(1.2);
   playNoiseBurst({ duration: 1.1, freq: 1400, freqEnd: 70, q: 0.5, gain: 0.85, type: 'lowpass', out, prio: 2 });
   playTone({ freq: 90, freqEnd: 28, type: 'sine', duration: 0.9, gain: 0.55, out, prio: 2 });
   playNoiseBurst({ duration: 1.7, freq: 500, freqEnd: 60, q: 0.6, gain: 0.25, type: 'lowpass', delay: 0.2, out, prio: 2 });
@@ -838,7 +866,6 @@ function playSwitchClick() {
 }
 
 function playDeathSting() {
-  duckMusic(2);
   duckAmbience(0.6, 2.5);
   playTone({ freq: 220, freqEnd: 55, type: 'sawtooth', duration: 0.5, gain: 0.35, filterFreq: 1200 });
   playTone({ freq: 165, freqEnd: 45, type: 'sawtooth', duration: 0.55, gain: 0.3, delay: 0.04, filterFreq: 900 });
@@ -846,7 +873,6 @@ function playDeathSting() {
 }
 
 function playMissionJingle() {
-  duckMusic(1.4);
   const notes = [523.25, 659.25, 784, 1046.5];
   notes.forEach((f, i) => playTone({ freq: f, type: 'triangle', duration: 0.16, gain: 0.24, delay: i * 0.09 }));
 }
@@ -1264,9 +1290,13 @@ function buildGraph() {
   sirenBus.gain.value = 0;
   sirenBus.connect(worldBus);
 
+  // Music bypasses the SFX soft-clip so loud world sounds never squash it.
+  musicOut = ctx.createGain();
+  musicOut.gain.value = muted ? 0 : masterLevel();
+  musicOut.connect(ctx.destination);
   musicBus = ctx.createGain();
   musicBus.gain.value = GMUSIC_VOLUME;
-  musicBus.connect(master);
+  musicBus.connect(musicOut);
 
   trafficBus = ctx.createGain();
   trafficBus.gain.value = 1;
@@ -1307,7 +1337,7 @@ function buildGraph() {
     buses: { sfx: sfxBus, amb: ambBus, ui: uiBus, sting: stingBus, world: worldBus },
     tone: playTone, noise: playNoiseBurst, buf: playBuf, spatial: spatialOut,
     dist: distToListener, listener: listenerPos, makePanner, setPannerPos,
-    duckAmb: duckAmbience, duckMusic, setReverb, muted: () => muted,
+    duckAmb: duckAmbience, setReverb, muted: () => muted,
     engineSynth: () => !!synth.traffic,
   };
   initUiSfx(kit);
@@ -1488,13 +1518,19 @@ function updateEngineSynth(dt, world) {
   if (shifted > 0 && speed > 2 && thr > 0 && spec.shift) S.shiftUntil = t + spec.shift;
   if (speed < 0.5 && thr > 0 && v.handbrake) rpm = spec.red * 0.6;
   if (thr > 0) rpm += (v.slip || 0) * spec.red * 0.08;
-  if (t < S.shiftUntil) load = 0.45;
+  if (t < S.shiftUntil) load = 0.3;
   rpm = Math.min(rpm, spec.red * 0.95);
   S.prevThr = thr;
 
   const gain = spec.level * (world.paused ? 0.5 : 1);
   S.gain += (clamp(0.15 + 0.35 * load * rpm / spec.red, 0, 0.5) - S.gain) * Math.min(1, dt * 4);
-  synthPost(synth.player, { type: 'p', v: [{ i: 0, kind: S.kind, rpm, load, gain, pitch: 1 }], road });
+  const camD = distToListener(v.x, v.y, 0.7);
+  const muffle = clamp(16000 / (1 + Math.max(0, camD - 5) / 6), 1200, 16000);
+  if (engineEarly) {
+    const place = getPlace();
+    engineEarly.level.gain.setTargetAtTime(v.isBoat ? 0 : 0.05 + 0.13 * clamp(place.density || 0, 0, 1), ctx.currentTime, 0.5);
+  }
+  synthPost(synth.player, { type: 'p', v: [{ i: 0, kind: S.kind, rpm, load, gain, pitch: 1, muffle }], road });
 }
 
 const trafficEngine = new WeakMap();
@@ -1801,11 +1837,9 @@ function playAudioEvents(world) {
         break;
       case 'prestatie':
         [659, 988, 1319].forEach((f, j) => playTone({ freq: f, type: 'sine', duration: 0.6, gain: 0.045, delay: j * 0.09, filterFreq: 2600, bus: stingBus, prio: 2 }));
-        duckMusic(0.8);
         break;
       case 'achievement':
         [784, 988, 1175, 1568].forEach((f, j) => playTone({ freq: f, type: 'triangle', duration: 0.22, gain: 0.08, delay: j * 0.07, bus: stingBus, prio: 2 }));
-        duckMusic(1);
         break;
       default: break;
     }
@@ -2066,13 +2100,11 @@ function updateGMusic(dt, world) {
     pendingTrackAnnounce = null;
   }
 
-  // Fixed-gain duck (not real-time ducking analysis) whenever the engine is
-  // working hard or the siren is audible, per spec - same lerp-toward-target
-  // shape as engineBus/sirenBus above. Slower while fading in from a fresh
-  // start so that fade actually reads as subtle instead of near-instant.
-  const ducked = sirenAudible > 0.05 || engineState.gain > 0.4 || ctx.currentTime < duckState.musicUntil;
+  // Only spoken lines (voicelines, story dialogue) dip the music, gently;
+  // vehicles, sirens and stings never touch it.
+  const ducked = ctx.currentTime < duckState.musicUntil;
   const targetGain = ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
-  const lerpRate = gmusicFadingIn ? dt * 0.8 : dt * 3;
+  const lerpRate = gmusicFadingIn ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
   musicBus.gain.value = musicState.gain * getSettings().musicVolume;
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
@@ -2091,6 +2123,7 @@ export function updateAudio(dt, world) {
     muted = !muted;
     saveMuted();
     master.gain.setTargetAtTime(muted ? 0 : masterLevel(), ctx.currentTime, 0.05);
+    musicOut.gain.setTargetAtTime(muted ? 0 : masterLevel(), ctx.currentTime, 0.05);
     world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5);
   }
 
