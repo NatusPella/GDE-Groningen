@@ -8,7 +8,7 @@ import {
   sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedestrians.js';
-import { buildPersonMesh, animatePersonWalk, seatPerson, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, applyAttackPose, seatPerson, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
@@ -1574,7 +1574,7 @@ export function update3D(dt, world) {
     const fx = getCombatEffect();
     const fxActive = fx && world.time < fx.until;
     muzzleFlashMesh.visible = !!(fxActive && fx.type === 'muzzle');
-    meleeSwipeMesh.visible = !!(fxActive && fx.type === 'melee');
+    meleeSwipeMesh.visible = false; // punches are an arm animation now (applyAttackPose)
     if (fxActive) {
       const activeMesh = fx.type === 'muzzle' ? muzzleFlashMesh : meleeSwipeMesh;
       activeMesh.position.set(player.x, 1.15, player.y);
@@ -1613,6 +1613,7 @@ export function update3D(dt, world) {
     playerMesh.userData.crouch = !!player.crouching;
     playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
     animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
+    applyAttackPose(playerMesh, getCombatEffect(), world.time);
   }
 
   // companion (Tammo/Anita, whichever the player isn't controlling) -

@@ -250,14 +250,18 @@ function buildSites(map) {
   }
   for (const [, a] of nodes) {
     if (a.length < 4) continue;
-    let car = null, zebra = false, branches = 0;
+    let car = null, busy = false, foot = false, branches = 0;
     for (let j = 0; j < a.length; j += 2) {
       const r = a[j], i = a[j + 1];
+      const interior = i > 0 && i < r.pts.length - 1;
       branches += (i > 0) + (i < r.pts.length - 1);
-      if (CAR_CATS.includes(r.cat)) car = car || r.pts[i];
-      else if (r.cat === 'foot' && i > 0 && i < r.pts.length - 1) zebra = true;
+      if (CAR_CATS.includes(r.cat)) {
+        car = car || r.pts[i];
+        if (interior && DETOUR_CATS.includes(r.cat)) busy = true;
+      } else if (r.cat === 'foot' && interior) foot = true;
     }
-    if (car && branches >= 3) addSite(car[0], car[1], zebra ? 'zebra' : 'junction');
+    // same rule roadsurface.js uses to paint zebra stripes
+    if (car && branches >= 3) addSite(car[0], car[1], busy && foot ? 'zebra' : 'junction');
   }
   for (const h of getTrafficLights()) if (h.crossing || h.bike) addSite(h.ax, h.ay, 'signal');
 }
@@ -560,6 +564,7 @@ function stepSit(ped, world, nav, dt) {
     ped.x = S.stand[0];
     ped.y = S.stand[1];
     releaseSeat(ped);
+    nav.benchAt = t + 90 + Math.random() * 90;
     if (!S.follow) {
       if (S.resume && nav.route) resync(ped, world, nav, true);
       else requestPlan(ped, pickDestination(world.map, ped, true));
@@ -611,7 +616,7 @@ function arrive(ped, world, nav) {
   nav.route = null;
   const nearBuilding = world.map.buildingsNear(ped.x, ped.y, 6).length > 0;
   const goesIn = dest.kind !== 'landmark' && nearBuilding && Math.random() < (dest.kind === 'street' ? 0.2 : 0.4);
-  if (!goesIn && Math.random() < 0.45) {
+  if (!goesIn && Math.random() < 0.35) {
     const seat = findSeat(world, ped, 25);
     if (seat) { goSit(ped, world, seat, false); return; }
   }
@@ -756,7 +761,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
     nav.benchAt = t + 5;
     const map = world.map;
     const calm = inPark(map, ped.x, ped.y) || isOnRoad(map, ped.x, ped.y, 0.5, ['foot']);
-    if (Math.random() < (calm ? 0.2 : 0.03)) {
+    if (Math.random() < (calm ? 0.06 : 0.008)) {
       const seat = findSeat(world, ped, 14, null, true);
       if (seat) { goSit(ped, world, seat, true); return true; }
     }
