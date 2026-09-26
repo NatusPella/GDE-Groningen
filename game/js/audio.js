@@ -1136,6 +1136,7 @@ const GMUSIC_ARTISTS = {
   "Oosterpark is m'n droom": 'Stadjer Supreme',
   'Staal en suiker': 'Beton Bert & de Bietenbende',
   'Wie stoan nait stil': 'De Nait Soezen Crew',
+  'Kleur in de Wind': 'Windkracht Wiebke',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
