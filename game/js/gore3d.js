@@ -98,6 +98,17 @@ export function bloodSpray(world, x, y, dx, dy, k = 0.4, h = 1.15) {
   queue.push({ kind: 'spray', x, y, dx, dy, k, h });
 }
 
+// An animal run over. burst: it comes apart like a pedestrian does (small
+// animals, or anything hit very fast); otherwise the carcass stays and bleeds
+// a pool. size ~ body length in metres, cols: fur/feather colours. Returns
+// false when gore is off.
+export function splatterAnimal(world, x, y, o = {}) {
+  if (!goreOn()) return false;
+  queue.push({ kind: 'animal', x, y, vx: o.vx || 0, vy: o.vy || 0, size: o.size ?? 0.5, cols: o.cols || [0x6b5a48], vehicle: o.vehicle || null, burst: !!o.burst });
+  sfx(world, o.burst ? 'gore' : 'gore_splat', x, y, Math.min(1, 0.4 + (o.size ?? 0.5) * 0.4));
+  return true;
+}
+
 // --- pooled render state ----------------------------------------------------
 
 const _m = new THREE.Matrix4();
@@ -648,6 +659,37 @@ function doGib(e, world) {
   if (e.vehicle) splatVehicle(e.vehicle, 4);
 }
 
+function doAnimal(e) {
+  const { x, y, size } = e;
+  const sp = Math.hypot(e.vx, e.vy);
+  const fx = sp > 0.1 ? e.vx / sp : 1, fy = sp > 0.1 ? e.vy / sp : 0;
+  const n = Math.round(e.burst ? 7 + size * 8 : 3 + size * 3);
+  for (let k = 0; k < n; k++) {
+    const meat = k % 3 !== 0;
+    const s = rand(0.05, 0.1) * (0.6 + size * 0.5);
+    const a = Math.random() * Math.PI * 2, r = rand(0.8, 2.6);
+    spawnChunk(x + rand(-0.2, 0.2), rand(0.2, 0.3 + size * 0.4), y + rand(-0.2, 0.2),
+      e.vx * rand(0.5, 1.1) + Math.cos(a) * r, rand(1.5, 4) + size, e.vy * rand(0.5, 1.1) + Math.sin(a) * r,
+      s, s * rand(0.6, 1.1), s * rand(0.7, 1.3), meat ? MEAT[k % MEAT.length] : e.cols[k % e.cols.length], { stumpBottom: meat ? 1 : 0, drip: meat ? 1 : 0.3 });
+  }
+  chunks.active = true;
+  const nd = Math.round(18 + size * 30);
+  for (let k = 0; k < nd; k++) {
+    const a = Math.random() * Math.PI * 2, r = rand(1, 4.5);
+    spawnDrop(x + rand(-0.2, 0.2), rand(0.2, 0.4 + size * 0.5), y + rand(-0.2, 0.2),
+      e.vx * rand(0.2, 0.9) + Math.cos(a) * r, rand(1, 4.5), e.vy * rand(0.2, 0.9) + Math.sin(a) * r, rand(0.025, 0.055));
+  }
+  for (let k = 0; k < 3; k++) {
+    spawnFxPuff(x + rand(-0.2, 0.2), 0.4 + size * 0.3, y + rand(-0.2, 0.2), e.vx * 0.2 + rand(-0.6, 0.6), rand(0.3, 1), e.vy * 0.2 + rand(-0.6, 0.6),
+      rand(0.4, 0.8), 0.25, 0.8 + size * 0.6, 0.52, 0.03, 0.04, 0.45, 2.6, -0.5);
+  }
+  const rot = -Math.atan2(fy, fx);
+  addDecal(splats, x + fx * 0.5, y + fy * 0.5, 0.9 + size * 0.8, { rot, aspect: 1.5 });
+  if (e.burst) addDecal(splats, x + fx * 2, y + fy * 2, 0.5 + size * 0.5, { rot, aspect: 1.7 });
+  else addDecal(pools, x + rand(-0.15, 0.15), y + rand(-0.15, 0.15), 0.8 + size * 0.7, { grow: rand(5, 7), life: POOL_LIFE, alpha: 0.9 });
+  if (e.vehicle) splatVehicle(e.vehicle, e.burst ? 3 : Math.max(1, Math.round(size * 1.5)));
+}
+
 function updateBleeders(world) {
   for (let i = bleeders.length - 1; i >= 0; i--) {
     const b = bleeders[i], p = b.ped, t = world.time - b.t0;
@@ -691,13 +733,17 @@ function poofBirds(world) {
   const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
   for (let i = list.length - 1; i >= 0; i--) {
     const a = list[i];
-    if (!BIRDS.has(a.kind) || (a.z ?? 0) > 1.6) continue;
+    if (!BIRDS.has(a.kind) || a.gone || (a.z ?? 0) > 1.6) continue;
     const dx = a.x - v.x, dy = a.y - v.y;
     if (Math.abs(dx) > v.halfLen + 1 || Math.abs(dy) > v.halfLen + 1) continue;
     const lx = dx * ca + dy * sa, lz = -dx * sa + dy * ca;
     if (Math.abs(lx) > v.halfLen + 0.25 || Math.abs(lz) > v.halfWid + 0.25) continue;
     list.splice(i, 1);
     featherPoof(world, a.x, a.y, Math.max(0.3, a.z ?? 0.3), ca * v.speed, sa * v.speed, FEATHERS[a.kind]);
+    if (goreOn()) {
+      bloodSpray(world, a.x, a.y, ca, sa, 0.25, Math.max(0.3, a.z ?? 0.3));
+      if ((a.z ?? 0) < 0.4) addDecal(splats, a.x + ca * 0.4, a.y + sa * 0.4, rand(0.45, 0.7), { rot: -v.angle, aspect: 1.4 });
+    }
   }
 }
 
@@ -746,7 +792,12 @@ export function updateGore3D(dt, world, sc) {
   now += dt;
   frame++;
   splatSoundT -= dt;
-  if (!goreOn()) { queue.length = 0; return; }
+  if (!goreOn()) {
+    queue.length = 0;
+    if (dt > 0) poofBirds(world);
+    updateChunks(dt, world);
+    return;
+  }
   if (dt > 0) {
     const px = world.player.x, py = world.player.y;
     for (const e of queue) {
@@ -755,6 +806,7 @@ export function updateGore3D(dt, world, sc) {
       if (e.kind === 'gib') doGib(e, world);
       else if (e.kind === 'spray') doSpray(e, world);
       else if (e.kind === 'car') splatVehicle(e.vehicle, e.n);
+      else if (e.kind === 'animal') doAnimal(e);
     }
     queue.length = 0;
     updateBleeders(world);

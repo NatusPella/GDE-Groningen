@@ -192,6 +192,9 @@ export function repairVehicle(v) {
   v.wrecked = false;
   v.wreckedByPlayer = false;
   v._exploded = false;
+  v.disabled = false;
+  v.blewUp = false;
+  v.fireWarned = false;
   v.riderOff = false;
   v.damage = null;
   v.dentLog = [];

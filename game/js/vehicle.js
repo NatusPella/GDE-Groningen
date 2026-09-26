@@ -18,21 +18,21 @@ const MODELS = [
   // Dutch daily traffic skews heavily toward grey/black/white/silver compacts
   // and hatchbacks, so those are weighted more heavily than the odd flash of
   // color rather than an even split across a bright arcade palette.
-  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 23, turnRate: 3.0, color: '#c7c9cc' },
-  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 23, turnRate: 3.0, color: '#23262a' },
-  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 23, turnRate: 3.0, color: '#e8e6e0' },
-  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#4a4d52' },
-  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#2f3a52' },
-  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#7a1f1f' },
-  { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 32, accel: 8, brake: 23, turnRate: 2.5, color: '#2e4a34' },
-  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0, color: '#d9d9d9' },
-  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0, color: '#c9541e' },
-  { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 42, accel: 12, brake: 27, turnRate: 3.2, color: '#8a1414' },
+  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 23, turnRate: 3.0, color: '#c7c9cc' },
+  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 23, turnRate: 3.0, color: '#23262a' },
+  { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 23, turnRate: 3.0, color: '#e8e6e0' },
+  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#4a4d52' },
+  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#2f3a52' },
+  { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#7a1f1f' },
+  { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 47, accel: 9, brake: 23, turnRate: 2.5, color: '#2e4a34' },
+  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 19, turnRate: 2.0, color: '#d9d9d9' },
+  { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 19, turnRate: 2.0, color: '#c9541e' },
+  { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 64, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' },
 ];
 
 // Signature red Ford Escort - GTE VI's hero car, spawned once via
 // spawnHeroCarNear rather than picked from MODELS by the regular traffic RNG.
-const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 34, accel: 10, brake: 25, turnRate: 3.4, color: '#a11f1f' };
+const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 11, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [
   { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6, color: '#1c1c1c', rider: '#2f5c8a' },
@@ -149,10 +149,13 @@ export class Vehicle {
     const isPlayer = this.driver === 'player';
     const tune = isPlayer ? playerTune(this) : null;
     const top = tune ? tune.top : m.maxSpeed;
-    const brakeMax = tune ? tune.brake : m.brake;
+    // wet road / puddle grip (0..1), set each frame for the player's vehicle
+    const grip = isPlayer ? this.gripK ?? 1 : 1;
+    const brakeMax = (tune ? tune.brake : m.brake) * (0.4 + 0.6 * grip);
+    if (this.disabled) throttle = 0;
     const brake = brakeInput === true ? 1 : brakeInput || 0;
     const absSpeed = Math.abs(this.speed);
-    const handbrakeDrift = isPlayer && !this.isBoat && brake > 0 && absSpeed > 9 && Math.abs(steerInput) > 0.3;
+    const handbrakeDrift = isPlayer && !this.isBoat && !this.isBus && brake > 0 && absSpeed > 9 && Math.abs(steerInput) > 0.3;
     const against = throttle !== 0 && absSpeed > 0.3 && Math.sign(throttle) !== Math.sign(this.speed);
     if (isPlayer) this.pedalT = against ? (this.pedalT || 0) + dt : 0;
     // Braking to a stop with S held pauses a beat before it starts reversing.
@@ -162,8 +165,8 @@ export class Vehicle {
     }
     let decel = brake * brakeMax * (handbrakeDrift ? 0.32 : 1);
     if (against) {
-      // player pedal bites at 60% and builds to full within ~0.25 s
-      const pedal = isPlayer ? Math.min(1, 0.6 + this.pedalT * 1.6) : 0.85;
+      // player pedal bites at 60% and builds to full within ~0.25 s (a bus's air brakes take longer)
+      const pedal = isPlayer ? Math.min(1, 0.6 + this.pedalT * (this.isBus ? 0.7 : 1.6)) : 0.85;
       decel = Math.max(decel, brakeMax * pedal * Math.abs(throttle));
     }
     if (decel > 0) {
@@ -173,7 +176,9 @@ export class Vehicle {
     } else if (throttle !== 0) {
       const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
       const headroom = clamp(1 - absSpeed / lim, 0, 1);
-      this.speed += throttle * (tune ? tune.accel : m.accel) * (0.3 + 0.7 * headroom) * dt;
+      // player cars pull hard off the line and run out of breath towards top speed
+      const floor = isPlayer && !this.isBike && !this.isScooter && !this.isBoat ? 0.12 : 0.3;
+      this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * headroom) * dt;
     } else {
       const drag = coastDrag(this, isPlayer, absSpeed) * dt;
       if (this.speed > 0) this.speed = Math.max(0, this.speed - drag);
@@ -184,7 +189,7 @@ export class Vehicle {
     const target = clamp(steerInput, -1, 1);
     if (isPlayer) {
       const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
-      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * dt;
+      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.45 : 1) * dt;
       this.steer += clamp(target - this.steer, -rate, rate);
     } else {
       this.steer = target;
@@ -197,12 +202,21 @@ export class Vehicle {
       if (Math.abs(this.yawVel) < 0.02) this.yawVel = 0;
     }
 
-    // Past the grip limit (handbrake, or flat-out with full lock) part of the
-    // old velocity carries on sideways - a mild, recoverable slide.
+    // Past the grip limit (handbrake, flat-out with full lock, or a wet road)
+    // part of the old velocity carries on sideways - a recoverable slide.
     if (isPlayer) {
-      const grip = this.isBoat ? 0.72 : handbrakeDrift ? 0.5 : absSpeed > top * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
-      if (grip < 1) {
-        const k = (1 - grip) * this.speed;
+      let slip = this.isBoat ? 0.72 : handbrakeDrift ? 0.5 : absSpeed > top * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
+      const hardBrake = brake > 0.5 || against;
+      if (grip < 0.97 && !this.isBoat && absSpeed > 7 && (Math.abs(this.steer) > 0.35 || hardBrake)) {
+        slip = Math.min(slip, 0.35 + 0.65 * grip);
+        // locking up in standing water: the car starts to rotate on its own
+        if (hardBrake && grip < 0.8) {
+          if (!this.aquaSign) this.aquaSign = Math.sign(this.steer) || (Math.random() < 0.5 ? -1 : 1);
+          this.yawVel = clamp(this.yawVel + this.aquaSign * (0.8 - grip) * 2.2 * Math.min(1, absSpeed / 20) * dt, -MAX_SPIN, MAX_SPIN);
+        } else this.aquaSign = 0;
+      } else this.aquaSign = 0;
+      if (slip < 1) {
+        const k = (1 - slip) * this.speed;
         this.driftX = clamp(this.driftX + k * (Math.cos(oldAngle) - Math.cos(this.angle)), -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
         this.driftY = clamp(this.driftY + k * (Math.sin(oldAngle) - Math.sin(this.angle)), -MAX_DRIFT_SPEED, MAX_DRIFT_SPEED);
       }
@@ -216,7 +230,9 @@ export class Vehicle {
     if (this.driftX || this.driftY) {
       this.x += this.driftX * dt;
       this.y += this.driftY * dt;
-      const decay = Math.exp(-(handbrakeDrift ? SLIDE_DECAY_RATE : isPlayer && this.isBoat ? BOAT_SLIDE_DECAY_RATE : DRIFT_DECAY_RATE) * dt);
+      const wetSlide = isPlayer && grip < 0.97;
+      const rate = handbrakeDrift || wetSlide ? SLIDE_DECAY_RATE * (wetSlide ? 0.5 + 0.5 * grip : 1) : isPlayer && this.isBoat ? BOAT_SLIDE_DECAY_RATE : DRIFT_DECAY_RATE;
+      const decay = Math.exp(-rate * dt);
       this.driftX *= decay;
       this.driftY *= decay;
       if (Math.hypot(this.driftX, this.driftY) < 0.03) { this.driftX = 0; this.driftY = 0; }
@@ -260,13 +276,20 @@ const PLAYER_STEER_RETURN = 9;
 // Two-wheelers and boats are tuned for the player separately from the AI
 // fleet's realistic cruising speeds (m/s): a bike is clearly quicker than
 // running (7.5), an e-fatbike quicker still, a scooter quickest.
+// The city bus is heavy for the player: slow to pull away, long to stop.
 function playerTune(v) {
   const m = v.model;
   if (v.isBoat) return { top: Math.max(m.maxSpeed, 9.5), accel: Math.max(m.accel, 3.2), brake: Math.max(m.brake, 3.8) };
-  if (v.isScooter) return { top: 17, accel: 6.8, brake: 9.5 };
-  if (v.isBike) return m.fat ? { top: 14.5, accel: 6.2, brake: 9 } : { top: 11.5, accel: 4.6, brake: 8.5 };
-  return null;
+  if (v.isBus) return { top: 21, accel: 2.4, brake: 5 };
+  // shop upgrades scale the two-wheelers' player tuning too
+  const b = v._baseModel;
+  const up = b ? m.maxSpeed / b.maxSpeed : 1, upA = b ? m.accel / b.accel : 1;
+  if (v.isScooter) return { top: 10 * up, accel: 5.5 * upA, brake: 6.5 };
+  if (v.isBike) return m.fat ? { top: 14.5 * up, accel: 6.2 * upA, brake: 9 } : { top: 11.5 * up, accel: 4.6 * upA, brake: 8.5 };
+  return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel, brake: m.brake };
 }
+
+const MAX_CAR_SPEED = 76; // m/s (~275 km/h): even a turbo-tuned sports car stops here
 
 export function speedCap(v) {
   const t = v.driver === 'player' ? playerTune(v) : null;
@@ -276,14 +299,17 @@ export function speedCap(v) {
 // Rolling resistance + engine braking off the throttle (m/s^2). The AI's
 // flat value is what its speed controller was tuned against.
 function coastDrag(v, isPlayer, s) {
-  if (!isPlayer) return 3.2;
+  // a burnt-out engine or a car bailed out of rolls on for a good while
+  if (!isPlayer) return v.rollingFree || v.disabled ? 0.9 + 0.05 * s : 3.2;
   if (v.isBoat) return 0.45 + 0.05 * s;
   if (v.isBike || v.isScooter) return 0.8 + 0.06 * s;
+  if (v.isBus) return 0.7 + 0.04 * s;
+  if (v.disabled) return 0.8 + 0.04 * s;
   return 1.6 + 0.09 * s;
 }
 
-function minTurnRadius(m) {
-  if (m.name === 'bus') return 9;
+function minTurnRadius(m, player = false) {
+  if (m.name === 'bus') return player ? 12 : 9;
   if (m.name === 'bike' || m.name === 'scooter') return 1.8;
   return m.len * 1.25;
 }
@@ -292,7 +318,7 @@ function minTurnRadius(m) {
 // this is what makes steering speed-dependent (tight at walking pace, wide
 // arcs at speed) instead of a constant rad/s at every speed.
 function lateralGrip(m, player = false) {
-  if (m.name === 'bus') return player ? 6.5 : 4.5;
+  if (m.name === 'bus') return player ? 3.6 : 4.5;
   if (m.name === 'bike' || m.name === 'scooter') return player ? 11 : 5;
   if (m.name === 'boat') return player ? 5.5 : 2.5;
   return player ? 23 : 16;
@@ -303,13 +329,15 @@ function lateralGrip(m, player = false) {
 export function maxYawRate(v, speed = v.speed) {
   const s = Math.abs(speed);
   if (s < 1e-3) return 0;
-  const radius = minTurnRadius(v.model) * (v.tightTurn && v.driver !== 'player' ? 0.45 : 1);
-  return Math.min(s / radius, v.model.turnRate, lateralGrip(v.model, v.driver === 'player') / s);
+  const player = v.driver === 'player';
+  const radius = minTurnRadius(v.model, player) * (v.tightTurn && !player ? 0.45 : 1);
+  const grip = lateralGrip(v.model, player) * (player ? 0.45 + 0.55 * (v.gripK ?? 1) : 1);
+  return Math.min(s / radius, v.model.turnRate, grip / s);
 }
 
 export function maxCurvature(v) {
   const s = Math.abs(v.speed);
-  return s > 0.5 ? maxYawRate(v) / s : 1 / (minTurnRadius(v.model) * (v.tightTurn && v.driver !== 'player' ? 0.45 : 1));
+  return s > 0.5 ? maxYawRate(v) / s : 1 / (minTurnRadius(v.model, v.driver === 'player') * (v.tightTurn && v.driver !== 'player' ? 0.45 : 1));
 }
 
 // Rolling history of a bus's own pose, sampled by distance travelled (not
@@ -468,7 +496,7 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   const dir = road.oneway ? 1 : (rng() < 0.5 ? 1 : -1);
   if (dir < 0) angle = normalizeAngle(angle + Math.PI);
   const model = forcedModel || (isPolice
-    ? { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 34, accel: 9.5, brake: 18, turnRate: 2.8, color: '#1c1c1c' }
+    ? { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' }
     : isBike
     ? pickBikeModel(rng)
     : isScooter
@@ -903,7 +931,7 @@ export const ENTER_REACH = 1.8;
 export function findEnterableVehicle(x, y, vehicles, reach = ENTER_REACH) {
   let best = null, bestScore = Infinity;
   for (const v of vehicles) {
-    if (v.wrecked || v.sinking || v.driver) continue;
+    if (v.wrecked || v.sinking || v.driver || v.disabled) continue;
     const pad = v.halfLen + reach + 1.5;
     if (Math.abs(v.x - x) > pad || Math.abs(v.y - y) > pad) continue;
     const r = (v.isBike || v.isScooter ? reach * 0.7 : reach) + Math.min(1, Math.abs(v.speed) * 0.1);
@@ -1263,6 +1291,20 @@ function aiComfortDecel(v) {
 
 // The player (or companion) on foot in the lane ahead: traffic tries to stop
 // in front of them, which is what makes carjacking possible at all.
+// Every so often a driver is on their phone: they notice the walker late
+// (and stop hard, maybe too late) or not at all. Rolled once per encounter;
+// fast, aggressive drivers are distracted more often.
+const DISTRACT_LATE = 0.1;
+const DISTRACT_BLIND = 0.035;
+function rollDistraction(v, world) {
+  if (world.time < (v.attnUntil || 0)) return v.attn;
+  const aggro = v.cruiseScale > 1.06 || v.isPolice ? 2.2 : 1;
+  const r = Math.random();
+  v.attn = r < DISTRACT_BLIND * aggro ? 'blind' : r < (DISTRACT_BLIND + DISTRACT_LATE) * aggro ? 'late' : 'ok';
+  v.attnUntil = world.time + 6;
+  return v.attn;
+}
+
 function walkerAheadLimit(v, path, world, decel) {
   let vmax = Infinity;
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
@@ -1274,7 +1316,11 @@ function walkerAheadLimit(v, path, world, decel) {
     const pr = projectOnPath(path, w.x, w.y);
     if (!pr || pr.lat > v.halfWid + 0.9) continue;
     const stopS = pr.s - v.halfLen - 1.4;
-    vmax = Math.min(vmax, Math.sqrt(2 * decel * Math.max(0, stopS)));
+    const attn = Math.abs(v.speed) > 4 ? rollDistraction(v, world) : 'ok';
+    if (attn === 'blind') continue;
+    // late: only reacts in the last ~0.3 s, then stands on the brakes
+    if (attn === 'late' && stopS > Math.abs(v.speed) * 0.3) continue;
+    vmax = Math.min(vmax, Math.sqrt(2 * (attn === 'late' ? v.model.brake * 0.8 : decel) * Math.max(0, stopS)));
   }
   return vmax;
 }
@@ -1507,8 +1553,13 @@ function resolveDeadlocks(v, dt, world, follow, lightV) {
 export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = null) {
   if (v.wrecked) return;
   if (!v.road) {
-    // parked or abandoned: a shove from a collision rolls out against the handbrake
-    if (!v.driver && !v.sinking && (v.speed || v.driftX || v.driftY || v.yawVel)) v.applyControls(dt, 0, 0, 0.35);
+    // parked or abandoned: a shove from a collision rolls out against the
+    // handbrake; a car bailed out of (or burning) rolls on freely
+    if (!v.driver && !v.sinking && (v.speed || v.driftX || v.driftY || v.yawVel)) {
+      const free = v.rollingFree || v.disabled;
+      v.applyControls(dt, 0, free ? v.steer * 0.98 : 0, free ? 0 : 0.35);
+      if (free && Math.abs(v.speed) < 0.4) v.rollingFree = false;
+    }
     return;
   }
   if (!v.plan) v.plan = [];
@@ -1745,12 +1796,89 @@ function tangentialSpeed(a, b, nx, ny) {
 
 function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
+  if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
-  if (v.health <= 0) {
+  if (v.health <= 0) disableVehicle(v, playerInvolved, world);
+}
+
+// --- dying cars ----------------------------------------------------------------
+// A car crashed or shot to zero health doesn't blow up on the spot: the
+// engine dies and it catches fire (v.disabled). Whoever sits in it can still
+// get out; after a while it explodes (explodeVehicle), which is when it
+// becomes a wreck. Two-wheelers and boats still wreck straight away.
+const BURN_MIN = 7;
+const BURN_MAX = 11;
+const BLAST_REACH = 9;
+
+export function disableVehicle(v, byPlayer, world = null) {
+  if (v.wrecked || v.disabled) return;
+  v.health = 0;
+  if (byPlayer) markWreckedByPlayer(v, world);
+  if (v.isBike || v.isScooter || v.isBoat) {
     v.wrecked = true;
     v.speed = 0;
-    if (playerInvolved) markWreckedByPlayer(v, world);
+    return;
   }
+  v.disabled = true;
+  v.burnLeft = BURN_MIN + Math.random() * (BURN_MAX - BURN_MIN);
+  v.horn = false;
+  // an AI driver bails out (pedestrians.js) and the car rolls on unmanned
+  if (v.road && v.driver !== 'player') v.bailPending = true;
+  if (v.driver !== 'player' && !v.racer) v.road = null;
+}
+
+export function tickBurningVehicles(world, dt) {
+  for (const v of world.vehicles) {
+    if (!v.disabled || v.wrecked) continue;
+    if (v.sinking) { v.disabled = false; continue; }
+    if (v.driver === 'player' && !v.fireWarned) {
+      v.fireWarned = true;
+      world.addMessage('Je auto staat in brand! Stap uit (E) voor hij ontploft', 3.5);
+    }
+    v.burnLeft -= dt;
+    if (v.burnLeft <= 0) explodeVehicle(v, world);
+  }
+}
+
+// The fireball: the car becomes a (black) wreck and hops, nearby cars are
+// shoved and damaged (a chain reaction is possible) and the camera shakes.
+// People are handled by pedestrians.js (blastAt), the driver by player.js.
+export function explodeVehicle(v, world) {
+  v.disabled = false;
+  v.wrecked = true;
+  v.blewUp = true;
+  v.speed = 0;
+  v.driftX = 0; v.driftY = 0;
+  v.yawVel = (Math.random() - 0.5) * 1.2;
+  if (!v.airborne) { v.airborne = true; v.vz = 3.2 + Math.random() * 1.2; }
+  for (const o of world.vehicles) {
+    if (o === v || o.isBoat || o.sinking || Math.abs((o.z || 0) - (v.z || 0)) > 3) continue;
+    const dx = o.x - v.x, dy = o.y - v.y, d = Math.hypot(dx, dy);
+    if (d > BLAST_REACH) continue;
+    const k = 1 - d / BLAST_REACH, nx = d > 0.01 ? dx / d : 1, ny = d > 0.01 ? dy / d : 0;
+    if (!o.wrecked) {
+      const push = 7 * k * clamp(8 / vehicleMass(o), 0.25, 2.5);
+      const [ox, oy] = velocityOf(o);
+      setVelocity(o, ox + nx * push, oy + ny * push);
+      o.yawVel = clamp(o.yawVel + (Math.random() - 0.5) * 3 * k, -MAX_SPIN, MAX_SPIN);
+      applyImpactDamage(o, 85 * k, !!v.wreckedByPlayer, world);
+    }
+  }
+  const p = world.player;
+  const pd = Math.hypot(v.x - p.x, v.y - p.y);
+  if (pd < 60) world.lastImpact = { strength: clamp(1.25 - pd / 45, 0.15, 1), time: world.time, x: v.x, y: v.y };
+  world.lastBlast = { x: v.x, y: v.y, z: v.z || 0, time: world.time };
+}
+
+// Something soft but heavy under the bumper (an animal): scrubs off speed
+// (keep = fraction kept), a thump for the camera, a dent for the big ones.
+export function vehicleHitBody(v, x, y, keep, dmg, world) {
+  const before = Math.abs(v.speed);
+  v.speed *= keep;
+  v.driftX *= keep; v.driftY *= keep;
+  const lost = before * (1 - keep);
+  if (lost > IMPACT_EVENT_SPEED) reportImpact(world, x, y, lost, v.driver === 'player');
+  if (dmg > 0) applyImpactDamage(v, dmg, false, world);
 }
 
 // Feedback hook: an 'impact' particle for effects, and world.lastImpact for
@@ -1859,13 +1987,23 @@ function collisionProbes(v) {
 
 const FALL_G = 9.8;
 const LAND_DAMAGE_SPEED = 7;
+// m/s the road must fall away from the car's own vertical motion before the
+// wheels leave it (a 5% crest at ~160 km/h and up)
+const CREST_VZ = 2.2;
+const CREST_MIN_SPEED = 20;
+const SLOPE_SAMPLE_MAX = 0.6; // m: a probe further off than this fell over a deck edge, ignore it
 
 // Keep the wheels on the surface under the car (map.groundHeightAt): up and
 // down the ring's ramps, over viaducts, through the cuttings. Driving off an
-// edge (or over a crest too fast) goes ballistic until it lands; a hard
-// landing damages the car. Pitch follows the surface under the axles.
+// edge, or over a crest faster than gravity can pull the car down onto the
+// falling road, goes ballistic until it lands; a hard landing damages the
+// car. Pitch and roll follow the surface under the wheels, and a light
+// spring-damper "suspension" adds nose dive, squat, body roll and a bounce
+// on landing (v.susPitch/susRoll/susHeave, drawn on the body only).
 export function settleVehicleHeight(v, map, dt) {
-  if (v.isBoat || v.sinking || !map.groundHeightAt || !dt) return;
+  if (v.isBoat || v.sinking || !dt) return;
+  updateSuspension(v, dt);
+  if (!map.groundHeightAt) return;
   const z = v.z || 0;
   const g = map.groundHeightAt(v.x, v.y, z);
   if (v.airborne) {
@@ -1874,8 +2012,12 @@ export function settleVehicleHeight(v, map, dt) {
     if (v.z <= g) {
       const hit = -v.vz;
       v.z = g;
+      // touching down on a falling road keeps falling with it, no re-launch
+      v.vzG = Math.max(v.vz, -Math.abs(v.speed) * 0.12);
       v.vz = 0;
       v.airborne = false;
+      v.susHeaveV = (v.susHeaveV || 0) - Math.min(2.5, hit * 0.35);
+      v.susPitchV = (v.susPitchV || 0) - Math.min(1.2, hit * 0.12);
       if (hit > LAND_DAMAGE_SPEED) {
         applyImpactDamage(v, Math.min(60, (hit - LAND_DAMAGE_SPEED) * 7), v.driver === 'player', null);
         v.pendingImpact = { x: v.x, y: v.y, speed: hit * 1.5 };
@@ -1884,16 +2026,77 @@ export function settleVehicleHeight(v, map, dt) {
   } else if (z - g > 0.6 + Math.abs(v.speed) * dt * 0.2) {
     // off the edge: keep the vertical speed the slope gave it
     v.airborne = true;
-    v.vz = Math.sin(v.pitch || 0) * v.speed;
+    v.vz = Math.max(v.vzG || 0, Math.sin(v.pitch || 0) * v.speed);
   } else {
-    v.z = g;
+    // vertical speed from following the surface, smoothed: the road
+    // polylines have small kinks that must not read as launch ramps
+    const slopeV = Math.abs(v.speed) * 0.12;
+    const vzPrev = clamp(v.vzG || 0, -slopeV, slopeV);
+    const ballistic = z + vzPrev * dt - 0.5 * FALL_G * dt * dt;
+    if (Math.abs(v.speed) > CREST_MIN_SPEED && (ballistic - g) / dt > CREST_VZ && !v.isBike && !v.isScooter) {
+      // over the crest: the road drops away faster than the car can follow
+      v.airborne = true;
+      v.vz = vzPrev - FALL_G * dt;
+      v.z = ballistic;
+    } else {
+      v.vzG = (v.vzG || 0) + (clamp((g - z) / dt, -12, 12) - (v.vzG || 0)) * Math.min(1, dt * 10);
+      v.z = g;
+    }
   }
-  if (!g && !z && !v.pitch) return;
+  if (!g && !z && !v.pitch && !v.roll) return;
   const h = Math.min(v.halfLen * 0.75, 2.4);
-  const c = Math.cos(v.angle) * h, s = Math.sin(v.angle) * h;
-  const zf = map.groundHeightAt(v.x + c, v.y + s, v.z), zr = map.groundHeightAt(v.x - c, v.y - s, v.z);
-  const target = v.airborne ? (v.pitch || 0) * 0.98 : Math.atan2(zf - zr, 2 * h);
-  v.pitch = (v.pitch || 0) + (Math.max(-0.35, Math.min(0.35, target)) - (v.pitch || 0)) * Math.min(1, dt * 10);
+  const c = Math.cos(v.angle), s = Math.sin(v.angle);
+  const zc = v.z;
+  const probe = (x, y) => {
+    const q = map.groundHeightAt(x, y, zc);
+    return Math.abs(q - zc) > SLOPE_SAMPLE_MAX ? zc : q;
+  };
+  let targetPitch = (v.pitch || 0) * 0.98, targetRoll = (v.roll || 0) * 0.95;
+  if (!v.airborne) {
+    const zf = probe(v.x + c * h, v.y + s * h), zr = probe(v.x - c * h, v.y - s * h);
+    targetPitch = Math.atan2(zf - zr, 2 * h);
+    if (!v.isBike && !v.isScooter) {
+      const w = v.halfWid * 0.9;
+      const zR = probe(v.x - s * w, v.y + c * w), zL = probe(v.x + s * w, v.y - c * w);
+      // three rotation.x > 0 lowers the right (+z) side
+      targetRoll = -Math.atan2(zR - zL, 2 * w);
+    }
+  }
+  const k = Math.min(1, dt * 10);
+  v.pitch = (v.pitch || 0) + (clamp(targetPitch, -0.35, 0.35) - (v.pitch || 0)) * k;
+  v.roll = (v.roll || 0) + (clamp(targetRoll, -0.15, 0.15) - (v.roll || 0)) * k;
+  if (Math.abs(v.roll) < 1e-4) v.roll = 0;
+}
+
+// Body motion on its springs, driven by the car's own accelerations:
+// braking dips the nose, pulling away squats the tail, cornering rolls the
+// body towards the outside of the bend. Two-wheelers and boats skip it.
+const SUS_K = 95;
+const SUS_DAMP = 9;
+function updateSuspension(v, dt) {
+  if (v.isBike || v.isScooter || v.isBoat) return;
+  const sp = v.speed;
+  const prev = v._susSpeed ?? sp;
+  const prevA = v._susAngle ?? v.angle;
+  v._susSpeed = sp;
+  v._susAngle = v.angle;
+  if (v.parked && !sp && !v.susPitch && !v.susRoll && !v.susHeave) return;
+  const aLong = clamp((sp - prev) / dt, -28, 28);
+  const aLat = clamp(sp * normalizeAngle(v.angle - prevA) / dt, -22, 22);
+  const soft = v.isBus ? 1.7 : v.model.name === 'van' ? 1.35 : v.model.name === 'sport' ? 0.6 : 1;
+  const air = v.airborne ? 0 : 1;
+  const tPitch = clamp(aLong * 0.0042 * soft, -0.065, 0.05) * air;
+  const tRoll = clamp(-aLat * 0.0048 * soft, -0.085, 0.085) * air;
+  const k = SUS_K / soft, c = SUS_DAMP / Math.sqrt(soft);
+  v.susPitchV = (v.susPitchV || 0) + ((tPitch - (v.susPitch || 0)) * k - (v.susPitchV || 0) * c) * dt;
+  v.susRollV = (v.susRollV || 0) + ((tRoll - (v.susRoll || 0)) * k - (v.susRollV || 0) * c) * dt;
+  v.susHeaveV = (v.susHeaveV || 0) + (-(v.susHeave || 0) * k - (v.susHeaveV || 0) * c) * dt;
+  v.susPitch = clamp((v.susPitch || 0) + v.susPitchV * dt, -0.12, 0.12);
+  v.susRoll = clamp((v.susRoll || 0) + v.susRollV * dt, -0.14, 0.14);
+  v.susHeave = clamp((v.susHeave || 0) + v.susHeaveV * dt, -0.14, 0.08);
+  if (Math.abs(v.susPitch) + Math.abs(v.susRoll) + Math.abs(v.susHeave) < 1e-4 && Math.abs(v.susPitchV) + Math.abs(v.susRollV) + Math.abs(v.susHeaveV) < 1e-3) {
+    v.susPitch = v.susRoll = v.susHeave = v.susPitchV = v.susRollV = v.susHeaveV = 0;
+  }
 }
 
 // A body corner that has penetrated a footprint is pushed out along the
@@ -2089,6 +2292,17 @@ export function buildVehicleFireMesh3D() {
   flame.position.y = 0.28;
   group.add(flame);
   group.userData.flame = flame;
+  const tongues = [];
+  for (const [x, z, s] of [[0.16, 0.1, 0.7], [-0.12, -0.14, 0.8], [0.02, 0.2, 0.55]]) {
+    const t = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.42, 5), new THREE.MeshBasicMaterial({ color: 0xffb030, transparent: true, opacity: 0.8 }));
+    t.position.set(x, 0.2, z);
+    t.scale.setScalar(s);
+    t.userData.base = s;
+    t.userData.phase = x * 17 + z * 5;
+    group.add(t);
+    tongues.push(t);
+  }
+  group.userData.tongues = tongues;
 
   const smokePuffs = [];
   for (let i = 0; i < 4; i++) {
@@ -2113,6 +2327,10 @@ export function updateVehicleFireMesh3D(mesh, dt) {
   const flame = mesh.userData.flame;
   const flick = 0.85 + Math.sin(t * 18) * 0.1 + Math.random() * 0.05;
   flame.scale.set(flick, 0.9 + Math.sin(t * 22) * 0.15, flick);
+  for (const tg of mesh.userData.tongues || []) {
+    const b = tg.userData.base, ph = tg.userData.phase;
+    tg.scale.set(b * (0.85 + Math.sin(t * 15 + ph) * 0.15), b * (0.8 + Math.sin(t * 19 + ph * 1.7) * 0.3), b);
+  }
 
   const cycle = 1.6;
   for (const puff of mesh.userData.smokePuffs) {
@@ -2137,30 +2355,70 @@ export function vehicleJustWrecked(v) {
   return false;
 }
 
-const EXPLOSION_LIFETIME = 0.65;
+// Fireball: a white flash, a cluster of additive fire blobs that swell,
+// rise and cool from yellow to deep red, a ground shockwave ring and a few
+// burning chunks. The smoke column, debris and sparks come from fx3d's pools
+// (spawnExplosionFx), the camera shake from world.lastImpact.
+const EXPLOSION_LIFETIME = 1.6;
+const FIRE_BLOBS = 7;
+const _fireCol = new THREE.Color();
+const FIRE_HOT = new THREE.Color(0xffe07a), FIRE_MID = new THREE.Color(0xff6a12), FIRE_COOL = new THREE.Color(0x3a1c14);
 
-export function buildVehicleExplosionMesh3D() {
+function additive(color, opacity) {
+  return new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, fog: true });
+}
+
+export function buildVehicleExplosionMesh3D(scale = 1) {
   const group = new THREE.Group();
+  group.scale.setScalar(scale);
 
-  const flash = new THREE.Mesh(
-    new THREE.SphereGeometry(0.9, 10, 8),
-    new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 1 })
-  );
+  const flash = new THREE.Mesh(new THREE.SphereGeometry(1.4, 12, 8), additive(0xfff6d8, 1));
+  flash.position.y = 0.8;
   group.add(flash);
   group.userData.flash = flash;
 
+  const blobGeo = new THREE.IcosahedronGeometry(1, 1);
+  const blobs = [];
+  for (let i = 0; i < FIRE_BLOBS; i++) {
+    // solid, saturated blobs (additive ones wash out to white in daylight)
+    const b = new THREE.Mesh(blobGeo, new THREE.MeshBasicMaterial({ color: 0xffc060, transparent: true, opacity: 0.92, depthWrite: false, fog: true }));
+    b.renderOrder = 4;
+    const a = (i / FIRE_BLOBS) * Math.PI * 2 + Math.random() * 0.8;
+    const r = i === 0 ? 0 : 0.5 + Math.random() * 0.9;
+    b.userData.dx = Math.cos(a) * r;
+    b.userData.dz = Math.sin(a) * r;
+    b.userData.rise = 1.4 + Math.random() * 2.2;
+    b.userData.size = (i === 0 ? 1.9 : 1.0 + Math.random() * 0.9);
+    b.userData.delay = i === 0 ? 0 : Math.random() * 0.12;
+    b.position.set(b.userData.dx * 0.3, 0.7, b.userData.dz * 0.3);
+    b.scale.setScalar(0.01);
+    group.add(b);
+    blobs.push(b);
+  }
+  group.userData.blobs = blobs;
+
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.85, 1, 40),
+    new THREE.MeshBasicMaterial({ color: 0xfff0d0, transparent: true, opacity: 0.7, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -16 }),
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = -0.12;
+  group.add(ring);
+  group.userData.ring = ring;
+
   const chips = [];
-  const n = 14;
+  const n = 12;
   for (let i = 0; i < n; i++) {
-    const fiery = i % 2 === 0;
-    const mat = new THREE.MeshBasicMaterial({ color: fiery ? 0xff6a1a : 0x2a2a2a, transparent: true });
-    const chip = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.1, 0.14), mat);
+    const fiery = i % 3 === 0;
+    const mat = new THREE.MeshBasicMaterial({ color: fiery ? 0xff6a1a : 0x1a1a1a, transparent: true });
+    const chip = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.16), mat);
     const a = (i / n) * Math.PI * 2 + Math.random() * 0.4;
-    const elevation = 0.6 + Math.random() * 0.8;
-    const speed = 3 + Math.random() * 3.5;
+    const elevation = 0.8 + Math.random() * 1.1;
+    const speed = 4 + Math.random() * 5;
     chip.userData.vx = Math.cos(a) * speed;
     chip.userData.vz = Math.sin(a) * speed;
     chip.userData.vy = elevation * speed;
+    chip.position.y = 0.6;
     group.add(chip);
     chips.push(chip);
   }
@@ -2173,19 +2431,42 @@ export function buildVehicleExplosionMesh3D() {
 // "done" contract as updateVehicleImpactSparkMesh3D.
 export function updateVehicleExplosionMesh3D(mesh, dt) {
   mesh.userData.age += dt;
-  const t = mesh.userData.age / EXPLOSION_LIFETIME;
+  const age = mesh.userData.age;
+  const t = age / EXPLOSION_LIFETIME;
   if (t >= 1) return false;
 
   const flash = mesh.userData.flash;
-  flash.material.opacity = Math.max(0, 1 - t * 3.2);
-  flash.scale.setScalar(1 + t * 1.8);
+  flash.material.opacity = Math.max(0, 1 - age / 0.12);
+  flash.scale.setScalar(1 + age * 7);
+  flash.visible = flash.material.opacity > 0;
+
+  for (const b of mesh.userData.blobs) {
+    const u = b.userData;
+    const k = clamp((age - u.delay) / (EXPLOSION_LIFETIME - u.delay), 0, 1);
+    if (k <= 0) continue;
+    const grow = 1 - Math.pow(1 - Math.min(1, k * 3.2), 3);
+    b.scale.setScalar(u.size * (0.25 + 0.95 * grow) * (1 + k * 0.4));
+    b.position.set(u.dx * (0.3 + grow * 0.9), 0.7 + u.rise * k * k * 2.2 + grow * 0.6, u.dz * (0.3 + grow * 0.9));
+    if (k < 0.25) _fireCol.copy(FIRE_HOT).lerp(FIRE_MID, k / 0.25);
+    else _fireCol.copy(FIRE_MID).lerp(FIRE_COOL, (k - 0.25) / 0.75);
+    b.material.color.copy(_fireCol);
+    b.material.opacity = 0.92 * Math.min(1, (1 - k) * 1.6);
+  }
+
+  const ring = mesh.userData.ring;
+  const rk = Math.min(1, age / 0.5);
+  ring.scale.setScalar(1 + rk * 13);
+  ring.material.opacity = 0.7 * (1 - rk);
+  ring.visible = rk < 1;
 
   for (const chip of mesh.userData.chips) {
     chip.position.x += chip.userData.vx * dt;
     chip.position.z += chip.userData.vz * dt;
     chip.userData.vy -= 10 * dt;
-    chip.position.y = Math.max(0, chip.position.y + chip.userData.vy * dt);
-    chip.material.opacity = 1 - t;
+    chip.position.y = Math.max(-0.15, chip.position.y + chip.userData.vy * dt);
+    if (chip.position.y <= -0.15) { chip.userData.vx *= 0.8; chip.userData.vz *= 0.8; chip.userData.vy = 0; }
+    chip.rotation.x += dt * 9; chip.rotation.z += dt * 7;
+    chip.material.opacity = 1 - t * t;
   }
   return true;
 }

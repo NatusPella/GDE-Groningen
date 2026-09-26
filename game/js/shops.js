@@ -23,7 +23,7 @@ export const SHOP_TYPES = {
   tabak: { color: '#c23f78', label: 'Tabak & loterij', chain: 'Rook & Geluk', tagline: 'Kraskaarten, loten en een eierbal uit de muur', group: 'shops' },
   super: { color: '#3b8f3b', label: 'Avondwinkel', chain: 'Nait Duur', tagline: 'Open tot laat, goedkoop tot op de cent', group: 'shops' },
   snack: { color: '#d0652a', label: 'Snackbar', chain: 'Frituur Vet & Lekker', tagline: 'Vers uit het vet, met of zonder', group: 'shops' },
-  fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, fatbikes en brommers', group: 'shopsVoertuigen' },
+  fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, fatbikes en e-steps', group: 'shopsVoertuigen' },
   fietsenmaker: { color: '#4f86a8', label: 'Fietsenmaker', chain: 'Spaak & Band', tagline: 'Plakken, poetsen en opvoeren', group: 'shopsVoertuigen' },
   auto: { color: '#c98a16', label: 'Autodealer', chain: 'Ome Harm Occasions', tagline: 'Nait zeuren, gewoon rijden', group: 'shopsVoertuigen' },
   tuning: { color: '#8c3fa8', label: 'Tuning', chain: 'Knal & Kolder Tuning', tagline: 'Meer vermogen, meer herrie', group: 'shopsVoertuigen' },
@@ -91,11 +91,11 @@ export const VEHICLE_STOCK = {
   omafiets: { kind: 'bike', label: 'Omafiets', desc: 'Zwart, zwaar en onverwoestbaar', price: 75, nameIdx: 0, color: '#1c1c1c', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6 } },
   stadsfiets: { kind: 'bike', label: 'Stadsfiets', desc: 'Lichter en sneller, in Stadjersgroen', price: 110, nameIdx: 2, color: '#1e9e56', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 7.0, accel: 3.6, brake: 6.2, turnRate: 4.8 } },
   fatbike: { kind: 'bike', label: 'Fatbike "Dikke Tinus"', desc: 'Dikke banden, dikke prijs', price: 350, nameIdx: 0, color: '#20221f', model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 3.4, brake: 5, turnRate: 3.8 } },
-  brommer: { kind: 'scooter', label: 'Brommer Zoemzoem', desc: 'Elektrisch, stil, rap', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
-  mug: { kind: 'car', label: 'Hunze Mug', desc: 'Kleine hatchback, parkeert overal', price: 800, nameIdx: 2, color: '#2e6b9e', model: { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 15, turnRate: 3.0 } },
-  koopman: { kind: 'car', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 32, accel: 8, brake: 15, turnRate: 2.5 } },
-  klusbus: { kind: 'car', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 13, turnRate: 2.0 } },
-  wervelwind: { kind: 'car', label: 'Wadden Wervelwind', desc: 'Sportwagen. Rap as de wind over de dijk', price: 2400, nameIdx: 0, color: '#c9a227', model: { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 42, accel: 12, brake: 19, turnRate: 3.2 } },
+  brommer: { kind: 'scooter', label: 'E-step Zoemzoem', desc: 'Elektrische step: staan, gas, zoemen', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
+  mug: { kind: 'car', label: 'Hunze Mug', desc: 'Kleine hatchback, parkeert overal', price: 800, nameIdx: 2, color: '#2e6b9e', model: { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 15, turnRate: 3.0 } },
+  koopman: { kind: 'car', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 47, accel: 9, brake: 15, turnRate: 2.5 } },
+  klusbus: { kind: 'car', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 13, turnRate: 2.0 } },
+  wervelwind: { kind: 'car', label: 'Wadden Wervelwind', desc: 'Sportwagen. Rap as de wind over de dijk', price: 2400, nameIdx: 0, color: '#c9a227', model: { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 64, accel: 14, brake: 24, turnRate: 3.2 } },
 };
 
 export const PAINTS = [
@@ -568,7 +568,7 @@ export function paintItems(world, v) {
 
 function workshopSections(world, shop, twoWheel) {
   const v = upgradeTarget(world, shop, twoWheel);
-  const what = twoWheel ? 'fiets of brommer' : 'auto';
+  const what = twoWheel ? 'fiets of e-step' : 'auto';
   if (!v) return [{ title: 'Werkplaats', note: `Kom erop of erin aanrijden en druk R, of zet je eigen ${what} voor de deur`, items: [] }];
   const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
   const have = new Set(v.upgrades || []);
@@ -605,7 +605,7 @@ function workshopSections(world, shop, twoWheel) {
 function vehicleName(v) {
   const o = state.vehicles.find((x) => x.v === v);
   if (o) return o.spec.label;
-  return v.isScooter ? 'brommer' : v.isBike ? (v.model.fat ? 'fatbike' : 'fiets') : 'bak';
+  return v.isScooter ? 'e-step' : v.isBike ? (v.model.fat ? 'fatbike' : 'fiets') : 'bak';
 }
 
 // --- pawn shop ----------------------------------------------------------------------

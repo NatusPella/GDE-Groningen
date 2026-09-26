@@ -44,7 +44,7 @@ const MAX_TESTS = 700;
 const STEP = 6;
 const END_CLEAR = 6;
 const NO_PARK_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link']);
-const HERO_SPEC = { label: 'Fjord Escapade', kind: 'car', color: '#a11f1f', model: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 34, accel: 10, brake: 25, turnRate: 3.4 } };
+const HERO_SPEC = { label: 'Fjord Escapade', kind: 'car', color: '#a11f1f', model: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 11, brake: 25, turnRate: 3.4 } };
 
 const MEMES = {
   hero: 'Oud, rood en koppig. Net als Tammo.',
@@ -59,7 +59,7 @@ const MEMES = {
 };
 
 const SHOP_FOR_KIND = { car: 'Ome Harm Occasions', bike: 'Trap & Toeter', scooter: 'Trap & Toeter' };
-const KIND_LABEL = { car: 'Auto', bike: 'Fiets', scooter: 'Brommer', boat: 'Boot' };
+const KIND_LABEL = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot' };
 
 let lastDeliveryAt = -Infinity;
 

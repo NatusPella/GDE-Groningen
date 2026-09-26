@@ -25,9 +25,14 @@ const RIVALS = [
   { base: 'hatch', color: '#f2efe6', top: 1.12, skill: 0.93 },
 ];
 
+// The race was balanced on these tops (m/s); street cars got faster since,
+// so race cars keep their own base and the field stays as it was tuned.
+const RACE_TOP = { sport: 42, sedan: 33, hatch: 30 };
+const RACE_ACCEL = { sport: 12, sedan: 9, hatch: 8.5 };
+
 function modelFor(base, color, topScale = 1, accelScale = 1) {
   const m = MODELS.find((q) => q.name === base) || MODELS[0];
-  return { ...m, color, maxSpeed: m.maxSpeed * topScale, accel: m.accel * accelScale };
+  return { ...m, color, maxSpeed: (RACE_TOP[base] ?? m.maxSpeed) * topScale, accel: (RACE_ACCEL[base] ?? m.accel) * accelScale };
 }
 
 function inBuilding(map, x, y, pad) {
