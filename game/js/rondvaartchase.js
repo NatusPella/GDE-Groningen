@@ -8,7 +8,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { boatDryPoints, inWaterPoly, keepBoatOffShore, normalizeAngle, pointInPolygon, clamp } from './util.js';
 import { Vehicle, resolveVehicleBuildingCollision, vehicleContacts } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
-import { buildPersonMesh, seatPerson, SEATED_DROP } from './models3d_people.js';
+import { buildPersonMesh, seatPerson, seatedY } from './models3d_people.js';
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { LINE as GIDS_LINE } from './sidejob_rondvaart.js';
 import { isCinematicActive } from './cinematics.js';
@@ -306,8 +306,8 @@ function touristGroup(v) {
   const seats = [[hl * 0.35, 0.42], [hl * 0.35, -0.42], [-hl + 0.35, 0]];
   g.userData.people = seats.map(([x, z], k) => {
     const m = buildPersonMesh(TOURIST_LOOKS[k].shirt, TOURIST_LOOKS[k].skin, TOURIST_LOOKS[k]);
-    seatPerson(m, false);
-    m.position.set(x, 0.35 - SEATED_DROP, z);
+    seatPerson(m, false, { recline: 0.08, footX: 0.44, footY: -0.28, arms: 'lap' });
+    m.position.set(x, seatedY(m, 0.39), z);
     m.rotation.y = k === 2 ? 0 : (z > 0 ? -0.25 : 0.25);
     g.add(m);
     return m;

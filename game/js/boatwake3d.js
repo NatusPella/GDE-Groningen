@@ -82,33 +82,71 @@ function buildTrailMesh() {
   return mesh;
 }
 
-// Moustache of foam curling off the bow along both sides, in the boat's frame.
-function buildBowMesh(len, wid) {
-  const hl = len / 2, hw = wid / 2;
-  const pos = [], col = [], uv = [], idx = [];
-  const N = 7;
-  for (const s of [1, -1]) {
-    const base = pos.length / 3;
-    for (let k = 0; k <= N; k++) {
-      const t = k / N;
-      const x = hl * (0.98 - 0.62 * t);
-      const z = s * (0.12 + (hw - 0.02) * Math.sin(Math.min(1, t * 1.6) * Math.PI / 2) + t * 0.45);
-      const w = 0.1 + 0.3 * t;
-      const a = Math.sin(Math.PI * Math.min(1, t * 1.15)) * (1 - t * 0.5);
-      pos.push(x, 0, z - s * w * 0.3, x, 0, z + s * w);
-      col.push(1, 1, 1, a, 1, 1, 1, a);
-      uv.push(t * 1.4, 0, t * 1.4, 1);
-      if (k < N) { const q = base + k * 2; idx.push(q, q + 1, q + 2, q + 1, q + 3, q + 2); }
-    }
-  }
+// Bow wave, in the boat's frame: per stem two thin foam ribbons that start
+// at the cutwater, hug the hull while it widens and then peel off aft at a
+// shallow angle, fading out. Length, width and opacity scale with speed and
+// the foam texture scrolls aft, so a drifting boat shows nothing and a fast
+// one throws a crisp, moving wave. Twin-float pedalos get one per float.
+const BOW_N = 10;
+function bowStems(v) {
+  const hl = v.model.len / 2, hw = v.model.wid / 2;
+  if (v.model.kind === 'waterfiets') return [{ z: hw - 0.22, hw: 0.22, x: hl * 0.98 }, { z: -(hw - 0.22), hw: 0.22, x: hl * 0.98 }];
+  return [{ z: 0, hw: hw * (v.model.kind === 'rubberboot' ? 1 : 0.94), x: hl * 0.99 }];
+}
+
+function buildBowMesh(v) {
+  const stems = bowStems(v);
+  const ribbons = stems.length * 2;
+  const verts = ribbons * (BOW_N + 1) * 2;
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(verts * 3), 3).setUsage(THREE.DynamicDrawUsage));
+  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(verts * 4), 4).setUsage(THREE.DynamicDrawUsage));
+  g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(verts * 2), 2).setUsage(THREE.DynamicDrawUsage));
+  const idx = [];
+  for (let r = 0; r < ribbons; r++) {
+    const base = r * (BOW_N + 1) * 2;
+    for (let k = 0; k < BOW_N; k++) { const q = base + k * 2; idx.push(q, q + 1, q + 2, q + 1, q + 3, q + 2); }
+  }
   g.setIndex(idx);
   const mesh = new THREE.Mesh(g, foamMaterial());
   mesh.renderOrder = 3;
+  mesh.frustumCulled = false;
+  mesh.userData.stems = stems;
   return mesh;
+}
+
+function updateBow(mesh, v, time, light, spd) {
+  const stems = mesh.userData.stems;
+  const hl = v.model.len / 2;
+  const k = Math.min(1, spd / Math.max(2, v.model.maxSpeed || 5));
+  const reach = hl * (0.7 + 0.9 * k) + spd * 0.35;
+  const g = mesh.geometry;
+  const P = g.attributes.position.array, C = g.attributes.color.array, U = g.attributes.uv.array;
+  const flow = time * (0.6 + spd * 0.35);
+  let vi = 0;
+  for (const st of stems) {
+    for (const side of [1, -1]) {
+      for (let i = 0; i <= BOW_N; i++) {
+        const t = i / BOW_N;
+        const s = t * reach;
+        const hug = st.hw * Math.pow(Math.min(1, s / (hl * 0.55)), 0.6);
+        const peel = Math.max(0, s - hl * 0.35) * (0.22 + 0.2 * k);
+        const inner = hug + peel + 0.02;
+        const w = (0.05 + 0.3 * t) * (0.5 + 0.7 * k);
+        const x = st.x - s;
+        const a = Math.min(1, t * 7) * Math.pow(1 - t, 1.4) * (0.35 + 0.65 * k);
+        P[vi * 3] = x; P[vi * 3 + 1] = 0; P[vi * 3 + 2] = st.z + side * (inner - w * 0.25);
+        P[vi * 3 + 3] = x; P[vi * 3 + 4] = 0; P[vi * 3 + 5] = st.z + side * (inner + w);
+        for (const o of [0, 4]) { C[vi * 4 + o] = light; C[vi * 4 + o + 1] = light; C[vi * 4 + o + 2] = light * 1.02; C[vi * 4 + o + 3] = a; }
+        const u = s / 1.3 + flow + (side > 0 ? 0 : 0.37);
+        U[vi * 2] = u; U[vi * 2 + 1] = 0.08; U[vi * 2 + 2] = u; U[vi * 2 + 3] = 0.92;
+        vi += 2;
+      }
+    }
+  }
+  g.attributes.position.needsUpdate = true;
+  g.attributes.color.needsUpdate = true;
+  g.attributes.uv.needsUpdate = true;
 }
 
 // Free water beside (x, y) along (nx, ny), in whole metres up to MAX_SPREAD.
@@ -123,8 +161,18 @@ const wakes = new Map();
 
 function wakeFor(scene, v) {
   let w = wakes.get(v.id);
+  if (w && (w.kind !== v.model.kind || w.len !== v.model.len)) {
+    // a rental swaps the model after spawning
+    scene.remove(w.bow);
+    w.bow.geometry.dispose();
+    w.bow.material.dispose();
+    w.bow = buildBowMesh(v);
+    w.kind = v.model.kind;
+    w.len = v.model.len;
+    scene.add(w.bow);
+  }
   if (!w) {
-    w = { samples: [], dist: 0, trail: buildTrailMesh(), bow: buildBowMesh(v.model.len, v.model.wid) };
+    w = { samples: [], dist: 0, trail: buildTrailMesh(), bow: buildBowMesh(v), kind: v.model.kind, len: v.model.len };
     scene.add(w.trail);
     scene.add(w.bow);
     wakes.set(v.id, w);
@@ -183,7 +231,9 @@ function updateWake(w, v, map, time, light) {
     ? [{ x: ex, y: ey, nx: -hy, ny: hx, t: time, spd, d: w.dist + (S[0] ? Math.hypot(ex - S[0].x, ey - S[0].y) : 0), limL: S[0] ? S[0].limL : 4, limR: S[0] ? S[0].limR : 4 }, ...S]
     : S;
   const count = Math.min(pts.length, MAX_SAMPLES + 1);
-  const strength = (s) => Math.min(1, s / 3.5);
+  // paddle and pedal craft leave a faint wake and no propeller churn
+  const soft = v.model.kind === 'kano' || v.model.kind === 'kajak' || v.model.kind === 'waterfiets';
+  const strength = (s) => Math.min(1, s / 3.5) * (soft ? 0.45 : 1);
   for (const side of [1, -1]) {
     writeRibbon(w, side > 0 ? 0 : 1, count, (i) => {
       const p = pts[i];
@@ -205,7 +255,7 @@ function updateWake(w, v, map, time, light) {
     const half = hw * 0.6 + age * (0.35 + p.spd * 0.05);
     const fade = Math.pow(Math.max(0, 1 - age / churnLife), 1.3);
     const lim = Math.min(p.limL, p.limR) + 0.5;
-    return [p.x, p.y, p.nx, p.ny, -Math.min(half, lim), Math.min(half, lim), fade * strength(p.spd) * 0.85, p.d / 2.6 + 0.5];
+    return [p.x, p.y, p.nx, p.ny, -Math.min(half, lim), Math.min(half, lim), fade * strength(p.spd) * (soft ? 0.3 : 0.85), p.d / 2.6 + 0.5];
   }, light);
   const g = w.trail.geometry;
   g.attributes.position.needsUpdate = true;
@@ -213,15 +263,13 @@ function updateWake(w, v, map, time, light) {
   g.attributes.uv.needsUpdate = true;
   w.trail.visible = S.length > 0;
 
-  const bowOn = spd > 0.8 && v.speed > 0;
+  const bowOn = spd > 0.6 && v.speed > 0;
   w.bow.visible = bowOn;
   if (bowOn) {
-    const k = Math.min(1, (spd - 0.8) / 5);
-    w.bow.position.set(v.x, WATER_Y + LIFT + 0.02, v.y);
+    const seed = (v.id || 0) * 1.7;
+    w.bow.position.set(v.x, WATER_Y + LIFT + 0.015 + Math.sin(time * 1.6 + seed) * 0.03, v.y);
     w.bow.rotation.y = -v.angle;
-    w.bow.scale.set(1, 1, 0.7 + 0.6 * k);
-    w.bow.material.opacity = 0.35 + 0.55 * k;
-    w.bow.material.color.setScalar(light);
+    updateBow(w.bow, v, time, light, spd);
   }
 }
 

@@ -7,6 +7,7 @@ import { countryWeight } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { resolveRailings } from './bridgerails.js';
 import { resolveElevWalls } from './elevation.js';
+import { pushOutOfWaterObstacles } from './waterindex.js';
 
 // A way that enters a footprint and leaves it again within this length is a
 // building passage (OSM tunnel=building_passage, arcades, poortjes); longer
@@ -231,6 +232,9 @@ export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z 
   }
   [x, y] = resolveWalkerProps(x, y, radius, vx, vy, opts);
   [x, y] = resolveRailings(x, y, radius, map);
+  // moored houseboats along the quays are solid too
+  const hb = pushOutOfWaterObstacles(map, x, y, radius);
+  if (hb) [x, y] = hb;
   return resolveBuildingCollisions(x, y, radius, map);
 }
 

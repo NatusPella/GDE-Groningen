@@ -8,6 +8,7 @@ import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
 import { countrySurface } from './countryfield.js';
 import { manageParkedCars, tickParkedCars } from './parkedcars.js';
+import { pickBoatModel } from './boattypes.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const MODELS = [
@@ -75,10 +76,7 @@ export function makeTwoWheeler(kind, x, y, angle, tint = null, rng = Math.random
 
 // Boats free-roam water polygons rather than following the road graph - slow
 // accel/brake since they're on water, see updateBoatAI/spawnBoatOnWater.
-const BOAT_MODELS = [
-  { name: 'boat', len: 4, wid: 1.6, maxSpeed: 4.5, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#e8e6e0', cabin: '#2f3a44' },
-  { name: 'boat', len: 4.2, wid: 1.7, maxSpeed: 4.3, accel: 1.5, brake: 2.0, turnRate: 1.2, color: '#c7c9cc', cabin: '#1c1c1c' },
-];
+// Ambient boat mix and hull kinds live in boattypes.js.
 
 // Politie-livery variant for spawnPoliceBoatOnWater - same white-hull family
 // as the regular fleet, dark-navy cabin matching the rest of the police
@@ -502,6 +500,37 @@ export function attachToNearestRoad(v, map) {
   return true;
 }
 
+// A fresh spawn must not pop into view: never on the stretch just ahead of
+// the player's vehicle, and not inside the camera frustum (world.pedView,
+// filled by scene3d) with a clear line of sight - behind a building or deep
+// in the fog is fine.
+function spawnWouldPop(world, v) {
+  const p = world.player;
+  const dx = v.x - p.x, dy = v.y - p.y;
+  const pv = p.inVehicle;
+  if (pv) {
+    const ca = Math.cos(pv.angle), sa = Math.sin(pv.angle);
+    const fwd = dx * ca + dy * sa, lat = Math.abs(dy * ca - dx * sa);
+    if (fwd > -5 && fwd < 70 + Math.abs(pv.speed) * 8 && lat < 14 + fwd * 0.3) return true;
+  }
+  const view = world.pedView;
+  if (!view || world.time < (world.pedFreeSpawnUntil || 0) || !view.inView(v.x, v.y)) return false;
+  return lineOfSight(world.map, view.camX, view.camY, v.x, v.y);
+}
+
+function lineOfSight(map, ax, ay, bx, by) {
+  const d = Math.hypot(bx - ax, by - ay);
+  const n = Math.min(40, Math.floor((d - 3) / 4));
+  for (let k = 1; k <= n; k++) {
+    const t = (k * 4) / d, x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+    for (const b of map.buildingsNear(x, y, 0.5)) {
+      const [minx, miny, maxx, maxy] = b.bounds;
+      if (x > minx && x < maxx && y > miny && y < maxy && pointInPolygon(x, y, b.pts)) return false;
+    }
+  }
+  return true;
+}
+
 function spawnSpotFree(vehicles, v, clearance = 9) {
   for (const o of vehicles) {
     if (Math.hypot(o.x - v.x, o.y - v.y) < clearance + o.halfLen) return false;
@@ -567,7 +596,7 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -594,7 +623,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -620,7 +649,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -645,7 +674,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -659,7 +688,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
 // near [x, y] with min/max distance, budget (ms of channel scanning this
 // frame; the default finishes the scan). Returns null when no spot fits yet.
 export function spawnBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
-  const model = opts.model || BOAT_MODELS[Math.floor(rng() * BOAT_MODELS.length)];
+  const model = opts.model || pickBoatModel(rng);
   const ch = waterChannelPoints(map, waterPoly, opts.budget ?? Infinity);
   let pts = ch.pts;
   if (opts.near) {
@@ -715,7 +744,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   while (count < target && candidates.length && guard++ < target * 6) {
     const poly = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3 });
-    if (!v || !spawnSpotFree(vehicles, v)) continue;
+    if (!v || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }

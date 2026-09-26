@@ -1,5 +1,5 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp, keepBoatOffShore } from './util.js';
-import { waterClearance } from './waterindex.js';
+import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
@@ -257,7 +257,7 @@ export class Player {
       this.vz -= GRAVITY * dt;
       this.z += this.vz * dt;
       const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
-      if (inWaterPoly(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
+      if (inWaterPoly(map, nx, ny) && !insideWaterObstacle(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
       if (this.z <= WATER_Y) {
         world.particles.push({ kind: 'splash', x: this.x, y: this.y, until: world.time + SPLASH_LIFE });
         const keepZ = this.z;
@@ -334,6 +334,8 @@ export class Player {
   resolveSwimContacts(world) {
     const { map } = world;
     let [x, y] = resolveWalkerProps(this.x, this.y, this.radius, 0, 0, SWIM_OPTS);
+    const hb = pushOutOfWaterObstacles(map, x, y, this.radius);
+    if (hb) [x, y] = hb;
     for (const v of world.vehicles) {
       if (!v.isBoat || v.sinking || Math.abs(v.x - x) > v.halfLen + 1 || Math.abs(v.y - y) > v.halfLen + 1) continue;
       const push = pushCircleOutOfVehicle(x, y, this.radius, v);
