@@ -337,6 +337,8 @@ function syncPub(world) {
   pub.bumps = rv ? rv.bumps : null;
   pub.progressText = rv ? boatProgressText(rv) : null;
   pub.raceHud = (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' ? raceHud(st, pub) : null;
+  // the car races (KEI-week and the ringweg) get the race loop; not the kroegentocht on foot
+  pub.raceMusic = def.type === 'checkpoint' && !def.onFoot && st.phase === 'active';
   pub.remainingWaypoints =
     (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' && !board
       ? upcomingWaypoints(def, st.wpIndex).map((wp) => ({ x: wp.x, y: wp.y }))

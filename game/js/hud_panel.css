@@ -399,6 +399,14 @@ body:has(#cine[data-tint="bust"]) #game3d { filter: grayscale(1) brightness(0.85
 }
 #cine.has-big .cine-big { opacity: 1; transform: translateY(-50%) scale(1); }
 #cine[data-tint="death"] .cine-big { color: #d93f3f; }
+/* the DOOD / OPGEPAKT moment: GTA-style title on a dark band, a beat late */
+#cine[data-tint="death"] .cine-big, #cine[data-tint="bust"] .cine-big {
+  padding: 2.2vh 0 1.4vh;
+  line-height: 1;
+  background: linear-gradient(90deg, rgba(12, 20, 14, 0) 0%, rgba(12, 20, 14, 0.72) 25%, rgba(12, 20, 14, 0.78) 50%, rgba(12, 20, 14, 0.72) 75%, rgba(12, 20, 14, 0) 100%);
+  transition: opacity 0.5s 0.55s, transform 2.4s cubic-bezier(0.1, 0.6, 0.2, 1) 0.55s;
+}
+#cine[data-tint="bust"] .cine-big { color: #f0ede4; }
 #cine .cine-sub {
   position: absolute;
   left: 50%;
@@ -430,6 +438,12 @@ body:has(#cine[data-tint="bust"]) #game3d { filter: grayscale(1) brightness(0.85
   color: rgba(240, 237, 228, 0.75);
 }
 #cine.show-skip.active .cine-skip { opacity: 1; }
+#cine .cine-skip { gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px; }
+#cine .cine-skip .hud-key { margin-right: 0; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; }
+#cine .cine-skip-ring { width: 20px; height: 20px; transform: rotate(-90deg); }
+#cine .cine-skip-ring circle { fill: none; stroke: rgba(240, 237, 228, 0.25); stroke-width: 3; }
+#cine .cine-skip-ring .fill { stroke: var(--gron-green-light, #3fc97a); stroke-linecap: round; stroke-dasharray: 62.8; stroke-dashoffset: calc(62.8 * (1 - var(--hold, 0))); }
+#cine .cine-skip.holding { color: #f0ede4; }
 #cine .cine-chip {
   position: absolute;
   left: 50%;
