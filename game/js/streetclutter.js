@@ -16,10 +16,10 @@ const ATLAS_W = 1024, ATLAS_H = 512;
 
 export const CLUTTER_PROPS = {
   scooter: { r: 0.3, half: 0.5, h: 1.15, mass: 95, material: 'metal', breakSpeed: 1.5, breakCost: 0.4 },
-  kliko: { r: 0.36, h: 1.1, mass: 15, material: 'plastic', breakSpeed: 0.3, breakCost: 0.1, burst: 'litter' },
-  container: { r: 0.38, h: 1.3, mass: 500, material: 'metal', breakSpeed: 99, breakCost: 0 },
+  kliko: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0.1, burst: 'litter' },
+  container: { r: 0.38, h: 1.3, mass: 450, material: 'metal', breakSpeed: 4, breakCost: 1.2, slide: true, burst: 'litter' },
   bollard: { r: 0.1, h: 1, mass: 45, material: 'metal', breakSpeed: 3.5, breakCost: 0.5 },
-  planter: { r: 0.42, half: 0.5, h: 0.8, mass: 900, material: 'wood', breakSpeed: 99, breakCost: 0 },
+  planter: { r: 0.42, half: 0.5, h: 0.8, mass: 700, material: 'wood', breakSpeed: 7, breakCost: 1.8, slide: true },
   zuil: { r: 0.66, h: 3.1, mass: 900, material: 'metal', breakSpeed: 99, breakCost: 0 },
   abri: { r: 0.62, half: 1.25, h: 2.5, mass: 450, material: 'metal', breakSpeed: 7, breakCost: 2, burst: 'glass' },
   elecbox: { r: 0.3, half: 0.3, h: 1.3, mass: 200, material: 'metal', breakSpeed: 6, breakCost: 1.5, burst: 'sparks' },

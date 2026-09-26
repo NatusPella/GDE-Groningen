@@ -15,7 +15,7 @@ const NAMES = {
   cashvan: [['Poen Express', 'Kluiswagen']],
   truck: [['Oldambt', 'Bakwagen'], ['Eemshaven', 'Sjouwer']],
   ambulance: [['Ambulance', 'Spoedrit']],
-  scooter: [['Brommer', 'Zoemzoem'], ['Snorscooter', 'Stadswesp']],
+  scooter: [['E-step', 'Zoemzoem'], ['Deelstep', 'Stadswesp']],
   boat: [['Sloep', 'Nait Soezen'], ['Sloep', 'Grachtengast']],
 };
 const BOATS = {

@@ -1,6 +1,6 @@
 import { normalizeAngle, pointInPolygon } from './util.js';
 import { requestRespawn } from './world.js';
-import { markWreckedByPlayer } from './vehicle.js';
+import { disableVehicle } from './vehicle.js';
 import { knockDown } from './ragdoll.js';
 import { bloodSpray, bleedPed } from './gore3d.js';
 import { DEAD_DURATION } from './pedestrians.js';
@@ -166,11 +166,11 @@ function hitVehicles(world, b) {
 }
 
 function wreckVehicle(world, v, byPlayer) {
-  v.health = 0;
-  v.wrecked = true;
-  v.speed = 0;
+  // already burning: every hit brings the explosion closer
+  if (v.disabled) { v.burnLeft -= 0.7; return; }
+  if (v.wrecked) return;
+  disableVehicle(v, byPlayer, world);
   if (!byPlayer) return;
-  markWreckedByPlayer(v, world);
   if (v.isPolice && !v.hijacked) {
     world.stats.kills++;
     world.stats.copKills++;

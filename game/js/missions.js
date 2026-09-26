@@ -288,7 +288,7 @@ function vehicleToBoard(world, def) {
   if (def.type !== 'deliver' && def.type !== 'boat') return null;
   const v = chain.vehicle;
   const p = world.player;
-  if (!v || v.wrecked) return null;
+  if (!v || v.wrecked || v.disabled) return null;
   if (def.type === 'deliver' ? p.inVehicle === v : p.inVehicle && p.inVehicle.isBoat) return null;
   return v;
 }
@@ -623,7 +623,7 @@ function vehicleProblem(world, def) {
   const v = chain.vehicle;
   const p = world.player;
   if (!v || !world.vehicles.includes(v)) return def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie';
-  if (v.wrecked) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Sikkom heeft al foto\'s';
+  if (v.wrecked || v.disabled) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Sikkom heeft al foto\'s';
   if (p.inVehicle === v) { chain.boarded = true; return null; }
   if (def.type === 'boat' && p.inVehicle && p.inVehicle.isBoat) return null;
   if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {
