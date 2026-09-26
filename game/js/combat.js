@@ -221,7 +221,7 @@ const PROP_SURFACE = { metal: 'metal', wood: 'wood', foliage: 'wood', plastic: '
 function propImpact(world, b, h) {
   const sp = Math.hypot(b.vx, b.vy) || 1;
   const p = h.prop;
-  const broke = shootProp(p, b.vx / sp, b.vy / sp, b.owner === 'player');
+  const broke = shootProp(p, b.vx / sp, b.vy / sp, b.owner === 'player', b.pellet ? 0.3 : 1);
   const surface = p.burst === 'glass' && broke ? 'glass' : PROP_SURFACE[p.material] || 'metal';
   gunImpactFx({ surface, x: h.x, y: h.y, z: b.z, nx: h.nx, ny: h.ny, pellet: b.pellet });
   sound(world, h.x, h.y, surface === 'glass' ? 'glass' : surface === 'metal' ? 'metal' : 'wood', b.pellet ? 0.3 : 0.6);
