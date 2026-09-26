@@ -13,6 +13,7 @@ import { lineOfSight } from './pedestrians.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary, sideJobGoal } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
+import { trainPrompt } from './traindrive.js';
 
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
@@ -274,6 +275,8 @@ function pedInReach(world, range, cone) {
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = world.player;
+  const train = trainPrompt(world);
+  if (train) return train;
   const job = sideJobPrompt(world);
   if (job) return job;
   const gar = garagePrompt(world);
@@ -476,12 +479,16 @@ function contextRows(world, primary) {
     const searching = !!(world.police && world.police.searching);
     rows.push({
       id: 'wanted', keys: [], label: 'Ontsnap aan de politie', kind: 'goal',
-      desc: searching ? 'Ze zijn je kwijt: blijf uit het zicht' : p.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
+      desc: searching ? 'Ze zijn je kwijt: blijf uit het zicht' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : p.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
     });
   }
 
   const armed = world.weapon && world.weapon !== 'fists';
-  if (p.inVehicle) {
+  if (world.trainDriving) {
+    rows.push(tut('drive', ['W', 'S'], 'Gas & remmen', 'W optrekken, S remmen en stilstaand achteruit'));
+    rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen'));
+    rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
+  } else if (p.inVehicle) {
     rows.push(tut('drive', ['WASD'], 'Gas & sturen', 'W gas, S remmen en achteruit, A/D sturen'));
     rows.push(tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
     rows.push(tut('horn', ['H'], 'Toeter', 'Aan de kant, fietsers!'));
