@@ -10,6 +10,7 @@ import { getSideJobList } from './sidejobs.js';
 import { setUserWaypoint } from './routing.js';
 import { renderGaragePanel } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
+import { isShopOpen, closeShopMenu } from './shopui.js';
 
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
@@ -168,6 +169,8 @@ export function initPauseMenu(w) {
         <button type="button" class="pm-secondary" data-action="pigeon-stop" data-pigeon hidden>Duif-modus stoppen</button>
         <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
         <button type="button" class="pm-secondary" data-action="job-stop" hidden>Bijbaantje stoppen</button>
+        <button type="button" class="pm-secondary" data-action="mission-abort" hidden>Missie afbreken</button>
+        <button type="button" class="pm-secondary" data-action="unstuck" data-both>Vastgelopen? Zet me vrij</button>
         <button type="button" class="pm-secondary" data-action="menu" data-both>Terug naar hoofdmenu</button>
         ${DESKTOP ? '<button type="button" class="pm-danger" data-action="exit" data-both>Spel afsluiten</button>' : ''}
         <div class="pm-confirm" hidden>
@@ -288,6 +291,11 @@ function runAction(a) {
     if (world.pigeonActions && world.pigeonActions.stop()) setOpen(false);
   } else if (a === 'job-stop') {
     if (world.sideJobActions && world.sideJobActions.stop()) setOpen(false);
+  } else if (a === 'mission-abort') {
+    if (world.safetyActions && world.safetyActions.abortMission()) setOpen(false);
+  } else if (a === 'unstuck') {
+    if (world.safetyActions && world.safetyActions.unstuck()) setOpen(false);
+    else status('Even wachten tot je weer op de been bent');
   } else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
@@ -447,6 +455,7 @@ function showTab(name) {
     const jobOn = !!(world && world.sideJobActions && world.sideJobActions.active());
     jobStop.hidden = !jobOn;
     if (jobOn) jobStop.textContent = `Stoppen met ${world.sideJobActions.name()}`;
+    root.querySelector('[data-action="mission-abort"]').hidden = !(world && world.safetyActions && world.safetyActions.missionActive());
     root.querySelector('.pm-confirm').hidden = true;
     root.querySelector('.pm-status').textContent = '';
     syncGamePanel();
@@ -476,6 +485,7 @@ function setOpen(value, name = 'map') {
     return;
   }
   open = value;
+  if (open && isShopOpen()) closeShopMenu();
   root.classList.toggle('visible', open);
   root.classList.toggle('prestart', !!prestart);
   if (input) input.reset();
