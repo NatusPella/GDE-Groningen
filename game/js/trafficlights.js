@@ -8,17 +8,19 @@ import { allSignals } from './junctions.js';
 // wide enough for a turn lane (voorsorteren). Then the Groningen bike phase:
 // every cyclist direction and every pedestrian crossing green at once, all
 // cars red. Each green is followed by amber and an all-red clearance.
-const MAIN_GREEN = 11;
-const CROSS_GREEN = 9;
-const LEFT_GREEN = 5;
-const SPLIT_GREEN = 7;
-const BIKE_GREEN = 7;
-const CROSSING_MAIN_GREEN = 14;
-const PED_GREEN = 6;
-const IDLE_RED = 10;
+const MAIN_GREEN = 7;
+const CROSS_GREEN = 5;
+const LEFT_GREEN = 4;
+const SPLIT_GREEN = 4.5;
+const BIKE_GREEN = 5;
+const CROSSING_MAIN_GREEN = 10;
+const PED_GREEN = 5;
+const IDLE_RED = 8;
 const AMBER = 3;
 const BIKE_AMBER = 2;
-const ALL_RED = 2;
+const ALL_RED = 1.5;
+const MAX_CYCLE = 48;
+const MIN_GREEN = 3;
 const SAME_DOT = 0.8;
 const OPPOSITE_DOT = -0.55;
 const MAX_AXES = 4;
@@ -387,6 +389,14 @@ function buildPhases(c) {
   });
   P.push({ bike: true, g: allCrossing ? PED_GREEN : BIKE_GREEN });
   if (!c.axes.length) P.push({ idle: true, g: IDLE_RED });
+  const fixed = P.reduce((s, p) => s + (p.idle ? 0 : (p.bike ? BIKE_AMBER : AMBER) + ALL_RED), 0);
+  const carGreen = P.reduce((s, p) => s + (p.bike || p.idle ? 0 : p.g), 0);
+  const bikeGreen = P.reduce((s, p) => s + (p.bike || p.idle ? p.g : 0), 0);
+  const room = MAX_CYCLE - fixed - bikeGreen;
+  if (carGreen > room) {
+    const k = room / carGreen;
+    for (const p of P) if (!p.bike && !p.idle) p.g = Math.max(MIN_GREEN, Math.round(p.g * k * 2) / 2);
+  }
   let t = 0;
   for (const p of P) {
     p.start = t;
