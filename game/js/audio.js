@@ -1978,13 +1978,13 @@ function dopplerCents(src, svx, svy) {
 function updateSiren(dt, world) {
   const chaseActive = world.wanted > 0;
   const intensity = clamp(world.wanted / 5, 0, 1);
-  const targetGain = chaseActive ? 0.18 + intensity * 0.22 : 0;
+  // ambulances on a call and a player-switched siren sound without a chase too
+  const units = world.vehicles.filter((v) => !v.wrecked && !v.sinking &&
+    (v.sirenOn || (chaseActive && v.isPolice && !v.hijacked && v.driver !== 'player')));
+  const targetGain = chaseActive ? 0.18 + intensity * 0.22 : units.length ? 0.22 : 0;
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;
 
-  const units = chaseActive
-    ? world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked && v.driver !== 'player')
-    : [];
   assignVoices(sirenVoices, nearestSorted(units, MAX_DISTANCE, SIREN_VOICES));
 
   // Stepped hi-lo alternation, not a swept wail: hold each fixed pitch for

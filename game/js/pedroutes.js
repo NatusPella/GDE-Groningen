@@ -1,6 +1,6 @@
 import { dist, isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { findWalkPath } from './routing.js';
-import { trafficSignalsNear, trafficLightPhaseFor, getTrafficLights } from './trafficlights.js';
+import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
 import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedestrians.js';
 import { findProps, isPropBroken } from './breakables.js';
 
@@ -371,7 +371,7 @@ function canCross(world, cr) {
   for (const h of trafficSignalsNear(cr.x, cr.y)) {
     if (h.bike || h.broken) continue;
     if ((h.ax - cr.x) ** 2 + (h.ay - cr.y) ** 2 > 400) continue;
-    if (trafficLightPhaseFor(h, cr.ang + Math.PI / 2) !== 'red') return false;
+    if (!pedestriansMayCross(h)) return false;
     break;
   }
   for (const v of world.vehicles) {

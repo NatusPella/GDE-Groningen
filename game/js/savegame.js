@@ -9,12 +9,19 @@ import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
-const AUTOSAVE_S = 60;
+// Autosave follows the permanent state, not the clock: a purchase, repair,
+// upgrade, finished mission, unlocked achievement or side-job payout marks
+// the game dirty (markDirty, or the state check below) and it saves once
+// things have been quiet for SAVE_DEBOUNCE seconds.
+const SAVE_DEBOUNCE = 2.5;
+const STATE_CHECK_S = 1;
 const MISSION_SAVE_DELAY = 4;
 const TOAST_S = 2.2;
 
 let world = null;
-let autoTimer = AUTOSAVE_S;
+let dirtyIn = -1;
+let checkTimer = STATE_CHECK_S;
+let lastSig = null;
 let lastMissionsDone = 0;
 let missionSaveIn = -1;
 let toastEl = null;
@@ -80,9 +87,28 @@ export function saveGame(w = world, { toast = true } = {}) {
     if (toast) w.addMessage('Opslaan mislukt', 2.5);
     return false;
   }
-  autoTimer = AUTOSAVE_S;
+  dirtyIn = -1;
+  lastSig = stateSignature(w);
   if (toast) showToast();
   return true;
+}
+
+export function markDirty() {
+  dirtyIn = SAVE_DEBOUNCE;
+}
+
+// Everything that should survive a reload, without positions and other
+// values that change all the time.
+function stateSignature(w) {
+  try {
+    const sh = getShopSave();
+    const vehicles = (sh.vehicles || []).map((o) => [o.key, o.color, o.upgrades, !!o.lost]);
+    return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
+      getMissionProgress(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(),
+      w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone]);
+  } catch (e) {
+    return lastSig;
+  }
 }
 
 // Save shortly, once no cutscene or respawn is running (after a respawn).
@@ -155,7 +181,8 @@ export function applySave(w, d) {
     w.loadedFromSave = true;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
     lastMissionsDone = w.stats.missionsDone;
-    autoTimer = AUTOSAVE_S;
+    dirtyIn = -1;
+    lastSig = null;
     return true;
   } catch (e) {
     console.error('Save laden mislukt', e);
@@ -207,9 +234,18 @@ export function updateSaveGame(dt, w) {
     else if (missionSaveIn < 0) missionSaveIn = 0.5;
   }
 
-  autoTimer -= dt;
-  if (autoTimer <= 0) {
-    if (busy) autoTimer = 3;
-    else saveGame(w);
+  checkTimer -= dt;
+  if (checkTimer <= 0) {
+    checkTimer = STATE_CHECK_S;
+    const sig = stateSignature(w);
+    if (lastSig === null) lastSig = sig;
+    else if (sig !== lastSig) { lastSig = sig; markDirty(); }
+  }
+  if (dirtyIn >= 0) {
+    dirtyIn -= dt;
+    if (dirtyIn < 0) {
+      if (busy) dirtyIn = 1;
+      else saveGame(w);
+    }
   }
 }
