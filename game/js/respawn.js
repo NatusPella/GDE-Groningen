@@ -17,8 +17,8 @@ import { saveSoon } from './savegame.js';
 // (respawnPlayer: mission/side-job fail, money, wanted) happens at the first
 // cut, or at once when the scene is skipped.
 
-const HELI = { a: 2.6, b: 3.0, c: 1.5 };
-const DRIVE = { a: 2.4, b: 2.8, c: 1.5 };
+const HELI = { a: 2.6, b: 3.2, c: 2.4 };
+const DRIVE = { a: 2.4, b: 3.0, c: 2.4 };
 const FADE = 0.4;
 const HOLD = 0.2;
 const SEARCH_R = 70;
@@ -32,6 +32,11 @@ const smooth = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
 const easeOut = (t) => 1 - (1 - clamp01(t)) ** 3;
 
 let fadeEl = null;
+
+// The dip to black between the death/busted moment and the trip (cinematics.js).
+export function respawnFade(k, ms = 0) {
+  setFade(k, ms);
+}
 
 function setFade(k, ms = 0) {
   if (!fadeEl) {
@@ -460,14 +465,23 @@ function arrival(w, plan, len) {
 
 // --- cameras ----------------------------------------------------------------------------
 
-// A calm ground-level vantage `dist` from (x, y), preferring direction `pref`.
-function vantage(w, x, y, pref, dist, h) {
+// No building between a camera at (ax, ay, az) and a target at (bx, by, bz).
+function sightClear(map, ax, ay, az, bx, by, bz) {
+  for (let i = 1; i < 10; i++) {
+    const f = i / 10;
+    if (roofAt(map, ax + (bx - ax) * f, ay + (by - ay) * f) > az + (bz - az) * f) return false;
+  }
+  return true;
+}
+
+// A calm ground-level vantage `dist` from (x, y), preferring direction `pref`,
+// with a clear line of sight to what it films.
+function vantage(w, x, y, pref, dist, h, lookZ = 1.2) {
   const map = w.map;
   for (const da of [0, 0.5, -0.5, 1.0, -1.0, 1.6, -1.6, Math.PI]) {
     const a = pref + da;
     const cx = x + Math.cos(a) * dist, cy = y + Math.sin(a) * dist;
-    const mx = (x + cx) / 2, my = (y + cy) / 2;
-    if (!roofAt(map, cx, cy) && !roofAt(map, mx, my) && !overlapsVehicle(w, cx, cy, 2.5, null)) return W(cx, h, cy);
+    if (!roofAt(map, cx, cy) && sightClear(map, cx, cy, h, x, y, lookZ) && !overlapsVehicle(w, cx, cy, 2.5, null)) return W(cx, h, cy);
   }
   const cx = x + Math.cos(pref) * dist, cy = y + Math.sin(pref) * dist;
   return W(cx, Math.max(h, roofAt(map, cx, cy) + 2), cy);
@@ -493,7 +507,7 @@ function doorCam(w, plan) {
     const cx = p.x + ux * d * along + vx * lat * far, cy = p.y + uy * d * along + vy * lat * far;
     const mx = p.x + ux * d * 0.4, my = p.y + uy * d * 0.4;
     const dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy) || 1;
-    if (!roofAt(map, cx, cy) && !roofAt(map, (cx + mx) / 2, (cy + my) / 2) && !isInWater(map, cx, cy) && !overlapsVehicle(w, cx, cy, 1.5, null)) return { x: cx, y: cy, ux: dx / dl, uy: dy / dl };
+    if (!roofAt(map, cx, cy) && sightClear(map, cx, cy, 3, p.x, p.y, 1.2) && sightClear(map, cx, cy, 3, mx, my, 1) && !isInWater(map, cx, cy) && !overlapsVehicle(w, cx, cy, 1.5, null)) return { x: cx, y: cy, ux: dx / dl, uy: dy / dl };
   }
   return null;
 }
@@ -502,8 +516,12 @@ function doorShot(w, plan, u, cam) {
   const p = plan.player, car = plan.car;
   const look = car ? W(lerp(p.x, car.x, 0.4), 1.1, lerp(p.y, car.y, 0.4)) : W(p.x, 1.2, p.y);
   if (cam) {
-    const k = smooth(u) * 1.2;
-    return { position: W(cam.x + cam.ux * k, lerp(3.2, 2.9, smooth(u)), cam.y + cam.uy * k), lookAt: look, fov: 48, cut: true };
+    const k = smooth(u);
+    const side = (0.5 - k) * 2.4; // drift across, partner and car sliding into place
+    return {
+      position: W(cam.x + cam.ux * k * 1.6 - cam.uy * side, lerp(3.4, 2.6, k), cam.y + cam.uy * k * 1.6 + cam.ux * side),
+      lookAt: look, fov: lerp(50, 44, k), cut: true,
+    };
   }
   const fx = Math.cos(p.angle), fy = Math.sin(p.angle);
   const back = lerp(8.2, 7, smooth(u)), up = lerp(4.2, 3.4, smooth(u));
@@ -559,10 +577,10 @@ function begin(w, pending, opts) {
     kicker, title, cardFor: 2.1,
     onStart() {
       w.cinematicHidePlayers = dest.mode !== 'heli';
-      setFade(0);
+      setFade(1);
     },
     shot(u, t) {
-      let fade = 0;
+      let fade = t < FADE ? 1 - t / FADE : 0;
       for (const [cut, hold] of [[T.a, HOLD], [T.a + T.b, HOLD]]) {
         const d = t < cut ? (cut - t) / FADE : Math.max(0, t - cut - hold) / FADE;
         fade = Math.max(fade, 1 - Math.min(1, d));
@@ -690,7 +708,8 @@ function heliLanding(state, dur) {
     const down = smooth((t - 1.9) / 0.9);
     const z = lerp(sz, pad.deck + 4, k) - 4 * down;
     poseHeli(state, h, lerp(sx, pad.x, k), lerp(sy, pad.y, k), z, pad.angle, 0.1 * (1 - k), pad.deck);
-    return { position: W(cam.x, cam.z, cam.y), lookAt: W(lerp(pad.x, h.x, 0.7), z + 1, lerp(pad.y, h.y, 0.7)), fov: 46, cut: true };
+    const push = smooth(t / dur) * 0.18;
+    return { position: W(lerp(cam.x, pad.x, push), cam.z - push * 4, lerp(cam.y, pad.y, push)), lookAt: W(lerp(pad.x, h.x, 0.7), z + 1, lerp(pad.y, h.y, 0.7)), fov: lerp(46, 40, smooth(t / dur)), cut: true };
   };
 }
 

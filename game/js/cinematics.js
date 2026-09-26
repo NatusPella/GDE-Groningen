@@ -3,12 +3,12 @@ import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
-import { startRespawnScene } from './respawn.js';
+import { startRespawnScene, respawnFade } from './respawn.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
 
-const SKIP_KEYS = new Set([' ', 'enter', 'e']);
+const SKIP_HOLD_S = 0.9; // hold Space this long to skip a cutscene
 const LANDMARK_RADIUS = 55;
 const CRASH_COOLDOWN_MS = 20000;
 const BANNER_TIME = 3.8;
@@ -43,6 +43,11 @@ let wijkSeen = null;
 let wijkCand = null;
 let wijkDwell = 0;
 let wijkTimer = 0;
+// hold-to-skip: when Space went down (performance.now ms), and whether the
+// press started during a cutscene - then it is swallowed until its keyup
+let skipHoldSince = null;
+let swallowSpace = false;
+let skipShown = -1;
 
 function heading(w) {
   const p = w.player;
@@ -69,7 +74,8 @@ export function initCinematics(w) {
     '<div class="cine-card"><div class="cine-kicker"></div><div class="cine-title"></div></div>' +
     '<div class="cine-big"></div>' +
     '<div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line"></span></div>' +
-    '<div class="cine-skip"><span class="hud-key">SPATIE</span>overslaan</div>' +
+    '<div class="cine-skip"><svg class="cine-skip-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
+    '<span>Houd</span><span class="hud-key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
     '<div class="cine-banner" hidden><div class="cb-band"><div class="cb-title"></div></div>' +
     '<div class="cb-reason"></div><div class="cb-reward"></div><div class="cb-stats"></div></div>' +
     '<div class="cine-chip"></div>';
@@ -87,17 +93,29 @@ export function initCinematics(w) {
     bReward: root.querySelector('.cb-reward'),
     bStats: root.querySelector('.cb-stats'),
     chip: root.querySelector('.cine-chip'),
+    skip: root.querySelector('.cine-skip'),
     lineIndex: -1,
   };
 
+  // Skipping needs Space held for SKIP_HOLD_S, never a single press. A press
+  // that starts during a cutscene never reaches gameplay (no handbrake or
+  // jump the moment the cutscene ends), not even its key repeats.
   window.addEventListener('keydown', (e) => {
-    if (!active || !active.skippable || e.repeat || !gameStarted()) return;
-    if (!SKIP_KEYS.has(e.key.toLowerCase())) return;
-    if (isPauseMenuOpen() || isMapOpen()) return;
+    if (e.key !== ' ') return;
+    if (swallowSpace) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+    // a key repeat of a press from before the cutscene (the handbrake) is no skip
+    if (e.repeat || !active || !gameStarted() || isPauseMenuOpen() || isMapOpen()) return;
     e.preventDefault();
-    e.stopPropagation();
-    if (active.t > 0.25) finish(true);
+    e.stopImmediatePropagation();
+    swallowSpace = true;
+    skipHoldSince = active.skippable ? performance.now() : null;
   }, true);
+  window.addEventListener('keyup', (e) => {
+    if (e.key !== ' ') return;
+    swallowSpace = false;
+    skipHoldSince = null;
+  }, true);
+  window.addEventListener('blur', () => { swallowSpace = false; skipHoldSince = null; });
 
   w.onRespawn.push((wd, { busted }) => {
     if (respawnFromCine) return;
@@ -193,6 +211,23 @@ function finish(skipped, replaced = false) {
   if (!active && queue.length) begin(queue.shift());
 }
 
+function updateSkipHold() {
+  let k = 0;
+  if (active && active.skippable && skipHoldSince != null) {
+    k = Math.min(1, (performance.now() - skipHoldSince) / (SKIP_HOLD_S * 1000));
+    if (k >= 1 && active.t > 0.25) {
+      skipHoldSince = null;
+      finish(true);
+      k = 0;
+    }
+  } else if (!active) skipHoldSince = null;
+  const shown = Math.round(k * 100);
+  if (shown === skipShown) return;
+  skipShown = shown;
+  els.skip.style.setProperty('--hold', String(k));
+  els.skip.classList.toggle('holding', k > 0);
+}
+
 function updateSubtitles() {
   const lines = active.lines;
   if (active.cardFor != null && active.t > active.cardFor) els.root.classList.remove('has-card');
@@ -225,6 +260,7 @@ export function updateCinematics(dt, w) {
       updateSubtitles();
       if (active.t >= active.duration) finish(false);
     }
+    updateSkipHold();
     if (started) checkTriggers(dt, w);
     updateBanner(dt);
     if (chipTimer > 0 && (chipTimer -= dt) <= 0) els.chip.classList.remove('visible');
@@ -601,19 +637,27 @@ function playDeath(w, pending) {
   const p = w.player, a = heading(w);
   const px = p.x, py = p.y;
   const bx = -Math.cos(a + 0.5), by = -Math.sin(a + 0.5);
+  // GTA-style: slow motion, the colour drains, a slow rise over the spot,
+  // the title on a band, then a dip to black into the trip (respawn.js)
   const keys = [
-    { pos: W(px + bx * 4, 2.2, py + by * 4), look: W(px, 0.6, py), fov: 55 },
-    { pos: W(px + bx * 7, 7, py + by * 7), look: W(px, 0.4, py), fov: 55 },
-    { pos: W(px + bx * 10, 15, py + by * 10), look: W(px, 0.3, py), fov: 52 },
+    { pos: W(px + bx * 4, 2.2, py + by * 4), look: W(px, 0.7, py), fov: 52 },
+    { pos: W(px + bx * 6, 5, py + by * 6), look: W(px, 0.5, py), fov: 50 },
+    { pos: W(px + bx * 8, 10, py + by * 8), look: W(px, 0.3, py), fov: 48 },
   ];
+  const DUR = 3.2;
+  const shot = pathShot(clearKeys(w, keys), easeOut);
   playCinematic({
-    id: 'death', priority: 5, duration: 2.6, letterbox: true, timeScale: 0.3, skippable: true,
+    id: 'death', priority: 5, duration: DUR, letterbox: true, timeScale: 0.25, skippable: true,
     tint: opts.busted ? 'bust' : 'death', big: opts.busted ? 'OPGEPAKT' : 'DOOD',
-    shot: pathShot(clearKeys(w, keys), easeOut),
+    shot: (u, t) => {
+      if (t > DUR - 0.45) respawnFade(Math.min(1, (t - (DUR - 0.45)) / 0.4));
+      return shot(u);
+    },
     onEnd: () => {
-      if (w.pendingRespawn !== pending) return;
+      if (w.pendingRespawn !== pending) { respawnFade(0, 300); return; }
       // the trip to the hospital / police station; it respawns the player itself
       if (startRespawnScene(w, pending, opts)) return;
+      respawnFade(0, 400);
       w.pendingRespawn = null;
       respawnFromScene(w, opts);
     },
