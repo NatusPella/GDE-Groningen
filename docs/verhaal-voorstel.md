@@ -254,3 +254,15 @@ HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers 
   - een automatische doorloop per missie (`--story-test`) die elke missie start, de doelen via debug-hooks afwerkt en controleert dat de flow doorloopt tot het einde, met een rapport en screenshots per stap.
 - **TTS-dekking (0.5.0):** elke tekstwolk of ondertitel met gesproken tekst krijgt ook echt een stem. Eerst een inventarisatie van alle regels zonder audio (missies, bijbaantjes, NPC's, telefoon, winkels, companion), dan ontbrekende regels genereren en een check die meldt als er nieuwe tekst zonder stem bijkomt.
 - TTS: gebruik volop emotietags, gecombineerd met lokale tags zoals *[Groningse man die boos is]*.
+
+---
+
+## 7. Bouwstatus
+
+De verhaalstappen staan als data in `game/js/storyarc.js` (`STEPS`, `built: true` = gebouwd).
+
+**0.5.0, Kop (gebouwd):** H1 Berend (met hint naar de Fries), eierbal halen bij Frituur Vet & Lekker, **H2 Pinnen met de hele automaat** (nieuw: auto instappen, 2 sterren, gratis nieuwe kleur bij een garage, verzilveren bij Pand & Poen), pistool bij Pang & Zo (poort H3), H3 Chaos (met "JelleWâld" in de chat), vliegles: 20 poeppunten, **H4 Duif op verkenning** (nieuw: duif vanaf het Stationsplein, 3 camera's en 2 bewakers op de foto), één ronde Hap & Rap, eigen fiets bij Trap & Toeter (poort H5), H5 KEI-weekrace (met "Snits Snel" van Us Mem Snacks), zwart incognito of huurboot (poort H6), wachten bij de garage tot het donker is (poort H6), **H6 De Museumkraak** (nieuw: achteringang, stroomkast, lege vitrine, kaartje *"Tige tank! – W."*, 3 sterren ontsnappen; daarna Sikkom en Jelle's livestream, Jelle als telefooncontact), kaart *"Wordt vervolgd…"*.
+
+Afwijkingen: H2's spuitbeurt gebeurt in een Garage Knalpot/Pomp & Poets-werkplaats (daar zit Spuit & Klaar). De auto-pilot toont geen grijze missie-marker; de route en een zwevend label wijzen naar de winkel. Nieuw: komt de speler geld tekort voor een verplichte aankoop, dan schiet een personage het één keer voor.
+
+**Nog te bouwen:** Romp (treinreis, H7, Uzi, H8, eigen auto, tuning, H9, bijbaan, H10, verstopte eierbal, H11-H13) en Staart (eigen boot, H14-H18). De stappen staan al in `STEPS` met `built: false`; oude missies H7, H9, H11-H13 blijven intussen vrij speelbaar via telefoon en pauzemenu.
