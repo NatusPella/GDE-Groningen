@@ -103,7 +103,6 @@ export class Player {
       isKnockedDown(this, world);
       if (this.ragdoll) return;
     }
-    this.updateCharacterSwitch(world);
     if ((input.wasPressed('e') || input.wasPressed('f')) && !this.crack) {
       if (this.water) {
         if (this.water === 'swim' && !this.inVehicle) this.swimInteract(world);
@@ -510,37 +509,6 @@ export class Player {
     });
     this.shoveX = 0; this.shoveY = 0;
     if (world.health <= 0) requestRespawn(world);
-  }
-
-  // Tammo and Anita are always both out in the world (see companion.js) -
-  // switching just trades physical state (position/velocity/vehicle) between
-  // this Player and world.companion, it never changes which object IS "the
-  // player" elsewhere in the codebase. Blocked while driving without the
-  // companion in the very same vehicle - there's no sensible "teleport into
-  // a car you were never in" swap, only "swap seats" or "swap on foot".
-  updateCharacterSwitch(world) {
-    if (!world.input.wasPressed('c')) return;
-    const c = world.companion;
-    if (!c || c.state === 'dead' || c.ragdoll) return;
-    if (this.inVehicle && this.inVehicle !== c.inVehicle) {
-      const other = this.character === 'tammo' ? 'Anita' : 'Tammo';
-      world.addMessage(`${other} moet eerst instappen`, 2.5);
-      return;
-    }
-    [this.x, c.x] = [c.x, this.x];
-    [this.y, c.y] = [c.y, this.y];
-    [this.angle, c.angle] = [c.angle, this.angle];
-    [this.vx, c.vx] = [c.vx, this.vx];
-    [this.vy, c.vy] = [c.vy, this.vy];
-    [this.inVehicle, c.inVehicle] = [c.inVehicle, this.inVehicle];
-    [this.character, c.character] = [c.character, this.character];
-    for (const k of ['water', 'swimming', 'z', 'vz', 'swimTilt', 'climb']) [this[k], c[k]] = [c[k] ?? null, this[k]];
-    this.swimming = !!this.water; this.z = this.z || 0; this.vz = this.vz || 0; this.swimTilt = this.swimTilt || 0;
-    if (this.water === 'swim') this.climbScanAt = 0;
-    this.canClimbOut = false;
-    if (this.inVehicle) this.inVehicle.driver = 'player';
-    if (c.inVehicle) c.inVehicle.passenger = 'companion';
-    world.addMessage(this.character === 'tammo' ? 'Je bestuurt nu Tammo' : 'Je bestuurt nu Anita');
   }
 
   // E near your companion (on foot, both out of any vehicle) is a kiss

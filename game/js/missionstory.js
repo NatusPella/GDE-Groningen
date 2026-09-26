@@ -32,10 +32,14 @@ const NPC = {
   klaas: { name: 'Kapitein Klaas', shirt: 0x1f2f4a, skin: SKIN.woodDark, variant: 'male', seed: 1659 },
   sjabbe: { name: 'Sjabbe', shirt: 0x6b5a2e, skin: SKIN.woodMid, variant: 'male', seed: 811 },
   bert: { name: 'Duivenmelker Bert', shirt: 0x56709e, skin: SKIN.woodLight, variant: 'male', seed: 2203 },
+  jelle: { name: 'Jelle Terpstra', shirt: 0x2553a6, skin: SKIN.woodLight, variant: 'male', seed: 1953 },
+  durk: { name: 'Durk', shirt: 0xc8102e, skin: SKIN.woodLight, variant: 'male', seed: 777 },
+  douwe: { name: 'Douwe', shirt: 0xc8102e, skin: SKIN.woodLight, variant: 'male', seed: 777 },
 };
 
-// N = the mission's NPC, T = Tammo, A = Anita. `ask` is the NPC line kept for
-// the short replay version.
+// N = the mission's NPC, T = Tammo, A = Anita, any other NPC key (e.g.
+// 'durk') = that character speaking off camera. `ask` is the NPC line kept
+// for the short replay version.
 const STORY = [
   {
     npc: 'berend', outroPose: 'hips', ask: 1,
@@ -116,6 +120,9 @@ const STORY = [
     outroNpc: true,
     outro: [
       ['N', 'Het decor staat! Komen jullie vanavond kijken? Het is een stuk over wind.'],
+      ['N', 'O, en vanochtend bij de groothandel: twee reuzen op één fatbike. Ze kochten al het frituurvet op. Alles.'],
+      ['A', 'Al het vet? Wie heeft er nou zoveel vet nodig?'],
+      ['N', 'Ze hadden een tankwagen. "Us Mem Vet" stond erop.'],
       ['A', 'Tammo houdt niet van theater.'],
       ['T', 'Wel als jij naast me zit.'],
       ['A', '…Zei je dat nou hardop?'],
@@ -132,6 +139,9 @@ const STORY = [
       ['T', 'Bij het Noorderplantsoen trok jij me nog net voor die bus weg.'],
       ['A', 'Anders was je nu een bushaltebordje. Gordel om.'],
       ['T', 'Ik had hem heus wel gezien. Ik liet hem gewoon voorgaan.'],
+      ['N', 'Eén ding nog: die zwarte trekker op de grid. Dat is een Fries. Hij heeft zich ingeschreven als sponsor.'],
+      ['jelle', 'Moai, Grinzers! Wat Grunn kin, kin Fryslân better. Ek hurdriden.'],
+      ['A', 'Hij rijdt in een trekker, Tammo. Als hij wint, verhuizen we.'],
     ],
     outroNpc: true,
     outro: [
@@ -140,6 +150,8 @@ const STORY = [
       ['A', 'Je pakte mijn hand.'],
       ['T', 'Voor de grip.'],
       ['A', 'Natuurlijk, Tammo. Voor de grip.'],
+      ['T', 'Hij reed in een tréker. En hij haalde me bijna in.'],
+      ['A', 'Hij haalde je in, Tammo. Twee keer. Maar jij stond op het podium.'],
     ],
     fail: [['T', 'De weg is klaar. Wij nog niet.'], ['A', 'Nog een rondje. Ik let op de pionnen.']],
   },
@@ -160,6 +172,10 @@ const STORY = [
       ['T', 'Hij had een snor.'],
       ['A', 'Ik hou niet van snorren. Ik hou van petten.'],
       ['T', '…Goed om te weten. Eierbal?'],
+      ['N', 'Trouwens: die grote aan de bar zingt al een uur Friese liedjes. Die van de tweeling.'],
+      ['durk', 'Us baas… is slim. De bal… de bal leit op it skûtsje. Hik. Net fertelle, hè?'],
+      ['A', 'Het skûtsje. Tammo, de Eierbal ligt op een boot.'],
+      ['T', 'Ik vertel het niemand. Behalve jou.'],
     ],
     fail: [['A', 'Drie kroegen is ook een tocht.'], ['T', 'Een tochtje. Morgen de rest.']],
   },
@@ -181,6 +197,10 @@ const STORY = [
       ['T', 'Maar ik viel niet.'],
       ['A', 'Nooit meer zonder mij.'],
       ['T', 'Afgesproken. Voortaan vallen we samen.'],
+      ['N', 'En nog iets, nu jullie toch zo dapper zijn. In 1953 stond ik model voor die Gouden Eierbal. Die handjes eromheen: die zijn van mij.'],
+      ['N', 'Die bal is gien geld, jong. Die bal is Grunn. En Grunn geeft nooit op.'],
+      ['A', 'Dan hebben we bijna een oma verkocht.'],
+      ['T', 'Misschien moeten we hem niet verkopen. Misschien moeten we hem terugbrengen.'],
     ],
     fail: [['T', 'Au. Ik heb nu profiel op mijn rug.'], ['A', 'Kom, ik help je overeind. Weer.']],
   },
@@ -195,6 +215,7 @@ const STORY = [
       ['N', 'Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.'],
       ['N', 'Komt hij toch: Wiebe kent elke brug blind. Behalve die bij het museum. Die is nieuw, pas dertig jaar.'],
       ['T', 'Dus als het misgaat, varen we heel hard naar het museum.'],
+      ['N', 'En kijk even naar de Oosterhaven. Daar ligt sinds gisteren een Fries skûtsje. Mooi ding. Rare bemanning.'],
     ],
     outroNpc: false,
     kiss: true,
@@ -204,6 +225,7 @@ const STORY = [
       ['T', 'Maar de rest wel?'],
       ['A', 'De rest wel. Wij tweeën tegen Grunn.'],
       ['T', 'Wij tweeën tegen Grunn. En daarna een eierbal.'],
+      ['A', '…Of misschien: wij tweeën vóór Grunn.'],
     ],
     fail: [['A', 'Gids zijn is moeilijker dan het lijkt.'], ['T', 'Links water. Rechts ook. Onder ons: fietsen.']],
   },
@@ -273,6 +295,49 @@ const STORY = [
       ['A', 'Wandelaars. Met een zaklamp.'],
     ],
     fail: [['A', 'Nou zien ze ons wél.'], ['T', 'Ik zei toch: zaklamp aan.']],
+  },
+  // 11: H8 Vet gekaapt
+  {
+    npc: 'femke', outroPose: 'cheer', ask: 1,
+    intro: [
+      ['N', 'Daar rijdt hij! De tankwagen van Us Mem Vet, vol met al het frituurvet van Grunn.'],
+      ['N', 'Zonder vet bakt er straks niemand meer iets in deze stad. Geen patat, geen kroket. Niks.'],
+      ['T', 'Geen eierbal?'],
+      ['N', 'Geen eierbal.'],
+      ['T', 'Dit is persoonlijk.'],
+      ['A', 'Banden stuk, tankwagen pakken, naar de Oosterpoort. Daar staat de feesttent met de frituurpannen.'],
+      ['T', 'En als hij over de Krolbrug wil?'],
+      ['A', 'Dan staat die in storing. Dat is het enige waar je in deze stad op kunt rekenen.'],
+    ],
+    outroNpc: true,
+    outro: [
+      ['N', 'Het vet is terug! De frituurpannen gaan weer aan. Ik ruik het al.'],
+      ['A', 'Een tankwagen vol frituurvet. Wat wil die man met al dat vet?'],
+      ['T', 'Frituren, schat. Hij is Fries. Hij frituurt.'],
+      ['A', 'Hij wil niet frituren. Hij wil dat wíj niet frituren.'],
+    ],
+    fail: [['T', 'Weg is het vet.'], ['A', 'Dan gaan we het halen. Nog een keer.']],
+  },
+  // 12: H10 Vlag van d'Olle Grieze
+  {
+    npc: 'bert', outroPose: 'cheer', ask: 1,
+    intro: [
+      ['N', 'Hebben jullie hem gezien? Een Friese vlag van dertig meter. Aan onze toren!'],
+      ['N', 'Die Fries noemde d\'Olle Grieze "in aardich tuorke". Een áárdig torentje!'],
+      ['N', 'Vijf touwen houden hem vast. Een duif met een scherpe snavel pikt ze zo los.'],
+      ['T', 'Ik heb een heel scherpe snavel. Als duif.'],
+      ['A', 'Pas op voor de meeuwen. Jelle heeft ze meegenomen uit Harlingen.'],
+      ['N', 'Fryske meeuwen. Groot, brutaal, en ze verstaan geen Gronings.'],
+    ],
+    outroNpc: true,
+    outro: [
+      ['N', 'Hij ligt op de keien! Heel Grunn staat te klappen.'],
+      ['A', 'Heel Grunn stond te klappen voor een duif.'],
+      ['T', 'Niet voor een duif. Voor mij, als duif.'],
+      ['A', 'Ik klapte ook. Een beetje.'],
+      ['N', 'Kon minder, jong.'],
+    ],
+    fail: [['T', 'Die meeuwen waren groter dan ik.'], ['A', 'Alles is groter dan jij, als duif.']],
   },
 ];
 
@@ -413,6 +478,7 @@ let run = null;
 function speakerName(key, npc) {
   if (key === 'T') return 'Tammo';
   if (key === 'A') return 'Anita';
+  if (key !== 'N' && NPC[key]) return NPC[key].name;
   return npc ? npc.name : '';
 }
 
@@ -666,4 +732,153 @@ export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   if (!r) { showBanner(banner); return false; }
   const tl = timeline(s.fail, null, 0.3);
   return play(w, 'mission-fail', r, tl, { closing: 'two', bannerAfter: banner, poses: (t, cur) => ({ A: cur && cur.who === 'A' ? 'hips' : null }) });
+}
+
+// --- Jelle's fierljep escape ------------------------------------------------------
+
+// The nearest canal crossing from (x, y): the dry bank before the water and
+// a landing spot on the far side, at most `maxSpan` metres of water.
+function waterCrossing(w, x, y, maxR = 90, maxSpan = 34) {
+  let best = null;
+  for (let k = 0; k < 24; k++) {
+    const a = (k / 24) * Math.PI * 2, dx = Math.cos(a), dy = Math.sin(a);
+    let wet = -1;
+    for (let d = 2; d <= maxR; d += 1.5) if (isInWater(w.map, x + dx * d, y + dy * d)) { wet = d; break; }
+    if (wet < 0 || (best && wet >= best.wet)) continue;
+    let dry = -1;
+    for (let d = wet + 1; d <= wet + maxSpan; d += 1) if (!isInWater(w.map, x + dx * d, y + dy * d)) { dry = d; break; }
+    if (dry < 0) continue;
+    best = { wet, dry, dx, dy };
+  }
+  if (!best) return null;
+  const { wet, dry, dx, dy } = best;
+  return { a: { x: x + dx * (wet - 1), y: y + dy * (wet - 1) }, b: { x: x + dx * (dry + 2), y: y + dy * (dry + 2) }, dx, dy };
+}
+
+// Jelle Terpstra talks, runs up and vaults over the nearest canal with his
+// polsstok (or over the street when there's no water nearby); Durk and
+// Douwe stay behind and then leg it. lines: [[who, text], ...] before the jump.
+export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, Grinzers!', kicker = '', title = '' } = {}) {
+  if (run) return false;
+  const scene = sceneMod && sceneMod.getScene();
+  if (!scene) return false;
+  let c = waterCrossing(w, at.x, at.y);
+  if (!c) {
+    const a = w.player.angle || 0, dx = Math.cos(a), dy = Math.sin(a);
+    c = { a: { x: at.x + dx * 4, y: at.y + dy * 4 }, b: { x: at.x + dx * 14, y: at.y + dy * 14 }, dx, dy };
+  }
+  const { dx, dy } = c;
+  const nx = -dy, ny = dx;
+  const span = Math.hypot(c.b.x - c.a.x, c.b.y - c.a.y);
+  const plant = { x: (c.a.x + c.b.x) / 2, y: (c.a.y + c.b.y) / 2 };
+  const ang = Math.atan2(dy, dx);
+  const group = new THREE.Group();
+  group.name = 'mission-vault';
+  scene.add(group);
+  const tammo = makeActor(TAMMO_APPEARANCE), anita = makeActor(ANITA_APPEARANCE);
+  const jelle = makeActor(NPC.jelle), durk = makeActor(NPC.durk), douwe = makeActor(NPC.douwe);
+  group.add(tammo, anita, jelle, durk, douwe);
+  const at0 = (d, side = 0) => freeSpot(w, c.a.x - dx * d + nx * side, c.a.y - dy * d + ny * side);
+  const start = at0(9);
+  const tS = at0(15, 1.2), aS = at0(15, -0.2), dS = at0(6, 3), eS = at0(6.5, 4.3);
+  standActor(tammo, tS.x, tS.y, ang - 0.2);
+  standActor(anita, aS.x, aS.y, ang + 0.2);
+  standActor(jelle, start.x, start.y, ang + Math.PI);
+  standActor(durk, dS.x, dS.y, ang + Math.PI - 0.5);
+  standActor(douwe, eS.x, eS.y, ang + Math.PI - 0.6);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 1, 6), new THREE.MeshLambertMaterial({ color: 0x8a6a3a }));
+  group.add(pole);
+
+  const tl = timeline(lines, NPC.jelle, 0.6);
+  const talkEnd = tl.total;
+  const RUN = 1.3, JUMP = 1.7, AFTER = 2.6;
+  const jumpAt = talkEnd + RUN, landAt = jumpAt + JUMP, total = landAt + AFTER;
+  const apex = 3.5 + span * 0.18;
+  const allLines = [...tl.lines, { who: 'jelle', speaker: NPC.jelle.name, text: landing, at: landAt + 0.1, dur: 2.2 }];
+  const hide = w.pedestrians.filter((q) => q.state !== 'dead' && Math.hypot(q.x - c.a.x, q.y - c.a.y) < 18);
+  if (hide.length) w.pedestrians = w.pedestrians.filter((q) => !hide.includes(q));
+  w.cinematicHidePlayers = true;
+  w.cinematicHideNav = true;
+  const r = { w, group, lastT: 0 };
+  const up = new THREE.Vector3(0, 1, 0), tmp = new THREE.Vector3();
+  const setPole = (x0, y0, z0, x1, y1, z1) => {
+    tmp.set(x1 - x0, z1 - z0, y1 - y0);
+    const len = tmp.length() || 1;
+    pole.scale.set(1, len, 1);
+    pole.position.set((x0 + x1) / 2, (z0 + z1) / 2, (y0 + y1) / 2);
+    pole.quaternion.setFromUnitVectors(up, tmp.normalize());
+  };
+  const cleanup = () => {
+    group.removeFromParent();
+    for (const m of [tammo, anita, jelle, durk, douwe]) disposeActor(m);
+    pole.geometry.dispose();
+    pole.material.dispose();
+    w.cinematicHidePlayers = false;
+    w.cinematicHideNav = false;
+    if (hide.length) w.pedestrians.push(...hide);
+    if (run === r) run = null;
+  };
+  run = r;
+  const ok = playCinematic({
+    id: 'mission-vault', priority: 3, duration: total, pause: true, letterbox: true, skippable: true, hideHud: true,
+    kicker, title, cardFor: kicker ? 2.4 : 0,
+    lines: allLines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur })),
+    shot: (u, t) => {
+      const dt = Math.max(0, Math.min(0.1, t - r.lastT));
+      r.lastT = t;
+      const cur = allLines.find((l) => t >= l.at && t < l.at + l.dur);
+      const talking = (key) => !!cur && cur.who === key;
+      const fled = t > landAt + 0.6;
+      for (const [m, key] of [[tammo, 'T'], [anita, 'A'], [durk, 'durk'], [douwe, 'douwe']]) {
+        resetLimbs(m.userData);
+        animatePersonWalk(m, fled && (key === 'durk' || key === 'douwe') ? 3 : 0, dt);
+        applyPose(m, t > landAt && (key === 'T' || key === 'A') ? 'hips' : null, t, talking(key));
+      }
+      if (fled) {
+        const k = (t - landAt - 0.6) * 3;
+        standActor(durk, dS.x - dx * k + nx * k * 0.3, dS.y - dy * k + ny * k * 0.3, ang + Math.PI + 0.3);
+        standActor(douwe, eS.x - dx * k + nx * k * 0.3, eS.y - dy * k + ny * k * 0.3, ang + Math.PI + 0.3);
+      }
+      resetLimbs(jelle.userData);
+      if (t < talkEnd) {
+        animatePersonWalk(jelle, 0, dt);
+        applyPose(jelle, talking('jelle') && Math.sin(t) > 0.3 ? 'point' : null, t, talking('jelle'));
+        setPole(start.x + nx * 0.3 - dx * 1.5, start.y + ny * 0.3 - dy * 1.5, 0.2, start.x + nx * 0.3 + dx * 2, start.y + ny * 0.3 + dy * 2, 3.8);
+      } else if (t < jumpAt) {
+        const k = smooth((t - talkEnd) / RUN);
+        const x = lerp(start.x, c.a.x, k), y = lerp(start.y, c.a.y, k);
+        standActor(jelle, x, y, ang);
+        animatePersonWalk(jelle, 6, dt);
+        setPole(x + dx * 5, y + dy * 5, 0.9, x - dx * 1.5, y - dy * 1.5, 1.6);
+      } else if (t < landAt) {
+        const k = (t - jumpAt) / JUMP;
+        const x = lerp(c.a.x, c.b.x, k), y = lerp(c.a.y, c.b.y, k);
+        const z = 4 * apex * k * (1 - k);
+        standActor(jelle, x, y, ang, z);
+        applyPose(jelle, 'cheer', t, false);
+        setPole(plant.x, plant.y, -0.8, x, y, z + 1.9);
+      } else {
+        const k = Math.min(1, (t - landAt) / AFTER);
+        const x = c.b.x + dx * k * 5, y = c.b.y + dy * k * 5;
+        standActor(jelle, x, y, k < 0.35 ? ang + Math.PI : ang);
+        animatePersonWalk(jelle, k < 0.35 ? 0 : 3, dt);
+        applyPose(jelle, k < 0.35 ? 'cheer' : null, t, talking('jelle'));
+        pole.visible = k < 0.35;
+        setPole(plant.x, plant.y, -0.8, plant.x - dx * 0.5, plant.y - dy * 0.5, 5);
+      }
+      // cameras: past the duo at Jelle while he talks, then side-on for the jump
+      if (t < talkEnd) {
+        const mid = { x: (tS.x + start.x) / 2, y: (tS.y + start.y) / 2 };
+        return pose(camClear(w, P(mid.x + nx * 6.5 - dx * 1.5, mid.y + ny * 6.5 - dy * 1.5, 2.6)), P(start.x, start.y, 1.5), 44);
+      }
+      const side = 13 + span * 0.55;
+      const k = smooth(Math.min(1, (t - talkEnd) / (RUN + JUMP)));
+      const fx = lerp(c.a.x, c.b.x, k * 0.8), fy = lerp(c.a.y, c.b.y, k * 0.8);
+      return pose(camClear(w, P(fx + nx * side, fy + ny * side, 3.2 + apex * 0.3)), P(fx, fy, 1.5 + apex * 0.35 * Math.min(1, k * 2)), 50);
+    },
+    onStart: () => setStoryScene(true),
+    onEnd: () => { setStoryScene(false); cleanup(); },
+  });
+  if (!ok) cleanup();
+  return ok;
 }
