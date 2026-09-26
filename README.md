@@ -21,6 +21,20 @@ needed). It then picks a free port, starts the server on 127.0.0.1 and opens
 the game in the browser. Keep the window open while playing. If Windows
 SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
 
+### Hidden test switches
+
+- `?dev` (desktop `--dev`): story dev panel on F9. Chapter select (jumps to
+  any story step with the money, belongings and progress a player would have
+  there), complete objective, win/lose mission, teleport to the next
+  objective, time ×2/×4, invulnerable, money timeline. Dev runs use their own
+  `gte-dev:` storage keys and never touch the real save.
+- `?storytest` (desktop `--story-test[=<dir>]`): plays every available story
+  step through the debug hooks and checks that the flow reaches "Wordt
+  vervolgd". Storage stays in memory. The desktop run writes a screenshot per
+  step plus `report.json` to `<dir>` (default: the temp dir) and exits with
+  0 on PASS. Use a throwaway profile:
+  `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-test-story npx electron . --windowed --story-test=/tmp/st`
+
 ## Desktop builds and releases
 
 `desktop/` wraps the game in Electron: a standalone macOS app (universal,
@@ -74,7 +88,10 @@ Security or Windows SmartScreen.
 - **Life**: traffic (cars, buses, bikes, scooters, boats), pedestrians,
   seagulls/cows/sheep, weather with storms, helicopters and balloons.
 - **Gameplay**: driving and on-foot movement, combat, wanted level with
-  police cars, foot cops, boats and a helicopter, 8 missions, shops (weapons,
+  police cars, foot cops, boats and a helicopter, 11 missions in a guided
+  story ("Alles voor één eierbal": the Kop is playable, Romp and Staart
+  follow; the route always points to the next step, and after a failed
+  mission you can skip it with O or from the pause menu), shops (weapons,
   armour and food are bought, not found on the street; you start with €250),
   Sikkom news feed and phone notifications. Duif-modus as an in-game
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,

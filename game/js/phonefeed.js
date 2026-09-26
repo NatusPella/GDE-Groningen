@@ -8,6 +8,7 @@ const SLIDE_OUT_BUFFER = 0.5; // covers the 0.4s CSS transition plus margin
 
 let card = null;
 let bodyEl = null;
+let wordEl = null;
 let queueState = 'idle'; // 'idle' | 'hold' | 'out'
 let timer = 0;
 
@@ -96,6 +97,7 @@ export function initPhoneFeed(world) {
     '<div class="phonefeed-body" aria-live="polite"></div>';
   root.appendChild(card);
   bodyEl = card.querySelector('.phonefeed-body');
+  wordEl = card.querySelector('.phonefeed-wordmark');
 
   queueState = 'idle';
   timer = 0;
@@ -109,8 +111,9 @@ export function updatePhoneFeed(dt, world) {
     const next = world.phoneNotifications.shift();
     if (!next) return;
     bodyEl.textContent = next.text;
+    if (wordEl) wordEl.textContent = next.from || 'Sikkom';
     if (!world.phoneHistory) world.phoneHistory = [];
-    world.phoneHistory.unshift({ text: next.text, at: getClockText(world) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) });
+    world.phoneHistory.unshift({ text: next.from ? `${next.from}: ${next.text}` : next.text, at: getClockText(world) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) });
     if (world.phoneHistory.length > 30) world.phoneHistory.length = 30;
     card.classList.add('phonefeed-visible');
     timer = Math.max(1.5, next.duration || HOLD_DEFAULT);

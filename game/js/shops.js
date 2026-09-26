@@ -462,6 +462,7 @@ export function tryShopInteract(world) {
     world.addMessage(`${s.name} gooit de deur op slot. Eerst de politie kwijt!`, 3);
     return true;
   }
+  shopVisits[s.type] = (shopVisits[s.type] || 0) + 1;
   openShopMenu(world, shopMenu(world, s));
   return true;
 }
@@ -1112,6 +1113,65 @@ function repaint(world, v, color) {
   if (v.isHeroCar) state.heroColor = color;
   const o = state.vehicles.find((x) => x.v === v);
   if (o) o.color = color;
+}
+
+export { repaint as repaintVehicle };
+
+// --- story hooks (story.js) ------------------------------------------------------
+// How often each shop type was entered, and what the story's requirements
+// ask about: a black outfit of your own, a rented boat still afloat.
+
+const shopVisits = {};
+
+export function getShopVisits(type) {
+  return shopVisits[type] || 0;
+}
+
+export function storyShopState() {
+  return {
+    incognito: [...state.ownedOutfits].some((k) => k.endsWith(':incognito')),
+    rental: !!(state.rental && !state.rental.wrecked && !state.rental.sinking),
+  };
+}
+
+function nearestOfType(world, type) {
+  let best = null, bd = Infinity;
+  for (const s of shops) {
+    if (s.type !== type) continue;
+    const d = dist(s.x, s.y, world.player.x, world.player.y);
+    if (d < bd) { bd = d; best = s; }
+  }
+  return best;
+}
+
+// Hands out what a skipped story requirement (or the dev chapter select)
+// would otherwise have cost. Returns true when the player now has it.
+export function grantStoryItem(world, what) {
+  if (what === 'weapon') {
+    world.ammo.pistol = Math.max(world.ammo.pistol || 0, 36);
+    if (world.weapon === 'fists' || !(world.ammo[world.weapon] > 0)) world.weapon = 'pistol';
+    return true;
+  }
+  if (what === 'bike') {
+    if (state.vehicles.some((o) => o.spec.kind === 'bike')) return true;
+    const shop = nearestOfType(world, 'fietsen');
+    return !!(shop && deliver(world, 'omafiets', VEHICLE_STOCK.omafiets.color, shop));
+  }
+  if (what === 'car') {
+    if (state.vehicles.some((o) => o.spec.kind === 'car')) return true;
+    const shop = nearestOfType(world, 'auto');
+    return !!(shop && deliver(world, 'mug', VEHICLE_STOCK.mug.color, shop));
+  }
+  if (what === 'incognito') {
+    state.ownedOutfits.add('tammo:incognito');
+    state.ownedOutfits.add('anita:incognito');
+    return true;
+  }
+  if (what === 'boat') {
+    const shop = nearestOfType(world, 'boot');
+    return !!(shop && rentBoat(world, shop, RENTALS.find((r) => r.id === 'sloep')));
+  }
+  return false;
 }
 
 let upkeepTimer = 0;

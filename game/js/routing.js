@@ -306,6 +306,11 @@ function currentTarget(world) {
   const job = world.sideJob;
   if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label } : null;
   const m = world.mission;
+  if (m && m.marker && m.phase === 'active') return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
+  // the story's next step (story.js): a mission start, or the shop, spot or
+  // garage the next activity needs
+  const g = world.storyGuide;
+  if (g) return { x: g.x, y: g.y, kind: 'mission', name: g.name };
   if (m && m.marker && m.phase !== 'cooldown') return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
   return null;
 }
