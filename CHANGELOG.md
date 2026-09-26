@@ -6,6 +6,37 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-27
+
+Het verhaal gaat verder: deel 2, **de Romp**. En Grunn praat nu echt.
+
+### Nieuw
+- **De Romp**: Jelle Terpstra's plan ontvouwt zich. Kaap een tankwagen vol
+  frituurvet, race tegen Jelle in zijn zwarte trekker-limousine op de
+  ringweg, pik als duif de Friese vlag van d'Olle Grieze los, en ontdek waar
+  de Gouden Eierbal is. Tot en met de kus op de rondvaartboot. Wordt vervolgd…
+- **Tammo en Anita om de beurt**: het verhaal bepaalt wie je speelt, passend
+  bij het moment. Zelf wisselen met C kan niet meer.
+- **Een verteller** opent het verhaal, en tussendoor-activiteiten hebben nu
+  een reden in het verhaal (onderduiken met de trein, verkennen als duif…).
+- **Gesprekjes in de auto**: Tammo en Anita praten onderweg over de missies,
+  het verhaal, plekken in de stad en het weer. Meer dan 140 ingesproken
+  gesprekjes.
+- **Alles ingesproken**: elk tekstwolkje en elke ondertitel heeft nu een stem,
+  van voetgangers en klanten tot de duiven-modus.
+- **Ballonjacht**: vlieg met de gele traumaheli van het UMCG achter een
+  luchtballon aan, door ringen over de stad. Starten bij het UMCG.
+- **Trailer**: bij de eerste start (ook één keer voor wie de game al had)
+  speelt een korte trailer van Grunn. Later terug te zien als
+  **Benchmark draaien** onder Instellingen → Beeld, met je fps als uitslag.
+- **Vastgelopen? Zet me vrij** en **Missie afbreken** in het menu, zodat je
+  nooit meer vast komt te zitten.
+
+### Verbeterd
+- Cutscenes, doodgaan en opgepakt worden kunnen niet meer blijven hangen;
+  vastzittende toetsen worden losgelaten.
+- Laden zet je nooit meer in het water of midden in een oude cutscene.
+
 ## [0.5.0] - 2026-09-27
 
 Het verhaal begint: deel 1, **de Kop**.
