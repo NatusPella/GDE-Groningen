@@ -6,6 +6,27 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-27
+
+Het verhaal begint: deel 1, **de Kop**.
+
+### Nieuw
+- **Alles voor één eierbal**: Tammo en Anita willen de Gouden Eierbal uit
+  het Groninger Museum, en Anita droomt van haar eigen frietwagen, de
+  *Fjord Frituur*. Drie nieuwe missies: pinnen met de hele automaat, als
+  duif het museum verkennen, en de museumkraak. Maar de vitrine is leeg,
+  op een kaartje na: *"Tige tank! – W."* Maak kennis met de Friese
+  snackbaron **Jelle Terpstra**. Wordt vervolgd…
+- **Je hoeft nooit te zoeken wat je kunt doen**: de route wijst steeds de
+  volgende stap aan, afwisselend missies en andere dingen (een eierbal
+  halen, een wapen of fiets kopen, duif worden, wachten tot het donker is),
+  met een berichtje van Tammo of Anita. Je eigen waypoint gaat altijd voor.
+- **Geld is geen probleem**: het verhaal levert ruim genoeg op voor alles
+  wat een volgende stap vraagt, en komt je toch iets tekort, dan schiet
+  iemand het voor.
+- **Missie overslaan**: lukt een missie niet, dan kun je hem overslaan en
+  verder met het verhaal (knop na het mislukken, of in het menu bij Missies).
+
 ### Opgelost
 - **Ringweg**: geen zwart blok, zwevend hek of gaten naast de taluds meer,
   geen hokken en losse daken op de weg, pijlers naast de wegen eronder,
