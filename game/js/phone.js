@@ -7,6 +7,7 @@ import { storyFlag } from './story.js';
 import { getHeroCar, getClockText } from './hud_panel.js';
 import { getGarageList, deliverOwnedVehicle, locateOwnedVehicle, whereText } from './ownedvehicles.js';
 import { initGarageStyles } from './garageui.js';
+import { getSideJobOffers, quitSideJob } from './sidejobs.js';
 
 const RING_TIME = 0.9;
 const GARAGE_PRICE = 100;
@@ -18,6 +19,7 @@ const ICONS = {
   kaart: '<path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zm6 0v12l6 2V7z"/>',
   instellingen: '<path d="M4 6h9v2H4zm13 0h3v2h-3zM4 16h3v2H4zm7 0h9v2h-9zM13 4h4v6h-4zM7 14h4v6H7zM4 11h5v2H4zm9 0h7v2h-7zM9 9h4v6H9z"/>',
   opslaan: '<path d="M4 3h13l4 4v14H3V3h1zm2 2v5h10V5H6zm1 9v5h10v-5H7zm7-8h2v3h-2V6z"/>',
+  ubbo: '<path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zM9 6h2v4a1 1 0 0 0 2 0V6h2v4a3 3 0 0 1-6 0z"/>',
   voertuigen: '<path d="M5 11l1.6-4.3A2 2 0 0 1 8.5 5.4h7a2 2 0 0 1 1.9 1.3L19 11h1a1 1 0 0 1 1 1v5h-2v1.5a1.5 1.5 0 0 1-3 0V17H8v1.5a1.5 1.5 0 0 1-3 0V17H3v-5a1 1 0 0 1 1-1zm2.2 0h9.6l-1.1-3.2a.6.6 0 0 0-.6-.4H8.9a.6.6 0 0 0-.6.4zM6.5 12.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zm11 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/>',
 };
 const APPS = [
@@ -26,6 +28,7 @@ const APPS = [
   { id: 'sikkom', label: 'Sikkom' },
   { id: 'kaart', label: 'Kaart' },
   { id: 'voertuigen', label: 'Voertuigen' },
+  { id: 'ubbo', label: 'Ubbo' },
   { id: 'instellingen', label: 'Instellingen' },
   { id: 'opslaan', label: 'Opslaan' },
 ];
@@ -220,6 +223,7 @@ function itemCount() {
   if (st.screen === 'call') return st.call && st.call.phase === 'talk' ? st.call.actions.length : 0;
   if (st.screen === 'voertuigen') return getGarageList(world).length;
   if (st.screen === 'voertuig') return vehicleActions().length;
+  if (st.screen === 'ubbo') return ubboRows().length;
   return 0;
 }
 
@@ -314,6 +318,31 @@ function activate() {
     const a = vehicleActions()[st.sel];
     if (a) a.run();
   }
+  if (st.screen === 'ubbo') {
+    const r = ubboRows()[st.sel];
+    if (r) r.run();
+  }
+}
+
+// Ubbo: klusjes op afroep, the side jobs as a gig-economy app.
+const fmtDist = (m) => (m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`);
+
+function ubboRows() {
+  const rows = [];
+  const offers = getSideJobOffers(world);
+  const active = offers.find((o) => o.active);
+  if (active) rows.push({ quit: true, name: 'Dienst stoppen', sub: `Nu bezig: ${active.name}`, run: () => { quitSideJob(); flashAndClose('Dienst gestopt. Ubbo geeft je een sterretje minder'); } });
+  for (const o of offers) {
+    rows.push({
+      ...o, sub: `${o.blurb} · ${fmtDist(o.dist)}`,
+      run: () => {
+        if (o.active) { flashAndClose('Daar ben je al mee bezig'); return; }
+        setUserWaypoint(o.x, o.y, `Ubbo: ${o.name}`);
+        flashAndClose(o.blocked ? `Route naar ${o.name}. Let op: ${o.blocked.toLowerCase()}` : `Route naar ${o.name}: loop erheen en druk E`);
+      },
+    });
+  }
+  return rows;
 }
 
 function currentVehicle() {
@@ -394,6 +423,14 @@ function render() {
       (st.vehMsg ? `<p class="ph-veh-msg">${esc(st.vehMsg)}</p>` : '') + '</div>' +
       vehicleActions().map((a, i) => `<button type="button" class="ph-row ph-action${i === st.sel ? ' sel' : ''}" data-idx="${i}">${esc(a.label)}</button>`).join('') +
       '</div><div class="ph-foot">Afgeleverd buiten beeld, om de hoek</div>';
+  } else if (st.screen === 'ubbo') {
+    html = header('Ubbo') + '<div class="ph-foot">Klusjes op afroep. Ubbo Emmius zou trots zijn.</div>' +
+      `<div class="ph-list">${ubboRows().map((r, i) =>
+        `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}${r.quit ? ' hangup' : ''}" data-idx="${i}">` +
+        `<span class="ph-rowtext"><b>${esc(r.name)}</b><small>${esc(r.sub)}${r.level ? ` · niv. ${r.level}` : ''}</small></span>` +
+        (r.pay ? `<span class="ph-chip" data-status="${r.active ? 'actief' : r.blocked ? 'open' : 'geklaard'}">€${r.pay[0]}-${r.pay[1]}</span>` : '') +
+        '</button>').join('')}</div>` +
+      '<div class="ph-foot">Enter: route erheen · verdiensten per rit, geschat</div>';
   } else if (st.screen === 'sikkom') {
     const items = w.phoneHistory || [];
     html = header('Sikkom') + `<div class="ph-list ph-feed">${items.length ? items.map((n) =>
