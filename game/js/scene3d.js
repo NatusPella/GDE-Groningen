@@ -1285,6 +1285,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     const edge = (DRAW_DIST - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
     applyPedFade(mesh, warm ? (FADE_STEPS - 1) / FADE_STEPS : Math.min(ud.fade, edge));
     if (p.gibbed) { mesh.visible = false; continue; }
+    if (p.hideMesh) { mesh.visible = false; ud.fadeLevel = -1; continue; } // fierljep.js draws its own actor
     if (driveRagdoll(p, mesh, world, animDt)) continue;
     if (p.state === 'dead') {
       // topple backwards over ~0.3s, then lie flat until the ped is removed

@@ -40,6 +40,8 @@ import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScr
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
+import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
+import { updatePoleVaults } from './fierljep.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
@@ -168,6 +170,7 @@ async function boot() {
   initPhoneFeed(world);
   initPigeonMode(world);
   initPigeonSpots(world);
+  initHeliRun(world);
   initSideJobs(world);
   initStory(world);
   initHud(world);
@@ -235,7 +238,7 @@ async function boot() {
     probe.mark('cityprops');
     updatePigeonAfterglow(animDt);
     if (world.pigeonMode) updatePigeonCamera(dt, world);
-    else {
+    else if (!world.heliRun) {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
@@ -265,8 +268,10 @@ async function boot() {
     probe.mark('populate');
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
+    else if (world.heliRun) updateHeliRun(dt, world);
     else {
       trySideJobInteract(world);
+      tryHeliSpotInteract(world);
       tryGarageInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
@@ -290,7 +295,7 @@ async function boot() {
     }
     probe.mark('traffic');
 
-    if (!world.pigeonMode) updatePolice(dt, world);
+    if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
@@ -298,7 +303,7 @@ async function boot() {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
     probe.mark('police+collide');
-    if (!world.pigeonMode) {
+    if (!world.pigeonMode && !world.heliRun) {
       updateCombat(dt, world);
       updateBullets(dt, world);
     }
@@ -308,8 +313,10 @@ async function boot() {
     updateWildlife(dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
+    updateHeliSpot(dt);
+    updatePoleVaults(dt, world);
     probe.mark('wildlife');
-    if (!world.pigeonMode) {
+    if (!world.pigeonMode && !world.heliRun) {
       updateMissions(dt, world);
       updateSikkomFeed(dt, world);
       updatePhoneFeed(dt, world);
