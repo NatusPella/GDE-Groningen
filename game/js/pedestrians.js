@@ -8,7 +8,7 @@ import { getCombatEffect } from './combat.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
-import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, makeCompanion } from './pedroutes.js';
+import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -1163,5 +1163,6 @@ export function updatePedestrians(dt, world) {
     checkBump(ped, world);
     checkVehicleImpact(ped, world);
   }
+  separatePeds(peds, map);
   world.pedFilming = filming;
 }

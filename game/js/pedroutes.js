@@ -427,7 +427,9 @@ let grid = new Map();
 
 export function buildPedAvoidGrid(peds) {
   grid.clear();
-  for (const p of peds) {
+  for (let n = 0; n < peds.length; n++) {
+    const p = peds[n];
+    p._sepN = n;
     if (p.state === 'dead') continue;
     const k = cellKey(Math.floor(p.x / AVOID_CELL), Math.floor(p.y / AVOID_CELL));
     let a = grid.get(k);
@@ -457,6 +459,42 @@ function avoidBias(ped, ang) {
     }
   }
   return Math.max(-0.9, Math.min(0.9, bias));
+}
+
+// Walkers that still end up overlapping (waiting at a kerb, bunching on a
+// narrow footway) are nudged apart a little each frame. Pinned ones (scene
+// actors, guards, sitters) hold their spot and only push others.
+const SEP_DIST = 0.62;
+const SEP_RATE = 0.8;
+const pinned = (p) => !!(p.scene || p.state === 'guard' || (p.nav && p.nav.sit && p.nav.sit.phase === 'sit'));
+export function separatePeds(peds, map) {
+  const D2 = SEP_DIST * SEP_DIST;
+  for (let n = 0; n < peds.length; n++) {
+    const a = peds[n];
+    if (a.state === 'dead' || a.ragdoll) continue;
+    const cx = Math.floor(a.x / AVOID_CELL), cy = Math.floor(a.y / AVOID_CELL);
+    for (let ix = cx - 1; ix <= cx + 1; ix++) {
+      for (let iy = cy - 1; iy <= cy + 1; iy++) {
+        const cell = grid.get(cellKey(ix, iy));
+        if (!cell) continue;
+        for (const b of cell) {
+          if (b === a || b._sepN <= n || b.state === 'dead' || b.ragdoll) continue;
+          let dx = b.x - a.x, dy = b.y - a.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 >= D2) continue;
+          const pa = pinned(a), pb = pinned(b);
+          if (pa && pb) continue;
+          let d = Math.sqrt(d2);
+          if (d < 1e-3) { const g = n * 2.39996; dx = Math.cos(g); dy = Math.sin(g); d = 1; }
+          const push = (SEP_DIST - Math.min(d, SEP_DIST)) * SEP_RATE;
+          const ux = dx / d, uy = dy / d;
+          const ka = pa ? 0 : pb ? push : push / 2, kb = pb ? 0 : pa ? push : push / 2;
+          if (ka && walkable(map, a.x - ux * ka, a.y - uy * ka)) { a.x -= ux * ka; a.y -= uy * ka; }
+          if (kb && walkable(map, b.x + ux * kb, b.y + uy * kb)) { b.x += ux * kb; b.y += uy * kb; }
+        }
+      }
+    }
+  }
 }
 
 function turnToward(ped, target, dt) {
