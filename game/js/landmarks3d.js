@@ -774,7 +774,50 @@ function tube(a, b, r) {
 
 // --- dispatch ---------------------------------------------------------------------
 
+// EIKEA: blue box with a yellow band and big yellow letters on the long sides.
+const LETTERS = {
+  E: ['#####', '#....', '####.', '#....', '#####'],
+  I: ['###', '.#.', '.#.', '.#.', '###'],
+  K: ['#...#', '#..#.', '###..', '#..#.', '#...#'],
+  A: ['.###.', '#...#', '#####', '#...#', '#...#'],
+};
+function eikea(B, ring) {
+  const H = 14, BLUE = 0x1d4fa3, YELLOW = 0xf2c230;
+  walls(B, ring, 0, () => H, BLUE, G_PLAIN);
+  cap(B, ring, () => H, 0x6f7479, G_PLAIN);
+  const edges = edgesOf(ring, null);
+  for (const e of edges) {
+    const out = [e.nx, 0, e.ny];
+    const at = (t, y, off) => [e.a[0] + e.tx * t + e.nx * off, y, e.a[1] + e.ty * t + e.ny * off];
+    B.quadOut(at(0, H - 2.4, 0.06), at(e.len, H - 2.4, 0.06), at(e.len, H - 0.9, 0.06), at(0, H - 0.9, 0.06), out, YELLOW, G_PLAIN);
+  }
+  const long = edges.filter((e) => e.len > 40).sort((p, q) => q.len - p.len).slice(0, 2);
+  for (const e of long) {
+    const out = [e.nx, 0, e.ny];
+    const at = (t, y) => [e.a[0] + e.tx * t + e.nx * 0.1, y, e.a[1] + e.ty * t + e.ny * 0.1];
+    const word = 'EIKEA', px = 1.25, gap = 1.4;
+    const width = [...word].reduce((s, ch) => s + LETTERS[ch][0].length * px + gap, -gap);
+    // letters read left to right for someone facing the wall from outside
+    const dir = ringArea(ring) >= 0 ? -1 : 1;
+    let t = e.len / 2 - dir * width / 2;
+    for (const ch of word) {
+      const rows = LETTERS[ch];
+      rows.forEach((row, r) => {
+        [...row].forEach((c, k) => {
+          if (c !== '#') return;
+          const t0 = t + k * px * dir, y1 = H - 3.2 - r * px;
+          B.quadOut(at(t0, y1 - px), at(t0 + px * dir, y1 - px), at(t0 + px * dir, y1), at(t0, y1), out, YELLOW, G_PLAIN);
+        });
+      });
+      t += (rows[0].length * px + gap) * dir;
+    }
+    // entrance: glass doors in the middle
+    B.quadOut(at(e.len / 2 - 4, 0.02), at(e.len / 2 + 4, 0.02), at(e.len / 2 + 4, 3.2), at(e.len / 2 - 4, 3.2), out, C.glass, G_GLASS);
+  }
+}
+
 const BUILDERS = {
+  EIKEA: (B, b, ring) => eikea(B, ring),
   Martinikerk: (B, b, ring, edges) => gothicChurch(B, ring, edges, { eave: 17, maxRise: 16, pitch: 52, flecheAt: 0.6 }),
   'Der Aa-kerk': (B, b, ring, edges) => {
     if (b.type !== 'church') return false;

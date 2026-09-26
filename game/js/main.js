@@ -9,7 +9,7 @@ import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initHud, updateHud } from './hud_panel.js';
-import { initGarages, updateGarages } from './garages.js';
+import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, updateShops, tryShopInteract } from './shops.js';
 import { isShopOpen } from './shopui.js';
@@ -240,6 +240,7 @@ async function boot() {
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else {
       trySideJobInteract(world);
+      tryGarageInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
       tryStationInteract(world);

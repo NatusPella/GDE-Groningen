@@ -15,7 +15,6 @@ import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
-import { getGaragesForRender, buildGarageMesh3D } from './garages.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
@@ -138,7 +137,6 @@ let missionMarkerMesh = null;
 const splashMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
-const garageMeshes = new Map();
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
 const kissMeshes = new Map();
@@ -1185,28 +1183,6 @@ function syncPedestrianMeshes(world, player, animDt) {
   }
 }
 
-// Same as syncActors, but never disposes materials on removal - garages.js
-// deliberately shares materials/geometries at module scope across every
-// garage, so disposing one would corrupt every other one still on screen
-// (same hazard buildings/mission-dots already guard against).
-function syncSharedActors(list, cache, builder, idOf) {
-  const seen = new Set();
-  for (const item of list) {
-    const id = idOf(item);
-    seen.add(id);
-    if (!cache.has(id)) {
-      const mesh = builder(item);
-      scene.add(mesh);
-      cache.set(id, mesh);
-    }
-  }
-  for (const [id, mesh] of cache) {
-    if (seen.has(id)) continue;
-    scene.remove(mesh);
-    cache.delete(id);
-  }
-}
-
 // --- DOM billboards (speech bubbles, etc.) -------------------------------
 // The 3D view has no 2D canvas to draw HTML-quality text/bubbles onto, so
 // these are plain positioned <div>s living in the existing #hud overlay
@@ -1290,7 +1266,8 @@ export function update3D(dt, world) {
   for (const v of world.vehicles) {
     let mesh = vehicleMeshes.get(v.id);
     // a car that just died swaps to its burnt-out model (rebuilt next frame)
-    if (mesh && v.wrecked && !mesh.userData.wreckModel) {
+    if (mesh && ((v.wrecked && !mesh.userData.wreckModel) || (!v.wrecked && mesh.userData.wreckModel) || v.meshDirty)) {
+      v.meshDirty = false;
       scene.remove(mesh);
       disposeObject(mesh);
       vehicleMeshes.delete(v.id);
@@ -1478,14 +1455,7 @@ export function update3D(dt, world) {
     if (routeRibbonMesh) routeRibbonMesh.visible = false;
   }
 
-  // garages share module-scope materials in garages.js, so removal must
-  // never call material.dispose()
-  const garages = getGaragesForRender();
-  syncSharedActors(garages, garageMeshes, () => buildGarageMesh3D(), (g) => g);
-  for (const g of garages) {
-    const mesh = garageMeshes.get(g);
-    if (mesh) mesh.position.set(g.x, 0, g.y);
-  }
+  // garages stream their own workshop meshes (garages.js)
 
   // traffic lights: static positions, built once, only the lamp color changes
   syncTrafficLights3D(scene);

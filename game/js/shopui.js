@@ -1,4 +1,6 @@
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { saveGame } from './savegame.js';
+import { buildVehicleMesh } from './models3d_vehicles.js';
 import { shopIconUrl } from './shops.js';
 
 let root = null;
@@ -76,6 +78,10 @@ const SHOP_CSS = `
   #shop-menu .sm-close { background: transparent; border: 1px solid rgba(63,201,122,0.6); color: #f0ede4; border-radius: 4px; padding: 3px 12px; font: 16px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; cursor: pointer; }
   #shop-menu .sm-close:hover, #shop-menu .sm-close:focus-visible { border-color: #3fc97a; color: #3fc97a; outline: none; }
   #shop-menu .sm-empty { padding: 20px; text-align: center; font: 15px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
+  #shop-menu .sm-preview { display: none; width: 100%; height: 170px; border-bottom: 1px solid rgba(63,201,122,0.25);
+    background: radial-gradient(ellipse at 50% 70%, rgba(63,201,122,0.22) 0%, rgba(12,20,14,0) 70%); }
+  #shop-menu .sm-preview.on { display: block; }
+  @media (max-width: 520px) { #shop-menu .sm-preview { height: 120px; } }
   @media (max-width: 520px) { #shop-menu h1 { font-size: 26px; } #shop-menu .sm-tag { display: none; } #shop-menu .sm-item { grid-template-columns: 30px 1fr auto; gap: 8px; } #shop-menu .sm-foot span { display: none; } }
   @media (prefers-reduced-motion: reduce) { #shop-menu .sm-panel, #shop-menu .sm-status, #shop-menu .sm-money { animation: none !important; } }
 `;
@@ -98,12 +104,14 @@ export function initShopUi(w) {
         <div class="sm-title"><h1 id="shop-title"></h1><p class="sm-tag"></p></div>
         <div class="sm-money" aria-label="Jouw geld"></div>
       </header>
+      <canvas class="sm-preview" aria-hidden="true"></canvas>
       <div class="sm-list"></div>
       <div class="sm-status" role="status" aria-live="polite"></div>
       <footer class="sm-foot"><span><b>↑ ↓</b> kiezen · <b>Enter</b> kopen</span><button type="button" class="sm-close">Esc · Weglopen</button></footer>
     </div>`;
   document.body.appendChild(root);
   root.addEventListener('click', onClick);
+  root.addEventListener('focusin', onFocus);
   // the game's wheel handler (input.js) cancels scrolling page-wide
   root.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
   // registered before the phone/pause menu so an open shop gets keys first
@@ -133,6 +141,7 @@ export function openShopMenu(w, s) {
 export function closeShopMenu() {
   if (!open) return;
   open = false;
+  setPreview(null);
   root.classList.remove('visible');
   if (world && world.input) world.input.reset();
   if (bought && world) saveGame(world);
@@ -213,6 +222,79 @@ function activate(id) {
     m.classList.remove('pay');
     void m.offsetWidth;
     m.classList.add('pay');
+  }
+}
+
+// --- rotating 3D preview of the focused vehicle (vehicle shops) -------------------
+
+const preview = { renderer: null, scene: null, cam: null, mesh: null, key: '', raf: 0, angle: 0.6 };
+
+function onFocus(e) {
+  const btn = e.target.closest && e.target.closest('.sm-item');
+  if (!btn || !shop) return;
+  const it = currentItems().find((x) => x.id === btn.dataset.id);
+  setPreview(it && it.preview ? it.preview : null);
+}
+
+function disposeMesh(m) {
+  m.traverse((o) => {
+    if (o.geometry && !(o.geometry.userData && o.geometry.userData.shared)) o.geometry.dispose();
+    const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const mt of mats) if (!(mt.userData && mt.userData.shared)) mt.dispose();
+  });
+}
+
+function setPreview(spec) {
+  const canvas = root && root.querySelector('.sm-preview');
+  if (!canvas) return;
+  const key = spec ? JSON.stringify(spec) : '';
+  if (key === preview.key) return;
+  preview.key = key;
+  if (preview.mesh) { preview.scene.remove(preview.mesh); disposeMesh(preview.mesh); preview.mesh = null; }
+  if (!spec) {
+    canvas.classList.remove('on');
+    cancelAnimationFrame(preview.raf);
+    preview.raf = 0;
+    return;
+  }
+  canvas.classList.add('on');
+  if (!preview.renderer) {
+    try {
+      preview.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    } catch (err) {
+      canvas.classList.remove('on');
+      return;
+    }
+    preview.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    preview.scene = new THREE.Scene();
+    preview.scene.add(new THREE.HemisphereLight(0xf4f2ec, 0x2a3a2e, 1.6));
+    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+    sun.position.set(4, 6, 3);
+    preview.scene.add(sun);
+    preview.cam = new THREE.PerspectiveCamera(32, 3, 0.1, 100);
+  }
+  const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', health: 100 };
+  preview.mesh = buildVehicleMesh(fake);
+  preview.scene.add(preview.mesh);
+  const len = spec.model.len || 4;
+  const dist = Math.max(3.2, len * 1.55);
+  preview.cam.position.set(0, len * 0.42 + 0.6, dist);
+  preview.cam.lookAt(0, spec.kind === 'car' ? 0.75 : 0.6, 0);
+  if (!preview.raf) {
+    const tick = () => {
+      if (!open || !preview.mesh) { preview.raf = 0; return; }
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      if (w && h && (canvas.width !== w || canvas.height !== h)) {
+        preview.renderer.setSize(w, h, false);
+        preview.cam.aspect = w / h;
+        preview.cam.updateProjectionMatrix();
+      }
+      preview.angle += 0.012;
+      preview.mesh.rotation.y = preview.angle;
+      preview.renderer.render(preview.scene, preview.cam);
+      preview.raf = requestAnimationFrame(tick);
+    };
+    preview.raf = requestAnimationFrame(tick);
   }
 }
 

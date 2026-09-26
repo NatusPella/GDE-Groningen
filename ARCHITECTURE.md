@@ -53,7 +53,8 @@ frame then runs, in order:
 | Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water) |
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js`, `police.js` |
-| Game systems | `missions.js`, `garages.js` (Spuit & Klaar drive-ins), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
+| Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
+| Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), one `sidejob_*.js` per job |
 | UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (which categories also show on the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
 | Audio | `audio.js` (G-Music, voicelines, synthesised effects) |
@@ -106,5 +107,11 @@ don't collide, and actors are drawn at their height.
 - Landmark GLB models live in `game/models/`. `landmarkmodels.js` normalises
   each one to its real height, and it replaces the procedural building once
   loaded.
+- `game/mapextras.json` (`scripts/add_map_extras.py`) is merged by
+  `loadMap` before the `GameMap` is built: OSM busways (`road.busOnly`) and
+  bus lanes (`road.busLane = {fwd, bwd}`), footprints and heights missing
+  from the city-core cache (Grote Markt, UMCG), per-building patches (the
+  EIKEA landmark) and gas stations (`meta.fuel`). It lives outside
+  citymap.json so the big file stays untouched.
 - The follow camera orbits at `ORBIT_RADIUS` and keeps `CAM_CLEARANCE` from
   nearby buildings, which must stay larger than the 0.5 m near plane.

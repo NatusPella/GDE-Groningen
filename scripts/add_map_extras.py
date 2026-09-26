@@ -255,6 +255,34 @@ def footprints(raw):
     return out
 
 
+def keyhole(outer, inners, gap=0.3):
+    """Polygon with holes -> one simple ring: every courtyard is joined to the
+    outline through a slit `gap` metres wide (the game has no holes)."""
+    ring = [q[:] for q in outer[:-1]]
+    if area(ring) < 0:
+        ring.reverse()
+    for hole in sorted(inners, key=lambda h: -abs(area(h))):
+        h = [q[:] for q in hole[:-1]]
+        if len(h) < 3:
+            continue
+        if area(h) > 0:
+            h.reverse()
+        bi, bj, bd = 0, 0, float("inf")
+        for i, a in enumerate(ring):
+            for j, b in enumerate(h):
+                d = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+                if d < bd:
+                    bi, bj, bd = i, j, d
+        a, b = ring[bi], h[bj]
+        L = math.sqrt(bd) or 1
+        nx, ny = -(b[1] - a[1]) / L * gap / 2, (b[0] - a[0]) / L * gap / 2
+        loop = h[bj:] + h[:bj]
+        ring = ring[:bi] + [[a[0] - nx, a[1] - ny], [b[0] - nx, b[1] - ny]] + loop[1:] + \
+            [[loop[0][0] + nx, loop[0][1] + ny], [a[0] + nx, a[1] + ny]] + ring[bi + 1:]
+    ring = [[round(x, 2), round(y, 2)] for x, y in ring]
+    return ring + [ring[0]]
+
+
 def missing_buildings(existing, cands):
     grid = {}
     for b in existing:
@@ -272,7 +300,7 @@ def missing_buildings(existing, cands):
                 return True
         return False
 
-    added, patches = [], {}
+    added, patches, removed = [], {}, []
     for c in cands:
         p = c["pts"]
         # heights: every existing footprint whose centre lies in a tagged
@@ -300,20 +328,62 @@ def missing_buildings(existing, cands):
         hits = sum(1 for x, y in samples if covered(x, y))
         if hits > max(1, len(samples) * 0.1):
             continue
-        if c["inners"] and abs(area(p)) > 400:
-            continue
         if any(inside(cx, cy, a["pts"]) or any(inside(q[0], q[1], a["pts"]) for q in p[:-1]) for a in added):
             continue
-        added.append({"pts": [[round(x, 1), round(y, 1)] for x, y in p[:-1]] + [[round(p[0][0], 1), round(p[0][1], 1)]],
-                      "h": c["h"], "name": c["name"], "type": c["type"]})
-    return added, [{"at": list(k), "set": {"h": h}} for k, h in patches.items()]
+        h = c["h"]
+        big = abs(area(p))
+        if big > 20000:
+            h = min(h, 10)
+        elif big > 8000:
+            h = min(h, 12)
+        pts = keyhole(p, c["inners"]) if c["inners"] else [[round(x, 1), round(y, 1)] for x, y in p[:-1]] + [[round(p[0][0], 1), round(p[0][1], 1)]]
+        added.append({"pts": pts, "h": h, "name": c["name"], "type": c["type"]})
+        # the few cached footprints inside a big added complex go: they would
+        # stand inside its walls
+        for b in existing:
+            if b.get("landmark"):
+                continue
+            bx, by = centroid(b["pts"])
+            x0, y0, x1, y1 = b["_bb"]
+            if x1 < min(q[0] for q in p) or x0 > max(q[0] for q in p) or y1 < min(q[1] for q in p) or y0 > max(q[1] for q in p):
+                continue
+            if inside(bx, by, p) and not any(inside(bx, by, r) for r in c["inners"]):
+                removed.append([round(bx, 1), round(by, 1)])
+    out = [{"at": list(k), "set": {"h": h}} for k, h in patches.items()]
+    out += [{"at": r, "set": {"remove": True}} for r in removed]
+    return added, out
 
 
 # Named buildings that deserve more than the OSM default height, and the
 # EIKEA box (the real IKEA at the Sontweg, as a parody).
 PATCHES = [
-    {"at": [1573.0, 275.0], "set": {"name": "EIKEA", "landmark": "EIKEA", "landmarkKind": "store", "h": 7, "type": "retail"}},
+    {"at": [1573.0, 275.0], "set": {"name": "EIKEA", "landmark": "EIKEA", "landmarkKind": "store", "h": 5, "type": "retail"}},
+    {"at": [128.0, 110.0], "set": {"name": "Stadhuis", "h": 6, "type": "civic"}},
 ]
+
+GROTE_MARKT = (130.0, 80.0)
+CORE_R = 250.0
+
+
+def core_heights(existing, taken):
+    """Around the Grote Markt the cached footprints mostly carry the default
+    three levels; the real blocks there are four to five storeys."""
+    out = []
+    for b in existing:
+        if b["h"] != 3 or b.get("landmark") or b.get("name"):
+            continue
+        cx, cy = centroid(b["pts"])
+        if math.hypot(cx - GROTE_MARKT[0], cy - GROTE_MARKT[1]) > CORE_R:
+            continue
+        a = abs(area(b["pts"]))
+        if a < 250:
+            continue
+        k = (round(cx, 1), round(cy, 1))
+        if k in taken:
+            continue
+        jitter = int(abs(cx * 7.3 + cy * 3.1)) % 3
+        out.append({"at": list(k), "set": {"h": 5 if a > 900 or jitter == 0 else 4}})
+    return out
 
 
 def build_fuel(raw):
@@ -349,7 +419,9 @@ if __name__ == "__main__":
     added, height_patches = missing_buildings(citymap["buildings"], cands)
 
     fuel_pts = [f for f in build_fuel(fuel) if x0 <= f["x"] <= x1 and y0 <= f["y"] <= y1]
-    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches, "fuel": fuel_pts}
+    taken = {tuple(pch["at"]) for pch in height_patches}
+    core = core_heights(citymap["buildings"], taken)
+    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core, "fuel": fuel_pts}
     with open(OUT, "w") as f:
         json.dump(out, f, separators=(",", ":"))
     print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} fuel={len(fuel_pts)}")

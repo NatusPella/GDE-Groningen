@@ -953,6 +953,7 @@ export function buildVehicleMesh(v) {
   group.userData.builtAt = performance.now();
   meshRegistry.set(v.id, group);
   if (v.damage) restoreDamage(group, v);
+  else if (v.dentLog && v.dentLog.length && !v.wrecked) replayDents(group, v);
   return group;
 }
 
@@ -1266,7 +1267,23 @@ export function applyVehicleDamage(mesh, v, lx, lz, strength) {
   recomputeFlatNormals(g);
   storeDamage(v, g);
   syncDamageMaterials(mesh, v);
+  // compact log of the hits, so a saved (owned) vehicle comes back dented
+  if (!replaying) {
+    if (!v.dentLog) v.dentLog = [];
+    v.dentLog.push([lx, lz, strength]);
+    if (v.dentLog.length > 12) v.dentLog.shift();
+  }
   return dropped;
+}
+
+let replaying = false;
+function replayDents(mesh, v) {
+  replaying = true;
+  try {
+    for (const [lx, lz, st] of v.dentLog) applyVehicleDamage(mesh, v, lx, lz, st);
+  } finally {
+    replaying = false;
+  }
 }
 
 export function vehicleDamageParts(mesh) {

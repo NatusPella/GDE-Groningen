@@ -495,6 +495,7 @@ export function applyMapExtras(data, ex) {
     }
     if (best) Object.assign(best, p.set);
   }
+  data.buildings = data.buildings.filter((b) => !b.remove);
 
   const at = new Map();
   for (const r of data.roads) {
@@ -544,6 +545,11 @@ export function applyMapExtras(data, ex) {
     }
   }
   data.meta.fuel = ex.fuel || [];
+  const eikea = data.buildings.find((b) => b.landmark === 'EIKEA');
+  if (eikea && !(data.meta.landmarks || []).some((l) => l.name === 'EIKEA')) {
+    const n = eikea.pts.length;
+    data.meta.landmarks.push({ name: 'EIKEA', x: eikea.pts.reduce((a, q) => a + q[0], 0) / n, y: eikea.pts.reduce((a, q) => a + q[1], 0) / n, kind: 'store', buildingMatched: true });
+  }
 }
 
 export async function loadMap(url = 'map.json', onProgress = null) {
