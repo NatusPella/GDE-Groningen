@@ -344,7 +344,7 @@ function updateDamage(dt, world) {
 }
 
 function updateSpeedo(world) {
-  const v = world.player.inVehicle;
+  const v = world.player.inVehicle || world.trainCam;
   els.speedo.classList.toggle('visible', !!v);
   if (!v) return;
   els.speedoValue.textContent = String(Math.round(Math.abs(v.speed || 0) * 3.6));

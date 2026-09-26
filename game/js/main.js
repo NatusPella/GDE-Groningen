@@ -42,6 +42,7 @@ import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfter
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
+import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
@@ -273,14 +274,17 @@ async function boot() {
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else {
+      tryTrainInteract(world);
       trySideJobInteract(world);
       tryGarageInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
       tryStationInteract(world);
       tryHorecaInteract(world);
-      player.update(dt, world);
-      updateCompanion(dt, world);
+      if (!updateTrainDriving(dt, world)) {
+        player.update(dt, world);
+        updateCompanion(dt, world);
+      }
       updateEmergency(dt, world);
     }
     probe.mark('player');
