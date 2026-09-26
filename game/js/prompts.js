@@ -505,8 +505,6 @@ function contextRows(world, primary) {
       rows.push(tut('punch', ['LMB'], 'Slaan', 'Vuisten eerst, vragen later'));
     }
     rows.push(tut('crouch', ['CTRL'], 'Bukken', 'Langzaam en klein'));
-    const c = world.companion;
-    if (c && c.state !== 'dead') rows.push(tut('switch', ['C'], c.character === 'anita' ? 'Wissel naar Anita' : 'Wissel naar Tammo', 'Speel met de ander verder'));
   }
   rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming'));
   rows.push(tut('phone', ['T'], 'Telefoon', 'Missies, contacten en Sikkom'));

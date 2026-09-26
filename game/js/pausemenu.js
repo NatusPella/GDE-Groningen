@@ -30,7 +30,6 @@ const CONTROLS = [
   ['Scrollwiel', 'volgend / vorig wapen'],
   ['Muis', 'camera draaien; laag houden om omhoog te kijken'],
   ['Q / middelste muisknop', 'vasthouden: achterom kijken (in een voertuig)'],
-  ['C', 'wissel Tammo / Anita'],
   ['T', 'telefoon'],
   ['V', 'filmcamera (tijdens het rijden)'],
   ['M', 'kaart (in het menu)'],

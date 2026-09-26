@@ -4,12 +4,13 @@
 // completed the way a player would (purchases are paid), missions are
 // started at their marker and finished objective by objective. H3 goes
 // through the fail + "Sla deze missie over" path. Checks that the flow
-// reaches "Wordt vervolgd", that money never runs short, that an old save
+// reaches "Wordt vervolgd" at the end of the last open part, that money
+// never runs short (also when every mission is skipped), that an old save
 // migrates, and logs a report. `console.log('[storytest-capture] name')`
 // makes the desktop app save a screenshot per step.
 
 import { skipCinematic, isCinematicActive } from './cinematics.js';
-import { STEPS, STEP_BY_ID, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave } from './savegame.js';
 
@@ -75,6 +76,18 @@ export async function runStoryTest(world) {
     // money timeline over the whole arc, planned steps included
     const tl = computeMoneyTimeline();
     check('money timeline never below zero', tl.low >= 0, `laagste marge €${tl.low}, eind €${tl.end}`);
+    const tlSkip = computeMoneyTimeline(undefined, 0.5);
+    check('money timeline ok when every mission is skipped', tlSkip.low >= 0, `laagste marge €${tlSkip.low}`);
+    const lastPart = Object.keys(PARTS).filter((k) => PARTS[k].open).pop();
+    // every step says who plays it; its phone lines come from the other one
+    const noPlayer = STEPS.filter((q) => q.player !== 'tammo' && q.player !== 'anita').map((q) => q.id);
+    check('every step has a player', !noPlayer.length, noPlayer.join(', '));
+    const selfTalk = STEPS.filter(stepAvailable).filter((q) => {
+      const me = q.player === 'anita' ? 'A' : 'T';
+      return [q.lead, q.done, ...(q.after || []), ...(q.beat || [])].some((l) => l && l[0] === me);
+    }).map((q) => q.id);
+    check('phone lines come from the companion', !selfTalk.length, selfTalk.join(', '));
+    let swaps = 0, prevChar = null;
     const defs = getMissionDefs();
     for (const s of STEPS.filter((q) => q.kind === 'mission' && stepAvailable(q))) {
       const d = defs[missionIndexOf(s.mission)];
@@ -82,7 +95,7 @@ export async function runStoryTest(world) {
     }
 
     let n = 0;
-    for (let guard = 0; guard < 40; guard++) {
+    for (let guard = 0; guard < 90; guard++) {
       await drain(world);
       const cur = S().current();
       if (!cur) { check('current step', false, 'geen stap'); break; }
@@ -92,6 +105,13 @@ export async function runStoryTest(world) {
       report.steps.push(entry);
       const t0 = performance.now();
       if (step.cost) entry.notes.push(world.money >= step.cost ? `kan €${step.cost} betalen` : `te kort voor €${step.cost}: voorschot verwacht`);
+      if (step.player) {
+        const ok = await waitFor(() => world.player.character === step.player && (!world.companion || world.companion.character !== step.player), 10000);
+        check(`${cur.id}: plays as ${step.player}`, ok, ok ? world.player.character : JSON.stringify(S().swapInfo()));
+        if (prevChar && prevChar !== world.player.character) { swaps++; entry.notes.push(`speelt als ${world.player.character}`); }
+        prevChar = world.player.character;
+        await drain(world, 300);
+      }
       if (cur.kind === 'activity') {
         S().teleport();
         await sleep(900);
@@ -117,7 +137,7 @@ export async function runStoryTest(world) {
           S().skip();
           entry.notes.push(`mislukt en overgeslagen: +€${Math.round(world.money - m0)}`);
         } else {
-          for (let k = 0; k < 25 && isMissionActive(); k++) {
+          for (let k = 0; k < 150 && isMissionActive(); k++) {
             await drain(world, 300);
             if (!isMissionActive()) break;
             const ms = S().mission();
@@ -135,7 +155,8 @@ export async function runStoryTest(world) {
               // fly over the marked target so the photo really gets taken
               const m = world.mission.marker;
               pigeon.P.x = m.x; pigeon.P.y = m.y;
-              pigeon.P.z = Math.max(pigeon.P.z, 25);
+              pigeon.P.z = Number.isFinite(m.z) ? m.z : Math.max(pigeon.P.z, 25);
+              if ('speed' in pigeon.P) pigeon.P.speed = 0;
               await sleep(1100);
               entry.notes.push('duif boven doel');
               continue;
@@ -156,13 +177,14 @@ export async function runStoryTest(world) {
     }
 
     await sleep(600);
-    await waitFor(() => S().cardShown('kop'), 8000);
+    await waitFor(() => S().cardShown(lastPart), 8000);
     capture('99-wordt-vervolgd');
     await drain(world);
     const end = S().current();
-    check('flow reaches "Wordt vervolgd"', end && end.end === 'kop', JSON.stringify(end));
-    check('"Wordt vervolgd" card shown', S().cardShown('kop'));
+    check(`flow reaches "Wordt vervolgd" (${lastPart})`, end && end.end === lastPart, JSON.stringify(end));
+    check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
     check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
+    check('Tammo and Anita take turns', swaps >= 4, `${swaps} wissels`);
 
     // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data
     const money = world.money;
@@ -170,6 +192,7 @@ export async function runStoryTest(world) {
     await sleep(400);
     const mig = S().current();
     check('old save migrates to H2', mig && mig.id === 'H2', JSON.stringify(mig));
+    check('old save plays as the current step\'s character', await waitFor(() => world.player.character === STEP_BY_ID.get('H2').player, 5000), world.player.character);
     check('old save keeps money', world.money === 1234, `€${world.money}`);
     world.money = money;
   } catch (e) {

@@ -3,7 +3,9 @@
 // their own) on the next step, sends a short phone message about why, pays a
 // voorschot when a purchase is out of reach, offers "Sla deze missie over"
 // after a failure and shows the "Wordt vervolgd" card where the built part
-// of the story ends.
+// of the story ends. Each step says who the player controls (step.player):
+// Tammo and Anita trade places at its start, behind a short fade. After the
+// built story the last step's character stays.
 
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
 import {
@@ -17,6 +19,8 @@ import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
+import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
+import { getEierballen } from './achievementtracker.js';
 
 const LEAD_DELAY = 3;
 const GUIDE_EVERY = 2.5;
@@ -25,6 +29,7 @@ const SKIP_OFFER_S = 30;
 const SKIP_SHARE = 0.5;
 const NIGHT_GARAGE_M = 16;
 const NIGHT_HOUR = 21.4;
+const SWAP_FADE = 0.3;
 
 let world = null;
 let ready = false;
@@ -37,7 +42,7 @@ function freshState() {
 }
 
 function freshRuntime() {
-  return { cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0 };
+  return { cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, swapT: -1, lastPlayer: null };
 }
 
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
@@ -91,7 +96,9 @@ function nearest(list, from) {
   return best;
 }
 
-const jobRounds = (id) => { const j = getSideJobList().find((x) => x.id === id); return j ? j.rounds : 0; };
+const jobIds = (st) => (Array.isArray(st.goal.job) ? st.goal.job : [st.goal.job]);
+const jobRounds = (st) => getSideJobList().filter((x) => jobIds(st).includes(x.id)).reduce((n, j) => n + (j.rounds || 0), 0);
+const eggsFound = () => getEierballen().filter((e) => e.found).length;
 
 const GOALS = {
   shop: {
@@ -108,16 +115,24 @@ const GOALS = {
     place: (st) => getPigeonSpotsForRender().find((s) => s.id === st.goal.spot) || nearest(getPigeonSpotsForRender(), world.player),
   },
   sideJob: {
-    begin: (st, b) => { b.rounds = jobRounds(st.goal.job); },
-    met: (st, b) => jobRounds(st.goal.job) > (b.rounds ?? Infinity),
-    place: (st) => { const j = getSideJobList().find((x) => x.id === st.goal.job); return j ? { x: j.x, y: j.y, name: j.name } : null; },
+    begin: (st, b) => { b.rounds = jobRounds(st); },
+    met: (st, b) => jobRounds(st) > (b.rounds ?? Infinity),
+    place: (st) => { const j = nearest(getSideJobList().filter((x) => jobIds(st).includes(x.id)), world.player); return j ? { x: j.x, y: j.y, name: j.name } : null; },
   },
   night: {
     met: () => isNight(world),
     place: () => nearest(getGaragesForRender(), world.player),
   },
-  train: { met: () => false, place: () => null },
-  egg: { met: () => false, place: () => null },
+  train: {
+    begin: (st, b) => { b.trips = getTrainTripCount(); },
+    met: (st, b) => getTrainTripCount() > (b.trips ?? Infinity),
+    place: () => nearest(getStationsForRender(), world.player),
+  },
+  egg: {
+    begin: (st, b) => { b.eggs = eggsFound(); },
+    met: (st, b) => eggsFound() > (b.eggs ?? Infinity),
+    place: () => nearest(getEierballen().filter((e) => !e.found), world.player),
+  },
 };
 
 // --- flow ------------------------------------------------------------------------------
@@ -129,6 +144,8 @@ function enter(step) {
   rt.base = {};
   rt.guideT = 0;
   rt.nightWait = false;
+  // after the built story, idle missions get no automatic route (routing.js)
+  world.storyFreePlay = !!(step && step.end);
   if (!step || step.end) {
     world.storyGuide = null;
     if (step && step.end && !state.cards.has(step.end)) rt.cardPending = step.end;
@@ -160,6 +177,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   if (step.unlocks) state.flags.add(step.unlocks);
   if (!quiet && step.kind === 'activity' && step.done) phone(who(step.done[0]), step.done[1], 5);
   if (!quiet && step.after) for (const [from, text] of step.after) phone(from, text, 6);
+  if (step.beat) for (const [from, text] of step.beat) phone(who(from), text, 6);
 }
 
 function refreshGuide() {
@@ -219,15 +237,57 @@ function playEndCard(part) {
   const ok = playCinematic({
     id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: PARTS[part] ? PARTS[part].end : '', title: 'Alles voor één eierbal', cardFor: 2.4, big: 'Wordt vervolgd…',
-    lines: [
-      { speaker: 'Anita', text: 'Iemand heeft onze Eierbal gejat.', at: 2.6, dur: 1.9 },
-      { speaker: 'Tammo', text: 'Die was nog niet eens van ons.', at: 4.5, dur: 1.8 },
-    ],
+    lines: ((PARTS[part] && PARTS[part].card) || []).map(([speaker, text], k) => ({ speaker, text, at: 2.6 + k * 2, dur: 1.9 })),
   });
   if (!ok) return false;
   state.cards.add(part);
   phone('GTE VI', 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon en in het pauzemenu.', 8);
   return true;
+}
+
+// --- who plays: Tammo or Anita ----------------------------------------------------------
+
+const charName = (c) => (c === 'anita' ? 'Anita' : 'Tammo');
+
+// Tammo and Anita trade roles where they stand: the body you control becomes
+// the other one, and so does the companion (scene3d.js rebuilds the meshes).
+function swapCharacter(w, want) {
+  const p = w.player, c = w.companion;
+  if (p.character === want) return;
+  if (c && c.character === want) c.character = p.character;
+  p.character = want;
+}
+
+// The step's character, once nothing else is going on: a short fade, the
+// swap, and a line saying who takes over.
+function updateCharacter(w, dt) {
+  const step = rt.cur;
+  const want = step && !step.end ? step.player : rt.lastPlayer;
+  if (step && !step.end && step.player) rt.lastPlayer = step.player;
+  if (rt.swapT >= 0) {
+    rt.swapT -= dt;
+    if (rt.swapT < 0) {
+      if (want) swapCharacter(w, want);
+      fade(false);
+      w.addMessage(`${charName(w.player.character)} neemt het over`, 2.5);
+    }
+    return;
+  }
+  if (!want || w.player.character === want) return;
+  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
+  rt.swapT = SWAP_FADE;
+  fade(true);
+}
+
+let fadeEl = null;
+function fade(on) {
+  if (!fadeEl) {
+    fadeEl = document.createElement('div');
+    fadeEl.id = 'story-swap-fade';
+    fadeEl.style.cssText = `position:fixed;inset:0;z-index:13;background:#0c140e;opacity:0;pointer-events:none;transition:opacity ${SWAP_FADE}s`;
+    document.body.appendChild(fadeEl);
+  }
+  fadeEl.style.opacity = on ? '1' : '0';
 }
 
 // --- skipping --------------------------------------------------------------------------
@@ -295,7 +355,15 @@ function updateSkipUi() {
 
 // --- mission hooks ------------------------------------------------------------------------
 
+// A mission started early (its marker shows during the activity before it)
+// makes the open activities before it moot: they count as done, keeping
+// their unlocks and story beats, without their "done" line.
 function onPassed(w, i) {
+  const k = STEPS.findIndex((s) => s.kind === 'mission' && missionIdx(s) === i);
+  for (let j = 0; j < k; j++) {
+    const s = STEPS[j];
+    if (s.kind === 'activity' && stepAvailable(s) && !state.done.has(s.id)) markDone(s, { quiet: true });
+  }
   for (const s of STEPS) {
     if (s.kind === 'mission' && missionIdx(s) === i && !state.done.has(s.id)) markDone(s);
   }
@@ -333,6 +401,7 @@ export function updateStory(dt, w) {
   if (!same) enter(cur);
   const step = rt.cur;
   updateSkipUi();
+  updateCharacter(w, dt);
   if (!step) return;
   if (step.end) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
@@ -424,6 +493,7 @@ export function devJumpTo(id) {
   world.clock = needsNight ? NIGHT_HOUR : target.id === 'k-nacht' ? 14 : 12;
   refreshDayNight(world);
   enter(target);
+  if (target.player) swapCharacter(world, target.player);
   const g = world.storyGuide;
   if (g) {
     const p = world.player;
@@ -480,4 +550,6 @@ export const storyApi = {
   },
   mission: () => missionDebug.state(),
   cardShown: (part = 'kop') => state.cards.has(part),
+  character: () => world.player.character,
+  swapInfo: () => ({ want: rt.cur && rt.cur.player, swapT: rt.swapT, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn }),
 };
