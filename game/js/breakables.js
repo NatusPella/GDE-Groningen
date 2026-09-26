@@ -114,6 +114,10 @@ export function removeProp(p) {
   p.cell = null;
 }
 
+export function propsNearInto(x, y, r, out) {
+  return propsNear(x, y, r, out);
+}
+
 function propsNear(x, y, r, out) {
   out.length = 0;
   const x0 = Math.floor((x - r) / GRID), x1 = Math.floor((x + r) / GRID);
