@@ -1,10 +1,11 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
-// Post chain per quality preset: 'laag' renders straight to the screen,
+// Post chain per quality preset: 'laag' renders straight to the screen
+// (through an MSAA target + output pass when the canvas has no native AA),
 // 'middel' adds grading + vignette, 'hoog' adds bloom. Bloom runs on the
 // linear HDR buffer; the final pass does ACES tone mapping + sRGB output
 // (what OutputPass would do) and then grades the display-referred colour,
@@ -13,6 +14,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 const GradeShader = {
   uniforms: {
     tDiffuse: { value: null },
+    tBloom: { value: null },
     uSat: { value: 1 },
     uContrast: { value: 1 },
     uLift: { value: 0 },
@@ -27,12 +29,19 @@ const GradeShader = {
     void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
   fragmentShader: `
     uniform sampler2D tDiffuse;
+    uniform sampler2D tBloom;
     uniform float uSat, uContrast, uLift, uVignette, uAspect;
     uniform vec3 uShadowTint, uHighTint;
     varying vec2 vUv;
     #include <tonemapping_pars_fragment>
     void main() {
-      vec3 c = ACESFilmicToneMapping(texture2D(tDiffuse, vUv).rgb);
+      vec3 c = texture2D(tDiffuse, vUv).rgb;
+      #ifdef USE_BLOOM
+      // what UnrealBloomPass's additive (SRC_ALPHA, ONE) blend pass would add
+      vec4 b = texture2D(tBloom, vUv);
+      c += b.rgb * b.a;
+      #endif
+      c = ACESFilmicToneMapping(c);
       c = sRGBTransferOETF(vec4(c, 1.0)).rgb;
       float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
       c = mix(vec3(l), c, uSat);
@@ -58,50 +67,116 @@ void main() {
 }`,
 };
 
+// Tone mapping + sRGB only: 'laag' on a canvas without native antialiasing.
+const OutputShader = {
+  uniforms: { tDiffuse: { value: null }, toneMappingExposure: { value: 1 } },
+  vertexShader: SanitizeShader.vertexShader,
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+#include <tonemapping_pars_fragment>
+void main() {
+  vec3 c = ACESFilmicToneMapping(texture2D(tDiffuse, vUv).rgb);
+  gl_FragColor = vec4(sRGBTransferOETF(vec4(c, 1.0)).rgb, 1.0);
+}`,
+};
+
+// Renders the scene into its own multisampled HDR target and resolves it
+// into the chain through `shader`. Only this target is multisampled: every
+// pass writing into a multisampled target pays a full-screen resolve blit.
+class SceneMSAAPass extends Pass {
+  constructor(scene, cam, samples, shader = SanitizeShader) {
+    super();
+    this.scene = scene;
+    this.cam = cam;
+    this.target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples });
+    this.material = new THREE.ShaderMaterial({
+      uniforms: THREE.UniformsUtils.clone(shader.uniforms),
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader,
+    });
+    this.material.toneMapped = false;
+    this.uniforms = this.material.uniforms;
+    this.fsQuad = new FullScreenQuad(this.material);
+  }
+
+  setSize(w, h) {
+    this.target.setSize(w, h);
+  }
+
+  render(renderer, writeBuffer) {
+    renderer.setRenderTarget(this.target);
+    renderer.render(this.scene, this.cam);
+    this.material.uniforms.tDiffuse.value = this.target.texture;
+    renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
+    this.fsQuad.render(renderer);
+  }
+
+  dispose() {
+    this.target.dispose();
+    this.material.dispose();
+    this.fsQuad.dispose();
+  }
+}
+
 export function createPostFX(renderer, scene, cam) {
   let level = 'laag';
   let composer = null, bloom = null, grade = null;
   let width = 1, height = 1;
+  // The canvas is only multisampled when the game started on 'laag' (see
+  // init3D): every other level renders the scene into its own MSAA target.
+  const nativeAA = renderer.getContext().getContextAttributes().antialias;
 
   function dispose() {
     if (!composer) return;
     composer.renderTarget1.dispose();
     composer.renderTarget2.dispose();
+    composer.passes[0].dispose();
     if (bloom) bloom.dispose();
     composer = bloom = grade = null;
   }
 
   function build() {
     dispose();
-    if (level === 'laag') return;
+    if (level === 'laag' && nativeAA) return;
     const pr = renderer.getPixelRatio();
-    const rt = new THREE.WebGLRenderTarget(Math.max(1, width * pr), Math.max(1, height * pr), {
-      type: THREE.HalfFloatType,
-      samples: pr >= 1.75 ? 2 : 4,
-    });
+    const rt = new THREE.WebGLRenderTarget(Math.max(1, width * pr), Math.max(1, height * pr), { type: THREE.HalfFloatType });
     composer = new EffectComposer(renderer, rt);
-    composer.addPass(new RenderPass(scene, cam));
+    if (level === 'laag') {
+      composer.addPass(new SceneMSAAPass(scene, cam, 4, OutputShader));
+      composer.setSize(width, height);
+      return;
+    }
     // One NaN/Inf pixel from any shader would otherwise be smeared by the
-    // bloom blur into large black blocks over the whole screen.
-    composer.addPass(new ShaderPass(SanitizeShader));
+    // bloom blur into large black blocks over the whole screen: the scene
+    // pass resolves through SanitizeShader.
+    composer.addPass(new SceneMSAAPass(scene, cam, pr >= 1.75 ? 2 : 4));
     if (level === 'hoog') {
       bloom = new UnrealBloomPass(new THREE.Vector2(width, height), 0.2, 0.35, 2.5);
       // Bloom at CSS-pixel resolution regardless of devicePixelRatio: it is
       // blurred anyway and this keeps retina cost flat.
       const setBloomSize = bloom.setSize.bind(bloom);
       bloom.setSize = (w, h) => setBloomSize(w / pr, h / pr);
+      // the grade pass adds the bloom itself instead of the pass blending
+      // it over the full-resolution buffer (one full-screen pass less)
+      const quad = bloom.fsQuad, draw = quad.render.bind(quad);
+      quad.render = (r) => { if (quad.material !== bloom.blendMaterial) draw(r); };
       composer.addPass(bloom);
     }
     grade = new ShaderPass(GradeShader);
     grade.material.toneMapped = false;
+    if (bloom) {
+      grade.material.defines.USE_BLOOM = '';
+      grade.uniforms.tBloom.value = bloom.renderTargetsHorizontal[0].texture;
+    }
     composer.addPass(grade);
     composer.setSize(width, height);
   }
 
   return {
     get level() { return level; },
+    // where the scene itself is rendered (null: straight to the canvas)
+    get sceneTarget() { return composer ? composer.passes[0].target : null; },
     setLevel(next) {
-      if (next === level && (composer || next === 'laag')) return;
+      if (next === level && (composer || (next === 'laag' && nativeAA))) return;
       level = next;
       build();
     },
@@ -112,6 +187,10 @@ export function createPostFX(renderer, scene, cam) {
     rebuild() { build(); },
     apply(L, storm = 0) {
       if (!composer) return;
+      if (!grade) {
+        composer.passes[0].uniforms.toneMappingExposure.value = renderer.toneMappingExposure;
+        return;
+      }
       const u = grade.uniforms;
       u.uSat.value = L.sat * (1 - storm * 0.22);
       u.uContrast.value = L.con;

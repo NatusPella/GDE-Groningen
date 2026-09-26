@@ -25,6 +25,8 @@ nieuwe functies, `y` voor alleen bugfixes.
   meer diefstal.
 
 ### Verbeterd
+- **Flink hogere framerate** (zo'n 1,6 tot 1,8 keer sneller), zonder dat het
+  beeld er minder mooi van wordt.
 - **Kaart**: waypoints zetten werkt weer (rechtermuisklik of Del om te
   wissen), en de route is nu ook op de grote kaart goed te zien, in paars,
   geel (missie) of oranje (bijbaantje).

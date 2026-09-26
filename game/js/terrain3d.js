@@ -202,7 +202,9 @@ function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
 // .bounds bbox onto each entry in mapdata.js; entries missing .bounds get
 // one computed on the fly here as a fallback).
 //
-// Builds one big, real-tessellation ground mesh sized to those bounds (plus
+// Builds one big, real-tessellation ground surface (a Group of tiles sharing
+// one vertex buffer and one material, exposed as group.material) sized to
+// those bounds (plus
 // a safety margin so the surface doesn't run out right at the map edge),
 // with segment counts kept in the tens-to-~100 range regardless of map size
 // - enough for the shader's per-vertex undulation/normal to have real
@@ -236,6 +238,7 @@ function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
 // at a real-world target size instead, so resolution scales with map size
 // and stays meaningful regardless of how big the map is.
 const TARGET_CELL_SIZE_M = 10;
+const TERRAIN_TILE_M = 400;
 
 export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   const [minx, miny, maxx, maxy] = bounds;
@@ -334,23 +337,59 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   const allPositions = new Float32Array(positions.length + extra.length);
   allPositions.set(positions);
   allPositions.set(extra, positions.length);
-  const indexCount = indices.length;
 
   const normals = new Float32Array(allPositions.length);
   for (let i = 1; i < normals.length; i += 3) normals[i] = 1;
 
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(allPositions, 3));
-  geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-  geo.setIndex(new THREE.BufferAttribute(new Uint32Array(indices.slice(0, indexCount)), 1));
-  geo.computeBoundingSphere();
+  // One draw over the whole map would push every vertex through the GPU
+  // each frame; square tiles sharing one vertex buffer let frustum culling
+  // drop all but the few in view.
+  const posAttr = new THREE.BufferAttribute(allPositions, 3);
+  const normAttr = new THREE.BufferAttribute(normals, 3);
+  const tilesX = Math.max(1, Math.ceil(totalW / TERRAIN_TILE_M));
+  const tilesZ = Math.max(1, Math.ceil(totalD / TERRAIN_TILE_M));
+  const buckets = new Map();
+  for (let t = 0; t < indices.length; t += 3) {
+    const a = indices[t], b = indices[t + 1], c = indices[t + 2];
+    const cx = (allPositions[a * 3] + allPositions[b * 3] + allPositions[c * 3]) / 3;
+    const cz = (allPositions[a * 3 + 2] + allPositions[b * 3 + 2] + allPositions[c * 3 + 2]) / 3;
+    const tx = Math.min(tilesX - 1, Math.max(0, Math.floor((cx - minX) / TERRAIN_TILE_M)));
+    const tz = Math.min(tilesZ - 1, Math.max(0, Math.floor((cz - minY) / TERRAIN_TILE_M)));
+    const key = tz * tilesX + tx;
+    let list = buckets.get(key);
+    if (!list) buckets.set(key, list = []);
+    list.push(a, b, c);
+  }
 
   const material = createTerrainMaterial();
-  const mesh = new THREE.Mesh(geo, material);
-  mesh.position.set(0, y, 0);
-  mesh.receiveShadow = true;
-  mesh.userData.isTerrain = true;
-  mesh.userData.droppedTriangles = droppedTriangles;
-  mesh.userData.totalTriangles = maxTriangles;
-  return mesh;
+  const group = new THREE.Group();
+  for (const list of buckets.values()) {
+    let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+    for (const i of list) {
+      const x = allPositions[i * 3], z = allPositions[i * 3 + 2];
+      if (x < x0) x0 = x;
+      if (x > x1) x1 = x;
+      if (z < z0) z0 = z;
+      if (z > z1) z1 = z;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', posAttr);
+    geo.setAttribute('normal', normAttr);
+    geo.setIndex(new THREE.BufferAttribute(new Uint32Array(list), 1));
+    // the shared position buffer spans the whole map, so the bounds come
+    // from this tile's own triangles (plus slack for the shader's bump)
+    geo.boundingBox = new THREE.Box3(new THREE.Vector3(x0, -1, z0), new THREE.Vector3(x1, 1, z1));
+    geo.boundingSphere = geo.boundingBox.getBoundingSphere(new THREE.Sphere());
+    geo.userData.shared = true;
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.receiveShadow = true;
+    mesh.userData.isTerrain = true;
+    group.add(mesh);
+  }
+  group.position.set(0, y, 0);
+  group.material = material;
+  group.userData.isTerrain = true;
+  group.userData.droppedTriangles = droppedTriangles;
+  group.userData.totalTriangles = maxTriangles;
+  return group;
 }

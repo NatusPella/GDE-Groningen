@@ -38,7 +38,7 @@ import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
-import { initNightLights, setNightLightQuality, updateNightLights } from './nightlights3d.js';
+import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
@@ -471,7 +471,7 @@ export function init3D(map) {
   preloadLandmarkModels();
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
-  renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: true });
+  renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag' });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -522,7 +522,7 @@ export function init3D(map) {
   // Sits below WATER_Y (-0.35) so it never hides water the way the old
   // plane did (that one rendered at y=0, right over water's -0.35).
   terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
-  scene.add(terrainMesh);
+  scene.add(freezeStatic(terrainMesh));
 
   // Opaque canal bed under the whole map: terrain holes are cut per grid
   // triangle, so their jagged edges never line up exactly with the water
@@ -1781,8 +1781,78 @@ export function update3D(dt, world) {
   limitActorShadows(vehicleMeshes, player.x, player.y);
   limitActorShadows(wildlifeMeshes, player.x, player.y);
   updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness);
+  prewarmLightVariants();
 
   postfx.render();
+}
+
+// Every lit material has two program variants: with the night-light rig and
+// without it (nightlights3d dark rig). Each material + mesh layout that shows
+// up is drawn once in the variant not in use - a stand-in on its own layer,
+// into a 1x1 scissor of the real scene target - so the program is compiled,
+// linked and its GPU pipeline built before the rig ever switches to it.
+const PREWARM_INTERVAL_MS = 1000;
+const PREWARM_LAYER = 31;
+const prewarmed = { true: new Set(), false: new Set() };
+const prewarmRoot = new THREE.Group();
+let prewarmCam = null;
+let prewarmAt = 0;
+function prewarmLightVariants() {
+  const now = performance.now();
+  if (now < prewarmAt) return;
+  prewarmAt = now + PREWARM_INTERVAL_MS;
+  const on = isLightRigOn();
+  const done = prewarmed[!on];
+  scene.traverse((o) => {
+    if (o.isLight) { o.layers.enable(PREWARM_LAYER); return; }
+    if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite) || (o.isSkinnedMesh && !o.skeleton)) return;
+    const g = o.geometry;
+    const kind = (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
+      + (o.instanceColor ? 'c' : '') + Object.keys(g.attributes).join(',') + (g.morphAttributes.position ? 'M' : '');
+    for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+      if (!m) continue;
+      const key = m.id + '.' + m.version + '|' + kind;
+      if (done.has(key)) continue;
+      done.add(key);
+      const proxy = o.isInstancedMesh ? new THREE.InstancedMesh(g, m, 1)
+        : o.isSkinnedMesh ? new THREE.SkinnedMesh(g, m)
+          : o.isSprite ? new THREE.Sprite(m)
+            : o.isPoints ? new THREE.Points(g, m)
+              : o.isLineSegments ? new THREE.LineSegments(g, m)
+                : o.isLine ? new THREE.Line(g, m)
+                  : new THREE.Mesh(g, m);
+      if (o.instanceColor) proxy.instanceColor = o.instanceColor;
+      if (o.isSkinnedMesh) proxy.bind(o.skeleton, o.bindMatrix);
+      proxy.frustumCulled = false;
+      proxy.layers.set(PREWARM_LAYER);
+      prewarmRoot.add(proxy);
+    }
+  });
+  if (!prewarmRoot.children.length) return;
+  if (!prewarmCam) {
+    prewarmCam = new THREE.PerspectiveCamera();
+    prewarmCam.layers.set(PREWARM_LAYER);
+  }
+  prewarmCam.copy(cam, false);
+  prewarmCam.layers.set(PREWARM_LAYER);
+  const target = postfx.sceneTarget;
+  const prevTarget = renderer.getRenderTarget();
+  const autoShadow = renderer.shadowMap.autoUpdate;
+  scene.add(prewarmRoot);
+  setLightRigVisible(!on);
+  renderer.shadowMap.autoUpdate = false;
+  renderer.setRenderTarget(target);
+  if (target) { target.scissor.set(0, 0, 1, 1); target.scissorTest = true; } else { renderer.setScissor(0, 0, 1, 1); renderer.setScissorTest(true); }
+  try {
+    renderer.render(scene, prewarmCam);
+  } finally {
+    if (target) { target.scissorTest = false; target.scissor.set(0, 0, target.width, target.height); } else renderer.setScissorTest(false);
+    renderer.setRenderTarget(prevTarget);
+    renderer.shadowMap.autoUpdate = autoShadow;
+    setLightRigVisible(on);
+    scene.remove(prewarmRoot);
+    prewarmRoot.clear();
+  }
 }
 
 // world.cameraOverride = { position: {x, y, z}, lookAt: {x, y, z}, fov? } in
