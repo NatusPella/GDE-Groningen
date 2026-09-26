@@ -1,0 +1,396 @@
+// Owned vehicles ("Mijn voertuigen"): the red Fjord Escapade plus everything
+// bought at Ome Harm Occasions / Trap & Toeter (the bought collection itself
+// lives in shops.js and is saved with it). Rentals and side-job/mission
+// vehicles are not in the collection but are never theft either.
+//
+// API
+//   isOwnVehicle(v) -> boolean
+//     Hero car, bought, rented or job vehicle: getting in is never stealing.
+//   placeOwnedVehicleNear(world, v, x, y, opts?) -> { x, y, angle, street } | null
+//     Moves vehicle v (already in the world or not) to a legal parking spot
+//     near (x, y): kerbside on an ordinary street (never in water, buildings,
+//     on a bridge/ring viaduct or in the sunken ring), clear of other cars.
+//     Boats go to the nearest Bootje Huren jetty instead. v ends up parked,
+//     stopped and in world.vehicles. Returns null (v untouched) if no spot.
+//     opts.outOfView (default true): spot must be hidden from the camera, at
+//       minDist..maxDist m (default 60..150); false: default 0..80 m, visible ok.
+//     opts.minDist / opts.maxDist override the ring.
+//   findParkingSpot(world, x, y, model, opts?) -> spot | null
+//     Same search without moving anything (model: { len, wid, name }).
+//   getGarageList(world) / getGarageCatalog(world)
+//     Owned vehicles (hero first) / the whole collection incl. not yet bought,
+//     as plain view objects for the phone app and the pause-menu garage.
+//   deliverOwnedVehicle(world, id) -> { ok, text }
+//     "Laten afleveren": fee, cooldown, out-of-view placement, waypoint, message.
+//   locateOwnedVehicle(world, id) -> { ok, text, x, y }
+//     "Waar staat hij?": sets the waypoint.
+//   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
+
+import { closestPointOnSegment } from './util.js';
+import { isSpawnHidden } from './pedestrians.js';
+import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
+import { spawnHeroCarNear } from './vehicle.js';
+import { vehicleDisplayName } from './vehiclenames.js';
+import { setUserWaypoint } from './routing.js';
+import {
+  getOwnedEntries, getHeroLook, spawnOwnedEntry, replacementFee, getShopsForRender,
+  VEHICLE_STOCK, PAINTS, CAR_UPGRADES, BIKE_UPGRADES, REDELIVERY_FEE,
+} from './shops.js';
+
+const HERO_REPLACE_FEE = 100;
+const DELIVERY_COOLDOWN = 30;
+const NEAR_M = 200;
+const MAX_TESTS = 700;
+const STEP = 6;
+const END_CLEAR = 6;
+const NO_PARK_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link']);
+const HERO_SPEC = { label: 'Fjord Escapade', kind: 'car', color: '#a11f1f', model: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 34, accel: 10, brake: 25, turnRate: 3.4 } };
+
+const MEMES = {
+  hero: 'Oud, rood en koppig. Net als Tammo.',
+  omafiets: 'Zwart, loodzwaar en al drie keer uit het Reitdiep gevist. Rijdt nog prima.',
+  stadsfiets: 'Rapper dan een student op weg naar een tentamen dat al begonnen is.',
+  fatbike: 'Remmen zijn optioneel, volgens de berijder.',
+  brommer: 'Zoemt over het fietspad langs de Herestraat. Iedereen kijkt boos, precies de bedoeling.',
+  mug: 'Parkeert in elk gaatje, ook in de Folkingestraat.',
+  koopman: 'Hond achterin, oma voorin, zondag naar Pieterburen. Kofferbak voor een halve verhuizing.',
+  klusbus: 'Ramt alles opzij, net als een Stadjer bij de Hema-uitverkoop.',
+  wervelwind: 'Van de Grote Markt naar Delfzijl voordat je koffie koud is. Flitspalen vinden hem prachtig.',
+};
+
+const SHOP_FOR_KIND = { car: 'Ome Harm Occasions', bike: 'Trap & Toeter', scooter: 'Trap & Toeter' };
+const KIND_LABEL = { car: 'Auto', bike: 'Fiets', scooter: 'Brommer', boat: 'Boot' };
+
+let lastDeliveryAt = -Infinity;
+
+export function isOwnVehicle(v) {
+  return !!(v && (v.isHeroCar || v.playerOwned || v.missionCar));
+}
+
+// --- parking spot search ----------------------------------------------------
+
+function parkingRoad(r, twoWheel) {
+  if (r.bridge || r.z || r.roundabout || !r.pts || r.pts.length < 2 || NO_PARK_TYPES.has(r.type)) return false;
+  if (r.cat === 'normal' || r.cat === 'minor') return (r.width || 0) >= (twoWheel ? 3 : 5);
+  return twoWheel && r.cat === 'cycle';
+}
+
+function clearOfVehicles(world, x, y, halfLen, ignore) {
+  const check = (o) => {
+    if (o === ignore) return true;
+    const r = halfLen + (o.halfLen || 2) + 0.6;
+    return Math.abs(o.x - x) > r || Math.abs(o.y - y) > r || Math.hypot(o.x - x, o.y - y) > r;
+  };
+  for (const o of world.vehicles) if (!check(o)) return false;
+  for (const o of sleepingParkedCars(world)) if (!check(o)) return false;
+  return true;
+}
+
+function hiddenFootprint(world, x, y, angle, halfLen) {
+  const fx = Math.cos(angle) * halfLen, fy = Math.sin(angle) * halfLen;
+  return isSpawnHidden(world, x, y) && isSpawnHidden(world, x + fx, y + fy) && isSpawnHidden(world, x - fx, y - fy);
+}
+
+function ringFor(opts) {
+  const outOfView = opts.outOfView !== false;
+  return {
+    outOfView,
+    minDist: opts.minDist ?? (outOfView ? 60 : 0),
+    maxDist: opts.maxDist ?? (outOfView ? 150 : 80),
+  };
+}
+
+function searchRing(world, x, y, model, twoWheel, ring, ignore) {
+  const map = world.map;
+  const m = { len: model.len || 4, wid: model.wid || 1.7 };
+  const halfLen = m.len / 2;
+  const target = ring.minDist + (ring.maxDist - ring.minDist) * 0.25;
+  const cands = [];
+  for (const r of map.roadsNear(x, y, ring.maxDist)) {
+    if (!parkingRoad(r, twoWheel)) continue;
+    const pts = r.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (len < END_CLEAR * 2 + m.len) continue;
+      const near = closestPointOnSegment(x, y, a[0], a[1], b[0], b[1]);
+      if (near.dist2 > ring.maxDist * ring.maxDist) continue;
+      const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len;
+      const off = twoWheel ? (r.width || 4) / 2 + 0.8 : (r.width || 6) / 2 + m.wid / 2 + 0.45;
+      for (let t = END_CLEAR; t <= len - END_CLEAR; t += STEP) {
+        for (const side of [1, -1]) {
+          const nx = -ty * side, ny = tx * side;
+          const px = a[0] + tx * t + nx * off, py = a[1] + ty * t + ny * off;
+          const d = Math.hypot(px - x, py - y);
+          if (d < ring.minDist || d > ring.maxDist) continue;
+          // parked with the traffic on its side of the street
+          const angle = Math.atan2(ty, tx) + (side < 0 ? Math.PI : 0);
+          cands.push({ x: px, y: py, angle, nx, ny, road: r, score: Math.abs(d - target) });
+        }
+      }
+    }
+  }
+  cands.sort((p, q) => p.score - q.score);
+  let tests = 0;
+  for (const c of cands) {
+    if (++tests > MAX_TESTS) break;
+    if (!clearOfVehicles(world, c.x, c.y, halfLen, ignore)) continue;
+    if (ring.outOfView && !hiddenFootprint(world, c.x, c.y, c.angle, halfLen)) continue;
+    if (map.offStreetLevel && map.offStreetLevel(c.x, c.y)) continue;
+    if (!slotFits(map, c.road, c.x, c.y, c.angle, m, c.nx, c.ny)) continue;
+    if (propBlocked(c.x, c.y, c.angle, m)) continue;
+    return { x: c.x, y: c.y, angle: c.angle, street: c.road.name || '' };
+  }
+  return null;
+}
+
+export function findParkingSpot(world, x, y, model, opts = {}) {
+  if (!world || !world.map || !model) return null;
+  const twoWheel = model.name === 'bike' || model.name === 'scooter';
+  const ring = ringFor(opts);
+  return searchRing(world, x, y, model, twoWheel, ring, opts.ignore || null)
+    // nothing in the ring (dense centre, water all around): widen it once
+    || searchRing(world, x, y, model, twoWheel, { ...ring, minDist: ring.minDist * 0.6, maxDist: ring.maxDist * 1.6 }, opts.ignore || null);
+}
+
+function jettySpot(world, x, y, maxDist) {
+  let best = null, bd = maxDist;
+  for (const s of getShopsForRender()) {
+    if (s.type !== 'boot' || !s.water) continue;
+    const d = Math.hypot(s.water.x - x, s.water.y - y);
+    if (d < bd) { bd = d; best = s; }
+  }
+  return best ? { x: best.water.x, y: best.water.y, angle: best.water.angle, street: best.wijk || best.street || '' } : null;
+}
+
+function parkAt(world, v, spot) {
+  v.x = spot.x;
+  v.y = spot.y;
+  v.angle = spot.angle;
+  v.speed = 0;
+  v.throttle = 0;
+  v.steer = 0;
+  v.driftX = 0;
+  v.driftY = 0;
+  v.yawVel = 0;
+  v.horn = false;
+  v.road = null;
+  v.parked = false;
+  v.driver = null;
+  if (!v.isBoat) v.z = world.map.spawnZ ? world.map.spawnZ(spot.x, spot.y) : 0;
+  if (!world.vehicles.includes(v)) world.vehicles.push(v);
+}
+
+export function placeOwnedVehicleNear(world, v, x, y, opts = {}) {
+  if (!world || !v || v.driver === 'player') return null;
+  const ring = ringFor(opts);
+  const spot = v.isBoat
+    ? jettySpot(world, x, y, Math.max(400, ring.maxDist * 3))
+    : findParkingSpot(world, x, y, v.model, { ...opts, ignore: v });
+  if (!spot) return null;
+  parkAt(world, v, spot);
+  return spot;
+}
+
+// --- views --------------------------------------------------------------------
+
+function heroCar(world) {
+  return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;
+}
+
+function wijkAt(map, x, y) {
+  let best = '', bd = Infinity;
+  for (const h of map.meta.neighbourhoodPoints || []) {
+    const d = (h.x - x) ** 2 + (h.y - y) ** 2;
+    if (d < bd) { bd = d; best = h.name; }
+  }
+  return best;
+}
+
+function streetAt(map, x, y) {
+  const rp = map.nearestRoadPoint(x, y, 40);
+  return rp && rp.road.name ? rp.road.name : '';
+}
+
+// "in de Oude Boteringestraat", "aan de Oosterkade", "op de Grote Markt"
+export function streetPhrase(name) {
+  if (!name) return 'om de hoek';
+  const n = name.toLowerCase();
+  if (/(kade|singel|diep|gracht|wal|haven|dijk)$/.test(n)) return `aan de ${name}`;
+  if (/(markt|plein|hof)$/.test(n)) return `op de ${name}`;
+  if (n.includes(' der ')) return `aan de ${name}`;
+  return `in de ${name}`;
+}
+
+const kmh = (ms) => Math.round(ms * 3.6);
+
+function perfModel(base, upgradeIds, twoWheel) {
+  const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
+  const m = { ...base };
+  for (const id of upgradeIds) {
+    const u = list.find((x) => x.id === id);
+    if (u) for (const [k, f] of Object.entries(u.mult)) m[k] = m[k] * f;
+  }
+  return m;
+}
+
+function paintLabel(color, fallback) {
+  const p = PAINTS.find((x) => x.color.toLowerCase() === String(color || '').toLowerCase());
+  return p ? p.label : fallback;
+}
+
+function nameOf(spec, v) {
+  const n = vehicleDisplayName(v || { model: spec.model, id: spec.nameIdx || 0 });
+  return n.make ? { make: n.make, model: n.model, label: `${n.make} ${n.model}` } : { make: '', model: n.model, label: n.model };
+}
+
+function statusOf(world, v, lost) {
+  if (lost) return { key: 'lost', label: 'Total loss' };
+  if (!v || !world.vehicles.includes(v)) return { key: 'garage', label: 'In de garage' };
+  if (world.player.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
+  const d = Math.hypot(v.x - world.player.x, v.y - world.player.y);
+  return d < NEAR_M ? { key: 'near', label: 'In de buurt', dist: d } : { key: 'far', label: 'Ergens in Grunn', dist: d };
+}
+
+function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
+  const twoWheel = spec.kind === 'bike' || spec.kind === 'scooter';
+  const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
+  const perf = perfModel(spec.model, upgrades, twoWheel);
+  const status = statusOf(world, v, lost);
+  const where = v && status.key !== 'garage' && status.key !== 'lost'
+    ? { street: streetAt(world.map, v.x, v.y), wijk: wijkAt(world.map, v.x, v.y) } : null;
+  const fee = hero ? (lost || !v ? HERO_REPLACE_FEE : 0) : lost ? replacementFee({ spec }) : REDELIVERY_FEE;
+  return {
+    id, key, hero, owned: true, v,
+    ...nameOf(spec, v),
+    kind: spec.kind, kindLabel: KIND_LABEL[spec.kind], color,
+    paint: paintLabel(color, hero ? 'Fjordrood' : 'Fabriekskleur'),
+    upgrades: upgrades.map((u) => (list.find((x) => x.id === u) || {}).label).filter(Boolean),
+    topSpeed: kmh(perf.maxSpeed), accel: perf.accel, accelScore: Math.max(1, Math.min(10, Math.round(perf.accel / 1.2))),
+    meme: MEMES[hero ? 'hero' : key] || '',
+    price: hero ? 0 : spec.price,
+    status: status.key, statusLabel: status.label, dist: status.dist ?? null, where,
+    fee, feeLabel: fee ? `€${fee}` : 'gratis',
+  };
+}
+
+export function getGarageList(world) {
+  const out = [];
+  const hero = heroCar(world);
+  const look = getHeroLook();
+  out.push(view(world, {
+    id: 'hero', key: 'hero', hero: true, spec: HERO_SPEC, color: look.color || HERO_SPEC.color,
+    upgrades: look.upgrades, v: hero, lost: !hero,
+  }));
+  for (const o of getOwnedEntries()) {
+    out.push(view(world, {
+      id: o.key, key: o.key, hero: false, spec: o.spec, color: o.color,
+      upgrades: o.v ? o.v.upgrades || [] : o.upgrades || [], v: o.v, lost: !!o.lost,
+    }));
+  }
+  return out;
+}
+
+// Owned first, then the models still for sale (greyed out in the garage).
+export function getGarageCatalog(world) {
+  const owned = getGarageList(world);
+  const have = new Set(owned.map((e) => e.key));
+  const rest = Object.entries(VEHICLE_STOCK).filter(([key]) => !have.has(key)).map(([key, spec]) => {
+    const twoWheel = spec.kind !== 'car';
+    return {
+      id: key, key, hero: false, owned: false, v: null, ...nameOf(spec, null),
+      kind: spec.kind, kindLabel: KIND_LABEL[spec.kind], color: spec.color, paint: paintLabel(spec.color, 'Fabriekskleur'),
+      upgrades: [], topSpeed: kmh(spec.model.maxSpeed), accel: spec.model.accel,
+      accelScore: Math.max(1, Math.min(10, Math.round(perfModel(spec.model, [], twoWheel).accel / 1.2))),
+      meme: MEMES[key] || spec.desc, price: spec.price, shop: SHOP_FOR_KIND[spec.kind],
+      status: 'forsale', statusLabel: `Te koop bij ${SHOP_FOR_KIND[spec.kind]}`, where: null, fee: 0, feeLabel: '',
+    };
+  });
+  return [...owned, ...rest];
+}
+
+export function getOwnedVehiclesForMap(world) {
+  const out = [];
+  const pv = world.player.inVehicle;
+  const hero = heroCar(world);
+  const look = getHeroLook();
+  if (hero && hero !== pv) out.push({ x: hero.x, y: hero.y, angle: hero.angle, kind: 'car', label: 'Fjord Escapade', hero: true, color: look.color || HERO_SPEC.color });
+  for (const o of getOwnedEntries()) {
+    const v = o.v;
+    if (!v || v.wrecked || v === pv || !world.vehicles.includes(v)) continue;
+    out.push({ x: v.x, y: v.y, angle: v.angle, kind: o.spec.kind, label: o.spec.label, hero: false, color: o.color });
+  }
+  return out;
+}
+
+// --- actions ----------------------------------------------------------------------
+
+function describeSpot(world, spot, name) {
+  const street = spot.street || streetAt(world.map, spot.x, spot.y);
+  return `Je ${name} staat ${streetPhrase(street)}. Volg de markering op je kaart`;
+}
+
+export function deliverOwnedVehicle(world, id) {
+  const e = getGarageList(world).find((x) => x.id === id);
+  if (!e) return { ok: false, text: 'Dat voertuig heb je niet' };
+  const short = e.hero ? 'Escapade' : e.model;
+  if (e.status === 'driving') return { ok: false, text: `Je zit al in je ${short}` };
+  if (world.pigeonMode) return { ok: false, text: 'Duiven krijgen geen auto bezorgd' };
+  if (world.wanted > 0) return { ok: false, text: 'Met de politie op je hielen bezorgt niemand iets. Eerst ze kwijt!' };
+  if (world.player.swimming) return { ok: false, text: 'Eerst even uit het water klimmen' };
+  if (e.status === 'near' && e.dist < 60) {
+    setUserWaypoint(e.v.x, e.v.y, `Jouw ${short}`);
+    return { ok: true, text: `Je ${short} staat al om de hoek. Staat op je kaart` };
+  }
+  const wait = Math.ceil(lastDeliveryAt + DELIVERY_COOLDOWN - world.time);
+  if (wait > 0) return { ok: false, text: `De bezorger is nog onderweg met de vorige. Probeer het over ${wait} s` };
+  if (world.money < e.fee) return { ok: false, text: `Te weinig geld: afleveren kost ${e.feeLabel}` };
+
+  const px = world.player.x, py = world.player.y;
+  let spot = null;
+  if (e.hero) {
+    const old = heroCar(world);
+    if (old) spot = placeOwnedVehicleNear(world, old, px, py);
+    else {
+      spot = findParkingSpot(world, px, py, HERO_SPEC.model);
+      const car = spot && spawnHeroCarNear(world.map, spot.x, spot.y);
+      if (car) {
+        for (const w of world.vehicles) if (w.isHeroCar && w.wrecked) w.isHeroCar = false;
+        parkAt(world, car, spot);
+      } else spot = null;
+    }
+  } else {
+    const o = getOwnedEntries().find((x) => x.key === id);
+    if (o && o.v && world.vehicles.includes(o.v) && !o.lost) spot = placeOwnedVehicleNear(world, o.v, px, py);
+    else if (o) {
+      spot = findParkingSpot(world, px, py, o.spec.model);
+      if (spot && !spawnOwnedEntry(world, o, spot.x, spot.y, spot.angle)) spot = null;
+    }
+  }
+  if (!spot) return { ok: false, text: 'De bezorger kan hier nergens parkeren. Loop eens naar een gewone straat' };
+  if (e.fee) world.money -= e.fee;
+  lastDeliveryAt = world.time;
+  setUserWaypoint(spot.x, spot.y, `Jouw ${short}`);
+  const text = describeSpot(world, spot, short);
+  world.addMessage(text, 5);
+  return { ok: true, text, x: spot.x, y: spot.y };
+}
+
+export function locateOwnedVehicle(world, id) {
+  const e = getGarageList(world).find((x) => x.id === id);
+  if (!e) return { ok: false, text: 'Dat voertuig heb je niet' };
+  const short = e.hero ? 'Escapade' : e.model;
+  if (e.status === 'lost') return { ok: false, text: `Je ${short} is total loss. Laat een nieuwe afleveren` };
+  if (e.status === 'garage') return { ok: false, text: `Je ${short} staat in de garage. Laat hem afleveren` };
+  if (e.status === 'driving') return { ok: false, text: `Je zit er al in` };
+  setUserWaypoint(e.v.x, e.v.y, `Jouw ${short}`);
+  const where = e.where && e.where.street ? `${streetPhrase(e.where.street)}${e.where.wijk ? ` (${e.where.wijk})` : ''}` : 'op je kaart';
+  return { ok: true, text: `Je ${short} staat ${where}`, x: e.v.x, y: e.v.y };
+}
+
+export function whereText(e) {
+  if (!e.where) return '';
+  const parts = [e.where.street, e.where.wijk].filter(Boolean);
+  const d = e.dist != null ? (e.dist < 1000 ? `${Math.round(e.dist / 10) * 10} m` : `${(e.dist / 1000).toFixed(1).replace('.', ',')} km`) : '';
+  return [parts.join(', '), d].filter(Boolean).join(' · ');
+}

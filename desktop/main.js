@@ -161,6 +161,16 @@ function createWindow() {
             const counts = { callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), shadowCallsPerFrame: Math.round(shadowCalls / frames), geometries: r.info.memory.geometries, textures: r.info.memory.textures, programs: r.info.programs.length };
             let meshes = 0, visibleMeshes = 0, instanced = 0; sc.scene.traverse((o) => { if (o.isMesh) { meshes++; if (o.visible) visibleMeshes++; if (o.isInstancedMesh) instanced++; } });
             counts.meshes = meshes; counts.visibleMeshes = visibleMeshes; counts.instanced = instanced;
+            // which kinds of meshes are drawn: group by the first named ancestor / userData kind
+            const groups = new Map();
+            sc.scene.traverseVisible((o) => {
+              if (!o.isMesh) return;
+              let a = o, label = '';
+              while (a && !label) { label = a.userData && (a.userData.kind || a.userData.type || a.userData.propKind) || a.name || ''; a = a.parent; }
+              const key = (label || 'unnamed') + (o.castShadow ? ' [shadow]' : '');
+              groups.set(key, (groups.get(key) || 0) + 1);
+            });
+            counts.topGroups = [...groups.entries()].sort((a, b) => b[1] - a[1]).slice(0, 18);
             const out = { counts, dpr: window.devicePixelRatio, css: [innerWidth, innerHeight], vehicles: w ? w.vehicles.length : 0, peds: w ? w.pedestrians.length : 0 };
             for (const pr of [r ? r.getPixelRatio() : 0, 1.5, 1]) {
               if (r && pr) { r.setPixelRatio(pr); window.dispatchEvent(new Event('resize')); await new Promise((res) => setTimeout(res, 800)); }

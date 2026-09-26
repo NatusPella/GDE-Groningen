@@ -1,4 +1,5 @@
-import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp, boatDryPoints } from './util.js';
+import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp, keepBoatOffShore } from './util.js';
+import { waterClearance } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
@@ -37,6 +38,7 @@ const CLIMB_SCAN_INTERVAL = 0.15;
 const SPLASH_LIFE = 1.1;
 const WALK_OPTS = { byPlayer: true };
 const SWIM_OPTS = { kick: false };
+const SWIM_EDGE_CLEAR = 0.7;
 
 const FALL_HURT_SPEED = 8.5; // m/s landing speed (~3.7 m drop) above which a fall hurts
 const LOCK_CRACK_S = 0.7; // a bike locked to a rack or railing takes a quick jiggle first
@@ -92,11 +94,12 @@ export class Player {
     if ((input.wasPressed('e') || input.wasPressed('f')) && !this.crack) {
       if (this.water) {
         if (this.water === 'swim' && !this.inVehicle) this.swimInteract(world);
-      } else if (!this.tryKiss(world)) {
-        if (this.inVehicle) this.tryEnterExit(map, vehicles, world);
-        else this.interact(world);
-      }
+      } else if (this.inVehicle) this.tryEnterExit(map, vehicles, world);
+      else this.interact(world);
     }
+    // kissing has its own key (K): E next to a car used to kiss instead of
+    // getting in whenever the companion stood close
+    if (input.wasPressed('k') && !this.inVehicle && !this.water) this.tryKiss(world);
     if (this.crack) {
       const c = this.crack;
       c.t += dt;
@@ -295,11 +298,15 @@ export class Player {
 
     let blocked = false;
     const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
-    if (inWaterPoly(map, nx, ny)) { this.x = nx; this.y = ny; }
+    // stay clear of the quay walls and houseboats, sliding along them; a
+    // swimmer already inside the band may still move away from the wall
+    const here = waterClearance(map, this.x, this.y, SWIM_EDGE_CLEAR + 1);
+    const free = (x, y) => { const d = waterClearance(map, x, y, SWIM_EDGE_CLEAR + 1); return d >= SWIM_EDGE_CLEAR || (d > 0 && d >= here); };
+    if (free(nx, ny)) { this.x = nx; this.y = ny; }
     else {
       blocked = true;
-      if (inWaterPoly(map, nx, this.y)) this.x = nx;
-      else if (inWaterPoly(map, this.x, ny)) this.y = ny;
+      if (free(nx, this.y)) this.x = nx;
+      else if (free(this.x, ny)) this.y = ny;
     }
     this.resolveSwimContacts(world);
 
@@ -503,8 +510,9 @@ export class Player {
 
   enterVehicle(v, world) {
     if (!v || v.driver || v.wrecked || v.sinking) return;
-    const stolen = !!v.road || v.parked || (v.isPolice && !v.hijacked);
-    v.carjacked = !!v.road; // its AI driver gets pulled out (pedestrians.js)
+    const own = v.isHeroCar || v.playerOwned || v.missionCar;
+    const stolen = !own && (!!v.road || v.parked || (v.isPolice && !v.hijacked));
+    v.carjacked = !own && !!v.road; // its AI driver gets pulled out (pedestrians.js)
     v.driver = 'player';
     v.road = null; // player takes manual control
     v.parked = false;
@@ -558,9 +566,7 @@ export class Player {
       // is only refused when it puts MORE of the hull on land - a boat that
       // already touches a quay (or spawned against one) can still turn and
       // sail off instead of being frozen in place.
-      const dryAfter = boatDryPoints(map, v, v.x, v.y, v.angle);
-      if (dryAfter > 0 && dryAfter > boatDryPoints(map, v, px, py, pa)) {
-        v.x = px; v.y = py; v.angle = pa;
+      if (!keepBoatOffShore(map, v, px, py, pa)) {
         v.speed *= -0.25;
         v.driftX = 0; v.driftY = 0;
       }

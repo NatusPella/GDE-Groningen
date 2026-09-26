@@ -171,6 +171,7 @@ function updateHeli(dt, world, pad) {
     h = startInbound(world, pad);
   }
   h.t += dt;
+  if (h.phase === 'scripted') return;
   let rotorTarget = 1;
   switch (h.phase) {
     case 'inbound': {
@@ -368,6 +369,31 @@ function parkHeli(world, pad, wait) {
   h.timer = wait;
   world.skyHeli = h;
   return h;
+}
+
+// The respawn cutscene (respawn.js) flies the trauma heli itself: a
+// 'scripted' heli is posed by the caller and left alone here until
+// landHeliOnPad hands it back to the normal wait / lift-off cycle.
+export function scriptHeli(world) {
+  const pad = helipadInfo(world.map);
+  if (!pad) return null;
+  if (!world.balloons) initSkyProps(world);
+  world._skyInit = true;
+  const h = newHeli(pad);
+  Object.assign(h, { phase: 'scripted', rotor: 1, landing: true, groundZ: 0 });
+  world.skyHeli = h;
+  return h;
+}
+
+export function landHeliOnPad(world, wait = 25) {
+  const pad = helipadInfo(world.map);
+  const h = world.skyHeli;
+  if (!pad || !h || h.phase !== 'scripted') return;
+  Object.assign(h, {
+    phase: 'landed', x: pad.x, y: pad.y, z: pad.deck, pitch: 0, bank: 0, v: 0, vx: 0, vy: 0, vz: 0,
+    heading: padAxisToward(pad, Math.cos(h.heading), Math.sin(h.heading)), timer: wait, parked: false,
+    landing: false, searchlight: 0, downwash: 0, groundZ: pad.deck,
+  });
 }
 
 export function updateSkyProps(dt, world) {

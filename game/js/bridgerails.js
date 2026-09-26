@@ -1,14 +1,19 @@
-// Bridge railings as solid line segments, matching the green railings
-// streetclutter.js draws along every bridge way: walkers and cars can no
-// longer walk or drive off a bridge into the canal. Where another way meets
-// the bridge (steps, a quay path, a side street) the railing is left open.
-import { closestPointOnSegment, pointInPolygon, inWaterPoly } from './util.js';
+// Bridge railings: one list of 2 m railing sections per bridge way, shared by
+// streetclutter.js (which draws each section as a breakable 'bridgerail'
+// prop) and the walker collision here, so the drawn railing and its collision
+// always match. Cars meet the props themselves (breakables.js): solid below
+// their break speed, knocked off the bridge above it. Walkers are also held
+// by the joints between sections; a knocked-out section opens the railing
+// until the prop respawns. Where another way meets the bridge (steps, a quay
+// path, a side street) the railing is left open.
+import { closestPointOnSegment, pointInPolygon } from './util.js';
+import { propKey, isPropBroken } from './breakables.js';
 
-const PIECE = 0.5;
 const GRID = 24;
 const OPENING_PAD = 0.4;
-// widest query radius (vehicle band) - segments are filed in every cell it reaches
-const REACH = 1.6;
+const REACH = 1;
+export const RAIL_KIND = 'bridgerail';
+export const RAIL_HALF = 1;
 
 export function railingOffset(r) {
   return r.cat === 'major' || r.cat === 'normal' ? (r.width || 6) / 2 + 1.7 : (r.width || 3) / 2 + 0.08;
@@ -35,54 +40,68 @@ export function railingOpening(map, r, x, y) {
   return false;
 }
 
-function buildRails(map) {
-  const segs = [];
-  for (const r of map.roads) {
-    // ring viaducts and tunnels have their own barriers and walls (elevation.js)
-    if (!r.bridge || r.z || r.pts.length < 2) continue;
+// ring viaducts and tunnels have their own barriers and walls (elevation.js)
+export function hasRailings(r) {
+  return !!r.bridge && !r.z && r.pts.length >= 2;
+}
+
+// Railing sections of bridge way `r`: { x, y, angle, tx, ty, key, seg, side }.
+// Sections inside a building or across another way are left out.
+export function railingItems(map, r) {
+  if (r._railItems) return r._railItems;
+  const out = [];
+  if (hasRailings(r)) {
     const off = railingOffset(r);
-    for (const side of [1, -1]) {
-      let prevEnd = null;
-      for (let i = 0; i < r.pts.length - 1; i++) {
-        const a = r.pts[i], b = r.pts[i + 1];
-        const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-        if (len < 2) { prevEnd = null; continue; }
-        const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const a = r.pts[i], b = r.pts[i + 1];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (len < 2) continue;
+      const angle = Math.atan2(b[1] - a[1], b[0] - a[0]);
+      const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len;
+      const n = Math.floor(len / 2);
+      const t0 = (len - n * 2) / 2;
+      for (const side of [1, -1]) {
         const nx = -ty * side, ny = tx * side;
-        const t0 = (len - Math.floor(len / 2) * 2) / 2;
-        const at = (t) => [a[0] + tx * t + nx * off, a[1] + ty * t + ny * off];
-        const n = Math.max(1, Math.round((len - 2 * t0) / PIECE));
-        const items = Math.floor(len / 2);
-        const itemSolid = [];
-        for (let j = 0; j < items; j++) {
-          const q = at(t0 + 1 + j * 2);
-          itemSolid.push(!railingOpening(map, r, q[0], q[1]) && !insideBuilding(map, q[0], q[1]));
+        for (let k = 0; k < n; k++) {
+          const t = t0 + 1 + k * 2;
+          const x = a[0] + tx * t + nx * off, y = a[1] + ty * t + ny * off;
+          if (insideBuilding(map, x, y) || railingOpening(map, r, x, y)) continue;
+          out.push({ x, y, angle, tx, ty, key: propKey(RAIL_KIND, x, y), seg: i, side, k, n, cx: a[0], cy: a[1] });
         }
-        let runStart = null, last = null;
-        const flush = () => { if (runStart && last) segs.push({ a: runStart, b: last, cx: a[0], cy: a[1], r }); runStart = null; };
-        for (let k = 0; k <= n; k++) {
-          const p = at(t0 + ((len - 2 * t0) * k) / n);
-          const u = ((len - 2 * t0) * Math.min(k + 0.5, n - 0.5)) / n;
-          const solid = itemSolid[Math.min(items - 1, Math.floor(u / 2))];
-          if (solid) {
-            if (!runStart) {
-              runStart = p;
-              if (k === 0 && prevEnd) segs.push({ a: prevEnd, b: p, cx: a[0], cy: a[1], r });
-            }
-            last = p;
-          } else {
-            if (runStart) last = p;
-            flush();
-          }
-        }
-        const end = at(len - t0);
-        prevEnd = runStart ? end : null;
-        flush();
+      }
+    }
+  }
+  r._railItems = out;
+  return out;
+}
+
+function buildRails(map) {
+  const lines = [];
+  for (const r of map.roads) {
+    if (!hasRailings(r)) continue;
+    const items = railingItems(map, r);
+    const bySide = { 1: [], '-1': [] };
+    for (const it of items) {
+      bySide[it.side].push(it);
+      lines.push({
+        a: [it.x - it.tx * RAIL_HALF, it.y - it.ty * RAIL_HALF], b: [it.x + it.tx * RAIL_HALF, it.y + it.ty * RAIL_HALF],
+        k1: it.key, k2: it.key, cx: it.cx, cy: it.cy,
+      });
+    }
+    // close the wedge on the outside of a bend between two segments
+    for (const side of [1, -1]) {
+      const list = bySide[side];
+      for (let j = 0; j < list.length - 1; j++) {
+        const p = list[j], q = list[j + 1];
+        if (q.seg !== p.seg + 1 || p.k !== p.n - 1 || q.k !== 0) continue;
+        const pa = [p.x + p.tx * RAIL_HALF, p.y + p.ty * RAIL_HALF], qa = [q.x - q.tx * RAIL_HALF, q.y - q.ty * RAIL_HALF];
+        if (Math.hypot(qa[0] - pa[0], qa[1] - pa[1]) > 4) continue;
+        lines.push({ a: pa, b: qa, k1: p.key, k2: q.key, cx: q.cx, cy: q.cy });
       }
     }
   }
   const grid = new Map();
-  for (const s of segs) {
+  for (const s of lines) {
     s.minx = Math.min(s.a[0], s.b[0]); s.maxx = Math.max(s.a[0], s.b[0]);
     s.miny = Math.min(s.a[1], s.b[1]); s.maxy = Math.max(s.a[1], s.b[1]);
     for (let gx = Math.floor((s.minx - REACH) / GRID); gx <= Math.floor((s.maxx + REACH) / GRID); gx++) {
@@ -101,7 +120,7 @@ function railsNear(map, x, y) {
   return map._bridgeRails.get(Math.floor(x / GRID) + ',' + Math.floor(y / GRID));
 }
 
-// Walkers: a railing is a thin wall, the circle stays on whichever side it is.
+// Walkers: an intact railing is a thin wall, the circle stays on its side.
 export function resolveRailings(x, y, radius, map) {
   const list = railsNear(map, x, y);
   if (!list) return [x, y];
@@ -109,6 +128,7 @@ export function resolveRailings(x, y, radius, map) {
     if (x < s.minx - radius || x > s.maxx + radius || y < s.miny - radius || y > s.maxy + radius) continue;
     const cp = closestPointOnSegment(x, y, s.a[0], s.a[1], s.b[0], s.b[1]);
     if (cp.dist2 >= radius * radius) continue;
+    if (isPropBroken(s.k1) || isPropBroken(s.k2)) continue;
     const d = Math.sqrt(cp.dist2);
     let ox, oy;
     if (d > 1e-6) { ox = (x - cp.x) / d; oy = (y - cp.y) / d; } else {
@@ -120,30 +140,4 @@ export function resolveRailings(x, y, radius, map) {
     y = cp.y + oy * radius;
   }
   return [x, y];
-}
-
-// Vehicles move fast enough to cross a thin line in one frame, so for them the
-// railing is one-sided: a point up to `band` m past it over open water is
-// pushed back onto the deck. Returns { x, y, nx, ny, depth } or null.
-export function railingContact(map, x, y, band = 1.4) {
-  const list = railsNear(map, x, y);
-  if (!list) return null;
-  let best = null;
-  for (const s of list) {
-    if (x < s.minx - band || x > s.maxx + band || y < s.miny - band || y > s.maxy + band) continue;
-    const ex = s.b[0] - s.a[0], ey = s.b[1] - s.a[1], el = Math.hypot(ex, ey);
-    if (el < 1e-6) continue;
-    let nx = -ey / el, ny = ex / el;
-    const mx = (s.a[0] + s.b[0]) / 2, my = (s.a[1] + s.b[1]) / 2;
-    if ((s.cx - mx) * nx + (s.cy - my) * ny < 0) { nx = -nx; ny = -ny; }
-    const cp = closestPointOnSegment(x, y, s.a[0], s.a[1], s.b[0], s.b[1]);
-    const along = (x - s.a[0]) * ex / el + (y - s.a[1]) * ey / el;
-    if (along < 0 || along > el) continue;
-    const signed = (x - cp.x) * nx + (y - cp.y) * ny;
-    if (signed > 0 || signed < -band) continue;
-    if (!inWaterPoly(map, cp.x - nx * 0.6, cp.y - ny * 0.6)) continue;
-    const depth = -signed + 0.05;
-    if (!best || depth > best.depth) best = { x: cp.x, y: cp.y, nx, ny, depth };
-  }
-  return best;
 }

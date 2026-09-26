@@ -14,7 +14,7 @@ export class World {
 
     this.wanted = 0; // 0-5, any system may increase it; police.js owns decay + spawns
     this.wantedDecayTimer = 0; // police.js's own bookkeeping, other systems don't touch this
-    this.money = 0;
+    this.money = 250; // starting budget: a first pistol or a few snacks
     this.health = 100;
     this.armor = 0;
     this.weapon = 'fists';
@@ -44,7 +44,9 @@ export function requestRespawn(world, opts = {}) {
   world.addMessage(opts.busted ? 'OPGEPAKT' : 'DOOD', 3.5);
 }
 
-export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announced = false } = {}) {
+// spot: {x, y, angle?, name?} chosen by respawn.js (hospital / police
+// station); without it the player comes back at a random landmark.
+export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announced = false, spot: at = null } = {}) {
   const p = world.player;
   if (p.inVehicle) {
     const v = p.inVehicle;
@@ -60,18 +62,19 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announc
   p.z = 0;
   p.vz = 0;
   const landmarks = world.map.meta.landmarks || [];
-  const pick = landmarks.length ? landmarks[Math.floor(Math.random() * landmarks.length)] : world.spawnPoint;
-  const spot = world.map.findOpenSpawn(pick.x, pick.y, 400) || pick;
+  const pick = at || (landmarks.length ? landmarks[Math.floor(Math.random() * landmarks.length)] : world.spawnPoint);
+  const spot = at || world.map.findOpenSpawn(pick.x, pick.y, 400) || pick;
   const sx = spot.x, sy = spot.y;
   p.x = sx;
   p.y = sy;
-  if (pick.name) world.spawnLandmarkName = pick.name;
+  if (at && Number.isFinite(at.angle)) p.angle = at.angle;
+  if (pick.name && !at) world.spawnLandmarkName = pick.name;
   world.health = 100;
   world.armor = 0;
   world.wanted = 0;
   world.wantedDecayTimer = 0;
   world.money = Math.max(0, world.money - moneyPenalty);
   if (!announced) world.addMessage(busted ? 'OPGEPAKT' : 'DOOD', 3.5);
-  if (pick.name) world.addMessage(`Je respawnt bij ${pick.name}`, 4);
+  if (pick.name) world.addMessage(at && at.message ? at.message : `Je respawnt bij ${pick.name}`, 4);
   for (const fn of world.onRespawn) fn(world, { busted });
 }

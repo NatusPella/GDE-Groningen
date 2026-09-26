@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { createBrickDetailTexture } from './pixelart3d.js';
 import { onSettingsChange } from './settings.js';
-import { getWaterIndex } from './waterindex.js';
+import { getWaterIndex, addWaterObstacle } from './waterindex.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 
 // Canal edges built per water polygon: brick quay walls with a stone coping,
@@ -600,6 +600,8 @@ function placeHouseboats(run, wy, B, map, index, rnd) {
         [[-1, -1], [1, -1], [1, 1], [-1, 1]].every(([a, b]) => index.inWater(cx + dx * a * (L / 2 + 0.5) - n[0] * b * (W / 2 + 0.3), cz + dz * a * (L / 2 + 0.5) - n[1] * b * (W / 2 + 0.3)));
       if (ok) {
         houseboat(B('extras', cx, cz), B('glass', cx, cz), frame(cx, wy, cz, dx, dz, n[0], n[1]), L, W, rnd, wy);
+        const hl = L / 2, hw = W / 2;
+        addWaterObstacle(map, [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, w]) => [cx + dx * u * hl + n[0] * w * hw, cz + dz * u * hl + n[1] * w * hw]));
         s += L + 2 + rnd() * 5;
       } else {
         s += 4 + rnd() * 6;

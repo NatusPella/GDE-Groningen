@@ -1,7 +1,9 @@
-import { drawMapIcon, drawRoute, drawRoadRoute, getHeroCar, forEachPoliceUnit, declutter, ROUTE_COLORS, drawSearchArea, getPoliceSearch } from './hud_panel.js';
-import { getPickupsForRender } from './pickups.js';
+import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, drawSearchArea, getPoliceSearch } from './hud_panel.js';
+import { getGaragesForRender } from './garages.js';
+import { hasMinimapToggle, minimapShows, setMinimapShows } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, getShopsDecluttered, getOwnedVehiclesForRender, SHOP_TYPES } from './shops.js';
+import { getShopsForRender, getShopsDecluttered, SHOP_TYPES } from './shops.js';
+import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getStationsForRender } from './stationtravel.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
@@ -142,8 +144,9 @@ function injectStyles() {
     .mapview-btn[hidden] { display: none; }
     .mapview-btn:focus-visible { outline: 3px solid #f0ede4; outline-offset: 2px; }
     .mapview-route { margin-left: auto; font-size: 16px; color: #f0ede4; white-space: nowrap; }
-    .mapview-route .user { color: #f0ede4; }
-    .mapview-route .mission { color: #e8c93a; }
+    .mapview-route .user { color: ${ROUTE_COLORS.user}; }
+    .mapview-route .mission { color: ${ROUTE_COLORS.mission}; }
+    .mapview-route .job { color: ${ROUTE_COLORS.job}; }
     .mapview-footer {
       padding: 6px 14px;
       font: 13px 'Arial Narrow', Arial, sans-serif;
@@ -208,6 +211,21 @@ function injectStyles() {
     .mapview-legend .all button { background: none; border: 0; padding: 0; font: inherit; color: #3fc97a; cursor: pointer; text-decoration: underline; }
     .mapview-legend .all button:focus-visible { outline: 2px solid #f0ede4; }
     .mapview-legend canvas { width: 24px; height: 24px; flex: 0 0 24px; }
+    .mapview-legend .mm, .mapview-legend .mm-demo {
+      margin-left: auto; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; box-sizing: border-box;
+      border-radius: 50%; border: 2px solid rgba(240, 237, 228, 0.45); background: transparent; cursor: pointer;
+      position: relative;
+    }
+    .mapview-legend .mm-demo { display: inline-block; vertical-align: -3px; margin: 0 1px; border-color: #3fc97a; cursor: default; }
+    .mapview-legend .mm::after, .mapview-legend .mm-demo::after {
+      content: ''; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
+      background: rgba(240, 237, 228, 0.35);
+    }
+    .mapview-legend .mm[aria-pressed="true"] { border-color: #3fc97a; }
+    .mapview-legend .mm[aria-pressed="true"]::after, .mapview-legend .mm-demo::after { background: #3fc97a; }
+    .mapview-legend .mm:hover { border-color: #f0ede4; }
+    .mapview-legend .mm:focus-visible { outline: 2px solid #f0ede4; outline-offset: 1px; }
+    .mapview-legend .mm + .chk { margin-left: 6px; }
     .mapview-legend .note { color: rgba(240, 237, 228, 0.55); font-size: 12px; }
     @media (max-width: 900px) { .mapview-footer { display: none; } }
     @media (max-width: 700px) { .mapview-legend { display: none; } .mapview-title { display: none; } }
@@ -804,22 +822,9 @@ function drawDynamicMarkers(ctx, world) {
     if (name) hover.push({ sx, sy, name, sub });
   };
 
-  const route = getActiveRoute();
-  if (route && layerOn('route')) {
-    const ahead = getRouteAhead(Infinity);
-    if (ahead && ahead.length > 1) {
-      drawRoadRoute(ctx, [[world.player.x, world.player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind], z >= NEAR_ZOOM ? 5 : 4);
-    }
-  }
+  if (layerOn('route')) drawFullRoute(ctx, world, t);
 
-  const p = getPickupsForRender();
-  if (z >= MID_ZOOM) {
-    for (const m of p.money) icon('money', 'money', m.x, m.y, 'Geld');
-    for (const w of p.weapons) icon('weapon', 'weapon', w.x, w.y, 'Wapen');
-  }
-  for (const g of p.garages) icon('garage', 'garage', g.x, g.y, g.name ? `Garage ${g.name}` : 'Garage');
-  if (p.health) icon('health', 'health', p.health.x, p.health.y, 'Gezondheid');
-  if (p.armor) icon('armor', 'armor', p.armor.x, p.armor.y, 'Kogelwerend vest');
+  for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name ? `Garage ${g.name}` : 'Garage');
 
   const m = world.mission;
   const job = world.sideJob && world.sideJob.active ? world.sideJob : null;
@@ -837,9 +842,7 @@ function drawDynamicMarkers(ctx, world) {
       m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten');
   }
 
-  const hero = getHeroCar(world);
-  if (hero && world.player.inVehicle !== hero) icon('car', 'car', hero.x, hero.y, 'Jouw auto');
-  for (const o of getOwnedVehiclesForRender()) if (world.player.inVehicle !== o.v) icon('car', 'car', o.v.x, o.v.y, 'Jouw ' + o.label);
+  for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });
   for (const sh of getShopsDecluttered(z >= NEAR_ZOOM ? 1 : 26 / state.scale)) icon(SHOP_TYPES[sh.type].group, 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label);
   for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif');
   for (const sj of getSideJobSpotsForRender()) icon('bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, 'Bijbaantje: ' + sj.job.blurb.toLowerCase());
@@ -856,10 +859,55 @@ function drawDynamicMarkers(ctx, world) {
   if (world.wanted > 0) forEachPoliceUnit(world, (x, y) => icon('police', 'police', x, y, 'Politie'));
 
   const wp = getUserWaypoint();
-  if (wp && layerOn('userWaypoint')) icon(null, 'userWaypoint', wp.x, wp.y, 'Bestemming', {}, wp.name ? `${wp.name} · klik om te wissen` : 'klik om te wissen');
+  if (wp && layerOn('userWaypoint')) icon(null, 'userWaypoint', wp.x, wp.y, 'Bestemming', {}, wp.name ? `${wp.name} · klik of rechtsklik om te wissen` : 'klik of rechtsklik om te wissen');
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
   state.dynHover = hover;
+}
+
+// GTA-style GPS line over the whole route, thick enough to read at every
+// zoom level; without a road route (boat, off the network) a dashed line
+// points straight at the destination instead.
+function drawFullRoute(ctx, world, t) {
+  const route = getActiveRoute();
+  if (!route) return;
+  const color = ROUTE_COLORS[route.kind] || ROUTE_COLORS.user;
+  const width = Math.max(4, Math.min(9, 3 + state.zoom * 0.7));
+  const ahead = getRouteAhead(Infinity);
+  if (ahead && ahead.length > 1) {
+    const pts = [[world.player.x, world.player.y], ...ahead].map(([x, y]) => toScreen(x, y));
+    drawRoadRoute(ctx, pts, color, width);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.setLineDash([2, 14]);
+    ctx.lineDashOffset = -t * 18;
+    ctx.lineWidth = Math.max(1.5, width * 0.35);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+  const tg = route.target;
+  if (!tg) return;
+  const [ax, ay] = toScreen(world.player.x, world.player.y);
+  const [bx, by] = toScreen(tg.x, tg.y);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(bx, by);
+  ctx.setLineDash([8, 7]);
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(12, 20, 14, 0.8)';
+  ctx.stroke();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.restore();
 }
 
 function niceScale(maxPx) {
@@ -1141,7 +1189,6 @@ function handleKeys(dt, world) {
     updateTransform();
   }
   if (input.wasPressed(' ')) centreOn(world.player.x, world.player.y, 3);
-  if (input.wasPressed('delete') || input.wasPressed('backspace')) clearUserWaypoint();
 }
 
 // --- lifecycle --------------------------------------------------------------
@@ -1151,17 +1198,13 @@ const LEGEND = [
   { kind: 'userWaypoint', label: 'Jouw bestemming', layer: 'userWaypoint' },
   { kind: 'route', label: 'Route', layer: 'route' },
   { kind: 'companion', label: 'Maat', layer: 'companion' },
-  { kind: 'car', label: 'Jouw auto', layer: 'car' },
+  { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, brommer, boot', layer: 'car' },
   { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
-  { kind: 'money', label: 'Geld', layer: 'money' },
-  { kind: 'weapon', label: 'Wapen', layer: 'weapon' },
-  { kind: 'health', label: 'Gezondheid', layer: 'health' },
-  { kind: 'armor', label: 'Kogelwerend vest', layer: 'armor' },
-  { kind: 'garage', label: 'Garage', layer: 'garage' },
+  { kind: 'garage', label: 'Garage', note: 'Spuit & Klaar: heel, gezond, geen sterren', layer: 'garage' },
   { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
-  { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks', layer: 'shops' },
+  { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks (eten = gezondheid)', layer: 'shops' },
   { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten', layer: 'shopsVoertuigen' },
-  { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', layer: 'shopsWapens' },
+  { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', note: 'wapens, munitie en vesten', layer: 'shopsWapens' },
   { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },
   { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
   { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },
@@ -1220,6 +1263,21 @@ function buildLegend(root) {
       li.tabIndex = 0;
       li.setAttribute('aria-checked', String(layerOn(row.layer)));
       li.title = 'Klik om aan/uit te zetten';
+      if (hasMinimapToggle(row.layer)) {
+        const mm = document.createElement('button');
+        mm.type = 'button';
+        mm.className = 'mm';
+        mm.title = 'Ook op de minimap (alleen dichtbij)';
+        mm.setAttribute('aria-label', `${row.label} op de minimap`);
+        mm.setAttribute('aria-pressed', String(minimapShows(row.layer)));
+        mm.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const on = !minimapShows(row.layer);
+          setMinimapShows(row.layer, on);
+          mm.setAttribute('aria-pressed', String(on));
+        });
+        li.appendChild(mm);
+      }
       const box = document.createElement('span');
       box.className = 'chk';
       box.setAttribute('aria-hidden', 'true');
@@ -1232,7 +1290,7 @@ function buildLegend(root) {
       };
       li.addEventListener('click', toggle);
       li.addEventListener('keydown', (e) => {
-        if (e.key !== 'Enter' && e.key !== ' ') return;
+        if (e.target !== li || (e.key !== 'Enter' && e.key !== ' ')) return;
         e.preventDefault();
         e.stopPropagation();
         toggle();
@@ -1240,7 +1298,7 @@ function buildLegend(root) {
     }
     list.appendChild(li);
   }
-  root.innerHTML = '<h3>LEGENDA</h3><p class="hint">Vink aan wat je op de kaart wilt zien</p>' +
+  root.innerHTML = '<h3>LEGENDA</h3><p class="hint">Vink aan wat je op de kaart wilt zien. <span class="mm-demo" aria-hidden="true"></span> = ook op de minimap</p>' +
     '<p class="all"><button type="button" data-all="1">Alles aan</button> · <button type="button" data-all="0">Alles uit</button></p>';
   for (const b of root.querySelectorAll('[data-all]')) {
     b.addEventListener('click', () => {
@@ -1281,8 +1339,8 @@ function updateHeader() {
   state.clearBtn.hidden = !wp;
   let html = '';
   if (route) {
-    const label = route.kind === 'user' ? 'Bestemming' : 'Missie';
-    html = `<span class="${route.kind === 'user' ? 'user' : 'mission'}">${label}: ${formatDistance(route.remaining)}</span>`;
+    const label = route.kind === 'user' ? 'Bestemming' : route.kind === 'job' ? 'Klus' : 'Missie';
+    html = `<span class="${route.kind}">${label}: ${formatDistance(route.remaining)}</span>`;
   }
   if (html !== state.routeHtml) {
     state.routeHtml = html;
@@ -1327,7 +1385,7 @@ export function initMapView(world) {
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" data-act="in" aria-label="Inzoomen">+</button><button type="button" data-act="out" aria-label="Uitzoomen">−</button></div>' +
     '<div class="mapview-tooltip"></div><aside class="mapview-legend"></aside></div>' +
-    '<div class="mapview-footer"><b>Klik</b> bestemming zetten/wissen · <b>Shift+klik</b> teleporteren · ' +
+    '<div class="mapview-footer"><b>Klik</b> bestemming zetten · <b>Rechtsklik</b> wissen · <b>Shift+klik</b> teleporteren · ' +
     '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> bestemming wissen · <b>Q / E</b> tabblad · <b>M / Esc</b> sluiten</div>';
   document.body.appendChild(overlay);
 
@@ -1451,6 +1509,7 @@ export function initMapView(world) {
   };
   window.addEventListener('blur', endDrag);
   document.addEventListener('visibilitychange', () => { if (document.hidden) endDrag(); });
+  // capture phase: the pause menu stops mouseup from bubbling to window
   window.addEventListener('mouseup', (e) => {
     const d = state.drag;
     if (!d || e.button !== 0) return;
@@ -1459,6 +1518,13 @@ export function initMapView(world) {
       const [sx, sy] = canvasPos(e);
       handleClick(world, sx, sy, e.shiftKey);
     }
+  }, true);
+  cv.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    if (!state.open || !getUserWaypoint()) return;
+    clearUserWaypoint();
+    const [sx, sy] = canvasPos(e);
+    updateTooltip(sx, sy);
   });
   cv.addEventListener('mouseleave', () => { state.tooltip.style.display = 'none'; });
   cv.addEventListener('wheel', (e) => {
@@ -1472,6 +1538,11 @@ export function initMapView(world) {
 
   window.addEventListener('keydown', (e) => {
     if (!state.open || e.target === si) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      clearUserWaypoint();
+      return;
+    }
     const zin = e.key === '+' || e.key === '=' || e.code === 'NumpadAdd';
     const zout = e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract';
     if (!zin && !zout) return;

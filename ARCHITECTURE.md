@@ -36,7 +36,7 @@ frame then runs, in order:
 3. Traffic lights and traffic AI, boat AI
 4. Police, vehicle–vehicle collisions, vehicles in water
 5. Combat and bullets, pedestrians, wildlife, sky props
-6. Missions, Sikkom feed, phone feed, pickups, horeca, flitspalen
+6. Missions, Sikkom feed, phone feed, garages, horeca, shops, flitspalen
 7. Audio, weather
 8. `update3D` (renders), `updateHud`
 9. `input.endFrame()`
@@ -53,9 +53,9 @@ frame then runs, in order:
 | Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water) |
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js`, `police.js` |
-| Game systems | `missions.js`, `pickups.js`, `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
+| Game systems | `missions.js`, `garages.js` (Spuit & Klaar drive-ins), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), one `sidejob_*.js` per job |
-| UI | `hud_panel.js` + `.css`, `mapview.js`, `phonefeed.js`, `sikkomfeed.js` |
+| UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (which categories also show on the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
 | Audio | `audio.js` (G-Music, voicelines, synthesised effects) |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 

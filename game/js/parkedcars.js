@@ -70,7 +70,7 @@ function onOtherRoad(map, own, x, y) {
 
 // Footprint (plus a walkway behind it) free of facades, water, other roads
 // and trees.
-function slotFits(map, road, x, y, angle, m, outX, outY) {
+export function slotFits(map, road, x, y, angle, m, outX, outY) {
   const c = Math.cos(angle), s = Math.sin(angle);
   const hl = m.len / 2 + 0.3, hw = m.wid / 2 + 0.2;
   for (const [lx, ly] of [[hl, hw], [hl, -hw], [-hl, hw], [-hl, -hw], [0, 0]]) {
@@ -127,7 +127,7 @@ function* genCell(world, st, gx, gy) {
 
 // Street clutter (bike racks, lamp posts, bins...) streams in with its own
 // cells, so this is checked at spawn and again while the car stands there.
-function propBlocked(x, y, angle, m) {
+export function propBlocked(x, y, angle, m) {
   const c = Math.cos(angle), s = Math.sin(angle);
   for (const p of propsInRadius(x, y, m.len / 2 + 0.8)) {
     const dx = p.x - x, dy = p.y - y;

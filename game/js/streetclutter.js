@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { GeoBuilder, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
 import { isInsideBuilding, isOnRoad } from './pedestrians.js';
 import { isInWater, closestPointOnSegment } from './util.js';
-import { railingOffset, railingOpening } from './bridgerails.js';
+import { railingItems, hasRailings, RAIL_KIND, RAIL_HALF } from './bridgerails.js';
 
 // Groningen street clutter for cityprops' per-cell meshes: bikes against
 // facades and bridge railings, kliko's, underground waste containers,
@@ -26,6 +26,8 @@ export const CLUTTER_PROPS = {
   stoepbord: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 },
   kiosk: { r: 1.15, half: 0.25, h: 2.7, mass: 2500, material: 'wood', breakSpeed: 99, breakCost: 0 },
   nietje: { r: 0.08, half: 0.35, h: 0.75, mass: 25, material: 'metal', breakSpeed: 3, breakCost: 0.4 },
+  // a bridge railing section: holds walkers and slow cars, a fast car knocks it off
+  bridgerail: { r: 0.12, half: 1, h: 1.05, mass: 70, material: 'metal', breakSpeed: 6, breakCost: 1.2 },
 };
 
 // --- atlas ------------------------------------------------------------------
@@ -659,36 +661,23 @@ export function generateClutter(ctx) {
   const nearRoad = roads.length > 0;
   if (!nearRoad) return;
 
-  // Bridges: railings with bikes locked to them.
+  // Bridges: railings with bikes locked to them. The sections come from
+  // bridgerails.js, which also builds their walker collision.
   for (const r of roads) {
-    if (!r.bridge || r.z || r.pts.length < 2) continue;
-    const off = railingOffset(r);
+    if (!hasRailings(r)) continue;
     const bikesOk = hasSidewalk(r) || r.cat === 'foot' || r.cat === 'cycle';
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const a = r.pts[i], b = r.pts[i + 1];
-      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      if (len < 2) continue;
-      const segA = Math.atan2(b[1] - a[1], b[0] - a[0]);
-      const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len;
-      const n = Math.floor(len / 2);
-      const t0 = (len - n * 2) / 2;
-      for (const side of [1, -1]) {
-        const nx = -ty * side, ny = tx * side;
-        for (let k = 0; k < n; k++) {
-          const t = t0 + 1 + k * 2;
-          const x = a[0] + tx * t + nx * off, y = a[1] + ty * t + ny * off;
-          if (x < cx0 || x >= cx0 + CELL || y < cy0 || y >= cy0 + CELL) continue;
-          if (isInsideBuilding(map, x, y) || railingOpening(map, r, x, y)) continue;
-          items.push(item(P.railing, null, x, y, segA));
-          if (!bikesOk || rng.next() > (inner ? 0.55 : mid ? 0.3 : 0.1)) continue;
-          const cnt = 1 + Math.floor(rng.next() * 3);
-          for (let j = 0; j < cnt; j++) {
-            const s = -0.7 + j * 0.7 + rng.range(-0.1, 0.1);
-            const bx = x + tx * s - nx * 0.4, by = y + ty * s - ny * 0.4;
-            const ba = segA + (rng.next() < 0.5 ? 0 : Math.PI) + rng.range(-0.05, 0.05);
-            items.push(bikeItem(rng, bx, by, ba, leanTilt(ba, nx, ny, 0.2 + rng.range(0, 0.07)), true));
-          }
-        }
+    for (const it of railingItems(map, r)) {
+      const { x, y, angle: segA, tx, ty } = it;
+      if (x < cx0 || x >= cx0 + CELL || y < cy0 || y >= cy0 + CELL) continue;
+      items.push(item(P.railing, RAIL_KIND, x, y, segA, { half: RAIL_HALF }));
+      if (!bikesOk || rng.next() > (inner ? 0.55 : mid ? 0.3 : 0.1)) continue;
+      const nx = -ty * it.side, ny = tx * it.side;
+      const cnt = 1 + Math.floor(rng.next() * 3);
+      for (let j = 0; j < cnt; j++) {
+        const s = -0.7 + j * 0.7 + rng.range(-0.1, 0.1);
+        const bx = x + tx * s - nx * 0.4, by = y + ty * s - ny * 0.4;
+        const ba = segA + (rng.next() < 0.5 ? 0 : Math.PI) + rng.range(-0.05, 0.05);
+        items.push(bikeItem(rng, bx, by, ba, leanTilt(ba, nx, ny, 0.2 + rng.range(0, 0.07)), true));
       }
     }
   }

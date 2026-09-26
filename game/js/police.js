@@ -390,8 +390,8 @@ function trySpawnPoliceBoat(world, state) {
   if (!polys.length) return;
   const poly = polys[Math.floor(Math.random() * polys.length)];
   state.nextBoatSpawnAt = world.time + BOAT_SPAWN_STAGGER;
-  const boat = spawnPoliceBoatOnWater(world.map, poly, Math.random);
-  if (!boat) return;
+  const boat = spawnPoliceBoatOnWater(world.map, poly, Math.random, { near: [world.player.x, world.player.y], min: BOAT_SPAWN_MIN_DIST, max: BOAT_SPAWN_MAX_DIST, budget: 3 });
+  if (!boat) { state.nextBoatSpawnAt = world.time + 0.5; return; }
   const d = Math.hypot(boat.x - world.player.x, boat.y - world.player.y);
   if (d < BOAT_SPAWN_MIN_DIST || !spawnSpotHidden(world, boat.x, boat.y, boat.angle, 2)) { state.nextBoatSpawnAt = world.time + 0.5; return; }
   world.vehicles.push(boat);

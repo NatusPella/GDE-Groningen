@@ -1,3 +1,4 @@
+import { waterClearance } from './waterindex.js';
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const lerp = (a, b, t) => a + (b - a) * t;
 export const dist = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
@@ -38,7 +39,7 @@ export function pointInPolygon(px, py, poly) {
   return inside;
 }
 
-// On-foot water test shared by player/companion/peds/pickups. The polygon
+// On-foot water test shared by player/companion/peds. The polygon
 // test runs first because map.isOnBridge scans nearby roads and is only
 // needed to veto a hit.
 // z (absolute height, optional): below the canal in an aqueduct is dry.
@@ -70,15 +71,52 @@ export function inWaterPoly(map, x, y) {
   return false;
 }
 
-// how many of a boat's five hull probes are not on water at (x, y, angle)
+// Hull probes (bow, stern, both beams, the quarters, the centre) in boat-local
+// metres; a probe counts as dry when it has less than BOAT_EDGE_CLEAR of free
+// water around it (quay walls, banks, moored houseboats).
+export const BOAT_EDGE_CLEAR = 1.0;
+function hullProbes(v) {
+  const h = (v.model.len || 4) * 0.5, bw = (v.model.wid || 1.6) * 0.5;
+  return [[0, 0], [h, 0], [-h, 0], [0, bw], [0, -bw], [h * 0.6, bw], [h * 0.6, -bw], [-h * 0.6, bw], [-h * 0.6, -bw]];
+}
+
+// how many hull probes are too close to the shore at (x, y, angle)
 export function boatDryPoints(map, v, x, y, angle) {
-  const h = (v.model.len || 4) * 0.45, bw = (v.model.wid || 1.6) * 0.45;
   const c = Math.cos(angle), s = Math.sin(angle);
   let dry = 0;
-  for (const [lx, ly] of [[0, 0], [h, 0], [-h, 0], [0, bw], [0, -bw]]) {
-    if (!inWaterPoly(map, x + lx * c - ly * s, y + lx * s + ly * c)) dry++;
+  for (const [lx, ly] of hullProbes(v)) {
+    if (waterClearance(map, x + lx * c - ly * s, y + lx * s + ly * c, BOAT_EDGE_CLEAR + 0.5) < BOAT_EDGE_CLEAR) dry++;
   }
   return dry;
+}
+
+// how far the hull reaches into the clearance band, summed over the probes:
+// compare before/after a move to let a boat that already touches back off
+// while refusing any move that pushes it further in
+export function boatShoreDepth(map, v, x, y, angle) {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  let depth = 0;
+  for (const [lx, ly] of hullProbes(v)) {
+    const d = waterClearance(map, x + lx * c - ly * s, y + lx * s + ly * c, BOAT_EDGE_CLEAR + 0.5);
+    if (d < BOAT_EDGE_CLEAR) depth += BOAT_EDGE_CLEAR - Math.max(d, -2);
+  }
+  return depth;
+}
+
+// After a boat moved from (px, py, pa) to its current pose: keep the move when
+// it doesn't push the hull further into the shore band, otherwise slide
+// (keep only the part of the move along the wall), else undo it. Returns
+// false when the boat was stopped.
+export function keepBoatOffShore(map, v, px, py, pa) {
+  const before = boatShoreDepth(map, v, px, py, pa);
+  const ok = (x, y, a) => { const d = boatShoreDepth(map, v, x, y, a); return d < 1e-3 || d <= before + 1e-4; };
+  const nx = v.x, ny = v.y, na = v.angle;
+  if (ok(nx, ny, na)) return true;
+  for (const [x, y, a] of [[nx, py, na], [px, ny, na], [nx, py, pa], [px, ny, pa], [px, py, na]]) {
+    if (ok(x, y, a)) { v.x = x; v.y = y; v.angle = a; v.speed *= 0.92; return x !== px || y !== py; }
+  }
+  v.x = px; v.y = py; v.angle = pa;
+  return false;
 }
 
 export function polygonBounds(poly) {
