@@ -188,15 +188,20 @@ a director:
   migrates pre-0.5 saves). It publishes `world.storyGuide` (routing.js uses
   it after the player's own waypoint, a side job and an active mission),
   sends the step's phone line, pays a one-time voorschot when the player is
-  short for a required purchase, waits for the night at a garage, offers
+  short for a required purchase, switches who you play (`step.player`:
+  Tammo and Anita trade roles behind a short fade; there is no free switch)
+  and waits for the night at a garage, offers
   "Sla deze missie over" (O, or the pause menu Missies tab) after a failed
   mission and for any activity, and saves under `story` in the savegame.
   `missions.js` reports back through `setMissionHooks` (passed, failed,
   gated, waived requirements).
 - Missions: requirements (`requires`: weapon, bike, car, heist, night,
   boat; also an array) gate the start. Type `stages` builds a mission from
-  small objectives (board, goto, hold, garage, escape, pigeon, scene); the
-  Kop's new missions H2, H4 and H6 use it. Dialogue for every mission index
+  small objectives (board, goto, hold, garage, escape, pigeon, scene, chase,
+  vault; documented above `resolveTarget`); the new missions H2, H4, H6, H8
+  and H10 use it. `storyprops3d.js` holds temporary story props (H10's
+  flag), `missionstory.js` `playVaultScene` Jelle's fierljep escape, and
+  `racers.js` puts Jelle's trekker-limo in the ring race (`opts.jelle`). Dialogue for every mission index
   is in `missionstory.js` (`STORY`); full lines play once all story missions
   before it are done.
 - Debug: `missionDebug` (missions.js) and `window.__story` (story.js: jump,
@@ -206,12 +211,16 @@ a director:
   saves a screenshot per `[storytest-capture]` console line and writes the
   `[storytest-done]` report.
 
-Adding a part (e.g. the Romp): add new mission defs at the end of
+After the last built step `world.storyFreePlay` is set and routing.js no
+longer routes to idle missions by itself.
+
+Adding a part (e.g. the Staart): add new mission defs at the end of
 `buildDefs` in missions.js and their ids at the end of `MISSION_IDS`, add
 their dialogue at the same index in `missionstory.js` `STORY`, fill in
 `mission` and `built: true` on the steps in `STEPS` (activities too; new goal
-types go in `GOALS` in story.js), set `PARTS.romp.open = true`, then run
-`--story-test`.
+types go in `GOALS` in story.js), set `PARTS.<part>.open = true`, then run
+`--story-test` (it plays every open step, checks who plays each one and
+ends at the last open part's card).
 
 ## Car banter
 

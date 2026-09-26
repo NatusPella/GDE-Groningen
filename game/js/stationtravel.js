@@ -41,6 +41,7 @@ let world = null;
 let stations = [];
 let fadeEl = null;
 let trip = null;
+let tripsDone = 0;
 let iconUrl = null;
 
 const shortName = (n) => n.replace(/^Groningen\s+/, '');
@@ -508,6 +509,7 @@ function arrive(w) {
   Object.assign(t, { c: last.to.s, v: 0, state: 'dwell', target: idx, timer: 14, dir: idx === 0 ? 1 : idx === stops.length - 1 ? -1 : dir });
   placeTrain(t);
   trip = null;
+  tripsDone++;
   if (fadeEl) fadeEl.style.opacity = '0';
 
   const p = w.player;
@@ -543,6 +545,11 @@ function arrive(w) {
   recordStat(w, 'trainTrips');
   w.addMessage(`Aangekomen in ${to.name}. Reistijd ${info.minutes} minuten, €${info.price} armer.`, 4);
   saveGame(w, { toast: false });
+}
+
+// Train trips finished this session (story.js: the "onderduiken" step).
+export function getTrainTripCount() {
+  return tripsDone;
 }
 
 export function isTrainTripActive() {

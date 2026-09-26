@@ -85,6 +85,7 @@ const foods = [];
 let foodTimer = 2;
 let gull = null;
 let gullCd = 0;
+let gullDiveHits = 0;
 const flock = [];
 let flockScatterT = 0;
 let loft = null;
@@ -1121,6 +1122,24 @@ function spawnGull() {
   world.addMessage('Een meeuw! Hij wil je patat!', 3);
 }
 
+// Story missions (H10): a gull that dives at the pigeon whether it carries
+// food or not. A hit knocks the pigeon off course.
+export function summonDiveGull(text = 'Een meeuw duikt op je af!') {
+  if (!active || gull || !scene) return false;
+  const mesh = buildBird('gull');
+  scene.add(mesh);
+  const a = P.yaw + Math.PI + (Math.random() - 0.5) * 1.6;
+  const bx = P.x + Math.cos(a) * 34, by = P.y + Math.sin(a) * 34;
+  gull = { x: bx, y: by, z: P.z + 14, vx: 0, vy: 0, vz: 0, mesh, t: 0, state: 'dive', flap: 0, loot: null };
+  sfx('caw', bx, by, 1);
+  world.addMessage(text, 2.5);
+  return true;
+}
+
+export function getGullDiveHits() {
+  return gullDiveHits;
+}
+
 function updateGull(dt) {
   gullCd -= dt;
   if (!gull) {
@@ -1130,7 +1149,20 @@ function updateGull(dt) {
   const g = gull;
   g.t += dt;
   let tx, ty, tz, spd;
-  if (g.state === 'chase') {
+  if (g.state === 'dive') {
+    tx = P.x; ty = P.y; tz = P.z + 0.2;
+    spd = 13.5;
+    const d = Math.hypot(tx - g.x, ty - g.y, tz - g.z);
+    if (d < 1.6) {
+      bonk();
+      P.z = Math.max(surfaceAt(P.x, P.y, false).h + 2, P.z - 6);
+      gullDiveHits++;
+      g.state = 'leave';
+      g.t = 0;
+      sfx('caw', g.x, g.y, 1);
+      world.addMessage('Boink! Die meeuw spreekt Fries.', 2);
+    } else if (g.t > 9) { g.state = 'leave'; g.t = 0; addScore(15, 'Meeuw ontweken'); }
+  } else if (g.state === 'chase') {
     if (!P.carry) { g.state = 'leave'; g.t = 0; }
     tx = P.x + Math.cos(P.yaw) * (P.mode === 'fly' ? 1.5 : 0);
     ty = P.y + Math.sin(P.yaw) * (P.mode === 'fly' ? 1.5 : 0);

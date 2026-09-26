@@ -73,7 +73,6 @@ Security or Windows SmartScreen.
 | Mouse wheel | next / previous weapon | – |
 | Mouse | orbit the camera around your character; push it low to look up at the rooftops | orbit around the car; eases back behind it after ~1.7 s (up to ~4.5 s at speed) |
 | Q or middle mouse (hold) | – | look back |
-| C | switch between Tammo and Anita | swap seats |
 | M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; one legend checkbox per category shows or hides it on both the map and the minimap (destination, route and police are always shown) | |
 | U | sound on/off | |
 | F11 / Alt+Enter | desktop app: fullscreen on/off (Mac also Ctrl+Cmd+F) | |
@@ -88,10 +87,11 @@ Security or Windows SmartScreen.
 - **Life**: traffic (cars, buses, bikes, scooters, boats), pedestrians,
   seagulls/cows/sheep, weather with storms, helicopters and balloons.
 - **Gameplay**: driving and on-foot movement, combat, wanted level with
-  police cars, foot cops, boats and a helicopter, 11 missions in a guided
-  story ("Alles voor één eierbal": the Kop is playable, Romp and Staart
-  follow; the route always points to the next step, and after a failed
-  mission you can skip it with O or from the pause menu), shops (weapons,
+  police cars, foot cops, boats and a helicopter, 13 missions in a guided
+  story ("Alles voor één eierbal": the Kop and the Romp are playable, the
+  Staart follows; the story decides whether you play Tammo or Anita, the
+  route always points to the next step, and after a failed mission you can
+  skip it with O or from the pause menu), shops (weapons,
   armour and food are bought, not found on the street; you start with €250),
   Sikkom news feed and phone notifications. Duif-modus as an in-game
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,
