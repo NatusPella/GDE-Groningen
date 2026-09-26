@@ -158,7 +158,6 @@ const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
-const garageMeshes = new Map();
 const kissMeshes = new Map();
 // Kiss heart: a camera-facing sprite from a canvas heart (bezier outline,
 // glossy gradient, white rim), so it reads as a heart from every angle.
@@ -2161,7 +2160,7 @@ function queueWarmup(world) {
     ped, () => buildPersonActor(0x1f3f8f, 0xd9aa82, { seed: 5 }),
     critter('seagull'), critter('duck', { variant: 'drake' }), critter('pigeon'), critter('cat'), critter('dog'), critter('cow'), critter('sheep'),
     buildVehicleImpactSparkMesh3D, buildVehicleFireMesh3D, buildVehicleExplosionMesh3D, buildSplashMesh3D, buildKissHeartMesh,
-    buildPoliceHeliMesh3D, buildMissionMarker3D, buildWaypointDotMesh3D, buildGarageMesh3D,
+    buildPoliceHeliMesh3D, buildMissionMarker3D, buildWaypointDotMesh3D,
   ];
 }
 
