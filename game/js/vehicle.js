@@ -1869,7 +1869,7 @@ export function explodeVehicle(v, world) {
   }
   const p = world.player;
   const pd = Math.hypot(v.x - p.x, v.y - p.y);
-  if (pd < 60) world.lastImpact = { strength: clamp(1.25 - pd / 45, 0.15, 1), time: world.time, x: v.x, y: v.y };
+  if (pd < 60) world.lastImpact = { strength: clamp(1.25 - pd / 45, 0.15, 1), time: world.time, x: v.x, y: v.y, blast: true, own: !!v.wreckedByPlayer || v.driver === 'player' || v === world.player.inVehicle || !!v.playerOwned };
   world.lastBlast = { x: v.x, y: v.y, z: v.z || 0, time: world.time };
 }
 
