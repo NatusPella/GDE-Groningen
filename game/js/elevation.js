@@ -443,9 +443,25 @@ function buildWalls(elev, map) {
         // a dip of under a metre needs no retaining wall
         const cut = zr < -1.0;
         const raise = zr > 1.2;
-        if (!cut && !raise) continue;
+        if (!cut && !raise) {
+          // a shallow ramp beside the deep cutting it leads into: a parapet on its edge
+          if (s.rail || s.covered || surfaceOf(elev, mx, my, s.r, zr, 1.0)) continue;
+          const zo = sunkenNeighbourZ(elev, mx + nx * 1.2, my + ny * 1.2, s.r);
+          if (zo === null || zo > zr - 1.0) continue;
+          const par = {
+            ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
+            bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
+            nx: -nx, ny: -ny, za: s.za + (s.zb - s.za) * t0, zb: s.za + (s.zb - s.za) * t1, z: zr,
+            kind: 'cut', seg: s, low: true, fence: false, covered: false, parapet: true, top: zr + BARRIER_H,
+          };
+          walls.push(par);
+          elev.wallGrid.insert(par, Math.min(par.ax, par.bx) - 2, Math.min(par.ay, par.by) - 2, Math.max(par.ax, par.bx) + 2, Math.max(par.ay, par.by) + 2);
+          continue;
+        }
         const joined = s.rail ? surfaceOf(elev, mx, my, s.r, zr, 1.2, true)
-          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 1.2) || (Math.abs(zr) < 1.6 && onFlatRoad(map, mx, my));
+          // (a crash barrier that would stand on the asphalt of a ramp alongside
+          // it, even a couple of metres lower, is left out)
+          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 2.5) || (Math.abs(zr) < (cut ? 1.6 : 2.5) && onFlatRoad(map, mx, my));
         const piece = {
           ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
           bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
@@ -461,17 +477,18 @@ function buildWalls(elev, map) {
           piece.top = s.covered ? roofTopAt(elev, mx, my) : 0;
           if (!s.covered && !joined) {
             // beside another sunken road (a ramp climbing out of the cutting
-            // next to the main carriageway) the wall only rises to that road;
-            // the lower of the two builds it
+            // next to the main carriageway) the lower road's wall only rises
+            // to the other one, which gets a parapet instead of a fence
             const zo = sunkenNeighbourZ(elev, mx + nx * 1.2, my + ny * 1.2, s.r);
             if (zo !== null) {
               piece.fence = false;
               if (zo > zr + 0.5) piece.top = zo;
+              else if (zo < zr - 0.5) { piece.top = zr + BARRIER_H; piece.parapet = true; }
               else piece.low = false;
             }
           }
         }
-        if (raise && s.pieces) {
+        if (raise && s.pieces && !joined) {
           const fp = s.pieces[Math.min(s.pieces.length - 1, k * s.pieces.length / n | 0)];
           if (fp && fp.retain[side > 0 ? 0 : 1]) {
             // abutment: nothing from below gets into the embankment
@@ -494,6 +511,7 @@ function buildWalls(elev, map) {
 // Returns +1 (must stay on the road side), -1 (must stay outside) or 0.
 function wallSide(w, z) {
   if (w.kind === 'retain') return z < w.z - 1.2 ? -1 : 0;
+  if (w.parapet) return z > w.z - 0.6 && z < w.z + 3 ? 1 : 0;
   if (w.kind === 'cut') {
     if (z < w.top - RAISED) return w.low && z > w.z - 2 ? 1 : 0;
     return w.fence ? -1 : 0;
