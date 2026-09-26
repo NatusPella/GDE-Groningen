@@ -2,7 +2,7 @@
 // subscribe with onSettingsChange() to apply changes live.
 
 const STORAGE_KEY = 'gte-settings';
-const SETTINGS_VERSION = 2;
+const SETTINGS_VERSION = 3;
 
 export const QUALITY_PRESETS = {
   laag: { pixelRatio: 1, shadows: false, shadowMapSize: 1024 },
@@ -13,7 +13,9 @@ export const QUALITY_PRESETS = {
 const DEFAULTS = {
   masterVolume: 1,
   musicVolume: 1,
-  sfxVolume: 1,
+  sfxVolume: 0.75,
+  voiceVolume: 1,
+  brightness: 1,
   quality: 'hoog',
   shadows: true,
   fov: 64,
@@ -38,7 +40,10 @@ function load() {
     if (!QUALITY_PRESETS[out.quality]) out.quality = DEFAULTS.quality;
     // v2 made the long view distance the default; older saves stored the
     // previous default without the player ever choosing it
-    if (raw.v !== SETTINGS_VERSION) out.drawDistance = DEFAULTS.drawDistance;
+    if ((raw.v || 0) < 2) out.drawDistance = DEFAULTS.drawDistance;
+    // v3 split off voices and turned effects down so the music carries;
+    // an untouched old 100% effects slider moves to the new default
+    if ((raw.v || 0) < 3 && out.sfxVolume === 1) out.sfxVolume = DEFAULTS.sfxVolume;
     return out;
   } catch (e) {
     return { ...DEFAULTS };

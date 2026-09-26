@@ -8,6 +8,7 @@ import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/amb
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
+import { createScenarioDirector, loopPoints } from './scenariomusic.js';
 
 const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
@@ -18,8 +19,17 @@ const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
-const GMUSIC_VOLUME = 0.5;
-const GMUSIC_DUCK_VOLUME = 0.33;
+const GMUSIC_VOLUME = 0.85;
+const GMUSIC_DUCK_VOLUME = 0.5;
+// Instrumental loops that replace G-Music while something big happens
+// (scenariomusic.js decides which); not part of the radio rotation.
+const SCENARIO_TRACKS = {
+  race: './audio/scenario/Burnout_Threshold.mp3',
+  chase: './audio/scenario/Redline_Ascent.mp3',
+};
+const SCENARIO_VOLUME = 0.8;
+const SCENARIO_FADE_IN = 1.5; // s
+const SCENARIO_FADE_OUT = 2.2; // s
 const SIREN_LOW_FREQ = 440;
 const SIREN_HIGH_FREQ = 587;
 const SIREN_HOLD_MIN = 0.5;
@@ -82,6 +92,7 @@ let ctx = null;
 let master = null;
 let sfxBus = null;
 let worldBus = null;
+let voiceBus = null;
 let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
@@ -198,6 +209,7 @@ onSettingsChange((st) => {
   if (master && !muted) master.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
   if (musicOut && !muted) musicOut.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
   if (worldBus) worldBus.gain.setTargetAtTime(st.sfxVolume, ctx.currentTime, 0.05);
+  if (voiceBus) voiceBus.gain.setTargetAtTime(st.voiceVolume, ctx.currentTime, 0.05);
 });
 
 export function isMuted() {
@@ -877,10 +889,8 @@ function playMissionJingle() {
   notes.forEach((f, i) => playTone({ freq: f, type: 'triangle', duration: 0.16, gain: 0.24, delay: i * 0.09 }));
 }
 
-// One-shot playback for the pre-recorded voicelines/jingles above - routed
-// through sfxBus (not its own bus) since these are conceptually just
-// another kind of one-shot sound effect, same as every playX() above,
-// just sourced from a real audio file instead of a synthesized oscillator.
+// One-shot playback for the pre-recorded voicelines above - routed through
+// voiceBus, so the Stemmen slider sets them apart from the effects.
 // A missing/unplayable file (network hiccup, or an asymmetric-script key
 // with no recording for this character) fails silently, never throws.
 // pos = {x, y} places the clip in the world; omitted = plain stereo.
@@ -894,10 +904,10 @@ function playClip(src, pos = null) {
     if (pos) {
       const panner = makePanner({ ref: 4, rolloff: 1.2 });
       setPannerPos(panner, pos.x, pos.y, pos.h ?? 1.6);
-      node.connect(panner).connect(sfxBus);
+      node.connect(panner).connect(voiceBus);
       nodes.push(panner);
     } else {
-      node.connect(sfxBus);
+      node.connect(voiceBus);
     }
   } catch (e) {
     // ignore - playback still works without the Web Audio graph attached
@@ -946,7 +956,7 @@ function playNpcSpokenClip(src, pos) {
 }
 
 // Mission story cutscene dialogue: one line at a time, straight into the
-// world bus (no reverb). While a story scene runs, the generic mission
+// voice bus. While a story scene runs, the generic mission
 // voicelines stay quiet so they don't talk over it.
 let storyScene = false;
 let storyVoice = null;
@@ -970,7 +980,7 @@ export function playStoryVoice(src) {
   const v = { el: new Audio(src), node: null };
   try {
     v.node = ctx.createMediaElementSource(v.el);
-    v.node.connect(worldBus);
+    v.node.connect(voiceBus);
   } catch (e) {
     // ignore - plays without the Web Audio graph
   }
@@ -1074,7 +1084,8 @@ async function loadGMusicManifest() {
     gmusicTracks = tracks.map((filename) => {
       const el = wireGmusicEl(new Audio('./audio/gmusic/' + filename));
       el.preload = 'auto';
-      el.gmusicTitle = filename.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+      const raw = filename.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+      el.gmusicTitle = GMUSIC_TITLES[raw] || raw;
       return el;
     });
   } catch (e) {
@@ -1100,12 +1111,46 @@ let gmusicStarted = false;
 let gmusicFadingIn = false;
 let gmusicPendingSince = null;
 let gmusicSuspended = false;
+// G-Music paused (position kept) while a scenario track plays
+let gmusicHeld = false;
 let gmusicRetryAt = 0;
 let gmusicRetryDelay = GMUSIC_RETRY_MIN;
 let gmusicAnnounceOnPlay = false;
 // Set once a genuine track (not a jingle) is actually playing; updateGMusic
 // flushes it into a HUD toast since it runs every frame with `world` in scope.
 let pendingTrackAnnounce = null;
+
+// Made-up Grunneger acts for the G-Music playlist; tracks without a named
+// act get one picked from their title.
+const GMUSIC_ARTISTS = {
+  'Onder de Martinitoren': "Lil' Eierbal",
+  'Hart van Beton': 'MC Moi Moi',
+  'Ivoren Toren in Helpman': 'De Helpman Hustlers',
+  'Staal op staal': 'Sjonnie Sikkom & de Ringweg Crew',
+  'Vismarkt Sprint': 'DJ Kapsalon Kees',
+  'Trouw aan het blok': 'Paddepoel Posse',
+  'Perfectie kent geen grens': 'Young Kruudmoes',
+  'De Geest van Oosterpark': 'Spookie Stadjer',
+  'Goudgeld op de oprit': 'Rijke Riekus',
+  'Suikerbuiken in de nacht': 'DJ Suikerbiet',
+  "Oosterpark is m'n droom": 'Stadjer Supreme',
+  'Staal en suiker': 'Beton Bert & de Bietenbende',
+  'Wie stoan nait stil': 'De Nait Soezen Crew',
+  'Kleur in de Wind': 'Windkracht Wiebke',
+};
+// file names can't carry every character of a title
+const GMUSIC_TITLES = {
+  'De Geest Van Oosterpark': 'De Geest van Oosterpark',
+  'Oosterpark is m n droom': "Oosterpark is m'n droom",
+};
+const GMUSIC_SPARE_ARTISTS = ['Oma Trijntje & de Stadjers', 'Grunn Gang', 'Lord Stoepkrijt', 'De Diepenring Boys', 'Tante Tjoedie', 'Big Bommen Berend'];
+
+export function trackArtist(title) {
+  if (GMUSIC_ARTISTS[title]) return GMUSIC_ARTISTS[title];
+  let h = 0;
+  for (const c of String(title)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return GMUSIC_SPARE_ARTISTS[h % GMUSIC_SPARE_ARTISTS.length];
+}
 
 function wireGmusicEl(el) {
   try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
@@ -1158,7 +1203,7 @@ function onGmusicPlaying(e) {
 
 function playGmusicCurrent() {
   const el = gmusicCurrentEl;
-  if (!el || el.gmusicPlayInFlight || gmusicSuspended) return;
+  if (!el || el.gmusicPlayInFlight || gmusicSuspended || gmusicHeld) return;
   el.gmusicPlayInFlight = true;
   el.play().then(() => {
     el.gmusicPlayInFlight = false;
@@ -1278,6 +1323,11 @@ function buildGraph() {
   worldBus.gain.value = getSettings().sfxVolume;
   worldBus.connect(master);
 
+  // spoken lines skip the effects slider but share the master soft-clip
+  voiceBus = ctx.createGain();
+  voiceBus.gain.value = getSettings().voiceVolume;
+  voiceBus.connect(master);
+
   sfxBus = ctx.createGain();
   sfxBus.gain.value = 0.9;
   sfxBus.connect(worldBus);
@@ -1316,6 +1366,9 @@ function buildGraph() {
 
   reverb = buildReverb();
   sfxBus.connect(reverb.send);
+  const voiceSend = ctx.createGain();
+  voiceSend.gain.value = 0.3;
+  voiceBus.connect(voiceSend).connect(reverb.send);
   const ambSend = ctx.createGain();
   ambSend.gain.value = 0.5;
   ambBus.connect(ambSend).connect(reverb.send);
@@ -2089,25 +2142,109 @@ function updateGMusic(dt, world) {
     // Resume-only safety net (autoplay block, media-key pause, tab switch);
     // a broken file is skipped, an ended one is left to its 'ended' event.
     const el = gmusicCurrentEl;
-    if (el && el.paused && !el.ended && !el.gmusicPlayInFlight && !gmusicSuspended && nowSec() >= gmusicRetryAt) {
+    if (el && el.paused && !el.ended && !el.gmusicPlayInFlight && !gmusicSuspended && !gmusicHeld && nowSec() >= gmusicRetryAt) {
       if (el.error) advanceGmusicQueue();
       else playGmusicCurrent();
     }
   }
 
   if (pendingTrackAnnounce) {
-    world.addMessage('🎵 Nu op G-Music: ' + pendingTrackAnnounce, 4);
+    world.nowPlaying = { title: pendingTrackAnnounce, artist: trackArtist(pendingTrackAnnounce), at: world.time };
     pendingTrackAnnounce = null;
   }
 
+  const scene = updateScenarioMusic(dt, world);
+
   // Only spoken lines (voicelines, story dialogue) dip the music, gently;
-  // vehicles, sirens and stings never touch it.
+  // vehicles, sirens and stings never touch it. A scenario track fades
+  // G-Music out and pauses it; it resumes where it was afterwards.
   const ducked = ctx.currentTime < duckState.musicUntil;
-  const targetGain = ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
-  const lerpRate = gmusicFadingIn ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
+  const targetGain = scene ? 0 : ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
+  const lerpRate = scene ? dt * 1.8 : gmusicFadingIn || gmusicHeld ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
   musicBus.gain.value = musicState.gain * getSettings().musicVolume;
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
+  if (scene && !gmusicHeld && musicState.gain < 0.02) {
+    gmusicHeld = true;
+    if (gmusicCurrentEl && !gmusicCurrentEl.paused) gmusicCurrentEl.pause();
+  } else if (!scene && gmusicHeld) {
+    gmusicHeld = false;
+    gmusicRetryAt = 0;
+    playGmusicCurrent();
+  }
+}
+
+// --- scenario music -------------------------------------------------------
+
+const scenarioDirector = createScenarioDirector();
+const scenarioBuffers = {};
+let scenarioVol = null;
+let scenarioNow = null; // { key, src, fade }
+
+function loadScenarioBuffer(key) {
+  if (scenarioBuffers[key]) return;
+  scenarioBuffers[key] = { loading: true };
+  fetch(SCENARIO_TRACKS[key])
+    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))))
+    .then((data) => ctx.decodeAudioData(data))
+    .then((buf) => {
+      const chans = [];
+      for (let c = 0; c < buf.numberOfChannels; c++) chans.push(buf.getChannelData(c));
+      scenarioBuffers[key] = { buf, loop: loopPoints(chans, buf.sampleRate) };
+    })
+    .catch((e) => { scenarioBuffers[key] = { failed: true }; console.warn('scenario music', key, e); });
+}
+
+function stopScenarioTrack() {
+  const s = scenarioNow;
+  scenarioNow = null;
+  if (!s) return;
+  const t = ctx.currentTime;
+  s.fade.gain.cancelScheduledValues(t);
+  s.fade.gain.setValueAtTime(s.fade.gain.value, t);
+  s.fade.gain.linearRampToValueAtTime(0, t + SCENARIO_FADE_OUT);
+  try { s.src.stop(t + SCENARIO_FADE_OUT + 0.05); } catch (e) { /* already stopped */ }
+  s.src.onended = () => s.fade.disconnect();
+}
+
+function startScenarioTrack(key) {
+  const entry = scenarioBuffers[key];
+  if (!entry || !entry.buf) return false;
+  if (!scenarioVol) {
+    scenarioVol = ctx.createGain();
+    scenarioVol.connect(musicOut);
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = entry.buf;
+  src.loop = true;
+  src.loopStart = entry.loop.start;
+  src.loopEnd = entry.loop.end;
+  const fade = ctx.createGain();
+  const t = ctx.currentTime;
+  fade.gain.setValueAtTime(0, t);
+  fade.gain.linearRampToValueAtTime(1, t + SCENARIO_FADE_IN);
+  src.connect(fade).connect(scenarioVol);
+  src.start(t, entry.loop.start);
+  scenarioNow = { key, src, fade };
+  return true;
+}
+
+// Returns the scenario key while one is (starting to) play, else null.
+function updateScenarioMusic(dt, world) {
+  const m = world.mission;
+  const race = !!(m && m.phase === 'active' && m.raceMusic);
+  const chasing = world.wanted > 0 && !(world.police && world.police.searching) && !world.pendingRespawn;
+  let want = scenarioDirector.update(dt, { race, chasing });
+  if (want) loadScenarioBuffer(want);
+  const cur = scenarioNow ? scenarioNow.key : null;
+  if (want !== cur) {
+    // switch once the new loop is decoded; until then the old one keeps going
+    if (!want) stopScenarioTrack();
+    else if (scenarioBuffers[want].buf) { stopScenarioTrack(); startScenarioTrack(want); }
+    else if (scenarioBuffers[want].failed) want = null;
+  }
+  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * getSettings().musicVolume;
+  return want && scenarioBuffers[want] && !scenarioBuffers[want].failed ? want : null;
 }
 
 let lastDeathAt = -Infinity;
@@ -2173,7 +2310,7 @@ export function updateAudio(dt, world) {
   }
 
   if (world.wanted > 0 && prev.wanted === 0) {
-    enqueueGmusicJingle('hoge_wanted');
+    if (!scenarioNow) enqueueGmusicJingle('hoge_wanted');
     chaseBarkDeadline = world.time + CHASE_BARK_WAIT;
   }
   updateChaseBark(world);
