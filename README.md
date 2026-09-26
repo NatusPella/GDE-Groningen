@@ -58,6 +58,7 @@ Security or Windows SmartScreen.
 | C | switch between Tammo and Anita | swap seats |
 | M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; the legend picks what shows on the map and (dot) the minimap | |
 | U | sound on/off | |
+| F11 / Alt+Enter | desktop app: fullscreen on/off (Mac also Ctrl+Cmd+F) | |
 | X | as a pigeon: turn back into Tammo/Anita where you are | |
 
 ## What's in it

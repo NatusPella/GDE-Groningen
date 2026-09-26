@@ -9,6 +9,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Nieuw
 - **Wat is er nieuw** in het hoofdmenu: de volledige changelog van alle
   versies, gewoon over de stad heen.
+- Wisselen tussen volledig scherm en venster met **Alt+Enter** of **F11**
+  (op de Mac ook Ctrl+Cmd+F).
 
 ## [0.3.0] - 2026-09-26
 

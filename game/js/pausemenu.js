@@ -117,7 +117,7 @@ export function initPauseMenu(w) {
               ${Object.keys(QUALITY_PRESETS).map((q) => `<option value="${q}">${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}
             </select>
           </label>
-          ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm</span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
+          ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm <small style="opacity:0.6">(F11 of Alt+Enter)</small></span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
           ${toggle('shadows', 'Schaduwen')}
           <label class="pm-row"><span>Zichtafstand</span>
             <select data-setting="drawDistance">
