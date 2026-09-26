@@ -2137,17 +2137,49 @@ function scanForPrewarm(root, variant, hidden = false) {
 function queuePrewarm(o, variant) {
   if (o.isLight) { o.layers.enable(PREWARM_LAYER); return; }
   const tag = variant ? '_pwOn' : '_pwOff';
-  if (!o.material || o[tag] === o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite) || (o.isSkinnedMesh && !o.skeleton)) return;
+  const cast = !!o.castShadow;
+  if (!o.material || (o[tag] === o.material && o[tag + 'S'] === cast) || !(o.isMesh || o.isPoints || o.isLine || o.isSprite) || (o.isSkinnedMesh && !o.skeleton)) return;
   o[tag] = o.material;
+  o[tag + 'S'] = cast;
   const done = prewarmed[variant];
   const kind = prewarmKind(o);
   for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
     if (!m) continue;
     const key = m.id + '.' + m.version + '|' + kind + (o.receiveShadow ? 'r' : '');
-    if (done.has(key)) continue;
-    done.add(key);
-    prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
+    if (!done.has(key)) {
+      done.add(key);
+      prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
+    }
+    if (o.castShadow && !o.customDepthMaterial && (o.isMesh || o.isLine || o.isPoints)) {
+      const dm = shadowDepthStandIn(m);
+      const dkey = 'D' + dm.id + '|' + kind + (o.receiveShadow ? 'r' : '');
+      if (done.has(dkey)) continue;
+      done.add(dkey);
+      prewarmQueue.push({ proxy: makePrewarmProxy(o, dm), variant });
+    }
   }
+}
+
+// The shadow pass draws casters with three's shared depth material, whose
+// program also depends on the light counts - so the night rig switching on
+// at dusk used to link every depth program in-frame. A stand-in with the
+// same program parameters (as WebGLShadowMap.getDepthMaterial sets them for
+// PCF shadows) lets the warm-up above compile them for both rig variants.
+const _shadowSides = { [THREE.FrontSide]: THREE.BackSide, [THREE.BackSide]: THREE.FrontSide, [THREE.DoubleSide]: THREE.DoubleSide };
+const shadowDepthMats = new Map();
+function shadowDepthStandIn(m) {
+  const side = m.shadowSide != null ? m.shadowSide : _shadowSides[m.side];
+  const map = m.map || null;
+  const k = side + '|' + (map ? map.id : 0) + '|' + (m.alphaMap ? m.alphaMap.id : 0) + '|' + (m.alphaTest > 0 ? 1 : 0)
+    + '|' + (m.displacementMap && m.displacementScale !== 0 ? m.displacementMap.id : 0) + '|' + (m.wireframe ? 1 : 0);
+  let d = shadowDepthMats.get(k);
+  if (!d) {
+    d = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side, map, alphaMap: m.alphaMap || null, alphaTest: m.alphaTest, wireframe: !!m.wireframe });
+    if (m.displacementMap && m.displacementScale !== 0) Object.assign(d, { displacementMap: m.displacementMap, displacementScale: m.displacementScale, displacementBias: m.displacementBias });
+    d.userData.shared = true;
+    shadowDepthMats.set(k, d);
+  }
+  return d;
 }
 
 function withLightRig(on, fn) {
