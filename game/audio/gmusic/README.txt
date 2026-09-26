@@ -10,7 +10,7 @@ manifest.json onder "tracks", bijvoorbeeld:
 Afspelen (js/audio.js):
 - G-Music speelt altijd, te voet en in een voertuig. Bij de start "stem je
   in" halverwege een willekeurig nummer (of soms een jingle), met een fade-in.
-- Daarna steeds: jingle, 2 nummers, jingle, 2 nummers, ...
+- Daarna steeds: jingle, nummer, jingle, nummer, ...
 - Nummers worden geshuffeld (shuffle-bag): elk nummer komt één keer langs
   voordat de lijst opnieuw wordt geschud, en nooit twee keer direct achter
   elkaar. De volgorde in manifest.json maakt dus niet uit.

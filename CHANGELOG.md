@@ -11,6 +11,7 @@ nieuwe functies, `y` voor alleen bugfixes.
   versies, gewoon over de stad heen.
 - Wisselen tussen volledig scherm en venster met **Alt+Enter** of **F11**
   (op de Mac ook Ctrl+Cmd+F).
+- G-Music speelt nu na elk nummer een jingle.
 
 ## [0.3.0] - 2026-09-26
 
