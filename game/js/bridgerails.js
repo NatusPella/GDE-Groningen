@@ -14,6 +14,7 @@ const OPENING_PAD = 0.4;
 const REACH = 1;
 export const RAIL_KIND = 'bridgerail';
 export const RAIL_HALF = 1;
+export const RAIL_H = 1.05;
 
 export function railingOffset(r) {
   return r.cat === 'major' || r.cat === 'normal' ? (r.width || 6) / 2 + 1.7 : (r.width || 3) / 2 + 0.08;
@@ -121,7 +122,9 @@ function railsNear(map, x, y) {
 }
 
 // Walkers: an intact railing is a thin wall, the circle stays on its side.
-export function resolveRailings(x, y, radius, map) {
+// hop: feet height of a jumping walker; high enough clears the railing.
+export function resolveRailings(x, y, radius, map, hop = 0) {
+  if (hop > RAIL_H - 0.15) return [x, y];
   const list = railsNear(map, x, y);
   if (!list) return [x, y];
   for (const s of list) {
@@ -140,4 +143,26 @@ export function resolveRailings(x, y, radius, map) {
     y = cp.y + oy * radius;
   }
   return [x, y];
+}
+
+// First intact railing a walker at (x, y) heading along unit (dx, dy) meets
+// within `reach`: { dist, h } or null. Used for vaulting over it.
+export function railingAhead(map, x, y, dx, dy, reach) {
+  let best = null;
+  for (const [qx, qy] of [[x, y], [x + dx * reach, y + dy * reach]]) {
+    const list = railsNear(map, qx, qy);
+    if (!list) continue;
+    for (const s of list) {
+      if (isPropBroken(s.k1) || isPropBroken(s.k2)) continue;
+      const ex = s.b[0] - s.a[0], ey = s.b[1] - s.a[1];
+      const den = dx * ey - dy * ex;
+      if (Math.abs(den) < 1e-6) continue;
+      const wx = s.a[0] - x, wy = s.a[1] - y;
+      const t = (wx * ey - wy * ex) / den;
+      const u = (wx * dy - wy * dx) / den;
+      if (t < 0 || t > reach || u < 0 || u > 1) continue;
+      if (!best || t < best.dist) best = { dist: t, h: RAIL_H, depth: 0.1 };
+    }
+  }
+  return best;
 }

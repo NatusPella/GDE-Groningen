@@ -562,6 +562,69 @@ def('spray', 1.4, (c, sr, R) => { for (let k = 0; k < 6; k++) click(c[0], sr, R,
 def('cashreg', 0.9, (c, sr, R) => { addNoiseBurst(c[0], sr, 0, R, { f: 2500, q: 1, tau: 0.05, amp: 0.7 }); click(c[0], sr, R, 0.03, 2000, 0.5); addPartials(c[0], sr, 0.08, 2093, [[1, 1, 0.6], [2.4, 0.4, 0.3], [4.1, 0.2, 0.15]], 0.9, R); });
 def('rack', 0.55, (c, sr, R) => { click(c[0], sr, R, 0, 1900, 1); thump(c[0], sr, 0, 160, 0.03, 0.6); addNoiseBurst(c[0], sr, 0.08, R, { f: 1500, q: 1.2, tau: 0.04, amp: 0.4, attack: 0.02 }); click(c[0], sr, R, 0.2, 2400, 0.9); });
 
+// Gunshots: a supersonic crack, the chamber's mid-range bark, a chest-deep
+// thump and the street throwing it back. Each variant gets its own seed.
+function gunshot({ crack = 1, bark = 1, barkF = 1100, low = 1, lowF = 70, tail = 1, tailT = 0.22, mech = 0.4 }) {
+  return (chs, sr, R) => {
+    const d = chs[0];
+    addNoiseBurst(d, sr, 0, R, { type: 'hp', f: 4200, q: 0.7, tau: 0.0025, amp: 1.4 * crack });
+    addNoiseBurst(d, sr, 0, R, { type: 'hp', f: 2200, q: 0.7, tau: 0.009, amp: 0.9 * crack });
+    addNoiseBurst(d, sr, 0.0008, R, { f: barkF * (0.9 + R() * 0.2), q: 0.8, tau: 0.028, amp: 1.2 * bark });
+    addNoiseBurst(d, sr, 0.001, R, { type: 'lp', f: 900, q: 0.7, tau: 0.05, amp: 1.1 * low });
+    thump(d, sr, 0, lowF * (0.92 + R() * 0.16), 0.08, 1.3 * low);
+    addNoiseBurst(d, sr, 0.012, R, { type: 'lp', f: 1600, q: 0.6, tau: tailT, amp: 0.3 * tail, attack: 0.01, len: tailT * 5 });
+    if (mech) click(d, sr, R, 0.05 + R() * 0.02, 3200, 0.25 * mech);
+  };
+}
+for (let v = 0; v < 3; v++) def(`gun_pistol_${v}`, 1.0, gunshot({}));
+for (let v = 0; v < 3; v++) def(`gun_uzi_${v}`, 0.45, gunshot({ crack: 1.1, bark: 0.8, barkF: 1500, low: 0.55, lowF: 95, tail: 0.5, tailT: 0.08, mech: 0.2 }));
+for (let v = 0; v < 2; v++) def(`gun_shotgun_${v}`, 1.5, gunshot({ crack: 0.9, bark: 1.3, barkF: 700, low: 1.6, lowF: 52, tail: 1.6, tailT: 0.32, mech: 0 }));
+// slap-back off the facades of a street canyon
+def('gun_echo', 1.6, (c, sr, R) => {
+  const d = c[0];
+  let t = 0.07 + R() * 0.03, a = 0.55;
+  for (let k = 0; k < 7; k++) {
+    addNoiseBurst(d, sr, t, R, { type: 'lp', f: 2600 - k * 280, q: 0.6, tau: 0.03 + k * 0.012, amp: a, attack: 0.003 });
+    thump(d, sr, t, 60, 0.05, a * 0.5);
+    t += 0.08 + R() * 0.09;
+    a *= 0.62;
+  }
+  addNoiseBurst(d, sr, 0.1, R, { type: 'lp', f: 700, q: 0.6, tau: 0.4, amp: 0.25, attack: 0.05, len: 1.4 });
+}, { rate: 22050 });
+
+// Bullet impacts per surface.
+for (let v = 0; v < 3; v++) def(`imp_stone_${v}`, 0.35, (c, sr, R) => {
+  const d = c[0];
+  addNoiseBurst(d, sr, 0, R, { type: 'hp', f: 2500, q: 0.7, tau: 0.004, amp: 1 });
+  addNoiseBurst(d, sr, 0, R, { f: 1800 + R() * 900, q: 1.2, tau: 0.018, amp: 0.9 });
+  thump(d, sr, 0, 140, 0.02, 0.4);
+  for (let k = 0; k < 7; k++) addNoiseBurst(d, sr, 0.02 + R() * 0.2, R, { f: 2500 + R() * 3500, q: 3, tau: 0.004, amp: 0.25 + R() * 0.25 });
+});
+for (let v = 0; v < 3; v++) def(`imp_metal_${v}`, 0.6, (c, sr, R) => {
+  const d = c[0], b = 1400 + R() * 1400;
+  addNoiseBurst(d, sr, 0, R, { type: 'hp', f: 3500, q: 0.7, tau: 0.003, amp: 1 });
+  addPartials(d, sr, 0.001, b, [[1, 1, 0.12], [2.41, 0.6, 0.08], [3.93, 0.4, 0.05], [5.2, 0.25, 0.03]], 0.8, R);
+  thump(d, sr, 0, 180, 0.015, 0.3);
+});
+def('imp_dirt', 0.3, (c, sr, R) => {
+  const d = c[0];
+  thump(d, sr, 0, 90, 0.03, 0.7);
+  addNoiseBurst(d, sr, 0, R, { type: 'lp', f: 1100, q: 0.7, tau: 0.03, amp: 1 });
+  for (let k = 0; k < 5; k++) addNoiseBurst(d, sr, 0.03 + R() * 0.15, R, { type: 'lp', f: 1800, q: 0.8, tau: 0.006, amp: 0.3 });
+});
+def('imp_wood', 0.35, (c, sr, R) => {
+  const d = c[0];
+  addNoiseBurst(d, sr, 0, R, { f: 650 + R() * 200, q: 5, tau: 0.03, amp: 1.4 });
+  addNoiseBurst(d, sr, 0, R, { type: 'hp', f: 2000, q: 0.7, tau: 0.005, amp: 0.8 });
+  for (let k = 0; k < 6; k++) addNoiseBurst(d, sr, 0.01 + R() * 0.12, R, { f: 1800 + R() * 2500, q: 4, tau: 0.005, amp: 0.3 });
+});
+def('imp_water', 0.5, (c, sr, R) => {
+  const d = c[0];
+  addNoiseBurst(d, sr, 0, R, { type: 'hp', f: 1500, q: 0.7, tau: 0.02, amp: 0.7 });
+  addTone(d, sr, 0.01, 0.12, R, { f0: 900 + R() * 300, f1: 300, amp: 0.5, attack: 0.003, release: 0.04 });
+  for (let k = 0; k < 4; k++) addTone(d, sr, 0.06 + R() * 0.2, 0.05, R, { f0: 600 + R() * 500, f1: 1200, amp: 0.2, attack: 0.003, release: 0.02 });
+});
+
 def('prop_wood', 0.6, (c, sr, R) => {
   const d = c[0];
   addNoiseBurst(d, sr, 0, R, { f: 1800, q: 0.8, tau: 0.01, amp: 1 });

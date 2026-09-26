@@ -1,0 +1,478 @@
+[
+ {
+  "file": "bezorger/intro_0.mp3",
+  "speaker": "Planner Hap & Rap",
+  "cast": "bezorger",
+  "text": "Moi! Welkom bij Hap & Rap. De e-fatbike staat voor je klaar, de thermobox zit erop.",
+  "tag": "cheerful, welcoming",
+  "voice": "Zephyr",
+  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+ },
+ {
+  "file": "bezorger/intro_1.mp3",
+  "speaker": "Planner Hap & Rap",
+  "cast": "bezorger",
+  "text": "Ophalen bij de zaak, bezorgen voor het eten koud is. Warm eten is fooi, lauw eten is een klacht.",
+  "tag": "businesslike, fast",
+  "voice": "Zephyr",
+  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+ },
+ {
+  "file": "bezorger/intro_2.mp3",
+  "speaker": "Planner Hap & Rap",
+  "cast": "bezorger",
+  "text": "En let op de wind. In Grunn heb je altijd tegenwind. Ook als je omdraait.",
+  "tag": "laughing, teasing",
+  "voice": "Zephyr",
+  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+ },
+ {
+  "file": "taxi/intro_0.mp3",
+  "speaker": "Centrale Grunn Taxi",
+  "cast": "taxi",
+  "text": "Centrale hier. Je taxi staat klaar voor het station, daklampje en al.",
+  "tag": "bored, matter-of-fact",
+  "voice": "Orus",
+  "who": "Groningse centralist over de portofoon, laconiek",
+  "radio": true
+ },
+ {
+  "file": "taxi/intro_1.mp3",
+  "speaker": "Centrale Grunn Taxi",
+  "cast": "taxi",
+  "text": "Stop naast de klant, laat ze instappen en breng ze heel naar hun adres. Rustig rijden levert fooi op.",
+  "tag": "instructive, calm",
+  "voice": "Orus",
+  "who": "Groningse centralist over de portofoon, laconiek",
+  "radio": true
+ },
+ {
+  "file": "taxi/intro_2.mp3",
+  "speaker": "Centrale Grunn Taxi",
+  "cast": "taxi",
+  "text": "En studenten na het stappen: bochten netjes. De vorige chauffeur rijdt nog steeds met de ramen open.",
+  "tag": "amused, gossiping",
+  "voice": "Orus",
+  "who": "Groningse centralist over de portofoon, laconiek",
+  "radio": true
+ },
+ {
+  "file": "bus/intro_0.mp3",
+  "speaker": "Planner Stadsvervoer",
+  "cast": "bus",
+  "text": "Moi! Lijn 3 heeft vandaag geen chauffeur, dus jij mag. Twaalf meter harmonicabus, ga er maar aan staan.",
+  "tag": "enthusiastic, a bit nervous",
+  "voice": "Achird",
+  "who": "Groningse man, stipt en een beetje pedant"
+ },
+ {
+  "file": "bus/intro_1.mp3",
+  "speaker": "Planner Stadsvervoer",
+  "cast": "bus",
+  "text": "Stop bij elke halte tot de deuren weer dicht zijn. Te vroeg vertrekken is in Grunn erger dan te laat.",
+  "tag": "stern, pedantic",
+  "voice": "Achird",
+  "who": "Groningse man, stipt en een beetje pedant"
+ },
+ {
+  "file": "bus/intro_2.mp3",
+  "speaker": "Planner Stadsvervoer",
+  "cast": "bus",
+  "text": "Rustig remmen, hè. Er zitten mensen met koffie in. En mensen die koffie willen.",
+  "tag": "worried, warning",
+  "voice": "Achird",
+  "who": "Groningse man, stipt en een beetje pedant"
+ },
+ {
+  "file": "rondvaart/intro_0.mp3",
+  "speaker": "Schipper Geert",
+  "cast": "rondvaart",
+  "text": "Moi, ik ben Geert. Mijn rug doet het niet meer, dus jij bent vandaag de gids.",
+  "tag": "groaning, apologetic",
+  "voice": "Algieba",
+  "who": "oude Groningse schipper met rugpijn, bromstem"
+ },
+ {
+  "file": "rondvaart/intro_1.mp3",
+  "speaker": "Schipper Geert",
+  "cast": "rondvaart",
+  "text": "Vaar van steiger naar steiger. Bij elk mooi plekje: gas eraf, dan vertel ik het verhaal via de speaker.",
+  "tag": "explaining, warm",
+  "voice": "Algieba",
+  "who": "oude Groningse schipper met rugpijn, bromstem"
+ },
+ {
+  "file": "rondvaart/intro_2.mp3",
+  "speaker": "Schipper Geert",
+  "cast": "rondvaart",
+  "text": "Te hard langs? Dan missen ze het. En toeristen die iets missen, geven geen fooi.",
+  "tag": "grumpy, warning",
+  "voice": "Algieba",
+  "who": "oude Groningse schipper met rugpijn, bromstem"
+ },
+ {
+  "file": "fietsdepot/intro_0.mp3",
+  "speaker": "Handhaver Ria",
+  "cast": "fietsdepot",
+  "text": "Moi, ik ben Ria van de handhaving. Rond het station staan weer fietsen overal behalve in de rekken.",
+  "tag": "stern, businesslike",
+  "voice": "Kore",
+  "who": "Groningse handhaafster, streng en droog"
+ },
+ {
+  "file": "fietsdepot/intro_1.mp3",
+  "speaker": "Handhaver Ria",
+  "cast": "fietsdepot",
+  "text": "Fietsen met een oranje label mogen weg. Oppakken, naar het busje van het fietsdepot, erin. Elke fiets telt.",
+  "tag": "strict, instructive",
+  "voice": "Kore",
+  "who": "Groningse handhaafster, streng en droog"
+ },
+ {
+  "file": "fietsdepot/intro_2.mp3",
+  "speaker": "Handhaver Ria",
+  "cast": "fietsdepot",
+  "text": "Komt er een student aanrennen? Wegwezen, of je bent die fiets kwijt. En niet slaan, hè.",
+  "tag": "dry, warning",
+  "voice": "Kore",
+  "who": "Groningse handhaafster, streng en droog"
+ },
+ {
+  "file": "verhuizing/intro_0.mp3",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "cast": "verhuizing",
+  "text": "Het is KEI-week: half Nederland zoekt een kamer in Grunn en de andere helft verhuist er net uit.",
+  "tag": "harried, dramatic",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal"
+ },
+ {
+  "file": "verhuizing/intro_1.mp3",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "cast": "verhuizing",
+  "text": "Sjouw de spullen van de oude kamer naar het busje, rij voorzichtig naar het nieuwe adres en zet alles voor de deur.",
+  "tag": "fast, instructive",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal"
+ },
+ {
+  "file": "verhuizing/intro_2.mp3",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "cast": "verhuizing",
+  "text": "Elke klap in het busje kost je. Plant Henk heeft al genoeg meegemaakt.",
+  "tag": "sighing, joking",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal"
+ },
+ {
+  "file": "bezorger/greet_0.mp3",
+  "speaker": "Planner Hap & Rap",
+  "cast": "bezorger",
+  "text": "Daar ben je weer! Thermobox erop, trappen maar.",
+  "tag": "cheerful, fast",
+  "voice": "Zephyr",
+  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+ },
+ {
+  "file": "bezorger/done_0.mp3",
+  "speaker": "Planner Hap & Rap",
+  "cast": "bezorger",
+  "text": "Warm afgeleverd! Zo mag ik het zien.",
+  "tag": "delighted",
+  "voice": "Zephyr",
+  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+ },
+ {
+  "file": "bezorger/done_1.mp3",
+  "speaker": "Planner Hap & Rap",
+  "cast": "bezorger",
+  "text": "Weer een tevreden klant. En een fooi, als het goed is.",
+  "tag": "amused, playful",
+  "voice": "Zephyr",
+  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+ },
+ {
+  "file": "bezorger/fail_0.mp3",
+  "speaker": "Planner Hap & Rap",
+  "cast": "bezorger",
+  "text": "Lauw eten, boze klant. Morgen beter, hè.",
+  "tag": "disappointed sigh",
+  "voice": "Zephyr",
+  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+ },
+ {
+  "file": "bezorger/level_0.mp3",
+  "speaker": "Planner Hap & Rap",
+  "cast": "bezorger",
+  "text": "Jij bent mijn snelste fietser. Zeg het niet tegen de anderen.",
+  "tag": "conspiratorial whisper, proud",
+  "voice": "Zephyr",
+  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+ },
+ {
+  "file": "taxi/greet_0.mp3",
+  "speaker": "Centrale Grunn Taxi",
+  "cast": "taxi",
+  "text": "Centrale hier. Je taxi staat weer klaar. Rustig aan vandaag.",
+  "tag": "bored radio dispatcher",
+  "voice": "Orus",
+  "who": "Groningse centralist over de portofoon, laconiek",
+  "radio": true
+ },
+ {
+  "file": "taxi/done_0.mp3",
+  "speaker": "Centrale Grunn Taxi",
+  "cast": "taxi",
+  "text": "Centrale: klant heel afgeleverd. Keurig.",
+  "tag": "dry, approving",
+  "voice": "Orus",
+  "who": "Groningse centralist over de portofoon, laconiek",
+  "radio": true
+ },
+ {
+  "file": "taxi/done_1.mp3",
+  "speaker": "Centrale Grunn Taxi",
+  "cast": "taxi",
+  "text": "Centrale hier. Die klant gaf vijf sterren. Wat heb je gedaan?",
+  "tag": "suspicious, surprised",
+  "voice": "Orus",
+  "who": "Groningse centralist over de portofoon, laconiek",
+  "radio": true
+ },
+ {
+  "file": "taxi/fail_0.mp3",
+  "speaker": "Centrale Grunn Taxi",
+  "cast": "taxi",
+  "text": "Centrale hier. Die klant belt net. Hij is niet blij.",
+  "tag": "annoyed, weary",
+  "voice": "Orus",
+  "who": "Groningse centralist over de portofoon, laconiek",
+  "radio": true
+ },
+ {
+  "file": "taxi/level_0.mp3",
+  "speaker": "Centrale Grunn Taxi",
+  "cast": "taxi",
+  "text": "Centrale: jij krijgt voortaan de goede ritten.",
+  "tag": "grudging respect",
+  "voice": "Orus",
+  "who": "Groningse centralist over de portofoon, laconiek",
+  "radio": true
+ },
+ {
+  "file": "bus/greet_0.mp3",
+  "speaker": "Planner Stadsvervoer",
+  "cast": "bus",
+  "text": "Lijn drie wacht op je. Op tijd vertrekken, niet te vroeg.",
+  "tag": "pedantic, strict",
+  "voice": "Achird",
+  "who": "Groningse man, stipt en een beetje pedant"
+ },
+ {
+  "file": "bus/done_0.mp3",
+  "speaker": "Planner Stadsvervoer",
+  "cast": "bus",
+  "text": "Halte gehaald, op de minuut. Prachtig.",
+  "tag": "moved, satisfied",
+  "voice": "Achird",
+  "who": "Groningse man, stipt en een beetje pedant"
+ },
+ {
+  "file": "bus/done_1.mp3",
+  "speaker": "Planner Stadsvervoer",
+  "cast": "bus",
+  "text": "Niemand koffie gemorst? Dan ben je beter dan de vorige.",
+  "tag": "dry, amused",
+  "voice": "Achird",
+  "who": "Groningse man, stipt en een beetje pedant"
+ },
+ {
+  "file": "bus/fail_0.mp3",
+  "speaker": "Planner Stadsvervoer",
+  "cast": "bus",
+  "text": "Dit komt in het rapport. Met een rode pen.",
+  "tag": "cold anger",
+  "voice": "Achird",
+  "who": "Groningse man, stipt en een beetje pedant"
+ },
+ {
+  "file": "bus/level_0.mp3",
+  "speaker": "Planner Stadsvervoer",
+  "cast": "bus",
+  "text": "Zo stipt heb ik nog nooit iemand zien rijden. Ik krijg er tranen van.",
+  "tag": "emotional, voice cracking",
+  "voice": "Achird",
+  "who": "Groningse man, stipt en een beetje pedant"
+ },
+ {
+  "file": "rondvaart/greet_0.mp3",
+  "speaker": "Schipper Geert",
+  "cast": "rondvaart",
+  "text": "Ah, mijn gids. Mijn rug doet nog steeds pijn, dus jij vaart.",
+  "tag": "groaning, weary",
+  "voice": "Algieba",
+  "who": "oude Groningse schipper met rugpijn, bromstem"
+ },
+ {
+  "file": "rondvaart/done_0.mp3",
+  "speaker": "Schipper Geert",
+  "cast": "rondvaart",
+  "text": "Mooi verteld. Ze hingen aan je lippen.",
+  "tag": "warm, proud",
+  "voice": "Algieba",
+  "who": "oude Groningse schipper met rugpijn, bromstem"
+ },
+ {
+  "file": "rondvaart/done_1.mp3",
+  "speaker": "Schipper Geert",
+  "cast": "rondvaart",
+  "text": "Die toeristen gaan dit thuis nog jaren vertellen.",
+  "tag": "chuckling",
+  "voice": "Algieba",
+  "who": "oude Groningse schipper met rugpijn, bromstem"
+ },
+ {
+  "file": "rondvaart/fail_0.mp3",
+  "speaker": "Schipper Geert",
+  "cast": "rondvaart",
+  "text": "Au. Nee, niet mijn rug. Mijn boot! Wat heb je gedaan?",
+  "tag": "pained, then shocked",
+  "voice": "Algieba",
+  "who": "oude Groningse schipper met rugpijn, bromstem"
+ },
+ {
+  "file": "rondvaart/level_0.mp3",
+  "speaker": "Schipper Geert",
+  "cast": "rondvaart",
+  "text": "Jij kent het water beter dan ik. En ik vaar hier al veertig jaar.",
+  "tag": "impressed, nostalgic",
+  "voice": "Algieba",
+  "who": "oude Groningse schipper met rugpijn, bromstem"
+ },
+ {
+  "file": "fietsdepot/greet_0.mp3",
+  "speaker": "Handhaver Ria",
+  "cast": "fietsdepot",
+  "text": "Moi. Het station staat weer vol fietsen. Aan de slag.",
+  "tag": "stern, businesslike",
+  "voice": "Kore",
+  "who": "Groningse handhaafster, streng en droog"
+ },
+ {
+  "file": "fietsdepot/done_0.mp3",
+  "speaker": "Handhaver Ria",
+  "cast": "fietsdepot",
+  "text": "Weer een fiets in het busje. Het rek huilt van geluk.",
+  "tag": "deadpan",
+  "voice": "Kore",
+  "who": "Groningse handhaafster, streng en droog"
+ },
+ {
+  "file": "fietsdepot/done_1.mp3",
+  "speaker": "Handhaver Ria",
+  "cast": "fietsdepot",
+  "text": "Netjes. Die student vindt hem nooit meer terug.",
+  "tag": "smug, satisfied",
+  "voice": "Kore",
+  "who": "Groningse handhaafster, streng en droog"
+ },
+ {
+  "file": "fietsdepot/fail_0.mp3",
+  "speaker": "Handhaver Ria",
+  "cast": "fietsdepot",
+  "text": "Zo gaat dat niet. Kom maar terug als je het wel kan.",
+  "tag": "strict, disapproving",
+  "voice": "Kore",
+  "who": "Groningse handhaafster, streng en droog"
+ },
+ {
+  "file": "fietsdepot/level_0.mp3",
+  "speaker": "Handhaver Ria",
+  "cast": "fietsdepot",
+  "text": "Jij bent een natuurtalent. Je moet bij de handhaving.",
+  "tag": "impressed, almost smiling",
+  "voice": "Kore",
+  "who": "Groningse handhaafster, streng en droog"
+ },
+ {
+  "file": "verhuizing/greet_0.mp3",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "cast": "verhuizing",
+  "text": "Nog meer studenten, nog meer dozen. Sjouwen maar!",
+  "tag": "harried, jovial",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal"
+ },
+ {
+  "file": "verhuizing/done_0.mp3",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "cast": "verhuizing",
+  "text": "Alles heel aangekomen. Zelfs Plant Henk.",
+  "tag": "relieved, laughing",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal"
+ },
+ {
+  "file": "verhuizing/done_1.mp3",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "cast": "verhuizing",
+  "text": "Weer een student blij. Nou ja, blij. Hij heeft een kamer.",
+  "tag": "sarcastic",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal"
+ },
+ {
+  "file": "verhuizing/fail_0.mp3",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "cast": "verhuizing",
+  "text": "Dat was de laatste keer dat ik je de breekbare doos gaf.",
+  "tag": "exasperated",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal"
+ },
+ {
+  "file": "verhuizing/level_0.mp3",
+  "speaker": "Verhuisbedrijf Van Kamer naar Kamer",
+  "cast": "verhuizing",
+  "text": "Jij sjouwt als een beer. Een voorzichtige beer.",
+  "tag": "hearty laugh",
+  "voice": "Sadachbia",
+  "who": "gehaaste Groningse verhuizer, joviaal"
+ },
+ {
+  "file": "duo/tammo_start_0.mp3",
+  "speaker": "Tammo",
+  "cast": "Tammo",
+  "text": "Werken. Voor geld. Wat een concept.",
+  "tag": "dry, deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "duo/tammo_end_0.mp3",
+  "speaker": "Tammo",
+  "cast": "Tammo",
+  "text": "Genoeg gewerkt voor een week.",
+  "tag": "tired, deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "duo/anita_start_0.mp3",
+  "speaker": "Anita",
+  "cast": "Anita",
+  "text": "Bijbaantje! Eindelijk iets nuttigs.",
+  "tag": "enthusiastic, teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "duo/anita_end_0.mp3",
+  "speaker": "Anita",
+  "cast": "Anita",
+  "text": "Kijk ons nou, harde werkers.",
+  "tag": "proud, laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ }
+]

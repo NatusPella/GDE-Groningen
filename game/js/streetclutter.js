@@ -26,8 +26,9 @@ export const CLUTTER_PROPS = {
   stoepbord: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 },
   kiosk: { r: 1.15, half: 0.25, h: 2.7, mass: 2500, material: 'wood', breakSpeed: 99, breakCost: 0 },
   nietje: { r: 0.08, half: 0.35, h: 0.75, mass: 25, material: 'metal', breakSpeed: 3, breakCost: 0.4 },
-  // a bridge railing section: holds walkers and slow cars, a fast car knocks it off
-  bridgerail: { r: 0.12, half: 1, h: 1.05, mass: 70, material: 'metal', breakSpeed: 6, breakCost: 1.2 },
+  // a bridge railing section: holds walkers, bikes and crawling cars; a car at
+  // moderate speed, even at a shallow angle, knocks it off
+  bridgerail: { r: 0.12, half: 1, h: 1.05, mass: 70, material: 'metal', breakSpeed: 3.4, breakCost: 0.8, glance: 0.25, minBreakKg: 500 },
 };
 
 // --- atlas ------------------------------------------------------------------
