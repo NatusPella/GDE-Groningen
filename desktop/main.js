@@ -32,7 +32,7 @@ const MIME = {
 app.setName('GTE VI');
 // test runs (--stil / --smoke-test) get a throwaway profile, so they never
 // touch the player's saves, settings or achievements
-if (process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test'))) {
+if (process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test') || a.startsWith('--story-test'))) {
   // GTE_TEST_PROFILE picks another throwaway dir, so parallel test runs
   // don't block each other through the single-instance lock
   app.setPath('userData', path.join(require('os').tmpdir(), process.env.GTE_TEST_PROFILE || 'gte-vi-test-profile'));
@@ -118,8 +118,12 @@ function createWindow() {
   const silent = process.argv.includes('--stil');
   const smoke = process.argv.find((a) => a.startsWith('--smoke-test='));
   // --hitch turns on the in-game frame-time probe (js/hitchprobe.js)
-  const query = [silent && 'stil', process.argv.includes('--hitch') && 'hitch'].filter(Boolean).join('&');
+  // --dev opens the hidden story dev panel (F9), --story-test[=<dir>] runs
+  // the automated story test: screenshots per step and report.json in <dir>
+  const storyTest = process.argv.find((a) => a === '--story-test' || a.startsWith('--story-test='));
+  const query = [(silent || storyTest) && 'stil', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--dev') && 'dev', storyTest && 'storytest'].filter(Boolean).join('&');
   win.loadURL(`${SCHEME}://${HOST}/index.html${query ? '?' + query : ''}`);
+  if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gte-story-test'));
   if (smoke) {
     win.webContents.on('console-message', function (e, legacyLevel, legacyMessage) {
       const level = e.level !== undefined ? e.level : legacyLevel;
@@ -317,6 +321,30 @@ function createWindow() {
       app.quit();
     }, 14000);
   }
+}
+
+function runStoryTest(win, dir) {
+  fsSync.mkdirSync(dir, { recursive: true });
+  const done = (code) => setTimeout(() => app.exit(code), 300);
+  win.webContents.on('console-message', async (e, legacyLevel, legacyMessage) => {
+    const level = e.level !== undefined ? e.level : legacyLevel;
+    const message = String(e.message !== undefined ? e.message : legacyMessage);
+    if (message.startsWith('[storytest-capture] ')) {
+      const name = message.slice(20).trim().replace(/[^\w.-]/g, '_');
+      const img = await win.webContents.capturePage();
+      fsSync.writeFileSync(path.join(dir, name + '.png'), img.toPNG());
+    } else if (message.startsWith('[storytest-done] ')) {
+      const report = JSON.parse(message.slice(17));
+      fsSync.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(report, null, 2));
+      const img = await win.webContents.capturePage();
+      fsSync.writeFileSync(path.join(dir, 'report.png'), img.toPNG());
+      console.log(`[story-test] ${report.result}: ${report.steps.length} steps, ${report.checks.filter((c) => !c.ok).length} failed checks, report in ${dir}`);
+      for (const c of report.checks) if (!c.ok) console.log('[story-test] FAIL', c.name, c.info || '');
+      for (const err of report.errors) console.log('[story-test] error', err);
+      done(report.result === 'PASS' ? 0 : 1);
+    } else if (level === 'error' || level === 3) console.log('[renderer]', message);
+  });
+  setTimeout(() => { console.log('[story-test] timeout'); done(2); }, 15 * 60 * 1000);
 }
 
 if (!app.requestSingleInstanceLock()) {

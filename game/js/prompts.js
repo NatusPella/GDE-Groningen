@@ -377,6 +377,11 @@ function findSecondary(world, primary) {
   if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active)) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, sub: 'Loop of rij de marker in', kind: 'mission' }, 60);
   }
+  const g = world.storyGuide;
+  const onMarker = m && m.phase === 'idle' && Math.hypot(m.marker.x - g?.x, m.marker.y - g?.y) < 4;
+  if (g && !onMarker && !(m && m.phase === 'active') && !(world.sideJob && world.sideJob.active)) {
+    add({ id: 'story', x: g.x, y: g.y, h: 3.2, label: g.name, sub: 'Volgende stap in het verhaal', kind: 'mission' }, 80);
+  }
   if (!inV && learning('enter') && !primary) {
     for (const v of world.vehicles) {
       if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan E', kind: 'place' }, 40);

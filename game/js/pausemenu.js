@@ -1,6 +1,7 @@
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio } from './mapview.js';
 import { getMissionList, trackMission } from './missions.js';
+import { getStoryView, skipCurrent } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
 import { isCinematicActive } from './cinematics.js';
@@ -95,6 +96,8 @@ export function initPauseMenu(w) {
     <main class="pm-body">
       <section data-panel="map" class="pm-panel pm-map" hidden></section>
       <section data-panel="missions" class="pm-panel pm-col" hidden><div class="pm-inner">
+        <h2>Verhaal <small data-info="story"></small></h2>
+        <div class="pm-missions pm-story"></div>
         <h2>Missies <small data-info="progress"></small></h2>
         <div class="pm-missions"></div>
         <h2>Bijbaantjes <small>geld verdienen tussendoor</small></h2>
@@ -190,6 +193,11 @@ export function initPauseMenu(w) {
     if (t) return showTab(t.dataset.tab);
     const st = e.target.closest('button[data-subtab]');
     if (st) return showSubtab(st.dataset.subtab);
+    if (e.target.closest('[data-story-skip]')) {
+      if (skipCurrent()) setOpen(false);
+      else renderMissions();
+      return;
+    }
     const m = e.target.closest('[data-mission]');
     if (m) return chooseMission(Number(m.dataset.mission));
     const j = e.target.closest('[data-job]');
@@ -381,9 +389,17 @@ function renderMissions() {
     `<span class="pm-m-num">${i + 1}</span>` +
     `<span class="pm-m-text"><b>${esc(j.name)}</b><small>${esc(j.blurb)} · niveau ${j.level}: ${esc(j.title)}${j.bestStreak ? ` · record ${j.bestStreak} op rij` : ''}</small></span>` +
     `<span class="pm-m-chip">${j.active ? 'Bezig' : 'Route'}</span></button>`).join('');
-  root.querySelector('.pm-missions').innerHTML = list.map((m) =>
+  const sv = getStoryView();
+  root.querySelector('[data-info="story"]').textContent = `${sv.done}/${sv.total} stappen`;
+  root.querySelector('.pm-story').innerHTML = sv.end
+    ? `<div class="pm-mission" data-status="geklaard"><span class="pm-m-num">★</span><span class="pm-m-text"><b>Wordt vervolgd…</b><small>Het verhaal gaat verder in een volgende versie. Speel intussen alle missies opnieuw of verdien bij met een bijbaantje.</small></span></div>`
+    : `<div class="pm-mission" data-status="volgende"><span class="pm-m-num">${esc(sv.kind === 'mission' ? sv.id : '·')}</span>` +
+      `<span class="pm-m-text"><b>${esc(sv.title)}</b><small>${esc(sv.partTitle)}${sv.lead ? ' · ' + esc(sv.lead) : ''}</small></span>` +
+      `<span class="pm-m-chip">Volgende</span></div>` +
+      (sv.canSkip ? `<button type="button" class="pm-mission" data-story-skip data-status="open"><span class="pm-m-num">»</span><span class="pm-m-text"><b>${esc(sv.skipLabel)}</b><small>${sv.kind === 'mission' ? 'Je krijgt de helft van de beloning en het verhaal gaat door' : 'Handig als deze stap vastloopt: het verhaal gaat gewoon door'}</small></span><span class="pm-m-chip">Overslaan</span></button>` : '');
+  root.querySelector('.pm-missions:not(.pm-story):not(.pm-jobs)').innerHTML = [...list].sort((a, b) => a.order - b.order).map((m) =>
     `<button type="button" class="pm-mission" data-mission="${m.index}" data-status="${m.status}">` +
-    `<span class="pm-m-num">${m.index + 1}</span>` +
+    `<span class="pm-m-num">${esc(m.code || String(m.index + 1))}</span>` +
     `<span class="pm-m-text"><b>${esc(m.label)}</b><small>${TYPE_LABEL[m.type] || ''} · €${m.reward}${missionRecordHTML(m.index)}</small></span>` +
     `<span class="pm-m-chip">${m.status === 'geklaard' ? 'Opnieuw spelen' : STATUS_LABEL[m.status]}</span></button>`).join('');
 }

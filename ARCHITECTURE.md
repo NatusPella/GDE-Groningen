@@ -54,6 +54,7 @@ frame then runs, in order:
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js` |
 | Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
+| Story | `storyarc.js` (the arc as data), `story.js` (director), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js` |
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), `sidejobvoice.js` (voiced boss lines, `audio/voicelines/jobs`), one `sidejob_*.js` per job |
 | UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
@@ -140,3 +141,45 @@ don't collide, and actors are drawn at their height.
   app's `--perf-script=<file>` runs a script in the page after starting a
   game and logs its result; `console.log('[capture] name')` from it saves a
   screenshot.
+
+## Story
+
+The story "Alles voor één eierbal" (docs/verhaal-voorstel.md) is data plus
+a director:
+
+- `storyarc.js`: `STEPS`, every main mission (H1-H18) and the guided
+  activities in between, in play order, with `PARTS` (kop, romp, staart).
+  A step is available when `built` and its part is `open`; the story stops
+  at the first unavailable step and shows that part's "Wordt vervolgd" card.
+  `MISSION_IDS` maps story mission ids to `missions.js` def indices (saves
+  and medal records use those indices: only append). `computeMoneyTimeline`
+  is the worst-case money over the whole arc.
+- `story.js`: finds the current step (done = finished/skipped, a passed
+  mission, or an activity made moot by a later passed mission; that also
+  migrates pre-0.5 saves). It publishes `world.storyGuide` (routing.js uses
+  it after the player's own waypoint, a side job and an active mission),
+  sends the step's phone line, pays a one-time voorschot when the player is
+  short for a required purchase, waits for the night at a garage, offers
+  "Sla deze missie over" (O, or the pause menu Missies tab) after a failed
+  mission and for any activity, and saves under `story` in the savegame.
+  `missions.js` reports back through `setMissionHooks` (passed, failed,
+  gated, waived requirements).
+- Missions: requirements (`requires`: weapon, bike, car, heist, night,
+  boat; also an array) gate the start. Type `stages` builds a mission from
+  small objectives (board, goto, hold, garage, escape, pigeon, scene); the
+  Kop's new missions H2, H4 and H6 use it. Dialogue for every mission index
+  is in `missionstory.js` (`STORY`); full lines play once all story missions
+  before it are done.
+- Debug: `missionDebug` (missions.js) and `window.__story` (story.js: jump,
+  complete, win, lose, objective, teleport, skip, timeline). `devflags.js`
+  (imported first by main.js) redirects `gte-*` localStorage keys for `?dev`
+  (prefixed) and `?storytest` (memory). The desktop `--story-test` switch
+  saves a screenshot per `[storytest-capture]` console line and writes the
+  `[storytest-done]` report.
+
+Adding a part (e.g. the Romp): add new mission defs at the end of
+`buildDefs` in missions.js and their ids at the end of `MISSION_IDS`, add
+their dialogue at the same index in `missionstory.js` `STORY`, fill in
+`mission` and `built: true` on the steps in `STEPS` (activities too; new goal
+types go in `GOALS` in story.js), set `PARTS.romp.open = true`, then run
+`--story-test`.
