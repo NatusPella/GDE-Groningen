@@ -183,7 +183,7 @@ Eén sequentie met drie ingangen: een verborgen **benchmark**, een **attract-int
   - Bijhouden via een nieuwe instelling `attractSeen`, in dezelfde localStorage als de andere instellingen. *"Standaardinstellingen"* reset deze vlag **niet**.
   - Wordt niet getoond als er al een save bestaat (een bestaande speler na een update), en nooit bij `?stil`, `--stil`, `--smoke-test` of `--perf-test`.
   - De vlag wordt gezet zodra de cut *start*, zodat een crash of het sluiten van de app hem niet elke keer opnieuw laat afspelen.
-- **Overslaan**: elke toets, klik of controllerknop. De eerste 1,5 s wordt input genegeerd, zodat een klik die nog van het laadscherm komt niet meteen overslaat. Linksonder staat klein *"Druk op een toets om over te slaan"*. Die tekst vervaagt na 3 s en komt terug zodra je de muis beweegt.
+- **Overslaan**: net als bij alle cutscenes door de **spatiebalk even ingedrukt te houden** (ongeveer 1 s, met een vulbalkje), zodat het nooit per ongeluk gebeurt. Rechtsonder staat klein *"Houd Spatie ingedrukt om over te slaan"*.
 - **Korte cut, ~30 s, alleen wereld en features, geen verhaal**: shots 2, 3, 9, 10, 11, 13, 14, 16, 17, 20, 21 en 23 in kortere versie, met alleen de sfeer-captions (*"Grunn."*, *"Grunn slaapt nooit."*, *"Weer? Ja."*, *"Dag en nacht."*).
 - **Geen overlap met de openingsmontage van "Nieuw spel"**: die montage vertelt het *verhaal* (de automaat, de kaarten *"Tammo & Anita"* en *"Alles voor één eierbal"*, *"Welkom in Grunn"*). Daarom laat de attract-cut bewust **Tammo, Anita, de Fjord, Jelle, de pinautomaat en alle dialoog** weg. Hij eindigt ook niet met het GTE VI-logo-kaartje van de montage, maar met de start-logo-overgang hieronder. Zo zie je bij de eerste start eerst "de stad" en na *Nieuw spel* "het verhaal", zonder dat er iets dubbel voorbijkomt.
 - **Overgang naar het menu, zonder zwart beeld**:
@@ -199,7 +199,7 @@ Eén sequentie met drie ingangen: een verborgen **benchmark**, een **attract-int
 - **Anders dan de benchmark**: geen fps-teller en geen resultatenkaart. **Vaste tijdstap** (1/60 s per frame, onafhankelijk van de echte fps), zodat opnemen met OBS of een frame-dump vloeiend is, ook op een langzame machine. De app sluit vanzelf na het laatste frame.
 
 ### Gedeeld gedrag
-HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers en weer. Eigen muziektrack, ondertitels uit. Captions als grote kaarten in de stijl van de intromontage. Esc (of in de attract-versie elke toets) stopt. Elk shot is een `playCinematic`-shot met een vooraf gezet weer en tijdstip (`daynight.js` en de weer-API worden per shot geforceerd).
+HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers en weer. Eigen muziektrack, ondertitels uit. Captions als grote kaarten in de stijl van de intromontage. Esc stopt (in de attract-versie: Spatie ingedrukt houden). Elk shot is een `playCinematic`-shot met een vooraf gezet weer en tijdstip (`daynight.js` en de weer-API worden per shot geforceerd).
 
 **Shotlijst (~80 s)**
 
@@ -233,7 +233,7 @@ HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers 
 
 **Techniek (licht)**
 - Een shotlijst als data (`trailer.js`): per shot plek, tijd van de dag, weer, gescripte acteurs, camerafunctie, caption en in welke cut het zit (`vol` en/of `kort`). Een shot met verhaal-elementen (4–8, 12, 18, 22, 25) is nooit `kort`.
-- Eén speler met drie modi: `benchmark` (realtime, fps meten, resultatenkaart), `attract` (korte cut, overslaan met elke toets, overgang naar het startscherm) en `opname` (vaste tijdstap, sluit af).
+- Eén speler met drie modi: `benchmark` (realtime, fps meten, resultatenkaart), `attract` (korte cut, overslaan door Spatie ingedrukt te houden, overgang naar het startscherm) en `opname` (vaste tijdstap, sluit af).
 - Het hergebruikt `cinematics.js` en de camerahelpers uit `missionstory.js`.
 - Opgenomen shots gebruiken bestaande systemen: racers, politie, duif, rondvaartchase en skyprops.
 
@@ -246,4 +246,5 @@ HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers 
 - Het slot van missie 8 (*"vóór Grunn"*) wordt **opnieuw ingesproken**.
 - Nog te controleren bij de bouw: kloppen de plekken met de kaartdekking (Reitdiep en de Hoornsediep-kade liggen aan de rand)?
 - **Altijd verder kunnen:** lukt een stap in de flow niet (bijv. omdat een onderdeel kapot is), dan moet je duidelijk kunnen overslaan. Na een mislukte missie komt er een knop *Sla deze missie over, verder met het verhaal*. Hetzelfde geldt voor eisen en activiteiten die vastlopen.
+- **Cutscenes overslaan** gaat overal door de spatiebalk even ingedrukt te houden, nooit met één druk.
 - TTS: gebruik volop emotietags, gecombineerd met lokale tags zoals *[Groningse man die boos is]*.
