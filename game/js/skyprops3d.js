@@ -150,8 +150,8 @@ function buildWindsock() {
 }
 
 // --- helicopter -------------------------------------------------------------
+// The UMCG trauma heli (Lifeliner 4) is yellow.
 
-const TH_RED = lambert(0xc9231b);
 const TH_WHITE = lambert(0xf0efea);
 const TH_YELLOW = lambert(0xf0c21a);
 const TH_DARK = lambert(0x2a2d31);
@@ -167,17 +167,17 @@ function buildHeli() {
     g.add(m);
     return m;
   };
-  const cabin = add(new THREE.CapsuleGeometry(1.0, 2.5, 6, 12), TH_RED, 0.2, 1.5, 0, 0, 0, Math.PI / 2);
+  const cabin = add(new THREE.CapsuleGeometry(1.0, 2.5, 6, 12), TH_YELLOW, 0.2, 1.5, 0, 0, 0, Math.PI / 2);
   cabin.scale.set(1.08, 1, 0.82);
   add(new THREE.BoxGeometry(3.2, 0.34, 1.7), TH_WHITE, 0.25, 1.28, 0);
-  add(new THREE.BoxGeometry(3.4, 0.12, 1.66), TH_YELLOW, 0.25, 1.05, 0);
+  add(new THREE.BoxGeometry(3.4, 0.12, 1.66), TH_DARK, 0.25, 1.05, 0);
   const nose = add(new THREE.SphereGeometry(0.95, 14, 10), TH_GLASS, 1.55, 1.62, 0);
   nose.scale.set(1.05, 0.82, 0.8);
   add(new THREE.BoxGeometry(1.9, 0.55, 1.05), TH_WHITE, -0.2, 2.38, 0);
-  add(new THREE.CylinderGeometry(0.3, 0.14, 4.3, 10), TH_RED, -3.6, 1.82, 0, 0, 0, -Math.PI / 2);
+  add(new THREE.CylinderGeometry(0.3, 0.14, 4.3, 10), TH_YELLOW, -3.6, 1.82, 0, 0, 0, -Math.PI / 2);
   add(new THREE.BoxGeometry(0.5, 0.06, 1.7), TH_WHITE, -4.7, 1.82, 0);
   add(new THREE.BoxGeometry(1.0, 1.35, 0.16), TH_YELLOW, -5.75, 2.3, 0, 0, 0, -0.25);
-  add(new THREE.CylinderGeometry(0.42, 0.42, 0.28, 16), TH_RED, -5.75, 1.88, 0, Math.PI / 2, 0, 0);
+  add(new THREE.CylinderGeometry(0.42, 0.42, 0.28, 16), TH_DARK, -5.75, 1.88, 0, Math.PI / 2, 0, 0);
   for (const z of [-0.95, 0.95]) {
     add(new THREE.CylinderGeometry(0.06, 0.06, 3.5, 6), TH_DARK, 0.2, 0.07, z, 0, 0, Math.PI / 2);
     for (const x of [-0.8, 1.1]) add(new THREE.CylinderGeometry(0.045, 0.045, 0.75, 5), TH_DARK, x, 0.42, z * 0.85, z > 0 ? 0.3 : -0.3, 0, 0);

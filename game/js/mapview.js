@@ -795,7 +795,7 @@ function drawDynamicMarkers(ctx, world) {
 
   drawFullRoute(ctx, world, t);
 
-  for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name ? `Garage ${g.name}` : 'Garage');
+  for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name || 'Garage');
 
   const m = world.mission;
   const job = world.sideJob && world.sideJob.active ? world.sideJob : null;
@@ -956,7 +956,7 @@ function buildSearchIndex(world) {
   for (const l of world.map.meta.landmarks || []) entries.push({ label: l.name, kind: 'Bezienswaardigheid', pri: 0, x: l.x, y: l.y, zoom: 6 });
   for (const p of world.map.meta.neighbourhoodPoints || []) entries.push({ label: p.name, kind: 'Wijk', pri: 1, x: p.x, y: p.y, zoom: 4 });
   for (const h of world.map.meta.horeca || []) if (h.name) entries.push({ label: h.name, kind: 'Horeca', pri: 3, x: h.x, y: h.y, zoom: 8 });
-  for (const g of world.map.meta.garages || []) if (g.name) entries.push({ label: g.name, kind: 'Garage', pri: 4, x: g.x, y: g.y, zoom: 7 });
+  for (const g of getGaragesForRender()) entries.push({ label: g.name, kind: 'Garage', pri: 4, x: g.x, y: g.y, zoom: 7 });
   for (const sh of getShopsForRender()) entries.push({ label: sh.name, kind: SHOP_TYPES[sh.type].label, pri: 3, x: sh.x, y: sh.y, zoom: 8 });
   for (const sj of getSideJobSpotsForRender()) entries.push({ label: sj.job.name, kind: 'Bijbaantje', pri: 1, x: sj.x, y: sj.y, zoom: 8 });
   for (const st of getStationsForRender()) entries.push({ label: st.name, kind: 'Treinstation', pri: 0, x: st.x, y: st.y, zoom: 7 });
@@ -1171,7 +1171,7 @@ const LEGEND = [
   { kind: 'companion', label: 'Maat', layer: 'companion' },
   { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, brommer, boot', layer: 'car' },
   { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
-  { kind: 'garage', label: 'Garage', note: 'Spuit & Klaar: heel, gezond, geen sterren', layer: 'garage' },
+  { kind: 'garage', label: 'Garage en pomp', note: 'rij naar binnen: repareren, spuiten, opvoeren, wrakken', layer: 'garage' },
   { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
   { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks (eten = gezondheid)', layer: 'shops' },
   { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten', layer: 'shopsVoertuigen' },

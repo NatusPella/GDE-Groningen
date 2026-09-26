@@ -455,7 +455,105 @@ export class GameMap {
 }
 
 // onProgress(0..1) reports download progress when the size is known.
+// game/mapextras.json (scripts/add_map_extras.py): data kept next to
+// citymap.json and merged here - extra footprints, per-building patches
+// (heights, names, landmark models), bus-only roads and bus lanes.
+async function fetchExtras(url) {
+  try {
+    const res = await fetch(url.replace(/[^/]*$/, 'mapextras.json'));
+    return res.ok ? await res.json() : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+const exKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
+
+function polyArea(pts) {
+  let a = 0;
+  for (let i = 0, n = pts.length; i < n; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[(i + 1) % n];
+    a += x0 * y1 - x1 * y0;
+  }
+  return Math.abs(a / 2);
+}
+
+export function applyMapExtras(data, ex) {
+  if (!ex) return;
+  for (const b of ex.buildings || []) data.buildings.push({ ...b });
+  for (const p of ex.buildingPatches || []) {
+    const [x, y] = p.at;
+    let best = null, ba = Infinity;
+    for (const b of data.buildings) {
+      const P = b.pts;
+      if (P.length < 3) continue;
+      let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+      for (const q of P) { if (q[0] < minx) minx = q[0]; if (q[0] > maxx) maxx = q[0]; if (q[1] < miny) miny = q[1]; if (q[1] > maxy) maxy = q[1]; }
+      if (x < minx || x > maxx || y < miny || y > maxy || !pointInPolygon(x, y, P)) continue;
+      const a = polyArea(P);
+      if (a < ba) { ba = a; best = b; }
+    }
+    if (best) Object.assign(best, p.set);
+  }
+  data.buildings = data.buildings.filter((b) => !b.remove);
+
+  const at = new Map();
+  for (const r of data.roads) {
+    r.pts.forEach((q, i) => {
+      const k = exKey(q);
+      let a = at.get(k);
+      if (!a) at.set(k, a = []);
+      a.push(r, i);
+    });
+  }
+  // roads sharing the consecutive vertices a -> b: [{ road, same }]
+  const along = (a, b) => {
+    const out = [];
+    const la = at.get(exKey(a)), kb = exKey(b);
+    if (!la) return out;
+    for (let i = 0; i < la.length; i += 2) {
+      const r = la[i], j = la[i + 1];
+      if (r.pts[j + 1] && exKey(r.pts[j + 1]) === kb) out.push({ road: r, same: true });
+      else if (r.pts[j - 1] && exKey(r.pts[j - 1]) === kb) out.push({ road: r, same: false });
+    }
+    return out;
+  };
+
+  for (const br of ex.busRoads || []) {
+    const hits = new Set();
+    for (let i = 0; i < br.pts.length - 1; i++) for (const h of along(br.pts[i], br.pts[i + 1])) if (h.road.cat !== 'foot' && h.road.cat !== 'cycle') hits.add(h.road);
+    if (hits.size) {
+      for (const r of hits) r.busOnly = true;
+      continue;
+    }
+    data.roads.push({
+      pts: br.pts.map((q) => q.slice()), type: 'busway', cat: 'normal', width: br.width || 6.5, speed: 11,
+      oneway: !!br.oneway, roundabout: false, name: br.name || '', bridge: !!br.bridge, busOnly: true,
+    });
+  }
+  for (const bl of ex.busLanes || []) {
+    for (let i = 0; i < bl.pts.length - 1; i++) {
+      for (const h of along(bl.pts[i], bl.pts[i + 1])) {
+        const r = h.road;
+        if (r.cat === 'foot' || r.cat === 'cycle') continue;
+        const L = r.busLane || (r.busLane = { fwd: false, bwd: false });
+        if (bl.fwd) L[h.same ? 'fwd' : 'bwd'] = true;
+        if (bl.bwd) L[h.same ? 'bwd' : 'fwd'] = true;
+        if (bl.contra) r.busContra = true;
+        if (!L.fwd && !L.bwd) delete r.busLane;
+      }
+    }
+  }
+  data.meta.fuel = ex.fuel || [];
+  const eikea = data.buildings.find((b) => b.landmark === 'EIKEA');
+  if (eikea && !(data.meta.landmarks || []).some((l) => l.name === 'EIKEA')) {
+    const n = eikea.pts.length;
+    data.meta.landmarks.push({ name: 'EIKEA', x: eikea.pts.reduce((a, q) => a + q[0], 0) / n, y: eikea.pts.reduce((a, q) => a + q[1], 0) / n, kind: 'store', buildingMatched: true });
+  }
+}
+
 export async function loadMap(url = 'map.json', onProgress = null) {
+  const extras = fetchExtras(url);
   const res = await fetch(url);
   if (!res.ok) throw new Error('failed to load map data: ' + res.status);
   const total = +res.headers.get('content-length') || 0;
@@ -478,5 +576,6 @@ export async function loadMap(url = 'map.json', onProgress = null) {
   } else {
     data = await res.json();
   }
+  applyMapExtras(data, await extras);
   return new GameMap(data);
 }

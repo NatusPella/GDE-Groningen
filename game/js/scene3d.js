@@ -17,7 +17,6 @@ import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
-import { getGaragesForRender, buildGarageMesh3D } from './garages.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
@@ -153,7 +152,6 @@ let missionMarkerMesh = null;
 const splashMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
-const garageMeshes = new Map();
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
 const kissMeshes = new Map();
@@ -438,7 +436,7 @@ function buildVehicleActor(v) {
   const { len, wid } = v.model;
   if (v.isBoat) {
     mesh.rotation.order = 'YXZ';
-  } else if (v.isBus) {
+  } else if (v.isBus && mesh.userData.busSections) {
     const sec = mesh.userData.busSections;
     addBlobShadow(mesh, sec.frontLen * 1.08, wid * 1.3, sec.frontX);
     addBlobShadow(mesh.userData.busRear, sec.rearLen * 1.08, wid * 1.3, sec.rearX);
@@ -1278,28 +1276,6 @@ function syncPedestrianMeshes(world, player, animDt) {
   }
 }
 
-// Same as syncActors, but never disposes materials on removal - garages.js
-// deliberately shares materials/geometries at module scope across every
-// garage, so disposing one would corrupt every other one still on screen
-// (same hazard buildings/mission-dots already guard against).
-function syncSharedActors(list, cache, builder, idOf) {
-  const seen = new Set();
-  for (const item of list) {
-    const id = idOf(item);
-    seen.add(id);
-    if (!cache.has(id)) {
-      const mesh = builder(item);
-      scene.add(mesh);
-      cache.set(id, mesh);
-    }
-  }
-  for (const [id, mesh] of cache) {
-    if (seen.has(id)) continue;
-    scene.remove(mesh);
-    cache.delete(id);
-  }
-}
-
 // --- DOM billboards (speech bubbles, etc.) -------------------------------
 // The 3D view has no 2D canvas to draw HTML-quality text/bubbles onto, so
 // these are plain positioned <div>s living in the existing #hud overlay
@@ -1396,7 +1372,8 @@ export function update3D(dt, world) {
   for (const v of world.vehicles) {
     let mesh = vehicleMeshes.get(v.id);
     // a car that just died swaps to its burnt-out model (rebuilt next frame)
-    if (mesh && v.wrecked && !mesh.userData.wreckModel) {
+    if (mesh && ((v.wrecked && !mesh.userData.wreckModel) || (!v.wrecked && mesh.userData.wreckModel) || v.meshDirty)) {
+      v.meshDirty = false;
       scene.remove(mesh);
       disposeObject(mesh);
       vehicleMeshes.delete(v.id);
@@ -1413,7 +1390,7 @@ export function update3D(dt, world) {
         syncBoatCrew(mesh, v, crewCtx);
       } else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
-      if (v.isPolice || v.sirenOn) updatePoliceLamps(mesh, world.time, (policeChasing || v.sirenOn) && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
+      if (v.isPolice || v.sirenOn || v.isAmbulance) updatePoliceLamps(mesh, world.time, v.sirenOn ? !v.wrecked : policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
@@ -1588,14 +1565,7 @@ export function update3D(dt, world) {
     if (routeRibbonMesh) routeRibbonMesh.visible = false;
   }
 
-  // garages share module-scope materials in garages.js, so removal must
-  // never call material.dispose()
-  const garages = getGaragesForRender();
-  syncSharedActors(garages, garageMeshes, () => buildGarageMesh3D(), (g) => g);
-  for (const g of garages) {
-    const mesh = garageMeshes.get(g);
-    if (mesh) mesh.position.set(g.x, 0, g.y);
-  }
+  // garages stream their own workshop meshes (garages.js)
 
   // traffic lights: static positions, built once, only the lamp color changes
   syncTrafficLights3D(scene);
@@ -2269,13 +2239,50 @@ function buildChevronTexture() {
   return tex;
 }
 
+// Route points can be 50 m apart on a straight road; a ramp climbs more than
+// groundHeightAt's step-up between two of them, so resample every 2 m.
+function resampleRoute(pts, step = 2) {
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const n = Math.floor(L / step);
+    for (let k = 1; k < n; k++) out.push([a[0] + (b[0] - a[0]) * (k / n), a[1] + (b[1] - a[1]) * (k / n)]);
+    out.push(b);
+  }
+  return out;
+}
+
+// Raised pavement (kerb) under a route point off the carriageway: the ribbon
+// would otherwise vanish under the sidewalk mesh.
+function routeLift(map, x, y) {
+  let onKerb = false;
+  for (const r of map.roadsNear(x, y, 6)) {
+    if (r.cat !== 'major' && r.cat !== 'normal' && r.cat !== 'minor') continue;
+    const hw = (r.width || 6) / 2;
+    const P = r.pts;
+    for (let k = 0; k < P.length - 1; k++) {
+      const ex = P[k + 1][0] - P[k][0], ey = P[k + 1][1] - P[k][1];
+      const l2 = ex * ex + ey * ey || 1;
+      const t = Math.max(0, Math.min(1, ((x - P[k][0]) * ex + (y - P[k][1]) * ey) / l2));
+      const d = Math.hypot(x - P[k][0] - ex * t, y - P[k][1] - ey * t);
+      if (d < hw - 0.1) return 0;
+      if (r.cat !== 'minor' && d < hw + SIDEWALK_EXTRA + 0.2) onKerb = true;
+    }
+  }
+  return onKerb ? 0.14 : 0;
+}
+
 function buildRouteRibbonGeometry(pts, along0, map = null, z0 = 0) {
+  if (pts.length >= 2) pts = resampleRoute(pts);
   const n = pts.length;
   // follow the ring's ramps: each point takes the surface nearest the previous one
   const zs = new Float32Array(n);
-  if (map && map.elev && map.elev.has) {
-    let h = z0;
-    for (let i = 0; i < n; i++) { h = map.groundHeightAt(pts[i][0], pts[i][1], h); zs[i] = h; }
+  const elev = map && map.elev && map.elev.has;
+  let h = z0;
+  for (let i = 0; i < n; i++) {
+    if (elev) { h = map.groundHeightAt(pts[i][0], pts[i][1], h); zs[i] = h; }
+    if (map && Math.abs(zs[i]) < 0.3) zs[i] += routeLift(map, pts[i][0], pts[i][1]);
   }
   const pos = new Float32Array(n * 2 * 3), uv = new Float32Array(n * 2 * 2), col = new Float32Array(n * 2 * 4);
   const idx = [];
