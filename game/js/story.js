@@ -30,7 +30,7 @@ const SKIP_SHARE = 0.5;
 const GATED_SKIP_S = 90;
 const NIGHT_GARAGE_M = 16;
 const NIGHT_HOUR = 21.4;
-const SWAP_FADE = 0.3;
+const SWAP_FADE = 0.45;
 
 let world = null;
 let ready = false;
@@ -43,7 +43,7 @@ function freshState() {
 }
 
 function freshRuntime() {
-  return { cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, swapT: -1, lastPlayer: null };
+  return { cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, lastPlayer: null };
 }
 
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
@@ -255,6 +255,16 @@ function playEndCard(part) {
   return true;
 }
 
+// The companion says a story step's line out loud: a speech bubble that
+// follows them (scene3d.js world.extraSpeakers; voiced as a bubble line).
+function companionSays(w, text) {
+  const c = w.companion;
+  if (!c || c.state === 'dead') return;
+  const list = w.extraSpeakers || (w.extraSpeakers = []);
+  const dur = Math.max(3, Math.min(6, 1.2 + text.length * 0.06));
+  list.push({ x: c.x, y: c.y, h: 2.1, speechText: text, speechUntil: w.time + dur, follow: c, female: c.character === 'anita' });
+}
+
 // --- who plays: Tammo or Anita ----------------------------------------------------------
 
 const charName = (c) => (c === 'anita' ? 'Anita' : 'Tammo');
@@ -268,36 +278,34 @@ function swapCharacter(w, want) {
   p.character = want;
 }
 
-// The step's character, once nothing else is going on: a short fade, the
-// swap, and a line saying who takes over.
-function updateCharacter(w, dt) {
+// The step's character, once nothing else is going on: the swap happens at
+// once (never half-way, whatever pauses the game next), under a short fade
+// from black and a line saying who takes over.
+function updateCharacter(w) {
   const step = rt.cur;
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
-  if (rt.swapT >= 0) {
-    rt.swapT -= dt;
-    if (rt.swapT < 0) {
-      if (want) swapCharacter(w, want);
-      fade(false);
-      w.addMessage(`${charName(w.player.character)} neemt het over`, 2.5);
-    }
-    return;
-  }
   if (!want || w.player.character === want) return;
   if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
-  rt.swapT = SWAP_FADE;
-  fade(true);
+  swapCharacter(w, want);
+  flash();
+  w.addMessage(`${charName(w.player.character)} neemt het over`, 2.5);
 }
 
 let fadeEl = null;
-function fade(on) {
+function flash() {
   if (!fadeEl) {
     fadeEl = document.createElement('div');
     fadeEl.id = 'story-swap-fade';
-    fadeEl.style.cssText = `position:fixed;inset:0;z-index:13;background:#0c140e;opacity:0;pointer-events:none;transition:opacity ${SWAP_FADE}s`;
+    fadeEl.style.cssText = 'position:fixed;inset:0;z-index:13;background:#0c140e;opacity:0;pointer-events:none';
     document.body.appendChild(fadeEl);
   }
-  fadeEl.style.opacity = on ? '1' : '0';
+  fadeEl.style.transition = 'none';
+  fadeEl.style.opacity = '1';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fadeEl.style.transition = `opacity ${SWAP_FADE}s`;
+    fadeEl.style.opacity = '0';
+  }));
 }
 
 // --- skipping --------------------------------------------------------------------------
@@ -411,7 +419,7 @@ export function updateStory(dt, w) {
   if (!same) enter(cur);
   const step = rt.cur;
   updateSkipUi();
-  updateCharacter(w, dt);
+  updateCharacter(w);
   if (!step) return;
   if (step.end) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
@@ -420,6 +428,7 @@ export function updateStory(dt, w) {
   if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive()) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
+    if (step.say) companionSays(w, step.say[1]);
   }
   if ((rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }
   if (step.kind === 'activity') {
@@ -562,5 +571,5 @@ export const storyApi = {
   mission: () => missionDebug.state(),
   cardShown: (part = 'kop') => state.cards.has(part),
   character: () => world.player.character,
-  swapInfo: () => ({ want: rt.cur && rt.cur.player, swapT: rt.swapT, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn }),
+  swapInfo: () => ({ want: rt.cur && rt.cur.player, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn }),
 };

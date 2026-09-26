@@ -271,4 +271,6 @@ Afwijkingen: H2's spuitbeurt gebeurt in een Garage Knalpot/Pomp & Poets-werkplaa
 
 Afwijkingen: de Kroegentocht heeft geen avond-eis (de oude vrije missie blijft zo speelbaar). H8 start op de Europaweg in plaats van de Oostelijke Ringweg (dichter bij de stad). Aanbevolen aankopen (`optional`) tellen mee in de geldlijn, maar niet in de controle "alles overgeslagen". Een missie die je vroeg start (de gele marker staat er al tijdens de activiteit ervoor) maakt de open activiteiten ervoor af, met hun `unlocks` en `beat`-berichten. Na het gebouwde verhaal krijgen vrije missies geen automatische route meer.
 
+Elke activiteit in het verhaal heeft een verhaalreden: de `lead` op de telefoon, een zin die de companion hardop zegt als de stap begint (`say`, een tekstwolk in de eigen stem) en een `done` die terugverwijst naar het plot. Los gespeeld blijven activiteiten gewoon zichzelf. H1 opent met de Verteller (Grunn en de Gouden Eierbal) en een wisselwoord van Tammo en Anita; Anita rijdt Berends bakkie.
+
 **Nog te bouwen:** Staart (eigen boot, H14-H18). De stappen staan in `STEPS` met `built: false` en al een `player`.
