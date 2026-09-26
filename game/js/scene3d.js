@@ -1,23 +1,26 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
   vehicleJustWrecked, buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D,
   sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
+  spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedestrians.js';
-import { buildPersonMesh, animatePersonWalk, applyAttackPose, seatPerson, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
+import { updateSwimmers3D } from './swimmers3d.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
-import { getGaragesForRender, buildGarageMesh3D } from './garages.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
-import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
+import { getCombatEffect } from './combat.js';
+import { alignPlayerFlash } from './gunfx3d.js';
 import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
 import { sleepingParkedCars } from './parkedcars.js';
@@ -38,12 +41,14 @@ import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
+import { spawnExplosionFx } from './fx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside } from './countryside.js';
+import { probe } from './hitchprobe.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -94,13 +99,23 @@ let followYaw = 0;
 const ORBIT_RADIUS = Math.hypot(2.6, 2.6);
 const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
 const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overhead angle
+// mouse-look goes lower still: below LOOK_UP_FROM_DEG the camera sinks to
+// the ground and the view tilts up towards the rooftops and the sky
+const PITCH_LOOK_MIN_DEG = -16;
+const PITCH_LOOK_MAX_DEG = 60;
+const LOOK_UP_FROM_DEG = 10;
+const LOOK_UP_LIFT = 1.7;
 let followPitch = Math.atan2(5.2 - 1.3, 9);
 let lookPitchTarget = followPitch;
 let lookYaw = 0;
 let lookYawIdle = 0;
 const MOUSE_LOOK_PER_PX = 0.0025;
 const LOOK_RECENTER_DELAY = 1.7;
+// at speed an orbited view holds much longer before swinging back behind
+const LOOK_RECENTER_DELAY_FAST = 4.5;
+const LOOK_FAST_SPEED = 25; // m/s
 let camWasInVehicle = false;
+let lookBackWas = false;
 
 const buildingMeshes = new Map();
 // Buildings are only ever built once and cached above - if a landmark's real
@@ -133,32 +148,67 @@ let playerMesh = null;
 let playerCharacter = 'tammo';
 let companionMesh = null;
 let companionCharacter = null;
-let passengerMesh = null;
+const playerSeatTr = makeSeatTracker();
+const companionSeatTr = makeSeatTracker();
+let playerRider = null;
+let playerRiderChar = null;
 let missionMarkerMesh = null;
 const splashMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
-const garageMeshes = new Map();
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
 const kissMeshes = new Map();
-const KISS_HEART_MAT = new THREE.MeshBasicMaterial({ color: 0xff4d8a });
-function buildKissHeartMesh() {
-  const group = new THREE.Group();
-  const lobeL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 7), KISS_HEART_MAT);
-  lobeL.position.set(-0.11, 0.08, 0);
-  group.add(lobeL);
-  const lobeR = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 7), KISS_HEART_MAT);
-  lobeR.position.set(0.11, 0.08, 0);
-  group.add(lobeR);
-  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.32, 8), KISS_HEART_MAT);
-  tip.rotation.z = Math.PI;
-  tip.position.set(0, -0.12, 0);
-  group.add(tip);
-  return group;
+// Kiss heart: a camera-facing sprite from a canvas heart (bezier outline,
+// glossy gradient, white rim), so it reads as a heart from every angle.
+let kissHeartTex = null;
+function kissHeartTexture() {
+  if (kissHeartTex) return kissHeartTex;
+  const S = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  const heart = () => {
+    g.beginPath();
+    g.moveTo(64, 112);
+    g.bezierCurveTo(36, 92, 10, 70, 10, 44);
+    g.bezierCurveTo(10, 24, 25, 12, 41, 12);
+    g.bezierCurveTo(52, 12, 60, 18, 64, 28);
+    g.bezierCurveTo(68, 18, 76, 12, 87, 12);
+    g.bezierCurveTo(103, 12, 118, 24, 118, 44);
+    g.bezierCurveTo(118, 70, 92, 92, 64, 112);
+    g.closePath();
+  };
+  g.shadowColor = 'rgba(0, 0, 0, 0.45)';
+  g.shadowBlur = 6;
+  heart();
+  g.lineWidth = 10;
+  g.strokeStyle = '#fff4f7';
+  g.lineJoin = 'round';
+  g.stroke();
+  g.shadowColor = 'transparent';
+  const grad = g.createLinearGradient(20, 12, 100, 112);
+  grad.addColorStop(0, '#ff7aa8');
+  grad.addColorStop(0.55, '#f02d63');
+  grad.addColorStop(1, '#b3123f');
+  heart();
+  g.fillStyle = grad;
+  g.fill();
+  g.beginPath();
+  g.ellipse(40, 38, 13, 8, -0.6, 0, Math.PI * 2);
+  g.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  g.fill();
+  kissHeartTex = new THREE.CanvasTexture(c);
+  kissHeartTex.colorSpace = THREE.SRGBColorSpace;
+  return kissHeartTex;
 }
-let muzzleFlashMesh = null;
-let meleeSwipeMesh = null;
+function buildKissHeartMesh() {
+  const mat = new THREE.SpriteMaterial({ map: kissHeartTexture(), transparent: true, depthWrite: false, toneMapped: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.geometry.userData.shared = true;
+  sprite.renderOrder = 5;
+  return sprite;
+}
 let sun = null;
 let hemi = null;
 let skyDome = null;
@@ -330,7 +380,7 @@ function camNearestHit(targets) {
 
 // Materials reused across many actors - disposing one would force every
 // remaining user to re-upload/recompile it on the next frame.
-const SHARED_MATERIALS = new Set([OUTLINE_MAT, KISS_HEART_MAT]);
+const SHARED_MATERIALS = new Set([OUTLINE_MAT]);
 const SHARED_GEOMETRIES = new Set();
 
 // Actors/effects build their own geometries per instance, so on despawn both
@@ -388,7 +438,7 @@ function buildVehicleActor(v) {
   const { len, wid } = v.model;
   if (v.isBoat) {
     mesh.rotation.order = 'YXZ';
-  } else if (v.isBus) {
+  } else if (v.isBus && mesh.userData.busSections) {
     const sec = mesh.userData.busSections;
     addBlobShadow(mesh, sec.frontLen * 1.08, wid * 1.3, sec.frontX);
     addBlobShadow(mesh.userData.busRear, sec.rearLen * 1.08, wid * 1.3, sec.rearX);
@@ -403,22 +453,64 @@ function buildVehicleActor(v) {
   return mesh;
 }
 
+// Traffic spawns 70+ m out, so a new car's mesh can wait a frame or two:
+// beyond VEH_NEAR only one is built per frame once VEH_BUILD_MS is spent.
+const VEH_BUILD_MS = 3;
+const VEH_NEAR = 45;
+const _vehSeen = new Set();
+function syncVehicleMeshes(world, player) {
+  _vehSeen.clear();
+  const deadline = performance.now() + VEH_BUILD_MS;
+  let built = 0;
+  for (const v of world.vehicles) {
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d >= DRAW_DIST) continue;
+    if (!vehicleMeshes.has(v.id)) {
+      if (built > 0 && d > VEH_NEAR && performance.now() > deadline) continue;
+      const mesh = enableShadows(buildVehicleActor(v), false);
+      scene.add(mesh);
+      vehicleMeshes.set(v.id, mesh);
+      built++;
+    }
+    _vehSeen.add(v.id);
+  }
+  for (const [id, mesh] of vehicleMeshes) {
+    if (_vehSeen.has(id)) continue;
+    scene.remove(mesh);
+    disposeObject(mesh);
+    vehicleMeshes.delete(id);
+  }
+}
+
 // A driver figure is a full person mesh (several ms to build), so it is
 // prepared a little ahead - one per frame - while the car is still beyond
 // the distance at which it can be shown.
 const DRIVER_PREFETCH_DIST = DRIVER_FIGURE_DIST + 30;
 const DRIVER_BUILD_BUDGET_MS = 2;
+const crewCtx = {
+  dist: 0, deadline: 0, time: 0, playerBoat: null, playerOnWater: false, speakers: null,
+  prep(p, mesh) {
+    const casters = mesh.userData.shadowCasters;
+    const castNear = mesh.userData.castNear;
+    for (const o of enableShadows(p, false).userData.shadowCasters) {
+      if (castNear !== undefined) o.castShadow = castNear;
+      if (casters) casters.push(o);
+    }
+  },
+};
+
 function ensureDriverFigure(mesh, v, dist, deadline) {
   if (!mesh.userData.needsDriver) return;
   if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
   mesh.userData.needsDriver = false;
   const seed = (v.id || 0) * 5.3 + 11;
   const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, { seed });
-  seatPerson(driver, true);
-  const seat = seatOffset(v, true);
-  driver.position.set(seat.x, -SEATED_DROP, seat.z);
+  const seat = vehicleSeat(v, true);
+  seatPose(driver, seat.pose);
+  driver.position.set(seat.x, seatedY(driver, seat.y), seat.z);
   driver.visible = false;
-  mesh.add(driver);
+  // on the body, so the driver sways with its springs
+  (mesh.userData.body || mesh).add(driver);
   mesh.userData.driverFigure = driver;
   const casters = mesh.userData.shadowCasters;
   const castNear = mesh.userData.castNear;
@@ -428,19 +520,46 @@ function ensureDriverFigure(mesh, v, dist, deadline) {
   }
 }
 
-// Local seat position inside a vehicle facing +x; Dutch cars are left-hand
-// drive, and left of +x is -z in three.js (north for a car facing east).
-function seatOffset(v, driverSeat) {
-  const hl = v.model.len / 2, hw = v.model.wid / 2;
-  if (v.isBus) return { x: hl - 1.3, z: driverSeat ? -hw * 0.45 : hw * 0.3 };
-  return { x: -hl * 0.06, z: (driverSeat ? -1 : 1) * hw * 0.34 };
-}
-
-function placeSeated(personMesh, v, driverSeat) {
-  const seat = seatOffset(v, driverSeat);
-  const c = Math.cos(v.angle), sn = Math.sin(v.angle);
-  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : v.sinking ? v.sinking.z : v.z || 0) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
-  personMesh.rotation.set(0, -v.angle, 0);
+// On a bike or step the player is drawn as a rider figure in their own look
+// (Tammo or Anita) inside the bike mesh - the bike's built-in NPC rider is
+// hidden - so pedal IK and the bike's lean apply as for any cyclist.
+function syncPlayerRider(pv, pvMesh, hide) {
+  const want = pv && (pv.isBike || pv.isScooter) && pvMesh && !pv.riderOff && !pv.sinking;
+  if (!want) {
+    if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
+    return;
+  }
+  if (!playerRider || playerRiderChar !== playerCharacter) {
+    if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
+    const app = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+    playerRider = enableShadows(buildPersonMesh(app.shirt, app.skin, app), false);
+    playerRiderChar = playerCharacter;
+  }
+  const ud = playerRider.userData;
+  if (playerRider.parent !== pvMesh) pvMesh.add(playerRider);
+  if (pv.isScooter) {
+    playerRider.position.set(-0.08, 0.155, 0);
+    playerRider.rotation.set(0, 0, -0.03);
+    ud.armL.rotation.set(0, 0, 0.66);
+    ud.armR.rotation.set(0, 0, 0.66);
+    ud.legL.rotation.set(0, 0, 0.12);
+    ud.legR.rotation.set(0, 0, -0.1);
+  } else {
+    const fat = !!pv.model.fat;
+    playerRider.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * playerRider.scale.y, 0);
+    playerRider.rotation.set(0, 0, -0.08);
+    const arm = fat ? 0.95 : 0.85;
+    ud.armL.rotation.set(0, 0, arm);
+    ud.armR.rotation.set(0, 0, arm);
+    // touching the thighs re-runs the pedal IK (models3d_people pedalIK)
+    ud.legL.rotation.z = fat ? 0.55 : 0.33;
+    ud.legR.rotation.z = fat ? 0.55 : 0.33;
+  }
+  const fig = pvMesh.userData.riderFig !== undefined && pvMesh.userData.riderFig !== null
+    ? pvMesh.userData.riderFig
+    : pvMesh.children.find((c) => c !== playerRider && c.userData && c.userData.legL);
+  if (fig && fig !== playerRider) fig.visible = false;
+  playerRider.visible = !hide;
 }
 
 function buildPersonActor(shirt, skin, appearance) {
@@ -457,7 +576,7 @@ function pinShaderPrograms(r) {
   const programs = r.info.programs;
   const push = programs.push;
   programs.push = function (...added) {
-    for (const p of added) p.usedTimes++;
+    for (const p of added) { p.usedTimes++; probe.program(p); }
     return push.apply(this, added);
   };
 }
@@ -478,6 +597,10 @@ export function init3D(map) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   pinShaderPrograms(renderer);
+  // Fetching shader info logs after a link is a sync point that costs tens of
+  // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
+  renderer.debug.checkShaderErrors = /[?&]shaderdebug\b/.test(location.search);
+  probe.setRenderer(renderer);
 
   scene = new THREE.Scene();
   // The scene root never moves; with auto-update on it would force every
@@ -888,7 +1011,9 @@ function syncBuildings(world, px, py) {
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
     if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
-    prefetchedBuildings.set(b, makeBuildingMesh(b));
+    const mesh = makeBuildingMesh(b);
+    precompile(mesh);
+    prefetchedBuildings.set(b, mesh);
   }
 }
 
@@ -1173,6 +1298,11 @@ function syncPedestrianMeshes(world, player, animDt) {
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
     animatePersonWalk(mesh, p.speed || 0, animDt);
+    if (p.greetUntil > world.time) {
+      const left = p.greetUntil - world.time;
+      waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
+    }
+    if (p.hitReact) applyHitReaction(mesh, p.hitReact, world.time, p.angle);
   }
 
   for (let i = pedFadingOut.length - 1; i >= 0; i--) {
@@ -1182,28 +1312,6 @@ function syncPedestrianMeshes(world, player, animDt) {
       disposePedMesh(mesh);
       pedFadingOut.splice(i, 1);
     } else applyPedFade(mesh, mesh.userData.fade);
-  }
-}
-
-// Same as syncActors, but never disposes materials on removal - garages.js
-// deliberately shares materials/geometries at module scope across every
-// garage, so disposing one would corrupt every other one still on screen
-// (same hazard buildings/mission-dots already guard against).
-function syncSharedActors(list, cache, builder, idOf) {
-  const seen = new Set();
-  for (const item of list) {
-    const id = idOf(item);
-    seen.add(id);
-    if (!cache.has(id)) {
-      const mesh = builder(item);
-      scene.add(mesh);
-      cache.set(id, mesh);
-    }
-  }
-  for (const [id, mesh] of cache) {
-    if (seen.has(id)) continue;
-    scene.remove(mesh);
-    cache.delete(id);
   }
 }
 
@@ -1241,12 +1349,18 @@ function speechBubbleEl() {
 
 function syncSpeechBubbles(world) {
   const seen = new Set();
-  for (const p of world.pedestrians) {
+  // world.extraSpeakers: short-lived lines from boat crews and swimmers,
+  // { x, y, h, speechText, speechUntil, follow? } (follow: a moving vehicle)
+  const extra = world.extraSpeakers;
+  if (extra) for (let i = extra.length - 1; i >= 0; i--) if (world.time >= extra[i].speechUntil) extra.splice(i, 1);
+  const speakers = extra && extra.length ? [...world.pedestrians, ...extra] : world.pedestrians;
+  for (const p of speakers) {
     if (!p.speechText || world.time >= p.speechUntil) continue;
     seen.add(p);
     let el = speechBubbleEls.get(p);
     if (!el) { el = speechBubbleEl(); speechBubbleEls.set(p, el); }
-    const scr = projectToScreen(p.x, 2.1, p.y);
+    const src = p.follow || p;
+    const scr = projectToScreen(src.x, p.h ?? 2.1, src.y);
     if (!scr) { el.style.display = 'none'; continue; }
     el.textContent = p.speechText;
     el.style.display = 'block';
@@ -1266,31 +1380,40 @@ export function update3D(dt, world) {
   const player = world.player;
 
   syncBuildings(world, player.x, player.y);
+  probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
   updateGrass(dt, world, cam, DRAW_DIST);
+  probe.mark('3d:grass');
   syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, player.x, player.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   if (waterMaterial) updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
+  probe.mark('3d:water');
   syncRoads(world, player.x, player.y);
+  probe.mark('3d:roads');
   syncTrees(world, player.x, player.y);
+  probe.mark('3d:trees');
   updateRailway3D(dt, world);
   updateCountryside(dt, world, scene, cam, viewDist);
+  probe.mark('3d:rail+country');
 
   syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, player, DRAW_DIST);
-  syncActors(
-    world.vehicles.filter((v) => Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
-    vehicleMeshes,
-    buildVehicleActor,
-    (v) => v.id
-  );
+  syncVehicleMeshes(world, player);
   const fireSeenIds = new Set();
   const policeChasing = world.wanted > 0;
   const driverDeadline = performance.now() + DRIVER_BUILD_BUDGET_MS;
+  const pBoat = player.inVehicle && player.inVehicle.isBoat ? player.inVehicle : null;
+  if (!world.extraSpeakers) world.extraSpeakers = [];
+  crewCtx.deadline = driverDeadline;
+  crewCtx.time = world.time;
+  crewCtx.playerBoat = pBoat;
+  crewCtx.playerOnWater = !!pBoat && Math.abs(pBoat.speed) > 0.6;
+  crewCtx.speakers = world.extraSpeakers;
   for (const v of world.vehicles) {
     let mesh = vehicleMeshes.get(v.id);
     // a car that just died swaps to its burnt-out model (rebuilt next frame)
-    if (mesh && v.wrecked && !mesh.userData.wreckModel) {
+    if (mesh && ((v.wrecked && !mesh.userData.wreckModel) || (!v.wrecked && mesh.userData.wreckModel) || v.meshDirty)) {
+      v.meshDirty = false;
       scene.remove(mesh);
       disposeObject(mesh);
       vehicleMeshes.delete(v.id);
@@ -1299,17 +1422,32 @@ export function update3D(dt, world) {
     if (mesh) {
       mesh.position.set(v.x, v.isBoat ? WATER_Y : v.z || 0, v.y);
       mesh.rotation.y = -v.angle;
-      if (!v.sinking && !v.isBoat) { mesh.rotation.order = 'YZX'; mesh.rotation.z = v.pitch || 0; }
-      updateVehicleWheelSpin(mesh, v.speed, animDt);
-      if (v.isBoat) animateBoat(mesh, v, world.time);
-      else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
+      if (!v.sinking && !v.isBoat) {
+        // terrain pitch/roll on the whole car, spring motion on the body only
+        const body = mesh.userData.body;
+        mesh.rotation.order = 'YZX';
+        mesh.rotation.z = (v.pitch || 0) + (body ? 0 : (v.susPitch || 0) * 0.6);
+        mesh.rotation.x = (v.roll || 0) + (body ? 0 : (v.susRoll || 0) * 0.6);
+        if (body) {
+          body.rotation.z = v.susPitch || 0;
+          body.rotation.x = v.susRoll || 0;
+          body.position.y = v.susHeave || 0;
+        }
+      }
+      updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
+      if (v.isBoat) {
+        animateBoat(mesh, v, world.time);
+        crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);
+        syncBoatCrew(mesh, v, crewCtx);
+      } else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
-      if (v.isPolice || v.sirenOn) updatePoliceLamps(mesh, world.time, (policeChasing || v.sirenOn) && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
+      if (v.isPolice || v.sirenOn || v.isAmbulance) updatePoliceLamps(mesh, world.time, v.sirenOn ? !v.wrecked : policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
       if (df) df.visible = (!!v.road || v.racer) && !v.wrecked && v.driver !== 'player' && driverDist < DRIVER_FIGURE_DIST;
       if (v.isBike || v.isScooter) syncBikeRider(mesh, v, world.time);
+      if (v._mount || v._riderAway) syncPoliceMount(mesh, v, animDt);
     }
 
     // damage VFX - checked regardless of `mesh` (a just-wrecked vehicle's
@@ -1322,10 +1460,12 @@ export function update3D(dt, world) {
     }
     if (vehicleJustWrecked(v)) {
       v.wreckedAt = world.time;
-      const boom = buildVehicleExplosionMesh3D();
+      const small = v.isBike || v.isScooter;
+      const boom = buildVehicleExplosionMesh3D(small ? 0.35 : v.isBus ? 1.5 : 1);
       boom.position.set(v.x, 0.2 + (v.z || 0), v.y);
       scene.add(boom);
       vehicleExplosionEffects.push(boom);
+      if (!small && Math.hypot(v.x - player.x, v.y - player.y) < 120) spawnExplosionFx(v.x, v.y, v.z || 0, v.model.color, v.isBus ? 1.4 : 1);
     }
     if (vehicleNeedsFireEffect(v, world.time)) {
       fireSeenIds.add(v.id);
@@ -1335,12 +1475,17 @@ export function update3D(dt, world) {
         scene.add(fire);
         vehicleFireMeshes.set(v.id, fire);
       }
-      fire.position.set(v.x, 0.4 + (v.z || 0), v.y);
-      fire.scale.setScalar(v.wrecked ? 2.4 : 1);
+      // a damaged car burns from the engine bay, on top of the bonnet
+      const bay = v.wrecked || v.isBus ? 0 : v.halfLen * 0.55;
+      fire.position.set(v.x + Math.cos(v.angle) * bay, (v.wrecked ? 0.4 : 0.75) + (v.z || 0), v.y + Math.sin(v.angle) * bay);
+      // a disabled car's fire grows until it blows
+      fire.scale.setScalar(v.wrecked ? 2.4 : v.disabled ? 1.5 + 1.3 * Math.max(0, Math.min(1, 1 - (v.burnLeft || 0) / 10)) : 1);
       updateVehicleFireMesh3D(fire, animDt);
     }
   }
+  probe.mark('3d:vehicles');
   syncBoatWakes(world);
+  updateSwimmers3D(animDt, world, scene, cam);
   for (const [id, fire] of vehicleFireMeshes) {
     if (fireSeenIds.has(id)) continue;
     scene.remove(fire);
@@ -1364,7 +1509,9 @@ export function update3D(dt, world) {
     return alive;
   });
 
+  probe.mark('3d:vehfx');
   syncPedestrianMeshes(world, player, animDt);
+  probe.mark('3d:peds');
   syncSpeechBubbles(world);
 
   if (!flitspaalBuilt && world.flitspaalen && world.flitspaalen.length) {
@@ -1428,6 +1575,7 @@ export function update3D(dt, world) {
     policeHeliMesh = null;
   }
 
+  probe.mark('3d:props+wildlife');
   updateSkyProps3D(world, scene, animDt);
 
   // mission marker: a single persistent beacon, repositioned/recolored -
@@ -1478,42 +1626,12 @@ export function update3D(dt, world) {
     if (routeRibbonMesh) routeRibbonMesh.visible = false;
   }
 
-  // garages share module-scope materials in garages.js, so removal must
-  // never call material.dispose()
-  const garages = getGaragesForRender();
-  syncSharedActors(garages, garageMeshes, () => buildGarageMesh3D(), (g) => g);
-  for (const g of garages) {
-    const mesh = garageMeshes.get(g);
-    if (mesh) mesh.position.set(g.x, 0, g.y);
-  }
+  // garages stream their own workshop meshes (garages.js)
 
   // traffic lights: static positions, built once, only the lamp color changes
   syncTrafficLights3D(scene);
 
-  // combat: bullets (Map-keyed like any other actor), spark bursts (pruned
-  // by world.time > until), and a single shared muzzle-flash/melee-swipe
-  // slot (only one of the two effect types can be active at once)
-  syncActors(world.bullets, bulletMeshes, buildBulletMesh3D, (b) => b);
-  for (const b of world.bullets) {
-    const mesh = bulletMeshes.get(b);
-    if (mesh) {
-      mesh.position.set(b.x, 1.15, b.y);
-      mesh.rotation.y = -Math.atan2(b.vy, b.vx);
-    }
-  }
-  for (const p of world.particles) {
-    if (p.kind !== 'spark' || sparkMeshes.has(p)) continue;
-    const mesh = buildSparkBurstMesh3D();
-    mesh.position.set(p.x, 1.15, p.y);
-    scene.add(mesh);
-    sparkMeshes.set(p, mesh);
-  }
-  for (const [p, mesh] of sparkMeshes) {
-    if (world.time <= p.until) continue;
-    scene.remove(mesh);
-    disposeObject(mesh);
-    sparkMeshes.delete(p);
-  }
+  // gunfire (tracers, flashes, impacts, holes) is drawn by gunfx3d.js
   for (const p of world.particles) {
     if (p.kind !== 'splash' || splashMeshes.has(p)) continue;
     const mesh = buildSplashMesh3D();
@@ -1540,31 +1658,26 @@ export function update3D(dt, world) {
   }
   for (const [p, mesh] of kissMeshes) {
     const life = (world.time - mesh.userData.born) / Math.max(0.01, p.until - mesh.userData.born);
-    mesh.position.y = 1.6 + life * 0.8;
-    mesh.scale.setScalar(1 + Math.sin(life * Math.PI) * 0.3);
+    // pop in, float up with a little heartbeat, fade out at the end
+    const pop = Math.min(1, life / 0.12);
+    const beat = 1 + Math.sin(Math.min(1, life) * Math.PI * 4) * 0.08;
+    mesh.position.y = 1.75 + life * 0.9;
+    mesh.scale.setScalar(0.55 * (0.4 + 0.6 * pop * (2 - pop)) * beat);
+    mesh.material.opacity = life > 0.75 ? Math.max(0, 1 - (life - 0.75) / 0.25) : 1;
     if (world.time <= p.until) continue;
     scene.remove(mesh);
     disposeObject(mesh);
     kissMeshes.delete(p);
   }
-  if (!muzzleFlashMesh) { muzzleFlashMesh = buildMuzzleFlashMesh3D(); scene.add(muzzleFlashMesh); }
-  if (!meleeSwipeMesh) { meleeSwipeMesh = buildMeleeSwipeMesh3D(); scene.add(meleeSwipeMesh); }
-  {
-    const fx = getCombatEffect();
-    const fxActive = fx && world.time < fx.until;
-    muzzleFlashMesh.visible = !!(fxActive && fx.type === 'muzzle');
-    meleeSwipeMesh.visible = false; // punches are an arm animation now (applyAttackPose)
-    if (fxActive) {
-      const activeMesh = fx.type === 'muzzle' ? muzzleFlashMesh : meleeSwipeMesh;
-      activeMesh.position.set(player.x, 1.15, player.y);
-      activeMesh.rotation.y = -fx.angle;
-    }
-  }
 
+  probe.mark('3d:markers+combat');
   applyTimeOfDay(dt, world);
   applyWeatherToScene3D(scene, renderer, world, dt, player.x, player.y, cam);
+  probe.mark('3d:tod+weather');
   updateEnvironment(dt);
+  probe.mark('3d:env');
   farLod.update(player.x, player.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, DRAW_DIST);
+  probe.mark('3d:farlod');
 
   if (player.character !== playerCharacter) {
     playerCharacter = player.character;
@@ -1575,28 +1688,54 @@ export function update3D(dt, world) {
   }
 
   const pv = player.inVehicle;
-  const seatedInPv = pv && !pv.isBike && !pv.isScooter;
-  playerMesh.visible = (!pv || seatedInPv) && (!world.pigeonMode || world.pigeonIntro) && !world.menuCam && !world.cinematicHidePlayers;
-  if (seatedInPv) {
-    seatPerson(playerMesh, true);
+  const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers;
+  const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
+  const pAnim = trackSeat(playerSeatTr, player, animDt, true);
+  syncPlayerRider(pv, pvMesh, hidePlayers || (pAnim && pAnim.kind === 'enter'), world.time);
+  if (pAnim && !hidePlayers) {
+    // enter/exit animation (visual only; any input skips it)
+    drawTransition(pAnim, playerMesh, vehicleMeshes.get(pAnim.v.id), player, vehicleSeat(pAnim.v, true), animDt, world.time);
     playerMesh.scale.y = 1;
-    placeSeated(playerMesh, pv, true);
-    playerMesh.userData.shadow.visible = false;
-  } else if (!pv && !driveRagdoll(player, playerMesh, world, animDt)) {
-    playerMesh.userData.shadow.visible = !player.swimming;
-    playerMesh.rotation.x = 0;
-    playerMesh.rotation.z = player.swimTilt || 0;
-    playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0), player.y);
-    playerMesh.rotation.y = -player.angle;
-    playerMesh.scale.y = 1;
-    playerMesh.userData.crouch = !!player.crouching;
-    playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
-    animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
-    applyAttackPose(playerMesh, getCombatEffect(), world.time);
+  } else if (pv) {
+    const seated = !pv.isBike && !pv.isScooter;
+    playerMesh.visible = seated && !hidePlayers;
+    if (seated) {
+      playerMesh.scale.y = 1;
+      placeSeated(playerMesh, pvMesh, pv, vehicleSeat(pv, true), world.time);
+      playerMesh.userData.shadow.visible = false;
+    }
+  } else {
+    playerMesh.visible = !hidePlayers;
+    if (!driveRagdoll(player, playerMesh, world, animDt)) {
+      playerMesh.userData.shadow.visible = !player.swimming;
+      playerMesh.rotation.x = 0;
+      playerMesh.rotation.z = player.swimTilt || 0;
+      playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0), player.y);
+      playerMesh.rotation.y = -player.angle;
+      playerMesh.scale.y = 1;
+      playerMesh.userData.crouch = !!player.crouching;
+      playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
+      animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
+      if (player.carrying) carryOverlay(playerMesh);
+      const gun = world.weapon && world.weapon !== 'fists' && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
+      const aiming = gun && !world.paused && (world.input.mouse.down || world.input.mouse.rightDown) ? gun : null;
+      applyAttackPose(playerMesh, getCombatEffect(), world.time, aiming);
+      applyHitReaction(playerMesh, player.hitReact, world.time, player.angle);
+    }
+  }
+  if (playerMesh) {
+    const onFoot = !pv && !player.swimming && !world.pigeonMode;
+    setHeldWeapon(playerMesh, onFoot ? world.weapon : null);
+    const tip = playerMesh.userData.muzzle;
+    if (tip && playerMesh.visible) {
+      playerMesh.updateMatrixWorld(true);
+      alignPlayerFlash(tip);
+    }
   }
 
   // companion (Tammo/Anita, whichever the player isn't controlling) -
-  // walks alongside on foot, or rides along as a visible passenger
+  // walks alongside on foot, or rides along in whatever the player drives:
+  // passenger seat, boat bench, bike rack, fatbike saddle or step deck
   const comp = world.companion;
   if (comp) {
     if (comp.character !== companionCharacter) {
@@ -1605,35 +1744,35 @@ export function update3D(dt, world) {
       if (companionMesh) scene.remove(companionMesh);
       companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
       scene.add(companionMesh);
-      if (passengerMesh) scene.remove(passengerMesh);
-      passengerMesh = buildPersonMesh(appearance.shirt, appearance.skin, appearance);
-      passengerMesh.visible = false;
-      scene.add(passengerMesh);
     }
-    companionMesh.visible = !comp.inVehicle && (!world.pigeonMode || world.pigeonIntro) && !world.menuCam && !world.cinematicHidePlayers;
-    if (!comp.inVehicle) {
+    const cv = comp.inVehicle;
+    const cAnim = trackSeat(companionSeatTr, comp, animDt, false);
+    if (cAnim && !hidePlayers) {
+      drawTransition(cAnim, companionMesh, vehicleMeshes.get(cAnim.v.id), comp, vehicleSeat(cAnim.v, false), animDt, world.time);
+    } else if (cv) {
+      companionMesh.visible = !hidePlayers;
+      placeSeated(companionMesh, vehicleMeshes.get(cv.id), cv, vehicleSeat(cv, false), world.time);
+      if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = false;
+    } else {
+      companionMesh.visible = !hidePlayers;
       if (!driveRagdoll(comp, companionMesh, world, animDt)) {
         companionMesh.position.set(comp.x, (comp.gz || 0) + (comp.z || 0), comp.y);
+        companionMesh.rotation.x = 0;
         companionMesh.rotation.z = comp.swimTilt || 0;
         if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !comp.swimming;
         companionMesh.rotation.y = -comp.angle;
         companionMesh.userData.crouch = !!comp.crouching;
         animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
+        if (comp.carrying) carryOverlay(companionMesh);
       }
-    } else {
-      const v = comp.inVehicle;
-      passengerMesh.visible = !v.isBike && !v.isScooter && !world.cinematicHidePlayers;
-      seatPerson(passengerMesh, false);
-      placeSeated(passengerMesh, v, v.driver !== 'player');
     }
   }
-  if (passengerMesh && (!comp || !comp.inVehicle)) passengerMesh.visible = false;
-
   // third-person follow: smoothly settle behind whatever the player is
   // currently facing (on foot or driving), GTA3-style - with a wall-aware
   // pull-in so the camera never ends up clipped inside a building, and an
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
+  probe.mark('3d:players');
   const targetAngle = player.inVehicle ? player.inVehicle.angle : player.angle;
   followYaw += normalizeAngleDelta(-targetAngle - followYaw) * Math.min(1, dt * 5);
 
@@ -1648,7 +1787,7 @@ export function update3D(dt, world) {
   const lookK = MOUSE_LOOK_PER_PX * getSettings().mouseSensitivity;
   if (looking) {
     lookPitchTarget += mouse.dy * lookK * (getSettings().invertY ? -1 : 1);
-    lookPitchTarget = Math.min(PITCH_MAX_DEG, Math.max(PITCH_MIN_DEG - 4, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
+    lookPitchTarget = Math.min(PITCH_LOOK_MAX_DEG, Math.max(PITCH_LOOK_MIN_DEG, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
   } else {
     const pitchT = Math.min(1, Math.max(0, (mouse.y || 0) / (innerHeight || 1)));
     lookPitchTarget = (PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT) * Math.PI / 180;
@@ -1659,17 +1798,23 @@ export function update3D(dt, world) {
   // around the car and the camera eases back behind it after a moment idle
   if (world.camYaw == null) world.camYaw = targetAngle;
   let camAngle;
+  // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
+  const lookBack = !!player.inVehicle && !world.cameraOverride && (world.input.isDown('q') || !!mouse.middleDown);
+  const lookBackCut = lookBack !== lookBackWas;
+  lookBackWas = lookBack;
   if (player.inVehicle) {
     if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
-    if (looking && mouse.dx !== 0) {
+    const fast = Math.min(1, Math.abs(player.inVehicle.speed || 0) / LOOK_FAST_SPEED);
+    if (looking && mouse.dx !== 0 && !lookBack) {
       lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
       lookYawIdle = 0;
     } else {
       lookYawIdle += dt;
-      if (lookYawIdle > LOOK_RECENTER_DELAY) lookYaw *= Math.exp(-dt * 2.5);
+      const delay = LOOK_RECENTER_DELAY + (LOOK_RECENTER_DELAY_FAST - LOOK_RECENTER_DELAY) * fast;
+      if (lookYawIdle > delay) lookYaw *= Math.exp(-dt * (2.5 - 1.2 * fast));
     }
-    camAngle = targetAngle + lookYaw;
-    world.camYaw = normalizeAngleDelta(camAngle);
+    camAngle = targetAngle + (lookBack ? Math.PI : lookYaw);
+    world.camYaw = normalizeAngleDelta(targetAngle + lookYaw);
   } else {
     lookYaw = 0;
     camAngle = world.camYaw;
@@ -1758,7 +1903,8 @@ export function update3D(dt, world) {
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   if (teleported) camPullReset = true;
-  const lerpT = teleported ? 1 : Math.min(1, dt * 6);
+  if (lookBackCut) camPullReset = true;
+  const lerpT = teleported || lookBackCut ? 1 : Math.min(1, dt * 6);
   if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
   camBase.x += (desiredX - camBase.x) * lerpT;
   camBase.y += (desiredY - camBase.y) * lerpT;
@@ -1774,84 +1920,259 @@ export function update3D(dt, world) {
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
     cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
   }
-  applyCameraOverride(dt, world, player.x, veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3, player.y);
+  const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
+  applyCameraOverride(dt, world, player.x, (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp, player.y);
 
+  probe.mark('3d:camera');
   updateSunAndSky(player);
   limitActorShadows(pedMeshes, player.x, player.y);
   limitActorShadows(vehicleMeshes, player.x, player.y);
   limitActorShadows(wildlifeMeshes, player.x, player.y);
-  updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness);
+  updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness, dt);
+  probe.mark('3d:lights');
+  stepWarmup(world);
   prewarmLightVariants();
+  probe.mark('3d:prewarm');
 
   postfx.render();
+  probe.mark('3d:render');
+  probe.identify(scene);
 }
 
 // Every lit material has two program variants: with the night-light rig and
 // without it (nightlights3d dark rig). Each material + mesh layout that shows
-// up is drawn once in the variant not in use - a stand-in on its own layer,
-// into a 1x1 scissor of the real scene target - so the program is compiled,
-// linked and its GPU pipeline built before the rig ever switches to it.
-const PREWARM_INTERVAL_MS = 1000;
+// up gets a stand-in on its own layer, compiled for the variant not in use.
+// The scene is scanned a slice per frame, compiling goes through
+// KHR_parallel_shader_compile (renderer.compile only starts the link), and
+// once the programs are linked the stand-ins are drawn once into a 1x1
+// scissor of the scene target so the GPU pipeline exists before the rig
+// ever switches over. Nothing here blocks on the driver.
 const PREWARM_LAYER = 31;
+const PREWARM_SLICE = 120;
+const PREWARM_WAIT_MS = 20000;
+const PREWARM_POLL_MS = 250;
 const prewarmed = { true: new Set(), false: new Set() };
 const prewarmRoot = new THREE.Group();
+const prewarmQueue = [];
+let prewarmCursor = 0;
+let prewarmBatch = null;
 let prewarmCam = null;
-let prewarmAt = 0;
-function prewarmLightVariants() {
-  const now = performance.now();
-  if (now < prewarmAt) return;
-  prewarmAt = now + PREWARM_INTERVAL_MS;
-  const on = isLightRigOn();
-  const done = prewarmed[!on];
-  scene.traverse((o) => {
-    if (o.isLight) { o.layers.enable(PREWARM_LAYER); return; }
-    if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite) || (o.isSkinnedMesh && !o.skeleton)) return;
-    const g = o.geometry;
-    const kind = (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
-      + (o.instanceColor ? 'c' : '') + Object.keys(g.attributes).join(',') + (g.morphAttributes.position ? 'M' : '');
-    for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
-      if (!m) continue;
-      const key = m.id + '.' + m.version + '|' + kind;
-      if (done.has(key)) continue;
-      done.add(key);
-      const proxy = o.isInstancedMesh ? new THREE.InstancedMesh(g, m, 1)
-        : o.isSkinnedMesh ? new THREE.SkinnedMesh(g, m)
-          : o.isSprite ? new THREE.Sprite(m)
-            : o.isPoints ? new THREE.Points(g, m)
-              : o.isLineSegments ? new THREE.LineSegments(g, m)
-                : o.isLine ? new THREE.Line(g, m)
-                  : new THREE.Mesh(g, m);
-      if (o.instanceColor) proxy.instanceColor = o.instanceColor;
-      if (o.isSkinnedMesh) proxy.bind(o.skeleton, o.bindMatrix);
-      proxy.frustumCulled = false;
-      proxy.layers.set(PREWARM_LAYER);
-      prewarmRoot.add(proxy);
-    }
-  });
-  if (!prewarmRoot.children.length) return;
-  if (!prewarmCam) {
-    prewarmCam = new THREE.PerspectiveCamera();
-    prewarmCam.layers.set(PREWARM_LAYER);
+
+function prewarmKind(o) {
+  const g = o.geometry;
+  let k = g.userData._pwKind;
+  if (k === undefined) {
+    k = Object.keys(g.attributes).join(',') + (g.morphAttributes.position ? 'M' : '');
+    g.userData._pwKind = k;
   }
+  return (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
+    + (o.instanceColor ? 'c' : '') + k;
+}
+
+function makePrewarmProxy(o, m) {
+  const g = o.geometry;
+  const proxy = o.isInstancedMesh ? new THREE.InstancedMesh(g, m, 1)
+    : o.isSkinnedMesh ? new THREE.SkinnedMesh(g, m)
+      : o.isSprite ? new THREE.Sprite(m)
+        : o.isPoints ? new THREE.Points(g, m)
+          : o.isLineSegments ? new THREE.LineSegments(g, m)
+            : o.isLine ? new THREE.Line(g, m)
+              : new THREE.Mesh(g, m);
+  if (o.instanceColor) proxy.instanceColor = o.instanceColor;
+  if (o.isSkinnedMesh) proxy.bind(o.skeleton, o.bindMatrix);
+  // shadow receiving is part of the program key
+  proxy.receiveShadow = o.receiveShadow;
+  proxy.frustumCulled = false;
+  proxy.layers.set(PREWARM_LAYER);
+  return proxy;
+}
+
+// Queues stand-ins for every material/layout under `root` not yet warmed
+// for the rig variant `variant`. Hidden objects (effects that only show up
+// later, the moon and stars by day) are warmed for the current variant too,
+// since their first appearance would otherwise compile in-frame. A tag per
+// object and variant skips objects already seen with the same material.
+function scanForPrewarm(root, variant, hidden = false) {
+  hidden = hidden || !root.visible;
+  queuePrewarm(root, variant);
+  if (hidden) queuePrewarm(root, !variant);
+  const kids = root.children;
+  for (let i = 0; i < kids.length; i++) scanForPrewarm(kids[i], variant, hidden);
+}
+
+function queuePrewarm(o, variant) {
+  if (o.isLight) { o.layers.enable(PREWARM_LAYER); return; }
+  const tag = variant ? '_pwOn' : '_pwOff';
+  if (!o.material || o[tag] === o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite) || (o.isSkinnedMesh && !o.skeleton)) return;
+  o[tag] = o.material;
+  const done = prewarmed[variant];
+  const kind = prewarmKind(o);
+  for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+    if (!m) continue;
+    const key = m.id + '.' + m.version + '|' + kind + (o.receiveShadow ? 'r' : '');
+    if (done.has(key)) continue;
+    done.add(key);
+    prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
+  }
+}
+
+function withLightRig(on, fn) {
+  const cur = isLightRigOn();
+  setLightRigVisible(on);
+  try { return fn(); } finally { setLightRigVisible(cur); }
+}
+
+function prewarmCamera() {
+  if (!prewarmCam) prewarmCam = new THREE.PerspectiveCamera();
   prewarmCam.copy(cam, false);
   prewarmCam.layers.set(PREWARM_LAYER);
+  return prewarmCam;
+}
+
+function startPrewarmBatch() {
+  const variant = prewarmQueue[0].variant;
+  const items = [];
+  for (let i = 0; i < prewarmQueue.length && items.length < 64;) {
+    if (prewarmQueue[i].variant === variant) items.push(prewarmQueue.splice(i, 1)[0].proxy);
+    else i++;
+  }
+  for (const p of items) prewarmRoot.add(p);
+  const camera = prewarmCamera();
+  // program keys depend on the target (tone mapping / output colour space
+  // are only applied to the screen), so compile for the scene target
+  const prevTarget = renderer.getRenderTarget();
+  renderer.setRenderTarget(postfx.sceneTarget);
+  try {
+    withLightRig(variant, () => renderer.compile(prewarmRoot, camera, scene));
+  } finally {
+    renderer.setRenderTarget(prevTarget);
+  }
+  const programs = new Set();
+  for (const p of items) {
+    const props = renderer.properties.get(p.material);
+    if (props.programs) for (const pr of props.programs.values()) programs.add(pr);
+  }
+  prewarmBatch = { variant, programs, since: performance.now(), nextCheck: performance.now() + 2 * PREWARM_POLL_MS };
+}
+
+function drawPrewarmBatch() {
+  const camera = prewarmCamera();
   const target = postfx.sceneTarget;
   const prevTarget = renderer.getRenderTarget();
   const autoShadow = renderer.shadowMap.autoUpdate;
   scene.add(prewarmRoot);
-  setLightRigVisible(!on);
   renderer.shadowMap.autoUpdate = false;
   renderer.setRenderTarget(target);
   if (target) { target.scissor.set(0, 0, 1, 1); target.scissorTest = true; } else { renderer.setScissor(0, 0, 1, 1); renderer.setScissorTest(true); }
   try {
-    renderer.render(scene, prewarmCam);
+    withLightRig(prewarmBatch.variant, () => renderer.render(scene, camera));
   } finally {
     if (target) { target.scissorTest = false; target.scissor.set(0, 0, target.width, target.height); } else renderer.setScissorTest(false);
     renderer.setRenderTarget(prevTarget);
     renderer.shadowMap.autoUpdate = autoShadow;
-    setLightRigVisible(on);
     scene.remove(prewarmRoot);
     prewarmRoot.clear();
+  }
+}
+
+function prewarmLightVariants() {
+  const variant = !isLightRigOn();
+  const kids = scene.children;
+  for (let i = 0, n = Math.min(PREWARM_SLICE, kids.length); i < n; i++) {
+    if (prewarmCursor >= kids.length) prewarmCursor = 0;
+    const o = kids[prewarmCursor++];
+    if (o !== prewarmRoot) scanForPrewarm(o, variant);
+  }
+  if (prewarmBatch) {
+    // A completion query is a synchronous round trip to the GPU process that
+    // waits out its backlog (later ones in the same task are cheap), so ask
+    // only every PREWARM_POLL_MS; ready programs are dropped from the list.
+    const now = performance.now();
+    const B = prewarmBatch;
+    if (now - B.since < PREWARM_WAIT_MS) {
+      if (now < B.nextCheck) return;
+      B.nextCheck = now + PREWARM_POLL_MS;
+      for (const p of B.programs) {
+        if (!p.isReady()) return;
+        B.programs.delete(p);
+      }
+    }
+    drawPrewarmBatch();
+    prewarmBatch = null;
+  }
+  if (prewarmQueue.length) startPrewarmBatch();
+}
+
+// Starts compiling (in the background, KHR_parallel_shader_compile) the
+// programs of an object that will enter the scene soon, e.g. a prefetched
+// building, so its first frame doesn't link them synchronously.
+function precompile(obj) {
+  const prev = renderer.getRenderTarget();
+  renderer.setRenderTarget(postfx.sceneTarget);
+  try { renderer.compile(obj, cam, scene); } finally { renderer.setRenderTarget(prev); }
+}
+
+// Load-time warm-up for objects that are not in the scene yet (actors and
+// effects that only spawn later): their programs are compiled for both rig
+// variants in the background, then drawn once like the stand-ins above.
+export function prewarmObjects(roots) {
+  if (!renderer) return;
+  for (const r of roots) {
+    r.updateMatrixWorld(true);
+    scanForPrewarm(r, !isLightRigOn(), true);
+    warmupBuilt.push(r);
+  }
+}
+
+// One sample of everything that spawns later, built one per frame from the
+// title screen on and handed to prewarmObjects; disposed once warmed.
+let warmupQueue = null;
+const warmupBuilt = [];
+let warmupId = -1e6;
+function queueWarmup(world) {
+  const map = world.map;
+  const road = map.roads.find((r) => r.cat === 'normal' && !r.z && r.pts.length >= 2) || map.roads[0];
+  const veh = (o = {}) => () => {
+    const v = spawnVehicleOnRoad(map, road, !!o.police, Math.random, !!o.bike, !!o.bus, null, !!o.scooter);
+    v.id = warmupId--;
+    if (o.model) v.model = o.model;
+    if (o.wreck) v.wrecked = true;
+    return buildVehicleActor(v);
+  };
+  // every traffic model once, so their cached geometry exists before they spawn
+  const models = TRAFFIC_MODELS().map((model) => veh({ model, bus: model.name === 'bus', scooter: model.name === 'scooter', bike: model.name !== 'bus' && model.name !== 'scooter' && model.len < 2.5 }));
+  const boat = (police) => () => {
+    const poly = map.water && map.water.find((w) => w.bounds && w.bounds[2] - w.bounds[0] > 40);
+    const v = poly && (police ? spawnPoliceBoatOnWater(map, poly) : spawnBoatOnWater(map, poly));
+    if (!v) return null;
+    v.id = warmupId--;
+    return buildVehicleActor(v);
+  };
+  const ped = () => {
+    const m = buildPersonActor(0x7a8f5a, 0xd9aa82, { seed: 77 });
+    applyPedFade(m, 0.5);
+    return m;
+  };
+  const critter = (kind, extra = {}) => () => buildWildlifeActor({ kind, x: 0, y: 0, angle: 0, bobSeed: 0.3, ...extra });
+  warmupQueue = [
+    ...models, veh({ police: true }), veh({ bus: true }), veh({ bike: true }), veh({ scooter: true }),
+    veh({ wreck: true }), veh({ police: true, wreck: true }), boat(false), boat(true),
+    ped, () => buildPersonActor(0x1f3f8f, 0xd9aa82, { seed: 5 }),
+    critter('seagull'), critter('duck', { variant: 'drake' }), critter('pigeon'), critter('cat'), critter('dog'), critter('cow'), critter('sheep'),
+    buildVehicleImpactSparkMesh3D, buildVehicleFireMesh3D, buildVehicleExplosionMesh3D, buildSplashMesh3D, buildKissHeartMesh,
+    buildPoliceHeliMesh3D, buildMissionMarker3D, buildWaypointDotMesh3D,
+  ];
+}
+
+function stepWarmup(world) {
+  if (!warmupQueue) queueWarmup(world);
+  if (warmupQueue.length) {
+    let obj = null;
+    try { obj = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
+    if (obj) prewarmObjects([obj]);
+  } else if (warmupBuilt.length && !prewarmQueue.length && !prewarmBatch) {
+    for (const o of warmupBuilt) disposeObject(o);
+    warmupBuilt.length = 0;
   }
 }
 
@@ -1954,11 +2275,32 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
     guardLift = 0;
   }
   cam.lookAt(_camLook);
+  if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   const targetFov = valid && o.fov ? o.fov : baseFov;
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();
   }
+  applyRecoil(dt, world, t > 0.5);
+}
+
+// Gun recoil (world.camKick from combat.js): the view snaps up and a little
+// sideways, the FOV punches out, and both settle within ~0.3 s.
+let fovPunch = 0;
+function applyRecoil(dt, world, cinematic) {
+  const k = world.camKick;
+  if (!k || (k.pitch < 1e-4 && Math.abs(k.yaw) < 1e-4 && k.fov < 0.01)) return;
+  if (!cinematic) {
+    cam.rotateX(k.pitch);
+    cam.rotateY(k.yaw);
+    fovPunch = k.fov;
+    cam.fov += fovPunch;
+    cam.updateProjectionMatrix();
+  }
+  const d = Math.exp(-dt * 11);
+  k.pitch *= d;
+  k.yaw *= d;
+  k.fov *= Math.exp(-dt * 13);
 }
 
 // --- time of day ---------------------------------------------------------
@@ -2134,13 +2476,50 @@ function buildChevronTexture() {
   return tex;
 }
 
+// Route points can be 50 m apart on a straight road; a ramp climbs more than
+// groundHeightAt's step-up between two of them, so resample every 2 m.
+function resampleRoute(pts, step = 2) {
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const n = Math.floor(L / step);
+    for (let k = 1; k < n; k++) out.push([a[0] + (b[0] - a[0]) * (k / n), a[1] + (b[1] - a[1]) * (k / n)]);
+    out.push(b);
+  }
+  return out;
+}
+
+// Raised pavement (kerb) under a route point off the carriageway: the ribbon
+// would otherwise vanish under the sidewalk mesh.
+function routeLift(map, x, y) {
+  let onKerb = false;
+  for (const r of map.roadsNear(x, y, 6)) {
+    if (r.cat !== 'major' && r.cat !== 'normal' && r.cat !== 'minor') continue;
+    const hw = (r.width || 6) / 2;
+    const P = r.pts;
+    for (let k = 0; k < P.length - 1; k++) {
+      const ex = P[k + 1][0] - P[k][0], ey = P[k + 1][1] - P[k][1];
+      const l2 = ex * ex + ey * ey || 1;
+      const t = Math.max(0, Math.min(1, ((x - P[k][0]) * ex + (y - P[k][1]) * ey) / l2));
+      const d = Math.hypot(x - P[k][0] - ex * t, y - P[k][1] - ey * t);
+      if (d < hw - 0.1) return 0;
+      if (r.cat !== 'minor' && d < hw + SIDEWALK_EXTRA + 0.2) onKerb = true;
+    }
+  }
+  return onKerb ? 0.14 : 0;
+}
+
 function buildRouteRibbonGeometry(pts, along0, map = null, z0 = 0) {
+  if (pts.length >= 2) pts = resampleRoute(pts);
   const n = pts.length;
   // follow the ring's ramps: each point takes the surface nearest the previous one
   const zs = new Float32Array(n);
-  if (map && map.elev && map.elev.has) {
-    let h = z0;
-    for (let i = 0; i < n; i++) { h = map.groundHeightAt(pts[i][0], pts[i][1], h); zs[i] = h; }
+  const elev = map && map.elev && map.elev.has;
+  let h = z0;
+  for (let i = 0; i < n; i++) {
+    if (elev) { h = map.groundHeightAt(pts[i][0], pts[i][1], h); zs[i] = h; }
+    if (map && Math.abs(zs[i]) < 0.3) zs[i] += routeLift(map, pts[i][0], pts[i][1]);
   }
   const pos = new Float32Array(n * 2 * 3), uv = new Float32Array(n * 2 * 2), col = new Float32Array(n * 2 * 4);
   const idx = [];

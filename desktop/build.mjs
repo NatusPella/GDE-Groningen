@@ -50,6 +50,8 @@ async function main() {
   console.log(`staging GTE VI ${version}`);
   fs.rmSync(path.join(HERE, 'build'), { recursive: true, force: true });
   fs.cpSync(SRC, OUT, { recursive: true });
+  // the start screen's "Wat is er nieuw" panel reads the changelog
+  fs.copyFileSync(path.join(HERE, '..', 'CHANGELOG.md'), path.join(OUT, 'CHANGELOG.md'));
 
   // 1. which CDN modules does the game use?
   const texts = walk(OUT).filter((f) => /\.(js|mjs|html)$/.test(f));

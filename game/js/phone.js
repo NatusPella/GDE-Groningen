@@ -81,8 +81,9 @@ function berendTalk(w, call) {
   const idx = call.offer != null ? call.offer : next.index;
   const m = list[idx];
   const done = m.status === 'geklaard' ? ' Die heb je al eens gedaan, maar geld is geld.' : '';
+  const needs = m.needs ? ` Maar eerst: ${m.needs}` : '';
   return {
-    line: `Moi. Ik heb een klusje: "${m.label}". €${m.reward}, contant.${done}`,
+    line: `Moi. Ik heb een klusje: "${m.label}". €${m.reward}, contant.${done}${needs}`,
     actions: [
       { label: 'Klus aannemen', run: () => { trackMission(w, idx); flashAndClose(`Route naar ${m.label}`); } },
       { label: 'Iets anders?', run: () => { call.offer = (idx + 1) % list.length; talk(call); } },
@@ -279,7 +280,7 @@ function activate() {
     if (m.status === 'actief') { flashAndClose('Deze missie loopt al'); return; }
     if (getMissionList().some((x) => x.status === 'actief')) { flashAndClose('Maak eerst je huidige missie af'); return; }
     trackMission(w, m.index);
-    flashAndClose(`Route naar ${m.label}`);
+    flashAndClose(m.needs ? 'Eerst naar de winkel: staat op je kaart' : `Route naar ${m.label}`);
     return;
   }
   if (st.screen === 'call' && st.call && st.call.phase === 'talk') {

@@ -49,15 +49,20 @@ Security or Windows SmartScreen.
 | Space | jump | brake |
 | Ctrl | crouch | – |
 | E or F | enter nearest vehicle, use a shop/job/station, or become a pigeon at a pigeon sign | exit |
+| H | – | horn |
+| L | – | lights and siren on/off (police car, ambulance): traffic moves aside |
+| R | – | at Spuit & Klaar: new paint; inside a garage or at a gas station: repair / upgrade menu |
 | K | kiss your companion (Tammo/Anita) when next to them | – |
 | Left mouse | attack (fists or the equipped gun); you turn to where the camera looks | – |
 | Right mouse | aim: face the camera direction while moving | – |
 | 1–4 | fists / pistol / uzi / shotgun | – |
 | Mouse wheel | next / previous weapon | – |
-| Mouse | orbit the camera around your character | orbit around the car; eases back behind it after ~1.7 s |
+| Mouse | orbit the camera around your character; push it low to look up at the rooftops | orbit around the car; eases back behind it after ~1.7 s (up to ~4.5 s at speed) |
+| Q or middle mouse (hold) | – | look back |
 | C | switch between Tammo and Anita | swap seats |
-| M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; the legend picks what shows on the map and (dot) the minimap | |
+| M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; one legend checkbox per category shows or hides it on both the map and the minimap (destination, route and police are always shown) | |
 | U | sound on/off | |
+| F11 / Alt+Enter | desktop app: fullscreen on/off (Mac also Ctrl+Cmd+F) | |
 | X | as a pigeon: turn back into Tammo/Anita where you are | |
 
 ## What's in it

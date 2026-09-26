@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { reportImpact, markWreckedByPlayer, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
+import { reportImpact, disableVehicle, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
 import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 import { streamTreeProps } from './treeprops.js';
 import { streamTrafficLightProps } from './trafficlights.js';
@@ -147,13 +147,9 @@ function setCarVelocity(v, vx, vy) {
 }
 
 function damageCar(v, dmg) {
-  if (dmg <= 0 || v.wrecked) return;
+  if (dmg <= 0 || v.wrecked || v.disabled) return;
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
-  if (v.health <= 0) {
-    v.wrecked = true;
-    v.speed = 0;
-    if (v.driver === 'player') markWreckedByPlayer(v, world);
-  }
+  if (v.health <= 0) disableVehicle(v, v.driver === 'player', world);
 }
 
 function recordContact(v, x, y, nx, ny, impact, slide) {
@@ -245,8 +241,10 @@ function hitProp(v, p, hit) {
   const vn = pvx * nx + pvy * ny;
   const slide = Math.abs(-pvx * ny + pvy * nx);
   const mine = v.driver === 'player';
-  if (vn > p.breakSpeed) {
-    breakByVehicle(v, p, hit, vx, vy, vn);
+  // glance: long props (railings) also give way to a car scraping along them
+  const hitSpeed = p.glance && vn > 0.5 ? vn + slide * p.glance : vn;
+  if (hitSpeed > p.breakSpeed && (!p.minBreakKg || carKg(v) >= p.minBreakKg)) {
+    breakByVehicle(v, p, hit, vx, vy, Math.max(vn, 0.5));
     return;
   }
   v.x -= nx * hit.pen;
@@ -375,6 +373,17 @@ function spawnBody(p, hit) {
     b.vx *= slide; b.vz *= slide;
     b.len = hh;
     obj.position.set(p.x, 0, p.y);
+  } else if (p.slide) {
+    // heavy: shoved along the ground with a scrape and a slow turn, no flight
+    const c = _box.getCenter(new THREE.Vector3());
+    inner.position.set(-c.x, -c.y, -c.z);
+    b.x = p.x + c.x; b.y = c.y; b.z = p.y + c.z;
+    b.vy = 0;
+    b.slide = true;
+    const hs = Math.hypot(b.vx, b.vz), cap = 9;
+    if (hs > cap) { b.vx *= cap / hs; b.vz *= cap / hs; }
+    b.w.set(0, (Math.random() - 0.5) * Math.min(3, hit.speed * 0.3), 0);
+    obj.position.set(b.x, b.y, b.z);
   } else {
     const c = _box.getCenter(new THREE.Vector3());
     inner.position.set(-c.x, -c.y, -c.z);
@@ -497,6 +506,26 @@ function stepTopple(b, dt) {
   b.obj.quaternion.setFromAxisAngle(b.axis, b.theta);
 }
 
+function stepSlide(b, dt) {
+  const ox = b.x, oz = b.z;
+  const f = Math.exp(-2.6 * dt);
+  b.vx *= f; b.vz *= f;
+  b.x += b.vx * dt; b.z += b.vz * dt;
+  if (insideBuilding(b.x, b.z)) { b.x = ox; b.z = oz; b.vx *= -0.2; b.vz *= -0.2; }
+  const wl = Math.abs(b.w.y);
+  if (wl > 1e-3) {
+    _q.setFromAxisAngle(_v2.set(0, 1, 0), b.w.y * dt);
+    b.q.premultiply(_q).normalize();
+    b.w.y *= f;
+  }
+  const sp = Math.hypot(b.vx, b.vz);
+  if (sp > 1.5 && Math.random() < dt * 6) audio(b.x, b.z, Math.min(0.5, sp / 16), b.p.material);
+  if (isInWater(world.map, b.x, b.z)) sinkBody(b);
+  if (sp < 0.05 && wl < 0.02) b.sleep = true;
+  b.obj.position.set(b.x, b.y, b.z);
+  b.obj.quaternion.copy(b.q);
+}
+
 function sinkBody(b) {
   world.particles.push({ kind: 'splash', x: b.x, y: b.z, until: world.time + 1.2 });
   b.life = Math.max(b.life, BODY_LIFE);
@@ -511,6 +540,7 @@ function updateBodies(dt) {
     b.life += dt;
     if (!b.sleep) {
       if (b.sinking) { b.y -= dt * 0.8; b.obj.position.y = b.y; }
+      else if (b.slide) stepSlide(b, dt);
       else if (b.topple) stepTopple(b, dt);
       else stepFree(b, dt);
     }
@@ -525,7 +555,7 @@ function updateBodies(dt) {
 function kickBodies() {
   const pl = world.player;
   for (const b of bodies) {
-    if (b.topple || b.mass > 150 || b.sinking || world.time < b.kickAt || b.y > 1.8) continue;
+    if (b.topple || (b.mass > 150 && !b.slide) || b.sinking || world.time < b.kickAt || b.y > 1.8) continue;
     for (const v of world.vehicles) {
       if (v.wrecked || v.isBoat) continue;
       const dx = v.x - pl.x, dy = v.y - pl.y;
@@ -540,6 +570,18 @@ function kickBodies() {
       const d = Math.sqrt(c.dist2) || 1;
       const nx = (b.x - c.x) / d, ny = (b.z - c.y) / d;
       const vx = fx * v.speed + v.driftX, vy = fy * v.speed + v.driftY;
+      if (b.slide) {
+        // shoved again: pushed ahead of the bumper, the car pays for it
+        const share = clamp(carKg(v) / (carKg(v) + b.mass), 0.3, 0.85);
+        b.vx = vx * share + nx * 0.8; b.vz = vy * share + ny * 0.8;
+        b.w.y += (Math.random() - 0.5) * 1.5;
+        b.sleep = false;
+        b.kickAt = world.time + 0.2;
+        if (b.life > BODY_LIFE - 4) b.life = BODY_LIFE - 4;
+        audio(b.x, b.z, Math.min(1, sp / 14), b.p.material);
+        setCarVelocity(v, vx * (1 - (1 - share) * 0.5), vy * (1 - (1 - share) * 0.5));
+        break;
+      }
       const k = clamp(1.4 - b.mass / 150, 0.5, 1.3);
       b.vx = vx * k + nx * 1.5; b.vz = vy * k + ny * 1.5;
       b.vy = Math.max(b.vy, 1 + sp * 0.15);
@@ -776,7 +818,9 @@ const _walk = [];
 // Pushes a walking circle out of every prop it overlaps. Light props (bins,
 // chairs, parked bikes...) bumped at a jog or faster are kicked over instead.
 // opts: { kick = true, byPlayer = false, skipSeats = false, ped = false }
-export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null) {
+// hop: how high the walker's feet are off the ground (a jump); props lower
+// than that are cleared.
+export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null, hop = 0) {
   if (!grid.size) return [x, y];
   const near = propsNear(x, y, radius + 2, _walk);
   if (!near.length) return [x, y];
@@ -784,6 +828,7 @@ export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null) {
   const sp = Math.hypot(vx, vy);
   for (const p of near) {
     if (!p.cell || (opts && ((opts.skipSeats && SEAT_KINDS.has(p.kind)) || (opts.ped && PED_PASSABLE.has(p.kind))))) continue;
+    if (hop > 0 && hop > (p.h || 1) - HOP_MARGIN) continue;
     const c = closestPointOnSegment(x, y, p.x - p.hx, p.y - p.hy, p.x + p.hx, p.y + p.hy);
     const rr = p.r + radius;
     if (c.dist2 >= rr * rr) continue;
@@ -801,6 +846,67 @@ export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null) {
   }
   return [x, y];
 }
+
+export const HOP_MARGIN = 0.15;
+
+// First prop a bullet flying from (x0, y0) to (x1, y1) at height z runs into:
+// { prop, t, x, y, nx, ny } (t: 0..1 along the path) or null.
+export function propOnBulletPath(x0, y0, x1, y1, z) {
+  if (!grid.size) return null;
+  const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+  const len = Math.hypot(x1 - x0, y1 - y0);
+  const near = propsNear(mx, my, len / 2 + 1.5, _ahead);
+  let best = null;
+  const steps = Math.max(2, Math.ceil(len / 0.12));
+  for (const p of near) {
+    if (!p.cell || p.water || (p.h || 1) < z - 0.05) continue;
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps;
+      if (best && t >= best.t) break;
+      const bx = x0 + (x1 - x0) * t, by = y0 + (y1 - y0) * t;
+      const c = closestPointOnSegment(bx, by, p.x - p.hx, p.y - p.hy, p.x + p.hx, p.y + p.hy);
+      if (c.dist2 >= p.r * p.r) continue;
+      const d = Math.sqrt(c.dist2) || 1e-3;
+      best = { prop: p, t, x: bx, y: by, nx: (bx - c.x) / d, ny: (by - c.y) / d };
+      break;
+    }
+  }
+  return best;
+}
+
+// A bullet hit: light props are knocked over, glass ones shatter, the rest
+// only take the dent. Returns true when the prop gave way.
+export function shootProp(p, dx, dy, byPlayer) {
+  if (!p.cell || !world) return false;
+  const light = p.mass <= 40 && p.breakSpeed <= 3.5;
+  const glassy = p.burst === 'glass' && !p.topple;
+  if (!light && !glassy) {
+    audio(p.x, p.y, 0.25, p.material);
+    return false;
+  }
+  breakProp(p, { vx: dx * (light ? 3.5 : 1), vy: dy * (light ? 3.5 : 1), speed: light ? 4 : 2, lift: 0.4, nx: dx, ny: dy, byPlayer: !!byPlayer });
+  return true;
+}
+
+// Nearest prop a walker at (x, y) heading along unit (dx, dy) would run into
+// within `reach` metres: { dist, h, prop } or null. Used for vaulting.
+export function propAhead(x, y, dx, dy, reach, radius = 0.3) {
+  if (!grid.size) return null;
+  const near = propsNear(x + dx * reach * 0.5, y + dy * reach * 0.5, reach * 0.5 + 1.5, _ahead);
+  let best = null;
+  for (const p of near) {
+    if (!p.cell || p.water || p.breakSpeed === Infinity) continue;
+    for (let s = 0; s <= reach; s += 0.1) {
+      const c = closestPointOnSegment(x + dx * s, y + dy * s, p.x - p.hx, p.y - p.hy, p.x + p.hx, p.y + p.hy);
+      const rr = p.r + radius;
+      if (c.dist2 >= rr * rr) continue;
+      if (!best || s < best.dist) best = { dist: s, h: p.h || 1, prop: p, depth: p.r * 2 };
+      break;
+    }
+  }
+  return best;
+}
+const _ahead = [];
 
 // Fixed scenery that only needs a collider (canopy posts, viaduct piers):
 // registered once, never broken. `water` props only meet boats and swimmers.

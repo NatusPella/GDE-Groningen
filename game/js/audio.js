@@ -8,6 +8,7 @@ import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/amb
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
+import { createScenarioDirector, loopPoints } from './scenariomusic.js';
 
 const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
@@ -18,8 +19,17 @@ const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
-const GMUSIC_VOLUME = 0.5;
-const GMUSIC_DUCK_VOLUME = 0.33;
+const GMUSIC_VOLUME = 0.85;
+const GMUSIC_DUCK_VOLUME = 0.5;
+// Instrumental loops that replace G-Music while something big happens
+// (scenariomusic.js decides which); not part of the radio rotation.
+const SCENARIO_TRACKS = {
+  race: './audio/scenario/Burnout_Threshold.mp3',
+  chase: './audio/scenario/Redline_Ascent.mp3',
+};
+const SCENARIO_VOLUME = 0.8;
+const SCENARIO_FADE_IN = 1.5; // s
+const SCENARIO_FADE_OUT = 2.2; // s
 const SIREN_LOW_FREQ = 440;
 const SIREN_HIGH_FREQ = 587;
 const SIREN_HOLD_MIN = 0.5;
@@ -82,6 +92,7 @@ let ctx = null;
 let master = null;
 let sfxBus = null;
 let worldBus = null;
+let voiceBus = null;
 let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
@@ -198,6 +209,7 @@ onSettingsChange((st) => {
   if (master && !muted) master.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
   if (musicOut && !muted) musicOut.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
   if (worldBus) worldBus.gain.setTargetAtTime(st.sfxVolume, ctx.currentTime, 0.05);
+  if (voiceBus) voiceBus.gain.setTargetAtTime(st.voiceVolume, ctx.currentTime, 0.05);
 });
 
 export function isMuted() {
@@ -637,9 +649,21 @@ function playPedSting(out) {
   playTone({ freq: 900, freqEnd: 500, type: 'sine', duration: 0.12, gain: 0.28, out });
 }
 
-function playGunshot(x, y, weapon) {
-  const out = spatialOut(x, y, { ref: 8, rolloff: 0.8 });
+// Sampled shot (sfx/dsp.js) with a sine sub-thump for weight and the
+// street's slap-back; the old synthesized version stays as the fallback
+// while the samples are still being rendered.
+const GUN_BUF = { pistol: ['gun_pistol_', 3, 0.85], uzi: ['gun_uzi_', 3, 0.6], shotgun: ['gun_shotgun_', 2, 0.95] };
+function playGunshot(x, y, weapon, close = false) {
+  const out = spatialOut(x, y, { ref: 8, rolloff: 0.8, prio: close ? 2 : 1 });
   if (!out) return;
+  const [pre, n, gain] = GUN_BUF[weapon] || GUN_BUF.pistol;
+  const r = 0.94 + Math.random() * 0.12;
+  if (playBuf(pre + Math.floor(Math.random() * n), { out, gain, rate: r, prio: close ? 2 : 1 })) {
+    playTone({ freq: weapon === 'shotgun' ? 72 : 96, freqEnd: 36, type: 'sine', duration: weapon === 'shotgun' ? 0.3 : 0.16, gain: weapon === 'uzi' ? 0.22 : 0.4, out, prio: close ? 2 : 1 });
+    if (weapon !== 'uzi' || Math.random() < 0.3) playBuf('gun_echo', { out, gain: weapon === 'shotgun' ? 0.3 : 0.2, rate: r, delay: 0.03, lp: 2600 });
+    if (close) duckAmbience(weapon === 'shotgun' ? 0.55 : 0.3, 0.35);
+    return;
+  }
   if (weapon === 'shotgun') {
     playNoiseBurst({ duration: 0.28, freq: 1600, freqEnd: 250, q: 0.6, gain: 0.6, out });
     playTone({ freq: 120, freqEnd: 40, type: 'triangle', duration: 0.2, gain: 0.45, out });
@@ -830,8 +854,8 @@ function playHorn(x, y, duration = 0.4, low = 1) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 90 });
   if (!out) return;
   const d = 1 + (Math.random() - 0.5) * 0.04;
-  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.075, filterFreq: 2600, out });
-  playTone({ freq: 523 * low * d * 1.004, type: 'horn', duration, gain: 0.06, filterFreq: 2600, out });
+  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.16, filterFreq: 3200, out });
+  playTone({ freq: 498 * low * d * 1.004, type: 'horn', duration, gain: 0.13, filterFreq: 3200, out });
 }
 
 function hornPitch(v) {
@@ -877,10 +901,8 @@ function playMissionJingle() {
   notes.forEach((f, i) => playTone({ freq: f, type: 'triangle', duration: 0.16, gain: 0.24, delay: i * 0.09 }));
 }
 
-// One-shot playback for the pre-recorded voicelines/jingles above - routed
-// through sfxBus (not its own bus) since these are conceptually just
-// another kind of one-shot sound effect, same as every playX() above,
-// just sourced from a real audio file instead of a synthesized oscillator.
+// One-shot playback for the pre-recorded voicelines above - routed through
+// voiceBus, so the Stemmen slider sets them apart from the effects.
 // A missing/unplayable file (network hiccup, or an asymmetric-script key
 // with no recording for this character) fails silently, never throws.
 // pos = {x, y} places the clip in the world; omitted = plain stereo.
@@ -894,10 +916,10 @@ function playClip(src, pos = null) {
     if (pos) {
       const panner = makePanner({ ref: 4, rolloff: 1.2 });
       setPannerPos(panner, pos.x, pos.y, pos.h ?? 1.6);
-      node.connect(panner).connect(sfxBus);
+      node.connect(panner).connect(voiceBus);
       nodes.push(panner);
     } else {
-      node.connect(sfxBus);
+      node.connect(voiceBus);
     }
   } catch (e) {
     // ignore - playback still works without the Web Audio graph attached
@@ -946,7 +968,7 @@ function playNpcSpokenClip(src, pos) {
 }
 
 // Mission story cutscene dialogue: one line at a time, straight into the
-// world bus (no reverb). While a story scene runs, the generic mission
+// voice bus. While a story scene runs, the generic mission
 // voicelines stay quiet so they don't talk over it.
 let storyScene = false;
 let storyVoice = null;
@@ -970,7 +992,7 @@ export function playStoryVoice(src) {
   const v = { el: new Audio(src), node: null };
   try {
     v.node = ctx.createMediaElementSource(v.el);
-    v.node.connect(worldBus);
+    v.node.connect(voiceBus);
   } catch (e) {
     // ignore - plays without the Web Audio graph
   }
@@ -991,6 +1013,13 @@ function playVoiceline(character, key) {
   const paths = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];
   if (!paths || !paths.length) return false;
   return playSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
+}
+
+// Bijbaantje boss lines (sidejobvoice.js): like the other spoken lines they
+// never overlap and stay quiet during a story scene.
+export function playJobVoice(src) {
+  if (storyScene) return false;
+  return playSpokenClip(src);
 }
 
 export function playAutoGejatLine(world) {
@@ -1074,7 +1103,8 @@ async function loadGMusicManifest() {
     gmusicTracks = tracks.map((filename) => {
       const el = wireGmusicEl(new Audio('./audio/gmusic/' + filename));
       el.preload = 'auto';
-      el.gmusicTitle = filename.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+      const raw = filename.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+      el.gmusicTitle = GMUSIC_TITLES[raw] || raw;
       return el;
     });
   } catch (e) {
@@ -1082,7 +1112,7 @@ async function loadGMusicManifest() {
   }
 }
 
-// Station-style playback: jingle, 2 shuffled tracks, jingle, ... all through
+// Station-style playback: jingle, shuffled track, jingle, track, ... all through
 // ONE queue and ONE current element, so two items can never play at once.
 // Every event handler ignores events from anything but gmusicCurrentEl, and
 // the per-frame safety net in updateGMusic only ever resumes the current
@@ -1100,12 +1130,46 @@ let gmusicStarted = false;
 let gmusicFadingIn = false;
 let gmusicPendingSince = null;
 let gmusicSuspended = false;
+// G-Music paused (position kept) while a scenario track plays
+let gmusicHeld = false;
 let gmusicRetryAt = 0;
 let gmusicRetryDelay = GMUSIC_RETRY_MIN;
 let gmusicAnnounceOnPlay = false;
 // Set once a genuine track (not a jingle) is actually playing; updateGMusic
 // flushes it into a HUD toast since it runs every frame with `world` in scope.
 let pendingTrackAnnounce = null;
+
+// Made-up Grunneger acts for the G-Music playlist; tracks without a named
+// act get one picked from their title.
+const GMUSIC_ARTISTS = {
+  'Onder de Martinitoren': "Lil' Eierbal",
+  'Hart van Beton': 'MC Moi Moi',
+  'Ivoren Toren in Helpman': 'De Helpman Hustlers',
+  'Staal op staal': 'Sjonnie Sikkom & de Ringweg Crew',
+  'Vismarkt Sprint': 'DJ Kapsalon Kees',
+  'Trouw aan het blok': 'Paddepoel Posse',
+  'Perfectie kent geen grens': 'Young Kruudmoes',
+  'De Geest van Oosterpark': 'Spookie Stadjer',
+  'Goudgeld op de oprit': 'Rijke Riekus',
+  'Suikerbuiken in de nacht': 'DJ Suikerbiet',
+  "Oosterpark is m'n droom": 'Stadjer Supreme',
+  'Staal en suiker': 'Beton Bert & de Bietenbende',
+  'Wie stoan nait stil': 'De Nait Soezen Crew',
+  'Kleur in de Wind': 'Windkracht Wiebke',
+};
+// file names can't carry every character of a title
+const GMUSIC_TITLES = {
+  'De Geest Van Oosterpark': 'De Geest van Oosterpark',
+  'Oosterpark is m n droom': "Oosterpark is m'n droom",
+};
+const GMUSIC_SPARE_ARTISTS = ['Oma Trijntje & de Stadjers', 'Grunn Gang', 'Lord Stoepkrijt', 'De Diepenring Boys', 'Tante Tjoedie', 'Big Bommen Berend'];
+
+export function trackArtist(title) {
+  if (GMUSIC_ARTISTS[title]) return GMUSIC_ARTISTS[title];
+  let h = 0;
+  for (const c of String(title)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return GMUSIC_SPARE_ARTISTS[h % GMUSIC_SPARE_ARTISTS.length];
+}
 
 function wireGmusicEl(el) {
   try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
@@ -1139,7 +1203,7 @@ function nextTrackEl() {
 }
 
 function buildGmusicCycle() {
-  return [randomAmbientJingleEl(), nextTrackEl(), nextTrackEl()];
+  return [randomAmbientJingleEl(), nextTrackEl()];
 }
 
 function onGmusicEnded(e) {
@@ -1158,7 +1222,7 @@ function onGmusicPlaying(e) {
 
 function playGmusicCurrent() {
   const el = gmusicCurrentEl;
-  if (!el || el.gmusicPlayInFlight || gmusicSuspended) return;
+  if (!el || el.gmusicPlayInFlight || gmusicSuspended || gmusicHeld) return;
   el.gmusicPlayInFlight = true;
   el.play().then(() => {
     el.gmusicPlayInFlight = false;
@@ -1278,6 +1342,11 @@ function buildGraph() {
   worldBus.gain.value = getSettings().sfxVolume;
   worldBus.connect(master);
 
+  // spoken lines skip the effects slider but share the master soft-clip
+  voiceBus = ctx.createGain();
+  voiceBus.gain.value = getSettings().voiceVolume;
+  voiceBus.connect(master);
+
   sfxBus = ctx.createGain();
   sfxBus.gain.value = 0.9;
   sfxBus.connect(worldBus);
@@ -1316,6 +1385,9 @@ function buildGraph() {
 
   reverb = buildReverb();
   sfxBus.connect(reverb.send);
+  const voiceSend = ctx.createGain();
+  voiceSend.gain.value = 0.3;
+  voiceBus.connect(voiceSend).connect(reverb.send);
   const ambSend = ctx.createGain();
   ambSend.gain.value = 0.5;
   ambBus.connect(ambSend).connect(reverb.send);
@@ -1431,10 +1503,12 @@ const ENGINE_SPECS = [
   { idle: 900, red: 5500, shift: 0, level: 0.36 },
   { idle: 750, red: 7000, shift: 0.16, level: 0.38 },
   { idle: 750, red: 4300, shift: 0.2, level: 0.38 },
+  { idle: 0, red: 48000, shift: 0, level: 0.3 },
 ];
 
+// Deelsteps are electric (kind 7); the police motor is a real brommer.
 function engineKind(v) {
-  if (v.isScooter) return 3;
+  if (v.isScooter) return v.isPolice ? 3 : 7;
   if (v.isBoat) return 4;
   if (v.isBus) return 2;
   if (v.isHeroCar) return 1;
@@ -1451,6 +1525,7 @@ function engineRpm(v, st, kind, throttle, t) {
   const frac = speed / (v.model.maxSpeed || 30);
   let shifted = 0;
   if (kind === 3) return { rpm: throttle > 0 ? 5200 + 3600 * Math.min(1, frac) : S.idle + 2300 * Math.min(1, frac), shifted };
+  if (kind === 7) return { rpm: 2400 + 42000 * Math.min(1, speed / 10), shifted };
   if (kind === 4) return { rpm: S.idle + (S.red - S.idle) * (throttle !== 0 ? 0.35 + 0.6 * Math.min(1, frac) : frac * 0.4), shifted };
   if (v.speed < -0.2) { st.gear = 0; return { rpm: S.idle + (S.red * 0.7 - S.idle) * clamp(speed / (v.model.maxSpeed * 0.25), 0, 1), shifted }; }
   const tops = kind === 2 ? BUS_GEAR_TOPS : GEAR_TOPS;
@@ -1522,7 +1597,8 @@ function updateEngineSynth(dt, world) {
   rpm = Math.min(rpm, spec.red * 0.95);
   S.prevThr = thr;
 
-  const gain = spec.level * (world.paused ? 0.5 : 1);
+  // an electric motor is silent standing still and whines up with speed
+  const gain = spec.level * (world.paused ? 0.5 : 1) * (S.kind === 7 ? clamp(speed / 2.5, 0, 1) * (0.6 + 0.4 * (thr > 0 ? 1 : 0)) : 1);
   S.gain += (clamp(0.15 + 0.35 * load * rpm / spec.red, 0, 0.5) - S.gain) * Math.min(1, dt * 4);
   const camD = distToListener(v.x, v.y, 0.7);
   const muffle = clamp(16000 / (1 + Math.max(0, camD - 5) / 6), 1200, 16000);
@@ -1556,9 +1632,9 @@ function updateEngine(dt, world) {
   const t = ctx.currentTime;
   let targetGain = 0, targetFreq = 42, cutoff = 300;
   if (motor && v.isScooter) {
-    targetGain = speed > 0.2 ? 0.05 + speed * 0.01 : 0;
-    targetFreq = 160 + speed * 45;
-    cutoff = 1600;
+    targetGain = speed > 0.2 ? 0.03 + speed * 0.006 : 0;
+    targetFreq = v.isPolice ? 160 + speed * 45 : 300 + speed * 70;
+    cutoff = v.isPolice ? 1600 : 2600;
   } else if (motor) {
     const frac = speed / (v.model.maxSpeed || 30);
     const g = v.speed < 0 ? 0 : gearFor(frac, engineState.gear);
@@ -1648,10 +1724,33 @@ function buildRumbleVoice() {
   return { filter, am, lfo, lfoDepth, gain };
 }
 
+// Player horn: two detuned discs driven into a soft clipper (the brassy
+// "honk"), then a resonant horn-bell formant and a gentle top cut.
+function hornDrive() {
+  const n = 1024, curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1; curve[i] = Math.tanh(x * 2.6) / Math.tanh(2.6); }
+  return curve;
+}
+
 function buildHornVoice() {
+  const mix = ctx.createGain();
+  mix.gain.value = 0.7;
+  const shaper = ctx.createWaveShaper();
+  shaper.curve = hornDrive();
+  shaper.oversample = '2x';
+  const bell = ctx.createBiquadFilter();
+  bell.type = 'peaking';
+  bell.frequency.value = 1750;
+  bell.Q.value = 1.4;
+  bell.gain.value = 7;
+  const body = ctx.createBiquadFilter();
+  body.type = 'peaking';
+  body.frequency.value = 520;
+  body.Q.value = 1.1;
+  body.gain.value = 4;
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.value = 2600;
+  filter.frequency.value = 4200;
   const gain = ctx.createGain();
   gain.gain.value = 0;
   const a = ctx.createOscillator();
@@ -1662,9 +1761,9 @@ function buildHornVoice() {
   b.frequency.value = 523;
   const bGain = ctx.createGain();
   bGain.gain.value = 0.8;
-  a.connect(filter);
-  b.connect(bGain).connect(filter);
-  filter.connect(gain).connect(sfxBus);
+  a.connect(mix);
+  b.connect(bGain).connect(mix);
+  mix.connect(shaper).connect(body).connect(bell).connect(filter).connect(gain).connect(sfxBus);
   a.start();
   b.start();
   return { a, b, bGain, gain, on: false };
@@ -1730,7 +1829,7 @@ function updatePlayerHorn(world) {
   const v = world.player.inVehicle;
   const t = ctx.currentTime;
   const pressing = !!(v && v.horn && !v.wrecked && !world.paused);
-  const bell = v && v.isBike;
+  const bell = v && (v.isBike || (v.isScooter && !v.isPolice)); // an e-step has a bell too
   if (pressing && bell) {
     if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
   } else if (!pressing) bellReadyAt = 0;
@@ -1739,12 +1838,12 @@ function updatePlayerHorn(world) {
     const low = v.isScooter ? 1.55 : hornPitch(v);
     const single = v.isScooter || v.isHeroCar;
     hornVoice.a.frequency.setValueAtTime(415 * low, t);
-    hornVoice.b.frequency.setValueAtTime(523 * low * 1.004, t);
-    hornVoice.bGain.gain.setValueAtTime(single ? 0 : 0.8, t);
+    hornVoice.b.frequency.setValueAtTime(498 * low * 1.004, t);
+    hornVoice.bGain.gain.setValueAtTime(single ? 0 : 0.85, t);
   }
   if (on !== hornVoice.on) {
     hornVoice.on = on;
-    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.04 : 0.06) : 0, t, on ? 0.008 : 0.03);
+    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.07 : 0.24) : 0, t, on ? 0.006 : 0.025);
   }
 }
 
@@ -1817,9 +1916,19 @@ function playAudioEvents(world) {
         break;
       case 'engine_stop': if (!synth.player) playEngineStop(x, y); break;
       case 'prop_hit': propHit(e, x, y); break;
+      case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
       case 'gore': case 'gore_splat': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'animal_hit': {
+        const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 70 });
+        const k = clamp(e.strength ?? 0.5, 0, 1);
+        if (out) {
+          playBuf('body_hit', { out, gain: 0.25 + k * 0.3, rate: 0.95 - k * 0.3 });
+          playTone({ freq: 110 - k * 40, freqEnd: 40, type: 'sine', duration: 0.18 + k * 0.2, gain: 0.15 + k * 0.3, out });
+        }
+        break;
+      }
       case 'caw': case 'peck': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'whoosh': playBuf('whoosh', { out: spatialOut(x, y, { ref: 6, range: 60 }) || undefined, gain: 0.18 + clamp(e.strength ?? 0.5, 0, 1) * 0.2 }); break;
       case 'camera_shutter':
@@ -1844,6 +1953,30 @@ function playAudioEvents(world) {
       default: break;
     }
   }
+}
+
+// Bullet impacts by surface; a share of the hard ones whine off as ricochets.
+const IMPACT_BUF = { stone: ['imp_stone_', 3], metal: ['imp_metal_', 3], dirt: ['imp_dirt', 0], wood: ['imp_wood', 0], water: ['imp_water', 0] };
+let impactsThisFrame = 0;
+let impactFrameAt = -1;
+function playBulletHit(x, y, material, k) {
+  if (!ctx) return;
+  if (impactFrameAt !== ctx.currentTime) { impactFrameAt = ctx.currentTime; impactsThisFrame = 0; }
+  if (++impactsThisFrame > 4) return;
+  const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 70 });
+  if (!out) return;
+  const r = 0.9 + Math.random() * 0.2;
+  if (material === 'glass') {
+    playBuf('glass', { out, gain: 0.12 + k * 0.12, rate: 1.1 + Math.random() * 0.3 });
+    return;
+  }
+  if (material === 'flesh') {
+    playBuf('body_hit', { out, gain: 0.28 + k * 0.2, rate: 0.9 * r });
+    return;
+  }
+  const [pre, n] = IMPACT_BUF[material] || IMPACT_BUF.stone;
+  playBuf(n ? pre + Math.floor(Math.random() * n) : pre, { out, gain: 0.16 + k * 0.22, rate: r });
+  if ((material === 'stone' || material === 'metal') && Math.random() < 0.18) playBuf('ric_whine', { out, gain: 0.08, rate: 0.9 + Math.random() * 0.3, delay: 0.01 });
 }
 
 function playGoreEvent(kind, x, y, k) {
@@ -1925,13 +2058,13 @@ function dopplerCents(src, svx, svy) {
 function updateSiren(dt, world) {
   const chaseActive = world.wanted > 0;
   const intensity = clamp(world.wanted / 5, 0, 1);
-  const targetGain = chaseActive ? 0.18 + intensity * 0.22 : 0;
+  // ambulances on a call and a player-switched siren sound without a chase too
+  const units = world.vehicles.filter((v) => !v.wrecked && !v.sinking &&
+    (v.sirenOn || (chaseActive && v.isPolice && !v._mount && !v._commandeered && !v.hijacked && v.driver !== 'player')));
+  const targetGain = chaseActive ? 0.18 + intensity * 0.22 : units.length ? 0.22 : 0;
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;
 
-  const units = chaseActive
-    ? world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked && v.driver !== 'player')
-    : [];
   assignVoices(sirenVoices, nearestSorted(units, MAX_DISTANCE, SIREN_VOICES));
 
   // Stepped hi-lo alternation, not a swept wail: hold each fixed pitch for
@@ -1961,7 +2094,7 @@ function updateSiren(dt, world) {
 function vehicleVoiceParams(v) {
   const s = Math.abs(v.speed);
   if (v.isBoat) return { type: 'sawtooth', freq: 28 + s * 7, cutoff: 240 + s * 40, gain: 0.1 + s * 0.02 };
-  if (v.isScooter) return { type: 'square', freq: 95 + s * 9, cutoff: 1100 + s * 40, gain: 0.04 + s * 0.006 };
+  if (v.isScooter) return v.isPolice ? { type: 'square', freq: 95 + s * 9, cutoff: 1100 + s * 40, gain: 0.04 + s * 0.006 } : { type: 'triangle', freq: 260 + s * 70, cutoff: 2600, gain: s > 0.5 ? 0.02 + s * 0.004 : 0 };
   if (v.isBus) return { type: 'sawtooth', freq: 30 + s * 2.4, cutoff: 280 + s * 14, gain: 0.12 + s * 0.008 };
   return { type: 'sawtooth', freq: 40 + s * 3.2, cutoff: 300 + s * 16, gain: 0.06 + s * 0.009 };
 }
@@ -1996,7 +2129,7 @@ function updateTrafficAudio(dt, world) {
       placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
       const d = distToListener(v.x, v.y, 0.7);
       voice.distLp.frequency.setTargetAtTime(clamp(2400 / (1 + d / 10), 250, 2400), t, 0.15);
-      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? 0.28 : 0.28 + p.load * 0.1;
+      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.2 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.28) : 0.28 + p.load * 0.1;
       fadeVoice(voice, level, dt, 3);
       msg.push({ i, kind: p.kind, rpm: p.rpm, load: p.load, gain: voice.level, pitch, snap: p.snap });
     });
@@ -2035,7 +2168,7 @@ function updateWorldEvents(world) {
   }
   if (playerFired) {
     const src = p.inVehicle || p;
-    playGunshot(src.x, src.y, world.weapon);
+    playGunshot(src.x, src.y, world.weapon, true);
   }
 
   let ricochets = 0;
@@ -2060,7 +2193,7 @@ function updateWorldEvents(world) {
     if (!v.wrecked || seenWrecks.has(v)) continue;
     seenWrecks.add(v);
     newlyWrecked.push(v);
-    if (!splashes.some((s) => Math.hypot(s.x - v.x, s.y - v.y) < 3)) playExplosion(v.x, v.y);
+    if (!v.isBike && !v.isScooter && !splashes.some((s) => Math.hypot(s.x - v.x, s.y - v.y) < 3)) playExplosion(v.x, v.y);
   }
 
   const at = (src) => spatialAt((src || p).x, (src || p).y);
@@ -2089,25 +2222,109 @@ function updateGMusic(dt, world) {
     // Resume-only safety net (autoplay block, media-key pause, tab switch);
     // a broken file is skipped, an ended one is left to its 'ended' event.
     const el = gmusicCurrentEl;
-    if (el && el.paused && !el.ended && !el.gmusicPlayInFlight && !gmusicSuspended && nowSec() >= gmusicRetryAt) {
+    if (el && el.paused && !el.ended && !el.gmusicPlayInFlight && !gmusicSuspended && !gmusicHeld && nowSec() >= gmusicRetryAt) {
       if (el.error) advanceGmusicQueue();
       else playGmusicCurrent();
     }
   }
 
   if (pendingTrackAnnounce) {
-    world.addMessage('🎵 Nu op G-Music: ' + pendingTrackAnnounce, 4);
+    world.nowPlaying = { title: pendingTrackAnnounce, artist: trackArtist(pendingTrackAnnounce), at: world.time };
     pendingTrackAnnounce = null;
   }
 
+  const scene = updateScenarioMusic(dt, world);
+
   // Only spoken lines (voicelines, story dialogue) dip the music, gently;
-  // vehicles, sirens and stings never touch it.
+  // vehicles, sirens and stings never touch it. A scenario track fades
+  // G-Music out and pauses it; it resumes where it was afterwards.
   const ducked = ctx.currentTime < duckState.musicUntil;
-  const targetGain = ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
-  const lerpRate = gmusicFadingIn ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
+  const targetGain = scene ? 0 : ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
+  const lerpRate = scene ? dt * 1.8 : gmusicFadingIn || gmusicHeld ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
   musicBus.gain.value = musicState.gain * getSettings().musicVolume;
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
+  if (scene && !gmusicHeld && musicState.gain < 0.02) {
+    gmusicHeld = true;
+    if (gmusicCurrentEl && !gmusicCurrentEl.paused) gmusicCurrentEl.pause();
+  } else if (!scene && gmusicHeld) {
+    gmusicHeld = false;
+    gmusicRetryAt = 0;
+    playGmusicCurrent();
+  }
+}
+
+// --- scenario music -------------------------------------------------------
+
+const scenarioDirector = createScenarioDirector();
+const scenarioBuffers = {};
+let scenarioVol = null;
+let scenarioNow = null; // { key, src, fade }
+
+function loadScenarioBuffer(key) {
+  if (scenarioBuffers[key]) return;
+  scenarioBuffers[key] = { loading: true };
+  fetch(SCENARIO_TRACKS[key])
+    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))))
+    .then((data) => ctx.decodeAudioData(data))
+    .then((buf) => {
+      const chans = [];
+      for (let c = 0; c < buf.numberOfChannels; c++) chans.push(buf.getChannelData(c));
+      scenarioBuffers[key] = { buf, loop: loopPoints(chans, buf.sampleRate) };
+    })
+    .catch((e) => { scenarioBuffers[key] = { failed: true }; console.warn('scenario music', key, e); });
+}
+
+function stopScenarioTrack() {
+  const s = scenarioNow;
+  scenarioNow = null;
+  if (!s) return;
+  const t = ctx.currentTime;
+  s.fade.gain.cancelScheduledValues(t);
+  s.fade.gain.setValueAtTime(s.fade.gain.value, t);
+  s.fade.gain.linearRampToValueAtTime(0, t + SCENARIO_FADE_OUT);
+  try { s.src.stop(t + SCENARIO_FADE_OUT + 0.05); } catch (e) { /* already stopped */ }
+  s.src.onended = () => s.fade.disconnect();
+}
+
+function startScenarioTrack(key) {
+  const entry = scenarioBuffers[key];
+  if (!entry || !entry.buf) return false;
+  if (!scenarioVol) {
+    scenarioVol = ctx.createGain();
+    scenarioVol.connect(musicOut);
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = entry.buf;
+  src.loop = true;
+  src.loopStart = entry.loop.start;
+  src.loopEnd = entry.loop.end;
+  const fade = ctx.createGain();
+  const t = ctx.currentTime;
+  fade.gain.setValueAtTime(0, t);
+  fade.gain.linearRampToValueAtTime(1, t + SCENARIO_FADE_IN);
+  src.connect(fade).connect(scenarioVol);
+  src.start(t, entry.loop.start);
+  scenarioNow = { key, src, fade };
+  return true;
+}
+
+// Returns the scenario key while one is (starting to) play, else null.
+function updateScenarioMusic(dt, world) {
+  const m = world.mission;
+  const race = !!(m && m.phase === 'active' && m.raceMusic);
+  const chasing = world.wanted > 0 && !(world.police && world.police.searching) && !world.pendingRespawn;
+  let want = scenarioDirector.update(dt, { race, chasing });
+  if (want) loadScenarioBuffer(want);
+  const cur = scenarioNow ? scenarioNow.key : null;
+  if (want !== cur) {
+    // switch once the new loop is decoded; until then the old one keeps going
+    if (!want) stopScenarioTrack();
+    else if (scenarioBuffers[want].buf) { stopScenarioTrack(); startScenarioTrack(want); }
+    else if (scenarioBuffers[want].failed) want = null;
+  }
+  if (scenarioVol) scenarioVol.gain.value = SCENARIO_VOLUME * getSettings().musicVolume;
+  return want && scenarioBuffers[want] && !scenarioBuffers[want].failed ? want : null;
 }
 
 let lastDeathAt = -Infinity;
@@ -2173,7 +2390,7 @@ export function updateAudio(dt, world) {
   }
 
   if (world.wanted > 0 && prev.wanted === 0) {
-    enqueueGmusicJingle('hoge_wanted');
+    if (!scenarioNow) enqueueGmusicJingle('hoge_wanted');
     chaseBarkDeadline = world.time + CHASE_BARK_WAIT;
   }
   updateChaseBark(world);
@@ -2204,7 +2421,9 @@ export function updateAudio(dt, world) {
 }
 
 const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
-  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0'];
+  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0',
+  'imp_water', 'imp_wood', 'imp_dirt', 'imp_metal_2', 'imp_metal_1', 'imp_metal_0', 'imp_stone_2', 'imp_stone_1', 'imp_stone_0',
+  'gun_echo', 'gun_shotgun_1', 'gun_shotgun_0', 'gun_uzi_2', 'gun_uzi_1', 'gun_uzi_0', 'gun_pistol_2', 'gun_pistol_1', 'gun_pistol_0'];
 
 export function getAudioStats() {
   if (!ctx) return null;

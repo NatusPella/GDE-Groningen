@@ -947,7 +947,7 @@ function syncChunks(px, py, dist) {
   for (const c of chunks.values()) {
     const d = rectDist(c.bounds, px, py);
     if (d < dist) {
-      if (!c.group && (d < 60 || performance.now() - t0 < 3)) {
+      if (!c.group && (d < 30 || performance.now() - t0 < 3)) {
         c.group = buildChunk(c);
         scene.add(c.group);
       }

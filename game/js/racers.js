@@ -2,7 +2,7 @@
 // Rivals are ordinary Vehicles flagged racer/missionCar with driver 'racer'
 // and no road, so traffic AI, stealing and the population managers leave
 // them alone; this module steers them with applyControls every frame.
-import { Vehicle, MODELS, maxCurvature, resolveVehicleBuildingCollision, attachToNearestRoad } from './vehicle.js';
+import { Vehicle, MODELS, maxCurvature, resolveVehicleBuildingCollision, makeTwoWheeler } from './vehicle.js';
 import { clamp, pointInPolygon, closestPointOnSegment } from './util.js';
 
 const A_LAT = 11; // m/s² cornering the speed profile plans for (AI tyre grip is 16)
@@ -25,9 +25,27 @@ const RIVALS = [
   { base: 'hatch', color: '#f2efe6', top: 1.12, skill: 0.93 },
 ];
 
+// The race was balanced on these tops (m/s); street cars got faster since,
+// so race cars keep their own base and the field stays as it was tuned.
+const RACE_TOP = { sport: 42, sedan: 33, hatch: 30 };
+const RACE_ACCEL = { sport: 12, sedan: 9, hatch: 8.5 };
+// KEI-week students, just under the 11.5 m/s a player gets out of any bike
+const BIKE_RIVALS = [
+  { bike: true, color: '#1c1c1c', rider: '#d8462b', top: 11.2, skill: 1.0 },
+  { bike: true, color: '#2f5c8a', rider: '#e8c21a', top: 11.0, skill: 0.98 },
+  { bike: true, color: '#7a2e2e', rider: '#2e9e5a', top: 10.8, skill: 0.97 },
+  { bike: true, color: '#3a3a3a', rider: '#e8e6e0', top: 10.5, skill: 0.95 },
+];
+
 function modelFor(base, color, topScale = 1, accelScale = 1) {
   const m = MODELS.find((q) => q.name === base) || MODELS[0];
-  return { ...m, color, maxSpeed: m.maxSpeed * topScale, accel: m.accel * accelScale };
+  return { ...m, color, maxSpeed: (RACE_TOP[base] ?? m.maxSpeed) * topScale, accel: (RACE_ACCEL[base] ?? m.accel) * accelScale };
+}
+
+function makeRivalBike(def, x, y, ang) {
+  const v = makeTwoWheeler('bike', x, y, ang);
+  v.model = { ...v.model, color: def.color, rider: def.rider, maxSpeed: def.top, accel: 4.4, brake: 8 };
+  return v;
 }
 
 function inBuilding(map, x, y, pad) {
@@ -45,7 +63,7 @@ function inBuilding(map, x, y, pad) {
 // Centreline + a racing line (lateral offset per point, smoothed to cut
 // corners but kept inside the carriageway and clear of buildings) + a
 // speed profile from its curvature with braking zones propagated backwards.
-export function buildTrack(map, route) {
+export function buildTrack(map, route, edge = EDGE) {
   const n = route.length;
   const x = new Float64Array(n), y = new Float64Array(n), hw = new Float64Array(n);
   for (let i = 0; i < n; i++) { x[i] = route[i][0]; y[i] = route[i][1]; hw[i] = route[i][2] || 3; }
@@ -61,7 +79,7 @@ export function buildTrack(map, route) {
     nx[i] = -ty; ny[i] = tx;
   }
   const lim = new Float64Array(n);
-  for (let i = 0; i < n; i++) lim[i] = Math.max(0, hw[i] - EDGE);
+  for (let i = 0; i < n; i++) lim[i] = Math.max(0, hw[i] - edge);
   const off = new Float64Array(n);
   const px = (i) => x[i] + nx[i] * off[i], py = (i) => y[i] + ny[i] * off[i];
   for (let it = 0; it < 40; it++) {
@@ -145,13 +163,19 @@ const wrap = (d, L) => d - Math.round(d / L) * L;
 // cps: indices into the route, cps[0] = start/finish line.
 // opts.topScale / opts.accelScale: tuned-up race cars (the handed-out car and
 // the rivals) for a long, fast track like the full ringweg.
+// opts.bikes: a bike race (student rivals on bikes, a bike for the player).
+// opts.band: gap in metres over which the rubber band reaches full effect.
 export function createRace(world, route, cps, opts = {}) {
   const topScale = opts.topScale || 1, accelScale = opts.accelScale || 1;
-  const track = buildTrack(world.map, route);
+  const bikes = !!opts.bikes;
+  const rivalDefs = bikes ? BIKE_RIVALS : RIVALS;
+  const gridRow = bikes ? 3.6 : GRID_ROW, gridLane = bikes ? 1.1 : GRID_LANE;
+  const track = buildTrack(world.map, route, bikes ? 0.7 : EDGE);
   const cpS = cps.map((i) => track.s[i]);
-  const race = { track, cpS, rivals: [], phase: 'grid', timer: 0, playerProg: 0, playerCar: null, finishers: 0, playerPos: 0, lastBeat: -1 };
+  const race = { track, cpS, bikes, band: opts.band || 260, rivals: [], phase: 'grid', timer: 0, playerProg: 0, playerCar: null, finishers: 0, playerPos: 0, lastBeat: -1 };
   const p = world.player;
-  const car = p.inVehicle && !p.inVehicle.isBoat && !p.inVehicle.isBike && !p.inVehicle.isScooter ? p.inVehicle : null;
+  const pvh = p.inVehicle;
+  const car = pvh && (bikes ? pvh.isBike : !pvh.isBoat && !pvh.isBike && !pvh.isScooter) ? pvh : null;
   const pv = car || p;
   const pp = project(track, pv.x, pv.y, 0, track.n);
   const playerLat = clamp(pp.lat, -3, 3);
@@ -167,10 +191,11 @@ export function createRace(world, route, cps, opts = {}) {
   lastRaceCar = null;
   if (!car) {
     const at = sample(track, 2);
-    const lat = playerLat > 0 ? -GRID_LANE : GRID_LANE;
+    const side = Math.max(0.9, at.lim);
+    const lat = clamp(playerLat > 0 ? -gridLane : gridLane, -side, side);
     const spot = { x: at.x + at.nx * lat, y: at.y + at.ny * lat };
     const ang = Math.atan2(-at.nx, at.ny);
-    const v = new Vehicle(spot.x, spot.y, ang, modelFor('sport', '#c8102e', topScale, accelScale));
+    const v = bikes ? makeTwoWheeler('bike', spot.x, spot.y, ang) : new Vehicle(spot.x, spot.y, ang, modelFor('sport', '#c8102e', topScale, accelScale));
     v.z = world.map.spawnZ(spot.x, spot.y);
     // handed to the player: never counts as theft, before or after the race
     v.missionCar = true;
@@ -182,25 +207,27 @@ export function createRace(world, route, cps, opts = {}) {
   // Clear the grid of parked/through traffic, then line the rivals up in
   // pairs behind the start line, away from wherever the player stands.
   const slots = [];
-  for (let row = 1; slots.length < RIVALS.length && row < 8; row++) {
+  const clearR = bikes ? 2 : 6;
+  for (let row = 1; slots.length < rivalDefs.length && row < 12; row++) {
     for (const side of [1, -1]) {
-      const at = sample(track, -row * GRID_ROW);
-      const lat = clamp(side * GRID_LANE, -at.lim, at.lim);
+      const at = sample(track, -row * gridRow);
+      const room = bikes ? Math.max(0.9, at.lim) : at.lim;
+      const lat = clamp(side * gridLane, -room, room);
       const sx = at.x + at.nx * lat, sy = at.y + at.ny * lat;
-      if (Math.hypot(sx - pv.x, sy - pv.y) < 6) continue;
-      if (race.playerCar && Math.hypot(sx - race.playerCar.x, sy - race.playerCar.y) < 6) continue;
-      slots.push({ sl: -row * GRID_ROW, lat, x: sx, y: sy, ang: Math.atan2(-at.nx, at.ny) });
-      if (slots.length >= RIVALS.length) break;
+      if (Math.hypot(sx - pv.x, sy - pv.y) < clearR) continue;
+      if (race.playerCar && Math.hypot(sx - race.playerCar.x, sy - race.playerCar.y) < clearR) continue;
+      slots.push({ sl: -row * gridRow, lat, x: sx, y: sy, ang: Math.atan2(-at.nx, at.ny) });
+      if (slots.length >= rivalDefs.length) break;
     }
   }
   for (let i = world.vehicles.length - 1; i >= 0; i--) {
     const o = world.vehicles[i];
     if (o.driver === 'player' || o.missionCar || o.isPolice || o === p.inVehicle) continue;
-    if (slots.some((q) => Math.hypot(o.x - q.x, o.y - q.y) < 7 + o.halfLen)) world.vehicles.splice(i, 1);
+    if (slots.some((q) => Math.hypot(o.x - q.x, o.y - q.y) < (bikes ? 3 : 7) + o.halfLen)) world.vehicles.splice(i, 1);
   }
   slots.forEach((q, k) => {
-    const def = RIVALS[k];
-    const v = new Vehicle(q.x, q.y, q.ang, modelFor(def.base, def.color, def.top * topScale, accelScale));
+    const def = rivalDefs[k];
+    const v = def.bike ? makeRivalBike(def, q.x, q.y, q.ang) : new Vehicle(q.x, q.y, q.ang, modelFor(def.base, def.color, def.top * topScale, accelScale));
     v.z = world.map.spawnZ(q.x, q.y);
     v.racer = true;
     v.missionCar = true;
@@ -209,7 +236,7 @@ export function createRace(world, route, cps, opts = {}) {
     world.vehicles.push(v);
     const pr = project(track, v.x, v.y, 0, track.n);
     race.rivals.push({
-      v, skill: def.skill, bias: (k % 2 ? 1 : -1) * 0.6, i: pr.i, sLap: pr.s, prog: q.sl, lat: q.lat, curLat: q.lat,
+      v, skill: def.skill, top: v.model.maxSpeed, bias: (k % 2 ? 1 : -1) * (bikes ? 0.3 : 0.6), i: pr.i, sLap: pr.s, prog: q.sl, lat: q.lat, curLat: q.lat,
       passLat: 0, passUntil: -1, stuckT: 0, reverseT: 0, stuckCount: 0, finished: false, place: 0, doneAt: 0,
     });
   });
@@ -241,7 +268,7 @@ function standings(race) {
 
 // Other cars (and the player on foot) located in track coordinates, so a
 // car round the next bend is seen where it really is on the road.
-function nearbyOnTrack(world, r, t, reach) {
+function nearbyOnTrack(world, r, t, reach, bikes) {
   const v = r.v, out = [];
   const p = world.player;
   const add = (ox, oy, speed, ang, half) => {
@@ -254,6 +281,8 @@ function nearbyOnTrack(world, r, t, reach) {
   };
   for (const o of world.vehicles) if (o !== v) add(o.x, o.y, o.wrecked ? 0 : o.speed, o.angle, o.halfWid);
   if (!p.inVehicle) add(p.x, p.y, 0, 0, 0.4);
+  // people only get in the way on the car-free streets of a bike race
+  if (bikes) for (const q of world.pedestrians) if (q.state !== 'dead') add(q.x, q.y, 0, 0, 0.35);
   return out;
 }
 
@@ -293,7 +322,7 @@ function respawnOnTrack(r, t, map) {
   r.v.vz = 0;
   r.v.airborne = false;
   r.v.angle = Math.atan2(-at.nx, at.ny);
-  r.v.speed = 8;
+  r.v.speed = Math.min(8, r.top * 0.8);
   r.v.driftX = r.v.driftY = r.v.yawVel = 0;
   r.curLat = at.off;
   r.stuckT = 0;
@@ -336,17 +365,23 @@ function driveRival(r, dt, world, race) {
     return;
   }
 
-  // rubber band on the player's progress (between 75% and 110% pace)
+  // Rubber band on the player's progress: a rival well ahead backs off to
+  // 72% pace, one well behind finds up to 8% extra. It scales the top speed
+  // as well, or a speed profile faster than the car hides it on straights.
   const gap = r.prog - race.playerProg;
-  let band = gap > 0 ? clamp(1 - gap / 1200, 0.75, 1) : clamp(1 - gap / 1400, 1, 1.1);
+  const reach = race.band;
+  let band = gap > 0
+    ? 1 - clamp((gap - reach * 0.1) / reach, 0, 1) * 0.28
+    : 1 + clamp((-gap - reach * 0.15) / (reach * 1.5), 0, 1) * 0.08;
   if (r.finished) band = 0.55;
+  m.maxSpeed = r.top * Math.max(1, band);
 
   let targetLat = at.off + r.bias;
   let cap = Infinity;
   const decel = m.brake * 0.75;
   const passLim = Math.max(at.lim, t.hw[far.i] - v.halfWid - 0.35);
   r.lat = r.lat ?? r.curLat;
-  const others = nearbyOnTrack(world, r, t, 30 + sp * 2.5);
+  const others = nearbyOnTrack(world, r, t, 30 + sp * 2.5, race.bikes);
   const block = obstacleAhead(r, others, sp, decel);
   if (block) {
     if (world.time > r.passUntil) {
@@ -369,7 +404,7 @@ function driveRival(r, dt, world, race) {
   const aimLat = clamp(r.lat + (tp.off - at.off), -aimLim, aimLim);
   const steer = steerTo(v, tp.x + tp.nx * aimLat, tp.y + tp.ny * aimLat);
 
-  let vT = Math.min(at.v, sample(t, r.sLap + 4).v, sample(t, r.sLap + 12).v) * r.skill * band;
+  let vT = Math.min(Math.min(at.v, sample(t, r.sLap + 4).v, sample(t, r.sLap + 12).v) * r.skill, r.top) * band;
   vT = Math.min(vT, m.maxSpeed, cap);
   if (Math.abs(far.lat) > t.hw[far.i] + 3) vT = Math.min(vT, 10);
   let throttle = 0, brake = 0;
@@ -378,16 +413,16 @@ function driveRival(r, dt, world, race) {
   v.applyControls(dt, throttle, steer, brake);
   resolveVehicleBuildingCollision(v, world.map, dt);
 
-  if (sp < 1.5 && vT > 4) r.stuckT += dt;
+  if (sp < 1.2 && vT > 3) r.stuckT += dt;
   else r.stuckT = Math.max(0, r.stuckT - dt * 2);
   // creeping along a wall without getting anywhere counts as stuck too
-  if (r.progAt === undefined || r.prog - r.progMark > 12) { r.progMark = r.prog; r.progAt = world.time; }
+  if (r.progAt === undefined || r.prog - r.progMark > (race.bikes ? 6 : 12)) { r.progMark = r.prog; r.progAt = world.time; }
   else if (world.time - r.progAt > 6) { r.progAt = world.time; r.stuckCount += 2; r.reverseT = 1.1; }
   if (r.stuckT > 1.8) {
     r.stuckT = 0;
     r.reverseT = 1.1;
     r.stuckCount++;
-  } else if (sp > 8) r.stuckCount = 0;
+  } else if (sp > Math.min(8, r.top * 0.7)) r.stuckCount = 0;
 }
 
 // Call once per frame while the race runs. wpIndex is the player's next
@@ -396,11 +431,14 @@ export function updateRace(dt, world, race, wpIndex) {
   const p = world.player;
   if (race.phase === 'grid') {
     race.timer += dt;
-    const inCar = p.inVehicle && !p.inVehicle.isBoat;
-    if (inCar || race.timer > MAX_GRID_WAIT) { race.phase = 'countdown'; race.timer = 0; }
+    const ready = p.inVehicle && (race.bikes ? p.inVehicle.isBike : !p.inVehicle.isBoat);
+    if (ready || race.timer > MAX_GRID_WAIT) { race.phase = 'countdown'; race.timer = 0; }
     else if (race.timer > 0.5 && race.lastBeat < 0) {
       race.lastBeat = 0;
-      world.addMessage(race.playerCar ? 'Stap in je racewagen, de rest staat al te ronken.' : 'Instappen en klaarmaken.', 3);
+      const text = race.bikes
+        ? (race.playerCar ? 'Pak de fiets naast je, de eerstejaars staan al te trappelen.' : 'Op de fiets en klaarmaken.')
+        : (race.playerCar ? 'Stap in je racewagen, de rest staat al te ronken.' : 'Instappen en klaarmaken.');
+      world.addMessage(text, 3);
     }
   } else if (race.phase === 'countdown') {
     race.timer += dt;

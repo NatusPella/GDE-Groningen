@@ -12,16 +12,19 @@ import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, turbineRow, turbin
 // tree rows and turbines. Drawn in world units into a world-transformed
 // context; callers cache (mapview tiles) or keep the area small (minimap).
 
+// One land colour for the city and the Ommelanden on each map, so the edge
+// of the real data never shows as a seam; the countryside only differs in
+// what is drawn on it (ditches, farms, villages).
 export const MAP_STYLE = {
-  meadow: '#26442b', ditch: '#2d6a86', water: '#2d6a86', road: '#c7c7c2', major: '#f0ede4', minor: '#8f9095',
-  building: 'rgba(160, 156, 146, 0.62)', church: 'rgba(214, 205, 180, 0.8)', tree: '#1b3620', village: '#2f4a33',
-  allot: '#3f5a33', sports: '#3f7a3c', business: '#3a3f3c', rail: '#55524c', railTie: '#d8d4c8', turbine: '#e8eae8',
+  meadow: '#243528', park: '#2f5c36', ditch: '#2d6a86', water: '#2d6a86', road: '#c7c7c2', major: '#f0ede4', minor: '#8f9095',
+  building: 'rgba(160, 156, 146, 0.62)', church: 'rgba(214, 205, 180, 0.8)', tree: '#1d3a23', village: '#2b4230',
+  allot: '#2f4f33', sports: '#2f5c36', business: '#333a36', rail: '#55524c', railTie: '#d8d4c8', turbine: '#e8eae8',
   roadMin: 1.4, majorMin: 2.4,
 };
 export const MINI_STYLE = {
-  meadow: '#4f7a3e', ditch: '#3a86a8', water: '#3a86a8', road: '#a8ada2', major: '#f0ede4', minor: '#a8ada2',
-  building: '#b98a6a', church: '#8a8474', tree: '#3c6630', village: '#5f8a4a',
-  allot: '#6f8a4a', sports: '#7aa452', business: '#8a96a0', rail: '#55524c', railTie: '#d8d4c8', turbine: '#f0f0ee',
+  meadow: '#3e4c39', park: '#5a8445', ditch: '#3a86a8', water: '#3a86a8', road: '#a8ada2', major: '#f0ede4', minor: '#a8ada2',
+  building: '#b98a6a', church: '#8a8474', tree: '#34562c', village: '#4b5c41',
+  allot: '#55733f', sports: '#5a8445', business: '#8a96a0', rail: '#55524c', railTie: '#d8d4c8', turbine: '#f0f0ee',
   roadMin: 3, majorMin: 3,
 };
 
@@ -140,7 +143,9 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
     ctx.globalAlpha = 1;
   }
 
-  // main ditches and maaren
+  // main ditches and maaren; faint when zoomed far out, so the polder grid
+  // doesn't turn the Ommelanden into a blue pattern next to the city
+  ctx.globalAlpha = Math.min(1, Math.max(0.35, pxPerM * 1.6));
   ctx.strokeStyle = st.ditch;
   ctx.lineWidth = Math.max(px(0.9), MAIN_HW * 1.6);
   ctx.beginPath();
@@ -153,6 +158,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   for (let bx = bx0; bx <= bx1 + 1; bx++) if (maarX(bx)) segOut(bx * BLOCK, y0, bx * BLOCK, y1);
   for (let by = by0; by <= by1 + 1; by++) if (maarY(by)) segOut(x0, by * BLOCK, x1, by * BLOCK);
   ctx.stroke();
+  ctx.globalAlpha = 1;
 
   // canals carried on from the city
   ctx.strokeStyle = st.water;

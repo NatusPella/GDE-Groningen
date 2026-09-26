@@ -50,13 +50,14 @@ frame then runs, in order:
 | Map data | `mapdata.js` (`GameMap`: grid-indexed `buildingsNear`, `roadsNear`, `waterNear`, `nearestRoadPoint`, `isOnBridge`, `escapeBuilding`, `groundHeightAt`), `elevation.js` (ring road heights, walls, open cuts), `util.js` |
 | Input | `input.js` (`isDown`, `wasPressed`, `axis`, `mouse`) |
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Anita) |
-| Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water) |
+| Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water; a car at zero health is `disabled` and burns until `explodeVehicle` makes it a wreck) |
 | People and animals | `pedestrians.js`, `wildlife.js` |
-| Combat and police | `combat.js`, `police.js` |
-| Game systems | `missions.js`, `garages.js` (Spuit & Klaar drive-ins), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
-| Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), one `sidejob_*.js` per job |
-| UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (which categories also show on the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
-| Audio | `audio.js` (G-Music, voicelines, synthesised effects) |
+| Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js` |
+| Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
+| Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
+| Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), `sidejobvoice.js` (voiced boss lines, `audio/voicelines/jobs`), one `sidejob_*.js` per job |
+| UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
+| Audio | `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 
 ## Heights
@@ -71,8 +72,10 @@ per map (`map.elev`):
 - `map.groundHeightAt(x, y, zHint)`: the highest surface at most ~1.1 m
   above `zHint` - road decks, cutting floors, embankment slopes, else the
   street. Everything that has a height keeps its own absolute value and
-  passes it as the hint: vehicles `v.z` (+ `v.pitch`, falling off an edge
-  goes ballistic, hard landings damage), the player and companion `gz`
+  passes it as the hint: vehicles `v.z` (+ `v.pitch`/`v.roll` from the
+  surface, falling off an edge or cresting a ramp fast goes ballistic, hard
+  landings damage; `susPitch`/`susRoll`/`susHeave` are the drawn-only body
+  springs), the player and companion `gz`
   (plus the jump height `z`; drops hurt), pedestrians `gz`, ragdolls.
 - Walls: retaining walls of cuttings (solid from inside, with a fence solid
   from the street), crash barriers on raised roads, abutments where an
@@ -106,5 +109,34 @@ don't collide, and actors are drawn at their height.
 - Landmark GLB models live in `game/models/`. `landmarkmodels.js` normalises
   each one to its real height, and it replaces the procedural building once
   loaded.
+- `game/mapextras.json` (`scripts/add_map_extras.py`) is merged by
+  `loadMap` before the `GameMap` is built: OSM busways (`road.busOnly`) and
+  bus lanes (`road.busLane = {fwd, bwd}`), footprints and heights missing
+  from the city-core cache (Grote Markt, UMCG), per-building patches (the
+  EIKEA landmark) and gas stations (`meta.fuel`). It lives outside
+  citymap.json so the big file stays untouched.
 - The follow camera orbits at `ORBIT_RADIUS` and keeps `CAM_CLEARANCE` from
   nearby buildings, which must stay larger than the 0.5 m near plane.
+
+## Hitches and shader warm-up
+
+- Every lit material has two program variants (night-light rig on/off).
+  `scene3d.js` scans a slice of the scene per frame, compiles the unused
+  variant through `KHR_parallel_shader_compile` (`renderer.compile` only
+  starts the link) and draws the stand-ins once the programs report ready.
+  Hidden objects are warmed for both variants.
+- From the title screen on, one sample of every actor and effect that
+  spawns later (all traffic models, police, wrecks, boats, people, animals,
+  fire, explosions, splashes) is built one per frame and warmed the same
+  way, and the fx/gore/gun pools exist before the game starts.
+- `renderer.debug.checkShaderErrors` is off (the log fetch is a sync point);
+  `?shaderdebug` turns it back on.
+- Streaming is budgeted: new vehicle meshes (3 ms, one per frame beyond
+  45 m), street-prop cells (one generate or build per frame), grass chunks.
+  Particle pools only upload their buffers while something is alive.
+- `?hitch` (desktop: `--hitch`) enables `hitchprobe.js`: per-section frame
+  timings, time spent in blocking GL calls, new shader programs and their
+  owners, large buffer uploads; read `window.__hitch.summary()`. The desktop
+  app's `--perf-script=<file>` runs a script in the page after starting a
+  game and logs its result; `console.log('[capture] name')` from it saves a
+  screenshot.

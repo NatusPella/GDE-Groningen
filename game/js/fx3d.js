@@ -57,16 +57,17 @@ function initSkids(scene) {
   scene.add(skid.mesh);
 }
 
-function writeSkidQuad(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, alpha) {
+function writeSkidQuad(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, alpha, h = 0) {
   const q = skid.next;
   skid.next = (q + 1) % SKID_QUADS;
-  const p = skid.pos, o = q * 12, y = 0.012;
+  const p = skid.pos, o = q * 12, y = h + 0.012;
   p[o] = ax0; p[o + 1] = y; p[o + 2] = ay0;
   p[o + 3] = ax1; p[o + 4] = y; p[o + 5] = ay1;
   p[o + 6] = bx0; p[o + 7] = y; p[o + 8] = by0;
   p[o + 9] = bx1; p[o + 10] = y; p[o + 11] = by1;
   skid.birth[q] = simTime;
   skid.alpha[q] = alpha;
+  skid.live = true;
   const c = skid.col, co = q * 16;
   c[co + 3] = alpha; c[co + 7] = alpha; c[co + 11] = alpha; c[co + 15] = alpha;
   skid.dirty = true;
@@ -79,11 +80,13 @@ function updateSkidFade(dt) {
     skid.mesh.geometry.attributes.color.needsUpdate = true;
     skid.dirty = false;
   }
-  if (skid.fadeTimer > 0) return;
+  if (skid.fadeTimer > 0 || !skid.live) return;
   skid.fadeTimer = 0.25;
   const c = skid.col;
+  let live = 0;
   for (let q = 0; q < SKID_QUADS; q++) {
     if (skid.alpha[q] <= 0) continue;
+    live++;
     const t = (simTime - skid.birth[q]) / SKID_FADE;
     let a = 0;
     if (t < 1) a = skid.alpha[q] * (1 - t * t);
@@ -92,6 +95,7 @@ function updateSkidFade(dt) {
     c[co + 3] = a; c[co + 7] = a; c[co + 11] = a; c[co + 15] = a;
   }
   skid.mesh.geometry.attributes.color.needsUpdate = true;
+  skid.live = live > 0;
 }
 
 // Per-wheel track state lives on the vehicle (allocated once per vehicle).
@@ -122,7 +126,7 @@ function skidWheel(v, i, wx, wy, halfW, intensity) {
   const sideways = Math.abs(ux * sa - uy * ca);
   const w = halfW * (1 + sideways * 0.9);
   const lx = wx + uy * w, ly = wy - ux * w, rx = wx - uy * w, ry = wy + ux * w;
-  writeSkidQuad(t.lx, t.ly, t.rx, t.ry, lx, ly, rx, ry, Math.min(0.62, 0.18 + intensity * 0.5));
+  writeSkidQuad(t.lx, t.ly, t.rx, t.ry, lx, ly, rx, ry, Math.min(0.62, 0.18 + intensity * 0.5), v.z || 0);
   t.x = wx; t.y = wy; t.lx = lx; t.ly = ly; t.rx = rx; t.ry = ry;
 }
 
@@ -134,7 +138,7 @@ function skidWheel(v, i, wx, wy, halfW, intensity) {
 const smoke = {
   mesh: null, alphaAttr: null, alpha: null, seed: null,
   x: null, y: null, z: null, vx: null, vy: null, vz: null, age: null, life: null, s0: null, s1: null, a0: null, drag: null, lift: null, size: null,
-  next: 0, colorDirty: false,
+  next: 0, colorDirty: false, dirty: false,
 };
 
 function puffMaterial() {
@@ -194,28 +198,44 @@ function spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag = 1.5, l
   smoke.seed[i] = Math.random();
   smoke.mesh.setColorAt(i, _c.setRGB(r, g, b, THREE.SRGBColorSpace));
   smoke.colorDirty = true;
+  smoke.dirty = true;
 }
 
 export function spawnFxPuff(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag, lift) {
   if (ready) spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag, lift);
 }
 
+// Hot streak (bullet ricochet, grinding metal); three.js coordinates.
+export function spawnFxSpark(x, y, z, vx, vy, vz, life) {
+  if (ready) spawnSpark(x, y, z, vx, vy, vz, life);
+}
+
+// Tumbling chip from the shared debris pool (stone, glass, wood, paint).
+export function spawnFxChip(x, y, z, vx, vy, vz, size, color, life) {
+  if (ready) spawnDebris(chunks, x, y, z, vx, vy, vz, size, size * rand(0.3, 0.7), size * rand(0.6, 1.2), color, life);
+}
+
 const _camQ = new THREE.Quaternion();
 
+// Uploads only while puffs live (plus one frame to clear the last ones):
+// re-sending idle instance buffers every frame can stall on a busy GPU.
 function updateSmoke(dt) {
   const cam = getCamera();
   if (cam) cam.getWorldQuaternion(_camQ);
   const mesh = smoke.mesh;
+  let live = 0;
+  if (!smoke.dirty && !smoke.colorDirty) return;
   for (let i = 0; i < SMOKE_MAX; i++) {
     const life = smoke.life[i];
     if (life <= 0) {
       if (smoke.alpha[i] !== 0 || smoke.size[i] !== 0) { smoke.alpha[i] = 0; smoke.size[i] = 0; mesh.setMatrixAt(i, _m4.makeScale(0, 0, 0)); }
       continue;
     }
+    live++;
     const age = smoke.age[i] + dt;
     smoke.age[i] = age;
     const t = age / life;
-    if (t >= 1) { smoke.life[i] = 0; continue; }
+    if (t >= 1) { smoke.life[i] = 0; smoke.alpha[i] = 0; smoke.size[i] = 0; mesh.setMatrixAt(i, _m4.makeScale(0, 0, 0)); continue; }
     const k = Math.exp(-smoke.drag[i] * dt);
     smoke.vx[i] *= k; smoke.vz[i] *= k;
     smoke.vy[i] = smoke.vy[i] * k + smoke.lift[i] * dt;
@@ -233,11 +253,12 @@ function updateSmoke(dt) {
   mesh.instanceMatrix.needsUpdate = true;
   smoke.alphaAttr.needsUpdate = true;
   if (smoke.colorDirty) { mesh.instanceColor.needsUpdate = true; smoke.seedAttr.needsUpdate = true; smoke.colorDirty = false; }
+  smoke.dirty = live > 0;
 }
 
 // --- sparks (additive streaks) --------------------------------------------------------
 
-const spark = { lines: null, pos: null, col: null, x: null, y: null, z: null, vx: null, vy: null, vz: null, age: null, life: null, next: 0 };
+const spark = { lines: null, pos: null, col: null, x: null, y: null, z: null, vx: null, vy: null, vz: null, age: null, life: null, next: 0, dirty: false };
 
 function initSparks(scene) {
   const n = SPARK_MAX;
@@ -262,20 +283,24 @@ function spawnSpark(x, y, z, vx, vy, vz, life) {
   spark.x[i] = x; spark.y[i] = y; spark.z[i] = z;
   spark.vx[i] = vx; spark.vy[i] = vy; spark.vz[i] = vz;
   spark.age[i] = 0; spark.life[i] = life;
+  spark.dirty = true;
 }
 
 function updateSparks(dt) {
+  if (!spark.dirty) return;
   const p = spark.pos, c = spark.col;
+  let live = 0;
   for (let i = 0; i < SPARK_MAX; i++) {
     const o = i * 6;
     if (spark.life[i] <= 0) {
       if (c[o] !== 0) for (let k = 0; k < 6; k++) { c[o + k] = 0; p[o + k] = 0; }
       continue;
     }
+    live++;
     const age = spark.age[i] + dt;
     spark.age[i] = age;
     const t = age / spark.life[i];
-    if (t >= 1) { spark.life[i] = 0; continue; }
+    if (t >= 1) { spark.life[i] = 0; for (let k = 0; k < 6; k++) { c[o + k] = 0; p[o + k] = 0; } continue; }
     spark.vy[i] -= GRAVITY * dt;
     spark.x[i] += spark.vx[i] * dt;
     spark.y[i] += spark.vy[i] * dt;
@@ -295,6 +320,7 @@ function updateSparks(dt) {
   const g = spark.lines.geometry.attributes;
   g.position.needsUpdate = true;
   g.color.needsUpdate = true;
+  spark.dirty = live > 0;
 }
 
 // --- debris (instanced chunks + bumper panels) ------------------------------------------
@@ -526,6 +552,44 @@ function wreckSmoke(v, world, dt) {
   for (let j = 0; j < cnt; j++) {
     spawnSmoke(v.x + rand(-0.5, 0.5), 0.9, v.y + rand(-0.5, 0.5), rand(-0.25, 0.25), rand(1.0, 1.6) + k, rand(-0.25, 0.25),
       rand(2.2, 3.2) + k * 1.5, 0.4, rand(2.6, 3.6) + k * 2, shade, shade, shade * 1.02, 0.22 + k * 0.35, 1.2, 0.5);
+  }
+}
+
+// --- explosions ----------------------------------------------------------------------------------
+
+// Everything a car explosion throws out of the shared pools: a boiling black
+// smoke column, burnt panels and glass, a shower of sparks and a scorch mark
+// (dark skid quads fanned into a blotch, fading like the tyre marks).
+export function spawnExplosionFx(x, y, z, color, scale = 1) {
+  if (!ready) return;
+  const paint = typeof color === 'string' ? (_c.set(color), _c.getHex()) : typeof color === 'number' ? color : PAINT_FALLBACK;
+  for (let k = 0; k < Math.round(26 * scale); k++) {
+    const a = Math.random() * Math.PI * 2, r = rand(0.5, 3.5) * scale;
+    const dark = rand(0.05, 0.16);
+    spawnSmoke(x + Math.cos(a) * r * 0.4, z + rand(0.6, 2.2), y + Math.sin(a) * r * 0.4, Math.cos(a) * r, rand(1.5, 4.5), Math.sin(a) * r,
+      rand(3.5, 6.5), rand(1.2, 2), rand(4.5, 7.5) * scale, dark, dark, dark * 1.05, rand(0.55, 0.8), 1.1, 0.8);
+  }
+  for (let k = 0; k < 10; k++) {
+    const a = Math.random() * Math.PI * 2;
+    spawnSmoke(x + rand(-0.6, 0.6), z + rand(0.3, 1.2), y + rand(-0.6, 0.6), Math.cos(a) * rand(3, 7), rand(0.2, 1.2), Math.sin(a) * rand(3, 7),
+      rand(1.5, 2.6), 0.8, rand(3, 4.5), 0.42, 0.38, 0.34, 0.4, 2.2, 0.1);
+  }
+  for (let k = 0; k < Math.min(40, Math.round(34 * scale)); k++) {
+    const a = Math.random() * Math.PI * 2, sp = rand(5, 16);
+    spawnSpark(x, z + rand(0.4, 1.4), y, Math.cos(a) * sp, rand(3, 11), Math.sin(a) * sp, rand(0.5, 1.2));
+  }
+  for (let k = 0; k < Math.round(22 * scale); k++) {
+    const a = Math.random() * Math.PI * 2, sp = rand(3, 11);
+    const roll = Math.random();
+    const col = roll < 0.35 ? 0x161616 : roll < 0.6 ? 0x2c2a28 : roll < 0.8 ? paint : 0x9fb4ba;
+    const sz = roll >= 0.8 ? rand(0.04, 0.08) : rand(0.1, 0.26);
+    spawnDebris(chunks, x + rand(-0.5, 0.5), z + rand(0.5, 1.3), y + rand(-0.5, 0.5), Math.cos(a) * sp, rand(4, 11), Math.sin(a) * sp,
+      sz, sz * rand(0.3, 0.7), sz * rand(0.8, 1.5), col, rand(14, 22));
+  }
+  for (let k = 0; k < 4; k++) {
+    const a = (k / 4) * Math.PI + Math.random() * 0.4, r = rand(2, 3.2) * scale;
+    const ca = Math.cos(a) * r, sa = Math.sin(a) * r;
+    writeSkidQuad(x - ca - sa * 0.6, y - sa + ca * 0.6, x - ca + sa * 0.6, y - sa - ca * 0.6, x + ca - sa * 0.6, y + sa + ca * 0.6, x + ca + sa * 0.6, y + sa - ca * 0.6, 0.42, z);
   }
 }
 

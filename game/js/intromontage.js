@@ -20,6 +20,7 @@ fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) 
 
 const SEEN_KEY = 'gte-intro-seen';
 const PED_TARGET = 40;
+const FORUM_ROOF = 45; // roof deck of the Forum model in landmarks3d.js
 
 export function introSeen() {
   try { return localStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; }
@@ -100,6 +101,11 @@ const CSS = `
 #intro-montage .im-lower.on { opacity: 1; transform: none; }
 #intro-montage .im-lower .im-title { font-size: clamp(48px, 8vw, 110px); }
 #intro-montage .im-lower .im-title::after { content: ''; display: block; width: 130px; height: 4px; margin-top: 10px; background: linear-gradient(90deg, #1e9e56, #3fc97a); box-shadow: 0 0 14px rgba(63, 201, 122, 0.45); }
+#intro-montage .im-cap { top: calc(11vh + 3.5vh); left: 6vw; right: auto; bottom: auto; max-width: min(70vw, 760px); opacity: 0; transform: translateY(-10px); transition: opacity 0.6s, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85); }
+#intro-montage .im-cap.on { opacity: 1; transform: none; }
+#intro-montage .im-cap small { display: block; font-size: clamp(14px, 1.4vw, 19px); letter-spacing: 4px; color: #3fc97a; }
+#intro-montage .im-cap span { display: block; margin-top: 2px; font-size: clamp(26px, 3.2vw, 44px); line-height: 1; letter-spacing: 1px; }
+#intro-montage .im-lower .im-role { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(16px, 1.6vw, 22px); letter-spacing: 0.4px; margin-top: 6px; color: rgba(240, 237, 228, 0.9); }
 #intro-montage .im-sub { top: auto; bottom: 5.5vh; left: 50%; right: auto; transform: translate(-50%, 50%); width: min(86vw, 860px); text-align: center; font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
 #intro-montage .im-sub.on { opacity: 1; }
 #intro-montage .im-sub b { color: #3fc97a; margin-right: 6px; }
@@ -117,10 +123,10 @@ function ensureUi() {
   root.id = 'intro-montage';
   root.setAttribute('aria-live', 'polite');
   root.innerHTML = '<div class="im-grade"></div><div class="im-vig"></div><div class="im-flare"></div><div class="im-grain"></div>' +
-    '<div class="im-flash"></div><div class="im-black"></div><div class="im-card"></div><div class="im-lower"></div><div class="im-sub"></div>';
+    '<div class="im-flash"></div><div class="im-black"></div><div class="im-card"></div><div class="im-cap"></div><div class="im-lower"></div><div class="im-sub"></div>';
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
-  ui = { root, flare: q('.im-flare'), flash: q('.im-flash'), black: q('.im-black'), card: q('.im-card'), lower: q('.im-lower'), sub: q('.im-sub'), subKey: '' };
+  ui = { root, flare: q('.im-flare'), flash: q('.im-flash'), black: q('.im-black'), card: q('.im-card'), cap: q('.im-cap'), lower: q('.im-lower'), sub: q('.im-sub'), subKey: '', tagKey: '' };
   return ui;
 }
 
@@ -143,6 +149,23 @@ function setSub(line) {
   if (line) ui.sub.innerHTML = (line.who ? `<b>${line.who}:</b>` : '') + line.text;
 }
 
+function clockText(h) {
+  const m = Math.round((((h % 24) + 24) % 24) * 60);
+  return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
+// Name tag in the lower third while a character is introduced.
+function setTag(tag) {
+  const key = tag ? tag.name : '';
+  if (key === ui.tagKey) return;
+  ui.tagKey = key;
+  if (!tag) { ui.lower.classList.remove('on'); return; }
+  ui.lower.innerHTML = `<div class="im-title">${tag.name}</div><div class="im-role">${tag.role}</div>`;
+  ui.lower.classList.remove('on');
+  void ui.lower.offsetWidth;
+  ui.lower.classList.add('on');
+}
+
 function showCard(html, dur) {
   ui.card.classList.remove('on');
   ui.card.style.animationDuration = dur + 's';
@@ -157,8 +180,67 @@ const SHADOW_GEO = new THREE.CircleGeometry(0.42, 16).rotateX(-Math.PI / 2);
 const SHADOW_MAT = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false });
 const BAG_GEO = new THREE.BoxGeometry(0.34, 0.26, 0.2);
 const BAG_MAT = new THREE.MeshStandardMaterial({ color: 0x1f3b2a, roughness: 0.85 });
-const NOTE_GEO = new THREE.PlaneGeometry(0.24, 0.12);
-const NOTE_MAT = new THREE.MeshStandardMaterial({ color: 0xbfe6c4, emissive: 0x1e9e56, emissiveIntensity: 0.35, roughness: 0.7, side: THREE.DoubleSide });
+const NOTE_GEO = new THREE.PlaneGeometry(0.2, 0.104);
+// Parody banknotes ("Bank van Grunn"): 20, 50 and 100 in their own colours,
+// printed with a tower, guilloche lines and corner values.
+const NOTE_KINDS = [
+  { v: '20', base: '#5d84c4', dark: '#27406e', light: '#bcd2f0' },
+  { v: '50', base: '#e08a3c', dark: '#8a4516', light: '#f7d2a6' },
+  { v: '100', base: '#4f9a5a', dark: '#1f5530', light: '#c3e6c4' },
+];
+function noteTexture({ v, base, dark, light }) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 132;
+  const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0, 0, 256, 132);
+  bg.addColorStop(0, light); bg.addColorStop(0.45, base); bg.addColorStop(1, light);
+  g.fillStyle = bg;
+  g.fillRect(0, 0, 256, 132);
+  g.strokeStyle = dark;
+  g.globalAlpha = 0.28;
+  g.lineWidth = 1;
+  for (let k = 0; k < 14; k++) {
+    g.beginPath();
+    for (let x = 0; x <= 256; x += 4) g.lineTo(x, 18 + k * 7 + Math.sin(x / 14 + k) * 5);
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+  g.lineWidth = 4;
+  g.strokeRect(5, 5, 246, 122);
+  g.fillStyle = 'rgba(255, 255, 255, 0.55)';
+  g.beginPath(); g.ellipse(62, 66, 30, 40, 0, 0, Math.PI * 2); g.fill();
+  // a tower on the right: d'Olle Grieze, more or less
+  g.fillStyle = dark;
+  g.fillRect(186, 58, 26, 58); g.fillRect(190, 36, 18, 24); g.fillRect(193, 22, 12, 16);
+  g.beginPath(); g.moveTo(192, 22); g.lineTo(199, 6); g.lineTo(206, 22); g.fill();
+  g.font = 'bold 34px Arial Black, Arial, sans-serif';
+  g.textBaseline = 'top';
+  g.fillText(v, 14, 12);
+  g.textAlign = 'right';
+  g.textBaseline = 'bottom';
+  g.font = 'bold 44px Arial Black, Arial, sans-serif';
+  g.fillText(v, 176, 124);
+  g.textAlign = 'left';
+  g.font = 'bold 13px Arial, sans-serif';
+  g.fillText('BANK VAN GRUNN', 16, 124);
+  g.font = 'bold 20px Arial Black, Arial, sans-serif';
+  g.fillText('EIERBAL', 92, 44);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+let noteMats = null;
+function noteMaterials() {
+  if (!noteMats) {
+    noteMats = NOTE_KINDS.map((k) => {
+      const map = noteTexture(k);
+      // a touch of self-light so the notes still read in the night shots
+      return new THREE.MeshStandardMaterial({ map, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.28, roughness: 0.75, side: THREE.DoubleSide });
+    });
+  }
+  return noteMats;
+}
 const BIRD_GEO = new THREE.BoxGeometry(0.22, 0.1, 0.1);
 const WING_GEO = new THREE.PlaneGeometry(0.11, 0.2).rotateX(-Math.PI / 2).translate(0, 0, 0.1);
 const BIRD_MAT = new THREE.MeshStandardMaterial({ color: 0x7c8088, roughness: 0.9, side: THREE.DoubleSide });
@@ -222,11 +304,14 @@ function applyPose(m, name, t) {
 }
 
 function makeNotes(group) {
-  const mesh = new THREE.InstancedMesh(NOTE_GEO, NOTE_MAT, MAX_NOTES);
-  mesh.frustumCulled = false;
-  mesh.count = 0;
-  group.add(mesh);
-  return { mesh, list: [], dummy: new THREE.Object3D() };
+  const meshes = noteMaterials().map((mat) => {
+    const m = new THREE.InstancedMesh(NOTE_GEO, mat, MAX_NOTES);
+    m.frustumCulled = false;
+    m.count = 0;
+    group.add(m);
+    return m;
+  });
+  return { meshes, list: [], dummy: new THREE.Object3D() };
 }
 
 function emitNotes(n, count, x, y, z, spread = 1.5, up = 2.5) {
@@ -236,13 +321,14 @@ function emitNotes(n, count, x, y, z, spread = 1.5, up = 2.5) {
       x, y, z, vx: Math.cos(a) * s, vy: Math.sin(a) * s, vz: up * (0.5 + Math.random()),
       rx: Math.random() * 6, ry: Math.random() * 6, rz: Math.random() * 6,
       sx: (Math.random() - 0.5) * 9, sy: (Math.random() - 0.5) * 9, ph: Math.random() * 6,
+      kind: Math.random() < 0.5 ? 1 : Math.random() < 0.6 ? 0 : 2,
     });
   }
 }
 
 function updateNotes(n, dt, t) {
   const d = n.dummy;
-  let i = 0;
+  const counts = n.meshes.map(() => 0);
   for (const p of n.list) {
     p.vz = Math.max(-0.7, p.vz - 5 * dt);
     const drag = Math.exp(-1.6 * dt);
@@ -257,10 +343,9 @@ function updateNotes(n, dt, t) {
     d.position.set(p.x, p.z, p.y);
     d.rotation.set(p.z > 0.02 ? p.rx : -Math.PI / 2, p.ry, p.z > 0.02 ? p.rz : 0);
     d.updateMatrix();
-    n.mesh.setMatrixAt(i++, d.matrix);
+    n.meshes[p.kind].setMatrixAt(counts[p.kind]++, d.matrix);
   }
-  n.mesh.count = i;
-  n.mesh.instanceMatrix.needsUpdate = true;
+  n.meshes.forEach((m, k) => { m.count = counts[k]; m.instanceMatrix.needsUpdate = true; });
 }
 
 function makeBirds(group, cx, cy, r) {
@@ -471,6 +556,7 @@ function buildShots(w) {
 
   const aerial = {
     dur: 7.2, clock: 18.55, focus: { x: 165, y: 68 }, flare: { x: 18, y: 26, a: 0.9 },
+    caption: ['GRUNN', 'Een stad vol fietsers, eierballen en grote dromen.'],
     lines: [[0.9, 3.0, 'Anita', 'Zeg eens eerlijk, Tammo…'], [4.0, 3.0, 'Anita', '…wil je later zeggen dat je het nooit geprobeerd hebt?']],
     cam(u, t) {
       const a = lerp(2.62, 2.12, smooth(u)), rad = lerp(165, 118, u);
@@ -480,7 +566,8 @@ function buildShots(w) {
   };
 
   const chaos = {
-    dur: 6.0, clock: 18.6, focus: { x: 175, y: 55 }, flare: { x: 12, y: 30, a: 0.6 },
+    dur: 6.0, clock: 23.15, focus: { x: 175, y: 55 },
+    caption: ['GROTE MARKT', 'Alles.'],
     slow: (t) => (t < 1.1 ? 1 : t < 1.5 ? lerp(1, 0.32, (t - 1.1) / 0.4) : t < 4.8 ? 0.32 : lerp(0.32, 1, (t - 4.8) / 1.2)),
     lines: [[0.4, 1.8, 'Anita', 'Rennen, Tammo!'], [2.5, 3.2, 'Tammo', 'Ik rén. Zo ren ik nou eenmaal.']],
     enter(r, s) {
@@ -515,7 +602,9 @@ function buildShots(w) {
       [3.7, (u, t, s) => {
         const nx = -s.fy, ny = s.fx;
         const p = s.pos;
-        return pose(P(p.x - nx * 5.2 + s.fx * 1.5, p.y - ny * 5.2 + s.fy * 1.5, 1.35), P(p.x, p.y, 1.25), 36, t, 0.06);
+        // tracking from ahead on their own path across the open square: a
+        // side-on camera ran into advertising columns along the edge
+        return pose(P(p.x + s.fx * 7 - nx * 1.6, p.y + s.fy * 7 - ny * 1.6, 1.9), P(p.x, p.y, 1.2), 40, t, 0.06);
       }],
     ],
   };
@@ -525,6 +614,7 @@ function buildShots(w) {
   const bridge = { x: -374, y: 319 };
   const kiss = {
     dur: 7.2, clock: 19.1, clockTo: 19.55, focus: bridge, flare: { x: 22, y: 34, a: 1 },
+    caption: [null, 'Samen hebben ze alles. Behalve geld.'],
     slow: () => 0.55,
     lines: [[0.6, 2.2, 'Tammo', 'Als dit misgaat…'], [2.8, 2.4, 'Anita', 'Dan gaat het tenminste mis met stijl.'], [5.3, 1.9, 'Tammo', 'Moi. Stijl.']],
     tick(r, s, t, dt) {
@@ -533,7 +623,7 @@ function buildShots(w) {
     },
     cams: [
       [4.2, (u, t) => pose(lerpP(P(-371, 332, 1.8), P(-366, 327, 1.6), smooth(u)), P(bridge.x, bridge.y, 1.55), lerp(34, 30, u), t, 0.04)],
-      [3.0, (u, t) => pose(lerpP(P(-374, 334, 2.5), P(-371, 352, 13), smooth(u)), P(bridge.x, bridge.y - lerp(0, 25, smooth(u)), lerp(1.5, 6, u)), 48, t, 0.05)],
+      [3.0, (u, t) => pose(lerpP(P(-374, 334, 2.5), P(-374.5, 341, 15), smooth(u)), P(bridge.x, bridge.y - lerp(0, 25, smooth(u)), lerp(1.5, 6, u)), 48, t, 0.05)],
     ],
   };
 
@@ -545,7 +635,9 @@ function buildShots(w) {
     vis.rx = rx; vis.ry = ry;
   }
   const vismarkt = {
-    dur: 6.0, clock: 20.45, focus: vis.car,
+    dur: 6.4, clock: 20.45, focus: vis.car,
+    caption: ['VISMARKT', 'Anita wil meer dan een fiets en een bijbaantje.'],
+    tags: [[0.3, 2.9, 'Anita', 'het brein van het stel'], [3.4, 2.8, 'Tammo', 'de chauffeur. Meestal.']],
     lines: [[0.5, 2.4, 'Anita', 'Iedereen in Grunn heeft een droom.'], [3.0, 2.8, 'Anita', 'De mijne heeft vier wielen en geen kenteken.']],
     enter(r, s) {
       s.car = tempCar(r, vis.car.x, vis.car.y, vis.a);
@@ -557,9 +649,12 @@ function buildShots(w) {
     cams: [
       [6.0, (u, t) => {
         const f = Math.cos(vis.a), g = Math.sin(vis.a);
-        const d = lerp(7.5, 3.2, smooth(u));
-        const base = P(vis.anita.x + vis.rx * d - f * d * 0.55, vis.anita.y + vis.ry * d - g * d * 0.55, lerp(1.3, 1.25, u));
-        return pose(base, P(vis.anita.x + f * 0.8, vis.anita.y + g * 0.8, 1.35), lerp(42, 34, u), t, 0.03);
+        // from the road ahead of the car: the pavement side is full of
+        // bins and bike racks that used to fill the frame
+        const d = lerp(8.5, 5, smooth(u));
+        const base = P(vis.car.x + f * d + vis.rx * 0.4, vis.car.y + g * d + vis.ry * 0.4, lerp(1.9, 1.6, u));
+        const look = P(lerp(vis.car.x, vis.anita.x, 0.6) - f * 0.6, lerp(vis.car.y, vis.anita.y, 0.6) - g * 0.6, 1.2);
+        return pose(base, look, lerp(44, 38, u), t, 0.03);
       }],
     ],
   };
@@ -569,6 +664,7 @@ function buildShots(w) {
   const atm = { x: 164.4, y: -14 };
   const heist = {
     dur: 7.2, clock: 23.0, focus: atm,
+    caption: [null, 'Het plan: één pinautomaat. Wat kan er misgaan?'],
     slow: () => 0.42,
     lines: [[0.7, 2.6, 'Tammo', 'Moi. Wij kwamen alleen even pinnen.'], [3.9, 2.8, 'Anita', 'Pinnen, ja. Met de hele automaat.']],
     enter(r, s) {
@@ -628,6 +724,7 @@ function buildShots(w) {
   };
   const chase = {
     dur: 7.2, clock: 23.2, focus: laneAt(40),
+    caption: [null, 'Nu zit heel Grunn achter ze aan.'],
     lines: [[0.5, 2.4, 'Anita', 'Gas d’r op, schat!'], [3.8, 2.6, 'Tammo', 'Dit ís gas d’r op.']],
     enter(r, s) {
       clearRoadNear(r, road, 9);
@@ -676,6 +773,7 @@ function buildShots(w) {
   const roof = {
     dur: 7.2, clock: 23.5,
     focus: forum,
+    caption: ['FORUM', 'Wie Grunn wil, moet het zelf pakken.'],
     lines: [[0.6, 2.2, 'Anita', 'Kijk dan. Heel Grunn.'], [3.0, 2.2, 'Tammo', 'Ziet er van hier best rustig uit.'], [5.4, 1.6, 'Anita', 'Nog wel.']],
     enter(r, s) {
       const dx = tower.x - forum.x, dy = tower.y - forum.y, dl = Math.hypot(dx, dy);
@@ -684,9 +782,13 @@ function buildShots(w) {
       const b = footprint(map, forum.x, forum.y);
       let d = 0;
       if (b) while (d < 60 && footprint(map, forum.x + s.fx * (d + 0.5), forum.y + s.fy * (d + 0.5)) === b) d += 0.5;
-      d = Math.max(0, d - 2.2);
+      // the Forum model (landmarks3d.js) rises to a 45 m roof deck that is
+      // pulled in from the footprint; standing at the footprint's level put
+      // the pair (and the camera) inside the building
+      const isForum = b && b.landmark === 'Forum Groningen';
+      d = isForum ? Math.max(0, d * 0.6 - 1.5) : Math.max(0, d - 2.2);
       s.spot = { x: forum.x + s.fx * d, y: forum.y + s.fy * d };
-      s.h = b ? (b.h || 3) * 3.1 : roofAt(map, s.spot.x, s.spot.y);
+      s.h = isForum ? FORUM_ROOF : b ? (b.h || 3) * 3.1 : roofAt(map, s.spot.x, s.spot.y);
     },
     tick(r, s, t, dt) {
       const nx = -s.fy, ny = s.fx;
@@ -719,7 +821,9 @@ function buildShots(w) {
     cams: [[7.0, (u, t, s) => ({ ...s.shot(u), cut: true })]],
   };
 
-  return [aerial, chaos, card1, kiss, vismarkt, card2, heist, chase, roof, card3, swoop];
+  // who they are (card, Vismarkt with name tags), what they want (the
+  // bridge, the dream car), the hook (the heist, the escape, the chase)
+  return [aerial, card1, vismarkt, kiss, card2, heist, chaos, chase, roof, card3, swoop];
 }
 
 function enterShot(r, i) {
@@ -739,7 +843,14 @@ function enterShot(r, i) {
   const shot = r.shots[i];
   const w = r.w;
   setSub(null);
+  setTag(null);
   ui.lower.classList.remove('on');
+  ui.cap.classList.remove('on');
+  if (shot.caption) {
+    const [place, text] = shot.caption;
+    const stamp = shot.clock != null ? clockText(shot.clock) : '';
+    ui.cap.innerHTML = `<small>${[stamp, place].filter(Boolean).join(' · ')}</small><span>${text}</span>`;
+  }
   if (shot.black) {
     ui.black.classList.add('on');
     if (shot.card) showCard(shot.card, shot.dur);
@@ -809,6 +920,12 @@ function frame(r, t) {
     const l = shot.lines.find(([at, d]) => st >= at && st < at + d);
     setSub(l ? { who: l[2], text: l[3] } : null);
   }
+  // on the shot's own clock: slow frames must not drift the caption off
+  ui.cap.classList.toggle('on', !!shot.caption && st > 0.35 && st < Math.min(4.4, shot.dur - 0.6));
+  if (shot.tags) {
+    const g = shot.tags.find(([at, d]) => st >= at && st < at + d);
+    setTag(g ? { name: g[2], role: g[3] } : null);
+  }
   if (shot.cams) {
     let acc = 0;
     for (let k = 0; k < shot.cams.length; k++) {
@@ -841,8 +958,10 @@ function cleanup(r, skipped) {
     } else ui.black.classList.remove('on');
     ui.card.classList.remove('on');
     ui.lower.classList.remove('on');
+    ui.cap.classList.remove('on');
     ui.flare.classList.remove('on');
     setSub(null);
+    setTag(null);
   }
   document.body.classList.remove('intro-montage');
   stopStoryVoice();

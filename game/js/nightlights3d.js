@@ -10,6 +10,9 @@ import { policeFlash } from './models3d_vehicles.js';
 
 const LAMP_SPACING = 28;
 const LAMP_CATS = new Set(['major', 'normal', 'minor']);
+// squares, alleys and cycle paths get their own, sparser lamps
+const PATH_CATS = new Set(['foot', 'cycle']);
+const PATH_SPACING = 30;
 const LAMP_MIN_GAP = 13;
 const LAMP_GRID = 16;
 const LAMP_VIEW = 150;
@@ -154,6 +157,30 @@ export function initNightLights(targetScene) {
   searchSpot = new THREE.SpotLight(SEARCH_COLOR, 0, 0, 0.3, 0.45, 2);
   scene.add(searchSpot);
   scene.add(searchSpot.target);
+
+  // gun flashes light up their surroundings for a frame or two
+  muzzleLight = new THREE.PointLight(MUZZLE_COLOR, 0, MUZZLE_RANGE, 2);
+  scene.add(muzzleLight);
+}
+
+let muzzleLight = null;
+let muzzleLevel = 0;
+const MUZZLE_COLOR = new THREE.Color(0xffb45a);
+const MUZZLE_RANGE = 11;
+const MUZZLE_I = 60;
+const MUZZLE_DECAY = 26;
+
+// A gunshot at three.js position (x, y, z); strength ~1 for a pistol.
+export function flashMuzzleLight(x, y, z, strength = 1) {
+  if (!muzzleLight) return;
+  muzzleLight.position.set(x, y, z);
+  muzzleLevel = Math.max(muzzleLevel, strength);
+}
+
+function updateMuzzleLight(dt, night) {
+  if (!muzzleLight) return;
+  muzzleLight.intensity = muzzleLevel > 0.02 ? MUZZLE_I * muzzleLevel * (0.55 + 0.45 * night) : 0;
+  muzzleLevel *= Math.exp(-MUZZLE_DECAY * dt);
 }
 
 // Real light count is fixed per quality preset (changing it recompiles
@@ -212,7 +239,8 @@ function updateSearchlight() {
 }
 
 function policeUnitActive(world, v) {
-  return (v.sirenOn || (v.isPolice && world.wanted > 0)) && !v.hijacked && !v.wrecked && v.driver !== 'player' && !v.sinking;
+  if (v.wrecked || v.sinking) return false;
+  return v.sirenOn || (v.isPolice && !v._mount && !v._commandeered && world.wanted > 0 && !v.hijacked && v.driver !== 'player');
 }
 
 function updatePoliceLights(world, vehicleMeshes, px, py, night) {
@@ -284,12 +312,14 @@ function registerLamp(l) {
 function lampsForRoad(road, map) {
   if (road._lamps) return road._lamps;
   road._lamps = [];
-  if (!LAMP_CATS.has(road.cat) || road.pts.length < 2) return road._lamps;
+  const path = PATH_CATS.has(road.cat);
+  if ((!LAMP_CATS.has(road.cat) && !path) || road.pts.length < 2) return road._lamps;
   const pts = road.pts;
   const h0 = hash(pts[0][0], pts[0][1]);
   const fixedSide = h0 < 0.5 ? 1 : -1;
-  const offset = (road.width || 6) / 2 + 0.9;
-  let next = 4 + h0 * LAMP_SPACING * 0.6;
+  const offset = path ? (road.width || 3) / 2 + 0.5 : (road.width || 6) / 2 + 0.9;
+  const spacing = path ? PATH_SPACING : LAMP_SPACING;
+  let next = 4 + h0 * spacing * 0.6;
   let along = 0, idx = 0;
   for (let i = 0; i < pts.length - 1; i++) {
     const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
@@ -302,7 +332,7 @@ function lampsForRoad(road, map) {
       const cx = ax + dx * t, cy = ay + dy * t;
       const x = cx - dy * offset * side, y = cy + dx * offset * side;
       idx++;
-      next += LAMP_SPACING;
+      next += spacing;
       if (insideBuilding(map, x, y) || lampTooClose(x, y)) continue;
       if (map.offStreetLevel && map.offStreetLevel(x, y, 0.6)) continue;
       if (map.onCarriageway && map.onCarriageway(x, y, 0.4, road)) continue;
@@ -355,7 +385,10 @@ function breakLamp(l) {
 function rebuildVisible(world, px, py) {
   visible = [];
   const seen = new Set();
-  for (const road of world.map.roadsNear(px, py, LAMP_VIEW)) {
+  // street lamps claim their spots before the path lamps fill the gaps
+  const near = world.map.roadsNear(px, py, LAMP_VIEW);
+  const ordered = near.filter((r) => !PATH_CATS.has(r.cat)).concat(near.filter((r) => PATH_CATS.has(r.cat)));
+  for (const road of ordered) {
     for (const l of lampsForRoad(road, world.map)) {
       if (seen.has(l) || Math.abs(l.x - px) > LAMP_VIEW || Math.abs(l.y - py) > LAMP_VIEW) continue;
       seen.add(l);
@@ -440,9 +473,17 @@ function lampMaterialsOf(mesh) {
   return mats;
 }
 
+// Only a car someone is driving has its lights on; parked, abandoned and
+// burning ones sit dark (their lamp lenses dimmed, day and night).
 function vehicleLightsOn(v) {
-  return !v.isBoat && !v.wrecked && (v.driver === 'player' || !v.isHeroCar);
+  if (v.wrecked || v.disabled || v.sinking) return false;
+  // boats: nav lights on everything afloat except the parked hero boat
+  if (v.isBoat) return v.driver === 'player' || !v.isHeroCar;
+  if (v.parked) return false;
+  return v.driver === 'player' || !!v.road || !!v.racer || (v.isPolice && !v.hijacked);
 }
+
+export const UNLIT_LAMP = 0.32;
 
 function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
   const glow = 1 + lightsOn * 5;
@@ -452,11 +493,12 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
     const mesh = vehicleMeshes.get(v.id);
     if (!mesh) continue;
     const on = vehicleLightsOn(v);
+    // boats: nav lights only (dim coloured glass by day), no road cones
+    const k = v.isBoat ? (on ? 0.45 + lightsOn * 5.5 : 0.45) : on ? glow : v.wrecked ? 0.12 : UNLIT_LAMP;
     for (const m of lampMaterialsOf(mesh)) {
-      const k = on ? glow : 1;
       if (m.color.r !== k) m.color.setScalar(k);
     }
-    if (!on || lightsOn < 0.02 || n >= CONE_MAX) continue;
+    if (!on || v.isBoat || lightsOn < 0.02 || n >= CONE_MAX) continue;
     const d = Math.hypot(v.x - px, v.y - py);
     if (d > VEH_LIGHT_DIST) continue;
     const two = v.isBike || v.isScooter;
@@ -472,8 +514,8 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
     n++;
     if (!two || v.driver === 'player') cand.push({ v, d: v.driver === 'player' ? -1 : d });
   }
+  if (n || coneMesh.count) coneMesh.instanceMatrix.needsUpdate = tailMesh.instanceMatrix.needsUpdate = true;
   coneMesh.count = tailMesh.count = n;
-  coneMesh.instanceMatrix.needsUpdate = tailMesh.instanceMatrix.needsUpdate = true;
   coneMesh.material.color.setRGB(1, 0.93, 0.8).multiplyScalar(0.38 * lightsOn);
   tailMesh.material.color.setRGB(1, 0.16, 0.1).multiplyScalar(0.45 * lightsOn);
 
@@ -490,8 +532,9 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
   });
 }
 
-export function updateNightLights(world, vehicleMeshes, px, py, night, wet) {
+export function updateNightLights(world, vehicleMeshes, px, py, night, wet, dt = 1 / 60) {
   if (!poleMesh) return;
+  updateMuzzleLight(dt, night);
   if (Math.hypot(px - lastBuildX, py - lastBuildY) > 12) {
     lastBuildX = px; lastBuildY = py;
     rebuildVisible(world, px, py);
@@ -513,16 +556,21 @@ export function updateNightLights(world, vehicleMeshes, px, py, night, wet) {
 // light loops from every lit shader - a separate program variant that
 // scene3d pre-compiles (prewarmLightVariants) - so the picture is identical
 // but each pixel is far cheaper. Back on the moment any light is needed.
+const _rig = [];
 function rigLights() {
-  const all = [...pointLights, ...spotLights, ...policeLights];
-  if (searchSpot) all.push(searchSpot);
-  return all;
+  _rig.length = 0;
+  for (const l of pointLights) _rig.push(l);
+  for (const l of spotLights) _rig.push(l);
+  for (const l of policeLights) _rig.push(l);
+  if (searchSpot) _rig.push(searchSpot);
+  if (muzzleLight) _rig.push(muzzleLight);
+  return _rig;
 }
 
 function updateLightRig() {
   const now = performance.now();
   const all = rigLights();
-  if (all.some((l) => l.intensity > 0)) rigLitAt = now;
+  for (let i = 0; i < all.length; i++) if (all[i].intensity > 0) { rigLitAt = now; break; }
   const want = now - rigLitAt < RIG_OFF_DELAY_MS;
   if (want === rigOn) return;
   rigOn = want;

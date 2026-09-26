@@ -21,7 +21,7 @@ const GAME_DIR = app.isPackaged ? path.join(process.resourcesPath, 'game') : pat
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png',
+  '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.md': 'text/markdown; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json',
   '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf',
   '.wasm': 'application/wasm', '.txt': 'text/plain; charset=utf-8',
@@ -33,7 +33,9 @@ app.setName('GTE VI');
 // test runs (--stil / --smoke-test) get a throwaway profile, so they never
 // touch the player's saves, settings or achievements
 if (process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test'))) {
-  app.setPath('userData', path.join(require('os').tmpdir(), 'gte-vi-test-profile'));
+  // GTE_TEST_PROFILE picks another throwaway dir, so parallel test runs
+  // don't block each other through the single-instance lock
+  app.setPath('userData', path.join(require('os').tmpdir(), process.env.GTE_TEST_PROFILE || 'gte-vi-test-profile'));
 }
 if (process.platform === 'win32') app.setAppUserModelId('nl.natuspella.gte-vi');
 
@@ -102,14 +104,22 @@ function createWindow() {
   });
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type !== 'keyDown') return;
-    if (input.key === 'F11') { win.setFullScreen(!win.isFullScreen()); e.preventDefault(); }
+    // F11, Alt+Enter (the Windows habit) and Ctrl+Cmd+F on the Mac toggle
+    // fullscreen; swallowed so the game never sees the Enter/F
+    const macFull = process.platform === 'darwin' && input.control && input.meta && input.key.toLowerCase() === 'f';
+    if (input.key === 'F11' || (input.alt && input.key === 'Enter') || macFull) {
+      if (!input.isAutoRepeat) win.setFullScreen(!win.isFullScreen());
+      e.preventDefault();
+    }
     if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) win.webContents.toggleDevTools();
   });
   // test switches: --stil loads the silent game, --smoke-test=<png> logs the
   // renderer's errors, saves a screenshot after a few seconds and quits
   const silent = process.argv.includes('--stil');
   const smoke = process.argv.find((a) => a.startsWith('--smoke-test='));
-  win.loadURL(`${SCHEME}://${HOST}/index.html${silent ? '?stil' : ''}`);
+  // --hitch turns on the in-game frame-time probe (js/hitchprobe.js)
+  const query = [silent && 'stil', process.argv.includes('--hitch') && 'hitch'].filter(Boolean).join('&');
+  win.loadURL(`${SCHEME}://${HOST}/index.html${query ? '?' + query : ''}`);
   if (smoke) {
     win.webContents.on('console-message', function (e, legacyLevel, legacyMessage) {
       const level = e.level !== undefined ? e.level : legacyLevel;
@@ -119,6 +129,13 @@ function createWindow() {
     win.webContents.on('did-fail-load', (e, code, desc, url) => console.log('[load failed]', code, desc, url));
     setTimeout(async () => {
       try {
+        // --smoke-eval=<js> runs in the page first (e.g. open a menu), so the
+        // screenshot shows that state
+        const evalArg = process.argv.find((a) => a.startsWith('--smoke-eval='));
+        if (evalArg) {
+          await win.webContents.executeJavaScript(evalArg.slice('--smoke-eval='.length));
+          await new Promise((r) => setTimeout(r, 1500));
+        }
         const img = await win.webContents.capturePage();
         fsSync.writeFileSync(smoke.split('=')[1], img.toPNG());
         const info = await win.webContents.executeJavaScript(`JSON.stringify({
@@ -131,6 +148,29 @@ function createWindow() {
           fullscreenToggle: !!document.querySelector('[data-desktop="fullscreen"]'),
         })`);
         console.log('[smoke]', info);
+        // --perf-script=<file>: after starting a game, run the file's body as an
+        // async function in the page and log what it returns
+        const scriptArg = process.argv.find((a) => a.startsWith('--perf-script='));
+        if (scriptArg) {
+          // console.log('[capture] name') from the script saves a screenshot
+          // next to the smoke-test png: <smoke>-<name>.png
+          win.webContents.on('console-message', async (e, legacyLevel, legacyMessage) => {
+            const message = String(e.message !== undefined ? e.message : legacyMessage);
+            if (!message.startsWith('[capture] ')) return;
+            const img = await win.webContents.capturePage();
+            fsSync.writeFileSync(smoke.split('=')[1].replace(/\.png$/, `-${message.slice(10).trim()}.png`), img.toPNG());
+          });
+          const body = fsSync.readFileSync(scriptArg.slice(14), 'utf8');
+          await win.webContents.executeJavaScript(`(async () => {
+            const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
+            key('Enter', 'Enter');
+            await new Promise((r) => setTimeout(r, 2500));
+            const w = window.__debug && window.__debug.world;
+            for (let i = 0; i < 25 && w && w.paused; i++) { key(' ', 'Space'); await new Promise((r) => setTimeout(r, 700)); }
+          })()`);
+          const out = await win.webContents.executeJavaScript(`(async () => { ${body}\n })()`);
+          console.log('[perf-script]', typeof out === 'string' ? out : JSON.stringify(out));
+        }
         if (process.argv.includes('--perf-test')) {
           // --perf-at=x,y,heading[;x,y,heading...] teleports the player to fixed
           // spots so runs are comparable (the new-game spawn is a random landmark)
@@ -140,7 +180,7 @@ function createWindow() {
           const expFiles = expArg ? expArg.slice(11).split('+').map((f) => fsSync.readFileSync(f, 'utf8')) : ['null'];
           const expSrc = expFiles.pop(), expPre = expFiles.join(';\n');
           await win.webContents.executeJavaScript(`(async () => {
-            const key = (k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); };
+            const key = (k, code) => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); } };
             key('Enter', 'Enter');
             await new Promise((r) => setTimeout(r, 2500));
             const w = window.__debug && window.__debug.world;
