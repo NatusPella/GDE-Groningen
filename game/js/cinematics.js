@@ -217,8 +217,9 @@ function begin(spec) {
   document.body.classList.toggle('cine-hide-hud', !!active.hideHud);
   r.classList.add('active');
   // a pausing cutscene brings the player's vehicle to a stop, so resuming
-  // doesn't launch you onward at full speed
-  if (active.pause && world && world.player && world.player.inVehicle) {
+  // doesn't launch you onward at full speed - except the ones that ask to
+  // keep the motion (the wijk flyover only plays at low speed anyway)
+  if (active.pause && !active.keepMotion && world && world.player && world.player.inVehicle) {
     const v = world.player.inVehicle;
     v.speed = 0;
     v.driftX = 0;
@@ -344,7 +345,7 @@ function realMapBox(map) {
 
 function checkOmmelanden(w) {
   if (active || !momentsOn() || w.wanted > 0 || w.pendingRespawn || w.pigeonMode) return;
-  if (w.mission && w.mission.phase === 'active') return;
+  if (busyWithJob(w)) return;
   const seen = visited(w);
   if (seen.has(OMMELANDEN)) return;
   const [x0, y0, x1, y1] = realMapBox(w.map);
@@ -385,7 +386,7 @@ function visited(w) {
 
 function checkLandmarks(w) {
   if (active || !momentsOn() || w.wanted > 0 || w.pendingRespawn) return;
-  if (w.mission && w.mission.phase === 'active') return;
+  if (busyWithJob(w)) return;
   const seen = visited(w);
   const p = w.player;
   for (const lm of w.map.meta.landmarks || []) {
@@ -532,6 +533,10 @@ function markWijk(p) {
   try { localStorage.setItem(WIJK_KEY, JSON.stringify([...wijkSeen])); } catch (e) { /* ignore */ }
 }
 
+function busyWithJob(w) {
+  return !!((w.mission && w.mission.phase === 'active') || (w.sideJob && w.sideJob.active));
+}
+
 function checkWijk(dt, w) {
   if (!wijkSeen || w.pigeonMode) return;
   wijkTimer -= dt;
@@ -543,16 +548,74 @@ function checkWijk(dt, w) {
   if (!wijkCand || wijkCand.name !== p.name) { wijkCand = p; wijkDwell = 0; return; }
   wijkDwell += step;
   if (wijkDwell < WIJK_DWELL || active || !momentsOn() || w.pendingRespawn || w.wanted > 0 || w.time < (w.quietUntil || 0)) return;
+  // never during a mission, race or bijbaantje: the wijk stays unseen and
+  // plays once the player is free again (and still in it)
+  if (busyWithJob(w)) return;
+  // at speed a paused flyover is jarring: wait until the player slows down
+  const v = w.player.inVehicle;
+  if (v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
   markWijk(p);
   wijkCand = null;
   playWijk(w, p);
 }
 
-// A calm establishing shot of the whole wijk: start high and wide over it,
-// drift slowly around its centre at the same height, then glide down to
-// behind the player. Few keys, one smooth look target, near-constant fov -
-// no whip pans. A wijk only has a centre point, so its size is estimated
-// from the distance to the neighbouring wijk centres.
+// A calm, low flyover through one characteristic street of the new wijk:
+// a named residential street near the player (long, straight-ish, close to
+// the wijk), glided along a little above the rooftops looking down the
+// street, then a gentle rise and glide back to behind the player.
+const WIJK_STREET_CATS = new Set(['minor', 'normal', 'major']);
+const WIJK_MAX_SPEED = 12; // m/s: faster than this the flyover waits
+const WIJK_RUN = 110; // metres of street the camera travels
+
+function roadStraightRun(road) {
+  const p = road.pts;
+  let best = null, start = 0, len = 0, prevA = null;
+  const close = (i) => { if (!best || len > best.len) best = { a: p[start], b: p[i], len }; };
+  for (let i = 0; i < p.length - 1; i++) {
+    const a = Math.atan2(p[i + 1][1] - p[i][1], p[i + 1][0] - p[i][0]);
+    let turn = prevA == null ? 0 : Math.abs(a - prevA);
+    if (turn > Math.PI) turn = Math.PI * 2 - turn;
+    if (turn > 0.3) { close(i); start = i; len = 0; }
+    len += Math.hypot(p[i + 1][0] - p[i][0], p[i + 1][1] - p[i][1]);
+    prevA = a;
+  }
+  close(p.length - 1);
+  return best;
+}
+
+function pickWijkStreet(w, wijk, R) {
+  const p = w.player;
+  const cx = (wijk.x + p.x) / 2, cy = (wijk.y + p.y) / 2;
+  const reach = Math.max(120, Math.min(R, Math.hypot(wijk.x - p.x, wijk.y - p.y) / 2 + 90));
+  let best = null;
+  for (const r of w.map.roadsNear(cx, cy, reach)) {
+    if (!r.name || !WIJK_STREET_CATS.has(r.cat) || r.bridge || r.z || r.pts.length < 2) continue;
+    const run = roadStraightRun(r);
+    if (!run || run.len < 45) continue;
+    const mx = (run.a[0] + run.b[0]) / 2, my = (run.a[1] + run.b[1]) / 2;
+    const dPlayer = Math.hypot(mx - p.x, my - p.y), dWijk = Math.hypot(mx - wijk.x, my - wijk.y);
+    if (dPlayer > 260) continue;
+    // long residential streets close to the player and inside the wijk win
+    const catK = r.cat === 'major' ? 0.6 : r.cat === 'normal' ? 1.1 : 1;
+    const score = Math.min(run.len, 220) * catK / (1 + dPlayer / 90) / (1 + dWijk / (R * 1.5));
+    if (!best || score > best.score) best = { r, run, score };
+  }
+  return best;
+}
+
+// Highest roof within `side` metres of the line a-b (sampled).
+function roofline(w, ax, ay, bx, by, side) {
+  const len = Math.hypot(bx - ax, by - ay) || 1;
+  const nx = -(by - ay) / len, ny = (bx - ax) / len;
+  let top = 0;
+  const n = Math.max(2, Math.ceil(len / 12));
+  for (let i = 0; i <= n; i++) {
+    const x = ax + (bx - ax) * (i / n), y = ay + (by - ay) * (i / n);
+    for (const o of [-side, -side / 2, 0, side / 2, side]) top = Math.max(top, roofAt(w.map, x + nx * o, y + ny * o));
+  }
+  return top;
+}
+
 function wijkRadius(w, wijk) {
   const d = (w.map.meta.neighbourhoodPoints || [])
     .filter((q) => q !== wijk && q.name !== wijk.name)
@@ -562,29 +625,53 @@ function wijkRadius(w, wijk) {
   return Math.min(420, Math.max(130, near * 0.55));
 }
 
-function playWijk(w, wijk) {
+function wijkStreetShot(w, wijk) {
   const p = w.player, a = heading(w);
-  const R = wijkRadius(w, wijk);
-  // look at a point between the wijk centre and the player, so both are in
-  // the frame when the player is off-centre
-  const cx = wijk.x * 0.75 + p.x * 0.25, cy = wijk.y * 0.75 + p.y * 0.25;
-  // approach from behind the player's heading so the final glide ends behind them
-  const back = a + Math.PI;
-  const dist = R * 1.25, high = Math.max(70, R * 0.85);
-  const at = (ang, dd, h) => W(cx + Math.cos(ang) * dd, h, cy + Math.sin(ang) * dd);
-  const look = W(cx, 0, cy);
-  const b = behindPose(w, 9, 5);
-  const keys = [
-    { pos: at(back - 0.55, dist, high), look, fov: 50 },
-    { pos: at(back - 0.15, dist * 0.95, high * 0.98), look, fov: 50 },
-    { pos: at(back + 0.25, dist * 0.9, high * 0.95), look, fov: 50 },
-    { pos: W(p.x - Math.cos(a) * 34, 30, p.y - Math.sin(a) * 34), look: W(p.x + Math.cos(a) * 20, 1.5, p.y + Math.sin(a) * 20), fov: 54 },
-    { pos: b.pos, look: b.look, fov: 58 },
+  const pick = pickWijkStreet(w, wijk, wijkRadius(w, wijk));
+  if (!pick) return null;
+  let [ax, ay] = pick.run.a, [bx, by] = pick.run.b;
+  // travel towards the player's end of the street, so the glide home is short
+  if (Math.hypot(ax - p.x, ay - p.y) < Math.hypot(bx - p.x, by - p.y)) [ax, ay, bx, by] = [bx, by, ax, ay];
+  let len = Math.hypot(bx - ax, by - ay);
+  const ux = (bx - ax) / len, uy = (by - ay) / len;
+  if (len > WIJK_RUN) { ax = bx - ux * WIJK_RUN; ay = by - uy * WIJK_RUN; len = WIJK_RUN; }
+  const nx = -uy, ny = ux;
+  const roofs = roofline(w, ax, ay, bx, by, 14);
+  const h = Math.min(30, Math.max(12, roofs + 3));
+  const side = 2.5;
+  const at = (d, off, hh) => W(ax + ux * d + nx * off, hh, ay + uy * d + ny * off);
+  const ahead = (d) => W(ax + ux * (d + 34), 1.5, ay + uy * (d + 34));
+  const street = [
+    { pos: at(-12, side, h + 6), look: ahead(-4), fov: 56 },
+    { pos: at(len * 0.35, side * 0.6, h + 2), look: ahead(len * 0.35), fov: 56 },
+    { pos: at(len * 0.72, 0, h), look: ahead(len * 0.72), fov: 56 },
+    { pos: at(len, -side * 0.5, h), look: ahead(len), fov: 56 },
   ];
-  playCinematic({
-    id: 'wijk', priority: 1, duration: 8, pause: true, queue: true,
+  // the rise over the rooftops and down behind the player
+  const bxP = p.x - Math.cos(a) * 16, byP = p.y - Math.sin(a) * 16;
+  const over = Math.max(h + 4, roofline(w, bx, by, bxP, byP, 6) + 6);
+  const b = behindPose(w, 8, 3.8);
+  const home = [
+    { pos: { ...street[3].pos }, look: { ...street[3].look }, fov: 56 },
+    { pos: W((bx + bxP) / 2, over, (by + byP) / 2), look: W(p.x, 2, p.y), fov: 56 },
+    { pos: W(bxP, Math.max(9, roofline(w, bxP, byP, p.x, p.y, 4) + 3), byP), look: W(p.x, 1.4, p.y), fov: 58 },
+    { pos: b.pos, look: b.look, fov: 60 },
+  ];
+  const streetShot = pathShot(clearKeys(w, street), (t) => t);
+  const homeShot = pathShot(clearKeys(w, home), (t) => 1 - (1 - t) ** 2);
+  const SPLIT = 0.66;
+  // ease into the street glide, keep a steady drift, blend into the rise
+  const ease = (t) => (t < 0.2 ? (t * t) / 0.4 : 0.1 + (t - 0.2) * 1.125);
+  return (u) => (u < SPLIT ? streetShot(ease(u / SPLIT)) : homeShot((u - SPLIT) / (1 - SPLIT)));
+}
+
+function playWijk(w, wijk) {
+  const shot = wijkStreetShot(w, wijk);
+  if (!shot) return false;
+  return playCinematic({
+    id: 'wijk', priority: 1, duration: 11, pause: true, keepMotion: true,
     kicker: 'Nieuwe wijk', title: wijk.name, lines: [{ speaker: '', text: wijkLine(wijk.name) }],
-    shot: pathShot(clearKeys(w, keys)),
+    shot,
   });
 }
 

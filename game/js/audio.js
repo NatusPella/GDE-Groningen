@@ -18,8 +18,8 @@ const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
-const GMUSIC_VOLUME = 0.5;
-const GMUSIC_DUCK_VOLUME = 0.33;
+const GMUSIC_VOLUME = 0.85;
+const GMUSIC_DUCK_VOLUME = 0.5;
 const SIREN_LOW_FREQ = 440;
 const SIREN_HIGH_FREQ = 587;
 const SIREN_HOLD_MIN = 0.5;
@@ -82,6 +82,7 @@ let ctx = null;
 let master = null;
 let sfxBus = null;
 let worldBus = null;
+let voiceBus = null;
 let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
@@ -198,6 +199,7 @@ onSettingsChange((st) => {
   if (master && !muted) master.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
   if (musicOut && !muted) musicOut.gain.setTargetAtTime(masterLevel(), ctx.currentTime, 0.05);
   if (worldBus) worldBus.gain.setTargetAtTime(st.sfxVolume, ctx.currentTime, 0.05);
+  if (voiceBus) voiceBus.gain.setTargetAtTime(st.voiceVolume, ctx.currentTime, 0.05);
 });
 
 export function isMuted() {
@@ -877,10 +879,8 @@ function playMissionJingle() {
   notes.forEach((f, i) => playTone({ freq: f, type: 'triangle', duration: 0.16, gain: 0.24, delay: i * 0.09 }));
 }
 
-// One-shot playback for the pre-recorded voicelines/jingles above - routed
-// through sfxBus (not its own bus) since these are conceptually just
-// another kind of one-shot sound effect, same as every playX() above,
-// just sourced from a real audio file instead of a synthesized oscillator.
+// One-shot playback for the pre-recorded voicelines above - routed through
+// voiceBus, so the Stemmen slider sets them apart from the effects.
 // A missing/unplayable file (network hiccup, or an asymmetric-script key
 // with no recording for this character) fails silently, never throws.
 // pos = {x, y} places the clip in the world; omitted = plain stereo.
@@ -894,10 +894,10 @@ function playClip(src, pos = null) {
     if (pos) {
       const panner = makePanner({ ref: 4, rolloff: 1.2 });
       setPannerPos(panner, pos.x, pos.y, pos.h ?? 1.6);
-      node.connect(panner).connect(sfxBus);
+      node.connect(panner).connect(voiceBus);
       nodes.push(panner);
     } else {
-      node.connect(sfxBus);
+      node.connect(voiceBus);
     }
   } catch (e) {
     // ignore - playback still works without the Web Audio graph attached
@@ -946,7 +946,7 @@ function playNpcSpokenClip(src, pos) {
 }
 
 // Mission story cutscene dialogue: one line at a time, straight into the
-// world bus (no reverb). While a story scene runs, the generic mission
+// voice bus. While a story scene runs, the generic mission
 // voicelines stay quiet so they don't talk over it.
 let storyScene = false;
 let storyVoice = null;
@@ -970,7 +970,7 @@ export function playStoryVoice(src) {
   const v = { el: new Audio(src), node: null };
   try {
     v.node = ctx.createMediaElementSource(v.el);
-    v.node.connect(worldBus);
+    v.node.connect(voiceBus);
   } catch (e) {
     // ignore - plays without the Web Audio graph
   }
@@ -1106,6 +1106,26 @@ let gmusicAnnounceOnPlay = false;
 // Set once a genuine track (not a jingle) is actually playing; updateGMusic
 // flushes it into a HUD toast since it runs every frame with `world` in scope.
 let pendingTrackAnnounce = null;
+
+// Made-up Grunneger acts for the G-Music playlist; tracks without a named
+// act get one picked from their title.
+const GMUSIC_ARTISTS = {
+  'Onder de Martinitoren': "Lil' Eierbal",
+  'Hart van Beton': 'MC Moi Moi',
+  'Ivoren Toren in Helpman': 'De Helpman Hustlers',
+  'Staal op staal': 'Sjonnie Sikkom & de Ringweg Crew',
+  'Vismarkt Sprint': 'DJ Kapsalon Kees',
+  'Trouw aan het blok': 'Paddepoel Posse',
+  'Perfectie kent geen grens': 'Young Kruudmoes',
+};
+const GMUSIC_SPARE_ARTISTS = ['Oma Trijntje & de Stadjers', 'Grunn Gang', 'Lord Stoepkrijt', 'De Diepenring Boys', 'Tante Tjoedie', 'Big Bommen Berend'];
+
+export function trackArtist(title) {
+  if (GMUSIC_ARTISTS[title]) return GMUSIC_ARTISTS[title];
+  let h = 0;
+  for (const c of String(title)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return GMUSIC_SPARE_ARTISTS[h % GMUSIC_SPARE_ARTISTS.length];
+}
 
 function wireGmusicEl(el) {
   try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
@@ -1278,6 +1298,11 @@ function buildGraph() {
   worldBus.gain.value = getSettings().sfxVolume;
   worldBus.connect(master);
 
+  // spoken lines skip the effects slider but share the master soft-clip
+  voiceBus = ctx.createGain();
+  voiceBus.gain.value = getSettings().voiceVolume;
+  voiceBus.connect(master);
+
   sfxBus = ctx.createGain();
   sfxBus.gain.value = 0.9;
   sfxBus.connect(worldBus);
@@ -1316,6 +1341,9 @@ function buildGraph() {
 
   reverb = buildReverb();
   sfxBus.connect(reverb.send);
+  const voiceSend = ctx.createGain();
+  voiceSend.gain.value = 0.3;
+  voiceBus.connect(voiceSend).connect(reverb.send);
   const ambSend = ctx.createGain();
   ambSend.gain.value = 0.5;
   ambBus.connect(ambSend).connect(reverb.send);
@@ -2096,7 +2124,7 @@ function updateGMusic(dt, world) {
   }
 
   if (pendingTrackAnnounce) {
-    world.addMessage('🎵 Nu op G-Music: ' + pendingTrackAnnounce, 4);
+    world.nowPlaying = { title: pendingTrackAnnounce, artist: trackArtist(pendingTrackAnnounce), at: world.time };
     pendingTrackAnnounce = null;
   }
 

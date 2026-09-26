@@ -54,9 +54,10 @@ Security or Windows SmartScreen.
 | Right mouse | aim: face the camera direction while moving | – |
 | 1–4 | fists / pistol / uzi / shotgun | – |
 | Mouse wheel | next / previous weapon | – |
-| Mouse | orbit the camera around your character | orbit around the car; eases back behind it after ~1.7 s |
+| Mouse | orbit the camera around your character; push it low to look up at the rooftops | orbit around the car; eases back behind it after ~1.7 s (up to ~4.5 s at speed) |
+| Q or middle mouse (hold) | – | look back |
 | C | switch between Tammo and Anita | swap seats |
-| M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; the legend picks what shows on the map and (dot) the minimap | |
+| M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; one legend checkbox per category shows or hides it on both the map and the minimap (destination, route and police are always shown) | |
 | U | sound on/off | |
 | X | as a pigeon: turn back into Tammo/Anita where you are | |
 

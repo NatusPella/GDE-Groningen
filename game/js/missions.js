@@ -6,6 +6,7 @@ import { playStoryIntro, playStoryOutro, playStoryFail } from './missionstory.js
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
 import { rondvaartWaypoints, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro } from './rondvaartchase.js';
+import { getMissionRecord } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
@@ -334,7 +335,8 @@ function syncPub(world) {
   const rv = def.type === 'boat' && st.phase === 'active' ? rondvaartStatus() : null;
   pub.happiness = rv ? rv.joy : null;
   pub.bumps = rv ? rv.bumps : null;
-  pub.progressText = rv ? boatProgressText(pub, rv) : null;
+  pub.progressText = rv ? boatProgressText(rv) : null;
+  pub.raceHud = (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' ? raceHud(st, pub) : null;
   pub.remainingWaypoints =
     (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' && !board
       ? upcomingWaypoints(def, st.wpIndex).map((wp) => ({ x: wp.x, y: wp.y }))
@@ -356,11 +358,28 @@ function upcomingWaypoints(def, wpIndex) {
   return out;
 }
 
-function boatProgressText(pub, rv) {
-  const cp = `Checkpoint ${Math.min(pub.wpTotal, (pub.wpIndex || 0) + 1)}/${pub.wpTotal}`;
+// Everything the race HUD shows for a checkpoint run (races, kroegentocht,
+// rondvaart): position against the other racers, running time, time left,
+// checkpoints and the best time from the lifetime records.
+function raceHud(st, pub) {
+  const rec = getMissionRecord(st.index);
+  return {
+    pos: pub.racePos || null,
+    total: pub.raceTotal || null,
+    elapsed: st.run ? st.run.elapsed : 0,
+    timeLeft: Math.max(0, st.timeLeft),
+    cp: Math.min(pub.wpTotal, (pub.wpIndex || 0) + 1),
+    cpTotal: pub.wpTotal,
+    lap: st.race ? 1 : null,
+    laps: st.race ? 1 : null,
+    best: rec && rec.best != null ? rec.best : null,
+  };
+}
+
+function boatProgressText(rv) {
   const mood = rv.joy >= 80 ? 'blij' : rv.joy >= 55 ? 'tevreden' : rv.joy >= 30 ? 'nerveus' : 'paniek';
   const wiebe = rv.wiebeDist != null ? ` · Wiebe ${rv.wiebeDist} m` : '';
-  return `${cp} · Toeristen ${rv.joy}% ${mood}${wiebe}`;
+  return `Toeristen ${rv.joy}% ${mood}${wiebe}`;
 }
 
 // The car/boat stays in the world after the mission, but as ordinary

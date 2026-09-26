@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { getSettings } from './settings.js';
 
 // Post chain per quality preset: 'laag' renders straight to the screen
 // (through an MSAA target + output pass when the canvas has no native AA),
@@ -22,6 +23,7 @@ const GradeShader = {
     uHighTint: { value: new THREE.Color(1, 1, 1) },
     uVignette: { value: 0.2 },
     uAspect: { value: 1 },
+    uBright: { value: 1 },
     toneMappingExposure: { value: 1 },
   },
   vertexShader: `
@@ -30,7 +32,7 @@ const GradeShader = {
   fragmentShader: `
     uniform sampler2D tDiffuse;
     uniform sampler2D tBloom;
-    uniform float uSat, uContrast, uLift, uVignette, uAspect;
+    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright;
     uniform vec3 uShadowTint, uHighTint;
     varying vec2 vUv;
     #include <tonemapping_pars_fragment>
@@ -48,6 +50,9 @@ const GradeShader = {
       c = (c - 0.5) * uContrast + 0.5;
       c *= mix(uShadowTint, uHighTint, smoothstep(0.05, 0.75, l));
       c = uLift + c * (1.0 - uLift);
+      // player brightness (Instellingen > Weergave): a gamma curve, so dark
+      // scenes open up without blowing out the highlights
+      c = pow(max(c, vec3(0.0)), vec3(1.0 / uBright));
       vec2 q = (vUv - 0.5) * vec2(uAspect, 1.0);
       c *= 1.0 - uVignette * smoothstep(0.35, 1.05, length(q));
       float n = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
@@ -69,13 +74,14 @@ void main() {
 
 // Tone mapping + sRGB only: 'laag' on a canvas without native antialiasing.
 const OutputShader = {
-  uniforms: { tDiffuse: { value: null }, toneMappingExposure: { value: 1 } },
+  uniforms: { tDiffuse: { value: null }, toneMappingExposure: { value: 1 }, uBright: { value: 1 } },
   vertexShader: SanitizeShader.vertexShader,
-  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uBright; varying vec2 vUv;
 #include <tonemapping_pars_fragment>
 void main() {
   vec3 c = ACESFilmicToneMapping(texture2D(tDiffuse, vUv).rgb);
-  gl_FragColor = vec4(sRGBTransferOETF(vec4(c, 1.0)).rgb, 1.0);
+  c = pow(max(sRGBTransferOETF(vec4(c, 1.0)).rgb, vec3(0.0)), vec3(1.0 / uBright));
+  gl_FragColor = vec4(c, 1.0);
 }`,
 };
 
@@ -187,11 +193,14 @@ export function createPostFX(renderer, scene, cam) {
     rebuild() { build(); },
     apply(L, storm = 0) {
       if (!composer) return;
+      const bright = brightness();
       if (!grade) {
         composer.passes[0].uniforms.toneMappingExposure.value = renderer.toneMappingExposure;
+        composer.passes[0].uniforms.uBright.value = bright;
         return;
       }
       const u = grade.uniforms;
+      u.uBright.value = bright;
       u.uSat.value = L.sat * (1 - storm * 0.22);
       u.uContrast.value = L.con;
       u.uLift.value = L.lift;
@@ -206,10 +215,19 @@ export function createPostFX(renderer, scene, cam) {
       }
     },
     render() {
-      if (composer) composer.render();
-      else renderer.render(scene, cam);
+      if (composer) { composer.render(); return; }
+      // no post chain: brightness can only go through the exposure
+      const e = renderer.toneMappingExposure;
+      renderer.toneMappingExposure = e * brightness();
+      renderer.render(scene, cam);
+      renderer.toneMappingExposure = e;
     },
   };
 }
 
 const _grey = new THREE.Color(0.97, 0.98, 1.0);
+
+function brightness() {
+  const b = getSettings().brightness;
+  return Number.isFinite(b) ? Math.min(1.6, Math.max(0.6, b)) : 1;
+}
