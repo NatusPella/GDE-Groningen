@@ -35,6 +35,7 @@ const HOVER_PX = 12;
 const FOG_CELL = 50;
 const FOG_REVEAL = 2;
 const FOG_KEY = 'gte-fog';
+const FOG_FEATHER = 16; // cells
 
 // city ground and the endless meadows past it share one colour (countrymap.js)
 const LAND = MAP_STYLE.meadow;
@@ -259,11 +260,11 @@ function initFog(world) {
     img.data[i * 4] = 12;
     img.data[i * 4 + 1] = 20;
     img.data[i * 4 + 2] = 14;
-    // the unexplored tint fades out over the last cells before the map edge,
-    // so it does not draw a hard frame against the Ommelanden
+    // the unexplored tint fades out smoothly over the outer ~800 m of the
+    // map, so zoomed out it never reads as a dark square against the Ommelanden
     const cx = i % w, cy = (i - cx) / w;
-    const edge = Math.min(cx, cy, w - 1 - cx, h - 1 - cy);
-    img.data[i * 4 + 3] = bits[i >> 3] & (1 << (i & 7)) ? 0 : Math.round(150 * Math.min(1, (edge + 0.5) / 5));
+    const edge = Math.min(1, (Math.min(cx, cy, w - 1 - cx, h - 1 - cy) + 0.5) / FOG_FEATHER);
+    img.data[i * 4 + 3] = bits[i >> 3] & (1 << (i & 7)) ? 0 : Math.round(130 * edge * edge * (3 - 2 * edge));
   }
   fctx.putImageData(img, 0, 0);
   state.fog = { w, h, minx, miny, bits, canvas, fctx, img, cell: -1, saveAt: 0, dirtySave: false };
