@@ -25,6 +25,19 @@ if [ "$BUMP" != "current" ]; then
 fi
 VERSION="$(node -p "require('./package.json').version")"
 TAG="v$VERSION"
+
+# every release needs a hand-written changelog entry in ../CHANGELOG.md:
+# a "## [X.Y.Z]" section (move the [Unreleased] notes there first)
+CHANGES="$(awk -v v="$VERSION" '
+  $0 ~ "^## \\[" v "\\]" { on = 1; next }
+  on && /^## \[/ { exit }
+  on { print }
+' ../CHANGELOG.md | sed -e '/./,$!d')"
+if [ -z "$(printf '%s' "$CHANGES" | tr -d '[:space:]')" ]; then
+  echo "No changelog entry for $VERSION in CHANGELOG.md - add a '## [$VERSION] - date' section first."
+  if [ "$BUMP" != "current" ]; then git checkout -- package.json package-lock.json; fi
+  exit 1
+fi
 if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
   echo "Tag $TAG already exists - pick a new version."
   exit 1
@@ -53,6 +66,10 @@ NOTES="$(mktemp)"
 cat > "$NOTES" <<EOF
 ## GTE VI $VERSION
 
+$CHANGES
+
+## Installeren
+
 **Windows:** download \`GTE-VI-$VERSION-windows-portable.exe\` en dubbelklik. Geen installatie nodig.
 Zegt Windows "Windows heeft uw pc beveiligd"? Klik op **Meer info** en dan **Toch uitvoeren**.
 
@@ -61,6 +78,6 @@ De eerste keer: open de app, klik **Gereed** bij de melding, ga naar **Systeemin
 en klik onderaan op **Open toch**. Daarna start hij gewoon.
 
 EOF
-gh release create "$TAG" "$DMG" "$EXE" --title "GTE VI $VERSION" --notes-file "$NOTES" --generate-notes $PRE
+gh release create "$TAG" "$DMG" "$EXE" --title "GTE VI $VERSION" --notes-file "$NOTES" $PRE
 rm -f "$NOTES"
 echo "Released $TAG"
