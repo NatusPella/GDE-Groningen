@@ -50,11 +50,12 @@ function toHex(c, fallback) {
 
 // Glass is a see-through tint so the people inside show; a burnt-out
 // wreck gets sooty, matt paint and blind black windows instead.
-const GLASS_OPACITY = 0.5;
+// no metalness: a mirror sheen turns windscreens into opaque grey sheets against the sky
+const GLASS_OPACITY = 0.42;
 function vehicleMaterials(wrecked = false) {
   return [
     vcMaterial(wrecked ? { roughness: 0.95, metalness: 0.05 } : { roughness: 0.5, metalness: 0.1 }),
-    wrecked ? vcMaterial({ roughness: 0.9, metalness: 0, color: 0x3a3a3a }) : vcMaterial({ roughness: 0.12, metalness: 0.35, transparent: true, opacity: GLASS_OPACITY, depthWrite: false }),
+    wrecked ? vcMaterial({ roughness: 0.9, metalness: 0, color: 0x3a3a3a }) : vcMaterial({ roughness: 0.28, metalness: 0, envMapIntensity: 0.35, transparent: true, opacity: GLASS_OPACITY, depthWrite: false }),
     new THREE.MeshBasicMaterial({ vertexColors: true, color: wrecked ? 0x202020 : 0xffffff }),
   ];
 }
@@ -1509,7 +1510,7 @@ function syncDamageMaterials(mesh, v) {
   if (!Array.isArray(mats)) return;
   const k = Math.min(1, v.damage.glass);
   mats[1].color.setScalar(1 - k * 0.3);
-  mats[1].roughness = 0.18 + k * 0.5;
+  mats[1].roughness = 0.28 + k * 0.4;
   // crazed glass is harder to see through
   if (mats[1].transparent) mats[1].opacity = GLASS_OPACITY + k * 0.4;
   mats[0].roughness = 0.5 + Math.min(1, v.damage.total / 3) * 0.25;
