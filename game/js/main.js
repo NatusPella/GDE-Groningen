@@ -24,6 +24,7 @@ import { initPauseMenu, isPauseMenuOpen, openPauseMenu } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
+import { updateGunFx3D } from './gunfx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
 import { initSaveGame, updateSaveGame } from './savegame.js';
@@ -41,6 +42,7 @@ import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
+import { probe } from './hitchprobe.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -75,7 +77,15 @@ function waitForStart(world) {
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
   };
-  return runStartScreen(world, { render: (dt) => update3D(dt, world), relocate, tick });
+  // the effect pools exist from the title screen on, so their shaders are
+  // compiled there and not on the first explosion, shot or splash
+  const render = (dt) => {
+    updateFx3D(0, world, getScene());
+    updateGore3D(0, world, getScene());
+    updateGunFx3D(0, world, getScene());
+    update3D(dt, world);
+  };
+  return runStartScreen(world, { render, relocate, tick });
 }
 
 let errorShown = false;
@@ -188,12 +198,14 @@ async function boot() {
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
+    probe.begin(now);
     try {
       frameBody(dt);
     } catch (err) {
       showFrameError(err);
     }
     input.endFrame();
+    probe.end();
     requestAnimationFrame(frame);
   }
 
@@ -205,19 +217,25 @@ async function boot() {
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1));
     if (!world.paused) updateGameplay(gameDt);
     updateAudio(dt, world);
+    probe.mark('audio');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused ? 0 : gameDt;
     updateFx3D(animDt, world, getScene());
     updateGore3D(animDt, world, getScene());
+    updateGunFx3D(animDt, world, getScene());
+    probe.mark('fx+gore');
     updateCityProps(animDt, world, getScene());
+    probe.mark('cityprops');
     updatePigeonAfterglow(animDt);
     if (world.pigeonMode) updatePigeonCamera(dt, world);
     else {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
+    probe.mark('phone+save');
     update3D(world.paused ? dt : gameDt, world);
     updateHud(dt, world);
+    probe.mark('hud');
   }
 
   function updateGameplay(dt) {
@@ -237,6 +255,7 @@ async function boot() {
       pedTimer = 2;
       maintainPedestrians(world);
     }
+    probe.mark('populate');
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else {
@@ -250,6 +269,7 @@ async function boot() {
       updateCompanion(dt, world);
       updateEmergency(dt, world);
     }
+    probe.mark('player');
 
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
@@ -261,6 +281,7 @@ async function boot() {
     for (const v of world.vehicles) {
       if (v.isBoat && v.driver !== 'player') updateBoatAI(v, dt, map, world, Math.random);
     }
+    probe.mark('traffic');
 
     if (!world.pigeonMode) updatePolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
@@ -269,14 +290,18 @@ async function boot() {
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
+    probe.mark('police+collide');
     if (!world.pigeonMode) {
       updateCombat(dt, world);
       updateBullets(dt, world);
     }
+    probe.mark('combat');
     updatePedestrians(dt, world);
+    probe.mark('peds');
     updateWildlife(dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
+    probe.mark('wildlife');
     if (!world.pigeonMode) {
       updateMissions(dt, world);
       updateSikkomFeed(dt, world);
@@ -290,6 +315,7 @@ async function boot() {
     updateWeather(dt, world);
     updateDayNight(dt, world);
     updateAchievementTracker(dt, world);
+    probe.mark('systems');
   }
 
   input.reset();

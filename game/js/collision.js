@@ -224,14 +224,16 @@ export function resolveBuildingCollisions(x, y, radius, map) {
 // every prop solid, `opts.skipSeats` lets a ped reach its bench or chair.
 // z: the walker's absolute height (ring viaducts, cuttings - elevation.js);
 // up on a deck or down in a cutting the street-level buildings don't apply.
-export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z = 0) {
+// hop: feet height above the ground while jumping; low props and railings
+// under the feet are jumped over.
+export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z = 0, hop = 0) {
   if (map.elev && map.elev.has) {
     const w = resolveElevWalls(map.elev, x, y, z, radius);
     if (w) [x, y] = w;
     if (z > 4 || z < -3.5) return [x, y];
   }
-  [x, y] = resolveWalkerProps(x, y, radius, vx, vy, opts);
-  [x, y] = resolveRailings(x, y, radius, map);
+  [x, y] = resolveWalkerProps(x, y, radius, vx, vy, opts, hop);
+  [x, y] = resolveRailings(x, y, radius, map, hop);
   // moored houseboats along the quays are solid too
   const hb = pushOutOfWaterObstacles(map, x, y, radius);
   if (hb) [x, y] = hb;

@@ -171,15 +171,22 @@ function makeFarm(x, y, angle, type, front, seed) {
   return f;
 }
 
+// Radius of the round yard items, matching their countrymodels geometry.
+const ROUND_ITEMS = { mestsilo: (it) => it.sx * 1.01, towersilo: () => 3, feedsilo: () => 1.2 };
+
 // Yard furniture and its colliders, built on first use (near the player).
 export function farmDetail(f) {
   if (f.items) return f;
   const R = mulberry(f.seed);
   f.items = farmItems(f, R);
+  f.circles = [];
   for (const it of f.items) {
     const [wx, wy] = farmWorld(f, it.lx, it.lz);
     it.x = wx; it.y = wy;
     if (!it.hit) continue;
+    // round silos collide as circles of their real radius, not boxes
+    const round = ROUND_ITEMS[it.kind];
+    if (round) { f.circles.push({ x: wx, y: wy, r: round(it) }); continue; }
     const r = it.kind === 'shed' ? null : it.kind === 'tractor' ? [2.2, 1.3] : it.kind === 'trailer' ? [3, 1.4] : it.kind === 'clamp' ? [16, 5.5] : it.kind === 'barrack' ? [2.7, 2.7] : [it.sx * (it.kind === 'mestsilo' ? 1 : 1.6), it.sz * (it.kind === 'mestsilo' ? 1 : 1.6)];
     if (it.kind === 'shed') f.boxes.push(localAabb(f, it.lx - it.sx / 2, it.lx + it.sx / 2, it.lz - it.sz / 2, it.lz + it.sz / 2));
     else {
@@ -678,7 +685,9 @@ export function pushOutOfPlan(obj, radius) {
       if (!P) continue;
       for (const f of P.farms) {
         if (!inBox(f.yard, obj.x, obj.y, radius + 2)) continue;
-        for (const b of farmDetail(f).boxes) if (pushBox(obj, b, radius)) hit = true;
+        const fd = farmDetail(f);
+        for (const b of fd.boxes) if (pushBox(obj, b, radius)) hit = true;
+        for (const c of fd.circles) if (pushCircle(obj, c.x, c.y, c.r, radius)) hit = true;
       }
       if (P.gas && pushBox(obj, [P.gas.box[0] + 2, P.gas.box[1], P.gas.box[2], P.gas.box[3]], radius)) hit = true;
       if (P.mill && pushCircle(obj, P.mill.x, P.mill.y, 5.2, radius)) hit = true;

@@ -22,6 +22,7 @@ import { isShopOpen } from './shopui.js';
 import { recordStat, setStatMax, recordUnique, unlockAchievement } from './achievements.js';
 import { dist, isInWater } from './util.js';
 import { releaseVehicle, removeVehicle, removePed, euro } from './sidejobkit.js';
+import { jobVoiceFor, sayJobLine, sayDuoJobLine } from './sidejobvoice.js';
 import bezorger from './sidejob_bezorger.js';
 import taxi from './sidejob_taxi.js';
 import bus from './sidejob_bus.js';
@@ -167,15 +168,29 @@ function startJob(job) {
   rec(job.id).shifts++;
   const lvl = c.level;
   const kicker = `Bijbaantje · niveau ${lvl}: ${levelTitle(lvl)}`;
-  const intro = !seen.has(job.id) &&
-    playMissionIntro(world, { kicker, title: job.name, lines: job.intro.map((text) => ({ speaker: job.boss, text })), objective: c.vehicle || null });
+  const intro = !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
   if (intro) seen.add(job.id);
   else {
     world.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
+    if (Math.random() < 0.65) sayJobLine(job, 'greet');
+    else sayDuoJobLine(world.player.character, 'start');
   }
   try { job.round(c); } catch (e) { crash(e); return false; }
   publish();
   return true;
+}
+
+// The boss's intro, timed to the recordings when every line has one.
+function introLines(job) {
+  const voiced = job.intro.map((text) => ({ text, v: jobVoiceFor(job.boss, text) }));
+  if (!voiced.every((l) => l.v)) return { lines: job.intro.map((text) => ({ speaker: job.boss, text })) };
+  let at = 0.5;
+  const lines = voiced.map(({ text, v }) => {
+    const l = { speaker: job.boss, text, at, dur: v.dur + 0.3, voice: v.src };
+    at += v.dur + 0.3;
+    return l;
+  });
+  return { lines, duration: at + 0.5 };
 }
 
 // --- rounds -----------------------------------------------------------------
@@ -212,6 +227,8 @@ function completeRound(c, res = {}) {
   if (tip) bits.push(`fooi ${euro(tip)}`);
   bits.push(`reeks ${c.streak}`);
   world.addMessage(`${res.text ? res.text + ' ' : ''}${bits.join(' · ')}`, 3.6);
+  if (after > before) sayJobLine(c.job, 'level');
+  else sayJobLine(c.job, 'done', 0.5);
   if (after > before) {
     c.level = after;
     world.addMessage(`${c.job.name}: niveau ${after}, ${levelTitle(after)}! Beter betaald, pittiger werk.`, 4.5);
@@ -261,6 +278,8 @@ function endShift(kind, reason = '') {
     world.addMessage(reason, 3);
   }
   if (c.streak > 0 && c.streak === best && best >= 3) world.addMessage(`Nieuw record bij ${job.name}: ${best} klussen op rij!`, 4);
+  if (kind === 'fail' || kind === 'wanted') sayJobLine(job, 'fail');
+  else if (kind === 'quit' && c.streak > 0) sayDuoJobLine(world.player.character, 'end');
   try { job.stop(c); } catch (e) { console.error(e); }
   cleanup(c);
   cooldownUntil = world.time + RESTART_COOLDOWN;

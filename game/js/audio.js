@@ -649,9 +649,21 @@ function playPedSting(out) {
   playTone({ freq: 900, freqEnd: 500, type: 'sine', duration: 0.12, gain: 0.28, out });
 }
 
-function playGunshot(x, y, weapon) {
-  const out = spatialOut(x, y, { ref: 8, rolloff: 0.8 });
+// Sampled shot (sfx/dsp.js) with a sine sub-thump for weight and the
+// street's slap-back; the old synthesized version stays as the fallback
+// while the samples are still being rendered.
+const GUN_BUF = { pistol: ['gun_pistol_', 3, 0.85], uzi: ['gun_uzi_', 3, 0.6], shotgun: ['gun_shotgun_', 2, 0.95] };
+function playGunshot(x, y, weapon, close = false) {
+  const out = spatialOut(x, y, { ref: 8, rolloff: 0.8, prio: close ? 2 : 1 });
   if (!out) return;
+  const [pre, n, gain] = GUN_BUF[weapon] || GUN_BUF.pistol;
+  const r = 0.94 + Math.random() * 0.12;
+  if (playBuf(pre + Math.floor(Math.random() * n), { out, gain, rate: r, prio: close ? 2 : 1 })) {
+    playTone({ freq: weapon === 'shotgun' ? 72 : 96, freqEnd: 36, type: 'sine', duration: weapon === 'shotgun' ? 0.3 : 0.16, gain: weapon === 'uzi' ? 0.22 : 0.4, out, prio: close ? 2 : 1 });
+    if (weapon !== 'uzi' || Math.random() < 0.3) playBuf('gun_echo', { out, gain: weapon === 'shotgun' ? 0.3 : 0.2, rate: r, delay: 0.03, lp: 2600 });
+    if (close) duckAmbience(weapon === 'shotgun' ? 0.55 : 0.3, 0.35);
+    return;
+  }
   if (weapon === 'shotgun') {
     playNoiseBurst({ duration: 0.28, freq: 1600, freqEnd: 250, q: 0.6, gain: 0.6, out });
     playTone({ freq: 120, freqEnd: 40, type: 'triangle', duration: 0.2, gain: 0.45, out });
@@ -1001,6 +1013,13 @@ function playVoiceline(character, key) {
   const paths = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];
   if (!paths || !paths.length) return false;
   return playSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
+}
+
+// Bijbaantje boss lines (sidejobvoice.js): like the other spoken lines they
+// never overlap and stay quiet during a story scene.
+export function playJobVoice(src) {
+  if (storyScene) return false;
+  return playSpokenClip(src);
 }
 
 export function playAutoGejatLine(world) {
@@ -1897,6 +1916,7 @@ function playAudioEvents(world) {
         break;
       case 'engine_stop': if (!synth.player) playEngineStop(x, y); break;
       case 'prop_hit': propHit(e, x, y); break;
+      case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
       case 'gore': case 'gore_splat': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
@@ -1933,6 +1953,30 @@ function playAudioEvents(world) {
       default: break;
     }
   }
+}
+
+// Bullet impacts by surface; a share of the hard ones whine off as ricochets.
+const IMPACT_BUF = { stone: ['imp_stone_', 3], metal: ['imp_metal_', 3], dirt: ['imp_dirt', 0], wood: ['imp_wood', 0], water: ['imp_water', 0] };
+let impactsThisFrame = 0;
+let impactFrameAt = -1;
+function playBulletHit(x, y, material, k) {
+  if (!ctx) return;
+  if (impactFrameAt !== ctx.currentTime) { impactFrameAt = ctx.currentTime; impactsThisFrame = 0; }
+  if (++impactsThisFrame > 4) return;
+  const out = spatialOut(x, y, { ref: 4, rolloff: 1.2, range: 70 });
+  if (!out) return;
+  const r = 0.9 + Math.random() * 0.2;
+  if (material === 'glass') {
+    playBuf('glass', { out, gain: 0.12 + k * 0.12, rate: 1.1 + Math.random() * 0.3 });
+    return;
+  }
+  if (material === 'flesh') {
+    playBuf('body_hit', { out, gain: 0.28 + k * 0.2, rate: 0.9 * r });
+    return;
+  }
+  const [pre, n] = IMPACT_BUF[material] || IMPACT_BUF.stone;
+  playBuf(n ? pre + Math.floor(Math.random() * n) : pre, { out, gain: 0.16 + k * 0.22, rate: r });
+  if ((material === 'stone' || material === 'metal') && Math.random() < 0.18) playBuf('ric_whine', { out, gain: 0.08, rate: 0.9 + Math.random() * 0.3, delay: 0.01 });
 }
 
 function playGoreEvent(kind, x, y, k) {
@@ -2124,7 +2168,7 @@ function updateWorldEvents(world) {
   }
   if (playerFired) {
     const src = p.inVehicle || p;
-    playGunshot(src.x, src.y, world.weapon);
+    playGunshot(src.x, src.y, world.weapon, true);
   }
 
   let ricochets = 0;
@@ -2377,7 +2421,9 @@ export function updateAudio(dt, world) {
 }
 
 const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
-  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0'];
+  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0',
+  'imp_water', 'imp_wood', 'imp_dirt', 'imp_metal_2', 'imp_metal_1', 'imp_metal_0', 'imp_stone_2', 'imp_stone_1', 'imp_stone_0',
+  'gun_echo', 'gun_shotgun_1', 'gun_shotgun_0', 'gun_uzi_2', 'gun_uzi_1', 'gun_uzi_0', 'gun_pistol_2', 'gun_pistol_1', 'gun_pistol_0'];
 
 export function getAudioStats() {
   if (!ctx) return null;

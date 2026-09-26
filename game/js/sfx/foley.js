@@ -412,7 +412,7 @@ function vehicles(dt, world) {
       let byBullet = false;
       for (const b of vanished) if (Math.abs(b.x - v.x) < v.halfLen + 2 && Math.abs(b.y - v.y) < v.halfLen + 2) { byBullet = true; break; }
       if (byBullet && carLike(v)) {
-        at('metal_ping', v.x, v.y, { h: 0.8, gain: 0.26, rate: rnd(0.85, 1.2) });
+        // the hit itself is audio.js's bullet_hit; the first one also breaks glass
         if (!v.wrecked && (!st.glassDone || Math.random() < 0.2)) {
           st.glassDone = true;
           at('glass', v.x, v.y, { h: 1, gain: 0.3, rate: rnd(0.9, 1.1), delay: 0.01 });
