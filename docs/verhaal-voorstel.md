@@ -245,4 +245,5 @@ HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers 
 - De attract-intro speelt ook **één keer voor bestaande spelers** na de update die hem introduceert, daarna via de benchmark.
 - Het slot van missie 8 (*"vóór Grunn"*) wordt **opnieuw ingesproken**.
 - Nog te controleren bij de bouw: kloppen de plekken met de kaartdekking (Reitdiep en de Hoornsediep-kade liggen aan de rand)?
+- **Altijd verder kunnen:** lukt een stap in de flow niet (bijv. omdat een onderdeel kapot is), dan moet je duidelijk kunnen overslaan. Na een mislukte missie komt er een knop *Sla deze missie over, verder met het verhaal*. Hetzelfde geldt voor eisen en activiteiten die vastlopen.
 - TTS: gebruik volop emotietags, gecombineerd met lokale tags zoals *[Groningse man die boos is]*.
