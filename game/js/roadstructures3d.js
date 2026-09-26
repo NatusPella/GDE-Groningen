@@ -315,7 +315,7 @@ export function buildRoadStructure(r, map) {
         B.wallBox('fence', w.ax, w.ay, w.bx, w.by, 0.04, top + 0.45, top + 0.5, top + 0.45, top + 0.5);
         B.post('fence', w.ax, w.ay, 0.07, top, top + FENCE_H);
       }
-    } else if (w.low) {
+    } else if (w.low && w.kind === 'barrier') {
       if (deck) B.wallBox('concrete', w.ax, w.ay, w.bx, w.by, 0.32, w.za - 0.05, w.za + BARRIER_H, w.zb - 0.05, w.zb + BARRIER_H);
       else {
         B.wallBox('steel', w.ax, w.ay, w.bx, w.by, 0.12, w.za + 0.5, w.za + 0.8, w.zb + 0.5, w.zb + 0.8);
