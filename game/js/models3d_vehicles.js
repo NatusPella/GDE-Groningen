@@ -275,13 +275,33 @@ function buildCarGeometry(type, L, W, paint, opts) {
     // a door from the scrapyard, in another colour
     B.box((P.xB + P.xC) / 2 + 0.2, (sill + P.belt) / 2 + 0.05, hw + 0.009, 0.9, P.belt - sill - 0.15, 0.012, 0xa89a7a);
   } else if (variant === 'cash') {
+    // Poen Express armoured cash van: steel plates over the load bay, barred
+    // cab windows, green/gold livery with a coin logo, bull bar, amber beacon
+    const GREEN = 0x1f4f33, GOLD = 0xd9b21b, STEEL = shadeHex(paint, 0.78), BAR = 0x1a1b1d;
+    const bay0 = -hl + 0.12, bay1 = P.xB - 0.85;
     for (const s of [1, -1]) {
       const z = s * (hw + 0.008);
-      B.box(0, 1.25, z, L - 0.6, 0.18, 0.012, 0x2f6b3f);
-      B.box(0, 1.1, z, L - 0.6, 0.05, 0.012, 0xd9b21b);
-      B.box(-hl + 1.4, 1.55, z, 0.7, 0.22, 0.014, 0xd9b21b);
+      B.box((bay0 + bay1) / 2, (sill + P.roof) / 2 + 0.12, s * (hw + 0.004), bay1 - bay0, P.roof - sill - 0.35, 0.012, STEEL);
+      B.box((bay0 + bay1) / 2, 1.28, z, bay1 - bay0, 0.34, 0.012, GREEN);
+      B.box((bay0 + bay1) / 2, 1.08, z, bay1 - bay0, 0.05, 0.012, GOLD);
+      B.box((bay0 + bay1) / 2, 1.48, z, bay1 - bay0, 0.05, 0.012, GOLD);
+      const lx = (bay0 + bay1) / 2 + 0.4;
+      B.box(lx, 1.28, s * (hw + 0.012), 0.44, 0.44, 0.012, GOLD);
+      B.box(lx, 1.28, s * (hw + 0.016), 0.08, 0.3, 0.012, GREEN);
+      for (const dy of [-0.07, 0.07]) B.box(lx - 0.05, 1.28 + dy, s * (hw + 0.018), 0.26, 0.05, 0.012, GREEN);
+      for (let x = bay0 + 0.2; x < bay1 - 0.1; x += 0.3) B.box(x, sill + 0.2, s * (hw + 0.012), 0.04, 0.04, 0.012, BAR);
+      for (let x = bay0 + 0.2; x < bay1 - 0.1; x += 0.3) B.box(x, P.roof - 0.18, s * (hw + 0.012), 0.04, 0.04, 0.012, BAR);
+      for (let k = 0; k < 4; k++) B.box(P.xA - 0.2 - k * 0.17, (P.belt + P.roof) / 2 - 0.05, s * (hw + 0.014), 0.035, P.roof - P.belt - 0.3, 0.014, BAR);
+      B.box(bay1 - 0.3, 1.75, s * (hw + 0.012), 0.34, 0.07, 0.012, BAR);
     }
-    B.box(-hl - 0.012, 1.3, 0, 0.012, 0.16, W * 0.6, 0x2f6b3f);
+    B.box(-hl - 0.006, (sill + P.roof) / 2 + 0.12, 0, 0.012, P.roof - sill - 0.35, W * 0.92, STEEL);
+    B.box(-hl - 0.012, 1.3, 0, 0.012, 0.3, W * 0.9, GREEN);
+    for (let k = 0; k < 6; k++) B.box(-hl - 0.016, 0.62, -hw + 0.18 + k * (W - 0.36) / 5, 0.012, 0.16, 0.12, k % 2 ? GOLD : BAR);
+    B.box(-hl - 0.016, (sill + P.roof) / 2 + 0.1, 0, 0.012, P.roof - sill - 0.4, 0.025, BAR);
+    B.box(hl + 0.1, 0.5, 0, 0.08, 0.36, W * 0.8, BAR);
+    for (const s of [1, -1]) B.box(hl + 0.1, 0.72, s * W * 0.3, 0.08, 0.2, 0.06, BAR);
+    B.box(P.xB - 1.2, P.roof + 0.03, 0, 0.5, 0.06, W * 0.5, BAR);
+    B.box(P.xB - 1.2, P.roof + 0.12, 0, 0.18, 0.14, 0.18, 0xf08a1c, G_LAMP);
   } else if (variant === 'pakket') {
     for (const s of [1, -1]) {
       const z = s * (hw + 0.008);
@@ -665,7 +685,51 @@ function buildScooterGeometry(color) {
   });
 }
 
+// Snorscooter: step-through body with a front shield, a long seat and small wheels.
+function buildMopedGeometry(color) {
+  return cached(`moped|${color}`, () => {
+    const B = new GeoBuilder(3);
+    const dark = 0x2a2b2e;
+    B.box(-0.38, 0.5, 0, 0.72, 0.36, 0.44, color);
+    B.box(-0.3, 0.73, 0, 0.7, 0.1, 0.32, 0x1b1b1c);
+    B.box(0.08, 0.3, 0, 0.62, 0.07, 0.36, dark);
+    B.box(0.42, 0.62, 0, 0.12, 0.62, 0.44, color);
+    B.box(0.48, 0.34, 0, 0.3, 0.1, 0.2, color);
+    B.geo(tubeGeometry([0.46, 0.7, 0], [0.42, 1.04, 0], 0.032, 0.03, 6), null, dark);
+    B.geo(tubeGeometry([0.42, 1.04, -0.32], [0.42, 1.04, 0.32], 0.018, 0.018, 6), null, CHROME);
+    for (const s of [1, -1]) B.geo(tubeGeometry([0.42, 1.04, s * 0.22], [0.42, 1.04, s * 0.33], 0.024, 0.024, 6), null, 0x1b1b1c);
+    B.box(0.49, 1.0, 0, 0.1, 0.12, 0.16, color);
+    B.box(0.545, 1.0, 0, 0.02, 0.08, 0.1, HEADLAMP, G_LAMP);
+    for (const s of [1, -1]) B.box(0.43, 1.12, s * 0.2, 0.02, 0.07, 0.05, CHROME);
+    B.box(-0.76, 0.56, 0, 0.04, 0.08, 0.18, TAIL, G_LAMP);
+    B.box(-0.62, 0.8, 0, 0.26, 0.05, 0.3, dark);
+    B.geo(tubeGeometry([-0.3, 0.28, 0.16], [-0.72, 0.36, 0.2], 0.035, 0.03, 6), null, CHROME);
+    return B.build();
+  });
+}
+
+function buildMopedMesh(v) {
+  const group = new THREE.Group();
+  const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe6e1d6);
+  const mats = vehicleMaterials();
+  group.add(new THREE.Mesh(buildMopedGeometry(color), mats));
+  const r = 0.2;
+  const wgeo = bikeWheelGeometry(r, 0.09, false);
+  const wheels = [];
+  addWheel(group, wgeo, mats[0], 0.55, r, 0, wheels);
+  addWheel(group, wgeo, mats[0], -0.52, r, 0, wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = r;
+  group.userData.spinStep = 0.28;
+  const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
+  rider.position.set(-0.22, 0.8 - 0.93 * rider.scale.y, 0);
+  poseRider(rider, 1.25, 1.0, -0.04);
+  group.add(rider);
+  return group;
+}
+
 function buildScooterMesh(v) {
+  if (v.model.moped) return buildMopedMesh(v);
   const group = new THREE.Group();
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
   const mats = vehicleMaterials();

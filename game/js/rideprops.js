@@ -7,7 +7,7 @@ import { makeTwoWheeler } from './vehicle.js';
 // breakables respawn once you are long gone).
 
 const KINDS = ['bike', 'scooter'];
-export const PROP_REACH = 1.35;
+export const PROP_REACH = 1.6;
 
 export function findRideableProp(x, y, reach = PROP_REACH) {
   let best = null, bestD = reach;
@@ -20,7 +20,7 @@ export function findRideableProp(x, y, reach = PROP_REACH) {
 
 export function rideProp(world, p) {
   if (!claimProp(p)) return null;
-  const v = makeTwoWheeler(p.kind, p.x, p.y, p.face ?? p.angle ?? 0, p.tint);
+  const v = makeTwoWheeler(p.kind === 'scooter' ? 'moped' : p.kind, p.x, p.y, p.face ?? p.angle ?? 0, p.tint);
   // an unlocked bike against a wall is fair game in Groningen; a cracked lock is theft
   v.petty = !p.locked;
   world.vehicles.push(v);

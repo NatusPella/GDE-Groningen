@@ -70,9 +70,12 @@ function pickScooterModel(rng) {
 
 // A riderless bike/scooter standing at (x, y), e.g. a street-clutter prop
 // being taken; tint is the prop's frame colour (0xRRGGBB).
+// Snorscooter: the parked mopeds of the street clutter, rideable (rideprops.js).
+export const MOPED_MODEL = { name: 'scooter', moped: true, len: 1.7, wid: 0.62, maxSpeed: 12.5, accel: 4.6, brake: 7, turnRate: 4.2, color: '#e6e1d6', rider: '#2f5c8a' };
+
 export function makeTwoWheeler(kind, x, y, angle, tint = null, rng = Math.random) {
-  const scooter = kind === 'scooter';
-  const base = scooter ? pickScooterModel(rng) : REGULAR_BIKE_MODELS[Math.floor(rng() * REGULAR_BIKE_MODELS.length)];
+  const scooter = kind === 'scooter' || kind === 'moped';
+  const base = kind === 'moped' ? MOPED_MODEL : scooter ? pickScooterModel(rng) : REGULAR_BIKE_MODELS[Math.floor(rng() * REGULAR_BIKE_MODELS.length)];
   const model = tint == null ? base : { ...base, color: '#' + tint.toString(16).padStart(6, '0') };
   const v = new Vehicle(x, y, angle, model);
   v.isBike = !scooter;
@@ -287,6 +290,7 @@ function playerTune(v) {
   // shop upgrades scale the two-wheelers' player tuning too
   const b = v._baseModel;
   const up = b ? m.maxSpeed / b.maxSpeed : 1, upA = b ? m.accel / b.accel : 1;
+  if (v.isScooter && m.moped) return { top: 13.5 * up, accel: 5 * upA, brake: 8 };
   if (v.isScooter) return { top: 10 * up, accel: 5.5 * upA, brake: 6.5 };
   if (v.isBike) return m.fat ? { top: 14.5 * up, accel: 6.2 * upA, brake: 9 } : { top: 11.5 * up, accel: 4.6 * upA, brake: 8.5 };
   return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel, brake: m.brake };
