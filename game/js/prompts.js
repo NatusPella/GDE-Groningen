@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
-import { getGaragesForRender } from './garages.js';
+import { getGaragesForRender, garagePrompt } from './garages.js';
 import { getHorecaForRender, nearestHorecaSpot, horecaState } from './horeca.js';
 import { shopPrimaryPrompt, shopSecondaryPrompts } from './shops.js';
 import { vehicleDisplayLabel } from './vehiclenames.js';
@@ -275,6 +275,8 @@ function findPrimary(world) {
   const p = world.player;
   const job = sideJobPrompt(world);
   if (job) return job;
+  const gar = garagePrompt(world);
+  if (gar) return gar;
   const shop = shopPrimaryPrompt(world);
   if (shop) return shop;
   if (p.inVehicle) return null;
@@ -355,8 +357,7 @@ function findSecondary(world, primary) {
   };
   const inV = p.inVehicle;
   for (const g of getGaragesForRender()) {
-    const ready = !(world.time < (g.cooldownUntil || 0));
-    add({ id: 'g' + g.x + g.y, x: g.x, y: g.y, h: 2.6, label: 'Spuit & Klaar', sub: !ready ? 'Even geduld' : inV ? 'Rij erin: heel & schoon' : 'Kom met een bak', kind: 'place' }, inV ? 45 : 20);
+    add({ id: 'g' + g.x + g.y, x: g.x, y: g.y, h: 4.4, label: g.name, sub: inV ? 'Rij naar binnen en druk R: repareren, spuiten, opvoeren' : 'Kom met een voertuig', kind: 'place' }, inV ? 45 : 20);
   }
   if (!inV && world.money >= 12) {
     const spots = getHorecaForRender();

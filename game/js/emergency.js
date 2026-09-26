@@ -4,7 +4,11 @@
 // hugs the kerb and slows down, and stops when it is right behind
 // (sirenYield, read by the traffic AI in vehicle.js).
 
+import { spawnVehicleOnRoad } from './vehicle.js';
+import { carModel, applyFleetFlags } from './trafficfleet.js';
+
 const YIELD_REACH = 55;
+const HOSPITAL_NEAR = 300;
 const CALL_CHANCE_PER_S = 1 / 45;
 const CALL_TIMEOUT = 120;
 const ARRIVE_M = 25;
@@ -25,7 +29,8 @@ export function sirenYield(v, world) {
   if (!list.length) return null;
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
   for (const e of list) {
-    if (e === v) continue;
+    // a siren standing still (at the scene) is simply passed
+    if (e === v || Math.abs(e.speed) < 1.5) continue;
     const dx = e.x - v.x, dy = e.y - v.y;
     if (dx * dx + dy * dy > YIELD_REACH * YIELD_REACH) continue;
     if (Math.abs((e.z || 0) - (v.z || 0)) > 3) continue;
@@ -62,7 +67,37 @@ function endCall(v) {
   v.waitTimer = 6;
 }
 
+// A few ambulances waiting at the UMCG entrance whenever the player is near.
+let hospitalTimer = 0;
+function hospitalAmbulances(world, dt) {
+  hospitalTimer -= dt;
+  if (hospitalTimer > 0) return;
+  hospitalTimer = 3;
+  const h = world.map.meta.hospital;
+  if (!h) return;
+  const p = world.player;
+  if (Math.hypot(p.x - h.x, p.y - h.y) > HOSPITAL_NEAR) return;
+  if (world.vehicles.some((v) => v.hospitalCar)) return;
+  const rp = world.map.nearestRoadPoint(h.x, h.y, 120, true, true);
+  if (!rp) return;
+  for (let i = 0; i < 3; i++) {
+    const v = spawnVehicleOnRoad(world.map, rp.road, false, Math.random, false, false, { x: rp.x, y: rp.y }, false, carModel('ambulance'));
+    applyFleetFlags(v, 'ambulance');
+    const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+    const kerb = Math.max(0, (rp.road.width || 6) / 2 - 1.2);
+    v.x += -fy * kerb + fx * (i - 1) * 6.5;
+    v.y += fx * kerb + fy * (i - 1) * 6.5;
+    [v.x, v.y] = world.map.escapeBuilding(v.x, v.y, 1.2);
+    v.road = null;
+    v.speed = 0;
+    v.hospitalCar = true;
+    if (Math.hypot(v.x - p.x, v.y - p.y) < 25) continue;
+    world.vehicles.push(v);
+  }
+}
+
 export function updateEmergency(dt, world) {
+  hospitalAmbulances(world, dt);
   const p = world.player;
   const pv = p.inVehicle;
   const input = world.input;
@@ -73,7 +108,7 @@ export function updateEmergency(dt, world) {
     } else world.addMessage('Dit voertuig heeft geen zwaailicht', 2);
   }
   for (const v of world.vehicles) {
-    if (v.fleetKind !== 'ambulance' || v.driver === 'player' || v.wrecked) continue;
+    if (v.fleetKind !== 'ambulance' || v.driver === 'player' || v.wrecked || v.hospitalCar) continue;
     if (v.stolenByPlayer || v.hijacked) { if (v.call) endCall(v); continue; }
     if (v.call) {
       if (Math.hypot(v.call.x - v.x, v.call.y - v.y) < ARRIVE_M || world.time > v.call.until || !v.road) endCall(v);
