@@ -1093,7 +1093,7 @@ async function loadGMusicManifest() {
   }
 }
 
-// Station-style playback: jingle, 2 shuffled tracks, jingle, ... all through
+// Station-style playback: jingle, shuffled track, jingle, track, ... all through
 // ONE queue and ONE current element, so two items can never play at once.
 // Every event handler ignores events from anything but gmusicCurrentEl, and
 // the per-frame safety net in updateGMusic only ever resumes the current
@@ -1184,7 +1184,7 @@ function nextTrackEl() {
 }
 
 function buildGmusicCycle() {
-  return [randomAmbientJingleEl(), nextTrackEl(), nextTrackEl()];
+  return [randomAmbientJingleEl(), nextTrackEl()];
 }
 
 function onGmusicEnded(e) {
