@@ -4,6 +4,7 @@ import { isMapOpen } from './mapview.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
 import { startRespawnScene, respawnFade } from './respawn.js';
+import { playStoryVoice, setStoryScene } from './audio.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -186,6 +187,9 @@ function begin(spec) {
   r.classList.remove('has-sub');
   document.body.classList.toggle('cine-hide-hud', !!active.hideHud);
   r.classList.add('active');
+  // lines with a recording ({ voice }) are spoken as their subtitle comes up
+  active.voiced = !!(active.lines && active.lines.some((l) => l.voice));
+  if (active.voiced) setStoryScene(true);
   // a pausing cutscene brings the player's vehicle to a stop, so resuming
   // doesn't launch you onward at full speed - except the ones that ask to
   // keep the motion (the wijk flyover only plays at low speed anyway)
@@ -207,6 +211,7 @@ function finish(skipped, replaced = false) {
   r.dataset.tint = '';
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
+  if (a && a.voiced) setStoryScene(false);
   if (a && a.onEnd) a.onEnd(skipped, replaced);
   if (!active && queue.length) begin(queue.shift());
 }
@@ -242,6 +247,7 @@ function updateSubtitles() {
   els.root.classList.toggle('has-sub', !!l);
   els.speaker.textContent = l && l.speaker ? l.speaker + ':' : '';
   els.line.textContent = l ? l.text : '';
+  if (l && l.voice) playStoryVoice(l.voice);
 }
 
 export function updateCinematics(dt, w) {
@@ -570,7 +576,8 @@ function keyHits(w, keys) {
   return hits;
 }
 
-export function playMissionIntro(w, { title, kicker, lines, objective }) {
+// lines: [{ speaker, text, at?, dur?, voice? }]; duration defaults to 4.8 s.
+export function playMissionIntro(w, { title, kicker, lines, objective, duration = 4.8 }) {
   const p = w.player;
   let a = objective ? Math.atan2(objective.y - p.y, objective.x - p.x) : heading(w);
   if (!Number.isFinite(a)) a = heading(w);
@@ -586,7 +593,7 @@ export function playMissionIntro(w, { title, kicker, lines, objective }) {
   };
   const left = build(1), right = build(-1);
   const keys = keyHits(w, right) < keyHits(w, left) ? right : left;
-  return playCinematic({ id: 'mission-intro', priority: 3, duration: 4.8, pause: true, kicker, title, lines, shot: pathShot(clearKeys(w, keys)) });
+  return playCinematic({ id: 'mission-intro', priority: 3, duration, pause: true, kicker, title, lines, shot: pathShot(clearKeys(w, keys)) });
 }
 
 function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY = 1.3, fixed = null }) {

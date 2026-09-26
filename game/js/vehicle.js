@@ -14,6 +14,9 @@ import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import { pickBoatModel } from './boattypes.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
+// every traffic model, for warming their meshes before they first spawn
+export const TRAFFIC_MODELS = () => [...MODELS, ...BUS_MODELS, ...SCOOTER_MODELS, ...FATBIKE_MODELS, ...REGULAR_BIKE_MODELS];
+
 const MODELS = [
   // Dutch daily traffic skews heavily toward grey/black/white/silver compacts
   // and hatchbacks, so those are weighted more heavily than the odd flash of

@@ -704,6 +704,9 @@ export function updateCityProps(dt, w, scene) {
   const pcx = Math.floor(p.x / CELL), pcy = Math.floor(p.y / CELL);
   const span = Math.ceil(BUILD_RADIUS / CELL);
   const activeCells = [];
+  // generating a cell and building its meshes are both several ms: at most
+  // one of the two per frame, except for the cell the player stands in
+  let busy = false;
 
   for (let gx = pcx - span; gx <= pcx + span; gx++) {
     for (let gy = pcy - span; gy <= pcy + span; gy++) {
@@ -716,7 +719,7 @@ export function updateCityProps(dt, w, scene) {
         continue;
       }
       const cell = cells.get(key);
-      if (!cell.active) buildCellMeshes(cell);
+      if (!cell.active && (!busy || (gx === pcx && gy === pcy))) { buildCellMeshes(cell); busy = true; }
     }
   }
 
@@ -729,6 +732,7 @@ export function updateCityProps(dt, w, scene) {
     return Math.hypot(ax - pcx, ay - pcy) - Math.hypot(bx - pcx, by - pcy);
   });
   for (let i = 0; i < GEN_PER_FRAME && genQueue.length; i++) {
+    if (busy && genQueue[0] !== pcx + ',' + pcy) break;
     const key = genQueue.shift();
     const [gx, gy] = key.split(',').map(Number);
     cells.set(key, generateCell(w.map, gx, gy));

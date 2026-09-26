@@ -8,7 +8,8 @@ import { roadGrip } from './weather.js';
 import { getSettings } from './settings.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, resolveWalker } from './collision.js';
-import { resolveWalkerProps } from './breakables.js';
+import { resolveWalkerProps, propAhead } from './breakables.js';
+import { railingAhead } from './bridgerails.js';
 
 export { resolveBuildingCollisions };
 
@@ -40,6 +41,13 @@ const SPLASH_LIFE = 1.1;
 const WALK_OPTS = { byPlayer: true };
 const SWIM_OPTS = { kick: false };
 const SWIM_EDGE_CLEAR = 0.7;
+
+// Vaulting: SPACE right in front of a railing, bench or fence up to
+// VAULT_MAX_H swings you over it (lower ones a normal jump already clears).
+const VAULT_MIN_H = 0.6;
+const VAULT_MAX_H = 1.3;
+const VAULT_REACH = 1.05;
+const VAULT_TIME = 0.5;
 
 const FALL_HURT_SPEED = 8.5; // m/s landing speed (~3.7 m drop) above which a fall hurts
 const BAIL_SPEED = 7; // m/s (25 km/h): getting out faster than this is a dive with a tumble
@@ -86,6 +94,7 @@ export class Player {
     }
     tickSinkingVehicles(world);
     if (this.ragdoll) {
+      this.vault = null;
       this.vx = 0; this.vy = 0;
       this.moving = false;
       this.crouching = false;
@@ -124,6 +133,7 @@ export class Player {
 
     if (this.inVehicle) {
       const v = this.inVehicle;
+      this.vault = null;
       if (v.sinking) { this.x = v.x; this.y = v.y; this.angle = v.angle; return; }
       if (v.wrecked) { this.exitVehicle(map, world); if (v.blewUp && !v.isBike && !v.isScooter) this.blownOut(world, v); }
       else { this.driveVehicle(dt, input, map, world); this.gz = v.z || 0; return; }
@@ -135,10 +145,14 @@ export class Player {
       return;
     }
 
+    if (this.vault) { this.updateVault(dt, world); return; }
     // jump/crouch - on foot only; SPACE is also "remmen" while driving
     // (handled in driveVehicle, never reached here). Crouching slows you
     // down and plays the crouch pose; collision stays 2D (x/y) anyway
-    if (input.wasPressed(' ') && this.z <= 0) this.vz = JUMP_SPEED;
+    if (input.wasPressed(' ') && this.z <= 0) {
+      if (this.tryVault(world)) return;
+      this.vz = JUMP_SPEED;
+    }
     this.vz -= GRAVITY * dt;
     this.z = Math.max(0, this.z + this.vz * dt);
     if (this.z <= 0) {
@@ -171,13 +185,55 @@ export class Player {
     for (let s = 0; s < steps; s++) {
       let nextX = this.x + this.vx * sdt;
       let nextY = this.y + this.vy * sdt;
-      [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS, this.gz + this.z);
+      [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS, this.gz + this.z, this.z);
       this.x = nextX;
       this.y = nextY;
       this.followGround(map);
       if (isInWater(map, nextX, nextY, this.gz + this.z)) { this.startWaterFall(); return; }
     }
     this.resolveBodyContacts(dt, world);
+  }
+
+  tryVault(world) {
+    const { map, input } = world;
+    const dir = cameraRelativeMove(input, world.camYaw);
+    const a = dir ? dir.angle : this.angle;
+    const dx = Math.cos(a), dy = Math.sin(a);
+    let ob = propAhead(this.x, this.y, dx, dy, VAULT_REACH, this.radius * 0.6);
+    const rail = railingAhead(map, this.x, this.y, dx, dy, VAULT_REACH);
+    if (rail && (!ob || rail.dist < ob.dist)) ob = rail;
+    if (!ob || ob.h < VAULT_MIN_H || ob.h > VAULT_MAX_H) return false;
+    const over = ob.dist + ob.depth + this.radius + 0.3;
+    const tx = this.x + dx * over, ty = this.y + dy * over;
+    const [rx, ry] = resolveBuildingCollisions(tx, ty, this.radius, map);
+    if (Math.hypot(rx - tx, ry - ty) > 0.2) return false;
+    this.vault = { t: 0, fx: this.x, fy: this.y, tx, ty, h: ob.h };
+    this.angle = a;
+    this.crouching = false;
+    if (world.audioEvents) world.audioEvents.push({ kind: 'whoosh', x: this.x, y: this.y, strength: 0.25 });
+    return true;
+  }
+
+  updateVault(dt, world) {
+    const V = this.vault;
+    V.t += dt;
+    const u = Math.min(1, V.t / VAULT_TIME);
+    const e = u * u * (3 - 2 * u);
+    this.x = V.fx + (V.tx - V.fx) * e;
+    this.y = V.fy + (V.ty - V.fy) * e;
+    this.z = Math.sin(Math.PI * u) * (V.h + 0.2);
+    this.vx = (V.tx - V.fx) / VAULT_TIME;
+    this.vy = (V.ty - V.fy) / VAULT_TIME;
+    this.moving = true;
+    if (u < 1) return;
+    this.vault = null;
+    this.z = 0;
+    this.vz = 0;
+    this.vx = 0;
+    this.vy = 0;
+    [this.x, this.y] = resolveWalker(this.x, this.y, this.radius, world.map, 0, 0, WALK_OPTS, this.gz);
+    this.followGround(world.map);
+    if (isInWater(world.map, this.x, this.y, this.gz + this.z)) this.startWaterFall();
   }
 
   // Keep gz on the surface underfoot; walking off an edge turns the drop

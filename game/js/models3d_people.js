@@ -1107,14 +1107,77 @@ function setArm(arm, elbow, z, e, x = 0) {
   if (elbow) elbow.rotation.z = e;
 }
 
+// Guns in the right hand. Built along the forearm bone: -y runs down the
+// forearm towards the fingers (forward once the arm is raised), +x is the
+// back of the hand (up when aiming). userData.muzzle marks the barrel tip.
+const GUN_MAT = markShared(new THREE.MeshStandardMaterial({ color: 0x1b1c1f, roughness: 0.45, metalness: 0.6 }));
+const GUN_WOOD = markShared(new THREE.MeshStandardMaterial({ color: 0x5a3a22, roughness: 0.7 }));
+const HAND_Y = -0.575;
+const GUN_SPECS = {
+  pistol: { parts: [[0.035, 0.03, 0.2, 0.03, -0.075, GUN_MAT], [-0.02, 0.08, 0.035, 0.028, 0, GUN_MAT]], tip: 0.19 },
+  uzi: { parts: [[0.03, 0.055, 0.27, 0.045, -0.1, GUN_MAT], [-0.03, 0.09, 0.035, 0.03, 0.01, GUN_MAT], [-0.055, 0.12, 0.03, 0.025, -0.1, GUN_MAT]], tip: 0.25 },
+  shotgun: { parts: [[0.03, 0.04, 0.62, 0.04, -0.2, GUN_MAT], [0.0, 0.05, 0.26, 0.05, -0.12, GUN_WOOD], [-0.01, 0.07, 0.3, 0.05, 0.2, GUN_WOOD]], tip: 0.52 },
+};
+const gunGeos = {};
+function gunGeometry(key) {
+  if (gunGeos[key]) return gunGeos[key];
+  const parts = GUN_SPECS[key].parts.map(([x, h, len, w, y]) => new THREE.BoxGeometry(h, len, w).translate(x, y - len * 0.5 + 0.06, 0));
+  const g = { geos: parts.map((pg) => markShared(pg)) };
+  gunGeos[key] = g;
+  return g;
+}
+
+// Shows the held weapon (null / 'fists' hides it).
+export function setHeldWeapon(mesh, weapon) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.elbowR) return;
+  const key = GUN_SPECS[weapon] ? weapon : null;
+  if (ud.gunKey === key) return;
+  ud.gunKey = key;
+  if (!ud.guns) ud.guns = {};
+  for (const k in ud.guns) ud.guns[k].visible = false;
+  ud.muzzle = null;
+  if (!key) return;
+  let g = ud.guns[key];
+  if (!g) {
+    g = new THREE.Group();
+    const spec = GUN_SPECS[key];
+    const geo = gunGeometry(key);
+    spec.parts.forEach((pt, i) => { const m = new THREE.Mesh(geo.geos[i], pt[5]); m.castShadow = true; g.add(m); });
+    // pivot in the palm, so the gun can tilt forward while the arm hangs
+    g.position.set(0.01, HAND_Y, 0);
+    const tip = new THREE.Object3D();
+    tip.position.set(0.035, -spec.tip, 0);
+    g.add(tip);
+    g.userData.tip = tip;
+    ud.elbowR.add(g);
+    ud.guns[key] = g;
+  }
+  g.visible = true;
+  ud.muzzle = g.userData.tip;
+}
+
 // Attack overlay on top of the walk cycle: an alternating jab for fists, an
-// aimed arm with a short recoil kick for guns (two-handed for uzi/shotgun).
-// fx is combat.js's last effect {type, start, side, weapon}; now = world.time.
+// aimed arm with a recoil kick for guns (two-handed for uzi/shotgun) that
+// stays up while `aiming`. fx is combat.js's last effect {type, start, side,
+// weapon}; now = world.time.
 const PUNCH_S = 0.32;
 const AIM_HOLD_S = 0.7;
-export function applyAttackPose(mesh, fx, now) {
+const RECOIL = { pistol: [0.34, 0.5, 0.12], uzi: [0.16, 0.25, 0.06], shotgun: [0.62, 0.8, 0.22] };
+export function applyAttackPose(mesh, fx, now, aiming = null) {
   const ud = mesh && mesh.userData;
-  if (!ud || !fx || fx.start === undefined || !ud.armR || !ud.armL) return;
+  if (!ud || !ud.armR || !ud.armL) return;
+  if (ud.gunKey && ud.guns) {
+    const firing = fx && fx.type === 'muzzle' && now - fx.start < AIM_HOLD_S;
+    ud.guns[ud.gunKey].rotation.z = aiming || firing ? 0 : 0.95;
+  }
+  if (aiming && (!fx || fx.type !== 'muzzle' || now - fx.start >= AIM_HOLD_S - 0.2)) {
+    // raised, steady aim between shots
+    setArm(ud.armR, ud.elbowR, 1.55, 0.06);
+    if (aiming === 'uzi' || aiming === 'shotgun') setArm(ud.armL, ud.elbowL, 1.4, 0.55, 0);
+    return;
+  }
+  if (!fx || fx.start === undefined) return;
   const dt = now - fx.start;
   if (fx.type === 'melee') {
     if (dt < 0 || dt >= PUNCH_S) return;
@@ -1129,17 +1192,44 @@ export function applyAttackPose(mesh, fx, now) {
     return;
   }
   if (fx.type === 'muzzle') {
-    if (dt < 0 || dt >= AIM_HOLD_S) return;
-    const hold = 1 - smoothstep(AIM_HOLD_S - 0.2, AIM_HOLD_S, dt);
-    const kick = Math.max(0, 1 - dt / 0.12);
-    const z = ud.armR.rotation.z + (1.55 + 0.22 * kick - ud.armR.rotation.z) * hold;
-    const e = (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - hold) + (0.06 + 0.3 * kick) * hold;
+    if (dt < 0 || (dt >= AIM_HOLD_S && !aiming)) return;
+    const hold = aiming ? 1 : 1 - smoothstep(AIM_HOLD_S - 0.2, AIM_HOLD_S, dt);
+    const [armK, elbowK, chestK] = RECOIL[fx.weapon] || RECOIL.pistol;
+    // sharp snap up, slower settle
+    const kick = dt < 0.03 ? dt / 0.03 : Math.exp(-(dt - 0.03) * 14);
+    const z = ud.armR.rotation.z + (1.55 + armK * kick - ud.armR.rotation.z) * hold;
+    const e = (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - hold) + (0.06 + elbowK * kick) * hold;
     setArm(ud.armR, ud.elbowR, z, e);
     if (fx.weapon === 'uzi' || fx.weapon === 'shotgun') {
-      const zl = ud.armL.rotation.z + (1.4 + 0.15 * kick - ud.armL.rotation.z) * hold;
-      setArm(ud.armL, ud.elbowL, zl, 0.55 * hold, 0);
+      const zl = ud.armL.rotation.z + (1.4 + armK * 0.7 * kick - ud.armL.rotation.z) * hold;
+      setArm(ud.armL, ud.elbowL, zl, (0.55 + elbowK * 0.5 * kick) * hold, 0);
     }
+    if (ud.chest) ud.chest.rotation.z += chestK * kick * hold;
+    if (ud.head) ud.head.rotation.z += chestK * 0.6 * kick * hold;
   }
+}
+
+// Hit reaction for someone shot but still standing: the torso snaps away
+// from the bullet, the head whips and the arms flinch, easing out in ~0.45 s.
+// react = { t, dx, dy, k } (dx, dy: bullet direction), angle = body facing.
+const REACT_S = 0.45;
+export function applyHitReaction(mesh, react, now, angle) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !react || !ud.chest) return;
+  const dt = now - react.t;
+  if (dt < 0 || dt >= REACT_S) return;
+  const env = (dt < 0.05 ? dt / 0.05 : 1 - smoothstep(0.05, REACT_S, dt)) * (react.k || 1);
+  const c = Math.cos(angle), sn = Math.sin(angle);
+  const fwd = react.dx * c + react.dy * sn;
+  const side = -react.dx * sn + react.dy * c;
+  ud.chest.rotation.z += -fwd * 0.55 * env;
+  ud.chest.rotation.x += side * 0.45 * env;
+  ud.head.rotation.z += -fwd * 0.5 * env;
+  ud.head.rotation.x += side * 0.35 * env;
+  ud.armL.rotation.z += 0.7 * env;
+  ud.armR.rotation.z += 0.55 * env;
+  if (ud.elbowL) ud.elbowL.rotation.z += 0.8 * env;
+  if (ud.elbowR) ud.elbowR.rotation.z += 0.8 * env;
 }
 
 const POSE_DROP = { crouch: 0.42, sit: 0.46, fish: 0.5 };
