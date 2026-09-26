@@ -13,6 +13,7 @@ import { lineOfSight } from './pedestrians.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary, sideJobGoal } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
+import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
@@ -287,6 +288,8 @@ function findPrimary(world) {
   }
   const duif = pigeonSpotPrompt(world);
   if (duif) return duif;
+  const heli = heliSpotPrompt(world);
+  if (heli) return heli;
   const trein = stationPrompt(world);
   if (trein) return trein;
   const food = nearestHorecaSpot(world);
@@ -371,6 +374,7 @@ function findSecondary(world, primary) {
   }
   for (const c of shopSecondaryPrompts(world)) add(c, 14);
   for (const c of pigeonSpotSecondary(world)) add(c, 18);
+  for (const c of heliSpotSecondary(world)) add(c, 20);
   for (const c of sideJobSecondary(world)) add(c, c.maxD || 20);
   for (const c of stationSecondary(world)) add(c, 22);
   const m = world.mission;

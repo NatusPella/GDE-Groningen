@@ -979,6 +979,7 @@ export function updatePedestrians(dt, world) {
   const dodgeVehicle = pv && !pv.isBoat && pv.speed > -0.5 ? pv : null;
   for (let i = peds.length - 1; i >= 0; i--) {
     const ped = peds[i];
+    if (ped.scripted) continue; // posed by its owner (fierljep.js)
 
     if (ped.state === 'dead') {
       if (ped.pose) setPedPose(ped, null);
