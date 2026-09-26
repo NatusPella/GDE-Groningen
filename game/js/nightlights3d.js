@@ -304,7 +304,8 @@ function lampsForRoad(road, map) {
       idx++;
       next += LAMP_SPACING;
       if (insideBuilding(map, x, y) || lampTooClose(x, y)) continue;
-      if (map.offStreetLevel && map.offStreetLevel(x, y)) continue;
+      if (map.offStreetLevel && map.offStreetLevel(x, y, 0.6)) continue;
+      if (map.onCarriageway && map.onCarriageway(x, y, 0.4, road)) continue;
       const lamp = {
         x, y,
         angle: Math.atan2(cy - y, cx - x),

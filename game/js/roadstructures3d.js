@@ -8,7 +8,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { WATER_Y, closestPointOnSegment } from './util.js';
 import {
   DECK_T, EMB_SLOPE, WALL_T, FENCE_H, BARRIER_H, ROOF_T, RAISED,
-  surfaceHalfWidth, roofTopAt, coveredAt,
+  surfaceHalfWidth, roofTopAt, coveredAt, lowerSurfaceAt,
 } from './elevation.js';
 
 const PIER_EVERY = 24;
@@ -90,6 +90,30 @@ function miters(P) {
   return out;
 }
 
+const PIER_SHIFTS = [0, 3, -3, 6, -6, 9, -9];
+
+function pierBlocked(elev, x, y, ux, uy, half, z) {
+  for (const f of [-1, -0.5, 0, 0.5, 1]) {
+    for (const a of [-0.8, 0.8]) {
+      if (lowerSurfaceAt(elev, x - uy * half * f + ux * a, y + ux * half * f + uy * a, z)) return true;
+    }
+  }
+  return false;
+}
+
+// Does another viaduct way carry on from road r's end point p? Then there is
+// no abutment there, just more deck.
+function deckContinues(map, r, p) {
+  for (const o of map.roadsNear(p[0], p[1], 2)) {
+    if (o === r || !o.bridge || o.tunnel || !o.z) continue;
+    const n = o.pts.length;
+    for (const k of [0, n - 1]) {
+      if (Math.abs(o.pts[k][0] - p[0]) < 0.05 && Math.abs(o.pts[k][1] - p[1]) < 0.05 && o.z[k] > 1.5) return true;
+    }
+  }
+  return false;
+}
+
 function groundUnder(map, x, y) {
   return map.inWaterRaw(x, y) ? WATER_Y - 0.6 : -0.05;
 }
@@ -168,12 +192,18 @@ export function buildRoadStructure(r, map) {
     const L = Math.hypot(bx - ax, by - ay);
     const ux = (bx - ax) / (L || 1), uy = (by - ay) / (L || 1);
     while (deck && nextPier < s + L) {
-      const t = (nextPier - s) / L;
-      const x = ax + (bx - ax) * t, y = ay + (by - ay) * t, z = Z[i] + (Z[i + 1] - Z[i]) * t;
-      if (z > 2.2) {
+      const half = Math.max(1.5, hs * 0.55);
+      // a pier never stands in a road passing underneath: slide it along the
+      // deck to a free spot, or leave it out
+      for (const shift of PIER_SHIFTS) {
+        const t = (nextPier + shift - s) / L;
+        if (t < 0 || t > 1) continue;
+        const x = ax + (bx - ax) * t, y = ay + (by - ay) * t, z = Z[i] + (Z[i + 1] - Z[i]) * t;
+        if (z <= 2.2) break;
+        if (pierBlocked(elev, x, y, ux, uy, half, z)) continue;
         const g = groundUnder(map, x, y);
-        const half = Math.max(1.5, hs * 0.55);
         B.wallBox('concrete', x - uy * half, y + ux * half, x + uy * half, y - ux * half, 1.3, g, z - DECK_T, g, z - DECK_T);
+        break;
       }
       nextPier += PIER_EVERY;
     }
@@ -192,11 +222,12 @@ export function buildRoadStructure(r, map) {
   // deck ends: abutment block where the road comes off the viaduct
   if (deck) {
     for (const i of [0, n - 1]) {
-      if (Z[i] < 1.5) continue;
+      if (Z[i] < 1.5 || deckContinues(map, r, P[i])) continue;
       const j = i === 0 ? 1 : n - 2;
       const dx = P[j][0] - P[i][0], dy = P[j][1] - P[i][1], l = Math.hypot(dx, dy) || 1;
       const ux = dx / l, uy = dy / l;
       const cx = P[i][0] + ux * 0.8, cy = P[i][1] + uy * 0.8;
+      if (pierBlocked(elev, cx, cy, ux, uy, hs, Z[i])) continue;
       const g = groundUnder(map, cx, cy);
       B.wallBox('concrete', cx - uy * hs, cy + ux * hs, cx + uy * hs, cy - ux * hs, 1.6, g, Z[i] - DECK_T + 0.05, g, Z[i] - DECK_T + 0.05);
     }

@@ -1,5 +1,5 @@
 import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
-import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, RAISED } from './elevation.js';
+import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
 
@@ -106,17 +106,53 @@ function bridgeStructures(buildings, roads, water) {
   return out;
 }
 
-function buildingsCrossedBy(buildings, lines, step) {
+const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
+const isRingRoad = (r) => RING_TYPES.has(r.type) || (!!r.z && r.cat === 'major');
+
+// Footprints on a ring carriageway that the road would run into: at street
+// level or sunken below it, or a deck too low to clear the roof.
+function buildingsOnRing(buildings, roads) {
+  const lines = [], zs = [];
+  for (const r of roads) {
+    if (!isRingRoad(r)) continue;
+    const off = Math.max(0, r.width / 2 - 0.8);
+    const P = r.pts;
+    for (const o of off ? [-off, 0, off] : [0]) {
+      const L = [], Z = [];
+      for (let i = 0; i < P.length; i++) {
+        const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)];
+        const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+        L.push([P[i][0] - dy / l * o, P[i][1] + dx / l * o]);
+        Z.push(r.z ? r.z[i] : 0);
+      }
+      lines.push(L);
+      zs.push(Z);
+    }
+  }
   const out = new Set();
+  const hit = buildingsCrossedBy(buildings, lines, 1.5, zs);
+  for (const [b, z] of hit) {
+    if (b.landmark) continue;
+    if (z < b.h + 3.5) out.add(b);
+  }
+  return out;
+}
+
+function buildingsCrossedBy(buildings, lines, step, zs = null) {
+  // with zs (a height per line vertex): a Map building -> lowest height hit
+  const out = zs ? new Map() : new Set();
   if (!lines.length) return out;
   const samples = [];
-  for (const P of lines) {
+  lines.forEach((P, li) => {
+    const Z = zs && zs[li];
     for (let i = 0; i < P.length - 1; i++) {
       const [ax, ay] = P[i], [bx, by] = P[i + 1];
       const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
-      for (let k = 0; k < n; k++) samples.push([ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n]);
+      for (let k = 0; k < n; k++) {
+        samples.push([ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n, Z ? Z[i] + (Z[i + 1] - Z[i]) * k / n : 0]);
+      }
     }
-  }
+  });
   const G = 40, cells = new Map();
   for (const p of samples) {
     const k = Math.floor(p[0] / G) + ',' + Math.floor(p[1] / G);
@@ -127,9 +163,11 @@ function buildingsCrossedBy(buildings, lines, step) {
     const [minx, miny, maxx, maxy] = polygonBounds(b.pts);
     search: for (let cx = Math.floor(minx / G); cx <= Math.floor(maxx / G); cx++) {
       for (let cy = Math.floor(miny / G); cy <= Math.floor(maxy / G); cy++) {
-        for (const [x, y] of cells.get(cx + ',' + cy) || []) {
+        for (const [x, y, z] of cells.get(cx + ',' + cy) || []) {
           if (x <= minx || x >= maxx || y <= miny || y >= maxy) continue;
-          if (pointInPolygon(x, y, b.pts)) { out.add(b); break search; }
+          if (!pointInPolygon(x, y, b.pts)) continue;
+          if (!zs) { out.add(b); break search; }
+          if (!out.has(b) || z < out.get(b)) out.set(b, z);
         }
       }
     }
@@ -183,6 +221,43 @@ function onCarriageway(map, x, y) {
   return false;
 }
 
+const RING_CELL = 32;
+const RING_JUNCTION_R = 14;
+
+function buildRingGrid(map) {
+  const grid = map.ringGrid = new Map();
+  const cellAt = (cx, cy) => {
+    const k = cx + ',' + cy;
+    let c = grid.get(k);
+    if (!c) grid.set(k, c = { segs: [], junctions: [] });
+    return c;
+  };
+  const cover = (x0, y0, x1, y1, fn) => {
+    for (let cx = Math.floor(x0 / RING_CELL); cx <= Math.floor(x1 / RING_CELL); cx++) {
+      for (let cy = Math.floor(y0 / RING_CELL); cy <= Math.floor(y1 / RING_CELL); cy++) fn(cellAt(cx, cy));
+    }
+  };
+  const key = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
+  const localNodes = new Set();
+  for (const r of map.roads) {
+    if (isRingRoad(r) || !DRY_CATS.has(r.cat) || r.cat === 'service' || r.z) continue;
+    for (const p of r.pts) localNodes.add(key(p));
+  }
+  for (const r of map.roads) {
+    if (!isRingRoad(r)) continue;
+    const hw = r.width / 2 + 0.3, P = r.pts;
+    for (let i = 0; i < P.length - 1; i++) {
+      const s = [P[i][0], P[i][1], P[i + 1][0], P[i + 1][1], hw, r.z ? r.z[i] : 0, r.z ? r.z[i + 1] : 0];
+      cover(Math.min(s[0], s[2]) - hw, Math.min(s[1], s[3]) - hw, Math.max(s[0], s[2]) + hw, Math.max(s[1], s[3]) + hw, (c) => c.segs.push(s));
+    }
+    for (const p of P) {
+      if (!localNodes.has(key(p))) continue;
+      const R = RING_JUNCTION_R;
+      cover(p[0] - R, p[1] - R, p[0] + R, p[1] + R, (c) => c.junctions.push(p));
+    }
+  }
+}
+
 export class GameMap {
   constructor(data) {
     this.meta = data.meta;
@@ -194,12 +269,14 @@ export class GameMap {
     const bridgeParts = bridgeStructures(data.buildings, data.roads, data.water);
     const all = dedupeBuildings(data.buildings.filter((b) => !bridgeParts.has(b)));
     const overRails = buildingsOverRails(all, data.rails || []);
-    // Same for the covers/overpasses the ring road runs under (the sunken
-    // Zuidelijke Ringweg): extruded they are a block across the carriageway.
-    const overRing = buildingsCrossedBy(all, data.roads.filter((r) => r.type === 'trunk' && !r.bridge).map((r) => r.pts), 2);
-    const isCanopy = (b) => b.type === 'roof' || overRails.has(b) || overRing.has(b);
-    this.canopies = all.filter(isCanopy);
-    this.buildings = all.filter((b) => !isCanopy(b));
+    // The covers the sunken Zuidelijke Ringweg runs under and sheds mapped
+    // on the ring's carriageways: extruded they are a block across the road,
+    // as a canopy a roof floating over the cutting. The tunnel roof and the
+    // ground over it are drawn by roadstructures3d / terrain3d.
+    const onRing = buildingsOnRing(all, data.roads);
+    const isCanopy = (b) => b.type === 'roof' || overRails.has(b);
+    this.canopies = all.filter((b) => isCanopy(b) && !onRing.has(b));
+    this.buildings = all.filter((b) => !isCanopy(b) && !onRing.has(b));
     this.water = data.water;
     this.green = data.green;
     this.trees = data.trees || [];
@@ -275,10 +352,42 @@ export class GameMap {
     return coveredAt(this.elev, x, y);
   }
 
-  // Is (x, y) on a raised/sunken road, its embankment or cutting (not street level)?
-  offStreetLevel(x, y) {
-    if (!this.elev.has) return false;
-    return Math.abs(groundHeightAt(this.elev, x, y, 50)) > RAISED || Math.abs(groundHeightAt(this.elev, x, y, -50)) > RAISED;
+  // Is (x, y) on a raised/sunken road, its embankment or cutting (not street
+  // level)? `pad` keeps that much clearance from the road edge.
+  offStreetLevel(x, y, pad = 0) {
+    return offLevelAt(this.elev, x, y, pad);
+  }
+
+  // Is (x, y) within `margin` of a car carriageway (kerb to kerb)? Ring roads
+  // count with their verge. Used to keep street furniture off the road.
+  onCarriageway(x, y, margin = 0, except = null) {
+    for (const r of this.roadsNear(x, y, 14)) {
+      if (r === except || !DRY_CATS.has(r.cat)) continue;
+      const hw = (isRingRoad(r) ? surfaceHalfWidth(r) : r.width / 2) + margin;
+      if (hw <= 0) continue;
+      const [minx, miny, maxx, maxy] = r.bounds;
+      if (x < minx - hw || x > maxx + hw || y < miny - hw || y > maxy + hw) continue;
+      const P = r.pts;
+      for (let i = 0; i < P.length - 1; i++) {
+        if (closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2 < hw * hw) return true;
+      }
+    }
+    return false;
+  }
+
+  // Is (x, y) on the carriageway of the ring / a motorway, away from the
+  // at-grade junctions where it may be crossed? Pedestrians stay off it.
+  // z: height of whoever asks (a street passing under a viaduct is not on it).
+  onRingCarriageway(x, y, z = 0) {
+    if (!this.ringGrid) buildRingGrid(this);
+    const cell = this.ringGrid.get(Math.floor(x / RING_CELL) + ',' + Math.floor(y / RING_CELL));
+    if (!cell) return false;
+    for (const j of cell.junctions) if ((j[0] - x) ** 2 + (j[1] - y) ** 2 < RING_JUNCTION_R * RING_JUNCTION_R) return false;
+    for (const s of cell.segs) {
+      const cp = closestPointOnSegment(x, y, s[0], s[1], s[2], s[3]);
+      if (cp.dist2 < s[4] * s[4] && Math.abs(s[5] + (s[6] - s[5]) * cp.t - z) < 2) return true;
+    }
+    return false;
   }
 
   inWaterRaw(x, y) {

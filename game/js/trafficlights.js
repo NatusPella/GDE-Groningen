@@ -459,7 +459,7 @@ const _up = new THREE.Vector3(0, 1, 0);
 function writeMatrices() {
   poles.forEach((pole, i) => {
     // junctions on a ramp of the ring stand on its surface (elevation.js)
-    if (pole.gz === undefined) pole.gz = map && map.spawnZ ? map.spawnZ(pole.x, pole.y) : 0;
+    if (pole.gz === undefined) pole.gz = map && map.spawnZ && map.offStreetLevel(pole.x, pole.y) ? map.spawnZ(pole.x, pole.y) : 0;
     _p.set(pole.x, pole.gz, pole.y);
     _q.setFromAxisAngle(_up, -pole.angle);
     _s.setScalar(pole.broken ? 0 : pole.bike ? BIKE_SCALE : 1);

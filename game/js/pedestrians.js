@@ -147,7 +147,7 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
   while (peds.length < count && attempts < count * 25) {
     attempts++;
     const road = roads[Math.floor(rng() * roads.length)];
-    if (road.z) continue; // nobody strolls along the ring's viaducts and cuttings
+    if (road.z || road.type === 'trunk' || road.type === 'trunk_link' || road.type === 'motorway' || road.type === 'motorway_link') continue; // nobody strolls along the ring
     const pts = road.pts;
     const i = Math.floor(rng() * (pts.length - 1));
     const a = pts[i], b = pts[i + 1];
@@ -165,6 +165,7 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
     if (d > maxDist || d < minDist) continue;
     if (isInsideBuilding(map, fx, fy) || isInWater(map, fx, fy)) continue;
     if (map.offStreetLevel && map.offStreetLevel(fx, fy)) continue;
+    if (map.onRingCarriageway && map.onRingCarriageway(fx, fy)) continue;
     if (view && !isSpawnHidden(spawnWorld, fx, fy)) continue;
 
     peds.push(new Pedestrian(fx, fy, segAngle + (rng() < 0.5 ? 0 : Math.PI)));
@@ -1027,6 +1028,13 @@ export function updatePedestrians(dt, world) {
       if (!isInWater(map, ped.x, ped.y) && isInWater(map, nx, ny)) {
         if (!isInWater(map, nx, ped.y)) ny = ped.y;
         else if (!isInWater(map, ped.x, ny)) nx = ped.x;
+        else { nx = ped.x; ny = ped.y; }
+      }
+      // the ring has no crossings: never step onto its carriageway
+      const gz = ped.gz || 0;
+      if ((nx !== ped.x || ny !== ped.y) && map.onRingCarriageway(nx, ny, gz) && !map.onRingCarriageway(ped.x, ped.y, gz)) {
+        if (!map.onRingCarriageway(nx, ped.y, gz)) ny = ped.y;
+        else if (!map.onRingCarriageway(ped.x, ny, gz)) nx = ped.x;
         else { nx = ped.x; ny = ped.y; }
       }
       ped.x = nx;
