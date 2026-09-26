@@ -3,7 +3,7 @@ import { Input } from './input.js';
 import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
-import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear } from './vehicle.js';
+import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
@@ -69,6 +69,7 @@ function waitForStart(world) {
       }
     }
     resolveVehicleVehicleCollisions(world.vehicles, world);
+    tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
@@ -249,7 +250,8 @@ async function boot() {
 
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
-      if (v.driver === 'player' || v.isPolice || v.isBoat) continue;
+      // police.js drives its own units; an abandoned or burning one just rolls out here
+      if (v.driver === 'player' || v.isBoat || (v.isPolice && !v.disabled && !(v.hijacked && !v.driver))) continue;
       updateTrafficAI(v, dt, map, world, Math.random);
       resolveVehicleBuildingCollision(v, map, dt);
     }
@@ -259,6 +261,7 @@ async function boot() {
 
     if (!world.pigeonMode) updatePolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
+    tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);

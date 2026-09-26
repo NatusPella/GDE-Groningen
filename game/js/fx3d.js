@@ -57,10 +57,10 @@ function initSkids(scene) {
   scene.add(skid.mesh);
 }
 
-function writeSkidQuad(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, alpha) {
+function writeSkidQuad(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, alpha, h = 0) {
   const q = skid.next;
   skid.next = (q + 1) % SKID_QUADS;
-  const p = skid.pos, o = q * 12, y = 0.012;
+  const p = skid.pos, o = q * 12, y = h + 0.012;
   p[o] = ax0; p[o + 1] = y; p[o + 2] = ay0;
   p[o + 3] = ax1; p[o + 4] = y; p[o + 5] = ay1;
   p[o + 6] = bx0; p[o + 7] = y; p[o + 8] = by0;
@@ -122,7 +122,7 @@ function skidWheel(v, i, wx, wy, halfW, intensity) {
   const sideways = Math.abs(ux * sa - uy * ca);
   const w = halfW * (1 + sideways * 0.9);
   const lx = wx + uy * w, ly = wy - ux * w, rx = wx - uy * w, ry = wy + ux * w;
-  writeSkidQuad(t.lx, t.ly, t.rx, t.ry, lx, ly, rx, ry, Math.min(0.62, 0.18 + intensity * 0.5));
+  writeSkidQuad(t.lx, t.ly, t.rx, t.ry, lx, ly, rx, ry, Math.min(0.62, 0.18 + intensity * 0.5), v.z || 0);
   t.x = wx; t.y = wy; t.lx = lx; t.ly = ly; t.rx = rx; t.ry = ry;
 }
 
@@ -526,6 +526,44 @@ function wreckSmoke(v, world, dt) {
   for (let j = 0; j < cnt; j++) {
     spawnSmoke(v.x + rand(-0.5, 0.5), 0.9, v.y + rand(-0.5, 0.5), rand(-0.25, 0.25), rand(1.0, 1.6) + k, rand(-0.25, 0.25),
       rand(2.2, 3.2) + k * 1.5, 0.4, rand(2.6, 3.6) + k * 2, shade, shade, shade * 1.02, 0.22 + k * 0.35, 1.2, 0.5);
+  }
+}
+
+// --- explosions ----------------------------------------------------------------------------------
+
+// Everything a car explosion throws out of the shared pools: a boiling black
+// smoke column, burnt panels and glass, a shower of sparks and a scorch mark
+// (dark skid quads fanned into a blotch, fading like the tyre marks).
+export function spawnExplosionFx(x, y, z, color, scale = 1) {
+  if (!ready) return;
+  const paint = typeof color === 'string' ? (_c.set(color), _c.getHex()) : typeof color === 'number' ? color : PAINT_FALLBACK;
+  for (let k = 0; k < Math.round(26 * scale); k++) {
+    const a = Math.random() * Math.PI * 2, r = rand(0.5, 3.5) * scale;
+    const dark = rand(0.05, 0.16);
+    spawnSmoke(x + Math.cos(a) * r * 0.4, z + rand(0.6, 2.2), y + Math.sin(a) * r * 0.4, Math.cos(a) * r, rand(1.5, 4.5), Math.sin(a) * r,
+      rand(3.5, 6.5), rand(1.2, 2), rand(4.5, 7.5) * scale, dark, dark, dark * 1.05, rand(0.55, 0.8), 1.1, 0.8);
+  }
+  for (let k = 0; k < 10; k++) {
+    const a = Math.random() * Math.PI * 2;
+    spawnSmoke(x + rand(-0.6, 0.6), z + rand(0.3, 1.2), y + rand(-0.6, 0.6), Math.cos(a) * rand(3, 7), rand(0.2, 1.2), Math.sin(a) * rand(3, 7),
+      rand(1.5, 2.6), 0.8, rand(3, 4.5), 0.42, 0.38, 0.34, 0.4, 2.2, 0.1);
+  }
+  for (let k = 0; k < Math.min(40, Math.round(34 * scale)); k++) {
+    const a = Math.random() * Math.PI * 2, sp = rand(5, 16);
+    spawnSpark(x, z + rand(0.4, 1.4), y, Math.cos(a) * sp, rand(3, 11), Math.sin(a) * sp, rand(0.5, 1.2));
+  }
+  for (let k = 0; k < Math.round(22 * scale); k++) {
+    const a = Math.random() * Math.PI * 2, sp = rand(3, 11);
+    const roll = Math.random();
+    const col = roll < 0.35 ? 0x161616 : roll < 0.6 ? 0x2c2a28 : roll < 0.8 ? paint : 0x9fb4ba;
+    const sz = roll >= 0.8 ? rand(0.04, 0.08) : rand(0.1, 0.26);
+    spawnDebris(chunks, x + rand(-0.5, 0.5), z + rand(0.5, 1.3), y + rand(-0.5, 0.5), Math.cos(a) * sp, rand(4, 11), Math.sin(a) * sp,
+      sz, sz * rand(0.3, 0.7), sz * rand(0.8, 1.5), col, rand(14, 22));
+  }
+  for (let k = 0; k < 4; k++) {
+    const a = (k / 4) * Math.PI + Math.random() * 0.4, r = rand(2, 3.2) * scale;
+    const ca = Math.cos(a) * r, sa = Math.sin(a) * r;
+    writeSkidQuad(x - ca - sa * 0.6, y - sa + ca * 0.6, x - ca + sa * 0.6, y - sa - ca * 0.6, x + ca - sa * 0.6, y + sa + ca * 0.6, x + ca + sa * 0.6, y + sa - ca * 0.6, 0.42, z);
   }
 }
 

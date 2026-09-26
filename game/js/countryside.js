@@ -6,7 +6,8 @@ import {
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
 import { surfaceUnder } from './vehicle.js';
-import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D } from './wildlife.js';
+import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal } from './wildlife.js';
+import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
   ROAD_C, FARM_TYPES, TREE_ROW_P, WILLOW_ROW_P, HEDGE_ROW_P, WIRE_ROW_P, ROAD_ROW,
@@ -948,10 +949,16 @@ function clampRect(a) {
   a.y = Math.min(r[3], Math.max(r[1], a.y));
 }
 
-function simAnimal(a, dt, th, time) {
+function simAnimal(a, dt, th, time, world) {
+  if (a.dead) return;
   const K = KINDS[a.kind];
   const dx = a.x - th.x, dy = a.y - th.y;
   const d = Math.hypot(dx, dy);
+  // at speed the car doesn't shove it aside any more: it goes under
+  if (th.v && d < th.v.halfLen + K.radius + 1 && distToVehicleBody(th.v, a.x, a.y) < K.radius * 0.7 && runOverAnimal(world, a, th.v)) {
+    S.animalDirty = true;
+    return;
+  }
   const scareR = th.rel ? K.scare * th.r : th.r * (a.kind === 'cow' ? 0.8 : 1);
   if (d < scareR && a.flee <= 0.5) {
     a.flee = 2.5 + Math.random() * 2;
@@ -1026,9 +1033,11 @@ function updateAnimals(dt, world, time, simulate) {
   const th = threatOf(world);
   const cands = [];
   for (const a of S.animals) {
+    if (a.gone) continue;
+    if (a.dead && time - a.deadAt > 60) { a.gone = true; S.animalDirty = true; continue; }
     const d2 = (a.x - p.x) ** 2 + (a.y - p.y) ** 2;
     if (d2 > SIM_R * SIM_R) continue;
-    if (simulate) simAnimal(a, dt, th, time);
+    if (simulate) simAnimal(a, dt, th, time, world);
     a._d2 = d2;
     cands.push(a);
   }
@@ -1048,7 +1057,9 @@ function updateAnimals(dt, world, time, simulate) {
     }
     mesh.position.set(a.x, 0, a.y);
     mesh.rotation.y = -a.angle;
-    if (a.kind === 'goose') animateGoose(mesh, a, time);
+    mesh.rotation.x = 0;
+    if (a.dead) poseDeadAnimal(mesh, a);
+    else if (a.kind === 'goose') animateGoose(mesh, a, time);
     else if (a.kind === 'duck') {
       animateWildlifeMesh3D(mesh, a, time);
       mesh.position.y = -0.06 + Math.sin(time * 1.7 + a.bobSeed * 6) * 0.008;
@@ -1070,7 +1081,7 @@ function updateAnimals(dt, world, time, simulate) {
     let built = 0;
     for (const pool of S.herdPools.values()) pool.count = 0;
     for (const a of S.animals) {
-      if (S.skinned.has(a)) continue;
+      if (S.skinned.has(a) || a.gone) continue;
       const key = animalKey(a);
       // one new herd template per frame keeps the first arrival hitch-free
       if (!S.herdPools.has(key)) {
@@ -1080,9 +1091,10 @@ function updateAnimals(dt, world, time, simulate) {
       const n = counts.get(key) || 0;
       if (n >= 2500) continue;
       const sc = (pool.userData.scale || 1) * (a.size || 1);
-      _e.set(0, -a.angle, 0);
+      if (a.dead) _e.set(a.deadSide * 1.42, -a.angle, 0, 'YXZ');
+      else _e.set(0, -a.angle, 0, 'XYZ');
       _q.setFromEuler(_e);
-      _m4.compose(_p.set(a.x, a.kind === 'goose' ? 0.2 : a.kind === 'duck' ? -0.06 : 0, a.y), _q, _s.set(sc, sc, sc));
+      _m4.compose(_p.set(a.x, a.dead ? 0.2 * (a.size || 1) : a.kind === 'goose' ? 0.2 : a.kind === 'duck' ? -0.06 : 0, a.y), _q, _s.set(sc, sc, sc));
       _m4.toArray(pool.instanceMatrix.array, n * 16);
       pool.instanceColor.array[n * 3] = pool.instanceColor.array[n * 3 + 1] = pool.instanceColor.array[n * 3 + 2] = 1;
       counts.set(key, n + 1);

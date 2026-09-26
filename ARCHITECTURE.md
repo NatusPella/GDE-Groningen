@@ -50,7 +50,7 @@ frame then runs, in order:
 | Map data | `mapdata.js` (`GameMap`: grid-indexed `buildingsNear`, `roadsNear`, `waterNear`, `nearestRoadPoint`, `isOnBridge`, `escapeBuilding`, `groundHeightAt`), `elevation.js` (ring road heights, walls, open cuts), `util.js` |
 | Input | `input.js` (`isDown`, `wasPressed`, `axis`, `mouse`) |
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Anita) |
-| Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water) |
+| Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water; a car at zero health is `disabled` and burns until `explodeVehicle` makes it a wreck) |
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js`, `police.js` |
 | Game systems | `missions.js`, `garages.js` (Spuit & Klaar drive-ins), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
@@ -71,8 +71,10 @@ per map (`map.elev`):
 - `map.groundHeightAt(x, y, zHint)`: the highest surface at most ~1.1 m
   above `zHint` - road decks, cutting floors, embankment slopes, else the
   street. Everything that has a height keeps its own absolute value and
-  passes it as the hint: vehicles `v.z` (+ `v.pitch`, falling off an edge
-  goes ballistic, hard landings damage), the player and companion `gz`
+  passes it as the hint: vehicles `v.z` (+ `v.pitch`/`v.roll` from the
+  surface, falling off an edge or cresting a ramp fast goes ballistic, hard
+  landings damage; `susPitch`/`susRoll`/`susHeave` are the drawn-only body
+  springs), the player and companion `gz`
   (plus the jump height `z`; drops hurt), pedestrians `gz`, ragdolls.
 - Walls: retaining walls of cuttings (solid from inside, with a fence solid
   from the street), crash barriers on raised roads, abutments where an

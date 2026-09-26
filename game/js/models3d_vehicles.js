@@ -18,7 +18,7 @@ const WHEEL_R = 0.32;
 const WHEEL_W = 0.22;
 const HERO_LEN = 4.0;
 const HERO_WID = 1.65;
-const WRECKED_COLOR = 0x4a4a4a;
+const WRECKED_COLOR = 0x1f1d1b;
 
 const G_BODY = 0, G_GLASS = 1, G_LAMP = 2;
 const TRIM = 0x1f2022;
@@ -47,11 +47,14 @@ function toHex(c, fallback) {
   return fallback;
 }
 
-function vehicleMaterials() {
+// Glass is a see-through tint so the people inside show; a burnt-out
+// wreck gets sooty, matt paint and blind black windows instead.
+const GLASS_OPACITY = 0.5;
+function vehicleMaterials(wrecked = false) {
   return [
-    vcMaterial({ roughness: 0.5, metalness: 0.1 }),
-    vcMaterial({ roughness: 0.18, metalness: 0.3 }),
-    new THREE.MeshBasicMaterial({ vertexColors: true }),
+    vcMaterial(wrecked ? { roughness: 0.95, metalness: 0.05 } : { roughness: 0.5, metalness: 0.1 }),
+    wrecked ? vcMaterial({ roughness: 0.9, metalness: 0, color: 0x3a3a3a }) : vcMaterial({ roughness: 0.12, metalness: 0.35, transparent: true, opacity: GLASS_OPACITY, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ vertexColors: true, color: wrecked ? 0x202020 : 0xffffff }),
   ];
 }
 
@@ -68,7 +71,12 @@ function carWheelGeometry(r, w) {
     B.geo(axleZ(new THREE.CylinderGeometry(r, r, w, 12, 1)), null, TIRE);
     B.geo(axleZ(new THREE.CylinderGeometry(r * 0.64, r * 0.64, w + 0.02, 10, 1)), null, RIM);
     B.geo(axleZ(new THREE.CylinderGeometry(r * 0.18, r * 0.18, w + 0.05, 6, 1)), null, 0x6a6d70);
-    for (let k = 0; k < 3; k++) B.box(0, 0, 0, r * 1.2, r * 0.12, w + 0.035, 0x6a6d70, 0, 0, 0, (k / 3) * Math.PI);
+    // five radial spokes (72 deg symmetry; see SPIN_STEP) plus one dark lug so the roll reads
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * Math.PI * 2;
+      B.box(Math.cos(a) * r * 0.36, Math.sin(a) * r * 0.36, 0, r * 0.5, r * 0.13, w + 0.035, 0x5c5f62, 0, 0, 0, a);
+    }
+    B.box(r * 0.8, 0, 0, r * 0.2, r * 0.22, w + 0.012, 0x3a3c3e);
     return B.build();
   });
 }
@@ -276,7 +284,7 @@ function shadeHex(hex, f) {
 function assembleCar(type, L, W, paint, { police = false, ambulance = false, wrecked = false, wheelR = WHEEL_R } = {}) {
   const color = wrecked ? WRECKED_COLOR : paint;
   const geo = cached(`car|${type}|${L}|${W}|${color}|${police}|${ambulance}`, () => buildCarGeometry(type, L, W, color, { police, ambulance, wheelR }));
-  const mats = vehicleMaterials();
+  const mats = vehicleMaterials(wrecked);
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
@@ -286,6 +294,7 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   const wheels = [];
   for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - WHEEL_W / 2 - 0.04), wheels);
   group.userData.wheels = wheels;
+  group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = wheelR;
   if (police || ambulance) {
     const barY = P.roof + (ambulance ? 0.07 : 0.14);
@@ -411,6 +420,7 @@ function buildBikeMesh(v) {
   addWheel(group, wgeo, mats[0], -wb, r, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
+  group.userData.spinStep = 0.34; // 4 spoke bars: 45 deg symmetry
 
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
   const hipY = fat ? 0.93 : 1.02;
@@ -424,15 +434,29 @@ function buildBikeMesh(v) {
 function buildScooterGeometry(color) {
   return cached(`step|${color}`, () => {
     const B = new GeoBuilder(3);
-    B.box(-0.05, 0.13, 0, 0.72, 0.045, 0.16, color);
-    B.box(-0.05, 0.155, 0, 0.66, 0.008, 0.13, 0x2a2a2b);
-    B.geo(tubeGeometry([0.3, 0.13, 0], [0.42, 0.11, 0], 0.02, 0.02, 5), null, color);
-    B.geo(tubeGeometry([0.42, 0.11, 0], [0.36, 1.03, 0], 0.024, 0.02, 6), null, color);
-    B.geo(tubeGeometry([0.36, 1.03, -0.24], [0.36, 1.03, 0.24], 0.015, 0.015, 5), null, 0x2a2a2b);
-    for (const s of [1, -1]) B.geo(tubeGeometry([0.36, 1.03, s * 0.17], [0.36, 1.03, s * 0.25], 0.02, 0.02, 5), null, 0x1b1b1c);
-    B.box(0.405, 0.4, 0, 0.03, 0.05, 0.06, HEADLAMP, G_LAMP);
-    B.box(-0.42, 0.2, 0, 0.12, 0.02, 0.12, color, 0, 0, 0, 0.3);
-    B.box(-0.47, 0.22, 0, 0.012, 0.025, 0.06, TAIL, G_LAMP);
+    // deck with the battery pack slung underneath and grip tape on top
+    B.box(-0.04, 0.13, 0, 0.78, 0.05, 0.19, color);
+    B.box(-0.04, 0.095, 0, 0.62, 0.05, 0.15, 0x26272a);
+    B.box(-0.06, 0.158, 0, 0.64, 0.008, 0.155, 0x1d1d1e);
+    // steering neck and a thick stem
+    B.geo(tubeGeometry([0.3, 0.14, 0], [0.43, 0.12, 0], 0.028, 0.026, 6), null, color);
+    B.geo(tubeGeometry([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8), null, color);
+    B.box(0.43, 0.2, 0, 0.06, 0.12, 0.05, 0x2a2a2b);
+    B.geo(tubeGeometry([0.43, 0.2, 0.03], [0.42, 0.11, 0.035], 0.012, 0.012, 4), null, 0x8a8e92);
+    B.geo(tubeGeometry([0.43, 0.2, -0.03], [0.42, 0.11, -0.035], 0.012, 0.012, 4), null, 0x8a8e92);
+    // bars, grips, the little display and a bell
+    B.geo(tubeGeometry([0.37, 1.03, -0.25], [0.37, 1.03, 0.25], 0.016, 0.016, 6), null, 0x2a2a2b);
+    for (const s of [1, -1]) B.geo(tubeGeometry([0.37, 1.03, s * 0.17], [0.37, 1.03, s * 0.26], 0.022, 0.022, 6), null, 0x1b1b1c);
+    B.box(0.37, 1.055, 0, 0.07, 0.025, 0.1, 0x1b1b1c);
+    B.box(0.35, 1.07, 0, 0.012, 0.018, 0.07, 0x5fd0e0, G_LAMP);
+    B.geo(new THREE.CylinderGeometry(0.018, 0.022, 0.02, 8), composeMatrix(0.37, 1.05, -0.13), 0xc8cbcf);
+    B.box(0.405, 0.42, 0, 0.035, 0.05, 0.07, HEADLAMP, G_LAMP);
+    // fenders over both wheels, tail light on the rear one, kickstand
+    const fender = new THREE.TorusGeometry(0.13, 0.024, 3, 8, Math.PI * 0.6);
+    B.geo(fender.clone(), composeMatrix(0.42, 0.11, 0, 0, 0, Math.PI * 0.25), color);
+    B.geo(fender, composeMatrix(-0.43, 0.11, 0, 0, 0, Math.PI * 0.15), color);
+    B.box(-0.52, 0.2, 0, 0.012, 0.025, 0.07, TAIL, G_LAMP);
+    B.geo(tubeGeometry([-0.14, 0.09, -0.08], [-0.26, 0.01, -0.13], 0.01, 0.01, 4), null, 0x2a2a2b);
     return B.build();
   });
 }
@@ -446,14 +470,19 @@ function buildScooterMesh(v) {
   const wgeo = bikeWheelGeometry(r, 0.035, false);
   const wheels = [];
   addWheel(group, wgeo, mats[0], 0.42, r, 0, wheels);
-  addWheel(group, wgeo, mats[0], -0.42, r, 0, wheels);
+  addWheel(group, wgeo, mats[0], -0.43, r, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
+  group.userData.spinStep = 0.28; // 5 spoke bars: 36 deg symmetry
+  // standing rider: one foot forward on the deck, the other behind, a slight
+  // forward lean with both hands on the bars
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
-  rider.position.set(-0.08, 0.155, 0);
-  poseRider(rider, 0, 0.66, -0.03);
-  rider.userData.legL.rotation.z = 0.12;
-  rider.userData.legR.rotation.z = -0.1;
+  rider.position.set(-0.1, 0.162, 0);
+  poseRider(rider, 0, 0.7, -0.07);
+  rider.userData.legL.rotation.z = 0.2;
+  rider.userData.legR.rotation.z = -0.16;
+  rider.userData.legL.position.z *= 0.6;
+  rider.userData.legR.position.z *= 0.6;
   group.add(rider);
   if (v.isPolice) {
     const lamps = [];
@@ -571,7 +600,7 @@ function buildBusMesh(v) {
   const fwX = hl - 2.7, mwX = x0f + 1.0;
   const rwX = -hl * 0.78 - jointX;
   const key = `bus|${len}|${wid}|${!!v.wrecked}`;
-  const mats = vehicleMaterials();
+  const mats = vehicleMaterials(!!v.wrecked);
 
   const frontGeo = cached(key + '|f', () => {
     const B = new GeoBuilder(3);
@@ -600,6 +629,7 @@ function buildBusMesh(v) {
   for (const s of [1, -1]) addWheel(rear, wgeo, mats[0], rwX, BUS_WHEEL_R, s * wz, wheels);
 
   group.userData.wheels = wheels;
+  group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = BUS_WHEEL_R;
   group.userData.busRear = rear;
   group.userData.busSections = { frontLen, frontX, rearLen, rearX };
@@ -755,14 +785,29 @@ function buildBoatMesh(v) {
 
 // --- wheel spin ---------------------------------------------------------------
 
-// Rolls every wheel by the distance travelled this frame; bike riders pedal
-// in step. No-op for meshes without userData.wheels (boats).
-export function updateVehicleWheelSpin(mesh, speed, dt) {
+// Rolls every wheel by the distance travelled this frame and turns the front
+// wheels with the steering; bike riders pedal in step. The drawn roll per
+// frame is capped below half the spoke spacing, so fast wheels keep turning
+// forwards instead of strobing still or backwards (wagon-wheel effect).
+// No-op for meshes without userData.wheels (boats).
+const SPIN_STEP = 0.5;
+const MAX_STEER_ANGLE = 0.5;
+export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
   const ud = mesh.userData;
   const wheels = ud.wheels;
   if (!wheels || !wheels.length) return;
   const delta = (speed / ud.wheelRadius) * dt;
-  for (const w of wheels) w.rotation.z -= delta;
+  const cap = ud.spinStep || SPIN_STEP;
+  const shown = Math.max(-cap, Math.min(cap, delta));
+  for (const w of wheels) w.rotation.z -= shown;
+  const fw = ud.frontWheels;
+  if (fw) {
+    const a = -steer * MAX_STEER_ANGLE;
+    for (const w of fw) {
+      if (w.rotation.order !== 'YZX') w.rotation.order = 'YZX';
+      w.rotation.y += (a - w.rotation.y) * Math.min(1, dt * 14);
+    }
+  }
   const rl = ud.riderLegs;
   if (rl) {
     // cranks turn the same way as the wheels (angle decreasing = forward)
@@ -1026,6 +1071,8 @@ function syncDamageMaterials(mesh, v) {
   const k = Math.min(1, v.damage.glass);
   mats[1].color.setScalar(1 - k * 0.3);
   mats[1].roughness = 0.18 + k * 0.5;
+  // crazed glass is harder to see through
+  if (mats[1].transparent) mats[1].opacity = GLASS_OPACITY + k * 0.4;
   mats[0].roughness = 0.5 + Math.min(1, v.damage.total / 3) * 0.25;
 }
 

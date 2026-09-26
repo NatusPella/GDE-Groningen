@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { UNLIT_LAMP } from './nightlights3d.js';
 
 // Sleeping parked cars (parkedcars.js) drawn as a handful of merged, static
 // meshes: every 64 m chunk bakes its cars into one geometry per material
@@ -41,6 +42,14 @@ function protoFor(v, buildActor) {
   const shadowMesh = actor.userData.shadow;
   actor.traverse((o) => {
     if (!o.isMesh || !o.visible) return;
+    // parked: lamp lenses unlit (index 2 is the vehicles' unshaded lamp material)
+    const lamp = Array.isArray(o.material) && o.material[2];
+    if (lamp && lamp.isMeshBasicMaterial && lamp.vertexColors) {
+      const dim = lamp.clone();
+      dim.color.setScalar(UNLIT_LAMP);
+      o.material = o.material.slice();
+      o.material[2] = dim;
+    }
     if (o.parent && o.parent !== actor && !o.parent.visible) return;
     const entry = { geo: o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, matrix: o.matrixWorld.clone(), material: o.material };
     (o === shadowMesh ? shadows : parts).push(entry);

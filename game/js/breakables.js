@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { reportImpact, markWreckedByPlayer, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
+import { reportImpact, disableVehicle, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
 import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 import { streamTreeProps } from './treeprops.js';
 import { streamTrafficLightProps } from './trafficlights.js';
@@ -147,13 +147,9 @@ function setCarVelocity(v, vx, vy) {
 }
 
 function damageCar(v, dmg) {
-  if (dmg <= 0 || v.wrecked) return;
+  if (dmg <= 0 || v.wrecked || v.disabled) return;
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
-  if (v.health <= 0) {
-    v.wrecked = true;
-    v.speed = 0;
-    if (v.driver === 'player') markWreckedByPlayer(v, world);
-  }
+  if (v.health <= 0) disableVehicle(v, v.driver === 'player', world);
 }
 
 function recordContact(v, x, y, nx, ny, impact, slide) {
@@ -375,6 +371,17 @@ function spawnBody(p, hit) {
     b.vx *= slide; b.vz *= slide;
     b.len = hh;
     obj.position.set(p.x, 0, p.y);
+  } else if (p.slide) {
+    // heavy: shoved along the ground with a scrape and a slow turn, no flight
+    const c = _box.getCenter(new THREE.Vector3());
+    inner.position.set(-c.x, -c.y, -c.z);
+    b.x = p.x + c.x; b.y = c.y; b.z = p.y + c.z;
+    b.vy = 0;
+    b.slide = true;
+    const hs = Math.hypot(b.vx, b.vz), cap = 9;
+    if (hs > cap) { b.vx *= cap / hs; b.vz *= cap / hs; }
+    b.w.set(0, (Math.random() - 0.5) * Math.min(3, hit.speed * 0.3), 0);
+    obj.position.set(b.x, b.y, b.z);
   } else {
     const c = _box.getCenter(new THREE.Vector3());
     inner.position.set(-c.x, -c.y, -c.z);
@@ -497,6 +504,26 @@ function stepTopple(b, dt) {
   b.obj.quaternion.setFromAxisAngle(b.axis, b.theta);
 }
 
+function stepSlide(b, dt) {
+  const ox = b.x, oz = b.z;
+  const f = Math.exp(-2.6 * dt);
+  b.vx *= f; b.vz *= f;
+  b.x += b.vx * dt; b.z += b.vz * dt;
+  if (insideBuilding(b.x, b.z)) { b.x = ox; b.z = oz; b.vx *= -0.2; b.vz *= -0.2; }
+  const wl = Math.abs(b.w.y);
+  if (wl > 1e-3) {
+    _q.setFromAxisAngle(_v2.set(0, 1, 0), b.w.y * dt);
+    b.q.premultiply(_q).normalize();
+    b.w.y *= f;
+  }
+  const sp = Math.hypot(b.vx, b.vz);
+  if (sp > 1.5 && Math.random() < dt * 6) audio(b.x, b.z, Math.min(0.5, sp / 16), b.p.material);
+  if (isInWater(world.map, b.x, b.z)) sinkBody(b);
+  if (sp < 0.05 && wl < 0.02) b.sleep = true;
+  b.obj.position.set(b.x, b.y, b.z);
+  b.obj.quaternion.copy(b.q);
+}
+
 function sinkBody(b) {
   world.particles.push({ kind: 'splash', x: b.x, y: b.z, until: world.time + 1.2 });
   b.life = Math.max(b.life, BODY_LIFE);
@@ -511,6 +538,7 @@ function updateBodies(dt) {
     b.life += dt;
     if (!b.sleep) {
       if (b.sinking) { b.y -= dt * 0.8; b.obj.position.y = b.y; }
+      else if (b.slide) stepSlide(b, dt);
       else if (b.topple) stepTopple(b, dt);
       else stepFree(b, dt);
     }
@@ -525,7 +553,7 @@ function updateBodies(dt) {
 function kickBodies() {
   const pl = world.player;
   for (const b of bodies) {
-    if (b.topple || b.mass > 150 || b.sinking || world.time < b.kickAt || b.y > 1.8) continue;
+    if (b.topple || (b.mass > 150 && !b.slide) || b.sinking || world.time < b.kickAt || b.y > 1.8) continue;
     for (const v of world.vehicles) {
       if (v.wrecked || v.isBoat) continue;
       const dx = v.x - pl.x, dy = v.y - pl.y;
@@ -540,6 +568,18 @@ function kickBodies() {
       const d = Math.sqrt(c.dist2) || 1;
       const nx = (b.x - c.x) / d, ny = (b.z - c.y) / d;
       const vx = fx * v.speed + v.driftX, vy = fy * v.speed + v.driftY;
+      if (b.slide) {
+        // shoved again: pushed ahead of the bumper, the car pays for it
+        const share = clamp(carKg(v) / (carKg(v) + b.mass), 0.3, 0.85);
+        b.vx = vx * share + nx * 0.8; b.vz = vy * share + ny * 0.8;
+        b.w.y += (Math.random() - 0.5) * 1.5;
+        b.sleep = false;
+        b.kickAt = world.time + 0.2;
+        if (b.life > BODY_LIFE - 4) b.life = BODY_LIFE - 4;
+        audio(b.x, b.z, Math.min(1, sp / 14), b.p.material);
+        setCarVelocity(v, vx * (1 - (1 - share) * 0.5), vy * (1 - (1 - share) * 0.5));
+        break;
+      }
       const k = clamp(1.4 - b.mass / 150, 0.5, 1.3);
       b.vx = vx * k + nx * 1.5; b.vz = vy * k + ny * 1.5;
       b.vy = Math.max(b.vy, 1 + sp * 0.15);

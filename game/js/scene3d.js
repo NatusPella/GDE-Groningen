@@ -38,6 +38,7 @@ import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
+import { spawnExplosionFx } from './fx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
@@ -418,7 +419,8 @@ function ensureDriverFigure(mesh, v, dist, deadline) {
   const seat = seatOffset(v, true);
   driver.position.set(seat.x, -SEATED_DROP, seat.z);
   driver.visible = false;
-  mesh.add(driver);
+  // on the body, so the driver sways with its springs
+  (mesh.userData.body || mesh).add(driver);
   mesh.userData.driverFigure = driver;
   const casters = mesh.userData.shadowCasters;
   const castNear = mesh.userData.castNear;
@@ -439,8 +441,9 @@ function seatOffset(v, driverSeat) {
 function placeSeated(personMesh, v, driverSeat) {
   const seat = seatOffset(v, driverSeat);
   const c = Math.cos(v.angle), sn = Math.sin(v.angle);
-  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : v.sinking ? v.sinking.z : v.z || 0) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
-  personMesh.rotation.set(0, -v.angle, 0);
+  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : v.sinking ? v.sinking.z : (v.z || 0) + (v.susHeave || 0)) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
+  personMesh.rotation.order = 'YZX';
+  personMesh.rotation.set(v.isBoat || v.sinking ? 0 : (v.roll || 0) + (v.susRoll || 0), -v.angle, v.isBoat || v.sinking ? 0 : (v.pitch || 0) + (v.susPitch || 0));
 }
 
 function buildPersonActor(shirt, skin, appearance) {
@@ -1299,8 +1302,19 @@ export function update3D(dt, world) {
     if (mesh) {
       mesh.position.set(v.x, v.isBoat ? WATER_Y : v.z || 0, v.y);
       mesh.rotation.y = -v.angle;
-      if (!v.sinking && !v.isBoat) { mesh.rotation.order = 'YZX'; mesh.rotation.z = v.pitch || 0; }
-      updateVehicleWheelSpin(mesh, v.speed, animDt);
+      if (!v.sinking && !v.isBoat) {
+        // terrain pitch/roll on the whole car, spring motion on the body only
+        const body = mesh.userData.body;
+        mesh.rotation.order = 'YZX';
+        mesh.rotation.z = (v.pitch || 0) + (body ? 0 : (v.susPitch || 0) * 0.6);
+        mesh.rotation.x = (v.roll || 0) + (body ? 0 : (v.susRoll || 0) * 0.6);
+        if (body) {
+          body.rotation.z = v.susPitch || 0;
+          body.rotation.x = v.susRoll || 0;
+          body.position.y = v.susHeave || 0;
+        }
+      }
+      updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
       if (v.isBoat) animateBoat(mesh, v, world.time);
       else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
@@ -1322,10 +1336,12 @@ export function update3D(dt, world) {
     }
     if (vehicleJustWrecked(v)) {
       v.wreckedAt = world.time;
-      const boom = buildVehicleExplosionMesh3D();
+      const small = v.isBike || v.isScooter;
+      const boom = buildVehicleExplosionMesh3D(small ? 0.35 : v.isBus ? 1.5 : 1);
       boom.position.set(v.x, 0.2 + (v.z || 0), v.y);
       scene.add(boom);
       vehicleExplosionEffects.push(boom);
+      if (!small && Math.hypot(v.x - player.x, v.y - player.y) < 120) spawnExplosionFx(v.x, v.y, v.z || 0, v.model.color, v.isBus ? 1.4 : 1);
     }
     if (vehicleNeedsFireEffect(v, world.time)) {
       fireSeenIds.add(v.id);
@@ -1335,8 +1351,11 @@ export function update3D(dt, world) {
         scene.add(fire);
         vehicleFireMeshes.set(v.id, fire);
       }
-      fire.position.set(v.x, 0.4 + (v.z || 0), v.y);
-      fire.scale.setScalar(v.wrecked ? 2.4 : 1);
+      // a damaged car burns from the engine bay, on top of the bonnet
+      const bay = v.wrecked || v.isBus ? 0 : v.halfLen * 0.55;
+      fire.position.set(v.x + Math.cos(v.angle) * bay, (v.wrecked ? 0.4 : 0.75) + (v.z || 0), v.y + Math.sin(v.angle) * bay);
+      // a disabled car's fire grows until it blows
+      fire.scale.setScalar(v.wrecked ? 2.4 : v.disabled ? 1.5 + 1.3 * Math.max(0, Math.min(1, 1 - (v.burnLeft || 0) / 10)) : 1);
       updateVehicleFireMesh3D(fire, animDt);
     }
   }

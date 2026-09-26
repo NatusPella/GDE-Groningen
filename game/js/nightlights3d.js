@@ -439,9 +439,14 @@ function lampMaterialsOf(mesh) {
   return mats;
 }
 
+// Only a car someone is driving has its lights on; parked, abandoned and
+// burning ones sit dark (their lamp lenses dimmed, day and night).
 function vehicleLightsOn(v) {
-  return !v.isBoat && !v.wrecked && (v.driver === 'player' || !v.isHeroCar);
+  if (v.isBoat || v.wrecked || v.disabled || v.parked || v.sinking) return false;
+  return v.driver === 'player' || !!v.road || !!v.racer || (v.isPolice && !v.hijacked);
 }
+
+export const UNLIT_LAMP = 0.32;
 
 function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
   const glow = 1 + lightsOn * 5;
@@ -452,7 +457,7 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
     if (!mesh) continue;
     const on = vehicleLightsOn(v);
     for (const m of lampMaterialsOf(mesh)) {
-      const k = on ? glow : 1;
+      const k = on ? glow : v.wrecked ? 0.12 : UNLIT_LAMP;
       if (m.color.r !== k) m.color.setScalar(k);
     }
     if (!on || lightsOn < 0.02 || n >= CONE_MAX) continue;
