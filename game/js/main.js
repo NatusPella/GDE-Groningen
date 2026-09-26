@@ -1,3 +1,4 @@
+import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
 import { Input } from './input.js';
 import { Player } from './player.js';
@@ -8,6 +9,7 @@ import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { initMissions, updateMissions } from './missions.js';
+import { initStory, updateStory } from './story.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
@@ -167,6 +169,7 @@ async function boot() {
   initPigeonMode(world);
   initPigeonSpots(world);
   initSideJobs(world);
+  initStory(world);
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
@@ -174,7 +177,7 @@ async function boot() {
   await yieldToPaint();
   // mouse-look: clicking the game captures the mouse; Esc releases it (the
   // browser swallows that Esc keypress), which opens the pause menu instead
-  const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen();
+  const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
   document.addEventListener('pointerlockchange', () => {
     if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
@@ -186,6 +189,8 @@ async function boot() {
 
   window.__debug = { player, map, input, world };
   initAchievementTracker(world);
+  if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
+  if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   await finishLoading();
   await waitForStart(world);
   document.body.classList.add('game-started');
@@ -215,7 +220,9 @@ async function boot() {
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1));
-    if (!world.paused) updateGameplay(gameDt);
+    // dev mode time scale (storydev.js): whole extra gameplay steps per frame
+    const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
+    if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
     updateAudio(dt, world);
     probe.mark('audio');
     updateStreetSigns(dt, world, getScene());
@@ -310,7 +317,8 @@ async function boot() {
       updateHoreca(dt, world);
       updateShops(dt, world);
       updateFlitspaal(dt, world);
-    }
+    } else updateMissions(dt, world);
+    updateStory(dt, world);
     updateSideJobs(dt, world);
     updateWeather(dt, world);
     updateDayNight(dt, world);

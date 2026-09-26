@@ -1706,6 +1706,13 @@ export function isPigeonActive() {
   return active;
 }
 
+// Read-only flight state for missions and the story (spotting targets,
+// poop score of the current flight).
+export function getPigeonFlight() {
+  if (!active) return null;
+  return { x: P.x, y: P.y, z: P.z, ground: surfaceAt(P.x, P.y, false).h, mode: P.mode, score, intro: !!intro };
+}
+
 export { buildBird as buildPigeonBird, poseBird as posePigeonBird };
 
 // Starts the pigeon activity. With a spot ({ x, y }: where a pigeon sits near

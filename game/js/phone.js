@@ -3,6 +3,7 @@ import { getMissionList, getNextMission, trackMission } from './missions.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { saveGame } from './savegame.js';
 import { setUserWaypoint } from './routing.js';
+import { storyFlag } from './story.js';
 import { getHeroCar, getClockText } from './hud_panel.js';
 import { getGarageList, deliverOwnedVehicle, locateOwnedVehicle, whereText } from './ownedvehicles.js';
 import { initGarageStyles } from './garageui.js';
@@ -56,6 +57,7 @@ function contacts(w) {
     { id: 'berend', name: 'Bommen Berend', sub: 'Opdrachtgever', talk: berendTalk },
     { id: 'garage', name: 'Garage Knalpot', sub: 'Henk, auto’s & excuses', talk: garageTalk },
     { id: 'mam', name: 'Mam', sub: 'Thuis', talk: mamTalk },
+    ...(storyFlag('jelle') ? [{ id: 'jelle', name: 'Jelle Terpstra', sub: 'De Fryske Snackkening', talk: jelleTalk }] : []),
   ];
 }
 
@@ -111,6 +113,16 @@ function garageTalk(w) {
         setOpen(false);
       },
     }],
+  };
+}
+
+function jelleTalk() {
+  return {
+    line: pick([
+      'Moai! Jimme hawwe myn kaartsje fûn? Tige tank foar it wachtsjen.',
+      'Grunn is in aardich grut doarp. Mar wat Grunn kin, kin Fryslân better.',
+      'De Eierbal? Nea fan heard. Oant sjen op Gronings Ontzet!',
+    ]),
   };
 }
 
@@ -363,7 +375,7 @@ function render() {
       `<span class="ph-rowtext"><b>${esc(c.name)}</b><small>${esc(c.sub)}</small></span></button>`).join('')}</div>`;
   } else if (st.screen === 'missies') {
     html = header('Missies') + `<div class="ph-list">${getMissionList().map((m, i) =>
-      `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-rowtext"><b>${esc(m.label)}</b>` +
+      `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-rowtext"><b>${m.code ? esc(m.code) + ' · ' : ''}${esc(m.label)}</b>` +
       `<small>€${m.reward}</small></span><span class="ph-chip" data-status="${m.status}">${STATUS_LABEL[m.status]}</span></button>`).join('')}</div>` +
       '<div class="ph-foot">Enter: route erheen</div>';
   } else if (st.screen === 'voertuigen') {

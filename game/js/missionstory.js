@@ -29,6 +29,8 @@ const NPC = {
   geert: { name: 'Geert', shirt: 0xe8e3d6, skin: SKIN.woodLight, variant: 'male', seed: 1523 },
   trijntje: { name: 'Oma Trijntje', shirt: 0x5c6f8a, skin: SKIN.woodLight, variant: 'female', seed: 195, hairStyle: 'bun' },
   klaas: { name: 'Kapitein Klaas', shirt: 0x1f2f4a, skin: SKIN.woodDark, variant: 'male', seed: 1659 },
+  sjabbe: { name: 'Sjabbe', shirt: 0x6b5a2e, skin: SKIN.woodMid, variant: 'male', seed: 811 },
+  bert: { name: 'Duivenmelker Bert', shirt: 0x56709e, skin: SKIN.woodLight, variant: 'male', seed: 2203 },
 };
 
 // N = the mission's NPC, T = Tammo, A = Anita. `ask` is the NPC line kept for
@@ -51,6 +53,7 @@ const STORY = [
       ['N', 'Hij staat er nog. Geen kras. Ik weet even niet wat ik moet zeggen.'],
       ['A', 'Probeer eens: dank je, Berend.'],
       ['N', '…Dank je. Niet tegen de buren zeggen. Ik heb al sinds 1672 een reputatie.'],
+      ['N', 'Er wou hier trouwens al een Fries m\'n bakkie kopen. Contant, uit een klomp.'],
       ['T', 'Wij zeggen nooit wat. Tegen elkaar al helemaal niet.'],
     ],
     fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Welke Berend? Welk bakkie?']],
@@ -72,6 +75,8 @@ const STORY = [
       ['N', 'Tienduizend kijkers! De Martinitoren is trending!'],
       ['T', 'Zeg tegen de chat dat ik niet op de foto wil.'],
       ['A', 'Te laat. Je pet heeft al meer volgers dan jij.'],
+      ['N', 'Wacht, wie is "JelleWâld"? "Moai stedsje. Foar in wykein." Wat is dat voor taal?'],
+      ['A', 'Fries. Die zie je hier vaker dan je denkt.'],
       ['T', 'De pet blijft.'],
     ],
     fail: [['A', 'Saai. Zelfs de duiven gaan weg.'], ['T', 'Die zijn gewoon naar de Vismarkt.']],
@@ -89,6 +94,7 @@ const STORY = [
     outroNpc: true,
     outro: [
       ['N', 'Record! Jullie komen op het bierviltje! Achterkant, maar toch.'],
+      ['N', 'Tweede werd "Snits Snel". Gesponsord door Us Mem Snacks. Nooit van gehoord.'],
       ['A', 'Niet slecht voor drie weken studie.'],
       ['T', 'Ik heb veel geleerd, toen.'],
       ['A', 'Zoals?'],
@@ -199,6 +205,73 @@ const STORY = [
       ['T', 'Wij tweeën tegen Grunn. En daarna een eierbal.'],
     ],
     fail: [['A', 'Gids zijn is moeilijker dan het lijkt.'], ['T', 'Links water. Rechts ook. Onder ons: fietsen.']],
+  },
+  // 8: H2 Pinnen met de hele automaat
+  {
+    npc: 'sjabbe', outroPose: 'hips', ask: 4,
+    intro: [
+      ['A', 'Daar staat hij. Een auto met een hele pinautomaat achterin.'],
+      ['T', 'Die van gisteren? Ik dacht dat we die hadden teruggebracht.'],
+      ['A', 'We hebben hem verplaatst, Tammo. Dat is iets anders.'],
+      ['T', 'En nu?'],
+      ['A', 'Naar Pand & Poen. Sjabbe koopt alles. Echt alles.'],
+      ['T', 'Ook een automaat met een alarm erin?'],
+      ['A', '…Welk alarm?'],
+    ],
+    outroNpc: true,
+    outro: [
+      ['N', 'Een pinautomaat. Met verse lak. Die had ik nog niet.'],
+      ['N', 'Vierhonderd. Meer is hij niet waard, zonder pasjes.'],
+      ['A', 'Vierhonderd? Daar koop je nog geen halve foodtruck van.'],
+      ['T', 'Foodtruck?'],
+      ['A', 'De Fjord Frituur. Vier wielen, geen kenteken. Mijn droom, Tammo.'],
+      ['N', 'Te weinig voor jullie droom. Echt geld ligt in het museum. De Gouden Eierbal, achttien karaat.'],
+      ['T', 'Dat is toch gewoon een verhaaltje?'],
+      ['A', 'Achttien karaat verhaaltje.'],
+    ],
+    fail: [['A', 'Die automaat pint nu voor de pliesie.'], ['T', 'Hopelijk rekenen ze niks.']],
+  },
+  // 9: H4 Duif op verkenning
+  {
+    npc: 'bert', outroPose: 'hips', ask: 0,
+    intro: [
+      ['N', 'Jullie willen het museum bekijken zonder dat iemand jullie ziet? Neem een duif.'],
+      ['N', 'Niemand kijkt ooit naar een duif. Alleen als hij op je jas poept.'],
+      ['T', 'Hoe word je een duif?'],
+      ['N', 'Diep in de ogen kieken. De rest gaat vanzelf.'],
+      ['A', 'Drie camera\'s en twee bewakers. Allemaal op de foto, Tammo.'],
+      ['T', 'En als ik op een bewaker poep?'],
+      ['A', 'Dan heet het afleiding.'],
+    ],
+    outroNpc: false,
+    outro: [
+      ['A', 'Drie camera\'s, twee bewakers. En een stroomkast achter de fietsenstalling.'],
+      ['T', 'En een zwarte trekker bij de achteringang. Met een limousine erachter geplakt.'],
+      ['A', 'Een trekker-limo? In Grunn?'],
+      ['T', 'Met vlaggetjes. Met van die rode blaadjes erop.'],
+      ['A', 'Dat is geen boer. Dat is een Fries.'],
+    ],
+    fail: [['T', 'Ik zag alleen maar brood.'], ['A', 'Je was een duif, geen toerist.']],
+  },
+  // 10: H6 De Museumkraak
+  {
+    npc: null, ask: 4,
+    intro: [
+      ['A', 'Het is donker, de camera\'s weten we, de stroomkast weten we.'],
+      ['T', 'En ik heb een zaklamp.'],
+      ['A', 'Die blijft uit, Tammo.'],
+      ['T', 'Waarom neem ik hem dan mee?'],
+      ['A', 'Voor de sfeer. Eerst de stroomkast, dan de vitrine. En niemand raakt iets aan.'],
+    ],
+    outroNpc: false,
+    outro: [
+      ['A', '"Tige tank." Hij bedankt ons. Hij. Bedankt. Ons.'],
+      ['T', 'Ik vind het wel beleefd, eigenlijk.'],
+      ['A', 'Tammo.'],
+      ['T', 'Dus we zijn inbrekers zonder buit.'],
+      ['A', 'Wandelaars. Met een zaklamp.'],
+    ],
+    fail: [['A', 'Nou zien ze ons wél.'], ['T', 'Ik zei toch: zaklamp aan.']],
   },
 ];
 

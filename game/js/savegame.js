@@ -6,6 +6,7 @@ import { getShopSave, applyShopSave } from './shops.js';
 import { getAchievementSaveData, applyAchievementSaveData } from './achievements.js';
 import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
+import { getStorySave, applyStorySave } from './story.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
@@ -71,6 +72,7 @@ function serialize(w) {
     character: p.character,
     pos,
     missions: getMissionProgress(),
+    story: getStorySave(),
     visitedLandmarks: [...(w.visitedLandmarks instanceof Set ? w.visitedLandmarks : [])],
     shops: getShopSave(),
     prestaties: getAchievementSaveData(),
@@ -104,7 +106,7 @@ function stateSignature(w) {
     const sh = getShopSave();
     const vehicles = (sh.vehicles || []).map((o) => [o.key, o.color, o.upgrades, !!o.lost]);
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
-      getMissionProgress(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(),
+      getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(),
       w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone]);
   } catch (e) {
     return lastSig;
@@ -173,6 +175,7 @@ export function applySave(w, d) {
     w.wantedDecayTimer = 0;
     w.pendingRespawn = null;
     setMissionProgress(w, d.missions);
+    applyStorySave(d.story);
     w.visitedLandmarks = new Set(Array.isArray(d.visitedLandmarks) ? d.visitedLandmarks.filter((s) => typeof s === 'string') : []);
     applyShopSave(w, d.shops);
     applyAchievementSaveData(d.prestaties);

@@ -1,7 +1,7 @@
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp } from './util.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
 import { setUserWaypoint, findWalkPath } from './routing.js';
-import { playMissionIntro, playMissionFailed, isCinematicActive } from './cinematics.js';
+import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail } from './missionstory.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
@@ -9,7 +9,11 @@ import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers
 import { rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro } from './rondvaartchase.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
-import { getShopsForRender, getOwnedEntries, SHOP_TYPES } from './shops.js';
+import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState } from './shops.js';
+import { getGaragesForRender, garageInside } from './garages.js';
+import { startPigeonMode, stopPigeonMode, getPigeonFlight } from './pigeonmode.js';
+import { getPigeonSpotsForRender } from './pigeonspots.js';
+import { MISSION_IDS, MISSION_STORY_ORDER, missionCode } from './storyarc.js';
 import { requestRespawn } from './world.js';
 import { getMissionRecord } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -96,6 +100,7 @@ function buildDefs(world) {
       intro: ['KEI-week: eerstejaars op fietsen met polsbandjes denken dat ze Grunn al kennen.', 'Eén rondje door de binnenstad, op de fiets, tegen vier eerstejaars. Alleen het podium telt, en niet stoppen voor gratis tasjes.'],
       outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
       race: 'kei',
+      requires: 'bike',
       timeLimit: 35,
       checkpointBonus: 20,
       reward: 350,
@@ -173,6 +178,65 @@ function buildDefs(world) {
       boatAt: berth.boat,
       waypoints: rondvaartWaypoints(),
     },
+    // --- Kop story missions (storyarc.js H2, H4, H6): 'stages' missions,
+    // a list of small objectives run by the stage runner below
+    {
+      type: 'stages',
+      label: 'Pinnen met de hele automaat',
+      intro: ['De pinautomaat van gisteren ligt nog achterin een auto in de Herestraat.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan verzilveren bij Pand & Poen.'],
+      outro: 'Sjabbe telt vierhonderd euro uit. En hij vertelt over het museum.',
+      timeLimit: null,
+      reward: 400,
+      vehicle: 'car',
+      start: drive(229, 402),
+      stages: [
+        { kind: 'board', label: 'Stap in de auto met de automaat', say: 'Instappen: de automaat ligt achterin. Hij piept een beetje.' },
+        { kind: 'garage', stars: 2, target: { garage: true }, label: 'Naar Spuit & Klaar voor een nieuwe kleur', say: 'Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
+        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', stop: 1.2, label: 'Naar Pand & Poen', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
+      ],
+    },
+    {
+      type: 'stages',
+      label: 'Duif op verkenning',
+      intro: ['Bij het Stationsplein leent duivenmelker Bert je een duif.', 'Vlieg naar het Groninger Museum en zweef boven drie camera\'s en twee bewakers: dan staan ze op de foto.'],
+      outro: 'Drie camera\'s, twee bewakers en een zwarte trekker-limo bij de achteringang.',
+      timeLimit: 170,
+      reward: 200,
+      start: walk(-58, 890),
+      stages: [
+        {
+          kind: 'pigeon', spot: 'station', label: 'Spot het museum van boven', say: 'Vlieg naar het museum. Zweef boven elk doelwit tot de foto klikt.',
+          targets: [
+            { landmark: 'Groninger Museum', off: [-30, -22], label: 'Camera bij de noordgevel' },
+            { landmark: 'Groninger Museum', off: [34, -8], label: 'Camera op de gouden toren' },
+            { landmark: 'Groninger Museum', off: [18, 34], label: 'Camera bij de brug' },
+            { landmark: 'Groninger Museum', off: [-12, 52], label: 'Bewaker bij de ingang' },
+            { landmark: 'Groninger Museum', off: [-46, 14], label: 'Bewaker bij de achteringang' },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'stages',
+      label: 'De Museumkraak',
+      intro: ['Nacht. Via het Verbindingskanaal naar de achterkant van het Groninger Museum.', 'Eerst de stroomkast, dan de vitrine. En daarna wegwezen, het liefst over het water.'],
+      outro: 'De vitrine was leeg. Iemand was ze voor.',
+      timeLimit: null,
+      reward: 150,
+      requires: ['heist', 'night'],
+      start: walk(18, 736),
+      stages: [
+        { kind: 'goto', target: { landmark: 'Groninger Museum', off: [-40, 10], snap: 'walk' }, mode: 'any', label: 'Naar de achteringang', say: 'Naar de achteringang. Rustig aan, blijf uit het licht.' },
+        { kind: 'hold', target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, time: 4, mode: 'foot', label: 'Camera\'s uit bij de stroomkast', say: 'De stroomkast. Blijf even staan: de camera\'s gaan één voor één uit.' },
+        { kind: 'goto', target: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine.' },
+        {
+          kind: 'scene', label: 'De vitrine',
+          kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
+          lines: [['A', 'Hij is… leeg.'], ['T', 'Misschien is hij even naar de wc.'], ['A', 'Er ligt een kaartje. "Tige tank! – W."'], ['T', 'W? Wie is W?'], ['A', 'Iemand die Fries schrijft. En die eerder was dan wij.']],
+        },
+        { kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Alarm! Drie sterren. Wegwezen, over het water als het kan.' },
+      ],
+    },
   ];
 }
 
@@ -181,6 +245,7 @@ let chain = null;
 export function initMissions(world) {
   worldRef = world;
   const defs = buildDefs(world);
+  defs.forEach((d, i) => { d.id = MISSION_IDS[i]; });
   chain = {
     defs,
     index: 0,
@@ -214,8 +279,10 @@ export function failActiveMission(world, reason, bannerReason) {
   if (!chain || chain.phase !== 'active') return false;
   const def = chain.defs[chain.index];
   playMissionFailed(world, { reason: bannerReason || reason, stats: runStats(world, def) }, false);
+  const i = chain.index;
   endInFailure(world, reason);
   syncPub(world);
+  hooks.failed(world, i);
   return true;
 }
 
@@ -235,7 +302,7 @@ export function getMissionList() {
   if (!chain) return [];
   const w = worldRef;
   return chain.defs.map((d, i) => ({
-    index: i, label: d.label, type: d.type, reward: d.reward, status: statusOf(i), start: { x: d.start.x, y: d.start.y },
+    index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), start: { x: d.start.x, y: d.start.y },
     needs: w ? requirementText(w, d) : null,
   }));
 }
@@ -245,6 +312,26 @@ export function getMissionList() {
 // car on your own name for the sponsored ring race.
 
 const REQUIREMENTS = {
+  bike: {
+    met: () => getOwnedEntries().some((o) => o.spec && o.spec.kind === 'bike'),
+    shop: 'fietsen',
+    text: (shop) => `De KEI-weekrace is een fietsrace: alleen wie een eigen fiets heeft, mag starten. Koop er een bij ${shop}.`,
+  },
+  heist: {
+    met: () => { const st = storyShopState(); return st.incognito || st.rental; },
+    shop: ['kleding', 'boot'],
+    text: (shop) => `Voor de kraak heb je zwart incognito nodig (Stoer & Stads) of een huurboot (Bootje Huren). Dichtstbij: ${shop}.`,
+  },
+  night: {
+    met: (w) => isNight(w),
+    garage: true,
+    text: () => 'Kraken doe je in het donker. Wacht bij een garage tot het avond is (na 21:00).',
+  },
+  boat: {
+    met: () => storyShopState().rental,
+    shop: 'boot',
+    text: (shop) => `Hiervoor heb je een eigen boot nodig. Huur er een bij ${shop}.`,
+  },
   weapon: {
     met: (w) => ['pistol', 'uzi', 'shotgun'].some((k) => (w.ammo[k] || 0) > 0),
     shop: 'wapens',
@@ -259,42 +346,144 @@ const REQUIREMENTS = {
 
 let worldRef = null;
 
+// story.js plugs in here: waived requirements (a skipped gate), and what
+// happens after a mission passes, fails or hits a gate.
+const hooks = {
+  waived: () => false,
+  passed: () => {},
+  failed: () => {},
+  gated: () => {},
+};
+
+export function setMissionHooks(h) {
+  Object.assign(hooks, h);
+}
+
+export function isNight(w) {
+  const h = w.dayNight ? w.dayNight.hour : w.clock;
+  return Number.isFinite(h) && (h >= 21 || h < 5);
+}
+
+const reqList = (def) => (Array.isArray(def.requires) ? def.requires : def.requires ? [def.requires] : []);
+
+// First requirement of def the player doesn't meet yet (key), or null.
+export function unmetRequirement(w, def) {
+  for (const key of reqList(def)) {
+    const req = REQUIREMENTS[key];
+    if (req && !req.met(w) && !hooks.waived(key)) return key;
+  }
+  return null;
+}
+
+export function requirementMet(w, key) {
+  const req = REQUIREMENTS[key];
+  return !req || req.met(w) || hooks.waived(key);
+}
+
+// Where to get requirement key: nearest shop of its type(s), or a garage.
+export function requirementPlace(w, key) {
+  const req = REQUIREMENTS[key];
+  if (!req) return null;
+  if (req.garage) {
+    let best = null, bd = Infinity;
+    for (const g of getGaragesForRender()) {
+      const d = dist(g.x, g.y, w.player.x, w.player.y);
+      if (d < bd) { bd = d; best = g; }
+    }
+    return best ? { x: best.x, y: best.y, name: best.name } : null;
+  }
+  return nearestShopOf(w, req.shop);
+}
+
 function nearestShopOf(w, type) {
+  const types = Array.isArray(type) ? type : [type];
   let best = null, bd = Infinity;
   for (const s of getShopsForRender()) {
-    if (s.type !== type) continue;
+    if (!types.includes(s.type)) continue;
     const d = dist(s.x, s.y, w.player.x, w.player.y);
     if (d < bd) { bd = d; best = s; }
   }
   return best;
 }
 
-function requirementText(w, def) {
-  const req = def.requires && REQUIREMENTS[def.requires];
-  if (!req || req.met(w)) return null;
-  const shop = nearestShopOf(w, req.shop);
-  return req.text(shop ? shop.name : SHOP_TYPES[req.shop].chain);
+function chainName(req) {
+  const t = Array.isArray(req.shop) ? req.shop[0] : req.shop;
+  return t && SHOP_TYPES[t] ? SHOP_TYPES[t].chain : '';
 }
 
-// Tells the player (toast + phone) what is missing and routes them to the
-// nearest shop that sells it. Returns true when the mission may start.
+function requirementText(w, def) {
+  const key = unmetRequirement(w, def);
+  if (!key) return null;
+  const req = REQUIREMENTS[key];
+  const place = requirementPlace(w, key);
+  return req.text(place ? place.name : chainName(req));
+}
+
+// Tells the player (toast + phone) what is missing; story.js points the
+// guide at the nearest place that sells it. Returns true when the mission
+// may start.
 function checkRequirement(w, def, force = false) {
-  const req = def.requires && REQUIREMENTS[def.requires];
-  if (!req || req.met(w)) return true;
+  const key = unmetRequirement(w, def);
+  if (!key) return true;
   if (w.time - chain.reqHintAt < (force ? 3 : REQUIREMENT_HINT_EVERY)) return false;
   chain.reqHintAt = w.time;
-  const shop = nearestShopOf(w, req.shop);
-  const text = req.text(shop ? shop.name : SHOP_TYPES[req.shop].chain);
+  const place = requirementPlace(w, key);
+  const text = REQUIREMENTS[key].text(place ? place.name : chainName(REQUIREMENTS[key]));
   w.addMessage(text, 5);
-  if (shop) setUserWaypoint(shop.x, shop.y, shop.name);
-  if (w.phoneNotifications) w.phoneNotifications.push({ text: `${def.label}: ${text}${shop ? ' Staat op je kaart.' : ''}`, duration: 6 });
+  if (w.phoneNotifications) w.phoneNotifications.push({ text: `${def.label}: ${text}${place ? ' Staat op je kaart.' : ''}`, duration: 6 });
+  hooks.gated(w, chain.index, key);
   return false;
 }
 
 export function getNextMission() {
   if (!chain) return null;
   const d = chain.defs[chain.index];
-  return { index: chain.index, label: d.label, reward: d.reward, active: chain.phase === 'active' };
+  return { index: chain.index, id: d.id, label: d.label, reward: d.reward, active: chain.phase === 'active', phase: chain.phase, start: { x: d.start.x, y: d.start.y } };
+}
+
+// Position of mission i in the story (MISSION_STORY_ORDER), or a large
+// number for missions outside the arc.
+function storyOrder(i) {
+  const k = MISSION_STORY_ORDER.indexOf(i);
+  return k >= 0 ? k : 100 + i;
+}
+
+export function missionIndexById(id) {
+  return chain ? chain.defs.findIndex((d) => d.id === id) : -1;
+}
+
+export function isMissionCompleted(i) {
+  return !!chain && chain.completed.has(i);
+}
+
+// story.js: makes mission i the next one without touching the player's
+// waypoint (the story guide routes there by itself).
+export function setNextMission(world, i) {
+  if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
+  if (chain.index !== i) {
+    chain.index = i;
+    chain.phase = 'idle';
+    chain.armed = true;
+    chain.wpIndex = 0;
+  }
+  syncPub(world);
+  return true;
+}
+
+// A skipped story mission counts as done for the story and the dialogue
+// (no stats, medals or achievements); story.js pays the part of the reward.
+export function markMissionCompleted(world, i) {
+  if (!chain || !chain.defs[i]) return;
+  chain.completed.add(i);
+  chain.seen.add(i);
+  if (chain.phase !== 'active' && chain.index === i) {
+    chain.index = nextOpenMission(i);
+    chain.phase = 'idle';
+    // standing on the old marker must not start the next one straight away
+    chain.armed = false;
+    chain.wpIndex = 0;
+  }
+  syncPub(world);
 }
 
 // Read-only access for debug/test tooling (checkpoint validation).
@@ -404,6 +593,7 @@ function cargoLeft(def) {
 // Until the player sits in the mission car/boat, point them at it rather
 // than at the destination they can't complete without it.
 function vehicleToBoard(world, def) {
+  if (def.type === 'stages') return stageNeedsVehicle(world, def) ? chain.vehicle : null;
   if (def.type !== 'deliver' && def.type !== 'boat') return null;
   const v = chain.vehicle;
   const p = world.player;
@@ -419,7 +609,8 @@ function syncPub(world) {
   pub.type = def.type;
   pub.label = def.label;
   pub.phase = st.phase;
-  pub.timeLeft = st.phase === 'active' ? st.timeLeft : null;
+  pub.timeLeft = st.phase === 'active' && Number.isFinite(st.timeLeft) ? st.timeLeft : null;
+  pub.code = missionCode(st.index);
   pub.index = st.index;
   pub.total = st.defs.length;
   const board = st.phase === 'active' ? vehicleToBoard(world, def) : null;
@@ -428,6 +619,7 @@ function syncPub(world) {
   else if (board) target = board;
   else if (def.type === 'deliver') target = nextStop(def) || def.dest;
   else if (def.type === 'fatbike') target = def.dest;
+  else if (def.type === 'stages') target = stageMarker(world, def);
   else target = def.waypoints[st.wpIndex];
   pub.marker.x = target.x;
   pub.marker.y = target.y;
@@ -526,6 +718,7 @@ function progressText(world, def, pub) {
     return bits.join(' · ') || null;
   }
   if (def.type === 'fatbike') return `Geschept: ${chain.fatbikeHits || 0} · Gezondheid ${Math.max(0, Math.round(world.health))}%`;
+  if (def.type === 'stages') return stageProgressText(world, def);
   return null;
 }
 
@@ -564,8 +757,10 @@ function removeLeftover(world) {
 // How far the Tammo/Anita story has got for mission i: normally i itself,
 // lower when missions were played out of order.
 function storyStage(i) {
-  const before = chain.completed.size - (chain.completed.has(i) ? 1 : 0);
-  return Math.min(i, before);
+  const k = MISSION_STORY_ORDER.indexOf(i);
+  const prior = k >= 0 ? MISSION_STORY_ORDER.slice(0, k) : [...chain.completed].filter((j) => j !== i);
+  if (prior.every((j) => chain.completed.has(j))) return i;
+  return Math.max(0, Math.min(i - 1, prior.filter((j) => chain.completed.has(j)).length));
 }
 
 // Berend fines scratches; intact fragile cargo earns a bonus.
@@ -596,19 +791,35 @@ function succeed(world, def) {
   releaseMissionVehicle(world);
   chain.completed.add(chain.index);
   chain.run = null;
-  chain.index = (chain.index + 1) % chain.defs.length;
+  chain.index = nextOpenMission(i);
   chain.phase = 'idle';
   chain.wpIndex = 0;
+  chain.stage = null;
+  hooks.passed(world, i);
+}
+
+// After mission i: the next unfinished one in story order, else the next
+// one after it (story.js may override with setNextMission).
+function nextOpenMission(i) {
+  const order = [...MISSION_STORY_ORDER, ...chain.defs.map((d, j) => j).filter((j) => !MISSION_STORY_ORDER.includes(j))];
+  const open = order.find((j) => !chain.completed.has(j));
+  if (open != null) return open;
+  const k = order.indexOf(i);
+  return order[(k + 1) % order.length];
 }
 
 function fail(world, def, reason) {
   const pretty = reason ? reason[0].toUpperCase() + reason.slice(1) : def.label;
-  playStoryFail(world, chain.index, { reason: pretty, stats: runStats(world, def) });
+  const i = chain.index;
+  playStoryFail(world, i, { reason: pretty, stats: runStats(world, def) });
   endInFailure(world, `${def.label} mislukt${reason ? ' — ' + reason : ''}`);
+  hooks.failed(world, i);
 }
 
 function endInFailure(world, text) {
   world.addMessage(text, 3.5);
+  if (world.pigeonMode) stopPigeonMode(world);
+  chain.stage = null;
   releaseMissionVehicle(world);
   chain.phase = 'cooldown';
   chain.armed = false;
@@ -967,7 +1178,7 @@ function releaseCrowd() {
 function startMission(world, def) {
   removeLeftover(world);
   chain.phase = 'active';
-  chain.timeLeft = def.timeLimit;
+  chain.timeLeft = def.timeLimit ?? Infinity;
   chain.wpIndex = 0;
   chain.stopIndex = 0;
   chain.stopT = 0;
@@ -987,6 +1198,14 @@ function startMission(world, def) {
     startRondvaart(world, chain.vehicle);
   } else if (def.type === 'fatbike') {
     startLane(world, def);
+  } else if (def.type === 'stages') {
+    if (def.vehicle === 'car' && def.start.road) {
+      chain.vehicle = spawnMissionCar(world, def);
+      world.vehicles.push(chain.vehicle);
+    }
+    chain.stage = null;
+    chain.stageIndex = -1;
+    chain.stagePending = true;
   } else if (def.race === 'ring') {
     // the full ringweg is ~17.5 km: tuned-up race cars keep a lap near six minutes
     chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320 });
@@ -995,7 +1214,8 @@ function startMission(world, def) {
   }
   if (def.crowds) spawnCrowds(world, def);
   const i = chain.index;
-  const kicker = `Missie ${i + 1}/${chain.defs.length}`;
+  const code = missionCode(i);
+  const kicker = code ? `Missie ${code}` : `Missie ${i + 1}/${chain.defs.length}`;
   const title = def.label;
   const objective = chain.vehicle || def.dest || (def.waypoints && def.waypoints[0]) || def.start;
   const shown = playStoryIntro(world, i, { stage: storyStage(i), short: chain.seen.has(i), kicker, title, target: objective });
@@ -1066,6 +1286,8 @@ export function updateMissions(dt, world) {
   if (!chain) return;
   const def = chain.defs[chain.index];
   const p = world.player;
+  // a pigeon flight only runs the stages mission that started it
+  if (world.pigeonMode && !(chain.phase === 'active' && def.type === 'stages')) return;
   updateRetiredRacers(dt, world);
 
   if (chain.phase === 'cooldown') {
@@ -1099,7 +1321,8 @@ export function updateMissions(dt, world) {
     return;
   }
 
-  const problem = def.type === 'deliver' || def.type === 'boat' ? vehicleProblem(world, def) : raceCarProblem();
+  const problem = def.type === 'deliver' || def.type === 'boat' ? vehicleProblem(world, def)
+    : def.type === 'stages' ? stageVehicleProblem(world, def) : raceCarProblem();
   if (problem) {
     fail(world, def, problem);
     syncPub(world);
@@ -1170,6 +1393,8 @@ export function updateMissions(dt, world) {
     if (dist(p.x, p.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS && !isKnockedDown(p, world)) {
       succeed(world, def);
     }
+  } else if (def.type === 'stages') {
+    updateStages(dt, world, def);
   } else if (def.type === 'boat') {
     const fled = updateRondvaart(dt, world);
     if (fled) {
@@ -1192,6 +1417,313 @@ function raceCarProblem() {
   if (!car || !car.wrecked) return null;
   return chain.race.bikes ? 'je fiets ligt in de prak' : 'je racewagen is total loss. Harm huilt, de pionnen juichen';
 }
+
+// --- stages: story missions built from small objectives ------------------------
+// A def with type 'stages' lists objectives that run one after the other:
+//   board   get into the mission car (def.vehicle: 'car')
+//   goto    reach target (mode: vehicle | foot | boat | any; stop: seconds standing still)
+//   hold    stay within target's radius for `time` seconds
+//   garage  drive the mission car into any garage bay: new colour, police gone
+//   escape  lose the police (stars: set on entering, any stage may set them)
+//   pigeon  become a pigeon at pigeon spot `spot` and hover over every target
+//   scene   a cutscene (lines, then an optional `big` card) at the target
+// Targets: { x, y } | { at: [x, y], snap } | { shop } | { garage: true } |
+// { landmark, off: [dx, dy], snap } | { pigeonSpot }; snap: 'walk' | 'drive'.
+
+const STAGE_RADIUS = 7;
+const HOLD_RADIUS = 3.5;
+const SPOT_RADIUS = 16;
+const SPOT_TIME = 0.8;
+const RESPRAY_COLORS = ['#1e9e56', '#2e5f9e', '#d9b21b', '#6a2e8a', '#e8e6e0'];
+
+function resolveTarget(world, spec, from) {
+  if (!spec) return null;
+  const map = world.map;
+  const snap = (x, y) => (spec.snap ? roadSpot(map, x, y, spec.snap === 'drive') : { x, y });
+  if (Number.isFinite(spec.x) && Number.isFinite(spec.y)) return spec;
+  if (spec.at) return { ...snap(spec.at[0], spec.at[1]), label: spec.label };
+  if (spec.shop) {
+    const s = nearestShopOf({ player: from }, spec.shop);
+    return s ? { x: s.x, y: s.y, name: s.name, label: spec.label || s.name } : null;
+  }
+  if (spec.garage) {
+    let best = null, bd = Infinity;
+    for (const g of getGaragesForRender()) {
+      const d = dist(g.x, g.y, from.x, from.y);
+      if (d < bd) { bd = d; best = g; }
+    }
+    return best ? { x: best.x, y: best.y, name: best.name, label: spec.label || best.name } : null;
+  }
+  if (spec.landmark) {
+    const lm = (map.meta.landmarks || []).find((l) => l.name === spec.landmark);
+    if (!lm) return null;
+    const [dx, dy] = spec.off || [0, 0];
+    return { ...snap(lm.x + dx, lm.y + dy), label: spec.label || spec.landmark };
+  }
+  if (spec.pigeonSpot) {
+    const ps = getPigeonSpotsForRender().find((q) => q.id === spec.pigeonSpot);
+    return ps ? { x: ps.x, y: ps.y, label: ps.name } : null;
+  }
+  return null;
+}
+
+function stageNeedsVehicle(world, def) {
+  const st = def.stages && def.stages[chain.stageIndex];
+  const v = chain.vehicle;
+  if (!st || !v || v.wrecked || v.disabled || world.player.inVehicle === v) return false;
+  return st.kind === 'board' || st.kind === 'garage' || (st.kind === 'goto' && st.mode === 'vehicle');
+}
+
+function stageVehicleProblem(world, def) {
+  const st = def.stages && def.stages[chain.stageIndex];
+  if (!st || !def.vehicle || !(st.kind === 'board' || st.kind === 'garage' || (st.kind === 'goto' && st.mode === 'vehicle'))) return null;
+  return vehicleProblem(world, def);
+}
+
+function stageMarker(world, def) {
+  const S = chain.stage;
+  const st = def.stages && def.stages[chain.stageIndex];
+  if (!S || !st) return def.start;
+  if (stageNeedsVehicle(world, def)) return chain.vehicle;
+  if (st.kind === 'pigeon' && S.flying) {
+    const k = S.targets.findIndex((t, j) => t && !S.spotted.has(j));
+    return k >= 0 ? S.targets[k] : def.start;
+  }
+  return S.target || S.here;
+}
+
+function stageProgressText(world, def) {
+  const S = chain.stage;
+  const st = def.stages && def.stages[chain.stageIndex];
+  if (!S || !st) return null;
+  const n = `${chain.stageIndex + 1}/${def.stages.length}`;
+  if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
+  if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
+  if (st.kind === 'escape') return `${st.label} · ${'★'.repeat(world.wanted)}`;
+  return `${st.label} (${n})`;
+}
+
+function enterStage(world, def, k) {
+  chain.stageIndex = k;
+  const st = def.stages[k];
+  if (!st) { succeed(world, def); return; }
+  const from = { x: world.player.x, y: world.player.y };
+  const S = { t: 0, hold: 0, here: from, target: resolveTarget(world, st.target, from), spotted: new Set(), holds: [], started: false, flying: false, said: 0 };
+  if (st.kind === 'pigeon') {
+    S.targets = st.targets.map((t) => resolveTarget(world, t, from));
+    S.target = resolveTarget(world, { pigeonSpot: st.spot }, from);
+  }
+  chain.stage = S;
+  if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
+  if (st.bonus) chain.timeLeft += st.bonus;
+  if (st.say) world.addMessage(st.say, 4.5);
+}
+
+function nextStage(world, def) {
+  enterStage(world, def, chain.stageIndex + 1);
+}
+
+const MODE_HINT = {
+  vehicle: 'Met de auto, hè. Die hoort erbij.',
+  foot: 'Uitstappen. Dit doe je te voet.',
+  boat: 'Dit gaat over het water. Pak een boot.',
+};
+
+function modeOk(p, mode) {
+  if (mode === 'foot') return !p.inVehicle;
+  if (mode === 'boat') return !!(p.inVehicle && p.inVehicle.isBoat);
+  if (mode === 'vehicle') return !!chain.vehicle && p.inVehicle === chain.vehicle;
+  return true;
+}
+
+function playStageScene(world, st, S) {
+  const c = S.target || { x: world.player.x, y: world.player.y };
+  const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : who);
+  let at = 0.6;
+  const lines = (st.lines || []).map(([who, text]) => {
+    const dur = Math.max(1.8, Math.min(3.8, 0.95 + text.length * 0.042));
+    const l = { speaker: name(who), text, at, dur };
+    at += dur + 0.1;
+    return l;
+  });
+  const orbit = (a0, r, h) => (u) => {
+    const a = a0 + u * 0.7;
+    return { position: { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: h }, lookAt: { x: c.x, y: c.y, z: 1.4 }, fov: 46 };
+  };
+  const ok = playCinematic({
+    id: 'mission-scene', priority: 3, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
+    kicker: st.kicker || '', title: st.title || '', cardFor: 2.5, lines, shot: orbit(world.player.angle + 2.4, 9, 3.2),
+  });
+  if (ok && st.big) {
+    playCinematic({ id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, big: st.big, queue: true, shot: orbit(world.player.angle + 3.1, 5, 2.2) });
+  }
+  return ok;
+}
+
+function updateStages(dt, world, def) {
+  const p = world.player;
+  if (chain.stagePending) {
+    if (isCinematicActive()) return;
+    chain.stagePending = false;
+    enterStage(world, def, 0);
+    if (chain.phase !== 'active') return;
+  }
+  const st = def.stages[chain.stageIndex];
+  const S = chain.stage;
+  if (!st || !S) return;
+  S.t += dt;
+  const v = chain.vehicle;
+  const inCar = !!v && p.inVehicle === v;
+  switch (st.kind) {
+    case 'board':
+      if (inCar) nextStage(world, def);
+      break;
+    case 'goto': {
+      if (!S.target) { nextStage(world, def); break; }
+      if (dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) { S.hold = 0; break; }
+      if (!modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
+      if (st.stop && p.inVehicle && Math.abs(p.inVehicle.speed) > 2) { S.hold = 0; hint(world, 'Even stilstaan.'); break; }
+      if ((S.hold += dt) >= (st.stop || 0)) nextStage(world, def);
+      break;
+    }
+    case 'hold': {
+      if (!S.target) { nextStage(world, def); break; }
+      const near = dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || HOLD_RADIUS);
+      if (near && !modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
+      if (!near) { S.hold = Math.max(0, S.hold - dt * 0.5); break; }
+      S.hold += dt;
+      const third = Math.floor(S.hold / st.time * 3);
+      if (third > S.said && third < 3) { S.said = third; world.addMessage(`Klik. Camera ${third} van 3 gaat op zwart.`, 2); }
+      if (S.hold >= st.time) nextStage(world, def);
+      break;
+    }
+    case 'garage': {
+      const site = inCar ? garageInside(world) : null;
+      if (!site || Math.abs(v.speed) > 1.5) { S.hold = 0; break; }
+      if ((S.hold += dt) < 1.2) break;
+      repaintVehicle(world, v, RESPRAY_COLORS[Math.floor(Math.random() * RESPRAY_COLORS.length)]);
+      world.wanted = 0;
+      world.wantedDecayTimer = 0;
+      world.addMessage('Spuit & Klaar: "Nieuwe kleur, nieuwe kans." Gratis, voor deze ene keer. De pliesie kent hem niet meer.', 4);
+      nextStage(world, def);
+      break;
+    }
+    case 'escape':
+      if (world.wanted === 0 && S.t > 1) nextStage(world, def);
+      break;
+    case 'scene':
+      if (!S.started) {
+        if (isCinematicActive()) break;
+        S.started = true;
+        if (!playStageScene(world, st, S)) { if (st.big) world.addMessage(st.big, 4); nextStage(world, def); }
+      } else if (!isCinematicActive('mission-scene')) nextStage(world, def);
+      break;
+    case 'pigeon':
+      updatePigeonStage(dt, world, def, st, S);
+      break;
+    default:
+      nextStage(world, def);
+  }
+}
+
+function updatePigeonStage(dt, world, def, st, S) {
+  const p = world.player;
+  const f = getPigeonFlight();
+  if (!S.flying) {
+    if (isCinematicActive()) return;
+    if (p.inVehicle) { hint(world, 'Uitstappen bij de duiven. Een duif rijdt geen auto.'); return; }
+    const spot = S.target;
+    if (spot && dist(p.x, p.y, spot.x, spot.y) > 25) { hint(world, 'Loop naar de duiven, Bert wacht.'); return; }
+    if (startPigeonMode(world, spot ? { x: spot.x, y: spot.y } : null)) { S.flying = true; return; }
+    if (S.t > 8) fail(world, def, 'de duiven wilden vandaag niet meewerken');
+    return;
+  }
+  if (!f) {
+    if (S.spotted.size < S.targets.length) fail(world, def, 'je werd weer mens voordat alles op de foto stond');
+    return;
+  }
+  if (f.intro) return;
+  S.targets.forEach((t, k) => {
+    if (!t || S.spotted.has(k)) return;
+    const near = dist(f.x, f.y, t.x, t.y) < SPOT_RADIUS && f.z - f.ground < 80;
+    S.holds[k] = near ? (S.holds[k] || 0) + dt : 0;
+    if (S.holds[k] >= SPOT_TIME) {
+      S.spotted.add(k);
+      world.addMessage(`Klik! ${t.label} staat op de foto (${S.spotted.size}/${S.targets.length})`, 2.6);
+    }
+  });
+  if (S.spotted.size >= S.targets.filter(Boolean).length) {
+    stopPigeonMode(world);
+    nextStage(world, def);
+  }
+}
+
+// --- debug / test hooks (story dev mode and the automated story test) -----------
+
+export const missionDebug = {
+  state: () => (chain ? {
+    index: chain.index, phase: chain.phase, stage: chain.stageIndex, completed: [...chain.completed],
+    stageInfo: chain.stage ? { t: Math.round(chain.stage.t * 10) / 10, flying: chain.stage.flying, target: chain.stage.target && { x: Math.round(chain.stage.target.x), y: Math.round(chain.stage.target.y) } } : null,
+    player: worldRef && { x: Math.round(worldRef.player.x), y: Math.round(worldRef.player.y), inVehicle: !!worldRef.player.inVehicle },
+  } : null),
+  // starts mission i right here, requirements and the trigger ring aside
+  start(world, i) {
+    if (!chain || !chain.defs[i] || chain.phase === 'active') return false;
+    const def = chain.defs[i];
+    chain.index = i;
+    const p = world.player;
+    if (!p.inVehicle && dist(p.x, p.y, def.start.x, def.start.y) > 30) { p.x = def.start.x; p.y = def.start.y; }
+    startMission(world, def);
+    syncPub(world);
+    return true;
+  },
+  win(world) {
+    if (!chain || chain.phase !== 'active') return false;
+    const def = chain.defs[chain.index];
+    if (world.pigeonMode) stopPigeonMode(world);
+    succeed(world, def);
+    syncPub(world);
+    return true;
+  },
+  lose(world) {
+    if (!chain || chain.phase !== 'active') return false;
+    fail(world, chain.defs[chain.index], 'afgebroken in de testmodus');
+    syncPub(world);
+    return true;
+  },
+  // finishes the current objective: the next stage, checkpoint or stop
+  complete(world) {
+    if (!chain || chain.phase !== 'active') return false;
+    const def = chain.defs[chain.index];
+    if (def.type === 'stages') {
+      if (chain.stagePending) { chain.stagePending = false; enterStage(world, def, 0); }
+      const cur = def.stages[chain.stageIndex];
+      // a cutscene stage plays by itself (skippable); don't jump past it
+      if (cur && cur.kind === 'scene') { syncPub(world); return true; }
+      if (chain.stage && def.stages[chain.stageIndex] && def.stages[chain.stageIndex].kind === 'pigeon' && world.pigeonMode) stopPigeonMode(world);
+      if (world.wanted) { world.wanted = 0; world.wantedDecayTimer = 0; }
+      if (chain.phase === 'active') nextStage(world, def);
+    } else if ((def.type === 'checkpoint' || def.type === 'boat') && !chain.race) {
+      reachCheckpoint(world, def);
+    } else if (def.type === 'deliver' && nextStop(def)) {
+      chain.stopIndex++;
+    } else succeed(world, def);
+    syncPub(world);
+    return true;
+  },
+  // moves the player (and whatever they drive) to the current marker
+  teleport(world) {
+    if (!chain) return false;
+    const m = chain.pub.marker;
+    const p = world.player;
+    if (world.pigeonMode) return false;
+    const v = p.inVehicle;
+    if (v) { v.x = m.x; v.y = m.y; v.speed = 0; }
+    p.x = m.x; p.y = m.y;
+    world.teleported = world.time;
+    return true;
+  },
+};
 
 // --- 3D representation ---------------------------------------------------
 // Local origin at ground level (y=0) for both builders below; the integrator
