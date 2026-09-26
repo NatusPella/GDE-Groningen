@@ -89,6 +89,8 @@ export const ACHIEVEMENTS = [
   { id: 'landmarks', cat: 'verkennen', title: 'Toerist in eigen stad', desc: 'Bezoek alle 14 bezienswaardigheden', set: 'landmarks', goal: 14 },
   { id: 'ommelanden', cat: 'verkennen', title: 'Ommelander', desc: 'Trek de stad uit, De Ommelanden in' },
   { id: 'umcg_heli', cat: 'verkennen', title: 'Traumaduif', desc: 'Land op het helidek van het UMCG', hidden: true },
+  { id: 'ballonjacht', cat: 'verkennen', title: 'Ballonjacht', desc: 'Haal met de traumaheli een heteluchtballon in' },
+  { id: 'ballonjacht_goud', cat: 'verkennen', title: 'Gouden rotor', desc: 'Haal goud bij de ballonjacht' },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
 
   { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: GTW, WINK en de Intercity', set: 'trains', goal: 3 },
