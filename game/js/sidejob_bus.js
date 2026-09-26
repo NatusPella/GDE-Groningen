@@ -12,7 +12,7 @@ const STOP_R = 9;
 const STOP_SPEED = 0.8;
 const DWELL = 3.2;
 const EARLY_OK = 12;
-const LATE_OK = 5;
+const LATE_OK = 10;
 const LATE_FAIL = 75;
 const SHOW_R = 95;
 
@@ -84,16 +84,16 @@ export default {
     d.alighting = [];
     d.prevSpeed = null;
     d.hitAt = -Infinity;
-    const slack = Math.max(0.92, 1.18 - 0.025 * Math.min(c.streak, 8) - 0.02 * (c.level - 1));
+    const slack = Math.max(1, 1.25 - 0.025 * Math.min(c.streak, 8) - 0.02 * (c.level - 1));
     let t = 0;
     d.due = d.stops.map((s, i) => {
       if (i === 0) return 0;
       const p = d.stops[i - 1];
-      t += (Math.hypot(s.x - p.x, s.y - p.y) * 2.2 / 8.5 + 12) * slack;
+      t += (Math.hypot(s.x - p.x, s.y - p.y) * 2.2 / 8.5 + 16) * slack;
       return t;
     });
     const back = d.stops[0], last = d.stops[d.stops.length - 1];
-    d.dueEnd = t + (Math.hypot(back.x - last.x, back.y - last.y) * 2.2 / 8.5 + 12) * slack;
+    d.dueEnd = t + (Math.hypot(back.x - last.x, back.y - last.y) * 2.2 / 8.5 + 16) * slack;
     c.timeLeft = null;
     c.msg(c.streak ? `Nieuw rondje lijn 3. Volgende halte: ${d.stops[1].name}.` : `Lijn 3 vertrekt. Eerste halte: ${d.stops[1].name}.`, 3.2);
   },
