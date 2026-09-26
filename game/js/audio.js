@@ -843,6 +843,42 @@ function playShiftBlip(up, freq) {
   }
 }
 
+// A horse instead of a bike bell: a falling, warbling neigh and a snort.
+function playWhinny(x, y) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1, range: 70, h: 2 });
+  if (!out || !voiceOk(1)) return;
+  activeVoices++;
+  const t0 = ctx.currentTime, t1 = t0 + 1.1;
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(620, t0);
+  osc.frequency.linearRampToValueAtTime(980, t0 + 0.12);
+  osc.frequency.exponentialRampToValueAtTime(330, t1);
+  const lfo = ctx.createOscillator();
+  lfo.frequency.value = 16;
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 55;
+  lfo.connect(lfoGain).connect(osc.frequency);
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1300;
+  filter.Q.value = 1.1;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.2, t0 + 0.06);
+  g.gain.exponentialRampToValueAtTime(0.0001, t1);
+  osc.connect(filter).connect(g).connect(out.node);
+  out.hold();
+  osc.start(t0); lfo.start(t0);
+  osc.stop(t1 + 0.02); lfo.stop(t1 + 0.02);
+  osc.onended = () => {
+    activeVoices--;
+    osc.disconnect(); lfo.disconnect(); lfoGain.disconnect(); filter.disconnect(); g.disconnect();
+    out.release();
+  };
+  playNoiseBurst({ duration: 0.25, freq: 500, freqEnd: 180, q: 0.7, gain: 0.18, type: 'lowpass', delay: 1.0, out });
+}
+
 function playSplash(x, y) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 80 });
   if (!out) return;
@@ -1614,7 +1650,7 @@ function updateEngineSynth(dt, world) {
     const speed = Math.abs(v.speed);
     const small = v.isBike || v.isScooter;
     const surface = v.isBoat ? 4 : SURFACE_CODE[v.surface] ?? 0;
-    const coasting = v.isBike && !(v.throttle > 0) && speed > 0.8;
+    const coasting = v.isBike && !v._mount && !(v.throttle > 0) && speed > 0.8;
     road = {
       speed, surface, small: small ? 1 : 0,
       wet: surface === 2 || v.isBoat ? 0 : rain,
@@ -1878,7 +1914,8 @@ function updatePlayerHorn(world) {
   const pressing = !!(v && v.horn && !v.wrecked && !world.paused);
   const bell = v && (v.isBike || (v.isScooter && !v.isPolice)); // an e-step has a bell too
   if (pressing && bell) {
-    if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
+    if (t >= bellReadyAt && v._mount === 'horse') { playWhinny(v.x, v.y); bellReadyAt = t + 1.6; }
+    else if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
   } else if (!pressing) bellReadyAt = 0;
   const on = pressing && !bell;
   if (on && !hornVoice.on) {
@@ -2157,7 +2194,11 @@ function updateTrafficAudio(dt, world) {
   for (const v of world.vehicles) {
     if (isEngineRunning(v)) running.push(v);
     const horn = !!v.horn;
-    if (horn && !hornWasOn.get(v) && v.driver !== 'player') playHorn(v.x, v.y, 0.4, hornPitch(v));
+    if (horn && !hornWasOn.get(v) && v.driver !== 'player') {
+      if (v._mount === 'horse') playWhinny(v.x, v.y);
+      else if (v.isBike) playBell(v.x, v.y);
+      else playHorn(v.x, v.y, 0.4, hornPitch(v));
+    }
     hornWasOn.set(v, horn);
   }
   assignVoices(engineVoices, nearestSorted(running, ENGINE_RANGE, ENGINE_VOICES));

@@ -728,9 +728,17 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       outline(ctx, s, C.dark, 1);
       break;
     }
+    case 'policeFoot':
+    case 'policeBike':
+    case 'policeHorse':
     case 'police': {
-      // flashing police shield
+      // flashing police shield; officers on foot, bike or horse get a smaller
+      // one with a glyph instead of the star
       const blue = Math.floor(t * 6) % 2 === 1;
+      if (kind !== 'police') {
+        const k = kind === 'policeFoot' ? 0.62 : 0.82;
+        ctx.scale(k, k);
+      }
       ctx.beginPath();
       ctx.moveTo(0, -4.4 * s);
       ctx.lineTo(3.8 * s, -3 * s);
@@ -740,6 +748,25 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fillStyle = blue ? C.policeBlue : C.red;
       ctx.fill();
       outline(ctx, s, C.dark, 1.2);
+      if (kind === 'policeBike' || kind === 'policeHorse') {
+        ctx.strokeStyle = C.cream;
+        ctx.lineWidth = 0.9 * s;
+        ctx.beginPath();
+        if (kind === 'policeBike') {
+          ctx.lineWidth = 0.7 * s;
+          ctx.arc(-1.6 * s, 0.2 * s, 0.9 * s, 0, Math.PI * 2);
+          ctx.moveTo(2.5 * s, 0.2 * s);
+          ctx.arc(1.6 * s, 0.2 * s, 0.9 * s, 0, Math.PI * 2);
+          ctx.moveTo(-1.6 * s, 0.2 * s);
+          ctx.lineTo(-0.3 * s, -1.7 * s);
+          ctx.lineTo(1.6 * s, 0.2 * s);
+        } else {
+          ctx.arc(0, -0.2 * s, 1.7 * s, Math.PI * 0.8, Math.PI * 2.2, false);
+        }
+        ctx.stroke();
+        break;
+      }
+      if (kind === 'policeFoot') break;
       ctx.beginPath();
       for (let i = 0; i < 10; i++) {
         const a = -Math.PI / 2 + i * Math.PI / 5, r = (i % 2 ? 0.8 : 1.9) * s;
@@ -857,14 +884,19 @@ export function getHeroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;
 }
 
+// fn(x, y, kind): kind is the map icon, 'police' for cars, boats and the
+// heli, 'policeBike' / 'policeHorse' for mounted officers, 'policeFoot'.
 export function forEachPoliceUnit(world, fn) {
   for (const v of world.vehicles) {
-    if (v.isPolice && !v.hijacked && !v.wrecked) fn(v.x, v.y);
+    if (!v.isPolice || v.hijacked || v.wrecked) continue;
+    if (v._mount) {
+      if (!v.riderOff && !v._riderAway) fn(v.x, v.y, v._mount === 'horse' ? 'policeHorse' : 'policeBike');
+    } else fn(v.x, v.y, 'police');
   }
   for (const p of world.pedestrians) {
-    if (p.isCop && p.state !== 'dead') fn(p.x, p.y);
+    if (p.isCop && p.state !== 'dead') fn(p.x, p.y, 'policeFoot');
   }
-  if (world.policeHeli) fn(world.policeHeli.x, world.policeHeli.y);
+  if (world.policeHeli) fn(world.policeHeli.x, world.policeHeli.y, 'police');
 }
 
 const MM_ICON = 1.2;
@@ -1060,7 +1092,7 @@ function drawMinimap(dt, world) {
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle && minimapShows('companion')) icon('companion', c.x, c.y);
 
-  forEachPoliceUnit(world, (x, y) => icon('police', x, y));
+  forEachPoliceUnit(world, (x, y, kind) => icon(kind, x, y));
 
   drawMapIcon(ctx, 'player', cx, cy, 1.35, { angle: player.angle + mapRotation });
 
