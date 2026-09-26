@@ -20,7 +20,7 @@ export const CLUTTER_PROPS = {
   container: { r: 0.38, h: 1.3, mass: 450, material: 'metal', breakSpeed: 4, breakCost: 1.2, slide: true, burst: 'litter' },
   bollard: { r: 0.1, h: 1, mass: 45, material: 'metal', breakSpeed: 3.5, breakCost: 0.5 },
   planter: { r: 0.42, half: 0.5, h: 0.8, mass: 700, material: 'wood', breakSpeed: 7, breakCost: 1.8, slide: true },
-  zuil: { r: 0.66, h: 3.1, mass: 900, material: 'metal', breakSpeed: 99, breakCost: 0 },
+  zuil: { r: 0.66, h: 3.1, mass: 480, material: 'metal', breakSpeed: 7, breakCost: 1.5, topple: true, burst: 'posters', shotHp: 6 },
   abri: { r: 0.62, half: 1.25, h: 2.5, mass: 450, material: 'metal', breakSpeed: 7, breakCost: 2, burst: 'glass' },
   elecbox: { r: 0.3, half: 0.3, h: 1.3, mass: 200, material: 'metal', breakSpeed: 6, breakCost: 1.5, burst: 'sparks' },
   signpost: { r: 0.08, h: 2.8, mass: 30, material: 'metal', breakSpeed: 2, breakCost: 0.3, topple: true },
