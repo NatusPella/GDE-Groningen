@@ -1008,6 +1008,55 @@ export function playStoryVoice(src) {
   v.el.play().catch(done);
 }
 
+// Car banter (banter.js): one line at a time with its own handle, so a crash
+// can cut it off. Ducks G-Music like the story voice and holds the other
+// spoken lines back while it talks; the Stemmen slider applies (voiceBus).
+let banterVoice = null;
+
+export function stopBanterVoice() {
+  const v = banterVoice;
+  banterVoice = null;
+  if (!v) return;
+  v.el.pause();
+  if (v.node) v.node.disconnect();
+}
+
+export function pauseBanterVoice(paused) {
+  const v = banterVoice;
+  if (!v) return;
+  if (paused) v.el.pause();
+  else v.el.play().catch(() => {});
+}
+
+// Whether another spoken line (voicelines, police, Sikkom, a job boss) just played.
+export function voiceBusy() {
+  return !!ctx && ctx.currentTime - lastSpokenAt < SPOKEN_MIN_GAP;
+}
+
+export function playBanterVoice(src) {
+  stopBanterVoice();
+  if (!ctx || muted || storyScene) return false;
+  const v = { el: new Audio(src), node: null };
+  try {
+    v.node = ctx.createMediaElementSource(v.el);
+    v.node.connect(voiceBus);
+  } catch (e) {
+    // ignore - plays without the Web Audio graph
+  }
+  banterVoice = v;
+  const done = () => { if (banterVoice === v) stopBanterVoice(); };
+  v.el.addEventListener('ended', done, { once: true });
+  v.el.addEventListener('error', done, { once: true });
+  v.el.addEventListener('loadedmetadata', () => {
+    const hold = (Number.isFinite(v.el.duration) ? v.el.duration : 3) + 0.4;
+    lastSpokenAt = Math.max(lastSpokenAt, ctx.currentTime + hold - SPOKEN_MIN_GAP);
+    duckAmbience(0.3, hold);
+    duckMusic(hold);
+  }, { once: true });
+  v.el.play().catch(done);
+  return true;
+}
+
 function playVoiceline(character, key) {
   if (storyScene) return false;
   const paths = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];
