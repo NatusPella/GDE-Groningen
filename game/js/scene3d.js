@@ -8,7 +8,9 @@ import {
   sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedestrians.js';
-import { buildPersonMesh, animatePersonWalk, applyAttackPose, seatPerson, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, applyAttackPose, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
+import { updateSwimmers3D } from './swimmers3d.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
@@ -133,7 +135,10 @@ let playerMesh = null;
 let playerCharacter = 'tammo';
 let companionMesh = null;
 let companionCharacter = null;
-let passengerMesh = null;
+const playerSeatTr = makeSeatTracker();
+const companionSeatTr = makeSeatTracker();
+let playerRider = null;
+let playerRiderChar = null;
 let missionMarkerMesh = null;
 const splashMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
@@ -408,15 +413,27 @@ function buildVehicleActor(v) {
 // the distance at which it can be shown.
 const DRIVER_PREFETCH_DIST = DRIVER_FIGURE_DIST + 30;
 const DRIVER_BUILD_BUDGET_MS = 2;
+const crewCtx = {
+  dist: 0, deadline: 0, time: 0, playerBoat: null, playerOnWater: false, speakers: null,
+  prep(p, mesh) {
+    const casters = mesh.userData.shadowCasters;
+    const castNear = mesh.userData.castNear;
+    for (const o of enableShadows(p, false).userData.shadowCasters) {
+      if (castNear !== undefined) o.castShadow = castNear;
+      if (casters) casters.push(o);
+    }
+  },
+};
+
 function ensureDriverFigure(mesh, v, dist, deadline) {
   if (!mesh.userData.needsDriver) return;
   if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
   mesh.userData.needsDriver = false;
   const seed = (v.id || 0) * 5.3 + 11;
   const driver = buildPersonMesh(v.isPolice ? 0x1f3f8f : 0x5a6470, 0xd9aa82, { seed });
-  seatPerson(driver, true);
-  const seat = seatOffset(v, true);
-  driver.position.set(seat.x, -SEATED_DROP, seat.z);
+  const seat = vehicleSeat(v, true);
+  seatPose(driver, seat.pose);
+  driver.position.set(seat.x, seatedY(driver, seat.y), seat.z);
   driver.visible = false;
   mesh.add(driver);
   mesh.userData.driverFigure = driver;
@@ -428,19 +445,46 @@ function ensureDriverFigure(mesh, v, dist, deadline) {
   }
 }
 
-// Local seat position inside a vehicle facing +x; Dutch cars are left-hand
-// drive, and left of +x is -z in three.js (north for a car facing east).
-function seatOffset(v, driverSeat) {
-  const hl = v.model.len / 2, hw = v.model.wid / 2;
-  if (v.isBus) return { x: hl - 1.3, z: driverSeat ? -hw * 0.45 : hw * 0.3 };
-  return { x: -hl * 0.06, z: (driverSeat ? -1 : 1) * hw * 0.34 };
-}
-
-function placeSeated(personMesh, v, driverSeat) {
-  const seat = seatOffset(v, driverSeat);
-  const c = Math.cos(v.angle), sn = Math.sin(v.angle);
-  personMesh.position.set(v.x + c * seat.x - sn * seat.z, (v.isBoat ? WATER_Y + 0.35 : v.sinking ? v.sinking.z : v.z || 0) - SEATED_DROP, v.y + sn * seat.x + c * seat.z);
-  personMesh.rotation.set(0, -v.angle, 0);
+// On a bike or step the player is drawn as a rider figure in their own look
+// (Tammo or Anita) inside the bike mesh - the bike's built-in NPC rider is
+// hidden - so pedal IK and the bike's lean apply as for any cyclist.
+function syncPlayerRider(pv, pvMesh, hide) {
+  const want = pv && (pv.isBike || pv.isScooter) && pvMesh && !pv.riderOff && !pv.sinking;
+  if (!want) {
+    if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
+    return;
+  }
+  if (!playerRider || playerRiderChar !== playerCharacter) {
+    if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
+    const app = playerCharacter === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+    playerRider = enableShadows(buildPersonMesh(app.shirt, app.skin, app), false);
+    playerRiderChar = playerCharacter;
+  }
+  const ud = playerRider.userData;
+  if (playerRider.parent !== pvMesh) pvMesh.add(playerRider);
+  if (pv.isScooter) {
+    playerRider.position.set(-0.08, 0.155, 0);
+    playerRider.rotation.set(0, 0, -0.03);
+    ud.armL.rotation.set(0, 0, 0.66);
+    ud.armR.rotation.set(0, 0, 0.66);
+    ud.legL.rotation.set(0, 0, 0.12);
+    ud.legR.rotation.set(0, 0, -0.1);
+  } else {
+    const fat = !!pv.model.fat;
+    playerRider.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * playerRider.scale.y, 0);
+    playerRider.rotation.set(0, 0, -0.08);
+    const arm = fat ? 0.95 : 0.85;
+    ud.armL.rotation.set(0, 0, arm);
+    ud.armR.rotation.set(0, 0, arm);
+    // touching the thighs re-runs the pedal IK (models3d_people pedalIK)
+    ud.legL.rotation.z = fat ? 0.55 : 0.33;
+    ud.legR.rotation.z = fat ? 0.55 : 0.33;
+  }
+  const fig = pvMesh.userData.riderFig !== undefined && pvMesh.userData.riderFig !== null
+    ? pvMesh.userData.riderFig
+    : pvMesh.children.find((c) => c !== playerRider && c.userData && c.userData.legL);
+  if (fig && fig !== playerRider) fig.visible = false;
+  playerRider.visible = !hide;
 }
 
 function buildPersonActor(shirt, skin, appearance) {
@@ -1173,6 +1217,10 @@ function syncPedestrianMeshes(world, player, animDt) {
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
     animatePersonWalk(mesh, p.speed || 0, animDt);
+    if (p.greetUntil > world.time) {
+      const left = p.greetUntil - world.time;
+      waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
+    }
   }
 
   for (let i = pedFadingOut.length - 1; i >= 0; i--) {
@@ -1241,12 +1289,18 @@ function speechBubbleEl() {
 
 function syncSpeechBubbles(world) {
   const seen = new Set();
-  for (const p of world.pedestrians) {
+  // world.extraSpeakers: short-lived lines from boat crews and swimmers,
+  // { x, y, h, speechText, speechUntil, follow? } (follow: a moving vehicle)
+  const extra = world.extraSpeakers;
+  if (extra) for (let i = extra.length - 1; i >= 0; i--) if (world.time >= extra[i].speechUntil) extra.splice(i, 1);
+  const speakers = extra && extra.length ? [...world.pedestrians, ...extra] : world.pedestrians;
+  for (const p of speakers) {
     if (!p.speechText || world.time >= p.speechUntil) continue;
     seen.add(p);
     let el = speechBubbleEls.get(p);
     if (!el) { el = speechBubbleEl(); speechBubbleEls.set(p, el); }
-    const scr = projectToScreen(p.x, 2.1, p.y);
+    const src = p.follow || p;
+    const scr = projectToScreen(src.x, p.h ?? 2.1, src.y);
     if (!scr) { el.style.display = 'none'; continue; }
     el.textContent = p.speechText;
     el.style.display = 'block';
@@ -1287,6 +1341,13 @@ export function update3D(dt, world) {
   const fireSeenIds = new Set();
   const policeChasing = world.wanted > 0;
   const driverDeadline = performance.now() + DRIVER_BUILD_BUDGET_MS;
+  const pBoat = player.inVehicle && player.inVehicle.isBoat ? player.inVehicle : null;
+  if (!world.extraSpeakers) world.extraSpeakers = [];
+  crewCtx.deadline = driverDeadline;
+  crewCtx.time = world.time;
+  crewCtx.playerBoat = pBoat;
+  crewCtx.playerOnWater = !!pBoat && Math.abs(pBoat.speed) > 0.6;
+  crewCtx.speakers = world.extraSpeakers;
   for (const v of world.vehicles) {
     let mesh = vehicleMeshes.get(v.id);
     // a car that just died swaps to its burnt-out model (rebuilt next frame)
@@ -1301,8 +1362,11 @@ export function update3D(dt, world) {
       mesh.rotation.y = -v.angle;
       if (!v.sinking && !v.isBoat) { mesh.rotation.order = 'YZX'; mesh.rotation.z = v.pitch || 0; }
       updateVehicleWheelSpin(mesh, v.speed, animDt);
-      if (v.isBoat) animateBoat(mesh, v, world.time);
-      else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
+      if (v.isBoat) {
+        animateBoat(mesh, v, world.time);
+        crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);
+        syncBoatCrew(mesh, v, crewCtx);
+      } else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
       if (v.isPolice || v.sirenOn) updatePoliceLamps(mesh, world.time, (policeChasing || v.sirenOn) && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
@@ -1341,6 +1405,7 @@ export function update3D(dt, world) {
     }
   }
   syncBoatWakes(world);
+  updateSwimmers3D(animDt, world, scene, cam);
   for (const [id, fire] of vehicleFireMeshes) {
     if (fireSeenIds.has(id)) continue;
     scene.remove(fire);
@@ -1575,28 +1640,42 @@ export function update3D(dt, world) {
   }
 
   const pv = player.inVehicle;
-  const seatedInPv = pv && !pv.isBike && !pv.isScooter;
-  playerMesh.visible = (!pv || seatedInPv) && (!world.pigeonMode || world.pigeonIntro) && !world.menuCam && !world.cinematicHidePlayers;
-  if (seatedInPv) {
-    seatPerson(playerMesh, true);
+  const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers;
+  const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
+  const pAnim = trackSeat(playerSeatTr, player, animDt, true);
+  syncPlayerRider(pv, pvMesh, hidePlayers || (pAnim && pAnim.kind === 'enter'), world.time);
+  if (pAnim && !hidePlayers) {
+    // enter/exit animation (visual only; any input skips it)
+    drawTransition(pAnim, playerMesh, vehicleMeshes.get(pAnim.v.id), player, vehicleSeat(pAnim.v, true), animDt, world.time);
     playerMesh.scale.y = 1;
-    placeSeated(playerMesh, pv, true);
-    playerMesh.userData.shadow.visible = false;
-  } else if (!pv && !driveRagdoll(player, playerMesh, world, animDt)) {
-    playerMesh.userData.shadow.visible = !player.swimming;
-    playerMesh.rotation.x = 0;
-    playerMesh.rotation.z = player.swimTilt || 0;
-    playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0), player.y);
-    playerMesh.rotation.y = -player.angle;
-    playerMesh.scale.y = 1;
-    playerMesh.userData.crouch = !!player.crouching;
-    playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
-    animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
-    applyAttackPose(playerMesh, getCombatEffect(), world.time);
+  } else if (pv) {
+    const seated = !pv.isBike && !pv.isScooter;
+    playerMesh.visible = seated && !hidePlayers;
+    if (seated) {
+      playerMesh.scale.y = 1;
+      placeSeated(playerMesh, pvMesh, pv, vehicleSeat(pv, true), world.time);
+      playerMesh.userData.shadow.visible = false;
+    }
+  } else {
+    playerMesh.visible = !hidePlayers;
+    if (!driveRagdoll(player, playerMesh, world, animDt)) {
+      playerMesh.userData.shadow.visible = !player.swimming;
+      playerMesh.rotation.x = 0;
+      playerMesh.rotation.z = player.swimTilt || 0;
+      playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0), player.y);
+      playerMesh.rotation.y = -player.angle;
+      playerMesh.scale.y = 1;
+      playerMesh.userData.crouch = !!player.crouching;
+      playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
+      animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
+      if (player.carrying) carryOverlay(playerMesh);
+      applyAttackPose(playerMesh, getCombatEffect(), world.time);
+    }
   }
 
   // companion (Tammo/Anita, whichever the player isn't controlling) -
-  // walks alongside on foot, or rides along as a visible passenger
+  // walks alongside on foot, or rides along in whatever the player drives:
+  // passenger seat, boat bench, bike rack, fatbike saddle or step deck
   const comp = world.companion;
   if (comp) {
     if (comp.character !== companionCharacter) {
@@ -1605,30 +1684,29 @@ export function update3D(dt, world) {
       if (companionMesh) scene.remove(companionMesh);
       companionMesh = buildPersonActor(appearance.shirt, appearance.skin, appearance);
       scene.add(companionMesh);
-      if (passengerMesh) scene.remove(passengerMesh);
-      passengerMesh = buildPersonMesh(appearance.shirt, appearance.skin, appearance);
-      passengerMesh.visible = false;
-      scene.add(passengerMesh);
     }
-    companionMesh.visible = !comp.inVehicle && (!world.pigeonMode || world.pigeonIntro) && !world.menuCam && !world.cinematicHidePlayers;
-    if (!comp.inVehicle) {
+    const cv = comp.inVehicle;
+    const cAnim = trackSeat(companionSeatTr, comp, animDt, false);
+    if (cAnim && !hidePlayers) {
+      drawTransition(cAnim, companionMesh, vehicleMeshes.get(cAnim.v.id), comp, vehicleSeat(cAnim.v, false), animDt, world.time);
+    } else if (cv) {
+      companionMesh.visible = !hidePlayers;
+      placeSeated(companionMesh, vehicleMeshes.get(cv.id), cv, vehicleSeat(cv, false), world.time);
+      if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = false;
+    } else {
+      companionMesh.visible = !hidePlayers;
       if (!driveRagdoll(comp, companionMesh, world, animDt)) {
         companionMesh.position.set(comp.x, (comp.gz || 0) + (comp.z || 0), comp.y);
+        companionMesh.rotation.x = 0;
         companionMesh.rotation.z = comp.swimTilt || 0;
         if (companionMesh.userData.shadow) companionMesh.userData.shadow.visible = !comp.swimming;
         companionMesh.rotation.y = -comp.angle;
         companionMesh.userData.crouch = !!comp.crouching;
         animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
+        if (comp.carrying) carryOverlay(companionMesh);
       }
-    } else {
-      const v = comp.inVehicle;
-      passengerMesh.visible = !v.isBike && !v.isScooter && !world.cinematicHidePlayers;
-      seatPerson(passengerMesh, false);
-      placeSeated(passengerMesh, v, v.driver !== 'player');
     }
   }
-  if (passengerMesh && (!comp || !comp.inVehicle)) passengerMesh.visible = false;
-
   // third-person follow: smoothly settle behind whatever the player is
   // currently facing (on foot or driving), GTA3-style - with a wall-aware
   // pull-in so the camera never ends up clipped inside a building, and an

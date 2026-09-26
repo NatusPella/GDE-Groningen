@@ -379,12 +379,29 @@ function ejectDriver(world, ev) {
   if (v.isBoat) return null;
   const [x, y] = findExitSpot(v, 0.3, world.map, [-1, 1]);
   const ped = new Pedestrian(x, y, Math.atan2(v.y - y, v.x - x));
+  // the same person that sat in it (scene3d's driver figure / the bike's
+  // built-in rider), not a random passer-by appearing out of nowhere
+  const two = v.isBike || v.isScooter;
+  const seed = two ? (v.id || 0) * 3.7 + 1 : (v.id || 0) * 5.3 + 11;
+  ped._lookSeed = seed;
+  if (two) {
+    if (v.model.rider) ped.clothing = v.model.rider;
+    ped.skin = SKIN_TONES[Math.floor(hash2(seed, 2.1) * SKIN_TONES.length)];
+  } else {
+    ped.clothing = v.isPolice ? '#1f3f8f' : '#5a6470';
+    ped.skin = '#d9aa82';
+  }
+  ped.hasBag = false;
   ped.health = 40;
   ped.noFade = true;
   world.pedestrians.push(ped);
+  const ox = x - v.x, oy = y - v.y, ol = Math.hypot(ox, oy) || 1;
   if (Math.abs(v.speed) > 2.5) {
     // yanked out of a moving car: tumbles along the road for a bit
-    knockDown(ped, world, { kind: 'hit', vx: Math.cos(v.angle) * v.speed * 0.6 + (x - v.x) * 1.5, vy: Math.sin(v.angle) * v.speed * 0.6 + (y - v.y) * 1.5, vz: 1.2, lieFor: 1.2 });
+    knockDown(ped, world, { kind: 'hit', startPose: 'ride', vx: Math.cos(v.angle) * v.speed * 0.6 + (ox / ol) * 2.5, vy: Math.sin(v.angle) * v.speed * 0.6 + (oy / ol) * 2.5, vz: 1.2, lieFor: 1.2 });
+  } else {
+    // pulled out of the seat: stumbles backwards onto the street, gets up angry
+    knockDown(ped, world, { kind: 'hit', startPose: 'ride', vx: (ox / ol) * 2.2, vy: (oy / ol) * 2.2, vz: 0.7, lieFor: 0.5 });
   }
   return ped;
 }
@@ -634,6 +651,33 @@ function processEvents(world, events) {
   }
 }
 
+// --- waving at the player sailing past -----------------------------------
+// People on the quays wave (scene3d draws the arm from ped.greetUntil) and
+// now and then call out when the player's boat goes by.
+
+const GREET_LINES = ['Moi!', 'Ahoi!', 'Mooi bootje!', 'Goeie vaart!', 'Moi, schipper!', 'Hoi hoi!'];
+let greetScanAt = 0;
+
+function greetPassingBoat(world) {
+  const pv = world.player.inVehicle;
+  if (!pv || !pv.isBoat || Math.abs(pv.speed) < 0.8 || world.time < greetScanAt) return;
+  greetScanAt = world.time + 0.4;
+  let shouted = false;
+  for (const p of world.pedestrians) {
+    if (p.isCop || p.scene || p.state !== 'wander' || p.ragdoll || p.pose) continue;
+    if (world.time < (p._greetedAt ?? -99) + 25) continue;
+    const d = dist(p.x, p.y, pv.x, pv.y);
+    if (d > 16 || d < 2) continue;
+    p._greetedAt = world.time;
+    if (Math.random() > 0.45) continue;
+    p.greetUntil = world.time + 2.4;
+    if (!shouted && Math.random() < 0.35) {
+      say(p, world, pick(GREET_LINES), 2.2, null);
+      shouted = true;
+    }
+  }
+}
+
 // --- cyclists' bells ----------------------------------------------------
 
 function updateBikeBells(world) {
@@ -852,6 +896,7 @@ export function updatePedestrians(dt, world) {
   if (events.length) processEvents(world, events);
   updateWitnessCall(world);
   updateBikeBells(world);
+  greetPassingBoat(world);
   knockOffRiders(world);
   processPedPlanQueue(world);
   buildPedAvoidGrid(peds);

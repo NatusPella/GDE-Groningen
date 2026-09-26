@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { dist, closestPointOnSegment, isInWater, pointInPolygon } from './util.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
+import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getGaragesForRender } from './garages.js';
 import { getHorecaForRender } from './horeca.js';
@@ -639,8 +640,14 @@ function pandSections(world, shop) {
 // --- boat rental ---------------------------------------------------------------------
 
 const RENTALS = [
-  { id: 'sloep', label: 'Sloep "Nait Soezen"', desc: 'Rustig tuffen door de grachten', price: 40, nameIdx: 0, model: { name: 'boat', len: 4, wid: 1.6, maxSpeed: 4.5, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#e8e6e0', cabin: '#2f3a44' } },
-  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  { id: 'sloep', label: 'Sloep "Nait Soezen"', desc: 'Rustig tuffen door de grachten', price: 40, nameIdx: 0, model: { ...BOAT_KINDS.sloep } },
+  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  { id: 'kano', label: 'Kano', desc: 'Zelf peddelen, met z\'n tweeën in één kano', price: 15, nameIdx: 0, model: { ...BOAT_KINDS.kano } },
+  { id: 'kajak', label: 'Kajak', desc: 'Voor één, laag bij het water', price: 12, nameIdx: 0, model: { ...BOAT_KINDS.kajak } },
+  { id: 'waterfiets', label: 'Waterfiets', desc: 'Samen trappen, geen haast', price: 20, nameIdx: 1, model: { ...BOAT_KINDS.waterfiets } },
+  { id: 'dinghy', label: 'Bijbootje met motortje', desc: 'Klein, wendbaar, beetje lek', price: 25, nameIdx: 0, model: { ...BOAT_KINDS.dinghy } },
+  { id: 'rubber', label: 'Rubberboot', desc: 'Buitenboordmotor, stuitert over het water', price: 70, nameIdx: 0, model: { ...BOAT_KINDS.rubberboot } },
+  { id: 'rondvaart', label: 'Rondvaartboot', desc: 'Lang, traag en met een glazen dak', price: 150, nameIdx: 1, model: { ...BOAT_KINDS.rondvaart } },
 ];
 
 function bootSections(world, shop) {

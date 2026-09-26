@@ -155,6 +155,8 @@ export default {
       d.prevSpeed = v.speed;
     } else d.prevSpeed = null;
 
+    updateBuddy(c);
+
     if (d.phase === 'drive' && Math.hypot(v.x - d.new.x, v.y - d.new.y) < 16 && p.inVehicle !== v) {
       d.phase = 'unload';
       c.msg('Aangekomen! Sjouw alles uit het busje naar de voordeur.', 3);
@@ -172,12 +174,7 @@ export default {
       if (carried && nearVan) {
         c.drop();
         carried.state = 'van';
-        const left = d.items.filter((it) => it.state === 'old').length;
-        if (!left) {
-          d.phase = 'drive';
-          if (d.ped) { say(world, d.ped, 'Ik fiets er wel achteraan!', 3); freePed(d.ped); d.ped = null; }
-          c.msg(`Alles ingeladen. Rij voorzichtig naar ${d.new.street} in ${d.new.area}.`, 3.5);
-        } else c.msg(`Ingeladen: ${carried.name}. Nog ${left} te gaan.`, 2.2);
+        loadedCheck(c, carried);
         return true;
       }
       if (!carried && Math.hypot(d.old.x - p.x, d.old.y - p.y) < REACH + 0.6) {
@@ -187,6 +184,7 @@ export default {
         it.mesh = null;
         it.state = 'carried';
         c.carry(stackMesh(it), { height: 0.55, forward: 0.45, slow: 0.7, hint: 'Eerst dit naar de achterkant van het busje' });
+        buddyTake(c, 'old');
         return true;
       }
       return false;
@@ -197,25 +195,13 @@ export default {
         if (!it) return false;
         it.state = 'carried';
         c.carry(stackMesh(it), { height: 0.55, forward: 0.45, slow: 0.7, hint: 'Eerst dit naar de voordeur' });
+        buddyTake(c, 'van');
         return true;
       }
       if (carried && Math.hypot(d.new.x - p.x, d.new.y - p.y) < REACH + 0.6) {
         c.drop();
-        carried.state = 'done';
-        carried.mesh = c.addMesh(stackMesh(carried));
-        const k = d.items.filter((x) => x.state === 'done').length - 1;
-        const a = d.new.face + Math.PI / 2;
-        carried.mesh.position.set(d.new.x + Math.cos(a) * (k - 1.5) * 0.7, 0, d.new.y + Math.sin(a) * (k - 1.5) * 0.7);
-        if (d.items.every((x) => x.state === 'done')) {
-          const avg = d.items.reduce((s, x) => s + x.hp, 0) / d.items.length;
-          const whole = d.items.every((x) => x.hp >= 100);
-          if (whole) unlockAchievement(world, 'sj_verhuizing');
-          const ped = spawnPed(world, d.new.x, d.new.y, 0);
-          say(world, ped, whole ? pick(THANKS) : pick(BROKEN), 3.5);
-          freePed(ped);
-          const base = (45 + d.items.length * 16 + d.dist / 30) * (0.4 + 0.6 * avg / 100);
-          c.complete({ base, tip: whole ? rand(15, 30) : 0, text: whole ? 'Alles heel afgeleverd!' : `Afgeleverd, ${Math.round(avg)}% heel.`, flawless: whole });
-        }
+        placeDone(c, carried);
+        deliveredCheck(c);
         return true;
       }
     }
@@ -277,8 +263,95 @@ export default {
   stop(c) {
     const d = c.data;
     if (d.ped) freePed(d.ped);
+    dropBuddy(c, false);
   },
 };
+
+function loadedCheck(c, it) {
+  const d = c.data, world = c.world;
+  const left = d.items.filter((x) => x.state === 'old' || x.state === 'buddy' || x.state === 'carried').length;
+  if (!left) {
+    d.phase = 'drive';
+    if (d.ped) { say(world, d.ped, 'Ik fiets er wel achteraan!', 3); freePed(d.ped); d.ped = null; }
+    c.msg(`Alles ingeladen. Rij voorzichtig naar ${d.new.street} in ${d.new.area}.`, 3.5);
+  } else c.msg(`Ingeladen: ${it.name}. Nog ${left} te gaan.`, 2.2);
+}
+
+function placeDone(c, it) {
+  const d = c.data;
+  it.state = 'done';
+  it.mesh = c.addMesh(stackMesh(it));
+  const k = d.items.filter((x) => x.state === 'done').length - 1;
+  const a = d.new.face + Math.PI / 2;
+  it.mesh.position.set(d.new.x + Math.cos(a) * (k - 1.5) * 0.7, 0, d.new.y + Math.sin(a) * (k - 1.5) * 0.7);
+}
+
+function deliveredCheck(c) {
+  const d = c.data, world = c.world;
+  if (!d.items.every((x) => x.state === 'done')) return;
+  const avg = d.items.reduce((s, x) => s + x.hp, 0) / d.items.length;
+  const whole = d.items.every((x) => x.hp >= 100);
+  if (whole) unlockAchievement(world, 'sj_verhuizing');
+  const ped = spawnPed(world, d.new.x, d.new.y, 0);
+  say(world, ped, whole ? pick(THANKS) : pick(BROKEN), 3.5);
+  freePed(ped);
+  const base = (45 + d.items.length * 16 + d.dist / 30) * (0.4 + 0.6 * avg / 100);
+  c.complete({ base, tip: whole ? rand(15, 30) : 0, text: whole ? 'Alles heel afgeleverd!' : `Afgeleverd, ${Math.round(avg)}% heel.`, flawless: whole });
+}
+
+// Sjouwen doe je met z'n tweeën: when the player picks something up with
+// Tammo/Anita close by, the companion grabs the next item too, follows along
+// with it and puts it down on reaching the van or the new front door.
+function companionFree(world) {
+  const cp = world.companion, p = world.player;
+  if (!cp || cp.state === 'dead' || cp.inVehicle || cp.water || cp.ragdoll) return null;
+  return Math.hypot(cp.x - p.x, cp.y - p.y) < 7 ? cp : null;
+}
+
+function buddyTake(c, from) {
+  const d = c.data, cp = companionFree(c.world);
+  if (!cp || d.items.some((x) => x.state === 'buddy')) return;
+  const it = from === 'old' ? d.items.filter((x) => x.state === 'old').pop() : d.items.find((x) => x.state === 'van');
+  if (!it) return;
+  if (it.mesh) { c.removeMesh(it.mesh); it.mesh = null; }
+  it.state = 'buddy';
+  it.buddyFrom = from;
+  it.mesh = c.addMesh(stackMesh(it));
+  cp.carrying = 1;
+  c.msg(`${cp.character === 'anita' ? 'Anita' : 'Tammo'} sjouwt ${it.name} mee`, 2.2);
+}
+
+function dropBuddy(c, back = true) {
+  const d = c.data;
+  if (c.world.companion) c.world.companion.carrying = 0;
+  const it = d.items && d.items.find((x) => x.state === 'buddy');
+  if (!it) return;
+  if (it.mesh) { c.removeMesh(it.mesh); it.mesh = null; }
+  it.state = it.buddyFrom === 'old' ? 'old' : 'van';
+  if (back && it.state === 'old') placeStack(c, d.old);
+}
+
+function updateBuddy(c) {
+  const d = c.data, world = c.world, cp = world.companion, v = c.vehicle;
+  const it = d.items && d.items.find((x) => x.state === 'buddy');
+  if (!it) { if (cp && cp.carrying) cp.carrying = 0; return; }
+  if (!cp || cp.state === 'dead' || cp.inVehicle || cp.water || cp.ragdoll || Math.hypot(cp.x - world.player.x, cp.y - world.player.y) > 18) { dropBuddy(c); return; }
+  const a = cp.angle;
+  it.mesh.position.set(cp.x + Math.cos(a) * 0.45, 0.55 + (cp.gz || 0), cp.y + Math.sin(a) * 0.45);
+  it.mesh.rotation.set(0, -a, 0);
+  const target = it.buddyFrom === 'old' ? vanRear(v) : d.new;
+  if (Math.hypot(target.x - cp.x, target.y - cp.y) > REACH + 1.4) return;
+  c.removeMesh(it.mesh);
+  it.mesh = null;
+  cp.carrying = 0;
+  if (it.buddyFrom === 'old') {
+    it.state = 'van';
+    loadedCheck(c, it);
+  } else {
+    placeDone(c, it);
+    deliveredCheck(c);
+  }
+}
 
 // Boxes waiting at the old door, re-laid whenever the stack changes.
 function placeStack(c, door) {

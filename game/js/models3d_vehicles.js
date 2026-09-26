@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh } from './models3d_people.js';
+import { boatKind, boatHasCabin } from './boattypes.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -651,82 +652,302 @@ export function updatePoliceLamps(mesh, time, chasing, id = 0) {
 }
 
 // --- boat ---------------------------------------------------------------------
-// Lofted sloep hull: gunwale and chine outlines per station, pointed bow, flat
-// transom. The keel sits below y=0 (scene3d parks the group at water level).
+// Lofted hulls per boat kind (boattypes.js): gunwale and chine outlines per
+// station, flat or pointed transom. The keel sits below y=0 (scene3d parks
+// the group at water level). Flags are the Groningen city flag (green, white,
+// green); nav lights sit in the lamp group so nightlights3d can make them glow.
 
-function hullStations(L, W) {
+const NAV_RED = 0xff2a1a, NAV_GREEN = 0x26ff5a, NAV_WHITE = 0xfff4dc;
+const GRN_FLAG = 0x1f8a3c, WHITE_FLAG = 0xf2f0ea;
+const WOOD = 0x9a7048, DECK = 0xb08658, KEEL = 0x5a2a22;
+
+const HULL_SHAPES = {
+  sloep: {
+    ts: [0, 0.14, 0.32, 0.52, 0.68, 0.8, 0.9, 1],
+    f: (t) => (t < 0.55 ? 0.86 + 0.14 * Math.sin((t / 0.55) * Math.PI / 2) : Math.cos(((t - 0.55) / 0.45) * Math.PI / 2)),
+    top: (t) => 0.5 + 0.22 * t * t, rise: (t) => Math.max(0, (t - 0.6) / 0.4), chine: -0.08, keel: -0.2, floor: 0.14,
+  },
+  rondvaart: {
+    ts: [0, 0.06, 0.2, 0.45, 0.7, 0.8, 0.88, 0.95, 1],
+    f: (t) => (t < 0.06 ? 0.9 + 0.1 * Math.sin((t / 0.06) * Math.PI / 2) : t < 0.72 ? 1 : Math.pow(Math.cos(((t - 0.72) / 0.28) * Math.PI / 2), 0.75)),
+    top: (t) => 0.52 + 0.14 * Math.max(0, (t - 0.7) / 0.3) ** 2, rise: (t) => Math.max(0, (t - 0.75) / 0.25), chine: -0.14, keel: -0.3, floor: 0.14,
+  },
+  kano: {
+    ts: [0, 0.05, 0.14, 0.3, 0.5, 0.7, 0.86, 0.95, 1],
+    f: (t) => Math.pow(Math.max(0, Math.sin(Math.PI * t)), 0.5),
+    top: (t) => 0.3 + 0.14 * (2 * t - 1) ** 4, rise: (t) => Math.abs(2 * t - 1) ** 2, chine: -0.07, keel: -0.13, floor: 0.06,
+  },
+  kajak: {
+    ts: [0, 0.05, 0.14, 0.3, 0.5, 0.7, 0.86, 0.95, 1],
+    f: (t) => Math.pow(Math.max(0, Math.sin(Math.PI * t)), 0.6),
+    top: (t) => 0.2 + 0.06 * (2 * t - 1) ** 2, rise: (t) => Math.abs(2 * t - 1) ** 2, chine: -0.05, keel: -0.11, floor: 0.04, deck: true,
+  },
+  dinghy: {
+    ts: [0, 0.16, 0.36, 0.55, 0.72, 0.86, 1],
+    f: (t) => (t < 0.45 ? 0.8 + 0.2 * Math.sin((t / 0.45) * Math.PI / 2) : Math.pow(Math.cos(((t - 0.45) / 0.55) * Math.PI / 2), 0.7)),
+    top: (t) => 0.42 + 0.12 * t * t, rise: (t) => Math.max(0, (t - 0.55) / 0.45), chine: -0.05, keel: -0.15, floor: 0.08,
+  },
+  rubberboot: {
+    ts: [0, 0.14, 0.32, 0.52, 0.68, 0.82, 0.92, 1],
+    f: (t) => (t < 0.6 ? 0.9 + 0.1 * Math.sin((t / 0.6) * Math.PI / 2) : Math.pow(Math.cos(((t - 0.6) / 0.4) * Math.PI / 2), 0.8)),
+    top: (t) => 0.24 + 0.14 * t * t, rise: (t) => Math.max(0, (t - 0.6) / 0.4), chine: -0.06, keel: -0.17, floor: 0.1,
+  },
+};
+
+function hullStations(L, W, S) {
   const hl = L / 2;
-  const ts = [0, 0.14, 0.32, 0.52, 0.68, 0.8, 0.9, 1];
-  return ts.map((t) => {
-    const f = t < 0.55 ? 0.86 + 0.14 * Math.sin((t / 0.55) * Math.PI / 2) : Math.cos(((t - 0.55) / 0.45) * Math.PI / 2);
-    const x = -hl + t * L;
-    const hw = (W / 2) * Math.max(0, f);
-    const bowRise = Math.max(0, (t - 0.6) / 0.4);
+  return S.ts.map((t) => {
+    const hw = (W / 2) * Math.max(0, S.f(t));
+    const r = S.rise(t);
     return {
-      x, t, hw,
-      top: 0.5 + 0.22 * t * t,
+      x: -hl + t * L, t, hw,
+      top: S.top(t),
       chineW: hw * 0.72,
-      chine: -0.08 + 0.3 * bowRise * bowRise,
-      keel: -0.2 + 0.42 * bowRise * bowRise * bowRise,
+      chine: S.chine + (0.22 - S.chine * 0.5) * r * r,
+      keel: S.keel + (0.2 - S.keel) * r * r * r,
     };
   });
 }
 
-function buildBoatGeometry(L, W, hull, trim, cabin, police) {
-  return cached(`boat|${L}|${W}|${hull}|${trim}|${cabin}|${police}`, () => {
-    const B = new GeoBuilder(3);
-    const st = hullStations(L, W);
-    const floorY = 0.14;
-    const WOOD = 0x9a7048, DECK = 0xb08658;
-    for (let i = 0; i < st.length - 1; i++) {
-      const a = st[i], b = st[i + 1];
-      for (const s of [1, -1]) {
-        const out = [0, 0, s];
-        const aT = [a.x, a.top, s * a.hw], bT = [b.x, b.top, s * b.hw];
-        const aS = [a.x, a.top - 0.09, s * a.hw * 0.995], bS = [b.x, b.top - 0.09, s * b.hw * 0.995];
-        const aC = [a.x, a.chine, s * a.chineW], bC = [b.x, b.chine, s * b.chineW];
-        const aK = [a.x, a.keel, 0], bK = [b.x, b.keel, 0];
-        B.quadOut(aS, bS, bT, aT, out, trim);
-        B.quadOut(aC, bC, bS, aS, out, hull);
-        B.quadOut(aK, bK, bC, aC, [0, -1, s * 0.5], 0x5a2a22);
-        const aI = [a.x, a.top, s * Math.max(0, a.hw - 0.06)], bI = [b.x, b.top, s * Math.max(0, b.hw - 0.06)];
-        B.quadOut(aT, bT, bI, aI, [0, 1, 0], WOOD);
-        const aF = [a.x, floorY, s * Math.max(0, a.hw - 0.12)], bF = [b.x, floorY, s * Math.max(0, b.hw - 0.12)];
-        B.quadOut(aI, bI, bF, aF, [0, 0, -s], shadeHex(hull, 0.9));
-        B.quadOut(aF, bF, [b.x, floorY, 0], [a.x, floorY, 0], [0, 1, 0], DECK);
+// Half-width and gunwale height of the hull at local x.
+function hullAt(st, x) {
+  for (let i = 0; i < st.length - 1; i++) {
+    const a = st[i], b = st[i + 1];
+    if (x >= a.x && x <= b.x) {
+      const k = (x - a.x) / (b.x - a.x || 1);
+      return { hw: a.hw + (b.hw - a.hw) * k, top: a.top + (b.top - a.top) * k };
+    }
+  }
+  const e = x < st[0].x ? st[0] : st[st.length - 1];
+  return { hw: e.hw, top: e.top };
+}
+
+function hullShell(B, st, hull, trim, floorY, deck) {
+  for (let i = 0; i < st.length - 1; i++) {
+    const a = st[i], b = st[i + 1];
+    for (const s of [1, -1]) {
+      const out = [0, 0, s];
+      const aT = [a.x, a.top, s * a.hw], bT = [b.x, b.top, s * b.hw];
+      const aS = [a.x, a.top - 0.07, s * a.hw * 0.995], bS = [b.x, b.top - 0.07, s * b.hw * 0.995];
+      const aC = [a.x, a.chine, s * a.chineW], bC = [b.x, b.chine, s * b.chineW];
+      const aK = [a.x, a.keel, 0], bK = [b.x, b.keel, 0];
+      B.quadOut(aS, bS, bT, aT, out, trim);
+      B.quadOut(aC, bC, bS, aS, out, hull);
+      B.quadOut(aK, bK, bC, aC, [0, -1, s * 0.5], KEEL);
+      if (deck) {
+        const ridge = (p) => [p.x, p.top + 0.05 * Math.min(1, p.hw / 0.2), 0];
+        B.quadOut(aT, bT, ridge(b), ridge(a), [0, 1, s * 0.4], hull);
+        continue;
       }
+      const inA = Math.min(0.06, a.hw * 0.4), inB = Math.min(0.06, b.hw * 0.4);
+      const aI = [a.x, a.top, s * (a.hw - inA)], bI = [b.x, b.top, s * (b.hw - inB)];
+      B.quadOut(aT, bT, bI, aI, [0, 1, 0], WOOD);
+      const aF = [a.x, floorY, s * Math.max(0, a.hw - 0.12)], bF = [b.x, floorY, s * Math.max(0, b.hw - 0.12)];
+      B.quadOut(aI, bI, bF, aF, [0, 0, -s], shadeHex(hull, 0.9));
+      B.quadOut(aF, bF, [b.x, floorY, 0], [a.x, floorY, 0], [0, 1, 0], DECK);
     }
-    const s0 = st[0];
+  }
+  const s0 = st[0];
+  if (s0.hw > 0.05) {
     B.quadOut([s0.x, s0.top, s0.hw], [s0.x, s0.top, -s0.hw], [s0.x, s0.chine, -s0.chineW], [s0.x, s0.chine, s0.chineW], [-1, 0, 0], hull);
-    B.triOut([s0.x, s0.chine, s0.chineW], [s0.x, s0.chine, -s0.chineW], [s0.x, s0.keel, 0], [-1, 0, 0], 0x5a2a22);
-    B.quadOut([s0.x + 0.001, s0.top, s0.hw - 0.12], [s0.x + 0.001, s0.top, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, s0.hw - 0.12], [1, 0, 0], shadeHex(hull, 0.9));
+    B.triOut([s0.x, s0.chine, s0.chineW], [s0.x, s0.chine, -s0.chineW], [s0.x, s0.keel, 0], [-1, 0, 0], KEEL);
+    if (!deck) B.quadOut([s0.x + 0.001, s0.top, s0.hw - 0.12], [s0.x + 0.001, s0.top, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, s0.hw - 0.12], [1, 0, 0], shadeHex(hull, 0.9));
+  }
+}
 
-    const hl = L / 2;
-    const benchW = W * 0.8;
-    B.box(-hl + 0.3, 0.36, 0, 0.36, 0.06, benchW * 0.95, WOOD);
-    B.box(-hl + 0.3, 0.25, 0, 0.3, 0.2, benchW * 0.8, shadeHex(hull, 0.85));
-    for (const s of [1, -1]) B.box(-hl + 0.9, 0.36, s * (benchW / 2 - 0.12), 1.0, 0.06, 0.24, WOOD);
-    B.box(hl * 0.35, 0.36, 0, 0.28, 0.06, W * 0.62, WOOD);
-
-    if (cabin) {
-      const cx0 = -hl * 0.35, cx1 = hl * 0.35;
-      const cw = W * 0.72;
-      const cabinTop = 1.2;
-      B.box((cx0 + cx1) / 2, (0.14 + 0.85) / 2, 0, cx1 - cx0, 0.71, cw, police ? 0xeceae4 : shadeHex(hull, 0.95));
-      B.box((cx0 + cx1) / 2 - 0.03, 1.02, 0, cx1 - cx0 - 0.08, 0.34, cw - 0.04, GLASS, G_GLASS);
-      B.box((cx0 + cx1) / 2, cabinTop + 0.02, 0, cx1 - cx0 + 0.15, 0.07, cw + 0.06, cabin);
-      for (const s of [1, -1]) B.box(cx0 + 0.03, 1.02, s * (cw / 2 - 0.03), 0.06, 0.34, 0.06, cabin);
-    } else {
-      const cx = hl * 0.05;
-      B.box(cx, 0.45, W * 0.18, 0.4, 0.62, 0.36, shadeHex(hull, 0.9));
-      B.box(cx + 0.19, 0.86, W * 0.18, 0.02, 0.2, 0.4, GLASS, G_GLASS, 0, 0, 0.35);
-      B.geo(new THREE.TorusGeometry(0.1, 0.012, 3, 10).rotateY(Math.PI / 2), composeMatrix(cx - 0.24, 0.86, W * 0.18, 0, 0, 0.5), 0x2a2a2b);
+// Groningen city flag on a pole: three equal horizontal bands, green-white-
+// green, the cloth streaming aft (-x) with a slight ripple.
+function cityFlag(B, x, baseY, z, poleH = 0.8, len = 0.36, h = 0.24) {
+  const topY = baseY + poleH;
+  B.geo(tubeGeometry([x, baseY, z], [x - 0.04, topY + 0.04, z], 0.012, 0.009, 4), null, 0x6a5038);
+  const segs = 4, bands = [GRN_FLAG, WHITE_FLAG, GRN_FLAG];
+  for (let i = 0; i < segs; i++) {
+    const x0 = x - 0.045 - len * (i / segs), x1 = x - 0.045 - len * ((i + 1) / segs);
+    const z0 = z + 0.03 * Math.sin(i * 1.7), z1 = z + 0.03 * Math.sin((i + 1) * 1.7);
+    const sag0 = 0.012 * i, sag1 = 0.012 * (i + 1);
+    for (let b = 0; b < 3; b++) {
+      const y0 = topY - (h * b) / 3, y1 = topY - (h * (b + 1)) / 3;
+      const q = [[x0, y0 - sag0, z0], [x1, y0 - sag1, z1], [x1, y1 - sag1, z1], [x0, y1 - sag0, z0]];
+      B.quadOut(q[0], q[1], q[2], q[3], [0, 0, 1], bands[b]);
+      B.quadOut(q[0], q[1], q[2], q[3], [0, 0, -1], bands[b]);
     }
-    const sx = -hl + 0.05;
-    B.geo(tubeGeometry([sx, 0.5, 0], [sx - 0.05, 1.3, 0], 0.012, 0.01, 4), null, 0x6a5038);
-    const fc = [0xae1c28, 0xf2f0ea, 0x21468b];
-    for (let i = 0; i < 3; i++) B.box(sx - 0.2, 1.24 - i * 0.06, 0, 0.3, 0.06, 0.006, fc[i]);
-    B.box(hl - 0.05, st[st.length - 2].top + 0.05, 0, 0.06, 0.04, 0.06, 0xe8e6e0, G_LAMP);
+  }
+}
+
+// Port (left, -z) red, starboard green, white stern light.
+function navLights(B, st, L, sternY) {
+  const hl = L / 2;
+  const x = hl * 0.45;
+  const h = hullAt(st, x);
+  B.box(x, h.top + 0.035, -(h.hw + 0.005), 0.1, 0.05, 0.03, NAV_RED, G_LAMP);
+  B.box(x, h.top + 0.035, h.hw + 0.005, 0.1, 0.05, 0.03, NAV_GREEN, G_LAMP);
+  B.box(-hl + 0.02, sternY, 0, 0.04, 0.06, 0.06, NAV_WHITE, G_LAMP);
+}
+
+function sloepFit(B, st, L, W, hull, cabin, police) {
+  const hl = L / 2;
+  const benchW = W * 0.8;
+  B.box(-hl + 0.3, 0.36, 0, 0.36, 0.06, benchW * 0.95, WOOD);
+  B.box(-hl + 0.3, 0.25, 0, 0.3, 0.2, benchW * 0.8, shadeHex(hull, 0.85));
+  for (const s of [1, -1]) B.box(-hl + 0.9, 0.36, s * (benchW / 2 - 0.12), 1.0, 0.06, 0.24, WOOD);
+  B.box(hl * 0.35, 0.36, 0, 0.28, 0.06, W * 0.62, WOOD);
+  if (cabin) {
+    const cx0 = -hl * 0.35, cx1 = hl * 0.35;
+    const cw = W * 0.72;
+    const cabinTop = 1.2;
+    B.box((cx0 + cx1) / 2, (0.14 + 0.85) / 2, 0, cx1 - cx0, 0.71, cw, police ? 0xeceae4 : shadeHex(hull, 0.95));
+    B.box((cx0 + cx1) / 2 - 0.03, 1.02, 0, cx1 - cx0 - 0.08, 0.34, cw - 0.04, GLASS, G_GLASS);
+    B.box((cx0 + cx1) / 2, cabinTop + 0.02, 0, cx1 - cx0 + 0.15, 0.07, cw + 0.06, cabin);
+    for (const s of [1, -1]) B.box(cx0 + 0.03, 1.02, s * (cw / 2 - 0.03), 0.06, 0.34, 0.06, cabin);
+    if (!police) {
+      B.box(cx1 - 0.1, cabinTop + 0.2, 0, 0.05, 0.36, 0.05, 0x2a2a2b);
+      B.box(cx1 - 0.1, cabinTop + 0.39, 0, 0.06, 0.06, 0.06, NAV_WHITE, G_LAMP);
+    }
+  } else {
+    const cx = hl * 0.05, cz = W * 0.18;
+    B.box(cx, 0.45, cz, 0.4, 0.62, 0.36, shadeHex(hull, 0.9));
+    B.box(cx + 0.19, 0.86, cz, 0.02, 0.2, 0.4, GLASS, G_GLASS, 0, 0, 0.35);
+    B.geo(new THREE.TorusGeometry(0.1, 0.012, 3, 10).rotateY(Math.PI / 2), composeMatrix(cx - 0.24, 0.86, cz, 0, 0, 0.5), 0x2a2a2b);
+    // helmsman's seat behind the console
+    B.box(cx - 0.62, 0.31, cz, 0.34, 0.34, 0.36, shadeHex(hull, 0.85));
+    B.box(cx - 0.62, 0.48, cz, 0.36, 0.04, 0.38, WOOD);
+    B.box(cx - 0.8, 0.68, cz, 0.04, 0.36, 0.34, WOOD, 0, 0, 0, 0.12);
+  }
+  cityFlag(B, -hl + 0.05, 0.5, 0);
+}
+
+function rondvaartFit(B, st, L, W, hull, cabin) {
+  const hl = L / 2;
+  const iw = W / 2 - 0.16;
+  for (let x = hl - 2.1; x > -hl + 1.6; x -= 0.95) {
+    for (const s of [1, -1]) {
+      B.box(x, 0.39, s * (iw + 0.15) / 2, 0.4, 0.06, iw - 0.15, WOOD);
+      B.box(x, 0.26, s * (iw + 0.15) / 2, 0.32, 0.2, iw - 0.2, shadeHex(hull, 0.8));
+      B.box(x - 0.24, 0.62, s * (iw + 0.15) / 2, 0.05, 0.42, iw - 0.15, cabin, 0, 0, 0, 0.1);
+    }
+  }
+  // glass-roofed canopy on slim posts
+  const rx0 = -hl + 1.25, rx1 = hl - 1.35, roofY = 1.6;
+  const n = 5;
+  for (let i = 0; i <= n; i++) {
+    const x = rx0 + ((rx1 - rx0) * i) / n;
+    for (const s of [1, -1]) B.box(x, (0.55 + roofY) / 2, s * (W / 2 - 0.08), 0.05, roofY - 0.55, 0.05, cabin);
+  }
+  for (const s of [1, -1]) {
+    B.box((rx0 + rx1) / 2, roofY, s * (W / 2 - 0.08), rx1 - rx0 + 0.1, 0.07, 0.08, cabin);
+    B.box((rx0 + rx1) / 2, 0.78, s * (W / 2 - 0.06), rx1 - rx0, 0.05, 0.04, cabin);
+  }
+  B.box((rx0 + rx1) / 2, roofY + 0.06, 0, rx1 - rx0 + 0.1, 0.04, W - 0.12, GLASS, G_GLASS);
+  for (const x of [rx0, rx1]) B.box(x, roofY + 0.02, 0, 0.08, 0.08, W - 0.12, cabin);
+  // skipper's stool and wheel at the stern
+  B.box(-hl + 0.75, 0.38, 0, 0.3, 0.48, 0.3, 0x2a2a2b);
+  B.box(-hl + 0.75, 0.6, 0, 0.34, 0.04, 0.34, WOOD);
+  B.box(-hl + 1.2, 0.55, 0, 0.3, 0.82, 0.5, cabin);
+  B.geo(new THREE.TorusGeometry(0.14, 0.014, 3, 12).rotateY(Math.PI / 2), composeMatrix(-hl + 1.04, 1.0, 0, 0, 0, 0.45), 0x2a2a2b);
+  cityFlag(B, -hl + 0.08, 0.55, 0, 1.0, 0.5, 0.33);
+  cityFlag(B, hl - 0.2, 0.66, 0, 0.7, 0.3, 0.2);
+  // mast light above the canopy
+  B.box(rx1 - 0.2, roofY + 0.25, 0, 0.04, 0.4, 0.04, 0x2a2a2b);
+  B.box(rx1 - 0.2, roofY + 0.48, 0, 0.07, 0.07, 0.07, NAV_WHITE, G_LAMP);
+}
+
+function kanoFit(B, st, L, W, hull) {
+  const hl = L / 2;
+  for (const x of [-hl * 0.58, hl * 0.5]) {
+    const h = hullAt(st, x);
+    B.box(x, 0.15, 0, 0.26, 0.04, h.hw * 2 - 0.1, WOOD);
+  }
+  const h = hullAt(st, 0);
+  B.box(0, h.top - 0.02, 0, 0.06, 0.04, h.hw * 2 - 0.06, WOOD);
+}
+
+function kajakFit(B) {
+  const coam = new THREE.TorusGeometry(1, 0.08, 3, 14).rotateX(Math.PI / 2);
+  B.geo(coam, composeMatrix(-0.12, 0.25, 0, 0, 0, 0, 0.36, 0.3, 0.22), 0x1e1e20);
+  B.geo(new THREE.CircleGeometry(1, 12).rotateX(-Math.PI / 2), composeMatrix(-0.12, 0.245, 0, 0, 0, 0, 0.34, 1, 0.2), 0x121214);
+}
+
+function dinghyFit(B, st, L) {
+  const hl = L / 2;
+  for (const x of [0.1, -hl + 0.38]) {
+    const h = hullAt(st, x);
+    B.box(x, 0.3, 0, 0.26, 0.04, h.hw * 2 - 0.08, WOOD);
+  }
+  for (const s of [1, -1]) B.geo(tubeGeometry([-0.6, 0.4, s * 0.38], [1.0, 0.36, s * 0.3], 0.018, 0.018, 4), null, 0x8a6440);
+  outboard(B, -hl, 0.45, 0.8);
+}
+
+function outboard(B, x, y, k = 1) {
+  B.box(x - 0.12 * k, y + 0.12 * k, 0, 0.24 * k, 0.26 * k, 0.2 * k, 0x1e2226);
+  B.box(x - 0.1 * k, y - 0.14 * k, 0, 0.08 * k, 0.5 * k, 0.08 * k, 0x2a2e33);
+  B.box(x + 0.05 * k, y + 0.05 * k, 0, 0.26 * k, 0.03 * k, 0.03 * k, 0x2a2e33, 0, 0, 0, -0.2);
+}
+
+function rubberFit(B, st, L, W, tube, accent) {
+  const hl = L / 2;
+  const R = 0.2;
+  const rad = (p) => R * (1 - 0.3 * p.t ** 3);
+  const ctr = (p, s) => [p.x, 0.3 + 0.2 * Math.max(0, (p.t - 0.6) / 0.4) ** 2, s * Math.max(0, p.hw - R * 0.9)];
+  for (const s of [1, -1]) {
+    for (let i = 0; i < st.length - 1; i++) {
+      const a = ctr(st[i], s), b = ctr(st[i + 1], s);
+      B.geo(tubeGeometry(a, b, rad(st[i]), rad(st[i + 1]), 7), null, tube);
+      B.geo(new THREE.SphereGeometry(rad(st[i]), 7, 4), composeMatrix(a[0], a[1], a[2]), tube);
+    }
+    const a = ctr(st[2], s), b = ctr(st[4], s);
+    B.geo(tubeGeometry([a[0], a[1] + 0.03, a[2] * 1.08], [b[0], b[1] + 0.03, b[2] * 1.08], 0.13, 0.12, 5), null, accent);
+  }
+  const tip = st[st.length - 1];
+  B.geo(new THREE.SphereGeometry(rad(tip), 7, 4), composeMatrix(tip.x, 0.5, 0), tube);
+  B.box(0.15, 0.36, 0, 0.36, 0.52, 0.42, shadeHex(accent, 0.9));
+  B.box(0.26, 0.7, 0, 0.02, 0.18, 0.44, GLASS, G_GLASS, 0, 0, 0.4);
+  B.box(-0.35, 0.3, 0, 0.36, 0.3, W - 0.8, 0x2a2a2b);
+  outboard(B, -hl + 0.02, 0.4, 1.1);
+}
+
+function waterfietsFit(B, L, W, color, accent) {
+  const hl = L / 2;
+  for (const s of [1, -1]) {
+    const pz = s * (W / 2 - 0.22);
+    B.geo(new THREE.SphereGeometry(1, 12, 6), composeMatrix(0, 0.02, pz, 0, 0, 0, hl * 0.98, 0.25, 0.22), color);
+    B.geo(new THREE.SphereGeometry(1, 12, 3, 0, Math.PI * 2, Math.PI * 0.42, Math.PI * 0.12), composeMatrix(0, 0.02, pz, 0, 0, 0, hl * 0.99, 0.252, 0.222), accent);
+  }
+  B.box(-0.05, 0.29, 0, 1.9, 0.06, W - 0.35, accent);
+  B.box(-0.15, 0.52, 0, 0.44, 0.06, W - 0.35, color);
+  B.box(-0.15, 0.4, 0, 0.36, 0.2, W - 0.5, shadeHex(accent, 0.8));
+  B.box(-0.4, 0.8, 0, 0.06, 0.52, W - 0.35, color, 0, 0, 0, 0.18);
+  B.box(0.35, 0.42, 0, 0.3, 0.2, 0.3, shadeHex(accent, 0.8));
+  const wheel = new THREE.CylinderGeometry(0.34, 0.34, 0.46, 10, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(Math.PI / 2);
+  B.geo(wheel, composeMatrix(-0.95, 0.3, 0), accent);
+  B.box(0.75, 0.62, 0, 0.04, 0.6, 0.04, 0x8a8e92);
+  B.box(0.75, 0.9, 0, 0.05, 0.03, 0.4, 0x2a2a2b);
+  cityFlag(B, -1.15, 0.32, 0, 0.9, 0.26, 0.17);
+  B.box(-1.19, 1.25, 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
+}
+
+function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
+  return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}`, () => {
+    const B = new GeoBuilder(3);
+    const hl = L / 2;
+    if (kind === 'waterfiets') {
+      waterfietsFit(B, L, W, hull, cabin || 0x2a8fb0);
+      return B.build();
+    }
+    const S = HULL_SHAPES[kind] || HULL_SHAPES.sloep;
+    const st = hullStations(L, W, S);
+    hullShell(B, st, hull, trim, S.floor, !!S.deck);
+    switch (kind) {
+      case 'rondvaart': rondvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
+      case 'kano': kanoFit(B, st, L, W, hull); break;
+      case 'kajak': kajakFit(B); break;
+      case 'dinghy': dinghyFit(B, st, L); break;
+      case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
+      default: sloepFit(B, st, L, W, hull, cabin, police);
+    }
+    if (kind === 'kano' || kind === 'kajak') {
+      const x = -hl * 0.72;
+      B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
+    } else navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
     return B.build();
   });
 }
@@ -735,11 +956,13 @@ function buildBoatMesh(v) {
   const group = new THREE.Group();
   const len = v.model.len, wid = v.model.wid;
   const police = !!v.isPolice;
+  const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const withCabin = police || hash2(v.id || 0, 5.3) < 0.4;
-  const trim = police ? 0x1f3f8f : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048][Math.floor(hash2(v.id || 0, 8.1) * 4)];
-  group.add(new THREE.Mesh(buildBoatGeometry(len, wid, hull, trim, withCabin ? cabinColor : 0, police), vehicleMaterials()));
+  const trims = kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
+  const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
+  group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));
   if (police) {
     const lamps = [];
     for (const s of [1, -1]) {
