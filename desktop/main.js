@@ -132,13 +132,37 @@ function createWindow() {
         })`);
         console.log('[smoke]', info);
         if (process.argv.includes('--perf-test')) {
-          const perf = await win.webContents.executeJavaScript(`(async () => {
+          // --perf-at=x,y,heading[;x,y,heading...] teleports the player to fixed
+          // spots so runs are comparable (the new-game spawn is a random landmark)
+          const atArg = process.argv.find((a) => a.startsWith('--perf-at='));
+          const spots = atArg ? atArg.slice(10).split(';').map((s) => s.split(',').map(Number)) : [null];
+          const expArg = process.argv.find((a) => a.startsWith('--perf-exp='));
+          const expFiles = expArg ? expArg.slice(11).split('+').map((f) => fsSync.readFileSync(f, 'utf8')) : ['null'];
+          const expSrc = expFiles.pop(), expPre = expFiles.join(';\n');
+          await win.webContents.executeJavaScript(`(async () => {
             const key = (k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); };
             key('Enter', 'Enter');
             await new Promise((r) => setTimeout(r, 2500));
             const w = window.__debug && window.__debug.world;
             for (let i = 0; i < 25 && w && w.paused; i++) { key(' ', 'Space'); await new Promise((r) => setTimeout(r, 700)); }
             await new Promise((r) => setTimeout(r, 3000));
+          })()`);
+          for (const spot of spots) {
+          const perf = await win.webContents.executeJavaScript(`(async () => {
+            const spot = ${JSON.stringify(spot)};
+            const w = window.__debug && window.__debug.world;
+            // cutscenes (e.g. the new-wijk flyover a teleport triggers) are skipped
+            // so every spot is measured from the street-level follow camera
+            const cine = await import('/js/cinematics.js').catch(() => null);
+            clearInterval(window.__perfSkip);
+            window.__perfSkip = cine && setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
+            if (spot && w) {
+              const p = w.player;
+              const s = (w.map.findOpenSpawn && w.map.findOpenSpawn(spot[0], spot[1], 80)) || { x: spot[0], y: spot[1] };
+              p.x = s.x; p.y = s.y; p.vx = 0; p.vy = 0;
+              if (Number.isFinite(spot[2])) { p.angle = spot[2]; w.camYaw = spot[2]; }
+              await new Promise((r) => setTimeout(r, 6000));
+            }
             const measure = async (ms) => {
               const t = []; let last = performance.now(); const t0 = last;
               await new Promise((res) => { const f = () => { const n = performance.now(); t.push(n - last); last = n; if (n - t0 < ms) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
@@ -171,14 +195,40 @@ function createWindow() {
               groups.set(key, (groups.get(key) || 0) + 1);
             });
             counts.topGroups = [...groups.entries()].sort((a, b) => b[1] - a[1]).slice(0, 18);
-            const out = { counts, dpr: window.devicePixelRatio, css: [innerWidth, innerHeight], vehicles: w ? w.vehicles.length : 0, peds: w ? w.pedestrians.length : 0 };
-            for (const pr of [r ? r.getPixelRatio() : 0, 1.5, 1]) {
-              if (r && pr) { r.setPixelRatio(pr); window.dispatchEvent(new Event('resize')); await new Promise((res) => setTimeout(res, 800)); }
+            const out = { at: w ? [Math.round(w.player.x), Math.round(w.player.y)] : null, counts, dpr: window.devicePixelRatio, css: [innerWidth, innerHeight], vehicles: w ? w.vehicles.length : 0, peds: w ? w.pedestrians.length : 0 };
+            const pr0 = window.__perfPr0 || (window.__perfPr0 = r ? r.getPixelRatio() : 0);
+            const prs = spot ? [pr0] : [pr0, 1.5, 1];
+            for (const pr of prs) {
+              if (r && pr) { r.setPixelRatio(pr); window.dispatchEvent(new Event('resize')); if (sc.postfx) sc.postfx.rebuild(); await new Promise((res) => setTimeout(res, 800)); }
               out['pr' + pr] = await measure(5000);
             }
+            // --perf-exp=<file>: [[name, () => undoFn], ...] toggled one at a time
+            ${expPre}
+            const exps = ${expSrc};
+            if (exps) {
+              out.exp = {}; if (window.__perfInfo) out.info = window.__perfInfo;
+              for (const [name, apply] of exps) {
+                let undo = null;
+                try { undo = apply(); } catch (e) { out.exp[name] = 'ERR ' + e.message; continue; }
+                await new Promise((res) => setTimeout(res, 1000));
+                const m = await measure(4000);
+                let c = 0, sc2 = 0, fr = 0; const o2 = r.render.bind(r), os2 = sm.render.bind(sm);
+                r.render = function (a, b) { o2(a, b); c += r.info.render.calls; };
+                sm.render = function (...a) { const b0 = r.info.render.calls; os2(...a); sc2 += r.info.render.calls - b0; };
+                const t1 = performance.now();
+                await new Promise((res) => { const f = () => { fr++; if (performance.now() - t1 < 1000) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
+                r.render = o2; sm.render = os2;
+                out.exp[name] = { fps: m.fps, p50: m.p50, calls: Math.round(c / fr), shadow: Math.round(sc2 / fr) };
+                try { if (undo) undo(); } catch (e) { /* ignore */ }
+                await new Promise((res) => setTimeout(res, 500));
+              }
+            }
+            if (window.__perfInfo2) out.info2 = window.__perfInfo2;
             return JSON.stringify(out);
           })()`);
           console.log('[perf]', perf);
+          if (spot) fsSync.writeFileSync(smoke.split('=')[1].replace(/\.png$/, `-at${spots.indexOf(spot)}.png`), (await win.webContents.capturePage()).toPNG());
+          }
           if (process.argv.includes('--profile')) {
             const dbg = win.webContents.debugger;
             dbg.attach('1.3');
@@ -200,6 +250,20 @@ function createWindow() {
             const top = [...self.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30);
             console.log('[profile] total ms', (dtSum / 1000).toFixed(0));
             for (const [k, us] of top) console.log('[profile]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', k);
+            // inclusive time per function (self + callees)
+            const parent = new Map();
+            for (const n of profile.nodes) for (const c of n.children || []) parent.set(c, n.id);
+            const incl = new Map();
+            for (const [id, us] of per) {
+              const seen = new Set();
+              for (let cur = id; cur !== undefined; cur = parent.get(cur)) {
+                const cf = byId.get(cur).callFrame;
+                const key = `${cf.functionName || '(anon)'} ${cf.url.split('/').pop()}:${cf.lineNumber + 1}`;
+                if (seen.has(key)) continue; seen.add(key);
+                incl.set(key, (incl.get(key) || 0) + us);
+              }
+            }
+            for (const [k, us] of [...incl.entries()].sort((a, b) => b[1] - a[1]).slice(0, 45)) console.log('[profile-incl]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', k);
             // per file
             const byFile = new Map();
             for (const [k, us] of self) { const f = k.split(' ').pop().split(':')[0] || '(native)'; byFile.set(f, (byFile.get(f) || 0) + us); }

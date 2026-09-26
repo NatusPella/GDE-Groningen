@@ -40,6 +40,10 @@ const spotLights = [];
 const policeLights = [];
 let searchSpot = null;
 let searchReq = null;
+// dark-rig state, see updateLightRig
+const RIG_OFF_DELAY_MS = 2000;
+let rigOn = true;
+let rigLitAt = 0;
 const lampGrid = new Map();
 let visible = [];
 let propLamps = [];
@@ -160,6 +164,7 @@ export function setNightLightQuality(level) {
   while (pointLights.length > nPoint) scene.remove(pointLights.pop());
   while (pointLights.length < nPoint) {
     const l = new THREE.PointLight(LAMP_COLOR, 0, 22, 1.7);
+    l.visible = rigOn;
     l.userData.lamp = null;
     pointLights.push(l);
     scene.add(l);
@@ -167,6 +172,7 @@ export function setNightLightQuality(level) {
   while (spotLights.length > nSpot) { const s = spotLights.pop(); scene.remove(s); scene.remove(s.target); }
   while (spotLights.length < nSpot) {
     const s = new THREE.SpotLight(0xfff1dc, 0, 34, 0.55, 0.65, 1.4);
+    s.visible = rigOn;
     spotLights.push(s);
     scene.add(s);
     scene.add(s.target);
@@ -176,6 +182,7 @@ export function setNightLightQuality(level) {
   while (policeLights.length > nPolice) scene.remove(policeLights.pop());
   while (policeLights.length < nPolice) {
     const l = new THREE.PointLight(POLICE_COLOR, 0, POLICE_RANGE, 1.5);
+    l.visible = rigOn;
     policeLights.push(l);
     scene.add(l);
   }
@@ -497,6 +504,37 @@ export function updateNightLights(world, vehicleMeshes, px, py, night, wet) {
   updateVehicleLights(world, vehicleMeshes, px, py, smoothstep(0.04, 0.3, night));
   updatePoliceLights(world, vehicleMeshes, px, py, night);
   updateSearchlight();
+  updateLightRig();
+}
+
+// Dark rig: in daylight without police or heli lights every real light of
+// the pool sits at zero intensity. Hiding them all then drops the local
+// light loops from every lit shader - a separate program variant that
+// scene3d pre-compiles (prewarmLightVariants) - so the picture is identical
+// but each pixel is far cheaper. Back on the moment any light is needed.
+function rigLights() {
+  const all = [...pointLights, ...spotLights, ...policeLights];
+  if (searchSpot) all.push(searchSpot);
+  return all;
+}
+
+function updateLightRig() {
+  const now = performance.now();
+  const all = rigLights();
+  if (all.some((l) => l.intensity > 0)) rigLitAt = now;
+  const want = now - rigLitAt < RIG_OFF_DELAY_MS;
+  if (want === rigOn) return;
+  rigOn = want;
+  for (const l of all) l.visible = want;
+}
+
+export function isLightRigOn() {
+  return rigOn;
+}
+
+// Only for compiling the other program variant; restore right after.
+export function setLightRigVisible(on) {
+  for (const l of rigLights()) l.visible = on;
 }
 
 // Unit open cone for a light beam: apex at the origin, base radius 1 at y=-1.
