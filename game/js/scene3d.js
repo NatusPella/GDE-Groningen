@@ -6,9 +6,10 @@ import {
   vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
   vehicleJustWrecked, buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D,
   sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
+  spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedestrians.js';
-import { buildPersonMesh, animatePersonWalk, applyAttackPose, seatPerson, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPerson, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
@@ -17,7 +18,8 @@ import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from '
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { getGaragesForRender, buildGarageMesh3D } from './garages.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
-import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
+import { getCombatEffect } from './combat.js';
+import { alignPlayerFlash } from './gunfx3d.js';
 import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
 import { sleepingParkedCars } from './parkedcars.js';
@@ -44,6 +46,7 @@ import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside } from './countryside.js';
+import { probe } from './hitchprobe.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -139,8 +142,6 @@ const splashMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
 const garageMeshes = new Map();
-const bulletMeshes = new Map();
-const sparkMeshes = new Map();
 const kissMeshes = new Map();
 const KISS_HEART_MAT = new THREE.MeshBasicMaterial({ color: 0xff4d8a });
 function buildKissHeartMesh() {
@@ -157,8 +158,6 @@ function buildKissHeartMesh() {
   group.add(tip);
   return group;
 }
-let muzzleFlashMesh = null;
-let meleeSwipeMesh = null;
 let sun = null;
 let hemi = null;
 let skyDome = null;
@@ -403,6 +402,35 @@ function buildVehicleActor(v) {
   return mesh;
 }
 
+// Traffic spawns 70+ m out, so a new car's mesh can wait a frame or two:
+// beyond VEH_NEAR only one is built per frame once VEH_BUILD_MS is spent.
+const VEH_BUILD_MS = 3;
+const VEH_NEAR = 45;
+const _vehSeen = new Set();
+function syncVehicleMeshes(world, player) {
+  _vehSeen.clear();
+  const deadline = performance.now() + VEH_BUILD_MS;
+  let built = 0;
+  for (const v of world.vehicles) {
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d >= DRAW_DIST) continue;
+    if (!vehicleMeshes.has(v.id)) {
+      if (built > 0 && d > VEH_NEAR && performance.now() > deadline) continue;
+      const mesh = enableShadows(buildVehicleActor(v), false);
+      scene.add(mesh);
+      vehicleMeshes.set(v.id, mesh);
+      built++;
+    }
+    _vehSeen.add(v.id);
+  }
+  for (const [id, mesh] of vehicleMeshes) {
+    if (_vehSeen.has(id)) continue;
+    scene.remove(mesh);
+    disposeObject(mesh);
+    vehicleMeshes.delete(id);
+  }
+}
+
 // A driver figure is a full person mesh (several ms to build), so it is
 // prepared a little ahead - one per frame - while the car is still beyond
 // the distance at which it can be shown.
@@ -457,7 +485,7 @@ function pinShaderPrograms(r) {
   const programs = r.info.programs;
   const push = programs.push;
   programs.push = function (...added) {
-    for (const p of added) p.usedTimes++;
+    for (const p of added) { p.usedTimes++; probe.program(p); }
     return push.apply(this, added);
   };
 }
@@ -478,6 +506,10 @@ export function init3D(map) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   pinShaderPrograms(renderer);
+  // Fetching shader info logs after a link is a sync point that costs tens of
+  // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
+  renderer.debug.checkShaderErrors = /[?&]shaderdebug\b/.test(location.search);
+  probe.setRenderer(renderer);
 
   scene = new THREE.Scene();
   // The scene root never moves; with auto-update on it would force every
@@ -888,7 +920,9 @@ function syncBuildings(world, px, py) {
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
     if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
-    prefetchedBuildings.set(b, makeBuildingMesh(b));
+    const mesh = makeBuildingMesh(b);
+    precompile(mesh);
+    prefetchedBuildings.set(b, mesh);
   }
 }
 
@@ -1173,6 +1207,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
     animatePersonWalk(mesh, p.speed || 0, animDt);
+    if (p.hitReact) applyHitReaction(mesh, p.hitReact, world.time, p.angle);
   }
 
   for (let i = pedFadingOut.length - 1; i >= 0; i--) {
@@ -1266,24 +1301,25 @@ export function update3D(dt, world) {
   const player = world.player;
 
   syncBuildings(world, player.x, player.y);
+  probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
   updateGrass(dt, world, cam, DRAW_DIST);
+  probe.mark('3d:grass');
   syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, player.x, player.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   if (waterMaterial) updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
+  probe.mark('3d:water');
   syncRoads(world, player.x, player.y);
+  probe.mark('3d:roads');
   syncTrees(world, player.x, player.y);
+  probe.mark('3d:trees');
   updateRailway3D(dt, world);
   updateCountryside(dt, world, scene, cam, viewDist);
+  probe.mark('3d:rail+country');
 
   syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, player, DRAW_DIST);
-  syncActors(
-    world.vehicles.filter((v) => Math.hypot(v.x - player.x, v.y - player.y) < DRAW_DIST),
-    vehicleMeshes,
-    buildVehicleActor,
-    (v) => v.id
-  );
+  syncVehicleMeshes(world, player);
   const fireSeenIds = new Set();
   const policeChasing = world.wanted > 0;
   const driverDeadline = performance.now() + DRIVER_BUILD_BUDGET_MS;
@@ -1340,6 +1376,7 @@ export function update3D(dt, world) {
       updateVehicleFireMesh3D(fire, animDt);
     }
   }
+  probe.mark('3d:vehicles');
   syncBoatWakes(world);
   for (const [id, fire] of vehicleFireMeshes) {
     if (fireSeenIds.has(id)) continue;
@@ -1364,7 +1401,9 @@ export function update3D(dt, world) {
     return alive;
   });
 
+  probe.mark('3d:vehfx');
   syncPedestrianMeshes(world, player, animDt);
+  probe.mark('3d:peds');
   syncSpeechBubbles(world);
 
   if (!flitspaalBuilt && world.flitspaalen && world.flitspaalen.length) {
@@ -1428,6 +1467,7 @@ export function update3D(dt, world) {
     policeHeliMesh = null;
   }
 
+  probe.mark('3d:props+wildlife');
   updateSkyProps3D(world, scene, animDt);
 
   // mission marker: a single persistent beacon, repositioned/recolored -
@@ -1490,30 +1530,7 @@ export function update3D(dt, world) {
   // traffic lights: static positions, built once, only the lamp color changes
   syncTrafficLights3D(scene);
 
-  // combat: bullets (Map-keyed like any other actor), spark bursts (pruned
-  // by world.time > until), and a single shared muzzle-flash/melee-swipe
-  // slot (only one of the two effect types can be active at once)
-  syncActors(world.bullets, bulletMeshes, buildBulletMesh3D, (b) => b);
-  for (const b of world.bullets) {
-    const mesh = bulletMeshes.get(b);
-    if (mesh) {
-      mesh.position.set(b.x, 1.15, b.y);
-      mesh.rotation.y = -Math.atan2(b.vy, b.vx);
-    }
-  }
-  for (const p of world.particles) {
-    if (p.kind !== 'spark' || sparkMeshes.has(p)) continue;
-    const mesh = buildSparkBurstMesh3D();
-    mesh.position.set(p.x, 1.15, p.y);
-    scene.add(mesh);
-    sparkMeshes.set(p, mesh);
-  }
-  for (const [p, mesh] of sparkMeshes) {
-    if (world.time <= p.until) continue;
-    scene.remove(mesh);
-    disposeObject(mesh);
-    sparkMeshes.delete(p);
-  }
+  // gunfire (tracers, flashes, impacts, holes) is drawn by gunfx3d.js
   for (const p of world.particles) {
     if (p.kind !== 'splash' || splashMeshes.has(p)) continue;
     const mesh = buildSplashMesh3D();
@@ -1547,24 +1564,15 @@ export function update3D(dt, world) {
     disposeObject(mesh);
     kissMeshes.delete(p);
   }
-  if (!muzzleFlashMesh) { muzzleFlashMesh = buildMuzzleFlashMesh3D(); scene.add(muzzleFlashMesh); }
-  if (!meleeSwipeMesh) { meleeSwipeMesh = buildMeleeSwipeMesh3D(); scene.add(meleeSwipeMesh); }
-  {
-    const fx = getCombatEffect();
-    const fxActive = fx && world.time < fx.until;
-    muzzleFlashMesh.visible = !!(fxActive && fx.type === 'muzzle');
-    meleeSwipeMesh.visible = false; // punches are an arm animation now (applyAttackPose)
-    if (fxActive) {
-      const activeMesh = fx.type === 'muzzle' ? muzzleFlashMesh : meleeSwipeMesh;
-      activeMesh.position.set(player.x, 1.15, player.y);
-      activeMesh.rotation.y = -fx.angle;
-    }
-  }
 
+  probe.mark('3d:markers+combat');
   applyTimeOfDay(dt, world);
   applyWeatherToScene3D(scene, renderer, world, dt, player.x, player.y, cam);
+  probe.mark('3d:tod+weather');
   updateEnvironment(dt);
+  probe.mark('3d:env');
   farLod.update(player.x, player.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, DRAW_DIST);
+  probe.mark('3d:farlod');
 
   if (player.character !== playerCharacter) {
     playerCharacter = player.character;
@@ -1592,7 +1600,19 @@ export function update3D(dt, world) {
     playerMesh.userData.crouch = !!player.crouching;
     playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
     animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
-    applyAttackPose(playerMesh, getCombatEffect(), world.time);
+    const gun = world.weapon && world.weapon !== 'fists' && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
+    const aiming = gun && !world.paused && (world.input.mouse.down || world.input.mouse.rightDown) ? gun : null;
+    applyAttackPose(playerMesh, getCombatEffect(), world.time, aiming);
+    applyHitReaction(playerMesh, player.hitReact, world.time, player.angle);
+  }
+  if (playerMesh) {
+    const onFoot = !pv && !player.swimming && !world.pigeonMode;
+    setHeldWeapon(playerMesh, onFoot ? world.weapon : null);
+    const tip = playerMesh.userData.muzzle;
+    if (tip && playerMesh.visible) {
+      playerMesh.updateMatrixWorld(true);
+      alignPlayerFlash(tip);
+    }
   }
 
   // companion (Tammo/Anita, whichever the player isn't controlling) -
@@ -1634,6 +1654,7 @@ export function update3D(dt, world) {
   // pull-in so the camera never ends up clipped inside a building, and an
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
+  probe.mark('3d:players');
   const targetAngle = player.inVehicle ? player.inVehicle.angle : player.angle;
   followYaw += normalizeAngleDelta(-targetAngle - followYaw) * Math.min(1, dt * 5);
 
@@ -1776,82 +1797,256 @@ export function update3D(dt, world) {
   }
   applyCameraOverride(dt, world, player.x, veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3, player.y);
 
+  probe.mark('3d:camera');
   updateSunAndSky(player);
   limitActorShadows(pedMeshes, player.x, player.y);
   limitActorShadows(vehicleMeshes, player.x, player.y);
   limitActorShadows(wildlifeMeshes, player.x, player.y);
-  updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness);
+  updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness, dt);
+  probe.mark('3d:lights');
+  stepWarmup(world);
   prewarmLightVariants();
+  probe.mark('3d:prewarm');
 
   postfx.render();
+  probe.mark('3d:render');
+  probe.identify(scene);
 }
 
 // Every lit material has two program variants: with the night-light rig and
 // without it (nightlights3d dark rig). Each material + mesh layout that shows
-// up is drawn once in the variant not in use - a stand-in on its own layer,
-// into a 1x1 scissor of the real scene target - so the program is compiled,
-// linked and its GPU pipeline built before the rig ever switches to it.
-const PREWARM_INTERVAL_MS = 1000;
+// up gets a stand-in on its own layer, compiled for the variant not in use.
+// The scene is scanned a slice per frame, compiling goes through
+// KHR_parallel_shader_compile (renderer.compile only starts the link), and
+// once the programs are linked the stand-ins are drawn once into a 1x1
+// scissor of the scene target so the GPU pipeline exists before the rig
+// ever switches over. Nothing here blocks on the driver.
 const PREWARM_LAYER = 31;
+const PREWARM_SLICE = 120;
+const PREWARM_WAIT_MS = 20000;
+const PREWARM_POLL_MS = 250;
 const prewarmed = { true: new Set(), false: new Set() };
 const prewarmRoot = new THREE.Group();
+const prewarmQueue = [];
+let prewarmCursor = 0;
+let prewarmBatch = null;
 let prewarmCam = null;
-let prewarmAt = 0;
-function prewarmLightVariants() {
-  const now = performance.now();
-  if (now < prewarmAt) return;
-  prewarmAt = now + PREWARM_INTERVAL_MS;
-  const on = isLightRigOn();
-  const done = prewarmed[!on];
-  scene.traverse((o) => {
-    if (o.isLight) { o.layers.enable(PREWARM_LAYER); return; }
-    if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite) || (o.isSkinnedMesh && !o.skeleton)) return;
-    const g = o.geometry;
-    const kind = (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
-      + (o.instanceColor ? 'c' : '') + Object.keys(g.attributes).join(',') + (g.morphAttributes.position ? 'M' : '');
-    for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
-      if (!m) continue;
-      const key = m.id + '.' + m.version + '|' + kind;
-      if (done.has(key)) continue;
-      done.add(key);
-      const proxy = o.isInstancedMesh ? new THREE.InstancedMesh(g, m, 1)
-        : o.isSkinnedMesh ? new THREE.SkinnedMesh(g, m)
-          : o.isSprite ? new THREE.Sprite(m)
-            : o.isPoints ? new THREE.Points(g, m)
-              : o.isLineSegments ? new THREE.LineSegments(g, m)
-                : o.isLine ? new THREE.Line(g, m)
-                  : new THREE.Mesh(g, m);
-      if (o.instanceColor) proxy.instanceColor = o.instanceColor;
-      if (o.isSkinnedMesh) proxy.bind(o.skeleton, o.bindMatrix);
-      proxy.frustumCulled = false;
-      proxy.layers.set(PREWARM_LAYER);
-      prewarmRoot.add(proxy);
-    }
-  });
-  if (!prewarmRoot.children.length) return;
-  if (!prewarmCam) {
-    prewarmCam = new THREE.PerspectiveCamera();
-    prewarmCam.layers.set(PREWARM_LAYER);
+
+function prewarmKind(o) {
+  const g = o.geometry;
+  let k = g.userData._pwKind;
+  if (k === undefined) {
+    k = Object.keys(g.attributes).join(',') + (g.morphAttributes.position ? 'M' : '');
+    g.userData._pwKind = k;
   }
+  return (o.isInstancedMesh ? 'i' : o.isSkinnedMesh ? 'k' : o.isSprite ? 's' : o.isPoints ? 'p' : o.isLineSegments ? 'ls' : o.isLine ? 'l' : 'm')
+    + (o.instanceColor ? 'c' : '') + k;
+}
+
+function makePrewarmProxy(o, m) {
+  const g = o.geometry;
+  const proxy = o.isInstancedMesh ? new THREE.InstancedMesh(g, m, 1)
+    : o.isSkinnedMesh ? new THREE.SkinnedMesh(g, m)
+      : o.isSprite ? new THREE.Sprite(m)
+        : o.isPoints ? new THREE.Points(g, m)
+          : o.isLineSegments ? new THREE.LineSegments(g, m)
+            : o.isLine ? new THREE.Line(g, m)
+              : new THREE.Mesh(g, m);
+  if (o.instanceColor) proxy.instanceColor = o.instanceColor;
+  if (o.isSkinnedMesh) proxy.bind(o.skeleton, o.bindMatrix);
+  // shadow receiving is part of the program key
+  proxy.receiveShadow = o.receiveShadow;
+  proxy.frustumCulled = false;
+  proxy.layers.set(PREWARM_LAYER);
+  return proxy;
+}
+
+// Queues stand-ins for every material/layout under `root` not yet warmed
+// for the rig variant `variant`. Hidden objects (effects that only show up
+// later, the moon and stars by day) are warmed for the current variant too,
+// since their first appearance would otherwise compile in-frame. A tag per
+// object and variant skips objects already seen with the same material.
+function scanForPrewarm(root, variant, hidden = false) {
+  hidden = hidden || !root.visible;
+  queuePrewarm(root, variant);
+  if (hidden) queuePrewarm(root, !variant);
+  const kids = root.children;
+  for (let i = 0; i < kids.length; i++) scanForPrewarm(kids[i], variant, hidden);
+}
+
+function queuePrewarm(o, variant) {
+  if (o.isLight) { o.layers.enable(PREWARM_LAYER); return; }
+  const tag = variant ? '_pwOn' : '_pwOff';
+  if (!o.material || o[tag] === o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite) || (o.isSkinnedMesh && !o.skeleton)) return;
+  o[tag] = o.material;
+  const done = prewarmed[variant];
+  const kind = prewarmKind(o);
+  for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+    if (!m) continue;
+    const key = m.id + '.' + m.version + '|' + kind + (o.receiveShadow ? 'r' : '');
+    if (done.has(key)) continue;
+    done.add(key);
+    prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
+  }
+}
+
+function withLightRig(on, fn) {
+  const cur = isLightRigOn();
+  setLightRigVisible(on);
+  try { return fn(); } finally { setLightRigVisible(cur); }
+}
+
+function prewarmCamera() {
+  if (!prewarmCam) prewarmCam = new THREE.PerspectiveCamera();
   prewarmCam.copy(cam, false);
   prewarmCam.layers.set(PREWARM_LAYER);
+  return prewarmCam;
+}
+
+function startPrewarmBatch() {
+  const variant = prewarmQueue[0].variant;
+  const items = [];
+  for (let i = 0; i < prewarmQueue.length && items.length < 64;) {
+    if (prewarmQueue[i].variant === variant) items.push(prewarmQueue.splice(i, 1)[0].proxy);
+    else i++;
+  }
+  for (const p of items) prewarmRoot.add(p);
+  const camera = prewarmCamera();
+  // program keys depend on the target (tone mapping / output colour space
+  // are only applied to the screen), so compile for the scene target
+  const prevTarget = renderer.getRenderTarget();
+  renderer.setRenderTarget(postfx.sceneTarget);
+  try {
+    withLightRig(variant, () => renderer.compile(prewarmRoot, camera, scene));
+  } finally {
+    renderer.setRenderTarget(prevTarget);
+  }
+  const programs = new Set();
+  for (const p of items) {
+    const props = renderer.properties.get(p.material);
+    if (props.programs) for (const pr of props.programs.values()) programs.add(pr);
+  }
+  prewarmBatch = { variant, programs, since: performance.now(), nextCheck: performance.now() + 2 * PREWARM_POLL_MS };
+}
+
+function drawPrewarmBatch() {
+  const camera = prewarmCamera();
   const target = postfx.sceneTarget;
   const prevTarget = renderer.getRenderTarget();
   const autoShadow = renderer.shadowMap.autoUpdate;
   scene.add(prewarmRoot);
-  setLightRigVisible(!on);
   renderer.shadowMap.autoUpdate = false;
   renderer.setRenderTarget(target);
   if (target) { target.scissor.set(0, 0, 1, 1); target.scissorTest = true; } else { renderer.setScissor(0, 0, 1, 1); renderer.setScissorTest(true); }
   try {
-    renderer.render(scene, prewarmCam);
+    withLightRig(prewarmBatch.variant, () => renderer.render(scene, camera));
   } finally {
     if (target) { target.scissorTest = false; target.scissor.set(0, 0, target.width, target.height); } else renderer.setScissorTest(false);
     renderer.setRenderTarget(prevTarget);
     renderer.shadowMap.autoUpdate = autoShadow;
-    setLightRigVisible(on);
     scene.remove(prewarmRoot);
     prewarmRoot.clear();
+  }
+}
+
+function prewarmLightVariants() {
+  const variant = !isLightRigOn();
+  const kids = scene.children;
+  for (let i = 0, n = Math.min(PREWARM_SLICE, kids.length); i < n; i++) {
+    if (prewarmCursor >= kids.length) prewarmCursor = 0;
+    const o = kids[prewarmCursor++];
+    if (o !== prewarmRoot) scanForPrewarm(o, variant);
+  }
+  if (prewarmBatch) {
+    // A completion query is a synchronous round trip to the GPU process that
+    // waits out its backlog (later ones in the same task are cheap), so ask
+    // only every PREWARM_POLL_MS; ready programs are dropped from the list.
+    const now = performance.now();
+    const B = prewarmBatch;
+    if (now - B.since < PREWARM_WAIT_MS) {
+      if (now < B.nextCheck) return;
+      B.nextCheck = now + PREWARM_POLL_MS;
+      for (const p of B.programs) {
+        if (!p.isReady()) return;
+        B.programs.delete(p);
+      }
+    }
+    drawPrewarmBatch();
+    prewarmBatch = null;
+  }
+  if (prewarmQueue.length) startPrewarmBatch();
+}
+
+// Starts compiling (in the background, KHR_parallel_shader_compile) the
+// programs of an object that will enter the scene soon, e.g. a prefetched
+// building, so its first frame doesn't link them synchronously.
+function precompile(obj) {
+  const prev = renderer.getRenderTarget();
+  renderer.setRenderTarget(postfx.sceneTarget);
+  try { renderer.compile(obj, cam, scene); } finally { renderer.setRenderTarget(prev); }
+}
+
+// Load-time warm-up for objects that are not in the scene yet (actors and
+// effects that only spawn later): their programs are compiled for both rig
+// variants in the background, then drawn once like the stand-ins above.
+export function prewarmObjects(roots) {
+  if (!renderer) return;
+  for (const r of roots) {
+    r.updateMatrixWorld(true);
+    scanForPrewarm(r, !isLightRigOn(), true);
+    warmupBuilt.push(r);
+  }
+}
+
+// One sample of everything that spawns later, built one per frame from the
+// title screen on and handed to prewarmObjects; disposed once warmed.
+let warmupQueue = null;
+const warmupBuilt = [];
+let warmupId = -1e6;
+function queueWarmup(world) {
+  const map = world.map;
+  const road = map.roads.find((r) => r.cat === 'normal' && !r.z && r.pts.length >= 2) || map.roads[0];
+  const veh = (o = {}) => () => {
+    const v = spawnVehicleOnRoad(map, road, !!o.police, Math.random, !!o.bike, !!o.bus, null, !!o.scooter);
+    v.id = warmupId--;
+    if (o.model) v.model = o.model;
+    if (o.wreck) v.wrecked = true;
+    return buildVehicleActor(v);
+  };
+  // every traffic model once, so their cached geometry exists before they spawn
+  const models = TRAFFIC_MODELS().map((model) => veh({ model, bus: model.name === 'bus', scooter: model.name === 'scooter', bike: model.name !== 'bus' && model.name !== 'scooter' && model.len < 2.5 }));
+  const boat = (police) => () => {
+    const poly = map.water && map.water.find((w) => w.bounds && w.bounds[2] - w.bounds[0] > 40);
+    const v = poly && (police ? spawnPoliceBoatOnWater(map, poly) : spawnBoatOnWater(map, poly));
+    if (!v) return null;
+    v.id = warmupId--;
+    return buildVehicleActor(v);
+  };
+  const ped = () => {
+    const m = buildPersonActor(0x7a8f5a, 0xd9aa82, { seed: 77 });
+    applyPedFade(m, 0.5);
+    return m;
+  };
+  const critter = (kind, extra = {}) => () => buildWildlifeActor({ kind, x: 0, y: 0, angle: 0, bobSeed: 0.3, ...extra });
+  warmupQueue = [
+    ...models, veh({ police: true }), veh({ bus: true }), veh({ bike: true }), veh({ scooter: true }),
+    veh({ wreck: true }), veh({ police: true, wreck: true }), boat(false), boat(true),
+    ped, () => buildPersonActor(0x1f3f8f, 0xd9aa82, { seed: 5 }),
+    critter('seagull'), critter('duck', { variant: 'drake' }), critter('pigeon'), critter('cat'), critter('dog'), critter('cow'), critter('sheep'),
+    buildVehicleImpactSparkMesh3D, buildVehicleFireMesh3D, buildVehicleExplosionMesh3D, buildSplashMesh3D, buildKissHeartMesh,
+    buildPoliceHeliMesh3D, buildMissionMarker3D, buildWaypointDotMesh3D, buildGarageMesh3D,
+  ];
+}
+
+function stepWarmup(world) {
+  if (!warmupQueue) queueWarmup(world);
+  if (warmupQueue.length) {
+    let obj = null;
+    try { obj = warmupQueue.shift()(); } catch (e) { console.warn('warm-up', e); }
+    if (obj) prewarmObjects([obj]);
+  } else if (warmupBuilt.length && !prewarmQueue.length && !prewarmBatch) {
+    for (const o of warmupBuilt) disposeObject(o);
+    warmupBuilt.length = 0;
   }
 }
 
@@ -1954,11 +2149,32 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
     guardLift = 0;
   }
   cam.lookAt(_camLook);
+  if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   const targetFov = valid && o.fov ? o.fov : baseFov;
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();
   }
+  applyRecoil(dt, world, t > 0.5);
+}
+
+// Gun recoil (world.camKick from combat.js): the view snaps up and a little
+// sideways, the FOV punches out, and both settle within ~0.3 s.
+let fovPunch = 0;
+function applyRecoil(dt, world, cinematic) {
+  const k = world.camKick;
+  if (!k || (k.pitch < 1e-4 && Math.abs(k.yaw) < 1e-4 && k.fov < 0.01)) return;
+  if (!cinematic) {
+    cam.rotateX(k.pitch);
+    cam.rotateY(k.yaw);
+    fovPunch = k.fov;
+    cam.fov += fovPunch;
+    cam.updateProjectionMatrix();
+  }
+  const d = Math.exp(-dt * 11);
+  k.pitch *= d;
+  k.yaw *= d;
+  k.fov *= Math.exp(-dt * 13);
 }
 
 // --- time of day ---------------------------------------------------------
