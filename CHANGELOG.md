@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Wat is er nieuw** in het hoofdmenu: de volledige changelog van alle
+  versies, gewoon over de stad heen.
+
 ## [0.3.0] - 2026-09-26
 
 ### Nieuw

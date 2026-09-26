@@ -87,6 +87,22 @@
   #start-screen .ss-credit .heart { display: inline-block; animation: ss-beat 1.6s ease-in-out infinite; }
   @keyframes ss-beat { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.18); } }
   @media (prefers-reduced-motion: reduce) { #start-screen .ss-credit .heart { animation: none; } }
+  #start-screen .ss-news { position: absolute; top: 11vh; bottom: 10vh; right: 4vw; width: min(560px, 46vw); display: flex; flex-direction: column; background: rgba(8,14,10,0.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(63,201,122,0.35); border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); animation: ss-in 0.3s ease both; }
+  #start-screen .ss-news[hidden] { display: none; }
+  #start-screen .ss-news-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 20px 10px; border-bottom: 1px solid rgba(63,201,122,0.35); }
+  #start-screen .ss-news-head h2 { margin: 0; font-size: 30px; letter-spacing: 2px; font-weight: normal; color: #3fc97a; }
+  #start-screen .ss-news-close { background: transparent; border: 1px solid rgba(63,201,122,0.6); color: #f0ede4; font: 16px 'Bebas Neue', sans-serif; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 3px; cursor: pointer; }
+  #start-screen .ss-news-close:hover { border-color: #5fe39a; color: #5fe39a; }
+  #start-screen .ss-news-body { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 20px 20px; font: 15px/1.45 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; color: rgba(240,237,228,0.9); scrollbar-color: rgba(63,201,122,0.5) transparent; }
+  #start-screen .ss-news-body h3 { margin: 20px 0 2px; font: normal 26px 'Bebas Neue', sans-serif; letter-spacing: 1.5px; color: #f0ede4; }
+  #start-screen .ss-news-body h3 small { font-size: 16px; color: rgba(240,237,228,0.55); margin-left: 8px; letter-spacing: 1px; }
+  #start-screen .ss-news-body h4 { margin: 12px 0 4px; font: normal 18px 'Bebas Neue', sans-serif; letter-spacing: 1.5px; color: #3fc97a; }
+  #start-screen .ss-news-body ul { margin: 0; padding-left: 18px; }
+  #start-screen .ss-news-body li { margin: 3px 0; }
+  #start-screen .ss-news-body p { margin: 6px 0; }
+  #start-screen .ss-news-body strong { color: #f0ede4; }
+  #start-screen .ss-news-body code { font-family: Menlo, Consolas, monospace; font-size: 0.9em; background: rgba(63,201,122,0.15); padding: 0 4px; border-radius: 3px; }
+  @media (max-width: 700px) { #start-screen .ss-news { left: 16px; right: 16px; width: auto; top: 8vh; } }
   @media (max-width: 700px) { #start-screen .ss-credit { top: auto; bottom: 12px; right: 16px; font-size: 12px; } #start-screen .ss-foot { display: none; } #start-screen .ss-content { padding: 6vh 16px; } }
   .frame-error {
     position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 30;
@@ -206,6 +222,10 @@
     </div>
     <nav class="ss-menu" role="menu" aria-label="Hoofdmenu"></nav>
   </div>
+  <section class="ss-news" role="dialog" aria-label="Wat is er nieuw" hidden>
+    <div class="ss-news-head"><h2>Wat is er nieuw</h2><button type="button" class="ss-news-close">Terug (Esc)</button></div>
+    <div class="ss-news-body" tabindex="0"></div>
+  </section>
   <p class="ss-foot"><span class="key">Esc</span> in het spel: menu, kaart &amp; besturing</p>
   <p class="ss-credit">Made with <span class="heart" aria-label="love">❤️</span> in Groningen, with AI<span class="ss-ver"></span></p>
 </div>

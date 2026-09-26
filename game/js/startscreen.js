@@ -224,6 +224,67 @@ function shuffle(list) {
   return a;
 }
 
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const inline = (s) => esc(s)
+  .replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+// Just enough Markdown for CHANGELOG.md: version headings, section headings,
+// bullets (with wrapped continuation lines) and paragraphs. The title, the
+// intro and an empty [Unreleased] section are left out.
+function changelogHtml(md) {
+  const out = [];
+  let block = null; // { kind: 'p' | 'li', text }
+  let inList = false;
+  let started = false;
+  const flush = () => {
+    if (!block) return;
+    if (block.kind === 'li') {
+      if (!inList) { out.push('<ul>'); inList = true; }
+      out.push(`<li>${inline(block.text)}</li>`);
+    } else {
+      if (inList) { out.push('</ul>'); inList = false; }
+      out.push(`<p>${inline(block.text)}</p>`);
+    }
+    block = null;
+  };
+  const closeList = () => { flush(); if (inList) { out.push('</ul>'); inList = false; } };
+  for (const raw of md.split('\n')) {
+    const line = raw.trimEnd();
+    const ver = line.match(/^## \[([^\]]+)\](?:\s*-\s*(.+))?/);
+    if (ver) {
+      closeList();
+      started = true;
+      if (ver[1].toLowerCase() === 'unreleased') { started = false; continue; }
+      const date = ver[2] ? new Date(ver[2]).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      out.push(`<h3>Versie ${esc(ver[1])}${date ? `<small>${esc(date)}</small>` : ''}</h3>`);
+      continue;
+    }
+    if (!started) continue;
+    const sec = line.match(/^###\s+(.+)/);
+    if (sec) { closeList(); out.push(`<h4>${inline(sec[1])}</h4>`); continue; }
+    const li = line.match(/^\s*[-*]\s+(.+)/);
+    if (li) { flush(); block = { kind: 'li', text: li[1] }; continue; }
+    if (!line.trim()) { flush(); continue; }
+    if (block) block.text += ' ' + line.trim();
+    else { if (inList) { out.push('</ul>'); inList = false; } block = { kind: 'p', text: line.trim() }; }
+  }
+  closeList();
+  return out.join('');
+}
+
+let changelogCache = null;
+function loadChangelog() {
+  if (!changelogCache) {
+    changelogCache = fetch('./CHANGELOG.md', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
+      .then(changelogHtml)
+      .catch(() => { changelogCache = null; return '<p>De lijst met wijzigingen kon niet worden geladen.</p>'; });
+  }
+  return changelogCache;
+}
+
 function summaryText(s) {
   const d = new Date(s.savedAt);
   const when = s.savedAt ? `${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : '';
@@ -240,6 +301,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
+    items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     if (window.gteDesktop && window.gteDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     const pct = getAchievementSummary().pct;
@@ -313,6 +375,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     };
     const finish = (mode) => {
       done = true;
+      news.hidden = true;
       window.removeEventListener('keydown', onKey, true);
       world._menuCamPose = Math.hypot(pose.lookAt.x - p.x, pose.lookAt.y - p.y) < 150 ? pose : null;
       world.cameraOverride = null;
@@ -322,6 +385,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     };
     const activate = (i) => {
       const it = items[i];
+      if (it.act !== 'news') news.hidden = true;
       if (it.act === 'continue') {
         restoreWorld();
         applySave(world, readSave());
@@ -331,15 +395,42 @@ export function runStartScreen(world, { render, relocate, tick }) {
         restoreWorld();
         clearSave();
         finish('game');
+      } else if (it.act === 'news') {
+        openNews();
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
       } else if (it.act === 'exit') {
         window.gteDesktop.quit();
       }
     };
+    const news = screen.querySelector('.ss-news');
+    const newsBody = news.querySelector('.ss-news-body');
+    const openNews = () => {
+      news.hidden = false;
+      newsBody.scrollTop = 0;
+      newsBody.focus({ preventScroll: true });
+      loadChangelog().then((html) => { if (!news.hidden) newsBody.innerHTML = html; });
+    };
+    const closeNews = () => {
+      news.hidden = true;
+      focus(sel);
+    };
+    news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
       if (isPauseMenuOpen() || done) return;
       const k = e.key;
+      if (!news.hidden) {
+        const page = newsBody.clientHeight * 0.85;
+        if (k === 'Escape' || k === 'Backspace' || k === 'Enter') closeNews();
+        else if (k === 'ArrowDown' || k === 's' || k === 'S') newsBody.scrollBy({ top: 60 });
+        else if (k === 'ArrowUp' || k === 'w' || k === 'W') newsBody.scrollBy({ top: -60 });
+        else if (k === 'PageDown' || k === ' ') newsBody.scrollBy({ top: page });
+        else if (k === 'PageUp') newsBody.scrollBy({ top: -page });
+        else return;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       if (k === 'ArrowDown' || k === 's' || k === 'S') focus(sel + 1);
       else if (k === 'ArrowUp' || k === 'w' || k === 'W') focus(sel - 1);
       else if (k === 'Enter' || k === ' ') { if (!e.repeat) activate(sel); }
@@ -354,7 +445,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     });
     menu.addEventListener('click', (e) => {
       const b = e.target.closest('.ss-item');
-      if (b && !done) activate(Number(b.dataset.i));
+      if (b && !done) { focus(Number(b.dataset.i)); activate(sel); }
     });
     window.addEventListener('keydown', onKey, true);
 
