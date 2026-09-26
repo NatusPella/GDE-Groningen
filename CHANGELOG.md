@@ -6,12 +6,69 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-26
+
+Een grote ronde op basis van de speelsessie van Maus.
+
 ### Nieuw
 - **Wat is er nieuw** in het hoofdmenu: de volledige changelog van alle
   versies, gewoon over de stad heen.
+- **Nieuwe muziek**: zeven nieuwe nummers op G-Music, elk met een verzonnen
+  artiest, en na elk nummer een jingle. Eigen muziek tijdens races en
+  politieachtervolgingen; G-Music pauzeert en gaat daarna verder waar hij was.
+- **Garages**: 56 werkplaatsen en tankstations met een rolluik dat opengaat.
+  Repareren (ook de deuken), spuiten, nieuwe kentekens en upgrades. Monteur
+  Henk belt als je auto beschadigd is. Schade aan je eigen auto's wordt onthouden.
+- **Verkeer**: stoplichten met een eigen fase voor fietsers, voorsorteren,
+  haaientanden en voorrangsborden, echte busbanen, en ambulances, taxi's en
+  een geldtransport die gewoon rondrijden. Met **L** zet je zwaailichten en
+  sirene aan in een gestolen politieauto of ambulance, en het verkeer gaat
+  voor je aan de kant.
+- **Meer voertuigen en boten**: midibus, SUV, roestbak, bakfiets,
+  bestelbus, vrachtwagen, e-step, en zeven soorten boten van kano tot
+  rondvaartboot. Boten hebben schippers, passagiers en 's nachts lichten.
+- **De EIKEA** aan de Sontweg, het complete UMCG en zwerfvuil op straat.
+- **Politie op de fiets en te paard**, die afstapt om je op te pakken.
+- **Race-info in beeld**: positie, tijd, resterende tijd en checkpoints.
+- Achterom kijken in een voertuig met **Q** of de middelste muisknop.
+- Schuiven voor helderheid en voor stemmen (los van muziek en effecten).
 - Wisselen tussen volledig scherm en venster met **Alt+Enter** of **F11**
   (op de Mac ook Ctrl+Cmd+F).
-- G-Music speelt nu na elk nummer een jingle.
+- Ingesproken bazen bij de bijbaantjes, en Tammo of Anita vertelt echte
+  feitjes tijdens de rondvaart.
+
+### Verbeterd
+- **Rijden**: auto's veren en hellen over, halen hogere topsnelheden (een
+  sportwagen 230 km/u), wielen draaien en sturen mee, en in plassen verlies
+  je grip. Een kapotte auto vliegt eerst in brand en ontploft dan, met een
+  flinke explosie. Uit een rijdende auto duik je eruit.
+- **Schieten** voelt als schieten: vuurflits, terugslag, inslagen per
+  oppervlak en kogelgaten die blijven zitten.
+- **Minder haperingen**, vooral bij de overgang naar de avond en het eerste schot.
+- **Missies**: KEI-week is een fietsrace tegen studenten, de ringrace heeft
+  eerlijkere tegenstanders, Noorderzon is lastiger, schade telt goed mee,
+  en een aangereden voetganger laat een missie of bijbaantje niet meer mislukken.
+- **Politie** ramt je, stapt uit om je op te pakken en zet grotere wegblokkades neer.
+- **Cutscenes**: wijk-flyovers vliegen laag door een echte straat en komen
+  niet meer tijdens missies; overslaan doe je door de spatiebalk even
+  ingedrukt te houden. Mooiere scènes bij doodgaan en opgepakt worden, en een
+  duidelijkere openingsscène.
+- **Beeld**: grotere minimap, een nieuwe klok, een grotere "Nu op G-Music"
+  en één kleur voor stad en Ommeland op de kaart. Eén vinkje per categorie
+  in de legenda, voor kaart en minimap samen.
+- Tammo en Anita rijden altijd samen, ook achterop de fiets of step, en er
+  zijn animaties voor in- en uitstappen en iemand uit een auto trekken.
+- Mensen zitten echt op de boot, zwemmen bij mooi weer bij bruggen en
+  zwaaien als je langsvaart. Anita's haar is netter.
+- Over lage hekjes springen, brugleuningen breken makkelijker en de toeter
+  is veel harder.
+
+### Opgelost
+- Je werd een NPC als je op een fiets stapte, en er verscheen een
+  voetganger als je afstapte.
+- Door woonboten lopen, en voertuigen die vlak voor je neus verschenen.
+- Geparkeerde auto's hadden hun lampen aan.
+- De rondvaartboot ligt nu aan de kade.
 
 ## [0.3.0] - 2026-09-26
 
