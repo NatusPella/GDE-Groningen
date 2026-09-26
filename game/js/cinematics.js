@@ -299,7 +299,7 @@ function checkTriggers(dt, w) {
   const imp = w.lastImpact;
   if (imp && imp !== lastImpactSeen) {
     lastImpactSeen = imp;
-    if (imp.strength > 0.8) tryCrashReplay(w, imp.x, imp.y);
+    if (imp.strength > 0.8 && (!imp.blast || imp.own)) tryCrashReplay(w, imp.x, imp.y);
   }
 
   checkWijk(dt, w);
@@ -310,7 +310,7 @@ function checkTriggers(dt, w) {
   for (const v of w.vehicles) {
     if (!v.wrecked || seenWrecks.has(v)) continue;
     seenWrecks.add(v);
-    if (Math.hypot(v.x - p.x, v.y - p.y) < 20) tryCrashReplay(w, v.x, v.y);
+    if (v.wreckedByPlayer && Math.hypot(v.x - p.x, v.y - p.y) < 20) tryCrashReplay(w, v.x, v.y);
   }
   checkLandmarks(w);
   checkOmmelanden(w);
@@ -689,7 +689,7 @@ function playLandmark(w, lm) {
 
 function tryCrashReplay(w, x, y) {
   const now = performance.now();
-  if (!momentsOn() || active || now - lastCrashAt < CRASH_COOLDOWN_MS || w.pendingRespawn) return;
+  if (!momentsOn() || active || now - lastCrashAt < CRASH_COOLDOWN_MS || w.pendingRespawn || w.mission || w.race) return;
   lastCrashAt = now;
   const a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a), nx = -fy, ny = fx;
