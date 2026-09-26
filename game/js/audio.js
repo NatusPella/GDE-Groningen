@@ -2016,7 +2016,7 @@ function updateSiren(dt, world) {
   const intensity = clamp(world.wanted / 5, 0, 1);
   // ambulances on a call and a player-switched siren sound without a chase too
   const units = world.vehicles.filter((v) => !v.wrecked && !v.sinking &&
-    (v.sirenOn || (chaseActive && v.isPolice && !v.hijacked && v.driver !== 'player')));
+    (v.sirenOn || (chaseActive && v.isPolice && !v._mount && !v._commandeered && !v.hijacked && v.driver !== 'player')));
   const targetGain = chaseActive ? 0.18 + intensity * 0.22 : units.length ? 0.22 : 0;
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;

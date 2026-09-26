@@ -186,23 +186,69 @@ export function rondvaartWaypoints() {
   return out;
 }
 
+// The tour boat lies moored alongside the quay on the Spilsluizen side, bow
+// towards the route, with the start marker on the quay next to it: slide out
+// from the route line to the quay (left bank) until the hull would touch,
+// back off a hand's width, and skip spots where a houseboat is moored.
+const BERTH_FALLBACK = { start: { x: -33.8, y: -261.6 }, boat: { x: -33.0, y: -259.5, angle: -0.37 } };
+
+export function rondvaartBerth(map) {
+  const probe = { model: { len: 5.2, wid: 1.9 } };
+  const hl = probe.model.len / 2;
+  // the whole length of the hull must lie against the quay itself, not
+  // against a houseboat moored there (those count as water obstacles)
+  const againstQuay = (x, y, a, nx, ny) => [-hl, 0, hl].every((l) => {
+    const px = x + Math.cos(a) * l + nx * (probe.model.wid / 2 + 1.6), py = y + Math.sin(a) * l + ny * (probe.model.wid / 2 + 1.6);
+    return !inWaterPoly(map, px, py);
+  });
+  for (let s = 4; s <= 70; s += 3) {
+    const q = routeAt(s);
+    const nx = Math.sin(q.a), ny = -Math.cos(q.a);
+    let last = null;
+    for (let o = 0; o <= 22; o += 0.25) {
+      if (boatDryPoints(map, probe, q.x + nx * o, q.y + ny * o, q.a) > 0) break;
+      last = o;
+    }
+    if (last == null || last < 1) continue;
+    const off = Math.max(0, last - 0.3);
+    const bx = q.x + nx * off, by = q.y + ny * off;
+    if (!againstQuay(bx, by, q.a, nx, ny)) continue;
+    for (let m = 1.5; m <= 7; m += 0.5) {
+      const sx = bx + nx * (probe.model.wid / 2 + m), sy = by + ny * (probe.model.wid / 2 + m);
+      if (inWaterPoly(map, sx, sy) || map.buildingsNear(sx, sy, 1).some((b) => pointInPolygon(sx, sy, b.pts))) continue;
+      return { start: { x: sx, y: sy }, boat: { x: bx, y: by, angle: q.a } };
+    }
+  }
+  return BERTH_FALLBACK;
+}
+
 // --- sights ----------------------------------------------------------------------
 
+// The guide's tour, in sailing order. `at` is the thing itself; the story
+// starts where the route passes closest to it. Facts are kept to what is
+// well documented; the jokes are clearly jokes.
 const SIGHTS = [
-  { at: [169, -299], name: "d'Olle Grieze", line: "Rechts over de daken: d'Olle Grieze. Zevenennegentig meter, en nog nooit verhuisd." },
-  { at: [329, -223], name: 'de Prinsentuin', line: 'Rechts de Prinsentuin. Vierhonderd jaar oud. Het theehuis is open als het droog is, dus bewaar uw bonnetje.' },
-  { at: [505, 91], name: 'de Poelestraat', line: 'Rechts de Poelestraat. Overdag stil. Om vier uur \'s nachts het drukste kruispunt van Grunn.' },
-  { at: [744, 390], name: 'de Oosterhaven', line: 'De Oosterhaven. Woonboten met een tuin die meebeweegt. Zwaai maar, ze zwaaien terug.' },
-  { at: [375, 753], name: 'de Herebrug', line: 'De Herebrug. Gaat hij open, dan staat boven heel Grunn te wachten. En te mopperen. Op z\'n Grunnegs: "Nou."' },
-  { at: [102, 834], name: 'het Groninger Museum', line: 'Links het Groninger Museum. Nee, het is niet ingestort. Dat hoort zo, daar heeft iemand heel lang over nagedacht.' },
-  { at: [-300, 738], name: 'de Emmasingel', line: 'Links het Stationsgebied. Hier komen studenten aan met één koffer en vertrekken ze tien jaar later met drie fietsen.' },
-  { at: [-377, 330], name: 'de Der Aa-kerk', line: 'Rechts de Der Aa-kerk. Die toren is twee keer omgevallen. Nu blijft hij staan uit pure koppigheid.' },
-  { at: [-408, -72], name: 'de Noorderhaven', line: 'De Noorderhaven. De mooiste woonboten van Grunn. De eenden betalen hier geen liggeld.' },
-  { at: [-232, -161], name: "de Kijk in 't Jatbrug", line: "Achter ons de Kijk in 't Jatbrug. Echt, zo heet hij. Vroeger een uitkijktoren, nu kijken de toeristen." },
+  { at: [120, -330], name: 'de Stadsschouwburg', line: 'Links, aan de Turfsingel: de Stadsschouwburg, geopend in 1883. De Turfsingel heet zo omdat hier de turf uit de venen werd aangevoerd. Brandstof voor de hele stad.' },
+  { at: [214, 13], name: "d'Olle Grieze", line: "Rechts over de daken: de Martinitoren, zo'n 97 meter hoog en rond 1482 voltooid. De Stadjers noemen hem d'Olle Grieze: de oude grijze." },
+  { at: [265, -205], name: 'de Prinsentuin', line: 'Rechts de Prinsenhoftuin, aangelegd in 1625 bij het Prinsenhof, waar de stadhouders woonden. Met rozen, kruiden en een beroemde zonnewijzer.' },
+  { at: [505, 91], name: 'het Schuitendiep', line: 'Dit is het Schuitendiep. Hier legden de schuiten aan, platte vrachtschepen die de stad bevoorraadden. Rechts de Poelestraat: overdag stil, om vier uur \'s nachts het drukste stukje Grunn.' },
+  { at: [601, 283], name: 'de Steentilbrug', line: 'We gaan onder de Steentilbrug door. "Til" is Gronings voor brug, dus eigenlijk heet hij gewoon de stenen brug.' },
+  { at: [744, 390], name: 'de Oosterhaven', line: 'De Oosterhaven: vroeger een drukke binnenhaven, nu vol woonboten. Tuinen die meebewegen. Zwaai maar, ze zwaaien terug.' },
+  { at: [375, 753], name: 'de Herebrug', line: 'De Herebrug verbindt de Herestraat met de Hereweg: eeuwenlang de hoofdroute de stad uit, naar het zuiden en Drenthe. Gaat hij open, dan staat half Grunn te wachten.' },
+  { at: [102, 834], name: 'het Groninger Museum', line: 'Links het Groninger Museum, geopend in 1994, op een eiland in het kanaal. Ontworpen door Alessandro Mendini, met paviljoens van onder anderen Philippe Starck en Coop Himmelb(l)au. Ja, het hoort zo scheef.' },
+  { at: [60, 836], name: 'de Werkmanbrug', line: 'Deze brug is vernoemd naar Hendrik Werkman, drukker en kunstenaar van De Ploeg. Hij werd in april 1945 door de bezetter gefusilleerd, een paar dagen voor Groningen werd bevrijd.' },
+  { at: [-60, 948], name: 'het Hoofdstation', line: 'Links, achter de bomen: het Hoofdstation uit 1896. Van buiten een paleis, van binnen een van de mooiste stationshallen van het land.' },
+  { at: [-208, 773], name: 'de Emmabrug', line: 'De Emmabrug, net als de Emmasingel vernoemd naar koningin Emma. Hier komen studenten aan met één koffer en vertrekken ze tien jaar later met drie fietsen.' },
+  { at: [-376, 250], name: 'de Hoge der A', line: 'De Hoge en de Lage der A, de oude stadshaven aan het riviertje de A. De pakhuizen komen uit de tijd dat de schepen via het Reitdiep naar zee voeren.' },
+  { at: [-200, 359], name: 'de Der Aa-kerk', line: 'Rechts de Der Aa-kerk, voluit de Onze Lieve Vrouwe der A-kerk, vernoemd naar datzelfde riviertje. De toren is een paar keer ingestort; de huidige staat er sinds het begin van de achttiende eeuw.' },
+  { at: [-408, -72], name: 'de Noorderhaven', line: 'De Noorderhaven, ooit de haven voor de zeeschepen. Nu liggen hier oude zeilschepen en woonboten. De eenden betalen geen liggeld.' },
+  { at: [-270, -143], name: "de Kijk in 't Jatbrug", line: "De Kijk in 't Jatbrug, genoemd naar de Kijk in 't Jatstraat. Die dankt zijn naam aan een toren in de oude stadsmuur." },
+  { at: [-143, -32], name: 'het Academiegebouw', line: 'Rechts, verderop: het Academiegebouw van de universiteit, die in 1614 werd opgericht. Het huidige gebouw is van 1909; het vorige brandde in 1906 af.' },
 ];
-const SIGHT_R = 34;
-const SIGHT_SLOW = 4.6;
-const SIGHT_HOLD = 1.1;
+const WELCOME = 'Welkom aan boord! We varen een rondje over de Diepenring, de gracht rond de binnenstad, grotendeels gegraven in de zeventiende eeuw toen Grunn werd uitgebreid en een nieuwe vestinggordel kreeg.';
+const SIGHT_R = 40;
+const SIGHT_SLOW = 5.2;
+const SIGHT_HOLD = 0.8;
 const SIGHT_JOY = 8;
 
 // --- tuning ------------------------------------------------------------------------
@@ -220,9 +266,9 @@ const WIEBE_MODEL = { name: 'sloep', len: 4.6, wid: 1.8, maxSpeed: 11.6, accel: 
 const WIEBE_GRIP = 6; // m/s^2 lateral, like a player boat, so he corners no better than you
 const WIEBE_SPAWN_BACK = 125;
 const WIEBE_SPAWN_MIN_DIST = 95;
-const RAM_R = 26;
-const RAM_COOLDOWN = 12;
-const RAM_MAX_T = 4.5;
+const RAM_R = 34;
+const RAM_COOLDOWN = 6.5;
+const RAM_MAX_T = 5.5;
 const BLOCK_MAX_T = 5.5;
 const BRIDGE_CUTOFF_AHEAD = 85;
 const HULL_START = 100;
@@ -238,12 +284,22 @@ const SHOUT = {
     'Dit is gain rondvaart, dit is een ontvoering!',
     'Ik ken elke brug in Grunn. Jullie niet!',
     'Ik haal je in, al moet ik tot Delfzijl!',
+    'Dames en heren, u zit op een gestolen boot!',
+    'Ik heb dertig jaar vaarbewijs, jij dertig seconden!',
+    'Die gids weet niks! Die toren is niet eens scheef!',
+    'Mien boot! Mien toeristen! Mien fooien!',
+    'Wie leert jou varen? Een eend?',
+    'Ik ruik je dieselwalm tot hier, prutser!',
+    'Ze krijgen hun geld terug! Van JOU!',
+    'Nog één brug en ik heb je, Klaas!',
+    'Stuur eens recht, je vaart als een fietser op een ijsbaan!',
+    'Havenmeester! HAVENMEESTER!',
   ],
-  ram: ['BOEM! Nog een keer?', 'Zo! Dat was voor mien lak!', 'Aan de kant, zoetwatermatroos!'],
-  block: ['Hier kom je niet langs! Dit is MIEN diep!', 'Brug dicht! Voor jou wel!'],
-  brake: ['Remmen kan ik ook!'],
-  crash: ['Au! Die kade stond er gisteren nog niet!', 'Mien lak! Mien mooie lak!', 'Wie heeft die kade hier neergelegd?!'],
-  far: ['Ik zie je wel, Klaas! Ik zie je WEL!', 'Wacht maar tot ik bij het museum ben!'],
+  ram: ['BOEM! Nog een keer?', 'Zo! Dat was voor mien lak!', 'Aan de kant, zoetwatermatroos!', 'Tik! Nou jij weer!', 'Dat was nummer één, er komen er meer!', 'Hou je vast, dames en heren!'],
+  block: ['Hier kom je niet langs! Dit is MIEN diep!', 'Brug dicht! Voor jou wel!', 'Voorrang? Die heb ik altijd!', 'Hier ligt Wiebe. Keer maar om!'],
+  brake: ['Remmen kan ik ook!', 'Stop! Tol betalen!'],
+  crash: ['Au! Die kade stond er gisteren nog niet!', 'Mien lak! Mien mooie lak!', 'Wie heeft die kade hier neergelegd?!', 'Dat was de kade. De kade is niet van mij.', 'Oei. Dat voelde ik in mien knieën.'],
+  far: ['Ik zie je wel, Klaas! Ik zie je WEL!', 'Wacht maar tot ik bij het museum ben!', 'Ik ben er zo! Ik moet alleen even langs deze woonboot!', 'Rennen kan je niet op het water, Klaas!'],
   knock: ['Ik buk voor niemaAU! Mien kop!'],
   sunk: ['Mien motor! Mien mooie motor! Nou vaart hij niet meer!'],
   after: ['Dit is nog niet voorbij, Klaas!'],
@@ -399,8 +455,24 @@ let triggerS = null;
 const wiebeTriggerS = () => triggerS ?? (triggerS = sOf(CHECKPOINTS[1].at[0], CHECKPOINTS[1].at[1]));
 let werkmanS = 0;
 
+// Shuffle bag per line list: every line once before any repeats, and never
+// the same line twice in a row across a refill.
+const bags = new Map();
 function pick(list) {
-  return list[Math.floor(Math.random() * list.length)];
+  let bag = bags.get(list);
+  if (!bag || !bag.left.length) {
+    const left = list.slice();
+    for (let i = left.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [left[i], left[j]] = [left[j], left[i]];
+    }
+    const last = bag && bag.last;
+    if (left.length > 1 && left[left.length - 1] === last) [left[0], left[left.length - 1]] = [left[left.length - 1], left[0]];
+    bag = { left, last };
+    bags.set(list, bag);
+  }
+  bag.last = bag.left.pop();
+  return bag.last;
 }
 
 function findBridges(map) {
@@ -434,7 +506,12 @@ export function startRondvaart(world, boat) {
     prevVel: null,
     ps: 0,
     pi: null,
-    sights: SIGHTS.map((q) => ({ ...q, s: sOf(q.at[0], q.at[1]), hold: 0, done: false })),
+    sights: SIGHTS.map((q) => {
+      const s = sOf(q.at[0], q.at[1]);
+      const p = routeAt(s);
+      return { ...q, s, px: p.x, py: p.y, hold: 0, done: false };
+    }).sort((a, b) => a.s - b.s),
+    welcomed: false,
     slowHintShown: false,
     wiebe: null,
     wiebeGone: false,
@@ -482,16 +559,21 @@ export function rondvaartOutro() {
 
 // --- subtitles & shouts ------------------------------------------------------------------
 
-function say(speaker, text, color, prio = false) {
+// prio: an event line cuts in (drops that speaker's queued chatter). guide:
+// the tour never gets dropped, it waits in line ahead of any chatter.
+function say(speaker, text, color, prio = false, guide = false) {
   const voice = voices[speaker + '|' + text];
-  const item = { speaker, text, color, dur: Math.max(clamp(1.4 + text.length * 0.05, 2.2, 5), voice ? voice.dur + 0.3 : 0) };
-  if (prio) {
-    // an event line cuts in: drop the chatter still queued or on screen
+  const item = { speaker, text, color, guide, dur: Math.max(clamp(1.4 + text.length * 0.052, 2.2, guide ? 10 : 5), voice ? voice.dur + 0.3 : 0) };
+  if (guide) {
+    st.subQueue = st.subQueue.filter((q) => q.guide || q.prio);
+    st.subQueue.push(item);
+  } else if (prio) {
+    item.prio = true;
     st.subQueue = st.subQueue.filter((q) => q.speaker !== speaker);
-    st.subQueue.unshift(item);
+    const at = st.subQueue.findIndex((q) => q.guide);
+    st.subQueue.splice(at < 0 ? 0 : at, 0, item);
     if (st.sub && st.sub.speaker === speaker) st.sub = null;
-  }
-  else if (st.subQueue.length < 2) st.subQueue.push(item);
+  } else if (!st.subQueue.length) st.subQueue.push(item);
 }
 
 function updateSubs(dt) {
@@ -513,11 +595,18 @@ function updateSubs(dt) {
   el.style.opacity = st.sub && !hidden ? '1' : '0';
 }
 
+const SHOUT_GAP = 7; // s of quiet after any line before chatter may follow
+const EVENT_GAP = 3; // event lines (rams, crashes) interrupt, but not back to back
+const ALWAYS = new Set(['appear', 'knock', 'sunk', 'after']);
+
 function shout(kind, force = false) {
   const w = st.wiebe;
   if (!w) return;
-  if (!force && st.t - w.shoutAt < 4.5) return;
+  const since = st.t - w.shoutAt;
+  if (!force && since < SHOUT_GAP) return;
+  if (force && !ALWAYS.has(kind) && since < EVENT_GAP) return;
   w.shoutAt = st.t;
+  w.nextChatAt = st.t + 11 + Math.random() * 7;
   say(WIEBE + ' (megafoon)', pick(SHOUT[kind]), '#ffcf4a', force);
 }
 
@@ -587,7 +676,7 @@ function checkBumps(world, driving) {
   st.prevVel = vel;
   if (st.t - st.lastBumpAt < BUMP_COOLDOWN) return;
   if (ram > 0) {
-    scare(clamp(3 + ram * 0.9, 3, 12), pick(BUMP_RAM));
+    scare(clamp(2 + ram * 0.75, 2, 10), pick(BUMP_RAM));
   } else if (dv > BUMP_DV) {
     const amount = clamp((dv - 1.4) * 2.4, 2, 28);
     scare(amount, amount > 10 ? pick(BUMP_HARD) : pick(BUMP_SOFT));
@@ -600,13 +689,13 @@ function updateSights(dt, world, speed) {
     if (q.done || q.gone) continue;
     if (st.ps > q.s + 20) { q.gone = true; continue; }
     if (st.ps < q.s - SIGHT_R - 10) continue;
-    const d = Math.hypot(v.x - q.at[0], v.y - q.at[1]);
+    const d = Math.hypot(v.x - q.px, v.y - q.py);
     if (d > SIGHT_R) continue;
     if (speed < SIGHT_SLOW) {
       q.hold += dt;
       if (q.hold >= SIGHT_HOLD) {
         q.done = true;
-        say(`${guideName(world)} (gids)`, q.line, '#7fd4ff');
+        say(`${guideName(world)} (gids)`, q.line, '#7fd4ff', false, true);
         cheer(SIGHT_JOY);
         world.addMessage(`Klik klik: de toeristen fotograferen ${q.name} (+${SIGHT_JOY})`, 2.6);
       }
@@ -777,14 +866,14 @@ function updateWiebe(dt, world) {
   const nextBridge = (bridgeS || []).find((b) => b > st.ps + 8 && b < werkmanS - 20);
   const bridgeAhead = nextBridge != null && nextBridge - st.ps < BRIDGE_CUTOFF_AHEAD;
 
-  if (st.t - w.shoutAt > 6 + Math.random() * 3) shout(d > 110 ? 'far' : 'chase');
+  if (st.t > (w.nextChatAt || 0)) shout(d > 110 ? 'far' : 'chase');
 
   let aim, vDes;
   switch (w.mode) {
     case 'chase': {
       const look = 6 + Math.abs(v.speed) * 0.65;
       if (gap < -6) { setMode(w, 'block'); shout('block', true); break; }
-      if (d < RAM_R && gap > -2 && gap < 20 && st.t >= w.ramReadyAt) { setMode(w, 'ram'); break; }
+      if (d < RAM_R && gap > -3 && gap < 30 && st.t >= w.ramReadyAt) { setMode(w, 'ram'); break; }
       if (st.t < w.ramReadyAt && d < 30 && bridgeAhead && st.t - w.blockAt > 14) {
         // overtake on the far side to cut the player off at the bridge
         const lat = tr.lat - clamp(playerLat(), -3, 3) > 0 ? 2 : -2;
@@ -800,10 +889,17 @@ function updateWiebe(dt, world) {
       break;
     }
     case 'ram': {
+      // go for the stern quarter on his own side: a shove that spins the
+      // tour boat towards the quay, not a polite tap on the transom
       const [vx, vy] = boatVel(p);
-      const lead = clamp(d / 10, 0.3, 1.1);
-      aim = { x: p.x + vx * lead, y: p.y + vy * lead };
-      vDes = Math.min(top + 1, pSpeed + 6);
+      const lead = clamp(d / 9, 0.35, 1.3);
+      const side = ((v.x - p.x) * -Math.sin(p.angle) + (v.y - p.y) * Math.cos(p.angle)) > 0 ? 1 : -1;
+      const back = p.model.len * 0.3;
+      aim = {
+        x: p.x + vx * lead - Math.cos(p.angle) * back - Math.sin(p.angle) * side * 0.7,
+        y: p.y + vy * lead - Math.sin(p.angle) * back + Math.cos(p.angle) * side * 0.7,
+      };
+      vDes = Math.min(top + 2, pSpeed + 7.5);
       w.ramClosest = Math.min(w.ramClosest ?? 99, d);
       if (st.t - w.rammedAt < 0.3 || w.modeT > RAM_MAX_T || gap < -8 || d > RAM_R + 14) {
         if (st.t - w.rammedAt < 0.3) shout('ram', true);
@@ -871,6 +967,10 @@ export function updateRondvaart(dt, world) {
   const speed = Math.abs(v.speed);
 
   if (driving) {
+    if (!st.welcomed && !isCinematicActive()) {
+      st.welcomed = true;
+      say(`${guideName(world)} (gids)`, WELCOME, '#7fd4ff', false, true);
+    }
     if (st.cheerAt && st.t > st.cheerAt) {
       st.cheerAt = 0;
       world.addMessage('De toeristen zwaaien naar de terrassen. Vaar rustig, dan blijven ze blij.', 3.5);
