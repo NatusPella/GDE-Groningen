@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -1310,6 +1310,7 @@ export function update3D(dt, world) {
       const df = mesh.userData.driverFigure;
       if (df) df.visible = (!!v.road || v.racer) && !v.wrecked && v.driver !== 'player' && driverDist < DRIVER_FIGURE_DIST;
       if (v.isBike || v.isScooter) syncBikeRider(mesh, v, world.time);
+      if (v._mount || v._riderAway) syncPoliceMount(mesh, v, animDt);
     }
 
     // damage VFX - checked regardless of `mesh` (a just-wrecked vehicle's

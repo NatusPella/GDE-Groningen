@@ -124,7 +124,7 @@ function horseGeometry(v) {
 const HORSE_MAT = markShared(vcMaterial({ roughness: 0.9 }));
 const horseGeoCache = [];
 
-function buildHorseMesh(v) {
+export function buildHorseMesh(v) {
   const geo = horseGeoCache[v] || (horseGeoCache[v] = markShared(horseGeometry(v)));
   const group = new THREE.Group();
   const bones = [], byName = {}, abs = {};

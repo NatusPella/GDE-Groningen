@@ -303,14 +303,14 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
 }
 
 function carType(v) {
-  if (v.isPolice) return 'wagon';
+  if (v.isPolice && !v._commandeered) return 'wagon';
   const n = v.model.name;
   return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' ? n : 'hatch';
 }
 
 function buildCarMesh(v) {
   if (v.isAmbulance) return assembleCar('van', v.model.len, v.model.wid, 0xf1d21c, { ambulance: true, wrecked: v.wrecked, wheelR: 0.34 });
-  const police = !!v.isPolice;
+  const police = !!v.isPolice && !v._commandeered;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
   return assembleCar(carType(v), v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR: v.model.name === 'van' ? 0.34 : WHEEL_R });
 }
@@ -466,6 +466,62 @@ function buildScooterMesh(v) {
     group.userData.policeLamps = lamps;
   }
   return group;
+}
+
+// --- mounted police ------------------------------------------------------------
+// The horse body comes from countryside.js, handed over by policemounts.js
+// (importing it here would close an import cycle through models3d_people).
+
+let horseMeshBuilder = null;
+export function setHorseMeshBuilder(fn) { horseMeshBuilder = fn; }
+
+const HORSE_SADDLE_Y = 1.72;
+
+function buildPoliceHorseMesh(v) {
+  const group = new THREE.Group();
+  const body = new THREE.Group();
+  const horse = horseMeshBuilder(v.model.coat || 0);
+  body.add(horse);
+  group.add(body);
+  if (v.wrecked) {
+    body.rotation.x = 1.4;
+    body.position.z = 1.2;
+  }
+  const saddle = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.62), habboMaterial(0x1c3fae));
+  saddle.position.set(-0.05, 1.68, 0);
+  horse.add(saddle);
+  const rider = riderFor(v, toHex(v.model.rider, 0x1c3fae));
+  const baseY = HORSE_SADDLE_Y - 0.93 * rider.scale.y;
+  rider.position.set(-0.08, baseY, 0);
+  poseRider(rider, 0.7, 0.75, -0.04);
+  // legs astride the barrel instead of through it
+  rider.userData.legL.rotation.x = -0.5;
+  rider.userData.legR.rotation.x = 0.5;
+  group.add(rider);
+  Object.assign(group.userData, { horseLegs: horse.userData.legs, horseBody: horse, riderBaseY: baseY });
+  return group;
+}
+
+// Per frame for police bikes/horses (after ragdoll.syncBikeRider): hides the
+// rider while the officer is off on foot and animates the horse's gait.
+export function syncPoliceMount(mesh, v, dt) {
+  const ud = mesh.userData;
+  if (ud.riderFig && !v.hijacked) ud.riderFig.visible = !v._riderAway && !v.wrecked;
+  const legs = ud.horseLegs;
+  if (!legs || v.wrecked) return;
+  const s = Math.abs(v.speed);
+  const gallop = s > 5.5;
+  ud.gaitPhase = ((ud.gaitPhase || 0) + dt * (s < 0.2 ? 0 : 3 + s * (gallop ? 0.75 : 0.95))) % (Math.PI * 2);
+  const ph = ud.gaitPhase, amp = Math.min(0.6, s * 0.09);
+  // trot swings the diagonal pairs together; a gallop staggers them
+  const lag = gallop ? 0.7 : 0;
+  legs[0].rotation.z = Math.sin(ph) * amp;
+  legs[3].rotation.z = Math.sin(ph + lag) * amp;
+  legs[1].rotation.z = Math.sin(ph + Math.PI) * amp;
+  legs[2].rotation.z = Math.sin(ph + Math.PI + lag) * amp;
+  const bob = Math.abs(Math.sin(ph)) * amp * 0.12;
+  ud.horseBody.position.y = bob;
+  if (ud.riderFig) ud.riderFig.position.y = ud.riderBaseY + bob;
 }
 
 // --- bus (articulated "harmonica") ---------------------------------------------
@@ -777,6 +833,7 @@ export function updateVehicleWheelSpin(mesh, speed, dt) {
 // --- dispatch -------------------------------------------------------------------
 
 function buildVehicleMeshFor(v) {
+  if (v._mount === 'horse' && horseMeshBuilder) return buildPoliceHorseMesh(v);
   if (v.isBike) return buildBikeMesh(v);
   if (v.isScooter) return buildScooterMesh(v);
   if (v.isBus) return buildBusMesh(v);
