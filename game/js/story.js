@@ -156,6 +156,7 @@ function enter(step) {
     return;
   }
   rt.leadAt = world.time + LEAD_DELAY;
+  updateCharacter(world);
   if (step.kind === 'activity' && GOALS[step.goal.type] && GOALS[step.goal.type].begin) GOALS[step.goal.type].begin(step, rt.base);
   pointMissionChain(step);
   refreshGuide();
@@ -571,5 +572,5 @@ export const storyApi = {
   mission: () => missionDebug.state(),
   cardShown: (part = 'kop') => state.cards.has(part),
   character: () => world.player.character,
-  swapInfo: () => ({ want: rt.cur && rt.cur.player, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn }),
+  swapInfo: () => ({ want: rt.cur && rt.cur.player, me: world.player.character, comp: world.companion && world.companion.character, paused: !!world.paused, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn }),
 };

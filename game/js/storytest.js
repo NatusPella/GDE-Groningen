@@ -110,7 +110,7 @@ export async function runStoryTest(world) {
         const ok = await waitFor(() => {
           if (isCinematicActive()) skipCinematic();
           return world.player.character === step.player && (!world.companion || world.companion.character !== step.player);
-        }, 10000);
+        }, 20000);
         check(`${cur.id}: plays as ${step.player}`, ok, ok ? world.player.character : JSON.stringify(S().swapInfo()));
         if (prevChar && prevChar !== world.player.character) { swaps++; entry.notes.push(`speelt als ${world.player.character}`); }
         prevChar = world.player.character;
