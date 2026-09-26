@@ -102,7 +102,13 @@ function createWindow() {
   });
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type !== 'keyDown') return;
-    if (input.key === 'F11') { win.setFullScreen(!win.isFullScreen()); e.preventDefault(); }
+    // F11, Alt+Enter (the Windows habit) and Ctrl+Cmd+F on the Mac toggle
+    // fullscreen; swallowed so the game never sees the Enter/F
+    const macFull = process.platform === 'darwin' && input.control && input.meta && input.key.toLowerCase() === 'f';
+    if (input.key === 'F11' || (input.alt && input.key === 'Enter') || macFull) {
+      if (!input.isAutoRepeat) win.setFullScreen(!win.isFullScreen());
+      e.preventDefault();
+    }
     if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) win.webContents.toggleDevTools();
   });
   // test switches: --stil loads the silent game, --smoke-test=<png> logs the
