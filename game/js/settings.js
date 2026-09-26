@@ -28,7 +28,11 @@ const DEFAULTS = {
   drawDistance: 'ver',
   mouseSensitivity: 1,
   invertY: false,
+  // the attract intro (trailer.js) has played; not a player choice, so
+  // Standaardinstellingen leaves it alone
+  attractSeen: false,
 };
+const KEEP_ON_RESET = new Set(['attractSeen']);
 
 function load() {
   try {
@@ -66,7 +70,7 @@ export function setSetting(key, value) {
 }
 
 export function resetSettings() {
-  for (const k of Object.keys(DEFAULTS)) setSetting(k, DEFAULTS[k]);
+  for (const k of Object.keys(DEFAULTS)) if (!KEEP_ON_RESET.has(k)) setSetting(k, DEFAULTS[k]);
 }
 
 export function onSettingsChange(cb) {
