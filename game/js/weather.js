@@ -174,8 +174,48 @@ export function initWeather(world) {
   };
 }
 
+// --- wet roads for the driving model -----------------------------------------
+// w.wet follows the rain the way the ground shaders' uWet does (wet in ~6 s,
+// dry in ~40 s), and puddleAt mirrors their puddle noise (terrain3d.js
+// WET_GLSL, without the per-surface dip) so the slippery spots are the ones
+// you see.
+
+function fract(x) { return x - Math.floor(x); }
+function wHash(x, y) {
+  let a = fract(x * 0.1031), b = fract(y * 0.1031), c = fract(x * 0.1031);
+  const d = a * (b + 33.33) + b * (c + 33.33) + c * (a + 33.33);
+  a += d; b += d; c += d;
+  return fract((a + b) * c);
+}
+function wNoise(x, y) {
+  const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
+  const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+  const a = wHash(ix, iy), b = wHash(ix + 1, iy), c = wHash(ix, iy + 1), d = wHash(ix + 1, iy + 1);
+  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+}
+function smoothstep(e0, e1, x) {
+  const t = clamp((x - e0) / (e1 - e0), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+export function puddleAt(x, y, wet) {
+  if (wet < 0.02) return 0;
+  const p = wNoise(x * 0.21, y * 0.21) * 0.7 + wNoise(x * 0.83, y * 0.83) * 0.3;
+  return smoothstep(0.74 - 0.12 * wet, 0.8 - 0.12 * wet, p) * wet;
+}
+
+// Tyre grip 0..1 at (x, y): a wet road loses a little, standing water a lot.
+export function roadGrip(world, x, y, surface) {
+  const wet = world.weather ? world.weather.wet || 0 : 0;
+  if (surface === 'gras') return 0.85 - 0.2 * wet;
+  const g = (surface === 'klinkers' ? 1 - 0.22 * wet : 1 - 0.15 * wet) - 0.55 * puddleAt(x, y, wet);
+  return clamp(g, 0.3, 1);
+}
+
 export function updateWeather(dt, world) {
   const w = world.weather;
+  const rainK = clamp(w.intensity, 0, 1);
+  w.wet = (w.wet || 0) + (rainK - (w.wet || 0)) * Math.min(1, dt / (rainK > (w.wet || 0) ? 6 : 40));
 
   if (!w.active) {
     w.intensity = Math.max(0, w.intensity - dt / RAMP_TIME);

@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
-import { getGaragesForRender } from './garages.js';
+import { getGaragesForRender, garagePrompt } from './garages.js';
 import { getHorecaForRender, nearestHorecaSpot, horecaState } from './horeca.js';
 import { shopPrimaryPrompt, shopSecondaryPrompts } from './shops.js';
 import { vehicleDisplayLabel } from './vehiclenames.js';
@@ -195,6 +195,7 @@ function trackUsage(dt, world) {
     if (pressed('w') || pressed('s') || pressed('arrowup') || pressed('arrowdown')) used('drive');
     if (pressed(' ')) used('handbrake');
     if (pressed('h')) used('horn');
+    if (pressed('q') || input.mouse.middleDown) used('lookback');
     return;
   }
   if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('move');
@@ -275,6 +276,8 @@ function findPrimary(world) {
   const p = world.player;
   const job = sideJobPrompt(world);
   if (job) return job;
+  const gar = garagePrompt(world);
+  if (gar) return gar;
   const shop = shopPrimaryPrompt(world);
   if (shop) return shop;
   if (p.inVehicle) return null;
@@ -355,8 +358,7 @@ function findSecondary(world, primary) {
   };
   const inV = p.inVehicle;
   for (const g of getGaragesForRender()) {
-    const ready = !(world.time < (g.cooldownUntil || 0));
-    add({ id: 'g' + g.x + g.y, x: g.x, y: g.y, h: 2.6, label: 'Spuit & Klaar', sub: !ready ? 'Even geduld' : inV ? 'Rij erin: heel & schoon' : 'Kom met een bak', kind: 'place' }, inV ? 45 : 20);
+    add({ id: 'g' + g.x + g.y, x: g.x, y: g.y, h: 4.4, label: g.name, sub: inV ? 'Rij naar binnen en druk R: repareren, spuiten, opvoeren' : 'Kom met een voertuig', kind: 'place' }, inV ? 45 : 20);
   }
   if (!inV && world.money >= 12) {
     const spots = getHorecaForRender();
@@ -479,6 +481,7 @@ function contextRows(world, primary) {
     rows.push(tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
     rows.push(tut('horn', ['H'], 'Toeter', 'Aan de kant, fietsers!'));
     rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots'));
+    rows.push(tut('lookback', ['Q'], 'Achterom kijken', 'Houd Q of de middelste muisknop vast'));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', 'Vuren vanuit de auto'));
   } else if (p.swimming) {

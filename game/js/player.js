@@ -1,13 +1,15 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp, keepBoatOffShore } from './util.js';
-import { waterClearance } from './waterindex.js';
+import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
+import { roadGrip } from './weather.js';
 import { getSettings } from './settings.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, resolveWalker } from './collision.js';
-import { resolveWalkerProps } from './breakables.js';
+import { resolveWalkerProps, propAhead } from './breakables.js';
+import { railingAhead } from './bridgerails.js';
 
 export { resolveBuildingCollisions };
 
@@ -40,7 +42,17 @@ const WALK_OPTS = { byPlayer: true };
 const SWIM_OPTS = { kick: false };
 const SWIM_EDGE_CLEAR = 0.7;
 
+// Vaulting: SPACE right in front of a railing, bench or fence up to
+// VAULT_MAX_H swings you over it (lower ones a normal jump already clears).
+const VAULT_MIN_H = 0.6;
+const VAULT_MAX_H = 1.3;
+const VAULT_REACH = 1.05;
+const VAULT_TIME = 0.5;
+
 const FALL_HURT_SPEED = 8.5; // m/s landing speed (~3.7 m drop) above which a fall hurts
+const BAIL_SPEED = 7; // m/s (25 km/h): getting out faster than this is a dive with a tumble
+const BLAST_HURT = 60; // health lost when your own car explodes around you
+const SUBSTEP = 1.2; // m: fast cars are integrated in steps this long (no tunnelling)
 const LOCK_CRACK_S = 0.7; // a bike locked to a rack or railing takes a quick jiggle first
 const CRACK_REACH = 2.2;
 
@@ -82,6 +94,7 @@ export class Player {
     }
     tickSinkingVehicles(world);
     if (this.ragdoll) {
+      this.vault = null;
       this.vx = 0; this.vy = 0;
       this.moving = false;
       this.crouching = false;
@@ -120,8 +133,9 @@ export class Player {
 
     if (this.inVehicle) {
       const v = this.inVehicle;
+      this.vault = null;
       if (v.sinking) { this.x = v.x; this.y = v.y; this.angle = v.angle; return; }
-      if (v.wrecked) { this.exitVehicle(map, world); }
+      if (v.wrecked) { this.exitVehicle(map, world); if (v.blewUp && !v.isBike && !v.isScooter) this.blownOut(world, v); }
       else { this.driveVehicle(dt, input, map, world); this.gz = v.z || 0; return; }
     }
 
@@ -131,10 +145,14 @@ export class Player {
       return;
     }
 
+    if (this.vault) { this.updateVault(dt, world); return; }
     // jump/crouch - on foot only; SPACE is also "remmen" while driving
     // (handled in driveVehicle, never reached here). Crouching slows you
     // down and plays the crouch pose; collision stays 2D (x/y) anyway
-    if (input.wasPressed(' ') && this.z <= 0) this.vz = JUMP_SPEED;
+    if (input.wasPressed(' ') && this.z <= 0) {
+      if (this.tryVault(world)) return;
+      this.vz = JUMP_SPEED;
+    }
     this.vz -= GRAVITY * dt;
     this.z = Math.max(0, this.z + this.vz * dt);
     if (this.z <= 0) {
@@ -167,13 +185,55 @@ export class Player {
     for (let s = 0; s < steps; s++) {
       let nextX = this.x + this.vx * sdt;
       let nextY = this.y + this.vy * sdt;
-      [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS, this.gz + this.z);
+      [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS, this.gz + this.z, this.z);
       this.x = nextX;
       this.y = nextY;
       this.followGround(map);
       if (isInWater(map, nextX, nextY, this.gz + this.z)) { this.startWaterFall(); return; }
     }
     this.resolveBodyContacts(dt, world);
+  }
+
+  tryVault(world) {
+    const { map, input } = world;
+    const dir = cameraRelativeMove(input, world.camYaw);
+    const a = dir ? dir.angle : this.angle;
+    const dx = Math.cos(a), dy = Math.sin(a);
+    let ob = propAhead(this.x, this.y, dx, dy, VAULT_REACH, this.radius * 0.6);
+    const rail = railingAhead(map, this.x, this.y, dx, dy, VAULT_REACH);
+    if (rail && (!ob || rail.dist < ob.dist)) ob = rail;
+    if (!ob || ob.h < VAULT_MIN_H || ob.h > VAULT_MAX_H) return false;
+    const over = ob.dist + ob.depth + this.radius + 0.3;
+    const tx = this.x + dx * over, ty = this.y + dy * over;
+    const [rx, ry] = resolveBuildingCollisions(tx, ty, this.radius, map);
+    if (Math.hypot(rx - tx, ry - ty) > 0.2) return false;
+    this.vault = { t: 0, fx: this.x, fy: this.y, tx, ty, h: ob.h };
+    this.angle = a;
+    this.crouching = false;
+    if (world.audioEvents) world.audioEvents.push({ kind: 'whoosh', x: this.x, y: this.y, strength: 0.25 });
+    return true;
+  }
+
+  updateVault(dt, world) {
+    const V = this.vault;
+    V.t += dt;
+    const u = Math.min(1, V.t / VAULT_TIME);
+    const e = u * u * (3 - 2 * u);
+    this.x = V.fx + (V.tx - V.fx) * e;
+    this.y = V.fy + (V.ty - V.fy) * e;
+    this.z = Math.sin(Math.PI * u) * (V.h + 0.2);
+    this.vx = (V.tx - V.fx) / VAULT_TIME;
+    this.vy = (V.ty - V.fy) / VAULT_TIME;
+    this.moving = true;
+    if (u < 1) return;
+    this.vault = null;
+    this.z = 0;
+    this.vz = 0;
+    this.vx = 0;
+    this.vy = 0;
+    [this.x, this.y] = resolveWalker(this.x, this.y, this.radius, world.map, 0, 0, WALK_OPTS, this.gz);
+    this.followGround(world.map);
+    if (isInWater(world.map, this.x, this.y, this.gz + this.z)) this.startWaterFall();
   }
 
   // Keep gz on the surface underfoot; walking off an edge turns the drop
@@ -257,7 +317,7 @@ export class Player {
       this.vz -= GRAVITY * dt;
       this.z += this.vz * dt;
       const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
-      if (inWaterPoly(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
+      if (inWaterPoly(map, nx, ny) && !insideWaterObstacle(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
       if (this.z <= WATER_Y) {
         world.particles.push({ kind: 'splash', x: this.x, y: this.y, until: world.time + SPLASH_LIFE });
         const keepZ = this.z;
@@ -334,6 +394,8 @@ export class Player {
   resolveSwimContacts(world) {
     const { map } = world;
     let [x, y] = resolveWalkerProps(this.x, this.y, this.radius, 0, 0, SWIM_OPTS);
+    const hb = pushOutOfWaterObstacles(map, x, y, this.radius);
+    if (hb) [x, y] = hb;
     for (const v of world.vehicles) {
       if (!v.isBoat || v.sinking || Math.abs(v.x - x) > v.halfLen + 1 || Math.abs(v.y - y) > v.halfLen + 1) continue;
       const push = pushCircleOutOfVehicle(x, y, this.radius, v);
@@ -406,6 +468,35 @@ export class Player {
       this.shoveX = 0;
       this.shoveY = 0;
     }
+  }
+
+  // Still inside when the fire reached the tank: thrown clear, badly hurt.
+  blownOut(world, v) {
+    let dmg = BLAST_HURT;
+    if (world.armor > 0) { const a = Math.min(world.armor, dmg * 0.5); world.armor -= a; dmg -= a; }
+    world.health = Math.max(0, world.health - dmg);
+    const a = Math.atan2(this.y - v.y, this.x - v.x);
+    knockDown(this, world, { kind: 'blast', dead: world.health <= 0, vx: Math.cos(a) * 7, vy: Math.sin(a) * 7, vz: 5, lieFor: 2.5 });
+    if (world.health <= 0) requestRespawn(world);
+  }
+
+  // Bailing out above BAIL_SPEED: GTA-style dive onto the tarmac with a
+  // tumble; the car keeps rolling without you.
+  diveOut(world, v, vx, vy) {
+    const speed = Math.hypot(vx, vy);
+    const side = -Math.sin(v.angle), sideY = Math.cos(v.angle);
+    const s = (this.x - v.x) * side + (this.y - v.y) * sideY > 0 ? 1 : -1;
+    // a bike or step jumped off at speed goes down on its side
+    if (v.isBike || v.isScooter) { v.riderOff = true; v.riderOffAt = world.time; v.riderOffSide = -s; v.speed *= 0.6; }
+    let dmg = Math.round(Math.min(45, (speed - BAIL_SPEED) * 2.2 + 3));
+    if (world.armor > 0) { const a = Math.min(world.armor, dmg * 0.5); world.armor -= a; dmg -= a; }
+    world.health = Math.max(0, world.health - dmg);
+    knockDown(this, world, {
+      kind: 'hit', startPose: 'ride', dead: world.health <= 0,
+      vx: vx * 0.75 + side * s * 2.5, vy: vy * 0.75 + sideY * s * 2.5, vz: 1.4 + speed * 0.06, lieFor: 1.2 + Math.min(1.5, speed * 0.05),
+    });
+    reportImpact(world, this.x, this.y, Math.min(14, speed * 0.6), true);
+    if (world.health <= 0) requestRespawn(world);
   }
 
   knockedByVehicle(world, v, push, closing) {
@@ -516,22 +607,30 @@ export class Player {
     v.driver = 'player';
     v.road = null; // player takes manual control
     v.parked = false;
-    if (v.isPolice) v.hijacked = true;
+    v.rollingFree = false;
+    if (v.isPolice) {
+      v.hijacked = true;
+      // a stolen patrol car gets its full pursuit engine back
+      if (v.model.name === 'police') v.model = { ...v.model, maxSpeed: Math.max(v.model.maxSpeed, 55), accel: Math.max(v.model.accel, 11) };
+    }
     this.inVehicle = v;
     pushVehicleAudio(world, v, 'door_open', 'engine_start');
     if (world && stolen && !v.isBike && !v.isScooter && !v.isBoat) playAutoGejatLine(world);
   }
 
-  exitVehicle(map, world = null) {
+  exitVehicle(map, world = null, thrown = false) {
     const v = this.inVehicle;
     if (v.sinking && world) { this.ejectIntoWater(v, world); return; }
+    const vx = Math.cos(v.angle) * v.speed + (v.driftX || 0), vy = Math.sin(v.angle) * v.speed + (v.driftY || 0);
+    const bail = !!world && !thrown && !v.isBoat && !v.wrecked && Math.hypot(vx, vy) > BAIL_SPEED;
     v.driver = null;
     v.horn = false;
     v.handbrake = false;
     v.throttle = 0;
     this.inVehicle = null;
-    pushVehicleAudio(world, v, v.wrecked ? null : 'engine_stop', 'door_close');
-    stopVehicle(v);
+    pushVehicleAudio(world, v, v.wrecked || v.disabled || bail ? null : 'engine_stop', bail ? null : 'door_close');
+    if (bail || v.disabled) v.rollingFree = true;
+    else stopVehicle(v);
     [this.x, this.y] = findExitSpot(v, this.radius, map, EXIT_LEFT_FIRST);
     this.angle = v.angle;
     this.z = 0;
@@ -547,19 +646,24 @@ export class Player {
       }
       this.gz = g;
     }
+    if (bail) this.diveOut(world, v, vx, vy);
   }
 
   driveVehicle(dt, input, map, world = null) {
     const v = this.inVehicle;
     const [ax, ay] = input.axis();
-    const throttle = ay < 0 ? 1 : ay > 0 ? -1 : 0;
+    const throttle = v.disabled ? 0 : ay < 0 ? 1 : ay > 0 ? -1 : 0;
     const brake = input.isDown(' ');
     v.handbrake = brake;
     v.throttle = throttle;
-    v.horn = input.isDown('h');
+    v.horn = input.isDown('h') && !v.disabled;
     const px = v.x, py = v.y, pa = v.angle;
-    v.applyControls(dt, throttle, ax, brake && v.speed !== 0);
-    resolveVehicleBuildingCollision(v, map, dt);
+    v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) : 1;
+    const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / SUBSTEP)));
+    for (let i = 0; i < n; i++) {
+      v.applyControls(dt / n, throttle, ax, brake && v.speed !== 0);
+      resolveVehicleBuildingCollision(v, map, dt / n);
+    }
     if (world) resolveBoomCollisions(v, world);
     if (v.isBoat) {
       // boats stay on the water: bow, stern, both beams and the centre. A move

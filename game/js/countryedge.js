@@ -749,7 +749,8 @@ function fillFeature(f) {
     }
     const hx = wide ? (x0 + x1) / 2 : x0 + 9, hy = wide ? y0 + 9 : (y0 + y1) / 2;
     it('clubhouse', hx, hy, wide ? 0 : Math.PI / 2, 1, 1, 1);
-    box(hx - 9, hy - 9, hx + 9, hy + 9);
+    // the clubhouse is 16.6 x 9.6 m plus its veranda, not an 18 m square
+    if (wide) box(hx - 8.4, hy - 6.2, hx + 8.4, hy + 6.2); else box(hx - 6.2, hy - 8.4, hx + 6.2, hy + 8.4);
     for (const [mx, my] of [[x0 + 2, y0 + 2], [x1 - 2, y0 + 2], [x0 + 2, y1 - 2], [x1 - 2, y1 - 2], [(x0 + x1) / 2, y0 + 2], [(x0 + x1) / 2, y1 - 2]]) it('mast', mx, my, Math.atan2((y0 + y1) / 2 - my, (x0 + x1) / 2 - mx), 1, 1, 1);
     it('fenceRow', x0, y0, 0, W, H, 0);
   } else {

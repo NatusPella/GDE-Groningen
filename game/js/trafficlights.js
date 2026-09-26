@@ -1,16 +1,30 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { makeProp, addProp, removeProp } from './breakables.js';
+import { allSignals } from './junctions.js';
 
-// Two-phase fixed-time controllers: main axis green -> amber -> all red ->
-// cross axis green (or the pedestrian phase) -> amber -> all red.
+// Conflict-free fixed-time controllers. Every car approach belongs to an
+// axis (streams that are parallel or opposite); each axis gets its own green
+// phase, split into through+right and a protected left turn where the road is
+// wide enough for a turn lane (voorsorteren). Then the Groningen bike phase:
+// every cyclist direction and every pedestrian crossing green at once, all
+// cars red. Each green is followed by amber and an all-red clearance.
 const MAIN_GREEN = 11;
-const CROSS_GREEN = 8;
-const PED_GREEN = 6;
+const CROSS_GREEN = 9;
+const LEFT_GREEN = 5;
+const SPLIT_GREEN = 7;
+const BIKE_GREEN = 7;
 const CROSSING_MAIN_GREEN = 14;
+const PED_GREEN = 6;
+const IDLE_RED = 10;
 const AMBER = 3;
+const BIKE_AMBER = 2;
 const ALL_RED = 2;
+const SAME_DOT = 0.8;
+const OPPOSITE_DOT = -0.55;
+const MAX_AXES = 4;
 
-const CLUSTER_RADIUS = 28;
+const CLUSTER_RADIUS = 30;
+const MERGE_RADIUS = 45;
 const APPROACH_REACH = 45;
 const CAR_CATS = new Set(['major', 'normal', 'minor']);
 const CAT_RANK = { major: 3, normal: 2, minor: 1, cycle: 0 };
@@ -31,28 +45,57 @@ export function getTrafficLights() {
   return heads;
 }
 
+export function getTrafficControllers() {
+  return controllers;
+}
+
 export function trafficSignalsNear(x, y) {
   return grid.get(Math.floor(x / GRID) + ',' + Math.floor(y / GRID)) || EMPTY;
 }
 const EMPTY = [];
 
-function controllerPhase(c, group) {
-  const t = c.t;
-  const s0 = c.g0, s1 = s0 + AMBER, s2 = s1 + ALL_RED, s3 = s2 + c.g1, s4 = s3 + AMBER;
-  if (group === 0) return t < s0 ? 'green' : t < s1 ? 'yellow' : 'red';
-  return t >= s2 && t < s3 ? 'green' : t >= s3 && t < s4 ? 'yellow' : 'red';
+// Light for a movement ('through' includes right turns, 'left') at this head.
+function movePhase(h, move) {
+  const c = h.ctrl;
+  const P = c.phases[c.cur];
+  if (h.bike) return P.bike ? c.part : 'red';
+  if (P.bike || P.idle || P.axis !== h.axis) return 'red';
+  if (P.dir !== undefined && P.dir !== h.dirGroup) return 'red';
+  if (P.move !== 'all' && P.move !== move) return 'red';
+  return c.part;
 }
 
 export function getTrafficLightPhase(head) {
   if (head.broken) return 'off';
-  return controllerPhase(head.ctrl, head.group);
+  return movePhase(head, 'through');
+}
+
+// What an AI vehicle at this head obeys: left turners wait for their arrow
+// where the axis has a protected left phase.
+export function trafficLightPhaseMove(head, left) {
+  if (head.broken) return 'green';
+  return movePhase(head, left ? 'left' : 'through');
 }
 
 // Phase for traffic travelling at `heading` through this head's controller.
 export function trafficLightPhaseFor(head, heading) {
   if (head.broken) return 'green';
-  const main = Math.abs(Math.cos(heading - head.ctrl.axis)) >= Math.SQRT1_2;
-  return controllerPhase(head.ctrl, main ? 0 : 1);
+  const c = head.ctrl;
+  let best = null, bs = 2;
+  for (const a of c.approaches) {
+    if (a.bike) continue;
+    const s = Math.abs(Math.sin(heading - Math.atan2(a.hy, a.hx)));
+    if (s < bs) { bs = s; best = a; }
+  }
+  return best ? movePhase(best, 'through') : 'red';
+}
+
+// Pedestrians cross with the bike phase, when no car has green.
+export function pedestriansMayCross(head) {
+  if (head.broken) return true;
+  const c = head.ctrl;
+  const P = c.phases[c.cur];
+  return !!(P.bike || P.idle) && c.part === 'green';
 }
 
 // ---------------------------------------------------------------- network
@@ -161,7 +204,7 @@ function addApproach(list, o) {
   list.push({
     x: o.x, y: o.y, hx: o.hx, hy: o.hy, road: o.road, bike: !!o.bike,
     ax: o.ax, ay: o.ay, key: o.key || null, crossing: !!o.crossing,
-    ctrl: null, group: 0, broken: false, poles: [],
+    ctrl: null, axis: -1, dirGroup: 0, broken: false, poles: [],
   });
 }
 
@@ -250,17 +293,126 @@ function placePoles(a) {
   const rx = -a.hy, ry = a.hx;
   const off = half + (a.bike ? 0.5 : 0.8);
   const angle = Math.atan2(a.hy, a.hx);
-  a.poles.push({ x: a.x + rx * off, y: a.y + ry * off, angle, head: a, broken: false, prop: null, bike: a.bike });
+  const arrow = !a.bike && a.ctrl.axes[a.axis] && a.ctrl.axes[a.axis].protectLeft;
+  a.poles.push({ x: a.x + rx * off, y: a.y + ry * off, angle, head: a, broken: false, prop: null, bike: a.bike, arrow });
   // wide one-way carriageways get a repeater on the left kerb too
   if (!a.bike && a.road.oneway && (a.road.width || 0) >= 7) {
-    a.poles.push({ x: a.x - rx * off, y: a.y - ry * off, angle, head: a, broken: false, prop: null, bike: false });
+    a.poles.push({ x: a.x - rx * off, y: a.y - ry * off, angle, head: a, broken: false, prop: null, bike: false, arrow });
   }
+}
+
+function newController(x, y) {
+  return { x, y, n: 0, keys: new Set(), approaches: [], t: 0, axes: [], phases: [], cycle: 1, cur: 0, part: 'red' };
+}
+
+// Controllers closer than MERGE_RADIUS run as one: a dual carriageway's two
+// nodes, or a crossing just outside a junction, never get independent
+// timings that could send crossing streams on green together.
+function mergeControllers() {
+  for (let i = 0; i < controllers.length; i++) {
+    const a = controllers[i];
+    for (let j = i + 1; j < controllers.length; j++) {
+      const b = controllers[j];
+      if (Math.hypot(a.x - b.x, a.y - b.y) > MERGE_RADIUS) continue;
+      for (const h of b.approaches) { h.ctrl = a; a.approaches.push(h); }
+      for (const k of b.keys) a.keys.add(k);
+      a.x = (a.x * a.n + b.x * b.n) / Math.max(1, a.n + b.n);
+      a.y = (a.y * a.n + b.y * b.n) / Math.max(1, a.n + b.n);
+      a.n += b.n;
+      controllers.splice(j, 1);
+      j = i;
+    }
+  }
+}
+
+function rankOf(a) {
+  return (CAT_RANK[a.road.cat] ?? 0) * 100 + (a.road.width || 0);
+}
+
+// Two approaches may share a green when their streams never cross: the same
+// direction, or (roughly) opposite ones - also on a road that bends through
+// the junction.
+export function streamsCompatible(a, b) {
+  const dot = a.hx * b.hx + a.hy * b.hy;
+  return dot > SAME_DOT || dot < OPPOSITE_DOT;
+}
+
+function assignAxes(c) {
+  const cars = c.approaches.filter((a) => !a.bike).sort((p, q) => rankOf(q) - rankOf(p));
+  const axes = [];
+  for (const a of cars) {
+    let best = axes.findIndex((ax) => ax.heads.every((h) => streamsCompatible(a, h)));
+    if (best < 0 && axes.length < MAX_AXES) {
+      axes.push({ heads: [], protectLeft: false });
+      best = axes.length - 1;
+    }
+    if (best < 0) {
+      // more stream directions than phases: share with the least-conflicting axis
+      let bc = Infinity;
+      axes.forEach((ax, i) => {
+        const n = ax.heads.filter((h) => !streamsCompatible(a, h)).length;
+        if (n < bc) { bc = n; best = i; }
+      });
+    }
+    a.axis = best;
+    axes[best].heads.push(a);
+  }
+  // Opposite directions on one axis: left turners would cross the oncoming
+  // stream. With room for a turn lane the lefts get their own phase;
+  // without, each direction gets its own green (split phasing).
+  for (const ax of axes) {
+    const ref = ax.heads[0];
+    for (const h of ax.heads) h.dirGroup = h.hx * ref.hx + h.hy * ref.hy > 0 ? 0 : 1;
+    const both = ax.heads.some((h) => h.dirGroup === 1);
+    const wide = ax.heads.some((h) => !h.crossing && (h.road.width || 0) >= 9);
+    const junction = ax.heads.some((h) => !h.crossing);
+    ax.protectLeft = junction && both && wide;
+    ax.split = junction && both && !wide;
+  }
+  c.axes = axes;
+}
+
+function buildPhases(c) {
+  const allCrossing = c.approaches.every((a) => a.crossing || a.bike);
+  const P = [];
+  c.axes.forEach((ax, i) => {
+    const g = i === 0 ? (allCrossing ? CROSSING_MAIN_GREEN : MAIN_GREEN) : CROSS_GREEN;
+    if (ax.protectLeft) {
+      P.push({ axis: i, move: 'through', g });
+      P.push({ axis: i, move: 'left', g: LEFT_GREEN });
+    } else if (ax.split) {
+      P.push({ axis: i, move: 'all', dir: 0, g: SPLIT_GREEN });
+      P.push({ axis: i, move: 'all', dir: 1, g: SPLIT_GREEN });
+    } else P.push({ axis: i, move: 'all', g });
+  });
+  P.push({ bike: true, g: allCrossing ? PED_GREEN : BIKE_GREEN });
+  if (!c.axes.length) P.push({ idle: true, g: IDLE_RED });
+  let t = 0;
+  for (const p of P) {
+    p.start = t;
+    p.greenEnd = t + p.g;
+    p.amberEnd = p.greenEnd + (p.idle ? 0 : p.bike ? BIKE_AMBER : AMBER);
+    p.end = p.amberEnd + (p.idle ? 0 : ALL_RED);
+    t = p.end;
+  }
+  c.phases = P;
+  c.cycle = t;
+}
+
+function stepController(c) {
+  const P = c.phases;
+  let i = 0;
+  while (i < P.length - 1 && c.t >= P[i].end) i++;
+  const p = P[i];
+  c.cur = i;
+  c.part = c.t < p.greenEnd ? 'green' : c.t < p.amberEnd ? 'yellow' : 'red';
+  if (p.idle) c.part = 'red';
 }
 
 export function initTrafficLights(world) {
   map = world.map;
   buildNodes(map);
-  const signals = map.meta.trafficLights || [];
+  const signals = allSignals(map);
   const list = [];
   list.junctions = [];
   for (const s of signals) approachesFromSignal(s, list);
@@ -275,7 +427,7 @@ export function initTrafficLights(world) {
   for (const an of anchors) {
     let c = controllers.find((o) => Math.hypot(o.x - an.x, o.y - an.y) < CLUSTER_RADIUS);
     if (!c) {
-      c = { x: an.x, y: an.y, n: 0, keys: new Set(), approaches: [], t: 0, g0: MAIN_GREEN, g1: PED_GREEN, axis: 0, cycle: 0 };
+      c = newController(an.x, an.y);
       controllers.push(c);
     }
     c.x = (c.x * c.n + an.x) / (c.n + 1);
@@ -291,35 +443,24 @@ export function initTrafficLights(world) {
     a.ctrl = c;
     c.approaches.push(a);
   }
+  mergeControllers();
   for (const c of controllers) {
     for (const a of c.approaches) if (a.key && !a.crossing && !a.bike) c.keys.add(a.key);
     fillJunctionArms(c, list);
   }
+  controllers = controllers.filter((c) => c.approaches.length);
 
   heads = [];
   for (const c of controllers) {
-    if (!c.approaches.length) continue;
-    let lead = c.approaches[0];
+    assignAxes(c);
+    buildPhases(c);
+    c.t = Math.random() * c.cycle;
+    stepController(c);
     for (const a of c.approaches) {
-      const ra = (CAT_RANK[a.road.cat] ?? 0) * 100 + (a.road.width || 0);
-      const rl = (CAT_RANK[lead.road.cat] ?? 0) * 100 + (lead.road.width || 0);
-      if (ra > rl) lead = a;
-    }
-    c.axis = Math.atan2(lead.hy, lead.hx);
-    let crossCars = false, allCrossing = true;
-    for (const a of c.approaches) {
-      a.group = Math.abs(Math.cos(Math.atan2(a.hy, a.hx) - c.axis)) >= Math.SQRT1_2 ? 0 : 1;
-      if (a.group === 1 && !a.bike) crossCars = true;
-      if (!a.crossing) allCrossing = false;
       placePoles(a);
       heads.push(a);
     }
-    c.g0 = allCrossing ? CROSSING_MAIN_GREEN : MAIN_GREEN;
-    c.g1 = crossCars ? CROSS_GREEN : PED_GREEN;
-    c.cycle = c.g0 + c.g1 + 2 * (AMBER + ALL_RED);
-    c.t = Math.random() * c.cycle;
   }
-  controllers = controllers.filter((c) => c.approaches.length);
 
   grid = new Map();
   for (const h of heads) {
@@ -334,12 +475,16 @@ export function initTrafficLights(world) {
     }
   }
   poles = heads.flatMap((h) => h.poles);
+  turnArrows = buildTurnArrowList();
   if (instanced) disposeInstanced();
 }
 
 // AI traffic reads the lights itself (see trafficLightLimit in vehicle.js).
 export function updateTrafficLights(dt) {
-  for (const c of controllers) c.t = (c.t + dt) % c.cycle;
+  for (const c of controllers) {
+    c.t = (c.t + dt) % c.cycle;
+    stepController(c);
+  }
 }
 
 // A knocked-down head stops controlling its approach until it respawns.
@@ -371,6 +516,42 @@ function refreshBroken(head) {
   matricesDirty = true;
 }
 
+// ---------------------------------------------------------------- turn arrows
+
+// Painted lane arrows before the stop line of an approach with a protected
+// left phase: left arrow in the inner lane, straight-ahead in the outer one.
+let turnArrows = [];
+
+function buildTurnArrowList() {
+  const out = [];
+  for (const h of heads) {
+    if (h.bike || h.crossing || !h.ctrl.axes[h.axis] || !h.ctrl.axes[h.axis].protectLeft) continue;
+    const w = h.road.width || 9;
+    const half = h.road.oneway ? w / 2 : w / 2;
+    const laneW = h.road.oneway ? w / 2 : half / 2;
+    const rx = -h.hy, ry = h.hx;
+    const inner = h.road.oneway ? -laneW / 2 : laneW / 2;
+    const outer = h.road.oneway ? laneW / 2 : laneW * 1.5;
+    for (const back of [4, 16]) {
+      const bx = h.x - h.hx * back, by = h.y - h.hy * back;
+      out.push({ kind: 0, x: bx + rx * inner, y: by + ry * inner, angle: Math.atan2(h.hy, h.hx) });
+      out.push({ kind: 1, x: bx + rx * outer, y: by + ry * outer, angle: Math.atan2(h.hy, h.hx) });
+    }
+  }
+  return out;
+}
+
+function arrowGeometry(kind) {
+  // flat on the road, pointing along +X; left = -Z in three (map north of east)
+  const pts = kind === 0
+    ? [[-2.2, -0.12], [0.06, -0.12], [0.06, -0.7], [-0.15, -0.7], [0.18, -1.1], [0.51, -0.7], [0.3, -0.7], [0.3, 0.12], [-2.2, 0.12]]
+    : [[-2.2, -0.12], [0.6, -0.12], [0.6, -0.42], [1.8, 0], [0.6, 0.42], [0.6, 0.12], [-2.2, 0.12]];
+  const shape = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+  const g = new THREE.ShapeGeometry(shape);
+  g.rotateX(-Math.PI / 2);
+  return g;
+}
+
 // ---------------------------------------------------------------- rendering
 
 const PHASE_COLORS = { green: 0x2ecc40, yellow: 0xf1a90f, red: 0xe74c3c };
@@ -379,6 +560,8 @@ const BIKE_SCALE = 0.72;
 const POLE_MAT = new THREE.MeshLambertMaterial({ color: 0x8e9193 });
 const HOUSING_MAT = new THREE.MeshLambertMaterial({ color: 0x17191b });
 const LAMP_MAT = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const ARROW_LAMP_MAT = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+const MARK_MAT = new THREE.MeshBasicMaterial({ color: 0xe8e6e0, polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -30, depthWrite: false, transparent: true, opacity: 0.9 });
 const LAMP_OFF = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.MeshBasicMaterial({ color: new THREE.Color(PHASE_COLORS[p]).multiplyScalar(0.16) })]));
 const LAMP_ON = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.MeshBasicMaterial({ color: PHASE_COLORS[p] })]));
 const OFF_COLORS = Object.fromEntries(LAMP_ORDER.map((p) => [p, new THREE.Color(PHASE_COLORS[p]).multiplyScalar(0.16)]));
@@ -399,6 +582,21 @@ const HOUSING_GEO = new THREE.BoxGeometry(0.28, 1.0, 0.34).translate(0, 3.35, 0)
 const PLATE_GEO = new THREE.BoxGeometry(0.03, 1.22, 0.56).translate(0.155, 3.35, 0);
 const LAMP_GEOS = LAMP_ORDER.map((_, i) => new THREE.CircleGeometry(0.115, 14).rotateY(-Math.PI / 2).translate(-0.145, 3.66 - i * 0.31, 0));
 const VISOR_GEO = mergeVisors();
+// the extra left-arrow lamp of a protected left turn, beside the main head
+const ARROW_HOUSING_GEO = new THREE.BoxGeometry(0.26, 0.36, 0.3).translate(0, 3.05, -0.34);
+const ARROW_LAMP_GEO = (() => {
+  const s = new THREE.Shape([[0.09, 0.03], [-0.02, 0.03], [-0.02, 0.08], [-0.1, 0], [-0.02, -0.08], [-0.02, -0.03], [0.09, -0.03]].map(([u, v]) => new THREE.Vector2(u, v)));
+  const g = new THREE.ShapeGeometry(s);
+  // shape u -> -Z (the driver's left), v -> +Y; lens plane just in front of the housing
+  const pos = g.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const u = pos.getX(i), v = pos.getY(i);
+    pos.setXYZ(i, -0.135, 3.05 + v, -0.34 + u);
+  }
+  pos.needsUpdate = true;
+  g.computeVertexNormals();
+  return g;
+})();
 
 function mergeVisors() {
   const parts = LAMP_ORDER.map((_, i) => new THREE.BoxGeometry(0.14, 0.02, 0.26).translate(-0.21, 3.78 - i * 0.31, 0));
@@ -426,14 +624,16 @@ let colorsDirty = true;
 function disposeInstanced() {
   for (const m of instanced.parts) m.parent?.remove(m);
   for (const m of instanced.lamps) m.parent?.remove(m);
+  for (const m of instanced.arrowParts) m.parent?.remove(m);
+  for (const m of instanced.marks) m.parent?.remove(m);
   instanced = null;
 }
 
 function buildInstanced(scene) {
   const n = Math.max(1, poles.length);
-  const mk = (geo, mat) => {
-    const m = new THREE.InstancedMesh(geo, mat, n);
-    m.count = poles.length;
+  const mk = (geo, mat, count = poles.length) => {
+    const m = new THREE.InstancedMesh(geo, mat, Math.max(1, count));
+    m.count = count;
     m.frustumCulled = false;
     m.matrixAutoUpdate = false;
     scene.add(m);
@@ -442,12 +642,16 @@ function buildInstanced(scene) {
   instanced = {
     parts: [mk(POLE_GEO, POLE_MAT), mk(HOUSING_GEO, HOUSING_MAT), mk(PLATE_GEO, HOUSING_MAT), mk(VISOR_GEO, HOUSING_MAT)],
     lamps: LAMP_GEOS.map((g) => mk(g, LAMP_MAT)),
+    arrowParts: [mk(ARROW_HOUSING_GEO, HOUSING_MAT), mk(ARROW_LAMP_GEO, ARROW_LAMP_MAT)],
+    marks: [0, 1].map((k) => mk(arrowGeometry(k), MARK_MAT, turnArrows.filter((a) => a.kind === k).length)),
   };
   const white = new THREE.Color(1, 1, 1);
-  for (const m of instanced.lamps) for (let i = 0; i < poles.length; i++) m.setColorAt(i, white);
+  for (const m of instanced.lamps) for (let i = 0; i < n; i++) m.setColorAt(i, white);
+  for (let i = 0; i < n; i++) instanced.arrowParts[1].setColorAt(i, white);
   for (const p of poles) p.shown = null;
   matricesDirty = true;
   colorsDirty = true;
+  writeMarks();
 }
 
 const _m = new THREE.Matrix4();
@@ -455,6 +659,19 @@ const _q = new THREE.Quaternion();
 const _p = new THREE.Vector3();
 const _s = new THREE.Vector3();
 const _up = new THREE.Vector3(0, 1, 0);
+
+function writeMarks() {
+  const counters = [0, 0];
+  for (const a of turnArrows) {
+    const gz = map && map.spawnZ ? map.spawnZ(a.x, a.y) : 0;
+    _p.set(a.x, gz + 0.04, a.y);
+    _q.setFromAxisAngle(_up, -a.angle);
+    _s.setScalar(1);
+    _m.compose(_p, _q, _s);
+    instanced.marks[a.kind].setMatrixAt(counters[a.kind]++, _m);
+  }
+  for (const m of instanced.marks) m.instanceMatrix.needsUpdate = true;
+}
 
 function writeMatrices() {
   poles.forEach((pole, i) => {
@@ -466,8 +683,13 @@ function writeMatrices() {
     _m.compose(_p, _q, _s);
     for (const m of instanced.parts) m.setMatrixAt(i, _m);
     for (const m of instanced.lamps) m.setMatrixAt(i, _m);
+    if (!pole.arrow) {
+      _s.setScalar(0);
+      _m.compose(_p, _q, _s);
+    }
+    for (const m of instanced.arrowParts) m.setMatrixAt(i, _m);
   });
-  for (const m of [...instanced.parts, ...instanced.lamps]) m.instanceMatrix.needsUpdate = true;
+  for (const m of [...instanced.parts, ...instanced.lamps, ...instanced.arrowParts]) m.instanceMatrix.needsUpdate = true;
   matricesDirty = false;
 }
 
@@ -479,19 +701,30 @@ export function syncTrafficLights3D(scene) {
   if (!poles.length) return;
   if (!instanced) buildInstanced(scene);
   if (matricesDirty) writeMatrices();
-  let changed = false;
+  let changed = false, arrowChanged = false;
   poles.forEach((pole, i) => {
     const phase = getTrafficLightPhase(pole.head);
-    if (!colorsDirty && pole.shown === phase) return;
+    const left = pole.arrow && !pole.head.broken ? movePhase(pole.head, 'left') : 'off';
+    if (!colorsDirty && pole.shown === phase && pole.shownLeft === left) return;
+    if (colorsDirty || pole.shown !== phase) {
+      changed = true;
+      LAMP_ORDER.forEach((p, k) => {
+        if (p === phase) _c.setHex(PHASE_COLORS[p]).multiplyScalar(glow);
+        else _c.copy(OFF_COLORS[p]);
+        instanced.lamps[k].setColorAt(i, _c);
+      });
+    }
+    if (pole.arrow && (colorsDirty || pole.shownLeft !== left)) {
+      arrowChanged = true;
+      if (left === 'green' || left === 'yellow') _c.setHex(PHASE_COLORS[left]).multiplyScalar(glow);
+      else _c.copy(OFF_COLORS.red);
+      instanced.arrowParts[1].setColorAt(i, _c);
+    }
     pole.shown = phase;
-    changed = true;
-    LAMP_ORDER.forEach((p, k) => {
-      if (p === phase) _c.setHex(PHASE_COLORS[p]).multiplyScalar(glow);
-      else _c.copy(OFF_COLORS[p]);
-      instanced.lamps[k].setColorAt(i, _c);
-    });
+    pole.shownLeft = left;
   });
   if (changed) for (const m of instanced.lamps) m.instanceColor.needsUpdate = true;
+  if (arrowChanged || colorsDirty) instanced.arrowParts[1].instanceColor.needsUpdate = true;
   colorsDirty = false;
 }
 

@@ -5,6 +5,7 @@
 import { requestRespawn } from './world.js';
 import { DEAD_DURATION } from './pedestrians.js';
 import { knockDown } from './ragdoll.js';
+import { disableVehicle } from './vehicle.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 
 const HALF_WIDTH = 1.45;
@@ -366,7 +367,7 @@ function hitVehicle(v, t, car, push, world) {
   v.driftX = 0;
   v.driftY = 0;
   v.health = Math.max(0, v.health - (35 + t.v * 5));
-  if (v.health <= 0 && !v.wrecked) { v.wrecked = true; v.speed = 0; }
+  if (v.health <= 0 && !v.wrecked) disableVehicle(v, false, world);
   const strength = Math.min(1, t.v / 14);
   world.particles.push({ kind: 'impact', x: v.x, y: v.y, strength, until: world.time + 0.4 });
   v.hitThisFrame = true; v.hitX = v.x; v.hitY = v.y; v.hitImpactSpeed = t.v;

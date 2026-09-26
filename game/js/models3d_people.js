@@ -373,15 +373,7 @@ function buildHair(B, L) {
     for (const s of [1, -1]) B.box(0.028, HEAD_Y + 0.004, s * 0.084, 0.022, 0.045, 0.01, c);
   }
   if (style === 'long') {
-    const back = new THREE.CylinderGeometry(1, 1, 1, 8, 1, true, Math.PI * 0.72, Math.PI * 1.56);
-    const p = back.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const top = p.getY(i) > 0;
-      p.setXYZ(i, p.getX(i) * (top ? 0.104 : 0.1) - 0.012, top ? HEAD_Y + 0.03 : HEAD_Y - 0.27, p.getZ(i) * (top ? 0.094 : 0.13));
-    }
-    B.geo(back, null, c);
-    B.box(-0.075, HEAD_Y - 0.12, 0, 0.05, 0.3, 0.16, shade(c, 0.9));
-    for (const s of [1, -1]) B.box(0.035, HEAD_Y - 0.09, s * 0.09, 0.05, 0.2, 0.022, c, 0, 0, s * 0.05, 0);
+    hairCurtain(B, c, L.character === 'anita' ? 0.29 : 0.26);
   } else if (style === 'bob') {
     const back = new THREE.CylinderGeometry(1, 1, 1, 8, 1, true, Math.PI * 0.62, Math.PI * 1.76);
     const p = back.attributes.position;
@@ -402,6 +394,53 @@ function buildHair(B, L) {
     B.bone = BONE.chest;
     B.geo(loftGeometry([{ y: 1.36, d: 0.13, w: 0.19, sq: 0.8 }, { y: 1.46, d: 0.085, w: 0.1 }, { y: 1.55, d: 0.075, w: 0.08 }], 10), null, shade(hc, 0.92));
     B.bone = BONE.head;
+  }
+}
+
+// Long hair as one closed shell: an outer and a slightly darker inner
+// surface joined along the face opening and the tips, hugging the scalp at
+// the top and falling straight onto the back and shoulders. Alternate
+// columns are shaded a touch so it reads as tidy strands, not a helmet.
+function hairCurtain(B, c, len) {
+  const COLS = 12, ROWS = 4, T = 0.016;
+  const open = 0.34 * Math.PI;
+  const inner = shade(c, 0.72);
+  const rows = [
+    { y: HEAD_Y + 0.05, rx: 0.1, rz: 0.091, dx: -0.014 },
+    { y: HEAD_Y - 0.02, rx: 0.108, rz: 0.1, dx: -0.016 },
+    { y: HEAD_Y - 0.1, rx: 0.106, rz: 0.106, dx: -0.024 },
+    { y: HEAD_Y - 0.19, rx: 0.1, rz: 0.114, dx: -0.036 },
+    { y: HEAD_Y - len, rx: 0.092, rz: 0.12, dx: -0.05 },
+  ];
+  const at = (r, i, off) => {
+    const a = open + (i / COLS) * (Math.PI * 2 - open * 2);
+    const ca = Math.cos(a), sa = Math.sin(a);
+    const front = Math.max(0, ca);
+    const rx = r.rx + off, rz = r.rz + off;
+    return [ca * rx * (1 - 0.25 * front) + r.dx, r.y, sa * rz];
+  };
+  for (let k = 0; k < ROWS; k++) {
+    const r0 = rows[k], r1 = rows[k + 1];
+    for (let i = 0; i < COLS; i++) {
+      const col = i % 2 ? shade(c, 0.93) : c;
+      const a0 = at(r0, i, 0), a1 = at(r0, i + 1, 0), b0 = at(r1, i, 0), b1 = at(r1, i + 1, 0);
+      const mid = (i + 0.5) / COLS * (Math.PI * 2 - open * 2) + open;
+      const out = [Math.cos(mid), 0, Math.sin(mid)];
+      B.quadOut(a0, a1, b1, b0, out, col);
+      const ia0 = at(r0, i, -T), ia1 = at(r0, i + 1, -T), ib0 = at(r1, i, -T), ib1 = at(r1, i + 1, -T);
+      B.quadOut(ia0, ia1, ib1, ib0, [-out[0], 0, -out[2]], inner);
+    }
+    for (const i of [0, COLS]) {
+      const s = i === 0 ? 1 : -1;
+      const a = open + (i / COLS) * (Math.PI * 2 - open * 2);
+      const side = [-Math.sin(a) * s, 0, Math.cos(a) * s];
+      B.quadOut(at(r0, i, 0), at(r1, i, 0), at(r1, i, -T), at(r0, i, -T), side, shade(c, 0.85));
+    }
+  }
+  const last = rows[ROWS], first = rows[0];
+  for (let i = 0; i < COLS; i++) {
+    B.quadOut(at(last, i, 0), at(last, i + 1, 0), at(last, i + 1, -T), at(last, i, -T), [0, -1, 0], shade(c, 0.8));
+    B.quadOut(at(first, i, 0), at(first, i + 1, 0), at(first, i + 1, -T), at(first, i, -T), [0, 1, 0], c);
   }
 }
 
@@ -829,22 +868,169 @@ function attachUmbrella(ud, color) {
   ud.umbrella = m;
 }
 
-// Static seated pose for vehicle occupants: thighs forward, hands on the
-// wheel (driver) or in the lap. Callers lower the mesh by SEATED_DROP.
-export const SEATED_DROP = 0.55;
-export function seatPerson(mesh, driving = false) {
+// Seated poses. SEAT_CONTACT is the mesh-local height of the underside of
+// the thighs/seat in a seated pose, so a person sits ON a surface at height
+// h when the mesh origin is at seatedY(mesh, h). A spec gives the recline
+// (chest tipped back), the ankle target relative to the hip joint (footX
+// forward, footY up; mesh-local, unscaled) and what the arms do.
+export const SEAT_CONTACT = HIP_Y - 0.09;
+export const SEAT_CAR = { recline: 0.26, footX: 0.74, footY: -0.07, arms: 'lap' };
+// car seat cushion 0.38 m above the ground (legacy callers lower the mesh by this)
+export const SEATED_DROP = SEAT_CONTACT - 0.38;
+
+export function seatedY(mesh, seatTop) {
+  return seatTop - SEAT_CONTACT * (mesh.scale.y || 1);
+}
+
+export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
   const ud = mesh.userData;
+  if (!ud.pelvis) return;
   resetSpine(ud);
-  for (const leg of [ud.legL, ud.legR]) leg.rotation.set(0, 0, 1.45);
-  if (ud.kneeL) { ud.kneeL.rotation.z = -1.3; ud.kneeR.rotation.z = -1.3; }
-  ud.armL.rotation.set(0, 0, driving ? 0.85 : 0.35);
-  ud.armR.rotation.set(0, 0, driving ? 0.85 : 0.35);
-  if (ud.elbowL) {
-    ud.elbowL.rotation.z = driving ? 0.7 : 1.05;
-    ud.elbowR.rotation.z = driving ? 0.7 : 1.05;
+  const rec = spec.recline || 0;
+  ud.chest.rotation.set(0, 0, rec);
+  ud.head.rotation.set(0, 0, -rec * 0.7);
+  let fx = spec.footX ?? 0.74, fy = spec.footY ?? -0.07;
+  let fx2 = fx, fy2 = fy;
+  if (spec.pedal) {
+    const ph = t * 5.5;
+    fx = spec.footX + Math.cos(ph) * 0.1; fy = spec.footY + Math.sin(ph) * 0.1;
+    fx2 = spec.footX - Math.cos(ph) * 0.1; fy2 = spec.footY - Math.sin(ph) * 0.1;
+  }
+  legIK(ud.legL, ud.kneeL, fx, fy);
+  legIK(ud.legR, ud.kneeR, fx2 - 0.03, fy2 + 0.01);
+  if (spec.splay) { ud.legL.rotation.x = -spec.splay; ud.legR.rotation.x = spec.splay; }
+  const lean = rec;
+  switch (spec.arms) {
+    case 'wheel':
+      setArm(ud.armL, ud.elbowL, 0.95 + lean * 0.8, 0.55, -0.1);
+      setArm(ud.armR, ud.elbowR, 0.95 + lean * 0.8, 0.55, 0.1);
+      break;
+    case 'helm':
+      setArm(ud.armL, ud.elbowL, 0.62 + lean * 0.6, 0.75, -0.08);
+      setArm(ud.armR, ud.elbowR, 0.62 + lean * 0.6, 0.75, 0.08);
+      break;
+    case 'tiller':
+      setArm(ud.armL, ud.elbowL, 0.3 + lean, 1.0);
+      setArm(ud.armR, ud.elbowR, 0.55 + lean, 0.35, 0.35);
+      break;
+    case 'paddle': {
+      const s = Math.sin(t * 2.6);
+      setArm(ud.armL, ud.elbowL, 0.95 + 0.2 * s + lean, 0.75 - 0.25 * s, -0.25);
+      setArm(ud.armR, ud.elbowR, 0.95 - 0.2 * s + lean, 0.75 + 0.25 * s, 0.25);
+      ud.chest.rotation.y = 0.18 * s;
+      if (!ud.paddleProp) {
+        ud.paddleProp = new THREE.Mesh(PADDLE_GEO, ROD_MAT);
+        ud.chest.add(ud.paddleProp);
+      }
+      ud.paddleProp.visible = true;
+      ud.paddleProp.position.set(0.4, 0.1, 0);
+      ud.paddleProp.rotation.set(0.3 * s, 0, 0);
+      break;
+    }
+    case 'hug':
+      setArm(ud.armL, ud.elbowL, 1.05 + lean, 1.2, 0.15);
+      setArm(ud.armR, ud.elbowR, 1.05 + lean, 1.2, -0.15);
+      break;
+    case 'rail':
+      setArm(ud.armL, ud.elbowL, 0.25 + lean, 0.9, -0.45);
+      setArm(ud.armR, ud.elbowR, 0.35 + lean, 1.05);
+      break;
+    default:
+      setArm(ud.armL, ud.elbowL, 0.35 + lean, 1.05);
+      setArm(ud.armR, ud.elbowR, 0.35 + lean, 1.05);
   }
   if (ud.umbrella) ud.umbrella.visible = false;
+  setPropVisible(ud, 'phoneProp', false);
+  setPropVisible(ud, 'rodProp', false);
+  if (spec.arms !== 'paddle') setPropVisible(ud, 'paddleProp', false);
   ud.seated = true;
+}
+
+// Legacy entry point: the car pose, hands on the wheel when driving.
+export function seatPerson(mesh, driving = false, spec = SEAT_CAR) {
+  seatPose(mesh, driving ? { ...spec, arms: 'wheel' } : spec);
+}
+
+// Standing on a step deck behind the rider, holding on.
+export function standBehindPose(mesh) {
+  const ud = mesh.userData;
+  if (!ud.pelvis) return;
+  resetSpine(ud);
+  ud.chest.rotation.set(0, 0, -0.12);
+  ud.legL.rotation.set(0, 0, 0.08);
+  ud.legR.rotation.set(0, 0, -0.1);
+  ud.kneeL.rotation.z = -0.12;
+  ud.kneeR.rotation.z = -0.1;
+  setArm(ud.armL, ud.elbowL, 0.9, 1.1, 0.12);
+  setArm(ud.armR, ud.elbowR, 0.9, 1.1, -0.12);
+  if (ud.umbrella) ud.umbrella.visible = false;
+}
+
+// Blend from whatever pose the bones hold now (a walk frame) towards a
+// seated spec by k (0..1): enter/exit animations.
+const _blend = new Float32Array(40);
+export function blendSeatPose(mesh, spec, k, t = 0) {
+  const ud = mesh.userData;
+  if (!ud.pelvis) return;
+  if (k >= 1) { seatPose(mesh, spec, t); return; }
+  const bones = [ud.pelvis, ud.chest, ud.head, ud.legL, ud.kneeL, ud.legR, ud.kneeR, ud.armL, ud.elbowL, ud.armR, ud.elbowR];
+  let i = 0;
+  for (const b of bones) { _blend[i++] = b.rotation.x; _blend[i++] = b.rotation.y; _blend[i++] = b.rotation.z; }
+  const py = ud.pelvis.position.y, pz = ud.pelvis.position.z;
+  seatPose(mesh, spec, t);
+  i = 0;
+  for (const b of bones) {
+    const x = _blend[i++], y = _blend[i++], z = _blend[i++];
+    b.rotation.set(x + (b.rotation.x - x) * k, y + (b.rotation.y - y) * k, z + (b.rotation.z - z) * k);
+  }
+  ud.pelvis.position.y = py + (HIP_Y - py) * k;
+  ud.pelvis.position.z = pz * (1 - k);
+}
+
+// Right arm raised, hand swaying: a wave/greeting over whatever pose the
+// body has (seated, swimming, walking). k fades it in and out.
+export function waveOverlay(mesh, t, k = 1) {
+  const ud = mesh.userData;
+  if (!ud.armR || k <= 0) return;
+  const sway = Math.sin(t * 9);
+  const z = ud.armR.rotation.z + (2.75 - ud.armR.rotation.z) * k;
+  const x = ud.armR.rotation.x + (0.3 + 0.28 * sway - ud.armR.rotation.x) * k;
+  setArm(ud.armR, ud.elbowR, z, (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - k) + (0.45 + 0.2 * sway) * k, x);
+  if (ud.head) ud.head.rotation.z += 0.12 * k;
+}
+
+// Arms forward under a load (side-job boxes).
+export function carryOverlay(mesh) {
+  const ud = mesh.userData;
+  if (!ud.armL) return;
+  setArm(ud.armL, ud.elbowL, 0.75, 1.15, 0.12);
+  setArm(ud.armR, ud.elbowR, 0.75, 1.15, -0.12);
+}
+
+// Treading water / breaststroke for ambient swimmers: the caller tilts and
+// lowers the mesh like the player's swim (swimDepth in player.js).
+export function swimPose(mesh, t, moving) {
+  const ud = mesh.userData;
+  if (!ud.pelvis) return;
+  resetSpine(ud);
+  const s = Math.sin(t * (moving ? 3.2 : 2.2));
+  const c = Math.cos(t * (moving ? 3.2 : 2.2));
+  if (moving) {
+    setArm(ud.armL, ud.elbowL, 2.2 + 0.7 * s, 0.4 + 0.5 * Math.max(0, c), -0.5 - 0.4 * Math.max(0, -s));
+    setArm(ud.armR, ud.elbowR, 2.2 + 0.7 * s, 0.4 + 0.5 * Math.max(0, c), 0.5 + 0.4 * Math.max(0, -s));
+    ud.legL.rotation.set(-0.25 - 0.2 * c, 0, -0.15 + 0.35 * s);
+    ud.legR.rotation.set(0.25 + 0.2 * c, 0, -0.15 + 0.35 * s);
+    ud.kneeL.rotation.z = ud.kneeR.rotation.z = -0.3 - 0.6 * Math.max(0, s);
+  } else {
+    setArm(ud.armL, ud.elbowL, 0.9 + 0.35 * s, 0.5, -0.9 - 0.25 * c);
+    setArm(ud.armR, ud.elbowR, 0.9 + 0.35 * s, 0.5, 0.9 + 0.25 * c);
+    ud.legL.rotation.set(0, 0, 0.35 + 0.35 * s);
+    ud.legR.rotation.set(0, 0, 0.35 - 0.35 * s);
+    ud.kneeL.rotation.z = -0.6 - 0.4 * s;
+    ud.kneeR.rotation.z = -0.6 + 0.4 * s;
+  }
+  ud.head.rotation.set(0, 0, moving ? 0.55 : 0.2);
+  if (ud.umbrella) ud.umbrella.visible = false;
 }
 
 function resetSpine(ud) {
@@ -873,6 +1059,21 @@ const ROD_GEO = markShared((() => {
   return g;
 })());
 const ROD_MAT = markShared(new THREE.MeshStandardMaterial({ color: 0x3a2c1f, roughness: 0.8 }));
+// double-bladed paddle across the body, shaft along z
+const PADDLE_GEO = markShared((() => {
+  const shaft = new THREE.CylinderGeometry(0.016, 0.016, 2.0, 5).rotateX(Math.PI / 2);
+  const parts = [shaft];
+  for (const s of [1, -1]) parts.push(new THREE.BoxGeometry(0.16, 0.02, 0.4).translate(0, 0, s * 1.08));
+  const pos = [];
+  for (const g of parts) {
+    const ng = g.index ? g.toNonIndexed() : g;
+    pos.push(...ng.attributes.position.array);
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.computeVertexNormals();
+  return out;
+})());
 
 function propOn(ud, key, geo, mat, build) {
   let m = ud[key];
@@ -906,14 +1107,77 @@ function setArm(arm, elbow, z, e, x = 0) {
   if (elbow) elbow.rotation.z = e;
 }
 
+// Guns in the right hand. Built along the forearm bone: -y runs down the
+// forearm towards the fingers (forward once the arm is raised), +x is the
+// back of the hand (up when aiming). userData.muzzle marks the barrel tip.
+const GUN_MAT = markShared(new THREE.MeshStandardMaterial({ color: 0x1b1c1f, roughness: 0.45, metalness: 0.6 }));
+const GUN_WOOD = markShared(new THREE.MeshStandardMaterial({ color: 0x5a3a22, roughness: 0.7 }));
+const HAND_Y = -0.575;
+const GUN_SPECS = {
+  pistol: { parts: [[0.035, 0.03, 0.2, 0.03, -0.075, GUN_MAT], [-0.02, 0.08, 0.035, 0.028, 0, GUN_MAT]], tip: 0.19 },
+  uzi: { parts: [[0.03, 0.055, 0.27, 0.045, -0.1, GUN_MAT], [-0.03, 0.09, 0.035, 0.03, 0.01, GUN_MAT], [-0.055, 0.12, 0.03, 0.025, -0.1, GUN_MAT]], tip: 0.25 },
+  shotgun: { parts: [[0.03, 0.04, 0.62, 0.04, -0.2, GUN_MAT], [0.0, 0.05, 0.26, 0.05, -0.12, GUN_WOOD], [-0.01, 0.07, 0.3, 0.05, 0.2, GUN_WOOD]], tip: 0.52 },
+};
+const gunGeos = {};
+function gunGeometry(key) {
+  if (gunGeos[key]) return gunGeos[key];
+  const parts = GUN_SPECS[key].parts.map(([x, h, len, w, y]) => new THREE.BoxGeometry(h, len, w).translate(x, y - len * 0.5 + 0.06, 0));
+  const g = { geos: parts.map((pg) => markShared(pg)) };
+  gunGeos[key] = g;
+  return g;
+}
+
+// Shows the held weapon (null / 'fists' hides it).
+export function setHeldWeapon(mesh, weapon) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.elbowR) return;
+  const key = GUN_SPECS[weapon] ? weapon : null;
+  if (ud.gunKey === key) return;
+  ud.gunKey = key;
+  if (!ud.guns) ud.guns = {};
+  for (const k in ud.guns) ud.guns[k].visible = false;
+  ud.muzzle = null;
+  if (!key) return;
+  let g = ud.guns[key];
+  if (!g) {
+    g = new THREE.Group();
+    const spec = GUN_SPECS[key];
+    const geo = gunGeometry(key);
+    spec.parts.forEach((pt, i) => { const m = new THREE.Mesh(geo.geos[i], pt[5]); m.castShadow = true; g.add(m); });
+    // pivot in the palm, so the gun can tilt forward while the arm hangs
+    g.position.set(0.01, HAND_Y, 0);
+    const tip = new THREE.Object3D();
+    tip.position.set(0.035, -spec.tip, 0);
+    g.add(tip);
+    g.userData.tip = tip;
+    ud.elbowR.add(g);
+    ud.guns[key] = g;
+  }
+  g.visible = true;
+  ud.muzzle = g.userData.tip;
+}
+
 // Attack overlay on top of the walk cycle: an alternating jab for fists, an
-// aimed arm with a short recoil kick for guns (two-handed for uzi/shotgun).
-// fx is combat.js's last effect {type, start, side, weapon}; now = world.time.
+// aimed arm with a recoil kick for guns (two-handed for uzi/shotgun) that
+// stays up while `aiming`. fx is combat.js's last effect {type, start, side,
+// weapon}; now = world.time.
 const PUNCH_S = 0.32;
 const AIM_HOLD_S = 0.7;
-export function applyAttackPose(mesh, fx, now) {
+const RECOIL = { pistol: [0.34, 0.5, 0.12], uzi: [0.16, 0.25, 0.06], shotgun: [0.62, 0.8, 0.22] };
+export function applyAttackPose(mesh, fx, now, aiming = null) {
   const ud = mesh && mesh.userData;
-  if (!ud || !fx || fx.start === undefined || !ud.armR || !ud.armL) return;
+  if (!ud || !ud.armR || !ud.armL) return;
+  if (ud.gunKey && ud.guns) {
+    const firing = fx && fx.type === 'muzzle' && now - fx.start < AIM_HOLD_S;
+    ud.guns[ud.gunKey].rotation.z = aiming || firing ? 0 : 0.95;
+  }
+  if (aiming && (!fx || fx.type !== 'muzzle' || now - fx.start >= AIM_HOLD_S - 0.2)) {
+    // raised, steady aim between shots
+    setArm(ud.armR, ud.elbowR, 1.55, 0.06);
+    if (aiming === 'uzi' || aiming === 'shotgun') setArm(ud.armL, ud.elbowL, 1.4, 0.55, 0);
+    return;
+  }
+  if (!fx || fx.start === undefined) return;
   const dt = now - fx.start;
   if (fx.type === 'melee') {
     if (dt < 0 || dt >= PUNCH_S) return;
@@ -928,17 +1192,44 @@ export function applyAttackPose(mesh, fx, now) {
     return;
   }
   if (fx.type === 'muzzle') {
-    if (dt < 0 || dt >= AIM_HOLD_S) return;
-    const hold = 1 - smoothstep(AIM_HOLD_S - 0.2, AIM_HOLD_S, dt);
-    const kick = Math.max(0, 1 - dt / 0.12);
-    const z = ud.armR.rotation.z + (1.55 + 0.22 * kick - ud.armR.rotation.z) * hold;
-    const e = (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - hold) + (0.06 + 0.3 * kick) * hold;
+    if (dt < 0 || (dt >= AIM_HOLD_S && !aiming)) return;
+    const hold = aiming ? 1 : 1 - smoothstep(AIM_HOLD_S - 0.2, AIM_HOLD_S, dt);
+    const [armK, elbowK, chestK] = RECOIL[fx.weapon] || RECOIL.pistol;
+    // sharp snap up, slower settle
+    const kick = dt < 0.03 ? dt / 0.03 : Math.exp(-(dt - 0.03) * 14);
+    const z = ud.armR.rotation.z + (1.55 + armK * kick - ud.armR.rotation.z) * hold;
+    const e = (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - hold) + (0.06 + elbowK * kick) * hold;
     setArm(ud.armR, ud.elbowR, z, e);
     if (fx.weapon === 'uzi' || fx.weapon === 'shotgun') {
-      const zl = ud.armL.rotation.z + (1.4 + 0.15 * kick - ud.armL.rotation.z) * hold;
-      setArm(ud.armL, ud.elbowL, zl, 0.55 * hold, 0);
+      const zl = ud.armL.rotation.z + (1.4 + armK * 0.7 * kick - ud.armL.rotation.z) * hold;
+      setArm(ud.armL, ud.elbowL, zl, (0.55 + elbowK * 0.5 * kick) * hold, 0);
     }
+    if (ud.chest) ud.chest.rotation.z += chestK * kick * hold;
+    if (ud.head) ud.head.rotation.z += chestK * 0.6 * kick * hold;
   }
+}
+
+// Hit reaction for someone shot but still standing: the torso snaps away
+// from the bullet, the head whips and the arms flinch, easing out in ~0.45 s.
+// react = { t, dx, dy, k } (dx, dy: bullet direction), angle = body facing.
+const REACT_S = 0.45;
+export function applyHitReaction(mesh, react, now, angle) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !react || !ud.chest) return;
+  const dt = now - react.t;
+  if (dt < 0 || dt >= REACT_S) return;
+  const env = (dt < 0.05 ? dt / 0.05 : 1 - smoothstep(0.05, REACT_S, dt)) * (react.k || 1);
+  const c = Math.cos(angle), sn = Math.sin(angle);
+  const fwd = react.dx * c + react.dy * sn;
+  const side = -react.dx * sn + react.dy * c;
+  ud.chest.rotation.z += -fwd * 0.55 * env;
+  ud.chest.rotation.x += side * 0.45 * env;
+  ud.head.rotation.z += -fwd * 0.5 * env;
+  ud.head.rotation.x += side * 0.35 * env;
+  ud.armL.rotation.z += 0.7 * env;
+  ud.armR.rotation.z += 0.55 * env;
+  if (ud.elbowL) ud.elbowL.rotation.z += 0.8 * env;
+  if (ud.elbowR) ud.elbowR.rotation.z += 0.8 * env;
 }
 
 const POSE_DROP = { crouch: 0.42, sit: 0.46, fish: 0.5 };
@@ -1059,6 +1350,7 @@ export function animatePersonWalk(mesh, speed, dt) {
   const s = Number.isFinite(speed) ? Math.max(0, speed) : 0;
   const step = Number.isFinite(dt) ? Math.max(0, Math.min(0.1, dt)) : 0;
   if (ud.umbrella && !ud.posed) ud.umbrella.visible = true;
+  if (ud.paddleProp) ud.paddleProp.visible = false;
   if (!ud.pelvis) {
     const sw = Math.sin((ud.walkPhase = ((ud.walkPhase || 0) + s * 2.2 * step) % TAU)) * Math.min(1, s / 1.5);
     ud.legL.rotation.z = sw * 0.55; ud.legR.rotation.z = -sw * 0.55;

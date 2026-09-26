@@ -2,15 +2,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { dist, closestPointOnSegment, isInWater, pointInPolygon } from './util.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
+import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
-import { getGaragesForRender } from './garages.js';
 import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { recordStat } from './achievements.js';
 
 export const SHOP_USE_RADIUS = 2.6;
-const GARAGE_PAINT_RADIUS = 7;
 const OUTFIT_WANTED_COOLDOWN = 60;
 export const REDELIVERY_FEE = 25;
 
@@ -24,12 +23,13 @@ export const SHOP_TYPES = {
   tabak: { color: '#c23f78', label: 'Tabak & loterij', chain: 'Rook & Geluk', tagline: 'Kraskaarten, loten en een eierbal uit de muur', group: 'shops' },
   super: { color: '#3b8f3b', label: 'Avondwinkel', chain: 'Nait Duur', tagline: 'Open tot laat, goedkoop tot op de cent', group: 'shops' },
   snack: { color: '#d0652a', label: 'Snackbar', chain: 'Frituur Vet & Lekker', tagline: 'Vers uit het vet, met of zonder', group: 'shops' },
-  fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, fatbikes en brommers', group: 'shopsVoertuigen' },
+  fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, fatbikes en e-steps', group: 'shopsVoertuigen' },
   fietsenmaker: { color: '#4f86a8', label: 'Fietsenmaker', chain: 'Spaak & Band', tagline: 'Plakken, poetsen en opvoeren', group: 'shopsVoertuigen' },
   auto: { color: '#c98a16', label: 'Autodealer', chain: 'Ome Harm Occasions', tagline: 'Nait zeuren, gewoon rijden', group: 'shopsVoertuigen' },
   tuning: { color: '#8c3fa8', label: 'Tuning', chain: 'Knal & Kolder Tuning', tagline: 'Meer vermogen, meer herrie', group: 'shopsVoertuigen' },
   boot: { color: '#2a8fb0', label: 'Botenverhuur', chain: 'Bootje Huren', tagline: 'De stad vanaf het water', group: 'shopsVoertuigen' },
   spuit: { color: '#1e9e56', label: 'Spuiterij', chain: 'Spuit & Klaar', tagline: 'Nieuwe kleur, nieuwe kans', group: null },
+  eikea: { color: '#1d4fa3', label: 'Woonwarenhuis', chain: 'EIKEA', tagline: 'Zweeds? Nee, Gronings. Zelf in elkaar zetten', group: 'shops' },
 };
 
 // Jetties for boat rental: a kade street next to open water.
@@ -91,11 +91,11 @@ export const VEHICLE_STOCK = {
   omafiets: { kind: 'bike', label: 'Omafiets', desc: 'Zwart, zwaar en onverwoestbaar', price: 75, nameIdx: 0, color: '#1c1c1c', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6 } },
   stadsfiets: { kind: 'bike', label: 'Stadsfiets', desc: 'Lichter en sneller, in Stadjersgroen', price: 110, nameIdx: 2, color: '#1e9e56', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 7.0, accel: 3.6, brake: 6.2, turnRate: 4.8 } },
   fatbike: { kind: 'bike', label: 'Fatbike "Dikke Tinus"', desc: 'Dikke banden, dikke prijs', price: 350, nameIdx: 0, color: '#20221f', model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 3.4, brake: 5, turnRate: 3.8 } },
-  brommer: { kind: 'scooter', label: 'Brommer Zoemzoem', desc: 'Elektrisch, stil, rap', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
-  mug: { kind: 'car', label: 'Hunze Mug', desc: 'Kleine hatchback, parkeert overal', price: 800, nameIdx: 2, color: '#2e6b9e', model: { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 15, turnRate: 3.0 } },
-  koopman: { kind: 'car', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 32, accel: 8, brake: 15, turnRate: 2.5 } },
-  klusbus: { kind: 'car', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 13, turnRate: 2.0 } },
-  wervelwind: { kind: 'car', label: 'Wadden Wervelwind', desc: 'Sportwagen. Rap as de wind over de dijk', price: 2400, nameIdx: 0, color: '#c9a227', model: { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 42, accel: 12, brake: 19, turnRate: 3.2 } },
+  brommer: { kind: 'scooter', label: 'E-step Zoemzoem', desc: 'Elektrische step: staan, gas, zoemen', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
+  mug: { kind: 'car', label: 'Hunze Mug', desc: 'Kleine hatchback, parkeert overal', price: 800, nameIdx: 2, color: '#2e6b9e', model: { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 15, turnRate: 3.0 } },
+  koopman: { kind: 'car', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 47, accel: 9, brake: 15, turnRate: 2.5 } },
+  klusbus: { kind: 'car', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 13, turnRate: 2.0 } },
+  wervelwind: { kind: 'car', label: 'Wadden Wervelwind', desc: 'Sportwagen. Rap as de wind over de dijk', price: 2400, nameIdx: 0, color: '#c9a227', model: { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 64, accel: 14, brake: 24, turnRate: 3.2 } },
 };
 
 export const PAINTS = [
@@ -310,7 +310,14 @@ export function initShops(world) {
     const p = placeJetty(map, street, horeca, placed);
     if (p && !placed.some((q) => q.type === 'boot' && dist(q.x, q.y, p.x, p.y) < 150)) placed.push({ ...p, type: 'boot', wijk: street });
   }
+  const eikea = map.buildings.find((b) => b.landmark === 'EIKEA');
+  if (eikea) {
+    const cx = eikea.pts.reduce((a, q) => a + q[0], 0) / eikea.pts.length, cy = eikea.pts.reduce((a, q) => a + q[1], 0) / eikea.pts.length;
+    const p = placeAtPoi(map, { x: cx, y: cy }, horeca, placed);
+    if (p) placed.push({ ...p, type: 'eikea', wijk: 'Sontweg', street: p.street || 'Sontweg' });
+  }
   nameBranches(placed);
+  for (const s of placed) if (s.type === 'eikea') s.name = 'EIKEA Grunn';
   shops = placed;
   declutterCache.clear();
 }
@@ -386,12 +393,7 @@ function paintableVehicle(v) {
   return v && !v.isBoat && !v.isBus && !v.isPolice && !v.wrecked;
 }
 
-function garageForPaint(world) {
-  const v = world.player.inVehicle;
-  if (!paintableVehicle(v) || Math.abs(v.speed) > 2) return null;
-  for (const g of getGaragesForRender()) {
-    if (dist(v.x, v.y, g.x, g.y) < GARAGE_PAINT_RADIUS) return g;
-  }
+function garageForPaint() {
   return null;
 }
 
@@ -483,7 +485,7 @@ function shopMenu(world, s) {
     fietsen: (w) => vehicleSections(w, 'fietsen', s), auto: (w) => vehicleSections(w, 'auto', s),
     super: (w) => foodSections(w, 'Uit de schappen', SUPER_ITEMS), snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
     fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
-    pand: (w) => pandSections(w, s), boot: (w) => bootSections(w, s),
+    pand: (w) => pandSections(w, s), boot: (w) => bootSections(w, s), eikea: eikeaSections,
   }[s.type];
   return { name: s.name, type: s.type, tagline: s.tagline, color: SHOP_TYPES[s.type].color, sections: () => build(world) };
 }
@@ -538,9 +540,35 @@ function rememberUpgrades(v) {
   if (o) o.upgrades = [...v.upgrades];
 }
 
+// Upgrade items for vehicle v (tuning shops, fietsenmakers and garages).
+export function vehicleUpgradeItems(world, v) {
+  if (!v || v.isBoat || v.isBus || v.isPolice || v.wrecked) return [];
+  const list = isTwoWheeler(v) ? BIKE_UPGRADES : CAR_UPGRADES;
+  const have = new Set(v.upgrades || []);
+  const name = v.isHeroCar ? 'Escapade' : vehicleName(v);
+  return list.map((u) => ({
+    id: 'u-' + u.id, label: u.label, desc: u.desc, price: u.price,
+    tag: have.has(u.id) ? 'Zit erop' : '',
+    disabled: have.has(u.id) ? 'Al gedaan' : broke(world, u.price),
+    buy() {
+      if (!pay(world, u.price)) return null;
+      v.upgrades = [...have, u.id];
+      applyUpgrades(v);
+      rememberUpgrades(v);
+      return `${u.label} erop. Je ${name} gaat als een speer!`;
+    },
+  }));
+}
+
+// Paint job items for vehicle v (Spuit & Klaar in every garage).
+export function paintItems(world, v) {
+  if (!paintableVehicle(v)) return [];
+  return paintShop(world).sections()[0].items;
+}
+
 function workshopSections(world, shop, twoWheel) {
   const v = upgradeTarget(world, shop, twoWheel);
-  const what = twoWheel ? 'fiets of brommer' : 'auto';
+  const what = twoWheel ? 'fiets of e-step' : 'auto';
   if (!v) return [{ title: 'Werkplaats', note: `Kom erop of erin aanrijden en druk R, of zet je eigen ${what} voor de deur`, items: [] }];
   const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
   const have = new Set(v.upgrades || []);
@@ -565,6 +593,9 @@ function workshopSections(world, shop, twoWheel) {
       if (!pay(world, fixPrice)) return null;
       v.health = 100;
       v.riderOff = false;
+      v.damage = null;
+      v.dentLog = [];
+      v.meshDirty = true;
       return 'Als nieuw';
     },
   });
@@ -574,7 +605,7 @@ function workshopSections(world, shop, twoWheel) {
 function vehicleName(v) {
   const o = state.vehicles.find((x) => x.v === v);
   if (o) return o.spec.label;
-  return v.isScooter ? 'brommer' : v.isBike ? (v.model.fat ? 'fatbike' : 'fiets') : 'bak';
+  return v.isScooter ? 'e-step' : v.isBike ? (v.model.fat ? 'fatbike' : 'fiets') : 'bak';
 }
 
 // --- pawn shop ----------------------------------------------------------------------
@@ -639,8 +670,14 @@ function pandSections(world, shop) {
 // --- boat rental ---------------------------------------------------------------------
 
 const RENTALS = [
-  { id: 'sloep', label: 'Sloep "Nait Soezen"', desc: 'Rustig tuffen door de grachten', price: 40, nameIdx: 0, model: { name: 'boat', len: 4, wid: 1.6, maxSpeed: 4.5, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#e8e6e0', cabin: '#2f3a44' } },
-  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  { id: 'sloep', label: 'Sloep "Nait Soezen"', desc: 'Rustig tuffen door de grachten', price: 40, nameIdx: 0, model: { ...BOAT_KINDS.sloep } },
+  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  { id: 'kano', label: 'Kano', desc: 'Zelf peddelen, met z\'n tweeën in één kano', price: 15, nameIdx: 0, model: { ...BOAT_KINDS.kano } },
+  { id: 'kajak', label: 'Kajak', desc: 'Voor één, laag bij het water', price: 12, nameIdx: 0, model: { ...BOAT_KINDS.kajak } },
+  { id: 'waterfiets', label: 'Waterfiets', desc: 'Samen trappen, geen haast', price: 20, nameIdx: 1, model: { ...BOAT_KINDS.waterfiets } },
+  { id: 'dinghy', label: 'Bijbootje met motortje', desc: 'Klein, wendbaar, beetje lek', price: 25, nameIdx: 0, model: { ...BOAT_KINDS.dinghy } },
+  { id: 'rubber', label: 'Rubberboot', desc: 'Buitenboordmotor, stuitert over het water', price: 70, nameIdx: 0, model: { ...BOAT_KINDS.rubberboot } },
+  { id: 'rondvaart', label: 'Rondvaartboot', desc: 'Lang, traag en met een glazen dak', price: 150, nameIdx: 1, model: { ...BOAT_KINDS.rondvaart } },
 ];
 
 function bootSections(world, shop) {
@@ -786,6 +823,7 @@ function vehicleSections(world, type, shop) {
     return {
       id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · wordt voor de deur gezet`, price: sp.price,
       swatch: [sp.color], tag: owned ? 'Van jou' : '', disabled: owned ? 'Heb je al' : broke(world, sp.price),
+      preview: { kind: sp.kind, model: sp.model, color: sp.color, nameIdx: sp.nameIdx },
       buy() {
         if (state.vehicles.some((o) => o.key === key) || !pay(world, sp.price)) return null;
         const v = deliver(world, key, sp.color, shop);
@@ -824,6 +862,17 @@ function vehicleSections(world, type, shop) {
 
 const SCRATCH = [[0.002, 500], [0.018, 50], [0.08, 15], [0.2, 5]];
 const LOTTERY = [[0.004, 2500], [0.05, 200]];
+const SCRATCH_SMALL = [[0.01, 150], [0.06, 10], [0.2, 2]];
+const HEADLINES = [
+  'Martinitoren staat nog steeds scheef, zegt niemand',
+  'Duif steelt eierbal op de Vismarkt, dader voortvoluchtig',
+  'Student vindt fiets terug na drie jaar: "Hij stond gewoon waar ik hem liet"',
+  'Grote Markt eindelijk af, bouwhekken voortaan kunstwerk',
+  'Groninger zegt "moi" tegen toerist, toerist zegt "moi" terug: vriendschap voor het leven',
+  'Wind in Grunn weer tegen, ook op de terugweg',
+  'Gemeente onderzoekt waarom alle fietsen zwart zijn',
+  'Eierbal uitgeroepen tot werelderfgoed, Drenthe protesteert',
+];
 
 function draw(table) {
   let r = Math.random();
@@ -854,14 +903,83 @@ function tabakSections(world) {
       return `${label} naar binnen gewerkt`;
     },
   });
+  const paper = {
+    id: 'krant', label: 'Grunneger Kwebbelkrant', desc: 'De krant van vandaag, met de kop van de dag', price: 2, keepFocus: true,
+    disabled: broke(world, 2),
+    buy() {
+      if (!pay(world, 2)) return null;
+      return { text: 'Kop van de dag: ' + HEADLINES[Math.floor(Math.random() * HEADLINES.length)], tone: 'win' };
+    },
+  };
+  const card = {
+    id: 'kaart', label: 'Ansichtkaart Martinitoren', desc: '"Groeten uit Grunn", met een duif die net iets laat vallen', price: 1, keepFocus: true,
+    disabled: broke(world, 1),
+    buy() {
+      if (!pay(world, 1)) return null;
+      return 'Kaartje gekocht. Oma is er blij mee';
+    },
+  };
+  const strip = {
+    id: 'strip', label: 'Stripboek "Tammo en de Eierbal"', desc: 'Deel 12: de Grote Markt-koers', price: 7, keepFocus: true,
+    disabled: broke(world, 7),
+    buy() {
+      if (!pay(world, 7)) return null;
+      return 'Uit in één zit. Spannend einde!';
+    },
+  };
   return [
     { title: 'Geluk', items: [
       gamble('scratch', 'Kraskaart "Grunneger Gokje"', 'Krassen maar! Hoofdprijs €500', 5, SCRATCH, 500),
       gamble('lot', 'Stadsloterij-lot', 'Trekking meteen. Hoofdprijs €2500', 25, LOTTERY, 2500),
+      gamble('duif', 'Duivenkraslot', 'Kras de duif vrij. Hoofdprijs €150', 2, SCRATCH_SMALL, 150),
     ] },
-    { title: 'Uit de muur', items: [
+    { title: 'Lezen & sturen', items: [paper, strip, card] },
+    { title: 'Snoep & snacks', items: [
       snack('eierbal', 'Eierbal', 'Warm uit de automaat naast de deur', 6, 10),
       snack('koek', 'Grunneger koek', 'Plak kruidkoek voor onderweg', 4, 6),
+      snack('drop', 'Zak zoute drop', 'Dubbelzout, voor de echte Stadjer', 2, 4),
+      snack('kauwgom', 'Kauwgom "Frisse Adem"', 'Voor na de eierbal', 1, 1),
+    ] },
+  ];
+}
+
+// EIKEA: the blue box at the Sontweg, a parody with Gronings product names.
+function eikeaSections(world) {
+  const food = (id, label, desc, price, hp) => ({
+    id, label, desc: `${desc} · +${hp} gezondheid`, price, keepFocus: true,
+    disabled: world.health >= 100 ? 'Je zit vol' : broke(world, price),
+    buy() {
+      if (!pay(world, price)) return null;
+      world.health = Math.min(100, world.health + hp);
+      return `${label}: smakelijk!`;
+    },
+  });
+  const joke = (id, label, desc, price, line) => ({
+    id, label, desc, price, keepFocus: true, disabled: broke(world, price),
+    buy() { return pay(world, price) ? line : null; },
+  });
+  return [
+    { title: 'Restaurant', items: [
+      food('ballen', 'Gehaktballetjes "Kötbullen"', 'Tien stuks met jam en jus', 6, 25),
+      food('hotdog', 'Hotdog bij de kassa', 'Eentje voor onderweg, één euro', 1, 6),
+      food('eierbal', 'Eierbal "Äggbål"', 'Zweeds? Nee hoor, gewoon Gronings', 4, 12),
+    ] },
+    { title: 'Woonafdeling', items: [
+      joke('kast', 'Boekenkast "Buukenkaas"', 'Plat verpakt, 238 schroefjes, 1 te weinig', 49, 'Buukenkaas gekocht. Het inbussleuteltje ligt al kwijt'),
+      joke('bank', 'Bank "Zitmoi"', 'Zit als een Grunneger: stug maar trouw', 299, 'Zitmoi wordt bezorgd. Tussen 8 en 18 uur. Misschien'),
+      joke('lamp', 'Lamp "Lichtje Tjoek"', 'Voor lange winteravonden in Stad', 15, 'Lichtje Tjoek: nu is het gezellig'),
+    ] },
+    { title: 'Bij de uitgang', items: [
+      {
+        id: 'tas', label: 'Grote blauwe tas', desc: 'Onverwoestbaar. Werkt ook als pantser (+10)', price: 1, keepFocus: true,
+        disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, 1),
+        buy() {
+          if (!pay(world, 1)) return null;
+          world.armor = Math.min(100, world.armor + 10);
+          return 'Blauwe tas om je heen: je voelt je onoverwinnelijk';
+        },
+      },
+      joke('potlood', 'Klein potloodje', 'Gratis mee, iedereen neemt er tien', 0, 'Tien potloodjes in je zak. Niemand zag het'),
     ] },
   ];
 }
@@ -944,6 +1062,8 @@ function spawnOwned(world, o, x, y, angle = null) {
   v.upgrades = [...(o.upgrades || [])];
   applyUpgrades(v);
   setRider(v);
+  if (Number.isFinite(o.health)) v.health = Math.max(5, Math.min(100, o.health));
+  if (Array.isArray(o.dents)) v.dentLog = o.dents.slice(0, 12);
   if (angle == null) {
     const kerb = Math.max(0, (point.road.width || 6) / 2 - sp.model.wid / 2 - 0.3);
     v.x += -Math.sin(v.angle) * kerb;
@@ -1038,7 +1158,7 @@ export function updateShops(dt, world) {
       o.v = null;
       o.lost = true;
       o.upgrades = [...(v.upgrades || o.upgrades || [])];
-      world.addMessage(`Je ${o.spec.label} is total loss. Via je telefoon regel je een nieuwe (eigen risico €${replacementFee(o)})`, 4);
+      world.addMessage(`Je ${o.spec.label} is total loss. Henk van Garage Knalpot knapt het wrak op, of regel via je telefoon een nieuwe (eigen risico €${replacementFee(o)})`, 5);
       continue;
     }
     // the ambient population managers sweep far-away bikes and cars; an
@@ -1047,6 +1167,11 @@ export function updateShops(dt, world) {
     o.x = v.x; o.y = v.y; o.angle = v.angle;
   }
   const hero = world.vehicles.find((v) => v.isHeroCar);
+  if (hero && pendingHeroDamage) {
+    if (Number.isFinite(pendingHeroDamage.health)) hero.health = Math.max(5, Math.min(100, pendingHeroDamage.health));
+    if (pendingHeroDamage.dents) { hero.dentLog = pendingHeroDamage.dents; hero.meshDirty = true; }
+    pendingHeroDamage = null;
+  }
   if (hero && state.heroColor && hero.model.color !== state.heroColor) repaint(world, hero, state.heroColor);
   if (hero && state.heroUpgrades.length && hero._upgKey !== state.heroUpgrades.join()) {
     hero.upgrades = [...state.heroUpgrades];
@@ -1083,9 +1208,19 @@ function streamShopFronts(world) {
 
 // --- save ----------------------------------------------------------------------
 
+// Health and the dents (replayed on the rebuilt mesh) of an owned vehicle.
+function damageSave(v) {
+  const out = {};
+  if ((v.health ?? 100) < 100) out.health = Math.round(v.health);
+  if (v.dentLog && v.dentLog.length) out.dents = v.dentLog.map((d) => d.map((n) => Math.round(n * 100) / 100));
+  return out;
+}
+
 export function getShopSave() {
   const round = (n) => Math.round(n * 10) / 10;
+  const hero = worldRef && worldRef.vehicles.find((x) => x.isHeroCar && !x.wrecked);
   return {
+    hero: hero ? damageSave(hero) : {},
     outfit: { ...state.outfit },
     ownedOutfits: [...state.ownedOutfits],
     hair: { tammo: { ...state.hair.tammo }, anita: { ...state.hair.anita } },
@@ -1094,7 +1229,8 @@ export function getShopSave() {
     vehicles: state.vehicles.map((o) => {
       const v = o.v;
       const pos = o.lost ? null : v && !v.isBoat ? { x: round(v.x), y: round(v.y), angle: round(v.angle) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
-      return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...(o.lost ? { lost: true } : {}), ...pos };
+      const dmg = v && !o.lost ? damageSave(v) : {};
+      return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...(o.lost ? { lost: true } : {}), ...pos, ...dmg };
     }),
   };
 }
@@ -1121,14 +1257,22 @@ export function applyShopSave(world, d) {
     const spec = VEHICLE_STOCK[sv.key];
     const valid = spec.kind === 'car' ? CAR_UPGRADES : BIKE_UPGRADES;
     const upgrades = Array.isArray(sv.upgrades) ? sv.upgrades.filter((id) => valid.some((u) => u.id === id)) : [];
-    const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null, lost: !!sv.lost };
+    const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null, lost: !!sv.lost, health: sv.health, dents: validDents(sv.dents) };
     const has = Number.isFinite(sv.x) && Number.isFinite(sv.y);
     if (!o.lost) o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0) : spawnOwned(world, o, world.player.x, world.player.y);
     if (!o.v) o.lost = !!sv.lost;
     state.vehicles.push(o);
   }
+  pendingHeroDamage = d.hero && typeof d.hero === 'object' ? { health: d.hero.health, dents: validDents(d.hero.dents) } : null;
   applyLooks();
   upkeepTimer = 0;
+}
+
+let pendingHeroDamage = null;
+
+function validDents(a) {
+  if (!Array.isArray(a)) return null;
+  return a.filter((d) => Array.isArray(d) && d.length === 3 && d.every(Number.isFinite)).slice(0, 12);
 }
 
 // --- icons ---------------------------------------------------------------------
@@ -1230,6 +1374,10 @@ export function drawShopGlyph(g, type, r, bg) {
       g.moveTo(-0.84, 0.24); g.lineTo(0.84, 0.24); g.lineTo(0.54, 0.62); g.lineTo(-0.56, 0.62); g.closePath(); g.fill();
       g.beginPath(); g.moveTo(-0.02, 0.12); g.lineTo(-0.02, -0.82); g.lineTo(0.62, 0.12); g.closePath(); g.fill();
       g.beginPath(); g.moveTo(-0.14, -0.6); g.lineTo(-0.6, 0.12); g.lineTo(-0.14, 0.12); g.closePath(); g.fill();
+      break;
+    case 'eikea':
+      g.moveTo(-0.72, -0.2); g.lineTo(0.72, -0.2); g.lineTo(0.56, 0.62); g.lineTo(-0.56, 0.62); g.closePath(); g.fill();
+      g.beginPath(); g.lineWidth = 0.12; g.moveTo(-0.34, -0.2); g.lineTo(-0.2, -0.66); g.lineTo(0.2, -0.66); g.lineTo(0.34, -0.2); g.stroke();
       break;
     case 'spuit':
       g.rect(-0.32, -0.3, 0.52, 0.96);

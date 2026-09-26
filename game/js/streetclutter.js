@@ -3,6 +3,7 @@ import { GeoBuilder, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixela
 import { isInsideBuilding, isOnRoad } from './pedestrians.js';
 import { isInWater, closestPointOnSegment } from './util.js';
 import { railingItems, hasRailings, RAIL_KIND, RAIL_HALF } from './bridgerails.js';
+import { yieldArms } from './junctions.js';
 
 // Groningen street clutter for cityprops' per-cell meshes: bikes against
 // facades and bridge railings, kliko's, underground waste containers,
@@ -15,10 +16,10 @@ const ATLAS_W = 1024, ATLAS_H = 512;
 
 export const CLUTTER_PROPS = {
   scooter: { r: 0.3, half: 0.5, h: 1.15, mass: 95, material: 'metal', breakSpeed: 1.5, breakCost: 0.4 },
-  kliko: { r: 0.36, h: 1.1, mass: 15, material: 'plastic', breakSpeed: 0.3, breakCost: 0.1, burst: 'litter' },
-  container: { r: 0.38, h: 1.3, mass: 500, material: 'metal', breakSpeed: 99, breakCost: 0 },
+  kliko: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0.1, burst: 'litter' },
+  container: { r: 0.38, h: 1.3, mass: 450, material: 'metal', breakSpeed: 4, breakCost: 1.2, slide: true, burst: 'litter' },
   bollard: { r: 0.1, h: 1, mass: 45, material: 'metal', breakSpeed: 3.5, breakCost: 0.5 },
-  planter: { r: 0.42, half: 0.5, h: 0.8, mass: 900, material: 'wood', breakSpeed: 99, breakCost: 0 },
+  planter: { r: 0.42, half: 0.5, h: 0.8, mass: 700, material: 'wood', breakSpeed: 7, breakCost: 1.8, slide: true },
   zuil: { r: 0.66, h: 3.1, mass: 900, material: 'metal', breakSpeed: 99, breakCost: 0 },
   abri: { r: 0.62, half: 1.25, h: 2.5, mass: 450, material: 'metal', breakSpeed: 7, breakCost: 2, burst: 'glass' },
   elecbox: { r: 0.3, half: 0.3, h: 1.3, mass: 200, material: 'metal', breakSpeed: 6, breakCost: 1.5, burst: 'sparks' },
@@ -26,8 +27,9 @@ export const CLUTTER_PROPS = {
   stoepbord: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 },
   kiosk: { r: 1.15, half: 0.25, h: 2.7, mass: 2500, material: 'wood', breakSpeed: 99, breakCost: 0 },
   nietje: { r: 0.08, half: 0.35, h: 0.75, mass: 25, material: 'metal', breakSpeed: 3, breakCost: 0.4 },
-  // a bridge railing section: holds walkers and slow cars, a fast car knocks it off
-  bridgerail: { r: 0.12, half: 1, h: 1.05, mass: 70, material: 'metal', breakSpeed: 6, breakCost: 1.2 },
+  // a bridge railing section: holds walkers, bikes and crawling cars; a car at
+  // moderate speed, even at a shallow angle, knocks it off
+  bridgerail: { r: 0.12, half: 1, h: 1.05, mass: 70, material: 'metal', breakSpeed: 3.4, breakCost: 0.8, glance: 0.25, minBreakKg: 500 },
 };
 
 // --- atlas ------------------------------------------------------------------
@@ -51,6 +53,23 @@ BLADE_NAMES.forEach((_, i) => {
   R['bladeL' + i] = [640, i * 40, 256, 40];
 });
 CHALK_LINES.forEach((_, i) => { R['chalk' + i] = [512 + i * 104, 256, 100, 150]; });
+R.b6 = [8, 164, 96, 88];
+R.d1 = [112, 164, 88, 88];
+R.bus = [206, 176, 46, 46];
+const FLYERS = [
+  { bg: '#e8c93a', fg: '#1b1b1b', a: 'FEEST', b: 'Vera' },
+  { bg: '#d0457a', fg: '#ffffff', a: 'KAMER', b: 'gezocht' },
+  { bg: '#2f5a8f', fg: '#ffffff', a: 'DJ', b: 'Tinus' },
+];
+const STICKERS = [
+  { bg: '#1e9e56', fg: '#ffffff', t: 'FCG' },
+  { bg: '#1b1b1b', fg: '#e8c93a', t: 'MOI' },
+  { bg: '#b3211c', fg: '#ffffff', t: '050' },
+  { bg: '#f2f0e8', fg: '#2f5a8f', t: 'Stad!' },
+  { bg: '#e0701e', fg: '#1b1b1b', t: 'Eierbal' },
+];
+FLYERS.forEach((_, i) => { R['flyer' + i] = [900, 4 + i * 62, 42, 58]; });
+STICKERS.forEach((_, i) => { R['sticker' + i] = [952, 4 + i * 46, 42, 42]; });
 
 let atlas = null;
 
@@ -147,6 +166,41 @@ function buildAtlas() {
     g.fillStyle = 'rgba(255,255,255,0.25)'; g.fillRect(px + 16, y + 112, 96, 30);
     g.fillStyle = p.fg;
     fitText(g, p.c, px + 64, y + 160, 104, 18, 'normal');
+  });
+
+  // B6: give way. Red-bordered white triangle, point down.
+  [x, y, w, h] = R.b6;
+  g.fillStyle = '#c21d1d';
+  g.beginPath(); g.moveTo(x + 2, y + 2); g.lineTo(x + w - 2, y + 2); g.lineTo(x + w / 2, y + h - 2); g.closePath(); g.fill();
+  g.fillStyle = '#ffffff';
+  g.beginPath(); g.moveTo(x + 16, y + 11); g.lineTo(x + w - 16, y + 11); g.lineTo(x + w / 2, y + h - 22); g.closePath(); g.fill();
+  // D1: roundabout, three white arrows on blue
+  [x, y, w, h] = R.d1;
+  g.fillStyle = '#1f4f9a'; g.beginPath(); g.arc(x + w / 2, y + h / 2, w / 2 - 1, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = '#ffffff'; g.fillStyle = '#ffffff'; g.lineWidth = 7;
+  for (let k = 0; k < 3; k++) {
+    const a0 = k * Math.PI * 2 / 3;
+    g.beginPath(); g.arc(x + w / 2, y + h / 2, 22, a0, a0 + 1.4); g.stroke();
+    const ax = x + w / 2 + Math.cos(a0 + 1.55) * 22, ay = y + h / 2 + Math.sin(a0 + 1.55) * 22;
+    const tx = -Math.sin(a0 + 1.55), ty = Math.cos(a0 + 1.55);
+    g.beginPath(); g.moveTo(ax + tx * 9, ay + ty * 9); g.lineTo(ax - ty * 9 - tx * 3, ay + tx * 9 - ty * 3); g.lineTo(ax + ty * 9 - tx * 3, ay - tx * 9 - ty * 3); g.fill();
+  }
+  // F17-style bus lane sign
+  [x, y, w, h] = R.bus;
+  g.fillStyle = '#1f4f9a'; g.fillRect(x, y, w, h);
+  g.fillStyle = '#ffffff'; fitText(g, 'BUS', x + w / 2, y + h / 2 + 1, w - 6, 18);
+
+  FLYERS.forEach((f, i) => {
+    [x, y, w, h] = R['flyer' + i];
+    g.fillStyle = '#f4f2ec'; g.fillRect(x, y, w, h);
+    g.fillStyle = f.bg; g.fillRect(x + 3, y + 3, w - 6, h - 20);
+    g.fillStyle = f.fg; fitText(g, f.a, x + w / 2, y + 16, w - 8, 14);
+    g.fillStyle = '#1b1b1b'; fitText(g, f.b, x + w / 2, y + h - 9, w - 6, 10, 'normal');
+  });
+  STICKERS.forEach((st, i) => {
+    [x, y, w, h] = R['sticker' + i];
+    g.fillStyle = st.bg; g.beginPath(); g.arc(x + w / 2, y + h / 2, w / 2 - 1, 0, Math.PI * 2); g.fill();
+    g.fillStyle = st.fg; fitText(g, st.t, x + w / 2, y + h / 2 + 1, w - 8, 16);
   });
 
   [x, y, w, h] = R.kiosk;
@@ -405,6 +459,88 @@ function buildPoleSign(region, w, h, top = 2.5) {
   return finish(B, T);
 }
 
+// Sign plate of any outline: pts in plate units (-1..1), textured from `region`
+// on the front, plain grey on the back.
+function buildShapedSign(region, pts, w, h, top) {
+  const B = new GeoBuilder(1), T = new GeoBuilder(1);
+  tube(B, [0, 0, 0], [0, top + h / 2, 0], 0.035, STEEL, 5);
+  const [u0, v0, u1, v1] = uvRect(region);
+  const P = (sx, sy, x) => [x, top + sy * h / 2, -sx * w / 2];
+  const UV = (sx, sy) => [u0 + (sx + 1) / 2 * (u1 - u0), v0 + (sy + 1) / 2 * (v1 - v0)];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const a = pts[0], b = pts[i], c = pts[i + 1];
+    T.triOut(P(...a, 0.045), P(...b, 0.045), P(...c, 0.045), [1, 0, 0], 0xffffff, 0, [...UV(...a), ...UV(...b), ...UV(...c)]);
+    B.triOut(P(...a, 0.03), P(...b, 0.03), P(...c, 0.03), [-1, 0, 0], 0x9a9a98);
+  }
+  return finish(B, T);
+}
+
+const TRI_DOWN = [[-1, 1], [1, 1], [0, -1]];
+const OCTAGON = Array.from({ length: 12 }, (_, k) => [Math.cos(k * Math.PI / 6), Math.sin(k * Math.PI / 6)]);
+
+// --- small litter (merged into the cell mesh, no props) -------------------------
+
+function buildButts(n, seed) {
+  const B = new GeoBuilder(1);
+  for (let i = 0; i < n; i++) {
+    const a = seed * 7.1 + i * 2.3, r = 0.08 + ((seed * 13 + i * 5) % 7) * 0.035;
+    const x = Math.cos(a) * r, z = Math.sin(a) * r;
+    B.box(x, 0.008, z, 0.028, 0.012, 0.012, 0xe8e2d0, 0, 0, a, 0);
+    B.box(x + Math.cos(a) * 0.019, 0.008, z - Math.sin(a) * 0.019, 0.012, 0.012, 0.013, 0xc98a4a, 0, 0, a, 0);
+  }
+  return finish(B);
+}
+
+function buildCan(color, lying) {
+  const B = new GeoBuilder(1);
+  if (lying) B.geo(new THREE.CylinderGeometry(0.033, 0.033, 0.12, 6), composeMatrix(0, 0.033, 0, 0, 0.4, Math.PI / 2), color);
+  else B.geo(new THREE.CylinderGeometry(0.033, 0.033, 0.11, 6), composeMatrix(0, 0.055, 0), color);
+  return finish(B);
+}
+
+function buildCup() {
+  const B = new GeoBuilder(1);
+  B.geo(new THREE.CylinderGeometry(0.045, 0.032, 0.1, 6), composeMatrix(0, 0.04, 0, 0, 0.3, Math.PI / 2 - 0.2), 0xf2f0e8);
+  B.box(0.03, 0.004, 0.05, 0.12, 0.004, 0.09, 0xb3211c, 0, 0, 0.8, 0);
+  return finish(B);
+}
+
+function buildFlatPaper(region, w, h) {
+  const B = new GeoBuilder(1), T = new GeoBuilder(1);
+  B.box(0, 0.004, 0, w, 0.004, h, 0xe8e2d0);
+  texQuad(T, [0, 0.0075, 0], [1, 0, 0], [0, 0, -1], w, h, region);
+  return finish(B, T);
+}
+
+function buildBinBag() {
+  const B = new GeoBuilder(1);
+  B.geo(new THREE.IcosahedronGeometry(0.3, 0), composeMatrix(0, 0.26, 0, 0.2, 0.5, 0, 1, 0.85, 1), 0x1c1d1f);
+  B.geo(new THREE.ConeGeometry(0.08, 0.14, 5), composeMatrix(0.02, 0.56, 0, 0.3, 0, 0), 0x1c1d1f);
+  return finish(B);
+}
+
+function buildBikeWheel(rusty) {
+  const B = new GeoBuilder(1);
+  B.geo(new THREE.TorusGeometry(0.33, 0.028, 3, 10), composeMatrix(0, 0.03, 0, Math.PI / 2, 0, 0), BLACK);
+  B.geo(new THREE.TorusGeometry(0.3, 0.012, 3, 10), composeMatrix(0, 0.03, 0, Math.PI / 2, 0, 0), rusty ? 0x8a4a2a : CHROME);
+  for (let k = 0; k < 3; k++) B.box(0, 0.03, 0, 0.6, 0.006, 0.008, rusty ? 0x7a4a2a : STEEL, 0, 0, k * Math.PI / 3, 0);
+  return finish(B);
+}
+
+function buildSaddle() {
+  const B = new GeoBuilder(1);
+  B.box(0, 0.035, 0, 0.26, 0.06, 0.15, 0x2a1d14, 0, 0, 0.4);
+  tube(B, [0.02, 0.03, 0], [0.3, 0.02, 0.05], 0.013, CHROME, 4);
+  return finish(B);
+}
+
+// A sticker on a wall: local +X is the wall normal, stuck at y = 0.
+function buildStickerWall(k) {
+  const T = new GeoBuilder(1);
+  texQuad(T, [0.006, 0, 0], [0, 0, -1], [0, 1, 0], 0.09, 0.09, 'sticker' + k);
+  return finish(new GeoBuilder(1), T);
+}
+
 function buildStoepbord(chalk) {
   const B = new GeoBuilder(1), T = new GeoBuilder(1);
   const t = 0.24, wood = HABBO_PALETTE.woodMid;
@@ -477,6 +613,17 @@ export function initClutter() {
     kiosk: buildKiosk(),
     nietje: buildNietje(),
     railing: buildRailing(),
+    b6: buildShapedSign('b6', TRI_DOWN, 0.75, 0.66, 2.1),
+    d1: buildShapedSign('d1', OCTAGON, 0.6, 0.6, 2.75),
+    busSign: buildPoleSign('bus', 0.5, 0.5, 2.3),
+    butts: [3, 5, 8, 12].map((n, i) => buildButts(n, i + 1)),
+    cans: [0x2f7a3a, 0xb9bcbf, 0xb3211c, 0xd9b21b, 0x2a4f8a].flatMap((c) => [buildCan(c, true), buildCan(c, false)]),
+    cup: buildCup(),
+    flyers: FLYERS.map((_, i) => buildFlatPaper('flyer' + i, 0.21, 0.29)),
+    binBag: buildBinBag(),
+    wheels: [buildBikeWheel(false), buildBikeWheel(true)],
+    saddle: buildSaddle(),
+    stickers: STICKERS.map((_, i) => buildStickerWall(i)),
   };
   return atlas;
 }
@@ -652,6 +799,19 @@ function row(ctx, geos, kind, cx, cy, tx, ty, n, spacing, angle, r, opts) {
   return true;
 }
 
+let yieldCells = null;
+function yieldsInCell(map, cx0, cy0, CELL) {
+  if (!yieldCells || yieldCells.map !== map || yieldCells.cell !== CELL) {
+    yieldCells = { map, cell: CELL, byCell: new Map() };
+    for (const yv of yieldArms(map)) {
+      const k = Math.floor(yv.node.x / CELL) + ',' + Math.floor(yv.node.y / CELL);
+      if (!yieldCells.byCell.has(k)) yieldCells.byCell.set(k, []);
+      yieldCells.byCell.get(k).push(yv);
+    }
+  }
+  return yieldCells.byCell.get(Math.floor(cx0 / CELL) + ',' + Math.floor(cy0 / CELL)) || [];
+}
+
 // ctx: { map, rng, cx0, cy0, CELL, centreD, roads, items, clear, take, horeca }
 export function generateClutter(ctx) {
   if (!P) return;
@@ -770,7 +930,19 @@ export function generateClutter(ctx) {
       const n = 2 + Math.floor(rng.next() * 3);
       const first = Math.floor(rng.next() * 4);
       let k = 0;
-      if (row(ctx, () => P.containers[(first + k++) % 4], 'container', cx, cy, Math.cos(segA), Math.sin(segA), n, 1.6, Math.atan2(-ny, -nx), 0.8)) sites--;
+      if (row(ctx, () => P.containers[(first + k++) % 4], 'container', cx, cy, Math.cos(segA), Math.sin(segA), n, 1.6, Math.atan2(-ny, -nx), 0.8)) {
+        sites--;
+        const tx = Math.cos(segA), ty = Math.sin(segA);
+        const end = (n * 1.6) / 2 + 0.4;
+        for (const sgn of [1, -1]) {
+          if (rng.next() > 0.6) continue;
+          const bx = cx + tx * end * sgn, by = cy + ty * end * sgn;
+          if (solid(map, bx, by) || !clear(bx, by, 0.35)) continue;
+          take(bx, by, 0.35);
+          items.push(item(rng.next() < 0.6 ? P.binBag : pick(rng, P.cans), null, bx, by, rng.next() * 6.28, { y0: 0.15 }));
+          if (rng.next() < 0.5) items.push(item(pick(rng, P.butts), null, bx + nx * 0.4, by + ny * 0.4, rng.next() * 6.28, { y0: 0.15 }));
+        }
+      }
     });
   }
 
@@ -895,6 +1067,72 @@ export function generateClutter(ctx) {
     const s = spot(isPedestrian, (r) => (r.width || 5) * 0.3, 1.7);
     if (s) items.push(item(P.kiosk, 'kiosk', s.x, s.y, Math.atan2(-s.ny, -s.nx), { axis: s.segA, half: 0.25 }));
   }
+
+  // B6 (give way) at every arm that gives way, D1 above it at a roundabout;
+  // the same arms carry the haaientanden (roadsurface.js).
+  for (const yv of yieldsInCell(map, cx0, cy0, CELL)) {
+    const half = (yv.road.width || 6) / 2;
+    const rx = yv.uy, ry = -yv.ux;
+    const along = yv.J + 1.4;
+    const off = half + (hasSidewalk(yv.road) ? 0.9 : 0.5);
+    const x = yv.node.x + yv.ux * along + rx * off, y = yv.node.y + yv.uy * along + ry * off;
+    if (solid(map, x, y) || !clear(x, y, 0.25) || (map.offStreetLevel && map.offStreetLevel(x, y))) continue;
+    take(x, y, 0.25);
+    const face = Math.atan2(yv.uy, yv.ux);
+    items.push(item(P.b6, 'signpost', x, y, face));
+    if (yv.roundabout) items.push(item(P.d1, null, x, y, face));
+  }
+
+  // Bus lane signs where a bus lane or busway starts.
+  for (const r of roads) {
+    if (!(r.busOnly || r.busLane) || r.pts.length < 2 || r.bridge) continue;
+    const a = r.pts[0], b = r.pts[1];
+    if (a[0] < cx0 || a[0] >= cx0 + CELL || a[1] < cy0 || a[1] >= cy0 + CELL) continue;
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len < 6) continue;
+    const tx = (b[0] - a[0]) / len, ty = (b[1] - a[1]) / len;
+    const off = (r.width || 6) / 2 + 0.8;
+    const x = a[0] + tx * 3 - ty * off, y = a[1] + ty * 3 + tx * off;
+    if (solid(map, x, y) || !clear(x, y, 0.25)) continue;
+    take(x, y, 0.25);
+    items.push(item(P.busSign, 'signpost', x, y, Math.atan2(-ty, -tx)));
+  }
+
+  // Litter: fag ends in the gutter and at doors, cans, cups and flyers on
+  // the pavement, bin bags and cans next to the containers and klikos, odd
+  // bike parts, stickers on facades. Tiny merged geometry, no props.
+  const litterP = inner ? 1 : mid ? 0.6 : far ? 0.15 : 0.3;
+  S((r) => hasSidewalk(r) || isPedestrian(r) || isResidential(r), 7, (r, x, y, segA) => {
+    if (rng.next() > litterP * 0.55) return;
+    const side = rng.next() < 0.5 ? 1 : -1;
+    const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
+    const pedestrian = isPedestrian(r);
+    const gutter = !pedestrian && rng.next() < 0.45;
+    const off = pedestrian ? rng.range(0.3, (r.width || 4) * 0.45) : gutter ? (r.width || 6) / 2 - 0.25 : edgeOff(r) + rng.range(0.4, 1.6);
+    const lx = x + nx * off + Math.cos(segA) * rng.range(-2, 2), ly = y + ny * off + Math.sin(segA) * rng.range(-2, 2);
+    if (solid(map, lx, ly)) return;
+    const roll = rng.next();
+    const a = rng.next() * Math.PI * 2;
+    if (roll < 0.42) items.push(item(pick(rng, P.butts), null, lx, ly, a, { y0: gutter ? 0 : 0.15 }));
+    else if (roll < 0.62) items.push(item(pick(rng, P.cans), null, lx, ly, a, { y0: gutter ? 0 : 0.15 }));
+    else if (roll < 0.74) items.push(item(P.cup, null, lx, ly, a, { y0: gutter ? 0 : 0.15 }));
+    else if (roll < 0.9) items.push(item(pick(rng, P.flyers), null, lx, ly, a, { y0: gutter ? 0.001 : 0.151 }));
+    else if (roll < 0.95 && !gutter) items.push(item(pick(rng, P.wheels), null, lx, ly, a, { y0: 0.15 }));
+    else if (!gutter) items.push(item(P.saddle, null, lx, ly, a, { y0: 0.15 }));
+  });
+  // stickers on the lower facade along busy pavements
+  S((r) => hasSidewalk(r) || isPedestrian(r), 11, (r, x, y, segA) => {
+    if (rng.next() > litterP * 0.45) return;
+    facadeObject(ctx, r, x, y, segA, 5, (nx, ny, wallD) => {
+      const n = 1 + Math.floor(rng.next() * 4);
+      for (let k = 0; k < n; k++) {
+        const t = rng.range(-0.8, 0.8);
+        const sx = x + nx * (wallD - 0.01) + Math.cos(segA) * t, sy = y + ny * (wallD - 0.01) + Math.sin(segA) * t;
+        items.push(item(pick(rng, P.stickers), null, sx, sy, Math.atan2(-ny, -nx), { y0: rng.range(0.9, 1.8) + (hasSidewalk(r) ? 0.15 : 0) }));
+      }
+      return true;
+    });
+  });
 
   // Sandwich boards and scooters at horeca doors.
   for (const h of (ctx.horeca || []).slice(0, 5)) {

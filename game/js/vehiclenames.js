@@ -9,8 +9,22 @@ const NAMES = {
   sport: [['Wadden', 'Wervelwind'], ['Eemshaven', 'Raket']],
   police: [['Politie', 'Achtervolger']],
   bus: [['Stadsbus', 'Diepenrinkel']],
-  scooter: [['Brommer', 'Zoemzoem'], ['Snorscooter', 'Stadswesp']],
+  midibus: [['Stadsbus', 'Wijkhopper']],
+  suv: [['Wadden', 'Landjonker'], ['Hunze', 'Borgheer']],
+  taxi: [['Taxi', 'Stadstaxi 050'], ['Taxi', 'Nachtbraker']],
+  cashvan: [['Poen Express', 'Kluiswagen']],
+  truck: [['Oldambt', 'Bakwagen'], ['Eemshaven', 'Sjouwer']],
+  ambulance: [['Ambulance', 'Spoedrit']],
+  scooter: [['E-step', 'Zoemzoem'], ['Deelstep', 'Stadswesp']],
   boat: [['Sloep', 'Nait Soezen'], ['Sloep', 'Grachtengast']],
+};
+const BOATS = {
+  rondvaart: [['Rondvaartboot', 'Diepenring'], ['Rondvaartboot', 'Stadjer']],
+  kano: [['Kano', 'Peddelpiet'], ['Kano', 'Reitdiepper']],
+  kajak: [['Kajak', 'Waterjuffer']],
+  waterfiets: [['Waterfiets', 'Trapkoppel'], ['Waterfiets', 'Zwaantje']],
+  rubberboot: [['Rubberboot', 'Stuiterbal'], ['Rubberboot', 'Zeehond']],
+  dinghy: [['Bijbootje', 'Woonbootje'], ['Roeiboot', 'Kleine Jan']],
 };
 const BIKES = [['Fiets', 'Omafiets'], ['Fiets', 'Transportfiets'], ['Fiets', 'Stadsfiets']];
 
@@ -26,6 +40,15 @@ export function vehicleDisplayName(v) {
   if (v.isPolice && v.isBoat) return { make: 'Politie', model: 'Boot' };
   if (v.isPolice) return { make: 'Politie', model: 'Achtervolger' };
   const name = v.model && v.model.name;
+  if (v.isBoat && BOATS[v.model.kind]) {
+    const [make, model] = pick(BOATS[v.model.kind], v.id);
+    return { make, model };
+  }
+  if (v.isAmbulance) return { make: 'Ambulance', model: 'Spoedrit' };
+  if (name === 'hatch' && v.model.rusty) return { make: 'Dollard', model: 'Roestbak' };
+  if (name === 'van' && v.model.livery === 'pakket') return { make: 'Pakkie Nou', model: 'Bezorgbus' };
+  if (name === 'bike' && v.model.cargo) return { make: 'Bakfiets', model: 'Kroost-Karretje' };
+  if (name === 'bike' && v.model.old) return { make: 'Fiets', model: 'Studentenbarrel' };
   if (name === 'bike') return v.model.fat ? { make: 'Fatbike', model: 'Dikke Tinus' } : { make: pick(BIKES, v.id)[0], model: pick(BIKES, v.id)[1] };
   const list = NAMES[name];
   if (!list) return { make: '', model: 'Voertuig' };

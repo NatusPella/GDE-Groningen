@@ -682,10 +682,10 @@ function stepCompanion(dt, world) {
     if (c.inVehicle === p.inVehicle) return; // already riding along
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
     const v = p.inVehicle;
-    // bikes/scooters only fit the one rider - the companion just
-    // waits/follows on foot near wherever the player parked; a boat is
-    // stepped into from the quay edge, so it gets a longer reach
-    const canRide = !v.isBike && !v.isScooter && !v.sinking;
+    // every vehicle takes the two of them: a bike on the rack (or the
+    // fatbike's long saddle), a step standing behind; a boat is stepped
+    // into from the quay edge, so it gets a longer reach
+    const canRide = !v.sinking && !v.riderOff;
     if (canRide && !v.passenger && dist(c.x, c.y, v.x, v.y) < (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST)) {
       c.inVehicle = v;
       v.passenger = 'companion';

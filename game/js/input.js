@@ -8,7 +8,7 @@ export class Input {
   constructor(target = window) {
     this.keys = new Set();
     // dx/dy: relative mouse motion this frame while the pointer is locked
-    this.mouse = { x: 0, y: 0, dx: 0, dy: 0, locked: false, down: false, rightDown: false, wheel: 0 };
+    this.mouse = { x: 0, y: 0, dx: 0, dy: 0, locked: false, down: false, rightDown: false, middleDown: false, wheel: 0 };
     this._justPressed = new Set();
 
     target.addEventListener('keydown', (e) => {
@@ -54,12 +54,15 @@ export class Input {
     window.addEventListener('mousedown', (e) => {
       // the click that captures the mouse for looking around shouldn't also fire
       const onUi = e.target && e.target.closest && e.target.closest('button, input, select, a, #pause-menu, #start-screen, .phone, [role="dialog"]');
+      if (e.button === 1 && !onUi) e.preventDefault(); // no autoscroll: middle button looks back
       if (!onUi && this.tryLock()) return;
       if (e.button === 0) this.mouse.down = true;
+      if (e.button === 1) this.mouse.middleDown = true;
       if (e.button === 2) this.mouse.rightDown = true;
     });
     window.addEventListener('mouseup', (e) => {
       if (e.button === 0) this.mouse.down = false;
+      if (e.button === 1) this.mouse.middleDown = false;
       if (e.button === 2) this.mouse.rightDown = false;
     });
     window.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -100,6 +103,7 @@ export class Input {
     this.keys.clear();
     this._justPressed.clear();
     this.mouse.down = false;
+    this.mouse.middleDown = false;
     this.mouse.rightDown = false;
     this.mouse.wheel = 0;
     this.mouse.dx = 0;

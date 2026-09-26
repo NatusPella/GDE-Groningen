@@ -1,43 +1,34 @@
-// Which static map categories also appear on the minimap. The full map shows
-// everything its legend has ticked; the minimap only shows the categories
-// switched on here, and then only the nearest few close to the player.
-const STORAGE_KEY = 'gte-minimap-layers';
+// Map layer visibility: one switch per legend category, shared by the full
+// map and the minimap (the minimap only draws the nearest few of each).
+// Player, destination, route and police are always drawn and have no switch.
+const STORAGE_KEY = 'gte-map-layers';
+const OLD_MINIMAP_KEY = 'gte-minimap-layers';
+const ALWAYS_ON = new Set(['route', 'userWaypoint', 'police']);
 
-export const MINIMAP_DEFAULTS = {
-  garage: true,
-  shops: true,
-  shopsVoertuigen: false,
-  shopsWapens: true,
-  horeca: false,
-  duif: false,
-  bijbaan: true,
-  trein: true,
-  flitspaal: true,
-  landmark: false,
-};
-
-let prefs = null;
+let layers = null;
 
 function load() {
-  prefs = { ...MINIMAP_DEFAULTS };
+  layers = {};
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    for (const k of Object.keys(MINIMAP_DEFAULTS)) if (typeof raw[k] === 'boolean') prefs[k] = raw[k];
+    if (raw && typeof raw === 'object') {
+      for (const [k, v] of Object.entries(raw)) if (typeof v === 'boolean' && !ALWAYS_ON.has(k)) layers[k] = v;
+    }
   } catch (e) { /* ignore */ }
+  // the separate minimap switches are gone: what showed on the big map now shows on both
+  try { localStorage.removeItem(OLD_MINIMAP_KEY); } catch (e) { /* ignore */ }
 }
 
-export function hasMinimapToggle(key) {
-  return key in MINIMAP_DEFAULTS;
+export function layerOn(key) {
+  if (!layers) load();
+  return ALWAYS_ON.has(key) || layers[key] !== false;
 }
 
-export function minimapShows(key) {
-  if (!prefs) load();
-  return prefs[key] === true;
+export function setLayer(key, on) {
+  if (!layers) load();
+  if (ALWAYS_ON.has(key)) return;
+  layers[key] = !!on;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(layers)); } catch (e) { /* ignore */ }
 }
 
-export function setMinimapShows(key, on) {
-  if (!prefs) load();
-  if (!hasMinimapToggle(key)) return;
-  prefs[key] = !!on;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch (e) { /* ignore */ }
-}
+export const minimapShows = layerOn;

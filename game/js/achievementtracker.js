@@ -301,6 +301,8 @@ function trackMission(dt, w, pv) {
   const hp = w.health + w.armor;
   if (hp < r.hp) r.damage += r.hp - hp;
   r.hp = hp;
+  // missions.js also counts damage to the mission vehicle
+  if (Number.isFinite(m.damage)) r.damage = Math.max(r.damage, m.damage);
   r.maxWanted = Math.max(r.maxWanted, w.wanted || 0);
   if (Number.isFinite(m.timeLeft)) r.timeLeft = m.timeLeft;
   if (Number.isFinite(m.fatbikeHits)) r.fatHits = m.fatbikeHits;

@@ -165,7 +165,7 @@
 
 #hud .hud-ctx {
   position: absolute;
-  right: 190px;
+  right: calc(var(--mm-size, 160px) + 30px);
   bottom: 62px;
   display: flex;
   flex-direction: column;
@@ -220,5 +220,5 @@ body.hide-minimap #hud .hud-ctx { right: 16px; bottom: 96px; }
   #hud .wp-primary.in .wp-dot, #hud .ctx-star, #hud .ctx-row { animation: none; }
 }
 @media (max-width: 720px) {
-  #hud .hud-ctx { right: 16px; bottom: 190px; }
+  #hud .hud-ctx { right: 16px; bottom: calc(var(--mm-size, 160px) + 30px); }
 }

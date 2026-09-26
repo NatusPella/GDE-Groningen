@@ -21,11 +21,14 @@ const CONTROLS = [
   ['Ctrl', 'bukken'],
   ['E / F', 'instappen / uitstappen / winkel in / word een duif (bij een duivenbord) / bijbaantje beginnen'],
   ['K', 'kusje geven aan Tammo/Anita'],
-  ['R', 'nieuwe lak (stilstaand bij Spuit & Klaar)'],
+  ['R', 'nieuwe lak (stilstaand bij Spuit & Klaar) / garagemenu (in een garage)'],
+  ['H', 'toeteren'],
+  ['L', 'zwaailicht en sirene aan/uit (in een politieauto of ambulance)'],
   ['Muisklik', 'aanvallen / schieten'],
   ['1–4', 'vuisten / pistool / uzi / hagelgeweer'],
   ['Scrollwiel', 'volgend / vorig wapen'],
-  ['Muis omhoog/omlaag', 'camerahoek'],
+  ['Muis', 'camera draaien; laag houden om omhoog te kijken'],
+  ['Q / middelste muisknop', 'vasthouden: achterom kijken (in een voertuig)'],
   ['C', 'wissel Tammo / Anita'],
   ['T', 'telefoon'],
   ['V', 'filmcamera (tijdens het rijden)'],
@@ -108,8 +111,10 @@ export function initPauseMenu(w) {
         </nav>
         <div data-sub="sound">
           ${slider('masterVolume', 'Hoofdvolume')}
-          ${slider('musicVolume', 'G-Music')}
+          ${slider('musicVolume', 'Muziek')}
           ${slider('sfxVolume', 'Effecten')}
+          ${slider('voiceVolume', 'Stemmen')}
+          <p class="pm-note">Muziek is G-Music en de titelsong, stemmen zijn Tammo, Anita, de politie en de mensen op straat.</p>
         </div>
         <div data-sub="video" hidden>
           <label class="pm-row"><span>Kwaliteit</span>
@@ -117,7 +122,7 @@ export function initPauseMenu(w) {
               ${Object.keys(QUALITY_PRESETS).map((q) => `<option value="${q}">${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}
             </select>
           </label>
-          ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm</span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
+          ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm <small style="opacity:0.6">(F11 of Alt+Enter)</small></span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
           ${toggle('shadows', 'Schaduwen')}
           <label class="pm-row"><span>Zichtafstand</span>
             <select data-setting="drawDistance">
@@ -135,6 +140,8 @@ export function initPauseMenu(w) {
           ${toggle('invertY', 'Omhoog/omlaag omkeren')}
         </div>
         <div data-sub="display" hidden>
+          <label class="pm-row"><span>Helderheid</span>
+            <input type="range" min="0.6" max="1.6" step="0.05" data-setting="brightness"><output></output></label>
           ${toggle('showMinimap', 'Minimap')}
           ${toggle('showHints', 'Toetshints')}
           ${toggle('showFog', 'Verkende gebieden op de kaart')}

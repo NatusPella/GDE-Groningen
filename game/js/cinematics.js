@@ -2,19 +2,21 @@ import { getSettings } from './settings.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
 import { respawnPlayer } from './world.js';
-import { pointInPolygon } from './util.js';
-import { startRespawnScene } from './respawn.js';
+import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
+import { startRespawnScene, respawnFade } from './respawn.js';
+import { playStoryVoice, setStoryScene } from './audio.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
 
-const SKIP_KEYS = new Set([' ', 'enter', 'e']);
+const SKIP_HOLD_S = 0.9; // hold Space this long to skip a cutscene
 const LANDMARK_RADIUS = 55;
 const CRASH_COOLDOWN_MS = 20000;
 const BANNER_TIME = 3.8;
 const CAM_MODES = ['', 'BUMPER', 'ZIJKANT', 'HELIKOPTER', 'TELELENS'];
 const WIJK_KEY = 'gte-wijken-seen';
 const WIJK_DWELL = 1.5;
+const WIJK_MAX_SPEED = 12; // m/s: faster than this the flyover waits
 
 const LANDMARK_HEIGHT = {
   Martinitoren: 97, Martinikerk: 32, 'Der Aa-kerk': 45, Academiegebouw: 30, 'Groninger Museum': 28,
@@ -42,55 +44,11 @@ let wijkSeen = null;
 let wijkCand = null;
 let wijkDwell = 0;
 let wijkTimer = 0;
-
-const V = (x, y, z) => ({ x, y, z });
-const W = (wx, h, wy) => ({ x: wx, y: wy, z: h });
-const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
-const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
-const easeOut = (t) => 1 - (1 - t) ** 3;
-
-function cr(a, b, c, d, t) {
-  const t2 = t * t, t3 = t2 * t;
-  const f = (p0, p1, p2, p3) => 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
-  return V(f(a.x, b.x, c.x, d.x), f(a.y, b.y, c.y, d.y), f(a.z, b.z, c.z, d.z));
-}
-
-// Smooth Catmull-Rom camera move through evenly timed keyframes {pos, look, fov?}.
-export function pathShot(keys, ease = easeInOut) {
-  return (u) => {
-    const s = ease(clamp01(u)) * (keys.length - 1);
-    const i = Math.min(keys.length - 2, Math.floor(s));
-    const t = s - i;
-    const k0 = keys[Math.max(0, i - 1)], k1 = keys[i], k2 = keys[i + 1], k3 = keys[Math.min(keys.length - 1, i + 2)];
-    const pose = { position: cr(k0.pos, k1.pos, k2.pos, k3.pos, t), lookAt: cr(k0.look, k1.look, k2.look, k3.look, t) };
-    if (k1.fov != null && k2.fov != null) pose.fov = k1.fov + (k2.fov - k1.fov) * t;
-    return pose;
-  };
-}
-
-const LEVEL_H = 3.1;
-
-export function roofAt(map, x, y) {
-  let top = 0;
-  for (const b of map.buildingsNear(x, y, 1)) {
-    const [x0, y0, x1, y1] = b.bounds;
-    if (x < x0 || x > x1 || y < y0 || y > y1 || !pointInPolygon(x, y, b.pts)) continue;
-    top = Math.max(top, (b.h || 3) * LEVEL_H + 3.5);
-  }
-  return top;
-}
-
-// Lifts any keyframe that would sit inside a building up over its roof.
-export function clearKeys(w, keys) {
-  const lift = keys.map((k) => roofAt(w.map, k.pos.x, k.pos.y));
-  for (let i = 0; i + 1 < keys.length; i++) {
-    const m = roofAt(w.map, (keys[i].pos.x + keys[i + 1].pos.x) / 2, (keys[i].pos.y + keys[i + 1].pos.y) / 2);
-    lift[i] = Math.max(lift[i], m);
-    lift[i + 1] = Math.max(lift[i + 1], m);
-  }
-  keys.forEach((k, i) => { if (lift[i] && k.pos.z < lift[i] + 1.5) k.pos.z = lift[i] + 1.5; });
-  return keys;
-}
+// hold-to-skip: when Space went down (performance.now ms), and whether the
+// press started during a cutscene - then it is swallowed until its keyup
+let skipHoldSince = null;
+let swallowSpace = false;
+let skipShown = -1;
 
 function heading(w) {
   const p = w.player;
@@ -117,7 +75,8 @@ export function initCinematics(w) {
     '<div class="cine-card"><div class="cine-kicker"></div><div class="cine-title"></div></div>' +
     '<div class="cine-big"></div>' +
     '<div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line"></span></div>' +
-    '<div class="cine-skip"><span class="hud-key">SPATIE</span>overslaan</div>' +
+    '<div class="cine-skip"><svg class="cine-skip-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
+    '<span>Houd</span><span class="hud-key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
     '<div class="cine-banner" hidden><div class="cb-band"><div class="cb-title"></div></div>' +
     '<div class="cb-reason"></div><div class="cb-reward"></div><div class="cb-stats"></div></div>' +
     '<div class="cine-chip"></div>';
@@ -135,17 +94,29 @@ export function initCinematics(w) {
     bReward: root.querySelector('.cb-reward'),
     bStats: root.querySelector('.cb-stats'),
     chip: root.querySelector('.cine-chip'),
+    skip: root.querySelector('.cine-skip'),
     lineIndex: -1,
   };
 
+  // Skipping needs Space held for SKIP_HOLD_S, never a single press. A press
+  // that starts during a cutscene never reaches gameplay (no handbrake or
+  // jump the moment the cutscene ends), not even its key repeats.
   window.addEventListener('keydown', (e) => {
-    if (!active || !active.skippable || e.repeat || !gameStarted()) return;
-    if (!SKIP_KEYS.has(e.key.toLowerCase())) return;
-    if (isPauseMenuOpen() || isMapOpen()) return;
+    if (e.key !== ' ') return;
+    if (swallowSpace) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+    // a key repeat of a press from before the cutscene (the handbrake) is no skip
+    if (e.repeat || !active || !gameStarted() || isPauseMenuOpen() || isMapOpen()) return;
     e.preventDefault();
-    e.stopPropagation();
-    if (active.t > 0.25) finish(true);
+    e.stopImmediatePropagation();
+    swallowSpace = true;
+    skipHoldSince = active.skippable ? performance.now() : null;
   }, true);
+  window.addEventListener('keyup', (e) => {
+    if (e.key !== ' ') return;
+    swallowSpace = false;
+    skipHoldSince = null;
+  }, true);
+  window.addEventListener('blur', () => { swallowSpace = false; skipHoldSince = null; });
 
   w.onRespawn.push((wd, { busted }) => {
     if (respawnFromCine) return;
@@ -216,9 +187,13 @@ function begin(spec) {
   r.classList.remove('has-sub');
   document.body.classList.toggle('cine-hide-hud', !!active.hideHud);
   r.classList.add('active');
+  // lines with a recording ({ voice }) are spoken as their subtitle comes up
+  active.voiced = !!(active.lines && active.lines.some((l) => l.voice));
+  if (active.voiced) setStoryScene(true);
   // a pausing cutscene brings the player's vehicle to a stop, so resuming
-  // doesn't launch you onward at full speed
-  if (active.pause && world && world.player && world.player.inVehicle) {
+  // doesn't launch you onward at full speed - except the ones that ask to
+  // keep the motion (the wijk flyover only plays at low speed anyway)
+  if (active.pause && !active.keepMotion && world && world.player && world.player.inVehicle) {
     const v = world.player.inVehicle;
     v.speed = 0;
     v.driftX = 0;
@@ -236,8 +211,26 @@ function finish(skipped, replaced = false) {
   r.dataset.tint = '';
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
+  if (a && a.voiced) setStoryScene(false);
   if (a && a.onEnd) a.onEnd(skipped, replaced);
   if (!active && queue.length) begin(queue.shift());
+}
+
+function updateSkipHold() {
+  let k = 0;
+  if (active && active.skippable && skipHoldSince != null) {
+    k = Math.min(1, (performance.now() - skipHoldSince) / (SKIP_HOLD_S * 1000));
+    if (k >= 1 && active.t > 0.25) {
+      skipHoldSince = null;
+      finish(true);
+      k = 0;
+    }
+  } else if (!active) skipHoldSince = null;
+  const shown = Math.round(k * 100);
+  if (shown === skipShown) return;
+  skipShown = shown;
+  els.skip.style.setProperty('--hold', String(k));
+  els.skip.classList.toggle('holding', k > 0);
 }
 
 function updateSubtitles() {
@@ -254,6 +247,7 @@ function updateSubtitles() {
   els.root.classList.toggle('has-sub', !!l);
   els.speaker.textContent = l && l.speaker ? l.speaker + ':' : '';
   els.line.textContent = l ? l.text : '';
+  if (l && l.voice) playStoryVoice(l.voice);
 }
 
 export function updateCinematics(dt, w) {
@@ -272,6 +266,7 @@ export function updateCinematics(dt, w) {
       updateSubtitles();
       if (active.t >= active.duration) finish(false);
     }
+    updateSkipHold();
     if (started) checkTriggers(dt, w);
     updateBanner(dt);
     if (chipTimer > 0 && (chipTimer -= dt) <= 0) els.chip.classList.remove('visible');
@@ -344,7 +339,7 @@ function realMapBox(map) {
 
 function checkOmmelanden(w) {
   if (active || !momentsOn() || w.wanted > 0 || w.pendingRespawn || w.pigeonMode) return;
-  if (w.mission && w.mission.phase === 'active') return;
+  if (busyWithJob(w)) return;
   const seen = visited(w);
   if (seen.has(OMMELANDEN)) return;
   const [x0, y0, x1, y1] = realMapBox(w.map);
@@ -385,7 +380,7 @@ function visited(w) {
 
 function checkLandmarks(w) {
   if (active || !momentsOn() || w.wanted > 0 || w.pendingRespawn) return;
-  if (w.mission && w.mission.phase === 'active') return;
+  if (busyWithJob(w)) return;
   const seen = visited(w);
   const p = w.player;
   for (const lm of w.map.meta.landmarks || []) {
@@ -532,6 +527,10 @@ function markWijk(p) {
   try { localStorage.setItem(WIJK_KEY, JSON.stringify([...wijkSeen])); } catch (e) { /* ignore */ }
 }
 
+function busyWithJob(w) {
+  return !!((w.mission && w.mission.phase === 'active') || (w.sideJob && w.sideJob.active));
+}
+
 function checkWijk(dt, w) {
   if (!wijkSeen || w.pigeonMode) return;
   wijkTimer -= dt;
@@ -543,48 +542,26 @@ function checkWijk(dt, w) {
   if (!wijkCand || wijkCand.name !== p.name) { wijkCand = p; wijkDwell = 0; return; }
   wijkDwell += step;
   if (wijkDwell < WIJK_DWELL || active || !momentsOn() || w.pendingRespawn || w.wanted > 0 || w.time < (w.quietUntil || 0)) return;
+  // never during a mission, race or bijbaantje: the wijk stays unseen and
+  // plays once the player is free again (and still in it)
+  if (busyWithJob(w)) return;
+  // at speed a paused flyover is jarring: wait until the player slows down
+  const v = w.player.inVehicle;
+  if (v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
   markWijk(p);
   wijkCand = null;
   playWijk(w, p);
 }
 
-// A calm establishing shot of the whole wijk: start high and wide over it,
-// drift slowly around its centre at the same height, then glide down to
-// behind the player. Few keys, one smooth look target, near-constant fov -
-// no whip pans. A wijk only has a centre point, so its size is estimated
-// from the distance to the neighbouring wijk centres.
-function wijkRadius(w, wijk) {
-  const d = (w.map.meta.neighbourhoodPoints || [])
-    .filter((q) => q !== wijk && q.name !== wijk.name)
-    .map((q) => Math.hypot(q.x - wijk.x, q.y - wijk.y))
-    .sort((a, b) => a - b);
-  const near = d.length >= 3 ? (d[0] + d[1] + d[2]) / 3 : d[0] || 300;
-  return Math.min(420, Math.max(130, near * 0.55));
-}
+export { pathShot, roofAt, clearKeys };
 
 function playWijk(w, wijk) {
-  const p = w.player, a = heading(w);
-  const R = wijkRadius(w, wijk);
-  // look at a point between the wijk centre and the player, so both are in
-  // the frame when the player is off-centre
-  const cx = wijk.x * 0.75 + p.x * 0.25, cy = wijk.y * 0.75 + p.y * 0.25;
-  // approach from behind the player's heading so the final glide ends behind them
-  const back = a + Math.PI;
-  const dist = R * 1.25, high = Math.max(70, R * 0.85);
-  const at = (ang, dd, h) => W(cx + Math.cos(ang) * dd, h, cy + Math.sin(ang) * dd);
-  const look = W(cx, 0, cy);
-  const b = behindPose(w, 9, 5);
-  const keys = [
-    { pos: at(back - 0.55, dist, high), look, fov: 50 },
-    { pos: at(back - 0.15, dist * 0.95, high * 0.98), look, fov: 50 },
-    { pos: at(back + 0.25, dist * 0.9, high * 0.95), look, fov: 50 },
-    { pos: W(p.x - Math.cos(a) * 34, 30, p.y - Math.sin(a) * 34), look: W(p.x + Math.cos(a) * 20, 1.5, p.y + Math.sin(a) * 20), fov: 54 },
-    { pos: b.pos, look: b.look, fov: 58 },
-  ];
-  playCinematic({
-    id: 'wijk', priority: 1, duration: 8, pause: true, queue: true,
+  const shot = wijkStreetShot(w, wijk, heading(w), behindPose(w, 8, 3.8));
+  if (!shot) return false;
+  return playCinematic({
+    id: 'wijk', priority: 1, duration: 11, pause: true, keepMotion: true,
     kicker: 'Nieuwe wijk', title: wijk.name, lines: [{ speaker: '', text: wijkLine(wijk.name) }],
-    shot: pathShot(clearKeys(w, keys)),
+    shot,
   });
 }
 
@@ -599,7 +576,8 @@ function keyHits(w, keys) {
   return hits;
 }
 
-export function playMissionIntro(w, { title, kicker, lines, objective }) {
+// lines: [{ speaker, text, at?, dur?, voice? }]; duration defaults to 4.8 s.
+export function playMissionIntro(w, { title, kicker, lines, objective, duration = 4.8 }) {
   const p = w.player;
   let a = objective ? Math.atan2(objective.y - p.y, objective.x - p.x) : heading(w);
   if (!Number.isFinite(a)) a = heading(w);
@@ -615,7 +593,7 @@ export function playMissionIntro(w, { title, kicker, lines, objective }) {
   };
   const left = build(1), right = build(-1);
   const keys = keyHits(w, right) < keyHits(w, left) ? right : left;
-  return playCinematic({ id: 'mission-intro', priority: 3, duration: 4.8, pause: true, kicker, title, lines, shot: pathShot(clearKeys(w, keys)) });
+  return playCinematic({ id: 'mission-intro', priority: 3, duration, pause: true, kicker, title, lines, shot: pathShot(clearKeys(w, keys)) });
 }
 
 function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY = 1.3, fixed = null }) {
@@ -666,19 +644,27 @@ function playDeath(w, pending) {
   const p = w.player, a = heading(w);
   const px = p.x, py = p.y;
   const bx = -Math.cos(a + 0.5), by = -Math.sin(a + 0.5);
+  // GTA-style: slow motion, the colour drains, a slow rise over the spot,
+  // the title on a band, then a dip to black into the trip (respawn.js)
   const keys = [
-    { pos: W(px + bx * 4, 2.2, py + by * 4), look: W(px, 0.6, py), fov: 55 },
-    { pos: W(px + bx * 7, 7, py + by * 7), look: W(px, 0.4, py), fov: 55 },
-    { pos: W(px + bx * 10, 15, py + by * 10), look: W(px, 0.3, py), fov: 52 },
+    { pos: W(px + bx * 4, 2.2, py + by * 4), look: W(px, 0.7, py), fov: 52 },
+    { pos: W(px + bx * 6, 5, py + by * 6), look: W(px, 0.5, py), fov: 50 },
+    { pos: W(px + bx * 8, 10, py + by * 8), look: W(px, 0.3, py), fov: 48 },
   ];
+  const DUR = 3.2;
+  const shot = pathShot(clearKeys(w, keys), easeOut);
   playCinematic({
-    id: 'death', priority: 5, duration: 2.6, letterbox: true, timeScale: 0.3, skippable: true,
+    id: 'death', priority: 5, duration: DUR, letterbox: true, timeScale: 0.25, skippable: true,
     tint: opts.busted ? 'bust' : 'death', big: opts.busted ? 'OPGEPAKT' : 'DOOD',
-    shot: pathShot(clearKeys(w, keys), easeOut),
+    shot: (u, t) => {
+      if (t > DUR - 0.45) respawnFade(Math.min(1, (t - (DUR - 0.45)) / 0.4));
+      return shot(u);
+    },
     onEnd: () => {
-      if (w.pendingRespawn !== pending) return;
+      if (w.pendingRespawn !== pending) { respawnFade(0, 300); return; }
       // the trip to the hospital / police station; it respawns the player itself
       if (startRespawnScene(w, pending, opts)) return;
+      respawnFade(0, 400);
       w.pendingRespawn = null;
       respawnFromScene(w, opts);
     },

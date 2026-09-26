@@ -254,7 +254,7 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
   if (!elev.has) return 0;
   const list = elev.grid.at(x, y);
   if (!list) return 0;
-  let best = -Infinity, lowest = Infinity, bestRoad = false;
+  let best = -Infinity, lowest = Infinity, bestRoad = false, cap = -Infinity, capRoad = false;
   let ground = true;
   const lim = zHint + stepUp;
   _roadZ.length = _roadD.length = 0;
@@ -272,11 +272,17 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
     }
     if (z === null) continue;
     if (z <= lim) {
-      if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs); }
-      if (z > best) { best = z; bestRoad = road; }
+      // past a segment's end its flat end cap would put a small step in a
+      // ramp; the next segment's own ribbon is the smooth surface there
+      if (q.t <= 0 || q.t >= 1) { if (z > cap) { cap = z; capRoad = road; } }
+      else {
+        if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs); }
+        if (z > best) { best = z; bestRoad = road; }
+      }
     }
     if (z < lowest) lowest = z;
   }
+  if ((cap > best + 0.5 || best === -Infinity) && cap > best) { best = cap; bestRoad = capRoad; }
   if (!ground && onFlatRoad(elev.map, x, y)) ground = true;
   if (ground && 0 <= lim) {
     // a street-level road next to the raised ones is a road surface too

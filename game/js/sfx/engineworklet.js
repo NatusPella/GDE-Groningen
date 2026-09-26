@@ -26,6 +26,8 @@ const PROFILES = [
   { fpr: 2, idle: 900, red: 5500, odd: 0.15, tilt: 0.85, fc: [320, 800], body: [130, 100, 0.6], exh: [300, 160, 0.4], exhRise: 80, rasp: 0.08, intake: 0.03, mech: 0.006, jit: 0.003, wobble: 0.01, out: 0.5, crank: 0.5 },
   { fpr: 4, idle: 750, red: 7000, odd: 0.26, tilt: 0.7, fc: [480, 1700], body: [120, 100, 1.0], exh: [320, 200, 0.9], exhRise: 200, rasp: 0.26, intake: 0.12, mech: 0.01, jit: 0.002, wobble: 0.005, out: 0.5, crank: 0.55 },
   { fpr: 2, idle: 750, red: 4300, odd: 0.08, tilt: 0.8, fc: [380, 1100], body: [140, 110, 0.8], exh: [340, 200, 0.6], exhRise: 120, rasp: 0.15, intake: 0.06, mech: 0.02, jit: 0.002, wobble: 0.005, out: 0.5, crank: 0.8 },
+  // 7: e-step hub motor - a clean rising whine, no combustion at all
+  { fpr: 2, idle: 2400, red: 48000, odd: 0.35, tilt: 1.7, fc: [2200, 3600], body: [700, 300, 0.4], exh: [1500, 500, 0.5], exhRise: 300, rasp: 0, intake: 0, mech: 0.003, jit: 0, wobble: 0, out: 0.3, crank: 0.05 },
 ];
 
 class Rng {

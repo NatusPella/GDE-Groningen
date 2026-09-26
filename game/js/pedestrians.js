@@ -3,7 +3,7 @@ import { resolveBuildingCollisions, findExitSpot } from './player.js';
 import { resolveWalker } from './collision.js';
 import { requestRespawn } from './world.js';
 import { playNpcPhrase } from './audio.js';
-import { pushCircleOutOfVehicle, reportImpact } from './vehicle.js';
+import { pushCircleOutOfVehicle, reportImpact, distToVehicleBody } from './vehicle.js';
 import { getCombatEffect } from './combat.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -23,9 +23,14 @@ const SPEECH_MIN_INTERVAL = 15;
 const SPEECH_MAX_INTERVAL = 30;
 
 const COP_CLOTHING = '#1c3fae';
-const COP_SEEK_SPEED = 3.1;
+// a jogging cop runs down a walker; a sprinting player (7.5) still gets away
+const COP_JOG_SPEED = 5;
+const COP_SPRINT_SPEED = 6.5;
+const COP_SPRINT_RADIUS = 8;
+const COP_HOLD_DIST = 0.75;
 const COP_SEEK_TRIGGER_RADIUS = 18;
 const COP_SEEK_GIVEUP_RADIUS = 28;
+const COP_BOARD_REACH = 0.9;
 
 const WITNESS_RADIUS = 45;
 const CALL_MIN = 5;
@@ -212,6 +217,21 @@ export function spawnCopPedestriansNear(map, x, y, count, rng = Math.random, hid
   return cops;
 }
 
+// An officer appearing right next to their car, bike or horse (in view, so no
+// fade-in). lookSeed matches the rider figure built on a police bike/horse.
+export function makeCopPedestrian(x, y, angle, lookSeed = null) {
+  const cop = new Pedestrian(x, y, angle);
+  cop.isCop = true;
+  cop.clothing = COP_CLOTHING;
+  cop.hasBag = false;
+  cop.noFade = true;
+  if (lookSeed !== null) {
+    cop._lookSeed = lookSeed;
+    cop.skin = SKIN_TONES[Math.floor(hash2(lookSeed, 2.1) * SKIN_TONES.length)];
+  }
+  return cop;
+}
+
 export function isInsideBuilding(map, x, y) {
   for (const b of map.buildingsNear(x, y, 0.5)) {
     const [minx, miny, maxx, maxy] = b.bounds;
@@ -332,9 +352,17 @@ function gatherEvents(world) {
     }
   }
   for (const v of world.vehicles) {
+    if (v.bailPending) {
+      // the driver of a burning car jumps out and runs for it
+      v.bailPending = false;
+      if (dist(v.x, v.y, player.x, player.y) < 120) {
+        const ped = ejectDriver(world, { vehicle: v });
+        if (ped) startFlee(ped, world, v.x, v.y);
+      }
+    }
     if (v.wrecked && !seenWrecks.has(v)) {
       seenWrecks.add(v);
-      if (!v.sinking) blastAt(world, v);
+      if (!v.sinking && !v.isBike && !v.isScooter) blastAt(world, v);
       if (dist(v.x, v.y, player.x, player.y) < 150) events.push({ kind: 'boom', x: v.x, y: v.y, r: 50, crime: !!v.wreckedByPlayer });
     }
     if (!v.wrecked && v.driver !== 'player' && v.road && Math.abs(v.x - player.x) < v.halfLen + 6 && Math.abs(v.y - player.y) < v.halfLen + 6) aiDrivenAt.set(v, world.time);
@@ -377,15 +405,32 @@ function gatherEvents(world) {
 
 function ejectDriver(world, ev) {
   const v = ev.vehicle;
-  if (v.isBoat) return null;
+  if (v.isBoat || v._mount) return null;
   const [x, y] = findExitSpot(v, 0.3, world.map, [-1, 1]);
   const ped = new Pedestrian(x, y, Math.atan2(v.y - y, v.x - x));
+  // the same person that sat in it (scene3d's driver figure / the bike's
+  // built-in rider), not a random passer-by appearing out of nowhere
+  const two = v.isBike || v.isScooter;
+  const seed = two ? (v.id || 0) * 3.7 + 1 : (v.id || 0) * 5.3 + 11;
+  ped._lookSeed = seed;
+  if (two) {
+    if (v.model.rider) ped.clothing = v.model.rider;
+    ped.skin = SKIN_TONES[Math.floor(hash2(seed, 2.1) * SKIN_TONES.length)];
+  } else {
+    ped.clothing = v.isPolice ? '#1f3f8f' : '#5a6470';
+    ped.skin = '#d9aa82';
+  }
+  ped.hasBag = false;
   ped.health = 40;
   ped.noFade = true;
   world.pedestrians.push(ped);
+  const ox = x - v.x, oy = y - v.y, ol = Math.hypot(ox, oy) || 1;
   if (Math.abs(v.speed) > 2.5) {
     // yanked out of a moving car: tumbles along the road for a bit
-    knockDown(ped, world, { kind: 'hit', vx: Math.cos(v.angle) * v.speed * 0.6 + (x - v.x) * 1.5, vy: Math.sin(v.angle) * v.speed * 0.6 + (y - v.y) * 1.5, vz: 1.2, lieFor: 1.2 });
+    knockDown(ped, world, { kind: 'hit', startPose: 'ride', vx: Math.cos(v.angle) * v.speed * 0.6 + (ox / ol) * 2.5, vy: Math.sin(v.angle) * v.speed * 0.6 + (oy / ol) * 2.5, vz: 1.2, lieFor: 1.2 });
+  } else {
+    // pulled out of the seat: stumbles backwards onto the street, gets up angry
+    knockDown(ped, world, { kind: 'hit', startPose: 'ride', vx: (ox / ol) * 2.2, vy: (oy / ol) * 2.2, vz: 0.7, lieFor: 0.5 });
   }
   return ped;
 }
@@ -465,7 +510,7 @@ function hash2(x, y) {
 // pedestrian - or the player - is launched from the saddle.
 function knockOffRiders(world) {
   for (const b of world.vehicles) {
-    if (!(b.isBike || b.isScooter) || b.wrecked || b.sinking || b.riderOff) continue;
+    if (!(b.isBike || b.isScooter) || b.wrecked || b.sinking || b.riderOff || b._riderAway || b._mount === 'horse') continue;
     const byPlayerBike = b.driver === 'player';
     if (!byPlayerBike && !b.road) continue;
     const bvx = Math.cos(b.angle) * b.speed, bvy = Math.sin(b.angle) * b.speed;
@@ -477,7 +522,8 @@ function knockOffRiders(world) {
       const rvx = Math.cos(u.angle) * u.speed + (u.driftX || 0) - bvx;
       const rvy = Math.sin(u.angle) * u.speed + (u.driftY || 0) - bvy;
       const closing = rvx * push.nx + rvy * push.ny;
-      const playerInvolved = byPlayerBike || u.driver === 'player';
+      // race rivals on bikes jostle; it takes a real crash to unseat anyone
+      const playerInvolved = (byPlayerBike && !(u.racer && u.isBike)) || u.driver === 'player';
       if (closing < (playerInvolved ? RIDER_CLOSING : RIDER_CLOSING_AMBIENT)) continue;
       throwRider(world, b, u, bvx * 0.8 + rvx * 0.6, bvy * 0.8 + rvy * 0.6, closing, push);
       break;
@@ -496,7 +542,7 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   if (b.driver === 'player') {
     const p = world.player;
     if (p.inVehicle !== b) return;
-    p.exitVehicle(world.map, world);
+    p.exitVehicle(world.map, world, true);
     p.x = bx; p.y = by;
     b.riderOff = true;
     let dmg = Math.round((closing - 2) * 3);
@@ -514,6 +560,10 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   ped.skin = SKIN_TONES[Math.floor(hash2(seed, 2.1) * SKIN_TONES.length)];
   ped.hasBag = false;
   ped.noFade = true;
+  if (b.isPolice && !b.hijacked) {
+    ped.isCop = true;
+    b._thrownCop = ped;
+  }
   ped.health -= 6 + closing * 2.5;
   const dead = ped.health <= 0;
   world.pedestrians.push(ped);
@@ -635,6 +685,33 @@ function processEvents(world, events) {
   }
 }
 
+// --- waving at the player sailing past -----------------------------------
+// People on the quays wave (scene3d draws the arm from ped.greetUntil) and
+// now and then call out when the player's boat goes by.
+
+const GREET_LINES = ['Moi!', 'Ahoi!', 'Mooi bootje!', 'Goeie vaart!', 'Moi, schipper!', 'Hoi hoi!'];
+let greetScanAt = 0;
+
+function greetPassingBoat(world) {
+  const pv = world.player.inVehicle;
+  if (!pv || !pv.isBoat || Math.abs(pv.speed) < 0.8 || world.time < greetScanAt) return;
+  greetScanAt = world.time + 0.4;
+  let shouted = false;
+  for (const p of world.pedestrians) {
+    if (p.isCop || p.scene || p.state !== 'wander' || p.ragdoll || p.pose) continue;
+    if (world.time < (p._greetedAt ?? -99) + 25) continue;
+    const d = dist(p.x, p.y, pv.x, pv.y);
+    if (d > 16 || d < 2) continue;
+    p._greetedAt = world.time;
+    if (Math.random() > 0.45) continue;
+    p.greetUntil = world.time + 2.4;
+    if (!shouted && Math.random() < 0.35) {
+      say(p, world, pick(GREET_LINES), 2.2, null);
+      shouted = true;
+    }
+  }
+}
+
 // --- cyclists' bells ----------------------------------------------------
 
 function updateBikeBells(world) {
@@ -642,7 +719,7 @@ function updateBikeBells(world) {
   const pv = p.inVehicle;
   if (pv && Math.abs(pv.speed) > 3) return;
   for (const v of world.vehicles) {
-    if (!v.isBike || v.driver === 'player' || v.wrecked || v === pv) continue;
+    if (!v.isBike || v._mount === 'horse' || v.driver === 'player' || v.wrecked || v === pv) continue;
     if (Math.abs(v.speed) < 1.5) continue;
     const dx = p.x - v.x, dy = p.y - v.y;
     if (dx * dx + dy * dy > 81) continue;
@@ -787,9 +864,12 @@ function checkVehicleImpact(ped, world) {
       else bleedPed(ped, world, { vehicle: light ? null : v, spray: { dx: ped.knockVX, dy: ped.knockVY, k: Math.min(1, speed / GIB_SPEED) } });
     } else ped.speed = 0;
     if (v.driver === 'player') {
-      world.wanted = Math.min(5, world.wanted + 1);
+      // knocking someone over on a bike or scooter is a scene, not a crime
+      const crime = dead || !light;
+      world.lastPedHitAt = world.time;
+      if (crime) world.wanted = Math.min(5, world.wanted + 1);
       if (dead) world.stats.pedKills++;
-      pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: true });
+      pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime });
     }
     return;
   }
@@ -819,6 +899,19 @@ function steerClear(map, ped, angle) {
   return angle;
 }
 
+// Walkers in the path of the player's vehicle while it moves off or creeps
+// along step aside, so pulling away from a stop doesn't mow down whoever
+// strolls past the bumper. Returns the heading to step to, or null.
+function dodgePlayerVehicle(ped, v) {
+  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  const dx = ped.x - v.x, dy = ped.y - v.y;
+  const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;
+  const reach = v.halfLen + 2.5 + Math.max(0, v.speed) * 1.1;
+  if (fwd < 0 || fwd > reach || Math.abs(lat) > v.halfWid + 1.2) return null;
+  const side = lat >= 0 ? 1 : -1;
+  return Math.atan2(fx * side, -fy * side);
+}
+
 function faceToward(ped, x, y) {
   ped.angle = Math.atan2(y - ped.y, x - ped.x);
 }
@@ -831,6 +924,12 @@ function updateCop(ped, world, dPlayer, dt) {
     ped._sees = dPlayer < COP_SEEK_GIVEUP_RADIUS && lineOfSight(world.map, ped.x, ped.y, player.x, player.y);
   }
   const canSee = ped._sees;
+  // police.js recalls officers to their car/mount (or one to commandeer)
+  if (ped._recall && ped._unit) {
+    if (ped.state !== 'return') setState(ped, 'return');
+    return;
+  }
+  if (ped.state === 'return') setState(ped, 'wander');
   if (world.wanted === 0) {
     if (ped.state !== 'wander') setState(ped, 'wander');
     ped.guard = null;
@@ -853,6 +952,7 @@ export function updatePedestrians(dt, world) {
   if (events.length) processEvents(world, events);
   updateWitnessCall(world);
   updateBikeBells(world);
+  greetPassingBoat(world);
   knockOffRiders(world);
   processPedPlanQueue(world);
   buildPedAvoidGrid(peds);
@@ -875,6 +975,8 @@ export function updatePedestrians(dt, world) {
   }
 
   let filming = 0;
+  const pv = player.inVehicle;
+  const dodgeVehicle = pv && !pv.isBoat && pv.speed > -0.5 ? pv : null;
   for (let i = peds.length - 1; i >= 0; i--) {
     const ped = peds[i];
 
@@ -969,8 +1071,18 @@ export function updatePedestrians(dt, world) {
         break;
       case 'seek': {
         faceToward(ped, player.x, player.y);
+        if (dPlayer < COP_HOLD_DIST) { moving = false; break; }
         ped.angle = steerClear(map, ped, ped.angle);
-        ped.speed = COP_SEEK_SPEED;
+        ped.speed = dPlayer < COP_SPRINT_RADIUS ? COP_SPRINT_SPEED : COP_JOG_SPEED;
+        break;
+      }
+      case 'return': {
+        const u = ped._unit;
+        if (!u) { setState(ped, 'wander'); break; }
+        if (ped._boarded || distToVehicleBody(u, ped.x, ped.y) < COP_BOARD_REACH) { ped._boarded = true; moving = false; break; }
+        faceToward(ped, u.x, u.y);
+        ped.angle = steerClear(map, ped, ped.angle);
+        ped.speed = dist(ped.x, ped.y, u.x, u.y) > 8 ? COP_JOG_SPEED : WANDER_SPEED * 1.6;
         break;
       }
       default: {
@@ -1018,6 +1130,12 @@ export function updatePedestrians(dt, world) {
       }
     }
 
+    const dodge = dodgeVehicle && !ped.isCop && !ped.scene && ped.state !== 'guard' ? dodgePlayerVehicle(ped, dodgeVehicle) : null;
+    if (dodge !== null) {
+      ped.angle = dodge;
+      ped.speed = Math.max(ped.speed || 0, 3.2);
+      moving = true;
+    }
     if (!moving) {
       ped.speed = 0;
     } else {

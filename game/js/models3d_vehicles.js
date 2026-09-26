@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh } from './models3d_people.js';
+import { boatKind, boatHasCabin } from './boattypes.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -18,7 +19,7 @@ const WHEEL_R = 0.32;
 const WHEEL_W = 0.22;
 const HERO_LEN = 4.0;
 const HERO_WID = 1.65;
-const WRECKED_COLOR = 0x4a4a4a;
+const WRECKED_COLOR = 0x1f1d1b;
 
 const G_BODY = 0, G_GLASS = 1, G_LAMP = 2;
 const TRIM = 0x1f2022;
@@ -47,11 +48,14 @@ function toHex(c, fallback) {
   return fallback;
 }
 
-function vehicleMaterials() {
+// Glass is a see-through tint so the people inside show; a burnt-out
+// wreck gets sooty, matt paint and blind black windows instead.
+const GLASS_OPACITY = 0.5;
+function vehicleMaterials(wrecked = false) {
   return [
-    vcMaterial({ roughness: 0.5, metalness: 0.1 }),
-    vcMaterial({ roughness: 0.18, metalness: 0.3 }),
-    new THREE.MeshBasicMaterial({ vertexColors: true }),
+    vcMaterial(wrecked ? { roughness: 0.95, metalness: 0.05 } : { roughness: 0.5, metalness: 0.1 }),
+    wrecked ? vcMaterial({ roughness: 0.9, metalness: 0, color: 0x3a3a3a }) : vcMaterial({ roughness: 0.12, metalness: 0.35, transparent: true, opacity: GLASS_OPACITY, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ vertexColors: true, color: wrecked ? 0x202020 : 0xffffff }),
   ];
 }
 
@@ -68,7 +72,12 @@ function carWheelGeometry(r, w) {
     B.geo(axleZ(new THREE.CylinderGeometry(r, r, w, 12, 1)), null, TIRE);
     B.geo(axleZ(new THREE.CylinderGeometry(r * 0.64, r * 0.64, w + 0.02, 10, 1)), null, RIM);
     B.geo(axleZ(new THREE.CylinderGeometry(r * 0.18, r * 0.18, w + 0.05, 6, 1)), null, 0x6a6d70);
-    for (let k = 0; k < 3; k++) B.box(0, 0, 0, r * 1.2, r * 0.12, w + 0.035, 0x6a6d70, 0, 0, 0, (k / 3) * Math.PI);
+    // five radial spokes (72 deg symmetry; see SPIN_STEP) plus one dark lug so the roll reads
+    for (let k = 0; k < 5; k++) {
+      const a = (k / 5) * Math.PI * 2;
+      B.box(Math.cos(a) * r * 0.36, Math.sin(a) * r * 0.36, 0, r * 0.5, r * 0.13, w + 0.035, 0x5c5f62, 0, 0, 0, a);
+    }
+    B.box(r * 0.8, 0, 0, r * 0.2, r * 0.22, w + 0.012, 0x3a3c3e);
     return B.build();
   });
 }
@@ -156,6 +165,7 @@ function carProfile(type, hl) {
     case 'sport': return { nose: 0.45, hood: 0.7, belt: 0.82, roof: 1.25, xA: hl - 1.5, xB: hl - 2.2, xC: -hl + 1.25, xD: -hl + 0.35, deck: 0.86, tail: 0.74, fw: hl - 0.9, rw: -hl + 0.95 };
     case 'escort': return { nose: 0.7, hood: 0.82, belt: 0.9, roof: 1.38, xA: hl - 1.05, xB: hl - 1.6, xC: -hl + 0.55, xD: -hl + 0.15, deck: 0.94, tail: 0.9, fw: hl - 0.75, rw: -hl + 0.75, boxy: true };
     case 'van': return { nose: 0.85, hood: 1.05, belt: 1.08, roof: 2.08, xA: hl - 0.45, xB: hl - 1.1, xC: -hl + 0.04, xD: -hl + 0.02, deck: 2.08, tail: 2.02, fw: hl - 0.8, rw: -hl + 1.05, van: true };
+    case 'suv': return { nose: 0.78, hood: 1.02, belt: 1.12, roof: 1.74, xA: hl - 1.2, xB: hl - 1.9, xC: -hl + 0.32, xD: -hl + 0.1, deck: 1.14, tail: 1.08, fw: hl - 0.95, rw: -hl + 1.0, boxy: true };
     default: return { nose: 0.58, hood: 0.82, belt: 0.93, roof: 1.47, xA: hl - 1.0, xB: hl - 1.75, xC: -hl + 0.5, xD: -hl + 0.12, deck: 0.98, tail: 0.94, fw: hl - 0.75, rw: -hl + 0.7 };
   }
 }
@@ -250,6 +260,36 @@ function buildCarGeometry(type, L, W, paint, opts) {
     B.box(-hl - 0.012, 1.45, 0, 0.012, 0.28, 0.08, 0x1d4fa3);
     B.box(-hl - 0.012, 1.45, 0, 0.012, 0.08, 0.28, 0x1d4fa3);
   }
+  const variant = opts.variant || '';
+  if (variant === 'taxi') {
+    B.box((P.xB + P.xC) / 2 + 0.15, P.roof + 0.1, 0, 0.28, 0.16, 0.62, 0xf0c24e);
+    B.box((P.xB + P.xC) / 2 + 0.15, P.roof + 0.1, 0, 0.3, 0.07, 0.64, TRIM);
+    for (const x of [hl + 0.086, -hl - 0.009]) B.box(x, x > 0 ? 0.38 : Math.min(0.6, P.tail - 0.22), 0, 0.013, 0.1, 0.48, 0x2f5fb0);
+    for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.belt - 0.12, s * (hw + 0.008), 0.9, 0.12, 0.012, 0xf0c24e);
+  } else if (variant === 'rust') {
+    const rust = [0x8a4a26, 0x6e3b20, 0x9a5a2e];
+    for (let i = 0; i < 7; i++) {
+      const sx = -hl + 0.4 + hash2(i, L) * (L - 0.8), sy = sill + 0.12 + hash2(i, W) * 0.35;
+      B.box(sx, sy, (i % 2 ? 1 : -1) * (hw + 0.006), 0.18 + hash2(i, 3) * 0.3, 0.08 + hash2(i, 5) * 0.14, 0.012, rust[i % 3]);
+    }
+    // a door from the scrapyard, in another colour
+    B.box((P.xB + P.xC) / 2 + 0.2, (sill + P.belt) / 2 + 0.05, hw + 0.009, 0.9, P.belt - sill - 0.15, 0.012, 0xa89a7a);
+  } else if (variant === 'cash') {
+    for (const s of [1, -1]) {
+      const z = s * (hw + 0.008);
+      B.box(0, 1.25, z, L - 0.6, 0.18, 0.012, 0x2f6b3f);
+      B.box(0, 1.1, z, L - 0.6, 0.05, 0.012, 0xd9b21b);
+      B.box(-hl + 1.4, 1.55, z, 0.7, 0.22, 0.014, 0xd9b21b);
+    }
+    B.box(-hl - 0.012, 1.3, 0, 0.012, 0.16, W * 0.6, 0x2f6b3f);
+  } else if (variant === 'pakket') {
+    for (const s of [1, -1]) {
+      const z = s * (hw + 0.008);
+      B.box(-0.3, 1.5, z, L - 1.6, 0.34, 0.012, 0xf4f2ec);
+      B.box(-0.3, 1.5, z, 0.32, 0.26, 0.016, 0x1f4f9a);
+      B.box(-0.3 - 0.55, 1.5, z, 0.5, 0.08, 0.016, 0x1f4f9a);
+    }
+  }
   if (type === 'sport') {
     B.box(-hl + 0.12, P.deck + 0.1, 0, 0.18, 0.03, W * 0.84, paint);
     for (const s of [1, -1]) B.box(-hl + 0.14, P.deck + 0.05, s * W * 0.34, 0.06, 0.08, 0.04, TRIM);
@@ -273,10 +313,11 @@ function shadeHex(hex, f) {
   return (r << 16) | (g << 8) | b;
 }
 
-function assembleCar(type, L, W, paint, { police = false, ambulance = false, wrecked = false, wheelR = WHEEL_R } = {}) {
+function assembleCar(type, L, W, paint, { police = false, ambulance = false, wrecked = false, wheelR = WHEEL_R, variant = '' } = {}) {
   const color = wrecked ? WRECKED_COLOR : paint;
-  const geo = cached(`car|${type}|${L}|${W}|${color}|${police}|${ambulance}`, () => buildCarGeometry(type, L, W, color, { police, ambulance, wheelR }));
-  const mats = vehicleMaterials();
+  const vr = wrecked ? '' : variant;
+  const geo = cached(`car|${type}|${L}|${W}|${color}|${police}|${ambulance}|${vr}`, () => buildCarGeometry(type, L, W, color, { police, ambulance, wheelR, variant: vr }));
+  const mats = vehicleMaterials(wrecked);
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
   group.add(body);
@@ -286,6 +327,7 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   const wheels = [];
   for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - WHEEL_W / 2 - 0.04), wheels);
   group.userData.wheels = wheels;
+  group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = wheelR;
   if (police || ambulance) {
     const barY = P.roof + (ambulance ? 0.07 : 0.14);
@@ -303,16 +345,67 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
 }
 
 function carType(v) {
-  if (v.isPolice) return 'wagon';
+  if (v.isPolice && !v._commandeered) return 'wagon';
   const n = v.model.name;
-  return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' ? n : 'hatch';
+  if (n === 'taxi') return 'sedan';
+  if (n === 'cashvan') return 'van';
+  return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' || n === 'suv' ? n : 'hatch';
+}
+
+function carVariant(v) {
+  const n = v.model.name;
+  if (n === 'taxi' || v.isTaxi) return 'taxi';
+  if (n === 'cashvan') return 'cash';
+  if (v.model.rusty) return 'rust';
+  return v.model.livery || '';
 }
 
 function buildCarMesh(v) {
   if (v.isAmbulance) return assembleCar('van', v.model.len, v.model.wid, 0xf1d21c, { ambulance: true, wrecked: v.wrecked, wheelR: 0.34 });
-  const police = !!v.isPolice;
+  if (v.model.name === 'truck') return buildTruckMesh(v);
+  const police = !!v.isPolice && !v._commandeered;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
-  return assembleCar(carType(v), v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR: v.model.name === 'van' ? 0.34 : WHEEL_R });
+  const type = carType(v);
+  const wheelR = type === 'van' ? 0.34 : type === 'suv' ? 0.38 : WHEEL_R;
+  return assembleCar(type, v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR, variant: carVariant(v) });
+}
+
+// Bakwagen: cab-over front with a box body.
+function buildTruckMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
+  const r = 0.46;
+  const geo = cached(`truck|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    const cabL = 1.9, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
+    B.box(0, 0.62, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
+    B.box((boxX0 + boxX1) / 2, 2.05, 0, boxX1 - boxX0, 2.5, W, paint === WRECKED_COLOR ? paint : 0xeeeee8);
+    B.box(hl - cabL / 2, 1.5, 0, cabL, 1.9, W - 0.05, paint);
+    B.box(hl - cabL / 2 - 0.05, 2.5, 0, cabL - 0.3, 0.1, W - 0.25, shadeHex(paint, 0.85));
+    B.box(hl + 0.005, 1.95, 0, 0.02, 0.8, W - 0.35, GLASS, G_GLASS);
+    for (const s of [1, -1]) {
+      B.box(hl - 0.55, 1.85, s * (hw - 0.015), 0.75, 0.6, 0.02, GLASS, G_GLASS);
+      B.box(hl + 0.02, 0.8, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
+      B.box(-hl - 0.01, 0.85, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
+      B.box(hl - 0.1, 2.1, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
+      B.box((boxX0 + boxX1) / 2, 2.2, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.5, 0.012, paint);
+    }
+    B.box(hl + 0.03, 0.55, 0, 0.1, 0.22, W - 0.1, 0x2a2b2d);
+    B.box(hl + 0.085, 0.55, 0, 0.012, 0.1, 0.48, PLATE);
+    B.box(-hl - 0.012, 0.6, 0, 0.012, 0.1, 0.48, PLATE);
+    return B.build();
+  });
+  const mats = vehicleMaterials();
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  const wgeo = carWheelGeometry(r, 0.3);
+  const wheels = [];
+  for (const x of [hl - 1.1, -hl + 1.4]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = r;
+  return group;
 }
 
 function buildFordEscortGroup(color, len = HERO_LEN, wid = HERO_WID, wrecked = false) {
@@ -396,7 +489,61 @@ function buildBikeGeometry(color, fat, stepThrough) {
   });
 }
 
+// Bakfiets: long frame with a wooden box between the rider and a small front wheel.
+function buildBakfietsGeometry(color) {
+  return cached(`bakfiets|${color}`, () => {
+    const B = new GeoBuilder(3);
+    const t = 0.02;
+    const tube = (a, b, rr = t, c = color) => B.geo(tubeGeometry(a, b, rr, rr, 5), null, c);
+    const R = [-0.85, 0.34, 0], BB = [-0.45, 0.3, 0], S = [-0.62, 0.86, 0], H = [-0.25, 0.96, 0];
+    tube(R, BB);
+    tube(R, S, t * 0.8);
+    tube(BB, S, t * 1.2);
+    tube(BB, [0.95, 0.22, 0], t * 1.3);
+    tube([-0.2, 0.28, 0], H, t * 1.1);
+    for (const s of [1, -1]) tube(H, [H[0] - 0.12, H[1] + 0.05, s * 0.26], 0.012, 0x8a8e92);
+    B.box(S[0] - 0.02, S[1] + 0.1, 0, 0.26, 0.06, 0.16, 0x2a1d14);
+    B.box(0.45, 0.62, 0, 0.9, 0.04, 0.66, 0x7a5a38);
+    for (const s of [1, -1]) B.box(0.45, 0.82, s * 0.33, 0.9, 0.4, 0.03, 0x9a7048);
+    B.box(0.9, 0.82, 0, 0.03, 0.4, 0.66, 0x9a7048);
+    B.box(0.0, 0.82, 0, 0.03, 0.4, 0.66, 0x9a7048);
+    B.box(0.45, 1.03, 0.33, 0.9, 0.03, 0.04, 0x6b4a2a);
+    B.box(0.45, 1.03, -0.33, 0.9, 0.03, 0.04, 0x6b4a2a);
+    B.box(-0.97, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
+    B.box(0.93, 0.7, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
+    return B.build();
+  });
+}
+
+function buildBakfietsMesh(v) {
+  const group = new THREE.Group();
+  const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
+  const mats = vehicleMaterials();
+  group.add(new THREE.Mesh(buildBakfietsGeometry(color), mats));
+  const wheels = [];
+  addWheel(group, bikeWheelGeometry(0.34, 0.022), mats[0], -0.85, 0.34, 0, wheels);
+  addWheel(group, bikeWheelGeometry(0.25, 0.022), mats[0], 1.0, 0.25, 0, wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = 0.32;
+  const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
+  rider.position.set(-0.68, 1.02 - 0.93 * rider.scale.y, 0);
+  poseRider(rider, 0.33, 0.7, -0.05);
+  group.add(rider);
+  group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: 0.33, amp: 0.2 };
+  // a kid (or two) in the box
+  if (hash2(v.id || 0, 7.7) < 0.6) {
+    const kid = buildPersonMesh([0xd0457a, 0x3f7ab0, 0xe8c93a][Math.floor(hash2(v.id || 0, 2) * 3)], 0xe8b48a, { seed: (v.id || 0) + 9 });
+    kid.scale.setScalar(0.55);
+    kid.position.set(0.5, 0.35, 0);
+    if (kid.userData.legL) kid.userData.legL.rotation.z = 1.4;
+    if (kid.userData.legR) kid.userData.legR.rotation.z = 1.4;
+    group.add(kid);
+  }
+  return group;
+}
+
 function buildBikeMesh(v) {
+  if (v.model.cargo) return buildBakfietsMesh(v);
   const group = new THREE.Group();
   const fat = !!v.model.fat;
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
@@ -411,6 +558,7 @@ function buildBikeMesh(v) {
   addWheel(group, wgeo, mats[0], -wb, r, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
+  group.userData.spinStep = 0.34; // 4 spoke bars: 45 deg symmetry
 
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
   const hipY = fat ? 0.93 : 1.02;
@@ -424,15 +572,29 @@ function buildBikeMesh(v) {
 function buildScooterGeometry(color) {
   return cached(`step|${color}`, () => {
     const B = new GeoBuilder(3);
-    B.box(-0.05, 0.13, 0, 0.72, 0.045, 0.16, color);
-    B.box(-0.05, 0.155, 0, 0.66, 0.008, 0.13, 0x2a2a2b);
-    B.geo(tubeGeometry([0.3, 0.13, 0], [0.42, 0.11, 0], 0.02, 0.02, 5), null, color);
-    B.geo(tubeGeometry([0.42, 0.11, 0], [0.36, 1.03, 0], 0.024, 0.02, 6), null, color);
-    B.geo(tubeGeometry([0.36, 1.03, -0.24], [0.36, 1.03, 0.24], 0.015, 0.015, 5), null, 0x2a2a2b);
-    for (const s of [1, -1]) B.geo(tubeGeometry([0.36, 1.03, s * 0.17], [0.36, 1.03, s * 0.25], 0.02, 0.02, 5), null, 0x1b1b1c);
-    B.box(0.405, 0.4, 0, 0.03, 0.05, 0.06, HEADLAMP, G_LAMP);
-    B.box(-0.42, 0.2, 0, 0.12, 0.02, 0.12, color, 0, 0, 0, 0.3);
-    B.box(-0.47, 0.22, 0, 0.012, 0.025, 0.06, TAIL, G_LAMP);
+    // deck with the battery pack slung underneath and grip tape on top
+    B.box(-0.04, 0.13, 0, 0.78, 0.05, 0.19, color);
+    B.box(-0.04, 0.095, 0, 0.62, 0.05, 0.15, 0x26272a);
+    B.box(-0.06, 0.158, 0, 0.64, 0.008, 0.155, 0x1d1d1e);
+    // steering neck and a thick stem
+    B.geo(tubeGeometry([0.3, 0.14, 0], [0.43, 0.12, 0], 0.028, 0.026, 6), null, color);
+    B.geo(tubeGeometry([0.43, 0.1, 0], [0.37, 1.02, 0], 0.034, 0.028, 8), null, color);
+    B.box(0.43, 0.2, 0, 0.06, 0.12, 0.05, 0x2a2a2b);
+    B.geo(tubeGeometry([0.43, 0.2, 0.03], [0.42, 0.11, 0.035], 0.012, 0.012, 4), null, 0x8a8e92);
+    B.geo(tubeGeometry([0.43, 0.2, -0.03], [0.42, 0.11, -0.035], 0.012, 0.012, 4), null, 0x8a8e92);
+    // bars, grips, the little display and a bell
+    B.geo(tubeGeometry([0.37, 1.03, -0.25], [0.37, 1.03, 0.25], 0.016, 0.016, 6), null, 0x2a2a2b);
+    for (const s of [1, -1]) B.geo(tubeGeometry([0.37, 1.03, s * 0.17], [0.37, 1.03, s * 0.26], 0.022, 0.022, 6), null, 0x1b1b1c);
+    B.box(0.37, 1.055, 0, 0.07, 0.025, 0.1, 0x1b1b1c);
+    B.box(0.35, 1.07, 0, 0.012, 0.018, 0.07, 0x5fd0e0, G_LAMP);
+    B.geo(new THREE.CylinderGeometry(0.018, 0.022, 0.02, 8), composeMatrix(0.37, 1.05, -0.13), 0xc8cbcf);
+    B.box(0.405, 0.42, 0, 0.035, 0.05, 0.07, HEADLAMP, G_LAMP);
+    // fenders over both wheels, tail light on the rear one, kickstand
+    const fender = new THREE.TorusGeometry(0.13, 0.024, 3, 8, Math.PI * 0.6);
+    B.geo(fender.clone(), composeMatrix(0.42, 0.11, 0, 0, 0, Math.PI * 0.25), color);
+    B.geo(fender, composeMatrix(-0.43, 0.11, 0, 0, 0, Math.PI * 0.15), color);
+    B.box(-0.52, 0.2, 0, 0.012, 0.025, 0.07, TAIL, G_LAMP);
+    B.geo(tubeGeometry([-0.14, 0.09, -0.08], [-0.26, 0.01, -0.13], 0.01, 0.01, 4), null, 0x2a2a2b);
     return B.build();
   });
 }
@@ -446,14 +608,19 @@ function buildScooterMesh(v) {
   const wgeo = bikeWheelGeometry(r, 0.035, false);
   const wheels = [];
   addWheel(group, wgeo, mats[0], 0.42, r, 0, wheels);
-  addWheel(group, wgeo, mats[0], -0.42, r, 0, wheels);
+  addWheel(group, wgeo, mats[0], -0.43, r, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
+  group.userData.spinStep = 0.28; // 5 spoke bars: 36 deg symmetry
+  // standing rider: one foot forward on the deck, the other behind, a slight
+  // forward lean with both hands on the bars
   const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
-  rider.position.set(-0.08, 0.155, 0);
-  poseRider(rider, 0, 0.66, -0.03);
-  rider.userData.legL.rotation.z = 0.12;
-  rider.userData.legR.rotation.z = -0.1;
+  rider.position.set(-0.1, 0.162, 0);
+  poseRider(rider, 0, 0.7, -0.07);
+  rider.userData.legL.rotation.z = 0.2;
+  rider.userData.legR.rotation.z = -0.16;
+  rider.userData.legL.position.z *= 0.6;
+  rider.userData.legR.position.z *= 0.6;
   group.add(rider);
   if (v.isPolice) {
     const lamps = [];
@@ -466,6 +633,62 @@ function buildScooterMesh(v) {
     group.userData.policeLamps = lamps;
   }
   return group;
+}
+
+// --- mounted police ------------------------------------------------------------
+// The horse body comes from countryside.js, handed over by policemounts.js
+// (importing it here would close an import cycle through models3d_people).
+
+let horseMeshBuilder = null;
+export function setHorseMeshBuilder(fn) { horseMeshBuilder = fn; }
+
+const HORSE_SADDLE_Y = 1.72;
+
+function buildPoliceHorseMesh(v) {
+  const group = new THREE.Group();
+  const body = new THREE.Group();
+  const horse = horseMeshBuilder(v.model.coat || 0);
+  body.add(horse);
+  group.add(body);
+  if (v.wrecked) {
+    body.rotation.x = 1.4;
+    body.position.z = 1.2;
+  }
+  const saddle = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.62), habboMaterial(0x1c3fae));
+  saddle.position.set(-0.05, 1.68, 0);
+  horse.add(saddle);
+  const rider = riderFor(v, toHex(v.model.rider, 0x1c3fae));
+  const baseY = HORSE_SADDLE_Y - 0.93 * rider.scale.y;
+  rider.position.set(-0.08, baseY, 0);
+  poseRider(rider, 0.7, 0.75, -0.04);
+  // legs astride the barrel instead of through it
+  rider.userData.legL.rotation.x = -0.5;
+  rider.userData.legR.rotation.x = 0.5;
+  group.add(rider);
+  Object.assign(group.userData, { horseLegs: horse.userData.legs, horseBody: horse, riderBaseY: baseY });
+  return group;
+}
+
+// Per frame for police bikes/horses (after ragdoll.syncBikeRider): hides the
+// rider while the officer is off on foot and animates the horse's gait.
+export function syncPoliceMount(mesh, v, dt) {
+  const ud = mesh.userData;
+  if (ud.riderFig && !v.hijacked) ud.riderFig.visible = !v._riderAway && !v.wrecked;
+  const legs = ud.horseLegs;
+  if (!legs || v.wrecked) return;
+  const s = Math.abs(v.speed);
+  const gallop = s > 5.5;
+  ud.gaitPhase = ((ud.gaitPhase || 0) + dt * (s < 0.2 ? 0 : 3 + s * (gallop ? 0.75 : 0.95))) % (Math.PI * 2);
+  const ph = ud.gaitPhase, amp = Math.min(0.6, s * 0.09);
+  // trot swings the diagonal pairs together; a gallop staggers them
+  const lag = gallop ? 0.7 : 0;
+  legs[0].rotation.z = Math.sin(ph) * amp;
+  legs[3].rotation.z = Math.sin(ph + lag) * amp;
+  legs[1].rotation.z = Math.sin(ph + Math.PI) * amp;
+  legs[2].rotation.z = Math.sin(ph + Math.PI + lag) * amp;
+  const bob = Math.abs(Math.sin(ph)) * amp * 0.12;
+  ud.horseBody.position.y = bob;
+  if (ud.riderFig) ud.riderFig.position.y = ud.riderBaseY + bob;
 }
 
 // --- bus (articulated "harmonica") ---------------------------------------------
@@ -571,7 +794,7 @@ function buildBusMesh(v) {
   const fwX = hl - 2.7, mwX = x0f + 1.0;
   const rwX = -hl * 0.78 - jointX;
   const key = `bus|${len}|${wid}|${!!v.wrecked}`;
-  const mats = vehicleMaterials();
+  const mats = vehicleMaterials(!!v.wrecked);
 
   const frontGeo = cached(key + '|f', () => {
     const B = new GeoBuilder(3);
@@ -600,6 +823,7 @@ function buildBusMesh(v) {
   for (const s of [1, -1]) addWheel(rear, wgeo, mats[0], rwX, BUS_WHEEL_R, s * wz, wheels);
 
   group.userData.wheels = wheels;
+  group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = BUS_WHEEL_R;
   group.userData.busRear = rear;
   group.userData.busSections = { frontLen, frontX, rearLen, rearX };
@@ -651,82 +875,302 @@ export function updatePoliceLamps(mesh, time, chasing, id = 0) {
 }
 
 // --- boat ---------------------------------------------------------------------
-// Lofted sloep hull: gunwale and chine outlines per station, pointed bow, flat
-// transom. The keel sits below y=0 (scene3d parks the group at water level).
+// Lofted hulls per boat kind (boattypes.js): gunwale and chine outlines per
+// station, flat or pointed transom. The keel sits below y=0 (scene3d parks
+// the group at water level). Flags are the Groningen city flag (green, white,
+// green); nav lights sit in the lamp group so nightlights3d can make them glow.
 
-function hullStations(L, W) {
+const NAV_RED = 0xff2a1a, NAV_GREEN = 0x26ff5a, NAV_WHITE = 0xfff4dc;
+const GRN_FLAG = 0x1f8a3c, WHITE_FLAG = 0xf2f0ea;
+const WOOD = 0x9a7048, DECK = 0xb08658, KEEL = 0x5a2a22;
+
+const HULL_SHAPES = {
+  sloep: {
+    ts: [0, 0.14, 0.32, 0.52, 0.68, 0.8, 0.9, 1],
+    f: (t) => (t < 0.55 ? 0.86 + 0.14 * Math.sin((t / 0.55) * Math.PI / 2) : Math.cos(((t - 0.55) / 0.45) * Math.PI / 2)),
+    top: (t) => 0.5 + 0.22 * t * t, rise: (t) => Math.max(0, (t - 0.6) / 0.4), chine: -0.08, keel: -0.2, floor: 0.14,
+  },
+  rondvaart: {
+    ts: [0, 0.06, 0.2, 0.45, 0.7, 0.8, 0.88, 0.95, 1],
+    f: (t) => (t < 0.06 ? 0.9 + 0.1 * Math.sin((t / 0.06) * Math.PI / 2) : t < 0.72 ? 1 : Math.pow(Math.cos(((t - 0.72) / 0.28) * Math.PI / 2), 0.75)),
+    top: (t) => 0.52 + 0.14 * Math.max(0, (t - 0.7) / 0.3) ** 2, rise: (t) => Math.max(0, (t - 0.75) / 0.25), chine: -0.14, keel: -0.3, floor: 0.14,
+  },
+  kano: {
+    ts: [0, 0.05, 0.14, 0.3, 0.5, 0.7, 0.86, 0.95, 1],
+    f: (t) => Math.pow(Math.max(0, Math.sin(Math.PI * t)), 0.5),
+    top: (t) => 0.3 + 0.14 * (2 * t - 1) ** 4, rise: (t) => Math.abs(2 * t - 1) ** 2, chine: -0.07, keel: -0.13, floor: 0.06,
+  },
+  kajak: {
+    ts: [0, 0.05, 0.14, 0.3, 0.5, 0.7, 0.86, 0.95, 1],
+    f: (t) => Math.pow(Math.max(0, Math.sin(Math.PI * t)), 0.6),
+    top: (t) => 0.2 + 0.06 * (2 * t - 1) ** 2, rise: (t) => Math.abs(2 * t - 1) ** 2, chine: -0.05, keel: -0.11, floor: 0.04, deck: true,
+  },
+  dinghy: {
+    ts: [0, 0.16, 0.36, 0.55, 0.72, 0.86, 1],
+    f: (t) => (t < 0.45 ? 0.8 + 0.2 * Math.sin((t / 0.45) * Math.PI / 2) : Math.pow(Math.cos(((t - 0.45) / 0.55) * Math.PI / 2), 0.7)),
+    top: (t) => 0.42 + 0.12 * t * t, rise: (t) => Math.max(0, (t - 0.55) / 0.45), chine: -0.05, keel: -0.15, floor: 0.08,
+  },
+  rubberboot: {
+    ts: [0, 0.14, 0.32, 0.52, 0.68, 0.82, 0.92, 1],
+    f: (t) => (t < 0.6 ? 0.9 + 0.1 * Math.sin((t / 0.6) * Math.PI / 2) : Math.pow(Math.cos(((t - 0.6) / 0.4) * Math.PI / 2), 0.8)),
+    top: (t) => 0.24 + 0.14 * t * t, rise: (t) => Math.max(0, (t - 0.6) / 0.4), chine: -0.06, keel: -0.17, floor: 0.1,
+  },
+};
+
+function hullStations(L, W, S) {
   const hl = L / 2;
-  const ts = [0, 0.14, 0.32, 0.52, 0.68, 0.8, 0.9, 1];
-  return ts.map((t) => {
-    const f = t < 0.55 ? 0.86 + 0.14 * Math.sin((t / 0.55) * Math.PI / 2) : Math.cos(((t - 0.55) / 0.45) * Math.PI / 2);
-    const x = -hl + t * L;
-    const hw = (W / 2) * Math.max(0, f);
-    const bowRise = Math.max(0, (t - 0.6) / 0.4);
+  return S.ts.map((t) => {
+    const hw = (W / 2) * Math.max(0, S.f(t));
+    const r = S.rise(t);
     return {
-      x, t, hw,
-      top: 0.5 + 0.22 * t * t,
+      x: -hl + t * L, t, hw,
+      top: S.top(t),
       chineW: hw * 0.72,
-      chine: -0.08 + 0.3 * bowRise * bowRise,
-      keel: -0.2 + 0.42 * bowRise * bowRise * bowRise,
+      chine: S.chine + (0.22 - S.chine * 0.5) * r * r,
+      keel: S.keel + (0.2 - S.keel) * r * r * r,
     };
   });
 }
 
-function buildBoatGeometry(L, W, hull, trim, cabin, police) {
-  return cached(`boat|${L}|${W}|${hull}|${trim}|${cabin}|${police}`, () => {
-    const B = new GeoBuilder(3);
-    const st = hullStations(L, W);
-    const floorY = 0.14;
-    const WOOD = 0x9a7048, DECK = 0xb08658;
-    for (let i = 0; i < st.length - 1; i++) {
-      const a = st[i], b = st[i + 1];
-      for (const s of [1, -1]) {
-        const out = [0, 0, s];
-        const aT = [a.x, a.top, s * a.hw], bT = [b.x, b.top, s * b.hw];
-        const aS = [a.x, a.top - 0.09, s * a.hw * 0.995], bS = [b.x, b.top - 0.09, s * b.hw * 0.995];
-        const aC = [a.x, a.chine, s * a.chineW], bC = [b.x, b.chine, s * b.chineW];
-        const aK = [a.x, a.keel, 0], bK = [b.x, b.keel, 0];
-        B.quadOut(aS, bS, bT, aT, out, trim);
-        B.quadOut(aC, bC, bS, aS, out, hull);
-        B.quadOut(aK, bK, bC, aC, [0, -1, s * 0.5], 0x5a2a22);
-        const aI = [a.x, a.top, s * Math.max(0, a.hw - 0.06)], bI = [b.x, b.top, s * Math.max(0, b.hw - 0.06)];
-        B.quadOut(aT, bT, bI, aI, [0, 1, 0], WOOD);
-        const aF = [a.x, floorY, s * Math.max(0, a.hw - 0.12)], bF = [b.x, floorY, s * Math.max(0, b.hw - 0.12)];
-        B.quadOut(aI, bI, bF, aF, [0, 0, -s], shadeHex(hull, 0.9));
-        B.quadOut(aF, bF, [b.x, floorY, 0], [a.x, floorY, 0], [0, 1, 0], DECK);
+// Half-width and gunwale height of the hull at local x.
+function hullAt(st, x) {
+  for (let i = 0; i < st.length - 1; i++) {
+    const a = st[i], b = st[i + 1];
+    if (x >= a.x && x <= b.x) {
+      const k = (x - a.x) / (b.x - a.x || 1);
+      return { hw: a.hw + (b.hw - a.hw) * k, top: a.top + (b.top - a.top) * k };
+    }
+  }
+  const e = x < st[0].x ? st[0] : st[st.length - 1];
+  return { hw: e.hw, top: e.top };
+}
+
+function hullShell(B, st, hull, trim, floorY, deck) {
+  for (let i = 0; i < st.length - 1; i++) {
+    const a = st[i], b = st[i + 1];
+    for (const s of [1, -1]) {
+      const out = [0, 0, s];
+      const aT = [a.x, a.top, s * a.hw], bT = [b.x, b.top, s * b.hw];
+      const aS = [a.x, a.top - 0.07, s * a.hw * 0.995], bS = [b.x, b.top - 0.07, s * b.hw * 0.995];
+      const aC = [a.x, a.chine, s * a.chineW], bC = [b.x, b.chine, s * b.chineW];
+      const aK = [a.x, a.keel, 0], bK = [b.x, b.keel, 0];
+      B.quadOut(aS, bS, bT, aT, out, trim);
+      B.quadOut(aC, bC, bS, aS, out, hull);
+      B.quadOut(aK, bK, bC, aC, [0, -1, s * 0.5], KEEL);
+      if (deck) {
+        const ridge = (p) => [p.x, p.top + 0.05 * Math.min(1, p.hw / 0.2), 0];
+        B.quadOut(aT, bT, ridge(b), ridge(a), [0, 1, s * 0.4], hull);
+        continue;
       }
+      const inA = Math.min(0.06, a.hw * 0.4), inB = Math.min(0.06, b.hw * 0.4);
+      const aI = [a.x, a.top, s * (a.hw - inA)], bI = [b.x, b.top, s * (b.hw - inB)];
+      B.quadOut(aT, bT, bI, aI, [0, 1, 0], WOOD);
+      const aF = [a.x, floorY, s * Math.max(0, a.hw - 0.12)], bF = [b.x, floorY, s * Math.max(0, b.hw - 0.12)];
+      B.quadOut(aI, bI, bF, aF, [0, 0, -s], shadeHex(hull, 0.9));
+      B.quadOut(aF, bF, [b.x, floorY, 0], [a.x, floorY, 0], [0, 1, 0], DECK);
     }
-    const s0 = st[0];
+  }
+  const s0 = st[0];
+  if (s0.hw > 0.05) {
     B.quadOut([s0.x, s0.top, s0.hw], [s0.x, s0.top, -s0.hw], [s0.x, s0.chine, -s0.chineW], [s0.x, s0.chine, s0.chineW], [-1, 0, 0], hull);
-    B.triOut([s0.x, s0.chine, s0.chineW], [s0.x, s0.chine, -s0.chineW], [s0.x, s0.keel, 0], [-1, 0, 0], 0x5a2a22);
-    B.quadOut([s0.x + 0.001, s0.top, s0.hw - 0.12], [s0.x + 0.001, s0.top, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, s0.hw - 0.12], [1, 0, 0], shadeHex(hull, 0.9));
+    B.triOut([s0.x, s0.chine, s0.chineW], [s0.x, s0.chine, -s0.chineW], [s0.x, s0.keel, 0], [-1, 0, 0], KEEL);
+    if (!deck) B.quadOut([s0.x + 0.001, s0.top, s0.hw - 0.12], [s0.x + 0.001, s0.top, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, -(s0.hw - 0.12)], [s0.x + 0.001, floorY, s0.hw - 0.12], [1, 0, 0], shadeHex(hull, 0.9));
+  }
+}
 
-    const hl = L / 2;
-    const benchW = W * 0.8;
-    B.box(-hl + 0.3, 0.36, 0, 0.36, 0.06, benchW * 0.95, WOOD);
-    B.box(-hl + 0.3, 0.25, 0, 0.3, 0.2, benchW * 0.8, shadeHex(hull, 0.85));
-    for (const s of [1, -1]) B.box(-hl + 0.9, 0.36, s * (benchW / 2 - 0.12), 1.0, 0.06, 0.24, WOOD);
-    B.box(hl * 0.35, 0.36, 0, 0.28, 0.06, W * 0.62, WOOD);
-
-    if (cabin) {
-      const cx0 = -hl * 0.35, cx1 = hl * 0.35;
-      const cw = W * 0.72;
-      const cabinTop = 1.2;
-      B.box((cx0 + cx1) / 2, (0.14 + 0.85) / 2, 0, cx1 - cx0, 0.71, cw, police ? 0xeceae4 : shadeHex(hull, 0.95));
-      B.box((cx0 + cx1) / 2 - 0.03, 1.02, 0, cx1 - cx0 - 0.08, 0.34, cw - 0.04, GLASS, G_GLASS);
-      B.box((cx0 + cx1) / 2, cabinTop + 0.02, 0, cx1 - cx0 + 0.15, 0.07, cw + 0.06, cabin);
-      for (const s of [1, -1]) B.box(cx0 + 0.03, 1.02, s * (cw / 2 - 0.03), 0.06, 0.34, 0.06, cabin);
-    } else {
-      const cx = hl * 0.05;
-      B.box(cx, 0.45, W * 0.18, 0.4, 0.62, 0.36, shadeHex(hull, 0.9));
-      B.box(cx + 0.19, 0.86, W * 0.18, 0.02, 0.2, 0.4, GLASS, G_GLASS, 0, 0, 0.35);
-      B.geo(new THREE.TorusGeometry(0.1, 0.012, 3, 10).rotateY(Math.PI / 2), composeMatrix(cx - 0.24, 0.86, W * 0.18, 0, 0, 0.5), 0x2a2a2b);
+// Groningen city flag on a pole: three equal horizontal bands, green-white-
+// green, the cloth streaming aft (-x) with a slight ripple.
+function cityFlag(B, x, baseY, z, poleH = 0.8, len = 0.36, h = 0.24) {
+  const topY = baseY + poleH;
+  B.geo(tubeGeometry([x, baseY, z], [x - 0.04, topY + 0.04, z], 0.012, 0.009, 4), null, 0x6a5038);
+  const segs = 4, bands = [GRN_FLAG, WHITE_FLAG, GRN_FLAG];
+  for (let i = 0; i < segs; i++) {
+    const x0 = x - 0.045 - len * (i / segs), x1 = x - 0.045 - len * ((i + 1) / segs);
+    const z0 = z + 0.03 * Math.sin(i * 1.7), z1 = z + 0.03 * Math.sin((i + 1) * 1.7);
+    const sag0 = 0.012 * i, sag1 = 0.012 * (i + 1);
+    for (let b = 0; b < 3; b++) {
+      const y0 = topY - (h * b) / 3, y1 = topY - (h * (b + 1)) / 3;
+      const q = [[x0, y0 - sag0, z0], [x1, y0 - sag1, z1], [x1, y1 - sag1, z1], [x0, y1 - sag0, z0]];
+      B.quadOut(q[0], q[1], q[2], q[3], [0, 0, 1], bands[b]);
+      B.quadOut(q[0], q[1], q[2], q[3], [0, 0, -1], bands[b]);
     }
-    const sx = -hl + 0.05;
-    B.geo(tubeGeometry([sx, 0.5, 0], [sx - 0.05, 1.3, 0], 0.012, 0.01, 4), null, 0x6a5038);
-    const fc = [0xae1c28, 0xf2f0ea, 0x21468b];
-    for (let i = 0; i < 3; i++) B.box(sx - 0.2, 1.24 - i * 0.06, 0, 0.3, 0.06, 0.006, fc[i]);
-    B.box(hl - 0.05, st[st.length - 2].top + 0.05, 0, 0.06, 0.04, 0.06, 0xe8e6e0, G_LAMP);
+  }
+}
+
+// Port (left, -z) red, starboard green, white stern light.
+function navLights(B, st, L, sternY) {
+  const hl = L / 2;
+  const x = hl * 0.45;
+  const h = hullAt(st, x);
+  B.box(x, h.top + 0.035, -(h.hw + 0.005), 0.1, 0.05, 0.03, NAV_RED, G_LAMP);
+  B.box(x, h.top + 0.035, h.hw + 0.005, 0.1, 0.05, 0.03, NAV_GREEN, G_LAMP);
+  B.box(-hl + 0.02, sternY, 0, 0.04, 0.06, 0.06, NAV_WHITE, G_LAMP);
+}
+
+function sloepFit(B, st, L, W, hull, cabin, police) {
+  const hl = L / 2;
+  const benchW = W * 0.8;
+  B.box(-hl + 0.3, 0.36, 0, 0.36, 0.06, benchW * 0.95, WOOD);
+  B.box(-hl + 0.3, 0.25, 0, 0.3, 0.2, benchW * 0.8, shadeHex(hull, 0.85));
+  for (const s of [1, -1]) B.box(-hl + 0.9, 0.36, s * (benchW / 2 - 0.12), 1.0, 0.06, 0.24, WOOD);
+  B.box(hl * 0.35, 0.36, 0, 0.28, 0.06, W * 0.62, WOOD);
+  if (cabin) {
+    const cx0 = -hl * 0.35, cx1 = hl * 0.35;
+    const cw = W * 0.72;
+    const cabinTop = 1.2;
+    B.box((cx0 + cx1) / 2, (0.14 + 0.85) / 2, 0, cx1 - cx0, 0.71, cw, police ? 0xeceae4 : shadeHex(hull, 0.95));
+    B.box((cx0 + cx1) / 2 - 0.03, 1.02, 0, cx1 - cx0 - 0.08, 0.34, cw - 0.04, GLASS, G_GLASS);
+    B.box((cx0 + cx1) / 2, cabinTop + 0.02, 0, cx1 - cx0 + 0.15, 0.07, cw + 0.06, cabin);
+    for (const s of [1, -1]) B.box(cx0 + 0.03, 1.02, s * (cw / 2 - 0.03), 0.06, 0.34, 0.06, cabin);
+    if (!police) {
+      B.box(cx1 - 0.1, cabinTop + 0.2, 0, 0.05, 0.36, 0.05, 0x2a2a2b);
+      B.box(cx1 - 0.1, cabinTop + 0.39, 0, 0.06, 0.06, 0.06, NAV_WHITE, G_LAMP);
+    }
+  } else {
+    const cx = hl * 0.05, cz = W * 0.18;
+    B.box(cx, 0.45, cz, 0.4, 0.62, 0.36, shadeHex(hull, 0.9));
+    B.box(cx + 0.19, 0.86, cz, 0.02, 0.2, 0.4, GLASS, G_GLASS, 0, 0, 0.35);
+    B.geo(new THREE.TorusGeometry(0.1, 0.012, 3, 10).rotateY(Math.PI / 2), composeMatrix(cx - 0.24, 0.86, cz, 0, 0, 0.5), 0x2a2a2b);
+    // helmsman's seat behind the console
+    B.box(cx - 0.62, 0.31, cz, 0.34, 0.34, 0.36, shadeHex(hull, 0.85));
+    B.box(cx - 0.62, 0.48, cz, 0.36, 0.04, 0.38, WOOD);
+    B.box(cx - 0.8, 0.68, cz, 0.04, 0.36, 0.34, WOOD, 0, 0, 0, 0.12);
+  }
+  cityFlag(B, -hl + 0.05, 0.5, 0);
+}
+
+function rondvaartFit(B, st, L, W, hull, cabin) {
+  const hl = L / 2;
+  const iw = W / 2 - 0.16;
+  for (let x = hl - 2.1; x > -hl + 1.6; x -= 0.95) {
+    for (const s of [1, -1]) {
+      B.box(x, 0.39, s * (iw + 0.15) / 2, 0.4, 0.06, iw - 0.15, WOOD);
+      B.box(x, 0.26, s * (iw + 0.15) / 2, 0.32, 0.2, iw - 0.2, shadeHex(hull, 0.8));
+      B.box(x - 0.24, 0.62, s * (iw + 0.15) / 2, 0.05, 0.42, iw - 0.15, cabin, 0, 0, 0, 0.1);
+    }
+  }
+  // glass-roofed canopy on slim posts
+  const rx0 = -hl + 1.25, rx1 = hl - 1.35, roofY = 1.6;
+  const n = 5;
+  for (let i = 0; i <= n; i++) {
+    const x = rx0 + ((rx1 - rx0) * i) / n;
+    for (const s of [1, -1]) B.box(x, (0.55 + roofY) / 2, s * (W / 2 - 0.08), 0.05, roofY - 0.55, 0.05, cabin);
+  }
+  for (const s of [1, -1]) {
+    B.box((rx0 + rx1) / 2, roofY, s * (W / 2 - 0.08), rx1 - rx0 + 0.1, 0.07, 0.08, cabin);
+    B.box((rx0 + rx1) / 2, 0.78, s * (W / 2 - 0.06), rx1 - rx0, 0.05, 0.04, cabin);
+  }
+  B.box((rx0 + rx1) / 2, roofY + 0.06, 0, rx1 - rx0 + 0.1, 0.04, W - 0.12, GLASS, G_GLASS);
+  for (const x of [rx0, rx1]) B.box(x, roofY + 0.02, 0, 0.08, 0.08, W - 0.12, cabin);
+  // skipper's stool and wheel at the stern
+  B.box(-hl + 0.75, 0.38, 0, 0.3, 0.48, 0.3, 0x2a2a2b);
+  B.box(-hl + 0.75, 0.6, 0, 0.34, 0.04, 0.34, WOOD);
+  B.box(-hl + 1.2, 0.55, 0, 0.3, 0.82, 0.5, cabin);
+  B.geo(new THREE.TorusGeometry(0.14, 0.014, 3, 12).rotateY(Math.PI / 2), composeMatrix(-hl + 1.04, 1.0, 0, 0, 0, 0.45), 0x2a2a2b);
+  cityFlag(B, -hl + 0.08, 0.55, 0, 1.0, 0.5, 0.33);
+  cityFlag(B, hl - 0.2, 0.66, 0, 0.7, 0.3, 0.2);
+  // mast light above the canopy
+  B.box(rx1 - 0.2, roofY + 0.25, 0, 0.04, 0.4, 0.04, 0x2a2a2b);
+  B.box(rx1 - 0.2, roofY + 0.48, 0, 0.07, 0.07, 0.07, NAV_WHITE, G_LAMP);
+}
+
+function kanoFit(B, st, L, W, hull) {
+  const hl = L / 2;
+  for (const x of [-hl * 0.58, hl * 0.5]) {
+    const h = hullAt(st, x);
+    B.box(x, 0.15, 0, 0.26, 0.04, h.hw * 2 - 0.1, WOOD);
+  }
+  const h = hullAt(st, 0);
+  B.box(0, h.top - 0.02, 0, 0.06, 0.04, h.hw * 2 - 0.06, WOOD);
+}
+
+function kajakFit(B) {
+  const coam = new THREE.TorusGeometry(1, 0.08, 3, 14).rotateX(Math.PI / 2);
+  B.geo(coam, composeMatrix(-0.12, 0.25, 0, 0, 0, 0, 0.36, 0.3, 0.22), 0x1e1e20);
+  B.geo(new THREE.CircleGeometry(1, 12).rotateX(-Math.PI / 2), composeMatrix(-0.12, 0.245, 0, 0, 0, 0, 0.34, 1, 0.2), 0x121214);
+}
+
+function dinghyFit(B, st, L) {
+  const hl = L / 2;
+  for (const x of [0.1, -hl + 0.38]) {
+    const h = hullAt(st, x);
+    B.box(x, 0.3, 0, 0.26, 0.04, h.hw * 2 - 0.08, WOOD);
+  }
+  for (const s of [1, -1]) B.geo(tubeGeometry([-0.6, 0.4, s * 0.38], [1.0, 0.36, s * 0.3], 0.018, 0.018, 4), null, 0x8a6440);
+  outboard(B, -hl, 0.45, 0.8);
+}
+
+function outboard(B, x, y, k = 1) {
+  B.box(x - 0.12 * k, y + 0.12 * k, 0, 0.24 * k, 0.26 * k, 0.2 * k, 0x1e2226);
+  B.box(x - 0.1 * k, y - 0.14 * k, 0, 0.08 * k, 0.5 * k, 0.08 * k, 0x2a2e33);
+  B.box(x + 0.05 * k, y + 0.05 * k, 0, 0.26 * k, 0.03 * k, 0.03 * k, 0x2a2e33, 0, 0, 0, -0.2);
+}
+
+function rubberFit(B, st, L, W, tube, accent) {
+  const hl = L / 2;
+  const R = 0.2;
+  const rad = (p) => R * (1 - 0.3 * p.t ** 3);
+  const ctr = (p, s) => [p.x, 0.3 + 0.2 * Math.max(0, (p.t - 0.6) / 0.4) ** 2, s * Math.max(0, p.hw - R * 0.9)];
+  for (const s of [1, -1]) {
+    for (let i = 0; i < st.length - 1; i++) {
+      const a = ctr(st[i], s), b = ctr(st[i + 1], s);
+      B.geo(tubeGeometry(a, b, rad(st[i]), rad(st[i + 1]), 7), null, tube);
+      B.geo(new THREE.SphereGeometry(rad(st[i]), 7, 4), composeMatrix(a[0], a[1], a[2]), tube);
+    }
+    const a = ctr(st[2], s), b = ctr(st[4], s);
+    B.geo(tubeGeometry([a[0], a[1] + 0.03, a[2] * 1.08], [b[0], b[1] + 0.03, b[2] * 1.08], 0.13, 0.12, 5), null, accent);
+  }
+  const tip = st[st.length - 1];
+  B.geo(new THREE.SphereGeometry(rad(tip), 7, 4), composeMatrix(tip.x, 0.5, 0), tube);
+  B.box(0.15, 0.36, 0, 0.36, 0.52, 0.42, shadeHex(accent, 0.9));
+  B.box(0.26, 0.7, 0, 0.02, 0.18, 0.44, GLASS, G_GLASS, 0, 0, 0.4);
+  B.box(-0.35, 0.3, 0, 0.36, 0.3, W - 0.8, 0x2a2a2b);
+  outboard(B, -hl + 0.02, 0.4, 1.1);
+}
+
+function waterfietsFit(B, L, W, color, accent) {
+  const hl = L / 2;
+  for (const s of [1, -1]) {
+    const pz = s * (W / 2 - 0.22);
+    B.geo(new THREE.SphereGeometry(1, 12, 6), composeMatrix(0, 0.02, pz, 0, 0, 0, hl * 0.98, 0.25, 0.22), color);
+    B.geo(new THREE.SphereGeometry(1, 12, 3, 0, Math.PI * 2, Math.PI * 0.42, Math.PI * 0.12), composeMatrix(0, 0.02, pz, 0, 0, 0, hl * 0.99, 0.252, 0.222), accent);
+  }
+  B.box(-0.05, 0.29, 0, 1.9, 0.06, W - 0.35, accent);
+  B.box(-0.15, 0.52, 0, 0.44, 0.06, W - 0.35, color);
+  B.box(-0.15, 0.4, 0, 0.36, 0.2, W - 0.5, shadeHex(accent, 0.8));
+  B.box(-0.4, 0.8, 0, 0.06, 0.52, W - 0.35, color, 0, 0, 0, 0.18);
+  B.box(0.35, 0.42, 0, 0.3, 0.2, 0.3, shadeHex(accent, 0.8));
+  const wheel = new THREE.CylinderGeometry(0.34, 0.34, 0.46, 10, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(Math.PI / 2);
+  B.geo(wheel, composeMatrix(-0.95, 0.3, 0), accent);
+  B.box(0.75, 0.62, 0, 0.04, 0.6, 0.04, 0x8a8e92);
+  B.box(0.75, 0.9, 0, 0.05, 0.03, 0.4, 0x2a2a2b);
+  cityFlag(B, -1.15, 0.32, 0, 0.9, 0.26, 0.17);
+  B.box(-1.19, 1.25, 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
+}
+
+function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
+  return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}`, () => {
+    const B = new GeoBuilder(3);
+    const hl = L / 2;
+    if (kind === 'waterfiets') {
+      waterfietsFit(B, L, W, hull, cabin || 0x2a8fb0);
+      return B.build();
+    }
+    const S = HULL_SHAPES[kind] || HULL_SHAPES.sloep;
+    const st = hullStations(L, W, S);
+    hullShell(B, st, hull, trim, S.floor, !!S.deck);
+    switch (kind) {
+      case 'rondvaart': rondvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
+      case 'kano': kanoFit(B, st, L, W, hull); break;
+      case 'kajak': kajakFit(B); break;
+      case 'dinghy': dinghyFit(B, st, L); break;
+      case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
+      default: sloepFit(B, st, L, W, hull, cabin, police);
+    }
+    if (kind === 'kano' || kind === 'kajak') {
+      const x = -hl * 0.72;
+      B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
+    } else navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
     return B.build();
   });
 }
@@ -735,11 +1179,13 @@ function buildBoatMesh(v) {
   const group = new THREE.Group();
   const len = v.model.len, wid = v.model.wid;
   const police = !!v.isPolice;
+  const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const withCabin = police || hash2(v.id || 0, 5.3) < 0.4;
-  const trim = police ? 0x1f3f8f : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048][Math.floor(hash2(v.id || 0, 8.1) * 4)];
-  group.add(new THREE.Mesh(buildBoatGeometry(len, wid, hull, trim, withCabin ? cabinColor : 0, police), vehicleMaterials()));
+  const trims = kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
+  const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
+  group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));
   if (police) {
     const lamps = [];
     for (const s of [1, -1]) {
@@ -755,14 +1201,29 @@ function buildBoatMesh(v) {
 
 // --- wheel spin ---------------------------------------------------------------
 
-// Rolls every wheel by the distance travelled this frame; bike riders pedal
-// in step. No-op for meshes without userData.wheels (boats).
-export function updateVehicleWheelSpin(mesh, speed, dt) {
+// Rolls every wheel by the distance travelled this frame and turns the front
+// wheels with the steering; bike riders pedal in step. The drawn roll per
+// frame is capped below half the spoke spacing, so fast wheels keep turning
+// forwards instead of strobing still or backwards (wagon-wheel effect).
+// No-op for meshes without userData.wheels (boats).
+const SPIN_STEP = 0.5;
+const MAX_STEER_ANGLE = 0.5;
+export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
   const ud = mesh.userData;
   const wheels = ud.wheels;
   if (!wheels || !wheels.length) return;
   const delta = (speed / ud.wheelRadius) * dt;
-  for (const w of wheels) w.rotation.z -= delta;
+  const cap = ud.spinStep || SPIN_STEP;
+  const shown = Math.max(-cap, Math.min(cap, delta));
+  for (const w of wheels) w.rotation.z -= shown;
+  const fw = ud.frontWheels;
+  if (fw) {
+    const a = -steer * MAX_STEER_ANGLE;
+    for (const w of fw) {
+      if (w.rotation.order !== 'YZX') w.rotation.order = 'YZX';
+      w.rotation.y += (a - w.rotation.y) * Math.min(1, dt * 14);
+    }
+  }
   const rl = ud.riderLegs;
   if (rl) {
     // cranks turn the same way as the wheels (angle decreasing = forward)
@@ -776,9 +1237,31 @@ export function updateVehicleWheelSpin(mesh, speed, dt) {
 
 // --- dispatch -------------------------------------------------------------------
 
+// Midi bus: one short rigid section, same livery as the big ones.
+function buildMidiBusMesh(v) {
+  const group = new THREE.Group();
+  const len = v.model.len, wid = v.model.wid, hl = len / 2;
+  const fwX = hl - 1.9, rwX = -hl + 2.0;
+  const geo = cached(`midibus|${len}|${wid}|${!!v.wrecked}`, () => {
+    const B = new GeoBuilder(3);
+    busSection(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doorXs: [hl - 1.05, 0.2] });
+    return B.build();
+  });
+  const mats = vehicleMaterials();
+  group.add(new THREE.Mesh(geo, mats));
+  const wgeo = carWheelGeometry(BUS_WHEEL_R, 0.3);
+  const wheels = [];
+  for (const x of [fwX, rwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * (wid / 2 - 0.2), wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = BUS_WHEEL_R;
+  return group;
+}
+
 function buildVehicleMeshFor(v) {
+  if (v._mount === 'horse' && horseMeshBuilder) return buildPoliceHorseMesh(v);
   if (v.isBike) return buildBikeMesh(v);
   if (v.isScooter) return buildScooterMesh(v);
+  if (v.isBus && v.model.name === 'midibus') return buildMidiBusMesh(v);
   if (v.isBus) return buildBusMesh(v);
   if (v.isBoat) return buildBoatMesh(v);
   if (v.isHeroCar) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);
@@ -795,6 +1278,7 @@ export function buildVehicleMesh(v) {
   group.userData.builtAt = performance.now();
   meshRegistry.set(v.id, group);
   if (v.damage) restoreDamage(group, v);
+  else if (v.dentLog && v.dentLog.length && !v.wrecked) replayDents(group, v);
   return group;
 }
 
@@ -1026,6 +1510,8 @@ function syncDamageMaterials(mesh, v) {
   const k = Math.min(1, v.damage.glass);
   mats[1].color.setScalar(1 - k * 0.3);
   mats[1].roughness = 0.18 + k * 0.5;
+  // crazed glass is harder to see through
+  if (mats[1].transparent) mats[1].opacity = GLASS_OPACITY + k * 0.4;
   mats[0].roughness = 0.5 + Math.min(1, v.damage.total / 3) * 0.25;
 }
 
@@ -1108,7 +1594,23 @@ export function applyVehicleDamage(mesh, v, lx, lz, strength) {
   recomputeFlatNormals(g);
   storeDamage(v, g);
   syncDamageMaterials(mesh, v);
+  // compact log of the hits, so a saved (owned) vehicle comes back dented
+  if (!replaying) {
+    if (!v.dentLog) v.dentLog = [];
+    v.dentLog.push([lx, lz, strength]);
+    if (v.dentLog.length > 12) v.dentLog.shift();
+  }
   return dropped;
+}
+
+let replaying = false;
+function replayDents(mesh, v) {
+  replaying = true;
+  try {
+    for (const [lx, lz, st] of v.dentLog) applyVehicleDamage(mesh, v, lx, lz, st);
+  } finally {
+    replaying = false;
+  }
 }
 
 export function vehicleDamageParts(mesh) {

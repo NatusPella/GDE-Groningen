@@ -1,0 +1,210 @@
+{
+"Planner Hap & Rap|Moi! Welkom bij Hap & Rap. De e-fatbike staat voor je klaar, de thermobox zit erop.": {
+"src": "bezorger/intro_0.mp3",
+"dur": 5.8
+},
+"Planner Hap & Rap|Ophalen bij de zaak, bezorgen voor het eten koud is. Warm eten is fooi, lauw eten is een klacht.": {
+"src": "bezorger/intro_1.mp3",
+"dur": 4.68
+},
+"Planner Hap & Rap|En let op de wind. In Grunn heb je altijd tegenwind. Ook als je omdraait.": {
+"src": "bezorger/intro_2.mp3",
+"dur": 5.85
+},
+"Centrale Grunn Taxi|Centrale hier. Je taxi staat klaar voor het station, daklampje en al.": {
+"src": "taxi/intro_0.mp3",
+"dur": 5.48
+},
+"Centrale Grunn Taxi|Stop naast de klant, laat ze instappen en breng ze heel naar hun adres. Rustig rijden levert fooi op.": {
+"src": "taxi/intro_1.mp3",
+"dur": 7.5
+},
+"Centrale Grunn Taxi|En studenten na het stappen: bochten netjes. De vorige chauffeur rijdt nog steeds met de ramen open.": {
+"src": "taxi/intro_2.mp3",
+"dur": 6.69
+},
+"Planner Stadsvervoer|Moi! Lijn 3 heeft vandaag geen chauffeur, dus jij mag. Twaalf meter harmonicabus, ga er maar aan staan.": {
+"src": "bus/intro_0.mp3",
+"dur": 7.32
+},
+"Planner Stadsvervoer|Stop bij elke halte tot de deuren weer dicht zijn. Te vroeg vertrekken is in Grunn erger dan te laat.": {
+"src": "bus/intro_1.mp3",
+"dur": 7.38
+},
+"Planner Stadsvervoer|Rustig remmen, hè. Er zitten mensen met koffie in. En mensen die koffie willen.": {
+"src": "bus/intro_2.mp3",
+"dur": 4.92
+},
+"Schipper Geert|Moi, ik ben Geert. Mijn rug doet het niet meer, dus jij bent vandaag de gids.": {
+"src": "rondvaart/intro_0.mp3",
+"dur": 5.85
+},
+"Schipper Geert|Vaar van steiger naar steiger. Bij elk mooi plekje: gas eraf, dan vertel ik het verhaal via de speaker.": {
+"src": "rondvaart/intro_1.mp3",
+"dur": 8.21
+},
+"Schipper Geert|Te hard langs? Dan missen ze het. En toeristen die iets missen, geven geen fooi.": {
+"src": "rondvaart/intro_2.mp3",
+"dur": 6.49
+},
+"Handhaver Ria|Moi, ik ben Ria van de handhaving. Rond het station staan weer fietsen overal behalve in de rekken.": {
+"src": "fietsdepot/intro_0.mp3",
+"dur": 7.23
+},
+"Handhaver Ria|Fietsen met een oranje label mogen weg. Oppakken, naar het busje van het fietsdepot, erin. Elke fiets telt.": {
+"src": "fietsdepot/intro_1.mp3",
+"dur": 7.29
+},
+"Handhaver Ria|Komt er een student aanrennen? Wegwezen, of je bent die fiets kwijt. En niet slaan, hè.": {
+"src": "fietsdepot/intro_2.mp3",
+"dur": 5.59
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Het is KEI-week: half Nederland zoekt een kamer in Grunn en de andere helft verhuist er net uit.": {
+"src": "verhuizing/intro_0.mp3",
+"dur": 5.77
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Sjouw de spullen van de oude kamer naar het busje, rij voorzichtig naar het nieuwe adres en zet alles voor de deur.": {
+"src": "verhuizing/intro_1.mp3",
+"dur": 5.64
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Elke klap in het busje kost je. Plant Henk heeft al genoeg meegemaakt.": {
+"src": "verhuizing/intro_2.mp3",
+"dur": 5.96
+},
+"Planner Hap & Rap|Daar ben je weer! Thermobox erop, trappen maar.": {
+"src": "bezorger/greet_0.mp3",
+"dur": 3.35
+},
+"Planner Hap & Rap|Warm afgeleverd! Zo mag ik het zien.": {
+"src": "bezorger/done_0.mp3",
+"dur": 2.64
+},
+"Planner Hap & Rap|Weer een tevreden klant. En een fooi, als het goed is.": {
+"src": "bezorger/done_1.mp3",
+"dur": 3.16
+},
+"Planner Hap & Rap|Lauw eten, boze klant. Morgen beter, hè.": {
+"src": "bezorger/fail_0.mp3",
+"dur": 4.51
+},
+"Planner Hap & Rap|Jij bent mijn snelste fietser. Zeg het niet tegen de anderen.": {
+"src": "bezorger/level_0.mp3",
+"dur": 4.17
+},
+"Centrale Grunn Taxi|Centrale hier. Je taxi staat weer klaar. Rustig aan vandaag.": {
+"src": "taxi/greet_0.mp3",
+"dur": 4.85
+},
+"Centrale Grunn Taxi|Centrale: klant heel afgeleverd. Keurig.": {
+"src": "taxi/done_0.mp3",
+"dur": 3.96
+},
+"Centrale Grunn Taxi|Centrale hier. Die klant gaf vijf sterren. Wat heb je gedaan?": {
+"src": "taxi/done_1.mp3",
+"dur": 4.65
+},
+"Centrale Grunn Taxi|Centrale hier. Die klant belt net. Hij is niet blij.": {
+"src": "taxi/fail_0.mp3",
+"dur": 4.2
+},
+"Centrale Grunn Taxi|Centrale: jij krijgt voortaan de goede ritten.": {
+"src": "taxi/level_0.mp3",
+"dur": 3.53
+},
+"Planner Stadsvervoer|Lijn drie wacht op je. Op tijd vertrekken, niet te vroeg.": {
+"src": "bus/greet_0.mp3",
+"dur": 4.73
+},
+"Planner Stadsvervoer|Halte gehaald, op de minuut. Prachtig.": {
+"src": "bus/done_0.mp3",
+"dur": 3.26
+},
+"Planner Stadsvervoer|Niemand koffie gemorst? Dan ben je beter dan de vorige.": {
+"src": "bus/done_1.mp3",
+"dur": 3.28
+},
+"Planner Stadsvervoer|Dit komt in het rapport. Met een rode pen.": {
+"src": "bus/fail_0.mp3",
+"dur": 3.14
+},
+"Planner Stadsvervoer|Zo stipt heb ik nog nooit iemand zien rijden. Ik krijg er tranen van.": {
+"src": "bus/level_0.mp3",
+"dur": 4.48
+},
+"Schipper Geert|Ah, mijn gids. Mijn rug doet nog steeds pijn, dus jij vaart.": {
+"src": "rondvaart/greet_0.mp3",
+"dur": 5.43
+},
+"Schipper Geert|Mooi verteld. Ze hingen aan je lippen.": {
+"src": "rondvaart/done_0.mp3",
+"dur": 4.01
+},
+"Schipper Geert|Die toeristen gaan dit thuis nog jaren vertellen.": {
+"src": "rondvaart/done_1.mp3",
+"dur": 3.54
+},
+"Schipper Geert|Au. Nee, niet mijn rug. Mijn boot! Wat heb je gedaan?": {
+"src": "rondvaart/fail_0.mp3",
+"dur": 5.25
+},
+"Schipper Geert|Jij kent het water beter dan ik. En ik vaar hier al veertig jaar.": {
+"src": "rondvaart/level_0.mp3",
+"dur": 5.13
+},
+"Handhaver Ria|Moi. Het station staat weer vol fietsen. Aan de slag.": {
+"src": "fietsdepot/greet_0.mp3",
+"dur": 4.0
+},
+"Handhaver Ria|Weer een fiets in het busje. Het rek huilt van geluk.": {
+"src": "fietsdepot/done_0.mp3",
+"dur": 4.0
+},
+"Handhaver Ria|Netjes. Die student vindt hem nooit meer terug.": {
+"src": "fietsdepot/done_1.mp3",
+"dur": 3.62
+},
+"Handhaver Ria|Zo gaat dat niet. Kom maar terug als je het wel kan.": {
+"src": "fietsdepot/fail_0.mp3",
+"dur": 3.1
+},
+"Handhaver Ria|Jij bent een natuurtalent. Je moet bij de handhaving.": {
+"src": "fietsdepot/level_0.mp3",
+"dur": 3.94
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Nog meer studenten, nog meer dozen. Sjouwen maar!": {
+"src": "verhuizing/greet_0.mp3",
+"dur": 3.77
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Alles heel aangekomen. Zelfs Plant Henk.": {
+"src": "verhuizing/done_0.mp3",
+"dur": 3.86
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Weer een student blij. Nou ja, blij. Hij heeft een kamer.": {
+"src": "verhuizing/done_1.mp3",
+"dur": 3.76
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Dat was de laatste keer dat ik je de breekbare doos gaf.": {
+"src": "verhuizing/fail_0.mp3",
+"dur": 3.61
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Jij sjouwt als een beer. Een voorzichtige beer.": {
+"src": "verhuizing/level_0.mp3",
+"dur": 4.22
+},
+"Tammo|Werken. Voor geld. Wat een concept.": {
+"src": "duo/tammo_start_0.mp3",
+"dur": 3.51
+},
+"Tammo|Genoeg gewerkt voor een week.": {
+"src": "duo/tammo_end_0.mp3",
+"dur": 2.04
+},
+"Anita|Bijbaantje! Eindelijk iets nuttigs.": {
+"src": "duo/anita_start_0.mp3",
+"dur": 3.55
+},
+"Anita|Kijk ons nou, harde werkers.": {
+"src": "duo/anita_end_0.mp3",
+"dur": 2.75
+}
+}

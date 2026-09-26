@@ -6,7 +6,7 @@ import { getSettings, onSettingsChange } from './settings.js';
 // which waits for isThemePlaying() to end.
 
 const SRC = './audio/theme/miles_past_the_city_square.mp3';
-const BASE_VOLUME = 0.55 * 0.5; // same level as G-Music: master 0.55 x music 0.5
+const BASE_VOLUME = 0.55 * 0.85; // same level as G-Music: master 0.55 x music 0.85
 const MUTE_STORAGE_KEY = 'gte-muted';
 const SILENT_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('stil');
 
