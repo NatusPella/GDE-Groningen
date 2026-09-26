@@ -48,6 +48,12 @@ function tryStart() {
   }
 }
 
+// Tries to start without a gesture (allowed in the desktop app); browsers
+// keep waiting for the first click or key.
+export function kickTheme() {
+  tryStart();
+}
+
 export function isThemePlaying() {
   return state !== 'done' && !SILENT_MODE && !!el && (state === 'playing' || !el.paused);
 }

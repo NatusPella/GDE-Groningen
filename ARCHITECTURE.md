@@ -57,6 +57,7 @@ frame then runs, in order:
 | Story | `storyarc.js` (the arc as data), `story.js` (director), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js` |
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), `sidejobvoice.js` (voiced boss lines, `audio/voicelines/jobs`), one `sidejob_*.js` per job |
+| Title and trailer | `startscreen.js` (loading screen, title menu over the live city), `trailer.js` (attract intro, benchmark, recording mode), `intromontage.js` (the "Nieuw spel" opening montage) |
 | UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
 | Audio | `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
@@ -141,6 +142,24 @@ don't collide, and actors are drawn at their height.
   app's `--perf-script=<file>` runs a script in the page after starting a
   game and logs its result; `console.log('[capture] name')` from it saves a
   screenshot.
+
+## Trailer (`js/trailer.js`)
+
+A list of staged shots (`buildShots`: label, cuts `vol`/`kort`, duration,
+forced clock and weather, a focus the world streams around, captions,
+enter/tick/exit for temporary cars, actors, props, and a camera function).
+`runTrailer` owns the frame loop while it runs and drives the world through
+the title screen's `tick`/`render`/`relocate`; the title screen loop idles
+meanwhile. Temporary vehicles carry `cineTemp` (skipped by the title-screen
+traffic AI). `Math.random` is seeded per run and world state (clock,
+weather, trains, helis, balloons) is restored afterwards. Modes: `attract`
+(short cut, hold Space to skip, the last shot's `continuation()` becomes the
+title screen's first camera move and the logo glides into place),
+`benchmark` (real time, fps per shot, results card) and `opname` (fixed
+1/60 s step). The benchmark in a running game saves, reloads with a
+sessionStorage flag and continues the save after "Terug". Captions are
+driven by trailer time, not CSS animations, so slow fixed-step recordings
+stay in sync.
 
 ## Story
 
