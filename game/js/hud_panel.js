@@ -13,6 +13,7 @@ import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
+import { hudPixelRatio } from './uiscale.js';
 
 const MINIMAP_SIZE = 230;
 const MM_SCALE = 1.45; // px per meter (css pixels) when standing still
@@ -112,9 +113,6 @@ export function initHud(world) {
   mmWrap.appendChild(mmCanvas);
   root.appendChild(mmWrap);
 
-  const dpr = window.devicePixelRatio || 1;
-  mmCanvas.width = MINIMAP_SIZE * dpr;
-  mmCanvas.height = MINIMAP_SIZE * dpr;
 
   els = {
     character: topLeft.querySelector('.hud-character'),
@@ -933,7 +931,9 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
 
 function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = hudPixelRatio();
+  const px = Math.round(MINIMAP_SIZE * dpr);
+  if (els.mmCanvas.width !== px) els.mmCanvas.width = els.mmCanvas.height = px;
   const player = world.player;
   const t = performance.now() / 1000;
 

@@ -2442,7 +2442,7 @@ export function updateAudio(dt, world) {
     saveMuted();
     master.gain.setTargetAtTime(muted ? 0 : masterLevel(), ctx.currentTime, 0.05);
     musicOut.gain.setTargetAtTime(muted ? 0 : masterLevel(), ctx.currentTime, 0.05);
-    world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5);
+    world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5, { key: 'mute' });
   }
 
   updateListener(world);

@@ -36,6 +36,7 @@ import { updateSkyProps3D } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
+import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
@@ -1326,9 +1327,10 @@ const _projVec = new THREE.Vector3();
 function projectToScreen(x, y, z) {
   _projVec.set(x, y, z).project(cam);
   if (_projVec.z > 1) return null; // behind the camera
+  const ui = getUiScale(); // #hud is zoomed by the HUD scale
   return {
-    x: (_projVec.x * 0.5 + 0.5) * renderer.domElement.clientWidth,
-    y: (1 - (_projVec.y * 0.5 + 0.5)) * renderer.domElement.clientHeight,
+    x: (_projVec.x * 0.5 + 0.5) * renderer.domElement.clientWidth / ui,
+    y: (1 - (_projVec.y * 0.5 + 0.5)) * renderer.domElement.clientHeight / ui,
   };
 }
 
