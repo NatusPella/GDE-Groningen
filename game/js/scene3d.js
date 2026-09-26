@@ -1697,7 +1697,7 @@ export function update3D(dt, world) {
   }
 
   const pv = player.inVehicle;
-  const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers;
+  const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
   const pAnim = trackSeat(playerSeatTr, player, animDt, true);
   syncPlayerRider(pv, pvMesh, hidePlayers || (pAnim && pAnim.kind === 'enter'), world.time);
@@ -1782,7 +1782,9 @@ export function update3D(dt, world) {
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
   probe.mark('3d:players');
-  const targetAngle = player.inVehicle ? player.inVehicle.angle : player.angle;
+  // a stolen train (traindrive.js) is followed like a very long vehicle
+  const camVeh = player.inVehicle || world.trainCam || null;
+  const targetAngle = camVeh ? camVeh.angle : player.angle;
   followYaw += normalizeAngleDelta(-targetAngle - followYaw) * Math.min(1, dt * 5);
 
   // mouse Y pans the camera up/down around the player, GTA-style - top of
@@ -1808,12 +1810,12 @@ export function update3D(dt, world) {
   if (world.camYaw == null) world.camYaw = targetAngle;
   let camAngle;
   // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
-  const lookBack = !!player.inVehicle && !world.cameraOverride && (world.input.isDown('q') || !!mouse.middleDown);
+  const lookBack = !!camVeh && !world.cameraOverride && (world.input.isDown('q') || !!mouse.middleDown);
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
-  if (player.inVehicle) {
+  if (camVeh) {
     if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
-    const fast = Math.min(1, Math.abs(player.inVehicle.speed || 0) / LOOK_FAST_SPEED);
+    const fast = Math.min(1, Math.abs(camVeh.speed || 0) / LOOK_FAST_SPEED);
     if (looking && mouse.dx !== 0 && !lookBack) {
       lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
       lookYawIdle = 0;
@@ -1828,11 +1830,11 @@ export function update3D(dt, world) {
     lookYaw = 0;
     camAngle = world.camYaw;
   }
-  camWasInVehicle = !!player.inVehicle;
+  camWasInVehicle = !!camVeh;
 
   // vehicles get a longer, higher orbit scaled to their length, so the car
   // doesn't fill the lower half of the screen
-  const veh = player.inVehicle;
+  const veh = camVeh;
   const camScale = veh ? Math.min(3.2, Math.max(1.35, veh.model.len / 2.4)) : 1;
   const radius = orbitRadius * camScale;
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)

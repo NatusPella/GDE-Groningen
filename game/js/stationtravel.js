@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { getTrains, routePoint, placeTrain, railZ } from './railway.js';
+import { getTrains, routePoint, placeTrain, railZ, returnStolenTrains } from './railway.js';
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive, playCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
@@ -254,7 +254,7 @@ function blockReason(w) {
 
 function nearestStation(w) {
   const p = w.player;
-  if (trip || w.pigeonMode || p.inVehicle || p.swimming || p.water) return null;
+  if (trip || w.pigeonMode || p.inVehicle || w.trainDriving || p.swimming || p.water) return null;
   let best = null, bd = USE_RADIUS;
   for (const s of stations) {
     const d = Math.hypot(s.x - p.x, s.y - p.y);
@@ -428,6 +428,7 @@ function startTrip(w, from, to, legs, info, board) {
   const midLeg = first;
   const midDir = dirA;
   const midS = first.from.s + dirA * Math.min(first.len * 0.4, 320);
+  returnStolenTrains();
   const trains = [...new Set(legs.map((l) => l.train))];
   trip = { saved: trains.map(saveTrain), from, to, legs, info, phase: '' };
   const tA = first.train, tB = midLeg.train, tC = last.train;
