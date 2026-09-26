@@ -247,4 +247,8 @@ HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers 
 - Nog te controleren bij de bouw: kloppen de plekken met de kaartdekking (Reitdiep en de Hoornsediep-kade liggen aan de rand)?
 - **Altijd verder kunnen:** lukt een stap in de flow niet (bijv. omdat een onderdeel kapot is), dan moet je duidelijk kunnen overslaan. Na een mislukte missie komt er een knop *Sla deze missie over, verder met het verhaal*. Hetzelfde geldt voor eisen en activiteiten die vastlopen.
 - **Cutscenes overslaan** gaat overal door de spatiebalk even ingedrukt te houden, nooit met één druk.
+- **Efficiënt testen** (een verhaal van 2 uur speel je niet elke keer uit): een verborgen testmodus (`?dev` / desktop `--dev`) met
+  - hoofdstukkeuze: spring naar elke missie of stap in de flow, met de juiste savegame-staat (geld, gekochte spullen, voltooide missies);
+  - knoppen "doel voltooien", "missie winnen/verliezen" en "naar volgend doel teleporteren", plus tijdversnelling en onkwetsbaar;
+  - een automatische doorloop per missie (`--story-test`) die elke missie start, de doelen via debug-hooks afwerkt en controleert dat de flow doorloopt tot het einde, met een rapport en screenshots per stap.
 - TTS: gebruik volop emotietags, gecombineerd met lokale tags zoals *[Groningse man die boos is]*.
