@@ -39,6 +39,7 @@ import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pig
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { dist } from './util.js';
+import { updateEmergency } from './emergency.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
@@ -245,6 +246,7 @@ async function boot() {
       tryHorecaInteract(world);
       player.update(dt, world);
       updateCompanion(dt, world);
+      updateEmergency(dt, world);
     }
 
     updateTrafficLights(dt, world);

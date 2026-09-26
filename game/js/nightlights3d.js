@@ -212,7 +212,8 @@ function updateSearchlight() {
 }
 
 function policeUnitActive(world, v) {
-  return (v.sirenOn || (v.isPolice && world.wanted > 0)) && !v.hijacked && !v.wrecked && v.driver !== 'player' && !v.sinking;
+  if (v.wrecked || v.sinking) return false;
+  return v.sirenOn || (v.isPolice && world.wanted > 0 && !v.hijacked && v.driver !== 'player');
 }
 
 function updatePoliceLights(world, vehicleMeshes, px, py, night) {
