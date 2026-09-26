@@ -274,11 +274,11 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
     if (z <= lim) {
       // past a segment's end its flat end cap would put a small step in a
       // ramp; the next segment's own ribbon is the smooth surface there
-      if (q.t <= 0 || q.t >= 1) { if (z > cap) { cap = z; capRoad = road; } }
-      else {
-        if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs); }
-        if (z > best) { best = z; bestRoad = road; }
-      }
+      const end = q.t <= 0 || q.t >= 1;
+      // (an end cap only wins the overlap choice when nothing else is near)
+      if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs + (end ? 1 : 0)); }
+      if (end) { if (z > cap) { cap = z; capRoad = road; } }
+      else if (z > best) { best = z; bestRoad = road; }
     }
     if (z < lowest) lowest = z;
   }
