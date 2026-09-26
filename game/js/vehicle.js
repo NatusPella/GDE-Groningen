@@ -357,9 +357,12 @@ function pushBusTrail(v) {
   const d = Math.hypot(v.x - last.x, v.y - last.y);
   if (d < 0.01) return;
   v.trailDist += d;
-  v.trailHistory.push({ x: v.x, y: v.y, angle: v.angle, dist: v.trailDist });
+  const free = v._trailFree || (v._trailFree = []);
+  const e = free.pop() || {};
+  e.x = v.x; e.y = v.y; e.angle = v.angle; e.dist = v.trailDist;
+  v.trailHistory.push(e);
   const keepFrom = v.trailDist - v.model.len * 1.6;
-  while (v.trailHistory.length > 2 && v.trailHistory[1].dist < keepFrom) v.trailHistory.shift();
+  while (v.trailHistory.length > 2 && v.trailHistory[1].dist < keepFrom) free.push(v.trailHistory.shift());
 }
 
 export function sampleBusTrail(v, backDist) {
@@ -1242,6 +1245,21 @@ function buildPath(v, map, rng, goal) {
   return path;
 }
 
+const _pa = [0, 0], _pb = [0, 0], _pc = [0, 0];
+function pointAlongInto(path, s, out) {
+  for (let i = 1; i < path.length; i++) {
+    if (path[i].s < s) continue;
+    const a = path[i - 1], b = path[i];
+    const span = b.s - a.s;
+    const t = span > 1e-6 ? (s - a.s) / span : 0;
+    out[0] = lerp(a.x, b.x, t); out[1] = lerp(a.y, b.y, t);
+    return out;
+  }
+  const last = path[path.length - 1];
+  out[0] = last.x; out[1] = last.y;
+  return out;
+}
+
 function pointAlong(path, s) {
   for (let i = 1; i < path.length; i++) {
     if (path[i].s < s) continue;
@@ -1274,7 +1292,7 @@ function curveSpeedLimit(v, path, aLat, decel) {
   let vmax = Infinity;
   const end = path[path.length - 1].s;
   for (let s = 3; s < end - 3; s += 2) {
-    const p0 = pointAlong(path, s - 3), p1 = pointAlong(path, s), p2 = pointAlong(path, s + 3);
+    const p0 = pointAlongInto(path, s - 3, _pa), p1 = pointAlongInto(path, s, _pb), p2 = pointAlongInto(path, s + 3, _pc);
     const h1 = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]);
     const h2 = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
     const turn = Math.abs(normalizeAngle(h2 - h1));
@@ -1460,8 +1478,14 @@ function junctionYieldLimit(v, path, world, decel, claim) {
   const hx = (first.x - ax) / la, hy = (first.y - ay) / la;
   const turnLeft = hx * (by - first.y) / lb - hy * (bx - first.x) / lb < -0.4;
   const rank = roadRank(first.from);
-  if (claim) claims.set(v.id, { eta, time: world.time, from: first.from, fromDir: first.fromDir, rank, hx, hy, turnLeft, still: v.stillFor || 0 });
-  else claims.delete(v.id);
+  if (claim) {
+    // reused: a fresh object per car per frame lived long enough to be
+    // promoted, and the old-space churn showed up as ~150 ms GC pauses
+    let c = claims.get(v.id);
+    if (!c) claims.set(v.id, c = {});
+    c.eta = eta; c.time = world.time; c.from = first.from; c.fromDir = first.fromDir; c.rank = rank;
+    c.hx = hx; c.hy = hy; c.turnLeft = turnLeft; c.still = v.stillFor || 0;
+  } else claims.delete(v.id);
   let yieldTo = false, othersWaiting = true, minId = v.id;
   for (const [id, c] of claims) {
     if (id === v.id) continue;
