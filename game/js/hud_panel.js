@@ -10,13 +10,13 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap } from './countrymap.js';
+import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 
-const MINIMAP_SIZE = 160;
-const MM_SCALE = 1.3; // px per meter (css pixels) when standing still
-const MM_SCALE_FAST = 0.55;
+const MINIMAP_SIZE = 230;
+const MM_SCALE = 1.45; // px per meter (css pixels) when standing still
+const MM_SCALE_FAST = 0.62;
 const MM_FAST_SPEED = 28;
 let mmScale = MM_SCALE;
 
@@ -45,7 +45,7 @@ export function initHud(world) {
   const topRight = document.createElement('div');
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
-    '<div class="hud-clock"></div>' +
+    '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><svg class="hud-clock-icon" viewBox="0 0 24 24" aria-hidden="true"></svg><b></b><small></small></div>' +
     '<div class="hud-wanted"></div>' +
     '<div class="hud-money"></div>' +
     '<div class="hud-money-delta"></div>' +
@@ -71,6 +71,25 @@ export function initHud(world) {
   mission.className = 'hud-mission';
   mission.innerHTML = '<div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-mission-timer"></div>';
   root.appendChild(mission);
+
+  const nowPlaying = document.createElement('div');
+  nowPlaying.className = 'hud-nowplaying';
+  nowPlaying.setAttribute('aria-live', 'polite');
+  nowPlaying.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V5.2l11-2.2v12.3"/><circle cx="6.5" cy="17.5" r="2.8"/><circle cx="17.5" cy="15.3" r="2.8"/></svg>' +
+    '<div><small>NU OP G-MUSIC</small><b class="np-artist"></b><span class="np-title"></span></div>';
+  root.appendChild(nowPlaying);
+
+  const race = document.createElement('div');
+  race.className = 'hud-race';
+  race.hidden = true;
+  race.innerHTML =
+    '<div class="hr-pos"><b></b><span></span></div>' +
+    '<div class="hr-row" data-k="time"><span>TIJD</span><b></b></div>' +
+    '<div class="hr-row" data-k="left"><span>RESTEREND</span><b></b></div>' +
+    '<div class="hr-row" data-k="lap"><span>RONDE</span><b></b></div>' +
+    '<div class="hr-row" data-k="cp"><span>CHECKPOINT</span><b></b></div>' +
+    '<div class="hr-row" data-k="best"><span>RECORD</span><b></b></div>';
+  root.appendChild(race);
 
   const toasts = document.createElement('div');
   toasts.className = 'hud-toasts';
@@ -118,6 +137,13 @@ export function initHud(world) {
     district: location.querySelector('.hud-district'),
     street: location.querySelector('.hud-street'),
     toasts,
+    race,
+    raceRows: Object.fromEntries([...race.querySelectorAll('.hr-row')].map((r) => [r.dataset.k, r])),
+    racePos: race.querySelector('.hr-pos'),
+    nowPlaying,
+    npArtist: nowPlaying.querySelector('.np-artist'),
+    npTitle: nowPlaying.querySelector('.np-title'),
+    npShown: null,
     routeChip,
     routeText: '',
     mmCanvas,
@@ -162,7 +188,9 @@ export function updateHud(dt, world) {
   updateDamage(dt, world);
   updateSpeedo(world);
   updateMission(world);
+  updateRaceHud(world);
   updateToasts(world);
+  updateNowPlaying(world);
   updateLocation(dt, world);
   updatePrompts(dt, world);
   updateRouteChip(world);
@@ -263,12 +291,37 @@ export function getClockText(world) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
+const SUN_ICON = '<circle cx="12" cy="12" r="4.6"/><g stroke-width="2.2" stroke-linecap="round">' +
+  [0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
+    const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180);
+    return `<line x1="${(12 + c * 7.4).toFixed(1)}" y1="${(12 + s * 7.4).toFixed(1)}" x2="${(12 + c * 10).toFixed(1)}" y2="${(12 + s * 10).toFixed(1)}"/>`;
+  }).join('') + '</g>';
+const MOON_ICON = '<path d="M15.6 3.2a8.6 8.6 0 1 0 5.2 13.9A7.2 7.2 0 0 1 15.6 3.2z"/>';
+
+function dayPart(h) {
+  if (h < 6) return 'NACHT';
+  if (h < 12) return 'OCHTEND';
+  if (h < 18) return 'MIDDAG';
+  return 'AVOND';
+}
+
 let clockShown = null;
+let clockNight = null;
 function updateClock(world) {
   const t = getClockText(world);
+  els.clock.hidden = !t;
   if (t === clockShown) return;
   clockShown = t;
-  els.clock.textContent = t;
+  const h = world.dayNight.hour;
+  const night = (world.dayNight.night ?? 0) > 0.5;
+  if (night !== clockNight) {
+    clockNight = night;
+    const icon = els.clock.querySelector('svg');
+    icon.innerHTML = night ? MOON_ICON : SUN_ICON;
+    els.clock.classList.toggle('night', night);
+  }
+  els.clock.querySelector('b').textContent = t;
+  els.clock.querySelector('small').textContent = dayPart(h);
 }
 
 let lastHp = null;
@@ -371,7 +424,8 @@ function updateMission(world) {
   // mission distance; only a live counter/timer appears during a mission
   els.missionLabel.textContent = '';
   els.missionProgress.textContent = missionProgressText(m);
-  els.missionTimer.textContent = m.phase === 'active' && m.timeLeft != null ? Math.ceil(m.timeLeft) + 's' : '';
+  // race-like runs show their clock in the race panel instead
+  els.missionTimer.textContent = m.phase === 'active' && m.timeLeft != null && !m.raceHud ? Math.ceil(m.timeLeft) + 's' : '';
   els.mission.hidden = !els.missionProgress.textContent && !els.missionTimer.textContent;
 }
 
@@ -380,6 +434,7 @@ function updateMission(world) {
 function missionProgressText(m) {
   if (m.phase !== 'active') return '';
   if (m.progressText) return m.progressText;
+  if (m.raceHud) return '';
   if (m.type === 'rampage' && m.killTarget != null) return `Kills: ${Math.max(0, m.killProgress || 0)}/${m.killTarget}`;
   if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) {
     const cp = `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
@@ -387,6 +442,57 @@ function missionProgressText(m) {
   }
   if (m.type === 'fatbike' && m.fatbikeMaxHits != null) return `Geschept: ${m.fatbikeHits || 0}/${m.fatbikeMaxHits}`;
   return '';
+}
+
+function fmtRaceTime(s, tenths = true) {
+  const t = Math.max(0, s);
+  const m = Math.floor(t / 60);
+  const sec = t - m * 60;
+  return tenths ? `${m}:${sec.toFixed(1).padStart(4, '0')}` : `${m}:${String(Math.floor(sec)).padStart(2, '0')}`;
+}
+
+function setRaceRow(k, text, cls = '') {
+  const row = els.raceRows[k];
+  row.hidden = text == null;
+  if (text == null) return;
+  const b = row.firstElementChild.nextElementSibling;
+  if (b.textContent !== text) b.textContent = text;
+  if (row.dataset.state !== cls) row.dataset.state = cls;
+}
+
+function updateRaceHud(world) {
+  const m = world.mission;
+  const r = m && m.phase === 'active' && !(world.sideJob && world.sideJob.active) ? m.raceHud : null;
+  els.race.hidden = !r;
+  if (!r) return;
+  els.racePos.hidden = !r.pos;
+  if (r.pos) {
+    els.racePos.querySelector('b').textContent = `${r.pos}e`;
+    els.racePos.querySelector('span').textContent = `van ${r.total}`;
+    els.racePos.dataset.lead = r.pos === 1 ? '1' : '';
+  }
+  setRaceRow('time', fmtRaceTime(r.elapsed));
+  setRaceRow('left', fmtRaceTime(Math.ceil(r.timeLeft), false), r.timeLeft < 10 ? 'low' : '');
+  setRaceRow('lap', r.laps ? `${r.lap}/${r.laps}` : null);
+  setRaceRow('cp', `${r.cp}/${r.cpTotal}`);
+  setRaceRow('best', r.best != null ? fmtRaceTime(r.best) : '–', r.best != null && r.elapsed < r.best ? 'ahead' : '');
+}
+
+const NOW_PLAYING_TIME = 8;
+function updateNowPlaying(world) {
+  const np = world.nowPlaying;
+  if (np && np !== els.npShown) {
+    els.npShown = np;
+    els.npArtist.textContent = np.artist || '';
+    els.npTitle.textContent = np.title || '';
+    els.nowPlaying.classList.remove('on');
+    void els.nowPlaying.offsetWidth;
+    els.nowPlaying.classList.add('on');
+  }
+  if (np && world.time - np.at > NOW_PLAYING_TIME) {
+    els.nowPlaying.classList.remove('on');
+    world.nowPlaying = null;
+  }
 }
 
 // Only touch the DOM when the list changes, so the aria-live region
@@ -761,12 +867,12 @@ export function forEachPoliceUnit(world, fn) {
   if (world.policeHeli) fn(world.policeHeli.x, world.policeHeli.y);
 }
 
-const MM_ICON = 1;
+const MM_ICON = 1.2;
 // Static places: only the categories switched on in the map legend
-// (mapfilters.js), only the nearest few, only close by, drawn smaller and
+// (mapfilters.js, shared with the full map), only the nearest few, only close by, drawn smaller and
 // skipped where they would overlap something more important.
-const MM_POI_ICON = 0.9;
-const MM_POI_GAP_PX = 13;
+const MM_POI_ICON = 1.05;
+const MM_POI_GAP_PX = 15;
 const MM_POI_NEAR_M = 150;
 const MM_POI_FAR_M = 250;
 const SHOP_GROUPS = ['shopsWapens', 'shops', 'shopsVoertuigen'];
@@ -849,7 +955,7 @@ function drawMinimap(dt, world) {
   ctx.scale(mmScale * dpr, mmScale * dpr);
   ctx.translate(-player.x, -player.y);
 
-  ctx.fillStyle = '#22262a';
+  ctx.fillStyle = MINI_STYLE.meadow;
   ctx.fillRect(player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, MM_RADIUS_M * 2, MM_RADIUS_M * 2);
   drawCountryMinimap(ctx, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, mmScale);
 
@@ -860,10 +966,10 @@ function drawMinimap(dt, world) {
 
   drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M);
 
-  ctx.fillStyle = '#6b9450';
+  ctx.fillStyle = MINI_STYLE.park;
   for (const g of view.green) fillPoly(ctx, g.pts);
 
-  ctx.fillStyle = '#3a86a8';
+  ctx.fillStyle = MINI_STYLE.water;
   for (const w of view.water) fillPoly(ctx, w.pts);
 
   for (const r of view.roads) {
@@ -920,9 +1026,11 @@ function drawMinimap(dt, world) {
   const owned = getOwnedVehiclesForMap(world);
   const reserve = (x, y) => { if (inRange(x, y)) placed.push(...toScreen(x, y)); };
   if (job && job.marker) reserve(job.marker.x, job.marker.y);
-  if (m && m.marker && m.phase !== 'cooldown' && !job) reserve(m.marker.x, m.marker.y);
+  const showMission = !!(m && m.marker && m.phase !== 'cooldown' && !job && minimapShows('mission'));
+  if (showMission) reserve(m.marker.x, m.marker.y);
   if (wp) reserve(wp.x, wp.y);
-  for (const o of owned) reserve(o.x, o.y);
+  const showOwn = minimapShows('car');
+  if (showOwn) for (const o of owned) reserve(o.x, o.y);
   drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t);
 
 
@@ -931,7 +1039,7 @@ function drawMinimap(dt, world) {
     for (const d of job.dots) icon('sj-dot', d.x, d.y);
     if (job.marker && !icon('sj-target', job.marker.x, job.marker.y)) jobEdge = edgeAngle(job.marker.x, job.marker.y);
   }
-  if (m && m.marker && m.phase !== 'cooldown' && !job) {
+  if (showMission) {
     const wps = m.phase === 'active' ? m.remainingWaypoints || [] : [];
     if (wps.length) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), MM_ICON);
@@ -945,16 +1053,16 @@ function drawMinimap(dt, world) {
   if (wp && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
 
   let heroEdge = null;
-  for (const o of owned) {
+  if (showOwn) for (const o of owned) {
     if (!icon('own', o.x, o.y, { vkind: o.kind, color: o.color }) && o.hero) heroEdge = edgeAngle(o.x, o.y);
   }
 
   const c = world.companion;
-  if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', c.x, c.y);
+  if (c && c.state !== 'dead' && !c.inVehicle && minimapShows('companion')) icon('companion', c.x, c.y);
 
-  if (world.wanted > 0) forEachPoliceUnit(world, (x, y) => icon('police', x, y));
+  forEachPoliceUnit(world, (x, y) => icon('police', x, y));
 
-  drawMapIcon(ctx, 'player', cx, cy, 1.15, { angle: player.angle + mapRotation });
+  drawMapIcon(ctx, 'player', cx, cy, 1.35, { angle: player.angle + mapRotation });
 
   drawNorthIndicator(ctx, cx, cy, mapRotation + -Math.PI / 2);
 
@@ -991,7 +1099,7 @@ function drawNorthIndicator(ctx, cx, cy, screenAngle) {
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  ctx.font = 'bold 8px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
+  ctx.font = 'bold 10px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('N', 0, 6);

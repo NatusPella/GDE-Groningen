@@ -25,7 +25,8 @@ const CONTROLS = [
   ['Muisklik', 'aanvallen / schieten'],
   ['1–4', 'vuisten / pistool / uzi / hagelgeweer'],
   ['Scrollwiel', 'volgend / vorig wapen'],
-  ['Muis omhoog/omlaag', 'camerahoek'],
+  ['Muis', 'camera draaien; laag houden om omhoog te kijken'],
+  ['Q / middelste muisknop', 'vasthouden: achterom kijken (in een voertuig)'],
   ['C', 'wissel Tammo / Anita'],
   ['T', 'telefoon'],
   ['V', 'filmcamera (tijdens het rijden)'],
@@ -108,8 +109,10 @@ export function initPauseMenu(w) {
         </nav>
         <div data-sub="sound">
           ${slider('masterVolume', 'Hoofdvolume')}
-          ${slider('musicVolume', 'G-Music')}
+          ${slider('musicVolume', 'Muziek')}
           ${slider('sfxVolume', 'Effecten')}
+          ${slider('voiceVolume', 'Stemmen')}
+          <p class="pm-note">Muziek is G-Music en de titelsong, stemmen zijn Tammo, Anita, de politie en de mensen op straat.</p>
         </div>
         <div data-sub="video" hidden>
           <label class="pm-row"><span>Kwaliteit</span>
@@ -135,6 +138,8 @@ export function initPauseMenu(w) {
           ${toggle('invertY', 'Omhoog/omlaag omkeren')}
         </div>
         <div data-sub="display" hidden>
+          <label class="pm-row"><span>Helderheid</span>
+            <input type="range" min="0.6" max="1.6" step="0.05" data-setting="brightness"><output></output></label>
           ${toggle('showMinimap', 'Minimap')}
           ${toggle('showHints', 'Toetshints')}
           ${toggle('showFog', 'Verkende gebieden op de kaart')}
