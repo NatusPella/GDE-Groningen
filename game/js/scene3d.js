@@ -28,6 +28,7 @@ import { syncParkedLayer } from './parked3d.js';
 import { buildShore, updateShore } from './quaywalls.js';
 import { getWaterIndex } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
+import { propsNearInto } from './breakables.js';
 import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { buildRailDecks } from './roadstructures3d.js';
@@ -243,6 +244,103 @@ let camBaseInit = false;
 const CAM_SHAKE_TIME = 0.6;
 const DRIVER_FIGURE_DIST = 70;
 const CAM_SHAKE_MAX = 0.28;
+
+// Solid street props the follow camera pulls in for (breakables grid; tree
+// trunks come from the map). Thin poles are left out: a pull-in for every
+// lamp post would make the camera pump along a street.
+const CAM_PROP_KINDS = new Set(['abri', 'kiosk', 'zuil', 'stall', 'flitspaal', 'elecbox']);
+const CAM_PROP_PAD = 0.6;
+const _camProps = [];
+
+// Distance along the eye->camera ray to a vertical cylinder (radius r, foot
+// yb, top yt) around (cx, cz), or Infinity.
+function rayCylinder(ox, oy, oz, ux, uy, uz, len, cx, cz, r, yb, yt) {
+  const fx = ox - cx, fz = oz - cz;
+  const a = ux * ux + uz * uz;
+  let t0 = 0, t1 = len;
+  if (a < 1e-9) {
+    if (fx * fx + fz * fz > r * r) return Infinity;
+  } else {
+    const b = fx * ux + fz * uz;
+    const disc = b * b - a * (fx * fx + fz * fz - r * r);
+    if (disc < 0) return Infinity;
+    const sq = Math.sqrt(disc);
+    t0 = Math.max(t0, (-b - sq) / a);
+    t1 = Math.min(t1, (-b + sq) / a);
+  }
+  if (Math.abs(uy) < 1e-9) {
+    if (oy < yb || oy > yt) return Infinity;
+  } else {
+    const s0 = (yb - oy) / uy, s1 = (yt - oy) / uy;
+    t0 = Math.max(t0, Math.min(s0, s1));
+    t1 = Math.min(t1, Math.max(s0, s1));
+  }
+  return t0 <= t1 ? t0 : Infinity;
+}
+
+function propRayHit(map, ox, oy, oz, dx, dy, dz, len) {
+  const ux = dx / len, uy = dy / len, uz = dz / len;
+  const mx = ox + dx * 0.5, mz = oz + dz * 0.5, reach = len * 0.5 + 2;
+  let best = Infinity;
+  for (const t of map.treesNear(mx, mz, reach)) {
+    if (t._broken) continue;
+    const d = treeDims(t[0], t[1]);
+    best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, t[0], t[1], 0.22 + CAM_PROP_PAD, 0, d.trunkH));
+  }
+  for (const p of propsNearInto(mx, mz, reach, _camProps)) {
+    if (!CAM_PROP_KINDS.has(p.kind)) continue;
+    const r = p.r + CAM_PROP_PAD, yb = p.z || 0, yt = yb + p.h;
+    best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, p.x, p.y, r, yb, yt));
+    if (p.hx || p.hy) {
+      best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, p.x + p.hx, p.y + p.hy, r, yb, yt));
+      best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, p.x - p.hx, p.y - p.hy, r, yb, yt));
+    }
+  }
+  return best === Infinity ? null : best;
+}
+
+// Ray/segment against an axis-aligned ellipsoid: true when the segment from
+// o to o+d passes through it (or starts inside it).
+function segHitsEllipsoid(ox, oy, oz, dx, dy, dz, cx, cy, cz, rx, ry) {
+  const px = (ox - cx) / rx, py = (oy - cy) / ry, pz = (oz - cz) / rx;
+  const vx = dx / rx, vy = dy / ry, vz = dz / rx;
+  const c = px * px + py * py + pz * pz - 1;
+  if (c <= 0) return true;
+  const a = vx * vx + vy * vy + vz * vz;
+  if (a < 1e-12) return false;
+  const b = px * vx + py * vy + pz * vz;
+  const disc = b * b - a * c;
+  if (disc < 0 || b > 0) return false;
+  return (-b - Math.sqrt(disc)) / a <= 1;
+}
+
+// Tree crowns can't be pulled in for (a street of trees would make the
+// camera pump in and out), so a crown the camera is inside of, or that hides
+// the player, is left out of the instanced trees for as long as it's in the way.
+const _camHideNext = [];
+function updateCamTreeHiding(map, ex, ey, ez, cx, cy, cz) {
+  _camHideNext.length = 0;
+  const dx = ex - cx, dy = ey - cy, dz = ez - cz;
+  const len = Math.hypot(dx, dz);
+  for (const t of map.treesNear(cx + dx * 0.5, cz + dz * 0.5, len * 0.5 + 4)) {
+    if (t._broken) continue;
+    const d = treeDims(t[0], t[1]);
+    const crownY = d.trunkH + d.r * 0.7;
+    const pad = CAM_PROP_PAD;
+    // camera inside (near plane padded), or the crown between camera and eye
+    const hit = segHitsEllipsoid(cx, cy, cz, 0, 0, 0, t[0], crownY, t[1], d.r + pad, d.r * 0.85 + pad)
+      || segHitsEllipsoid(cx, cy, cz, 0, 0, 0, t[0] + d.lx, d.ly, t[1] + d.lz, d.lr + pad, d.lr * 0.85 + pad)
+      || segHitsEllipsoid(cx, cy, cz, dx, dy, dz, t[0], crownY, t[1], d.r, d.r * 0.85)
+      || segHitsEllipsoid(cx, cy, cz, dx, dy, dz, t[0] + d.lx, d.ly, t[1] + d.lz, d.lr, d.lr * 0.85);
+    if (hit) _camHideNext.push(t);
+  }
+  let same = _camHideNext.length === camTreeHidden.length;
+  for (let i = 0; same && i < _camHideNext.length; i++) same = camTreeHidden.includes(_camHideNext[i]);
+  if (same) return;
+  camTreeHidden.length = 0;
+  for (const t of _camHideNext) camTreeHidden.push(t);
+  camTreeHiddenKey = camTreeHidden.map((t) => t[0] + ',' + t[1]).join(';');
+}
 
 function nearbyCamTargets(px, py) {
   camTargetList.length = 0;
@@ -917,18 +1015,29 @@ SHARED_GEOMETRIES.add(TREE_CANOPY_GEO);
 
 // Trunk, canopy and lobe transforms of the tree at (x, y), shared by the
 // tumbling-tree mesh and the instanced standing trees.
-function layoutTree(x, y, trunk, canopy, lobe) {
+const _treeDims = { trunkH: 0, r: 0, h2: 0, lr: 0, lx: 0, ly: 0, lz: 0 };
+function treeDims(x, y) {
   const h = hash2(x, y);
   const h2 = hash2(y, x);
-  const trunkH = 2.2 + h * 1.2;
+  const d = _treeDims;
+  d.h2 = h2;
+  d.trunkH = 2.2 + h * 1.2;
+  d.r = 1.6 + h * 1.3;
+  d.lr = d.r * (0.55 + h2 * 0.15);
+  d.lx = Math.cos(h2 * 6.3) * d.r * 0.55;
+  d.ly = d.trunkH + d.r * 0.95;
+  d.lz = Math.sin(h2 * 6.3) * d.r * 0.55;
+  return d;
+}
+
+function layoutTree(x, y, trunk, canopy, lobe) {
+  const { h2, trunkH, r, lr, lx, ly, lz } = treeDims(x, y);
   trunk.scale.set(1, trunkH, 1);
-  const r = 1.6 + h * 1.3;
   canopy.scale.set(r, r * 0.85, r);
   canopy.rotation.y = h2 * Math.PI * 2;
   canopy.position.y = trunkH + r * 0.7;
-  const lr = r * (0.55 + h2 * 0.15);
   lobe.scale.set(lr, lr * 0.85, lr);
-  lobe.position.set(Math.cos(h2 * 6.3) * r * 0.55, trunkH + r * 0.95, Math.sin(h2 * 6.3) * r * 0.55);
+  lobe.position.set(lx, ly, lz);
   return Math.floor(h2 * TREE_CANOPY_MATS.length);
 }
 
@@ -953,11 +1062,26 @@ setTreeMeshBuilder(buildTreeMesh);
 const treeInstanced = [];
 let treeCapacity = 0;
 let shownTrees = [];
+// crowns the follow camera sits in or looks through (updateCamera), left out of the instancing
+const camTreeHidden = [];
+let camTreeHiddenKey = '';
+let shownHiddenKey = '';
+const CROWN_SHADOW_CAP = 32;
+let crownShadowOnly = null;
 const _treeGroup = new THREE.Object3D();
 const _treeParts = [new THREE.Object3D(), new THREE.Object3D(), new THREE.Object3D()];
 const _treeMatrix = new THREE.Matrix4();
 
 function ensureTreeCapacity(n) {
+  if (!crownShadowOnly) {
+    // hidden crowns keep casting their shadow: drawn with no colour and no depth
+    const mat = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
+    crownShadowOnly = new THREE.InstancedMesh(TREE_CANOPY_GEO, mat, CROWN_SHADOW_CAP);
+    crownShadowOnly.castShadow = true;
+    crownShadowOnly.count = 0;
+    crownShadowOnly.matrixAutoUpdate = false;
+    scene.add(crownShadowOnly);
+  }
   if (n <= treeCapacity) return;
   treeCapacity = Math.max(64, treeCapacity * 2, n);
   for (const m of treeInstanced) { scene.remove(m); m.dispose(); }
@@ -1114,21 +1238,27 @@ function syncRoads(world, px, py) {
 
 function syncTrees(world, px, py) {
   const trees = world.map.treesNear(px, py, TREE_DIST).filter((t) => !t._broken);
-  if (trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) return;
+  const hiddenChanged = camTreeHiddenKey !== shownHiddenKey;
+  if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) return;
   shownTrees = trees;
+  shownHiddenKey = camTreeHiddenKey;
   ensureTreeCapacity(trees.length);
   const [trunks, ...canopies] = treeInstanced;
   for (const m of treeInstanced) m.count = 0;
+  crownShadowOnly.count = 0;
   const [trunk, canopy, lobe] = _treeParts;
   for (const t of trees) {
     _treeGroup.position.set(t[0], 0, t[1]);
     _treeGroup.updateMatrix();
     const c = canopies[layoutTree(t[0], t[1], trunk, canopy, lobe)];
-    for (const [part, m] of [[trunk, trunks], [canopy, c], [lobe, c]]) {
+    const hideCrown = camTreeHidden.includes(t) && crownShadowOnly.count < CROWN_SHADOW_CAP - 1;
+    for (const [part, m] of [[trunk, trunks], [canopy, hideCrown ? crownShadowOnly : c], [lobe, hideCrown ? crownShadowOnly : c]]) {
       part.updateMatrix();
       m.setMatrixAt(m.count++, _treeMatrix.multiplyMatrices(_treeGroup.matrix, part.matrix));
     }
   }
+  crownShadowOnly.instanceMatrix.needsUpdate = true;
+  crownShadowOnly.computeBoundingSphere();
   for (const m of treeInstanced) {
     m.instanceMatrix.needsUpdate = true;
     m.computeBoundingSphere();
@@ -1860,7 +1990,9 @@ export function update3D(dt, world) {
   // flipped between eye level, top-down and near first person - very
   // disorienting. Now: in at once (never clip the wall), back out slowly, and
   // rise a little when close so it reads as an over-the-shoulder view.
-  const wantPull = hitDist === null ? 1 : Math.max(CAM_MIN_DIST, hitDist - CAM_CLEARANCE) / fullDist;
+  const propHit = propRayHit(world.map, eyeX, eyeY, eyeZ, dx, dy, dz, fullDist);
+  const blockDist = propHit === null ? hitDist : hitDist === null ? propHit + CAM_CLEARANCE : Math.min(hitDist, propHit + CAM_CLEARANCE);
+  const wantPull = blockDist === null ? 1 : Math.max(CAM_MIN_DIST, blockDist - CAM_CLEARANCE) / fullDist;
   if (camPullReset || wantPull < camPull) camPull = wantPull;
   else camPull += (wantPull - camPull) * (1 - Math.exp(-dt * CAM_PULL_OUT_RATE));
   camPullReset = false;
@@ -1900,6 +2032,8 @@ export function update3D(dt, world) {
       if (Math.abs((v.z || 0) - baseH) < 2.5) desiredY = Math.max(desiredY, (v.z || 0) + (v.isBus ? 3.3 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
     }
   }
+
+  updateCamTreeHiding(world.map, eyeX, eyeY, eyeZ, desiredX, desiredY, desiredZ);
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   if (teleported) camPullReset = true;
