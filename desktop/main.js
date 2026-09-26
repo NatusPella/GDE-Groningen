@@ -33,7 +33,9 @@ app.setName('GTE VI');
 // test runs (--stil / --smoke-test) get a throwaway profile, so they never
 // touch the player's saves, settings or achievements
 if (process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test'))) {
-  app.setPath('userData', path.join(require('os').tmpdir(), 'gte-vi-test-profile'));
+  // GTE_TEST_PROFILE picks another throwaway dir, so parallel test runs
+  // don't block each other through the single-instance lock
+  app.setPath('userData', path.join(require('os').tmpdir(), process.env.GTE_TEST_PROFILE || 'gte-vi-test-profile'));
 }
 if (process.platform === 'win32') app.setAppUserModelId('nl.natuspella.gte-vi');
 
