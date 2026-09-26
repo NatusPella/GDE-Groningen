@@ -78,7 +78,7 @@ const DRAW_DIST = 140;
 // shader's own bump displacement range) - nowhere near enough of a drop to
 // read as "the canal sits below street level" from a close-up 3rd person
 // camera; pushed meaningfully lower instead (WATER_Y in util.js).
-const TREE_DIST = 90;
+const TREE_DIST = 130;
 const VIEW_DISTANCES = { kort: 150, normaal: 350, ver: 600 };
 let viewDist = VIEW_DISTANCES.normaal;
 let farLod = null;

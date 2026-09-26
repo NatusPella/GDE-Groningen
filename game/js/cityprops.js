@@ -13,8 +13,8 @@ import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
 // they get speech bubbles and panic like everyone else.
 
 const CELL = 60;
-const BUILD_RADIUS = 120;
-const DROP_RADIUS = 150;
+const BUILD_RADIUS = 140;
+const DROP_RADIUS = 170;
 const GEN_PER_FRAME = 1;
 const MAX_SCENE_PEDS = 18;
 const DRIVE_CATS = ['major', 'normal', 'minor', 'cycle'];
