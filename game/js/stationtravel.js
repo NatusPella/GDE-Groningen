@@ -530,6 +530,8 @@ function arrive(w) {
   }
   w.cinematicHidePlayers = false;
   w.cameraOverride = null;
+  // no new-wijk flyover straight after the train cutscene
+  w.quietUntil = Math.max(w.quietUntil || 0, w.time + 60);
   if (typeof w.clock === 'number') w.clock = (w.clock + info.minutes / 60) % 24;
   if (w.input) w.input.reset();
 
