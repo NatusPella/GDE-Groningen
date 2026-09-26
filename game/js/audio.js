@@ -830,8 +830,8 @@ function playHorn(x, y, duration = 0.4, low = 1) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 90 });
   if (!out) return;
   const d = 1 + (Math.random() - 0.5) * 0.04;
-  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.075, filterFreq: 2600, out });
-  playTone({ freq: 523 * low * d * 1.004, type: 'horn', duration, gain: 0.06, filterFreq: 2600, out });
+  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.16, filterFreq: 3200, out });
+  playTone({ freq: 498 * low * d * 1.004, type: 'horn', duration, gain: 0.13, filterFreq: 3200, out });
 }
 
 function hornPitch(v) {
@@ -1431,10 +1431,12 @@ const ENGINE_SPECS = [
   { idle: 900, red: 5500, shift: 0, level: 0.36 },
   { idle: 750, red: 7000, shift: 0.16, level: 0.38 },
   { idle: 750, red: 4300, shift: 0.2, level: 0.38 },
+  { idle: 0, red: 48000, shift: 0, level: 0.3 },
 ];
 
+// Deelsteps are electric (kind 7); the police motor is a real brommer.
 function engineKind(v) {
-  if (v.isScooter) return 3;
+  if (v.isScooter) return v.isPolice ? 3 : 7;
   if (v.isBoat) return 4;
   if (v.isBus) return 2;
   if (v.isHeroCar) return 1;
@@ -1451,6 +1453,7 @@ function engineRpm(v, st, kind, throttle, t) {
   const frac = speed / (v.model.maxSpeed || 30);
   let shifted = 0;
   if (kind === 3) return { rpm: throttle > 0 ? 5200 + 3600 * Math.min(1, frac) : S.idle + 2300 * Math.min(1, frac), shifted };
+  if (kind === 7) return { rpm: 2400 + 42000 * Math.min(1, speed / 10), shifted };
   if (kind === 4) return { rpm: S.idle + (S.red - S.idle) * (throttle !== 0 ? 0.35 + 0.6 * Math.min(1, frac) : frac * 0.4), shifted };
   if (v.speed < -0.2) { st.gear = 0; return { rpm: S.idle + (S.red * 0.7 - S.idle) * clamp(speed / (v.model.maxSpeed * 0.25), 0, 1), shifted }; }
   const tops = kind === 2 ? BUS_GEAR_TOPS : GEAR_TOPS;
@@ -1522,7 +1525,8 @@ function updateEngineSynth(dt, world) {
   rpm = Math.min(rpm, spec.red * 0.95);
   S.prevThr = thr;
 
-  const gain = spec.level * (world.paused ? 0.5 : 1);
+  // an electric motor is silent standing still and whines up with speed
+  const gain = spec.level * (world.paused ? 0.5 : 1) * (S.kind === 7 ? clamp(speed / 2.5, 0, 1) * (0.6 + 0.4 * (thr > 0 ? 1 : 0)) : 1);
   S.gain += (clamp(0.15 + 0.35 * load * rpm / spec.red, 0, 0.5) - S.gain) * Math.min(1, dt * 4);
   const camD = distToListener(v.x, v.y, 0.7);
   const muffle = clamp(16000 / (1 + Math.max(0, camD - 5) / 6), 1200, 16000);
@@ -1556,9 +1560,9 @@ function updateEngine(dt, world) {
   const t = ctx.currentTime;
   let targetGain = 0, targetFreq = 42, cutoff = 300;
   if (motor && v.isScooter) {
-    targetGain = speed > 0.2 ? 0.05 + speed * 0.01 : 0;
-    targetFreq = 160 + speed * 45;
-    cutoff = 1600;
+    targetGain = speed > 0.2 ? 0.03 + speed * 0.006 : 0;
+    targetFreq = v.isPolice ? 160 + speed * 45 : 300 + speed * 70;
+    cutoff = v.isPolice ? 1600 : 2600;
   } else if (motor) {
     const frac = speed / (v.model.maxSpeed || 30);
     const g = v.speed < 0 ? 0 : gearFor(frac, engineState.gear);
@@ -1648,10 +1652,33 @@ function buildRumbleVoice() {
   return { filter, am, lfo, lfoDepth, gain };
 }
 
+// Player horn: two detuned discs driven into a soft clipper (the brassy
+// "honk"), then a resonant horn-bell formant and a gentle top cut.
+function hornDrive() {
+  const n = 1024, curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1; curve[i] = Math.tanh(x * 2.6) / Math.tanh(2.6); }
+  return curve;
+}
+
 function buildHornVoice() {
+  const mix = ctx.createGain();
+  mix.gain.value = 0.7;
+  const shaper = ctx.createWaveShaper();
+  shaper.curve = hornDrive();
+  shaper.oversample = '2x';
+  const bell = ctx.createBiquadFilter();
+  bell.type = 'peaking';
+  bell.frequency.value = 1750;
+  bell.Q.value = 1.4;
+  bell.gain.value = 7;
+  const body = ctx.createBiquadFilter();
+  body.type = 'peaking';
+  body.frequency.value = 520;
+  body.Q.value = 1.1;
+  body.gain.value = 4;
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.value = 2600;
+  filter.frequency.value = 4200;
   const gain = ctx.createGain();
   gain.gain.value = 0;
   const a = ctx.createOscillator();
@@ -1662,9 +1689,9 @@ function buildHornVoice() {
   b.frequency.value = 523;
   const bGain = ctx.createGain();
   bGain.gain.value = 0.8;
-  a.connect(filter);
-  b.connect(bGain).connect(filter);
-  filter.connect(gain).connect(sfxBus);
+  a.connect(mix);
+  b.connect(bGain).connect(mix);
+  mix.connect(shaper).connect(body).connect(bell).connect(filter).connect(gain).connect(sfxBus);
   a.start();
   b.start();
   return { a, b, bGain, gain, on: false };
@@ -1730,7 +1757,7 @@ function updatePlayerHorn(world) {
   const v = world.player.inVehicle;
   const t = ctx.currentTime;
   const pressing = !!(v && v.horn && !v.wrecked && !world.paused);
-  const bell = v && v.isBike;
+  const bell = v && (v.isBike || (v.isScooter && !v.isPolice)); // an e-step has a bell too
   if (pressing && bell) {
     if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
   } else if (!pressing) bellReadyAt = 0;
@@ -1739,12 +1766,12 @@ function updatePlayerHorn(world) {
     const low = v.isScooter ? 1.55 : hornPitch(v);
     const single = v.isScooter || v.isHeroCar;
     hornVoice.a.frequency.setValueAtTime(415 * low, t);
-    hornVoice.b.frequency.setValueAtTime(523 * low * 1.004, t);
-    hornVoice.bGain.gain.setValueAtTime(single ? 0 : 0.8, t);
+    hornVoice.b.frequency.setValueAtTime(498 * low * 1.004, t);
+    hornVoice.bGain.gain.setValueAtTime(single ? 0 : 0.85, t);
   }
   if (on !== hornVoice.on) {
     hornVoice.on = on;
-    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.04 : 0.06) : 0, t, on ? 0.008 : 0.03);
+    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.07 : 0.24) : 0, t, on ? 0.006 : 0.025);
   }
 }
 
@@ -1820,6 +1847,15 @@ function playAudioEvents(world) {
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
       case 'gore': case 'gore_splat': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'animal_hit': {
+        const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 70 });
+        const k = clamp(e.strength ?? 0.5, 0, 1);
+        if (out) {
+          playBuf('body_hit', { out, gain: 0.25 + k * 0.3, rate: 0.95 - k * 0.3 });
+          playTone({ freq: 110 - k * 40, freqEnd: 40, type: 'sine', duration: 0.18 + k * 0.2, gain: 0.15 + k * 0.3, out });
+        }
+        break;
+      }
       case 'caw': case 'peck': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'whoosh': playBuf('whoosh', { out: spatialOut(x, y, { ref: 6, range: 60 }) || undefined, gain: 0.18 + clamp(e.strength ?? 0.5, 0, 1) * 0.2 }); break;
       case 'camera_shutter':
@@ -1961,7 +1997,7 @@ function updateSiren(dt, world) {
 function vehicleVoiceParams(v) {
   const s = Math.abs(v.speed);
   if (v.isBoat) return { type: 'sawtooth', freq: 28 + s * 7, cutoff: 240 + s * 40, gain: 0.1 + s * 0.02 };
-  if (v.isScooter) return { type: 'square', freq: 95 + s * 9, cutoff: 1100 + s * 40, gain: 0.04 + s * 0.006 };
+  if (v.isScooter) return v.isPolice ? { type: 'square', freq: 95 + s * 9, cutoff: 1100 + s * 40, gain: 0.04 + s * 0.006 } : { type: 'triangle', freq: 260 + s * 70, cutoff: 2600, gain: s > 0.5 ? 0.02 + s * 0.004 : 0 };
   if (v.isBus) return { type: 'sawtooth', freq: 30 + s * 2.4, cutoff: 280 + s * 14, gain: 0.12 + s * 0.008 };
   return { type: 'sawtooth', freq: 40 + s * 3.2, cutoff: 300 + s * 16, gain: 0.06 + s * 0.009 };
 }
@@ -1996,7 +2032,7 @@ function updateTrafficAudio(dt, world) {
       placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
       const d = distToListener(v.x, v.y, 0.7);
       voice.distLp.frequency.setTargetAtTime(clamp(2400 / (1 + d / 10), 250, 2400), t, 0.15);
-      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? 0.28 : 0.28 + p.load * 0.1;
+      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.2 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.28) : 0.28 + p.load * 0.1;
       fadeVoice(voice, level, dt, 3);
       msg.push({ i, kind: p.kind, rpm: p.rpm, load: p.load, gain: voice.level, pitch, snap: p.snap });
     });
@@ -2060,7 +2096,7 @@ function updateWorldEvents(world) {
     if (!v.wrecked || seenWrecks.has(v)) continue;
     seenWrecks.add(v);
     newlyWrecked.push(v);
-    if (!splashes.some((s) => Math.hypot(s.x - v.x, s.y - v.y) < 3)) playExplosion(v.x, v.y);
+    if (!v.isBike && !v.isScooter && !splashes.some((s) => Math.hypot(s.x - v.x, s.y - v.y) < 3)) playExplosion(v.x, v.y);
   }
 
   const at = (src) => spatialAt((src || p).x, (src || p).y);

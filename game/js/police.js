@@ -37,8 +37,8 @@ const SEARCH_SPAWN_MIN_DIST = 70;
 const COP_PED_MIN_DIST = 40;
 
 // Top speed per wanted level (index = stars); a regular sedan does 33.
-const POLICE_TOP_SPEED = [28, 29, 30.5, 32, 33.5, 35];
-const POLICE_ACCEL = [8, 8, 8.5, 9, 9.5, 10];
+const POLICE_TOP_SPEED = [30, 32, 35, 39, 44, 50];
+const POLICE_ACCEL = [8.5, 9, 9.5, 10.5, 11.5, 12.5];
 const RUBBER_BAND_DIST = 110;
 const RUBBER_BAND_BOOST = 1.06;
 
@@ -138,7 +138,7 @@ function spawnPoliceVehicleAt(world, rp, opts = {}) {
 }
 
 function trySpawnPolice(world, state) {
-  const alive = world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked && !v._roadblock && !v._motor && !v.isBoat);
+  const alive = world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked && !v.disabled && !v._roadblock && !v._motor && !v.isBoat);
   const target = Math.max(1, Math.min(5, world.wanted));
   if (alive.length >= target || world.time < state.nextSpawnAt) return;
   state.nextSpawnAt = world.time + 0.5;
@@ -321,7 +321,7 @@ function copPedWithin(world, r) {
 // player's car (side-by-side, nose to door, bumper to bumper).
 function policeCarBeside(world, pv) {
   for (const v of world.vehicles) {
-    if (!v.isPolice || v === pv || v.isBoat || v.wrecked || v.hijacked || v.driver === 'player' || Math.abs(v.speed) > 3) continue;
+    if (!v.isPolice || v === pv || v.isBoat || v.wrecked || v.disabled || v.hijacked || v.driver === 'player' || Math.abs(v.speed) > 3) continue;
     const reach = pv.halfLen + v.halfLen + CAR_BUST_CAR_GAP;
     if (Math.abs(v.x - pv.x) > reach || Math.abs(v.y - pv.y) > reach) continue;
     if (bodyGap(pv, v) < CAR_BUST_CAR_GAP) return true;
@@ -475,7 +475,7 @@ function initPoliceContract(world) {
 function anyUnitSees(world) {
   const p = world.player;
   for (const v of world.vehicles) {
-    if (!v.isPolice || v.hijacked || v.wrecked || v.driver === 'player' || v.isBoat) continue;
+    if (!v.isPolice || v.hijacked || v.wrecked || v.disabled || v.driver === 'player' || v.isBoat) continue;
     if (v._sees && Math.hypot(v.x - p.x, v.y - p.y) < SEE_RANGE_CAR) return true;
   }
   for (const c of world.pedestrians) {
@@ -508,7 +508,7 @@ function hiddenFromAbove(map, x, y) {
 function refreshVehicleSight(world, dt) {
   const p = world.player;
   for (const v of world.vehicles) {
-    if (!v.isPolice || v.hijacked || v.wrecked || v.driver === 'player' || v.isBoat) continue;
+    if (!v.isPolice || v.hijacked || v.wrecked || v.disabled || v.driver === 'player' || v.isBoat) continue;
     if (v._chasing && !v._roadblock) continue;
     v._losTimer = (v._losTimer || 0) - dt;
     if (v._losTimer > 0) continue;
@@ -659,7 +659,7 @@ function updateRoadblocks(world) {
 
 function trySpawnMotor(world, state) {
   if (world.wanted < MOTOR_WANTED || world.time < state.nextMotorAt) return;
-  const alive = world.vehicles.filter((v) => v._motor && !v.wrecked && !v.hijacked);
+  const alive = world.vehicles.filter((v) => v._motor && !v.wrecked && !v.disabled && !v.hijacked);
   if (alive.length >= MOTOR_MAX) return;
   state.nextMotorAt = world.time + 3;
   const rp = findSpawnPoint(world, world.player.x, world.player.y);
@@ -697,7 +697,7 @@ export function updatePolice(dt, world) {
   const seen = world.police.seenRecently;
   for (const v of world.vehicles) {
     // boats chase via updateBoatAI; a stolen police car is just a car now
-    if (!v.isPolice || v.hijacked || v.isBoat || v.wrecked || v.driver === 'player') continue;
+    if (!v.isPolice || v.hijacked || v.isBoat || v.wrecked || v.disabled || v.driver === 'player') continue;
     if (v._roadblock) continue;
 
     if (chasing !== v._chasing) {

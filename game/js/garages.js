@@ -23,6 +23,9 @@ export function updateGarages(dt, world) {
       v.wrecked = false;
       v.wreckedByPlayer = false;
       v._exploded = false;
+      v.disabled = false;
+      v.blewUp = false;
+      v.fireWarned = false;
       world.health = 100;
       world.armor = 100;
       world.wanted = 0;

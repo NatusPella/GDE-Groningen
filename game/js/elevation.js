@@ -177,7 +177,7 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
   if (!elev.has) return 0;
   const list = elev.grid.at(x, y);
   if (!list) return 0;
-  let best = -Infinity, lowest = Infinity;
+  let best = -Infinity, lowest = Infinity, cap = -Infinity;
   let ground = true;
   const lim = zHint + stepUp;
   for (const s of list) {
@@ -191,9 +191,15 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
       if (lowerSurfaceAt(elev, x, y, z + 1.5) || fillPieceAt(s, q.t, x, y) === false) z = null;
     }
     if (z === null) continue;
-    if (z <= lim && z > best) best = z;
+    if (z <= lim) {
+      // past a segment's end its flat end cap would put a small step in a
+      // ramp; the next segment's own ribbon is the smooth surface there
+      if (q.t <= 0 || q.t >= 1) { if (z > cap) cap = z; }
+      else if (z > best) best = z;
+    }
     if (z < lowest) lowest = z;
   }
+  if (cap > best + 0.5 || best === -Infinity) best = Math.max(best, cap);
   if (!ground && onFlatRoad(elev.map, x, y)) ground = true;
   if (ground && 0 <= lim && 0 > best) best = 0;
   if (best > -Infinity) return best;

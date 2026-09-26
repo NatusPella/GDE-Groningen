@@ -331,9 +331,17 @@ function gatherEvents(world) {
     }
   }
   for (const v of world.vehicles) {
+    if (v.bailPending) {
+      // the driver of a burning car jumps out and runs for it
+      v.bailPending = false;
+      if (dist(v.x, v.y, player.x, player.y) < 120) {
+        const ped = ejectDriver(world, { vehicle: v });
+        if (ped) startFlee(ped, world, v.x, v.y);
+      }
+    }
     if (v.wrecked && !seenWrecks.has(v)) {
       seenWrecks.add(v);
-      if (!v.sinking) blastAt(world, v);
+      if (!v.sinking && !v.isBike && !v.isScooter) blastAt(world, v);
       if (dist(v.x, v.y, player.x, player.y) < 150) events.push({ kind: 'boom', x: v.x, y: v.y, r: 50, crime: !!v.wreckedByPlayer });
     }
     if (!v.wrecked && v.driver !== 'player' && v.road && Math.abs(v.x - player.x) < v.halfLen + 6 && Math.abs(v.y - player.y) < v.halfLen + 6) aiDrivenAt.set(v, world.time);
@@ -495,7 +503,7 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   if (b.driver === 'player') {
     const p = world.player;
     if (p.inVehicle !== b) return;
-    p.exitVehicle(world.map, world);
+    p.exitVehicle(world.map, world, true);
     p.x = bx; p.y = by;
     b.riderOff = true;
     let dmg = Math.round((closing - 2) * 3);

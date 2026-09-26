@@ -9,7 +9,7 @@ const NAMES = {
   sport: [['Wadden', 'Wervelwind'], ['Eemshaven', 'Raket']],
   police: [['Politie', 'Achtervolger']],
   bus: [['Stadsbus', 'Diepenrinkel']],
-  scooter: [['Brommer', 'Zoemzoem'], ['Snorscooter', 'Stadswesp']],
+  scooter: [['E-step', 'Zoemzoem'], ['Deelstep', 'Stadswesp']],
   boat: [['Sloep', 'Nait Soezen'], ['Sloep', 'Grachtengast']],
 };
 const BIKES = [['Fiets', 'Omafiets'], ['Fiets', 'Transportfiets'], ['Fiets', 'Stadsfiets']];

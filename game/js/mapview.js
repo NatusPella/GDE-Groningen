@@ -1198,7 +1198,7 @@ const LEGEND = [
   { kind: 'userWaypoint', label: 'Jouw bestemming', layer: 'userWaypoint' },
   { kind: 'route', label: 'Route', layer: 'route' },
   { kind: 'companion', label: 'Maat', layer: 'companion' },
-  { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, brommer, boot', layer: 'car' },
+  { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot', layer: 'car' },
   { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
   { kind: 'garage', label: 'Garage', note: 'Spuit & Klaar: heel, gezond, geen sterren', layer: 'garage' },
   { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
