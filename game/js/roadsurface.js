@@ -3,6 +3,7 @@ import { applyWetGround } from './terrain3d.js';
 import { buildRoadStructure, buildOverpassDeck } from './roadstructures3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon } from './util.js';
+import { allSignals, yieldArms } from './junctions.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
 // shared wet-ground shader, mitred ribbons carrying road-space coordinates,
@@ -16,7 +17,6 @@ const CITY_CENTRE = [100, 77];
 const KLINKER_RADIUS = 1500;
 const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
 const CARRIAGE = new Set(['major', 'normal', 'minor']);
-const RANK = { major: 3, normal: 2, minor: 1, cycle: 0, foot: -1 };
 const JUNCTION_DIP = -0.004;
 const KERB_H = 0.13;
 
@@ -289,7 +289,9 @@ onSettingsChange((st) => {
 export function getRoadQualityVersion() { return qualityVersion; }
 
 // Atlas quadrants (canvas px): white paint, manhole, drain grate, bike symbol.
-const UV_WHITE = [0.25, 0.75];
+const UV_WHITE = [0.25, 0.875];
+const UV_BUS = [0, 0.5, 0.5, 0.75];
+const UV_RED = [0.25, 0.457];
 const UV_MANHOLE = [0.5, 0.5, 1, 1];
 const UV_GRATE = [0, 0, 0.5, 0.5];
 const UV_BIKE = [0.5, 0, 1, 0.5];
@@ -299,7 +301,14 @@ function buildAtlas() {
   c.width = c.height = 256;
   const g = c.getContext('2d');
   g.fillStyle = '#fff';
-  g.fillRect(0, 0, 128, 128);
+  g.fillRect(0, 0, 128, 64);
+  g.font = 'bold 50px sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText('BUS', 64, 98);
+  // bus lane asphalt (dark enough to count as surface, not worn paint)
+  g.fillStyle = '#6e2a22';
+  g.fillRect(0, 130, 128, 18);
 
   g.save();
   g.translate(192, 64);
@@ -359,7 +368,7 @@ export function setRoadNetwork(map) {
       a.push(r, i);
     }
   }
-  lights = ((map.meta && map.meta.trafficLights) || []).filter((l) => !l.bike);
+  lights = allSignals(map).filter((l) => !l.bike);
 }
 
 function roadHash(r) {
@@ -429,17 +438,17 @@ function endInfo(r, i, away, hw) {
     if (o.cat === 'foot') continue;
     others.push(o, oi);
   }
-  if (!others.length) return { J: 0, giveWay: false };
+  if (!others.length) return { J: 0 };
   if (others.length === 2) {
     const o = others[0], oi = others[1];
-    if (o === r) return { J: 0, giveWay: false };
+    if (o === r) return { J: 0 };
     const oEnd = oi === 0 || oi === o.pts.length - 1;
     if (oEnd && o.cat === r.cat && Math.abs(o.width - r.width) < 1.5) {
       const od = dirAt(o.pts, oi, oi === 0 ? 1 : -1);
-      if (od[0] * away[0] + od[1] * away[1] < -0.8) return { J: 0, giveWay: false };
+      if (od[0] * away[0] + od[1] * away[1] < -0.8) return { J: 0 };
     }
   }
-  let J = 0, maxRank = -1;
+  let J = 0;
   for (let k = 0; k < others.length; k += 2) {
     const o = others[k], oi = others[k + 1];
     const dirs = [];
@@ -451,9 +460,8 @@ function endInfo(r, i, away, hw) {
       const si = Math.sqrt(1 - cos * cos);
       J = Math.max(J, (o.width / 2 + hw * Math.abs(cos)) / si + 1);
     }
-    maxRank = Math.max(maxRank, RANK[o.cat] ?? -1);
   }
-  return { J: Math.max(J, 1), giveWay: CARRIAGE.has(r.cat) && (RANK[r.cat] ?? -1) < maxRank };
+  return { J: Math.max(J, 1) };
 }
 
 function analyse(r) {
@@ -706,7 +714,7 @@ function sidewalkGeometry(r) {
 
 function markBuf() { return { pos: [], nrm: [], uv: [], idx: [] }; }
 
-function stripAlong(r, rs, M, s0, s1, off, half) {
+function stripAlong(r, rs, M, s0, s1, off, half, uvc = UV_WHITE) {
   if (s1 - s0 < 0.05) return;
   const tmp = [0, 0, 0, 0];
   const base = M.pos.length / 3;
@@ -716,7 +724,7 @@ function stripAlong(r, rs, M, s0, s1, off, half) {
       at(r, rs, sv, o, tmp);
       M.pos.push(tmp[0], tmp[3], tmp[1]);
       M.nrm.push(0, 1, 0);
-      M.uv.push(UV_WHITE[0], UV_WHITE[1]);
+      M.uv.push(uvc[0], uvc[1]);
     }
   }
   for (let i = 0; i < st.length - 1; i++) {
@@ -743,6 +751,46 @@ function decal(r, rs, M, sAlong, off, len, wid, uv) {
   M.idx.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
 }
 
+// "BUS" painted across a lane, readable for traffic travelling `dir`.
+function busDecal(r, rs, M, sAlong, off, dir) {
+  const c = at(r, rs, sAlong, off, [0, 0, 0, 0]);
+  const nrmv = rs.segN[Math.min(c[2], rs.segN.length - 1)];
+  const fx = nrmv[1] * dir, fy = -nrmv[0] * dir;
+  const rx = -fy, ry = fx;
+  const len = 1.6, wid = 2.4;
+  const base = M.pos.length / 3;
+  const [u0, v0, u1, v1] = UV_BUS;
+  for (const [a, b, tu, tv] of [[-1, -1, u0, v0], [1, -1, u0, v1], [-1, 1, u1, v0], [1, 1, u1, v1]]) {
+    M.pos.push(c[0] + fx * a * len / 2 + rx * b * wid / 2, c[3], c[1] + fy * a * len / 2 + ry * b * wid / 2);
+    M.nrm.push(0, 1, 0);
+    M.uv.push(tu, tv);
+  }
+  M.idx.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
+}
+
+function busLaneMarkings(r, rs, M, a, b) {
+  const hw = rs.hw;
+  if (r.busOnly) {
+    stripAlong(r, rs, M, a, b, 0, hw - 0.1, UV_RED);
+    for (let s = a + 6; s < b - 3; s += 35) {
+      if (r.oneway) busDecal(r, rs, M, s, 0, 1);
+      else { busDecal(r, rs, M, s, hw / 2, 1); busDecal(r, rs, M, s + 4, -hw / 2, -1); }
+    }
+    return;
+  }
+  const L = r.busLane;
+  if (!L || r.width < 6) return;
+  const laneW = Math.min(3.2, r.oneway ? hw : hw * 0.9);
+  for (const [on, dir] of [[L.fwd, 1], [L.bwd, -1]]) {
+    if (!on) continue;
+    const mid = (hw - laneW / 2) * (r.oneway ? 1 : dir);
+    const inner = (hw - laneW) * (r.oneway ? 1 : dir);
+    stripAlong(r, rs, M, a, b, mid, laneW / 2 - 0.1, UV_RED);
+    stripAlong(r, rs, M, a, b, inner, 0.08);
+    for (let s = a + 8; s < b - 3; s += 40) busDecal(r, rs, M, s, mid, r.oneway ? 1 : dir);
+  }
+}
+
 function triangleMark(r, rs, M, sBase, sApex, off, halfBase) {
   const tmp = [0, 0, 0, 0];
   const base = M.pos.length / 3;
@@ -755,6 +803,20 @@ function triangleMark(r, rs, M, sBase, sApex, off, halfBase) {
   const [x0, , z0, x1, , z1, x2, , z2] = M.pos.slice(base * 3, base * 3 + 9);
   const up = (x1 - x0) * (z2 - z0) - (z1 - z0) * (x2 - x0);
   if (up < 0) M.idx.push(base, base + 1, base + 2); else M.idx.push(base, base + 2, base + 1);
+}
+
+let yieldIndex = null;
+function yieldsOf(r) {
+  if (!netMap) return [];
+  if (!yieldIndex || yieldIndex.map !== netMap) {
+    yieldIndex = { map: netMap, byRoad: new Map() };
+    for (const y of yieldArms(netMap)) {
+      let a = yieldIndex.byRoad.get(y.road);
+      if (!a) yieldIndex.byRoad.set(y.road, a = []);
+      a.push(y);
+    }
+  }
+  return yieldIndex.byRoad.get(r) || [];
 }
 
 function rnd(r, k) {
@@ -785,6 +847,7 @@ function markingGeometry(r) {
       dashes(r, rs, M, a, b, 0, 0.05, 3, 6);
     }
   }
+  if (b > a && (r.busOnly || r.busLane)) busLaneMarkings(r, rs, M, a, b);
   if (r.cat === 'cycle' && b > a) {
     if (r.width >= 2.4) dashes(r, rs, M, a, b, 0, 0.05, 1, 2);
     if (detail) for (let s = a + 3; s < b - 2; s += 70) decal(r, rs, M, s, r.width >= 2.4 ? r.width / 4 : 0, 1.5, 0.75, UV_BIKE);
@@ -799,16 +862,15 @@ function markingGeometry(r) {
     }
   }
 
-  // haaientanden on the approach lane of a give-way end
-  for (const end of [0, 1]) {
-    const e = end ? rs.e1 : rs.e0;
-    if (!e.giveWay || e.J <= 0) continue;
-    if (r.oneway && !end) continue;
-    const dir = end ? 1 : -1;
-    const sBase = end ? L - e.J - 0.3 : e.J + 0.3;
+  // haaientanden on the approach lane of every arm that gives way
+  // (junctions.js: lower priority class than the crossing road)
+  for (const y of yieldsOf(r)) {
+    const dir = -y.d;
+    const sNode = rs.s[y.idx];
+    const sBase = dir > 0 ? sNode - y.J - 0.3 : sNode + y.J + 0.3;
     if (sBase < 1 || sBase > L - 1) continue;
-    const o0 = r.oneway ? -hw + 0.3 : end ? 0.2 : -hw + 0.3;
-    const o1 = r.oneway ? hw - 0.3 : end ? hw - 0.3 : -0.2;
+    const o0 = r.oneway ? -hw + 0.3 : dir > 0 ? 0.2 : -hw + 0.3;
+    const o1 = r.oneway ? hw - 0.3 : dir > 0 ? hw - 0.3 : -0.2;
     for (let o = o0 + 0.25; o <= o1 - 0.25; o += 0.75) triangleMark(r, rs, M, sBase, sBase - dir * 0.6, o, 0.25);
   }
 

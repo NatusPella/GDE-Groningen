@@ -1,12 +1,15 @@
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
-import { trafficSignalsNear, getTrafficLightPhase } from './trafficlights.js';
+import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
 import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
 import { countrySurface } from './countryfield.js';
+import { roadPriority } from './junctions.js';
+import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, MIDIBUS_MODEL } from './trafficfleet.js';
+import { sirenYield } from './emergency.js';
 import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -417,16 +420,32 @@ function roadNormals(road) {
 
 // laneMode 'squeeze': hug the right verge so oncoming traffic fits past on a
 // narrow two-way street; 'pass': swing out left around a stopped obstacle.
+// Bus/taxi/emergency traffic may use bus lanes and busways.
+function busLaneUser(v) {
+  return !!(v.isBus || v.isTaxi || v.isAmbulance || v.isPolice || v.sirenOn);
+}
+
 function lanePoint(map, road, i, dir, v) {
   const half = roadHalfWidths(map, road)[i];
   let lane = laneOffset(road, v, half);
-  if (v.laneMode === 'squeeze' && !road.oneway) lane = Math.max(lane, half - v.halfWid + 0.4);
+  const small = v.isBike || v.isScooter;
+  const bl = road.busLane && !small && (dir > 0 ? road.busLane.fwd : road.busLane.bwd);
+  if (bl && half >= 3) {
+    // the kerb lane is the bus lane: buses and taxis in it, the rest left of it
+    const laneW = Math.min(3.2, road.oneway ? half : half * 0.9);
+    lane = busLaneUser(v) && v.laneMode !== 'left'
+      ? Math.max(0.3, half - laneW / 2)
+      : road.oneway ? Math.min(lane, half - laneW - v.halfWid - 0.2) : clamp(half - laneW - v.halfWid - 0.3, 0.3, half);
+  }
+  if (v.laneMode === 'yield' && !small) lane = Math.max(lane, half - v.halfWid - 0.05);
+  else if (v.laneMode === 'left' && !small && half >= 4.5) lane = road.oneway ? -Math.max(0.3, Math.min(1.8, half - v.halfWid - 1.4)) : Math.min(lane, Math.max(v.halfWid + 0.25, half * 0.28));
+  else if (v.laneMode === 'squeeze' && !road.oneway) lane = Math.max(lane, half - v.halfWid + 0.4);
   else if (v.laneMode === 'pass') lane = road.oneway || half < 3.5 ? -Math.max(0.5, half - v.halfWid + 0.6) : -half / 2;
   const p = road.pts[i], nrm = roadNormals(road)[i];
   return [p[0] + nrm[0] * lane * dir, p[1] + nrm[1] * lane * dir];
 }
 
-export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.random, isBike = false, isBus = false, atPoint = null, isScooter = false) {
+export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.random, isBike = false, isBus = false, atPoint = null, isScooter = false, forcedModel = null) {
   const pts = road.pts;
   let i, a, b, t;
   if (atPoint) {
@@ -450,7 +469,7 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   let angle = Math.atan2(b[1] - a[1], b[0] - a[0]);
   const dir = road.oneway ? 1 : (rng() < 0.5 ? 1 : -1);
   if (dir < 0) angle = normalizeAngle(angle + Math.PI);
-  const model = isPolice
+  const model = forcedModel || (isPolice
     ? { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 34, accel: 9.5, brake: 18, turnRate: 2.8, color: '#1c1c1c' }
     : isBike
     ? pickBikeModel(rng)
@@ -458,7 +477,7 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
     ? pickScooterModel(rng)
     : isBus
     ? BUS_MODELS[Math.floor(rng() * BUS_MODELS.length)]
-    : MODELS[Math.floor(rng() * MODELS.length)];
+    : MODELS[Math.floor(rng() * MODELS.length)]);
   const v = new Vehicle(x, y, angle, model);
   v.isPolice = isPolice;
   v.isBike = isBike;
@@ -561,13 +580,26 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
   let count = 0;
   for (const v of vehicles) if (!v.wrecked && !v.isPolice && !v.isHeroCar && !v.isBike && !v.isBus && !v.isScooter && !v.isBoat && !v.parked && v.driver !== 'player') count++;
 
-  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3);
+  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3 && !r.busOnly);
+  // ambulances, taxis and a cash-transport van are part of the everyday
+  // traffic, not one-offs: keep a few of them around
+  const have = { ambulance: 0, taxi: 0, cashvan: 0 };
+  for (const v of vehicles) if (v.fleetKind in have && !v.wrecked && v.driver !== 'player') have[v.fleetKind]++;
+  const want = { ambulance: 1, taxi: 2, cashvan: 1 };
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
-    const v = spawnVehicleOnRoad(map, road, false, Math.random);
+    const mid = road.pts[Math.floor(road.pts.length / 2)];
+    let pick = pickTrafficCar(map, mid[0], mid[1]);
+    for (const k of ['ambulance', 'taxi', 'cashvan']) {
+      if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
+    }
+    if (!canUseRoad({ model: pick.model }, road)) continue;
+    const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
+    applyFleetFlags(v, pick.kind);
+    if (pick.kind in have) have[pick.kind]++;
     vehicles.push(v);
     count++;
   }
@@ -592,7 +624,10 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
-    const v = spawnVehicleOnRoad(map, road, false, Math.random, true);
+    const mid = road.pts[Math.floor(road.pts.length / 2)];
+    const variant = pickBikeVariant(map, mid[0], mid[1]);
+    if (variant && variant.cargo && road.cat === 'minor' && road.width < 3) continue;
+    const v = spawnVehicleOnRoad(map, road, false, Math.random, true, false, null, false, variant);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
     vehicles.push(v);
@@ -639,11 +674,13 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   let count = 0;
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
 
-  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal');
+  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
-    const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true);
+    // a midi bus now and then on the quieter lines
+    const midi = Math.random() < (road.cat === 'normal' ? 0.5 : 0.25);
+    const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true, null, false, midi ? { ...MIDIBUS_MODEL } : null);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
     vehicles.push(v);
@@ -918,6 +955,7 @@ function canUseRoad(v, r) {
   if (r.cat === 'foot') return false;
   const small = v.isBike || v.isScooter;
   if (r.cat === 'cycle' && !small) return false;
+  if (r.busOnly && !busLaneUser(v)) return false;
   return small || r.width >= v.model.wid + 1.1;
 }
 
@@ -935,7 +973,7 @@ function chooseTurn(v, map, road, at, dir, rng, goal) {
     for (const d of [1, -1]) {
       const j = e.idx + d;
       if (j < 0 || j >= e.road.pts.length) continue;
-      if (e.road.oneway && d < 0) continue;
+      if (e.road.oneway && d < 0 && !(v.isBus && e.road.busContra)) continue;
       if (e.road === road && e.idx === at && d === -dir) continue;
       opts.push({ road: e.road, dir: d, idx: e.idx, turn: normalizeAngle(segHeading(e.road, e.idx, j) - inHeading) });
     }
@@ -961,6 +999,7 @@ function chooseTurn(v, map, road, at, dir, rng, goal) {
     const weights = pool.map((o) => {
       let w = Math.abs(o.turn) < 0.45 ? 3 : 1;
       if (v.isBus && (o.road.cat === 'major' || o.road.cat === 'normal')) w *= 3;
+      if (v.isBus && o.road.busOnly) w *= 4;
       if (small && o.road.cat === 'cycle') w *= 2;
       return w;
     });
@@ -1066,6 +1105,24 @@ function findRoute(v, map, gx, gy) {
   v.plan = plan;
   v.routeEnd = { road: target.road, idx: ti };
   return true;
+}
+
+// Voorsorteren: on a wide road, a car that turns left at the next junction
+// moves to the inner lane for the last 40 m.
+function wantsTurnLane(v) {
+  const t = v.plan && v.plan[0];
+  if (!t || t.from !== v.road || t.uturn) return false;
+  const r = v.road;
+  if ((r.width || 0) < (r.oneway ? 7 : 9)) return false;
+  const p = r.pts[t.at];
+  const d = Math.hypot(p[0] - v.x, p[1] - v.y);
+  if (d > 40 || d < 3) return false;
+  const prev = r.pts[t.at - v.dir], next = t.road.pts[t.idx + t.dir];
+  if (!prev || !next) return false;
+  const inH = Math.atan2(p[1] - prev[1], p[0] - prev[0]);
+  const q = t.road.pts[t.idx];
+  const outH = Math.atan2(next[1] - q[1], next[0] - q[0]);
+  return normalizeAngle(outH - inH) < -0.5;
 }
 
 // Move segIdx forward once the vehicle has passed the end of its segment, or
@@ -1269,7 +1326,7 @@ function trafficLightLimit(v, path, world) {
     const [ax, ay] = pointAlong(path, Math.max(0, pr.s - 2)), [bx, by] = pointAlong(path, pr.s + 2);
     if ((bx - ax) * A.hx + (by - ay) * A.hy < 0.6 * Math.hypot(bx - ax, by - ay)) continue;
     const stopS = pr.s - v.halfLen - 1.2;
-    const phase = getTrafficLightPhase(A);
+    const phase = trafficLightPhaseMove(A, !A.bike && turnsLeftAfter(path, pr.s, A));
     const go = phase === 'green' || stopS < -1 ||
       (phase === 'yellow' && (v.speed * v.speed) / (2 * aiComfortDecel(v) * 1.75) > stopS);
     if (go) {
@@ -1281,6 +1338,16 @@ function trafficLightLimit(v, path, world) {
   return vmax;
 }
 
+// Does the path turn left at the junction behind this stop line? Compares the
+// heading at the stop line with the heading ~8 m past the junction centre.
+function turnsLeftAfter(path, s, A) {
+  const sj = s + Math.hypot(A.ax - A.x, A.ay - A.y);
+  const [ex0, ey0] = pointAlong(path, sj + 4), [ex1, ey1] = pointAlong(path, sj + 10);
+  const el = Math.hypot(ex1 - ex0, ey1 - ey0);
+  if (el < 1) return false;
+  return (A.hx * (ey1 - ey0) - A.hy * (ex1 - ex0)) / el < -0.4;
+}
+
 // Unsignalled junction priority, Dutch rules: the higher road class goes
 // first (roundabout > major > normal > minor > service), between equals
 // traffic from the right goes first, a left turn yields to oncoming traffic,
@@ -1288,11 +1355,9 @@ function trafficLightLimit(v, path, world) {
 // a queue don't claim, so they can't block traffic that actually can go.
 // If everyone we yield to is itself stuck waiting (rechts-voor-gaat on all
 // four arms), the lowest id among them goes.
+// Same classes as the haaientanden and B6 signs (junctions.js).
 function roadRank(r) {
-  if (!r) return 0;
-  if (r.roundabout) return 5;
-  if (r.type === 'service' || r.type === 'track') return 0;
-  return r.cat === 'major' ? 3 : r.cat === 'normal' ? 2 : 1;
+  return roadPriority(r);
 }
 
 function realJunction(node) {
@@ -1418,8 +1483,14 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
     return;
   }
   if (!v.plan) v.plan = [];
+  if (!opts) opts = v.aiOpts || null;
   const goal = (opts && opts.goal) || null;
   const chase = !!(opts && opts.chase);
+  const small0 = v.isBike || v.isScooter;
+  // make way for lights and sirens: hug the kerb, slow down, stop when close
+  const yielding = !chase && !v.sirenOn && sirenYield(v, world);
+  if (yielding) { v.laneMode = 'yield'; v.laneModeUntil = world.time + 1.2; v.yieldHard = yielding === 'stop'; }
+  else if (!small0 && !chase && (!v.laneMode || v.laneMode === 'left')) v.laneMode = wantsTurnLane(v) ? 'left' : null;
   if (goal && world.time - (v.planAt || 0) > 1.5) {
     v.planAt = world.time;
     if (!findRoute(v, map, goal.x, goal.y)) { v.plan.length = Math.min(v.plan.length, 1); v.routeEnd = null; }
@@ -1472,6 +1543,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   if (creeping) vTarget = Math.min(vTarget, 2.5);
   if (v.laneMode === 'pass') vTarget = Math.min(vTarget, 4);
+  if (v.laneMode === 'yield') vTarget = Math.min(vTarget, v.yieldHard ? 0 : small0 ? 2 : 3.5);
 
   // Gridlock (junction standoff, head-on in a narrow street, an abandoned
   // car in the lane): after a while stop yielding to cross/oncoming traffic

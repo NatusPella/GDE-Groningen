@@ -156,6 +156,7 @@ function carProfile(type, hl) {
     case 'sport': return { nose: 0.45, hood: 0.7, belt: 0.82, roof: 1.25, xA: hl - 1.5, xB: hl - 2.2, xC: -hl + 1.25, xD: -hl + 0.35, deck: 0.86, tail: 0.74, fw: hl - 0.9, rw: -hl + 0.95 };
     case 'escort': return { nose: 0.7, hood: 0.82, belt: 0.9, roof: 1.38, xA: hl - 1.05, xB: hl - 1.6, xC: -hl + 0.55, xD: -hl + 0.15, deck: 0.94, tail: 0.9, fw: hl - 0.75, rw: -hl + 0.75, boxy: true };
     case 'van': return { nose: 0.85, hood: 1.05, belt: 1.08, roof: 2.08, xA: hl - 0.45, xB: hl - 1.1, xC: -hl + 0.04, xD: -hl + 0.02, deck: 2.08, tail: 2.02, fw: hl - 0.8, rw: -hl + 1.05, van: true };
+    case 'suv': return { nose: 0.78, hood: 1.02, belt: 1.12, roof: 1.74, xA: hl - 1.2, xB: hl - 1.9, xC: -hl + 0.32, xD: -hl + 0.1, deck: 1.14, tail: 1.08, fw: hl - 0.95, rw: -hl + 1.0, boxy: true };
     default: return { nose: 0.58, hood: 0.82, belt: 0.93, roof: 1.47, xA: hl - 1.0, xB: hl - 1.75, xC: -hl + 0.5, xD: -hl + 0.12, deck: 0.98, tail: 0.94, fw: hl - 0.75, rw: -hl + 0.7 };
   }
 }
@@ -250,6 +251,36 @@ function buildCarGeometry(type, L, W, paint, opts) {
     B.box(-hl - 0.012, 1.45, 0, 0.012, 0.28, 0.08, 0x1d4fa3);
     B.box(-hl - 0.012, 1.45, 0, 0.012, 0.08, 0.28, 0x1d4fa3);
   }
+  const variant = opts.variant || '';
+  if (variant === 'taxi') {
+    B.box((P.xB + P.xC) / 2 + 0.15, P.roof + 0.1, 0, 0.28, 0.16, 0.62, 0xf0c24e);
+    B.box((P.xB + P.xC) / 2 + 0.15, P.roof + 0.1, 0, 0.3, 0.07, 0.64, TRIM);
+    for (const x of [hl + 0.086, -hl - 0.009]) B.box(x, x > 0 ? 0.38 : Math.min(0.6, P.tail - 0.22), 0, 0.013, 0.1, 0.48, 0x2f5fb0);
+    for (const s of [1, -1]) B.box((P.xB + P.xC) / 2, P.belt - 0.12, s * (hw + 0.008), 0.9, 0.12, 0.012, 0xf0c24e);
+  } else if (variant === 'rust') {
+    const rust = [0x8a4a26, 0x6e3b20, 0x9a5a2e];
+    for (let i = 0; i < 7; i++) {
+      const sx = -hl + 0.4 + hash2(i, L) * (L - 0.8), sy = sill + 0.12 + hash2(i, W) * 0.35;
+      B.box(sx, sy, (i % 2 ? 1 : -1) * (hw + 0.006), 0.18 + hash2(i, 3) * 0.3, 0.08 + hash2(i, 5) * 0.14, 0.012, rust[i % 3]);
+    }
+    // a door from the scrapyard, in another colour
+    B.box((P.xB + P.xC) / 2 + 0.2, (sill + P.belt) / 2 + 0.05, hw + 0.009, 0.9, P.belt - sill - 0.15, 0.012, 0xa89a7a);
+  } else if (variant === 'cash') {
+    for (const s of [1, -1]) {
+      const z = s * (hw + 0.008);
+      B.box(0, 1.25, z, L - 0.6, 0.18, 0.012, 0x2f6b3f);
+      B.box(0, 1.1, z, L - 0.6, 0.05, 0.012, 0xd9b21b);
+      B.box(-hl + 1.4, 1.55, z, 0.7, 0.22, 0.014, 0xd9b21b);
+    }
+    B.box(-hl - 0.012, 1.3, 0, 0.012, 0.16, W * 0.6, 0x2f6b3f);
+  } else if (variant === 'pakket') {
+    for (const s of [1, -1]) {
+      const z = s * (hw + 0.008);
+      B.box(-0.3, 1.5, z, L - 1.6, 0.34, 0.012, 0xf4f2ec);
+      B.box(-0.3, 1.5, z, 0.32, 0.26, 0.016, 0x1f4f9a);
+      B.box(-0.3 - 0.55, 1.5, z, 0.5, 0.08, 0.016, 0x1f4f9a);
+    }
+  }
   if (type === 'sport') {
     B.box(-hl + 0.12, P.deck + 0.1, 0, 0.18, 0.03, W * 0.84, paint);
     for (const s of [1, -1]) B.box(-hl + 0.14, P.deck + 0.05, s * W * 0.34, 0.06, 0.08, 0.04, TRIM);
@@ -273,9 +304,10 @@ function shadeHex(hex, f) {
   return (r << 16) | (g << 8) | b;
 }
 
-function assembleCar(type, L, W, paint, { police = false, ambulance = false, wrecked = false, wheelR = WHEEL_R } = {}) {
+function assembleCar(type, L, W, paint, { police = false, ambulance = false, wrecked = false, wheelR = WHEEL_R, variant = '' } = {}) {
   const color = wrecked ? WRECKED_COLOR : paint;
-  const geo = cached(`car|${type}|${L}|${W}|${color}|${police}|${ambulance}`, () => buildCarGeometry(type, L, W, color, { police, ambulance, wheelR }));
+  const vr = wrecked ? '' : variant;
+  const geo = cached(`car|${type}|${L}|${W}|${color}|${police}|${ambulance}|${vr}`, () => buildCarGeometry(type, L, W, color, { police, ambulance, wheelR, variant: vr }));
   const mats = vehicleMaterials();
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
@@ -305,14 +337,65 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
 function carType(v) {
   if (v.isPolice) return 'wagon';
   const n = v.model.name;
-  return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' ? n : 'hatch';
+  if (n === 'taxi') return 'sedan';
+  if (n === 'cashvan') return 'van';
+  return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' || n === 'suv' ? n : 'hatch';
+}
+
+function carVariant(v) {
+  const n = v.model.name;
+  if (n === 'taxi' || v.isTaxi) return 'taxi';
+  if (n === 'cashvan') return 'cash';
+  if (v.model.rusty) return 'rust';
+  return v.model.livery || '';
 }
 
 function buildCarMesh(v) {
   if (v.isAmbulance) return assembleCar('van', v.model.len, v.model.wid, 0xf1d21c, { ambulance: true, wrecked: v.wrecked, wheelR: 0.34 });
+  if (v.model.name === 'truck') return buildTruckMesh(v);
   const police = !!v.isPolice;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
-  return assembleCar(carType(v), v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR: v.model.name === 'van' ? 0.34 : WHEEL_R });
+  const type = carType(v);
+  const wheelR = type === 'van' ? 0.34 : type === 'suv' ? 0.38 : WHEEL_R;
+  return assembleCar(type, v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR, variant: carVariant(v) });
+}
+
+// Bakwagen: cab-over front with a box body.
+function buildTruckMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
+  const r = 0.46;
+  const geo = cached(`truck|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    const cabL = 1.9, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
+    B.box(0, 0.62, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
+    B.box((boxX0 + boxX1) / 2, 2.05, 0, boxX1 - boxX0, 2.5, W, paint === WRECKED_COLOR ? paint : 0xeeeee8);
+    B.box(hl - cabL / 2, 1.5, 0, cabL, 1.9, W - 0.05, paint);
+    B.box(hl - cabL / 2 - 0.05, 2.5, 0, cabL - 0.3, 0.1, W - 0.25, shadeHex(paint, 0.85));
+    B.box(hl + 0.005, 1.95, 0, 0.02, 0.8, W - 0.35, GLASS, G_GLASS);
+    for (const s of [1, -1]) {
+      B.box(hl - 0.55, 1.85, s * (hw - 0.015), 0.75, 0.6, 0.02, GLASS, G_GLASS);
+      B.box(hl + 0.02, 0.8, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
+      B.box(-hl - 0.01, 0.85, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
+      B.box(hl - 0.1, 2.1, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
+      B.box((boxX0 + boxX1) / 2, 2.2, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.5, 0.012, paint);
+    }
+    B.box(hl + 0.03, 0.55, 0, 0.1, 0.22, W - 0.1, 0x2a2b2d);
+    B.box(hl + 0.085, 0.55, 0, 0.012, 0.1, 0.48, PLATE);
+    B.box(-hl - 0.012, 0.6, 0, 0.012, 0.1, 0.48, PLATE);
+    return B.build();
+  });
+  const mats = vehicleMaterials();
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  const wgeo = carWheelGeometry(r, 0.3);
+  const wheels = [];
+  for (const x of [hl - 1.1, -hl + 1.4]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = r;
+  return group;
 }
 
 function buildFordEscortGroup(color, len = HERO_LEN, wid = HERO_WID, wrecked = false) {
@@ -396,7 +479,61 @@ function buildBikeGeometry(color, fat, stepThrough) {
   });
 }
 
+// Bakfiets: long frame with a wooden box between the rider and a small front wheel.
+function buildBakfietsGeometry(color) {
+  return cached(`bakfiets|${color}`, () => {
+    const B = new GeoBuilder(3);
+    const t = 0.02;
+    const tube = (a, b, rr = t, c = color) => B.geo(tubeGeometry(a, b, rr, rr, 5), null, c);
+    const R = [-0.85, 0.34, 0], BB = [-0.45, 0.3, 0], S = [-0.62, 0.86, 0], H = [-0.25, 0.96, 0];
+    tube(R, BB);
+    tube(R, S, t * 0.8);
+    tube(BB, S, t * 1.2);
+    tube(BB, [0.95, 0.22, 0], t * 1.3);
+    tube([-0.2, 0.28, 0], H, t * 1.1);
+    for (const s of [1, -1]) tube(H, [H[0] - 0.12, H[1] + 0.05, s * 0.26], 0.012, 0x8a8e92);
+    B.box(S[0] - 0.02, S[1] + 0.1, 0, 0.26, 0.06, 0.16, 0x2a1d14);
+    B.box(0.45, 0.62, 0, 0.9, 0.04, 0.66, 0x7a5a38);
+    for (const s of [1, -1]) B.box(0.45, 0.82, s * 0.33, 0.9, 0.4, 0.03, 0x9a7048);
+    B.box(0.9, 0.82, 0, 0.03, 0.4, 0.66, 0x9a7048);
+    B.box(0.0, 0.82, 0, 0.03, 0.4, 0.66, 0x9a7048);
+    B.box(0.45, 1.03, 0.33, 0.9, 0.03, 0.04, 0x6b4a2a);
+    B.box(0.45, 1.03, -0.33, 0.9, 0.03, 0.04, 0x6b4a2a);
+    B.box(-0.97, 0.76, 0, 0.01, 0.04, 0.06, TAIL, G_LAMP);
+    B.box(0.93, 0.7, 0, 0.01, 0.06, 0.06, HEADLAMP, G_LAMP);
+    return B.build();
+  });
+}
+
+function buildBakfietsMesh(v) {
+  const group = new THREE.Group();
+  const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
+  const mats = vehicleMaterials();
+  group.add(new THREE.Mesh(buildBakfietsGeometry(color), mats));
+  const wheels = [];
+  addWheel(group, bikeWheelGeometry(0.34, 0.022), mats[0], -0.85, 0.34, 0, wheels);
+  addWheel(group, bikeWheelGeometry(0.25, 0.022), mats[0], 1.0, 0.25, 0, wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = 0.32;
+  const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
+  rider.position.set(-0.68, 1.02 - 0.93 * rider.scale.y, 0);
+  poseRider(rider, 0.33, 0.7, -0.05);
+  group.add(rider);
+  group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: 0.33, amp: 0.2 };
+  // a kid (or two) in the box
+  if (hash2(v.id || 0, 7.7) < 0.6) {
+    const kid = buildPersonMesh([0xd0457a, 0x3f7ab0, 0xe8c93a][Math.floor(hash2(v.id || 0, 2) * 3)], 0xe8b48a, { seed: (v.id || 0) + 9 });
+    kid.scale.setScalar(0.55);
+    kid.position.set(0.5, 0.35, 0);
+    if (kid.userData.legL) kid.userData.legL.rotation.z = 1.4;
+    if (kid.userData.legR) kid.userData.legR.rotation.z = 1.4;
+    group.add(kid);
+  }
+  return group;
+}
+
 function buildBikeMesh(v) {
+  if (v.model.cargo) return buildBakfietsMesh(v);
   const group = new THREE.Group();
   const fat = !!v.model.fat;
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
@@ -776,9 +913,30 @@ export function updateVehicleWheelSpin(mesh, speed, dt) {
 
 // --- dispatch -------------------------------------------------------------------
 
+// Midi bus: one short rigid section, same livery as the big ones.
+function buildMidiBusMesh(v) {
+  const group = new THREE.Group();
+  const len = v.model.len, wid = v.model.wid, hl = len / 2;
+  const fwX = hl - 1.9, rwX = -hl + 2.0;
+  const geo = cached(`midibus|${len}|${wid}|${!!v.wrecked}`, () => {
+    const B = new GeoBuilder(3);
+    busSection(B, -hl, hl, wid, { front: true, rear: true, wheelXs: [fwX, rwX], doorXs: [hl - 1.05, 0.2] });
+    return B.build();
+  });
+  const mats = vehicleMaterials();
+  group.add(new THREE.Mesh(geo, mats));
+  const wgeo = carWheelGeometry(BUS_WHEEL_R, 0.3);
+  const wheels = [];
+  for (const x of [fwX, rwX]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, BUS_WHEEL_R, s * (wid / 2 - 0.2), wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = BUS_WHEEL_R;
+  return group;
+}
+
 function buildVehicleMeshFor(v) {
   if (v.isBike) return buildBikeMesh(v);
   if (v.isScooter) return buildScooterMesh(v);
+  if (v.isBus && v.model.name === 'midibus') return buildMidiBusMesh(v);
   if (v.isBus) return buildBusMesh(v);
   if (v.isBoat) return buildBoatMesh(v);
   if (v.isHeroCar) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);

@@ -13,7 +13,13 @@ let routeKey = '';
 let lastComputeAt = -Infinity;
 const stats = { buildMs: 0, lastMs: 0, maxMs: 0, avgMs: 0, runs: 0, nodes: 0, driveEdges: 0, walkEdges: 0, lastSettled: 0 };
 
-const isDrivable = (road) => road.cat !== 'foot' && road.cat !== 'cycle';
+const isDrivable = (road) => road.cat !== 'foot' && road.cat !== 'cycle' && !road.busOnly;
+// Driving routes stay on the carriageway: parking aisles and tracks only
+// when they really shortcut, footpaths and cycle paths only for the last
+// stretch to a car-free target (the mixed graph), never as a shortcut.
+const SERVICE_COST = 2.5;
+const OFFROAD_COST = 15;
+const STEPS_COST = 60;
 // Some OSM footways/service roads cross building footprints (passages,
 // courtyards); still usable, but routes should strongly prefer streets.
 const THROUGH_BUILDING_COST = 8;
@@ -39,7 +45,7 @@ function buildGraph(map) {
   const ids = new Map();
   const xs = [], ys = [];
   const roadNodes = new Map();
-  const drive = [], walk = [], walkRoad = [];
+  const drive = [], walk = [], walkRoad = [], mixed = [];
   const nodeOf = (x, y) => {
     const key = (Math.round(x * 2) + 32768) * 65536 + (Math.round(y * 2) + 32768);
     let id = ids.get(key);
@@ -66,8 +72,13 @@ function buildGraph(map) {
       walk.push(a, b, len, b, a, len);
       walkRoad.push(ri, ri);
       if (canDrive) {
-        drive.push(a, b, len);
-        if (!road.oneway) drive.push(b, a, len);
+        const dl = road.type === 'service' || road.type === 'track' ? len * SERVICE_COST : len;
+        drive.push(a, b, dl);
+        mixed.push(a, b, dl);
+        if (!road.oneway) { drive.push(b, a, dl); mixed.push(b, a, dl); }
+      } else if (!road.busOnly) {
+        const ml = len * (road.type === 'steps' ? STEPS_COST : OFFROAD_COST);
+        mixed.push(a, b, ml, b, a, ml);
       }
     }
   }
@@ -121,6 +132,7 @@ function buildGraph(map) {
     y: Float64Array.from(ys),
     roadNodes,
     drive: csr(drive),
+    mixed: csr(mixed),
     walk: walkAdj,
     g: new Float64Array(N),
     prev: new Int32Array(N),
@@ -198,9 +210,12 @@ class Heap {
   peekF() { return this.f[0]; }
 }
 
+// mode: 'walk' | 'drive' | 'mixed' (true/false kept for walk/drive)
 function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   const G = graph;
-  const adj = walkMode ? G.walk : G.drive;
+  const mode = walkMode === true ? 'walk' : walkMode === false ? 'drive' : walkMode;
+  const adj = mode === 'walk' ? G.walk : mode === 'mixed' ? G.mixed : G.drive;
+  walkMode = mode === 'walk';
   const stamp = ++G.stamp;
   const gx = toSnap.x, gy = toSnap.y;
   const h = (n) => Math.hypot(G.x[n] - gx, G.y[n] - gy);
@@ -214,12 +229,12 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   };
 
   const fr = G.roadNodes.get(fromSnap.road);
-  const fOne = fromSnap.road.oneway && !walkMode;
+  const fOne = fromSnap.road.oneway && !walkMode && isDrivable(fromSnap.road);
   relax(fr[fromSnap.seg + 1], (1 - fromSnap.t) * fromSnap.segLen, -1);
   if (!fOne) relax(fr[fromSnap.seg], fromSnap.t * fromSnap.segLen, -1);
 
   const tr = G.roadNodes.get(toSnap.road);
-  const tOne = toSnap.road.oneway && !walkMode;
+  const tOne = toSnap.road.oneway && !walkMode && isDrivable(toSnap.road);
   const goalA = tr[toSnap.seg], goalB = tr[toSnap.seg + 1];
   const extraA = toSnap.t * toSnap.segLen, extraB = (1 - toSnap.t) * toSnap.segLen;
 
@@ -300,21 +315,21 @@ function computeRoute(world, target, mode) {
   const map = world.map;
   const p = world.player;
   let pts = null;
-  let driveOnly = mode === 'drive';
+  const driveOnly = mode === 'drive';
   let to = snapToRoad(map, target.x, target.y, driveOnly);
-  // targets in car-free areas (Grote Markt, Poelestraat): the player can
-  // still drive there, so route over the walk network instead of stopping
-  // at the nearest car street
+  let graphMode = driveOnly ? 'drive' : 'walk';
+  // targets in car-free areas (Grote Markt, Poelestraat): drive along the
+  // streets as close as possible, the last bit over the pedestrian area
   if (driveOnly && to && Math.hypot(to.x - target.x, to.y - target.y) > CONNECTOR_MAX_M) {
     const tw = snapToRoad(map, target.x, target.y, false);
-    if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { driveOnly = false; to = tw; }
+    if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { graphMode = 'mixed'; to = tw; }
   }
   const from = snapToRoad(map, p.x, p.y, driveOnly);
   if (from && to) {
-    pts = astar(from, to, !driveOnly);
+    pts = astar(from, to, graphMode);
     if (!pts && driveOnly) {
-      const fw = snapToRoad(map, p.x, p.y, false), tw = snapToRoad(map, target.x, target.y, false);
-      if (fw && tw) pts = astar(fw, tw, true);
+      const tw = snapToRoad(map, target.x, target.y, false);
+      if (tw) pts = astar(from, tw, 'mixed');
     }
   }
   // no route found: no line at all rather than a straight one through town
