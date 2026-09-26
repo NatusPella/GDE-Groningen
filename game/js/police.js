@@ -118,6 +118,8 @@ const HELI_ROTOR_SPEED = 22;
 // (spawn cooldowns, previous-wanted tracking for the decay timer).
 const policeState = new WeakMap();
 const heliRender = { heli: null };
+// a heli posed by a cutscene (trailer.js) instead of updatePoliceHeli
+export function setPoliceHeliRender(h) { heliRender.heli = h; }
 function getState(world) {
   let s = policeState.get(world);
   if (!s) {
