@@ -58,8 +58,36 @@ frame then runs, in order:
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), `sidejobvoice.js` (voiced boss lines, `audio/voicelines/jobs`), one `sidejob_*.js` per job |
 | UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
-| Audio | `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `scenariomusic.js` (race/chase loops that pause G-Music) |
+| Audio | `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
+
+## Spoken lines
+
+Every line shown as a speech bubble or subtitle has a recording, looked up
+by `"<speaker>|<text>"` in a manifest (an edited line goes silent instead of
+playing the wrong clip):
+
+- `audio/voicelines/story`: story cutscenes (`missionstory.js`), the intro
+  montage and the rondvaart chase. `missionstory.js` falls back to the lines
+  manifest for story lines recorded there.
+- `audio/voicelines/jobs`: bijbaantje bosses and Tammo/Anita's shift lines
+  (`sidejobvoice.js`, `scripts/tts_sidejobs*.{mjs,py}`).
+- `audio/voicelines/lines` (`linevoice.js`, `scripts/tts_lines*.{mjs,py}`):
+  speech bubbles as `~m|`/`~f|` (scene3d speaks a new bubble in the voice
+  that matches the ped's model), subtitles without their own recording
+  (`cinematics.js` attaches them and stretches the timeline to fit; no
+  speaker = `Verteller`) and the rondvaart guide (`Tammo`/`Anita`).
+- `audio/npc`: the ambient Gronings phrases.
+
+All voices go through the voice bus (Stemmen slider). They never overlap:
+bubbles, voicelines and the guide share one "busy until" window in
+`audio.js`, and story scenes silence the rest; skipping a cutscene stops its
+voice. `node scripts/voice_coverage.mjs` lists spoken lines without a
+recording per area and exits 1 if any are missing; new spoken tables are
+registered in `scripts/voicelines_collect.mjs`. To fill the gaps:
+`node scripts/tts_lines_list.mjs && python3 scripts/tts_lines.py` (Gemini
+TTS via OpenRouter, key in `.env`; clips are trimmed and normalised to
+-18 LUFS, the level of the story lines; the run stops at `--budget`).
 
 ## Heights
 

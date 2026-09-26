@@ -907,7 +907,7 @@ function playMissionJingle() {
 // with no recording for this character) fails silently, never throws.
 // pos = {x, y} places the clip in the world; omitted = plain stereo.
 function playClip(src, pos = null) {
-  if (!ctx || muted) return;
+  if (!ctx || muted) return null;
   const el = new Audio(src);
   const nodes = [];
   try {
@@ -928,6 +928,17 @@ function playClip(src, pos = null) {
   el.addEventListener('ended', cleanup, { once: true });
   el.addEventListener('error', cleanup, { once: true });
   el.play().catch(cleanup);
+  return el;
+}
+
+// Until when a spoken clip is still talking (ctx time). Every voice channel
+// checks it so bubbles, voicelines and guide lines never overlap.
+let voiceBusyUntil = -Infinity;
+function markBusy(el, start, guess) {
+  voiceBusyUntil = Math.max(voiceBusyUntil, start + guess);
+  if (el) el.addEventListener('loadedmetadata', () => {
+    if (Number.isFinite(el.duration)) voiceBusyUntil = Math.max(voiceBusyUntil, start + el.duration + 0.15);
+  }, { once: true });
 }
 
 // Voicelines/police/Sikkom - the "important", event-driven spoken lines -
@@ -941,9 +952,9 @@ let lastSpokenAt = -Infinity;
 function playSpokenClip(src, pos = null) {
   if (!ctx) return false;
   const now = ctx.currentTime;
-  if (now - lastSpokenAt < SPOKEN_MIN_GAP) return false;
+  if (now - lastSpokenAt < SPOKEN_MIN_GAP || now < voiceBusyUntil) return false;
   lastSpokenAt = now;
-  playClip(src, pos);
+  markBusy(playClip(src, pos), now, SPOKEN_MIN_GAP);
   duckAmbience(0.45, 2.2);
   duckMusic(2.2);
   return true;
@@ -961,9 +972,9 @@ let lastNpcSpokenAt = -Infinity;
 function playNpcSpokenClip(src, pos) {
   if (!ctx) return false;
   const now = ctx.currentTime;
-  if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP) return false;
+  if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP || now < voiceBusyUntil) return false;
   lastNpcSpokenAt = now;
-  playClip(src, pos);
+  markBusy(playClip(src, pos), now, 1.2);
   return true;
 }
 
@@ -988,6 +999,7 @@ export function stopStoryVoice() {
 
 export function playStoryVoice(src) {
   stopStoryVoice();
+  stopBubbleVoice();
   if (!ctx || muted) return;
   const v = { el: new Audio(src), node: null };
   try {
@@ -1006,6 +1018,46 @@ export function playStoryVoice(src) {
     duckMusic(hold);
   }, { once: true });
   v.el.play().catch(done);
+}
+
+// Speech-bubble lines (linevoice.js): one at a time, from the speaker's
+// spot, only when nothing else is talking and never during a story scene.
+// A bubble whose voice can't play right now just stays silent.
+let bubbleVoice = null;
+function stopBubbleVoice() {
+  const el = bubbleVoice;
+  bubbleVoice = null;
+  if (el) { el.pause(); el.dispatchEvent(new Event('ended')); }
+}
+
+export function playBubbleVoice(src, dur, pos = null) {
+  if (!ctx || muted || storyScene) return false;
+  const now = ctx.currentTime;
+  if (now < voiceBusyUntil || now - lastSpokenAt < 0.4) return false;
+  if (pos && distToListener(pos.x, pos.y) > SPEECH_RANGE) return false;
+  const el = playClip(src, pos);
+  if (!el) return false;
+  bubbleVoice = el;
+  el.addEventListener('ended', () => { if (bubbleVoice === el) bubbleVoice = null; }, { once: true });
+  voiceBusyUntil = now + dur + 0.15;
+  duckAmbience(0.3, dur);
+  return true;
+}
+
+// Non-cutscene narration in front of the player (the rondvaart guide): cuts a
+// bubble voice short, but returns false (try again) while another line
+// talks. True also when it can't play at all (muted), so the caller moves on.
+export function playLineVoice(src, dur) {
+  if (!ctx || muted || storyScene) return true;
+  const now = ctx.currentTime;
+  if (bubbleVoice) { stopBubbleVoice(); voiceBusyUntil = now; }
+  if (now < voiceBusyUntil) return false;
+  playClip(src);
+  lastSpokenAt = now;
+  voiceBusyUntil = now + dur + 0.15;
+  duckAmbience(0.45, dur + 0.3);
+  duckMusic(dur + 0.3);
+  return true;
 }
 
 function playVoiceline(character, key) {

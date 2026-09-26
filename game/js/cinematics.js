@@ -5,6 +5,7 @@ import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
 import { startRespawnScene, respawnFade } from './respawn.js';
 import { playStoryVoice, setStoryScene } from './audio.js';
+import { lineVoiceFor } from './linevoice.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -166,11 +167,37 @@ export function skipCinematic() {
   if (active) finish(true);
 }
 
+// Subtitles without their own recording get one from the lines manifest
+// (narration without a speaker is the Verteller). Voiced lines then stay up
+// until their recording has finished, pushing the rest (and the scene) later.
+function attachVoices(a) {
+  if (!a.lines || !a.lines.length) return;
+  let found = false;
+  const lines = a.lines.map((l) => {
+    const v = !l.voice && lineVoiceFor(l.speaker, l.text);
+    if (!v) return l;
+    found = true;
+    return { ...l, voice: v.src, vdur: v.dur };
+  });
+  if (!found) return;
+  const start = 0.5, even = Math.max(0.5, a.duration - start - 0.2) / lines.length;
+  let shift = 0;
+  a.lines = lines.map((l, i) => {
+    const dur0 = l.dur ?? even;
+    const out = { ...l, at: (l.at ?? start + i * even) + shift, dur: l.vdur ? Math.max(dur0, l.vdur + 0.25) : dur0 };
+    shift += out.dur - dur0;
+    return out;
+  });
+  const end = a.lines[a.lines.length - 1];
+  a.duration = Math.max(a.duration + shift, end.at + end.dur + 0.2);
+}
+
 function begin(spec) {
   active = {
     priority: 1, duration: 3, letterbox: true, skippable: true, hideHud: true, pause: false, timeScale: 1,
     ...spec, t: 0,
   };
+  attachVoices(active);
   const r = els.root;
   r.classList.toggle('letterbox', !!active.letterbox);
   r.classList.toggle('show-skip', !!active.skippable && active.duration > 1.6);

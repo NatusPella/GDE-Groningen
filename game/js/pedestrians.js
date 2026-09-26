@@ -3,6 +3,7 @@ import { resolveBuildingCollisions, findExitSpot } from './player.js';
 import { resolveWalker } from './collision.js';
 import { requestRespawn } from './world.js';
 import { playNpcPhrase } from './audio.js';
+import { hasBubbleVoice } from './linevoice.js';
 import { pushCircleOutOfVehicle, reportImpact, distToVehicleBody } from './vehicle.js';
 import { getCombatEffect } from './combat.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
@@ -275,7 +276,8 @@ let lastShoutAt = -Infinity;
 function say(ped, world, text, duration = 2.6, audio = 'shout', strength = 0.7) {
   ped.speechText = text;
   ped.speechUntil = world.time + duration;
-  if (audio && world.time - lastShoutAt > 0.6) {
+  // a recorded line is spoken by the bubble itself (scene3d), no synth shout on top
+  if (audio && world.time - lastShoutAt > 0.6 && !hasBubbleVoice(text)) {
     lastShoutAt = world.time;
     pushAudioEvent(world, { kind: audio, x: ped.x, y: ped.y, strength, text });
   }
