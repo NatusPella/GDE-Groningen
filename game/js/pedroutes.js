@@ -367,22 +367,29 @@ function planDetour(map, r, cr, ax, ay) {
   return true;
 }
 
-function canCross(world, cr) {
-  for (const h of trafficSignalsNear(cr.x, cr.y)) {
-    if (h.bike || h.broken) continue;
-    if ((h.ax - cr.x) ** 2 + (h.ay - cr.y) ** 2 > 400) continue;
-    if (!pedestriansMayCross(h)) return false;
-    break;
+// impatient: waited long enough to ignore the lights, but never walks out in
+// front of something that would arrive within a couple of seconds
+function canCross(world, cr, impatient = false) {
+  if (!impatient) {
+    for (const h of trafficSignalsNear(cr.x, cr.y)) {
+      if (h.bike || h.broken) continue;
+      if ((h.ax - cr.x) ** 2 + (h.ay - cr.y) ** 2 > 400) continue;
+      if (!pedestriansMayCross(h)) return false;
+      break;
+    }
   }
+  const gap = impatient ? 2 : 3.5;
   for (const v of world.vehicles) {
     if (v.isBoat || v.wrecked) continue;
-    const dx = cr.x - v.x, dy = cr.y - v.y;
-    if (Math.abs(dx) > 30 || Math.abs(dy) > 30) continue;
     const sp = Math.abs(v.speed || 0);
     if (sp < 1.5) continue;
+    // the reach grows with speed: a car doing 30 m/s is looked out for from far off
+    const reach = 12 + sp * (gap + 1);
+    const dx = cr.x - v.x, dy = cr.y - v.y;
+    if (Math.abs(dx) > reach || Math.abs(dy) > reach) continue;
     const d = Math.hypot(dx, dy) || 1;
     const closing = (dx * Math.cos(v.angle) + dy * Math.sin(v.angle)) * v.speed / d;
-    if (closing > 0 && (d - 3) / closing < 3.5) return false;
+    if (closing > 0 && (d - 3) / closing < gap) return false;
   }
   return true;
 }
@@ -729,7 +736,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
   if (cr && !cr.ok) {
     const dEntry = dist(ped.x, ped.y, cr.x, cr.y);
     if (dEntry < 1.2) {
-      if (cr.waited > MAX_CROSS_WAIT || canCross(world, cr)) {
+      if (canCross(world, cr, cr.waited > MAX_CROSS_WAIT)) {
         cr.ok = true;
         cr.waiting = false;
         if (zebra) { cr.onZebra = true; pedNavStats.zebraCross++; }

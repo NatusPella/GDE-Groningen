@@ -213,7 +213,7 @@ function updateSearchlight() {
 
 function policeUnitActive(world, v) {
   if (v.wrecked || v.sinking) return false;
-  return v.sirenOn || (v.isPolice && world.wanted > 0 && !v.hijacked && v.driver !== 'player');
+  return v.sirenOn || (v.isPolice && !v._mount && !v._commandeered && world.wanted > 0 && !v.hijacked && v.driver !== 'player');
 }
 
 function updatePoliceLights(world, vehicleMeshes, px, py, night) {
