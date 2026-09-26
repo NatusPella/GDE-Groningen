@@ -23,6 +23,7 @@ const GUIDE_EVERY = 2.5;
 const REMIND_AFTER = 300;
 const SKIP_OFFER_S = 30;
 const SKIP_SHARE = 0.5;
+const GATED_SKIP_S = 90;
 const NIGHT_GARAGE_M = 16;
 const NIGHT_HOUR = 21.4;
 
@@ -129,6 +130,9 @@ function enter(step) {
   rt.base = {};
   rt.guideT = 0;
   rt.nightWait = false;
+  rt.gate = null;
+  rt.gatedSince = -1;
+  rt.gateOffered = false;
   if (!step || step.end) {
     world.storyGuide = null;
     if (step && step.end && !state.cards.has(step.end)) rt.cardPending = step.end;
@@ -173,6 +177,12 @@ function refreshGuide() {
     const gate = def ? unmetRequirement(world, def) : null;
     if (gate) { place = requirementPlace(world, gate); why = `Eerst: ${gateLabel(gate)}`; }
     else if (def) place = def.start;
+    // a requirement that stays unmet (no money, the rental boat sank) also makes the step skippable
+    rt.gate = gate;
+    rt.gatedSince = gate ? (rt.gatedSince >= 0 ? rt.gatedSince : world.time) : -1;
+    if (gate && world.time - rt.gatedSince > GATED_SKIP_S && !rt.gateOffered) { rt.gateOffered = true; rt.skipUntil = world.time + SKIP_OFFER_S; }
+    // the player picked another mission meanwhile: arm this one again once they are at its start
+    if (!gate && def && Math.hypot(def.start.x - world.player.x, def.start.y - world.player.y) < 40) setNextMission(world, missionIdx(step));
   } else {
     const g = GOALS[step.goal.type];
     place = g && g.place(step);
@@ -236,7 +246,7 @@ export function canSkipCurrent() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) return false;
   if (step.kind === 'activity') return true;
-  return (state.fails[step.id] || 0) >= 1;
+  return (state.fails[step.id] || 0) >= 1 || (rt.gatedSince >= 0 && world.time - rt.gatedSince > GATED_SKIP_S);
 }
 
 export function skipCurrent() {
@@ -347,10 +357,11 @@ export function updateStory(dt, w) {
     const g = GOALS[step.goal.type];
     if (step.goal.type === 'night') updateNightWait(step);
     if (g && g.met(step, rt.base)) { markDone(step); rt.cur = undefined; return; }
-  }
+  } else if (rt.gate === 'night' && !isMissionActive()) updateNightWait(step);
   if ((rt.guideT -= dt) <= 0) { rt.guideT = GUIDE_EVERY; refreshGuide(); }
   if (!rt.reminded && w.time - rt.enteredAt > REMIND_AFTER && !isMissionActive()) {
     rt.reminded = true;
+    if (step.kind === 'activity') rt.skipUntil = w.time + 60;
     phone(step.lead ? who(step.lead[0]) : 'Anita', `Nog even dit: ${step.title}. Staat op je kaart, als je zin hebt.`, 6);
   }
 }

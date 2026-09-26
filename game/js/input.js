@@ -10,12 +10,16 @@ export class Input {
     // dx/dy: relative mouse motion this frame while the pointer is locked
     this.mouse = { x: 0, y: 0, dx: 0, dy: 0, locked: false, down: false, rightDown: false, middleDown: false, wheel: 0 };
     this._justPressed = new Set();
+    // the key each physical key went down as: its keyup can report another
+    // e.key (Option or Shift pressed in between), which would leave it stuck
+    this._byCode = new Map();
 
     target.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
       if (k !== 'escape') this.tryLock();
       if (!this.keys.has(k)) this._justPressed.add(k);
       this.keys.add(k);
+      if (e.code) this._byCode.set(e.code, k);
       const digit = digitFromCode(e.code);
       if (digit && digit !== k) {
         if (!this.keys.has(digit)) this._justPressed.add(digit);
@@ -26,7 +30,11 @@ export class Input {
       }
     });
     target.addEventListener('keyup', (e) => {
-      this.keys.delete(e.key.toLowerCase());
+      const k = e.key.toLowerCase();
+      this.keys.delete(k);
+      if (e.code && this._byCode.has(e.code)) { this.keys.delete(this._byCode.get(e.code)); this._byCode.delete(e.code); }
+      // macOS sends no keyup for keys pressed while Cmd is held
+      if (k === 'meta') { this.keys.clear(); this._byCode.clear(); }
       const digit = digitFromCode(e.code);
       if (digit) this.keys.delete(digit);
     });
@@ -101,6 +109,7 @@ export class Input {
 
   reset() {
     this.keys.clear();
+    this._byCode.clear();
     this._justPressed.clear();
     this.mouse.down = false;
     this.mouse.middleDown = false;
