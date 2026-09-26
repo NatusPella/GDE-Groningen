@@ -45,7 +45,7 @@ De omslag in één zin: in de kop willen ze de Eierbal *voor zichzelf*, in de st
 | H2 [N] | Pinnen met de hele automaat | Herestraat naar pandjeshuis *Pand & Poen* | Ontsnappen bij 2 sterren, daarna naar *Spuit & Klaar* voor een nieuwe kleur, afleveren | – | €400, korting bij de spuiterij | Vervolg op de intro. De pandjesbaas: *"Te weinig voor jullie droom. Echt geld ligt in het museum."* Het doel is gezet. |
 | H3 [B] | Chaos op de Grote Markt | Grote Markt | Rampage | Wapen gekocht bij *Pang & Zo* | €300 | In Jelmers stream-chat verschijnt "JelleWâld": *"Moai stedsje. Foar in wykein."* |
 | H4 [N] | Duif op verkenning | Stationsplein-duiventil naar Groninger Museum | Duif-modus: vlieg rond het museum en "spot" 3 camera's en 2 bewakers (zweven boven het doel = foto) | – (introduceert duif-modus) | €200 | Er staat al een zwarte trekker-limo bij de achteringang. |
-| H5 [B] | KEI-weekrace door Grunn | Academiegebouw | Checkpointrace | Een eigen auto: kopen bij *Ome Harm Occasions* of een gejatte auto in je garage zetten | €350 | Tweede wordt studententeam "Snits Snel", gesponsord door Us Mem Snacks. |
+| H5 [B] | KEI-weekrace door Grunn | Academiegebouw | Checkpointrace | Een fiets (KEI-week is een fietsrace) | €350 | Tweede wordt studententeam "Snits Snel", gesponsord door Us Mem Snacks. |
 | H6 [N] | De Museumkraak | Groninger Museum, 's nachts, via het Verbindingskanaal | Sluipen en een puzzel (camera's uit via de stroomkast), daarna een bootvlucht bij 3 sterren | Kleding *Zwart incognito* **of** een boot gehuurd bij *Bootje Huren*; nacht (wachten bij de garage) | €150 (verzekeringsfoto van de lege vitrine) en Jelle als contact in de telefoon | **Einde kop.** De vitrine is leeg. Sikkom: *"Gouden Eierbal foetsie. Stad in rouw."* Jelle's livestream kondigt Operaasje Aaibal aan. |
 
 ### Romp
@@ -246,6 +246,7 @@ HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers 
 - Het slot van missie 8 (*"vóór Grunn"*) wordt **opnieuw ingesproken**.
 - Nog te controleren bij de bouw: kloppen de plekken met de kaartdekking (Reitdiep en de Hoornsediep-kade liggen aan de rand)?
 - **Altijd verder kunnen:** lukt een stap in de flow niet (bijv. omdat een onderdeel kapot is), dan moet je duidelijk kunnen overslaan. Na een mislukte missie komt er een knop *Sla deze missie over, verder met het verhaal*. Hetzelfde geldt voor eisen en activiteiten die vastlopen.
+- **Eigen auto = gekochte auto.** Een gestolen auto telt nooit als eigen auto, ook niet in de garage. Eisen zoals "een eigen auto" vragen dus altijd een aankoop, en het verhaal moet vóór zo'n eis genoeg geld opleveren.
 - **Cutscenes overslaan** gaat overal door de spatiebalk even ingedrukt te houden, nooit met één druk.
 - **Efficiënt testen** (een verhaal van 2 uur speel je niet elke keer uit): een verborgen testmodus (`?dev` / desktop `--dev`) met
   - hoofdstukkeuze: spring naar elke missie of stap in de flow, met de juiste savegame-staat (geld, gekochte spullen, voltooide missies);
