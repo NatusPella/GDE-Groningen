@@ -62,6 +62,8 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announc
   p.z = 0;
   p.vz = 0;
   p.vault = null;
+  if (p.water && p.leaveWater) p.leaveWater();
+  p.climb = null;
   const landmarks = world.map.meta.landmarks || [];
   const pick = at || (landmarks.length ? landmarks[Math.floor(Math.random() * landmarks.length)] : world.spawnPoint);
   const spot = at || world.map.findOpenSpawn(pick.x, pick.y, 400) || pick;

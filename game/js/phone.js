@@ -173,7 +173,7 @@ export function initPhone(w) {
 
 function canOpen() {
   return document.body.classList.contains('game-started') && !isPauseMenuOpen() && !isCinematicActive()
-    && !(world && world.pendingRespawn) && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));
+    && !(world && (world.pendingRespawn || world.pigeonMode)) && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));
 }
 
 function onKey(e) {
