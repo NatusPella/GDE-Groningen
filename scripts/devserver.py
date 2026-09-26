@@ -3,6 +3,7 @@
 the preview browser was aggressively caching stale JS/HTML across restarts
 since plain http.server sends no Cache-Control header at all."""
 import http.server
+import os
 import sys
 
 
@@ -33,6 +34,16 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         ".wav": "audio/wav",
         ".ogg": "audio/ogg",
     }
+
+    # The changelog lives in the repo root, one level above the game dir;
+    # the start screen fetches it as ./CHANGELOG.md.
+    def translate_path(self, path):
+        local = super().translate_path(path)
+        if path.split("?", 1)[0] == "/CHANGELOG.md" and not os.path.exists(local):
+            root = os.path.join(os.path.dirname(local), "..", "CHANGELOG.md")
+            if os.path.exists(root):
+                return os.path.abspath(root)
+        return local
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")

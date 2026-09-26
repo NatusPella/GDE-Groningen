@@ -119,6 +119,13 @@ function createWindow() {
     win.webContents.on('did-fail-load', (e, code, desc, url) => console.log('[load failed]', code, desc, url));
     setTimeout(async () => {
       try {
+        // --smoke-eval=<js> runs in the page first (e.g. open a menu), so the
+        // screenshot shows that state
+        const evalArg = process.argv.find((a) => a.startsWith('--smoke-eval='));
+        if (evalArg) {
+          await win.webContents.executeJavaScript(evalArg.slice('--smoke-eval='.length));
+          await new Promise((r) => setTimeout(r, 1500));
+        }
         const img = await win.webContents.capturePage();
         fsSync.writeFileSync(smoke.split('=')[1], img.toPNG());
         const info = await win.webContents.executeJavaScript(`JSON.stringify({
