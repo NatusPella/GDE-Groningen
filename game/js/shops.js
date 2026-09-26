@@ -449,6 +449,7 @@ export function tryShopInteract(world) {
     const ws = g ? null : workshopFor(world);
     if (g || ws) {
       input.consume('r');
+      if (ws) shopVisits[ws.type] = (shopVisits[ws.type] || 0) + 1;
       openShopMenu(world, g ? paintShop(world) : shopMenu(world, ws));
       return true;
     }
