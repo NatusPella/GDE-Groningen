@@ -7,6 +7,7 @@ import { vehicleDisplayLabel } from './vehiclenames.js';
 import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
 import { getSettings } from './settings.js';
+import { getUiScale } from './uiscale.js';
 import { isPhoneOpen } from './phone.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { lineOfSight } from './pedestrians.js';
@@ -427,10 +428,13 @@ function placeWp(slot, c, primary, hold = null) {
   }
   slot.el.classList.toggle('dim', !!c.dim);
   if (!slot.w) slot.w = slot.chip.offsetWidth + 40;
+  // screen px -> px inside the zoomed #hud
+  const ui = getUiScale();
+  const w = slot.w * ui;
   const flip = slot.el.classList.contains('flip');
-  if (!flip && pos.sx + slot.w > window.innerWidth - 12) slot.el.classList.add('flip');
-  else if (flip && pos.sx + slot.w < window.innerWidth - 60) slot.el.classList.remove('flip');
-  slot.el.style.transform = `translate3d(${pos.sx.toFixed(1)}px, ${pos.sy.toFixed(1)}px, 0)`;
+  if (!flip && pos.sx + w > window.innerWidth - 12 * ui) slot.el.classList.add('flip');
+  else if (flip && pos.sx + w < window.innerWidth - 60 * ui) slot.el.classList.remove('flip');
+  slot.el.style.transform = `translate3d(${(pos.sx / ui).toFixed(1)}px, ${(pos.sy / ui).toFixed(1)}px, 0)`;
   if (!slot.shown) {
     slot.shown = true;
     void slot.el.offsetWidth;
