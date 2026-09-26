@@ -73,7 +73,8 @@ export function collect() {
   const NPC = lit(ms, 'const NPC = ');
   const STORY = lit(ms, 'const STORY = ');
   const DUO = lit(ms, 'const DUO_BY_STAGE = ');
-  const nm = (k, npc) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : NPC[npc].name);
+  // N = the mission's NPC; V = the narrator; another NPC key speaks off camera
+  const nm = (k, npc) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k === 'V' ? NARRATOR : k !== 'N' && NPC[k] ? NPC[k].name : NPC[npc].name);
   STORY.forEach((s, i) => {
     for (const kind of ['intro', 'outro', 'fail']) for (const [k, t] of s[kind] || []) add('Missie-cutscenes', 'story', [nm(k, s.npc)], t, { mission: i, kind });
   });
@@ -109,7 +110,20 @@ export function collect() {
 
   // --- mission scenes and fallback intros in missions.js -> lines manifest
   const mi = src('missions.js');
-  for (const l of allLits(mi, 'lines: [[')) for (const [k, t] of l) add('Missie-scènes', 'lines', [k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k], t);
+  const npcs = lit(src('missionstory.js'), 'const NPC = ');
+  const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : npcs[k] ? npcs[k].name : k);
+  for (const l of allLits(mi, 'lines: [[')) for (const [k, t] of l) add('Missie-scènes', 'lines', [who(k)], t);
+  // Jelle's line as he lands a fierljep (missionstory.js playVaultScene)
+  for (const t of strings(mi, /landing: ('(?:[^'\\]|\\.)*')/g)) add('Missie-scènes', 'lines', ['Jelle Terpstra'], t);
+
+  // --- story arc (storyarc.js): the "Wordt vervolgd" cards and what the companion
+  // says out loud when an activity step starts (a bubble, in their own voice)
+  const sa = src('storyarc.js');
+  for (const card of allLits(sa, 'card: [[')) for (const [sp, t] of card) add('Verhaal-kaarten', 'lines', [sp], t);
+  for (const m of sa.matchAll(/say: \['([TA])', ('(?:[^'\\]|\\.)*')\]/g)) {
+    const anita = m[1] === 'A';
+    add('Verhaal-stappen', 'lines', [anita ? BUBBLE.f : BUBBLE.m], evalLit(m[2]), { as: anita ? 'Anita' : 'Tammo' });
+  }
   for (const l of allLits(mi, '      intro: [')) for (const t of l) add('Missie-intro (terugval)', 'lines', ['Tammo', 'Anita'], t, { tag: ['samenzweerderig, zacht', 'geamuseerd, zakelijk', 'opgewonden, fluisterend'] });
 
   // --- other cutscene subtitles (story.js, cinematics.js) -> lines manifest

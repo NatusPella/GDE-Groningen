@@ -37,13 +37,19 @@ const NPC = {
   douwe: { name: 'Douwe', shirt: 0xc8102e, skin: SKIN.woodLight, variant: 'male', seed: 777 },
 };
 
-// N = the mission's NPC, T = Tammo, A = Anita, any other NPC key (e.g.
-// 'durk') = that character speaking off camera. `ask` is the NPC line kept
+// N = the mission's NPC, T = Tammo, A = Anita, V = the narrator (Verteller,
+// wide shots), any other NPC key (e.g. 'durk') = that character speaking off
+// camera. `ask` is the NPC line kept
 // for the short replay version.
 const STORY = [
   {
-    npc: 'berend', outroPose: 'hips', ask: 1,
+    npc: 'berend', outroPose: 'hips', ask: 6,
     intro: [
+      ['V', 'Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet.'],
+      ['V', 'In het Groninger Museum staat sinds 1953 het stadsjuweel: de Gouden Eierbal. Achttien karaat. Onbetaalbaar.'],
+      ['T', 'Ik heb nog nooit een eierbal gezien die ik niet kon betalen.'],
+      ['A', 'Jij hebt nog nooit iets kunnen betalen, Tammo.'],
+      ['V', 'En hier, bij het Martinikerkhof, begint het. Met een bakkie, een norse man en twee mensen zonder cent.'],
       ['N', 'Zo. Jullie zijn dat stel waar heel Grunn over kletst? Ik had er meer van verwacht.'],
       ['N', 'Mien bakkie staat hier. Naar het Boterdiep ermee, en geen kras. Ik tel ze.'],
       ['A', 'Ik rij.'],
@@ -478,6 +484,7 @@ let run = null;
 function speakerName(key, npc) {
   if (key === 'T') return 'Tammo';
   if (key === 'A') return 'Anita';
+  if (key === 'V') return 'Verteller';
   if (key !== 'N' && NPC[key]) return NPC[key].name;
   return npc ? npc.name : '';
 }
@@ -604,6 +611,7 @@ function camsFor(r) {
 
 function camFor(cams, who, isFirst, isLast, closing, target) {
   if (closing === 'two') return cams.two;
+  if (who === 'V') return isFirst ? cams.rise : (u) => cams.glance(u, target);
   if (isFirst) return (u) => cams.est(u);
   if (closing === 'kiss') return cams.kiss;
   if (isLast && closing === 'glance') return (u) => cams.glance(u, target);
