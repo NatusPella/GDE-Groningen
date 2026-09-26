@@ -104,7 +104,7 @@ export function updateEmergency(dt, world) {
   if (input && input.wasPressed('l') && pv && pv.driver === 'player') {
     if (canSiren(pv)) {
       pv.sirenOn = !pv.sirenOn;
-      world.addMessage(pv.sirenOn ? 'Zwaailicht en sirene aan: opzij, opzij!' : 'Zwaailicht en sirene uit', 2.5);
+      world.addMessage(pv.sirenOn ? 'Zwaailicht en sirene aan: opzij, opzij!' : 'Zwaailicht en sirene uit', 2.5, { key: 'siren' });
     } else world.addMessage('Dit voertuig heeft geen zwaailicht', 2);
   }
   for (const v of world.vehicles) {

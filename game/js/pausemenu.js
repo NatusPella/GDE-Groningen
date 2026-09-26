@@ -145,6 +145,8 @@ export function initPauseMenu(w) {
         <div data-sub="display" hidden>
           <label class="pm-row"><span>Helderheid</span>
             <input type="range" min="0.6" max="1.6" step="0.05" data-setting="brightness"><output></output></label>
+          <label class="pm-row"><span>Grootte interface</span>
+            <input type="range" min="0.8" max="1.5" step="0.05" data-setting="uiScale"><output></output></label>
           ${toggle('showMinimap', 'Minimap')}
           ${toggle('showHints', 'Toetshints')}
           ${toggle('showFog', 'Verkende gebieden op de kaart')}

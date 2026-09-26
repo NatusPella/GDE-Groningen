@@ -4,6 +4,8 @@
   --gron-green: #1e9e56;
   --gron-green-light: #3fc97a;
   --mm-size: 230px;
+  /* HUD scale from uiscale.js; vw/vh inside #hud must be divided by it */
+  zoom: var(--ui, 1);
 }
 @media (max-height: 640px), (max-width: 760px) { #hud { --mm-size: 176px; } }
 
@@ -202,16 +204,16 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
   text-align: center;
   color: var(--hud-fg);
   text-shadow: var(--hud-shadow);
-  max-width: 60vw;
+  max-width: calc(60vw / var(--ui, 1));
 }
 
 #hud .hud-mission-label {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
 }
 
 #hud .hud-mission-progress {
-  font-size: 15px;
+  font-size: 17px;
   color: var(--gron-green-light);
 }
 #hud .hud-mission-progress:empty { display: none; }
@@ -230,13 +232,15 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  width: min(60vw, 520px);
+  width: min(calc(60vw / var(--ui, 1)), 520px);
 }
 
 #hud .hud-toast {
   color: var(--hud-fg);
   text-shadow: var(--hud-shadow);
-  font-size: 16px;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+  line-height: 1.15;
   font-weight: bold;
   white-space: normal;
   max-width: 100%;
@@ -499,6 +503,10 @@ body:has(#cine[data-tint="bust"]) #game3d { filter: grayscale(1) brightness(0.85
 #cine .cb-stats div { display: flex; flex-direction: column; align-items: center; }
 #cine .cb-stats span { font-size: 14px; letter-spacing: 2px; color: #3fc97a; text-transform: uppercase; }
 #cine .cb-stats b { font-size: 26px; font-weight: normal; letter-spacing: 1px; }
+/* #cine sits outside #hud, so its small text follows the HUD scale here */
+#cine .cine-kicker, #cine .cine-chip, #cine .cb-reason, #cine .cb-reward, #cine .cb-stats, #cine .cine-skip .hud-key, #cine .cine-skip-ring { zoom: var(--ui, 1); }
+#cine .cine-skip { font-size: calc(14px * var(--ui, 1)); }
+#cine .cine-sub { font-size: clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))); width: min(86vw, calc(820px * var(--ui, 1))); }
 
 /* --- phone ------------------------------------------------------------ */
 #hud .phone {
@@ -506,7 +514,7 @@ body:has(#cine[data-tint="bust"]) #game3d { filter: grayscale(1) brightness(0.85
   right: 22px;
   bottom: 0;
   width: 270px;
-  height: min(500px, calc(100vh - 80px));
+  height: min(500px, calc(100vh / var(--ui, 1) - 80px));
   transform: translateY(105%);
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   pointer-events: none;
@@ -690,7 +698,7 @@ body:has(#cine[data-tint="bust"]) #game3d { filter: grayscale(1) brightness(0.85
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: min(46vw, 440px);
+  max-width: min(calc(46vw / var(--ui, 1)), 440px);
   padding: 8px 18px 8px 12px;
   color: #f0ede4;
   text-shadow: var(--hud-shadow);
