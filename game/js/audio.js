@@ -1930,7 +1930,7 @@ function updateSiren(dt, world) {
   sirenBus.gain.value = sirenState.gain;
 
   const units = chaseActive
-    ? world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked && v.driver !== 'player')
+    ? world.vehicles.filter((v) => v.isPolice && !v._mount && !v._commandeered && !v.hijacked && !v.wrecked && v.driver !== 'player')
     : [];
   assignVoices(sirenVoices, nearestSorted(units, MAX_DISTANCE, SIREN_VOICES));
 

@@ -5,6 +5,7 @@ import { spawnCopPedestriansNear, isInsideBuilding, isSpawnHidden } from './pede
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
+import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
 
 const DECAY_TIME = 14;
 const LOSE_AFTER = 5;
@@ -19,6 +20,9 @@ const ROADBLOCK_WANTED = 3;
 const ROADBLOCK_COOLDOWN = 22;
 const ROADBLOCK_LIFETIME = 45;
 const ROADBLOCK_WAKE_DIST = 14;
+const ROADBLOCK_CAR_SPACING = 4.2;
+const ROADBLOCK_WIDE = 12;
+const ROADBLOCK_EXTRA_CHANCE = 0.5;
 
 const MOTOR_WANTED = 4;
 const MOTOR_MAX = 2;
@@ -39,19 +43,45 @@ const COP_PED_MIN_DIST = 40;
 // Top speed per wanted level (index = stars); a regular sedan does 33.
 const POLICE_TOP_SPEED = [28, 29, 30.5, 32, 33.5, 35];
 const POLICE_ACCEL = [8, 8, 8.5, 9, 9.5, 10];
-const RUBBER_BAND_DIST = 110;
-const RUBBER_BAND_BOOST = 1.06;
+// Out of sight and far behind, units speed up with distance towards 95% of
+// a fast player's speed, between 1.04x and 1.2x their own top speed.
+const RUBBER_BAND_NEAR = 60;
+const RUBBER_BAND_FULL = 140;
+const RUBBER_BAND_MATCH = 0.95;
+const RUBBER_BAND_MIN = 1.04;
+const RUBBER_BAND_MAX = 1.2;
+const RUBBER_BAND_ACCEL = 0.2;
+const MOUNT_RUBBER_BAND = 1.15;
+const OUTRUN_SPEED = 17;
+const OUTRUN_CLEAR_DIST = 80;
+const RECYCLE_DIST = 170;
+
+// PIT-style rams in direct chase: aim at the rear quarter with lead and come
+// in a few m/s faster than the player; riders get it far more often.
+const RAM_START_DIST = 22;
+const RAM_MIN_DIST = 5;
+const RAM_ABORT_DIST = 35;
+const RAM_MAX_TIME = 3;
+const RAM_COOLDOWN_MIN = 4;
+const RAM_COOLDOWN_MAX = 8;
+const RAM_RATE = 0.2;
+const RAM_RATE_LIGHT = 0.9;
+const RAM_BOOST = 5;
+const RAM_BOOST_LIGHT = 8;
+const RAM_CONTACT_GAP = 0.35;
+const FOOT_STOP_DIST = 6.5;
+const MOUNT_STOP_DIST = 2.5;
 
 // GTA-style arrests: never on contact. On foot a cop has to stand next to
 // you for a moment while you're (nearly) stopped; in a car you have to be
 // boxed in and stopped with police right beside you.
-const FOOT_BUST_RANGE = 1.3;
-const FOOT_BUST_MAX_SPEED = 2.5;
-const FOOT_BUST_TIME = 0.8;
-const CAR_BUST_MAX_SPEED = 1.2;
-const CAR_BUST_CAR_GAP = 2.2;
+const FOOT_BUST_RANGE = 1.5;
+const FOOT_BUST_MAX_SPEED = 4.6;
+const FOOT_BUST_TIME = 1;
+const CAR_BUST_MAX_SPEED = 2;
+const CAR_BUST_CAR_GAP = 2.6;
 const CAR_BUST_COP_RANGE = 3.2;
-const CAR_BUST_TIME = 2.5;
+const CAR_BUST_TIME = 2;
 
 // "Politie ook te voet" - a small pool of cop Pedestrians (see
 // spawnCopPedestriansNear in pedestrians.js), grown only once there's
@@ -91,7 +121,10 @@ const heliRender = { heli: null };
 function getState(world) {
   let s = policeState.get(world);
   if (!s) {
-    s = { prevWanted: world.wanted, nextSpawnAt: 0, nextCopPedSpawnAt: 0, nextBoatSpawnAt: 0, nextRoadblockAt: 0, nextMotorAt: 0, seeTimer: 0 };
+    s = {
+      prevWanted: world.wanted, nextSpawnAt: 0, nextCopPedSpawnAt: 0, nextBoatSpawnAt: 0, nextRoadblockAt: 0, nextMotorAt: 0, nextMountAt: 0,
+      seeTimer: 0, outrun: false, nextRecycleAt: 0, crewUnits: [], strays: [],
+    };
     policeState.set(world, s);
   }
   return s;
@@ -111,14 +144,16 @@ function vehicleClearance(world, x, y, r) {
 
 // A road point SPAWN_MIN..MAX_DIST from (cx, cy), at least minFromPlayer from
 // the player and out of the camera's sight, preferring spots behind or
-// beside the player when they're driving.
-function findSpawnPoint(world, cx, cy, minFromPlayer = SPAWN_MIN_DIST) {
+// beside the player when they're driving - or ahead along their route when
+// they are outrunning every unit.
+function findSpawnPoint(world, cx, cy, minFromPlayer = SPAWN_MIN_DIST, ahead = false) {
   const { map, player: p } = world;
   const pv = p.inVehicle;
   const heading = pv ? (pv.speed >= 0 ? pv.angle : pv.angle + Math.PI) : null;
   for (let attempt = 0; attempt < 10; attempt++) {
     let ang = Math.random() * Math.PI * 2;
-    if (heading !== null && Math.abs(pv.speed) > 6 && attempt < 6) ang = heading + Math.PI / 2 + Math.random() * Math.PI;
+    if (heading !== null && ahead && attempt < 7) ang = heading + (Math.random() - 0.5) * 1.6;
+    else if (heading !== null && Math.abs(pv.speed) > 6 && attempt < 6) ang = heading + Math.PI / 2 + Math.random() * Math.PI;
     const d = SPAWN_MIN_DIST + Math.random() * (SPAWN_MAX_DIST - SPAWN_MIN_DIST);
     const rp = map.nearestRoadPoint(cx + Math.cos(ang) * d, cy + Math.sin(ang) * d, 40, true);
     if (!rp || rp.road.bridge) continue;
@@ -137,14 +172,24 @@ function spawnPoliceVehicleAt(world, rp, opts = {}) {
   return v;
 }
 
+function isPatrolCar(v) {
+  return v.isPolice && !v.hijacked && !v.wrecked && !v._roadblock && !v._motor && !v._mount && !v._commandeered && !v.isBoat;
+}
+
 function trySpawnPolice(world, state) {
-  const alive = world.vehicles.filter((v) => v.isPolice && !v.hijacked && !v.wrecked && !v._roadblock && !v._motor && !v.isBoat);
+  const p = world.player, pv = p.inVehicle, pol = world.police;
+  let alive = 0, nearest = Infinity;
+  for (const v of world.vehicles) {
+    if (!v.isPolice || v.hijacked || v.wrecked || v.isBoat) continue;
+    nearest = Math.min(nearest, Math.hypot(v.x - p.x, v.y - p.y));
+    if (isPatrolCar(v)) alive++;
+  }
+  state.outrun = !!pv && !pv.isBoat && Math.abs(pv.speed) > OUTRUN_SPEED && !(pol && pol.searching) && nearest > OUTRUN_CLEAR_DIST;
   const target = Math.max(1, Math.min(5, world.wanted));
-  if (alive.length >= target || world.time < state.nextSpawnAt) return;
+  if (alive >= target || world.time < state.nextSpawnAt) return;
   state.nextSpawnAt = world.time + 0.5;
-  const pol = world.police;
-  const c = pol && pol.searching && pol.searchCenter ? pol.searchCenter : world.player;
-  const rp = findSpawnPoint(world, c.x, c.y, pol && pol.searching ? SEARCH_SPAWN_MIN_DIST : SPAWN_MIN_DIST);
+  const c = pol && pol.searching && pol.searchCenter ? pol.searchCenter : p;
+  const rp = findSpawnPoint(world, c.x, c.y, pol && pol.searching ? SEARCH_SPAWN_MIN_DIST : SPAWN_MIN_DIST, state.outrun);
   if (!rp) return;
   const v = spawnPoliceVehicleAt(world, rp);
   if (!v) return;
@@ -153,22 +198,42 @@ function trySpawnPolice(world, state) {
   state.nextSpawnAt = world.time + SPAWN_STAGGER;
 }
 
-// The police model object is per car (spawnVehicleOnRoad builds a fresh
-// one), so it can follow the wanted level.
-function tunePoliceCar(v, world, boost = 1) {
-  if (v._motor || v.isBoat || v.model.name !== 'police') return;
+// The police model object is per car/mount (spawnVehicleOnRoad and
+// policemounts build a fresh one), so it can follow the wanted level and the
+// rubber band. A commandeered car keeps its shared civilian model untouched.
+function tunePoliceCar(v, world, d = 0, sees = true) {
+  if (v._motor || v.isBoat || v._commandeered) return;
+  const k = sees ? 0 : clamp((d - RUBBER_BAND_NEAR) / (RUBBER_BAND_FULL - RUBBER_BAND_NEAR), 0, 1);
+  if (v._mount) {
+    v.model.maxSpeed = v._baseTop * (1 + (MOUNT_RUBBER_BAND - 1) * k);
+    return;
+  }
+  if (v.model.name !== 'police') return;
   const w = clamp(world.wanted, 0, 5);
-  v.model.maxSpeed = POLICE_TOP_SPEED[w] * boost;
-  v.model.accel = POLICE_ACCEL[w];
+  const base = POLICE_TOP_SPEED[w];
+  const pv = world.player.inVehicle;
+  const want = clamp((pv ? Math.abs(pv.speed) : 0) * RUBBER_BAND_MATCH, base * RUBBER_BAND_MIN, base * RUBBER_BAND_MAX);
+  v.model.maxSpeed = base + (want - base) * k;
+  v.model.accel = POLICE_ACCEL[w] * (1 + RUBBER_BAND_ACCEL * k);
 }
 
-function despawnFarPolice(world) {
-  const { x: px, y: py } = world.player;
+function despawnFarPolice(world, state) {
+  const p = world.player;
+  const { x: px, y: py } = p;
+  const pv = p.inVehicle;
+  const recycle = state.outrun && world.time >= state.nextRecycleAt;
+  if (recycle) state.nextRecycleAt = world.time + 1;
+  const hx = pv ? Math.cos(pv.angle) * Math.sign(pv.speed || 1) : 0, hy = pv ? Math.sin(pv.angle) * Math.sign(pv.speed || 1) : 0;
   for (let i = world.vehicles.length - 1; i >= 0; i--) {
     const v = world.vehicles[i];
     if (!v.isPolice || v.driver === 'player') continue;
     const d = Math.hypot(v.x - px, v.y - py);
-    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || ((v.stuckFor || 0) > 25 && d > 40))) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
+    if (v._crew && d < DESPAWN_DIST) continue;
+    // hopelessly behind a player who is outrunning everyone: free the slot
+    // so a fresh unit can come in ahead
+    const behind = recycle && isPatrolCar(v) && d > RECYCLE_DIST && !v._sees &&
+      (v.x - px) * hx + (v.y - py) * hy < 0 && isSpawnHidden(world, v.x, v.y);
+    if (behind || (!v.wrecked && ((v.deadEndBounces || 0) > 2 || ((v.stuckFor || 0) > 25 && d > 40))) || d > DESPAWN_DIST) world.vehicles.splice(i, 1);
   }
 }
 
@@ -205,7 +270,7 @@ function updateChase(v, dt, world) {
     v._sees = d < SEE_RANGE_CAR && hasLineOfSight(world.map, v.x, v.y, p.x, p.y);
     v._direct = d < DIRECT_CHASE_DIST && v._sees && !pol.searching;
   }
-  tunePoliceCar(v, world, d > RUBBER_BAND_DIST && !v._sees ? RUBBER_BAND_BOOST : 1);
+  tunePoliceCar(v, world, d, v._sees);
   let goal = p;
   if (pol.searching) {
     if (!v._searchGoal || Math.hypot(v._searchGoal.x - v.x, v._searchGoal.y - v.y) < 12 || world.time > (v._searchGoalUntil || 0)) {
@@ -214,7 +279,8 @@ function updateChase(v, dt, world) {
     }
     goal = v._searchGoal;
   }
-  const cruise = pursuitCruise(v, d, pv, pol.searching);
+  let cruise = pursuitCruise(v, d, pv, pol.searching);
+  if (!pv && !pol.searching && d < 25) cruise = Math.max(3, (d - FOOT_STOP_DIST) * 0.8);
   if (!v._direct && v.road && !v._wasDirect) {
     updateTrafficAI(v, dt, world.map, world, Math.random, { goal, chase: true, cruise });
   } else if (!v._direct) {
@@ -223,17 +289,32 @@ function updateChase(v, dt, world) {
     updateTrafficAI(v, dt, world.map, world, Math.random, { goal, chase: true, cruise });
   } else {
     v._wasDirect = true;
-    const lead = pv ? 0.5 : 0;
     const tvx = pv ? Math.cos(pv.angle) * pv.speed : 0, tvy = pv ? Math.sin(pv.angle) * pv.speed : 0;
-    const dx = p.x + tvx * lead - v.x, dy = p.y + tvy * lead - v.y;
+    const ps = Math.hypot(tvx, tvy);
+    const ramming = updateRam(v, dt, world, pv, d, ps);
+    let ax = p.x, ay = p.y, lead = pv ? 0.5 : 0;
+    if (ramming) {
+      const pfx = Math.cos(pv.angle), pfy = Math.sin(pv.angle);
+      const side = (v.y - p.y) * pfx - (v.x - p.x) * pfy >= 0 ? 1 : -1;
+      const back = pv.halfLen * 0.7, off = pv.halfWid * 0.8;
+      ax = p.x - pfx * back - pfy * off * side;
+      ay = p.y - pfy * back + pfx * off * side;
+      lead = clamp(d / Math.max(4, v.speed - ps + 4), 0.2, 1.2);
+    }
+    const dx = ax + tvx * lead - v.x, dy = ay + tvy * lead - v.y;
     const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
     const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;
     const alpha = Math.atan2(lat, fwd);
     const curv = 2 * lat / Math.max(1, dx * dx + dy * dy);
     const steer = Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(curv / maxCurvature(v), -1, 1);
-    // close in gently: a few m/s over the player's speed, never a lunge
-    let vTarget = pv ? Math.hypot(tvx, tvy) + clamp((d - 6) * 0.35, -4, 4) : clamp((d - 3) * 0.8, 0, 9);
-    vTarget = Math.min(vTarget, Math.sqrt(5.5 / Math.max(1e-3, Math.abs(curv))));
+    // close in gently (a few m/s over the player's speed) unless committed to
+    // a ram; a player on foot gets a unit that stops short and lets its
+    // officers out instead of running them over
+    let vTarget;
+    if (ramming) vTarget = ps + v._ramBoost;
+    else if (pv) vTarget = ps + clamp((d - 6) * 0.35, -4, 4);
+    else vTarget = clamp((d - (v._mount || v._motor ? MOUNT_STOP_DIST : FOOT_STOP_DIST)) * 0.7, 0, 9);
+    vTarget = Math.min(vTarget, Math.sqrt((ramming ? 8 : 5.5) / Math.max(1e-3, Math.abs(curv))));
     if (Math.abs(alpha) > 0.7) vTarget = Math.min(vTarget, 6);
     vTarget = Math.min(vTarget, v.model.maxSpeed);
     const err = vTarget - v.speed;
@@ -250,9 +331,30 @@ function updateChase(v, dt, world) {
 function pursuitCruise(v, d, pv, searching) {
   const top = v.model.maxSpeed;
   if (searching) return top * 0.55;
-  if (d > 70) return top * 0.88;
+  if (d > 70) return top * (d > 110 ? 0.95 : 0.88);
   const ps = pv ? Math.abs(pv.speed) : 7;
   return clamp(ps + 2 + d * 0.06, 10, top * 0.92);
+}
+
+function updateRam(v, dt, world, pv, d, ps) {
+  if (!pv || pv.isBoat || v._mount || v._motor) return false;
+  const t = world.time;
+  if (v._ramUntil) {
+    if (t < v._ramUntil && d < RAM_ABORT_DIST && bodyGap(v, pv) > RAM_CONTACT_GAP) return true;
+    v._ramUntil = 0;
+    v._ramCd = t + RAM_COOLDOWN_MIN + Math.random() * (RAM_COOLDOWN_MAX - RAM_COOLDOWN_MIN);
+    return false;
+  }
+  if (v._ramCd === undefined) v._ramCd = t + 1 + Math.random() * 3;
+  if (t < v._ramCd || d > RAM_START_DIST || d < RAM_MIN_DIST || ps < 3) return false;
+  const pfx = Math.cos(pv.angle) * Math.sign(pv.speed), pfy = Math.sin(pv.angle) * Math.sign(pv.speed);
+  if ((v.x - world.player.x) * pfx + (v.y - world.player.y) * pfy > 2) return false;
+  const light = pv.isBike || pv.isScooter;
+  const rate = (light ? RAM_RATE_LIGHT : RAM_RATE) * (world.wanted >= 2 ? 1 : 0.5);
+  if (Math.random() > rate * dt) return false;
+  v._ramUntil = t + RAM_MAX_TIME;
+  v._ramBoost = light ? RAM_BOOST_LIGHT : RAM_BOOST + Math.random() * 2;
+  return true;
 }
 
 function maybeFire(v, dt, world) {
@@ -321,7 +423,7 @@ function copPedWithin(world, r) {
 // player's car (side-by-side, nose to door, bumper to bumper).
 function policeCarBeside(world, pv) {
   for (const v of world.vehicles) {
-    if (!v.isPolice || v === pv || v.isBoat || v.wrecked || v.hijacked || v.driver === 'player' || Math.abs(v.speed) > 3) continue;
+    if (!v.isPolice || v._mount || v === pv || v.isBoat || v.wrecked || v.hijacked || v.driver === 'player' || Math.abs(v.speed) > 3) continue;
     const reach = pv.halfLen + v.halfLen + CAR_BUST_CAR_GAP;
     if (Math.abs(v.x - pv.x) > reach || Math.abs(v.y - pv.y) > reach) continue;
     if (bodyGap(pv, v) < CAR_BUST_CAR_GAP) return true;
@@ -369,7 +471,8 @@ function despawnFarCopPeds(world) {
   for (let i = world.pedestrians.length - 1; i >= 0; i--) {
     const p = world.pedestrians[i];
     if (!p.isCop || p.state === 'dead') continue;
-    if (world.wanted === 0 || Math.hypot(p.x - px, p.y - py) > COP_PED_DESPAWN_DIST) world.pedestrians.splice(i, 1);
+    // officers out of a car walk back to it first (policemounts.updateCrews)
+    if ((world.wanted === 0 && !p._unit) || Math.hypot(p.x - px, p.y - py) > COP_PED_DESPAWN_DIST) world.pedestrians.splice(i, 1);
   }
 }
 
@@ -610,24 +713,39 @@ function tryRoadblock(world, state) {
   const nx = -Math.sin(segA), ny = Math.cos(segA);
   const fx = Math.cos(segA), fy = Math.sin(segA);
   const towardPlayer = (p.x - rp.x) * fx + (p.y - rp.y) * fy > 0 ? 1 : -1;
+  // one car per ~4 m of carriageway, a fourth on the widest roads at 4+
+  // stars and sometimes a staggered extra behind the line
+  const width = road.width || 6.5;
+  let n = clamp(Math.ceil((width - 0.5) / ROADBLOCK_CAR_SPACING), 2, 3);
+  if (width >= ROADBLOCK_WIDE && world.wanted >= 4) n = 4;
+  const spacing = n === 4 ? Math.max(3.6, (width - 1) / 3) : ROADBLOCK_CAR_SPACING;
+  const slots = [];
+  for (let i = 0; i < n; i++) slots.push({ off: (i - (n - 1) / 2) * spacing, back: 0 });
+  if (world.wanted >= 4 && Math.random() < ROADBLOCK_EXTRA_CHANCE) slots.push({ off: (Math.random() - 0.5) * 2, back: 5.5 });
   const cars = [];
-  for (const side of [1, -1]) {
+  let outer = 0;
+  for (const { off, back } of slots) {
+    const side = off > 0.01 ? 1 : off < -0.01 ? -1 : (Math.random() < 0.5 ? 1 : -1);
     const v = spawnVehicleOnRoad(world.map, road, true, Math.random, false, false, { x: rp.x, y: rp.y });
-    v.x = rp.x + nx * side * 2.25;
-    v.y = rp.y + ny * side * 2.25;
-    v.angle = Math.atan2(ny * side, nx * side) + side * 0.35 * towardPlayer;
+    v.x = rp.x + nx * off - fx * towardPlayer * back;
+    v.y = rp.y + ny * off - fy * towardPlayer * back;
+    v.angle = Math.atan2(ny * side, nx * side) + side * (back ? 0.6 : 0.35) * towardPlayer;
     v.speed = 0;
     v.road = null;
     v._roadblock = { until: world.time + ROADBLOCK_LIFETIME };
-    if (isInsideBuilding(world.map, v.x, v.y)) return;
+    const ex = Math.cos(v.angle) * v.halfLen, ey = Math.sin(v.angle) * v.halfLen;
+    if (isInsideBuilding(world.map, v.x, v.y) || isInsideBuilding(world.map, v.x + ex, v.y + ey) || isInsideBuilding(world.map, v.x - ex, v.y - ey)) continue;
+    if (!vehicleClearance(world, v.x, v.y, 2.5)) continue;
     cars.push(v);
+    if (!back) outer = Math.max(outer, Math.abs(off));
   }
+  if (cars.length < 2) return;
   world.vehicles.push(...cars);
   const cops = spawnCopPedestriansNear(world.map, rp.x, rp.y, 2, Math.random);
   cops.forEach((c, i) => {
     const side = i === 0 ? 1 : -1;
-    const gx = rp.x - fx * towardPlayer * 3 + nx * side * 3.4;
-    const gy = rp.y - fy * towardPlayer * 3 + ny * side * 3.4;
+    const gx = rp.x - fx * towardPlayer * 3 + nx * side * (outer + 1.2);
+    const gy = rp.y - fy * towardPlayer * 3 + ny * side * (outer + 1.2);
     if (!isInsideBuilding(world.map, gx, gy)) { c.x = gx; c.y = gy; }
     c.guard = { x: c.x, y: c.y, angle: Math.atan2(p.y - c.y, p.x - c.x) };
     c.state = 'guard';
@@ -672,6 +790,11 @@ function trySpawnMotor(world, state) {
   world.vehicles.push(v);
 }
 
+// Devtools handle on the per-world scratch state (cooldowns, crews, outrun).
+export function policeDebug(world) {
+  return getState(world);
+}
+
 export function updatePolice(dt, world) {
   const state = getState(world);
   initPoliceContract(world);
@@ -682,23 +805,36 @@ export function updatePolice(dt, world) {
   state.prevWanted = world.wanted;
 
   trySpawnPolice(world, state);
-  despawnFarPolice(world);
+  despawnFarPolice(world, state);
   trySpawnCopPeds(world, state);
   despawnFarCopPeds(world);
   trySpawnPoliceBoat(world, state);
   despawnFarPoliceBoats(world);
   trySpawnMotor(world, state);
+  trySpawnMounts(world, state);
   tryRoadblock(world, state);
   updateRoadblocks(world);
   updatePoliceHeli(dt, world);
+  updateCrews(dt, world, state);
   updateBust(dt, world);
 
   const chasing = world.wanted > 0;
   const seen = world.police.seenRecently;
-  for (const v of world.vehicles) {
+  const vehicles = world.vehicles;
+  for (let i = vehicles.length - 1; i >= 0; i--) {
+    const v = vehicles[i];
+    if (v._bolting) {
+      if (v.driver === 'player') { v._bolting = false; v.isPolice = false; continue; }
+      if (updateBolting(v, dt, world)) vehicles.splice(i, 1);
+      continue;
+    }
+    if (v._mount && v.hijacked && !v._ejected) ejectMountRider(v, world, state);
     // boats chase via updateBoatAI; a stolen police car is just a car now
     if (!v.isPolice || v.hijacked || v.isBoat || v.wrecked || v.driver === 'player') continue;
     if (v._roadblock) continue;
+    if (maybeBolt(v, world, state)) continue;
+    if (v._thrownCop) adoptThrownRider(v, world, state);
+    if (v._crew) { holdUnit(v, dt); continue; }
 
     if (chasing !== v._chasing) {
       if (!chasing) { attachToNearestRoad(v, world.map); v._direct = false; v._wasDirect = false; }
@@ -707,9 +843,13 @@ export function updatePolice(dt, world) {
 
     if (chasing) {
       updateChase(v, dt, world);
-      if (world.wanted >= 3 && seen && v._sees) maybeFire(v, dt, world);
+      if (tryDeployCrew(v, world, state)) continue;
+      if (!v._mount && world.wanted >= 3 && seen && v._sees) maybeFire(v, dt, world);
     } else if (v._motor) {
       v._motor = false;
+      v.isPolice = false;
+    } else if (v._commandeered) {
+      v._commandeered = false;
       v.isPolice = false;
     } else {
       updateTrafficAI(v, dt, world.map, world, Math.random);

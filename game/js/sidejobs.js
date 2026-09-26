@@ -140,6 +140,7 @@ function makeCtx(job, spot) {
     msg: (text, s = 3) => world.addMessage(text, s),
     complete: (res) => completeRound(c, res),
     fail: (reason) => endShift('fail', reason),
+    skip: (text) => skipRound(c, text),
     pay: (base) => payFor(c, base),
     addMesh: (m) => { const sc = getScene(); if (sc) sc.add(m); c.meshes.push(m); return m; },
     removeMesh: (m) => { if (m && m.parent) m.parent.remove(m); const i = c.meshes.indexOf(m); if (i >= 0) c.meshes.splice(i, 1); },
@@ -224,6 +225,18 @@ function completeRound(c, res = {}) {
   c.betweenRounds = true;
 }
 
+// A round that went wrong without it being the player's fault: no pay, the
+// streak is gone, and the next round comes as usual.
+function skipRound(c, text) {
+  if (c !== ctx || c.ended) return;
+  c.streak = 0;
+  c.flawless = false;
+  if (text) world.addMessage(text, 4);
+  c.timeLeft = null;
+  c.nextRoundAt = world.time + NEXT_ROUND_DELAY;
+  c.betweenRounds = true;
+}
+
 export function quitSideJob() {
   if (!ctx) return false;
   endShift('quit', 'Je hebt de dienst er zelf op zitten');
@@ -286,7 +299,7 @@ export function updateSideJobs(dt, w) {
   const c = ctx;
   if (!c) { publish(); updateBeacon(w); return; }
   if (w.pigeonMode) { endShift('quit', 'Een duif kan geen dienst draaien'); return; }
-  if (w.wanted > 0 && !c.job.allowWanted) { endShift('wanted', 'met de politie achter je aan stuurt de baas je naar huis'); return; }
+  if (w.wanted > 0 && !c.job.allowWanted && !forgiveAccident(c, w)) { endShift('wanted', 'met de politie achter je aan stuurt de baas je naar huis'); return; }
   if (isMissionActive()) { endShift('quit', 'er kwam een missie tussen'); return; }
   if (w.pendingRespawn) { publish(); updateBeacon(w); return; }
 
@@ -310,6 +323,29 @@ export function updateSideJobs(dt, w) {
   } catch (e) { crash(e); return; }
   publish();
   updateBeacon(w);
+}
+
+// Pedestrians step out in front of you: a traffic accident never ends a
+// shift. The boss smooths it over with the police, but the streak and the
+// flawless bonus are gone and each accident costs a bit more. Stars earned
+// any other way (shooting, stealing) still send you home.
+const ACCIDENT_FINE = 15;
+const ACCIDENT_LINES = [
+  'SIKKOM: Stadjer aan het werk rijdt voetganger van de sokken, voetganger bestelt daarna gewoon een patatje',
+  'SIKKOM: "Hij kwam uit het niets," zegt voetganger die midden op straat naar zijn telefoon stond te staren',
+  'SIKKOM: Stadjer ontdekt dat de rijbaan geen stoep is, getuigen spreken van een leerzaam moment',
+];
+function forgiveAccident(c, w) {
+  if (w.time - (w.lastPedHitAt ?? -Infinity) > 3 || w.wanted > 2) return false;
+  c.accidents = (c.accidents || 0) + 1;
+  c.streak = 0;
+  c.flawless = false;
+  const fine = Math.min(ACCIDENT_FINE * c.accidents, Math.max(0, w.money));
+  w.money -= fine;
+  w.wanted = 0;
+  w.addMessage(`Aanrijding! De baas sust het met de politie, maar je reeks is weg${fine ? ` en het kost je €${fine}` : ''}.`, 4);
+  if (w.phoneNotifications) w.phoneNotifications.push({ text: ACCIDENT_LINES[(c.accidents - 1) % ACCIDENT_LINES.length], duration: 4 });
+  return true;
 }
 
 function checkVehicle(dt, c) {
