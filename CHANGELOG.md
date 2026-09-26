@@ -6,6 +6,15 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Ringweg**: geen zwart blok, zwevend hek of gaten naast de taluds meer,
+  geen hokken en losse daken op de weg, pijlers naast de wegen eronder,
+  en een vangrail waar een oprit langs de verdiepte ring omhoog komt. Auto's
+  blijven op hun eigen rijbaan waar wegen over elkaar lopen, en de
+  lijnmarkeringen lopen niet meer dwars over andere rijbanen.
+- Voetgangers lopen niet meer over de ringweg.
+- Het verhoogde spoor is berijdbaar in plaats van dat je door de kaart zakt.
+
 ## [0.4.0] - 2026-09-26
 
 Een grote ronde op basis van de speelsessie van Maus.
