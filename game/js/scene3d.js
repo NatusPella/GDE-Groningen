@@ -94,13 +94,23 @@ let followYaw = 0;
 const ORBIT_RADIUS = Math.hypot(2.6, 2.6);
 const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
 const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overhead angle
+// mouse-look goes lower still: below LOOK_UP_FROM_DEG the camera sinks to
+// the ground and the view tilts up towards the rooftops and the sky
+const PITCH_LOOK_MIN_DEG = -16;
+const PITCH_LOOK_MAX_DEG = 60;
+const LOOK_UP_FROM_DEG = 10;
+const LOOK_UP_LIFT = 1.7;
 let followPitch = Math.atan2(5.2 - 1.3, 9);
 let lookPitchTarget = followPitch;
 let lookYaw = 0;
 let lookYawIdle = 0;
 const MOUSE_LOOK_PER_PX = 0.0025;
 const LOOK_RECENTER_DELAY = 1.7;
+// at speed an orbited view holds much longer before swinging back behind
+const LOOK_RECENTER_DELAY_FAST = 4.5;
+const LOOK_FAST_SPEED = 25; // m/s
 let camWasInVehicle = false;
+let lookBackWas = false;
 
 const buildingMeshes = new Map();
 // Buildings are only ever built once and cached above - if a landmark's real
@@ -142,20 +152,55 @@ const garageMeshes = new Map();
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
 const kissMeshes = new Map();
-const KISS_HEART_MAT = new THREE.MeshBasicMaterial({ color: 0xff4d8a });
+// Kiss heart: a camera-facing sprite from a canvas heart (bezier outline,
+// glossy gradient, white rim), so it reads as a heart from every angle.
+let kissHeartTex = null;
+function kissHeartTexture() {
+  if (kissHeartTex) return kissHeartTex;
+  const S = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  const heart = () => {
+    g.beginPath();
+    g.moveTo(64, 112);
+    g.bezierCurveTo(36, 92, 10, 70, 10, 44);
+    g.bezierCurveTo(10, 24, 25, 12, 41, 12);
+    g.bezierCurveTo(52, 12, 60, 18, 64, 28);
+    g.bezierCurveTo(68, 18, 76, 12, 87, 12);
+    g.bezierCurveTo(103, 12, 118, 24, 118, 44);
+    g.bezierCurveTo(118, 70, 92, 92, 64, 112);
+    g.closePath();
+  };
+  g.shadowColor = 'rgba(0, 0, 0, 0.45)';
+  g.shadowBlur = 6;
+  heart();
+  g.lineWidth = 10;
+  g.strokeStyle = '#fff4f7';
+  g.lineJoin = 'round';
+  g.stroke();
+  g.shadowColor = 'transparent';
+  const grad = g.createLinearGradient(20, 12, 100, 112);
+  grad.addColorStop(0, '#ff7aa8');
+  grad.addColorStop(0.55, '#f02d63');
+  grad.addColorStop(1, '#b3123f');
+  heart();
+  g.fillStyle = grad;
+  g.fill();
+  g.beginPath();
+  g.ellipse(40, 38, 13, 8, -0.6, 0, Math.PI * 2);
+  g.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  g.fill();
+  kissHeartTex = new THREE.CanvasTexture(c);
+  kissHeartTex.colorSpace = THREE.SRGBColorSpace;
+  return kissHeartTex;
+}
 function buildKissHeartMesh() {
-  const group = new THREE.Group();
-  const lobeL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 7), KISS_HEART_MAT);
-  lobeL.position.set(-0.11, 0.08, 0);
-  group.add(lobeL);
-  const lobeR = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 7), KISS_HEART_MAT);
-  lobeR.position.set(0.11, 0.08, 0);
-  group.add(lobeR);
-  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.32, 8), KISS_HEART_MAT);
-  tip.rotation.z = Math.PI;
-  tip.position.set(0, -0.12, 0);
-  group.add(tip);
-  return group;
+  const mat = new THREE.SpriteMaterial({ map: kissHeartTexture(), transparent: true, depthWrite: false, toneMapped: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.geometry.userData.shared = true;
+  sprite.renderOrder = 5;
+  return sprite;
 }
 let muzzleFlashMesh = null;
 let meleeSwipeMesh = null;
@@ -330,7 +375,7 @@ function camNearestHit(targets) {
 
 // Materials reused across many actors - disposing one would force every
 // remaining user to re-upload/recompile it on the next frame.
-const SHARED_MATERIALS = new Set([OUTLINE_MAT, KISS_HEART_MAT]);
+const SHARED_MATERIALS = new Set([OUTLINE_MAT]);
 const SHARED_GEOMETRIES = new Set();
 
 // Actors/effects build their own geometries per instance, so on despawn both
@@ -1540,8 +1585,12 @@ export function update3D(dt, world) {
   }
   for (const [p, mesh] of kissMeshes) {
     const life = (world.time - mesh.userData.born) / Math.max(0.01, p.until - mesh.userData.born);
-    mesh.position.y = 1.6 + life * 0.8;
-    mesh.scale.setScalar(1 + Math.sin(life * Math.PI) * 0.3);
+    // pop in, float up with a little heartbeat, fade out at the end
+    const pop = Math.min(1, life / 0.12);
+    const beat = 1 + Math.sin(Math.min(1, life) * Math.PI * 4) * 0.08;
+    mesh.position.y = 1.75 + life * 0.9;
+    mesh.scale.setScalar(0.55 * (0.4 + 0.6 * pop * (2 - pop)) * beat);
+    mesh.material.opacity = life > 0.75 ? Math.max(0, 1 - (life - 0.75) / 0.25) : 1;
     if (world.time <= p.until) continue;
     scene.remove(mesh);
     disposeObject(mesh);
@@ -1648,7 +1697,7 @@ export function update3D(dt, world) {
   const lookK = MOUSE_LOOK_PER_PX * getSettings().mouseSensitivity;
   if (looking) {
     lookPitchTarget += mouse.dy * lookK * (getSettings().invertY ? -1 : 1);
-    lookPitchTarget = Math.min(PITCH_MAX_DEG, Math.max(PITCH_MIN_DEG - 4, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
+    lookPitchTarget = Math.min(PITCH_LOOK_MAX_DEG, Math.max(PITCH_LOOK_MIN_DEG, lookPitchTarget * 180 / Math.PI)) * Math.PI / 180;
   } else {
     const pitchT = Math.min(1, Math.max(0, (mouse.y || 0) / (innerHeight || 1)));
     lookPitchTarget = (PITCH_MIN_DEG + (PITCH_MAX_DEG - PITCH_MIN_DEG) * pitchT) * Math.PI / 180;
@@ -1659,17 +1708,23 @@ export function update3D(dt, world) {
   // around the car and the camera eases back behind it after a moment idle
   if (world.camYaw == null) world.camYaw = targetAngle;
   let camAngle;
+  // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
+  const lookBack = !!player.inVehicle && !world.cameraOverride && (world.input.isDown('q') || !!mouse.middleDown);
+  const lookBackCut = lookBack !== lookBackWas;
+  lookBackWas = lookBack;
   if (player.inVehicle) {
     if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
-    if (looking && mouse.dx !== 0) {
+    const fast = Math.min(1, Math.abs(player.inVehicle.speed || 0) / LOOK_FAST_SPEED);
+    if (looking && mouse.dx !== 0 && !lookBack) {
       lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
       lookYawIdle = 0;
     } else {
       lookYawIdle += dt;
-      if (lookYawIdle > LOOK_RECENTER_DELAY) lookYaw *= Math.exp(-dt * 2.5);
+      const delay = LOOK_RECENTER_DELAY + (LOOK_RECENTER_DELAY_FAST - LOOK_RECENTER_DELAY) * fast;
+      if (lookYawIdle > delay) lookYaw *= Math.exp(-dt * (2.5 - 1.2 * fast));
     }
-    camAngle = targetAngle + lookYaw;
-    world.camYaw = normalizeAngleDelta(camAngle);
+    camAngle = targetAngle + (lookBack ? Math.PI : lookYaw);
+    world.camYaw = normalizeAngleDelta(targetAngle + lookYaw);
   } else {
     lookYaw = 0;
     camAngle = world.camYaw;
@@ -1758,7 +1813,8 @@ export function update3D(dt, world) {
 
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   if (teleported) camPullReset = true;
-  const lerpT = teleported ? 1 : Math.min(1, dt * 6);
+  if (lookBackCut) camPullReset = true;
+  const lerpT = teleported || lookBackCut ? 1 : Math.min(1, dt * 6);
   if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
   camBase.x += (desiredX - camBase.x) * lerpT;
   camBase.y += (desiredY - camBase.y) * lerpT;
@@ -1774,7 +1830,8 @@ export function update3D(dt, world) {
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
     cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
   }
-  applyCameraOverride(dt, world, player.x, veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3, player.y);
+  const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
+  applyCameraOverride(dt, world, player.x, (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp, player.y);
 
   updateSunAndSky(player);
   limitActorShadows(pedMeshes, player.x, player.y);

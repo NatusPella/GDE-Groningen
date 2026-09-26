@@ -1,6 +1,6 @@
 import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, drawSearchArea, getPoliceSearch } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
-import { hasMinimapToggle, minimapShows, setMinimapShows } from './mapfilters.js';
+import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, SHOP_TYPES } from './shops.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
@@ -35,12 +35,11 @@ const HOVER_PX = 12;
 const FOG_CELL = 50;
 const FOG_REVEAL = 2;
 const FOG_KEY = 'gte-fog';
-const LAYERS_KEY = 'gte-map-layers';
 
-const LAND = '#1f2b22';
-const GREEN = '#2f5f37';
-// the endless meadows past the real map (countryside.js)
-const COUNTRY = '#26442b';
+// city ground and the endless meadows past it share one colour (countrymap.js)
+const LAND = MAP_STYLE.meadow;
+const GREEN = MAP_STYLE.park;
+const COUNTRY = MAP_STYLE.meadow;
 const WATER = '#2d6a86';
 const WATER_EDGE = '#4a8fae';
 const BUILDING = 'rgba(160, 156, 146, 0.62)';
@@ -211,21 +210,6 @@ function injectStyles() {
     .mapview-legend .all button { background: none; border: 0; padding: 0; font: inherit; color: #3fc97a; cursor: pointer; text-decoration: underline; }
     .mapview-legend .all button:focus-visible { outline: 2px solid #f0ede4; }
     .mapview-legend canvas { width: 24px; height: 24px; flex: 0 0 24px; }
-    .mapview-legend .mm, .mapview-legend .mm-demo {
-      margin-left: auto; flex: 0 0 16px; width: 16px; height: 16px; padding: 0; box-sizing: border-box;
-      border-radius: 50%; border: 2px solid rgba(240, 237, 228, 0.45); background: transparent; cursor: pointer;
-      position: relative;
-    }
-    .mapview-legend .mm-demo { display: inline-block; vertical-align: -3px; margin: 0 1px; border-color: #3fc97a; cursor: default; }
-    .mapview-legend .mm::after, .mapview-legend .mm-demo::after {
-      content: ''; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
-      background: rgba(240, 237, 228, 0.35);
-    }
-    .mapview-legend .mm[aria-pressed="true"] { border-color: #3fc97a; }
-    .mapview-legend .mm[aria-pressed="true"]::after, .mapview-legend .mm-demo::after { background: #3fc97a; }
-    .mapview-legend .mm:hover { border-color: #f0ede4; }
-    .mapview-legend .mm:focus-visible { outline: 2px solid #f0ede4; outline-offset: 1px; }
-    .mapview-legend .mm + .chk { margin-left: 6px; }
     .mapview-legend .note { color: rgba(240, 237, 228, 0.55); font-size: 12px; }
     @media (max-width: 900px) { .mapview-footer { display: none; } }
     @media (max-width: 700px) { .mapview-legend { display: none; } .mapview-title { display: none; } }
@@ -246,22 +230,8 @@ function normalize(s) {
   return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-function loadLayers() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(LAYERS_KEY) || '{}');
-    return raw && typeof raw === 'object' ? raw : {};
-  } catch (e) {
-    return {};
-  }
-}
-
-function layerOn(key) {
-  return state.layers[key] !== false;
-}
-
 function setLayer(key, on) {
-  state.layers[key] = on;
-  try { localStorage.setItem(LAYERS_KEY, JSON.stringify(state.layers)); } catch (e) { /* ignore */ }
+  storeLayer(key, on);
   if (key === 'buildings') clearTiles();
   state.dirty = true;
 }
@@ -822,7 +792,7 @@ function drawDynamicMarkers(ctx, world) {
     if (name) hover.push({ sx, sy, name, sub });
   };
 
-  if (layerOn('route')) drawFullRoute(ctx, world, t);
+  drawFullRoute(ctx, world, t);
 
   for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name ? `Garage ${g.name}` : 'Garage');
 
@@ -852,14 +822,14 @@ function drawDynamicMarkers(ctx, world) {
   if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', 'companion', c.x, c.y, c.character === 'tammo' ? 'Tammo' : 'Anita', {}, 'Maat');
 
   const search = getPoliceSearch(world);
-  if (search && layerOn('police')) {
+  if (search) {
     const [sx, sy] = toScreen(search.x, search.y);
     drawSearchArea(ctx, sx, sy, search.r * state.scale, t);
   }
-  if (world.wanted > 0) forEachPoliceUnit(world, (x, y) => icon('police', 'police', x, y, 'Politie'));
+  forEachPoliceUnit(world, (x, y) => icon(null, 'police', x, y, 'Politie'));
 
   const wp = getUserWaypoint();
-  if (wp && layerOn('userWaypoint')) icon(null, 'userWaypoint', wp.x, wp.y, 'Bestemming', {}, wp.name ? `${wp.name} · klik of rechtsklik om te wissen` : 'klik of rechtsklik om te wissen');
+  if (wp) icon(null, 'userWaypoint', wp.x, wp.y, 'Bestemming', {}, wp.name ? `${wp.name} · klik of rechtsklik om te wissen` : 'klik of rechtsklik om te wissen');
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
   state.dynHover = hover;
@@ -1195,8 +1165,8 @@ function handleKeys(dt, world) {
 
 const LEGEND = [
   { kind: 'player', label: 'Jij' },
-  { kind: 'userWaypoint', label: 'Jouw bestemming', layer: 'userWaypoint' },
-  { kind: 'route', label: 'Route', layer: 'route' },
+  { kind: 'userWaypoint', label: 'Jouw bestemming', note: 'altijd zichtbaar' },
+  { kind: 'route', label: 'Route', note: 'altijd zichtbaar' },
   { kind: 'companion', label: 'Maat', layer: 'companion' },
   { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, brommer, boot', layer: 'car' },
   { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
@@ -1210,7 +1180,6 @@ const LEGEND = [
   { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },
   { kind: 'flitspaal', label: 'Flitspaal', layer: 'flitspaal' },
   { kind: 'landmark', label: 'Bezienswaardigheid', layer: 'landmark' },
-  { kind: 'police', label: 'Politie', note: 'alleen met sterren', layer: 'police' },
   { kind: 'text-street', label: 'Straatnamen', layer: 'streets' },
   { kind: 'text-wijk', label: 'Wijknamen', layer: 'wijken' },
   { kind: 'buildings', label: 'Gebouwen', layer: 'buildings' },
@@ -1262,22 +1231,7 @@ function buildLegend(root) {
       li.setAttribute('role', 'checkbox');
       li.tabIndex = 0;
       li.setAttribute('aria-checked', String(layerOn(row.layer)));
-      li.title = 'Klik om aan/uit te zetten';
-      if (hasMinimapToggle(row.layer)) {
-        const mm = document.createElement('button');
-        mm.type = 'button';
-        mm.className = 'mm';
-        mm.title = 'Ook op de minimap (alleen dichtbij)';
-        mm.setAttribute('aria-label', `${row.label} op de minimap`);
-        mm.setAttribute('aria-pressed', String(minimapShows(row.layer)));
-        mm.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const on = !minimapShows(row.layer);
-          setMinimapShows(row.layer, on);
-          mm.setAttribute('aria-pressed', String(on));
-        });
-        li.appendChild(mm);
-      }
+      li.title = 'Klik om aan/uit te zetten (kaart en minimap)';
       const box = document.createElement('span');
       box.className = 'chk';
       box.setAttribute('aria-hidden', 'true');
@@ -1298,7 +1252,7 @@ function buildLegend(root) {
     }
     list.appendChild(li);
   }
-  root.innerHTML = '<h3>LEGENDA</h3><p class="hint">Vink aan wat je op de kaart wilt zien. <span class="mm-demo" aria-hidden="true"></span> = ook op de minimap</p>' +
+  root.innerHTML = '<h3>LEGENDA</h3><p class="hint">Vink aan wat je op de kaart en de minimap wilt zien.</p>' +
     '<p class="all"><button type="button" data-all="1">Alles aan</button> · <button type="button" data-all="0">Alles uit</button></p>';
   for (const b of root.querySelectorAll('[data-all]')) {
     b.addEventListener('click', () => {
@@ -1422,7 +1376,6 @@ export function initMapView(world) {
     dpr: window.devicePixelRatio || 1,
     dirty: true,
     frame: 0,
-    layers: loadLayers(),
     staticHover: [],
     dynHover: [],
     drag: null,

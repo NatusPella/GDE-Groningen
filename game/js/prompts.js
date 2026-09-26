@@ -195,6 +195,7 @@ function trackUsage(dt, world) {
     if (pressed('w') || pressed('s') || pressed('arrowup') || pressed('arrowdown')) used('drive');
     if (pressed(' ')) used('handbrake');
     if (pressed('h')) used('horn');
+    if (pressed('q') || input.mouse.middleDown) used('lookback');
     return;
   }
   if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('move');
@@ -479,6 +480,7 @@ function contextRows(world, primary) {
     rows.push(tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
     rows.push(tut('horn', ['H'], 'Toeter', 'Aan de kant, fietsers!'));
     rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots'));
+    rows.push(tut('lookback', ['Q'], 'Achterom kijken', 'Houd Q of de middelste muisknop vast'));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', 'Vuren vanuit de auto'));
   } else if (p.swimming) {
