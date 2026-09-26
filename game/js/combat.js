@@ -5,6 +5,7 @@ import { knockDown } from './ragdoll.js';
 import { bloodSpray, bleedPed } from './gore3d.js';
 import { DEAD_DURATION } from './pedestrians.js';
 import { propOnBulletPath, shootProp } from './breakables.js';
+import { reportCrime } from './crime.js';
 import { gunShotFx, gunImpactFx } from './gunfx3d.js';
 
 export const WEAPONS = {
@@ -349,7 +350,7 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee) {
     world.wanted = Math.min(5, world.wanted + 2);
   } else {
     world.stats.pedKills++;
-    world.wanted = Math.min(5, world.wanted + 1);
+    reportCrime(world, 'pedKill');
   }
 }
 
