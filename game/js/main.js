@@ -71,7 +71,7 @@ function waitForStart(world) {
     world.time += dt;
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
-      if (v.driver === 'player' || v.isPolice) continue;
+      if (v.driver === 'player' || v.isPolice || v.cineTemp) continue;
       if (v.isBoat) updateBoatAI(v, dt, world.map, world, Math.random);
       else {
         updateTrafficAI(v, dt, world.map, world, Math.random);
@@ -85,11 +85,12 @@ function waitForStart(world) {
     updateWildlife(dt, world);
   };
   // the effect pools exist from the title screen on, so their shaders are
-  // compiled there and not on the first explosion, shot or splash
-  const render = (dt) => {
-    updateFx3D(0, world, getScene());
-    updateGore3D(0, world, getScene());
-    updateGunFx3D(0, world, getScene());
+  // compiled there and not on the first explosion, shot or splash; the
+  // trailer (trailer.js) passes fxDt to play its explosions
+  const render = (dt, fxDt = 0) => {
+    updateFx3D(fxDt, world, getScene());
+    updateGore3D(fxDt, world, getScene());
+    updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
   return runStartScreen(world, { render, relocate, tick });

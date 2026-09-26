@@ -35,6 +35,31 @@ SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
   0 on PASS. Use a throwaway profile:
   `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-test-story npx electron . --windowed --story-test=/tmp/st`
 
+### Trailer mode
+
+One scripted sequence of shots through Grunn (`js/trailer.js`, design in
+`docs/verhaal-voorstel.md` section 5), used three ways:
+
+- **Attract intro**: the short cut (~33 s, city and features only) plays
+  once on the first launch, and once for existing players after the update
+  that added it (`attractSeen` in `gte-settings`; *Standaardinstellingen*
+  keeps it). Hold Space (~0.9 s) to skip. Never with `?stil`, `?dev`,
+  `?storytest` or `?noattract`; the desktop smoke, perf and story tests add
+  `noattract`. `?attract` (desktop `--attract`) plays it on request.
+- **Benchmark**: *Instellingen → Beeld → Benchmark draaien* plays the full
+  cut (~82 s) in real time with an fps counter, then shows average fps,
+  1%-low, the heaviest shot and a quality suggestion (*Toepassen*). From a
+  running game it saves first and continues that save afterwards. Esc stops.
+- **Recording**: `?trailer` (desktop `--trailer`) plays the full cut on a
+  fixed 1/60 s step without HUD; the desktop app quits after the last frame.
+  Options: `&cut=kort` / `--trailer-cut=kort` (the short cut), `&shot=N` /
+  `--trailer-shot=N` (only shot N, 1-based; `window.__trailer.list()` prints
+  the list), `--trailer=3840x2160` (page size in device pixels),
+  `--trailer-frames=<dir>` (every frame as a png, for a smooth frame dump on
+  a slow machine), `&stil` / `--stil` (no music). `--trailer` uses a
+  throwaway profile, e.g.
+  `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-trailer npx electron . --trailer=1920x1080`
+
 ## Desktop builds and releases
 
 `desktop/` wraps the game in Electron: a standalone macOS app (universal,
