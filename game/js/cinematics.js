@@ -239,8 +239,12 @@ function finish(skipped, replaced = false) {
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
   if (a && a.voiced) setStoryScene(false);
-  if (a && a.onEnd) a.onEnd(skipped, replaced);
-  if (!active && queue.length) begin(queue.shift());
+  try {
+    if (a && a.onEnd) a.onEnd(skipped, replaced);
+  } finally {
+    // a replaced scene makes way for the new one, the queue waits for that
+    if (!active && !replaced && queue.length) begin(queue.shift());
+  }
 }
 
 function updateSkipHold() {
@@ -297,13 +301,20 @@ export function updateCinematics(dt, w) {
     if (started) checkTriggers(dt, w);
     updateBanner(dt);
     if (chipTimer > 0 && (chipTimer -= dt) <= 0) els.chip.classList.remove('visible');
-  }
+  } else skipHoldSince = null;
 
   if (started && w.input.wasPressed('v') && !active) cycleCinemaCam(w);
   if (camMode && !w.player.inVehicle) setCamMode(0);
 
   let pose = null;
-  if (active && active.shot) pose = active.shot(clamp01(active.t / active.duration), active.t, w);
+  if (active && active.shot) {
+    try {
+      pose = active.shot(clamp01(active.t / active.duration), active.t, w);
+    } catch (err) {
+      console.error('cinematic shot', active.id, err);
+      finish(true);
+    }
+  }
   else if (!active && camMode && w.player.inVehicle) pose = cinemaCamPose(w);
   w.cameraOverride = pose;
 
@@ -855,4 +866,17 @@ function updateBanner(dt) {
     els.banner.classList.remove('in', 'out');
     banner = null;
   }
+}
+
+// read-only view of the running cutscene for the soft-lock watchdog (safety.js)
+export function cinematicState() {
+  return active;
+}
+
+// Ends the running cutscene and drops the queued ones (loading a save, "Zet me vrij").
+export function skipAllCinematics() {
+  queue.length = 0;
+  for (let i = 0; i < 8 && active; i++) finish(true);
+  swallowSpace = false;
+  skipHoldSince = null;
 }

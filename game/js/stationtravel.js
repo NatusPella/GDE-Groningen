@@ -513,7 +513,7 @@ function arrive(w) {
   const p = w.player;
   p.x = to.arrive.x; p.y = to.arrive.y;
   p.angle = to.exitAngle;
-  p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0;
+  p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
   p.inVehicle = null; p.water = null; p.swimming = false; p.climb = null;
   const c = w.companion;
   if (c && c.state !== 'dead') {
