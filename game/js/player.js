@@ -765,5 +765,11 @@ export function findExitSpot(v, radius, map, sides = EXIT_LEFT_FIRST) {
     if (isInsideBuilding(map, ex, ey) || isInWater(map, ex, ey)) continue;
     return resolveBuildingCollisions(ex, ey, radius, map);
   }
+  // an alley narrower than the car: out the front or the back instead
+  const hl = (v.halfLen || v.halfWid * 2) + 0.7, fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  for (const s of [1, -1]) {
+    const ex = v.x + fx * hl * s, ey = v.y + fy * hl * s;
+    if (!isInsideBuilding(map, ex, ey) && !isInWater(map, ex, ey)) return resolveBuildingCollisions(ex, ey, radius, map);
+  }
   return map.escapeBuilding(v.x + nx * off * sides[0], v.y + ny * off * sides[0]);
 }

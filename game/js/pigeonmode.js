@@ -1536,6 +1536,7 @@ function landingSpot(map) {
   // outwards until one is dry, outside buildings and not a closed courtyard
   const cands = [];
   for (const road of map.roadsNear(P.x, P.y, 150)) {
+    if (road.z) continue;
     const pts = road.pts;
     for (let i = 0; i < pts.length - 1; i++) {
       const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
@@ -1573,6 +1574,7 @@ function placeCompanion(w, x, y, angle) {
   }
   [c.x, c.y] = spot || [x, y];
   c.vx = 0; c.vy = 0; c.z = 0; c.vz = 0;
+  c.gz = w.player.gz || 0;
   c.angle = angle;
   c.water = null; c.swimming = false; c.climb = null;
   if (c.state === 'dead') { c.state = 'alive'; c.health = 100; }
@@ -1618,6 +1620,7 @@ export function stopPigeonMode(w = world) {
   pl.y = lastSet.y = spot.y;
   pl.angle = angle;
   pl.vx = 0; pl.vy = 0; pl.z = 0; pl.vz = 0;
+  pl.gz = map.groundHeightAt ? map.groundHeightAt(spot.x, spot.y, 0) || 0 : 0;
   pl.inVehicle = null;
   pl.water = null; pl.swimming = false; pl.climb = null;
   placeCompanion(w, spot.x, spot.y, angle);

@@ -45,6 +45,8 @@ import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { probe } from './hitchprobe.js';
+import { initSafety, updateSafety } from './safety.js';
+import { updateCinematics } from './cinematics.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -189,6 +191,7 @@ async function boot() {
 
   window.__debug = { player, map, input, world };
   initAchievementTracker(world);
+  initSafety(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   await finishLoading();
@@ -234,12 +237,14 @@ async function boot() {
     updateCityProps(animDt, world, getScene());
     probe.mark('cityprops');
     updatePigeonAfterglow(animDt);
-    if (world.pigeonMode) updatePigeonCamera(dt, world);
+    // cutscenes keep running (and end) while you're a pigeon; its camera wins
+    if (world.pigeonMode) { updateCinematics(dt, world); updatePigeonCamera(dt, world); }
     else {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
     probe.mark('phone+save');
+    updateSafety(dt, world);
     update3D(world.paused ? dt : gameDt, world);
     updateHud(dt, world);
     probe.mark('hud');
