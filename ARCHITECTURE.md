@@ -54,7 +54,7 @@ frame then runs, in order:
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js` |
 | Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
-| Story | `storyarc.js` (the arc as data), `story.js` (director), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js` |
+| Story | `storyarc.js` (the arc as data), `story.js` (director), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), `sidejobvoice.js` (voiced boss lines, `audio/voicelines/jobs`), one `sidejob_*.js` per job |
 | UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
@@ -183,3 +183,23 @@ their dialogue at the same index in `missionstory.js` `STORY`, fill in
 `mission` and `built: true` on the steps in `STEPS` (activities too; new goal
 types go in `GOALS` in story.js), set `PARTS.romp.open = true`, then run
 `--story-test`.
+
+## Car banter
+
+`banter.js` plays the exchanges in `banterlines.js` while Tammo and Anita
+ride in the same vehicle (moving, 6 s in, no stars, no mission or bijbaantje,
+no cutscene or phone). Triggers by priority: after a mission or shift
+(`after:H3:pass`, `after:job:taxi:fail`, 5 minutes valid, ignores the global
+cooldown), the next story step (`story:H4`, `story:end:kop`), places
+(`place:<landmark>`, `wijk:<name>`, 10 min each), situations (`situation:storm`,
+3 min each) and `idle`, with 75 s between conversations. A crash or new stars
+cut it off with a `REACTIONS` line; an interrupted nabespreking resumes once.
+Story progress is read only (story.js `getStorySave`/`currentStep`,
+missions.js); `needs`/`until`/`arc` keep lines spoiler-safe. Subtitles use
+the in-game subtitle style; voices come from `audio/voicelines/banter`
+(manifest keyed `Speaker|text`) through `audio.js` `playBanterVoice`
+(voice bus, ducks G-Music). Heard exchanges are kept in `gte-banter-v1`.
+New lines: append to `BANTER` (format documented at the top of
+banterlines.js), then `node scripts/tts_banter_lines.mjs && python3
+scripts/tts_banter.py`. Debug: `window.__banter` (state, play, after,
+eligible, anySpeed).
