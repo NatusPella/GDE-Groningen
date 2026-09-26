@@ -8,10 +8,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { WATER_Y, closestPointOnSegment } from './util.js';
 import {
   DECK_T, EMB_SLOPE, WALL_T, FENCE_H, BARRIER_H, ROOF_T, RAISED,
-  surfaceHalfWidth, roofTopAt, coveredAt, lowerSurfaceAt,
+  surfaceHalfWidth, roofTopAt, coveredAt,
 } from './elevation.js';
 
 const PIER_EVERY = 24;
+const SLOPE_FOOT = -0.07;  // embankment foot just under the terrain (-0.05)
 const LIGHT_EVERY = 12;
 
 const mats = {};
@@ -92,10 +93,28 @@ function miters(P) {
 
 const PIER_SHIFTS = [0, 3, -3, 6, -6, 9, -9];
 
-function pierBlocked(elev, x, y, ux, uy, half, z) {
+const PIER_CATS = new Set(['major', 'normal', 'minor', 'service']);
+
+// Is (x, y) on the carriageway of a road running below height zTop?
+function lowerCarriageway(map, x, y, zTop) {
+  for (const r of map.roadsNear(x, y, 12)) {
+    if (!PIER_CATS.has(r.cat)) continue;
+    const hw = r.width / 2 + 0.4;
+    const P = r.pts, Z = r.z;
+    for (let i = 0; i < P.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
+      if (cp.dist2 >= hw * hw) continue;
+      const z = Z ? Z[i] + (Z[i + 1] - Z[i]) * cp.t : 0;
+      if (z < zTop - 1.5) return true;
+    }
+  }
+  return false;
+}
+
+function pierBlocked(map, x, y, ux, uy, half, z) {
   for (const f of [-1, -0.5, 0, 0.5, 1]) {
     for (const a of [-0.8, 0.8]) {
-      if (lowerSurfaceAt(elev, x - uy * half * f + ux * a, y + ux * half * f + uy * a, z)) return true;
+      if (lowerCarriageway(map, x - uy * half * f + ux * a, y + ux * half * f + uy * a, z)) return true;
     }
   }
   return false;
@@ -143,8 +162,18 @@ export function buildRoadStructure(r, map) {
   const segOf = new Map();
   for (const sg of elev.segs) if (sg.r === r) segOf.set(sg.i, sg);
 
+  // open ends of an embankment slope (where it gives way to a deck, an
+  // abutment wall or the road ends) are closed with a triangle down to the
+  // ground, otherwise you look into the embankment through a gap
+  const slopeEnd = [null, null];
+  const closeSlope = (j) => {
+    const e = slopeEnd[j];
+    if (e && e.z > 0.1) B.tri('grass', [e.ex, e.z + 0.015, e.ey], [e.fx, SLOPE_FOOT, e.fy], [e.ex, SLOPE_FOOT, e.ey]);
+    slopeEnd[j] = null;
+  };
   for (let i = 0; i < n - 1; i++) {
     const za = Z[i], zb = Z[i + 1];
+    if (deck || (za <= RAISED && zb <= RAISED)) { closeSlope(0); closeSlope(1); }
     if (za > RAISED || zb > RAISED) {
       if (deck) deckBox(i, 0, 1, Math.max(za, 0), Math.max(zb, 0));
       else {
@@ -153,16 +182,23 @@ export function buildRoadStructure(r, map) {
         let prevOver = null;
         for (const pc of pieces) {
           const a0 = Math.max(0, za + (zb - za) * pc.t0), b0 = Math.max(0, za + (zb - za) * pc.t1);
-          if (pc.over) deckBox(i, pc.t0, pc.t1, a0, b0);
+          if (pc.over) { deckBox(i, pc.t0, pc.t1, a0, b0); closeSlope(0); closeSlope(1); }
           else {
             [1, -1].forEach((side, j) => {
               const ea = lerp2(edge(i, side, hs), edge(i + 1, side, hs), pc.t0), eb = lerp2(edge(i, side, hs), edge(i + 1, side, hs), pc.t1);
               if (pc.retain[j]) {
+                closeSlope(j);
                 B.quad('wall', [ea[0], a0 + 0.02, ea[1]], [eb[0], b0 + 0.02, eb[1]], [eb[0], -0.05, eb[1]], [ea[0], -0.05, ea[1]]);
               } else {
-                const fa = lerp2(edge(i, side, hs + a0 / EMB_SLOPE), edge(i + 1, side, hs + a0 / EMB_SLOPE), pc.t0);
-                const fb = lerp2(edge(i, side, hs + b0 / EMB_SLOPE), edge(i + 1, side, hs + b0 / EMB_SLOPE), pc.t1);
-                B.quad('grass', [ea[0], a0 + 0.015, ea[1]], [eb[0], b0 + 0.015, eb[1]], [fb[0], 0.0, fb[1]], [fa[0], 0.0, fa[1]]);
+                const ra = (a0 - SLOPE_FOOT) / EMB_SLOPE, rb = (b0 - SLOPE_FOOT) / EMB_SLOPE;
+                const fa = lerp2(edge(i, side, hs + ra), edge(i + 1, side, hs + ra), pc.t0);
+                const fb = lerp2(edge(i, side, hs + rb), edge(i + 1, side, hs + rb), pc.t1);
+                if (!slopeEnd[j]) {
+                  slopeEnd[j] = { ex: ea[0], ey: ea[1], fx: fa[0], fy: fa[1], z: a0 };
+                  closeSlope(j);
+                }
+                B.quad('grass', [ea[0], a0 + 0.015, ea[1]], [eb[0], b0 + 0.015, eb[1]], [fb[0], SLOPE_FOOT, fb[1]], [fa[0], SLOPE_FOOT, fa[1]]);
+                slopeEnd[j] = { ex: eb[0], ey: eb[1], fx: fb[0], fy: fb[1], z: b0 };
               }
             });
           }
@@ -184,6 +220,9 @@ export function buildRoadStructure(r, map) {
     }
   }
 
+  closeSlope(0);
+  closeSlope(1);
+
   // piers, lights and portals by arc length
   let s = 0;
   let nextPier = PIER_EVERY / 2, nextLight = LIGHT_EVERY / 2;
@@ -194,16 +233,34 @@ export function buildRoadStructure(r, map) {
     while (deck && nextPier < s + L) {
       const half = Math.max(1.5, hs * 0.55);
       // a pier never stands in a road passing underneath: slide it along the
-      // deck to a free spot, or leave it out
+      // deck to a free spot, else columns beside that road
+      let placed = false;
       for (const shift of PIER_SHIFTS) {
         const t = (nextPier + shift - s) / L;
         if (t < 0 || t > 1) continue;
         const x = ax + (bx - ax) * t, y = ay + (by - ay) * t, z = Z[i] + (Z[i + 1] - Z[i]) * t;
         if (z <= 2.2) break;
-        if (pierBlocked(elev, x, y, ux, uy, half, z)) continue;
+        if (pierBlocked(map, x, y, ux, uy, half, z)) continue;
         const g = groundUnder(map, x, y);
         B.wallBox('concrete', x - uy * half, y + ux * half, x + uy * half, y - ux * half, 1.3, g, z - DECK_T, g, z - DECK_T);
+        placed = true;
         break;
+      }
+      if (!placed) {
+        // over a road running underneath: columns beside it, under the deck edges
+        const t = (nextPier - s) / L;
+        const x = ax + (bx - ax) * t, y = ay + (by - ay) * t, z = Z[i] + (Z[i + 1] - Z[i]) * t;
+        if (t >= 0 && t <= 1 && z > 2.2) {
+          for (const side of [1, -1]) {
+            for (const f of [0.85, 0.65, 0.45]) {
+              const cx = x - uy * hs * f * side, cy = y + ux * hs * f * side;
+              if (pierBlocked(map, cx, cy, ux, uy, 0.65, z)) continue;
+              const g = groundUnder(map, cx, cy);
+              B.wallBox('concrete', cx - uy * 0.65, cy + ux * 0.65, cx + uy * 0.65, cy - ux * 0.65, 1.3, g, z - DECK_T, g, z - DECK_T);
+              break;
+            }
+          }
+        }
       }
       nextPier += PIER_EVERY;
     }
@@ -227,7 +284,7 @@ export function buildRoadStructure(r, map) {
       const dx = P[j][0] - P[i][0], dy = P[j][1] - P[i][1], l = Math.hypot(dx, dy) || 1;
       const ux = dx / l, uy = dy / l;
       const cx = P[i][0] + ux * 0.8, cy = P[i][1] + uy * 0.8;
-      if (pierBlocked(elev, cx, cy, ux, uy, hs, Z[i])) continue;
+      if (pierBlocked(map, cx, cy, ux, uy, hs, Z[i])) continue;
       const g = groundUnder(map, cx, cy);
       B.wallBox('concrete', cx - uy * hs, cy + ux * hs, cx + uy * hs, cy - ux * hs, 1.6, g, Z[i] - DECK_T + 0.05, g, Z[i] - DECK_T + 0.05);
     }
