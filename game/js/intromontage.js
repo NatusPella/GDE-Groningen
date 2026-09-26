@@ -946,10 +946,11 @@ function frame(r, t) {
 
 function cleanup(r, skipped) {
   const prev = r.shots[r.idx];
-  if (prev && prev.exit) prev.exit(r, r.state);
-  removeTempCars(r);
+  // whatever a shot left behind, the montage itself must always end
+  try { if (prev && prev.exit) prev.exit(r, r.state); } catch (e) { console.error('intro exit', e); }
+  try { removeTempCars(r); } catch (e) { console.error('intro cars', e); }
   r.group.removeFromParent();
-  restoreHome(r);
+  try { restoreHome(r); } catch (e) { console.error('intro home', e); }
   if (ui) {
     ui.root.classList.remove('on');
     if (skipped) {

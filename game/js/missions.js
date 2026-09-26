@@ -530,6 +530,9 @@ export function setMissionProgress(world, prog) {
   chain.armed = true;
   chain.wpIndex = 0;
   chain.run = null;
+  chain.stage = null;
+  chain.stagePending = false;
+  if (world.pigeonMode) stopPigeonMode(world);
   syncPub(world);
 }
 
