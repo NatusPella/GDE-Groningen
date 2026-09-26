@@ -829,6 +829,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   ud.body = mesh;
   ud.stoop = L.age === 'old' ? 0.12 : 0;
   ud.gait = L.age === 'old' ? 0.8 : L.female ? 1.05 : 1;
+  ud.female = L.female;
   ud.animOffset = hash2(L.seed, 9.1) * 100;
   for (const k of [0, 1]) {
     linkJoint(rig.limbs[k].thigh, rig.limbs[k].knee, autoKnee, () => pedalIK(group, k));

@@ -49,6 +49,7 @@ import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside } from './countryside.js';
 import { probe } from './hitchprobe.js';
+import { speakBubble } from './linevoice.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -1355,11 +1356,19 @@ function syncSpeechBubbles(world) {
   if (extra) for (let i = extra.length - 1; i >= 0; i--) if (world.time >= extra[i].speechUntil) extra.splice(i, 1);
   const speakers = extra && extra.length ? [...world.pedestrians, ...extra] : world.pedestrians;
   for (const p of speakers) {
-    if (!p.speechText || world.time >= p.speechUntil) continue;
+    if (!p.speechText || world.time >= p.speechUntil) { if (p._voicedText) p._voicedText = null; continue; }
     seen.add(p);
     let el = speechBubbleEls.get(p);
     if (!el) { el = speechBubbleEl(); speechBubbleEls.set(p, el); }
     const src = p.follow || p;
+    // a new bubble speaks its recording (if any) in a voice matching the model
+    if (p._voicedText !== p.speechText) {
+      p._voicedText = p.speechText;
+      const ud = pedMeshes.get(p)?.userData;
+      if (ud) p.female = !!ud.female;
+      else if (p.female === undefined) p.female = Math.random() < 0.5;
+      speakBubble(p.speechText, p.female, { x: src.x, y: src.y });
+    }
     const scr = projectToScreen(src.x, p.h ?? 2.1, src.y);
     if (!scr) { el.style.display = 'none'; continue; }
     el.textContent = p.speechText;

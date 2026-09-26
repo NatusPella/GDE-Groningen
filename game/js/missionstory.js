@@ -4,6 +4,7 @@ import { HABBO_PALETTE } from './pixelart3d.js';
 import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater } from './util.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene } from './audio.js';
+import { storyLineVoice } from './linevoice.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Anita's relationship
@@ -17,7 +18,7 @@ import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
 const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
 let voices = {};
 fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
-const voiceFor = (speaker, text) => voices[speaker + '|' + text] || null;
+const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text);
 
 const SKIN = HABBO_PALETTE;
 const NPC = {

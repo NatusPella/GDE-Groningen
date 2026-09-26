@@ -102,7 +102,9 @@ Security or Windows SmartScreen.
   pigeon achievements are kept in the save.
 - **Audio**: G-Music plays in the city all the time (a shuffled playlist with
   jingles in between; a toast shows the title of each new track), plus
-  voicelines, police barks and synthesised effects.
+  voicelines, police barks and synthesised effects. Every speech bubble and
+  subtitle is voiced; `node scripts/voice_coverage.mjs` checks that (exit
+  code 1 lists the lines still without a recording, see ARCHITECTURE.md).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for how the modules fit together,
 [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) for the UI and world style, and

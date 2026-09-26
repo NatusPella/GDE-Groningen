@@ -1,0 +1,46 @@
+[
+ {
+  "key": "Anita|Tammo.",
+  "speaker": "Anita",
+  "text": "Tammo.",
+  "area": "Missie-cutscenes",
+  "file": "anita/tammo_970a6793.mp3",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "tag": "plagend, zelfverzekerd",
+  "prompt": "[Groningse vrouw, lacherig en ad rem, plagend, zelfverzekerd, spoken in Dutch with a Groningen accent] Tammo."
+ },
+ {
+  "key": "Anita|Acht man neer in 45 seconden. Voor de clicks, zegt Jelmer.",
+  "speaker": "Anita",
+  "text": "Acht man neer in 45 seconden. Voor de clicks, zegt Jelmer.",
+  "area": "Missie-intro (terugval)",
+  "file": "anita/acht_man_neer_in_45_seconden_voo_32b6e1ee.mp3",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "tag": "opgewonden, fluisterend",
+  "prompt": "[Groningse vrouw, lacherig en ad rem, opgewonden, fluisterend, spoken in Dutch with a Groningen accent] Acht man neer in 45 seconden. Voor de clicks, zegt Jelmer."
+ },
+ {
+  "key": "Anita|Te voet, hè. De hele Poelestraat staat vol dronken studenten, en die lopen je zo omver.",
+  "speaker": "Anita",
+  "text": "Te voet, hè. De hele Poelestraat staat vol dronken studenten, en die lopen je zo omver.",
+  "area": "Missie-intro (terugval)",
+  "file": "anita/te_voet_he_de_hele_poelestraat_s_e22a2461.mp3",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "tag": "opgewonden, fluisterend",
+  "prompt": "[Groningse vrouw, lacherig en ad rem, opgewonden, fluisterend, spoken in Dutch with a Groningen accent] Te voet, hè. De hele Poelestraat staat vol dronken studenten, en die lopen je zo omver."
+ },
+ {
+  "key": "Anita|Eerst de stroomkast, dan de vitrine. En daarna wegwezen, het liefst over het water.",
+  "speaker": "Anita",
+  "text": "Eerst de stroomkast, dan de vitrine. En daarna wegwezen, het liefst over het water.",
+  "area": "Missie-intro (terugval)",
+  "file": "anita/eerst_de_stroomkast_dan_de_vitri_eae47907.mp3",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "tag": "opgewonden, fluisterend",
+  "prompt": "[Groningse vrouw, lacherig en ad rem, opgewonden, fluisterend, spoken in Dutch with a Groningen accent] Eerst de stroomkast, dan de vitrine. En daarna wegwezen, het liefst over het water."
+ }
+]
