@@ -14,6 +14,9 @@ let lastComputeAt = -Infinity;
 const stats = { buildMs: 0, lastMs: 0, maxMs: 0, avgMs: 0, runs: 0, nodes: 0, driveEdges: 0, walkEdges: 0, lastSettled: 0 };
 
 const isDrivable = (road) => road.cat !== 'foot' && road.cat !== 'cycle';
+// no walking along (and so no crossing of) the ring and motorways
+const NO_WALK_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
+const isWalkable = (road) => !NO_WALK_TYPES.has(road.type) && !(road.z && road.cat === 'major');
 // Some OSM footways/service roads cross building footprints (passages,
 // courtyards); still usable, but routes should strongly prefer streets.
 const THROUGH_BUILDING_COST = 8;
@@ -58,13 +61,16 @@ function buildGraph(map) {
     for (let i = 0; i < n; i++) rn[i] = nodeOf(road.pts[i][0], road.pts[i][1]);
     roadNodes.set(road, rn);
     const canDrive = isDrivable(road);
+    const canWalk = isWalkable(road);
     for (let i = 0; i < n - 1; i++) {
       const a = rn[i], b = rn[i + 1];
       if (a === b) continue;
       const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
       const len = throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
-      walk.push(a, b, len, b, a, len);
-      walkRoad.push(ri, ri);
+      if (canWalk) {
+        walk.push(a, b, len, b, a, len);
+        walkRoad.push(ri, ri);
+      }
       if (canDrive) {
         drive.push(a, b, len);
         if (!road.oneway) drive.push(b, a, len);
@@ -142,7 +148,7 @@ function snapToRoad(map, x, y, driveOnly) {
   for (let r = 30; r <= SNAP_MAX_M; r *= 2) {
     let best = null, bestD2 = r * r;
     for (const road of map.roadsNear(x, y, r)) {
-      if (driveOnly && !isDrivable(road)) continue;
+      if (driveOnly ? !isDrivable(road) : !isWalkable(road)) continue;
       const rn = graph.roadNodes.get(road);
       const inMain = cc.comp[rn[0]] === cc.main;
       const p = road.pts;

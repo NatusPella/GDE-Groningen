@@ -79,19 +79,71 @@ export function buildElevation(map) {
   // embankments (which then need an abutment, not a slope) and over cuttings
   const near = (x, y) => grid.at(x, y);
   for (const r of map.roads) {
-    if (r.z) continue;
     const hs = surfaceHalfWidth(r);
-    const P = r.pts;
+    const P = r.pts, Z = r.z;
     for (let i = 0; i < P.length - 1; i++) {
+      if (Z && (Math.abs(Z[i]) >= 0.02 || Math.abs(Z[i + 1]) >= 0.02)) continue;
       const ax = P[i][0], ay = P[i][1], bx = P[i + 1][0], by = P[i + 1][1];
       if (!near(ax, ay) && !near(bx, by) && !near((ax + bx) / 2, (ay + by) / 2)) continue;
       elev.flatGrid.insert({ ax, ay, bx, by, hs }, Math.min(ax, bx) - hs, Math.min(ay, by) - hs, Math.max(ax, bx) + hs, Math.max(ay, by) + hs);
     }
   }
+  addRailLifts(elev, map);
   classifyFill(elev);
   buildWalls(elev, map);
   buildCuts(elev);
   return elev;
+}
+
+// Track height where the rail climbs over a road (railway.js railZ, the
+// same railLifts), so the embankment and viaduct railway3d draws carry
+// whoever gets onto them instead of being walked and driven through.
+const RAIL_STEP = 4;
+const RAIL_BED_HALF = 2.1;           // railway3d embankment crown
+const RAIL_DECK_HALF = 2.5;          // railway3d DECK_HALF
+const RAIL_DECK_Z = 2.55;            // railway3d DECK_Z (- a hair)
+const RAIL_SLOPE = 1 / 1.3;          // railway3d embankProfile foot
+
+export function railLiftZ(lifts, x, y) {
+  let z = 0;
+  for (const L of lifts) {
+    const d = Math.hypot(L.x - x, L.y - y);
+    if (d >= L.plateau + L.ramp) continue;
+    const t = Math.max(0, (d - L.plateau) / L.ramp);
+    const h = L.h * (1 - t * t * (3 - 2 * t));
+    if (h > z) z = h;
+  }
+  return z;
+}
+
+function addRailLifts(elev, map) {
+  const lifts = map.railLifts || [];
+  if (!lifts.length) return;
+  for (const rail of map.rails || []) {
+    const P = rail.pts || rail;
+    for (let i = 0; i < P.length - 1; i++) {
+      const [x0, y0] = P[i], [x1, y1] = P[i + 1];
+      const L = Math.hypot(x1 - x0, y1 - y0);
+      if (L < 1e-3) continue;
+      const n = Math.max(1, Math.ceil(L / RAIL_STEP));
+      for (let k = 0; k < n; k++) {
+        const ax = x0 + (x1 - x0) * k / n, ay = y0 + (y1 - y0) * k / n;
+        const bx = x0 + (x1 - x0) * (k + 1) / n, by = y0 + (y1 - y0) * (k + 1) / n;
+        const za = railLiftZ(lifts, ax, ay), zb = railLiftZ(lifts, bx, by);
+        if (za < 0.05 && zb < 0.05) continue;
+        const len = L / n;
+        const deck = Math.min(za, zb) >= RAIL_DECK_Z;
+        const hs = deck ? RAIL_DECK_HALF : RAIL_BED_HALF;
+        const s = {
+          r: rail, i, ax, ay, bx, by, za, zb, len, ux: (bx - ax) / len, uy: (by - ay) / len, hs,
+          deck, covered: false, rail: true, slope: RAIL_SLOPE,
+        };
+        const reach = hs + Math.max(za, zb) / RAIL_SLOPE + 1;
+        elev.grid.insert(s, Math.min(ax, bx) - reach, Math.min(ay, by) - reach, Math.max(ax, bx) + reach, Math.max(ay, by) + reach);
+        elev.segs.push(s);
+      }
+    }
+  }
 }
 
 // Is (x, y) on a road surface clearly below zTop (a street-level road, or a
@@ -108,6 +160,7 @@ export function lowerSurfaceAt(elev, x, y, zTop) {
   const list = elev.grid.at(x, y);
   if (list) {
     for (const s of list) {
+      if (s.rail) continue;
       const q = onSeg(s, x, y);
       if (q.d <= s.hs && q.z < zTop - 1.5) return true;
     }
@@ -122,7 +175,7 @@ export function lowerSurfaceAt(elev, x, y, zTop) {
 // wall instead), otherwise a grass slope.
 function classifyFill(elev) {
   for (const s of elev.segs) {
-    if (s.deck || (s.za <= RAISED && s.zb <= RAISED)) continue;
+    if (s.deck || s.rail || (s.za <= RAISED && s.zb <= RAISED)) continue;
     const n = Math.max(1, Math.round(s.len / PIECE));
     s.pieces = [];
     for (let k = 0; k < n; k++) {
@@ -158,48 +211,113 @@ function onSeg(s, x, y) {
   return _q;
 }
 
+// On a street-level road surface (also the level stretches of a road that
+// has a height profile)?
 function onFlatRoad(map, x, y) {
   for (const r of map.roadsNear(x, y, 12)) {
-    if (r.z) continue;
     const hw = surfaceHalfWidth(r);
-    const P = r.pts;
+    const P = r.pts, Z = r.z;
     for (let i = 0; i < P.length - 1; i++) {
+      if (Z && (Math.abs(Z[i]) > 0.02 || Math.abs(Z[i + 1]) > 0.02)) continue;
       if (closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2 < hw * hw) return true;
     }
   }
   return false;
 }
 
+// Where two road ribbons overlap at different heights (a ramp splitting off
+// or merging), whoever is within STAY_ON of more than one of them takes the
+// one whose centreline is nearest (relative to its width) instead of the
+// highest, so a car keeps to the road it is driving on.
+const STAY_ON = 0.35;
+const OVERLAP_BAND = 1.2;
+const _roadZ = [], _roadD = [];
+
+// Nearest street-level road ribbon near the raised ones at (x, y): distance
+// to its centreline over its half width (Infinity when on none).
+function flatRoadAt(elev, x, y) {
+  const flat = elev.flatGrid.at(x, y);
+  let best = Infinity;
+  if (!flat) return best;
+  for (const f of flat) {
+    const d2 = closestPointOnSegment(x, y, f.ax, f.ay, f.bx, f.by).dist2;
+    if (d2 < f.hs * f.hs) best = Math.min(best, Math.sqrt(d2) / f.hs);
+  }
+  return best;
+}
+
 // The walkable/drivable surface at (x, y) for something currently at zHint:
-// the highest surface no more than STEP_UP above it. Falling back to the
-// lowest surface when there is none (standing over an open cut).
+// the highest surface no more than STEP_UP above it (see STAY_ON for
+// overlapping roads). Falling back to the lowest surface when there is none
+// (standing over an open cut).
 export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
   if (!elev.has) return 0;
   const list = elev.grid.at(x, y);
   if (!list) return 0;
-  let best = -Infinity, lowest = Infinity;
+  let best = -Infinity, lowest = Infinity, bestRoad = false;
   let ground = true;
   const lim = zHint + stepUp;
+  _roadZ.length = _roadD.length = 0;
   for (const s of list) {
     const q = onSeg(s, x, y);
-    let z = null;
+    let z = null, road = false;
+    const slope = s.slope || EMB_SLOPE;
     if (q.d <= s.hs) {
       z = q.z;
+      road = true;
       if (z < -RAISED && !s.covered) ground = false;
-    } else if (!s.deck && q.z > RAISED && q.d < s.hs + q.z / EMB_SLOPE) {
-      z = q.z - (q.d - s.hs) * EMB_SLOPE;
-      if (lowerSurfaceAt(elev, x, y, z + 1.5) || fillPieceAt(s, q.t, x, y) === false) z = null;
+    } else if (!s.deck && q.z > RAISED && q.d < s.hs + q.z / slope) {
+      z = q.z - (q.d - s.hs) * slope;
+      if ((!s.rail && lowerSurfaceAt(elev, x, y, z + 1.5)) || fillPieceAt(s, q.t, x, y) === false) z = null;
     }
     if (z === null) continue;
-    if (z <= lim && z > best) best = z;
+    if (z <= lim) {
+      if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs); }
+      if (z > best) { best = z; bestRoad = road; }
+    }
     if (z < lowest) lowest = z;
   }
   if (!ground && onFlatRoad(elev.map, x, y)) ground = true;
-  if (ground && 0 <= lim && 0 > best) best = 0;
+  if (ground && 0 <= lim) {
+    // a street-level road next to the raised ones is a road surface too
+    const nd = best < OVERLAP_BAND ? flatRoadAt(elev, x, y) : Infinity;
+    if (nd < Infinity) { _roadZ.push(0); _roadD.push(nd); }
+    if (0 > best) { best = 0; bestRoad = nd < Infinity; }
+  }
+  if (bestRoad && _roadZ.length > 1) {
+    let pick = -1;
+    for (let i = 0; i < _roadZ.length; i++) {
+      if (Math.abs(_roadZ[i] - zHint) <= STAY_ON && (pick < 0 || _roadD[i] < _roadD[pick])) pick = i;
+    }
+    if (pick >= 0) return _roadZ[pick];
+  }
   if (best > -Infinity) return best;
   // below every surface here (pushed into the side of a cutting): stay put,
   // the walls move it back; never pop up to the street
   return Math.min(zHint, lowest < Infinity ? lowest : 0);
+}
+
+// Is (x, y) on a raised or sunken surface: a road deck or cutting floor off
+// street level, an embankment slope or a retaining wall? `pad` widens the
+// road part (clearance for things placed beside it).
+export function offLevelAt(elev, x, y, pad = 0) {
+  if (!elev.has) return false;
+  const list = elev.grid.at(x, y);
+  if (!list) return false;
+  for (const s of list) {
+    const q = onSeg(s, x, y);
+    if (Math.abs(q.z) <= RAISED) continue;
+    if (q.z < 0) {
+      if (!s.covered && q.d <= s.hs + WALL_T + pad) return true;
+      continue;
+    }
+    if (q.d <= s.hs + pad) return true;
+    const slope = s.slope || EMB_SLOPE;
+    if (!s.deck && q.d < s.hs + q.z / slope + pad && fillPieceAt(s, q.t, x, y) !== false) {
+      if (s.rail || !lowerSurfaceAt(elev, x, y, q.z - (q.d - s.hs) * slope + 1.5)) return true;
+    }
+  }
+  return false;
 }
 
 // Is the embankment slope beside fill segment s real at arc t, on the side of
@@ -280,15 +398,28 @@ export function coveredAt(elev, x, y) {
 
 // ------------------------------------------------------------------ walls
 
-function surfaceOf(elev, x, y, except, zNear, tol) {
+function surfaceOf(elev, x, y, except, zNear, tol, rail = false) {
   const list = elev.grid.at(x, y);
   if (!list) return false;
   for (const s of list) {
-    if (s.r === except) continue;
+    if (s.r === except || !!s.rail !== rail) continue;
     const q = onSeg(s, x, y);
     if (q.d <= s.hs + 0.2 && Math.abs(q.z - zNear) < tol) return true;
   }
   return false;
+}
+
+// Floor height of another open sunken road at (x, y), or null.
+function sunkenNeighbourZ(elev, x, y, except) {
+  const list = elev.grid.at(x, y);
+  if (!list) return null;
+  let best = null;
+  for (const s of list) {
+    if (s.r === except || s.rail || s.covered) continue;
+    const q = onSeg(s, x, y);
+    if (q.d <= s.hs && q.z < -RAISED && (best === null || q.z > best)) best = q.z;
+  }
+  return best;
 }
 
 // Pieces of retaining wall (cut) and crash barrier (raise), ~2 m each,
@@ -299,6 +430,8 @@ function surfaceOf(elev, x, y, except, zNear, tol) {
 function buildWalls(elev, map) {
   const walls = elev.walls;
   for (const s of elev.segs) {
+    // a rail viaduct has parapets; its embankment ramps are open
+    if (s.rail && !s.deck) continue;
     const n = Math.max(1, Math.round(s.len / PIECE));
     for (const side of [1, -1]) {
       const nx = -s.uy * side, ny = s.ux * side; // outward
@@ -311,7 +444,8 @@ function buildWalls(elev, map) {
         const cut = zr < -1.0;
         const raise = zr > 1.2;
         if (!cut && !raise) continue;
-        const joined = surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 1.2) || (Math.abs(zr) < 1.6 && onFlatRoad(map, mx, my));
+        const joined = s.rail ? surfaceOf(elev, mx, my, s.r, zr, 1.2, true)
+          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 1.2) || (Math.abs(zr) < 1.6 && onFlatRoad(map, mx, my));
         const piece = {
           ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
           bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
@@ -321,8 +455,21 @@ function buildWalls(elev, map) {
           low: !joined, fence: false, covered: s.covered,
         };
         if (cut) {
-          piece.fence = !s.covered && !onFlatRoad(map, mx, my);
+          // no fence where the other carriageway of the cutting continues beyond this wall
+          piece.fence = !s.covered && !joined && !onFlatRoad(map, mx, my) &&
+            ![1.5, 3.5, 6].some((d) => surfaceOf(elev, mx + nx * d, my + ny * d, s.r, zr, 3));
           piece.top = s.covered ? roofTopAt(elev, mx, my) : 0;
+          if (!s.covered && !joined) {
+            // beside another sunken road (a ramp climbing out of the cutting
+            // next to the main carriageway) the wall only rises to that road;
+            // the lower of the two builds it
+            const zo = sunkenNeighbourZ(elev, mx + nx * 1.2, my + ny * 1.2, s.r);
+            if (zo !== null) {
+              piece.fence = false;
+              if (zo > zr + 0.5) piece.top = zo;
+              else piece.low = false;
+            }
+          }
         }
         if (raise && s.pieces) {
           const fp = s.pieces[Math.min(s.pieces.length - 1, k * s.pieces.length / n | 0)];
@@ -435,6 +582,25 @@ export function openCutMask(elev, maxTex = 4096) {
         if (cp.dist2 > r * r) continue;
         const z = s.za + (s.zb - s.za) * cp.t;
         if (z < -RAISED) data[j * w + i] = 255;
+      }
+    }
+  }
+  // the round end of an open run reaches over the tunnel it runs into: the
+  // ground there is the tunnel roof, not a hole
+  for (const s of elev.segs) {
+    if (!s.covered) continue;
+    const r = s.hs + WALL_T;
+    const i0 = Math.max(0, Math.floor((Math.min(s.ax, s.bx) - r - x0) / res));
+    const i1 = Math.min(w - 1, Math.ceil((Math.max(s.ax, s.bx) + r - x0) / res));
+    const j0 = Math.max(0, Math.floor((Math.min(s.ay, s.by) - r - y0) / res));
+    const j1 = Math.min(h - 1, Math.ceil((Math.max(s.ay, s.by) + r - y0) / res));
+    for (let j = j0; j <= j1; j++) {
+      const py = y0 + j * res;
+      for (let i = i0; i <= i1; i++) {
+        if (!data[j * w + i]) continue;
+        const px = x0 + i * res;
+        const cp = closestPointOnSegment(px, py, s.ax, s.ay, s.bx, s.by);
+        if (cp.t > 0 && cp.t < 1 && cp.dist2 <= r * r) data[j * w + i] = 0;
       }
     }
   }
