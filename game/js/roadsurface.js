@@ -729,6 +729,66 @@ function dashes(r, rs, M, s0, s1, off, half, dash, gap) {
   for (let s = s0; s < s1; s += dash + gap) stripAlong(r, rs, M, s, Math.min(s + dash, s1), off, half);
 }
 
+// Where a ramp merges into / splits from a carriageway, both ways' edge and
+// lane lines would run across the other's lanes. Parts of line `off` that lie
+// on another major road's asphalt (at about the same height) are left out.
+const CLIP_STEP = 1;
+function onOtherCarriageway(others, x, y, z) {
+  for (const o of others) {
+    const hw = o.width / 2 - 0.15;
+    const [minx, miny, maxx, maxy] = o.bounds;
+    if (x < minx - hw || x > maxx + hw || y < miny - hw || y > maxy + hw) continue;
+    const P = o.pts, Z = o.z;
+    for (let i = 0; i < P.length - 1; i++) {
+      const ax = P[i][0], ay = P[i][1], dx = P[i + 1][0] - ax, dy = P[i + 1][1] - ay;
+      const l2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2));
+      if ((ax + dx * t - x) ** 2 + (ay + dy * t - y) ** 2 >= hw * hw) continue;
+      const oz = Z ? Z[i] + (Z[i + 1] - Z[i]) * t : 0;
+      if (Math.abs(oz - z) < 1.5) return true;
+    }
+  }
+  return false;
+}
+
+function clearSpans(r, rs, s0, s1, off) {
+  if (!netMap || r.cat !== 'major' || !r.bounds) return [[s0, s1]];
+  if (!r._markOthers) {
+    const [minx, miny, maxx, maxy] = r.bounds;
+    r._markOthers = netMap.roadGrid.query(minx - 10, miny - 10, maxx + 10, maxy + 10)
+      .filter((o) => o !== r && o.cat === 'major' && o.bounds && o.bounds[0] < maxx + 10 && o.bounds[2] > minx - 10 && o.bounds[1] < maxy + 10 && o.bounds[3] > miny - 10);
+  }
+  const others = r._markOthers;
+  if (!others.length) return [[s0, s1]];
+  const out = [];
+  const tmp = [0, 0, 0, 0];
+  let start = null;
+  for (let s = s0; ; s = Math.min(s1, s + CLIP_STEP)) {
+    at(r, rs, s, off, tmp);
+    const free = !onOtherCarriageway(others, tmp[0], tmp[1], tmp[3]);
+    if (free && start === null) start = s;
+    if (!free && start !== null) { out.push([start, s]); start = null; }
+    if (s >= s1) break;
+  }
+  if (start !== null) out.push([start, s1]);
+  return out;
+}
+
+function stripClipped(r, rs, M, s0, s1, off, half) {
+  for (const [a, b] of clearSpans(r, rs, s0, s1, off)) stripAlong(r, rs, M, a, b, off, half);
+}
+
+function dashesClipped(r, rs, M, s0, s1, off, half, dash, gap) {
+  for (const [a, b] of clearSpans(r, rs, s0, s1, off)) {
+    // keep the dash rhythm of the whole line
+    const first = s0 + Math.ceil((a - s0) / (dash + gap) - 1e-6) * (dash + gap);
+    for (let s = first - (dash + gap); s < b; s += dash + gap) {
+      const x0 = Math.max(a, s), x1 = Math.min(b, s + dash);
+      if (x1 > x0) stripAlong(r, rs, M, x0, x1, off, half);
+    }
+  }
+}
+
 function decal(r, rs, M, sAlong, off, len, wid, uv) {
   const c = at(r, rs, sAlong, off, [0, 0, 0, 0]);
   const nrmv = rs.segN[Math.min(c[2], rs.segN.length - 1)];
@@ -773,13 +833,13 @@ function markingGeometry(r) {
 
   if (asphalt && b > a) {
     if (r.cat === 'major') {
-      stripAlong(r, rs, M, a, b, hw - 0.35, 0.075);
-      stripAlong(r, rs, M, a, b, -hw + 0.35, 0.075);
+      stripClipped(r, rs, M, a, b, hw - 0.35, 0.075);
+      stripClipped(r, rs, M, a, b, -hw + 0.35, 0.075);
       if (!r.oneway) {
         if (r.width >= 12) { stripAlong(r, rs, M, a, b, 0.12, 0.05); stripAlong(r, rs, M, a, b, -0.12, 0.05); }
         else stripAlong(r, rs, M, a, b, 0, 0.06);
       } else {
-        for (let k = 1; k < lanes; k++) dashes(r, rs, M, a, b, -hw + (r.width / lanes) * k, 0.06, 3, 9);
+        for (let k = 1; k < lanes; k++) dashesClipped(r, rs, M, a, b, -hw + (r.width / lanes) * k, 0.06, 3, 9);
       }
     } else if (r.cat === 'normal' && r.type !== 'residential' && !r.oneway && r.width >= 5.5) {
       dashes(r, rs, M, a, b, 0, 0.05, 3, 6);
