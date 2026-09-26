@@ -440,7 +440,7 @@ function lampMaterialsOf(mesh) {
 }
 
 function vehicleLightsOn(v) {
-  return !v.isBoat && !v.wrecked && (v.driver === 'player' || !v.isHeroCar);
+  return !v.wrecked && (v.driver === 'player' || !v.isHeroCar);
 }
 
 function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
@@ -451,11 +451,12 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
     const mesh = vehicleMeshes.get(v.id);
     if (!mesh) continue;
     const on = vehicleLightsOn(v);
+    // boats: nav lights only (dim coloured glass by day), no road cones
+    const k = v.isBoat ? (on ? 0.45 + lightsOn * 5.5 : 0.45) : on ? glow : 1;
     for (const m of lampMaterialsOf(mesh)) {
-      const k = on ? glow : 1;
       if (m.color.r !== k) m.color.setScalar(k);
     }
-    if (!on || lightsOn < 0.02 || n >= CONE_MAX) continue;
+    if (!on || v.isBoat || lightsOn < 0.02 || n >= CONE_MAX) continue;
     const d = Math.hypot(v.x - px, v.y - py);
     if (d > VEH_LIGHT_DIST) continue;
     const two = v.isBike || v.isScooter;

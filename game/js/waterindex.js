@@ -199,6 +199,52 @@ function ringDist(ring, x, y) {
   return inside ? -Math.sqrt(best) : Math.sqrt(best);
 }
 
+// Pushes a circle of radius r out of every moored obstacle (houseboat hull)
+// it overlaps, for walkers and swimmers. Returns [x, y] or null if untouched.
+export function pushOutOfWaterObstacles(map, x, y, r) {
+  const list = obstacleGrid(map).get(Math.floor(x / OB_CELL) + ',' + Math.floor(y / OB_CELL));
+  if (!list) return null;
+  let moved = false;
+  for (const ob of list) {
+    if (x < ob.minx - r || x > ob.maxx + r || y < ob.miny - r || y > ob.maxy + r) continue;
+    const ring = ob.ring;
+    let best = Infinity, qx = 0, qy = 0, inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const ax = ring[j][0], ay = ring[j][1], bx = ring[i][0], by = ring[i][1];
+      if ((ay > y) !== (by > y) && x < ax + (bx - ax) * (y - ay) / (by - ay)) inside = !inside;
+      const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey;
+      let t = l2 > 1e-9 ? ((x - ax) * ex + (y - ay) * ey) / l2 : 0;
+      t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const px = ax + ex * t, py = ay + ey * t;
+      const d2 = (px - x) ** 2 + (py - y) ** 2;
+      if (d2 < best) { best = d2; qx = px; qy = py; }
+    }
+    const d = Math.sqrt(best);
+    if (!inside && d >= r) continue;
+    let nx = x - qx, ny = y - qy;
+    const nl = Math.hypot(nx, ny);
+    if (nl < 1e-6) {
+      const cx = (ob.minx + ob.maxx) / 2, cy = (ob.miny + ob.maxy) / 2;
+      nx = qx - cx; ny = qy - cy;
+    } else if (inside) { nx = -nx; ny = -ny; }
+    const k = Math.hypot(nx, ny) || 1;
+    x = qx + (nx / k) * (r + 0.02);
+    y = qy + (ny / k) * (r + 0.02);
+    moved = true;
+  }
+  return moved ? [x, y] : null;
+}
+
+export function insideWaterObstacle(map, x, y) {
+  const list = obstacleGrid(map).get(Math.floor(x / OB_CELL) + ',' + Math.floor(y / OB_CELL));
+  if (!list) return false;
+  for (const ob of list) {
+    if (x < ob.minx || x > ob.maxx || y < ob.miny || y > ob.maxy) continue;
+    if (ringDist(ob.ring, x, y) < 0) return true;
+  }
+  return false;
+}
+
 // Free water around (x, y), capped at maxR: distance to the nearest real
 // shore (edges shared by two water polygons don't count) or moored
 // obstacle; negative on land or inside an obstacle.
