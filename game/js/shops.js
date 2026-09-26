@@ -7,7 +7,9 @@ import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
-import { recordStat } from './achievements.js';
+import { recordStat, isUnlocked } from './achievements.js';
+import { isMissionCompleted, missionIndexById } from './missions.js';
+import { jobLevel } from './sidejobs.js';
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -23,7 +25,7 @@ export const SHOP_TYPES = {
   tabak: { color: '#c23f78', label: 'Tabak & loterij', chain: 'Rook & Geluk', tagline: 'Kraskaarten, loten en een eierbal uit de muur', group: 'shops' },
   super: { color: '#3b8f3b', label: 'Avondwinkel', chain: 'Nait Duur', tagline: 'Open tot laat, goedkoop tot op de cent', group: 'shops' },
   snack: { color: '#d0652a', label: 'Snackbar', chain: 'Frituur Vet & Lekker', tagline: 'Vers uit het vet, met of zonder', group: 'shops' },
-  fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, fatbikes en e-steps', group: 'shopsVoertuigen' },
+  fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, bakfietsen, e-steps en brommers', group: 'shopsVoertuigen' },
   fietsenmaker: { color: '#4f86a8', label: 'Fietsenmaker', chain: 'Spaak & Band', tagline: 'Plakken, poetsen en opvoeren', group: 'shopsVoertuigen' },
   auto: { color: '#c98a16', label: 'Autodealer', chain: 'Ome Harm Occasions', tagline: 'Nait zeuren, gewoon rijden', group: 'shopsVoertuigen' },
   tuning: { color: '#8c3fa8', label: 'Tuning', chain: 'Knal & Kolder Tuning', tagline: 'Meer vermogen, meer herrie', group: 'shopsVoertuigen' },
@@ -87,16 +89,83 @@ const STYLE_PRICE = 40;
 
 // display names in vehiclenames.js are picked by id % list length, so a
 // vehicle's id is chosen to land on the name it was sold under
+const CAR_M = (name, len, wid, maxSpeed, accel, brake, turnRate, extra = {}) => ({ name, len, wid, maxSpeed, accel, brake, turnRate, ...extra });
+const BUS_STRIPES = { stripe: '#3fc6d4', accent: '#e8e6de' };
+
+// Every vehicle type in Grunn, ownable. shop: where it is sold ('auto' Ome
+// Harm, 'fietsen' Trap & Toeter, 'boot' Bootje Huren); unlock: a key of
+// VEHICLE_UNLOCKS instead of a price. flags: set on the spawned vehicle.
+// Keys are saved: only ever add.
 export const VEHICLE_STOCK = {
-  omafiets: { kind: 'bike', label: 'Omafiets', desc: 'Zwart, zwaar en onverwoestbaar', price: 75, nameIdx: 0, color: '#1c1c1c', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6 } },
-  stadsfiets: { kind: 'bike', label: 'Stadsfiets', desc: 'Lichter en sneller, in Stadjersgroen', price: 110, nameIdx: 2, color: '#1e9e56', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 7.0, accel: 3.6, brake: 6.2, turnRate: 4.8 } },
-  fatbike: { kind: 'bike', label: 'Fatbike "Dikke Tinus"', desc: 'Dikke banden, dikke prijs', price: 350, nameIdx: 0, color: '#20221f', model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 3.4, brake: 5, turnRate: 3.8 } },
-  brommer: { kind: 'scooter', label: 'E-step Zoemzoem', desc: 'Elektrische step: staan, gas, zoemen', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
-  mug: { kind: 'car', label: 'Hunze Mug', desc: 'Kleine hatchback, parkeert overal', price: 800, nameIdx: 2, color: '#2e6b9e', model: { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 42, accel: 9, brake: 15, turnRate: 3.0 } },
-  koopman: { kind: 'car', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: { name: 'wagon', len: 4.5, wid: 1.8, maxSpeed: 47, accel: 9, brake: 15, turnRate: 2.5 } },
-  klusbus: { kind: 'car', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 38, accel: 7, brake: 13, turnRate: 2.0 } },
-  wervelwind: { kind: 'car', label: 'Wadden Wervelwind', desc: 'Sportwagen. Rap as de wind over de dijk', price: 2400, nameIdx: 0, color: '#c9a227', model: { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 64, accel: 14, brake: 24, turnRate: 3.2 } },
+  omafiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Omafiets', desc: 'Zwart, zwaar en onverwoestbaar', price: 75, nameIdx: 0, color: '#1c1c1c', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6 } },
+  stadsfiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Stadsfiets', desc: 'Lichter en sneller, in Stadjersgroen', price: 110, nameIdx: 2, color: '#1e9e56', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 7.0, accel: 3.6, brake: 6.2, turnRate: 4.8 } },
+  fatbike: { kind: 'bike', type: 'Fatbike', shop: 'fietsen', label: 'Fatbike "Dikke Tinus"', desc: 'Dikke banden, dikke prijs', price: 350, nameIdx: 0, color: '#20221f', model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 3.4, brake: 5, turnRate: 3.8 } },
+  brommer: { kind: 'scooter', type: 'E-step', shop: 'fietsen', label: 'E-step Zoemzoem', desc: 'Elektrische step: staan, gas, zoemen', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
+  mug: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Hunze Mug', desc: 'Kleine hatchback, parkeert overal', price: 800, nameIdx: 2, color: '#2e6b9e', model: CAR_M('hatch', 3.8, 1.7, 42, 9, 15, 3.0) },
+  koopman: { kind: 'car', type: 'Stationwagen', shop: 'auto', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: CAR_M('wagon', 4.5, 1.8, 47, 9, 15, 2.5) },
+  klusbus: { kind: 'car', type: 'Bestelbus', shop: 'auto', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: CAR_M('van', 5.0, 2.0, 38, 7, 13, 2.0) },
+  wervelwind: { kind: 'car', type: 'Sportwagen', shop: 'auto', label: 'Wadden Wervelwind', desc: 'Sportwagen. Rap as de wind over de dijk', price: 2400, nameIdx: 0, color: '#c9a227', model: CAR_M('sport', 4.1, 1.85, 64, 14, 24, 3.2) },
+  // --- two-wheelers ---
+  transportfiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Transportfiets', desc: 'Rek voorop voor een krat bier of een tweede student', price: 95, nameIdx: 1, color: '#23324a', model: { name: 'bike', len: 1.9, wid: 0.55, maxSpeed: 5.8, accel: 2.9, brake: 5.6, turnRate: 4.3 } },
+  barrel: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Studentenbarrel', desc: 'Geen remmen, geen bel, wel een verhaal', price: 35, nameIdx: 0, color: '#6b2a24', model: { name: 'bike', old: true, len: 1.75, wid: 0.5, maxSpeed: 5.4, accel: 2.8, brake: 4.2, turnRate: 4.4 } },
+  bakfiets: { kind: 'bike', type: 'Bakfiets', shop: 'fietsen', label: 'Bakfiets Kroost-Karretje', desc: 'Voor twee kinderen, een hond of drie kratten', price: 450, nameIdx: 0, color: '#2f4a3a', model: { name: 'bike', cargo: true, len: 2.55, wid: 0.72, maxSpeed: 5.4, accel: 2.5, brake: 5, turnRate: 3.2 } },
+  deelstep: { kind: 'scooter', type: 'E-step', shop: 'fietsen', label: 'Deelstep Stadswesp', desc: 'Nu eindelijk van jou. Nooit meer in de gracht vissen', price: 450, nameIdx: 1, color: '#e8e6e0', model: { name: 'scooter', len: 1.1, wid: 0.4, maxSpeed: 7.8, accel: 3.8, brake: 4.2, turnRate: 5.2 } },
+  snorscooter: { kind: 'scooter', type: 'Snorscooter', shop: 'fietsen', label: 'Snorscooter Brommie', desc: 'Helm hoeft niet, zegt de verkoper. De verkoper heeft een helm op', price: 900, nameIdx: 0, color: '#8f2f2a', model: { name: 'scooter', moped: true, len: 1.7, wid: 0.62, maxSpeed: 12.5, accel: 4.6, brake: 7, turnRate: 4.2 } },
+  // --- cars ---
+  knakker: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Dollard Knakker', desc: 'Klein, pittig en altijd net te laat bij de APK', price: 650, nameIdx: 0, color: '#c7c9cc', model: CAR_M('hatch', 3.8, 1.7, 41, 9, 15, 3.0) },
+  pienter: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Eemsmond Pienter', desc: 'Zuinig, slim en saai. Precies wat je moeder wil', price: 700, nameIdx: 1, color: '#e8e6e0', model: CAR_M('hatch', 3.8, 1.7, 42, 9, 15, 3.1) },
+  roestbak: { kind: 'car', type: 'Barrel', shop: 'auto', label: 'Dollard Roestbak', desc: 'Drie kleuren, twee werkende deuren, één koplamp', price: 350, nameIdx: 0, color: '#8a6a4a', model: CAR_M('hatch', 3.7, 1.65, 34, 7, 13, 2.8, { rusty: true }) },
+  statig: { kind: 'car', type: 'Sedan', shop: 'auto', label: 'Wadden Statig', desc: 'Voor notarissen en mensen die willen lijken op een notaris', price: 1400, nameIdx: 0, color: '#4a4d52', model: CAR_M('sedan', 4.3, 1.8, 50, 10, 16, 2.6) },
+  kanselier: { kind: 'car', type: 'Sedan', shop: 'auto', label: 'Hunze Kanselier', desc: 'Leren stoelen, stoelverwarming, ego-verwarming', price: 1550, nameIdx: 1, color: '#2f3a52', model: CAR_M('sedan', 4.3, 1.8, 51, 10, 16, 2.6) },
+  regent: { kind: 'car', type: 'Sedan', shop: 'auto', label: 'Reitdiep Regent', desc: 'Rijdt als een raadsvergadering: statig en eindeloos', price: 1700, nameIdx: 2, color: '#7a1f1f', model: CAR_M('sedan', 4.3, 1.8, 52, 10.5, 16, 2.6) },
+  stationair: { kind: 'car', type: 'Stationwagen', shop: 'auto', label: 'Dollard Stationair', desc: 'Kofferbak past precies een zak aardappels uit Veendam', price: 1100, nameIdx: 1, color: '#5a6a7a', model: CAR_M('wagon', 4.5, 1.8, 46, 9, 15, 2.5) },
+  landjonker: { kind: 'car', type: 'SUV', shop: 'auto', label: 'Wadden Landjonker', desc: 'Hoog, breed en nog nooit in de modder geweest', price: 2100, nameIdx: 0, color: '#1b1c1f', model: CAR_M('suv', 4.7, 1.95, 49, 9.5, 15, 2.4) },
+  borgheer: { kind: 'car', type: 'SUV', shop: 'auto', label: 'Hunze Borgheer', desc: 'Voor wie een borg bezit, of daar van droomt', price: 2300, nameIdx: 1, color: '#e8e6e0', model: CAR_M('suv', 4.7, 1.95, 50, 10, 15, 2.4) },
+  raket: { kind: 'car', type: 'Sportwagen', shop: 'auto', label: 'Eemshaven Raket', desc: 'Gaat harder dan de windmolens draaien', price: 3200, nameIdx: 1, color: '#8a1414', model: CAR_M('sport', 4.1, 1.85, 68, 15, 25, 3.3) },
+  taxi: { kind: 'car', type: 'Taxi', shop: 'auto', label: 'Taxi Stadstaxi 050', desc: 'Meter loopt altijd, ook als hij stilstaat', price: 1800, nameIdx: 0, color: '#1b1c1f', flags: { isTaxi: true }, model: CAR_M('taxi', 4.6, 1.8, 48, 9.5, 16, 2.6) },
+  nachtbraker: { kind: 'car', type: 'Taxi', shop: 'auto', label: 'Taxi Nachtbraker', desc: 'Ruikt naar kapsalon en beslissingen van half vier', price: 1900, nameIdx: 1, color: '#e8e6e0', flags: { isTaxi: true }, model: CAR_M('taxi', 4.6, 1.8, 48, 9.5, 16, 2.6) },
+  // --- vans, trucks, buses ---
+  pakezel: { kind: 'car', type: 'Bestelbus', shop: 'auto', label: 'Hunze Pakezel', desc: 'Tilt meer dan jij, klaagt minder dan jij', price: 1250, nameIdx: 1, color: '#2f5a8f', model: CAR_M('van', 5.0, 2.0, 38, 7, 13, 2.0) },
+  bezorgbus: { kind: 'car', type: 'Bestelbus', shop: 'auto', label: 'Pakkie Nou Bezorgbus', desc: 'Niemand thuis? Dan bij de buren. Of in de container', price: 1400, nameIdx: 0, color: '#e0701e', model: CAR_M('van', 5.0, 2.0, 38, 7, 13, 2.0, { livery: 'pakket' }) },
+  bakwagen: { kind: 'car', type: 'Vrachtwagen', shop: 'auto', label: 'Oldambt Bakwagen', desc: 'Achteruit piept hij. Vooruit ook, eigenlijk', price: 2600, nameIdx: 0, color: '#e8e6e0', model: CAR_M('truck', 7.2, 2.35, 30, 5, 13, 1.5) },
+  sjouwer: { kind: 'car', type: 'Vrachtwagen', shop: 'auto', label: 'Eemshaven Sjouwer', desc: 'Verhuist een heel studentenhuis in één rit, inclusief bank', price: 2800, nameIdx: 1, color: '#c9541e', model: CAR_M('truck', 7.2, 2.35, 31, 5, 13, 1.5) },
+  midibus: { kind: 'car', type: 'Midibus', shop: 'auto', label: 'Stadsbus Wijkhopper', desc: 'Buurtbus voor als lijn 3 weer niet komt', price: 3800, nameIdx: 0, color: '#132a44', flags: { isBus: true }, model: CAR_M('midibus', 8.4, 2.3, 24, 5, 12, 1.3, BUS_STRIPES) },
+  stadsbus: { kind: 'car', type: 'Stadsbus', shop: 'auto', label: 'Stadsbus Diepenrinkel', desc: 'Je eigen lijn. Haltes kies je zelf, dienstregeling ook', unlock: 'buschauffeur', nameIdx: 0, color: '#132a44', flags: { isBus: true }, model: CAR_M('bus', 11, 2.35, 22, 4.5, 12, 1.1, BUS_STRIPES) },
+  // --- specials, unlocked through the story and achievements ---
+  poen: { kind: 'car', type: 'Geldwagen', shop: 'auto', label: 'Poen Express Kluiswagen', desc: 'Gepantserd, loodzwaar en helaas leeg', unlock: 'pinautomaat', nameIdx: 0, color: '#5b625d', flags: { isCashVan: true }, model: CAR_M('cashvan', 5.2, 2.0, 36, 6.5, 13, 2.0) },
+  ambulance: { kind: 'car', type: 'Ambulance', shop: 'auto', label: 'Ambulance Spoedrit', desc: 'Sirene aan en heel de Herestraat gaat opzij', unlock: 'fatbike', nameIdx: 0, color: '#f1d21c', flags: { isAmbulance: true }, model: CAR_M('ambulance', 5.6, 2.0, 46, 9, 17, 2.6) },
+  politie: { kind: 'car', type: 'Politieauto', shop: 'auto', label: 'Politie Achtervolger', desc: 'Afgeschreven, opgeknapt, zwaailicht doet het nog', unlock: 'ontsnapt', nameIdx: 0, color: '#1c1c1c', flags: { isPolice: true, hijacked: true }, model: CAR_M('police', 4.3, 1.8, 55, 11, 20, 2.8) },
+  tankwagen: { kind: 'car', type: 'Tankwagen', shop: 'auto', label: 'Us Mem Vet Tankwagen', desc: 'Nog half vol frituurvet. Rijdt op zijn eigen lading', unlock: 'vetgekaapt', nameIdx: 0, color: '#e6c21a', model: CAR_M('truck', 7.2, 2.35, 28, 4.5, 13, 1.5, { tank: true }) },
+  trekkerlimo: { kind: 'car', type: 'Trekker-limo', shop: 'auto', label: 'Terpstra Trekker-limo', desc: 'Gewonnen van Jelle. Hij wil hem terug, jij toetert', unlock: 'ringweg', nameIdx: 0, color: '#1b1c1f', model: CAR_M('trekkerlimo', 5.6, 2.0, 40, 7, 14, 2.1) },
+  // --- boats ---
+  kano: { kind: 'boat', type: 'Kano', shop: 'boot', label: 'Kano Peddelpiet', desc: 'Zelf peddelen, spierpijn inbegrepen', price: 150, nameIdx: 0, color: '#c8502a', model: { ...BOAT_KINDS.kano } },
+  kajak: { kind: 'boat', type: 'Kajak', shop: 'boot', label: 'Kajak Waterjuffer', desc: 'Voor één, laag bij de eenden', price: 120, nameIdx: 0, color: '#e0b020', model: { ...BOAT_KINDS.kajak } },
+  waterfiets: { kind: 'boat', type: 'Waterfiets', shop: 'boot', label: 'Waterfiets Zwaantje', desc: 'Romantisch trappen tot je benen het opgeven', price: 220, nameIdx: 1, color: '#f0eee8', model: { ...BOAT_KINDS.waterfiets } },
+  bijboot: { kind: 'boat', type: 'Bijbootje', shop: 'boot', label: 'Bijbootje Woonbootje', desc: 'Klein motortje, groot ego', price: 300, nameIdx: 0, color: '#2f4a3a', model: { ...BOAT_KINDS.dinghy } },
+  rubberboot: { kind: 'boat', type: 'Rubberboot', shop: 'boot', label: 'Rubberboot Stuiterbal', desc: 'Stuitert over de golven van elke rondvaartboot', price: 700, nameIdx: 0, color: '#3c4044', model: { ...BOAT_KINDS.rubberboot } },
+  sloep: { kind: 'boat', type: 'Sloep', shop: 'boot', label: 'Sloep Nait Soezen', desc: 'Rosé aan boord, pet op, rustig tuffen', price: 900, nameIdx: 0, color: '#e8e6e0', model: { ...BOAT_KINDS.sloep } },
+  speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  rondvaartboot: { kind: 'boat', type: 'Rondvaartboot', shop: 'boot', label: 'Rondvaartboot Stadjer', desc: 'Glazen dak, veertig stoelen, nul passagiers', price: 3500, nameIdx: 1, color: '#1d3350', model: { ...BOAT_KINDS.rondvaart } },
+  politieboot: { kind: 'boat', type: 'Politieboot', shop: 'boot', label: 'Politie Boot', desc: 'Voor wie de politie op het water ook eens wil ontlopen. Met de politie', unlock: 'vijfsterren', nameIdx: 0, color: '#e8e6e0', flags: { isPolice: true, hijacked: true }, model: { name: 'boat', kind: 'sloep', len: 4.1, wid: 1.65, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' } },
 };
+
+const missionDone = (id) => isMissionCompleted(missionIndexById(id));
+
+// text: the condition in the garage and the shop; ok(): met in this save.
+export const VEHICLE_UNLOCKS = {
+  pinautomaat: { text: 'Klaar missie "Pinnen met de hele automaat"', ok: () => missionDone('pinautomaat') },
+  fatbike: { text: 'Klaar missie "Fatbike-terreur": de buurtzorg bedankt je', ok: () => missionDone('fatbike') },
+  vetgekaapt: { text: 'Klaar missie "Vet gekaapt"', ok: () => missionDone('vetgekaapt') },
+  ringweg: { text: 'Win de ringweg-race van Jelle', ok: () => missionDone('ringweg') },
+  buschauffeur: { text: 'Haal niveau 2 als buschauffeur (lijn 3)', ok: () => jobLevel('bus') >= 2 },
+  ontsnapt: { text: 'Prestatie "Foetsie": raak de politie kwijt na vijf sterren', ok: () => isUnlocked('ontsnapt_5') },
+  vijfsterren: { text: 'Prestatie "Heel Grunn zoekt je": haal vijf sterren', ok: () => isUnlocked('ster_5') },
+};
+
+export function unlockMet(spec) {
+  const u = spec && spec.unlock && VEHICLE_UNLOCKS[spec.unlock];
+  try { return !!(u && u.ok()); } catch (e) { return false; }
+}
 
 export const PAINTS = [
   { id: 'rood', label: 'Brandweerrood', color: '#a11f1f' },
@@ -692,7 +761,7 @@ function bootSections(world, shop) {
       return `${r.label} ligt klaar aan de steiger. Veel plezier!`;
     },
   }));
-  return [{ title: 'Te huur', note: state.rental && !state.rental.wrecked ? 'Je vorige huurboot wordt teruggebracht' : '', items }];
+  return [{ title: 'Te huur', note: state.rental && !state.rental.wrecked ? 'Je vorige huurboot wordt teruggebracht' : '', items }, ...vehicleSections(world, 'boot', shop)];
 }
 
 function rentBoat(world, shop, r) {
@@ -818,42 +887,69 @@ function hairSections(world) {
   return [{ title: 'Haarkleur', items: colors }, { title: 'Model', items: styles }];
 }
 
-function vehicleSections(world, type, shop) {
-  const kinds = type === 'auto' ? ['car'] : ['bike', 'scooter'];
-  const items = Object.entries(VEHICLE_STOCK).filter(([, sp]) => kinds.includes(sp.kind)).map(([key, sp]) => {
-    const owned = state.vehicles.some((o) => o.key === key);
+const STOCK_GROUPS = {
+  auto: [['Occasions', ['Hatchback', 'Barrel', 'Sedan', 'Stationwagen', 'SUV', 'Sportwagen', 'Taxi']], ['Bedrijfswagens', ['Bestelbus', 'Vrachtwagen', 'Midibus', 'Stadsbus']], ['Bijzondere voertuigen', null]],
+  fietsen: [['Tweewielers', null]],
+  boot: [['Boten te koop', null]],
+};
+
+function stockItem(world, key, sp, shop) {
+  const owned = state.vehicles.some((o) => o.key === key);
+  const preview = { kind: sp.kind, model: sp.model, color: sp.color, nameIdx: sp.nameIdx, flags: sp.flags || null };
+  if (sp.unlock) {
+    const met = unlockMet(sp);
     return {
-      id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · wordt voor de deur gezet`, price: sp.price,
-      swatch: [sp.color], tag: owned ? 'Van jou' : '', disabled: owned ? 'Heb je al' : broke(world, sp.price),
-      preview: { kind: sp.kind, model: sp.model, color: sp.color, nameIdx: sp.nameIdx },
+      id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · ${VEHICLE_UNLOCKS[sp.unlock].text}`,
+      price: 0, swatch: [sp.color], tag: owned ? 'Van jou' : met ? 'Vrijgespeeld' : 'Op slot', preview,
+      disabled: owned ? 'Heb je al' : met ? '' : 'Nog op slot',
       buy() {
-        if (state.vehicles.some((o) => o.key === key) || !pay(world, sp.price)) return null;
+        if (state.vehicles.some((o) => o.key === key) || !unlockMet(sp)) return null;
         const v = deliver(world, key, sp.color, shop);
-        if (!v) { world.money += sp.price; return 'Bezorging mislukt, geld terug'; }
-        return `${sp.label} staat voor de deur. Van jou, voorgoed: via je telefoon laat je hem overal afleveren`;
+        return v ? `${sp.label} staat voor de deur. Verdiend, niet gekocht` : 'Bezorging mislukt, probeer het straks nog eens';
       },
     };
-  });
-  const sections = [{ title: type === 'auto' ? 'Occasions' : 'Tweewielers', items }];
-  const mine = state.vehicles.filter((o) => kinds.includes(VEHICLE_STOCK[o.key].kind));
+  }
+  return {
+    id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · ${sp.kind === 'boat' ? 'ligt klaar aan de steiger' : 'wordt voor de deur gezet'}`, price: sp.price,
+    swatch: [sp.color], tag: owned ? 'Van jou' : '', disabled: owned ? 'Heb je al' : broke(world, sp.price), preview,
+    buy() {
+      if (state.vehicles.some((o) => o.key === key) || !pay(world, sp.price)) return null;
+      const v = deliver(world, key, sp.color, shop);
+      if (!v) { world.money += sp.price; return 'Bezorging mislukt, geld terug'; }
+      return `${sp.label} ${sp.kind === 'boat' ? 'ligt aan de steiger' : 'staat voor de deur'}. Van jou, voorgoed: via je telefoon laat je hem overal afleveren`;
+    },
+  };
+}
+
+function vehicleSections(world, type, shop) {
+  const stock = Object.entries(VEHICLE_STOCK).filter(([, sp]) => sp.shop === type);
+  const sections = [];
+  const used = new Set();
+  for (const [title, types] of STOCK_GROUPS[type] || [['Te koop', null]]) {
+    const pick = stock.filter(([key, sp]) => !used.has(key) && (!types || types.includes(sp.type)));
+    for (const [key] of pick) used.add(key);
+    if (pick.length) sections.push({ title, items: pick.map(([key, sp]) => stockItem(world, key, sp, shop)) });
+  }
+  const mine = state.vehicles.filter((o) => o.spec.shop === type);
   if (mine.length) {
     sections.push({
       title: 'Jouw voertuigen',
       items: mine.map((o, i) => {
-        const here = o.v && world.vehicles.includes(o.v) && dist(o.v.x, o.v.y, shop.x, shop.y) < 40;
+        const boat = o.spec.kind === 'boat';
+        const here = o.v && world.vehicles.includes(o.v) && dist(o.v.x, o.v.y, boat && shop.water ? shop.water.x : shop.x, boat && shop.water ? shop.water.y : shop.y) < 40;
         const fee = o.lost ? replacementFee(o) : REDELIVERY_FEE;
         return {
-          id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : o.lost ? 'Total loss: eigen risico, dan staat er een nieuwe voor de deur' : 'Laat hem hier voor de deur zetten',
+          id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : o.lost ? 'Total loss: eigen risico, dan staat er een nieuwe voor de deur' : boat ? 'Laat hem naar deze steiger varen' : 'Laat hem hier voor de deur zetten',
           price: fee, tag: o.lost ? 'Total loss' : 'Van jou', swatch: [o.color],
           disabled: here ? 'Staat al hier' : o.v && o.v.driver === 'player' ? 'Je zit erop' : broke(world, fee),
           buy() {
             if (!pay(world, fee)) return null;
-            const at = deliveryPoint(world.map, shop, o.spec.kind === 'car');
+            const at = boat && shop.water ? shop.water : deliveryPoint(world.map, shop, o.spec.kind === 'car');
             if (o.v) removeFromWorld(world, o.v);
-            o.v = spawnOwned(world, o, at.x, at.y);
+            o.v = spawnOwned(world, o, at.x, at.y, boat ? at.angle : null);
             if (!o.v) { world.money += fee; return 'Bezorging mislukt, geld terug'; }
             o.lost = false;
-            return `${o.spec.label} wordt voor de deur gezet`;
+            return `${o.spec.label} ${boat ? 'ligt aan de steiger' : 'wordt voor de deur gezet'}`;
           },
         };
       }),
@@ -1052,13 +1148,48 @@ function removeFromWorld(world, v) {
   if (i >= 0) world.vehicles.splice(i, 1);
 }
 
+function nearestJetty(x, y) {
+  let best = null, bd = Infinity;
+  for (const s of shops) {
+    if (s.type !== 'boot' || !s.water) continue;
+    const d = dist(s.water.x, s.water.y, x, y);
+    if (d < bd) { bd = d; best = s; }
+  }
+  return best;
+}
+
+// Owned boats wait at the nearest Bootje Huren jetty (or right at x, y when
+// that is open water, e.g. a jetty spot picked by ownedvehicles.js).
+function spawnOwnedBoat(world, o, x, y, angle) {
+  const map = world.map;
+  const jetty = nearestJetty(x, y);
+  const at = isInWater(map, x, y) ? { x, y, angle: angle ?? 0 } : jetty ? jetty.water : null;
+  if (!at) return null;
+  const poly = map.waterNear(at.x, at.y, 2).find((w) => pointInPolygon(at.x, at.y, w.pts));
+  if (!poly) return null;
+  const v = spawnBoatOnWater(map, poly);
+  if (!v) return null;
+  v.x = at.x; v.y = at.y; v.angle = at.angle ?? 0;
+  v.model = { ...o.spec.model, color: o.color };
+  v.waterPoly = null;
+  v.id = newVehicleId(o.spec.nameIdx);
+  v.playerOwned = true;
+  v.upgrades = [];
+  Object.assign(v, o.spec.flags || {});
+  v.speed = 0;
+  world.vehicles.push(v);
+  return v;
+}
+
 function spawnOwned(world, o, x, y, angle = null) {
   const sp = o.spec;
+  if (sp.kind === 'boat') return spawnOwnedBoat(world, o, x, y, angle);
   const map = world.map;
   const point = map.nearestRoadPoint(x, y, 150, sp.kind === 'car');
   if (!point) return null;
-  const v = spawnVehicleOnRoad(map, point.road, false, Math.random, sp.kind === 'bike', false, angle == null ? point : { x, y }, sp.kind === 'scooter');
+  const v = spawnVehicleOnRoad(map, point.road, false, Math.random, sp.kind === 'bike', false, angle == null ? point : { x, y }, sp.kind === 'scooter', { ...sp.model, color: o.color });
   v.model = { ...sp.model, color: o.color };
+  Object.assign(v, sp.flags || {});
   v.id = newVehicleId(sp.nameIdx);
   v.playerOwned = true;
   v.upgrades = [...(o.upgrades || [])];
@@ -1099,7 +1230,7 @@ function deliveryPoint(map, shop, car) {
 
 function deliver(world, key, color, shop) {
   const o = { key, spec: VEHICLE_STOCK[key], color, upgrades: [], v: null, lost: false };
-  const at = deliveryPoint(world.map, shop, o.spec.kind === 'car');
+  const at = o.spec.kind === 'boat' && shop.water ? shop.water : deliveryPoint(world.map, shop, o.spec.kind === 'car');
   o.v = spawnOwned(world, o, at.x, at.y);
   if (!o.v) return null;
   state.vehicles.push(o);
@@ -1205,9 +1336,20 @@ function syncOwnedRiders(world, lookup) {
 }
 let lastRiderChar = null;
 
+// Unlocked specials land in the garage by themselves (delivered via the phone).
+let unlockTimer = 0;
+function claimUnlocks(world) {
+  for (const [key, spec] of Object.entries(VEHICLE_STOCK)) {
+    if (!spec.unlock || state.vehicles.some((o) => o.key === key) || !unlockMet(spec)) continue;
+    state.vehicles.push({ key, spec, color: spec.color, upgrades: [], v: null, lost: false });
+    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat in je garage. Laat hem afleveren via je telefoon (T) of het menu`, 6);
+  }
+}
+
 export function updateShops(dt, world) {
   upkeepTimer -= dt;
   syncOwnedRiders(world, upkeepTimer <= 0);
+  if ((unlockTimer -= dt) <= 0) { unlockTimer = 2; claimUnlocks(world); }
   if (upkeepTimer > 0) return;
   upkeepTimer = 0.25;
   for (let i = state.vehicles.length - 1; i >= 0; i--) {
@@ -1289,9 +1431,9 @@ export function getShopSave() {
     heroUpgrades: [...state.heroUpgrades],
     vehicles: state.vehicles.map((o) => {
       const v = o.v;
-      const pos = o.lost ? null : v && !v.isBoat ? { x: round(v.x), y: round(v.y), angle: round(v.angle) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
+      const pos = o.lost ? null : v ? { x: round(v.x), y: round(v.y), angle: round(v.angle) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
       const dmg = v && !o.lost ? damageSave(v) : {};
-      return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...(o.lost ? { lost: true } : {}), ...pos, ...dmg };
+      return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...(o.lost ? { lost: true } : {}), ...(!o.lost && !pos ? { garage: true } : {}), ...pos, ...dmg };
     }),
   };
 }
@@ -1320,7 +1462,7 @@ export function applyShopSave(world, d) {
     const upgrades = Array.isArray(sv.upgrades) ? sv.upgrades.filter((id) => valid.some((u) => u.id === id)) : [];
     const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null, lost: !!sv.lost, health: sv.health, dents: validDents(sv.dents) };
     const has = Number.isFinite(sv.x) && Number.isFinite(sv.y);
-    if (!o.lost) o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0) : spawnOwned(world, o, world.player.x, world.player.y);
+    if (!o.lost && !sv.garage) o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0) : spawnOwned(world, o, world.player.x, world.player.y);
     if (!o.v) o.lost = !!sv.lost;
     state.vehicles.push(o);
   }
