@@ -1151,7 +1151,7 @@ export function updateShops(dt, world) {
       o.v = null;
       o.lost = true;
       o.upgrades = [...(v.upgrades || o.upgrades || [])];
-      world.addMessage(`Je ${o.spec.label} is total loss. Via je telefoon regel je een nieuwe (eigen risico €${replacementFee(o)})`, 4);
+      world.addMessage(`Je ${o.spec.label} is total loss. Henk van Garage Knalpot knapt het wrak op, of regel via je telefoon een nieuwe (eigen risico €${replacementFee(o)})`, 5);
       continue;
     }
     // the ambient population managers sweep far-away bikes and cars; an
