@@ -85,6 +85,11 @@ export function saveGame(w = world, { toast = true } = {}) {
   return true;
 }
 
+// Save shortly, once no cutscene or respawn is running (after a respawn).
+export function saveSoon(delay = 1.5) {
+  missionSaveIn = missionSaveIn >= 0 ? Math.min(missionSaveIn, delay) : delay;
+}
+
 function placeAt(w, x, y) {
   const map = w.map;
   const p = w.player;

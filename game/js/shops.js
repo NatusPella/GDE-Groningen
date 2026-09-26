@@ -3,7 +3,7 @@ import { dist, closestPointOnSegment, isInWater, pointInPolygon } from './util.j
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
-import { getPickupsForRender } from './pickups.js';
+import { getGaragesForRender } from './garages.js';
 import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
@@ -12,8 +12,7 @@ import { recordStat } from './achievements.js';
 export const SHOP_USE_RADIUS = 2.6;
 const GARAGE_PAINT_RADIUS = 7;
 const OUTFIT_WANTED_COOLDOWN = 60;
-const MAX_OWNED_VEHICLES = 4;
-const REDELIVERY_FEE = 25;
+export const REDELIVERY_FEE = 25;
 
 // Chains: every branch carries the chain name plus a local suffix
 // (wijk or street). group = map-legend layer.
@@ -88,7 +87,7 @@ const STYLE_PRICE = 40;
 
 // display names in vehiclenames.js are picked by id % list length, so a
 // vehicle's id is chosen to land on the name it was sold under
-const VEHICLE_STOCK = {
+export const VEHICLE_STOCK = {
   omafiets: { kind: 'bike', label: 'Omafiets', desc: 'Zwart, zwaar en onverwoestbaar', price: 75, nameIdx: 0, color: '#1c1c1c', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6 } },
   stadsfiets: { kind: 'bike', label: 'Stadsfiets', desc: 'Lichter en sneller, in Stadjersgroen', price: 110, nameIdx: 2, color: '#1e9e56', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 7.0, accel: 3.6, brake: 6.2, turnRate: 4.8 } },
   fatbike: { kind: 'bike', label: 'Fatbike "Dikke Tinus"', desc: 'Dikke banden, dikke prijs', price: 350, nameIdx: 0, color: '#20221f', model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 3.4, brake: 5, turnRate: 3.8 } },
@@ -99,7 +98,7 @@ const VEHICLE_STOCK = {
   wervelwind: { kind: 'car', label: 'Wadden Wervelwind', desc: 'Sportwagen. Rap as de wind over de dijk', price: 2400, nameIdx: 0, color: '#c9a227', model: { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 42, accel: 12, brake: 19, turnRate: 3.2 } },
 };
 
-const PAINTS = [
+export const PAINTS = [
   { id: 'rood', label: 'Brandweerrood', color: '#a11f1f' },
   { id: 'groen', label: 'Stadjersgroen', color: '#1e9e56' },
   { id: 'zwart', label: 'Nachtzwart', color: '#1b1c1f' },
@@ -112,12 +111,12 @@ const PAINTS = [
 const PAINT_PRICE = 120;
 
 // mult: factors on the vehicle model; once per vehicle
-const BIKE_UPGRADES = [
+export const BIKE_UPGRADES = [
   { id: 'banden', label: 'Racebanden', desc: 'Dunner, harder, rapper: +15% topsnelheid', price: 60, mult: { maxSpeed: 1.15 } },
   { id: 'versnelling', label: 'Zeven versnellingen', desc: 'Sneller op gang bij het stoplicht', price: 45, mult: { accel: 1.3 } },
   { id: 'motor', label: 'Opgevoerde accu', desc: 'Stiekem e-motortje erin: hard en stil', price: 220, mult: { maxSpeed: 1.35, accel: 1.4 } },
 ];
-const CAR_UPGRADES = [
+export const CAR_UPGRADES = [
   { id: 'motor', label: 'Opgevoerde motor', desc: 'Chip erin, filter eruit: +12% top, +20% trekkracht', price: 450, mult: { maxSpeed: 1.12, accel: 1.2 } },
   { id: 'remmen', label: 'Sportremmen', desc: 'Staat stil voor je het weet', price: 220, mult: { brake: 1.35 } },
   { id: 'grip', label: 'Brede banden', desc: 'Scherper door de bocht', price: 260, mult: { turnRate: 1.15 } },
@@ -149,7 +148,7 @@ const state = {
   outfit: { ...DEFAULT_OUTFIT },
   ownedOutfits: new Set(['tammo:stadjer', 'anita:classic']),
   hair: { tammo: { color: 'naturel', style: 'short' }, anita: { color: 'naturel', style: 'long' } },
-  vehicles: [], // { spec, color, v, x, y, angle }
+  vehicles: [], // one per stock key: { key, spec, color, upgrades, v, x, y, angle, lost }
   heroColor: null,
   heroUpgrades: [],
   rental: null,
@@ -343,6 +342,32 @@ export function getOwnedVehiclesForRender() {
   return state.vehicles.filter((o) => o.v && !o.v.wrecked).map((o) => ({ v: o.v, label: o.spec.label }));
 }
 
+// The bought collection (ownedvehicles.js builds the garage/phone views on it).
+export function getOwnedEntries() {
+  return state.vehicles;
+}
+
+export function getHeroLook() {
+  return { color: state.heroColor, upgrades: [...state.heroUpgrades] };
+}
+
+// Puts owned entry o in the world at (x, y, angle): the old instance goes first,
+// so there is never more than one of it.
+export function spawnOwnedEntry(world, o, x, y, angle) {
+  if (o.v && o.v.driver === 'player') return null;
+  if (o.v) removeFromWorld(world, o.v);
+  const v = spawnOwned(world, o, x, y, angle);
+  if (!v) return null;
+  v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
+  o.v = v;
+  o.lost = false;
+  return v;
+}
+
+export function replacementFee(o) {
+  return Math.max(50, Math.round(o.spec.price * 0.25 / 5) * 5);
+}
+
 // --- interaction -------------------------------------------------------------
 
 export function nearestShop(world) {
@@ -364,7 +389,7 @@ function paintableVehicle(v) {
 function garageForPaint(world) {
   const v = world.player.inVehicle;
   if (!paintableVehicle(v) || Math.abs(v.speed) > 2) return null;
-  for (const g of getPickupsForRender().garages || []) {
+  for (const g of getGaragesForRender()) {
     if (dist(v.x, v.y, g.x, g.y) < GARAGE_PAINT_RADIUS) return g;
   }
   return null;
@@ -756,17 +781,19 @@ function hairSections(world) {
 
 function vehicleSections(world, type, shop) {
   const kinds = type === 'auto' ? ['car'] : ['bike', 'scooter'];
-  const items = Object.entries(VEHICLE_STOCK).filter(([, sp]) => kinds.includes(sp.kind)).map(([key, sp]) => ({
-    id: 'v-' + key, label: sp.label, desc: `${sp.desc} · wordt voor de deur gezet`, price: sp.price,
-    swatch: [sp.color], disabled: broke(world, sp.price),
-    buy() {
-      if (!pay(world, sp.price)) return null;
-      const v = deliver(world, key, sp.color, shop);
-      if (!v) { world.money += sp.price; return 'Bezorging mislukt, geld terug'; }
-      if (state.vehicles.length > MAX_OWNED_VEHICLES) state.vehicles.shift();
-      return `${sp.label} staat voor de deur. Van jou, geen diefstal!`;
-    },
-  }));
+  const items = Object.entries(VEHICLE_STOCK).filter(([, sp]) => kinds.includes(sp.kind)).map(([key, sp]) => {
+    const owned = state.vehicles.some((o) => o.key === key);
+    return {
+      id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · wordt voor de deur gezet`, price: sp.price,
+      swatch: [sp.color], tag: owned ? 'Van jou' : '', disabled: owned ? 'Heb je al' : broke(world, sp.price),
+      buy() {
+        if (state.vehicles.some((o) => o.key === key) || !pay(world, sp.price)) return null;
+        const v = deliver(world, key, sp.color, shop);
+        if (!v) { world.money += sp.price; return 'Bezorging mislukt, geld terug'; }
+        return `${sp.label} staat voor de deur. Van jou, voorgoed: via je telefoon laat je hem overal afleveren`;
+      },
+    };
+  });
   const sections = [{ title: type === 'auto' ? 'Occasions' : 'Tweewielers', items }];
   const mine = state.vehicles.filter((o) => kinds.includes(VEHICLE_STOCK[o.key].kind));
   if (mine.length) {
@@ -774,15 +801,18 @@ function vehicleSections(world, type, shop) {
       title: 'Jouw voertuigen',
       items: mine.map((o, i) => {
         const here = o.v && world.vehicles.includes(o.v) && dist(o.v.x, o.v.y, shop.x, shop.y) < 40;
+        const fee = o.lost ? replacementFee(o) : REDELIVERY_FEE;
         return {
-          id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : 'Laat hem hier voor de deur zetten',
-          price: REDELIVERY_FEE, tag: 'Van jou', swatch: [o.color],
-          disabled: here ? 'Staat al hier' : o.v && o.v.driver === 'player' ? 'Je zit erop' : broke(world, REDELIVERY_FEE),
+          id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : o.lost ? 'Total loss: eigen risico, dan staat er een nieuwe voor de deur' : 'Laat hem hier voor de deur zetten',
+          price: fee, tag: o.lost ? 'Total loss' : 'Van jou', swatch: [o.color],
+          disabled: here ? 'Staat al hier' : o.v && o.v.driver === 'player' ? 'Je zit erop' : broke(world, fee),
           buy() {
-            if (!pay(world, REDELIVERY_FEE)) return null;
-            removeFromWorld(world, o.v);
+            if (!pay(world, fee)) return null;
             const at = deliveryPoint(world.map, shop, o.spec.kind === 'car');
+            if (o.v) removeFromWorld(world, o.v);
             o.v = spawnOwned(world, o, at.x, at.y);
+            if (!o.v) { world.money += fee; return 'Bezorging mislukt, geld terug'; }
+            o.lost = false;
             return `${o.spec.label} wordt voor de deur gezet`;
           },
         };
@@ -946,7 +976,7 @@ function deliveryPoint(map, shop, car) {
 }
 
 function deliver(world, key, color, shop) {
-  const o = { key, spec: VEHICLE_STOCK[key], color, v: null };
+  const o = { key, spec: VEHICLE_STOCK[key], color, upgrades: [], v: null, lost: false };
   const at = deliveryPoint(world.map, shop, o.spec.kind === 'car');
   o.v = spawnOwned(world, o, at.x, at.y);
   if (!o.v) return null;
@@ -1003,17 +1033,17 @@ export function updateShops(dt, world) {
     const o = state.vehicles[i];
     const v = o.v;
     if (!v) continue;
-    if (v.wrecked) {
-      state.vehicles.splice(i, 1);
-      if (world.player.inVehicle !== v) world.addMessage(`Je ${o.spec.label} is total loss. Weg is weg.`, 3);
+    // a bought vehicle stays in the collection: a wreck can be replaced via the phone
+    if (v.wrecked || (v.sinking && !world.vehicles.includes(v))) {
+      o.v = null;
+      o.lost = true;
+      o.upgrades = [...(v.upgrades || o.upgrades || [])];
+      world.addMessage(`Je ${o.spec.label} is total loss. Via je telefoon regel je een nieuwe (eigen risico €${replacementFee(o)})`, 4);
       continue;
     }
     // the ambient population managers sweep far-away bikes and cars; an
-    // owned one is simply put back where it stood (unless it sank)
-    if (!world.vehicles.includes(v)) {
-      if (v.sinking) { o.v = null; continue; }
-      world.vehicles.push(v);
-    }
+    // owned one is simply put back where it stood
+    if (!world.vehicles.includes(v)) world.vehicles.push(v);
     o.x = v.x; o.y = v.y; o.angle = v.angle;
   }
   const hero = world.vehicles.find((v) => v.isHeroCar);
@@ -1061,10 +1091,10 @@ export function getShopSave() {
     hair: { tammo: { ...state.hair.tammo }, anita: { ...state.hair.anita } },
     heroColor: state.heroColor,
     heroUpgrades: [...state.heroUpgrades],
-    vehicles: state.vehicles.slice(-MAX_OWNED_VEHICLES).map((o) => {
+    vehicles: state.vehicles.map((o) => {
       const v = o.v;
-      const pos = v && !v.isBoat ? { x: round(v.x), y: round(v.y), angle: round(v.angle) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
-      return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...pos };
+      const pos = o.lost ? null : v && !v.isBoat ? { x: round(v.x), y: round(v.y), angle: round(v.angle) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
+      return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...(o.lost ? { lost: true } : {}), ...pos };
     }),
   };
 }
@@ -1084,15 +1114,18 @@ export function applyShopSave(world, d) {
   state.heroUpgrades = Array.isArray(d.heroUpgrades) ? d.heroUpgrades.filter((id) => CAR_UPGRADES.some((u) => u.id === id)) : [];
   for (const o of state.vehicles) removeFromWorld(world, o.v);
   state.vehicles = [];
-  for (const sv of Array.isArray(d.vehicles) ? d.vehicles.slice(-MAX_OWNED_VEHICLES) : []) {
-    const spec = VEHICLE_STOCK[sv && sv.key];
-    if (!spec) continue;
+  // older saves could hold the same model twice: the last one wins
+  const byKey = new Map();
+  for (const sv of Array.isArray(d.vehicles) ? d.vehicles : []) if (sv && VEHICLE_STOCK[sv.key]) byKey.set(sv.key, sv);
+  for (const sv of byKey.values()) {
+    const spec = VEHICLE_STOCK[sv.key];
     const valid = spec.kind === 'car' ? CAR_UPGRADES : BIKE_UPGRADES;
     const upgrades = Array.isArray(sv.upgrades) ? sv.upgrades.filter((id) => valid.some((u) => u.id === id)) : [];
-    const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null };
+    const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null, lost: !!sv.lost };
     const has = Number.isFinite(sv.x) && Number.isFinite(sv.y);
-    o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0) : spawnOwned(world, o, world.player.x, world.player.y);
-    if (o.v) state.vehicles.push(o);
+    if (!o.lost) o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0) : spawnOwned(world, o, world.player.x, world.player.y);
+    if (!o.v) o.lost = !!sv.lost;
+    state.vehicles.push(o);
   }
   applyLooks();
   upkeepTimer = 0;

@@ -1,0 +1,102 @@
+// Garage tab of the pause menu (and the styles of the phone's "Voertuigen"
+// app): every owned vehicle as a card, plus the models still for sale.
+import { getGarageCatalog, whereText } from './ownedvehicles.js';
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const GLYPHS = {
+  car: '<path d="M6 30l4-11a5 5 0 0 1 4.7-3.3h18.6A5 5 0 0 1 38 19l4 11h1.5a2.5 2.5 0 0 1 2.5 2.5V40h-5v3a3 3 0 0 1-6 0v-3H13v3a3 3 0 0 1-6 0v-3H2v-7.5A2.5 2.5 0 0 1 4.5 30zm6-1h24l-2.8-8.2a1.5 1.5 0 0 0-1.4-1h-15.6a1.5 1.5 0 0 0-1.4 1z"/><circle cx="10" cy="35" r="2.6" fill="#10180f"/><circle cx="38" cy="35" r="2.6" fill="#10180f"/>',
+  bike: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="32" r="8"/><circle cx="37" cy="32" r="8"/><path d="M11 32l8-14h12l6 14M11 32h11l9-14M16 13h6M31 18l-2-6h5"/></g>',
+  scooter: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="34" r="6"/><circle cx="38" cy="34" r="6"/><path d="M17 34h14l5-18h5M31 34l-3-9H15"/></g><path d="M14 22h13v5H12z"/>',
+};
+
+export function vehicleGlyph(kind, color) {
+  return `<svg viewBox="0 0 48 48" aria-hidden="true" style="color:${esc(color)}"><g fill="currentColor">${GLYPHS[kind] || GLYPHS.car}</g></svg>`;
+}
+
+let styled = false;
+function injectStyle() {
+  if (styled) return;
+  styled = true;
+  const st = document.createElement('style');
+  st.textContent = `
+#pause-menu .pm-garage { width: min(900px, 100%); }
+#pause-menu .gar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+#pause-menu .gar-card { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid rgba(63,201,122,0.35); border-left: 4px solid #3fc97a; border-radius: 6px; background: rgba(15,92,48,0.18); }
+#pause-menu .gar-card[data-status="lost"] { border-left-color: #c9412e; }
+#pause-menu .gar-card[data-status="forsale"] { opacity: 0.55; border-style: dashed; border-left-style: solid; border-left-color: rgba(240,237,228,0.3); background: rgba(0,0,0,0.15); }
+#pause-menu .gar-top { display: flex; gap: 10px; align-items: center; }
+#pause-menu .gar-icon { flex: none; width: 54px; height: 54px; border-radius: 8px; display: grid; place-items: center; background: rgba(240,237,228,0.08); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.12); }
+#pause-menu .gar-icon svg { width: 44px; height: 44px; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.6)); }
+#pause-menu .gar-card[data-status="forsale"] .gar-icon svg { filter: grayscale(1); }
+#pause-menu .gar-name { display: flex; flex-direction: column; min-width: 0; }
+#pause-menu .gar-name small { font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: rgba(240,237,228,0.55); }
+#pause-menu .gar-name b { font-weight: normal; font-size: 22px; letter-spacing: 1px; line-height: 1.05; }
+#pause-menu .gar-meme { margin: 0; font: italic 14px/1.35 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); }
+#pause-menu .gar-stats { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
+#pause-menu .gar-stats dt { color: rgba(240,237,228,0.5); }
+#pause-menu .gar-stats dd { margin: 0; color: #f0ede4; display: flex; align-items: center; gap: 6px; }
+#pause-menu .gar-bar { display: inline-block; width: 70px; height: 6px; border-radius: 3px; background: rgba(240,237,228,0.15); overflow: hidden; }
+#pause-menu .gar-bar i { display: block; height: 100%; background: #3fc97a; }
+#pause-menu .gar-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240,237,228,0.5); flex: none; }
+#pause-menu .gar-status { font: 13px 'Arial Narrow', Arial, sans-serif; color: #3fc97a; letter-spacing: 0.3px; }
+#pause-menu .gar-card[data-status="far"] .gar-status, #pause-menu .gar-card[data-status="garage"] .gar-status { color: #e8c93a; }
+#pause-menu .gar-card[data-status="lost"] .gar-status { color: #ff7a66; }
+#pause-menu .gar-card[data-status="forsale"] .gar-status { color: rgba(240,237,228,0.7); }
+#pause-menu .gar-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+#pause-menu .gar-actions button { flex: 1 1 auto; font: inherit; font-size: 16px; letter-spacing: 1px; padding: 6px 10px; border-radius: 4px; cursor: pointer; color: #f0ede4; background: rgba(30,158,86,0.25); border: 1px solid rgba(63,201,122,0.6); }
+#pause-menu .gar-actions button:hover, #pause-menu .gar-actions button:focus-visible { background: rgba(30,158,86,0.5); outline: none; border-color: #3fc97a; }
+#pause-menu .gar-note { margin: 0; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.6); }
+#pause-menu .gar-msg { min-height: 1.3em; margin: 0; font: 14px 'Arial Narrow', Arial, sans-serif; color: #e8c93a; }
+#hud .ph-swatch { flex: none; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240,237,228,0.5); margin-right: 8px; }
+#hud .ph-swatch.lg { width: 22px; height: 22px; }
+#hud .ph-chip[data-status="lost"] { border-color: #c9412e; color: #ff7a66; }
+#hud .ph-veh { padding: 8px 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+#hud .ph-veh-top { display: flex; align-items: center; }
+#hud .ph-veh p { margin: 0; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; line-height: 1.3; }
+#hud .ph-veh-meme { font-style: italic; color: rgba(240,237,228,0.85); }
+#hud .ph-veh-facts { color: rgba(240,237,228,0.6); }
+#hud .ph-veh-msg { color: #e8c93a; }
+`;
+  document.head.appendChild(st);
+}
+
+export function initGarageStyles() {
+  injectStyle();
+}
+
+function card(e) {
+  const stats = [
+    ['Type', esc(e.kindLabel)],
+    ['Topsnelheid', `${e.topSpeed} km/u`],
+    ['Trekkracht', `<span class="gar-bar"><i style="width:${e.accelScore * 10}%"></i></span>${e.accelScore}/10`],
+    ['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`],
+  ];
+  if (e.owned) stats.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'car' ? 'Knal & Kolder Tuning' : 'Spaak & Band'} helpt je graag`]);
+  else stats.push(['Prijs', `€${e.price.toLocaleString('nl-NL')}`]);
+  const where = whereText(e);
+  const actions = !e.owned ? '' : `<div class="gar-actions">` +
+    (e.status !== 'driving' ? `<button type="button" data-garage-deliver="${esc(e.id)}">Laten afleveren · ${esc(e.feeLabel)}</button>` : '') +
+    (e.status === 'near' || e.status === 'far' ? `<button type="button" data-garage-find="${esc(e.id)}">Waar staat hij?</button>` : '') +
+    `</div>`;
+  return `<article class="gar-card" data-status="${e.status}">` +
+    `<div class="gar-top"><span class="gar-icon">${vehicleGlyph(e.kind, e.color)}</span>` +
+    `<span class="gar-name"><small>${esc(e.make || e.kindLabel)}</small><b>${esc(e.model)}</b></span></div>` +
+    `<p class="gar-meme">${esc(e.meme)}</p>` +
+    `<dl class="gar-stats">${stats.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` +
+    `<div class="gar-status">${esc(e.statusLabel)}${where ? ' · ' + esc(where) : ''}</div>` +
+    actions + `</article>`;
+}
+
+export function renderGaragePanel(el, world, msg = '') {
+  injectStyle();
+  const list = getGarageCatalog(world);
+  const owned = list.filter((e) => e.owned);
+  const sale = list.filter((e) => !e.owned);
+  el.innerHTML =
+    `<h2>Garage <small>${owned.length} van ${list.length} verzameld</small></h2>` +
+    `<p class="gar-note">Gekocht is voorgoed van jou. Laat je voertuig afleveren en het staat om de hoek, buiten beeld. Ook via je telefoon (T).</p>` +
+    `<p class="gar-msg" role="status">${esc(msg)}</p>` +
+    `<div class="gar-grid">${owned.map(card).join('')}</div>` +
+    (sale.length ? `<h2>Nog te koop <small>Ome Harm Occasions en Trap & Toeter</small></h2><div class="gar-grid">${sale.map(card).join('')}</div>` : '');
+}

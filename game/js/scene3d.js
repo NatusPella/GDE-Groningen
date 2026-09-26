@@ -15,10 +15,7 @@ import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
-import {
-  getPickupsForRender, buildMoneyPickupMesh3D, buildWeaponPickupMesh3D,
-  buildHealthPickupMesh3D, buildArmorPickupMesh3D, buildGaragePickupMesh3D,
-} from './pickups.js';
+import { getGaragesForRender, buildGarageMesh3D } from './garages.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, buildBulletMesh3D, buildSparkBurstMesh3D, buildMuzzleFlashMesh3D, buildMeleeSwipeMesh3D } from './combat.js';
 import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
@@ -141,10 +138,6 @@ let missionMarkerMesh = null;
 const splashMeshes = new Map();
 const missionWaypointDotMeshes = new Map();
 let missionWaypointSetKey = null;
-const moneyMeshes = new Map();
-const weaponMeshes = new Map();
-const healthMeshes = new Map();
-const armorMeshes = new Map();
 const garageMeshes = new Map();
 const bulletMeshes = new Map();
 const sparkMeshes = new Map();
@@ -1192,11 +1185,11 @@ function syncPedestrianMeshes(world, player, animDt) {
   }
 }
 
-// Same as syncActors, but never disposes materials on removal - pickups.js
+// Same as syncActors, but never disposes materials on removal - garages.js
 // deliberately shares materials/geometries at module scope across every
-// live pickup of a kind, so disposing one would corrupt every other one
-// still on screen (same hazard buildings/mission-dots already guard against).
-function syncPickupActors(list, cache, builder, idOf) {
+// garage, so disposing one would corrupt every other one still on screen
+// (same hazard buildings/mission-dots already guard against).
+function syncSharedActors(list, cache, builder, idOf) {
   const seen = new Set();
   for (const item of list) {
     const id = idOf(item);
@@ -1311,7 +1304,7 @@ export function update3D(dt, world) {
       if (v.isBoat) animateBoat(mesh, v, world.time);
       else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
-      if (v.isPolice) updatePoliceLamps(mesh, world.time, policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
+      if (v.isPolice || v.sirenOn) updatePoliceLamps(mesh, world.time, (policeChasing || v.sirenOn) && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
@@ -1485,39 +1478,11 @@ export function update3D(dt, world) {
     if (routeRibbonMesh) routeRibbonMesh.visible = false;
   }
 
-  // pickups: money/weapons/health/armor/garages all share module-scope
-  // materials in pickups.js, so removal must never call material.dispose()
-  const pu = getPickupsForRender();
-  const puZ = (o) => {
-    if (o._gz === undefined) o._gz = world.map.elev && world.map.elev.has ? world.map.groundHeightAt(o.x, o.y, player.inVehicle ? player.inVehicle.z || 0 : player.gz || 0) : 0;
-    return o._gz;
-  };
-  syncPickupActors(pu.money, moneyMeshes, () => withShadow(buildMoneyPickupMesh3D(), 0.7), (m) => m);
-  for (const m of pu.money) {
-    const mesh = moneyMeshes.get(m);
-    if (mesh) {
-      mesh.position.set(m.x, puZ(m) + 0.55 + Math.sin(world.time * 3 + (m.amount || 0)) * 0.05, m.y);
-      mesh.rotation.y = world.time * 2.2;
-      mesh.userData.shadow.position.y = 0.02 + puZ(m) - mesh.position.y;
-    }
-  }
-  syncPickupActors(pu.weapons, weaponMeshes, (w) => withShadow(buildWeaponPickupMesh3D(w.key), 0.9), (w) => w);
-  for (const w of pu.weapons) {
-    const mesh = weaponMeshes.get(w);
-    if (mesh) { mesh.position.set(w.x, puZ(w), w.y); mesh.rotation.y = world.time * 1.3; }
-  }
-  syncPickupActors(pu.health ? [pu.health] : [], healthMeshes, () => withShadow(buildHealthPickupMesh3D(), 0.9), (h) => h);
-  if (pu.health) {
-    const mesh = healthMeshes.get(pu.health);
-    if (mesh) mesh.position.set(pu.health.x, 0, pu.health.y);
-  }
-  syncPickupActors(pu.armor ? [pu.armor] : [], armorMeshes, () => withShadow(buildArmorPickupMesh3D(), 0.9), (a) => a);
-  if (pu.armor) {
-    const mesh = armorMeshes.get(pu.armor);
-    if (mesh) mesh.position.set(pu.armor.x, 0, pu.armor.y);
-  }
-  syncPickupActors(pu.garages, garageMeshes, () => buildGaragePickupMesh3D(), (g) => g);
-  for (const g of pu.garages) {
+  // garages share module-scope materials in garages.js, so removal must
+  // never call material.dispose()
+  const garages = getGaragesForRender();
+  syncSharedActors(garages, garageMeshes, () => buildGarageMesh3D(), (g) => g);
+  for (const g of garages) {
     const mesh = garageMeshes.get(g);
     if (mesh) mesh.position.set(g.x, 0, g.y);
   }
@@ -2032,11 +1997,6 @@ function updateSunAndSky(player) {
   skyDome.position.copy(cam.position);
 }
 
-function withShadow(mesh, size) {
-  addBlobShadow(mesh, size, size);
-  return mesh;
-}
-
 function buildWildlifeActor(a) {
   const mesh = buildWildlifeMesh3D(a);
   const blob = wildlifeShadowSize(a.kind);
@@ -2076,7 +2036,7 @@ function normalizeAngleDelta(a) {
 const RIBBON_AHEAD_M = 80;
 const RIBBON_HALF_W = 0.8;
 const RIBBON_CHEVRON_M = 3;
-const ROUTE_COLOR_3D = { user: 0xf0ede4, mission: 0xe8c93a, job: 0xff9a3c };
+const ROUTE_COLOR_3D = { user: 0xc068ff, mission: 0xe8c93a, job: 0xff9a3c };
 let routeRibbonMesh = null;
 let routeRibbonKey = '';
 let waypointBeacon = null;

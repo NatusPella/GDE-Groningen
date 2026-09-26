@@ -48,14 +48,15 @@ Security or Windows SmartScreen.
 | A/D or ←/→ | strafe left/right relative to the camera | steer |
 | Space | jump | brake |
 | Ctrl | crouch | – |
-| E or F | enter nearest vehicle, kiss your companion when next to them, or become a pigeon at a pigeon sign | exit |
+| E or F | enter nearest vehicle, use a shop/job/station, or become a pigeon at a pigeon sign | exit |
+| K | kiss your companion (Tammo/Anita) when next to them | – |
 | Left mouse | attack (fists or the equipped gun); you turn to where the camera looks | – |
 | Right mouse | aim: face the camera direction while moving | – |
 | 1–4 | fists / pistol / uzi / shotgun | – |
 | Mouse wheel | next / previous weapon | – |
 | Mouse | orbit the camera around your character | orbit around the car; eases back behind it after ~1.7 s |
 | C | switch between Tammo and Anita | swap seats |
-| M | city map (click a wijk to travel there) | |
+| M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; the legend picks what shows on the map and (dot) the minimap | |
 | U | sound on/off | |
 | X | as a pigeon: turn back into Tammo/Anita where you are | |
 
@@ -68,7 +69,8 @@ Security or Windows SmartScreen.
 - **Life**: traffic (cars, buses, bikes, scooters, boats), pedestrians,
   seagulls/cows/sheep, weather with storms, helicopters and balloons.
 - **Gameplay**: driving and on-foot movement, combat, wanted level with
-  police cars, foot cops, boats and a helicopter, pickups, 8 missions,
+  police cars, foot cops, boats and a helicopter, 8 missions, shops (weapons,
+  armour and food are bought, not found on the street; you start with €250),
   Sikkom news feed and phone notifications. Duif-modus as an in-game
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,
   Noorderplantsoen, Stationsplein and a duiventil at the volkstuinen) press E
@@ -110,8 +112,8 @@ core, so all coordinates in the game keep their meaning. The steps, in order:
    junctions (`road.z` per vertex): sunken Zuidelijke Ringweg, viaducts,
    ramps at most ~5%, everything else flat.
 4. `add_landmarks.py`, `add_districts.py`, `add_garages.py`, `add_horeca.py`,
-   `add_traffic_lights.py`, `add_pois.py` (pickup spots for health, money,
-   weapons and armor).
+   `add_traffic_lights.py`, `add_pois.py` (health, money, weapons and armor
+   spots; the health ones are pedestrian destinations).
 5. `add_railways.py`: rails, stations, level crossings, train routes and the
    rail lifts (not where the ring already passes over or under the track).
 6. `add_helipad.py`, `add_landmark_footprints.py`, `add_shops.py`.

@@ -305,6 +305,8 @@ function trackMission(dt, w, pv) {
   if (Number.isFinite(m.timeLeft)) r.timeLeft = m.timeLeft;
   if (Number.isFinite(m.fatbikeHits)) r.fatHits = m.fatbikeHits;
   if (Number.isFinite(m.racePos)) r.racePos = m.racePos;
+  if (Number.isFinite(m.happiness)) r.happiness = m.happiness;
+  if (Number.isFinite(m.bumps)) r.bumps = m.bumps;
   if (!r.vehicle) {
     const v = w.vehicles.find((x) => x.missionCar && !x.racer);
     if (v) { r.vehicle = v; r.vehHealth0 = v.health; }
@@ -328,7 +330,7 @@ function challengeMet(r) {
     case 4: return (r.racePos ?? 1) === 1 && (r.rivalsSeen ? r.rivalTouches : r.carTouches) === 0;
     case 5: return r.timeLeft >= 60;
     case 6: return r.fatHits === 0;
-    case 7: return r.touches === 0 && !hurt;
+    case 7: return (r.bumps ?? r.touches) === 0 && !hurt;
     default: return false;
   }
 }
@@ -336,8 +338,9 @@ function challengeMet(r) {
 function medalFor(r) {
   const g = MISSION_GOALS[r.index];
   if (g.byPlace && Number.isFinite(r.racePos)) return r.racePos === 1 && r.damage <= SILVER_DAMAGE ? 3 : r.racePos <= 2 ? 2 : 1;
-  if (r.elapsed <= g.gold && r.damage <= GOLD_DAMAGE && r.maxWanted <= g.wanted) return 3;
-  if (r.elapsed <= g.silver && r.damage <= SILVER_DAMAGE) return 2;
+  const happy = (k) => !g.happy || (r.happiness ?? 0) >= g.happy[k];
+  if (r.elapsed <= g.gold && r.damage <= GOLD_DAMAGE && r.maxWanted <= g.wanted && happy(0)) return 3;
+  if (r.elapsed <= g.silver && r.damage <= SILVER_DAMAGE && happy(1)) return 2;
   return 1;
 }
 

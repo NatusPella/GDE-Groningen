@@ -1,6 +1,8 @@
-import { getPickupsForRender } from './pickups.js';
+import { getGaragesForRender } from './garages.js';
+import { minimapShows } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsDecluttered, getOwnedVehiclesForRender, drawShopMapIcon } from './shops.js';
+import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES } from './shops.js';
+import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
@@ -13,12 +15,13 @@ import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from '
 import { initPrompts, updatePrompts } from './prompts.js';
 
 const MINIMAP_SIZE = 160;
-const MM_SCALE = 0.8; // px per meter (css pixels) when standing still
-const MM_SCALE_FAST = 0.36;
+const MM_SCALE = 1.3; // px per meter (css pixels) when standing still
+const MM_SCALE_FAST = 0.55;
 const MM_FAST_SPEED = 28;
 let mmScale = MM_SCALE;
 
-export const ROUTE_COLORS = { user: '#f0ede4', mission: '#e8c93a', job: '#ff9a3c' };
+// GTA-style: purple for your own waypoint, yellow for missions, orange for side jobs
+export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c' };
 
 let els = null;
 
@@ -134,7 +137,7 @@ function updateVehicleName(dt, world) {
       const { make, model } = vehicleDisplayName(v);
       els.vehName.querySelector('small').textContent = make;
       els.vehName.querySelector('b').textContent = model;
-      vehNameTimer = 3.2;
+      vehNameTimer = 4.5;
       els.vehName.classList.remove('on');
       void els.vehName.offsetWidth;
       els.vehName.classList.add('on');
@@ -376,6 +379,7 @@ function updateMission(world) {
 // current type and phase instead of trusting their presence.
 function missionProgressText(m) {
   if (m.phase !== 'active') return '';
+  if (m.progressText) return m.progressText;
   if (m.type === 'rampage' && m.killTarget != null) return `Kills: ${Math.max(0, m.killProgress || 0)}/${m.killTarget}`;
   if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) {
     const cp = `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
@@ -451,11 +455,19 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       break;
     }
     case 'companion': {
+      // head and shoulders
       ctx.beginPath();
-      ctx.arc(0, 0, 3.2 * s, 0, Math.PI * 2);
+      ctx.arc(0, 0, 4.4 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.greenDark;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.2);
+      ctx.beginPath();
+      ctx.arc(0, -1.3 * s, 1.5 * s, 0, Math.PI * 2);
+      ctx.moveTo(-2.6 * s, 3 * s);
+      ctx.quadraticCurveTo(0, -0.9 * s, 2.6 * s, 3 * s);
+      ctx.closePath();
       ctx.fillStyle = C.cream;
       ctx.fill();
-      outline(ctx, s);
       break;
     }
     case 'car': {
@@ -505,12 +517,12 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.arc(0, -8 * s, 4.6 * s, Math.PI, 0);
       ctx.bezierCurveTo(4.6 * s, -4.6 * s, 1.2 * s, -3 * s, 0, 0);
       ctx.closePath();
-      ctx.fillStyle = C.cream;
+      ctx.fillStyle = ROUTE_COLORS.user;
       ctx.fill();
       outline(ctx, s, C.dark, 1.6);
       ctx.beginPath();
       ctx.arc(0, -8 * s, 1.9 * s, 0, Math.PI * 2);
-      ctx.fillStyle = C.greenDark;
+      ctx.fillStyle = C.cream;
       ctx.fill();
       break;
     }
@@ -521,91 +533,77 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fill();
       break;
     }
-    case 'money': {
+    case 'own': {
+      // owned vehicle: badge in its own paint with a green 'yours' ring
+      const glyph = { car: 'auto', bike: 'fietsen', scooter: 'fietsen', boat: 'boot' }[opts.vkind] || 'auto';
+      const paint = opts.color || C.greenDark;
       ctx.beginPath();
-      ctx.arc(0, 0, 2.6 * s, 0, Math.PI * 2);
-      ctx.fillStyle = C.green;
+      ctx.arc(0, 0, 5 * s, 0, Math.PI * 2);
+      ctx.fillStyle = paint;
       ctx.fill();
-      outline(ctx, s, C.greenLight, 1);
-      break;
-    }
-    case 'weapon': {
-      ctx.beginPath();
-      ctx.moveTo(0, -3.6 * s);
-      ctx.lineTo(3.4 * s, 2.6 * s);
-      ctx.lineTo(-3.4 * s, 2.6 * s);
-      ctx.closePath();
-      ctx.fillStyle = C.greenDark;
-      ctx.fill();
-      outline(ctx, s, C.dark, 2.6);
-      outline(ctx, s, C.greenLight, 1.2);
-      break;
-    }
-    case 'health': {
-      ctx.beginPath();
-      ctx.roundRect(-4 * s, -4 * s, 8 * s, 8 * s, 1.6 * s);
-      ctx.fillStyle = C.cream;
-      ctx.fill();
-      outline(ctx, s);
-      ctx.fillStyle = C.red;
-      ctx.fillRect(-1.1 * s, -3 * s, 2.2 * s, 6 * s);
-      ctx.fillRect(-3 * s, -1.1 * s, 6 * s, 2.2 * s);
-      break;
-    }
-    case 'armor': {
-      ctx.beginPath();
-      ctx.moveTo(0, -4.2 * s);
-      ctx.lineTo(3.6 * s, -2.8 * s);
-      ctx.quadraticCurveTo(3.4 * s, 2.4 * s, 0, 4.4 * s);
-      ctx.quadraticCurveTo(-3.4 * s, 2.4 * s, -3.6 * s, -2.8 * s);
-      ctx.closePath();
-      ctx.fillStyle = C.grey;
-      ctx.fill();
-      outline(ctx, s);
-      ctx.beginPath();
-      ctx.moveTo(0, -2.8 * s);
-      ctx.lineTo(0, 3 * s);
-      outline(ctx, s, C.cream, 1);
+      outline(ctx, s, C.dark, 3.2);
+      outline(ctx, s, C.greenLight, 1.6);
+      drawShopGlyph(ctx, glyph, 3.3 * s, paint);
       break;
     }
     case 'garage': {
-      ctx.rotate(Math.PI / 4);
+      // Spuit & Klaar: wrench on a green badge
       ctx.beginPath();
-      ctx.rect(-2.9 * s, -2.9 * s, 5.8 * s, 5.8 * s);
-      ctx.fillStyle = C.greenDark;
+      ctx.roundRect(-4.6 * s, -4.6 * s, 9.2 * s, 9.2 * s, 2 * s);
+      ctx.fillStyle = C.green;
       ctx.fill();
-      outline(ctx, s, C.dark, 2.8);
-      outline(ctx, s, C.greenLight, 1.3);
+      outline(ctx, s, C.dark, 1.2);
+      ctx.rotate(-Math.PI / 4);
+      ctx.fillStyle = C.cream;
+      ctx.fillRect(-0.7 * s, -0.6 * s, 1.4 * s, 4 * s);
+      ctx.beginPath();
+      ctx.arc(0, -1.6 * s, 1.9 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = C.green;
+      ctx.fillRect(-0.6 * s, -3.8 * s, 1.2 * s, 2.2 * s);
       break;
     }
     case 'horeca': {
+      // fork and knife
       ctx.beginPath();
-      ctx.arc(0, 0, 4.4 * s, 0, Math.PI * 2);
+      ctx.arc(0, 0, 4.6 * s, 0, Math.PI * 2);
       ctx.fillStyle = C.horeca;
       ctx.fill();
-      outline(ctx, s);
+      outline(ctx, s, C.dark, 1.2);
+      ctx.strokeStyle = C.cream;
+      ctx.lineCap = 'round';
+      ctx.lineWidth = 0.75 * s;
       ctx.beginPath();
-      ctx.moveTo(-1.9 * s, -2.4 * s);
-      ctx.lineTo(1.9 * s, -2.4 * s);
-      ctx.lineTo(1.3 * s, 2.4 * s);
-      ctx.lineTo(-1.3 * s, 2.4 * s);
-      ctx.closePath();
-      ctx.fillStyle = C.cream;
-      ctx.fill();
+      ctx.moveTo(-1.4 * s, -2.8 * s); ctx.lineTo(-1.4 * s, 2.8 * s);
+      ctx.moveTo(-2.3 * s, -2.8 * s); ctx.lineTo(-2.3 * s, -1 * s);
+      ctx.moveTo(-0.5 * s, -2.8 * s); ctx.lineTo(-0.5 * s, -1 * s);
+      ctx.moveTo(-2.3 * s, -1 * s); ctx.quadraticCurveTo(-1.4 * s, 0.2 * s, -0.5 * s, -1 * s);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(1.6 * s, 2.8 * s); ctx.lineTo(1.6 * s, -2.8 * s);
+      ctx.quadraticCurveTo(2.9 * s, -1.6 * s, 2.4 * s, 0);
+      ctx.lineTo(1.6 * s, 0);
+      ctx.stroke();
       break;
     }
     case 'flitspaal': {
+      // speed camera: a camera body with a lens
       ctx.beginPath();
-      ctx.roundRect(-4 * s, -2.8 * s, 8 * s, 5.6 * s, 1 * s);
+      ctx.roundRect(-4.6 * s, -4.6 * s, 9.2 * s, 9.2 * s, 2 * s);
       ctx.fillStyle = C.greyDark;
       ctx.fill();
-      outline(ctx, s, C.dark, 2.6);
-      outline(ctx, s, C.grey, 1);
+      outline(ctx, s, C.dark, 1.2);
+      ctx.fillStyle = C.cream;
       ctx.beginPath();
-      ctx.arc(0.4 * s, 0, 1.6 * s, 0, Math.PI * 2);
-      ctx.fillStyle = C.grey;
+      ctx.roundRect(-3 * s, -1.8 * s, 6 * s, 4 * s, 0.8 * s);
       ctx.fill();
-      ctx.fillRect(-3.2 * s, -4 * s, 2.2 * s, 1.2 * s);
+      ctx.fillRect(-2.2 * s, -2.9 * s, 1.8 * s, 1.2 * s);
+      ctx.beginPath();
+      ctx.arc(0.4 * s, 0.2 * s, 1.3 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.greyDark;
+      ctx.fill();
+      ctx.fillStyle = '#e8c93a';
+      ctx.fillRect(1.6 * s, -1.4 * s, 0.9 * s, 0.9 * s);
       break;
     }
     case 'landmark': {
@@ -625,12 +623,25 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       break;
     }
     case 'police': {
+      // flashing police shield
       const blue = Math.floor(t * 6) % 2 === 1;
       ctx.beginPath();
-      ctx.arc(0, 0, 3.2 * s, 0, Math.PI * 2);
+      ctx.moveTo(0, -4.4 * s);
+      ctx.lineTo(3.8 * s, -3 * s);
+      ctx.quadraticCurveTo(3.6 * s, 2.4 * s, 0, 4.6 * s);
+      ctx.quadraticCurveTo(-3.6 * s, 2.4 * s, -3.8 * s, -3 * s);
+      ctx.closePath();
       ctx.fillStyle = blue ? C.policeBlue : C.red;
       ctx.fill();
-      outline(ctx, s, C.cream, 1);
+      outline(ctx, s, C.dark, 1.2);
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5, r = (i % 2 ? 0.8 : 1.9) * s;
+        if (i) ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r - 0.2 * s); else ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r - 0.2 * s);
+      }
+      ctx.closePath();
+      ctx.fillStyle = C.cream;
+      ctx.fill();
       break;
     }
     default:
@@ -750,8 +761,69 @@ export function forEachPoliceUnit(world, fn) {
   if (world.policeHeli) fn(world.policeHeli.x, world.policeHeli.y);
 }
 
-const MM_ICON = 0.85;
-let horecaMini = null;
+const MM_ICON = 1;
+// Static places: only the categories switched on in the map legend
+// (mapfilters.js), only the nearest few, only close by, drawn smaller and
+// skipped where they would overlap something more important.
+const MM_POI_ICON = 0.9;
+const MM_POI_GAP_PX = 13;
+const MM_POI_NEAR_M = 150;
+const MM_POI_FAR_M = 250;
+const SHOP_GROUPS = ['shopsWapens', 'shops', 'shopsVoertuigen'];
+
+function nearestWithin(list, x, y, r, max) {
+  const hits = [];
+  for (const it of list) {
+    const dx = it.x - x, dy = it.y - y;
+    if (Math.abs(dx) > r || Math.abs(dy) > r) continue;
+    const d2 = dx * dx + dy * dy;
+    if (d2 <= r * r) hits.push([d2, it]);
+  }
+  hits.sort((a, b) => a[0] - b[0]);
+  return hits.slice(0, max).map((h) => h[1]);
+}
+
+function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
+  const player = world.player;
+  const px = player.x, py = player.y;
+  const inVehicle = !!player.inVehicle;
+  const pois = [];
+  const add = (layer, list, kind, max, r = MM_POI_NEAR_M) => {
+    if (!minimapShows(layer)) return;
+    for (const it of nearestWithin(list, px, py, r, max)) pois.push([typeof kind === 'function' ? kind(it) : kind, it.x, it.y]);
+  };
+  add('garage', getGaragesForRender(), 'garage', 1, MM_POI_FAR_M);
+  const shops = nearestWithin(getShopsForRender(), px, py, MM_POI_NEAR_M, 24);
+  for (const group of SHOP_GROUPS) {
+    if (!minimapShows(group)) continue;
+    const types = new Set();
+    for (const sh of shops) {
+      if (types.size >= 2) break;
+      if ((SHOP_TYPES[sh.type] || {}).group !== group || types.has(sh.type)) continue;
+      types.add(sh.type);
+      pois.push(['shop-' + sh.type, sh.x, sh.y]);
+    }
+  }
+  if (!job) add('bijbaan', getSideJobSpotsForRender(), (sj) => 'sj-' + sj.job.id, 2, MM_POI_FAR_M);
+  add('trein', getStationsForRender(), 'station', 1, MM_POI_FAR_M);
+  if (inVehicle) add('flitspaal', world.flitspaalen || [], 'flitspaal', 2);
+  if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
+  add('horeca', getHorecaForRender(), 'horeca', 1);
+  add('landmark', world.map.meta.landmarks || [], 'landmark', 2);
+
+  const gap2 = MM_POI_GAP_PX * MM_POI_GAP_PX;
+  const drawn = [];
+  for (const [kind, x, y] of pois) {
+    if (!inRange(x, y)) continue;
+    const [sx, sy] = toScreen(x, y);
+    let blocked = false;
+    for (let i = 0; i < placed.length && !blocked; i += 2) blocked = (placed[i] - sx) ** 2 + (placed[i + 1] - sy) ** 2 < gap2;
+    if (blocked) continue;
+    placed.push(sx, sy);
+    drawn.push([kind, sx, sy]);
+  }
+  for (const [kind, sx, sy] of drawn) drawMapIcon(ctx, kind, sx, sy, MM_POI_ICON, { t });
+}
 
 function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
@@ -829,36 +901,31 @@ function drawMinimap(dt, world) {
   const route = getActiveRoute();
   const ahead = route && getRouteAhead(MM_RADIUS_M * 2.5);
   if (ahead && ahead.length > 1) {
-    drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind], 3.2);
+    drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, 4);
   }
   const inRange = (x, y) => (x - player.x) ** 2 + (y - player.y) ** 2 <= iconRangeM * iconRangeM;
+  const placed = [];
   const icon = (kind, x, y, opts) => {
     if (!inRange(x, y)) return false;
     const [sx, sy] = toScreen(x, y);
     drawMapIcon(ctx, kind, sx, sy, MM_ICON, { t, ...opts });
+    placed.push(sx, sy);
     return true;
   };
   const edgeAngle = (x, y) => Math.atan2(y - player.y, x - player.x) + mapRotation;
 
-  for (const lm of world.map.meta.landmarks || []) icon('landmark', lm.x, lm.y);
-
-  const p = getPickupsForRender();
-  for (const m of p.money) icon('money', m.x, m.y);
-  for (const w of p.weapons) icon('weapon', w.x, w.y);
-  if (p.health) icon('health', p.health.x, p.health.y);
-  if (p.armor) icon('armor', p.armor.x, p.armor.y);
-  for (const g of p.garages) icon('garage', g.x, g.y);
-  if (!horecaMini) horecaMini = declutter(getHorecaForRender(), 14 / MM_SCALE);
-  for (const h of horecaMini) icon('horeca', h.x, h.y);
-  for (const f of world.flitspaalen || []) icon('flitspaal', f.x, f.y);
-  for (const sh of getShopsDecluttered(14 / MM_SCALE)) icon('shop-' + sh.type, sh.x, sh.y);
-  for (const ps of getPigeonSpotsForRender()) icon('pigeon', ps.x, ps.y);
-  for (const st of getStationsForRender()) icon('station', st.x, st.y);
-  for (const sj of getSideJobSpotsForRender()) icon('sj-' + sj.job.id, sj.x, sj.y);
-  for (const o of getOwnedVehiclesForRender()) if (player.inVehicle !== o.v) icon('car', o.v.x, o.v.y);
-
   const m = world.mission;
   const job = world.sideJob && world.sideJob.active ? world.sideJob : null;
+  const wp = getUserWaypoint();
+  const owned = getOwnedVehiclesForMap(world);
+  const reserve = (x, y) => { if (inRange(x, y)) placed.push(...toScreen(x, y)); };
+  if (job && job.marker) reserve(job.marker.x, job.marker.y);
+  if (m && m.marker && m.phase !== 'cooldown' && !job) reserve(m.marker.x, m.marker.y);
+  if (wp) reserve(wp.x, wp.y);
+  for (const o of owned) reserve(o.x, o.y);
+  drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t);
+
+
   let missionEdge = null, jobEdge = null;
   if (job) {
     for (const d of job.dots) icon('sj-dot', d.x, d.y);
@@ -874,18 +941,18 @@ function drawMinimap(dt, world) {
     if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
   }
 
-  const wp = getUserWaypoint();
   let wpEdge = null;
   if (wp && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
 
-  const hero = getHeroCar(world);
   let heroEdge = null;
-  if (hero && player.inVehicle !== hero && !icon('car', hero.x, hero.y)) heroEdge = edgeAngle(hero.x, hero.y);
+  for (const o of owned) {
+    if (!icon('own', o.x, o.y, { vkind: o.kind, color: o.color }) && o.hero) heroEdge = edgeAngle(o.x, o.y);
+  }
 
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', c.x, c.y);
 
-  forEachPoliceUnit(world, (x, y) => icon('police', x, y));
+  if (world.wanted > 0) forEachPoliceUnit(world, (x, y) => icon('police', x, y));
 
   drawMapIcon(ctx, 'player', cx, cy, 1.15, { angle: player.angle + mapRotation });
 
@@ -905,7 +972,7 @@ function drawMinimap(dt, world) {
   }
   if (wpEdge != null) {
     const s = 1 + pulseAt(t) * 0.2;
-    drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, C.cream, s);
+    drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, ROUTE_COLORS.user, s);
   }
 }
 

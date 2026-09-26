@@ -155,3 +155,118 @@ function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
 export function getWaterIndex(map) {
   return map._waterIndex || (map._waterIndex = createWaterIndex(map.water));
 }
+
+// --- clearance from the shore ----------------------------------------------
+// Boats and swimmers keep off the quay walls, banks and moored houseboats: the
+// drawn walls stand on the polygon edge and the banks slope out into it, so
+// "inside the polygon" alone lets a hull clip through the stonework.
+
+const OB_CELL = 16;
+
+function obstacleGrid(map) {
+  if (map._waterObstacles) return map._waterObstacles;
+  const g = map._waterObstacles = new Map();
+  for (const b of map.buildings || []) if (b.type === 'houseboat') addWaterObstacle(map, b.pts);
+  return g;
+}
+
+// A closed ring [[x, y], ...] in the water that boats and swimmers stay clear of.
+export function addWaterObstacle(map, ring) {
+  const g = obstacleGrid(map);
+  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+  for (const [x, y] of ring) { minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y); }
+  const ob = { ring, minx, miny, maxx, maxy };
+  for (let cx = Math.floor((minx - 4) / OB_CELL); cx <= Math.floor((maxx + 4) / OB_CELL); cx++) {
+    for (let cy = Math.floor((miny - 4) / OB_CELL); cy <= Math.floor((maxy + 4) / OB_CELL); cy++) {
+      const k = cx + ',' + cy;
+      if (!g.has(k)) g.set(k, []);
+      g.get(k).push(ob);
+    }
+  }
+}
+
+function ringDist(ring, x, y) {
+  let best = Infinity, inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const ax = ring[j][0], ay = ring[j][1], bx = ring[i][0], by = ring[i][1];
+    if ((ay > y) !== (by > y) && x < ax + (bx - ax) * (y - ay) / (by - ay)) inside = !inside;
+    const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey;
+    let t = l2 > 1e-9 ? ((x - ax) * ex + (y - ay) * ey) / l2 : 0;
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    const qx = ax + ex * t - x, qy = ay + ey * t - y;
+    best = Math.min(best, qx * qx + qy * qy);
+  }
+  return inside ? -Math.sqrt(best) : Math.sqrt(best);
+}
+
+// Free water around (x, y), capped at maxR: distance to the nearest real
+// shore (edges shared by two water polygons don't count) or moored
+// obstacle; negative on land or inside an obstacle.
+export function waterClearance(map, x, y, maxR = 4) {
+  const idx = getWaterIndex(map);
+  if (!idx.inWater(x, y)) return -1;
+  let d = idx.nearestShore(x, y, maxR).d;
+  const list = obstacleGrid(map).get(Math.floor(x / OB_CELL) + ',' + Math.floor(y / OB_CELL));
+  if (list) {
+    for (const ob of list) {
+      if (x < ob.minx - d || x > ob.maxx + d || y < ob.miny - d || y > ob.maxy + d) continue;
+      d = Math.min(d, ringDist(ob.ring, x, y));
+    }
+  }
+  return d;
+}
+
+// --- channel points -----------------------------------------------------------
+// Spots in a water polygon with room for a boat (clearance >= CHANNEL_MIN),
+// each with the local channel heading (along the nearest shore). Built lazily
+// on a grid scaled to the polygon's size, a few ms per frame at most, and
+// cached on the polygon: boat spawns and wander targets draw from it.
+
+const CHANNEL_MIN = 2.2;
+const FRAME_BUDGET = 3;
+let budgetFrame = -1, budgetSpent = 0;
+
+function ringContains(ring, x, y) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const ay = ring[j][1], by = ring[i][1];
+    if ((ay > y) !== (by > y) && x < ring[j][0] + (ring[i][0] - ring[j][0]) * (y - ay) / (by - ay)) inside = !inside;
+  }
+  return inside;
+}
+
+// budgetMs: Infinity finishes the scan now; otherwise the time shared by all
+// polygons within the current frame.
+export function waterChannelPoints(map, poly, budgetMs = Infinity) {
+  let ch = poly._channel;
+  if (!ch) {
+    const [minx, miny, maxx, maxy] = poly.bounds;
+    const step = Math.min(12, Math.max(2.5, Math.sqrt(((maxx - minx) * (maxy - miny)) / 6000)));
+    ch = poly._channel = { pts: [], done: false, step, x: minx + step / 2, y: miny + step / 2 };
+  }
+  if (ch.done) return ch;
+  const frame = Math.floor(performance.now() / 16);
+  if (frame !== budgetFrame) { budgetFrame = frame; budgetSpent = 0; }
+  const limit = budgetMs === Infinity ? Infinity : Math.min(budgetMs, FRAME_BUDGET - budgetSpent);
+  if (limit <= 0) return ch;
+  const t0 = performance.now();
+  const idx = getWaterIndex(map);
+  const [minx, , maxx, maxy] = poly.bounds;
+  let n = 0;
+  while (ch.y < maxy) {
+    const x = ch.x, y = ch.y;
+    ch.x += ch.step;
+    if (ch.x > maxx) { ch.x = minx + ch.step / 2; ch.y += ch.step; }
+    if (idx.inWater(x, y) && ringContains(poly.pts, x, y)) {
+      const d = waterClearance(map, x, y, 6);
+      if (d >= CHANNEL_MIN) {
+        const s = idx.nearestShore(x, y, 40);
+        ch.pts.push({ x, y, d, a: s.i >= 0 ? Math.atan2(s.ty, s.tx) : 0 });
+      }
+    }
+    if (++n % 32 === 0 && performance.now() - t0 > limit) break;
+  }
+  if (ch.y >= maxy) ch.done = true;
+  if (budgetMs !== Infinity) budgetSpent += performance.now() - t0;
+  return ch;
+}

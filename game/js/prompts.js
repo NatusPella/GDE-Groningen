@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getCamera } from './scene3d.js';
-import { getPickupsForRender } from './pickups.js';
+import { getGaragesForRender } from './garages.js';
 import { getHorecaForRender, nearestHorecaSpot, horecaState } from './horeca.js';
 import { shopPrimaryPrompt, shopSecondaryPrompts } from './shops.js';
 import { vehicleDisplayLabel } from './vehiclenames.js';
@@ -210,6 +210,8 @@ function trackUsage(dt, world) {
 function vehicleVerb(v) {
   const moving = Math.abs(v.speed || 0) > 0.3;
   const occupied = v.isBoat ? moving : !v.isHeroCar && !!v.road;
+  // your own ride (hero car, bought, rented, job vehicle) is never theft
+  if (v.isHeroCar || v.playerOwned || v.missionCar) return { label: v.isBoat ? 'Aan boord' : v.isBike || v.isScooter ? 'Opstappen' : 'Instappen' };
   if (v.isPolice) return { label: 'Jatten', steal: true };
   if (v.parked) return { label: v.isBus ? 'Bus jatten' : 'Auto jatten', steal: true };
   if (v.isBoat) return occupied ? { label: 'Kapen', steal: true } : { label: 'Aan boord' };
@@ -267,7 +269,7 @@ function pedInReach(world, range, cone) {
   return best;
 }
 
-// Mirrors the order player.js resolves an E press in: kiss first, then the
+// Mirrors the order player.js resolves an E press in (kissing is K now): the
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = world.player;
@@ -294,15 +296,11 @@ function findPrimary(world) {
   const c = world.companion;
   const kissable = c && c.state !== 'dead' && !c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) <= KISS_DIST;
   const kissReady = world.time >= kissUntil;
-  if (kissable && kissReady && world.input && (world.input.wasPressed('e') || world.input.wasPressed('f'))) {
+  if (kissable && kissReady && world.input && world.input.wasPressed('k')) {
     kissUntil = world.time + KISS_COOLDOWN;
     used('kiss');
   }
   const facingC = kissable && angleOff(p, c.x, c.y) < (learning('kiss') ? 1.4 : 0.8);
-  if (facingC && kissReady) {
-    const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
-    return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'E', label: 'Kusje', sub: learning('kiss') ? `Geef ${name} een smakkerd: +25 gezondheid` : name, learn: learning('kiss'), ring: true, cooldown: 0 };
-  }
   const v = findEnterableVehicle(p.x, p.y, world.vehicles);
   const pr = findRideableProp(p.x, p.y);
   if (pr && (!v || pr.dist < distToVehicleBody(v, p.x, p.y))) {
@@ -319,9 +317,13 @@ function findPrimary(world) {
     if (learn) sub = verb.steal ? 'Sleur de bestuurder eruit en rij weg' : 'Stap in en rij weg, niemand die het ziet';
     return { id: 'veh-' + v.id + verb.label, ...a, key: 'E', label: verb.label, sub, learn, ring: true, steal: !!verb.steal };
   }
+  if (facingC && kissReady) {
+    const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
+    return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: learning('kiss') ? `Geef ${name} een smakkerd: +25 gezondheid` : name, learn: learning('kiss'), ring: true, cooldown: 0 };
+  }
   if (facingC) {
     const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
-    return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'E', label: 'Kusje', sub: 'Even bijkomen...', ring: true, cooldown: (kissUntil - world.time) / KISS_COOLDOWN, dim: true };
+    return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: 'Even bijkomen...', ring: true, cooldown: (kissUntil - world.time) / KISS_COOLDOWN, dim: true };
   }
   const weapon = world.weapon || 'fists';
   if (weapon === 'fists') {
@@ -352,14 +354,7 @@ function findSecondary(world, primary) {
     out.push(c);
   };
   const inV = p.inVehicle;
-  const pk = getPickupsForRender();
-  if (!inV || Math.abs(inV.speed) < 14) {
-    for (const m of pk.money) add({ id: 'm' + m.x + m.y, x: m.x, y: m.y, h: 1.1, label: '€' + m.amount, sub: 'Oprapen', kind: 'item' }, 14);
-    for (const w of pk.weapons) add({ id: 'w' + w.x + w.y, x: w.x, y: w.y, h: 1.1, label: WEAPON_NAMES[w.key] || 'Wapen', sub: 'Munitie', kind: 'item' }, 16);
-    if (pk.health) add({ id: 'hp', x: pk.health.x, y: pk.health.y, h: 1.1, label: 'EHBO', sub: world.health < 100 ? 'Oplappen' : 'Voor later', kind: 'item' }, 16);
-    if (pk.armor) add({ id: 'ar', x: pk.armor.x, y: pk.armor.y, h: 1.1, label: 'Kogelwerend vest', sub: 'Pantser', kind: 'item' }, 16);
-  }
-  for (const g of pk.garages || []) {
+  for (const g of getGaragesForRender()) {
     const ready = !(world.time < (g.cooldownUntil || 0));
     add({ id: 'g' + g.x + g.y, x: g.x, y: g.y, h: 2.6, label: 'Spuit & Klaar', sub: !ready ? 'Even geduld' : inV ? 'Rij erin: heel & schoon' : 'Kom met een bak', kind: 'place' }, inV ? 45 : 20);
   }

@@ -619,20 +619,21 @@ body:has(#cine[data-tint="bust"]) #game3d { filter: grayscale(1) brightness(0.85
 #hud .ph-empty { padding: 14px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.6); text-align: center; }
 
 #hud .hud-vehname {
+  /* GTA-style: bottom right, just above the minimap */
   position: absolute;
-  left: 16px;
-  bottom: 52px;
-  text-align: left;
+  right: 20px;
+  bottom: 196px;
+  text-align: right;
   color: #f0ede4;
-  text-shadow: var(--hud-shadow);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 0, 0, 0.5);
   font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
   opacity: 0;
-  transform: translateX(-14px);
+  transform: translateX(18px);
   transition: opacity 0.35s, transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
   pointer-events: none;
 }
 #hud .hud-vehname.on { opacity: 1; transform: none; }
-#hud .hud-vehname small { display: block; font-size: 16px; letter-spacing: 4px; color: #3fc97a; text-transform: uppercase; }
+#hud .hud-vehname small { display: block; font-size: 20px; letter-spacing: 5px; color: #3fc97a; text-transform: uppercase; }
 #hud .hud-vehname small:empty { display: none; }
-#hud .hud-vehname b { display: block; font-weight: normal; font-size: 40px; line-height: 0.95; letter-spacing: 1px; }
+#hud .hud-vehname b { display: block; font-weight: normal; font-size: 56px; line-height: 0.92; letter-spacing: 1.5px; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-vehname { transition: opacity 0.2s; transform: none; } }

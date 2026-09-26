@@ -3,6 +3,7 @@ import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
 import { respawnPlayer } from './world.js';
 import { pointInPolygon } from './util.js';
+import { startRespawnScene } from './respawn.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -294,7 +295,7 @@ export function updateCinematics(dt, w) {
 // --- triggers ---------------------------------------------------------------
 
 function checkTriggers(dt, w) {
-  if (w.pendingRespawn && !isCinematicActive('death')) playDeath(w, w.pendingRespawn);
+  if (w.pendingRespawn && !w.pendingRespawn.scene && !isCinematicActive('death')) playDeath(w, w.pendingRespawn);
 
   const wantedUp = w.wanted >= 5 && prevWanted < 5;
   prevWanted = w.wanted;
@@ -541,7 +542,7 @@ function checkWijk(dt, w) {
   if (!p || wijkSeen.has(p.name)) { wijkCand = null; return; }
   if (!wijkCand || wijkCand.name !== p.name) { wijkCand = p; wijkDwell = 0; return; }
   wijkDwell += step;
-  if (wijkDwell < WIJK_DWELL || active || !momentsOn() || w.pendingRespawn || w.wanted > 0) return;
+  if (wijkDwell < WIJK_DWELL || active || !momentsOn() || w.pendingRespawn || w.wanted > 0 || w.time < (w.quietUntil || 0)) return;
   markWijk(p);
   wijkCand = null;
   playWijk(w, p);
@@ -676,11 +677,17 @@ function playDeath(w, pending) {
     shot: pathShot(clearKeys(w, keys), easeOut),
     onEnd: () => {
       if (w.pendingRespawn !== pending) return;
+      // the trip to the hospital / police station; it respawns the player itself
+      if (startRespawnScene(w, pending, opts)) return;
       w.pendingRespawn = null;
-      respawnFromCine = true;
-      try { respawnPlayer(w, opts); } finally { respawnFromCine = false; }
+      respawnFromScene(w, opts);
     },
   });
+}
+
+export function respawnFromScene(w, opts) {
+  respawnFromCine = true;
+  try { respawnPlayer(w, opts); } finally { respawnFromCine = false; }
 }
 
 function playLandmark(w, lm) {

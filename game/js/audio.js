@@ -909,8 +909,8 @@ function playClip(src, pos = null) {
 }
 
 // Voicelines/police/Sikkom - the "important", event-driven spoken lines -
-// share one global cooldown so simultaneous triggers (walking through a
-// cluster of pickups) can't stack into overlapping voices. Returns whether
+// share one global cooldown so simultaneous triggers (several events in
+// the same moment) can't stack into overlapping voices. Returns whether
 // it actually played, so callers that only want a visual (e.g. a speech
 // bubble) to show up TOGETHER with real audio can check first.
 const SPOKEN_MIN_GAP = 1.4;
@@ -929,7 +929,7 @@ function playSpokenClip(src, pos = null) {
 
 // NPC ambient chatter gets its OWN, much longer cooldown, entirely separate
 // from the one above - with up to ~45 pedestrians nearby, sharing a single
-// short cooldown with real gameplay events (money/weapon pickups, mission
+// short cooldown with real gameplay events (purchases, mission
 // beats, busted) let ambient chatter starve out the lines that actually
 // matter. Per explicit feedback ("nog steeds veel te veel en te vaak") this
 // is deliberately strict.

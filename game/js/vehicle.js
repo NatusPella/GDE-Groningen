@@ -1,8 +1,8 @@
-import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, WATER_Y } from './util.js';
+import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
+import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { trafficSignalsNear, getTrafficLightPhase } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
 import { inPassage } from './collision.js';
-import { railingContact } from './bridgerails.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
@@ -654,32 +654,42 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
 // Boats don't follow the road graph at all - they free-roam a water polygon,
 // so spawning one just needs a point that is actually inside it rather than
 // a road/lane placement.
-// Returns null when no valid spot turns up - the bbox centre of a winding
-// canal polygon is often dry land.
-export function spawnBoatOnWater(map, waterPoly, rng = Math.random) {
-  const [minx, miny, maxx, maxy] = waterPoly.bounds;
-  let x = null, y = null;
-  for (let attempt = 0; attempt < 20; attempt++) {
-    const cx = minx + rng() * (maxx - minx);
-    const cy = miny + rng() * (maxy - miny);
-    if (pointInPolygon(cx, cy, waterPoly.pts) && !map.isOnBridge(cx, cy)) { x = cx; y = cy; break; }
+// Spots come from the polygon's cached channel points (waterindex.js), so a
+// boat starts with room around it, heading along the channel. opts: model,
+// near [x, y] with min/max distance, budget (ms of channel scanning this
+// frame; the default finishes the scan). Returns null when no spot fits yet.
+export function spawnBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
+  const model = opts.model || BOAT_MODELS[Math.floor(rng() * BOAT_MODELS.length)];
+  const ch = waterChannelPoints(map, waterPoly, opts.budget ?? Infinity);
+  let pts = ch.pts;
+  if (opts.near) {
+    const [nx, ny] = opts.near, lo = (opts.min || 0) ** 2, hi = (opts.max ?? Infinity) ** 2;
+    pts = pts.filter((q) => { const d2 = (q.x - nx) ** 2 + (q.y - ny) ** 2; return d2 >= lo && d2 <= hi; });
   }
-  if (x === null) return null;
-  const angle = rng() * Math.PI * 2 - Math.PI;
-  const model = BOAT_MODELS[Math.floor(rng() * BOAT_MODELS.length)];
-  const v = new Vehicle(x, y, angle, model);
-  v.isBoat = true;
-  v.waterPoly = waterPoly;
-  return v;
+  if (!pts.length) return null;
+  const probe = { model };
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const q = pts[Math.floor(rng() * pts.length)];
+    if (map.isOnBridge(q.x, q.y)) continue;
+    const flip = rng() < 0.5 ? 0 : Math.PI;
+    for (const turn of [0, Math.PI, 0.3, -0.3]) {
+      const angle = normalizeAngle(q.a + flip + turn);
+      if (boatDryPoints(map, probe, q.x, q.y, angle) > 0) continue;
+      const v = new Vehicle(q.x, q.y, angle, model);
+      v.isBoat = true;
+      v.waterPoly = waterPoly;
+      return v;
+    }
+  }
+  return null;
 }
 
 // Same placement as spawnBoatOnWater, forced into the police livery/model
 // and flagged isPolice so updateBoatAI's chase branch (below) and the
 // regular vehicle render/sync path both treat it like any other cop unit.
-export function spawnPoliceBoatOnWater(map, waterPoly, rng = Math.random) {
-  const v = spawnBoatOnWater(map, waterPoly, rng);
+export function spawnPoliceBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
+  const v = spawnBoatOnWater(map, waterPoly, rng, { ...opts, model: POLICE_BOAT_MODEL });
   if (!v) return null;
-  v.model = POLICE_BOAT_MODEL;
   v.isPolice = true;
   return v;
 }
@@ -704,23 +714,32 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const poly = candidates[Math.floor(Math.random() * candidates.length)];
-    const v = spawnBoatOnWater(map, poly, Math.random);
-    if (!v) continue;
-    const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v)) continue;
+    const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3 });
+    if (!v || !spawnSpotFree(vehicles, v)) continue;
     vehicles.push(v);
     count++;
   }
 }
 
-function pickBoatWaypoint(v, rng) {
-  const [minx, miny, maxx, maxy] = v.waterPoly.bounds;
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const x = minx + rng() * (maxx - minx);
-    const y = miny + rng() * (maxy - miny);
-    if (pointInPolygon(x, y, v.waterPoly.pts)) return [x, y];
+// A wander target with room around it that the boat can reach in a straight
+// line through open water (sampled every 3 m), so the route doesn't cut
+// across a bend in the canal; falls back to any spot with some room.
+function pickBoatWaypoint(v, rng, map) {
+  const pts = waterChannelPoints(map, v.waterPoly, 2).pts;
+  let fallback = null;
+  for (let attempt = 0; attempt < 14 && pts.length; attempt++) {
+    const q = pts[Math.floor(rng() * pts.length)];
+    const x = q.x, y = q.y;
+    const d = Math.hypot(x - v.x, y - v.y);
+    if (d < 6) continue;
+    let clear = q.d >= 3;
+    for (let t = 3; t < d && clear; t += 3) {
+      if (waterClearance(map, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d, 3) < 1.8) clear = false;
+    }
+    if (clear) return [x, y];
+    if (!fallback) fallback = [x, y];
   }
-  return [v.x, v.y];
+  return fallback || [v.x, v.y];
 }
 
 const BOAT_WAYPOINT_MIN = 4;
@@ -730,42 +749,47 @@ const BOAT_WAYPOINT_MAX = 9;
 // (v.waterPoly, set by spawnBoatOnWater) - no road graph involved, so this
 // stands entirely apart from updateTrafficAI.
 export function updateBoatAI(v, dt, map, world, rng = Math.random) {
-  if (v.wrecked) return;
+  if (v.wrecked || v.scripted) return; // scripted: a mission module steers this boat itself
   if (!v.waterPoly) { v.applyControls(dt, 0, 0, true); return; }
 
-  // Police pursuit: reuses the exact steer-toward-v.waypoint code below,
-  // just fed the player's live position every frame instead of a picked
-  // wander point - "biased toward the player" rather than a separate
-  // pursuit function.
+  // Police pursuit: the waypoint is simply the player's live position.
   const chasing = v.isPolice && !v.hijacked && world.wanted > 0;
   if (chasing) {
     v.waypoint = [world.player.x, world.player.y];
   } else {
     v.waypointTimer = (v.waypointTimer || 0) - dt;
     if (!v.waypoint || v.waypointTimer <= 0 || Math.hypot(v.waypoint[0] - v.x, v.waypoint[1] - v.y) < 4) {
-      v.waypoint = pickBoatWaypoint(v, rng);
+      v.waypoint = pickBoatWaypoint(v, rng, map);
       v.waypointTimer = BOAT_WAYPOINT_MIN + rng() * (BOAT_WAYPOINT_MAX - BOAT_WAYPOINT_MIN);
     }
   }
 
   const dx = v.waypoint[0] - v.x, dy = v.waypoint[1] - v.y;
-  const steerErr = normalizeAngle(Math.atan2(dy, dx) - v.angle);
+  let steer = clamp(normalizeAngle(Math.atan2(dy, dx) - v.angle) * 1.2, -1, 1);
+  let throttle = 1, brake = false;
 
-  // heading would carry the boat outside the water body - re-pick now rather
-  // than let it run aground, same defensive check pedestrians.js's
-  // pickWaypoint uses before committing to a spot. A chasing police boat
-  // keeps steering at the player instead (its waypoint IS the player) - it
-  // just brakes rather than beaching itself until the player is reachable
-  // by water again.
-  const aheadX = v.x + Math.cos(v.angle) * (v.model.len + 1);
-  const aheadY = v.y + Math.sin(v.angle) * (v.model.len + 1);
-  const aground = !pointInPolygon(aheadX, aheadY, v.waterPoly.pts);
-  if (aground && !chasing) {
-    v.waypoint = pickBoatWaypoint(v, rng);
-    v.waypointTimer = BOAT_WAYPOINT_MIN;
+  // three feelers ahead of the bow: ease off and turn toward the side with
+  // more open water well before the hull reaches a quay, bank or houseboat
+  const reach = v.model.len * 0.5 + 2 + Math.abs(v.speed) * 0.9;
+  const feel = (a) => waterClearance(map, v.x + Math.cos(v.angle + a) * reach, v.y + Math.sin(v.angle + a) * reach, 5);
+  const cF = feel(0);
+  if (cF < 3) {
+    const cL = feel(0.5), cR = feel(-0.5);
+    const away = cL >= cR ? 1 : -1;
+    const urgency = clamp((3 - cF) / 2.5, 0, 1);
+    steer = clamp(steer * (1 - urgency) + away * urgency, -1, 1);
+    throttle = cF < 1.2 ? 0.2 : 1 - urgency * 0.6;
+    brake = cF < 0.5 && Math.abs(v.speed) > 1;
+    if (!chasing && cF < 1.5) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
   }
 
-  v.applyControls(dt, aground && chasing ? 0 : 1, clamp(steerErr * 1.2, -1, 1), aground && chasing);
+  const px = v.x, py = v.y, pa = v.angle;
+  v.applyControls(dt, throttle, steer, brake);
+  if (!keepBoatOffShore(map, v, px, py, pa)) {
+    v.speed *= -0.3;
+    v.driftX = 0; v.driftY = 0;
+    if (!chasing) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
+  }
 }
 
 // What the tyres are on: 'asfalt' | 'fietspad' | 'klinkers' | 'gras'. The
@@ -1807,7 +1831,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       hit = true;
       break;
     }
-    const rc = v.isBoat || v.sinking ? null : (offLevel ? null : railingContact(map, c[0], c[1])) || (map.elev ? elevWallContact(map.elev, c[0], c[1], v.z || 0) : null);
+    const rc = v.isBoat || v.sinking ? null : (map.elev ? elevWallContact(map.elev, c[0], c[1], v.z || 0) : null);
     if (rc) {
       v.x += rc.nx * rc.depth;
       v.y += rc.ny * rc.depth;

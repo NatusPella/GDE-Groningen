@@ -5,6 +5,9 @@ import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST,
 import { findProps } from './breakables.js';
 import { pushCircleOutOfVehicle } from './vehicle.js';
 import { resolveRailings } from './bridgerails.js';
+import { waterClearance } from './waterindex.js';
+
+const SWIM_EDGE_CLEAR = 0.7;
 import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 
 // Tammo and Anita are always out together: whichever one the player is NOT
@@ -178,9 +181,12 @@ function swimTowards(c, tx, ty, speed, dt, map) {
   c.vy += (Math.sin(c.angle) * s - c.vy) * k;
   const ox = c.x, oy = c.y;
   const nx = c.x + c.vx * dt, ny = c.y + c.vy * dt;
-  if (inWaterPoly(map, nx, ny)) { c.x = nx; c.y = ny; }
-  else if (inWaterPoly(map, nx, c.y)) c.x = nx;
-  else if (inWaterPoly(map, c.x, ny)) c.y = ny;
+  // same wall margin as the player's swimming: slide along, may back away
+  const here = waterClearance(map, c.x, c.y, SWIM_EDGE_CLEAR + 1);
+  const free = (x, y) => { const w = waterClearance(map, x, y, SWIM_EDGE_CLEAR + 1); return w >= SWIM_EDGE_CLEAR || (w > 0 && w >= here); };
+  if (free(nx, ny)) { c.x = nx; c.y = ny; }
+  else if (free(nx, c.y)) c.x = nx;
+  else if (free(c.x, ny)) c.y = ny;
   c.swimTilt += ((moving ? -0.85 : -0.25) - c.swimTilt) * Math.min(1, dt * 4);
   return moving && Math.hypot(c.x - ox, c.y - oy) < s * dt * 0.3;
 }

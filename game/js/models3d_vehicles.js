@@ -234,6 +234,22 @@ function buildCarGeometry(type, L, W, paint, opts) {
     }
     B.box((P.xB + P.xC) / 2, P.roof + 0.05, 0, 0.3, 0.07, W * 0.72, TRIM);
   }
+  if (opts.ambulance) {
+    // Dutch ambulance: yellow body, a blue/yellow block band along the sides
+    const n = 8, x0 = -hl + 0.15, x1 = P.xA - 0.1, bw = (x1 - x0) / n;
+    for (const s of [1, -1]) {
+      const z = s * (hw + 0.007);
+      for (let i = 0; i < n; i++) {
+        for (const [row, y] of [[0, 0.62], [1, 0.84]]) {
+          if ((i + row) % 2) B.box(x0 + bw * (i + 0.5), y, z, bw, 0.22, 0.012, 0x1d4fa3);
+        }
+      }
+      B.box((x0 + x1) / 2, 1.0, z, x1 - x0, 0.05, 0.012, 0x2f8f4e);
+    }
+    B.box(-hl - 0.008, 1.45, 0, 0.012, 0.36, 0.36, 0xf4f2ee);
+    B.box(-hl - 0.012, 1.45, 0, 0.012, 0.28, 0.08, 0x1d4fa3);
+    B.box(-hl - 0.012, 1.45, 0, 0.012, 0.08, 0.28, 0x1d4fa3);
+  }
   if (type === 'sport') {
     B.box(-hl + 0.12, P.deck + 0.1, 0, 0.18, 0.03, W * 0.84, paint);
     for (const s of [1, -1]) B.box(-hl + 0.14, P.deck + 0.05, s * W * 0.34, 0.06, 0.08, 0.04, TRIM);
@@ -257,9 +273,9 @@ function shadeHex(hex, f) {
   return (r << 16) | (g << 8) | b;
 }
 
-function assembleCar(type, L, W, paint, { police = false, wrecked = false, wheelR = WHEEL_R } = {}) {
+function assembleCar(type, L, W, paint, { police = false, ambulance = false, wrecked = false, wheelR = WHEEL_R } = {}) {
   const color = wrecked ? WRECKED_COLOR : paint;
-  const geo = cached(`car|${type}|${L}|${W}|${color}|${police}`, () => buildCarGeometry(type, L, W, color, { police, wheelR }));
+  const geo = cached(`car|${type}|${L}|${W}|${color}|${police}|${ambulance}`, () => buildCarGeometry(type, L, W, color, { police, ambulance, wheelR }));
   const mats = vehicleMaterials();
   const group = new THREE.Group();
   const body = new THREE.Mesh(geo, mats);
@@ -271,12 +287,13 @@ function assembleCar(type, L, W, paint, { police = false, wrecked = false, wheel
   for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - WHEEL_W / 2 - 0.04), wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = wheelR;
-  if (police) {
-    const barY = P.roof + 0.14;
+  if (police || ambulance) {
+    const barY = P.roof + (ambulance ? 0.07 : 0.14);
+    const barX = ambulance ? P.xB - 0.35 : (P.xB + P.xC) / 2;
     const lamps = [];
     for (const s of [1, -1]) {
       const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, W * 0.3), lampMaterial(0x2f6bff, 0.25));
-      lamp.position.set((P.xB + P.xC) / 2, barY, s * W * 0.2);
+      lamp.position.set(barX, barY, s * W * 0.2);
       group.add(lamp);
       lamps.push(lamp);
     }
@@ -292,6 +309,7 @@ function carType(v) {
 }
 
 function buildCarMesh(v) {
+  if (v.isAmbulance) return assembleCar('van', v.model.len, v.model.wid, 0xf1d21c, { ambulance: true, wrecked: v.wrecked, wheelR: 0.34 });
   const police = !!v.isPolice;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
   return assembleCar(carType(v), v.model.len, v.model.wid, paint, { police, wrecked: v.wrecked, wheelR: v.model.name === 'van' ? 0.34 : WHEEL_R });

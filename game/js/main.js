@@ -9,7 +9,7 @@ import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initHud, updateHud } from './hud_panel.js';
-import { initPickups, updatePickups } from './pickups.js';
+import { initGarages, updateGarages } from './garages.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, updateShops, tryShopInteract } from './shops.js';
 import { isShopOpen } from './shopui.js';
@@ -140,7 +140,7 @@ async function boot() {
   manageBoatPopulation(world);
   world.pedestrians = spawnPedestriansNear(map, player.x, player.y, PED_TARGET, Math.random);
   initMissions(world);
-  initPickups(world);
+  initGarages(world);
   initHoreca(world);
   initShops(world);
   initTrafficLights(world);
@@ -275,7 +275,7 @@ async function boot() {
       updateMissions(dt, world);
       updateSikkomFeed(dt, world);
       updatePhoneFeed(dt, world);
-      updatePickups(dt, world);
+      updateGarages(dt, world);
       updateHoreca(dt, world);
       updateShops(dt, world);
       updateFlitspaal(dt, world);

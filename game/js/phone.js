@@ -3,8 +3,9 @@ import { getMissionList, getNextMission, trackMission } from './missions.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { saveGame } from './savegame.js';
 import { setUserWaypoint } from './routing.js';
-import { spawnHeroCarNear } from './vehicle.js';
 import { getHeroCar, getClockText } from './hud_panel.js';
+import { getGarageList, deliverOwnedVehicle, locateOwnedVehicle, whereText } from './ownedvehicles.js';
+import { initGarageStyles } from './garageui.js';
 
 const RING_TIME = 0.9;
 const GARAGE_PRICE = 100;
@@ -16,12 +17,14 @@ const ICONS = {
   kaart: '<path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zm6 0v12l6 2V7z"/>',
   instellingen: '<path d="M4 6h9v2H4zm13 0h3v2h-3zM4 16h3v2H4zm7 0h9v2h-9zM13 4h4v6h-4zM7 14h4v6H7zM4 11h5v2H4zm9 0h7v2h-7zM9 9h4v6H9z"/>',
   opslaan: '<path d="M4 3h13l4 4v14H3V3h1zm2 2v5h10V5H6zm1 9v5h10v-5H7zm7-8h2v3h-2V6z"/>',
+  voertuigen: '<path d="M5 11l1.6-4.3A2 2 0 0 1 8.5 5.4h7a2 2 0 0 1 1.9 1.3L19 11h1a1 1 0 0 1 1 1v5h-2v1.5a1.5 1.5 0 0 1-3 0V17H8v1.5a1.5 1.5 0 0 1-3 0V17H3v-5a1 1 0 0 1 1-1zm2.2 0h9.6l-1.1-3.2a.6.6 0 0 0-.6-.4H8.9a.6.6 0 0 0-.6.4zM6.5 12.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zm11 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/>',
 };
 const APPS = [
   { id: 'contacten', label: 'Contacten' },
   { id: 'missies', label: 'Missies' },
   { id: 'sikkom', label: 'Sikkom' },
   { id: 'kaart', label: 'Kaart' },
+  { id: 'voertuigen', label: 'Voertuigen' },
   { id: 'instellingen', label: 'Instellingen' },
   { id: 'opslaan', label: 'Opslaan' },
 ];
@@ -102,11 +105,9 @@ function garageTalk(w) {
       label: `Bezorgen (€${GARAGE_PRICE})`,
       run: () => {
         if (w.money < GARAGE_PRICE) { st.call.line = 'Geen geld, geen Escapade. Zo werkt dat hier.'; st.call.actions = []; render(); return; }
-        const car = spawnHeroCarNear(w.map, w.player.x + 6, w.player.y + 6);
-        if (!car) { st.call.line = 'Ik kan je niet vinden. Ga eens langs een weg staan.'; st.call.actions = []; render(); return; }
-        w.money -= GARAGE_PRICE;
-        w.vehicles.push(car);
-        flashAndClose('Henk heeft je auto gebracht');
+        const res = deliverOwnedVehicle(w, 'hero');
+        if (!res.ok) { st.call.line = res.text; st.call.actions = []; render(); return; }
+        setOpen(false);
       },
     }],
   };
@@ -130,6 +131,7 @@ function flashAndClose(msg) {
 export function initPhone(w) {
   world = w;
   initCinematics(w);
+  initGarageStyles();
   if (root) return;
   root = document.createElement('div');
   root.className = 'phone';
@@ -203,6 +205,8 @@ function itemCount() {
   if (st.screen === 'contacten') return contacts(world).length;
   if (st.screen === 'missies') return getMissionList().length;
   if (st.screen === 'call') return st.call && st.call.phase === 'talk' ? st.call.actions.length : 0;
+  if (st.screen === 'voertuigen') return getGarageList(world).length;
+  if (st.screen === 'voertuig') return vehicleActions().length;
   return 0;
 }
 
@@ -227,6 +231,7 @@ function move(k) {
 
 function back() {
   if (st.screen === 'home') setOpen(false);
+  else if (st.screen === 'voertuig') { st.screen = 'voertuigen'; st.sel = Math.max(0, st.vehIdx || 0); st.vehMsg = ''; render(); }
   else goHome(APPS.findIndex((a) => a.id === (st.screen === 'call' ? 'contacten' : st.screen)));
 }
 
@@ -281,6 +286,46 @@ function activate() {
     const a = st.call.actions[st.sel];
     if (a) a.run();
   }
+  if (st.screen === 'voertuigen') {
+    const e = getGarageList(w)[st.sel];
+    if (!e) return;
+    st.vehIdx = st.sel;
+    st.vehId = e.id;
+    st.vehMsg = '';
+    st.screen = 'voertuig';
+    st.sel = 0;
+    render();
+    return;
+  }
+  if (st.screen === 'voertuig') {
+    const a = vehicleActions()[st.sel];
+    if (a) a.run();
+  }
+}
+
+function currentVehicle() {
+  return getGarageList(world).find((e) => e.id === st.vehId) || null;
+}
+
+function vehicleActions() {
+  const e = currentVehicle();
+  if (!e) return [];
+  const out = [];
+  if (e.status !== 'driving') {
+    out.push({ label: `Laten afleveren (${e.feeLabel})`, run: () => {
+      const res = deliverOwnedVehicle(world, e.id);
+      if (res.ok) setOpen(false);
+      else { st.vehMsg = res.text; render(); }
+    } });
+  }
+  if (e.status === 'near' || e.status === 'far') {
+    out.push({ label: 'Waar staat hij?', run: () => {
+      const res = locateOwnedVehicle(world, e.id);
+      if (res.ok) flashAndClose(res.text + '. Staat op je kaart');
+      else { st.vehMsg = res.text; render(); }
+    } });
+  }
+  return out;
 }
 
 function talk(call) {
@@ -320,6 +365,22 @@ function render() {
       `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-rowtext"><b>${esc(m.label)}</b>` +
       `<small>€${m.reward}</small></span><span class="ph-chip" data-status="${m.status}">${STATUS_LABEL[m.status]}</span></button>`).join('')}</div>` +
       '<div class="ph-foot">Enter: route erheen</div>';
+  } else if (st.screen === 'voertuigen') {
+    html = header('Mijn voertuigen') + `<div class="ph-list">${getGarageList(w).map((e, i) =>
+      `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-swatch" style="background:${esc(e.color)}"></span>` +
+      `<span class="ph-rowtext"><b>${esc(e.label)}</b><small>${esc(whereText(e) || e.kindLabel)}</small></span>` +
+      `<span class="ph-chip" data-status="${e.status === 'lost' ? 'lost' : e.status === 'near' || e.status === 'driving' ? 'geklaard' : 'open'}">${esc(e.statusLabel)}</span></button>`).join('')}</div>` +
+      '<div class="ph-foot">Koop er meer bij Ome Harm of Trap & Toeter</div>';
+  } else if (st.screen === 'voertuig') {
+    const e = currentVehicle();
+    if (!e) { st.screen = 'voertuigen'; render(); return; }
+    const facts = [e.kindLabel, `${e.topSpeed} km/u`, e.paint, ...(e.upgrades.length ? e.upgrades : [])].join(' · ');
+    html = header(e.hero ? 'Escapade' : e.model) + `<div class="ph-list"><div class="ph-veh">` +
+      `<div class="ph-veh-top"><span class="ph-swatch lg" style="background:${esc(e.color)}"></span><span class="ph-rowtext"><b>${esc(e.label)}</b><small>${esc(e.statusLabel)}${whereText(e) ? ' · ' + esc(whereText(e)) : ''}</small></span></div>` +
+      `<p class="ph-veh-meme">${esc(e.meme)}</p><p class="ph-veh-facts">${esc(facts)}</p>` +
+      (st.vehMsg ? `<p class="ph-veh-msg">${esc(st.vehMsg)}</p>` : '') + '</div>' +
+      vehicleActions().map((a, i) => `<button type="button" class="ph-row ph-action${i === st.sel ? ' sel' : ''}" data-idx="${i}">${esc(a.label)}</button>`).join('') +
+      '</div><div class="ph-foot">Afgeleverd buiten beeld, om de hoek</div>';
   } else if (st.screen === 'sikkom') {
     const items = w.phoneHistory || [];
     html = header('Sikkom') + `<div class="ph-list ph-feed">${items.length ? items.map((n) =>

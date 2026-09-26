@@ -6,11 +6,43 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-26
+
+### Nieuw
+- **Nieuwe bootmissie**: een heel rondje Diepenring onder twaalf bruggen door.
+  Rustig beginnen, en dan komt Schipper Wiebe met zijn megafoon achter je aan
+  in zijn sloep. Hou de toeristen tevreden (botsingen maken ze bang, verhalen
+  bij de bezienswaardigheden maken ze blij) en schud Wiebe af — bij het
+  museum weet hij de brug niet zo goed.
+- **Doodgaan en opgepakt worden als in GTA**: de traumaheli brengt je naar
+  het UMCG (of de ambulance naar een dichtere huisartsenpraktijk), of de
+  politie brengt je naar het dichtstbijzijnde bureau. Daar staat je partner
+  met je rode auto al klaar.
+- **Je eigen voertuigen**: gekochte voertuigen blijven van jou, met hun lak
+  en upgrades. Laat ze via de telefoon-app *Voertuigen* of het nieuwe
+  tabblad **Garage** in het Escape-menu afleveren: ze staan dan om de hoek
+  op een veilige plek, buiten beeld. In je eigen voertuig stappen is nooit
+  meer diefstal.
+
 ### Verbeterd
+- **Kaart**: waypoints zetten werkt weer (rechtermuisklik of Del om te
+  wissen), en de route is nu ook op de grote kaart goed te zien, in paars,
+  geel (missie) of oranje (bijbaantje).
+- **Minimap**: veel rustiger, verder ingezoomd en met pictogrammen in plaats
+  van stippen. Per categorie kies je in de legenda of die ook op de minimap
+  staat.
+- **Geen gratis spullen meer op straat**: geld, wapens, gezondheid en vesten
+  koop je nu in de winkels. Een nieuwe game begint met €250.
 - Kusjes geven doe je nu met **K**, zodat je niet meer per ongeluk Anita of
   Tammo kust als je in je auto wilt stappen.
 - De naam van je voertuig verschijnt groter en langer rechtsonder in beeld
   als je instapt.
+- Brugleuningen zijn stevig, maar breken af (en plonzen het water in) als je
+  er hard tegenaan rijdt.
+
+### Opgelost
+- Boten voeren door de kademuren, en zwemmend kon je onder de kaderand door.
+- In je eigen auto stappen telde soms als autodiefstal.
 
 ## [0.2.0] - 2026-09-26
 

@@ -38,7 +38,7 @@ export const MISSION_GOALS = [
   { name: 'Ringweg-race', gold: 150, silver: 190, wanted: 5, byPlace: true, extra: ['Netjes ingehaald', 'Win de ringweg-race zonder een rivaal te raken'] },
   { name: 'Kroegentocht', gold: 85, silver: 110, wanted: 0, extra: ['Laatste ronde', 'Haal alle vier de kroegen met nog een volle minuut op de klok'] },
   { name: 'Fatbike-terreur', gold: 30, silver: 36, wanted: 0, extra: ['Geen bandafdruk', 'Kom het Zuiderpark door zonder één keer geschept te worden'] },
-  { name: 'Rondvaart', gold: 105, silver: 125, wanted: 0, extra: ['Glad water', 'Vaar de rondvaart zonder ergens tegenaan te tikken'] },
+  { name: 'Rondvaart', gold: 510, silver: 610, wanted: 0, happy: [80, 50], extra: ['Glad water', 'Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe'] },
 ];
 export const GOLD_DAMAGE = 25;
 export const SILVER_DAMAGE = 60;
@@ -48,7 +48,7 @@ const mdefs = [];
 MISSION_GOALS.forEach((g, i) => {
   const n = i + 1;
   mdefs.push({ id: `m${n}_klaar`, cat: 'missies', title: `${g.name}`, desc: `Klaar missie ${n}` });
-  const goldDesc = g.byPlace ? 'Goud: win de race als eerste' : `Goud: binnen ${fmtTime(g.gold)}, weinig schade${g.wanted < 5 ? g.wanted ? ', hooguit 1 ster' : ', zonder politie' : ''}`;
+  const goldDesc = g.byPlace ? 'Goud: win de race als eerste' : `Goud: binnen ${fmtTime(g.gold)}, ${g.happy ? `toeristen minstens ${g.happy[0]}% tevreden` : 'weinig schade'}${g.wanted < 5 ? g.wanted ? ', hooguit 1 ster' : ', zonder politie' : ''}`;
   mdefs.push({ id: `m${n}_goud`, cat: 'missies', title: `${g.name}: goud`, desc: goldDesc, medal: true });
   mdefs.push({ id: `m${n}_extra`, cat: 'missies', title: g.extra[0], desc: g.extra[1] });
 });

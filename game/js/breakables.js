@@ -222,8 +222,9 @@ function collideVehicle(v, prev, near) {
   const step = Math.hypot(v.x - prev.x, v.y - prev.y);
   const n = step > 0.5 && step < 6 ? Math.ceil(step / 0.5) : 1;
   const boat = !!v.isBoat;
+  const vz = v.z || 0;
   for (const p of near) {
-    if (!p.cell || !!p.water !== boat) continue;
+    if (!p.cell || !!p.water !== boat || Math.abs(vz - (p.z || 0)) > 3) continue;
     for (let i = 1; i <= n; i++) {
       const t = i / n;
       const x = prev.x + (v.x - prev.x) * t, y = prev.y + (v.y - prev.y) * t;

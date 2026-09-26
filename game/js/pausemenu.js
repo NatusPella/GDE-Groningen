@@ -7,6 +7,8 @@ import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel, missionRecordHTML } from './achievementsui.js';
 import { getSideJobList } from './sidejobs.js';
 import { setUserWaypoint } from './routing.js';
+import { renderGaragePanel } from './garageui.js';
+import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
@@ -17,7 +19,8 @@ const CONTROLS = [
   ['Shift', 'rennen'],
   ['Spatie', 'springen / handrem'],
   ['Ctrl', 'bukken'],
-  ['E / F', 'instappen / uitstappen / kusje / winkel in / word een duif (bij een duivenbord) / bijbaantje beginnen'],
+  ['E / F', 'instappen / uitstappen / winkel in / word een duif (bij een duivenbord) / bijbaantje beginnen'],
+  ['K', 'kusje geven aan Tammo/Anita'],
   ['R', 'nieuwe lak (stilstaand bij Spuit & Klaar)'],
   ['Muisklik', 'aanvallen / schieten'],
   ['1–4', 'vuisten / pistool / uzi / hagelgeweer'],
@@ -36,6 +39,7 @@ const CONTROLS = [
 const TABS = [
   ['map', 'Kaart'],
   ['missions', 'Missies'],
+  ['garage', 'Garage'],
   ['prestaties', 'Prestaties'],
   ['settings', 'Instellingen'],
   ['controls', 'Besturing'],
@@ -43,8 +47,9 @@ const TABS = [
 ];
 
 const FOOTERS = {
-  map: '<b>Klik</b> bestemming · <b>Shift+klik</b> teleporteren · <b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> centreren · <b>Del</b> wissen',
+  map: '<b>Klik</b> bestemming · <b>Rechtsklik / Del</b> wissen · <b>Shift+klik</b> teleporteren · <b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> centreren',
   missions: '<b>Klik</b> op een missie om de route te zetten · geklaarde missies kun je opnieuw spelen voor een betere medaille',
+  garage: '<b>Laten afleveren</b> zet je voertuig om de hoek, buiten beeld · gekochte voertuigen blijven voorgoed van jou',
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
   settings: 'Instellingen worden automatisch bewaard',
   controls: '',
@@ -92,6 +97,7 @@ export function initPauseMenu(w) {
         <h2>Bijbaantjes <small>geld verdienen tussendoor</small></h2>
         <div class="pm-missions pm-jobs"></div>
       </div></section>
+      <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
       <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner"></div></section>
       <section data-panel="settings" class="pm-panel pm-col" hidden><div class="pm-inner">
         <nav class="pm-subtabs" role="tablist" aria-label="Instellingen">
@@ -181,6 +187,10 @@ export function initPauseMenu(w) {
     if (m) return chooseMission(Number(m.dataset.mission));
     const j = e.target.closest('[data-job]');
     if (j) return chooseJob(j.dataset.job);
+    const gd = e.target.closest('[data-garage-deliver]');
+    if (gd) return garageDeliver(gd.dataset.garageDeliver);
+    const gf = e.target.closest('[data-garage-find]');
+    if (gf) return garageFind(gf.dataset.garageFind);
     const action = e.target.closest('[data-action]');
     if (action) runAction(action.dataset.action);
   });
@@ -289,6 +299,20 @@ function chooseJob(id) {
   setMapView(j.x, j.y, 3);
 }
 
+function garageDeliver(id) {
+  const res = deliverOwnedVehicle(world, id);
+  if (res.ok) { setOpen(false); return; }
+  renderGaragePanel(root.querySelector('[data-panel="garage"] .pm-inner'), world, res.text);
+}
+
+function garageFind(id) {
+  const res = locateOwnedVehicle(world, id);
+  if (!res.ok) { renderGaragePanel(root.querySelector('[data-panel="garage"] .pm-inner'), world, res.text); return; }
+  world.addMessage(res.text, 3);
+  showTab('map');
+  setMapView(res.x, res.y, 3);
+}
+
 function chooseMission(i) {
   const list = getMissionList();
   const m = list[i];
@@ -389,6 +413,7 @@ function showTab(name) {
   root.querySelector('.pm-foot-tab').innerHTML = prestart ? '' : FOOTERS[name] || '';
   if (world) setMapActive(world, open && name === 'map');
   if (name === 'missions') renderMissions();
+  if (name === 'garage') renderGaragePanel(root.querySelector('[data-panel="garage"] .pm-inner'), world);
   if (name === 'prestaties') renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner'));
   if (name === 'settings') { syncControls(); syncDesktopControls(); }
   if (name === 'game') {

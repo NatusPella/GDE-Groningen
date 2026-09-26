@@ -5,6 +5,7 @@ import { playMissionIntro, playMissionFailed } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail } from './missionstory.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
+import { rondvaartWaypoints, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro } from './rondvaartchase.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
@@ -18,7 +19,7 @@ const HINT_INTERVAL = 4;
 const RACE_CHECKPOINT_RADIUS = 9;
 const PODIUM = 3;
 
-const MISSION_BOAT_MODEL = { name: 'boat', len: 4.4, wid: 1.8, maxSpeed: 4.6, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#f2efe6', cabin: '#1f4a6e' };
+const MISSION_BOAT_MODEL = { name: 'boat', len: 5.2, wid: 1.9, maxSpeed: 10.8, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#f2efe6', cabin: '#1f4a6e' };
 
 function roadSpot(map, x, y, drivable = false) {
   return map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
@@ -130,14 +131,14 @@ function buildDefs(world) {
     {
       type: 'boat',
       label: 'Rondvaart met valse papieren',
-      intro: ['Aan de Spilsluizen ligt een rondvaartboot die \'even van niemand\' is. Vraag maar niet hoe.', 'Vaar het rondje over de Diepenring en doe alsof je gids bent. Glimlachen en wijzen.'],
-      outro: 'Rondvaart voltooid. Niemand vroeg naar je papieren. Twee toeristen gaven fooi.',
-      timeLimit: 60,
-      checkpointBonus: 40,
-      reward: 400,
+      intro: ['Aan de Spilsluizen ligt een rondvaartboot die \'even van niemand\' is. Vraag maar niet hoe.', 'Eén heel rondje Diepenring, vol toeristen. Rustig varen, glimlachen, wijzen. En hou je achterkant in de gaten.'],
+      outro: 'Rondje Diepenring voltooid. Niemand vroeg naar je papieren.',
+      timeLimit: 90,
+      checkpointBonus: 45,
+      reward: 450,
       start: { x: -33.8, y: -261.6 },
       boatAt: { x: -33.0, y: -259.5, angle: -0.37 },
-      waypoints: [{ x: 84, y: -304 }, via({ x: 134, y: -305.5 }), { x: 183, y: -295 }, { x: 273, y: -250 }, via({ x: 323.5, y: -227.4 }), { x: 369, y: -196 }],
+      waypoints: rondvaartWaypoints(),
     },
   ];
 }
@@ -264,7 +265,9 @@ function runStats(world, def) {
   const stats = [['Tijd', fmtTime(r.elapsed)]];
   const kills = killCount(world) - r.kills;
   if (def.type === 'rampage' || kills > 0) stats.push(['Kills', String(Math.max(0, kills))]);
-  stats.push(['Schade', `${Math.round(r.damage)}%`]);
+  const rv = def.type === 'boat' ? rondvaartStatus() : null;
+  if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Botsingen', String(rv.bumps)]);
+  else stats.push(['Schade', `${Math.round(r.damage)}%`]);
   if (r.racePos) stats.push(['Positie', `${r.racePos}/${r.raceTotal}`]);
   return stats;
 }
@@ -328,16 +331,42 @@ function syncPub(world) {
     pub.fatbikeHits = st.fatbikeHits;
     pub.fatbikeMaxHits = def.maxHits;
   }
+  const rv = def.type === 'boat' && st.phase === 'active' ? rondvaartStatus() : null;
+  pub.happiness = rv ? rv.joy : null;
+  pub.bumps = rv ? rv.bumps : null;
+  pub.progressText = rv ? boatProgressText(pub, rv) : null;
   pub.remainingWaypoints =
     (def.type === 'checkpoint' || def.type === 'boat') && st.phase === 'active' && !board
-      ? def.waypoints.slice(st.wpIndex + 1).map((wp) => ({ x: wp.x, y: wp.y }))
+      ? upcomingWaypoints(def, st.wpIndex).map((wp) => ({ x: wp.x, y: wp.y }))
       : [];
   world.mission = pub;
+}
+
+// The Diepenring loop has a guidance point every ~70 m: show those up to the
+// checkpoint after next rather than dots all round the city.
+function upcomingWaypoints(def, wpIndex) {
+  const rest = def.waypoints.slice(wpIndex + 1);
+  if (def.type !== 'boat') return rest;
+  let real = def.waypoints[wpIndex] && !def.waypoints[wpIndex].via ? 1 : 0;
+  const out = [];
+  for (const wp of rest) {
+    out.push(wp);
+    if (!wp.via && ++real >= 2) break;
+  }
+  return out;
+}
+
+function boatProgressText(pub, rv) {
+  const cp = `Checkpoint ${Math.min(pub.wpTotal, (pub.wpIndex || 0) + 1)}/${pub.wpTotal}`;
+  const mood = rv.joy >= 80 ? 'blij' : rv.joy >= 55 ? 'tevreden' : rv.joy >= 30 ? 'nerveus' : 'paniek';
+  const wiebe = rv.wiebeDist != null ? ` · Wiebe ${rv.wiebeDist} m` : '';
+  return `${cp} · Toeristen ${rv.joy}% ${mood}${wiebe}`;
 }
 
 // The car/boat stays in the world after the mission, but as ordinary
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
+  stopRondvaart(world);
   if (chain.race) {
     disposeRace(world, chain.race);
     chain.race = null;
@@ -366,11 +395,14 @@ function storyStage(i) {
 }
 
 function succeed(world, def) {
-  world.money += def.reward;
+  const tip = def.type === 'boat' ? rondvaartTip() : 0;
+  const reward = def.reward + tip;
+  const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
+  world.money += reward;
   world.stats.missionsDone++;
-  world.addMessage(`${def.label} geklaard! +€${def.reward}`, 4);
+  world.addMessage(`${def.label} geklaard! +€${def.reward}${tip ? ` en €${tip} fooi` : ''}`, 4);
   const i = chain.index;
-  playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward: def.reward, stats: runStats(world, def), reason: def.outro || def.label });
+  playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats: runStats(world, def), reason });
   releaseMissionVehicle(world);
   chain.completed.add(chain.index);
   chain.run = null;
@@ -493,6 +525,17 @@ function spawnFatbikes(world, def) {
   }
 }
 
+// Guns are only sold in shops now, so a rampage without one would be fists
+// only: Jelmer lends a pistol and tops it up to a full clip.
+const RAMPAGE_LOAN_AMMO = 36;
+function lendRampageWeapon(world) {
+  const armed = Object.keys(world.ammo).some((k) => world.ammo[k] > 0);
+  if (armed && world.weapon !== 'fists') return;
+  if (!armed) world.ammo.pistol = RAMPAGE_LOAN_AMMO;
+  if (!(world.ammo[world.weapon] > 0)) world.weapon = Object.keys(world.ammo).find((k) => world.ammo[k] > 0) || 'fists';
+  if (!armed) world.addMessage('Jelmer drukt je een pistool in de hand', 3);
+}
+
 function startMission(world, def) {
   removeLeftover(world);
   chain.phase = 'active';
@@ -503,12 +546,14 @@ function startMission(world, def) {
   chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, damage: 0 };
   if (def.type === 'rampage') {
     chain.killBaseline = killCount(world);
+    lendRampageWeapon(world);
   } else if (def.type === 'deliver' && def.start.road) {
     chain.vehicle = spawnMissionCar(world, def);
     world.vehicles.push(chain.vehicle);
   } else if (def.type === 'boat') {
     chain.vehicle = spawnMissionBoat(def, world.map);
     world.vehicles.push(chain.vehicle);
+    startRondvaart(world, chain.vehicle);
   } else if (def.type === 'fatbike') {
     chain.fatbikeHits = 0;
     chain.fatbikeContact = new Set();
@@ -583,7 +628,7 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   chain.wpIndex = k;
   const wp = def.waypoints[chain.wpIndex];
   chain.wpIndex++;
-  if (!wp.via) chain.timeLeft += def.checkpointBonus;
+  if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
   if (chain.wpIndex >= def.waypoints.length) {
     if (chain.race) {
       const { position, total } = raceStandings(chain.race);
@@ -632,7 +677,7 @@ export function updateMissions(dt, world) {
   trackRun(dt, world);
   chain.timeLeft -= dt;
   if (chain.timeLeft <= 0) {
-    fail(world, def, 'tijd op. Zelfs de bus was sneller');
+    fail(world, def, def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : 'tijd op. Zelfs de bus was sneller');
     syncPub(world);
     return;
   }
@@ -687,7 +732,13 @@ export function updateMissions(dt, world) {
       succeed(world, def);
     }
   } else if (def.type === 'boat') {
-    if (p.inVehicle && p.inVehicle.isBoat) {
+    const fled = updateRondvaart(dt, world);
+    if (fled) {
+      fail(world, def, fled);
+      syncPub(world);
+      return;
+    }
+    if (p.inVehicle === chain.vehicle) {
       const k = waypointReached(p, def, CHECKPOINT_RADIUS + 2);
       if (k >= 0) reachCheckpoint(world, def, k);
     }
