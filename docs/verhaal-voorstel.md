@@ -251,4 +251,5 @@ HUD, minimap, prompts en toasts staan uit. Vaste seed voor verkeer, voetgangers 
   - hoofdstukkeuze: spring naar elke missie of stap in de flow, met de juiste savegame-staat (geld, gekochte spullen, voltooide missies);
   - knoppen "doel voltooien", "missie winnen/verliezen" en "naar volgend doel teleporteren", plus tijdversnelling en onkwetsbaar;
   - een automatische doorloop per missie (`--story-test`) die elke missie start, de doelen via debug-hooks afwerkt en controleert dat de flow doorloopt tot het einde, met een rapport en screenshots per stap.
+- **TTS-dekking (0.5.0):** elke tekstwolk of ondertitel met gesproken tekst krijgt ook echt een stem. Eerst een inventarisatie van alle regels zonder audio (missies, bijbaantjes, NPC's, telefoon, winkels, companion), dan ontbrekende regels genereren en een check die meldt als er nieuwe tekst zonder stem bijkomt.
 - TTS: gebruik volop emotietags, gecombineerd met lokale tags zoals *[Groningse man die boos is]*.
