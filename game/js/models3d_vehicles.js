@@ -1941,11 +1941,32 @@ function storeDamage(v, g) {
   d.uv = g.attributes.uv.array;
   d.groups = groupsOf(g);
   d.parts = g.userData.parts;
+  d.paint = v.model.color;
+}
+
+// A dented car keeps its vertex arrays in v.damage; after a respray they
+// still carry the old paint, so swap that colour for the new one (the
+// paint is a flat per-vertex colour, see pixelart3d linearRGB).
+function repaintDamage(d, from, to) {
+  if (from == null || to == null || from === to) return;
+  const a = new THREE.Color(toHex(from, 0)), b = new THREE.Color(toHex(to, 0));
+  const col = d.col = new d.col.constructor(d.col);
+  // normalized integer colours (Uint8/Uint16) or plain floats
+  const k = col instanceof Uint8Array ? 255 : col instanceof Uint16Array ? 65535 : 1;
+  const q = (x) => (k === 1 ? x : Math.round(x * k));
+  const eps = k === 1 ? 1e-4 : 1.5;
+  const [ar, ag, ab, br, bg, bb] = [a.r, a.g, a.b, b.r, b.g, b.b].map(q);
+  for (let i = 0; i < col.length; i += 3) {
+    if (Math.abs(col[i] - ar) < eps && Math.abs(col[i + 1] - ag) < eps && Math.abs(col[i + 2] - ab) < eps) {
+      col[i] = br; col[i + 1] = bg; col[i + 2] = bb;
+    }
+  }
 }
 
 function restoreDamage(mesh, v) {
   const body = mesh.userData.body, d = v.damage;
   if (!body || !d.pos) return;
+  if (!v.wrecked && !v.isPolice) repaintDamage(d, d.paint, v.model.color);
   const g = fromArrays(d.pos, d.base, d.col, d.uv, d.groups, d.parts);
   body.geometry = g;
   storeDamage(v, g);

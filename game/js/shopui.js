@@ -71,7 +71,7 @@ const SHOP_CSS = `
   #shop-menu .sm-price small { font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.55); }
   #shop-menu .sm-price small.no { color: #d98a3f; }
   #shop-menu .sm-chip { font-size: 13px; letter-spacing: 1px; padding: 1px 6px; border-radius: 3px; border: 1px solid #3fc97a; color: #3fc97a; }
-  #shop-menu .sm-status { min-height: 26px; line-height: 26px; padding: 6px 18px; font-size: 20px; letter-spacing: 1px; text-align: center; color: #3fc97a; border-top: 1px solid rgba(63,201,122,0.2); }
+  #shop-menu .sm-status { min-height: 26px; line-height: 1.15; padding: 6px 18px; font-size: 20px; letter-spacing: 1px; text-align: center; color: #3fc97a; border-top: 1px solid rgba(63,201,122,0.2); }
   #shop-menu .sm-status[data-tone="lose"] { color: rgba(240,237,228,0.7); }
   #shop-menu .sm-status[data-tone="no"] { color: #d98a3f; }
   #shop-menu .sm-status[data-tone="win"] { color: #e8c93a; }
@@ -222,7 +222,7 @@ function markSelected() {
 }
 
 function needsConfirm(it) {
-  return it.price >= CONFIRM_FROM || (it.price >= 300 && it.price > world.money * CONFIRM_SHARE);
+  return !!it.confirmText || it.price >= CONFIRM_FROM || (it.price >= 300 && it.price > world.money * CONFIRM_SHARE);
 }
 
 function buyLabel(it) {
@@ -274,7 +274,7 @@ function activate(id) {
   }
   if (needsConfirm(it) && !(armed && armed.id === id && Date.now() < armed.until)) {
     armed = { id, until: Date.now() + ARM_TIME };
-    setStatus(`${it.label}: €${it.price}. Druk nog een keer om te kopen`, 'win');
+    setStatus(it.confirmText || `${it.label}: €${it.price}. Druk nog een keer om te kopen`, it.confirmText ? 'no' : 'win');
     renderDetail();
     setTimeout(() => { if (open && armed && armed.id === id && Date.now() >= armed.until) { armed = null; renderDetail(); } }, ARM_TIME + 50);
     return;

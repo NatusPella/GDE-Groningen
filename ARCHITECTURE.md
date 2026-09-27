@@ -162,6 +162,26 @@ There are no white toast lines. Three channels, all inside `#hud` (so
     `window.__phonefeed`. New voiced call lines are registered in
     `scripts/voicelines_collect.mjs` ("Telefoon (gesprekken)").
 
+## Attention budget
+
+`attention.js` holds the rules for interrupting the player, in one place:
+priority story > wanted/danger > money/achievement > discovery/flavour >
+tips (`PRIORITY`, `CARD_PRIORITY` for the HUD card categories).
+`mayInterrupt(kind, world)` / `noteMoment(kind)` gate the non-story
+cinematic moments in cinematics.js (`wijk`, `landmark`, `ommelanden`: one
+per 3.5 min together; `crash` 60 s; `wanted5` 2 min; at least 40 s between
+any two; never during a mission, bijbaan, challenge, race or phone call;
+discovery scenes not while driving faster than 50 km/u). A blocked
+flyover or landmark stays unseen and plays later if the player is still
+(or again) there. Story cutscenes, mission intros/outros and death/busted
+are exempt. On the HUD: one card at a time (`hudcards.js`, tips at most
+one per 20 s via `mayShowTip`), one objective line, one phone card with a
+"+N" counter (none during a call), key hints hidden while a card, a call
+or car-banter subtitles are up, at most one world prompt (the E prompt, or
+one place label when there is none), and during a call (`body.hud-call-on`)
+the now-playing card, vehicle name and hints step aside.
+`node scripts/attention_test.mjs` checks the rules.
+
 ## Routes
 
 `routing.js` keeps up to three routes at once, each in its own colour
@@ -174,7 +194,18 @@ vehicles). Nothing ever overrides the player's waypoint (Henk's call only
 offers the garage). `getActiveRoute()` is the primary one (waypoint, else
 objective, else care: 3D ribbon, route chip), `getRoutes()` all of them
 (minimap, full map, map header); `dismissCareRoute()` (the "Negeren" button
-in the map header) hides the pink route until the need is over.
+in the map header) hides the pink route until the need is over. In pigeon
+mode every route is a straight line "as the crow flies" (`route.fly`,
+dashed on the minimap and map, no 3D ribbon) and the minimap turns with
+the pigeon's heading.
+
+Shops (`shopui.js`): clicking or arrowing only selects (preview, detail
+bar); the detail bar's button buys, expensive items and items flagged
+`confirmText` need a second press. While a story gate is open (the current
+step's `require` goal or the next mission's `requires`, read-only via
+story.js/missions.js), shops.js `markGates` tags the vehicles that count
+("Telt voor je missie", listed first) and warns on the ones that don't.
+Spuit & Klaar shows your own vehicle in the chosen colour before you pay.
 
 ## Heights
 

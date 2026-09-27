@@ -27,7 +27,9 @@ import { hold as holdChannel, release as releaseChannel } from './speech.js';
 
 const HOLD_MIN = 6;
 const HOLD_MAX = 13;
-const MAX_UP = 2;
+// attention budget: one phone card at a time, a counter for the rest
+const MAX_UP = 1;
+const HOLD_BUSY = 4.5;
 const RING_TIME = 1.6;
 const LINE_GAP = 0.35;
 const HANGUP_TIME = 1.1;
@@ -48,6 +50,7 @@ let world = null;
 let cards = [];
 let calls = [];
 let call = null;
+let notes = [];
 let nextCallId = 1;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -77,6 +80,7 @@ export function initPhoneFeed(w) {
   cards = [];
   calls = [];
   call = null;
+  notes = [];
   if (typeof window !== 'undefined') {
     window.__phonefeed = { notify: (spec) => notifyPhone(world, spec), call: (spec) => startCall(world, spec), hangUp, state: () => ({ cards: cards.length, call: call && { from: call.from, phase: call.phase, i: call.i }, queued: calls.length }) };
   }
@@ -129,7 +133,7 @@ function showNote(w, n) {
   el.className = 'pf-card';
   el.dataset.app = p.app;
   el.innerHTML =
-    `<div class="pf-head"><span class="pf-app">${icon(p.app)}</span><span class="pf-from">${esc(p.from)}</span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
+    `<div class="pf-head"><span class="pf-app">${icon(p.app)}</span><span class="pf-from">${esc(p.from)}</span><span class="pf-more" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
     (p.title ? `<div class="pf-title">${esc(p.title)}</div>` : '') +
     (p.body ? `<div class="pf-body">${esc(p.body)}</div>` : '');
   stack.appendChild(el);
@@ -137,11 +141,18 @@ function showNote(w, n) {
   el.classList.add('on');
   const secs = Math.min(HOLD_MAX, Math.max(HOLD_MIN, (n.duration || 0) + 1, readingSeconds(full) * 1.4));
   el.style.setProperty('--pf-dur', `${secs}s`);
-  cards.push({ el, left: secs });
-  // older cards step back; more than MAX_UP and the oldest goes
-  const up = cards.filter((c) => !c.leaving);
-  up.forEach((c, i) => c.el.classList.toggle('back', i < up.length - 1));
-  if (up.length > MAX_UP) dropCard(up[0]);
+  cards.push({ el, left: secs, secs });
+}
+
+// "+2": how many more notifications wait behind the one that is up
+function syncCounter() {
+  const up = cards.find((c) => !c.leaving);
+  if (!up) return;
+  const more = up.el.querySelector('.pf-more');
+  more.hidden = !notes.length;
+  more.textContent = notes.length ? `+${notes.length}` : '';
+  // a waiting queue shortens the card that is up (but it stays readable)
+  if (notes.length && up.secs - up.left > HOLD_BUSY) up.left = Math.min(up.left, 0.01);
 }
 
 function dropCard(c) {
@@ -187,7 +198,8 @@ function beginCall(w, c) {
   stack.appendChild(callEl);
   void callEl.offsetWidth;
   callEl.classList.add('on', 'ringing');
-  for (const k of cards) k.el.classList.add('back');
+  document.body.classList.add('hud-call-on');
+  for (const k of cards) dropCard(k);
 }
 
 function showLine(c) {
@@ -229,6 +241,7 @@ function finishCall(cut) {
   const st = callEl.querySelector('.pf-state');
   if (st) st.textContent = 'Opgehangen';
   callEl.classList.add('ended');
+  document.body.classList.remove('hud-call-on');
   releaseChannel('call');
   if (c.onEnd) try { c.onEnd({ cut }); } catch (e) { /* ignore */ }
 }
@@ -275,7 +288,10 @@ export function updatePhoneFeed(dt, w) {
   if (!w.phoneNotifications) w.phoneNotifications = [];
   const visible = hudVisible();
   if (visible && !w.paused) {
-    while (w.phoneNotifications.length) showNote(w, w.phoneNotifications.shift());
+    while (w.phoneNotifications.length) notes.push(w.phoneNotifications.shift());
+    if (notes.length > 6) notes.splice(0, notes.length - 6).forEach((n) => remember(w, n.from ? `${n.from}: ${n.text}` : n.text));
+    if (!call && !cards.some((c) => !c.leaving) && notes.length) showNote(w, notes.shift());
+    syncCounter();
     for (const c of cards) c.left -= dt;
     for (const c of cards.filter((k) => k.left <= 0)) {
       if (!c.leaving) dropCard(c);

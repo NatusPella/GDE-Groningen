@@ -5,6 +5,7 @@ import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
 import { startRespawnScene, respawnFade } from './respawn.js';
 import { playStoryVoice, setStoryScene } from './audio.js';
+import { mayInterrupt, noteMoment } from './attention.js';
 import { lineVoiceFor } from './linevoice.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
@@ -332,7 +333,7 @@ function checkTriggers(dt, w) {
 
   const wantedUp = w.wanted >= 5 && prevWanted < 5;
   prevWanted = w.wanted;
-  if (wantedUp && momentsOn() && !active) playWantedFive(w);
+  if (wantedUp && momentsOn() && !active && mayInterrupt('wanted5', w)) { noteMoment('wanted5'); playWantedFive(w); }
 
   const imp = w.lastImpact;
   if (imp && imp !== lastImpactSeen) {
@@ -383,6 +384,8 @@ function checkOmmelanden(w) {
   const [x0, y0, x1, y1] = realMapBox(w.map);
   const p = w.player, m = OMMELANDEN_MARGIN;
   if (p.x > x0 - m && p.x < x1 + m && p.y > y0 - m && p.y < y1 + m) return;
+  if (!mayInterrupt('ommelanden', w)) return;
+  noteMoment('ommelanden');
   seen.add(OMMELANDEN);
   playOmmelanden(w);
 }
@@ -424,6 +427,9 @@ function checkLandmarks(w) {
   for (const lm of w.map.meta.landmarks || []) {
     if (!lm.name || seen.has(lm.name)) continue;
     if (Math.hypot(lm.x - p.x, lm.y - p.y) > LANDMARK_RADIUS) continue;
+    // over budget: stays unseen, plays on a later visit
+    if (!mayInterrupt('landmark', w)) return;
+    noteMoment('landmark');
     seen.add(lm.name);
     playLandmark(w, lm);
     return;
@@ -586,6 +592,9 @@ function checkWijk(dt, w) {
   // at speed a paused flyover is jarring: wait until the player slows down
   const v = w.player.inVehicle;
   if (v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
+  // over the attention budget: waits while the player is still in the wijk
+  if (!mayInterrupt('wijk', w)) return;
+  noteMoment('wijk');
   markWijk(p);
   wijkCand = null;
   playWijk(w, p);
@@ -728,6 +737,8 @@ function playLandmark(w, lm) {
 function tryCrashReplay(w, x, y) {
   const now = performance.now();
   if (!momentsOn() || active || now - lastCrashAt < CRASH_COOLDOWN_MS || w.pendingRespawn || w.mission || w.race) return;
+  if (!mayInterrupt('crash', w)) return;
+  noteMoment('crash');
   lastCrashAt = now;
   const a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a), nx = -fy, ny = fx;

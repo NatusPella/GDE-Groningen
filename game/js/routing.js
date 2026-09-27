@@ -452,9 +452,16 @@ function trackProgress(r, x, y) {
   r.remaining = r.length - (cum[bi] + (cum[bi + 1] - cum[bi]) * bt) + r.off;
 }
 
+// As the crow flies (pigeon mode): a straight two-point route, redone every frame.
+function flyRoute(p, target) {
+  const d = Math.hypot(target.x - p.x, target.y - p.y);
+  return { pts: [[p.x, p.y]], cum: new Float64Array(1), length: d, remaining: d, kind: target.kind, target, mode: 'fly', fly: true, idx: 0, px: p.x, py: p.y, off: d, version: 0 };
+}
+
 function updateSlot(world, slot, target, mode) {
   if (!target || !mode) { slot.route = null; slot.key = ''; return; }
   const p = world.player;
+  if (mode === 'fly') { slot.route = flyRoute(p, target); slot.key = ''; return; }
   const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}`;
   const now = performance.now() / 1000;
   if (key !== slot.key || !slot.route) {
@@ -479,10 +486,10 @@ export function updateRouting(dt, world) {
     world.addMessage('Bestemming bereikt', 3);
   }
 
-  const mode = travelMode(p);
+  const mode = world.pigeonMode ? 'fly' : travelMode(p);
   updateSlot(world, slots.user, userWaypoint ? { x: userWaypoint.x, y: userWaypoint.y, kind: 'user', name: userWaypoint.name } : null, mode);
   updateSlot(world, slots.objective, objectiveTarget(world), mode);
-  const ct = updateCare(world);
+  const ct = world.pigeonMode ? null : updateCare(world);
   // no care route to where you're already standing
   updateSlot(world, slots.care, ct && Math.hypot(ct.x - p.x, ct.y - p.y) > REACH_M * 2 ? ct : null, mode);
   route = slots.user.route || slots.objective.route || slots.care.route;
