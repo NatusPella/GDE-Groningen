@@ -14,6 +14,7 @@ import { markStoryItems, noteStoryPurchase } from './storyshop.js';
 import { jobLevel } from './sidejobs.js';
 import { WEAPONS } from './combat.js';
 import { productKey } from './shopmodels3d.js';
+import { furnitureShopItems, furnitureShopNote } from './furniture.js';
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -1214,11 +1215,7 @@ function eikeaSections(world) {
       food('hotdog', 'Hotdog bij de kassa', 'Eentje voor onderweg, één euro', 1, 6),
       food('eierbal', 'Eierbal "Äggbål"', 'Zweeds? Nee hoor, gewoon Gronings', 4, 12),
     ] },
-    { title: 'Woonafdeling', items: [
-      joke('kast', 'Boekenkast "Buukenkaas"', 'Plat verpakt, 238 schroefjes, 1 te weinig', 49, 'Buukenkaas gekocht. Het inbussleuteltje ligt al kwijt'),
-      joke('bank', 'Bank "Zitmoi"', 'Zit als een Grunneger: stug maar trouw', 299, 'Zitmoi wordt bezorgd. Tussen 8 en 18 uur. Misschien'),
-      joke('lamp', 'Lamp "Lichtje Tjoek"', 'Voor lange winteravonden in Stad', 15, 'Lichtje Tjoek: nu is het gezellig'),
-    ] },
+    { title: 'Woonafdeling', note: furnitureShopNote(), items: furnitureShopItems(world, { pay: (p) => pay(world, p), broke: (p) => broke(world, p), preview: productPreview }) },
     { title: 'Bij de uitgang', items: [
       {
         id: 'tas', label: 'Grote blauwe tas', desc: 'Onverwoestbaar. Werkt ook als pantser (+10)', price: 1, keepFocus: true,

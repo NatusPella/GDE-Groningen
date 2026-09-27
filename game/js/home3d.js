@@ -162,8 +162,9 @@ export function buildLowerTower3D(tower, levels) {
 }
 
 // Interior in the flat's local frame (x along the facade, z inward, y up),
-// placed at the flat's origin. flat: layout from home.js.
-export function buildFlat3D(flat) {
+// placed at the flat's origin. flat: layout from home.js; skip: the stock
+// pieces an EIKEA piece replaces (furniture.js).
+export function buildFlat3D(flat, skip = new Set()) {
   const g = new THREE.Group();
   const W = flat.w, D = flat.d, T = flat.tower;
   const low = 1.05;
@@ -193,33 +194,41 @@ export function buildFlat3D(flat) {
   // living room: sofa, coffee table, rug, tv, a plant by the window
   const s = flat.spots;
   box(g, M.rug, s.sofa.x, 0.025, s.sofa.z - 1.4, 3.0, 0.01, 2.0);
-  box(g, M.sofa, s.sofa.x, 0.25, s.sofa.z, 2.4, 0.5, 0.95);
-  box(g, M.sofa, s.sofa.x, 0.65, s.sofa.z + 0.38, 2.4, 0.5, 0.22);
-  for (const e of [-1, 1]) box(g, M.sofa, s.sofa.x + e * 1.12, 0.45, s.sofa.z, 0.2, 0.6, 0.95);
+  if (!skip.has('bank')) {
+    box(g, M.sofa, s.sofa.x, 0.25, s.sofa.z, 2.4, 0.5, 0.95);
+    box(g, M.sofa, s.sofa.x, 0.65, s.sofa.z + 0.38, 2.4, 0.5, 0.22);
+    for (const e of [-1, 1]) box(g, M.sofa, s.sofa.x + e * 1.12, 0.45, s.sofa.z, 0.2, 0.6, 0.95);
+  }
   box(g, M.wood, s.sofa.x, 0.22, s.sofa.z - 1.4, 1.2, 0.08, 0.6);
   for (const [ex, ez] of [[-0.5, -0.24], [0.5, -0.24], [-0.5, 0.24], [0.5, 0.24]]) box(g, M.wood, s.sofa.x + ex, 0.1, s.sofa.z - 1.4 + ez, 0.05, 0.2, 0.05);
-  box(g, M.black, s.tv.x, 0.3, s.tv.z, 1.6, 0.6, 0.45);
-  box(g, M.black, s.tv.x, 0.95, s.tv.z, 1.5, 0.85, 0.06);
-  box(g, M.tvScreen, s.tv.x, 0.95, s.tv.z + 0.035, 1.38, 0.74, 0.01);
+  if (!skip.has('tv')) {
+    box(g, M.black, s.tv.x, 0.3, s.tv.z, 1.6, 0.6, 0.45);
+    box(g, M.black, s.tv.x, 0.95, s.tv.z, 1.5, 0.85, 0.06);
+    box(g, M.tvScreen, s.tv.x, 0.95, s.tv.z + 0.035, 1.38, 0.74, 0.01);
+  }
   box(g, M.wood, 0.6, 0.2, 0.6, 0.45, 0.4, 0.45);
   box(g, M.plant, 0.6, 0.75, 0.6, 0.6, 0.8, 0.6);
   // kitchen: counter along the side wall with the snack fryer, fridge at the end
   const k = flat.spots;
   box(g, M.white, k.counter.x, 0.45, k.counter.z, k.counter.w, 0.9, 0.62);
   box(g, M.black, k.counter.x, 0.92, k.counter.z, k.counter.w, 0.04, 0.64);
-  box(g, M.steel, k.fryer.x, 1.08, k.fryer.z, 0.42, 0.3, 0.36);
-  box(g, M.oil, k.fryer.x, 1.235, k.fryer.z, 0.34, 0.01, 0.28);
-  box(g, M.steel, k.fryer.x, 1.3, k.fryer.z - 0.1, 0.3, 0.02, 0.14);
+  if (!skip.has('frituur')) {
+    box(g, M.steel, k.fryer.x, 1.08, k.fryer.z, 0.42, 0.3, 0.36);
+    box(g, M.oil, k.fryer.x, 1.235, k.fryer.z, 0.34, 0.01, 0.28);
+    box(g, M.steel, k.fryer.x, 1.3, k.fryer.z - 0.1, 0.3, 0.02, 0.14);
+  }
   box(g, M.fridge, k.fridge.x, 0.95, k.fridge.z, 0.7, 1.9, 0.7);
   box(g, M.steel, k.fridge.x - 0.2, 1.1, k.fridge.z - 0.36, 0.04, 0.5, 0.03);
   box(g, M.wood, k.table.x, 0.75, k.table.z, 1.1, 0.05, 0.8);
   for (const [ex, ez] of [[-0.48, -0.32], [0.48, -0.32], [-0.48, 0.32], [0.48, 0.32]]) box(g, M.wood, k.table.x + ex, 0.37, k.table.z + ez, 0.05, 0.74, 0.05);
   // bedroom: double bed, wardrobe
-  box(g, M.wood, s.bed.x, 0.2, s.bed.z, 1.7, 0.4, 2.1);
-  box(g, M.bed, s.bed.x, 0.48, s.bed.z, 1.6, 0.16, 2.0);
-  box(g, M.duvet, s.bed.x, 0.58, s.bed.z - 0.25, 1.64, 0.08, 1.4);
-  for (const e of [-1, 1]) box(g, M.white, s.bed.x + e * 0.4, 0.62, s.bed.z + 0.75, 0.62, 0.12, 0.36);
-  box(g, M.wood, s.bed.x, 0.75, s.bed.z + 1.02, 1.7, 0.7, 0.08);
+  if (!skip.has('bed')) {
+    box(g, M.wood, s.bed.x, 0.2, s.bed.z, 1.7, 0.4, 2.1);
+    box(g, M.bed, s.bed.x, 0.48, s.bed.z, 1.6, 0.16, 2.0);
+    box(g, M.duvet, s.bed.x, 0.58, s.bed.z - 0.25, 1.64, 0.08, 1.4);
+    for (const e of [-1, 1]) box(g, M.white, s.bed.x + e * 0.4, 0.62, s.bed.z + 0.75, 0.62, 0.12, 0.36);
+    box(g, M.wood, s.bed.x, 0.75, s.bed.z + 1.02, 1.7, 0.7, 0.08);
+  }
   box(g, M.wood, s.wardrobe.x, 1.0, s.wardrobe.z, 1.6, 2.0, 0.6);
   box(g, M.frame, s.wardrobe.x, 1.0, s.wardrobe.z - 0.31, 0.02, 1.8, 0.01);
   // a lamp in every room: the flat reads at night too

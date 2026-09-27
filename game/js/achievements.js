@@ -122,6 +122,8 @@ export const ACHIEVEMENTS = [
   { id: 'rijk', cat: 'sociaal', title: 'Groninger koopman', desc: 'Heb €10.000 op zak', stat: 'maxMoney', goal: 10000, unit: '€' },
   { id: 'koop_1', cat: 'sociaal', title: 'Klant is koning', desc: 'Koop iets in een winkel', stat: 'purchases', goal: 1 },
   { id: 'koop_10', cat: 'sociaal', title: 'Shopaholic', desc: 'Doe 10 aankopen', stat: 'purchases', goal: 10 },
+  { id: 'ingericht', cat: 'sociaal', title: 'Helemaal ingericht', desc: 'Zet alle EIKEA-meubels in jullie flat' },
+  { id: 'schroefje', cat: 'sociaal', title: 'Eén schroefje te weinig', desc: 'Zet de Buukenkaas zelf in elkaar', hidden: true },
   { id: 'uitgaven', cat: 'sociaal', title: 'Geld moet rollen', desc: 'Geef in winkels in totaal €2.500 uit', stat: 'spent', goal: 2500, unit: '€' },
 
   { id: 'eierbal_1', cat: 'verzamelen', title: 'Eerste eierbal', desc: 'Vind een verstopte eierbal', save: 'eierballen', goal: 1 },
