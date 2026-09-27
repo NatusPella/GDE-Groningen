@@ -134,6 +134,14 @@ onLandmarkModelLoaded((name) => {
     buildingMeshes.delete(b);
   }
 });
+// Buildings drawn by someone else for a while (home.js: the flat's tower as a
+// cutaway): no mesh shown, not in the camera's collision set.
+const hiddenBuildings = new Set();
+export function setBuildingHidden(b, hidden) {
+  if (hidden) hiddenBuildings.add(b); else hiddenBuildings.delete(b);
+  const mesh = buildingMeshes.get(b);
+  if (mesh) mesh.visible = !hidden;
+}
 const roadMeshes = new Map();
 const waterMeshes = new Map();
 const vehicleFireMeshes = new Map();
@@ -348,6 +356,7 @@ function updateCamTreeHiding(map, ex, ey, ez, cx, cy, cz) {
 function nearbyCamTargets(px, py) {
   camTargetList.length = 0;
   for (const [b, mesh] of buildingMeshes) {
+    if (hiddenBuildings.has(b)) continue;
     const [minx, miny, maxx, maxy] = b.bounds;
     if (px < minx - CAM_TARGET_RADIUS || px > maxx + CAM_TARGET_RADIUS) continue;
     if (py < miny - CAM_TARGET_RADIUS || py > maxy + CAM_TARGET_RADIUS) continue;
@@ -1127,6 +1136,7 @@ function syncBuildings(world, px, py) {
       let mesh = prefetchedBuildings.get(b);
       if (mesh) prefetchedBuildings.delete(b);
       else mesh = makeBuildingMesh(b);
+      mesh.visible = !hiddenBuildings.has(b);
       scene.add(mesh);
       buildingMeshes.set(b, mesh);
     }
@@ -2477,6 +2487,7 @@ function roofTopNear(map, x, y) {
   let top = 0;
   for (const [dx, dy] of GUARD_SAMPLES) {
     for (const b of map.buildingsNear(x + dx, y + dy, 1)) {
+      if (hiddenBuildings.has(b)) continue;
       const [x0, y0, x1, y1] = b.bounds;
       const px = x + dx, py = y + dy;
       if (px < x0 || px > x1 || py < y0 || py > y1 || !pointInPolygon(px, py, b.pts)) continue;

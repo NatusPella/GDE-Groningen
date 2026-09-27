@@ -3,6 +3,7 @@ import { getCamera } from './scene3d.js';
 import { getGaragesForRender, garagePrompt } from './garages.js';
 import { getHorecaForRender, nearestHorecaSpot, horecaState } from './horeca.js';
 import { shopPrimaryPrompt, shopSecondaryPrompts } from './shops.js';
+import { homePrompt, homeSecondary } from './home.js';
 import { vehicleDisplayLabel } from './vehiclenames.js';
 import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
@@ -296,6 +297,8 @@ function findPrimary(world) {
   if (pg) return pg;
   const shop = shopPrimaryPrompt(world);
   if (shop) return shop;
+  const thuis = homePrompt(world);
+  if (thuis) return thuis;
   if (p.inVehicle) return null;
   if (p.swimming) {
     if (!p.canClimbOut) return null;
@@ -388,6 +391,7 @@ function findSecondary(world, primary) {
     }
   }
   for (const c of shopSecondaryPrompts(world)) add(c, 14);
+  for (const c of homeSecondary(world)) add(c, 30);
   for (const c of pigeonSpotSecondary(world)) add(c, 18);
   for (const c of heliSpotSecondary(world)) add(c, 20);
   for (const c of postgameSecondary(world)) add(c, 25);

@@ -55,6 +55,7 @@ import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
+import { prepareHomeMap, initHome, updateHome, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -134,6 +135,7 @@ function maintainPedestrians(world) {
 async function boot() {
   initTheme();
   const map = await loadMap('citymap.json', (f) => setLoadProgress(0.05 + f * 0.45));
+  prepareHomeMap(map);
   setLoadProgress(0.55);
   await yieldToPaint();
   init3D(map);
@@ -142,24 +144,17 @@ async function boot() {
   await yieldToPaint();
   window.addEventListener('resize', resize3D);
 
-  // spawn in front of a random real Groningen landmark each game, snapped to
-  // the nearest street so the player never appears inside a building
-  const landmarks = map.meta.landmarks || [];
-  const pick = landmarks.length ? landmarks[Math.floor(Math.random() * landmarks.length)] : { x: 0, y: 0 };
-  // nearest street point, pushed out of buildings, that you can actually walk
-  // away from (not a courtyard the footprints close off)
-  const spawn = map.findOpenSpawn(pick.x, pick.y, 400) || { x: 0, y: 0 };
+  // every game starts at home: outside the lobby of Tammo and Anita's flat
+  // (home.js), the Escapade in the garage
+  const spawn = homeSpawnPoint();
   const sx = spawn.x, sy = spawn.y;
   const player = new Player(sx, sy);
+  player.angle = spawn.angle;
 
   const world = new World(map, input, player);
   initCompanion(world);
   const hero = spawnHeroCarNear(map, sx, sy);
   if (hero) world.vehicles.push(hero);
-  if (pick.name) {
-    world.spawnLandmarkName = pick.name;
-    world.addMessage(`Je begint bij ${pick.name}`, 4);
-  }
   manageTrafficPopulation(world);
   manageBikePopulation(world);
   manageBusPopulation(world);
@@ -170,6 +165,8 @@ async function boot() {
   initGarages(world);
   initHoreca(world);
   initShops(world);
+  initHome(world);
+  parkHeroAtHome(world);
   initTrafficLights(world);
   initRailway(world);
   initStationTravel(world);
@@ -299,12 +296,14 @@ async function boot() {
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
       tryStationInteract(world);
+      tryHomeInteract(world);
       tryHorecaInteract(world);
       if (!updateTrainDriving(dt, world)) {
         // a post-game minigame (the fierljep duel) holds the player in place
         if (!world.challengeHoldPlayer) player.update(dt, world);
         updateCompanion(dt, world);
       }
+      updateHome(dt, world);
       updateEmergency(dt, world);
     }
     probe.mark('player');

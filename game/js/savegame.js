@@ -8,6 +8,7 @@ import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 import { getStorySave, applyStorySave } from './story.js';
 import { getPostgameSave, applyPostgameSave } from './postgame.js';
+import { applyHomeOnLoad, homeSaveContext } from './home.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
@@ -72,6 +73,9 @@ function serialize(w) {
     stats: { ...w.stats },
     character: p.character,
     pos,
+    // 'busy' (a mission, bijbaan or challenge running): loading keeps pos;
+    // otherwise the game continues at home (home.js)
+    ctx: homeSaveContext(w),
     missions: getMissionProgress(),
     story: getStorySave(),
     visitedLandmarks: [...(w.visitedLandmarks instanceof Set ? w.visitedLandmarks : [])],
@@ -187,6 +191,7 @@ export function applySave(w, d) {
     applyPigeonSaveData(d.duif);
     applySideJobSave(w, d.bijbaan);
     applyPostgameSave(d.postgame);
+    applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
     lastMissionsDone = w.stats.missionsDone;
