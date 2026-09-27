@@ -1194,6 +1194,26 @@ function gunGeometry(key) {
   return g;
 }
 
+// A loose weapon for the shop preview: length along +x, back of the hand up.
+export function buildWeaponMesh(key) {
+  const spec = GUN_SPECS[key];
+  if (!spec) return null;
+  const geo = gunGeometry(key);
+  const inner = new THREE.Group();
+  spec.parts.forEach((pt, i) => inner.add(new THREE.Mesh(geo.geos[i], pt[5])));
+  // the hand normally hides the gap between barrel and grip
+  if (!spec.melee && spec.parts.length > 1 && spec.parts[0][2] < 0.4) {
+    const [x, h, , w, , m] = spec.parts[0];
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(h, 0.09, w), m);
+    bridge.position.set(x, 0.02, 0);
+    inner.add(bridge);
+  }
+  inner.rotation.z = key === 'carbidbus' ? Math.PI : Math.PI / 2;
+  const g = new THREE.Group();
+  g.add(inner);
+  return g;
+}
+
 // Shows the held weapon (null / 'fists' hides it).
 export function setHeldWeapon(mesh, weapon) {
   const ud = mesh && mesh.userData;

@@ -11,6 +11,8 @@ import { recordStat, isUnlocked } from './achievements.js';
 import { isMissionCompleted, missionIndexById, getNextMission, getMissionDefs, requirementMet } from './missions.js';
 import { currentStep } from './story.js';
 import { jobLevel } from './sidejobs.js';
+import { WEAPONS } from './combat.js';
+import { productKey } from './shopmodels3d.js';
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -566,6 +568,68 @@ function pay(world, price) {
 const hexCss = (n) => '#' + n.toString(16).padStart(6, '0');
 const broke = (world, price) => world.money < price ? 'Te weinig geld' : '';
 
+// --- preview + stats for the shop menu (shopui.js) -------------------------------
+// preview: a vehiclepreview.js spec; stats: [{ label, v, to, text }] with v/to
+// in 0..1 (to = after buying); effect: a short line on what it does.
+
+const clamp01 = (x) => Math.max(0, Math.min(1, x || 0));
+const productPreview = (id) => { const k = productKey(id); return k ? { kind: 'product', product: k } : null; };
+const barStat = (label, now, after, max, unit = '') => ({ label, v: clamp01(now / max), to: after == null ? null : clamp01(after / max), text: after == null || Math.round(after) === Math.round(now) ? `${Math.round(now)}${unit}` : `${Math.round(now)} → ${Math.round(after)}${unit}` });
+const healthStat = (world, hp) => barStat('Gezondheid', world.health, Math.min(100, world.health + hp), 100);
+const armorStat = (world, amount) => barStat('Pantser', world.armor, Math.min(100, world.armor + amount), 100);
+
+function weaponStats(key, entry) {
+  const w = WEAPONS[key] || {};
+  const blast = w.kind === 'throw' || w.kind === 'rocket';
+  const dmg = (w.damage || 0) * (w.pellets || 1);
+  const rate = w.cooldown ? 1 / w.cooldown : 0;
+  return [
+    { label: 'Schade', v: blast ? (w.kind === 'throw' ? 0.95 : 0.8) : clamp01(dmg / 100), text: blast ? 'Knal' : w.kind === 'water' ? 'Nat' : String(dmg) },
+    { label: 'Bereik', v: clamp01(Math.log(1 + (w.range || 0)) / Math.log(111)), text: `${w.range || 0} m` },
+    { label: 'Snelheid', v: clamp01(Math.sqrt(rate / 12.5)), text: `${rate.toFixed(1)}/s` },
+    entry.melee ? { label: 'Munitie', v: 1, text: 'Onbeperkt' } : { label: 'Munitie', v: clamp01(Math.sqrt(entry.cap / 600)), text: `${entry.ammo} per koop · max ${entry.cap}` },
+  ];
+}
+
+const VSTAT = [['maxSpeed', 'Topsnelheid'], ['accel', 'Acceleratie'], ['brake', 'Remmen'], ['turnRate', 'Wendbaarheid']];
+const vclass = (kind) => kind === 'car' ? 'car' : kind === 'boat' ? 'boat' : 'two';
+let vmax = null;
+function statMax(cls) {
+  if (!vmax) {
+    vmax = {};
+    const models = [...Object.values(VEHICLE_STOCK).map((sp) => [vclass(sp.kind), sp.model]), ...RENTALS.map((r) => ['boat', r.model])];
+    for (const [c, m] of models) {
+      const o = vmax[c] || (vmax[c] = {});
+      for (const [k] of VSTAT) o[k] = Math.max(o[k] || 0, (m[k] || 0) * (k === 'maxSpeed' || k === 'accel' ? 1.45 : 1.3));
+    }
+  }
+  return vmax[cls] || vmax.car;
+}
+
+// Driving stats of a model; `after` (another model) shows the change.
+export function vehicleStats(model, kind, after = null) {
+  const max = statMax(vclass(kind));
+  return VSTAT.map(([k, label]) => {
+    const a = model[k] || 0, b = after ? after[k] || 0 : null;
+    const pct = b != null && a ? Math.round((b / a - 1) * 100) : 0;
+    const base = k === 'maxSpeed' ? `${Math.round(a * 3.6)} km/u` : '';
+    return { label, v: clamp01(a / max[k]), to: b == null ? null : clamp01(b / max[k]), text: pct ? `${base ? base + ' ' : ''}+${pct}%` : base };
+  });
+}
+
+const vehicleKind = (v) => v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : 'car';
+
+// Your own vehicle as the preview shows it (optionally in another colour).
+export function vehiclePreviewOf(v, color) {
+  return { kind: vehicleKind(v), model: v.model, color: color || (v.model && v.model.color), nameIdx: v.id % 6, flags: v.isHeroCar ? { isHeroCar: true } : v.isPolice ? { isPolice: true } : v.isTaxi ? { isTaxi: true } : null };
+}
+
+// The current character with outfit/hair overrides, for the clothing previews.
+function lookWith(world, over, look = null) {
+  const app = world.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
+  return { kind: 'person', look: { ...app, ...over, look }, frame: look ? 'head' : null };
+}
+
 function shopMenu(world, s) {
   const build = {
     wapens: weaponSections, kleding: outfitSections, kapper: hairSections, tabak: tabakSections,
@@ -620,6 +684,7 @@ function markGates(world, sections) {
 function foodSections(world, title, list) {
   const items = list.map(([id, label, desc, price, hp]) => ({
     id: 'f-' + id, label, desc: `${desc} · +${hp} gezondheid`, price, keepFocus: true,
+    preview: productPreview('f_' + id), stats: [healthStat(world, hp)], effect: `+${hp} gezondheid`,
     disabled: world.health >= 100 ? 'Je zit vol' : broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
@@ -675,7 +740,7 @@ export function vehicleUpgradeItems(world, v) {
   const name = v.isHeroCar ? 'Escapade' : vehicleName(v);
   return list.map((u) => ({
     id: 'u-' + u.id, label: u.label, desc: u.desc, price: u.price,
-    tag: have.has(u.id) ? 'Zit erop' : '',
+    tag: have.has(u.id) ? 'Zit erop' : '', ...upgradeLook(v, u, have),
     disabled: have.has(u.id) ? 'Al gedaan' : broke(world, u.price),
     buy() {
       if (!pay(world, u.price)) return null;
@@ -685,6 +750,13 @@ export function vehicleUpgradeItems(world, v) {
       return `${u.label} erop. Je ${name} gaat als een speer!`;
     },
   }));
+}
+
+// Preview (your own ride) and before/after stats for upgrade u on v.
+function upgradeLook(v, u, have) {
+  const after = have.has(u.id) ? null : { ...v.model };
+  if (after) for (const [k, f] of Object.entries(u.mult)) after[k] = (after[k] || 0) * f;
+  return { preview: vehiclePreviewOf(v), stats: vehicleStats(v.model, vehicleKind(v), after) };
 }
 
 // Paint job items for vehicle v (Spuit & Klaar in every garage).
@@ -702,7 +774,7 @@ function workshopSections(world, shop, twoWheel) {
   const name = v.isHeroCar ? 'Escapade' : vehicleName(v);
   const items = list.map((u) => ({
     id: 'u-' + u.id, label: u.label, desc: u.desc, price: u.price,
-    tag: have.has(u.id) ? 'Zit erop' : '',
+    tag: have.has(u.id) ? 'Zit erop' : '', ...upgradeLook(v, u, have),
     disabled: have.has(u.id) ? 'Al gedaan' : broke(world, u.price),
     buy() {
       if (!pay(world, u.price)) return null;
@@ -715,6 +787,7 @@ function workshopSections(world, shop, twoWheel) {
   const fixPrice = twoWheel ? 5 : 35;
   items.push({
     id: 'u-fix', label: twoWheel ? 'Band plakken & rechtzetten' : 'Deuken eruit', desc: 'Weer helemaal heel', price: fixPrice,
+    preview: vehiclePreviewOf(v), stats: [barStat('Staat', v.health ?? 100, 100, 100, '%')],
     disabled: (v.health ?? 100) >= 100 && !v.riderOff ? 'Mankeert niks' : broke(world, fixPrice),
     buy() {
       if (!pay(world, fixPrice)) return null;
@@ -749,7 +822,7 @@ function pandSections(world, shop) {
     if (n <= 0) continue;
     const income = Math.round(w.melee ? w.gun * 0.4 : w.gun * 0.3 + n * 0.4);
     sell.push({
-      id: 's-' + w.key, label: `${w.label.split(' ')[0]} verkopen`, desc: w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`, price: 0, income,
+      id: 's-' + w.key, preview: { kind: 'weapon', weapon: w.key }, label: `${w.label.split(' ')[0]} verkopen`, desc: w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`, price: 0, income,
       buy() {
         world.ammo[w.key] = 0;
         if (world.weapon === w.key) world.weapon = 'fists';
@@ -760,7 +833,7 @@ function pandSections(world, shop) {
   }
   if (world.armor >= 10) {
     const income = Math.round(world.armor * 0.6);
-    sell.push({ id: 's-armor', label: 'Vest verkopen', desc: `Pantser ${Math.round(world.armor)}, bijna niet gebruikt`, price: 0, income,
+    sell.push({ id: 's-armor', preview: productPreview('vest'), stats: [barStat('Pantser', world.armor, 0, 100)], label: 'Vest verkopen', desc: `Pantser ${Math.round(world.armor)}, bijna niet gebruikt`, price: 0, income,
       buy() { world.armor = 0; world.money += income; return `+€${income} voor je vest`; } });
   }
   for (const v of world.vehicles) {
@@ -768,7 +841,7 @@ function pandSections(world, shop) {
     if (dist(v.x, v.y, shop.x, shop.y) > SELL_RADIUS) continue;
     const income = resaleValue(v);
     sell.push({
-      id: 's-v' + v.id, label: `Gejatte ${vehicleName(v)} verkopen`, desc: v.isPolice ? 'Politiewagen! Heel link: de politie komt erachter' : 'Staat voor de deur, wordt vannacht omgekat', price: 0, income,
+      id: 's-v' + v.id, preview: vehiclePreviewOf(v), label: `Gejatte ${vehicleName(v)} verkopen`, desc: v.isPolice ? 'Politiewagen! Heel link: de politie komt erachter' : 'Staat voor de deur, wordt vannacht omgekat', price: 0, income,
       buy() {
         removeFromWorld(world, v);
         world.money += income;
@@ -779,10 +852,11 @@ function pandSections(world, shop) {
   }
   if (!sell.length) sell.push({ id: 's-none', label: 'Niks te verkopen', desc: 'Kom terug met wapens, een vest of een gejatte bak voor de deur', price: 0, disabled: 'Lege zakken' });
   const buy = [
-    { id: 'b-vest', label: 'Gebruikt vestje', desc: '+30 pantser, klein gaatje', price: 20,
+    { id: 'b-vest', label: 'Gebruikt vestje', desc: '+30 pantser, klein gaatje', price: 20, preview: productPreview('vest'), stats: [armorStat(world, 30)], effect: '+30 pantser',
       disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, 20),
       buy() { if (!pay(world, 20)) return null; world.armor = Math.min(100, world.armor + 30); return 'Vestje aan. Past bijna'; } },
     { id: 'b-pistol', label: 'Pistool uit de achterkamer', desc: 'Met 12 patronen, geen bonnetje', price: 80,
+      preview: { kind: 'weapon', weapon: 'pistol' }, stats: weaponStats('pistol', { ammo: 12, cap: 250 }),
       disabled: (world.ammo.pistol || 0) >= 250 ? 'Zak zit vol' : broke(world, 80),
       buy() {
         if (!pay(world, 80)) return null;
@@ -791,7 +865,7 @@ function pandSections(world, shop) {
         return 'Pistool gekocht. Wij hebben elkaar nooit gezien';
       } },
   ];
-  return [{ title: 'Verkopen', items: sell }, { title: 'Koopjes uit de achterkamer', items: buy }];
+  return [{ title: 'Kopen: koopjes uit de achterkamer', items: buy }, { title: 'Verkopen', items: sell }];
 }
 
 // --- boat rental ---------------------------------------------------------------------
@@ -810,6 +884,7 @@ const RENTALS = [
 function bootSections(world, shop) {
   const items = RENTALS.map((r) => ({
     id: 'r-' + r.id, label: r.label, desc: `${r.desc} · ligt aan de steiger`, price: r.price, disabled: broke(world, r.price),
+    preview: { kind: 'boat', model: r.model, color: r.model.color, nameIdx: r.nameIdx }, stats: vehicleStats(r.model, 'boat'),
     buy() {
       if (!pay(world, r.price)) return null;
       const v = rentBoat(world, shop, r);
@@ -866,6 +941,7 @@ function weaponItem(world, w) {
   if (w.melee) {
     return {
       id: 'w-' + w.key, label: w.label, desc: w.desc, price: owned ? 0 : w.gun, tag: owned ? 'In bezit' : '',
+      preview: { kind: 'weapon', weapon: w.key }, stats: weaponStats(w.key, w),
       disabled: owned ? 'Heb je al' : broke(world, w.gun),
       buy() {
         if (!pay(world, w.gun)) return null;
@@ -881,7 +957,8 @@ function weaponItem(world, w) {
     id: 'w-' + w.key,
     label: owned ? `${w.label.split(' ')[0]}: ${unit} erbij` : w.label,
     desc: owned ? `+${w.ammo} ${unit} · nu ${have}` : `${w.desc} · met ${w.ammo} ${unit}`,
-    price,
+    price, preview: { kind: 'weapon', weapon: w.key }, stats: weaponStats(w.key, w),
+    effect: owned ? `${have} → ${Math.min(w.cap, have + w.ammo)} ${unit}` : '',
     disabled: have >= w.cap ? 'Zak zit vol' : broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
@@ -900,6 +977,7 @@ function weaponSections(world) {
   const melee = WEAPON_STOCK.filter((w) => w.melee).map((w) => weaponItem(world, w));
   const vest = (amount, price, label, desc) => ({
     id: 'armor-' + amount, label, desc: `${desc} · pantser nu ${Math.round(world.armor)}`, price,
+    preview: productPreview(amount >= 100 ? 'vest' : 'bodywarmer'), stats: [armorStat(world, amount)], effect: `+${amount} pantser`,
     disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
@@ -933,6 +1011,8 @@ function outfitSections(world) {
       price: owned ? 0 : o.price,
       tag: wearing ? 'Aan' : owned ? 'In bezit' : '',
       swatch: [o.shirt, o.pants, o.cap ?? o.shoes].map(hexCss),
+      preview: lookWith(world, { shirt: o.shirt, pants: o.pants, shoes: o.shoes, ...(o.cap != null ? { cap: o.cap } : {}) }),
+      effect: o.stealth ? 'Politie raakt je sneller kwijt' : '',
       disabled: wearing ? 'Heb je al aan' : owned ? '' : broke(world, o.price),
       buy() {
         if (!owned && !pay(world, o.price)) return null;
@@ -970,6 +1050,7 @@ function hairSections(world) {
   const colors = HAIR_COLORS.map((c) => ({
     id: 'h-' + c.id, label: c.label, desc: c.id === 'naturel' ? 'Terug naar je eigen kleur' : 'Verven, föhnen, klaar',
     price: c.price, tag: cur.color === c.id ? 'Nu' : '', swatch: [hexCss(c.hair ?? naturel)],
+    preview: lookWith(world, { hair: c.hair ?? naturel }, ch === 'tammo' ? { hat: null } : null),
     disabled: cur.color === c.id ? 'Heb je al' : broke(world, c.price),
     buy() {
       if (!pay(world, c.price)) return null;
@@ -981,6 +1062,7 @@ function hairSections(world) {
   const styles = HAIR_STYLES[ch].map(([id, label]) => ({
     id: 'hs-' + id, label, desc: ch === 'tammo' ? 'Onder de pet, maar jij weet het' : 'Knippen en stylen',
     price: STYLE_PRICE, tag: cur.style === id ? 'Nu' : '',
+    preview: lookWith(world, { hairStyle: id }, ch === 'tammo' ? { hat: null } : null),
     disabled: cur.style === id ? 'Heb je al' : broke(world, STYLE_PRICE),
     buy() {
       if (!pay(world, STYLE_PRICE)) return null;
@@ -1001,11 +1083,12 @@ const STOCK_GROUPS = {
 function stockItem(world, key, sp, shop) {
   const owned = state.vehicles.some((o) => o.key === key);
   const preview = { kind: sp.kind, model: sp.model, color: sp.color, nameIdx: sp.nameIdx, flags: sp.flags || null };
+  const stats = vehicleStats(sp.model, sp.kind);
   if (sp.unlock) {
     const met = unlockMet(sp);
     return {
       id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · ${VEHICLE_UNLOCKS[sp.unlock].text}`,
-      price: 0, swatch: [sp.color], tag: owned ? 'Van jou' : met ? 'Vrijgespeeld' : 'Op slot', preview,
+      price: 0, swatch: [sp.color], tag: owned ? 'Van jou' : met ? 'Vrijgespeeld' : 'Op slot', preview, stats,
       disabled: owned ? 'Heb je al' : met ? '' : 'Nog op slot',
       buy() {
         if (state.vehicles.some((o) => o.key === key) || !unlockMet(sp)) return null;
@@ -1016,7 +1099,7 @@ function stockItem(world, key, sp, shop) {
   }
   return {
     id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · ${sp.kind === 'boat' ? 'ligt klaar aan de steiger' : 'wordt voor de deur gezet'}`, price: sp.price,
-    swatch: [sp.color], tag: owned ? 'Van jou' : '', disabled: owned ? 'Heb je al' : broke(world, sp.price), preview,
+    swatch: [sp.color], tag: owned ? 'Van jou' : '', disabled: owned ? 'Heb je al' : broke(world, sp.price), preview, stats,
     buy() {
       if (state.vehicles.some((o) => o.key === key) || !pay(world, sp.price)) return null;
       const v = deliver(world, key, sp.color, shop);
@@ -1046,6 +1129,7 @@ function vehicleSections(world, type, shop) {
         return {
           id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : o.lost ? 'Total loss: eigen risico, dan staat er een nieuwe voor de deur' : boat ? 'Laat hem naar deze steiger varen' : 'Laat hem hier voor de deur zetten',
           price: fee, tag: o.lost ? 'Total loss' : 'Van jou', swatch: [o.color],
+          preview: { kind: o.spec.kind, model: o.spec.model, color: o.color, nameIdx: o.spec.nameIdx, flags: o.spec.flags || null }, stats: vehicleStats(o.spec.model, o.spec.kind),
           disabled: here ? 'Staat al hier' : o.v && o.v.driver === 'player' ? 'Je zit erop' : broke(world, fee),
           buy() {
             if (!pay(world, fee)) return null;
@@ -1087,18 +1171,20 @@ function draw(table) {
 }
 
 function tabakSections(world) {
-  const gamble = (id, label, desc, price, table, big) => ({
+  const gamble = (id, label, desc, price, table, big, look) => ({
     id, label, desc, price, disabled: broke(world, price), keepFocus: true,
+    preview: productPreview(id), effect: `Hoofdprijs €${big}`, reveal: look,
     buy() {
       if (!pay(world, price)) return null;
       const prize = draw(table);
       world.money += prize;
-      if (!prize) return { text: 'Niks. Volgende keer beter, jong', tone: 'lose' };
-      return { text: prize >= big ? `JACKPOT! €${prize} gewonnen!` : `Joa! €${prize} gewonnen`, tone: prize >= big ? 'jackpot' : 'win' };
+      if (!prize) return { text: 'Niks. Volgende keer beter, jong', tone: 'lose', prize };
+      return { text: prize >= big ? `JACKPOT! €${prize} gewonnen!` : `Joa! €${prize} gewonnen`, tone: prize >= big ? 'jackpot' : 'win', prize };
     },
   });
   const snack = (id, label, desc, price, hp) => ({
     id, label, desc: `${desc} · +${hp} gezondheid`, price, keepFocus: true,
+    preview: productPreview(id), stats: [healthStat(world, hp)], effect: `+${hp} gezondheid`,
     disabled: world.health >= 100 ? 'Je zit vol' : broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
@@ -1107,7 +1193,7 @@ function tabakSections(world) {
     },
   });
   const paper = {
-    id: 'krant', label: 'Grunneger Kwebbelkrant', desc: 'De krant van vandaag, met de kop van de dag', price: 2, keepFocus: true,
+    id: 'krant', preview: productPreview('krant'), label: 'Grunneger Kwebbelkrant', desc: 'De krant van vandaag, met de kop van de dag', price: 2, keepFocus: true,
     disabled: broke(world, 2),
     buy() {
       if (!pay(world, 2)) return null;
@@ -1115,7 +1201,7 @@ function tabakSections(world) {
     },
   };
   const card = {
-    id: 'kaart', label: 'Ansichtkaart Martinitoren', desc: '"Groeten uit Grunn", met een duif die net iets laat vallen', price: 1, keepFocus: true,
+    id: 'kaart', preview: productPreview('kaart'), label: 'Ansichtkaart Martinitoren', desc: '"Groeten uit Grunn", met een duif die net iets laat vallen', price: 1, keepFocus: true,
     disabled: broke(world, 1),
     buy() {
       if (!pay(world, 1)) return null;
@@ -1123,7 +1209,7 @@ function tabakSections(world) {
     },
   };
   const strip = {
-    id: 'strip', label: 'Stripboek "Tammo en de Eierbal"', desc: 'Deel 12: de Grote Markt-koers', price: 7, keepFocus: true,
+    id: 'strip', preview: productPreview('strip'), label: 'Stripboek "Tammo en de Eierbal"', desc: 'Deel 12: de Grote Markt-koers', price: 7, keepFocus: true,
     disabled: broke(world, 7),
     buy() {
       if (!pay(world, 7)) return null;
@@ -1132,9 +1218,9 @@ function tabakSections(world) {
   };
   return [
     { title: 'Geluk', items: [
-      gamble('scratch', 'Kraskaart "Grunneger Gokje"', 'Krassen maar! Hoofdprijs €500', 5, SCRATCH, 500),
-      gamble('lot', 'Stadsloterij-lot', 'Trekking meteen. Hoofdprijs €2500', 25, LOTTERY, 2500),
-      gamble('duif', 'Duivenkraslot', 'Kras de duif vrij. Hoofdprijs €150', 2, SCRATCH_SMALL, 150),
+      gamble('scratch', 'Kraskaart "Grunneger Gokje"', 'Krassen maar! Hoofdprijs €500', 5, SCRATCH, 500, { title: 'GRUNNEGER GOKJE', bg: '#c23f78' }),
+      gamble('lot', 'Stadsloterij-lot', 'Trekking meteen. Hoofdprijs €2500', 25, LOTTERY, 2500, { title: 'STADSLOTERIJ', bg: '#b8902a' }),
+      gamble('duif', 'Duivenkraslot', 'Kras de duif vrij. Hoofdprijs €150', 2, SCRATCH_SMALL, 150, { title: 'DUIVENKRASLOT', bg: '#4a6a8a' }),
     ] },
     { title: 'Lezen & sturen', items: [paper, strip, card] },
     { title: 'Snoep & snacks', items: [
@@ -1150,6 +1236,7 @@ function tabakSections(world) {
 function eikeaSections(world) {
   const food = (id, label, desc, price, hp) => ({
     id, label, desc: `${desc} · +${hp} gezondheid`, price, keepFocus: true,
+    preview: productPreview(id), stats: [healthStat(world, hp)], effect: `+${hp} gezondheid`,
     disabled: world.health >= 100 ? 'Je zit vol' : broke(world, price),
     buy() {
       if (!pay(world, price)) return null;
@@ -1158,7 +1245,7 @@ function eikeaSections(world) {
     },
   });
   const joke = (id, label, desc, price, line) => ({
-    id, label, desc, price, keepFocus: true, disabled: broke(world, price),
+    id, label, desc, price, keepFocus: true, disabled: broke(world, price), preview: productPreview(id),
     buy() { return pay(world, price) ? line : null; },
   });
   return [
@@ -1175,6 +1262,7 @@ function eikeaSections(world) {
     { title: 'Bij de uitgang', items: [
       {
         id: 'tas', label: 'Grote blauwe tas', desc: 'Onverwoestbaar. Werkt ook als pantser (+10)', price: 1, keepFocus: true,
+        preview: productPreview('tas'), stats: [armorStat(world, 10)], effect: '+10 pantser',
         disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, 1),
         buy() {
           if (!pay(world, 1)) return null;
@@ -1201,7 +1289,7 @@ function paintShop(world) {
           id: 'p-' + p.id, label: p.label, desc: 'Complete spuitbeurt, droog in een minuut', price: PAINT_PRICE,
           swatch: [p.color], tag: cur === p.color ? 'Nu' : '',
           // selecting a colour shows your own vehicle in it before you pay
-          preview: { kind: v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : 'car', model: v.model, color: p.color, nameIdx: v.id % 6, flags: v.isHeroCar ? { isHeroCar: true } : null },
+          preview: vehiclePreviewOf(v, p.color),
           disabled: cur === p.color ? 'Heeft deze kleur al' : broke(world, PAINT_PRICE),
           buy() {
             if (!pay(world, PAINT_PRICE)) return null;

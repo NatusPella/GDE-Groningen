@@ -4,7 +4,7 @@ import { addStaticCollider } from './breakables.js';
 import { getScene } from './scene3d.js';
 import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
-import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook } from './shops.js';
+import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook, vehiclePreviewOf } from './shops.js';
 import { repairCost, platesCost, HERO_REPLACE_FEE } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savegame.js';
@@ -224,6 +224,7 @@ function garageMenu(w, site) {
       const broken = (v.health ?? 100) < 100 || (v.damage && v.damage.total > 0) || v.riderOff;
       const items = [{
         id: 'g-fix', label: twoWheel(v) ? 'Rechtzetten en plakken' : 'Deuken eruit, alles heel', price,
+        preview: vehiclePreviewOf(v), stats: [{ label: 'Staat', v: (v.health ?? 100) / 100, to: 1, text: `${Math.round(v.health ?? 100)} → 100%` }],
         desc: broken ? `Staat nu op ${Math.round(v.health ?? 100)}%. Henk maakt hem weer als nieuw` : 'Mankeert niks, zegt Henk',
         disabled: broken ? (w.money < price ? 'Te weinig geld' : '') : 'Mankeert niks',
         buy() {
@@ -235,7 +236,7 @@ function garageMenu(w, site) {
       }];
       const plates = platesCost(w.wanted);
       items.push({
-        id: 'g-plates', label: 'Andere kentekenplaten', price: plates,
+        id: 'g-plates', label: 'Andere kentekenplaten', price: plates, preview: { kind: 'product', product: 'kenteken' },
         desc: w.wanted > 0 ? 'Niemand herkent je bak meer: sterren weg' : 'Alleen nodig als de politie je zoekt',
         disabled: w.wanted <= 0 ? 'Je wordt niet gezocht' : w.money < plates ? 'Te weinig geld' : '',
         buy() {
@@ -246,7 +247,8 @@ function garageMenu(w, site) {
         },
       });
       items.push({
-        id: 'g-coffee', label: 'Bak koffie en een pleister', price: 8,
+        id: 'g-coffee', label: 'Bak koffie en een pleister', price: 8, preview: { kind: 'product', product: 'mok' },
+        stats: [{ label: 'Gezondheid', v: w.health / 100, to: 1, text: `${Math.round(w.health)} → 100` }],
         desc: `Voor jezelf · gezondheid nu ${Math.round(w.health)}`,
         disabled: w.health >= 100 ? 'Je bent fit' : w.money < 8 ? 'Te weinig geld' : '',
         buy() {
@@ -285,6 +287,7 @@ function garageMenu(w, site) {
       const fee = replacementFee(o);
       wrecks.push({
         id: 'g-w-' + o.key, label: `Wrak van je ${o.spec.label} opknappen`, price: fee, swatch: [o.color],
+        preview: { kind: o.spec.kind, model: o.spec.model, color: o.color, nameIdx: o.spec.nameIdx, flags: o.spec.flags || null },
         desc: 'Total loss? Niet bij Henk. Staat daarna hier voor de deur',
         disabled: w.money < fee ? 'Te weinig geld' : '',
         buy() {
