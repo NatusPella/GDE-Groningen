@@ -12,4 +12,6 @@ contextBridge.exposeInMainWorld('gteDesktop', {
   setFullscreen: (on) => ipcRenderer.send('gte:set-fullscreen', !!on),
   onFullscreenChange: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
   quit: () => ipcRenderer.send('gte:quit'),
+  // only answered in a --trailer-frames run (main.js)
+  captureFrame: (n) => ipcRenderer.invoke('gte:capture-frame', n),
 });

@@ -32,7 +32,12 @@ const MIME = {
 app.setName('GTE VI');
 // test runs (--stil / --smoke-test) get a throwaway profile, so they never
 // touch the player's saves, settings or achievements
-if (process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test') || a.startsWith('--story-test'))) {
+// --trailer[=WxH] plays the trailer for recordings (js/trailer.js), also on a
+// throwaway profile; --trailer-shot=N one shot, --trailer-cut=kort the short
+// cut, --trailer-frames=<dir> saves every frame as a png
+const TRAILER = process.argv.find((a) => a === '--trailer' || a.startsWith('--trailer='));
+const argValue = (name) => { const a = process.argv.find((x) => x.startsWith(name + '=')); return a ? a.slice(name.length + 1) : null; };
+if (TRAILER || process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test') || a.startsWith('--story-test'))) {
   // GTE_TEST_PROFILE picks another throwaway dir, so parallel test runs
   // don't block each other through the single-instance lock
   app.setPath('userData', path.join(require('os').tmpdir(), process.env.GTE_TEST_PROFILE || 'gte-vi-test-profile'));
@@ -75,13 +80,18 @@ function buildMenu() {
 }
 
 function createWindow() {
+  // --trailer=3840x2160: that many device pixels of page, whatever the screen
+  const rec = TRAILER && TRAILER.includes('=') ? TRAILER.split('=')[1].split('x').map(Number) : null;
+  const recScale = rec ? require('electron').screen.getPrimaryDisplay().scaleFactor || 1 : 1;
   const win = new BrowserWindow({
-    width: 1600, height: 900, minWidth: 960, minHeight: 600,
+    ...(rec && rec[0] > 0 && rec[1] > 0
+      ? { width: Math.round(rec[0] / recScale), height: Math.round(rec[1] / recScale), useContentSize: true, enableLargerThanScreen: true, resizable: false }
+      : { width: 1600, height: 900, minWidth: 960, minHeight: 600 }),
     backgroundColor: '#0c140e',
     title: 'GTE VI',
     autoHideMenuBar: true,
     show: false,
-    fullscreen: !process.argv.includes('--windowed') && loadWindowState().fullscreen,
+    fullscreen: !rec && !process.argv.includes('--windowed') && loadWindowState().fullscreen,
     webPreferences: {
       contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false,
       preload: path.join(__dirname, 'preload.js'),
@@ -121,7 +131,21 @@ function createWindow() {
   // --dev opens the hidden story dev panel (F9), --story-test[=<dir>] runs
   // the automated story test: screenshots per step and report.json in <dir>
   const storyTest = process.argv.find((a) => a === '--story-test' || a.startsWith('--story-test='));
-  const query = [(silent || storyTest) && 'stil', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--dev') && 'dev', storyTest && 'storytest'].filter(Boolean).join('&');
+  const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
+  const query = [(silent || storyTest) && 'stil', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--dev') && 'dev', storyTest && 'storytest',
+    // automated runs never get the first-launch attract intro
+    (smoke || storyTest || process.argv.includes('--perf-test')) && !TRAILER && 'noattract',
+    TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
+    TRAILER && trailerFrames && 'frames', process.argv.includes('--attract') && 'attract'].filter(Boolean).join('&');
+  if (TRAILER && trailerFrames) {
+    fsSync.mkdirSync(trailerFrames, { recursive: true });
+    ipcMain.removeHandler('gte:capture-frame');
+    ipcMain.handle('gte:capture-frame', async (e, n) => {
+      const img = await win.webContents.capturePage();
+      fsSync.writeFileSync(path.join(trailerFrames, `frame-${String(n).padStart(5, '0')}.png`), img.toPNG());
+      return true;
+    });
+  }
   win.loadURL(`${SCHEME}://${HOST}/index.html${query ? '?' + query : ''}`);
   if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gte-story-test'));
   if (smoke) {

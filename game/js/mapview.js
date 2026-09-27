@@ -5,6 +5,7 @@ import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, SHOP_TYPES } from './shops.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
+import { getHeliSpotsForRender } from './helirun.js';
 import { getStationsForRender } from './stationtravel.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { drawRailsOnMap } from './railway.js';
@@ -816,6 +817,7 @@ function drawDynamicMarkers(ctx, world) {
   for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });
   for (const sh of getShopsDecluttered(z >= NEAR_ZOOM ? 1 : 26 / state.scale)) icon(SHOP_TYPES[sh.type].group, 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label);
   for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif');
+  for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de traumaheli');
   for (const sj of getSideJobSpotsForRender()) icon('bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, 'Bijbaantje: ' + sj.job.blurb.toLowerCase());
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, 'Reizen met de trein');
 
@@ -1177,6 +1179,7 @@ const LEGEND = [
   { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten', layer: 'shopsVoertuigen' },
   { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', note: 'wapens, munitie en vesten', layer: 'shopsWapens' },
   { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },
+  { kind: 'heli', label: 'Traumaheli', note: 'ballonjacht vanaf het UMCG', layer: 'heli' },
   { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
   { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },
   { kind: 'flitspaal', label: 'Flitspaal', layer: 'flitspaal' },
