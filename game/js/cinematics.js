@@ -171,7 +171,7 @@ export function skipCinematic() {
 }
 
 // Subtitles without their own recording get one from the lines manifest
-// (narration without a speaker is the Verteller). Voiced lines then stay up
+// (narration without a speaker is Rikus, the narrator). Voiced lines then stay up
 // until their recording has finished, pushing the rest (and the scene) later.
 function attachVoices(a) {
   if (!a.lines || !a.lines.length) return;
@@ -282,7 +282,7 @@ function updateSubtitles() {
   paintSpeaker(els.speaker, l && l.speaker);
   setDualText(els.line, l ? l.text : '');
   els.root.classList.toggle('sub-clue', !!(l && l.clue));
-  if (l && l.voice) playStoryVoice(l.voice);
+  if (l && l.voice) playStoryVoice(l.voice, { radio: !!l.radio });
 }
 
 export function updateCinematics(dt, w) {
