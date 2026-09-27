@@ -148,6 +148,17 @@ function sOf(x, y) {
   return nearestOnRoute(x, y).s;
 }
 
+// For other races over the same water (postgame.js Elf Bruggenrace):
+// refine the line once for the live map, then follow progress along it.
+export function prepareDiepenringRoute(map) {
+  refineRoute(map);
+}
+
+export function diepenringProgress(x, y, hint = null) {
+  const r = track(x, y, hint);
+  return { s: r.s, d: r.d, i: r.i };
+}
+
 // Checkpoints under the Diepenring's bridges; `via` points in between keep
 // the minimap line and the guidance dots on the water.
 const CHECKPOINTS = [

@@ -13,6 +13,7 @@ const NAMES = {
   suv: [['Wadden', 'Landjonker'], ['Hunze', 'Borgheer']],
   taxi: [['Taxi', 'Stadstaxi 050'], ['Taxi', 'Nachtbraker']],
   cashvan: [['Poen Express', 'Kluiswagen']],
+  foodtruck: [['Fjord', 'Frituur']],
   truck: [['Oldambt', 'Bakwagen'], ['Eemshaven', 'Sjouwer']],
   ambulance: [['Ambulance', 'Spoedrit']],
   scooter: [['E-step', 'Zoemzoem'], ['Deelstep', 'Stadswesp']],
@@ -25,6 +26,7 @@ const BOATS = {
   waterfiets: [['Waterfiets', 'Trapkoppel'], ['Waterfiets', 'Zwaantje']],
   rubberboot: [['Rubberboot', 'Stuiterbal'], ['Rubberboot', 'Zeehond']],
   dinghy: [['Bijbootje', 'Woonbootje'], ['Roeiboot', 'Kleine Jan']],
+  skutsje: [['Skûtsje', 'Us Heit'], ['Skûtsje', 'Snackkening']],
 };
 const BIKES = [['Fiets', 'Omafiets'], ['Fiets', 'Transportfiets'], ['Fiets', 'Stadsfiets']];
 

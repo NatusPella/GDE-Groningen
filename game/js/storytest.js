@@ -13,6 +13,7 @@ import { skipCinematic, isCinematicActive } from './cinematics.js';
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave } from './savegame.js';
+import { getOwnedEntries } from './shops.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -189,6 +190,29 @@ export async function runStoryTest(world) {
     check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
     check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
     check('Tammo and Anita take turns', swaps >= 4, `${swaps} wissels`);
+
+    // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
+    const pg = window.__postgame;
+    if (PARTS[lastPart] && PARTS[lastPart].finale) {
+      check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
+      for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord']) {
+        const p = world.player;
+        if (p.inVehicle && id !== 'fjord') p.exitVehicle(world.map, world);
+        await sleep(300);
+        const started = pg.start(id);
+        await sleep(900);
+        for (let i = 0; i < 4 && isCinematicActive(); i++) { skipCinematic(); await sleep(250); }
+        await sleep(1200);
+        if (started && id !== 'fierljep') capture('pg-' + id);
+        const won = started && pg.win();
+        await waitFor(() => !pg.state(), 6000);
+        const rec = pg.record(id);
+        check(`post-game ${id} runs and records a medal`, started && won && rec && rec.medal > 0, JSON.stringify(rec));
+        await drain(world, 700);
+      }
+      check('Fjord Frituur unlocked in the garage', await waitFor(() => getOwnedEntries().some((o) => o.key === 'fjordfrituur'), 5000));
+      if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+    }
 
     // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data
     const money = world.money;
