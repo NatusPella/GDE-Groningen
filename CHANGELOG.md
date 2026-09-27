@@ -6,6 +6,30 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-09-28
+
+### Nieuw
+- **Een thuis voor Tammo en Anita**: een appartement aan de Pleiadenlaan in
+  Paddepoel, met een eigen garage waar al je voertuigen echt geparkeerd staan.
+  Instappen en wegrijden, en terugzetten slaat hem weer op. Slapen, een
+  eierbal uit de frituur en je kledingkast. Een nieuw spel begint thuis.
+- **De Ommelanden op de echte kaart**: echte wegen, spoorlijnen, kanalen en
+  dorpen tot zo'n 12 km rond de stad, met Groningse dorpsnamen op de borden.
+  De trein stopt nu ook in Haren, Zuidhorn, Sauwerd, Winsum, Bedum, Stedum,
+  Loppersum en Kropswolde.
+- **Tien nieuwe wapens**: honkbalknuppel, hockeystick, bezem, fietspomp,
+  klomp en polsstok, plus een jachtgeweer met vizier, de carbidbus,
+  vuurwerkpijlen en een waterpistool (waarmee je ook brandjes blust).
+- **Na het einde** krijg je de Fjord Frituur te zien en rijd je er meteen
+  mee weg, en wijst de route je naar de volgende uitdaging.
+
+### Opgelost
+- Een crash ("Cannot read properties of undefined") door de traumaheli.
+- Het geld kon "NaN" worden. Dat kan niet meer, en een kapotte save krijgt
+  geld terug.
+- Soms viel al het geluid weg en kwam niet meer terug.
+- De legenda van de kaart is in logische groepen ingedeeld.
+
 ## [0.14.0] - 2026-09-28
 
 Een grote bundel: mooiere opening, rustiger beeld, levendiger personages.
