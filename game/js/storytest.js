@@ -121,6 +121,7 @@ export async function runStoryTest(world) {
         S().teleport();
         await sleep(900);
         capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
+        check(`${cur.id}: can be skipped from the pause menu`, S().canSkip() && S().view().canSkip);
         const before = world.money;
         S().complete();
         if (step.cost) entry.notes.push(`betaald, saldo €${Math.round(world.money)} (was €${Math.round(before)})`);
@@ -132,7 +133,22 @@ export async function runStoryTest(world) {
         await sleep(300);
         await drain(world, 400);
         capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
-        if (cur.id === 'H3') {
+        check(`${cur.id}: can be skipped from the pause menu`, S().canSkip() && S().view().canSkip);
+        if (cur.id === 'H15' || cur.id === 'H17') {
+          // Staart: a failed heli run (H15) and a running mission skipped from the pause menu (H17)
+          const m0 = world.money;
+          if (cur.id === 'H15') {
+            for (let k = 0; k < 6 && isMissionActive() && !world.heliRun; k++) { S().objective(); await sleep(400); await drain(world, 300); }
+            S().lose();
+            await drain(world);
+            check('H15: fail ends the heli run', !world.heliRun && !isMissionActive());
+            check('H15: skip offered after the fail', S().canSkip());
+          }
+          const ok = S().skip();
+          await drain(world);
+          check(`${cur.id}: skip works`, ok && !isMissionActive() && S().current().id !== cur.id, JSON.stringify(S().current()));
+          entry.notes.push(`${cur.id === 'H15' ? 'mislukt en ' : 'tijdens de missie '}overgeslagen: +€${Math.round(world.money - m0)}`);
+        } else if (cur.id === 'H3') {
           S().lose();
           await drain(world);
           const offered = S().canSkip();

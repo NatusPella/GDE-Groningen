@@ -41,6 +41,7 @@ const NPC = {
   jelle: { ...JELLE_LOOK, name: 'Jelle Terpstra' },
   durk: { ...DURK_LOOK, name: 'Durk' },
   douwe: { ...DOUWE_LOOK, name: 'Douwe' },
+  hilly: { name: 'Hilly', shirt: 0xc2549a, skin: SKIN.woodLight, variant: 'female', seed: 4410, hairStyle: 'bob' },
   dijkstra: { name: 'Dokter Dijkstra', shirt: 0xe8641c, skin: SKIN.woodLight, variant: 'male', seed: 77 },
 };
 
@@ -430,7 +431,7 @@ const STORY = [
       ['A', 'Mijn Fjord. Hij stond hier. Nu staat hier een klomp.'],
       ['T', 'Er zit een briefje in. "Tige tank foar de auto. J."', { clue: true }],
       ['N', 'Moi moi chat! De Fjord van Anita is foetsie! Wie hem ziet, zet het in de chat!'],
-      ['N', 'Chat zegt: drie rode auto\'s rond het station. Pak een duif, dan zie je ze van boven.'],
+      ['N', 'Chat zegt: een rode auto bij de Westerhaven. Ga rondvragen, ik blijf live!'],
       ['A', 'Durk en Douwe willen hem op de trein naar Leeuwarden zetten. Over mijn lijk.'],
       ['T', 'Liever over dat van Durk.'],
     ],
@@ -704,6 +705,12 @@ function makeProp(r, p, anchor) {
     }
     return null;
   }
+  if (spec.kind === 'point') {
+    const o = { kind: spec.name, mesh: { visible: true }, virtual: true, pos: { x: anchor.x, y: anchor.y }, z: 1.3 };
+    o.update = () => { const q = spec.at(); if (q) { o.pos = { x: q.x, y: q.y }; o.z = q.z; } };
+    o.update();
+    return o;
+  }
   if (spec.kind === 'fatbike') {
     const at = (q) => ({ x: anchor.x + f.x * q[0] + n.x * q[1], y: anchor.y + f.y * q[0] + n.y * q[1] });
     const from = at(spec.from || [10, -9]), to = at(spec.to || [10, 11]);
@@ -846,7 +853,7 @@ function buildRun(w, { npcKey, anchor, facing, kiss, h = 0, extras = [], props =
   for (const p of props) {
     const o = makeProp(r, p, anchor);
     if (!o) continue;
-    if (!o.attached) group.add(o.mesh);
+    if (!o.attached && !o.virtual) group.add(o.mesh);
     r.props.push(o);
   }
   const near = (q) => q.state !== 'dead' && Math.hypot(q.x - r.mid.x, q.y - r.mid.y) < 12;
@@ -980,7 +987,7 @@ function camsFor(r) {
       if (!o || !o.mesh.visible) return null;
       const q = o.pos, d = Math.hypot(q.x - mid.x, q.y - mid.y) || 1;
       const a = camClear(w, P(mid.x - (q.x - mid.x) / d * 2.2 + n.x * 0.8 * s1, mid.y - (q.y - mid.y) / d * 2.2 + n.y * 0.8 * s1, h + 1.8));
-      return pose(a, P(q.x, q.y, 1.3), lerp(30, 24, u));
+      return pose(a, P(q.x, q.y, o.z ?? 1.3), lerp(30, 24, u));
     },
     duo: (u) => {
       const k = smooth(u), fw = lerp(2.2, 1.6, k), sw = lerp(1.3, 0.6, k) * s1;
@@ -1455,7 +1462,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
 // `props`. deck: a boat to stand on (H14's skûtsje). shot(u, t): a camera for
 // the first `shotFor` seconds (the whole scene when 0), else the camera
 // follows the speaker. big: a card after the talk, over the same set.
-export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null } = {}) {
+export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null, update = null } = {}) {
   if (run) return false;
   const anchor = deck ? { x: deck.x, y: deck.y } : freeSpot(w, at.x, at.y);
   // someone in the water (Jelle after his failed fierljep): the nearest wet spot
@@ -1471,11 +1478,14 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   const tl = timeline(lines, null, 0.6);
   if (shotLines && tl.lines[shotLines - 1]) shotFor = tl.lines[shotLines - 1].at + tl.lines[shotLines - 1].dur;
   const cams = camsFor(r);
-  const plan = tl.lines.map((l, i) => ({ from: i === 0 ? 0 : l.at - 0.06, to: l.at + l.dur + 0.06, fn: camFor(r, cams, l.who, i === 0 && tl.lines.length > 1 && !cast.length, false, 'none', null, l.text) }));
+  const plan = tl.lines.map((l, i) => {
+    const base = camFor(r, cams, l.who, i === 0 && tl.lines.length > 1 && !cast.length, false, 'none', null, l.text);
+    return { from: i === 0 ? 0 : l.at - 0.06, to: l.at + l.dur + 0.06, fn: l.look ? (u) => cams.prop(l.look, u) || base(u) : base };
+  });
   if (plan.length) plan[plan.length - 1].to = tl.total;
   const keep = !!big;
   const ok = runScene(r, tl, {
-    id: 'mission-scene', kicker, title, cardFor: 2.5, keep,
+    id: 'mission-scene', kicker, title, cardFor: 2.5, keep, update,
     poses: poses || ((t, cur) => (cur && cur.clue ? { [cur.who]: 'point' } : {})),
     camera: (t) => {
       if (shot && (!shotFor || t < shotFor)) return shot(clamp01(t / (shotFor || tl.total)), t);
@@ -1511,13 +1521,16 @@ function waterSpot(w, from) {
   return null;
 }
 
+const LIVE_SPOT = { x: 741, y: 418 };
+
 // Jelle's livestream after the museum break-in (a story contact, storycontact.js):
 // he films himself in front of his trekker-limo, the twins behind him, and
 // shows off a golden ball. Filmed as a phone selfie, inside the LIVE frame.
 export function playLivestream(w, { lines = [], handle = 'JelleWâld', viewers = 1953, onDone = null } = {}) {
   if (run) return false;
-  const anchor = onFootAnchor(w);
-  const facing = chooseFacing(w, anchor.x, anchor.y, w.player.angle || 0);
+  // filmed on the Oosterhaven quay, where his skûtsje lies (seen again in H14)
+  const anchor = freeSpot(w, LIVE_SPOT.x, LIVE_SPOT.y);
+  const facing = chooseFacing(w, anchor.x, anchor.y, Math.PI / 2);
   const r = buildRun(w, {
     anchor, facing, noPair: true,
     extras: [{ key: 'jelle', at: [1.4, 0] }, { key: 'durk', at: [3.1, 1.3], pose: 'arms' }, { key: 'douwe', at: [3.2, -1.3], pose: 'arms' }],

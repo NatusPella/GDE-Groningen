@@ -4,7 +4,7 @@ import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
 import { setUserWaypoint, findWalkPath } from './routing.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, storySpeakerName } from './missionstory.js';
-import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail } from './storyprops3d.js';
+import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
@@ -208,13 +208,15 @@ function buildDefs(world) {
       label: 'Duif op verkenning',
       intro: ['Bij het Stationsplein leent duivenmelker Bert je een duif.', 'Vlieg naar het Groninger Museum en zweef boven drie camera\'s en twee bewakers: dan staan ze op de foto.'],
       outro: 'Drie camera\'s, twee bewakers en een zwarte trekker-limo bij de achteringang.',
-      timeLimit: 170,
+      timeLimit: 200,
       reward: 200,
       start: walk(-58, 890),
+      startSpot: 'station',
       stages: [
         {
-          kind: 'pigeon', spot: 'station', label: 'Spot het museum van boven', say: 'Vlieg naar het museum. Zweef boven elk doelwit tot de foto klikt.',
+          kind: 'pigeon', spot: 'station', label: 'Spot het museum van boven', say: 'Eerst even wennen: W/S hoger en lager, muis sturen, Shift sneller. Zweef boven het plein, dan door naar het museum.',
           targets: [
+            { at: [-60, 858], label: 'Vliegles: zweef boven het Stationsplein' },
             { landmark: 'Groninger Museum', off: [-30, -22], label: 'Camera bij de noordgevel' },
             { landmark: 'Groninger Museum', off: [34, -8], label: 'Camera op de gouden toren' },
             { landmark: 'Groninger Museum', off: [18, 34], label: 'Camera bij de brug' },
@@ -290,6 +292,18 @@ function buildDefs(world) {
       startSpot: 'martini',
       stages: [
         {
+          kind: 'scene', label: 'De vlag aan de toren', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, showFlag: true,
+          cam: { r: 58, h: 30, lookZ: 57, crane: true, at: { landmark: 'Martinitoren', off: [0, 14] } },
+          kicker: "d'Olle Grieze", title: 'Een Friese vlag',
+          cast: [{ key: 'jelle', pose: 'self', at: [3.4, 1.4] }], knots: true,
+          lines: [
+            ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Dat laat de stad niet zomaar gebeuren.'],
+            ['jelle', 'Moai, Grinzers! Sjoch ris omheech. Wat in aardich tuorke, no.', { nl: 'Moi, Groningers! Kijk eens omhoog. Wat een aardig torentje, nu.' }],
+            ['A', 'Zie je die vijf gele knopen, Tammo? Die houden hem vast.', { clue: true, look: 'knots' }],
+            ['T', 'Pik, pik, los. Ik word weer duif.'],
+          ],
+        },
+        {
           kind: 'pigeon', spot: 'martini', label: 'Pik de vijf touwen los', say: 'Vlieg naar de gele knopen van de vlag en blijf er even bij hangen: pik, pik, los.',
           spotTime: 0.6, gulls: [6, 10], gullText: 'Een Fryske meeuw duikt op je af!', verb: 'Pik! %s is los',
           flag: { landmark: 'Martinitoren', off: [0, 12], z0: 42, z1: 72, width: 14 },
@@ -302,7 +316,7 @@ function buildDefs(world) {
           ],
         },
         {
-          kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true,
+          kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true, shotLines: 2,
           cam: { r: 34, h: 9, lookZ: 34, at: { landmark: 'Martinitoren', off: [0, 14] } },
           kicker: "d'Olle Grieze", big: 'Hij valt!',
           lines: [['A', 'Hij valt! Tammo, hij valt!'], ['T', 'Dertig meter vlag. Losgepikt. Met mijn snavel.'], ['A', 'Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.']],
@@ -364,7 +378,7 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Waar is de Fjord?',
-      intro: ['Anita\'s Fjord is gejat. Jelmers chat zag drie rode auto\'s rond het station.', 'Word een duif, zoek de echte, en haal hem terug voordat hij op de trein naar Leeuwarden staat.'],
+      intro: ['Anita\'s Fjord is gejat. Jelmers chat zag een rode auto bij de Westerhaven.', 'Vraag rond, volg het piepje van de zender en haal hem terug voordat hij op de trein naar Leeuwarden staat.'],
       outro: 'De Fjord is terug. Niemand raakt hem nog aan.',
       timeLimit: null,
       reward: 700,
@@ -372,14 +386,19 @@ function buildDefs(world) {
       fjordTrain: true,
       start: drive(-60, 868),
       stages: [
+        { kind: 'goto', target: { at: [-170, 905], snap: 'walk', label: 'De Westerhaven' }, mode: 'any', radius: 14, label: 'Naar de Westerhaven: daar zag Jelmers chat een rode auto', say: 'Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.' },
         {
-          kind: 'pigeon', spot: 'station', label: 'Zoek de rode Fjord van boven', say: 'Vlieg naar de rode auto\'s uit de chat en zweef erboven. Welke is de Fjord?', verb: '%s',
-          targets: [
-            { landmark: 'Groninger Museum', off: [44, -30], label: 'Rode auto bij het museum... een brandweerauto. Nee' },
-            { at: [-170, 905], label: 'Rode auto aan de Westerhaven... een bakfiets met een regenkap. Nee' },
-            { at: [-10, 876], label: 'Daar! De Fjord, met Durk en Douwe erin. Achter het station wacht een goederentrein' },
+          kind: 'scene', label: 'Rondvragen', target: { at: [-170, 905], snap: 'walk' },
+          kicker: 'De Westerhaven', cast: [{ key: 'hilly', pose: 'point', at: [2.1, 0] }],
+          lines: [
+            ['hilly', 'Rooie auto? Mit twij grode kerels der in? Dij binnen net richten stasjon reden.'],
+            ['A', 'Twee grote kerels. Dat zijn Durk en Douwe.'],
+            ['hilly', 'De ain zat te zingen. Fries, docht ik. Dat heur je hier nait vaak.'],
+            ['T', 'Anita, je Fjord heeft toch nog die oude zender van Henk?'],
+            ['A', 'Ja! Hij piept. Achter het station!', { clue: true }],
           ],
         },
+        { kind: 'goto', target: { at: [-10, 876], snap: 'walk', label: 'Achter het station' }, mode: 'any', radius: 16, label: 'Volg het piepje van de zender naar achter het station', say: 'Het piepje wordt sneller. Achter het station, bij de goederentrein!' },
         { kind: 'board', label: 'Stap in de auto', say: 'Jelmer heeft zijn auto laten staan. Instappen, ze rijden weg!' },
         {
           kind: 'chase', label: 'Stop de Fjord', say: 'Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op mijn Fjord schieten, hè!',
@@ -500,6 +519,11 @@ export function initMissions(world) {
   world.onRespawn.push((w, { busted }) => {
     failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood', busted ? 'Opgepakt door de politie' : 'Je bent dood');
   });
+}
+
+// Index of the running mission (missions.js def index), or -1.
+export function activeMissionIndex() {
+  return chain && chain.phase === 'active' ? chain.index : -1;
 }
 
 export function failActiveMission(world, reason, bannerReason) {
@@ -1070,6 +1094,8 @@ function endInFailure(world, text) {
   world.addMessage(text, 3.5);
   clearStoryProps();
   if (world.pigeonMode) stopPigeonMode(world);
+  // an aborted or skipped H15 must not leave the heli run flying on
+  if (isHeliRunActive()) abortHeliRun();
   chain.stage = null;
   releaseMissionVehicle(world);
   chain.phase = 'cooldown';
@@ -1944,6 +1970,15 @@ function stageProgressText(world, def) {
   return `${st.label} (${n})`;
 }
 
+// Jelle's banner (H10) from the stage that has it, with its rope knots.
+function showMissionFlag(world, def, from) {
+  const ps = def.stages.find((q) => q.flag);
+  if (!ps) return;
+  const c = resolveTarget(world, ps.flag, from);
+  const ropes = ps.targets.map((t) => resolveTarget(world, t, from)).filter(Boolean);
+  if (c) showTowerFlag({ x: c.x, y: c.y, z0: ps.flag.z0, z1: ps.flag.z1, width: ps.flag.width, ropes });
+}
+
 function enterStage(world, def, k) {
   chain.stageIndex = k;
   const st = def.stages[k];
@@ -1954,11 +1989,9 @@ function enterStage(world, def, k) {
     S.targets = st.targets.map((t) => resolveTarget(world, t, from));
     S.target = resolveTarget(world, { pigeonSpot: st.spot }, from);
     S.gullT = st.gulls ? st.gulls[1] : 0;
-    if (st.flag) {
-      const c = resolveTarget(world, st.flag, from);
-      if (c) showTowerFlag({ x: c.x, y: c.y, z0: st.flag.z0, z1: st.flag.z1, width: st.flag.width, ropes: S.targets.filter(Boolean) });
-    }
+    if (st.flag && !hasTowerFlag()) showMissionFlag(world, def, from);
   }
+  if (st.showFlag && !hasTowerFlag()) showMissionFlag(world, def, from);
   if (def.fjordTrain && k === 0) spawnFjordTrain(world);
   if (def.heist) {
     heistStageChanged();
@@ -2192,6 +2225,21 @@ function playStageScene(world, st, S) {
       const a = a0 + (u - 0.5) * 0.25;
       return { position: { x: look.x + Math.cos(a) * st.cam.r, y: look.y + Math.sin(a) * st.cam.r, z: st.cam.h }, lookAt: { x: look.x, y: look.y, z: st.cam.lookZ - u * 12 }, fov: 50 };
     };
+    if (st.cam.crane) {
+      // from the square up the tower to the banner
+      shot = (u) => {
+        const k = u * u * (3 - 2 * u), a = a0 - 0.3 + u * 0.35, r = st.cam.r - k * 12;
+        return { position: { x: look.x + Math.cos(a) * r, y: look.y + Math.sin(a) * r, z: 2 + k * (st.cam.h - 2) }, lookAt: { x: look.x, y: look.y, z: 10 + k * (st.cam.lookZ - 10) }, fov: 48 - k * 6 };
+      };
+    }
+    if (st.dropFlag) {
+      // slow motion after the falling banner, down to the keien
+      shot = (u, t) => {
+        const q = flagFocus() || { x: look.x, y: look.y, z: 30 };
+        const a = a0 + 0.35 + t * 0.03;
+        return { position: { x: q.x + Math.cos(a) * 30, y: q.y + Math.sin(a) * 30, z: Math.max(4, q.z * 0.7 + 3) }, lookAt: { x: q.x, y: q.y, z: Math.max(0.5, q.z) }, fov: 46 };
+      };
+    }
   }
   // with actors: Tammo and Anita where you stand (on the target for a wide
   // shot), plus the stage's cast; the camera shots above lead where given
@@ -2199,11 +2247,13 @@ function playStageScene(world, st, S) {
     const wide = !!st.cam;
     const lookTo = (wide && st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
     const staged = playCastScene(world, {
-      at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [], props: st.props || [],
+      at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
       kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo,
       deck: st.target && st.target.skutsje ? chain.skutsje : null,
-      shot: st.reveal || wide ? shot : null, shotLines: wide ? 1 : 0,
-      poses: st.dropFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? 'cheer' : 'lookup' }) : null,
+      shot: st.reveal || wide ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
+      poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
+      props: [...(st.props || []), ...(st.knots ? [{ kind: 'point', name: 'knots', at: flagKnotsFocus }] : [])],
+      update: st.dropFlag || st.showFlag ? (t, dt) => updateStoryProps(st.dropFlag ? dt * 0.45 : dt) : null,
     });
     if (staged) return true;
   }
@@ -2341,7 +2391,6 @@ function updatePigeonStage(dt, world, def, st, S) {
     if (isCinematicActive()) return;
     if (p.inVehicle) { hint(world, 'Uitstappen bij de duiven. Een duif rijdt geen auto.'); return; }
     const spot = S.target;
-    if (spot && dist(p.x, p.y, spot.x, spot.y) > 25) { hint(world, 'Loop naar de duiven, Bert wacht.'); return; }
     if (startPigeonMode(world, spot ? { x: spot.x, y: spot.y } : null)) { S.flying = true; return; }
     if (S.t > 8) fail(world, def, 'de duiven wilden vandaag niet meewerken');
     return;
