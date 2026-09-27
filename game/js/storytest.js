@@ -17,7 +17,7 @@ import { applySave } from './savegame.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 import { validateSpots } from './spotcheck.js';
-import { probeRingSolids, driveRingLap, probeRailLifts } from './ringcheck.js';
+import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -135,6 +135,8 @@ export async function runStoryTest(world) {
     check('ring roads free of solid obstacles', !solids.length, solids.slice(0, 40).map((h) => `${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
     const railLifts = probeRailLifts(world);
     check('rail lifts can be walked, driven and cycled up', !railLifts.length, railLifts.map((h) => `lift ${h.lift} ${h.how}: ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
+    const wet = await driveWaterCrossings(world);
+    check(`cars cross all ${wet.drives} major-road water crossings at 80 km/h`, !wet.fails.length, wet.fails.slice(0, 30).map((f) => `${f.route} (${f.dir}) bij (${f.at}): ${f.what} op (${f.x}, ${f.y}, z ${f.z}) ${f.v} km/u`).join('; '));
     const lap = await driveRingLap(world);
     check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));

@@ -74,7 +74,7 @@ export function buildElevation(map) {
     }
   }
   if (!segs.length) return EMPTY;
-  const elev = { segs, grid, has: true, walls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16) };
+  const elev = { segs, grid, has: true, walls: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16) };
   // street-level road ribbons near the raised/sunken ones: they pass under
   // embankments (which then need an abutment, not a slope) and over cuttings
   const near = (x, y) => grid.at(x, y);
@@ -519,6 +519,17 @@ function buildWalls(elev, map) {
           }
         }
         if (!piece.low && !piece.fence) continue;
+        // steel crash barriers beside the lanes and the fences along the
+        // cuttings give way to a car like a bridge railing (props in
+        // cityprops.js); concrete viaduct barriers and trench walls stay solid
+        const brk = piece.fence ? 'hek' : piece.kind === 'barrier' && !s.deck ? 'vangrail' : null;
+        if (brk) {
+          piece.brk = brk;
+          const zk = brk === 'hek' ? piece.top : zr;
+          piece.brkZ = zk;
+          piece.key = brk + '@' + Math.round(((piece.ax + piece.bx) / 2) * 10) + ',' + Math.round(((piece.ay + piece.by) / 2) * 10);
+          elev.brkWalls.push(piece);
+        }
         walls.push(piece);
         const x0 = Math.min(piece.ax, piece.bx), x1 = Math.max(piece.ax, piece.bx);
         const y0 = Math.min(piece.ay, piece.by), y1 = Math.max(piece.ay, piece.by);
@@ -545,6 +556,23 @@ function wallSide(w, z) {
   return w.low && z > w.z - 1.2 && z < w.z + 2 ? 1 : 0;
 }
 
+// Knocked-out barrier and fence sections (breakables.js registers the test)
+let wallBroken = null;
+export function setWallBrokenTest(fn) { wallBroken = fn; }
+export function isWallBroken(w) { return !!(w.brk && wallBroken && wallBroken(w.key)); }
+
+// Breakable wall pieces whose middle lies in the square cell at (x0, y0):
+// { kind, x, y, angle, half, z, w }.
+export function breakableWallsIn(elev, x0, y0, size) {
+  const out = [];
+  for (const w of elev.brkWalls || []) {
+    const x = (w.ax + w.bx) / 2, y = (w.ay + w.by) / 2;
+    if (x < x0 || x >= x0 + size || y < y0 || y >= y0 + size) continue;
+    out.push({ kind: w.brk, x, y, angle: Math.atan2(w.by - w.ay, w.bx - w.ax), half: Math.hypot(w.bx - w.ax, w.by - w.ay) / 2, z: w.brkZ, w });
+  }
+  return out;
+}
+
 // Walkers: push a circle of radius back to its allowed side of every wall.
 export function resolveElevWalls(elev, x, y, z, radius) {
   if (!elev.has) return null;
@@ -553,7 +581,7 @@ export function resolveElevWalls(elev, x, y, z, radius) {
   let moved = false;
   for (const w of list) {
     const side = wallSide(w, z);
-    if (!side) continue;
+    if (!side || ((w.brk === 'vangrail' || side < 0) && isWallBroken(w))) continue;
     const ex = w.bx - w.ax, ey = w.by - w.ay, el = Math.hypot(ex, ey) || 1;
     const along = ((x - w.ax) * ex + (y - w.ay) * ey) / el;
     if (along < -radius || along > el + radius) continue;
@@ -569,7 +597,9 @@ export function resolveElevWalls(elev, x, y, z, radius) {
 
 // Vehicles: one-sided like bridge railings - a probe up to `band` past a wall
 // on the wrong side is pushed back. Returns {x, y, nx, ny, depth} or null.
-export function elevWallContact(elev, x, y, z, band = 1.4) {
+// props: the breakable sections are left to their props (the player's
+// vehicle, which always has the props around it streamed in).
+export function elevWallContact(elev, x, y, z, band = 1.4, props = false) {
   if (!elev.has) return null;
   const list = elev.wallGrid.at(x, y);
   if (!list) return null;
@@ -577,6 +607,8 @@ export function elevWallContact(elev, x, y, z, band = 1.4) {
   for (const w of list) {
     const side = wallSide(w, z);
     if (!side) continue;
+    // (a cutting's fence is the breakable part, its wall below is not)
+    if (w.brk && (w.brk === 'vangrail' || side < 0) && (props || isWallBroken(w))) continue;
     const ex = w.bx - w.ax, ey = w.by - w.ay, el = Math.hypot(ex, ey) || 1;
     const along = ((x - w.ax) * ex + (y - w.ay) * ey) / el;
     if (along < 0 || along > el) continue;
