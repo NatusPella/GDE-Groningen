@@ -6,6 +6,37 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-09-28
+
+### Nieuw
+- **Nieuw pauzemenu**: Esc opent een compacte kaart met Doorgaan bovenaan, en
+  de game blijft zichtbaar. De Besturing is ingedeeld in groepen met
+  toetsiconen en een zoekvak.
+- **Garage met tabbladen** per soort voertuig, filters (van jou, te koop, op
+  slot) en sorteren op naam, prijs of snelheid.
+- **Alle winkels als de autoshop**: eerst bekijken in 3D, dan pas kopen.
+  Wapens met schade en bereik, kleding en kapsels op Tammo of Anita zelf,
+  snacks en producten in 3D, upgrades op je eigen auto met voor/na, en
+  kraslotjes om te krassen. Bij het pandjeshuis staat kopen bovenaan.
+- **Nieuwe HUD linksboven**: portret van wie je speelt, hart en schild met
+  duidelijke balken. Ook de autonaam, de straat en wijk en de duif-modus
+  hebben de nieuwe stijl.
+- Eigen kaarticonen voor thuis en je garage, en een grotere legenda.
+- Vangrails en hekken langs de ring breken als je er hard tegenaan rijdt.
+
+### Verbeterd
+- **Minder haperingen**, vooral op de laagste stand en tijdens het rijden
+  langs het Ommeland, en de flitspaal is niet meer zwaar.
+- Bij het aftellen van een race sta je echt stil tot GO.
+- De Fjord Frituur staat stil tijdens een dienst en klanten wachten netjes
+  op de stoep.
+- Geen automatische paarse route meer naar je garage.
+
+### Opgelost
+- Je gleed opzij in de flat.
+- Overlappende kolommen bij Missies in het menu.
+- Geld dat door de NaN-bug kwijt was, wordt bij het laden hersteld.
+
 ## [0.15.0] - 2026-09-28
 
 ### Nieuw
