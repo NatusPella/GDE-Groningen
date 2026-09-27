@@ -8,7 +8,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { WATER_Y, closestPointOnSegment } from './util.js';
 import {
   DECK_T, EMB_SLOPE, WALL_T, FENCE_H, BARRIER_H, ROOF_T, RAISED,
-  surfaceHalfWidth, roofTopAt, coveredAt,
+  surfaceHalfWidth, roofTopAt, coveredAt, isWallBroken,
 } from './elevation.js';
 
 const PIER_EVERY = 24;
@@ -54,6 +54,8 @@ class Buf {
     this.quad(m, B0, B1, B1t, B0t);
   }
   post(m, x, y, w, z0, z1) { this.wallBox(m, x - w / 2, y, x + w / 2, y, w, z0, z1, z0, z1); }
+  // the vertex range piece() adds to material m, to hide it again later
+  mark(m) { return (this.p[m] || (this.p[m] = [])).length; }
   group() {
     const g = new THREE.Group();
     for (const [m, arr] of Object.entries(this.p)) {
@@ -67,6 +69,7 @@ class Buf {
       mesh.receiveShadow = true;
       mesh.userData.roadStructure = true;
       g.add(mesh);
+      for (const h of this.hide || []) if (h.m === m) h.mesh = mesh;
     }
     return g.children.length ? g : null;
   }
@@ -326,26 +329,55 @@ export function buildRoadStructure(r, map) {
   }
 
   // retaining walls, fences and crash barriers from elevation.js' wall pieces
+  // a breakable section (w.brk) remembers its vertices: w.collapse() hides it
+  // when its prop is knocked out (cityprops.js)
+  const brkBroken = (w) => w.brk && isWallBroken(w);
+  const breakable = (w, m, draw) => {
+    if (!w.brk) { draw(); return; }
+    const h = { m, a: B.mark(m), b: 0, mesh: null };
+    draw();
+    h.b = B.mark(m);
+    (B.hide || (B.hide = [])).push(h);
+    w.collapse = () => {
+      if (!h.mesh || h.keep) return;
+      const pos = h.mesh.geometry.attributes.position, a = pos.array;
+      h.keep = a.slice(h.a, h.b);
+      for (let i = h.a + 3; i < h.b; i += 3) { a[i] = a[h.a]; a[i + 1] = a[h.a + 1]; a[i + 2] = a[h.a + 2]; }
+      pos.needsUpdate = true;
+    };
+    w.restore = () => {
+      if (!h.mesh || !h.keep) return;
+      const pos = h.mesh.geometry.attributes.position;
+      pos.array.set(h.keep, h.a);
+      h.keep = null;
+      pos.needsUpdate = true;
+    };
+  };
   for (const w of elev.walls) {
     if (w.seg.r !== r) continue;
     if (w.kind === 'cut') {
       const top = w.top;
       if (w.low) B.wallBox('wall', w.ax, w.ay, w.bx, w.by, WALL_T, w.za - 0.1, top + 0.05, w.zb - 0.1, top + 0.05);
       if (w.fence) {
-        B.wallBox('fence', w.ax, w.ay, w.bx, w.by, 0.06, top + FENCE_H - 0.08, top + FENCE_H, top + FENCE_H - 0.08, top + FENCE_H);
-        B.wallBox('fence', w.ax, w.ay, w.bx, w.by, 0.04, top + 0.45, top + 0.5, top + 0.45, top + 0.5);
-        B.post('fence', w.ax, w.ay, 0.07, top, top + FENCE_H);
+        breakable(w, 'fence', () => {
+          B.wallBox('fence', w.ax, w.ay, w.bx, w.by, 0.06, top + FENCE_H - 0.08, top + FENCE_H, top + FENCE_H - 0.08, top + FENCE_H);
+          B.wallBox('fence', w.ax, w.ay, w.bx, w.by, 0.04, top + 0.45, top + 0.5, top + 0.45, top + 0.5);
+          B.post('fence', w.ax, w.ay, 0.07, top, top + FENCE_H);
+        });
       }
     } else if (w.low && w.kind === 'barrier') {
       if (deck) B.wallBox('concrete', w.ax, w.ay, w.bx, w.by, 0.32, w.za - 0.05, w.za + BARRIER_H, w.zb - 0.05, w.zb + BARRIER_H);
       else {
-        B.wallBox('steel', w.ax, w.ay, w.bx, w.by, 0.12, w.za + 0.5, w.za + 0.8, w.zb + 0.5, w.zb + 0.8);
-        B.post('steel', w.ax, w.ay, 0.12, w.za, w.za + 0.75);
+        breakable(w, 'steel', () => {
+          B.wallBox('steel', w.ax, w.ay, w.bx, w.by, 0.12, w.za + 0.5, w.za + 0.8, w.zb + 0.5, w.zb + 0.8);
+          B.post('steel', w.ax, w.ay, 0.12, w.za, w.za + 0.75);
+        });
       }
     }
   }
 
   r._geoStruct = B.group();
+  for (const w of elev.walls) if (w.seg.r === r && brkBroken(w)) w.collapse();
   return r._geoStruct;
 }
 

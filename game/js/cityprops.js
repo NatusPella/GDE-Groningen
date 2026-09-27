@@ -5,6 +5,7 @@ import { spawnVehicleOnRoad } from './vehicle.js';
 import { isInWater, dist, SeededRng } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables } from './breakables.js';
 import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
+import { breakableWallsIn } from './elevation.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -176,6 +177,23 @@ function buildSunkenBike() {
   return B.build();
 }
 
+// A 2 m section of the ring's crash barrier and of a cutting's fence: only
+// ever seen tumbling away (roadstructures3d.js draws the standing ones).
+function buildGuardrail() {
+  const B = new GeoBuilder(1);
+  B.box(0, 0.65, 0, 2, 0.3, 0.12, 0xa4aaae);
+  B.box(-1, 0.375, 0, 0.12, 0.75, 0.12, 0x8a9094);
+  return B.build();
+}
+
+function buildFenceSection() {
+  const B = new GeoBuilder(1);
+  B.box(0, 1.06, 0, 2, 0.08, 0.06, 0x2f3336);
+  B.box(0, 0.475, 0, 2, 0.05, 0.04, 0x2f3336);
+  B.box(-1, 0.55, 0, 0.07, 1.1, 0.07, 0x2f3336);
+  return B.build();
+}
+
 function initProtos() {
   const bikeColors = [0x1e1e1e, 0x1e1e1e, 0x23324a, 0x2f4a3a, 0x5a2a24, 0x3a3b3f];
   protos = {
@@ -188,6 +206,8 @@ function initProtos() {
     parasols: [0xe6e1d6, 0x8f2f2a, 0x2f5a3f, 0xc99a3a].map(buildParasol),
     stalls: [0x8f2f2a, 0x2f5a3f, 0x23428a, 0xc99a3a].map((c, i) => buildStall(c, 17 + i * 31)),
     sunkenBike: buildSunkenBike(),
+    vangrail: buildGuardrail(),
+    hek: buildFenceSection(),
   };
   for (const v of Object.values(protos)) for (const g of Array.isArray(v) ? v : [v]) whiteUV(g);
 }
@@ -408,8 +428,9 @@ function generateCell(map, cx, cy) {
     if (e && offLimits(e[12], e[14])) items.splice(i, 1);
   }
   for (let i = slots.length - 1; i >= 0; i--) if (offLimits(slots[i].x, slots[i].y)) slots.splice(i, 1);
+  const walls = map.elev && map.elev.has ? breakableWallsIn(map.elev, cx0, cy0, CELL) : [];
 
-  return { cx, cy, items, market, slots, mesh: null, marketMesh: null, active: false };
+  return { cx, cy, items, market, slots, walls, mesh: null, marketMesh: null, active: false };
 }
 
 let ropeGeo = null;
@@ -537,6 +558,32 @@ function registerItems(cell, list, mesh) {
   }
 }
 
+// The breakable crash barrier and fence sections of the ring in this cell:
+// props without a cell mesh, hiding their piece of the road structure.
+function registerWalls(cell) {
+  for (const d of cell.walls || []) {
+    const key = propKey(d.kind, d.x, d.y), w = d.w;
+    if (isPropBroken(key)) { if (w.collapse) w.collapse(); continue; }
+    if (!d.p) {
+      const geo = protos[d.kind];
+      d.p = makeProp(d.kind, d.x, d.y, {
+        // (a sunken road's fence stands at street level, under the decks crossing it)
+        key, angle: d.angle, face: d.angle, half: d.half, z: d.z, top: d.z + (d.kind === 'hek' ? 1.1 : 0.8), base: d.z - 1.2,
+        makeMesh: () => {
+          const m = new THREE.Mesh(geo, material);
+          m.rotation.y = -d.angle;
+          m.scale.x = d.half;
+          return m;
+        },
+      });
+      d.p.onBreak = () => { if (w.collapse) w.collapse(); };
+      d.p.onRestore = () => { if (w.restore) w.restore(); };
+    }
+    d.p.off = false;
+    if (addProp(d.p)) cell.props.push(d.p);
+  }
+}
+
 function scareSlotPed(slot) {
   const ped = slot.ped;
   slot.ped = null;
@@ -565,6 +612,7 @@ function buildCellMeshes(cell) {
     group.add(cell.marketMesh);
     registerItems(cell, cell.market, cell.marketMesh);
   }
+  registerWalls(cell);
   cell.active = true;
 }
 
