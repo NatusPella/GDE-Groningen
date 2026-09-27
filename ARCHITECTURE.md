@@ -219,7 +219,9 @@ a director:
   boat; also an array) gate the start. Type `stages` builds a mission from
   small objectives (board, goto, hold, garage, escape, pigeon, scene, chase,
   vault; documented above `resolveTarget`); the new missions H2, H4, H6, H8
-  and H10 use it. `storyprops3d.js` holds temporary story props (H10's
+  and H10 use it, and the Staart adds boatchase (H14's skûtsje on the Diepenring
+  route), heli (helirun.js as a stage), fireworks on a hold, a timed goto,
+  `pay` and an egg meter (H17). `storyprops3d.js` holds temporary story props (H10's
   flag), `missionstory.js` `playVaultScene` Jelle's fierljep escape, and
   `racers.js` puts Jelle's trekker-limo in the ring race (`opts.jelle`). Dialogue for every mission index
   is in `missionstory.js` (`STORY`); full lines play once all story missions
@@ -231,6 +233,8 @@ a director:
   saves a screenshot per `[storytest-capture]` console line and writes the
   `[storytest-done]` report.
 
+The last part has `finale: true`: its card is the ending (epilogue lines,
+credits, "Einde", story.js `playFinale`) instead of "Wordt vervolgd".
 After the last built step `world.storyFreePlay` is set and routing.js no
 longer routes to idle missions by itself.
 

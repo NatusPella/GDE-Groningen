@@ -338,7 +338,7 @@ function swapCharacter(w, want) {
 // from black and a line saying who takes over.
 // A step's mission waits until its character has taken over.
 function swapDone(w, i) {
-  const step = rt.cur;
+  const step = currentStep();
   if (!step || step.end || step.kind !== 'mission' || missionIdx(step) !== i || !step.player) return true;
   return w.player.character === step.player;
 }
