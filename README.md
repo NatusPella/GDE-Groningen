@@ -50,6 +50,9 @@ One scripted sequence of shots through Grunn (`js/trailer.js`, design in
   cut (~82 s) in real time with an fps counter, then shows average fps,
   1%-low, the heaviest shot and a quality suggestion (*Toepassen*). From a
   running game it saves first and continues that save afterwards. Esc stops.
+  Desktop `--benchmark[=N]` runs it N times straight from the title screen
+  on a throwaway profile, logs fps, draw calls and GPU memory
+  (`renderer.info`) per shot and quits; add `--profile` for a CPU profile.
 - **Recording**: `?trailer` (desktop `--trailer`) plays the full cut on a
   fixed 1/60 s step without HUD; the desktop app quits after the last frame.
   Options: `&cut=kort` / `--trailer-cut=kort` (the short cut), `&shot=N` /
