@@ -6,6 +6,7 @@ import { findProps } from './breakables.js';
 import { pushCircleOutOfVehicle } from './vehicle.js';
 import { resolveRailings } from './bridgerails.js';
 import { waterClearance } from './waterindex.js';
+import { passagesOf } from './collision.js';
 
 const SWIM_EDGE_CLEAR = 0.7;
 import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -285,6 +286,19 @@ function propDist2(pr, x, y) {
   return closestPointOnSegment(x, y, pr.x - pr.hx, pr.y - pr.hy, pr.x + pr.hx, pr.y + pr.hy).dist2;
 }
 
+// (x, y) lies at least `margin` inside one of the walk-through passages of
+// building b (the same corridors the on-foot collision opens up)
+function inPassage(map, b, x, y, margin) {
+  for (const ps of passagesOf(map, b)) {
+    const P = ps.pts, lim = ps.hw - margin;
+    if (lim <= 0) continue;
+    for (let i = 0; i < P.length - 1; i++) {
+      if (closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2 < lim * lim) return true;
+    }
+  }
+  return false;
+}
+
 // Is a body of radius r at (x, y) in a wall, the water, a street prop or
 // (dynamic) another pedestrian?
 function blockedAt(world, x, y, r, dynamic) {
@@ -294,10 +308,11 @@ function blockedAt(world, x, y, r, dynamic) {
     const [minx, miny, maxx, maxy] = b.bounds;
     if (x < minx - r || x > maxx + r || y < miny - r || y > maxy + r) continue;
     const pts = b.pts;
-    if (pointInPolygon(x, y, pts)) return true;
-    for (let i = 0; i < pts.length - 1; i++) {
-      if (closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]).dist2 < r * r) return true;
+    let hit = pointInPolygon(x, y, pts);
+    for (let i = 0; i < pts.length - 1 && !hit; i++) {
+      if (closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]).dist2 < r * r) hit = true;
     }
+    if (hit && !inPassage(map, b, x, y, r * 0.5)) return true;
   }
   if (!dynamic) return false;
   for (const pr of findProps(x, y, r + 1.5)) if (propDist2(pr, x, y) < (pr.r + r) ** 2) return true;
@@ -324,7 +339,7 @@ function lineBlocked(map, ax, ay, bx, by, walking) {
     if (walking && isInWater(map, x, y)) return true;
     for (const b of near) {
       const [minx, miny, maxx, maxy] = b.bounds;
-      if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
+      if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts) && !inPassage(map, b, x, y, 0.15)) return true;
     }
   }
   return false;
