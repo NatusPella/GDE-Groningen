@@ -4,6 +4,7 @@
 //   node scripts/voice_coverage.mjs --quiet  summary only
 // New spoken tables must be registered in scripts/voicelines_collect.mjs.
 import { collect, isVoiced, missingKeys } from './voicelines_collect.mjs';
+import { dutchFor, looksFrisian } from '../game/js/subtitles.js';
 
 const quiet = process.argv.includes('--quiet');
 const lines = collect();
@@ -24,4 +25,10 @@ for (const [name, a] of areas) {
 console.log(`${'Totaal'.padEnd(w)}  ${String(voiced).padStart(4)}/${total}`);
 const missing = [...areas.values()].flatMap((a) => a.missing);
 if (!quiet) for (const e of missing) console.log(`  [${e.manifest}] ${missingKeys(e).join(', ')}: ${e.text}`);
-process.exit(missing.length ? 1 : 0);
+// Frisian lines are double-subtitled: each needs a Dutch line in game/js/subtitles.js (FY).
+const untranslated = [...new Set(lines.filter((e) => looksFrisian(e.text) && !dutchFor(e.text)).map((e) => e.text))];
+if (untranslated.length) {
+  console.log(`Fries zonder Nederlandse ondertitel (game/js/subtitles.js): ${untranslated.length}`);
+  for (const t of untranslated) console.log(`  ${t}`);
+}
+process.exit(missing.length || untranslated.length ? 1 : 0);

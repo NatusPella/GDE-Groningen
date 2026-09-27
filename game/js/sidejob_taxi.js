@@ -60,14 +60,14 @@ const FARES = [
   {
     who: 'Een Ommelander boer in zondagse jas', from: 'vismarkt', to: ['station', 'herewegbuurt'], careful: true,
     hail: 'Hé, joe doar! Taxi!',
-    board: 'In de stad rijden ze as gekken. Jij toch niet, hè? Naar {to}.',
+    board: 'In Stad rieden ze as gekken. Doe toch nait, hè? Noar {to}.',
     done: 'Kiek, dat was nait slecht. Veur n Stadjer.',
   },
   {
     who: 'Oma Aaltje met rollator', from: 'oosterpark', to: ['umcg'], careful: true,
-    hail: 'Jongen! Hier! Taxi!',
-    board: 'Rustig aan, hè. Ik heb een nieuwe heup en die is nog niet ingereden. Naar het UMCG.',
-    done: 'Dank je wel, jongen. Hier, een pepermuntje. En wat voor de pot.',
+    hail: 'Mien jong! Hier! Taxi!',
+    board: 'Rustig aan, hè. Ik heb n nije heup en die is nog nait inreden. Noar t UMCG.',
+    done: 'Dank joe wel, mien jong. Hier, n pepermuntje. En wat veur de pot.',
   },
   {
     who: 'Een zakenman met drie telefoons', from: 'forum', to: ['europapark'], rush: true,

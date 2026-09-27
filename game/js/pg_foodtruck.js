@@ -4,6 +4,7 @@ import { Vehicle } from './vehicle.js';
 import { isInWater } from './util.js';
 import { FJORD_BUBBLES, FJORD_DUO } from './pg_lines.js';
 import { finish, say, esc } from './postgame.js';
+import { FJORD_SHIFT_BONUS } from './economy.js';
 
 // The Fjord Frituur, after the story: drive the foodtruck (shops.js
 // 'fjordfrituur') to a busy spot, stop, open the hatch (E) and serve the
@@ -311,11 +312,12 @@ function end(run, why) {
   if (d.served >= 1) unlockAchievement(w, 'fjord_klaar');
   run.data.ended = true;
   const good = d.served >= 3 && d.served >= d.wrong + d.lost;
+  const bonus = good ? FJORD_SHIFT_BONUS[medal] : 0;
   duo(run, good ? 'good' : 'bad');
   finish(run, {
-    success: good, medal, value: earned, lower: false, reward: earned,
+    success: good, medal, value: earned, lower: false, reward: earned + bonus,
     title: good ? 'DIENST GESLAAGD' : 'DIENST VOORBIJ',
     reason: why + (clean && d.served ? ' Niemand klaagde. Kon minder.' : ''),
-    stats: [['Geholpen', String(d.served)], ['Fout', String(d.wrong)], ['Weggelopen', String(d.lost)]],
+    stats: [['Geholpen', String(d.served)], ['Fout', String(d.wrong)], ['Weggelopen', String(d.lost)], ...(bonus ? [['Dienstbonus', `€${bonus}`]] : [])],
   });
 }

@@ -203,8 +203,8 @@ const STORY = [
       ['A', 'Ik hou niet van snorren. Ik hou van petten.'],
       ['T', '…Goed om te weten. Eierbal?'],
       ['N', 'Trouwens: die grote aan de bar zingt al een uur Friese liedjes. Die van de tweeling.'],
-      ['durk', 'Us baas… is slim. De bal… de bal leit op it skûtsje. Hik. Net fertelle, hè?', { clue: true }],
-      ['douwe', 'Durk. Stil no. Hy is dronken, hear.', { nl: 'Durk. Nu stil. Hij is dronken, hoor.' }],
+      ['durk', 'Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Net fertelle, hè?', { clue: true }],
+      ['douwe', 'Durk. Stil nou. Hij is dronken, hoor.'],
       ['A', 'Het skûtsje. Tammo, de Eierbal ligt op een boot.'],
       ['T', 'Ik vertel het niemand. Behalve jou.'],
     ],
@@ -451,8 +451,8 @@ const STORY = [
     npc: 'jelle', outroPose: 'hips', ask: 0,
     introCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'wave' }], introProps: ['limo'],
     intro: [
-      ['N', 'Moai, Grinzers. Ik ha in foarstel. Op Gronings Ontzet bakke wy tsjin elkoar, foar de Noardlike Snackpriis.'],
-      ['N', 'Winne jimme, dan meie jimme de Eierbal hâlde. Winne ik, dan krij ik him werom. En is de aaibal Frysk.'],
+      ['N', 'Moai, Grinzers. Ik heb een voorstel. Op Gronings Ontzet bakken we tegen elkaar, voor de Noordelijke Snackprijs.'],
+      ['N', 'Winnen jullie, dan houden jullie de Eierbal. Win ik, dan krijg ik hem terug. En is de aaibal Frysk.'],
       ['T', 'Hij is niet eens van jou, Jelle.'],
       ['N', 'Dat is in detail, Grinzer.'],
       ['A', 'Mosterd, eieren, stoetbrood. Een echte Groninger eierbal. Wij winnen dit.'],
@@ -655,8 +655,8 @@ function speakerName(key, npc) {
   return npc ? npc.name : '';
 }
 
-// Lines are [who, text, opts?]; opts.nl is the Dutch translation of a
-// Frisian line (shown under it), opts.clue marks a story clue (camera
+// Lines are [who, text, opts?] (a Frisian line's Dutch subtitle comes from
+// subtitles.js, keyed by its text);// Frisian line (shown under it), opts.clue marks a story clue (camera
 // push-in, a soft sting, a highlighted subtitle).
 function timeline(lines, npc, lead = 0.5) {
   let t = lead;
@@ -664,7 +664,7 @@ function timeline(lines, npc, lead = 0.5) {
     const speaker = speakerName(who, npc);
     const voice = voiceFor(speaker, text);
     const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : lineDur(text);
-    const l = { who, speaker, text, at: t, dur: d, voice, nl: (o && o.nl) || '', clue: !!(o && o.clue), look: (o && o.look) || null };
+    const l = { who, speaker, text, at: t, dur: d, voice, clue: !!(o && o.clue), look: (o && o.look) || null };
     t += d + 0.1;
     return l;
   });
@@ -1044,7 +1044,7 @@ function pushIn(p, k) {
   return { ...p, position: P(lerp(p.position.x, p.lookAt.x, q), lerp(p.position.y, p.lookAt.y, q), lerp(p.position.z, p.lookAt.z, q)), fov: p.fov * (1 - 0.1 * k) };
 }
 
-const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, nl: l.nl || undefined, clue: l.clue || undefined }));
+const cineLines = (lines) => lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur, clue: l.clue || undefined }));
 
 // Runs a staged scene: voices, gestures, clue push-ins and the camera
 // (camera(t, cur) returns a pose). keep: the caller cleans up (a queued card).
@@ -1604,9 +1604,9 @@ function alongPath(path, s) {
 
 export const LIMO_LINES = [
   ['T', 'Wacht. Wat rijdt daar het museumterrein op?'],
-  ['durk', 'Hjir is it, Douwe. De efterdoar.', { nl: 'Hier is het, Douwe. De achterdeur.', clue: true }],
+  ['durk', 'Hier is het, Douwe. De achterdeur.', { clue: true }],
   ['douwe', 'En de baas?'],
-  ['durk', 'De baas bliuwt sitten. De baas bliuwt altyd sitten.', { nl: 'De baas blijft zitten. De baas blijft altijd zitten.' }],
+  ['durk', 'De baas blijft zitten. De baas blijft altijd zitten.'],
   ['T', 'Een trekker met een limousine erachter. Wie doet nou zoiets?'],
 ];
 

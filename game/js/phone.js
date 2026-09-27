@@ -1,3 +1,4 @@
+import { dualHtml } from './subtitles.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay, isCinematicActive } from './cinematics.js';
 import { getMissionList, getNextMission, trackMission } from './missions.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
@@ -12,7 +13,7 @@ import { lineVoiceFor } from './linevoice.js';
 import { playBanterVoice, stopBanterVoice } from './audio.js';
 
 const RING_TIME = 0.9;
-const GARAGE_PRICE = 100;
+import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
 
 const ICONS = {
   contacten: '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8c0-3.3 3.1-6 7-6s7 2.7 7 6v1H5z"/>',
@@ -129,18 +130,18 @@ function jelleTalk() {
     const o = offers[0];
     return {
       line: pick([
-        'Moai, Grinzers! Revanche? Alve brêgen, in fierljep of in skûtsje. Kies mar.',
-        'Ik ha oefene, hear. Dit kear win ik. Wis en wrachtich.',
-        'Myn mem seit: Jelle, lit dy Grinzers mar winne. Mar myn mem is net hjir.',
+        'Moai, Grinzers! Revanche? Elf bruggen, een fierljep of een skûtsje. Kies mar.',
+        'Ik heb geoefend, hear. Deze keer win ik. Wis en wrachtich.',
+        'Mijn mem zegt: Jelle, laat die Grinzers maar winnen. Maar mijn mem is er niet.',
       ]),
       actions: o ? [{ label: `${o.name} op kaart`, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`${o.name} staat op je kaart`); } }] : [],
     };
   }
   return {
     line: pick([
-      'Moai! Jimme hawwe myn kaartsje fûn? Tige tank foar it wachtsjen.',
-      'Grunn is in aardich grut doarp. Mar wat Grunn kin, kin Fryslân better.',
-      'De Eierbal? Nea fan heard. Oant sjen op Gronings Ontzet!',
+      'Moai! Jullie hebben mijn kaartje gevonden? Tige tank voor het wachten.',
+      'Grunn is een aardig groot dorp. Mar wat Grunn kin, kin Fryslân better.',
+      'De Eierbal? Nooit van gehoord. Oant sjen op Gronings Ontzet!',
     ]),
   };
 }
@@ -424,12 +425,12 @@ function render() {
     html = header(c.contact.name) + `<div class="ph-call"><div class="ph-avatar">${esc(initials)}</div>` +
       `<div class="ph-callname">${esc(c.contact.name)}</div>` +
       `<div class="ph-callstate">${c.phase === 'ringing' ? 'Bellen…' : 'Verbonden'}</div>` +
-      (c.phase === 'talk' ? `<div class="ph-bubble">${esc(c.line)}</div>` : '') +
+      (c.phase === 'talk' ? `<div class="ph-bubble">${dualHtml(c.line)}</div>` : '') +
       `<div class="ph-actions">${c.phase === 'talk' ? c.actions.map((a, i) => `<button type="button" class="ph-row ph-action${i === st.sel ? ' sel' : ''}${a.label === 'Ophangen' ? ' hangup' : ''}" data-idx="${i}">${esc(a.label)}</button>`).join('') : ''}</div></div>`;
   } else if (st.screen === 'contacten') {
     html = header('Contacten') + `<div class="ph-list">${contacts(w).map((c, i) =>
       `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-avatar sm">${esc(c.name[0])}</span>` +
-      `<span class="ph-rowtext"><b>${esc(c.name)}</b><small>${esc(c.sub)}</small></span></button>`).join('')}</div>`;
+      `<span class="ph-rowtext"><b>${esc(c.name)}</b><small>${dualHtml(c.sub)}</small></span></button>`).join('')}</div>`;
   } else if (st.screen === 'missies') {
     html = header('Missies') + `<div class="ph-list">${getMissionList().map((m, i) =>
       `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-rowtext"><b>${m.code ? esc(m.code) + ' · ' : ''}${esc(m.label)}</b>` +
@@ -462,7 +463,7 @@ function render() {
   } else if (st.screen === 'sikkom') {
     const items = w.phoneHistory || [];
     html = header('Sikkom') + `<div class="ph-list ph-feed">${items.length ? items.map((n) =>
-      `<div class="ph-news"><small>${esc(n.at || '')}</small><p>${esc(n.text)}</p></div>`).join('')
+      `<div class="ph-news"><small>${esc(n.at || '')}</small><p>${dualHtml(n.text)}</p></div>`).join('')
       : '<p class="ph-empty">Nog geen nieuws. Grunn is rustig… nog wel.</p>'}</div>`;
   }
   screenEl.innerHTML = html;

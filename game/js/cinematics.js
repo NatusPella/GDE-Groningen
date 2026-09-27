@@ -1,3 +1,4 @@
+import { setDualText } from './subtitles.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
@@ -75,7 +76,7 @@ export function initCinematics(w) {
     '<div class="cine-bar top"></div><div class="cine-bar bottom"></div>' +
     '<div class="cine-card"><div class="cine-kicker"></div><div class="cine-title"></div></div>' +
     '<div class="cine-big"></div>' +
-    '<div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line"></span><span class="cine-nl"></span></div>' +
+    '<div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line"></span></div>' +
     '<div class="cine-skip"><svg class="cine-skip-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span><span class="hud-key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
     '<div class="cine-banner" hidden><div class="cb-band"><div class="cb-title"></div></div>' +
@@ -89,7 +90,6 @@ export function initCinematics(w) {
     big: root.querySelector('.cine-big'),
     speaker: root.querySelector('.cine-speaker'),
     line: root.querySelector('.cine-line'),
-    nl: root.querySelector('.cine-nl'),
     banner: root.querySelector('.cine-banner'),
     bTitle: root.querySelector('.cb-title'),
     bReason: root.querySelector('.cb-reason'),
@@ -204,10 +204,10 @@ function begin(spec) {
   r.classList.toggle('show-skip', !!active.skippable && active.duration > 1.6);
   r.dataset.tint = active.tint || '';
   r.dataset.accent = active.accent || '';
-  els.kicker.textContent = active.kicker || '';
+  setDualText(els.kicker, active.kicker || '');
   els.title.textContent = active.title || '';
   r.classList.toggle('has-card', !!(active.title || active.kicker));
-  els.big.textContent = active.big || '';
+  setDualText(els.big, active.big || '');
   r.classList.toggle('has-big', !!active.big);
   els.lineIndex = -1;
   els.speaker.textContent = '';
@@ -278,9 +278,7 @@ function updateSubtitles() {
   const l = lines[idx];
   els.root.classList.toggle('has-sub', !!l);
   els.speaker.textContent = l && l.speaker ? l.speaker + ':' : '';
-  els.line.textContent = l ? l.text : '';
-  // a Frisian line carries its Dutch translation (l.nl); a story clue is highlighted
-  els.nl.textContent = l && l.nl ? l.nl : '';
+  setDualText(els.line, l ? l.text : '');
   els.root.classList.toggle('sub-clue', !!(l && l.clue));
   if (l && l.voice) playStoryVoice(l.voice);
 }

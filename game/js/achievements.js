@@ -1,13 +1,14 @@
 // Prestaties: declarative list, lifetime stats and the unlock toast.
-// Import-free on purpose so any module can call the hooks (recordStat,
-// recordUnique, unlockAchievement) without creating import cycles; the
-// polling detectors live in achievementtracker.js.
+// Imports only the import-free subtitles.js, so any module can call the
+// hooks (recordStat, recordUnique, unlockAchievement) without creating
+// import cycles; the polling detectors live in achievementtracker.js.
 //
 // Storage: everything the player earns for good (unlocks, lifetime counters,
 // best mission times/medals) sits in its own key so it survives "Nieuw spel".
 // Per-playthrough bits (found eierballen) travel inside the savegame, which
 // also carries a copy of the unlocked ids so a save restores them if the
 // lifetime key was ever cleared.
+import { dualHtml } from './subtitles.js';
 
 const KEY = 'gte-prestaties-v1';
 const WRITE_DELAY_MS = 2500;
@@ -118,7 +119,7 @@ export const ACHIEVEMENTS = [
   { id: 'kusje_25', cat: 'sociaal', title: 'Tortelduifjes', desc: 'Geef 25 kusjes', stat: 'kisses', goal: 25 },
   { id: 'horeca_5', cat: 'sociaal', title: 'Kroegtijger', desc: 'Eet of drink iets bij 5 verschillende zaken', set: 'horeca', goal: 5 },
   { id: 'horeca_25', cat: 'sociaal', title: 'Bitterbal-sommelier', desc: 'Eet of drink iets bij 25 verschillende zaken', set: 'horeca', goal: 25 },
-  { id: 'rijk', cat: 'sociaal', title: 'Groninger koopman', desc: 'Heb €5.000 op zak', stat: 'maxMoney', goal: 5000, unit: '€' },
+  { id: 'rijk', cat: 'sociaal', title: 'Groninger koopman', desc: 'Heb €10.000 op zak', stat: 'maxMoney', goal: 10000, unit: '€' },
   { id: 'koop_1', cat: 'sociaal', title: 'Klant is koning', desc: 'Koop iets in een winkel', stat: 'purchases', goal: 1 },
   { id: 'koop_10', cat: 'sociaal', title: 'Shopaholic', desc: 'Doe 10 aankopen', stat: 'purchases', goal: 10 },
   { id: 'uitgaven', cat: 'sociaal', title: 'Geld moet rollen', desc: 'Geef in winkels in totaal €2.500 uit', stat: 'spent', goal: 2500, unit: '€' },
@@ -449,6 +450,7 @@ const CSS = `
 #hud .ach-toast .ach-kicker { font-size: 13px; letter-spacing: 3px; color: #3fc97a; }
 #hud .ach-toast.gold .ach-kicker { color: #e8c93a; }
 #hud .ach-toast .ach-title { font-size: 27px; letter-spacing: 1.5px; line-height: 1; color: #f0ede4; }
+#hud .ach-toast .ach-title .nl-sub { font-size: 0.55em; letter-spacing: 0.5px; text-transform: none; }
 #hud .ach-toast .ach-desc { font: 14px/1.3 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.75); }
 #hud .ach-toast .ach-pct { font-size: 15px; color: rgba(240,237,228,0.5); margin-left: 8px; letter-spacing: 1px; }
 @media (max-width: 480px) { #hud .ach-toast { min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } #hud .ach-toast .ach-title { font-size: 22px; } }
@@ -500,7 +502,7 @@ function showNextToast() {
   const { pct } = getAchievementSummary();
   el.innerHTML = `<span class="ach-ico">${TROPHY_SVG}</span><span class="ach-txt">` +
     `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct}%</span></span>` +
-    `<span class="ach-title">${escHtml(a.title)}</span><span class="ach-desc">${escHtml(a.desc)}</span></span>`;
+    `<span class="ach-title">${dualHtml(a.title)}</span><span class="ach-desc">${escHtml(a.desc)}</span></span>`;
   void el.offsetWidth;
   el.classList.add('on');
   if (world) {
