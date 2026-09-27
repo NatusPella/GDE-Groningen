@@ -12,7 +12,9 @@
   pointer-events: none;
   transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-#hud .hud-cards.below-np { transform: translateY(78px); }
+/* one prominent thing at a time: the now-playing card steps aside for a card */
+body.hud-card-on #hud .hud-nowplaying { opacity: 0; transform: translateX(-24px); }
+body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.hud-call-on #hud .hud-ctx, body.hud-call-on #hud .wp-secondary { opacity: 0 !important; }
 #hud .hud-cards.paused .hc-timer { animation-play-state: paused; }
 
 #hud .hud-card {
@@ -113,3 +115,4 @@
   #hud .hud-card .hc-icon svg, #hud .hud-count.on { animation: none !important; }
   #hud .hud-count.on { opacity: 1; }
 }
+body.pigeon-mode #hud .hud-cards { top: 300px; }

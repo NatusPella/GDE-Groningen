@@ -20,8 +20,10 @@ import { readingSeconds } from './world.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { CARD_LINES } from './cardlines.js';
+import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 
-const MAX_VISIBLE = 2;
+// the HUD's attention budget: one prominent card at a time
+const MAX_VISIBLE = 1;
 const MAX_QUEUE = 5;
 const MIN_TIME = 4;
 const MAX_TIME = 10;
@@ -38,14 +40,15 @@ const ICON = {
   prestatie: '<path d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.4A5 5 0 0 1 13 14.9V17h3v3H8v-3h3v-2.1A5 5 0 0 1 8.4 12H8a4 4 0 0 1-4-4V5h3zm0 4H6v1a2 2 0 0 0 1 1.7zm10 0v2.7A2 2 0 0 0 18 8V7z"/>',
   tip: '<path d="M9 21.5h6V20H9zM12 2a7 7 0 0 0-4 12.7V18.5h8v-3.8A7 7 0 0 0 12 2z"/>',
 };
+// rank: attention.js CARD_PRIORITY (story > danger > reward > tips)
 export const CARD_KINDS = {
-  missie: { label: 'Missie', rank: 2 },
-  bijbaan: { label: 'Bijbaantje', rank: 2 },
-  geld: { label: 'Geld', rank: 2 },
-  politie: { label: 'Politie', rank: 3 },
-  gevaar: { label: 'Let op', rank: 3 },
-  prestatie: { label: 'Prestatie', rank: 2 },
-  tip: { label: 'Tip', rank: 1 },
+  missie: { label: 'Missie', rank: CARD_PRIORITY.missie },
+  bijbaan: { label: 'Bijbaantje', rank: CARD_PRIORITY.bijbaan },
+  geld: { label: 'Geld', rank: CARD_PRIORITY.geld },
+  politie: { label: 'Politie', rank: CARD_PRIORITY.politie },
+  gevaar: { label: 'Let op', rank: CARD_PRIORITY.gevaar },
+  prestatie: { label: 'Prestatie', rank: CARD_PRIORITY.prestatie },
+  tip: { label: 'Tip', rank: CARD_PRIORITY.tip },
 };
 
 // Said elsewhere already: the death/busted shot, the mission outro and fail
@@ -149,6 +152,8 @@ export function showCard(w, spec) {
   const kind = CARD_KINDS[spec.kind] ? spec.kind : 'tip';
   let { title = '', body = '' } = spec;
   if (!title && !body && spec.text) ({ title, body } = split(spec.text));
+  // "Missie: X" under the kicker MISSIE: X is the title
+  if (title && body && title.toLowerCase() === (spec.kicker || CARD_KINDS[kind].label).toLowerCase()) { title = body; body = ''; }
   const all = `${title} ${body}`.trim();
   const secs = Math.min(MAX_TIME, Math.max(MIN_TIME, (spec.duration || 0) * 1.2, readingSeconds(all) * 1.25));
   const card = { spec: { ...spec, kind, title, body }, secs, key: spec.key || all, at: world ? world.time : 0, text: spec.text || all };
@@ -236,7 +241,10 @@ export function updateCards(dt, w) {
   if (countT > 0 && (countT -= dt) <= 0) countEl.classList.remove('on');
   const frozen = hudHidden() || w.paused || w.uiPaused;
   stackEl.classList.toggle('paused', !!frozen);
+  document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
   if (frozen) return;
+  // during a phone call only dangers and the police get a card
+  const calling = document.body.classList.contains('hud-call-on');
   for (const c of visible) c.left -= dt;
   for (const c of visible.filter((v) => v.left <= 0)) {
     if (!c.leaving) leave(c);
@@ -246,10 +254,20 @@ export function updateCards(dt, w) {
   queue = queue.filter((q) => now - q.at < (q.spec.kind === 'tip' ? 12 : 30));
   if (!queue.length) return;
   const up = visible.filter((c) => !c.leaving);
-  if (up.length < MAX_VISIBLE) { mount(queue.shift()); return; }
+  if (calling && CARD_KINDS[queue[0].spec.kind].rank < CARD_PRIORITY.politie) return;
+  if (up.length < MAX_VISIBLE) {
+    // tips are rationed (attention.js); a waiting tip lets others go first
+    const i = queue.findIndex((q) => q.spec.kind !== 'tip' || mayShowTip());
+    if (i < 0) return;
+    const next = queue.splice(i, 1)[0];
+    if (next.spec.kind === 'tip') noteTip();
+    mount(next);
+    return;
+  }
   // a danger or police card pushes the oldest less urgent one out early
   const next = queue[0];
   const weakest = up.filter((c) => CARD_KINDS[c.spec.kind].rank < CARD_KINDS[next.spec.kind].rank).sort((a, b) => a.left - b.left)[0];
   if (weakest) leave(weakest);
-  else { const old = up.find((c) => c.secs - c.left > 2.5 && c.left > 1); if (old && queue.length > 2) old.left = Math.min(old.left, 1); }
+  // a waiting queue shortens the card that is up (but it stays readable)
+  else { const old = up.find((c) => c.secs - c.left > 3 && c.left > 1); if (old) old.left = Math.min(old.left, 1); }
 }

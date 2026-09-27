@@ -515,11 +515,9 @@ function updateNowPlaying(world) {
     els.nowPlaying.classList.remove('on');
     void els.nowPlaying.offsetWidth;
     els.nowPlaying.classList.add('on');
-    els.cards.classList.add('below-np');
   }
   if (np && world.time - np.at > NOW_PLAYING_TIME) {
     els.nowPlaying.classList.remove('on');
-    els.cards.classList.remove('below-np');
     world.nowPlaying = null;
   }
 }
@@ -837,6 +835,23 @@ export function getPoliceSearch(world) {
   return { x, y, r };
 }
 
+// As the crow flies (pigeon mode): a dashed straight line to the target.
+function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(bx, by);
+  ctx.setLineDash([7, 6]);
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(12, 20, 14, 0.75)';
+  ctx.stroke();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawEdgeArrow(ctx, x, y, angle, color, s = 1) {
   ctx.save();
   ctx.translate(x, y);
@@ -1001,7 +1016,8 @@ function drawMinimap(dt, world) {
   const cx = MINIMAP_SIZE / 2, cy = MINIMAP_SIZE / 2;
   // The map rotates so the camera heading always points up; any world
   // angle plus mapRotation gives its on-screen angle.
-  const mapRotation = -Math.PI / 2 - (world.camYaw ?? player.angle);
+  // a flying pigeon: its own heading (pigeonmode.js keeps player.angle on it)
+  const mapRotation = -Math.PI / 2 - (world.pigeonMode ? player.angle : world.camYaw ?? player.angle);
   const cosR = Math.cos(mapRotation), sinR = Math.sin(mapRotation);
   ctx.translate(cx * dpr, cy * dpr);
   ctx.rotate(mapRotation);
@@ -1058,6 +1074,7 @@ function drawMinimap(dt, world) {
   }
 
   for (const route of getRoutes()) {
+    if (route.fly) { drawCrowLine(ctx, toScreen(player.x, player.y), toScreen(route.target.x, route.target.y), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user); continue; }
     const ahead = getRouteAhead(MM_RADIUS_M * 2.5, route);
     if (ahead && ahead.length > 1) drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, route === getActiveRoute() ? 4 : 3);
   }

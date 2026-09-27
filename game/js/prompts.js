@@ -24,7 +24,7 @@ const MASTER_USES = 6;
 const KISS_DIST = 1.8;
 const KISS_COOLDOWN = 3;
 const SECONDARY_INTERVAL = 0.15;
-const MAX_SECONDARY = 3;
+const MAX_SECONDARY = 1;
 const MAX_ROWS = 5;
 
 const WEAPON_NAMES = { pistol: 'Pistool', uzi: 'Uzi', shotgun: 'Hagelgeweer' };
@@ -144,6 +144,14 @@ function hiddenNow(world) {
   return !!(cine && cine.classList.contains('active'));
 }
 
+// The key hints step aside for a HUD card, a phone call or a subtitle.
+function hintsQuiet() {
+  const b = document.body.classList;
+  if (b.contains('hud-card-on') || b.contains('hud-call-on')) return true;
+  const sub = document.getElementById('banter-sub');
+  return !!(sub && sub.style.opacity === '1');
+}
+
 export function updatePrompts(dt, world) {
   if (!root) return;
   trackUsage(dt, world);
@@ -153,7 +161,7 @@ export function updatePrompts(dt, world) {
 
   const hidden = hiddenNow(world);
   root.classList.toggle('off', hidden);
-  rowsEl.classList.toggle('off', hidden);
+  rowsEl.classList.toggle('off', hidden || hintsQuiet());
   if (hidden) return;
 
   const primary = findPrimary(world);
@@ -472,7 +480,8 @@ function renderWorldPrompts(world, primary) {
     if (primary) { wps[0].el.classList.remove('in'); wps[0].shown = false; }
   }
   placeWp(wps[0], primary, true, hold);
-  const sec = secondary.filter((s) => !primary || Math.hypot(s.x - primary.x, s.y - primary.y) > 1.5);
+  // only the nearest interaction: no place labels next to an E prompt
+  const sec = primary ? [] : secondary;
   for (let i = 0; i < MAX_SECONDARY; i++) placeWp(wps[i + 1], sec[i] || null, false);
 }
 
