@@ -40,8 +40,8 @@ const DROP_G = 9.81;
 const HANG = 2.05; // hands above feet while hanging from the pole
 const THETA0 = -0.3;
 const THETA1 = 0.52;
-const SAY_OK = ['Oant sjen, Grinzers!', 'Moai sprong, al sis ik it sels.', 'Fierljeppe, dat kinne jimme net!'];
-const SAY_FAIL = ['Wiet! Hielendal wiet!', 'Nee nee nee…', 'Dit hat gjinien sjoen, hè?'];
+const SAY_OK = ['Oant sjen, Grinzers!', 'Moaie sprong, al zeg ik het zelf.', 'Fierljeppen, dat kunnen jullie niet!'];
+const SAY_FAIL = ['Wiet! Hielendal wiet!', 'Nee nee nee…', 'Dit heeft niemand gezien, hè?'];
 
 let world = null;
 const vaults = [];

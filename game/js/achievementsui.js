@@ -1,6 +1,7 @@
 // Pause-menu views for achievements.js: the Prestaties tab and the medal /
 // best-time line in the Missies list.
 
+import { dualHtml } from './subtitles.js';
 import {
   getAchievementView, getAchievementSummary, getLifetimeStats, getMissionRecord, formatMissionTime,
   MISSION_GOALS, MEDALS, EIERBAL_TOTAL, TROPHY_SVG, getStat,
@@ -87,7 +88,7 @@ export function missionRecordHTML(i) {
 function card(it) {
   const on = it.unlocked ? 1 : 0;
   const ico = it.unlocked ? TROPHY_SVG : it.hidden ? HIDDEN_SVG : LOCK_SVG;
-  const title = it.hidden ? '???' : esc(it.title);
+  const title = it.hidden ? '???' : dualHtml(it.title);
   const desc = it.hidden ? 'Geheime prestatie. Blijf rondkijken in Grunn.' : esc(it.desc);
   let prog = '';
   if (!it.unlocked && !it.hidden && it.progress) {

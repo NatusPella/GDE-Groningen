@@ -147,8 +147,8 @@ export default {
       const out = Math.floor(Math.random() * 3);
       for (let i = 0; i < out; i++) {
         const ped = spawnPed(world, door.x - Math.cos(v.angle) * i * 0.8, door.y - Math.sin(v.angle) * i * 0.8, v.angle + Math.PI / 2);
-        if (i === 0 && d.comfort < 60) say(world, ped, pick(['Nooit meer lijn 3.', 'Ik ga voortaan lopen.', 'Mijn koffie!']), 3);
-        else if (i === 0) say(world, ped, pick(['Dank je, chauffeur!', 'Moi!', 'Tot kiek!']), 2.6);
+        if (i === 0 && d.comfort < 60) say(world, ped, pick(['Nooit meer lijn 3.', 'Ik ga voortaan lopen.', 'Mijn koffie!', 'Nait zo hard over de drempels, mien jong!']), 3);
+        else if (i === 0) say(world, ped, pick(['Dank je, chauffeur!', 'Moi!', 'Tot kiek!', 'Hou dij goud, chauffeur!']), 2.6);
         freePed(ped);
       }
     }

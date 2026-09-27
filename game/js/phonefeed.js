@@ -1,3 +1,4 @@
+import { setDualText } from './subtitles.js';
 import { getClockText } from './hud_panel.js';
 import { readingSeconds } from './world.js';
 
@@ -111,7 +112,7 @@ export function updatePhoneFeed(dt, world) {
   if (queueState === 'idle') {
     const next = world.phoneNotifications.shift();
     if (!next) return;
-    bodyEl.textContent = next.text;
+    setDualText(bodyEl, next.text);
     if (wordEl) wordEl.textContent = next.from || 'Sikkom';
     if (!world.phoneHistory) world.phoneHistory = [];
     world.phoneHistory.unshift({ text: next.from ? `${next.from}: ${next.text}` : next.text, at: getClockText(world) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) });
