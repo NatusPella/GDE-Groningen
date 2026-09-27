@@ -6,6 +6,7 @@
 // spot, and not in a pocket the footprints close off. `validateSpots(world)`
 // returns the offenders; the story test fails on any (desktop
 // --validate-spots runs only this check).
+import { getHomeSpots } from './home.js';
 import { pointInPolygon, isInWater, closestPointOnSegment } from './util.js';
 import { inPassage } from './passages.js';
 import { getMissionDefs, resolveMissionTarget } from './missions.js';
@@ -101,6 +102,7 @@ export function collectSpots(world) {
   });
   for (const s of getShopsForRender()) add('winkel', `${s.type} ${s.name || ''}`, s);
   for (const g of getGaragesForRender()) add('garage', g.name, g, 'drive');
+  for (const h of getHomeSpots(world)) add('thuis', h.name, h, h.mode);
   for (const h of getHorecaForRender() || []) add('horeca', h.name, h);
   for (const j of getSideJobList()) add('bijbaan', j.name, j);
   for (const p of getPigeonSpotsForRender()) add('duivenplek', p.name, p);

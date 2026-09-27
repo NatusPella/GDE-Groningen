@@ -37,6 +37,7 @@ import { saveGame } from './savegame.js';
 import { isMissionActive, isNight, getMissionDefs } from './missions.js';
 import { refreshDayNight } from './daynight.js';
 import { recordStat } from './achievements.js';
+import { clearDrunk } from './drunk.js';
 import { buildHomeExterior3D, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D } from './home3d.js';
 
 const NEAR_M = 200;
@@ -283,6 +284,23 @@ export function getHomeForRender() {
   return home ? [{ x: home.icon.x, y: home.icon.y, name: 'Thuis', sub: 'Garage, bed, koelkast en kledingkast' }] : [];
 }
 
+// Start and target points for spotcheck.js: the lobby, the garage door, the
+// Escapade's bay and the first mooring.
+export function getHomeSpots(w) {
+  if (!home) return [];
+  const d = home.garage.door;
+  const hero = home.garage.bays.find((b) => b.hero);
+  const out = [
+    { name: 'lobby', x: home.lobby.spawn[0], y: home.lobby.spawn[1], mode: 'walk' },
+    { name: 'garagedeur', x: d.cx + d.nx * 3, y: d.cy + d.ny * 3, mode: 'drive' },
+    { name: 'Escapade-plek', x: hero.x, y: hero.y, mode: 'drive' },
+  ];
+  const side = bankSide(w);
+  const p = home.bank.at(40);
+  out.push({ name: 'steiger', x: p.x + p.dir[1] * side * 2, y: p.y - p.dir[0] * side * 2, mode: 'boat' });
+  return out;
+}
+
 export function isInsideHome() {
   return !!inside;
 }
@@ -404,7 +422,7 @@ function wantedSlots(w, stored) {
   const pages = pageCount(stored.car.length);
   page = ((page % pages) + pages) % pages;
   stored.car.slice(page * bays.length, (page + 1) * bays.length).forEach((o, i) => { const b = bays[i]; want.set(o, { x: b.x, y: b.y, angle: b.angle, id: b.id }); });
-  const court = lineSlots(stored.long, home.court, (sp) => ({ side: 1, d: 4.5 + sp.model.wid / 2 + 0.5 }), 2, home.court.total - 2);
+  const court = lineSlots(stored.long, home.court, (sp) => ({ side: 1, d: 4.5 + sp.model.wid / 2 + 0.5 }), 24, home.court.total - 2);
   for (const [o, s] of court) want.set(o, { ...s, id: 'k-' + o.key });
   const side = bankSide(w);
   const boats = lineSlots(stored.boat, home.bank, (sp) => ({ side, d: sp.model.wid / 2 + 1.1 }), 30, home.bank.total - 8);
@@ -464,7 +482,9 @@ function updateVehicles(w) {
   // stored ones that were driven, towed or delivered away are out again
   for (const v of [hero, ...entries.map((o) => o.v)]) {
     if (!v || !v.homeStored) continue;
-    if (v === pv || !w.vehicles.includes(v)) { v.homeStored = false; v.homeSlot = null; continue; }
+    // (police-flagged ones are swept from world.vehicles now and then; shops.js puts them back)
+    if (v === pv) { v.homeStored = false; v.homeSlot = null; continue; }
+    if (!w.vehicles.includes(v)) continue;
     if (Math.abs(v.speed || 0) < 0.3 && !inStoreZone(w, v, specOf.get(v)) && Math.hypot(v.x - (v._homeX ?? v.x), v.y - (v._homeY ?? v.y)) > 3) { v.homeStored = false; v.homeSlot = null; }
   }
   const isNear = near(w, NEAR_M);
@@ -571,7 +591,7 @@ function enterFlat(w) {
   return fadeThen(() => {
     const scene = getScene();
     const f = home.flat;
-    inside = { flatMesh: buildFlat3D(f), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL) : null };
+    inside = { flatMesh: buildFlat3D(f), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL - 1) : null };
     if (scene) {
       scene.add(inside.flatMesh);
       if (inside.lowerMesh) scene.add(inside.lowerMesh);
@@ -643,6 +663,7 @@ function sleep(w) {
     w.clock = needNight && !isNight(w) ? EVENING : MORNING;
     refreshDayNight(w);
     w.health = 100;
+    clearDrunk(w);
     recordStat(w, 'slept');
     saveGame(w, { toast: true });
     w.addMessage(needNight && !isNight(w) ? 'Uitgeslapen tot de avond. Tijd voor actie' : hour > MORNING && hour < 20 ? 'Middagdutje tot de volgende ochtend. Goeiemorgen, Grunn!' : 'Goeiemorgen, Grunn! Uitgeslapen en opgeslagen', 4, { kind: 'tip' });

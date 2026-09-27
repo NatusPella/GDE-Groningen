@@ -169,6 +169,8 @@ export function buildFlat3D(flat) {
   const low = 1.05;
   // the whole floor slab of the tower, a parapet round it and the other flats as closed blocks
   const slab = new THREE.Group();
+  // one storey of plain wall under the floor hides the roof clutter of the tower below
+  box(slab, M.wall, T.w / 2, -1.6, T.d / 2, T.w, 3.2, T.d);
   box(slab, M.concrete, T.w / 2, -0.1, T.d / 2, T.w + 0.2, 0.2, T.d + 0.2);
   for (const [x, z, sx, sz] of [[T.w / 2, 0, T.w, 0.2], [T.w / 2, T.d, T.w, 0.2], [0, T.d / 2, 0.2, T.d], [T.w, T.d / 2, 0.2, T.d]]) box(slab, M.concrete, x, 0.5, z, sx, 1, sz);
   g.add(slab);
