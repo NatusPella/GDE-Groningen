@@ -10,6 +10,10 @@ instead of inside it (mapdata.js merges it at load time).
   newer ways) around the Grote Markt and the UMCG, plus per-building patches
   (heights, names, landmark models) for a few places.
 - fuel: gas stations (amenity=fuel), which double as garages in the game.
+- padel: padel courts (sport=padel pitches, sports centres with padel in
+  their name) grouped per site for the padel minigame (padel.js); the club
+  names stay out of the game, sites are called after their wijk. When OSM
+  has too few inside the map, FALLBACK_PADEL adds unverified guesses.
 - passages: ways mapped as running through or under a building
   (tunnel=building_passage/covered/yes, covered=yes/arcade) from the city
   caches; passages.js opens footprints only along a mapped passage or a
@@ -24,6 +28,9 @@ import os
 import subprocess
 import sys
 import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import cached, map_bbox, bbox_str  # noqa: E402
 
 OUT = "game/mapextras.json"
 MAP = "game/citymap.json"
@@ -494,6 +501,100 @@ def build_fuel(raw):
     return out
 
 
+# Unverified sports-park spots used only when OSM has fewer than 2 padel
+# sites inside the map: (x, y, rotation, wijk).
+FALLBACK_PADEL = [
+    (1480.0, 1760.0, 0.0, "Sportpark Corpus den Hoorn"),
+    (-1450.0, -1150.0, 0.0, "Sportpark Kardinge"),
+]
+PADEL_W, PADEL_L = 10.0, 20.0
+
+
+def padel_query(bbox):
+    b = bbox_str(bbox)
+    return ("[out:json][timeout:120];("
+            f'nwr["sport"~"padel"]{b};'
+            f'nwr["leisure"~"sports_centre|sports_hall|pitch"]["name"~"[Pp]adel"]{b};'
+            ");out tags geom;")
+
+
+def _obb(pts):
+    """Centre, long-axis angle (radians, game x/y) and size of a footprint."""
+    best = None
+    for i in range(len(pts) - 1):
+        a = math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0])
+        c, s = math.cos(a), math.sin(a)
+        us = [p[0] * c + p[1] * s for p in pts]
+        vs = [-p[0] * s + p[1] * c for p in pts]
+        area_ = (max(us) - min(us)) * (max(vs) - min(vs))
+        if best is None or area_ < best[0]:
+            best = (area_, a, us, vs, c, s)
+    _, a, us, vs, c, s = best
+    cu, cv = (max(us) + min(us)) / 2, (max(vs) + min(vs)) / 2
+    du, dv = max(us) - min(us), max(vs) - min(vs)
+    if dv > du:
+        a, du, dv = a + math.pi / 2, dv, du
+    a = math.atan2(math.sin(a), math.cos(a))
+    return cu * c - cv * s, cu * s + cv * c, a, du, dv
+
+
+def build_padel(raw, meta):
+    x0, y0, x1, y1 = meta["bounds"]
+    pts_n = [p for p in meta.get("neighbourhoodPoints", []) if p.get("name")]
+
+    def wijk(x, y):
+        best = min(pts_n, key=lambda p: (p["x"] - x) ** 2 + (p["y"] - y) ** 2, default=None)
+        return best["name"] if best else "Grunn"
+
+    courts, centres = [], []
+    for el in raw.get("elements", []):
+        tags = el.get("tags", {})
+        geom = el.get("geometry")
+        if el["type"] == "way" and geom and len(geom) >= 4:
+            pts = [project(g["lat"], g["lon"]) for g in geom]
+            cx, cy, a, l, w = _obb(pts)
+        elif el["type"] == "node":
+            cx, cy = project(el["lat"], el["lon"])
+            a, l, w = 0.0, 0.0, 0.0
+        elif el["type"] == "relation" and el.get("bounds"):
+            bd = el["bounds"]
+            cx, cy = project((bd["minlat"] + bd["maxlat"]) / 2, (bd["minlon"] + bd["maxlon"]) / 2)
+            a, l, w = 0.0, 0.0, 0.0
+        else:
+            continue
+        if not (x0 <= cx <= x1 and y0 <= cy <= y1):
+            continue
+        is_pitch = tags.get("leisure") == "pitch" and 14 <= l <= 30 and 7 <= w <= 16
+        rec = {"x": round(cx, 1), "y": round(cy, 1), "rot": round(a, 3), "indoor": tags.get("indoor") == "yes" or tags.get("covered") == "yes"}
+        (courts if is_pitch else centres).append(rec)
+    sites = []
+    for c in sorted(courts, key=lambda c: (c["x"], c["y"])):
+        site = next((s for s in sites if math.hypot(s["x"] - c["x"], s["y"] - c["y"]) < 90), None)
+        if not site:
+            site = {"x": c["x"], "y": c["y"], "courts": []}
+            sites.append(site)
+        site["courts"].append({"x": c["x"], "y": c["y"], "rot": c["rot"]})
+        n = len(site["courts"])
+        site["x"] = round(sum(k["x"] for k in site["courts"]) / n, 1)
+        site["y"] = round(sum(k["y"] for k in site["courts"]) / n, 1)
+    for c in centres:
+        if any(math.hypot(s["x"] - c["x"], s["y"] - c["y"]) < 150 for s in sites):
+            continue
+        # a sports centre without mapped pitches: one court beside it
+        sites.append({"x": c["x"], "y": c["y"], "courts": [], "centre": True})
+    src = "osm"
+    if len(sites) < 2:
+        src = "gok"
+        for fx, fy, rot, name in FALLBACK_PADEL:
+            if any(math.hypot(s["x"] - fx, s["y"] - fy) < 300 for s in sites):
+                continue
+            sites.append({"x": fx, "y": fy, "courts": [], "guess": True, "wijk": name})
+    for s in sites:
+        s["name"] = "Padelbaan " + (s.pop("wijk", None) or wijk(s["x"], s["y"]))
+        s["src"] = "gok" if s.get("guess") else "osm"
+    return sites, src
+
+
 if __name__ == "__main__":
     refresh = "--refresh" in sys.argv
     bus = fetch(bus_query(), "data/extras_bus_raw.json", refresh)
@@ -519,10 +620,14 @@ if __name__ == "__main__":
     taken = {tuple(pch["at"]) for pch in height_patches}
     core = core_heights(citymap["buildings"], taken)
     passages = [p for p in build_passages() if any(x0 <= q[0] <= x1 and y0 <= q[1] <= y1 for q in p["pts"])]
-    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core, "fuel": fuel_pts, "passages": passages}
+    padel_raw = cached("data/extras_padel_raw.json", map_bbox(citymap["meta"]), padel_query)
+    padel, padel_src = build_padel(padel_raw, citymap["meta"])
+    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core, "fuel": fuel_pts, "passages": passages, "padel": padel}
     with open(OUT, "w") as f:
         json.dump(out, f, separators=(",", ":"))
-    print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} fuel={len(fuel_pts)} passages={len(passages)}")
+    print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} fuel={len(fuel_pts)} passages={len(passages)} padel={len(padel)} ({padel_src})")
+    for s in padel:
+        print("  padel", s["name"], s["x"], s["y"], len(s["courts"]), "courts", s["src"])
     for b in added:
         if b["name"] or b["h"] >= 4:
             print("  +", b["name"], b["type"], b["h"], b["pts"][0])

@@ -44,6 +44,7 @@ import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfter
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
+import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
@@ -183,6 +184,7 @@ async function boot() {
   initPigeonMode(world);
   initPigeonSpots(world);
   initHeliRun(world);
+  initPadel(world);
   initPostgame(world);
   initSideJobs(world);
   initStory(world);
@@ -265,6 +267,8 @@ async function boot() {
     }
     probe.mark('phone+save');
     updateSafety(dt, world);
+    // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
+    if (world.padelGame) padelCamera(world);
     update3D(world.paused ? dt : gameDt, world);
     updateHud(dt, world);
     probe.mark('hud');
@@ -297,8 +301,10 @@ async function boot() {
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else if (world.heliRun) updateHeliRun(dt, world);
+    else if (world.padelGame) { updatePadel(dt, world); updateCompanion(dt, world); }
     else {
       tryPostgameInteract(world);
+      tryPadelInteract(world);
       tryTrainInteract(world);
       trySideJobInteract(world);
       tryHeliSpotInteract(world);
@@ -350,6 +356,7 @@ async function boot() {
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
     updateHeliSpot(dt);
+    updatePadelWorld(dt, world);
     updatePoleVaults(dt, world);
     probe.mark('wildlife');
     if (!world.pigeonMode && !world.heliRun) {

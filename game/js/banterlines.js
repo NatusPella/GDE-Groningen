@@ -647,6 +647,15 @@ export const BANTER = [
   { id: 'h15-fail', trigger: 'after:H15:fail', lines: [
     ['T', 'Die ballon ging harder dan wij.', 'defeated'],
     ['A', 'Die ballon had geen passagier die steeds "rustig aan" riep.', 'teasing']] },
+  { id: 'st-padel', trigger: 'story:s-padel', lines: [
+    ['A', 'Padel. Twee tegen twee, in een glazen doos.', 'teasing'],
+    ['T', 'Net als ons leven.', 'dry, deadpan']] },
+  { id: 'padel-pass', trigger: 'after:padel:pass', lines: [
+    ['A', 'Jij kunt padellen. Wie had dat gedacht.', 'surprised, amused'],
+    ['T', 'Ik. Al jaren.', 'smug, dry']] },
+  { id: 'padel-fail', trigger: 'after:padel:fail', lines: [
+    ['T', 'Dat glas stond verkeerd.', 'grumpy'],
+    ['A', 'Dat glas staat er al sinds de bouw, Tammo.', 'teasing']] },
   { id: 'st-h16', trigger: 'story:H16', lines: [
     ['A', 'Als ik Durk zie, in mijn Fjord…', 'seething'],
     ['T', 'Dan wat?', 'nervous'],

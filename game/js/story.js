@@ -27,6 +27,7 @@ import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { queueFjordReveal } from './postgame.js';
+import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -148,6 +149,11 @@ const GOALS = {
     begin: (st, b) => { b.trips = getTrainTripCount(); },
     met: (st, b) => getTrainTripCount() > (b.trips ?? Infinity),
     place: () => nearest(getStationsForRender(), world.player),
+  },
+  padel: {
+    begin: (st, b) => { b.matches = getPadelMatchCount(); },
+    met: (st, b) => getPadelMatchCount() > (b.matches ?? Infinity),
+    place: () => nearest(getPadelSpotsForRender(), world.player),
   },
   egg: {
     begin: (st, b) => { b.eggs = eggsFound(); },

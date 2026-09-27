@@ -241,6 +241,21 @@ export function collect() {
   }
   // Anita at a pigeon spot: the pigeons only listen to Tammo (pigeonspots.js)
   for (const t of lit(src('pigeonspots.js'), 'export const ANITA_NO_PIGEON = ')) add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.f], t, { as: 'Anita' });
+  // padel opponents (padellines.js): the regulars in their own voices, Durk and Douwe as in the story
+  const PADEL_CAST = {
+    Hinderk: { voice: 'Enceladus', who: 'fanatieke Groningse padelspeler op leeftijd, praat Gronings', accent: 'spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent' },
+    Grietje: { voice: 'Autonoe', who: 'fanatieke Groningse padelspeelster, ad rem, praat Gronings', accent: 'spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent' },
+  };
+  const pl = src('padellines.js');
+  for (const table of ['PADEL_PAIR', 'PADEL_TWINS']) {
+    for (const [name, sp] of Object.entries(lit(pl, `export const ${table} = `))) {
+      for (const [k, list] of Object.entries(sp)) {
+        if (!Array.isArray(list)) continue;
+        const tag = k === 'score' || k === 'won' ? ['uitdagend, plagend, op de padelbaan', 'triomfantelijk, roepend over het net'] : k === 'start' ? ['joviaal, uitdagend'] : ['verontwaardigd, buiten adem', 'mopperend, sportief'];
+        for (const t of list) add('Padel', 'lines', [sp.female ? BUBBLE.f : BUBBLE.m], t, PADEL_CAST[name] ? { persona: PADEL_CAST[name], tag } : { as: name });
+      }
+    }
+  }
   for (const t of lit(fl, 'export const KROLBRUG_FAULTS = ')) add('Wereld (radio & navigatie)', 'lines', ['Verkeersinformatie'], t);
   for (const t of lit(fl, 'export const RING_ZUID_GPS = ')) add('Wereld (radio & navigatie)', 'lines', ['Navigatie'], t);
   for (const t of lit(fl, 'export const NACHTSTREEK = ')) add('Wereld (radio & navigatie)', 'lines', [NARRATOR], t, { tag: ['zacht, warm, rustig, laat op de avond, als nacht-dj op de radio', 'warm, ontspannen, droog, als nacht-dj op de radio'] });

@@ -16,6 +16,7 @@ import { getHorecaForRender } from './horeca.js';
 import { getSideJobList } from './sidejobs.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getHeliSpotsForRender } from './helirun.js';
+import { getPadelSpotsForRender } from './padel.js';
 import { getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { CHALLENGES } from './postgame.js';
@@ -107,6 +108,7 @@ export function collectSpots(world) {
   for (const j of getSideJobList()) add('bijbaan', j.name, j);
   for (const p of getPigeonSpotsForRender()) add('duivenplek', p.name, p);
   for (const h of getHeliSpotsForRender()) add('heli', 'traumaheli', h);
+  for (const p of getPadelSpotsForRender()) add('padel', p.name, p);
   for (const s of getStationsForRender() || []) add('station', s.name, s);
   for (const e of getEierballen()) add('eierbal', e.id, e);
   for (const c of CHALLENGES) {

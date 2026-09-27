@@ -50,6 +50,7 @@
 //   { type: 'night' }                 wait at a garage until it's dark (or it already is)
 //   { type: 'train' }                 one train trip (stationtravel.js), routed to the nearest station
 //   { type: 'egg' }                   find one more hidden eierbal (achievementtracker), routed to the nearest
+//   { type: 'padel' }                 play one padel match, won or lost (padel.js), routed to the nearest court
 
 // card: the two lines on the "Wordt vervolgd" card where the built story stops.
 // recap: the "Eerder in GTE VI" card when the part starts: [place, narrator line],
@@ -273,6 +274,11 @@ export const STEPS = [
     contact: [{ via: 'call', from: 'jelle', mood: 'greide', lines: [
       ['jelle', 'Ik sta in een weiland bij Ten Boer. Mei kij. Dit is noch net klear, Grinzers.', { tag: 'buiten adem, boos en beledigd, aan de telefoon' }],
     ] }] },
+  { id: 's-padel', part: 'staart', kind: 'activity', player: 'tammo', built: true, why: 'Ik speel. Mijn armen trillen nog van dat touw, maar mijn backhand niet.',
+    title: 'Een potje padel', goal: { type: 'padel' },
+    lead: ['A', 'Jij hing aan een touw onder een heli. Even afreageren: een potje padel. Jelmer zegt dat Durk en Douwe op de padelbaan staan.'],
+    say: ['A', 'Padel is tennis in een glazen kooi. Jij bent goed in kooien.'],
+    done: ['A', 'Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?'] },
   { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'fjord', why: 'Het is mijn Fjord. Ik haal hem zelf terug.',
     title: 'Waar is de Fjord?', reward: 1100,
     lead: ['T', 'Anita. Niet schrikken. Je Fjord is weg. Jelmer zegt dat zijn chat hem bij het station zag.'],

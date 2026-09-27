@@ -17,6 +17,7 @@ import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
+import { padelPrompt, padelSecondary } from './padel.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
@@ -311,6 +312,8 @@ function findPrimary(world) {
   if (duif) return duif;
   const heli = heliSpotPrompt(world);
   if (heli) return heli;
+  const padel = padelPrompt(world);
+  if (padel) return padel;
   const trein = stationPrompt(world);
   if (trein) return trein;
   const food = nearestHorecaSpot(world);
@@ -394,6 +397,7 @@ function findSecondary(world, primary) {
   for (const c of homeSecondary(world)) add(c, 30);
   for (const c of pigeonSpotSecondary(world)) add(c, 18);
   for (const c of heliSpotSecondary(world)) add(c, 20);
+  for (const c of padelSecondary(world)) add(c, 25);
   for (const c of postgameSecondary(world)) add(c, 25);
   for (const c of sideJobSecondary(world)) add(c, c.maxD || 20);
   for (const c of stationSecondary(world)) add(c, 22);
