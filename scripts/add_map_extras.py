@@ -151,6 +151,69 @@ def build_bus(raw):
     return roads, lanes
 
 
+SNAP_M = 15.0
+_K = lambda p: (round(p[0] * 10), round(p[1] * 10))
+
+
+def connect_bus_roads(roads, car_roads):
+    """The game joins roads only at shared vertices, and the city cache is
+    clipped and simplified differently from the bus query: a busway end that
+    stops short of (or runs past) the street it joins is moved onto that
+    street's nearest vertex, and busways that reach no street at all (cut off
+    at the map edge, or beyond the cropped city) are dropped - a bus spawned
+    there could only drive back and forth."""
+    car_pts = [p for r in car_roads for p in r["pts"]]
+    car_keys = {_K(p) for p in car_pts}
+    bus_keys = {}
+    for i, r in enumerate(roads):
+        for p in r["pts"]:
+            bus_keys.setdefault(_K(p), set()).add(i)
+    snapped = 0
+    for i, r in enumerate(roads):
+        for end in (0, -1):
+            pts = r["pts"] if end == 0 else r["pts"][::-1]
+            k = _K(pts[0])
+            if k in car_keys or bus_keys.get(k, set()) - {i}:
+                continue
+            q = min(car_pts, key=lambda c: (c[0] - pts[0][0]) ** 2 + (c[1] - pts[0][1]) ** 2)
+            if math.hypot(q[0] - pts[0][0], q[1] - pts[0][1]) > SNAP_M:
+                continue
+            # start the busway where the street vertex projects onto it
+            best = None
+            for j in range(len(pts) - 1):
+                a, b = pts[j], pts[j + 1]
+                dx, dy = b[0] - a[0], b[1] - a[1]
+                L2 = dx * dx + dy * dy or 1e-9
+                t = max(0.0, min(1.0, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / L2))
+                dd = math.hypot(a[0] + dx * t - q[0], a[1] + dy * t - q[1])
+                if best is None or dd < best[0]:
+                    best = (dd, j, t)
+            _, j, t = best
+            rest = pts[j + 1:] if t < 0.999 else pts[j + 2:]
+            new = [list(q)] + [p for p in rest if _K(p) != _K(q)]
+            if len(new) < 2:
+                continue
+            r["pts"] = new if end == 0 else new[::-1]
+            snapped += 1
+    parent = list(range(len(roads)))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+    by_key = {}
+    for i, r in enumerate(roads):
+        for p in r["pts"]:
+            by_key.setdefault(_K(p), []).append(i)
+    for ids in by_key.values():
+        for j in ids[1:]:
+            parent[find(j)] = find(ids[0])
+    linked = {find(i) for i, r in enumerate(roads) if any(_K(p) in car_keys for p in r["pts"])}
+    kept = [r for i, r in enumerate(roads) if find(i) in linked]
+    return kept, snapped, len(roads) - len(kept)
+
+
 # --- buildings ----------------------------------------------------------------------
 
 def area(p):
@@ -412,6 +475,8 @@ if __name__ == "__main__":
     inb = lambda p: all(x0 <= q[0] <= x1 and y0 <= q[1] <= y1 for q in p)
     bus_roads = [r for r in bus_roads if inb(r["pts"])]
     bus_lanes = [r for r in bus_lanes if inb(r["pts"])]
+    bus_roads, snapped, dropped = connect_bus_roads(bus_roads, [r for r in citymap["roads"] if r["cat"] in ("major", "normal", "minor")])
+    print(f"busways: {snapped} ends snapped onto a street, {dropped} unconnected busways dropped")
 
     cands = []
     for raw in blds.values():
