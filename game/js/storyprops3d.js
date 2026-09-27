@@ -1,10 +1,12 @@
 // Props that story missions put into the world for a while: Jelle's giant
-// flag on d'Olle Grieze (H10), held up by ropes a pigeon can peck loose.
+// flag on d'Olle Grieze (H10), held up by ropes a pigeon can peck loose, and
+// the mast and tanned sail of his skûtsje (H14), riding on a boat vehicle.
 // World (x, y, height) maps to three.js (x, height, y).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 
 let flag = null;
+let sail = null;
 
 function flagTexture() {
   const c = document.createElement('canvas');
@@ -80,7 +82,61 @@ export function dropFlag() {
   if (flag && flag.fall < 0) flag.fall = 0;
 }
 
+// Mast, gaff sail and pennant on boat vehicle v (bow = +x in boat space).
+export function showSkutsjeSail(v) {
+  clearSkutsjeSail();
+  const scene = getScene && getScene();
+  if (!scene) return false;
+  const group = new THREE.Group();
+  group.name = 'story-sail';
+  const woodMat = new THREE.MeshLambertMaterial({ color: 0x5a3d22 });
+  const sailMat = new THREE.MeshLambertMaterial({ color: 0x8a3b1e, side: THREE.DoubleSide });
+  const flagMat = new THREE.MeshBasicMaterial({ color: 0x2553a6, side: THREE.DoubleSide });
+  const mastGeo = new THREE.CylinderGeometry(0.09, 0.12, 9, 6);
+  const mast = new THREE.Mesh(mastGeo, woodMat);
+  mast.position.set(1.2, 5, 0);
+  const boomGeo = new THREE.CylinderGeometry(0.06, 0.06, 5.2, 5);
+  const boom = new THREE.Mesh(boomGeo, woodMat);
+  boom.rotation.z = Math.PI / 2;
+  boom.position.set(-1.4, 1.9, 0);
+  // a four-sided gaff sail aft of the mast
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0); shape.lineTo(-5, 0); shape.lineTo(-4.2, 5.2); shape.lineTo(0, 6.4); shape.lineTo(0, 0);
+  const sailGeo = new THREE.ShapeGeometry(shape);
+  const cloth = new THREE.Mesh(sailGeo, sailMat);
+  cloth.position.set(1.1, 2, 0);
+  const flagGeo = new THREE.PlaneGeometry(1.1, 0.5);
+  const pennant = new THREE.Mesh(flagGeo, flagMat);
+  pennant.position.set(0.6, 9.3, 0);
+  const inner = new THREE.Group();
+  inner.add(mast, boom, cloth, pennant);
+  group.add(inner);
+  scene.add(group);
+  sail = { v, group, cloth, pennant, t: 0, geos: [mastGeo, boomGeo, sailGeo, flagGeo], mats: [woodMat, sailMat, flagMat] };
+  return true;
+}
+
+export function clearSkutsjeSail() {
+  if (!sail) return;
+  sail.group.removeFromParent();
+  for (const g of sail.geos) g.dispose();
+  for (const m of sail.mats) m.dispose();
+  sail = null;
+}
+
+function updateSail(dt) {
+  const q = sail;
+  q.t += dt;
+  const v = q.v;
+  q.group.position.set(v.x, 0.35 + (v.z || 0), v.y);
+  q.group.rotation.y = -v.angle;
+  q.cloth.rotation.y = 0.25 + Math.sin(q.t * 0.7) * 0.05;
+  q.pennant.rotation.y = Math.sin(q.t * 4) * 0.3;
+  if (v.wrecked || v.sinking) clearSkutsjeSail();
+}
+
 export function updateStoryProps(dt) {
+  if (sail) updateSail(dt);
   if (!flag) return;
   const f = flag;
   f.t += dt;

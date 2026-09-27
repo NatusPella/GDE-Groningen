@@ -1,13 +1,15 @@
-import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp } from './util.js';
+import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
 import { setUserWaypoint, findWalkPath } from './routing.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene } from './missionstory.js';
-import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps } from './storyprops3d.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, storySpeakerName } from './missionstory.js';
+import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, showSkutsjeSail, clearSkutsjeSail } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
-import { rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro } from './rondvaartchase.js';
+import { rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
+import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
+import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState } from './shops.js';
@@ -297,6 +299,147 @@ function buildDefs(world) {
         },
       ],
     },
+    // --- Staart story missions (storyarc.js H14-H18) ---------------------------
+    {
+      type: 'stages',
+      label: 'Skûtsje-kraak',
+      intro: ['Jelle\'s skûtsje gooit los. Met de Gouden Eierbal aan boord, zegt Klaas.', 'Vaar er met je huurboot achteraan, ga langszij en spring aan boord.'],
+      outro: 'De Eierbal was van chocola. Jelle sprong weg, maar hij verklapte zijn plan: een ballon.',
+      timeLimit: null,
+      reward: 800,
+      requires: 'boat',
+      // starts at your rented boat, wherever it is moored (updateMissions)
+      startAt: 'rental',
+      triggerRadius: 9,
+      start: walk(741, 418),
+      stages: [
+        { kind: 'goto', target: { rental: true }, mode: 'any', radius: 9, label: 'Naar je huurboot', say: 'Naar de huurboot. Het skûtsje gooit zo los.' },
+        { kind: 'goto', target: { route: true, label: 'De Diepenring' }, mode: 'boat', radius: 30, label: 'Vaar de Diepenring op', say: 'Varen! De Diepenring op, daar komt het skûtsje langs.' },
+        {
+          kind: 'boatchase', label: 'Ga langszij bij het skûtsje', name: 'Skûtsje van Jelle', lead: 55, board: 8, boardTime: 2.5, escape: 230, time: 200,
+          say: 'Daar vaart hij! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord.',
+          near: 'Langszij! Hou hem vast, Tammo springt zo...', lost: 'het skûtsje is weg, met zeil en al',
+        },
+        {
+          kind: 'scene', label: 'Aan boord', target: { skutsje: true },
+          kicker: 'Het skûtsje', big: 'Chocola?!',
+          lines: [['durk', 'Douwe! Der stiet ien op ús dek!'], ['T', 'Moi. Ik kom voor de Eierbal.'], ['A', 'En ik kom voor hem. Opzij, jongens.'], ['douwe', 'Plons?'], ['durk', 'Plons.'],
+            ['A', 'Hier is hij! De Gouden Eierbal!'], ['T', 'Hij is… zacht. En hij smelt.'], ['A', 'Chocola. Met goudpapier eromheen.']],
+        },
+        { kind: 'goto', target: { shore: true, label: 'De kade' }, mode: 'foot', radius: 6, label: 'Spring aan wal, achter Jelle aan', say: 'Jelle springt van boord! Aan wal, achter hem aan.' },
+        {
+          kind: 'vault', label: 'Jelle', target: { shore: true },
+          lines: [['jelle', 'Moai, Grinzers. Jimme hawwe myn sûkelade fûn.'], ['T', 'Waar is de echte, Jelle?'], ['jelle', 'Dy giet de loft yn. Fan\'e jûn, mei in ballon.'],
+            ['A', 'Een ballon? Jij bent niet goed wijs.'], ['jelle', 'Ik bin Fries. Wy binne altyd goed wiis.']],
+          landing: 'Oant fan\'e jûn, Grinzers!',
+        },
+      ],
+    },
+    {
+      type: 'stages',
+      label: 'Traumaduif',
+      intro: ['Jelle\'s ballon vertrekt met de echte Eierbal. Dokter Dijkstra van het UMCG heeft een traumaheli.', 'Anita vliegt, Tammo hangt aan het touw. Hou hoogte en snelheid van de mand vast.'],
+      outro: 'Tammo haalde de Eierbal uit de mand. Jelle landde in een weiland, tussen de koeien.',
+      timeLimit: null,
+      reward: 1000,
+      // moved next to the heli spot at the UMCG once that exists (resolveSpotStarts)
+      start: walk(706, -325),
+      startSpot: 'heli',
+      stages: [
+        { kind: 'heli', variant: 'traumaduif', target: { heli: true }, label: 'Haal de Eierbal uit de ballon', say: 'Instappen! W/S hoogte, A/D opzij, Shift sneller. Achter die ballon aan.', lost: 'de ballon is ontsnapt, richting de Ommelanden' },
+      ],
+    },
+    {
+      type: 'stages',
+      label: 'Waar is de Fjord?',
+      intro: ['Anita\'s Fjord is gejat. Jelmers chat zag drie rode auto\'s rond het station.', 'Word een duif, zoek de echte, en haal hem terug voordat hij op de trein naar Leeuwarden staat.'],
+      outro: 'De Fjord is terug. Niemand raakt hem nog aan.',
+      timeLimit: null,
+      reward: 700,
+      vehicle: 'car',
+      start: drive(-60, 868),
+      stages: [
+        {
+          kind: 'pigeon', spot: 'station', label: 'Zoek de rode Fjord van boven', say: 'Vlieg naar de rode auto\'s uit de chat en zweef erboven. Welke is de Fjord?', verb: '%s',
+          targets: [
+            { landmark: 'Groninger Museum', off: [44, -30], label: 'Rode auto bij het museum... een brandweerauto. Nee' },
+            { at: [-170, 905], label: 'Rode auto aan de Westerhaven... een bakfiets met een regenkap. Nee' },
+            { at: [-10, 876], label: 'Daar! De Fjord, met Durk en Douwe erin' },
+          ],
+        },
+        { kind: 'board', label: 'Stap in de auto', say: 'Jelmer heeft zijn auto laten staan. Instappen, ze rijden weg!' },
+        {
+          kind: 'chase', label: 'Stop de Fjord', say: 'Achter ze aan! Ram hem tot hij stilstaat. Niet op mijn Fjord schieten, hè!',
+          vehicle: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 9, brake: 22, turnRate: 3.2, color: '#a11f1f' },
+          hero: true, name: 'De Fjord', lead: 45, hits: 60, health: 170, flee: [-2600, 700], cruise: 16.5, escape: 380, time: 170,
+          meter: 'Fjord', clock: 'trein', half: 'Hij slingert! Durk krijgt de zenuwen.',
+          stopped: 'De Fjord staat stil. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
+          lost: 'de Fjord staat op de trein naar Leeuwarden', gone: 'de Fjord is foetsie', burned: 'de Fjord staat in de fik. Anita praat nooit meer tegen je',
+        },
+        { kind: 'board', label: 'Stap in je Fjord', say: 'Hij is van ons. Instappen, Anita.' },
+        { kind: 'goto', target: { garage: true }, mode: 'vehicle', stop: 1, label: 'Breng de Fjord naar Henk', say: 'Naar de garage. Henk kijkt hem even na, daar staat hij veilig.' },
+      ],
+    },
+    {
+      type: 'stages',
+      label: 'Het Bod',
+      intro: ['Jelle daagt jullie uit voor de Noordelijke Snackprijs op Gronings Ontzet. Winnen jullie, dan houden jullie de Eierbal.', 'Doe de boodschappen voor de echte eierbal: mosterd, verse eieren van de volkstuin en stoetbrood. En niet hard remmen met die eieren.'],
+      outro: 'Alles is binnen, de eieren zijn heel. En ze weten wat ze met de Eierbal doen als ze winnen.',
+      timeLimit: null,
+      reward: 400,
+      start: walk(-40, 872),
+      eggs: { from: 2, failAt: 25, fail: 'omelet op de achterbank. Zo win je geen snackprijs' },
+      stages: [
+        { kind: 'goto', target: { shop: 'super' }, mode: 'any', stop: 0.8, pay: 60, paid: 'Groninger mosterd, drie potten', label: 'Mosterd halen bij Nait Duur', say: 'Eerst mosterd. Echte Groninger, bij Nait Duur.' },
+        { kind: 'goto', target: { at: [1010, 1537], snap: 'walk', label: 'Volkstuin' }, mode: 'any', stop: 0.8, pay: 90, paid: 'Twaalf eieren van de kippen van Bert', label: 'Verse eieren bij de volkstuin', say: 'Nu eieren. De kippen bij Berts duiventil leggen de beste van Grunn.' },
+        { kind: 'goto', target: { at: [675, 1257], snap: 'walk', label: 'Bakker Deeg & Deugd' }, mode: 'any', stop: 0.8, pay: 150, paid: 'Stoetbrood van gisteren, voor de korst', label: 'Stoetbrood bij Bakker Deeg & Deugd', say: 'Eieren achterin. Rustig rijden, niet remmen als een pion. Door naar de bakker.' },
+        { kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', stop: 0.8, label: 'Naar de kraam op de Grote Markt', say: 'Alles binnen. Naar de kraam op de Grote Markt, en heel voorzichtig.' },
+      ],
+    },
+    {
+      type: 'stages',
+      label: 'Finale: Gronings Ontzet',
+      intro: ['Gronings Ontzet. De Grote Markt vol kramen, de jury en een Fries met een plan.', 'Hou de kraam heel tegen het vuurwerk, en laat de Eierbal niet uit het oog.'],
+      outro: 'Jelle proefde een echte eierbal. De Gouden Eierbal gaat terug naar het museum.',
+      timeLimit: null,
+      reward: 2500,
+      vehicle: 'car',
+      start: drive(175, 118),
+      stages: [
+        {
+          kind: 'hold', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, radius: 9, time: 30, mode: 'foot',
+          label: 'Verdedig de kraam tegen het vuurwerk', say: 'Durk en Douwe steken vuurwerk af! Blijf bij de kraam en stap opzij als er een pijl aankomt.',
+          ticks: ['De eerste eierballen gaan het vet in.', 'Berend ruikt al iets. Hij knikt bijna.', 'Nog even! De jury pakt de vorken.'],
+          fireworks: { every: [0.9, 1.7], hit: 2.2, cost: 3, hitText: 'Pang! Vol raak. Even liggen, dan weer naar de kraam.' },
+        },
+        {
+          kind: 'scene', label: 'Het podium', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' },
+          kicker: 'Gronings Ontzet', big: 'Hij grist de Eierbal!',
+          lines: [['jelle', 'Moai, Grinzers! Tank foar de Eierbal. Dy nim ik mar mei.'], ['A', 'Hé! Die stond op het podium!'], ['jelle', 'No stiet er yn myn trekker. Oant sjen!'], ['T', 'Anita, de auto! Achter hem aan!']],
+        },
+        { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!' },
+        {
+          kind: 'chase', label: 'Stop de trekker-limo van Jelle', stars: 2, say: 'Achter die trekker aan! De pliesie rijdt ook mee. Ram of schiet zijn banden stuk.',
+          vehicle: { name: 'truck', len: 7.4, wid: 2.3, maxSpeed: 26, accel: 5, brake: 14, turnRate: 1.5, color: '#141414' },
+          name: 'Trekker-limo van Jelle', lead: 50, hits: 90, flee: [-1900, -900], cruise: 16, escape: 400, time: 220,
+          half: 'Hij slingert! De vlaggetjes vliegen eraf.',
+          stopped: 'De trekker-limo ligt stil. Jelle springt eruit met de Eierbal en rent naar het Reitdiep!',
+          lost: 'Jelle is ontsnapt met de Eierbal', gone: 'Jelle is foetsie, met de Eierbal', burned: 'de trekker staat in de fik. De Eierbal smelt bijna',
+        },
+        { kind: 'goto', target: { bank: [-700, -550], label: 'Het Reitdiep' }, mode: 'any', radius: 9, calm: true, label: 'Achter Jelle aan, naar het Reitdiep', say: 'Hij rent naar het Reitdiep, met zijn polsstok. Erachteraan!' },
+        {
+          kind: 'vault', fail: true, label: 'Jelle', target: { bank: [-700, -550] },
+          lines: [['jelle', 'Jimme krije my noait! Ik bin de bêste fierljepper fan Fryslân!'], ['A', 'Het Reitdiep is te breed, Jelle!'], ['jelle', 'Neat is te breed foar Jelle Terpstra!']],
+          landing: 'Nee… nee… NEE!',
+        },
+        {
+          kind: 'scene', label: 'Opvissen', target: { bank: [-700, -550] },
+          kicker: 'Het Reitdiep', big: 'De Eierbal is terug!',
+          lines: [['jelle', 'Help! Myn polsstok is brutsen! Ik bin wiet!'], ['A', 'Tammo, steek die polsstok uit. We vissen hem op.'], ['T', 'Mijn eerste vangst. Een Fries van tachtig kilo.'],
+            ['jelle', 'Tige tank, Grinzers. Echt. Hjir, de Eierbal.'], ['A', 'Kom maar mee, Jelle. Er staat nog een eierbal voor je klaar.']],
+        },
+      ],
+    },
   ];
 }
 
@@ -413,6 +556,8 @@ const hooks = {
   passed: () => {},
   failed: () => {},
   gated: () => {},
+  // false while the story still has to hand the controls to the other character
+  canStart: () => true,
 };
 
 export function setMissionHooks(h) {
@@ -796,6 +941,12 @@ function boatProgressText(rv) {
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
   stopRondvaart(world);
+  if (chain.skutsje) {
+    const i = world.vehicles.indexOf(chain.skutsje);
+    if (i >= 0 && chain.skutsje.driver !== 'player') world.vehicles.splice(i, 1);
+    chain.skutsje = null;
+    clearSkutsjeSail();
+  }
   const chased = chain.stage && chain.stage.target;
   if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.aiOpts = null; }
   releaseLaneBikes(world);
@@ -815,7 +966,7 @@ function releaseMissionVehicle(world) {
 function removeLeftover(world) {
   const v = chain.leftover;
   chain.leftover = null;
-  if (!v || v.driver === 'player' || v.passenger) return;
+  if (!v || v.driver === 'player' || v.passenger || v.isHeroCar || v.playerOwned) return;
   const i = world.vehicles.indexOf(v);
   if (i >= 0) world.vehicles.splice(i, 1);
 }
@@ -1352,6 +1503,13 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
 // Missions that start at a pigeon spot: the spots are placed after the
 // defs are built, so the start moves there on the first update that has them.
 function resolveSpotStarts(world) {
+  if (!chain.heliStarts) {
+    const hs = getHeliSpotsForRender()[0];
+    if (hs) {
+      chain.heliStarts = true;
+      for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { x: hs.x + 3.5, y: hs.y + 1.5, road: null };
+    }
+  }
   if (chain.spotStarts) return;
   const spots = getPigeonSpotsForRender();
   if (!spots.length) return;
@@ -1380,15 +1538,21 @@ export function updateMissions(dt, world) {
   }
 
   if (chain.phase === 'idle') {
+    // a mission that starts at your rented boat (H14) follows it around
+    if (def.startAt === 'rental') {
+      const b = rentalBoat(world);
+      if (b) def.start = { x: b.x, y: b.y, road: null };
+    }
+    const R = def.triggerRadius || TRIGGER_RADIUS;
     const d = dist(p.x, p.y, def.start.x, def.start.y);
-    if (d > TRIGGER_RADIUS + 2) chain.armed = true;
-    else if (d < TRIGGER_RADIUS && chain.armed) {
+    if (d > R + 2) chain.armed = true;
+    else if (d < R && chain.armed) {
       // a running bijbaantje (sidejobs.js) first has to be finished or stopped
       if (world.sideJob && world.sideJob.active) {
         chain.armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
       } else if (!checkRequirement(world, def, true)) chain.armed = false;
-      else startMission(world, def);
+      else if (hooks.canStart(world, chain.index)) startMission(world, def);
     }
     syncPub(world);
     return;
@@ -1513,13 +1677,25 @@ function raceCarProblem() {
 //           damage it by `hits` (shots or rams) and it stops and becomes the
 //           mission vehicle (board it next). Fails when it gets `escape` metres
 //           away, runs out of `time` or burns out.
-//   vault   Jelle's polsstok escape over the nearest canal (missionstory.js)
+//   vault   Jelle's polsstok escape over the nearest canal (missionstory.js); fail: he misses
+//   boatchase  Jelle's skûtsje sails the Diepenring from `lead` metres ahead of you; stay
+//           alongside in a boat (`board` m) for `boardTime` s to jump aboard. Fails past
+//           `escape` m or after `time` s (lost = the reason)
+//   heli    the UMCG trauma heli run (helirun.js, `variant`); passes when the catch works
+// More options: goto `limit` (seconds, `late` = the fail reason), `pay` (money taken when
+// the stage is done, `paid` = the toast), hold `ticks` (three progress toasts) and
+// `fireworks` { every: [min, max], hit, cost, hitText } (bangs that knock you down and
+// cost hold time); chase `hero` (the fleeing car is Anita's own Fjord), `clock`, `meter`,
+// `half`, `lost`, `gone`, `burned`; def `eggs` { from, failAt, fail }: from stage `from`
+// on, hard braking and knocks break the eggs.
 // Pigeon options: spotTime, gulls: [min, max] seconds between diving gulls,
 // flag: Jelle's banner (storyprops3d.js) whose ropes are the targets; a
 // target with z must be reached at that height (+-8 m), r = its radius.
 // Scene options: cam { r, h, lookZ, at } (a wide shot), dropFlag.
 // Targets: { x, y } | { at: [x, y], snap } | { shop } | { garage: true } |
-// { landmark, off: [dx, dy], snap, z, r } | { pigeonSpot }; snap: 'walk' | 'drive'.
+// { landmark, off: [dx, dy], snap, z, r } | { pigeonSpot } | { heli } | { rental } (your
+// rented boat) | { route } (the nearest point on the Diepenring) | { shore } (the nearest
+// street) | { skutsje } | { bank: [x, y] } (the water's edge near there); snap: 'walk' | 'drive'.
 
 const STAGE_RADIUS = 7;
 const HOLD_RADIUS = 3.5;
@@ -1555,7 +1731,56 @@ function resolveTarget(world, spec, from) {
     const ps = getPigeonSpotsForRender().find((q) => q.id === spec.pigeonSpot);
     return ps ? { x: ps.x, y: ps.y, label: ps.name } : null;
   }
+  if (spec.heli) {
+    const hs = getHeliSpotsForRender()[0];
+    return hs ? { x: hs.x, y: hs.y, label: spec.label || 'Traumaheli' } : null;
+  }
+  if (spec.rental) {
+    const b = rentalBoat(world);
+    return b ? { x: b.x, y: b.y, label: spec.label || 'Je huurboot' } : null;
+  }
+  if (spec.route) {
+    const r = routeS(from.x, from.y);
+    const q = routeAt(r.s);
+    return { x: q.x, y: q.y, label: spec.label };
+  }
+  if (spec.shore) return { ...roadSpot(map, from.x, from.y), label: spec.label };
+  if (spec.skutsje) return chain.skutsje ? { x: chain.skutsje.x, y: chain.skutsje.y, label: spec.label } : null;
+  if (spec.bank) return { ...bankNear(map, spec.bank[0], spec.bank[1]), label: spec.label };
   return null;
+}
+
+function rentalBoat(world) {
+  return world.vehicles.find((v) => v.isBoat && v.playerOwned && !v.wrecked && !v.sinking) || null;
+}
+
+// Progress s along the Diepenring route (rondvaartchase.js) nearest to (x, y).
+function routeS(x, y) {
+  let best = 0, bd = Infinity;
+  for (let s = 0; s <= ROUTE_LENGTH; s += 4) {
+    const q = routeAt(s);
+    const d = (q.x - x) ** 2 + (q.y - y) ** 2;
+    if (d < bd) { bd = d; best = s; }
+  }
+  return { s: best, d: Math.sqrt(bd) };
+}
+
+// A dry spot right at the water's edge near (x, y), outside buildings: where
+// Jelle takes his run-up for a jump over the water.
+function bankNear(map, x, y) {
+  const inside = (px, py) => map.buildingsNear(px, py, 1).some((b) => pointInPolygon(px, py, b.pts));
+  for (let r = 0; r <= 160; r += 4) {
+    const n = Math.max(1, Math.round(r / 3));
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * Math.PI * 2;
+      const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
+      if (isInWater(map, px, py) || inside(px, py)) continue;
+      for (let j = 0; j < 8; j++) {
+        if (isInWater(map, px + Math.cos(j * Math.PI / 4) * 4, py + Math.sin(j * Math.PI / 4) * 4)) return { x: px, y: py };
+      }
+    }
+  }
+  return roadSpot(map, x, y);
 }
 
 // The fleeing vehicle of a chase stage: on the start road, `lead` metres on
@@ -1570,7 +1795,15 @@ function spawnChaseVehicle(world, def, st) {
     v = spawnVehicleOnRoad(world.map, road, false, () => pick, false, false, at, false, { ...st.vehicle });
     if (road.oneway || Math.cos(v.angle - Math.atan2(v.y - p.y, v.x - p.x)) > 0) break;
   }
-  v.health = 190;
+  v.health = st.health || 190;
+  if (st.hero) {
+    // Anita's own Fjord (H16): the one in the world goes, this one is it now
+    for (let i = world.vehicles.length - 1; i >= 0; i--) {
+      const o = world.vehicles[i];
+      if (o !== v && o.isHeroCar && o.driver !== 'player' && !o.passenger) world.vehicles.splice(i, 1);
+    }
+    v.isHeroCar = true;
+  }
   v.missionCar = true;
   v.chaseTarget = true;
   v.label = st.name || '';
@@ -1589,7 +1822,7 @@ function stopChaseVehicle(world, def, st) {
   v.plan = [];
   v.driver = null;
   v.chaseTarget = false;
-  v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
+  if (!st.hero) v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
   v.health = Math.max(v.health, 60);
   const old = chain.vehicle;
   if (old && old !== v) old.missionCar = false;
@@ -1609,6 +1842,11 @@ function stageNeedsVehicle(world, def) {
 function stageVehicleProblem(world, def) {
   const st = def.stages && def.stages[chain.stageIndex];
   if (!st || !def.vehicle || !(st.kind === 'board' || st.kind === 'garage' || (st.kind === 'goto' && st.mode === 'vehicle'))) return null;
+  // a car waiting after another objective (H16's pigeon flight) is not abandoned yet
+  if (st.kind === 'board' && !chain.boarded && chain.stageIndex > 0) {
+    const v = chain.vehicle;
+    if (v && world.vehicles.includes(v) && !v.wrecked && !v.disabled) return null;
+  }
   return vehicleProblem(world, def);
 }
 
@@ -1632,7 +1870,13 @@ function stageProgressText(world, def) {
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
   if (st.kind === 'escape') return `${st.label} · ${'★'.repeat(world.wanted)}`;
-  if (st.kind === 'chase' && S.target) return `${st.label} · banden ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
+  if (st.kind === 'chase' && S.target) {
+    const left = `${st.meter || 'banden'} ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
+    return `${st.label} · ${left}${st.clock ? ` · ${st.clock} ${fmtTime((st.time || 180) - S.t)}` : ''}`;
+  }
+  if (st.kind === 'boatchase' && S.boat) return S.hold > 0 ? `${st.label} · aan boord ${Math.min(100, Math.round(S.hold / (st.boardTime || 2.5) * 100))}%` : `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.boat.v.x, S.boat.v.y))} m`;
+  if (st.kind === 'goto' && st.limit) return `${st.label} · ${fmtTime(st.limit - S.t)}`;
+  if (def.eggs && chain.stageIndex >= def.eggs.from && chain.eggs != null) return `${st.label} · eiermeter ${Math.round(chain.eggs)}%`;
   return `${st.label} (${n})`;
 }
 
@@ -1656,14 +1900,148 @@ function enterStage(world, def, k) {
     S.hp0 = S.target ? S.target.health : 0;
   }
   if (st.kind === 'scene' && st.dropFlag) dropFlag();
+  if (st.kind === 'boatchase') S.boat = spawnSkutsje(world, st);
+  if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
+  if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
+  if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
   chain.stage = S;
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
+  if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chain.timeLeft += st.bonus;
   if (st.say) world.addMessage(st.say, 4.5);
 }
 
 function nextStage(world, def) {
+  const cur = def.stages[chain.stageIndex];
+  if (cur && cur.pay) {
+    const amt = Math.min(cur.pay, Math.max(0, Math.floor(world.money)));
+    world.money -= amt;
+    world.addMessage(`${cur.paid || 'Afgerekend'}: -€${amt}`, 3.5);
+  }
   enterStage(world, def, chain.stageIndex + 1);
+}
+
+// --- H14: Jelle's skûtsje sails the Diepenring (rondvaartchase.js route) -------
+const SKUTSJE_MODEL = { name: 'boat', kind: 'rondvaart', len: 9, wid: 2.5, maxSpeed: 8, accel: 1, brake: 1.4, turnRate: 0.8, color: '#1b1d1f', cabin: '#7a4a24' };
+
+function spawnSkutsje(world, st) {
+  const p = world.player;
+  const r = routeS(p.x, p.y);
+  const dir = r.s + 600 < ROUTE_LENGTH ? 1 : -1;
+  const s0 = clamp(r.s + dir * (st.lead || 45), 0, ROUTE_LENGTH);
+  const q = routeAt(s0);
+  const v = new Vehicle(q.x, q.y, q.a + (dir < 0 ? Math.PI : 0), { ...SKUTSJE_MODEL });
+  v.isBoat = true;
+  v.scripted = true;
+  v.missionCar = true;
+  v.driver = 'jelle';
+  v.label = st.name || '';
+  world.vehicles.push(v);
+  chain.skutsje = v;
+  showSkutsjeSail(v);
+  return { v, s: s0, dir, speed: 2 };
+}
+
+function updateBoatChase(dt, world, def, st, S) {
+  const B = S.boat;
+  if (!B) { nextStage(world, def); return; }
+  const p = world.player, v = B.v;
+  if (v.driver !== 'jelle') { fail(world, def, st.lost); return; }
+  if (!world.vehicles.includes(v)) world.vehicles.push(v);
+  const d = dist(p.x, p.y, v.x, v.y);
+  // rubber band: it waits a little when you fall behind, never lets you sit on it for free
+  const want = d > 90 ? 3.2 : d > 35 ? 5.4 : 7;
+  B.speed += clamp(want - B.speed, -2 * dt, 1.4 * dt);
+  B.s += B.dir * B.speed * dt;
+  if (B.s <= 0 || B.s >= ROUTE_LENGTH) { B.s = clamp(B.s, 0, ROUTE_LENGTH); B.speed = 0; }
+  const q = routeAt(B.s);
+  v.x = q.x; v.y = q.y;
+  v.angle = q.a + (B.dir < 0 ? Math.PI : 0);
+  v.speed = B.speed;
+  v.driftX = 0; v.driftY = 0;
+  const alongside = !!(p.inVehicle && p.inVehicle.isBoat) && d < (st.board || 8);
+  if (alongside) {
+    if (!S.said) { S.said = 1; world.addMessage(st.near || 'Langszij! Hou hem vast...', 2.5); }
+    S.hold += dt;
+    if (S.hold >= (st.boardTime || 2.5)) { B.speed = 0; v.speed = 0; nextStage(world, def); return; }
+  } else S.hold = Math.max(0, S.hold - dt * 0.5);
+  if (d > (st.escape || 230) || S.t > (st.time || 180)) fail(world, def, st.lost || 'het skûtsje is ontsnapt');
+}
+
+// --- H15: the trauma heli (helirun.js) as one stage -----------------------------
+function updateHeliStage(dt, world, def, st, S) {
+  const p = world.player;
+  if (S.result) {
+    if (S.result.success) nextStage(world, def);
+    else fail(world, def, S.result.aborted ? 'de vlucht is afgebroken' : st.lost || 'de ballon is ontsnapt');
+    return;
+  }
+  if (S.started || isCinematicActive()) return;
+  if (p.inVehicle) { hint(world, 'Uitstappen: Dokter Dijkstra wacht bij de heli.'); return; }
+  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, 'Naar het helidek van het UMCG.'); return; }
+  S.started = startHeliRun({ variant: st.variant, onFinish: (res) => { S.result = res; } });
+  if (!S.started && S.t > 10) { world.addMessage('De heli wil niet opstijgen. Dokter Dijkstra vliegt zelf en brengt de Eierbal.', 4); nextStage(world, def); }
+}
+
+// --- H18: Durk & Douwe's fireworks rain down on a hold stage --------------------
+const FW_COLORS = [[1, 0.35, 0.3], [1, 0.85, 0.3], [0.4, 0.8, 1], [0.6, 1, 0.5], [1, 0.5, 0.9]];
+
+function updateFireworks(dt, world, def, st, S) {
+  const fw = st.fireworks;
+  const p = world.player;
+  const c = S.target;
+  if ((S.fwT -= dt) <= 0) {
+    S.fwT = fw.every[0] + Math.random() * (fw.every[1] - fw.every[0]);
+    // mostly around the player, so standing still at the stall is not enough
+    const aim = Math.random() < 0.6 ? p : c;
+    const a = Math.random() * Math.PI * 2, r = Math.random() * 5;
+    S.fw.push({ x: aim.x + Math.cos(a) * r, y: aim.y + Math.sin(a) * r, t: 1.1 });
+  }
+  for (let i = S.fw.length - 1; i >= 0; i--) {
+    const f = S.fw[i];
+    f.t -= dt;
+    if (f.t > 0) {
+      // a whistling trail coming down, so you can see where it lands
+      spawnFxSpark(f.x, 1 + f.t * 9, f.y, (Math.random() - 0.5) * 2, -6, (Math.random() - 0.5) * 2, 0.35);
+      continue;
+    }
+    S.fw.splice(i, 1);
+    const [r0, g0, b0] = FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)];
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * Math.PI * 2;
+      spawnFxPuff(f.x, 1.2, f.y, Math.cos(a) * 6, 2 + Math.random() * 3, Math.sin(a) * 6, 0.7, 0.25, 0.9, r0, g0, b0, 0.95, 2.4, 0);
+      spawnFxSpark(f.x, 1, f.y, Math.cos(a) * 8, 3 + Math.random() * 5, Math.sin(a) * 8, 0.6);
+    }
+    if (!p.inVehicle && dist(p.x, p.y, f.x, f.y) < (fw.hit || 2.2) && !isKnockedDown(p, world)) {
+      const a = Math.atan2(p.y - f.y, p.x - f.x);
+      knockDown(p, world, { vx: Math.cos(a) * 4, vy: Math.sin(a) * 4, vz: 3, kind: 'blast', lieFor: 1 });
+      S.hold = Math.max(0, S.hold - (fw.cost || 3));
+      world.addMessage(fw.hitText || 'Pang! Vol raak.', 2.2);
+    }
+  }
+}
+
+// --- H17: the egg meter, from the volkstuin to the stall: no hard braking --------
+function updateEggs(dt, world, def) {
+  const v = world.player.inVehicle;
+  if (!v || chain.eggs == null || !dt) { chain.eggVeh = null; return; }
+  const sp = Math.abs(v.speed);
+  if (chain.eggVeh === v) {
+    const decel = (chain.eggPrev - sp) / dt;
+    let loss = decel > 13 ? (decel - 13) * dt * 1.4 : 0;
+    if (v.health < chain.eggHp) loss += (chain.eggHp - v.health) * 1.2;
+    chain.eggs = Math.max(0, chain.eggs - loss);
+  }
+  chain.eggVeh = v;
+  chain.eggPrev = sp;
+  chain.eggHp = v.health;
+  for (const lvl of [75, 50]) {
+    if (chain.eggs < lvl && chain.eggWarn > lvl) {
+      chain.eggWarn = lvl;
+      world.addMessage(lvl > 60 ? `Krak. Achterin breekt een ei. Eiermeter ${Math.round(chain.eggs)}%` : `Nog zo'n remmer en het wordt omelet! (${Math.round(chain.eggs)}%)`, 2.8);
+    }
+  }
+  if (chain.eggs <= def.eggs.failAt) fail(world, def, def.eggs.fail);
 }
 
 const MODE_HINT = {
@@ -1681,7 +2059,7 @@ function modeOk(p, mode) {
 
 function playStageScene(world, st, S) {
   const c = S.target || { x: world.player.x, y: world.player.y };
-  const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : who);
+  const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
   let at = 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
     const dur = Math.max(1.8, Math.min(3.8, 0.95 + text.length * 0.042));
@@ -1725,6 +2103,10 @@ function updateStages(dt, world, def) {
   const S = chain.stage;
   if (!st || !S) return;
   S.t += dt;
+  if (def.eggs && chain.stageIndex >= def.eggs.from) {
+    updateEggs(dt, world, def);
+    if (chain.phase !== 'active') return;
+  }
   const v = chain.vehicle;
   const inCar = !!v && p.inVehicle === v;
   switch (st.kind) {
@@ -1733,6 +2115,7 @@ function updateStages(dt, world, def) {
       break;
     case 'goto': {
       if (!S.target) { nextStage(world, def); break; }
+      if (st.limit && S.t > st.limit) { fail(world, def, st.late || 'te laat'); break; }
       if (dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) { S.hold = 0; break; }
       if (!modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
       if (st.stop && p.inVehicle && Math.abs(p.inVehicle.speed) > 2) { S.hold = 0; hint(world, 'Even stilstaan.'); break; }
@@ -1741,12 +2124,14 @@ function updateStages(dt, world, def) {
     }
     case 'hold': {
       if (!S.target) { nextStage(world, def); break; }
+      if (st.fireworks) updateFireworks(dt, world, def, st, S);
+      if (chain.phase !== 'active') break;
       const near = dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || HOLD_RADIUS);
       if (near && !modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
       if (!near) { S.hold = Math.max(0, S.hold - dt * 0.5); break; }
       S.hold += dt;
       const third = Math.floor(S.hold / st.time * 3);
-      if (third > S.said && third < 3) { S.said = third; world.addMessage(`Klik. Camera ${third} van 3 gaat op zwart.`, 2); }
+      if (third > S.said && third < 3) { S.said = third; world.addMessage(st.ticks ? st.ticks[third - 1] : `Klik. Camera ${third} van 3 gaat op zwart.`, 2.4); }
       if (S.hold >= st.time) nextStage(world, def);
       break;
     }
@@ -1766,20 +2151,26 @@ function updateStages(dt, world, def) {
       break;
     case 'chase': {
       const t = S.target;
-      if (!t || !world.vehicles.includes(t)) { fail(world, def, 'de tankwagen is foetsie'); break; }
-      if (t.wrecked || t.disabled) { fail(world, def, 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
+      if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
+      if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
       const d = dist(p.x, p.y, t.x, t.y);
-      if (d > (st.escape || 380) || S.t > (st.time || 180)) { fail(world, def, 'de tankwagen is ontsnapt, richting Friesland'); break; }
-      if (S.hp0 - t.health >= st.hits / 2 && !S.half) { S.half = true; world.addMessage('Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
+      if (d > (st.escape || 380) || S.t > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
+      if (S.hp0 - t.health >= st.hits / 2 && !S.half) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
       break;
     }
+    case 'boatchase':
+      updateBoatChase(dt, world, def, st, S);
+      break;
+    case 'heli':
+      updateHeliStage(dt, world, def, st, S);
+      break;
     case 'vault':
       if (!S.started) {
         if (isCinematicActive()) break;
         S.started = true;
         const at = S.target || { x: p.x, y: p.y };
-        if (!playVaultScene(world, { at, lines: st.lines, landing: st.landing })) { world.addMessage('Jelle springt met een polsstok over de gracht. Moai.', 4); nextStage(world, def); }
+        if (!playVaultScene(world, { at, lines: st.lines, landing: st.landing, fail: !!st.fail })) { world.addMessage(st.fail ? 'Jelle springt met een polsstok… en ligt in het water.' : 'Jelle springt met een polsstok over de gracht. Moai.', 4); nextStage(world, def); }
       } else if (!isCinematicActive('mission-vault')) nextStage(world, def);
       break;
     case 'scene':
@@ -1892,6 +2283,9 @@ export const missionDebug = {
         syncPub(world);
         return true;
       }
+      if (cur && cur.kind === 'boatchase' && chain.stage && chain.stage.boat) chain.stage.boat.speed = 0;
+      if (cur && cur.kind === 'heli' && isHeliRunActive()) abortHeliRun();
+      if (chain.phase !== 'active') { syncPub(world); return true; }
       if (chain.stage && def.stages[chain.stageIndex] && def.stages[chain.stageIndex].kind === 'pigeon' && world.pigeonMode) stopPigeonMode(world);
       if (world.wanted) { world.wanted = 0; world.wantedDecayTimer = 0; }
       if (chain.phase === 'active') nextStage(world, def);

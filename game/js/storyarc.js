@@ -47,7 +47,15 @@ export const PARTS = {
     card: [['Anita', 'Iemand heeft onze Eierbal gejat.'], ['Tammo', 'Die was nog niet eens van ons.']] },
   romp: { title: 'Romp: "Stad in rouw"', open: true, end: 'Einde van de Romp',
     card: [['Anita', 'Een skûtsje in de Oosterhaven. Met onze Eierbal erop.'], ['Tammo', 'Met Grunn z\'n Eierbal, bedoel je.']] },
-  staart: { title: 'Staart: "Gronings Ontzet"', open: false, end: 'Einde', card: [] },
+  // the last part's card is the ending: an epilogue and credits (story.js playFinale)
+  staart: { title: 'Staart: "Gronings Ontzet"', open: true, end: 'Einde', finale: true,
+    card: [['Verteller', 'De Gouden Eierbal staat weer in het Groninger Museum. Achttien karaat, en nu met een alarm dat het doet.'],
+      ['Verteller', 'Jelle Terpstra proefde op de Grote Markt zijn eerste echte Groninger eierbal.'],
+      ['Jelle Terpstra', 'Dit is… better as ús. Net fertelle.'],
+      ['Verteller', 'Van de beloning kwam de Fjord Frituur. Vier wielen, geen kenteken, en een rij tot aan d\'Olle Grieze.'],
+      ['Anita', 'De allereerste is voor jou, Tammo.'],
+      ['Tammo', 'Mag ik nou eindelijk?'],
+      ['Anita', 'Ja. Alles voor één eierbal.']] },
 };
 
 // missions.js def order: index i here is def i there (saves and medal
@@ -55,6 +63,7 @@ export const PARTS = {
 export const MISSION_IDS = [
   'berend', 'chaos', 'kei', 'noorderzon', 'ringweg', 'kroegentocht', 'fatbike', 'rondvaart',
   'pinautomaat', 'duifverkenning', 'museumkraak', 'vetgekaapt', 'vlag',
+  'skutsje', 'traumaduif', 'fjord', 'bod', 'ontzet',
 ];
 
 export const STEPS = [
@@ -157,13 +166,33 @@ export const STEPS = [
   { id: 'H13', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'rondvaart', title: 'Rondvaart met valse papieren', reward: 450,
     lead: ['T', 'Kapitein Klaas heeft een rondvaartboot die even van niemand is. Vanaf het water zien we misschien dat skûtsje.'] },
 
-  // --- Staart (planned) ----------------------------------------------------
-  { id: 's-boot', part: 'staart', kind: 'activity', player: 'anita', built: false, title: 'Eigen boot: huren bij Bootje Huren', goal: { type: 'require', req: 'boat', shop: 'boot' }, cost: 40, waive: 'boat' },
-  { id: 'H14', part: 'staart', kind: 'mission', player: 'tammo', built: false, mission: null, title: 'Skûtsje-kraak', reward: 800 },
-  { id: 'H15', part: 'staart', kind: 'mission', player: 'anita', built: false, mission: null, title: 'Traumaduif', reward: 1000 },
-  { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', built: false, mission: null, title: 'Waar is de Fjord?', reward: 700 },
-  { id: 'H17', part: 'staart', kind: 'mission', player: 'tammo', built: false, mission: null, title: 'Het Bod', reward: 400, cost: 300 },
-  { id: 'H18', part: 'staart', kind: 'mission', player: 'anita', built: false, mission: null, title: 'Finale: Gronings Ontzet', reward: 2500 },
+  // --- Staart ----------------------------------------------------------------
+  { id: 's-boot', part: 'staart', kind: 'activity', player: 'anita', built: true, title: 'Eigen boot: huren bij Bootje Huren', goal: { type: 'require', req: 'boat', shop: 'boot' }, cost: 40, waive: 'boat',
+    voorschot: { from: 'Kapitein Klaas', text: 'Voor een bootje. Ik wil dat skûtsje ook weleens zien zinken.' },
+    lead: ['T', 'Klaas zegt dat het skûtsje vandaag losgooit. Wij hebben een eigen boot nodig: huur er een bij Bootje Huren. De sloep is genoeg.'],
+    say: ['T', 'Een sloep met een bel. Jelle gaat trillen.'],
+    done: ['T', 'Een boot op onze naam, voor een middag. Ik stuur, jij springt. Of andersom.'] },
+  { id: 'H14', part: 'staart', kind: 'mission', player: 'tammo', built: true, mission: 'skutsje', title: 'Skûtsje-kraak', reward: 800,
+    lead: ['A', 'Onze huurboot ligt klaar. Stap in, Tammo: jij stuurt, en het skûtsje wacht niet.'],
+    after: [['Sikkom', 'Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: "Ze zwommen synchroon."'],
+      ['Jelle Terpstra', 'Sûkelade, Grinzers! Hawwe jimme it priuwd? De echte giet fan\'e jûn de loft yn.']] },
+  { id: 'H15', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'traumaduif', title: 'Traumaduif', reward: 1000,
+    lead: ['T', 'Dokter Dijkstra staat bij de traumaheli op het UMCG. Jij vliegt. Ik hang, schijnt het.'],
+    after: [['Sikkom', 'Traumaheli haalt Gouden Eierbal uit ballon. UMCG: "Het stond niet in het rooster, maar het was een geslaagde operatie."'],
+      ['Jelle Terpstra', 'Ik stean yn in greide by Ten Boer. Mei kij. Dit is noch net klear, Grinzers.']] },
+  { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'fjord', title: 'Waar is de Fjord?', reward: 700,
+    lead: ['T', 'Anita. Niet schrikken. Je Fjord is weg. Jelmer zegt dat zijn chat hem bij het station zag.'],
+    after: [['Jelle Terpstra', 'Tige tank foar it lienen fan de auto. Hy riedt better as myn trekker. Net fertelle.'],
+      ['T', 'Hij stuurt nu ook complimentjes. Straks nodigt hij ons uit voor zijn verjaardag.']] },
+  { id: 'H17', part: 'staart', kind: 'mission', player: 'tammo', built: true, mission: 'bod', title: 'Het Bod', reward: 400, cost: 300,
+    voorschot: { from: 'Oma Trijntje', text: 'Voor de boodschappen. Een echte eierbal maak je niet met lege handen, jong.' },
+    lead: ['A', 'Jelle wil ons spreken op het Stadsbalkon. Hij heeft een "bod", zegt hij. Neem geld mee voor boodschappen.'],
+    after: [['Oma Trijntje', 'Mosterd, eieren en stoetbrood. Dan komt het goed, jong. Dat deed ik in 1953 ook zo.']] },
+  { id: 'H18', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'ontzet', title: 'Finale: Gronings Ontzet', reward: 2500,
+    lead: ['T', 'Achtentwintig augustus. Gronings Ontzet. Onze kraam staat op de Grote Markt, en Jelle de zijne ook. Kom je?'],
+    after: [['Sikkom', 'Gouden Eierbal terug in het museum. Friese snackkoning proeft Groninger eierbal en zegt niks. Wel twee keer.'],
+      ['Jelle Terpstra', 'Moai dien, Grinzers. Folgend jier wer? Dan mei jimme nei Ljouwert komme.'],
+      ['T', 'Wij tweeën vóór Grunn. Ik zeg het nog één keer hardop, en dan nooit meer.']] },
 ];
 
 export const STEP_BY_ID = new Map(STEPS.map((s) => [s.id, s]));
