@@ -21,3 +21,44 @@ export const CARD_LINES = [
   { match: /^Trein gekaapt!/, say: 'We hebben een trein. Dit wordt een lang verhaal.' },
   { match: /^Eerst je bijbaantje afmaken|^Maak eerst je huidige missie af/, say: 'Eerst afmaken waar we mee bezig zijn.' },
 ];
+
+// HUD cards that are the companion talking, said as written by the one you
+// don't play (hudcards.js, hints manifest). Mission stage lines (`say:`),
+// missions.js hint() lines and MODE_HINT are collected from missions.js
+// itself; these are the rest, exact texts (a trailing counter like "(2/5)"
+// is left off). scripts/voicelines_collect.mjs checks each is still in the
+// game source.
+export const COMPANION_CARDS = [
+  'Hij valt!',
+  'Chocola?!',
+  'Hij slingert! Durk krijgt de zenuwen.',
+  'Hij slingert! De vlaggetjes vliegen eraf.',
+  'Hij slingert! Nog even, de banden zijn bijna op.',
+  'Hij grist de Eierbal!',
+  'De Eierbal is terug!',
+  'Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.',
+  'Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!',
+  'Au, vonken! Nog een keer, rustig.',
+  'Gezien! De bewaker schijnt je recht in je gezicht. Terug het donker in.',
+  'Handen vol: eerst neerzetten',
+  'Eerst deze fiets in het busje zetten',
+  'Eerst dit naar de achterkant van het busje',
+  'Eerst dit naar de voordeur',
+  'Weer eentje het depot in.',
+  'Label erop, busje in.',
+  'Nog eentje minder in de weg.',
+  'Gas eraf! De toeristen willen het verhaal horen.',
+  'Hé! De deuren zijn nog open!',
+  'Te vroeg! Lekker rap, maar de dienstregeling vindt je eng.',
+  'Voor op schema. De passagiers klappen, de planner huilt.',
+  'Regen! De friet wordt slap. Doortrappen!',
+  'Aangekomen! Sjouw alles uit het busje naar de voordeur.',
+  'Met drank op achter het stuur? De pliesie kijkt mee.',
+  'Brand geblust! Dat scheelt n boel',
+  'Gas vasthouden: luik dicht en wegrijden',
+  'Nog vol van de vorige eierbal. Even laten zakken',
+  'Plons! Duiven kinnen nait zwemmen.',
+  'Nait nou, die meeuw kiekt mit!',
+  'Een meeuw! Hij wil je patat!',
+  'Boink! Die meeuw spreekt Fries.',
+];
