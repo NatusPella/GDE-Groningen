@@ -54,7 +54,7 @@ frame then runs, in order:
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js`, `crime.js` (small offences build heat first: a star only when police see it, a witness phones it in, or it piles up) |
 | Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
-| Story | `storyarc.js` (the arc as data), `story.js` (director), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
+| Story | `storyarc.js` (the arc as data), `story.js` (director), `storycontact.js` (Jelle's and the twins' calls, voicemails, livestreams, Sikkom posts and cards on the phone), `storycast.js` (the Frisian cast's looks), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Special gameplay | `helirun.js` (UMCG trauma heli "on rails": height, sideways offset and speed only; rings, gusts, timer, then hold station beside a drifting balloon; standalone *Ballonjacht* at the UMCG spot, `startHeliRun({ variant: 'ballonjacht' \| 'traumaduif', onFinish })` for the story; drives `world.skyHeli` via `scriptHeli` and a `scripted` balloon in `world.balloons`; while `world.heliRun` main.js skips the player, police, combat, missions, phone and saving), `fierljep.js` (pole vault over a canal for any NPC: `poleVault(npc, from, to, { fail, appearance, camera, slowmo, keepActor, swimTime, onDone })` returns `{ done, phase, release, dispose }`; `findVaultSpot(map, x, y)` finds a 5-22 m crossing; sets `npc.scripted` / `npc.hideMesh` so pedestrians.js and scene3d.js leave the NPC to it; the camera is a cinematics.js shot). Both have a preview row in the `?dev` panel |
 | Post-game | `postgame.js` (hub, opens once story.js shows the ending card: start markers with badge, map icon and E prompt, one challenge at a time as `world.challenge`, Jelle's voiced taunts, result banner, records via achievements.js `recordChallengeResult`, `after:<id>:pass/fail` banter, Ubbo rows via `world.postgameActions`; `window.__postgame` debug), `pg_bruggenrace.js` (Elf Bruggenrace over the rondvaart route and its 11 bridges), `pg_fierljep.js` (fierljep duel with a timing minigame on top of fierljep.js), `pg_skutsje.js` (skûtsje sprint Oosterhaven to Hoge der A: speed from wind angle and sail trim, `v.sailTop`), `pg_foodtruck.js` (the Fjord Frituur business: busy spots, order matching, upgrades), `pg_lines.js` (all their spoken lines as data). `world.challengeHud` feeds the race panel, `world.challengeTarget` the minimap, `world.challengeHoldPlayer` pauses the player update |
@@ -250,6 +250,41 @@ The last part has `finale: true`: its card is the ending (epilogue lines,
 credits, "Einde", story.js `playFinale`) instead of "Wordt vervolgd".
 After the last built step `world.storyFreePlay` is set and routing.js no
 longer routes to idle missions by itself.
+
+Staging (story experience):
+
+- Actors: `missionstory.js` builds Tammo, Anita, the mission NPC and any
+  `introCast`/`outroCast` extras (story NPC keys such as `jelle`, `durk`,
+  `douwe`; `{ key, at: [forward, side], pose, face, water, jump }`) plus
+  props (`limo` = the trekker-limo as a backdrop, `ball` = the Eierbal in a
+  hand, `fatbike` = the twins riding one fatbike). Looks are fixed in
+  `storycast.js` (`opts.look` in models3d_people.js). Mission stage scenes
+  with `lines` (missions.js `scene` stages, with `cast`/`props`) play through
+  `playCastScene`, so they have actors too; H14's twins go overboard on
+  their "Plons." line. H4's outro opens with `playLimoReveal` (the limo at the
+  museum's back door, through the pigeon's eyes); H6's livestream is
+  `playLivestream` (a selfie shot inside the LIVE frame).
+- Cameras: drifting over-the-shoulder shots per speaker, a close-up cut on an
+  exclamation, a crane-up for the narrator, a slow hand-held float (more on a
+  fail), listeners turn their heads to the one talking.
+- Line format in cutscenes and contacts: `[who, text, { nl, clue, look, tag }]`.
+  `nl` is the Dutch translation of a Frisian line (shown under it by
+  cinematics.js, `.cine-nl`); `clue` pushes the camera in, plays a sting
+  (audio.js `playClueSting`) and marks the subtitle "Aanwijzing"; `look`
+  points the camera at a prop (the fatbike); `tag` is the TTS delivery.
+- Contacts: a step's `contact` entries (storyarc.js, documented there) are
+  queued by story.js on `after` or `lead` and played by storycontact.js when
+  the game is quiet, voiced from the lines manifest; their `after` texts
+  follow on the phone once the contact is over. `world.storyContact` keeps
+  the car banter quiet meanwhile. Jelle's replies when you call him
+  (phone.js) are voiced too.
+- The arc: `PARTS.<part>.recap` plays an "Eerder in GTE VI" card when a later
+  part starts (story.js `playRecap`, once per save, flag `recap:<part>`);
+  `CLUES` and `WHY` feed "Wat weten we?" in the pause menu (Missies tab,
+  story.js `getStoryJournal`: a clue shows once its step is done, a toast
+  and a sting announce it); each step's `why` is the handover line when
+  Tammo and Anita trade places (story.js `playHandover`: a whip in the
+  character's colour, a name card, a cut to them).
 
 Adding a part (e.g. the Staart): add new mission defs at the end of
 `buildDefs` in missions.js and their ids at the end of `MISSION_IDS`, add

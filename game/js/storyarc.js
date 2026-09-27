@@ -14,6 +14,8 @@
 //   player   'tammo' | 'anita': who the player controls in this step (story.js switches
 //            at the start of the step; the other one is the companion). lead, done
 //            and after lines come from the other one: you don't text yourself.
+//   why      what the step's character says to the other one when they take over
+//            (story.js playHandover; voiced as that character)
 //   title    shown in the pause menu and dev panel
 //   mission  (mission) id of a def in missions.js (MISSION_IDS below)
 //   reward   (mission) story payout; must equal the missions.js reward for built missions
@@ -30,6 +32,14 @@
 //   unlocks  story flag set after the step (e.g. 'jelle' adds Jelle to the phone contacts)
 //   beat     [[from, text], ...]: (activity) story-critical phone messages, sent even when the
 //            activity is made moot by starting the next mission early (its `done` line is not)
+//   contact  [{ via, from, on, lines, ... }]: how Jelle or the twins reach them, played by
+//            storycontact.js (voiced, shown on the phone): via 'call' | 'voicemail' | 'live' |
+//            'post' | 'card' | 'scene' (3D livestream); from 'jelle' | 'durk' | 'douwe';
+//            on 'after' (default: when the step is done) or 'lead' (with the lead message);
+//            caller: caller ID instead of the name ('Onbekend nummer'); mood: portrait
+//            ('angry', 'smug', 'wet', 'greide'); title/sign (card), handle/viewers (live),
+//            caption/likes (post). lines: [who, text, { nl, tag, clue }] where nl is the Dutch
+//            translation of a Frisian line (dual subtitles) and tag the TTS delivery.
 //
 // GOAL TYPES (story.js GOALS)
 //   { type: 'shop', shop }            enter a shop of that type (shops.js SHOP_TYPES key)
@@ -42,13 +52,27 @@
 //   { type: 'egg' }                   find one more hidden eierbal (achievementtracker), routed to the nearest
 
 // card: the two lines on the "Wordt vervolgd" card where the built story stops.
+// recap: the "Eerder in GTE VI" card when the part starts: [place, narrator line],
+// place a map landmark name or [x, y] (story.js playRecap).
 export const PARTS = {
   kop: { title: 'Kop: "Moi, Grunn"', open: true, end: 'Einde van de Kop',
     card: [['Anita', 'Iemand heeft onze Eierbal gejat.'], ['Tammo', 'Die was nog niet eens van ons.']] },
   romp: { title: 'Romp: "Stad in rouw"', open: true, end: 'Einde van de Romp',
+    recap: [
+      ['Grote Markt', 'Eerder in GTE VI. Twee Stadjers zonder cent, en één droom op vier wielen: Anita\'s Fjord Frituur.'],
+      ['Groninger Museum', 'Het plan was simpel. De Gouden Eierbal uit het Groninger Museum. Achttien karaat, sinds 1953 het hart van Grunn.'],
+      ['Groninger Museum', 'Maar de vitrine was leeg. Op het kussen lag alleen een kaartje: "Tige tank! – W."'],
+      ['Martinitoren', 'En op Sikkom lachte een Fries in een blauw colbert. Jelle Terpstra. Operaasje Aaibal was begonnen.'],
+    ],
     card: [['Anita', 'Een skûtsje in de Oosterhaven. Met onze Eierbal erop.'], ['Tammo', 'Met Grunn z\'n Eierbal, bedoel je.']] },
   // the last part's card is the ending: an epilogue and credits (story.js playFinale)
   staart: { title: 'Staart: "Gronings Ontzet"', open: true, end: 'Einde', finale: true,
+    recap: [
+      ['Noorderplantsoen', 'Eerder in GTE VI. Jelle Terpstra kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.'],
+      ['Martinitoren', 'Een duif pikte zijn vlag van d\'Olle Grieze, en in de kroeg verklapte een dronken Durk het skûtsje.'],
+      ['Grote Markt', 'Oma Trijntje stond in 1953 model voor de Eierbal. Die bal is gien geld, zei ze. Die bal is Grunn.'],
+      [[741, 418], 'En op de rondvaartboot kusten ze. Wij tweeën tegen Grunn… of misschien: vóór Grunn.'],
+    ],
     card: [['Verteller', 'De Gouden Eierbal staat weer in het Groninger Museum. Achttien karaat, en nu met een alarm dat het doet.'],
       ['Verteller', 'Jelle Terpstra proefde op de Grote Markt zijn eerste echte Groninger eierbal.'],
       ['Jelle Terpstra', 'Dit is… better as ús. Net fertelle.'],
@@ -68,131 +92,202 @@ export const MISSION_IDS = [
 
 export const STEPS = [
   // --- Kop -----------------------------------------------------------------
-  { id: 'H1', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'berend', title: "Bommen Berend wil z'n bakkie", reward: 250, minReward: 62,
+  { id: 'H1', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'berend', why: 'Ik rij, Tammo. Berend vertrouwt jou nog niet eens met een fietsbel.',
+    title: "Bommen Berend wil z'n bakkie", reward: 250, minReward: 62,
     lead: ['T', 'Berend belde. Zijn bakkie moet naar het Boterdiep, en hij telt de krassen. Jij rijdt, zegt hij.'] },
-  { id: 'k-eierbal', part: 'kop', kind: 'activity', player: 'tammo', built: true, title: 'Eierbal halen bij Frituur Vet & Lekker', goal: { type: 'shop', shop: 'snack' }, cost: 4,
+  { id: 'k-eierbal', part: 'kop', kind: 'activity', player: 'tammo', built: true, why: 'Laat mij maar, Anita. Ik weet blind waar de beste eierbal van Grunn ligt.',
+    title: 'Eierbal halen bij Frituur Vet & Lekker', goal: { type: 'shop', shop: 'snack' }, cost: 4,
     lead: ['A', 'Berend zei dat er al een Fries zijn bakkie wilde kopen. Contant, uit een klomp. Daar moet jij even over nadenken, en jij denkt het best met een eierbal. Frituur Vet & Lekker staat op je kaart.'],
     say: ['A', 'Een Fries met een klomp vol geld. Dat zit me niet lekker.'],
     done: ['A', 'Zo, je glimt weer. En nu die automaat in de Herestraat, voordat die Fries hem ook koopt.'] },
-  { id: 'H2', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'pinautomaat', title: 'Pinnen met de hele automaat', reward: 400,
+  { id: 'H2', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'pinautomaat', why: 'Geef mij het stuur. Jij rijdt een pinautomaat binnen een minuut het Diep in.',
+    title: 'Pinnen met de hele automaat', reward: 400,
     lead: ['T', 'Die automaat van gisteren staat nog in de Herestraat. Jij wilde hem verzilveren, toch?'] },
-  { id: 'k-wapen', part: 'kop', kind: 'activity', player: 'anita', built: true, title: 'Pistool kopen bij Pang & Zo', goal: { type: 'require', req: 'weapon', shop: 'wapens' }, cost: 180, waive: 'weapon',
+  { id: 'k-wapen', part: 'kop', kind: 'activity', player: 'anita', built: true, why: 'Ik koop hem wel. Jij kiest er een in een vrolijk kleurtje.',
+    title: 'Pistool kopen bij Pang & Zo', goal: { type: 'require', req: 'weapon', shop: 'wapens' }, cost: 180, waive: 'weapon',
     voorschot: { from: 'Sjabbe', text: 'Hier, een voorschot voor een blaffer. Terugbetalen met rente. Of met een Eierbal.' },
     lead: ['T', 'Jelmer wil zijn stunt op de Grote Markt, maar hij leent niks meer uit. Met de poen van Sjabbe koop jij een blaffer bij Pang & Zo.'],
     say: ['T', 'Ik hou de deur open. Jij kiest iets dat niet echt afgaat. Hoop ik.'],
     done: ['T', 'Klapperman. Jelmer wacht al op de Grote Markt met zijn telefoon.'] },
-  { id: 'H3', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'chaos', title: 'Chaos op de Grote Markt', reward: 300,
+  { id: 'H3', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'chaos', why: 'De Grote Markt is voor mij. Jelmer wil chaos, en chaos ben ik.',
+    title: 'Chaos op de Grote Markt', reward: 300,
     lead: ['A', 'Jelmer wil content op de Grote Markt. Nu hebben we er ook iets voor.'] },
-  { id: 'k-duif', part: 'kop', kind: 'activity', player: 'tammo', built: true, title: 'Vliegles bij de duiven op de Grote Markt', goal: { type: 'pigeon', spot: 'grotemarkt', score: 20 },
+  { id: 'k-duif', part: 'kop', kind: 'activity', player: 'tammo', built: true, why: 'Ik word de duif. Ik eet al jaren brood van de grond.',
+    title: 'Vliegles bij de duiven op de Grote Markt', goal: { type: 'pigeon', spot: 'grotemarkt', score: 20 },
     lead: ['A', 'Sjabbe zei: echt geld ligt in het museum. Dan moeten we het eerst van boven zien. Leer vliegen bij de duiven op de Grote Markt: twintig poeppunten.'],
     say: ['A', 'Niemand kijkt naar een duif. Dat is ons plan.'],
     done: ['A', 'Twintig raak. Nu kun je naar het museum vliegen zonder dat iemand iets doorheeft.'] },
-  { id: 'H4', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'duifverkenning', title: 'Duif op verkenning', reward: 200,
+  { id: 'H4', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'duifverkenning', why: 'Laat mij maar vliegen. Twintig keer raak, dat kan jij niet zeggen.',
+    title: 'Duif op verkenning', reward: 200,
     lead: ['A', 'Duivenmelker Bert staat bij het Stationsplein. Tijd om het museum te verkennen.'] },
-  { id: 'k-bijbaan', part: 'kop', kind: 'activity', player: 'anita', built: true, title: 'Eén ronde Hap & Rap bezorgen', goal: { type: 'sideJob', job: 'bezorger' },
+  { id: 'k-bijbaan', part: 'kop', kind: 'activity', player: 'anita', built: true, why: 'Ik bezorg. Ik kan een kapsalon dragen zonder ervan te eten.',
+    title: 'Eén ronde Hap & Rap bezorgen', goal: { type: 'sideJob', job: 'bezorger' },
     lead: ['T', 'Wat we bij het museum zagen, kost geld: spullen, een boot misschien. Sjabbe wil contant. Eén ronde Hap & Rap bezorgen.'],
     say: ['T', 'Bezorgen is net kraken. Je belt aan en je bent weer weg.'],
     done: ['T', 'Eén ronde en ik ruik naar kapsalon. Maar de kraakpot groeit.'] },
-  { id: 'k-fiets', part: 'kop', kind: 'activity', player: 'tammo', built: true, title: 'Eigen fiets kopen bij Trap & Toeter', goal: { type: 'require', req: 'bike', shop: 'fietsen' }, cost: 75, waive: 'bike',
+  { id: 'k-fiets', part: 'kop', kind: 'activity', player: 'tammo', built: true, why: 'Ik koop de fiets. Sjoerd kent mij nog van de KEI-week.',
+    title: 'Eigen fiets kopen bij Trap & Toeter', goal: { type: 'require', req: 'bike', shop: 'fietsen' }, cost: 75, waive: 'bike',
     voorschot: { from: 'Sjoerd', text: 'Geen geld voor een fiets? Hier, uit de pot van de KEI-commissie. Niet verder vertellen.' },
     lead: ['A', 'Sjoerd van de KEI-commissie weet alles wat er rond het museum fietst. Hij praat alleen met wie meedoet, en meedoen mag alleen op een eigen fiets. Trap & Toeter.'],
     say: ['A', 'Gekocht, hè. Een geleende fiets telt niet bij Sjoerd.'],
     done: ['A', 'Een eigen fiets met bonnetje. Nu gaat Sjoerd wel praten.'] },
-  { id: 'H5', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'kei', title: 'KEI-weekrace door Grunn', reward: 350,
+  { id: 'H5', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'kei', why: 'Ik rij de race. Drie weken student, dat telt gewoon.',
+    title: 'KEI-weekrace door Grunn', reward: 350,
     lead: ['A', 'Sjoerd wacht bij het Academiegebouw. Eerstejaars inhalen, dat kun jij.'] },
-  { id: 'k-kraakspullen', part: 'kop', kind: 'activity', player: 'anita', built: true, title: 'Zwart incognito of een huurboot', goal: { type: 'require', req: 'heist', shop: ['kleding', 'boot'] }, cost: 150, waive: 'incognito',
+  { id: 'k-kraakspullen', part: 'kop', kind: 'activity', player: 'anita', built: true, why: 'Ik haal de spullen. Ik weet wat onopvallend is. Jij niet.',
+    title: 'Zwart incognito of een huurboot', goal: { type: 'require', req: 'heist', shop: ['kleding', 'boot'] }, cost: 150, waive: 'incognito',
     voorschot: { from: 'Sjabbe', text: 'Voor het museum wil je niet opvallen. Hier, een voorschot. Ik reken op jullie.' },
     lead: ['T', 'Bert zag camera\'s en bewakers. Dus niet opvallen: zwart incognito bij Stoer & Stads, of via het water met een bootje van Bootje Huren. Jij kiest.'],
     say: ['T', 'Zwart staat jou goed. Mij staat alles slecht, dus dat maakt niet uit.'],
     done: ['T', 'Nou zijn we echte boeven. Met bonnetje. Nu nog het donker.'] },
-  { id: 'k-nacht', part: 'kop', kind: 'activity', player: 'anita', built: true, title: 'Wachten bij de garage tot het donker is', goal: { type: 'night' }, waive: 'night',
+  { id: 'k-nacht', part: 'kop', kind: 'activity', player: 'anita', built: true, why: 'Ik wacht wel bij Henk. Jij valt in slaap in je koffie.',
+    title: 'Wachten bij de garage tot het donker is', goal: { type: 'night' }, waive: 'night',
     lead: ['T', 'De bewakers wisselen pas \'s avonds. Rij naar een garage en wacht daar tot het donker is.'],
     say: ['T', 'Henk heeft koffie. Henk vraagt nooit waarom.'],
     done: ['T', 'Donker. De bewakers wisselen. Het is tijd.'] },
-  { id: 'H6', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'museumkraak', title: 'De Museumkraak', reward: 150,
+  { id: 'H6', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'museumkraak', why: 'Ik ga voorop. Ik ken de achteringang nog van mijn bijbaantje in het museumcafé.',
+    title: 'De Museumkraak', reward: 150,
     lead: ['T', 'Het is zover. De Museumkraak. Via het Verbindingskanaal, jouw plan.'],
     after: [['Sikkom', 'Gouden Eierbal foetsie. Stad in rouw. Museum: "Wij snappen er niks van, de camera\'s stonden uit."'],
-      ['Jelle Terpstra · live', 'Moai, Grinzers! Hjir is Jelle. Operaasje Aaibal is begûn. Oant sjen op Gronings Ontzet!']],
+    ],
+    contact: [{ via: 'scene', from: 'jelle', handle: 'JelleWâld', viewers: 1953, lines: [
+      ['jelle', 'Moai, Grinzers! Hjir is Jelle. Jelle Terpstra, fan Us Mem Snacks.', { nl: 'Moi, Groningers! Hier is Jelle. Jelle Terpstra, van Us Mem Snacks.', tag: 'charmant, opschepperig, recht in zijn telefooncamera' }],
+      ['jelle', 'Jimme sykje jimme Gouden Aaibal? Sjoch ris wat ik hjir ha.', { nl: 'Zoeken jullie je Gouden Eierbal? Kijk eens wat ik hier heb.', tag: 'plagend, zelfvoldaan', clue: true }],
+      ['durk', 'Baas, is dat net de…', { nl: 'Baas, is dat niet de…', tag: 'traag, verward' }],
+      ['jelle', 'Stil, Durk. Operaasje Aaibal is begûn. Op Gronings Ontzet is de aaibal Frysk.', { nl: 'Stil, Durk. Operatie Eierbal is begonnen. Op Gronings Ontzet is de eierbal Fries.', tag: 'plechtig, overdreven trots' }],
+      ['douwe', 'Moatte wy no swaaie, baas?', { nl: 'Moeten we nu zwaaien, baas?', tag: 'traag, onzeker' }],
+      ['jelle', 'Swaaie, jonges. Oant sjen op Gronings Ontzet!', { nl: 'Zwaaien, jongens. Tot ziens op Gronings Ontzet!', tag: 'joviaal, zwaaiend, triomfantelijk' }],
+    ] }],
     unlocks: 'jelle' },
 
   // --- Romp ----------------------------------------------------------------
-  { id: 'r-trein', part: 'romp', kind: 'activity', player: 'anita', built: true, title: 'Even onderduiken: een treinreis', goal: { type: 'train' }, cost: 8,
+  { id: 'r-trein', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik koop de kaartjes. Jij kijkt veel te schuldig voor een conducteur.',
+    title: 'Even onderduiken: een treinreis', goal: { type: 'train' }, cost: 8,
     lead: ['T', 'Heel Grunn zoekt de Eierbal, en wij stonden met een zaklamp in dat museum. Even onderduiken: pak de trein, maakt niet uit waarheen.'],
     say: ['T', 'Als iemand vraagt waar we gisteravond waren: in de trein.'],
     done: ['T', 'Niemand keek naar ons. Iedereen keek naar Sikkom. En die Jelle heeft het over "Operaasje Aaibal".'] },
-  { id: 'H7', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'noorderzon', title: 'Spoedklus voor Noorderzon', reward: 550,
+  { id: 'H7', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'noorderzon', why: 'Ik rij het decor. Femke vindt mij rustig. Ze kent me nog niet.',
+    title: 'Spoedklus voor Noorderzon', reward: 550,
     lead: ['A', 'Femke van Noorderzon belt. Spoedklus, decor moet naar het Noorderplantsoen. En ze heeft iets gezien, zegt ze.'],
-    after: [['Sikkom', 'Frituurvet uitverkocht in heel Grunn. Groothandel: "Twee reuzen op één fatbike kochten alles. Contant, uit een klomp."']] },
-  { id: 'r-uzi', part: 'romp', kind: 'activity', player: 'anita', built: true, title: 'Uzi kopen bij Pang & Zo (aanbevolen)', goal: { type: 'shop', shop: 'wapens' }, cost: 450, optional: true,
+    after: [['Sikkom', 'Frituurvet uitverkocht in heel Grunn. Groothandel: "Twee reuzen op één fatbike kochten alles. Contant, uit een klomp."']],
+    contact: [{ via: 'voicemail', from: 'durk', sub: 'Per ongeluk gebeld', lines: [
+      ['durk', 'Douwe, hoefolle fet ha wy no?', { nl: 'Douwe, hoeveel vet hebben we nu?', tag: 'traag, gedempt, telefoon in de broekzak' }],
+      ['douwe', 'Alles, Durk. Al it fet fan Grins.', { nl: 'Alles, Durk. Al het vet van Groningen.', tag: 'traag, trots' }],
+      ['durk', 'De baas seit: gjin fet, gjin aaibal op Gronings Ontzet.', { nl: 'De baas zegt: geen vet, geen eierbal op Gronings Ontzet.', tag: 'samenzweerderig, traag', clue: true }],
+      ['douwe', 'Durk… dyn telefoan stiet oan.', { nl: 'Durk… je telefoon staat aan.', tag: 'geschrokken, fluisterend' }],
+    ] }] },
+  { id: 'r-uzi', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik haal die Ratelaar. Jij houdt hem vast als een eierbal.',
+    title: 'Uzi kopen bij Pang & Zo (aanbevolen)', goal: { type: 'shop', shop: 'wapens' }, cost: 450, optional: true,
     lead: ['T', 'Femke zegt dat al het vet de stad uit rijdt, in een tankwagen. Een Ratelaar bij Pang & Zo prikt makkelijker door zijn banden. Hoeft niet, helpt wel.'],
     say: ['T', 'Het gaat om banden, hè. Niet om mensen.'],
     done: ['T', 'Ratelaar. Nu die tankwagen, voordat het vet in Friesland is.'] },
-  { id: 'H8', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'vetgekaapt', title: 'Vet gekaapt', reward: 600,
+  { id: 'H8', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'vetgekaapt', why: 'Die tankwagen is voor mij. Ik ga voor geen enkele vetvlek opzij.',
+    title: 'Vet gekaapt', reward: 600,
     lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Durk en Douwe achter het stuur. Tijd voor banden.'],
-    after: [['Jelle Terpstra · live', 'Dat fet wie fan my! No ja. Ik ha mear. Operaasje Aaibal giet gewoan troch, Grinzers.'],
-      ['T', 'Geen vet, geen frituur. Geen frituur, geen eierbal op Ontzet. Dat is zijn plan, hè?']] },
-  { id: 'r-auto', part: 'romp', kind: 'activity', player: 'tammo', built: true, title: 'Eigen auto kopen bij Ome Harm', goal: { type: 'require', req: 'car', shop: 'auto' }, cost: 800, waive: 'car',
+    contact: [{ via: 'live', from: 'jelle', handle: 'JelleWâld', viewers: 2410, mood: 'angry', lines: [
+      ['jelle', 'Dat fet wie fan my! No ja. Ik ha mear. Operaasje Aaibal giet gewoan troch, Grinzers.', { nl: 'Dat vet was van mij! Nou ja. Ik heb meer. Operatie Eierbal gaat gewoon door, Groningers.', tag: 'verontwaardigd, dan weer joviaal' }],
+    ], after: [['T', 'Geen vet, geen frituur. Geen frituur, geen eierbal op Ontzet. Dat is zijn plan, hè?']] }] },
+  { id: 'r-auto', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik koop de auto. Harm geeft mij korting, hij kent mijn vader nog.',
+    title: 'Eigen auto kopen bij Ome Harm', goal: { type: 'require', req: 'car', shop: 'auto' }, cost: 800, waive: 'car',
     voorschot: { from: 'Harm', text: 'Voor de ringweg moet je een eigen auto hebben. Hier, een voorschot. Mijn pensioen hangt ervan af.' },
     lead: ['A', 'Jelle daagt je uit, Tammo: "Op de ringweg, mei in eigen auto. As dat jild der is." Harm laat alleen eigen auto\'s starten. Kopen dus, niet lenen.'],
     say: ['A', 'Een eigen auto. Laten we hem kopen voordat we ons bedenken.'],
-    done: ['A', 'Een eigen auto, op onze naam. Jelle mag komen.'] },
-  { id: 'r-tuning', part: 'romp', kind: 'activity', player: 'tammo', built: true, title: 'Tuning bij Knal & Kolder (aanbevolen)', goal: { type: 'shop', shop: 'tuning' }, cost: 450, optional: true,
+    done: ['A', 'Een eigen auto, op onze naam. Jelle mag komen.'],
+    contact: [{ via: 'call', on: 'lead', from: 'jelle', caller: 'Onbekend nummer', mood: 'smug', lines: [
+      ['jelle', 'Moai, Grinzer. Hjir is Jelle. Wy moatte ris hurdride, op jimme ringwei.', { nl: 'Moi, Groninger. Hier is Jelle. We moeten eens hardrijden, op jullie ringweg.', tag: 'charmant, uitdagend, aan de telefoon' }],
+      ['jelle', 'Mei in eigen auto, hear. As dat jild der is.', { nl: 'Met een eigen auto, hoor. Als dat geld er is.', tag: 'plagend, neerbuigend, aan de telefoon' }],
+    ] }] },
+  { id: 'r-tuning', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik ga naar Knal & Kolder. Ik weet precies welk geluid ik wil.',
+    title: 'Tuning bij Knal & Kolder (aanbevolen)', goal: { type: 'shop', shop: 'tuning' }, cost: 450, optional: true,
     lead: ['A', 'Jelle rijdt een opgevoerde trekker, en die is sneller dan hij eruitziet. Rij onze auto naar Knal & Kolder en druk R, voor wat extra paardjes.'],
     say: ['A', 'Een trekker inhalen. Dat moet te doen zijn. Toch?'],
     done: ['A', 'Hij klinkt als een boze koelkast. Kom maar op, trekker.'] },
-  { id: 'H9', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'ringweg', title: 'Ringweg-race: eindelijk klaar?', reward: 750,
+  { id: 'H9', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'ringweg', why: 'Ik rij de ringweg. Die trekker is persoonlijk.',
+    title: 'Ringweg-race: eindelijk klaar?', reward: 750,
     lead: ['A', 'Harm staat bij de start van de ringweg. En Jelle ook, met zijn trekker-limo. Laten we hem inhalen.'],
     after: [['Sikkom', 'Er rijdt niets boven Groningen: Stadjers op het podium, Friese trekker op de vluchtstrook.'],
-      ['Jelle Terpstra', 'Dit is net klear, Grinzer. Op Gronings Ontzet sjogge wy wol wa\'t it hurdst giet.'],
-      ['A', 'Hij stuurt jou berichtjes, Tammo. Hij vindt je leuk. Of eng.']] },
-  { id: 'r-bijbaan', part: 'romp', kind: 'activity', player: 'anita', built: true, title: 'Bijbaantje: Fietsdepot of Verhuizing', goal: { type: 'sideJob', job: ['fietsdepot', 'verhuizing'] },
+    ],
+    contact: [{ via: 'call', from: 'jelle', mood: 'angry', lines: [
+      ['jelle', 'Dit is net klear, Grinzer. Op Gronings Ontzet sjogge wy wol wa\'t it hurdst giet.', { nl: 'Dit is nog niet klaar, Groninger. Op Gronings Ontzet zien we wel wie het hardst gaat.', tag: 'gepikeerd, gekwetste trots, aan de telefoon' }],
+    ], after: [['A', 'Hij belt jou, Tammo. Hij vindt je leuk. Of eng.']] }] },
+  { id: 'r-bijbaan', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik doe de klus. Durk en Douwe kennen mijn gezicht nog niet.',
+    title: 'Bijbaantje: Fietsdepot of Verhuizing', goal: { type: 'sideJob', job: ['fietsdepot', 'verhuizing'] },
     lead: ['T', 'Durk en Douwe hangen rond bij al onze vaste plekken, Jelle laat ons volgen. Een ronde bij het Fietsdepot of een verhuizing: daar zoekt niemand ons.'],
     say: ['T', 'Niemand kijkt naar iemand met een doos. Of met een fiets.'],
     done: ['T', 'Niemand heeft ons gezien. En nu weet ik ook hoe we langs die tweeling komen: als duif.'] },
-  { id: 'H10', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'vlag', title: "Vlag van d'Olle Grieze", reward: 350,
+  { id: 'H10', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'vlag', why: 'Ik word weer duif. Die touwen pik ik er zo af.',
+    title: "Vlag van d'Olle Grieze", reward: 350,
     lead: ['A', 'Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Met rode blaadjes. Daar moet een duif aan te pas komen. Jij dus.'],
     after: [['Sikkom', 'Duif pikt Friese vlag van d\'Olle Grieze. Stadjers juichen, de toren zelf zegt niks.'],
-      ['Jelle Terpstra', '[selfie met een boos gezicht] Wa hat myn flagge…? In DUIF?! Ik wit wol wa\'t dy duif is.']] },
-  { id: 'r-eierbal', part: 'romp', kind: 'activity', player: 'tammo', built: true, title: 'Verstopte eierbal zoeken', goal: { type: 'egg' },
+    ],
+    contact: [{ via: 'post', from: 'jelle', handle: 'JelleWâld', mood: 'angry', caption: 'selfievideo bij de Martinitoren', likes: '11.672', lines: [
+      ['jelle', 'Wa hat myn flagge…? In DUIF?! Ik wit wol wa\'t dy duif is.', { nl: 'Wie heeft mijn vlag…? Een DUIF?! Ik weet heus wel wie die duif is.', tag: 'woedend, in een selfievideo' }],
+    ] }] },
+  { id: 'r-eierbal', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik zoek hem wel. Ik ruik een eierbal op honderd meter.',
+    title: 'Verstopte eierbal zoeken', goal: { type: 'egg' },
     lead: ['A', 'Sinds 1953, het jaar van de Gouden Eierbal, verstopt Grunn overal eierballen. Er ligt er één vlakbij. Eén voor de moed, voordat we Durk en Douwe in de kroeg opzoeken.'],
     say: ['A', 'Wie een verstopte eierbal vindt, heeft geluk. Zegt mijn oma.'],
     done: ['A', 'Geluk gehad. Vanavond de Poelestraat, daar drinken Durk en Douwe.'] },
-  { id: 'H11', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'kroegentocht', title: 'Kroegentocht: Poelestraat plat', reward: 360,
+  { id: 'H11', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'kroegentocht', why: 'Ik doe de kroegen. Geert zegt dat ik beter tegen bier kan dan jij.',
+    title: 'Kroegentocht: Poelestraat plat', reward: 360,
     lead: ['T', 'Geert van de Groote Griet zegt dat Durk en Douwe vanavond in de Poelestraat zijn. Een kroegentocht dus. Voor het onderzoek.'],
     after: [['T', 'Een skûtsje. Dat is een Friese zeilboot, toch? En die van Jelle ligt ergens hier in de stad.']] },
-  { id: 'H12', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'fatbike', title: 'Fatbike-terreur: blijf overeind', reward: 300,
+  { id: 'H12', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'fatbike', why: 'Ik loop wel tussen die fatbikes door. Ik ben toch al bont en blauw.',
+    title: 'Fatbike-terreur: blijf overeind', reward: 300,
     lead: ['A', 'Oma Trijntje belt. Ze wil ons iets vertellen over de Eierbal, maar eerst moeten de fatbikes uit de Folkingestraat.'],
     after: [['Oma Trijntje', 'Breng hem thuis, jong. Niet voor het geld. Voor Grunn.']] },
-  { id: 'H13', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'rondvaart', title: 'Rondvaart met valse papieren', reward: 450,
+  { id: 'H13', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'rondvaart', why: 'Ik vaar. Jij bent de gids: jij moet wijzen en praten.',
+    title: 'Rondvaart met valse papieren', reward: 450,
     lead: ['T', 'Kapitein Klaas heeft een rondvaartboot die even van niemand is. Vanaf het water zien we misschien dat skûtsje.'] },
 
   // --- Staart ----------------------------------------------------------------
-  { id: 's-boot', part: 'staart', kind: 'activity', player: 'anita', built: true, title: 'Eigen boot: huren bij Bootje Huren', goal: { type: 'require', req: 'boat', shop: 'boot' }, cost: 40, waive: 'boat',
+  { id: 's-boot', part: 'staart', kind: 'activity', player: 'anita', built: true, why: 'Ik huur de boot. Klaas geeft mij korting, hij noemt me meisje.',
+    title: 'Eigen boot: huren bij Bootje Huren', goal: { type: 'require', req: 'boat', shop: 'boot' }, cost: 40, waive: 'boat',
     voorschot: { from: 'Kapitein Klaas', text: 'Voor een bootje. Ik wil dat skûtsje ook weleens zien zinken.' },
     lead: ['T', 'Klaas zegt dat het skûtsje vandaag losgooit. Wij hebben een eigen boot nodig: huur er een bij Bootje Huren. De sloep is genoeg.'],
     say: ['T', 'Een sloep met een bel. Jelle gaat trillen.'],
     done: ['T', 'Een boot op onze naam, voor een middag. Ik stuur, jij springt. Of andersom.'] },
-  { id: 'H14', part: 'staart', kind: 'mission', player: 'tammo', built: true, mission: 'skutsje', title: 'Skûtsje-kraak', reward: 800,
+  { id: 'H14', part: 'staart', kind: 'mission', player: 'tammo', built: true, mission: 'skutsje', why: 'Ik stuur. Ik heb vroeger op het Reitdiep gezeild. Twee keer.',
+    title: 'Skûtsje-kraak', reward: 800,
     lead: ['A', 'Onze huurboot ligt klaar. Stap in, Tammo: jij stuurt, en het skûtsje wacht niet.'],
     after: [['Sikkom', 'Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: "Ze zwommen synchroon."'],
-      ['Jelle Terpstra', 'Sûkelade, Grinzers! Hawwe jimme it priuwd? De echte giet fan\'e jûn de loft yn.']] },
-  { id: 'H15', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'traumaduif', title: 'Traumaduif', reward: 1000,
+    ],
+    contact: [{ via: 'call', from: 'jelle', mood: 'smug', lines: [
+      ['jelle', 'Sûkelade, Grinzers! Hawwe jimme it priuwd? De echte giet fan\'e jûn de loft yn.', { nl: 'Chocola, Groningers! Hebben jullie ervan geproefd? De echte gaat vanavond de lucht in.', tag: 'lacherig, zelfvoldaan, aan de telefoon', clue: true }],
+    ] }, { via: 'voicemail', from: 'douwe', lines: [
+      ['douwe', 'Baas? Durk en ik binne wiet. Wy fytse wol nei hûs.', { nl: 'Baas? Durk en ik zijn nat. We fietsen wel naar huis.', tag: 'sloom, druipnat, aan de telefoon' }],
+      ['douwe', 'Baas? O. Ferkeard nûmer.', { nl: 'Baas? O. Verkeerd nummer.', tag: 'verward, beschaamd' }],
+    ] }] },
+  { id: 'H15', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'traumaduif', why: 'Ik vlieg die heli. Jij krijgt al hoogtevrees op een stoeprand.',
+    title: 'Traumaduif', reward: 1000,
     lead: ['T', 'Dokter Dijkstra staat bij de traumaheli op het UMCG. Jij vliegt. Ik hang, schijnt het.'],
     after: [['Sikkom', 'Traumaheli haalt Gouden Eierbal uit ballon. UMCG: "Het stond niet in het rooster, maar het was een geslaagde operatie."'],
-      ['Jelle Terpstra', 'Ik stean yn in greide by Ten Boer. Mei kij. Dit is noch net klear, Grinzers.']] },
-  { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'fjord', title: 'Waar is de Fjord?', reward: 700,
+    ],
+    contact: [{ via: 'call', from: 'jelle', mood: 'greide', lines: [
+      ['jelle', 'Ik stean yn in greide by Ten Boer. Mei kij. Dit is noch net klear, Grinzers.', { nl: 'Ik sta in een weiland bij Ten Boer. Met koeien. Dit is nog niet klaar, Groningers.', tag: 'buiten adem, boos en beledigd, aan de telefoon' }],
+    ] }] },
+  { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'fjord', why: 'Het is mijn Fjord. Ik haal hem zelf terug.',
+    title: 'Waar is de Fjord?', reward: 700,
     lead: ['T', 'Anita. Niet schrikken. Je Fjord is weg. Jelmer zegt dat zijn chat hem bij het station zag.'],
-    after: [['Jelle Terpstra', 'Tige tank foar it lienen fan de auto. Hy riedt better as myn trekker. Net fertelle.'],
-      ['T', 'Hij stuurt nu ook complimentjes. Straks nodigt hij ons uit voor zijn verjaardag.']] },
-  { id: 'H17', part: 'staart', kind: 'mission', player: 'tammo', built: true, mission: 'bod', title: 'Het Bod', reward: 400, cost: 300,
+    contact: [{ via: 'card', from: 'jelle', title: 'Een kaartje op de stoel van de Fjord', lines: [
+      ['jelle', 'Tige tank foar it lienen fan de auto. Hy riedt better as myn trekker. Net fertelle.', { nl: 'Bedankt voor het lenen van de auto. Hij rijdt beter dan mijn trekker. Niet vertellen.', tag: 'hardop voorlezend, stiekem onder de indruk' }],
+    ], after: [['T', 'Hij stuurt nu ook complimentjes. Straks nodigt hij ons uit voor zijn verjaardag.']] }] },
+  { id: 'H17', part: 'staart', kind: 'mission', player: 'tammo', built: true, mission: 'bod', why: 'Ik doe de boodschappen. Ik rem voor eieren, dat weet je.',
+    title: 'Het Bod', reward: 400, cost: 300,
     voorschot: { from: 'Oma Trijntje', text: 'Voor de boodschappen. Een echte eierbal maak je niet met lege handen, jong.' },
     lead: ['A', 'Jelle wil ons spreken op het Stadsbalkon. Hij heeft een "bod", zegt hij. Neem geld mee voor boodschappen.'],
-    after: [['Oma Trijntje', 'Mosterd, eieren en stoetbrood. Dan komt het goed, jong. Dat deed ik in 1953 ook zo.']] },
-  { id: 'H18', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'ontzet', title: 'Finale: Gronings Ontzet', reward: 2500,
+    after: [['Oma Trijntje', 'Mosterd, eieren en stoetbrood. Dan komt het goed, jong. Dat deed ik in 1953 ook zo.']],
+    contact: [{ via: 'call', on: 'lead', from: 'jelle', mood: 'smug', lines: [
+      ['jelle', 'Moai, Grinzers. Kom nei it Stedsbalkon. Ik ha in bod foar jimme.', { nl: 'Moi, Groningers. Kom naar het Stadsbalkon. Ik heb een bod voor jullie.', tag: 'zakelijk, charmant, aan de telefoon' }],
+    ] }] },
+  { id: 'H18', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'ontzet', why: 'Ik rij de finale. Jij bakt, ik haal die Eierbal terug.',
+    title: 'Finale: Gronings Ontzet', reward: 2500,
     lead: ['T', 'Achtentwintig augustus. Gronings Ontzet. Onze kraam staat op de Grote Markt, en Jelle de zijne ook. Kom je?'],
     after: [['Sikkom', 'Gouden Eierbal terug in het museum. Friese snackkoning proeft Groninger eierbal en zegt niks. Wel twee keer.'],
-      ['Jelle Terpstra', 'Moai dien, Grinzers. Folgend jier wer? Dan mei jimme nei Ljouwert komme.'],
-      ['T', 'Wij tweeën vóór Grunn. Ik zeg het nog één keer hardop, en dan nooit meer.']] },
+    ],
+    contact: [{ via: 'card', from: 'jelle', title: 'Een ansichtkaart uit Ljouwert', lines: [
+      ['jelle', 'Moai dien, Grinzers. Folgend jier wer? Dan mei jimme nei Ljouwert komme.', { nl: 'Mooi gedaan, Groningers. Volgend jaar weer? Dan mogen jullie naar Leeuwarden komen.', tag: 'warm, sportief, voorlezend' }],
+    ], after: [['T', 'Wij tweeën vóór Grunn. Ik zeg het nog één keer hardop, en dan nooit meer.']] }] },
 ];
 
 export const STEP_BY_ID = new Map(STEPS.map((s) => [s.id, s]));
@@ -237,3 +332,33 @@ export function computeMoneyTimeline(start = START_MONEY, payShare = 1) {
   }
   return { rows, end: money, low };
 }
+
+// "Wat weten we?" (pause menu, Missies tab): what Tammo and Anita know so far.
+// A clue shows once its step is done, so the journal never spoils ahead.
+// kind: 'clue' (about Jelle's plan), 'hart' (motivations and turning points).
+export const WHY = {
+  kop: 'Geld verdienen, en dan de Gouden Eierbal jatten en verkopen. Voor de Fjord Frituur.',
+  romp: 'Uitzoeken wie W is, en waar de Gouden Eierbal nu is.',
+  staart: 'De Eierbal terughalen. Niet om te verkopen, maar voor Grunn.',
+};
+
+export const CLUES = [
+  { step: 'H1', kind: 'clue', title: 'Een Fries met een klomp', text: 'Berend: een Fries wilde zijn bakkie kopen. Contant, uit een klomp.' },
+  { step: 'H2', kind: 'hart', title: 'De Fjord Frituur', text: 'Anita\'s droom: een eigen foodtruck. Vier wielen, geen kenteken. Sjabbe zegt: het echte geld ligt in het museum.' },
+  { step: 'H3', kind: 'clue', title: 'JelleWâld', text: 'In Jelmers chat: "Moai stedsje. Foar in wykein." Fries dus.' },
+  { step: 'H4', kind: 'clue', title: 'De trekker-limo', text: 'Een zwarte trekker met een limousine erachter bij de achterdeur van het museum. Twee reuzen stapten uit. "De baas bliuwt sitten."' },
+  { step: 'H5', kind: 'clue', title: 'Us Mem Snacks', text: 'Studententeam Snits Snel werd gesponsord door Us Mem Snacks.' },
+  { step: 'H6', kind: 'clue', title: 'De lege vitrine', text: 'Iemand was ons voor. Op het kussen: "Tige tank! – W." W van JelleWâld: Jelle Terpstra liet live een gouden bal zien.' },
+  { step: 'H7', kind: 'clue', title: 'Al het frituurvet', text: 'Durk en Douwe kochten al het vet van Grunn. Durk, per ongeluk aan de telefoon: "Gjin fet, gjin aaibal op Gronings Ontzet."' },
+  { step: 'H8', kind: 'clue', title: 'Operaasje Aaibal', text: 'Zonder vet bakt niemand in Grunn een eierbal op Gronings Ontzet. Dan wint Jelle de Noordelijke Snackprijs.' },
+  { step: 'H9', kind: 'clue', title: 'Een Fries op de ringweg', text: 'Jelle rijdt zelf in de trekker-limo. Hij verloor, en belde boos: "Dit is net klear."' },
+  { step: 'H10', kind: 'clue', title: 'De vlag', text: 'Jelle hing een Friese vlag aan d\'Olle Grieze. Een duif pikte hem los. Hij weet wie die duif is.' },
+  { step: 'H11', kind: 'clue', title: 'Het skûtsje', text: 'Durk, dronken in de Poelestraat: "De bal leit op it skûtsje."' },
+  { step: 'H12', kind: 'hart', title: 'Oma Trijntje, 1953', text: 'Oma Trijntje stond model voor de Eierbal. "Die bal is gien geld, jong. Die bal is Grunn." Misschien moeten we hem niet verkopen.' },
+  { step: 'H13', kind: 'hart', title: 'Wij tweeën', text: 'Na de rondvaart: de kus. "Wij tweeën tegen Grunn… of misschien: vóór Grunn."' },
+  { step: 'H14', kind: 'clue', title: 'Chocola', text: 'De Eierbal op het skûtsje was van chocola, met goudpapier. De echte gaat vanavond per ballon de stad uit.' },
+  { step: 'H15', kind: 'clue', title: 'De echte Eierbal', text: 'Uit de mand gehaald, boven Grunn. Hij is zwaar, en hij smelt niet. Jelle staat in een weiland bij Ten Boer.' },
+  { step: 'H16', kind: 'clue', title: 'De Fjord', text: 'Jelle liet de Fjord jatten: hij wil ons weg hebben voor Gronings Ontzet.' },
+  { step: 'H17', kind: 'hart', title: 'Het besluit', text: '"Hij hoort in Grunn." Als we winnen, gaat de Eierbal terug naar het museum.' },
+  { step: 'H18', kind: 'hart', title: 'Vóór Grunn', text: 'De Eierbal staat weer in het museum. Jelle vond onze eierbal beter. Net fertelle.' },
+];

@@ -8,6 +8,8 @@ import { getHeroCar, getClockText } from './hud_panel.js';
 import { getGarageList, deliverOwnedVehicle, locateOwnedVehicle, whereText } from './ownedvehicles.js';
 import { initGarageStyles } from './garageui.js';
 import { getSideJobOffers, quitSideJob } from './sidejobs.js';
+import { lineVoiceFor } from './linevoice.js';
+import { playBanterVoice, stopBanterVoice } from './audio.js';
 
 const RING_TIME = 0.9;
 const GARAGE_PRICE = 100;
@@ -397,7 +399,10 @@ function talk(call) {
   const res = call.contact.talk(world, call) || {};
   call.phase = 'talk';
   call.line = res.line || '';
-  call.actions = [...(res.actions || []), { label: 'Ophangen', run: () => goHome() }];
+  call.actions = [...(res.actions || []), { label: 'Ophangen', run: () => { stopBanterVoice(); goHome(); } }];
+  // Jelle answers in his own voice (the lines manifest)
+  const v = call.contact.id === 'jelle' && lineVoiceFor('Jelle Terpstra', call.line);
+  if (v) playBanterVoice(v.src);
   st.sel = 0;
   render();
 }
