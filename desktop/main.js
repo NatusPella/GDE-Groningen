@@ -40,7 +40,7 @@ const argValue = (name) => { const a = process.argv.find((x) => x.startsWith(nam
 // --benchmark[=N] runs the benchmark N times from the title screen, logs every
 // shot's fps / draw calls / GPU memory and quits (throwaway profile)
 const BENCH = process.argv.find((a) => a === '--benchmark' || a.startsWith('--benchmark='));
-if (TRAILER || BENCH || process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test') || a.startsWith('--story-test'))) {
+if (TRAILER || BENCH || process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test') || a.startsWith('--story-test') || a.startsWith('--validate-spots'))) {
   // GTE_TEST_PROFILE picks another throwaway dir, so parallel test runs
   // don't block each other through the single-instance lock
   app.setPath('userData', path.join(require('os').tmpdir(), process.env.GTE_TEST_PROFILE || 'gte-vi-test-profile'));
@@ -133,9 +133,11 @@ function createWindow() {
   // --hitch turns on the in-game frame-time probe (js/hitchprobe.js)
   // --dev opens the hidden story dev panel (F9), --story-test[=<dir>] runs
   // the automated story test: screenshots per step and report.json in <dir>
-  const storyTest = process.argv.find((a) => a === '--story-test' || a.startsWith('--story-test='));
+  // --validate-spots[=<dir>]: the story test's spot check only (js/spotcheck.js)
+  const spotsOnly = process.argv.find((a) => a === '--validate-spots' || a.startsWith('--validate-spots='));
+  const storyTest = process.argv.find((a) => a === '--story-test' || a.startsWith('--story-test=')) || spotsOnly;
   const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
-  const query = [(silent || storyTest) && 'stil', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--dev') && 'dev', storyTest && 'storytest',
+  const query = [(silent || storyTest) && 'stil', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--dev') && 'dev', storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke || storyTest || process.argv.includes('--perf-test')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
