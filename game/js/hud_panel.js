@@ -354,7 +354,13 @@ function updateSpeedo(world) {
   els.speedoValue.textContent = String(Math.round(Math.abs(v.speed || 0) * 3.6));
 }
 
-const WEAPON_LABELS = { fists: 'VUISTEN', pistol: 'PISTOOL', uzi: 'UZI', shotgun: 'HAGELGEWEER' };
+const WEAPON_LABELS = {
+  fists: 'VUISTEN', pistol: 'PISTOOL', uzi: 'UZI', shotgun: 'HAGELGEWEER',
+  knuppel: 'HONKBALKNUPPEL', hockeystick: 'HOCKEYSTICK', bezem: 'BEZEM', fietspomp: 'FIETSPOMP', klomp: 'KLOMP', polsstok: 'POLSSTOK',
+  jachtgeweer: 'JACHTGEWEER', waterpistool: 'WATERPISTOOL', carbidbus: 'CARBIDBUS', vuurwerk: 'VUURWERKPIJLEN',
+};
+// melee weapons never run out: no count next to the name
+const NO_COUNT = new Set(['knuppel', 'hockeystick', 'bezem', 'fietspomp', 'klomp', 'polsstok']);
 // Simple original silhouettes (48x24 viewBox), drawn in the HUD foreground colour.
 const WEAPON_ICONS = {
   // front-on fist: four knuckles, thumb wrapped across, wrist below
@@ -366,6 +372,16 @@ const WEAPON_ICONS = {
   pistol: '<path d="M8 6h30v6H22l-2 3h-5l-2 7H7l2-10H8z"/><rect x="38" y="7" width="3" height="3"/>',
   uzi: '<path d="M6 7h32v6H27v9h-5v-9h-4l-2 5h-6l2-5H6z"/><rect x="38" y="8.5" width="5" height="2.5"/><path d="M2 8h4v4H2z"/>',
   shotgun: '<path d="M2 8h28v2l16 0v3H30v1h-8l-3 2H13l-2 4H4l2-5H2z"/><rect x="24" y="13" width="7" height="3" rx="1"/>',
+  knuppel: '<path d="M4 15.5l30-7.5c3.5-.9 7.5-.4 8.6 2.3.9 2.3-1.8 4.3-5.2 5L7 17.8c-1.4.2-2.6-.3-3-1.2z"/><circle cx="4.2" cy="16.6" r="2.3"/>',
+  hockeystick: '<path d="M7 2.5l2.4-.8 11.4 16.6H40c1.6 0 2.4 1 2.4 2.2s-.8 2.1-2.4 2.1H18.6c-1 0-1.8-.4-2.4-1.3z"/><path d="M26 18.4h3v4h-3z" fill="rgba(0,0,0,.35)"/>',
+  bezem: '<rect x="2" y="10.6" width="30" height="2.4" rx="1.2"/><path d="M31 8h4l9-3v14l-9-3h-4z"/><path d="M37 8.5v7M40 7.5v9M43 6.5v11" stroke="rgba(0,0,0,.4)" stroke-width="0.9"/>',
+  fietspomp: '<rect x="6" y="10" width="30" height="4.6" rx="2.3"/><rect x="2" y="5" width="3.4" height="14.6" rx="1.4"/><rect x="5" y="11" width="3" height="2.6"/><path d="M36 12.3h6l3 3" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+  klomp: '<path d="M5 12c0-3.4 2.6-5 6-5h8c6 0 10 2.4 14 3.4 5 1.2 11 1.6 11 5.4 0 2.6-2.4 3.8-6 3.8H9c-2.6 0-4-1.6-4-4z"/><path d="M11 8.6c1.8 2.6 5.4 3.6 9 2.6" stroke="rgba(0,0,0,.4)" stroke-width="1" fill="none"/>',
+  polsstok: '<rect x="1" y="10.8" width="46" height="2.4" rx="1.2"/><path d="M1 10.8h3v2.4H1z" fill="rgba(0,0,0,.4)"/><path d="M44 10.8h3v2.4h-3z" fill="rgba(0,0,0,.4)"/>',
+  jachtgeweer: '<path d="M1 10h30v-.5l15 .3v2.6H30v1.2h-9l-3 1.6-8 4.6H3.5l3-5.8H1z"/><rect x="17" y="5.5" width="12" height="3" rx="1.5"/><path d="M20 8.5v1.5M26 8.5v1.5" stroke="currentColor" stroke-width="1.4"/>',
+  waterpistool: '<path d="M8 7h26c2 0 3 1 3 2.5v1.8H44V14h-7v.4c0 1-1 1.6-2.2 1.6H22l-2 6h-7l2-6H10c-1.8 0-3-1.2-3-2.8V9.5C7 8 7.4 7 8 7z"/><circle cx="18" cy="5.2" r="4.4"/>',
+  carbidbus: '<path d="M8 6h22c1.4 0 2.4 1 2.4 2.4v.4h4v6.4h-4v.4c0 1.4-1 2.4-2.4 2.4H8c-1.4 0-2.4-1-2.4-2.4V8.4C5.6 7 6.6 6 8 6z"/><rect x="37" y="10.2" width="4" height="3.6" rx="1"/><path d="M42 12l3-3M42 12l3.4 1.2M42 12l2 3.4" stroke="currentColor" stroke-width="1.1"/><path d="M14 6v12M24 6v12" stroke="rgba(0,0,0,.35)" stroke-width="1"/>',
+  vuurwerk: '<path d="M28 7h10l6 5-6 5H28z"/><rect x="2" y="11" width="27" height="2" rx="1"/><path d="M26 12H8" stroke="rgba(0,0,0,.35)"/><path d="M28 9.5v5" stroke="rgba(0,0,0,.4)" stroke-width="1.2"/>',
 };
 
 let moneyShown = null;
@@ -392,7 +408,7 @@ function updateMoneyWeapon(dt, world) {
   els.money.textContent = '€' + Math.round(moneyShown).toLocaleString('nl-NL');
   els.money.classList.toggle('rolling', diff !== 0);
   const ammo = world.ammo ? world.ammo[world.weapon] : undefined;
-  const ammoText = ammo === undefined ? '' : ammo === Infinity ? ' ∞' : ' ' + ammo;
+  const ammoText = ammo === undefined || NO_COUNT.has(world.weapon) ? '' : ammo === Infinity ? ' ∞' : ' ' + ammo;
   const weaponKey = WEAPON_ICONS[world.weapon] ? world.weapon : 'fists';
   if (els.weapon.dataset.key !== weaponKey) {
     els.weapon.dataset.key = weaponKey;
