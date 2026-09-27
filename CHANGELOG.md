@@ -6,6 +6,37 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-09-27
+
+Het verhaal komt tot leven.
+
+### Nieuw
+- **Jelle, Durk en Douwe in beeld**: de Friese schurk en zijn tweeling-
+  handlangers zie je nu echt, met hun trekker-limo, een livestream, de
+  tweeling op één fatbike en een dronken Durk die zich verspreekt.
+- **Jelle neemt contact op** met telefoontjes, voicemails, een livestream op
+  je telefoon, Sikkom-posts en handgeschreven kaartjes, allemaal ingesproken.
+- **De verteller** vat bij het begin van elk deel samen wat er eerder
+  gebeurde en komt terug bij de grote keerpunten.
+- **Wat weten we?** in het menu bij Missies: alle aanwijzingen en keerpunten
+  tot nu toe, zonder spoilers. Aanwijzingen vallen ook op in cutscenes.
+- **Wissel tussen Tammo en Anita** met een eigen overgang en een reden waarom
+  juist die het beste past bij de volgende stap.
+- De vlag op d'Olle Grieze krijgt eerst een eigen shot, en valt als echt doek
+  naar beneden.
+
+### Verbeterd
+- Cutscenes met bewegende camera's, personages die gebaren en naar elkaar kijken.
+- Minder duivenmissies: de vliegles zit in de verkenning van het museum, en
+  in "Waar is de Fjord?" vraag je een getuige en volg je een tracker.
+- Rustige momenten tussen Tammo en Anita in de auto bij de belangrijkste
+  gebeurtenissen.
+
+### Opgelost
+- Aan het einde van het verhaal kon je missies niet overslaan. Nu kan dat bij
+  elke stap, ook tijdens de finale.
+- Een duivenstap stuurde je eerst naar het verkeerde duivenbord.
+
 ## [0.12.0] - 2026-09-27
 
 Minder Fries, meer Grunnegers.
