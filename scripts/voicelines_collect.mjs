@@ -10,6 +10,14 @@ import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js
 import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
 import { STEPS, PARTS } from '../game/js/storyarc.js';
 import { SMS_SAY, smsSpeaker, smsSpoken, cardSpoken } from '../game/js/smsvoice.js';
+import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT } from '../game/js/rondvaartlines.js';
+
+// The tourists on the rondvaartboot: one fixed voice each (tts_lines_list.mjs).
+export const TOURISTS = {
+  D: { female: true, voice: 'Erinome', who: 'Duitse toeriste op een rondvaartboot', accent: 'spoken in German, a cheerful German tourist' },
+  E: { female: false, voice: 'Sadachbia', who: 'Engelse toerist op een rondvaartboot', accent: 'spoken in British English, a friendly English tourist' },
+  R: { female: true, voice: 'Laomedeia', who: 'toeriste uit de Randstad op een rondvaartboot', accent: 'spoken in standard Dutch with an Amsterdam accent' },
+};
 
 export const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = path.join(REPO, 'game', 'js');
@@ -100,8 +108,24 @@ export function collect() {
   const rc = src('rondvaartchase.js');
   const SHOUT = lit(rc, 'const SHOUT = ');
   for (const [kind, list] of Object.entries(SHOUT)) for (const t of list) add('Rondvaart-missie', 'story', ['Schipper Wiebe (megafoon)'], t, { kind });
-  const rcGuide = [...lit(rc, 'const SIGHTS = ').map((s) => s.line), ...strings(rc, /const WELCOME = ('(?:[^'\\]|\\.)*')/g)];
-  for (const t of rcGuide) add('Rondvaart-missie', 'story', ['Tammo (gids)', 'Anita (gids)'], t, { kind: 'guide' });
+  // the tour (rondvaartlines.js, mission and relaxed tour): Tammo at the
+  // microphone, Anita correcting him, tourists in bubbles; new recordings
+  // go to the lines manifest (rondvaartchase.js looks in both)
+  const TOURIST_CAST = {
+    D: { persona: TOURISTS.D, tag: ['enthousiast, verrukt', 'nieuwsgierig, vrolijk'] },
+    E: { persona: TOURISTS.E, tag: ['vrolijk, beleefd', 'verbaasd, geamuseerd'] },
+    R: { persona: TOURISTS.R, tag: ['nieuwsgierig, een tikje bekakt', 'verbaasd, kletserig'] },
+  };
+  const tourLine = ([k, t]) => {
+    if (TOURIST_CAST[k]) add('Rondvaart (toeristen)', 'lines', [TOURISTS[k].female ? BUBBLE.f : BUBBLE.m], t, TOURIST_CAST[k], 'any');
+    else {
+      add('Rondvaart (gids)', 'story', [k === 'T' ? 'Tammo (gids)' : 'Anita'], t, { tag: k === 'T' ? ['droog, vertellend door de microfoon van een rondvaartboot, stiekem trots op de stad', 'laconiek, als rondvaartgids door een bootspeaker'] : ['betweterig, plagend, verbetert hem', 'ad rem, snel, weet het beter, warm'] });
+      out[out.length - 1].fallback = 'lines';
+    }
+  };
+  for (const l of TOUR_WELCOME) tourLine(l);
+  for (const stop of TOUR_STOPS) for (const l of stop.lines) tourLine(l);
+  for (const list of Object.values(TOURIST_REACT)) for (const l of list) tourLine(l);
 
   // --- bijbaantjes: intros + boss/duo lines -> jobs manifest
   const sv = src('sidejobvoice.js');
