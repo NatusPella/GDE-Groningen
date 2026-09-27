@@ -3,7 +3,6 @@ import { VERSION } from './version.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
-import { setSetting } from './settings.js';
 import { pendingTrailer, runTrailer, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
 import { COW_LOADING } from './flavourlines.js';
 
@@ -514,8 +513,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const playIntro = async () => {
       trailerOn = true;
       if (intro.mode === 'benchmark') { trailerOn = false; benchmark(!!intro.fromGame); return; }
-      // set when the cut starts: a crash or closing the app must not replay it
-      if (intro.mode === 'attract') setSetting('attractSeen', true);
       const res = await runTrailer(world, { ...intro, env });
       if (intro.mode === 'opname' && !res.aborted && window.gteDesktop && window.gteDesktop.isDesktop) { window.gteDesktop.quit(); return; }
       if (res.continuation) {

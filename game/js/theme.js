@@ -54,6 +54,16 @@ export function kickTheme() {
   tryStart();
 }
 
+// The opening montage restarts the song so its cuts land on the beat; after
+// that the song plays out once into the game. False when it is already over.
+export function cueTheme(at = 0) {
+  if (!el || state === 'done' || SILENT_MODE) return false;
+  try { el.currentTime = at; } catch (e) { return false; }
+  el.loop = false;
+  tryStart();
+  return true;
+}
+
 export function isThemePlaying() {
   return state !== 'done' && !SILENT_MODE && !!el && (state === 'playing' || !el.paused);
 }
