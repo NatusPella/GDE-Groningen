@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { dist, closestPointOnSegment, isInWater, pointInPolygon } from './util.js';
+import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
@@ -764,6 +764,27 @@ function bootSections(world, shop) {
   return [{ title: 'Te huur', note: state.rental && !state.rental.wrecked ? 'Je vorige huurboot wordt teruggebracht' : '', items }, ...vehicleSections(world, 'boot', shop)];
 }
 
+// The jetty point suits a small boat; a long one slides along the quay (and a
+// little further out) until its whole hull is clear of banks, other jetties
+// and moored houseboats.
+function fitBerth(map, v, shop) {
+  const { x, y, angle } = shop.water;
+  const ax = Math.cos(angle), ay = Math.sin(angle);
+  const ox = -shop.kiosk.nx, oy = -shop.kiosk.ny;
+  const hl = (v.model.len || 4) / 2;
+  const clear = (px, py, a) => boatDryPoints(map, v, px, py, a) === 0
+    && ![-hl, 0, hl].some((l) => map.isOnBridge(px + Math.cos(a) * l, py + Math.sin(a) * l));
+  for (let d = 0; d <= 30; d += 1.5) {
+    for (const s of d ? [1, -1] : [1]) {
+      for (const o of [0, 0.75, 1.5, 2.5]) {
+        const px = x + ax * d * s + ox * o, py = y + ay * d * s + oy * o;
+        if (clear(px, py, angle)) return { x: px, y: py, angle };
+      }
+    }
+  }
+  return { x, y, angle };
+}
+
 function rentBoat(world, shop, r) {
   const map = world.map;
   const poly = map.waterNear(shop.water.x, shop.water.y, 2).find((w) => pointInPolygon(shop.water.x, shop.water.y, w.pts));
@@ -771,8 +792,9 @@ function rentBoat(world, shop, r) {
   const v = spawnBoatOnWater(map, poly);
   if (!v) return null;
   if (state.rental) removeFromWorld(world, state.rental);
-  v.x = shop.water.x; v.y = shop.water.y; v.angle = shop.water.angle;
   v.model = { ...r.model };
+  const berth = fitBerth(map, v, shop);
+  v.x = berth.x; v.y = berth.y; v.angle = berth.angle;
   v.waterPoly = null; // no AI wandering: it waits at the jetty
   v.id = newVehicleId(r.nameIdx);
   v.playerOwned = true;

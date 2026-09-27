@@ -1252,7 +1252,7 @@ function checkLaneHits(world) {
     if (Math.abs(v.x - p.x) > 2 || Math.abs(v.y - p.y) > 2 || dist(v.x, v.y, p.x, p.y) > BIKE_TOUCH_RADIUS) continue;
     chain.fatbikeHits++;
     chain.hitGraceUntil = world.time + BIKE_HIT_GRACE;
-    let dmg = Math.round(b.fat ? 8 + b.speed * 0.9 : 4 + b.speed * 0.4);
+    let dmg = Math.round(b.fat ? 5 + b.speed * 0.6 : 2 + b.speed * 0.3);
     if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
     world.health = Math.max(0, world.health - dmg);
     const vx = Math.cos(v.angle) * b.speed, vy = Math.sin(v.angle) * b.speed;

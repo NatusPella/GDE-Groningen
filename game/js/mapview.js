@@ -829,7 +829,7 @@ function drawDynamicMarkers(ctx, world) {
     const [sx, sy] = toScreen(search.x, search.y);
     drawSearchArea(ctx, sx, sy, search.r * state.scale, t);
   }
-  forEachPoliceUnit(world, (x, y) => icon(null, 'police', x, y, 'Politie'));
+  forEachPoliceUnit(world, (x, y, kind) => icon(null, kind, x, y, kind === 'policeHorse' ? 'Bereden politie' : kind === 'policeBike' ? 'Politie op de fiets' : 'Politie'));
 
   const wp = getUserWaypoint();
   if (wp) icon(null, 'userWaypoint', wp.x, wp.y, 'Bestemming', {}, wp.name ? `${wp.name} · klik of rechtsklik om te wissen` : 'klik of rechtsklik om te wissen');

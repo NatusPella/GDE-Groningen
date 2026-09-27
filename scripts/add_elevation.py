@@ -20,6 +20,9 @@ bridge) into a height profile per road vertex:
    whole city) stay flat.
    Crossing constraints only bind the vertices right at the crossing, so a
    bridge way humps over what it spans instead of being lifted end to end.
+   Where the tagged side cannot get there within MAX_GRADE (two crossings
+   close together pull it both ways), the other road gives way for the rest
+   (a street dips under a flyover, a road over a tunnel ramp rises a bit).
 2. Ramps. The constraints are lower/upper bounds; every vertex takes the
    height closest to street level that the bounds allow at MAX_GRADE over
    the road network, so on- and off-ramps, the ring beyond a viaduct and
@@ -27,6 +30,11 @@ bridge) into a height profile per road vertex:
    close for MAX_GRADE the vertex goes halfway). Ring roads and roads
    crossing them are densified to STEP metres for this and lightly smoothed
    (vertical curves); vertices that end up flat and straight are dropped.
+3. Side by side. A ramp leaving or joining its carriageway (or one half of a
+   dual carriageway next to the other) keeps the other road's height while
+   their surfaces overlap in plan, and only climbs or sinks once they have
+   separated; if the ramp cannot get there within MAX_GRADE the carriageway
+   meets it. Crossing clearances always win over this.
 
 Runs after process_osm.py and before add_railways.py (which leaves the rail
 flat where the road already passes over or under it).
@@ -47,8 +55,14 @@ CLEAR = 5.6      # vertical clearance between crossing roads (m)
 MAX_GRADE = 0.05
 STEP = 8.0       # densify sloped roads to this spacing (m)
 SMOOTH_ITERS = 6
+SMOOTH_GRADE = 0.058
 UNDER_WATER = -8.2  # a ring road passing under a canal (aqueduct) stays below the canal bed
 RAIL_Z = 0.0
+SHOULDER = 1.8      # rendered verge beyond the carriageway (elevation.js surfaceHalfWidth)
+COUPLE_TOL = 0.1   # side-by-side ring roads with overlapping surfaces stay this close
+COUPLE_ANGLE = 35.0
+COUPLE_OVERLAP = 0.5
+COUPLE_ROUNDS = 3
 
 
 def key(p):
@@ -287,6 +301,89 @@ def z_on(r, zmap, x, y):
     return bz
 
 
+RANK = {"motorway": 0, "trunk": 1, "primary": 2, "motorway_link": 3, "trunk_link": 4, "primary_link": 5}
+
+
+def road_len(r):
+    P = r["pts"]
+    return sum(math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]) for i in range(len(P) - 1))
+
+
+class Coupler:
+    """Ring roads running side by side (a ramp leaving or joining its
+    carriageway, the two halves of a dual carriageway) whose surfaces overlap
+    in plan: the lesser road (link < main road, then the shorter one) must
+    stay within COUPLE_TOL of the other there, and only climbs or sinks once
+    the ribbons have separated."""
+
+    G = 40.0
+
+    def __init__(self, roads):
+        self.roads = [r for r in roads if is_ring(r) and r["cat"] in CAR]
+        self.order = {}
+        for r in self.roads:
+            self.order[id(r)] = (RANK.get(r["type"], 9), -road_len(r))
+        self.grid = {}
+        for r in self.roads:
+            P = r["pts"]
+            hs = r.get("width", 6) / 2 + SHOULDER
+            for i in range(len(P) - 1):
+                x0, x1 = sorted((P[i][0], P[i + 1][0]))
+                y0, y1 = sorted((P[i][1], P[i + 1][1]))
+                for gx in range(int((x0 - hs) // self.G), int((x1 + hs) // self.G) + 1):
+                    for gy in range(int((y0 - hs) // self.G), int((y1 + hs) // self.G) + 1):
+                        self.grid.setdefault((gx, gy), []).append((r, i))
+        # follower vertex -> (leader, segment, t), fixed by the plan geometry
+        self.links = {}
+        cos_max = math.cos(math.radians(COUPLE_ANGLE))
+        for f in self.roads:
+            P = f["pts"]
+            hf = f.get("width", 6) / 2 + SHOULDER
+            of = self.order[id(f)]
+            own = {key(p) for p in P}
+            for j, p in enumerate(P):
+                k = key(p)
+                a = P[max(0, j - 1)]
+                b = P[min(len(P) - 1, j + 1)]
+                fl = math.hypot(b[0] - a[0], b[1] - a[1]) or 1
+                fx, fy = (b[0] - a[0]) / fl, (b[1] - a[1]) / fl
+                best = None
+                for l, i in self.grid.get((int(p[0] // self.G), int(p[1] // self.G)), []):
+                    if l is f or self.order[id(l)] >= of:
+                        continue
+                    A, B = l["pts"][i], l["pts"][i + 1]
+                    if key(A) in own and key(B) in own:
+                        continue
+                    dx, dy = B[0] - A[0], B[1] - A[1]
+                    L = math.hypot(dx, dy)
+                    if L < 1e-6 or abs((fx * dx + fy * dy) / L) < cos_max:
+                        continue
+                    t = max(0.0, min(1.0, ((p[0] - A[0]) * dx + (p[1] - A[1]) * dy) / (L * L)))
+                    d = math.hypot(A[0] + dx * t - p[0], A[1] + dy * t - p[1])
+                    if d < hf + l.get("width", 6) / 2 + SHOULDER - COUPLE_OVERLAP and (best is None or d < best[0]):
+                        best = (d, l, i, t)
+                if best and k not in self.links:
+                    self.links[k] = best[1:]
+
+    def bands(self, zmap):
+        """follower vertex -> leader height there, where either is off street level"""
+        out = {}
+        for k, (l, i, t) in self.links.items():
+            A, B = l["pts"][i], l["pts"][i + 1]
+            zc = zmap.get(key(A), 0.0) * (1 - t) + zmap.get(key(B), 0.0) * t
+            if abs(zc) > 0.05 or abs(zmap.get(k, 0.0)) > 0.05:
+                out[k] = zc
+        return out
+
+    def leaders(self, ks):
+        out = set()
+        for k in ks:
+            l, i, _ = self.links[k]
+            out.add(key(l["pts"][i]))
+            out.add(key(l["pts"][i + 1]))
+        return out
+
+
 def mover(up, lo, zu, zl):
     """Which side of a crossing gets moved to make room: 'up' or 'lo' (or None)."""
     if lo.get("rail"):
@@ -325,7 +422,8 @@ def main():
     adj = build_graph(roads)
     lo_b, hi_b = base_plateaus(roads, data["water"])
     zmap = {}
-    for it in range(16):
+    fallbacks = 0
+    for it in range(24):
         zmap = solve_field(adj, lo_b, hi_b)
         changed = 0
         for up, lo, x, y in cross:
@@ -338,20 +436,102 @@ def main():
             road, other = (up, lo) if m == "up" else (lo, up)
             reach = (other.get("width", 6) / 2 if not other.get("rail") else 3.0) + 3.0
             need = zl + CLEAR if m == "up" else zu - CLEAR
+            hit = 0
             for p in road["pts"]:
                 if math.hypot(p[0] - x, p[1] - y) <= reach:
                     k = key(p)
                     if m == "up" and lo_b.get(k, -1e9) < need - 0.01:
                         lo_b[k] = need
-                        changed += 1
+                        hit += 1
                     elif m == "lo" and hi_b.get(k, 1e9) > need + 0.01:
                         hi_b[k] = need
+                        hit += 1
+            changed += hit
+            if hit or other.get("rail") or zu - zl > CLEAR - 0.3:
+                continue
+            # the mover cannot get there within MAX_GRADE (another crossing
+            # close by pulls it the other way): the other road gives way
+            o_reach = road.get("width", 6) / 2 + 3.0
+            o_need = zu - CLEAR if m == "up" else zl + CLEAR
+            for p in other["pts"]:
+                if math.hypot(p[0] - x, p[1] - y) <= o_reach:
+                    k = key(p)
+                    if m == "up" and hi_b.get(k, 1e9) > o_need + 0.01:
+                        hi_b[k] = o_need
                         changed += 1
+                        fallbacks += 1
+                    elif m == "lo" and lo_b.get(k, -1e9) < o_need - 0.01:
+                        lo_b[k] = o_need
+                        changed += 1
+                        fallbacks += 1
         if not changed:
             break
-    fixed = set(lo_b) | set(hi_b)
     print(f"solved in {it + 1} passes; {sum(1 for v in lo_b.values() if v > 0)} raised and "
-          f"{sum(1 for v in hi_b.values() if v < 0)} sunk constraint vertices")
+          f"{sum(1 for v in hi_b.values() if v < 0)} sunk constraint vertices, {fallbacks} give-way vertices")
+
+    # side-by-side ring roads: the lesser one follows the other while their
+    # surfaces overlap. The leaders keep the height just solved (frozen), a
+    # follower that leads another road is settled one round before it.
+    coupler = Coupler(roads)
+    band, frozen = {}, {}
+
+    # what the crossings allow at MAX_GRADE: a coupling never overrides that
+    # (nor lifts the road passing underneath, nor lowers the one on top)
+    lock_lo, lock_hi = dict(lo_b), dict(hi_b)
+    for up, lo, x, y in cross:
+        if mover(up, lo, 0.0, 0.0) is None:
+            continue
+        for road, sign in ((up, 1), (lo, -1)):
+            if road.get("rail"):
+                continue
+            other = lo if sign > 0 else up
+            reach = (other.get("width", 6) / 2 if not other.get("rail") else 3.0) + 3.0
+            for p in road["pts"]:
+                if math.hypot(p[0] - x, p[1] - y) <= reach:
+                    k = key(p)
+                    z = zmap.get(k, 0.0)
+                    if sign > 0:
+                        lock_lo[k] = max(lock_lo.get(k, -1e9), z)
+                    else:
+                        lock_hi[k] = min(lock_hi.get(k, 1e9), z)
+    env_lo, env_hi = propagate(adj, lock_lo, 1), propagate(adj, lock_hi, -1)
+
+    def bounds():
+        lo, hi = dict(lock_lo), dict(lock_hi)
+        for k, z in frozen.items():
+            if k not in band:
+                lo[k] = hi[k] = z
+        for k, t in band.items():
+            el, eh = env_lo.get(k, -1e9), env_hi.get(k, 1e9)
+            lo[k] = max(lo.get(k, -1e9), max(t - COUPLE_TOL, el))
+            hi[k] = min(hi.get(k, 1e9), min(t + COUPLE_TOL, eh))
+        return lo, hi
+
+    def clamp_env(k, z):
+        return min(max(z, env_lo.get(k, -1e9)), env_hi.get(k, 1e9))
+
+    for _ in range(COUPLE_ROUNDS):
+        nb = coupler.bands(zmap)
+        pull = {}
+        for k, zc in nb.items():
+            if env_lo.get(k, -1e9) > env_hi.get(k, 1e9):
+                continue
+            t = clamp_env(k, zc)
+            band[k] = t
+            if abs(t - zc) > COUPLE_TOL:
+                # the follower cannot get there at MAX_GRADE: the carriageway meets it
+                for lk in coupler.leaders([k]):
+                    pull.setdefault(lk, []).append(t)
+        for lk in coupler.leaders(nb):
+            if lk in band or env_lo.get(lk, -1e9) > env_hi.get(lk, 1e9):
+                continue
+            if lk in pull:
+                frozen[lk] = clamp_env(lk, sum(pull[lk]) / len(pull[lk]))
+            elif lk not in frozen:
+                frozen[lk] = zmap.get(lk, 0.0)
+        zmap = solve_field(adj, *bounds())
+    fixed = set(lo_b) | set(hi_b) | set(band) | set(frozen)
+    print(f"{len(band)} ramp vertices coupled to {len(frozen)} carriageway vertices")
 
     # vertical curves: relax the free vertices towards their neighbours
     for _ in range(SMOOTH_ITERS):
@@ -364,7 +544,13 @@ def main():
                 continue
             wsum = sum(1.0 / max(L, 1.0) for _, L in ns)
             avg = sum(zmap.get(n, 0.0) / max(L, 1.0) for n, L in ns) / wsum
-            nxt[k] = z * 0.5 + avg * 0.5
+            v = z * 0.5 + avg * 0.5
+            # never steeper than a ramp next to a vertex that cannot move
+            for n, L in ns:
+                if n in fixed:
+                    zn = zmap.get(n, 0.0)
+                    v = min(max(v, zn - SMOOTH_GRADE * L), zn + SMOOTH_GRADE * L)
+            nxt[k] = v
         zmap.update(nxt)
 
     n_roads, max_grade = 0, 0.0

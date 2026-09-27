@@ -14,9 +14,9 @@ import { propsInRadius } from './breakables.js';
 // its way, and falls asleep again once left alone.
 
 const CELL = 64;
-const SPAWN_R = 105;
-const DESPAWN_R = 140;
-const MAX_ACTIVE = 24;
+const SPAWN_R = 135;
+const DESPAWN_R = 165;
+const MAX_ACTIVE = 60;
 const SLOT_GAP = 6.4;
 const END_CLEAR = 7; // m kept free at each segment end (junctions, bends)
 const ROAD_P = { residential: 0.6, unclassified: 0.4, tertiary: 0.25 };

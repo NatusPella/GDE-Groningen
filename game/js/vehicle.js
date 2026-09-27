@@ -361,9 +361,12 @@ function pushBusTrail(v) {
   const d = Math.hypot(v.x - last.x, v.y - last.y);
   if (d < 0.01) return;
   v.trailDist += d;
-  v.trailHistory.push({ x: v.x, y: v.y, angle: v.angle, dist: v.trailDist });
+  const free = v._trailFree || (v._trailFree = []);
+  const e = free.pop() || {};
+  e.x = v.x; e.y = v.y; e.angle = v.angle; e.dist = v.trailDist;
+  v.trailHistory.push(e);
   const keepFrom = v.trailDist - v.model.len * 1.6;
-  while (v.trailHistory.length > 2 && v.trailHistory[1].dist < keepFrom) v.trailHistory.shift();
+  while (v.trailHistory.length > 2 && v.trailHistory[1].dist < keepFrom) free.push(v.trailHistory.shift());
 }
 
 export function sampleBusTrail(v, backDist) {
@@ -404,22 +407,44 @@ function pointInAnyBuilding(buildings, x, y) {
 
 // OSM widths are per road class, so a 'normal' street squeezed between
 // facades is often narrower than its nominal width: measure the free space
-// to the nearest building on either side at every point (lazily, cached).
+// to the nearest building on either side at every point and along each
+// segment (a facade can jut in between two far-apart points), lazily, cached.
+function freeHalfWidth(near, x, y, ux, uy, nominal) {
+  if (!near.length || pointInAnyBuilding(near, x, y)) return nominal;
+  let half = nominal;
+  for (const side of [1, -1]) {
+    for (let d = 0.75; d < half; d += 0.5) {
+      if (pointInAnyBuilding(near, x + ux * d * side, y + uy * d * side)) { half = Math.max(1.2, d - 0.3); break; }
+    }
+  }
+  return half;
+}
+
+const HALF_SAMPLE = 2.5;
 function roadHalfWidths(map, road) {
   if (road._half) return road._half;
   const nrm = roadNormals(road);
-  road._half = road.pts.map((p, i) => {
-    const nominal = road.width / 2;
-    const near = map.buildingsNear(p[0], p[1], nominal + 1);
-    if (!near.length || pointInAnyBuilding(near, p[0], p[1])) return nominal;
-    const L = Math.hypot(nrm[i][0], nrm[i][1]) || 1;
-    const ux = nrm[i][0] / L, uy = nrm[i][1] / L;
+  const P = road.pts, nominal = road.width / 2;
+  const segHalf = [];
+  for (let i = 0; i < P.length - 1; i++) {
+    const [ax, ay] = P[i], [bx, by] = P[i + 1];
+    const L = Math.hypot(bx - ax, by - ay);
     let half = nominal;
-    for (const side of [1, -1]) {
-      for (let d = 0.75; d < half; d += 0.5) {
-        if (pointInAnyBuilding(near, p[0] + ux * d * side, p[1] + uy * d * side)) { half = Math.max(1.2, d - 0.3); break; }
+    if (L > 2 * HALF_SAMPLE) {
+      const ux = -(by - ay) / L, uy = (bx - ax) / L;
+      const near = map.buildingsNear((ax + bx) / 2, (ay + by) / 2, L / 2 + nominal + 1);
+      for (let d = HALF_SAMPLE; d < L - HALF_SAMPLE + 1e-6 && near.length; d += HALF_SAMPLE) {
+        half = Math.min(half, freeHalfWidth(near, ax + (bx - ax) * d / L, ay + (by - ay) * d / L, ux, uy, nominal));
       }
     }
+    segHalf.push(half);
+  }
+  road._half = P.map((p, i) => {
+    const L = Math.hypot(nrm[i][0], nrm[i][1]) || 1;
+    const near = map.buildingsNear(p[0], p[1], nominal + 1);
+    let half = freeHalfWidth(near, p[0], p[1], nrm[i][0] / L, nrm[i][1] / L, nominal);
+    if (i > 0) half = Math.min(half, segHalf[i - 1]);
+    if (i < segHalf.length) half = Math.min(half, segHalf[i]);
     return half;
   });
   return road._half;
@@ -1246,6 +1271,21 @@ function buildPath(v, map, rng, goal) {
   return path;
 }
 
+const _pa = [0, 0], _pb = [0, 0], _pc = [0, 0];
+function pointAlongInto(path, s, out) {
+  for (let i = 1; i < path.length; i++) {
+    if (path[i].s < s) continue;
+    const a = path[i - 1], b = path[i];
+    const span = b.s - a.s;
+    const t = span > 1e-6 ? (s - a.s) / span : 0;
+    out[0] = lerp(a.x, b.x, t); out[1] = lerp(a.y, b.y, t);
+    return out;
+  }
+  const last = path[path.length - 1];
+  out[0] = last.x; out[1] = last.y;
+  return out;
+}
+
 function pointAlong(path, s) {
   for (let i = 1; i < path.length; i++) {
     if (path[i].s < s) continue;
@@ -1278,7 +1318,7 @@ function curveSpeedLimit(v, path, aLat, decel) {
   let vmax = Infinity;
   const end = path[path.length - 1].s;
   for (let s = 3; s < end - 3; s += 2) {
-    const p0 = pointAlong(path, s - 3), p1 = pointAlong(path, s), p2 = pointAlong(path, s + 3);
+    const p0 = pointAlongInto(path, s - 3, _pa), p1 = pointAlongInto(path, s, _pb), p2 = pointAlongInto(path, s + 3, _pc);
     const h1 = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]);
     const h2 = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
     const turn = Math.abs(normalizeAngle(h2 - h1));
@@ -1464,8 +1504,14 @@ function junctionYieldLimit(v, path, world, decel, claim) {
   const hx = (first.x - ax) / la, hy = (first.y - ay) / la;
   const turnLeft = hx * (by - first.y) / lb - hy * (bx - first.x) / lb < -0.4;
   const rank = roadRank(first.from);
-  if (claim) claims.set(v.id, { eta, time: world.time, from: first.from, fromDir: first.fromDir, rank, hx, hy, turnLeft, still: v.stillFor || 0 });
-  else claims.delete(v.id);
+  if (claim) {
+    // reused: a fresh object per car per frame lived long enough to be
+    // promoted, and the old-space churn showed up as ~150 ms GC pauses
+    let c = claims.get(v.id);
+    if (!c) claims.set(v.id, c = {});
+    c.eta = eta; c.time = world.time; c.from = first.from; c.fromDir = first.fromDir; c.rank = rank;
+    c.hx = hx; c.hy = hy; c.turnLeft = turnLeft; c.still = v.stillFor || 0;
+  } else claims.delete(v.id);
   let yieldTo = false, othersWaiting = true, minId = v.id;
   for (const [id, c] of claims) {
     if (id === v.id) continue;
@@ -1873,7 +1919,7 @@ export function explodeVehicle(v, world) {
   }
   const p = world.player;
   const pd = Math.hypot(v.x - p.x, v.y - p.y);
-  if (pd < 60) world.lastImpact = { strength: clamp(1.25 - pd / 45, 0.15, 1), time: world.time, x: v.x, y: v.y };
+  if (pd < 60) world.lastImpact = { strength: clamp(1.25 - pd / 45, 0.15, 1), time: world.time, x: v.x, y: v.y, blast: true, own: !!v.wreckedByPlayer || v.driver === 'player' || v === world.player.inVehicle || !!v.playerOwned };
   world.lastBlast = { x: v.x, y: v.y, z: v.z || 0, time: world.time };
 }
 

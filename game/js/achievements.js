@@ -33,11 +33,11 @@ export const CATEGORIES = [
 export const MISSION_GOALS = [
   { name: 'Bommen Berend', gold: 50, silver: 70, wanted: 1, extra: ['Geen schampje', 'Lever Berends bakkie af zonder ook maar één tikje'] },
   { name: 'Chaos op de Grote Markt', gold: 25, silver: 35, wanted: 5, extra: ['Kijkcijferrecord', 'Haal de livestream binnen 18 seconden: Jelmer breekt alle records'] },
-  { name: 'KEI-weekrace', gold: 150, silver: 175, wanted: 1, extra: ['Achterlichten', 'Win de KEI-weekrace met minstens 40 seconden voorsprong op de klok'] },
+  { name: 'KEI-weekrace', gold: 150, silver: 180, wanted: 1, extra: ['Achterlichten', 'Win de KEI-weekrace met minstens 40 seconden voorsprong op de klok'] },
   { name: 'Spoedklus Noorderzon', gold: 105, silver: 125, wanted: 1, extra: ['Decor in één stuk', 'Bezorg het Noorderzon-decor zonder één harde klap'] },
   { name: 'Ringweg-race', gold: 150, silver: 190, wanted: 5, byPlace: true, extra: ['Netjes ingehaald', 'Win de ringweg-race zonder een rivaal te raken'] },
   { name: 'Kroegentocht', gold: 95, silver: 120, wanted: 0, extra: ['Laatste ronde', 'Haal alle vier de kroegen met nog een volle minuut op de klok'] },
-  { name: 'Fatbike-terreur', gold: 45, silver: 62, wanted: 0, extra: ['Geen bandafdruk', 'Kom het Zuiderpark door zonder één keer geschept te worden'] },
+  { name: 'Fatbike-terreur', gold: 48, silver: 66, wanted: 0, extra: ['Geen bandafdruk', 'Kom het Zuiderpark door zonder één keer geschept te worden'] },
   { name: 'Rondvaart', gold: 510, silver: 610, wanted: 0, happy: [80, 50], extra: ['Glad water', 'Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe'] },
 ];
 export const GOLD_DAMAGE = 25;
