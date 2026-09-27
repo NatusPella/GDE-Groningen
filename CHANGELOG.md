@@ -6,6 +6,32 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-27
+
+Grunn voelt nog meer als Grunn.
+
+### Nieuw
+- **Reclameborden** langs de grote wegen met *"Er … niets boven Groningen"*-
+  varianten, die meeveranderen met je voortgang in het verhaal.
+- **De Gerrit Krolbrug** meldt elke keer een andere storing, en de
+  omleiding wordt steeds indrukwekkender dan de brug zelf.
+- **Bijnamen**: d'Olle Grieze, de Kiekdeuse, de Apenrots en het Cruiseschip
+  hoor je op straat en zie je op de kaart.
+- **"Kon minder."**: het hoogste compliment na een perfecte missie.
+- **Het Noorderplantsoen** loopt vol met kleedjes, speakers en barbecues
+  zodra het warm en droog is.
+- **Aaltje en Grietje**, twee droge koeien met commentaar op je chaos, op
+  het laadscherm en in Sikkom.
+- **Evenementen**: de Bloemetjesmarkt (vol touringcars en kamerplanten),
+  Bommen Berend met vlaggen op de Grote Markt en KEI-week, soms ook als
+  verrassingsdag.
+- Het **Peerd van Ome Loeks** staat elke nacht op een andere rotonde.
+- 's Nachts buiten de stad: **Radio Nachtstreek**.
+- Een plaquette waar het Oosterpark-stadion stond, en supporters die blijven
+  zingen.
+- Fietsers nemen voorrang, en gestolen fietsen duiken later ergens anders op.
+- De navigatie heeft bij Ring Zuid zo zijn eigen mening.
+
 ## [0.8.0] - 2026-09-27
 
 **Het verhaal is compleet**: deel 3, de Staart. Speel *Alles voor één
