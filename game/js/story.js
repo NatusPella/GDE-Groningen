@@ -18,6 +18,7 @@ import {
 } from './missions.js';
 import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight } from './pigeonmode.js';
+import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
@@ -62,7 +63,7 @@ function freshState() {
 }
 
 function freshRuntime() {
-  return { cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
+  return { gifts: {}, cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
 }
 
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
@@ -121,9 +122,15 @@ const jobRounds = (st) => getSideJobList().filter((x) => jobIds(st).includes(x.i
 const eggsFound = () => getEierballen().filter((e) => e.found).length;
 
 const GOALS = {
+  // goal.buy: only buying one of those items counts (goal.have: or walking in
+  // while already owning that weapon); without it, walking in is enough
   shop: {
-    begin: (st, b) => { b.visits = getShopVisits(st.goal.shop); },
-    met: (st, b) => getShopVisits(st.goal.shop) > (b.visits ?? Infinity),
+    begin: (st, b) => { b.visits = getShopVisits(st.goal.shop); b.bought = purchaseCount(st.goal.buy); },
+    met: (st, b) => {
+      const visited = getShopVisits(st.goal.shop) > (b.visits ?? Infinity);
+      if (!st.goal.buy) return visited;
+      return purchaseCount(st.goal.buy) > (b.bought ?? Infinity) || (visited && !!st.goal.have && (world.ammo[st.goal.have] || 0) > 0);
+    },
     place: (st) => nearest(getShopsForRender().filter((s) => s.type === st.goal.shop), world.player),
   },
   require: {
@@ -165,6 +172,7 @@ function enter(step) {
   rt.guideT = 0;
   rt.nightWait = false;
   rt.gate = null;
+  rt.gateCard = false;
   rt.gatedSince = -1;
   rt.gateOffered = false;
   // after the built story, idle missions get no automatic route (routing.js)
@@ -203,6 +211,10 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
   if (!quiet && step.kind === 'activity' && step.done) phone(who(step.done[0]), step.done[1], 5);
+  if (!quiet && !skipped && step.kind === 'activity' && isPurchase(step)) {
+    const next = currentStep();
+    world.addMessage(next && !next.end ? `Gelukt! Terug naar het verhaal: ${next.title}` : 'Gelukt! Terug naar het verhaal', 5, { kind: 'missie', key: 'story-bought' });
+  }
   if (!quiet && step.after) for (const [from, text] of step.after) phone(from, text, 6);
   if (step.beat) for (const [from, text] of step.beat) phone(who(from), text, 6);
   if (!quiet) queueContacts(step, 'after');
@@ -231,7 +243,11 @@ function refreshGuide() {
     const defs = getMissionDefs();
     const def = defs[missionIdx(step)];
     const gate = def ? unmetRequirement(world, def) : null;
-    if (gate) { place = requirementPlace(world, gate); why = `Eerst: ${gateLabel(gate)}`; }
+    if (gate) { place = requirementPlace(world, gate); why = `Eerst: ${storyBuyLabel(world, place) || gateLabel(gate)}`; }
+    if (rt.gate && rt.gate !== 'night' && !gate && !rt.gateCard) {
+      rt.gateCard = true;
+      world.addMessage(`Gelukt! Terug naar het verhaal: ${step.title}`, 5, { kind: 'missie', key: 'story-bought' });
+    }
     else if (def) place = def.start;
     // a requirement that stays unmet (no money, the rental boat sank) also makes the step skippable
     rt.gate = gate;
@@ -242,8 +258,15 @@ function refreshGuide() {
   } else {
     const g = GOALS[step.goal.type];
     place = g && g.place(step);
+    why = storyBuyLabel(world, place) || why;
   }
-  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id } : null;
+  const shopId = place && place.type && place.id ? place.id : null;
+  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, shopId, buy: !!shopId && isPurchase(step, rt.gate) } : null;
+}
+
+function isPurchase(step, gate) {
+  if (step.kind === 'mission') return !!gate && gate !== 'night';
+  return !!step.goal && ((step.goal.type === 'require' && step.goal.req !== 'night') || !!step.goal.buy);
 }
 
 function gateLabel(key) {
@@ -258,8 +281,23 @@ function checkVoorschot(step) {
   const gift = Math.ceil((step.cost - world.money + 25) / 5) * 5;
   world.money += gift;
   state.voorschot.add(step.id);
+  rt.gifts[step.id] = gift;
   phone(step.voorschot.from, `${step.voorschot.text} (+€${gift})`, 7);
   world.addMessage(`${step.voorschot.from} schiet €${gift} voor`, 3.5);
+}
+
+// Set when step `id` got a voorschot: { from, gift } (gift is null after a reload).
+export function storyVoorschotInfo(id) {
+  const step = STEP_BY_ID.get(id);
+  if (!step || !step.voorschot || !state.voorschot.has(id)) return null;
+  return { from: step.voorschot.from, gift: rt.gifts[id] ?? null };
+}
+
+// A shop opens: a voorschot that is due is paid before the menu shows prices.
+export function prepareStoryShop() {
+  if (!ready || !world) return;
+  const step = rt.cur || currentStep();
+  if (step && !step.end) checkVoorschot(step);
 }
 
 // Waiting at a garage for the night: a short card, then the clock jumps.
@@ -666,6 +704,8 @@ export function updateStory(dt, w) {
   if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive()) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
+    const buy = isPurchase(step) && (world.storyGuide && world.storyGuide.buy ? world.storyGuide.name : storyBuyLabel(world));
+    if (buy) world.addMessage(`Voor het verhaal: ${buy}`, 6, { kind: 'missie', key: 'story-buy' });
     if (step.say) companionSays(w, step.say[1]);
     queueContacts(step, 'lead');
   }

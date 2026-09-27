@@ -3,7 +3,7 @@ import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES } from './shops.js';
+import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon } from './helirun.js';
@@ -1216,7 +1216,14 @@ function drawMinimap(dt, world) {
   if (wp) reserve(wp.x, wp.y);
   const showOwn = minimapShows('car');
   if (showOwn) for (const o of owned) reserve(o.x, o.y);
+  const storyShop = storyTargetShop(world);
+  const storyAt = storyShop && inRange(storyShop.x, storyShop.y) ? toScreen(storyShop.x, storyShop.y) : null;
+  if (storyAt) placed.push(storyAt[0], storyAt[1]);
   drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t);
+  if (storyAt) {
+    drawStoryShopRing(ctx, storyAt[0], storyAt[1], 11, t);
+    drawMapIcon(ctx, 'shop-' + storyShop.type, storyAt[0], storyAt[1], MM_ICON, { t });
+  }
 
 
   let missionEdge = null, jobEdge = null;

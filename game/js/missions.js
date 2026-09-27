@@ -535,6 +535,13 @@ export function activeMissionIndex() {
   return chain && chain.phase === 'active' ? chain.index : -1;
 }
 
+// The running mission's current stage (a def.stages entry), or null.
+export function activeStage() {
+  if (!chain || chain.phase !== 'active') return null;
+  const def = chain.defs[chain.index];
+  return (def && def.stages && def.stages[chain.stageIndex]) || null;
+}
+
 export function failActiveMission(world, reason, bannerReason) {
   if (!chain || chain.phase !== 'active') return false;
   const def = chain.defs[chain.index];
@@ -2051,7 +2058,8 @@ function nextStage(world, def) {
   if (cur && cur.pay) {
     const amt = Math.min(cur.pay, Math.max(0, Math.floor(world.money)));
     world.money -= amt;
-    world.addMessage(`${cur.paid || 'Afgerekend'}: -€${amt}`, 3.5);
+    const short = amt < cur.pay ? ` Oma Trijntje legt de laatste €${cur.pay - amt} bij.` : '';
+    world.addMessage(`Gekocht! ${cur.paid || 'Afgerekend'}, -€${amt}.${short}`, 4, { kind: 'missie', key: 'stage-paid' });
   }
   enterStage(world, def, chain.stageIndex + 1);
 }
