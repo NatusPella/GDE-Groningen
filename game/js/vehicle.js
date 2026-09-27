@@ -400,22 +400,44 @@ function pointInAnyBuilding(buildings, x, y) {
 
 // OSM widths are per road class, so a 'normal' street squeezed between
 // facades is often narrower than its nominal width: measure the free space
-// to the nearest building on either side at every point (lazily, cached).
+// to the nearest building on either side at every point and along each
+// segment (a facade can jut in between two far-apart points), lazily, cached.
+function freeHalfWidth(near, x, y, ux, uy, nominal) {
+  if (!near.length || pointInAnyBuilding(near, x, y)) return nominal;
+  let half = nominal;
+  for (const side of [1, -1]) {
+    for (let d = 0.75; d < half; d += 0.5) {
+      if (pointInAnyBuilding(near, x + ux * d * side, y + uy * d * side)) { half = Math.max(1.2, d - 0.3); break; }
+    }
+  }
+  return half;
+}
+
+const HALF_SAMPLE = 2.5;
 function roadHalfWidths(map, road) {
   if (road._half) return road._half;
   const nrm = roadNormals(road);
-  road._half = road.pts.map((p, i) => {
-    const nominal = road.width / 2;
-    const near = map.buildingsNear(p[0], p[1], nominal + 1);
-    if (!near.length || pointInAnyBuilding(near, p[0], p[1])) return nominal;
-    const L = Math.hypot(nrm[i][0], nrm[i][1]) || 1;
-    const ux = nrm[i][0] / L, uy = nrm[i][1] / L;
+  const P = road.pts, nominal = road.width / 2;
+  const segHalf = [];
+  for (let i = 0; i < P.length - 1; i++) {
+    const [ax, ay] = P[i], [bx, by] = P[i + 1];
+    const L = Math.hypot(bx - ax, by - ay);
     let half = nominal;
-    for (const side of [1, -1]) {
-      for (let d = 0.75; d < half; d += 0.5) {
-        if (pointInAnyBuilding(near, p[0] + ux * d * side, p[1] + uy * d * side)) { half = Math.max(1.2, d - 0.3); break; }
+    if (L > 2 * HALF_SAMPLE) {
+      const ux = -(by - ay) / L, uy = (bx - ax) / L;
+      const near = map.buildingsNear((ax + bx) / 2, (ay + by) / 2, L / 2 + nominal + 1);
+      for (let d = HALF_SAMPLE; d < L - HALF_SAMPLE + 1e-6 && near.length; d += HALF_SAMPLE) {
+        half = Math.min(half, freeHalfWidth(near, ax + (bx - ax) * d / L, ay + (by - ay) * d / L, ux, uy, nominal));
       }
     }
+    segHalf.push(half);
+  }
+  road._half = P.map((p, i) => {
+    const L = Math.hypot(nrm[i][0], nrm[i][1]) || 1;
+    const near = map.buildingsNear(p[0], p[1], nominal + 1);
+    let half = freeHalfWidth(near, p[0], p[1], nrm[i][0] / L, nrm[i][1] / L, nominal);
+    if (i > 0) half = Math.min(half, segHalf[i - 1]);
+    if (i < segHalf.length) half = Math.min(half, segHalf[i]);
     return half;
   });
   return road._half;
