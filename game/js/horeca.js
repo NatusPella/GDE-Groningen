@@ -27,6 +27,8 @@ const TOASTS = [
   (name, amount) => `${name} zet je weer op de been voor €${amount}`,
   (name, amount) => `Even bijgetankt op het terras van ${name} - €${amount} lichter`,
   (name, amount) => `Frikandelbroodje gescoord bij ${name}, -€${amount}`,
+  (name, amount) => `${name}: "Moi! Wat mag t wezen?" Een bakkie en n kniepertje, -€${amount}`,
+  (name, amount) => `Kastelein van ${name}: "Zo, dat was goud, nait? Hou dij goud!" (-€${amount})`,
 ];
 
 // Close enough to order: the prompt (prompts.js) and the E handler share it.

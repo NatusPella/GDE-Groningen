@@ -1,3 +1,4 @@
+import { setDualText } from './subtitles.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -443,7 +444,7 @@ function showSub(speaker, text) {
   const el = ensureUi().sub;
   el.firstChild.textContent = speaker + ':';
   el.firstChild.style.color = SPEAKER_COLORS[speaker] || '#fff';
-  el.lastChild.textContent = text;
+  setDualText(el.lastChild, text);
   el.style.opacity = '1';
   sub = { left: Math.max(2.4, Math.min(6, 1 + text.length * 0.06)) };
 }
@@ -461,7 +462,7 @@ function updateSub(dt) {
 function invite() {
   if (state.invited || isCinematicActive() || !world.phoneNotifications) return;
   state.invited = true;
-  world.phoneNotifications.push({ from: JELLE, text: 'Moai, Grinzers. Revanche? Alve brêgen, in fierljep-duel en in skûtsje-sprint. Myn stipkes steane op jimme kaart.', duration: 9 });
+  world.phoneNotifications.push({ from: JELLE, text: 'Moai, Grinzers. Revanche? Elf bruggen, een fierljep-duel en een skûtsje-sprint. Mijn stipkes staan op jullie kaart.', duration: 9 });
   world.phoneNotifications.push({ from: 'Anita', text: 'En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.', duration: 8 });
 }
 

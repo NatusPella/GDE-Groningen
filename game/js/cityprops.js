@@ -24,7 +24,7 @@ const MARKETS = [
   { name: 'Vismarkt', x: 18, y: 244, r: 38 },
 ];
 
-const VENDOR_LINES = ['Verse haring, moi!', 'Kom moar kieken!', 'Twee kilo appels, twee euro!', 'Lekker stoet, vers van vandoag!'];
+const VENDOR_LINES = ['Verse haring, moi!', 'Kom moar kieken!', 'Twee kilo appels, twee euro!', 'Lekker stoet, vers van vandoag!', 'Grunneger metworst! Wie wil der nog ain?', 'Kom moar, t is hail goud spul!', 'Dank joe wel, tot kiek!'];
 
 let group = null;
 let material = null;
