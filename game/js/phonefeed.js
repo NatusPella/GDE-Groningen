@@ -193,7 +193,7 @@ function beginCall(w, c) {
 function showLine(c) {
   const l = c.lines[c.i];
   const sp = callEl.querySelector('.pf-speaker');
-  sp.textContent = l.speaker && l.speaker !== c.from ? l.speaker : '';
+  sp.textContent = l.speaker && !c.from.startsWith(l.speaker) ? l.speaker : '';
   sp.style.color = SPEAKER_COLORS[l.speaker] || '';
   callEl.querySelector('.pf-say').textContent = l.text;
   callEl.querySelector('.pf-sub').textContent = l.sub || '';

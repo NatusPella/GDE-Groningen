@@ -811,10 +811,6 @@
 "src": "henk/blijf_maar_even_hangen_koffie_st_b25d55cb.mp3",
 "dur": 2.72
 },
-"Henk|Ik heb de garage op je kaart gezet. Tot zo!": {
-"src": "henk/ik_heb_de_garage_op_je_kaart_gez_ed0151b0.mp3",
-"dur": 3.04
-},
 "Henk|Jong, ik hoor je Escapade tot hier rammelen! Kom even langs, dan maak ik hem weer heel.": {
 "src": "henk/jong_ik_hoor_je_escapade_tot_hie_d1bd24a7.mp3",
 "dur": 5.38
@@ -826,6 +822,10 @@
 "Henk|Jong, ik hoor je fiets tot hier rammelen! Kom even langs, dan maak ik hem weer heel.": {
 "src": "henk/jong_ik_hoor_je_fiets_tot_hier_r_f294d596.mp3",
 "dur": 5.43
+},
+"Henk|Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!": {
+"src": "henk/volg_de_roze_lijn_op_je_kaart_da_550fcbc1.mp3",
+"dur": 4.45
 },
 "Jelle Terpstra|Alve brêgen, alve kear foar! Moai, hè?": {
 "src": "jelle_terpstra/alve_bre_gen_alve_kear_foar_moai_a1aae6b3.mp3",

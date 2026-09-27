@@ -8,6 +8,13 @@ let world = null;
 let shop = null;
 let open = false;
 let bought = false;
+// selecting (click, arrows) only shows an item; buying is the detail bar's
+// button (or Enter on it), expensive items ask once more
+let sel = null;
+let armed = null;
+const CONFIRM_FROM = 1000;
+const CONFIRM_SHARE = 0.5;
+const ARM_TIME = 4000;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -82,6 +89,19 @@ const SHOP_CSS = `
     background: radial-gradient(ellipse at 50% 70%, rgba(63,201,122,0.22) 0%, rgba(12,20,14,0) 70%); }
   #shop-menu .sm-preview.on { display: block; }
   @media (max-width: 520px) { #shop-menu .sm-preview { height: 120px; } }
+  #shop-menu .sm-item.sel { border-color: rgba(63,201,122,0.85); border-left-color: var(--shop); background: rgba(30,158,86,0.28); }
+  #shop-menu .sm-detail { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 14px; padding: 10px 18px; border-top: 1px solid rgba(63,201,122,0.25); background: rgba(23,48,31,0.55); }
+  #shop-menu .sm-detail[hidden] { display: none; }
+  #shop-menu .sm-dtxt { min-width: 0; display: flex; flex-direction: column; }
+  #shop-menu .sm-dtxt b { font-weight: normal; font-size: 24px; letter-spacing: 1px; line-height: 1.05; }
+  #shop-menu .sm-dtxt small { font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); line-height: 1.3; }
+  #shop-menu .sm-buy { min-width: 190px; padding: 9px 18px 7px; border: 0; border-bottom: 3px solid #0f5c30; border-radius: 4px; cursor: pointer;
+    font: 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #0c140e; background: #1e9e56; white-space: nowrap; }
+  #shop-menu .sm-buy:hover, #shop-menu .sm-buy:focus-visible, #shop-menu .sm-buy:focus { outline: none; background: #3fc97a; box-shadow: 0 0 0 2px rgba(240,237,228,0.8); }
+  #shop-menu .sm-buy.armed { background: #e8c93a; border-bottom-color: #9b8420; animation: sm-pop 0.28s ease-out; }
+  #shop-menu .sm-buy[aria-disabled="true"] { cursor: default; color: #f0ede4; background: #4a4f47; border-bottom-color: #2a2e28; }
+  #shop-menu .sm-buy[aria-disabled="true"]:focus { background: #5a6056; }
+  @media (max-width: 520px) { #shop-menu .sm-detail { grid-template-columns: 1fr; } #shop-menu .sm-buy { width: 100%; } }
   @media (max-width: 520px) { #shop-menu h1 { font-size: 26px; } #shop-menu .sm-tag { display: none; } #shop-menu .sm-item { grid-template-columns: 30px 1fr auto; gap: 8px; } #shop-menu .sm-foot span { display: none; } }
   @media (prefers-reduced-motion: reduce) { #shop-menu .sm-panel, #shop-menu .sm-status, #shop-menu .sm-money { animation: none !important; } }
 `;
@@ -106,8 +126,9 @@ export function initShopUi(w) {
       </header>
       <canvas class="sm-preview" aria-hidden="true"></canvas>
       <div class="sm-list"></div>
+      <div class="sm-detail" hidden><div class="sm-dtxt"><b></b><small></small></div><button type="button" class="sm-buy"></button></div>
       <div class="sm-status" role="status" aria-live="polite"></div>
-      <footer class="sm-foot"><span><b>↑ ↓</b> kiezen · <b>Enter</b> kopen</span><button type="button" class="sm-close">Esc · Weglopen</button></footer>
+      <footer class="sm-foot"><span><b>↑ ↓</b> bekijken · <b>Enter</b> naar de knop, nog eens <b>Enter</b> kopen</span><button type="button" class="sm-close">Esc · Weglopen</button></footer>
     </div>`;
   document.body.appendChild(root);
   root.addEventListener('click', onClick);
@@ -124,6 +145,8 @@ export function openShopMenu(w, s) {
   shop = s;
   open = true;
   bought = false;
+  sel = null;
+  armed = null;
   if (document.pointerLockElement) document.exitPointerLock();
   if (world.input) world.input.reset();
   const panel = root.querySelector('.sm-panel');
@@ -136,6 +159,8 @@ export function openShopMenu(w, s) {
   render();
   const first = root.querySelector('.sm-item:not([aria-disabled="true"])') || root.querySelector('.sm-item') || root.querySelector('.sm-close');
   if (first) first.focus({ preventScroll: true });
+  if (first && first.dataset.id) select(first.dataset.id);
+  else renderDetail();
 }
 
 export function closeShopMenu() {
@@ -189,6 +214,47 @@ function render() {
     const el = list.querySelector(`[data-id="${CSS.escape(focusedId)}"]`);
     if (el) el.focus({ preventScroll: true });
   }
+  markSelected();
+  renderDetail();
+}
+
+function markSelected() {
+  for (const el of root.querySelectorAll('.sm-item')) el.classList.toggle('sel', el.dataset.id === sel);
+}
+
+function needsConfirm(it) {
+  return it.price >= CONFIRM_FROM || (it.price >= 300 && it.price > world.money * CONFIRM_SHARE);
+}
+
+function buyLabel(it) {
+  if (it.disabled) return it.disabled;
+  const verb = it.verb || (shop.type === 'tuning' ? 'Betalen' : 'Kopen voor');
+  if (armed && armed.id === it.id && Date.now() < armed.until) return `Zeker? Nog eens: €${it.price}`;
+  if (it.income > 0) return `Verkopen voor €${it.income}`;
+  if (it.price > 0) return `${verb} €${it.price}`;
+  return it.verb || 'Kiezen';
+}
+
+function renderDetail() {
+  const bar = root.querySelector('.sm-detail');
+  const it = sel && currentItems().find((x) => x.id === sel);
+  bar.hidden = !it;
+  if (!it) return;
+  bar.querySelector('b').textContent = it.label;
+  bar.querySelector('small').textContent = it.desc || '';
+  const btn = bar.querySelector('.sm-buy');
+  btn.textContent = buyLabel(it);
+  btn.setAttribute('aria-disabled', it.disabled ? 'true' : 'false');
+  btn.classList.toggle('armed', !!(armed && armed.id === it.id && Date.now() < armed.until));
+}
+
+function select(id) {
+  if (sel !== id) armed = null;
+  sel = id;
+  const it = currentItems().find((x) => x.id === id);
+  setPreview(it && it.preview ? it.preview : null);
+  markSelected();
+  renderDetail();
 }
 
 function setStatus(text, tone) {
@@ -207,6 +273,14 @@ function activate(id) {
     setStatus(it.disabled === 'Te weinig geld' ? 'Te weinig geld. Bijverdienen? Open Ubbo op je telefoon voor klusjes' : it.disabled, 'no');
     return;
   }
+  if (needsConfirm(it) && !(armed && armed.id === id && Date.now() < armed.until)) {
+    armed = { id, until: Date.now() + ARM_TIME };
+    setStatus(`${it.label}: €${it.price}. Druk nog een keer om te kopen`, 'win');
+    renderDetail();
+    setTimeout(() => { if (open && armed && armed.id === id && Date.now() >= armed.until) { armed = null; renderDetail(); } }, ARM_TIME + 50);
+    return;
+  }
+  armed = null;
   const before = world.money;
   const res = it.buy();
   if (res == null) {
@@ -232,8 +306,7 @@ const preview = { renderer: null, scene: null, cam: null, mesh: null, key: '', r
 function onFocus(e) {
   const btn = e.target.closest && e.target.closest('.sm-item');
   if (!btn || !shop) return;
-  const it = currentItems().find((x) => x.id === btn.dataset.id);
-  setPreview(it && it.preview ? it.preview : null);
+  select(btn.dataset.id);
 }
 
 function disposeMesh(m) {
@@ -301,14 +374,16 @@ function setPreview(spec) {
 function onClick(e) {
   if (e.target === root) { closeShopMenu(); return; }
   if (e.target.closest('.sm-close')) { closeShopMenu(); return; }
+  if (e.target.closest('.sm-buy')) { if (sel) activate(sel); return; }
   const btn = e.target.closest('.sm-item');
-  if (btn) activate(btn.dataset.id);
+  if (btn) { btn.focus({ preventScroll: true }); select(btn.dataset.id); }
 }
 
 function move(dir) {
   const items = [...root.querySelectorAll('.sm-item')];
   if (!items.length) return;
-  const i = items.indexOf(document.activeElement);
+  const cur = document.activeElement && document.activeElement.classList.contains('sm-buy') ? items.find((el) => el.dataset.id === sel) : document.activeElement;
+  const i = items.indexOf(cur);
   const next = items[i < 0 ? 0 : (i + dir + items.length) % items.length];
   next.focus({ preventScroll: true });
   next.scrollIntoView({ block: 'nearest' });
@@ -329,6 +404,7 @@ function onKey(e) {
   else if (k === 'Enter' || k === ' ' || lower === 'e' || lower === 'f') {
     const a = document.activeElement;
     if (a && a.classList.contains('sm-close')) closeShopMenu();
-    else if (a && a.classList.contains('sm-item')) activate(a.dataset.id);
+    else if (a && a.classList.contains('sm-buy')) { if (sel) activate(sel); }
+    else if (a && a.classList.contains('sm-item')) { select(a.dataset.id); root.querySelector('.sm-buy').focus({ preventScroll: true }); }
   }
 }

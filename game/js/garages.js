@@ -324,6 +324,11 @@ function nearestSite(x, y) {
   return best;
 }
 
+// Nearest garage or Pomp & Poets station (routing.js care route).
+export function nearestRepairSite(x, y) {
+  return nearestSite(x, y);
+}
+
 // Henk rings when the player's own car is in a bad way.
 function mechanicCall(w) {
   const v = w.player.inVehicle;
@@ -335,7 +340,8 @@ function mechanicCall(w) {
   if (!s) return;
   v._mechCalled = true;
   lastCallAt = w.time;
-  setUserWaypoint(s.x, s.y, s.name);
+  // an offer, never an override: the pink care route (routing.js) points
+  // at the nearest garage, the player's own waypoint stays
   const car = v.isHeroCar ? 'hero' : twoWheel(v) ? 'fiets' : 'bak';
   startCall(w, { from: 'Henk (Garage Knalpot)', lines: [{ speaker: 'Henk', text: HENK_CALL[car] }, { speaker: 'Henk', text: HENK_CALL.kaart, sub: s.name }] });
 }
@@ -345,7 +351,7 @@ const HENK_CALL = {
   hero: 'Jong, ik hoor je Escapade tot hier rammelen! Kom even langs, dan maak ik hem weer heel.',
   fiets: 'Jong, ik hoor je fiets tot hier rammelen! Kom even langs, dan maak ik hem weer heel.',
   bak: 'Jong, ik hoor je bak tot hier rammelen! Kom even langs, dan maak ik hem weer heel.',
-  kaart: 'Ik heb de garage op je kaart gezet. Tot zo!',
+  kaart: 'Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!',
 };
 
 export function updateGarages(dt, w) {

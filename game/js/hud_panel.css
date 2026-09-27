@@ -336,6 +336,9 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
 }
 #hud .hud-route:empty { display: none; }
 #hud .hud-route[data-kind="mission"] { color: #e8c93a; }
+#hud .hud-route[data-kind="job"] { color: #ff9a3c; }
+#hud .hud-route[data-kind="user"] { color: #d9a0ff; }
+#hud .hud-route[data-kind="care"] { color: #ff8ccb; border-color: rgba(255, 95, 180, 0.6); }
 body.hide-minimap #hud .hud-route { bottom: 16px; }
 
 :where(#hud > :not(.hud-damage)) { transition: opacity 0.35s ease; }
