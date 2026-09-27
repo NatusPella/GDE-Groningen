@@ -204,7 +204,7 @@ function activate(id) {
   const it = currentItems().find((x) => x.id === id);
   if (!it) return;
   if (it.disabled) {
-    setStatus(it.disabled, 'no');
+    setStatus(it.disabled === 'Te weinig geld' ? 'Te weinig geld. Bijverdienen? Open Ubbo op je telefoon voor klusjes' : it.disabled, 'no');
     return;
   }
   const before = world.money;

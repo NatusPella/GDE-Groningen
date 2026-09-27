@@ -9,8 +9,13 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { collect, isVoiced, missingKeys, BUBBLE, NARRATOR, REPO } from './voicelines_collect.mjs';
+import { GRO } from '../game/js/subtitles.js';
 
 const ACCENT = 'spoken in Dutch with a Groningen accent';
+// Gronings dialect lines (Grunnegs): said as written, not turned into Dutch
+const GRO_ACCENT = 'spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent';
+const GRO_WORDS = /\b(mien|nait|moar|mor|goud|kiek|joe|doar|noar|hoes|ain|hail|mout|stoet|wicht|oet|veur|zain|laven|dij|wies|lopst|rieden)\b/i;
+const isGronings = (t) => t in GRO || GRO_WORDS.test(t);
 // Fixed cast; Tammo and Anita match the story/job recordings.
 const CAST = {
   Tammo: { voice: 'Algenib', who: 'Stadjer, droog en sarcastisch', pool: ['droog, laconiek', 'sarcastisch, zuchtend', 'deadpan, licht verbaasd', 'mompelend, stiekem trots', 'droog, met een stille grijns'] },
@@ -22,9 +27,9 @@ const CAST = {
   Sjoerd: { voice: 'Umbriel', who: 'Groningse wedstrijdleider, droog', pool: ['droog, licht verbaasd', 'schamper, mopperend'] },
   Henk: { voice: 'Sadaltager', who: 'gemoedelijke Groningse garagehouder', pool: ['gemoedelijk, rustig'] },
   [NARRATOR]: { voice: 'Schedar', who: 'Groningse verteller, droog en warm', pool: ['droog, met een knipoog', 'warm, vertellend', 'plagend, laconiek'] },
-  'Jelle Terpstra': { voice: 'Fenrir', who: 'ijdele, charmante Friese ondernemer, spreekt Fries', pool: ['charmant, opschepperig', 'zelfvoldaan, grinnikend', 'plechtig, overdreven trots'], accent: 'spoken in West Frisian (Frysk) with a proud Frisian accent' },
-  Durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger, spreekt Fries', pool: ['dronken, lallend, samenzweerderig', 'traag, verward'], accent: 'spoken in West Frisian (Frysk), slow and heavy' },
-  Douwe: { voice: 'Orus', who: 'grote, trage Friese handlanger, tweelingbroer van Durk, spreekt Fries', pool: ['traag, berustend', 'verward, sloom'], accent: 'spoken in West Frisian (Frysk), slow and heavy' },
+  'Jelle Terpstra': { voice: 'Fenrir', who: 'ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden', pool: ['charmant, opschepperig', 'zelfvoldaan, grinnikend', 'plechtig, overdreven trots'], accent: 'spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk)' },
+  Durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger, spreekt Nederlands met een zwaar Fries accent', pool: ['dronken, lallend, samenzweerderig', 'traag, verward'], accent: 'spoken in Dutch with a heavy Frisian accent, slow' },
+  Douwe: { voice: 'Orus', who: 'grote, trage Friese handlanger, tweelingbroer van Durk, spreekt Nederlands met een zwaar Fries accent', pool: ['traag, berustend', 'verward, sloom'], accent: 'spoken in Dutch with a heavy Frisian accent, slow' },
   'Dokter Dijkstra': { voice: 'Sadachbia', who: 'nuchtere Groningse traumaarts en helikopterpiloot', pool: ['droog, zakelijk', 'streng, stiekem geamuseerd', 'nuchter, laconiek'] },
   Femke: { voice: 'Leda', who: 'energieke Groningse festivalmaker', pool: ['gehaast, enthousiast', 'opgelucht, vrolijk', 'verontwaardigd, snel'] },
   Harm: { voice: 'Alnilam', who: 'oude Groningse wegwerker, gemoedelijk', pool: ['gemoedelijk, trots', 'samenzweerderig, droog'] },
@@ -66,14 +71,14 @@ for (const e of collect()) {
       const who = e.cast.who ? WHO[e.cast.who][f ? 1 : 0] : f ? WHO.vrouw : WHO.man;
       // a bubble a main character says (story steps): their own voice
       const as = e.cast.as && CAST[e.cast.as];
-      job = as ? { voice: as.voice, who: as.who, tag: mood(e.cast.as, e.text, key) } : { voice: pick(f ? FEMALE : MALE, key), who, tag: pick(e.cast.tag, key) };
+      job = as ? { voice: as.voice, who: as.who, tag: mood(e.cast.as, e.text, key) } : { voice: pick(f ? FEMALE : MALE, key), who: isGronings(e.text) ? `${who}, spreekt Gronings dialect` : who, tag: pick(e.cast.tag, key) };
     } else {
       const c = CAST[sp];
       if (!c) throw new Error(`no cast for ${sp}`);
       job = { voice: c.voice, who: c.who, tag: pick(e.cast.tag, key) || mood(sp, e.text, key) };
     }
     const dir = sp.startsWith('~') ? `bubbles/${sp === BUBBLE.f ? 'f' : 'm'}` : slug(sp);
-    const accent = (CAST[sp] && CAST[sp].accent) || ACCENT;
+    const accent = (CAST[sp] && CAST[sp].accent) || (isGronings(e.text) ? GRO_ACCENT : ACCENT);
     jobs.push({ key, speaker: sp, text: e.text, area: e.area, file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${accent}] ${e.text}` });
   }
 }

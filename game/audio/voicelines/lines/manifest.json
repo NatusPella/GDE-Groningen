@@ -751,6 +751,10 @@
 "src": "dokter_dijkstra/zo_mijn_heli_heeft_nog_nooit_iet_d6eece8c.mp3",
 "dur": 4.91
 },
+"Douwe|Alles, Durk. Al het vet van Grunn.": {
+"src": "douwe/alles_durk_al_het_vet_van_grunn_76190d19.mp3",
+"dur": 4.23
+},
 "Douwe|Alles, Durk. Al it fet fan Grins.": {
 "src": "douwe/alles_durk_al_it_fet_fan_grins_aa574d57.mp3",
 "dur": 4.58
@@ -759,17 +763,33 @@
 "src": "douwe/baas_durk_en_ik_binne_wiet_wy_fy_39afa136.mp3",
 "dur": 4.79
 },
+"Douwe|Baas? Durk en ik zijn nat. We fietsen wel naar huis.": {
+"src": "douwe/baas_durk_en_ik_zijn_nat_we_fiet_8d3fcceb.mp3",
+"dur": 5.82
+},
 "Douwe|Baas? O. Ferkeard nûmer.": {
 "src": "douwe/baas_o_ferkeard_nu_mer_e686694d.mp3",
 "dur": 2.9
+},
+"Douwe|Baas? O. Verkeerd nummer.": {
+"src": "douwe/baas_o_verkeerd_nummer_61090a0b.mp3",
+"dur": 2.54
 },
 "Douwe|Durk. Stil no. Hy is dronken, hear.": {
 "src": "douwe/durk_stil_no_hy_is_dronken_hear_93f9684f.mp3",
 "dur": 4.93
 },
+"Douwe|Durk. Stil nou. Hij is dronken, hoor.": {
+"src": "douwe/durk_stil_nou_hij_is_dronken_hoo_8caedde1.mp3",
+"dur": 3.61
+},
 "Douwe|Durk… dyn telefoan stiet oan.": {
 "src": "douwe/durk_dyn_telefoan_stiet_oan_05ec1e2e.mp3",
 "dur": 3.16
+},
+"Douwe|Durk… je telefoon staat aan.": {
+"src": "douwe/durk_je_telefoon_staat_aan_d33ba53c.mp3",
+"dur": 3.37
 },
 "Douwe|En de baas?": {
 "src": "douwe/en_de_baas_b9f96ff0.mp3",
@@ -778,6 +798,10 @@
 "Douwe|Moatte wy no swaaie, baas?": {
 "src": "douwe/moatte_wy_no_swaaie_baas_6fbacfdb.mp3",
 "dur": 3.73
+},
+"Douwe|Moeten we nu zwaaien, baas?": {
+"src": "douwe/moeten_we_nu_zwaaien_baas_9be8e05d.mp3",
+"dur": 3.34
 },
 "Douwe|Plons?": {
 "src": "douwe/plons_2c846bee.mp3",
@@ -823,9 +847,21 @@
 "src": "durk/baas_is_dat_net_de_ea8ab360.mp3",
 "dur": 2.99
 },
+"Durk|Baas, is dat niet de…": {
+"src": "durk/baas_is_dat_niet_de_a27bee7b.mp3",
+"dur": 2.45
+},
+"Durk|Baas… en wij?": {
+"src": "durk/baas_en_wij_2a904108.mp3",
+"dur": 1.71
+},
 "Durk|Baas… wy?": {
 "src": "durk/baas_wy_3d01f7ca.mp3",
 "dur": 1.45
+},
+"Durk|De baas blijft zitten. De baas blijft altijd zitten.": {
+"src": "durk/de_baas_blijft_zitten_de_baas_bl_fd82e724.mp3",
+"dur": 6.55
 },
 "Durk|De baas bliuwt sitten. De baas bliuwt altyd sitten.": {
 "src": "durk/de_baas_bliuwt_sitten_de_baas_bl_22ac6743.mp3",
@@ -835,17 +871,37 @@
 "src": "durk/de_baas_seit_gjin_fet_gjin_aaiba_f2ca561d.mp3",
 "dur": 7.26
 },
+"Durk|De baas zegt: geen vet, geen eierbal op Gronings Ontzet.": {
+"src": "durk/de_baas_zegt_geen_vet_geen_eierb_063109d6.mp3",
+"dur": 6.68
+},
 "Durk|Douwe! Der stiet ien op ús dek!": {
 "src": "durk/douwe_der_stiet_ien_op_u_s_dek_6673f597.mp3",
 "dur": 2.99
+},
+"Durk|Douwe! Er staat iemand op ons dek!": {
+"src": "durk/douwe_er_staat_iemand_op_ons_dek_1aa7780f.mp3",
+"dur": 3.66
 },
 "Durk|Douwe, hoefolle fet ha wy no?": {
 "src": "durk/douwe_hoefolle_fet_ha_wy_no_8b986a1b.mp3",
 "dur": 3.21
 },
+"Durk|Douwe, hoeveel vet hebben we nu?": {
+"src": "durk/douwe_hoeveel_vet_hebben_we_nu_c9ff0f5f.mp3",
+"dur": 2.98
+},
+"Durk|Hier is het, Douwe. De achterdeur.": {
+"src": "durk/hier_is_het_douwe_de_achterdeur_77e5a2b7.mp3",
+"dur": 3.34
+},
 "Durk|Hjir is it, Douwe. De efterdoar.": {
 "src": "durk/hjir_is_it_douwe_de_efterdoar_dc5dfad0.mp3",
 "dur": 3.7
+},
+"Durk|Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Net fertelle, hè?": {
+"src": "durk/onze_baas_is_slim_de_bal_de_bal__ab6e2008.mp3",
+"dur": 8.79
 },
 "Durk|Plons.": {
 "src": "durk/plons_6a772875.mp3",
@@ -911,6 +967,10 @@
 "src": "jelle_terpstra/alve_bre_gen_jimme_wiene_better__b9ddef32.mp3",
 "dur": 3.12
 },
+"Jelle Terpstra|Beter dan dat wordt het niet, Grinzer.": {
+"src": "jelle_terpstra/beter_dan_dat_wordt_het_niet_gri_618d5c87.mp3",
+"dur": 3.46
+},
 "Jelle Terpstra|Better as dat wurdt it net, Grinzer.": {
 "src": "jelle_terpstra/better_as_dat_wurdt_it_net_grinz_ab2c5782.mp3",
 "dur": 4.27
@@ -923,9 +983,17 @@
 "src": "jelle_terpstra/dan_keapje_ik_nij_fet_ik_ha_jild_92d6e003.mp3",
 "dur": 5.07
 },
+"Jelle Terpstra|Dan koop ik nieuw vet. Jild genôch. En een polsstok.": {
+"src": "jelle_terpstra/dan_koop_ik_nieuw_vet_jild_geno__94b18ee6.mp3",
+"dur": 4.91
+},
 "Jelle Terpstra|Dan sjogge wy jimme dinsdei wol efter myn boat.": {
 "src": "jelle_terpstra/dan_sjogge_wy_jimme_dinsdei_wol__636e1b92.mp3",
 "dur": 2.89
+},
+"Jelle Terpstra|Dan zien we jullie dinsdei wel achter mijn boat.": {
+"src": "jelle_terpstra/dan_zien_we_jullie_dinsdei_wel_a_0563c7e9.mp3",
+"dur": 3.09
 },
 "Jelle Terpstra|Dat fet wie fan my! No ja. Ik ha mear. Operaasje Aaibal giet gewoan troch, Grinzers.": {
 "src": "jelle_terpstra/dat_fet_wie_fan_my_no_ja_ik_ha_m_f0457056.mp3",
@@ -935,25 +1003,65 @@
 "src": "jelle_terpstra/dat_is_de_mjitte_spring_der_mar__4ca84b59.mp3",
 "dur": 3.12
 },
+"Jelle Terpstra|Dat is de mjitte. Spring er maar overheen.": {
+"src": "jelle_terpstra/dat_is_de_mjitte_spring_er_maar__b5f0d067.mp3",
+"dur": 2.98
+},
 "Jelle Terpstra|Dat is gewoan gelok mei de wyn.": {
 "src": "jelle_terpstra/dat_is_gewoan_gelok_mei_de_wyn_20efde7f.mp3",
 "dur": 2.1
+},
+"Jelle Terpstra|Dat is gewoon gelok met de wind.": {
+"src": "jelle_terpstra/dat_is_gewoon_gelok_met_de_wind_c655da6f.mp3",
+"dur": 2.49
 },
 "Jelle Terpstra|Dat is in detail, Grinzer.": {
 "src": "jelle_terpstra/dat_is_in_detail_grinzer_50923432.mp3",
 "dur": 2.7
 },
+"Jelle Terpstra|Dat vet was van mij! No ja. Ik heb meer. Operaasje Aaibal gaat gewoon door, Grinzers.": {
+"src": "jelle_terpstra/dat_vet_was_van_mij_no_ja_ik_heb_697a92b9.mp3",
+"dur": 7.55
+},
 "Jelle Terpstra|De Eierbal? Nea fan heard. Oant sjen op Gronings Ontzet!": {
 "src": "jelle_terpstra/de_eierbal_nea_fan_heard_oant_sj_139626e3.mp3",
 "dur": 5.22
+},
+"Jelle Terpstra|De Eierbal? Nooit van gehoord. Oant sjen op Gronings Ontzet!": {
+"src": "jelle_terpstra/de_eierbal_nooit_van_gehoord_oan_a4872ace.mp3",
+"dur": 6.18
+},
+"Jelle Terpstra|De wind is Frysk vandaag.": {
+"src": "jelle_terpstra/de_wind_is_frysk_vandaag_1c5a6c6f.mp3",
+"dur": 3.31
 },
 "Jelle Terpstra|De wyn is Frysk hjoed.": {
 "src": "jelle_terpstra/de_wyn_is_frysk_hjoed_6a4f9dcd.mp3",
 "dur": 3.08
 },
+"Jelle Terpstra|Deze brug is van mij. En de volgende ek.": {
+"src": "jelle_terpstra/deze_brug_is_van_mij_en_de_volge_b6c3b1e3.mp3",
+"dur": 3.53
+},
+"Jelle Terpstra|Deze is voor Fryslân!": {
+"src": "jelle_terpstra/deze_is_voor_frysla_n_9780c2f4.mp3",
+"dur": 2.4
+},
+"Jelle Terpstra|Deze keer win ik. Wis en wrachtich.": {
+"src": "jelle_terpstra/deze_keer_win_ik_wis_en_wrachtic_07df615c.mp3",
+"dur": 3.67
+},
+"Jelle Terpstra|Die gaat de lucht in. Fan'e jûn, met een ballon.": {
+"src": "jelle_terpstra/die_gaat_de_lucht_in_fan_e_ju_n__4251f8c4.mp3",
+"dur": 4.02
+},
 "Jelle Terpstra|Dit is net klear, Grinzer. Op Gronings Ontzet sjogge wy wol wa't it hurdst giet.": {
 "src": "jelle_terpstra/dit_is_net_klear_grinzer_op_gron_c2bba58d.mp3",
 "dur": 6.1
+},
+"Jelle Terpstra|Dit is net klear, Grinzer. Op Gronings Ontzet zien we wel wie het hardst gaat.": {
+"src": "jelle_terpstra/dit_is_net_klear_grinzer_op_gron_24e1bd67.mp3",
+"dur": 6.17
 },
 "Jelle Terpstra|Dit is… better as ús. Net fertelle.": {
 "src": "jelle_terpstra/dit_is_better_as_u_s_net_fertell_9601734f.mp3",
@@ -979,9 +1087,25 @@
 "src": "jelle_terpstra/dyn_seil_klappert_grinzer_d34786f0.mp3",
 "dur": 2.24
 },
+"Jelle Terpstra|Een echte skûtsjesiler heeft gjin motor nedich. Wind en fakmanskip.": {
+"src": "jelle_terpstra/een_echte_sku_tsjesiler_heeft_gj_c656955d.mp3",
+"dur": 6.46
+},
+"Jelle Terpstra|Een skûtsje heeft gjin motor nedich. Alleen fakmanskip.": {
+"src": "jelle_terpstra/een_sku_tsje_heeft_gjin_motor_ne_2a625316.mp3",
+"dur": 4.37
+},
+"Jelle Terpstra|Elf bruggen, elf keer voor! Moai, hè?": {
+"src": "jelle_terpstra/elf_bruggen_elf_keer_voor_moai_h_4e59ea92.mp3",
+"dur": 4.43
+},
 "Jelle Terpstra|Fan de Oosterhaven nei de Hoge der A. Wa't earst oankomt!": {
 "src": "jelle_terpstra/fan_de_oosterhaven_nei_de_hoge_d_a0294281.mp3",
 "dur": 4.87
+},
+"Jelle Terpstra|Ferhip, die heeft geoefend.": {
+"src": "jelle_terpstra/ferhip_die_heeft_geoefend_601f8250.mp3",
+"dur": 2.44
 },
 "Jelle Terpstra|Ferhip, dy hat oefene.": {
 "src": "jelle_terpstra/ferhip_dy_hat_oefene_1219dab2.mp3",
@@ -995,6 +1119,14 @@
 "src": "jelle_terpstra/fierljeppe_grinzers_ik_set_de_mj_58dbfb64.mp3",
 "dur": 5.61
 },
+"Jelle Terpstra|Fierljeppen, Grinzers! Ik zet de mjitte, jullie springen eroverheen.": {
+"src": "jelle_terpstra/fierljeppen_grinzers_ik_zet_de_m_502388c4.mp3",
+"dur": 4.68
+},
+"Jelle Terpstra|Fryslân wint! Maar jullie waren dichtbij.": {
+"src": "jelle_terpstra/frysla_n_wint_maar_jullie_waren__3f8a69d0.mp3",
+"dur": 3.9
+},
 "Jelle Terpstra|Fryslân wint! Mar jimme wiene tichtby.": {
 "src": "jelle_terpstra/frysla_n_wint_mar_jimme_wiene_ti_ba2f43f1.mp3",
 "dur": 4.01
@@ -1007,9 +1139,17 @@
 "src": "jelle_terpstra/goed_farre_hear_net_fertelle_yn__054bf1e7.mp3",
 "dur": 3.01
 },
+"Jelle Terpstra|Goed gevaren, hear. Net fertelle in Snits.": {
+"src": "jelle_terpstra/goed_gevaren_hear_net_fertelle_i_73280e15.mp3",
+"dur": 3.43
+},
 "Jelle Terpstra|Goed. Ik priuw jimme aaibal. Mar ik sis neat.": {
 "src": "jelle_terpstra/goed_ik_priuw_jimme_aaibal_mar_i_db21e0ed.mp3",
 "dur": 5.29
+},
+"Jelle Terpstra|Grunn is een aardig groot dorp. Mar wat Grunn kin, kin Fryslân better.": {
+"src": "jelle_terpstra/grunn_is_een_aardig_groot_dorp_m_4a5c39a1.mp3",
+"dur": 5.46
 },
 "Jelle Terpstra|Grunn is in aardich grut doarp. Mar wat Grunn kin, kin Fryslân better.": {
 "src": "jelle_terpstra/grunn_is_in_aardich_grut_doarp_m_68e0c282.mp3",
@@ -1023,9 +1163,21 @@
 "src": "jelle_terpstra/hoe_fu_nen_jimme_dat_gatsje_ba1dd77b.mp3",
 "dur": 1.54
 },
+"Jelle Terpstra|Hoe kan dat nou? Mijn seil staat goed!": {
+"src": "jelle_terpstra/hoe_kan_dat_nou_mijn_seil_staat__fe6369db.mp3",
+"dur": 3.57
+},
 "Jelle Terpstra|Hoe kin dat no? Myn seil stiet goed!": {
 "src": "jelle_terpstra/hoe_kin_dat_no_myn_seil_stiet_go_94191df6.mp3",
 "dur": 2.81
+},
+"Jelle Terpstra|Hoe vonden jullie dat gatsje?": {
+"src": "jelle_terpstra/hoe_vonden_jullie_dat_gatsje_319f8019.mp3",
+"dur": 1.95
+},
+"Jelle Terpstra|Hoe! Dat was net min.": {
+"src": "jelle_terpstra/hoe_dat_was_net_min_b9a17f22.mp3",
+"dur": 2.23
 },
 "Jelle Terpstra|Hoe! Dat wie net min.": {
 "src": "jelle_terpstra/hoe_dat_wie_net_min_679f327f.mp3",
@@ -1042,6 +1194,14 @@
 "Jelle Terpstra|Ik ha oefene, hear. Dit kear win ik. Wis en wrachtich.": {
 "src": "jelle_terpstra/ik_ha_oefene_hear_dit_kear_win_i_6b4938d7.mp3",
 "dur": 4.4
+},
+"Jelle Terpstra|Ik heb geoefend, hear. Deze keer win ik. Wis en wrachtich.": {
+"src": "jelle_terpstra/ik_heb_geoefend_hear_deze_keer_w_8d832005.mp3",
+"dur": 5.02
+},
+"Jelle Terpstra|Ik sta in een weiland bij Ten Boer. Mei kij. Dit is noch net klear, Grinzers.": {
+"src": "jelle_terpstra/ik_sta_in_een_weiland_bij_ten_bo_9cd1e1ee.mp3",
+"dur": 6.15
 },
 "Jelle Terpstra|Ik stean yn in greide by Ten Boer. Mei kij. Dit is noch net klear, Grinzers.": {
 "src": "jelle_terpstra/ik_stean_yn_in_greide_by_ten_boe_257ed370.mp3",
@@ -1071,6 +1231,22 @@
 "src": "jelle_terpstra/jimme_sykje_jimme_gouden_aaibal__0b7bb615.mp3",
 "dur": 4.59
 },
+"Jelle Terpstra|Jullie krijgen me nooit! Ik ben de beste fierljepper fan Fryslân!": {
+"src": "jelle_terpstra/jullie_krijgen_me_nooit_ik_ben_d_e7858aea.mp3",
+"dur": 5.02
+},
+"Jelle Terpstra|Jullie kunnen zeilen. Ik skamje my in bytsje.": {
+"src": "jelle_terpstra/jullie_kunnen_zeilen_ik_skamje_m_8313af74.mp3",
+"dur": 3.93
+},
+"Jelle Terpstra|Kijk maar naar mijn hekweach, Grinzer!": {
+"src": "jelle_terpstra/kijk_maar_naar_mijn_hekweach_gri_f0aada62.mp3",
+"dur": 2.86
+},
+"Jelle Terpstra|Klaar voor de revanche, Grinzers?": {
+"src": "jelle_terpstra/klaar_voor_de_revanche_grinzers_8cf533d3.mp3",
+"dur": 2.81
+},
 "Jelle Terpstra|Klear foar de revanche?": {
 "src": "jelle_terpstra/klear_foar_de_revanche_a3d46287.mp3",
 "dur": 1.54
@@ -1083,9 +1259,21 @@
 "src": "jelle_terpstra/mei_in_eigen_auto_hear_as_dat_ji_9e824707.mp3",
 "dur": 3.28
 },
+"Jelle Terpstra|Met een eigen auto, hear. As dat jild der is.": {
+"src": "jelle_terpstra/met_een_eigen_auto_hear_as_dat_j_1acf019a.mp3",
+"dur": 4.63
+},
+"Jelle Terpstra|Mijn mem zegt: Jelle, laat die Grinzers maar winnen. Maar mijn mem is er niet.": {
+"src": "jelle_terpstra/mijn_mem_zegt_jelle_laat_die_gri_0220b50d.mp3",
+"dur": 6.57
+},
 "Jelle Terpstra|Moai dien, Grinzers. Folgend jier wer? Dan mei jimme nei Ljouwert komme.": {
 "src": "jelle_terpstra/moai_dien_grinzers_folgend_jier__f259bc88.mp3",
 "dur": 4.74
+},
+"Jelle Terpstra|Moai dien, Grinzers. Volgend jaar weer? Dan mogen jullie naar Ljouwert komen.": {
+"src": "jelle_terpstra/moai_dien_grinzers_volgend_jaar__39cf5a5e.mp3",
+"dur": 5.35
 },
 "Jelle Terpstra|Moai sprong. Ik gean nei hûs en oefenje.": {
 "src": "jelle_terpstra/moai_sprong_ik_gean_nei_hu_s_en__ed55de35.mp3",
@@ -1095,6 +1283,10 @@
 "src": "jelle_terpstra/moai_jimme_hawwe_myn_kaartsje_fu_3fa1641d.mp3",
 "dur": 5.31
 },
+"Jelle Terpstra|Moai! Jullie hebben mijn kaartje gevonden? Tige tank voor het wachten.": {
+"src": "jelle_terpstra/moai_jullie_hebben_mijn_kaartje__033984b6.mp3",
+"dur": 4.99
+},
 "Jelle Terpstra|Moai! Noch in potsje, Grinzers?": {
 "src": "jelle_terpstra/moai_noch_in_potsje_grinzers_f02351e2.mp3",
 "dur": 2.88
@@ -1102,6 +1294,10 @@
 "Jelle Terpstra|Moai! Oant sjen op Gronings Ontzet!": {
 "src": "jelle_terpstra/moai_oant_sjen_op_gronings_ontze_0a6d0fd8.mp3",
 "dur": 3.03
+},
+"Jelle Terpstra|Moai, Grinzer. Hier is Jelle. Wij moeten eens hardrijden, op jullie ringweg.": {
+"src": "jelle_terpstra/moai_grinzer_hier_is_jelle_wij_m_6acec8cc.mp3",
+"dur": 5.81
 },
 "Jelle Terpstra|Moai, Grinzer. Hjir is Jelle. Wy moatte ris hurdride, op jimme ringwei.": {
 "src": "jelle_terpstra/moai_grinzer_hjir_is_jelle_wy_mo_d43ee088.mp3",
@@ -1111,13 +1307,33 @@
 "src": "jelle_terpstra/moai_grinzers_alve_bre_gen_ien_r_7db814ea.mp3",
 "dur": 6.5
 },
+"Jelle Terpstra|Moai, Grinzers! Bedankt voor de Eierbal. Die neem ik mar mei.": {
+"src": "jelle_terpstra/moai_grinzers_bedankt_voor_de_ei_2e5c15e9.mp3",
+"dur": 4.63
+},
+"Jelle Terpstra|Moai, Grinzers! Elf bruggen, één rondje Diepenring. Wie het eerst terug is, wint.": {
+"src": "jelle_terpstra/moai_grinzers_elf_bruggen_e_e_n__3ef6a5d0.mp3",
+"dur": 7.34
+},
+"Jelle Terpstra|Moai, Grinzers! Hier is Jelle. Jelle Terpstra, van Us Mem Snacks.": {
+"src": "jelle_terpstra/moai_grinzers_hier_is_jelle_jell_b689daec.mp3",
+"dur": 6.16
+},
 "Jelle Terpstra|Moai, Grinzers! Hjir is Jelle. Jelle Terpstra, fan Us Mem Snacks.": {
 "src": "jelle_terpstra/moai_grinzers_hjir_is_jelle_jell_03676684.mp3",
 "dur": 5.53
 },
+"Jelle Terpstra|Moai, Grinzers! Kijk eens omhoog. Wat een aardich tuorke, no.": {
+"src": "jelle_terpstra/moai_grinzers_kijk_eens_omhoog_w_477cecca.mp3",
+"dur": 5.49
+},
 "Jelle Terpstra|Moai, Grinzers! Revanche? Alve brêgen, in fierljep of in skûtsje. Kies mar.": {
 "src": "jelle_terpstra/moai_grinzers_revanche_alve_bre__a29b39f2.mp3",
 "dur": 7.19
+},
+"Jelle Terpstra|Moai, Grinzers! Revanche? Elf bruggen, een fierljep of een skûtsje. Kies mar.": {
+"src": "jelle_terpstra/moai_grinzers_revanche_elf_brugg_4bc5f387.mp3",
+"dur": 8.2
 },
 "Jelle Terpstra|Moai, Grinzers! Sjoch ris omheech. Wat in aardich tuorke, no.": {
 "src": "jelle_terpstra/moai_grinzers_sjoch_ris_omheech__b3da7917.mp3",
@@ -1135,17 +1351,37 @@
 "src": "jelle_terpstra/moai_grinzers_ik_ha_in_foarstel__b93a48b0.mp3",
 "dur": 8.79
 },
+"Jelle Terpstra|Moai, Grinzers. Ik heb een voorstel. Op Gronings Ontzet bakken we tegen elkaar, voor de Noordelijke Snackprijs.": {
+"src": "jelle_terpstra/moai_grinzers_ik_heb_een_voorste_5cb8403f.mp3",
+"dur": 9.7
+},
 "Jelle Terpstra|Moai, Grinzers. Jimme hawwe myn sûkelade fûn.": {
 "src": "jelle_terpstra/moai_grinzers_jimme_hawwe_myn_su_3ac7d1bb.mp3",
 "dur": 4.21
+},
+"Jelle Terpstra|Moai, Grinzers. Jullie hebben mijn sûkelade gevonden.": {
+"src": "jelle_terpstra/moai_grinzers_jullie_hebben_mijn_8a51825c.mp3",
+"dur": 4.92
+},
+"Jelle Terpstra|Moai, Grinzers. Kom naar het Stadsbalkon. Ik heb een bod voor jullie.": {
+"src": "jelle_terpstra/moai_grinzers_kom_naar_het_stads_af3104b3.mp3",
+"dur": 5.19
 },
 "Jelle Terpstra|Moai, Grinzers. Kom nei it Stedsbalkon. Ik ha in bod foar jimme.": {
 "src": "jelle_terpstra/moai_grinzers_kom_nei_it_stedsba_7d68e915.mp3",
 "dur": 4.29
 },
+"Jelle Terpstra|Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.": {
+"src": "jelle_terpstra/moai_grinzers_mijn_vet_mijn_tank_11fb5802.mp3",
+"dur": 5.96
+},
 "Jelle Terpstra|Moai, Grinzers. Myn fet. Myn tankwein. Myn dei.": {
 "src": "jelle_terpstra/moai_grinzers_myn_fet_myn_tankwe_0801c1c6.mp3",
 "dur": 6.54
+},
+"Jelle Terpstra|Moaie sprong. Ik ga naar huis en oefenen.": {
+"src": "jelle_terpstra/moaie_sprong_ik_ga_naar_huis_en__230638c6.mp3",
+"dur": 3.92
 },
 "Jelle Terpstra|Myn mem seit: Jelle, lit dy Grinzers mar winne. Mar myn mem is net hjir.": {
 "src": "jelle_terpstra/myn_mem_seit_jelle_lit_dy_grinze_b80067a6.mp3",
@@ -1163,6 +1399,10 @@
 "src": "jelle_terpstra/nee_nee_nee_2cabd705.mp3",
 "dur": 2.73
 },
+"Jelle Terpstra|Net slim. Ik laat jullie even voorgaan.": {
+"src": "jelle_terpstra/net_slim_ik_laat_jullie_even_voo_63decf16.mp3",
+"dur": 3.26
+},
 "Jelle Terpstra|Net slim. Ik lit jimme efkes foargean.": {
 "src": "jelle_terpstra/net_slim_ik_lit_jimme_efkes_foar_ed235097.mp3",
 "dur": 2.95
@@ -1170,6 +1410,10 @@
 "Jelle Terpstra|No stiet er yn myn trekker. Oant sjen!": {
 "src": "jelle_terpstra/no_stiet_er_yn_myn_trekker_oant__bb7168a1.mp3",
 "dur": 2.28
+},
+"Jelle Terpstra|Nu staat hij in mijn trekker. Oant sjen!": {
+"src": "jelle_terpstra/nu_staat_hij_in_mijn_trekker_oan_e52d516e.mp3",
+"dur": 2.81
 },
 "Jelle Terpstra|Oant fan'e jûn, Grinzers!": {
 "src": "jelle_terpstra/oant_fan_e_ju_n_grinzers_dc620769.mp3",
@@ -1182,6 +1426,10 @@
 "Jelle Terpstra|Plons! Swimme kinne jimme teminsten.": {
 "src": "jelle_terpstra/plons_swimme_kinne_jimme_teminst_0d7c2a55.mp3",
 "dur": 3.02
+},
+"Jelle Terpstra|Plons! Zwemmen kunnen jullie teminsten.": {
+"src": "jelle_terpstra/plons_zwemmen_kunnen_jullie_temi_0ec110b3.mp3",
+"dur": 4.16
 },
 "Jelle Terpstra|Sa silet in Fries! Moai oan de wyn.": {
 "src": "jelle_terpstra/sa_silet_in_fries_moai_oan_de_wy_495658ef.mp3",
@@ -1199,6 +1447,10 @@
 "src": "jelle_terpstra/sjoch_myn_hekweach_mar_grinzer_af771860.mp3",
 "dur": 2.51
 },
+"Jelle Terpstra|Stil, Durk. Operaasje Aaibal is begonnen. Op Gronings Ontzet is de eierbal Fries.": {
+"src": "jelle_terpstra/stil_durk_operaasje_aaibal_is_be_5490e429.mp3",
+"dur": 8.86
+},
 "Jelle Terpstra|Stil, Durk. Operaasje Aaibal is begûn. Op Gronings Ontzet is de aaibal Frysk.": {
 "src": "jelle_terpstra/stil_durk_operaasje_aaibal_is_be_641f497a.mp3",
 "dur": 8.09
@@ -1211,13 +1463,25 @@
 "src": "jelle_terpstra/su_kelade_grinzers_hawwe_jimme_i_3ae394e3.mp3",
 "dur": 7.6
 },
+"Jelle Terpstra|Sûkelade, Grinzers! Lekker? De echte gaat fan'e jûn de lucht in.": {
+"src": "jelle_terpstra/su_kelade_grinzers_lekker_de_ech_7087bcef.mp3",
+"dur": 6.58
+},
 "Jelle Terpstra|Te betiid los. Dat sjoch ik fan hjir.": {
 "src": "jelle_terpstra/te_betiid_los_dat_sjoch_ik_fan_h_0f9b4dcc.mp3",
 "dur": 3.37
 },
+"Jelle Terpstra|Te betiid los. Dat zie ik van hier.": {
+"src": "jelle_terpstra/te_betiid_los_dat_zie_ik_van_hie_00c28cfe.mp3",
+"dur": 4.71
+},
 "Jelle Terpstra|Tige tank foar it lienen fan de auto. Hy riedt better as myn trekker. Net fertelle.": {
 "src": "jelle_terpstra/tige_tank_foar_it_lienen_fan_de__36259703.mp3",
 "dur": 5.13
+},
+"Jelle Terpstra|Tige tank voor het lenen van de auto. Hij rijdt beter dan mijn trekker. Net fertelle.": {
+"src": "jelle_terpstra/tige_tank_voor_het_lenen_van_de__15e406d2.mp3",
+"dur": 5.49
 },
 "Jelle Terpstra|Tige tank, Grinzers. Echt. Hjir, de Eierbal.": {
 "src": "jelle_terpstra/tige_tank_grinzers_echt_hjir_de__7a054f59.mp3",
@@ -1227,25 +1491,65 @@
 "src": "jelle_terpstra/trim_dat_seil_grinzers_dan_prate_1df9bbe5.mp3",
 "dur": 3.38
 },
+"Jelle Terpstra|Trim dat zeil, Grinzers. Dan praten we verder.": {
+"src": "jelle_terpstra/trim_dat_zeil_grinzers_dan_prate_17f82601.mp3",
+"dur": 3.56
+},
+"Jelle Terpstra|Van de Oosterhaven naar de Hoge der A. Wa't earst oankomt!": {
+"src": "jelle_terpstra/van_de_oosterhaven_naar_de_hoge__a925227c.mp3",
+"dur": 4.79
+},
+"Jelle Terpstra|Verder dan ik. Dat seit gjinien troch, hear.": {
+"src": "jelle_terpstra/verder_dan_ik_dat_seit_gjinien_t_a07f48e4.mp3",
+"dur": 4.24
+},
 "Jelle Terpstra|Wa hat myn flagge…? In DUIF?! Ik wit wol wa't dy duif is.": {
 "src": "jelle_terpstra/wa_hat_myn_flagge_in_duif_ik_wit_efceaff8.mp3",
 "dur": 4.59
+},
+"Jelle Terpstra|Wacht efkes! Mijn motor is nog koud!": {
+"src": "jelle_terpstra/wacht_efkes_mijn_motor_is_nog_ko_aa16cb2d.mp3",
+"dur": 2.44
 },
 "Jelle Terpstra|Wachtsje efkes! Myn motor is noch kâld!": {
 "src": "jelle_terpstra/wachtsje_efkes_myn_motor_is_noch_54795ac9.mp3",
 "dur": 2.89
 },
+"Jelle Terpstra|Wie heeft mijn flagge…? In DUIF?! Ik weet wel wie die duif is.": {
+"src": "jelle_terpstra/wie_heeft_mijn_flagge_in_duif_ik_9ec18682.mp3",
+"dur": 5.04
+},
+"Jelle Terpstra|Wiet! Die telt niet, hear!": {
+"src": "jelle_terpstra/wiet_die_telt_niet_hear_6d8f6dea.mp3",
+"dur": 2.04
+},
 "Jelle Terpstra|Wiet! Dy telt net, hear!": {
 "src": "jelle_terpstra/wiet_dy_telt_net_hear_ddcdd1d9.mp3",
 "dur": 2.52
+},
+"Jelle Terpstra|Windkracht en fakmanskip. Jullie hebben het allebei.": {
+"src": "jelle_terpstra/windkracht_en_fakmanskip_jullie__ee974521.mp3",
+"dur": 4.22
 },
 "Jelle Terpstra|Winne jimme, dan meie jimme de Eierbal hâlde. Winne ik, dan krij ik him werom. En is de aaibal Frysk.": {
 "src": "jelle_terpstra/winne_jimme_dan_meie_jimme_de_ei_a1daf738.mp3",
 "dur": 9.19
 },
+"Jelle Terpstra|Winnen jullie, dan houden jullie de Eierbal. Win ik, dan krijg ik hem terug. En is de aaibal Frysk.": {
+"src": "jelle_terpstra/winnen_jullie_dan_houden_jullie__5dc29854.mp3",
+"dur": 10.55
+},
 "Jelle Terpstra|Wynkracht en fakmanskip. Jimme hawwe it allebeide.": {
 "src": "jelle_terpstra/wynkracht_en_fakmanskip_jimme_ha_8899a5c8.mp3",
 "dur": 3.72
+},
+"Jelle Terpstra|Zoeken jullie je Gouden Eierbal? Sjoch ris wat ik hier heb.": {
+"src": "jelle_terpstra/zoeken_jullie_je_gouden_eierbal__f02055ad.mp3",
+"dur": 5.47
+},
+"Jelle Terpstra|Zwaaien, jongens. Oant sjen op Gronings Ontzet!": {
+"src": "jelle_terpstra/zwaaien_jongens_oant_sjen_op_gro_97589144.mp3",
+"dur": 3.95
 },
 "Jelmer|Chat gaat los! Tienduizend hartjes voor de Fjord!": {
 "src": "jelmer/chat_gaat_los_tienduizend_hartje_6b91e30b.mp3",
@@ -2231,6 +2535,10 @@
 "src": "bubbles/f/au_bist_betoeterd_6f4a69ea.mp3",
 "dur": 1.84
 },
+"~f|Au! Doe bist nait goed wies!": {
+"src": "bubbles/f/au_doe_bist_nait_goed_wies_b5db867d.mp3",
+"dur": 2.29
+},
 "~f|Au! Wat dust doe?": {
 "src": "bubbles/f/au_wat_dust_doe_077523fa.mp3",
 "dur": 1.75
@@ -2279,6 +2587,14 @@
 "src": "bubbles/f/dank_je_chauffeur_a83715c4.mp3",
 "dur": 1.34
 },
+"~f|Dank joe wel, mien jong. Hier, n pepermuntje. En wat veur de pot.": {
+"src": "bubbles/f/dank_joe_wel_mien_jong_hier_n_pe_3fbf5d42.mp3",
+"dur": 5.05
+},
+"~f|Dank joe wel, tot kiek!": {
+"src": "bubbles/f/dank_joe_wel_tot_kiek_47eb82f1.mp3",
+"dur": 1.57
+},
 "~f|Dat brengt geluk, zeggen ze…": {
 "src": "bubbles/f/dat_brengt_geluk_zeggen_ze_e94d3cb0.mp3",
 "dur": 2.5
@@ -2286,6 +2602,10 @@
 "~f|Dat is de Apenrots. Daar zitten ze hoog, met de dossiers.": {
 "src": "bubbles/f/dat_is_de_apenrots_daar_zitten_z_1327d17a.mp3",
 "dur": 4.28
+},
+"~f|Dat is goud spul, mien wicht!": {
+"src": "bubbles/f/dat_is_goud_spul_mien_wicht_25cb508a.mp3",
+"dur": 1.94
 },
 "~f|Dat is mien fiets, joh!": {
 "src": "bubbles/f/dat_is_mien_fiets_joh_3e76e613.mp3",
@@ -2395,6 +2715,10 @@
 "src": "bubbles/f/groen_en_wit_van_het_oosterpark__d9aa1277.mp3",
 "dur": 4.33
 },
+"~f|Grunneger metworst! Wie wil der nog ain?": {
+"src": "bubbles/f/grunneger_metworst_wie_wil_der_n_1725a35d.mp3",
+"dur": 3.03
+},
 "~f|Ha! Mooi, mijn fiets!": {
 "src": "bubbles/f/ha_mooi_mijn_fiets_c439f550.mp3",
 "dur": 2.14
@@ -2454,6 +2778,10 @@
 "~f|Hou die poten thuis, duif.": {
 "src": "bubbles/f/hou_die_poten_thuis_duif_e443c617.mp3",
 "dur": 3.24
+},
+"~f|Hou dij goud, chauffeur!": {
+"src": "bubbles/f/hou_dij_goud_chauffeur_91709e46.mp3",
+"dur": 1.35
 },
 "~f|Hou dij goud, chauffeur! Wij gaan slapen. Of nog één biertje.": {
 "src": "bubbles/f/hou_dij_goud_chauffeur_wij_gaan__40b9f417.mp3",
@@ -2527,6 +2855,10 @@
 "src": "bubbles/f/ik_ga_wel_naar_huis_brood_eten_f6301cf2.mp3",
 "dur": 3.14
 },
+"~f|Ik goa wel noar hoes. Stoet eten.": {
+"src": "bubbles/f/ik_goa_wel_noar_hoes_stoet_eten_97669d52.mp3",
+"dur": 2.32
+},
 "~f|Ik hou van jullie allemaal!": {
 "src": "bubbles/f/ik_hou_van_jullie_allemaal_44054b6d.mp3",
 "dur": 3.15
@@ -2575,6 +2907,10 @@
 "src": "bubbles/f/kei_week_kei_week_f42123f1.mp3",
 "dur": 2.88
 },
+"~f|Kiek uut woarst lopst, mien jong!": {
+"src": "bubbles/f/kiek_uut_woarst_lopst_mien_jong_a3313f79.mp3",
+"dur": 1.68
+},
 "~f|Kiek uut!": {
 "src": "bubbles/f/kiek_uut_93eb4e60.mp3",
 "dur": 0.96
@@ -2590,6 +2926,10 @@
 "~f|Kiek, dat was nait slecht. Veur n Stadjer.": {
 "src": "bubbles/f/kiek_dat_was_nait_slecht_veur_n__36169285.mp3",
 "dur": 3.6
+},
+"~f|Kiek, doar is n bootje!": {
+"src": "bubbles/f/kiek_doar_is_n_bootje_471eb062.mp3",
+"dur": 1.73
 },
 "~f|Kiek, d’Olle Grieze staat er nog.": {
 "src": "bubbles/f/kiek_d_olle_grieze_staat_er_nog_550b6b8a.mp3",
@@ -2610,6 +2950,14 @@
 "~f|Kom moar kieken!": {
 "src": "bubbles/f/kom_moar_kieken_462c7003.mp3",
 "dur": 1.2
+},
+"~f|Kom moar, t is hail goud spul!": {
+"src": "bubbles/f/kom_moar_t_is_hail_goud_spul_812dbad1.mp3",
+"dur": 2.28
+},
+"~f|Kom op, mien jong, ik heb honger as n peerd.": {
+"src": "bubbles/f/kom_op_mien_jong_ik_heb_honger_a_ad7cc3c3.mp3",
+"dur": 2.71
 },
 "~f|Kom, nog één kroeg!": {
 "src": "bubbles/f/kom_nog_e_e_n_kroeg_dd1da769.mp3",
@@ -2635,6 +2983,10 @@
 "src": "bubbles/f/laat_maar_ik_ga_naar_de_vismarkt_00eb7b71.mp3",
 "dur": 2.52
 },
+"~f|Lauw. Nou ja, wat mout, dat mout.": {
+"src": "bubbles/f/lauw_nou_ja_wat_mout_dat_mout_3cce4e80.mp3",
+"dur": 3.0
+},
 "~f|Lauw... Nou ja, eten is eten.": {
 "src": "bubbles/f/lauw_nou_ja_eten_is_eten_b52b4bb2.mp3",
 "dur": 2.81
@@ -2655,6 +3007,10 @@
 "src": "bubbles/f/mien_auto_rot_op_joh_6b9b9902.mp3",
 "dur": 2.22
 },
+"~f|Mien jong! Hier! Taxi!": {
+"src": "bubbles/f/mien_jong_hier_taxi_be9b15cc.mp3",
+"dur": 2.27
+},
 "~f|Mijn koffie!": {
 "src": "bubbles/f/mijn_koffie_9e3549a7.mp3",
 "dur": 1.06
@@ -2666,6 +3022,14 @@
 "~f|Moi!": {
 "src": "bubbles/f/moi_3c0aa2d2.mp3",
 "dur": 0.82
+},
+"~f|Moi! Doe mie mor n eierbal.": {
+"src": "bubbles/f/moi_doe_mie_mor_n_eierbal_5d6cf706.mp3",
+"dur": 2.26
+},
+"~f|Moi! Hou dij goud!": {
+"src": "bubbles/f/moi_hou_dij_goud_00a075fd.mp3",
+"dur": 2.3
 },
 "~f|Moi! Ik ben Sven uit Appingedam. Eerste keer in de stad. Zoveel stoplichten!": {
 "src": "bubbles/f/moi_ik_ben_sven_uit_appingedam_e_a7035507.mp3",
@@ -2714,6 +3078,18 @@
 "~f|Mooi weer, hè!": {
 "src": "bubbles/f/mooi_weer_he_28b4dcc7.mp3",
 "dur": 1.51
+},
+"~f|Nait soezen, moar deurbroezen! Hij mout waarm aankomen.": {
+"src": "bubbles/f/nait_soezen_moar_deurbroezen_hij_af1d6fad.mp3",
+"dur": 4.11
+},
+"~f|Nait zo dringen, joh!": {
+"src": "bubbles/f/nait_zo_dringen_joh_902c6814.mp3",
+"dur": 1.74
+},
+"~f|Nait zo hard over de drempels, mien jong!": {
+"src": "bubbles/f/nait_zo_hard_over_de_drempels_mi_69285c66.mp3",
+"dur": 2.72
 },
 "~f|Nee hè, net wassen!": {
 "src": "bubbles/f/nee_he_net_wassen_f4964729.mp3",
@@ -2971,6 +3347,10 @@
 "src": "bubbles/m/au_bist_betoeterd_0f9bb643.mp3",
 "dur": 2.84
 },
+"~m|Au! Doe bist nait goed wies!": {
+"src": "bubbles/m/au_doe_bist_nait_goed_wies_5b27e974.mp3",
+"dur": 2.21
+},
 "~m|Au! Wat dust doe?": {
 "src": "bubbles/m/au_wat_dust_doe_917bf9e5.mp3",
 "dur": 1.57
@@ -2994,6 +3374,10 @@
 "~m|Bist betoeterd?": {
 "src": "bubbles/m/bist_betoeterd_87b210e3.mp3",
 "dur": 1.2
+},
+"~m|Blief stoan, mien jong!": {
+"src": "bubbles/m/blief_stoan_mien_jong_7457a469.mp3",
+"dur": 1.82
 },
 "~m|Blijf stoan!": {
 "src": "bubbles/m/blijf_stoan_4c1238f4.mp3",
@@ -3027,6 +3411,14 @@
 "src": "bubbles/m/dank_je_chauffeur_6e77b60c.mp3",
 "dur": 1.12
 },
+"~m|Dank joe wel, mien jong. Hier, n pepermuntje. En wat veur de pot.": {
+"src": "bubbles/m/dank_joe_wel_mien_jong_hier_n_pe_37322b5d.mp3",
+"dur": 4.36
+},
+"~m|Dank joe wel, tot kiek!": {
+"src": "bubbles/m/dank_joe_wel_tot_kiek_ab1bb14e.mp3",
+"dur": 1.83
+},
 "~m|Dat brengt geluk, zeggen ze…": {
 "src": "bubbles/m/dat_brengt_geluk_zeggen_ze_b62d6b07.mp3",
 "dur": 1.75
@@ -3034,6 +3426,10 @@
 "~m|Dat is de Apenrots. Daar zitten ze hoog, met de dossiers.": {
 "src": "bubbles/m/dat_is_de_apenrots_daar_zitten_z_03775e32.mp3",
 "dur": 4.79
+},
+"~m|Dat is goud spul, mien wicht!": {
+"src": "bubbles/m/dat_is_goud_spul_mien_wicht_f989b26a.mp3",
+"dur": 2.13
 },
 "~m|Dat is mien fiets, joh!": {
 "src": "bubbles/m/dat_is_mien_fiets_joh_d31e518b.mp3",
@@ -3131,6 +3527,10 @@
 "src": "bubbles/m/groen_en_wit_van_het_oosterpark__098e6d67.mp3",
 "dur": 4.08
 },
+"~m|Grunneger metworst! Wie wil der nog ain?": {
+"src": "bubbles/m/grunneger_metworst_wie_wil_der_n_84d8ae73.mp3",
+"dur": 2.71
+},
 "~m|Ha! Mooi, mijn fiets!": {
 "src": "bubbles/m/ha_mooi_mijn_fiets_ca27195f.mp3",
 "dur": 2.24
@@ -3202,6 +3602,10 @@
 "~m|Hou die poten thuis, duif.": {
 "src": "bubbles/m/hou_die_poten_thuis_duif_d9573eae.mp3",
 "dur": 2.08
+},
+"~m|Hou dij goud, chauffeur!": {
+"src": "bubbles/m/hou_dij_goud_chauffeur_54fda270.mp3",
+"dur": 1.47
 },
 "~m|Hou dij goud, chauffeur! Wij gaan slapen. Of nog één biertje.": {
 "src": "bubbles/m/hou_dij_goud_chauffeur_wij_gaan__8e2d084b.mp3",
@@ -3283,6 +3687,10 @@
 "src": "bubbles/m/ik_ga_wel_naar_huis_brood_eten_b927447b.mp3",
 "dur": 2.19
 },
+"~m|Ik goa wel noar hoes. Stoet eten.": {
+"src": "bubbles/m/ik_goa_wel_noar_hoes_stoet_eten_5ce60082.mp3",
+"dur": 2.91
+},
 "~m|Ik hou de deur open. Jij kiest iets dat niet echt afgaat. Hoop ik.": {
 "src": "bubbles/m/ik_hou_de_deur_open_jij_kiest_ie_2588d1de.mp3",
 "dur": 4.65
@@ -3331,6 +3739,10 @@
 "src": "bubbles/m/jongen_hier_taxi_a4345f9c.mp3",
 "dur": 2.25
 },
+"~m|Kiek uut woarst lopst, mien jong!": {
+"src": "bubbles/m/kiek_uut_woarst_lopst_mien_jong_f78b07c7.mp3",
+"dur": 1.63
+},
 "~m|Kiek uut!": {
 "src": "bubbles/m/kiek_uut_ba78c214.mp3",
 "dur": 0.7
@@ -3346,6 +3758,10 @@
 "~m|Kiek, dat was nait slecht. Veur n Stadjer.": {
 "src": "bubbles/m/kiek_dat_was_nait_slecht_veur_n__d259ffb8.mp3",
 "dur": 3.3
+},
+"~m|Kiek, doar is n bootje!": {
+"src": "bubbles/m/kiek_doar_is_n_bootje_d7a8a299.mp3",
+"dur": 1.8
 },
 "~m|Kiek, d’Olle Grieze staat er nog.": {
 "src": "bubbles/m/kiek_d_olle_grieze_staat_er_nog_368ef029.mp3",
@@ -3366,6 +3782,18 @@
 "~m|Kom moar kieken!": {
 "src": "bubbles/m/kom_moar_kieken_21820621.mp3",
 "dur": 1.3
+},
+"~m|Kom moar, t is hail goud spul!": {
+"src": "bubbles/m/kom_moar_t_is_hail_goud_spul_36246287.mp3",
+"dur": 2.75
+},
+"~m|Kom mor mit noar t bureau.": {
+"src": "bubbles/m/kom_mor_mit_noar_t_bureau_f5219f04.mp3",
+"dur": 1.48
+},
+"~m|Kom op, mien jong, ik heb honger as n peerd.": {
+"src": "bubbles/m/kom_op_mien_jong_ik_heb_honger_a_035b65ba.mp3",
+"dur": 2.78
 },
 "~m|Kom, nog één kroeg!": {
 "src": "bubbles/m/kom_nog_e_e_n_kroeg_13f4da80.mp3",
@@ -3391,6 +3819,10 @@
 "src": "bubbles/m/laat_maar_ik_ga_naar_de_vismarkt_c019f0ba.mp3",
 "dur": 2.54
 },
+"~m|Lauw. Nou ja, wat mout, dat mout.": {
+"src": "bubbles/m/lauw_nou_ja_wat_mout_dat_mout_c203a2a2.mp3",
+"dur": 3.03
+},
 "~m|Lauw... Nou ja, eten is eten.": {
 "src": "bubbles/m/lauw_nou_ja_eten_is_eten_f86ef2a3.mp3",
 "dur": 2.93
@@ -3411,6 +3843,10 @@
 "src": "bubbles/m/mien_auto_rot_op_joh_52176a4d.mp3",
 "dur": 2.15
 },
+"~m|Mien jong! Hier! Taxi!": {
+"src": "bubbles/m/mien_jong_hier_taxi_7158cd7f.mp3",
+"dur": 2.31
+},
 "~m|Mien pet! Mien nieuwe pet!": {
 "src": "bubbles/m/mien_pet_mien_nieuwe_pet_5829878e.mp3",
 "dur": 2.47
@@ -3426,6 +3862,14 @@
 "~m|Moi!": {
 "src": "bubbles/m/moi_a6c1514b.mp3",
 "dur": 1.22
+},
+"~m|Moi! Doe mie mor n eierbal.": {
+"src": "bubbles/m/moi_doe_mie_mor_n_eierbal_d8e05553.mp3",
+"dur": 1.96
+},
+"~m|Moi! Hou dij goud!": {
+"src": "bubbles/m/moi_hou_dij_goud_3be54be5.mp3",
+"dur": 2.05
 },
 "~m|Moi! Ik ben Sven uit Appingedam. Eerste keer in de stad. Zoveel stoplichten!": {
 "src": "bubbles/m/moi_ik_ben_sven_uit_appingedam_e_71643f62.mp3",
@@ -3474,6 +3918,18 @@
 "~m|Mooi weer, hè!": {
 "src": "bubbles/m/mooi_weer_he_04930839.mp3",
 "dur": 1.98
+},
+"~m|Nait soezen, moar deurbroezen! Hij mout waarm aankomen.": {
+"src": "bubbles/m/nait_soezen_moar_deurbroezen_hij_684da7cd.mp3",
+"dur": 4.08
+},
+"~m|Nait zo dringen, joh!": {
+"src": "bubbles/m/nait_zo_dringen_joh_23fe8318.mp3",
+"dur": 1.26
+},
+"~m|Nait zo hard over de drempels, mien jong!": {
+"src": "bubbles/m/nait_zo_hard_over_de_drempels_mi_23306fb6.mp3",
+"dur": 2.62
 },
 "~m|Nee hè, net wassen!": {
 "src": "bubbles/m/nee_he_net_wassen_9e17081c.mp3",

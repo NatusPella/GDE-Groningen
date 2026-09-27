@@ -6,6 +6,7 @@ import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { setUserWaypoint } from './routing.js';
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook } from './shops.js';
+import { repairCost, platesCost, HERO_REPLACE_FEE } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savegame.js';
 import { recordStat } from './achievements.js';
@@ -181,8 +182,7 @@ function twoWheel(v) {
 function repairPrice(v) {
   const dmg = 100 - Math.max(0, Math.min(100, v.health ?? 100));
   const dents = v.damage ? Math.min(3, v.damage.total || 0) : 0;
-  if (twoWheel(v)) return Math.max(5, Math.round(dmg * 0.4 + dents * 4));
-  return Math.max(20, Math.round((dmg * 3.2 + dents * 25) / 5) * 5);
+  return repairCost(dmg, dents, twoWheel(v));
 }
 
 // Health back to 100 and every dent, crack and hanging bumper gone:
@@ -232,7 +232,7 @@ function garageMenu(w, site) {
           return 'Als nieuw! Henk veegt zijn handen af aan zijn overall';
         },
       }];
-      const plates = 60 + w.wanted * 90;
+      const plates = platesCost(w.wanted);
       items.push({
         id: 'g-plates', label: 'Andere kentekenplaten', price: plates,
         desc: w.wanted > 0 ? 'Niemand herkent je bak meer: sterren weg' : 'Alleen nodig als de politie je zoekt',
@@ -264,15 +264,15 @@ function garageMenu(w, site) {
     const look = getHeroLook();
     if (!w.vehicles.some((x) => x.isHeroCar && !x.wrecked)) {
       wrecks.push({
-        id: 'g-hero', label: 'Wrak van je Escapade opknappen', price: 100, swatch: [look.color || '#a11f1f'],
+        id: 'g-hero', label: 'Wrak van je Escapade opknappen', price: HERO_REPLACE_FEE, swatch: [look.color || '#a11f1f'],
         desc: 'Staat daarna hier voor de deur, als nieuw',
-        disabled: w.money < 100 ? 'Te weinig geld' : '',
+        disabled: w.money < HERO_REPLACE_FEE ? 'Te weinig geld' : '',
         buy() {
-          if (!pay(w, 100)) return null;
+          if (!pay(w, HERO_REPLACE_FEE)) return null;
           const at = exitSpot(site);
           for (const x of w.vehicles) if (x.isHeroCar && x.wrecked) x.isHeroCar = false;
           const car = spawnHeroCarNear(w.map, at.x, at.y);
-          if (!car) { w.money += 100; return 'Geen plek om hem neer te zetten, geld terug'; }
+          if (!car) { w.money += HERO_REPLACE_FEE; return 'Geen plek om hem neer te zetten, geld terug'; }
           w.vehicles.push(car);
           markDirty('reparatie');
           setUserWaypoint(car.x, car.y, 'Jouw Escapade');

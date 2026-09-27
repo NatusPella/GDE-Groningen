@@ -80,4 +80,6 @@ en klik onderaan op **Open toch**. Daarna start hij gewoon.
 EOF
 gh release create "$TAG" "$DMG" "$EXE" --title "GTE VI $VERSION" --notes-file "$NOTES" $PRE
 rm -f "$NOTES"
+# keep the disk free: the builds are on GitHub now
+rm -rf dist build
 echo "Released $TAG"

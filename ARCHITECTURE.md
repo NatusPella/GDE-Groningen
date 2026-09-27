@@ -63,7 +63,7 @@ frame then runs, in order:
 | World flavour | `flavour.js` (after docs/groningen-memes.md: building nicknames and "bijna thuis", the Gerrit Krolbrug's malfunction per pass, Ring Zuid navigation lines, "Kon minder" after a flawless mission (missions.js sets `world.lastPerfectRun`), the Noorderplantsoen on sunny days, the commentary cows in the Sikkom feed, event days (Bloemetjesmarkt, Bommen Berend, KEI-week: the real date, else a rare random day at dawn), the Peerd van Ome Loeks on another roundabout each night, AI cars stopping for crossing cyclists, stolen bikes turning up again, Nachtstreek night radio outside the city, Oosterpark chants; owns `world.flavour`, debug `window.__flavour`), `flavour3d.js` (billboards that change with story progress, the growing Krolbrug detour, picnic instancing, the statue, plaque, flags, house plants; built at boot, only toggled after), `flavourlines.js` (all text; spoken tables registered in voicelines_collect.mjs) |
 | Soft-lock safety | `safety.js` (pause menu "Vastgelopen? Zet me vrij" and "Missie afbreken" (counts as a fail, so the story skip opens); watchdogs for cutscenes and respawn scenes that run far too long, players out of the world, scene flags left behind) |
 | Title and trailer | `startscreen.js` (loading screen, title menu over the live city), `trailer.js` (attract intro, benchmark, recording mode), `intromontage.js` (the "Nieuw spel" opening montage) |
-| UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js`, `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots) |
+| UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots) |
 | Audio | `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 
@@ -94,6 +94,36 @@ registered in `scripts/voicelines_collect.mjs`. To fill the gaps:
 `node scripts/tts_lines_list.mjs && python3 scripts/tts_lines.py` (Gemini
 TTS via OpenRouter, key in `.env`; clips are trimmed and normalised to
 -18 LUFS, the level of the story lines; the run stops at `--budget`).
+
+### Dialect subtitles (Frisian and Gronings)
+
+Grunn speaks Dutch and Gronings; Jelle sprinkles Frisian into his Dutch
+(a few signature lines stay fully Frisian), Durk and Douwe speak Dutch
+with the odd Frisian word. Every Frisian line, and every Gronings line
+that is hard to follow, shows its Dutch translation underneath, smaller
+and in italics (`.nl-sub` in `hud_panel.css`).
+
+- Lines stay plain strings everywhere, so voice keys (`speaker|text`) and
+  the collectors don't change. The translation lives in
+  `js/subtitles.js`: `FY` (Frisian) and `GRO` (Gronings), keyed by the
+  exact shown text: `'Moai! Oant sjen, Grinzers!': 'Mooi! Tot ziens, Groningers!'`.
+- A key may be a fragment: every key found inside a longer text is
+  replaced by its translation, so a quote in a Dutch line
+  (`'"Tige tank."'`), a toast template's fixed part (the text before a
+  `{to}` or `${name}`) or a `Speaker: text` history row gets its subtitle
+  too. Fragments shorter than 5 characters are ignored.
+- Rendering: `setDualText(el, text)` / `dualHtml(text)` (escapes). Used by
+  cutscene subtitles and the big title (`cinematics.js`), speech bubbles
+  (`scene3d.js`), banter (`banter.js`), post-game subtitles
+  (`postgame.js`), the Sikkom/phone feed (`phonefeed.js`), phone calls,
+  contacts and history (`phone.js`), HUD toasts (`hud_panel.js`) and
+  achievement titles (`achievementsui.js`). Anything shown through these
+  gets its subtitle for free; a new text surface calls one of the two.
+- New Frisian line: write it, add its Dutch to `FY`. `voice_coverage.mjs`
+  exits 1 for any spoken line that `looksFrisian()` without a translation.
+  Voice casts: Jelle/Durk/Douwe are recorded as Dutch with a Frisian
+  accent; a bubble line with Gronings words (`GRO` or common dialect words)
+  gets a "spreekt Gronings dialect" tag (`tts_lines_list.mjs`).
 
 ## Heights
 
@@ -216,6 +246,11 @@ a director:
   `MISSION_IDS` maps story mission ids to `missions.js` def indices (saves
   and medal records use those indices: only append). `computeMoneyTimeline`
   is the worst-case money over the whole arc.
+- `economy.js`: the shared money numbers outside the shop stock (repair,
+  wreck, plates and bust costs, fines, side-job pay factor, post-game
+  prizes, the Fjord Frituur's daily wage, eierbal finds). `storytest.js`
+  checks the economy targets (margins, early car/gun, cheap repairs, top
+  vehicles after the Romp) against it and the shop prices.
 - `story.js`: finds the current step (done = finished/skipped, a passed
   mission, or an activity made moot by a later passed mission; that also
   migrates pre-0.5 saves). It publishes `world.storyGuide` (routing.js uses
@@ -267,11 +302,12 @@ Staging (story experience):
 - Cameras: drifting over-the-shoulder shots per speaker, a close-up cut on an
   exclamation, a crane-up for the narrator, a slow hand-held float (more on a
   fail), listeners turn their heads to the one talking.
-- Line format in cutscenes and contacts: `[who, text, { nl, clue, look, tag }]`.
-  `nl` is the Dutch translation of a Frisian line (shown under it by
-  cinematics.js, `.cine-nl`); `clue` pushes the camera in, plays a sting
-  (audio.js `playClueSting`) and marks the subtitle "Aanwijzing"; `look`
-  points the camera at a prop (the fatbike); `tag` is the TTS delivery.
+- Line format in cutscenes and contacts: `[who, text, { clue, look, tag }]`.
+  A Frisian or Gronings line gets its Dutch subtitle from subtitles.js
+  (keyed by the exact text, one mechanism everywhere); `clue` pushes the
+  camera in, plays a sting (audio.js `playClueSting`) and marks the subtitle
+  "Aanwijzing"; `look` points the camera at a prop (the fatbike, the flag's
+  knots); `tag` is the TTS delivery.
 - Contacts: a step's `contact` entries (storyarc.js, documented there) are
   queued by story.js on `after` or `lead` and played by storycontact.js when
   the game is quiet, voiced from the lines manifest; their `after` texts

@@ -8,8 +8,8 @@
 //   post       a Sikkom post with a selfie, read out as a video
 //   card       a handwritten card or note, read out in the writer's voice
 //   scene      a 3D cutscene (missionstory.js playLivestream), inside the LIVE frame
-// Lines: [who, text, { nl, tag }] with who 'jelle' | 'durk' | 'douwe' | 'T' | 'A';
-// nl is the Dutch translation of a Frisian line, shown under it. Voices come
+// Lines: [who, text, { tag, clue }] with who 'jelle' | 'durk' | 'douwe' | 'T' | 'A';
+// a Frisian line gets its Dutch subtitle from subtitles.js (dualHtml). Voices come
 // from the lines manifest (linevoice.js, "<name>|<text>"), recorded by
 // scripts/tts_lines*.{mjs,py}; voicelines_collect.mjs lists these lines.
 
@@ -19,6 +19,7 @@ import { isCinematicActive } from './cinematics.js';
 import { readingSeconds } from './world.js';
 import { PORTRAITS } from './storycast.js';
 import { getClockText } from './hud_panel.js';
+import { dualHtml, dutchFor } from './subtitles.js';
 
 let mission = null;
 import('./missionstory.js').then((m) => { mission = m; }).catch(() => {});
@@ -71,7 +72,7 @@ function injectStyle() {
 #hud .sc-wave i { width: 3px; border-radius: 2px; background: #3fc97a; height: 4px; transition: height .12s; }
 #hud .sc-bubble { margin: 6px 10px 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,.08); font-size: 14px; line-height: 1.3; min-height: 38px; }
 #hud .sc-bubble b { color: #3fc97a; font-weight: bold; margin-right: 4px; }
-#hud .sc-bubble .sc-nl, #sc-card .sc-nl, #sc-live .sc-nl { display: block; margin-top: 3px; font-size: 12px; font-style: italic; color: rgba(255,255,255,.62); }
+#hud .sc-bubble .nl-sub, #sc-card .nl-sub { display: block; margin-top: 3px; font-size: 12px; font-style: italic; color: rgba(255,255,255,.62); }
 #hud .sc-phone[data-via="live"] .sc-screen { background: #000; }
 #hud .sc-livebar, #sc-live .sc-livebar { display: flex; align-items: center; gap: 6px; padding: 7px 9px; font-size: 12px; }
 #hud .sc-dot, #sc-live .sc-dot { background: #e0262f; color: #fff; font-weight: bold; border-radius: 4px; padding: 1px 5px; letter-spacing: 1px; }
@@ -89,7 +90,7 @@ function injectStyle() {
 #sc-card.show { opacity: 1; transform: translate(-50%, -50%) rotate(-2deg); }
 #sc-card .sc-cardkick { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
 #sc-card .sc-cardtext { font-size: 21px; line-height: 1.35; margin-top: 8px; }
-#sc-card .sc-nl { color: #6d5d44; font-family: 'Arial Narrow', Arial, sans-serif; }
+#sc-card .nl-sub { color: #6d5d44; font-family: 'Arial Narrow', Arial, sans-serif; }
 #sc-card .sc-sign { text-align: right; margin-top: 10px; font-size: 18px; }
 #sc-card::before { content: ''; position: absolute; left: 44%; top: -10px; width: 70px; height: 22px; background: rgba(230,220,160,.7); transform: rotate(3deg); }
 #sc-live { position: fixed; inset: 0; z-index: 14; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(ellipse 34% 60% at 50% 50%, transparent 72%, rgba(0,0,0,.72) 100%); font-family: 'Arial Narrow', Arial, sans-serif; color: #fff; }
@@ -191,13 +192,13 @@ function renderPhone(c) {
 
 function setBubble(line) {
   if (!els || !els.bubble) return;
-  els.bubble.innerHTML = line ? `<b>${esc(nameOf(line[0]))}:</b>${esc(line[1])}${line[2] && line[2].nl ? `<span class="sc-nl">${esc(line[2].nl)}</span>` : ''}` : '';
+  els.bubble.innerHTML = line ? `<b>${esc(nameOf(line[0]))}:</b>${dualHtml(line[1])}` : '';
 }
 
 function showCard(c, line) {
   const signed = c.sign || (c.from === 'jelle' ? 'J.' : '');
-  cardEl.innerHTML = `<div class="sc-cardkick">${esc(c.title || 'Een kaartje')}</div><div class="sc-cardtext">${esc(line[1])}` +
-    `${line[2] && line[2].nl ? `<span class="sc-nl">${esc(line[2].nl)}</span>` : ''}</div>${signed ? `<div class="sc-sign">– ${esc(signed)}</div>` : ''}`;
+  cardEl.innerHTML = `<div class="sc-cardkick">${esc(c.title || 'Een kaartje')}</div><div class="sc-cardtext">${dualHtml(line[1])}` +
+    `</div>${signed ? `<div class="sc-sign">– ${esc(signed)}</div>` : ''}`;
   cardEl.classList.add('show');
 }
 
@@ -237,7 +238,7 @@ function lineTime(line) {
 function logHistory(c) {
   if (!world) return;
   const kind = { call: 'belde', voicemail: 'sprak in', live: 'was live', post: 'op Sikkom', card: 'liet een kaartje achter', scene: 'was live' }[c.via] || '';
-  const text = c.lines.map((l) => (l[2] && l[2].nl ? l[2].nl : l[1])).join(' ');
+  const text = c.lines.map((l) => dutchFor(l[1]) || l[1]).join(' ');
   const h = world.phoneHistory || (world.phoneHistory = []);
   h.unshift({ text: `${c.caller || nameOf(c.from || 'jelle')} ${kind}: ${text}`, at: getClockText(world) || '' });
   if (h.length > 30) h.length = 30;
