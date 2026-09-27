@@ -4,6 +4,8 @@ import { getLandmarkModel } from './landmarkmodels.js';
 import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
 import { pointInPolygon, WATER_Y } from './util.js';
+import { passagesOf } from './passages.js';
+import { applyPortalCut, buildPassageTunnels } from './portalcut3d.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -80,6 +82,7 @@ function wallMaterial(hex) {
       ? habboMaterial(shade(hex, 1.1), { map: brickTexture, side: THREE.DoubleSide })
       : habboMaterial(hex, { side: THREE.DoubleSide });
     m.onBeforeCompile = wallContactOnBeforeCompile;
+    applyPortalCut(m);
     wallMatCache.set(hex, m);
   }
   return m;
@@ -95,7 +98,7 @@ const roofMatCache = new Map();
 function roofMaterial(hex) {
   let m = roofMatCache.get(hex);
   if (!m) {
-    m = habboMaterial(shade(hex, 1.08), { map: tileTexture, side: THREE.DoubleSide });
+    m = applyPortalCut(habboMaterial(shade(hex, 1.08), { map: tileTexture, side: THREE.DoubleSide }));
     roofMatCache.set(hex, m);
   }
   return m;
@@ -176,6 +179,22 @@ const corniceMaterial = habboMaterial(P.wallCream, { side: THREE.DoubleSide });
 const canopyMaterial = habboMaterial(P.metalGrey, { side: THREE.DoubleSide });
 const eaveTrimMaterial = habboMaterial(0x3a3531, { side: THREE.DoubleSide });
 const finialMaterial = habboMaterial(0xc9a04a, { side: THREE.DoubleSide, metalness: 0.4, roughness: 0.5 });
+
+// every material a building mesh draws with gets its passage openings cut
+for (const m of [...flatRoofMaterials, detailMaterial, glassMaterial, ...LANDMARK_MATERIALS, ...Object.values(landmarkMaterials),
+  ...Object.values(landmarkStoneMaterials), ...Object.values(accentMaterials), corniceMaterial, canopyMaterial, eaveTrimMaterial, finialMaterial]) applyPortalCut(m);
+
+// The lined passages through `b` (portalcut3d.js), cached with its parts.
+function addPassages(group, b, parts, depth) {
+  const map = mapRef();
+  if (!map || !map.buildingsNear) return;
+  if (parts.tunnel === undefined) {
+    const mesh = buildPassageTunnels(b, passagesOf(map, b), depth);
+    parts.tunnel = mesh ? mesh.geometry : null;
+    parts.tunnelMat = mesh ? mesh.material : null;
+  }
+  if (parts.tunnel) group.add(new THREE.Mesh(parts.tunnel, parts.tunnelMat));
+}
 
 const UNIT_BOX = new THREE.BoxGeometry(1, 1, 1);
 const UNIT_CONE = new THREE.ConeGeometry(1, 1, 8);
@@ -1217,6 +1236,8 @@ export function buildBuildingMesh(b) {
       model.position.x += box.cx;
       model.position.z += box.cy;
       group.add(model);
+      if (!b._geo3dParts) b._geo3dParts = {};
+      addPassages(group, b, b._geo3dParts, Math.max(2.4, b.h * LEVEL_HEIGHT));
       return group;
     }
   }
@@ -1231,6 +1252,7 @@ export function buildBuildingMesh(b) {
     if (parts.landmark) {
       const group = new THREE.Group();
       group.add(new THREE.Mesh(parts.landmark, LANDMARK_MATERIALS));
+      addPassages(group, b, parts, Math.max(2.4, b.h * LEVEL_HEIGHT));
       return group;
     }
   }
@@ -1257,6 +1279,7 @@ export function buildBuildingMesh(b) {
     const base = landmarkMaterials[b.landmarkKind] || wallMaterial(P.brickRed);
     group.add(new THREE.Mesh(parts.main, stone || base));
     addLandmarkDetail(group, b, box, parts, depth, base, fine2);
+    addPassages(group, b, parts, depth);
     return group;
   }
 
@@ -1266,6 +1289,7 @@ export function buildBuildingMesh(b) {
   const flatRoofMat = flatRoofMaterials[Math.floor(hash2(fine * 7.1, fine2 * 3.3) * flatRoofMaterials.length)];
   group.add(new THREE.Mesh(parts.main, [flatRoofMat, wallMat]));
 
+  if (archetype !== 'houseboat') addPassages(group, b, parts, depth);
   if (archetype === 'church') {
     addChurchDetail(group, box, parts, depth, wallMat, roofMat, fine2);
     return group;

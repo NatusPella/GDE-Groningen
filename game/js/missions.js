@@ -57,8 +57,12 @@ const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Sikkom?',
 
 const MISSION_BOAT_MODEL = { name: 'boat', len: 5.2, wid: 1.9, maxSpeed: 10.8, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#f2efe6', cabin: '#1f4a6e' };
 
+// The nearest road point, unless that lies inside a building or a closed-off
+// courtyard: then the nearest street you can actually reach (findOpenSpawn).
 function roadSpot(map, x, y, drivable = false) {
-  return map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
+  const p = map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
+  if (!map.isOpenSpot || map.isOpenSpot(p.x, p.y)) return p;
+  return map.findOpenSpawn(p.x, p.y, 200, drivable) || p;
 }
 
 // Fixed spots in and around the binnenstad, picked so every leg is a real
@@ -1534,7 +1538,7 @@ function resolveSpotStarts(world) {
     const hs = getHeliSpotsForRender()[0];
     if (hs) {
       chain.heliStarts = true;
-      for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { x: hs.x + 3.5, y: hs.y + 1.5, road: null };
+      for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { ...world.map.openSpotNear(hs.x + 3.5, hs.y + 1.5), road: null };
     }
   }
   if (chain.spotStarts) return;
@@ -1782,6 +1786,7 @@ function resolveTarget(world, spec, from) {
   if (spec.bank) return { ...bankNear(map, spec.bank[0], spec.bank[1]), label: spec.label };
   return null;
 }
+export { resolveTarget as resolveMissionTarget };
 
 function rentalBoat(world) {
   return world.vehicles.find((v) => v.isBoat && v.playerOwned && !v.wrecked && !v.sinking) || null;

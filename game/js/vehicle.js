@@ -2018,21 +2018,6 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
   if (world) resolvePropCollisions(vehicles, world);
 }
 
-// OSM routes some streets and cycleways under station canopies, market
-// halls and building passages: where the road's own centerline runs inside
-// the footprint, that part of it is not a wall.
-function onRoadThroughBuilding(map, x, y, building) {
-  for (const r of map.roadsNear(x, y, 6)) {
-    if (r.cat === 'foot') continue;
-    const half = r.width / 2 - 0.2;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
-      if (cp.dist2 < half * half && pointInPolygon(cp.x, cp.y, building.pts)) return true;
-    }
-  }
-  return false;
-}
-
 function collisionProbes(v) {
   const pts = v.halfLen > 3 ? [[v.halfLen, v.halfWid], [v.halfLen, -v.halfWid], [0, -v.halfWid], [-v.halfLen, -v.halfWid], [-v.halfLen, v.halfWid], [0, v.halfWid]] : null;
   if (!pts) return vehicleCorners(v);
@@ -2191,7 +2176,8 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
     for (const b of offLevel ? [] : map.buildingsNear(c[0], c[1], 1)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
-      if (!pointInPolygon(c[0], c[1], b.pts) || onRoadThroughBuilding(map, c[0], c[1], b) || (light && inPassage(map, b, c[0], c[1]))) continue;
+      // building passages (passages.js) are open, the rest of the footprint is wall
+      if (!pointInPolygon(c[0], c[1], b.pts) || inPassage(map, b, c[0], c[1], light ? 0 : 0.35)) continue;
       const pts = b.pts;
       let bestDist2 = Infinity, bestX = 0, bestY = 0;
       for (let i = 0; i < pts.length - 1; i++) {

@@ -31,6 +31,7 @@ import { setTreeMeshBuilder } from './treeprops.js';
 import { propsNearInto } from './breakables.js';
 import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
+import { updatePortals } from './portalcut3d.js';
 import { buildRailDecks } from './roadstructures3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D } from './skyprops3d.js';
@@ -1567,6 +1568,7 @@ export function update3D(dt, world) {
   syncBuildings(world, player.x, player.y);
   probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
+  updatePortals(player.x, player.y);
   updateGrass(dt, world, cam, DRAW_DIST);
   probe.mark('3d:grass');
   syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, player.x, player.y);
