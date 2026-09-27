@@ -284,6 +284,13 @@ export function getHomeForRender() {
   return home ? [{ x: home.icon.x, y: home.icon.y, name: 'Thuis', sub: 'Garage, bed, koelkast en kledingkast' }] : [];
 }
 
+// The private garage's own map icon, at its roller door.
+export function getHomeGarageForRender() {
+  if (!home) return [];
+  const d = home.garage.door;
+  return [{ x: d.cx + d.nx * 2, y: d.cy + d.ny * 2, name: 'Jouw garage', sub: 'Al je voertuigen staan hier klaar' }];
+}
+
 // Start and target points for spotcheck.js: the lobby, the garage door, the
 // Escapade's bay and the first mooring.
 export function getHomeSpots(w) {

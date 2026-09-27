@@ -1,6 +1,6 @@
 import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
-import { getHomeForRender } from './home.js';
+import { getHomeForRender, getHomeGarageForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, SHOP_TYPES } from './shops.js';
@@ -818,6 +818,7 @@ function drawDynamicMarkers(ctx, world) {
 
   for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name || 'Garage');
   for (const h of getHomeForRender()) icon('home', 'home', h.x, h.y, h.name, {}, h.sub);
+  for (const h of getHomeGarageForRender()) icon('homeGarage', 'home', h.x, h.y, h.name, {}, h.sub);
 
   const m = world.mission;
   const job = world.sideJob && world.sideJob.active ? world.sideJob : null;
@@ -1199,7 +1200,8 @@ const LEGEND = [
   { kind: 'userWaypoint', label: 'Jouw bestemming', note: 'altijd zichtbaar' },
   { kind: 'route', label: 'Route', note: 'paars: jouw bestemming, geel: missie, roze: opknappen of repareren' },
   { kind: 'companion', label: 'Maat', layer: 'companion' },
-  { kind: 'home', label: 'Thuis', note: 'flat, bed en garage met al je voertuigen', layer: 'home' },
+  { kind: 'home', label: 'Thuis', note: 'flat met bed, koelkast en kledingkast', layer: 'home' },
+  { kind: 'homeGarage', label: 'Jouw garage', note: 'al je voertuigen staan hier klaar', layer: 'home' },
   { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot', layer: 'car' },
   { group: 'Verhaal en klussen' },
   { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
