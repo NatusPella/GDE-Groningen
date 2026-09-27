@@ -846,7 +846,7 @@ function drawDynamicMarkers(ctx, world) {
     if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), ICON);
     icon(null, 'sj-target', ct.x, ct.y, 'Checkpoint', {}, 'Uitdaging');
   }
-  for (const sj of getSideJobSpotsForRender()) icon('bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, 'Bijbaantje: ' + sj.job.blurb.toLowerCase());
+  for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`);
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, 'Reizen met de trein');
 
   const c = world.companion;
@@ -988,7 +988,7 @@ function buildSearchIndex(world) {
   for (const g of getGaragesForRender()) entries.push({ label: g.name, kind: 'Garage', pri: 4, x: g.x, y: g.y, zoom: 7 });
   for (const h of getHomeForRender()) entries.push({ label: h.name, kind: 'Jullie flat en garage', pri: 0, x: h.x, y: h.y, zoom: 7 });
   for (const sh of getShopsForRender()) entries.push({ label: sh.name, kind: SHOP_TYPES[sh.type].label, pri: 3, x: sh.x, y: sh.y, zoom: 8 });
-  for (const sj of getSideJobSpotsForRender()) entries.push({ label: sj.job.name, kind: 'Bijbaantje', pri: 1, x: sj.x, y: sj.y, zoom: 8 });
+  for (const sj of getSideJobSpotsForRender()) entries.push({ label: sj.job.name, kind: sj.job.kicker || 'Bijbaantje', pri: 1, x: sj.x, y: sj.y, zoom: 8 });
   for (const st of getStationsForRender()) entries.push({ label: st.name, kind: 'Treinstation', pri: 0, x: st.x, y: st.y, zoom: 7 });
   for (const e of entries) {
     e.norm = normalize(e.label);
@@ -1215,6 +1215,7 @@ const LEGEND = [
   { group: 'Doen en beleven' },
   { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },
   { kind: 'heli', label: 'Traumaheli', note: 'ballonjacht vanaf het UMCG', layer: 'heli' },
+  { kind: 'sj-rondvaarttour', label: 'Ontspannen rondvaart', note: 'rondje Diepenring met toeristen, zonder haast', layer: 'rondvaarttour' },
   { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layer: 'postgame' },
   { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },
   { group: 'Onderweg' },

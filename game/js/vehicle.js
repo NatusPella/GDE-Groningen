@@ -290,6 +290,8 @@ function playerTune(v) {
   const m = v.model;
   // v.sailTop: a sailing boat's top speed from the wind (postgame skûtsje-sprint)
   if (v.isBoat && v.sailTop != null) return { top: v.sailTop, accel: m.accel, brake: m.brake };
+  // a long, heavy rondvaartboot: slower to get going and to stop than a sloep
+  if (v.isBoat && m.kind === 'rondvaart') return { top: Math.max(m.maxSpeed, 7.4), accel: Math.max(m.accel, 1.7), brake: Math.max(m.brake, 2.3) };
   if (v.isBoat) return { top: Math.max(m.maxSpeed, 9.5), accel: Math.max(m.accel, 3.2), brake: Math.max(m.brake, 3.8) };
   if (v.isBus) return { top: 21, accel: 2.4, brake: 5 };
   // shop upgrades scale the two-wheelers' player tuning too

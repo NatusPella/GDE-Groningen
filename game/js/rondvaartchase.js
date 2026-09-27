@@ -9,11 +9,15 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { boatDryPoints, inWaterPoly, keepBoatOffShore, normalizeAngle, pointInPolygon, clamp } from './util.js';
 import { Vehicle, resolveVehicleBuildingCollision, vehicleContacts } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
-import { buildPersonMesh, seatPerson, seatedY } from './models3d_people.js';
+import { buildPersonMesh, seatPose, SEAT_CONTACT } from './models3d_people.js';
+import { boatSeats, BOAT_KINDS } from './boattypes.js';
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { LINE as GIDS_LINE } from './sidejob_rondvaart.js';
 import { isCinematicActive } from './cinematics.js';
-import { playStoryVoice } from './audio.js';
+import { setDualText } from './subtitles.js';
+import { playLineVoice } from './audio.js';
+import { lineVoiceFor } from './linevoice.js';
+import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT } from './rondvaartlines.js';
 
 // --- route ---------------------------------------------------------------------
 // Clockwise from the Spilsluizen. The eastern arc (Turfsingel, Schuitendiep,
@@ -178,7 +182,7 @@ const CHECKPOINTS = [
 ];
 const VIA_STEP = 70;
 const CP_SLACK = 12; // m of time bonus buffer per checkpoint on top of the sailing time
-const CP_SPEED = 5.8; // m/s the time bonus is budgeted at
+const CP_SPEED = 4.9; // m/s the time bonus is budgeted at
 
 export function rondvaartWaypoints() {
   const out = [];
@@ -202,10 +206,14 @@ export function rondvaartWaypoints() {
 // towards the route, with the start marker on the quay next to it: slide out
 // from the route line to the quay (left bank) until the hull would touch,
 // back off a hand's width, and skip spots where a houseboat is moored.
+// The tour boat (boattypes.js rondvaart hull, glass roof, benches) with a
+// player tune for a long, heavy boat: slow to get going, wide in the bends.
+export const TOUR_BOAT = { ...BOAT_KINDS.rondvaart, maxSpeed: 7.4, accel: 1.7, brake: 2.3 };
+
 const BERTH_FALLBACK = { start: { x: -33.8, y: -261.6 }, boat: { x: -33.0, y: -259.5, angle: -0.37 } };
 
 export function rondvaartBerth(map) {
-  const probe = { model: { len: 5.2, wid: 1.9 } };
+  const probe = { model: { len: TOUR_BOAT.len, wid: TOUR_BOAT.wid } };
   const hl = probe.model.len / 2;
   // the whole length of the hull must lie against the quay itself, not
   // against a houseboat moored there (those count as water obstacles)
@@ -236,32 +244,11 @@ export function rondvaartBerth(map) {
 
 // --- sights ----------------------------------------------------------------------
 
-// The guide's tour, in sailing order. `at` is the thing itself; the story
-// starts where the route passes closest to it. Facts are kept to what is
-// well documented; the jokes are clearly jokes.
-const SIGHTS = [
-  { at: [120, -330], name: 'de Stadsschouwburg', line: 'Links, aan de Turfsingel: de Stadsschouwburg, geopend in 1883. De Turfsingel heet zo omdat hier de turf uit de venen werd aangevoerd. Brandstof voor de hele stad.' },
-  { at: [214, 13], name: "d'Olle Grieze", line: "Rechts over de daken: de Martinitoren, zo'n 97 meter hoog en rond 1482 voltooid. De Stadjers noemen hem d'Olle Grieze: de oude grijze." },
-  { at: [265, -205], name: 'de Prinsentuin', line: 'Rechts de Prinsenhoftuin, aangelegd in 1625 bij het Prinsenhof, waar de stadhouders woonden. Met rozen, kruiden en een beroemde zonnewijzer.' },
-  { at: [505, 91], name: 'het Schuitendiep', line: 'Dit is het Schuitendiep. Hier legden de schuiten aan, platte vrachtschepen die de stad bevoorraadden. Rechts de Poelestraat: overdag stil, om vier uur \'s nachts het drukste stukje Grunn.' },
-  { at: [601, 283], name: 'de Steentilbrug', line: 'We gaan onder de Steentilbrug door. "Til" is Gronings voor brug, dus eigenlijk heet hij gewoon de stenen brug.' },
-  { at: [744, 390], name: 'de Oosterhaven', line: 'De Oosterhaven: vroeger een drukke binnenhaven, nu vol woonboten. Tuinen die meebewegen. Zwaai maar, ze zwaaien terug.' },
-  { at: [375, 753], name: 'de Herebrug', line: 'De Herebrug verbindt de Herestraat met de Hereweg: eeuwenlang de hoofdroute de stad uit, naar het zuiden en Drenthe. Gaat hij open, dan staat half Grunn te wachten.' },
-  { at: [102, 834], name: 'het Groninger Museum', line: 'Links het Groninger Museum, geopend in 1994, op een eiland in het kanaal. Ontworpen door Alessandro Mendini, met paviljoens van onder anderen Philippe Starck en Coop Himmelb(l)au. Ja, het hoort zo scheef.' },
-  { at: [60, 836], name: 'de Werkmanbrug', line: 'Deze brug is vernoemd naar Hendrik Werkman, drukker en kunstenaar van De Ploeg. Hij werd in april 1945 door de bezetter gefusilleerd, een paar dagen voor Groningen werd bevrijd.' },
-  { at: [-60, 948], name: 'het Hoofdstation', line: 'Links, achter de bomen: het Hoofdstation uit 1896. Van buiten een paleis, van binnen een van de mooiste stationshallen van het land.' },
-  { at: [-208, 773], name: 'de Emmabrug', line: 'De Emmabrug, net als de Emmasingel vernoemd naar koningin Emma. Hier komen studenten aan met één koffer en vertrekken ze tien jaar later met drie fietsen.' },
-  { at: [-376, 250], name: 'de Hoge der A', line: 'De Hoge en de Lage der A, de oude stadshaven aan het riviertje de A. De pakhuizen komen uit de tijd dat de schepen via het Reitdiep naar zee voeren.' },
-  { at: [-200, 359], name: 'de Der Aa-kerk', line: 'Rechts de Der Aa-kerk, voluit de Onze Lieve Vrouwe der A-kerk, vernoemd naar datzelfde riviertje. De toren is een paar keer ingestort; de huidige staat er sinds het begin van de achttiende eeuw.' },
-  { at: [-408, -72], name: 'de Noorderhaven', line: 'De Noorderhaven, ooit de haven voor de zeeschepen. Nu liggen hier oude zeilschepen en woonboten. De eenden betalen geen liggeld.' },
-  { at: [-270, -143], name: "de Kijk in 't Jatbrug", line: "De Kijk in 't Jatbrug, genoemd naar de Kijk in 't Jatstraat. Die dankt zijn naam aan een toren in de oude stadsmuur." },
-  { at: [-143, -32], name: 'het Academiegebouw', line: 'Rechts, verderop: het Academiegebouw van de universiteit, die in 1614 werd opgericht. Het huidige gebouw is van 1909; het vorige brandde in 1906 af.' },
-];
-const WELCOME = 'Welkom aan boord! We varen een rondje over de Diepenring, de gracht rond de binnenstad, grotendeels gegraven in de zeventiende eeuw toen Grunn werd uitgebreid en een nieuwe vestinggordel kreeg.';
+// The tour itself (stops, lines, tourist reactions) lives in rondvaartlines.js.
 const SIGHT_R = 40;
 const SIGHT_SLOW = 5.2;
 const SIGHT_HOLD = 0.8;
-const SIGHT_JOY = 8;
+const SIGHT_JOY = 5;
 
 // --- tuning ------------------------------------------------------------------------
 
@@ -274,7 +261,7 @@ const CALM_CAP = 60; // calm water settles nerves, but only the guide's stories 
 const MEGAPHONE_R = 22;
 const MEGAPHONE_RATE = 0.15;
 
-const WIEBE_MODEL = { name: 'sloep', len: 4.6, wid: 1.8, maxSpeed: 11.6, accel: 3.3, brake: 4.2, turnRate: 1.35, color: '#2e6b3f', cabin: '#e9e4d4' };
+const WIEBE_MODEL = { name: 'sloep', len: 4.6, wid: 1.8, maxSpeed: 9.6, accel: 2.8, brake: 4.2, turnRate: 1.35, color: '#2e6b3f', cabin: '#e9e4d4' };
 const WIEBE_GRIP = 6; // m/s^2 lateral, like a player boat, so he corners no better than you
 const WIEBE_SPAWN_BACK = 125;
 const WIEBE_SPAWN_MIN_DIST = 95;
@@ -365,22 +352,33 @@ const TOURIST_LOOKS = [
   { shirt: 0xe0473c, skin: HABBO_PALETTE.woodLight, variant: 'female', seed: 2203, hairStyle: 'bun' },
   { shirt: 0xf2c230, skin: HABBO_PALETTE.woodMid, variant: 'male', seed: 2291 },
   { shirt: 0x3a8fd9, skin: HABBO_PALETTE.woodLight, variant: 'male', seed: 2377 },
+  { shirt: 0x6fb07a, skin: HABBO_PALETTE.woodDark, variant: 'female', seed: 2459 },
+  { shirt: 0xf4f1e8, skin: HABBO_PALETTE.woodLight, variant: 'female', seed: 2531 },
+  { shirt: 0x8a4fb0, skin: HABBO_PALETTE.woodMid, variant: 'male', seed: 2617 },
+  { shirt: 0xd9822b, skin: HABBO_PALETTE.woodLight, variant: 'female', seed: 2699 },
 ];
 const WIEBE_LOOK = { shirt: 0x1d3557, skin: HABBO_PALETTE.woodLight, variant: 'male', seed: 2441 };
 
+// On the benches under the glass roof (boattypes.js seats; 0 is the helm,
+// 1 the companion's), one figure per frame so the boat never hitches.
 function touristGroup(v) {
   const g = new THREE.Group();
-  const hl = v.model.len / 2;
-  const seats = [[hl * 0.35, 0.42], [hl * 0.35, -0.42], [-hl + 0.35, 0]];
-  g.userData.people = seats.map(([x, z], k) => {
-    const m = buildPersonMesh(TOURIST_LOOKS[k].shirt, TOURIST_LOOKS[k].skin, TOURIST_LOOKS[k]);
-    seatPerson(m, false, { recline: 0.08, footX: 0.44, footY: -0.28, arms: 'lap' });
-    m.position.set(x, seatedY(m, 0.39), z);
-    m.rotation.y = k === 2 ? 0 : (z > 0 ? -0.25 : 0.25);
-    g.add(m);
-    return m;
-  });
+  g.userData.seats = boatSeats(v).slice(2, 2 + TOURIST_LOOKS.length);
+  g.userData.people = [];
   return g;
+}
+
+function seatTourists(g) {
+  const k = g.userData.people.length;
+  const seat = g.userData.seats[k];
+  if (!seat) return;
+  const look = TOURIST_LOOKS[k];
+  const m = buildPersonMesh(look.shirt, look.skin, look);
+  seatPose(m, seat.pose, 0);
+  m.position.set(seat.x, seat.y - SEAT_CONTACT * (m.scale.y || 1), seat.z);
+  m.rotation.y = (seat.face || 0) + (seat.z > 0 ? -0.2 : 0.2);
+  g.add(m);
+  g.userData.people.push(m);
 }
 
 function wiebeGroup(v) {
@@ -503,12 +501,18 @@ function findBridges(map) {
   return out;
 }
 
-export function startRondvaart(world, boat) {
+// opts.relaxed: the tour on its own (sidejob_rondvaarttour.js): no Wiebe,
+// no fleeing tourists, every stop told whatever the speed.
+export function startRondvaart(world, boat, opts = {}) {
   stopRondvaart(world);
   findBridges(world.map);
   st = {
     world,
     boat,
+    relaxed: !!opts.relaxed,
+    grp: 0,
+    gapUntil: 0,
+    reactAt: 40,
     joy: JOY_START,
     bumps: 0,
     lastBumpAt: -99,
@@ -518,7 +522,7 @@ export function startRondvaart(world, boat) {
     prevVel: null,
     ps: 0,
     pi: null,
-    sights: SIGHTS.map((q) => {
+    sights: TOUR_STOPS.map((q) => {
       const s = sOf(q.at[0], q.at[1]);
       const p = routeAt(s);
       return { ...q, s, px: p.x, py: p.y, hold: 0, done: false };
@@ -535,8 +539,9 @@ export function startRondvaart(world, boat) {
   };
 }
 
-export function stopRondvaart(world) {
-  if (!st) return;
+// relaxedOnly / missionOnly: a caller only ends its own run.
+export function stopRondvaart(world, only = null) {
+  if (!st || (only === 'mission' && st.relaxed) || (only === 'relaxed' && !st.relaxed)) return;
   const w = st.wiebe;
   if (w && w.v) {
     const v = w.v;
@@ -546,6 +551,7 @@ export function stopRondvaart(world) {
   }
   dropDecor(st.boat, 'rvTourists');
   if (subEl) subEl.style.opacity = '0';
+  if (st.bubble) st.bubble.speechUntil = 0;
   st = null;
 }
 
@@ -571,39 +577,109 @@ export function rondvaartOutro() {
 
 // --- subtitles & shouts ------------------------------------------------------------------
 
-// prio: an event line cuts in (drops that speaker's queued chatter). guide:
-// the tour never gets dropped, it waits in line ahead of any chatter.
-function say(speaker, text, color, prio = false, guide = false) {
-  const voice = voices[speaker + '|' + text];
-  const item = { speaker, text, color, guide, dur: Math.max(clamp(1.4 + text.length * 0.052, 2.2, guide ? 10 : 5), voice ? voice.dur + 0.3 : 0) };
-  if (guide) {
-    st.subQueue = st.subQueue.filter((q) => q.guide || q.prio);
-    st.subQueue.push(item);
-  } else if (prio) {
-    item.prio = true;
-    st.subQueue = st.subQueue.filter((q) => q.speaker !== speaker);
-    const at = st.subQueue.findIndex((q) => q.guide);
-    st.subQueue.splice(at < 0 ? 0 : at, 0, item);
-    if (st.sub && st.sub.speaker === speaker) st.sub = null;
-  } else if (!st.subQueue.length) st.subQueue.push(item);
+const SPEAKER = { T: 'Tammo (gids)', A: 'Anita' };
+// the tourists speak in bubbles, recorded per voice sex (linevoice.js)
+const TOURIST = { D: { name: 'Toeriste', female: true }, E: { name: 'Toerist', female: false }, R: { name: 'Toeriste', female: true } };
+const VOICE_WAIT = 5; // s a line waits for the talking channel before it shows without its voice
+const LINE_GAP = 0.35;
+const STALE_AFTER = 140; // m past its stop an exchange that never started is dropped
+
+function voiceOf(speaker, text) {
+  const v = voices[speaker + '|' + text];
+  if (v) return { src: VOICE_DIR + v.src, dur: v.dur };
+  return lineVoiceFor(speaker, text);
 }
 
+function lineItem([k, text], extra = {}) {
+  const t = TOURIST[k];
+  const speaker = t ? (t.female ? '~f' : '~m') : SPEAKER[k] || k;
+  return { speaker, text, name: t ? t.name : speaker, bubble: t || null, voice: voiceOf(speaker, text), ...extra };
+}
+
+function itemDur(it) {
+  const read = clamp(1.4 + it.text.length * 0.052, it.bubble ? 1.8 : 2.2, it.guide ? 10 : 5);
+  return Math.max(read, it.voice ? it.voice.dur + 0.3 : 0);
+}
+
+// guide: a stop's exchange, queued in full and never dropped for chatter.
+// prio: an event line (Wiebe rams, crashes) goes next, between two lines of
+// an exchange if need be, and drops that speaker's queued chatter; after:
+// an event reaction that waits for the exchange being told to finish.
+// Anything else only plays when nothing is waiting.
+function sayLines(lines, { guide = false, prio = false, after = false, s = null } = {}) {
+  const grp = ++st.grp;
+  const items = lines.map((l) => lineItem(l, { guide, prio: prio || after, grp, s }));
+  if (guide) {
+    st.subQueue = st.subQueue.filter((q) => q.guide || q.prio);
+    st.subQueue.push(...items);
+  } else if (prio) {
+    st.subQueue = st.subQueue.filter((q) => q.guide || q.prio || q.speaker !== items[0].speaker);
+    st.subQueue.splice(0, 0, ...items);
+  } else if (after) {
+    const at = st.subQueue.findIndex((q) => q.guide && !q.started);
+    st.subQueue.splice(at < 0 ? st.subQueue.length : at, 0, ...items);
+  } else if (!st.subQueue.length && !st.sub) st.subQueue.push(...items);
+}
+
+function say(speaker, text, color, prio = false) {
+  sayLines([[speaker, text]], { prio });
+}
+
+// One line at a time, through the one talking channel (speech.js via
+// audio.playLineVoice): a line waits until its recording may play, so the
+// guide, Anita, the tourists and Wiebe never talk over each other or over
+// a phone call; car banter and the radio give way to the mission's lines.
 function updateSubs(dt) {
   const el = subtitleEl();
   const hidden = isCinematicActive();
   if (st.sub) {
     st.sub.left -= dt;
-    if (st.sub.left <= 0) st.sub = null;
+    if (st.sub.left <= 0) { st.sub = null; st.gapUntil = st.t + LINE_GAP; }
   }
-  if (!st.sub && st.subQueue.length && !hidden) {
-    const it = st.subQueue.shift();
-    st.sub = { ...it, left: it.dur };
-    paintSpeaker(el.querySelector('.rv-speaker'), it.speaker);
-    el.querySelector('.rv-line').textContent = it.text;
-    const voice = voices[it.speaker + '|' + it.text];
-    if (voice) playStoryVoice(VOICE_DIR + voice.src);
+  // a whole exchange about a stop far behind is no use any more
+  while (st.subQueue.length && st.subQueue[0].s != null && !st.subQueue[0].started && st.ps > st.subQueue[0].s + STALE_AFTER) {
+    const g = st.subQueue[0].grp;
+    st.subQueue = st.subQueue.filter((q) => q.grp !== g);
   }
-  el.style.opacity = st.sub && !hidden ? '1' : '0';
+  if (!st.sub && st.subQueue.length && !hidden && st.t >= st.gapUntil) {
+    const it = st.subQueue[0];
+    let go = true;
+    if (it.voice) {
+      go = playLineVoice(it.voice.src, it.voice.dur, st.relaxed ? 'job' : 'mission');
+      if (!go) {
+        it.waited = (it.waited || 0) + dt;
+        go = it.waited > VOICE_WAIT;
+      }
+    }
+    if (go) {
+      st.subQueue.shift();
+      for (const q of st.subQueue) if (q.grp === it.grp) q.started = true;
+      const dur = itemDur(it);
+      st.sub = { ...it, left: dur };
+      if (it.bubble) showBubble(it, dur);
+      else {
+        paintSpeaker(el.querySelector('.rv-speaker'), it.name);
+        setDualText(el.querySelector('.rv-line'), it.text);
+      }
+    }
+  }
+  el.style.opacity = st.sub && !st.sub.bubble && !hidden ? '1' : '0';
+}
+
+// a tourist's bubble over the boat (scene3d.js world.extraSpeakers); its
+// recording already plays through updateSubs, so the bubble stays silent
+function showBubble(it, dur) {
+  const w = st.world;
+  const list = w.extraSpeakers || (w.extraSpeakers = []);
+  if (st.bubble) st.bubble.speechUntil = 0;
+  st.bubble = { x: st.boat.x, y: st.boat.y, h: 2.5, follow: st.boat, female: it.bubble.female, speechName: it.name, speechText: it.text, _voicedText: it.text, speechUntil: w.time + dur };
+  list.push(st.bubble);
+}
+
+function touristReact(kind, chance = 1, after = false) {
+  if (Math.random() > chance || st.t - (st.reactedAt || -99) < 12) return;
+  st.reactedAt = st.t;
+  sayLines([pick(TOURIST_REACT[kind])], { after });
 }
 
 const SHOUT_GAP = 7; // s of quiet after any line before chatter may follow
@@ -619,10 +695,6 @@ function shout(kind, force = false) {
   w.shoutAt = st.t;
   w.nextChatAt = st.t + 11 + Math.random() * 7;
   say(WIEBE + ' (megafoon)', pick(SHOUT[kind]), '#ffcf4a', force);
-}
-
-function guideName(world) {
-  return world.player.character === 'anita' ? 'Anita' : 'Tammo';
 }
 
 // --- happiness ---------------------------------------------------------------------------
@@ -691,6 +763,7 @@ function checkBumps(world, driving) {
   } else if (dv > BUMP_DV) {
     const amount = clamp((dv - 1.4) * 2.4, 2, 28);
     scare(amount, amount > 10 ? pick(BUMP_HARD) : pick(BUMP_SOFT));
+    if (amount > 6) touristReact('bump', 0.6, true);
   }
 }
 
@@ -702,13 +775,14 @@ function updateSights(dt, world, speed) {
     if (st.ps < q.s - SIGHT_R - 10) continue;
     const d = Math.hypot(v.x - q.px, v.y - q.py);
     if (d > SIGHT_R) continue;
-    if (speed < SIGHT_SLOW) {
+    if (st.relaxed || speed < SIGHT_SLOW) {
       q.hold += dt;
       if (q.hold >= SIGHT_HOLD) {
         q.done = true;
-        say(`${guideName(world)} (gids)`, q.line, '#7fd4ff', false, true);
-        cheer(SIGHT_JOY);
-        world.addMessage(`Klik klik: de toeristen fotograferen ${q.name} (+${SIGHT_JOY})`, 2.6);
+        sayLines(q.lines, { guide: true, s: q.s });
+        const joy = st.relaxed && speed >= SIGHT_SLOW ? 1 : SIGHT_JOY;
+        cheer(joy);
+        world.addMessage(`Klik klik: de toeristen fotograferen ${q.name} (+${joy})`, 2.6);
       }
     } else if (!st.slowHintShown) {
       st.slowHintShown = true;
@@ -980,7 +1054,11 @@ export function updateRondvaart(dt, world) {
   if (driving) {
     if (!st.welcomed && !isCinematicActive()) {
       st.welcomed = true;
-      say(`${guideName(world)} (gids)`, WELCOME, '#7fd4ff', false, true);
+      sayLines(TOUR_WELCOME, { guide: true });
+    }
+    if (st.t > st.reactAt) {
+      st.reactAt = st.t + 45 + Math.random() * 30;
+      if (st.t - st.lastBumpAt > CALM_AFTER * 2 && (!st.wiebe || st.wiebe.out)) touristReact('calm');
     }
     if (st.cheerAt && st.t > st.cheerAt) {
       st.cheerAt = 0;
@@ -991,28 +1069,40 @@ export function updateRondvaart(dt, world) {
     if (calm && st.joy < CALM_CAP) st.joy = Math.min(CALM_CAP, st.joy + CALM_RATE * dt);
   }
 
-  if (!st.wiebe && !st.wiebeGone && driving && st.ps >= wiebeTriggerS() - 5) {
+  if (!st.relaxed && !st.wiebe && !st.wiebeGone && driving && st.ps >= wiebeTriggerS() - 5) {
     st.wiebe = spawnWiebe(world);
     if (st.wiebe) {
       shout('appear', true);
+      touristReact('wiebe', 1, true);
       world.addMessage('Achter je: Schipper Wiebe, de échte eigenaar, in z\'n sloep. Laat hem op een kade knallen of lok hem naar het museum: Wiebe bukt voor niemand.', 6);
     }
   }
   if (st.wiebe) updateWiebe(dt, world);
 
-  moodMessages(world);
+  if (!st.relaxed) moodMessages(world);
   updateSubs(dt);
 
   const tg = ensureDecor(v, 'rvTourists', touristGroup);
-  if (tg) animateTourists(tg, st, st.t);
+  if (tg) {
+    seatTourists(tg);
+    animateTourists(tg, st, st.t);
+  }
   if (st.wiebe) {
     const wg = ensureDecor(st.wiebe.v, 'rvWiebe', wiebeGroup);
     if (wg) animateWiebe(wg, st.wiebe, st.t);
   }
 
+  if (st.relaxed) return null;
   if (st.joy <= 0) return 'de toeristen zijn gevlucht. Bij de eerste de beste kade sprongen ze aan wal';
   if (!driving && p.inVehicle && p.inVehicle.isBoat && Math.hypot(p.x - v.x, p.y - v.y) > 45) return 'je liet de toeristen gewoon op het water achter';
   return null;
+}
+
+// The relaxed tour's progress (sidejob_rondvaarttour.js): metres sailed,
+// the route length, whether the guide is still talking.
+export function rondvaartProgress() {
+  if (!st) return null;
+  return { s: st.ps, length: ROUTE_LENGTH, talking: !!st.sub || st.subQueue.length > 0, joy: st.joy, told: st.sights.filter((q) => q.done).length, stops: st.sights.length };
 }
 
 // Debug/test access.

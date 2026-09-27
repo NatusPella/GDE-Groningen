@@ -39,7 +39,7 @@ const SIGHTS = [
   { i: 39, name: 'De Oosterhaven', lines: ['De Oosterhaven: woonboten, sloepen en één eend die hier al jaren de baas is.', 'Wie hier woont, heeft een tuin die meebeweegt.', 'Zwaai maar. Ze zwaaien terug. Of ze gooien een brood.'] },
   { i: 45, name: 'Het Schuitendiep', lines: ['Het Schuitendiep. Vroeger kwamen hier turfschepen binnen.', 'Nu komen hier vooral fietsen binnen. In het water.', 'Elk jaar vissen ze er honderden uit. De rest heeft zich aangepast.'] },
   { i: 56, name: 'Poelestraat-kade', lines: ['Rechts, net om de hoek: de Poelestraat en de Peperstraat.', 'Overdag slaapt het hier. Om twaalf uur \'s nachts zegt heel Grunn hier "moi".', 'En om vier uur zegt heel Grunn hier "nog één".'] },
-  { i: 71, name: 'Prinsentuin', lines: ['Links de Prinsentuin, uit de zestiende eeuw.', 'Rozen, buxus en een zonnewijzer die hier weinig te doen heeft.', 'Het theehuis is open. Als het niet regent. Dus bijna nooit.'] },
+  { i: 71, name: 'Prinsentuin', lines: ['Links de Prinsentuin, uit de zeventiende eeuw.', 'Rozen, buxus en een zonnewijzer die hier weinig te doen heeft.', 'Het theehuis is open. Als het niet regent. Dus bijna nooit.'] },
   { i: 80, name: "d'Olle Grieze", lines: ["Kijk rechts over de daken: d'Olle Grieze, de Martinitoren.", 'Zevenennegentig meter. De langste Stadjer die nooit verhuist.', 'Wie de trap op loopt, krijgt uitzicht. En spierpijn.'] },
 ];
 
