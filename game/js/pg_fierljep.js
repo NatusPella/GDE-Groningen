@@ -43,9 +43,15 @@ function inPoly(px, py, poly) {
   return inside;
 }
 
+// the same every time for a map, and a few hundred ms to find
 function findSpot(map) {
+  if (map._fierljepSpot === undefined) map._fierljepSpot = searchSpot(map);
+  return map._fierljepSpot;
+}
+
+function searchSpot(map) {
   for (const c of CANDIDATES) {
-    const v = findVaultSpot(map, c.at[0], c.at[1], 110, { minWidth: 7, maxWidth: 15 });
+    const v = findVaultSpot(map, c.at[0], c.at[1], 110, { minWidth: 7, maxWidth: 20 });
     if (!v) continue;
     const dx = v.to.x - v.from.x, dy = v.to.y - v.from.y, l = Math.hypot(dx, dy) || 1;
     const dir = { x: dx / l, y: dy / l };
@@ -268,7 +274,7 @@ function end(run) {
   const medal = !landed ? 0 : won ? (d.best - d.width - 2.2 >= GOLD_BONUS ? 3 : 2) : 1;
   finish(run, {
     success: won, medal, value: landed ? d.best : undefined, lower: false,
-    reason: won ? 'Verder dan Jelle! Hij meet het nog drie keer na.' : landed ? 'Jelle sprong verder. Hij doet alsof het niks is.' : 'Drie keer plons. Het Hoornsediep kent je nu.',
+    reason: won ? 'Verder dan Jelle! Hij meet het nog drie keer na.' : landed ? 'Jelle sprong verder. Hij doet alsof het niks is.' : `Drie keer plons. ${d.s.name[0].toUpperCase()}${d.s.name.slice(1)} kent je nu.`,
     stats: [['Jouw beste', landed ? fmtM(d.best) : 'plons'], ['Jelle', fmtM(d.jbest)], ['Sloot', fmtM(d.width)]],
   });
 }

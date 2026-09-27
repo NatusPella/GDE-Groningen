@@ -85,7 +85,14 @@ export function collect() {
   for (const e of out) e.fallback = 'lines';
 
   // --- intro montage -> story manifest
-  for (const l of allLits(src('intromontage.js'), 'lines: [[')) for (const [, , who, t] of l) add('Intro-montage', 'story', [who], t);
+  // [speaker key, text, delivery tag?]; new recordings go to the lines manifest
+  const IM_WHO = { T: 'Tammo', A: 'Anita', V: NARRATOR, jelle: 'Jelle Terpstra' };
+  for (const l of allLits(src('intromontage.js'), 'lines: [')) {
+    for (const [k, t, tag] of l) {
+      add('Intro-montage', 'story', [IM_WHO[k] || k], t, tag ? { tag } : {});
+      out[out.length - 1].fallback = 'lines';
+    }
+  }
 
   // --- rondvaart chase -> story manifest
   const rc = src('rondvaartchase.js');

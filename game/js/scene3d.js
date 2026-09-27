@@ -1620,7 +1620,14 @@ export function update3D(dt, world) {
           body.position.y = v.susHeave || 0;
         }
       }
-      updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
+      // cutscenes, the trailer and the intro move cars by position while the
+      // world is paused: there the wheels roll the distance actually moved
+      const wud = mesh.userData, lx = wud.spinX, ly = wud.spinY;
+      wud.spinX = v.x; wud.spinY = v.y;
+      if (world.paused || v.cineTemp) {
+        const moved = lx == null ? 0 : (v.x - lx) * Math.cos(v.angle) + (v.y - ly) * Math.sin(v.angle);
+        updateVehicleWheelSpin(mesh, dt > 0 && Math.abs(moved) < 8 ? moved / dt : 0, dt, v.steer || 0);
+      } else updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
       if (v.isBoat) {
         animateBoat(mesh, v, world.time);
         crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);
@@ -2479,8 +2486,12 @@ function roofTopNear(map, x, y) {
   }
   return top;
 }
+const _guardLast = new THREE.Vector3(1e9, 0, 0);
 function guardCinematicCamera(dt, world) {
   const need = world && world.map ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
+  // a cut to another place starts from its own need, not the old shot's lift
+  if (_guardLast.distanceToSquared(cam.position) > 144) guardLift = need;
+  _guardLast.copy(cam.position);
   guardLift += (need - guardLift) * Math.min(1, dt * (need > guardLift ? 10 : 1.5));
   if (guardLift > 0.01) cam.position.y += guardLift;
   const targets = guardTargets();
