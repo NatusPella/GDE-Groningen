@@ -420,7 +420,7 @@ function buildDefs(world) {
         { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!' },
         {
           kind: 'chase', label: 'Stop de trekker-limo van Jelle', stars: 2, say: 'Achter die trekker aan! De pliesie rijdt ook mee. Ram of schiet zijn banden stuk.',
-          vehicle: { name: 'truck', len: 7.4, wid: 2.3, maxSpeed: 26, accel: 5, brake: 14, turnRate: 1.5, color: '#141414' },
+          vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' },
           name: 'Trekker-limo van Jelle', lead: 50, hits: 90, flee: [-1900, -900], cruise: 16, escape: 400, time: 220,
           half: 'Hij slingert! De vlaggetjes vliegen eraf.',
           stopped: 'De trekker-limo ligt stil. Jelle springt eruit met de Eierbal en rent naar het Reitdiep!',
@@ -1993,7 +1993,8 @@ function updateFireworks(dt, world, def, st, S) {
   if ((S.fwT -= dt) <= 0) {
     S.fwT = fw.every[0] + Math.random() * (fw.every[1] - fw.every[0]);
     // mostly around the player, so standing still at the stall is not enough
-    const aim = Math.random() < 0.6 ? p : c;
+    const close = dist(p.x, p.y, c.x, c.y) < (st.radius || HOLD_RADIUS) * 2.5;
+    const aim = close && Math.random() < 0.6 ? p : c;
     const a = Math.random() * Math.PI * 2, r = Math.random() * 5;
     S.fw.push({ x: aim.x + Math.cos(a) * r, y: aim.y + Math.sin(a) * r, t: 1.1 });
   }
@@ -2084,9 +2085,11 @@ function playStageScene(world, st, S) {
   const ok = playCinematic({
     id: 'mission-scene', priority: 3, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: st.kicker || '', title: st.title || '', cardFor: 2.5, lines, shot,
+    onStart: () => { world.cinematicHideNav = true; },
+    onEnd: () => { world.cinematicHideNav = false; },
   });
   if (ok && st.big && !st.cam) {
-    playCinematic({ id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, big: st.big, queue: true, shot: orbit(world.player.angle + 3.1, 5, 2.2) });
+    playCinematic({ id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, big: st.big, queue: true, shot: orbit(world.player.angle + 3.1, 5, 2.2), onStart: () => { world.cinematicHideNav = true; }, onEnd: () => { world.cinematicHideNav = false; } });
   }
   return ok;
 }

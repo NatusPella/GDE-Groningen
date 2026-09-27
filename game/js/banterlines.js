@@ -601,7 +601,7 @@ export const BANTER = [
     ['A', 'Omsmelten tot een gouden klompje.', 'dark, dramatic'],
     ['T', 'Dat is barbaars.', 'horrified'],
     ['A', 'Dat is praktisch. Zo zijn ze daar.', 'dry']] },
-  { id: 'id-fierljeppen', trigger: 'idle', needs: 'H6', lines: [
+  { id: 'id-fierljeppen', trigger: 'idle', needs: 'H6', until: 'H18', lines: [
     ['A', 'Jelle Terpstra. Zelfs zijn naam klinkt als een fierljepper.', 'mocking'],
     ['T', 'Die springt vast ook over grachten.', 'dry'],
     ['A', 'Laten we hopen dat hij een keer mist.', 'mischievous']] },
@@ -613,6 +613,89 @@ export const BANTER = [
     ['T', 'Ik blijf aan dat kaartje denken. "Tige tank."', 'brooding'],
     ['A', 'Hij had tenminste een mooi handschrift.', 'grudging'],
     ['T', 'Anita! Echt?', 'shocked']] },
+  // --- Staart (H14-H18) -------------------------------------------------------
+  { id: 'st-sboot', trigger: 'story:s-boot', lines: [
+    ['A', 'Een eigen boot. Wij worden net rijke mensen.', 'excited, teasing'],
+    ['T', 'Gehuurd. Voor een middag.', 'dry'],
+    ['A', 'Rijke mensen voor een middag dan.', 'cheerful']] },
+  { id: 'st-h14', trigger: 'story:H14', lines: [
+    ['T', 'Wat doe je eigenlijk als je op een skûtsje springt?', 'nervous, curious'],
+    ['A', 'Je landt. Dat is de hele truc.', 'confident'],
+    ['T', 'En wat doen we daarna?', 'worried'],
+    ['A', 'Daarna improviseren we. Zoals altijd.', 'amused']] },
+  { id: 'h14-pass-zwemmen', trigger: 'after:H14:pass', lines: [
+    ['A', 'Durk en Douwe zwommen samen naar de kant. Precies tegelijk.', 'laughing'],
+    ['T', 'Die doen alles samen. Zelfs natgaan.', 'deadpan']] },
+  { id: 'h14-pass-chocola', trigger: 'after:H14:pass', arc: true, lines: [
+    ['T', 'Heb jij nog chocola over van die nep-Eierbal?', 'hopeful'],
+    ['A', 'Nee. Bewijsmateriaal.', 'innocent'],
+    ['T', 'Je hebt hem opgegeten.', 'accusing, dry'],
+    ['A', 'Bewijsmateriaal bederft, Tammo.', 'smug']] },
+  { id: 'h14-fail', trigger: 'after:H14:fail', lines: [
+    ['A', 'Een zeilboot. Die gaat op wind. Wij gingen op een bel.', 'frustrated, laughing'],
+    ['T', 'Volgende keer huren we de speedboot.', 'resigned']] },
+  { id: 'st-h15', trigger: 'story:H15', lines: [
+    ['A', 'Laat Dokter Dijkstra ons echt vliegen?', 'unbelieving'],
+    ['T', 'Hij zei "Grunneger noodgeval". Dat is hier een officiële categorie.', 'dry, knowing']] },
+  { id: 'h15-pass-touw', trigger: 'after:H15:pass', lines: [
+    ['T', 'Ik hing aan een touw boven Grunn. Mijn moeder mag dit nooit weten.', 'shaken, dry'],
+    ['A', 'Ze weet het al. Het staat op Sikkom.', 'giggling'],
+    ['T', 'Met foto?', 'alarmed'],
+    ['A', 'Met filmpje. Je gilde.', 'delighted']] },
+  { id: 'h15-fail', trigger: 'after:H15:fail', lines: [
+    ['T', 'Die ballon ging harder dan wij.', 'defeated'],
+    ['A', 'Die ballon had geen passagier die steeds "rustig aan" riep.', 'teasing']] },
+  { id: 'st-h16', trigger: 'story:H16', lines: [
+    ['A', 'Als ik Durk zie, in mijn Fjord…', 'seething'],
+    ['T', 'Dan wat?', 'nervous'],
+    ['A', 'Dan vraag ik heel vriendelijk of hij uitstapt. Met de bumper.', 'sweet, menacing']] },
+  { id: 'h16-pass-kaas', trigger: 'after:H16:pass', lines: [
+    ['T', 'Hij ruikt een beetje naar Friese kaas, jouw Fjord.', 'sniffing, dry'],
+    ['A', 'Hij ruikt naar overwinning. Ramen open.', 'proud']] },
+  { id: 'h16-fail', trigger: 'after:H16:fail', lines: [
+    ['A', 'Mijn Fjord staat op een trein. Zonder mij.', 'heartbroken'],
+    ['T', 'We halen hem terug. Desnoods in Leeuwarden.', 'determined']] },
+  { id: 'st-h17', trigger: 'story:H17', lines: [
+    ['T', 'Een eierbalwedstrijd tegen een Fries. Wat als hij beter bakt?', 'worried'],
+    ['A', 'Niemand bakt beter dan Grunn. Dat is geen mening, dat is geschiedenis.', 'firm, proud']] },
+  { id: 'h17-pass-eieren', trigger: 'after:H17:pass', lines: [
+    ['T', 'Twaalf eieren, nul gebroken.', 'proud'],
+    ['A', 'Elf. Eén rolde onder de achterbank.', 'guilty, amused'],
+    ['T', 'Die vinden we in de winter wel terug.', 'resigned']] },
+  { id: 'h17-fail', trigger: 'after:H17:fail', lines: [
+    ['A', 'Omelet achterin. Ruikt eigenlijk best lekker.', 'sniffing, laughing'],
+    ['T', 'Niet tegen Jelle zeggen.', 'whispering']] },
+  { id: 'st-h18', trigger: 'story:H18', lines: [
+    ['A', 'Gronings Ontzet. Bommen Berend in de jury.', 'excited'],
+    ['T', 'Die heeft nog iets goed te maken met deze stad.', 'dry'],
+    ['A', 'Al sinds 1672, ja.', 'laughing']] },
+  { id: 'h18-pass-museum', trigger: 'after:H18:pass', lines: [
+    ['A', 'De Eierbal staat weer in het museum.', 'content'],
+    ['T', 'Met een alarm dat het doet, dit keer.', 'dry'],
+    ['A', 'Weet ik. We hebben het getest. Per ongeluk.', 'sheepish, giggling']] },
+  { id: 'h18-fail', trigger: 'after:H18:fail', lines: [
+    ['T', 'Hij was weg voordat ik "Ontzet" kon zeggen.', 'frustrated'],
+    ['A', 'Grunn geeft nooit op. Nog een keer.', 'determined']] },
+  { id: 'end-staart-bakken', trigger: 'story:end:staart', lines: [
+    ['T', 'En nu?', 'curious'],
+    ['A', 'Nu bakken we eierballen. Elke dag.', 'happy'],
+    ['T', 'En ik mag ze proeven?', 'hopeful'],
+    ['A', 'De mislukte.', 'teasing']] },
+  { id: 'end-staart-revanche', trigger: 'story:end:staart', lines: [
+    ['A', 'Jelle belde. Hij wil een revanche. Op het water, zegt hij.', 'amused'],
+    ['T', 'Natuurlijk wil hij dat.', 'sighing'],
+    ['A', 'Ik heb ja gezegd.', 'mischievous']] },
+  { id: 'end-staart-voor', trigger: 'story:end:staart', lines: [
+    ['T', 'Wij tweeën vóór Grunn. Klinkt eigenlijk best goed.', 'warm, shy'],
+    ['A', 'Zei ik toch. Op die rondvaartboot al.', 'tender, smug']] },
+  { id: 'id-fjordfrituur', trigger: 'idle', needs: 'H18', lines: [
+    ['A', 'De rij bij de Fjord Frituur staat tot aan de Vismarkt.', 'proud'],
+    ['T', 'Omdat jij er staat.', 'sweet'],
+    ['A', 'Omdat de eierballen goed zijn.', 'flattered, firm'],
+    ['T', 'Dat ook, ja.', 'deadpan, loving']] },
+  { id: 'id-fierljep-mis', trigger: 'idle', needs: 'H18', lines: [
+    ['T', 'Weet je nog dat je zei: laten we hopen dat hij een keer mist?', 'amused'],
+    ['A', 'Ik heb het nooit zo mooi zien missen.', 'laughing']] },
 ];
 
 // Short cut-offs when a crash or new stars interrupt a conversation (one line).

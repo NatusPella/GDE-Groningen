@@ -1694,5 +1694,245 @@
 "Tammo|Dat heet hier gewoon Gronings.": {
 "src": "pl-aakerk_3_t_1f69cc.mp3",
 "dur": 2.29
+},
+"Anita|Een eigen boot. Wij worden net rijke mensen.": {
+"src": "st-sboot_0_a_8ee74f.mp3",
+"dur": 3.6
+},
+"Tammo|Gehuurd. Voor een middag.": {
+"src": "st-sboot_1_t_c0afcc.mp3",
+"dur": 1.96
+},
+"Anita|Rijke mensen voor een middag dan.": {
+"src": "st-sboot_2_a_649782.mp3",
+"dur": 1.93
+},
+"Tammo|Wat doe je eigenlijk als je op een skûtsje springt?": {
+"src": "st-h14_0_t_67f208.mp3",
+"dur": 2.98
+},
+"Anita|Je landt. Dat is de hele truc.": {
+"src": "st-h14_1_a_e2e2bd.mp3",
+"dur": 2.75
+},
+"Anita|Daarna improviseren we. Zoals altijd.": {
+"src": "st-h14_3_a_0de192.mp3",
+"dur": 3.03
+},
+"Anita|Durk en Douwe zwommen samen naar de kant. Precies tegelijk.": {
+"src": "h14-pass-zwemmen_0_a_9f1736.mp3",
+"dur": 4.87
+},
+"Tammo|Die doen alles samen. Zelfs natgaan.": {
+"src": "h14-pass-zwemmen_1_t_f4edf3.mp3",
+"dur": 2.82
+},
+"Tammo|Heb jij nog chocola over van die nep-Eierbal?": {
+"src": "h14-pass-chocola_0_t_0faf87.mp3",
+"dur": 3.38
+},
+"Anita|Nee. Bewijsmateriaal.": {
+"src": "h14-pass-chocola_1_a_4cc0b2.mp3",
+"dur": 2.45
+},
+"Tammo|Je hebt hem opgegeten.": {
+"src": "h14-pass-chocola_2_t_af5248.mp3",
+"dur": 1.17
+},
+"Anita|Bewijsmateriaal bederft, Tammo.": {
+"src": "h14-pass-chocola_3_a_72ddf9.mp3",
+"dur": 4.39
+},
+"Anita|Een zeilboot. Die gaat op wind. Wij gingen op een bel.": {
+"src": "h14-fail_0_a_e0a30e.mp3",
+"dur": 4.57
+},
+"Tammo|Volgende keer huren we de speedboot.": {
+"src": "h14-fail_1_t_1186d0.mp3",
+"dur": 2.48
+},
+"Anita|Laat Dokter Dijkstra ons echt vliegen?": {
+"src": "st-h15_0_a_076933.mp3",
+"dur": 3.55
+},
+"Tammo|Hij zei \"Grunneger noodgeval\". Dat is hier een officiële categorie.": {
+"src": "st-h15_1_t_7ea865.mp3",
+"dur": 4.88
+},
+"Tammo|Ik hing aan een touw boven Grunn. Mijn moeder mag dit nooit weten.": {
+"src": "h15-pass-touw_0_t_d5d454.mp3",
+"dur": 5.43
+},
+"Anita|Ze weet het al. Het staat op Sikkom.": {
+"src": "h15-pass-touw_1_a_4385ab.mp3",
+"dur": 3.24
+},
+"Tammo|Met foto?": {
+"src": "h15-pass-touw_2_t_c5272c.mp3",
+"dur": 1.31
+},
+"Anita|Met filmpje. Je gilde.": {
+"src": "h15-pass-touw_3_a_823e03.mp3",
+"dur": 2.77
+},
+"Tammo|Die ballon ging harder dan wij.": {
+"src": "h15-fail_0_t_9a1c58.mp3",
+"dur": 2.14
+},
+"Anita|Die ballon had geen passagier die steeds \"rustig aan\" riep.": {
+"src": "h15-fail_1_a_500588.mp3",
+"dur": 4.74
+},
+"Anita|Als ik Durk zie, in mijn Fjord…": {
+"src": "st-h16_0_a_88a00d.mp3",
+"dur": 3.19
+},
+"Tammo|Dan wat?": {
+"src": "st-h16_1_t_0779be.mp3",
+"dur": 1.86
+},
+"Anita|Dan vraag ik heel vriendelijk of hij uitstapt. Met de bumper.": {
+"src": "st-h16_2_a_9da537.mp3",
+"dur": 5.57
+},
+"Tammo|Hij ruikt een beetje naar Friese kaas, jouw Fjord.": {
+"src": "h16-pass-kaas_0_t_996187.mp3",
+"dur": 3.71
+},
+"Anita|Hij ruikt naar overwinning. Ramen open.": {
+"src": "h16-pass-kaas_1_a_9648fb.mp3",
+"dur": 2.69
+},
+"Anita|Mijn Fjord staat op een trein. Zonder mij.": {
+"src": "h16-fail_0_a_e9c154.mp3",
+"dur": 5.02
+},
+"Tammo|We halen hem terug. Desnoods in Leeuwarden.": {
+"src": "h16-fail_1_t_9146ef.mp3",
+"dur": 3.25
+},
+"Tammo|Een eierbalwedstrijd tegen een Fries. Wat als hij beter bakt?": {
+"src": "st-h17_0_t_7ab6ef.mp3",
+"dur": 4.95
+},
+"Anita|Niemand bakt beter dan Grunn. Dat is geen mening, dat is geschiedenis.": {
+"src": "st-h17_1_a_a03baa.mp3",
+"dur": 5.03
+},
+"Tammo|Twaalf eieren, nul gebroken.": {
+"src": "h17-pass-eieren_0_t_65eb79.mp3",
+"dur": 2.29
+},
+"Anita|Elf. Eén rolde onder de achterbank.": {
+"src": "h17-pass-eieren_1_a_56ddb6.mp3",
+"dur": 2.85
+},
+"Tammo|Die vinden we in de winter wel terug.": {
+"src": "h17-pass-eieren_2_t_645fd3.mp3",
+"dur": 2.07
+},
+"Anita|Omelet achterin. Ruikt eigenlijk best lekker.": {
+"src": "h17-fail_0_a_cb587d.mp3",
+"dur": 4.71
+},
+"Tammo|Niet tegen Jelle zeggen.": {
+"src": "h17-fail_1_t_019606.mp3",
+"dur": 1.79
+},
+"Anita|Gronings Ontzet. Bommen Berend in de jury.": {
+"src": "st-h18_0_a_cc77a1.mp3",
+"dur": 3.64
+},
+"Tammo|Die heeft nog iets goed te maken met deze stad.": {
+"src": "st-h18_1_t_eea574.mp3",
+"dur": 2.41
+},
+"Anita|De Eierbal staat weer in het museum.": {
+"src": "h18-pass-museum_0_a_91aee6.mp3",
+"dur": 3.31
+},
+"Tammo|Met een alarm dat het doet, dit keer.": {
+"src": "h18-pass-museum_1_t_02391e.mp3",
+"dur": 2.46
+},
+"Anita|Weet ik. We hebben het getest. Per ongeluk.": {
+"src": "h18-pass-museum_2_a_3ab17e.mp3",
+"dur": 5.36
+},
+"Tammo|Hij was weg voordat ik \"Ontzet\" kon zeggen.": {
+"src": "h18-fail_0_t_c0637f.mp3",
+"dur": 2.56
+},
+"Anita|Grunn geeft nooit op. Nog een keer.": {
+"src": "h18-fail_1_a_3eea9d.mp3",
+"dur": 3.04
+},
+"Tammo|En nu?": {
+"src": "end-staart-bakken_0_t_79487c.mp3",
+"dur": 0.53
+},
+"Anita|Nu bakken we eierballen. Elke dag.": {
+"src": "end-staart-bakken_1_a_8dba17.mp3",
+"dur": 3.52
+},
+"Tammo|En ik mag ze proeven?": {
+"src": "end-staart-bakken_2_t_5f8c8e.mp3",
+"dur": 1.21
+},
+"Anita|De mislukte.": {
+"src": "end-staart-bakken_3_a_446aa1.mp3",
+"dur": 1.37
+},
+"Anita|Jelle belde. Hij wil een revanche. Op het water, zegt hij.": {
+"src": "end-staart-revanche_0_a_7f6de2.mp3",
+"dur": 5.49
+},
+"Tammo|Natuurlijk wil hij dat.": {
+"src": "end-staart-revanche_1_t_91c548.mp3",
+"dur": 1.81
+},
+"Anita|Ik heb ja gezegd.": {
+"src": "end-staart-revanche_2_a_107c3b.mp3",
+"dur": 2.62
+},
+"Tammo|Wij tweeën vóór Grunn. Klinkt eigenlijk best goed.": {
+"src": "end-staart-voor_0_t_cfab51.mp3",
+"dur": 3.33
+},
+"Anita|Zei ik toch. Op die rondvaartboot al.": {
+"src": "end-staart-voor_1_a_c17f1c.mp3",
+"dur": 4.84
+},
+"Anita|De rij bij de Fjord Frituur staat tot aan de Vismarkt.": {
+"src": "id-fjordfrituur_0_a_e3ea14.mp3",
+"dur": 3.42
+},
+"Tammo|Omdat jij er staat.": {
+"src": "id-fjordfrituur_1_t_8fcf10.mp3",
+"dur": 1.34
+},
+"Anita|Omdat de eierballen goed zijn.": {
+"src": "id-fjordfrituur_2_a_aede61.mp3",
+"dur": 2.52
+},
+"Tammo|Weet je nog dat je zei: laten we hopen dat hij een keer mist?": {
+"src": "id-fierljep-mis_0_t_664feb.mp3",
+"dur": 4.58
+},
+"Anita|Ik heb het nooit zo mooi zien missen.": {
+"src": "id-fierljep-mis_1_a_673fc5.mp3",
+"dur": 2.62
+},
+"Tammo|En wat doen we daarna?": {
+"src": "st-h14_2_t_294910.mp3",
+"dur": 1.87
+},
+"Anita|Al sinds 1672, ja.": {
+"src": "st-h18_2_a_75f779.mp3",
+"dur": 2.52
+},
+"Tammo|Dat ook, ja.": {
+"src": "id-fjordfrituur_3_t_b5ea73.mp3",
+"dur": 1.1
 }
 }
