@@ -21,7 +21,7 @@ const MOUNT_SPAWN_MAX = 120;
 const MOUNT_MIN_FROM_PLAYER = 45;
 const MOUNT_ROAD_CATS = ['cycle', 'minor', 'normal'];
 const BIKE_CHANCE = 0.55;
-const HORSE_CHANCE = 0.18;
+const HORSE_CHANCE = 0.4;
 const CENTRE_FRACTION = 0.75;
 const HORSE_BOLT_HEALTH = 40;
 
@@ -105,7 +105,7 @@ export function trySpawnMounts(world, state) {
   const slow = !pv || pv.isBike || pv.isScooter;
   let maxBikes = w <= 3 ? 1 : 0;
   if (centre || slow) maxBikes = w <= 3 ? (w >= 2 ? 2 : 1) : (centre && slow ? 1 : 0);
-  const maxHorses = w <= 3 && (centre || slow) ? 1 : 0;
+  const maxHorses = (w <= 3 && (centre || slow)) || (w <= 4 && centre) ? 1 : 0;
   let kind = null;
   if (horses < maxHorses && Math.random() < HORSE_CHANCE) kind = 'horse';
   else if (bikes < maxBikes && Math.random() < BIKE_CHANCE) kind = 'bike';
