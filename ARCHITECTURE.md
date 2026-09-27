@@ -69,7 +69,7 @@ frame then runs, in order:
 | UI | `hud_panel.js` + `.css` (minimap: player, routes and targets always; static places only the nearest few per category; the objective line), `hudcards.js` + `.css` (HUD message cards, countdowns), `cardlines.js` (what Tammo/Anita say with a card), `prompts.js` + `.css` (world prompts and the key-cap + pictogram hint chips), `shopui.js` (shop menus: select, then buy with the button; confirm for expensive items), `vehiclepreview.js` (rotating 3D vehicle for the shops and the garage tab), `pausemenu.js` (tabs; `addMissionsSection` for extra Missies sections), `garageui.js` (garage tab with the 3D viewer), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js` + `.css` (phone notifications and calls), `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots and the pause menu's header, footer and panels) |
 | Audio | `speech.js` (the one talking channel, see "Spoken lines"), `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | Building passages and interiors | `passages.js` (the corridors footways and streets cut through a footprint: mapped OSM passages from `mapextras.json` `passages`, streets, short footways/cycleways; walkers, vehicles, spawns and the camera share them), `portalcut3d.js` (building materials discard inside the passage boxes near the player, so the facade shows a real gate; lined tunnels with lamps), `museumplan.js` + `museum3d.js` (the Groninger Museum's walkable ground floor as rooms: cycle passage, atrium, Entreehal, zaal 1, zaal 3 with the Gouden Eierbal case used by H6) |
-| Validation | `spotcheck.js` (every start/target point must be open ground you can walk away from), `ringcheck.js` (nothing solid on the ring race lap and ring roads, a scripted car and the AI racers drive a full lap, every rail lift can be walked, driven and cycled up); both run in the story test, desktop `--validate-spots[=dir]` runs only them |
+| Validation | `spotcheck.js` (every start/target point must be open ground you can walk away from), `ringcheck.js` (nothing solid or open water on the ring race lap and ring roads, a car crosses every water crossing of the major and numbered roads at 80 km/h in both directions and three lanes, a scripted car and the AI racers drive a full lap, every rail lift can be walked, driven and cycled up); both run in the story test, desktop `--validate-spots[=dir]` runs only them |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 
 ## Spoken lines
@@ -271,7 +271,12 @@ per map (`map.elev`):
 - Walls: retaining walls of cuttings (solid from inside, with a fence solid
   from the street), crash barriers on raised roads, abutments where an
   embankment meets a road passing underneath. `resolveWalker(..., z)` and
-  `resolveVehicleBuildingCollision` use them.
+  `resolveVehicleBuildingCollision` use them. The steel crash barriers
+  (not the concrete ones on viaducts) and the cutting fences are breakable
+  (`w.brk`: 'vangrail'/'hek'): for the player's vehicle cityprops.js turns
+  them into props like the bridge railings, and a knocked-out section is
+  hidden in the roadstructures3d.js mesh (`w.collapse`/`w.restore`) until it
+  respawns.
 - `map.ceilingAt` (tunnel roofs, decks: the follow camera stays under them),
   `map.coveredAt` (the canal above the aqueduct is not water down there),
   `map.offStreetLevel` (no clutter, lamps, trees or spawns on the ring's
