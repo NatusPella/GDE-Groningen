@@ -605,7 +605,7 @@ export function updateFurnitureInside(dt, w) {
     if (night > 0.05) {
       const [lx, ly] = f.fl(0.6, 4.7);
       const [tx, ty] = f.fl(3.0, 3.0);
-      requestSearchlight(lx, f.floorY + 2.6, ly, tx, f.floorY, ty, 4.2, 0.55 * Math.min(1, night * 1.5));
+      requestSearchlight(lx, f.floorY + 2.6, ly, tx, f.floorY, ty, 4.4, 0.85 * Math.min(1, night * 1.5));
       sayOnce(w, 'lamp', 'Lekker lichtje. Nu is het echt gezellig.');
     }
   }
