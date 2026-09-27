@@ -438,7 +438,7 @@ export class Player {
         this.shoveX += push.nx * kick;
         this.shoveY += push.ny * kick;
         if (fresh) reportImpact(world, this.x, this.y, closing * 0.6, true);
-        if (closing > KNOCKDOWN_CLOSING && !v.isBike && !v.isScooter && !this.ragdoll) this.knockedByVehicle(world, v, push, closing);
+        if (closing > KNOCKDOWN_CLOSING && ((!v.isBike && !v.isScooter) || v._mount === 'horse') && !this.ragdoll) this.knockedByVehicle(world, v, push, closing);
       }
     }
     const c = world.companion;

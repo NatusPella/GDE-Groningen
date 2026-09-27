@@ -843,6 +843,42 @@ function playShiftBlip(up, freq) {
   }
 }
 
+// A horse instead of a bike bell: a falling, warbling neigh and a snort.
+function playWhinny(x, y) {
+  const out = spatialOut(x, y, { ref: 5, rolloff: 1, range: 70, h: 2 });
+  if (!out || !voiceOk(1)) return;
+  activeVoices++;
+  const t0 = ctx.currentTime, t1 = t0 + 1.1;
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(620, t0);
+  osc.frequency.linearRampToValueAtTime(980, t0 + 0.12);
+  osc.frequency.exponentialRampToValueAtTime(330, t1);
+  const lfo = ctx.createOscillator();
+  lfo.frequency.value = 16;
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 55;
+  lfo.connect(lfoGain).connect(osc.frequency);
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1300;
+  filter.Q.value = 1.1;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.2, t0 + 0.06);
+  g.gain.exponentialRampToValueAtTime(0.0001, t1);
+  osc.connect(filter).connect(g).connect(out.node);
+  out.hold();
+  osc.start(t0); lfo.start(t0);
+  osc.stop(t1 + 0.02); lfo.stop(t1 + 0.02);
+  osc.onended = () => {
+    activeVoices--;
+    osc.disconnect(); lfo.disconnect(); lfoGain.disconnect(); filter.disconnect(); g.disconnect();
+    out.release();
+  };
+  playNoiseBurst({ duration: 0.25, freq: 500, freqEnd: 180, q: 0.7, gain: 0.18, type: 'lowpass', delay: 1.0, out });
+}
+
 function playSplash(x, y) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 80 });
   if (!out) return;
@@ -1607,6 +1643,53 @@ const ENGINE_SPECS = [
   { idle: 0, red: 48000, shift: 0, level: 0.3 },
 ];
 
+// Canoes, kayaks and pedalos have no engine: paddle strokes or the pedalo's
+// wheel instead (updatePaddling).
+const HUMAN_BOATS = new Set(['kano', 'kajak', 'waterfiets']);
+function humanPowered(v) {
+  return !!(v && v.isBoat && v.model && HUMAN_BOATS.has(v.model.kind));
+}
+
+const paddleState = new WeakMap();
+const PADDLE_RANGE = 45;
+
+function paddleStroke(v, st, out, near) {
+  const kind = v.model.kind;
+  const k = near ? 1 : 0.7;
+  if (kind === 'waterfiets') {
+    // a blade of the stern wheel slapping in, and now and then the crank
+    playNoiseBurst({ duration: 0.16, freq: 700 + Math.random() * 300, freqEnd: 260, q: 0.9, gain: 0.16 * k, type: 'bandpass', out });
+    if ((st.n = (st.n || 0) + 1) % 4 === 0) playTone({ freq: 1900, freqEnd: 1500, type: 'triangle', duration: 0.03, gain: 0.025 * k, filterFreq: 3000, out });
+    return;
+  }
+  // dip (short swish), then the pull through the water
+  playNoiseBurst({ duration: 0.09, freq: 2600, freqEnd: 900, q: 1.4, gain: 0.07 * k, type: 'bandpass', out });
+  playNoiseBurst({ duration: 0.42, freq: 900 + Math.random() * 250, freqEnd: 240, q: 0.6, gain: 0.22 * k, type: 'lowpass', delay: 0.07, out });
+}
+
+function updatePaddling(dt, world) {
+  if (!ctx || muted || world.paused) return;
+  const pv = world.player.inVehicle;
+  for (const v of world.vehicles) {
+    if (!humanPowered(v) || v.wrecked || v.sinking) continue;
+    const mine = v === pv;
+    const speed = Math.abs(v.speed || 0);
+    const pulling = mine ? (v.throttle || 0) !== 0 || speed > 0.4 : speed > 0.3;
+    if (!pulling) continue;
+    if (!mine && distToListener(v.x, v.y, 0.5) > PADDLE_RANGE) continue;
+    let st = paddleState.get(v);
+    if (!st) { st = { t: Math.random() * 0.5 }; paddleState.set(v, st); }
+    const top = v.model.maxSpeed || 2.5;
+    const frac = clamp(speed / top, 0, 1);
+    const period = v.model.kind === 'waterfiets' ? 0.34 - 0.16 * frac : v.model.kind === 'kajak' ? 0.62 - 0.14 * frac : 0.95 - 0.2 * frac;
+    st.t -= dt;
+    if (st.t > 0) continue;
+    st.t = period * (0.92 + Math.random() * 0.16);
+    const out = spatialOut(v.x, v.y, { ref: 4, rolloff: 1.2, range: PADDLE_RANGE, h: 0.4 });
+    if (out) paddleStroke(v, st, out, mine);
+  }
+}
+
 // Deelsteps are electric (kind 7); the police motor is a real brommer.
 function engineKind(v) {
   if (v.isScooter) return v.isPolice ? 3 : 7;
@@ -1647,7 +1730,7 @@ function updateEngineSynth(dt, world) {
   const S = engineState;
   const v = world.player.inVehicle;
   const t = ctx.currentTime;
-  const motor = !!(v && !v.isBike && !v.wrecked);
+  const motor = !!(v && !v.isBike && !v.wrecked && !humanPowered(v));
   if (motor && v !== S.vehicle) {
     S.vehicle = v;
     S.kind = engineKind(v);
@@ -1668,7 +1751,7 @@ function updateEngineSynth(dt, world) {
     const speed = Math.abs(v.speed);
     const small = v.isBike || v.isScooter;
     const surface = v.isBoat ? 4 : SURFACE_CODE[v.surface] ?? 0;
-    const coasting = v.isBike && !(v.throttle > 0) && speed > 0.8;
+    const coasting = v.isBike && !v._mount && !(v.throttle > 0) && speed > 0.8;
     road = {
       speed, surface, small: small ? 1 : 0,
       wet: surface === 2 || v.isBoat ? 0 : rain,
@@ -1728,7 +1811,7 @@ function trafficEngineParams(v, dt, fresh) {
 function updateEngine(dt, world) {
   if (synth.player) { updateEngineSynth(dt, world); return; }
   const v = world.player.inVehicle;
-  const motor = v && !v.isBike;
+  const motor = v && !v.isBike && !humanPowered(v);
   const speed = motor ? Math.abs(v.speed) : 0;
   const t = ctx.currentTime;
   let targetGain = 0, targetFreq = 42, cutoff = 300;
@@ -1932,7 +2015,8 @@ function updatePlayerHorn(world) {
   const pressing = !!(v && v.horn && !v.wrecked && !world.paused);
   const bell = v && (v.isBike || (v.isScooter && !v.isPolice)); // an e-step has a bell too
   if (pressing && bell) {
-    if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
+    if (t >= bellReadyAt && v._mount === 'horse') { playWhinny(v.x, v.y); bellReadyAt = t + 1.6; }
+    else if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
   } else if (!pressing) bellReadyAt = 0;
   const on = pressing && !bell;
   if (on && !hornVoice.on) {
@@ -2201,7 +2285,7 @@ function vehicleVoiceParams(v) {
 }
 
 function isEngineRunning(v) {
-  if (v.wrecked || v.isBike || v.parked || v.driver === 'player') return false;
+  if (v.wrecked || v.isBike || v.parked || v.driver === 'player' || humanPowered(v)) return false;
   if (Math.abs(v.speed) > 0.2) return true;
   return v.isBoat || v.racer || (!!v.road && !v.isHeroCar);
 }
@@ -2211,7 +2295,11 @@ function updateTrafficAudio(dt, world) {
   for (const v of world.vehicles) {
     if (isEngineRunning(v)) running.push(v);
     const horn = !!v.horn;
-    if (horn && !hornWasOn.get(v) && v.driver !== 'player') playHorn(v.x, v.y, 0.4, hornPitch(v));
+    if (horn && !hornWasOn.get(v) && v.driver !== 'player') {
+      if (v._mount === 'horse') playWhinny(v.x, v.y);
+      else if (v.isBike) playBell(v.x, v.y);
+      else playHorn(v.x, v.y, 0.4, hornPitch(v));
+    }
     hornWasOn.set(v, horn);
   }
   assignVoices(engineVoices, nearestSorted(running, ENGINE_RANGE, ENGINE_VOICES));
@@ -2506,6 +2594,7 @@ export function updateAudio(dt, world) {
   prev.missionPhase = missionPhase;
 
   updateEngine(dt, world);
+  updatePaddling(dt, world);
   updateSqueal(dt, world);
   updateRumble(dt, world);
   updateScrape(dt, world);

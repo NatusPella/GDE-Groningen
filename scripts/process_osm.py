@@ -290,6 +290,47 @@ def load_elements():
     return elements
 
 
+def point_in_poly(x, y, pts):
+    inside = False
+    j = len(pts) - 1
+    for i in range(len(pts)):
+        xi, yi = pts[i]
+        xj, yj = pts[j]
+        if (yi > y) != (yj > y) and x < (xj - xi) * (y - yi) / (yj - yi) + xi:
+            inside = not inside
+        j = i
+    return inside
+
+
+def mark_jetties(roads, water):
+    """Footways that run out over the water (steigers to the houseboats)
+    without a bridge tag: walkable decks like a bridge, not a path drawn on
+    water the walker then sinks into."""
+    boxes = []
+    for w in water:
+        xs, ys = [p[0] for p in w["pts"]], [p[1] for p in w["pts"]]
+        boxes.append((min(xs), min(ys), max(xs), max(ys), w["pts"]))
+
+    def wet(x, y):
+        return any(x0 <= x <= x1 and y0 <= y <= y1 and point_in_poly(x, y, P) for x0, y0, x1, y1, P in boxes)
+
+    n = 0
+    for r in roads:
+        if r["cat"] != "foot" or r["bridge"] or r.get("tunnel"):
+            continue
+        pts = r["pts"]
+        samples = []
+        for a, b in zip(pts, pts[1:]):
+            k = max(1, int(math.hypot(b[0] - a[0], b[1] - a[1]) / 2))
+            samples += [(a[0] + (b[0] - a[0]) * i / k, a[1] + (b[1] - a[1]) * i / k) for i in range(k)]
+        samples.append(tuple(pts[-1]))
+        if len(samples) >= 5 and sum(wet(x, y) for x, y in samples) >= 0.6 * len(samples):
+            r["bridge"] = True
+            r["jetty"] = True
+            n += 1
+    return n
+
+
 def int_tag(tags, key):
     try:
         return int(str(tags.get(key, "0")).split(";")[0])
@@ -410,6 +451,9 @@ def main():
         if tags.get("natural") == "water" or tags.get("waterway") == "riverbank":
             if not is_closed(coords) or len(coords) < 4:
                 continue
+            # water under a deck or building (layer < 0) is not open water
+            if (int_tag(tags, "layer") or 0) < 0 or tags.get("covered") == "yes":
+                continue
             poly = clip_polygon(coords, world_rect)
             if len(poly) < 4:
                 continue
@@ -427,6 +471,7 @@ def main():
             continue
 
     roads, buildings, water, green, trees = crop_to_ring(roads, buildings, water, green, trees, world_rect)
+    print(f"jetties: {mark_jetties(roads, water)} footways over the water marked as decks")
 
     minx, miny, maxx, maxy = world_rect
     out = {

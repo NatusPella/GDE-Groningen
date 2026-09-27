@@ -9,7 +9,7 @@ import { getCombatEffect } from './combat.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
-import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, makeCompanion } from './pedroutes.js';
+import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
 import { reportCrime } from './crime.js';
 
 const WANDER_SPEED = 1.3;
@@ -1167,5 +1167,6 @@ export function updatePedestrians(dt, world) {
     checkBump(ped, world);
     checkVehicleImpact(ped, world);
   }
+  separatePeds(peds, map);
   world.pedFilming = filming;
 }

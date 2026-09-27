@@ -453,7 +453,16 @@ function vehicles(dt, world) {
       }
     }
 
-    if (v.isBike && speed > 0.8 && !v.wrecked) {
+    if (v._mount === 'horse' && speed > 0.5 && !v.wrecked) {
+      if (K.dist(v.x, v.y, 0.3) < 30) {
+        st.strokes += speed * dt * 1.4;
+        if (st.strokes >= 1) {
+          st.strokes -= 1;
+          st.hoof = ((st.hoof || 0) + 1) % 4;
+          at(`step_klinkers_${st.hoof}`, v.x, v.y, { h: 0.1, gain: 0.16, rate: rnd(0.5, 0.6), prio: 0, range: 30 });
+        }
+      }
+    } else if (v.isBike && speed > 0.8 && !v.wrecked) {
       const d = K.dist(v.x, v.y, 0.6);
       if (d < 14) {
         st.strokes += speed * dt * 1.3;

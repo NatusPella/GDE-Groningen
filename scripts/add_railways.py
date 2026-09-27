@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Merge Groningen's railway network into game/citymap.json.
 
-Adds these top-level keys and touches nothing else:
+Adds these top-level keys, and cuts foot and cycle paths that would cross a
+track at grade away from a level crossing (underpasses the game cannot build):
   rails          [{pts, service}]            every railway=rail way (clipped)
   stations       [{name, x, y}]              railway=station nodes
   levelCrossings [{x, y, roads: [...]}]      railway=level_crossing groups
@@ -68,6 +69,7 @@ LIFT_GRADE = 0.05
 MAX_TURN = math.radians(28)
 ROUTE_OVERRUN = 220.0
 CLIP_MARGIN = 150.0
+RAIL_CUT = 4.0      # a path crossing a track at grade stops this far from the rail
 
 
 def fetch(bbox):
@@ -111,6 +113,84 @@ def seg_intersect(a, b, c, d):
     if 0 <= t <= 1 and 0 <= u <= 1:
         return t, u
     return None
+
+
+def lift_height(lifts, x, y):
+    h = 0.0
+    for L in lifts:
+        d = math.hypot(L["x"] - x, L["y"] - y) - L["plateau"]
+        h = max(h, L["h"] * max(0.0, min(1.0, 1 - d / L["ramp"])) if d > 0 else L["h"])
+    return h
+
+
+def cut_paths_at_rails(roads, rails, lifts, lc_pts):
+    """Footways and cycleways that cross a track at street level away from a
+    level crossing (mostly underpasses: the game has no tunnels for them)
+    lose the stretch over the rails, so nobody walks or rides across."""
+    segs = [(a, b) for r in rails for a, b in zip(r["pts"], r["pts"][1:])]
+    G = 50.0
+    grid = {}
+    for a, b in segs:
+        for gx in range(int(min(a[0], b[0]) // G), int(max(a[0], b[0]) // G) + 1):
+            for gy in range(int(min(a[1], b[1]) // G), int(max(a[1], b[1]) // G) + 1):
+                grid.setdefault((gx, gy), []).append((a, b))
+    extra, n = [], 0
+    for road in roads:
+        if road["cat"] not in ("foot", "cycle") or road.get("bridge"):
+            continue
+        pts = road["pts"]
+        acc = [0.0]
+        for a, b in zip(pts, pts[1:]):
+            acc.append(acc[-1] + math.hypot(b[0] - a[0], b[1] - a[1]))
+        hits = []
+        for i, (a, b) in enumerate(zip(pts, pts[1:])):
+            cand = set()
+            for gx in range(int(min(a[0], b[0]) // G), int(max(a[0], b[0]) // G) + 1):
+                for gy in range(int(min(a[1], b[1]) // G), int(max(a[1], b[1]) // G) + 1):
+                    cand.update((tuple(s[0]), tuple(s[1])) for s in grid.get((gx, gy), []))
+            for ra, rb in cand:
+                hit = seg_intersect(a, b, ra, rb)
+                if hit is None:
+                    continue
+                hx, hy = a[0] + (b[0] - a[0]) * hit[0], a[1] + (b[1] - a[1]) * hit[0]
+                if any(math.hypot(hx - x, hy - y) < 20 for x, y in lc_pts) or lift_height(lifts, hx, hy) > 2.6:
+                    continue
+                hits.append(acc[i] + (acc[i + 1] - acc[i]) * hit[0])
+        if not hits:
+            continue
+        hits.sort()
+        gaps, s0, s1 = [], hits[0], hits[0]
+        for s in hits[1:]:
+            if s - s1 > 25:
+                gaps.append((s0, s1))
+                s0 = s
+            s1 = s
+        gaps.append((s0, s1))
+        keep, start = [], 0.0
+        for g0, g1 in gaps:
+            keep.append((start, g0 - RAIL_CUT))
+            start = g1 + RAIL_CUT
+        keep.append((start, acc[-1]))
+        pieces = [sub_polyline(pts, acc, s0, s1) for s0, s1 in keep if s1 - s0 >= 3.0]
+        n += 1
+        road["pts"] = pieces[0] if pieces else pts[:1] * 2
+        for p in pieces[1:]:
+            extra.append({**road, "pts": p})
+    roads[:] = [r for r in roads if not (r["pts"][0] == r["pts"][-1] and len(r["pts"]) == 2)] + extra
+    return n
+
+
+def sub_polyline(pts, acc, s0, s1):
+    def at(s):
+        for i in range(len(pts)):
+            if abs(acc[i] - s) < 1e-6:
+                return list(pts[i])
+            if i + 1 < len(pts) and acc[i + 1] > s:
+                t = (s - acc[i]) / ((acc[i + 1] - acc[i]) or 1)
+                return [round(pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t, 1), round(pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t, 1)]
+        return list(pts[-1])
+    s0, s1 = max(0.0, s0), min(acc[-1], s1)
+    return [at(s0)] + [list(pts[i]) for i in range(len(pts)) if s0 + 1e-6 < acc[i] < s1 - 1e-6] + [at(s1)]
 
 
 def main():
@@ -417,6 +497,9 @@ def main():
         L["x"], L["y"], L["h"], L["plateau"] = round(L["x"], 1), round(L["y"], 1), round(L["h"], 2), round(L["plateau"], 1)
         print(f"lift {L['name']}: h {L['h']} plateau {L['plateau']} ramp {L['ramp']}")
         del L["name"]
+
+    cut = cut_paths_at_rails(data["roads"], rails, lifts, lc_pts)
+    print(f"{cut} foot/cycle paths cut where they would cross a track at grade")
 
     data["railLifts"] = lifts
     data["rails"] = rails

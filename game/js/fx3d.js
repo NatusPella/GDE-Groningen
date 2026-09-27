@@ -17,6 +17,7 @@ const PANEL_MAX = 10;
 const GRAVITY = 9.8;
 
 let ready = false;
+let fxMap = null;
 let simTime = 0;
 let contactCursor = 0;
 let pruneTimer = 0;
@@ -264,7 +265,7 @@ function initSparks(scene) {
   const n = SPARK_MAX;
   spark.pos = new Float32Array(n * 6);
   spark.col = new Float32Array(n * 6);
-  for (const k of ['x', 'y', 'z', 'vx', 'vy', 'vz', 'age', 'life']) spark[k] = new Float32Array(n);
+  for (const k of ['x', 'y', 'z', 'floor', 'vx', 'vy', 'vz', 'age', 'life']) spark[k] = new Float32Array(n);
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(spark.pos, 3).setUsage(THREE.DynamicDrawUsage));
   geo.setAttribute('color', new THREE.BufferAttribute(spark.col, 3).setUsage(THREE.DynamicDrawUsage));
@@ -277,10 +278,22 @@ function initSparks(scene) {
   scene.add(spark.lines);
 }
 
-function spawnSpark(x, y, z, vx, vy, vz, life) {
+// Surface under a freshly spawned particle (y is the height), so bits from
+// a crash on a viaduct land on the deck instead of the street below.
+function floorUnder(x, y, z) {
+  return fxMap && fxMap.elev && fxMap.elev.has ? fxMap.groundHeightAt(x, z, y) : 0;
+}
+
+// On landing: a bit that flew off a deck edge keeps falling to what's below.
+function dropFloor(x, z, floor) {
+  if (!fxMap || !fxMap.elev || !fxMap.elev.has || floor <= 0.05) return floor;
+  return fxMap.groundHeightAt(x, z, floor);
+}
+
+function spawnSpark(x, y, z, vx, vy, vz, life, floor = floorUnder(x, y, z)) {
   const i = spark.next;
   spark.next = (i + 1) % SPARK_MAX;
-  spark.x[i] = x; spark.y[i] = y; spark.z[i] = z;
+  spark.x[i] = x; spark.y[i] = y; spark.z[i] = z; spark.floor[i] = floor;
   spark.vx[i] = vx; spark.vy[i] = vy; spark.vz[i] = vz;
   spark.age[i] = 0; spark.life[i] = life;
   spark.dirty = true;
@@ -305,8 +318,12 @@ function updateSparks(dt) {
     spark.x[i] += spark.vx[i] * dt;
     spark.y[i] += spark.vy[i] * dt;
     spark.z[i] += spark.vz[i] * dt;
-    if (spark.y[i] < 0.02) {
-      spark.y[i] = 0.02;
+    if (spark.y[i] < spark.floor[i] + 0.02) {
+      const f = dropFloor(spark.x[i], spark.z[i], spark.floor[i]);
+      if (f < spark.floor[i] - 0.3) spark.floor[i] = f;
+    }
+    if (spark.y[i] < spark.floor[i] + 0.02) {
+      spark.y[i] = spark.floor[i] + 0.02;
       spark.vy[i] = -spark.vy[i] * 0.35;
       spark.vx[i] *= 0.7; spark.vz[i] *= 0.7;
     }
@@ -337,7 +354,7 @@ function makeDebrisPool(scene, geometry, max, name) {
   for (let i = 0; i < max; i++) mesh.setMatrixAt(i, zero);
   scene.add(mesh);
   const pool = { mesh, max, next: 0, active: 0 };
-  for (const k of ['x', 'y', 'z', 'vx', 'vy', 'vz', 'rx', 'ry', 'rz', 'wx', 'wy', 'wz', 'sx', 'sy', 'sz', 'age', 'life']) pool[k] = new Float32Array(max);
+  for (const k of ['x', 'y', 'z', 'floor', 'vx', 'vy', 'vz', 'rx', 'ry', 'rz', 'wx', 'wy', 'wz', 'sx', 'sy', 'sz', 'age', 'life']) pool[k] = new Float32Array(max);
   pool.rest = new Uint8Array(max);
   return pool;
 }
@@ -351,10 +368,10 @@ const _p = new THREE.Vector3();
 const _s = new THREE.Vector3();
 const _c = new THREE.Color();
 
-function spawnDebris(pool, x, y, z, vx, vy, vz, sx, sy, sz, color, life) {
+function spawnDebris(pool, x, y, z, vx, vy, vz, sx, sy, sz, color, life, floor = floorUnder(x, y, z)) {
   const i = pool.next;
   pool.next = (i + 1) % pool.max;
-  pool.x[i] = x; pool.y[i] = y; pool.z[i] = z;
+  pool.x[i] = x; pool.y[i] = y; pool.z[i] = z; pool.floor[i] = floor;
   pool.vx[i] = vx; pool.vy[i] = vy; pool.vz[i] = vz;
   pool.rx[i] = Math.random() * 6; pool.ry[i] = Math.random() * 6; pool.rz[i] = Math.random() * 6;
   pool.wx[i] = rand(-12, 12); pool.wy[i] = rand(-12, 12); pool.wz[i] = rand(-12, 12);
@@ -383,8 +400,12 @@ function updateDebris(pool, dt) {
       pool.y[i] += pool.vy[i] * dt;
       pool.z[i] += pool.vz[i] * dt;
       pool.rx[i] += pool.wx[i] * dt; pool.ry[i] += pool.wy[i] * dt; pool.rz[i] += pool.wz[i] * dt;
-      if (pool.y[i] < half) {
-        pool.y[i] = half;
+      if (pool.y[i] < pool.floor[i] + half) {
+        const f = dropFloor(pool.x[i], pool.z[i], pool.floor[i]);
+        if (f < pool.floor[i] - 0.3) pool.floor[i] = f;
+      }
+      if (pool.y[i] < pool.floor[i] + half) {
+        pool.y[i] = pool.floor[i] + half;
         pool.vy[i] = -pool.vy[i] * 0.32;
         pool.vx[i] *= 0.55; pool.vz[i] *= 0.55;
         pool.wx[i] *= 0.5; pool.wy[i] *= 0.5; pool.wz[i] *= 0.5;
@@ -478,6 +499,7 @@ function vehicleFx(v, world, dt) {
   const halfW = small ? 0.03 : v.isBus ? 0.16 : 0.1;
   const rain = world.weather ? world.weather.intensity || 0 : 0;
   const n = Math.min(4, wheels.length);
+  const vz = v.z || 0;
   const braking = abs > 5 && v._fxDec > 11;
   for (let i = 0; i < n; i++) {
     const w = wheels[i];
@@ -491,21 +513,21 @@ function vehicleFx(v, world, dt) {
     if (rear && paved && slip > 0.42 && (abs > 1.5 || v._burnout)) {
       const cnt = spawnCount(slip * 15, dt);
       for (let k = 0; k < cnt; k++) {
-        spawnSmoke(wx + rand(-0.2, 0.2), 0.25, wy + rand(-0.2, 0.2), vx * 0.25 + rand(-1.6, 1.6), rand(0.3, 0.9), vy * 0.25 + rand(-1.6, 1.6),
+        spawnSmoke(wx + rand(-0.2, 0.2), vz + 0.25, wy + rand(-0.2, 0.2), vx * 0.25 + rand(-1.6, 1.6), rand(0.3, 0.9), vy * 0.25 + rand(-1.6, 1.6),
           rand(1.4, 2.2), 0.4, rand(1.6, 2.6), 0.92, 0.92, 0.91, 0.32 * slip + 0.1, 0.9, 0.45);
       }
     }
     if (rear && !paved && (abs > 3 || slip > 0.3)) {
       const cnt = spawnCount(abs * 0.9 + slip * 18, dt);
       for (let k = 0; k < cnt; k++) {
-        spawnSmoke(wx - ca * 0.3, 0.2, wy - sa * 0.3, -vx * 0.15 + rand(-0.6, 0.6), rand(0.3, 0.9), -vy * 0.15 + rand(-0.6, 0.6),
+        spawnSmoke(wx - ca * 0.3, vz + 0.2, wy - sa * 0.3, -vx * 0.15 + rand(-0.6, 0.6), rand(0.3, 0.9), -vy * 0.15 + rand(-0.6, 0.6),
           rand(1.1, 1.8), 0.4, rand(1.6, 2.4), 0.52, 0.44, 0.32, 0.32, 1.6, 0.1);
       }
     }
     if (rear && paved && rain > 0.15 && abs > 5) {
       const cnt = spawnCount(rain * abs * 1.6, dt);
       for (let k = 0; k < cnt; k++) {
-        spawnSmoke(wx - ca * 0.35, 0.15, wy - sa * 0.35, vx * 0.35 - ca * 1.5 + rand(-0.5, 0.5), rand(0.8, 1.8), vy * 0.35 - sa * 1.5 + rand(-0.5, 0.5),
+        spawnSmoke(wx - ca * 0.35, vz + 0.15, wy - sa * 0.35, vx * 0.35 - ca * 1.5 + rand(-0.5, 0.5), rand(0.8, 1.8), vy * 0.35 - sa * 1.5 + rand(-0.5, 0.5),
           rand(0.45, 0.8), 0.25, rand(0.9, 1.4), 0.8, 0.84, 0.87, 0.2 * rain + 0.05, 2.5, -3);
       }
     }
@@ -521,7 +543,7 @@ function vehicleFx(v, world, dt) {
     const ex = -hl - 0.1, ez = hw * 0.55;
     const px = v.x + ex * ca - ez * sa, py = v.y + ex * sa + ez * ca;
     for (let k = 0; k < cnt; k++) {
-      spawnSmoke(px, 0.28, py, -ca * 1.2 + vx * 0.5 + rand(-0.2, 0.2), rand(0.1, 0.35), -sa * 1.2 + vy * 0.5 + rand(-0.2, 0.2),
+      spawnSmoke(px, vz + 0.28, py, -ca * 1.2 + vx * 0.5 + rand(-0.2, 0.2), rand(0.1, 0.35), -sa * 1.2 + vy * 0.5 + rand(-0.2, 0.2),
         rand(0.7, 1.2), 0.15, rand(0.7, 1.1), 0.3, 0.3, 0.31, launching ? 0.3 : 0.14, 2, 0.35);
     }
   }
@@ -531,7 +553,7 @@ function vehicleFx(v, world, dt) {
     const k = 1 - Math.max(0, v.health) / 40;
     const cnt = spawnCount(5 + k * 14, dt);
     const fx = hl - 0.55;
-    const hood = (parts ? parts.hood : 0.85) + 0.05;
+    const hood = (parts ? parts.hood : 0.85) + 0.05 + vz;
     for (let j = 0; j < cnt; j++) {
       const oz = rand(-hw * 0.5, hw * 0.5);
       const shade = 0.62 - k * 0.55;
@@ -550,7 +572,7 @@ function wreckSmoke(v, world, dt) {
   const cnt = spawnCount(v.isBike || v.isScooter ? 1.5 : 3 + k * 16, dt);
   const shade = 0.12 + (1 - k) * 0.3;
   for (let j = 0; j < cnt; j++) {
-    spawnSmoke(v.x + rand(-0.5, 0.5), 0.9, v.y + rand(-0.5, 0.5), rand(-0.25, 0.25), rand(1.0, 1.6) + k, rand(-0.25, 0.25),
+    spawnSmoke(v.x + rand(-0.5, 0.5), (v.z || 0) + 0.9, v.y + rand(-0.5, 0.5), rand(-0.25, 0.25), rand(1.0, 1.6) + k, rand(-0.25, 0.25),
       rand(2.2, 3.2) + k * 1.5, 0.4, rand(2.6, 3.6) + k * 2, shade, shade, shade * 1.02, 0.22 + k * 0.35, 1.2, 0.5);
   }
 }
@@ -576,7 +598,7 @@ export function spawnExplosionFx(x, y, z, color, scale = 1) {
   }
   for (let k = 0; k < Math.min(40, Math.round(34 * scale)); k++) {
     const a = Math.random() * Math.PI * 2, sp = rand(5, 16);
-    spawnSpark(x, z + rand(0.4, 1.4), y, Math.cos(a) * sp, rand(3, 11), Math.sin(a) * sp, rand(0.5, 1.2));
+    spawnSpark(x, z + rand(0.4, 1.4), y, Math.cos(a) * sp, rand(3, 11), Math.sin(a) * sp, rand(0.5, 1.2), z);
   }
   for (let k = 0; k < Math.round(22 * scale); k++) {
     const a = Math.random() * Math.PI * 2, sp = rand(3, 11);
@@ -584,7 +606,7 @@ export function spawnExplosionFx(x, y, z, color, scale = 1) {
     const col = roll < 0.35 ? 0x161616 : roll < 0.6 ? 0x2c2a28 : roll < 0.8 ? paint : 0x9fb4ba;
     const sz = roll >= 0.8 ? rand(0.04, 0.08) : rand(0.1, 0.26);
     spawnDebris(chunks, x + rand(-0.5, 0.5), z + rand(0.5, 1.3), y + rand(-0.5, 0.5), Math.cos(a) * sp, rand(4, 11), Math.sin(a) * sp,
-      sz, sz * rand(0.3, 0.7), sz * rand(0.8, 1.5), col, rand(14, 22));
+      sz, sz * rand(0.3, 0.7), sz * rand(0.8, 1.5), col, rand(14, 22), z);
   }
   for (let k = 0; k < 4; k++) {
     const a = (k / 4) * Math.PI + Math.random() * 0.4, r = rand(2, 3.2) * scale;
@@ -616,7 +638,7 @@ function dentVehicle(v, x, y, strength, world) {
   const part = parts[dropped];
   const bx = v.x + part.x * ca, by = v.y + part.x * sa;
   const vx = ca * v.speed + (v.driftX || 0), vy = sa * v.speed + (v.driftY || 0);
-  spawnDebris(panels, bx, part.y, by, vx * 0.6 + rand(-1, 1), rand(1.5, 3), vy * 0.6 + rand(-1, 1), 0.12, 0.14, parts.hw * 2 - 0.04, parts.bumperColor, rand(16, 22));
+  spawnDebris(panels, bx, part.y + (v.z || 0), by, vx * 0.6 + rand(-1, 1), rand(1.5, 3), vy * 0.6 + rand(-1, 1), 0.12, 0.14, parts.hw * 2 - 0.04, parts.bumperColor, rand(16, 22), v.z || 0);
   const i = (panels.next + panels.max - 1) % panels.max;
   panels.ry[i] = -v.angle; panels.rx[i] = 0; panels.rz[i] = rand(-0.3, 0.3);
   panels.wx[i] = rand(-2, 2); panels.wy[i] = rand(-1.5, 1.5); panels.wz[i] = rand(-4, 4);
@@ -626,14 +648,15 @@ function burstAt(c, world) {
   const a = c.a, b = c.b;
   const strength = Math.min(1, c.impact / 14);
   const ax = Math.cos(a.angle) * a.speed + (a.driftX || 0), ay = Math.sin(a.angle) * a.speed + (a.driftY || 0);
-  const h = 0.45;
+  const base = a.z || 0;
+  const h = 0.45 + base;
   if (c.slide > 3 && (!b || (!b.isBike && !b.isScooter)) && !a.isBike && !a.isScooter && !a.isBoat) {
     const cnt = Math.min(7, Math.floor(c.slide * 0.45 + Math.random() * 2));
     const tx = -c.ny, ty = c.nx;
     const sgn = ax * tx + ay * ty > 0 ? 1 : -1;
     for (let k = 0; k < cnt; k++) {
       const s = rand(0.3, 0.8) * c.slide;
-      spawnSpark(c.x, rand(0.25, 0.55), c.y, tx * sgn * s - c.nx * rand(0, 1.5) + rand(-1, 1), rand(0.5, 2.6), ty * sgn * s - c.ny * rand(0, 1.5) + rand(-1, 1), rand(0.25, 0.55));
+      spawnSpark(c.x, base + rand(0.25, 0.55), c.y, tx * sgn * s - c.nx * rand(0, 1.5) + rand(-1, 1), rand(0.5, 2.6), ty * sgn * s - c.ny * rand(0, 1.5) + rand(-1, 1), rand(0.25, 0.55), base);
     }
   }
   if (c.impact < 3) return;
@@ -642,7 +665,7 @@ function burstAt(c, world) {
   for (let k = 0; k < nSpark; k++) {
     const sp = rand(2, 5 + strength * 7);
     const ang = Math.random() * Math.PI * 2;
-    spawnSpark(c.x, h + rand(-0.15, 0.2), c.y, Math.cos(ang) * sp - c.nx * sp * 0.6, rand(1.2, 4 + strength * 3), Math.sin(ang) * sp - c.ny * sp * 0.6, rand(0.3, 0.75));
+    spawnSpark(c.x, h + rand(-0.15, 0.2), c.y, Math.cos(ang) * sp - c.nx * sp * 0.6, rand(1.2, 4 + strength * 3), Math.sin(ang) * sp - c.ny * sp * 0.6, rand(0.3, 0.75), base);
   }
   const nChunk = Math.min(18, Math.floor(3 + strength * 16));
   const paintA = paintOf(a), paintB = b ? paintOf(b) : paintA;
@@ -655,11 +678,11 @@ function burstAt(c, world) {
     const ang = Math.random() * Math.PI * 2;
     spawnDebris(chunks, c.x + rand(-0.2, 0.2), h + rand(0, 0.3), c.y + rand(-0.2, 0.2),
       Math.cos(ang) * sp + ax * 0.35, rand(1.5, 3.5 + strength * 2), Math.sin(ang) * sp + ay * 0.35,
-      sz, sz * rand(0.35, 0.8), sz * rand(0.7, 1.3), color, rand(9, 14));
+      sz, sz * rand(0.35, 0.8), sz * rand(0.7, 1.3), color, rand(9, 14), base);
   }
   const puffs = Math.floor(2 + strength * 5);
   for (let k = 0; k < puffs; k++) {
-    spawnSmoke(c.x + rand(-0.3, 0.3), 0.4, c.y + rand(-0.3, 0.3), rand(-1, 1), rand(0.3, 1), rand(-1, 1),
+    spawnSmoke(c.x + rand(-0.3, 0.3), base + 0.4, c.y + rand(-0.3, 0.3), rand(-1, 1), rand(0.3, 1), rand(-1, 1),
       rand(0.9, 1.5), 0.4, rand(1.4, 2.2), 0.6, 0.58, 0.55, 0.25 + strength * 0.2, 2.2, 0.2);
   }
   if (c.impact > 3.5) {
@@ -693,6 +716,7 @@ function init(scene) {
 export function updateFx3D(dt, world, scene) {
   if (!scene) return;
   if (!ready) init(scene);
+  fxMap = world.map;
   if (world.paused) dt = 0;
   simTime += dt;
   pruneTimer -= dt;

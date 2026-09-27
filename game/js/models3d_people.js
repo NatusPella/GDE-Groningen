@@ -179,13 +179,13 @@ function torsoRings(L) {
   const sh = f ? 0.172 : 0.198;
   return [
     { y: 0.83, d: 0.075, w: 0.09 },
-    { y: 0.9, d: f ? 0.1 : 0.1, w: f ? 0.168 : 0.152 },
+    { y: 0.9, d: 0.1, w: f ? 0.168 : 0.158 },
     { y: 1.09, d: f ? 0.086 : 0.098, w: f ? 0.128 : 0.146, front: belly },
     { y: 1.19, d: f ? 0.094 : 0.106, w: f ? 0.14 : 0.16, front: f ? 1.08 : belly > 1 ? 1 + (belly - 1) * 0.6 : 1 },
     { y: 1.28, d: f ? 0.1 : 0.116, w: f ? 0.158 : 0.182, sq: 0.8, front: f ? 1.2 : 1.04 },
     { y: 1.35, d: f ? 0.094 : 0.108, w: sh, sq: 0.7 },
-    { y: 1.41, d: f ? 0.085 : 0.095, w: sh * 0.96, sq: 0.75 },
-    { y: 1.455, d: 0.07, w: sh * 0.62, sq: 0.8 },
+    { y: 1.41, d: f ? 0.085 : 0.095, w: sh, sq: 0.75 },
+    { y: 1.455, d: 0.074, w: sh * 0.8, sq: 0.8 },
     { y: 1.485, d: 0.058, w: 0.064 },
   ].map((rg) => (slim ? { ...rg, w: rg.w * 0.95 } : heavy ? { ...rg, w: rg.w * 1.06, d: rg.d * 1.06 } : rg));
 }
@@ -324,12 +324,16 @@ function buildHead(B, L, skin) {
   plate(B, faceX(-0.052, 0) + 0.0015, HEAD_Y - 0.052, 0, 0.005, 0.017, 0, mix(shade(skin, 0.78), 0x8a3a30, 0.3));
 
   if (L.glasses) {
-    for (const s of [1, -1]) B.box(faceX(0.012, s * 0.034) + 0.008, HEAD_Y + 0.012, s * 0.034, 0.006, 0.026, 0.036, 0x1e1e20, 0, 0, -s * 0.4, 0);
-    B.box(faceX(0.02, 0) + 0.006, HEAD_Y + 0.02, 0, 0.006, 0.006, 0.03, 0x1e1e20);
+    const lens = mix(shade(skin, 0.7), 0x5d6f7a, 0.6);
+    for (const s of [1, -1]) {
+      B.box(faceX(0.012, s * 0.034) + 0.007, HEAD_Y + 0.012, s * 0.034, 0.006, 0.03, 0.04, 0x26262a, 0, 0, -s * 0.4, 0);
+      B.box(faceX(0.012, s * 0.034) + 0.0105, HEAD_Y + 0.012, s * 0.034, 0.002, 0.022, 0.032, lens, 0, 0, -s * 0.4, 0);
+    }
+    B.box(faceX(0.02, 0) + 0.006, HEAD_Y + 0.02, 0, 0.006, 0.006, 0.03, 0x26262a);
     for (const s of [1, -1]) {
       const fx = faceX(0.02, s * 0.052) + 0.006;
-      B.geo(tubeGeometry([fx, HEAD_Y + 0.018, s * 0.052], [0.05, HEAD_Y + 0.02, s * 0.079], 0.003, 0.003, 3), null, 0x1e1e20);
-      B.geo(tubeGeometry([0.05, HEAD_Y + 0.02, s * 0.079], [-0.01, HEAD_Y + 0.02, s * 0.087], 0.003, 0.003, 3), null, 0x1e1e20);
+      B.geo(tubeGeometry([fx, HEAD_Y + 0.018, s * 0.052], [0.05, HEAD_Y + 0.02, s * 0.079], 0.003, 0.003, 3), null, 0x26262a);
+      B.geo(tubeGeometry([0.05, HEAD_Y + 0.02, s * 0.079], [-0.01, HEAD_Y + 0.02, s * 0.087], 0.003, 0.003, 3), null, 0x26262a);
     }
   }
 
@@ -657,7 +661,7 @@ function buildTorso(B, L, skin) {
 function buildLegs(B, L, skin) {
   const f = L.female;
   const legRings = [
-    { y: 0.98, d: 0.078, w: 0.078 },
+    { y: 0.98, d: 0.074, w: 0.064 },
     { y: 0.8, d: f ? 0.08 : 0.078, w: f ? 0.078 : 0.074 },
     { y: 0.57, d: 0.056, w: 0.054 },
     { y: 0.49, d: 0.054, w: 0.05 },
@@ -702,7 +706,7 @@ function buildArms(B, L, skin, shZ) {
   const heavy = L.build === 'heavy', slim = L.build === 'slim';
   const g = heavy ? 1.12 : slim ? 0.92 : 1;
   const armRings = [
-    { y: 0.05, d: 0.05, w: 0.05 },
+    { y: 0.01, d: 0.046, w: 0.046 },
     { y: -0.06, d: 0.054 * g, w: 0.052 * g },
     { y: -0.255, d: 0.043 * g, w: 0.042 * g },
     { y: -0.325, d: 0.04 * g, w: 0.039 * g },
@@ -720,12 +724,12 @@ function buildArms(B, L, skin, shZ) {
     const M = composeMatrix(0, SHOULDER_Y, s * shZ, -s * ARM_SPLAY, 0, 0);
     const m = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => M.clone().multiply(composeMatrix(x, y, z, rx, ry, rz, sx, sy, sz));
     B.bone = W_ARM(k);
-    const sleeve = slice(armRings, sleeveEnd, 0.05, 1.04);
+    const sleeve = slice(armRings, sleeveEnd, 0.01, 1.04);
     if (L.top !== 'tee' && L.top !== 'dress' && !(L.top === 'longsleeve' && L.rolled)) sleeve[0] = { ...sleeve[0], d: sleeve[0].d * 1.12, w: sleeve[0].w * 1.12 };
     B.geo(loftUp(sleeve, 6), M, sleeveColor);
     // round cap around the shoulder pivot so no gap opens in any arm pose
-    const top = sleeve[sleeve.length - 1];
-    B.part(new THREE.SphereGeometry(Math.max(top.d, top.w) * 0.98, 8, 5), composeMatrix(0, SHOULDER_Y - 0.012, s * (shZ - 0.012), 0, 0, 0, 1, 0.9, 1), sleeveColor, BONE.chest);
+    const capR = sleeve[sleeve.length - 2].d * 1.08;
+    B.part(new THREE.SphereGeometry(capR, 10, 6), composeMatrix(0, SHOULDER_Y - 0.012, s * (shZ - 0.024), 0, 0, 0, 1.02, 0.88, 1.12), sleeveColor, BONE.chest);
     B.geo(loftUp(slice(armRings, -0.53, sleeveEnd), 6), M, skin);
     B.geo(loftGeometry(slice(armRings, sleeveEnd - 0.03, sleeveEnd + 0.005, cuffK), 6), M, shade(sleeveColor, 0.82));
     if (L.cop) B.geo(loftGeometry(slice(armRings, -0.14, -0.1, 1.09), 6), M, REFLECT_YELLOW);
