@@ -1,7 +1,7 @@
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio } from './mapview.js';
 import { getMissionList, trackMission } from './missions.js';
-import { getStoryView, skipCurrent } from './story.js';
+import { getStoryView, skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
 import { isCinematicActive } from './cinematics.js';
@@ -120,6 +120,8 @@ export function initPauseMenu(w) {
       <section data-panel="missions" class="pm-panel pm-col" hidden><div class="pm-inner">
         <h2>Verhaal <small data-info="story"></small></h2>
         <div class="pm-missions pm-story"></div>
+        <h2>Wat weten we? <small data-info="clues"></small></h2>
+        <div class="pm-missions pm-clues"></div>
         <h2>Missies <small data-info="progress"></small></h2>
         <div class="pm-missions"></div>
         <h2>Bijbaantjes <small>geld verdienen tussendoor</small></h2>
@@ -454,6 +456,14 @@ function renderMissions() {
     `<span class="pm-m-num">${i + 1}</span>` +
     `<span class="pm-m-text"><b>${esc(j.name)}</b><small>${esc(j.blurb)} · niveau ${j.level}: ${esc(j.title)}${j.bestStreak ? ` · record ${j.bestStreak} op rij` : ''}</small></span>` +
     `<span class="pm-m-chip">${j.active ? 'Bezig' : 'Route'}</span></button>`).join('');
+  const jr = getStoryJournal();
+  root.querySelector('[data-info="clues"]').textContent = `${jr.found.length}/${jr.total} ontdekt`;
+  const row = (num, title, text, status, chip = '') => `<div class="pm-mission" data-status="${status}" style="cursor:default">` +
+    `<span class="pm-m-num">${num}</span><span class="pm-m-text"><b>${esc(title)}</b><small>${esc(text)}</small></span>${chip ? `<span class="pm-m-chip">${chip}</span>` : '<span></span>'}</div>`;
+  root.querySelector('.pm-clues').innerHTML = (jr.why ? row('»', 'Waar het om draait', jr.why, 'volgende') : '') +
+    jr.found.map((c) => row(c.kind === 'hart' ? '&#9829;' : '?', c.title, c.text, c.isNew ? 'volgende' : 'geklaard', c.isNew ? 'Nieuw' : '')).join('') +
+    (jr.found.length < jr.total ? row('…', 'Nog niet ontdekt', `${jr.total - jr.found.length} aanwijzingen. Speel verder om ze te vinden.`, 'open') : '');
+  markCluesSeen();
   const sv = getStoryView();
   root.querySelector('[data-info="story"]').textContent = `${sv.done}/${sv.total} stappen`;
   root.querySelector('.pm-story').innerHTML = sv.end
@@ -465,7 +475,7 @@ function renderMissions() {
   const extra = root.querySelector('.pm-extra');
   extra.innerHTML = extraSections.map((x) => `<h2>${esc(x.title)}${x.sub ? ` <small>${esc(x.sub)}</small>` : ''}</h2><div class="pm-missions" data-extra="${esc(x.id)}"></div>`).join('');
   for (const x of extraSections) { try { x.render(extra.querySelector(`[data-extra="${CSS.escape(x.id)}"]`), world); } catch (err) { /* a broken section never breaks the tab */ } }
-  root.querySelector('.pm-missions:not(.pm-story):not(.pm-jobs):not([data-extra])').innerHTML = [...list].sort((a, b) => a.order - b.order).map((m) =>
+  root.querySelector('.pm-missions:not(.pm-story):not(.pm-jobs):not(.pm-clues):not([data-extra])').innerHTML = [...list].sort((a, b) => a.order - b.order).map((m) =>
     `<button type="button" class="pm-mission" data-mission="${m.index}" data-status="${m.status}">` +
     `<span class="pm-m-num">${esc(m.code || String(m.index + 1))}</span>` +
     `<span class="pm-m-text"><b>${esc(m.label)}</b><small>${TYPE_LABEL[m.type] || ''} · €${m.reward}${missionRecordHTML(m.index)}</small></span>` +

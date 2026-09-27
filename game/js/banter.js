@@ -6,6 +6,7 @@
 // talk off with a short reaction; an interrupted nabespreking comes back once.
 // Story progress is only read (story.js, missions.js), never written.
 
+import { setDualText } from './subtitles.js';
 import { BANTER, REACTIONS, SPEAKERS } from './banterlines.js';
 import { STEPS, missionIndexOf } from './storyarc.js';
 import { currentStep, getStorySave } from './story.js';
@@ -219,7 +220,7 @@ function together() {
 
 function quiet() {
   const w = world;
-  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen();
+  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen() && !w.storyContact;
 }
 
 // --- conversation ---------------------------------------------------------------------
@@ -353,7 +354,7 @@ function showSub(line) {
     const sp = el.querySelector('.bt-speaker');
     sp.textContent = SPEAKERS[line[0]] + ':';
     sp.style.color = COLORS[line[0]] || '#fff';
-    el.querySelector('.bt-line').textContent = line[1];
+    setDualText(el.querySelector('.bt-line'), line[1]);
   }
   el.style.opacity = line && !st.paused ? '1' : '0';
 }
@@ -382,7 +383,7 @@ export function updateBanter(dt, w) {
 
   const tk = st.talk;
   if (tk) {
-    if (!both || isCinematicActive() || isPhoneOpen() || (tk.kind !== 'react' && (isMissionActive() || (w.sideJob && w.sideJob.active)))) { interrupt(null); return; }
+    if (!both || isCinematicActive() || isPhoneOpen() || w.storyContact || (tk.kind !== 'react' && (isMissionActive() || (w.sideJob && w.sideJob.active)))) { interrupt(null); return; }
     if (tk.kind !== 'react' && (crashed || starsUp)) { interrupt(starsUp ? 'stars' : 'crash'); return; }
     tk.t += dt;
     if (tk.t >= tk.until) nextLine();

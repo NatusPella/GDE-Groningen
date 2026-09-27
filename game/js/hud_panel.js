@@ -1,3 +1,4 @@
+import { dualHtml } from './subtitles.js';
 import { getGaragesForRender } from './garages.js';
 import { minimapShows } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';

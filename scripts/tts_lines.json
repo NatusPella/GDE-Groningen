@@ -1,13 +1,13 @@
 [
  {
-  "key": "Henk|Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!",
-  "speaker": "Henk",
-  "text": "Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!",
+  "key": "Jelle Terpstra|Moai, Grinzers. Revanche? Elf bruggen, een fierljep-duel en een skûtsje-sprint. Mijn stipkes staan op jullie kaart.",
+  "speaker": "Jelle Terpstra",
+  "text": "Moai, Grinzers. Revanche? Elf bruggen, een fierljep-duel en een skûtsje-sprint. Mijn stipkes staan op jullie kaart.",
   "area": "Telefoon (gesprekken)",
-  "file": "henk/volg_de_roze_lijn_op_je_kaart_da_550fcbc1.mp3",
-  "voice": "Sadaltager",
-  "who": "gemoedelijke Groningse garagehouder",
-  "tag": "gemoedelijk, aan de telefoon",
-  "prompt": "[gemoedelijke Groningse garagehouder, gemoedelijk, aan de telefoon, spoken in Dutch with a Groningen accent] Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!"
+  "file": "jelle_terpstra/moai_grinzers_revanche_elf_brugg_a6187ff6.mp3",
+  "voice": "Fenrir",
+  "who": "ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden",
+  "tag": "aan de telefoon, uitdagend en vrolijk",
+  "prompt": "[ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden, aan de telefoon, uitdagend en vrolijk, spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk)] Moai, Grinzers. Revanche? Elf bruggen, een fierljep-duel en een skûtsje-sprint. Mijn stipkes staan op jullie kaart."
  }
 ]

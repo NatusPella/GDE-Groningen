@@ -55,7 +55,7 @@ frame then runs, in order:
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js`, `crime.js` (small offences build heat first: a star only when police see it, a witness phones it in, or it piles up) |
 | Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
-| Story | `storyarc.js` (the arc as data), `story.js` (director), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
+| Story | `storyarc.js` (the arc as data), `story.js` (director), `storycontact.js` (Jelle's and the twins' calls, voicemails, livestreams, Sikkom posts and cards on the phone), `storycast.js` (the Frisian cast's looks), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Special gameplay | `helirun.js` (UMCG trauma heli "on rails": height, sideways offset and speed only; rings, gusts, timer, then hold station beside a drifting balloon; standalone *Ballonjacht* at the UMCG spot, `startHeliRun({ variant: 'ballonjacht' \| 'traumaduif', onFinish })` for the story; drives `world.skyHeli` via `scriptHeli` and a `scripted` balloon in `world.balloons`; while `world.heliRun` main.js skips the player, police, combat, missions, phone and saving), `fierljep.js` (pole vault over a canal for any NPC: `poleVault(npc, from, to, { fail, appearance, camera, slowmo, keepActor, swimTime, onDone })` returns `{ done, phase, release, dispose }`; `findVaultSpot(map, x, y)` finds a 5-22 m crossing; sets `npc.scripted` / `npc.hideMesh` so pedestrians.js and scene3d.js leave the NPC to it; the camera is a cinematics.js shot). Both have a preview row in the `?dev` panel |
 | Post-game | `postgame.js` (hub, opens once story.js shows the ending card: start markers with badge, map icon and E prompt, one challenge at a time as `world.challenge`, Jelle's voiced taunts, result banner, records via achievements.js `recordChallengeResult`, `after:<id>:pass/fail` banter, Ubbo rows via `world.postgameActions`; `window.__postgame` debug), `pg_bruggenrace.js` (Elf Bruggenrace over the rondvaart route and its 11 bridges), `pg_fierljep.js` (fierljep duel with a timing minigame on top of fierljep.js), `pg_skutsje.js` (skûtsje sprint Oosterhaven to Hoge der A: speed from wind angle and sail trim, `v.sailTop`), `pg_foodtruck.js` (the Fjord Frituur business: busy spots, order matching, upgrades), `pg_lines.js` (all their spoken lines as data). `world.challengeHud` feeds the race panel, `world.challengeTarget` the minimap, `world.challengeHoldPlayer` pauses the player update |
@@ -64,7 +64,7 @@ frame then runs, in order:
 | World flavour | `flavour.js` (after docs/groningen-memes.md: building nicknames and "bijna thuis", the Gerrit Krolbrug's malfunction per pass, Ring Zuid navigation lines, "Kon minder" after a flawless mission (missions.js sets `world.lastPerfectRun`), the Noorderplantsoen on sunny days, the commentary cows in the Sikkom feed, event days (Bloemetjesmarkt, Bommen Berend, KEI-week: the real date, else a rare random day at dawn), the Peerd van Ome Loeks on another roundabout each night, AI cars stopping for crossing cyclists, stolen bikes turning up again, Nachtstreek night radio outside the city, Oosterpark chants; owns `world.flavour`, debug `window.__flavour`), `flavour3d.js` (billboards that change with story progress, the growing Krolbrug detour, picnic instancing, the statue, plaque, flags, house plants; built at boot, only toggled after), `flavourlines.js` (all text; spoken tables registered in voicelines_collect.mjs) |
 | Soft-lock safety | `safety.js` (pause menu "Vastgelopen? Zet me vrij" and "Missie afbreken" (counts as a fail, so the story skip opens); watchdogs for cutscenes and respawn scenes that run far too long, players out of the world, scene flags left behind) |
 | Title and trailer | `startscreen.js` (loading screen, title menu over the live city), `trailer.js` (attract intro, benchmark, recording mode), `intromontage.js` (the "Nieuw spel" opening montage) |
-| UI | `hud_panel.js` + `.css` (minimap: player, routes and targets always; static places only the nearest few per category; the objective line), `hudcards.js` + `.css` (HUD message cards, countdowns), `cardlines.js` (what Tammo/Anita say with a card), `prompts.js` + `.css` (world prompts and the key-cap + pictogram hint chips), `shopui.js` (shop menus: select, then buy with the button; confirm for expensive items), `vehiclepreview.js` (rotating 3D vehicle for the shops and the garage tab), `pausemenu.js` (tabs; `addMissionsSection` for extra Missies sections), `garageui.js` (garage tab with the 3D viewer), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js` + `.css` (phone notifications and calls), `sikkomfeed.js`, `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots and the pause menu's header, footer and panels) |
+| UI | `hud_panel.js` + `.css` (minimap: player, routes and targets always; static places only the nearest few per category; the objective line), `hudcards.js` + `.css` (HUD message cards, countdowns), `cardlines.js` (what Tammo/Anita say with a card), `prompts.js` + `.css` (world prompts and the key-cap + pictogram hint chips), `shopui.js` (shop menus: select, then buy with the button; confirm for expensive items), `vehiclepreview.js` (rotating 3D vehicle for the shops and the garage tab), `pausemenu.js` (tabs; `addMissionsSection` for extra Missies sections), `garageui.js` (garage tab with the 3D viewer), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js` + `.css` (phone notifications and calls), `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots and the pause menu's header, footer and panels) |
 | Audio | `speech.js` (the one talking channel, see "Spoken lines"), `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 
@@ -121,6 +121,36 @@ registered in `scripts/voicelines_collect.mjs`. To fill the gaps:
 TTS via OpenRouter, key in `.env`; clips are trimmed and normalised to
 -18 LUFS, the level of the story lines; the run stops at `--budget`).
 
+### Dialect subtitles (Frisian and Gronings)
+
+Grunn speaks Dutch and Gronings; Jelle sprinkles Frisian into his Dutch
+(a few signature lines stay fully Frisian), Durk and Douwe speak Dutch
+with the odd Frisian word. Every Frisian line, and every Gronings line
+that is hard to follow, shows its Dutch translation underneath, smaller
+and in italics (`.nl-sub` in `hud_panel.css`).
+
+- Lines stay plain strings everywhere, so voice keys (`speaker|text`) and
+  the collectors don't change. The translation lives in
+  `js/subtitles.js`: `FY` (Frisian) and `GRO` (Gronings), keyed by the
+  exact shown text: `'Moai! Oant sjen, Grinzers!': 'Mooi! Tot ziens, Groningers!'`.
+- A key may be a fragment: every key found inside a longer text is
+  replaced by its translation, so a quote in a Dutch line
+  (`'"Tige tank."'`), a toast template's fixed part (the text before a
+  `{to}` or `${name}`) or a `Speaker: text` history row gets its subtitle
+  too. Fragments shorter than 5 characters are ignored.
+- Rendering: `setDualText(el, text)` / `dualHtml(text)` (escapes). Used by
+  cutscene subtitles and the big title (`cinematics.js`), speech bubbles
+  (`scene3d.js`), banter (`banter.js`), post-game subtitles
+  (`postgame.js`), the Sikkom/phone feed (`phonefeed.js`), phone calls,
+  contacts and history (`phone.js`), HUD cards (`hudcards.js`) and
+  achievement titles (`achievementsui.js`). Anything shown through these
+  gets its subtitle for free; a new text surface calls one of the two.
+- New Frisian line: write it, add its Dutch to `FY`. `voice_coverage.mjs`
+  exits 1 for any spoken line that `looksFrisian()` without a translation.
+  Voice casts: Jelle/Durk/Douwe are recorded as Dutch with a Frisian
+  accent; a bubble line with Gronings words (`GRO` or common dialect words)
+  gets a "spreekt Gronings dialect" tag (`tts_lines_list.mjs`).
+
 ## Messages, phone and calls
 
 There are no white toast lines. Three channels, all inside `#hud` (so
@@ -134,8 +164,8 @@ There are no white toast lines. Three channels, all inside `#hud` (so
   mission/bijbaan, else tip), each with accent colour and icon. "Prefix:
   rest" and "Short sentence! Rest" split into title and body. Redundant
   messages are dropped (`DROP`: death/busted, mission passed/failed, start
-  location, mute, route set, the radio, ambient trains, pigeon bumps). Two
-  cards at a time, a short queue (dangers and police first, tips expire),
+  location, mute, route set, the radio, ambient trains, pigeon bumps). One
+  card at a time (see "Attention budget"), a short queue (dangers and police first, tips expire),
   the same key updates the card that is up; cards wait while a cutscene
   hides the HUD. `opts.exact` countdowns ("3", "GO! GO! GO!") are a big
   number in the middle. `cardlines.js` lists the few cards Tammo/Anita say
@@ -148,8 +178,8 @@ There are no white toast lines. Three channels, all inside `#hud` (so
   - `notifyPhone(world, { from, app, title, text, duration })` (or push
     `{ from, text, duration }` onto `world.phoneNotifications`): a phone
     card. "SIKKOM(: | MELDT:)" texts become a Sikkom headline + body;
-    `app` is `sikkom`, `bericht` or `geld`. Two up at once, the older one
-    steps back. Everything lands in the Sikkom history (phone.js).
+    `app` is `sikkom`, `bericht` or `geld`. One up at a time with a "+N"
+    counter for the waiting ones. Everything lands in the Sikkom history (phone.js).
   - `startCall(world, { from, lines: [{ speaker, text, sub }], live, onEnd,
     voice })`: an incoming call (or `live: true`: a Sikkom livestream).
     Rings, then plays line by line, each voiced from the lines manifest
@@ -367,6 +397,42 @@ The last part has `finale: true`: its card is the ending (epilogue lines,
 credits, "Einde", story.js `playFinale`) instead of "Wordt vervolgd".
 After the last built step `world.storyFreePlay` is set and routing.js no
 longer routes to idle missions by itself.
+
+Staging (story experience):
+
+- Actors: `missionstory.js` builds Tammo, Anita, the mission NPC and any
+  `introCast`/`outroCast` extras (story NPC keys such as `jelle`, `durk`,
+  `douwe`; `{ key, at: [forward, side], pose, face, water, jump }`) plus
+  props (`limo` = the trekker-limo as a backdrop, `ball` = the Eierbal in a
+  hand, `fatbike` = the twins riding one fatbike). Looks are fixed in
+  `storycast.js` (`opts.look` in models3d_people.js). Mission stage scenes
+  with `lines` (missions.js `scene` stages, with `cast`/`props`) play through
+  `playCastScene`, so they have actors too; H14's twins go overboard on
+  their "Plons." line. H4's outro opens with `playLimoReveal` (the limo at the
+  museum's back door, through the pigeon's eyes); H6's livestream is
+  `playLivestream` (a selfie shot inside the LIVE frame).
+- Cameras: drifting over-the-shoulder shots per speaker, a close-up cut on an
+  exclamation, a crane-up for the narrator, a slow hand-held float (more on a
+  fail), listeners turn their heads to the one talking.
+- Line format in cutscenes and contacts: `[who, text, { clue, look, tag }]`.
+  A Frisian or Gronings line gets its Dutch subtitle from subtitles.js
+  (keyed by the exact text, one mechanism everywhere); `clue` pushes the
+  camera in, plays a sting (audio.js `playClueSting`) and marks the subtitle
+  "Aanwijzing"; `look` points the camera at a prop (the fatbike, the flag's
+  knots); `tag` is the TTS delivery.
+- Contacts: a step's `contact` entries (storyarc.js, documented there) are
+  queued by story.js on `after` or `lead` and played by storycontact.js when
+  the game is quiet, voiced from the lines manifest; their `after` texts
+  follow on the phone once the contact is over. `world.storyContact` keeps
+  the car banter quiet meanwhile. Jelle's replies when you call him
+  (phone.js) are voiced too.
+- The arc: `PARTS.<part>.recap` plays an "Eerder in GTE VI" card when a later
+  part starts (story.js `playRecap`, once per save, flag `recap:<part>`);
+  `CLUES` and `WHY` feed "Wat weten we?" in the pause menu (Missies tab,
+  story.js `getStoryJournal`: a clue shows once its step is done, a toast
+  and a sting announce it); each step's `why` is the handover line when
+  Tammo and Anita trade places (story.js `playHandover`: a whip in the
+  character's colour, a name card, a cut to them).
 
 Adding a part (e.g. the Staart): add new mission defs at the end of
 `buildDefs` in missions.js and their ids at the end of `MISSION_IDS`, add

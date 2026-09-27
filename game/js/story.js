@@ -7,10 +7,14 @@
 // Tammo and Anita trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
+import { queueStoryContact } from './storycontact.js';
+import { playClueSting } from './audio.js';
+import { lineVoiceFor } from './linevoice.js';
 import {
   setMissionHooks, setNextMission, isMissionActive, isMissionCompleted, markMissionCompleted, getMissionDefs,
   unmetRequirement, requirementMet, requirementPlace, isNight, setMissionProgress, getMissionProgress, missionDebug,
+  activeMissionIndex, failActiveMission,
 } from './missions.js';
 import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight } from './pigeonmode.js';
@@ -43,7 +47,7 @@ function freshState() {
 }
 
 function freshRuntime() {
-  return { cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, lastPlayer: null };
+  return { cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
 }
 
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
@@ -156,6 +160,9 @@ function enter(step) {
     return;
   }
   rt.leadAt = world.time + LEAD_DELAY;
+  // the first step of a later part opens with an "Eerder in GTE VI" recap
+  const first = STEPS.find((s) => s.part === step.part && stepAvailable(s));
+  if (first === step && PARTS[step.part].recap && !state.flags.has('recap:' + step.part)) rt.recapPending = step.part;
   updateCharacter(world);
   if (step.kind === 'activity' && GOALS[step.goal.type] && GOALS[step.goal.type].begin) GOALS[step.goal.type].begin(step, rt.base);
   pointMissionChain(step);
@@ -183,6 +190,21 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   if (!quiet && step.kind === 'activity' && step.done) phone(who(step.done[0]), step.done[1], 5);
   if (!quiet && step.after) for (const [from, text] of step.after) phone(from, text, 6);
   if (step.beat) for (const [from, text] of step.beat) phone(who(from), text, 6);
+  if (!quiet) queueContacts(step, 'after');
+  for (const c of CLUES) {
+    if (c.step !== step.id) continue;
+    rt.newClues.add(c.title);
+    if (!quiet) rt.clueToasts.push(c.title);
+  }
+}
+
+// Jelle's (or the twins') calls, livestreams, posts and cards (storycontact.js);
+// their `after` texts arrive once the contact is over.
+function queueContacts(step, on) {
+  for (const c of step.contact || []) {
+    if ((c.on || 'after') !== on) continue;
+    queueStoryContact({ ...c, onDone: () => { for (const [from, text] of c.after || []) phone(who(from), text, 6); } });
+  }
 }
 
 function refreshGuide() {
@@ -261,6 +283,39 @@ function finaleShot(t0 = 0) {
     const r = 150 - (t0 + t) * 0.6;
     return { position: { x: lm.x + Math.cos(a) * r, y: lm.y + Math.sin(a) * r, z: 55 + (t0 + t) * 0.5 }, lookAt: { x: lm.x, y: lm.y, z: 40 }, fov: 50 };
   };
+}
+
+// "Eerder in GTE VI": the narrator sums up the story so far over slow orbits
+// of the places it happened, when a new part starts.
+function recapPlace(p) {
+  if (Array.isArray(p)) return { x: p[0], y: p[1] };
+  const lm = (world.map.meta.landmarks || []).find((l) => l.name === p);
+  return lm ? { x: lm.x, y: lm.y } : { x: 160, y: 70 };
+}
+
+function playRecap(part) {
+  const P = PARTS[part];
+  if (!P || !P.recap) return false;
+  let at = 3.4;
+  const lines = P.recap.map(([place, text]) => {
+    const v = lineVoiceFor('Verteller', text);
+    const dur = Math.max(v ? v.dur + 0.4 : 0, 2.6, Math.min(6, 1 + text.length * 0.055));
+    const l = { speaker: 'Verteller', text, at, dur, place: recapPlace(place) };
+    at += dur + 0.3;
+    return l;
+  });
+  return playCinematic({
+    id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
+    kicker: 'Eerder in GTE VI', title: P.title, cardFor: 3.2,
+    lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur })),
+    shot: (u, t) => {
+      let k = lines.findIndex((l) => t < l.at + l.dur + 0.3);
+      if (k < 0) k = lines.length - 1;
+      const l = lines[k], c = l.place, lt = Math.max(0, t - (k ? l.at : 0));
+      const a = 0.8 + k * 1.9 + lt * 0.06, r = 66 - lt * 1.6;
+      return { position: { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: 27 - lt * 0.7 }, lookAt: { x: c.x, y: c.y, z: 10 }, fov: 48 };
+    },
+  });
 }
 
 // The end of the story: the epilogue (the last part's card lines), a big
@@ -350,8 +405,57 @@ function updateCharacter(w) {
   if (!want || w.player.character === want) return;
   if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
   swapCharacter(w, want);
-  flash();
-  w.addMessage(`${charName(w.player.character)} neemt het over`, 2.5);
+  if (!playHandover(w, step)) {
+    flash();
+    w.addMessage(`${charName(w.player.character)} neemt het over`, 2.5);
+  }
+}
+
+// The handover: a whip in the new character's colour, a quick cut to them
+// with a name card, and their reason for this step (step.why), said to the
+// other one (voiced from the lines manifest by cinematics.js).
+const CHAR_COLOR = { tammo: '#3f6ea8', anita: '#b8382d' };
+let whipEl = null;
+function whip(color) {
+  if (!whipEl) {
+    whipEl = document.createElement('div');
+    whipEl.id = 'story-swap-whip';
+    whipEl.style.cssText = 'position:fixed;top:-20%;bottom:-20%;left:0;width:70vw;z-index:16;pointer-events:none;transform:translateX(-120vw) skewX(-18deg);opacity:.95';
+    document.body.appendChild(whipEl);
+  }
+  whipEl.style.background = `linear-gradient(90deg, transparent, ${color} 25%, ${color} 75%, transparent)`;
+  whipEl.style.transition = 'none';
+  whipEl.style.transform = 'translateX(-120vw) skewX(-18deg)';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    whipEl.style.transition = 'transform 0.55s cubic-bezier(.6,.05,.3,1)';
+    whipEl.style.transform = 'translateX(160vw) skewX(-18deg)';
+  }));
+}
+
+function playHandover(w, step) {
+  const who = w.player.character, name = charName(who);
+  const why = step && !step.end && step.why ? step.why : '';
+  const voice = why && lineVoiceFor(name, why);
+  const dur = why ? Math.max(3, (voice ? voice.dur : Math.min(4, 1 + why.length * 0.05)) + 1.1) : 2.2;
+  const p = w.player, c = w.companion;
+  const ok = playCinematic({
+    id: 'story-swap', priority: 1, duration: dur, pause: true, keepMotion: true, letterbox: true, skippable: true, hideHud: true,
+    kicker: 'Neemt het over', title: name, cardFor: Math.min(2.2, dur), accent: who,
+    lines: why ? [{ speaker: name, text: why, at: 0.7, dur: dur - 0.9 }] : [],
+    shot: (u, t) => {
+      const v = p.inVehicle;
+      const x = v ? v.x : p.x, y = v ? v.y : p.y, a = (v ? v.angle : p.angle) || 0;
+      // from the other one, a fast whip over to the one who takes over, then a slow push-in
+      const k = Math.min(1, t / 0.4), e = k * k * (3 - 2 * k);
+      const ox = c ? c.x : x - Math.cos(a) * 2, oy = c ? c.y : y - Math.sin(a) * 2;
+      const lx = ox + (x - ox) * e, ly = oy + (y - oy) * e;
+      const r = (v ? 6.5 : 2.8) - u * 0.5, ca = a + 0.55;
+      return { position: { x: x + Math.cos(ca) * r, y: y + Math.sin(ca) * r, z: v ? 2.6 : 1.75 }, lookAt: { x: lx, y: ly, z: v ? 1.1 : 1.45 }, fov: 44 - u * 4 };
+    },
+  });
+  if (!ok) return false;
+  whip(CHAR_COLOR[who] || '#3fc97a');
+  return true;
 }
 
 let fadeEl = null;
@@ -372,7 +476,17 @@ function flash() {
 
 // --- skipping --------------------------------------------------------------------------
 
+// Every step can be skipped from the pause menu (Missies tab), a running
+// story mission too (it is aborted first); the O button on screen only shows
+// after a failure, a long gate or a long wait on an activity.
 export function canSkipCurrent() {
+  const step = rt.cur;
+  if (!step || step.end) return false;
+  if (isMissionActive()) return step.kind === 'mission' && activeMissionIndex() === missionIdx(step);
+  return true;
+}
+
+function skipOffered() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) return false;
   if (step.kind === 'activity') return true;
@@ -382,6 +496,7 @@ export function canSkipCurrent() {
 export function skipCurrent() {
   const step = rt.cur;
   if (!canSkipCurrent()) return false;
+  if (isMissionActive() && !failActiveMission(world, 'Missie overgeslagen', 'Overgeslagen')) return false;
   if (step.kind === 'mission') {
     const i = missionIdx(step);
     const def = getMissionDefs()[i];
@@ -428,7 +543,7 @@ function hideSkip() {
 
 function updateSkipUi() {
   if (!els) return;
-  const show = rt.skipUntil > world.time && canSkipCurrent() && !world.pigeonMode;
+  const show = rt.skipUntil > world.time && skipOffered() && !world.pigeonMode;
   if (els.root.hidden === show) els.root.hidden = !show;
   if (show && world.input.wasPressed('o')) { world.input.consume('o'); skipCurrent(); }
 }
@@ -487,10 +602,21 @@ export function updateStory(dt, w) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
     return;
   }
+  if (rt.recapPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && !w.pendingRespawn) {
+    const part = rt.recapPending;
+    rt.recapPending = null;
+    if (playRecap(part)) { state.flags.add('recap:' + part); rt.leadAt = w.time + LEAD_DELAY; }
+  }
+  if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
+    const title = rt.clueToasts.shift();
+    w.addMessage(`Nieuwe aanwijzing: ${title}. Lees terug in het pauzemenu, Missies: "Wat weten we?"`, 4.5);
+    playClueSting();
+  }
   if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive()) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
     if (step.say) companionSays(w, step.say[1]);
+    queueContacts(step, 'lead');
   }
   if ((rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }
   if (step.kind === 'activity') {
@@ -538,6 +664,20 @@ export function storyFlag(name) {
 }
 
 // --- views for the pause menu, phone and dev tools ------------------------------------------
+
+// "Wat weten we?": the clues and turning points of the steps done so far
+// (newest first) and what Tammo and Anita are after in this part.
+export function getStoryJournal() {
+  const step = rt.cur || currentStep();
+  const part = step && (step.part || step.end) || 'kop';
+  const done = new Set(STEPS.filter((s, k) => isDone(s, k)).map((s) => s.id));
+  const found = CLUES.filter((c) => done.has(c.step)).map((c) => ({ ...c, isNew: rt.newClues.has(c.title) })).reverse();
+  return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur ook.' : WHY[part] || '', found, total: CLUES.length };
+}
+
+export function markCluesSeen() {
+  rt.newClues.clear();
+}
 
 export function getStoryView() {
   const step = rt.cur || currentStep();

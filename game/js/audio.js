@@ -1130,6 +1130,58 @@ export function playBanterVoice(src) {
   return true;
 }
 
+// Story contacts (storycontact.js: Jelle's calls, voicemails, livestreams):
+// the 'call' class under their own owner; storycontact holds the channel
+// for the whole contact (holdContactChannel) so nothing talks over it.
+let contactVoice = null;
+
+export function stopContactVoice() {
+  const v = contactVoice;
+  contactVoice = null;
+  if (!v) return;
+  v.el.pause();
+  if (v.node) v.node.disconnect();
+  speech.end(v.tok);
+}
+
+export function pauseContactVoice(paused) {
+  const v = contactVoice;
+  if (!v) return;
+  if (paused) v.el.pause();
+  else v.el.play().catch(() => {});
+}
+
+export function playContactVoice(src) {
+  stopContactVoice();
+  if (!ctx || muted) return false;
+  const v = { el: new Audio(src), node: null, tok: null };
+  v.tok = speech.begin('call', 3, { owner: 'contact', stop: () => { if (contactVoice === v) stopContactVoice(); } });
+  if (!v.tok) return false;
+  try {
+    v.node = ctx.createMediaElementSource(v.el);
+    v.node.connect(voiceBus);
+  } catch (e) {
+    // ignore - plays without the Web Audio graph
+  }
+  contactVoice = v;
+  const done = () => { if (contactVoice === v) stopContactVoice(); };
+  v.el.addEventListener('ended', done, { once: true });
+  v.el.addEventListener('error', done, { once: true });
+  v.el.addEventListener('loadedmetadata', () => {
+    const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
+    speech.extend(v.tok, d);
+    duckAmbience(0.4, d + 0.4);
+  }, { once: true });
+  v.el.play().catch(done);
+  return true;
+}
+
+// true when the contact got the channel (false: a story scene or a call has it)
+export function holdContactChannel(on) {
+  if (!on) { speech.release('contact'); return true; }
+  return speech.hold('contact', 'call');
+}
+
 // Phone calls (phonefeed.js startCall): the call holds the channel and each
 // line plays through here; onEnd fires when the clip is done (or failed).
 export function playCallVoice(src, onEnd) {
@@ -1214,6 +1266,26 @@ function updateChaseBark(world) {
   }
   const key = POLICE_CHASE_START_KEYS[Math.floor(Math.random() * POLICE_CHASE_START_KEYS.length)];
   playPoliceBark(key, x, y);
+}
+
+// Story UI sounds (missionstory.js, storycontact.js): a soft rising sting
+// under a clue, and the ringtone of an incoming story call (two short
+// double rings, a phone in a pocket rather than the room).
+export function playClueSting() {
+  if (!ctx || muted || !stingBus) return;
+  [[659.25, 0, 0.9], [987.77, 0.11, 0.9], [1318.5, 0.22, 1.2]].forEach(([freq, delay, duration]) =>
+    playTone({ freq, type: 'sine', duration, gain: 0.05, delay, bus: stingBus, prio: 2 }));
+  playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
+}
+
+export function playPhoneRing(rings = 2) {
+  if (!ctx || muted || !uiBus) return;
+  for (let k = 0; k < rings; k++) {
+    for (const [d, f] of [[0, 1318.5], [0.16, 1174.7]]) {
+      playTone({ freq: f, type: 'square', duration: 0.12, gain: 0.03, delay: k * 1.1 + d, filterFreq: 2600, bus: uiBus, prio: 2 });
+      playTone({ freq: f * 2, type: 'sine', duration: 0.1, gain: 0.02, delay: k * 1.1 + d + 0.01, bus: uiBus, prio: 2 });
+    }
+  }
 }
 
 export function playSikkomLine(key) {

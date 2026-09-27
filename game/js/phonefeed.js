@@ -1,7 +1,8 @@
+import { dualHtml, dutchFor } from './subtitles.js';
 import { getClockText } from './hud_panel.js';
 import { readingSeconds } from './world.js';
 import { lineVoiceFor } from './linevoice.js';
-import { playCallVoice } from './audio.js';
+import { playCallVoice, playPhoneRing } from './audio.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 
 // The phone on the HUD (bottom left, above the street name): notification
@@ -134,8 +135,8 @@ function showNote(w, n) {
   el.dataset.app = p.app;
   el.innerHTML =
     `<div class="pf-head"><span class="pf-app">${icon(p.app)}</span><span class="pf-from">${esc(p.from)}</span><span class="pf-more" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
-    (p.title ? `<div class="pf-title">${esc(p.title)}</div>` : '') +
-    (p.body ? `<div class="pf-body">${esc(p.body)}</div>` : '');
+    (p.title ? `<div class="pf-title">${dualHtml(p.title)}</div>` : '') +
+    (p.body ? `<div class="pf-body">${dualHtml(p.body)}</div>` : '');
   stack.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');
@@ -198,6 +199,7 @@ function beginCall(w, c) {
   stack.appendChild(callEl);
   void callEl.offsetWidth;
   callEl.classList.add('on', 'ringing');
+  playPhoneRing(c.live ? 1 : 2);
   document.body.classList.add('hud-call-on');
   for (const k of cards) dropCard(k);
 }
@@ -208,7 +210,8 @@ function showLine(c) {
   sp.textContent = l.speaker && !c.from.startsWith(l.speaker) ? l.speaker : '';
   sp.style.color = SPEAKER_COLORS[l.speaker] || '';
   callEl.querySelector('.pf-say').textContent = l.text;
-  callEl.querySelector('.pf-sub').textContent = l.sub || '';
+  // the Dutch under a Frisian/Gronings line (subtitles.js), unless given
+  callEl.querySelector('.pf-sub').textContent = l.sub || dutchFor(l.text) || '';
   const line = callEl.querySelector('.pf-line');
   line.classList.remove('new');
   void line.offsetWidth;
@@ -249,7 +252,7 @@ function finishCall(cut) {
 function updateCall(dt, w, visible) {
   if (!call) {
     calls = calls.filter((c) => w.time - c.at < CALL_WAIT_MAX);
-    if (calls.length && visible && holdChannel('call', 'call')) beginCall(w, calls.shift());
+    if (calls.length && visible && !w.storyContact && holdChannel('call', 'call')) beginCall(w, calls.shift());
     return;
   }
   const c = call;
