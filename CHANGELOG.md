@@ -6,6 +6,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-09-27
+
+### Verbeterd
+- **Meer geld, lagere kosten**: missies en bijbaantjes betalen flink beter,
+  en repareren, spuiten, tunen, wapens, munitie, vesten, boetes en
+  kentekens zijn goedkoper. Na zo'n half uur spelen kun je een auto of een
+  wapen plus reparaties betalen, en de duurste voertuigen zijn haalbaar na
+  de Romp.
+- Verstopte eierballen leveren €50 op (en een bonus voor alle 30), en de
+  Fjord Frituur betaalt na het verhaal een dagloon.
+- Te weinig geld in een winkel? Je krijgt nu de tip om via Ubbo bij te
+  verdienen.
+
 ## [0.11.0] - 2026-09-27
 
 ### Nieuw
