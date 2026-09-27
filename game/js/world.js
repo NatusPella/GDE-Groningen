@@ -28,9 +28,23 @@ export class World {
     this.messages = []; // {text, until} HUD toast queue
   }
 
-  addMessage(text, duration = 3) {
-    this.messages.push({ text, until: this.time + duration });
+  // Stays up at least as long as it takes to read. opts.exact keeps the
+  // caller's duration (countdowns); opts.key replaces an earlier message with
+  // the same key (toggles), identical texts always replace each other.
+  addMessage(text, duration = 3, opts = {}) {
+    const key = opts.key || text;
+    this.messages = this.messages.filter((m) => (m.key || m.text) !== key);
+    const d = opts.exact ? duration : Math.max(duration, readingSeconds(text));
+    this.messages.push({ text, key, until: this.time + d });
+    while (this.messages.length > MAX_MESSAGES) this.messages.shift();
   }
+}
+
+const MAX_MESSAGES = 4;
+
+// Comfortable on-screen time for a line of HUD text.
+export function readingSeconds(text) {
+  return Math.max(3, 1.2 + 0.06 * String(text || '').length);
 }
 
 // Shared "player died / got busted" recovery flow — used by combat.js (health
@@ -62,6 +76,8 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announc
   p.z = 0;
   p.vz = 0;
   p.vault = null;
+  if (p.water && p.leaveWater) p.leaveWater();
+  p.climb = null;
   const landmarks = world.map.meta.landmarks || [];
   const pick = at || (landmarks.length ? landmarks[Math.floor(Math.random() * landmarks.length)] : world.spawnPoint);
   const spot = at || world.map.findOpenSpawn(pick.x, pick.y, 400) || pick;

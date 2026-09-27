@@ -1,7 +1,7 @@
 import { getMissionProgress, setMissionProgress } from './missions.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { WEAPONS } from './combat.js';
-import { isCinematicActive } from './cinematics.js';
+import { isCinematicActive, skipAllCinematics } from './cinematics.js';
 import { getShopSave, applyShopSave } from './shops.js';
 import { getAchievementSaveData, applyAchievementSaveData } from './achievements.js';
 import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
@@ -121,7 +121,7 @@ export function saveSoon(delay = 1.5) {
 function placeAt(w, x, y) {
   const map = w.map;
   const p = w.player;
-  const spot = map.findOpenSpawn(x, y, 80) || { x, y };
+  const spot = map.findOpenSpawn(x, y, 80) || map.findOpenSpawn(x, y, 800) || { x, y };
   const sx = spot.x, sy = spot.y;
   if (p.inVehicle) {
     const v = p.inVehicle;
@@ -155,6 +155,9 @@ function placeAt(w, x, y) {
 export function applySave(w, d) {
   if (!w || !d) return false;
   try {
+    // a running scene (train trip, intro) would otherwise finish against the loaded state
+    skipAllCinematics();
+    if (w.pigeonMode && w.pigeonActions) w.pigeonActions.stop();
     w.money = Math.max(0, num(d.money, 0));
     w.health = clamp(num(d.health, 100), 1, 100);
     w.armor = clamp(num(d.armor, 0), 0, 100);

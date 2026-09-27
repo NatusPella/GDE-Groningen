@@ -247,7 +247,7 @@ const BIRD_MAT = new THREE.MeshStandardMaterial({ color: 0x7c8088, roughness: 0.
 const MAX_NOTES = 140;
 const BIRDS = 28;
 
-function makeActor(app) {
+export function makeActor(app) {
   const m = buildPersonMesh(app.shirt, app.skin, app);
   m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   const sh = new THREE.Mesh(SHADOW_GEO, SHADOW_MAT);
@@ -348,7 +348,7 @@ function updateNotes(n, dt, t) {
   n.meshes.forEach((m, k) => { m.count = counts[k]; m.instanceMatrix.needsUpdate = true; });
 }
 
-function makeBirds(group, cx, cy, r) {
+export function makeBirds(group, cx, cy, r) {
   const body = new THREE.InstancedMesh(BIRD_GEO, BIRD_MAT, BIRDS);
   const wings = new THREE.InstancedMesh(WING_GEO, BIRD_MAT, BIRDS * 2);
   body.frustumCulled = wings.frustumCulled = false;
@@ -361,7 +361,7 @@ function makeBirds(group, cx, cy, r) {
   return { body, wings, list, dummy: new THREE.Object3D() };
 }
 
-function scatterBirds(b, fromX, fromY) {
+export function scatterBirds(b, fromX, fromY) {
   for (const p of b.list) {
     const a = Math.atan2(p.y - fromY, p.x - fromX) + (Math.random() - 0.5) * 1.2;
     const s = 3 + Math.random() * 3;
@@ -370,7 +370,7 @@ function scatterBirds(b, fromX, fromY) {
   }
 }
 
-function updateBirds(b, dt, t) {
+export function updateBirds(b, dt, t) {
   const d = b.dummy;
   d.rotation.order = 'YXZ';
   b.list.forEach((p, i) => {
@@ -411,7 +411,7 @@ export function isIntroPlaying() {
   return !!run;
 }
 
-function stage(m, x, y, a, { h = 0, speed = 0, pose: name = null, dt = 0, t = 0 } = {}) {
+export function stage(m, x, y, a, { h = 0, speed = 0, pose: name = null, dt = 0, t = 0 } = {}) {
   const ud = m.userData;
   m.visible = true;
   if (ud.seated) {
@@ -426,7 +426,7 @@ function stage(m, x, y, a, { h = 0, speed = 0, pose: name = null, dt = 0, t = 0 
   ud.blob.visible = true;
 }
 
-function seat(m, v, driver) {
+export function seat(m, v, driver) {
   const hl = v.model.len / 2, hw = v.model.wid / 2;
   const sx = -hl * 0.06, sz = (driver ? -1 : 1) * hw * 0.34;
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
@@ -946,10 +946,11 @@ function frame(r, t) {
 
 function cleanup(r, skipped) {
   const prev = r.shots[r.idx];
-  if (prev && prev.exit) prev.exit(r, r.state);
-  removeTempCars(r);
+  // whatever a shot left behind, the montage itself must always end
+  try { if (prev && prev.exit) prev.exit(r, r.state); } catch (e) { console.error('intro exit', e); }
+  try { removeTempCars(r); } catch (e) { console.error('intro cars', e); }
   r.group.removeFromParent();
-  restoreHome(r);
+  try { restoreHome(r); } catch (e) { console.error('intro home', e); }
   if (ui) {
     ui.root.classList.remove('on');
     if (skipped) {

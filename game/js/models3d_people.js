@@ -225,11 +225,49 @@ const W_TORSO = (x, y) => blend(BONE.pelvis, BONE.chest, y, 1.0, 1.16);
 const W_NECK = (x, y) => blend(BONE.chest, BONE.head, y, 1.47, 1.53);
 const W_LEG = (k) => (x, y) => blend(BONE.knee[k], BONE.thigh[k], y, KNEE_Y - 0.04, KNEE_Y + 0.05);
 const W_ARM = (k) => (x, y) => blend(BONE.elbow[k], BONE.arm[k], y, SHOULDER_Y - UPPER_ARM - 0.03, SHOULDER_Y - UPPER_ARM + 0.03);
-const W_HEM = (maxW) => (x, y, z) => {
-  const k = z >= 0 ? 0 : 1;
-  const f = Math.min(1, Math.max(0, (HIP_Y + 0.02 - y) / 0.38)) * maxW;
-  return [BONE.thigh[k], BONE.pelvis, f];
-};
+const W_PANEL = (k, maxW) => (x, y) => [BONE.thigh[k], BONE.pelvis, Math.min(1, Math.max(0, (HIP_Y + 0.02 - y) / 0.2)) * maxW];
+
+// Half-shell of a loft (rings as in loftGeometry) on one leg's side (s = +1
+// for +z), split along the centre line front and back.
+function hemPanel(rings, s, segs = 6) {
+  const ring = (r) => {
+    const out = [];
+    for (let i = 0; i <= segs; i++) {
+      const t = (i / segs) * Math.PI, c = Math.cos(t);
+      out.push([c * r.d * (c > 0 ? (r.front ?? 1) : 1), r.y, Math.sin(t) * r.w]);
+    }
+    return out;
+  };
+  const rs = rings.map(ring), pos = [];
+  for (let n = 0; n < rs.length - 1; n++) {
+    const A = rs[n], C = rs[n + 1];
+    for (let i = 0; i < segs; i++) pos.push(...A[i], ...C[i + 1], ...A[i + 1], ...A[i], ...C[i], ...C[i + 1]);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  return s > 0 ? g : flipWinding(g.scale(1, 1, -1));
+}
+
+// Coat tails / skirts as two panels, each carried by its own thigh, so
+// running legs swing the cloth instead of poking through it.
+function hemPanels(B, rings, maxW, color) {
+  const prev = B.bone;
+  for (let k = 0; k < 2; k++) {
+    B.bone = W_PANEL(k, maxW);
+    B.geo(hemPanel(rings, k === 0 ? 1 : -1), null, color);
+  }
+  B.bone = prev;
+}
+
+function flipWinding(g) {
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i += 3) {
+    const x = p.getX(i + 1), y = p.getY(i + 1), z = p.getZ(i + 1);
+    p.setXYZ(i + 1, p.getX(i + 2), p.getY(i + 2), p.getZ(i + 2));
+    p.setXYZ(i + 2, x, y, z);
+  }
+  return g;
+}
 
 function ell(ws, hs, fn, phiStart = 0, phiLen = Math.PI * 2, thStart = 0, thLen = Math.PI) {
   const g = new THREE.SphereGeometry(1, ws, hs, phiStart, phiLen, thStart, thLen);
@@ -556,13 +594,11 @@ function buildTorso(B, L, skin) {
     case 'raincoat': {
       const c = L.top === 'raincoat' ? L.raincoatColor : top;
       const hemRings = [
-        { y: 0.5, d: 0.2, w: 0.27 },
+        L.shortCoat ? { y: 0.66, d: 0.19, w: 0.25, front: 0.85 } : { y: 0.56, d: 0.2, w: 0.27, front: 0.8 },
         { y: 0.8, d: 0.14, w: 0.2 },
         { y: 0.99, d: 0.112, w: 0.172 },
       ];
-      B.bone = W_HEM(0.55);
-      B.geo(loftGeometry(hemRings, 10), null, c);
-      B.bone = W_TORSO;
+      hemPanels(B, hemRings, 0.9, c);
       for (let i = 0; i < 3; i++) B.box(front(1.28 - i * 0.12) + 0.008, 1.28 - i * 0.12, 0.03, 0.01, 0.018, 0.018, L.top === 'raincoat' ? 0xe0ddd4 : 0x2a2622);
       if (L.top === 'coat') {
         B.geo(loftGeometry(slice(rings, 1.04, 1.08, 1.07), 10, Math.PI / 10), null, shade(c, 0.75));
@@ -572,9 +608,7 @@ function buildTorso(B, L, skin) {
       break;
     }
     case 'dress':
-      B.bone = W_HEM(0.7);
-      B.geo(loftGeometry([{ y: 0.5, d: 0.17, w: 0.23 }, { y: 0.84, d: 0.11, w: 0.18 }, { y: 0.99, d: 0.1, w: 0.165 }], 10), null, top);
-      B.bone = W_TORSO;
+      hemPanels(B, [{ y: 0.52, d: 0.17, w: 0.23, front: 0.82 }, { y: 0.84, d: 0.11, w: 0.18 }, { y: 0.99, d: 0.1, w: 0.165 }], 0.9, top);
       collarRing(shade(top, 0.9), 1.0, 0.015);
       break;
     case 'police': {
@@ -594,9 +628,7 @@ function buildTorso(B, L, skin) {
   }
 
   if (L.bottom === 'skirt') {
-    B.bone = W_HEM(0.65);
-    B.geo(loftGeometry([{ y: 0.58, d: 0.155, w: 0.21 }, { y: 0.9, d: 0.112, w: 0.176 }, { y: 1.0, d: 0.1, w: 0.162 }], 10), null, L.skirtColor);
-    B.bone = W_TORSO;
+    hemPanels(B, [{ y: 0.58, d: 0.155, w: 0.21, front: 0.85 }, { y: 0.9, d: 0.112, w: 0.176 }, { y: 1.0, d: 0.1, w: 0.162 }], 0.9, L.skirtColor);
   }
 
   if (L.scarf) {
@@ -798,7 +830,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   if (L.character === 'tammo') {
     Object.assign(L, { hat: 'tammo', capColor: opts.cap ?? DEFAULT_CAP, top: 'jacket', forceOpen: true, hood: true, under: 0xe3ddd0, bottom: 'jeans', shoeType: 'sneaker', facial: 'stubble', hoodUp: false });
   } else if (L.character === 'anita') {
-    Object.assign(L, { top: 'coat', bottom: 'jeans', shoeType: 'boot', scarf: false });
+    Object.assign(L, { top: 'coat', shortCoat: true, bottom: 'jeans', shoeType: 'boot', scarf: false });
   }
 
   const shZ = (L.female ? 0.172 : 0.198) * (L.build === 'heavy' ? 1.06 : L.build === 'slim' ? 0.95 : 1) + 0.03;
@@ -833,6 +865,7 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   ud.body = mesh;
   ud.stoop = L.age === 'old' ? 0.12 : 0;
   ud.gait = L.age === 'old' ? 0.8 : L.female ? 1.05 : 1;
+  ud.female = L.female;
   ud.animOffset = hash2(L.seed, 9.1) * 100;
   for (const k of [0, 1]) {
     linkJoint(rig.limbs[k].thigh, rig.limbs[k].knee, autoKnee, () => pedalIK(group, k));
@@ -848,15 +881,19 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
 }
 
 const umbrellaGeos = new Map();
+const UMBRELLA_CANOPY = [{ y: 0.52, d: 0.5, w: 0.5 }, { y: 0.63, d: 0.41, w: 0.41 }, { y: 0.73, d: 0.24, w: 0.24 }, { y: 0.78, d: 0.02, w: 0.02 }];
+
+// Origin at the grip, shaft along +Y: 1 m canopy about 0.75 m above the hand.
 function umbrellaGeometry(color) {
   let g = umbrellaGeos.get(color);
   if (!g) {
     const B = new SkinBuilder(1);
-    B.geo(new THREE.CylinderGeometry(0.009, 0.009, 0.9, 4), composeMatrix(0, 0.45, 0), 0x2a2a2a);
-    const canopy = new THREE.ConeGeometry(0.55, 0.22, 8, 1, true);
-    B.geo(canopy, composeMatrix(0, 0.86, 0), color);
-    B.geo(new THREE.ConeGeometry(0.55, 0.22, 8, 1, true).scale(1, -1, 1), composeMatrix(0, 0.86, 0), shade(color, 0.7));
-    B.geo(new THREE.CylinderGeometry(0.012, 0.012, 0.08, 4), composeMatrix(0, 1.0, 0), 0x2a2a2a);
+    B.geo(new THREE.CylinderGeometry(0.008, 0.008, 0.9, 4), composeMatrix(0, 0.33, 0), 0x2a2a2a);
+    B.geo(tubeGeometry([0, -0.12, 0], [0.035, -0.165, 0], 0.012, 0.012, 4), null, 0x4a3222);
+    B.geo(tubeGeometry([0.035, -0.165, 0], [0.065, -0.125, 0], 0.012, 0.012, 4), null, 0x4a3222);
+    B.geo(loftGeometry(UMBRELLA_CANOPY, 8), null, color);
+    B.geo(flipWinding(loftGeometry(UMBRELLA_CANOPY.map((r) => ({ ...r, y: r.y - 0.006 })), 8)), null, shade(color, 0.6));
+    B.geo(new THREE.CylinderGeometry(0.005, 0.009, 0.06, 4), composeMatrix(0, 0.8, 0), 0x2a2a2a);
     g = markShared(B.build());
     g.deleteAttribute('skinIndex');
     g.deleteAttribute('skinWeight');
@@ -867,7 +904,7 @@ function umbrellaGeometry(color) {
 
 function attachUmbrella(ud, color) {
   const m = new THREE.Mesh(umbrellaGeometry(color), PERSON_MAT);
-  m.position.set(0.02, -0.28, 0);
+  m.position.set(0, -0.27, 0.015);
   ud.elbowL.add(m);
   ud.umbrella = m;
 }
@@ -1343,6 +1380,8 @@ function smoothstep(a, b, x) {
 
 const TAU = Math.PI * 2;
 const _uq = new THREE.Quaternion();
+// Shaft leans back and in so the canopy centres over the head.
+const UMBRELLA_TILT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.06, 0, 0.17));
 
 // Walk/run cycle plus idle life (breathing, weight shift, glancing around)
 // for a mesh built by buildPersonMesh(). Phase advances with distance;
@@ -1414,10 +1453,10 @@ export function animatePersonWalk(mesh, speed, dt) {
   const arms = [[ud.armL, ud.elbowL, phase, 1], [ud.armR, ud.elbowR, phase + Math.PI, -1]];
   for (const [arm, elbow, ph, side] of arms) {
     if (side === 1 && ud.umbrella && !ud.posed) {
-      arm.rotation.set(0.3, 0, 0.3);
-      elbow.rotation.z = 1.45;
+      arm.rotation.set(-0.05, 0.7, 0.3 + 0.03 * Math.sin(ph) * w);
+      elbow.rotation.z = 2.0;
       _uq.copy(pelvis.quaternion).multiply(chest.quaternion).multiply(arm.quaternion).multiply(elbow.quaternion);
-      ud.umbrella.quaternion.copy(_uq.invert());
+      ud.umbrella.quaternion.copy(_uq.invert()).multiply(UMBRELLA_TILT);
       continue;
     }
     if (side === -1 && leash) {

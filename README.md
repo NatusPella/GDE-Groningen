@@ -35,6 +35,31 @@ SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
   0 on PASS. Use a throwaway profile:
   `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-test-story npx electron . --windowed --story-test=/tmp/st`
 
+### Trailer mode
+
+One scripted sequence of shots through Grunn (`js/trailer.js`, design in
+`docs/verhaal-voorstel.md` section 5), used three ways:
+
+- **Attract intro**: the short cut (~33 s, city and features only) plays
+  once on the first launch, and once for existing players after the update
+  that added it (`attractSeen` in `gte-settings`; *Standaardinstellingen*
+  keeps it). Hold Space (~0.9 s) to skip. Never with `?stil`, `?dev`,
+  `?storytest` or `?noattract`; the desktop smoke, perf and story tests add
+  `noattract`. `?attract` (desktop `--attract`) plays it on request.
+- **Benchmark**: *Instellingen → Beeld → Benchmark draaien* plays the full
+  cut (~82 s) in real time with an fps counter, then shows average fps,
+  1%-low, the heaviest shot and a quality suggestion (*Toepassen*). From a
+  running game it saves first and continues that save afterwards. Esc stops.
+- **Recording**: `?trailer` (desktop `--trailer`) plays the full cut on a
+  fixed 1/60 s step without HUD; the desktop app quits after the last frame.
+  Options: `&cut=kort` / `--trailer-cut=kort` (the short cut), `&shot=N` /
+  `--trailer-shot=N` (only shot N, 1-based; `window.__trailer.list()` prints
+  the list), `--trailer=3840x2160` (page size in device pixels),
+  `--trailer-frames=<dir>` (every frame as a png, for a smooth frame dump on
+  a slow machine), `&stil` / `--stil` (no music). `--trailer` uses a
+  throwaway profile, e.g.
+  `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-trailer npx electron . --trailer=1920x1080`
+
 ## Desktop builds and releases
 
 `desktop/` wraps the game in Electron: a standalone macOS app (universal,
@@ -73,7 +98,6 @@ Security or Windows SmartScreen.
 | Mouse wheel | next / previous weapon | – |
 | Mouse | orbit the camera around your character; push it low to look up at the rooftops | orbit around the car; eases back behind it after ~1.7 s (up to ~4.5 s at speed) |
 | Q or middle mouse (hold) | – | look back |
-| C | switch between Tammo and Anita | swap seats |
 | M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; one legend checkbox per category shows or hides it on both the map and the minimap (destination, route and police are always shown) | |
 | U | sound on/off | |
 | F11 / Alt+Enter | desktop app: fullscreen on/off (Mac also Ctrl+Cmd+F) | |
@@ -88,10 +112,11 @@ Security or Windows SmartScreen.
 - **Life**: traffic (cars, buses, bikes, scooters, boats), pedestrians,
   seagulls/cows/sheep, weather with storms, helicopters and balloons.
 - **Gameplay**: driving and on-foot movement, combat, wanted level with
-  police cars, foot cops, boats and a helicopter, 11 missions in a guided
-  story ("Alles voor één eierbal": the Kop is playable, Romp and Staart
-  follow; the route always points to the next step, and after a failed
-  mission you can skip it with O or from the pause menu), shops (weapons,
+  police cars, foot cops, boats and a helicopter, 13 missions in a guided
+  story ("Alles voor één eierbal": the Kop and the Romp are playable, the
+  Staart follows; the story decides whether you play Tammo or Anita, the
+  route always points to the next step, and after a failed mission you can
+  skip it with O or from the pause menu), shops (weapons,
   armour and food are bought, not found on the street; you start with €250),
   Sikkom news feed and phone notifications. Duif-modus as an in-game
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,
@@ -102,7 +127,9 @@ Security or Windows SmartScreen.
   pigeon achievements are kept in the save.
 - **Audio**: G-Music plays in the city all the time (a shuffled playlist with
   jingles in between; a toast shows the title of each new track), plus
-  voicelines, police barks and synthesised effects.
+  voicelines, police barks and synthesised effects. Every speech bubble and
+  subtitle is voiced; `node scripts/voice_coverage.mjs` checks that (exit
+  code 1 lists the lines still without a recording, see ARCHITECTURE.md).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for how the modules fit together,
 [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) for the UI and world style, and

@@ -4,6 +4,8 @@
 
 import { unlockAchievement } from './achievements.js';
 import { pick, rand, spawnJobBoat, vehicleSpeed } from './sidejobkit.js';
+import { lineVoiceFor } from './linevoice.js';
+import { playLineVoice } from './audio.js';
 
 const BOAT = { name: 'boat', len: 5.4, wid: 1.9, maxSpeed: 4.6, accel: 1.6, brake: 2.2, turnRate: 1.2, color: '#1f4a6e', cabin: '#f2ede0' };
 const PIER_R = 12;
@@ -156,9 +158,19 @@ export default {
       if (dd < SIGHT_R && onBoat) {
         if (speed < SLOW) {
           s.t += dt;
-          const want = Math.min(s.lines.length, 1 + Math.floor(s.t / (TALK_S / s.lines.length)));
-          while (s.said < want) { c.msg(`Gids: "${s.lines[s.said]}"`, 3.2); s.said++; }
-          if (s.t >= TALK_S) { s.done = true; c.msg(`Toeristen fotograferen ${s.name}. Klik klik.`, 2.2); }
+          // the player is the guide: a recorded line holds the next one back
+          // until it's done, and waits (briefly) for other talk to finish
+          const next = s.nextAt || 0;
+          if (s.said < s.lines.length && s.t >= next) {
+            const text = s.lines[s.said];
+            const v = lineVoiceFor(world.player.character === 'anita' ? 'Anita' : 'Tammo', text);
+            if (!v || playLineVoice(v.src, v.dur) || s.t - next > 1.5) {
+              c.msg(`Gids: "${text}"`, v ? Math.max(3.2, v.dur + 0.4) : 3.2);
+              s.said++;
+              s.nextAt = s.t + Math.max(TALK_S / s.lines.length, v ? v.dur + 0.3 : 0);
+            }
+          }
+          if (s.said >= s.lines.length && s.t >= Math.max(TALK_S, s.nextAt || 0)) { s.done = true; c.msg(`Toeristen fotograferen ${s.name}. Klik klik.`, 2.2); }
         } else if (world.time - (d.slowHintAt || -99) > 4) {
           d.slowHintAt = world.time;
           c.msg('Gas eraf! De toeristen willen het verhaal horen.', 2.2);

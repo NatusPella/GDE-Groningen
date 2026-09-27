@@ -10,6 +10,8 @@ import { getSideJobList } from './sidejobs.js';
 import { setUserWaypoint } from './routing.js';
 import { renderGaragePanel } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
+import { isShopOpen, closeShopMenu } from './shopui.js';
+import { benchmarkViaReload } from './trailer.js';
 
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
@@ -30,7 +32,6 @@ const CONTROLS = [
   ['Scrollwiel', 'volgend / vorig wapen'],
   ['Muis', 'camera draaien; laag houden om omhoog te kijken'],
   ['Q / middelste muisknop', 'vasthouden: achterom kijken (in een voertuig)'],
-  ['C', 'wissel Tammo / Anita'],
   ['T', 'telefoon'],
   ['V', 'filmcamera (tijdens het rijden)'],
   ['M', 'kaart (in het menu)'],
@@ -132,6 +133,13 @@ export function initPauseMenu(w) {
               <option value="kort">Kort</option><option value="normaal">Normaal</option><option value="ver">Ver</option>
             </select>
           </label>
+          <div class="pm-row"><span>Benchmark</span><button type="button" class="pm-secondary" data-action="bench">Benchmark draaien</button></div>
+          <p class="pm-note">Test hoe soepel Grunn draait op deze computer (±1,5 min).</p>
+          <div class="pm-confirm" data-bench-confirm hidden style="border-color: rgba(63,201,122,0.6); margin-top: 6px">
+            <p data-bench-text></p>
+            <button type="button" class="pm-primary" data-action="bench-go">Starten</button>
+            <button type="button" class="pm-secondary" data-action="bench-cancel">Annuleren</button>
+          </div>
         </div>
         <div data-sub="camera" hidden>
           <label class="pm-row"><span>Beeldhoek</span>
@@ -145,6 +153,8 @@ export function initPauseMenu(w) {
         <div data-sub="display" hidden>
           <label class="pm-row"><span>Helderheid</span>
             <input type="range" min="0.6" max="1.6" step="0.05" data-setting="brightness"><output></output></label>
+          <label class="pm-row"><span>Grootte interface</span>
+            <input type="range" min="0.8" max="1.5" step="0.05" data-setting="uiScale"><output></output></label>
           ${toggle('showMinimap', 'Minimap')}
           ${toggle('showHints', 'Toetshints')}
           ${toggle('showFog', 'Verkende gebieden op de kaart')}
@@ -168,6 +178,8 @@ export function initPauseMenu(w) {
         <button type="button" class="pm-secondary" data-action="pigeon-stop" data-pigeon hidden>Duif-modus stoppen</button>
         <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
         <button type="button" class="pm-secondary" data-action="job-stop" hidden>Bijbaantje stoppen</button>
+        <button type="button" class="pm-secondary" data-action="mission-abort" hidden>Missie afbreken</button>
+        <button type="button" class="pm-secondary" data-action="unstuck" data-both>Vastgelopen? Zet me vrij</button>
         <button type="button" class="pm-secondary" data-action="menu" data-both>Terug naar hoofdmenu</button>
         ${DESKTOP ? '<button type="button" class="pm-danger" data-action="exit" data-both>Spel afsluiten</button>' : ''}
         <div class="pm-confirm" hidden>
@@ -265,7 +277,7 @@ function cycleTab(dir) {
 }
 
 function runAction(a) {
-  const confirmEl = root.querySelector('.pm-confirm');
+  const confirmEl = root.querySelector('.pm-game .pm-confirm');
   if (a === 'resume') setOpen(false);
   else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
@@ -288,11 +300,35 @@ function runAction(a) {
     if (world.pigeonActions && world.pigeonActions.stop()) setOpen(false);
   } else if (a === 'job-stop') {
     if (world.sideJobActions && world.sideJobActions.stop()) setOpen(false);
+  } else if (a === 'mission-abort') {
+    if (world.safetyActions && world.safetyActions.abortMission()) setOpen(false);
+  } else if (a === 'unstuck') {
+    if (world.safetyActions && world.safetyActions.unstuck()) setOpen(false);
+    else status('Even wachten tot je weer op de been bent');
   } else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
     clearSave();
     location.reload();
+  } else if (a === 'bench' || a === 'bench-cancel') {
+    const box = root.querySelector('[data-bench-confirm]');
+    box.hidden = a === 'bench-cancel';
+    box.querySelector('[data-bench-text]').textContent = prestart
+      ? 'Benchmark starten? Duurt ongeveer anderhalve minuut. Esc stopt.'
+      : 'Benchmark starten? Je spel wordt eerst opgeslagen. Esc stopt.';
+    if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
+  } else if (a === 'bench-go') {
+    root.querySelector('[data-bench-confirm]').hidden = true;
+    // on the title screen it runs right away (startscreen.js); in a game it
+    // saves and starts from a fresh load, and "Terug" continues the save
+    if (prestart || !started()) {
+      setOpen(false);
+      window.dispatchEvent(new Event('gte-benchmark'));
+    } else {
+      if (world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
+      if (world) saveGame(world);
+      benchmarkViaReload();
+    }
   } else if (a === 'reset') {
     resetSettings();
     syncControls();
@@ -438,7 +474,7 @@ function showTab(name) {
   if (name === 'missions') renderMissions();
   if (name === 'garage') renderGaragePanel(root.querySelector('[data-panel="garage"] .pm-inner'), world);
   if (name === 'prestaties') renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner'));
-  if (name === 'settings') { syncControls(); syncDesktopControls(); }
+  if (name === 'settings') { syncControls(); syncDesktopControls(); root.querySelector('[data-bench-confirm]').hidden = true; }
   if (name === 'game') {
     const pigeon = !!(world && world.pigeonMode);
     for (const b of root.querySelectorAll('.pm-game > [data-action]')) b.hidden = b.hasAttribute('data-both') ? false : b.hasAttribute('data-pigeon') ? !pigeon : pigeon && b.dataset.action !== 'resume';
@@ -447,7 +483,8 @@ function showTab(name) {
     const jobOn = !!(world && world.sideJobActions && world.sideJobActions.active());
     jobStop.hidden = !jobOn;
     if (jobOn) jobStop.textContent = `Stoppen met ${world.sideJobActions.name()}`;
-    root.querySelector('.pm-confirm').hidden = true;
+    root.querySelector('[data-action="mission-abort"]').hidden = !(world && world.safetyActions && world.safetyActions.missionActive());
+    root.querySelector('.pm-game .pm-confirm').hidden = true;
     root.querySelector('.pm-status').textContent = '';
     syncGamePanel();
   }
@@ -476,6 +513,7 @@ function setOpen(value, name = 'map') {
     return;
   }
   open = value;
+  if (open && isShopOpen()) closeShopMenu();
   root.classList.toggle('visible', open);
   root.classList.toggle('prestart', !!prestart);
   if (input) input.reset();

@@ -79,6 +79,25 @@ export function getSideJobList() {
   });
 }
 
+// Rough pay per round for the phone's job app until the player has own figures.
+const PAY_GUESS = { bezorger: [18, 35], taxi: [15, 40], bus: [60, 95], rondvaart: [35, 70], fietsdepot: [30, 60], verhuizing: [55, 120] };
+
+// Phone job app: every job with pay, distance and why it can't start now.
+export function getSideJobOffers(w) {
+  const p = w.player;
+  const why = blockReason(w);
+  return spots.map((s) => {
+    const r = rec(s.job.id);
+    const [lo, hi] = r.rounds >= 2 ? [Math.round(r.earned / r.rounds * 0.75), Math.round(r.earned / r.rounds * 1.25)] : PAY_GUESS[s.job.id] || [15, 40];
+    const lvl = jobLevel(s.job.id);
+    return {
+      id: s.job.id, name: s.job.name, blurb: s.job.blurb, x: s.x, y: s.y, level: lvl, title: levelTitle(lvl),
+      pay: [lo, Math.max(lo + 5, hi)], dist: dist(s.x, s.y, p.x, p.y), active: !!ctx && ctx.job === s.job,
+      blocked: ctx && ctx.job === s.job ? '' : why,
+    };
+  }).sort((a, b) => a.dist - b.dist);
+}
+
 // --- init -------------------------------------------------------------------
 
 export function initSideJobs(w) {

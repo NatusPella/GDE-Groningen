@@ -7,12 +7,15 @@ import { vehicleDisplayLabel } from './vehiclenames.js';
 import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
 import { getSettings } from './settings.js';
+import { getUiScale } from './uiscale.js';
 import { isPhoneOpen } from './phone.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { lineOfSight } from './pedestrians.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary, sideJobGoal } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
+import { trainPrompt } from './traindrive.js';
+import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
@@ -274,6 +277,8 @@ function pedInReach(world, range, cone) {
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = world.player;
+  const train = trainPrompt(world);
+  if (train) return train;
   const job = sideJobPrompt(world);
   if (job) return job;
   const gar = garagePrompt(world);
@@ -287,6 +292,8 @@ function findPrimary(world) {
   }
   const duif = pigeonSpotPrompt(world);
   if (duif) return duif;
+  const heli = heliSpotPrompt(world);
+  if (heli) return heli;
   const trein = stationPrompt(world);
   if (trein) return trein;
   const food = nearestHorecaSpot(world);
@@ -371,6 +378,7 @@ function findSecondary(world, primary) {
   }
   for (const c of shopSecondaryPrompts(world)) add(c, 14);
   for (const c of pigeonSpotSecondary(world)) add(c, 18);
+  for (const c of heliSpotSecondary(world)) add(c, 20);
   for (const c of sideJobSecondary(world)) add(c, c.maxD || 20);
   for (const c of stationSecondary(world)) add(c, 22);
   const m = world.mission;
@@ -427,10 +435,13 @@ function placeWp(slot, c, primary, hold = null) {
   }
   slot.el.classList.toggle('dim', !!c.dim);
   if (!slot.w) slot.w = slot.chip.offsetWidth + 40;
+  // screen px -> px inside the zoomed #hud
+  const ui = getUiScale();
+  const w = slot.w * ui;
   const flip = slot.el.classList.contains('flip');
-  if (!flip && pos.sx + slot.w > window.innerWidth - 12) slot.el.classList.add('flip');
-  else if (flip && pos.sx + slot.w < window.innerWidth - 60) slot.el.classList.remove('flip');
-  slot.el.style.transform = `translate3d(${pos.sx.toFixed(1)}px, ${pos.sy.toFixed(1)}px, 0)`;
+  if (!flip && pos.sx + w > window.innerWidth - 12 * ui) slot.el.classList.add('flip');
+  else if (flip && pos.sx + w < window.innerWidth - 60 * ui) slot.el.classList.remove('flip');
+  slot.el.style.transform = `translate3d(${(pos.sx / ui).toFixed(1)}px, ${(pos.sy / ui).toFixed(1)}px, 0)`;
   if (!slot.shown) {
     slot.shown = true;
     void slot.el.offsetWidth;
@@ -476,12 +487,16 @@ function contextRows(world, primary) {
     const searching = !!(world.police && world.police.searching);
     rows.push({
       id: 'wanted', keys: [], label: 'Ontsnap aan de politie', kind: 'goal',
-      desc: searching ? 'Ze zijn je kwijt: blijf uit het zicht' : p.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
+      desc: searching ? 'Ze zijn je kwijt: blijf uit het zicht' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : p.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
     });
   }
 
   const armed = world.weapon && world.weapon !== 'fists';
-  if (p.inVehicle) {
+  if (world.trainDriving) {
+    rows.push(tut('drive', ['W', 'S'], 'Gas & remmen', 'W optrekken, S remmen en stilstaand achteruit'));
+    rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen'));
+    rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
+  } else if (p.inVehicle) {
     rows.push(tut('drive', ['WASD'], 'Gas & sturen', 'W gas, S remmen en achteruit, A/D sturen'));
     rows.push(tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
     rows.push(tut('horn', ['H'], 'Toeter', 'Aan de kant, fietsers!'));
@@ -505,8 +520,6 @@ function contextRows(world, primary) {
       rows.push(tut('punch', ['LMB'], 'Slaan', 'Vuisten eerst, vragen later'));
     }
     rows.push(tut('crouch', ['CTRL'], 'Bukken', 'Langzaam en klein'));
-    const c = world.companion;
-    if (c && c.state !== 'dead') rows.push(tut('switch', ['C'], c.character === 'anita' ? 'Wissel naar Anita' : 'Wissel naar Tammo', 'Speel met de ander verder'));
   }
   rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming'));
   rows.push(tut('phone', ['T'], 'Telefoon', 'Missies, contacten en Sikkom'));

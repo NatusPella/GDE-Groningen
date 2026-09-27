@@ -1,7 +1,8 @@
 // Story dev panel (?dev, desktop --dev; loaded by main.js only then). F9
 // opens it: chapter select with the right save state, objective/win/lose,
 // teleport to the next objective, time scale, invulnerability and the money
-// timeline. Everything goes through window.__story (story.js).
+// timeline. Everything goes through window.__story (story.js). The last row
+// previews the special-gameplay modules (helirun.js, fierljep.js).
 
 import { STEPS, stepAvailable } from './storyarc.js';
 
@@ -39,6 +40,7 @@ function build() {
     <div class="sd-row"><button data-a="teleport">Naar volgend doel</button><button data-a="skip">Stap overslaan</button><button data-a="money">+€500</button></div>
     <div class="sd-row"><button data-t="1">Tijd ×1</button><button data-t="2">×2</button><button data-t="4">×4</button><button data-a="invuln">Onkwetsbaar</button></div>
     <div class="sd-row"><button data-a="timeline">Geld-tijdlijn</button><button data-a="night">Nacht</button><button data-a="day">Dag</button></div>
+    <div class="sd-row"><button data-a="heli">Heli-run</button><button data-a="vault">Fierljep</button><button data-a="vaultfail">Fierljep (mis)</button></div>
     <pre hidden></pre></div>`;
   document.body.appendChild(root);
   for (const t of ['mousedown', 'mouseup', 'click', 'wheel', 'keydown']) root.addEventListener(t, (e) => e.stopPropagation());
@@ -63,6 +65,8 @@ function act(a) {
   else if (a === 'money') world.money += 500;
   else if (a === 'invuln') world.devInvuln = !world.devInvuln;
   else if (a === 'night' || a === 'day') { world.clock = a === 'night' ? 21.5 : 12; }
+  else if (a === 'heli') { setOpen(false); window.__heliRun && window.__heliRun.start('ballonjacht'); }
+  else if (a === 'vault' || a === 'vaultfail') { setOpen(false); window.__fierljep && window.__fierljep.debugVault({ fail: a === 'vaultfail', slowmo: true }); }
   else if (a === 'timeline') {
     const t = S.timeline();
     pre.hidden = !pre.hidden;

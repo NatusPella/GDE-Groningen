@@ -37,6 +37,7 @@ import { updateSkyProps3D } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
+import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
@@ -50,6 +51,7 @@ import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside } from './countryside.js';
 import { probe } from './hitchprobe.js';
+import { speakBubble } from './linevoice.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -1424,6 +1426,7 @@ function syncPedestrianMeshes(world, player, animDt) {
     const edge = (DRAW_DIST - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
     applyPedFade(mesh, warm ? (FADE_STEPS - 1) / FADE_STEPS : Math.min(ud.fade, edge));
     if (p.gibbed) { mesh.visible = false; continue; }
+    if (p.hideMesh) { mesh.visible = false; ud.fadeLevel = -1; continue; } // fierljep.js draws its own actor
     if (driveRagdoll(p, mesh, world, animDt)) continue;
     if (p.state === 'dead') {
       // topple backwards over ~0.3s, then lie flat until the ped is removed
@@ -1464,9 +1467,10 @@ const _projVec = new THREE.Vector3();
 function projectToScreen(x, y, z) {
   _projVec.set(x, y, z).project(cam);
   if (_projVec.z > 1) return null; // behind the camera
+  const ui = getUiScale(); // #hud is zoomed by the HUD scale
   return {
-    x: (_projVec.x * 0.5 + 0.5) * renderer.domElement.clientWidth,
-    y: (1 - (_projVec.y * 0.5 + 0.5)) * renderer.domElement.clientHeight,
+    x: (_projVec.x * 0.5 + 0.5) * renderer.domElement.clientWidth / ui,
+    y: (1 - (_projVec.y * 0.5 + 0.5)) * renderer.domElement.clientHeight / ui,
   };
 }
 
@@ -1494,11 +1498,19 @@ function syncSpeechBubbles(world) {
   if (extra) for (let i = extra.length - 1; i >= 0; i--) if (world.time >= extra[i].speechUntil) extra.splice(i, 1);
   const speakers = extra && extra.length ? [...world.pedestrians, ...extra] : world.pedestrians;
   for (const p of speakers) {
-    if (!p.speechText || world.time >= p.speechUntil) continue;
+    if (!p.speechText || world.time >= p.speechUntil) { if (p._voicedText) p._voicedText = null; continue; }
     seen.add(p);
     let el = speechBubbleEls.get(p);
     if (!el) { el = speechBubbleEl(); speechBubbleEls.set(p, el); }
     const src = p.follow || p;
+    // a new bubble speaks its recording (if any) in a voice matching the model
+    if (p._voicedText !== p.speechText) {
+      p._voicedText = p.speechText;
+      const ud = pedMeshes.get(p)?.userData;
+      if (ud) p.female = !!ud.female;
+      else if (p.female === undefined) p.female = Math.random() < 0.5;
+      speakBubble(p.speechText, p.female, { x: src.x, y: src.y });
+    }
     const scr = projectToScreen(src.x, p.h ?? 2.1, src.y);
     if (!scr) { el.style.display = 'none'; continue; }
     el.textContent = p.speechText;
@@ -1827,7 +1839,7 @@ export function update3D(dt, world) {
   }
 
   const pv = player.inVehicle;
-  const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers;
+  const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
   const pAnim = trackSeat(playerSeatTr, player, animDt, true);
   syncPlayerRider(pv, pvMesh, hidePlayers || (pAnim && pAnim.kind === 'enter'), world.time);
@@ -1912,7 +1924,9 @@ export function update3D(dt, world) {
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
   probe.mark('3d:players');
-  const targetAngle = player.inVehicle ? player.inVehicle.angle : player.angle;
+  // a stolen train (traindrive.js) is followed like a very long vehicle
+  const camVeh = player.inVehicle || world.trainCam || null;
+  const targetAngle = camVeh ? camVeh.angle : player.angle;
   followYaw += normalizeAngleDelta(-targetAngle - followYaw) * Math.min(1, dt * 5);
 
   // mouse Y pans the camera up/down around the player, GTA-style - top of
@@ -1938,12 +1952,12 @@ export function update3D(dt, world) {
   if (world.camYaw == null) world.camYaw = targetAngle;
   let camAngle;
   // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
-  const lookBack = !!player.inVehicle && !world.cameraOverride && (world.input.isDown('q') || !!mouse.middleDown);
+  const lookBack = !!camVeh && !world.cameraOverride && (world.input.isDown('q') || !!mouse.middleDown);
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
-  if (player.inVehicle) {
+  if (camVeh) {
     if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
-    const fast = Math.min(1, Math.abs(player.inVehicle.speed || 0) / LOOK_FAST_SPEED);
+    const fast = Math.min(1, Math.abs(camVeh.speed || 0) / LOOK_FAST_SPEED);
     if (looking && mouse.dx !== 0 && !lookBack) {
       lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
       lookYawIdle = 0;
@@ -1958,11 +1972,11 @@ export function update3D(dt, world) {
     lookYaw = 0;
     camAngle = world.camYaw;
   }
-  camWasInVehicle = !!player.inVehicle;
+  camWasInVehicle = !!camVeh;
 
   // vehicles get a longer, higher orbit scaled to their length, so the car
   // doesn't fill the lower half of the screen
-  const veh = player.inVehicle;
+  const veh = camVeh;
   const camScale = veh ? Math.min(3.2, Math.max(1.35, veh.model.len / 2.4)) : 1;
   const radius = orbitRadius * camScale;
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)

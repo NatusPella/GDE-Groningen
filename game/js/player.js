@@ -103,7 +103,6 @@ export class Player {
       isKnockedDown(this, world);
       if (this.ragdoll) return;
     }
-    this.updateCharacterSwitch(world);
     if ((input.wasPressed('e') || input.wasPressed('f')) && !this.crack) {
       if (this.water) {
         if (this.water === 'swim' && !this.inVehicle) this.swimInteract(world);
@@ -512,37 +511,6 @@ export class Player {
     if (world.health <= 0) requestRespawn(world);
   }
 
-  // Tammo and Anita are always both out in the world (see companion.js) -
-  // switching just trades physical state (position/velocity/vehicle) between
-  // this Player and world.companion, it never changes which object IS "the
-  // player" elsewhere in the codebase. Blocked while driving without the
-  // companion in the very same vehicle - there's no sensible "teleport into
-  // a car you were never in" swap, only "swap seats" or "swap on foot".
-  updateCharacterSwitch(world) {
-    if (!world.input.wasPressed('c')) return;
-    const c = world.companion;
-    if (!c || c.state === 'dead' || c.ragdoll) return;
-    if (this.inVehicle && this.inVehicle !== c.inVehicle) {
-      const other = this.character === 'tammo' ? 'Anita' : 'Tammo';
-      world.addMessage(`${other} moet eerst instappen`, 2.5);
-      return;
-    }
-    [this.x, c.x] = [c.x, this.x];
-    [this.y, c.y] = [c.y, this.y];
-    [this.angle, c.angle] = [c.angle, this.angle];
-    [this.vx, c.vx] = [c.vx, this.vx];
-    [this.vy, c.vy] = [c.vy, this.vy];
-    [this.inVehicle, c.inVehicle] = [c.inVehicle, this.inVehicle];
-    [this.character, c.character] = [c.character, this.character];
-    for (const k of ['water', 'swimming', 'z', 'vz', 'swimTilt', 'climb']) [this[k], c[k]] = [c[k] ?? null, this[k]];
-    this.swimming = !!this.water; this.z = this.z || 0; this.vz = this.vz || 0; this.swimTilt = this.swimTilt || 0;
-    if (this.water === 'swim') this.climbScanAt = 0;
-    this.canClimbOut = false;
-    if (this.inVehicle) this.inVehicle.driver = 'player';
-    if (c.inVehicle) c.inVehicle.passenger = 'companion';
-    world.addMessage(this.character === 'tammo' ? 'Je bestuurt nu Tammo' : 'Je bestuurt nu Anita');
-  }
-
   // E near your companion (on foot, both out of any vehicle) is a kiss
   // instead of a vehicle interaction - shows a heart above them and heals
   // whichever one isn't currently being controlled. Returns true if it
@@ -764,6 +732,12 @@ export function findExitSpot(v, radius, map, sides = EXIT_LEFT_FIRST) {
     const ex = v.x + nx * off * s, ey = v.y + ny * off * s;
     if (isInsideBuilding(map, ex, ey) || isInWater(map, ex, ey)) continue;
     return resolveBuildingCollisions(ex, ey, radius, map);
+  }
+  // an alley narrower than the car: out the front or the back instead
+  const hl = (v.halfLen || v.halfWid * 2) + 0.7, fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  for (const s of [1, -1]) {
+    const ex = v.x + fx * hl * s, ey = v.y + fy * hl * s;
+    if (!isInsideBuilding(map, ex, ey) && !isInWater(map, ex, ey)) return resolveBuildingCollisions(ex, ey, radius, map);
   }
   return map.escapeBuilding(v.x + nx * off * sides[0], v.y + ny * off * sides[0]);
 }

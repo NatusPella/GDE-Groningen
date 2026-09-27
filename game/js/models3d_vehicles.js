@@ -282,14 +282,33 @@ function buildCarGeometry(type, L, W, paint, opts) {
     // a door from the scrapyard, in another colour
     B.box((P.xB + P.xC) / 2 + 0.2, (sill + P.belt) / 2 + 0.05, hw + 0.009, 0.9, P.belt - sill - 0.15, 0.012, 0xa89a7a);
   } else if (variant === 'cash') {
+    // Poen Express armoured cash van: steel plates over the load bay, barred
+    // cab windows, green/gold livery with a coin logo, bull bar, amber beacon
+    const GREEN = 0x1f4f33, GOLD = 0xd9b21b, STEEL = shadeHex(paint, 0.78), BAR = 0x1a1b1d;
+    const bay0 = -hl + 0.12, bay1 = P.xB - 0.85;
     for (const s of [1, -1]) {
       const z = s * (hw + 0.008);
-      const bx0 = -hl + 0.3, bx1 = P.van ? xK : hl - 0.3;
-      B.box((bx0 + bx1) / 2, 1.25, z, bx1 - bx0, 0.18, 0.012, 0x2f6b3f);
-      B.box(0, 1.1, z, L - 0.6, 0.05, 0.012, 0xd9b21b);
-      B.box(-hl + 1.4, 1.55, z, 0.7, 0.22, 0.014, 0xd9b21b);
+      B.box((bay0 + bay1) / 2, (sill + P.roof) / 2 + 0.12, s * (hw + 0.004), bay1 - bay0, P.roof - sill - 0.35, 0.012, STEEL);
+      B.box((bay0 + bay1) / 2, 1.28, z, bay1 - bay0, 0.34, 0.012, GREEN);
+      B.box((bay0 + bay1) / 2, 1.08, z, bay1 - bay0, 0.05, 0.012, GOLD);
+      B.box((bay0 + bay1) / 2, 1.48, z, bay1 - bay0, 0.05, 0.012, GOLD);
+      const lx = (bay0 + bay1) / 2 + 0.4;
+      B.box(lx, 1.28, s * (hw + 0.012), 0.44, 0.44, 0.012, GOLD);
+      B.box(lx, 1.28, s * (hw + 0.016), 0.08, 0.3, 0.012, GREEN);
+      for (const dy of [-0.07, 0.07]) B.box(lx - 0.05, 1.28 + dy, s * (hw + 0.018), 0.26, 0.05, 0.012, GREEN);
+      for (let x = bay0 + 0.2; x < bay1 - 0.1; x += 0.3) B.box(x, sill + 0.2, s * (hw + 0.012), 0.04, 0.04, 0.012, BAR);
+      for (let x = bay0 + 0.2; x < bay1 - 0.1; x += 0.3) B.box(x, P.roof - 0.18, s * (hw + 0.012), 0.04, 0.04, 0.012, BAR);
+      for (let k = 0; k < 4; k++) B.box(P.xA - 0.2 - k * 0.17, (P.belt + P.roof) / 2 - 0.05, s * (hw + 0.014), 0.035, P.roof - P.belt - 0.3, 0.014, BAR);
+      B.box(bay1 - 0.3, 1.75, s * (hw + 0.012), 0.34, 0.07, 0.012, BAR);
     }
-    B.box(-hl - 0.012, 1.3, 0, 0.012, 0.16, W * 0.6, 0x2f6b3f);
+    B.box(-hl - 0.006, (sill + P.roof) / 2 + 0.12, 0, 0.012, P.roof - sill - 0.35, W * 0.92, STEEL);
+    B.box(-hl - 0.012, 1.3, 0, 0.012, 0.3, W * 0.9, GREEN);
+    for (let k = 0; k < 6; k++) B.box(-hl - 0.016, 0.62, -hw + 0.18 + k * (W - 0.36) / 5, 0.012, 0.16, 0.12, k % 2 ? GOLD : BAR);
+    B.box(-hl - 0.016, (sill + P.roof) / 2 + 0.1, 0, 0.012, P.roof - sill - 0.4, 0.025, BAR);
+    B.box(hl + 0.1, 0.5, 0, 0.08, 0.36, W * 0.8, BAR);
+    for (const s of [1, -1]) B.box(hl + 0.1, 0.72, s * W * 0.3, 0.08, 0.2, 0.06, BAR);
+    B.box(P.xB - 1.2, P.roof + 0.03, 0, 0.5, 0.06, W * 0.5, BAR);
+    B.box(P.xB - 1.2, P.roof + 0.12, 0, 0.18, 0.14, 0.18, 0xf08a1c, G_LAMP);
   } else if (variant === 'pakket') {
     for (const s of [1, -1]) {
       const z = s * (hw + 0.008);
@@ -372,6 +391,7 @@ function carVariant(v) {
 function buildCarMesh(v) {
   if (v.isAmbulance) return assembleCar('van', v.model.len, v.model.wid, 0xf1d21c, { ambulance: true, wrecked: v.wrecked, wheelR: 0.34 });
   if (v.model.name === 'truck') return buildTruckMesh(v);
+  if (v.model.name === 'trekkerlimo') return buildTrekkerLimoMesh(v);
   const police = !!v.isPolice && !v._commandeered;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
   const type = carType(v);
@@ -384,11 +404,21 @@ function buildTruckMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const r = 0.46;
-  const geo = cached(`truck|${L}|${W}|${paint}`, () => {
+  const tank = !!v.model.tank;
+  const geo = cached(`truck|${L}|${W}|${paint}|${tank}`, () => {
     const B = new GeoBuilder(3);
     const cabL = 1.9, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
     B.box(0, 0.62, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
-    B.box((boxX0 + boxX1) / 2, 2.05, 0, boxX1 - boxX0, 2.5, W, paint === WRECKED_COLOR ? paint : 0xeeeee8);
+    const bx = (boxX0 + boxX1) / 2, bl = boxX1 - boxX0;
+    if (tank) {
+      // a rounded tank from three stacked slabs, a walkway on top and a red band
+      const tc = paint === WRECKED_COLOR ? paint : 0xd9dcdf;
+      B.box(bx, 2.05, 0, bl, 1.3, W, tc);
+      B.box(bx, 2.05, 0, bl, 2.1, W - 0.55, tc);
+      B.box(bx, 2.05, 0, bl - 0.2, 2.45, W - 1.1, tc);
+      B.box(bx, 3.3, 0, bl * 0.8, 0.06, 0.5, TRIM);
+      B.box(bx, 1.75, 0, bl + 0.02, 0.28, W + 0.02, paint === WRECKED_COLOR ? paint : 0xb8322a);
+    } else B.box(bx, 2.05, 0, bl, 2.5, W, paint === WRECKED_COLOR ? paint : 0xeeeee8);
     // cab: solid below the windows, glass all round above them, then the roof
     const cx = hl - cabL / 2;
     B.box(cx, 1.05, 0, cabL, 0.9, W - 0.05, paint);
@@ -402,7 +432,7 @@ function buildTruckMesh(v) {
       B.box(hl + 0.02, 0.8, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
       B.box(-hl - 0.01, 0.85, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
       B.box(hl - 0.1, 2.1, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
-      B.box((boxX0 + boxX1) / 2, 2.2, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.5, 0.012, paint);
+      if (!tank) B.box((boxX0 + boxX1) / 2, 2.2, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.5, 0.012, paint);
     }
     B.box(hl + 0.03, 0.55, 0, 0.1, 0.22, W - 0.1, 0x2a2b2d);
     B.box(hl + 0.085, 0.55, 0, 0.012, 0.1, 0.48, PLATE);
@@ -419,6 +449,61 @@ function buildTruckMesh(v) {
   for (const x of [hl - 1.1, -hl + 1.4]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
+  return group;
+}
+
+// Jelle Terpstra's trekker-limousine: a tractor up front (big rear wheels,
+// exhaust stack, little flags) with a stretched black limousine behind it.
+function buildTrekkerLimoMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const wrecked = v.wrecked;
+  const paint = wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x141414);
+  const tractor = wrecked ? WRECKED_COLOR : 0x1e6b3a;
+  const geo = cached(`trekkerlimo|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    const trL = 2.3, tx0 = hl - trL;
+    // tractor: hood, cab, fenders over the big wheels, exhaust
+    B.box(hl - 0.55, 1.05, 0, 1.1, 0.8, W * 0.62, tractor);
+    B.box(tx0 + 0.6, 1.55, 0, 1.2, 1.8, W * 0.86, tractor);
+    B.box(tx0 + 0.6, 2.5, 0, 1.3, 0.08, W * 0.9, shadeHex(tractor, 0.8));
+    B.box(tx0 + 1.21, 1.85, 0, 0.02, 0.8, W * 0.7, GLASS, G_GLASS);
+    for (const s of [1, -1]) {
+      B.box(tx0 + 0.6, 1.9, s * (W * 0.43 + 0.01), 0.9, 0.7, 0.02, GLASS, G_GLASS);
+      B.box(tx0 + 0.55, 1.35, s * (hw - 0.12), 1.3, 0.12, 0.34, shadeHex(tractor, 0.75));
+      B.box(hl + 0.01, 0.95, s * (W * 0.2), 0.02, 0.14, 0.2, HEADLAMP, G_LAMP);
+      // flag poles with red leaves on white and blue
+      B.box(hl - 0.2, 1.75, s * (W * 0.28), 0.04, 1.3, 0.04, CHROME);
+      B.box(hl - 0.42, 2.25, s * (W * 0.28), 0.42, 0.28, 0.015, 0x2553a6);
+      B.box(hl - 0.42, 2.25, s * (W * 0.28 + 0.01), 0.2, 0.14, 0.012, 0xc8102e);
+    }
+    B.box(hl - 0.95, 2.0, W * 0.2, 0.1, 1.0, 0.1, TRIM);
+    // limousine body, long windows, chrome line
+    const lx = (-hl + tx0) / 2, ll = tx0 + hl;
+    B.box(lx, 0.72, 0, ll, 0.62, W, paint);
+    B.box(lx - 0.1, 1.3, 0, ll - 0.6, 0.55, W - 0.12, paint);
+    B.box(lx - 0.1, 1.6, 0, ll - 0.8, 0.06, W - 0.2, shadeHex(paint, 1.3));
+    for (const s of [1, -1]) {
+      B.box(lx - 0.1, 1.3, s * (hw - 0.055), ll - 1.0, 0.36, 0.02, GLASS, G_GLASS);
+      B.box(lx, 0.95, s * (hw + 0.005), ll - 0.2, 0.04, 0.01, CHROME);
+      B.box(-hl - 0.01, 0.85, s * (hw - 0.2), 0.02, 0.16, 0.24, TAIL, G_LAMP);
+    }
+    B.box(-hl - 0.012, 0.6, 0, 0.012, 0.1, 0.48, PLATE);
+    return B.build();
+  });
+  const mats = vehicleMaterials();
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  const wheels = [];
+  const small = carWheelGeometry(0.42, 0.3), big = carWheelGeometry(0.78, 0.5), limo = carWheelGeometry(0.34, 0.26);
+  for (const s of [1, -1]) {
+    addWheel(group, small, mats[0], hl - 0.55, 0.42, s * (hw - 0.3), wheels);
+    addWheel(group, big, mats[0], hl - 1.75, 0.78, s * (hw - 0.05), wheels);
+    addWheel(group, limo, mats[0], -hl + 0.8, 0.34, s * (hw - 0.2), wheels);
+  }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = 0.42;
   return group;
 }
 
@@ -613,7 +698,51 @@ function buildScooterGeometry(color) {
   });
 }
 
+// Snorscooter: step-through body with a front shield, a long seat and small wheels.
+function buildMopedGeometry(color) {
+  return cached(`moped|${color}`, () => {
+    const B = new GeoBuilder(3);
+    const dark = 0x2a2b2e;
+    B.box(-0.38, 0.5, 0, 0.72, 0.36, 0.44, color);
+    B.box(-0.3, 0.73, 0, 0.7, 0.1, 0.32, 0x1b1b1c);
+    B.box(0.08, 0.3, 0, 0.62, 0.07, 0.36, dark);
+    B.box(0.42, 0.62, 0, 0.12, 0.62, 0.44, color);
+    B.box(0.48, 0.34, 0, 0.3, 0.1, 0.2, color);
+    B.geo(tubeGeometry([0.46, 0.7, 0], [0.42, 1.04, 0], 0.032, 0.03, 6), null, dark);
+    B.geo(tubeGeometry([0.42, 1.04, -0.32], [0.42, 1.04, 0.32], 0.018, 0.018, 6), null, CHROME);
+    for (const s of [1, -1]) B.geo(tubeGeometry([0.42, 1.04, s * 0.22], [0.42, 1.04, s * 0.33], 0.024, 0.024, 6), null, 0x1b1b1c);
+    B.box(0.49, 1.0, 0, 0.1, 0.12, 0.16, color);
+    B.box(0.545, 1.0, 0, 0.02, 0.08, 0.1, HEADLAMP, G_LAMP);
+    for (const s of [1, -1]) B.box(0.43, 1.12, s * 0.2, 0.02, 0.07, 0.05, CHROME);
+    B.box(-0.76, 0.56, 0, 0.04, 0.08, 0.18, TAIL, G_LAMP);
+    B.box(-0.62, 0.8, 0, 0.26, 0.05, 0.3, dark);
+    B.geo(tubeGeometry([-0.3, 0.28, 0.16], [-0.72, 0.36, 0.2], 0.035, 0.03, 6), null, CHROME);
+    return B.build();
+  });
+}
+
+function buildMopedMesh(v) {
+  const group = new THREE.Group();
+  const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe6e1d6);
+  const mats = vehicleMaterials();
+  group.add(new THREE.Mesh(buildMopedGeometry(color), mats));
+  const r = 0.2;
+  const wgeo = bikeWheelGeometry(r, 0.09, false);
+  const wheels = [];
+  addWheel(group, wgeo, mats[0], 0.55, r, 0, wheels);
+  addWheel(group, wgeo, mats[0], -0.52, r, 0, wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = r;
+  group.userData.spinStep = 0.28;
+  const rider = riderFor(v, toHex(v.model.rider, HABBO_PALETTE.roofBlue));
+  rider.position.set(-0.22, 0.8 - 0.93 * rider.scale.y, 0);
+  poseRider(rider, 1.25, 1.0, -0.04);
+  group.add(rider);
+  return group;
+}
+
 function buildScooterMesh(v) {
+  if (v.model.moped) return buildMopedMesh(v);
   const group = new THREE.Group();
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
   const mats = vehicleMaterials();
