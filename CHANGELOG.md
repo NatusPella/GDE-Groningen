@@ -6,6 +6,25 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-27
+
+**Het verhaal is compleet**: deel 3, de Staart. Speel *Alles voor één
+eierbal* van begin tot eind.
+
+### Nieuw
+- **De Staart**:
+  - Kaap Jelle's skûtsje op de Diepenring (met een huurboot).
+  - Vlieg met de traumaheli achter zijn luchtballon aan.
+  - Zoek als duif je gestolen Fjord en ram hem tot stilstand voordat de
+    trein vertrekt.
+  - Haal mosterd, eieren en stoetbrood voor het beslissende bod, en
+    verdedig je kraam op **Gronings Ontzet** in de grote finale, met
+    Bommen Berend in de jury.
+- **Een echt einde**, met epiloog en aftiteling. Daarna speel je gewoon
+  verder in Grunn.
+- Nieuwe gesprekjes van Tammo en Anita in de auto over de finale.
+- Alle nieuwe teksten zijn ingesproken, met twee nieuwe stemmen.
+
 ## [0.7.0] - 2026-09-27
 
 Maus' tweede speelsessie verwerkt, en een grote schoonmaak van bekende bugs.
