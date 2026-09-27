@@ -1,4 +1,7 @@
 import { pointInPolygon } from './util.js';
+import { getHorecaForRender } from './horeca.js';
+import { getShopsForRender } from './shops.js';
+import { nearestRepairSite } from './garages.js';
 
 const STRAY_M = 25;
 const TELEPORT_M = 150;
@@ -8,9 +11,23 @@ const SNAP_MAX_M = 480;
 
 let graph = null;
 let userWaypoint = null;
+// Up to three routes at once, each its own colour (hud_panel ROUTE_COLORS):
+// your own waypoint (purple), the objective (mission/story yellow, bijbaan
+// orange) and the care route (pink: food when you're hurt, a garage when
+// your OWN vehicle is damaged). The primary one (getActiveRoute: waypoint,
+// else objective, else care) drives the 3D ribbon and the route chip;
+// map and minimap draw them all (getRoutes).
+const slots = { user: newSlot(), objective: newSlot(), care: newSlot() };
 let route = null;
-let routeKey = '';
-let lastComputeAt = -Infinity;
+function newSlot() { return { route: null, key: '', at: -Infinity }; }
+
+const CARE_HURT = 35;
+const CARE_HEALED = 50;
+const CARE_DAMAGED = 55;
+const CARE_FIXED = 90;
+const HEAL_SHOPS = new Set(['snack', 'super']);
+let care = null;
+let careDismissed = null;
 const stats = { buildMs: 0, lastMs: 0, maxMs: 0, avgMs: 0, runs: 0, nodes: 0, driveEdges: 0, walkEdges: 0, lastSettled: 0 };
 
 const isDrivable = (road) => road.cat !== 'foot' && road.cat !== 'cycle' && !road.busOnly;
@@ -307,8 +324,7 @@ function travelMode(player) {
   return v.isBike ? 'walk' : 'drive';
 }
 
-function currentTarget(world) {
-  if (userWaypoint) return { x: userWaypoint.x, y: userWaypoint.y, kind: 'user', name: userWaypoint.name };
+function objectiveTarget(world) {
   const job = world.sideJob;
   if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label } : null;
   const m = world.mission;
@@ -320,6 +336,52 @@ function currentTarget(world) {
   // once the built story has ended (story.js), free-play missions wait for the player to pick one
   if (m && m.marker && m.phase !== 'cooldown' && !world.storyFreePlay) return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
   return null;
+}
+
+const ownVehicle = (v) => !!(v && (v.isHeroCar || v.playerOwned) && !v.wrecked);
+
+// Why the player needs care right now: 'repair' (in their own damaged
+// vehicle), 'heal' (low health), or null; with hysteresis, so the route
+// stays until they are really fixed or healed.
+function careNeed(world) {
+  const v = world.player.inVehicle;
+  const h = v ? v.health ?? 100 : 100;
+  if (ownVehicle(v) && !v.isBoat && (h < CARE_DAMAGED || (care === 'repair' && h < CARE_FIXED))) return 'repair';
+  if (world.health < CARE_HURT || (care === 'heal' && world.health < CARE_HEALED)) return 'heal';
+  return null;
+}
+
+function careTarget(world, why) {
+  const p = world.player;
+  if (why === 'repair') {
+    const s = nearestRepairSite(p.x, p.y);
+    return s ? { x: s.x, y: s.y, kind: 'care', name: s.name, why } : null;
+  }
+  let best = null, bd = Infinity;
+  const consider = (x, y, name) => {
+    const d = Math.hypot(x - p.x, y - p.y);
+    if (d < bd) { bd = d; best = { x, y, kind: 'care', name, why }; }
+  };
+  for (const h of getHorecaForRender() || []) consider(h.x, h.y, h.name || 'Kroeg');
+  for (const s of getShopsForRender() || []) if (HEAL_SHOPS.has(s.type)) consider(s.x, s.y, s.name);
+  return best;
+}
+
+function updateCare(world) {
+  const need = careNeed(world);
+  if (need !== care) {
+    care = need;
+    if (!need) careDismissed = null;
+    else if (need === 'heal' && careDismissed !== need) world.addMessage('Opknappen: volg de roze route naar een snackbar of kroeg', 5, { kind: 'gevaar', key: 'care' });
+  }
+  return care && careDismissed !== care ? careTarget(world, care) : null;
+}
+
+// Hides the care route until the need is over (healed/fixed, or a new one).
+export function dismissCareRoute() {
+  careDismissed = care;
+  slots.care.route = null;
+  slots.care.key = '';
 }
 
 function computeRoute(world, target, mode) {
@@ -390,6 +452,24 @@ function trackProgress(r, x, y) {
   r.remaining = r.length - (cum[bi] + (cum[bi + 1] - cum[bi]) * bt) + r.off;
 }
 
+function updateSlot(world, slot, target, mode) {
+  if (!target || !mode) { slot.route = null; slot.key = ''; return; }
+  const p = world.player;
+  const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}`;
+  const now = performance.now() / 1000;
+  if (key !== slot.key || !slot.route) {
+    slot.key = key;
+    slot.route = computeRoute(world, target, mode);
+    slot.at = now;
+    return;
+  }
+  trackProgress(slot.route, p.x, p.y);
+  if (slot.route.off > TELEPORT_M || (slot.route.off > STRAY_M && now - slot.at >= MIN_RECOMPUTE_S)) {
+    slot.route = computeRoute(world, target, mode);
+    slot.at = now;
+  }
+}
+
 export function updateRouting(dt, world) {
   if (!graph) buildGraph(world.map);
   const p = world.player;
@@ -399,31 +479,32 @@ export function updateRouting(dt, world) {
     world.addMessage('Bestemming bereikt', 3);
   }
 
-  const target = currentTarget(world);
   const mode = travelMode(p);
-  if (!target || !mode) { route = null; routeKey = ''; return; }
-
-  const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}`;
-  const now = performance.now() / 1000;
-  if (key !== routeKey || !route) {
-    routeKey = key;
-    route = computeRoute(world, target, mode);
-    lastComputeAt = now;
-    return;
-  }
-  trackProgress(route, p.x, p.y);
-  if (route.off > TELEPORT_M || (route.off > STRAY_M && now - lastComputeAt >= MIN_RECOMPUTE_S)) {
-    route = computeRoute(world, target, mode);
-    lastComputeAt = now;
-  }
+  updateSlot(world, slots.user, userWaypoint ? { x: userWaypoint.x, y: userWaypoint.y, kind: 'user', name: userWaypoint.name } : null, mode);
+  updateSlot(world, slots.objective, objectiveTarget(world), mode);
+  const ct = updateCare(world);
+  // no care route to where you're already standing
+  updateSlot(world, slots.care, ct && Math.hypot(ct.x - p.x, ct.y - p.y) > REACH_M * 2 ? ct : null, mode);
+  route = slots.user.route || slots.objective.route || slots.care.route;
 }
 
 export function getActiveRoute() {
   return route;
 }
 
-// Remaining polyline from the player's projection onto the route, up to maxLen metres.
-export function getRouteAhead(maxLen) {
+// Every route shown right now, drawn bottom to top: care, objective, waypoint.
+export function getRoutes() {
+  return [slots.care.route, slots.objective.route, slots.user.route].filter(Boolean);
+}
+
+export function getCareRoute() {
+  return slots.care.route;
+}
+
+// Remaining polyline from the player's projection onto the route (the
+// primary one unless given), up to maxLen metres.
+export function getRouteAhead(maxLen, r = route) {
+  const route = r;
   if (!route || route.pts.length < 2) return null;
   const out = [[route.px, route.py]];
   let acc = 0;

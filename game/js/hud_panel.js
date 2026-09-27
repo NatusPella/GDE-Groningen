@@ -13,7 +13,7 @@ import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
-import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
+import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
@@ -24,8 +24,10 @@ const MM_SCALE_FAST = 0.62;
 const MM_FAST_SPEED = 28;
 let mmScale = MM_SCALE;
 
-// GTA-style: purple for your own waypoint, yellow for missions, orange for side jobs
-export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c' };
+// GTA-style: purple for your own waypoint, yellow for missions, orange for
+// side jobs, pink for care (food when hurt, a garage for your own damaged ride)
+export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c', care: '#ff5fb4' };
+export const routeLabel = (r) => (r.kind === 'user' ? 'Bestemming' : r.kind === 'job' ? 'Klus' : r.kind === 'care' ? (r.target && r.target.why === 'repair' ? 'Garage' : 'Opknappen') : 'Missie');
 
 let els = null;
 
@@ -203,7 +205,7 @@ function updateRouteChip(world) {
   let text = '', kind = '';
   if (route && route.remaining > 12) {
     kind = route.kind;
-    text = `${kind === 'user' ? 'Bestemming' : kind === 'job' ? 'Klus' : 'Missie'}: ${formatDistance(route.remaining)}`;
+    text = `${routeLabel(route)}: ${formatDistance(route.remaining)}`;
   } else if (!route && getUserWaypoint()) {
     const wp = getUserWaypoint();
     kind = 'user';
@@ -1055,10 +1057,9 @@ function drawMinimap(dt, world) {
     drawSearchArea(ctx, sx, sy, search.r * mmScale, t);
   }
 
-  const route = getActiveRoute();
-  const ahead = route && getRouteAhead(MM_RADIUS_M * 2.5);
-  if (ahead && ahead.length > 1) {
-    drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, 4);
+  for (const route of getRoutes()) {
+    const ahead = getRouteAhead(MM_RADIUS_M * 2.5, route);
+    if (ahead && ahead.length > 1) drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, route === getActiveRoute() ? 4 : 3);
   }
   const inRange = (x, y) => (x - player.x) ** 2 + (y - player.y) ** 2 <= iconRangeM * iconRangeM;
   const placed = [];
