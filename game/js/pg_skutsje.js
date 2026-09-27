@@ -198,6 +198,7 @@ export const SKUTSJE = {
     if (!d.go) {
       d.count -= dt;
       boat.speed = 0;
+      w.startLockUntil = d.count > 0 ? w.time + 0.25 : 0;
       if (d.count <= 1 && !d.said) { d.said = 1; jelle(run, 'go', true); }
       w.addMessage(d.count > 0.5 ? String(Math.ceil(d.count - 0.5)) : 'SEIL LOS!', 0.4, { key: 'pg-count', exact: true });
       if (d.count <= 0) d.go = true;

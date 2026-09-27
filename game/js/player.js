@@ -623,8 +623,12 @@ export class Player {
   driveVehicle(dt, input, map, world = null) {
     const v = this.inVehicle;
     const [ax, ay] = input.axis();
-    const throttle = v.disabled ? 0 : ay < 0 ? 1 : ay > 0 ? -1 : 0;
-    const brake = input.isDown(' ');
+    // race countdown (world.startLockUntil) or a Fjord Frituur shift (v.shiftParked):
+    // engine idles, handbrake on, no creeping over the line
+    const held = !!v.shiftParked || (!!world && world.startLockUntil > world.time);
+    const throttle = v.disabled || held ? 0 : ay < 0 ? 1 : ay > 0 ? -1 : 0;
+    const brake = held || input.isDown(' ');
+    if (held) { v.speed = 0; v.driftX = 0; v.driftY = 0; }
     v.handbrake = brake;
     v.throttle = throttle;
     v.horn = input.isDown('h') && !v.disabled;

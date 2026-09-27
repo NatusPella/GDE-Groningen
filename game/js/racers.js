@@ -446,6 +446,7 @@ export function updateRace(dt, world, race, wpIndex) {
     }
   } else if (race.phase === 'countdown') {
     race.timer += dt;
+    world.startLockUntil = world.time + 0.25;
     const beat = Math.floor(race.timer);
     if (beat !== race.lastBeat && beat < COUNTDOWN) {
       race.lastBeat = beat;
@@ -453,6 +454,7 @@ export function updateRace(dt, world, race, wpIndex) {
     }
     if (race.timer >= COUNTDOWN) {
       race.phase = 'race';
+      world.startLockUntil = 0;
       world.addMessage('GO! GO! GO!', 1.5, { exact: true, key: 'race-countdown' });
     }
   }

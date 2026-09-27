@@ -4,7 +4,6 @@ import { addStaticCollider } from './breakables.js';
 import { getScene } from './scene3d.js';
 import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
-import { setUserWaypoint } from './routing.js';
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook } from './shops.js';
 import { repairCost, platesCost, HERO_REPLACE_FEE } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
@@ -277,7 +276,6 @@ function garageMenu(w, site) {
           if (!car) { w.money += HERO_REPLACE_FEE; return 'Geen plek om hem neer te zetten, geld terug'; }
           w.vehicles.push(car);
           markDirty('reparatie');
-          setUserWaypoint(car.x, car.y, 'Jouw Escapade');
           return 'Je Escapade staat weer te glimmen';
         },
       });

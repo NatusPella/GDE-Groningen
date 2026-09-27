@@ -21,9 +21,9 @@
 //     Owned vehicles (hero first) / the whole collection incl. not yet bought,
 //     as plain view objects for the phone app and the pause-menu garage.
 //   deliverOwnedVehicle(world, id) -> { ok, text }
-//     "Laten afleveren": fee, cooldown, out-of-view placement, waypoint, message.
+//     "Laten afleveren": fee, cooldown, out-of-view placement, message (no route: the car shows on the map).
 //   locateOwnedVehicle(world, id) -> { ok, text, x, y }
-//     "Waar staat hij?": sets the waypoint.
+//     "Waar staat hij?": where it is; a route only via an explicit "Zet route".
 //   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
 
 import { closestPointOnSegment } from './util.js';
@@ -31,7 +31,6 @@ import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { vehicleDisplayName } from './vehiclenames.js';
-import { setUserWaypoint } from './routing.js';
 import {
   getOwnedEntries, getHeroLook, spawnOwnedEntry, replacementFee, getShopsForRender,
   VEHICLE_STOCK, VEHICLE_UNLOCKS, unlockMet, PAINTS, CAR_UPGRADES, BIKE_UPGRADES, REDELIVERY_FEE,
@@ -343,7 +342,7 @@ export function getOwnedVehiclesForMap(world) {
 
 function describeSpot(world, spot, name) {
   const street = spot.street || streetAt(world.map, spot.x, spot.y);
-  return `Je ${name} staat ${streetPhrase(street)}. Volg de markering op je kaart`;
+  return `Je ${name} staat ${streetPhrase(street)}. Je ziet hem op je kaart`;
 }
 
 export function deliverOwnedVehicle(world, id) {
@@ -355,8 +354,7 @@ export function deliverOwnedVehicle(world, id) {
   if (world.wanted > 0) return { ok: false, text: 'Met de politie op je hielen bezorgt niemand iets. Eerst ze kwijt!' };
   if (world.player.swimming) return { ok: false, text: 'Eerst even uit het water klimmen' };
   if (e.status === 'near' && e.dist < 60) {
-    setUserWaypoint(e.v.x, e.v.y, `Jouw ${short}`);
-    return { ok: true, text: `Je ${short} staat al om de hoek. Staat op je kaart` };
+    return { ok: true, text: `Je ${short} staat al om de hoek. Je ziet hem op je kaart` };
   }
   const wait = Math.ceil(lastDeliveryAt + DELIVERY_COOLDOWN - world.time);
   if (wait > 0) return { ok: false, text: `De bezorger is nog onderweg met de vorige. Probeer het over ${wait} s` };
@@ -386,7 +384,6 @@ export function deliverOwnedVehicle(world, id) {
   if (!spot) return { ok: false, text: 'De bezorger kan hier nergens parkeren. Loop eens naar een gewone straat' };
   if (e.fee) world.money -= e.fee;
   lastDeliveryAt = world.time;
-  setUserWaypoint(spot.x, spot.y, `Jouw ${short}`);
   const text = describeSpot(world, spot, short);
   world.addMessage(text, 5);
   return { ok: true, text, x: spot.x, y: spot.y };
@@ -400,11 +397,9 @@ export function locateOwnedVehicle(world, id) {
   if (e.status === 'garage') {
     const h = getHomeForRender()[0];
     if (!h) return { ok: false, text: `Je ${short} staat in de garage. Laat hem afleveren` };
-    setUserWaypoint(h.x, h.y, 'Thuis');
-    return { ok: true, text: `Je ${short} staat thuis in de garage in Paddepoel. Staat op je kaart`, x: h.x, y: h.y };
+    return { ok: true, text: `Je ${short} staat thuis in de garage in Paddepoel`, x: h.x, y: h.y };
   }
   if (e.status === 'driving') return { ok: false, text: `Je zit er al in` };
-  setUserWaypoint(e.v.x, e.v.y, `Jouw ${short}`);
   const where = e.where && e.where.street ? `${streetPhrase(e.where.street)}${e.where.wijk ? ` (${e.where.wijk})` : ''}` : 'op je kaart';
   return { ok: true, text: `Je ${short} staat ${where}`, x: e.v.x, y: e.v.y };
 }
