@@ -13,6 +13,8 @@ import { storyLineVoice } from './linevoice.js';
 
 let sceneMod = null;
 import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
+let fjMod = null;
+import('./fierljep.js').then((m) => { fjMod = m; }).catch(() => {});
 
 // Recorded dialogue, keyed "<speaker>|<text>" so an edited line simply goes
 // silent instead of playing the wrong recording.
@@ -894,14 +896,20 @@ function waterCrossing(w, x, y, maxR = 90, maxSpan = 34) {
 }
 
 // Jelle Terpstra talks, runs up and vaults over the nearest canal with his
-// polsstok (or over the street when there's no water nearby); Durk and
-// Douwe stay behind and then leg it. lines: [[who, text], ...] before the jump.
-// fail: the pole snaps halfway and Jelle drops into the water (the finale).
+// polsstok (fierljep.js, stepped from this paused scene; over the street
+// when there's no water nearby); Durk and Douwe stay behind and then leg it.
+// lines: [[who, text], ...] before the jump. fail: the pole stalls and tips
+// over and Jelle drops into the water (the finale).
 export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, Grinzers!', kicker = '', title = '', fail = false } = {}) {
   if (run) return false;
   const scene = sceneMod && sceneMod.getScene();
   if (!scene) return false;
-  let c = waterCrossing(w, at.x, at.y);
+  const spot = fjMod ? fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26 }) : null;
+  let c = spot ? { a: spot.from, b: spot.to } : waterCrossing(w, at.x, at.y);
+  if (spot) {
+    const D = Math.hypot(c.b.x - c.a.x, c.b.y - c.a.y) || 1;
+    c.dx = (c.b.x - c.a.x) / D; c.dy = (c.b.y - c.a.y) / D;
+  }
   if (!c) {
     const a = w.player.angle || 0, dx = Math.cos(a), dy = Math.sin(a);
     c = { a: { x: at.x + dx * 4, y: at.y + dy * 4 }, b: { x: at.x + dx * 14, y: at.y + dy * 14 }, dx, dy };
@@ -930,16 +938,33 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
 
   const tl = timeline(lines, NPC.jelle, 0.6);
   const talkEnd = tl.total;
-  const RUN = 1.3, JUMP = 1.7, AFTER = 2.6;
+  // fierljep.js timing: run-up, jump onto the pole, the swing (slowed down
+  // at the top), then the drop or the topple and the splash
+  const swingT = fail ? 1.5 : 1.05 + Math.max(6, Math.min(18, 0.94 * span + 1.3)) * 0.09;
+  const RUN = 1.3, JUMP = spot ? 0.42 + swingT * 1.93 + (fail ? 1.9 : 0.8) : 1.7, AFTER = spot ? 3.4 : 2.6;
   const jumpAt = talkEnd + RUN, landAt = jumpAt + JUMP, total = landAt + AFTER;
   const apex = 3.5 + span * 0.18;
-  const allLines = [...tl.lines, { who: 'jelle', speaker: NPC.jelle.name, text: landing, at: fail ? jumpAt + JUMP * 0.4 : landAt + 0.1, dur: 2.2 }];
+  const lineAt = !fail ? landAt + (spot ? 0.8 : 0.1) : spot ? jumpAt + 0.62 + swingT * 1.93 : jumpAt + JUMP * 0.4;
+  const allLines = [...tl.lines, { who: 'jelle', speaker: NPC.jelle.name, text: landing, at: lineAt, dur: 2.2 }];
   let splashed = false;
   const hide = w.pedestrians.filter((q) => q.state !== 'dead' && Math.hypot(q.x - c.a.x, q.y - c.a.y) < 18);
   if (hide.length) w.pedestrians = w.pedestrians.filter((q) => !hide.includes(q));
   w.cinematicHidePlayers = true;
   w.cinematicHideNav = true;
-  const r = { w, group, lastT: 0 };
+  // the talk is filmed from the side where no wall or parked car (the tanker) blocks the view
+  const talkMid = { x: (tS.x + start.x) / 2, y: (tS.y + start.y) / 2 };
+  const blockers = (sx) => {
+    const cx = talkMid.x + nx * 6.5 * sx - dx * 1.5, cy = talkMid.y + ny * 6.5 * sx - dy * 1.5;
+    let n = roofAt(w.map, cx, cy) ? 10 : 0;
+    for (let k = 0; k <= 4; k++) {
+      const px = cx + (start.x - cx) * k / 5, py = cy + (start.y - cy) * k / 5;
+      for (const v of w.vehicles) if (!v.isBoat && Math.hypot(v.x - px, v.y - py) < v.halfLen + 0.8) n++;
+    }
+    return n;
+  };
+  const talkSide = blockers(1) > blockers(-1) ? -1 : 1;
+  const r = { w, group, lastT: 0, vault: null };
+  const proxy = { x: start.x, y: start.y, angle: ang + Math.PI };
   const up = new THREE.Vector3(0, 1, 0), tmp = new THREE.Vector3();
   const setPole = (x0, y0, z0, x1, y1, z1) => {
     tmp.set(x1 - x0, z1 - z0, y1 - y0);
@@ -949,6 +974,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
     pole.quaternion.setFromUnitVectors(up, tmp.normalize());
   };
   const cleanup = () => {
+    if (r.vault) { r.vault.dispose(); r.vault = null; }
     group.removeFromParent();
     for (const m of [tammo, anita, jelle, durk, douwe]) disposeActor(m);
     pole.geometry.dispose();
@@ -978,6 +1004,19 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
         const k = (t - landAt - 0.6) * 3;
         standActor(durk, dS.x - dx * k + nx * k * 0.3, dS.y - dy * k + ny * k * 0.3, ang + Math.PI + 0.3);
         standActor(douwe, eS.x - dx * k + nx * k * 0.3, eS.y - dy * k + ny * k * 0.3, ang + Math.PI + 0.3);
+      }
+      if (spot && t >= talkEnd) {
+        if (!r.vault) {
+          jelle.visible = false;
+          pole.visible = false;
+          r.vault = fjMod.poleVault(proxy, c.a, c.b, { fail, appearance: NPC.jelle, slowmo: true, say: false, keepActor: true, swimTime: Infinity });
+        }
+        // the scene pauses the world, so the vault is stepped from here
+        fjMod.updatePoleVaults(dt, w);
+        const q = r.vault.pos;
+        const side = 9 + span * 0.35;
+        const fx = (c.a.x + c.b.x) * 0.25 + q.x * 0.5, fy = (c.a.y + c.b.y) * 0.25 + q.y * 0.5;
+        return pose(camClear(w, P(fx + nx * side * talkSide, fy + ny * side * talkSide, 4 + Math.max(0, q.z) * 0.45)), P(q.x, q.y, Math.max(q.z, -0.6) * 0.8 + 0.8), 54);
       }
       resetLimbs(jelle.userData);
       if (t < talkEnd) {
@@ -1030,7 +1069,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
       // cameras: past the duo at Jelle while he talks, then side-on for the jump
       if (t < talkEnd) {
         const mid = { x: (tS.x + start.x) / 2, y: (tS.y + start.y) / 2 };
-        return pose(camClear(w, P(mid.x + nx * 6.5 - dx * 1.5, mid.y + ny * 6.5 - dy * 1.5, 2.6)), P(start.x, start.y, 1.5), 44);
+        return pose(camClear(w, P(mid.x + nx * 6.5 * talkSide - dx * 1.5, mid.y + ny * 6.5 * talkSide - dy * 1.5, 2.6)), P(start.x, start.y, 1.5), 44);
       }
       const side = 13 + span * 0.55;
       const k = smooth(Math.min(1, (t - talkEnd) / (RUN + JUMP)));

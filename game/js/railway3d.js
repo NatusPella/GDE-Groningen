@@ -2,7 +2,7 @@
 // crossings with half barriers and flashing lights, and the trains from
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH } from './railway.js';
+import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH, FLAT_DECK_Z } from './railway.js';
 import { pointInPolygon, WATER_Y } from './util.js';
 import { addStaticCollider } from './breakables.js';
 
@@ -559,8 +559,47 @@ function buildPowerModule(cfg, seg) {
   return g;
 }
 
+// Goods train (story): a diesel loco with a cab at both ends, and flats
+// with a low deck (railway.js FLAT_DECK_Z) that a car can ride on.
+function buildLoco(cfg, seg) {
+  const g = new THREE.Group();
+  const L = seg.len, H = cfg.height, W = TRAIN_HALF_WIDTH * 2;
+  const NOSE = 1.6, x1 = L / 2 - NOSE, x0 = -L / 2 + NOSE, floor = 0.9;
+  box(g, L - 0.4, 0.45, W - 0.3, DARK(), 0, floor - 0.12);
+  for (const e of [-1, 1]) box(g, 3.2, 0.7, 2.2, DARK(), e * (L / 2 - 3), 0.45);
+  const shell = box(g, x1 - x0, H - floor - 0.25, W - 0.2, mat(cfg.body), 0, floor + (H - floor - 0.25) / 2);
+  shell.castShadow = true;
+  box(g, x1 - x0, 0.3, W - 0.17, mat(cfg.stripe), 0, floor + 0.55);
+  for (const side of [-1, 1]) {
+    for (let k = 0; k < 4; k++) box(g, 1.5, 0.9, 0.04, DARK(), x0 + 1.4 + k * (x1 - x0 - 2.8) / 3, H - 1.5, side * ((W - 0.2) / 2 + 0.01));
+  }
+  box(g, x1 - x0 - 0.6, 0.25, W - 0.6, ROOF(), 0, H - 0.1);
+  const lamps = {};
+  addCab(g, cfg, 1, x1, H, W, lamps);
+  addCab(g, cfg, -1, x0, H, W, lamps);
+  g.userData.lamps = lamps;
+  return g;
+}
+
+function buildFlat(cfg, seg) {
+  const g = new THREE.Group();
+  const L = seg.len, W = TRAIN_HALF_WIDTH * 2 - 0.1, deck = FLAT_DECK_Z;
+  const rust = mat(0x5e4331, { roughness: 0.9 });
+  for (const e of [-1, 1]) box(g, 2.6, 0.7, 2.1, DARK(), e * (L / 2 - 2.2), 0.45);
+  box(g, L, 0.36, W, rust, 0, deck - 0.18).castShadow = true;
+  box(g, L - 0.2, 0.05, W - 0.5, mat(0x3b3f44, { roughness: 0.95 }), 0, deck + 0.02);
+  for (const side of [-1, 1]) {
+    box(g, L, 0.12, 0.1, mat(cfg.stripe), 0, deck + 0.2, side * (W / 2 - 0.05));
+    for (let k = 0; k < 6; k++) box(g, 0.1, 0.45, 0.1, rust, -L / 2 + 0.6 + k * (L - 1.2) / 5, deck + 0.22, side * (W / 2 - 0.05));
+  }
+  g.userData.lamps = {};
+  return g;
+}
+
 function buildCar(cfg, seg) {
   if (seg.kind === 'power') return buildPowerModule(cfg, seg);
+  if (seg.kind === 'loco') return buildLoco(cfg, seg);
+  if (seg.kind === 'flat') return buildFlat(cfg, seg);
   const g = new THREE.Group();
   const L = seg.len, H = cfg.height, W = TRAIN_HALF_WIDTH * 2;
   const NOSE = cfg.front === 'virm' ? 1.9 : 1.6;
@@ -617,7 +656,17 @@ function buildTrainView(t) {
 function updateTrains(px, py, night) {
   GLASS_MAT.emissiveIntensity = 0.55 * night;
   HEAD_MAT.color.setHex(0xfff6dc).multiplyScalar(1 + 2 * night);
-  for (const t of getTrains()) {
+  const all = getTrains();
+  if (trainViews.size > all.length) {
+    // a story train that is gone again
+    for (const [t, view] of trainViews) {
+      if (all.includes(t)) continue;
+      view.group.removeFromParent();
+      view.group.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+      trainViews.delete(t);
+    }
+  }
+  for (const t of all) {
     let view = trainViews.get(t);
     const mid = t.cars[t.cars.length >> 1];
     const near = Math.abs(mid.x - px) < VIEW + t.halfLen && Math.abs(mid.y - py) < VIEW + t.halfLen;

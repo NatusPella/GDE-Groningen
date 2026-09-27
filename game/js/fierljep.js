@@ -23,7 +23,7 @@ import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js
 //       jumper after landing until handle.dispose(); for NPCs nobody else
 //       draws), swimTime (s in the water after a fail, default 5; Infinity
 //       waits for handle.release()), onDone(result).
-//     handle: { done: Promise<result>, phase, release(), dispose() }
+//     handle: { done: Promise<result>, phase, pos { x, y, z }, release(), dispose() }
 //     result: { result: 'landed' | 'fail', x, y }. After a fail the NPC is
 //     put back on the take-off bank (climbed out), unless the caller moved it.
 //     While vaulting, npc.scripted and npc.hideMesh are set: pedestrians.js
@@ -249,6 +249,7 @@ export function poleVault(npc, from, to, opts = {}) {
   const handle = {
     done,
     get phase() { return v.phase; },
+    get pos() { return { x: v.x, y: v.y, z: v.z }; },
     release() { v.released = true; },
     dispose() { disposeVault(v); },
   };
