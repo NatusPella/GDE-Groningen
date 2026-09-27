@@ -65,7 +65,7 @@ function serialize(w) {
   return {
     v: VERSION,
     savedAt: Date.now(),
-    money: Math.max(0, Math.floor(num(w.money, 0))),
+    money: Math.max(0, Math.floor(num(w.money, num(w._goodMoney, 0)))),
     health: clamp(num(w.health, 100), 1, 100),
     armor: clamp(num(w.armor, 0), 0, 100),
     weapon: w.weapon,
@@ -164,7 +164,8 @@ export function applySave(w, d) {
     // a running scene (train trip, intro) would otherwise finish against the loaded state
     skipAllCinematics();
     if (w.pigeonMode && w.pigeonActions) w.pigeonActions.stop();
-    w.money = Math.max(0, num(d.money, 0));
+    // saves from the NaN-money bug stored null: give a fair amount back
+    w.money = Math.max(0, num(d.money, d.money === null ? 1500 : 0));
     w.health = clamp(num(d.health, 100), 1, 100);
     w.armor = clamp(num(d.armor, 0), 0, 100);
     const ammo = {};

@@ -203,6 +203,7 @@ export function repairVehicle(v) {
 }
 
 function pay(w, price) {
+  if (!Number.isFinite(price) || price < 0) { console.warn('prijs zonder waarde', price); return false; }
   if (w.money < price) return false;
   w.money -= price;
   recordStat(w, 'purchases');
