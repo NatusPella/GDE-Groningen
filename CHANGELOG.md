@@ -6,6 +6,26 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-27
+
+Na het einde is het nog lang niet klaar.
+
+### Nieuw
+- **Uitdagingen tegen Jelle Terpstra**, vrij te spelen na het einde van het
+  verhaal, met medailles en records:
+  - **Elf Bruggenrace**: een rondje Diepenring onder elf bruggen door, per
+    speedboot tegen Jelle.
+  - **Fierljep-duel** bij het Hoornsediep: aanloop, stok pakken en klimmen,
+    op tijd, anders lig je in het water.
+  - **Skûtsje-sprint** van de Oosterhaven naar de Hoge der A, met je zeil
+    op de wind.
+- **De Fjord Frituur** is van jou: Anita's foodtruck. Parkeer op drukke
+  plekken (Grote Markt, Vismarkt, Noorderplantsoen, Euroborg op wedstrijddagen,
+  de Poelestraat 's nachts), serveer eierballen en frikandellen en verdien
+  bij met fooien en upgrades.
+- **Een echt skûtsje** met zwaarden, gaffel en bruinrood zeil, ook in de
+  skûtsje-missie van het verhaal.
+
 ## [0.9.0] - 2026-09-27
 
 Grunn voelt nog meer als Grunn.
