@@ -8,6 +8,8 @@ let world = null;
 let shop = null;
 let open = false;
 let bought = false;
+let storyBanner = null;
+let storyDone = false;
 // selecting (click, arrows) only shows an item; buying is the detail bar's
 // button (or Enter on it), expensive items ask once more
 let sel = null;
@@ -122,6 +124,24 @@ const SHOP_CSS = `
   #shop-menu .sm-buy[aria-disabled="true"]:focus { background: #5a6056; }
   @media (max-width: 520px) { #shop-menu .sm-detail { grid-template-columns: 1fr; } #shop-menu .sm-buy { width: 100%; } }
   @media (max-width: 520px) { #shop-menu h1 { font-size: 26px; } #shop-menu .sm-tag { display: none; } #shop-menu .sm-item { grid-template-columns: 30px 1fr auto; gap: 8px; } #shop-menu .sm-foot span { display: none; } }
+  #shop-menu .sm-story { display: grid; grid-template-columns: 34px 1fr; gap: 2px 12px; align-items: center; padding: 10px 18px; border-bottom: 1px solid rgba(232,201,58,0.45);
+    background: linear-gradient(90deg, rgba(232,201,58,0.26) 0%, rgba(232,201,58,0.08) 100%); box-shadow: inset 4px 0 0 #e8c93a; animation: sm-story 1.6s ease-in-out 3 alternate; }
+  #shop-menu .sm-story[hidden] { display: none; }
+  #shop-menu .sm-story i { grid-row: span 3; width: 34px; height: 34px; border-radius: 50%; background: #e8c93a; color: #0c140e; display: flex; align-items: center; justify-content: center; font: normal 24px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; }
+  #shop-menu .sm-story b { font-weight: normal; font-size: 25px; letter-spacing: 1px; line-height: 1.05; color: #f5dc5c; }
+  #shop-menu .sm-story span, #shop-menu .sm-story small { font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); line-height: 1.3; }
+  #shop-menu .sm-story span:empty, #shop-menu .sm-story small:empty { display: none; }
+  #shop-menu .sm-story small { color: #f5dc5c; }
+  #shop-menu .sm-story.done { background: linear-gradient(90deg, rgba(63,201,122,0.3) 0%, rgba(63,201,122,0.08) 100%); box-shadow: inset 4px 0 0 #3fc97a; border-bottom-color: rgba(63,201,122,0.5); animation: sm-pop 0.28s ease-out; }
+  #shop-menu .sm-story.done i { background: #3fc97a; }
+  #shop-menu .sm-story.done b { color: #7fe0a8; }
+  @keyframes sm-story { from { box-shadow: inset 4px 0 0 #e8c93a; } to { box-shadow: inset 4px 0 0 #e8c93a, inset 0 0 22px rgba(232,201,58,0.35); } }
+  #shop-menu h2.story { color: #f5dc5c; }
+  #shop-menu .sm-item.story-ok { border-color: rgba(232,201,58,0.55); border-left-color: #e8c93a; background: rgba(232,201,58,0.1); }
+  #shop-menu .sm-item.story-ok:hover, #shop-menu .sm-item.story-ok:focus, #shop-menu .sm-item.story-ok.sel { border-color: #e8c93a; background: rgba(232,201,58,0.22); }
+  #shop-menu .sm-item.story-ok .sm-chip { border-color: #e8c93a; color: #0c140e; background: #e8c93a; }
+  #shop-menu .sm-item.story-no .sm-txt small { color: rgba(217,138,63,0.9); }
+  @media (prefers-reduced-motion: reduce) { #shop-menu .sm-story { animation: none !important; } }
   @media (prefers-reduced-motion: reduce) { #shop-menu .sm-panel, #shop-menu .sm-status, #shop-menu .sm-money { animation: none !important; } }
 `;
 
@@ -143,6 +163,7 @@ export function initShopUi(w) {
         <div class="sm-title"><h1 id="shop-title"></h1><p class="sm-tag"></p></div>
         <div class="sm-money" aria-label="Jouw geld"></div>
       </header>
+      <div class="sm-story" role="note" hidden><i aria-hidden="true">!</i><b></b><span></span><small></small></div>
       <div class="sm-stage"><canvas class="sm-preview" aria-hidden="true"></canvas><div class="sm-stats" aria-label="Eigenschappen"></div><canvas class="sm-scratch" aria-hidden="true"></canvas></div>
       <div class="sm-list"></div>
       <div class="sm-detail" hidden><div class="sm-dtxt"><b></b><small></small><span class="sm-effect"></span></div><button type="button" class="sm-buy"></button></div>
@@ -164,6 +185,8 @@ export function openShopMenu(w, s) {
   shop = s;
   open = true;
   bought = false;
+  storyBanner = null;
+  storyDone = false;
   sel = null;
   armed = null;
   if (document.pointerLockElement) document.exitPointerLock();
@@ -176,7 +199,7 @@ export function openShopMenu(w, s) {
   setStatus('', '');
   root.classList.add('visible');
   render();
-  const first = root.querySelector('.sm-item:not([aria-disabled="true"])') || root.querySelector('.sm-item') || root.querySelector('.sm-close');
+  const first = root.querySelector('.sm-item.story-ok') || root.querySelector('.sm-item:not([aria-disabled="true"])') || root.querySelector('.sm-item') || root.querySelector('.sm-close');
   if (first) first.focus({ preventScroll: true });
   if (first && first.dataset.id) select(first.dataset.id);
   else renderDetail();
@@ -215,17 +238,20 @@ function render() {
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const money = Math.max(0, Math.floor(world.money));
   root.querySelector('.sm-money').textContent = '€' + money.toLocaleString('nl-NL');
-  const sections = shop.sections();
+  const view = shop.view ? shop.view() : { sections: shop.sections(), banner: null };
+  const sections = view.sections;
+  if (view.banner) storyBanner = view.banner;
+  renderStory();
   const list = root.querySelector('.sm-list');
   if (!sections.length) {
     list.innerHTML = '<p class="sm-empty">Hier valt niks te halen.</p>';
     return;
   }
   list.innerHTML = sections.map((sec) => `
-    <h2>${esc(sec.title)}</h2>
+    <h2${sec.story ? ' class="story"' : ''}>${esc(sec.title)}</h2>
     ${sec.note ? `<p class="sm-note">${esc(sec.note)}</p>` : ''}
     ${sec.items.map((it) => `
-      <button type="button" class="sm-item" data-id="${esc(it.id)}" aria-disabled="${it.disabled ? 'true' : 'false'}">
+      <button type="button" class="sm-item${it.story ? ' story-' + it.story : ''}" data-id="${esc(it.id)}" aria-disabled="${it.disabled ? 'true' : 'false'}">
         <span class="sm-sw">${swatchHtml(it)}</span>
         <span class="sm-txt"><b>${esc(it.label)}</b><small>${esc(it.desc || '')}</small></span>
         <span class="sm-price">${priceHtml(it)}</span>
@@ -236,6 +262,17 @@ function render() {
   }
   markSelected();
   renderDetail();
+}
+
+function renderStory() {
+  const el = root.querySelector('.sm-story');
+  el.hidden = !storyBanner;
+  if (!storyBanner) return;
+  el.classList.toggle('done', storyDone);
+  el.querySelector('i').textContent = storyDone ? '✓' : '!';
+  el.querySelector('b').textContent = storyDone ? 'Gelukt! Terug naar het verhaal' : storyBanner.title;
+  el.querySelector('span').textContent = storyDone ? 'Druk Esc en volg de route naar de volgende stap.' : [storyBanner.why, storyBanner.lead].filter(Boolean).join(' ');
+  el.querySelector('small').textContent = storyDone ? '' : storyBanner.voorschot || '';
 }
 
 function markSelected() {
@@ -329,7 +366,12 @@ function activate(id) {
     return;
   }
   bought = true;
-  const r = typeof res === 'string' ? { text: res, tone: '' } : res;
+  if (shop.onBought) shop.onBought(it);
+  let r = typeof res === 'string' ? { text: res, tone: '' } : res;
+  if (it.story === 'ok') {
+    storyDone = true;
+    r = { ...r, text: `${String(r.text).replace(/[.!]+$/, '')}. Dit telt voor je missie!`, tone: 'win' };
+  }
   if (it.reveal && root.querySelector('.sm-stage')) {
     setStatus('Krassen…', '');
     playScratch(it.reveal, r, () => setStatus(r.text, r.tone));

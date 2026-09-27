@@ -8,8 +8,9 @@ import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { recordStat, isUnlocked } from './achievements.js';
-import { isMissionCompleted, missionIndexById, getNextMission, getMissionDefs, requirementMet } from './missions.js';
-import { currentStep } from './story.js';
+import { isMissionCompleted, missionIndexById } from './missions.js';
+import { prepareStoryShop } from './story.js';
+import { markStoryItems, noteStoryPurchase } from './storyshop.js';
 import { jobLevel } from './sidejobs.js';
 import { WEAPONS } from './combat.js';
 import { productKey } from './shopmodels3d.js';
@@ -502,15 +503,23 @@ function policeWatching(world) {
   return world.wanted > 0 && !!(world.police && world.police.seenRecently);
 }
 
+// "Voor het verhaal: koop een wapen bij …" when the story route ends at shop s.
+function storyHere(world, s) {
+  const g = world.storyGuide;
+  if (!g || !g.buy || g.shopId !== s.id) return '';
+  const t = g.name.replace(/^Eerst: /, '');
+  return `Voor het verhaal: ${t.charAt(0).toLowerCase() + t.slice(1)}`;
+}
+
 export function shopPrimaryPrompt(world) {
   const g = garageForPaint(world);
   if (g) return { id: 'paint-' + g.x, x: g.x, y: g.y, h: 2.6, key: 'R', label: 'Nieuwe lak', sub: `Spuit & Klaar: kies een kleur, €${PAINT_PRICE}`, ring: true };
   const ws = workshopFor(world);
-  if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : 'Laten sleutelen', sub: ws.name, ring: true };
+  if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : 'Laten sleutelen', sub: storyHere(world, ws) || ws.name, ring: true };
   const s = nearestShop(world);
   if (!s) return null;
   if (policeWatching(world)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Binnenlopen', sub: `${s.name}: deur op slot, politie op je hielen`, ring: true, dim: true };
-  return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: s.type === 'boot' ? 'Bootje huren' : 'Binnenlopen', sub: `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
+  return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: s.type === 'boot' ? 'Bootje huren' : 'Binnenlopen', sub: storyHere(world, s) || `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
 }
 
 export function shopSecondaryPrompts(world) {
@@ -535,7 +544,7 @@ export function tryShopInteract(world) {
     const ws = g ? null : workshopFor(world);
     if (g || ws) {
       input.consume('r');
-      if (ws) shopVisits[ws.type] = (shopVisits[ws.type] || 0) + 1;
+      if (ws) { shopVisits[ws.type] = (shopVisits[ws.type] || 0) + 1; prepareStoryShop(); }
       openShopMenu(world, g ? paintShop(world) : shopMenu(world, ws));
       return true;
     }
@@ -550,6 +559,7 @@ export function tryShopInteract(world) {
     return true;
   }
   shopVisits[s.type] = (shopVisits[s.type] || 0) + 1;
+  prepareStoryShop();
   openShopMenu(world, shopMenu(world, s));
   return true;
 }
@@ -638,60 +648,28 @@ function shopMenu(world, s) {
     fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
     pand: (w) => pandSections(w, s), boot: (w) => bootSections(w, s), eikea: eikeaSections,
   }[s.type];
-  return { name: s.name, type: s.type, tagline: s.tagline, color: SHOP_TYPES[s.type].color, sections: () => markGates(world, build(world)) };
+  const view = () => markStoryItems(world, s.type, build(world));
+  return { name: s.name, type: s.type, tagline: s.tagline, color: SHOP_TYPES[s.type].color, view, sections: () => view().sections, onBought: (it) => noteStoryPurchase(it.id) };
 }
 
-// Story gates the player still has to meet (read-only: the story step's
-// requirement and the next mission's `requires`).
-function openGates(world) {
-  const out = new Set();
-  let st = null;
-  try { st = currentStep(); } catch (e) { st = null; }
-  if (st && st.goal && st.goal.type === 'require') for (const r of [].concat(st.goal.req)) out.add(r);
-  try {
-    const n = getNextMission();
-    const def = n && getMissionDefs()[n.index];
-    if (def && def.requires) for (const r of [].concat(def.requires)) out.add(r);
-  } catch (e) { /* no missions yet */ }
-  return [...out].filter((k) => { try { return !requirementMet(world, k); } catch (e) { return true; } });
-}
-
-// What a vehicle must be to meet a gate, and what to call it when it isn't.
-const GATE_VEHICLE = {
-  bike: { shop: 'fietsen', ok: (sp) => sp.kind === 'bike', word: 'fiets', why: 'voor de KEI-race' },
-  car: { shop: 'auto', ok: (sp) => sp.kind === 'car' && !sp.unlock, word: 'auto', why: 'voor de ringweg-race' },
-};
-
-// While a gate is open, the vehicles that meet it get a "Telt voor je
-// missie" tag and come first; the others say so and ask before buying.
-function markGates(world, sections) {
-  const gates = openGates(world).filter((k) => GATE_VEHICLE[k]);
-  if (!gates.length) return sections;
-  return sections.map((sec) => {
-    const items = sec.items.map((it) => {
-      const sp = it.id && it.id.startsWith('v-') ? VEHICLE_STOCK[it.id.slice(2)] : null;
-      if (!sp) return it;
-      const g = gates.map((k) => GATE_VEHICLE[k]).find((x) => x.shop === sp.shop);
-      if (!g) return it;
-      if (g.ok(sp)) return { ...it, tag: it.tag || 'Telt voor je missie', gateOk: true };
-      return { ...it, desc: `${it.desc} · telt niet als ${g.word}`, confirmText: `Telt niet als ${g.word} ${g.why}. Nog eens = toch kopen` };
-    });
-    items.sort((a, b) => (b.gateOk ? 1 : 0) - (a.gateOk ? 1 : 0));
-    return { ...sec, items };
-  });
+// Food heals; at full health it is still for sale, to take away.
+function foodItem(world, id, label, desc, price, hp, product, eaten) {
+  const full = world.health >= 100;
+  return {
+    id, label, desc: full ? `${desc} · je zit vol: om mee te nemen` : `${desc} · +${hp} gezondheid`, price, keepFocus: true,
+    preview: productPreview(product), stats: [healthStat(world, hp)], effect: full ? 'Om mee te nemen' : `+${hp} gezondheid`,
+    disabled: broke(world, price),
+    buy() {
+      if (!pay(world, price)) return null;
+      if (world.health >= 100) return `${label} ingepakt, voor straks`;
+      world.health = Math.min(100, world.health + hp);
+      return eaten(label);
+    },
+  };
 }
 
 function foodSections(world, title, list) {
-  const items = list.map(([id, label, desc, price, hp]) => ({
-    id: 'f-' + id, label, desc: `${desc} · +${hp} gezondheid`, price, keepFocus: true,
-    preview: productPreview('f_' + id), stats: [healthStat(world, hp)], effect: `+${hp} gezondheid`,
-    disabled: world.health >= 100 ? 'Je zit vol' : broke(world, price),
-    buy() {
-      if (!pay(world, price)) return null;
-      world.health = Math.min(100, world.health + hp);
-      return `${label}: lekker! Gezondheid ${Math.round(world.health)}`;
-    },
-  }));
+  const items = list.map(([id, label, desc, price, hp]) => foodItem(world, 'f-' + id, label, desc, price, hp, 'f_' + id, () => `${label}: lekker! Gezondheid ${Math.round(world.health)}`));
   return [{ title, note: `Gezondheid nu ${Math.round(world.health)}`, items }];
 }
 
@@ -1182,16 +1160,7 @@ function tabakSections(world) {
       return { text: prize >= big ? `JACKPOT! €${prize} gewonnen!` : `Joa! €${prize} gewonnen`, tone: prize >= big ? 'jackpot' : 'win', prize };
     },
   });
-  const snack = (id, label, desc, price, hp) => ({
-    id, label, desc: `${desc} · +${hp} gezondheid`, price, keepFocus: true,
-    preview: productPreview(id), stats: [healthStat(world, hp)], effect: `+${hp} gezondheid`,
-    disabled: world.health >= 100 ? 'Je zit vol' : broke(world, price),
-    buy() {
-      if (!pay(world, price)) return null;
-      world.health = Math.min(100, world.health + hp);
-      return `${label} naar binnen gewerkt`;
-    },
-  });
+  const snack = (id, label, desc, price, hp) => foodItem(world, id, label, desc, price, hp, id, () => `${label} naar binnen gewerkt`);
   const paper = {
     id: 'krant', preview: productPreview('krant'), label: 'Grunneger Kwebbelkrant', desc: 'De krant van vandaag, met de kop van de dag', price: 2, keepFocus: true,
     disabled: broke(world, 2),
@@ -1234,16 +1203,7 @@ function tabakSections(world) {
 
 // EIKEA: the blue box at the Sontweg, a parody with Gronings product names.
 function eikeaSections(world) {
-  const food = (id, label, desc, price, hp) => ({
-    id, label, desc: `${desc} · +${hp} gezondheid`, price, keepFocus: true,
-    preview: productPreview(id), stats: [healthStat(world, hp)], effect: `+${hp} gezondheid`,
-    disabled: world.health >= 100 ? 'Je zit vol' : broke(world, price),
-    buy() {
-      if (!pay(world, price)) return null;
-      world.health = Math.min(100, world.health + hp);
-      return `${label}: smakelijk!`;
-    },
-  });
+  const food = (id, label, desc, price, hp) => foodItem(world, id, label, desc, price, hp, id, () => `${label}: smakelijk!`);
   const joke = (id, label, desc, price, line) => ({
     id, label, desc, price, keepFocus: true, disabled: broke(world, price), preview: productPreview(id),
     buy() { return pay(world, price) ? line : null; },
@@ -1789,6 +1749,29 @@ export function drawShopGlyph(g, type, r, bg) {
 }
 
 // Map marker: rounded square in the shop colour (horeca is a circle).
+// The shop the story route ends at while the story wants something bought there.
+export function storyTargetShop(world) {
+  const g = world && world.storyGuide;
+  return g && g.buy && g.shopId ? shops.find((s) => s.id === g.shopId) || null : null;
+}
+
+// A pulsing gold ring around that shop's icon (minimap and map).
+export function drawStoryShopRing(ctx, sx, sy, r, t) {
+  const k = 0.5 + 0.5 * Math.sin(t * 4);
+  ctx.save();
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = `rgba(232,201,58,${0.55 + 0.45 * k})`;
+  ctx.beginPath();
+  ctx.arc(sx, sy, r * (1 + 0.18 * k), 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(12,20,14,0.8)';
+  ctx.beginPath();
+  ctx.arc(sx, sy, r * (1 + 0.18 * k) + 2, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawShopMapIcon(ctx, type, s) {
   const t = SHOP_TYPES[type];
   if (!t) return;
