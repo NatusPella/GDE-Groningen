@@ -1,3 +1,4 @@
+import { screenFx } from './postfx3d.js';
 import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
 import { getSettings } from './settings.js';
@@ -205,6 +206,7 @@ function begin(spec) {
   r.classList.toggle('letterbox', !!active.letterbox);
   r.classList.toggle('show-skip', !!active.skippable && active.duration > 1.6);
   r.dataset.tint = active.tint || '';
+  setTint(active.tint || '');
   r.dataset.accent = active.accent || '';
   setDualText(els.kicker, active.kicker || '');
   els.title.textContent = active.title || '';
@@ -239,6 +241,7 @@ function finish(skipped, replaced = false) {
   const r = els.root;
   r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip', 'sub-clue');
   r.dataset.tint = '';
+  setTint('');
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
   if (a && a.voiced) setStoryScene(false);
@@ -326,7 +329,19 @@ export function updateCinematics(dt, w) {
   scale += (target - scale) * Math.min(1, dt * 7);
   if (Math.abs(scale - target) < 0.01) scale = target;
   w.timeScale = scale;
-  document.body.classList.toggle('cine-slowmo', scale < 0.85);
+  const slowmo = scale < 0.85;
+  if (slowmo !== screenFx.slowmo) {
+    screenFx.slowmo = slowmo;
+    document.body.classList.toggle('cine-slowmo', slowmo);
+  }
+}
+
+function setTint(tint) {
+  if (screenFx.tint === tint) return;
+  const b = document.body.classList;
+  if (screenFx.tint) b.remove('cine-tint-' + screenFx.tint);
+  if (tint) b.add('cine-tint-' + tint);
+  screenFx.tint = tint;
 }
 
 // --- triggers ---------------------------------------------------------------

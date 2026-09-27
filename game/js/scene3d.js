@@ -357,6 +357,7 @@ function updateCamTreeHiding(map, ex, ey, ez, cx, cy, cz) {
   camTreeHiddenKey = camTreeHidden.map((t) => t[0] + ',' + t[1]).join(';');
 }
 
+const _noTargets = [];
 function nearbyCamTargets(px, py) {
   camTargetList.length = 0;
   for (const [b, mesh] of buildingMeshes) {
@@ -2053,8 +2054,12 @@ export function update3D(dt, world) {
   // recursive: true - each building is now a Group of several child meshes
   // (roof/window-band/steeple/...), not one flat Mesh, so a non-recursive
   // raycast against the Group itself would never hit anything
-  const camTargets = nearbyCamTargets(player.x, player.y);
+  // a hard-cut override (title screen, trailer) replaces the follow camera
+  // outright: no collision rays against buildings it never looks through
+  const noCollide = !!(world.cameraOverride && world.cameraOverride.cut && overrideBlend >= 1);
+  const camTargets = noCollide ? _noTargets : nearbyCamTargets(player.x, player.y);
   function raycastFrom(ox, oy, oz, dx, dy, dz, dist) {
+    if (noCollide) return null;
     camRayOrigin.set(ox, oy, oz);
     camRayDir.set(dx / dist, dy / dist, dz / dist);
     camRaycaster.set(camRayOrigin, camRayDir);
@@ -2075,7 +2080,7 @@ export function update3D(dt, world) {
   // flipped between eye level, top-down and near first person - very
   // disorienting. Now: in at once (never clip the wall), back out slowly, and
   // rise a little when close so it reads as an over-the-shoulder view.
-  const propHit = propRayHit(world.map, eyeX, eyeY, eyeZ, dx, dy, dz, fullDist);
+  const propHit = noCollide ? null : propRayHit(world.map, eyeX, eyeY, eyeZ, dx, dy, dz, fullDist);
   const blockDist = propHit === null ? hitDist : hitDist === null ? propHit + CAM_CLEARANCE : Math.min(hitDist, propHit + CAM_CLEARANCE);
   const wantPull = blockDist === null ? 1 : Math.max(CAM_MIN_DIST, blockDist - CAM_CLEARANCE) / fullDist;
   if (camPullReset || wantPull < camPull) camPull = wantPull;
@@ -2253,7 +2258,9 @@ function queuePrewarm(o, variant) {
       done.add(key);
       prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
     }
-    if (o.castShadow && !o.customDepthMaterial && (o.isMesh || o.isLine || o.isPoints)) {
+    // no depth programs while the preset has shadows off ('laag'): compiling
+    // them only competes with the ones that will be drawn
+    if (o.castShadow && sun.castShadow && !o.customDepthMaterial && (o.isMesh || o.isLine || o.isPoints)) {
       const dm = shadowDepthStandIn(m);
       const dkey = 'D' + dm.id + '|' + kind + (o.receiveShadow ? 'r' : '');
       if (done.has(dkey)) continue;
