@@ -93,12 +93,13 @@ export default {
     const { world } = c;
     const map = world.map;
     for (const b of d.bikes) if (b.mesh) c.removeMesh(b.mesh);
-    const n = 3 + Math.min(c.streak, 5);
+    // a streak adds a bike now and then, but a round never grows past 5
+    const n = 3 + Math.min(Math.floor(c.streak / 2), 2);
     const v = c.vehicle;
     const cx = v ? v.x : c.spot.x, cy = v ? v.y : c.spot.y;
     d.bikes = [];
     for (let tries = 0; tries < 60 && d.bikes.length < n; tries++) {
-      const p = randomStreetPoint(map, cx, cy, 14, 55 + c.streak * 4, { cats: ['foot', 'cycle', 'normal', 'minor', 'major'] });
+      const p = randomStreetPoint(map, cx, cy, 14, 55 + Math.min(c.streak, 5) * 4, { cats: ['foot', 'cycle', 'normal', 'minor', 'major'] });
       if (!p) continue;
       const w = wallSpot(map, p.x, p.y);
       if (!w || isInWater(map, w.x, w.y)) continue;
