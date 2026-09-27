@@ -56,7 +56,7 @@ const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 // --- props ------------------------------------------------------------------
 
 let flagTex = null;
-function pompebledTexture() {
+export function pompebledTexture() {
   if (flagTex) return flagTex;
   const W = 192, H = 128, c = document.createElement('canvas');
   c.width = W; c.height = H;

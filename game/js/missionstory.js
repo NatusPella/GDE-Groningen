@@ -822,7 +822,8 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   const facing = onDeck ? v.angle + Math.PI / 2 : facingTowards(w, anchor, target);
   const r = buildRun(w, { npcKey: onDeck ? null : s.npc, anchor, facing, h: onDeck ? DECK_H : 0 });
   if (!r) return false;
-  const all = stageLines(i, stage, 'intro');
+  // narration the opening montage (intromontage.js) already told is skipped
+  const all = stageLines(i, stage, 'intro').filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
   const lines = short ? [s.intro[s.ask]] : all;
   const tl = timeline(lines, r.npcDef, short ? 0.4 : 0.6);
   const askText = s.intro[s.ask][1];
