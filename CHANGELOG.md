@@ -6,6 +6,15 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-09-27
+
+### Opgelost
+- **Geheugenlek**: de game hield onderweg steeds meer grafisch geheugen vast
+  (vooral bij voetgangers en vonken), waardoor hij na een tijdje trager werd.
+  Dat blijft nu stabiel, ook na lang spelen.
+- De trailer en **Benchmark draaien** lopen zo'n 40 tot 60% soepeler, met
+  mooiere shots van de traumaheli en de ringweg-race en een goed leesbaar logo.
+
 ## [0.10.0] - 2026-09-27
 
 Na het einde is het nog lang niet klaar.
