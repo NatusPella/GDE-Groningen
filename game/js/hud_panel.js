@@ -1,3 +1,4 @@
+import { dualHtml } from './subtitles.js';
 import { getGaragesForRender } from './garages.js';
 import { minimapShows } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
@@ -502,7 +503,7 @@ function updateToasts(world) {
   world.messages = world.messages.filter((m) => m.until >= world.time);
   const html = world.messages
     .filter((m) => m.text !== 'DOOD' && m.text !== 'OPGEPAKT')
-    .map((m) => `<div class="hud-toast">${escapeHtml(m.text)}</div>`)
+    .map((m) => `<div class="hud-toast">${dualHtml(m.text)}</div>`)
     .join('');
   if (html === lastToastHtml) return;
   lastToastHtml = html;

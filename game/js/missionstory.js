@@ -192,7 +192,7 @@ const STORY = [
       ['A', 'Ik hou niet van snorren. Ik hou van petten.'],
       ['T', '…Goed om te weten. Eierbal?'],
       ['N', 'Trouwens: die grote aan de bar zingt al een uur Friese liedjes. Die van de tweeling.'],
-      ['durk', 'Us baas… is slim. De bal… de bal leit op it skûtsje. Hik. Net fertelle, hè?'],
+      ['durk', 'Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Net fertelle, hè?'],
       ['A', 'Het skûtsje. Tammo, de Eierbal ligt op een boot.'],
       ['T', 'Ik vertel het niemand. Behalve jou.'],
     ],
@@ -430,8 +430,8 @@ const STORY = [
   {
     npc: 'jelle', outroPose: 'hips', ask: 0,
     intro: [
-      ['N', 'Moai, Grinzers. Ik ha in foarstel. Op Gronings Ontzet bakke wy tsjin elkoar, foar de Noardlike Snackpriis.'],
-      ['N', 'Winne jimme, dan meie jimme de Eierbal hâlde. Winne ik, dan krij ik him werom. En is de aaibal Frysk.'],
+      ['N', 'Moai, Grinzers. Ik heb een voorstel. Op Gronings Ontzet bakken we tegen elkaar, voor de Noordelijke Snackprijs.'],
+      ['N', 'Winnen jullie, dan houden jullie de Eierbal. Win ik, dan krijg ik hem terug. En is de aaibal Frysk.'],
       ['T', 'Hij is niet eens van jou, Jelle.'],
       ['N', 'Dat is in detail, Grinzer.'],
       ['A', 'Mosterd, eieren, stoetbrood. Een echte Groninger eierbal. Wij winnen dit.'],

@@ -272,8 +272,8 @@ function buildDefs(world) {
         { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.' },
         {
           kind: 'vault', label: 'Jelle',
-          lines: [['jelle', 'Moai, Grinzers. Myn fet. Myn tankwein. Myn dei.'], ['A', 'Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.'],
-            ['jelle', 'Dan keapje ik nij fet. Ik ha jild genôch. En in polsstok.'], ['T', 'Een wat?'], ['durk', 'Baas… wy?'], ['jelle', 'Jim fytse mar, jonges.']],
+          lines: [['jelle', 'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.'], ['A', 'Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.'],
+            ['jelle', 'Dan koop ik nieuw vet. Jild genôch. En een polsstok.'], ['T', 'Een wat?'], ['durk', 'Baas… en wij?'], ['jelle', 'Jim fytse mar, jonges.']],
           landing: 'Moai! Oant sjen op Gronings Ontzet!',
         },
       ],
@@ -333,13 +333,13 @@ function buildDefs(world) {
         {
           kind: 'scene', label: 'Aan boord', target: { skutsje: true },
           kicker: 'Het skûtsje', big: 'Chocola?!',
-          lines: [['durk', 'Douwe! Der stiet ien op ús dek!'], ['T', 'Moi. Ik kom voor de Eierbal.'], ['A', 'En ik kom voor hem. Opzij, jongens.'], ['douwe', 'Plons?'], ['durk', 'Plons.'],
+          lines: [['durk', 'Douwe! Er staat iemand op ons dek!'], ['T', 'Moi. Ik kom voor de Eierbal.'], ['A', 'En ik kom voor hem. Opzij, jongens.'], ['douwe', 'Plons?'], ['durk', 'Plons.'],
             ['A', 'Hier is hij! De Gouden Eierbal!'], ['T', 'Hij is… zacht. En hij smelt.'], ['A', 'Chocola. Met goudpapier eromheen.']],
         },
         { kind: 'goto', target: { shore: true, label: 'De kade' }, mode: 'foot', radius: 6, label: 'Spring aan wal, achter Jelle aan', say: 'Jelle springt van boord! Aan wal, achter hem aan.' },
         {
           kind: 'vault', label: 'Jelle', target: { shore: true },
-          lines: [['jelle', 'Moai, Grinzers. Jimme hawwe myn sûkelade fûn.'], ['T', 'Waar is de echte, Jelle?'], ['jelle', 'Dy giet de loft yn. Fan\'e jûn, mei in ballon.'],
+          lines: [['jelle', 'Moai, Grinzers. Jullie hebben mijn sûkelade gevonden.'], ['T', 'Waar is de echte, Jelle?'], ['jelle', 'Die gaat de lucht in. Fan\'e jûn, met een ballon.'],
             ['A', 'Een ballon? Jij bent niet goed wijs.'], ['jelle', 'Ik bin Fries. Wy binne altyd goed wiis.']],
           landing: 'Oant fan\'e jûn, Grinzers!',
         },
@@ -433,7 +433,7 @@ function buildDefs(world) {
         {
           kind: 'scene', label: 'Het podium', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' },
           kicker: 'Gronings Ontzet', big: 'Hij grist de Eierbal!',
-          lines: [['jelle', 'Moai, Grinzers! Tank foar de Eierbal. Dy nim ik mar mei.'], ['A', 'Hé! Die stond op het podium!'], ['jelle', 'No stiet er yn myn trekker. Oant sjen!'], ['T', 'Anita, de auto! Achter hem aan!']],
+          lines: [['jelle', 'Moai, Grinzers! Bedankt voor de Eierbal. Die neem ik mar mei.'], ['A', 'Hé! Die stond op het podium!'], ['jelle', 'Nu staat hij in mijn trekker. Oant sjen!'], ['T', 'Anita, de auto! Achter hem aan!']],
         },
         { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!' },
         {
@@ -447,7 +447,7 @@ function buildDefs(world) {
         { kind: 'goto', target: { bank: [-700, -550], label: 'Het Reitdiep' }, mode: 'any', radius: 9, calm: true, label: 'Achter Jelle aan, naar het Reitdiep', say: 'Hij rent naar het Reitdiep, met zijn polsstok. Erachteraan!' },
         {
           kind: 'vault', fail: true, label: 'Jelle', target: { bank: [-700, -550] },
-          lines: [['jelle', 'Jimme krije my noait! Ik bin de bêste fierljepper fan Fryslân!'], ['A', 'Het Reitdiep is te breed, Jelle!'], ['jelle', 'Neat is te breed foar Jelle Terpstra!']],
+          lines: [['jelle', 'Jullie krijgen me nooit! Ik ben de beste fierljepper fan Fryslân!'], ['A', 'Het Reitdiep is te breed, Jelle!'], ['jelle', 'Neat is te breed foar Jelle Terpstra!']],
           landing: 'Nee… nee… NEE!',
         },
         {

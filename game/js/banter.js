@@ -6,6 +6,7 @@
 // talk off with a short reaction; an interrupted nabespreking comes back once.
 // Story progress is only read (story.js, missions.js), never written.
 
+import { setDualText } from './subtitles.js';
 import { BANTER, REACTIONS, SPEAKERS } from './banterlines.js';
 import { STEPS, missionIndexOf } from './storyarc.js';
 import { currentStep, getStorySave } from './story.js';
@@ -349,7 +350,7 @@ function showSub(line) {
     const sp = el.querySelector('.bt-speaker');
     sp.textContent = SPEAKERS[line[0]] + ':';
     sp.style.color = COLORS[line[0]] || '#fff';
-    el.querySelector('.bt-line').textContent = line[1];
+    setDualText(el.querySelector('.bt-line'), line[1]);
   }
   el.style.opacity = line && !st.paused ? '1' : '0';
 }

@@ -29,9 +29,10 @@ const COOK_LINES = [
   'Bestelling staat klaar. Trap maar hard, de wind staat verkeerd.',
   'Voorzichtig, de saus lekt als je over de keien gaat.',
   'Op tijd graag, deze klant geeft altijd één ster.',
+  'Nait soezen, moar deurbroezen! Hij mout waarm aankomen.',
 ];
 const WARM_LINES = ['Moi! Nog warm ook. Hou dij goud!', 'Precies op tijd, top!', 'Nog warm? In Grunn is dat een wonder.', 'Joa, lekker. Moi!'];
-const LUKE_LINES = ['Lauw... Nou ja, eten is eten.', 'Hij is wel een beetje slap geworden, hè.', 'Duurde lang. Stond de brug open?'];
+const LUKE_LINES = ['Lauw... Nou ja, eten is eten.', 'Lauw. Nou ja, wat mout, dat mout.', 'Hij is wel een beetje slap geworden, hè.', 'Duurde lang. Stond de brug open?'];
 const CUSTOMERS = [
   'Student met een hoodie van de roeivereniging',
   'Oma Geertje van driehoog',
