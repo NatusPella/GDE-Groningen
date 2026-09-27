@@ -1,6 +1,6 @@
 import { spawnPed, walkPed, holdPed, freePed, pedAlive, say as pedSay } from './sidejobkit.js';
 import { recordStat, unlockAchievement } from './achievements.js';
-import { Vehicle } from './vehicle.js';
+import { Vehicle, pushCircleOutOfVehicle } from './vehicle.js';
 import { isInWater } from './util.js';
 import { FJORD_BUBBLES, FJORD_DUO } from './pg_lines.js';
 import { finish, say, esc } from './postgame.js';
@@ -127,22 +127,97 @@ function duo(run, kind) {
   if (list) say(run, who === 'T' ? 'Tammo' : 'Anita', pick(list), true);
 }
 
-// hatch side (+z of the truck = its right) and the queue along it
-function hatchSlots(v) {
+// On a drivable carriageway (not pavement, square or cycle path).
+function onRoad(map, x, y, margin = 0.4) {
+  const rp = map.nearestRoadPoint(x, y, 30, true);
+  return !!rp && Math.hypot(rp.x - x, rp.y - y) < (rp.road.width || 6) / 2 + margin;
+}
+const walkable = (map, x, y) => {
+  if (isInWater(map, x, y)) return false;
+  const [ex, ey] = map.escapeBuilding(x, y, 0.4);
+  return Math.hypot(ex - x, ey - y) < 0.2;
+};
+
+// The hatch goes on whichever side faces the pavement: right (+1) unless the
+// left is the kerb side and the right is road.
+function pickHatchSide(map, v) {
+  const c = Math.cos(v.angle), s = Math.sin(v.angle), off = v.model.wid / 2 + 1.4;
+  const score = (side) => {
+    const x = v.x - s * off * side, y = v.y + c * off * side;
+    return (walkable(map, x, y) ? 2 : 0) + (onRoad(map, x, y, 0) ? 0 : 1);
+  };
+  return score(-1) > score(1) ? -1 : 1;
+}
+
+// Truck-local frame: u along the heading, l towards the hatch.
+function toLocal(v, side, x, y) {
+  const c = Math.cos(v.angle), s = Math.sin(v.angle), dx = x - v.x, dy = y - v.y;
+  return { u: dx * c + dy * s, l: (-dx * s + dy * c) * side };
+}
+function toWorld(v, side, u, l) {
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
-  const rx = -s, ry = c;
-  const off = v.model.wid / 2 + 1.1;
+  return { x: v.x + c * u - s * l * side, y: v.y + s * u + c * l * side };
+}
+
+// How far out from the hatch the pavement starts (the truck may stand a
+// metre or two off the kerb).
+function kerbOffset(map, v, side) {
+  const base = v.model.wid / 2 + 1.1;
+  for (let l = base; l <= base + 4; l += 0.4) {
+    const p = toWorld(v, side, 0, l);
+    if (!walkable(map, p.x, p.y)) break;
+    if (!onRoad(map, p.x, p.y, 0.3)) return l;
+  }
+  return base;
+}
+
+// the queue on the pavement along the hatch, first one at the window
+function hatchSlots(map, v, side, off) {
   const out = [];
-  for (let k = 0; k < QUEUE_MAX; k++) out.push({ x: v.x + rx * (off + k * 0.2) - c * (k * 1.1 - 0.2), y: v.y + ry * (off + k * 0.2) - s * (k * 1.1 - 0.2) });
-  return { slots: out, fx: v.x + rx * (v.model.wid / 2), fy: v.y + ry * (v.model.wid / 2) };
+  for (let k = 0; k < QUEUE_MAX + 1; k++) {
+    const p = toWorld(v, side, 0.2 - k * 1.1, off + k * 0.2);
+    [p.x, p.y] = map.escapeBuilding(p.x, p.y, 0.35);
+    out.push(p);
+  }
+  const f = toWorld(v, side, 0, v.model.wid / 2);
+  return { slots: out, fx: f.x, fy: f.y };
+}
+
+// Steer around the truck's footprint: a path that would cut through it goes
+// via the nearest hatch-side corner first.
+function aroundTruck(v, side, px, py, tx, ty) {
+  const hl = v.model.len / 2 + 0.7, hw = v.model.wid / 2 + 0.7;
+  const a = toLocal(v, side, px, py), b = toLocal(v, side, tx, ty);
+  let t0 = 0, t1 = 1;
+  for (const [p0, dp, lim] of [[a.u, b.u - a.u, hl], [a.l, b.l - a.l, hw]]) {
+    if (Math.abs(dp) < 1e-6) { if (Math.abs(p0) > lim) return null; continue; }
+    let e0 = (-lim - p0) / dp, e1 = (lim - p0) / dp;
+    if (e0 > e1) [e0, e1] = [e1, e0];
+    t0 = Math.max(t0, e0); t1 = Math.min(t1, e1);
+    if (t0 > t1) return null;
+  }
+  const eu = (a.u >= 0 ? 1 : -1) * (hl + 0.4);
+  // alongside the far side: first out past the nearest end, then round to the hatch side
+  return Math.abs(a.u) <= hl ? toWorld(v, side, eu, a.l) : toWorld(v, side, eu, hw + 0.4);
+}
+
+function walkCustomer(w, d, q, tx, ty, speed, dt, reach) {
+  const v = d.truck, ped = q.ped;
+  const via = aroundTruck(v, d.side, ped.x, ped.y, tx, ty);
+  const done = via ? (walkPed(w, ped, via.x, via.y, speed, dt, 0.3), false) : walkPed(w, ped, tx, ty, speed, dt, reach);
+  const push = pushCircleOutOfVehicle(ped.x, ped.y, (ped.radius || 0.3) + 0.15, v);
+  if (push) { ped.x = push.x; ped.y = push.y; if (ped.guard) { ped.guard.x = ped.x; ped.guard.y = ped.y; } }
+  return done;
 }
 
 function spawnCustomer(run) {
   const w = run.world, d = run.data, v = d.truck;
-  for (let t = 0; t < 12; t++) {
-    const a = Math.random() * Math.PI * 2, r = 12 + Math.random() * 8;
+  for (let t = 0; t < 30; t++) {
+    const a = Math.random() * Math.PI * 2, r = 10 + Math.random() * 10;
     const x = v.x + Math.cos(a) * r, y = v.y + Math.sin(a) * r;
-    if (isInWater(w.map, x, y)) continue;
+    // first tries only on the hatch side, never on the carriageway
+    if (t < 18 && toLocal(v, d.side, x, y).l < 1) continue;
+    if (!walkable(w.map, x, y) || onRoad(w.map, x, y)) continue;
     const ped = spawnPed(w, x, y, a + Math.PI);
     const pat = PATIENCE[0] + Math.random() * (PATIENCE[1] - PATIENCE[0]);
     d.queue.push({ ped, order: makeOrder(d.level), patience: pat * (has('pan') ? 1.25 : 1), max: pat * (has('pan') ? 1.25 : 1), greeted: false, arrived: false });
@@ -185,10 +260,14 @@ export const FJORD = {
     if (!isTruck(v)) return 'Kom met de Fjord Frituur';
     const b = run.spot.data.spot.busy(w);
     Object.assign(run.data, {
-      truck: v, x0: v.x, y0: v.y, level: b.level * (has('bel') ? 1.25 : 1), label: b.label, where: run.spot.data.spot.name,
+      truck: v, x0: v.x, y0: v.y, side: pickHatchSide(w.map, v), throttleT: 0, level: b.level * (has('bel') ? 1.25 : 1), label: b.label, where: run.spot.data.spot.name,
       left: SHIFT_S + (has('neon') ? 20 : 0), spawnT: 1.2, queue: [], tray: [], served: 0, wrong: 0, lost: 0, earned: 0, flash: null, rushSaid: false,
     });
     v.speed = 0;
+    v.driftX = 0; v.driftY = 0;
+    v.shiftParked = true;
+    run.data.kerbL = kerbOffset(w.map, v, run.data.side);
+    w.yieldWalkers = [];
     duo(run, 'open');
     return true;
   },
@@ -200,13 +279,18 @@ export const FJORD = {
     }
     if (input.wasPressed('backspace') || input.wasPressed('0')) { input.consume('backspace'); input.consume('0'); d.tray = []; }
     if (input.wasPressed(' ') || input.wasPressed('enter')) { input.consume(' '); input.consume('enter'); d.serve = true; }
+    d.wantsDrive = !d.ended && input.axis()[1] < 0;
   },
   update(run, dt) {
     const w = run.world, d = run.data, v = d.truck;
     const moved = Math.hypot(v.x - d.x0, v.y - d.y0);
-    if (w.player.inVehicle !== v || moved > 4 || v.wrecked) { end(run, moved > 4 ? 'Je reed weg: luik dicht.' : 'Luik dicht.'); return; }
+    if (w.player.inVehicle !== v || moved > 4 || v.wrecked) { end(run, moved > 4 ? 'De truck schoof weg: luik dicht.' : 'Luik dicht.'); return; }
+    // holding the throttle closes up: the truck stays on its brakes until the queue has stepped aside
+    d.throttleT = d.wantsDrive ? d.throttleT + dt : 0;
+    if (d.throttleT > 0.6) { end(run, 'Luik dicht: jullie rijden door.'); return; }
+    if (d.wantsDrive && d.throttleT < dt * 1.5) w.addMessage('Gas vasthouden: luik dicht en wegrijden', 1.5, { key: 'fjord-drive' });
     d.left -= dt;
-    const { slots, fx, fy } = hatchSlots(v);
+    const { slots, fx, fy } = hatchSlots(w.map, v, d.side, d.kerbL);
     // new customers
     d.spawnT -= dt;
     if (d.left > 6 && d.spawnT <= 0 && d.queue.length < QUEUE_MAX + (has('neon') ? 1 : 0)) {
@@ -219,8 +303,8 @@ export const FJORD = {
       const q = d.queue[i];
       if (!pedAlive(w, q.ped)) { d.queue.splice(i, 1); continue; }
       const slot = slots[Math.min(i, slots.length - 1)];
-      if (!q.arrived) q.arrived = walkPed(w, q.ped, slot.x, slot.y, 1.6, dt, 0.35);
-      else { walkPed(w, q.ped, slot.x, slot.y, 1.2, dt, 0.35); holdPed(q.ped, fx, fy); }
+      if (!q.arrived) q.arrived = walkCustomer(w, d, q, slot.x, slot.y, 1.6, dt, 0.35);
+      else { walkCustomer(w, d, q, slot.x, slot.y, 1.2, dt, 0.35); holdPed(q.ped, fx, fy); }
       if (q.arrived && i === 0 && !q.greeted) { q.greeted = true; pedSay(w, q.ped, pick(FJORD_BUBBLES.greet), 3); }
       if (q.arrived) q.patience -= dt * (i === 0 ? 1 : 0.45);
       if (q.patience <= 0) {
@@ -252,14 +336,18 @@ export const FJORD = {
         d.tray = [];
       }
     }
+    w.yieldWalkers = d.queue.map((q) => q.ped);
     if (d.flash && (d.flash.t -= dt) <= 0) d.flash = null;
     render(run);
     if (d.left <= 0) end(run, 'Einde dienst.');
   },
   hud: () => null,
   stop(run) {
-    // whoever still queues goes about their business again
-    for (const q of run.data.queue || []) leave(run, q, null);
+    const d = run.data;
+    // whoever still queues goes about their business again (on the pavement, clear of the wheels)
+    for (const q of d.queue || []) leave(run, q, null);
+    if (d.truck) d.truck.shiftParked = false;
+    run.world.yieldWalkers = null;
   },
   debugVehicle(world, s) {
     // dev/test only: put the player in a Fjord Frituur at the spot

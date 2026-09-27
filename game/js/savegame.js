@@ -1,9 +1,10 @@
-import { getMissionProgress, setMissionProgress } from './missions.js';
+import { getMissionProgress, setMissionProgress, getMissionDefs } from './missions.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { WEAPONS } from './combat.js';
 import { isCinematicActive, skipAllCinematics } from './cinematics.js';
 import { getShopSave, applyShopSave } from './shops.js';
-import { getAchievementSaveData, applyAchievementSaveData } from './achievements.js';
+import { getAchievementSaveData, applyAchievementSaveData, getChallengeRecord, EIERBAL_TOTAL } from './achievements.js';
+import { PG_PRIZE, EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
 import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 import { getStorySave, applyStorySave } from './story.js';
@@ -29,9 +30,36 @@ let lastMissionsDone = 0;
 let missionSaveIn = -1;
 let toastEl = null;
 let toastTimer = 0;
+let restoredMoney = -1;
 
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const MIN_RESTORE = 1500;
+const START_MONEY = 250;
+const JELLE_CHALLENGES = ['bruggen', 'fierljep', 'skutsje'];
+
+// A save whose money got lost (the NaN-money bug stored null): its last good
+// amount (moneyBackup) when there is one, else an estimate from what the
+// progress paid out minus what was spent in shops and garages. Owned
+// vehicles are not subtracted; at least MIN_RESTORE.
+export function estimateLostMoney(d) {
+  if (Number.isFinite(d.moneyBackup) && d.moneyBackup >= 0) return Math.floor(d.moneyBackup);
+  let earned = START_MONEY;
+  const defs = getMissionDefs() || [];
+  const done = d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : [];
+  for (const i of done) earned += num(defs[i] && defs[i].reward, 0);
+  const jobs = d.bijbaan && d.bijbaan.jobs;
+  if (jobs && typeof jobs === 'object') for (const r of Object.values(jobs)) earned += Math.max(0, num(r && r.earned, 0));
+  earned += Math.max(0, num(d.postgame && d.postgame.fjord && d.postgame.fjord.earned, 0));
+  for (const id of JELLE_CHALLENGES) {
+    const rec = getChallengeRecord(id);
+    earned += rec ? num(PG_PRIZE[rec.medal | 0], 0) : 0;
+  }
+  const eggs = d.prestaties && Array.isArray(d.prestaties.eierballen) ? d.prestaties.eierballen.length : 0;
+  earned += eggs * EIERBAL_FIND_PAY + (eggs >= EIERBAL_TOTAL ? EIERBAL_ALL_BONUS : 0);
+  const spent = Math.max(0, num(d.stats && d.stats.spent, 0));
+  return Math.max(MIN_RESTORE, Math.round((earned - spent) / 10) * 10);
+}
 
 export function readSave() {
   try {
@@ -66,6 +94,7 @@ function serialize(w) {
     v: VERSION,
     savedAt: Date.now(),
     money: Math.max(0, Math.floor(num(w.money, num(w._goodMoney, 0)))),
+    moneyBackup: Math.max(0, Math.floor(num(w._goodMoney, num(w.money, 0)))),
     health: clamp(num(w.health, 100), 1, 100),
     armor: clamp(num(w.armor, 0), 0, 100),
     weapon: w.weapon,
@@ -164,8 +193,9 @@ export function applySave(w, d) {
     // a running scene (train trip, intro) would otherwise finish against the loaded state
     skipAllCinematics();
     if (w.pigeonMode && w.pigeonActions) w.pigeonActions.stop();
-    // saves from the NaN-money bug stored null: give a fair amount back
-    w.money = Math.max(0, num(d.money, d.money === null ? 1500 : 0));
+    const lost = !(typeof d.money === 'number' && Number.isFinite(d.money)) && ('money' in d);
+    w.money = lost ? estimateLostMoney(d) : Math.max(0, num(d.money, 0));
+    w._goodMoney = w.money;
     w.health = clamp(num(d.health, 100), 1, 100);
     w.armor = clamp(num(d.armor, 0), 0, 100);
     const ammo = {};
@@ -195,6 +225,8 @@ export function applySave(w, d) {
     applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
+    restoredMoney = lost ? w.money : -1;
+    if (lost) saveSoon(3);
     lastMissionsDone = w.stats.missionsDone;
     dirtyIn = -1;
     lastSig = null;
@@ -237,6 +269,10 @@ export function updateSaveGame(dt, w) {
   world = w;
   if (toastTimer > 0 && (toastTimer -= dt) <= 0) toastEl.classList.remove('visible');
   if (!document.body.classList.contains('game-started') || w.paused) return;
+  if (restoredMoney >= 0) {
+    w.addMessage(`We hebben je geld hersteld: €${restoredMoney.toLocaleString('nl-NL')}`, 6, { key: 'money-restored' });
+    restoredMoney = -1;
+  }
   const busy = isCinematicActive() || w.pendingRespawn || w.health <= 0;
 
   if (w.stats.missionsDone > lastMissionsDone) {

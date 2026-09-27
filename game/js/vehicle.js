@@ -1362,7 +1362,10 @@ function rollDistraction(v, world) {
 function walkerAheadLimit(v, path, world, decel) {
   let vmax = Infinity;
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-  for (const w of [world.player, world.companion]) {
+  const extra = world.yieldWalkers;
+  const n = extra ? extra.length + 2 : 2;
+  for (let k = 0; k < n; k++) {
+    const w = k === 0 ? world.player : k === 1 ? world.companion : extra[k - 2];
     if (!w || w.inVehicle || w.state === 'dead' || w.swimming) continue;
     const dx = w.x - v.x, dy = w.y - v.y;
     const fwd = dx * fx + dy * fy;
