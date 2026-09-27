@@ -17,6 +17,8 @@ import { streamTreeProps } from './treeprops.js';
 import { cellPropSpots, CLUTTER_CELL } from './cityprops.js';
 import { Vehicle, resolveVehicleBuildingCollision, resolveBoomCollisions } from './vehicle.js';
 import { createRace, updateRace, disposeRace } from './racers.js';
+import { resolveWalker } from './collision.js';
+import { railLiftZ } from './elevation.js';
 
 const STEP = 1;
 // probes cover the lanes up to this far inside the carriageway edge, and
@@ -254,4 +256,72 @@ export async function driveRingLap(world) {
     p.x = keep.x; p.y = keep.y;
     world.uiPaused = keep.paused;
   }
+}
+
+// --- rail lifts ------------------------------------------------------------------
+
+// Walk, drive and cycle up every rail lift (the track climbing onto an
+// embankment or viaduct, map.railLifts) along the rails, from the flat to the
+// top and on over it: no step in the surface, nothing solid across the track.
+// One entry per problem: { lift, how, what, x, y, z }.
+export function probeRailLifts(world) {
+  const map = world.map, lifts = map.railLifts || [];
+  const out = [];
+  const car = new Vehicle(0, 0, 0, { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 40, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' });
+  car.driver = 'player';
+  const bike = new Vehicle(0, 0, 0, { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6, color: '#1c1c1c' });
+  bike.isBike = true;
+  bike.driver = 'player';
+  lifts.forEach((L, li) => {
+    const reach = L.plateau + L.ramp + 25;
+    for (const rail of map.rails || []) {
+      const P = rail.pts || rail;
+      // the stretch of this rail within reach of the lift, sampled every 0.5 m
+      const pts = [];
+      for (let i = 0; i < P.length - 1 && !(pts.length && pts.done); i++) {
+        const [ax, ay] = P[i], [bx, by] = P[i + 1];
+        const Ls = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.ceil(Ls / 0.5));
+        for (let k = 0; k < n; k++) {
+          const x = ax + (bx - ax) * k / n, y = ay + (by - ay) * k / n;
+          if (Math.hypot(x - L.x, y - L.y) < reach) pts.push([x, y]);
+          else if (pts.length) { pts.done = true; break; }
+        }
+      }
+      if (pts.length < 20 || !pts.some(([x, y]) => railLiftZ(lifts, x, y) > L.h * 0.9)) continue;
+      const report = (how, what, x, y, z) => {
+        if (!out.some((o) => o.lift === li && o.how === how)) out.push({ lift: li, how, what, x: Math.round(x), y: Math.round(y), z: Math.round(z * 10) / 10 });
+      };
+      for (const dir of [1, -1]) {
+        const seq = dir > 0 ? pts : pts.slice().reverse();
+        // on foot
+        // (a stretch may begin half way up, where the rail way before it ends)
+        let z = map.groundHeightAt(seq[0][0], seq[0][1], railLiftZ(lifts, seq[0][0], seq[0][1])), px = seq[0][0], py = seq[0][1];
+        for (let k = 1; k < seq.length; k++) {
+          const [tx, ty] = seq[k];
+          const nz = map.groundHeightAt(tx, ty, z);
+          if (Math.abs(nz - z) > 0.45) { report('lopen', 'trede in het talud', tx, ty, nz); break; }
+          const [rx, ry] = resolveWalker(tx, ty, 0.35, map, (tx - px) * 10, (ty - py) * 10, { kick: false }, nz);
+          if (Math.hypot(rx - tx, ry - ty) > 0.25) { report('lopen', 'muur op het spoor', tx, ty, nz); break; }
+          z = nz; px = tx; py = ty;
+        }
+        // a car and a bike: the player's vehicle collision (footprints, walls, props)
+        for (const [v, how] of [[car, 'rijden'], [bike, 'fietsen']]) {
+          v.x = seq[0][0]; v.y = seq[0][1];
+          v.z = map.groundHeightAt(v.x, v.y, railLiftZ(lifts, v.x, v.y));
+          for (let k = 2; k < seq.length; k += 2) {
+            const [tx, ty] = seq[k], [qx, qy] = seq[k - 2];
+            v.angle = Math.atan2(ty - qy, tx - qx);
+            v.x = tx; v.y = ty; v.speed = 0.4; v.driftX = v.driftY = v.yawVel = 0;
+            v.z = map.groundHeightAt(tx, ty, v.z);
+            v.airborne = false; v.vz = 0;
+            resolveVehicleBuildingCollision(v, map, 1 / 60);
+            v.airborne = false; v.vz = 0;
+            resolvePropCollisions([v], world);
+            if (Math.hypot(v.x - tx, v.y - ty) > 0.3) { report(how, 'botst op het spoor', tx, ty, v.z); break; }
+          }
+        }
+      }
+    }
+  });
+  return out;
 }

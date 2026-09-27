@@ -102,7 +102,7 @@ export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z 
     if (w) [x, y] = w;
     if (z > 4 || z < -3.5) return [x, y];
   }
-  [x, y] = resolveWalkerProps(x, y, radius, vx, vy, opts, hop);
+  [x, y] = resolveWalkerProps(x, y, radius, vx, vy, opts, hop, z);
   [x, y] = resolveRailings(x, y, radius, map, hop);
   // moored houseboats along the quays are solid too
   const hb = pushOutOfWaterObstacles(map, x, y, radius);

@@ -15,7 +15,7 @@ import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave } from './savegame.js';
 import { getOwnedEntries } from './shops.js';
 import { validateSpots } from './spotcheck.js';
-import { probeRingSolids, driveRingLap } from './ringcheck.js';
+import { probeRingSolids, driveRingLap, probeRailLifts } from './ringcheck.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -83,6 +83,8 @@ export async function runStoryTest(world) {
     // nothing solid across the ring race lap and the ring roads, and a lap really drives
     const solids = probeRingSolids(world);
     check('ring roads free of solid obstacles', !solids.length, solids.slice(0, 40).map((h) => `${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
+    const railLifts = probeRailLifts(world);
+    check('rail lifts can be walked, driven and cycled up', !railLifts.length, railLifts.map((h) => `lift ${h.lift} ${h.how}: ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
     const lap = await driveRingLap(world);
     check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));

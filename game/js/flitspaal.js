@@ -56,12 +56,14 @@ export function initFlitspaal(world) {
   // other kerb, a step further out, or no camera there
   const map = world.map;
   const onLanes = (x, y) => map.roadsNear(x, y, 12).some((r) => {
-    if (r.cat === 'foot' || r.cat === 'cycle' || r.bridge || r.z) return false;
+    if (r.cat === 'foot' || r.cat === 'cycle' || r.bridge) return false;
     const hw = (r.width || 6) / 2 + 0.4;
     for (let i = 0; i < r.pts.length - 1; i++) {
       const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
       const ex = bx - ax, ey = by - ay, L2 = ex * ex + ey * ey || 1;
       const t = Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / L2));
+      // (a ring road's lanes up on a deck or down in a cutting are not in the way)
+      if (r.z && Math.abs(r.z[i] + (r.z[i + 1] - r.z[i]) * t) > 1) continue;
       if ((ax + ex * t - x) ** 2 + (ay + ey * t - y) ** 2 < hw * hw) return true;
     }
     return false;
