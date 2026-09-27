@@ -179,7 +179,7 @@ function newDay() {
   F.day++;
   F.sunny = Math.random() < 0.6;
   if (F.event && F.eventDay < F.day) endEvent();
-  if (!F.event && F.eventDay < F.day - 1 && Math.random() < 0.14) startEvent(pick(Object.keys(EVENT_DAYS)), 20);
+  if (!F.event && F.eventDay < F.day - 3 && Math.random() < 0.07) startEvent(pick(Object.keys(EVENT_DAYS)), 20);
   F.peerdNews = !!F.peerd;
 }
 
