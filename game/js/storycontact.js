@@ -14,7 +14,8 @@
 // scripts/tts_lines*.{mjs,py}; voicelines_collect.mjs lists these lines.
 
 import { lineVoiceFor } from './linevoice.js';
-import { playBanterVoice, stopBanterVoice, pauseBanterVoice, playPhoneRing, playClueSting } from './audio.js';
+import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice, pauseContactVoice as pauseBanterVoice, holdContactChannel, playPhoneRing, playClueSting } from './audio.js';
+import { isCallActive } from './phonefeed.js';
 import { isCinematicActive } from './cinematics.js';
 import { readingSeconds } from './world.js';
 import { PORTRAITS } from './storycast.js';
@@ -245,7 +246,7 @@ function logHistory(c) {
 }
 
 function canPlay(w) {
-  return document.body.classList.contains('game-started') && !isCinematicActive() && !w.pigeonMode && !w.heliRun && !w.pendingRespawn && !w.paused;
+  return document.body.classList.contains('game-started') && !isCinematicActive() && !w.pigeonMode && !w.heliRun && !w.pendingRespawn && !w.paused && !isCallActive();
 }
 
 function start(c) {
@@ -282,6 +283,7 @@ function finish() {
   if (!cur) return;
   const c = cur.c;
   cur = null;
+  holdContactChannel(false);
   if (world) world.storyContact = false;
   if (root) root.classList.remove('show', 'ring');
   if (cardEl) cardEl.classList.remove('show');
@@ -295,6 +297,8 @@ export function updateStoryContact(dt, w) {
     if (!queue.length || !canPlay(w)) { quietT = 0; return; }
     if ((quietT += dt) < QUIET_S) return;
     quietT = 0;
+    // one talking channel (speech.js): the contact holds it like a call
+    if (!holdContactChannel(true)) return;
     start(queue.shift());
     return;
   }

@@ -1,6 +1,5 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { saveGame } from './savegame.js';
-import { buildVehicleMesh } from './models3d_vehicles.js';
+import { createVehiclePreview } from './vehiclepreview.js';
 import { shopIconUrl } from './shops.js';
 
 let root = null;
@@ -8,6 +7,13 @@ let world = null;
 let shop = null;
 let open = false;
 let bought = false;
+// selecting (click, arrows) only shows an item; buying is the detail bar's
+// button (or Enter on it), expensive items ask once more
+let sel = null;
+let armed = null;
+const CONFIRM_FROM = 1000;
+const CONFIRM_SHARE = 0.5;
+const ARM_TIME = 4000;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -65,7 +71,7 @@ const SHOP_CSS = `
   #shop-menu .sm-price small { font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.55); }
   #shop-menu .sm-price small.no { color: #d98a3f; }
   #shop-menu .sm-chip { font-size: 13px; letter-spacing: 1px; padding: 1px 6px; border-radius: 3px; border: 1px solid #3fc97a; color: #3fc97a; }
-  #shop-menu .sm-status { min-height: 26px; line-height: 26px; padding: 6px 18px; font-size: 20px; letter-spacing: 1px; text-align: center; color: #3fc97a; border-top: 1px solid rgba(63,201,122,0.2); }
+  #shop-menu .sm-status { min-height: 26px; line-height: 1.15; padding: 6px 18px; font-size: 20px; letter-spacing: 1px; text-align: center; color: #3fc97a; border-top: 1px solid rgba(63,201,122,0.2); }
   #shop-menu .sm-status[data-tone="lose"] { color: rgba(240,237,228,0.7); }
   #shop-menu .sm-status[data-tone="no"] { color: #d98a3f; }
   #shop-menu .sm-status[data-tone="win"] { color: #e8c93a; }
@@ -82,6 +88,19 @@ const SHOP_CSS = `
     background: radial-gradient(ellipse at 50% 70%, rgba(63,201,122,0.22) 0%, rgba(12,20,14,0) 70%); }
   #shop-menu .sm-preview.on { display: block; }
   @media (max-width: 520px) { #shop-menu .sm-preview { height: 120px; } }
+  #shop-menu .sm-item.sel { border-color: rgba(63,201,122,0.85); border-left-color: var(--shop); background: rgba(30,158,86,0.28); }
+  #shop-menu .sm-detail { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 14px; padding: 10px 18px; border-top: 1px solid rgba(63,201,122,0.25); background: rgba(23,48,31,0.55); }
+  #shop-menu .sm-detail[hidden] { display: none; }
+  #shop-menu .sm-dtxt { min-width: 0; display: flex; flex-direction: column; }
+  #shop-menu .sm-dtxt b { font-weight: normal; font-size: 24px; letter-spacing: 1px; line-height: 1.05; }
+  #shop-menu .sm-dtxt small { font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); line-height: 1.3; }
+  #shop-menu .sm-buy { min-width: 190px; padding: 9px 18px 7px; border: 0; border-bottom: 3px solid #0f5c30; border-radius: 4px; cursor: pointer;
+    font: 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #0c140e; background: #1e9e56; white-space: nowrap; }
+  #shop-menu .sm-buy:hover, #shop-menu .sm-buy:focus-visible, #shop-menu .sm-buy:focus { outline: none; background: #3fc97a; box-shadow: 0 0 0 2px rgba(240,237,228,0.8); }
+  #shop-menu .sm-buy.armed { background: #e8c93a; border-bottom-color: #9b8420; animation: sm-pop 0.28s ease-out; }
+  #shop-menu .sm-buy[aria-disabled="true"] { cursor: default; color: #f0ede4; background: #4a4f47; border-bottom-color: #2a2e28; }
+  #shop-menu .sm-buy[aria-disabled="true"]:focus { background: #5a6056; }
+  @media (max-width: 520px) { #shop-menu .sm-detail { grid-template-columns: 1fr; } #shop-menu .sm-buy { width: 100%; } }
   @media (max-width: 520px) { #shop-menu h1 { font-size: 26px; } #shop-menu .sm-tag { display: none; } #shop-menu .sm-item { grid-template-columns: 30px 1fr auto; gap: 8px; } #shop-menu .sm-foot span { display: none; } }
   @media (prefers-reduced-motion: reduce) { #shop-menu .sm-panel, #shop-menu .sm-status, #shop-menu .sm-money { animation: none !important; } }
 `;
@@ -106,8 +125,9 @@ export function initShopUi(w) {
       </header>
       <canvas class="sm-preview" aria-hidden="true"></canvas>
       <div class="sm-list"></div>
+      <div class="sm-detail" hidden><div class="sm-dtxt"><b></b><small></small></div><button type="button" class="sm-buy"></button></div>
       <div class="sm-status" role="status" aria-live="polite"></div>
-      <footer class="sm-foot"><span><b>↑ ↓</b> kiezen · <b>Enter</b> kopen</span><button type="button" class="sm-close">Esc · Weglopen</button></footer>
+      <footer class="sm-foot"><span><b>↑ ↓</b> bekijken · <b>Enter</b> naar de knop, nog eens <b>Enter</b> kopen</span><button type="button" class="sm-close">Esc · Weglopen</button></footer>
     </div>`;
   document.body.appendChild(root);
   root.addEventListener('click', onClick);
@@ -124,6 +144,8 @@ export function openShopMenu(w, s) {
   shop = s;
   open = true;
   bought = false;
+  sel = null;
+  armed = null;
   if (document.pointerLockElement) document.exitPointerLock();
   if (world.input) world.input.reset();
   const panel = root.querySelector('.sm-panel');
@@ -136,6 +158,8 @@ export function openShopMenu(w, s) {
   render();
   const first = root.querySelector('.sm-item:not([aria-disabled="true"])') || root.querySelector('.sm-item') || root.querySelector('.sm-close');
   if (first) first.focus({ preventScroll: true });
+  if (first && first.dataset.id) select(first.dataset.id);
+  else renderDetail();
 }
 
 export function closeShopMenu() {
@@ -189,6 +213,47 @@ function render() {
     const el = list.querySelector(`[data-id="${CSS.escape(focusedId)}"]`);
     if (el) el.focus({ preventScroll: true });
   }
+  markSelected();
+  renderDetail();
+}
+
+function markSelected() {
+  for (const el of root.querySelectorAll('.sm-item')) el.classList.toggle('sel', el.dataset.id === sel);
+}
+
+function needsConfirm(it) {
+  return !!it.confirmText || it.price >= CONFIRM_FROM || (it.price >= 300 && it.price > world.money * CONFIRM_SHARE);
+}
+
+function buyLabel(it) {
+  if (it.disabled) return it.disabled;
+  const verb = it.verb || (shop.type === 'tuning' ? 'Betalen' : 'Kopen voor');
+  if (armed && armed.id === it.id && Date.now() < armed.until) return `Zeker? Nog eens: €${it.price}`;
+  if (it.income > 0) return `Verkopen voor €${it.income}`;
+  if (it.price > 0) return `${verb} €${it.price}`;
+  return it.verb || 'Kiezen';
+}
+
+function renderDetail() {
+  const bar = root.querySelector('.sm-detail');
+  const it = sel && currentItems().find((x) => x.id === sel);
+  bar.hidden = !it;
+  if (!it) return;
+  bar.querySelector('b').textContent = it.label;
+  bar.querySelector('small').textContent = it.desc || '';
+  const btn = bar.querySelector('.sm-buy');
+  btn.textContent = buyLabel(it);
+  btn.setAttribute('aria-disabled', it.disabled ? 'true' : 'false');
+  btn.classList.toggle('armed', !!(armed && armed.id === it.id && Date.now() < armed.until));
+}
+
+function select(id) {
+  if (sel !== id) armed = null;
+  sel = id;
+  const it = currentItems().find((x) => x.id === id);
+  setPreview(it && it.preview ? it.preview : null);
+  markSelected();
+  renderDetail();
 }
 
 function setStatus(text, tone) {
@@ -207,6 +272,14 @@ function activate(id) {
     setStatus(it.disabled === 'Te weinig geld' ? 'Te weinig geld. Bijverdienen? Open Ubbo op je telefoon voor klusjes' : it.disabled, 'no');
     return;
   }
+  if (needsConfirm(it) && !(armed && armed.id === id && Date.now() < armed.until)) {
+    armed = { id, until: Date.now() + ARM_TIME };
+    setStatus(it.confirmText || `${it.label}: €${it.price}. Druk nog een keer om te kopen`, it.confirmText ? 'no' : 'win');
+    renderDetail();
+    setTimeout(() => { if (open && armed && armed.id === id && Date.now() >= armed.until) { armed = null; renderDetail(); } }, ARM_TIME + 50);
+    return;
+  }
+  armed = null;
   const before = world.money;
   const res = it.buy();
   if (res == null) {
@@ -227,88 +300,34 @@ function activate(id) {
 
 // --- rotating 3D preview of the focused vehicle (vehicle shops) -------------------
 
-const preview = { renderer: null, scene: null, cam: null, mesh: null, key: '', raf: 0, angle: 0.6 };
+let preview = null;
 
 function onFocus(e) {
   const btn = e.target.closest && e.target.closest('.sm-item');
   if (!btn || !shop) return;
-  const it = currentItems().find((x) => x.id === btn.dataset.id);
-  setPreview(it && it.preview ? it.preview : null);
-}
-
-function disposeMesh(m) {
-  m.traverse((o) => {
-    if (o.geometry && !(o.geometry.userData && o.geometry.userData.shared)) o.geometry.dispose();
-    const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
-    for (const mt of mats) if (!(mt.userData && mt.userData.shared)) mt.dispose();
-  });
+  select(btn.dataset.id);
 }
 
 function setPreview(spec) {
   const canvas = root && root.querySelector('.sm-preview');
   if (!canvas) return;
-  const key = spec ? JSON.stringify(spec) : '';
-  if (key === preview.key) return;
-  preview.key = key;
-  if (preview.mesh) { preview.scene.remove(preview.mesh); disposeMesh(preview.mesh); preview.mesh = null; }
-  if (!spec) {
-    canvas.classList.remove('on');
-    cancelAnimationFrame(preview.raf);
-    preview.raf = 0;
-    return;
-  }
-  canvas.classList.add('on');
-  if (!preview.renderer) {
-    try {
-      preview.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    } catch (err) {
-      canvas.classList.remove('on');
-      return;
-    }
-    preview.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    preview.scene = new THREE.Scene();
-    preview.scene.add(new THREE.HemisphereLight(0xf4f2ec, 0x2a3a2e, 1.6));
-    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
-    sun.position.set(4, 6, 3);
-    preview.scene.add(sun);
-    preview.cam = new THREE.PerspectiveCamera(32, 3, 0.1, 100);
-  }
-  const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', isBoat: spec.kind === 'boat', ...(spec.flags || {}), health: 100 };
-  preview.mesh = buildVehicleMesh(fake);
-  preview.scene.add(preview.mesh);
-  const len = spec.model.len || 4;
-  const dist = Math.max(3.2, len * 1.55);
-  preview.cam.position.set(0, len * 0.42 + 0.6, dist);
-  preview.cam.lookAt(0, spec.kind === 'car' ? 0.75 : 0.6, 0);
-  if (!preview.raf) {
-    const tick = () => {
-      if (!open || !preview.mesh) { preview.raf = 0; return; }
-      const w = canvas.clientWidth, h = canvas.clientHeight;
-      if (w && h && (canvas.width !== w || canvas.height !== h)) {
-        preview.renderer.setSize(w, h, false);
-        preview.cam.aspect = w / h;
-        preview.cam.updateProjectionMatrix();
-      }
-      preview.angle += 0.012;
-      preview.mesh.rotation.y = preview.angle;
-      preview.renderer.render(preview.scene, preview.cam);
-      preview.raf = requestAnimationFrame(tick);
-    };
-    preview.raf = requestAnimationFrame(tick);
-  }
+  if (!preview) preview = createVehiclePreview(canvas, { active: () => open });
+  preview.show(spec);
 }
 
 function onClick(e) {
   if (e.target === root) { closeShopMenu(); return; }
   if (e.target.closest('.sm-close')) { closeShopMenu(); return; }
+  if (e.target.closest('.sm-buy')) { if (sel) activate(sel); return; }
   const btn = e.target.closest('.sm-item');
-  if (btn) activate(btn.dataset.id);
+  if (btn) { btn.focus({ preventScroll: true }); select(btn.dataset.id); }
 }
 
 function move(dir) {
   const items = [...root.querySelectorAll('.sm-item')];
   if (!items.length) return;
-  const i = items.indexOf(document.activeElement);
+  const cur = document.activeElement && document.activeElement.classList.contains('sm-buy') ? items.find((el) => el.dataset.id === sel) : document.activeElement;
+  const i = items.indexOf(cur);
   const next = items[i < 0 ? 0 : (i + dir + items.length) % items.length];
   next.focus({ preventScroll: true });
   next.scrollIntoView({ block: 'nearest' });
@@ -329,6 +348,7 @@ function onKey(e) {
   else if (k === 'Enter' || k === ' ' || lower === 'e' || lower === 'f') {
     const a = document.activeElement;
     if (a && a.classList.contains('sm-close')) closeShopMenu();
-    else if (a && a.classList.contains('sm-item')) activate(a.dataset.id);
+    else if (a && a.classList.contains('sm-buy')) { if (sel) activate(sel); }
+    else if (a && a.classList.contains('sm-item')) { select(a.dataset.id); root.querySelector('.sm-buy').focus({ preventScroll: true }); }
   }
 }

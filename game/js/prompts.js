@@ -12,7 +12,7 @@ import { isPhoneOpen } from './phone.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { lineOfSight } from './pedestrians.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
-import { sideJobPrompt, sideJobSecondary, sideJobGoal } from './sidejobs.js';
+import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
@@ -20,12 +20,12 @@ import { postgamePrompt, postgameSecondary } from './postgame.js';
 
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
-const MASTER_USES = 8;
+const MASTER_USES = 6;
 const KISS_DIST = 1.8;
 const KISS_COOLDOWN = 3;
 const SECONDARY_INTERVAL = 0.15;
-const MAX_SECONDARY = 3;
-const MAX_ROWS = 4;
+const MAX_SECONDARY = 1;
+const MAX_ROWS = 5;
 
 const WEAPON_NAMES = { pistol: 'Pistool', uzi: 'Uzi', shotgun: 'Hagelgeweer' };
 const WEAPON_RANGE = { fists: 1.1, pistol: 26, uzi: 20, shotgun: 11 };
@@ -144,6 +144,14 @@ function hiddenNow(world) {
   return !!(cine && cine.classList.contains('active'));
 }
 
+// The key hints step aside for a HUD card, a phone call or a subtitle.
+function hintsQuiet() {
+  const b = document.body.classList;
+  if (b.contains('hud-card-on') || b.contains('hud-call-on')) return true;
+  const sub = document.getElementById('banter-sub');
+  return !!(sub && sub.style.opacity === '1');
+}
+
 export function updatePrompts(dt, world) {
   if (!root) return;
   trackUsage(dt, world);
@@ -153,7 +161,7 @@ export function updatePrompts(dt, world) {
 
   const hidden = hiddenNow(world);
   root.classList.toggle('off', hidden);
-  rowsEl.classList.toggle('off', hidden);
+  rowsEl.classList.toggle('off', hidden || hintsQuiet());
   if (hidden) return;
 
   const primary = findPrimary(world);
@@ -472,40 +480,60 @@ function renderWorldPrompts(world, primary) {
     if (primary) { wps[0].el.classList.remove('in'); wps[0].shown = false; }
   }
   placeWp(wps[0], primary, true, hold);
-  const sec = secondary.filter((s) => !primary || Math.hypot(s.x - primary.x, s.y - primary.y) > 1.5);
+  // only the nearest interaction: no place labels next to an E prompt
+  const sec = primary ? [] : secondary;
   for (let i = 0; i < MAX_SECONDARY; i++) placeWp(wps[i + 1], sec[i] || null, false);
 }
 
 // --- compact context stack (bottom right) -----------------------------------
+// One chip per control: key cap + pictogram. Text only while an action is
+// new (the first LEARN_USES uses; the first such row gets the big tutorial
+// look with a description) or rare (a one-word label); once used
+// MASTER_USES times the chip fades out for good. The objective (mission,
+// bijbaan, police) lives in the objective line at the top, not here.
 
-function tut(id, keys, label, desc) {
-  return { id, keys, label, desc, kind: 'tut' };
+const PIC = {
+  move: '<circle cx="12" cy="4.2" r="2"/><path d="M12 7.5l-1.2 5.5 3 3v5.5M10.8 13l-2.6 7.5M12 8l3.8 3M12 8l-3.8 2.6"/>',
+  look: '<path d="M20 12a8 4 0 1 1-4.5-3.6"/><path d="M13.5 6.6l2.3 1.9-2.6 1.5"/><circle cx="12" cy="12" r="1.6"/>',
+  sprint: '<circle cx="14.5" cy="4" r="2"/><path d="M13.5 7.2l-3 5 4 2.2-1.2 7M10.5 12.2l-4.2 1M13.5 7.2l4 3 2.8-1M2 9.5h3.5M1 13.5h3.5"/>',
+  jump: '<circle cx="12" cy="3.6" r="2"/><path d="M12 6.4v5.8M12 8.4l-4-2M12 8.4l4-2M12 12.2l-3.2 4M12 12.2l3.2 4M4 21.5h16M6 18.5l-2-2M18 18.5l2-2"/>',
+  crouch: '<circle cx="9" cy="8" r="2"/><path d="M9 11l2.2 3.6H16M11.2 14.6l-3 2.6v4M16 14.6v6.6M3.5 21.5h15M20 3.5v6M17.6 7.2L20 9.6l2.4-2.4"/>',
+  shoot: '<circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5"/><circle cx="12" cy="12" r="0.8"/>',
+  punch: '<path d="M7 11V8a1.6 1.6 0 0 1 3.2 0v2.5M10.2 10V6.8a1.6 1.6 0 0 1 3.2 0V10M13.4 10V7.6a1.6 1.6 0 0 1 3.2 0v3M16.6 10.8V9.8a1.6 1.6 0 0 1 3.2 0v4a6.2 6.2 0 0 1-6.2 6.2H12a5 5 0 0 1-5-5v-4.4a1.6 1.6 0 0 1 3.2 0"/>',
+  weapon: '<path d="M3 8.5h16l1 3h-7.5l-1.2 2.2H9.5L8.3 19H4.4l1.5-5.3H3z"/>',
+  map: '<path d="M3 6.2l6-2.2 6 2.2 6-2.2v13.8l-6 2.2-6-2.2-6 2.2zM9 4v13.8M15 6.2V20"/>',
+  phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.3h2"/>',
+  drive: '<circle cx="12" cy="12" r="8.8"/><circle cx="12" cy="12" r="2.4"/><path d="M3.6 10.4l6.2 1M20.4 10.4l-6.2 1M12 14.4v6.4"/>',
+  handbrake: '<path d="M5 20c0-8.5 5.5-12.5 13.5-12.5"/><path d="M15 3.8l3.8 3.7-3.8 3.7"/><path d="M3 15.5h2.5M2.5 11.5h2.5" opacity="0.6"/>',
+  horn: '<path d="M3 9.8v4.4h4l5 4V5.8l-5 4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18.2 6.4a7.6 7.6 0 0 1 0 11.2"/>',
+  cinecam: '<rect x="2.5" y="9" width="12.5" height="9.5" rx="1.5"/><path d="M15 12.2l6-3v9.3l-6-3"/><circle cx="6" cy="5.6" r="2.3"/><circle cx="11.5" cy="5.6" r="2.3"/>',
+  lookback: '<path d="M8 20.5V10a5 5 0 0 1 10 0v2.2"/><path d="M5 17.5l3 3 3-3"/>',
+  exit: '<path d="M4 3h9.5v18H4z"/><path d="M13.5 12H21M17.8 8.6L21 12l-3.2 3.4"/>',
+  swim: '<circle cx="16" cy="6.5" r="2"/><path d="M4.5 12.5l5.2-3.2 4.2 2.4M2 16.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M2 20.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8"/>',
+  swimfast: '<path d="M2 16.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M2 20.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M6 4l4 4-4 4M12 4l4 4-4 4"/>',
+  climb: '<path d="M3 21h8.5v-8H21"/><path d="M16 9.5V2.5M12.8 5.6L16 2.5l3.2 3.1"/>',
+};
+const pic = (id) => (PIC[id] ? `<svg class="ctx-pic" viewBox="0 0 24 24" aria-hidden="true">${PIC[id]}</svg>` : '');
+
+// rare: a one-word label stays until the chip fades out
+function tut(id, keys, label, desc, rare = false) {
+  return { id, keys, label, desc, rare, kind: 'tut' };
 }
 
 function contextRows(world, primary) {
   const p = world.player;
   const rows = [];
-  const job = sideJobGoal(world);
-  if (job) rows.push({ id: 'sidejob', keys: [], label: job.label, desc: job.desc, kind: 'goal' });
-  if (world.wanted > 0) {
-    const searching = !!(world.police && world.police.searching);
-    rows.push({
-      id: 'wanted', keys: [], label: 'Ontsnap aan de politie', kind: 'goal',
-      desc: searching ? 'Ze zijn je kwijt: blijf uit het zicht' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : p.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
-    });
-  }
-
   const armed = world.weapon && world.weapon !== 'fists';
   if (world.trainDriving) {
     rows.push(tut('drive', ['W', 'S'], 'Gas & remmen', 'W optrekken, S remmen en stilstaand achteruit'));
-    rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen'));
+    rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
   } else if (p.inVehicle) {
     rows.push(tut('drive', ['WASD'], 'Gas & sturen', 'W gas, S remmen en achteruit, A/D sturen'));
     rows.push(tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
     rows.push(tut('horn', ['H'], 'Toeter', 'Aan de kant, fietsers!'));
-    rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots'));
-    rows.push(tut('lookback', ['Q'], 'Achterom kijken', 'Houd Q of de middelste muisknop vast'));
+    rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots', true));
+    rows.push(tut('lookback', ['Q'], 'Achterom', 'Houd Q of de middelste muisknop vast', true));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', 'Vuren vanuit de auto'));
   } else if (p.swimming) {
@@ -525,43 +553,74 @@ function contextRows(world, primary) {
     }
     rows.push(tut('crouch', ['CTRL'], 'Bukken', 'Langzaam en klein'));
   }
-  rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming'));
-  rows.push(tut('phone', ['T'], 'Telefoon', 'Missies, contacten en Sikkom'));
+  rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming', true));
+  rows.push(tut('phone', ['T'], 'Telefoon', 'Missies, contacten en Sikkom', true));
 
   const out = [];
   let learnShown = false;
   for (const r of rows) {
     if (primary && primary.key === 'E' && r.keys[0] === 'E') continue;
-    if (r.kind === 'tut') {
-      if (mastered(r.id)) continue;
-      r.learn = !learnShown && learning(r.id);
-      if (r.learn) learnShown = true;
-    }
+    if (mastered(r.id)) continue;
+    r.fresh = learning(r.id);
+    r.learn = !learnShown && r.fresh;
+    if (r.learn) learnShown = true;
     out.push(r);
     if (out.length >= MAX_ROWS) break;
   }
   return out;
 }
 
-function rowHtml(r) {
-  const glyphs = r.keys.map((k) => glyphHtml(k)).join('');
-  const cls = 'ctx-row' + (r.learn ? ' learn' : '') + (r.kind === 'goal' ? ' goal' : '');
-  const lead = r.kind === 'goal' ? '<span class="ctx-star">★</span>' : '<span class="ctx-glyphs">' + glyphs + '</span>';
-  const desc = (r.learn || r.kind === 'goal') && r.desc ? '<small>' + esc(r.desc) + '</small>' : '';
-  return '<div class="' + cls + '">' + lead + '<span class="ctx-text"><b>' + esc(r.label) + '</b>' + desc + '</span></div>';
+function rowState(r) {
+  return r.learn ? 'learn' : r.fresh ? 'new' : r.rare ? 'rare' : 'icon';
 }
+
+function rowHtml(r) {
+  const state = rowState(r);
+  const glyphs = r.keys.map((k) => glyphHtml(k)).join('');
+  const text = state === 'icon' ? '' : '<span class="ctx-text"><b>' + esc(r.label) + '</b>' + (state === 'learn' && r.desc ? '<small>' + esc(r.desc) + '</small>' : '') + '</span>';
+  return '<span class="ctx-glyphs">' + glyphs + '</span>' + pic(r.id) + text;
+}
+
+const rowEls = new Map();
 
 function renderRows(world, primary) {
   const rows = contextRows(world, primary);
-  const key = rows.map((r) => r.id + (r.learn ? '!' : '') + r.label + (r.desc || '')).join('|');
+  const key = rows.map((r) => r.id + ':' + rowState(r)).join('|');
   if (key === rowsKey) return;
   rowsKey = key;
-  rowsEl.innerHTML = rows.map(rowHtml).join('');
-  rowsEl.classList.toggle('quiet', rows.length > 0 && !rows.some((r) => r.learn || r.kind === 'goal'));
+  const keep = new Set(rows.map((r) => r.id));
+  for (const [id, el] of rowEls) {
+    if (keep.has(id)) continue;
+    rowEls.delete(id);
+    el.classList.add('gone');
+    setTimeout(() => el.remove(), 450);
+  }
+  let before = null;
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const r = rows[i];
+    let el = rowEls.get(r.id);
+    const state = rowState(r);
+    if (!el) {
+      el = document.createElement('div');
+      rowEls.set(r.id, el);
+      el.dataset.id = r.id;
+    }
+    if (el.dataset.state !== state) {
+      el.dataset.state = state;
+      el.className = 'ctx-row ' + state;
+      el.innerHTML = rowHtml(r);
+      el.title = r.label;
+    }
+    if (el.nextSibling !== before || el.parentNode !== rowsEl) rowsEl.insertBefore(el, before);
+    before = el;
+  }
+  rowsEl.classList.toggle('quiet', rows.length > 0 && !rows.some((r) => r.fresh));
 }
 
 export function resetHintProgress() {
   uses = {};
   saveUses();
   rowsKey = '';
+  for (const el of rowEls.values()) el.remove();
+  rowEls.clear();
 }

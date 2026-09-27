@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
+import { CARD_LINES } from '../game/js/cardlines.js';
 import { STEPS, PARTS } from '../game/js/storyarc.js';
 
 export const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -239,6 +240,12 @@ export function collect() {
   for (const [kind, by] of Object.entries(FJORD_DUO)) for (const [k, list] of Object.entries(by)) for (const t of list) add('Na het verhaal (Fjord Frituur)', 'lines', [pgWho[k]], t, { tag: DTAG[kind] });
   const BTAG = { greet: ['hongerig, vrolijk', 'ongeduldig, joviaal'], happy: ['tevreden, blij', 'smakkend, vrolijk'], wrong: ['verontwaardigd, mopperend', 'die boos is, klagend'], leave: ['chagrijnig, zuchtend', 'ongeduldig, mopperend'] };
   for (const [kind, list] of Object.entries(FJORD_BUBBLES)) bubble('Na het verhaal (Fjord-klanten)', list, { tag: BTAG[kind] });
+
+  // --- HUD cards said out loud by whoever you play (cardlines.js) -> lines manifest
+  for (const l of CARD_LINES) add('HUD-kaarten (Tammo/Anita)', 'lines', ['Tammo', 'Anita'], l.say, { tag: ['kort, alert, tegen de ander naast je', 'droog, reagerend op wat er net gebeurde'] });
+  // --- phone calls outside the story (phonefeed.js startCall) -> lines manifest
+  for (const t of Object.values(lit(src('garages.js'), 'const HENK_CALL = '))) add('Telefoon (gesprekken)', 'lines', ['Henk'], t, { tag: 'gemoedelijk, aan de telefoon' });
+  for (const l of lit(src('postgame.js'), 'const INVITE_CALL = ')) add('Telefoon (gesprekken)', 'lines', [typeof l.speaker === 'string' ? l.speaker : JELLE], l.text, { tag: 'aan de telefoon, uitdagend en vrolijk' });
 
   return out;
 }

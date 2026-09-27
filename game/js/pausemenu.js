@@ -8,7 +8,7 @@ import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel, missionRecordHTML } from './achievementsui.js';
 import { getSideJobList } from './sidejobs.js';
 import { setUserWaypoint } from './routing.js';
-import { renderGaragePanel } from './garageui.js';
+import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailer.js';
@@ -51,6 +51,27 @@ const TABS = [
   ['game', 'Spel'],
 ];
 
+const TAB_ICONS = {
+  map: '<path d="M3 6.2l6-2.2 6 2.2 6-2.2v13.8l-6 2.2-6-2.2-6 2.2zM9 4v13.8M15 6.2V20"/>',
+  missions: '<path d="M6 3v18M6 4h12l-2.5 4L18 12H6"/>',
+  garage: '<path d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/>',
+  prestaties: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
+  settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+  controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
+  game: '<path d="M12 3v9"/><path d="M7 5.5a8 8 0 1 0 10 0"/>',
+};
+const tabIcon = (id) => `<svg class="pm-tab-ic" viewBox="0 0 24 24" aria-hidden="true">${TAB_ICONS[id] || ''}</svg>`;
+
+// Extra sections under the Missies tab (e.g. the story journal "Wat weten
+// we?"): addMissionsSection({ id, title, sub, render(el, world) }); render
+// runs each time the tab opens, el is an empty card-grid container.
+const extraSections = [];
+export function addMissionsSection(sec) {
+  const i = extraSections.findIndex((x) => x.id === sec.id);
+  if (i >= 0) extraSections[i] = sec; else extraSections.push(sec);
+  if (root && open && tab === 'missions') renderMissions();
+}
+
 const FOOTERS = {
   map: '<b>Klik</b> bestemming · <b>Rechtsklik / Del</b> wissen · <b>Shift+klik</b> teleporteren · <b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> centreren',
   missions: '<b>Klik</b> op een missie om de route te zetten · geklaarde missies kun je opnieuw spelen voor een betere medaille',
@@ -88,9 +109,9 @@ export function initPauseMenu(w) {
   root.setAttribute('aria-labelledby', 'pm-title');
   root.innerHTML = `
     <header class="pm-header">
-      <div class="pm-brand" id="pm-title">GTE VI</div>
+      <div class="pm-brand" id="pm-title"><b>GTE VI</b><small>Grand Theft Eierbal · Grunn</small></div>
       <nav class="pm-tabs" role="tablist">
-        ${TABS.map(([id, label]) => `<button type="button" role="tab" data-tab="${id}" aria-selected="false">${label}</button>`).join('')}
+        ${TABS.map(([id, label]) => `<button type="button" role="tab" data-tab="${id}" aria-selected="false">${tabIcon(id)}<span>${label}</span></button>`).join('')}
       </nav>
       <div class="pm-info"><span data-info="char"></span><span data-info="clock"></span><span data-info="money"></span></div>
     </header>
@@ -105,6 +126,7 @@ export function initPauseMenu(w) {
         <div class="pm-missions"></div>
         <h2>Bijbaantjes <small>geld verdienen tussendoor</small></h2>
         <div class="pm-missions pm-jobs"></div>
+        <div class="pm-extra"></div>
       </div></section>
       <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
       <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner"></div></section>
@@ -115,14 +137,14 @@ export function initPauseMenu(w) {
           <button type="button" role="tab" data-subtab="camera" aria-selected="false">Camera &amp; muis</button>
           <button type="button" role="tab" data-subtab="display" aria-selected="false">Weergave</button>
         </nav>
-        <div data-sub="sound">
+        <div data-sub="sound" class="pm-group">
           ${slider('masterVolume', 'Hoofdvolume')}
           ${slider('musicVolume', 'Muziek')}
           ${slider('sfxVolume', 'Effecten')}
           ${slider('voiceVolume', 'Stemmen')}
           <p class="pm-note">Muziek is G-Music en de titelsong, stemmen zijn Tammo, Anita, de politie en de mensen op straat.</p>
         </div>
-        <div data-sub="video" hidden>
+        <div data-sub="video" class="pm-group" hidden>
           <label class="pm-row"><span>Kwaliteit</span>
             <select data-setting="quality">
               ${Object.keys(QUALITY_PRESETS).map((q) => `<option value="${q}">${q[0].toUpperCase() + q.slice(1)}</option>`).join('')}
@@ -143,7 +165,7 @@ export function initPauseMenu(w) {
             <button type="button" class="pm-secondary" data-action="bench-cancel">Annuleren</button>
           </div>
         </div>
-        <div data-sub="camera" hidden>
+        <div data-sub="camera" class="pm-group" hidden>
           <label class="pm-row"><span>Beeldhoek</span>
             <input type="range" min="50" max="90" step="1" data-setting="fov"><output></output></label>
           <label class="pm-row"><span>Camera-afstand</span>
@@ -152,7 +174,7 @@ export function initPauseMenu(w) {
             <input type="range" min="0.3" max="2.5" step="0.05" data-setting="mouseSensitivity"><output></output></label>
           ${toggle('invertY', 'Omhoog/omlaag omkeren')}
         </div>
-        <div data-sub="display" hidden>
+        <div data-sub="display" class="pm-group" hidden>
           <label class="pm-row"><span>Helderheid</span>
             <input type="range" min="0.6" max="1.6" step="0.05" data-setting="brightness"><output></output></label>
           <label class="pm-row"><span>Grootte interface</span>
@@ -220,6 +242,8 @@ export function initPauseMenu(w) {
     if (gd) return garageDeliver(gd.dataset.garageDeliver);
     const gf = e.target.closest('[data-garage-find]');
     if (gf) return garageFind(gf.dataset.garageFind);
+    const gs = e.target.closest('[data-garage-select]');
+    if (gs) return selectGarageVehicle(root.querySelector('[data-panel="garage"] .pm-inner'), gs.dataset.garageSelect);
     const action = e.target.closest('[data-action]');
     if (action) runAction(action.dataset.action);
   });
@@ -259,6 +283,11 @@ function onKey(e) {
   }
   const t = e.target;
   if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox'].includes(t.type)))) return;
+  if ((k === 'Enter' || k === ' ') && t && t.dataset && t.dataset.garageSelect) {
+    e.preventDefault();
+    selectGarageVehicle(root.querySelector('[data-panel="garage"] .pm-inner'), t.dataset.garageSelect);
+    return;
+  }
   if (k === 'Escape' || (lower === 'm' && !prestart)) {
     e.preventDefault();
     setOpen(false);
@@ -443,7 +472,10 @@ function renderMissions() {
       `<span class="pm-m-text"><b>${esc(sv.title)}</b><small>${esc(sv.partTitle)}${sv.lead ? ' · ' + esc(sv.lead) : ''}</small></span>` +
       `<span class="pm-m-chip">Volgende</span></div>` +
       (sv.canSkip ? `<button type="button" class="pm-mission" data-story-skip data-status="open"><span class="pm-m-num">»</span><span class="pm-m-text"><b>${esc(sv.skipLabel)}</b><small>${sv.kind === 'mission' ? 'Je krijgt de helft van de beloning en het verhaal gaat door' : 'Handig als deze stap vastloopt: het verhaal gaat gewoon door'}</small></span><span class="pm-m-chip">Overslaan</span></button>` : '');
-  root.querySelector('.pm-missions:not(.pm-story):not(.pm-jobs):not(.pm-clues)').innerHTML = [...list].sort((a, b) => a.order - b.order).map((m) =>
+  const extra = root.querySelector('.pm-extra');
+  extra.innerHTML = extraSections.map((x) => `<h2>${esc(x.title)}${x.sub ? ` <small>${esc(x.sub)}</small>` : ''}</h2><div class="pm-missions" data-extra="${esc(x.id)}"></div>`).join('');
+  for (const x of extraSections) { try { x.render(extra.querySelector(`[data-extra="${CSS.escape(x.id)}"]`), world); } catch (err) { /* a broken section never breaks the tab */ } }
+  root.querySelector('.pm-missions:not(.pm-story):not(.pm-jobs):not(.pm-clues):not([data-extra])').innerHTML = [...list].sort((a, b) => a.order - b.order).map((m) =>
     `<button type="button" class="pm-mission" data-mission="${m.index}" data-status="${m.status}">` +
     `<span class="pm-m-num">${esc(m.code || String(m.index + 1))}</span>` +
     `<span class="pm-m-text"><b>${esc(m.label)}</b><small>${TYPE_LABEL[m.type] || ''} · €${m.reward}${missionRecordHTML(m.index)}</small></span>` +
@@ -481,6 +513,7 @@ function showTab(name) {
   root.dataset.activeTab = name;
   root.querySelector('.pm-foot-tab').innerHTML = prestart ? '' : FOOTERS[name] || '';
   if (world) setMapActive(world, open && name === 'map');
+  if (name !== 'garage') disposeGarageViewer();
   if (name === 'missions') renderMissions();
   if (name === 'garage') renderGaragePanel(root.querySelector('[data-panel="garage"] .pm-inner'), world);
   if (name === 'prestaties') renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner'));
@@ -532,6 +565,7 @@ function setOpen(value, name = 'map') {
     showTab(name);
   } else {
     if (world) setMapActive(world, false);
+    disposeGarageViewer();
     const p = prestart;
     prestart = null;
     root.classList.remove('prestart');

@@ -176,48 +176,63 @@
 body.hide-minimap #hud .hud-ctx { right: 16px; bottom: 96px; }
 #hud .hud-ctx.quiet { opacity: 0.7; }
 
+/* key cap + pictogram chips; text only while new or rare (prompts.js) */
 #hud .ctx-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 3px 10px 3px 8px;
+  gap: 7px;
+  padding: 4px 9px 4px 7px;
   color: #f0ede4;
   text-shadow: var(--hud-shadow);
-  background: linear-gradient(270deg, rgba(12, 20, 14, 0.7), rgba(12, 20, 14, 0.25));
+  background: linear-gradient(270deg, rgba(12, 20, 14, 0.78), rgba(12, 20, 14, 0.3));
   border-right: 2px solid rgba(63, 201, 122, 0.55);
-  animation: ctx-in 0.25s ease both;
+  animation: ctx-in 0.3s ease both;
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
+#hud .ctx-row.gone { opacity: 0; transform: translateX(14px); }
 @keyframes ctx-in { from { opacity: 0; transform: translateX(10px); } }
 #hud .ctx-glyphs { display: inline-flex; align-items: center; gap: 3px; }
 #hud .ctx-glyphs .hud-key { margin-right: 0; }
+#hud .ctx-pic {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: #f0ede4;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
+}
+#hud .ctx-row[data-id="weapon"] .ctx-pic { fill: #f0ede4; stroke: none; }
 #hud .ctx-text { display: flex; flex-direction: column; line-height: 1; }
 #hud .ctx-text b { font-weight: normal; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
 #hud .ctx-text small {
   margin-top: 3px;
   font-family: 'Arial Narrow', Arial, sans-serif;
-  font-size: 12.5px;
+  font-size: 13px;
   letter-spacing: 0.3px;
-  color: rgba(240, 237, 228, 0.82);
+  color: rgba(240, 237, 228, 0.85);
 }
+#hud .ctx-row.icon { padding: 4px 7px; gap: 6px; opacity: 0.82; }
+#hud .ctx-row.rare .ctx-text b { font-size: 13px; letter-spacing: 1.5px; color: rgba(240, 237, 228, 0.8); }
+#hud .ctx-row.new .ctx-pic { stroke: var(--gron-green-light); }
+#hud .ctx-row.new .ctx-text b { color: var(--gron-green-light); }
 
 #hud .ctx-row.learn {
   padding: 7px 12px 7px 10px;
   border-right: 3px solid var(--gron-green-light);
-  background: linear-gradient(270deg, rgba(23, 48, 31, 0.85), rgba(12, 20, 14, 0.35));
+  background: linear-gradient(270deg, rgba(23, 48, 31, 0.88), rgba(12, 20, 14, 0.4));
   box-shadow: 0 0 14px rgba(63, 201, 122, 0.25);
 }
+#hud .ctx-row.learn .ctx-pic { width: 28px; height: 28px; stroke: var(--gron-green-light); }
 #hud .ctx-row.learn .ctx-text b { font-size: 22px; color: var(--gron-green-light); }
 #hud .ctx-row.learn .hud-key { min-width: 26px; height: 26px; font-size: 14px; }
 #hud .ctx-row.learn .hud-wasd .hud-key { min-width: 16px; height: 16px; font-size: 10px; }
 #hud .ctx-row.learn .hud-mouse { width: 19px; height: 27px; }
 
-#hud .ctx-row.goal { border-right-color: #e8c93a; }
-#hud .ctx-row.goal .ctx-text b { color: #e8c93a; font-size: 18px; }
-#hud .ctx-star { color: #e8c93a; font-size: 18px; line-height: 1; animation: ctx-blink 1.2s ease-in-out infinite; }
-@keyframes ctx-blink { 50% { opacity: 0.45; } }
-
 @media (prefers-reduced-motion: reduce) {
-  #hud .wp-primary.in .wp-dot, #hud .ctx-star, #hud .ctx-row { animation: none; }
+  #hud .wp-primary.in .wp-dot, #hud .ctx-row { animation: none; }
 }
 @media (max-width: 720px) {
   #hud .hud-ctx { right: 16px; bottom: calc(var(--mm-size, 160px) + 30px); }

@@ -18,8 +18,9 @@ The code is the source of truth; this file is the map.
 `World` (`js/world.js`) is the one mutable state object every system
 receives. It holds `map`, `input`, `player`, `companion`, `vehicles`,
 `pedestrians`, `bullets`, `particles`, `wanted`, `money`, `health`, `armor`,
-`weapon`, `ammo`, `mission`, `stats`, `time` and the `messages` toast queue
-(`world.addMessage(text, seconds)`). `respawnPlayer(world, {busted})`
+`weapon`, `ammo`, `mission`, `stats`, `time` and `messages` (recent
+`world.addMessage(text, seconds, opts)` messages; they show as HUD cards,
+see "Messages, phone and calls"). `respawnPlayer(world, {busted})`
 handles death and arrest.
 
 Each system owns the arrays and fields it writes (for example `police.js`
@@ -63,8 +64,8 @@ frame then runs, in order:
 | World flavour | `flavour.js` (after docs/groningen-memes.md: building nicknames and "bijna thuis", the Gerrit Krolbrug's malfunction per pass, Ring Zuid navigation lines, "Kon minder" after a flawless mission (missions.js sets `world.lastPerfectRun`), the Noorderplantsoen on sunny days, the commentary cows in the Sikkom feed, event days (Bloemetjesmarkt, Bommen Berend, KEI-week: the real date, else a rare random day at dawn), the Peerd van Ome Loeks on another roundabout each night, AI cars stopping for crossing cyclists, stolen bikes turning up again, Nachtstreek night radio outside the city, Oosterpark chants; owns `world.flavour`, debug `window.__flavour`), `flavour3d.js` (billboards that change with story progress, the growing Krolbrug detour, picnic instancing, the statue, plaque, flags, house plants; built at boot, only toggled after), `flavourlines.js` (all text; spoken tables registered in voicelines_collect.mjs) |
 | Soft-lock safety | `safety.js` (pause menu "Vastgelopen? Zet me vrij" and "Missie afbreken" (counts as a fail, so the story skip opens); watchdogs for cutscenes and respawn scenes that run far too long, players out of the world, scene flags left behind) |
 | Title and trailer | `startscreen.js` (loading screen, title menu over the live city), `trailer.js` (attract intro, benchmark, recording mode), `intromontage.js` (the "Nieuw spel" opening montage) |
-| UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots) |
-| Audio | `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
+| UI | `hud_panel.js` + `.css` (minimap: player, routes and targets always; static places only the nearest few per category; the objective line), `hudcards.js` + `.css` (HUD message cards, countdowns), `cardlines.js` (what Tammo/Anita say with a card), `prompts.js` + `.css` (world prompts and the key-cap + pictogram hint chips), `shopui.js` (shop menus: select, then buy with the button; confirm for expensive items), `vehiclepreview.js` (rotating 3D vehicle for the shops and the garage tab), `pausemenu.js` (tabs; `addMissionsSection` for extra Missies sections), `garageui.js` (garage tab with the 3D viewer), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js` + `.css` (phone notifications and calls), `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots and the pause menu's header, footer and panels) |
+| Audio | `speech.js` (the one talking channel, see "Spoken lines"), `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 
 ## Spoken lines
@@ -85,10 +86,35 @@ playing the wrong clip):
   speaker = `Verteller`) and the rondvaart guide (`Tammo`/`Anita`).
 - `audio/npc`: the ambient Gronings phrases.
 
-All voices go through the voice bus (Stemmen slider). They never overlap:
-bubbles, voicelines and the guide share one "busy until" window in
-`audio.js`, and story scenes silence the rest; skipping a cutscene stops its
-voice. `node scripts/voice_coverage.mjs` lists spoken lines without a
+All voices go through the voice bus (Stemmen slider) and through one
+talking channel, `speech.js` (pure state; `audio.js` plays the clips and
+feeds it the AudioContext clock; debug `window.__speech.speechState()`):
+
+- Classes, most important first: `story` (cutscenes, intro montage, the
+  rondvaart chase) > `mission` (post-game challenge commentary) > `call`
+  (phonefeed.js calls) > `banter` (car talk) > `job` (bijbaan bosses, the
+  rondvaart guide) > `react` (Tammo/Anita voicelines, HUD-card lines, police
+  barks, Sikkom, navigation, cows) > `ambient` (speech bubbles, NPC
+  phrases) > `radio` (Radio Nachtstreek, G-Music jingles).
+- One line at a time (`begin`/`extend`/`end`; a line that never reports
+  its end frees the channel after its length). A newcomer of at least `job`
+  cuts off a lower line below `call` (its `stop` runs); `story` cuts off
+  everything; any voice cuts off the radio. Everything else waits (callers
+  retry, e.g. `playLineVoice` returns false) or drops (bubbles).
+- Conversations hold the channel (`hold`/`release`): a story scene
+  (`setStoryScene`) blocks everything, a call blocks all but story, car
+  banter blocks lower classes and is ended by a call or story (banter.js
+  gets `onPreempt` and cuts the talk off).
+- Short gaps after a line per class (ambient 1 s, radio 2.5 s);
+  `request(cls, dur, play, { maxWait })` queues instead of dropping.
+- G-Music: jingles are skipped (straight on with the next track) and the
+  wanted jingle is not queued while anyone talks or talked in the last
+  2.5 s (`radioMayTalk`); music ducks under every voice (`musicDuck`, a
+  little for bubbles). Radio Nachtstreek waits for the same silence.
+- `node scripts/speech_test.mjs` checks these rules on a fake clock (with
+  `?stil` there is no audio, so the arbiter is tested directly).
+
+Skipping a cutscene stops its voice. `node scripts/voice_coverage.mjs` lists spoken lines without a
 recording per area and exits 1 if any are missing; new spoken tables are
 registered in `scripts/voicelines_collect.mjs`. To fill the gaps:
 `node scripts/tts_lines_list.mjs && python3 scripts/tts_lines.py` (Gemini
@@ -116,7 +142,7 @@ and in italics (`.nl-sub` in `hud_panel.css`).
   cutscene subtitles and the big title (`cinematics.js`), speech bubbles
   (`scene3d.js`), banter (`banter.js`), post-game subtitles
   (`postgame.js`), the Sikkom/phone feed (`phonefeed.js`), phone calls,
-  contacts and history (`phone.js`), HUD toasts (`hud_panel.js`) and
+  contacts and history (`phone.js`), HUD cards (`hudcards.js`) and
   achievement titles (`achievementsui.js`). Anything shown through these
   gets its subtitle for free; a new text surface calls one of the two.
 - New Frisian line: write it, add its Dutch to `FY`. `voice_coverage.mjs`
@@ -124,6 +150,92 @@ and in italics (`.nl-sub` in `hud_panel.css`).
   Voice casts: Jelle/Durk/Douwe are recorded as Dutch with a Frisian
   accent; a bubble line with Gronings words (`GRO` or common dialect words)
   gets a "spreekt Gronings dialect" tag (`tts_lines_list.mjs`).
+
+## Messages, phone and calls
+
+There are no white toast lines. Three channels, all inside `#hud` (so
+`--ui` scales them):
+
+- HUD cards (`hudcards.js`, left under the health bars, below the "Nu op
+  G-Music" card): `world.addMessage(text, seconds, opts)` or
+  `showCard(world, { kind, title, body | text, duration, key, kicker,
+  voice })`. Categories `missie`, `bijbaan`, `geld`, `politie`, `gevaar`,
+  `prestatie`, `tip` (opts.kind, else keyword rules, else the running
+  mission/bijbaan, else tip), each with accent colour and icon. "Prefix:
+  rest" and "Short sentence! Rest" split into title and body. Redundant
+  messages are dropped (`DROP`: death/busted, mission passed/failed, start
+  location, mute, route set, the radio, ambient trains, pigeon bumps). One
+  card at a time (see "Attention budget"), a short queue (dangers and police first, tips expire),
+  the same key updates the card that is up; cards wait while a cutscene
+  hides the HUD. `opts.exact` countdowns ("3", "GO! GO! GO!") are a big
+  number in the middle. `cardlines.js` lists the few cards Tammo/Anita say
+  out loud (`react` class, lines manifest). Debug `window.__cards`.
+- Objective line (`hud_panel.js` `currentObjective`, top centre): one
+  objective at a time, the mission stage (`missionProgressText` split into
+  objective and counter), else the bijbaan goal (its hint first, then the
+  counter), else "Ontsnap aan de politie"; pops in when it changes.
+- Phone (`phonefeed.js`, bottom left above the street name):
+  - `notifyPhone(world, { from, app, title, text, duration })` (or push
+    `{ from, text, duration }` onto `world.phoneNotifications`): a phone
+    card. "SIKKOM(: | MELDT:)" texts become a Sikkom headline + body;
+    `app` is `sikkom`, `bericht` or `geld`. One up at a time with a "+N"
+    counter for the waiting ones. Everything lands in the Sikkom history (phone.js).
+  - `startCall(world, { from, lines: [{ speaker, text, sub }], live, onEnd,
+    voice })`: an incoming call (or `live: true`: a Sikkom livestream).
+    Rings, then plays line by line, each voiced from the lines manifest
+    `"<speaker>|<text>"` (or `voice(speaker, text)` -> `{ src, dur }`) on
+    the `call` class, which holds the channel for the whole call; unvoiced
+    lines stay up for their reading time. `sub` is a second, smaller line
+    (the Dutch under a Frisian/Gronings line). One call at a time, queued
+    up to 90 s, waiting out cutscenes; a story scene ends a call early
+    (`onEnd({ cut: true })`). `isCallActive()`, `hangUp()`, debug
+    `window.__phonefeed`. New voiced call lines are registered in
+    `scripts/voicelines_collect.mjs` ("Telefoon (gesprekken)").
+
+## Attention budget
+
+`attention.js` holds the rules for interrupting the player, in one place:
+priority story > wanted/danger > money/achievement > discovery/flavour >
+tips (`PRIORITY`, `CARD_PRIORITY` for the HUD card categories).
+`mayInterrupt(kind, world)` / `noteMoment(kind)` gate the non-story
+cinematic moments in cinematics.js (`wijk`, `landmark`, `ommelanden`: one
+per 3.5 min together; `crash` 60 s; `wanted5` 2 min; at least 40 s between
+any two; never during a mission, bijbaan, challenge, race or phone call;
+discovery scenes not while driving faster than 50 km/u). A blocked
+flyover or landmark stays unseen and plays later if the player is still
+(or again) there. Story cutscenes, mission intros/outros and death/busted
+are exempt. On the HUD: one card at a time (`hudcards.js`, tips at most
+one per 20 s via `mayShowTip`), one objective line, one phone card with a
+"+N" counter (none during a call), key hints hidden while a card, a call
+or car-banter subtitles are up, at most one world prompt (the E prompt, or
+one place label when there is none), and during a call (`body.hud-call-on`)
+the now-playing card, vehicle name and hints step aside.
+`node scripts/attention_test.mjs` checks the rules.
+
+## Routes
+
+`routing.js` keeps up to three routes at once, each in its own colour
+(`hud_panel.js` `ROUTE_COLORS`): the player's own waypoint (purple), the
+objective (mission/story yellow, bijbaan orange) and the care route (pink):
+to the nearest snackbar, supermarket or kroeg when health is below 35 (until
+50), or to the nearest garage/Pomp & Poets when the player drives their OWN
+vehicle (hero or bought) below 55 health (until 90; never for stolen
+vehicles). Nothing ever overrides the player's waypoint (Henk's call only
+offers the garage). `getActiveRoute()` is the primary one (waypoint, else
+objective, else care: 3D ribbon, route chip), `getRoutes()` all of them
+(minimap, full map, map header); `dismissCareRoute()` (the "Negeren" button
+in the map header) hides the pink route until the need is over. In pigeon
+mode every route is a straight line "as the crow flies" (`route.fly`,
+dashed on the minimap and map, no 3D ribbon) and the minimap turns with
+the pigeon's heading.
+
+Shops (`shopui.js`): clicking or arrowing only selects (preview, detail
+bar); the detail bar's button buys, expensive items and items flagged
+`confirmText` need a second press. While a story gate is open (the current
+step's `require` goal or the next mission's `requires`, read-only via
+story.js/missions.js), shops.js `markGates` tags the vehicles that count
+("Telt voor je missie", listed first) and warns on the ones that don't.
+Spuit & Klaar shows your own vehicle in the chosen colour before you pay.
 
 ## Heights
 
