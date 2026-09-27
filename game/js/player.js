@@ -12,6 +12,7 @@ import { resolveWalkerProps, propAhead } from './breakables.js';
 import { railingAhead } from './bridgerails.js';
 import { drunkMove, drunkSteer } from './drunk.js';
 
+import { inHomeFlat } from './home.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -187,7 +188,7 @@ export class Player {
     for (let s = 0; s < steps; s++) {
       let nextX = this.x + this.vx * sdt;
       let nextY = this.y + this.vy * sdt;
-      [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS, this.gz + this.z, this.z);
+      if (!inHomeFlat()) [nextX, nextY] = resolveWalker(nextX, nextY, this.radius, map, this.vx, this.vy, WALK_OPTS, this.gz + this.z, this.z);
       this.x = nextX;
       this.y = nextY;
       this.followGround(map);
@@ -233,7 +234,7 @@ export class Player {
     this.vz = 0;
     this.vx = 0;
     this.vy = 0;
-    [this.x, this.y] = resolveWalker(this.x, this.y, this.radius, world.map, 0, 0, WALK_OPTS, this.gz);
+    if (!inHomeFlat()) [this.x, this.y] = resolveWalker(this.x, this.y, this.radius, world.map, 0, 0, WALK_OPTS, this.gz);
     this.followGround(world.map);
     if (isInWater(world.map, this.x, this.y, this.gz + this.z)) this.startWaterFall();
   }
