@@ -6,6 +6,22 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-09-27
+
+Minder Fries, meer Grunnegers.
+
+### Nieuw
+- **Dubbele ondertitels**: alle Friese tekst krijgt de Nederlandse vertaling
+  eronder, en moeilijke Grunneger uitdrukkingen ook. Overal: in cutscenes,
+  tekstwolkjes, de telefoon, Sikkom en meldingen.
+- **Meer Grunnegers op straat**: voetgangers, politie, marktkooplui,
+  buspassagiers, taxiklanten en klanten van de Fjord Frituur praten nu
+  echt Gronings, en ingesproken.
+
+### Verbeterd
+- Jelle praat vooral Nederlands met een Fries sausje, Durk en Douwe gewoon
+  Nederlands. Het blijft een Grunneger game.
+
 ## [0.11.1] - 2026-09-27
 
 ### Verbeterd
