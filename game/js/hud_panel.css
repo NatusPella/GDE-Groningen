@@ -190,6 +190,7 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
   width: 52px;
   height: 26px;
   fill: var(--hud-fg, #f0ede4);
+  color: var(--hud-fg, #f0ede4);
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
 }
 

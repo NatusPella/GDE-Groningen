@@ -1,5 +1,5 @@
 import { clamp } from '../util.js';
-import { getCombatEffect } from '../combat.js';
+import { getCombatEffect, isGunWeapon, isRangedWeapon } from '../combat.js';
 import { surfaceUnder } from '../vehicle.js';
 import { getPlace } from './ambience.js';
 
@@ -188,7 +188,8 @@ function combat(dt, world) {
     lastEffect = eff;
     if (eff.type === 'melee') {
       meleeAt = world.time;
-      at('whoosh', p.x, p.y, { h: 1.2, gain: 0.22, rate: rnd(0.9, 1.15) });
+      const slow = eff.weapon === 'polsstok' ? 0.6 : eff.weapon === 'knuppel' || eff.weapon === 'klomp' ? 0.8 : 1;
+      at('whoosh', p.x, p.y, { h: 1.2, gain: slow < 1 ? 0.3 : 0.22, rate: rnd(0.9, 1.15) * slow });
     }
   }
 
@@ -196,7 +197,7 @@ function combat(dt, world) {
     const prev = pedHealth.get(ped);
     pedHealth.set(ped, ped.health);
     if (prev !== undefined && ped.health < prev) {
-      const near = Math.hypot(ped.x - p.x, ped.y - p.y) < 1.8;
+      const near = Math.hypot(ped.x - p.x, ped.y - p.y) < (world.weapon === 'polsstok' ? 3.8 : 2.3);
       if (near && world.time - meleeAt < 0.2) at('punch', ped.x, ped.y, { h: 1.2, gain: 0.4, rate: rnd(0.9, 1.1) });
       else at('body_hit', ped.x, ped.y, { h: 1, gain: 0.3, rate: rnd(0.9, 1.15) });
     }
@@ -216,7 +217,8 @@ function combat(dt, world) {
 
   const mouse = world.input && world.input.mouse;
   const down = !!(mouse && mouse.down) && !world.paused && !world.uiPaused;
-  const gun = world.weapon !== 'fists';
+  const gun = isRangedWeapon(world.weapon);
+  const firearm = isGunWeapon(world.weapon);
   const ammo = world.ammo[world.weapon] || 0;
   if (down && gun && ammo <= 0) {
     const t = now();
@@ -227,8 +229,8 @@ function combat(dt, world) {
   if (world.weapon !== weap.weapon) {
     weap.weapon = world.weapon;
     weap.shots = 0;
-    if (gun && ammo > 0) at(world.weapon === 'shotgun' ? 'pump' : 'slide', p.x, p.y, { h: 1.2, gain: 0.26, delay: 0.08 });
-  } else if (gun && ammo < weap.ammo) {
+    if (firearm && ammo > 0) at(world.weapon === 'shotgun' || world.weapon === 'jachtgeweer' ? 'pump' : 'slide', p.x, p.y, { h: 1.2, gain: 0.26, delay: 0.08 });
+  } else if (firearm && ammo < weap.ammo) {
     const fired = weap.ammo - ammo;
     weap.shots += fired;
     onShot(world, fired);
@@ -242,6 +244,11 @@ function onShot(world, fired) {
   const w = world.weapon;
   const ang = src.angle || 0;
   const cx = src.x - Math.sin(ang) * 0.8, cy = src.y + Math.cos(ang) * 0.8;
+  if (w === 'jachtgeweer') {
+    later(0.45, () => at('slide', src.x, src.y, { h: 1.2, gain: 0.3, rate: 0.7 }));
+    if (!p.inVehicle) later(0.9, () => at('casing_' + Math.floor(Math.random() * 3), cx, cy, { h: 0, gain: 0.1, rate: 0.7, prio: 0 }));
+    return;
+  }
   if (w === 'shotgun') {
     later(0.28, () => at('pump', src.x, src.y, { h: 1.2, gain: 0.26 }));
     if (!p.inVehicle) later(0.75, () => at('casing_' + Math.floor(Math.random() * 3), cx, cy, { h: 0, gain: 0.1, rate: 0.55, prio: 0 }));

@@ -7,28 +7,67 @@ import { DEAD_DURATION } from './pedestrians.js';
 import { propOnBulletPath, shootProp } from './breakables.js';
 import { reportCrime } from './crime.js';
 import { gunShotFx, gunImpactFx } from './gunfx3d.js';
-import { updateAim, aimFireAngle } from './aimassist.js';
+import { updateAim, aimFireAngle, aimedTargetDistance } from './aimassist.js';
+import { propsInRadius } from './breakables.js';
+import { getSettings } from './settings.js';
+import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 
+// kind: melee (a swing that lands at the end of its wind-up), gun (bullets),
+// water (harmless spray), throw (carbidbus) and rocket (firework); the last
+// three fly in throwables.js. slot is the number key (1 melee, 2 handguns,
+// 3 long guns, 4 explosives), pressing it again cycles within the slot.
+// Melee weapons are owned with ammo 1, which is never used up.
 export const WEAPONS = {
-  fists: { damage: 12, range: 1.1, cooldown: 0.45, ammo: Infinity },
-  pistol: { damage: 20, range: 26, cooldown: 0.32, speed: 55 },
-  uzi: { damage: 9, range: 20, cooldown: 0.08, speed: 60 },
-  shotgun: { damage: 16, range: 11, cooldown: 0.85, speed: 48, pellets: 6, spread: 0.3 },
+  fists: { kind: 'melee', slot: 1, damage: 12, range: 1.1, cooldown: 0.45, ammo: Infinity, swing: 'jab', knock: 0.4, push: 2.6, prop: 0.6, sound: 'flesh' },
+  knuppel: { kind: 'melee', slot: 1, damage: 30, range: 1.7, cooldown: 0.7, windup: 0.14, swing: 'bat', knock: 0.75, push: 4, prop: 3, sound: 'wood' },
+  hockeystick: { kind: 'melee', slot: 1, damage: 18, range: 1.9, cooldown: 0.55, windup: 0.12, swing: 'slap', knock: 0.9, push: 2.8, prop: 2, sound: 'wood' },
+  bezem: { kind: 'melee', slot: 1, damage: 6, range: 2.0, cooldown: 0.5, windup: 0.1, swing: 'sweep', knock: 0.35, push: 3.4, prop: 1, sound: 'broom', cone: 1.3 },
+  fietspomp: { kind: 'melee', slot: 1, damage: 14, range: 1.3, cooldown: 0.32, windup: 0.06, swing: 'stab', knock: 0.2, push: 1.6, prop: 1, sound: 'metal' },
+  klomp: { kind: 'melee', slot: 1, damage: 24, range: 1.2, cooldown: 0.6, windup: 0.18, swing: 'overhead', knock: 0.65, push: 2.2, prop: 2.5, sound: 'klomp' },
+  polsstok: { kind: 'melee', slot: 1, damage: 26, range: 3.4, cooldown: 1.3, windup: 0.34, swing: 'thrust', knock: 1, push: 5.5, prop: 3, sound: 'wood', cone: 0.6 },
+  pistol: { kind: 'gun', slot: 2, damage: 20, range: 26, cooldown: 0.32, speed: 55 },
+  uzi: { kind: 'gun', slot: 2, damage: 9, range: 20, cooldown: 0.08, speed: 60 },
+  waterpistool: { kind: 'water', slot: 2, damage: 0, range: 9, cooldown: 0.07, speed: 13 },
+  shotgun: { kind: 'gun', slot: 3, damage: 16, range: 11, cooldown: 0.85, speed: 48, pellets: 6, spread: 0.3 },
+  jachtgeweer: { kind: 'gun', slot: 3, damage: 95, range: 110, cooldown: 1.5, speed: 140, scope: true },
+  carbidbus: { kind: 'throw', slot: 4, range: 9, cooldown: 1.2, speed: 8 },
+  vuurwerk: { kind: 'rocket', slot: 4, range: 45, cooldown: 0.9, speed: 24 },
 };
 
-const WEAPON_KEYS = ['fists', 'pistol', 'uzi', 'shotgun'];
+export const WEAPON_KEYS = Object.keys(WEAPONS);
+const SLOTS = 4;
+
+export function isMeleeWeapon(key) { return !!WEAPONS[key] && WEAPONS[key].kind === 'melee'; }
+// aimed and fired (guns, water, explosives): right mouse aims these
+export function isRangedWeapon(key) { return !!WEAPONS[key] && WEAPONS[key].kind !== 'melee'; }
+export function isGunWeapon(key) { return !!WEAPONS[key] && WEAPONS[key].kind === 'gun'; }
+
+export function hasWeapon(world, key) {
+  const w = WEAPONS[key];
+  return !!w && (w.ammo === Infinity || (world.ammo[key] || 0) > 0);
+}
 
 // Damage per second, used to decide whether a picked-up gun beats the one in hand.
 export function weaponDps(key) {
   const w = WEAPONS[key];
-  return w ? (w.damage * (w.pellets || 1)) / w.cooldown : 0;
+  return w && w.damage ? (w.damage * (w.pellets || 1)) / w.cooldown : 0;
 }
 
 let fireTimer = 0;
 let effect = null;
-let punchSide = -1; // alternates left/right jabs // {type:'muzzle'|'melee', angle, until} — local fx state, not shared on world
+let punchSide = -1; // alternates left/right jabs // {type:'muzzle'|'melee'|'squirt'|'throw', angle, until} — local fx state, not shared on world
+let pendingSwing = null;
+let lockedPed = null; // the soft-locked target, reachable a step further than the swing
 
 export function getCombatEffect() { return effect; }
+
+// Number key n: the owned weapons of slot n; pressing it again cycles them.
+export function selectWeaponSlot(world, slot) {
+  const own = WEAPON_KEYS.filter((k) => WEAPONS[k].slot === slot && hasWeapon(world, k));
+  if (!own.length) return false;
+  world.weapon = own[(own.indexOf(world.weapon) + 1) % own.length];
+  return true;
+}
 
 // Mouse wheel cycles through the weapons you have ammo for (fists always).
 // Trackpads send many small deltas, so it steps once per WHEEL_STEP of
@@ -48,7 +87,7 @@ function cycleWeaponByWheel(dt, world, input) {
   const dir = wheelAcc > 0 ? 1 : -1;
   wheelAcc = 0;
   wheelCooldown = WHEEL_COOLDOWN;
-  const usable = WEAPON_KEYS.filter((k) => WEAPONS[k].ammo === Infinity || (world.ammo[k] || 0) > 0);
+  const usable = WEAPON_KEYS.filter((k) => hasWeapon(world, k));
   if (usable.length < 2) return;
   const i = Math.max(0, usable.indexOf(world.weapon));
   world.weapon = usable[(i + dir + usable.length) % usable.length];
@@ -58,57 +97,134 @@ export function updateCombat(dt, world) {
   fireTimer = Math.max(0, fireTimer - dt);
 
   const { input } = world;
-  for (let i = 0; i < WEAPON_KEYS.length; i++) {
-    if (!input.wasPressed(String(i + 1))) continue;
-    const key = WEAPON_KEYS[i];
-    const w = WEAPONS[key];
-    if (w.ammo === Infinity || (world.ammo[key] || 0) > 0) world.weapon = key;
+  if (!hasWeapon(world, world.weapon)) world.weapon = 'fists';
+  for (let i = 1; i <= SLOTS; i++) {
+    if (input.wasPressed(String(i))) selectWeaponSlot(world, i);
   }
   cycleWeaponByWheel(dt, world, input);
-  updateAim(dt, world, WEAPONS[world.weapon] ? WEAPONS[world.weapon].range : 0);
-
-  if (!input.mouse.down || fireTimer > 0) return;
-
+  const p = world.player;
   const weapon = WEAPONS[world.weapon];
-  const hasAmmo = weapon.ammo === Infinity || (world.ammo[world.weapon] || 0) > 0;
-  if (!hasAmmo) return;
+  world.scoped = !!weapon.scope && !p.inVehicle && !p.swimming && !!input.mouse.rightDown && !world.paused;
+  // from a car window only guns (and the water pistol) work
+  const usable = !p.inVehicle || weapon.kind === 'gun' || weapon.kind === 'water';
+  updateAim(dt, world, usable && weapon.kind !== 'melee' ? weapon.range : 0);
+
+  if (pendingSwing && world.time >= pendingSwing.at) {
+    const s = pendingSwing;
+    pendingSwing = null;
+    meleeHit(world, s.angle, s.weapon, s.key);
+  }
+
+  if (!input.mouse.down || fireTimer > 0 || !usable || !hasWeapon(world, world.weapon)) return;
 
   // aim = current facing: on foot player.js turns the body to the camera
   // heading while the mouse button is held; driving, the car's heading
-  let angle = world.player.inVehicle ? world.player.inVehicle.angle : world.player.angle;
-  if (world.weapon !== 'fists') angle = aimFireAngle(world, angle, weapon);
+  let angle = p.inVehicle ? p.inVehicle.angle : p.angle;
   fireTimer = weapon.cooldown;
 
-  if (world.weapon === 'fists') {
+  if (weapon.kind === 'melee') {
     meleeAttack(world, angle, weapon);
-  } else {
-    fireGun(world, angle, weapon);
-    world.ammo[world.weapon]--;
+    return;
   }
+  angle = aimFireAngle(world, angle, weapon);
+  if (weapon.kind === 'gun') fireGun(world, angle, weapon);
+  else if (weapon.kind === 'water') {
+    effect = { type: 'squirt', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon };
+    squirtWater(world, angle, weapon);
+  } else {
+    effect = { type: 'throw', angle, until: world.time + 0.3, start: world.time, weapon: world.weapon };
+    throwExplosive(world, world.weapon, angle, weapon, aimedTargetDistance(world));
+  }
+  world.ammo[world.weapon]--;
+}
+
+// Melee soft lock (auto-aim setting): the swing turns to the nearest person
+// in front within a little more than its reach; the camera follows halfway.
+function meleeLock(world, angle, weapon) {
+  lockedPed = null;
+  if (getSettings().autoAim === false) return angle;
+  const p = world.player;
+  const reach = weapon.range + 0.8;
+  let best = null, bestScore = Infinity;
+  for (const t of world.pedestrians) {
+    if (t.state === 'dead' || t.scripted || t.hidden) continue;
+    const dx = t.x - p.x, dy = t.y - p.y;
+    if (Math.abs(dx) > reach || Math.abs(dy) > reach) continue;
+    const d = Math.hypot(dx, dy);
+    if (d > reach || d < 0.05) continue;
+    const off = Math.abs(normalizeAngle(Math.atan2(dy, dx) - angle));
+    if (off > 1.2) continue;
+    const score = d + off * 2;
+    if (score < bestScore) { bestScore = score; best = t; }
+  }
+  lockedPed = best;
+  if (!best) return angle;
+  const a = Math.atan2(best.y - p.y, best.x - p.x);
+  if (world.camYaw != null) world.camYaw = normalizeAngle(world.camYaw + normalizeAngle(a - world.camYaw) * 0.5);
+  p.angle = a;
+  return a;
 }
 
 function meleeAttack(world, angle, weapon) {
+  angle = meleeLock(world, angle, weapon);
   punchSide = -punchSide;
-  effect = { type: 'melee', angle, until: world.time + 0.15, start: world.time, side: punchSide };
-  const targets = [...world.pedestrians, ...world.vehicles];
-  for (const t of targets) {
-    if (t.state === 'dead' || t.wrecked || t === world.player.inVehicle) continue;
-    const dx = t.x - world.player.x, dy = t.y - world.player.y;
+  effect = { type: 'melee', angle, until: world.time + 0.15, start: world.time, side: punchSide, weapon: world.weapon, swing: weapon.swing };
+  if (weapon.swing !== 'jab') weaponSound(world, { sub: 'swing', weapon: world.weapon, x: world.player.x, y: world.player.y });
+  if (weapon.windup) pendingSwing = { at: world.time + weapon.windup, angle, weapon, key: world.weapon };
+  else meleeHit(world, angle, weapon, world.weapon);
+}
+
+function weaponSound(world, ev) {
+  const q = world.audioEvents || (world.audioEvents = []);
+  if (q.length < 64) q.push({ kind: 'weapon', ...ev });
+}
+
+// What a swing connects with: people (knocked over by weapon.knock), cars
+// (fists and heavy swings only) and street props (toppled or broken).
+function meleeHit(world, angle, weapon, key) {
+  const p = world.player;
+  if (p.inVehicle) return;
+  const cone = weapon.cone || Math.PI / 3;
+  const ca = Math.cos(angle), sa = Math.sin(angle);
+  const inReach = (x, y, extra) => {
+    const dx = x - p.x, dy = y - p.y;
+    if (Math.abs(dx) > weapon.range + extra || Math.abs(dy) > weapon.range + extra) return false;
     const d = Math.hypot(dx, dy);
-    if (d > weapon.range) continue;
-    const off = Math.abs(normalizeAngle(Math.atan2(dy, dx) - angle));
-    if (off > Math.PI / 3) continue;
-    if ('radius' in t) {
-      damagePed(world, t, weapon.damage, true, Math.cos(angle), Math.sin(angle), true);
-    } else {
-      t.health -= weapon.damage * 0.4;
-      if (t.health <= 0) wreckVehicle(world, t, true);
+    if (d > weapon.range + extra) return false;
+    return d < 0.3 || Math.abs(normalizeAngle(Math.atan2(dy, dx) - angle)) <= cone;
+  };
+  let landed = null;
+  for (const t of world.pedestrians) {
+    if (t.state === 'dead' || t.scripted || !inReach(t.x, t.y, t === lockedPed ? 0.8 : 0)) continue;
+    damagePed(world, t, weapon.damage, true, ca, sa, true, weapon);
+    landed = landed || 'flesh';
+  }
+  for (const v of world.vehicles) {
+    if (v.wrecked || v.sinking || v.isBoat || !inReach(v.x, v.y, v.halfLen * 0.7)) continue;
+    if (weapon.damage >= 20 || key === 'fists') {
+      v.health -= weapon.damage * 0.4;
+      if (v.health <= 0) wreckVehicle(world, v, true);
     }
+    landed = landed || 'car';
+  }
+  if (key !== 'fists') {
+    const hx = p.x + ca * weapon.range * 0.6, hy = p.y + sa * weapon.range * 0.6;
+    for (const pr of propsInRadius(hx, hy, weapon.range * 0.6 + 0.5)) {
+      if (!inReach(pr.x, pr.y, 0.5)) continue;
+      shootProp(pr, ca, sa, true, weapon.prop || 1);
+      landed = landed || 'prop';
+    }
+  }
+  if (landed && key !== 'fists') weaponSound(world, { sub: 'hit', weapon: key, material: weapon.sound, on: landed, x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
+  if (landed === 'flesh' || landed === 'car') {
+    const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
+    kick.yaw += (Math.random() - 0.5) * 0.02 * weapon.knock;
+    kick.fov = Math.min(3, kick.fov + weapon.knock * 1.2);
   }
 }
 
 // Camera recoil per shot: pitch up (rad), sideways jitter, FOV punch (deg).
-const KICK = { pistol: [0.022, 0.008, 1.6], uzi: [0.009, 0.006, 0.6], shotgun: [0.05, 0.014, 3.5] };
+const KICK = { pistol: [0.022, 0.008, 1.6], uzi: [0.009, 0.006, 0.6], shotgun: [0.05, 0.014, 3.5], jachtgeweer: [0.075, 0.01, 2.2] };
 
 function fireGun(world, angle, weapon) {
   effect = { type: 'muzzle', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon };
@@ -175,6 +291,7 @@ export function updateBullets(dt, world) {
   }
   world.bullets = remaining;
   world.particles = world.particles.filter((p) => p.until === undefined || p.until > world.time);
+  updateThrowables(dt, world);
 }
 
 function sound(world, x, y, material, strength = 0.5) {
@@ -301,7 +418,7 @@ function vehicleImpact(world, b, h) {
   sound(world, h.x, h.y, h.glass ? 'glass' : 'metal', b.pellet ? 0.3 : 0.6);
 }
 
-function wreckVehicle(world, v, byPlayer) {
+export function wreckVehicle(world, v, byPlayer) {
   // already burning: every hit brings the explosion closer
   if (v.disabled) { v.burnLeft -= 0.7; return; }
   if (v.wrecked) return;
@@ -336,12 +453,14 @@ function hitPedestrians(world, b, x0, y0) {
   return false;
 }
 
-function damagePed(world, ped, damage, byPlayer, dx, dy, melee) {
+function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS.fists) {
   ped.health -= damage;
   if (!melee) bloodSpray(world, ped.x, ped.y, dx, dy, ped.state === 'dead' ? 0.25 : 0.45);
   if (ped.state === 'dead') return;
+  const shove = weapon.push || 2.6;
   if (ped.health > 0) {
-    if (melee && (ped.ragdoll || Math.random() < 0.4)) knockDown(ped, world, { kind: 'punch', vx: dx * 2.6, vy: dy * 2.6, lieFor: 1.2 + Math.random() });
+    if (melee && (ped.ragdoll || Math.random() < weapon.knock)) knockDown(ped, world, { kind: 'punch', vx: dx * shove, vy: dy * shove, lieFor: 0.8 + weapon.knock + Math.random() });
+    else if (melee) ped.hitReact = { t: world.time, dx, dy, k: 0.6 + weapon.knock * 0.6 };
     else if (!melee) {
       // flinch away from the shot and stumble back half a step; a heavy hit
       // sometimes floors them
@@ -353,7 +472,8 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee) {
   }
   ped.state = 'dead';
   ped.deadUntil = world.time + DEAD_DURATION;
-  knockDown(ped, world, { kind: melee ? 'punch' : 'shot', dead: true, vx: dx * (melee ? 3 : 2.4), vy: dy * (melee ? 3 : 2.4) });
+  const fling = melee ? Math.max(3, shove) : damage > 60 ? 4 : 2.4;
+  knockDown(ped, world, { kind: melee ? 'punch' : 'shot', dead: true, vx: dx * fling, vy: dy * fling });
   bleedPed(ped, world, { size: melee ? 0.7 : 1 });
   if (!byPlayer) return;
   world.stats.kills++;
@@ -382,7 +502,7 @@ function hitPlayer(world, b) {
   return true;
 }
 
-function damagePlayer(world, damage) {
+export function damagePlayer(world, damage) {
   if (world.armor > 0) {
     const absorbed = Math.min(world.armor, damage);
     world.armor -= absorbed;

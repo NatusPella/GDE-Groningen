@@ -93,7 +93,7 @@ export class Player {
     // on foot the mouse orbits the camera (world.camYaw, the horizontal
     // direction it looks in); in a vehicle scene3d.js owns the orbit
     if (!this.inVehicle && input.lookActive()) {
-      world.camYaw = normalizeAngle(world.camYaw + input.mouse.dx * MOUSE_TURN_PER_PX * getSettings().mouseSensitivity);
+      world.camYaw = normalizeAngle(world.camYaw + input.mouse.dx * MOUSE_TURN_PER_PX * getSettings().mouseSensitivity * (world.scoped ? 0.3 : 1));
     }
     tickSinkingVehicles(world);
     if (this.ragdoll) {

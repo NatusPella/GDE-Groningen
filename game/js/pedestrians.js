@@ -5,7 +5,7 @@ import { requestRespawn } from './world.js';
 import { playNpcPhrase } from './audio.js';
 import { hasBubbleVoice } from './linevoice.js';
 import { pushCircleOutOfVehicle, reportImpact, distToVehicleBody } from './vehicle.js';
-import { getCombatEffect } from './combat.js';
+import { getCombatEffect, isRangedWeapon } from './combat.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
@@ -454,9 +454,11 @@ const BLAST_RADIUS = 7;
 const BLAST_KILL = 3;
 const PLAYER_BLAST_RADIUS = 5.5;
 
-function blastAt(world, v) {
+function blastAt(world, v, scale = 1) {
   const byPlayer = !!v.wreckedByPlayer;
+  let hurt = 0;
   const push = (x, y, reach) => {
+    reach *= scale;
     const dx = x - v.x, dy = y - v.y, d = Math.hypot(dx, dy);
     if (d > reach) return null;
     const k = 1 - d / reach, nx = d > 0.01 ? dx / d : 1, ny = d > 0.01 ? dy / d : 0;
@@ -466,7 +468,7 @@ function blastAt(world, v) {
     const b = push(ped.x, ped.y, BLAST_RADIUS);
     if (!b || (ped.state === 'dead' && !ped.ragdoll)) continue;
     const wasDead = ped.state === 'dead';
-    if (!wasDead) ped.health -= b.d < BLAST_KILL ? 999 : 25 * b.k;
+    if (!wasDead) { ped.health -= b.d < BLAST_KILL * scale ? 999 : 25 * b.k; hurt++; }
     const dead = ped.health <= 0;
     releaseFromScene(ped);
     setPedPose(ped, null);
@@ -480,6 +482,10 @@ function blastAt(world, v) {
       world.stats.kills++;
       if (ped.isCop) world.stats.copKills++;
       else world.stats.pedKills++;
+      if (v.reportKills) {
+        if (ped.isCop) world.wanted = Math.min(5, world.wanted + 2);
+        else reportCrime(world, 'pedKill');
+      }
     }
   }
   const p = world.player;
@@ -498,6 +504,35 @@ function blastAt(world, v) {
     if (c.health <= 0) { c.state = 'dead'; c.deadUntil = world.time + 5; }
     knockDown(c, world, { kind: 'blast', dead: c.health <= 0, vx: bc.vx, vy: bc.vy, vz: bc.vz });
   }
+  return hurt;
+}
+
+// A thrown carbidbus or a firework rocket going off (throwables.js): people
+// thrown about like by a car blast, everyone around startled. The bang alone
+// is Groningen tradition, not a crime; hurting someone is.
+export function blastPeople(world, x, y, scale = 1, byPlayer = true) {
+  const hurt = blastAt(world, { x, y, wreckedByPlayer: byPlayer, driver: null, reportKills: true }, scale);
+  pendingEvents.push({ kind: 'boom', x, y, r: 20 + 35 * scale, crime: byPlayer && hurt > 0 });
+  return hurt;
+}
+
+const SOAK_LINES = ['Hé! Kletsnat!', 'Mien jas!', 'Bist mal?', 'Hou op, joh!', 'Het regent al genoeg in Grunn!', 'Nait spuiten!'];
+const COP_SOAK_LINES = ['Dat is belediging van een ambtenaar!', 'Hé! Wapen neer!', 'Dat gaat je geld kosten!'];
+
+// Hit by the water pistol: no damage, but a shriek and a run for it; a cop
+// takes it personally.
+export function soakPed(ped, world, fromX, fromY) {
+  if (ped.state === 'dead' || ped.scripted) return;
+  const again = world.time - (ped._soakedAt ?? -Infinity) < 2.5;
+  ped._soakedAt = world.time;
+  if (again) return;
+  if (ped.isCop) {
+    say(ped, world, pick(COP_SOAK_LINES), 2.2, 'shout', 0.8);
+    reportCrime(world, 'copBump', { seen: true });
+    return;
+  }
+  say(ped, world, pick(Math.random() < 0.4 ? SCREAMS : SOAK_LINES), 2, 'shout', 0.8);
+  startFlee(ped, world, fromX, fromY);
 }
 
 const RIDER_CLOSING = 3.5;
@@ -948,7 +983,7 @@ function updateCop(ped, world, dPlayer, dt) {
 export function updatePedestrians(dt, world) {
   const { map, player } = world;
   const peds = world.pedestrians;
-  const aiming = world.weapon !== 'fists' && world.input.mouse.down;
+  const aiming = isRangedWeapon(world.weapon) && world.input.mouse.down;
 
   const events = gatherEvents(world);
   if (pendingEvents.length) events.push(...pendingEvents.splice(0));

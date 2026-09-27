@@ -653,12 +653,12 @@ function playPedSting(out) {
 // Sampled shot (sfx/dsp.js) with a sine sub-thump for weight and the
 // street's slap-back; the old synthesized version stays as the fallback
 // while the samples are still being rendered.
-const GUN_BUF = { pistol: ['gun_pistol_', 3, 0.85], uzi: ['gun_uzi_', 3, 0.6], shotgun: ['gun_shotgun_', 2, 0.95] };
+const GUN_BUF = { pistol: ['gun_pistol_', 3, 0.85], uzi: ['gun_uzi_', 3, 0.6], shotgun: ['gun_shotgun_', 2, 0.95], jachtgeweer: ['gun_shotgun_', 2, 1] };
 function playGunshot(x, y, weapon, close = false) {
   const out = spatialOut(x, y, { ref: 8, rolloff: 0.8, prio: close ? 2 : 1 });
   if (!out) return;
   const [pre, n, gain] = GUN_BUF[weapon] || GUN_BUF.pistol;
-  const r = 0.94 + Math.random() * 0.12;
+  const r = (0.94 + Math.random() * 0.12) * (weapon === 'jachtgeweer' ? 0.72 : 1);
   if (playBuf(pre + Math.floor(Math.random() * n), { out, gain, rate: r, prio: close ? 2 : 1 })) {
     playTone({ freq: weapon === 'shotgun' ? 72 : 96, freqEnd: 36, type: 'sine', duration: weapon === 'shotgun' ? 0.3 : 0.16, gain: weapon === 'uzi' ? 0.22 : 0.4, out, prio: close ? 2 : 1 });
     if (weapon !== 'uzi' || Math.random() < 0.3) playBuf('gun_echo', { out, gain: weapon === 'shotgun' ? 0.3 : 0.2, rate: r, delay: 0.03, lp: 2600 });
@@ -701,6 +701,80 @@ function playExplosion(x, y) {
   playNoiseBurst({ duration: 1.7, freq: 500, freqEnd: 60, q: 0.6, gain: 0.25, type: 'lowpass', delay: 0.2, out, prio: 2 });
   playBuf('glass', { out, gain: 0.2, rate: 0.8, delay: 0.03 });
   for (let i = 0; i < 5; i++) playBuf('prop_metal', { out, gain: 0.05, rate: 0.6 + Math.random() * 0.8, delay: 0.5 + Math.random() * 1.4 });
+}
+
+// The odd weapons (combat.js / throwables.js): swings, what they hit, the
+// water pistol, the carbidbus (fuse hiss, then the deep Hogeland boom) and
+// firework rockets (whistle, crack and crackle). e = { sub, weapon, material }.
+function playWeaponSfx(e, x, y) {
+  const r = 0.92 + Math.random() * 0.16;
+  switch (e.sub) {
+    case 'swing': {
+      const out = spatialOut(x, y, { ref: 3, rolloff: 1.3, range: 40 });
+      if (!out) return;
+      const slow = e.weapon === 'polsstok' ? 0.55 : e.weapon === 'bezem' ? 1.4 : 1;
+      playNoiseBurst({ duration: 0.16 / slow, freq: 900 * slow * r, freqEnd: 300, q: 0.9, gain: 0.08, type: 'bandpass', out });
+      break;
+    }
+    case 'hit': {
+      const out = spatialOut(x, y, { ref: 4, rolloff: 1.1, range: 60 });
+      if (!out) return;
+      const m = e.material;
+      if (m === 'metal') {
+        playTone({ freq: 1350 * r, freqEnd: 1250 * r, type: 'triangle', duration: 0.22, gain: 0.07, out });
+        playTone({ freq: 2210 * r, freqEnd: 2100 * r, type: 'sine', duration: 0.16, gain: 0.04, out });
+        playBuf('punch', { out, gain: 0.25, rate: 1.2 * r });
+      } else if (m === 'broom') {
+        playNoiseBurst({ duration: 0.18, freq: 4200, freqEnd: 2200, q: 0.6, gain: 0.12, type: 'highpass', out });
+      } else {
+        // the hollow "tok" of wood: a bat, a pole, the klomp even lower
+        const f = m === 'klomp' ? 380 : 520;
+        playTone({ freq: f * r, freqEnd: f * 0.7 * r, type: 'triangle', duration: 0.09, gain: 0.2, out });
+        playNoiseBurst({ duration: 0.05, freq: 1600, freqEnd: 700, q: 1.2, gain: 0.12, out });
+        playBuf('punch', { out, gain: 0.3, rate: 0.85 * r });
+      }
+      break;
+    }
+    case 'squirt': {
+      const out = spatialOut(x, y, { ref: 2, rolloff: 1.4, range: 25 });
+      if (out) playNoiseBurst({ duration: 0.09, freq: 3000 * r, freqEnd: 1800, q: 1.4, gain: 0.05, type: 'bandpass', out });
+      break;
+    }
+    case 'fuse': {
+      const out = spatialOut(x, y, { ref: 3, rolloff: 1.2, range: 40 });
+      if (!out) return;
+      for (let i = 0; i < 4; i++) playNoiseBurst({ duration: 0.55, freq: 5200, freqEnd: 4600, q: 0.7, gain: 0.05, type: 'highpass', delay: 0.2 + i * 0.5, out });
+      break;
+    }
+    case 'carbid': {
+      const out = spatialOut(x, y, { ref: 14, rolloff: 0.6, prio: 2 });
+      if (!out) return;
+      duckAmbience(0.85, 2);
+      playTone({ freq: 70, freqEnd: 22, type: 'sine', duration: 1.3, gain: 0.7, out, prio: 2 });
+      playNoiseBurst({ duration: 1.4, freq: 1100, freqEnd: 50, q: 0.5, gain: 0.9, type: 'lowpass', out, prio: 2 });
+      playBuf('gun_echo', { out, gain: 0.5, rate: 0.5, delay: 0.08, lp: 1400 });
+      playBuf('gun_echo', { out, gain: 0.3, rate: 0.45, delay: 0.5, lp: 900 });
+      if (e.water) playBuf('step_wet_0', { out, gain: 0.5, rate: 0.5, delay: 0.1 });
+      break;
+    }
+    case 'launch': {
+      const out = spatialOut(x, y, { ref: 4, rolloff: 1, range: 90 });
+      if (!out) return;
+      playNoiseBurst({ duration: 0.25, freq: 900, freqEnd: 2500, q: 0.8, gain: 0.18, out });
+      playTone({ freq: 1400 * r, freqEnd: 3200 * r, type: 'sine', duration: 1.2, gain: 0.04, delay: 0.1, out });
+      break;
+    }
+    case 'burst': {
+      const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, range: 250 });
+      if (!out) return;
+      playNoiseBurst({ duration: 0.5, freq: 1800, freqEnd: 120, q: 0.6, gain: 0.55, type: 'lowpass', out });
+      playTone({ freq: 110, freqEnd: 40, type: 'sine', duration: 0.4, gain: 0.3, out });
+      for (let i = 0; i < 9; i++) playNoiseBurst({ duration: 0.03, freq: 3500 + Math.random() * 2500, q: 2, gain: 0.07, type: 'bandpass', delay: 0.25 + Math.random() * 0.9, out });
+      break;
+    }
+    default:
+      break;
+  }
 }
 
 // Layered by strength: body thud, crunch, an inharmonic panel ring, and for
@@ -2243,6 +2317,7 @@ function playAudioEvents(world) {
       case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4); break;
       case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'hiccup': playHiccup(x, y, !!e.female); break;
+      case 'weapon': playWeaponSfx(e, x, y); break;
       case 'giggle': playGiggle(x, y, !!e.female); break;
       case 'door_open': playDoor(x, y, true); doorDelay = 0.3; break;
       case 'door_close': playDoor(x, y, false); break;

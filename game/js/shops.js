@@ -50,6 +50,16 @@ export const WEAPON_STOCK = [
   { key: 'pistol', label: 'Pistool "Klapperman"', desc: 'Betrouwbaar, handzaam, luid genoeg', gun: 120, ammoPrice: 25, ammo: 36, cap: 250 },
   { key: 'uzi', label: 'Uzi "Ratelaar"', desc: 'Veel lood, weinig precisie', gun: 300, ammoPrice: 40, ammo: 90, cap: 600 },
   { key: 'shotgun', label: 'Hagelgeweer "Boerenbuks"', desc: 'Van de boer uit Ten Boer. Dichtbij: weg is weg', gun: 400, ammoPrice: 35, ammo: 12, cap: 80 },
+  { key: 'jachtgeweer', label: 'Jachtgeweer "Hogelandse Havik"', desc: 'Met kijker: rechtermuisknop vasthouden. Van ver, één keer raak', gun: 650, ammoPrice: 40, ammo: 10, cap: 60 },
+  { key: 'waterpistool', label: 'Waterpistool "Spetter"', desc: 'Doet geen pijn, maar niemand wil nat worden. Blust ook een brandende bak', gun: 25, ammoPrice: 5, ammo: 150, cap: 600, unit: 'water' },
+  { key: 'carbidbus', label: 'Carbidbus "Oudjoar"', desc: 'Melkbus met carbid, zoals op het Hogeland met oud en nieuw. Gooien, of bukken en neerzetten', gun: 90, ammoPrice: 30, ammo: 3, cap: 15, unit: 'bussen' },
+  { key: 'vuurwerk', label: 'Vuurwerkpijlen "Sterrenregen"', desc: 'Het hele jaar oud en nieuw. Fluit, knalt en spat', gun: 60, ammoPrice: 25, ammo: 6, cap: 40, unit: 'pijlen' },
+  { key: 'knuppel', label: 'Honkbalknuppel "Stadjer Slugger"', desc: 'Essenhout. Zwaai, tok, klaar', gun: 60, melee: true },
+  { key: 'hockeystick', label: 'Hockeystick "Helpman"', desc: 'Haakt benen weg, mensen gaan plat', gun: 45, melee: true },
+  { key: 'bezem', label: 'Bezem "Zaterdagochtend"', desc: 'Stoep vegen of mensen wegvegen. Doet weinig pijn, duwt lekker', gun: 15, melee: true },
+  { key: 'fietspomp', label: 'Fietspomp "Tegenwind"', desc: 'Snel en venijnig. Elke Stadjer heeft er een', gun: 20, melee: true },
+  { key: 'klomp', label: 'Klomp "Friese Wink"', desc: 'Meegenomen van over de grens. Hard hout, harde les', gun: 25, melee: true },
+  { key: 'polsstok', label: 'Polsstok "Fierljepper"', desc: 'Lang en traag, maar je houdt ze op drie meter', gun: 90, melee: true },
 ];
 
 export const OUTFITS = {
@@ -736,9 +746,9 @@ function pandSections(world, shop) {
   for (const w of WEAPON_STOCK) {
     const n = world.ammo[w.key] || 0;
     if (n <= 0) continue;
-    const income = Math.round(w.gun * 0.3 + n * 0.4);
+    const income = Math.round(w.melee ? w.gun * 0.4 : w.gun * 0.3 + n * 0.4);
     sell.push({
-      id: 's-' + w.key, label: `${w.label.split(' ')[0]} verkopen`, desc: `Met ${n} patronen, geen vragen`, price: 0, income,
+      id: 's-' + w.key, label: `${w.label.split(' ')[0]} verkopen`, desc: w.melee ? 'Nauwelijks gebruikt, zegt de verkoper' : `Met ${n} ${w.unit || 'patronen'}, geen vragen`, price: 0, income,
       buy() {
         world.ammo[w.key] = 0;
         if (world.weapon === w.key) world.weapon = 'fists';
@@ -849,26 +859,44 @@ function rentBoat(world, shop, r) {
   return v;
 }
 
-function weaponSections(world) {
-  const guns = WEAPON_STOCK.map((w) => {
-    const have = world.ammo[w.key] || 0;
-    const owned = have > 0;
-    const price = owned ? w.ammoPrice : w.gun;
-    const full = have >= w.cap;
+function weaponItem(world, w) {
+  const have = world.ammo[w.key] || 0;
+  const owned = have > 0;
+  if (w.melee) {
     return {
-      id: 'w-' + w.key,
-      label: owned ? `${w.label.split(' ')[0]}-patronen` : w.label,
-      desc: owned ? `+${w.ammo} patronen · nu ${have}` : `${w.desc} · met ${w.ammo} patronen`,
-      price,
-      disabled: full ? 'Zak zit vol' : broke(world, price),
+      id: 'w-' + w.key, label: w.label, desc: w.desc, price: owned ? 0 : w.gun, tag: owned ? 'In bezit' : '',
+      disabled: owned ? 'Heb je al' : broke(world, w.gun),
       buy() {
-        if (!pay(world, price)) return null;
-        world.ammo[w.key] = Math.min(w.cap, have + w.ammo);
-        if (world.weapon === 'fists' || !(world.ammo[world.weapon] > 0)) world.weapon = w.key;
-        return owned ? `${w.ammo} patronen erbij` : `${w.label} gekocht. Voorzichtig ermee, jong`;
+        if (!pay(world, w.gun)) return null;
+        world.ammo[w.key] = 1;
+        if (world.weapon === 'fists') world.weapon = w.key;
+        return `${w.label} gekocht. Toets 1 om te wisselen`;
       },
     };
-  });
+  }
+  const unit = w.unit || 'patronen';
+  const price = owned ? w.ammoPrice : w.gun;
+  return {
+    id: 'w-' + w.key,
+    label: owned ? `${w.label.split(' ')[0]}: ${unit} erbij` : w.label,
+    desc: owned ? `+${w.ammo} ${unit} · nu ${have}` : `${w.desc} · met ${w.ammo} ${unit}`,
+    price,
+    disabled: have >= w.cap ? 'Zak zit vol' : broke(world, price),
+    buy() {
+      if (!pay(world, price)) return null;
+      world.ammo[w.key] = Math.min(w.cap, have + w.ammo);
+      if (world.weapon === 'fists' || !(world.ammo[world.weapon] > 0)) world.weapon = w.key;
+      return owned ? `${w.ammo} ${unit} erbij` : `${w.label} gekocht. Voorzichtig ermee, jong`;
+    },
+  };
+}
+
+const KNALLERS = new Set(['carbidbus', 'vuurwerk', 'waterpistool']);
+
+function weaponSections(world) {
+  const guns = WEAPON_STOCK.filter((w) => !w.melee && !KNALLERS.has(w.key)).map((w) => weaponItem(world, w));
+  const knallers = WEAPON_STOCK.filter((w) => KNALLERS.has(w.key)).map((w) => weaponItem(world, w));
+  const melee = WEAPON_STOCK.filter((w) => w.melee).map((w) => weaponItem(world, w));
   const vest = (amount, price, label, desc) => ({
     id: 'armor-' + amount, label, desc: `${desc} · pantser nu ${Math.round(world.armor)}`, price,
     disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, price),
@@ -880,6 +908,8 @@ function weaponSections(world) {
   });
   return [
     { title: 'Wapens & munitie', items: guns },
+    { title: 'Knallers & spetters', note: 'Toets 4 voor bus en pijlen, 2 voor het waterpistool', items: knallers },
+    { title: 'Slag- en stootwerk', note: 'Toets 1 wisselt tussen vuisten en wat je hebt', items: melee },
     { title: 'Bescherming', items: [vest(50, 50, 'Bodywarmer met plaatjes', '+50 pantser'), vest(100, 90, 'Kogelwerend vest', 'Volle bescherming')] },
   ];
 }
