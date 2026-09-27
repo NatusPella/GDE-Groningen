@@ -1,8 +1,10 @@
 import {
   BLOCK, PW, PL, ROAD_IN, ROAD_W, MAIN_HW, MAAR_WATER,
   chash, countryRect, countryMask, edgeDistance, edgeRoad, maarX, maarY, villageOf, ditchRamp,
+  realBlock, urbanWeight,
 } from './countryfield.js';
 import { EDGE } from './countryedge.js';
+import { REAL, RTILE, buildingsInTile, buildingModel, realPlaceLabels } from './countryreal.js';
 import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, turbineRow, turbineValid, isPlanned, pylonsAround, ROAD_ROW, TREE_ROW_P } from './countryplan.js';
 
 // The Ommelanden on the 2D maps (minimap and full map), drawn from the same
@@ -29,6 +31,97 @@ export const MINI_STYLE = {
 };
 
 const C = ROAD_IN + ROAD_W / 2;
+
+// The real water (countryreal.js distance field) as an image per colour.
+const waterCache = new Map();
+function realWaterImage(color) {
+  const zone = REAL.ready && REAL.waterField;
+  if (!zone) return null;
+  let c = waterCache.get(color);
+  if (c) return c;
+  const W = zone;
+  c = document.createElement('canvas');
+  c.width = W.w; c.height = W.h;
+  const g = c.getContext('2d');
+  const img = g.createImageData(W.w, W.h);
+  const col = parseInt(color.slice(1), 16);
+  for (let k = 0; k < W.w * W.h; k++) {
+    const d = (W.data[k] - 128) / 4;
+    if (d < -8) continue;
+    const t = Math.min(1, Math.max(0, (d + 5) / 10));
+    img.data[k * 4] = col >> 16; img.data[k * 4 + 1] = (col >> 8) & 255; img.data[k * 4 + 2] = col & 255;
+    img.data[k * 4 + 3] = Math.round(255 * t);
+  }
+  g.putImageData(img, 0, 0);
+  waterCache.set(color, c);
+  return c;
+}
+
+// Real roads, water, rails and buildings in the window.
+const ROAD_ORDER = [7, 6, 5, 2, 4, 3, 1];
+function drawReal(ctx, x0, y0, x1, y1, pxPerM, st) {
+  if (!REAL.ready) return;
+  const E = REAL.ext;
+  if (x1 < E[0] || x0 > E[2] || y1 < E[1] || y0 > E[3]) return;
+  const px = (n) => n / pxPerM;
+  const img = realWaterImage(st.water);
+  if (img) {
+    const W = REAL.waterField;
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(img, W.x0, W.y0, W.w * W.cell, W.h * W.cell);
+    ctx.restore();
+  }
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = st.water;
+  for (const w of REAL.waterways) {
+    if (!w.box) w.box = boxOf(w.pts, w.hw);
+    if (w.box[2] < x0 || w.box[0] > x1 || w.box[3] < y0 || w.box[1] > y1) continue;
+    ctx.lineWidth = Math.max(px(1), w.hw * 2);
+    line(ctx, w.pts);
+  }
+  if (pxPerM > 0.2) {
+    ctx.fillStyle = st.building;
+    for (let tx = Math.floor(x0 / RTILE); tx <= Math.floor(x1 / RTILE); tx++) {
+      for (let ty = Math.floor(y0 / RTILE); ty <= Math.floor(y1 / RTILE); ty++) {
+        const L = buildingsInTile(tx, ty);
+        if (!L) continue;
+        for (const i of L) {
+          if (pxPerM < 0.5 && REAL.bw[i] * REAL.bl[i] < 60) continue;
+          rotRect(ctx, REAL.bx[i], REAL.by[i], REAL.bw[i], REAL.bl[i], REAL.ba[i]);
+        }
+      }
+    }
+  }
+  for (const k of ROAD_ORDER) {
+    if (k === 7 && pxPerM < 0.12) continue;
+    const major = k <= 4;
+    ctx.strokeStyle = major ? st.major : k >= 6 ? st.minor : st.road;
+    for (const r of REAL.roads) {
+      if (r.kind !== k) continue;
+      if (!r.box) r.box = boxOf(r.pts, r.w);
+      if (r.box[2] < x0 || r.box[0] > x1 || r.box[3] < y0 || r.box[1] > y1) continue;
+      ctx.lineWidth = Math.max(px(major ? st.majorMin : st.roadMin * (k === 7 ? 0.7 : 1)), r.w);
+      line(ctx, r.pts);
+    }
+  }
+  ctx.fillStyle = st.church;
+  for (const c of REAL.churches) if (c.x > x0 && c.x < x1 && c.y > y0 && c.y < y1) ctx.fillRect(c.x - 11, c.y - 5, 22, 10);
+  ctx.restore();
+}
+function boxOf(P, m) {
+  let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+  for (const [x, y] of P) { a = Math.min(a, x); b = Math.min(b, y); c = Math.max(c, x); d = Math.max(d, y); }
+  return [a - m, b - m, c + m, d + m];
+}
+function line(ctx, P) {
+  ctx.beginPath();
+  ctx.moveTo(P[0][0], P[0][1]);
+  for (let i = 1; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
+  ctx.stroke();
+}
 
 // Meadow wherever the real data ends (the coverage mask, feathered like
 // the ground shader), plain meadow beyond the mask grid. Draw before the
@@ -81,8 +174,9 @@ export function drawCountryBase(ctx, x0, y0, x1, y1, st) {
 export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   // never loop over more than the countryside anyone can reach
   const rr = countryRect(), LIM = 7000;
-  x0 = Math.max(x0, rr.cx - rr.hx - LIM); y0 = Math.max(y0, rr.cy - rr.hy - LIM);
-  x1 = Math.min(x1, rr.cx + rr.hx + LIM); y1 = Math.min(y1, rr.cy + rr.hy + LIM);
+  const E = REAL.ready ? REAL.ext : [Infinity, Infinity, -Infinity, -Infinity];
+  x0 = Math.max(x0, Math.min(E[0], rr.cx - rr.hx - LIM)); y0 = Math.max(y0, Math.min(E[1], rr.cy - rr.hy - LIM));
+  x1 = Math.min(x1, Math.max(E[2], rr.cx + rr.hx + LIM)); y1 = Math.min(y1, Math.max(E[3], rr.cy + rr.hy + LIM));
   if (x0 >= x1 || y0 >= y1) return;
   // nothing to draw when the whole window lies deep inside the real data
   let outside = false;
@@ -98,12 +192,14 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
     ctx.lineTo(bx, by);
   };
   // long grid lines in pieces, only out in the country
-  const segOut = (ax, ay, bx, by, step = 120) => {
+  const segOut = (ax, ay, bx, by, step = 120, notReal = false) => {
     const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
     for (let i = 0; i < n; i++) {
       const t0 = i / n, t1 = (i + 1) / n;
       const qx = ax + (bx - ax) * t0, qy = ay + (by - ay) * t0, rx = ax + (bx - ax) * t1, ry = ay + (by - ay) * t1;
-      if (edgeDistance((qx + rx) / 2, (qy + ry) / 2) < 5) continue;
+      const mx = (qx + rx) / 2, my = (qy + ry) / 2;
+      if (edgeDistance(mx, my) < 5) continue;
+      if (REAL.ready && (notReal ? realBlock(Math.floor(mx / BLOCK), Math.floor(my / BLOCK)) : urbanWeight(mx, my) > 0.5)) continue;
       seg(qx, qy, rx, ry);
     }
   };
@@ -122,7 +218,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
           const hS = chash(col + bx * 131 + 5, by * 977 + 61);
           for (let b = 0; b < BLOCK; b += 80) {
             const [mx, my] = W(col * PW, b + 40);
-            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0) continue;
+            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || urbanWeight(mx, my) > 0.5) continue;
             const [ax, ay] = W(col * PW, b), [cx, cy] = W(col * PW, b + 80);
             seg(ax, ay, cx, cy);
           }
@@ -132,7 +228,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
             const b = row * PL - off;
             if (b <= 0) continue;
             const [mx, my] = W(c0 * PW + PW / 2, b);
-            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0) continue;
+            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || urbanWeight(mx, my) > 0.5) continue;
             const [ax, ay] = W(c0 * PW, b), [cx, cy] = W(col * PW, b);
             seg(ax, ay, cx, cy);
           }
@@ -155,8 +251,8 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   ctx.strokeStyle = st.water;
   ctx.lineWidth = Math.max(px(1.6), MAAR_WATER * 2);
   ctx.beginPath();
-  for (let bx = bx0; bx <= bx1 + 1; bx++) if (maarX(bx)) segOut(bx * BLOCK, y0, bx * BLOCK, y1);
-  for (let by = by0; by <= by1 + 1; by++) if (maarY(by)) segOut(x0, by * BLOCK, x1, by * BLOCK);
+  for (let bx = bx0; bx <= bx1 + 1; bx++) if (maarX(bx)) segOut(bx * BLOCK, y0, bx * BLOCK, y1, 120, true);
+  for (let by = by0; by <= by1 + 1; by++) if (maarY(by)) segOut(x0, by * BLOCK, x1, by * BLOCK, 120, true);
   ctx.stroke();
   ctx.globalAlpha = 1;
 
@@ -224,6 +320,8 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   }
   ctx.stroke();
   ctx.restore();
+
+  drawReal(ctx, x0, y0, x1, y1, pxPerM, st);
 
   // rail lines leaving the map (the city layer draws the part inside)
   ctx.save();
@@ -334,8 +432,13 @@ function rotRect(ctx, x, y, w, h, angle) {
 }
 
 // Village names for map labels in a window: [{ name, x, y }].
+const PLACE_RANK = { town: 0, village: 1, suburb: 2, hamlet: 3, quarter: 4 };
 export function villageLabels(x0, y0, x1, y1) {
-  const out = [];
+  const out = realPlaceLabels(x0, y0, x1, y1).sort((a, b) => PLACE_RANK[a.kind] - PLACE_RANK[b.kind]);
+  // procedural villages only as far out as anyone can reach
+  const rr = countryRect(), LIM = 16000;
+  x0 = Math.max(x0, rr.cx - LIM); y0 = Math.max(y0, rr.cy - LIM);
+  x1 = Math.min(x1, rr.cx + LIM); y1 = Math.min(y1, rr.cy + LIM);
   for (let bx = Math.floor(x0 / BLOCK) - 1; bx <= Math.floor(x1 / BLOCK); bx++) {
     for (let by = Math.floor(y0 / BLOCK); by <= Math.floor(y1 / BLOCK); by++) {
       const v = villageOf(bx, by);
