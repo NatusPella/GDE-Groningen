@@ -9,8 +9,10 @@ import { playCinematic } from './cinematics.js';
 import { roofAt, clearKeys, pathShot } from './camerapath.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { dualHtml } from './subtitles.js';
+import { speakerHtml } from './speakers.js';
 import { JELLE_LOOK, pompebledTexture } from './fierljep.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene } from './audio.js';
+import { buildRadioStudio } from './radiostudio.js';
 import { setThemeDuck, cueTheme } from './theme.js';
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
@@ -148,10 +150,10 @@ function setSub(line) {
   ui.subKey = key;
   // a new line starts its recording; clearing the subtitle lets it finish.
   // The theme dips under the voices and swells between them.
-  if (line && line.voice) playStoryVoice(line.voice);
+  if (line && line.voice) playStoryVoice(line.voice, { radio: !!line.radio });
   setThemeDuck(!!line);
   ui.sub.classList.toggle('on', !!line);
-  if (line) ui.sub.innerHTML = (line.who && line.who !== NARRATOR ? `<b>${line.who}:</b>` : '') + dualHtml(line.text);
+  if (line) ui.sub.innerHTML = speakerHtml(line.who) + dualHtml(line.text);
 }
 
 function clockText(h) {
@@ -761,6 +763,17 @@ function buildShots(w) {
     }]],
   };
 
+  // Rikus at the Nachtstreek mic: the one telling this story (studio above the museum)
+  const onAir = {
+    minDur: 5.2, focus: museum, lead: 0.5, radio: true,
+    caption: ['RADIO NACHTSTREEK', 'Rikus, nacht-dj en jeugdvriend van Tammo.'],
+    lines: [['V', 'Moi, hier is Rikus, op Nachtstreek. Luister. Ik vertel je hoe het zat met die twee.', 'warm, droog, als nacht-dj op de radio']],
+    enter(r, s) { s.st = buildRadioStudio(museum.x, museum.y + 40); r.group.add(s.st.group); },
+    exit(r, s) { if (s.st) { s.st.dispose(); s.st = null; } },
+    tick(r, s, t) { if (s.st) s.st.tick(t, t > 0.5); },
+    cams: [[0, (u, t, s) => ({ ...s.st.shot(0)(u), cut: true })]],
+  };
+
   // museum: across the water at the golden tower, then the case itself
   const mAng = Math.atan2(square.y - museum.y, square.x - museum.x);
   const museumShot = {
@@ -1017,10 +1030,10 @@ function buildShots(w) {
     cams: [[0, (u, t, s) => ({ ...s.shot(u), cut: true })]],
   };
 
-  return [dawn, museumShot, card1, dream, jelleShot, heist, glimpse, card2, hook, card3, swoop];
+  return [dawn, onAir, museumShot, card1, dream, jelleShot, heist, glimpse, card2, hook, card3, swoop];
 }
 
-// Speaker keys: T, A, V (the Verteller), jelle.
+// Speaker keys: T, A, V (Rikus, the narrator), jelle.
 const WHO = { T: 'Tammo', A: 'Anita', V: NARRATOR, jelle: 'Jelle Terpstra' };
 
 function voiceOf(who, text) {
@@ -1041,7 +1054,7 @@ function timeShots(shots) {
     s.timed = (s.lines || []).map(([k, text]) => {
       const who = WHO[k] || k;
       const v = voiceOf(who, text);
-      const l = { who, text, at: t, dur: v ? v.dur + 0.2 : readDur(text), voice: v && v.src };
+      const l = { who, text, at: t, dur: v ? v.dur + 0.2 : readDur(text), voice: v && v.src, radio: !!s.radio };
       t = l.at + l.dur + 0.12;
       return l;
     });

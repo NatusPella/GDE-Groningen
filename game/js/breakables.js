@@ -225,7 +225,7 @@ function collideVehicle(v, prev, near) {
   const boat = !!v.isBoat;
   const vz = v.z || 0;
   for (const p of near) {
-    if (!p.cell || !!p.water !== boat || Math.abs(vz - (p.z || 0)) > 3) continue;
+    if (!p.cell || !!p.water !== boat || Math.abs(vz - (p.z || 0)) > 3 || (p.top != null && vz > p.top - 0.3)) continue;
     for (let i = 1; i <= n; i++) {
       const t = i / n;
       const x = prev.x + (v.x - prev.x) * t, y = prev.y + (v.y - prev.y) * t;
@@ -832,7 +832,7 @@ const _walk = [];
 // opts: { kick = true, byPlayer = false, skipSeats = false, ped = false }
 // hop: how high the walker's feet are off the ground (a jump); props lower
 // than that are cleared.
-export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null, hop = 0) {
+export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null, hop = 0, z = 0) {
   if (!grid.size) return [x, y];
   const near = propsNear(x, y, radius + 2, _walk);
   if (!near.length) return [x, y];
@@ -841,6 +841,7 @@ export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null, ho
   for (const p of near) {
     if (!p.cell || (opts && ((opts.skipSeats && SEAT_KINDS.has(p.kind)) || (opts.ped && PED_PASSABLE.has(p.kind))))) continue;
     if (hop > 0 && hop > (p.h || 1) - HOP_MARGIN) continue;
+    if (p.top != null && z > p.top - 0.3) continue;
     const c = closestPointOnSegment(x, y, p.x - p.hx, p.y - p.hy, p.x + p.hx, p.y + p.hy);
     const rr = p.r + radius;
     if (c.dist2 >= rr * rr) continue;
@@ -931,8 +932,10 @@ const _ahead = [];
 
 // Fixed scenery that only needs a collider (canopy posts, viaduct piers):
 // registered once, never broken. `water` props only meet boats and swimmers.
-export function addStaticCollider(kind, x, y, r, half = 0, angle = 0, water = false) {
-  const p = makeProp(kind, x, y, { r, half, angle, h: 4, mass: 1e5, material: 'metal', breakSpeed: Infinity, breakCost: 0, water, key: propKey(kind, x, y) });
+// `top`: the collider ends at that height (a viaduct pier under the deck:
+// whoever is up on the deck walks and drives over it).
+export function addStaticCollider(kind, x, y, r, half = 0, angle = 0, water = false, top = null) {
+  const p = makeProp(kind, x, y, { r, half, angle, h: top !== null ? top : 4, top, mass: 1e5, material: 'metal', breakSpeed: Infinity, breakCost: 0, water, key: propKey(kind, x, y) });
   addProp(p);
   return p;
 }

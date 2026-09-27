@@ -298,7 +298,8 @@ function placeAtPoi(map, poi, horeca, taken) {
   for (const off of [0, 4, -4, 8, -8]) {
     const f = { ...f0, x: f0.x + f0.tx * off, y: f0.y + f0.ty * off };
     const [dx, dy] = map.escapeBuilding(f.x + f.nx * 1.3, f.y + f.ny * 1.3, 0.8);
-    if (isInWater(map, dx, dy) || !doorClear(dx, dy, horeca, taken)) continue;
+    // a door onto a closed-off courtyard is no door
+    if (isInWater(map, dx, dy) || !doorClear(dx, dy, horeca, taken) || !map.canWalkOut(dx, dy, 30)) continue;
     return { x: dx, y: dy, face: f, street: (st && st.road.name) || '' };
   }
   return null;

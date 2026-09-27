@@ -255,6 +255,15 @@ function roadSamples(roads, cx0, cy0, cats, spacing, rng, fn) {
   }
 }
 
+// The solid props one clutter cell would place, without building it
+// (spotcheck.js probes the race lap with them).
+export function cellPropSpots(map, gx, gy) {
+  if (!protos) return [];
+  const c = generateCell(map, gx, gy);
+  return [...c.items, ...c.market].filter((it) => it.prop).map((it) => ({ ...it.prop, angle: it.prop.axis }));
+}
+export const CLUTTER_CELL = CELL;
+
 function generateCell(map, cx, cy) {
   const rng = new SeededRng(hash(cx, cy));
   const cx0 = cx * CELL, cy0 = cy * CELL;

@@ -1,4 +1,5 @@
 import { setDualText } from './subtitles.js';
+import { paintSpeaker } from './speakers.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
@@ -170,7 +171,7 @@ export function skipCinematic() {
 }
 
 // Subtitles without their own recording get one from the lines manifest
-// (narration without a speaker is the Verteller). Voiced lines then stay up
+// (narration without a speaker is Rikus, the narrator). Voiced lines then stay up
 // until their recording has finished, pushing the rest (and the scene) later.
 function attachVoices(a) {
   if (!a.lines || !a.lines.length) return;
@@ -278,10 +279,10 @@ function updateSubtitles() {
   els.lineIndex = idx;
   const l = lines[idx];
   els.root.classList.toggle('has-sub', !!l);
-  els.speaker.textContent = l && l.speaker ? l.speaker + ':' : '';
+  paintSpeaker(els.speaker, l && l.speaker);
   setDualText(els.line, l ? l.text : '');
   els.root.classList.toggle('sub-clue', !!(l && l.clue));
-  if (l && l.voice) playStoryVoice(l.voice);
+  if (l && l.voice) playStoryVoice(l.voice, { radio: !!l.radio });
 }
 
 export function updateCinematics(dt, w) {

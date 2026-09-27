@@ -4,6 +4,7 @@ import { Pass, FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { getSettings } from './settings.js';
+import { drunkVisual } from './drunk.js';
 
 // Post chain per quality preset: 'laag' renders straight to the screen
 // (through an MSAA target + output pass when the canvas has no native AA),
@@ -25,6 +26,8 @@ const GradeShader = {
     uAspect: { value: 1 },
     uBright: { value: 1 },
     uLook: { value: 0 },
+    uDrunk: { value: 0 },
+    uTime: { value: 0 },
     toneMappingExposure: { value: 1 },
   },
   vertexShader: `
@@ -33,7 +36,7 @@ const GradeShader = {
   fragmentShader: `
     uniform sampler2D tDiffuse;
     uniform sampler2D tBloom;
-    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook;
+    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook, uDrunk, uTime;
     uniform vec3 uShadowTint, uHighTint;
     varying vec2 vUv;
     #include <tonemapping_pars_fragment>
@@ -53,6 +56,12 @@ const GradeShader = {
     }
     void main() {
       vec3 c = texture2D(tDiffuse, vUv).rgb;
+      // drunk.js: a drifting double image, slightly smeared
+      if (uDrunk > 0.0) {
+        vec2 o = vec2(sin(uTime * 0.9), cos(uTime * 0.7)) * uDrunk * 0.011;
+        vec3 g = texture2D(tDiffuse, vUv + o).rgb + texture2D(tDiffuse, vUv + o * 0.5 + vec2(0.0, 0.002 * uDrunk)).rgb;
+        c = mix(c, g * 0.5, 0.42 * uDrunk);
+      }
       #ifdef USE_BLOOM
       // what UnrealBloomPass's additive (SRC_ALPHA, ONE) blend pass would add
       vec4 b = texture2D(tBloom, vUv);
@@ -228,6 +237,8 @@ export function createPostFX(renderer, scene, cam) {
       u.uVignette.value = L.vig + storm * 0.06;
       u.uAspect.value = width / Math.max(1, height);
       u.uLook.value = this.look;
+      u.uDrunk.value = drunkVisual();
+      u.uTime.value = performance.now() / 1000;
       u.toneMappingExposure.value = renderer.toneMappingExposure;
       if (bloom) {
         bloom.strength = L.bloomStr;

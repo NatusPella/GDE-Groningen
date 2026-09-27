@@ -15,8 +15,8 @@ export const JELLE_LINES = {
     go: ['Ien, twa, trije... fuort!'],
     lead: ['Kijk maar naar mijn hekweach, Grinzer!', 'Deze brug is van mij. En de volgende ek.', 'Gas derop! Of is dat in trapfyts?'],
     behind: ['Wacht efkes! Mijn motor is nog koud!', 'Hoe vonden jullie dat gatsje?', 'Net slim. Ik laat jullie even voorgaan.'],
-    win: ['Goed gevaren, hear. Net fertelle in Snits.', 'Alve brêgen. Jimme wiene better. Hjoed.'],
-    lose: ['Elf bruggen, elf keer voor! Moai, hè?', 'Oefenje mar, Grinzers. Ik wachtsje.'],
+    win: ['Goed gevaren, hear. Net fertelle in Snits.', 'Elf bruggen. Jullie waren beter. Hjoed.'],
+    lose: ['Elf bruggen, elf keer voor! Moai, hè?', 'Oefen maar, Grinzers. Jelle wacht wel.'],
   },
   fierljep: {
     jump: ['Sjoch en lear!', 'Deze is voor Fryslân!'],
@@ -24,14 +24,14 @@ export const JELLE_LINES = {
     mark: ['Dat is de mjitte. Spring er maar overheen.', 'Beter dan dat wordt het niet, Grinzer.'],
     good: ['Hoe! Dat was net min.', 'Ferhip, die heeft geoefend.'],
     wet: ['Plons! Zwemmen kunnen jullie teminsten.', 'Te betiid los. Dat zie ik van hier.'],
-    win: ['Verder dan ik. Dat seit gjinien troch, hear.', 'Moaie sprong. Ik ga naar huis en oefenen.'],
-    lose: ['Fryslân wint! Maar jullie waren dichtbij.', 'Kom werom as jimme fleugels hawwe.'],
+    win: ['Verder dan ik. Net fertelle, hear.', 'Moaie sprong. Ik ga naar huis en oefenen.'],
+    lose: ['Fryslân wint! Maar jullie waren dichtbij.', 'Kom maar werom als jullie vleugels hebben, Grinzers.'],
   },
   skutsje: {
     go: ['Seil los!'],
-    lead: ['Een skûtsje heeft gjin motor nedich. Alleen fakmanskip.', 'Dyn seil klappert, Grinzer!', 'De wind is Frysk vandaag.'],
-    behind: ['Hoe kan dat nou? Mijn seil staat goed!', 'Nee! Net oan myn hek komme!', 'Dat is gewoon gelok met de wind.'],
-    win: ['Jullie kunnen zeilen. Ik skamje my in bytsje.', 'Windkracht en fakmanskip. Jullie hebben het allebei.'],
+    lead: ['Een skûtsje heeft gjin motor nedich. Alleen fakmanskip.', 'Je zeil klappert, Grinzer!', 'De wind is Frysk vandaag.'],
+    behind: ['Hoe kan dat nou? Mijn seil staat goed!', 'Nee! Niet aan myn hek komen!', 'Dat is gewoon gelok met de wind.'],
+    win: ['Jullie kunnen zeilen. Jelle schaamt zich in bytsje.', 'Windkracht en fakmanskip. Jullie hebben het allebei.'],
     lose: ['Sa silet in Fries! Moai oan de wyn.', 'Trim dat zeil, Grinzers. Dan praten we verder.'],
   },
 };
@@ -46,12 +46,12 @@ export const INTROS = {
   fierljep: [
     ['J', 'Fierljeppen, Grinzers! Ik zet de mjitte, jullie springen eroverheen.'],
     ['T', 'Ik spring normaal alleen over een plas.'],
-    ['J', 'Dan is dit in hiel grutte plas.'],
+    ['J', 'Dan is dit in hele grote plas.'],
   ],
   skutsje: [
     ['J', 'Een echte skûtsjesiler heeft gjin motor nedich. Wind en fakmanskip.'],
     ['A', 'En een Groningse die niet van verliezen houdt.'],
-    ['J', 'Van de Oosterhaven naar de Hoge der A. Wa\'t earst oankomt!'],
+    ['J', 'Van de Oosterhaven naar de Hoge der A. Wie het eerst aankomt, wint. Jelle dus.'],
   ],
   fjord: [
     ['A', 'Onze eigen Fjord Frituur. Met kenteken, deze keer.'],

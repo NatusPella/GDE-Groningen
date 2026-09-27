@@ -6,6 +6,56 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-09-28
+
+Een grote bundel: mooiere opening, rustiger beeld, levendiger personages.
+
+### Nieuw
+- **Nieuwe openingsscène**: een filmpje van anderhalve minuut met een echt
+  verhaal. Grunn bij zonsopgang, de Gouden Eierbal, Tammo en Anita met hun
+  droom, een schim van Jelle, en zo door naar de eerste missie.
+- **Rikus**, Tammo's jeugdvriend en nacht-dj van Radio Nachtstreek, vertelt
+  het verhaal, belt af en toe en juicht mee in de finale.
+- **Tammo is duivenfluisteraar**: hij stuurt de duiven. Anita heeft een
+  geheim Fries contact, en Tammo is daar niet blij mee.
+- **Gekleurde namen** in alle ondertitels, per personage een eigen kleur.
+- **Automatisch richten** met de rechtermuisknop, met richtkruis en
+  wisselen met Tab. Schoten raken nu ook echt.
+- **Politie te paard** patrouilleert door de binnenstad en de parken.
+- **Dronken** tijdens de kroegentocht, per kroeg erger (instelbaar).
+- **Het Groninger Museum van binnen**, met de vitrine in zaal 3.
+- **Nieuw Escape-menu** met iconen en een 3D-garage om je voertuigen te
+  bekijken.
+- **Routes in kleuren**: paars voor je eigen bestemming, geel voor missies en
+  roze als je moet opknappen of je eigen auto moet laten repareren.
+- **Fietsen**: met Shift even flink doortrappen, en de fatbike is sneller.
+- De trailer speelt bij elke start (overslaan met de spatiebalk ingedrukt).
+
+### Verbeterd
+- **Veel rustiger beeld**: de witte teksten bovenin zijn weg. Meldingen komen
+  als één duidelijke kaart tegelijk, met één doelregel, en telefoon en Sikkom
+  schuiven netjes in beeld. Toetshints zijn iconen die vanzelf verdwijnen.
+- **Stemmen lopen niet meer door elkaar**; jingles worden overgeslagen als
+  iemand praat.
+- Wijk-flyovers en andere onderbrekingen hooguit eens per paar minuten.
+- Teksten passen beter bij wie ze zegt (Tammo eigenwijs, Anita weet beter).
+- Winkels: eerst kiezen, dan pas kopen, met een voorbeeld van je nieuwe lak.
+- De legenda van de kaart is ingedeeld in duidelijke onderdelen.
+- Jelle springt met zijn polsstok nu echt over het water.
+- Wielen draaien in cutscenes, en de minimap draait mee als duif.
+
+### Opgelost
+- Missies die niet te starten waren omdat de start in een gebouw lag, en
+  winkels en horeca die in gebouwen zaten.
+- Het UMCG en het Groninger Museum zagen er kapot uit.
+- Wegen en fietspaden door gebouwen: nu een echte doorgang, of dicht.
+- Een blokkade op de ringweg tijdens de ringrace, een dubbel zwart plafond in
+  de verdiepte ligging, en rook boven straatniveau.
+- Het spoor kon je niet altijd omhoog volgen.
+- Bij de spuiterij kreeg je auto een andere kleur dan gekozen.
+- Met de auto aankomen bij de fatbike-missie liet hem meteen mislukken.
+- Bij het fietsdepot werden het steeds meer fietsen (nu hooguit vijf).
+
 ## [0.13.0] - 2026-09-27
 
 Het verhaal komt tot leven.

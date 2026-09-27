@@ -1,4 +1,4 @@
-import { lineVoiceFor } from './linevoice.js';
+import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { isCinematicActive } from './cinematics.js';
 import { getActiveRoute } from './routing.js';
@@ -10,7 +10,7 @@ import { isInWater } from './util.js';
 import {
   NICKNAMES, NICKNAME_BARKS, BIJNA_THUIS, KROLBRUG_FAULTS, KROLBRUG_SIGNS, RING_ZUID_GPS, KON_MINDER,
   COW_FEED, EVENT_DAYS, PLANTSOEN_BARKS, PLANTSOEN_NEWS, PEERD_NEWS, PEERD_BARKS, BIKE_RESURFACE,
-  NACHTSTREEK, SUPPORTER_CHANTS,
+  NACHTSTREEK, NACHTSTREEK_STORY, SUPPORTER_CHANTS,
 } from './flavourlines.js';
 
 // World flavour after docs/groningen-memes.md: nicknames, the Gerrit
@@ -78,10 +78,10 @@ function busy() {
 
 // A recorded line in front of the player (radio, navigation, cows): false
 // while another voice talks, so the caller can try again later.
-function speak(speaker, text) {
+function speak(speaker, text, radio = false) {
   const v = lineVoiceFor(speaker, text);
   if (!v) return true;
-  return playLineVoice(v.src, v.dur, speaker === 'Radio Nachtstreek' ? 'radio' : 'react');
+  return playLineVoice(v.src, v.dur, radio ? 'radio' : 'react');
 }
 
 function notify(from, text) {
@@ -122,7 +122,7 @@ function bark(from, lines, r = 22, dur = 3.2) {
 function playerSays(text) {
   const p = world.player;
   if (!world.extraSpeakers) world.extraSpeakers = [];
-  world.extraSpeakers.push({ x: p.x, y: p.y, h: 2.2, follow: p, female: p.character === 'anita', speechText: text, speechUntil: world.time + 3.2 });
+  world.extraSpeakers.push({ x: p.x, y: p.y, h: 2.2, follow: p, female: p.character === 'anita', speechName: p.character === 'anita' ? 'Anita' : 'Tammo', speechText: text, speechUntil: world.time + 3.2 });
 }
 
 function inCar() {
@@ -179,7 +179,7 @@ function newDay() {
   F.day++;
   F.sunny = Math.random() < 0.6;
   if (F.event && F.eventDay < F.day) endEvent();
-  if (!F.event && F.eventDay < F.day - 1 && Math.random() < 0.14) startEvent(pick(Object.keys(EVENT_DAYS)), 20);
+  if (!F.event && F.eventDay < F.day - 3 && Math.random() < 0.07) startEvent(pick(Object.keys(EVENT_DAYS)), 20);
   F.peerdNews = !!F.peerd;
 }
 
@@ -576,11 +576,15 @@ function nightRadio(p) {
   const night = world.dayNight ? world.dayNight.night : 0;
   if (night < 0.6 || !inCar() || !outsideCity(p) || !ready('radio') || world.mission) return;
   const first = F.radioNight !== F.night;
-  const line = first ? NACHTSTREEK[0] : NACHTSTREEK[1 + ((F.radioIdx = ((F.radioIdx || 0) + 1)) % (NACHTSTREEK.length - 1))];
-  if (!speak('Radio Nachtstreek', line)) return;
+  // now and then Rikus has news from the story (a mission done, not said yet)
+  const defs = getMissionDefs() || [];
+  const news = Object.keys(NACHTSTREEK_STORY).find((id) => !(F.radioNews || (F.radioNews = new Set())).has(id) && defs.some((d, i) => d.id === id && isMissionCompleted(i)));
+  const line = first ? NACHTSTREEK[0] : news && Math.random() < 0.5 ? NACHTSTREEK_STORY[news] : NACHTSTREEK[1 + ((F.radioIdx = ((F.radioIdx || 0) + 1)) % (NACHTSTREEK.length - 1))];
+  if (!speak(NARRATOR, line, true)) return;
+  if (news && line === NACHTSTREEK_STORY[news]) F.radioNews.add(news);
   F.radioNight = F.night;
-  world.nowPlaying = { title: 'Nachtstreek', artist: 'Radio Ommeland · streekmuziek tot de ochtend', at: world.time };
-  world.addMessage(`Nachtstreek: “${line}”`, 5, { key: 'radio' });
+  world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', at: world.time };
+  world.addMessage(`Rikus op Nachtstreek: “${line}”`, 5, { key: 'radio' });
   hold('radio', 300 + Math.random() * 120);
 }
 
@@ -608,6 +612,6 @@ const debugApi = {
   sun(on = true) { F.sunny = on; F.plantsoenSet = false; },
   cows(kind = 'wreck') { cd.cows = 0; F.cowPrev = null; const [cow, line] = pick(COW_FEED[kind]); notify('Sikkom · De Koeien', `${cow}: “${line}”`); return speak('Koe ' + cow, line); },
   gps() { cd.gps = 0; const l = pick(RING_ZUID_GPS); world.addMessage(`Navigatie: “${l}”`, 4); return speak('Navigatie', l); },
-  radio() { const l = pick(NACHTSTREEK); world.nowPlaying = { title: 'Nachtstreek', artist: 'Radio Ommeland · streekmuziek tot de ochtend', at: world.time }; return speak('Radio Nachtstreek', l); },
+  radio() { const l = pick(NACHTSTREEK); world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', at: world.time }; return speak(NARRATOR, l, true); },
   perfect() { world.lastPerfectRun = world.time - 3; },
 };

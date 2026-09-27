@@ -22,9 +22,11 @@ import { requestRespawn } from './world.js';
 import { getMissionRecord } from './achievements.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { animateSkutsjeRig } from './models3d_vehicles.js';
+import { setMuseumCaseStolen } from './museum3d.js';
 import { startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, heistStageChanged, disposeHeist } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { addDrunk } from './drunk.js';
 
 const TRIGGER_RADIUS = 4;
 const CHECKPOINT_RADIUS = 6;
@@ -57,8 +59,12 @@ const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Sikkom?',
 
 const MISSION_BOAT_MODEL = { name: 'boat', len: 5.2, wid: 1.9, maxSpeed: 10.8, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#f2efe6', cabin: '#1f4a6e' };
 
+// The nearest road point, unless that lies inside a building or a closed-off
+// courtyard: then the nearest street you can actually reach (findOpenSpawn).
 function roadSpot(map, x, y, drivable = false) {
-  return map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
+  const p = map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
+  if (!map.isOpenSpot || map.isOpenSpot(p.x, p.y)) return p;
+  return map.findOpenSpawn(p.x, p.y, 200, drivable) || p;
 }
 
 // Fixed spots in and around the binnenstad, picked so every leg is a real
@@ -149,6 +155,7 @@ function buildDefs(world) {
       checkpointBonus: 22,
       reward: 600,
       onFoot: true,
+      drunk: 0.2, // per pub, drunk.js
       crowds: [walk(279, 124), walk(392, 122), walk(412, 186), walk(378, 222), walk(240, 132)],
       start: walk(250, 115),
       waypoints: [
@@ -235,7 +242,7 @@ function buildDefs(world) {
       reward: 400,
       requires: ['heist', 'night'],
       start: walk(18, 736),
-      heist: { fuse: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' } },
+      heist: { fuse: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
       stages: [
         { kind: 'goto', target: { landmark: 'Groninger Museum', off: [-22, -40], snap: 'walk' }, mode: 'any', label: 'Naar de achteringang', say: 'Naar de brug naar het museumeiland. Rustig aan, blijf uit het licht.' },
         {
@@ -243,7 +250,7 @@ function buildDefs(world) {
           label: 'Sluip naar de stroomkast', say: 'Bewakers met zaklampen en draaiende camera\'s. Blijf uit de lichtbundels. Bukken (Ctrl) helpt bij de bewakers.',
         },
         { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, label: 'Camera\'s uit bij de stroomkast', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera\'s.' },
-        { kind: 'goto', watch: { guards: 1, cameras: 0 }, vitrine: true, target: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.' },
+        { kind: 'goto', watch: { guards: 1, cameras: 0 }, vitrine: true, target: { landmark: 'Groninger Museum', off: [3, 17] }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.' },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
@@ -283,7 +290,7 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: "Vlag van d'Olle Grieze",
-      intro: ['Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Heel Grunn kijkt ernaar.', 'Word een duif bij de toren en pik de vijf touwen los. Pas op voor de Fryske meeuwen.'],
+      intro: ['Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Heel Grunn kijkt ernaar.', 'Fluit een duif bij de toren en pik de vijf touwen los. Pas op voor de Fryske meeuwen.'],
       outro: 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.',
       timeLimit: 240,
       reward: 600,
@@ -300,7 +307,7 @@ function buildDefs(world) {
             ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Dat laat de stad niet zomaar gebeuren.'],
             ['jelle', 'Moai, Grinzers! Kijk eens omhoog. Wat een aardich tuorke, no.'],
             ['A', 'Zie je die vijf gele knopen, Tammo? Die houden hem vast.', { clue: true, look: 'knots' }],
-            ['T', 'Pik, pik, los. Ik word weer duif.'],
+            ['T', 'Ogen dicht, fluiten. Pik, pik, los.'],
           ],
         },
         {
@@ -319,7 +326,7 @@ function buildDefs(world) {
           kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true, shotLines: 2,
           cam: { r: 34, h: 9, lookZ: 34, at: { landmark: 'Martinitoren', off: [0, 14] } },
           kicker: "d'Olle Grieze", big: 'Hij valt!',
-          lines: [['A', 'Hij valt! Tammo, hij valt!'], ['T', 'Dertig meter vlag. Losgepikt. Met mijn snavel.'], ['A', 'Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.']],
+          lines: [['A', 'Daar gaat hij. Kopje onder, Jelle.'], ['T', 'Dertig meter vlag. Losgepikt. Door mijn duif.'], ['A', 'Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.']],
         },
       ],
     },
@@ -356,7 +363,7 @@ function buildDefs(world) {
         {
           kind: 'vault', label: 'Jelle', target: { shore: true },
           lines: [['jelle', 'Moai, Grinzers. Jullie hebben mijn sûkelade gevonden.'], ['T', 'Waar is de echte, Jelle?'], ['jelle', 'Die gaat de lucht in. Fan\'e jûn, met een ballon.', { clue: true }],
-            ['A', 'Een ballon? Jij bent niet goed wijs.'], ['jelle', 'Ik bin Fries. Wy binne altyd goed wiis.']],
+            ['A', 'Een ballon? Doe bist nait goed wies!'], ['jelle', 'Jelle is Fries. Friezen zijn altijd goed wijs.']],
           landing: 'Oant fan\'e jûn, Grinzers!',
         },
       ],
@@ -515,6 +522,8 @@ export function initMissions(world) {
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
   };
   world.mission = chain.pub;
+  // zaal 3's case is empty once H6 has been played
+  setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
     failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood', busted ? 'Opgepakt door de politie' : 'Je bent dood');
@@ -1541,6 +1550,7 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   const wp = def.waypoints[chain.wpIndex];
   chain.wpIndex++;
   if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
+  if (def.drunk && wp.name) addDrunk(world, def.drunk);
   if (chain.wpIndex >= def.waypoints.length) {
     if (chain.race) {
       const { position, total } = raceStandings(chain.race);
@@ -1566,7 +1576,7 @@ function resolveSpotStarts(world) {
     const hs = getHeliSpotsForRender()[0];
     if (hs) {
       chain.heliStarts = true;
-      for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { x: hs.x + 3.5, y: hs.y + 1.5, road: null };
+      for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { ...world.map.openSpotNear(hs.x + 3.5, hs.y + 1.5), road: null };
     }
   }
   if (chain.spotStarts) return;
@@ -1633,10 +1643,17 @@ export function updateMissions(dt, world) {
     syncPub(world);
     return;
   }
-  if (def.onFoot && def.type === 'fatbike' && p.inVehicle) {
-    fail(world, def, 'je moest lopen, niet stiekem rijden');
-    syncPub(world);
-    return;
+  // arriving by car is fine: a warning first, it only fails if you keep driving
+  if (def.onFoot && def.type === 'fatbike' && chain.run) {
+    if (p.inVehicle) {
+      chain.run.inVehT = (chain.run.inVehT || 0) + dt;
+      if (chain.run.inVehT < dt * 1.5) hint(world, 'Uitstappen, jong. Fatbikes ontwijk je te voet.');
+      if (chain.run.inVehT > 10) {
+        fail(world, def, 'je moest lopen, niet stiekem rijden');
+        syncPub(world);
+        return;
+      }
+    } else chain.run.inVehT = 0;
   }
 
   if (def.type === 'deliver') {
@@ -1814,6 +1831,7 @@ function resolveTarget(world, spec, from) {
   if (spec.bank) return { ...bankNear(map, spec.bank[0], spec.bank[1]), label: spec.label };
   return null;
 }
+export { resolveTarget as resolveMissionTarget };
 
 function rentalBoat(world) {
   return world.vehicles.find((v) => v.isBoat && v.playerOwned && !v.wrecked && !v.sinking) || null;

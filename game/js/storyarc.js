@@ -53,12 +53,13 @@
 
 // card: the two lines on the "Wordt vervolgd" card where the built story stops.
 // recap: the "Eerder in GTE VI" card when the part starts: [place, narrator line],
-// place a map landmark name or [x, y] (story.js playRecap).
+// place a map landmark name, [x, y] or 'studio' (Rikus at the Nachtstreek mic; story.js playRecap).
 export const PARTS = {
   kop: { title: 'Kop: "Moi, Grunn"', open: true, end: 'Einde van de Kop',
     card: [['Anita', 'Iemand heeft onze Eierbal gejat.'], ['Tammo', 'Die was nog niet eens van ons.']] },
   romp: { title: 'Romp: "Stad in rouw"', open: true, end: 'Einde van de Romp',
     recap: [
+      ['studio', 'Rikus weer, op Nachtstreek. Luister, ik vertel je hoe het verder ging met die twee.'],
       ['Grote Markt', 'Eerder in GTE VI. Twee Stadjers zonder cent, en één droom op vier wielen: Anita\'s Fjord Frituur.'],
       ['Groninger Museum', 'Het plan was simpel. De Gouden Eierbal uit het Groninger Museum. Achttien karaat, sinds 1953 het hart van Grunn.'],
       ['Groninger Museum', 'Maar de vitrine was leeg. Op het kussen lag alleen een kaartje: "Tige tank! – W."'],
@@ -68,18 +69,20 @@ export const PARTS = {
   // the last part's card is the ending: an epilogue and credits (story.js playFinale)
   staart: { title: 'Staart: "Gronings Ontzet"', open: true, end: 'Einde', finale: true,
     recap: [
+      ['studio', 'Het is laat, maar blijf nog even hangen. Hier is Rikus, en dit is het laatste stuk.'],
       ['Noorderplantsoen', 'Eerder in GTE VI. Jelle Terpstra kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.'],
       ['Martinitoren', 'Een duif pikte zijn vlag van d\'Olle Grieze, en in de kroeg verklapte een dronken Durk het skûtsje.'],
       ['Grote Markt', 'Oma Trijntje stond in 1953 model voor de Eierbal. Die bal is gien geld, zei ze. Die bal is Grunn.'],
       [[741, 418], 'En op de rondvaartboot kusten ze. Wij tweeën tegen Grunn… of misschien: vóór Grunn.'],
     ],
-    card: [['Verteller', 'De Gouden Eierbal staat weer in het Groninger Museum. Achttien karaat, en nu met een alarm dat het doet.'],
-      ['Verteller', 'Jelle Terpstra proefde op de Grote Markt zijn eerste echte Groninger eierbal.'],
+    card: [['Rikus', 'De Gouden Eierbal staat weer in het Groninger Museum. Achttien karaat, en nu met een alarm dat het doet.'],
+      ['Rikus', 'Jelle Terpstra proefde op de Grote Markt zijn eerste echte Groninger eierbal.'],
       ['Jelle Terpstra', 'Dit is… better as ús. Net fertelle.'],
-      ['Verteller', 'Van de beloning kwam de Fjord Frituur. Vier wielen, geen kenteken, en een rij tot aan d\'Olle Grieze.'],
+      ['Rikus', 'Van de beloning kwam de Fjord Frituur. Vier wielen, geen kenteken, en een rij tot aan d\'Olle Grieze.'],
       ['Anita', 'De allereerste is voor jou, Tammo.'],
       ['Tammo', 'Mag ik nou eindelijk?'],
-      ['Anita', 'Ja. Alles voor één eierbal.']] },
+      ['Anita', 'Ja. Alles voor één eierbal.'],
+      ['Rikus', 'De tweede was voor mij. Zelf betaald, natuurlijk. Hier was Rikus, op Nachtstreek. Welterusten, Grunn.']] },
 };
 
 // missions.js def order: index i here is def i there (saves and medal
@@ -112,9 +115,9 @@ export const STEPS = [
   { id: 'H3', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'chaos', why: 'De Grote Markt is voor mij. Jelmer wil chaos, en chaos ben ik.',
     title: 'Chaos op de Grote Markt', reward: 500,
     lead: ['A', 'Jelmer wil content op de Grote Markt. Nu hebben we er ook iets voor.'] },
-  { id: 'H4', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'duifverkenning', why: 'Laat mij maar vliegen. Bert zegt dat ik een echt duivengezicht heb.',
+  { id: 'H4', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'duifverkenning', why: 'Laat mij maar. Bert zegt dat ik een echt duivengezicht heb.',
     title: 'Duif op verkenning', reward: 350,
-    lead: ['A', 'Sjabbe zei: echt geld ligt in het museum. Dan moeten we het eerst van boven zien. Duivenmelker Bert leert je vliegen, bij het Stationsplein.'] },
+    lead: ['A', 'Sjabbe zei: echt geld ligt in het museum. Dan moeten we het eerst van boven zien. Duivenmelker Bert leent je een duif, bij het Stationsplein.'] },
   { id: 'k-bijbaan', part: 'kop', kind: 'activity', player: 'anita', built: true, why: 'Ik bezorg. Ik kan een kapsalon dragen zonder ervan te eten.',
     title: 'Eén ronde Hap & Rap bezorgen', goal: { type: 'sideJob', job: 'bezorger' },
     lead: ['T', 'Wat we bij het museum zagen, kost geld: spullen, een boot misschien. Sjabbe wil contant. Eén ronde Hap & Rap bezorgen.'],
@@ -144,6 +147,7 @@ export const STEPS = [
     title: 'De Museumkraak', reward: 400,
     lead: ['T', 'Het is zover. De Museumkraak. Via het Verbindingskanaal, jouw plan.'],
     after: [['Sikkom', 'Gouden Eierbal foetsie. Stad in rouw. Museum: "Wij snappen er niks van, de camera\'s stonden uit."'],
+      ['Onbekend nummer (058)', 'Pas goed op dysels, famke. – M.'],
     ],
     contact: [{ via: 'scene', from: 'jelle', handle: 'JelleWâld', viewers: 1953, lines: [
       ['jelle', 'Moai, Grinzers! Hier is Jelle. Jelle Terpstra, van Us Mem Snacks.', { tag: 'charmant, opschepperig, recht in zijn telefooncamera' }],
@@ -167,8 +171,8 @@ export const STEPS = [
     after: [['Sikkom', 'Frituurvet uitverkocht in heel Grunn. Groothandel: "Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons."']],
     contact: [{ via: 'voicemail', from: 'durk', sub: 'Per ongeluk gebeld', lines: [
       ['durk', 'Douwe, hoeveel vet hebben we nu?', { tag: 'traag, gedempt, telefoon in de broekzak' }],
-      ['douwe', 'Alles, Durk. Al het vet van Grunn.', { tag: 'traag, trots' }],
-      ['durk', 'De baas zegt: geen vet, geen eierbal op Gronings Ontzet.', { tag: 'samenzweerderig, traag', clue: true }],
+      ['douwe', 'Alles, Durk. Al het vet van Grunn. …Hè.', { tag: 'traag, trots' }],
+      ['durk', 'Baas zegt: geen vet, geen eierbal op Gronings Ontzet.', { tag: 'samenzweerderig, traag', clue: true }],
       ['douwe', 'Durk… je telefoon staat aan.', { tag: 'geschrokken, fluisterend' }],
     ] }] },
   { id: 'r-uzi', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik haal die Ratelaar. Jij houdt hem vast als een eierbal.',
@@ -195,7 +199,7 @@ export const STEPS = [
   { id: 'r-tuning', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik ga naar Knal & Kolder. Ik weet precies welk geluid ik wil.',
     title: 'Tuning bij Knal & Kolder (aanbevolen)', goal: { type: 'shop', shop: 'tuning' }, cost: 300, optional: true,
     lead: ['A', 'Jelle rijdt een opgevoerde trekker, en die is sneller dan hij eruitziet. Rij onze auto naar Knal & Kolder en druk R, voor wat extra paardjes.'],
-    say: ['A', 'Een trekker inhalen. Dat moet te doen zijn. Toch?'],
+    say: ['A', 'Een trekker inhalen. Dat regel ik wel even. Nou ja: jij.'],
     done: ['A', 'Hij klinkt als een boze koelkast. Kom maar op, trekker.'] },
   { id: 'H9', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'ringweg', why: 'Ik rij de ringweg. Die trekker is persoonlijk.',
     title: 'Ringweg-race: eindelijk klaar?', reward: 1200,
@@ -209,14 +213,22 @@ export const STEPS = [
     title: 'Bijbaantje: Fietsdepot of Verhuizing', goal: { type: 'sideJob', job: ['fietsdepot', 'verhuizing'] },
     lead: ['T', 'Durk en Douwe hangen rond bij al onze vaste plekken, Jelle laat ons volgen. Een ronde bij het Fietsdepot of een verhuizing: daar zoekt niemand ons.'],
     say: ['T', 'Niemand kijkt naar iemand met een doos. Of met een fiets.'],
-    done: ['T', 'Niemand heeft ons gezien. En nu weet ik ook hoe we langs die tweeling komen: als duif.'] },
-  { id: 'H10', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'vlag', why: 'Ik word weer duif. Die touwen pik ik er zo af.',
+    done: ['T', 'Niemand heeft ons gezien. En nu weet ik ook hoe we langs die tweeling komen: met een duif.'] },
+  { id: 'H10', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'vlag', why: 'Ik fluit wel een duif. Die touwen zijn zo los.',
     title: "Vlag van d'Olle Grieze", reward: 600,
-    lead: ['A', 'Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Met rode blaadjes. Daar moet een duif aan te pas komen. Jij dus.'],
+    lead: ['A', 'Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Met rode blaadjes. Daar moet een duif aan te pas komen. Fluiten maar, duivenkoning.'],
     after: [['Sikkom', 'Duif pikt Friese vlag van d\'Olle Grieze. Stadjers juichen, de toren zelf zegt niks.'],
     ],
     contact: [{ via: 'post', from: 'jelle', handle: 'JelleWâld', mood: 'angry', caption: 'selfievideo bij de Martinitoren', likes: '11.672', lines: [
       ['jelle', 'Wie heeft mijn flagge…? In DUIF?! Ik weet wel wie die duif is.', { tag: 'woedend, in een selfievideo' }],
+      ['jelle', 'Friese meeuwen luisteren naar niemand. Ook niet naar mij.', { tag: 'jaloers, gepikeerd, in een selfievideo' }],
+    ] }, { via: 'call', from: 'rikus', mood: 'night', lines: [
+      ['rikus', 'Tammo! Rikus hier. Heel Grunn heeft het over een duif die een Friese vlag van de toren pikte.', { tag: 'warm, plagend, aan de telefoon' }],
+      ['T', 'Ik zeg niks.', { tag: 'droog, aan de telefoon' }],
+      ['rikus', 'Hoeft ook niet. Ik zeg het vannacht wel, op Nachtstreek. De duivenfluisteraar van het Oosterpark.', { tag: 'grinnikend, trots, aan de telefoon' }],
+      ['T', 'Rikus. Niet doen.', { tag: 'deadpan, zuchtend, aan de telefoon' }],
+      ['rikus', 'Te laat, ik heb al een jingle. En doe Anita de groeten. Die appt met Friesland, hoor ik.', { tag: 'plagend, samenzweerderig, aan de telefoon' }],
+      ['T', '…Dat hoor ik ook steeds.', { tag: 'mompelend, stiekem jaloers, aan de telefoon' }],
     ] }] },
   { id: 'r-eierbal', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik zoek hem wel. Ik ruik een eierbal op honderd meter.',
     title: 'Verstopte eierbal zoeken', goal: { type: 'egg' },
@@ -264,7 +276,11 @@ export const STEPS = [
   { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'fjord', why: 'Het is mijn Fjord. Ik haal hem zelf terug.',
     title: 'Waar is de Fjord?', reward: 1100,
     lead: ['T', 'Anita. Niet schrikken. Je Fjord is weg. Jelmer zegt dat zijn chat hem bij het station zag.'],
-    contact: [{ via: 'card', from: 'jelle', title: 'Een kaartje op de stoel van de Fjord', lines: [
+    contact: [{ via: 'call', on: 'lead', from: 'mem', caller: 'Onbekend nummer (058)', lines: [
+      ['mem', 'Anita, famke? Met mij. Myn jonges hebben dyn auto.', { tag: 'zacht, samenzweerderig, aan de telefoon' }],
+      ['mem', 'Op de trein naar Ljouwert, fan\'e middei. Net fertelle dat ik belde.', { tag: 'stellig, warm, aan de telefoon', clue: true }],
+      ['A', 'Tige tank. Eh… dank je. Ik zeg niks tegen Tammo.', { tag: 'fluisterend, een slechte Friese imitatie, aan de telefoon' }],
+    ] }, { via: 'card', from: 'jelle', title: 'Een kaartje op de stoel van de Fjord', lines: [
       ['jelle', 'Tige tank voor het lenen van de auto. Hij rijdt beter dan mijn trekker. Net fertelle.', { tag: 'hardop voorlezend, stiekem onder de indruk' }],
     ], after: [['T', 'Hij stuurt nu ook complimentjes. Straks nodigt hij ons uit voor zijn verjaardag.']] }] },
   { id: 'H17', part: 'staart', kind: 'mission', player: 'tammo', built: true, mission: 'bod', why: 'Ik doe de boodschappen. Ik rem voor eieren, dat weet je.',
@@ -274,6 +290,12 @@ export const STEPS = [
     after: [['Oma Trijntje', 'Mosterd, eieren en stoetbrood. Dan komt het goed, jong. Dat deed ik in 1953 ook zo.']],
     contact: [{ via: 'call', on: 'lead', from: 'jelle', mood: 'smug', lines: [
       ['jelle', 'Moai, Grinzers. Kom naar het Stadsbalkon. Ik heb een bod voor jullie.', { tag: 'zakelijk, charmant, aan de telefoon' }],
+    ] }, { via: 'call', from: 'rikus', mood: 'night', lines: [
+      ['rikus', 'Moi, Tammo. Ik hoor dat jullie op Gronings Ontzet gaan bakken. Ik sta vooraan.', { tag: 'warm, opgetogen, aan de telefoon' }],
+      ['T', 'Het is een snackwedstrijd, Rikus. Geen concert.', { tag: 'droog, aan de telefoon' }],
+      ['rikus', 'Voor mij wel. En zeg tegen Anita: de eerste friet uit de Fjord Frituur is voor mij.', { tag: 'plagend, vol bewondering, aan de telefoon' }],
+      ['T', 'De eerste is voor mij.', { tag: 'stellig, deadpan, aan de telefoon' }],
+      ['rikus', 'De tweede dan. Ik betaal. Voor één keer.', { tag: 'grinnikend, droog, aan de telefoon' }],
     ] }] },
   { id: 'H18', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'ontzet', why: 'Ik rij de finale. Jij bakt, ik haal die Eierbal terug.',
     title: 'Finale: Gronings Ontzet', reward: 4000,
@@ -282,7 +304,7 @@ export const STEPS = [
     ],
     contact: [{ via: 'card', from: 'jelle', title: 'Een ansichtkaart uit Ljouwert', lines: [
       ['jelle', 'Moai dien, Grinzers. Volgend jaar weer? Dan mogen jullie naar Ljouwert komen.', { tag: 'warm, sportief, voorlezend' }],
-    ], after: [['T', 'Wij tweeën vóór Grunn. Ik zeg het nog één keer hardop, en dan nooit meer.']] }] },
+    ], after: [['T', 'Wij tweeën vóór Grunn. Kon minder, hè?']] }] },
 ];
 
 export const STEP_BY_ID = new Map(STEPS.map((s) => [s.id, s]));

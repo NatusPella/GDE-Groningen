@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { speakerHtml } from './speakers.js';
 import { getSettings, setSetting, QUALITY_PRESETS } from './settings.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat, makeBirds, scatterBirds, updateBirds } from './intromontage.js';
@@ -244,7 +245,7 @@ function setSub(line) {
   if (key === ui.subKey) return;
   ui.subKey = key;
   ui.sub.classList.toggle('on', !!line);
-  if (line) ui.sub.innerHTML = `<b>${line[2]}:</b>${line[3]}`;
+  if (line) ui.sub.innerHTML = speakerHtml(line[2]) + line[3];
 }
 
 // --- shots ---------------------------------------------------------------------------

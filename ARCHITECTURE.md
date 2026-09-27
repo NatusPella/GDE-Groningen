@@ -53,7 +53,7 @@ frame then runs, in order:
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Anita) |
 | Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water; a car at zero health is `disabled` and burns until `explodeVehicle` makes it a wreck) |
 | People and animals | `pedestrians.js`, `wildlife.js` |
-| Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js`, `crime.js` (small offences build heat first: a star only when police see it, a witness phones it in, or it piles up) |
+| Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `aimassist.js` (right-mouse soft lock on the best target in a cone, hostiles first and never through walls, Tab/flick to switch, light hip-fire bend; lock reticle; setting `autoAim`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js`, `policemounts.js` (bike/horse units, crews on foot, and quiet wanted-0 patrols in the binnenstad and parks), `crime.js`, `drunk.js` (`world.drunk` from the kroegentocht pubs: camera sway, double vision in the grade pass, warm vignette, wandering feet and steering, muffled music, hiccups; setting `drunkFx`, reduced motion; drunk driving adds police heat) (small offences build heat first: a star only when police see it, a witness phones it in, or it piles up) |
 | Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
 | Story | `storyarc.js` (the arc as data), `story.js` (director), `storycontact.js` (Jelle's and the twins' calls, voicemails, livestreams, Sikkom posts and cards on the phone), `storycast.js` (the Frisian cast's looks), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
@@ -66,6 +66,8 @@ frame then runs, in order:
 | Title and trailer | `startscreen.js` (loading screen, title menu over the live city), `trailer.js` (attract intro, benchmark, recording mode), `intromontage.js` (the "Nieuw spel" opening montage) |
 | UI | `hud_panel.js` + `.css` (minimap: player, routes and targets always; static places only the nearest few per category; the objective line), `hudcards.js` + `.css` (HUD message cards, countdowns), `cardlines.js` (what Tammo/Anita say with a card), `prompts.js` + `.css` (world prompts and the key-cap + pictogram hint chips), `shopui.js` (shop menus: select, then buy with the button; confirm for expensive items), `vehiclepreview.js` (rotating 3D vehicle for the shops and the garage tab), `pausemenu.js` (tabs; `addMissionsSection` for extra Missies sections), `garageui.js` (garage tab with the 3D viewer), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js` + `.css` (phone notifications and calls), `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots and the pause menu's header, footer and panels) |
 | Audio | `speech.js` (the one talking channel, see "Spoken lines"), `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
+| Building passages and interiors | `passages.js` (the corridors footways and streets cut through a footprint: mapped OSM passages from `mapextras.json` `passages`, streets, short footways/cycleways; walkers, vehicles, spawns and the camera share them), `portalcut3d.js` (building materials discard inside the passage boxes near the player, so the facade shows a real gate; lined tunnels with lamps), `museumplan.js` + `museum3d.js` (the Groninger Museum's walkable ground floor as rooms: cycle passage, atrium, Entreehal, zaal 1, zaal 3 with the Gouden Eierbal case used by H6) |
+| Validation | `spotcheck.js` (every start/target point must be open ground you can walk away from), `ringcheck.js` (nothing solid on the ring race lap and ring roads, a scripted car and the AI racers drive a full lap, every rail lift can be walked, driven and cycled up); both run in the story test, desktop `--validate-spots[=dir]` runs only them |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 
 ## Spoken lines
@@ -83,7 +85,7 @@ playing the wrong clip):
   speech bubbles as `~m|`/`~f|` (scene3d speaks a new bubble in the voice
   that matches the ped's model), subtitles without their own recording
   (`cinematics.js` attaches them and stretches the timeline to fit; no
-  speaker = `Verteller`) and the rondvaart guide (`Tammo`/`Anita`).
+  speaker = `Rikus`, the narrator) and the rondvaart guide (`Tammo`/`Anita`).
 - `audio/npc`: the ambient Gronings phrases.
 
 All voices go through the voice bus (Stemmen slider) and through one
@@ -95,7 +97,7 @@ feeds it the AudioContext clock; debug `window.__speech.speechState()`):
   (phonefeed.js calls) > `banter` (car talk) > `job` (bijbaan bosses, the
   rondvaart guide) > `react` (Tammo/Anita voicelines, HUD-card lines, police
   barks, Sikkom, navigation, cows) > `ambient` (speech bubbles, NPC
-  phrases) > `radio` (Radio Nachtstreek, G-Music jingles).
+  phrases) > `radio` (Rikus on Radio Nachtstreek, G-Music jingles).
 - One line at a time (`begin`/`extend`/`end`; a line that never reports
   its end frees the channel after its length). A newcomer of at least `job`
   cuts off a lower line below `call` (its `stop` runs); `story` cuts off
@@ -145,6 +147,16 @@ and in italics (`.nl-sub` in `hud_panel.css`).
   contacts and history (`phone.js`), HUD cards (`hudcards.js`) and
   achievement titles (`achievementsui.js`). Anything shown through these
   gets its subtitle for free; a new text surface calls one of the two.
+- Speaker names: every surface shows the name bold in the speaker's
+  colour before the line, from one table, `js/speakers.js`
+  (`SPEAKER_COLORS`, `speakerHtml(name)`, `paintSpeaker(el, name)`;
+  generic NPCs neutral grey). A bubble shows a name only for a story
+  character (`speechName` on a `world.extraSpeakers` entry).
+- The narrator is Rikus, the Radio Nachtstreek night DJ (`NARRATOR` in
+  `linevoice.js`): recaps and the epilogue cut to his studio
+  (`js/radiostudio.js`, a closed room high above the city), start with a
+  station sting (`playRadioSting`) and play his voice in a broadcast band
+  (`playStoryVoice(src, { radio: true })`, a cinematic line's `radio`).
 - New Frisian line: write it, add its Dutch to `FY`. `voice_coverage.mjs`
   exits 1 for any spoken line that `looksFrisian()` without a translation.
   Voice casts: Jelle/Durk/Douwe are recorded as Dutch with a Frisian
