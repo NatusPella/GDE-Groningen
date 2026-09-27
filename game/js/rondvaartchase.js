@@ -4,6 +4,7 @@
 // rustig langs bezienswaardigheden varen (de gids vertelt) maakt ze blij.
 // missions.js blijft de baas over checkpoints, timer en slagen/zakken.
 
+import { paintSpeaker } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { boatDryPoints, inWaterPoly, keepBoatOffShore, normalizeAngle, pointInPolygon, clamp } from './util.js';
 import { Vehicle, resolveVehicleBuildingCollision, vehicleContacts } from './vehicle.js';
@@ -597,8 +598,7 @@ function updateSubs(dt) {
   if (!st.sub && st.subQueue.length && !hidden) {
     const it = st.subQueue.shift();
     st.sub = { ...it, left: it.dur };
-    el.querySelector('.rv-speaker').textContent = it.speaker + ':';
-    el.querySelector('.rv-speaker').style.color = it.color;
+    paintSpeaker(el.querySelector('.rv-speaker'), it.speaker);
     el.querySelector('.rv-line').textContent = it.text;
     const voice = voices[it.speaker + '|' + it.text];
     if (voice) playStoryVoice(VOICE_DIR + voice.src);

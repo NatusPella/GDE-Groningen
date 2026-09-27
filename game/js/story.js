@@ -372,7 +372,7 @@ function companionSays(w, text) {
   if (!c || c.state === 'dead') return;
   const list = w.extraSpeakers || (w.extraSpeakers = []);
   const dur = Math.max(3, Math.min(6, 1.2 + text.length * 0.06));
-  list.push({ x: c.x, y: c.y, h: 2.1, speechText: text, speechUntil: w.time + dur, follow: c, female: c.character === 'anita' });
+  list.push({ x: c.x, y: c.y, h: 2.1, speechText: text, speechUntil: w.time + dur, follow: c, female: c.character === 'anita', speechName: c.character === 'anita' ? 'Anita' : 'Tammo' });
 }
 
 // --- who plays: Tammo or Anita ----------------------------------------------------------

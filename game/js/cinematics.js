@@ -1,4 +1,5 @@
 import { setDualText } from './subtitles.js';
+import { paintSpeaker } from './speakers.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
@@ -278,7 +279,7 @@ function updateSubtitles() {
   els.lineIndex = idx;
   const l = lines[idx];
   els.root.classList.toggle('has-sub', !!l);
-  els.speaker.textContent = l && l.speaker ? l.speaker + ':' : '';
+  paintSpeaker(els.speaker, l && l.speaker);
   setDualText(els.line, l ? l.text : '');
   els.root.classList.toggle('sub-clue', !!(l && l.clue));
   if (l && l.voice) playStoryVoice(l.voice);

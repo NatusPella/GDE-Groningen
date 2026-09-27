@@ -21,6 +21,7 @@ import { readingSeconds } from './world.js';
 import { PORTRAITS } from './storycast.js';
 import { getClockText } from './hud_panel.js';
 import { dualHtml, dutchFor } from './subtitles.js';
+import { speakerHtml } from './speakers.js';
 
 let mission = null;
 import('./missionstory.js').then((m) => { mission = m; }).catch(() => {});
@@ -72,7 +73,7 @@ function injectStyle() {
 #hud .sc-wave { display: flex; gap: 3px; justify-content: center; align-items: center; height: 22px; margin: 2px 0 4px; }
 #hud .sc-wave i { width: 3px; border-radius: 2px; background: #3fc97a; height: 4px; transition: height .12s; }
 #hud .sc-bubble { margin: 6px 10px 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,.08); font-size: 14px; line-height: 1.3; min-height: 38px; }
-#hud .sc-bubble b { color: #3fc97a; font-weight: bold; margin-right: 4px; }
+#hud .sc-bubble b { font-weight: bold; margin-right: 4px; }
 #hud .sc-bubble .nl-sub, #sc-card .nl-sub { display: block; margin-top: 3px; font-size: 12px; font-style: italic; color: rgba(255,255,255,.62); }
 #hud .sc-phone[data-via="live"] .sc-screen { background: #000; }
 #hud .sc-livebar, #sc-live .sc-livebar { display: flex; align-items: center; gap: 6px; padding: 7px 9px; font-size: 12px; }
@@ -193,7 +194,7 @@ function renderPhone(c) {
 
 function setBubble(line) {
   if (!els || !els.bubble) return;
-  els.bubble.innerHTML = line ? `<b>${esc(nameOf(line[0]))}:</b>${dualHtml(line[1])}` : '';
+  els.bubble.innerHTML = line ? speakerHtml(nameOf(line[0])) + dualHtml(line[1]) : '';
 }
 
 function showCard(c, line) {

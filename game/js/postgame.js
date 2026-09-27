@@ -1,4 +1,5 @@
 import { setDualText } from './subtitles.js';
+import { paintSpeaker } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -140,7 +141,7 @@ function buildJelle(map, x, y) {
   const m = buildPersonMesh(JELLE_LOOK.shirt, JELLE_LOOK.skin, JELLE_LOOK);
   m.position.set(px, 0, py);
   m.rotation.y = -Math.atan2(y - py, x - px);
-  m.userData.speaker = { x: px, y: py, h: 2.2, speechText: '', speechUntil: 0 };
+  m.userData.speaker = { x: px, y: py, h: 2.2, speechText: '', speechUntil: 0, speechName: JELLE };
   return m;
 }
 
@@ -440,11 +441,9 @@ export function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-const SPEAKER_COLORS = { [JELLE]: '#8fb8f0', Tammo: '#7fc3ff', Anita: '#ff8f7a' };
 function showSub(speaker, text) {
   const el = ensureUi().sub;
-  el.firstChild.textContent = speaker + ':';
-  el.firstChild.style.color = SPEAKER_COLORS[speaker] || '#fff';
+  paintSpeaker(el.firstChild, speaker);
   setDualText(el.lastChild, text);
   el.style.opacity = '1';
   sub = { left: Math.max(2.4, Math.min(6, 1 + text.length * 0.06)) };
