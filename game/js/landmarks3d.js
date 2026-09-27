@@ -859,6 +859,177 @@ function eikea(B, ring) {
   }
 }
 
+// --- Stadhuis (Grote Markt) ---------------------------------------------------------
+
+// The OSM outline is a rectangle with sub-metre jags: model the clean frame.
+function stadhuis(B, ring) {
+  const F = minAreaFrame(ring);
+  const k = 0.2, rect = [[F.u0 + k, F.v0 + k], [F.u1 - k, F.v0 + k], [F.u1 - k, F.v1 - k], [F.u0 + k, F.v1 - k]].map(([u, v]) => F.P(u, v));
+  const eave = 15.5, rise = 5, plaster = 0xe4d9bf, plasterShade = 0xd3c6a8, plinth = 0xb9ab8c;
+  const edges = edgesOf(rect);
+  let main = edges[0];
+  for (const e of edges) if (e.ny < main.ny) main = e;
+  const t = main.len / 2, w = Math.min(18, main.len * 0.5), inset = 2.2;
+  const at = (e, s, off, y) => W(e.a[0] + e.tx * s - e.nx * off, y, e.a[1] + e.ty * s - e.ny * off);
+  const wall = (e, s0, s1, off, y0, y1, c = plaster) => B.quad(at(e, s0, off, y0), at(e, s1, off, y0), at(e, s1, off, y1), at(e, s0, off, y1), c, G_PLAIN);
+  for (const e of edges) {
+    if (e !== main) { wall(e, 0, e.len, 0, 0, eave); continue; }
+    wall(e, 0, t - w / 2, 0, 0, eave);
+    wall(e, t + w / 2, e.len, 0, 0, eave);
+    wall(e, t - w / 2, t + w / 2, 0, eave - 1.7, eave);
+    wall(e, t - w / 2, t + w / 2, inset, 0, eave - 1.7, 0xcfc3a6);
+    for (const s of [t - w / 2, t + w / 2]) B.quad(at(e, s, 0, 0), at(e, s, inset, 0), at(e, s, inset, eave - 1.7), at(e, s, 0, eave - 1.7), plasterShade, G_PLAIN);
+    B.quad(at(e, t - w / 2, 0, eave - 1.7), at(e, t + w / 2, 0, eave - 1.7), at(e, t + w / 2, inset, eave - 1.7), at(e, t - w / 2, inset, eave - 1.7), plasterShade, G_PLAIN);
+  }
+  cap(B, rect, () => eave, 0x585c60, G_PLAIN);
+  roofRim(B, edges, eave, 5, rise, C.slateDark);
+  band(B, edges, 0, 1.2, 0.1, plinth);
+  band(B, edges, 4.6, 0.4, 0.12, plasterShade);
+  band(B, edges, eave - 1.1, 1.1, 0.22, plasterShade);
+  for (const e of edges) {
+    for (const s of slots(e.len, 3.6, 1.2)) {
+      if (e === main && Math.abs(s - t) < w / 2 + 1.2) continue;
+      archWindow(B, e, s, 1.8, 1.5, 2.3, { pointed: false, arch: false, frame: C.white });
+      archWindow(B, e, s, 6.0, 1.6, 3.6, { pointed: false, arch: false, frame: C.white, mullion: true });
+      archWindow(B, e, s, 11.2, 1.5, 2.2, { pointed: false, arch: false, frame: C.white });
+    }
+  }
+  // the loggia: six columns, windows and the door on the back wall
+  const rot = Math.atan2(main.ty, main.tx);
+  for (let i = 0; i < 6; i++) {
+    const s = t - w / 2 + 1.1 + (w - 2.2) * i / 5;
+    const [x, , z] = at(main, s, 0.8, 0);
+    obox(B, x, z, 0, 1.3, 1.3, 1.2, rot, plinth, G_PLAIN);
+    cyl(B, x, 1.2, z, 0.42, 0.52, eave - 3.4, 10, C.white, G_PLAIN);
+    obox(B, x, z, eave - 2.2, 1.2, 1.2, 0.5, rot, C.white, G_PLAIN);
+  }
+  for (let i = 0; i < 3; i++) archWindow(B, main, t + (i - 1) * 4.8, 6.2, 1.8, 4.2, { pointed: false, arch: false, frame: C.white, out: -inset });
+  ebox(B, main, t, 0, 2.8, 3.8, 0.06, C.door, G_GLASS, -inset + 0.02);
+  // attic with the city arms, and the flag
+  ebox(B, main, t, eave, w * 0.6, 2.6, 0.9, plaster, G_PLAIN, -0.9);
+  ebox(B, main, t, eave + 2.6, w * 0.6 + 0.4, 0.35, 1.0, plasterShade, G_PLAIN, -0.95);
+  const [ax, , az] = at(main, t, -0.03, 0);
+  B.geo(new THREE.CylinderGeometry(0.9, 0.9, 0.12, 10), new THREE.Matrix4().makeRotationY(-rot).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).setPosition(ax, eave + 1.3, az), C.gold, G_METAL);
+  const [fx, fz] = F.P((F.u0 + F.u1) / 2, (F.v0 + F.v1) / 2);
+  cyl(B, fx, eave, fz, 0.07, 0.09, 11, 4, C.white, G_PLAIN);
+  for (const [i, c] of [0xc8102e, C.white, 0x21468b].entries()) B.box(fx + 0.9, eave + 10.6 - i * 0.4, fz, 1.8, 0.4, 0.04, c, G_PLAIN);
+}
+
+// --- Prinsenhof -------------------------------------------------------------------
+
+function prinsenhof(B, ring, srcEdges) {
+  const eave = 8.4;
+  const edges = edgesOf(ring, partyTester(srcEdges));
+  walls(B, ring, 0, () => eave, C.brick, G_BRICK);
+  cap(B, ring, () => eave, 0x6d3528, G_TILE);
+  roofRim(B, edges, eave, 6, 4.6, 0x7a3a2c);
+  band(B, edges, 0, 0.7, 0.08, C.sandstone);
+  band(B, edges, eave - 0.35, 0.35, 0.14, C.white);
+  for (const e of edges) {
+    if (e.party || e.len < 2.8) continue;
+    for (const t of slots(e.len, 2.9, 0.8)) {
+      for (const y0 of [1.2, 4.9]) {
+        ebox(B, e, t, y0 - 0.1, 1.3, 2.6, 0.06, C.white, G_PLAIN, 0.02);
+        ebox(B, e, t, y0, 1.05, 2.4, 0.06, C.glass, G_GLASS, 0.06);
+        ebox(B, e, t, y0 + 1.1, 1.05, 0.1, 0.05, C.white, G_PLAIN, 0.11);
+        for (const s of [-1, 1]) ebox(B, e, t + s * 0.9, y0, 0.5, 2.4, 0.06, C.green, G_PLAIN, 0.04);
+      }
+    }
+  }
+  // dakruiter with the bell lantern over the longest wing
+  let main = null;
+  for (const e of edges) if (!e.party && (!main || e.len > main.len)) main = e;
+  if (!main) return;
+  const x = main.a[0] + main.tx * main.len * 0.35 - main.nx * 6.5, z = main.a[1] + main.ty * main.len * 0.35 - main.ny * 6.5;
+  if (!pointInPolygon(x, z, ring)) return;
+  const rot = Math.atan2(main.ty, main.tx);
+  obox(B, x, z, eave, 2.6, 2.6, 6.4, rot, C.white, G_PLAIN);
+  cyl(B, x, eave + 6.4, z, 1.1, 1.3, 2.2, 8, C.white, G_PLAIN, rot);
+  prism(B, new THREE.SphereGeometry(1.25, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2), x, eave + 8.6, z, rot, C.copper, G_METAL);
+  cone(B, x, eave + 9.6, z, 0.35, 2.6, 6, C.copper, G_METAL, rot);
+  B.box(x, eave + 12.4, z, 0.3, 0.3, 0.3, C.gold, G_METAL);
+}
+
+// --- Gasunie "Apenrots" -----------------------------------------------------------
+
+// Stacked, shrinking brick masses with sloping tops that lean up to a tower
+// at the east end: the organic silhouette of the Gasuniegebouw.
+function gasunie(B, ring, srcEdges) {
+  const F = minAreaFrame(ring);
+  const east = F.P(F.u1, 0)[0] > F.P(F.u0, 0)[0] ? 1 : -1;
+  const uN = (p) => { const u = (F.U(p[0], p[1]) - F.u0) / (F.u1 - F.u0); return east > 0 ? u : 1 - u; };
+  const wob = (p, s) => Math.sin(p[0] * 0.11 + s) * Math.cos(p[1] * 0.09 - s) * 2.2;
+  const brick = 0x8a4a36, brick2 = 0x9a5a40, roofCol = 0x5f6f5e, glass = 0x3e5a58;
+  const tiers = [
+    { d: 0, lo: 10, hi: 18, c: brick },
+    { d: -7, lo: 20, hi: 31, c: brick2 },
+    { d: -16, lo: 30, hi: 42, c: brick },
+  ];
+  for (const [i, T] of tiers.entries()) {
+    const r = T.d ? grown(ring, T.d) : ring;
+    const yAt = (p) => T.lo + (T.hi - T.lo) * uN(p) + wob(p, i);
+    walls(B, r, i ? tiers[i - 1].lo - 3 : 0, yAt, T.c, G_BRICK);
+    cap(B, r, yAt, roofCol, G_TILE);
+    // green-glass ribbons, kept below the lowest point of the sloping top
+    const top = Math.min(...r.map(yAt));
+    for (const e of edgesOf(r, i ? null : partyTester(srcEdges))) {
+      if (e.party || e.len < 3) continue;
+      for (let y = 4; y < top - 2.4; y += 3.6) ebox(B, e, e.len / 2, y, e.len - 0.8, 1.6, 0.06, glass, G_GLASS, 0.03);
+    }
+  }
+  // the tower head: an octagonal drum with a leaning, cut-off crown
+  const [tx, tz] = F.P(east > 0 ? F.u1 - (F.u1 - F.u0) * 0.22 : F.u0 + (F.u1 - F.u0) * 0.22, (F.v0 + F.v1) / 2);
+  let room = Infinity;
+  for (let k = 0; k < ring.length; k++) {
+    const a = ring[k], c = ring[(k + 1) % ring.length];
+    room = Math.min(room, Math.sqrt(closestPointOnSegment(tx, tz, a[0], a[1], c[0], c[1]).dist2));
+  }
+  const R0 = Math.max(5, Math.min(13, room - 4));
+  const drum = Array.from({ length: 10 }, (_, k) => {
+    const a = (k / 10) * Math.PI * 2, rr = R0 * (1 + Math.sin(k * 2.3) * 0.15);
+    return [tx + Math.cos(a) * rr, tz + Math.sin(a) * rr];
+  });
+  const dY = (p) => 50 + ((p[0] - tx) * F.ux + (p[1] - tz) * F.uy) * 0.35 * east;
+  walls(B, drum, 26, dY, brick2, G_BRICK);
+  cap(B, drum, dY, 0x4f6a60, G_METAL);
+  for (const e of edgesOf(drum)) for (let y = 34; y < 44; y += 3.4) ebox(B, e, e.len / 2, y, e.len - 0.4, 2, 0.06, glass, G_GLASS, 0.03);
+  cyl(B, tx, 52, tz, 0.15, 0.2, 9, 4, C.steel, G_METAL);
+}
+
+// --- DUO "Cruiseschip" (Rijkskantoor Kempkensberg) --------------------------------
+
+// A long white hull of alternating deck bands and glass, with a superstructure
+// stepping back toward a bridge deck and mast.
+function duoCruiseschip(B, ring) {
+  const F = minAreaFrame(ring);
+  const U = (p) => (F.U(p[0], p[1]) - F.u0) / (F.u1 - F.u0);
+  const white = 0xeceae4, glass = 0x33424c;
+  const deck = (r, y0, n) => {
+    let y = y0;
+    for (let i = 0; i < n; i++) {
+      walls(B, r, y, () => y + 1.1, white, G_PLAIN);
+      walls(B, r, y + 1.1, () => y + 3.2, glass, G_GLASS);
+      y += 3.2;
+    }
+    walls(B, r, y, () => y + 1.2, white, G_PLAIN);
+    cap(B, r, () => y + 1.2, 0xb6b4ae, G_PLAIN);
+    return y + 1.2;
+  };
+  const slice = (a, b, d) => grown(clipRing(clipRing(ring, (p) => U(p) - a), (p) => b - U(p)), d);
+  walls(B, ring, 0, () => 3.6, 0x4a5258, G_GLASS);
+  let y = deck(ring, 3.6, 6);
+  y = deck(slice(0.08, 0.9, -2.2), y, 3);
+  y = deck(slice(0.22, 0.72, -5), y, 2);
+  const bu = F.u0 + (F.u1 - F.u0) * 0.47, bv = (F.v0 + F.v1) / 2;
+  const [bx, bz] = F.P(bu, bv);
+  fbox(B, F, bu, bv, y, 16, 9, 3.2, glass, G_GLASS);
+  fbox(B, F, bu, bv, y + 3.2, 17.5, 10.5, 0.6, white, G_PLAIN);
+  cyl(B, bx, y + 3.8, bz, 0.12, 0.2, 10, 4, C.steel, G_METAL);
+  B.box(bx, y + 11, bz, 3, 0.12, 0.12, C.steel, G_METAL, 0, -F.rot, 0);
+  // blue DUO stripe along the hull
+  for (const e of edgesOf(ring)) if (e.len > 4) ebox(B, e, e.len / 2, 3.6, e.len - 0.3, 0.5, 0.05, 0x1f4e8c, G_PLAIN, 0.04);
+}
+
 const BUILDERS = {
   EIKEA: (B, b, ring) => eikea(B, ring),
   Martinikerk: (B, b, ring, edges) => gothicChurch(B, ring, edges, { eave: 17, maxRise: 16, pitch: 52, flecheAt: 0.6 }),
@@ -874,14 +1045,23 @@ const BUILDERS = {
   Euroborg: (B, b, ring) => euroborgStand(B, b, ring),
 };
 
+// Named city buildings that get a model without being a spawn landmark.
+const NAMED = {
+  Stadhuis: (B, b, ring) => { if (b.type !== 'civic') return false; stadhuis(B, ring); },
+  Prinsenhof: (B, b, ring, edges) => prinsenhof(B, ring, edges),
+  Gasuniegebouw: (B, b, ring, edges) => gasunie(B, ring, edges),
+  'Rijkskantoor Kempkensberg': (B, b, ring) => duoCruiseschip(B, ring),
+};
+const builderOf = (b) => (b.landmark && BUILDERS[b.landmark]) || (b.name && NAMED[b.name]) || null;
+
 export function hasLandmarkModel(b) {
-  return !!(b.landmark && BUILDERS[b.landmark]);
+  return !!builderOf(b);
 }
 
 // ring: sanitized footprint [[x, y], ...]; edges: the building's outward
 // edge list with party-wall flags (models3d_buildings' format).
 export function buildLandmarkGeometry(b, ring, edges) {
-  const fn = BUILDERS[b.landmark];
+  const fn = builderOf(b);
   if (!fn) return null;
   const B = new GeoBuilder(5);
   if (fn(B, b, ring, edges) === false) return null;
