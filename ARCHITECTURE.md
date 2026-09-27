@@ -222,7 +222,7 @@ the title screen's `tick`/`render`/`relocate`; the title screen loop idles
 meanwhile. Temporary vehicles carry `cineTemp` (skipped by the title-screen
 traffic AI). `Math.random` is seeded per run and world state (clock,
 weather, trains, helis, balloons) is restored afterwards. Modes: `attract`
-(short cut, hold Space to skip, the last shot's `continuation()` becomes the
+(short cut at every launch except test runs, hold Space to skip, the last shot's `continuation()` becomes the
 title screen's first camera move and the logo glides into place),
 `benchmark` (real time, fps per shot, results card) and `opname` (fixed
 1/60 s step). The benchmark in a running game saves, reloads with a
