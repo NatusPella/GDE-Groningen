@@ -78,13 +78,15 @@ export const BANTER = [
     ['T', 'Duiven hebben hoge eisen. Ze wonen op de Grote Markt.', 'dry']] },
 
   { id: 'h4-pass-kunst', trigger: 'after:H4:pass', lines: [
-    ['A', 'Jij poept op het museum en noemt het verkenning.', 'laughing, incredulous'],
+    ['A', 'Jouw duif poept op het museum en jij noemt het verkenning.', 'laughing, incredulous'],
     ['T', 'Kunst is wat je ervan maakt.', 'pompous, deadpan']] },
   { id: 'h4-pass-blaadjes', trigger: 'after:H4:pass', arc: true, lines: [
     ['T', 'Een trekker-limo. Met vlaggetjes.', 'baffled'],
     ['A', 'Met rode blaadjes. Pompeblêden heten die.', 'knowing'],
     ['T', 'Jij weet veel van Friezen.', 'impressed, suspicious'],
-    ['A', 'Ik ken mijn buren.', 'sly, confident']] },
+    ['A', 'Ik ken iemand.', 'sly, confident'],
+    ['T', 'Wie?', 'suspicious, quick'],
+    ['A', 'Niks. Iemand uit Friesland.', 'evasive, brushing it off']] },
   { id: 'h4-fail', trigger: 'after:H4:fail', lines: [
     ['A', 'Je hebt een kwartier op een patatbakje gezeten.', 'mocking'],
     ['T', 'Het was een heel groot patatbakje.', 'defensive, dreamy']] },
@@ -227,11 +229,11 @@ export const BANTER = [
     ['A', 'Jelmer wil content. Wat is content eigenlijk?', 'curious'],
     ['T', 'Iets met veel geschreeuw en een ringlamp.', 'grumpy']] },
   { id: 'st-duif', trigger: 'story:H4', lines: [
-    ['T', 'Ik ga vliegen leren van duiven. Mijn vader zou trots zijn.', 'proud'],
+    ['T', 'Ik ga met duiven werken. Mijn vader zou trots zijn.', 'proud'],
     ['A', 'Je vader was bang voor duiven.', 'dry'],
     ['T', 'Precies. Ik doorbreek het patroon.', 'solemn']] },
   { id: 'st-h4', trigger: 'story:H4', lines: [
-    ['A', 'Bert zegt dat je een duif wordt als je hem diep in de ogen kijkt.', 'skeptical'],
+    ['A', 'Bert zegt dat een duif naar je luistert als je hem diep in de ogen kijkt.', 'skeptical'],
     ['T', 'Zo ben ik ook voor jou gevallen.', 'deadpan, sweet'],
     ['A', 'En sindsdien ben je nooit meer helemaal normaal geworden.', 'laughing, warm']] },
   { id: 'st-bijbaan', trigger: 'story:k-bijbaan', lines: [
@@ -686,7 +688,7 @@ export const BANTER = [
     ['T', 'Natuurlijk wil hij dat.', 'sighing'],
     ['A', 'Ik heb ja gezegd.', 'mischievous']] },
   { id: 'end-staart-voor', trigger: 'story:end:staart', lines: [
-    ['T', 'Wij tweeën vóór Grunn. Klinkt eigenlijk best goed.', 'warm, shy'],
+    ['T', 'Wij tweeën vóór Grunn. Kon minder.', 'warm, shy, understated'],
     ['A', 'Zei ik toch. Op die rondvaartboot al.', 'tender, smug']] },
   { id: 'id-fjordfrituur', trigger: 'idle', needs: 'H18', lines: [
     ['A', 'De rij bij de Fjord Frituur staat tot aan de Vismarkt.', 'proud'],
@@ -714,8 +716,8 @@ export const BANTER = [
     ['A', 'Zeg eens iets.', 'shy, soft'],
     ['T', 'Iets. Hoor je? Ik zeg iets.', 'nervous, deadpan'],
     ['A', 'Tammo.', 'amused, fond'],
-    ['T', 'Ik was even vergeten hoe praten ging.', 'shy, honest'],
-    ['A', 'Dan zeg ik het wel. Vóór Grunn. Samen.', 'warm, decided']] },
+    ['T', 'Vóór Grunn. Samen. Mien wicht.', 'quiet, sincere, five words'],
+    ['A', 'Kijk. Het kan wel.', 'moved, teasing softly']] },
   { id: 'q-h14-beleefd', trigger: 'after:H14:pass', arc: true, lines: [
     ['A', 'Weet je wat ik raar vind? Dat Jelle ons steeds bedankt.', 'thoughtful'],
     ['T', 'Hij denkt dat hij wint. Mensen die winnen zijn beleefd.', 'dry, wise'],
@@ -781,6 +783,81 @@ export const BANTER = [
     ['A', 'Bij een wedstrijd staat de rij bij de Euroborg tot aan de parkeerplaats.', 'dreamy, businesslike'],
     ['T', 'En op de Vismarkt koopt iedereen alleen maar vis.', 'dry'],
     ['A', 'Tot ze onze eierballen ruiken.', 'confident']] },
+
+  // --- the duivenfluisteraar, Rikus, "iemand uit Friesland", Tammo the eigenwijze ---
+  { id: 'h4-pass-duivenkoning', trigger: 'after:H4:pass', lines: [
+    ['A', 'Mijn vriend de duivenkoning.', 'teasing, delighted'],
+    ['T', 'Het was één duif. Die had toevallig zin.', 'deadpan'],
+    ['A', 'Hij luisterde naar jou, Tammo. Niemand luistert naar jou.', 'laughing'],
+    ['T', 'Nou ja. Jij soms.', 'dry, fond']] },
+  { id: 'h10-pass-team', trigger: 'after:H10:pass', lines: [
+    ['T', 'Heel Grunn klapte.', 'quietly proud'],
+    ['A', 'Voor jou of voor de duif?', 'teasing'],
+    ['T', 'Voor ons. Ik fluit, hij pikt.', 'dry'],
+    ['A', 'Dus de duif deed het werk.', 'smug'],
+    ['T', 'Dat bedoelde ik ook.', 'deadpan']] },
+  { id: 'id-meeuwen', trigger: 'idle', needs: 'H10', lines: [
+    ['A', 'Kun jij ook meeuwen?', 'curious'],
+    ['T', 'Meeuwen luisteren naar niemand.', 'firm'],
+    ['A', 'Net als jij.', 'teasing'],
+    ['T', 'Ik luister altijd naar jou.', 'sweet, deadpan'],
+    ['A', '…Nou ja. Meestal.', 'warm, amused']] },
+  { id: 'id-rikus', trigger: 'idle', needs: 'H2', lines: [
+    ['A', 'Luister jij eigenlijk naar Nachtstreek?', 'curious'],
+    ['T', 'Rikus draait daar. Van vroeger, uit het Oosterpark.', 'fond, dry'],
+    ['A', 'Die Rikus? Van de zolderkamer met die mengtafel?', 'amused'],
+    ['T', 'Hij heeft nu een studio. Met een deur.', 'deadpan'],
+    ['A', 'Vooruitgang.', 'laughing']] },
+  { id: 'id-rikus-duif', trigger: 'idle', needs: 'H10', lines: [
+    ['A', 'Rikus had het op de radio over je. De duivenfluisteraar van het Oosterpark.', 'giggling'],
+    ['T', 'Ik zeg niks.', 'deadpan'],
+    ['A', 'Hij heeft er een jingle bij.', 'delighted'],
+    ['T', 'Dan zeg ik wél wat. Tegen Rikus.', 'grumpy']] },
+  { id: 'id-rikus-friet', trigger: 'idle', needs: 'H17', until: 'H18', lines: [
+    ['A', 'Rikus wil de eerste friet uit de Fjord Frituur.', 'amused'],
+    ['T', 'De eerste is voor mij.', 'stubborn'],
+    ['A', 'Weet ik. Hij krijgt de tweede. Als hij betaalt.', 'firm, warm']] },
+  { id: 'id-friesland-app', trigger: 'idle', needs: 'H6', until: 'H16', lines: [
+    ['T', 'Wie app jij nou steeds?', 'suspicious'],
+    ['A', 'Niks. Iemand uit Friesland.', 'evasive, quick'],
+    ['T', 'Is hij lang?', 'deadpan, jealous'],
+    ['A', 'Tammo.', 'warning'],
+    ['T', 'Fierljepper zeker.', 'sulking, dry'],
+    ['A', 'Rijden, niet praten.', 'bossy, amused']] },
+  { id: 'id-suikerbrood', trigger: 'idle', needs: 'H9', until: 'H16', lines: [
+    ['A', 'Suikerbrood moet je roosteren. Met roomboter. Niet te dun.', 'knowing'],
+    ['T', 'Hoe weet jij dat nou weer?', 'suspicious'],
+    ['A', 'Gewoon. Dat weet je.', 'evasive'],
+    ['T', 'Dat weet niemand. Behalve Friezen.', 'jealous, dry']] },
+  { id: 'id-mem', trigger: 'idle', needs: 'H16', lines: [
+    ['T', 'Mem Terpstra. Ik was jaloers op een moeder.', 'deadpan'],
+    ['A', 'Een beetje, hè.', 'teasing'],
+    ['T', 'Een heel klein beetje.', 'sheepish'],
+    ['A', 'Ze vond je schattig. Met je pet.', 'giggling'],
+    ['T', '…Kon minder.', 'flustered, secretly proud']] },
+  { id: 'id-wikipedia', trigger: 'idle', needs: 'H1', lines: [
+    ['T', 'De Martinitoren is honderd meter. Minstens.', 'confident'],
+    ['A', 'Zevenennegentig. En een beetje. Klaar rond 1482.', 'matter-of-fact'],
+    ['T', 'Daar gaat Anita, de wandelende Wikipedia van Stad.', 'teasing'],
+    ['A', 'Iemand moet het weten.', 'smug'],
+    ['T', 'Zevenennegentig bedoelde ik ook.', 'deadpan']] },
+  { id: 'id-route', trigger: 'idle', lines: [
+    ['T', 'Hier rechtsaf. Dat is korter.', 'confident'],
+    ['A', 'Dat is eenrichtingsverkeer, Tammo.', 'patient'],
+    ['T', 'Voor hén.', 'stubborn'],
+    ['A', 'Voor iedereen.', 'firm'],
+    ['T', 'Dat bedoelde ik ook.', 'deadpan']] },
+  { id: 'id-eierbal-denken', trigger: 'idle', lines: [
+    ['T', 'Weet jij wat ik net dacht?', 'dreamy'],
+    ['A', 'Eierbal.', 'dry'],
+    ['T', 'Nee.', 'offended'],
+    ['A', 'Twee eierballen.', 'knowing'],
+    ['T', '…Nou ja. Ook.', 'caught, deadpan']] },
+  { id: 'id-ontzet-feiten', trigger: 'idle', needs: 'H17', lines: [
+    ['T', 'In 1672 won Bommen Berend, toch?', 'confident'],
+    ['A', 'Nee. Grunn hield hem buiten. Daarom vieren we het.', 'patient, knowing'],
+    ['T', 'Dat bedoelde ik ook.', 'deadpan'],
+    ['A', 'Je bedoelde het precies andersom.', 'laughing']] },
 ];
 
 // Short cut-offs when a crash or new stars interrupt a conversation (one line).

@@ -26,7 +26,9 @@ const CAST = {
   Jelmer: { voice: 'Puck', who: 'jonge Groningse streamer, hyper', pool: ['verbaasd, hardop voorlezend', 'opgewonden, snel'] },
   Sjoerd: { voice: 'Umbriel', who: 'Groningse wedstrijdleider, droog', pool: ['droog, licht verbaasd', 'schamper, mopperend'] },
   Henk: { voice: 'Sadaltager', who: 'gemoedelijke Groningse garagehouder', pool: ['gemoedelijk, rustig'] },
-  [NARRATOR]: { voice: 'Schedar', who: 'Groningse verteller, droog en warm', pool: ['droog, met een knipoog', 'warm, vertellend', 'plagend, laconiek'] },
+  // Rikus: the narrator and the Radio Nachtstreek night DJ, one voice for both
+  [NARRATOR]: { voice: 'Schedar', who: 'Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog', pool: ['droog, met een knipoog', 'warm, vertellend', 'plagend, laconiek'] },
+  'Mem Terpstra': { voice: 'Gacrux', who: 'warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden', pool: ['warm, stellig', 'zacht, samenzweerderig'], accent: 'spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk)' },
   'Jelle Terpstra': { voice: 'Fenrir', who: 'ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden', pool: ['charmant, opschepperig', 'zelfvoldaan, grinnikend', 'plechtig, overdreven trots'], accent: 'spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk)' },
   Durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger, spreekt Nederlands met een zwaar Fries accent', pool: ['dronken, lallend, samenzweerderig', 'traag, verward'], accent: 'spoken in Dutch with a heavy Frisian accent, slow' },
   Douwe: { voice: 'Orus', who: 'grote, trage Friese handlanger, tweelingbroer van Durk, spreekt Nederlands met een zwaar Fries accent', pool: ['traag, berustend', 'verward, sloom'], accent: 'spoken in Dutch with a heavy Frisian accent, slow' },
@@ -39,7 +41,6 @@ const CAST = {
   'Kapitein Klaas': { voice: 'Enceladus', who: 'oude Groningse schipper, schor', pool: ['samenzweerderig, schor', 'droog, knipogend'] },
   Verkeersinformatie: { voice: 'Achird', who: 'Groningse radiopresentator van de verkeersinformatie, zakelijk', pool: ['zakelijk, voorlezend, heel licht geamuseerd', 'droog, als een nieuwslezer', 'berustend, professioneel'] },
   Navigatie: { voice: 'Kore', who: 'kalme navigatiestem in een auto', pool: ['kalm, monotoon, heel licht vermoeid', 'vriendelijk, mechanisch, droog'], accent: 'spoken in standard Dutch, calm and clear like a car navigation voice' },
-  'Radio Nachtstreek': { voice: 'Gacrux', who: 'rustige Groningse nacht-dj op een regionale radiozender', pool: ['zacht, warm, rustig, laat op de avond', 'fluisterend warm, ontspannen'] },
   'Koe Aaltje': { voice: 'Zephyr', who: 'een sceptische, droge koe uit het Ommeland', pool: ['droog, laconiek, onder de indruk maar laat het niet merken', 'deadpan, zuchtend'] },
   'Koe Grietje': { voice: 'Autonoe', who: 'een wijze, droge koe uit het Ommeland die alles ziet', pool: ['droog, bedachtzaam', 'deadpan, licht spottend'] },
 };
