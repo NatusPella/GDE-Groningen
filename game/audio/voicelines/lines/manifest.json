@@ -807,6 +807,62 @@
 "src": "kapitein_klaas/en_kijk_even_naar_de_oosterhaven_6da14c11.mp3",
 "dur": 7.53
 },
+"Koe Aaltje|Ik heb het gezien. Ik zeg niks.": {
+"src": "koe_aaltje/ik_heb_het_gezien_ik_zeg_niks_910e23de.mp3",
+"dur": 2.38
+},
+"Koe Aaltje|Sirenes. Dan is die weer bezig.": {
+"src": "koe_aaltje/sirenes_dan_is_die_weer_bezig_6f211a54.mp3",
+"dur": 2.81
+},
+"Koe Aaltje|Weer een auto kapot. Ik tel ze niet meer.": {
+"src": "koe_aaltje/weer_een_auto_kapot_ik_tel_ze_ni_77e64d99.mp3",
+"dur": 3.59
+},
+"Koe Aaltje|Weer een klusje gedaan. Kon minder.": {
+"src": "koe_aaltje/weer_een_klusje_gedaan_kon_minde_bd95520d.mp3",
+"dur": 2.88
+},
+"Koe Grietje|Dat had een mooie auto kunnen blijven.": {
+"src": "koe_grietje/dat_had_een_mooie_auto_kunnen_bl_c62b9ff8.mp3",
+"dur": 3.02
+},
+"Koe Grietje|Veel blauw in de stad vandaag.": {
+"src": "koe_grietje/veel_blauw_in_de_stad_vandaag_5f3457ee.mp3",
+"dur": 2.67
+},
+"Koe Grietje|Weer een auto in het Diep. Het Diep vindt het prima.": {
+"src": "koe_grietje/weer_een_auto_in_het_diep_het_di_be53850c.mp3",
+"dur": 3.61
+},
+"Koe Grietje|Wij staan hier gewoon. Dat is ook een keuze.": {
+"src": "koe_grietje/wij_staan_hier_gewoon_dat_is_ook_3c58d46e.mp3",
+"dur": 3.01
+},
+"Navigatie|Houd links aan. Of rechts. Ze worden allebei nog verlegd.": {
+"src": "navigatie/houd_links_aan_of_rechts_ze_word_f9a46811.mp3",
+"dur": 4.43
+},
+"Navigatie|Nu echt de laatste fase.": {
+"src": "navigatie/nu_echt_de_laatste_fase_5b831484.mp3",
+"dur": 2.36
+},
+"Navigatie|Omleiding. Deze omleiding vervangt de vorige omleiding.": {
+"src": "navigatie/omleiding_deze_omleiding_vervang_7397fe39.mp3",
+"dur": 4.01
+},
+"Navigatie|Over driehonderd meter: nog een fase.": {
+"src": "navigatie/over_driehonderd_meter_nog_een_f_fab66899.mp3",
+"dur": 2.78
+},
+"Navigatie|Route herberekend. De weg is er nog niet, maar hij komt.": {
+"src": "navigatie/route_herberekend_de_weg_is_er_n_b16e42ae.mp3",
+"dur": 4.83
+},
+"Navigatie|U rijdt nu op de Ring Zuid. Geniet ervan, hij is bijna af.": {
+"src": "navigatie/u_rijdt_nu_op_de_ring_zuid_genie_2315333e.mp3",
+"dur": 4.95
+},
 "Oma Trijntje|Die bal is gien geld, jong. Die bal is Grunn. En Grunn geeft nooit op.": {
 "src": "oma_trijntje/die_bal_is_gien_geld_jong_die_ba_400b492d.mp3",
 "dur": 5.94
@@ -814,6 +870,26 @@
 "Oma Trijntje|En nog iets, nu jullie toch zo dapper zijn. In 1953 stond ik model voor die Gouden Eierbal. Die handjes eromheen: die zijn van mij.": {
 "src": "oma_trijntje/en_nog_iets_nu_jullie_toch_zo_da_d9e30544.mp3",
 "dur": 11.03
+},
+"Radio Nachtstreek|Goedenavond op de stille weg. Dit is Nachtstreek, muziek van hier voor wie nog onderweg is.": {
+"src": "radio_nachtstreek/goedenavond_op_de_stille_weg_dit_09c111c1.mp3",
+"dur": 6.88
+},
+"Radio Nachtstreek|Het is laat in het Ommeland. De koeien slapen, wij draaien nog even door.": {
+"src": "radio_nachtstreek/het_is_laat_in_het_ommeland_de_k_3670eadb.mp3",
+"dur": 5.53
+},
+"Radio Nachtstreek|Nachtstreek, met muziek van hier. Geen haast. Die hebben wij niet.": {
+"src": "radio_nachtstreek/nachtstreek_met_muziek_van_hier__1b06b340.mp3",
+"dur": 5.43
+},
+"Radio Nachtstreek|Nachtstreek. Buiten is het donker, binnen is het warm. Rustig aan op de dijk.": {
+"src": "radio_nachtstreek/nachtstreek_buiten_is_het_donker_eb7bc5fa.mp3",
+"dur": 6.29
+},
+"Radio Nachtstreek|Voor wie op de dijk rijdt en voor de boer die niet kan slapen: deze is voor jullie.": {
+"src": "radio_nachtstreek/voor_wie_op_de_dijk_rijdt_en_voo_bc2fe483.mp3",
+"dur": 5.41
 },
 "Sjabbe|Een pinautomaat. Met verse lak. Die had ik nog niet.": {
 "src": "sjabbe/een_pinautomaat_met_verse_lak_di_33c7adf9.mp3",
@@ -1327,6 +1403,38 @@
 "src": "tammo/zwaai_maar_ze_zwaaien_terug_of_z_d6a7f924.mp3",
 "dur": 3.54
 },
+"Verkeersinformatie|De Gerrit Krolbrug doet het weer. Grapje. De omleiding blijft staan.": {
+"src": "verkeersinformatie/de_gerrit_krolbrug_doet_het_weer_1fe893b5.mp3",
+"dur": 5.62
+},
+"Verkeersinformatie|De Gerrit Krolbrug heeft last van het weer. Welk weer maakt niet uit.": {
+"src": "verkeersinformatie/de_gerrit_krolbrug_heeft_last_va_0496933d.mp3",
+"dur": 4.8
+},
+"Verkeersinformatie|De Gerrit Krolbrug is in overleg met zichzelf. Reken op vertraging.": {
+"src": "verkeersinformatie/de_gerrit_krolbrug_is_in_overleg_0b7e4349.mp3",
+"dur": 4.97
+},
+"Verkeersinformatie|De Gerrit Krolbrug meldt een storing aan de slagboom. Volg de omleiding.": {
+"src": "verkeersinformatie/de_gerrit_krolbrug_meldt_een_sto_b64d8261.mp3",
+"dur": 4.34
+},
+"Verkeersinformatie|De Gerrit Krolbrug staat open. Niemand weet waarom. De omleiding is verlengd.": {
+"src": "verkeersinformatie/de_gerrit_krolbrug_staat_open_ni_8d0a2b0d.mp3",
+"dur": 5.08
+},
+"Verkeersinformatie|Er zwaaide een schipper naar de Gerrit Krolbrug. Uit voorzorg is hij dicht.": {
+"src": "verkeersinformatie/er_zwaaide_een_schipper_naar_de__5fd034e0.mp3",
+"dur": 4.27
+},
+"Verkeersinformatie|Nieuws over de Gerrit Krolbrug: de nieuwe brug komt eraan. Datum volgt.": {
+"src": "verkeersinformatie/nieuws_over_de_gerrit_krolbrug_d_e27da9b4.mp3",
+"dur": 5.26
+},
+"Verkeersinformatie|Storing aan de Gerrit Krolbrug: de brug wil wel, de software niet.": {
+"src": "verkeersinformatie/storing_aan_de_gerrit_krolbrug_d_ff8f5706.mp3",
+"dur": 4.91
+},
 "Verteller|Achtentwintig augustus. Gronings Ontzet. In 1672 hield Grunn Bommen Berend buiten de stad.": {
 "src": "verteller/achtentwintig_augustus_gronings__553f903d.mp3",
 "dur": 8.64
@@ -1451,6 +1559,10 @@
 "src": "bubbles/f/ahoi_c1fea3ff.mp3",
 "dur": 0.94
 },
+"~f|Al regent het, al waait het, wij blijven hier staan!": {
+"src": "bubbles/f/al_regent_het_al_waait_het_wij_b_d89fe09a.mp3",
+"dur": 4.78
+},
 "~f|Alles heel! Je bent een held. Kom je ook op mijn huisfeest?": {
 "src": "bubbles/f/alles_heel_je_bent_een_held_kom__855d6f12.mp3",
 "dur": 4.27
@@ -1479,9 +1591,25 @@
 "src": "bubbles/f/bestelling_staat_klaar_trap_maar_4188d740.mp3",
 "dur": 3.55
 },
+"~f|Bijna thuis. d’Olle Grieze wacht al.": {
+"src": "bubbles/f/bijna_thuis_d_olle_grieze_wacht__f56c1342.mp3",
+"dur": 3.42
+},
 "~f|Bist betoeterd?": {
 "src": "bubbles/f/bist_betoeterd_12f68540.mp3",
 "dur": 1.14
+},
+"~f|Bommen Berend gaf het op. Van de zenuwen, denk ik.": {
+"src": "bubbles/f/bommen_berend_gaf_het_op_van_de__31da37a7.mp3",
+"dur": 3.87
+},
+"~f|Boven in de Kiekdeuse is het uitzicht gratis.": {
+"src": "bubbles/f/boven_in_de_kiekdeuse_is_het_uit_0ccde023.mp3",
+"dur": 4.26
+},
+"~f|Daar is d’Olle Grieze weer. Dan zit het goed.": {
+"src": "bubbles/f/daar_is_d_olle_grieze_weer_dan_z_ef37baad.mp3",
+"dur": 5.41
 },
 "~f|Daar is mijn busje! Voorzichtig, hè!": {
 "src": "bubbles/f/daar_is_mijn_busje_voorzichtig_h_437c96cb.mp3",
@@ -1503,13 +1631,25 @@
 "src": "bubbles/f/dat_brengt_geluk_zeggen_ze_e94d3cb0.mp3",
 "dur": 2.5
 },
+"~f|Dat is de Apenrots. Daar zitten ze hoog, met de dossiers.": {
+"src": "bubbles/f/dat_is_de_apenrots_daar_zitten_z_1327d17a.mp3",
+"dur": 4.28
+},
 "~f|Dat is mien fiets, joh!": {
 "src": "bubbles/f/dat_is_mien_fiets_joh_3e76e613.mp3",
 "dur": 1.33
 },
+"~f|Dat peerd staat elke week ergens anders.": {
+"src": "bubbles/f/dat_peerd_staat_elke_week_ergens_b6c213c7.mp3",
+"dur": 2.95
+},
 "~f|Dat was mien kroket!": {
 "src": "bubbles/f/dat_was_mien_kroket_1740ce8b.mp3",
 "dur": 2.06
+},
+"~f|De Kiekdeuse. Je kunt er niet omheen kijken.": {
+"src": "bubbles/f/de_kiekdeuse_je_kunt_er_niet_omh_6f3517bf.mp3",
+"dur": 3.16
 },
 "~f|Die fiets heb ik al sinds de KEI-week!": {
 "src": "bubbles/f/die_fiets_heb_ik_al_sinds_de_kei_22f25b88.mp3",
@@ -1547,6 +1687,10 @@
 "src": "bubbles/f/een_trekker_inhalen_dat_moet_te__ced31355.mp3",
 "dur": 4.16
 },
+"~f|Eerste zon! Iedereen naar het Plantsoen.": {
+"src": "bubbles/f/eerste_zon_iedereen_naar_het_pla_db897e88.mp3",
+"dur": 2.83
+},
 "~f|Eh... was dat er al af?": {
 "src": "bubbles/f/eh_was_dat_er_al_af_964f7c55.mp3",
 "dur": 1.89
@@ -1575,6 +1719,10 @@
 "src": "bubbles/f/goeiemiddag_cee18074.mp3",
 "dur": 1.86
 },
+"~f|Groen en wit, van het Oosterpark tot aan de ring!": {
+"src": "bubbles/f/groen_en_wit_van_het_oosterpark__d9aa1277.mp3",
+"dur": 4.33
+},
 "~f|Ha! Mooi, mijn fiets!": {
 "src": "bubbles/f/ha_mooi_mijn_fiets_c439f550.mp3",
 "dur": 2.14
@@ -1594,6 +1742,18 @@
 "~f|Help!": {
 "src": "bubbles/f/help_a9cf3ab8.mp3",
 "dur": 0.76
+},
+"~f|Het Cruiseschip. Ligt aan de ring en vaart nooit uit.": {
+"src": "bubbles/f/het_cruiseschip_ligt_aan_de_ring_7a3a81e7.mp3",
+"dur": 4.92
+},
+"~f|Het was de bakker. Die hield iedereen op de been.": {
+"src": "bubbles/f/het_was_de_bakker_die_hield_iede_80772740.mp3",
+"dur": 3.18
+},
+"~f|Het was de regen, zegt mijn opa. Die kwam precies op tijd.": {
+"src": "bubbles/f/het_was_de_regen_zegt_mijn_opa_d_dd78b5db.mp3",
+"dur": 4.17
 },
 "~f|Hier, nog gloeiend. Niet onderweg van snoepen!": {
 "src": "bubbles/f/hier_nog_gloeiend_niet_onderweg__34a514d1.mp3",
@@ -1695,6 +1855,22 @@
 "src": "bubbles/f/ik_ken_jou_van_ergens_185798bf.mp3",
 "dur": 3.03
 },
+"~f|Ik kwam voor de markt, ik ga met een oerwoud.": {
+"src": "bubbles/f/ik_kwam_voor_de_markt_ik_ga_met__4efaf482.mp3",
+"dur": 2.86
+},
+"~f|In de Apenrots vergaderen ze al jaren over de gaskraan.": {
+"src": "bubbles/f/in_de_apenrots_vergaderen_ze_al__654c3278.mp3",
+"dur": 4.25
+},
+"~f|Is dit nou de Grote Markt of het Plantsoen?": {
+"src": "bubbles/f/is_dit_nou_de_grote_markt_of_het_9434b9c8.mp3",
+"dur": 3.0
+},
+"~f|Ja. Kon minder.": {
+"src": "bubbles/f/ja_kon_minder_d9767a39.mp3",
+"dur": 1.29
+},
 "~f|Joa, lekker. Moi!": {
 "src": "bubbles/f/joa_lekker_moi_c78064b1.mp3",
 "dur": 2.14
@@ -1727,9 +1903,17 @@
 "src": "bubbles/f/kiek_dat_was_nait_slecht_veur_n__36169285.mp3",
 "dur": 3.6
 },
+"~f|Kiek, d’Olle Grieze staat er nog.": {
+"src": "bubbles/f/kiek_d_olle_grieze_staat_er_nog_550b6b8a.mp3",
+"dur": 2.19
+},
 "~f|Kiek, n duifke!": {
 "src": "bubbles/f/kiek_n_duifke_c6e1e70e.mp3",
 "dur": 1.42
+},
+"~f|Kiekdeuse, zeggen wij. Doos met ramen.": {
+"src": "bubbles/f/kiekdeuse_zeggen_wij_doos_met_ra_d1bd3605.mp3",
+"dur": 2.91
 },
 "~f|Kom d'r ook in!": {
 "src": "bubbles/f/kom_d_r_ook_in_6c7130ee.mp3",
@@ -1742,6 +1926,14 @@
 "~f|Kom, nog één kroeg!": {
 "src": "bubbles/f/kom_nog_e_e_n_kroeg_dd1da769.mp3",
 "dur": 2.68
+},
+"~f|Kon minder, jong.": {
+"src": "bubbles/f/kon_minder_jong_1b1b35d2.mp3",
+"dur": 1.1
+},
+"~f|Kon minder.": {
+"src": "bubbles/f/kon_minder_85438e54.mp3",
+"dur": 0.86
 },
 "~f|Kreng van n duuf!": {
 "src": "bubbles/f/kreng_van_n_duuf_06b134cf.mp3",
@@ -1799,6 +1991,10 @@
 "src": "bubbles/f/moi_tot_volgend_jaar_in_het_plan_ff4af253.mp3",
 "dur": 2.48
 },
+"~f|Moi! Zeg je dat zo? Moi!": {
+"src": "bubbles/f/moi_zeg_je_dat_zo_moi_8e93b9dc.mp3",
+"dur": 2.58
+},
 "~f|Moi, dit wordt viraal!": {
 "src": "bubbles/f/moi_dit_wordt_viraal_3e00fa4b.mp3",
 "dur": 2.37
@@ -1810,6 +2006,10 @@
 "~f|Mooi bootje!": {
 "src": "bubbles/f/mooi_bootje_091ebdf0.mp3",
 "dur": 1.37
+},
+"~f|Mooi schip, dat Cruiseschip. Alleen geen zee.": {
+"src": "bubbles/f/mooi_schip_dat_cruiseschip_allee_bb4a85d6.mp3",
+"dur": 3.51
 },
 "~f|Mooi weer, hè!": {
 "src": "bubbles/f/mooi_weer_he_28b4dcc7.mp3",
@@ -1835,6 +2035,10 @@
 "src": "bubbles/f/nog_warm_in_grunn_is_dat_een_won_792d2318.mp3",
 "dur": 2.41
 },
+"~f|Nog één plantje. Echt de laatste.": {
+"src": "bubbles/f/nog_e_e_n_plantje_echt_de_laatst_13327ac3.mp3",
+"dur": 2.92
+},
 "~f|Nog ééntje dan!": {
 "src": "bubbles/f/nog_e_e_ntje_dan_3da6b172.mp3",
 "dur": 1.69
@@ -1851,6 +2055,10 @@
 "src": "bubbles/f/oh_it_is_really_big_en_zo_scheef_409c12d2.mp3",
 "dur": 5.28
 },
+"~f|Op het Cruiseschip rekenen ze je studieschuld uit.": {
+"src": "bubbles/f/op_het_cruiseschip_rekenen_ze_je_5267afc7.mp3",
+"dur": 3.12
+},
 "~f|Op tijd graag, deze klant geeft altijd één ster.": {
 "src": "bubbles/f/op_tijd_graag_deze_klant_geeft_a_4ac988a9.mp3",
 "dur": 3.08
@@ -1866,6 +2074,10 @@
 "~f|Pas toch op, joh!": {
 "src": "bubbles/f/pas_toch_op_joh_74c3b390.mp3",
 "dur": 1.66
+},
+"~f|Past die ficus nog in de bus?": {
+"src": "bubbles/f/past_die_ficus_nog_in_de_bus_5b42962f.mp3",
+"dur": 1.98
 },
 "~f|Politie? Der wordt hier een auto jat!": {
 "src": "bubbles/f/politie_der_wordt_hier_een_auto__282ae5a0.mp3",
@@ -1903,6 +2115,14 @@
 "src": "bubbles/f/rustig_an_jong_01e5a363.mp3",
 "dur": 1.46
 },
+"~f|Stad en Ommeland, samen staan we sterk!": {
+"src": "bubbles/f/stad_en_ommeland_samen_staan_we__28f4fbd2.mp3",
+"dur": 3.29
+},
+"~f|Stond dat peerd hier gisteren ook?": {
+"src": "bubbles/f/stond_dat_peerd_hier_gisteren_oo_fbe5c1e9.mp3",
+"dur": 1.87
+},
 "~f|Taxi! TAXI!": {
 "src": "bubbles/f/taxi_taxi_40f44260.mp3",
 "dur": 2.0
@@ -1923,6 +2143,14 @@
 "src": "bubbles/f/twee_kilo_appels_twee_euro_ae628e4c.mp3",
 "dur": 2.62
 },
+"~f|Van wie is deze fiets? Van niemand meer, denk ik.": {
+"src": "bubbles/f/van_wie_is_deze_fiets_van_nieman_1d9b0d75.mp3",
+"dur": 3.88
+},
+"~f|Vanaf d’Olle Grieze zie je heel Grunn.": {
+"src": "bubbles/f/vanaf_d_olle_grieze_zie_je_heel__b3dfdd99.mp3",
+"dur": 3.12
+},
 "~f|Verse haring, moi!": {
 "src": "bubbles/f/verse_haring_moi_57448847.mp3",
 "dur": 1.95
@@ -1934,6 +2162,10 @@
 "~f|Waar is mijn fiets?": {
 "src": "bubbles/f/waar_is_mijn_fiets_0abb9fdd.mp3",
 "dur": 1.59
+},
+"~f|Waar is ons groepje gebleven?": {
+"src": "bubbles/f/waar_is_ons_groepje_gebleven_12155d47.mp3",
+"dur": 2.31
 },
 "~f|Waar moet ik dan parkeren? In het Diep?": {
 "src": "bubbles/f/waar_moet_ik_dan_parkeren_in_het_dfaf65d7.mp3",
@@ -1951,13 +2183,33 @@
 "src": "bubbles/f/wie_gooit_dat_o_een_duif_159a7a56.mp3",
 "dur": 3.15
 },
+"~f|Wie heeft die speaker meegenomen?": {
+"src": "bubbles/f/wie_heeft_die_speaker_meegenomen_860a6101.mp3",
+"dur": 2.81
+},
 "~f|Wie heeft mijn pet?": {
 "src": "bubbles/f/wie_heeft_mijn_pet_66ea8305.mp3",
 "dur": 1.67
 },
+"~f|Wij geven nooit op, wij staan tot het eind!": {
+"src": "bubbles/f/wij_geven_nooit_op_wij_staan_tot_1acf1b6e.mp3",
+"dur": 4.15
+},
+"~f|Wij hebben gewonnen. Met de dijken, natuurlijk.": {
+"src": "bubbles/f/wij_hebben_gewonnen_met_de_dijke_2781c6ea.mp3",
+"dur": 3.27
+},
 "~f|Ze komen der aan!": {
 "src": "bubbles/f/ze_komen_der_aan_742c69a2.mp3",
 "dur": 1.23
+},
+"~f|Zolang d’Olle Grieze staat, is t goed.": {
+"src": "bubbles/f/zolang_d_olle_grieze_staat_is_t__2b50ea2d.mp3",
+"dur": 3.04
+},
+"~f|d’Olle Grieze in zicht. Bijna thuis.": {
+"src": "bubbles/f/d_olle_grieze_in_zicht_bijna_thu_64373031.mp3",
+"dur": 3.1
 },
 "~m|112? Hier ontploft van alles!": {
 "src": "bubbles/m/112_hier_ontploft_van_alles_8f22497e.mp3",
@@ -1978,6 +2230,10 @@
 "~m|Ahoi!": {
 "src": "bubbles/m/ahoi_13567399.mp3",
 "dur": 1.33
+},
+"~m|Al regent het, al waait het, wij blijven hier staan!": {
+"src": "bubbles/m/al_regent_het_al_waait_het_wij_b_f55f426b.mp3",
+"dur": 4.44
 },
 "~m|Alles heel! Je bent een held. Kom je ook op mijn huisfeest?": {
 "src": "bubbles/m/alles_heel_je_bent_een_held_kom__58484ffa.mp3",
@@ -2015,6 +2271,10 @@
 "src": "bubbles/m/bezorgen_is_net_kraken_je_belt_a_e013db10.mp3",
 "dur": 4.41
 },
+"~m|Bijna thuis. d’Olle Grieze wacht al.": {
+"src": "bubbles/m/bijna_thuis_d_olle_grieze_wacht__f339b7e8.mp3",
+"dur": 2.91
+},
 "~m|Bist betoeterd?": {
 "src": "bubbles/m/bist_betoeterd_87b210e3.mp3",
 "dur": 1.2
@@ -2022,6 +2282,18 @@
 "~m|Blijf stoan!": {
 "src": "bubbles/m/blijf_stoan_4c1238f4.mp3",
 "dur": 1.09
+},
+"~m|Bommen Berend gaf het op. Van de zenuwen, denk ik.": {
+"src": "bubbles/m/bommen_berend_gaf_het_op_van_de__05b7f461.mp3",
+"dur": 4.16
+},
+"~m|Boven in de Kiekdeuse is het uitzicht gratis.": {
+"src": "bubbles/m/boven_in_de_kiekdeuse_is_het_uit_c8089bcb.mp3",
+"dur": 3.66
+},
+"~m|Daar is d’Olle Grieze weer. Dan zit het goed.": {
+"src": "bubbles/m/daar_is_d_olle_grieze_weer_dan_z_60649a59.mp3",
+"dur": 3.22
 },
 "~m|Daar is mijn busje! Voorzichtig, hè!": {
 "src": "bubbles/m/daar_is_mijn_busje_voorzichtig_h_5cc89b32.mp3",
@@ -2043,13 +2315,25 @@
 "src": "bubbles/m/dat_brengt_geluk_zeggen_ze_b62d6b07.mp3",
 "dur": 1.75
 },
+"~m|Dat is de Apenrots. Daar zitten ze hoog, met de dossiers.": {
+"src": "bubbles/m/dat_is_de_apenrots_daar_zitten_z_03775e32.mp3",
+"dur": 4.79
+},
 "~m|Dat is mien fiets, joh!": {
 "src": "bubbles/m/dat_is_mien_fiets_joh_d31e518b.mp3",
 "dur": 1.67
 },
+"~m|Dat peerd staat elke week ergens anders.": {
+"src": "bubbles/m/dat_peerd_staat_elke_week_ergens_54c0ba09.mp3",
+"dur": 2.17
+},
 "~m|Dat was mien kroket!": {
 "src": "bubbles/m/dat_was_mien_kroket_e214e3eb.mp3",
 "dur": 1.83
+},
+"~m|De Kiekdeuse. Je kunt er niet omheen kijken.": {
+"src": "bubbles/m/de_kiekdeuse_je_kunt_er_niet_omh_64125ebb.mp3",
+"dur": 3.1
 },
 "~m|Die fiets heb ik al sinds de KEI-week!": {
 "src": "bubbles/m/die_fiets_heb_ik_al_sinds_de_kei_8399c52c.mp3",
@@ -2079,6 +2363,10 @@
 "src": "bubbles/m/een_sloep_met_een_bel_jelle_gaat_90818799.mp3",
 "dur": 3.5
 },
+"~m|Eerste zon! Iedereen naar het Plantsoen.": {
+"src": "bubbles/m/eerste_zon_iedereen_naar_het_pla_2d0cfdae.mp3",
+"dur": 2.81
+},
 "~m|Eh... was dat er al af?": {
 "src": "bubbles/m/eh_was_dat_er_al_af_202bb4bf.mp3",
 "dur": 1.72
@@ -2102,6 +2390,10 @@
 "~m|Goeiemiddag!": {
 "src": "bubbles/m/goeiemiddag_2598fc43.mp3",
 "dur": 1.66
+},
+"~m|Groen en wit, van het Oosterpark tot aan de ring!": {
+"src": "bubbles/m/groen_en_wit_van_het_oosterpark__098e6d67.mp3",
+"dur": 4.08
 },
 "~m|Ha! Mooi, mijn fiets!": {
 "src": "bubbles/m/ha_mooi_mijn_fiets_ca27195f.mp3",
@@ -2131,9 +2423,21 @@
 "src": "bubbles/m/henk_heeft_koffie_henk_vraagt_no_437d73f5.mp3",
 "dur": 2.72
 },
+"~m|Het Cruiseschip. Ligt aan de ring en vaart nooit uit.": {
+"src": "bubbles/m/het_cruiseschip_ligt_aan_de_ring_e529931d.mp3",
+"dur": 4.19
+},
 "~m|Het gaat om banden, hè. Niet om mensen.": {
 "src": "bubbles/m/het_gaat_om_banden_he_niet_om_me_6dfa4aa6.mp3",
 "dur": 2.48
+},
+"~m|Het was de bakker. Die hield iedereen op de been.": {
+"src": "bubbles/m/het_was_de_bakker_die_hield_iede_5c0f5694.mp3",
+"dur": 3.17
+},
+"~m|Het was de regen, zegt mijn opa. Die kwam precies op tijd.": {
+"src": "bubbles/m/het_was_de_regen_zegt_mijn_opa_d_d5fdad8c.mp3",
+"dur": 3.87
 },
 "~m|Hier, nog gloeiend. Niet onderweg van snoepen!": {
 "src": "bubbles/m/hier_nog_gloeiend_niet_onderweg__405a032b.mp3",
@@ -2247,6 +2551,22 @@
 "src": "bubbles/m/ik_ken_jou_van_ergens_d6a5ba68.mp3",
 "dur": 2.2
 },
+"~m|Ik kwam voor de markt, ik ga met een oerwoud.": {
+"src": "bubbles/m/ik_kwam_voor_de_markt_ik_ga_met__aa4dc985.mp3",
+"dur": 2.86
+},
+"~m|In de Apenrots vergaderen ze al jaren over de gaskraan.": {
+"src": "bubbles/m/in_de_apenrots_vergaderen_ze_al__f36a2dc1.mp3",
+"dur": 4.06
+},
+"~m|Is dit nou de Grote Markt of het Plantsoen?": {
+"src": "bubbles/m/is_dit_nou_de_grote_markt_of_het_a77cb524.mp3",
+"dur": 3.05
+},
+"~m|Ja. Kon minder.": {
+"src": "bubbles/m/ja_kon_minder_9c929d72.mp3",
+"dur": 1.56
+},
 "~m|Joa, lekker. Moi!": {
 "src": "bubbles/m/joa_lekker_moi_698dd98d.mp3",
 "dur": 2.92
@@ -2275,9 +2595,17 @@
 "src": "bubbles/m/kiek_dat_was_nait_slecht_veur_n__d259ffb8.mp3",
 "dur": 3.3
 },
+"~m|Kiek, d’Olle Grieze staat er nog.": {
+"src": "bubbles/m/kiek_d_olle_grieze_staat_er_nog_368ef029.mp3",
+"dur": 2.31
+},
 "~m|Kiek, n duifke!": {
 "src": "bubbles/m/kiek_n_duifke_025001fb.mp3",
 "dur": 1.74
+},
+"~m|Kiekdeuse, zeggen wij. Doos met ramen.": {
+"src": "bubbles/m/kiekdeuse_zeggen_wij_doos_met_ra_bae40c7b.mp3",
+"dur": 2.86
 },
 "~m|Kom d'r ook in!": {
 "src": "bubbles/m/kom_d_r_ook_in_0b829ad6.mp3",
@@ -2290,6 +2618,14 @@
 "~m|Kom, nog één kroeg!": {
 "src": "bubbles/m/kom_nog_e_e_n_kroeg_13f4da80.mp3",
 "dur": 2.58
+},
+"~m|Kon minder, jong.": {
+"src": "bubbles/m/kon_minder_jong_4e7a23e4.mp3",
+"dur": 1.23
+},
+"~m|Kon minder.": {
+"src": "bubbles/m/kon_minder_3d9567bc.mp3",
+"dur": 0.78
 },
 "~m|Kreng van n duuf!": {
 "src": "bubbles/m/kreng_van_n_duuf_2aa35f91.mp3",
@@ -2351,6 +2687,10 @@
 "src": "bubbles/m/moi_tot_volgend_jaar_in_het_plan_3a1ba887.mp3",
 "dur": 3.08
 },
+"~m|Moi! Zeg je dat zo? Moi!": {
+"src": "bubbles/m/moi_zeg_je_dat_zo_moi_85edeab1.mp3",
+"dur": 2.67
+},
 "~m|Moi, dit wordt viraal!": {
 "src": "bubbles/m/moi_dit_wordt_viraal_78848708.mp3",
 "dur": 1.96
@@ -2362,6 +2702,10 @@
 "~m|Mooi bootje!": {
 "src": "bubbles/m/mooi_bootje_38a2e5c4.mp3",
 "dur": 1.34
+},
+"~m|Mooi schip, dat Cruiseschip. Alleen geen zee.": {
+"src": "bubbles/m/mooi_schip_dat_cruiseschip_allee_93eeb8b5.mp3",
+"dur": 3.36
 },
 "~m|Mooi weer, hè!": {
 "src": "bubbles/m/mooi_weer_he_04930839.mp3",
@@ -2387,6 +2731,10 @@
 "src": "bubbles/m/nog_warm_in_grunn_is_dat_een_won_39b9a598.mp3",
 "dur": 2.73
 },
+"~m|Nog één plantje. Echt de laatste.": {
+"src": "bubbles/m/nog_e_e_n_plantje_echt_de_laatst_896f23bd.mp3",
+"dur": 3.56
+},
 "~m|Nog ééntje dan!": {
 "src": "bubbles/m/nog_e_e_ntje_dan_2e333a28.mp3",
 "dur": 1.94
@@ -2403,6 +2751,10 @@
 "src": "bubbles/m/oh_it_is_really_big_en_zo_scheef_9de69449.mp3",
 "dur": 5.31
 },
+"~m|Op het Cruiseschip rekenen ze je studieschuld uit.": {
+"src": "bubbles/m/op_het_cruiseschip_rekenen_ze_je_7f800e15.mp3",
+"dur": 3.83
+},
 "~m|Op tijd graag, deze klant geeft altijd één ster.": {
 "src": "bubbles/m/op_tijd_graag_deze_klant_geeft_a_811d7428.mp3",
 "dur": 3.11
@@ -2418,6 +2770,10 @@
 "~m|Pas toch op, joh!": {
 "src": "bubbles/m/pas_toch_op_joh_af4c86e1.mp3",
 "dur": 0.93
+},
+"~m|Past die ficus nog in de bus?": {
+"src": "bubbles/m/past_die_ficus_nog_in_de_bus_490fa261.mp3",
+"dur": 1.88
 },
 "~m|Politie? Der wordt hier een auto jat!": {
 "src": "bubbles/m/politie_der_wordt_hier_een_auto__04a1144c.mp3",
@@ -2459,6 +2815,14 @@
 "src": "bubbles/m/staan_blijven_politie_451ff08b.mp3",
 "dur": 1.91
 },
+"~m|Stad en Ommeland, samen staan we sterk!": {
+"src": "bubbles/m/stad_en_ommeland_samen_staan_we__3dfcb8eb.mp3",
+"dur": 3.61
+},
+"~m|Stond dat peerd hier gisteren ook?": {
+"src": "bubbles/m/stond_dat_peerd_hier_gisteren_oo_c1e62db1.mp3",
+"dur": 1.65
+},
 "~m|Taxi! TAXI!": {
 "src": "bubbles/m/taxi_taxi_29da5583.mp3",
 "dur": 1.71
@@ -2479,6 +2843,14 @@
 "src": "bubbles/m/twee_kilo_appels_twee_euro_5f95c363.mp3",
 "dur": 2.81
 },
+"~m|Van wie is deze fiets? Van niemand meer, denk ik.": {
+"src": "bubbles/m/van_wie_is_deze_fiets_van_nieman_5b39b9cf.mp3",
+"dur": 5.29
+},
+"~m|Vanaf d’Olle Grieze zie je heel Grunn.": {
+"src": "bubbles/m/vanaf_d_olle_grieze_zie_je_heel__1940c48e.mp3",
+"dur": 3.01
+},
 "~m|Verse haring, moi!": {
 "src": "bubbles/m/verse_haring_moi_650eba77.mp3",
 "dur": 2.36
@@ -2490,6 +2862,10 @@
 "~m|Waar is mijn fiets?": {
 "src": "bubbles/m/waar_is_mijn_fiets_f2939e5b.mp3",
 "dur": 1.38
+},
+"~m|Waar is ons groepje gebleven?": {
+"src": "bubbles/m/waar_is_ons_groepje_gebleven_b8f0e7f6.mp3",
+"dur": 2.37
 },
 "~m|Waar moet ik dan parkeren? In het Diep?": {
 "src": "bubbles/m/waar_moet_ik_dan_parkeren_in_het_723900cb.mp3",
@@ -2503,16 +2879,36 @@
 "src": "bubbles/m/wie_gooit_dat_o_een_duif_9937bde5.mp3",
 "dur": 2.74
 },
+"~m|Wie heeft die speaker meegenomen?": {
+"src": "bubbles/m/wie_heeft_die_speaker_meegenomen_e894480d.mp3",
+"dur": 2.79
+},
 "~m|Wie heeft mijn pet?": {
 "src": "bubbles/m/wie_heeft_mijn_pet_773c62f5.mp3",
 "dur": 1.82
+},
+"~m|Wij geven nooit op, wij staan tot het eind!": {
+"src": "bubbles/m/wij_geven_nooit_op_wij_staan_tot_7ea24d99.mp3",
+"dur": 4.16
+},
+"~m|Wij hebben gewonnen. Met de dijken, natuurlijk.": {
+"src": "bubbles/m/wij_hebben_gewonnen_met_de_dijke_07a910e2.mp3",
+"dur": 3.43
 },
 "~m|Ze komen der aan!": {
 "src": "bubbles/m/ze_komen_der_aan_c60bdac0.mp3",
 "dur": 1.06
 },
+"~m|Zolang d’Olle Grieze staat, is t goed.": {
+"src": "bubbles/m/zolang_d_olle_grieze_staat_is_t__ede0adee.mp3",
+"dur": 3.08
+},
 "~m|Zwart staat jou goed. Mij staat alles slecht, dus dat maakt niet uit.": {
 "src": "bubbles/m/zwart_staat_jou_goed_mij_staat_a_6aa78440.mp3",
 "dur": 4.11
+},
+"~m|d’Olle Grieze in zicht. Bijna thuis.": {
+"src": "bubbles/m/d_olle_grieze_in_zicht_bijna_thu_5b9e154b.mp3",
+"dur": 2.91
 }
 }
