@@ -137,7 +137,7 @@ function createWindow() {
   const spotsOnly = process.argv.find((a) => a === '--validate-spots' || a.startsWith('--validate-spots='));
   const storyTest = process.argv.find((a) => a === '--story-test' || a.startsWith('--story-test=')) || spotsOnly;
   const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
-  const query = [(silent || storyTest) && 'stil', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--dev') && 'dev', storyTest && 'storytest', spotsOnly && 'spotsonly',
+  const query = [(silent || storyTest) && 'stil', process.argv.includes('--audio-graph') && 'audiograf', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--dev') && 'dev', storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke || storyTest || process.argv.includes('--perf-test')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,

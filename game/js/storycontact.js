@@ -304,7 +304,7 @@ export function updateStoryContact(dt, w) {
     if ((quietT += dt) < QUIET_S) return;
     quietT = 0;
     // one talking channel (speech.js): the contact holds it like a call
-    if (!holdContactChannel(true)) return;
+    if (!holdContactChannel(true, () => !!cur)) return;
     start(queue.shift());
     return;
   }

@@ -27,6 +27,12 @@ const GAP = { radio: 2.5, ambient: 1.0, react: 0.5, job: 0.3, banter: 0.3, call:
 const TAIL = 0.15;
 export const RADIO_QUIET = 2.5;
 const MAX_QUEUE = 4;
+// Safety net against a hold nobody releases (a cancelled scene, a call
+// ended by a path that forgot to release): a hold lasts at most this long,
+// and one whose `alive` probe reports false for HOLD_GRACE s is dropped.
+const HOLD_MAX = { radio: 30, ambient: 30, react: 30, job: 120, banter: 150, call: 420, mission: 900, story: 1800 };
+const HOLD_GRACE = 3;
+const CLIP_MAX = 90;
 
 let clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
 let cur = null;
@@ -101,13 +107,15 @@ export function begin(cls, dur, { stop = null, owner = null } = {}) {
     if (h.onPreempt) try { h.onPreempt(cls); } catch (e) { /* ignore */ }
   }
   const id = nextId++;
-  cur = { id, cls, prio: p, start: now, until: now + dur + TAIL, stop, owner };
+  const d = Number.isFinite(dur) && dur > 0 ? Math.min(dur, CLIP_MAX) : 2;
+  cur = { id, cls, prio: p, start: now, until: now + d + TAIL, stop, owner };
   note('begin', cls);
   return id;
 }
 
 export function extend(id, dur) {
-  if (cur && cur.id === id) cur.until = cur.start + dur + TAIL;
+  if (!Number.isFinite(dur) || dur < 0) return;
+  if (cur && cur.id === id) cur.until = cur.start + Math.min(dur, CLIP_MAX) + TAIL;
 }
 
 export function end(id) {
@@ -117,7 +125,8 @@ export function end(id) {
   lastEnd = clock();
 }
 
-export function hold(owner, cls, onPreempt = null) {
+// opts.alive: optional probe; the hold is dropped once it keeps returning false.
+export function hold(owner, cls, onPreempt = null, { alive = null } = {}) {
   const p = PRIO[cls] ?? PRIO.ambient;
   const h = strongestHold(owner);
   if (h && h.prio >= p && p !== PRIO.story) return false;
@@ -133,7 +142,7 @@ export function hold(owner, cls, onPreempt = null) {
     note('cut', c.cls, { by: cls });
     if (c.stop) try { c.stop(); } catch (e) { /* ignore */ }
   }
-  holds.set(owner, { cls, prio: p, onPreempt });
+  holds.set(owner, { cls, prio: p, onPreempt, alive, since: clock(), deadSince: null });
   note('hold', cls, { owner });
   return true;
 }
@@ -145,6 +154,32 @@ export function release(owner) {
 }
 
 export const holding = (owner) => holds.has(owner);
+
+// Watchdog (audio.js runs it every few seconds): drops holds that outlived
+// HOLD_MAX or whose owner is gone; onPreempt gets 'watchdog'. Returns the
+// owners it freed.
+export function sweep() {
+  const now = clock();
+  active(now);
+  const freed = [];
+  for (const [o, h] of [...holds]) {
+    let dead = now - h.since > (HOLD_MAX[h.cls] ?? 300);
+    if (!dead && h.alive) {
+      let ok = false;
+      try { ok = !!h.alive(); } catch (e) { ok = false; }
+      if (ok) h.deadSince = null;
+      else if (h.deadSince === null) h.deadSince = now;
+      else dead = now - h.deadSince >= HOLD_GRACE;
+    }
+    if (!dead) continue;
+    holds.delete(o);
+    freed.push(o);
+    note('stale-hold', h.cls, { owner: o });
+    if (h.onPreempt) try { h.onPreempt('watchdog'); } catch (e) { /* ignore */ }
+  }
+  if (freed.length && !cur) lastEnd = Math.max(lastEnd, now);
+  return freed;
+}
 
 // Plays now (play(token) is called), queues (maxWait > 0) or drops.
 export function request(cls, dur, play, { maxWait = 0, key = null, owner = null } = {}) {
@@ -199,7 +234,7 @@ export function speechState() {
   return {
     talking: c ? c.cls : null,
     until: c ? +c.until.toFixed(2) : null,
-    holds: [...holds].map(([o, h]) => `${o}:${h.cls}`),
+    holds: [...holds].map(([o, h]) => `${o}:${h.cls}:${(clock() - h.since).toFixed(0)}s`),
     queue: queue.map((q) => q.cls),
     silentFor: c ? 0 : +(clock() - lastEnd).toFixed(2),
     history: history.slice(-12),

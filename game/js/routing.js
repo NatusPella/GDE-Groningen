@@ -333,6 +333,9 @@ function objectiveTarget(world) {
   // garage the next activity needs
   const g = world.storyGuide;
   if (g) return { x: g.x, y: g.y, kind: 'mission', name: g.name };
+  // after the ending: the nearest post-game challenge still to win (postgame.js)
+  const pg = world.postgameGuide;
+  if (pg && !world.challenge) return { x: pg.x, y: pg.y, kind: 'mission', name: pg.name, pg: true };
   // once the built story has ended (story.js), free-play missions wait for the player to pick one
   if (m && m.marker && m.phase !== 'cooldown' && !world.storyFreePlay) return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
   return null;

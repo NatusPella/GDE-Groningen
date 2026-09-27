@@ -107,5 +107,44 @@ t += 3;
 S.begin('radio', 3, { stop: () => djStop++ });
 ok(S.begin('react', 1) && djStop === 1, 'any voice cuts the DJ off');
 
+// watchdog: holds nobody releases are swept, ducks come back up
+fresh();
+let pre = null;
+S.hold('banter', 'banter', (by) => { pre = by; });
+ok(S.musicDuck() === 1, 'a hold ducks the music');
+t += 60; S.sweep();
+ok(S.holding('banter'), 'a young hold without probe survives the sweep');
+t += 100; S.sweep();
+ok(!S.holding('banter') && pre === 'watchdog', 'a banter hold older than its max is swept');
+ok(S.musicDuck() === 0, 'music unducks after the stale hold is swept');
+
+fresh();
+let alive = true;
+S.hold('call', 'call', null, { alive: () => alive });
+t += 10; S.sweep();
+ok(S.holding('call'), 'a call whose owner is alive keeps its hold');
+alive = false;
+S.sweep(); t += 1; S.sweep();
+ok(S.holding('call'), 'a dead owner gets a short grace');
+t += 3; S.sweep();
+ok(!S.holding('call') && S.canSpeak('react') === false, 'dead owner swept; the gap after it still applies');
+t += 1;
+ok(S.canSpeak('react'), 'voices may talk again after the swept call');
+
+fresh();
+S.hold('story', 'story', null, { alive: () => { throw new Error('x'); } });
+S.sweep(); t += 3.5; S.sweep(); t += 0.5;
+ok(!S.holding('story') && S.canSpeak('banter'), 'a throwing probe counts as dead; banter may start');
+
+// a clip with a silly length never blocks the channel forever
+fresh();
+const inf = S.begin('react', Infinity);
+ok(inf && S.speechState().until < t + 3, 'a non-finite guess becomes a short one');
+S.extend(inf, 1e9);
+t += 91; S.tick();
+ok(!S.speechState().talking && S.musicDuck() === 0, 'extend is capped: the channel frees itself');
+S.extend(inf, NaN);
+ok(!S.speechState().talking, 'a NaN extend is ignored');
+
 console.log(`${n - fails}/${n} speech rules ok`);
 process.exit(fails ? 1 : 0);
