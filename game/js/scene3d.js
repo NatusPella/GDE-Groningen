@@ -32,6 +32,7 @@ import { propsNearInto } from './breakables.js';
 import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
+import { inPassage } from './passages.js';
 import { buildRailDecks } from './roadstructures3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D } from './skyprops3d.js';
@@ -2474,6 +2475,8 @@ function roofTopNear(map, x, y) {
       const [x0, y0, x1, y1] = b.bounds;
       const px = x + dx, py = y + dy;
       if (px < x0 || px > x1 || py < y0 || py > y1 || !pointInPolygon(px, py, b.pts)) continue;
+      // a passage or a room (the museum) is open inside
+      if (inPassage(map, b, px, py)) continue;
       // pitched roofs rise up to ~7 m over the wall top: keep a safe margin
       top = Math.max(top, (b.h || 3) * LEVEL_HEIGHT + (b.lift || 0) + (b.h <= 4 ? 7.5 : 2.5));
     }

@@ -6,6 +6,7 @@ import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP
 import { pointInPolygon, WATER_Y } from './util.js';
 import { passagesOf } from './passages.js';
 import { applyPortalCut, buildPassageTunnels } from './portalcut3d.js';
+import { buildMuseumInterior } from './museum3d.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -186,6 +187,11 @@ for (const m of [...flatRoofMaterials, detailMaterial, glassMaterial, ...LANDMAR
 
 // The lined passages through `b` (portalcut3d.js), cached with its parts.
 function addPassages(group, b, parts, depth) {
+  if (b.rooms) {
+    if (!parts.interior) parts.interior = buildMuseumInterior(b);
+    group.add(parts.interior);
+    return;
+  }
   const map = mapRef();
   if (!map || !map.buildingsNear) return;
   if (parts.tunnel === undefined) {
