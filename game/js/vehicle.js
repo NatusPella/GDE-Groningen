@@ -2058,7 +2058,8 @@ export function settleVehicleHeight(v, map, dt) {
   updateSuspension(v, dt);
   if (!map.groundHeightAt) return;
   const z = v.z || 0;
-  const g = map.groundHeightAt(v.x, v.y, z);
+  const g0 = map.groundHeightAt(v.x, v.y, z);
+  const g = v.airborne ? g0 : wheelbaseGround(v, map, g0, z);
   if (v.airborne) {
     v.vz -= FALL_G * dt;
     v.z = z + v.vz * dt;
@@ -2076,7 +2077,7 @@ export function settleVehicleHeight(v, map, dt) {
         v.pendingImpact = { x: v.x, y: v.y, speed: hit * 1.5 };
       }
     }
-  } else if (z - g > 0.6 + Math.abs(v.speed) * dt * 0.2) {
+  } else if (z - g0 > 0.6 + Math.abs(v.speed) * dt * 0.2) {
     // off the edge: keep the vertical speed the slope gave it
     v.airborne = true;
     v.vz = Math.max(v.vzG || 0, Math.sin(v.pitch || 0) * v.speed);
@@ -2119,6 +2120,24 @@ export function settleVehicleHeight(v, map, dt) {
   v.pitch = (v.pitch || 0) + (clamp(targetPitch, -0.35, 0.35) - (v.pitch || 0)) * k;
   v.roll = (v.roll || 0) + (clamp(targetRoll, -0.15, 0.15) - (v.roll || 0)) * k;
   if (Math.abs(v.roll) < 1e-4) v.roll = 0;
+}
+
+// The road height the wheels ride on: the surface averaged along the
+// wheelbase, so the kinks where ramp polylines meet read as short vertical
+// curves instead of launch ramps. Samples on another surface (a deck edge,
+// the street beside a ramp) are left out.
+const WB_OFFS = [-1, -0.5, 0.5, 1];
+function wheelbaseGround(v, map, g, z) {
+  if (!g && !z) return g;
+  const h = Math.min(v.halfLen * 0.85, 2.6);
+  const c = Math.cos(v.angle), s = Math.sin(v.angle);
+  let sum = g, n = 1;
+  for (const f of WB_OFFS) {
+    const d = f * h;
+    const q = map.groundHeightAt(v.x + c * d, v.y + s * d, z);
+    if (Math.abs(q - g) <= Math.abs(d) * 0.12 + 0.02) { sum += q; n++; }
+  }
+  return sum / n;
 }
 
 // Body motion on its springs, driven by the car's own accelerations:
