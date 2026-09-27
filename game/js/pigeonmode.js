@@ -1663,7 +1663,7 @@ export function stopPigeonMode(w = world) {
     outro = { t: 0, x: P.x, y: P.y, z: Math.max(P.z, surfaceAt(P.x, P.y, false).h), yaw: P.yaw };
     const who = pl.character === 'anita' ? 'Anita' : 'Tammo';
     const wijk = wijkAt(map, spot.x, spot.y);
-    w.addMessage(`Weer ${who}${wijk ? ' in ' + wijk : ''}. ${score} poeppunten deze vlucht (totaal ${store.total}).`, 4.5);
+    w.addMessage(`${who} doet de ogen weer open${wijk ? ' in ' + wijk : ''}. ${score} poeppunten deze vlucht (totaal ${store.total}).`, 4.5);
     sfx('flap', P.x, P.y, 0.8);
     saveGame(w);
   } else {
@@ -1784,8 +1784,9 @@ export function startPigeonMode(w, spot = null) {
     P.speed = 0; P.pitch = 0; P.flapBoost = 0; P.fold = 1; P.flapAmp = 0; P.walkPhase = 0;
     intro = { t: 0 };
     placePigeonMesh(0);
-    const who = pl.character === 'anita' ? 'Anita' : 'Tammo';
-    w.addMessage(pick([`${who} kiekt de duif diep in de ogen…`, `${who} wordt wel heel stil van die duif…`, `Roekoe? ${who} voelt zich ineens heel licht…`]), 2.5);
+    // Tammo whistles, closes his eyes and the camera jumps into the bird
+    sfx('whistle', pl.x, pl.y, 0.8);
+    w.addMessage(pick(['Tammo fluit zachtjes en doet zijn ogen dicht…', 'Tammo klikt met zijn tong. De duif kijkt op…', 'Ogen dicht, fluiten. Tammo zit ineens in de duif…']), 2.5);
   } else {
     intro = null;
     P.x = pl.x; P.y = pl.y;

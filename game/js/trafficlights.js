@@ -290,16 +290,46 @@ function fillJunctionArms(ctrl, list) {
   }
 }
 
+// Is (x, y) on the asphalt of a road other than `own` (a slip road's kerb
+// is the main carriageway's lane where the two merge)?
+function onOtherCarriageway(x, y, own) {
+  if (!map) return false;
+  for (const r of map.roadsNear(x, y, 12)) {
+    if (r === own || r.cat === 'foot' || r.cat === 'cycle' || r.bridge) continue;
+    const hw = (r.width || 6) / 2 + 0.4;
+    const P = r.pts;
+    for (let i = 0; i < P.length - 1; i++) {
+      const ax = P[i][0], ay = P[i][1], ex = P[i + 1][0] - ax, ey = P[i + 1][1] - ay;
+      const L2 = ex * ex + ey * ey || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / L2));
+      if ((ax + ex * t - x) ** 2 + (ay + ey * t - y) ** 2 < hw * hw) return true;
+    }
+  }
+  return false;
+}
+
 function placePoles(a) {
   const half = (a.road.width || (a.bike ? 2 : 6)) / 2;
   const rx = -a.hy, ry = a.hx;
   const off = half + (a.bike ? 0.5 : 0.8);
   const angle = Math.atan2(a.hy, a.hx);
   const arrow = !a.bike && a.ctrl.axes[a.axis] && a.ctrl.axes[a.axis].protectLeft;
-  a.poles.push({ x: a.x + rx * off, y: a.y + ry * off, angle, head: a, broken: false, prop: null, bike: a.bike, arrow });
+  // a pole never stands in another road's lanes: step it out further, or leave it off
+  const put = (side, main) => {
+    for (const extra of [0, 1.5, 3, 4.5, 6, 8, 10]) {
+      const x = a.x + rx * side * (off + extra), y = a.y + ry * side * (off + extra);
+      if (onOtherCarriageway(x, y, a.road)) continue;
+      a.poles.push({ x, y, angle, head: a, broken: false, prop: null, bike: main ? a.bike : false, arrow });
+      return true;
+    }
+    return false;
+  };
+  const right = put(1, true);
   // wide one-way carriageways get a repeater on the left kerb too
-  if (!a.bike && a.road.oneway && (a.road.width || 0) >= 7) {
-    a.poles.push({ x: a.x - rx * off, y: a.y - ry * off, angle, head: a, broken: false, prop: null, bike: false, arrow });
+  // hemmed in by lanes on both sides (a gore between slip roads): no pole,
+  // the approach still has its signal phases
+  if ((!right || (!a.bike && a.road.oneway && (a.road.width || 0) >= 7)) && !put(-1, !right) && !right) {
+    a.poles.push({ x: a.x + rx * off, y: a.y + ry * off, angle, head: a, broken: false, prop: null, bike: a.bike, arrow, ghost: true });
   }
 }
 
@@ -500,6 +530,7 @@ export function updateTrafficLights(dt) {
 // A knocked-down head stops controlling its approach until it respawns.
 export function streamTrafficLightProps(world, px, py) {
   for (const pole of poles) {
+    if (pole.ghost) continue;
     const near = Math.abs(pole.x - px) < PROP_RADIUS && Math.abs(pole.y - py) < PROP_RADIUS;
     if (!near || pole.broken) {
       if (pole.prop) { removeProp(pole.prop); pole.prop = null; }
@@ -627,6 +658,8 @@ function mergeVisors() {
 }
 
 let poles = [];
+// signal poles as { x, y } (spotcheck.js keeps them off the carriageway)
+export function getSignalPoles() { return poles; }
 let instanced = null;
 let matricesDirty = false;
 let colorsDirty = true;
@@ -689,7 +722,7 @@ function writeMatrices() {
     if (pole.gz === undefined) pole.gz = map && map.spawnZ && map.offStreetLevel(pole.x, pole.y) ? map.spawnZ(pole.x, pole.y) : 0;
     _p.set(pole.x, pole.gz, pole.y);
     _q.setFromAxisAngle(_up, -pole.angle);
-    _s.setScalar(pole.broken ? 0 : pole.bike ? BIKE_SCALE : 1);
+    _s.setScalar(pole.broken || pole.ghost ? 0 : pole.bike ? BIKE_SCALE : 1);
     _m.compose(_p, _q, _s);
     for (const m of instanced.parts) m.setMatrixAt(i, _m);
     for (const m of instanced.lamps) m.setMatrixAt(i, _m);

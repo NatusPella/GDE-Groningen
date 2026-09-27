@@ -7,6 +7,7 @@
 // Story progress is only read (story.js, missions.js), never written.
 
 import { setDualText } from './subtitles.js';
+import { paintSpeaker } from './speakers.js';
 import { BANTER, REACTIONS, SPEAKERS } from './banterlines.js';
 import { STEPS, missionIndexOf } from './storyarc.js';
 import { currentStep, getStorySave } from './story.js';
@@ -15,6 +16,7 @@ import { getSideJobList } from './sidejobs.js';
 import { isCinematicActive } from './cinematics.js';
 import { isPhoneOpen } from './phone.js';
 import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from './audio.js';
+import { hold as holdChannel, release as releaseChannel } from './speech.js';
 
 const GLOBAL_CD = 75;
 const PLACE_CD = 600;
@@ -35,7 +37,6 @@ const PROGRESS_EVERY = 2;
 const LINE_GAP = 0.3;
 const REPEAT_AFTER_MS = 3 * 3600 * 1000;
 const HEARD_KEY = 'gte-banter-v1';
-const COLORS = { T: '#8fd3ff', A: '#ffb0cf' };
 
 const VOICE_DIR = new URL('../audio/voicelines/banter/', import.meta.url).href;
 let voices = {};
@@ -219,7 +220,7 @@ function together() {
 
 function quiet() {
   const w = world;
-  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen();
+  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen() && !w.storyContact;
 }
 
 // --- conversation ---------------------------------------------------------------------
@@ -231,6 +232,8 @@ function lineDur([s, text]) {
 
 function start(ex, lines, kind) {
   st.talk = { ex, lines, kind, i: -1, t: 0, until: 0 };
+  // the exchange holds the voice channel; a call or story scene cuts it off
+  holdChannel('banter', 'banter', () => { if (st.talk) interrupt(null); });
   if (ex) { heard[ex.id] = Date.now(); saveHeard(); }
   nextLine();
 }
@@ -252,6 +255,7 @@ function end() {
   st.talk = null;
   st.lastEnd = world.time;
   stopBanterVoice();
+  releaseChannel('banter');
   showSub(null);
 }
 
@@ -348,8 +352,7 @@ function showSub(line) {
   const el = subtitleEl();
   if (line) {
     const sp = el.querySelector('.bt-speaker');
-    sp.textContent = SPEAKERS[line[0]] + ':';
-    sp.style.color = COLORS[line[0]] || '#fff';
+    paintSpeaker(sp, SPEAKERS[line[0]]);
     setDualText(el.querySelector('.bt-line'), line[1]);
   }
   el.style.opacity = line && !st.paused ? '1' : '0';
@@ -379,7 +382,7 @@ export function updateBanter(dt, w) {
 
   const tk = st.talk;
   if (tk) {
-    if (!both || isCinematicActive() || isPhoneOpen() || (tk.kind !== 'react' && (isMissionActive() || (w.sideJob && w.sideJob.active)))) { interrupt(null); return; }
+    if (!both || isCinematicActive() || isPhoneOpen() || w.storyContact || (tk.kind !== 'react' && (isMissionActive() || (w.sideJob && w.sideJob.active)))) { interrupt(null); return; }
     if (tk.kind !== 'react' && (crashed || starsUp)) { interrupt(starsUp ? 'stars' : 'crash'); return; }
     tk.t += dt;
     if (tk.t >= tk.until) nextLine();

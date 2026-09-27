@@ -86,7 +86,7 @@ Security or Windows SmartScreen.
 
 | Key | On foot | In a vehicle |
 |---|---|---|
-| W/S or ↑/↓ | walk away from / towards the camera (hold Shift to run) | throttle / reverse |
+| W/S or ↑/↓ | walk away from / towards the camera (hold Shift to run; on a bike Shift is a short sprint) | throttle / reverse |
 | A/D or ←/→ | strafe left/right relative to the camera | steer |
 | Space | jump | brake |
 | Ctrl | crouch | – |
@@ -118,8 +118,11 @@ Security or Windows SmartScreen.
   police cars, foot cops, boats and a helicopter, 13 missions in a guided
   story ("Alles voor één eierbal": the Kop and the Romp are playable, the
   Staart follows; the story decides whether you play Tammo or Anita, the
-  route always points to the next step, and after a failed mission you can
-  skip it with O or from the pause menu), shops (weapons,
+  route always points to the next step, and every step can be skipped from
+  the pause menu, after a failed mission also with O; Jelle Terpstra and the
+  twins Durk & Douwe appear in the cutscenes and reach you by voiced calls,
+  livestreams, Sikkom posts and cards; "Eerder in GTE VI" recaps open each
+  part and "Wat weten we?" in the pause menu lists the clues so far), shops (weapons,
   armour and food are bought, not found on the street; you start with €250),
   Sikkom news feed and phone notifications. Duif-modus as an in-game
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,

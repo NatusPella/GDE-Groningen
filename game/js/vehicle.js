@@ -283,6 +283,9 @@ const PLAYER_STEER_RETURN = 9;
 // fleet's realistic cruising speeds (m/s): a bike is clearly quicker than
 // running (7.5), an e-fatbike quicker still, a scooter quickest.
 // The city bus is heavy for the player: slow to pull away, long to stop.
+const BIKE_SPRINT_TOP = 1.35;
+const BIKE_SPRINT_ACCEL = 1.8;
+
 function playerTune(v) {
   const m = v.model;
   // v.sailTop: a sailing boat's top speed from the wind (postgame skûtsje-sprint)
@@ -294,7 +297,9 @@ function playerTune(v) {
   const up = b ? m.maxSpeed / b.maxSpeed : 1, upA = b ? m.accel / b.accel : 1;
   if (v.isScooter && m.moped) return { top: 13.5 * up, accel: 5 * upA, brake: 8 };
   if (v.isScooter) return { top: 10 * up, accel: 5.5 * upA, brake: 6.5 };
-  if (v.isBike) return m.fat ? { top: 14.5 * up, accel: 6.2 * upA, brake: 9 } : { top: 11.5 * up, accel: 4.6 * upA, brake: 8.5 };
+  // Shift on a bike: a short sprint of harder pedalling (player.js sprintT)
+  const sprint = v.isBike && v.sprintT > 0 ? BIKE_SPRINT_TOP : 1, sprintA = sprint > 1 ? BIKE_SPRINT_ACCEL : 1;
+  if (v.isBike) return m.fat ? { top: 17 * up * sprint, accel: 7.2 * upA * sprintA, brake: 9 } : { top: 11.5 * up * sprint, accel: 4.6 * upA * sprintA, brake: 8.5 };
   return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel, brake: m.brake };
 }
 
@@ -2018,21 +2023,6 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
   if (world) resolvePropCollisions(vehicles, world);
 }
 
-// OSM routes some streets and cycleways under station canopies, market
-// halls and building passages: where the road's own centerline runs inside
-// the footprint, that part of it is not a wall.
-function onRoadThroughBuilding(map, x, y, building) {
-  for (const r of map.roadsNear(x, y, 6)) {
-    if (r.cat === 'foot') continue;
-    const half = r.width / 2 - 0.2;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
-      if (cp.dist2 < half * half && pointInPolygon(cp.x, cp.y, building.pts)) return true;
-    }
-  }
-  return false;
-}
-
 function collisionProbes(v) {
   const pts = v.halfLen > 3 ? [[v.halfLen, v.halfWid], [v.halfLen, -v.halfWid], [0, -v.halfWid], [-v.halfLen, -v.halfWid], [-v.halfLen, v.halfWid], [0, v.halfWid]] : null;
   if (!pts) return vehicleCorners(v);
@@ -2191,7 +2181,8 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
     for (const b of offLevel ? [] : map.buildingsNear(c[0], c[1], 1)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
-      if (!pointInPolygon(c[0], c[1], b.pts) || onRoadThroughBuilding(map, c[0], c[1], b) || (light && inPassage(map, b, c[0], c[1]))) continue;
+      // building passages (passages.js) are open, the rest of the footprint is wall
+      if (!pointInPolygon(c[0], c[1], b.pts) || inPassage(map, b, c[0], c[1], light ? 0 : 0.35, light ? 'bike' : 'car')) continue;
       const pts = b.pts;
       let bestDist2 = Infinity, bestX = 0, bestY = 0;
       for (let i = 0; i < pts.length - 1; i++) {

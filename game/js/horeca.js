@@ -14,8 +14,14 @@ let spots = [];
 export function initHoreca(world) {
   // OSM places bars/cafés at a point inside their building: move each one out
   // to the street side (also used by the terrace props in cityprops.js)
-  for (const h of world.map.meta.horeca || []) {
-    [h.x, h.y] = world.map.escapeBuilding(h.x, h.y, 1.2);
+  const map = world.map;
+  for (const h of map.meta.horeca || []) {
+    [h.x, h.y] = map.escapeBuilding(h.x, h.y, 1.2);
+    // pushed into a closed-off courtyard: the nearest street instead
+    if (!map.canWalkOut(h.x, h.y, 30)) {
+      const o = map.findOpenSpawn(h.x, h.y, 80);
+      if (o) { h.x = o.x; h.y = o.y; }
+    }
   }
   spots = (world.map.meta.horeca || []).map((h) => ({ x: h.x, y: h.y, name: h.name, lastUsed: -Infinity }));
 }

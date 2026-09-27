@@ -1,8 +1,9 @@
 import { setDualText } from './subtitles.js';
+import { paintSpeaker } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
-import { JELLE_LOOK } from './fierljep.js';
+import { JELLE_LOOK } from './storycast.js';
 import { currentStep, getStorySave } from './story.js';
 import { isMissionActive, getActiveRace, buildMissionMarker3D, updateMissionMarker3D } from './missions.js';
 import { isCinematicActive, playCinematic, showBanner } from './cinematics.js';
@@ -11,6 +12,7 @@ import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { banterAfter } from './banter.js';
+import { startCall } from './phonefeed.js';
 import { JELLE, JELLE_LINES, INTROS } from './pg_lines.js';
 import { BRUGGEN } from './pg_bruggenrace.js';
 import { FIERLJEP } from './pg_fierljep.js';
@@ -139,7 +141,7 @@ function buildJelle(map, x, y) {
   const m = buildPersonMesh(JELLE_LOOK.shirt, JELLE_LOOK.skin, JELLE_LOOK);
   m.position.set(px, 0, py);
   m.rotation.y = -Math.atan2(y - py, x - px);
-  m.userData.speaker = { x: px, y: py, h: 2.2, speechText: '', speechUntil: 0 };
+  m.userData.speaker = { x: px, y: py, h: 2.2, speechText: '', speechUntil: 0, speechName: JELLE };
   return m;
 }
 
@@ -291,7 +293,7 @@ export function say(r, speaker, text, prio = false) {
   r.lastSay = r.t;
   showSub(speaker, text);
   const v = lineVoiceFor(speaker, text);
-  if (v) playLineVoice(v.src, v.dur);
+  if (v) playLineVoice(v.src, v.dur, 'mission');
   return true;
 }
 
@@ -439,11 +441,9 @@ export function esc(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-const SPEAKER_COLORS = { [JELLE]: '#8fb8f0', Tammo: '#7fc3ff', Anita: '#ff8f7a' };
 function showSub(speaker, text) {
   const el = ensureUi().sub;
-  el.firstChild.textContent = speaker + ':';
-  el.firstChild.style.color = SPEAKER_COLORS[speaker] || '#fff';
+  paintSpeaker(el.firstChild, speaker);
   setDualText(el.lastChild, text);
   el.style.opacity = '1';
   sub = { left: Math.max(2.4, Math.min(6, 1 + text.length * 0.06)) };
@@ -462,9 +462,14 @@ function updateSub(dt) {
 function invite() {
   if (state.invited || isCinematicActive() || !world.phoneNotifications) return;
   state.invited = true;
-  world.phoneNotifications.push({ from: JELLE, text: 'Moai, Grinzers. Revanche? Elf bruggen, een fierljep-duel en een skûtsje-sprint. Mijn stipkes staan op jullie kaart.', duration: 9 });
-  world.phoneNotifications.push({ from: 'Anita', text: 'En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.', duration: 8 });
+  startCall(world, { from: JELLE, lines: INVITE_CALL });
 }
+
+// Jelle rings after the ending (phonefeed.js startCall; voiced, lines manifest)
+const INVITE_CALL = [
+  { speaker: JELLE, text: 'Moai, Grinzers. Revanche? Elf bruggen, een fierljep-duel en een skûtsje-sprint. Mijn stipkes staan op jullie kaart.' },
+  { speaker: 'Anita', text: 'En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.' },
+];
 
 // The Fjord Frituur keeps earning while you're away: a daily wage each morning.
 let lastClock = null;
@@ -475,7 +480,7 @@ function dayWage(w) {
   lastClock = c;
   if (!open || prev == null || !(prev < FJORD_DAY_HOUR && c >= FJORD_DAY_HOUR && c - prev < 1)) return;
   w.money += FJORD_DAY_PAY;
-  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', text: `Goeiemorgen! Gisteren lekker gedraaid: €${FJORD_DAY_PAY} dagomzet op de rekening.`, duration: 6 });
+  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: €${FJORD_DAY_PAY} dagomzet op de rekening.`, duration: 6 });
 }
 
 export function updatePostgame(dt, w) {
@@ -514,7 +519,7 @@ export function updatePostgame(dt, w) {
             const list = w.extraSpeakers || (w.extraSpeakers = []);
             if (!list.includes(sp)) list.push(sp);
             const v = lineVoiceFor(JELLE, sp.speechText);
-            if (v) playLineVoice(v.src, v.dur);
+            if (v) playLineVoice(v.src, v.dur, 'ambient');
           } else if (d > 25) s.greeted = false;
         }
       }

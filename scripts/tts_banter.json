@@ -240,9 +240,9 @@
   "who": "Stadjer, droog en sarcastisch"
  },
  {
-  "file": "h4-pass-kunst_0_a_e111f9.mp3",
+  "file": "h4-pass-kunst_0_a_9b78d2.mp3",
   "speaker": "Anita",
-  "text": "Jij poept op het museum en noemt het verkenning.",
+  "text": "Jouw duif poept op het museum en jij noemt het verkenning.",
   "tag": "laughing, incredulous",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem"
@@ -280,10 +280,26 @@
   "who": "Stadjer, droog en sarcastisch"
  },
  {
-  "file": "h4-pass-blaadjes_3_a_0500b0.mp3",
+  "file": "h4-pass-blaadjes_3_a_f3ff07.mp3",
   "speaker": "Anita",
-  "text": "Ik ken mijn buren.",
+  "text": "Ik ken iemand.",
   "tag": "sly, confident",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "h4-pass-blaadjes_4_t_ad7699.mp3",
+  "speaker": "Tammo",
+  "text": "Wie?",
+  "tag": "suspicious, quick",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "h4-pass-blaadjes_5_a_9ca1d5.mp3",
+  "speaker": "Anita",
+  "text": "Niks. Iemand uit Friesland.",
+  "tag": "evasive, brushing it off",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem"
  },
@@ -1024,9 +1040,9 @@
   "who": "Stadjer, droog en sarcastisch"
  },
  {
-  "file": "st-duif_0_t_db6926.mp3",
+  "file": "st-duif_0_t_c0aa46.mp3",
   "speaker": "Tammo",
-  "text": "Ik ga vliegen leren van duiven. Mijn vader zou trots zijn.",
+  "text": "Ik ga met duiven werken. Mijn vader zou trots zijn.",
   "tag": "proud",
   "voice": "Algenib",
   "who": "Stadjer, droog en sarcastisch"
@@ -1048,9 +1064,9 @@
   "who": "Stadjer, droog en sarcastisch"
  },
  {
-  "file": "st-h4_0_a_10a68d.mp3",
+  "file": "st-h4_0_a_e5c131.mp3",
   "speaker": "Anita",
-  "text": "Bert zegt dat je een duif wordt als je hem diep in de ogen kijkt.",
+  "text": "Bert zegt dat een duif naar je luistert als je hem diep in de ogen kijkt.",
   "tag": "skeptical",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem"
@@ -3736,10 +3752,10 @@
   "who": "Groningse vrouw, lacherig en ad rem"
  },
  {
-  "file": "end-staart-voor_0_t_cfab51.mp3",
+  "file": "end-staart-voor_0_t_40f67a.mp3",
   "speaker": "Tammo",
-  "text": "Wij tweeën vóór Grunn. Klinkt eigenlijk best goed.",
-  "tag": "warm, shy",
+  "text": "Wij tweeën vóór Grunn. Kon minder.",
+  "tag": "warm, shy, understated",
   "voice": "Algenib",
   "who": "Stadjer, droog en sarcastisch"
  },
@@ -3798,6 +3814,214 @@
   "tag": "laughing",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h6-luifel_0_a_b8a0ed.mp3",
+  "speaker": "Anita",
+  "text": "Ik had hem al voor me gezien, weet je. De Fjord. Met een luifel.",
+  "tag": "quiet, wistful",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h6-luifel_1_t_6db70e.mp3",
+  "speaker": "Tammo",
+  "text": "Een rode luifel?",
+  "tag": "soft, careful",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h6-luifel_2_a_f2c18e.mp3",
+  "speaker": "Anita",
+  "text": "Rood met wit. En jij achter de frituur.",
+  "tag": "small laugh, tender",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h6-luifel_3_t_6a33e9.mp3",
+  "speaker": "Tammo",
+  "text": "Ik? Achter de frituur?",
+  "tag": "surprised, touched",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h6-luifel_4_a_29c1aa.mp3",
+  "speaker": "Anita",
+  "text": "Laat maar. Rij nou maar.",
+  "tag": "embarrassed, brushing it off",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h12-handjes_0_t_268a6a.mp3",
+  "speaker": "Tammo",
+  "text": "Die handjes om de Eierbal. Die zijn van haar.",
+  "tag": "quiet, thoughtful",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h12-handjes_1_a_6feedb.mp3",
+  "speaker": "Anita",
+  "text": "Ik weet het, Tammo.",
+  "tag": "soft",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h12-handjes_2_t_e15f5b.mp3",
+  "speaker": "Tammo",
+  "text": "Je kunt geen oma verkopen.",
+  "tag": "serious, gentle",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h12-handjes_3_a_2c74e6.mp3",
+  "speaker": "Anita",
+  "text": "Nee. Maar mijn Fjord dan?",
+  "tag": "torn, quiet",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h12-handjes_4_t_f83c06.mp3",
+  "speaker": "Tammo",
+  "text": "Die komt er wel. Anders bouw ik hem zelf. Van karton.",
+  "tag": "warm, trying to cheer her up",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h13-iets_0_a_1358dd.mp3",
+  "speaker": "Anita",
+  "text": "Zeg eens iets.",
+  "tag": "shy, soft",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h13-iets_1_t_ac0042.mp3",
+  "speaker": "Tammo",
+  "text": "Iets. Hoor je? Ik zeg iets.",
+  "tag": "nervous, deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h13-iets_2_a_970a67.mp3",
+  "speaker": "Anita",
+  "text": "Tammo.",
+  "tag": "amused, fond",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h13-iets_3_t_ab88c3.mp3",
+  "speaker": "Tammo",
+  "text": "Vóór Grunn. Samen. Mien wicht.",
+  "tag": "quiet, sincere, five words",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h13-iets_4_a_83eda3.mp3",
+  "speaker": "Anita",
+  "text": "Kijk. Het kan wel.",
+  "tag": "moved, teasing softly",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h14-beleefd_0_a_15953e.mp3",
+  "speaker": "Anita",
+  "text": "Weet je wat ik raar vind? Dat Jelle ons steeds bedankt.",
+  "tag": "thoughtful",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h14-beleefd_1_t_7b69fb.mp3",
+  "speaker": "Tammo",
+  "text": "Hij denkt dat hij wint. Mensen die winnen zijn beleefd.",
+  "tag": "dry, wise",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h14-beleefd_2_a_a9fecc.mp3",
+  "speaker": "Anita",
+  "text": "Dan worden wij straks heel onbeleefd.",
+  "tag": "determined, playful",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h17-ons_0_t_ce6398.mp3",
+  "speaker": "Tammo",
+  "text": "Als we winnen… verkopen we hem dan?",
+  "tag": "quiet, hesitant",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h17-ons_1_a_0b6446.mp3",
+  "speaker": "Anita",
+  "text": "Vraag je dat aan mij of aan jezelf?",
+  "tag": "soft, probing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h17-ons_2_t_6bf1dc.mp3",
+  "speaker": "Tammo",
+  "text": "Aan ons.",
+  "tag": "sincere",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h17-ons_3_a_cf3a28.mp3",
+  "speaker": "Anita",
+  "text": "Dan weten wij het antwoord al.",
+  "tag": "warm, smiling",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h18-beste_0_a_84580f.mp3",
+  "speaker": "Anita",
+  "text": "Wij tweeën vóór Grunn. Klinkt beter dan tegen.",
+  "tag": "content, tired, happy",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h18-beste_1_t_14f8aa.mp3",
+  "speaker": "Tammo",
+  "text": "Alles klinkt beter met een eierbal erbij.",
+  "tag": "dry, happy",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "q-h18-beste_2_a_1711d5.mp3",
+  "speaker": "Anita",
+  "text": "Die van ons is de beste. Jelle zei het zelf.",
+  "tag": "proud, laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "q-h18-beste_3_t_9ff79e.mp3",
+  "speaker": "Tammo",
+  "text": "Net fertelle.",
+  "tag": "deadpan, fond",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
  },
  {
   "file": "pg-bruggen-pass-hek_0_a_d7c317.mp3",
@@ -4092,6 +4316,454 @@
   "speaker": "Anita",
   "text": "Tot ze onze eierballen ruiken.",
   "tag": "confident",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "h4-pass-duivenkoning_0_a_1b952b.mp3",
+  "speaker": "Anita",
+  "text": "Mijn vriend de duivenkoning.",
+  "tag": "teasing, delighted",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "h4-pass-duivenkoning_1_t_fd299a.mp3",
+  "speaker": "Tammo",
+  "text": "Het was één duif. Die had toevallig zin.",
+  "tag": "deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "h4-pass-duivenkoning_2_a_648896.mp3",
+  "speaker": "Anita",
+  "text": "Hij luisterde naar jou, Tammo. Niemand luistert naar jou.",
+  "tag": "laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "h4-pass-duivenkoning_3_t_4b7905.mp3",
+  "speaker": "Tammo",
+  "text": "Nou ja. Jij soms.",
+  "tag": "dry, fond",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "h10-pass-team_0_t_e5b4af.mp3",
+  "speaker": "Tammo",
+  "text": "Heel Grunn klapte.",
+  "tag": "quietly proud",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "h10-pass-team_1_a_b5a2da.mp3",
+  "speaker": "Anita",
+  "text": "Voor jou of voor de duif?",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "h10-pass-team_2_t_f5ce6f.mp3",
+  "speaker": "Tammo",
+  "text": "Voor ons. Ik fluit, hij pikt.",
+  "tag": "dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "h10-pass-team_3_a_eb09ab.mp3",
+  "speaker": "Anita",
+  "text": "Dus de duif deed het werk.",
+  "tag": "smug",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "h10-pass-team_4_t_cc5cf0.mp3",
+  "speaker": "Tammo",
+  "text": "Dat bedoelde ik ook.",
+  "tag": "deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-meeuwen_0_a_291185.mp3",
+  "speaker": "Anita",
+  "text": "Kun jij ook meeuwen?",
+  "tag": "curious",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-meeuwen_1_t_3d5bdb.mp3",
+  "speaker": "Tammo",
+  "text": "Meeuwen luisteren naar niemand.",
+  "tag": "firm",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-meeuwen_2_a_3b724c.mp3",
+  "speaker": "Anita",
+  "text": "Net als jij.",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-meeuwen_3_t_88bcf1.mp3",
+  "speaker": "Tammo",
+  "text": "Ik luister altijd naar jou.",
+  "tag": "sweet, deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-meeuwen_4_a_8a1443.mp3",
+  "speaker": "Anita",
+  "text": "…Nou ja. Meestal.",
+  "tag": "warm, amused",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-rikus_0_a_499576.mp3",
+  "speaker": "Anita",
+  "text": "Luister jij eigenlijk naar Nachtstreek?",
+  "tag": "curious",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-rikus_1_t_1596db.mp3",
+  "speaker": "Tammo",
+  "text": "Rikus draait daar. Van vroeger, uit het Oosterpark.",
+  "tag": "fond, dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-rikus_2_a_f5480c.mp3",
+  "speaker": "Anita",
+  "text": "Die Rikus? Van de zolderkamer met die mengtafel?",
+  "tag": "amused",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-rikus_3_t_fe95ae.mp3",
+  "speaker": "Tammo",
+  "text": "Hij heeft nu een studio. Met een deur.",
+  "tag": "deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-rikus_4_a_676b83.mp3",
+  "speaker": "Anita",
+  "text": "Vooruitgang.",
+  "tag": "laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-rikus-duif_0_a_f4d80e.mp3",
+  "speaker": "Anita",
+  "text": "Rikus had het op de radio over je. De duivenfluisteraar van het Oosterpark.",
+  "tag": "giggling",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-rikus-duif_1_t_513b4f.mp3",
+  "speaker": "Tammo",
+  "text": "Ik zeg niks.",
+  "tag": "deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-rikus-duif_2_a_4efa63.mp3",
+  "speaker": "Anita",
+  "text": "Hij heeft er een jingle bij.",
+  "tag": "delighted",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-rikus-duif_3_t_0a5abd.mp3",
+  "speaker": "Tammo",
+  "text": "Dan zeg ik wél wat. Tegen Rikus.",
+  "tag": "grumpy",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-rikus-friet_0_a_76653c.mp3",
+  "speaker": "Anita",
+  "text": "Rikus wil de eerste friet uit de Fjord Frituur.",
+  "tag": "amused",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-rikus-friet_1_t_326521.mp3",
+  "speaker": "Tammo",
+  "text": "De eerste is voor mij.",
+  "tag": "stubborn",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-rikus-friet_2_a_51ec4d.mp3",
+  "speaker": "Anita",
+  "text": "Weet ik. Hij krijgt de tweede. Als hij betaalt.",
+  "tag": "firm, warm",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-friesland-app_0_t_03268f.mp3",
+  "speaker": "Tammo",
+  "text": "Wie app jij nou steeds?",
+  "tag": "suspicious",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-friesland-app_2_t_e4a8ee.mp3",
+  "speaker": "Tammo",
+  "text": "Is hij lang?",
+  "tag": "deadpan, jealous",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-friesland-app_4_t_139a72.mp3",
+  "speaker": "Tammo",
+  "text": "Fierljepper zeker.",
+  "tag": "sulking, dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-friesland-app_5_a_cf2581.mp3",
+  "speaker": "Anita",
+  "text": "Rijden, niet praten.",
+  "tag": "bossy, amused",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-suikerbrood_0_a_4dd849.mp3",
+  "speaker": "Anita",
+  "text": "Suikerbrood moet je roosteren. Met roomboter. Niet te dun.",
+  "tag": "knowing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-suikerbrood_1_t_168b8d.mp3",
+  "speaker": "Tammo",
+  "text": "Hoe weet jij dat nou weer?",
+  "tag": "suspicious",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-suikerbrood_2_a_f981f0.mp3",
+  "speaker": "Anita",
+  "text": "Gewoon. Dat weet je.",
+  "tag": "evasive",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-suikerbrood_3_t_d8106c.mp3",
+  "speaker": "Tammo",
+  "text": "Dat weet niemand. Behalve Friezen.",
+  "tag": "jealous, dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-mem_0_t_f513f7.mp3",
+  "speaker": "Tammo",
+  "text": "Mem Terpstra. Ik was jaloers op een moeder.",
+  "tag": "deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-mem_1_a_862e3e.mp3",
+  "speaker": "Anita",
+  "text": "Een beetje, hè.",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-mem_2_t_1f6668.mp3",
+  "speaker": "Tammo",
+  "text": "Een heel klein beetje.",
+  "tag": "sheepish",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-mem_3_a_abb5be.mp3",
+  "speaker": "Anita",
+  "text": "Ze vond je schattig. Met je pet.",
+  "tag": "giggling",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-mem_4_t_71a0ab.mp3",
+  "speaker": "Tammo",
+  "text": "…Kon minder.",
+  "tag": "flustered, secretly proud",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-wikipedia_0_t_063dad.mp3",
+  "speaker": "Tammo",
+  "text": "De Martinitoren is honderd meter. Minstens.",
+  "tag": "confident",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-wikipedia_1_a_fb79d9.mp3",
+  "speaker": "Anita",
+  "text": "Zevenennegentig. En een beetje. Klaar rond 1482.",
+  "tag": "matter-of-fact",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-wikipedia_2_t_e853de.mp3",
+  "speaker": "Tammo",
+  "text": "Daar gaat Anita, de wandelende Wikipedia van Stad.",
+  "tag": "teasing",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-wikipedia_3_a_a9d6d5.mp3",
+  "speaker": "Anita",
+  "text": "Iemand moet het weten.",
+  "tag": "smug",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-wikipedia_4_t_072a32.mp3",
+  "speaker": "Tammo",
+  "text": "Zevenennegentig bedoelde ik ook.",
+  "tag": "deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-route_0_t_93ad62.mp3",
+  "speaker": "Tammo",
+  "text": "Hier rechtsaf. Dat is korter.",
+  "tag": "confident",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-route_1_a_c3bbd2.mp3",
+  "speaker": "Anita",
+  "text": "Dat is eenrichtingsverkeer, Tammo.",
+  "tag": "patient",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-route_2_t_ab2e38.mp3",
+  "speaker": "Tammo",
+  "text": "Voor hén.",
+  "tag": "stubborn",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-route_3_a_f7fa78.mp3",
+  "speaker": "Anita",
+  "text": "Voor iedereen.",
+  "tag": "firm",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-eierbal-denken_0_t_341015.mp3",
+  "speaker": "Tammo",
+  "text": "Weet jij wat ik net dacht?",
+  "tag": "dreamy",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-eierbal-denken_1_a_2a8c9c.mp3",
+  "speaker": "Anita",
+  "text": "Eierbal.",
+  "tag": "dry",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-eierbal-denken_2_t_f776e8.mp3",
+  "speaker": "Tammo",
+  "text": "Nee.",
+  "tag": "offended",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-eierbal-denken_3_a_057bfb.mp3",
+  "speaker": "Anita",
+  "text": "Twee eierballen.",
+  "tag": "knowing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-eierbal-denken_4_t_8e17e2.mp3",
+  "speaker": "Tammo",
+  "text": "…Nou ja. Ook.",
+  "tag": "caught, deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-ontzet-feiten_0_t_8fa7f5.mp3",
+  "speaker": "Tammo",
+  "text": "In 1672 won Bommen Berend, toch?",
+  "tag": "confident",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-ontzet-feiten_1_a_d59775.mp3",
+  "speaker": "Anita",
+  "text": "Nee. Grunn hield hem buiten. Daarom vieren we het.",
+  "tag": "patient, knowing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-ontzet-feiten_3_a_7acd73.mp3",
+  "speaker": "Anita",
+  "text": "Je bedoelde het precies andersom.",
+  "tag": "laughing",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem"
  },

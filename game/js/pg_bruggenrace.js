@@ -2,7 +2,7 @@ import { Vehicle } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh, seatPerson, seatedY } from './models3d_people.js';
 import { boatSeats } from './boattypes.js';
-import { JELLE_LOOK } from './fierljep.js';
+import { JELLE_LOOK } from './storycast.js';
 import { routeAt, ROUTE_LENGTH, rondvaartWaypoints, rondvaartBerth, prepareDiepenringRoute, diepenringProgress } from './rondvaartchase.js';
 import { getChallengeRecord } from './achievements.js';
 import { pointInPolygon, clamp } from './util.js';

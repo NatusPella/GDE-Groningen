@@ -10,6 +10,7 @@ import { repairCost, platesCost, HERO_REPLACE_FEE } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savegame.js';
 import { recordStat } from './achievements.js';
+import { startCall } from './phonefeed.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -323,6 +324,11 @@ function nearestSite(x, y) {
   return best;
 }
 
+// Nearest garage or Pomp & Poets station (routing.js care route).
+export function nearestRepairSite(x, y) {
+  return nearestSite(x, y);
+}
+
 // Henk rings when the player's own car is in a bad way.
 function mechanicCall(w) {
   const v = w.player.inVehicle;
@@ -334,12 +340,19 @@ function mechanicCall(w) {
   if (!s) return;
   v._mechCalled = true;
   lastCallAt = w.time;
-  setUserWaypoint(s.x, s.y, s.name);
-  const car = v.isHeroCar ? 'Escapade' : twoWheel(v) ? 'fiets' : 'bak';
-  const text = `Henk (Garage Knalpot) belt: "Jong, ik hoor je ${car} tot hier rammelen! Kom langs bij ${s.name}, dan maak ik 'm weer heel." Staat op je kaart.`;
-  if (w.phoneNotifications) w.phoneNotifications.push({ text, duration: 6 });
-  else w.addMessage(text, 6);
+  // an offer, never an override: the pink care route (routing.js) points
+  // at the nearest garage, the player's own waypoint stays
+  const car = v.isHeroCar ? 'hero' : twoWheel(v) ? 'fiets' : 'bak';
+  startCall(w, { from: 'Henk (Garage Knalpot)', lines: [{ speaker: 'Henk', text: HENK_CALL[car] }, { speaker: 'Henk', text: HENK_CALL.kaart, sub: s.name }] });
 }
+
+// Henk's call (phonefeed.js startCall; voiced, lines manifest "Henk|...")
+const HENK_CALL = {
+  hero: 'Jong, je Escapade heeft er een paar karaktertrekjes bij. Kom even langs, dan maak ik hem weer heel.',
+  fiets: 'Jong, je fiets heeft er een paar karaktertrekjes bij. Kom even langs, dan maak ik hem weer heel.',
+  bak: 'Jong, je bak heeft er een paar karaktertrekjes bij. Kom even langs, dan maak ik hem weer heel.',
+  kaart: 'Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!',
+};
 
 export function updateGarages(dt, w) {
   world = w;

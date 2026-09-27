@@ -1,4 +1,5 @@
 import { setDualText } from './subtitles.js';
+import { paintSpeaker } from './speakers.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
@@ -6,6 +7,7 @@ import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
 import { startRespawnScene, respawnFade } from './respawn.js';
 import { playStoryVoice, setStoryScene } from './audio.js';
+import { mayInterrupt, noteMoment } from './attention.js';
 import { lineVoiceFor } from './linevoice.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
@@ -169,7 +171,7 @@ export function skipCinematic() {
 }
 
 // Subtitles without their own recording get one from the lines manifest
-// (narration without a speaker is the Verteller). Voiced lines then stay up
+// (narration without a speaker is Rikus, the narrator). Voiced lines then stay up
 // until their recording has finished, pushing the rest (and the scene) later.
 function attachVoices(a) {
   if (!a.lines || !a.lines.length) return;
@@ -235,7 +237,7 @@ function finish(skipped, replaced = false) {
   const a = active;
   active = null;
   const r = els.root;
-  r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip');
+  r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip', 'sub-clue');
   r.dataset.tint = '';
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
@@ -277,9 +279,10 @@ function updateSubtitles() {
   els.lineIndex = idx;
   const l = lines[idx];
   els.root.classList.toggle('has-sub', !!l);
-  els.speaker.textContent = l && l.speaker ? l.speaker + ':' : '';
+  paintSpeaker(els.speaker, l && l.speaker);
   setDualText(els.line, l ? l.text : '');
-  if (l && l.voice) playStoryVoice(l.voice);
+  els.root.classList.toggle('sub-clue', !!(l && l.clue));
+  if (l && l.voice) playStoryVoice(l.voice, { radio: !!l.radio });
 }
 
 export function updateCinematics(dt, w) {
@@ -333,7 +336,7 @@ function checkTriggers(dt, w) {
 
   const wantedUp = w.wanted >= 5 && prevWanted < 5;
   prevWanted = w.wanted;
-  if (wantedUp && momentsOn() && !active) playWantedFive(w);
+  if (wantedUp && momentsOn() && !active && mayInterrupt('wanted5', w)) { noteMoment('wanted5'); playWantedFive(w); }
 
   const imp = w.lastImpact;
   if (imp && imp !== lastImpactSeen) {
@@ -384,6 +387,8 @@ function checkOmmelanden(w) {
   const [x0, y0, x1, y1] = realMapBox(w.map);
   const p = w.player, m = OMMELANDEN_MARGIN;
   if (p.x > x0 - m && p.x < x1 + m && p.y > y0 - m && p.y < y1 + m) return;
+  if (!mayInterrupt('ommelanden', w)) return;
+  noteMoment('ommelanden');
   seen.add(OMMELANDEN);
   playOmmelanden(w);
 }
@@ -425,6 +430,9 @@ function checkLandmarks(w) {
   for (const lm of w.map.meta.landmarks || []) {
     if (!lm.name || seen.has(lm.name)) continue;
     if (Math.hypot(lm.x - p.x, lm.y - p.y) > LANDMARK_RADIUS) continue;
+    // over budget: stays unseen, plays on a later visit
+    if (!mayInterrupt('landmark', w)) return;
+    noteMoment('landmark');
     seen.add(lm.name);
     playLandmark(w, lm);
     return;
@@ -587,6 +595,9 @@ function checkWijk(dt, w) {
   // at speed a paused flyover is jarring: wait until the player slows down
   const v = w.player.inVehicle;
   if (v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
+  // over the attention budget: waits while the player is still in the wijk
+  if (!mayInterrupt('wijk', w)) return;
+  noteMoment('wijk');
   markWijk(p);
   wijkCand = null;
   playWijk(w, p);
@@ -729,6 +740,8 @@ function playLandmark(w, lm) {
 function tryCrashReplay(w, x, y) {
   const now = performance.now();
   if (!momentsOn() || active || now - lastCrashAt < CRASH_COOLDOWN_MS || w.pendingRespawn || w.mission || w.race) return;
+  if (!mayInterrupt('crash', w)) return;
+  noteMoment('crash');
   lastCrashAt = now;
   const a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a), nx = -fy, ny = fx;

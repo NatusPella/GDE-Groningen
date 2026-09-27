@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { speakerHtml } from './speakers.js';
 import { getSettings, setSetting, QUALITY_PRESETS } from './settings.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat, makeBirds, scatterBirds, updateBirds } from './intromontage.js';
@@ -17,8 +18,8 @@ import { kickTheme } from './theme.js';
 
 // Trailer mode (docs/verhaal-voorstel.md section 5): one list of staged shots
 // through Grunn, played three ways:
-//   attract    the short cut ('kort', city and features only, no story) once
-//              on the first launch; hold Space to skip; hands its last camera
+//   attract    the short cut ('kort', city and features only, no story) at
+//              every launch; hold Space to skip; hands its last camera
 //              pose over to the title screen
 //   benchmark  the full cut ('vol') in real time with an fps counter, then a
 //              results card (Instellingen > Beeld > Benchmark draaien)
@@ -49,7 +50,8 @@ export function pendingTrailer() {
   let bench = null;
   try { bench = sessionStorage.getItem(BENCH_KEY); sessionStorage.removeItem(BENCH_KEY); } catch (e) { /* ignore */ }
   if (bench) return { mode: 'benchmark', cut: 'vol', fromGame: true };
-  if (TEST_FLAGS.some((k) => Q.has(k)) || getSettings().attractSeen) return null;
+  // every launch opens with the attract intro, except test runs
+  if (TEST_FLAGS.some((k) => Q.has(k))) return null;
   return { mode: 'attract', cut: 'kort' };
 }
 
@@ -161,7 +163,7 @@ const CSS = `
 #trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font: clamp(17px, 1.7vw, 23px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
 #trailer .tr-sub.on { opacity: 1; }
 #trailer .tr-sub b { color: #3fc97a; margin-right: 6px; }
-#trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; align-items: center; gap: 6px; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.75); opacity: 0; transition: opacity 0.4s 0.8s; }
+#trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; align-items: center; gap: 6px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); opacity: 0; transition: opacity 0.25s; }
 #trailer.skippable .tr-skip { opacity: 1; }
 #trailer .tr-skip .key { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 5px; background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255, 255, 255, 0.35); border-bottom: 2px solid rgba(0, 0, 0, 0.6); border-radius: 4px; color: #3fc97a; font: 11px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
 #trailer .tr-skip svg { width: 20px; height: 20px; transform: rotate(-90deg); }
@@ -243,7 +245,7 @@ function setSub(line) {
   if (key === ui.subKey) return;
   ui.subKey = key;
   ui.sub.classList.toggle('on', !!line);
-  if (line) ui.sub.innerHTML = `<b>${line[2]}:</b>${line[3]}`;
+  if (line) ui.sub.innerHTML = speakerHtml(line[2]) + line[3];
 }
 
 // --- shots ---------------------------------------------------------------------------

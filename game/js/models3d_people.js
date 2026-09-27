@@ -324,7 +324,7 @@ function buildHead(B, L, skin) {
   plate(B, faceX(-0.052, 0) + 0.0015, HEAD_Y - 0.052, 0, 0.005, 0.017, 0, mix(shade(skin, 0.78), 0x8a3a30, 0.3));
 
   if (L.glasses) {
-    const lens = mix(shade(skin, 0.7), 0x5d6f7a, 0.6);
+    const lens = L.shades ? 0x101214 : mix(shade(skin, 0.7), 0x5d6f7a, 0.6);
     for (const s of [1, -1]) {
       B.box(faceX(0.012, s * 0.034) + 0.007, HEAD_Y + 0.012, s * 0.034, 0.006, 0.03, 0.04, 0x26262a, 0, 0, -s * 0.4, 0);
       B.box(faceX(0.012, s * 0.034) + 0.0105, HEAD_Y + 0.012, s * 0.034, 0.002, 0.022, 0.032, lens, 0, 0, -s * 0.4, 0);
@@ -832,6 +832,8 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   } else if (L.character === 'anita') {
     Object.assign(L, { top: 'coat', shortCoat: true, bottom: 'jeans', shoeType: 'boot', scarf: false });
   }
+  // story characters (missionstory.js NPC looks): fixed clothes, hat, build
+  if (opts.look) Object.assign(L, opts.look);
 
   const shZ = (L.female ? 0.172 : 0.198) * (L.build === 'heavy' ? 1.06 : L.build === 'slim' ? 0.95 : 1) + 0.03;
   const B = new SkinBuilder(1);
