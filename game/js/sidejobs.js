@@ -28,11 +28,12 @@ import bezorger from './sidejob_bezorger.js';
 import taxi from './sidejob_taxi.js';
 import bus from './sidejob_bus.js';
 import rondvaart from './sidejob_rondvaart.js';
+import rondvaarttour from './sidejob_rondvaarttour.js';
 import fietsdepot from './sidejob_fietsdepot.js';
 import verhuizing from './sidejob_verhuizing.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing];
+export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -82,7 +83,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], fietsdepot: [45, 90], verhuizing: [80, 180] };
+const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -189,7 +190,7 @@ function startJob(job) {
   rec(job.id).shifts++;
   const lvl = c.level;
   const kicker = `Bijbaantje · niveau ${lvl}: ${levelTitle(lvl)}`;
-  const intro = !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
+  const intro = !job.noIntro && !seen.has(job.id) && playMissionIntro(world, { kicker, title: job.name, objective: c.vehicle || null, ...introLines(job) });
   if (intro) seen.add(job.id);
   else {
     world.addMessage(`${job.name}: ${job.tagline || job.blurb}`, 3.5);
@@ -484,7 +485,7 @@ export function sideJobPrompt(w) {
   const lvl = jobLevel(s.job.id);
   const best = rec(s.job.id).bestStreak;
   const sub = why || `${s.job.blurb} · niveau ${lvl}${best ? ` · record ${best}` : ''}`;
-  return { id: 'sj-' + s.job.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: `Bijbaantje: ${s.job.name}`, sub, ring: true, dim: !!why };
+  return { id: 'sj-' + s.job.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: `${s.job.kicker || 'Bijbaantje'}: ${s.job.name}`, sub, ring: true, dim: !!why };
 }
 
 export function sideJobSecondary(w) {
@@ -498,7 +499,7 @@ export function sideJobSecondary(w) {
   const { x, y } = w.player;
   for (const s of spots) {
     if (Math.abs(s.x - x) > 20 || Math.abs(s.y - y) > 20) continue;
-    out.push({ id: 'sj2-' + s.job.id, x: s.x, y: s.y, h: 2.2, label: s.job.name, sub: 'Bijbaantje · loop erheen en druk E', kind: 'place' });
+    out.push({ id: 'sj2-' + s.job.id, x: s.x, y: s.y, h: 2.2, label: s.job.name, sub: `${s.job.kicker || 'Bijbaantje'} · loop erheen en druk E`, kind: 'place' });
   }
   return out;
 }

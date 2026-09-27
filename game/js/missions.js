@@ -9,7 +9,7 @@ import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
-import { rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
+import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
@@ -58,7 +58,6 @@ const CHARGE_MAX_T = 4.5;
 const DRUNK_LINES = ['Proost!', 'Nog ééntje dan!', 'Ik hou van jullie allemaal!', 'Waar is mijn fiets?', 'KEI-week! KEI-week!', 'Wie heeft mijn pet?', 'Ik ben niet dronken, ik ben Gronings!', 'Kom, nog één kroeg!'];
 const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Sikkom?', 'Ik ken jou! Van... ergens!', 'Opzij, ik moet naar de wc!', 'Polonaise! Iedereen mee!'];
 
-const MISSION_BOAT_MODEL = { name: 'boat', len: 5.2, wid: 1.9, maxSpeed: 10.8, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#f2efe6', cabin: '#1f4a6e' };
 
 // The nearest road point, unless that lies inside a building or a closed-off
 // courtyard: then the nearest street you can actually reach (findOpenSpawn).
@@ -998,7 +997,7 @@ function boatProgressText(rv) {
 // The car/boat stays in the world after the mission, but as ordinary
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
-  stopRondvaart(world);
+  stopRondvaart(world, 'mission');
   disposeFjordTrain(world);
   disposeHeist();
   if (chain.skutsje) {
@@ -1166,7 +1165,7 @@ function boatPoseClear(map, boat, x, y, a) {
 
 function spawnMissionBoat(def, map) {
   const b = def.boatAt;
-  const boat = new Vehicle(b.x, b.y, b.angle, MISSION_BOAT_MODEL);
+  const boat = new Vehicle(b.x, b.y, b.angle, { ...TOUR_BOAT });
   boat.isBoat = true;
   boat.missionCar = true;
   // rondvaartBerth moors it alongside the quay; only if that spot touches the
