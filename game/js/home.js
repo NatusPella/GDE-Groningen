@@ -818,6 +818,11 @@ function streamExterior(w, dt) {
   setGarageCutaway(exterior, cutaway);
 }
 
+// true while the player is upstairs in the flat (player.js skips building collision)
+export function inHomeFlat() {
+  return !!inside;
+}
+
 export function updateHome(dt, w) {
   world = w;
   if (!home) return;
