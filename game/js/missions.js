@@ -1640,10 +1640,17 @@ export function updateMissions(dt, world) {
     syncPub(world);
     return;
   }
-  if (def.onFoot && def.type === 'fatbike' && p.inVehicle) {
-    fail(world, def, 'je moest lopen, niet stiekem rijden');
-    syncPub(world);
-    return;
+  // arriving by car is fine: a warning first, it only fails if you keep driving
+  if (def.onFoot && def.type === 'fatbike' && chain.run) {
+    if (p.inVehicle) {
+      chain.run.inVehT = (chain.run.inVehT || 0) + dt;
+      if (chain.run.inVehT < dt * 1.5) hint(world, 'Uitstappen, jong. Fatbikes ontwijk je te voet.');
+      if (chain.run.inVehT > 10) {
+        fail(world, def, 'je moest lopen, niet stiekem rijden');
+        syncPub(world);
+        return;
+      }
+    } else chain.run.inVehT = 0;
   }
 
   if (def.type === 'deliver') {
