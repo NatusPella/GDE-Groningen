@@ -13,6 +13,8 @@ import { railingAhead } from './bridgerails.js';
 
 export { resolveBuildingCollisions };
 
+const BIKE_SPRINT_S = 2.5;
+const BIKE_SPRINT_REST_S = 4;
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
@@ -627,6 +629,15 @@ export class Player {
     v.horn = input.isDown('h') && !v.disabled;
     const px = v.x, py = v.y, pa = v.angle;
     v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) : 1;
+    // bikes: Shift gives a short sprint, then a breather before the next one
+    if (v.isBike) {
+      v.sprintT = Math.max(0, (v.sprintT || 0) - dt);
+      v.sprintRest = Math.max(0, (v.sprintRest || 0) - dt);
+      if (input.isDown('shift') && throttle > 0 && !v.sprintRest && !v.disabled) {
+        v.sprintT = BIKE_SPRINT_S;
+        v.sprintRest = BIKE_SPRINT_S + BIKE_SPRINT_REST_S;
+      }
+    }
     const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / SUBSTEP)));
     for (let i = 0; i < n; i++) {
       v.applyControls(dt / n, throttle, ax, brake && v.speed !== 0);

@@ -19,7 +19,7 @@ const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gte
 const CONTROLS = [
   ['W / S', 'vooruit / achteruit (lopen en rijden)'],
   ['A / D', 'draaien / sturen'],
-  ['Shift', 'rennen'],
+  ['Shift', 'rennen / op de fiets: even flink doortrappen'],
   ['Spatie', 'springen / handrem'],
   ['Ctrl', 'bukken'],
   ['E / F', 'instappen / uitstappen / winkel in / word een duif (bij een duivenbord) / bijbaantje beginnen'],
