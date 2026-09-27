@@ -10,6 +10,10 @@ instead of inside it (mapdata.js merges it at load time).
   newer ways) around the Grote Markt and the UMCG, plus per-building patches
   (heights, names, landmark models) for a few places.
 - fuel: gas stations (amenity=fuel), which double as garages in the game.
+- passages: ways mapped as running through or under a building
+  (tunnel=building_passage/covered/yes, covered=yes/arcade) from the city
+  caches; passages.js opens footprints only along a mapped passage or a
+  short footway/cycleway run, and models3d_buildings.js cuts the opening.
 
 Overpass responses are cached in data/extras_*_raw.json; pass --refresh to
 fetch them again. Re-runnable: the same caches always give the same output.
@@ -340,8 +344,10 @@ def keyhole(outer, inners, gap=0.3):
         L = math.sqrt(bd) or 1
         nx, ny = -(b[1] - a[1]) / L * gap / 2, (b[0] - a[0]) / L * gap / 2
         loop = h[bj:] + h[:bj]
-        ring = ring[:bi] + [[a[0] - nx, a[1] - ny], [b[0] - nx, b[1] - ny]] + loop[1:] + \
-            [[loop[0][0] + nx, loop[0][1] + ny], [a[0] + nx, a[1] + ny]] + ring[bi + 1:]
+        # out along the left bank of the slit, back along the right one: the
+        # slit stays outside the (counter-clockwise) ring and never crosses itself
+        ring = ring[:bi] + [[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny]] + loop[1:] + \
+            [[loop[0][0] - nx, loop[0][1] - ny], [a[0] - nx, a[1] - ny]] + ring[bi + 1:]
     ring = [[round(x, 2), round(y, 2)] for x, y in ring]
     return ring + [ring[0]]
 
@@ -449,6 +455,32 @@ def core_heights(existing, taken):
     return out
 
 
+PASSAGE_SOURCES = ["data/groningen_raw.json", "data/groningen_extra.json"]
+
+
+def build_passages():
+    seen, out = set(), []
+    for src in PASSAGE_SOURCES:
+        if not os.path.exists(src):
+            continue
+        with open(src) as f:
+            raw = json.load(f)
+        for el in raw.get("elements", []):
+            tags = el.get("tags", {})
+            if el.get("type") != "way" or "highway" not in tags or el["id"] in seen or not el.get("geometry"):
+                continue
+            kind = None
+            if tags.get("tunnel") in ("building_passage", "covered", "yes"):
+                kind = "covered" if tags["tunnel"] == "covered" else tags["tunnel"]
+            elif tags.get("covered") in ("yes", "arcade"):
+                kind = "arcade" if tags["covered"] == "arcade" else "covered"
+            if not kind:
+                continue
+            seen.add(el["id"])
+            out.append({"pts": [project(g["lat"], g["lon"]) for g in el["geometry"]], "kind": kind, "hw": tags.get("highway")})
+    return out
+
+
 def build_fuel(raw):
     out = []
     for el in raw["elements"]:
@@ -486,10 +518,11 @@ if __name__ == "__main__":
     fuel_pts = [f for f in build_fuel(fuel) if x0 <= f["x"] <= x1 and y0 <= f["y"] <= y1]
     taken = {tuple(pch["at"]) for pch in height_patches}
     core = core_heights(citymap["buildings"], taken)
-    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core, "fuel": fuel_pts}
+    passages = [p for p in build_passages() if any(x0 <= q[0] <= x1 and y0 <= q[1] <= y1 for q in p["pts"])]
+    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core, "fuel": fuel_pts, "passages": passages}
     with open(OUT, "w") as f:
         json.dump(out, f, separators=(",", ":"))
-    print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} fuel={len(fuel_pts)}")
+    print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} fuel={len(fuel_pts)} passages={len(passages)}")
     for b in added:
         if b["name"] or b["h"] >= 4:
             print("  +", b["name"], b["type"], b["h"], b["pts"][0])

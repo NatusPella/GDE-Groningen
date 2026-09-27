@@ -9,8 +9,10 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { findWalkPath } from './routing.js';
-import { isInsideBuilding } from './pedestrians.js';
 import { isInWater, dist, pointInPolygon } from './util.js';
+import { inPassage, roomAt } from './passages.js';
+import { MUSEUM_CASE } from './museumplan.js';
+import { setMuseumCaseHidden } from './museum3d.js';
 import { spawnFxSpark } from './fx3d.js';
 
 const SPOTS_BEFORE_HELP = 3;
@@ -23,16 +25,30 @@ const CONE_MAT = () => new THREE.MeshBasicMaterial({ color: 0xffe3a0, transparen
 
 let H = null;
 
+// inside a footprint and not in one of its passages or rooms (the museum)
+function solid(map, x, y) {
+  return map.buildingsNear(x, y, 0.5).some((b) => pointInPolygon(x, y, b.pts) && !inPassage(map, b, x, y));
+}
+
 function walkable(map, x, y) {
-  return (!isInWater(map, x, y) || map.isOnBridge(x, y)) && !isInsideBuilding(map, x, y);
+  return (!isInWater(map, x, y) || map.isOnBridge(x, y)) && !solid(map, x, y);
 }
 
 function losClear(map, ax, ay, bx, by) {
   for (let k = 1; k < 6; k++) {
     const t = k / 6;
-    if (isInsideBuilding(map, ax + (bx - ax) * t, ay + (by - ay) * t)) return false;
+    if (solid(map, ax + (bx - ax) * t, ay + (by - ay) * t)) return false;
   }
   return true;
+}
+
+// the museum room (x, y) is in, if any
+function museumRoomAt(map, x, y) {
+  for (const b of map.buildingsNear(x, y, 0.5)) {
+    const r = b.rooms && roomAt(b, x, y);
+    if (r) return r;
+  }
+  return null;
 }
 
 function coneMesh(range, half) {
@@ -175,7 +191,10 @@ function besides(map, p, r, sky = false) {
 export function placeHeistProps(world, fuseSpot, vitrineSpot) {
   if (!H) return;
   const fuse = fuseSpot && besides(world.map, fuseSpot, 1.1);
-  const vitrine = vitrineSpot && besides(world.map, vitrineSpot, 1.9, true);
+  // in zaal 3 the case is the museum's own (museum3d.js hides that one meanwhile)
+  const inMuseum = vitrineSpot && museumRoomAt(world.map, vitrineSpot.x, vitrineSpot.y);
+  const vitrine = inMuseum ? { ...MUSEUM_CASE } : vitrineSpot && besides(world.map, vitrineSpot, 1.9, true);
+  if (inMuseum) setMuseumCaseHidden(true);
   if (fuse) {
     const g = new THREE.Group();
     g.position.set(fuse.x, 0, fuse.y);
@@ -327,6 +346,7 @@ export function updateFuse(dt, world, target, input) {
 
 export function disposeHeist() {
   if (!H) return;
+  setMuseumCaseHidden(false);
   closeFuse();
   H.root.removeFromParent();
   // person meshes share their materials (and all but the skinned geometry)

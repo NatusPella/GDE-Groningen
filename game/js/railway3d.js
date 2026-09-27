@@ -325,7 +325,7 @@ function buildChunk(c) {
         o.updateMatrix();
         inst.setMatrixAt(i, o.matrix);
         // solid for whatever passes underneath: 3.4 m across the track, 0.9 m along it
-        addStaticCollider('pier', p.x, p.y, 0.45, 1.25, p.angle + Math.PI / 2, p.y0 < 0);
+        addStaticCollider('pier', p.x, p.y, 0.45, 1.25, p.angle + Math.PI / 2, p.y0 < 0, p.y0 + p.h);
       });
       inst.castShadow = true;
       inst.computeBoundingSphere();

@@ -21,11 +21,12 @@ import { readingSeconds } from './world.js';
 import { PORTRAITS } from './storycast.js';
 import { getClockText } from './hud_panel.js';
 import { dualHtml, dutchFor } from './subtitles.js';
+import { speakerHtml } from './speakers.js';
 
 let mission = null;
 import('./missionstory.js').then((m) => { mission = m; }).catch(() => {});
 
-export const CONTACT_NAMES = { jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', T: 'Tammo', A: 'Anita' };
+export const CONTACT_NAMES = { jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', rikus: 'Rikus', mem: 'Mem Terpstra', T: 'Tammo', A: 'Anita' };
 const RING_S = 2.3;
 const QUIET_S = 1.6;
 
@@ -33,7 +34,7 @@ const CHAT = [
   ['stadjer050', 'Wie is dit nou weer'], ['moi_uut_grunn', 'Moai?? Hier zeggen we moi'], ['kiekdeuse', 'Grunn > Fryslân'],
   ['fietsopdediep', 'Is dat een trekker met een limo erachter'], ['olle_grieze_fan', 'Zonnebril op. In het donker.'],
   ['hoornsediep', 'Die twee achter hem zijn echt groot'], ['zuiderpark4life', 'Moi uit Hoogkerk'], ['vismarktvincent', 'Kon minder'],
-  ['sikkom_fan', 'Wie is W?'], ['oosterpoort_oma', 'Ik bel de pliesie. Of mijn kleinzoon.'],
+  ['sikkom_fan', 'Wie is W?'], ['oosterpoort_oma', 'Ik bel de pliesie. Of mijn kleinzoon.'], ['mem_terpstra', 'Jas aan, jonge.'],
 ];
 
 let world = null;
@@ -72,7 +73,7 @@ function injectStyle() {
 #hud .sc-wave { display: flex; gap: 3px; justify-content: center; align-items: center; height: 22px; margin: 2px 0 4px; }
 #hud .sc-wave i { width: 3px; border-radius: 2px; background: #3fc97a; height: 4px; transition: height .12s; }
 #hud .sc-bubble { margin: 6px 10px 10px; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,.08); font-size: 14px; line-height: 1.3; min-height: 38px; }
-#hud .sc-bubble b { color: #3fc97a; font-weight: bold; margin-right: 4px; }
+#hud .sc-bubble b { font-weight: bold; margin-right: 4px; }
 #hud .sc-bubble .nl-sub, #sc-card .nl-sub { display: block; margin-top: 3px; font-size: 12px; font-style: italic; color: rgba(255,255,255,.62); }
 #hud .sc-phone[data-via="live"] .sc-screen { background: #000; }
 #hud .sc-livebar, #sc-live .sc-livebar { display: flex; align-items: center; gap: 6px; padding: 7px 9px; font-size: 12px; }
@@ -129,7 +130,7 @@ function paintPortrait(cv, key, mood = '', big = false) {
   const W = 32, H = big ? 48 : 32;
   cv.width = W; cv.height = H;
   const g = cv.getContext('2d');
-  const bg = mood === 'greide' ? '#7fb35a' : mood === 'night' ? '#141b2b' : key === 'jelle' ? '#2e5da8' : '#6b2a2f';
+  const bg = mood === 'greide' ? '#7fb35a' : mood === 'night' ? '#141b2b' : key === 'rikus' ? '#2a1f3a' : key === 'jelle' || key === 'mem' ? '#2e5da8' : '#6b2a2f';
   g.fillStyle = bg; g.fillRect(0, 0, W, H);
   if (mood === 'greide') {
     g.fillStyle = '#9fd2f0'; g.fillRect(0, 0, W, H * 0.45);
@@ -151,6 +152,9 @@ function paintPortrait(cv, key, mood = '', big = false) {
   // eyes / sunglasses
   if (P.shades) { r(2, 7, 5, 3, '#101214'); r(9, 7, 5, 3, '#101214'); r(7, 8, 2, 1, '#101214'); r(3, 7, 1, 1, '#5a6a7a'); }
   else { r(4, 8, 2, 2, '#1d1d1d'); r(10, 8, 2, 2, '#1d1d1d'); }
+  if (P.glasses && !P.shades) { r(2, 7, 5, 1, '#2a2622'); r(9, 7, 5, 1, '#2a2622'); r(2, 10, 5, 1, '#2a2622'); r(9, 10, 5, 1, '#2a2622'); r(7, 8, 2, 1, '#2a2622'); }
+  // Rikus' studio headphones
+  if (P.phones) { r(-1, -2, 18, 2, P.phones); r(-2, 5, 3, 6, P.phones); r(15, 5, 3, 6, P.phones); }
   if (angry) { r(2, 5, 5, 1, '#3a2a1a'); r(9, 5, 5, 1, '#3a2a1a'); r(3, 4, 2, 1, '#3a2a1a'); r(11, 4, 2, 1, '#3a2a1a'); }
   // mouth, moustache, beard
   if (P.beard) r(1, 11, 14, 5, P.hair);
@@ -191,13 +195,15 @@ function renderPhone(c) {
   if (av) paintPortrait(av, who, 'smug');
 }
 
-function setBubble(line) {
+// a caller behind an unknown number stays unknown in the subtitle too
+function setBubble(line, c = null) {
   if (!els || !els.bubble) return;
-  els.bubble.innerHTML = line ? `<b>${esc(nameOf(line[0]))}:</b>${dualHtml(line[1])}` : '';
+  const who = line && (c && c.caller && line[0] === c.from ? c.caller : nameOf(line[0]));
+  els.bubble.innerHTML = line ? speakerHtml(who) + dualHtml(line[1]) : '';
 }
 
 function showCard(c, line) {
-  const signed = c.sign || (c.from === 'jelle' ? 'J.' : '');
+  const signed = c.sign || (c.from === 'jelle' ? 'W.' : '');
   cardEl.innerHTML = `<div class="sc-cardkick">${esc(c.title || 'Een kaartje')}</div><div class="sc-cardtext">${dualHtml(line[1])}` +
     `</div>${signed ? `<div class="sc-sign">– ${esc(signed)}</div>` : ''}`;
   cardEl.classList.add('show');
@@ -276,7 +282,7 @@ function next() {
   if (v) playBanterVoice(v.src);
   if (line[2] && line[2].clue) playClueSting();
   if (c.via === 'card') showCard(c, line);
-  else setBubble(line);
+  else setBubble(line, c);
 }
 
 function finish() {

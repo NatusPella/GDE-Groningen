@@ -21,7 +21,7 @@ const MOUNT_SPAWN_MAX = 120;
 const MOUNT_MIN_FROM_PLAYER = 45;
 const MOUNT_ROAD_CATS = ['cycle', 'minor', 'normal'];
 const BIKE_CHANCE = 0.55;
-const HORSE_CHANCE = 0.18;
+const HORSE_CHANCE = 0.4;
 const CENTRE_FRACTION = 0.75;
 const HORSE_BOLT_HEALTH = 40;
 
@@ -46,10 +46,10 @@ export function isMounted(v) {
 
 // --- spawning ----------------------------------------------------------------
 
-function nearestPathPoint(map, x, y) {
+function nearestPathPoint(map, x, y, cats = MOUNT_ROAD_CATS) {
   let best = null, bd = 30 * 30;
   for (const r of map.roadsNear(x, y, 30)) {
-    if (!MOUNT_ROAD_CATS.includes(r.cat) || r.z || r.bridge || r.pts.length < 2) continue;
+    if (!cats.includes(r.cat) || r.z || r.bridge || r.pts.length < 2) continue;
     const pts = r.pts;
     for (let i = 0; i < pts.length - 1; i++) {
       const cp = closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
@@ -64,12 +64,12 @@ function clearOfVehicles(world, x, y, r) {
   return true;
 }
 
-function findMountSpawn(world, minD = MOUNT_SPAWN_MIN, maxD = MOUNT_SPAWN_MAX, hidden = true) {
+function findMountSpawn(world, minD = MOUNT_SPAWN_MIN, maxD = MOUNT_SPAWN_MAX, hidden = true, cats = MOUNT_ROAD_CATS) {
   const p = world.player, pol = world.police;
   const c = pol && pol.searching && pol.searchCenter ? pol.searchCenter : p;
   for (let attempt = 0; attempt < 6; attempt++) {
     const a = Math.random() * Math.PI * 2, d = minD + Math.random() * (maxD - minD);
-    const rp = nearestPathPoint(world.map, c.x + Math.cos(a) * d, c.y + Math.sin(a) * d);
+    const rp = nearestPathPoint(world.map, c.x + Math.cos(a) * d, c.y + Math.sin(a) * d, cats);
     if (!rp) continue;
     const dp = Math.hypot(rp.x - p.x, rp.y - p.y);
     if (hidden && (dp < MOUNT_MIN_FROM_PLAYER || dp > maxD + 25 || !isSpawnHidden(world, rp.x, rp.y))) continue;
@@ -93,7 +93,9 @@ function spawnMount(world, rp, kind) {
 // Bikes mostly at 1-3 stars and wherever cars are no match (the car-free
 // binnenstad, a player on foot or on a bike); the odd horse in the same places.
 export function trySpawnMounts(world, state) {
-  if (world.wanted < 1 || world.time < (state.nextMountAt || 0)) return;
+  if (world.wanted < 1) { updatePatrols(world, state); return; }
+  for (const v of world.vehicles) if (v._patrol) endPatrol(v);
+  if (world.time < (state.nextMountAt || 0)) return;
   state.nextMountAt = world.time + MOUNT_SPAWN_STAGGER;
   let bikes = 0, horses = 0;
   for (const v of world.vehicles) {
@@ -105,7 +107,7 @@ export function trySpawnMounts(world, state) {
   const slow = !pv || pv.isBike || pv.isScooter;
   let maxBikes = w <= 3 ? 1 : 0;
   if (centre || slow) maxBikes = w <= 3 ? (w >= 2 ? 2 : 1) : (centre && slow ? 1 : 0);
-  const maxHorses = w <= 3 && (centre || slow) ? 1 : 0;
+  const maxHorses = (w <= 3 && (centre || slow)) || (w <= 4 && centre) ? 1 : 0;
   let kind = null;
   if (horses < maxHorses && Math.random() < HORSE_CHANCE) kind = 'horse';
   else if (bikes < maxBikes && Math.random() < BIKE_CHANCE) kind = 'bike';
@@ -115,10 +117,128 @@ export function trySpawnMounts(world, state) {
   spawnMount(world, rp, kind);
 }
 
+// --- ambient patrols (wanted 0) ---------------------------------------------
+// A horse (now and then a cyclist) walks a route through the busy car-free
+// spots. It is an ordinary police unit, so a crime it sees (crime.js) gives
+// the star and the existing chase takes over; sirens and chase music only
+// follow world.wanted, so a patrol stays quiet.
+
+const PATROL_ZONES = [
+  { name: 'binnenstad', x: 190, y: 110, r: 330, max: 2 },
+  { name: 'Grote Markt', x: 150, y: 90, r: 110, max: 2 },
+  { name: 'Vismarkt', x: 18, y: 244, r: 90, max: 2 },
+  { name: 'Noorderplantsoen', x: 140, y: -700, r: 170, max: 1 },
+  { name: 'Stadspark', x: -1250, y: 1500, r: 230, max: 1 },
+];
+const PATROL_CATS = ['foot', 'cycle', 'minor'];
+const PATROL_STAGGER = 25;
+const PATROL_WALK = 1.7;
+const PATROL_TROT = 3.6;
+const PATROL_BIKE = 4.2;
+const PATROL_DESPAWN = 170;
+const PATROL_GREET_R = 5.5;
+const GREETINGS = ['Moi!', 'Moi, alles goed?', 'Goeiendag.', 'Rustig an, hè.', 'Moi moi.', 'Goed bezig, hè.', 'Alles rustig?'];
+
+function patrolZoneAt(x, y) {
+  let best = null;
+  for (const z of PATROL_ZONES) {
+    if (Math.hypot(x - z.x, y - z.y) < z.r && (!best || z.r < best.r)) best = z;
+  }
+  return best;
+}
+
+function patrolGoal(world, zone) {
+  for (let i = 0; i < 5; i++) {
+    const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * zone.r * 0.85;
+    const rp = nearestPathPoint(world.map, zone.x + Math.cos(a) * d, zone.y + Math.sin(a) * d, PATROL_CATS);
+    if (rp) return { x: rp.x, y: rp.y };
+  }
+  return { x: zone.x, y: zone.y };
+}
+
+function makePatrol(v, world, zone) {
+  v._patrol = { zone, goalAt: 0, gaitUntil: world.time + 15 + Math.random() * 20, trot: false, greetAt: world.time + 4, road: v.road };
+  v.aiOpts = { goal: patrolGoal(world, zone) };
+}
+
+function updatePatrols(world, state) {
+  const p = world.player;
+  const dt = Math.min(0.1, Math.max(0, world.time - (state.patrolT ?? world.time)));
+  state.patrolT = world.time;
+  let n = 0;
+  for (let i = world.vehicles.length - 1; i >= 0; i--) {
+    const v = world.vehicles[i];
+    if (!v._mount || !v.isPolice || v.hijacked || v.wrecked || v._crew || v.driver === 'player') continue;
+    if (!v._patrol) makePatrol(v, world, patrolZoneAt(v.x, v.y) || PATROL_ZONES[0]);
+    const d = Math.hypot(v.x - p.x, v.y - p.y);
+    if (d > PATROL_DESPAWN && isSpawnHidden(world, v.x, v.y)) { world.vehicles.splice(i, 1); continue; }
+    n++;
+    tickPatrol(v, dt, world);
+  }
+  if (n >= 2 || world.time < (state.nextPatrolAt || 0) || world.pigeonMode || world.heliRun) return;
+  state.nextPatrolAt = world.time + PATROL_STAGGER * (0.6 + Math.random() * 0.8);
+  const zone = patrolZoneAt(p.x, p.y);
+  if (!zone || n >= zone.max) return;
+  let rp = null;
+  for (let k = 0; k < 3 && !rp; k++) {
+    const c = findMountSpawn(world, 50, 110, true, PATROL_CATS);
+    if (c && Math.hypot(c.x - zone.x, c.y - zone.y) < zone.r * 1.1) rp = c;
+  }
+  if (!rp) { state.nextPatrolAt = world.time + 3; return; }
+  const v = spawnMount(world, rp, Math.random() < 0.75 ? 'horse' : 'bike');
+  makePatrol(v, world, zone);
+}
+
+// Walking pace with the odd trot, a pause at each junction, a new waypoint
+// in the zone once the last is reached, and a nod to people passing by.
+function tickPatrol(v, dt, world) {
+  const pt = v._patrol;
+  const horse = v._mount === 'horse';
+  if (world.time > pt.gaitUntil) {
+    pt.trot = horse && !pt.trot && Math.random() < 0.5;
+    pt.gaitUntil = world.time + (pt.trot ? 5 + Math.random() * 6 : 18 + Math.random() * 25);
+  }
+  const pace = horse ? (pt.trot ? PATROL_TROT : PATROL_WALK) : PATROL_BIKE;
+  v.model.maxSpeed = pace / 0.9;
+  if (v.road !== pt.road) {
+    if (pt.road && horse && Math.random() < 0.6) v.waitTimer = 1 + Math.random() * 1.8;
+    pt.road = v.road;
+  }
+  const g = v.aiOpts && v.aiOpts.goal;
+  if (!g || Math.hypot(g.x - v.x, g.y - v.y) < 12 || world.time > pt.goalAt + 90) {
+    pt.goalAt = world.time;
+    v.aiOpts = { goal: patrolGoal(world, pt.zone) };
+  }
+  if (world.time < pt.greetAt) return;
+  pt.greetAt = world.time + 1.5;
+  if (Math.abs(v.speed) > 3) return;
+  for (const ped of world.pedestrians) {
+    if (ped.isCop || ped.state === 'dead' || ped.ragdoll) continue;
+    if (Math.abs(ped.x - v.x) > PATROL_GREET_R || Math.abs(ped.y - v.y) > PATROL_GREET_R) continue;
+    if (Math.hypot(ped.x - v.x, ped.y - v.y) > PATROL_GREET_R) continue;
+    pt.greetAt = world.time + 9 + Math.random() * 8;
+    const list = world.extraSpeakers || (world.extraSpeakers = []);
+    list.push({ x: v.x, y: v.y, h: horse ? 3.1 : 2.3, follow: v, female: false, speechText: GREETINGS[Math.floor(Math.random() * GREETINGS.length)], speechUntil: world.time + 2.4 });
+    return;
+  }
+}
+
+// Leaving patrol mode: the chase drives at full speed on its own route.
+export function endPatrol(v) {
+  if (!v._patrol) return;
+  v._patrol = null;
+  v.aiOpts = null;
+  v.waitTimer = 0;
+  v.model.maxSpeed = v._baseTop;
+}
+
 // Devtools helper: a unit on the nearest path 15-30 m away, in plain view.
-export function spawnPoliceMountNear(world, kind = 'bike') {
-  const rp = findMountSpawn(world, 15, 30, false);
-  return rp ? spawnMount(world, rp, kind) : null;
+export function spawnPoliceMountNear(world, kind = 'bike', patrol = false) {
+  const rp = findMountSpawn(world, 15, 30, false, patrol ? PATROL_CATS : MOUNT_ROAD_CATS);
+  if (!rp) return null;
+  const v = spawnMount(world, rp, kind);
+  if (patrol) makePatrol(v, world, patrolZoneAt(v.x, v.y) || PATROL_ZONES[0]);
+  return v;
 }
 
 // --- crew out / back in ------------------------------------------------------

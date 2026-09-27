@@ -49,7 +49,7 @@ const strings = (text, re) => [...text.matchAll(re)].map((m) => evalLit(m[1]));
 // Bubble lines are recorded per voice sex; the runtime picks the one that
 // matches the speaker's model. `~m|` / `~f|` keys live in the lines manifest.
 export const BUBBLE = { m: '~m', f: '~f' };
-export const NARRATOR = 'Verteller';
+export const NARRATOR = 'Rikus';
 
 const manifests = {};
 export function manifest(name) {
@@ -139,7 +139,7 @@ export function collect() {
 
   // --- how Jelle and the twins reach them (storycontact.js), the "Eerder in GTE VI"
   // recaps and the handover lines (story.js) -> lines manifest
-  const CONTACT = { jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', T: 'Tammo', A: 'Anita' };
+  const CONTACT = { jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', rikus: NARRATOR, mem: 'Mem Terpstra', T: 'Tammo', A: 'Anita' };
   for (const st of STEPS) for (const c of st.contact || []) for (const [k, t, o] of c.lines) add('Verhaal-contact (telefoon)', 'lines', [CONTACT[k]], t, o && o.tag ? { tag: o.tag } : {});
   for (const P of Object.values(PARTS)) for (const [, t] of P.recap || []) add('Verhaal-kaarten', 'lines', [NARRATOR], t, { tag: ['warm, vertellend, als een terugblik', 'droog, met een knipoog, samenvattend'] });
   for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);
@@ -214,9 +214,12 @@ export function collect() {
     add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.m], t, { as: 'Tammo' });
     add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.f], t, { as: 'Anita' });
   }
+  // Anita at a pigeon spot: the pigeons only listen to Tammo (pigeonspots.js)
+  for (const t of lit(src('pigeonspots.js'), 'export const ANITA_NO_PIGEON = ')) add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.f], t, { as: 'Anita' });
   for (const t of lit(fl, 'export const KROLBRUG_FAULTS = ')) add('Wereld (radio & navigatie)', 'lines', ['Verkeersinformatie'], t);
   for (const t of lit(fl, 'export const RING_ZUID_GPS = ')) add('Wereld (radio & navigatie)', 'lines', ['Navigatie'], t);
-  for (const t of lit(fl, 'export const NACHTSTREEK = ')) add('Wereld (radio & navigatie)', 'lines', ['Radio Nachtstreek'], t);
+  for (const t of lit(fl, 'export const NACHTSTREEK = ')) add('Wereld (radio & navigatie)', 'lines', [NARRATOR], t, { tag: ['zacht, warm, rustig, laat op de avond, als nacht-dj op de radio', 'warm, ontspannen, droog, als nacht-dj op de radio'] });
+  for (const t of Object.values(lit(fl, 'export const NACHTSTREEK_STORY = '))) add('Wereld (radio & navigatie)', 'lines', [NARRATOR], t, { tag: ['zacht, warm, rustig, laat op de avond, als nacht-dj op de radio', 'warm, ontspannen, droog, als nacht-dj op de radio'] });
   for (const list of Object.values(lit(fl, 'export const COW_FEED = '))) for (const [cow, t] of list) add('Wereld (bijnamen & koeien)', 'lines', ['Koe ' + cow], t);
   bubble('Wereld (straat)', lit(fl, 'export const KON_MINDER = '), { tag: ['droog, stiekem onder de indruk', 'laconiek, knikkend'] });
   for (const ev of Object.values(lit(fl, 'export const EVENT_DAYS = '))) bubble('Wereld (straat)', ev.barks, { tag: ['vrolijk, kletserig', 'opgewekt, lacherig', 'stellig, vertellend'] });

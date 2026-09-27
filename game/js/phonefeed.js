@@ -1,4 +1,5 @@
 import { dualHtml, dutchFor } from './subtitles.js';
+import { paintSpeaker } from './speakers.js';
 import { getClockText } from './hud_panel.js';
 import { readingSeconds } from './world.js';
 import { lineVoiceFor } from './linevoice.js';
@@ -35,7 +36,6 @@ const RING_TIME = 1.6;
 const LINE_GAP = 0.35;
 const HANGUP_TIME = 1.1;
 const CALL_WAIT_MAX = 90;
-const SPEAKER_COLORS = { Tammo: '#8fd3ff', Anita: '#ffb0cf' };
 const APP_ICON = {
   sikkom: '<path d="M12 3a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6zm-2 16a2 2 0 0 0 4 0z"/>',
   bericht: '<path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>',
@@ -207,8 +207,7 @@ function beginCall(w, c) {
 function showLine(c) {
   const l = c.lines[c.i];
   const sp = callEl.querySelector('.pf-speaker');
-  sp.textContent = l.speaker && !c.from.startsWith(l.speaker) ? l.speaker : '';
-  sp.style.color = SPEAKER_COLORS[l.speaker] || '';
+  paintSpeaker(sp, l.speaker || c.from);
   callEl.querySelector('.pf-say').textContent = l.text;
   // the Dutch under a Frisian/Gronings line (subtitles.js), unless given
   callEl.querySelector('.pf-sub').textContent = l.sub || dutchFor(l.text) || '';

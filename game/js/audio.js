@@ -10,6 +10,7 @@ import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } fr
 import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, loopPoints } from './scenariomusic.js';
 import * as speech from './speech.js';
+import { drunkLevel } from './drunk.js';
 
 if (typeof window !== 'undefined') window.__speech = speech;
 
@@ -100,6 +101,7 @@ let engineBus = null;
 let sirenBus = null;
 let musicBus = null;
 let musicOut = null;
+let musicLp = null; // drunk.js muffles the music
 let trafficBus = null;
 let ambBus = null;
 let uiBus = null;
@@ -803,6 +805,59 @@ function playShout(x, y, strength = 0.5) {
   playNoiseBurst({ duration: 0.05, freq: 2400, q: 0.8, gain: 0.08, type: 'highpass', out });
 }
 
+// drunk.js: a short "hic" (a throat click and a quick upward chirp) and a
+// breathy little giggle.
+function playHiccup(x, y, female) {
+  const out = spatialOut(x, y, { ref: 3, rolloff: 1.2, range: 25, h: 1.6 });
+  if (!out) return;
+  const t0 = ctx.currentTime;
+  const f0 = (female ? 420 : 260) * (0.92 + Math.random() * 0.16);
+  const osc = ctx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(f0, t0);
+  osc.frequency.exponentialRampToValueAtTime(f0 * 1.9, t0 + 0.07);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.11);
+  const bp = ctx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.4;
+  osc.connect(bp).connect(g).connect(out.node);
+  out.hold();
+  osc.start(t0);
+  osc.stop(t0 + 0.13);
+  osc.onended = () => { osc.disconnect(); bp.disconnect(); g.disconnect(); out.release(); };
+  playNoiseBurst({ duration: 0.025, freq: 1800, q: 2, gain: 0.12, type: 'bandpass', out });
+}
+
+function playGiggle(x, y, female) {
+  const out = spatialOut(x, y, { ref: 3, rolloff: 1.2, range: 25, h: 1.6 });
+  if (!out) return;
+  const t0 = ctx.currentTime;
+  const n = 4 + Math.floor(Math.random() * 3);
+  const base = (female ? 520 : 330) * (0.94 + Math.random() * 0.12);
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  for (let i = 0; i < n; i++) {
+    const s = t0 + i * 0.105;
+    const f = base * (1.18 - i * 0.05);
+    osc.frequency.setValueAtTime(f, s);
+    osc.frequency.linearRampToValueAtTime(f * 0.86, s + 0.08);
+    g.gain.setValueAtTime(0.0001, s);
+    g.gain.exponentialRampToValueAtTime(0.1, s + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + 0.085);
+  }
+  const f1 = ctx.createBiquadFilter();
+  f1.type = 'bandpass'; f1.frequency.value = female ? 1100 : 750; f1.Q.value = 3;
+  osc.connect(f1).connect(g).connect(out.node);
+  out.hold();
+  osc.start(t0);
+  osc.stop(t0 + n * 0.105 + 0.05);
+  osc.onended = () => { osc.disconnect(); f1.disconnect(); g.disconnect(); out.release(); };
+}
+
 function playDoor(x, y, open) {
   const out = spatialOut(x, y, { ref: 3, rolloff: 1.2, range: 40 });
   if (!out) return;
@@ -1034,14 +1089,21 @@ export function stopStoryVoice() {
   speech.end(v.tok);
 }
 
-export function playStoryVoice(src) {
+// radio: Rikus on Nachtstreek (recaps, the studio shots): a gentle
+// broadcast band (no deep lows, rounded highs, a little presence).
+export function playStoryVoice(src, { radio = false } = {}) {
   stopStoryVoice();
   if (!ctx || muted) return;
   const v = { el: new Audio(src), node: null, tok: null };
   v.tok = speech.begin('story', 3, { owner: 'story', stop: () => { if (storyVoice === v) stopStoryVoice(); } });
   try {
     v.node = ctx.createMediaElementSource(v.el);
-    v.node.connect(voiceBus);
+    if (radio) {
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 240;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4600;
+      const pk = ctx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 1900; pk.Q.value = 0.8; pk.gain.value = 3;
+      v.node.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(voiceBus);
+    } else v.node.connect(voiceBus);
   } catch (e) {
     // ignore - plays without the Web Audio graph
   }
@@ -1276,6 +1338,24 @@ export function playClueSting() {
   [[659.25, 0, 0.9], [987.77, 0.11, 0.9], [1318.5, 0.22, 1.2]].forEach(([freq, delay, duration]) =>
     playTone({ freq, type: 'sine', duration, gain: 0.05, delay, bus: stingBus, prio: 2 }));
   playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
+}
+
+// Tammo whistles up a pigeon (pigeonmode.js): a soft two-note "fuu-fiet".
+function playWhistle() {
+  if (!ctx || muted || !uiBus) return;
+  playTone({ freq: 1250, freqEnd: 1500, type: 'sine', duration: 0.2, gain: 0.05, bus: uiBus, prio: 2 });
+  playTone({ freq: 1700, freqEnd: 2350, type: 'sine', duration: 0.3, gain: 0.05, delay: 0.26, bus: uiBus, prio: 2 });
+}
+
+// The Radio Nachtstreek station sting before Rikus tells a recap: a soft
+// rising three-note jingle over a low pad.
+export function playRadioSting() {
+  if (!ctx || muted || !stingBus) return;
+  [[392, 0, 0.35], [523.25, 0.18, 0.35], [659.25, 0.36, 0.9]].forEach(([freq, delay, duration]) => {
+    playTone({ freq, type: 'triangle', duration, gain: 0.045, delay, bus: stingBus, prio: 2 });
+    playTone({ freq: freq * 2, type: 'sine', duration: duration * 0.6, gain: 0.015, delay: delay + 0.01, bus: stingBus, prio: 2 });
+  });
+  playTone({ freq: 196, type: 'sine', duration: 1.5, gain: 0.03, bus: stingBus, prio: 2 });
 }
 
 export function playPhoneRing(rings = 2) {
@@ -1566,7 +1646,10 @@ function buildGraph() {
   // Music bypasses the SFX soft-clip so loud world sounds never squash it.
   musicOut = ctx.createGain();
   musicOut.gain.value = muted ? 0 : masterLevel();
-  musicOut.connect(ctx.destination);
+  musicLp = ctx.createBiquadFilter();
+  musicLp.type = 'lowpass';
+  musicLp.frequency.value = 20000;
+  musicOut.connect(musicLp).connect(ctx.destination);
   musicBus = ctx.createGain();
   musicBus.gain.value = GMUSIC_VOLUME;
   musicBus.connect(musicOut);
@@ -2159,6 +2242,8 @@ function playAudioEvents(world) {
       case 'train_clack': playTrainClack(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'horn': playHorn(x, y, e.strength ? 0.15 + clamp(e.strength, 0, 1) * 0.65 : 0.4); break;
       case 'shout': playShout(x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'hiccup': playHiccup(x, y, !!e.female); break;
+      case 'giggle': playGiggle(x, y, !!e.female); break;
       case 'door_open': playDoor(x, y, true); doorDelay = 0.3; break;
       case 'door_close': playDoor(x, y, false); break;
       case 'engine_start':
@@ -2172,6 +2257,7 @@ function playAudioEvents(world) {
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
+      case 'whistle': playWhistle(); break;
       case 'gore': case 'gore_splat': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {
         const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 70 });
@@ -2603,6 +2689,8 @@ export function updateAudio(dt, world) {
   }
 
   speech.tick();
+  const lpHz = 20000 * Math.pow(0.045, drunkLevel());
+  if (musicLp && Math.abs(musicLp.frequency.value - lpHz) > 50) musicLp.frequency.setTargetAtTime(lpHz, ctx.currentTime, 0.4);
   updateListener(world);
   updateWorldEvents(world);
   const pickupOut = () => spatialAt(world.player.x, world.player.y);
