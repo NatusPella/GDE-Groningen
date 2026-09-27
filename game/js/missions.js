@@ -398,7 +398,7 @@ const REQUIREMENTS = {
     text: (shop) => `Jelmer leent geen wapens meer uit. Koop eerst een wapen bij ${shop}.`,
   },
   car: {
-    met: () => getOwnedEntries().some((o) => o.spec && o.spec.kind === 'car'),
+    met: () => getOwnedEntries().some((o) => o.spec && o.spec.kind === 'car' && !o.spec.unlock), // bought, not a story unlock
     shop: 'auto',
     text: (shop) => `De ringweg-race wordt gesponsord door ${SHOP_TYPES.auto.chain}: alleen wie een eigen auto heeft mag starten. Koop er eerst een bij ${shop}.`,
   },
