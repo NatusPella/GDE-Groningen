@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { getTrains, routePoint, placeTrain, railZ } from './railway.js';
+import { getTrains, routePoint, placeTrain, railZ, returnStolenTrains } from './railway.js';
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive, playCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
@@ -41,6 +41,7 @@ let world = null;
 let stations = [];
 let fadeEl = null;
 let trip = null;
+let tripsDone = 0;
 let iconUrl = null;
 
 const shortName = (n) => n.replace(/^Groningen\s+/, '');
@@ -253,7 +254,7 @@ function blockReason(w) {
 
 function nearestStation(w) {
   const p = w.player;
-  if (trip || w.pigeonMode || p.inVehicle || p.swimming || p.water) return null;
+  if (trip || w.pigeonMode || p.inVehicle || w.trainDriving || p.swimming || p.water) return null;
   let best = null, bd = USE_RADIUS;
   for (const s of stations) {
     const d = Math.hypot(s.x - p.x, s.y - p.y);
@@ -427,6 +428,7 @@ function startTrip(w, from, to, legs, info, board) {
   const midLeg = first;
   const midDir = dirA;
   const midS = first.from.s + dirA * Math.min(first.len * 0.4, 320);
+  returnStolenTrains();
   const trains = [...new Set(legs.map((l) => l.train))];
   trip = { saved: trains.map(saveTrain), from, to, legs, info, phase: '' };
   const tA = first.train, tB = midLeg.train, tC = last.train;
@@ -508,12 +510,13 @@ function arrive(w) {
   Object.assign(t, { c: last.to.s, v: 0, state: 'dwell', target: idx, timer: 14, dir: idx === 0 ? 1 : idx === stops.length - 1 ? -1 : dir });
   placeTrain(t);
   trip = null;
+  tripsDone++;
   if (fadeEl) fadeEl.style.opacity = '0';
 
   const p = w.player;
   p.x = to.arrive.x; p.y = to.arrive.y;
   p.angle = to.exitAngle;
-  p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0;
+  p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
   p.inVehicle = null; p.water = null; p.swimming = false; p.climb = null;
   const c = w.companion;
   if (c && c.state !== 'dead') {
@@ -545,6 +548,11 @@ function arrive(w) {
   recordStat(w, 'trainTrips');
   w.addMessage(`Aangekomen in ${to.name}. Reistijd ${info.minutes} minuten, €${info.price} armer.`, 4);
   saveGame(w, { toast: false });
+}
+
+// Train trips finished this session (story.js: the "onderduiken" step).
+export function getTrainTripCount() {
+  return tripsDone;
 }
 
 export function isTrainTripActive() {

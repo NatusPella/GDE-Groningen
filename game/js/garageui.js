@@ -7,6 +7,9 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const GLYPHS = {
   car: '<path d="M6 30l4-11a5 5 0 0 1 4.7-3.3h18.6A5 5 0 0 1 38 19l4 11h1.5a2.5 2.5 0 0 1 2.5 2.5V40h-5v3a3 3 0 0 1-6 0v-3H13v3a3 3 0 0 1-6 0v-3H2v-7.5A2.5 2.5 0 0 1 4.5 30zm6-1h24l-2.8-8.2a1.5 1.5 0 0 0-1.4-1h-15.6a1.5 1.5 0 0 0-1.4 1z"/><circle cx="10" cy="35" r="2.6" fill="#10180f"/><circle cx="38" cy="35" r="2.6" fill="#10180f"/>',
   bike: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="32" r="8"/><circle cx="37" cy="32" r="8"/><path d="M11 32l8-14h12l6 14M11 32h11l9-14M16 13h6M31 18l-2-6h5"/></g>',
+  bus: '<path d="M4 12a4 4 0 0 1 4-4h32a4 4 0 0 1 4 4v22a2 2 0 0 1-2 2h-2v3a3 3 0 0 1-6 0v-3H14v3a3 3 0 0 1-6 0v-3H6a2 2 0 0 1-2-2zm4 2v8h8v-8zm11 0v8h8v-8zm11 0v8h9v-8z"/>',
+  truck: '<path d="M2 12h26v22H2zM30 18h8l6 8v8h-14z"/><circle cx="10" cy="36" r="4"/><circle cx="36" cy="36" r="4"/><rect x="32" y="20" width="6" height="5" fill="#10180f"/>',
+  boat: '<path d="M4 28h40l-6 10H10zM14 18h14v8H14zM30 14h3v12h-3z"/><path d="M6 42c3 0 3-2 6-2s3 2 6 2 3-2 6-2 3 2 6 2 3-2 6-2 3 2 6 2" fill="none" stroke="currentColor" stroke-width="2"/>',
   scooter: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="34" r="6"/><circle cx="38" cy="34" r="6"/><path d="M17 34h14l5-18h5M31 34l-3-9H15"/></g><path d="M14 22h13v5H12z"/>',
 };
 
@@ -24,6 +27,8 @@ function injectStyle() {
 #pause-menu .gar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
 #pause-menu .gar-card { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid rgba(63,201,122,0.35); border-left: 4px solid #3fc97a; border-radius: 6px; background: rgba(15,92,48,0.18); }
 #pause-menu .gar-card[data-status="lost"] { border-left-color: #c9412e; }
+#pause-menu .gar-card[data-status="locked"] { opacity: 0.6; border-style: dashed; border-left-color: #e8c93a; background: rgba(0,0,0,0.2); }
+#pause-menu .gar-card[data-status="locked"] .gar-status { color: #e8c93a; }
 #pause-menu .gar-card[data-status="forsale"] { opacity: 0.55; border-style: dashed; border-left-style: solid; border-left-color: rgba(240,237,228,0.3); background: rgba(0,0,0,0.15); }
 #pause-menu .gar-top { display: flex; gap: 10px; align-items: center; }
 #pause-menu .gar-icon { flex: none; width: 54px; height: 54px; border-radius: 8px; display: grid; place-items: center; background: rgba(240,237,228,0.08); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.12); }
@@ -72,8 +77,9 @@ function card(e) {
     ['Trekkracht', `<span class="gar-bar"><i style="width:${e.accelScore * 10}%"></i></span>${e.accelScore}/10`],
     ['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`],
   ];
-  if (e.owned) stats.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'car' ? 'Knal & Kolder Tuning' : 'Spaak & Band'} helpt je graag`]);
-  else stats.push(['Prijs', `€${e.price.toLocaleString('nl-NL')}`]);
+  if (e.owned && e.kind !== 'boat') stats.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
+  else if (e.locked) stats.push(['Vrijspelen', esc(e.unlockText)]);
+  else if (!e.owned) stats.push(['Prijs', `€${e.price.toLocaleString('nl-NL')}`]);
   const where = whereText(e);
   const actions = !e.owned ? '' : `<div class="gar-actions">` +
     (e.status !== 'driving' ? `<button type="button" data-garage-deliver="${esc(e.id)}">Laten afleveren · ${esc(e.feeLabel)}</button>` : '') +
@@ -92,11 +98,13 @@ export function renderGaragePanel(el, world, msg = '') {
   injectStyle();
   const list = getGarageCatalog(world);
   const owned = list.filter((e) => e.owned);
-  const sale = list.filter((e) => !e.owned);
+  const sale = list.filter((e) => !e.owned && !e.locked);
+  const locked = list.filter((e) => e.locked);
   el.innerHTML =
     `<h2>Garage <small>${owned.length} van ${list.length} verzameld</small></h2>` +
-    `<p class="gar-note">Gekocht is voorgoed van jou. Laat je voertuig afleveren en het staat om de hoek, buiten beeld. Ook via je telefoon (T).</p>` +
+    `<p class="gar-note">Gekocht of vrijgespeeld is voorgoed van jou; gejat telt niet. Laat je voertuig afleveren en het staat om de hoek, buiten beeld. Ook via je telefoon (T).</p>` +
     `<p class="gar-msg" role="status">${esc(msg)}</p>` +
     `<div class="gar-grid">${owned.map(card).join('')}</div>` +
-    (sale.length ? `<h2>Nog te koop <small>Ome Harm Occasions en Trap & Toeter</small></h2><div class="gar-grid">${sale.map(card).join('')}</div>` : '');
+    (sale.length ? `<h2>Nog te koop <small>Ome Harm Occasions, Trap & Toeter en Bootje Huren</small></h2><div class="gar-grid">${sale.map(card).join('')}</div>` : '') +
+    (locked.length ? `<h2>Vrij te spelen <small>via het verhaal en prestaties</small></h2><div class="gar-grid">${locked.map(card).join('')}</div>` : '');
 }

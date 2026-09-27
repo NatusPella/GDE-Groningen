@@ -3,6 +3,8 @@ import { VERSION } from './version.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
+import { setSetting } from './settings.js';
+import { pendingTrailer, runTrailer, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
 
 const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -291,6 +293,24 @@ function summaryText(s) {
   return [`€${s.money.toLocaleString('nl-NL')}`, `${s.missionsDone} missies`, s.character, when].filter(Boolean).join(' · ');
 }
 
+// After the attract intro: the logo appears big in the middle, then glides
+// and shrinks into its place before the menu fades in (CSS .ss-handoff).
+function logoIn(screen) {
+  const logo = screen.querySelector('.ss-logo .gte-logo');
+  screen.classList.add('ss-handoff');
+  setTimeout(() => screen.classList.remove('ss-handoff'), 2600);
+  if (!logo || !logo.animate) return;
+  const r = logo.getBoundingClientRect();
+  const dx = innerWidth / 2 - (r.left + r.width / 2), dy = innerHeight / 2 - (r.top + r.height / 2);
+  const big = `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(1.45)`;
+  logo.animate([
+    { transform: big, opacity: 0 },
+    { transform: big, opacity: 1, offset: 0.2 },
+    { transform: big, opacity: 1, offset: 0.55, easing: 'cubic-bezier(0.6, 0, 0.25, 1)' },
+    { transform: 'none', opacity: 1 },
+  ], { duration: 1800, fill: 'backwards' });
+}
+
 // Title screen over the live city, cycling through highlights. Resolves with
 // 'game' (Doorgaan / Nieuw spel).
 export function runStartScreen(world, { render, relocate, tick }) {
@@ -377,6 +397,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       done = true;
       news.hidden = true;
       window.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('gte-benchmark', onBenchmark);
       world._menuCamPose = Math.hypot(pose.lookAt.x - p.x, pose.lookAt.y - p.y) < 150 ? pose : null;
       world.cameraOverride = null;
       screen.classList.remove('visible');
@@ -417,7 +438,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     };
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
-      if (isPauseMenuOpen() || done) return;
+      if (isPauseMenuOpen() || done || trailerOn) return;
       const k = e.key;
       if (!news.hidden) {
         const page = newsBody.clientHeight * 0.85;
@@ -449,11 +470,72 @@ export function runStartScreen(world, { render, relocate, tick }) {
     });
     window.addEventListener('keydown', onKey, true);
 
-    screen.classList.add('visible');
-    focus(0);
+    // trailer.js: the attract intro / ?trailer before the menu, and the
+    // benchmark from Instellingen; the loop below idles while it runs
+    const env = { tick, render, relocate: move };
+    let trailerOn = false;
+    const showMenu = (fromTrailer) => {
+      screen.classList.add('visible');
+      if (fromTrailer) logoIn(screen);
+      focus(0);
+    };
+    const backHome = () => {
+      move(home.x, home.y);
+      world.clock = homeClock;
+      world.weather = homeWeather;
+      shot = makeShot(map, { x: home.x, y: home.y, kind: 'spawn' });
+      shotT = 0;
+      phase = 'show';
+      pose = shot(0);
+      fade.style.opacity = '0';
+    };
+    const benchmark = async (fromGame) => {
+      if (trailerOn) return;
+      trailerOn = true;
+      screen.classList.remove('visible');
+      news.hidden = true;
+      for (;;) {
+        const res = await runTrailer(world, { mode: 'benchmark', cut: 'vol', env });
+        if (res.aborted) break;
+        if (await showBenchmarkResults(res.stats) !== 'again') break;
+      }
+      await fadeOutTrailer(false, backHome);
+      trailerOn = false;
+      const cont = items.findIndex((it) => it.act === 'continue');
+      if (fromGame && cont >= 0) { activate(cont); return; }
+      showMenu(false);
+    };
+    const onBenchmark = () => benchmark(false);
+    window.addEventListener('gte-benchmark', onBenchmark);
+    const intro = pendingTrailer();
+    const playIntro = async () => {
+      trailerOn = true;
+      if (intro.mode === 'benchmark') { trailerOn = false; benchmark(!!intro.fromGame); return; }
+      // set when the cut starts: a crash or closing the app must not replay it
+      if (intro.mode === 'attract') setSetting('attractSeen', true);
+      const res = await runTrailer(world, { ...intro, env });
+      if (intro.mode === 'opname' && !res.aborted && window.gteDesktop && window.gteDesktop.isDesktop) { window.gteDesktop.quit(); return; }
+      if (res.continuation) {
+        shot = res.continuation;
+        shotT = 0;
+        shotDur = SHOT_MAX_S;
+        phase = 'show';
+        pose = shot(0);
+        trailerOn = false;
+        showMenu(true);
+        await fadeOutTrailer(true);
+      } else {
+        await fadeOutTrailer(false, backHome);
+        trailerOn = false;
+        showMenu(true);
+      }
+    };
+    if (intro) playIntro();
+    else showMenu(false);
 
     const loop = (now) => {
       if (done) return;
+      if (trailerOn) { last = now; requestAnimationFrame(loop); return; }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       shotT += dt;

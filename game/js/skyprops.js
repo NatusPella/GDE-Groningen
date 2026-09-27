@@ -7,7 +7,8 @@ import { pointInPolygon, normalizeAngle } from './util.js';
 //    waits with its rotor idling, then lifts off and leaves in a random
 //    direction. Sometimes it is already parked there when the game starts.
 //  - world.balloons: hot-air balloons drifting with the wind at 150-400 m,
-//    or (mornings, evenings) rising from a park outside the centre.
+//    or (mornings, evenings) rising from a park outside the centre. A balloon
+//    with `scripted` set is moved by its owner (helirun.js) and left alone.
 // Positions follow the game convention: x/y ground plane, z altitude (m).
 
 const LEVEL_HEIGHT = 3.1;
@@ -302,6 +303,7 @@ function updateBalloons(dt, world) {
   const px = world.player.x, py = world.player.y;
   for (let i = list.length - 1; i >= 0; i--) {
     const b = list[i];
+    if (b.scripted) continue;
     b.age += dt;
     b.yaw += b.spin * dt;
     // burner cycles: short roars, more often while climbing off the ground

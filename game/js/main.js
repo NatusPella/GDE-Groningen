@@ -17,6 +17,7 @@ import { initShops, updateShops, tryShopInteract } from './shops.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
+import { updateBanter } from './banter.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
@@ -40,11 +41,16 @@ import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScr
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
+import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
+import { updatePoleVaults } from './fierljep.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
+import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { probe } from './hitchprobe.js';
+import { initSafety, updateSafety } from './safety.js';
+import { updateCinematics } from './cinematics.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -66,7 +72,7 @@ function waitForStart(world) {
     world.time += dt;
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
-      if (v.driver === 'player' || v.isPolice) continue;
+      if (v.driver === 'player' || v.isPolice || v.cineTemp) continue;
       if (v.isBoat) updateBoatAI(v, dt, world.map, world, Math.random);
       else {
         updateTrafficAI(v, dt, world.map, world, Math.random);
@@ -80,11 +86,12 @@ function waitForStart(world) {
     updateWildlife(dt, world);
   };
   // the effect pools exist from the title screen on, so their shaders are
-  // compiled there and not on the first explosion, shot or splash
-  const render = (dt) => {
-    updateFx3D(0, world, getScene());
-    updateGore3D(0, world, getScene());
-    updateGunFx3D(0, world, getScene());
+  // compiled there and not on the first explosion, shot or splash; the
+  // trailer (trailer.js) passes fxDt to play its explosions
+  const render = (dt, fxDt = 0) => {
+    updateFx3D(fxDt, world, getScene());
+    updateGore3D(fxDt, world, getScene());
+    updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
   return runStartScreen(world, { render, relocate, tick });
@@ -168,6 +175,7 @@ async function boot() {
   initPhoneFeed(world);
   initPigeonMode(world);
   initPigeonSpots(world);
+  initHeliRun(world);
   initSideJobs(world);
   initStory(world);
   initHud(world);
@@ -189,6 +197,7 @@ async function boot() {
 
   window.__debug = { player, map, input, world };
   initAchievementTracker(world);
+  initSafety(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   await finishLoading();
@@ -224,6 +233,7 @@ async function boot() {
     const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
     updateAudio(dt, world);
+    updateBanter(world.paused ? 0 : gameDt, world);
     probe.mark('audio');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused ? 0 : gameDt;
@@ -234,12 +244,14 @@ async function boot() {
     updateCityProps(animDt, world, getScene());
     probe.mark('cityprops');
     updatePigeonAfterglow(animDt);
-    if (world.pigeonMode) updatePigeonCamera(dt, world);
-    else {
+    // cutscenes keep running (and end) while you're a pigeon; its camera wins
+    if (world.pigeonMode) { updateCinematics(dt, world); updatePigeonCamera(dt, world); }
+    else if (!world.heliRun) {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
     probe.mark('phone+save');
+    updateSafety(dt, world);
     update3D(world.paused ? dt : gameDt, world);
     updateHud(dt, world);
     probe.mark('hud');
@@ -265,15 +277,20 @@ async function boot() {
     probe.mark('populate');
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
+    else if (world.heliRun) updateHeliRun(dt, world);
     else {
+      tryTrainInteract(world);
       trySideJobInteract(world);
+      tryHeliSpotInteract(world);
       tryGarageInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
       tryStationInteract(world);
       tryHorecaInteract(world);
-      player.update(dt, world);
-      updateCompanion(dt, world);
+      if (!updateTrainDriving(dt, world)) {
+        player.update(dt, world);
+        updateCompanion(dt, world);
+      }
       updateEmergency(dt, world);
     }
     probe.mark('player');
@@ -290,7 +307,7 @@ async function boot() {
     }
     probe.mark('traffic');
 
-    if (!world.pigeonMode) updatePolice(dt, world);
+    if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
@@ -298,7 +315,7 @@ async function boot() {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
     probe.mark('police+collide');
-    if (!world.pigeonMode) {
+    if (!world.pigeonMode && !world.heliRun) {
       updateCombat(dt, world);
       updateBullets(dt, world);
     }
@@ -308,8 +325,10 @@ async function boot() {
     updateWildlife(dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
+    updateHeliSpot(dt);
+    updatePoleVaults(dt, world);
     probe.mark('wildlife');
-    if (!world.pigeonMode) {
+    if (!world.pigeonMode && !world.heliRun) {
       updateMissions(dt, world);
       updateSikkomFeed(dt, world);
       updatePhoneFeed(dt, world);

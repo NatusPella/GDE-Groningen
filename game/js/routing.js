@@ -317,7 +317,8 @@ function currentTarget(world) {
   // garage the next activity needs
   const g = world.storyGuide;
   if (g) return { x: g.x, y: g.y, kind: 'mission', name: g.name };
-  if (m && m.marker && m.phase !== 'cooldown') return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
+  // once the built story has ended (story.js), free-play missions wait for the player to pick one
+  if (m && m.marker && m.phase !== 'cooldown' && !world.storyFreePlay) return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
   return null;
 }
 

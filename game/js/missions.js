@@ -2,7 +2,8 @@ import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp } fro
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
 import { setUserWaypoint, findWalkPath } from './routing.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene } from './missionstory.js';
+import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
@@ -11,7 +12,7 @@ import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState } from './shops.js';
 import { getGaragesForRender, garageInside } from './garages.js';
-import { startPigeonMode, stopPigeonMode, getPigeonFlight } from './pigeonmode.js';
+import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { MISSION_IDS, MISSION_STORY_ORDER, missionCode } from './storyarc.js';
 import { requestRespawn } from './world.js';
@@ -237,6 +238,65 @@ function buildDefs(world) {
         { kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Alarm! Drie sterren. Wegwezen, over het water als het kan.' },
       ],
     },
+    // --- Romp story missions (storyarc.js H8, H10) ---------------------------
+    {
+      type: 'stages',
+      label: 'Vet gekaapt',
+      intro: ['De tankwagen van Us Mem Vet rijdt met al het frituurvet van Grunn de stad uit.', 'Schiet of ram zijn banden stuk, kaap hem en breng het vet naar de Oosterpoort.'],
+      outro: 'Het vet is terug in Grunn. Jelle sprong over de gracht, de tweeling fietste erachteraan.',
+      timeLimit: null,
+      reward: 600,
+      vehicle: 'car',
+      start: drive(1149, 422),
+      stages: [
+        { kind: 'board', label: 'Stap in de auto', say: 'Instappen, Femke heeft hem voor ons klaargezet. Daar gaat de tankwagen!' },
+        {
+          kind: 'chase', label: 'Schiet of ram de banden van de tankwagen stuk', say: 'Achter die tankwagen aan! Schieten mag, rammen mag. Maak zijn banden plat.',
+          vehicle: { name: 'truck', tank: true, len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
+          name: 'Tankwagen Us Mem Vet', lead: 48, hits: 70, flee: [-2600, 600], cruise: 15.5, escape: 380, time: 180,
+          stopped: 'Pang! Banden plat. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
+        },
+        { kind: 'board', label: 'Kaap de tankwagen', say: 'Hij staat stil. Instappen, het vet is van ons. Van Grunn, bedoel ik.' },
+        { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.' },
+        {
+          kind: 'vault', label: 'Jelle',
+          lines: [['jelle', 'Moai, Grinzers. Myn fet. Myn tankwein. Myn dei.'], ['A', 'Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.'],
+            ['jelle', 'Dan keapje ik nij fet. Ik ha jild genôch. En in polsstok.'], ['T', 'Een wat?'], ['durk', 'Baas… wy?'], ['jelle', 'Jim fytse mar, jonges.']],
+          landing: 'Moai! Oant sjen op Gronings Ontzet!',
+        },
+      ],
+    },
+    {
+      type: 'stages',
+      label: "Vlag van d'Olle Grieze",
+      intro: ['Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Heel Grunn kijkt ernaar.', 'Word een duif bij de toren en pik de vijf touwen los. Pas op voor de Fryske meeuwen.'],
+      outro: 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.',
+      timeLimit: 240,
+      reward: 350,
+      // moved onto the Martinitoren pigeon spot once that exists (resolveSpotStarts)
+      start: walk(205, 52),
+      startSpot: 'martini',
+      stages: [
+        {
+          kind: 'pigeon', spot: 'martini', label: 'Pik de vijf touwen los', say: 'Vlieg naar de gele knopen van de vlag en blijf er even bij hangen: pik, pik, los.',
+          spotTime: 0.6, gulls: [6, 10], gullText: 'Een Fryske meeuw duikt op je af!', verb: 'Pik! %s is los',
+          flag: { landmark: 'Martinitoren', off: [0, 12], z0: 42, z1: 72, width: 14 },
+          targets: [
+            { landmark: 'Martinitoren', off: [-7, 12], z: 72, r: 6, label: 'Touw linksboven' },
+            { landmark: 'Martinitoren', off: [7, 12], z: 72, r: 6, label: 'Touw rechtsboven' },
+            { landmark: 'Martinitoren', off: [-7, 12], z: 57, r: 6, label: 'Touw links' },
+            { landmark: 'Martinitoren', off: [7, 12], z: 57, r: 6, label: 'Touw rechts' },
+            { landmark: 'Martinitoren', off: [0, 12], z: 43, r: 6, label: 'Touw onderaan' },
+          ],
+        },
+        {
+          kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true,
+          cam: { r: 34, h: 9, lookZ: 34, at: { landmark: 'Martinitoren', off: [0, 14] } },
+          kicker: "d'Olle Grieze", big: 'Hij valt!',
+          lines: [['A', 'Hij valt! Tammo, hij valt!'], ['T', 'Dertig meter vlag. Losgepikt. Met mijn snavel.'], ['A', 'Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.']],
+        },
+      ],
+    },
   ];
 }
 
@@ -338,7 +398,7 @@ const REQUIREMENTS = {
     text: (shop) => `Jelmer leent geen wapens meer uit. Koop eerst een wapen bij ${shop}.`,
   },
   car: {
-    met: () => getOwnedEntries().some((o) => o.spec && o.spec.kind === 'car'),
+    met: () => getOwnedEntries().some((o) => o.spec && o.spec.kind === 'car' && !o.spec.unlock), // bought, not a story unlock
     shop: 'auto',
     text: (shop) => `De ringweg-race wordt gesponsord door ${SHOP_TYPES.auto.chain}: alleen wie een eigen auto heeft mag starten. Koop er eerst een bij ${shop}.`,
   },
@@ -530,6 +590,9 @@ export function setMissionProgress(world, prog) {
   chain.armed = true;
   chain.wpIndex = 0;
   chain.run = null;
+  chain.stage = null;
+  chain.stagePending = false;
+  if (world.pigeonMode) stopPigeonMode(world);
   syncPub(world);
 }
 
@@ -623,6 +686,7 @@ function syncPub(world) {
   else target = def.waypoints[st.wpIndex];
   pub.marker.x = target.x;
   pub.marker.y = target.y;
+  pub.marker.z = Number.isFinite(target.z) && def.type === 'stages' && st.phase === 'active' ? target.z : null;
   pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
   if (def.type === 'rampage' && st.phase === 'active') {
     pub.killProgress = killCount(world) - st.killBaseline;
@@ -732,6 +796,8 @@ function boatProgressText(rv) {
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
   stopRondvaart(world);
+  const chased = chain.stage && chain.stage.target;
+  if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.aiOpts = null; }
   releaseLaneBikes(world);
   releaseCrowd(world);
   if (chain.race) {
@@ -818,6 +884,7 @@ function fail(world, def, reason) {
 
 function endInFailure(world, text) {
   world.addMessage(text, 3.5);
+  clearStoryProps();
   if (world.pigeonMode) stopPigeonMode(world);
   chain.stage = null;
   releaseMissionVehicle(world);
@@ -1208,7 +1275,7 @@ function startMission(world, def) {
     chain.stagePending = true;
   } else if (def.race === 'ring') {
     // the full ringweg is ~17.5 km: tuned-up race cars keep a lap near six minutes
-    chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320 });
+    chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320, jelle: true });
   } else if (def.race === 'kei') {
     chain.race = createRace(world, KEI_ROUTE, KEI_CHECKPOINTS, { bikes: true, band: 70 });
   }
@@ -1282,8 +1349,23 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   if (wp.name && next) world.addMessage(`Proost in ${wp.name}! Hup, door naar ${next.name}.`, 3);
 }
 
+// Missions that start at a pigeon spot: the spots are placed after the
+// defs are built, so the start moves there on the first update that has them.
+function resolveSpotStarts(world) {
+  if (chain.spotStarts) return;
+  const spots = getPigeonSpotsForRender();
+  if (!spots.length) return;
+  chain.spotStarts = true;
+  for (const d of chain.defs) {
+    const ps = d.startSpot && spots.find((q) => q.id === d.startSpot);
+    if (ps) d.start = roadSpot(world.map, ps.x, ps.y);
+  }
+}
+
 export function updateMissions(dt, world) {
   if (!chain) return;
+  resolveSpotStarts(world);
+  updateStoryProps(dt);
   const def = chain.defs[chain.index];
   const p = world.player;
   // a pigeon flight only runs the stages mission that started it
@@ -1427,8 +1509,17 @@ function raceCarProblem() {
 //   escape  lose the police (stars: set on entering, any stage may set them)
 //   pigeon  become a pigeon at pigeon spot `spot` and hover over every target
 //   scene   a cutscene (lines, then an optional `big` card) at the target
+//   chase   a vehicle (st.vehicle model) flees from `lead` metres ahead towards `flee`;
+//           damage it by `hits` (shots or rams) and it stops and becomes the
+//           mission vehicle (board it next). Fails when it gets `escape` metres
+//           away, runs out of `time` or burns out.
+//   vault   Jelle's polsstok escape over the nearest canal (missionstory.js)
+// Pigeon options: spotTime, gulls: [min, max] seconds between diving gulls,
+// flag: Jelle's banner (storyprops3d.js) whose ropes are the targets; a
+// target with z must be reached at that height (+-8 m), r = its radius.
+// Scene options: cam { r, h, lookZ, at } (a wide shot), dropFlag.
 // Targets: { x, y } | { at: [x, y], snap } | { shop } | { garage: true } |
-// { landmark, off: [dx, dy], snap } | { pigeonSpot }; snap: 'walk' | 'drive'.
+// { landmark, off: [dx, dy], snap, z, r } | { pigeonSpot }; snap: 'walk' | 'drive'.
 
 const STAGE_RADIUS = 7;
 const HOLD_RADIUS = 3.5;
@@ -1458,13 +1549,54 @@ function resolveTarget(world, spec, from) {
     const lm = (map.meta.landmarks || []).find((l) => l.name === spec.landmark);
     if (!lm) return null;
     const [dx, dy] = spec.off || [0, 0];
-    return { ...snap(lm.x + dx, lm.y + dy), label: spec.label || spec.landmark };
+    return { ...snap(lm.x + dx, lm.y + dy), label: spec.label || spec.landmark, z: spec.z, r: spec.r };
   }
   if (spec.pigeonSpot) {
     const ps = getPigeonSpotsForRender().find((q) => q.id === spec.pigeonSpot);
     return ps ? { x: ps.x, y: ps.y, label: ps.name } : null;
   }
   return null;
+}
+
+// The fleeing vehicle of a chase stage: on the start road, `lead` metres on
+// from the mission start, pointing away from the player where the road allows.
+function spawnChaseVehicle(world, def, st) {
+  const road = def.start.road;
+  if (!road) return null;
+  const at = pointAlongRoad(road, def.start, st.lead || 40);
+  const p = world.player;
+  let v = null;
+  for (const pick of [0.1, 0.9]) {
+    v = spawnVehicleOnRoad(world.map, road, false, () => pick, false, false, at, false, { ...st.vehicle });
+    if (road.oneway || Math.cos(v.angle - Math.atan2(v.y - p.y, v.x - p.x)) > 0) break;
+  }
+  v.health = 190;
+  v.missionCar = true;
+  v.chaseTarget = true;
+  v.label = st.name || '';
+  v.aiOpts = { goal: { x: st.flee[0], y: st.flee[1] }, chase: true, cruise: st.cruise || 15 };
+  world.vehicles.push(v);
+  return v;
+}
+
+// Flat tyres: the chased vehicle rolls to a stop and becomes the mission
+// vehicle; the car the player came in goes back to being ordinary traffic.
+function stopChaseVehicle(world, def, st) {
+  const v = chain.stage && chain.stage.target;
+  if (!v) { nextStage(world, def); return; }
+  v.road = null;
+  v.aiOpts = null;
+  v.plan = [];
+  v.driver = null;
+  v.chaseTarget = false;
+  v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
+  v.health = Math.max(v.health, 60);
+  const old = chain.vehicle;
+  if (old && old !== v) old.missionCar = false;
+  chain.vehicle = v;
+  chain.boarded = false;
+  if (st.stopped) world.addMessage(st.stopped, 4.5);
+  nextStage(world, def);
 }
 
 function stageNeedsVehicle(world, def) {
@@ -1500,6 +1632,7 @@ function stageProgressText(world, def) {
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
   if (st.kind === 'escape') return `${st.label} · ${'★'.repeat(world.wanted)}`;
+  if (st.kind === 'chase' && S.target) return `${st.label} · banden ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
   return `${st.label} (${n})`;
 }
 
@@ -1512,7 +1645,17 @@ function enterStage(world, def, k) {
   if (st.kind === 'pigeon') {
     S.targets = st.targets.map((t) => resolveTarget(world, t, from));
     S.target = resolveTarget(world, { pigeonSpot: st.spot }, from);
+    S.gullT = st.gulls ? st.gulls[1] : 0;
+    if (st.flag) {
+      const c = resolveTarget(world, st.flag, from);
+      if (c) showTowerFlag({ x: c.x, y: c.y, z0: st.flag.z0, z1: st.flag.z1, width: st.flag.width, ropes: S.targets.filter(Boolean) });
+    }
   }
+  if (st.kind === 'chase') {
+    S.target = spawnChaseVehicle(world, def, st);
+    S.hp0 = S.target ? S.target.health : 0;
+  }
+  if (st.kind === 'scene' && st.dropFlag) dropFlag();
   chain.stage = S;
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.bonus) chain.timeLeft += st.bonus;
@@ -1550,11 +1693,21 @@ function playStageScene(world, st, S) {
     const a = a0 + u * 0.7;
     return { position: { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: h }, lookAt: { x: c.x, y: c.y, z: 1.4 }, fov: 46 };
   };
+  let shot = orbit(world.player.angle + 2.4, 9, 3.2);
+  if (st.cam) {
+    // a wide shot from the target, looking up at cam.at (e.g. the tower)
+    const look = (st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
+    const a0 = Math.atan2(c.y - look.y, c.x - look.x);
+    shot = (u) => {
+      const a = a0 + (u - 0.5) * 0.25;
+      return { position: { x: look.x + Math.cos(a) * st.cam.r, y: look.y + Math.sin(a) * st.cam.r, z: st.cam.h }, lookAt: { x: look.x, y: look.y, z: st.cam.lookZ - u * 12 }, fov: 50 };
+    };
+  }
   const ok = playCinematic({
     id: 'mission-scene', priority: 3, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: st.kicker || '', title: st.title || '', cardFor: 2.5, lines, shot: orbit(world.player.angle + 2.4, 9, 3.2),
+    kicker: st.kicker || '', title: st.title || '', cardFor: 2.5, lines, shot,
   });
-  if (ok && st.big) {
+  if (ok && st.big && !st.cam) {
     playCinematic({ id: 'mission-scene', priority: 3, duration: 3.6, pause: true, letterbox: true, skippable: true, hideHud: true, big: st.big, queue: true, shot: orbit(world.player.angle + 3.1, 5, 2.2) });
   }
   return ok;
@@ -1611,6 +1764,24 @@ function updateStages(dt, world, def) {
     case 'escape':
       if (world.wanted === 0 && S.t > 1) nextStage(world, def);
       break;
+    case 'chase': {
+      const t = S.target;
+      if (!t || !world.vehicles.includes(t)) { fail(world, def, 'de tankwagen is foetsie'); break; }
+      if (t.wrecked || t.disabled) { fail(world, def, 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
+      if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
+      const d = dist(p.x, p.y, t.x, t.y);
+      if (d > (st.escape || 380) || S.t > (st.time || 180)) { fail(world, def, 'de tankwagen is ontsnapt, richting Friesland'); break; }
+      if (S.hp0 - t.health >= st.hits / 2 && !S.half) { S.half = true; world.addMessage('Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
+      break;
+    }
+    case 'vault':
+      if (!S.started) {
+        if (isCinematicActive()) break;
+        S.started = true;
+        const at = S.target || { x: p.x, y: p.y };
+        if (!playVaultScene(world, { at, lines: st.lines, landing: st.landing })) { world.addMessage('Jelle springt met een polsstok over de gracht. Moai.', 4); nextStage(world, def); }
+      } else if (!isCinematicActive('mission-vault')) nextStage(world, def);
+      break;
     case 'scene':
       if (!S.started) {
         if (isCinematicActive()) break;
@@ -1643,13 +1814,20 @@ function updatePigeonStage(dt, world, def, st, S) {
     return;
   }
   if (f.intro) return;
+  if (st.gulls && (S.gullT -= dt) <= 0) {
+    S.gullT = st.gulls[0] + Math.random() * (st.gulls[1] - st.gulls[0]);
+    summonDiveGull(st.gullText);
+  }
   S.targets.forEach((t, k) => {
     if (!t || S.spotted.has(k)) return;
-    const near = dist(f.x, f.y, t.x, t.y) < SPOT_RADIUS && f.z - f.ground < 80;
+    const high = Number.isFinite(t.z) ? Math.abs(f.z - t.z) < 8 : f.z - f.ground < 80;
+    const near = dist(f.x, f.y, t.x, t.y) < (t.r || SPOT_RADIUS) && high;
     S.holds[k] = near ? (S.holds[k] || 0) + dt : 0;
-    if (S.holds[k] >= SPOT_TIME) {
+    if (S.holds[k] >= (st.spotTime || SPOT_TIME)) {
       S.spotted.add(k);
-      world.addMessage(`Klik! ${t.label} staat op de foto (${S.spotted.size}/${S.targets.length})`, 2.6);
+      if (st.flag) cutFlagRope(k);
+      const text = st.verb ? st.verb.replace('%s', t.label) : `Klik! ${t.label} staat op de foto`;
+      world.addMessage(`${text} (${S.spotted.size}/${S.targets.length})`, 2.6);
     }
   });
   if (S.spotted.size >= S.targets.filter(Boolean).length) {
@@ -1699,7 +1877,21 @@ export const missionDebug = {
       if (chain.stagePending) { chain.stagePending = false; enterStage(world, def, 0); }
       const cur = def.stages[chain.stageIndex];
       // a cutscene stage plays by itself (skippable); don't jump past it
-      if (cur && cur.kind === 'scene') { syncPub(world); return true; }
+      if (cur && (cur.kind === 'scene' || cur.kind === 'vault')) { syncPub(world); return true; }
+      if (cur && cur.kind === 'chase') {
+        // flat tyres now, and the player right next to the stopped vehicle
+        const t = chain.stage && chain.stage.target;
+        stopChaseVehicle(world, def, cur);
+        const p = world.player;
+        if (t && !world.pigeonMode) {
+          const pv = p.inVehicle;
+          const x = t.x - Math.cos(t.angle) * 10, y = t.y - Math.sin(t.angle) * 10;
+          if (pv) { pv.x = x; pv.y = y; pv.speed = 0; }
+          p.x = x; p.y = y;
+        }
+        syncPub(world);
+        return true;
+      }
       if (chain.stage && def.stages[chain.stageIndex] && def.stages[chain.stageIndex].kind === 'pigeon' && world.pigeonMode) stopPigeonMode(world);
       if (world.wanted) { world.wanted = 0; world.wantedDecayTimer = 0; }
       if (chain.phase === 'active') nextStage(world, def);

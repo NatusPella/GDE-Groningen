@@ -85,6 +85,7 @@ const foods = [];
 let foodTimer = 2;
 let gull = null;
 let gullCd = 0;
+let gullDiveHits = 0;
 const flock = [];
 let flockScatterT = 0;
 let loft = null;
@@ -457,7 +458,7 @@ body.pigeon-mode #hud .hud-money-delta, body.pigeon-mode #hud .hud-weapon, body.
 body.pigeon-mode #hud .hud-speedo, body.pigeon-mode #hud .hud-route,
 body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud[hidden] { display: none; }
-#pigeon-hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; z-index: 5; }
+#pigeon-hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; z-index: 5; zoom: var(--ui, 1); }
 #pigeon-hud .ph-panel { position: absolute; top: 14px; left: 14px; min-width: 190px; padding: 10px 14px 12px; background: linear-gradient(160deg, rgba(12,20,14,0.78), rgba(12,20,14,0.5)); border-left: 4px solid #3fc97a; border-radius: 0 6px 6px 0; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
 #pigeon-hud .ph-title { font-size: 26px; letter-spacing: 3px; color: #3fc97a; line-height: 1; text-shadow: 0 0 14px rgba(63,201,122,0.35); }
 #pigeon-hud .ph-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-top: 4px; font-size: 16px; letter-spacing: 1px; color: rgba(240,237,228,0.75); }
@@ -471,7 +472,7 @@ body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud .ph-boost i { display: block; height: 100%; background: linear-gradient(90deg, #f2c744, #3fc97a); transform-origin: left; }
 #pigeon-hud .ph-tag { margin-top: 6px; font: bold 13px 'Arial Narrow', Arial, sans-serif; color: #f2c744; letter-spacing: 0.3px; }
 #pigeon-hud .ph-tag:empty { display: none; }
-#pigeon-hud .ph-hints { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; max-width: min(760px, calc(100vw - 380px)); padding: 6px 14px; background: rgba(12,20,14,0.55); border: 1px solid rgba(63,201,122,0.45); border-radius: 4px; font: bold 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; }
+#pigeon-hud .ph-hints { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; max-width: min(760px, calc(100vw / var(--ui, 1) - 380px)); padding: 6px 14px; background: rgba(12,20,14,0.55); border: 1px solid rgba(63,201,122,0.45); border-radius: 4px; font: bold 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; }
 #pigeon-hud .ph-hints span { white-space: nowrap; }
 #pigeon-hud .ph-hints .hot { color: #f2c744; }
 #pigeon-hud kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 19px; padding: 0 5px; margin-right: 4px; background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255,255,255,0.35); border-bottom: 2px solid rgba(0,0,0,0.6); border-radius: 4px; color: #3fc97a; font: bold 11px 'Arial Narrow', Arial, sans-serif; }
@@ -491,7 +492,7 @@ body.pigeon-mode #hud .hud-damage { display: none !important; }
 #pigeon-hud .ph-warn { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); font-size: 34px; letter-spacing: 3px; color: #d93f3f; text-shadow: 0 2px 10px rgba(0,0,0,0.8); animation: ph-blink 0.6s steps(2) infinite; }
 #pigeon-hud .ph-warn:empty { display: none; }
 @keyframes ph-blink { 50% { opacity: 0.45; } }
-@media (max-width: 700px) { #pigeon-hud .ph-hints { max-width: calc(100vw - 32px); bottom: 190px; } #pigeon-hud .ph-sikkom { width: 220px; } }
+@media (max-width: 700px) { #pigeon-hud .ph-hints { max-width: calc(100vw / var(--ui, 1) - 32px); bottom: 190px; } #pigeon-hud .ph-sikkom { width: 220px; } }
 `;
 
 function initHudDom() {
@@ -1121,6 +1122,24 @@ function spawnGull() {
   world.addMessage('Een meeuw! Hij wil je patat!', 3);
 }
 
+// Story missions (H10): a gull that dives at the pigeon whether it carries
+// food or not. A hit knocks the pigeon off course.
+export function summonDiveGull(text = 'Een meeuw duikt op je af!') {
+  if (!active || gull || !scene) return false;
+  const mesh = buildBird('gull');
+  scene.add(mesh);
+  const a = P.yaw + Math.PI + (Math.random() - 0.5) * 1.6;
+  const bx = P.x + Math.cos(a) * 34, by = P.y + Math.sin(a) * 34;
+  gull = { x: bx, y: by, z: P.z + 14, vx: 0, vy: 0, vz: 0, mesh, t: 0, state: 'dive', flap: 0, loot: null };
+  sfx('caw', bx, by, 1);
+  world.addMessage(text, 2.5);
+  return true;
+}
+
+export function getGullDiveHits() {
+  return gullDiveHits;
+}
+
 function updateGull(dt) {
   gullCd -= dt;
   if (!gull) {
@@ -1130,7 +1149,20 @@ function updateGull(dt) {
   const g = gull;
   g.t += dt;
   let tx, ty, tz, spd;
-  if (g.state === 'chase') {
+  if (g.state === 'dive') {
+    tx = P.x; ty = P.y; tz = P.z + 0.2;
+    spd = 13.5;
+    const d = Math.hypot(tx - g.x, ty - g.y, tz - g.z);
+    if (d < 1.6) {
+      bonk();
+      P.z = Math.max(surfaceAt(P.x, P.y, false).h + 2, P.z - 6);
+      gullDiveHits++;
+      g.state = 'leave';
+      g.t = 0;
+      sfx('caw', g.x, g.y, 1);
+      world.addMessage('Boink! Die meeuw spreekt Fries.', 2);
+    } else if (g.t > 9) { g.state = 'leave'; g.t = 0; addScore(15, 'Meeuw ontweken'); }
+  } else if (g.state === 'chase') {
     if (!P.carry) { g.state = 'leave'; g.t = 0; }
     tx = P.x + Math.cos(P.yaw) * (P.mode === 'fly' ? 1.5 : 0);
     ty = P.y + Math.sin(P.yaw) * (P.mode === 'fly' ? 1.5 : 0);
@@ -1536,6 +1568,7 @@ function landingSpot(map) {
   // outwards until one is dry, outside buildings and not a closed courtyard
   const cands = [];
   for (const road of map.roadsNear(P.x, P.y, 150)) {
+    if (road.z) continue;
     const pts = road.pts;
     for (let i = 0; i < pts.length - 1; i++) {
       const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
@@ -1573,6 +1606,7 @@ function placeCompanion(w, x, y, angle) {
   }
   [c.x, c.y] = spot || [x, y];
   c.vx = 0; c.vy = 0; c.z = 0; c.vz = 0;
+  c.gz = w.player.gz || 0;
   c.angle = angle;
   c.water = null; c.swimming = false; c.climb = null;
   if (c.state === 'dead') { c.state = 'alive'; c.health = 100; }
@@ -1618,6 +1652,7 @@ export function stopPigeonMode(w = world) {
   pl.y = lastSet.y = spot.y;
   pl.angle = angle;
   pl.vx = 0; pl.vy = 0; pl.z = 0; pl.vz = 0;
+  pl.gz = map.groundHeightAt ? map.groundHeightAt(spot.x, spot.y, 0) || 0 : 0;
   pl.inVehicle = null;
   pl.water = null; pl.swimming = false; pl.climb = null;
   placeCompanion(w, spot.x, spot.y, angle);

@@ -165,6 +165,7 @@ const wrap = (d, L) => d - Math.round(d / L) * L;
 // the rivals) for a long, fast track like the full ringweg.
 // opts.bikes: a bike race (student rivals on bikes, a bike for the player).
 // opts.band: gap in metres over which the rubber band reaches full effect.
+// opts.jelle: the third rival is Jelle Terpstra in his trekker-limousine.
 export function createRace(world, route, cps, opts = {}) {
   const topScale = opts.topScale || 1, accelScale = opts.accelScale || 1;
   const bikes = !!opts.bikes;
@@ -227,7 +228,10 @@ export function createRace(world, route, cps, opts = {}) {
   }
   slots.forEach((q, k) => {
     const def = rivalDefs[k];
-    const v = def.bike ? makeRivalBike(def, q.x, q.y, q.ang) : new Vehicle(q.x, q.y, q.ang, modelFor(def.base, def.color, def.top * topScale, accelScale));
+    const jelle = !!opts.jelle && !def.bike && k === 2;
+    const model = def.bike ? null : modelFor(def.base, jelle ? '#141414' : def.color, def.top * topScale, accelScale);
+    const v = def.bike ? makeRivalBike(def, q.x, q.y, q.ang) : new Vehicle(q.x, q.y, q.ang, jelle ? { ...model, name: 'trekkerlimo', len: 5.6, wid: 2.0 } : model);
+    if (jelle) v.jelle = true;
     v.z = world.map.spawnZ(q.x, q.y);
     v.racer = true;
     v.missionCar = true;
@@ -445,11 +449,11 @@ export function updateRace(dt, world, race, wpIndex) {
     const beat = Math.floor(race.timer);
     if (beat !== race.lastBeat && beat < COUNTDOWN) {
       race.lastBeat = beat;
-      world.addMessage(String(COUNTDOWN - beat), 0.9);
+      world.addMessage(String(COUNTDOWN - beat), 0.9, { exact: true, key: 'race-countdown' });
     }
     if (race.timer >= COUNTDOWN) {
       race.phase = 'race';
-      world.addMessage('GO! GO! GO!', 1.5);
+      world.addMessage('GO! GO! GO!', 1.5, { exact: true, key: 'race-countdown' });
     }
   }
   trackPlayer(world, race, wpIndex);

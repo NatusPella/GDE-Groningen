@@ -52,14 +52,45 @@ frame then runs, in order:
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Anita) |
 | Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water; a car at zero health is `disabled` and burns until `explodeVehicle` makes it a wreck) |
 | People and animals | `pedestrians.js`, `wildlife.js` |
-| Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js` |
+| Combat and police | `combat.js` (weapons, bullets swept against walls, props, car boxes and people; recoil in `world.camKick`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js`, `crime.js` (small offences build heat first: a star only when police see it, a witness phones it in, or it piles up) |
 | Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
-| Story | `storyarc.js` (the arc as data), `story.js` (director), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js` |
+| Story | `storyarc.js` (the arc as data), `story.js` (director), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
+| Special gameplay | `helirun.js` (UMCG trauma heli "on rails": height, sideways offset and speed only; rings, gusts, timer, then hold station beside a drifting balloon; standalone *Ballonjacht* at the UMCG spot, `startHeliRun({ variant: 'ballonjacht' \| 'traumaduif', onFinish })` for the story; drives `world.skyHeli` via `scriptHeli` and a `scripted` balloon in `world.balloons`; while `world.heliRun` main.js skips the player, police, combat, missions, phone and saving), `fierljep.js` (pole vault over a canal for any NPC: `poleVault(npc, from, to, { fail, appearance, camera, slowmo, keepActor, swimTime, onDone })` returns `{ done, phase, release, dispose }`; `findVaultSpot(map, x, y)` finds a 5-22 m crossing; sets `npc.scripted` / `npc.hideMesh` so pedestrians.js and scene3d.js leave the NPC to it; the camera is a cinematics.js shot). Both have a preview row in the `?dev` panel |
 | Bijbaantjes | `sidejobs.js` (start points, shifts, pay, levels; publishes `world.sideJob` for HUD, map and routing), `sidejobkit.js` (shared helpers), `sidejobvoice.js` (voiced boss lines, `audio/voicelines/jobs`), one `sidejob_*.js` per job |
-| UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js` |
-| Audio | `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `scenariomusic.js` (race/chase loops that pause G-Music) |
+| Soft-lock safety | `safety.js` (pause menu "Vastgelopen? Zet me vrij" and "Missie afbreken" (counts as a fail, so the story skip opens); watchdogs for cutscenes and respawn scenes that run far too long, players out of the world, scene flags left behind) |
+| Title and trailer | `startscreen.js` (loading screen, title menu over the live city), `trailer.js` (attract intro, benchmark, recording mode), `intromontage.js` (the "Nieuw spel" opening montage) |
+| UI | `hud_panel.js` + `.css` (minimap: player, route and targets always; static places only the nearest few per category), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js`, `sikkomfeed.js`, `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots) |
+| Audio | `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
+
+## Spoken lines
+
+Every line shown as a speech bubble or subtitle has a recording, looked up
+by `"<speaker>|<text>"` in a manifest (an edited line goes silent instead of
+playing the wrong clip):
+
+- `audio/voicelines/story`: story cutscenes (`missionstory.js`), the intro
+  montage and the rondvaart chase. `missionstory.js` falls back to the lines
+  manifest for story lines recorded there.
+- `audio/voicelines/jobs`: bijbaantje bosses and Tammo/Anita's shift lines
+  (`sidejobvoice.js`, `scripts/tts_sidejobs*.{mjs,py}`).
+- `audio/voicelines/lines` (`linevoice.js`, `scripts/tts_lines*.{mjs,py}`):
+  speech bubbles as `~m|`/`~f|` (scene3d speaks a new bubble in the voice
+  that matches the ped's model), subtitles without their own recording
+  (`cinematics.js` attaches them and stretches the timeline to fit; no
+  speaker = `Verteller`) and the rondvaart guide (`Tammo`/`Anita`).
+- `audio/npc`: the ambient Gronings phrases.
+
+All voices go through the voice bus (Stemmen slider). They never overlap:
+bubbles, voicelines and the guide share one "busy until" window in
+`audio.js`, and story scenes silence the rest; skipping a cutscene stops its
+voice. `node scripts/voice_coverage.mjs` lists spoken lines without a
+recording per area and exits 1 if any are missing; new spoken tables are
+registered in `scripts/voicelines_collect.mjs`. To fill the gaps:
+`node scripts/tts_lines_list.mjs && python3 scripts/tts_lines.py` (Gemini
+TTS via OpenRouter, key in `.env`; clips are trimmed and normalised to
+-18 LUFS, the level of the story lines; the run stops at `--budget`).
 
 ## Heights
 
@@ -142,6 +173,24 @@ don't collide, and actors are drawn at their height.
   game and logs its result; `console.log('[capture] name')` from it saves a
   screenshot.
 
+## Trailer (`js/trailer.js`)
+
+A list of staged shots (`buildShots`: label, cuts `vol`/`kort`, duration,
+forced clock and weather, a focus the world streams around, captions,
+enter/tick/exit for temporary cars, actors, props, and a camera function).
+`runTrailer` owns the frame loop while it runs and drives the world through
+the title screen's `tick`/`render`/`relocate`; the title screen loop idles
+meanwhile. Temporary vehicles carry `cineTemp` (skipped by the title-screen
+traffic AI). `Math.random` is seeded per run and world state (clock,
+weather, trains, helis, balloons) is restored afterwards. Modes: `attract`
+(short cut, hold Space to skip, the last shot's `continuation()` becomes the
+title screen's first camera move and the logo glides into place),
+`benchmark` (real time, fps per shot, results card) and `opname` (fixed
+1/60 s step). The benchmark in a running game saves, reloads with a
+sessionStorage flag and continues the save after "Terug". Captions are
+driven by trailer time, not CSS animations, so slow fixed-step recordings
+stay in sync.
+
 ## Story
 
 The story "Alles voor één eierbal" (docs/verhaal-voorstel.md) is data plus
@@ -159,15 +208,20 @@ a director:
   migrates pre-0.5 saves). It publishes `world.storyGuide` (routing.js uses
   it after the player's own waypoint, a side job and an active mission),
   sends the step's phone line, pays a one-time voorschot when the player is
-  short for a required purchase, waits for the night at a garage, offers
+  short for a required purchase, switches who you play (`step.player`:
+  Tammo and Anita trade roles behind a short fade; there is no free switch)
+  and waits for the night at a garage, offers
   "Sla deze missie over" (O, or the pause menu Missies tab) after a failed
   mission and for any activity, and saves under `story` in the savegame.
   `missions.js` reports back through `setMissionHooks` (passed, failed,
   gated, waived requirements).
 - Missions: requirements (`requires`: weapon, bike, car, heist, night,
   boat; also an array) gate the start. Type `stages` builds a mission from
-  small objectives (board, goto, hold, garage, escape, pigeon, scene); the
-  Kop's new missions H2, H4 and H6 use it. Dialogue for every mission index
+  small objectives (board, goto, hold, garage, escape, pigeon, scene, chase,
+  vault; documented above `resolveTarget`); the new missions H2, H4, H6, H8
+  and H10 use it. `storyprops3d.js` holds temporary story props (H10's
+  flag), `missionstory.js` `playVaultScene` Jelle's fierljep escape, and
+  `racers.js` puts Jelle's trekker-limo in the ring race (`opts.jelle`). Dialogue for every mission index
   is in `missionstory.js` (`STORY`); full lines play once all story missions
   before it are done.
 - Debug: `missionDebug` (missions.js) and `window.__story` (story.js: jump,
@@ -177,9 +231,33 @@ a director:
   saves a screenshot per `[storytest-capture]` console line and writes the
   `[storytest-done]` report.
 
-Adding a part (e.g. the Romp): add new mission defs at the end of
+After the last built step `world.storyFreePlay` is set and routing.js no
+longer routes to idle missions by itself.
+
+Adding a part (e.g. the Staart): add new mission defs at the end of
 `buildDefs` in missions.js and their ids at the end of `MISSION_IDS`, add
 their dialogue at the same index in `missionstory.js` `STORY`, fill in
 `mission` and `built: true` on the steps in `STEPS` (activities too; new goal
-types go in `GOALS` in story.js), set `PARTS.romp.open = true`, then run
-`--story-test`.
+types go in `GOALS` in story.js), set `PARTS.<part>.open = true`, then run
+`--story-test` (it plays every open step, checks who plays each one and
+ends at the last open part's card).
+
+## Car banter
+
+`banter.js` plays the exchanges in `banterlines.js` while Tammo and Anita
+ride in the same vehicle (moving, 6 s in, no stars, no mission or bijbaantje,
+no cutscene or phone). Triggers by priority: after a mission or shift
+(`after:H3:pass`, `after:job:taxi:fail`, 5 minutes valid, ignores the global
+cooldown), the next story step (`story:H4`, `story:end:kop`), places
+(`place:<landmark>`, `wijk:<name>`, 10 min each), situations (`situation:storm`,
+3 min each) and `idle`, with 75 s between conversations. A crash or new stars
+cut it off with a `REACTIONS` line; an interrupted nabespreking resumes once.
+Story progress is read only (story.js `getStorySave`/`currentStep`,
+missions.js); `needs`/`until`/`arc` keep lines spoiler-safe. Subtitles use
+the in-game subtitle style; voices come from `audio/voicelines/banter`
+(manifest keyed `Speaker|text`) through `audio.js` `playBanterVoice`
+(voice bus, ducks G-Music). Heard exchanges are kept in `gte-banter-v1`.
+New lines: append to `BANTER` (format documented at the top of
+banterlines.js), then `node scripts/tts_banter_lines.mjs && python3
+scripts/tts_banter.py`. Debug: `window.__banter` (state, play, after,
+eligible, anySpeed).

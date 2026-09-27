@@ -399,6 +399,12 @@ function buildEggMesh(geo, mat, glowGeo, glowMat) {
   return g;
 }
 
+// The hidden eierballen with their found state (story.js: the egg step).
+export function getEierballen() {
+  const found = getSaveSet('eierballen');
+  return eggs.map((e) => ({ id: e.id, x: e.x, y: e.y, found: found.has(e.id) }));
+}
+
 function initEierballen(w) {
   const scene = getScene && getScene();
   eggs = eggSpots(w.map);
