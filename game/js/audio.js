@@ -9,6 +9,9 @@ import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, loopPoints } from './scenariomusic.js';
+import * as speech from './speech.js';
+
+if (typeof window !== 'undefined') window.__speech = speech;
 
 const MASTER_VOLUME = 0.55;
 const MAX_DISTANCE = 120;
@@ -113,7 +116,7 @@ let activeVoices = 0;
 function voiceOk(prio = 1) { return activeVoices < VOICE_CAPS[prio]; }
 
 const AMB_LEVEL = 0.9;
-const duckState = { amount: 0, until: 0, level: 0, musicUntil: 0 };
+const duckState = { amount: 0, until: 0, level: 0 };
 
 function duckAmbience(amount, hold) {
   if (!ctx) return;
@@ -121,10 +124,6 @@ function duckAmbience(amount, hold) {
   if (t > duckState.until) duckState.amount = 0;
   duckState.amount = Math.max(duckState.amount, amount);
   duckState.until = Math.max(duckState.until, t + hold);
-}
-
-function duckMusic(hold) {
-  if (ctx) duckState.musicUntil = Math.max(duckState.musicUntil, ctx.currentTime + hold);
 }
 
 function updateDucking(dt) {
@@ -967,62 +966,63 @@ function playClip(src, pos = null) {
   return el;
 }
 
-// Until when a spoken clip is still talking (ctx time). Every voice channel
-// checks it so bubbles, voicelines and guide lines never overlap.
-let voiceBusyUntil = -Infinity;
-function markBusy(el, start, guess) {
-  voiceBusyUntil = Math.max(voiceBusyUntil, start + guess);
-  if (el) el.addEventListener('loadedmetadata', () => {
-    if (Number.isFinite(el.duration)) voiceBusyUntil = Math.max(voiceBusyUntil, start + el.duration + 0.15);
-  }, { once: true });
+// Every voice below asks speech.js for the one talking channel first
+// (priorities, holds, queue and gaps live there); a clip reports its real
+// length and its end back so the next line starts right after it.
+function speakClip(cls, src, { pos = null, guess = 2, owner = null, onEnd = null } = {}) {
+  if (!ctx || muted) return null;
+  let el = null;
+  const tok = speech.begin(cls, guess, { owner, stop: () => { if (el) { el.pause(); el.dispatchEvent(new Event('ended')); } } });
+  if (!tok) return null;
+  el = playClip(src, pos);
+  if (!el) { speech.end(tok); return null; }
+  el.addEventListener('loadedmetadata', () => { if (Number.isFinite(el.duration)) speech.extend(tok, el.duration); }, { once: true });
+  const done = () => { speech.end(tok); if (onEnd) onEnd(); };
+  el.addEventListener('ended', done, { once: true });
+  el.addEventListener('error', done, { once: true });
+  return el;
 }
 
-// Voicelines/police/Sikkom - the "important", event-driven spoken lines -
-// share one global cooldown so simultaneous triggers (several events in
-// the same moment) can't stack into overlapping voices. Returns whether
-// it actually played, so callers that only want a visual (e.g. a speech
-// bubble) to show up TOGETHER with real audio can check first.
+// Voicelines/police/Sikkom - the event-driven reactions - also keep a
+// short cooldown of their own so a burst of events can't chain them.
 const SPOKEN_MIN_GAP = 1.4;
 let lastSpokenAt = -Infinity;
 
-function playSpokenClip(src, pos = null) {
+function playSpokenClip(src, pos = null, cls = 'react') {
   if (!ctx) return false;
   const now = ctx.currentTime;
-  if (now - lastSpokenAt < SPOKEN_MIN_GAP || now < voiceBusyUntil) return false;
+  if (cls === 'react' && now - lastSpokenAt < SPOKEN_MIN_GAP) return false;
+  if (!speakClip(cls, src, { pos, guess: SPOKEN_MIN_GAP })) return false;
   lastSpokenAt = now;
-  markBusy(playClip(src, pos), now, SPOKEN_MIN_GAP);
   duckAmbience(0.45, 2.2);
-  duckMusic(2.2);
   return true;
 }
 
-// NPC ambient chatter gets its OWN, much longer cooldown, entirely separate
-// from the one above - with up to ~45 pedestrians nearby, sharing a single
-// short cooldown with real gameplay events (purchases, mission
-// beats, busted) let ambient chatter starve out the lines that actually
-// matter. Per explicit feedback ("nog steeds veel te veel en te vaak") this
-// is deliberately strict.
+// NPC ambient chatter gets its OWN, much longer cooldown on top of the
+// channel - with up to ~45 pedestrians nearby it would otherwise starve out
+// the lines that matter. Per explicit feedback ("nog steeds veel te veel en
+// te vaak") this is deliberately strict.
 const NPC_SPOKEN_MIN_GAP = 14;
 let lastNpcSpokenAt = -Infinity;
 
 function playNpcSpokenClip(src, pos) {
   if (!ctx) return false;
   const now = ctx.currentTime;
-  if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP || now < voiceBusyUntil) return false;
+  if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP) return false;
+  if (!speakClip('ambient', src, { pos, guess: 1.2 })) return false;
   lastNpcSpokenAt = now;
-  markBusy(playClip(src, pos), now, 1.2);
   return true;
 }
 
 // Mission story cutscene dialogue: one line at a time, straight into the
-// voice bus. While a story scene runs, the generic mission
-// voicelines stay quiet so they don't talk over it.
+// voice bus. A story scene holds the channel, so nothing else talks over it.
 let storyScene = false;
 let storyVoice = null;
 
 export function setStoryScene(on) {
   storyScene = on;
-  if (!on) stopStoryVoice();
+  if (on) speech.hold('story', 'story');
+  else { speech.release('story'); stopStoryVoice(); }
 }
 
 export function stopStoryVoice() {
@@ -1031,13 +1031,14 @@ export function stopStoryVoice() {
   if (!v) return;
   v.el.pause();
   if (v.node) v.node.disconnect();
+  speech.end(v.tok);
 }
 
 export function playStoryVoice(src) {
   stopStoryVoice();
-  stopBubbleVoice();
   if (!ctx || muted) return;
-  const v = { el: new Audio(src), node: null };
+  const v = { el: new Audio(src), node: null, tok: null };
+  v.tok = speech.begin('story', 3, { owner: 'story', stop: () => { if (storyVoice === v) stopStoryVoice(); } });
   try {
     v.node = ctx.createMediaElementSource(v.el);
     v.node.connect(voiceBus);
@@ -1049,56 +1050,38 @@ export function playStoryVoice(src) {
   v.el.addEventListener('ended', done, { once: true });
   v.el.addEventListener('error', done, { once: true });
   v.el.addEventListener('loadedmetadata', () => {
-    const hold = (Number.isFinite(v.el.duration) ? v.el.duration : 3) + 0.4;
-    duckAmbience(0.5, hold);
-    duckMusic(hold);
+    const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
+    speech.extend(v.tok, d);
+    duckAmbience(0.5, d + 0.4);
   }, { once: true });
   v.el.play().catch(done);
 }
 
-// Speech-bubble lines (linevoice.js): one at a time, from the speaker's
-// spot, only when nothing else is talking and never during a story scene.
-// A bubble whose voice can't play right now just stays silent.
-let bubbleVoice = null;
-function stopBubbleVoice() {
-  const el = bubbleVoice;
-  bubbleVoice = null;
-  if (el) { el.pause(); el.dispatchEvent(new Event('ended')); }
-}
-
+// Speech-bubble lines (linevoice.js): from the speaker's spot, lowest but
+// one on the channel. A bubble whose voice can't play right now stays silent.
 export function playBubbleVoice(src, dur, pos = null) {
   if (!ctx || muted || storyScene) return false;
-  const now = ctx.currentTime;
-  if (now < voiceBusyUntil || now - lastSpokenAt < 0.4) return false;
   if (pos && distToListener(pos.x, pos.y) > SPEECH_RANGE) return false;
-  const el = playClip(src, pos);
-  if (!el) return false;
-  bubbleVoice = el;
-  el.addEventListener('ended', () => { if (bubbleVoice === el) bubbleVoice = null; }, { once: true });
-  voiceBusyUntil = now + dur + 0.15;
+  if (!speakClip('ambient', src, { pos, guess: dur })) return false;
   duckAmbience(0.3, dur);
   return true;
 }
 
-// Non-cutscene narration in front of the player (the rondvaart guide): cuts a
-// bubble voice short, but returns false (try again) while another line
-// talks. True also when it can't play at all (muted), so the caller moves on.
-export function playLineVoice(src, dur) {
+// Narration in front of the player (the rondvaart guide, navigation, cows,
+// Radio Nachtstreek, Jelle's post-game taunts, HUD card lines; cls = its
+// channel class): false (try again) while the channel is taken, true when
+// it plays or can't play at all (muted), so the caller moves on.
+export function playLineVoice(src, dur, cls = 'job') {
   if (!ctx || muted || storyScene) return true;
-  const now = ctx.currentTime;
-  if (bubbleVoice) { stopBubbleVoice(); voiceBusyUntil = now; }
-  if (now < voiceBusyUntil) return false;
-  playClip(src);
-  lastSpokenAt = now;
-  voiceBusyUntil = now + dur + 0.15;
+  if (!speakClip(cls, src, { guess: dur })) return false;
+  if (cls !== 'radio') lastSpokenAt = ctx.currentTime;
   duckAmbience(0.45, dur + 0.3);
-  duckMusic(dur + 0.3);
   return true;
 }
 
 // Car banter (banter.js): one line at a time with its own handle, so a crash
-// can cut it off. Ducks G-Music like the story voice and holds the other
-// spoken lines back while it talks; the Stemmen slider applies (voiceBus).
+// can cut it off. banter.js holds the channel for the whole exchange
+// (speech.hold('banter')); a call or story scene ends it.
 let banterVoice = null;
 
 export function stopBanterVoice() {
@@ -1107,6 +1090,7 @@ export function stopBanterVoice() {
   if (!v) return;
   v.el.pause();
   if (v.node) v.node.disconnect();
+  speech.end(v.tok);
 }
 
 export function pauseBanterVoice(paused) {
@@ -1116,15 +1100,17 @@ export function pauseBanterVoice(paused) {
   else v.el.play().catch(() => {});
 }
 
-// Whether another spoken line (voicelines, police, Sikkom, a job boss) just played.
+// Whether the channel is taken for car banter (another line talks or holds it).
 export function voiceBusy() {
-  return !!ctx && ctx.currentTime - lastSpokenAt < SPOKEN_MIN_GAP;
+  return !speech.canSpeak('banter', 'banter');
 }
 
 export function playBanterVoice(src) {
   stopBanterVoice();
   if (!ctx || muted || storyScene) return false;
-  const v = { el: new Audio(src), node: null };
+  const v = { el: new Audio(src), node: null, tok: null };
+  v.tok = speech.begin('banter', 3, { owner: 'banter', stop: () => { if (banterVoice === v) stopBanterVoice(); } });
+  if (!v.tok) return false;
   try {
     v.node = ctx.createMediaElementSource(v.el);
     v.node.connect(voiceBus);
@@ -1136,13 +1122,71 @@ export function playBanterVoice(src) {
   v.el.addEventListener('ended', done, { once: true });
   v.el.addEventListener('error', done, { once: true });
   v.el.addEventListener('loadedmetadata', () => {
-    const hold = (Number.isFinite(v.el.duration) ? v.el.duration : 3) + 0.4;
-    lastSpokenAt = Math.max(lastSpokenAt, ctx.currentTime + hold - SPOKEN_MIN_GAP);
-    duckAmbience(0.3, hold);
-    duckMusic(hold);
+    const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
+    speech.extend(v.tok, d);
+    duckAmbience(0.3, d + 0.4);
   }, { once: true });
   v.el.play().catch(done);
   return true;
+}
+
+// Story contacts (storycontact.js: Jelle's calls, voicemails, livestreams):
+// the 'call' class under their own owner; storycontact holds the channel
+// for the whole contact (holdContactChannel) so nothing talks over it.
+let contactVoice = null;
+
+export function stopContactVoice() {
+  const v = contactVoice;
+  contactVoice = null;
+  if (!v) return;
+  v.el.pause();
+  if (v.node) v.node.disconnect();
+  speech.end(v.tok);
+}
+
+export function pauseContactVoice(paused) {
+  const v = contactVoice;
+  if (!v) return;
+  if (paused) v.el.pause();
+  else v.el.play().catch(() => {});
+}
+
+export function playContactVoice(src) {
+  stopContactVoice();
+  if (!ctx || muted) return false;
+  const v = { el: new Audio(src), node: null, tok: null };
+  v.tok = speech.begin('call', 3, { owner: 'contact', stop: () => { if (contactVoice === v) stopContactVoice(); } });
+  if (!v.tok) return false;
+  try {
+    v.node = ctx.createMediaElementSource(v.el);
+    v.node.connect(voiceBus);
+  } catch (e) {
+    // ignore - plays without the Web Audio graph
+  }
+  contactVoice = v;
+  const done = () => { if (contactVoice === v) stopContactVoice(); };
+  v.el.addEventListener('ended', done, { once: true });
+  v.el.addEventListener('error', done, { once: true });
+  v.el.addEventListener('loadedmetadata', () => {
+    const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
+    speech.extend(v.tok, d);
+    duckAmbience(0.4, d + 0.4);
+  }, { once: true });
+  v.el.play().catch(done);
+  return true;
+}
+
+// true when the contact got the channel (false: a story scene or a call has it)
+export function holdContactChannel(on) {
+  if (!on) { speech.release('contact'); return true; }
+  return speech.hold('contact', 'call');
+}
+
+// Phone calls (phonefeed.js startCall): the call holds the channel and each
+// line plays through here; onEnd fires when the clip is done (or failed).
+export function playCallVoice(src, onEnd) {
+  if (!ctx || muted) return false;
+  return !!speakClip('call', src, { owner: 'call', guess: 3, onEnd });
 }
 
 function playVoiceline(character, key) {
@@ -1152,11 +1196,11 @@ function playVoiceline(character, key) {
   return playSpokenClip(paths[Math.floor(Math.random() * paths.length)]);
 }
 
-// Bijbaantje boss lines (sidejobvoice.js): like the other spoken lines they
-// never overlap and stay quiet during a story scene.
+// Bijbaantje boss lines (sidejobvoice.js): above reactions and bubbles,
+// below car banter and calls; quiet during a story scene.
 export function playJobVoice(src) {
   if (storyScene) return false;
-  return playSpokenClip(src);
+  return playSpokenClip(src, null, 'job');
 }
 
 export function playAutoGejatLine(world) {
@@ -1400,7 +1444,7 @@ function startGmusicRandomly() {
   musicState.gain = 0;
   musicBus.gain.value = 0;
 
-  const startAsJingle = Math.random() < 0.25;
+  const startAsJingle = Math.random() < 0.25 && speech.radioMayTalk();
   const el = startAsJingle ? randomAmbientJingleEl() : nextTrackEl();
   gmusicQueue = buildGmusicCycle();
   if (startAsJingle) gmusicQueue.shift();
@@ -1427,6 +1471,9 @@ function advanceGmusicQueue() {
     gmusicQueue = buildGmusicCycle();
   }
   const prevEl = gmusicCurrentEl;
+  // a jingle never talks over a voice: skip it and go straight on with music
+  while (gmusicQueue.length > 1 && gmusicQueue[0].gmusicJingleKey && !speech.radioMayTalk()) gmusicQueue.shift();
+  if (gmusicQueue[0].gmusicJingleKey && !speech.radioMayTalk() && gmusicTracks.length) gmusicQueue = [nextTrackEl()];
   const el = gmusicQueue.shift();
   gmusicCurrentEl = el;
   if (prevEl && prevEl !== el && !prevEl.paused) prevEl.pause();
@@ -1438,7 +1485,7 @@ function advanceGmusicQueue() {
 // Queued rather than layered over the running track: it replaces the next
 // ambient jingle so music never overlaps.
 function enqueueGmusicJingle(key) {
-  if (!gmusicStarted) return;
+  if (!gmusicStarted || !speech.radioMayTalk()) return;
   const next = gmusicQueue[0];
   if (next && next.gmusicJingleKey === key) return;
   const el = makeJingleEl(key);
@@ -1580,6 +1627,7 @@ function ensureCtx() {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return false;
   ctx = new AC();
+  speech.setSpeechClock(() => ctx.currentTime);
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   window.addEventListener('pointerdown', unlockAudio, true);
   window.addEventListener('keydown', unlockAudio, true);
@@ -2444,11 +2492,12 @@ function updateGMusic(dt, world) {
 
   const scene = updateScenarioMusic(dt, world);
 
-  // Only spoken lines (voicelines, story dialogue) dip the music, gently;
+  // Only spoken lines (the speech.js channel) dip the music, gently;
   // vehicles, sirens and stings never touch it. A scenario track fades
   // G-Music out and pauses it; it resumes where it was afterwards.
-  const ducked = ctx.currentTime < duckState.musicUntil;
-  const targetGain = scene ? 0 : ducked ? GMUSIC_DUCK_VOLUME : GMUSIC_VOLUME;
+  const duck = speech.musicDuck();
+  const ducked = duck > 0;
+  const targetGain = scene ? 0 : GMUSIC_VOLUME + (GMUSIC_DUCK_VOLUME - GMUSIC_VOLUME) * duck;
   const lerpRate = scene ? dt * 1.8 : gmusicFadingIn || gmusicHeld ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
   musicBus.gain.value = musicState.gain * getSettings().musicVolume;
@@ -2553,6 +2602,7 @@ export function updateAudio(dt, world) {
     world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5, { key: 'mute' });
   }
 
+  speech.tick();
   updateListener(world);
   updateWorldEvents(world);
   const pickupOut = () => spatialAt(world.player.x, world.player.y);

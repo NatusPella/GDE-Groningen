@@ -196,63 +196,69 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
 #hud .hud-weapon.switched .hud-weapon-icon { animation: hud-weapon-pop 0.35s ease-out; }
 @keyframes hud-weapon-pop { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
 
+/* --- objective line: one objective at a time, top centre ------------- */
 #hud .hud-mission {
+  --obj: #e8c93a;
   position: absolute;
   top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  text-align: center;
-  color: var(--hud-fg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(58vw / var(--ui, 1));
+  padding: 7px 34px 8px;
+  color: #f0ede4;
   text-shadow: var(--hud-shadow);
-  max-width: calc(60vw / var(--ui, 1));
+  background: linear-gradient(90deg, rgba(12, 20, 14, 0), rgba(12, 20, 14, 0.78) 18%, rgba(12, 20, 14, 0.78) 82%, rgba(12, 20, 14, 0));
+  pointer-events: none;
 }
-
+#hud .hud-mission[hidden] { display: none; }
+#hud .hud-mission[data-kind="job"] { --obj: #ff9a3c; }
+#hud .hud-mission[data-kind="police"] { --obj: #6c9bff; }
+#hud .hud-mission::after {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0;
+  height: 2px;
+  background: var(--obj);
+  opacity: 0.8;
+}
+#hud .hud-obj-icon { flex: 0 0 16px; width: 16px; height: 16px; fill: var(--obj); filter: drop-shadow(0 0 6px var(--obj)); }
+#hud .hud-obj-text { display: flex; flex-direction: column; align-items: center; min-width: 0; line-height: 1; }
 #hud .hud-mission-label {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 26px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
-
+#hud .hud-mission-label:empty { display: none; }
 #hud .hud-mission-progress {
-  font-size: 17px;
-  color: var(--gron-green-light);
+  margin-top: 3px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  color: rgba(240, 237, 228, 0.85);
+  white-space: nowrap;
 }
 #hud .hud-mission-progress:empty { display: none; }
-
 #hud .hud-mission-timer {
-  font-size: 20px;
-  color: #e8c93a;
+  font-size: 28px;
+  letter-spacing: 1px;
+  color: var(--obj);
+  font-variant-numeric: tabular-nums;
 }
-
-#hud .hud-toasts {
-  position: absolute;
-  top: 90px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: min(calc(60vw / var(--ui, 1)), 520px);
-}
-
-#hud .hud-toast {
-  color: var(--hud-fg);
-  text-shadow: var(--hud-shadow);
-  font-size: 20px;
-  letter-spacing: 0.5px;
-  line-height: 1.15;
-  font-weight: bold;
-  white-space: normal;
-  max-width: 100%;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-#hud .hud-toast.big {
-  font-size: 34px;
-  letter-spacing: 3px;
-  color: #d93f3f;
-}
+#hud .hud-mission-timer:empty { display: none; }
+#hud .hud-mission.pop .hud-obj-text { animation: obj-pop 0.55s cubic-bezier(0.2, 0.7, 0.2, 1); }
+#hud .hud-mission.pop .hud-obj-icon { animation: obj-spin 0.55s ease-out; }
+@keyframes obj-pop { from { opacity: 0; transform: translateY(-8px) scale(1.06); } }
+@keyframes obj-spin { from { transform: rotate(-90deg) scale(1.6); } }
+@media (prefers-reduced-motion: reduce) { #hud .hud-mission.pop .hud-obj-text, #hud .hud-mission.pop .hud-obj-icon { animation: none; } }
 
 #hud .hud-location {
   position: absolute;
@@ -330,6 +336,9 @@ body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
 }
 #hud .hud-route:empty { display: none; }
 #hud .hud-route[data-kind="mission"] { color: #e8c93a; }
+#hud .hud-route[data-kind="job"] { color: #ff9a3c; }
+#hud .hud-route[data-kind="user"] { color: #d9a0ff; }
+#hud .hud-route[data-kind="care"] { color: #ff8ccb; border-color: rgba(255, 95, 180, 0.6); }
 body.hide-minimap #hud .hud-route { bottom: 16px; }
 
 :where(#hud > :not(.hud-damage)) { transition: opacity 0.35s ease; }

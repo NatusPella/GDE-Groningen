@@ -81,7 +81,7 @@ function busy() {
 function speak(speaker, text) {
   const v = lineVoiceFor(speaker, text);
   if (!v) return true;
-  return playLineVoice(v.src, v.dur);
+  return playLineVoice(v.src, v.dur, speaker === 'Radio Nachtstreek' ? 'radio' : 'react');
 }
 
 function notify(from, text) {

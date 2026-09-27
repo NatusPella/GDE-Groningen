@@ -10,7 +10,8 @@ import { getGarageList, deliverOwnedVehicle, locateOwnedVehicle, whereText } fro
 import { initGarageStyles } from './garageui.js';
 import { getSideJobOffers, quitSideJob } from './sidejobs.js';
 import { lineVoiceFor } from './linevoice.js';
-import { playBanterVoice, stopBanterVoice } from './audio.js';
+// phone talk is a call on the speech.js channel
+import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice } from './audio.js';
 
 const RING_TIME = 0.9;
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';

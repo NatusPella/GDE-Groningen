@@ -1,138 +1,305 @@
-import { setDualText } from './subtitles.js';
+import { dualHtml, dutchFor } from './subtitles.js';
 import { getClockText } from './hud_panel.js';
 import { readingSeconds } from './world.js';
+import { lineVoiceFor } from './linevoice.js';
+import { playCallVoice, playPhoneRing } from './audio.js';
+import { hold as holdChannel, release as releaseChannel } from './speech.js';
 
-// Renders world.phoneNotifications ({text, duration}[], oldest first) as a
-// single reused phone-notification card that slides up from below the
-// viewport, holds, then slides back down before the next one takes its turn.
-const HOLD_DEFAULT = 4;
-const SLIDE_OUT_BUFFER = 0.5; // covers the 0.4s CSS transition plus margin
+// The phone on the HUD (bottom left, above the street name): notification
+// cards and incoming calls. Both slide up out of the bottom like a phone
+// being raised; the Sikkom app (phone.js) keeps the history.
+//
+// Notifications: notifyPhone(world, { from, app, title, text, duration }),
+// or push { from, text, duration } onto world.phoneNotifications (the old
+// way, still read every frame). At most two cards are up at once, the
+// newest at the bottom; the older one steps back. A card whose text the
+// HUD just showed as a card is only written to the history.
+//
+// Calls: startCall(world, { from, lines: [{ speaker, text, sub }], live,
+// onEnd, voice }) rings, then plays line by line: each line is voiced from
+// the lines manifest ("<speaker>|<text>", or voice(speaker, text) -> { src })
+// on the speech.js 'call' class, which holds the channel for the whole call
+// (car banter stops, reactions and bubbles wait, a story scene ends the call).
+// Unvoiced lines stay up for their reading time. `sub` is a second subtitle
+// line (the Dutch for a Frisian or Gronings line). `live: true` makes it a
+// Sikkom livestream card instead of a call. Calls queue (one at a time) and
+// wait while a cutscene hides the HUD. The finished call lands in the
+// Sikkom history.
 
-let card = null;
-let bodyEl = null;
-let wordEl = null;
-let queueState = 'idle'; // 'idle' | 'hold' | 'out'
-let timer = 0;
+const HOLD_MIN = 6;
+const HOLD_MAX = 13;
+// attention budget: one phone card at a time, a counter for the rest
+const MAX_UP = 1;
+const HOLD_BUSY = 4.5;
+const RING_TIME = 1.6;
+const LINE_GAP = 0.35;
+const HANGUP_TIME = 1.1;
+const CALL_WAIT_MAX = 90;
+const SPEAKER_COLORS = { Tammo: '#8fd3ff', Anita: '#ffb0cf' };
+const APP_ICON = {
+  sikkom: '<path d="M12 3a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6zm-2 16a2 2 0 0 0 4 0z"/>',
+  bericht: '<path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>',
+  geld: '<path d="M3 6h18v12H3zm9 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5 8v2a2 2 0 0 0 2-2zm12 0a2 2 0 0 0 2 2V8zM5 14v2h2a2 2 0 0 0-2-2zm14 0a2 2 0 0 0-2 2h2z"/>',
+  bel: '<path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/>',
+  live: '<circle cx="12" cy="12" r="3.2"/><path d="M7.1 7.1a7 7 0 0 0 0 9.8M16.9 7.1a7 7 0 0 1 0 9.8M4.2 4.2a11 11 0 0 0 0 15.6M19.8 4.2a11 11 0 0 1 0 15.6" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+};
+
+let root = null;
+let stack = null;
+let callEl = null;
+let world = null;
+let cards = [];
+let calls = [];
+let call = null;
+let notes = [];
+let nextCallId = 1;
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const icon = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor">${APP_ICON[k] || APP_ICON.bericht}</g></svg>`;
+const initials = (name) => String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
+const clockNow = (w) => getClockText(w) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 
 function injectStyle() {
   if (document.getElementById('phonefeed-style')) return;
-  const style = document.createElement('style');
-  style.id = 'phonefeed-style';
-  style.textContent = `
-#hud .phonefeed-card {
-  position: absolute;
-  left: 50%;
-  bottom: 90px;
-  width: min(360px, calc(100vw / var(--ui, 1) - 32px));
-  transform: translate(-50%, 160%);
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.3s ease;
-  background: linear-gradient(180deg, rgba(32,34,30,0.97), rgba(18,20,17,0.97));
-  border: 1px solid rgba(63, 201, 122, 0.35);
-  border-radius: 18px;
-  box-shadow: 0 10px 26px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.4);
-  overflow: hidden;
-  pointer-events: none;
-}
-#hud .phonefeed-card.phonefeed-visible {
-  transform: translate(-50%, 0);
-  opacity: 1;
-}
-#hud .phonefeed-accent {
-  height: 4px;
-  background: linear-gradient(90deg, #1e9e56, #3fc97a);
-}
-#hud .phonefeed-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px 4px;
-}
-#hud .phonefeed-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: rgba(63, 201, 122, 0.18);
-  font-size: 13px;
-  line-height: 1;
-}
-#hud .phonefeed-wordmark {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  color: #f2f2f2;
-  text-transform: uppercase;
-}
-#hud .phonefeed-time {
-  margin-left: auto;
-  font-size: 10px;
-  color: rgba(255,255,255,0.45);
-}
-#hud .phonefeed-body {
-  padding: 2px 14px 14px;
-  color: #f2f2f2;
-  font-size: 14px;
-  line-height: 1.35;
-}
-`;
-  document.head.appendChild(style);
+  const link = document.createElement('link');
+  link.id = 'phonefeed-style';
+  link.rel = 'stylesheet';
+  link.href = new URL('./phonefeed.css', import.meta.url).href;
+  document.head.appendChild(link);
 }
 
-export function initPhoneFeed(world) {
-  if (!world.phoneNotifications) world.phoneNotifications = [];
-  if (!world.phoneHistory) world.phoneHistory = [];
+export function initPhoneFeed(w) {
+  world = w;
+  if (!w.phoneNotifications) w.phoneNotifications = [];
+  if (!w.phoneHistory) w.phoneHistory = [];
   injectStyle();
-
-  const root = document.getElementById('hud');
-  card = document.createElement('div');
-  card.className = 'phonefeed-card';
-  card.innerHTML =
-    '<div class="phonefeed-accent"></div>' +
-    '<div class="phonefeed-header">' +
-      '<span class="phonefeed-icon">\u{1F514}</span>' +
-      '<span class="phonefeed-wordmark">Sikkom</span>' +
-      '<span class="phonefeed-time">nu</span>' +
-    '</div>' +
-    '<div class="phonefeed-body" aria-live="polite"></div>';
-  root.appendChild(card);
-  bodyEl = card.querySelector('.phonefeed-body');
-  wordEl = card.querySelector('.phonefeed-wordmark');
-
-  queueState = 'idle';
-  timer = 0;
+  root = document.getElementById('hud');
+  stack = document.createElement('div');
+  stack.className = 'phonefeed';
+  stack.setAttribute('aria-live', 'polite');
+  root.appendChild(stack);
+  cards = [];
+  calls = [];
+  call = null;
+  notes = [];
+  if (typeof window !== 'undefined') {
+    window.__phonefeed = { notify: (spec) => notifyPhone(world, spec), call: (spec) => startCall(world, spec), hangUp, state: () => ({ cards: cards.length, call: call && { from: call.from, phase: call.phase, i: call.i }, queued: calls.length }) };
+  }
 }
 
-export function updatePhoneFeed(dt, world) {
-  if (!card) return;
-  if (!world.phoneNotifications) world.phoneNotifications = [];
+// --- notifications -------------------------------------------------------------------------
 
-  if (queueState === 'idle') {
-    const next = world.phoneNotifications.shift();
-    if (!next) return;
-    setDualText(bodyEl, next.text);
-    if (wordEl) wordEl.textContent = next.from || 'Sikkom';
-    if (!world.phoneHistory) world.phoneHistory = [];
-    world.phoneHistory.unshift({ text: next.from ? `${next.from}: ${next.text}` : next.text, at: getClockText(world) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) });
-    if (world.phoneHistory.length > 30) world.phoneHistory.length = 30;
-    card.classList.add('phonefeed-visible');
-    timer = Math.max(next.duration || HOLD_DEFAULT, readingSeconds(next.text));
-    queueState = 'hold';
+// "SIKKOM MELDT: onrust in Grunn, politie op pad" -> app Sikkom, headline
+// "Onrust in Grunn", body "politie op pad".
+function parse(n) {
+  let text = String(n.text || '').trim();
+  let from = n.from || '';
+  let app = n.app || '';
+  const m = /^SIKKOM( MELDT)?:\s*/i.exec(text);
+  if (m) { text = text.slice(m[0].length); from = from || 'Sikkom'; }
+  if (!app) app = /sikkom/i.test(from) || m ? 'sikkom' : /€/.test(text) && !from ? 'geld' : from ? 'bericht' : 'sikkom';
+  let title = n.title || '';
+  let body = text;
+  if (!title && app === 'sikkom') {
+    const c = /^(.{8,52}?)(, | – | - |: )(.{6,})$/.exec(text);
+    if (c) { title = c[1]; body = c[3]; } else { title = text; body = ''; }
+    title = title[0].toUpperCase() + title.slice(1);
+  }
+  if (!from) from = app === 'geld' ? 'Bank' : 'Sikkom';
+  return { from, app, title, body };
+}
+
+export function notifyPhone(w, spec) {
+  if (!w.phoneNotifications) w.phoneNotifications = [];
+  w.phoneNotifications.push(spec);
+}
+
+function remember(w, text) {
+  if (!w.phoneHistory) w.phoneHistory = [];
+  w.phoneHistory.unshift({ text, at: clockNow(w) });
+  if (w.phoneHistory.length > 30) w.phoneHistory.length = 30;
+}
+
+// the HUD card just said it (a mission requirement is sent to both)
+function alreadyShown(w, text) {
+  return (w.messages || []).some((m) => m.text && m.text.length > 12 && text.includes(m.text) && m.until - w.time > 1);
+}
+
+function showNote(w, n) {
+  const p = parse(n);
+  const full = [p.title, p.body].filter(Boolean).join(': ');
+  remember(w, p.from && p.from !== 'Sikkom' ? `${p.from}: ${n.text}` : n.text);
+  if (alreadyShown(w, n.text)) return;
+  const el = document.createElement('div');
+  el.className = 'pf-card';
+  el.dataset.app = p.app;
+  el.innerHTML =
+    `<div class="pf-head"><span class="pf-app">${icon(p.app)}</span><span class="pf-from">${esc(p.from)}</span><span class="pf-more" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
+    (p.title ? `<div class="pf-title">${dualHtml(p.title)}</div>` : '') +
+    (p.body ? `<div class="pf-body">${dualHtml(p.body)}</div>` : '');
+  stack.appendChild(el);
+  void el.offsetWidth;
+  el.classList.add('on');
+  const secs = Math.min(HOLD_MAX, Math.max(HOLD_MIN, (n.duration || 0) + 1, readingSeconds(full) * 1.4));
+  el.style.setProperty('--pf-dur', `${secs}s`);
+  cards.push({ el, left: secs, secs });
+}
+
+// "+2": how many more notifications wait behind the one that is up
+function syncCounter() {
+  const up = cards.find((c) => !c.leaving);
+  if (!up) return;
+  const more = up.el.querySelector('.pf-more');
+  more.hidden = !notes.length;
+  more.textContent = notes.length ? `+${notes.length}` : '';
+  // a waiting queue shortens the card that is up (but it stays readable)
+  if (notes.length && up.secs - up.left > HOLD_BUSY) up.left = Math.min(up.left, 0.01);
+}
+
+function dropCard(c) {
+  if (c.leaving) return;
+  c.leaving = true;
+  c.left = 0.5;
+  c.el.classList.remove('on');
+  c.el.classList.add('out');
+}
+
+// --- calls ---------------------------------------------------------------------------------
+
+export function startCall(w, spec) {
+  const c = { id: nextCallId++, from: spec.from || 'Onbekend', lines: (spec.lines || []).filter((l) => l && l.text), live: !!spec.live, onEnd: spec.onEnd || null, voice: spec.voice || null, at: w.time };
+  if (!c.lines.length) return 0;
+  calls.push(c);
+  return c.id;
+}
+
+export const isCallActive = () => !!call;
+
+export function hangUp() {
+  if (!call) return;
+  finishCall(true);
+}
+
+function callHtml(c) {
+  const state = c.live ? '<span class="pf-live">LIVE</span>' : `<span class="pf-state">${c.phase === 'ring' ? 'Inkomend gesprek' : c.phase === 'end' ? 'Opgehangen' : '<i class="pf-dot"></i><b class="pf-clock">0:00</b>'}</span>`;
+  return `<div class="pf-call-head"><span class="pf-avatar">${esc(initials(c.from))}</span>` +
+    `<span class="pf-callwho"><small>${c.live ? 'Sikkom Live' : 'Telefoon'}</small><b>${esc(c.from)}</b></span>${state}</div>` +
+    '<div class="pf-line"><span class="pf-speaker"></span><span class="pf-say"></span><span class="pf-sub"></span></div>';
+}
+
+function beginCall(w, c) {
+  call = c;
+  c.phase = 'ring';
+  c.t = 0;
+  c.i = -1;
+  holdChannel('call', 'call', () => { if (call === c) finishCall(true); });
+  callEl = document.createElement('div');
+  callEl.className = 'pf-callcard' + (c.live ? ' live' : '');
+  callEl.innerHTML = callHtml(c);
+  stack.appendChild(callEl);
+  void callEl.offsetWidth;
+  callEl.classList.add('on', 'ringing');
+  playPhoneRing(c.live ? 1 : 2);
+  document.body.classList.add('hud-call-on');
+  for (const k of cards) dropCard(k);
+}
+
+function showLine(c) {
+  const l = c.lines[c.i];
+  const sp = callEl.querySelector('.pf-speaker');
+  sp.textContent = l.speaker && !c.from.startsWith(l.speaker) ? l.speaker : '';
+  sp.style.color = SPEAKER_COLORS[l.speaker] || '';
+  callEl.querySelector('.pf-say').textContent = l.text;
+  // the Dutch under a Frisian/Gronings line (subtitles.js), unless given
+  callEl.querySelector('.pf-sub').textContent = l.sub || dutchFor(l.text) || '';
+  const line = callEl.querySelector('.pf-line');
+  line.classList.remove('new');
+  void line.offsetWidth;
+  line.classList.add('new');
+}
+
+function nextLine(c) {
+  c.i++;
+  if (c.i >= c.lines.length) { finishCall(false); return; }
+  const l = c.lines[c.i];
+  showLine(c);
+  const v = (c.voice && c.voice(l.speaker || c.from, l.text)) || lineVoiceFor(l.speaker || c.from, l.text);
+  const read = Math.max(2.2, readingSeconds(l.text + ' ' + (l.sub || '')) * 0.85);
+  c.lineT = 0;
+  c.lineLen = read;
+  c.voiced = false;
+  if (v && playCallVoice(v.src, () => { if (call === c && c.i === c.lines.indexOf(l)) c.lineLen = Math.min(c.lineLen, c.lineT + LINE_GAP); })) {
+    c.voiced = true;
+    c.lineLen = Math.max((v.dur || 3) + 1.5, 2);
+  }
+}
+
+function finishCall(cut) {
+  const c = call;
+  if (!c) return;
+  const said = c.lines.slice(0, cut ? Math.max(0, c.i + 1) : c.lines.length);
+  remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${c.from}: ${said.map((l) => l.text).join(' ')}`);
+  c.phase = 'end';
+  c.t = 0;
+  const st = callEl.querySelector('.pf-state');
+  if (st) st.textContent = 'Opgehangen';
+  callEl.classList.add('ended');
+  document.body.classList.remove('hud-call-on');
+  releaseChannel('call');
+  if (c.onEnd) try { c.onEnd({ cut }); } catch (e) { /* ignore */ }
+}
+
+function updateCall(dt, w, visible) {
+  if (!call) {
+    calls = calls.filter((c) => w.time - c.at < CALL_WAIT_MAX);
+    if (calls.length && visible && !w.storyContact && holdChannel('call', 'call')) beginCall(w, calls.shift());
     return;
   }
+  const c = call;
+  c.t += dt;
+  if (c.phase === 'ring') {
+    if (c.t >= (c.live ? 0.8 : RING_TIME)) { c.phase = 'talk'; c.t = 0; callEl.classList.remove('ringing'); callEl.innerHTML = callHtml(c); nextLine(c); }
+    return;
+  }
+  if (c.phase === 'talk') {
+    const clock = callEl.querySelector('.pf-clock');
+    if (clock) { const s = Math.floor(c.t); const txt = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; if (clock.textContent !== txt) clock.textContent = txt; }
+    c.lineT += dt;
+    if (c.lineT >= c.lineLen) nextLine(c);
+    return;
+  }
+  if (c.t >= HANGUP_TIME) {
+    const el = callEl;
+    el.classList.remove('on');
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 500);
+    callEl = null;
+    call = null;
+  }
+}
 
-  if (queueState === 'hold') {
-    timer -= dt;
-    if (timer <= 0) {
-      card.classList.remove('phonefeed-visible');
-      timer = SLIDE_OUT_BUFFER;
-      queueState = 'out';
+// --- per frame -----------------------------------------------------------------------------
+
+function hudVisible() {
+  const b = document.body.classList;
+  return b.contains('game-started') && !b.contains('cine-hide-hud');
+}
+
+export function updatePhoneFeed(dt, w) {
+  if (!stack) return;
+  world = w;
+  if (!w.phoneNotifications) w.phoneNotifications = [];
+  const visible = hudVisible();
+  if (visible && !w.paused) {
+    while (w.phoneNotifications.length) notes.push(w.phoneNotifications.shift());
+    if (notes.length > 6) notes.splice(0, notes.length - 6).forEach((n) => remember(w, n.from ? `${n.from}: ${n.text}` : n.text));
+    if (!call && !cards.some((c) => !c.leaving) && notes.length) showNote(w, notes.shift());
+    syncCounter();
+    for (const c of cards) c.left -= dt;
+    for (const c of cards.filter((k) => k.left <= 0)) {
+      if (!c.leaving) dropCard(c);
+      else { c.el.remove(); cards.splice(cards.indexOf(c), 1); }
     }
-    return;
   }
-
-  timer -= dt;
-  if (timer <= 0) queueState = 'idle';
+  if (!w.paused) updateCall(dt, w, visible);
 }
