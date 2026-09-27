@@ -41,13 +41,18 @@ function fitText(g, text, maxW, size, weight = 'bold') {
   do { g.font = `${weight} ${s}px "Arial Narrow", Arial, sans-serif`; s -= 2; } while (g.measureText(text).width > maxW && s > 10);
 }
 
-function placeBoard(text) {
+// sub: a second, smaller line (the Gronings name)
+function placeBoard(text, sub) {
   return (g, w, h) => {
     g.fillStyle = BLUE; g.fillRect(0, 0, w, h);
     g.strokeStyle = '#fff'; g.lineWidth = 6; g.strokeRect(8, 8, w - 16, h - 16);
     g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    fitText(g, text, w - 50, 62);
-    g.fillText(text, w / 2, h / 2 + 3);
+    fitText(g, text, w - 50, sub ? 54 : 62);
+    g.fillText(text, w / 2, sub ? h / 2 - 16 : h / 2 + 3);
+    if (sub) {
+      fitText(g, sub, w - 90, 36, 'italic bold');
+      g.fillText(sub, w / 2, h / 2 + 34);
+    }
   };
 }
 
@@ -78,9 +83,9 @@ export function buildSign(sign) {
   const g = new THREE.Group();
   const keys = [];
   if (sign.kind === 'place') {
-    const k = 'p:' + sign.text;
+    const k = 'p:' + sign.text + (sign.sub ? ':' + sign.sub : '');
     keys.push(k);
-    const face = texture(k, placeBoard(sign.text), 512, 160);
+    const face = texture(k, placeBoard(sign.text, sign.sub), 512, 160);
     for (const z of [-0.75, 0.75]) {
       const p = new THREE.Mesh(POST_GEO, POST_MAT);
       p.scale.y = 2.3;

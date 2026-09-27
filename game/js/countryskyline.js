@@ -1,12 +1,13 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { BLOCK, PW, chash, edgeDistance, edgeRoad, villageOf } from './countryfield.js';
+import { BLOCK, PW, chash, edgeDistance, edgeRoad, villageOf, urbanWeight, realWater } from './countryfield.js';
+import { REAL, RTILE, buildingsInTile, buildingModel } from './countryreal.js';
 import {
   ROAD_C, FARM_TYPES, openLand, blockPlan, blockPlanCached, villagePlan, turbineRow, turbineValid, pylonsAround, isPlanned, farmWorld,
   TREE_ROW_P, WILLOW_ROW_P, ROAD_ROW, planVersion,
 } from './countryplan.js';
 import {
   churchGeometry, turbineTowerGeometry, turbineRotorGeometry, lightGeometry, millBodyGeometry, millSailsGeometry,
-  pylonGeometry, wireGeometry, flareGeometry, beltGeometry, farmSilhouetteGeometry, clumpGeometry,
+  pylonGeometry, wireGeometry, flareGeometry, beltGeometry, farmSilhouetteGeometry, clumpGeometry, realSilhouetteGeometry,
   TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H,
 } from './countrymodels.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
@@ -71,8 +72,10 @@ ${light ? 'gl_FragColor.rgb *= 0.12 + 0.88 * step(0.35, fract(uTime * 0.5 + 0.2)
 }
 
 const TYPES = {
-  church0: { geo: () => churchGeometry(0), mat: 'tall', cap: 80, shadow: true },
-  church1: { geo: () => churchGeometry(1), mat: 'tall', cap: 80, shadow: true },
+  church0: { geo: () => churchGeometry(0), mat: 'tall', cap: 160, shadow: true },
+  church1: { geo: () => churchGeometry(1), mat: 'tall', cap: 160, shadow: true },
+  rbSil: { geo: realSilhouetteGeometry, mat: 'belt', cap: 9000 },
+  rbSilFlat: { geo: () => realSilhouetteGeometry(true), mat: 'belt', cap: 3000 },
   turbine: { geo: turbineTowerGeometry, mat: 'tall', cap: 400, shadow: true },
   rotor: { geo: turbineRotorGeometry, mat: 'rotorT', cap: 400 },
   light: { geo: lightGeometry, mat: 'light', cap: 400 },
@@ -177,6 +180,33 @@ function* gatherGen(px, py) {
     }
     yield;
   }
+  // the real Ommelanden: church towers, and the roofs of the villages
+  // beyond the prop radius (the belt haze keeps the near ones hidden)
+  if (REAL.ready) {
+    for (const c of REAL.churches) {
+      if ((c.x - px) ** 2 + (c.y - py) ** 2 > rt2) continue;
+      put(L, chash(Math.round(c.x), Math.round(c.y)) < 0.6 ? 'church0' : 'church1', c.x + 1, -0.05, c.y, 0, 1, 1, 1);
+    }
+    yield;
+    const n = Math.ceil(R_BELT / RTILE);
+    const tx0 = Math.floor(px / RTILE), ty0 = Math.floor(py / RTILE);
+    const tiles = [];
+    for (let oy = -n; oy <= n; oy++) for (let ox = -n; ox <= n; ox++) if (ox * ox + oy * oy <= n * n && ox * ox + oy * oy >= 2) tiles.push([ox * ox + oy * oy, tx0 + ox, ty0 + oy]);
+    tiles.sort((a, b) => a[0] - b[0]);
+    let k = 0;
+    for (const [, tx, ty] of tiles) {
+      const B = buildingsInTile(tx, ty);
+      if (B) {
+        for (const i of B) {
+          if (REAL.bw[i] * REAL.bl[i] < 45) continue;
+          const m = buildingModel(i);
+          if (m.kind === 'house' || m.kind === 'barn') put(L, 'rbSil', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall + m.roof, m.short, m.kind === 'barn' ? m.roofColor : m.roofColor);
+          else put(L, 'rbSilFlat', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall, m.short, m.color);
+        }
+      }
+      if (++k % 60 === 0) yield;
+    }
+  }
   // turbine rows (a row belongs to a 3x3-block macro cell)
   const M = BLOCK * 3;
   for (let my = Math.floor((py - R_TALL) / M); my <= Math.floor((py + R_TALL) / M); my++) {
@@ -228,6 +258,7 @@ function gatherBelts(L, P, bx, by) {
       const ax = x0 + (x1 - x0) * ta, ay = y0 + (y1 - y0) * ta, bx2 = x0 + (x1 - x0) * tb, by2 = y0 + (y1 - y0) * tb;
       const mx = x0 + (x1 - x0) * tm, my = y0 + (y1 - y0) * tm;
       if (!openLand(ax, ay) || !openLand(bx2, by2) || inVillageDisc(mx, my)) continue;
+      if (REAL.ready && (urbanWeight(mx, my) > 0.2 || realWater(mx, my) > -3)) continue;
       const len = Math.hypot(bx2 - ax, by2 - ay);
       const hh = h * (0.9 + chash(Math.round(mx), Math.round(my)) * 0.25);
       put(L, 'belt', mx, 0, my, -Math.atan2(by2 - ay, bx2 - ax), len, hh, w);
