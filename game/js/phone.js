@@ -10,7 +10,7 @@ import { initGarageStyles } from './garageui.js';
 import { getSideJobOffers, quitSideJob } from './sidejobs.js';
 
 const RING_TIME = 0.9;
-const GARAGE_PRICE = 100;
+import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
 
 const ICONS = {
   contacten: '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8c0-3.3 3.1-6 7-6s7 2.7 7 6v1H5z"/>',

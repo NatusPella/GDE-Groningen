@@ -13,7 +13,7 @@ import { jobLevel } from './sidejobs.js';
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
-export const REDELIVERY_FEE = 25;
+export const REDELIVERY_FEE = 10;
 
 // Chains: every branch carries the chain name plus a local suffix
 // (wijk or street). group = map-legend layer.
@@ -45,13 +45,13 @@ const SELL_RADIUS = 25;
 
 // --- stock ------------------------------------------------------------------
 
-const WEAPON_STOCK = [
-  { key: 'pistol', label: 'Pistool "Klapperman"', desc: 'Betrouwbaar, handzaam, luid genoeg', gun: 180, ammoPrice: 45, ammo: 36, cap: 250 },
-  { key: 'uzi', label: 'Uzi "Ratelaar"', desc: 'Veel lood, weinig precisie', gun: 450, ammoPrice: 70, ammo: 90, cap: 600 },
-  { key: 'shotgun', label: 'Hagelgeweer "Boerenbuks"', desc: 'Van de boer uit Ten Boer. Dichtbij: weg is weg', gun: 600, ammoPrice: 60, ammo: 12, cap: 80 },
+export const WEAPON_STOCK = [
+  { key: 'pistol', label: 'Pistool "Klapperman"', desc: 'Betrouwbaar, handzaam, luid genoeg', gun: 120, ammoPrice: 25, ammo: 36, cap: 250 },
+  { key: 'uzi', label: 'Uzi "Ratelaar"', desc: 'Veel lood, weinig precisie', gun: 300, ammoPrice: 40, ammo: 90, cap: 600 },
+  { key: 'shotgun', label: 'Hagelgeweer "Boerenbuks"', desc: 'Van de boer uit Ten Boer. Dichtbij: weg is weg', gun: 400, ammoPrice: 35, ammo: 12, cap: 80 },
 ];
 
-const OUTFITS = {
+export const OUTFITS = {
   tammo: [
     { id: 'stadjer', label: 'Stadjer classic', desc: 'Het vertrouwde jack en de oranje pet', price: 40, shirt: 0x3f6ea8, pants: 0x2f3b52, cap: 0xc8621e, shoes: 0xd8d4cc },
     { id: 'groenwit', label: 'Groen-wit tot in de kist', desc: 'Voor op de tribune en daarbuiten', price: 120, shirt: 0x1e9e56, pants: 0xe8e6e0, cap: 0x1e9e56, shoes: 0xe8e6e0 },
@@ -180,19 +180,19 @@ export const PAINTS = [
   { id: 'blauw', label: 'Reitdiepblauw', color: '#2e5f9e' },
   { id: 'paars', label: 'Paars-pimp', color: '#6a2e8a' },
 ];
-const PAINT_PRICE = 120;
+const PAINT_PRICE = 60;
 
 // mult: factors on the vehicle model; once per vehicle
 export const BIKE_UPGRADES = [
-  { id: 'banden', label: 'Racebanden', desc: 'Dunner, harder, rapper: +15% topsnelheid', price: 60, mult: { maxSpeed: 1.15 } },
-  { id: 'versnelling', label: 'Zeven versnellingen', desc: 'Sneller op gang bij het stoplicht', price: 45, mult: { accel: 1.3 } },
-  { id: 'motor', label: 'Opgevoerde accu', desc: 'Stiekem e-motortje erin: hard en stil', price: 220, mult: { maxSpeed: 1.35, accel: 1.4 } },
+  { id: 'banden', label: 'Racebanden', desc: 'Dunner, harder, rapper: +15% topsnelheid', price: 40, mult: { maxSpeed: 1.15 } },
+  { id: 'versnelling', label: 'Zeven versnellingen', desc: 'Sneller op gang bij het stoplicht', price: 30, mult: { accel: 1.3 } },
+  { id: 'motor', label: 'Opgevoerde accu', desc: 'Stiekem e-motortje erin: hard en stil', price: 150, mult: { maxSpeed: 1.35, accel: 1.4 } },
 ];
 export const CAR_UPGRADES = [
-  { id: 'motor', label: 'Opgevoerde motor', desc: 'Chip erin, filter eruit: +12% top, +20% trekkracht', price: 450, mult: { maxSpeed: 1.12, accel: 1.2 } },
-  { id: 'remmen', label: 'Sportremmen', desc: 'Staat stil voor je het weet', price: 220, mult: { brake: 1.35 } },
-  { id: 'grip', label: 'Brede banden', desc: 'Scherper door de bocht', price: 260, mult: { turnRate: 1.15 } },
-  { id: 'turbo', label: 'Turbo "Tinus"', desc: 'Pssssjoew! +22% top, +35% trekkracht', price: 950, mult: { maxSpeed: 1.22, accel: 1.35 } },
+  { id: 'motor', label: 'Opgevoerde motor', desc: 'Chip erin, filter eruit: +12% top, +20% trekkracht', price: 300, mult: { maxSpeed: 1.12, accel: 1.2 } },
+  { id: 'remmen', label: 'Sportremmen', desc: 'Staat stil voor je het weet', price: 150, mult: { brake: 1.35 } },
+  { id: 'grip', label: 'Brede banden', desc: 'Scherper door de bocht', price: 175, mult: { turnRate: 1.15 } },
+  { id: 'turbo', label: 'Turbo "Tinus"', desc: 'Pssssjoew! +22% top, +35% trekkracht', price: 700, mult: { maxSpeed: 1.22, accel: 1.35 } },
 ];
 
 const SUPER_ITEMS = [
@@ -444,7 +444,7 @@ export function spawnOwnedEntry(world, o, x, y, angle) {
 }
 
 export function replacementFee(o) {
-  return Math.max(50, Math.round(o.spec.price * 0.25 / 5) * 5);
+  return Math.max(40, Math.round(o.spec.price * 0.15 / 5) * 5);
 }
 
 // --- interaction -------------------------------------------------------------
@@ -659,7 +659,7 @@ function workshopSections(world, shop, twoWheel) {
       return `${u.label} erop. Je ${name} gaat als een speer!`;
     },
   }));
-  const fixPrice = twoWheel ? 10 : 60;
+  const fixPrice = twoWheel ? 5 : 35;
   items.push({
     id: 'u-fix', label: twoWheel ? 'Band plakken & rechtzetten' : 'Deuken eruit', desc: 'Weer helemaal heel', price: fixPrice,
     disabled: (v.health ?? 100) >= 100 && !v.riderOff ? 'Mankeert niks' : broke(world, fixPrice),
@@ -726,13 +726,13 @@ function pandSections(world, shop) {
   }
   if (!sell.length) sell.push({ id: 's-none', label: 'Niks te verkopen', desc: 'Kom terug met wapens, een vest of een gejatte bak voor de deur', price: 0, disabled: 'Lege zakken' });
   const buy = [
-    { id: 'b-vest', label: 'Gebruikt vestje', desc: '+30 pantser, klein gaatje', price: 35,
-      disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, 35),
-      buy() { if (!pay(world, 35)) return null; world.armor = Math.min(100, world.armor + 30); return 'Vestje aan. Past bijna'; } },
-    { id: 'b-pistol', label: 'Pistool uit de achterkamer', desc: 'Met 12 patronen, geen bonnetje', price: 120,
-      disabled: (world.ammo.pistol || 0) >= 250 ? 'Zak zit vol' : broke(world, 120),
+    { id: 'b-vest', label: 'Gebruikt vestje', desc: '+30 pantser, klein gaatje', price: 20,
+      disabled: world.armor >= 100 ? 'Pantser is al vol' : broke(world, 20),
+      buy() { if (!pay(world, 20)) return null; world.armor = Math.min(100, world.armor + 30); return 'Vestje aan. Past bijna'; } },
+    { id: 'b-pistol', label: 'Pistool uit de achterkamer', desc: 'Met 12 patronen, geen bonnetje', price: 80,
+      disabled: (world.ammo.pistol || 0) >= 250 ? 'Zak zit vol' : broke(world, 80),
       buy() {
-        if (!pay(world, 120)) return null;
+        if (!pay(world, 80)) return null;
         world.ammo.pistol = Math.min(250, (world.ammo.pistol || 0) + 12);
         if (world.weapon === 'fists') world.weapon = 'pistol';
         return 'Pistool gekocht. Wij hebben elkaar nooit gezien';
@@ -838,7 +838,7 @@ function weaponSections(world) {
   });
   return [
     { title: 'Wapens & munitie', items: guns },
-    { title: 'Bescherming', items: [vest(50, 85, 'Bodywarmer met plaatjes', '+50 pantser'), vest(100, 150, 'Kogelwerend vest', 'Volle bescherming')] },
+    { title: 'Bescherming', items: [vest(50, 50, 'Bodywarmer met plaatjes', '+50 pantser'), vest(100, 90, 'Kogelwerend vest', 'Volle bescherming')] },
   ];
 }
 

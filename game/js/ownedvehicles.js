@@ -37,7 +37,7 @@ import {
   VEHICLE_STOCK, VEHICLE_UNLOCKS, unlockMet, PAINTS, CAR_UPGRADES, BIKE_UPGRADES, REDELIVERY_FEE,
 } from './shops.js';
 
-const HERO_REPLACE_FEE = 100;
+import { HERO_REPLACE_FEE } from './economy.js';
 const DELIVERY_COOLDOWN = 30;
 const NEAR_M = 200;
 const MAX_TESTS = 700;
