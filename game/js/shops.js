@@ -555,6 +555,7 @@ export function tryShopInteract(world) {
 // --- menus ---------------------------------------------------------------------
 
 function pay(world, price) {
+  if (!Number.isFinite(price) || price < 0) { console.warn('prijs zonder waarde', price); return false; }
   if (world.money < price) return false;
   world.money -= price;
   recordStat(world, 'purchases');

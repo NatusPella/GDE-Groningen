@@ -272,6 +272,12 @@ async function boot() {
 
   function updateGameplay(dt) {
     world.time += dt;
+    // money must stay a number: a NaN from any price or reward is undone
+    if (Number.isFinite(world.money)) world._goodMoney = world.money;
+    else {
+      console.warn('geld was geen getal meer, hersteld', world.money);
+      world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : 250;
+    }
 
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
