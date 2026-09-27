@@ -1,3 +1,4 @@
+import { markInstancesDirty } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, realBlock } from './countryfield.js';
 import { REAL, RTILE, roadsInTile, inRealExtent } from './countryreal.js';
@@ -638,7 +639,7 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
   for (const sp in counts) {
     L.birdPools[sp].forEach((m, f) => {
       m.count = counts[sp][f];
-      if (m.count) m.instanceMatrix.needsUpdate = true;
+      if (m.count) markInstancesDirty(m.instanceMatrix, m.count);
     });
   }
   L.ms = L.ms * 0.95 + (performance.now() - t0) * 0.05;

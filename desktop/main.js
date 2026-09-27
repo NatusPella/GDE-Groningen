@@ -154,7 +154,7 @@ function createWindow() {
   // --bench-eval=<file>: debug script run in the page as soon as it loads
   // (e.g. a GPU-memory tracker for --benchmark or --perf-script runs)
   const evalFile = argValue('--bench-eval');
-  if (evalFile) win.webContents.once('dom-ready', () => win.webContents.executeJavaScript(fsSync.readFileSync(evalFile, 'utf8')).catch((e) => console.log('[bench-eval]', e.message)));
+  if (evalFile) win.webContents.on('dom-ready', () => win.webContents.executeJavaScript(fsSync.readFileSync(evalFile, 'utf8')).catch((e) => console.log('[bench-eval]', e.message)));
   if (TRAILER && trailerFrames) {
     fsSync.mkdirSync(trailerFrames, { recursive: true });
     ipcMain.removeHandler('gte:capture-frame');

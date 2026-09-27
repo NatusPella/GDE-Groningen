@@ -15,6 +15,8 @@ import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { setPoliceHeliRender } from './police.js';
 import { roofAt } from './camerapath.js';
 import { kickTheme } from './theme.js';
+import { probe } from './hitchprobe.js';
+import { flashScreen } from './postfx3d.js';
 
 // Trailer mode (docs/verhaal-voorstel.md section 5): one list of staged shots
 // through Grunn, played three ways:
@@ -138,17 +140,17 @@ const CSS = `
 #trailer { position: fixed; inset: 0; z-index: 17; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; opacity: 0; transition: opacity 0.4s; --bar: 9vh; }
 #trailer.on { opacity: 1; }
 #trailer > div { position: absolute; }
-#trailer .tr-grade { inset: 0; background: linear-gradient(160deg, rgba(0, 150, 170, 0.18) 0%, rgba(0, 0, 0, 0) 45%, rgba(255, 128, 40, 0.18) 100%); mix-blend-mode: soft-light; transition: opacity 1.2s; }
 #trailer .tr-vig { inset: 0; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(4, 10, 8, 0.5) 100%); transition: opacity 1.2s; }
 #trailer .tr-bar { left: 0; right: 0; height: var(--bar); background: #000; transition: transform 0.8s cubic-bezier(0.6, 0, 0.3, 1); }
 #trailer .tr-bar.top { top: 0; } #trailer .tr-bar.bottom { bottom: 0; }
 #trailer.handoff .tr-bar.top { transform: translateY(-100%); } #trailer.handoff .tr-bar.bottom { transform: translateY(100%); }
-#trailer.handoff .tr-grade, #trailer.handoff .tr-vig { opacity: 0; }
+#trailer.handoff .tr-vig { opacity: 0; }
 #trailer .tr-black { inset: 0; background: #050807; opacity: 0; transition: opacity 0.35s; }
 #trailer .tr-black.on { opacity: 1; transition: opacity 0.12s; }
 #trailer .tr-black.fade { opacity: 1; transition: opacity 0.4s; }
 #trailer .tr-black.dim { opacity: 0.55; transition: opacity 0.9s; }
-#trailer .tr-flash { inset: 0; background: #fff6e6; opacity: 0; }
+#trailer .tr-flash { inset: 0; background: #fff6e6; opacity: 0; display: none; }
+#trailer .tr-flash.go, #trailer .tr-flash.big { display: block; }
 #trailer .tr-flash.go { animation: tr-flash 0.28s ease-out; }
 #trailer .tr-flash.big { animation: tr-flash-big 0.5s ease-out; }
 @keyframes tr-flash { 0% { opacity: 0.8; } 100% { opacity: 0; } }
@@ -191,9 +193,6 @@ const CSS = `
 #trailer-result button.primary:hover, #trailer-result button.primary:focus-visible { color: #0c140e; box-shadow: 0 0 0 2px #f0ede4; }
 #trailer-result button[hidden] { display: none; }
 body.trailer-on #hud, body.trailer-on .prompts, body.trailer-on #cine { display: none !important; }
-body.trailer-on #game3d { filter: contrast(1.06) saturate(1.14); }
-body.trailer-gpu-look #game3d { filter: none; }
-body.trailer-gpu-look #trailer .tr-grade { display: none; }
 @media (max-width: 700px) { #trailer-result .tr-nums { gap: 20px; } #trailer-result .tr-nums b { font-size: 42px; } }
 `;
 
@@ -207,18 +206,22 @@ function ensureUi() {
   const root = document.createElement('div');
   root.id = 'trailer';
   root.setAttribute('aria-live', 'polite');
-  root.innerHTML = '<div class="tr-grade"></div><div class="tr-vig"></div><div class="tr-flash"></div><div class="tr-black"></div>' +
+  root.innerHTML = '<div class="tr-vig"></div><div class="tr-flash"></div><div class="tr-black"></div>' +
     '<div class="tr-card"></div><div class="tr-sub"></div><div class="tr-bar top"></div><div class="tr-bar bottom"></div>' +
     '<div class="tr-skip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span><span class="key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
     '<div class="tr-fps"></div>';
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
+  q('.tr-flash').addEventListener('animationend', (e) => e.target.classList.remove('go', 'big'));
   ui = { root, flash: q('.tr-flash'), card: q('.tr-card'), sub: q('.tr-sub'), skip: q('.tr-skip'), fps: q('.tr-fps'), black: q('.tr-black'), cardKey: '', subKey: '' };
   return ui;
 }
 
+// In the last post pass when there is one; a full-screen DOM layer over the
+// canvas otherwise, only present while it animates.
 function flash(big = false) {
+  if (flashScreen(big)) return;
   const f = ui.flash;
   f.classList.remove('go', 'big');
   void f.offsetWidth;
@@ -823,6 +826,7 @@ function streamNext(r, i) {
 function enterShot(r, i) {
   const prev = r.shots[r.idx];
   if (BENCH_RUNS && prev) logShot(r, r.idx);
+  if (BENCH_RUNS) console.log(`[trailer] enter ${i + 1} at ${(performance.now() / 1000).toFixed(2)}`);
   if (prev && prev.exit) { try { prev.exit(r, r.state); } catch (e) { console.warn('trailer exit', e); } }
   clearShot(r);
   r.idx = i;
@@ -855,7 +859,8 @@ function logShot(r, i) {
   if (!st || !ren) return;
   const ms = st.ms.length ? st.ms.reduce((a, b) => a + b, 0) / st.ms.length : 0;
   const m = ren.info.memory;
-  console.log(`[trailer] shot ${i + 1} ${st.label}: ${ms ? (1000 / ms).toFixed(1) : '-'} fps, ${st.frames ? Math.round(st.calls / st.frames) : '-'} calls, geo ${m.geometries}, tex ${m.textures}, prog ${ren.info.programs.length}`);
+  const worst = st.ms.length ? Math.max(...st.ms).toFixed(0) : '-';
+  console.log(`[trailer] shot ${i + 1} ${st.label}: ${ms ? (1000 / ms).toFixed(1) : '-'} fps, max ${worst} ms, ${st.frames ? Math.round(st.calls / st.frames) : '-'} calls, geo ${m.geometries}, tex ${m.textures}, prog ${ren.info.programs.length}`);
 }
 
 function frame(r, dt, realMs) {
@@ -952,7 +957,9 @@ function computeStats(r) {
   const n = Math.max(1, Math.floor(sorted.length * 0.01));
   const worst = sorted.slice(0, n).reduce((a, b) => a + b, 0) / n;
   shots.sort((a, b) => a.fps - b.fps);
-  return { avg: 1000 / mean, low: 1000 / worst, heaviest: shots[0] || null, frames: all.length, shots };
+  const min = all.reduce((a, b) => a + b, 0) / 60000;
+  const spikes = [50, 100, 200].map((ms) => +(all.filter((x) => x > ms).length / Math.max(min, 1e-6)).toFixed(1));
+  return { avg: 1000 / mean, low: 1000 / worst, heaviest: shots[0] || null, frames: all.length, shots, spikes };
 }
 
 // runTrailer(world, { mode, cut, shot, frames, env: { tick, render, relocate } })
@@ -999,8 +1006,9 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       ren.render = function (...a) { nativeRender.apply(this, a); r.countCalls.n += ren.info.render.calls; };
     }
     document.body.classList.add('trailer-on');
-    // the colour look runs in the grade pass when there is one: a CSS filter
-    // and blend mode over the canvas cost a full-screen compositing pass
+    // the colour look runs in the grade pass only: a CSS filter and blend
+    // mode over the canvas would cost a full-screen compositing pass every
+    // frame, which made the lowest preset the slowest
     const pfx = window.__scene3d && window.__scene3d.postfx;
     cancelAnimationFrame(lookFade);
     if (pfx && pfx.hasGrade) { pfx.look = 1; document.body.classList.add('trailer-gpu-look'); }
@@ -1063,7 +1071,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       ui.black.classList.remove('dim');
       running = null;
       const stats = mode === 'benchmark' ? computeStats(r) : null;
-      if (stats) console.log('[trailer] benchmark', JSON.stringify({ avg: +stats.avg.toFixed(1), low: +stats.low.toFixed(1), shots: stats.shots.map((x) => `${x.label}: ${x.fps.toFixed(1)}`) }));
+      if (stats) console.log('[trailer] benchmark', JSON.stringify({ avg: +stats.avg.toFixed(1), low: +stats.low.toFixed(1), spikesPerMin: stats.spikes, shots: stats.shots.map((x) => `${x.label}: ${x.fps.toFixed(1)}`) }));
       if (window.__trailer) window.__trailer.lastStats = stats;
       resolve({ skipped, aborted, stats, continuation: handOff ? last.continuation() : null, pose: r.pose });
     };
@@ -1078,7 +1086,9 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       const hold = frozen && r.T >= frozen.T;
       if (!hold) r.T += dt;
       if (r.T >= total) { end(false); return; }
+      probe.begin(now);
       try { frame(r, hold ? 0 : dt, realMs); } catch (e) { console.error('trailer', r.shots[r.idx] && r.shots[r.idx].label, e && e.stack); }
+      probe.end();
       if (hold) { requestAnimationFrame(loop); return; }
       if (holdSince != null) {
         const k = Math.min(1, (now - holdSince) / (SKIP_HOLD_S * 1000));
