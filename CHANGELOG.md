@@ -6,6 +6,57 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-27
+
+Maus' tweede speelsessie verwerkt, en een grote schoonmaak van bekende bugs.
+
+### Nieuw
+- **Elk voertuig is te koop of vrij te spelen**: 46 voertuigen, van
+  studentenbarrel tot midibus, taxi en speedboot. Speciale voertuigen (de
+  Poen Express, ambulance, tankwagen, Jelle's trekker-limo, stadsbus,
+  politieauto en politieboot) speel je vrij via het verhaal, bijbaantjes en
+  prestaties. Alles staat in de Garage in het Escape-menu, met prijs of hoe
+  je hem vrijspeelt.
+- **Steel de trein**: stap in de cabine van een stilstaande trein en rijd
+  over het spoor. De politie vindt dat minder leuk.
+- **Ubbo**: bijbaantjes op afroep in je telefoon, met verdienste en afstand.
+- **Grootte interface** in Instellingen → Weergave. De hele HUD schaalt nu
+  mee met je scherm (1080p, 1440p en 4K), en berichten blijven lang genoeg
+  staan om ze te lezen.
+
+### Verbeterd
+- De politie komt minder snel achter je aan: een klein ongelukje zonder
+  getuigen levert niet meteen een ster op.
+- Reclamezuilen vliegen om als je er hard tegenaan rijdt, en je kunt ze
+  kapotschieten.
+- Bij de bushalte gaan de deuren snel weer dicht, en de dienstregeling is
+  ruimer.
+- Paraplu's worden gewoon boven het hoofd gehouden, en Anita's benen gaan
+  niet meer door haar jas.
+- De Poen Express is herkenbaar als gepantserde geldwagen, en geparkeerde
+  scooters zijn echte scooters om mee weg te rijden.
+- Doorzichtige ramen in alle auto's, busjes, bussen en vrachtwagens.
+- Geparkeerde auto's, straatmeubilair en bomen verschijnen verder weg.
+- De camera gaat niet meer door bomen en bushokjes.
+- Kano's en waterfietsen klinken als peddelen in plaats van als een motor.
+- Kortere wachttijden bij stoplichten.
+- Personages zonder naden bij schouders en heupen, en zonnebrillen waar je
+  doorheen kunt kijken.
+
+### Opgelost
+- Er zaten mensen in geparkeerde auto's.
+- Opstoppingen in het Gasthuisstraatje en rijders die vastliepen bij de Waag
+  tijdens de KEI-race.
+- Voetgangers liepen door elkaar heen en over het spoor zonder overgang.
+- Tammo of Anita bleef hangen bij doorgangen door gebouwen.
+- Te lage doorrijhoogtes rond het Julianaplein, en opritten van de ringweg
+  die niet aansloten op de rijbaan.
+- Brokstukken van een ontploffing op een viaduct vielen naar de straat.
+- De crash-replay speelde af bij elke ontploffing in de buurt.
+- De driehoekige inham bij de kade met een verkeerde rand, en steigers bij
+  woonboten waar je doorheen zakte.
+- De wijk-flyover direct na een treinreis.
+
 ## [0.6.0] - 2026-09-27
 
 Het verhaal gaat verder: deel 2, **de Romp**. En Grunn praat nu echt.
