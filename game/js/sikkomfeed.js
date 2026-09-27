@@ -2,7 +2,11 @@ import { playSikkomLine } from './audio.js';
 import { syncPlayerWrecks } from './vehicle.js';
 
 const CHECK_INTERVAL = 0.5;
-const COOLDOWN = 9;
+// Sikkom reacts now and then, not to every star or wreck
+const COOLDOWN = 90;
+const SAME_KIND_COOLDOWN = 300;
+const CHANCE = 0.5;
+const lastKindAt = {};
 
 const WANTED_UP = [
   'SIKKOM MELDT: onrust in Grunn, politie massaal op pad',
@@ -69,15 +73,17 @@ export function updateSikkomFeed(dt, world) {
   const cur = snapshot(world);
 
   if (world.time - lastToastAt >= COOLDOWN) {
-    let msg = null, audioKey = null;
-    if (cur.wanted > prev.wanted) { const [t, i] = pickIndexed(WANTED_UP); msg = t; audioKey = `wanted_up_${i + 1}`; }
-    else if (cur.wrecked > prev.wrecked) { const [t, i] = pickIndexed(WRECKED_UP); msg = t; audioKey = `wrecked_up_${i + 1}`; }
-    else if (cur.copKills > prev.copKills) { msg = COPKILL_UP[0]; audioKey = 'copkill_up'; }
-    else if (cur.pedKills > prev.pedKills) { msg = PEDKILL_UP[0]; audioKey = 'pedkill_up'; }
-    else if (cur.kills > prev.kills) { msg = KILL_UP[0]; audioKey = 'kill_up'; }
-    else if (cur.missionsDone > prev.missionsDone) { msg = MISSION_UP[0]; audioKey = 'mission_up'; }
+    let msg = null, audioKey = null, kind = null;
+    if (cur.wanted > prev.wanted) { const [t, i] = pickIndexed(WANTED_UP); msg = t; audioKey = `wanted_up_${i + 1}`; kind = 'wanted'; }
+    else if (cur.wrecked > prev.wrecked) { const [t, i] = pickIndexed(WRECKED_UP); msg = t; audioKey = `wrecked_up_${i + 1}`; kind = 'wrecked'; }
+    else if (cur.copKills > prev.copKills) { msg = COPKILL_UP[0]; audioKey = 'copkill_up'; kind = 'copkill'; }
+    else if (cur.pedKills > prev.pedKills) { msg = PEDKILL_UP[0]; audioKey = 'pedkill_up'; kind = 'pedkill'; }
+    else if (cur.kills > prev.kills) { msg = KILL_UP[0]; audioKey = 'kill_up'; kind = 'kill'; }
+    else if (cur.missionsDone > prev.missionsDone) { msg = MISSION_UP[0]; audioKey = 'mission_up'; kind = 'mission'; }
+    if (msg && (world.time - (lastKindAt[kind] ?? -Infinity) < SAME_KIND_COOLDOWN || Math.random() > CHANCE)) msg = null;
 
     if (msg) {
+      lastKindAt[kind] = world.time;
       world.phoneNotifications.push({ text: msg, duration: 4 });
       playSikkomLine(audioKey);
       lastToastAt = world.time;
