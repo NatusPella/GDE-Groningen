@@ -2200,7 +2200,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       hit = true;
       break;
     }
-    const rc = v.isBoat || v.sinking ? null : (map.elev ? elevWallContact(map.elev, c[0], c[1], v.z || 0) : null);
+    const rc = v.isBoat || v.sinking ? null : (map.elev ? elevWallContact(map.elev, c[0], c[1], v.z || 0, 1.4, v.driver === 'player') : null);
     if (rc) {
       v.x += rc.nx * rc.depth;
       v.y += rc.ny * rc.depth;
@@ -2553,12 +2553,16 @@ export function checkVehicleWater(v, map, world) {
   tickSinkingVehicles(world);
   if (v.sinking && !v.wrecked) { v.x = v.sinking.x; v.y = v.sinking.y; v.speed = 0; return false; }
   if (v.isBoat || v.wrecked || v.sinking || (v.parked && !v.speed)) return false;
-  if (!inWaterPoly(map, v.x, v.y) || map.isOnBridge(v.x, v.y)) return false;
-  // over the canal on a viaduct, or under it through the aqueduct
-  const z = v.z || 0;
-  if (v.airborne || z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(v.x, v.y))) return false;
+  if (v.airborne || !overOpenWater(map, v.x, v.y, v.z || 0)) return false;
   startVehicleFall(v, world);
   return true;
+}
+
+// Would something at (x, y, z) on the ground drop into the water here?
+export function overOpenWater(map, x, y, z) {
+  if (!inWaterPoly(map, x, y) || map.isOnBridge(x, y)) return false;
+  // over the canal on a viaduct, or under it through the aqueduct
+  return !(z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y)));
 }
 
 function startVehicleFall(v, world) {

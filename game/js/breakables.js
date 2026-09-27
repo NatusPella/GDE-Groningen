@@ -4,6 +4,7 @@ import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.
 import { streamTreeProps } from './treeprops.js';
 import { streamTrafficLightProps } from './trafficlights.js';
 import { streamFlitspaalProps } from './flitspaal.js';
+import { setWallBrokenTest } from './elevation.js';
 
 // Breakable street props. Owning modules register colliders near the player
 // (addProp/removeProp); vehicles test against them each frame. Below a prop's
@@ -37,10 +38,16 @@ export const PROP_DEFAULTS = {
   trafficlight: { r: 0.16, h: 3.7, mass: 260, material: 'metal', breakSpeed: 5, breakCost: 2.5, topple: true, burst: 'signal' },
   flitspaal: { r: 0.3, h: 3.5, mass: 420, material: 'metal', breakSpeed: 6.5, breakCost: 3.5, topple: true, burst: 'sparks', wanted: true },
   tree: { r: 0.28, h: 6, mass: 600, material: 'foliage', breakSpeed: 10, breakCost: 4, topple: true, burst: 'leaves' },
+  // the ring's steel crash barriers and the fences along its cuttings
+  // (elevation.js wall pieces): like a bridge railing, a car at speed or
+  // scraping along hard knocks a section out
+  vangrail: { r: 0.14, half: 1, h: 0.8, mass: 90, material: 'metal', breakSpeed: 4.5, breakCost: 1.2, glance: 0.25, minBreakKg: 500 },
+  hek: { r: 0.08, half: 1, h: 1.1, mass: 40, material: 'metal', breakSpeed: 3.4, breakCost: 0.6, glance: 0.25, minBreakKg: 400 },
 };
 
 const grid = new Map();
 const broken = new Map();
+setWallBrokenTest((key) => broken.has(key));
 const bodies = [];
 const prevPos = new WeakMap();
 let scene = null;
@@ -225,7 +232,7 @@ function collideVehicle(v, prev, near) {
   const boat = !!v.isBoat;
   const vz = v.z || 0;
   for (const p of near) {
-    if (!p.cell || !!p.water !== boat || Math.abs(vz - (p.z || 0)) > 3 || (p.top != null && vz > p.top - 0.3)) continue;
+    if (!p.cell || !!p.water !== boat || Math.abs(vz - (p.z || 0)) > 3 || (p.top != null && vz > p.top - 0.3) || (p.base != null && vz < p.base)) continue;
     for (let i = 1; i <= n; i++) {
       const t = i / n;
       const x = prev.x + (v.x - prev.x) * t, y = prev.y + (v.y - prev.y) * t;
@@ -356,7 +363,7 @@ function spawnBody(p, hit) {
   const obj = new THREE.Group();
   obj.add(inner);
   const b = {
-    p, obj, inner, mesh, life: 0, sleep: false, mass: p.mass, kickAt: 0,
+    p, obj, inner, mesh, life: 0, sleep: false, mass: p.mass, kickAt: 0, floor: p.z || 0,
     half: size.clone().multiplyScalar(0.5),
     x: p.x, y: 0, z: p.y, vx: hit.vx, vy: 0, vz: hit.vy,
     w: new THREE.Vector3(), q: new THREE.Quaternion(),
@@ -382,7 +389,7 @@ function spawnBody(p, hit) {
     // heavy: shoved along the ground with a scrape and a slow turn, no flight
     const c = _box.getCenter(new THREE.Vector3());
     inner.position.set(-c.x, -c.y, -c.z);
-    b.x = p.x + c.x; b.y = c.y; b.z = p.y + c.z;
+    b.x = p.x + c.x; b.y = c.y + (p.z || 0); b.z = p.y + c.z;
     b.vy = 0;
     b.slide = true;
     const hs = Math.hypot(b.vx, b.vz), cap = 9;
@@ -392,7 +399,7 @@ function spawnBody(p, hit) {
   } else {
     const c = _box.getCenter(new THREE.Vector3());
     inner.position.set(-c.x, -c.y, -c.z);
-    b.x = p.x + c.x; b.y = c.y; b.z = p.y + c.z;
+    b.x = p.x + c.x; b.y = c.y + (p.z || 0); b.z = p.y + c.z;
     b.vy = Math.min(6.5, (1 + hit.speed * 0.2 * hit.lift) * (0.75 + Math.random() * 0.5)) * clamp(1.25 - p.mass / 250, 0.5, 1);
     const hs = Math.hypot(b.vx, b.vz);
     if (hs > 26) { b.vx *= 26 / hs; b.vz *= 26 / hs; }
@@ -452,7 +459,7 @@ function stepFree(b, dt) {
     _q.setFromAxisAngle(_v2.copy(b.w).multiplyScalar(1 / wl), wl * dt);
     b.q.premultiply(_q).normalize();
   }
-  const low = b.y + lowestCorner(b);
+  const low = b.y + lowestCorner(b) - (b.floor || 0);
   let ground = false;
   if (low < 0) {
     ground = true;
