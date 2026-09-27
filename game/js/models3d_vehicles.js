@@ -180,18 +180,24 @@ function buildCarGeometry(type, L, W, paint, opts) {
   const arches = [{ x: P.rw, r: R, cy: r }, { x: P.fw, r: R, cy: r }];
   const sill = 0.3;
 
+  // vans: open cab (glass greenhouse like the cars) in front of a closed cargo box from xK back
+  const xK = P.xB - 0.8;
   const top = P.van
-    ? [[hl, P.nose], [hl - 0.12, P.hood], [P.xA, P.belt], [P.xB, P.roof - 0.12], [P.xB - 0.3, P.roof], [-hl + 0.06, P.roof], [-hl, P.roof - 0.06]]
+    ? [[hl, P.nose], [hl - 0.12, P.hood], [P.xA, P.belt], [xK, P.belt], [xK, P.roof], [-hl + 0.06, P.roof], [-hl, P.roof - 0.06]]
     : [[hl, P.nose], [hl - (P.boxy ? 0.05 : 0.14), P.hood], [P.xA, P.belt], [P.xD, P.belt], [-hl + (P.boxy ? 0.04 : 0.1), P.deck], [-hl, P.tail]];
   const outline = [...top, [-hl, sill + 0.08], ...archedSill(-hl, hl, sill, arches), [hl, sill + 0.08]];
   B.geo(extrudeProfile(outline, W, P.boxy ? 0.025 : 0.05), null, paint);
   archLiners(B, arches, W);
 
   if (P.van) {
-    sideStrip(B, P.xA + 0.02, P.belt + 0.03, P.xB + 0.02, P.roof - 0.13, 0, 0.02, W * 0.86, GLASS, G_GLASS);
+    const gh = [[P.xA + 0.03, P.belt - 0.03], [P.xB, P.roof - 0.12], [P.xB - 0.3, P.roof - 0.03], [xK + 0.01, P.roof - 0.03], [xK + 0.01, P.belt - 0.03]];
+    B.geo(extrudeProfile(gh, W * 0.9, 0.03), null, GLASS, G_GLASS);
+    B.geo(extrudeProfile([[P.xB + 0.03, P.roof - 0.14], [P.xB - 0.3, P.roof], [xK, P.roof], [xK, P.roof - 0.08]], W * 0.97, 0.025), null, paint);
+    const pz = W * 0.45;
     for (const s of [1, -1]) {
-      B.quadOut([P.xA - 0.08, P.belt + 0.08, s * (hw + 0.005)], [P.xB - 0.05, P.roof - 0.2, s * (hw + 0.005)], [P.xB - 0.75, P.roof - 0.2, s * (hw + 0.005)], [P.xB - 0.75, P.belt + 0.08, s * (hw + 0.005)], [0, 0, s], GLASS, G_GLASS);
-      sideStrip(B, P.xB - 0.8, P.belt + 0.05, P.xB - 0.8, P.roof - 0.15, s * (hw + 0.006), 0.05, 0.01, TRIM);
+      sideStrip(B, P.xA + 0.02, P.belt - 0.01, P.xB + 0.03, P.roof - 0.12, s * pz, 0.07, 0.05, paint);
+      sideStrip(B, xK + 0.04, P.belt, xK + 0.04, P.roof - 0.02, s * pz, 0.08, 0.05, paint);
+      sideStrip(B, P.xA + 0.02, P.belt + 0.005, xK, P.belt + 0.005, s * (pz + 0.01), 0.025, 0.03, TRIM);
       sideStrip(B, -hl + 1.6, 1.0, -hl + 1.6, P.roof - 0.1, s * (hw + 0.004), 0.015, 0.01, shadeHex(paint, 0.7));
     }
     B.box(-hl - 0.004, (P.belt + P.roof) / 2 + 0.2, 0, 0.012, 0.5, W * 0.06, TRIM);
@@ -278,7 +284,8 @@ function buildCarGeometry(type, L, W, paint, opts) {
   } else if (variant === 'cash') {
     for (const s of [1, -1]) {
       const z = s * (hw + 0.008);
-      B.box(0, 1.25, z, L - 0.6, 0.18, 0.012, 0x2f6b3f);
+      const bx0 = -hl + 0.3, bx1 = P.van ? xK : hl - 0.3;
+      B.box((bx0 + bx1) / 2, 1.25, z, bx1 - bx0, 0.18, 0.012, 0x2f6b3f);
       B.box(0, 1.1, z, L - 0.6, 0.05, 0.012, 0xd9b21b);
       B.box(-hl + 1.4, 1.55, z, 0.7, 0.22, 0.014, 0xd9b21b);
     }
@@ -286,7 +293,8 @@ function buildCarGeometry(type, L, W, paint, opts) {
   } else if (variant === 'pakket') {
     for (const s of [1, -1]) {
       const z = s * (hw + 0.008);
-      B.box(-0.3, 1.5, z, L - 1.6, 0.34, 0.012, 0xf4f2ec);
+      const bx0 = -hl + 0.8, bx1 = Math.min(hl - 0.8, xK - 0.05);
+      B.box((bx0 + bx1) / 2, 1.5, z, bx1 - bx0, 0.34, 0.012, 0xf4f2ec);
       B.box(-0.3, 1.5, z, 0.32, 0.26, 0.016, 0x1f4f9a);
       B.box(-0.3 - 0.55, 1.5, z, 0.5, 0.08, 0.016, 0x1f4f9a);
     }
@@ -381,11 +389,16 @@ function buildTruckMesh(v) {
     const cabL = 1.9, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
     B.box(0, 0.62, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
     B.box((boxX0 + boxX1) / 2, 2.05, 0, boxX1 - boxX0, 2.5, W, paint === WRECKED_COLOR ? paint : 0xeeeee8);
-    B.box(hl - cabL / 2, 1.5, 0, cabL, 1.9, W - 0.05, paint);
+    // cab: solid below the windows, glass all round above them, then the roof
+    const cx = hl - cabL / 2;
+    B.box(cx, 1.05, 0, cabL, 0.9, W - 0.05, paint);
+    B.box(cx, 2.35, 0, cabL, 0.2, W - 0.05, paint);
+    B.box(cx - 0.02, 1.925, 0, cabL - 0.1, 0.65, W - 0.12, GLASS, G_GLASS);
+    B.box(hl - cabL + 0.04, 1.925, 0, 0.08, 0.65, W - 0.05, paint);
     B.box(hl - cabL / 2 - 0.05, 2.5, 0, cabL - 0.3, 0.1, W - 0.25, shadeHex(paint, 0.85));
-    B.box(hl + 0.005, 1.95, 0, 0.02, 0.8, W - 0.35, GLASS, G_GLASS);
     for (const s of [1, -1]) {
-      B.box(hl - 0.55, 1.85, s * (hw - 0.015), 0.75, 0.6, 0.02, GLASS, G_GLASS);
+      B.box(hl - 0.04, 1.925, s * (hw - 0.06), 0.08, 0.65, 0.08, paint);
+      B.box(hl - 1.0, 1.925, s * (hw - 0.05), 0.08, 0.65, 0.06, paint);
       B.box(hl + 0.02, 0.8, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
       B.box(-hl - 0.01, 0.85, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
       B.box(hl - 0.1, 2.1, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
@@ -722,18 +735,37 @@ function busSection(B, x0, x1, W, { front, rear, wheelXs, doorXs }) {
   const hw = W / 2;
   const R = BUS_WHEEL_R + 0.1;
   const arches = wheelXs.slice().sort((a, b) => a - b).map((x) => ({ x, r: R, cy: BUS_WHEEL_R }));
-  const top = [[x1, BUS_SILL + 0.1]];
-  if (front) top.push([x1 + 0.03, 1.0], [x1, 2.7], [x1 - 0.25, BUS_ROOF]);
-  else top.push([x1, BUS_ROOF]);
-  if (rear) top.push([x0 + 0.25, BUS_ROOF], [x0, 2.75], [x0, BUS_SILL + 0.1]);
-  else top.push([x0, BUS_ROOF], [x0, BUS_SILL + 0.1]);
-  const outline = [...top, ...archedSill(x0, x1, BUS_SILL, arches)];
-  B.geo(extrudeProfile(outline, W, 0.06), null, BUS_WHITE);
-  archLiners(B, arches, W);
-
   const zs = hw + 0.006;
   const winY0 = 1.15, winY1 = 2.6;
   const inner0 = x0 + (rear ? 0.35 : 0.1), inner1 = x1 - (front ? 0.3 : 0.1);
+  // hollow between the window lines, so the driver shows through the glass
+  const top = [[x1, BUS_SILL + 0.1]];
+  if (front) top.push([x1 + 0.03, 1.0], [x1 + 0.03, winY0]);
+  else top.push([x1, winY0]);
+  top.push([x0, winY0], [x0, BUS_SILL + 0.1]);
+  B.geo(extrudeProfile([...top, ...archedSill(x0, x1, BUS_SILL, arches)], W, 0.06), null, BUS_WHITE);
+  const roof = [[x1, winY1]];
+  if (front) roof.push([x1, 2.7], [x1 - 0.25, BUS_ROOF]);
+  else roof.push([x1, BUS_ROOF]);
+  if (rear) roof.push([x0 + 0.25, BUS_ROOF], [x0, 2.75], [x0, winY1]);
+  else roof.push([x0, BUS_ROOF], [x0, winY1]);
+  B.geo(extrudeProfile(roof, W, 0.06), null, BUS_WHITE);
+  const midY = (winY0 + winY1) / 2, winH = winY1 - winY0;
+  for (const s of [1, -1]) {
+    B.box((x0 + inner0) / 2, midY, s * (hw - 0.03), inner0 - x0, winH, 0.06, BUS_WHITE);
+    B.box((inner1 + x1) / 2, midY, s * (hw - 0.03), x1 - inner1, winH, 0.06, BUS_WHITE);
+  }
+  if (rear) {
+    B.box(x0 + 0.03, (winY0 + 1.65) / 2, 0, 0.06, 1.65 - winY0, W, BUS_WHITE);
+    for (const s of [1, -1]) B.box(x0 + 0.03, (1.65 + winY1) / 2, s * (hw - 0.125), 0.06, winY1 - 1.65, 0.25, BUS_WHITE);
+  } else B.box(x0 + 0.03, midY, 0, 0.06, winH, W, BUS_WHITE);
+  if (!front) B.box(x1 - 0.03, midY, 0, 0.06, winH, W, BUS_WHITE);
+  B.box((x0 + x1) / 2, winY0 + 0.012, 0, x1 - x0 - 0.12, 0.02, W - 0.12, 0x3a3d42);
+  for (let x = inner0 + 0.6; x < inner1 - (front ? 1.2 : 0.4); x += 1.1) {
+    for (const s of [1, -1]) B.box(x, winY0 + 0.3, s * hw * 0.5, 0.08, 0.55, hw * 0.78, 0x2f4f7a);
+  }
+  archLiners(B, arches, W);
+
   for (const s of [1, -1]) {
     const z = s * zs;
     for (const [a, b] of spansBetween(x0 + 0.03, x1 - 0.03, arches)) {
