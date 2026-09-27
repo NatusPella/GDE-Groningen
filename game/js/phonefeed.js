@@ -163,13 +163,14 @@ function showNote(w, n) {
 function voiceCard(c) {
   if (!c.voice || c.leaving || c.t < VOICE_DELAY) return;
   const v = c.voice;
-  const r = playSmsVoice(v.src, v.dur, () => { c.speaking = false; c.left = Math.min(c.left, VOICE_TAIL); });
+  // the card's clock stops while it talks, then runs out its reading time
+  const r = playSmsVoice(v.src, v.dur, () => { c.speaking = false; });
   if (r === 'wait') return;
   c.voice = null;
   if (r !== 'play') return;
   c.speaking = true;
-  c.left = Math.max(c.left, (v.dur || 3) + VOICE_TAIL);
-  c.el.style.setProperty('--pf-dur', `${c.t + c.left}s`);
+  c.left = Math.max(c.left, VOICE_TAIL);
+  c.el.style.setProperty('--pf-dur', `${c.t + c.left + (v.dur || 3)}s`);
 }
 
 // "+2": how many more notifications wait behind the one that is up
