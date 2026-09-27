@@ -41,6 +41,8 @@ import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScr
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
+import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
+import { updatePoleVaults } from './fierljep.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
@@ -70,7 +72,7 @@ function waitForStart(world) {
     world.time += dt;
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
-      if (v.driver === 'player' || v.isPolice) continue;
+      if (v.driver === 'player' || v.isPolice || v.cineTemp) continue;
       if (v.isBoat) updateBoatAI(v, dt, world.map, world, Math.random);
       else {
         updateTrafficAI(v, dt, world.map, world, Math.random);
@@ -84,11 +86,12 @@ function waitForStart(world) {
     updateWildlife(dt, world);
   };
   // the effect pools exist from the title screen on, so their shaders are
-  // compiled there and not on the first explosion, shot or splash
-  const render = (dt) => {
-    updateFx3D(0, world, getScene());
-    updateGore3D(0, world, getScene());
-    updateGunFx3D(0, world, getScene());
+  // compiled there and not on the first explosion, shot or splash; the
+  // trailer (trailer.js) passes fxDt to play its explosions
+  const render = (dt, fxDt = 0) => {
+    updateFx3D(fxDt, world, getScene());
+    updateGore3D(fxDt, world, getScene());
+    updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
   return runStartScreen(world, { render, relocate, tick });
@@ -172,6 +175,7 @@ async function boot() {
   initPhoneFeed(world);
   initPigeonMode(world);
   initPigeonSpots(world);
+  initHeliRun(world);
   initSideJobs(world);
   initStory(world);
   initHud(world);
@@ -242,7 +246,7 @@ async function boot() {
     updatePigeonAfterglow(animDt);
     // cutscenes keep running (and end) while you're a pigeon; its camera wins
     if (world.pigeonMode) { updateCinematics(dt, world); updatePigeonCamera(dt, world); }
-    else {
+    else if (!world.heliRun) {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
@@ -273,9 +277,11 @@ async function boot() {
     probe.mark('populate');
 
     if (world.pigeonMode) updatePigeonMode(dt, world);
+    else if (world.heliRun) updateHeliRun(dt, world);
     else {
       tryTrainInteract(world);
       trySideJobInteract(world);
+      tryHeliSpotInteract(world);
       tryGarageInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
@@ -301,7 +307,7 @@ async function boot() {
     }
     probe.mark('traffic');
 
-    if (!world.pigeonMode) updatePolice(dt, world);
+    if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
@@ -309,7 +315,7 @@ async function boot() {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
     probe.mark('police+collide');
-    if (!world.pigeonMode) {
+    if (!world.pigeonMode && !world.heliRun) {
       updateCombat(dt, world);
       updateBullets(dt, world);
     }
@@ -319,8 +325,10 @@ async function boot() {
     updateWildlife(dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
+    updateHeliSpot(dt);
+    updatePoleVaults(dt, world);
     probe.mark('wildlife');
-    if (!world.pigeonMode) {
+    if (!world.pigeonMode && !world.heliRun) {
       updateMissions(dt, world);
       updateSikkomFeed(dt, world);
       updatePhoneFeed(dt, world);

@@ -22,6 +22,13 @@ const CAST = {
   Sjoerd: { voice: 'Umbriel', who: 'Groningse wedstrijdleider, droog', pool: ['droog, licht verbaasd', 'schamper, mopperend'] },
   Henk: { voice: 'Sadaltager', who: 'gemoedelijke Groningse garagehouder', pool: ['gemoedelijk, rustig'] },
   [NARRATOR]: { voice: 'Schedar', who: 'Groningse verteller, droog en warm', pool: ['droog, met een knipoog', 'warm, vertellend', 'plagend, laconiek'] },
+  'Jelle Terpstra': { voice: 'Fenrir', who: 'ijdele, charmante Friese ondernemer, spreekt Fries', pool: ['charmant, opschepperig', 'zelfvoldaan, grinnikend', 'plechtig, overdreven trots'], accent: 'spoken in West Frisian (Frysk) with a proud Frisian accent' },
+  Durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger, spreekt Fries', pool: ['dronken, lallend, samenzweerderig', 'traag, verward'], accent: 'spoken in West Frisian (Frysk), slow and heavy' },
+  Femke: { voice: 'Leda', who: 'energieke Groningse festivalmaker', pool: ['gehaast, enthousiast', 'opgelucht, vrolijk', 'verontwaardigd, snel'] },
+  Harm: { voice: 'Alnilam', who: 'oude Groningse wegwerker, gemoedelijk', pool: ['gemoedelijk, trots', 'samenzweerderig, droog'] },
+  Geert: { voice: 'Zubenelgenubi', who: 'Groningse kroegbaas, joviaal', pool: ['joviaal, roddelend', 'droog, grinnikend'] },
+  'Oma Trijntje': { voice: 'Sulafat', who: 'oude Groningse oma, warm en stellig', pool: ['warm, ontroerd', 'stellig, liefdevol'] },
+  'Kapitein Klaas': { voice: 'Enceladus', who: 'oude Groningse schipper, schor', pool: ['samenzweerderig, schor', 'droog, knipogend'] },
 };
 const MALE = ['Charon', 'Puck', 'Iapetus', 'Umbriel', 'Alnilam', 'Rasalgethi', 'Enceladus', 'Schedar', 'Sadaltager', 'Zubenelgenubi'];
 const FEMALE = ['Aoede', 'Leda', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Pulcherrima', 'Vindemiatrix', 'Sulafat', 'Achernar'];
@@ -49,14 +56,17 @@ for (const e of collect()) {
     if (sp === BUBBLE.m || sp === BUBBLE.f) {
       const f = sp === BUBBLE.f;
       const who = e.cast.who ? WHO[e.cast.who][f ? 1 : 0] : f ? WHO.vrouw : WHO.man;
-      job = { voice: pick(f ? FEMALE : MALE, key), who, tag: pick(e.cast.tag, key) };
+      // a bubble a main character says (story steps): their own voice
+      const as = e.cast.as && CAST[e.cast.as];
+      job = as ? { voice: as.voice, who: as.who, tag: mood(e.cast.as, e.text, key) } : { voice: pick(f ? FEMALE : MALE, key), who, tag: pick(e.cast.tag, key) };
     } else {
       const c = CAST[sp];
       if (!c) throw new Error(`no cast for ${sp}`);
       job = { voice: c.voice, who: c.who, tag: pick(e.cast.tag, key) || mood(sp, e.text, key) };
     }
     const dir = sp.startsWith('~') ? `bubbles/${sp === BUBBLE.f ? 'f' : 'm'}` : slug(sp);
-    jobs.push({ key, speaker: sp, text: e.text, area: e.area, file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${ACCENT}] ${e.text}` });
+    const accent = (CAST[sp] && CAST[sp].accent) || ACCENT;
+    jobs.push({ key, speaker: sp, text: e.text, area: e.area, file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${accent}] ${e.text}` });
   }
 }
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_lines.json'), JSON.stringify(jobs, null, 1));

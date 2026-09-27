@@ -84,7 +84,7 @@ export async function runStoryTest(world) {
     check('every step has a player', !noPlayer.length, noPlayer.join(', '));
     const selfTalk = STEPS.filter(stepAvailable).filter((q) => {
       const me = q.player === 'anita' ? 'A' : 'T';
-      return [q.lead, q.done, ...(q.after || []), ...(q.beat || [])].some((l) => l && l[0] === me);
+      return [q.lead, q.done, q.say, ...(q.after || []), ...(q.beat || [])].some((l) => l && l[0] === me);
     }).map((q) => q.id);
     check('phone lines come from the companion', !selfTalk.length, selfTalk.join(', '));
     let swaps = 0, prevChar = null;
@@ -106,7 +106,11 @@ export async function runStoryTest(world) {
       const t0 = performance.now();
       if (step.cost) entry.notes.push(world.money >= step.cost ? `kan €${step.cost} betalen` : `te kort voor €${step.cost}: voorschot verwacht`);
       if (step.player) {
-        const ok = await waitFor(() => world.player.character === step.player && (!world.companion || world.companion.character !== step.player), 10000);
+        // the swap waits for a quiet moment: keep skipping scenes meanwhile
+        const ok = await waitFor(() => {
+          if (isCinematicActive()) skipCinematic();
+          return world.player.character === step.player && (!world.companion || world.companion.character !== step.player);
+        }, 20000);
         check(`${cur.id}: plays as ${step.player}`, ok, ok ? world.player.character : JSON.stringify(S().swapInfo()));
         if (prevChar && prevChar !== world.player.character) { swaps++; entry.notes.push(`speelt als ${world.player.character}`); }
         prevChar = world.player.character;
