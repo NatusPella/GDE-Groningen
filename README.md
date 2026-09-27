@@ -86,7 +86,7 @@ Security or Windows SmartScreen.
 
 | Key | On foot | In a vehicle |
 |---|---|---|
-| W/S or ↑/↓ | walk away from / towards the camera (hold Shift to run) | throttle / reverse |
+| W/S or ↑/↓ | walk away from / towards the camera (hold Shift to run; on a bike Shift is a short sprint) | throttle / reverse |
 | A/D or ←/→ | strafe left/right relative to the camera | steer |
 | Space | jump | brake |
 | Ctrl | crouch | – |
