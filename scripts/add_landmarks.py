@@ -24,9 +24,28 @@ LANDMARKS = [
     ("Academiegebouw", 53.2197919, 6.5628558, "university"),
     ("Goudkantoor", 53.2184874, 6.5662801, "historic"),
     ("Noorderplantsoen", 53.226, 6.567, "park"),
-    ("Winkelcentrum Paddepoel", 53.2287, 6.5426, "mall"),
+    ("Winkelcentrum Paddepoel", 53.2301068, 6.5440612, "mall"),
     ("Euroborg", 53.2061414, 6.5915542, "stadium"),
 ]
+
+
+# Landmarks that are a complex of buildings: every footprint whose centre lies
+# in the OSM outline (cache, way id) gets the tag, not just the nearest one.
+OUTLINES = {
+    "Winkelcentrum Paddepoel": ("data/pois_raw.json", 167055945),
+}
+
+
+def load_outline(path, way_id, project):
+    try:
+        with open(path) as f:
+            els = json.load(f)["elements"]
+    except (OSError, ValueError, KeyError):
+        return None
+    for e in els:
+        if e.get("type") == "way" and e.get("id") == way_id and e.get("geometry"):
+            return [project(g["lat"], g["lon"]) for g in e["geometry"]]
+    return None
 
 
 def polygon_bounds(pts):
@@ -64,7 +83,23 @@ def main():
     for name, lat, lon, kind in LANDMARKS:
         x, y = project(lat, lon)
         entry = {"name": name, "x": round(x, 1), "y": round(y, 1), "kind": kind}
-        if kind in ("tower", "church", "modern", "museum", "university", "historic", "station", "mall", "stadium"):
+        outline = load_outline(*OUTLINES[name], project) if name in OUTLINES else None
+        if outline:
+            n = 0
+            for b in buildings:
+                if b.get("type") == "roof" or len(b["pts"]) < 4:
+                    continue
+                cx = sum(p[0] for p in b["pts"][:-1]) / (len(b["pts"]) - 1)
+                cy = sum(p[1] for p in b["pts"][:-1]) / (len(b["pts"]) - 1)
+                if point_in_polygon(cx, cy, outline):
+                    b["landmark"] = name
+                    b["landmarkKind"] = kind
+                    n += 1
+            if n:
+                tagged += 1
+                entry["buildingMatched"] = True
+                print(f"  {name}: {n} buildings in the outline")
+        elif kind in ("tower", "church", "modern", "museum", "university", "historic", "station", "mall", "stadium"):
             best, best_d2 = None, 1600  # within 40m if not a direct polygon hit
             for b in buildings:
                 minx, miny, maxx, maxy = polygon_bounds(b["pts"])

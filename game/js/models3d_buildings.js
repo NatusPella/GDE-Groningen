@@ -1154,6 +1154,10 @@ function addLandmarkDetail(group, b, box, parts, depth, roofMat, fine2) {
     const bandH = Math.min(2.2, depth * 0.18);
     unit(group, UNIT_BOX, accentMaterials[kind], box.w + 0.3, bandH, box.d + 0.3, box.cx, depth * 0.6, box.cz);
   } else if (kind === 'mall') {
+    // the band is the bounding box: only where that is the footprint itself
+    let a = 0;
+    for (let i = 0, n = b.pts.length; i < n; i++) { const p = b.pts[i], q = b.pts[(i + 1) % n]; a += p[0] * q[1] - q[0] * p[1]; }
+    if (Math.abs(a) / 2 < box.w * box.d * 0.85) return;
     const bandH = Math.min(3, depth * 0.22);
     unit(group, UNIT_BOX, accentMaterials.mall, box.w + 0.4, bandH, box.d + 0.4, box.cx, depth - bandH * 0.7, box.cz);
   } else if (kind === 'university' || kind === 'historic') {
