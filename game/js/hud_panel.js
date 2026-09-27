@@ -16,9 +16,10 @@ import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
 import { edgeDistance, urbanWeight } from './countryfield.js';
 import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
-import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
+import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
+import { initCards, updateCards } from './hudcards.js';
 
 const MINIMAP_SIZE = 230;
 const MM_SCALE = 1.45; // px per meter (css pixels) when standing still
@@ -26,8 +27,10 @@ const MM_SCALE_FAST = 0.62;
 const MM_FAST_SPEED = 28;
 let mmScale = MM_SCALE;
 
-// GTA-style: purple for your own waypoint, yellow for missions, orange for side jobs
-export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c' };
+// GTA-style: purple for your own waypoint, yellow for missions, orange for
+// side jobs, pink for care (food when hurt, a garage for your own damaged ride)
+export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c', care: '#ff5fb4' };
+export const routeLabel = (r) => (r.kind === 'user' ? 'Bestemming' : r.kind === 'job' ? 'Klus' : r.kind === 'care' ? (r.target && r.target.why === 'repair' ? 'Garage' : 'Opknappen') : 'Missie');
 
 let els = null;
 
@@ -73,9 +76,12 @@ export function initHud(world) {
   vehName.innerHTML = '<small></small><b></b>';
   root.appendChild(vehName);
 
+  // the objective line: one objective at a time, top centre
   const mission = document.createElement('div');
   mission.className = 'hud-mission';
-  mission.innerHTML = '<div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-mission-timer"></div>';
+  mission.setAttribute('aria-live', 'polite');
+  mission.innerHTML = '<svg class="hud-obj-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l9.5 9.5-9.5 9.5L2.5 12z"/></svg>' +
+    '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div></div><div class="hud-mission-timer"></div>';
   root.appendChild(mission);
 
   const nowPlaying = document.createElement('div');
@@ -97,10 +103,7 @@ export function initHud(world) {
     '<div class="hr-row" data-k="best"><span>RECORD</span><b></b></div>';
   root.appendChild(race);
 
-  const toasts = document.createElement('div');
-  toasts.className = 'hud-toasts';
-  toasts.setAttribute('aria-live', 'polite');
-  root.appendChild(toasts);
+  const cards = initCards(world, root);
 
   const location = document.createElement('div');
   location.className = 'hud-location';
@@ -139,7 +142,7 @@ export function initHud(world) {
     missionTimer: mission.querySelector('.hud-mission-timer'),
     district: location.querySelector('.hud-district'),
     street: location.querySelector('.hud-street'),
-    toasts,
+    cards,
     race,
     raceRows: Object.fromEntries([...race.querySelectorAll('.hr-row')].map((r) => [r.dataset.k, r])),
     racePos: race.querySelector('.hr-pos'),
@@ -192,7 +195,7 @@ export function updateHud(dt, world) {
   updateSpeedo(world);
   updateMission(world);
   updateRaceHud(world);
-  updateToasts(world);
+  updateCards(dt, world);
   updateNowPlaying(world);
   updateLocation(dt, world);
   updatePrompts(dt, world);
@@ -205,7 +208,7 @@ function updateRouteChip(world) {
   let text = '', kind = '';
   if (route && route.remaining > 12) {
     kind = route.kind;
-    text = `${kind === 'user' ? 'Bestemming' : kind === 'job' ? 'Klus' : 'Missie'}: ${formatDistance(route.remaining)}`;
+    text = `${routeLabel(route)}: ${formatDistance(route.remaining)}`;
   } else if (!route && getUserWaypoint()) {
     const wp = getUserWaypoint();
     kind = 'user';
@@ -411,31 +414,55 @@ function updateMoneyWeapon(dt, world) {
   if (textEl.textContent !== label) textEl.textContent = label;
 }
 
-function updateMission(world) {
+// The objective line: one objective at a time (a mission stage, else the
+// bijbaan's next goal, else "lose the police"), GTA style: the objective
+// big, its live counter small under it, a timer to the right. It pops in
+// again whenever the objective itself changes.
+function currentObjective(world) {
   const m = world.mission;
   const job = world.sideJob;
   if (job && job.active) {
     const timer = job.timeLeft != null ? Math.ceil(job.timeLeft) + 's' : '';
-    if (els.missionLabel.textContent) els.missionLabel.textContent = '';
-    if (els.missionProgress.textContent !== job.progress) els.missionProgress.textContent = job.progress;
-    if (els.missionTimer.textContent !== timer) els.missionTimer.textContent = timer;
-    els.mission.hidden = !job.progress && !timer;
-    return;
+    const g = job.goal;
+    return { kind: 'job', title: g ? g.label : job.progress, sub: g ? job.progress : '', hint: g ? g.desc : '', timer };
   }
-  if (!m) {
-    els.missionLabel.textContent = '';
-    els.missionProgress.textContent = '';
-    els.missionTimer.textContent = '';
-    els.mission.hidden = true;
-    return;
+  if (m && m.phase === 'active') {
+    const text = missionProgressText(m);
+    const timer = m.timeLeft != null && !m.raceHud ? Math.ceil(m.timeLeft) + 's' : '';
+    const cut = text.search(/ · | \(\d+\/\d+\)$/);
+    const sub = cut > 0 ? text.slice(cut).replace(/^ · /, '').replace(/^ \((\d+\/\d+)\)$/, 'stap $1') : '';
+    if (text || timer) return { kind: 'mission', title: cut > 0 ? text.slice(0, cut) : text, sub, timer };
   }
-  // no permanent objective title at the top: the minimap already shows the
-  // mission distance; only a live counter/timer appears during a mission
-  els.missionLabel.textContent = '';
-  els.missionProgress.textContent = missionProgressText(m);
-  // race-like runs show their clock in the race panel instead
-  els.missionTimer.textContent = m.phase === 'active' && m.timeLeft != null && !m.raceHud ? Math.ceil(m.timeLeft) + 's' : '';
-  els.mission.hidden = !els.missionProgress.textContent && !els.missionTimer.textContent;
+  if (world.wanted > 0 && !(m && m.phase === 'active')) {
+    const searching = !!(world.police && world.police.searching);
+    return {
+      kind: 'police', title: searching ? 'Blijf uit het zicht' : 'Ontsnap aan de politie', timer: '',
+      sub: searching ? 'Ze zijn je kwijt' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : world.player.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
+    };
+  }
+  return null;
+}
+
+const OBJ_HINT_TIME = 6;
+
+function updateMission(world) {
+  const o = currentObjective(world);
+  els.mission.hidden = !o || (!o.title && !o.timer);
+  if (els.mission.hidden) { els.objKey = ''; return; }
+  const key = o.kind + '|' + o.title;
+  if (key !== els.objKey) els.objAt = world.time;
+  // a new objective first says how (the bijbaan's hint), then its counter
+  const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
+  if (els.missionLabel.textContent !== o.title) els.missionLabel.textContent = o.title;
+  if (els.missionProgress.textContent !== sub) els.missionProgress.textContent = sub;
+  if (els.missionTimer.textContent !== o.timer) els.missionTimer.textContent = o.timer;
+  if (key !== els.objKey) {
+    els.objKey = key;
+    els.mission.dataset.kind = o.kind;
+    els.mission.classList.remove('pop');
+    void els.mission.offsetWidth;
+    els.mission.classList.add('pop');
+  }
 }
 
 // missions.js leaves these fields set after a mission ends, so gate on the
@@ -502,20 +529,6 @@ function updateNowPlaying(world) {
     els.nowPlaying.classList.remove('on');
     world.nowPlaying = null;
   }
-}
-
-// Only touch the DOM when the list changes, so the aria-live region
-// doesn't get re-announced every frame.
-let lastToastHtml = '';
-function updateToasts(world) {
-  world.messages = world.messages.filter((m) => m.until >= world.time);
-  const html = world.messages
-    .filter((m) => m.text !== 'DOOD' && m.text !== 'OPGEPAKT')
-    .map((m) => `<div class="hud-toast">${dualHtml(m.text)}</div>`)
-    .join('');
-  if (html === lastToastHtml) return;
-  lastToastHtml = html;
-  els.toasts.innerHTML = html;
 }
 
 function escapeHtml(s) {
@@ -831,6 +844,23 @@ export function getPoliceSearch(world) {
   return { x, y, r };
 }
 
+// As the crow flies (pigeon mode): a dashed straight line to the target.
+function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(bx, by);
+  ctx.setLineDash([7, 6]);
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(12, 20, 14, 0.75)';
+  ctx.stroke();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawEdgeArrow(ctx, x, y, angle, color, s = 1) {
   ctx.save();
   ctx.translate(x, y);
@@ -995,7 +1025,8 @@ function drawMinimap(dt, world) {
   const cx = MINIMAP_SIZE / 2, cy = MINIMAP_SIZE / 2;
   // The map rotates so the camera heading always points up; any world
   // angle plus mapRotation gives its on-screen angle.
-  const mapRotation = -Math.PI / 2 - (world.camYaw ?? player.angle);
+  // a flying pigeon: its own heading (pigeonmode.js keeps player.angle on it)
+  const mapRotation = -Math.PI / 2 - (world.pigeonMode ? player.angle : world.camYaw ?? player.angle);
   const cosR = Math.cos(mapRotation), sinR = Math.sin(mapRotation);
   ctx.translate(cx * dpr, cy * dpr);
   ctx.rotate(mapRotation);
@@ -1051,10 +1082,10 @@ function drawMinimap(dt, world) {
     drawSearchArea(ctx, sx, sy, search.r * mmScale, t);
   }
 
-  const route = getActiveRoute();
-  const ahead = route && getRouteAhead(MM_RADIUS_M * 2.5);
-  if (ahead && ahead.length > 1) {
-    drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, 4);
+  for (const route of getRoutes()) {
+    if (route.fly) { drawCrowLine(ctx, toScreen(player.x, player.y), toScreen(route.target.x, route.target.y), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user); continue; }
+    const ahead = getRouteAhead(MM_RADIUS_M * 2.5, route);
+    if (ahead && ahead.length > 1) drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, route === getActiveRoute() ? 4 : 3);
   }
   const inRange = (x, y) => (x - player.x) ** 2 + (y - player.y) ** 2 <= iconRangeM * iconRangeM;
   const placed = [];

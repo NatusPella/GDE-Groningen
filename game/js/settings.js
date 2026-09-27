@@ -29,8 +29,10 @@ const DEFAULTS = {
   drawDistance: 'ver',
   mouseSensitivity: 1,
   invertY: false,
-  // the attract intro (trailer.js) has played; not a player choice, so
-  // Standaardinstellingen leaves it alone
+  autoAim: true,
+  drunkFx: 'aan',
+  // unused since the attract intro plays at every launch; kept so old
+  // settings files load unchanged
   attractSeen: false,
 };
 const KEEP_ON_RESET = new Set(['attractSeen']);

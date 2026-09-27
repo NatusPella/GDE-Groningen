@@ -1,4 +1,5 @@
 import { setDualText } from './subtitles.js';
+import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount } from './models3d_vehicles.js';
@@ -32,6 +33,8 @@ import { setTreeMeshBuilder } from './treeprops.js';
 import { propsNearInto } from './breakables.js';
 import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
+import { updatePortals } from './portalcut3d.js';
+import { inPassage } from './passages.js';
 import { buildRailDecks } from './roadstructures3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D } from './skyprops3d.js';
@@ -53,6 +56,7 @@ import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js'
 import { updateCountryside } from './countryside.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
+import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -765,7 +769,7 @@ export function init3D(map) {
   // sky colour through the gaps.
   const [bx0, by0, bx1, by1] = map.meta.bounds;
   const bedPad = Math.max(bx1 - bx0, by1 - by0) * 0.15;
-  bedMaterial = applyCutMask(new THREE.MeshBasicMaterial({ color: 0x1e2a2c }));
+  bedMaterial = applyCutMask(new THREE.MeshBasicMaterial({ color: 0x1e2a2c }), null, true);
   initCutMask(map);
   const bed = new THREE.Mesh(
     new THREE.PlaneGeometry(bx1 - bx0 + bedPad * 2, by1 - by0 + bedPad * 2),
@@ -1548,7 +1552,12 @@ function syncSpeechBubbles(world) {
     }
     const scr = projectToScreen(src.x, p.h ?? 2.1, src.y);
     if (!scr) { el.style.display = 'none'; continue; }
-    if (el._text !== p.speechText) { el._text = p.speechText; setDualText(el, p.speechText); }
+    if (el._text !== p.speechText) {
+      el._text = p.speechText;
+      setDualText(el, p.speechText);
+      // story characters (the companion, Jelle) carry their name: world.extraSpeakers speechName
+      if (p.speechName) el.insertAdjacentHTML('afterbegin', speakerHtml(p.speechName).replace('class="spk"', 'class="spk bubble"'));
+    }
     el.style.display = 'block';
     el.style.left = scr.x + 'px';
     el.style.top = scr.y + 'px';
@@ -1568,6 +1577,7 @@ export function update3D(dt, world) {
   syncBuildings(world, player.x, player.y);
   probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
+  updatePortals(player.x, player.y);
   updateGrass(dt, world, cam, DRAW_DIST);
   probe.mark('3d:grass');
   syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, player.x, player.y);
@@ -1620,7 +1630,14 @@ export function update3D(dt, world) {
           body.position.y = v.susHeave || 0;
         }
       }
-      updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
+      // cutscenes, the trailer and the intro move cars by position while the
+      // world is paused: there the wheels roll the distance actually moved
+      const wud = mesh.userData, lx = wud.spinX, ly = wud.spinY;
+      wud.spinX = v.x; wud.spinY = v.y;
+      if (world.paused || v.cineTemp) {
+        const moved = lx == null ? 0 : (v.x - lx) * Math.cos(v.angle) + (v.y - ly) * Math.sin(v.angle);
+        updateVehicleWheelSpin(mesh, dt > 0 && Math.abs(moved) < 8 ? moved / dt : 0, dt, v.steer || 0);
+      } else updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
       if (v.isBoat) {
         animateBoat(mesh, v, world.time);
         crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);
@@ -2473,14 +2490,20 @@ function roofTopNear(map, x, y) {
       const [x0, y0, x1, y1] = b.bounds;
       const px = x + dx, py = y + dy;
       if (px < x0 || px > x1 || py < y0 || py > y1 || !pointInPolygon(px, py, b.pts)) continue;
+      // a passage or a room (the museum) is open inside
+      if (inPassage(map, b, px, py)) continue;
       // pitched roofs rise up to ~7 m over the wall top: keep a safe margin
       top = Math.max(top, (b.h || 3) * LEVEL_HEIGHT + (b.lift || 0) + (b.h <= 4 ? 7.5 : 2.5));
     }
   }
   return top;
 }
+const _guardLast = new THREE.Vector3(1e9, 0, 0);
 function guardCinematicCamera(dt, world) {
   const need = world && world.map ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
+  // a cut to another place starts from its own need, not the old shot's lift
+  if (_guardLast.distanceToSquared(cam.position) > 144) guardLift = need;
+  _guardLast.copy(cam.position);
   guardLift += (need - guardLift) * Math.min(1, dt * (need > guardLift ? 10 : 1.5));
   if (guardLift > 0.01) cam.position.y += guardLift;
   const targets = guardTargets();
@@ -2524,6 +2547,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
     guardLift = 0;
   }
   cam.lookAt(_camLook);
+  if (t <= 0.5) applyDrunkCamera(cam);
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   const targetFov = valid && o.fov ? o.fov : baseFov;
   if (cam.fov !== targetFov) {

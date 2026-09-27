@@ -1,0 +1,120 @@
+/* Phone notifications and calls (phonefeed.js), bottom left above the
+   street name. Inside #hud: uiscale.js zoom applies, vw/vh are / --ui. */
+#hud .phonefeed {
+  position: absolute;
+  left: 16px;
+  bottom: 104px;
+  width: min(390px, calc(44vw / var(--ui, 1)));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+#hud .pf-card, #hud .pf-callcard {
+  --pf: var(--gron-green-light);
+  position: relative;
+  color: #f0ede4;
+  background: linear-gradient(180deg, rgba(30, 36, 31, 0.96), rgba(14, 19, 15, 0.96));
+  border: 1px solid rgba(240, 237, 228, 0.12);
+  border-top: 3px solid var(--pf);
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(70px) rotate(-2.5deg) scale(0.96);
+  transform-origin: 20% 100%;
+  transition: opacity 0.35s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s;
+}
+#hud .pf-card.on, #hud .pf-callcard.on { opacity: 1; transform: none; }
+#hud .pf-card.back { opacity: 0.72; transform: scale(0.95); filter: saturate(0.6); }
+#hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(40px) scale(0.96); transition-duration: 0.45s; }
+#hud .pf-card[data-app="bericht"] { --pf: #8fd3ff; }
+#hud .pf-card[data-app="geld"] { --pf: #3fc97a; }
+#hud .pf-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--pf);
+  opacity: 0.55;
+  transform-origin: left;
+}
+#hud .pf-card.on::after { animation: pf-time var(--pf-dur, 7s) linear forwards; }
+@keyframes pf-time { to { transform: scaleX(0); } }
+
+#hud .pf-head { display: flex; align-items: center; gap: 8px; padding: 9px 14px 2px 12px; }
+#hud .pf-app {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  color: #0c140e;
+  background: var(--pf);
+}
+#hud .pf-app svg { width: 16px; height: 16px; }
+#hud .pf-from { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: var(--pf); }
+#hud .pf-more { padding: 1px 7px 0; border-radius: 9px; font-size: 14px; letter-spacing: 0.5px; color: #0c140e; background: rgba(240,237,228,0.85); }
+#hud .pf-more[hidden] { display: none; }
+#hud .pf-time { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; color: rgba(240, 237, 228, 0.55); }
+#hud .pf-title { padding: 3px 14px 0; font-size: 25px; line-height: 1.02; letter-spacing: 0.6px; text-transform: uppercase; }
+#hud .pf-body { padding: 3px 14px 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 17px; line-height: 1.28; color: rgba(240, 237, 228, 0.92); }
+#hud .pf-title:last-child { padding-bottom: 12px; }
+
+/* calls and livestreams */
+#hud .pf-callcard { --pf: #3fc97a; border-radius: 18px; }
+#hud .pf-callcard.live { --pf: #ff5a4a; }
+#hud .pf-call-head { display: flex; align-items: center; gap: 11px; padding: 11px 14px 6px 12px; }
+#hud .pf-avatar {
+  position: relative;
+  flex: 0 0 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: #0c140e;
+  background: var(--pf);
+}
+#hud .pf-callcard.ringing .pf-avatar::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--pf);
+  animation: pf-ring 0.8s ease-out infinite;
+}
+#hud .pf-callcard.ringing { animation: pf-buzz 0.4s ease-in-out infinite alternate; }
+@keyframes pf-ring { from { transform: scale(0.9); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+@keyframes pf-buzz { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
+#hud .pf-callwho { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
+#hud .pf-callwho small { font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--pf); }
+#hud .pf-callwho b { margin-top: 2px; font-weight: normal; font-size: 26px; letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .pf-state { margin-left: auto; display: flex; align-items: center; gap: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; color: rgba(240, 237, 228, 0.7); white-space: nowrap; }
+#hud .pf-clock { font-weight: normal; font-variant-numeric: tabular-nums; }
+#hud .pf-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pf); animation: pf-blink 1.2s ease-in-out infinite; }
+#hud .pf-live { margin-left: auto; padding: 3px 8px 1px; border-radius: 4px; font-size: 15px; letter-spacing: 2px; color: #fff; background: #d93f3f; animation: pf-blink 1.4s ease-in-out infinite; }
+@keyframes pf-blink { 50% { opacity: 0.4; } }
+#hud .pf-line { display: flex; flex-direction: column; gap: 3px; padding: 2px 16px 14px 65px; min-height: 22px; }
+#hud .pf-line.new { animation: pf-line 0.35s ease-out; }
+@keyframes pf-line { from { opacity: 0; transform: translateY(6px); } }
+#hud .pf-speaker { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
+#hud .pf-speaker:empty, #hud .pf-sub:empty { display: none; }
+#hud .pf-say { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 19px; line-height: 1.25; }
+#hud .pf-sub { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; line-height: 1.25; font-style: italic; color: rgba(240, 237, 228, 0.68); }
+#hud .pf-callcard.ended { filter: saturate(0.3); opacity: 0.8; }
+
+@media (max-height: 640px) {
+  #hud .phonefeed { bottom: 96px; }
+  #hud .pf-title { font-size: 21px; }
+  #hud .pf-body, #hud .pf-say { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #hud .pf-card, #hud .pf-callcard { transition: opacity 0.2s; transform: none !important; }
+  #hud .pf-callcard.ringing, #hud .pf-callcard.ringing .pf-avatar::after, #hud .pf-line.new { animation: none; }
+}

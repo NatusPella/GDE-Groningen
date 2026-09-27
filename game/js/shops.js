@@ -8,7 +8,8 @@ import { getHorecaForRender } from './horeca.js';
 import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { recordStat, isUnlocked } from './achievements.js';
-import { isMissionCompleted, missionIndexById } from './missions.js';
+import { isMissionCompleted, missionIndexById, getNextMission, getMissionDefs, requirementMet } from './missions.js';
+import { currentStep } from './story.js';
 import { jobLevel } from './sidejobs.js';
 
 export const SHOP_USE_RADIUS = 2.6;
@@ -297,7 +298,8 @@ function placeAtPoi(map, poi, horeca, taken) {
   for (const off of [0, 4, -4, 8, -8]) {
     const f = { ...f0, x: f0.x + f0.tx * off, y: f0.y + f0.ty * off };
     const [dx, dy] = map.escapeBuilding(f.x + f.nx * 1.3, f.y + f.ny * 1.3, 0.8);
-    if (isInWater(map, dx, dy) || !doorClear(dx, dy, horeca, taken)) continue;
+    // a door onto a closed-off courtyard is no door
+    if (isInWater(map, dx, dy) || !doorClear(dx, dy, horeca, taken) || !map.canWalkOut(dx, dy, 30)) continue;
     return { x: dx, y: dy, face: f, street: (st && st.road.name) || '' };
   }
   return null;
@@ -561,7 +563,47 @@ function shopMenu(world, s) {
     fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
     pand: (w) => pandSections(w, s), boot: (w) => bootSections(w, s), eikea: eikeaSections,
   }[s.type];
-  return { name: s.name, type: s.type, tagline: s.tagline, color: SHOP_TYPES[s.type].color, sections: () => build(world) };
+  return { name: s.name, type: s.type, tagline: s.tagline, color: SHOP_TYPES[s.type].color, sections: () => markGates(world, build(world)) };
+}
+
+// Story gates the player still has to meet (read-only: the story step's
+// requirement and the next mission's `requires`).
+function openGates(world) {
+  const out = new Set();
+  let st = null;
+  try { st = currentStep(); } catch (e) { st = null; }
+  if (st && st.goal && st.goal.type === 'require') for (const r of [].concat(st.goal.req)) out.add(r);
+  try {
+    const n = getNextMission();
+    const def = n && getMissionDefs()[n.index];
+    if (def && def.requires) for (const r of [].concat(def.requires)) out.add(r);
+  } catch (e) { /* no missions yet */ }
+  return [...out].filter((k) => { try { return !requirementMet(world, k); } catch (e) { return true; } });
+}
+
+// What a vehicle must be to meet a gate, and what to call it when it isn't.
+const GATE_VEHICLE = {
+  bike: { shop: 'fietsen', ok: (sp) => sp.kind === 'bike', word: 'fiets', why: 'voor de KEI-race' },
+  car: { shop: 'auto', ok: (sp) => sp.kind === 'car' && !sp.unlock, word: 'auto', why: 'voor de ringweg-race' },
+};
+
+// While a gate is open, the vehicles that meet it get a "Telt voor je
+// missie" tag and come first; the others say so and ask before buying.
+function markGates(world, sections) {
+  const gates = openGates(world).filter((k) => GATE_VEHICLE[k]);
+  if (!gates.length) return sections;
+  return sections.map((sec) => {
+    const items = sec.items.map((it) => {
+      const sp = it.id && it.id.startsWith('v-') ? VEHICLE_STOCK[it.id.slice(2)] : null;
+      if (!sp) return it;
+      const g = gates.map((k) => GATE_VEHICLE[k]).find((x) => x.shop === sp.shop);
+      if (!g) return it;
+      if (g.ok(sp)) return { ...it, tag: it.tag || 'Telt voor je missie', gateOk: true };
+      return { ...it, desc: `${it.desc} · telt niet als ${g.word}`, confirmText: `Telt niet als ${g.word} ${g.why}. Nog eens = toch kopen` };
+    });
+    items.sort((a, b) => (b.gateOk ? 1 : 0) - (a.gateOk ? 1 : 0));
+    return { ...sec, items };
+  });
 }
 
 function foodSections(world, title, list) {
@@ -1120,6 +1162,8 @@ function paintShop(world) {
         items: PAINTS.map((p) => ({
           id: 'p-' + p.id, label: p.label, desc: 'Complete spuitbeurt, droog in een minuut', price: PAINT_PRICE,
           swatch: [p.color], tag: cur === p.color ? 'Nu' : '',
+          // selecting a colour shows your own vehicle in it before you pay
+          preview: { kind: v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : 'car', model: v.model, color: p.color, nameIdx: v.id % 6, flags: v.isHeroCar ? { isHeroCar: true } : null },
           disabled: cur === p.color ? 'Heeft deze kleur al' : broke(world, PAINT_PRICE),
           buy() {
             if (!pay(world, PAINT_PRICE)) return null;

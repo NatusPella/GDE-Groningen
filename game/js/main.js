@@ -19,6 +19,7 @@ import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
 import { updateBanter } from './banter.js';
+import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
@@ -55,6 +56,7 @@ import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
+import { updateDrunk } from './drunk.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -187,6 +189,7 @@ async function boot() {
   initPostgame(world);
   initSideJobs(world);
   initStory(world);
+  initStoryContact(world);
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
@@ -245,6 +248,7 @@ async function boot() {
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
     updateAudio(dt, world);
     updateBanter(world.paused ? 0 : gameDt, world);
+    updateStoryContact(world.paused ? 0 : dt, world);
     probe.mark('audio');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused ? 0 : gameDt;
@@ -333,6 +337,7 @@ async function boot() {
       updateCombat(dt, world);
       updateBullets(dt, world);
     }
+    updateDrunk(dt, world);
     probe.mark('combat');
     updatePedestrians(dt, world);
     probe.mark('peds');

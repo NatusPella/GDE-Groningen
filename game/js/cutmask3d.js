@@ -36,7 +36,8 @@ export function initCutMask(map) {
 // Patch a built-in material so it discards over open cuts. worldVarying is
 // the name of a vec2 varying holding world x/z (declared by the caller's
 // shader), or null to add one here.
-export function applyCutMask(material, worldVarying = null) {
+// `covered`: also discard over the covered (tunnel) sections - the canal bed.
+export function applyCutMask(material, worldVarying = null, covered = false) {
   const prev = material.onBeforeCompile;
   material.onBeforeCompile = (shader, renderer) => {
     if (prev) prev.call(material, shader, renderer);
@@ -56,10 +57,10 @@ vCutXZ = (modelMatrix * vec4(transformed, 1.0)).xz;
     }
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', '#include <common>\n' + CUT_GLSL_LOCAL)
-      .replace('void main() {', `void main() {\n  if (cutMasked(${v})) discard;`);
+      .replace('void main() {', `void main() {\n  if (cutMasked(${v}, ${covered ? '0.25' : '0.75'})) discard;`);
   };
   const key = material.customProgramCacheKey ? material.customProgramCacheKey.bind(material) : null;
-  material.customProgramCacheKey = () => (key ? key() : '') + '|cut';
+  material.customProgramCacheKey = () => (key ? key() : '') + (covered ? '|cutc' : '|cut');
   return material;
 }
 
@@ -67,11 +68,11 @@ const CUT_GLSL_LOCAL = `
 uniform sampler2D uCutMask;
 uniform vec4 uCutRect;
 uniform vec3 uCutNear;
-bool cutMasked(vec2 p) {
+bool cutMasked(vec2 p, float level) {
   vec2 dn = p - uCutNear.xy;
   if (dot(dn, dn) > uCutNear.z * uCutNear.z) return false;
   vec2 uv = (p - uCutRect.xy) * uCutRect.zw;
   if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return false;
-  return texture2D(uCutMask, uv).r > 0.5;
+  return texture2D(uCutMask, uv).r > level;
 }
 `;

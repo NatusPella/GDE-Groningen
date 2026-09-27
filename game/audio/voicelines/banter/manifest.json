@@ -103,10 +103,6 @@
 "src": "h3-fail_1_t_4a965e.mp3",
 "dur": 4.32
 },
-"Anita|Jij poept op het museum en noemt het verkenning.": {
-"src": "h4-pass-kunst_0_a_e111f9.mp3",
-"dur": 4.63
-},
 "Tammo|Kunst is wat je ervan maakt.": {
 "src": "h4-pass-kunst_1_t_4685c1.mp3",
 "dur": 2.53
@@ -122,10 +118,6 @@
 "Tammo|Jij weet veel van Friezen.": {
 "src": "h4-pass-blaadjes_2_t_d902aa.mp3",
 "dur": 1.93
-},
-"Anita|Ik ken mijn buren.": {
-"src": "h4-pass-blaadjes_3_a_0500b0.mp3",
-"dur": 2.0
 },
 "Anita|Je hebt een kwartier op een patatbakje gezeten.": {
 "src": "h4-fail_0_a_30ddad.mp3",
@@ -483,10 +475,6 @@
 "src": "st-h3_1_t_ef5304.mp3",
 "dur": 3.17
 },
-"Tammo|Ik ga vliegen leren van duiven. Mijn vader zou trots zijn.": {
-"src": "st-duif_0_t_db6926.mp3",
-"dur": 4.8
-},
 "Anita|Je vader was bang voor duiven.": {
 "src": "st-duif_1_a_264ef9.mp3",
 "dur": 3.9
@@ -494,10 +482,6 @@
 "Tammo|Precies. Ik doorbreek het patroon.": {
 "src": "st-duif_2_t_03d489.mp3",
 "dur": 2.73
-},
-"Anita|Bert zegt dat je een duif wordt als je hem diep in de ogen kijkt.": {
-"src": "st-h4_0_a_10a68d.mp3",
-"dur": 6.95
 },
 "Tammo|Zo ben ik ook voor jou gevallen.": {
 "src": "st-h4_1_t_95c8c5.mp3",
@@ -1895,10 +1879,6 @@
 "src": "end-staart-revanche_2_a_107c3b.mp3",
 "dur": 2.62
 },
-"Tammo|Wij tweeën vóór Grunn. Klinkt eigenlijk best goed.": {
-"src": "end-staart-voor_0_t_cfab51.mp3",
-"dur": 3.33
-},
 "Anita|Zei ik toch. Op die rondvaartboot al.": {
 "src": "end-staart-voor_1_a_c17f1c.mp3",
 "dur": 4.84
@@ -2082,5 +2062,361 @@
 "Anita|Tot ze onze eierballen ruiken.": {
 "src": "id-pg-fjord-plek_2_a_6a229b.mp3",
 "dur": 1.95
+},
+"Anita|Ik had hem al voor me gezien, weet je. De Fjord. Met een luifel.": {
+"src": "q-h6-luifel_0_a_b8a0ed.mp3",
+"dur": 4.47
+},
+"Tammo|Een rode luifel?": {
+"src": "q-h6-luifel_1_t_6db70e.mp3",
+"dur": 1.7
+},
+"Anita|Rood met wit. En jij achter de frituur.": {
+"src": "q-h6-luifel_2_a_f2c18e.mp3",
+"dur": 3.28
+},
+"Tammo|Ik? Achter de frituur?": {
+"src": "q-h6-luifel_3_t_6a33e9.mp3",
+"dur": 1.64
+},
+"Anita|Laat maar. Rij nou maar.": {
+"src": "q-h6-luifel_4_a_29c1aa.mp3",
+"dur": 2.41
+},
+"Tammo|Die handjes om de Eierbal. Die zijn van haar.": {
+"src": "q-h12-handjes_0_t_268a6a.mp3",
+"dur": 3.29
+},
+"Anita|Ik weet het, Tammo.": {
+"src": "q-h12-handjes_1_a_6feedb.mp3",
+"dur": 1.99
+},
+"Tammo|Je kunt geen oma verkopen.": {
+"src": "q-h12-handjes_2_t_e15f5b.mp3",
+"dur": 2.01
+},
+"Anita|Nee. Maar mijn Fjord dan?": {
+"src": "q-h12-handjes_3_a_2c74e6.mp3",
+"dur": 2.32
+},
+"Tammo|Die komt er wel. Anders bouw ik hem zelf. Van karton.": {
+"src": "q-h12-handjes_4_t_f83c06.mp3",
+"dur": 3.82
+},
+"Anita|Zeg eens iets.": {
+"src": "q-h13-iets_0_a_1358dd.mp3",
+"dur": 0.98
+},
+"Anita|Tammo.": {
+"src": "q-h13-iets_2_a_970a67.mp3",
+"dur": 1.87
+},
+"Anita|Weet je wat ik raar vind? Dat Jelle ons steeds bedankt.": {
+"src": "q-h14-beleefd_0_a_15953e.mp3",
+"dur": 3.68
+},
+"Tammo|Hij denkt dat hij wint. Mensen die winnen zijn beleefd.": {
+"src": "q-h14-beleefd_1_t_7b69fb.mp3",
+"dur": 4.13
+},
+"Anita|Dan worden wij straks heel onbeleefd.": {
+"src": "q-h14-beleefd_2_a_a9fecc.mp3",
+"dur": 2.53
+},
+"Tammo|Als we winnen… verkopen we hem dan?": {
+"src": "q-h17-ons_0_t_ce6398.mp3",
+"dur": 1.92
+},
+"Anita|Vraag je dat aan mij of aan jezelf?": {
+"src": "q-h17-ons_1_a_0b6446.mp3",
+"dur": 2.61
+},
+"Tammo|Aan ons.": {
+"src": "q-h17-ons_2_t_6bf1dc.mp3",
+"dur": 0.76
+},
+"Anita|Dan weten wij het antwoord al.": {
+"src": "q-h17-ons_3_a_cf3a28.mp3",
+"dur": 3.43
+},
+"Anita|Wij tweeën vóór Grunn. Klinkt beter dan tegen.": {
+"src": "q-h18-beste_0_a_84580f.mp3",
+"dur": 3.92
+},
+"Tammo|Alles klinkt beter met een eierbal erbij.": {
+"src": "q-h18-beste_1_t_14f8aa.mp3",
+"dur": 2.71
+},
+"Anita|Die van ons is de beste. Jelle zei het zelf.": {
+"src": "q-h18-beste_2_a_1711d5.mp3",
+"dur": 4.47
+},
+"Tammo|Net fertelle.": {
+"src": "q-h18-beste_3_t_9ff79e.mp3",
+"dur": 1.24
+},
+"Tammo|Iets. Hoor je? Ik zeg iets.": {
+"src": "q-h13-iets_1_t_ac0042.mp3",
+"dur": 2.56
+},
+"Anita|Jouw duif poept op het museum en jij noemt het verkenning.": {
+"src": "h4-pass-kunst_0_a_9b78d2.mp3",
+"dur": 5.63
+},
+"Anita|Ik ken iemand.": {
+"src": "h4-pass-blaadjes_3_a_f3ff07.mp3",
+"dur": 1.83
+},
+"Tammo|Wie?": {
+"src": "h4-pass-blaadjes_4_t_ad7699.mp3",
+"dur": 0.47
+},
+"Anita|Niks. Iemand uit Friesland.": {
+"src": "h4-pass-blaadjes_5_a_9ca1d5.mp3",
+"dur": 4.1
+},
+"Tammo|Ik ga met duiven werken. Mijn vader zou trots zijn.": {
+"src": "st-duif_0_t_c0aa46.mp3",
+"dur": 3.72
+},
+"Anita|Bert zegt dat een duif naar je luistert als je hem diep in de ogen kijkt.": {
+"src": "st-h4_0_a_e5c131.mp3",
+"dur": 5.56
+},
+"Tammo|Wij tweeën vóór Grunn. Kon minder.": {
+"src": "end-staart-voor_0_t_40f67a.mp3",
+"dur": 3.19
+},
+"Tammo|Vóór Grunn. Samen. Mien wicht.": {
+"src": "q-h13-iets_3_t_ab88c3.mp3",
+"dur": 3.16
+},
+"Anita|Kijk. Het kan wel.": {
+"src": "q-h13-iets_4_a_83eda3.mp3",
+"dur": 1.85
+},
+"Anita|Mijn vriend de duivenkoning.": {
+"src": "h4-pass-duivenkoning_0_a_1b952b.mp3",
+"dur": 3.9
+},
+"Tammo|Het was één duif. Die had toevallig zin.": {
+"src": "h4-pass-duivenkoning_1_t_fd299a.mp3",
+"dur": 3.33
+},
+"Anita|Hij luisterde naar jou, Tammo. Niemand luistert naar jou.": {
+"src": "h4-pass-duivenkoning_2_a_648896.mp3",
+"dur": 4.19
+},
+"Tammo|Nou ja. Jij soms.": {
+"src": "h4-pass-duivenkoning_3_t_4b7905.mp3",
+"dur": 2.21
+},
+"Tammo|Heel Grunn klapte.": {
+"src": "h10-pass-team_0_t_e5b4af.mp3",
+"dur": 1.68
+},
+"Anita|Voor jou of voor de duif?": {
+"src": "h10-pass-team_1_a_b5a2da.mp3",
+"dur": 2.81
+},
+"Tammo|Voor ons. Ik fluit, hij pikt.": {
+"src": "h10-pass-team_2_t_f5ce6f.mp3",
+"dur": 3.09
+},
+"Anita|Dus de duif deed het werk.": {
+"src": "h10-pass-team_3_a_eb09ab.mp3",
+"dur": 2.56
+},
+"Tammo|Dat bedoelde ik ook.": {
+"src": "h10-pass-team_4_t_cc5cf0.mp3",
+"dur": 1.43
+},
+"Anita|Kun jij ook meeuwen?": {
+"src": "id-meeuwen_0_a_291185.mp3",
+"dur": 1.35
+},
+"Tammo|Meeuwen luisteren naar niemand.": {
+"src": "id-meeuwen_1_t_3d5bdb.mp3",
+"dur": 1.93
+},
+"Anita|Net als jij.": {
+"src": "id-meeuwen_2_a_3b724c.mp3",
+"dur": 1.18
+},
+"Tammo|Ik luister altijd naar jou.": {
+"src": "id-meeuwen_3_t_88bcf1.mp3",
+"dur": 1.88
+},
+"Anita|…Nou ja. Meestal.": {
+"src": "id-meeuwen_4_a_8a1443.mp3",
+"dur": 2.41
+},
+"Anita|Luister jij eigenlijk naar Nachtstreek?": {
+"src": "id-rikus_0_a_499576.mp3",
+"dur": 2.21
+},
+"Tammo|Rikus draait daar. Van vroeger, uit het Oosterpark.": {
+"src": "id-rikus_1_t_1596db.mp3",
+"dur": 3.44
+},
+"Anita|Die Rikus? Van de zolderkamer met die mengtafel?": {
+"src": "id-rikus_2_a_f5480c.mp3",
+"dur": 3.29
+},
+"Tammo|Hij heeft nu een studio. Met een deur.": {
+"src": "id-rikus_3_t_fe95ae.mp3",
+"dur": 2.91
+},
+"Anita|Vooruitgang.": {
+"src": "id-rikus_4_a_676b83.mp3",
+"dur": 2.2
+},
+"Anita|Rikus had het op de radio over je. De duivenfluisteraar van het Oosterpark.": {
+"src": "id-rikus-duif_0_a_f4d80e.mp3",
+"dur": 6.6
+},
+"Tammo|Ik zeg niks.": {
+"src": "id-rikus-duif_1_t_513b4f.mp3",
+"dur": 1.12
+},
+"Anita|Hij heeft er een jingle bij.": {
+"src": "id-rikus-duif_2_a_4efa63.mp3",
+"dur": 2.48
+},
+"Tammo|Dan zeg ik wél wat. Tegen Rikus.": {
+"src": "id-rikus-duif_3_t_0a5abd.mp3",
+"dur": 2.37
+},
+"Anita|Rikus wil de eerste friet uit de Fjord Frituur.": {
+"src": "id-rikus-friet_0_a_76653c.mp3",
+"dur": 3.0
+},
+"Tammo|De eerste is voor mij.": {
+"src": "id-rikus-friet_1_t_326521.mp3",
+"dur": 1.07
+},
+"Anita|Weet ik. Hij krijgt de tweede. Als hij betaalt.": {
+"src": "id-rikus-friet_2_a_51ec4d.mp3",
+"dur": 2.56
+},
+"Tammo|Wie app jij nou steeds?": {
+"src": "id-friesland-app_0_t_03268f.mp3",
+"dur": 1.82
+},
+"Tammo|Is hij lang?": {
+"src": "id-friesland-app_2_t_e4a8ee.mp3",
+"dur": 1.2
+},
+"Tammo|Fierljepper zeker.": {
+"src": "id-friesland-app_4_t_139a72.mp3",
+"dur": 1.7
+},
+"Anita|Rijden, niet praten.": {
+"src": "id-friesland-app_5_a_cf2581.mp3",
+"dur": 1.6
+},
+"Anita|Suikerbrood moet je roosteren. Met roomboter. Niet te dun.": {
+"src": "id-suikerbrood_0_a_4dd849.mp3",
+"dur": 5.17
+},
+"Tammo|Hoe weet jij dat nou weer?": {
+"src": "id-suikerbrood_1_t_168b8d.mp3",
+"dur": 1.71
+},
+"Anita|Gewoon. Dat weet je.": {
+"src": "id-suikerbrood_2_a_f981f0.mp3",
+"dur": 2.72
+},
+"Tammo|Dat weet niemand. Behalve Friezen.": {
+"src": "id-suikerbrood_3_t_d8106c.mp3",
+"dur": 2.38
+},
+"Tammo|Mem Terpstra. Ik was jaloers op een moeder.": {
+"src": "id-mem_0_t_f513f7.mp3",
+"dur": 3.65
+},
+"Anita|Een beetje, hè.": {
+"src": "id-mem_1_a_862e3e.mp3",
+"dur": 1.16
+},
+"Tammo|Een heel klein beetje.": {
+"src": "id-mem_2_t_1f6668.mp3",
+"dur": 1.98
+},
+"Anita|Ze vond je schattig. Met je pet.": {
+"src": "id-mem_3_a_abb5be.mp3",
+"dur": 3.94
+},
+"Tammo|…Kon minder.": {
+"src": "id-mem_4_t_71a0ab.mp3",
+"dur": 1.39
+},
+"Tammo|De Martinitoren is honderd meter. Minstens.": {
+"src": "id-wikipedia_0_t_063dad.mp3",
+"dur": 3.35
+},
+"Anita|Zevenennegentig. En een beetje. Klaar rond 1482.": {
+"src": "id-wikipedia_1_a_fb79d9.mp3",
+"dur": 5.87
+},
+"Tammo|Daar gaat Anita, de wandelende Wikipedia van Stad.": {
+"src": "id-wikipedia_2_t_e853de.mp3",
+"dur": 4.61
+},
+"Anita|Iemand moet het weten.": {
+"src": "id-wikipedia_3_a_a9d6d5.mp3",
+"dur": 1.66
+},
+"Tammo|Zevenennegentig bedoelde ik ook.": {
+"src": "id-wikipedia_4_t_072a32.mp3",
+"dur": 2.37
+},
+"Tammo|Hier rechtsaf. Dat is korter.": {
+"src": "id-route_0_t_93ad62.mp3",
+"dur": 2.15
+},
+"Anita|Dat is eenrichtingsverkeer, Tammo.": {
+"src": "id-route_1_a_c3bbd2.mp3",
+"dur": 2.23
+},
+"Tammo|Voor hén.": {
+"src": "id-route_2_t_ab2e38.mp3",
+"dur": 1.34
+},
+"Anita|Voor iedereen.": {
+"src": "id-route_3_a_f7fa78.mp3",
+"dur": 1.11
+},
+"Tammo|Weet jij wat ik net dacht?": {
+"src": "id-eierbal-denken_0_t_341015.mp3",
+"dur": 1.7
+},
+"Anita|Eierbal.": {
+"src": "id-eierbal-denken_1_a_2a8c9c.mp3",
+"dur": 0.95
+},
+"Tammo|Nee.": {
+"src": "id-eierbal-denken_2_t_f776e8.mp3",
+"dur": 0.55
+},
+"Anita|Twee eierballen.": {
+"src": "id-eierbal-denken_3_a_057bfb.mp3",
+"dur": 1.38
+},
+"Tammo|…Nou ja. Ook.": {
+"src": "id-eierbal-denken_4_t_8e17e2.mp3",
+"dur": 1.14
+},
+"Tammo|In 1672 won Bommen Berend, toch?": {
+"src": "id-ontzet-feiten_0_t_8fa7f5.mp3",
+"dur": 3.35
+},
+"Anita|Nee. Grunn hield hem buiten. Daarom vieren we het.": {
+"src": "id-ontzet-feiten_1_a_d59775.mp3",
+"dur": 4.8
+},
+"Anita|Je bedoelde het precies andersom.": {
+"src": "id-ontzet-feiten_3_a_7acd73.mp3",
+"dur": 3.73
 }
 }

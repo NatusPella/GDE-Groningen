@@ -10,9 +10,12 @@ import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, resolveWalker } from './collision.js';
 import { resolveWalkerProps, propAhead } from './breakables.js';
 import { railingAhead } from './bridgerails.js';
+import { drunkMove, drunkSteer } from './drunk.js';
 
 export { resolveBuildingCollisions };
 
+const BIKE_SPRINT_S = 2.5;
+const BIKE_SPRINT_REST_S = 4;
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
@@ -166,7 +169,7 @@ export class Player {
     // this.carrying: speed factor while hauling a side-job load (sidejobs.js)
     const speed = (this.crouching ? CROUCH_SPEED : input.isDown('shift') ? RUN_SPEED : WALK_SPEED) * (this.carrying || 1);
     const aiming = input.mouse.down || input.mouse.rightDown;
-    const dir = cameraRelativeMove(input, world.camYaw);
+    const dir = drunkMove(world, cameraRelativeMove(input, world.camYaw), dt);
     this.moving = !!dir;
     if (aiming) this.angle = world.camYaw;
     else if (dir) this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * dt);
@@ -627,9 +630,18 @@ export class Player {
     v.horn = input.isDown('h') && !v.disabled;
     const px = v.x, py = v.y, pa = v.angle;
     v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) : 1;
+    // bikes: Shift gives a short sprint, then a breather before the next one
+    if (v.isBike) {
+      v.sprintT = Math.max(0, (v.sprintT || 0) - dt);
+      v.sprintRest = Math.max(0, (v.sprintRest || 0) - dt);
+      if (input.isDown('shift') && throttle > 0 && !v.sprintRest && !v.disabled) {
+        v.sprintT = BIKE_SPRINT_S;
+        v.sprintRest = BIKE_SPRINT_S + BIKE_SPRINT_REST_S;
+      }
+    }
     const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / SUBSTEP)));
     for (let i = 0; i < n; i++) {
-      v.applyControls(dt / n, throttle, ax, brake && v.speed !== 0);
+      v.applyControls(dt / n, throttle, world ? Math.max(-1, Math.min(1, ax + drunkSteer(world, v))) : ax, brake && v.speed !== 0);
       resolveVehicleBuildingCollision(v, map, dt / n);
     }
     if (world) resolveBoomCollisions(v, world);

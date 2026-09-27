@@ -25,18 +25,24 @@ export class World {
 
     this.spawnPoint = { x: player.x, y: player.y };
     this.time = 0;
-    this.messages = []; // {text, until} HUD toast queue
+    this.messages = []; // {text, key, until}: recent messages, read by audio.js for its reaction lines
+    this.cardSink = null; // hudcards.js: shows them as HUD cards
   }
 
-  // Stays up at least as long as it takes to read. opts.exact keeps the
-  // caller's duration (countdowns); opts.key replaces an earlier message with
-  // the same key (toggles), identical texts always replace each other.
+  // A short message for the player. It shows as a HUD card (hudcards.js
+  // picks a category, drops redundant ones and says a few out loud) and
+  // stays in world.messages for the audio reactions. opts.kind forces a
+  // category (missie, bijbaan, geld, politie, gevaar, prestatie, tip),
+  // opts.key replaces an earlier message with the same key (toggles,
+  // counters; identical texts always replace each other), opts.exact keeps
+  // the caller's duration (countdowns, shown big in the middle).
   addMessage(text, duration = 3, opts = {}) {
     const key = opts.key || text;
     this.messages = this.messages.filter((m) => (m.key || m.text) !== key);
     const d = opts.exact ? duration : Math.max(duration, readingSeconds(text));
     this.messages.push({ text, key, until: this.time + d });
     while (this.messages.length > MAX_MESSAGES) this.messages.shift();
+    if (this.cardSink) this.cardSink(text, d, opts);
   }
 }
 

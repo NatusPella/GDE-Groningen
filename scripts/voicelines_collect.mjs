@@ -7,6 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
+import { CARD_LINES } from '../game/js/cardlines.js';
+import { STEPS, PARTS } from '../game/js/storyarc.js';
 
 export const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = path.join(REPO, 'game', 'js');
@@ -47,7 +49,7 @@ const strings = (text, re) => [...text.matchAll(re)].map((m) => evalLit(m[1]));
 // Bubble lines are recorded per voice sex; the runtime picks the one that
 // matches the speaker's model. `~m|` / `~f|` keys live in the lines manifest.
 export const BUBBLE = { m: '~m', f: '~f' };
-export const NARRATOR = 'Verteller';
+export const NARRATOR = 'Rikus';
 
 const manifests = {};
 export function manifest(name) {
@@ -84,7 +86,14 @@ export function collect() {
   for (const e of out) e.fallback = 'lines';
 
   // --- intro montage -> story manifest
-  for (const l of allLits(src('intromontage.js'), 'lines: [[')) for (const [, , who, t] of l) add('Intro-montage', 'story', [who], t);
+  // [speaker key, text, delivery tag?]; new recordings go to the lines manifest
+  const IM_WHO = { T: 'Tammo', A: 'Anita', V: NARRATOR, jelle: 'Jelle Terpstra' };
+  for (const l of allLits(src('intromontage.js'), 'lines: [')) {
+    for (const [k, t, tag] of l) {
+      add('Intro-montage', 'story', [IM_WHO[k] || k], t, tag ? { tag } : {});
+      out[out.length - 1].fallback = 'lines';
+    }
+  }
 
   // --- rondvaart chase -> story manifest
   const rc = src('rondvaartchase.js');
@@ -112,8 +121,9 @@ export function collect() {
   // --- mission scenes and fallback intros in missions.js -> lines manifest
   const mi = src('missions.js');
   const npcs = lit(src('missionstory.js'), 'const NPC = ');
-  const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : npcs[k] ? npcs[k].name : k);
-  for (const l of allLits(mi, 'lines: [[')) for (const [k, t] of l) add('Missie-scènes', 'lines', [who(k)], t);
+  const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k === 'V' ? NARRATOR : npcs[k] ? npcs[k].name : k);
+  // stage scene lines, also when the first line starts on a new line
+  for (const m of mi.matchAll(/lines: \[\s*\[/g)) for (const [k, t] of evalLit(literalAt(mi, 'lines: [', m.index).code)) add('Missie-scènes', 'lines', [who(k)], t);
   // Jelle's line as he lands a fierljep (missionstory.js playVaultScene)
   for (const t of strings(mi, /landing: ('(?:[^'\\]|\\.)*')/g)) add('Missie-scènes', 'lines', ['Jelle Terpstra'], t);
 
@@ -126,6 +136,19 @@ export function collect() {
     add('Verhaal-stappen', 'lines', [anita ? BUBBLE.f : BUBBLE.m], evalLit(m[2]), { as: anita ? 'Anita' : 'Tammo' });
   }
   for (const l of allLits(mi, '      intro: [')) for (const t of l) add('Missie-intro (terugval)', 'lines', ['Tammo', 'Anita'], t, { tag: ['samenzweerderig, zacht', 'geamuseerd, zakelijk', 'opgewonden, fluisterend'] });
+
+  // --- how Jelle and the twins reach them (storycontact.js), the "Eerder in GTE VI"
+  // recaps and the handover lines (story.js) -> lines manifest
+  const CONTACT = { jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', rikus: NARRATOR, mem: 'Mem Terpstra', T: 'Tammo', A: 'Anita' };
+  for (const st of STEPS) for (const c of st.contact || []) for (const [k, t, o] of c.lines) add('Verhaal-contact (telefoon)', 'lines', [CONTACT[k]], t, o && o.tag ? { tag: o.tag } : {});
+  for (const P of Object.values(PARTS)) for (const [, t] of P.recap || []) add('Verhaal-kaarten', 'lines', [NARRATOR], t, { tag: ['warm, vertellend, als een terugblik', 'droog, met een knipoog, samenvattend'] });
+  for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);
+  // the trekker-limo pulling up at the museum (missionstory.js playLimoReveal)
+  for (const [k, t] of lit(src('missionstory.js'), 'export const LIMO_LINES = ')) add('Missie-cutscenes', 'lines', [nm(k)], t);
+  // Jelle on the phone (phone.js jelleTalk)
+  const ph = src('phone.js');
+  const jt = ph.slice(ph.indexOf('function jelleTalk'), ph.indexOf('function mamTalk'));
+  for (const l of allLits(jt, 'line: pick(')) for (const t of l) add('Telefoon (Jelle)', 'lines', ['Jelle Terpstra'], t, { tag: ['charmant, opschepperig, aan de telefoon', 'plagend, aan de telefoon'] });
 
   // --- other cutscene subtitles (story.js, cinematics.js) -> lines manifest
   for (const m of src('story.js').matchAll(/\{ speaker: '([^']+)', text: ('(?:[^'\\]|\\.)*')/g)) add('Verhaal-kaarten', 'lines', [m[1]], evalLit(m[2]));
@@ -191,9 +214,12 @@ export function collect() {
     add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.m], t, { as: 'Tammo' });
     add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.f], t, { as: 'Anita' });
   }
+  // Anita at a pigeon spot: the pigeons only listen to Tammo (pigeonspots.js)
+  for (const t of lit(src('pigeonspots.js'), 'export const ANITA_NO_PIGEON = ')) add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.f], t, { as: 'Anita' });
   for (const t of lit(fl, 'export const KROLBRUG_FAULTS = ')) add('Wereld (radio & navigatie)', 'lines', ['Verkeersinformatie'], t);
   for (const t of lit(fl, 'export const RING_ZUID_GPS = ')) add('Wereld (radio & navigatie)', 'lines', ['Navigatie'], t);
-  for (const t of lit(fl, 'export const NACHTSTREEK = ')) add('Wereld (radio & navigatie)', 'lines', ['Radio Nachtstreek'], t);
+  for (const t of lit(fl, 'export const NACHTSTREEK = ')) add('Wereld (radio & navigatie)', 'lines', [NARRATOR], t, { tag: ['zacht, warm, rustig, laat op de avond, als nacht-dj op de radio', 'warm, ontspannen, droog, als nacht-dj op de radio'] });
+  for (const t of Object.values(lit(fl, 'export const NACHTSTREEK_STORY = '))) add('Wereld (radio & navigatie)', 'lines', [NARRATOR], t, { tag: ['zacht, warm, rustig, laat op de avond, als nacht-dj op de radio', 'warm, ontspannen, droog, als nacht-dj op de radio'] });
   for (const list of Object.values(lit(fl, 'export const COW_FEED = '))) for (const [cow, t] of list) add('Wereld (bijnamen & koeien)', 'lines', ['Koe ' + cow], t);
   bubble('Wereld (straat)', lit(fl, 'export const KON_MINDER = '), { tag: ['droog, stiekem onder de indruk', 'laconiek, knikkend'] });
   for (const ev of Object.values(lit(fl, 'export const EVENT_DAYS = '))) bubble('Wereld (straat)', ev.barks, { tag: ['vrolijk, kletserig', 'opgewekt, lacherig', 'stellig, vertellend'] });
@@ -217,6 +243,12 @@ export function collect() {
   for (const [kind, by] of Object.entries(FJORD_DUO)) for (const [k, list] of Object.entries(by)) for (const t of list) add('Na het verhaal (Fjord Frituur)', 'lines', [pgWho[k]], t, { tag: DTAG[kind] });
   const BTAG = { greet: ['hongerig, vrolijk', 'ongeduldig, joviaal'], happy: ['tevreden, blij', 'smakkend, vrolijk'], wrong: ['verontwaardigd, mopperend', 'die boos is, klagend'], leave: ['chagrijnig, zuchtend', 'ongeduldig, mopperend'] };
   for (const [kind, list] of Object.entries(FJORD_BUBBLES)) bubble('Na het verhaal (Fjord-klanten)', list, { tag: BTAG[kind] });
+
+  // --- HUD cards said out loud by whoever you play (cardlines.js) -> lines manifest
+  for (const l of CARD_LINES) add('HUD-kaarten (Tammo/Anita)', 'lines', ['Tammo', 'Anita'], l.say, { tag: ['kort, alert, tegen de ander naast je', 'droog, reagerend op wat er net gebeurde'] });
+  // --- phone calls outside the story (phonefeed.js startCall) -> lines manifest
+  for (const t of Object.values(lit(src('garages.js'), 'const HENK_CALL = '))) add('Telefoon (gesprekken)', 'lines', ['Henk'], t, { tag: 'gemoedelijk, aan de telefoon' });
+  for (const l of lit(src('postgame.js'), 'const INVITE_CALL = ')) add('Telefoon (gesprekken)', 'lines', [typeof l.speaker === 'string' ? l.speaker : JELLE], l.text, { tag: 'aan de telefoon, uitdagend en vrolijk' });
 
   return out;
 }

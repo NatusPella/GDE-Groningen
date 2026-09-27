@@ -1,4 +1,5 @@
 import { dualHtml } from './subtitles.js';
+import { speakerHtml } from './speakers.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay, isCinematicActive } from './cinematics.js';
 import { getMissionList, getNextMission, trackMission } from './missions.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
@@ -9,6 +10,9 @@ import { getHeroCar, getClockText } from './hud_panel.js';
 import { getGarageList, deliverOwnedVehicle, locateOwnedVehicle, whereText } from './ownedvehicles.js';
 import { initGarageStyles } from './garageui.js';
 import { getSideJobOffers, quitSideJob } from './sidejobs.js';
+import { lineVoiceFor } from './linevoice.js';
+// phone talk is a call on the speech.js channel
+import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice } from './audio.js';
 
 const RING_TIME = 0.9;
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
@@ -59,7 +63,7 @@ function contacts(w) {
   return [
     { id: 'buddy', name: buddyName(w), sub: 'Maat', talk: buddyTalk },
     { id: 'berend', name: 'Bommen Berend', sub: 'Opdrachtgever', talk: berendTalk },
-    { id: 'garage', name: 'Garage Knalpot', sub: 'Henk, auto’s & excuses', talk: garageTalk },
+    { id: 'garage', name: 'Garage Knalpot', speaker: 'Henk', sub: 'Henk, auto’s & excuses', talk: garageTalk },
     { id: 'mam', name: 'Mam', sub: 'Thuis', talk: mamTalk },
     ...(storyFlag('jelle') ? [{ id: 'jelle', name: 'Jelle Terpstra', sub: 'De Fryske Snackkening', talk: jelleTalk }] : []),
   ];
@@ -81,15 +85,15 @@ function buddyTalk(w) {
 
 function berendTalk(w, call) {
   const next = getNextMission();
-  if (!next) return { line: 'Ik heb even niks voor je. Bel later maar terug.' };
-  if (next.active) return { line: 'Je bent al bezig, man. Eerst dat afmaken, dan praten we verder.' };
+  if (!next) return { line: 'Niks. Kom mor later.' };
+  if (next.active) return { line: 'Je bent al bezig. Eerst afmaken.' };
   const list = getMissionList();
   const idx = call.offer != null ? call.offer : next.index;
   const m = list[idx];
-  const done = m.status === 'geklaard' ? ' Die heb je al eens gedaan, maar geld is geld.' : '';
+  const done = m.status === 'geklaard' ? ' Al eens gedaan. Geld is geld.' : '';
   const needs = m.needs ? ` Maar eerst: ${m.needs}` : '';
   return {
-    line: `Moi. Ik heb een klusje: "${m.label}". €${m.reward}, contant.${done}${needs}`,
+    line: `Kom mor. Klusje: "${m.label}". €${m.reward}, contant.${done}${needs}`,
     actions: [
       { label: 'Klus aannemen', run: () => { trackMission(w, idx); flashAndClose(`Route naar ${m.label}`); } },
       { label: 'Iets anders?', run: () => { call.offer = (idx + 1) % list.length; talk(call); } },
@@ -398,7 +402,10 @@ function talk(call) {
   const res = call.contact.talk(world, call) || {};
   call.phase = 'talk';
   call.line = res.line || '';
-  call.actions = [...(res.actions || []), { label: 'Ophangen', run: () => goHome() }];
+  call.actions = [...(res.actions || []), { label: 'Ophangen', run: () => { stopBanterVoice(); goHome(); } }];
+  // Jelle answers in his own voice (the lines manifest)
+  const v = call.contact.id === 'jelle' && lineVoiceFor('Jelle Terpstra', call.line);
+  if (v) playBanterVoice(v.src);
   st.sel = 0;
   render();
 }
@@ -420,7 +427,7 @@ function render() {
     html = header(c.contact.name) + `<div class="ph-call"><div class="ph-avatar">${esc(initials)}</div>` +
       `<div class="ph-callname">${esc(c.contact.name)}</div>` +
       `<div class="ph-callstate">${c.phase === 'ringing' ? 'Bellen…' : 'Verbonden'}</div>` +
-      (c.phase === 'talk' ? `<div class="ph-bubble">${dualHtml(c.line)}</div>` : '') +
+      (c.phase === 'talk' ? `<div class="ph-bubble">${speakerHtml(c.contact.speaker || c.contact.name)}${dualHtml(c.line)}</div>` : '') +
       `<div class="ph-actions">${c.phase === 'talk' ? c.actions.map((a, i) => `<button type="button" class="ph-row ph-action${i === st.sel ? ' sel' : ''}${a.label === 'Ophangen' ? ' hangup' : ''}" data-idx="${i}">${esc(a.label)}</button>`).join('') : ''}</div></div>`;
   } else if (st.screen === 'contacten') {
     html = header('Contacten') + `<div class="ph-list">${contacts(w).map((c, i) =>

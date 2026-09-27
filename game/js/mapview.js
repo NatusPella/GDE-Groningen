@@ -1,4 +1,4 @@
-import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, drawSearchArea, getPoliceSearch } from './hud_panel.js';
+import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
@@ -15,7 +15,7 @@ import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
-  updateRouting, getActiveRoute, getRouteAhead, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
+  updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
 } from './routing.js';
 
 const PADDING = 0.94;
@@ -152,6 +152,9 @@ function injectStyles() {
     .mapview-route .user { color: ${ROUTE_COLORS.user}; }
     .mapview-route .mission { color: ${ROUTE_COLORS.mission}; }
     .mapview-route .job { color: ${ROUTE_COLORS.job}; }
+    .mapview-route .care { color: ${ROUTE_COLORS.care}; }
+    .mapview-route > span + span { margin-left: 14px; }
+    .mapview-route button { margin-left: 6px; padding: 0 6px; font: inherit; font-size: 13px; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 3px; cursor: pointer; }
     .mapview-footer {
       padding: 6px 14px;
       font: 13px 'Arial Narrow', Arial, sans-serif;
@@ -215,6 +218,8 @@ function injectStyles() {
     .mapview-legend .all { margin: 0 0 8px; font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
     .mapview-legend .all button { background: none; border: 0; padding: 0; font: inherit; color: #3fc97a; cursor: pointer; text-decoration: underline; }
     .mapview-legend .all button:focus-visible { outline: 2px solid #f0ede4; }
+    .mapview-legend li.grp { display: block; margin: 8px 0 2px; padding: 0 4px; font: bold 11px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: #3fc97a; border-bottom: 1px solid rgba(63, 201, 122, 0.3); }
+    .mapview-legend li.grp:first-child { margin-top: 0; }
     .mapview-legend canvas { width: 24px; height: 24px; flex: 0 0 24px; }
     .mapview-legend .note { color: rgba(240, 237, 228, 0.55); font-size: 12px; }
     @media (max-width: 900px) { .mapview-footer { display: none; } }
@@ -808,7 +813,7 @@ function drawDynamicMarkers(ctx, world) {
     if (name) hover.push({ sx, sy, name, sub });
   };
 
-  drawFullRoute(ctx, world, t);
+  for (const r of getRoutes()) drawFullRoute(ctx, world, t, r);
 
   for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name || 'Garage');
 
@@ -861,12 +866,11 @@ function drawDynamicMarkers(ctx, world) {
 // GTA-style GPS line over the whole route, thick enough to read at every
 // zoom level; without a road route (boat, off the network) a dashed line
 // points straight at the destination instead.
-function drawFullRoute(ctx, world, t) {
-  const route = getActiveRoute();
+function drawFullRoute(ctx, world, t, route) {
   if (!route) return;
   const color = ROUTE_COLORS[route.kind] || ROUTE_COLORS.user;
-  const width = Math.max(4, Math.min(9, 3 + state.zoom * 0.7));
-  const ahead = getRouteAhead(Infinity);
+  const width = Math.max(4, Math.min(9, 3 + state.zoom * 0.7)) * (route === getActiveRoute() ? 1 : 0.8);
+  const ahead = getRouteAhead(Infinity, route);
   if (ahead && ahead.length > 1) {
     const pts = [[world.player.x, world.player.y], ...ahead].map(([x, y]) => toScreen(x, y));
     drawRoadRoute(ctx, pts, color, width);
@@ -1187,24 +1191,30 @@ function handleKeys(dt, world) {
 // --- lifecycle --------------------------------------------------------------
 
 const LEGEND = [
+  { group: 'Jij en je route' },
   { kind: 'player', label: 'Jij' },
   { kind: 'userWaypoint', label: 'Jouw bestemming', note: 'altijd zichtbaar' },
-  { kind: 'route', label: 'Route', note: 'altijd zichtbaar' },
+  { kind: 'route', label: 'Route', note: 'paars: jouw bestemming, geel: missie, roze: opknappen of repareren' },
   { kind: 'companion', label: 'Maat', layer: 'companion' },
   { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot', layer: 'car' },
+  { group: 'Verhaal en klussen' },
   { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
+  { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
+  { group: 'Winkels en diensten' },
   { kind: 'garage', label: 'Garage en pomp', note: 'rij naar binnen: repareren, spuiten, opvoeren, wrakken', layer: 'garage' },
   { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
   { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks (eten = gezondheid)', layer: 'shops' },
   { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten', layer: 'shopsVoertuigen' },
   { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', note: 'wapens, munitie en vesten', layer: 'shopsWapens' },
+  { group: 'Doen en beleven' },
   { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },
   { kind: 'heli', label: 'Traumaheli', note: 'ballonjacht vanaf het UMCG', layer: 'heli' },
   { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layer: 'postgame' },
-  { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
   { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },
+  { group: 'Onderweg' },
   { kind: 'flitspaal', label: 'Flitspaal', layer: 'flitspaal' },
   { kind: 'landmark', label: 'Bezienswaardigheid', layer: 'landmark' },
+  { group: 'Kaart' },
   { kind: 'text-street', label: 'Straatnamen', layer: 'streets' },
   { kind: 'text-wijk', label: 'Wijknamen', layer: 'wijken' },
   { kind: 'buildings', label: 'Gebouwen', layer: 'buildings' },
@@ -1214,6 +1224,7 @@ function drawLegendIcon(ctx, kind) {
   if (kind === 'route') {
     drawRoadRoute(ctx, [[3, 16], [11, 10], [21, 12]], ROUTE_COLORS.user, 3.5);
     drawRoadRoute(ctx, [[3, 21], [21, 19]], ROUTE_COLORS.mission, 3.5);
+    drawRoadRoute(ctx, [[3, 6], [12, 4], [21, 6]], ROUTE_COLORS.care, 3);
   } else if (kind === 'userWaypoint') {
     drawMapIcon(ctx, 'userWaypoint', 12, 20, ICON, { t: 0 });
   } else if (kind === 'text-street' || kind === 'text-wijk') {
@@ -1236,6 +1247,13 @@ function buildLegend(root) {
   const dpr = window.devicePixelRatio || 1;
   const list = document.createElement('ul');
   for (const row of LEGEND) {
+    if (row.group) {
+      const h = document.createElement('li');
+      h.className = 'grp';
+      h.textContent = row.group;
+      list.appendChild(h);
+      continue;
+    }
     const li = document.createElement('li');
     const cv = document.createElement('canvas');
     cv.width = cv.height = 24 * dpr;
@@ -1318,8 +1336,9 @@ function updateHeader() {
   state.clearBtn.hidden = !wp;
   let html = '';
   if (route) {
-    const label = route.kind === 'user' ? 'Bestemming' : route.kind === 'job' ? 'Klus' : 'Missie';
-    html = `<span class="${route.kind}">${label}: ${formatDistance(route.remaining)}</span>`;
+    // the primary route first, then the others; the care route can be dismissed
+    const all = [route, ...getRoutes().filter((r) => r !== route).reverse()];
+    html = all.map((r) => `<span class="${r.kind}">${routeLabel(r)}: ${formatDistance(r.remaining)}${r.kind === 'care' ? '<button type="button" data-act="care-off" title="Roze route verbergen">Negeren</button>' : ''}</span>`).join('');
   }
   if (html !== state.routeHtml) {
     state.routeHtml = html;
@@ -1428,6 +1447,7 @@ export function initMapView(world) {
     const act = btn.dataset.act;
     if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
     else if (act === 'clear') clearUserWaypoint();
+    else if (act === 'care-off') dismissCareRoute();
     else if (act === 'in') zoomAt(1.6, state.cw / 2, state.ch / 2);
     else if (act === 'out') zoomAt(1 / 1.6, state.cw / 2, state.ch / 2);
   });
