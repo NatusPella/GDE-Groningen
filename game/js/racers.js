@@ -449,11 +449,11 @@ export function updateRace(dt, world, race, wpIndex) {
     const beat = Math.floor(race.timer);
     if (beat !== race.lastBeat && beat < COUNTDOWN) {
       race.lastBeat = beat;
-      world.addMessage(String(COUNTDOWN - beat), 0.9);
+      world.addMessage(String(COUNTDOWN - beat), 0.9, { exact: true, key: 'race-countdown' });
     }
     if (race.timer >= COUNTDOWN) {
       race.phase = 'race';
-      world.addMessage('GO! GO! GO!', 1.5);
+      world.addMessage('GO! GO! GO!', 1.5, { exact: true, key: 'race-countdown' });
     }
   }
   trackPlayer(world, race, wpIndex);

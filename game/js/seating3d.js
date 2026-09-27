@@ -68,6 +68,7 @@ export function vehicleSeat(v, driver) {
 
 // The rider's own figure: origin (feet) height, not a seat top.
 function bikeRiderSeat(v) {
+  if (v.isScooter && v.model.moped) return { x: -0.22, z: 0, y: 0.8 - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
   if (v.isScooter) return { x: -0.08, z: 0, y: 0.155, face: 0, stand: true };
   const fat = !!v.model.fat;
   return { x: fat ? -0.26 : -0.3, z: 0, y: (fat ? 0.93 : 1.02) - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
@@ -76,6 +77,7 @@ function bikeRiderSeat(v) {
 // Tammo/Anita riding along: side-saddle on the rack ("achterop"), astride
 // behind the rider on a fatbike's long saddle, or standing behind on a step.
 function bikeBuddySeat(v) {
+  if (v.isScooter && v.model.moped) return { x: -0.6, z: 0, y: 0.84, face: 0, pose: { recline: -0.1, footX: 0.2, footY: -0.5, splay: 0.25, arms: 'hug' } };
   if (v.isScooter) return { x: -0.34, z: 0, y: 0.155, face: 0, stand: true };
   if (v.model.fat) return { x: -0.62, z: 0, y: 0.95, face: 0, pose: { recline: -0.14, footX: 0.14, footY: -0.52, splay: 0.3, arms: 'hug' } };
   return { x: -0.56, z: 0, y: 0.8, face: -Math.PI / 2, pose: { recline: 0.04, footX: 0.26, footY: -0.55, arms: 'rail' } };

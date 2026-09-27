@@ -16,6 +16,7 @@ const DEFAULTS = {
   sfxVolume: 0.75,
   voiceVolume: 1,
   brightness: 1,
+  uiScale: 1,
   quality: 'hoog',
   shadows: true,
   fov: 64,
