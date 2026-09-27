@@ -44,7 +44,8 @@
 // GOAL TYPES (story.js GOALS)
 //   { type: 'shop', shop }            enter a shop of that type (shops.js SHOP_TYPES key)
 //     + buy, what, have               buy one of the item ids `buy` there instead (storyshop.js; `what`
-//                                     names it, `have`: walking in with that weapon also counts)
+//                                     names it, `have`: walking in with that weapon also counts,
+//                                     `prefer`: listed first in the shop)
 //   { type: 'require', req, shop }    missions.js requirement met; route to the nearest `shop`
 //                                     (an array routes to the nearest of several types)
 //   { type: 'pigeon', spot, score }   poop score >= score in one flight (spot: pigeonspots.js id)
@@ -245,6 +246,14 @@ export const STEPS = [
     title: 'Fatbike-terreur: blijf overeind', reward: 500,
     lead: ['A', 'Oma Trijntje belt. Ze wil ons iets vertellen over de Eierbal, maar eerst moeten de fatbikes uit de Folkingestraat.'],
     after: [['Oma Trijntje', 'Breng hem thuis, jong. Niet voor het geld. Voor Grunn.']] },
+  { id: 'r-bank', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik zoek de bank uit. Jij kiest altijd de hardste.',
+    title: 'Onderduiken in de flat: een bank bij de EIKEA',
+    goal: { type: 'shop', shop: 'eikea', buy: ['bank', 'kast', 'lamp', 'bed', 'tv', 'prikbord', 'frituur', 'plant', 'bureau'], prefer: 'bank', what: 'een bank of ander meubel' }, cost: 299,
+    voorschot: { from: 'Oma Trijntje', text: 'Voor een fatsoenlijke bank. Op een krukje denk je niet goed na, jong.' },
+    lead: ['A', 'Na die fatbikes moeten we even onderduiken. In de flat, maar op dat ouwe bankje zit je krommer dan Durk. Een Zitmoi bij de EIKEA?'],
+    say: ['A', 'Tussen acht en zes bezorgd. Dus om één minuut voor zes.'],
+    done: ['A', 'Hij wordt thuisbezorgd. Kom, naar huis. Even zitten en nadenken over wat oma zei.'],
+    unlocks: 'zitmoi' },
   { id: 'H13', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'rondvaart', why: 'Ik vaar. Jij bent de gids: jij moet wijzen en praten.',
     title: 'Rondvaart met valse papieren', reward: 750,
     lead: ['T', 'Kapitein Klaas heeft een rondvaartboot die even van niemand is. Vanaf het water zien we misschien dat skûtsje.'] },

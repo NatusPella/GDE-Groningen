@@ -66,4 +66,6 @@ export const COMPANION_CARDS = [
   'Lekker lichtje. Nu is het echt gezellig.',
   'Wat een bed. Hier kom ik nooit meer uit.',
   'Stekkies verkocht aan de buren. Groene vingers, groen geld.',
+  'Oma Trijntje heeft gelijk, hè. Die bal is gien geld. Die bal is Grunn.',
+  'Als we hem vinden, brengen we hem terug. Toch?',
 ];

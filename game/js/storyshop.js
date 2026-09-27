@@ -68,7 +68,7 @@ export function storyNeed(world) {
     }
     if (g.type === 'shop' && g.buy) {
       const ids = new Set([].concat(g.buy));
-      return fromStep(step, { shops: [g.shop], what: g.what || 'iets', ok: (id) => ids.has(id), strict: false, optional: !!step.optional });
+      return fromStep(step, { shops: [g.shop], what: g.what || 'iets', ok: (id) => ids.has(id), prefer: g.prefer, strict: false, optional: !!step.optional });
     }
     return null;
   }
