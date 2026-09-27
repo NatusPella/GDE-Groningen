@@ -21,7 +21,8 @@ function mat(name) {
   const spec = {
     concrete: { color: 0xa39f96, roughness: 0.92 },
     wall: { color: 0x8f8b82, roughness: 0.95 },
-    tunnel: { color: 0x5f5c57, roughness: 0.9 },
+    // the roof underside only gets the tunnel lights: a little self-light, or it reads as a black hole
+    tunnel: { color: 0x8a867e, roughness: 0.9, emissive: 0x3b3934, emissiveIntensity: 1 },
     grass: { color: 0x5c8a4d, roughness: 1 },
     steel: { color: 0xb9bdc1, roughness: 0.45, metalness: 0.6 },
     fence: { color: 0x2f3336, roughness: 0.7, metalness: 0.3 },
@@ -69,6 +70,23 @@ class Buf {
     }
     return g.children.length ? g : null;
   }
+}
+
+// How far (in miter units, like edge()) a tunnel roof reaches from (x, y)
+// along the miter (nx, ny): `off`, or half way to a neighbouring covered
+// road's centreline.
+function roofReach(elev, r, x, y, nx, ny, off) {
+  const list = elev.grid.at(x, y);
+  if (!list) return off;
+  const nl = Math.hypot(nx, ny) || 1;
+  let best = off;
+  for (const sg of list) {
+    if (sg.r === r || !sg.covered || sg.rail) continue;
+    const cp = closestPointOnSegment(x, y, sg.ax, sg.ay, sg.bx, sg.by);
+    const d = ((cp.x - x) * nx + (cp.y - y) * ny) / nl;
+    if (d > 0.5 && d < off * nl + sg.hs + WALL_T) best = Math.min(best, d / 2 / nl);
+  }
+  return best;
 }
 
 function miters(P) {
@@ -212,10 +230,13 @@ export function buildRoadStructure(r, map) {
       }
     }
     if (r.tunnel && (za < -RAISED || zb < -RAISED)) {
-      // roof slab underside across the tunnel, lights along the middle
+      // roof slab underside across the tunnel, lights along the middle; beside
+      // the other carriageway's tunnel it stops at the midline between them, so
+      // the two roofs meet instead of lying over each other
       const off = hs + WALL_T;
-      const l0 = edge(i, 1, off), r0 = edge(i, -1, off), l1 = edge(i + 1, 1, off), r1 = edge(i + 1, -1, off);
-      const ta = roofTopAt(elev, P[i][0], P[i][1]) - ROOF_T, tb = roofTopAt(elev, P[i + 1][0], P[i + 1][1]) - ROOF_T;
+      const lim = (k, side) => roofReach(elev, r, P[k][0], P[k][1], M[k][0] * side, M[k][1] * side, off);
+      const l0 = edge(i, 1, lim(i, 1)), r0 = edge(i, -1, lim(i, -1)), l1 = edge(i + 1, 1, lim(i + 1, 1)), r1 = edge(i + 1, -1, lim(i + 1, -1));
+      const ta = roofTopAt(elev, P[i][0], P[i][1], za) - ROOF_T, tb = roofTopAt(elev, P[i + 1][0], P[i + 1][1], zb) - ROOF_T;
       B.quad('tunnel', [l0[0], ta, l0[1]], [l1[0], tb, l1[1]], [r1[0], tb, r1[1]], [r0[0], ta, r0[1]]);
     }
   }
@@ -268,7 +289,7 @@ export function buildRoadStructure(r, map) {
       const t = (nextLight - s) / L;
       const x = ax + (bx - ax) * t, y = ay + (by - ay) * t, z = Z[i] + (Z[i + 1] - Z[i]) * t;
       if (z < -3) {
-        const top = roofTopAt(elev, x, y) - ROOF_T;
+        const top = roofTopAt(elev, x, y, z) - ROOF_T;
         B.wallBox('lamp', x - ux * 0.9, y - uy * 0.9, x + ux * 0.9, y + uy * 0.9, 0.35, top - 0.12, top - 0.01, top - 0.12, top - 0.01);
       }
       nextLight += LIGHT_EVERY;
@@ -298,7 +319,7 @@ export function buildRoadStructure(r, map) {
       const dx = P[i][0] - P[j][0], dy = P[i][1] - P[j][1], l = Math.hypot(dx, dy) || 1;
       const px = P[i][0] + dx / l * 3, py = P[i][1] + dy / l * 3;
       if (coveredAt(elev, px, py)) continue;
-      const top = roofTopAt(elev, P[i][0], P[i][1]);
+      const top = roofTopAt(elev, P[i][0], P[i][1], Z[i]);
       const e1 = edge(i, 1, hs + WALL_T), e2 = edge(i, -1, hs + WALL_T);
       B.wallBox('wall', e1[0], e1[1], e2[0], e2[1], 0.6, top - ROOF_T - 0.6, Math.max(top, -0.02), top - ROOF_T - 0.6, Math.max(top, -0.02));
     }
@@ -378,7 +399,9 @@ function pointAt(P, sv) {
 
 function deckSpans(B, elev, P, half) {
   for (const [s0, s1] of spansOverCut(elev, P)) {
-    const a = s0 - 1.5, b = s1 + 1.5;
+    // reach over the cutting's walls, but never under a tunnel roof beside it
+    const pa = pointAt(P, s0 - 1.5), pb = pointAt(P, s1 + 1.5);
+    const a = coveredAt(elev, pa[0], pa[1]) ? s0 : s0 - 1.5, b = coveredAt(elev, pb[0], pb[1]) ? s1 : s1 + 1.5;
     const steps = Math.max(1, Math.ceil((b - a) / 3));
     for (let k = 0; k < steps; k++) {
       const p = pointAt(P, a + ((b - a) * k) / steps), q = pointAt(P, a + ((b - a) * (k + 1)) / steps);

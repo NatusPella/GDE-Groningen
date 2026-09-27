@@ -22,6 +22,7 @@ import { requestRespawn } from './world.js';
 import { getMissionRecord } from './achievements.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { animateSkutsjeRig } from './models3d_vehicles.js';
+import { setMuseumCaseStolen } from './museum3d.js';
 import { startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, heistStageChanged, disposeHeist } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -57,8 +58,12 @@ const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Sikkom?',
 
 const MISSION_BOAT_MODEL = { name: 'boat', len: 5.2, wid: 1.9, maxSpeed: 10.8, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#f2efe6', cabin: '#1f4a6e' };
 
+// The nearest road point, unless that lies inside a building or a closed-off
+// courtyard: then the nearest street you can actually reach (findOpenSpawn).
 function roadSpot(map, x, y, drivable = false) {
-  return map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
+  const p = map.nearestRoadPoint(x, y, 120, drivable) || { x, y, road: null };
+  if (!map.isOpenSpot || map.isOpenSpot(p.x, p.y)) return p;
+  return map.findOpenSpawn(p.x, p.y, 200, drivable) || p;
 }
 
 // Fixed spots in and around the binnenstad, picked so every leg is a real
@@ -235,7 +240,7 @@ function buildDefs(world) {
       reward: 400,
       requires: ['heist', 'night'],
       start: walk(18, 736),
-      heist: { fuse: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' } },
+      heist: { fuse: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
       stages: [
         { kind: 'goto', target: { landmark: 'Groninger Museum', off: [-22, -40], snap: 'walk' }, mode: 'any', label: 'Naar de achteringang', say: 'Naar de brug naar het museumeiland. Rustig aan, blijf uit het licht.' },
         {
@@ -243,7 +248,7 @@ function buildDefs(world) {
           label: 'Sluip naar de stroomkast', say: 'Bewakers met zaklampen en draaiende camera\'s. Blijf uit de lichtbundels. Bukken (Ctrl) helpt bij de bewakers.',
         },
         { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, label: 'Camera\'s uit bij de stroomkast', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera\'s.' },
-        { kind: 'goto', watch: { guards: 1, cameras: 0 }, vitrine: true, target: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.' },
+        { kind: 'goto', watch: { guards: 1, cameras: 0 }, vitrine: true, target: { landmark: 'Groninger Museum', off: [3, 17] }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.' },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
@@ -515,6 +520,8 @@ export function initMissions(world) {
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
   };
   world.mission = chain.pub;
+  // zaal 3's case is empty once H6 has been played
+  setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
     failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood', busted ? 'Opgepakt door de politie' : 'Je bent dood');
@@ -1566,7 +1573,7 @@ function resolveSpotStarts(world) {
     const hs = getHeliSpotsForRender()[0];
     if (hs) {
       chain.heliStarts = true;
-      for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { x: hs.x + 3.5, y: hs.y + 1.5, road: null };
+      for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { ...world.map.openSpotNear(hs.x + 3.5, hs.y + 1.5), road: null };
     }
   }
   if (chain.spotStarts) return;
@@ -1814,6 +1821,7 @@ function resolveTarget(world, spec, from) {
   if (spec.bank) return { ...bankNear(map, spec.bank[0], spec.bank[1]), label: spec.label };
   return null;
 }
+export { resolveTarget as resolveMissionTarget };
 
 function rentalBoat(world) {
   return world.vehicles.find((v) => v.isBoat && v.playerOwned && !v.wrecked && !v.sinking) || null;
