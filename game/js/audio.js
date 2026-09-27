@@ -1072,7 +1072,7 @@ function playMissionJingle() {
 // pos = {x, y} places the clip in the world; omitted = plain stereo.
 function playClip(src, pos = null) {
   if (!ctx || muted) return null;
-  const el = new Audio(src);
+  const el = newVoiceEl(src);
   const nodes = [];
   try {
     const node = ctx.createMediaElementSource(el);
@@ -1088,11 +1088,29 @@ function playClip(src, pos = null) {
   } catch (e) {
     // ignore - playback still works without the Web Audio graph attached
   }
-  const cleanup = () => { for (const n of nodes) n.disconnect(); nodes.length = 0; };
+  // after the speakClip listeners (registered later) have run
+  const cleanup = () => { for (const n of nodes) n.disconnect(); nodes.length = 0; setTimeout(() => releaseEl(el), 0); };
   el.addEventListener('ended', cleanup, { once: true });
   el.addEventListener('error', cleanup, { once: true });
-  el.play().catch(cleanup);
+  el.play().catch(() => { if (el.gteLive) el.dispatchEvent(new Event('error')); });
   return el;
+}
+
+// A finished voice element lets go of its media player right away instead
+// of waiting for GC: Chromium caps live players per page and refuses new
+// ones past that (every later clip silent).
+let liveVoiceEls = 0;
+function newVoiceEl(src) {
+  const el = new Audio(src);
+  liveVoiceEls++;
+  el.gteLive = true;
+  return el;
+}
+function releaseEl(el) {
+  if (!el || !el.gteLive) return;
+  el.gteLive = false;
+  liveVoiceEls--;
+  try { el.pause(); el.removeAttribute('src'); el.load(); } catch (e) { /* ignore */ }
 }
 
 // Every voice below asks speech.js for the one talking channel first
@@ -1147,11 +1165,25 @@ function playNpcSpokenClip(src, pos) {
 // voice bus. A story scene holds the channel, so nothing else talks over it.
 let storyScene = false;
 let storyVoice = null;
+// cinematics.js tells whether a scene really runs, so a scene that ended
+// without setStoryScene(false) can't keep every other voice quiet
+let storyProbe = null;
+export function setStoryProbe(fn) { storyProbe = fn; }
 
-export function setStoryScene(on) {
-  storyScene = on;
-  if (on) speech.hold('story', 'story');
-  else { speech.release('story'); stopStoryVoice(); }
+// Scenes overlap (the intro montage starts while another cutscene is being
+// replaced, a mission scene inside a voiced cinematic): each caller is its
+// own owner and the story hold lasts until the last one lets go.
+const storyOwners = new Set();
+export function setStoryScene(on, who = 'scene') {
+  if (on) storyOwners.add(who);
+  else storyOwners.delete(who);
+  storyScene = storyOwners.size > 0;
+  if (storyScene) {
+    if (!speech.holding('story')) {
+      speech.hold('story', 'story', (by) => { if (by === 'watchdog') { storyOwners.clear(); storyScene = false; stopStoryVoice(); } },
+        { alive: () => storyScene && (!storyProbe || storyProbe()) });
+    }
+  } else { speech.release('story'); stopStoryVoice(); }
 }
 
 export function stopStoryVoice() {
@@ -1161,6 +1193,7 @@ export function stopStoryVoice() {
   v.el.pause();
   if (v.node) v.node.disconnect();
   speech.end(v.tok);
+  releaseEl(v.el);
 }
 
 // radio: Rikus on Nachtstreek (recaps, the studio shots): a gentle
@@ -1168,7 +1201,7 @@ export function stopStoryVoice() {
 export function playStoryVoice(src, { radio = false } = {}) {
   stopStoryVoice();
   if (!ctx || muted) return;
-  const v = { el: new Audio(src), node: null, tok: null };
+  const v = { el: newVoiceEl(src), node: null, tok: null };
   v.tok = speech.begin('story', 3, { owner: 'story', stop: () => { if (storyVoice === v) stopStoryVoice(); } });
   try {
     v.node = ctx.createMediaElementSource(v.el);
@@ -1227,6 +1260,7 @@ export function stopBanterVoice() {
   v.el.pause();
   if (v.node) v.node.disconnect();
   speech.end(v.tok);
+  releaseEl(v.el);
 }
 
 export function pauseBanterVoice(paused) {
@@ -1244,9 +1278,9 @@ export function voiceBusy() {
 export function playBanterVoice(src) {
   stopBanterVoice();
   if (!ctx || muted || storyScene) return false;
-  const v = { el: new Audio(src), node: null, tok: null };
+  const v = { el: newVoiceEl(src), node: null, tok: null };
   v.tok = speech.begin('banter', 3, { owner: 'banter', stop: () => { if (banterVoice === v) stopBanterVoice(); } });
-  if (!v.tok) return false;
+  if (!v.tok) { releaseEl(v.el); return false; }
   try {
     v.node = ctx.createMediaElementSource(v.el);
     v.node.connect(voiceBus);
@@ -1278,6 +1312,7 @@ export function stopContactVoice() {
   v.el.pause();
   if (v.node) v.node.disconnect();
   speech.end(v.tok);
+  releaseEl(v.el);
 }
 
 export function pauseContactVoice(paused) {
@@ -1290,9 +1325,9 @@ export function pauseContactVoice(paused) {
 export function playContactVoice(src) {
   stopContactVoice();
   if (!ctx || muted) return false;
-  const v = { el: new Audio(src), node: null, tok: null };
+  const v = { el: newVoiceEl(src), node: null, tok: null };
   v.tok = speech.begin('call', 3, { owner: 'contact', stop: () => { if (contactVoice === v) stopContactVoice(); } });
-  if (!v.tok) return false;
+  if (!v.tok) { releaseEl(v.el); return false; }
   try {
     v.node = ctx.createMediaElementSource(v.el);
     v.node.connect(voiceBus);
@@ -1313,9 +1348,9 @@ export function playContactVoice(src) {
 }
 
 // true when the contact got the channel (false: a story scene or a call has it)
-export function holdContactChannel(on) {
+export function holdContactChannel(on, alive = null) {
   if (!on) { speech.release('contact'); return true; }
-  return speech.hold('contact', 'call');
+  return speech.hold('contact', 'call', null, { alive });
 }
 
 // Phone calls (phonefeed.js startCall): the call holds the channel and each
@@ -1533,9 +1568,15 @@ function wireGmusicEl(el) {
   return el;
 }
 
+// one element per jingle, reused: a fresh one per cycle stayed wired to the
+// music bus for good and piled up media players over a long session
+const jingleEls = {};
 function makeJingleEl(key) {
+  const old = jingleEls[key];
+  if (old && !old.error && old !== gmusicCurrentEl) return old;
   const el = wireGmusicEl(new Audio(GMUSIC_JINGLES[key]));
   el.gmusicJingleKey = key;
+  jingleEls[key] = el;
   return el;
 }
 
@@ -1647,6 +1688,18 @@ function enqueueGmusicJingle(key) {
   else gmusicQueue.unshift(el);
 }
 
+const audioLog = [];
+function logAudio(ev, extra) {
+  audioLog.push({ t: +(nowSec()).toFixed(1), ev, ...extra });
+  if (audioLog.length > 30) audioLog.shift();
+}
+
+function resumeCtx(why) {
+  if (!ctx || ctx.state === 'running' || ctx.state === 'closed' || document.hidden) return;
+  logAudio('resume', { why, from: ctx.state });
+  ctx.resume().catch(() => {});
+}
+
 function onVisibilityChange() {
   if (!ctx) return;
   if (document.hidden) {
@@ -1656,26 +1709,37 @@ function onVisibilityChange() {
   } else {
     gmusicSuspended = false;
     gmusicRetryAt = 0;
-    ctx.resume().catch(() => {});
+    // a resume() racing the suspend() above can lose: the watchdog retries
+    resumeCtx('visible');
   }
 }
 
 // Safari only lets an AudioContext/media element start inside a real user
-// gesture; retry on every pointer/key press until audio is actually running.
+// gesture, and a context the OS suspended later (device change, fullscreen,
+// focus loss) may need one too: every pointer/key press resumes what's
+// stopped. Cheap when everything already runs.
 function unlockAudio() {
   if (!ctx || document.hidden) return;
+  gmusicSuspended = false;
   const el = gmusicCurrentEl;
-  if (el && el.paused && !el.ended && gmusicPendingSince === null) playGmusicCurrent();
-  ctx.resume().then(() => {
-    if (ctx.state !== 'running' || !gmusicCurrentEl || gmusicCurrentEl.paused) return;
-    window.removeEventListener('pointerdown', unlockAudio, true);
-    window.removeEventListener('keydown', unlockAudio, true);
-  }).catch(() => {});
+  if (el && el.paused && !el.ended && gmusicPendingSince === null && !gmusicHeld) playGmusicCurrent();
+  resumeCtx('input');
 }
 
 // ?stil in the URL: never create any audio (for automated/test sessions),
 // without touching the player's saved mute setting.
-const SILENT_MODE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('stil');
+// ?stil&audiograf: the full graph runs (G-Music, voices, ducks, watchdog) but
+// ends in a muted sink, so tests can check the gain/duck state machine.
+const URL_FLAGS = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+const GRAPH_TEST = URL_FLAGS.has('audiograf');
+const SILENT_MODE = URL_FLAGS.has('stil') && !GRAPH_TEST;
+let outNode = null;
+function output() {
+  if (!outNode) {
+    if (GRAPH_TEST) { outNode = ctx.createGain(); outNode.gain.value = 0; outNode.connect(ctx.destination); } else outNode = ctx.destination;
+  }
+  return outNode;
+}
 
 // Unity below 0.6, then a tanh knee towards 1: stacked big moments saturate
 // gently instead of clipping, without the makeup gain a compressor adds.
@@ -1691,10 +1755,17 @@ function buildSoftClip() {
   return ws;
 }
 
+let meter = null;
+
 function buildGraph() {
   master = ctx.createGain();
   master.gain.value = muted ? 0 : masterLevel();
-  master.connect(buildSoftClip()).connect(ctx.destination);
+  const clip = buildSoftClip();
+  master.connect(clip).connect(output());
+  // the watchdog listens here for a NaN that silences the whole mix
+  meter = ctx.createAnalyser();
+  meter.fftSize = 256;
+  clip.connect(meter);
 
   worldBus = ctx.createGain();
   worldBus.gain.value = getSettings().sfxVolume;
@@ -1723,7 +1794,7 @@ function buildGraph() {
   musicLp = ctx.createBiquadFilter();
   musicLp.type = 'lowpass';
   musicLp.frequency.value = 20000;
-  musicOut.connect(musicLp).connect(ctx.destination);
+  musicOut.connect(musicLp).connect(output());
   musicBus = ctx.createGain();
   musicBus.gain.value = GMUSIC_VOLUME;
   musicBus.connect(musicOut);
@@ -1789,6 +1860,9 @@ function ensureCtx() {
   window.addEventListener('pointerdown', unlockAudio, true);
   window.addEventListener('keydown', unlockAudio, true);
   document.addEventListener('visibilitychange', onVisibilityChange);
+  for (const ev of ['focus', 'pageshow']) window.addEventListener(ev, () => resumeCtx(ev));
+  document.addEventListener('fullscreenchange', () => resumeCtx('fullscreen'));
+  ctx.addEventListener('statechange', () => logAudio('state', { state: ctx.state }));
   buildGraph();
   return true;
 }
@@ -2661,7 +2735,9 @@ function updateGMusic(dt, world) {
   const targetGain = scene ? 0 : GMUSIC_VOLUME + (GMUSIC_DUCK_VOLUME - GMUSIC_VOLUME) * duck;
   const lerpRate = scene ? dt * 1.8 : gmusicFadingIn || gmusicHeld ? dt * 0.8 : dt * (ducked ? 1.5 : 0.8);
   musicState.gain += (targetGain - musicState.gain) * Math.min(1, lerpRate);
-  musicBus.gain.value = musicState.gain * getSettings().musicVolume;
+  if (!Number.isFinite(musicState.gain)) musicState.gain = targetGain;
+  const mv = getSettings().musicVolume;
+  musicBus.gain.value = musicState.gain * (Number.isFinite(mv) ? mv : 1);
   if (gmusicFadingIn && Math.abs(targetGain - musicState.gain) < 0.02) gmusicFadingIn = false;
   if (scene && !gmusicHeld && musicState.gain < 0.02) {
     gmusicHeld = true;
@@ -2751,21 +2827,31 @@ let lastDeathAt = -Infinity;
 export function updateAudio(dt, world) {
   const events = world.audioEvents || (world.audioEvents = []);
   if (!ctx || !worldReady) { events.length = 0; return; }
-  if (!muted) playAudioEvents(world);
+  lastWorld = world;
+  if (!muted) guarded('events', () => playAudioEvents(world));
   events.length = 0;
-  if (ctx.state === 'suspended' && !document.hidden) ctx.resume().catch(() => {});
+  if (ctx.state !== 'running') resumeCtx('frame');
 
   if (world.input.wasPressed('u')) {
     muted = !muted;
     saveMuted();
-    master.gain.setTargetAtTime(muted ? 0 : masterLevel(), ctx.currentTime, 0.05);
-    musicOut.gain.setTargetAtTime(muted ? 0 : masterLevel(), ctx.currentTime, 0.05);
+    applyOutputGains(0.05);
     world.addMessage(muted ? 'Geluid uit' : 'Geluid aan', 1.5, { key: 'mute' });
   }
 
   speech.tick();
-  const lpHz = 20000 * Math.pow(0.045, drunkLevel());
+  guarded('watchdog', () => watchdog(world));
+  const lpHz = musicLowpassHz(world);
   if (musicLp && Math.abs(musicLp.frequency.value - lpHz) > 50) musicLp.frequency.setTargetAtTime(lpHz, ctx.currentTime, 0.4);
+  // one failing subsystem (a NaN into an AudioParam throws) must not stop
+  // the music and ducking updates further down
+  guarded('world', () => updateWorldAudio(dt, world));
+  guarded('ducking', () => updateDucking(dt));
+  if (bank.pending() === 0 && warmList.length) bank.warm([warmList.pop()]);
+  guarded('gmusic', () => updateGMusic(dt, world));
+}
+
+function updateWorldAudio(dt, world) {
   updateListener(world);
   updateWorldEvents(world);
   const pickupOut = () => spatialAt(world.player.x, world.player.y);
@@ -2838,10 +2924,140 @@ export function updateAudio(dt, world) {
   updateFoley(dt, world);
   updateSkySfx(dt, world, kit);
   updateUiSfx(dt, world);
-  updateDucking(dt);
-  if (bank.pending() === 0 && warmList.length) bank.warm([warmList.pop()]);
-  updateGMusic(dt, world);
 }
+
+const guardFails = {};
+function guarded(name, fn) {
+  try { fn(); } catch (e) {
+    const n = (guardFails[name] = (guardFails[name] || 0) + 1);
+    if (n === 1 || n % 600 === 0) { console.warn('audio', name, e); logAudio('throw', { where: name, msg: String(e && e.message) }); }
+  }
+}
+
+// drunk.js only updates its level while gameplay runs; tie the muffle to
+// world.drunk too so a sober (or respawned) player never keeps it
+function musicLowpassHz(world) {
+  const lvl = world.drunk > 0 ? drunkLevel() : 0;
+  return Number.isFinite(lvl) ? 20000 * Math.pow(0.045, clamp(lvl, 0, 1)) : 20000;
+}
+
+function applyOutputGains(tc) {
+  const t = ctx.currentTime;
+  for (const node of [master, musicOut]) {
+    if (!node) continue;
+    node.gain.cancelScheduledValues(t);
+    node.gain.setTargetAtTime(muted ? 0 : masterLevel(), t, tc);
+  }
+}
+
+// --- watchdog ---------------------------------------------------------------
+// Every WATCHDOG_S: drops voice holds nobody owns any more (speech.sweep),
+// resumes a stopped context, puts the output and music gains back where the
+// mute/settings say, lifts a stale muffle or scenario hold on G-Music,
+// replaces a dead music element and notices a NaN in the mix.
+const WATCHDOG_S = 2;
+let watchdogAt = 0;
+const watch = { runs: 0, fixes: 0, nan: 0, lastFix: null };
+let meterBuf = null;
+
+function fix(what) {
+  watch.fixes++;
+  watch.lastFix = what;
+  logAudio('fix', { what });
+}
+
+function watchdog(world, force = false) {
+  const now = nowSec();
+  if (!force && now < watchdogAt) return;
+  watchdogAt = now + WATCHDOG_S;
+  watch.runs++;
+  const freed = speech.sweep();
+  if (freed.length) fix('hold:' + freed.join(','));
+  if (!document.hidden && ctx.state !== 'running') { if (gmusicSuspended) gmusicSuspended = false; resumeCtx('watchdog'); }
+  if (!document.hidden && gmusicSuspended) { gmusicSuspended = false; gmusicRetryAt = 0; fix('gmusic-suspended'); }
+  const want = muted ? 0 : masterLevel();
+  if (master && Math.abs(master.gain.value - want) > 0.02 && ctx.state === 'running') { applyOutputGains(0.1); fix('master-gain'); }
+  else if (musicOut && Math.abs(musicOut.gain.value - want) > 0.02 && ctx.state === 'running') { applyOutputGains(0.1); fix('music-gain'); }
+  if (!Number.isFinite(musicState.gain)) { musicState.gain = 0; fix('music-nan'); }
+  if (musicLp && musicLowpassHz(world) >= 19999 && musicLp.frequency.value < 15000 && !(world.drunk > 0)) {
+    musicLp.frequency.cancelScheduledValues(ctx.currentTime);
+    musicLp.frequency.setTargetAtTime(20000, ctx.currentTime, 0.3);
+    fix('lowpass');
+  }
+  if (gmusicHeld && !scenarioNow) { gmusicHeld = false; gmusicRetryAt = 0; playGmusicCurrent(); fix('gmusic-held'); }
+  const el = gmusicCurrentEl;
+  if (el && el.error && gmusicPendingSince === null) { reviveGmusicEl(el); fix('gmusic-dead'); }
+  if (meter) {
+    if (!meterBuf) meterBuf = new Float32Array(meter.fftSize);
+    meter.getFloatTimeDomainData(meterBuf);
+    if (meterBuf.some((x) => !Number.isFinite(x))) { watch.nan++; fix('nan'); resetSynth(); }
+  }
+}
+
+// A music element that failed (network hiccup, decoder gone) is swapped for
+// a fresh one on the same file, so the station keeps going.
+function reviveGmusicEl(el) {
+  const fresh = wireGmusicEl(new Audio(el.src));
+  fresh.preload = 'auto';
+  fresh.gmusicTitle = el.gmusicTitle;
+  fresh.gmusicJingleKey = el.gmusicJingleKey;
+  const i = gmusicTracks.indexOf(el);
+  if (i >= 0) gmusicTracks[i] = fresh;
+  gmusicBag = gmusicBag.map((x) => (x === el ? fresh : x));
+  if (el.gmusicJingleKey && jingleEls[el.gmusicJingleKey] === el) jingleEls[el.gmusicJingleKey] = fresh;
+  try { el.removeAttribute('src'); el.load(); } catch (e) { /* ignore */ }
+  gmusicCurrentEl = fresh;
+  gmusicRetryAt = 0;
+  advanceGmusicQueue();
+}
+
+// The engine synth is the only hand-written DSP: if the mix ever turns NaN,
+// cut it loose (the classic engine voices take over) instead of staying silent.
+function resetSynth() {
+  for (const k of ['player', 'traffic']) {
+    const n = synth[k];
+    if (!n) continue;
+    try { n.disconnect(); } catch (e) { /* ignore */ }
+    synth[k] = null;
+  }
+}
+
+function audioState() {
+  if (!ctx) return { ctx: null, silentMode: SILENT_MODE, graphTest: GRAPH_TEST };
+  const r3 = (x) => +(+x).toFixed(3);
+  return {
+    ctx: ctx.state, time: r3(ctx.currentTime), hidden: document.hidden, graphTest: GRAPH_TEST, muted,
+    master: r3(master.gain.value), musicOut: r3(musicOut.gain.value), musicBus: r3(musicBus.gain.value),
+    musicTarget: r3(musicState.gain), lowpass: Math.round(musicLp.frequency.value), ambience: r3(ambBus.gain.value),
+    ambDuck: r3(duckState.level), musicDuck: speech.musicDuck(),
+    gmusic: {
+      started: gmusicStarted, held: gmusicHeld, suspended: gmusicSuspended, pending: gmusicPendingSince !== null,
+      current: gmusicCurrentEl ? (gmusicCurrentEl.gmusicTitle || gmusicCurrentEl.gmusicJingleKey || '?') : null,
+      paused: gmusicCurrentEl ? gmusicCurrentEl.paused : null, error: !!(gmusicCurrentEl && gmusicCurrentEl.error),
+      tracks: gmusicTracks.length, queue: gmusicQueue.length,
+    },
+    scenario: scenarioNow ? scenarioNow.key : null, storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
+    synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
+  };
+}
+
+if (typeof window !== 'undefined') {
+  window.__audio = {
+    state: audioState,
+    // runs the watchdog now (tests; the game runs it every WATCHDOG_S)
+    heal: () => { if (ctx && lastWorld) watchdog(lastWorld, true); return audioState(); },
+    speech,
+    setStoryScene: (on) => setStoryScene(on),
+    // tests: break one thing on purpose, the watchdog must repair it
+    poke: (what) => {
+      if (!ctx) return false;
+      const t = ctx.currentTime;
+      if (what === 'master') { master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(0, t); } else if (what === 'music') { musicOut.gain.cancelScheduledValues(t); musicOut.gain.setValueAtTime(0, t); } else if (what === 'lowpass') { musicLp.frequency.cancelScheduledValues(t); musicLp.frequency.setValueAtTime(300, t); } else if (what === 'suspend') ctx.suspend(); else if (what === 'held') gmusicHeld = true; else if (what === 'gmusic') gmusicSuspended = true; else return false;
+      return true;
+    },
+  };
+}
+let lastWorld = null;
 
 const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
   'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0',

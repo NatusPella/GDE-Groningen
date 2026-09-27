@@ -25,6 +25,7 @@ import { playCinematic, isCinematicActive } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
+import { queueFjordReveal } from './postgame.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -395,6 +396,8 @@ function playFinale(part) {
   q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: 'Grand Theft Eierbal VI', shot: (u, t) => ({ ...fromStudio(u, t), cut: t < 0.1 }) });
   CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
   q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(46 + CREDITS.length * 3.2) });
+  // then the Fjord Frituur comes out from under its sheet and Anita drives off in it
+  queueFjordReveal(world);
   state.cards.add(part);
   phone('GTE VI', 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.', 9);
   return true;
