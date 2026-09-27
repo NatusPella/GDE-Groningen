@@ -155,7 +155,39 @@ def compact_water(e):
     return e
 
 
+def extend():
+    """Grow the cache to BBOX by fetching only the strips it lacks."""
+    with gzip.open(DST, "rt") as f:
+        raw = json.load(f)
+    s0, w0, n0, e0 = raw["bbox"]
+    s, w, n, e = BBOX
+    strips = [b for b in ((n0, w, n, e), (s, w, n0, w0), (s, e0, n0, e), (s, w, s0, e)) if b[0] < b[2] and b[1] < b[3]]
+    for key in ("roads", "rail", "water", "places", "bld"):
+        have = {(el["type"], el["id"]) for el in raw[key]} if key != "bld" else {(round(b[0], 4), round(b[1], 4)) for b in raw[key]}
+        for b in strips:
+            print(f"  fetching {key} {b}", flush=True)
+            els = [slim(el) for el in overpass(queries(b)[key])["elements"]]
+            if key == "bld":
+                els = [x for x in map(compact_building, els) if x]
+                new = [x for x in els if (round(x[0], 4), round(x[1], 4)) not in have]
+                have.update((round(x[0], 4), round(x[1], 4)) for x in new)
+            else:
+                if key == "water":
+                    els = [x for x in map(compact_water, els) if x]
+                new = [x for x in els if (x["type"], x["id"]) not in have]
+                have.update((x["type"], x["id"]) for x in new)
+            raw[key] += new
+            print(f"  {key}: +{len(new)}", flush=True)
+    raw["bbox"] = list(BBOX)
+    with gzip.open(DST, "wt", compresslevel=9) as f:
+        json.dump(raw, f, separators=(",", ":"))
+    print(f"{DST}: {os.path.getsize(DST) / 1e6:.1f} MB")
+
+
 def main():
+    if "--extend" in sys.argv:
+        extend()
+        return
     if "--recompact" in sys.argv:
         with gzip.open(DST, "rt") as f:
             raw = json.load(f)
