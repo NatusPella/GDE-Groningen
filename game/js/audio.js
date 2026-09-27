@@ -1360,6 +1360,24 @@ export function playCallVoice(src, onEnd) {
   return !!speakClip('call', src, { owner: 'call', guess: 3, onEnd });
 }
 
+// Phone messages read aloud (phonefeed.js): the 'call' class under its own
+// owner, so a call, a story contact or a story scene keeps it waiting, and it
+// waits for a playing line to end instead of cutting it off. 'play', 'wait'
+// (try again next frame) or 'off' (muted: the card stays silent).
+export function playSmsVoice(src, dur, onEnd) {
+  if (!ctx || muted) return 'off';
+  if (storyScene || speech.clipPlaying() || !speech.canSpeak('call', 'sms')) return 'wait';
+  if (!speakClip('call', src, { owner: 'sms', guess: dur || 3, onEnd })) return 'wait';
+  duckAmbience(0.4, (dur || 3) + 0.4);
+  return 'play';
+}
+
+// A text arriving: a soft double tick, quieter than the ringtone.
+export function playPhonePing() {
+  if (!ctx || muted || !uiBus) return;
+  [[0, 1567.98], [0.09, 2093]].forEach(([d, f]) => playTone({ freq: f, type: 'sine', duration: 0.09, gain: 0.022, delay: d, bus: uiBus, prio: 2 }));
+}
+
 function playVoiceline(character, key) {
   if (storyScene) return false;
   const paths = (character === 'anita' ? ANITA_LINES : TAMMO_LINES)[key];

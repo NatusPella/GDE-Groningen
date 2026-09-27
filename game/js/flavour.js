@@ -1,3 +1,4 @@
+import { SMS_SAY } from './smsvoice.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { isCinematicActive } from './cinematics.js';
@@ -84,9 +85,9 @@ function speak(speaker, text, radio = false) {
   return playLineVoice(v.src, v.dur, radio ? 'radio' : 'react');
 }
 
-function notify(from, text) {
+function notify(from, text, opts = {}) {
   if (!world.phoneNotifications) world.phoneNotifications = [];
-  world.phoneNotifications.push({ from, text, duration: 5 });
+  world.phoneNotifications.push({ from, text, duration: 5, ...opts });
 }
 
 function placeName(x, y) {
@@ -218,8 +219,9 @@ function krolbrug(p) {
   hold('krol', 45);
   F.krolPasses++;
   F.krolText = KROLBRUG_FAULTS[(F.krolPasses - 1) % KROLBRUG_FAULTS.length];
-  notify('Gerrit Krolbrug', F.krolText);
-  if (inCar()) speak('Verkeersinformatie', F.krolText);
+  const car = inCar();
+  notify('Gerrit Krolbrug', F.krolText, { voiced: car });
+  if (car) speak('Verkeersinformatie', F.krolText);
   save();
 }
 
@@ -297,7 +299,7 @@ function cows(p) {
   if (!kind || !ready('cows') || Math.random() > 0.6) return;
   hold('cows', 200 + Math.random() * 120);
   const [cow, line] = pick(COW_FEED[kind]);
-  notify('Sikkom · De Koeien', `${cow}: “${line}”`);
+  notify('Sikkom · De Koeien', `${cow}: “${line}”`, { voiced: true });
   speak('Koe ' + cow, line);
 }
 
@@ -494,7 +496,8 @@ function peerd(p) {
   if (!F.peerd) return;
   if (F.peerdNews) {
     F.peerdNews = false;
-    notify('Sikkom', pick(PEERD_NEWS).replace('{w}', placeName(F.peerd.x, F.peerd.y)));
+    const i = Math.floor(Math.random() * PEERD_NEWS.length);
+    notify('Sikkom', PEERD_NEWS[i].replace('{w}', placeName(F.peerd.x, F.peerd.y)), { say: SMS_SAY.peerd.lines[i] });
   }
   if (d2(p, F.peerd) < 35 && ready('peerd') && Math.random() < 0.2 && bark(F.peerd, PEERD_BARKS, 30)) hold('peerd', 80);
 }
@@ -558,7 +561,8 @@ function stolenBikes(p) {
     const b = makeTwoWheeler('bike', x, y, ang + Math.PI / 2, tint);
     b.parked = true;
     world.vehicles.push(b);
-    notify('Sikkom', pick(BIKE_RESURFACE).replace('{a}', r.from).replace('{b}', placeName(x, y)));
+    const i = Math.floor(Math.random() * BIKE_RESURFACE.length);
+    notify('Sikkom', BIKE_RESURFACE[i].replace('{a}', r.from).replace('{b}', placeName(x, y)), { say: SMS_SAY.bike.lines[i] });
     F.resurface = null;
     return;
   }
@@ -610,7 +614,7 @@ const debugApi = {
   krol() { F.krolInside = false; cd.krol = 0; krolbrug({ x: KROLBRUG.x, y: KROLBRUG.y }); return F.krolText; },
   peerd() { F.night++; placePeerd(); F.peerdNews = true; return F.peerd; },
   sun(on = true) { F.sunny = on; F.plantsoenSet = false; },
-  cows(kind = 'wreck') { cd.cows = 0; F.cowPrev = null; const [cow, line] = pick(COW_FEED[kind]); notify('Sikkom · De Koeien', `${cow}: “${line}”`); return speak('Koe ' + cow, line); },
+  cows(kind = 'wreck') { cd.cows = 0; F.cowPrev = null; const [cow, line] = pick(COW_FEED[kind]); notify('Sikkom · De Koeien', `${cow}: “${line}”`, { voiced: true }); return speak('Koe ' + cow, line); },
   gps() { cd.gps = 0; const l = pick(RING_ZUID_GPS); world.addMessage(`Navigatie: “${l}”`, 4); return speak('Navigatie', l); },
   radio() { const l = pick(NACHTSTREEK); world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', at: world.time }; return speak(NARRATOR, l, true); },
   perfect() { world.lastPerfectRun = world.time - 3; },

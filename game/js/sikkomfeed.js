@@ -78,7 +78,7 @@ export function updateSikkomFeed(dt, world) {
     else if (cur.missionsDone > prev.missionsDone) { msg = MISSION_UP[0]; audioKey = 'mission_up'; }
 
     if (msg) {
-      world.phoneNotifications.push({ text: msg, duration: 4 });
+      world.phoneNotifications.push({ text: msg, duration: 4, voiced: true });
       playSikkomLine(audioKey);
       lastToastAt = world.time;
     }

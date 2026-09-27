@@ -32,7 +32,7 @@ let clock = () => (typeof performance !== 'undefined' ? performance.now() : Date
 const last = { any: -Infinity, level: 0, groups: {}, tip: -Infinity };
 
 export function setAttentionClock(fn) { clock = fn; }
-export function resetAttention() { last.any = -Infinity; last.level = 0; last.groups = {}; last.tip = -Infinity; }
+export function resetAttention() { last.any = -Infinity; last.level = 0; last.groups = {}; last.tip = -Infinity; for (const k in voicedAt) delete voicedAt[k]; }
 
 function busy(w) {
   return !!(w && ((w.mission && w.mission.phase === 'active') || (w.sideJob && w.sideJob.active) || w.challenge || w.race));
@@ -66,5 +66,16 @@ export function mayShowTip() {
   return clock() - last.tip >= TIP_GAP;
 }
 export function noteTip() { last.tip = clock(); }
+
+// Phone messages read aloud (phonefeed.js): a character's text always; the
+// Sikkom news feed and the app's own texts at most once per gap, the rest
+// only get the ping.
+const VOICE_GAP = { news: 45, system: 30 };
+const voicedAt = {};
+export function mayVoiceText(kind) {
+  const gap = VOICE_GAP[kind];
+  return !gap || clock() - (voicedAt[kind] ?? -Infinity) >= gap;
+}
+export function noteVoiceText(kind) { voicedAt[kind] = clock(); }
 
 export const attentionState = () => ({ ...last, groups: { ...last.groups }, now: clock() });

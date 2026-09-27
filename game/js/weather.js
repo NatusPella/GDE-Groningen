@@ -232,7 +232,7 @@ export function updateWeather(dt, world) {
       if (k.kind === 'storm') {
         world.addMessage('Code Rood: storm boven Grunn, hou je fiets vast!', 4);
         if (world.phoneNotifications) {
-          world.phoneNotifications.push({ text: 'SIKKOM: code rood, storm raast over Grunn', duration: 4 });
+          world.phoneNotifications.push({ text: 'SIKKOM: code rood, storm raast over Grunn', duration: 4, voiced: true });
           playSikkomLine('weather_storm_start');
         }
       } else if (k.kind === 'onweer') {
@@ -259,7 +259,7 @@ export function updateWeather(dt, world) {
     if (w.kind === 'storm') {
       world.addMessage('Storm trekt weg, Grunn droogt weer op.', 3);
       if (world.phoneNotifications) {
-        world.phoneNotifications.push({ text: 'SIKKOM: storm trekt weg, Groningen droogt weer op', duration: 4 });
+        world.phoneNotifications.push({ text: 'SIKKOM: storm trekt weg, Groningen droogt weer op', duration: 4, voiced: true });
         playSikkomLine('weather_storm_end');
       }
     }

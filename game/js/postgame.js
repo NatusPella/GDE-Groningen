@@ -13,6 +13,7 @@ import { playLineVoice } from './audio.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { banterAfter } from './banter.js';
 import { startCall } from './phonefeed.js';
+import { SMS_SAY } from './smsvoice.js';
 import { JELLE, JELLE_LINES, INTROS } from './pg_lines.js';
 import { BRUGGEN } from './pg_bruggenrace.js';
 import { FIERLJEP } from './pg_fierljep.js';
@@ -484,7 +485,7 @@ function dayWage(w) {
   lastClock = c;
   if (!open || prev == null || !(prev < FJORD_DAY_HOUR && c >= FJORD_DAY_HOUR && c - prev < 1)) return;
   w.money += FJORD_DAY_PAY;
-  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: €${FJORD_DAY_PAY} dagomzet op de rekening.`, duration: 6 });
+  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: €${FJORD_DAY_PAY} dagomzet op de rekening.`, duration: 6, say: SMS_SAY.fjordPay.lines[0] });
 }
 
 // --- automatic route after the ending ------------------------------------------------

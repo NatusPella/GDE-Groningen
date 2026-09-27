@@ -43,6 +43,9 @@ const CAST = {
   Navigatie: { voice: 'Kore', who: 'kalme navigatiestem in een auto', pool: ['kalm, monotoon, heel licht vermoeid', 'vriendelijk, mechanisch, droog'], accent: 'spoken in standard Dutch, calm and clear like a car navigation voice' },
   'Koe Aaltje': { voice: 'Zephyr', who: 'een sceptische, droge koe uit het Ommeland', pool: ['droog, laconiek, onder de indruk maar laat het niet merken', 'deadpan, zuchtend'] },
   'Koe Grietje': { voice: 'Autonoe', who: 'een wijze, droge koe uit het Ommeland die alles ziet', pool: ['droog, bedachtzaam', 'deadpan, licht spottend'] },
+  // phone messages read aloud (sms manifest): the Sikkom newsreader and the phone's own app voice
+  'Sikkom-redactie': { voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor', pool: ['als een nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog'] },
+  Ubbo: { voice: 'Laomedeia', who: 'de vriendelijke stem van de telefoon-app Ubbo', pool: ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'], accent: 'spoken in standard Dutch, clear and friendly like a phone assistant' },
 };
 const MALE = ['Charon', 'Puck', 'Iapetus', 'Umbriel', 'Alnilam', 'Rasalgethi', 'Enceladus', 'Schedar', 'Sadaltager', 'Zubenelgenubi'];
 const FEMALE = ['Aoede', 'Leda', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Pulcherrima', 'Vindemiatrix', 'Sulafat', 'Achernar'];
@@ -80,7 +83,7 @@ for (const e of collect()) {
     }
     const dir = sp.startsWith('~') ? `bubbles/${sp === BUBBLE.f ? 'f' : 'm'}` : slug(sp);
     const accent = (CAST[sp] && CAST[sp].accent) || (isGronings(e.text) ? GRO_ACCENT : ACCENT);
-    jobs.push({ key, speaker: sp, text: e.text, area: e.area, file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${accent}] ${e.text}` });
+    jobs.push({ key, speaker: sp, text: e.text, area: e.area, out: e.manifest === 'sms' ? 'sms' : 'lines', file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${accent}] ${e.text}` });
   }
 }
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_lines.json'), JSON.stringify(jobs, null, 1));
