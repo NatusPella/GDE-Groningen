@@ -71,6 +71,18 @@ function injectStyle() {
 #pause-menu .gar-viewer .gar-actions button { font-size: 18px; padding: 9px 12px; }
 @media (max-width: 980px) { #pause-menu .gar-layout { grid-template-columns: 1fr; } #pause-menu .gar-viewer { position: static; order: -1; } }
 #pause-menu .gar-note { margin: 0; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.6); }
+#pause-menu .gar-toolbar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+#pause-menu .gar-cats button small, #pause-menu .gar-filters button small { font-size: 0.78em; opacity: 0.7; margin-left: 2px; }
+#pause-menu .gar-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+#pause-menu .gar-filters { display: inline-flex; border: 1px solid rgba(63,201,122,0.45); border-radius: 6px; overflow: hidden; }
+#pause-menu .gar-filters button { font: inherit; font-size: 17px; letter-spacing: 1px; padding: 6px 12px 4px; cursor: pointer; color: rgba(240,237,228,0.8); background: rgba(12,20,14,0.6); border: none; border-right: 1px solid rgba(63,201,122,0.3); }
+#pause-menu .gar-filters button:last-child { border-right: none; }
+#pause-menu .gar-filters button:hover { color: #f0ede4; background: rgba(30,158,86,0.2); }
+#pause-menu .gar-filters button[aria-pressed="true"] { color: #0c140e; background: #3fc97a; }
+#pause-menu .gar-sort { display: inline-flex; align-items: center; gap: 8px; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.5px; color: rgba(240,237,228,0.7); }
+#pause-menu .gar-sort select { font: inherit; font-size: 15px; background: #0c140e; color: #f0ede4; border: 1px solid rgba(63,201,122,0.6); border-radius: 6px; padding: 5px 8px; }
+#pause-menu .gar-list > h2:first-child { margin-top: 4px; }
+#pause-menu .gar-empty { padding: 18px 0; }
 #pause-menu .gar-msg { min-height: 1.3em; margin: 0; font: 14px 'Arial Narrow', Arial, sans-serif; color: #e8c93a; }
 #hud .ph-swatch { flex: none; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240,237,228,0.5); margin-right: 8px; }
 #hud .ph-swatch.lg { width: 22px; height: 22px; }
@@ -156,22 +168,122 @@ export function disposeGarageViewer() {
   if (viewer) { viewer.dispose(); viewer = null; }
 }
 
+const CATS = [
+  ['all', 'Alles'],
+  ['autos', "Auto's"],
+  ['bussen', 'Bussen & vrachtwagens'],
+  ['fietsen', 'Fietsen'],
+  ['scooters', 'Scooters & steps'],
+  ['boten', 'Boten'],
+  ['speciaal', 'Speciaal'],
+];
+const FILTERS = [['all', 'Alles'], ['owned', 'Van jou'], ['sale', 'Te koop'], ['locked', 'Op slot']];
+const SORTS = [['naam', 'Naam'], ['prijs', 'Prijs'], ['snelheid', 'Snelheid']];
+const BIG_TYPES = new Set(['Bestelbus', 'Vrachtwagen', 'Midibus', 'Stadsbus', 'Tankwagen', 'Geldwagen']);
+const view = { cat: 'all', filter: 'all', sort: 'naam' };
+
+// Story/achievement unlocks are "Speciaal", whatever they drive like.
+function categoryOf(e) {
+  const spec = e.spec || {};
+  if (spec.unlock) return 'speciaal';
+  if (spec.kind === 'boat') return 'boten';
+  if (spec.kind === 'bike') return 'fietsen';
+  if (spec.kind === 'scooter') return 'scooters';
+  if (e.kind === 'bus' || e.kind === 'truck' || BIG_TYPES.has(spec.type)) return 'bussen';
+  return 'autos';
+}
+const groupOf = (e) => e.owned ? 'owned' : e.locked ? 'locked' : 'sale';
+const priceOf = (e) => e.price || (e.spec && e.spec.price) || 0;
+const SORTERS = {
+  naam: (a, b) => String(a.model).localeCompare(String(b.model), 'nl'),
+  prijs: (a, b) => priceOf(a) - priceOf(b) || SORTERS.naam(a, b),
+  snelheid: (a, b) => b.topSpeed - a.topSpeed || SORTERS.naam(a, b),
+};
+const inCat = (e) => view.cat === 'all' || categoryOf(e) === view.cat;
+
+function toolbarHtml(list) {
+  const here = list.filter(inCat);
+  const count = (f) => here.filter((e) => f === 'all' || groupOf(e) === f).length;
+  return '<nav class="pm-subtabs gar-cats" role="tablist" aria-label="Soort voertuig">' +
+    CATS.map(([id, label]) => {
+      const all = list.filter((e) => id === 'all' || categoryOf(e) === id);
+      if (!all.length) return '';
+      return `<button type="button" role="tab" data-garage-cat="${id}" aria-selected="${view.cat === id}">${esc(label)} <small>${all.filter((e) => e.owned).length}/${all.length}</small></button>`;
+    }).join('') + '</nav>' +
+    '<div class="gar-tools"><div class="gar-filters" role="group" aria-label="Toon">' +
+    FILTERS.map(([id, label]) => `<button type="button" data-garage-filter="${id}" aria-pressed="${view.filter === id}">${esc(label)} <small>${count(id)}</small></button>`).join('') +
+    '</div><label class="gar-sort">Sorteren op <select data-garage-sort>' +
+    SORTS.map(([id, label]) => `<option value="${id}"${view.sort === id ? ' selected' : ''}>${esc(label)}</option>`).join('') +
+    '</select></label></div>';
+}
+
+const HEADS = {
+  owned: ['Van jou', 'voorgoed in je garage'],
+  sale: ['Nog te koop', 'Ome Harm Occasions, Trap & Toeter en Bootje Huren'],
+  locked: ['Vrij te spelen', 'via het verhaal en prestaties'],
+};
+
+function listHtml(list) {
+  const shown = list.filter((e) => inCat(e) && (view.filter === 'all' || groupOf(e) === view.filter));
+  if (!shown.length) return '<p class="gar-note gar-empty">Niks in deze selectie. Kies een andere soort of filter.</p>';
+  return ['owned', 'sale', 'locked'].map((g) => {
+    const items = shown.filter((e) => groupOf(e) === g).sort(SORTERS[view.sort] || SORTERS.naam);
+    if (!items.length) return '';
+    return `<h2>${HEADS[g][0]} <small>${items.length} · ${HEADS[g][1]}</small></h2><div class="gar-grid">${items.map(card).join('')}</div>`;
+  }).join('');
+}
+
+function pickShown(el) {
+  const cards = [...el.querySelectorAll('.gar-list .gar-card')];
+  const keep = cards.find((c) => c.dataset.garageSelect === selected) || cards[0];
+  if (!keep) { disposeGarageViewer(); const box = el.querySelector('.gar-viewer'); if (box) box.innerHTML = ''; return; }
+  if (keep.dataset.garageSelect !== selected || !viewer) selectGarageVehicle(el, keep.dataset.garageSelect);
+  else for (const c of cards) c.classList.toggle('sel', c.dataset.garageSelect === selected);
+}
+
+function refreshList(el) {
+  const tools = el.querySelector('.gar-toolbar');
+  const listEl = el.querySelector('.gar-list');
+  if (!tools || !listEl) return;
+  tools.innerHTML = toolbarHtml(lastList);
+  listEl.innerHTML = listHtml(lastList);
+  pickShown(el);
+}
+
+function bindToolbar(el) {
+  if (el.dataset.garBound) return;
+  el.dataset.garBound = '1';
+  el.addEventListener('click', (ev) => {
+    const c = ev.target.closest('[data-garage-cat]');
+    const f = ev.target.closest('[data-garage-filter]');
+    if (!c && !f) return;
+    if (c) view.cat = c.dataset.garageCat;
+    if (f) view.filter = f.dataset.garageFilter;
+    refreshList(el);
+    const again = el.querySelector(c ? `[data-garage-cat="${view.cat}"]` : `[data-garage-filter="${view.filter}"]`);
+    if (again) again.focus({ preventScroll: true });
+  });
+  el.addEventListener('change', (ev) => {
+    if (!ev.target.matches('[data-garage-sort]')) return;
+    view.sort = ev.target.value;
+    refreshList(el);
+    const sel = el.querySelector('[data-garage-sort]');
+    if (sel) sel.focus({ preventScroll: true });
+  });
+}
+
 export function renderGaragePanel(el, world, msg = '') {
   injectStyle();
+  bindToolbar(el);
   const list = getGarageCatalog(world);
   lastList = list;
   const owned = list.filter((e) => e.owned);
-  const sale = list.filter((e) => !e.owned && !e.locked);
-  const locked = list.filter((e) => e.locked);
   el.innerHTML =
     `<h2>Garage <small>${owned.length} van ${list.length} verzameld</small></h2>` +
     `<p class="gar-note">Gekocht of vrijgespeeld is voorgoed van jou; gejat telt niet. Laat je voertuig afleveren en het staat om de hoek, buiten beeld. Ook via je telefoon (T).</p>` +
     `<p class="gar-msg" role="status">${esc(msg)}</p>` +
-    '<div class="gar-layout"><div class="gar-list">' +
-    `<div class="gar-grid">${owned.map(card).join('')}</div>` +
-    (sale.length ? `<h2>Nog te koop <small>Ome Harm Occasions, Trap & Toeter en Bootje Huren</small></h2><div class="gar-grid">${sale.map(card).join('')}</div>` : '') +
-    (locked.length ? `<h2>Vrij te spelen <small>via het verhaal en prestaties</small></h2><div class="gar-grid">${locked.map(card).join('')}</div>` : '') +
-    '</div><aside class="gar-viewer" aria-live="polite"></aside></div>';
-  const keep = selected && list.some((e) => e.id === selected) ? selected : list[0] && list[0].id;
-  if (keep) selectGarageVehicle(el, keep);
+    `<div class="gar-toolbar">${toolbarHtml(list)}</div>` +
+    `<div class="gar-layout"><div class="gar-list">${listHtml(list)}</div><aside class="gar-viewer" aria-live="polite"></aside></div>`;
+  disposeGarageViewer();
+  pickShown(el);
 }

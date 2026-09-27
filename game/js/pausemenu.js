@@ -12,38 +12,119 @@ import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './g
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailer.js';
+import { glyphHtml } from './prompts.js';
 
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
 
-const CONTROLS = [
-  ['W / S', 'vooruit / achteruit (lopen en rijden)'],
-  ['A / D', 'draaien / sturen'],
-  ['Shift', 'rennen / op de fiets: even flink doortrappen'],
-  ['Spatie', 'springen / handrem'],
-  ['Ctrl', 'bukken'],
-  ['E / F', 'instappen / uitstappen / winkel in / word een duif (bij een duivenbord) / bijbaantje beginnen'],
-  ['K', 'kusje geven aan Tammo/Anita'],
-  ['R', 'nieuwe lak (stilstaand bij Spuit & Klaar) / garagemenu (in een garage)'],
-  ['H', 'toeteren'],
-  ['L', 'zwaailicht en sirene aan/uit (in een politieauto of ambulance)'],
-  ['Muisklik', 'aanvallen / schieten / gooien'],
-  ['Rechtermuisknop', 'richten; met het jachtgeweer: door de kijker'],
-  ['1', 'slaan: vuisten, knuppel, hockeystick, bezem, fietspomp, klomp, polsstok (nog eens drukken wisselt)'],
-  ['2', 'pistool / uzi / waterpistool'],
-  ['3', 'hagelgeweer / jachtgeweer'],
-  ['4', 'carbidbus / vuurwerkpijlen (Ctrl + klik: bus neerzetten)'],
-  ['Scrollwiel', 'volgend / vorig wapen'],
-  ['Muis', 'camera draaien; laag houden om omhoog te kijken'],
-  ['Q / middelste muisknop', 'vasthouden: achterom kijken (in een voertuig)'],
-  ['T', 'telefoon'],
-  ['V', 'filmcamera (tijdens het rijden)'],
-  ['M', 'kaart (in het menu)'],
-  ['U', 'geluid aan/uit'],
-  ['X', 'als duif: weer mens worden'],
-  ['Esc', 'menu'],
-  ['Q / E', 'tabblad wisselen (in het menu)'],
+// Besturing tab: [alternatives, description]; an alternative is one token
+// or a combo joined with '+' (tokens as glyphHtml in prompts.js takes them).
+const CONTROL_GROUPS = [
+  ['lopen', 'Lopen', [
+    [['WASD'], 'Lopen en draaien'],
+    [['MOUSE'], 'Camera draaien; laag houden om omhoog te kijken'],
+    [['SHIFT'], 'Rennen (vasthouden)'],
+    [['SPACE'], 'Springen'],
+    [['CTRL'], 'Bukken'],
+    [['E', 'F'], 'Instappen, winkel in, praten, bijbaantje beginnen'],
+    [['E'], 'Bij een duivenbord: word een duif'],
+    [['K'], 'Kusje geven aan Tammo of Anita'],
+  ]],
+  ['rijden', 'Rijden', [
+    [['WASD'], 'Gas, remmen en achteruit, sturen'],
+    [['SPACE'], 'Handrem'],
+    [['SHIFT'], 'Op de fiets: even flink doortrappen'],
+    [['E', 'F'], 'Uitstappen'],
+    [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
+    [['H'], 'Toeteren'],
+    [['L'], 'Zwaailicht en sirene (politieauto, ambulance)'],
+    [['V'], 'Filmcamera'],
+    [['R'], 'Nieuwe lak bij Spuit & Klaar, garagemenu in een garage'],
+  ]],
+  ['vechten', 'Vechten', [
+    [['LMB'], 'Aanvallen, schieten, gooien'],
+    [['RMB'], 'Richten; jachtgeweer: door de kijker'],
+    [['TAB'], 'Tijdens het richten: volgend doelwit (of muis snel opzij)'],
+    [['1'], 'Slaan: vuisten, knuppel, hockeystick, bezem, fietspomp, klomp, polsstok (nog eens: wisselen)'],
+    [['2'], 'Pistool, uzi, waterpistool'],
+    [['3'], 'Hagelgeweer, jachtgeweer'],
+    [['4'], 'Carbidbus, vuurwerkpijlen'],
+    [['CTRL+LMB'], 'Carbidbus neerzetten'],
+    [['WHEEL'], 'Volgend of vorig wapen (scrollen)'],
+  ]],
+  ['duif', 'Duif', [
+    [['WASD'], 'Lopen, in de lucht: sturen'],
+    [['SPACE'], 'Opstijgen, klapwieken'],
+    [['SHIFT'], 'Duiken'],
+    [['F', 'LMB'], 'Poepen'],
+    [['E', 'CTRL'], 'Pikken, opeten, landen'],
+    [['C'], 'Koeren'],
+    [['Q'], 'Zwerm roepen of wegsturen'],
+    [['X'], 'Weer mens worden'],
+  ]],
+  ['menu', 'Telefoon & menu', [
+    [['T'], 'Telefoon'],
+    [['M'], 'Kaart'],
+    [['ESC'], 'Pauzemenu'],
+    [['Q', 'E'], 'In het menu: tabblad wisselen'],
+    [['U'], 'Geluid aan/uit'],
+    [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
+    ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
+  ]],
 ];
+
+const GROUP_ICONS = {
+  lopen: '<circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-6-3-3 1-5 4 3 3 1M10 12l-3 2M13 15l3 6"/>',
+  rijden: '<path d="M4 16l1.5-5A2 2 0 0 1 7.4 9.6h9.2a2 2 0 0 1 1.9 1.4L20 16v3h-3M7 19H4v-3h16"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
+  vechten: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>',
+  duif: '<path d="M3 13c3 0 5-2 7-5 1 3 3 4 6 4l5-3-2 5c-2 4-6 6-10 5l-4 2 1-4c-2-1-3-2-3-4z"/><circle cx="16.5" cy="10.5" r="0.4"/>',
+  menu: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 18.5h3"/>',
+};
+const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd' };
+
+function controlsHtml() {
+  const alt = (a) => a.split('+').map((t) => glyphHtml(t)).join('<span class="pm-k-sep">+</span>');
+  return CONTROL_GROUPS.map(([id, title, rows]) => `<section class="pm-cgroup" data-cgroup="${id}">` +
+    `<h3><svg class="pm-tab-ic" viewBox="0 0 24 24" aria-hidden="true">${GROUP_ICONS[id]}</svg>${esc(title)}</h3>` +
+    rows.map(([keys, desc]) => {
+      const words = keys.flatMap((k) => k.split('+')).map((t) => MOUSE_WORDS[t] || t).join(' ');
+      return `<div class="pm-crow" data-search="${esc((title + ' ' + desc + ' ' + words).toLowerCase())}">` +
+        `<span class="pm-ckeys">${keys.map(alt).join('<span class="pm-k-sep">/</span>')}</span><span class="pm-cdesc">${esc(desc)}</span></div>`;
+    }).join('') + '</section>').join('');
+}
+
+function filterControls(q) {
+  const panel = root.querySelector('[data-panel="controls"]');
+  const words = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  let any = false;
+  for (const g of panel.querySelectorAll('.pm-cgroup')) {
+    let n = 0;
+    for (const r of g.querySelectorAll('.pm-crow')) {
+      const hit = words.every((w) => r.dataset.search.includes(w));
+      r.hidden = !hit;
+      if (hit) n++;
+    }
+    g.hidden = !n;
+    any = any || n > 0;
+  }
+  panel.querySelector('.pm-cempty').hidden = any;
+}
+
+const QUICK_ICONS = {
+  resume: '<path d="M8 5l11 7-11 7z"/>',
+  save: '<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
+  load: '<path d="M3 7h6l2 2h10v11H3z"/><path d="M12 17v-6M9 13l3-3 3 3"/>',
+  restart: '<path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v5h5"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h0"/>',
+  home: '<path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/>',
+  abort: '<circle cx="12" cy="12" r="9"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/>',
+  bird: GROUP_ICONS.duif,
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  exit: '<path d="M14 4h6v16h-6M10 8l-4 4 4 4M6 12h10"/>',
+};
+const qIcon = (id) => `<svg class="pm-q-ic" viewBox="0 0 24 24" aria-hidden="true">${QUICK_ICONS[id] || TAB_ICONS[id] || ''}</svg>`;
+const qBtn = (action, icon, label, cls = 'pm-secondary', extra = '') =>
+  `<button type="button" class="${cls}" data-action="${action}"${extra}>${qIcon(icon)}<span>${label}</span></button>`;
 
 const TABS = [
   ['map', 'Kaart'],
@@ -82,7 +163,7 @@ const FOOTERS = {
   garage: '<b>Laten afleveren</b> zet je voertuig om de hoek, buiten beeld · gekochte voertuigen blijven voorgoed van jou',
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
   settings: 'Instellingen worden automatisch bewaard',
-  controls: '',
+  controls: '<b>/</b> zoeken · de toetsen staan per situatie gegroepeerd · <b>Toetshints</b> aan of uit onder Instellingen › Weergave',
   game: '',
 };
 
@@ -95,6 +176,8 @@ let input = null;
 let world = null;
 let tab = 'map';
 let prestart = null;
+// a tab opened from the pause card: Esc goes back to the card, not to the game
+let backToQuick = false;
 
 export function isPauseMenuOpen() {
   return open;
@@ -199,35 +282,41 @@ export function initPauseMenu(w) {
         </div>
         <button type="button" class="pm-secondary" data-action="reset">Standaardinstellingen</button>
       </div></section>
-      <section data-panel="controls" class="pm-panel pm-col" hidden><div class="pm-inner">
-        <dl class="pm-controls">
-          ${CONTROLS.map(([k, v]) => `<dt><span class="hud-key">${k}</span></dt><dd>${v}</dd>`).join('')}
-        </dl>
+      <section data-panel="controls" class="pm-panel pm-col" hidden><div class="pm-inner pm-cinner">
+        <div class="pm-csearch"><svg class="pm-tab-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+          <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></div>
+        <div class="pm-cgrid">${controlsHtml()}</div>
+        <p class="pm-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
       </div></section>
-      <section data-panel="game" class="pm-panel pm-col" hidden><div class="pm-inner pm-game">
-        <button type="button" class="pm-primary" data-action="resume">Hervatten</button>
-        <button type="button" class="pm-secondary" data-action="save">Opslaan</button>
-        <button type="button" class="pm-secondary" data-action="load">Laatste save laden</button>
-        <button type="button" class="pm-secondary" data-action="restart">Opnieuw beginnen</button>
-        <button type="button" class="pm-secondary" data-action="pigeon-stop" data-pigeon hidden>Duif-modus stoppen</button>
-        <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
-        <button type="button" class="pm-secondary" data-action="job-stop" hidden>Bijbaantje stoppen</button>
-        <button type="button" class="pm-secondary" data-action="mission-abort" hidden>Missie afbreken</button>
-        <button type="button" class="pm-secondary" data-action="home" hidden>Naar huis</button>
-        <button type="button" class="pm-secondary" data-action="unstuck" data-both>Vastgelopen? Zet me vrij</button>
-        <button type="button" class="pm-secondary" data-action="menu" data-both>Terug naar hoofdmenu</button>
-        ${DESKTOP ? '<button type="button" class="pm-danger" data-action="exit" data-both>Spel afsluiten</button>' : ''}
+      <section data-panel="game" class="pm-panel pm-col" hidden><div class="pm-inner pm-game" role="menu" aria-label="Pauzemenu">
+        <div class="pm-q-head"><b>Pauze</b><span class="pm-q-info"><span data-info="char"></span><span data-info="clock"></span><span data-info="money"></span></span></div>
+        ${qBtn('resume', 'resume', 'Doorgaan', 'pm-primary pm-q-main', ' aria-keyshortcuts="Escape"')}
+        ${qBtn('save', 'save', 'Opslaan', 'pm-secondary pm-half')}
+        ${qBtn('load', 'load', 'Laden', 'pm-secondary pm-half', ' title="Laatste save laden"')}
+        <p class="pm-status" role="status"></p>
+        <span class="pm-q-label">Menu</span>
+        ${TABS.filter(([id]) => id !== 'game').map(([id, label]) => `<button type="button" class="pm-secondary pm-half pm-q-nav" data-goto="${id}">${qIcon(id)}<span>${label}</span>${id === 'map' ? '<span class="hud-key">M</span>' : ''}</button>`).join('')}
+        <span class="pm-q-label">Hulp</span>
+        ${qBtn('pigeon-stop', 'bird', 'Duif-modus stoppen', 'pm-secondary', ' data-pigeon hidden')}
+        ${qBtn('pigeon-home', 'home', 'Naar huis vliegen', 'pm-secondary', ' data-pigeon hidden')}
+        ${qBtn('job-stop', 'abort', 'Bijbaantje stoppen', 'pm-secondary', ' hidden')}
+        ${qBtn('mission-abort', 'abort', 'Missie afbreken', 'pm-secondary', ' hidden')}
+        ${qBtn('home', 'home', 'Naar huis', 'pm-secondary', ' hidden')}
+        ${qBtn('unstuck', 'help', 'Vastgelopen? Zet me vrij', 'pm-secondary', ' data-both')}
+        <span class="pm-q-label">Spel</span>
+        ${qBtn('restart', 'restart', 'Opnieuw beginnen', 'pm-secondary pm-half')}
+        ${qBtn('menu', 'menu', 'Hoofdmenu', 'pm-secondary pm-half', ' data-both')}
+        ${DESKTOP ? qBtn('exit', 'exit', 'Spel afsluiten', 'pm-danger', ' data-both') : ''}
         <div class="pm-confirm" hidden>
           <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
           <button type="button" class="pm-secondary" data-action="load">Laatste save laden</button>
           <button type="button" class="pm-danger" data-action="new">Nieuw spel (save wissen)</button>
           <button type="button" class="pm-secondary" data-action="cancel">Annuleren</button>
         </div>
-        <p class="pm-status" role="status"></p>
       </div></section>
     </main>
     <footer class="pm-footer"><span class="pm-foot-tab"></span>
-      <span class="pm-foot-keys"><span class="pm-tabhint"><span class="hud-key">Q</span><span class="hud-key">E</span> tabblad</span> <span class="hud-key">Esc</span> sluiten</span></footer>`;
+      <span class="pm-foot-keys"><span class="pm-tabhint"><span class="hud-key">Q</span><span class="hud-key">E</span> tabblad</span> <span class="pm-navhint"><span class="hud-key">&uarr;</span><span class="hud-key">&darr;</span> kiezen <span class="hud-key">Enter</span> ok</span> <span class="hud-key">Esc</span> <span class="pm-esc-label">sluiten</span></span></footer>`;
   document.body.appendChild(root);
 
   mountMapView(root.querySelector('[data-panel="map"]'));
@@ -238,6 +327,8 @@ export function initPauseMenu(w) {
   root.addEventListener('click', (e) => {
     const t = e.target.closest('button[data-tab]');
     if (t) return showTab(t.dataset.tab);
+    const go = e.target.closest('button[data-goto]');
+    if (go) { backToQuick = true; return showTab(go.dataset.goto); }
     const st = e.target.closest('button[data-subtab]');
     if (st) return showSubtab(st.dataset.subtab);
     if (e.target.closest('[data-story-skip]')) {
@@ -271,6 +362,18 @@ export function initPauseMenu(w) {
     syncControls();
   });
 
+  const search = root.querySelector('[data-controls-search]');
+  // typing in the search box must not reach the game's key handlers
+  for (const type of ['keydown', 'keyup', 'keypress']) {
+    search.addEventListener(type, (e) => {
+      e.stopPropagation();
+      if (type !== 'keydown' || e.key !== 'Escape') return;
+      e.preventDefault();
+      if (search.value) { search.value = ''; filterControls(''); } else search.blur();
+    });
+  }
+  search.addEventListener('input', () => filterControls(search.value));
+
   // F11 / the macOS green button also switch modes: keep the checkbox right
   if (DESKTOP) DESKTOP.onFullscreenChange(() => syncDesktopControls());
   window.addEventListener('keydown', onKey);
@@ -288,7 +391,8 @@ function onKey(e) {
     if (!started()) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
       e.preventDefault();
-      setOpen(true, 'map');
+      backToQuick = false;
+      setOpen(true, k === 'Escape' ? 'game' : 'map');
     }
     return;
   }
@@ -299,11 +403,25 @@ function onKey(e) {
     selectGarageVehicle(root.querySelector('[data-panel="garage"] .pm-inner'), t.dataset.garageSelect);
     return;
   }
-  if (k === 'Escape' || (lower === 'm' && !prestart)) {
+  const quick = tab === 'game' && !prestart;
+  if (k === 'Escape') {
     e.preventDefault();
-    setOpen(false);
+    const confirmEl = root.querySelector('.pm-game .pm-confirm');
+    if (quick && !confirmEl.hidden) { confirmEl.hidden = true; root.querySelector('[data-action="restart"]').focus(); }
+    else if (!quick && backToQuick && !prestart) showTab('game');
+    else setOpen(false);
+  } else if (lower === 'm' && !prestart) {
+    e.preventDefault();
+    if (quick) { backToQuick = true; showTab('map'); } else setOpen(false);
   } else if (prestart) {
     return;
+  } else if (quick) {
+    const dir = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[k];
+    if (dir) { e.preventDefault(); moveFocus(dir); }
+    else if (k === ' ' && t && t.tagName === 'BUTTON' && root.contains(t)) { e.preventDefault(); t.click(); }
+  } else if (k === '/' && tab === 'controls') {
+    e.preventDefault();
+    root.querySelector('[data-controls-search]').focus();
   } else if (lower === 'q' || lower === 'e') {
     e.preventDefault();
     cycleTab(lower === 'q' ? -1 : 1);
@@ -313,9 +431,36 @@ function onKey(e) {
   }
 }
 
+// Arrow keys in the pause card: jump to the nearest button in that direction.
+function moveFocus(dir) {
+  const btns = [...root.querySelectorAll('.pm-game button')].filter((b) => !b.disabled && b.offsetParent !== null);
+  if (!btns.length) return;
+  const cur = btns.includes(document.activeElement) ? document.activeElement : null;
+  if (!cur) { btns[0].focus(); return; }
+  const c = cur.getBoundingClientRect();
+  const cx = c.left + c.width / 2, cy = c.top + c.height / 2;
+  let best = null, bestScore = Infinity;
+  for (const b of btns) {
+    if (b === cur) continue;
+    const r = b.getBoundingClientRect();
+    const dx = r.left + r.width / 2 - cx, dy = r.top + r.height / 2 - cy;
+    const along = dir === 'up' ? -dy : dir === 'down' ? dy : dir === 'left' ? -dx : dx;
+    const vert = dir === 'up' || dir === 'down';
+    const across = vert ? Math.abs(dx) : Math.abs(dy);
+    if (along < 4 || (!vert && !(r.top < c.bottom - 4 && r.bottom > c.top + 4))) continue;
+    // buttons in the same column (or row) win over closer diagonal ones
+    const overlap = vert ? r.left < c.right - 4 && r.right > c.left + 4 : r.top < c.bottom - 4 && r.bottom > c.top + 4;
+    const score = overlap ? along + across * 0.2 : 10000 + along + across * 2;
+    if (score < bestScore) { bestScore = score; best = b; }
+  }
+  if (!best && (dir === 'up' || dir === 'down')) best = dir === 'down' ? btns[0] : btns[btns.length - 1];
+  if (best) best.focus();
+}
+
 function cycleTab(dir) {
-  const i = TABS.findIndex(([id]) => id === tab);
-  showTab(TABS[(i + dir + TABS.length) % TABS.length][0]);
+  const tabs = TABS.filter(([id]) => id !== 'game');
+  const i = tabs.findIndex(([id]) => id === tab);
+  showTab(tabs[(i + dir + tabs.length) % tabs.length][0]);
 }
 
 function runAction(a) {
@@ -509,12 +654,12 @@ function syncGamePanel() {
 function refreshInfo() {
   if (!world) return;
   const c = world.pigeonMode ? 'Duif' : world.player.character === 'anita' ? 'Anita' : 'Tammo';
-  root.querySelector('[data-info="char"]').textContent = c;
-  const clock = getClockText(world);
-  root.querySelector('[data-info="clock"]').textContent = clock;
-  root.querySelector('[data-info="money"]').textContent = '€' + Math.max(0, Math.floor(world.money)).toLocaleString('nl-NL');
   const explored = getDiscoveredRatio();
-  root.querySelector('[data-info="clock"]').title = explored ? `${Math.round(explored * 100)}% verkend` : '';
+  const set = (key, text) => { for (const el of root.querySelectorAll(`[data-info="${key}"]`)) el.textContent = text; };
+  set('char', c);
+  set('clock', getClockText(world));
+  set('money', '€' + Math.max(0, Math.floor(world.money)).toLocaleString('nl-NL'));
+  for (const el of root.querySelectorAll('[data-info="clock"]')) el.title = explored ? `${Math.round(explored * 100)}% verkend` : '';
 }
 
 function showTab(name) {
@@ -524,12 +669,17 @@ function showTab(name) {
   for (const t of root.querySelectorAll('[data-tab]')) t.setAttribute('aria-selected', String(t.dataset.tab === name));
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   root.dataset.activeTab = name;
+  const quick = name === 'game' && !prestart;
+  root.classList.toggle('quick', quick);
+  if (quick) backToQuick = false;
   root.querySelector('.pm-foot-tab').innerHTML = prestart ? '' : FOOTERS[name] || '';
+  root.querySelector('.pm-esc-label').textContent = quick ? 'doorgaan' : backToQuick ? 'terug' : 'sluiten';
   if (world) setMapActive(world, open && name === 'map');
   if (name !== 'garage') disposeGarageViewer();
   if (name === 'missions') renderMissions();
   if (name === 'garage') renderGaragePanel(root.querySelector('[data-panel="garage"] .pm-inner'), world);
   if (name === 'prestaties') renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner'));
+  if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); }
   if (name === 'settings') { syncControls(); syncDesktopControls(); root.querySelector('[data-bench-confirm]').hidden = true; }
   if (name === 'game') {
     const pigeon = !!(world && world.pigeonMode);
@@ -546,14 +696,14 @@ function showTab(name) {
     syncGamePanel();
   }
   if (name !== 'map') {
-    const first = root.querySelector(`[data-panel="${name}"] button, [data-panel="${name}"] input, [data-panel="${name}"] select`);
+    const first = name === 'controls' ? null : root.querySelector(`[data-panel="${name}"] button, [data-panel="${name}"] input, [data-panel="${name}"] select`);
     if (first) first.focus({ preventScroll: true });
     else root.querySelector(`[data-tab="${name}"]`).focus({ preventScroll: true });
   }
 }
 
 // Opens the menu on a tab; with { prestart: true } it shows only Instellingen (start screen).
-export function openPauseMenu(name = 'map', opts = {}) {
+export function openPauseMenu(name = 'game', opts = {}) {
   if (opts.prestart) prestart = { onClose: opts.onClose || null };
   setOpen(true, name);
 }
@@ -565,6 +715,7 @@ export function closePauseMenu() {
 function setOpen(value, name = 'map') {
   if (!root) return;
   if (value && !started() && !prestart) return;
+  if (value && !open) backToQuick = false;
   if (open === value) {
     if (value) showTab(name);
     return;
