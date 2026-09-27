@@ -12,13 +12,15 @@ import { getShopsForRender, SHOP_TYPES } from './shops.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
+import { storyFlag } from './story.js';
 
 // EIKEA furniture for Tammo and Anita's flat (home.js). Bought in the EIKEA
 // (shops.js eikeaSections), delivered "tussen 8 en 18 uur": the next time
 // they come home. Every piece stands at a fixed spot in the flat's frame
 // (x along the facade, z inward), is only built while they are upstairs and
 // gives a perk. The Buukenkaas arrives flat-packed and wants assembling.
-// Saved as `meubels` in the savegame.
+// The story's r-bank step (storyarc.js) buys one; the first sit on the
+// Zitmoi after it is a quiet moment. Saved as `meubels` in the savegame.
 
 const SEAT_Y = 0.46;
 const SOFA_HEAL = 10;
@@ -75,10 +77,11 @@ let seat = null;
 let tv = null;
 let tvEl = null;
 let prevHour = null;
+let moment = null;
 const said = new Set();
 
 function blank() {
-  return { owned: new Set(), pending: new Set(), built: new Set(), day: 0, read: -1, stek: 0, tips: [] };
+  return { owned: new Set(), pending: new Set(), built: new Set(), day: 0, read: -1, stek: 0, tips: [], moment: false };
 }
 
 const has = (id) => state.owned.has(id) && (!BY_ID.get(id).flatpack || state.built.has(id));
@@ -88,7 +91,7 @@ const sayOnce = (w, key, text) => { if (said.has(key)) return; said.add(key); w.
 // --- save ------------------------------------------------------------------------
 
 export function getFurnitureSave() {
-  return { owned: [...state.owned], pending: [...state.pending], built: [...state.built], day: state.day, read: state.read, stek: state.stek, tips: [...state.tips] };
+  return { owned: [...state.owned], pending: [...state.pending], built: [...state.built], day: state.day, read: state.read, stek: state.stek, tips: [...state.tips], moment: state.moment };
 }
 
 export function applyFurnitureSave(d) {
@@ -102,6 +105,7 @@ export function applyFurnitureSave(d) {
   state.day = Math.max(0, n(d.day));
   state.read = Number.isFinite(d.read) ? Math.floor(d.read) : -1;
   state.stek = Math.max(0, Math.min(STEK_MAX, n(d.stek)));
+  state.moment = d.moment === true;
   state.tips = Array.isArray(d.tips) ? d.tips.filter((t) => typeof t === 'string').slice(0, TIPS_PER_DAY) : [];
 }
 
@@ -139,14 +143,21 @@ export function furnitureShopNote() {
 export function deliverFurniture(w) {
   world = w;
   said.delete('sofa');
-  if (!state.pending.size) return;
+  if (!state.pending.size) { momentHint(w); return; }
   const names = [...state.pending].map((id) => BY_ID.get(id).short);
   for (const id of state.pending) state.owned.add(id);
   state.pending.clear();
   const list = names.length > 1 ? names.slice(0, -1).join(', ') + ' en ' + names[names.length - 1] : names[0];
   w.addMessage(`EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59`, 5, { kind: 'tip' });
   if (state.owned.has('kast') && !state.built.has('kast')) w.addMessage('De Buukenkaas staat nog in de doos. Loop erheen en druk E', 5, { kind: 'tip' });
+  momentHint(w);
   checkComplete(w);
+}
+
+const momentDue = () => !state.moment && has('bank') && storyFlag('zitmoi');
+
+function momentHint(w) {
+  if (momentDue()) w.addMessage('Ga even zitten op de Zitmoi (E)', 5, { kind: 'tip' });
 }
 
 // Stock pieces an EIKEA one replaces (home3d.js buildFlat3D skips them).
@@ -229,6 +240,7 @@ function refresh3D() {
 export function leaveFurniture(w) {
   standUp(w, false);
   stopTv();
+  moment = null;
   if (w && w.companion) w.companion.sofaSeat = null;
   parent = null;
   group = null;
@@ -402,6 +414,11 @@ function sitDown(w) {
   p.x = s.x; p.y = s.y; p.vx = 0; p.vy = 0;
   p.sofaSeat = SEAT_Y;
   p.angle = Math.atan2(-parent.flat.Y[1], -parent.flat.Y[0]);
+  if (momentDue()) {
+    state.moment = true;
+    said.add('sofa');
+    moment = { t: w.time, i: 0 };
+  }
   sayOnce(w, 'sofa', 'Zitmoi. Nu snap ik waarom ze hem zo noemen.');
 }
 
@@ -416,6 +433,13 @@ function standUp(w, place) {
     p.x = x; p.y = y;
   }
 }
+
+// The quiet moment after the story's r-bank step, said by the one you don't play.
+const MOMENT = [
+  [0, 'Zitmoi. Nu snap ik waarom ze hem zo noemen.'],
+  [5, 'Oma Trijntje heeft gelijk, hè. Die bal is gien geld. Die bal is Grunn.'],
+  [11, 'Als we hem vinden, brengen we hem terug. Toch?'],
+];
 
 // --- Sikkom TV --------------------------------------------------------------------------
 
@@ -586,6 +610,10 @@ export function updateFurnitureInside(dt, w) {
     }
   }
   updateTv(dt, w);
+  if (moment && w.time - moment.t > MOMENT[moment.i][0]) {
+    w.addMessage(MOMENT[moment.i][1], 5, { kind: 'tip' });
+    if (++moment.i >= MOMENT.length) moment = null;
+  }
   if (!seat) return false;
   const p = w.player;
   const [ax, ay] = w.input ? w.input.axis() : [0, 0];

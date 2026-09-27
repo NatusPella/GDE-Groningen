@@ -27,6 +27,10 @@
 "src": "anita/alles_binnen_naar_de_kraam_op_de_0feb8bbb.mp3",
 "dur": 4.51
 },
+"Anita|Als we hem vinden, brengen we hem terug. Toch?": {
+"src": "anita/als_we_hem_vinden_brengen_we_hem_50d3d73a.mp3",
+"dur": 3.36
+},
 "Anita|Au, vonken! Nog een keer, rustig.": {
 "src": "anita/au_vonken_nog_een_keer_rustig_a93c9c3c.mp3",
 "dur": 2.75
@@ -243,6 +247,10 @@
 "src": "anita/nu_eieren_de_kippen_bij_berts_du_c2a84375.mp3",
 "dur": 4.41
 },
+"Anita|Oma Trijntje heeft gelijk, hè. Die bal is gien geld. Die bal is Grunn.": {
+"src": "anita/oma_trijntje_heeft_gelijk_he_die_f2ae4393.mp3",
+"dur": 4.55
+},
 "Anita|Op de fiets, hè. Het is een fietsrace.": {
 "src": "anita/op_de_fiets_he_het_is_een_fietsr_559cdfb2.mp3",
 "dur": 2.33
@@ -346,6 +354,10 @@
 "Tammo|Alles binnen. Naar de kraam op de Grote Markt, en heel voorzichtig.": {
 "src": "tammo/alles_binnen_naar_de_kraam_op_de_4e91b079.mp3",
 "dur": 4.64
+},
+"Tammo|Als we hem vinden, brengen we hem terug. Toch?": {
+"src": "tammo/als_we_hem_vinden_brengen_we_hem_5765c82e.mp3",
+"dur": 3.15
 },
 "Tammo|Au, vonken! Nog een keer, rustig.": {
 "src": "tammo/au_vonken_nog_een_keer_rustig_23abfb3c.mp3",
@@ -566,6 +578,10 @@
 "Tammo|Nu eieren. De kippen bij Berts duiventil leggen de beste van Grunn.": {
 "src": "tammo/nu_eieren_de_kippen_bij_berts_du_5469f8d8.mp3",
 "dur": 5.1
+},
+"Tammo|Oma Trijntje heeft gelijk, hè. Die bal is gien geld. Die bal is Grunn.": {
+"src": "tammo/oma_trijntje_heeft_gelijk_he_die_ac4cbeb2.mp3",
+"dur": 4.49
 },
 "Tammo|Op de fiets, hè. Het is een fietsrace.": {
 "src": "tammo/op_de_fiets_he_het_is_een_fietsr_7ac48394.mp3",

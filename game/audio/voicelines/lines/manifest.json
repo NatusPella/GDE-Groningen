@@ -2863,6 +2863,10 @@
 "src": "tammo/ik_zei_toch_zaklamp_aan_b166a45d.mp3",
 "dur": 2.54
 },
+"Tammo|Ik zoek de bank uit. Jij kiest altijd de hardste.": {
+"src": "tammo/ik_zoek_de_bank_uit_jij_kiest_al_bcf27df5.mp3",
+"dur": 3.59
+},
 "Tammo|Ik zoek hem wel. Ik ruik een eierbal op honderd meter.": {
 "src": "tammo/ik_zoek_hem_wel_ik_ruik_een_eier_a31ecc1f.mp3",
 "dur": 4.08
@@ -4002,6 +4006,10 @@
 "~f|Tot morgen, hè!": {
 "src": "bubbles/f/tot_morgen_he_ffd43396.mp3",
 "dur": 1.31
+},
+"~f|Tussen acht en zes bezorgd. Dus om één minuut voor zes.": {
+"src": "bubbles/f/tussen_acht_en_zes_bezorgd_dus_o_20726879.mp3",
+"dur": 4.35
 },
 "~f|Twee kilo appels, twee euro!": {
 "src": "bubbles/f/twee_kilo_appels_twee_euro_ae628e4c.mp3",
