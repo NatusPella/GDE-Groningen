@@ -940,7 +940,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   const talkEnd = tl.total;
   // fierljep.js timing: run-up, jump onto the pole, the swing (slowed down
   // at the top), then the drop or the topple and the splash
-  const swingT = fail ? 1.5 : 1.05 + Math.max(6, Math.min(18, 0.94 * span + 1.3)) * 0.09;
+  const swingT = fail ? 1.5 : 1.05 + Math.max(6, Math.min(22, 0.94 * span + 1.3)) * 0.09;
   const RUN = 1.3, JUMP = spot ? 0.42 + swingT * 1.93 + (fail ? 1.9 : 0.8) : 1.7, AFTER = spot ? 3.4 : 2.6;
   const jumpAt = talkEnd + RUN, landAt = jumpAt + JUMP, total = landAt + AFTER;
   const apex = 3.5 + span * 0.18;
