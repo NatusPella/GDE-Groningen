@@ -43,6 +43,9 @@
 //
 // GOAL TYPES (story.js GOALS)
 //   { type: 'shop', shop }            enter a shop of that type (shops.js SHOP_TYPES key)
+//     + buy, what, have               buy one of the item ids `buy` there instead (storyshop.js; `what`
+//                                     names it, `have`: walking in with that weapon also counts,
+//                                     `prefer`: listed first in the shop)
 //   { type: 'require', req, shop }    missions.js requirement met; route to the nearest `shop`
 //                                     (an array routes to the nearest of several types)
 //   { type: 'pigeon', spot, score }   poop score >= score in one flight (spot: pigeonspots.js id)
@@ -100,7 +103,7 @@ export const STEPS = [
     title: "Bommen Berend wil z'n bakkie", reward: 400, minReward: 100,
     lead: ['T', 'Berend belde. Zijn bakkie moet naar het Boterdiep, en hij telt de krassen. Jij rijdt, zegt hij.'] },
   { id: 'k-eierbal', part: 'kop', kind: 'activity', player: 'tammo', built: true, why: 'Laat mij maar, Anita. Ik weet blind waar de beste eierbal van Grunn ligt.',
-    title: 'Eierbal halen bij Frituur Vet & Lekker', goal: { type: 'shop', shop: 'snack' }, cost: 4,
+    title: 'Eierbal halen bij Frituur Vet & Lekker', goal: { type: 'shop', shop: 'snack', buy: 'f-eierbal', what: 'een eierbal' }, cost: 4,
     lead: ['A', 'Berend zei dat er al een Fries zijn bakkie wilde kopen. Contant, uit een klomp. Daar moet jij even over nadenken, en jij denkt het best met een eierbal. Frituur Vet & Lekker staat op je kaart.'],
     say: ['A', 'Een Fries met een klomp vol geld. Dat zit me niet lekker.'],
     done: ['A', 'Zo, je glimt weer. En nu die automaat in de Herestraat, voordat die Fries hem ook koopt.'] },
@@ -177,7 +180,7 @@ export const STEPS = [
       ['douwe', 'Durk… je telefoon staat aan.', { tag: 'geschrokken, fluisterend' }],
     ] }] },
   { id: 'r-uzi', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik haal die Ratelaar. Jij houdt hem vast als een eierbal.',
-    title: 'Uzi kopen bij Pang & Zo (aanbevolen)', goal: { type: 'shop', shop: 'wapens' }, cost: 300, optional: true,
+    title: 'Uzi kopen bij Pang & Zo (aanbevolen)', goal: { type: 'shop', shop: 'wapens', buy: 'w-uzi', have: 'uzi', what: 'de Uzi "Ratelaar"' }, cost: 300, optional: true,
     lead: ['T', 'Femke zegt dat al het vet de stad uit rijdt, in een tankwagen. Een Ratelaar bij Pang & Zo prikt makkelijker door zijn banden. Hoeft niet, helpt wel.'],
     say: ['T', 'Het gaat om banden, hè. Niet om mensen.'],
     done: ['T', 'Ratelaar. Nu die tankwagen, voordat het vet in Friesland is.'] },
@@ -198,7 +201,7 @@ export const STEPS = [
       ['jelle', 'Met een eigen auto, hear. As dat jild der is.', { tag: 'plagend, neerbuigend, aan de telefoon' }],
     ] }] },
   { id: 'r-tuning', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik ga naar Knal & Kolder. Ik weet precies welk geluid ik wil.',
-    title: 'Tuning bij Knal & Kolder (aanbevolen)', goal: { type: 'shop', shop: 'tuning' }, cost: 300, optional: true,
+    title: 'Tuning bij Knal & Kolder (aanbevolen)', goal: { type: 'shop', shop: 'tuning', buy: ['u-motor', 'u-remmen', 'u-grip', 'u-turbo'], what: 'een tuning-upgrade' }, cost: 300, optional: true,
     lead: ['A', 'Jelle rijdt een opgevoerde trekker, en die is sneller dan hij eruitziet. Rij onze auto naar Knal & Kolder en druk R, voor wat extra paardjes.'],
     say: ['A', 'Een trekker inhalen. Dat regel ik wel even. Nou ja: jij.'],
     done: ['A', 'Hij klinkt als een boze koelkast. Kom maar op, trekker.'] },
@@ -244,6 +247,14 @@ export const STEPS = [
     title: 'Fatbike-terreur: blijf overeind', reward: 500,
     lead: ['A', 'Oma Trijntje belt. Ze wil ons iets vertellen over de Eierbal, maar eerst moeten de fatbikes uit de Folkingestraat.'],
     after: [['Oma Trijntje', 'Breng hem thuis, jong. Niet voor het geld. Voor Grunn.']] },
+  { id: 'r-bank', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik zoek de bank uit. Jij kiest altijd de hardste.',
+    title: 'Onderduiken in de flat: een bank bij de EIKEA',
+    goal: { type: 'shop', shop: 'eikea', buy: ['bank', 'kast', 'lamp', 'bed', 'tv', 'prikbord', 'frituur', 'plant', 'bureau'], prefer: 'bank', what: 'een bank of ander meubel' }, cost: 299,
+    voorschot: { from: 'Oma Trijntje', text: 'Voor een fatsoenlijke bank. Op een krukje denk je niet goed na, jong.' },
+    lead: ['A', 'Na die fatbikes moeten we even onderduiken. In de flat, maar op dat ouwe bankje zit je krommer dan Durk. Een Zitmoi bij de EIKEA?'],
+    say: ['A', 'Tussen acht en zes bezorgd. Dus om één minuut voor zes.'],
+    done: ['A', 'Hij wordt thuisbezorgd. Kom, naar huis. Even zitten en nadenken over wat oma zei.'],
+    unlocks: 'zitmoi' },
   { id: 'H13', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'rondvaart', why: 'Ik vaar. Jij bent de gids: jij moet wijzen en praten.',
     title: 'Rondvaart met valse papieren', reward: 750,
     lead: ['T', 'Kapitein Klaas heeft een rondvaartboot die even van niemand is. Vanaf het water zien we misschien dat skûtsje.'] },

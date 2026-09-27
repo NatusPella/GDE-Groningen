@@ -1693,3 +1693,16 @@ function playLimoReveal(w, done) {
     onDone: () => done(),
   });
 }
+
+// A finished mission's intro and outro as plain lines, for Sikkom TV in the
+// flat (furniture.js): { speaker, text, src (voice URL or null), dur }.
+export function storyReplayLines(i) {
+  const s = STORY[i];
+  if (!s) return [];
+  const npc = NPC[s.npc];
+  return [...(s.intro || []), ...(s.outro || [])].map(([who, text]) => {
+    const speaker = speakerName(who, npc);
+    const v = voiceFor(speaker, text);
+    return { speaker, text, src: v ? VOICE_DIR + v.src : null, dur: v ? v.dur : 0 };
+  });
+}

@@ -20,7 +20,8 @@
 //   tower is hidden and drawn up to that floor instead, the flat is a cutaway
 //   on top (walls down). Bed: sleep until morning (or the evening when the
 //   next mission needs the dark) and save; fridge: a fried eierbal (health);
-//   wardrobe: the outfits you own. The flat's floor is a surface for
+//   wardrobe: the outfits you own. EIKEA pieces (furniture.js) are delivered
+//   on the next visit and stand at fixed spots, each with a perk. The flat's floor is a surface for
 //   map.groundHeightAt, so walking, jumping and the camera work as outside.
 // - New game and loading a save start outside the lobby with the garage
 //   stocked (savegame.js calls applyHomeOnLoad), unless the save was made
@@ -39,6 +40,7 @@ import { refreshDayNight } from './daynight.js';
 import { recordStat } from './achievements.js';
 import { clearDrunk } from './drunk.js';
 import { buildHomeExterior3D, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D } from './home3d.js';
+import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 
 const NEAR_M = 200;
 const FAR_M = 260;
@@ -559,7 +561,7 @@ function clampToFlat(p) {
     const k = (r + 0.07 - d) / d;
     lx += (lx - c.x) * k; lz += (lz - c.y) * k;
   }
-  for (const [x0, z0, x1, z1] of f.solids) {
+  for (const [x0, z0, x1, z1] of [...f.solids, ...furnitureSolids()]) {
     const cx = Math.max(x0, Math.min(x1, lx)), cz = Math.max(z0, Math.min(z1, lz));
     const dx = lx - cx, dz = lz - cz;
     const d = Math.hypot(dx, dz);
@@ -598,7 +600,9 @@ function enterFlat(w) {
   return fadeThen(() => {
     const scene = getScene();
     const f = home.flat;
-    inside = { flatMesh: buildFlat3D(f), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL - 1) : null };
+    deliverFurniture(w);
+    inside = { flatMesh: buildFlat3D(f, furnitureSkip()), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL - 1) : null };
+    attachFurniture3D(inside.flatMesh, f);
     if (scene) {
       scene.add(inside.flatMesh);
       if (inside.lowerMesh) scene.add(inside.lowerMesh);
@@ -629,6 +633,7 @@ function leaveFlat(w, after = null) {
 
 function exitFlatNow(w) {
   if (!inside) return;
+  leaveFurniture(w);
   const scene = getScene();
   if (scene) {
     scene.remove(inside.flatMesh);
@@ -655,33 +660,40 @@ function placeAtLobby(w) {
 function placeCompanion(w) {
   const c = w.companion;
   if (!c || c.inVehicle || c.state === 'dead') return;
-  const s = home.flat.spots.companion;
+  const seat = companionSeat();
+  const s = seat || home.flat.spots.companion;
   const [x, y] = home.flat.fl(s.x, s.z);
   c.x = x; c.y = y; c.vx = 0; c.vy = 0; c.gz = FLOOR_TOP;
+  c.sofaSeat = seat ? seat.seat : null;
   c.angle = Math.atan2(-home.flat.Y[1], -home.flat.Y[0]);
 }
 
-function sleep(w) {
+// wake: a chosen hour (the Sloapstee's menu) with its message, else morning
+// or the evening when the next mission needs the dark.
+function sleep(w, wake = null, wakeMsg = '') {
   return fadeThen(() => {
     const m = w.mission;
     const def = m && m.phase === 'idle' ? getMissionDefs()[m.index] : null;
     const needNight = !!def && [].concat(def.requires || []).includes('night');
     const hour = ((w.clock % 24) + 24) % 24;
-    w.clock = needNight && !isNight(w) ? EVENING : MORNING;
+    w.clock = wake != null ? wake : needNight && !isNight(w) ? EVENING : MORNING;
     refreshDayNight(w);
     w.health = 100;
+    furnitureSlept(w, hour, w.clock);
     clearDrunk(w);
     recordStat(w, 'slept');
     saveGame(w, { toast: true });
-    w.addMessage(needNight && !isNight(w) ? 'Uitgeslapen tot de avond. Tijd voor actie' : hour > MORNING && hour < 20 ? 'Middagdutje tot de volgende ochtend. Goeiemorgen, Grunn!' : 'Goeiemorgen, Grunn! Uitgeslapen en opgeslagen', 4, { kind: 'tip' });
+    if (wakeMsg) w.addMessage(wakeMsg, 4, { kind: 'tip' });
+    else w.addMessage(needNight && !isNight(w) ? 'Uitgeslapen tot de avond. Tijd voor actie' : hour > MORNING && hour < 20 ? 'Middagdutje tot de volgende ochtend. Goeiemorgen, Grunn!' : 'Goeiemorgen, Grunn! Uitgeslapen en opgeslagen', 4, { kind: 'tip' });
   }, 900);
 }
 
 function eatEierbal(w) {
-  if (w.time - fridgeAt < FRIDGE_COOLDOWN) { w.addMessage('Nog vol van de vorige eierbal. Even laten zakken', 3); return; }
+  if (w.time - fridgeAt < fridgeCooldown(FRIDGE_COOLDOWN)) { w.addMessage('Nog vol van de vorige eierbal. Even laten zakken', 3); return; }
   fridgeAt = w.time;
   w.health = 100;
-  w.addMessage('Eierbal uit de vriezer, drie minuten in de frituur: helemaal opgeladen', 3.5, { kind: 'tip' });
+  if (fridgePerk(w)) w.addMessage('Eierbal door de Vetpot: gezondheid vol en een knapperig pantser erbij', 3.5, { kind: 'tip' });
+  else w.addMessage('Eierbal uit de vriezer, drie minuten in de frituur: helemaal opgeladen', 3.5, { kind: 'tip' });
 }
 
 // --- "Naar huis" ---------------------------------------------------------------
@@ -730,11 +742,14 @@ export function homeSaveContext(w) {
 
 function flatUse(w) {
   const p = w.player;
-  let best = null, bd = USE_R;
-  for (const [k, s] of Object.entries(home.flat.use)) {
+  let best = furnitureFocus(w), bd = USE_R;
+  if (best) return best;
+  const consider = (k, s) => {
     const d = Math.hypot(s.x - p.x, s.y - p.y);
     if (d < bd) { bd = d; best = { k, s }; }
-  }
+  };
+  for (const [k, s] of Object.entries(home.flat.use)) consider(k, s);
+  for (const u of furnitureUses()) consider(u.k, u);
   return best;
 }
 
@@ -753,7 +768,7 @@ export function homePrompt(w) {
   if (inside) {
     const u = flatUse(w);
     if (!u) return null;
-    const [label, sub] = FLAT_PROMPTS[u.k];
+    const [label, sub] = furniturePrompt(u.k, w) || FLAT_PROMPTS[u.k];
     return { id: 'home-' + u.k, x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label, sub, ring: true };
   }
   const L = home.lobby;
@@ -792,6 +807,8 @@ export function tryHomeInteract(w) {
   } else if (pr.id === 'home-panel') {
     if (!nextPage(w)) w.addMessage('Alle auto\'s staan er al', 2.5);
     else w.addMessage('De parkeerlift draait: de volgende rij staat klaar', 3, { kind: 'tip' });
+  } else if (useFurniture(w, pr.id.slice(5), { sleep: (hour, msg) => sleep(w, hour, msg) })) {
+    // an EIKEA piece (furniture.js)
   } else if (pr.id === 'home-bed') sleep(w);
   else if (pr.id === 'home-wardrobe') openShopMenu(w, wardrobeMenu(w));
   else if (pr.id === 'home-fridge' || pr.id === 'home-fryer') eatEierbal(w);
@@ -834,11 +851,12 @@ export function updateHome(dt, w) {
   world = w;
   if (!home) return;
   streamExterior(w, dt);
+  updateFurniture(dt, w);
   if (inside) {
     const p = w.player;
     if (p.inVehicle || w.pendingRespawn || w.pigeonMode) exitFlatNow(w);
     else {
-      clampToFlat(p);
+      if (!updateFurnitureInside(dt, w)) clampToFlat(p);
       if (p.z < 0.01) p.gz = FLOOR_TOP;
       placeCompanion(w);
     }
