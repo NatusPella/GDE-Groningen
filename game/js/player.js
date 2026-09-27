@@ -152,7 +152,8 @@ export class Player {
     // jump/crouch - on foot only; SPACE is also "remmen" while driving
     // (handled in driveVehicle, never reached here). Crouching slows you
     // down and plays the crouch pose; collision stays 2D (x/y) anyway
-    if (input.wasPressed(' ') && this.z <= 0) {
+    // a minigame (fuse box, padel…) can claim Space for itself
+    if (input.wasPressed(' ') && this.z <= 0 && !(world.minigameUntil > world.time)) {
       if (this.tryVault(world)) return;
       this.vz = JUMP_SPEED;
     }

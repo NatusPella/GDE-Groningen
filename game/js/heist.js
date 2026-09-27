@@ -303,7 +303,7 @@ function fuseUi() {
   const el = document.createElement('div');
   el.id = 'heist-fuse';
   el.style.cssText = 'position:fixed;left:50%;bottom:21%;transform:translateX(-50%);z-index:40;padding:12px 16px 14px;border-radius:12px;background:rgba(12,14,18,.84);color:#f3efe4;font:600 14px/1.3 system-ui,sans-serif;text-align:center;pointer-events:none;min-width:300px;box-shadow:0 6px 24px rgba(0,0,0,.45)';
-  el.innerHTML = '<div data-t style="margin-bottom:8px">Stroomkast</div><div style="position:relative;height:18px;border-radius:9px;background:#2c3038;overflow:hidden"><div data-z style="position:absolute;top:0;bottom:0;background:#3fbf6a"></div><div data-n style="position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff;border-radius:2px"></div></div><div data-h style="margin-top:8px;font-weight:500;opacity:.85">Druk op Spatie als de naald in het groen staat</div>';
+  el.innerHTML = '<div data-t style="margin-bottom:8px">Stroomkast</div><div style="position:relative;height:18px;border-radius:9px;background:#2c3038;overflow:hidden"><div data-z style="position:absolute;top:0;bottom:0;background:#3fbf6a"></div><div data-n style="position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff;border-radius:2px"></div></div><div data-h style="margin-top:10px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:8px"><span style="display:inline-block;padding:4px 14px;border:2px solid #f3efe4;border-bottom-width:4px;border-radius:7px;font:700 15px/1 system-ui,sans-serif;letter-spacing:1px;background:rgba(255,255,255,.08)">SPATIE</span><span style="opacity:.9">als de naald in het groen staat</span></div>';
   document.body.appendChild(el);
   H.ui = el;
   return el;
@@ -321,6 +321,8 @@ export function updateFuse(dt, world, target, input) {
   const near = target && dist(p.x, p.y, target.x, target.y) < 3.2 && !p.inVehicle;
   if (!near) { closeFuse(); return false; }
   const el = fuseUi();
+  // the minigame owns Space: no jumping while you pull fuses
+  world.minigameUntil = world.time + 0.25;
   F.x += F.dir * dt * (0.85 + F.hits * 0.12);
   if (F.x > 1) { F.x = 2 - F.x; F.dir = -1; }
   if (F.x < 0) { F.x = -F.x; F.dir = 1; }
