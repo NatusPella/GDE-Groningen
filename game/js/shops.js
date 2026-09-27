@@ -916,6 +916,13 @@ function outfitSections(world) {
   return [{ title: `Outfits voor ${name}`, note, items }];
 }
 
+// The wardrobe at home (home.js): the outfits you own, for free.
+export function wardrobeMenu(world) {
+  const ch = currentChar(world);
+  const items = () => outfitSections(world)[0].items.filter((it) => state.ownedOutfits.has(ch + ':' + it.id.slice(2)));
+  return { name: 'Kledingkast', type: 'kleding', tagline: 'Alles wat je ooit gekocht hebt, netjes op een hangertje', color: '#2f6fb0', sections: () => [{ title: `Kast van ${ch === 'anita' ? 'Anita' : 'Tammo'}`, note: 'Meer kleren? Die liggen bij de kledingwinkel', items: items() }] };
+}
+
 function shakeWanted(world, stars) {
   if (world.wanted <= 0 || policeWatching(world) || world.time - state.lastStealthAt < OUTFIT_WANTED_COOLDOWN) return false;
   state.lastStealthAt = world.time;
@@ -1410,7 +1417,7 @@ function claimUnlocks(world) {
   for (const [key, spec] of Object.entries(VEHICLE_STOCK)) {
     if (!spec.unlock || state.vehicles.some((o) => o.key === key) || !unlockMet(spec)) continue;
     state.vehicles.push({ key, spec, color: spec.color, upgrades: [], v: null, lost: false });
-    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat in je garage. Laat hem afleveren via je telefoon (T) of het menu`, 6);
+    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat thuis in je garage. Haal hem daar op, of laat hem afleveren via je telefoon (T)`, 6);
   }
 }
 
@@ -1500,7 +1507,8 @@ export function getShopSave() {
     vehicles: state.vehicles.map((o) => {
       const v = o.v;
       const pos = o.lost ? null : v ? { x: round(v.x), y: round(v.y), angle: round(v.angle) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
-      const dmg = v && !o.lost ? damageSave(v) : {};
+      // a stored one (home.js) keeps its damage on the entry
+      const dmg = v && !o.lost ? damageSave(v) : !o.lost && (Number.isFinite(o.health) || (o.dents && o.dents.length)) ? { ...(o.health < 100 ? { health: Math.round(o.health) } : {}), ...(o.dents && o.dents.length ? { dents: o.dents } : {}) } : {};
       return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...(o.lost ? { lost: true } : {}), ...(!o.lost && !pos ? { garage: true } : {}), ...pos, ...dmg };
     }),
   };

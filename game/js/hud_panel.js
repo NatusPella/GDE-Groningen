@@ -1,5 +1,6 @@
 import { dualHtml } from './subtitles.js';
 import { getGaragesForRender } from './garages.js';
+import { getHomeForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES } from './shops.js';
@@ -666,6 +667,28 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       drawShopGlyph(ctx, glyph, 3.3 * s, paint);
       break;
     }
+    case 'home': {
+      // Thuis: a cream house on a blue badge
+      ctx.beginPath();
+      ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
+      ctx.fillStyle = '#2f6fb0';
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.4);
+      ctx.beginPath();
+      ctx.moveTo(0, -3.4 * s);
+      ctx.lineTo(3.3 * s, -0.4 * s);
+      ctx.lineTo(2.3 * s, -0.4 * s);
+      ctx.lineTo(2.3 * s, 2.9 * s);
+      ctx.lineTo(-2.3 * s, 2.9 * s);
+      ctx.lineTo(-2.3 * s, -0.4 * s);
+      ctx.lineTo(-3.3 * s, -0.4 * s);
+      ctx.closePath();
+      ctx.fillStyle = C.cream;
+      ctx.fill();
+      ctx.fillStyle = '#2f6fb0';
+      ctx.fillRect(-0.7 * s, 0.9 * s, 1.4 * s, 2 * s);
+      break;
+    }
     case 'garage': {
       // Spuit & Klaar: wrench on a green badge
       ctx.beginPath();
@@ -963,6 +986,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
     if (!minimapShows(layer)) return;
     for (const it of nearestWithin(list, px, py, r, max)) pois.push([typeof kind === 'function' ? kind(it) : kind, it.x, it.y]);
   };
+  add('home', getHomeForRender(), 'home', 1, MM_POI_FAR_M * 2);
   add('garage', getGaragesForRender(), 'garage', 1, MM_POI_FAR_M);
   const shops = nearestWithin(getShopsForRender(), px, py, MM_POI_NEAR_M, 24);
   for (const group of SHOP_GROUPS) {

@@ -71,6 +71,8 @@ function onOtherRoad(map, own, x, y) {
 // Footprint (plus a walkway behind it) free of facades, water, other roads
 // and trees.
 export function slotFits(map, road, x, y, angle, m, outX, outY) {
+  // kept free by home.js (garage, bike rack, the kerb for their long vehicles)
+  if (map.reservedAt && map.reservedAt(x, y)) return false;
   const c = Math.cos(angle), s = Math.sin(angle);
   const hl = m.len / 2 + 0.3, hw = m.wid / 2 + 0.2;
   for (const [lx, ly] of [[hl, hw], [hl, -hw], [-hl, hw], [-hl, -hw], [0, 0]]) {

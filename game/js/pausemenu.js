@@ -203,6 +203,7 @@ export function initPauseMenu(w) {
         <button type="button" class="pm-secondary" data-action="pigeon-home" data-pigeon hidden>Naar huis vliegen</button>
         <button type="button" class="pm-secondary" data-action="job-stop" hidden>Bijbaantje stoppen</button>
         <button type="button" class="pm-secondary" data-action="mission-abort" hidden>Missie afbreken</button>
+        <button type="button" class="pm-secondary" data-action="home" hidden>Naar huis</button>
         <button type="button" class="pm-secondary" data-action="unstuck" data-both>Vastgelopen? Zet me vrij</button>
         <button type="button" class="pm-secondary" data-action="menu" data-both>Terug naar hoofdmenu</button>
         ${DESKTOP ? '<button type="button" class="pm-danger" data-action="exit" data-both>Spel afsluiten</button>' : ''}
@@ -336,6 +337,8 @@ function runAction(a) {
   } else if (a === 'unstuck') {
     if (world.safetyActions && world.safetyActions.unstuck()) setOpen(false);
     else status('Even wachten tot je weer op de been bent');
+  } else if (a === 'home') {
+    if (world.homeActions && world.homeActions.goHome()) setOpen(false);
   } else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
@@ -527,6 +530,7 @@ function showTab(name) {
     jobStop.hidden = !jobOn;
     if (jobOn) jobStop.textContent = `Stoppen met ${world.sideJobActions.name()}`;
     root.querySelector('[data-action="mission-abort"]').hidden = !(world && world.safetyActions && world.safetyActions.missionActive());
+    root.querySelector('[data-action="home"]').hidden = pigeon || !(world && world.homeActions && world.homeActions.canGoHome());
     root.querySelector('.pm-game .pm-confirm').hidden = true;
     root.querySelector('.pm-status').textContent = '';
     syncGamePanel();

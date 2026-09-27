@@ -38,6 +38,7 @@ import {
 } from './shops.js';
 
 import { HERO_REPLACE_FEE } from './economy.js';
+import { getHomeForRender } from './home.js';
 const DELIVERY_COOLDOWN = 30;
 const NEAR_M = 200;
 const MAX_TESTS = 700;
@@ -246,8 +247,8 @@ function nameOf(spec, v) {
 
 function statusOf(world, v, lost) {
   if (lost) return { key: 'lost', label: 'Total loss' };
-  if (!v || !world.vehicles.includes(v)) return { key: 'garage', label: 'In de garage' };
   if (world.player.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
+  if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: 'Thuis in de garage' };
   const d = Math.hypot(v.x - world.player.x, v.y - world.player.y);
   return d < NEAR_M ? { key: 'near', label: 'In de buurt', dist: d } : { key: 'far', label: 'Ergens in Grunn', dist: d };
 }
@@ -396,7 +397,12 @@ export function locateOwnedVehicle(world, id) {
   if (!e) return { ok: false, text: 'Dat voertuig heb je niet' };
   const short = e.hero ? 'Escapade' : e.model;
   if (e.status === 'lost') return { ok: false, text: `Je ${short} is total loss. Laat een nieuwe afleveren` };
-  if (e.status === 'garage') return { ok: false, text: `Je ${short} staat in de garage. Laat hem afleveren` };
+  if (e.status === 'garage') {
+    const h = getHomeForRender()[0];
+    if (!h) return { ok: false, text: `Je ${short} staat in de garage. Laat hem afleveren` };
+    setUserWaypoint(h.x, h.y, 'Thuis');
+    return { ok: true, text: `Je ${short} staat thuis in de garage in Paddepoel. Staat op je kaart`, x: h.x, y: h.y };
+  }
   if (e.status === 'driving') return { ok: false, text: `Je zit er al in` };
   setUserWaypoint(e.v.x, e.v.y, `Jouw ${short}`);
   const where = e.where && e.where.street ? `${streetPhrase(e.where.street)}${e.where.wijk ? ` (${e.where.wijk})` : ''}` : 'op je kaart';

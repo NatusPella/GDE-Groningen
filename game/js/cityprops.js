@@ -393,7 +393,7 @@ function generateCell(map, cx, cy) {
   // nothing street-level on the ring's viaducts, embankments and cuttings,
   // and nothing standing in a carriageway (a railing or bin offset from one
   // way can land on the next)
-  const offLimits = (x, y) => map.onCarriageway(x, y, -0.4) || (map.elev && map.elev.has && map.offStreetLevel(x, y));
+  const offLimits = (x, y) => map.onCarriageway(x, y, -0.4) || (map.elev && map.elev.has && map.offStreetLevel(x, y)) || (map.reservedAt && map.reservedAt(x, y));
   for (let i = items.length - 1; i >= 0; i--) {
     const e = items[i].m && items[i].m.elements;
     if (e && offLimits(e[12], e[14])) items.splice(i, 1);
