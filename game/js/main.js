@@ -87,6 +87,8 @@ function waitForStart(world) {
     updateRailway(dt, world);
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
+    // in play combat.js expires these; the title screen and trailer only add
+    if (world.particles.length) world.particles = world.particles.filter((pt) => pt.until === undefined || pt.until > world.time);
   };
   // the effect pools exist from the title screen on, so their shaders are
   // compiled there and not on the first explosion, shot or splash; the
