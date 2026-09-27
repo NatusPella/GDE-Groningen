@@ -17,6 +17,7 @@ import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
+import { renderAimReticle } from './aimassist.js';
 
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
@@ -27,8 +28,6 @@ const SECONDARY_INTERVAL = 0.15;
 const MAX_SECONDARY = 1;
 const MAX_ROWS = 5;
 
-const WEAPON_NAMES = { pistol: 'Pistool', uzi: 'Uzi', shotgun: 'Hagelgeweer' };
-const WEAPON_RANGE = { fists: 1.1, pistol: 26, uzi: 20, shotgun: 11 };
 let root = null;
 let wps = [];
 let rowsEl = null;
@@ -153,6 +152,7 @@ function hintsQuiet() {
 }
 
 export function updatePrompts(dt, world) {
+  renderAimReticle(world);
   if (!root) return;
   trackUsage(dt, world);
   saveTimer -= dt;
@@ -202,6 +202,8 @@ function trackUsage(dt, world) {
   for (let i = 1; i <= 4; i++) if (pressed(String(i))) used('weapon');
   if (input.mouse.down && !prev.mouseDown) used(world.weapon === 'fists' ? 'punch' : 'shoot');
   prev.mouseDown = input.mouse.down;
+  if (input.mouse.rightDown && !prev.rightDown && world.weapon !== 'fists') used('aim');
+  prev.rightDown = input.mouse.rightDown;
 
   if (inV) {
     if (pressed('w') || pressed('s') || pressed('arrowup') || pressed('arrowdown')) used('drive');
@@ -350,9 +352,6 @@ function findPrimary(world) {
   if (weapon === 'fists') {
     const ped = pedInReach(world, 1.5, Math.PI / 3);
     if (ped) return { id: 'punch-' + (ped.id ?? ''), x: ped.x, y: ped.y, h: 1.75, key: 'LMB', label: 'Slaan', sub: ped.isCop ? 'Een agent? Durf je dat?' : learning('punch') ? 'Klik om uit te delen' : '', learn: learning('punch'), danger: true };
-  } else if (world.wanted > 0 && (world.ammo[weapon] || 0) > 0) {
-    const ped = pedInReach(world, Math.min(18, WEAPON_RANGE[weapon] || 15), 0.12);
-    if (ped) return { id: 'shoot-' + (ped.id ?? ''), x: ped.x, y: ped.y, h: 1.75, key: 'LMB', label: 'Schieten', sub: WEAPON_NAMES[weapon], danger: true };
   }
   return null;
 }
@@ -535,7 +534,7 @@ function contextRows(world, primary) {
     rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots', true));
     rows.push(tut('lookback', ['Q'], 'Achterom', 'Houd Q of de middelste muisknop vast', true));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
-    if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', 'Vuren vanuit de auto'));
+    if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd RMB vast om te richten' : 'Vuren vanuit de auto'));
   } else if (p.swimming) {
     rows.push(tut('swim', ['WASD'], 'Zwemmen', 'Zwem de kant op die je kijkt'));
     rows.push(tut('swimfast', ['SHIFT'], 'Snel zwemmen', 'Kost adem, dus niet te lang'));
@@ -546,6 +545,7 @@ function contextRows(world, primary) {
     if (p.moving) rows.push(tut('sprint', ['SHIFT'], 'Rennen', 'Houd Shift ingedrukt'));
     rows.push(tut('jump', [' '], 'Springen', 'Over hekjes en paaltjes'));
     if (armed) {
+      rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, Tab wisselt' : 'Houd vast om te richten'));
       rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
       rows.push(tut('weapon', ['1-4'], 'Wapen', '1 vuisten, 2 pistool, 3 uzi, 4 hagelgeweer, of scrollen'));
     } else if (world.wanted > 0) {

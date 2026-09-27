@@ -56,6 +56,7 @@ import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js'
 import { updateCountryside } from './countryside.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
+import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
@@ -2546,6 +2547,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
     guardLift = 0;
   }
   cam.lookAt(_camLook);
+  if (t <= 0.5) applyDrunkCamera(cam);
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   const targetFov = valid && o.fov ? o.fov : baseFov;
   if (cam.fov !== targetFov) {
