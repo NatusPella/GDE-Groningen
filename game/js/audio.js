@@ -2029,7 +2029,7 @@ function updateEngineSynth(dt, world) {
   const S = engineState;
   const v = world.player.inVehicle;
   const t = ctx.currentTime;
-  const motor = !!(v && !v.isBike && !v.wrecked && !humanPowered(v));
+  const motor = !!(v && !v.isBike && !v.wrecked && !v.shiftParked && !humanPowered(v));
   if (motor && v !== S.vehicle) {
     S.vehicle = v;
     S.kind = engineKind(v);

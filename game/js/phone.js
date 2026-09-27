@@ -395,8 +395,14 @@ function vehicleActions() {
   if (e.status === 'near' || e.status === 'far') {
     out.push({ label: 'Waar staat hij?', run: () => {
       const res = locateOwnedVehicle(world, e.id);
-      if (res.ok) flashAndClose(res.text + '. Staat op je kaart');
+      if (res.ok) flashAndClose(res.text);
       else { st.vehMsg = res.text; render(); }
+    } });
+    out.push({ label: 'Zet route', run: () => {
+      const res = locateOwnedVehicle(world, e.id);
+      if (!res.ok) { st.vehMsg = res.text; render(); return; }
+      setUserWaypoint(res.x, res.y, `Jouw ${e.hero ? 'Escapade' : e.model}`);
+      flashAndClose('Route staat op je kaart');
     } });
   }
   return out;

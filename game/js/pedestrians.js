@@ -867,7 +867,7 @@ function checkVehicleImpact(ped, world) {
       if (ped.ragdoll) continue;
       [ped.x, ped.y] = resolveBuildingCollisions(push.x, push.y, ped.radius, world.map);
       if (v.wrecked) continue;
-      if (v.driver === 'player' && !ped.isCop && world.time > (ped._bumpCd || 0)) {
+      if (v.driver === 'player' && !v.shiftParked && !ped.isCop && world.time > (ped._bumpCd || 0)) {
         ped._bumpCd = world.time + 5;
         say(ped, world, pick(CAR_BUMP_LINES));
         if (!ped.scene) {
