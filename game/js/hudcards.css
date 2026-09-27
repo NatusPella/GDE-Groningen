@@ -1,0 +1,115 @@
+/* HUD cards (hudcards.js): the "Nu op G-Music" card look, one accent per
+   category. Inside #hud, so uiscale.js zoom applies; vw inside is / --ui. */
+#hud .hud-cards {
+  position: absolute;
+  top: 104px;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  width: min(calc(44vw / var(--ui, 1)), 470px);
+  pointer-events: none;
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+#hud .hud-cards.below-np { transform: translateY(78px); }
+#hud .hud-cards.paused .hc-timer { animation-play-state: paused; }
+
+#hud .hud-card {
+  --hc: #f0ede4;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  padding: 9px 20px 11px 12px;
+  color: #f0ede4;
+  text-shadow: var(--hud-shadow);
+  background: linear-gradient(90deg, rgba(12, 20, 14, 0.86), rgba(23, 48, 31, 0.5) 78%, rgba(23, 48, 31, 0));
+  border-left: 3px solid var(--hc);
+  opacity: 0;
+  transform: translateX(-28px);
+  transition: opacity 0.35s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+#hud .hud-card.on { opacity: 1; transform: none; }
+#hud .hud-card.out { opacity: 0; transform: translateX(-20px); transition-duration: 0.4s; }
+#hud .hud-card.bump .hc-icon svg { animation: hc-bump 0.45s ease-out; }
+#hud .hud-card[data-kind="missie"] { --hc: #e8c93a; }
+#hud .hud-card[data-kind="bijbaan"] { --hc: #ff9a3c; }
+#hud .hud-card[data-kind="geld"] { --hc: #3fc97a; }
+#hud .hud-card[data-kind="politie"] { --hc: #6c9bff; }
+#hud .hud-card[data-kind="gevaar"] { --hc: #ff5a4a; }
+#hud .hud-card[data-kind="prestatie"] { --hc: #d68cff; }
+
+#hud .hc-icon { flex: 0 0 36px; width: 36px; height: 36px; display: grid; place-items: center; }
+#hud .hc-icon svg {
+  width: 32px;
+  height: 32px;
+  fill: var(--hc);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hc) 45%, transparent));
+}
+#hud .hc-icon .hc-cut { fill: #0c140e; }
+#hud .hud-card.on .hc-icon svg { animation: hc-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
+#hud .hud-card[data-kind="gevaar"].on .hc-icon svg, #hud .hud-card[data-kind="politie"].on .hc-icon svg { animation: hc-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1), hc-pulse 1s ease-in-out 0.6s 3; }
+@keyframes hc-in { from { transform: scale(0.4) rotate(-20deg); opacity: 0; } }
+@keyframes hc-bump { 40% { transform: scale(1.25); } }
+@keyframes hc-pulse { 50% { transform: scale(1.12); } }
+
+#hud .hc-text { display: flex; flex-direction: column; line-height: 1; min-width: 0; }
+#hud .hc-text small { font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: var(--hc); }
+#hud .hc-text b {
+  margin-top: 3px;
+  font-weight: normal;
+  font-size: 28px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+#hud .hc-text span {
+  margin-top: 3px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+}
+#hud .hc-text span.solo { font-size: 20px; margin-top: 4px; }
+#hud .hc-timer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 70%;
+  background: linear-gradient(90deg, var(--hc), transparent);
+  transform-origin: left;
+  opacity: 0.7;
+}
+#hud .hud-card.on .hc-timer { animation: hc-time var(--hc-dur, 5s) linear forwards; }
+@keyframes hc-time { to { transform: scaleX(0); } }
+
+/* countdowns: big and central */
+#hud .hud-count {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  transform: translate(-50%, -50%);
+  font-size: 150px;
+  line-height: 1;
+  letter-spacing: 4px;
+  color: #f0ede4;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.55), 0 0 30px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+}
+#hud .hud-count.on { animation: hc-count 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+#hud .hud-count[data-go="1"] { color: var(--gron-green-light); font-size: 120px; }
+@keyframes hc-count { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); } 25% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } }
+
+@media (max-height: 640px) {
+  #hud .hc-text b { font-size: 23px; }
+  #hud .hc-text span { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #hud .hud-card, #hud .hud-cards { transition: opacity 0.2s; transform: none; }
+  #hud .hud-card .hc-icon svg, #hud .hud-count.on { animation: none !important; }
+  #hud .hud-count.on { opacity: 1; }
+}

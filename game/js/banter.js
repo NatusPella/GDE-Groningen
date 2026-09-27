@@ -14,6 +14,7 @@ import { getSideJobList } from './sidejobs.js';
 import { isCinematicActive } from './cinematics.js';
 import { isPhoneOpen } from './phone.js';
 import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from './audio.js';
+import { hold as holdChannel, release as releaseChannel } from './speech.js';
 
 const GLOBAL_CD = 75;
 const PLACE_CD = 600;
@@ -230,6 +231,8 @@ function lineDur([s, text]) {
 
 function start(ex, lines, kind) {
   st.talk = { ex, lines, kind, i: -1, t: 0, until: 0 };
+  // the exchange holds the voice channel; a call or story scene cuts it off
+  holdChannel('banter', 'banter', () => { if (st.talk) interrupt(null); });
   if (ex) { heard[ex.id] = Date.now(); saveHeard(); }
   nextLine();
 }
@@ -251,6 +254,7 @@ function end() {
   st.talk = null;
   st.lastEnd = world.time;
   stopBanterVoice();
+  releaseChannel('banter');
   showSub(null);
 }
 
