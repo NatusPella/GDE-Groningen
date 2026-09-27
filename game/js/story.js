@@ -14,6 +14,7 @@ import { lineVoiceFor } from './linevoice.js';
 import {
   setMissionHooks, setNextMission, isMissionActive, isMissionCompleted, markMissionCompleted, getMissionDefs,
   unmetRequirement, requirementMet, requirementPlace, isNight, setMissionProgress, getMissionProgress, missionDebug,
+  activeMissionIndex, failActiveMission,
 } from './missions.js';
 import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight } from './pigeonmode.js';
@@ -438,7 +439,7 @@ function playHandover(w, step) {
   const dur = why ? Math.max(3, (voice ? voice.dur : Math.min(4, 1 + why.length * 0.05)) + 1.1) : 2.2;
   const p = w.player, c = w.companion;
   const ok = playCinematic({
-    id: 'story-swap', priority: 1, duration: dur, pause: true, letterbox: true, skippable: true, hideHud: true,
+    id: 'story-swap', priority: 1, duration: dur, pause: true, keepMotion: true, letterbox: true, skippable: true, hideHud: true,
     kicker: 'Neemt het over', title: name, cardFor: Math.min(2.2, dur), accent: who,
     lines: why ? [{ speaker: name, text: why, at: 0.7, dur: dur - 0.9 }] : [],
     shot: (u, t) => {
@@ -475,7 +476,17 @@ function flash() {
 
 // --- skipping --------------------------------------------------------------------------
 
+// Every step can be skipped from the pause menu (Missies tab), a running
+// story mission too (it is aborted first); the O button on screen only shows
+// after a failure, a long gate or a long wait on an activity.
 export function canSkipCurrent() {
+  const step = rt.cur;
+  if (!step || step.end) return false;
+  if (isMissionActive()) return step.kind === 'mission' && activeMissionIndex() === missionIdx(step);
+  return true;
+}
+
+function skipOffered() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) return false;
   if (step.kind === 'activity') return true;
@@ -485,6 +496,7 @@ export function canSkipCurrent() {
 export function skipCurrent() {
   const step = rt.cur;
   if (!canSkipCurrent()) return false;
+  if (isMissionActive() && !failActiveMission(world, 'Missie overgeslagen', 'Overgeslagen')) return false;
   if (step.kind === 'mission') {
     const i = missionIdx(step);
     const def = getMissionDefs()[i];
@@ -531,7 +543,7 @@ function hideSkip() {
 
 function updateSkipUi() {
   if (!els) return;
-  const show = rt.skipUntil > world.time && canSkipCurrent() && !world.pigeonMode;
+  const show = rt.skipUntil > world.time && skipOffered() && !world.pigeonMode;
   if (els.root.hidden === show) els.root.hidden = !show;
   if (show && world.input.wasPressed('o')) { world.input.consume('o'); skipCurrent(); }
 }

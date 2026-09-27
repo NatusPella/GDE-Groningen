@@ -31,6 +31,10 @@
 "src": "anita/anita_s_fjord_is_gejat_jelmers_c_adf80aec.mp3",
 "dur": 5.43
 },
+"Anita|Anita's Fjord is gejat. Jelmers chat zag een rode auto bij de Westerhaven.": {
+"src": "anita/anita_s_fjord_is_gejat_jelmers_c_b3e44280.mp3",
+"dur": 5.23
+},
 "Anita|Banden stuk, tankwagen pakken, naar de Oosterpoort. Daar staat de feesttent met de frituurpannen.": {
 "src": "anita/banden_stuk_tankwagen_pakken_naa_5e21ab44.mp3",
 "dur": 7.5
@@ -407,6 +411,10 @@
 "src": "anita/in_die_mand_zit_de_gouden_eierba_23f3b3ca.mp3",
 "dur": 5.03
 },
+"Anita|Ja! Hij piept. Achter het station!": {
+"src": "anita/ja_hij_piept_achter_het_station_2bddcd74.mp3",
+"dur": 2.89
+},
 "Anita|Ja. Alles voor één eierbal.": {
 "src": "anita/ja_alles_voor_e_e_n_eierbal_c4727670.mp3",
 "dur": 2.48
@@ -611,6 +619,10 @@
 "src": "anita/te_voet_he_de_hele_poelestraat_s_e22a2461.mp3",
 "dur": 5.48
 },
+"Anita|Twee grote kerels. Dat zijn Durk en Douwe.": {
+"src": "anita/twee_grote_kerels_dat_zijn_durk__78b66230.mp3",
+"dur": 3.38
+},
 "Anita|Vaar er met je huurboot achteraan, ga langszij en spring aan boord.": {
 "src": "anita/vaar_er_met_je_huurboot_achteraa_391ea6ed.mp3",
 "dur": 4.01
@@ -630,6 +642,10 @@
 "Anita|Voor de sfeer. Eerst de stroomkast, dan de vitrine. En niemand raakt iets aan.": {
 "src": "anita/voor_de_sfeer_eerst_de_stroomkas_031cc24d.mp3",
 "dur": 6.13
+},
+"Anita|Vraag rond, volg het piepje van de zender en haal hem terug voordat hij op de trein naar Leeuwarden staat.": {
+"src": "anita/vraag_rond_volg_het_piepje_van_d_0e2b828d.mp3",
+"dur": 6.54
 },
 "Anita|Wandelaars. Met een zaklamp.": {
 "src": "anita/wandelaars_met_een_zaklamp_c177150e.mp3",
@@ -678,6 +694,10 @@
 "Anita|Zie je dat? Dat is een tevreden Stadjer.": {
 "src": "anita/zie_je_dat_dat_is_een_tevreden_s_82601368.mp3",
 "dur": 2.96
+},
+"Anita|Zie je die vijf gele knopen, Tammo? Die houden hem vast.": {
+"src": "anita/zie_je_die_vijf_gele_knopen_tamm_1d4d1e71.mp3",
+"dur": 5.13
 },
 "Anita|Zwaai maar. Ze zwaaien terug. Of ze gooien een brood.": {
 "src": "anita/zwaai_maar_ze_zwaaien_terug_of_z_0bdce3dd.mp3",
@@ -874,6 +894,14 @@
 "Henk|Blijf maar even hangen. Koffie staat achterin.": {
 "src": "henk/blijf_maar_even_hangen_koffie_st_b25d55cb.mp3",
 "dur": 2.72
+},
+"Hilly|De ain zat te zingen. Fries, docht ik. Dat heur je hier nait vaak.": {
+"src": "hilly/de_ain_zat_te_zingen_fries_docht_c0097dcc.mp3",
+"dur": 5.23
+},
+"Hilly|Rooie auto? Mit twij grode kerels der in? Dij binnen net richten stasjon reden.": {
+"src": "hilly/rooie_auto_mit_twij_grode_kerels_009fd2ef.mp3",
+"dur": 5.4
 },
 "Jelle Terpstra|Alve brêgen, alve kear foar! Moai, hè?": {
 "src": "jelle_terpstra/alve_bre_gen_alve_kear_foar_moai_a1aae6b3.mp3",
@@ -1091,6 +1119,10 @@
 "src": "jelle_terpstra/moai_grinzers_revanche_alve_bre__a29b39f2.mp3",
 "dur": 7.19
 },
+"Jelle Terpstra|Moai, Grinzers! Sjoch ris omheech. Wat in aardich tuorke, no.": {
+"src": "jelle_terpstra/moai_grinzers_sjoch_ris_omheech__b3da7917.mp3",
+"dur": 6.21
+},
 "Jelle Terpstra|Moai, Grinzers! Tank foar de Eierbal. Dy nim ik mar mei.": {
 "src": "jelle_terpstra/moai_grinzers_tank_foar_de_eierb_51a3980a.mp3",
 "dur": 4.64
@@ -1222,6 +1254,10 @@
 "Jelmer|Chat zegt: drie rode auto's rond het station. Pak een duif, dan zie je ze van boven.": {
 "src": "jelmer/chat_zegt_drie_rode_auto_s_rond__5a13ef0e.mp3",
 "dur": 5.9
+},
+"Jelmer|Chat zegt: een rode auto bij de Westerhaven. Ga rondvragen, ik blijf live!": {
+"src": "jelmer/chat_zegt_een_rode_auto_bij_de_w_ce5e2b9d.mp3",
+"dur": 6.06
 },
 "Jelmer|Moi moi chat! De Fjord van Anita is foetsie! Wie hem ziet, zet het in de chat!": {
 "src": "jelmer/moi_moi_chat_de_fjord_van_anita__163f01db.mp3",
@@ -1359,9 +1395,17 @@
 "src": "tammo/anita_s_fjord_is_gejat_jelmers_c_4e0f77ef.mp3",
 "dur": 5.39
 },
+"Tammo|Anita's Fjord is gejat. Jelmers chat zag een rode auto bij de Westerhaven.": {
+"src": "tammo/anita_s_fjord_is_gejat_jelmers_c_e388258f.mp3",
+"dur": 6.2
+},
 "Tammo|Anita, de auto! Achter hem aan!": {
 "src": "tammo/anita_de_auto_achter_hem_aan_e5537890.mp3",
 "dur": 2.98
+},
+"Tammo|Anita, je Fjord heeft toch nog die oude zender van Henk?": {
+"src": "tammo/anita_je_fjord_heeft_toch_nog_di_0ef7854a.mp3",
+"dur": 3.92
 },
 "Tammo|Bij het Stationsplein leent duivenmelker Bert je een duif.": {
 "src": "tammo/bij_het_stationsplein_leent_duiv_6ac030bb.mp3",
@@ -1739,6 +1783,10 @@
 "src": "tammo/kroegentocht_vier_kroegen_e_e_n__f3573880.mp3",
 "dur": 6.2
 },
+"Tammo|Laat mij maar vliegen. Bert zegt dat ik een echt duivengezicht heb.": {
+"src": "tammo/laat_mij_maar_vliegen_bert_zegt__01316dbc.mp3",
+"dur": 3.91
+},
 "Tammo|Laat mij maar vliegen. Twintig keer raak, dat kan jij niet zeggen.": {
 "src": "tammo/laat_mij_maar_vliegen_twintig_ke_4c134a71.mp3",
 "dur": 4.72
@@ -1843,6 +1891,10 @@
 "src": "tammo/overdag_slaapt_het_hier_om_twaal_0a796e23.mp3",
 "dur": 4.63
 },
+"Tammo|Pik, pik, los. Ik word weer duif.": {
+"src": "tammo/pik_pik_los_ik_word_weer_duif_fa187f5d.mp3",
+"dur": 3.05
+},
 "Tammo|Rechts, net om de hoek: de Poelestraat en de Peperstraat.": {
 "src": "tammo/rechts_net_om_de_hoek_de_poelest_72bf360f.mp3",
 "dur": 4.18
@@ -1886,6 +1938,10 @@
 "Tammo|Vlieg naar het Groninger Museum en zweef boven drie camera's en twee bewakers: dan staan ze op de foto.": {
 "src": "tammo/vlieg_naar_het_groninger_museum__2f31709e.mp3",
 "dur": 7.48
+},
+"Tammo|Vraag rond, volg het piepje van de zender en haal hem terug voordat hij op de trein naar Leeuwarden staat.": {
+"src": "tammo/vraag_rond_volg_het_piepje_van_d_8aad3048.mp3",
+"dur": 6.54
 },
 "Tammo|W? Wie is W?": {
 "src": "tammo/w_wie_is_w_60a1cd5b.mp3",
@@ -1994,6 +2050,10 @@
 "Verteller|De buren hebben je al gezien. Zwaai maar even.": {
 "src": "verteller/de_buren_hebben_je_al_gezien_zwa_c577f4ba.mp3",
 "dur": 2.85
+},
+"Verteller|Dertig meter Fries doek, aan de trots van Grunn. Dat laat de stad niet zomaar gebeuren.": {
+"src": "verteller/dertig_meter_fries_doek_aan_de_t_af4d5766.mp3",
+"dur": 5.75
 },
 "Verteller|Dit jaar staat er gewoon een Berend op de Grote Markt. Als voorzitter van de jury.": {
 "src": "verteller/dit_jaar_staat_er_gewoon_een_ber_66f5ef20.mp3",

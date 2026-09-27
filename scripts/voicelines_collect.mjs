@@ -113,8 +113,9 @@ export function collect() {
   // --- mission scenes and fallback intros in missions.js -> lines manifest
   const mi = src('missions.js');
   const npcs = lit(src('missionstory.js'), 'const NPC = ');
-  const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : npcs[k] ? npcs[k].name : k);
-  for (const l of allLits(mi, 'lines: [[')) for (const [k, t] of l) add('Missie-scènes', 'lines', [who(k)], t);
+  const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k === 'V' ? NARRATOR : npcs[k] ? npcs[k].name : k);
+  // stage scene lines, also when the first line starts on a new line
+  for (const m of mi.matchAll(/lines: \[\s*\[/g)) for (const [k, t] of evalLit(literalAt(mi, 'lines: [', m.index).code)) add('Missie-scènes', 'lines', [who(k)], t);
   // Jelle's line as he lands a fierljep (missionstory.js playVaultScene)
   for (const t of strings(mi, /landing: ('(?:[^'\\]|\\.)*')/g)) add('Missie-scènes', 'lines', ['Jelle Terpstra'], t);
 

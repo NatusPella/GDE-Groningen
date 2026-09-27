@@ -226,7 +226,7 @@ export const BANTER = [
   { id: 'st-h3', trigger: 'story:H3', lines: [
     ['A', 'Jelmer wil content. Wat is content eigenlijk?', 'curious'],
     ['T', 'Iets met veel geschreeuw en een ringlamp.', 'grumpy']] },
-  { id: 'st-duif', trigger: 'story:k-duif', lines: [
+  { id: 'st-duif', trigger: 'story:H4', lines: [
     ['T', 'Ik ga vliegen leren van duiven. Mijn vader zou trots zijn.', 'proud'],
     ['A', 'Je vader was bang voor duiven.', 'dry'],
     ['T', 'Precies. Ik doorbreek het patroon.', 'solemn']] },
@@ -712,7 +712,7 @@ export const BANTER = [
     ['T', 'Die komt er wel. Anders bouw ik hem zelf. Van karton.', 'warm, trying to cheer her up']] },
   { id: 'q-h13-iets', trigger: 'after:H13:pass', arc: true, lines: [
     ['A', 'Zeg eens iets.', 'shy, soft'],
-    ['T', 'Iets.', 'nervous, deadpan'],
+    ['T', 'Iets. Hoor je? Ik zeg iets.', 'nervous, deadpan'],
     ['A', 'Tammo.', 'amused, fond'],
     ['T', 'Ik was even vergeten hoe praten ging.', 'shy, honest'],
     ['A', 'Dan zeg ik het wel. Vóór Grunn. Samen.', 'warm, decided']] },
