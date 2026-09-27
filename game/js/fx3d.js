@@ -166,7 +166,7 @@ function puffMaterial() {
 
 function initSmoke(scene) {
   const n = SMOKE_MAX;
-  for (const k of ['x', 'y', 'z', 'vx', 'vy', 'vz', 'age', 'life', 's0', 's1', 'a0', 'drag', 'lift', 'size']) smoke[k] = new Float32Array(n);
+  for (const k of ['x', 'y', 'z', 'vx', 'vy', 'vz', 'age', 'life', 's0', 's1', 'a0', 'drag', 'lift', 'size', 'floor']) smoke[k] = new Float32Array(n);
   smoke.alpha = new Float32Array(n);
   smoke.seed = new Float32Array(n);
   const geo = new THREE.PlaneGeometry(1, 1);
@@ -192,6 +192,9 @@ function spawnSmoke(x, y, z, vx, vy, vz, life, s0, s1, r, g, b, a, drag = 1.5, l
   const i = smoke.next;
   smoke.next = (i + 1) % SMOKE_MAX;
   smoke.x[i] = x; smoke.y[i] = y; smoke.z[i] = z;
+  // never below the surface it came from (a car down in the sunken ring
+  // smokes down there, not at street level)
+  smoke.floor[i] = Math.min(0.05, y - 0.15);
   smoke.vx[i] = vx; smoke.vy[i] = vy; smoke.vz[i] = vz;
   smoke.age[i] = 0; smoke.life[i] = life;
   smoke.s0[i] = s0; smoke.s1[i] = s1; smoke.a0[i] = a;
@@ -241,7 +244,7 @@ function updateSmoke(dt) {
     smoke.vx[i] *= k; smoke.vz[i] *= k;
     smoke.vy[i] = smoke.vy[i] * k + smoke.lift[i] * dt;
     smoke.x[i] += smoke.vx[i] * dt;
-    smoke.y[i] = Math.max(0.05, smoke.y[i] + smoke.vy[i] * dt);
+    smoke.y[i] = Math.max(smoke.floor[i], smoke.y[i] + smoke.vy[i] * dt);
     smoke.z[i] += smoke.vz[i] * dt;
     const grow = 1 - (1 - t) * (1 - t);
     const size = smoke.s0[i] + (smoke.s1[i] - smoke.s0[i]) * grow;
