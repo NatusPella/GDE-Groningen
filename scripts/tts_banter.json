@@ -3800,6 +3800,302 @@
   "who": "Groningse vrouw, lacherig en ad rem"
  },
  {
+  "file": "pg-bruggen-pass-hek_0_a_d7c317.mp3",
+  "speaker": "Anita",
+  "text": "Elf bruggen, en Jelle zag alleen ons hek.",
+  "tag": "proud, laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-bruggen-pass-hek_1_t_5bc011.mp3",
+  "speaker": "Tammo",
+  "text": "Onder de Herebrug keek hij heel verdrietig.",
+  "tag": "dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-bruggen-pass-hek_2_a_148bc3.mp3",
+  "speaker": "Anita",
+  "text": "Zo kijkt hij altijd, Tammo.",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-bruggen-pass-motor_0_t_2a04aa.mp3",
+  "speaker": "Tammo",
+  "text": "Hij zei dat zijn motor nog koud was.",
+  "tag": "amused, dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-bruggen-pass-motor_1_a_65126a.mp3",
+  "speaker": "Anita",
+  "text": "Na elf bruggen? Dan heeft hij een Friese motor.",
+  "tag": "mocking, cheerful",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-bruggen-pass-motor_2_t_d4144b.mp3",
+  "speaker": "Tammo",
+  "text": "Die wordt pas warm in Leeuwarden.",
+  "tag": "deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-bruggen-fail_0_a_803aa7.mp3",
+  "speaker": "Anita",
+  "text": "Hij kende elke brug. Hij heeft ze vast geteld.",
+  "tag": "annoyed, grudging",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-bruggen-fail_1_t_10100a.mp3",
+  "speaker": "Tammo",
+  "text": "Elf. Dat kan ik ook tellen.",
+  "tag": "defensive",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-bruggen-fail_2_a_2bf3cc.mp3",
+  "speaker": "Anita",
+  "text": "Tellen wel. Varen nog niet.",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-fierljep-pass_0_t_54ea96.mp3",
+  "speaker": "Tammo",
+  "text": "Jelle stond daar met zijn mond open.",
+  "tag": "delighted, dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-fierljep-pass_1_a_16ab94.mp3",
+  "speaker": "Anita",
+  "text": "Een Fries zonder woorden. Dat zie je maar één keer.",
+  "tag": "laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-fierljep-pass_2_t_525826.mp3",
+  "speaker": "Tammo",
+  "text": "Ik heb een foto. In mijn hoofd.",
+  "tag": "satisfied",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-fierljep-fail_0_a_e4403d.mp3",
+  "speaker": "Anita",
+  "text": "Het water was kouder dan het eruitzag.",
+  "tag": "shivering, rueful",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-fierljep-fail_1_t_0e28fb.mp3",
+  "speaker": "Tammo",
+  "text": "Het water was precies zo koud als het eruitzag.",
+  "tag": "dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-fierljep-fail_2_a_2f2c15.mp3",
+  "speaker": "Anita",
+  "text": "Volgende keer spring jij eerst.",
+  "tag": "bossy",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-skutsje-pass_0_a_20a457.mp3",
+  "speaker": "Anita",
+  "text": "Zeilen zonder motor. Dat ik dat nog meemaak.",
+  "tag": "amazed, happy",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-skutsje-pass_1_t_5ea874.mp3",
+  "speaker": "Tammo",
+  "text": "De wind was Gronings vandaag.",
+  "tag": "proud, dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-skutsje-pass_2_a_a819d6.mp3",
+  "speaker": "Anita",
+  "text": "De wind is van niemand, Tammo.",
+  "tag": "amused",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-skutsje-pass_3_t_f3122f.mp3",
+  "speaker": "Tammo",
+  "text": "Vandaag wel.",
+  "tag": "stubborn",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-skutsje-fail_0_t_d580c8.mp3",
+  "speaker": "Tammo",
+  "text": "Hij zei steeds \"fakmanskip\". Is dat erg?",
+  "tag": "confused",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-skutsje-fail_1_a_790edf.mp3",
+  "speaker": "Anita",
+  "text": "Voor ons wel, vandaag.",
+  "tag": "sighing, laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-fjord-pass-kassa_0_a_8490e9.mp3",
+  "speaker": "Anita",
+  "text": "Hoorde je die kassa? Dat is muziek.",
+  "tag": "thrilled",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-fjord-pass-kassa_1_t_27c0cd.mp3",
+  "speaker": "Tammo",
+  "text": "Mooier dan G-Music.",
+  "tag": "dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-fjord-pass-kassa_2_a_f720b7.mp3",
+  "speaker": "Anita",
+  "text": "Zeg dat maar niet te hard.",
+  "tag": "whispering, laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-fjord-pass-hond_0_t_da100a.mp3",
+  "speaker": "Tammo",
+  "text": "Die man bestelde drie eierballen. Voor zijn hond, zei hij.",
+  "tag": "baffled",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-fjord-pass-hond_1_a_6f374c.mp3",
+  "speaker": "Anita",
+  "text": "Gelukkige hond.",
+  "tag": "warm",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-fjord-pass-hond_2_t_8e5935.mp3",
+  "speaker": "Tammo",
+  "text": "Ik wil die hond zijn.",
+  "tag": "wistful, deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-fjord-fail_0_a_51e0b5.mp3",
+  "speaker": "Anita",
+  "text": "Een kroket is geen frikandel.",
+  "tag": "patient, teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "pg-fjord-fail_1_t_318969.mp3",
+  "speaker": "Tammo",
+  "text": "Ze zijn allebei lang en bruin.",
+  "tag": "defensive",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "pg-fjord-fail_2_a_6c27b7.mp3",
+  "speaker": "Anita",
+  "text": "Daarom heb ik een menukaart gemaakt.",
+  "tag": "dry",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-pg-revanche_0_t_83fa91.mp3",
+  "speaker": "Tammo",
+  "text": "Jelle belt elke dag. Nog één potje, zegt hij.",
+  "tag": "resigned, amused",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-pg-revanche_1_a_fe1d2c.mp3",
+  "speaker": "Anita",
+  "text": "Hij kan gewoon niet tegen zijn verlies.",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-pg-revanche_2_t_71442a.mp3",
+  "speaker": "Tammo",
+  "text": "Dat is heel menselijk.",
+  "tag": "generous, dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-pg-revanche_3_a_130508.mp3",
+  "speaker": "Anita",
+  "text": "Dat is heel Fries.",
+  "tag": "laughing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-pg-fjord-plek_0_a_10a431.mp3",
+  "speaker": "Anita",
+  "text": "Bij een wedstrijd staat de rij bij de Euroborg tot aan de parkeerplaats.",
+  "tag": "dreamy, businesslike",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "id-pg-fjord-plek_1_t_076597.mp3",
+  "speaker": "Tammo",
+  "text": "En op de Vismarkt koopt iedereen alleen maar vis.",
+  "tag": "dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "id-pg-fjord-plek_2_a_6a229b.mp3",
+  "speaker": "Anita",
+  "text": "Tot ze onze eierballen ruiken.",
+  "tag": "confident",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
   "file": "react-crash_0_t_bb6dbb.mp3",
   "speaker": "Tammo",
   "text": "Au. Mijn hoofd.",

@@ -25,6 +25,7 @@ export const CATEGORIES = [
   ['verzamelen', 'Verzamelen'],
   ['duif', 'Duif-modus'],
   ['bijbaan', 'Bijbaantjes'],
+  ['nahetverhaal', 'Na het verhaal'],
 ];
 
 // Per mission (index order of missions.js): medal times in seconds, the
@@ -93,6 +94,18 @@ export const ACHIEVEMENTS = [
   { id: 'ballonjacht_goud', cat: 'verkennen', title: 'Gouden rotor', desc: 'Haal goud bij de ballonjacht' },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
 
+  // post-game (postgame.js): Jelle's challenges and the Fjord Frituur
+  { id: 'bruggen_klaar', cat: 'nahetverhaal', title: 'Elf bruggen', desc: 'Vaar de Elf Bruggenrace tegen Jelle uit' },
+  { id: 'bruggen_goud', cat: 'nahetverhaal', title: 'Brêgekening', desc: 'Goud bij de Elf Bruggenrace', medal: true },
+  { id: 'fierljep_klaar', cat: 'nahetverhaal', title: 'Polsstokhoogte', desc: 'Land een sprong bij het fierljep-duel' },
+  { id: 'fierljep_goud', cat: 'nahetverhaal', title: 'Fierljepkening', desc: 'Goud bij het fierljep-duel', medal: true },
+  { id: 'skutsje_klaar', cat: 'nahetverhaal', title: 'Wind in de zeilen', desc: 'Zeil de skûtsje-sprint tegen Jelle uit' },
+  { id: 'skutsje_goud', cat: 'nahetverhaal', title: 'Skûtsjekening', desc: 'Goud bij de skûtsje-sprint', medal: true },
+  { id: 'jelle_alles', cat: 'nahetverhaal', title: 'Better as ús', desc: 'Versla Jelle in alle drie de uitdagingen' },
+  { id: 'fjord_klaar', cat: 'nahetverhaal', title: 'Luik open', desc: 'Draai een dienst met de Fjord Frituur' },
+  { id: 'fjord_goud', cat: 'nahetverhaal', title: 'Kon minder', desc: 'Goud in een dienst van de Fjord Frituur', medal: true },
+  { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de Fjord Frituur', stat: 'fjordEarned', goal: 1000, unit: '€' },
+
   { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: GTW, WINK en de Intercity', set: 'trains', goal: 3 },
   { id: 'trein_race', cat: 'spoor', title: 'Sneller dan de sprinter', desc: 'Rij een rijdende trein voorbij', hidden: true },
   { id: 'trein_1', cat: 'spoor', title: 'Instappen, deuren sluiten', desc: 'Reis met de trein naar een ander station', stat: 'trainTrips', goal: 1 },
@@ -149,7 +162,7 @@ let toastUntil = 0;
 let toastTimer = 0;
 
 function blankLife() {
-  return { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {} };
+  return { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, challenges: {} };
 }
 
 function fmtTime(s) {
@@ -172,6 +185,12 @@ function loadLife() {
         life.missions[i] = { best: Number.isFinite(r.best) ? r.best : null, medal: Math.max(0, Math.min(3, r.medal | 0)), runs: r.runs | 0 };
       }
     }
+    if (d.challenges && typeof d.challenges === 'object') {
+      for (const [id, r] of Object.entries(d.challenges)) {
+        if (!r || typeof r !== 'object') continue;
+        life.challenges[id] = { best: Number.isFinite(r.best) ? r.best : null, medal: Math.max(0, Math.min(3, r.medal | 0)), runs: r.runs | 0, lower: !!r.lower };
+      }
+    }
   } catch (e) { /* ignore */ }
 }
 
@@ -192,6 +211,13 @@ function mergeStored() {
     const cur = life.missions[i];
     if (!cur) { life.missions[i] = r; continue; }
     if (r.best != null && (cur.best == null || r.best < cur.best)) cur.best = r.best;
+    cur.medal = Math.max(cur.medal, r.medal);
+    cur.runs = Math.max(cur.runs, r.runs);
+  }
+  for (const [id, r] of Object.entries(other.challenges || {})) {
+    const cur = life.challenges[id];
+    if (!cur) { life.challenges[id] = r; continue; }
+    if (r.best != null && (cur.best == null || (r.lower ? r.best < cur.best : r.best > cur.best))) cur.best = r.best;
     cur.medal = Math.max(cur.medal, r.medal);
     cur.runs = Math.max(cur.runs, r.runs);
   }
@@ -334,6 +360,26 @@ export function recordMissionResult(w, i, result) {
   if (result.extra) unlockAchievement(w, `m${n}_extra`);
   checkGoals((a) => !!a.count);
   return { newBest: newBest && prev.best != null, newMedal, prevBest: prev.best, medal: result.medal };
+}
+
+// --- post-game challenges (postgame.js) -------------------------------------
+// Lifetime best per challenge id: a time (lower: true) or a score/distance.
+
+export function getChallengeRecord(id) {
+  return life.challenges[id] || null;
+}
+
+export function recordChallengeResult(w, id, { value, medal = 0, lower = false }) {
+  if (!Number.isFinite(value)) return null;
+  const prev = life.challenges[id] || { best: null, medal: 0, runs: 0, lower };
+  const rec = { ...prev, runs: prev.runs + 1, lower };
+  const newBest = rec.best == null || (lower ? value < rec.best : value > rec.best);
+  if (newBest) rec.best = Math.round(value * 10) / 10;
+  if (medal > rec.medal) rec.medal = medal;
+  life.challenges[id] = rec;
+  if (w) world = w;
+  markDirty(true);
+  return { newBest: newBest && prev.best != null, prevBest: prev.best, medal: rec.medal };
 }
 
 // --- savegame ---------------------------------------------------------------

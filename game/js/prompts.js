@@ -16,6 +16,7 @@ import { sideJobPrompt, sideJobSecondary, sideJobGoal } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
+import { postgamePrompt, postgameSecondary } from './postgame.js';
 
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
@@ -283,6 +284,8 @@ function findPrimary(world) {
   if (job) return job;
   const gar = garagePrompt(world);
   if (gar) return gar;
+  const pg = postgamePrompt(world);
+  if (pg) return pg;
   const shop = shopPrimaryPrompt(world);
   if (shop) return shop;
   if (p.inVehicle) return null;
@@ -379,6 +382,7 @@ function findSecondary(world, primary) {
   for (const c of shopSecondaryPrompts(world)) add(c, 14);
   for (const c of pigeonSpotSecondary(world)) add(c, 18);
   for (const c of heliSpotSecondary(world)) add(c, 20);
+  for (const c of postgameSecondary(world)) add(c, 25);
   for (const c of sideJobSecondary(world)) add(c, c.maxD || 20);
   for (const c of stationSecondary(world)) add(c, 22);
   const m = world.mission;

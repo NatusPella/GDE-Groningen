@@ -3,7 +3,7 @@ import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
 import { setUserWaypoint, findWalkPath } from './routing.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, storySpeakerName } from './missionstory.js';
-import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, showSkutsjeSail, clearSkutsjeSail } from './storyprops3d.js';
+import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
@@ -19,6 +19,8 @@ import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { MISSION_IDS, MISSION_STORY_ORDER, missionCode } from './storyarc.js';
 import { requestRespawn } from './world.js';
 import { getMissionRecord } from './achievements.js';
+import { BOAT_KINDS } from './boattypes.js';
+import { animateSkutsjeRig } from './models3d_vehicles.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
@@ -1551,7 +1553,7 @@ export function updateMissions(dt, world) {
       if (world.sideJob && world.sideJob.active) {
         chain.armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
-      } else if (!checkRequirement(world, def, true)) chain.armed = false;
+      } else if (world.challenge) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
       else if (hooks.canStart(world, chain.index)) startMission(world, def);
     }
     syncPub(world);
@@ -1922,7 +1924,7 @@ function nextStage(world, def) {
 }
 
 // --- H14: Jelle's skûtsje sails the Diepenring (rondvaartchase.js route) -------
-const SKUTSJE_MODEL = { name: 'boat', kind: 'rondvaart', len: 9, wid: 2.5, maxSpeed: 8, accel: 1, brake: 1.4, turnRate: 0.8, color: '#1b1d1f', cabin: '#7a4a24' };
+const SKUTSJE_MODEL = { ...BOAT_KINDS.skutsje, maxSpeed: 8 };
 
 function spawnSkutsje(world, st) {
   const p = world.player;
@@ -1938,7 +1940,6 @@ function spawnSkutsje(world, st) {
   v.label = st.name || '';
   world.vehicles.push(v);
   chain.skutsje = v;
-  showSkutsjeSail(v);
   return { v, s: s0, dir, speed: 2 };
 }
 
@@ -1959,6 +1960,9 @@ function updateBoatChase(dt, world, def, st, S) {
   v.angle = q.a + (B.dir < 0 ? Math.PI : 0);
   v.speed = B.speed;
   v.driftX = 0; v.driftY = 0;
+  // the mast folds aft to pass under the bridges (models3d_vehicles.js)
+  const c = Math.cos(v.angle), sn = Math.sin(v.angle);
+  animateSkutsjeRig(v, 0.55, [-2, 2, 6, 10].some((k) => world.map.isOnBridge(v.x + c * k, v.y + sn * k)) ? 1 : 0, world.time);
   const alongside = !!(p.inVehicle && p.inVehicle.isBoat) && d < (st.board || 8);
   if (alongside) {
     if (!S.said) { S.said = 1; world.addMessage(st.near || 'Langszij! Hou hem vast...', 2.5); }

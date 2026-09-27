@@ -16,6 +16,8 @@ export const BOAT_KINDS = {
   waterfiets: { kind: 'waterfiets', name: 'boat', len: 2.6, wid: 1.6, maxSpeed: 2.0, accel: 1.0, brake: 1.6, turnRate: 1.3, color: '#f0eee8', cabin: '#2a8fb0' },
   rubberboot: { kind: 'rubberboot', name: 'boat', len: 3.4, wid: 1.6, maxSpeed: 6, accel: 2.6, brake: 2.4, turnRate: 1.6, color: '#3c4044', cabin: '#d8572a' },
   dinghy: { kind: 'dinghy', name: 'boat', len: 2.8, wid: 1.25, maxSpeed: 3.0, accel: 1.4, brake: 2.0, turnRate: 1.5, color: '#2f4a3a' },
+  // Frisian sailing barge (Jelle's): not in the ambient mix
+  skutsje: { kind: 'skutsje', name: 'boat', len: 10, wid: 2.8, maxSpeed: 7, accel: 0.9, brake: 1.3, turnRate: 0.8, color: '#1b1d1f', cabin: '#8a5a2c' },
 };
 
 // Ambient traffic mix (weights).
@@ -58,6 +60,14 @@ export function boatSeats(v) {
       }
       return s;
     }
+    case 'skutsje':
+      // skipper at the tiller, the rest on the hatch covers
+      return [
+        { x: -hl + 1.25, z: 0.35, y: 0.72, face: 0, pose: { recline: 0.05, ...LEGS_BENCH, arms: 'tiller' } },
+        { x: -hl * 0.3, z: -0.5, y: 0.96, face: 0, pose: { recline: 0.1, ...LEGS_BENCH, arms: 'lap' } },
+        { x: 0.3, z: 0.5, y: 0.96, face: 0, pose: { recline: 0.1, ...LEGS_BENCH, arms: 'lap' } },
+        { x: -hl * 0.3, z: 0.5, y: 0.96, face: Math.PI / 2, pose: { recline: 0.06, ...LEGS_BENCH, arms: 'rail' } },
+      ];
     case 'kano':
       return [
         { x: -hl * 0.58, z: 0, y: 0.18, face: 0, pose: { recline: -0.05, footX: 0.62, footY: -0.12, arms: 'paddle' } },
