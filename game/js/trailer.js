@@ -34,6 +34,7 @@ const BENCH_KEY = 'gte-benchmark-pending';
 const SKIP_HOLD_S = 0.9;
 const STEP = 1 / 60;
 const MEASURE_AFTER_CUT_S = 0.3;
+const BENCH_RUNS = Q.has('benchmark') ? Math.max(1, Number(Q.get('benchmark')) || 1) : 0;
 
 // What should play before the title menu shows, if anything.
 export function pendingTrailer() {
@@ -43,6 +44,8 @@ export function pendingTrailer() {
   }
   // ?attract (desktop --attract) plays the attract intro on request, also in a test run
   if (Q.has('attract')) return { mode: 'attract', cut: 'kort' };
+  // ?benchmark=N (desktop --benchmark=N): N benchmark runs in a row, logged
+  if (Q.has('benchmark')) return { mode: 'benchmark', cut: 'vol' };
   let bench = null;
   try { bench = sessionStorage.getItem(BENCH_KEY); sessionStorage.removeItem(BENCH_KEY); } catch (e) { /* ignore */ }
   if (bench) return { mode: 'benchmark', cut: 'vol', fromGame: true };
@@ -142,6 +145,7 @@ const CSS = `
 #trailer .tr-black { inset: 0; background: #050807; opacity: 0; transition: opacity 0.35s; }
 #trailer .tr-black.on { opacity: 1; transition: opacity 0.12s; }
 #trailer .tr-black.fade { opacity: 1; transition: opacity 0.4s; }
+#trailer .tr-black.dim { opacity: 0.55; transition: opacity 0.9s; }
 #trailer .tr-flash { inset: 0; background: #fff6e6; opacity: 0; }
 #trailer .tr-flash.go { animation: tr-flash 0.28s ease-out; }
 #trailer .tr-flash.big { animation: tr-flash-big 0.5s ease-out; }
@@ -152,7 +156,8 @@ const CSS = `
 #trailer .tr-title { font-size: clamp(48px, 8.5vw, 132px); line-height: 0.92; text-transform: uppercase; }
 #trailer .tr-title.small { font-size: clamp(38px, 5.8vw, 88px); }
 #trailer .tr-title .amp { color: #3fc97a; }
-#trailer .tr-card .gte-logo { font-size: clamp(110px, 20vw, 250px); }
+/* no card text-shadow here: it shows through the logo's transparent, gradient-clipped letters */
+#trailer .tr-card .gte-logo { font-size: clamp(110px, 20vw, 250px); text-shadow: none; }
 #trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font: clamp(17px, 1.7vw, 23px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
 #trailer .tr-sub.on { opacity: 1; }
 #trailer .tr-sub b { color: #3fc97a; margin-right: 6px; }
@@ -185,6 +190,8 @@ const CSS = `
 #trailer-result button[hidden] { display: none; }
 body.trailer-on #hud, body.trailer-on .prompts, body.trailer-on #cine { display: none !important; }
 body.trailer-on #game3d { filter: contrast(1.06) saturate(1.14); }
+body.trailer-gpu-look #game3d { filter: none; }
+body.trailer-gpu-look #trailer .tr-grade { display: none; }
 @media (max-width: 700px) { #trailer-result .tr-nums { gap: 20px; } #trailer-result .tr-nums b { font-size: 42px; } }
 `;
 
@@ -454,9 +461,11 @@ function buildShots(w) {
     label: 'Duif langs de Martinitoren', cuts: ['vol', 'kort'], dur: 4.4, kort: 3.0, clock: 16.2, weather: 'helder', focus: tower,
     caps: [[0.4, 2.1, 'Soms moet je het van boven zien.', null, ['vol']], [2.55, 1.8, 'En soms moet je iets loslaten.', null, ['vol']]],
     enter(r, s) {
-      s.bird = buildPigeonBird('pigeon');
-      s.bird.scale.multiplyScalar(1.6);
-      r.group.add(s.bird);
+      s.bird = r.prop('pigeon', () => {
+        const b = buildPigeonBird('pigeon');
+        b.scale.multiplyScalar(1.6);
+        return b;
+      });
     },
     tick(r, s, t) {
       const R = 15, a = 1.6 + t * 0.62, z = 50 + t * 3.2;
@@ -495,12 +504,15 @@ function buildShots(w) {
   const ringS = ring.path.len * 0.25;
   const race = {
     label: 'Race op de ringweg', cuts: ['vol', 'kort'], dur: 4.2, kort: 3.0, clock: 12.8, weather: 'helder', focus: ring.path.at(ringS + 60),
-    caps: [[0.5, 2.8, 'De ringweg is af.', null, ['vol']]],
+    caps: [[0.3, 1.7, 'De ringweg is af.', null, ['vol']]],
     enter(r, s) {
       clearRoad(r, ring.path, 14);
       s.d = ringS;
-      const offs = [-4.2, -2.1, 0, 2.1, 4.2];
-      s.cars = offs.map((off, i) => ({ off: off * Math.min(1, (ring.half - 1.2) / 4.4), lag: [1.5, 0, 2.2, 0.6, 3.1][i], v: tempCar(r, 0, 0, 0, { model: MODELS[(i * 3 + 1) % MODELS.length] }) }));
+      // a staggered pack: side by side the far cars hid behind the near ones
+      // (and touched them, which the collision pass kept resolving)
+      const offs = [-2.8, 0, 2.8, -1.4, 1.4], lags = [0, 5, 1.5, 10, 14];
+      const k = Math.min(1, (ring.half - 1.2) / 3);
+      s.cars = offs.map((off, i) => ({ off: off * k, lag: lags[i], v: tempCar(r, 0, 0, 0, { model: MODELS[(i * 3 + 1) % MODELS.length] }) }));
     },
     tick(r, s, t, dt) {
       const v = 31;
@@ -509,14 +521,15 @@ function buildShots(w) {
       // the deck height on the centre line: lane offsets can reach the verge
       s.z = map.groundHeightAt(s.q.x, s.q.y, (s.z ?? ring.deck) + 0.5);
       for (const c of s.cars) {
-        const q = lane(ring.path, s.d - c.lag - Math.sin(t * 0.9 + c.lag) * 0.8, c.off);
+        const q = lane(ring.path, s.d - c.lag - Math.sin(t * 0.9 + c.lag) * 0.6, c.off);
         Object.assign(c.v, { x: q.x, y: q.y, angle: q.a, speed: v, z: s.z });
       }
     },
     cam(u, t, s) {
       const q = s.q, f = Math.cos(q.a), g = Math.sin(q.a);
-      const ahead = lerp(15, 9, u), side = ring.half + lerp(6, 3, u);
-      return { position: P(q.x + f * ahead - g * side, q.y + g * ahead + f * side, ring.deck + lerp(5, 3.2, u)), lookAt: P(q.x - f * 2, q.y - g * 2, ring.deck + 0.8), fov: 52, shake: 0.08 };
+      // long lens: the pack stays compact and the cars at the back stay readable
+      const ahead = lerp(30, 19, u), side = ring.half + lerp(3.5, 1.5, u);
+      return { position: P(q.x + f * ahead - g * side, q.y + g * ahead + f * side, ring.deck + lerp(6.5, 4.2, u)), lookAt: P(q.x - f * 6, q.y - g * 6, ring.deck + 0.6), fov: 36, shake: 0.08 };
     },
   };
 
@@ -537,13 +550,16 @@ function buildShots(w) {
 
   const pad = helipadInfo(map);
   const padC = pad || { x: 749.6, y: -267.8, deck: 20, angle: -0.642 };
-  const camAt = { x: padC.x + Math.cos(padC.angle + Math.PI / 2) * 120, y: padC.y + Math.sin(padC.angle + Math.PI / 2) * 120 };
+  // low on the roof edge opposite the city: the heli lifts off against the
+  // skyline instead of a wide shot over the flat hospital roofs
+  const awayA = Math.atan2(padC.y - tower.y, padC.x - tower.x);
+  const camAt = (d) => ({ x: padC.x + Math.cos(awayA) * d, y: padC.y + Math.sin(awayA) * d });
   const trauma = {
     label: 'Traumaheli boven het UMCG', cuts: ['vol', 'kort'], dur: 3.6, kort: 2.6, clock: 7.2, weather: 'helder', focus: padC,
     caps: [[0.5, 2.6, 'Hulp komt van boven.', null, ['vol']]],
     enter(r, s) {
       s.h = pad ? scriptHeli(r.w) : null;
-      const dx = padC.x - camAt.x, dy = padC.y - camAt.y, dl = Math.hypot(dx, dy) || 1;
+      const c0 = camAt(120), dx = padC.x - c0.x, dy = padC.y - c0.y, dl = Math.hypot(dx, dy) || 1;
       s.bal = [0, 1, 2].map((i) => ({
         x: padC.x + (dx / dl) * (330 + i * 120) + (-dy / dl) * (i - 1) * 110, y: padC.y + (dy / dl) * (330 + i * 120) + (dx / dl) * (i - 1) * 110,
         z: 75 + i * 30, targetZ: 75 + i * 30, vz: 0, drift: 0.2, spin: 0.01, yaw: i, seed: 99 + i * 17, phase: 'float', timer: 0,
@@ -562,7 +578,8 @@ function buildShots(w) {
     },
     cam(u, t, s) {
       const hz = s.h ? s.h.z : padC.deck + 15;
-      return { position: P(camAt.x, camAt.y, padC.deck + 8 + u * 3), lookAt: P(padC.x, padC.y, lerp(padC.deck, hz + 6, smooth(u))), fov: 48, shake: 0.05 };
+      const c = camAt(lerp(24, 34, u));
+      return { position: P(c.x, c.y, padC.deck + lerp(2.2, 7, smooth(u))), lookAt: P(padC.x, padC.y, lerp(padC.deck + 3, hz - 2.5, u)), fov: 58, shake: 0.05 };
     },
   };
 
@@ -677,8 +694,11 @@ function buildShots(w) {
     },
   };
 
+  // the aerial drifts on behind the logo, dimmed, instead of a black card
+  const logoCam = aerial.continuation();
   const logo = {
-    label: 'Logo', cuts: ['vol'], black: true, dur: 4.0,
+    label: 'Logo', cuts: ['vol'], dur: 4.0, dim: true, keep: true, fadeOut: 0.5, clock: 19.1, clockTo: 19.35, weather: 'helder', focus: tower,
+    cam(u) { return { ...logoCam(u * 4.0), shake: 0.03 }; },
     caps: [[0.2, 3.6, null, null, null, '<div class="tr-kicker">Grand Theft Eierbal</div><div class="gte-logo"><span class="gte">GTE</span><span class="vi">VI</span></div><div class="tr-kicker" style="margin-top:14px">Nu te spelen</div>']],
   };
 
@@ -750,6 +770,7 @@ function clearShot(r) {
 // --- runtime --------------------------------------------------------------------------------
 
 let running = null;
+const trailerProps = new Map();
 
 export function isTrailerRunning() {
   return !!running;
@@ -787,8 +808,19 @@ function nextFocus(r, i) {
   return null;
 }
 
+// Stream the next location in while the screen is black.
+function streamNext(r, i) {
+  const n = nextFocus(r, i);
+  if (!n) return;
+  r.env.relocate(n.focus.x, n.focus.y);
+  if (n.clock != null) setClock(r.w, n.clock);
+  forceWeather(r.w, n.weather);
+  r.blackPose = { position: P(n.focus.x + 20, n.focus.y + 20, 60), lookAt: P(n.focus.x, n.focus.y, 0), fov: 50 };
+}
+
 function enterShot(r, i) {
   const prev = r.shots[r.idx];
+  if (BENCH_RUNS && prev) logShot(r, r.idx);
   if (prev && prev.exit) { try { prev.exit(r, r.state); } catch (e) { console.warn('trailer exit', e); } }
   clearShot(r);
   r.idx = i;
@@ -799,25 +831,29 @@ function enterShot(r, i) {
   setSub(null);
   showCard(null);
   if (s.black) {
+    ui.black.classList.remove('dim');
     ui.black.classList.add('on');
-    // stream the next location in while the screen is black
-    const n = nextFocus(r, i);
-    if (n) {
-      r.env.relocate(n.focus.x, n.focus.y);
-      if (n.clock != null) setClock(w, n.clock);
-      forceWeather(w, n.weather);
-      r.blackPose = { position: P(n.focus.x + 20, n.focus.y + 20, 60), lookAt: P(n.focus.x, n.focus.y, 0), fov: 50 };
-    }
+    streamNext(r, i);
   } else {
-    const wasBlack = !prev || prev.black;
-    ui.black.classList.remove('on');
-    if (!wasBlack) flash();
+    const wasBlack = !prev || prev.black || prev.fadeOut;
+    ui.black.classList.remove('on', 'fade');
+    ui.black.classList.toggle('dim', !!s.dim);
+    if (!wasBlack && !s.keep) flash();
     if (s.focus) r.env.relocate(s.focus.x, s.focus.y);
     if (s.clock != null) setClock(w, s.clock);
     forceWeather(w, s.weather);
   }
   if (s.enter) { try { s.enter(r, r.state); } catch (e) { console.error('trailer enter', s.label, e && e.stack); } }
   r.stats[i] = r.stats[i] || { label: s.label, ms: [] };
+}
+
+// ?benchmark: one line per shot with its fps, draw calls and GPU memory
+function logShot(r, i) {
+  const st = r.stats[i], ren = window.__scene3d && window.__scene3d.renderer;
+  if (!st || !ren) return;
+  const ms = st.ms.length ? st.ms.reduce((a, b) => a + b, 0) / st.ms.length : 0;
+  const m = ren.info.memory;
+  console.log(`[trailer] shot ${i + 1} ${st.label}: ${ms ? (1000 / ms).toFixed(1) : '-'} fps, ${st.frames ? Math.round(st.calls / st.frames) : '-'} calls, geo ${m.geometries}, tex ${m.textures}, prog ${ren.info.programs.length}`);
 }
 
 function frame(r, dt, realMs) {
@@ -833,6 +869,13 @@ function frame(r, dt, realMs) {
   const slow = s.slow ? s.slow(st) : 1;
   const sdt = dt * slow;
   const w = r.w;
+  // fadeOut: the shot ends on black, and the next location streams in there
+  if (s.fadeOut && !r.state.faded && st > s.dur - s.fadeOut) { r.state.faded = true; ui.black.classList.remove('dim'); ui.black.classList.add('fade'); }
+  if (s.fadeOut && !r.state.streamed && st > s.dur - 0.12) { r.state.streamed = true; streamNext(r, i); }
+  if (r.state.streamed) {
+    try { r.env.render(dt, 0); } catch (e) { /* ignore */ }
+    return;
+  }
   if (s.clockTo != null) setClock(w, lerp(s.clock, s.clockTo, u));
   if (!s.black && sdt > 0) {
     try { r.env.tick(sdt); } catch (e) { console.warn('trailer tick', e); }
@@ -877,7 +920,9 @@ function frame(r, dt, realMs) {
     r.pose = { position: p, lookAt: l, fov: pose.fov };
     w.cameraOverride = { ...r.pose, cut: true };
   }
+  if (r.countCalls) r.countCalls.n = 0;
   try { r.env.render(sdt > 0 ? sdt : dt, sdt); } catch (e) { console.warn('trailer render', e); }
+  if (r.countCalls) { r.stats[i].calls = (r.stats[i].calls || 0) + r.countCalls.n; r.stats[i].frames = (r.stats[i].frames || 0) + 1; }
 
   if (r.mode === 'benchmark') {
     if (!s.black && st / k > MEASURE_AFTER_CUT_S) r.stats[i].ms.push(realMs);
@@ -924,22 +969,38 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     group.name = 'trailer';
     getScene().add(group);
     r.group = group;
-    const actors = {};
-    r.actor = (name) => {
-      if (!actors[name]) {
-        actors[name] = makeActor(name === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE);
-        actors[name].userData.trailerActor = true;
-        group.add(actors[name]);
+    // actors and props are built once per session and hidden between shots
+    r.prop = (name, build) => {
+      let o = trailerProps.get(name);
+      if (!o) {
+        o = build();
+        o.userData.trailerActor = true;
+        trailerProps.set(name, o);
       }
-      return actors[name];
+      if (o.parent !== group) group.add(o);
+      o.visible = true;
+      return o;
     };
+    r.actor = (name) => r.prop(name, () => makeActor(name === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE));
     const saved = snapshot(world);
     const nativeRandom = Math.random;
     Math.random = mulberry32(20260927 + (runTrailer.runs = (runTrailer.runs || 0) + 1) * 7919);
     world.menuCam = true;
     world.cinematicHideNav = true;
     running = r;
+    const ren = window.__scene3d && window.__scene3d.renderer;
+    let nativeRender = null;
+    if (BENCH_RUNS && ren) {
+      nativeRender = ren.render;
+      r.countCalls = { n: 0 };
+      ren.render = function (...a) { nativeRender.apply(this, a); r.countCalls.n += ren.info.render.calls; };
+    }
     document.body.classList.add('trailer-on');
+    // the colour look runs in the grade pass when there is one: a CSS filter
+    // and blend mode over the canvas cost a full-screen compositing pass
+    const pfx = window.__scene3d && window.__scene3d.postfx;
+    cancelAnimationFrame(lookFade);
+    if (pfx && pfx.hasGrade) { pfx.look = 1; document.body.classList.add('trailer-gpu-look'); }
     ui.root.classList.remove('handoff', 'skippable', 'bench');
     ui.root.classList.toggle('bench', mode === 'benchmark');
     ui.root.classList.toggle('skippable', mode === 'attract');
@@ -976,11 +1037,12 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const end = (skipped, aborted = false) => {
       if (r.done) return;
       r.done = true;
+      if (BENCH_RUNS) logShot(r, r.idx);
+      if (nativeRender) ren.render = nativeRender;
       const last = r.shots[r.idx];
       if (last && last.exit) { try { last.exit(r, r.state); } catch (e) { /* ignore */ } }
       clearShot(r);
       group.removeFromParent();
-      for (const a of Object.values(actors)) a.removeFromParent();
       Math.random = nativeRandom;
       restore(world, saved);
       // the aerial's clock and weather carry on into the title screen
@@ -995,6 +1057,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       showCard(null);
       setSub(null);
       ui.root.classList.remove('skippable', 'bench');
+      ui.black.classList.remove('dim');
       running = null;
       const stats = mode === 'benchmark' ? computeStats(r) : null;
       if (stats) console.log('[trailer] benchmark', JSON.stringify({ avg: +stats.avg.toFixed(1), low: +stats.low.toFixed(1), shots: stats.shots.map((x) => `${x.label}: ${x.fps.toFixed(1)}`) }));
@@ -1044,16 +1107,34 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
 
 // Fade the trailer overlay away: to black and then off (skip/abort), or by
 // sliding the bars out over the running picture (the attract hand-off).
+let lookFade = 0;
+function fadeLook(ms) {
+  const pfx = window.__scene3d && window.__scene3d.postfx;
+  cancelAnimationFrame(lookFade);
+  if (!pfx || !pfx.look) { document.body.classList.remove('trailer-gpu-look'); return; }
+  if (!ms) { pfx.look = 0; document.body.classList.remove('trailer-gpu-look'); return; }
+  const t0 = performance.now(), from = pfx.look;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / ms);
+    pfx.look = from * (1 - k);
+    if (k < 1) lookFade = requestAnimationFrame(step);
+    else document.body.classList.remove('trailer-gpu-look');
+  };
+  lookFade = requestAnimationFrame(step);
+}
+
 export function fadeOutTrailer(handOff, atBlack = null) {
   if (!ui) return Promise.resolve();
   document.body.classList.remove('trailer-on');
   if (handOff) {
+    fadeLook(1200);
     ui.black.classList.remove('on');
     ui.root.classList.add('handoff');
     return new Promise((res) => setTimeout(() => { ui.root.classList.remove('on'); setTimeout(() => { ui.root.classList.remove('handoff'); res(); }, 450); }, 800));
   }
   ui.black.classList.add('fade');
   return new Promise((res) => setTimeout(() => {
+    fadeLook(0);
     if (atBlack) atBlack();
     ui.black.classList.remove('fade');
     ui.black.classList.add('on');
@@ -1102,6 +1183,11 @@ export function showBenchmarkResults(stats) {
     resultEl.setAttribute('aria-labelledby', 'tr-res-title');
     resultEl.hidden = true;
     document.body.appendChild(resultEl);
+  }
+  if (BENCH_RUNS) {
+    showBenchmarkResults.runs = (showBenchmarkResults.runs || 0) + 1;
+    if (showBenchmarkResults.runs < BENCH_RUNS) return Promise.resolve('again');
+    if (window.gteDesktop && window.gteDesktop.isDesktop) setTimeout(() => window.gteDesktop.quit(), 500);
   }
   const st = getSettings();
   const r = Math.round;

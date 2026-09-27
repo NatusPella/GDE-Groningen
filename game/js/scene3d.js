@@ -488,6 +488,8 @@ const SHARED_GEOMETRIES = new Set();
 function disposeObject(root) {
   root.traverse((o) => {
     if (o.geometry && !SHARED_GEOMETRIES.has(o.geometry) && !o.geometry.userData.shared) o.geometry.dispose();
+    // the bone texture three.js makes for a skinned mesh on its first draw
+    if (o.isSkinnedMesh && o.skeleton) o.skeleton.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
     for (const m of mats) if (!SHARED_MATERIALS.has(m) && !m.userData.shared) m.dispose();
   });
@@ -1200,6 +1202,34 @@ function useSkylineMaterials(root) {
 // First-time water/shore builds of polygons still far out in the fog are
 // spread over frames; anything within the detail radius is built at once.
 const WATER_BUILD_BUDGET_MS = 3;
+
+// Streamed-out roads and water keep their cached geometry (on the map item)
+// for a cheap way back, up to a bound: beyond it the least recently shown
+// are freed and rebuilt on demand, so GPU memory stays flat however far
+// the player (or the trailer) travels.
+const ROAD_CACHE_MAX = 700;
+const WATER_CACHE_MAX = 80;
+const coldRoads = new Map();
+const coldWater = new Map();
+function coolDown(cold, item, max, free) {
+  cold.delete(item);
+  cold.set(item, true);
+  while (cold.size > max) {
+    const old = cold.keys().next().value;
+    cold.delete(old);
+    free(old);
+  }
+}
+function freeRoadGeometry(r) {
+  for (const k of ['_geoSidewalk', '_geoRoad', '_geoMark']) if (r[k]) { r[k].dispose(); r[k] = null; }
+  r._geoMarkQ = undefined;
+}
+function freeWaterGeometry(poly) {
+  if (poly._geoWater) { poly._geoWater.dispose(); poly._geoWater = null; }
+  if (poly._shore) poly._shore.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+  poly._shore = undefined;
+}
+
 function syncWater(items, cache, y, map, px, py) {
   const seen = new Set();
   const deadline = performance.now() + WATER_BUILD_BUDGET_MS;
@@ -1210,6 +1240,7 @@ function syncWater(items, cache, y, map, px, py) {
     }
     seen.add(poly);
     if (!cache.has(poly)) {
+      coldWater.delete(poly);
       const mesh = freezeStatic(buildWaterMesh(poly, y, map));
       scene.add(mesh);
       cache.set(poly, mesh);
@@ -1219,6 +1250,7 @@ function syncWater(items, cache, y, map, px, py) {
     if (seen.has(poly)) continue;
     scene.remove(mesh);
     cache.delete(poly);
+    coolDown(coldWater, poly, WATER_CACHE_MAX, freeWaterGeometry);
   }
 }
 
@@ -1235,6 +1267,7 @@ function syncRoads(world, px, py) {
   for (const r of view) seen.add(r);
   for (const r of view) {
     if (!roadMeshes.has(r)) {
+      coldRoads.delete(r);
       const mesh = freezeStatic(buildRoadGroup(r));
       scene.add(mesh);
       roadMeshes.set(r, mesh);
@@ -1244,6 +1277,7 @@ function syncRoads(world, px, py) {
     if (seen.has(r)) continue;
     scene.remove(mesh); // geometry is cached on the road, materials are shared per layer
     roadMeshes.delete(r);
+    coolDown(coldRoads, r, ROAD_CACHE_MAX, freeRoadGeometry);
   }
 }
 
@@ -2126,8 +2160,25 @@ function prewarmKind(o) {
     + (o.instanceColor ? 'c' : '') + k;
 }
 
+// A stand-in draws its source's own geometry and material. Once either is
+// disposed (a despawned car, a finished spark) the stand-in is dropped:
+// drawing it would upload them again with nothing left to free them.
+const prewarmDisposed = new WeakSet();
+const prewarmWatched = new WeakSet();
+function onPrewarmSourceDispose(e) { prewarmDisposed.add(e.target); }
+function watchPrewarmSource(res) {
+  if (!res) return;
+  prewarmDisposed.delete(res);
+  if (prewarmWatched.has(res)) return;
+  prewarmWatched.add(res);
+  res.addEventListener('dispose', onPrewarmSourceDispose);
+}
+const prewarmProxyDead = (p) => prewarmDisposed.has(p.geometry) || prewarmDisposed.has(p.material);
+
 function makePrewarmProxy(o, m) {
   const g = o.geometry;
+  if (!o.isSprite) watchPrewarmSource(g);
+  if (!m.userData.shared) watchPrewarmSource(m);
   const proxy = o.isInstancedMesh ? new THREE.InstancedMesh(g, m, 1)
     : o.isSkinnedMesh ? new THREE.SkinnedMesh(g, m)
       : o.isSprite ? new THREE.Sprite(m)
@@ -2136,7 +2187,8 @@ function makePrewarmProxy(o, m) {
             : o.isLine ? new THREE.Line(g, m)
               : new THREE.Mesh(g, m);
   if (o.instanceColor) proxy.instanceColor = o.instanceColor;
-  if (o.isSkinnedMesh) proxy.bind(o.skeleton, o.bindMatrix);
+  // own skeleton (and instance buffer): freed after the draw, drawPrewarmBatch
+  if (o.isSkinnedMesh) proxy.bind(o.skeleton.clone(), o.bindMatrix);
   // shadow receiving is part of the program key
   proxy.receiveShadow = o.receiveShadow;
   proxy.frustumCulled = false;
@@ -2222,9 +2274,11 @@ function startPrewarmBatch() {
   const variant = prewarmQueue[0].variant;
   const items = [];
   for (let i = 0; i < prewarmQueue.length && items.length < 64;) {
-    if (prewarmQueue[i].variant === variant) items.push(prewarmQueue.splice(i, 1)[0].proxy);
-    else i++;
+    if (prewarmQueue[i].variant !== variant) { i++; continue; }
+    const { proxy } = prewarmQueue.splice(i, 1)[0];
+    if (!prewarmProxyDead(proxy)) items.push(proxy);
   }
+  if (!items.length) return;
   for (const p of items) prewarmRoot.add(p);
   const camera = prewarmCamera();
   // program keys depend on the target (tone mapping / output colour space
@@ -2249,6 +2303,7 @@ function drawPrewarmBatch() {
   const target = postfx.sceneTarget;
   const prevTarget = renderer.getRenderTarget();
   const autoShadow = renderer.shadowMap.autoUpdate;
+  for (const p of [...prewarmRoot.children]) if (prewarmProxyDead(p)) prewarmRoot.remove(p);
   scene.add(prewarmRoot);
   renderer.shadowMap.autoUpdate = false;
   renderer.setRenderTarget(target);
@@ -2260,6 +2315,10 @@ function drawPrewarmBatch() {
     renderer.setRenderTarget(prevTarget);
     renderer.shadowMap.autoUpdate = autoShadow;
     scene.remove(prewarmRoot);
+    for (const p of prewarmRoot.children) {
+      if (p.isSkinnedMesh) p.skeleton.dispose();
+      else if (p.isInstancedMesh) p.dispose();
+    }
     prewarmRoot.clear();
   }
 }

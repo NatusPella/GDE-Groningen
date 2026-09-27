@@ -2281,15 +2281,18 @@ export function vehicleCorners(v) {
 // resolveVehicleVehicleCollisions above) on a hard vehicle-vehicle impact.
 const IMPACT_SPARK_LIFETIME = 0.35;
 
+const SPARK_CHIP_GEO = new THREE.BoxGeometry(0.05, 0.05, 0.05);
+const SPARK_DEBRIS_GEO = new THREE.BoxGeometry(0.08, 0.08, 0.08);
+SPARK_CHIP_GEO.userData.shared = SPARK_DEBRIS_GEO.userData.shared = true;
 export function buildVehicleImpactSparkMesh3D() {
   const group = new THREE.Group();
   const chips = [];
   const n = 7;
+  // every chip of a burst fades alike: one material per colour per burst
+  const mats = [new THREE.MeshBasicMaterial({ color: 0xffb347, transparent: true }), new THREE.MeshBasicMaterial({ color: 0x2b2b2b, transparent: true })];
   for (let i = 0; i < n; i++) {
     const fiery = i % 2 === 0;
-    const mat = new THREE.MeshBasicMaterial({ color: fiery ? 0xffb347 : 0x2b2b2b, transparent: true });
-    const size = fiery ? 0.05 : 0.08;
-    const chip = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), mat);
+    const chip = new THREE.Mesh(fiery ? SPARK_CHIP_GEO : SPARK_DEBRIS_GEO, mats[fiery ? 0 : 1]);
     const a = (i / n) * Math.PI * 2 + Math.random() * 0.6;
     const speed = 1.4 + Math.random() * 1.8;
     chip.userData.vx = Math.cos(a) * speed;
@@ -2310,12 +2313,12 @@ export function updateVehicleImpactSparkMesh3D(mesh, dt) {
   mesh.userData.age += dt;
   const t = mesh.userData.age / IMPACT_SPARK_LIFETIME;
   if (t >= 1) return false;
+  mesh.userData.chips[0].material.opacity = mesh.userData.chips[1].material.opacity = 1 - t;
   for (const chip of mesh.userData.chips) {
     chip.position.x += chip.userData.vx * dt;
     chip.position.z += chip.userData.vz * dt;
     chip.userData.vy -= 9 * dt;
     chip.position.y = Math.max(0, chip.position.y + chip.userData.vy * dt);
-    chip.material.opacity = 1 - t;
     chip.scale.setScalar(1 - t * 0.4);
   }
   return true;

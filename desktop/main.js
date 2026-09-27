@@ -37,7 +37,10 @@ app.setName('GTE VI');
 // cut, --trailer-frames=<dir> saves every frame as a png
 const TRAILER = process.argv.find((a) => a === '--trailer' || a.startsWith('--trailer='));
 const argValue = (name) => { const a = process.argv.find((x) => x.startsWith(name + '=')); return a ? a.slice(name.length + 1) : null; };
-if (TRAILER || process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test') || a.startsWith('--story-test'))) {
+// --benchmark[=N] runs the benchmark N times from the title screen, logs every
+// shot's fps / draw calls / GPU memory and quits (throwaway profile)
+const BENCH = process.argv.find((a) => a === '--benchmark' || a.startsWith('--benchmark='));
+if (TRAILER || BENCH || process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test') || a.startsWith('--story-test'))) {
   // GTE_TEST_PROFILE picks another throwaway dir, so parallel test runs
   // don't block each other through the single-instance lock
   app.setPath('userData', path.join(require('os').tmpdir(), process.env.GTE_TEST_PROFILE || 'gte-vi-test-profile'));
@@ -136,7 +139,20 @@ function createWindow() {
     // automated runs never get the first-launch attract intro
     (smoke || storyTest || process.argv.includes('--perf-test')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
-    TRAILER && trailerFrames && 'frames', process.argv.includes('--attract') && 'attract'].filter(Boolean).join('&');
+    TRAILER && trailerFrames && 'frames', process.argv.includes('--attract') && 'attract',
+    !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`].filter(Boolean).join('&');
+  // --benchmark --profile: a CPU profile of 30 s of the first run
+  if (BENCH && process.argv.includes('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
+  if (BENCH || TRAILER || argValue('--bench-eval')) {
+    win.webContents.on('console-message', (e, legacyLevel, legacyMessage) => {
+      const message = String(e.message !== undefined ? e.message : legacyMessage);
+      if (message.startsWith('[trailer]') || message.startsWith('[mem]')) console.log(message);
+    });
+  }
+  // --bench-eval=<file>: debug script run in the page as soon as it loads
+  // (e.g. a GPU-memory tracker for --benchmark or --perf-script runs)
+  const evalFile = argValue('--bench-eval');
+  if (evalFile) win.webContents.once('dom-ready', () => win.webContents.executeJavaScript(fsSync.readFileSync(evalFile, 'utf8')).catch((e) => console.log('[bench-eval]', e.message)));
   if (TRAILER && trailerFrames) {
     fsSync.mkdirSync(trailerFrames, { recursive: true });
     ipcMain.removeHandler('gte:capture-frame');
@@ -297,47 +313,7 @@ function createWindow() {
           console.log('[perf]', perf);
           if (spot) fsSync.writeFileSync(smoke.split('=')[1].replace(/\.png$/, `-at${spots.indexOf(spot)}.png`), (await win.webContents.capturePage()).toPNG());
           }
-          if (process.argv.includes('--profile')) {
-            const dbg = win.webContents.debugger;
-            dbg.attach('1.3');
-            await dbg.sendCommand('Profiler.enable');
-            await dbg.sendCommand('Profiler.setSamplingInterval', { interval: 200 });
-            await dbg.sendCommand('Profiler.start');
-            await new Promise((r) => setTimeout(r, 6000));
-            const { profile } = await dbg.sendCommand('Profiler.stop');
-            const byId = new Map(profile.nodes.map((n) => [n.id, n]));
-            const self = new Map();
-            const dtSum = profile.timeDeltas.reduce((a, b) => a + b, 0);
-            const per = new Map();
-            profile.samples.forEach((id, i) => per.set(id, (per.get(id) || 0) + (profile.timeDeltas[i] || 0)));
-            for (const [id, us] of per) {
-              const n = byId.get(id); const cf = n.callFrame;
-              const key = `${cf.functionName || '(anon)'} ${cf.url.split('/').pop()}:${cf.lineNumber + 1}`;
-              self.set(key, (self.get(key) || 0) + us);
-            }
-            const top = [...self.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30);
-            console.log('[profile] total ms', (dtSum / 1000).toFixed(0));
-            for (const [k, us] of top) console.log('[profile]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', k);
-            // inclusive time per function (self + callees)
-            const parent = new Map();
-            for (const n of profile.nodes) for (const c of n.children || []) parent.set(c, n.id);
-            const incl = new Map();
-            for (const [id, us] of per) {
-              const seen = new Set();
-              for (let cur = id; cur !== undefined; cur = parent.get(cur)) {
-                const cf = byId.get(cur).callFrame;
-                const key = `${cf.functionName || '(anon)'} ${cf.url.split('/').pop()}:${cf.lineNumber + 1}`;
-                if (seen.has(key)) continue; seen.add(key);
-                incl.set(key, (incl.get(key) || 0) + us);
-              }
-            }
-            for (const [k, us] of [...incl.entries()].sort((a, b) => b[1] - a[1]).slice(0, 45)) console.log('[profile-incl]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', k);
-            // per file
-            const byFile = new Map();
-            for (const [k, us] of self) { const f = k.split(' ').pop().split(':')[0] || '(native)'; byFile.set(f, (byFile.get(f) || 0) + us); }
-            for (const [f, us] of [...byFile.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20)) console.log('[profile-file]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', f);
-            dbg.detach();
-          }
+          if (process.argv.includes('--profile')) await runProfile(win);
         }
       } catch (err) {
         console.log('[smoke error]', err && err.message);
@@ -345,6 +321,50 @@ function createWindow() {
       app.quit();
     }, 14000);
   }
+}
+
+// CPU profile of the page for ms milliseconds: top functions by self and
+// inclusive time, and time per file
+async function runProfile(win, ms = 6000) {
+  const dbg = win.webContents.debugger;
+  dbg.attach('1.3');
+  await dbg.sendCommand('Profiler.enable');
+  await dbg.sendCommand('Profiler.setSamplingInterval', { interval: 200 });
+  await dbg.sendCommand('Profiler.start');
+  await new Promise((r) => setTimeout(r, ms));
+  const { profile } = await dbg.sendCommand('Profiler.stop');
+  const byId = new Map(profile.nodes.map((n) => [n.id, n]));
+  const self = new Map();
+  const dtSum = profile.timeDeltas.reduce((a, b) => a + b, 0);
+  const per = new Map();
+  profile.samples.forEach((id, i) => per.set(id, (per.get(id) || 0) + (profile.timeDeltas[i] || 0)));
+  for (const [id, us] of per) {
+    const n = byId.get(id); const cf = n.callFrame;
+    const key = `${cf.functionName || '(anon)'} ${cf.url.split('/').pop()}:${cf.lineNumber + 1}`;
+    self.set(key, (self.get(key) || 0) + us);
+  }
+  const top = [...self.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30);
+  console.log('[profile] total ms', (dtSum / 1000).toFixed(0));
+  for (const [k, us] of top) console.log('[profile]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', k);
+  // inclusive time per function (self + callees)
+  const parent = new Map();
+  for (const n of profile.nodes) for (const c of n.children || []) parent.set(c, n.id);
+  const incl = new Map();
+  for (const [id, us] of per) {
+    const seen = new Set();
+    for (let cur = id; cur !== undefined; cur = parent.get(cur)) {
+      const cf = byId.get(cur).callFrame;
+      const key = `${cf.functionName || '(anon)'} ${cf.url.split('/').pop()}:${cf.lineNumber + 1}`;
+      if (seen.has(key)) continue; seen.add(key);
+      incl.set(key, (incl.get(key) || 0) + us);
+    }
+  }
+  for (const [k, us] of [...incl.entries()].sort((a, b) => b[1] - a[1]).slice(0, 45)) console.log('[profile-incl]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', k);
+  // per file
+  const byFile = new Map();
+  for (const [k, us] of self) { const f = k.split(' ').pop().split(':')[0] || '(native)'; byFile.set(f, (byFile.get(f) || 0) + us); }
+  for (const [f, us] of [...byFile.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20)) console.log('[profile-file]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', f);
+  dbg.detach();
 }
 
 function runStoryTest(win, dir) {
