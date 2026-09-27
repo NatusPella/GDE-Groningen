@@ -29,6 +29,12 @@ export function getAimLock() {
   return state.target ? state : null;
 }
 
+// Distance to the locked target this frame (throwables aim their arc at it), else null.
+export function aimedTargetDistance(world) {
+  if (!state.target || state.time !== world.time) return null;
+  return Math.hypot(state.x - world.player.x, state.y - world.player.y);
+}
+
 const alive = (t, kind) => kind === 'ped' ? t.state !== 'dead' && !t.hidden && !t.inVehicle
   : kind === 'veh' ? !t.wrecked && !t.sinking : !!t.cell && !t.water;
 
@@ -117,7 +123,7 @@ function cycle(list) {
 export function updateAim(dt, world, weaponRange) {
   const { input } = world;
   const p = world.player;
-  const armed = world.weapon && world.weapon !== 'fists';
+  const armed = weaponRange > 0 && !world.scoped;
   const aiming = armed && input.mouse.rightDown && getSettings().autoAim !== false && !world.paused;
   const wasAiming = state.wasAiming;
   state.wasAiming = aiming;
@@ -202,9 +208,28 @@ export function aimFireAngle(world, angle, weapon) {
 // Lock reticle: a small ring of four ticks over the target.
 let el = null;
 const tmp = new THREE.Vector3();
+let scopeEl = null;
+function renderScope(world, hide) {
+  const on = !!world.scoped && !hide;
+  if (!scopeEl) {
+    if (!on) return;
+    scopeEl = document.createElement('div');
+    scopeEl.className = 'aim-scope';
+    scopeEl.setAttribute('aria-hidden', 'true');
+    scopeEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:39;opacity:0;transition:opacity .12s;'
+      + 'background:radial-gradient(circle at 50% 50%, transparent 0, transparent min(38vw,38vh), rgba(0,0,0,.55) calc(min(38vw,38vh) + 2px), #000 calc(min(38vw,38vh) + 14px));';
+    scopeEl.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">'
+      + '<g stroke="#000" stroke-width="0.4" fill="none" opacity=".85"><path d="M50 12v34M50 54v34M12 50h34M54 50h34"/>'
+      + '<path d="M50 30v-0.01M50 70v0.01" stroke-width="1.2"/><circle cx="50" cy="50" r="0.6" fill="#c0261e" stroke="none"/></g></svg>';
+    document.body.appendChild(scopeEl);
+  }
+  scopeEl.style.opacity = on ? '1' : '0';
+}
+
 export function renderAimReticle(world) {
   const lock = state.target && state.time === world.time && !world.paused;
   const b = document.body.classList;
+  renderScope(world, !b.contains('game-started') || b.contains('cine-hide-hud') || world.paused);
   const hide = !lock || !b.contains('game-started') || b.contains('cine-hide-hud') || b.contains('pigeon-mode');
   if (!el) {
     if (hide) return;

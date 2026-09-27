@@ -18,6 +18,7 @@ import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
 import { renderAimReticle } from './aimassist.js';
+import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 
 const USES_KEY = 'gte-hint-uses';
 const LEARN_USES = 3;
@@ -200,9 +201,9 @@ function trackUsage(dt, world) {
   if (pressed('c')) used('switch');
   if (pressed('v')) used('cinecam');
   for (let i = 1; i <= 4; i++) if (pressed(String(i))) used('weapon');
-  if (input.mouse.down && !prev.mouseDown) used(world.weapon === 'fists' ? 'punch' : 'shoot');
+  if (input.mouse.down && !prev.mouseDown) used(isMeleeWeapon(world.weapon) ? 'punch' : world.weapon === 'carbidbus' ? 'throw' : 'shoot');
   prev.mouseDown = input.mouse.down;
-  if (input.mouse.rightDown && !prev.rightDown && world.weapon !== 'fists') used('aim');
+  if (input.mouse.rightDown && !prev.rightDown && isRangedWeapon(world.weapon)) used(WEAPONS[world.weapon].scope ? 'scope' : 'aim');
   prev.rightDown = input.mouse.rightDown;
 
   if (inV) {
@@ -349,8 +350,8 @@ function findPrimary(world) {
     return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: 'Even bijkomen...', ring: true, cooldown: (kissUntil - world.time) / KISS_COOLDOWN, dim: true };
   }
   const weapon = world.weapon || 'fists';
-  if (weapon === 'fists') {
-    const ped = pedInReach(world, 1.5, Math.PI / 3);
+  if (isMeleeWeapon(weapon)) {
+    const ped = pedInReach(world, WEAPONS[weapon].range + 0.4, Math.PI / 3);
     if (ped) return { id: 'punch-' + (ped.id ?? ''), x: ped.x, y: ped.y, h: 1.75, key: 'LMB', label: 'Slaan', sub: ped.isCop ? 'Een agent? Durf je dat?' : learning('punch') ? 'Klik om uit te delen' : '', learn: learning('punch'), danger: true };
   }
   return null;
@@ -522,7 +523,7 @@ function tut(id, keys, label, desc, rare = false) {
 function contextRows(world, primary) {
   const p = world.player;
   const rows = [];
-  const armed = world.weapon && world.weapon !== 'fists';
+  const armed = isRangedWeapon(world.weapon);
   if (world.trainDriving) {
     rows.push(tut('drive', ['W', 'S'], 'Gas & remmen', 'W optrekken, S remmen en stilstaand achteruit'));
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
@@ -545,11 +546,14 @@ function contextRows(world, primary) {
     if (p.moving) rows.push(tut('sprint', ['SHIFT'], 'Rennen', 'Houd Shift ingedrukt'));
     rows.push(tut('jump', [' '], 'Springen', 'Over hekjes en paaltjes'));
     if (armed) {
-      rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, Tab wisselt' : 'Houd vast om te richten'));
-      rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
-      rows.push(tut('weapon', ['1-4'], 'Wapen', '1 vuisten, 2 pistool, 3 uzi, 4 hagelgeweer, of scrollen'));
-    } else if (world.wanted > 0) {
-      rows.push(tut('punch', ['LMB'], 'Slaan', 'Vuisten eerst, vragen later'));
+      const w = WEAPONS[world.weapon];
+      if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd vast om in te zoomen, klik om te schieten'));
+      else rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, Tab wisselt' : 'Houd vast om te richten'));
+      if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', 'Bukken (Ctrl) en klikken zet de bus neer. Wegwezen!'));
+      else rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
+      rows.push(tut('weapon', ['1-4'], 'Wapen', '1 slaan, 2 pistolen, 3 geweren, 4 knallers; nog eens drukken wisselt, of scrollen'));
+    } else if (world.wanted > 0 || (world.weapon && world.weapon !== 'fists')) {
+      rows.push(tut('punch', ['LMB'], 'Slaan', world.weapon === 'fists' ? 'Vuisten eerst, vragen later' : 'Klik om uit te halen, 1 wisselt'));
     }
     rows.push(tut('crouch', ['CTRL'], 'Bukken', 'Langzaam en klein'));
   }

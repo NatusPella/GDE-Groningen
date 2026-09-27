@@ -3,6 +3,7 @@ import { spawnFxPuff, spawnFxSpark, spawnFxChip } from './fx3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { flashMuzzleLight } from './nightlights3d.js';
 import { markShared } from './pixelart3d.js';
+import { updateThrowables3D } from './throwables.js';
 
 // Gunfire effects: muzzle flashes (with a light pop), tracers, impacts that
 // depend on what was hit (brick dust, glass, sparks, dirt, splashes) and
@@ -239,7 +240,7 @@ function init(sc) {
 
 // --- muzzle flash ------------------------------------------------------------
 
-const FLASH = { pistol: [0.8, 0.05, 1], uzi: [0.62, 0.035, 0.75], shotgun: [1.25, 0.07, 1.6], police: [0.7, 0.05, 0.9] };
+const FLASH = { pistol: [0.8, 0.05, 1], uzi: [0.62, 0.035, 0.75], shotgun: [1.25, 0.07, 1.6], jachtgeweer: [1.1, 0.06, 1.4], police: [0.7, 0.05, 0.9] };
 
 function spawnFlash(s) {
   const f = flashes.find((g) => !g.visible) || flashes.reduce((a, b) => (a.userData.born < b.userData.born ? a : b));
@@ -472,4 +473,5 @@ export function updateGunFx3D(dt, world, sc) {
     const e = carHoles[i];
     if (!e.d.parent || !e.d.parent.parent) dropCarDecal(e.d);
   }
+  updateThrowables3D(dt, world, sc);
 }

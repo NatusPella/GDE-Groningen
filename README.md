@@ -95,9 +95,12 @@ Security or Windows SmartScreen.
 | L | – | lights and siren on/off (police car, ambulance): traffic moves aside |
 | R | – | at Spuit & Klaar: new paint; inside a garage or at a gas station: repair / upgrade menu |
 | K | kiss your companion (Tammo/Anita) when next to them | – |
-| Left mouse | attack (fists or the equipped gun); you turn to where the camera looks | – |
-| Right mouse | aim: face the camera direction while moving | – |
-| 1–4 | fists / pistol / uzi / shotgun | – |
+| Left mouse | attack with what you hold (fists, a melee weapon, a gun, a throw); you turn to where the camera looks | shoot from the window (guns and the water pistol) |
+| Right mouse | aim: face the camera direction while moving; with the jachtgeweer, hold to look through the scope | – |
+| 1 | melee: fists, honkbalknuppel, hockeystick, bezem, fietspomp, klomp, polsstok (press again to cycle) | – |
+| 2 | pistol / uzi / waterpistool | – |
+| 3 | shotgun / jachtgeweer (scoped rifle) | – |
+| 4 | carbidbus (throw; crouch + click to set it down) / vuurwerkpijlen | – |
 | Mouse wheel | next / previous weapon | – |
 | Mouse | orbit the camera around your character; push it low to look up at the rooftops | orbit around the car; eases back behind it after ~1.7 s (up to ~4.5 s at speed) |
 | Q or middle mouse (hold) | – | look back |
@@ -114,7 +117,12 @@ Security or Windows SmartScreen.
   rest procedural for now).
 - **Life**: traffic (cars, buses, bikes, scooters, boats), pedestrians,
   seagulls/cows/sheep, weather with storms, helicopters and balloons.
-- **Gameplay**: driving and on-foot movement, combat, wanted level with
+- **Gameplay**: driving and on-foot movement, combat (fists; melee weapons
+  with their own swings and reach: honkbalknuppel, hockeystick, bezem,
+  fietspomp, a Frisian klomp and a long, slow polsstok; pistol, uzi,
+  shotgun, a scoped jachtgeweer; a waterpistool that makes people run and
+  puts out burning cars; a thrown or placed carbidbus with a big boom and
+  firework rockets, all sold at Pang & Zo), wanted level with
   police cars, foot cops, boats and a helicopter, 13 missions in a guided
   story ("Alles voor één eierbal": the Kop and the Romp are playable, the
   Staart follows; the story decides whether you play Tammo or Anita, the

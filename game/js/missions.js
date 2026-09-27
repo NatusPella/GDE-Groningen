@@ -593,7 +593,7 @@ const REQUIREMENTS = {
     text: (shop) => `Hiervoor heb je een eigen boot nodig. Huur er een bij ${shop}.`,
   },
   weapon: {
-    met: (w) => ['pistol', 'uzi', 'shotgun'].some((k) => (w.ammo[k] || 0) > 0),
+    met: (w) => ['pistol', 'uzi', 'shotgun', 'jachtgeweer'].some((k) => (w.ammo[k] || 0) > 0),
     shop: 'wapens',
     text: (shop) => `Jelmer leent geen wapens meer uit. Koop eerst een wapen bij ${shop}.`,
   },
@@ -1474,7 +1474,7 @@ function startMission(world, def) {
   chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   if (def.type === 'rampage') {
     chain.killBaseline = killCount(world);
-    if (!(world.ammo[world.weapon] > 0)) world.weapon = ['pistol', 'uzi', 'shotgun'].find((k) => world.ammo[k] > 0) || world.weapon;
+    if (!(world.ammo[world.weapon] > 0)) world.weapon = ['pistol', 'uzi', 'shotgun', 'jachtgeweer'].find((k) => world.ammo[k] > 0) || world.weapon;
   } else if (def.type === 'deliver' && def.start.road) {
     chain.vehicle = spawnMissionCar(world, def);
     world.vehicles.push(chain.vehicle);

@@ -21,7 +21,7 @@ import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
-import { getCombatEffect } from './combat.js';
+import { getCombatEffect, isRangedWeapon } from './combat.js';
 import { alignPlayerFlash } from './gunfx3d.js';
 import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
@@ -248,6 +248,8 @@ const camTargetList = [];
 let lastPx = null, lastPy = null;
 const camBase = new THREE.Vector3();
 let camBaseInit = false;
+// jachtgeweer scope (world.scoped, combat.js): 0 = normal camera, 1 = through the scope
+let scopeBlend = 0;
 const CAM_SHAKE_TIME = 0.6;
 const DRIVER_FIGURE_DIST = 70;
 const CAM_SHAKE_MAX = 0.28;
@@ -1908,7 +1910,7 @@ export function update3D(dt, world) {
       playerMesh.userData.shadow.visible = false;
     }
   } else {
-    playerMesh.visible = !hidePlayers;
+    playerMesh.visible = !hidePlayers && scopeBlend < 0.6;
     if (!driveRagdoll(player, playerMesh, world, animDt)) {
       playerMesh.userData.shadow.visible = !player.swimming;
       playerMesh.rotation.x = 0;
@@ -1920,7 +1922,7 @@ export function update3D(dt, world) {
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
       if (player.carrying) carryOverlay(playerMesh);
-      const gun = world.weapon && world.weapon !== 'fists' && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
+      const gun = isRangedWeapon(world.weapon) && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
       const aiming = gun && !world.paused && (world.input.mouse.down || world.input.mouse.rightDown) ? gun : null;
       applyAttackPose(playerMesh, getCombatEffect(), world.time, aiming);
       applyHitReaction(playerMesh, player.hitReact, world.time, player.angle);
@@ -2130,7 +2132,18 @@ export function update3D(dt, world) {
     cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
   }
   const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
-  applyCameraOverride(dt, world, player.x, (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp, player.y);
+  let lookX = player.x, lookY = (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp, lookZ = player.y;
+  scopeBlend += ((world.scoped && !veh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);
+  if (scopeBlend < 0.01) scopeBlend = 0;
+  if (scopeBlend > 0) {
+    // eye just in front of the face, looking level (the bullets fly level too)
+    const yaw = world.camYaw ?? player.angle, cy = Math.cos(yaw), sy = Math.sin(yaw);
+    const ex = player.x + cy * 0.35, ey = baseH + 1.5, ez = player.y + sy * 0.35;
+    cam.position.set(cam.position.x + (ex - cam.position.x) * scopeBlend, cam.position.y + (ey - cam.position.y) * scopeBlend, cam.position.z + (ez - cam.position.z) * scopeBlend);
+    const k = scopeBlend;
+    lookX += (ex + cy * 40 - lookX) * k; lookY += (ey - 0.15 - lookY) * k; lookZ += (ez + sy * 40 - lookZ) * k;
+  }
+  applyCameraOverride(dt, world, lookX, lookY, lookZ);
 
   probe.mark('3d:camera');
   updateSunAndSky(player);
@@ -2549,9 +2562,9 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   cam.lookAt(_camLook);
   if (t <= 0.5) applyDrunkCamera(cam);
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
-  const targetFov = valid && o.fov ? o.fov : baseFov;
+  const targetFov = valid && o.fov ? o.fov : baseFov * (1 - 0.72 * scopeBlend);
   if (cam.fov !== targetFov) {
-    cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
+    cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();
   }
   applyRecoil(dt, world, t > 0.5);
