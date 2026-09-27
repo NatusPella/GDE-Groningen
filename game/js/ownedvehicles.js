@@ -261,7 +261,7 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
     ? { street: streetAt(world.map, v.x, v.y), wijk: wijkAt(world.map, v.x, v.y) } : null;
   const fee = hero ? (lost || !v ? HERO_REPLACE_FEE : 0) : lost ? replacementFee({ spec }) : REDELIVERY_FEE;
   return {
-    id, key, hero, owned: true, v,
+    id, key, hero, owned: true, v, spec,
     ...nameOf(spec, v),
     kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color,
     paint: paintLabel(color, hero ? 'Fjordrood' : 'Fabriekskleur'),
@@ -310,7 +310,7 @@ export function getGarageCatalog(world) {
     const locked = !!spec.unlock;
     const shop = SHOP_NAME[spec.shop] || '';
     return {
-      id: key, key, hero: false, owned: false, locked, v: null, ...nameOf(spec, null),
+      id: key, key, hero: false, owned: false, locked, v: null, spec, ...nameOf(spec, null),
       kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color: spec.color, paint: paintLabel(spec.color, 'Fabriekskleur'),
       upgrades: [], topSpeed: kmh(spec.model.maxSpeed), accel: spec.model.accel,
       accelScore: Math.max(1, Math.min(10, Math.round(perfModel(spec.model, [], twoWheel).accel / 1.2))),

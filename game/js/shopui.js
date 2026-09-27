@@ -1,6 +1,5 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { saveGame } from './savegame.js';
-import { buildVehicleMesh } from './models3d_vehicles.js';
+import { createVehiclePreview } from './vehiclepreview.js';
 import { shopIconUrl } from './shops.js';
 
 let root = null;
@@ -301,7 +300,7 @@ function activate(id) {
 
 // --- rotating 3D preview of the focused vehicle (vehicle shops) -------------------
 
-const preview = { renderer: null, scene: null, cam: null, mesh: null, key: '', raf: 0, angle: 0.6 };
+let preview = null;
 
 function onFocus(e) {
   const btn = e.target.closest && e.target.closest('.sm-item');
@@ -309,66 +308,11 @@ function onFocus(e) {
   select(btn.dataset.id);
 }
 
-function disposeMesh(m) {
-  m.traverse((o) => {
-    if (o.geometry && !(o.geometry.userData && o.geometry.userData.shared)) o.geometry.dispose();
-    const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
-    for (const mt of mats) if (!(mt.userData && mt.userData.shared)) mt.dispose();
-  });
-}
-
 function setPreview(spec) {
   const canvas = root && root.querySelector('.sm-preview');
   if (!canvas) return;
-  const key = spec ? JSON.stringify(spec) : '';
-  if (key === preview.key) return;
-  preview.key = key;
-  if (preview.mesh) { preview.scene.remove(preview.mesh); disposeMesh(preview.mesh); preview.mesh = null; }
-  if (!spec) {
-    canvas.classList.remove('on');
-    cancelAnimationFrame(preview.raf);
-    preview.raf = 0;
-    return;
-  }
-  canvas.classList.add('on');
-  if (!preview.renderer) {
-    try {
-      preview.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    } catch (err) {
-      canvas.classList.remove('on');
-      return;
-    }
-    preview.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    preview.scene = new THREE.Scene();
-    preview.scene.add(new THREE.HemisphereLight(0xf4f2ec, 0x2a3a2e, 1.6));
-    const sun = new THREE.DirectionalLight(0xffffff, 2.2);
-    sun.position.set(4, 6, 3);
-    preview.scene.add(sun);
-    preview.cam = new THREE.PerspectiveCamera(32, 3, 0.1, 100);
-  }
-  const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', isBoat: spec.kind === 'boat', ...(spec.flags || {}), health: 100 };
-  preview.mesh = buildVehicleMesh(fake);
-  preview.scene.add(preview.mesh);
-  const len = spec.model.len || 4;
-  const dist = Math.max(3.2, len * 1.55);
-  preview.cam.position.set(0, len * 0.42 + 0.6, dist);
-  preview.cam.lookAt(0, spec.kind === 'car' ? 0.75 : 0.6, 0);
-  if (!preview.raf) {
-    const tick = () => {
-      if (!open || !preview.mesh) { preview.raf = 0; return; }
-      const w = canvas.clientWidth, h = canvas.clientHeight;
-      if (w && h && (canvas.width !== w || canvas.height !== h)) {
-        preview.renderer.setSize(w, h, false);
-        preview.cam.aspect = w / h;
-        preview.cam.updateProjectionMatrix();
-      }
-      preview.angle += 0.012;
-      preview.mesh.rotation.y = preview.angle;
-      preview.renderer.render(preview.scene, preview.cam);
-      preview.raf = requestAnimationFrame(tick);
-    };
-    preview.raf = requestAnimationFrame(tick);
-  }
+  if (!preview) preview = createVehiclePreview(canvas, { active: () => open });
+  preview.show(spec);
 }
 
 function onClick(e) {
