@@ -21,7 +21,10 @@ import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistan
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
+import { speakerColor } from './speakers.js';
 
+const HEART_PATH = 'M12 21s-7.8-4.7-9.6-10A5.3 5.3 0 0 1 12 6.1a5.3 5.3 0 0 1 9.6 4.9C19.8 16.3 12 21 12 21z';
+const SHIELD_PATH = 'M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z';
 const MINIMAP_SIZE = 230;
 const MM_SCALE = 1.45; // px per meter (css pixels) when standing still
 const MM_SCALE_FAST = 0.62;
@@ -46,10 +49,17 @@ export function initHud(world) {
   const topLeft = document.createElement('div');
   topLeft.className = 'hud-top-left';
   topLeft.innerHTML =
-    '<div class="hud-character"></div>' +
-    '<div class="hud-bar"><div class="hud-bar-fill health"></div></div>' +
-    '<div class="hud-bar"><div class="hud-bar-fill armor"></div></div>' +
-    '<div class="hud-mute" role="status" aria-label="Geluid uit" title="Geluid uit (U)" hidden>🔇</div>';
+    '<div class="hud-id">' +
+      '<div class="hud-portrait" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7.2"/><path class="hair"/><path d="M6 40c1-9 7-13.5 14-13.5S33 31 34 40z"/></svg></div>' +
+      '<div class="hud-id-main">' +
+        '<div class="hud-name-row"><div class="hud-character"></div><div class="hud-status">' +
+          '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
+          '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit" title="Geluid uit (U)" hidden>🔇</span>' +
+        '</div></div>' +
+        `<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-fill health"></div></div><b></b></div>` +
+        `<div class="hud-meter ar" role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-fill armor"></div></div><b></b></div>` +
+      '</div>' +
+    '</div>';
   root.appendChild(topLeft);
 
   const topRight = document.createElement('div');
@@ -74,7 +84,7 @@ export function initHud(world) {
   const vehName = document.createElement('div');
   vehName.className = 'hud-vehname';
   vehName.setAttribute('aria-live', 'polite');
-  vehName.innerHTML = '<small></small><b></b>';
+  vehName.innerHTML = '<div class="vn-text"><small></small><b></b></div><svg class="vn-ic" viewBox="0 0 24 24" aria-hidden="true"></svg>';
   root.appendChild(vehName);
 
   // the objective line: one objective at a time, top centre
@@ -108,7 +118,7 @@ export function initHud(world) {
 
   const location = document.createElement('div');
   location.className = 'hud-location';
-  location.innerHTML = '<div class="hud-district"></div><div class="hud-street"></div>';
+  location.innerHTML = '<svg class="hud-loc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s-7-7.2-7-12.4a7 7 0 0 1 14 0C19 14.8 12 22 12 22z"/><circle cx="12" cy="9.6" r="2.6"/></svg><div><div class="hud-district"></div><div class="hud-street"></div></div>';
   root.appendChild(location);
 
   const routeChip = document.createElement('div');
@@ -127,6 +137,13 @@ export function initHud(world) {
     character: topLeft.querySelector('.hud-character'),
     healthFill: topLeft.querySelector('.health'),
     armorFill: topLeft.querySelector('.armor'),
+    hpRow: topLeft.querySelector('.hud-meter.hp'),
+    arRow: topLeft.querySelector('.hud-meter.ar'),
+    hpNum: topLeft.querySelector('.hud-meter.hp b'),
+    arNum: topLeft.querySelector('.hud-meter.ar b'),
+    portrait: topLeft.querySelector('.hud-portrait'),
+    drunk: topLeft.querySelector('.hud-chip.drunk'),
+    idKey: '', hpKey: '', arKey: '',
     mute: topLeft.querySelector('.hud-mute'),
     wanted: topRight.querySelector('.hud-wanted'),
     clock: topRight.querySelector('.hud-clock'),
@@ -159,6 +176,14 @@ export function initHud(world) {
   initPrompts(root);
 }
 
+const VEH_ICONS = {
+  car: '<path d="M3.5 15.5v-3l2-4.6A2 2 0 0 1 7.3 6.7h9.4a2 2 0 0 1 1.8 1.2l2 4.6v3z"/><path d="M6 11.5h12" class="ln"/><circle cx="7.3" cy="16.3" r="1.9"/><circle cx="16.7" cy="16.3" r="1.9"/>',
+  bus: '<rect x="3.5" y="4.5" width="17" height="12" rx="2"/><path d="M3.5 10h17" class="ln"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
+  bike: '<circle cx="6" cy="15.5" r="3.6" class="ln"/><circle cx="18" cy="15.5" r="3.6" class="ln"/><path d="M6 15.5l4-6.5h5.5L18 15.5M10 9l2.8 6.5h2.2M13.5 6.5h2.5" class="ln"/>',
+  scooter: '<circle cx="6" cy="16.5" r="2.6" class="ln"/><circle cx="18" cy="16.5" r="2.6" class="ln"/><path d="M6 16.5h7.5l2-9.5h2.5M9 13h6" class="ln"/>',
+  boat: '<path d="M2.5 14.5h19l-3 5h-13z"/><path d="M11.5 3v10M11.5 4.5l6 8h-6" class="ln"/>',
+};
+
 // GTA-style: the model name shows for a moment when you get into a vehicle
 let vehNameFor = null;
 let vehNameTimer = 0;
@@ -170,6 +195,7 @@ function updateVehicleName(dt, world) {
       const { make, model } = vehicleDisplayName(v);
       els.vehName.querySelector('small').textContent = make;
       els.vehName.querySelector('b').textContent = model;
+      els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
       vehNameTimer = 4.5;
       els.vehName.classList.remove('on');
       void els.vehName.offsetWidth;
@@ -271,15 +297,42 @@ function updateLocation(dt, world) {
 }
 
 const CHARACTER_LABELS = { tammo: 'Tammo', anita: 'Anita' };
+// short crop for Tammo, a ponytail for Anita (drawn over the head circle)
+const HAIR = {
+  tammo: 'M12.4 14.5c-.6-5.6 3-9 7.6-9s8.2 3 7.6 9c-1.6-3-4.4-4.2-7.6-4.2s-6 1.2-7.6 4.2z',
+  anita: 'M12.6 14c-.4-5.4 3-8.6 7.4-8.6s7.8 3.2 7.4 8.6c-1.8-2.6-4.4-3.8-7.4-3.8s-5.6 1.2-7.4 3.8zM26.4 11.5c3.4 1.2 4.6 5.6 2.8 9.4-.6-2.4-1.8-3.8-3.4-4.4z',
+};
 
 function updateCharacter(world) {
-  els.character.textContent = CHARACTER_LABELS[world.player.character] || 'Tammo';
+  const ch = world.player.character === 'anita' ? 'anita' : 'tammo';
+  const drunk = (world.drunk || 0) > 0.08;
+  const key = ch + (drunk ? 'd' : '');
+  if (key === els.idKey) return;
+  els.idKey = key;
+  const name = CHARACTER_LABELS[ch];
+  els.character.textContent = name;
+  els.character.closest('.hud-id').style.setProperty('--spk', speakerColor(name));
+  els.portrait.querySelector('.hair').setAttribute('d', HAIR[ch]);
+  els.drunk.hidden = !drunk;
 }
 
+const clampPct = (v) => Math.max(0, Math.min(100, Number.isFinite(v) ? v : 0));
 function updateBars(world) {
-  els.healthFill.style.width = Math.max(0, Math.min(100, world.health)) + '%';
-  els.healthFill.classList.toggle('low', world.health < 30);
-  els.armorFill.style.width = Math.max(0, Math.min(100, world.armor)) + '%';
+  const hp = Math.round(clampPct(world.health)), ar = Math.round(clampPct(world.armor));
+  if (hp !== els.hpKey) {
+    els.hpKey = hp;
+    els.healthFill.style.width = hp + '%';
+    els.hpNum.textContent = hp;
+    els.hpRow.setAttribute('aria-valuenow', hp);
+    els.hpRow.classList.toggle('low', hp < 30 && hp > 0);
+  }
+  if (ar !== els.arKey) {
+    els.arKey = ar;
+    els.armorFill.style.width = ar + '%';
+    els.arNum.textContent = ar;
+    els.arRow.setAttribute('aria-valuenow', ar);
+    els.arRow.classList.toggle('empty', ar <= 0);
+  }
 }
 
 let wantedKey = '';
