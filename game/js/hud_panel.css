@@ -769,3 +769,9 @@ body:has(#cine[data-tint="bust"]) #game3d { filter: grayscale(1) brightness(0.85
 #hud .hud-race .hr-row[data-state="low"] b { color: #d93f3f; animation: hud-star-blink 0.6s steps(2, jump-none) infinite; }
 #hud .hud-race .hr-row[data-state="ahead"] b { color: var(--gron-green-light); }
 @media (max-height: 640px) { #hud .hud-race { top: 160px; width: 210px; } #hud .hud-race .hr-pos b { font-size: 48px; } #hud .hud-race .hr-row b { font-size: 21px; } }
+
+/* story subtitles: a highlighted clue (missionstory.js) */
+#cine.sub-clue .cine-line { color: #f2d36b; }
+#cine.sub-clue .cine-sub::before { content: 'Aanwijzing'; display: block; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 3px; color: #f2c14e; margin-bottom: 2px; text-transform: uppercase; }
+#cine[data-accent="tammo"] .cine-title { color: #9cc1f0; }
+#cine[data-accent="anita"] .cine-title { color: #f39a8c; }

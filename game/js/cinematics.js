@@ -235,7 +235,7 @@ function finish(skipped, replaced = false) {
   const a = active;
   active = null;
   const r = els.root;
-  r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip');
+  r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip', 'sub-clue');
   r.dataset.tint = '';
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
@@ -279,6 +279,7 @@ function updateSubtitles() {
   els.root.classList.toggle('has-sub', !!l);
   els.speaker.textContent = l && l.speaker ? l.speaker + ':' : '';
   setDualText(els.line, l ? l.text : '');
+  els.root.classList.toggle('sub-clue', !!(l && l.clue));
   if (l && l.voice) playStoryVoice(l.voice);
 }
 

@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
+import { STEPS, PARTS } from '../game/js/storyarc.js';
 
 export const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = path.join(REPO, 'game', 'js');
@@ -119,8 +120,9 @@ export function collect() {
   // --- mission scenes and fallback intros in missions.js -> lines manifest
   const mi = src('missions.js');
   const npcs = lit(src('missionstory.js'), 'const NPC = ');
-  const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : npcs[k] ? npcs[k].name : k);
-  for (const l of allLits(mi, 'lines: [[')) for (const [k, t] of l) add('Missie-scènes', 'lines', [who(k)], t);
+  const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k === 'V' ? NARRATOR : npcs[k] ? npcs[k].name : k);
+  // stage scene lines, also when the first line starts on a new line
+  for (const m of mi.matchAll(/lines: \[\s*\[/g)) for (const [k, t] of evalLit(literalAt(mi, 'lines: [', m.index).code)) add('Missie-scènes', 'lines', [who(k)], t);
   // Jelle's line as he lands a fierljep (missionstory.js playVaultScene)
   for (const t of strings(mi, /landing: ('(?:[^'\\]|\\.)*')/g)) add('Missie-scènes', 'lines', ['Jelle Terpstra'], t);
 
@@ -133,6 +135,19 @@ export function collect() {
     add('Verhaal-stappen', 'lines', [anita ? BUBBLE.f : BUBBLE.m], evalLit(m[2]), { as: anita ? 'Anita' : 'Tammo' });
   }
   for (const l of allLits(mi, '      intro: [')) for (const t of l) add('Missie-intro (terugval)', 'lines', ['Tammo', 'Anita'], t, { tag: ['samenzweerderig, zacht', 'geamuseerd, zakelijk', 'opgewonden, fluisterend'] });
+
+  // --- how Jelle and the twins reach them (storycontact.js), the "Eerder in GTE VI"
+  // recaps and the handover lines (story.js) -> lines manifest
+  const CONTACT = { jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', T: 'Tammo', A: 'Anita' };
+  for (const st of STEPS) for (const c of st.contact || []) for (const [k, t, o] of c.lines) add('Verhaal-contact (telefoon)', 'lines', [CONTACT[k]], t, o && o.tag ? { tag: o.tag } : {});
+  for (const P of Object.values(PARTS)) for (const [, t] of P.recap || []) add('Verhaal-kaarten', 'lines', [NARRATOR], t, { tag: ['warm, vertellend, als een terugblik', 'droog, met een knipoog, samenvattend'] });
+  for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);
+  // the trekker-limo pulling up at the museum (missionstory.js playLimoReveal)
+  for (const [k, t] of lit(src('missionstory.js'), 'export const LIMO_LINES = ')) add('Missie-cutscenes', 'lines', [nm(k)], t);
+  // Jelle on the phone (phone.js jelleTalk)
+  const ph = src('phone.js');
+  const jt = ph.slice(ph.indexOf('function jelleTalk'), ph.indexOf('function mamTalk'));
+  for (const l of allLits(jt, 'line: pick(')) for (const t of l) add('Telefoon (Jelle)', 'lines', ['Jelle Terpstra'], t, { tag: ['charmant, opschepperig, aan de telefoon', 'plagend, aan de telefoon'] });
 
   // --- other cutscene subtitles (story.js, cinematics.js) -> lines manifest
   for (const m of src('story.js').matchAll(/\{ speaker: '([^']+)', text: ('(?:[^'\\]|\\.)*')/g)) add('Verhaal-kaarten', 'lines', [m[1]], evalLit(m[2]));

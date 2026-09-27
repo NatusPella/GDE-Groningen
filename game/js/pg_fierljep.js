@@ -1,6 +1,7 @@
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
-import { poleVault, findVaultSpot, JELLE_LOOK } from './fierljep.js';
+import { poleVault, findVaultSpot } from './fierljep.js';
+import { JELLE_LOOK } from './storycast.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { isInWater, clamp } from './util.js';

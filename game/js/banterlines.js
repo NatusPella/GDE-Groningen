@@ -226,7 +226,7 @@ export const BANTER = [
   { id: 'st-h3', trigger: 'story:H3', lines: [
     ['A', 'Jelmer wil content. Wat is content eigenlijk?', 'curious'],
     ['T', 'Iets met veel geschreeuw en een ringlamp.', 'grumpy']] },
-  { id: 'st-duif', trigger: 'story:k-duif', lines: [
+  { id: 'st-duif', trigger: 'story:H4', lines: [
     ['T', 'Ik ga vliegen leren van duiven. Mijn vader zou trots zijn.', 'proud'],
     ['A', 'Je vader was bang voor duiven.', 'dry'],
     ['T', 'Precies. Ik doorbreek het patroon.', 'solemn']] },
@@ -696,6 +696,40 @@ export const BANTER = [
   { id: 'id-fierljep-mis', trigger: 'idle', needs: 'H18', lines: [
     ['T', 'Weet je nog dat je zei: laten we hopen dat hij een keer mist?', 'amused'],
     ['A', 'Ik heb het nooit zo mooi zien missen.', 'laughing']] },
+
+  // --- quiet moments at the turning points (story order only) ------------------
+  { id: 'q-h6-luifel', trigger: 'after:H6:pass', arc: true, lines: [
+    ['A', 'Ik had hem al voor me gezien, weet je. De Fjord. Met een luifel.', 'quiet, wistful'],
+    ['T', 'Een rode luifel?', 'soft, careful'],
+    ['A', 'Rood met wit. En jij achter de frituur.', 'small laugh, tender'],
+    ['T', 'Ik? Achter de frituur?', 'surprised, touched'],
+    ['A', 'Laat maar. Rij nou maar.', 'embarrassed, brushing it off']] },
+  { id: 'q-h12-handjes', trigger: 'after:H12:pass', arc: true, lines: [
+    ['T', 'Die handjes om de Eierbal. Die zijn van haar.', 'quiet, thoughtful'],
+    ['A', 'Ik weet het, Tammo.', 'soft'],
+    ['T', 'Je kunt geen oma verkopen.', 'serious, gentle'],
+    ['A', 'Nee. Maar mijn Fjord dan?', 'torn, quiet'],
+    ['T', 'Die komt er wel. Anders bouw ik hem zelf. Van karton.', 'warm, trying to cheer her up']] },
+  { id: 'q-h13-iets', trigger: 'after:H13:pass', arc: true, lines: [
+    ['A', 'Zeg eens iets.', 'shy, soft'],
+    ['T', 'Iets. Hoor je? Ik zeg iets.', 'nervous, deadpan'],
+    ['A', 'Tammo.', 'amused, fond'],
+    ['T', 'Ik was even vergeten hoe praten ging.', 'shy, honest'],
+    ['A', 'Dan zeg ik het wel. Vóór Grunn. Samen.', 'warm, decided']] },
+  { id: 'q-h14-beleefd', trigger: 'after:H14:pass', arc: true, lines: [
+    ['A', 'Weet je wat ik raar vind? Dat Jelle ons steeds bedankt.', 'thoughtful'],
+    ['T', 'Hij denkt dat hij wint. Mensen die winnen zijn beleefd.', 'dry, wise'],
+    ['A', 'Dan worden wij straks heel onbeleefd.', 'determined, playful']] },
+  { id: 'q-h17-ons', trigger: 'story:H17', needs: 'H16', lines: [
+    ['T', 'Als we winnen… verkopen we hem dan?', 'quiet, hesitant'],
+    ['A', 'Vraag je dat aan mij of aan jezelf?', 'soft, probing'],
+    ['T', 'Aan ons.', 'sincere'],
+    ['A', 'Dan weten wij het antwoord al.', 'warm, smiling']] },
+  { id: 'q-h18-beste', trigger: 'after:H18:pass', arc: true, lines: [
+    ['A', 'Wij tweeën vóór Grunn. Klinkt beter dan tegen.', 'content, tired, happy'],
+    ['T', 'Alles klinkt beter met een eierbal erbij.', 'dry, happy'],
+    ['A', 'Die van ons is de beste. Jelle zei het zelf.', 'proud, laughing'],
+    ['T', 'Net fertelle.', 'deadpan, fond']] },
 
   // --- after the story: Jelle's challenges and the Fjord Frituur (postgame.js) ---
   { id: 'pg-bruggen-pass-hek', trigger: 'after:post-bruggen:pass', lines: [
