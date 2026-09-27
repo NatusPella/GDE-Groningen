@@ -1,3 +1,4 @@
+import { setDualText } from './subtitles.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
@@ -204,10 +205,10 @@ function begin(spec) {
   r.classList.toggle('show-skip', !!active.skippable && active.duration > 1.6);
   r.dataset.tint = active.tint || '';
   r.dataset.accent = active.accent || '';
-  els.kicker.textContent = active.kicker || '';
+  setDualText(els.kicker, active.kicker || '');
   els.title.textContent = active.title || '';
   r.classList.toggle('has-card', !!(active.title || active.kicker));
-  els.big.textContent = active.big || '';
+  setDualText(els.big, active.big || '');
   r.classList.toggle('has-big', !!active.big);
   els.lineIndex = -1;
   els.speaker.textContent = '';
@@ -235,7 +236,7 @@ function finish(skipped, replaced = false) {
   const a = active;
   active = null;
   const r = els.root;
-  r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip');
+  r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip', 'sub-clue');
   r.dataset.tint = '';
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
@@ -278,7 +279,8 @@ function updateSubtitles() {
   const l = lines[idx];
   els.root.classList.toggle('has-sub', !!l);
   els.speaker.textContent = l && l.speaker ? l.speaker + ':' : '';
-  els.line.textContent = l ? l.text : '';
+  setDualText(els.line, l ? l.text : '');
+  els.root.classList.toggle('sub-clue', !!(l && l.clue));
   if (l && l.voice) playStoryVoice(l.voice);
 }
 

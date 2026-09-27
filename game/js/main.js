@@ -18,6 +18,7 @@ import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio } from './audio.js';
 import { updateBanter } from './banter.js';
+import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
@@ -184,6 +185,7 @@ async function boot() {
   initPostgame(world);
   initSideJobs(world);
   initStory(world);
+  initStoryContact(world);
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
@@ -242,6 +244,7 @@ async function boot() {
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
     updateAudio(dt, world);
     updateBanter(world.paused ? 0 : gameDt, world);
+    updateStoryContact(world.paused ? 0 : dt, world);
     probe.mark('audio');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused ? 0 : gameDt;

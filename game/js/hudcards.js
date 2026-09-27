@@ -17,6 +17,7 @@
 // - A few important cards are said out loud by whoever you play
 //   (cardlines.js, lines manifest), on the speech.js channel as a reaction.
 import { readingSeconds } from './world.js';
+import { dualHtml } from './subtitles.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { CARD_LINES } from './cardlines.js';
@@ -169,7 +170,7 @@ function cardHtml(c) {
   const s = c.spec;
   const kicker = s.kicker || CARD_KINDS[s.kind].label;
   return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
-    `<div class="hc-text"><small>${esc(kicker)}</small>${s.title ? `<b>${esc(s.title)}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${esc(s.body)}</span>` : ''}</div>` +
+    `<div class="hc-text"><small>${esc(kicker)}</small>${s.title ? `<b>${dualHtml(s.title)}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${dualHtml(s.body)}</span>` : ''}</div>` +
     '<i class="hc-timer"></i>';
 }
 

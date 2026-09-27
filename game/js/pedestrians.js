@@ -53,13 +53,13 @@ const GRONINGS_PHRASES = [
 ];
 
 const SCREAMS = ['Help!', 'Aaah!', 'Wegwezen!', 'Rennen!', 'Hulp!', 'Nee, nee, nee!'];
-const HURT_LINES = ['Au! Bist betoeterd?', 'Au! Wat dust doe?', 'Hé! Rot op, joh!'];
-const BUMP_LINES = ['Kiek uut!', 'Rot op, joh!', 'Bist betoeterd?', 'Hé, kiek es uut!', 'Pas toch op, joh!'];
+const HURT_LINES = ['Au! Bist betoeterd?', 'Au! Wat dust doe?', 'Hé! Rot op, joh!', 'Au! Doe bist nait goed wies!'];
+const BUMP_LINES = ['Kiek uut!', 'Rot op, joh!', 'Bist betoeterd?', 'Hé, kiek es uut!', 'Pas toch op, joh!', 'Kiek uut woarst lopst, mien jong!', 'Nait zo dringen, joh!'];
 const CAR_BUMP_LINES = ['Kiek uut, joh!', 'Bist betoeterd?', 'Hé! Ik loop hier!'];
 const THEFT_LINES = ['Hé, dat is mien auto!', 'Mien auto! Rot op, joh!', 'Hé! Kom terug mit mien auto!'];
 const BIKE_THEFT_LINES = ['Hé, mien fiets!', 'Dat is mien fiets, joh!'];
 const FILM_LINES = ['Dit gaat op Sikkom!', 'Dit gaat op Sikkom!', 'Moi, dit wordt viraal!'];
-const COP_LINES = ['Staan blijven! Politie!', 'Handen omhoog!', 'Blijf stoan!'];
+const COP_LINES = ['Staan blijven! Politie!', 'Handen omhoog!', 'Blijf stoan!', 'Blief stoan, mien jong!', 'Kom mor mit noar t bureau.'];
 const CALL_LINES = {
   shot: 'Hallo, 112? Hier wordt schoten!',
   boom: '112? Hier ontploft van alles!',
@@ -692,7 +692,7 @@ function processEvents(world, events) {
 // People on the quays wave (scene3d draws the arm from ped.greetUntil) and
 // now and then call out when the player's boat goes by.
 
-const GREET_LINES = ['Moi!', 'Ahoi!', 'Mooi bootje!', 'Goeie vaart!', 'Moi, schipper!', 'Hoi hoi!'];
+const GREET_LINES = ['Moi!', 'Ahoi!', 'Mooi bootje!', 'Goeie vaart!', 'Moi, schipper!', 'Hoi hoi!', 'Moi! Hou dij goud!', 'Kiek, doar is n bootje!'];
 let greetScanAt = 0;
 
 function greetPassingBoat(world) {

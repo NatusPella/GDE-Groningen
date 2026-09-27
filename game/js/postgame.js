@@ -1,7 +1,8 @@
+import { setDualText } from './subtitles.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
-import { JELLE_LOOK } from './fierljep.js';
+import { JELLE_LOOK } from './storycast.js';
 import { currentStep, getStorySave } from './story.js';
 import { isMissionActive, getActiveRace, buildMissionMarker3D, updateMissionMarker3D } from './missions.js';
 import { isCinematicActive, playCinematic, showBanner } from './cinematics.js';
@@ -444,7 +445,7 @@ function showSub(speaker, text) {
   const el = ensureUi().sub;
   el.firstChild.textContent = speaker + ':';
   el.firstChild.style.color = SPEAKER_COLORS[speaker] || '#fff';
-  el.lastChild.textContent = text;
+  setDualText(el.lastChild, text);
   el.style.opacity = '1';
   sub = { left: Math.max(2.4, Math.min(6, 1 + text.length * 0.06)) };
 }
@@ -467,7 +468,7 @@ function invite() {
 
 // Jelle rings after the ending (phonefeed.js startCall; voiced, lines manifest)
 const INVITE_CALL = [
-  { speaker: JELLE, text: 'Moai, Grinzers. Revanche? Alve brêgen, in fierljep-duel en in skûtsje-sprint. Myn stipkes steane op jimme kaart.', sub: 'Mooi, Groningers. Revanche? Elf bruggen, een fierljepduel en een skûtsjesprint. Mijn stipjes staan op jullie kaart.' },
+  { speaker: JELLE, text: 'Moai, Grinzers. Revanche? Elf bruggen, een fierljep-duel en een skûtsje-sprint. Mijn stipkes staan op jullie kaart.' },
   { speaker: 'Anita', text: 'En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.' },
 ];
 
