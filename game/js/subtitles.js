@@ -181,7 +181,24 @@ export const GRO = {
   '"Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons."': '"Twee reuzen op één fatbike kochten alles op. Contant, uit een klomp. Prima, voor ons."',
 };
 
-const ALL = { ...GRO, ...FY };
+// German and English tourists on the rondvaartboot (rondvaartlines.js)
+export const INTL = {
+  'Wunderschön, diese Rosen!': 'Prachtig, die rozen!',
+  'Wie viele Stufen hat der Turm?': 'Hoeveel treden heeft de toren?',
+  'Four in the morning? I\'m in!': 'Vier uur \'s nachts? Ik doe mee!',
+  'Münster? Oh. Entschuldigung.': 'Münster? O. Sorry.',
+  'Is that the station or a palace?': 'Is dat het station of een paleis?',
+  'Das ist wie in Amsterdam, nur ruhiger.': 'Dit is net Amsterdam, alleen rustiger.',
+  'Kijk in... what?': 'Kijk in... wat?',
+  'Ach du lieber Himmel!': 'Lieve hemel!',
+  'Is this included in the ticket?': 'Zit dit bij het kaartje in?',
+  'Lovely. Very relaxing.': 'Heerlijk. Echt ontspannend.',
+  'So gemütlich hier!': 'Wat is het hier gezellig!',
+  'Is this part of the tour?': 'Hoort dit bij de rondvaart?',
+  'Wer ist dieser Mann?': 'Wie is die man?',
+};
+
+const ALL = { ...GRO, ...FY, ...INTL };
 const KEYS = Object.keys(ALL).sort((a, b) => b.length - a.length);
 const cache = new Map();
 

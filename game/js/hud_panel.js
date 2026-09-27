@@ -1090,7 +1090,11 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
       pois.push(['shop-' + sh.type, sh.x, sh.y]);
     }
   }
-  if (!job) add('bijbaan', getSideJobSpotsForRender(), (sj) => 'sj-' + sj.job.id, 2, MM_POI_FAR_M);
+  if (!job) {
+    const sjs = getSideJobSpotsForRender();
+    add('bijbaan', sjs.filter((sj) => !sj.job.layer), (sj) => 'sj-' + sj.job.id, 2, MM_POI_FAR_M);
+    add('rondvaarttour', sjs.filter((sj) => sj.job.layer === 'rondvaarttour'), (sj) => 'sj-' + sj.job.id, 1, MM_POI_FAR_M);
+  }
   add('trein', getStationsForRender(), 'station', 1, MM_POI_FAR_M);
   if (inVehicle) add('flitspaal', world.flitspaalen || [], 'flitspaal', 2);
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);

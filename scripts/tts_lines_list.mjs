@@ -72,14 +72,17 @@ for (const e of collect()) {
       const who = e.cast.who ? WHO[e.cast.who][f ? 1 : 0] : f ? WHO.vrouw : WHO.man;
       // a bubble a main character says (story steps): their own voice
       const as = e.cast.as && CAST[e.cast.as];
-      job = as ? { voice: as.voice, who: as.who, tag: mood(e.cast.as, e.text, key) } : { voice: pick(f ? FEMALE : MALE, key), who: isGronings(e.text) ? `${who}, spreekt Gronings dialect` : who, tag: pick(e.cast.tag, key) };
+      const pe = e.cast.persona;
+      job = pe ? { voice: pe.voice, who: pe.who, tag: pick(e.cast.tag, key), accent: pe.accent } : as ? { voice: as.voice, who: as.who, tag: mood(e.cast.as, e.text, key) } : { voice: pick(f ? FEMALE : MALE, key), who: isGronings(e.text) ? `${who}, spreekt Gronings dialect` : who, tag: pick(e.cast.tag, key) };
     } else {
-      const c = CAST[sp];
+      // "Tammo (gids)": the same voice as Tammo
+      const c = CAST[sp] || CAST[sp.replace(/ \(.*\)$/, '')];
       if (!c) throw new Error(`no cast for ${sp}`);
       job = { voice: c.voice, who: c.who, tag: pick(e.cast.tag, key) || mood(sp, e.text, key) };
     }
     const dir = sp.startsWith('~') ? `bubbles/${sp === BUBBLE.f ? 'f' : 'm'}` : slug(sp);
-    const accent = (CAST[sp] && CAST[sp].accent) || (isGronings(e.text) ? GRO_ACCENT : ACCENT);
+    const accent = job.accent || (CAST[sp] && CAST[sp].accent) || (isGronings(e.text) ? GRO_ACCENT : ACCENT);
+    delete job.accent;
     jobs.push({ key, speaker: sp, text: e.text, area: e.area, file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${accent}] ${e.text}` });
   }
 }
