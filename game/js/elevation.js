@@ -275,8 +275,10 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
       // past a segment's end its flat end cap would put a small step in a
       // ramp; the next segment's own ribbon is the smooth surface there
       const end = q.t <= 0 || q.t >= 1;
-      // (an end cap only wins the overlap choice when nothing else is near)
-      if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs + (end ? 1 : 0)); }
+      // (only a road's real ends lose the overlap choice; a cap at an inner
+      // vertex is the same road carrying on)
+      const tip = (q.t <= 0 && s.i === 0) || (q.t >= 1 && s.i === s.r.pts.length - 2);
+      if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs + (tip ? 1 : 0)); }
       if (end) { if (z > cap) { cap = z; capRoad = road; } }
       else if (z > best) { best = z; bestRoad = road; }
     }
@@ -290,7 +292,7 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
     if (nd < Infinity) { _roadZ.push(0); _roadD.push(nd); }
     if (0 > best) { best = 0; bestRoad = nd < Infinity; }
   }
-  if (bestRoad && _roadZ.length > 1) {
+  if (_roadZ.length > (bestRoad ? 1 : 0)) {
     let pick = -1;
     for (let i = 0; i < _roadZ.length; i++) {
       if (Math.abs(_roadZ[i] - zHint) <= STAY_ON && (pick < 0 || _roadD[i] < _roadD[pick])) pick = i;
