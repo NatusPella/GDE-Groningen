@@ -4,6 +4,7 @@ import { buildPersonMesh, animatePersonWalk, swimPose, PERSON_RIG } from './mode
 import { pushAudioEvent } from './pedestrians.js';
 import { isInWater, clamp, WATER_Y } from './util.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
+import { getWaterIndex, insideWaterObstacle } from './waterindex.js';
 
 // Fierljeppen: an NPC sprints to a canal, jumps onto a pole standing in the
 // water, climbs it while it tips over and drops onto the far bank - or the
@@ -28,8 +29,10 @@ import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js
 //     put back on the take-off bank (climbed out), unless the caller moved it.
 //     While vaulting, npc.scripted and npc.hideMesh are set: pedestrians.js
 //     leaves the NPC alone and scene3d.js hides its normal mesh.
-//   findVaultSpot(map, x, y, radius = 60) -> { from, to, width } | null
-//     the nearest canal crossing (5-22 m of water) around a point.
+//   findVaultSpot(map, x, y, radius = 60, { minWidth, maxWidth }) -> { from, to, width } | null
+//     the nearest straight-across canal crossing (5-22 m of water) around a
+//     point: from on the near bank, to on the opposite bank.
+//     why: optional {} that counts the reasons candidates were rejected.
 //   isVaulting(npc), updatePoleVaults(dt, world) (main.js, every frame).
 
 export const JELLE_LOOK = { shirt: 0x1d4f9c, skin: 0xe9c29c, hair: 0xe0bd62, variant: 'male', pants: 0xf2f0ea, shoes: 0x1c1c1e, hairStyle: 'short', seed: 1581 };
@@ -40,6 +43,7 @@ const DROP_G = 9.81;
 const HANG = 2.05; // hands above feet while hanging from the pole
 const THETA0 = -0.3;
 const THETA1 = 0.52;
+export const POLE_MAX = 22; // m: spans up to ~21 m of water
 const SAY_OK = ['Oant sjen, Grinzers!', 'Moaie sprong, al zeg ik het zelf.', 'Fierljeppen, dat kunnen jullie niet!'];
 const SAY_FAIL = ['Wiet! Hielendal wiet!', 'Nee nee nee…', 'Dit heeft niemand gezien, hè?'];
 
@@ -214,14 +218,20 @@ export function poleVault(npc, from, to, opts = {}) {
   const D = Math.max(3, Math.hypot(dx, dy));
   const dir = { x: dx / D, y: dy / D };
   const yaw = Math.atan2(dir.y, dir.x);
-  const L = clamp(0.94 * D + 1.3, 6, 18);
+  const L = clamp(0.94 * D + 1.3, 6, POLE_MAX);
   const pivotD = Math.max(0.3 * D, 1.9);
   const pivot = { x: from.x + dir.x * pivotD, y: from.y + dir.y * pivotD, z: WATER_Y - 0.1 };
   const c0 = clamp((2.35 + HANG - pivot.z - 0.05) / Math.cos(THETA0), 2.5, L - 1);
 
+  // the run-up is straight at the water along the crossing: an NPC standing
+  // off that line (or too near / far) starts from the line instead
   let sx = npc.x, sy = npc.y;
-  const far = Math.hypot(sx - from.x, sy - from.y);
-  if (!Number.isFinite(sx) || far > 30 || far < 3) { sx = from.x - dir.x * 9; sy = from.y - dir.y * 9; }
+  const along = (from.x - sx) * dir.x + (from.y - sy) * dir.y;
+  const across = Math.abs((from.x - sx) * dir.y - (from.y - sy) * dir.x);
+  if (!Number.isFinite(sx) || along > 30 || along < 3 || across > Math.max(0.8, along * 0.12)) {
+    const back = Number.isFinite(along) ? clamp(along, 6, 12) : 9;
+    sx = from.x - dir.x * back; sy = from.y - dir.y * back;
+  }
 
   const L0 = lookOf(npc, opts);
   const actor = buildPersonMesh(L0.shirt, L0.skin, L0.look);
@@ -554,44 +564,85 @@ export function updatePoleVaults(dt, w) {
 
 // --- finding a crossing -------------------------------------------------------
 
-export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth = 22 } = {}) {
+// A crossing runs straight across the canal: the take-off is on a bank, the
+// direction is the narrowest way over within 30 degrees of that bank's
+// normal, and the far bank (found along that direction, bridges ignored)
+// must run roughly parallel, with a clear landing and no bridge or moored
+// boat in the way.
+const CROSS_SWEEP = 30 * Math.PI / 180;
+const CROSS_STEPS = 6;
+const FAR_PARALLEL = Math.cos(35 * Math.PI / 180);
+
+export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth = 22, why = null } = {}) {
+  const no = (k) => { if (why) why[k] = (why[k] || 0) + 1; };
+  const wi = getWaterIndex(map);
+  const wet = (px, py) => wi.inWater(px, py);
   const pts = [];
-  for (let gx = -radius; gx <= radius; gx += 4) {
-    for (let gy = -radius; gy <= radius; gy += 4) {
+  const grid = radius > 120 ? 4 : 3;
+  for (let gx = -radius; gx <= radius; gx += grid) {
+    for (let gy = -radius; gy <= radius; gy += grid) {
       const d = Math.hypot(gx, gy);
       if (d <= radius) pts.push([x + gx, y + gy, d]);
     }
   }
   pts.sort((a, b) => a[2] - b[2]);
-  const DIRS = 24;
   const solid = (px, py) => map.buildingsNear(px, py, 1).some((b) => {
     const [x0, y0, x1, y1] = b.bounds;
     return px >= x0 && px <= x1 && py >= y0 && py <= y1 && inPoly(px, py, b.pts);
   });
+  // water entry and exit along a ray from (px, py), or null
+  const span = (px, py, cx, cy) => {
+    let s = 0.25;
+    while (s <= 4.5 && !wet(px + cx * s, py + cy * s)) s += 0.25;
+    if (s > 4.5) return null;
+    const enter = s;
+    while (s <= enter + maxWidth + 2 && wet(px + cx * s, py + cy * s)) s += 0.25;
+    return { enter, exit: s, width: s - enter };
+  };
   for (const [px, py] of pts) {
-    if (isInWater(map, px, py)) continue;
-    let near = false;
-    for (let k = 0; k < 8 && !near; k++) near = isInWater(map, px + Math.cos(k * Math.PI / 4) * 3.5, py + Math.sin(k * Math.PI / 4) * 3.5);
-    if (!near) continue;
+    if (wet(px, py) || solid(px, py)) continue;
+    const sh = wi.nearestShore(px, py, 4.5);
+    if (sh.i < 0) { no('noshore'); continue; }
+    let nx = sh.ty, ny = -sh.tx;
+    if (!wet(px + nx * (sh.d + 0.6), py + ny * (sh.d + 0.6))) { nx = -nx; ny = -ny; }
+    if (!wet(px + nx * (sh.d + 0.6), py + ny * (sh.d + 0.6))) { no('normal'); continue; }
+    const base = Math.atan2(ny, nx);
     let best = null;
-    for (let k = 0; k < DIRS; k++) {
-      const a = (k / DIRS) * Math.PI * 2, cx = Math.cos(a), cy = Math.sin(a);
-      let s = 0.5;
-      while (s <= 4 && !isInWater(map, px + cx * s, py + cy * s)) s += 0.5;
-      if (s > 4) continue;
-      const enter = s;
-      while (s <= enter + maxWidth + 2 && isInWater(map, px + cx * s, py + cy * s)) s += 0.5;
-      const width = s - enter;
-      if (width < minWidth || width > maxWidth) continue;
-      const lx = px + cx * (s + 2.2), ly = py + cy * (s + 2.2);
-      if (isInWater(map, lx, ly) || solid(lx, ly) || solid(lx + cx * 2, ly + cy * 2) || solid(lx - cy * 2.5, ly + cx * 2.5) || solid(lx + cy * 2.5, ly - cx * 2.5) || map.isOnBridge(px + cx * (enter + width / 2), py + cy * (enter + width / 2))) continue;
-      const fx = px + cx * (enter - 0.4), fy = py + cy * (enter - 0.4);
-      const bx = fx - cx * 9, by = fy - cy * 9;
-      if (solid(bx, by) || isInWater(map, bx, by) || solid(fx, fy)) continue;
-      const score = Math.abs(width - 9);
-      if (!best || score < best.score) best = { score, from: { x: fx, y: fy }, to: { x: lx, y: ly }, width };
+    for (let k = -CROSS_STEPS; k <= CROSS_STEPS; k++) {
+      const a = base + (k / CROSS_STEPS) * CROSS_SWEEP, cx = Math.cos(a), cy = Math.sin(a);
+      const sp = span(px, py, cx, cy);
+      if (!sp || sp.width > maxWidth + 1.5) continue;
+      if (!best || sp.width < best.width - 0.05 || (Math.abs(sp.width - best.width) <= 0.05 && Math.abs(k) < Math.abs(best.k))) best = { ...sp, cx, cy, k };
     }
-    if (best) return { from: best.from, to: best.to, width: best.width };
+    // the narrowest way over still narrowing at the sweep's edge runs into a
+    // junction or a basin, not across a canal
+    if (best && Math.abs(best.k) === CROSS_STEPS) { no('edge'); continue; }
+    if (!best || best.width < minWidth || best.width > maxWidth) { no(best ? 'width' + Math.round(best.width) : 'nospan'); continue; }
+    const { cx, cy, enter, exit, width } = best;
+    // a straight stretch: the same crossing a few metres up and down the bank
+    // is about as wide (not a canal mouth, a junction or the end of a pond)
+    let straight = true;
+    for (const off of [-4, 4]) {
+      const ox = px - cy * off, oy = py + cx * off;
+      const sp = !wet(ox, oy) && span(ox, oy, cx, cy);
+      if (!sp || Math.abs(sp.width - width) > Math.max(2.5, width * 0.25)) { straight = false; break; }
+    }
+    if (!straight) { no('bend'); continue; }
+    const far = wi.nearestShore(px + cx * (exit + 0.2), py + cy * (exit + 0.2), 2);
+    if (far.i < 0 || Math.abs(cx * far.ty - cy * far.tx) < FAR_PARALLEL) { no('far'); continue; }
+    let blocked = false;
+    for (let q = 0; q <= 8 && !blocked; q++) {
+      const s = enter + width * (q / 8), qx = px + cx * s, qy = py + cy * s;
+      blocked = map.isOnBridge(qx, qy) || map.isOnBridge(qx - cy * 3, qy + cx * 3) || map.isOnBridge(qx + cy * 3, qy - cx * 3) || insideWaterObstacle(map, qx, qy);
+    }
+    if (blocked) { no('blocked'); continue; }
+    const lx = px + cx * (exit + 2.2), ly = py + cy * (exit + 2.2);
+    if (wet(lx, ly) || wet(lx + cx * 3, ly + cy * 3) || solid(lx, ly) || solid(lx + cx * 2, ly + cy * 2) || solid(lx - cy * 2.5, ly + cx * 2.5) || solid(lx + cy * 2.5, ly - cx * 2.5) || map.isOnBridge(lx, ly)) { no('landing'); continue; }
+    const fx = px + cx * (enter - 0.4), fy = py + cy * (enter - 0.4);
+    let runOk = !solid(fx, fy);
+    for (let d = 3; d <= 9 && runOk; d += 3) runOk = !solid(fx - cx * d, fy - cy * d) && !wet(fx - cx * d, fy - cy * d);
+    if (!runOk) { no('runup'); continue; }
+    return { from: { x: fx, y: fy }, to: { x: lx, y: ly }, width };
   }
   return null;
 }
