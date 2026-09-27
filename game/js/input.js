@@ -28,6 +28,8 @@ export class Input {
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) {
         e.preventDefault();
       }
+      // Tab switches the aim lock in play; leave it to menus otherwise
+      if (k === 'tab' && this.canLock && this.canLock()) e.preventDefault();
     });
     target.addEventListener('keyup', (e) => {
       const k = e.key.toLowerCase();
