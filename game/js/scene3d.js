@@ -766,7 +766,7 @@ export function init3D(map) {
   // sky colour through the gaps.
   const [bx0, by0, bx1, by1] = map.meta.bounds;
   const bedPad = Math.max(bx1 - bx0, by1 - by0) * 0.15;
-  bedMaterial = applyCutMask(new THREE.MeshBasicMaterial({ color: 0x1e2a2c }));
+  bedMaterial = applyCutMask(new THREE.MeshBasicMaterial({ color: 0x1e2a2c }), null, true);
   initCutMask(map);
   const bed = new THREE.Mesh(
     new THREE.PlaneGeometry(bx1 - bx0 + bedPad * 2, by1 - by0 + bedPad * 2),

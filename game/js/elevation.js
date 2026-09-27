@@ -362,7 +362,7 @@ export function ceilingAt(elev, x, y, z) {
     const q = onSeg(s, x, y);
     if (q.d > s.hs + WALL_T) continue;
     if (s.covered && z < -RAISED) {
-      const under = roofTopAt(elev, x, y) - ROOF_T;
+      const under = roofTopAt(elev, x, y, q.z) - ROOF_T;
       if (under > z && under < c) c = under;
     } else if (q.z - DECK_T > z + 0.5 && q.z > RAISED && q.d <= s.hs) {
       if (q.z - DECK_T < c) c = q.z - DECK_T;
@@ -372,15 +372,28 @@ export function ceilingAt(elev, x, y, z) {
 }
 
 // Top of a tunnel roof: just under the street, or under the canal bed
-// where the road passes below the water (aqueduct).
-export function roofTopAt(elev, x, y) {
+// where the road passes below the water (aqueduct). For a tunnel at zSelf,
+// never above another sunken road that runs over it (the A28 under the
+// Julianaplein ramps): its roof is that road's floor.
+export function roofTopAt(elev, x, y, zSelf = null) {
   const map = elev.map;
+  let top = -0.06;
   for (const w of map.waterNear(x, y, 6)) {
     const [minx, miny, maxx, maxy] = w.bounds;
     if (x < minx - 6 || x > maxx + 6 || y < miny - 6 || y > maxy + 6) continue;
-    return waterRoof(map, x, y);
+    top = waterRoof(map, x, y);
+    break;
   }
-  return -0.06;
+  if (zSelf === null) return top;
+  const list = elev.grid.at(x, y);
+  if (list) {
+    for (const sg of list) {
+      if (sg.rail) continue;
+      const q = onSeg(sg, x, y);
+      if (q.d <= sg.hs + WALL_T && q.z > zSelf + 2.5 && q.z < top - 0.05) top = q.z - 0.05;
+    }
+  }
+  return top;
 }
 
 function waterRoof(map, x, y) {
@@ -482,7 +495,7 @@ function buildWalls(elev, map) {
           // no fence where the other carriageway of the cutting continues beyond this wall
           piece.fence = !s.covered && !joined && !onFlatRoad(map, mx, my) &&
             ![1.5, 3.5, 6].some((d) => surfaceOf(elev, mx + nx * d, my + ny * d, s.r, zr, 3));
-          piece.top = s.covered ? roofTopAt(elev, mx, my) : 0;
+          piece.top = s.covered ? roofTopAt(elev, mx, my, zr) : 0;
           if (!s.covered && !joined) {
             // beside another sunken road (a ramp climbing out of the cutting
             // next to the main carriageway) the lower road's wall only rises
@@ -585,13 +598,14 @@ function buildCuts(elev) {
   }
 }
 
-// Rasterise the open cuts into a mask (1 = no ground) over their bounding
+// Rasterise the open cuts into a mask (255 = no ground, 128 = covered: no
+// canal bed) over their bounding
 // box, `res` metres per texel. Returns null when there are none.
 export function openCutMask(elev, maxTex = 4096) {
   if (!elev.has || !elev.cuts.length) return null;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   const pad = WALL_T + 0.2;
-  for (const s of elev.cuts) {
+  for (const s of [...elev.cuts, ...elev.segs.filter((q) => q.covered)]) {
     const r = s.hs + pad;
     x0 = Math.min(x0, s.ax - r, s.bx - r); y0 = Math.min(y0, s.ay - r, s.by - r);
     x1 = Math.max(x1, s.ax + r, s.bx + r); y1 = Math.max(y1, s.ay + r, s.by + r);
@@ -628,10 +642,11 @@ export function openCutMask(elev, maxTex = 4096) {
     for (let j = j0; j <= j1; j++) {
       const py = y0 + j * res;
       for (let i = i0; i <= i1; i++) {
-        if (!data[j * w + i]) continue;
         const px = x0 + i * res;
         const cp = closestPointOnSegment(px, py, s.ax, s.ay, s.bx, s.by);
-        if (cp.t > 0 && cp.t < 1 && cp.dist2 <= r * r) data[j * w + i] = 0;
+        // covered: 128, the ground stays but the canal bed under it goes
+        // (it would hang in the tunnel as a second, black ceiling)
+        if (cp.dist2 <= r * r && (cp.t > 0 && cp.t < 1 ? true : !data[j * w + i])) data[j * w + i] = 128;
       }
     }
   }
