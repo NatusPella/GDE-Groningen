@@ -233,7 +233,7 @@ function lineDur([s, text]) {
 function start(ex, lines, kind) {
   st.talk = { ex, lines, kind, i: -1, t: 0, until: 0 };
   // the exchange holds the voice channel; a call or story scene cuts it off
-  holdChannel('banter', 'banter', () => { if (st.talk) interrupt(null); });
+  holdChannel('banter', 'banter', () => { if (st.talk) interrupt(null); }, { alive: () => !!st.talk });
   if (ex) { heard[ex.id] = Date.now(); saveHeard(); }
   nextLine();
 }

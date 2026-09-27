@@ -1210,7 +1210,7 @@ function cleanup(r, skipped) {
   }
   document.body.classList.remove('intro-montage');
   stopStoryVoice();
-  setStoryScene(false);
+  setStoryScene(false, 'intro');
   setThemeDuck(false);
   markIntroSeen();
   run = null;
@@ -1242,7 +1242,7 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone } = {}) {
   };
   run = r;
   document.body.classList.add('intro-montage');
-  setStoryScene(true);
+  setStoryScene(true, 'intro');
   // from the top, so the cuts land on the song's beats
   if (!r.offset) cueTheme(0);
   ui.root.classList.add('on');

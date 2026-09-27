@@ -192,7 +192,7 @@ function beginCall(w, c) {
   c.phase = 'ring';
   c.t = 0;
   c.i = -1;
-  holdChannel('call', 'call', () => { if (call === c) finishCall(true); });
+  holdChannel('call', 'call', () => { if (call === c) finishCall(true); }, { alive: () => call === c });
   callEl = document.createElement('div');
   callEl.className = 'pf-callcard' + (c.live ? ' live' : '');
   callEl.innerHTML = callHtml(c);

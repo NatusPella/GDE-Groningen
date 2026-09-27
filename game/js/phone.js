@@ -356,6 +356,10 @@ function ubboRows() {
     for (const o of pg.offers()) {
       rows.push({ name: o.name, sub: `${o.blurb} · ${fmtDist(o.dist)}${o.medal ? ` · ${o.medal.toLowerCase()}` : ''}`, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`Route naar ${o.where}`); } });
     }
+    if (pg.guide) {
+      const off = pg.guide.isOff();
+      rows.push({ name: off ? 'Automatische route aan' : 'Route: volgende uitdaging', sub: off ? 'De GPS wijst weer de dichtstbijzijnde uitdaging aan' : 'Sla deze over, de GPS wijst de volgende aan', run: () => flashAndClose(off ? pg.guide.on() : pg.guide.next()) });
+    }
     for (const u of pg.upgrades()) {
       rows.push({ name: `Fjord Frituur: ${u.name}`, sub: u.owned ? `${u.blurb} · gekocht` : `${u.blurb} · €${u.price}`, run: () => flashAndClose(u.buy()) });
     }
