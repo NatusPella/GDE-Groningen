@@ -7,6 +7,7 @@ import { getShopsForRender, getShopsDecluttered, SHOP_TYPES } from './shops.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getHeliSpotsForRender } from './helirun.js';
+import { getPadelSpotsForRender } from './padel.js';
 import { getPostgameSpotsForRender } from './postgame.js';
 import { getStationsForRender } from './stationtravel.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
@@ -840,6 +841,7 @@ function drawDynamicMarkers(ctx, world) {
   for (const sh of getShopsDecluttered(z >= NEAR_ZOOM ? 1 : 26 / state.scale)) icon(SHOP_TYPES[sh.type].group, 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label);
   for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif');
   for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de traumaheli');
+  for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid');
   for (const q of getPostgameSpotsForRender()) icon('postgame', 'pg-' + q.kind, q.x, q.y, q.name, {}, q.busy ? `Nu: ${q.busy.label}` : q.sub);
   const ct = !job && world.challengeTarget;
   if (ct) {
@@ -1215,6 +1217,7 @@ const LEGEND = [
   { group: 'Doen en beleven' },
   { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },
   { kind: 'heli', label: 'Traumaheli', note: 'ballonjacht vanaf het UMCG', layer: 'heli' },
+  { kind: 'padel', label: 'Padelbanen', note: 'potje padel: volle gezondheid en extra herstel', layer: 'padel' },
   { kind: 'sj-rondvaarttour', label: 'Ontspannen rondvaart', note: 'rondje Diepenring met toeristen, zonder haast', layer: 'rondvaarttour' },
   { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layer: 'postgame' },
   { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },

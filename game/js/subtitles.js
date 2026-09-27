@@ -139,6 +139,18 @@ export const FY = {
 };
 
 export const GRO = {
+  // padel opponents (padellines.js)
+  'Moi! Wie verliest, trakteert op n eierbal.': 'Hoi! Wie verliest, trakteert op een eierbal.',
+  'Doe raakst hom nait eens, jong!': 'Jij raakt hem niet eens, jongen!',
+  'Tegen t glas, en weg is e!': 'Tegen het glas, en weg is hij!',
+  'Kon minder, hè? Volgende keer beter.': 'Goed, hè? (Gronings: kon minder) Volgende keer beter.',
+  'Goed speuld. Ik trakteer wel.': 'Goed gespeeld. Ik trakteer wel.',
+  'Ik speul al padel doe nog in de luier lagst.': 'Ik speel al padel sinds jij nog in de luier lag.',
+  'Kiek, zo dust dat!': 'Kijk, zo doe je dat!',
+  'Nait soezen, bal is al vot!': 'Niet treuzelen, de bal is al weg!',
+  'Hé! Dat is nait eerlijk!': 'Hé! Dat is niet eerlijk!',
+  'Noar hoes, joe baaident. Oefenen!': 'Naar huis, jullie allebei. Oefenen!',
+  'Goed speuld, mien jong.': 'Goed gespeeld, jongen.',
   'Kiek. Die duiven luuster\'n noar dij, jong.': 'Kijk. Die duiven luisteren naar jou, jongen.',
   'Een ballon? Doe bist nait goed wies!': 'Een ballon? Jij bent niet goed wijs!',
   'Heel de Grote Markt, mien wicht.': 'Heel de Grote Markt, meisje.',

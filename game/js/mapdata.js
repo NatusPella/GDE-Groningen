@@ -700,6 +700,7 @@ export function applyMapExtras(data, ex) {
     }
   }
   data.meta.fuel = ex.fuel || [];
+  data.meta.padel = ex.padel || [];
   const eikea = data.buildings.find((b) => b.landmark === 'EIKEA');
   if (eikea && !(data.meta.landmarks || []).some((l) => l.name === 'EIKEA')) {
     const n = eikea.pts.length;

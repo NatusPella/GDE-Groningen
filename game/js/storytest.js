@@ -200,7 +200,18 @@ export async function runStoryTest(world) {
           capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
           check(`${cur.id}: can be skipped from the pause menu`, S().canSkip() && S().view().canSkip);
           const before = world.money;
-          S().complete();
+          if (step.goal && step.goal.type === 'padel' && window.__padel) {
+            // a real match at the court the guide points to, ended at once (a loss still counts)
+            const pd = window.__padel;
+            const started = pd.start();
+            await sleep(1500);
+            const st = pd.state();
+            check(`${cur.id}: padel match starts against the twins`, started && st && st.twins, JSON.stringify(st));
+            capture(`${String(n).padStart(2, '0')}-${cur.id}-match`);
+            pd.finish(false);
+            check(`${cur.id}: padel match completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 5000));
+            check(`${cur.id}: padel gives full health`, world.health >= 100, String(world.health));
+          } else S().complete();
           if (step.cost) entry.notes.push(`betaald, saldo €${Math.round(world.money)} (was €${Math.round(before)})`);
           check(`money ok at ${cur.id}`, world.money >= 0, `€${Math.round(world.money)}`);
         } else {

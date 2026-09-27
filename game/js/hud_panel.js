@@ -7,6 +7,7 @@ import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES } from '.
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon } from './helirun.js';
+import { getPadelSpotsForRender, drawPadelMapIcon } from './padel.js';
 import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
@@ -908,6 +909,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       if (kind.startsWith('shop-')) drawShopMapIcon(ctx, kind.slice(5), s);
       else if (kind === 'pigeon') drawPigeonMapIcon(ctx, s);
       else if (kind === 'heli') drawHeliMapIcon(ctx, s);
+      else if (kind === 'padel') drawPadelMapIcon(ctx, s);
       else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
@@ -1099,6 +1101,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   if (inVehicle) add('flitspaal', world.flitspaalen || [], 'flitspaal', 2);
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
   add('heli', getHeliSpotsForRender(), 'heli', 1, MM_POI_FAR_M);
+  add('padel', getPadelSpotsForRender(), 'padel', 1, MM_POI_FAR_M);
   add('postgame', getPostgameSpotsForRender(), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
   add('horeca', getHorecaForRender(), 'horeca', 1);
   add('landmark', world.map.meta.landmarks || [], 'landmark', 2);

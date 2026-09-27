@@ -2823,6 +2823,10 @@
 "src": "tammo/ik_rij_het_decor_femke_vindt_mij_2280b63d.mp3",
 "dur": 4.22
 },
+"Tammo|Ik speel. Mijn armen trillen nog van dat touw, maar mijn backhand niet.": {
+"src": "tammo/ik_speel_mijn_armen_trillen_nog__705264d9.mp3",
+"dur": 5.93
+},
 "Tammo|Ik spring normaal alleen over een plas.": {
 "src": "tammo/ik_spring_normaal_alleen_over_ee_d7f6f163.mp3",
 "dur": 3.28
@@ -3455,6 +3459,10 @@
 "src": "bubbles/f/gekocht_he_een_geleende_fiets_te_ef6d096b.mp3",
 "dur": 3.51
 },
+"~f|Goed speuld, mien jong.": {
+"src": "bubbles/f/goed_speuld_mien_jong_0b6e4172.mp3",
+"dur": 1.6
+},
 "~f|Goeie vaart!": {
 "src": "bubbles/f/goeie_vaart_8102f48b.mp3",
 "dur": 1.41
@@ -3555,6 +3563,10 @@
 "src": "bubbles/f/he_dat_is_mijn_fiets_ik_stond_er_e9b1790e.mp3",
 "dur": 3.82
 },
+"~f|Hé! Dat is nait eerlijk!": {
+"src": "bubbles/f/he_dat_is_nait_eerlijk_9a0dfa13.mp3",
+"dur": 1.89
+},
 "~f|Hé! Golven!": {
 "src": "bubbles/f/he_golven_7fa3c050.mp3",
 "dur": 1.61
@@ -3631,6 +3643,10 @@
 "src": "bubbles/f/ik_kwam_voor_de_markt_ik_ga_met__4efaf482.mp3",
 "dur": 2.86
 },
+"~f|Ik speul al padel doe nog in de luier lagst.": {
+"src": "bubbles/f/ik_speul_al_padel_doe_nog_in_de__ed7e6380.mp3",
+"dur": 2.85
+},
 "~f|Ik sta hier al tien minuten. Grapje.": {
 "src": "bubbles/f/ik_sta_hier_al_tien_minuten_grap_b2323e9c.mp3",
 "dur": 4.35
@@ -3702,6 +3718,10 @@
 "~f|Kiek, n duifke!": {
 "src": "bubbles/f/kiek_n_duifke_c6e1e70e.mp3",
 "dur": 1.42
+},
+"~f|Kiek, zo dust dat!": {
+"src": "bubbles/f/kiek_zo_dust_dat_f6f3ca2f.mp3",
+"dur": 2.17
 },
 "~f|Kiekdeuse, zeggen wij. Doos met ramen.": {
 "src": "bubbles/f/kiekdeuse_zeggen_wij_doos_met_ra_d1bd3605.mp3",
@@ -3847,6 +3867,10 @@
 "src": "bubbles/f/mu_nster_oh_entschuldigung_e178bc17.mp3",
 "dur": 2.27
 },
+"~f|Nait soezen, bal is al vot!": {
+"src": "bubbles/f/nait_soezen_bal_is_al_vot_540a1fce.mp3",
+"dur": 2.58
+},
 "~f|Nait soezen, moar deurbroezen! Hij mout waarm aankomen.": {
 "src": "bubbles/f/nait_soezen_moar_deurbroezen_hij_af1d6fad.mp3",
 "dur": 4.11
@@ -3878,6 +3902,10 @@
 "~f|Niemand kijkt naar een duif. Dat is ons plan.": {
 "src": "bubbles/f/niemand_kijkt_naar_een_duif_dat__785f42e6.mp3",
 "dur": 3.42
+},
+"~f|Noar hoes, joe baaident. Oefenen!": {
+"src": "bubbles/f/noar_hoes_joe_baaident_oefenen_5bb75623.mp3",
+"dur": 2.43
 },
 "~f|Nog warm? In Grunn is dat een wonder.": {
 "src": "bubbles/f/nog_warm_in_grunn_is_dat_een_won_792d2318.mp3",
@@ -3914,6 +3942,10 @@
 "~f|Opzij, ik moet naar de wc!": {
 "src": "bubbles/f/opzij_ik_moet_naar_de_wc_667593a8.mp3",
 "dur": 3.04
+},
+"~f|Padel is tennis in een glazen kooi. Jij bent goed in kooien.": {
+"src": "bubbles/f/padel_is_tennis_in_een_glazen_ko_aaae1a61.mp3",
+"dur": 4.07
 },
 "~f|Pas op, jong!": {
 "src": "bubbles/f/pas_op_jong_a4548150.mp3",
@@ -4239,9 +4271,17 @@
 "src": "bubbles/m/de_kiekdeuse_je_kunt_er_niet_omh_64125ebb.mp3",
 "dur": 3.1
 },
+"~m|De baas wordt trots. Denk ik.": {
+"src": "bubbles/m/de_baas_wordt_trots_denk_ik_700db4d2.mp3",
+"dur": 3.52
+},
 "~m|De beste van Grunn.": {
 "src": "bubbles/m/de_beste_van_grunn_6208fd8b.mp3",
 "dur": 1.73
+},
+"~m|Die bal ging te snel. Voor een bal.": {
+"src": "bubbles/m/die_bal_ging_te_snel_voor_een_ba_abde9291.mp3",
+"dur": 4.24
 },
 "~m|Die fiets heb ik al sinds de KEI-week!": {
 "src": "bubbles/m/die_fiets_heb_ik_al_sinds_de_kei_8399c52c.mp3",
@@ -4270,6 +4310,14 @@
 "~m|Doe mor gewoon, handhaver!": {
 "src": "bubbles/m/doe_mor_gewoon_handhaver_5fb1f338.mp3",
 "dur": 1.81
+},
+"~m|Doe raakst hom nait eens, jong!": {
+"src": "bubbles/m/doe_raakst_hom_nait_eens_jong_eaf20a51.mp3",
+"dur": 1.74
+},
+"~m|Durk, de bal. De bal, Durk.": {
+"src": "bubbles/m/durk_de_bal_de_bal_durk_8102b114.mp3",
+"dur": 3.52
 },
 "~m|Duurde lang. Stond de brug open?": {
 "src": "bubbles/m/duurde_lang_stond_de_brug_open_67138ba3.mp3",
@@ -4306,6 +4354,10 @@
 "~m|Gehaald! Hou het wisselgeld maar. Moi!": {
 "src": "bubbles/m/gehaald_hou_het_wisselgeld_maar__09f22bbb.mp3",
 "dur": 3.33
+},
+"~m|Goed speuld. Ik trakteer wel.": {
+"src": "bubbles/m/goed_speuld_ik_trakteer_wel_953a2b38.mp3",
+"dur": 3.18
 },
 "~m|Goeie vaart!": {
 "src": "bubbles/m/goeie_vaart_73b81d8c.mp3",
@@ -4507,6 +4559,10 @@
 "src": "bubbles/m/ik_sta_hier_al_tien_minuten_grap_e51367a2.mp3",
 "dur": 3.01
 },
+"~m|Ik zag hem wel. Ik was alleen te laat.": {
+"src": "bubbles/m/ik_zag_hem_wel_ik_was_alleen_te__ecb56d52.mp3",
+"dur": 3.0
+},
 "~m|In de Apenrots vergaderen ze al jaren over de gaskraan.": {
 "src": "bubbles/m/in_de_apenrots_vergaderen_ze_al__f36a2dc1.mp3",
 "dur": 4.06
@@ -4615,6 +4671,10 @@
 "src": "bubbles/m/kon_minder_c635c21e.mp3",
 "dur": 0.83
 },
+"~m|Kon minder, hè? Volgende keer beter.": {
+"src": "bubbles/m/kon_minder_he_volgende_keer_bete_770a3a4b.mp3",
+"dur": 2.15
+},
 "~m|Kon minder, jong.": {
 "src": "bubbles/m/kon_minder_jong_4e7a23e4.mp3",
 "dur": 1.23
@@ -4654,6 +4714,10 @@
 "~m|Maaaaat! Knuffel!": {
 "src": "bubbles/m/maaaaat_knuffel_dbdf91c4.mp3",
 "dur": 2.86
+},
+"~m|Mazzel. Dat was puur mazzel.": {
+"src": "bubbles/m/mazzel_dat_was_puur_mazzel_711eeaf8.mp3",
+"dur": 3.51
 },
 "~m|Mien auto! Rot op, joh!": {
 "src": "bubbles/m/mien_auto_rot_op_joh_52176a4d.mp3",
@@ -4711,6 +4775,10 @@
 "src": "bubbles/m/moi_tot_volgend_jaar_in_het_plan_3a1ba887.mp3",
 "dur": 3.08
 },
+"~m|Moi! Wie verliest, trakteert op n eierbal.": {
+"src": "bubbles/m/moi_wie_verliest_trakteert_op_n__26a40e38.mp3",
+"dur": 3.32
+},
 "~m|Moi! Zeg je dat zo? Moi!": {
 "src": "bubbles/m/moi_zeg_je_dat_zo_moi_85edeab1.mp3",
 "dur": 2.67
@@ -4767,6 +4835,10 @@
 "src": "bubbles/m/niemand_kijkt_naar_iemand_met_ee_1d531c17.mp3",
 "dur": 4.19
 },
+"~m|Niet tegen de baas zeggen.": {
+"src": "bubbles/m/niet_tegen_de_baas_zeggen_08ac3ffd.mp3",
+"dur": 2.7
+},
 "~m|Nog warm? In Grunn is dat een wonder.": {
 "src": "bubbles/m/nog_warm_in_grunn_is_dat_een_won_39b9a598.mp3",
 "dur": 2.73
@@ -4803,6 +4875,10 @@
 "src": "bubbles/m/opzij_ik_moet_naar_de_wc_0e93d14b.mp3",
 "dur": 2.68
 },
+"~m|Padel. Dat is tennis in een aquarium.": {
+"src": "bubbles/m/padel_dat_is_tennis_in_een_aquar_85ee6ca7.mp3",
+"dur": 4.57
+},
 "~m|Pas op, jong!": {
 "src": "bubbles/m/pas_op_jong_18bb5bf4.mp3",
 "dur": 0.95
@@ -4834,6 +4910,10 @@
 "~m|Proost!": {
 "src": "bubbles/m/proost_a6a8bee8.mp3",
 "dur": 1.22
+},
+"~m|Punt. Dat was mijn punt, Durk.": {
+"src": "bubbles/m/punt_dat_was_mijn_punt_durk_08caf58c.mp3",
+"dur": 3.84
 },
 "~m|Rennen!": {
 "src": "bubbles/m/rennen_f2cb4c16.mp3",
@@ -4874,6 +4954,10 @@
 "~m|Te lang, jong. Veel te lang.": {
 "src": "bubbles/m/te_lang_jong_veel_te_lang_4e2be60c.mp3",
 "dur": 2.9
+},
+"~m|Tegen t glas, en weg is e!": {
+"src": "bubbles/m/tegen_t_glas_en_weg_is_e_a7bfa40d.mp3",
+"dur": 2.13
 },
 "~m|Top! Nu alleen nog uitvinden hoe de verwarming werkt.": {
 "src": "bubbles/m/top_nu_alleen_nog_uitvinden_hoe__358456dd.mp3",
@@ -4923,6 +5007,14 @@
 "src": "bubbles/m/wat_ruikt_dat_lekker_398185aa.mp3",
 "dur": 1.89
 },
+"~m|We moeten fietsen, Durk. De sleutel.": {
+"src": "bubbles/m/we_moeten_fietsen_durk_de_sleute_13deac65.mp3",
+"dur": 3.3
+},
+"~m|We moeten weg, Durk. De sleutel.": {
+"src": "bubbles/m/we_moeten_weg_durk_de_sleutel_025fe981.mp3",
+"dur": 3.39
+},
 "~m|Wegwezen!": {
 "src": "bubbles/m/wegwezen_b9f69cdf.mp3",
 "dur": 0.81
@@ -4946,6 +5038,10 @@
 "~m|Wij hebben gewonnen. Met de dijken, natuurlijk.": {
 "src": "bubbles/m/wij_hebben_gewonnen_met_de_dijke_07a910e2.mp3",
 "dur": 3.43
+},
+"~m|Wij zijn groot. Het glas is klein.": {
+"src": "bubbles/m/wij_zijn_groot_het_glas_is_klein_62bccc07.mp3",
+"dur": 4.47
 },
 "~m|Ze komen der aan!": {
 "src": "bubbles/m/ze_komen_der_aan_c60bdac0.mp3",
