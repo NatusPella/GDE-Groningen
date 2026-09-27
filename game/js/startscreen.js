@@ -5,6 +5,7 @@ import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
 import { setSetting } from './settings.js';
 import { pendingTrailer, runTrailer, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
+import { COW_LOADING } from './flavourlines.js';
 
 const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -18,6 +19,8 @@ const TIPS = [
   'Tip: M opent de kaart. Klik om een bestemming te zetten.',
   'Tip: zie je een duivenbord in de stad? Druk E en word zelf een duif. Poepen mag, ook op de Martinitoren.',
 ];
+// the commentary cows chime in between the tips
+COW_LOADING.forEach((t, i) => TIPS.splice(i * 3 + 1, 0, t));
 const TIP_MS = 3800;
 
 let tipTimer = 0;

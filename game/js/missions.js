@@ -1,4 +1,5 @@
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
+import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
 import { setUserWaypoint, findWalkPath } from './routing.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
@@ -1004,7 +1005,14 @@ function succeed(world, def) {
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! +€${def.reward}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
   const i = chain.index;
-  playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats: runStats(world, def), reason });
+  const stats = runStats(world, def);
+  // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
+  const r = chain.run;
+  if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {
+    stats.push(['Oordeel', PERFECT_VERDICT]);
+    world.lastPerfectRun = world.time;
+  }
+  playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats, reason });
   releaseMissionVehicle(world);
   chain.completed.add(chain.index);
   chain.run = null;

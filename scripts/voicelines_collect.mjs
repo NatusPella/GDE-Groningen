@@ -183,6 +183,23 @@ export function collect() {
   const bs = src('sidejob_bus.js');
   for (const l of allLits(bs, 'say(world, ped, pick(')) bubble('Bijbaantjes (klanten)', l, { tag: l.includes('Mijn koffie!') ? ['klagend, chagrijnig', 'die boos is, mopperend'] : ['vriendelijk, dankbaar', 'opgewekt'] });
 
+  // --- world flavour (flavourlines.js): barks as bubbles, radio/GPS/cows as lines
+  const fl = src('flavourlines.js');
+  for (const list of Object.values(lit(fl, 'export const NICKNAME_BARKS = '))) bubble('Wereld (bijnamen & koeien)', list, { tag: ['droog, trots op de stad', 'laconiek, wijzend', 'vertellend, met een knipoog'] });
+  for (const t of lit(fl, 'export const BIJNA_THUIS = ')) {
+    add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.m], t, { as: 'Tammo' });
+    add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.f], t, { as: 'Anita' });
+  }
+  for (const t of lit(fl, 'export const KROLBRUG_FAULTS = ')) add('Wereld (radio & navigatie)', 'lines', ['Verkeersinformatie'], t);
+  for (const t of lit(fl, 'export const RING_ZUID_GPS = ')) add('Wereld (radio & navigatie)', 'lines', ['Navigatie'], t);
+  for (const t of lit(fl, 'export const NACHTSTREEK = ')) add('Wereld (radio & navigatie)', 'lines', ['Radio Nachtstreek'], t);
+  for (const list of Object.values(lit(fl, 'export const COW_FEED = '))) for (const [cow, t] of list) add('Wereld (bijnamen & koeien)', 'lines', ['Koe ' + cow], t);
+  bubble('Wereld (straat)', lit(fl, 'export const KON_MINDER = '), { tag: ['droog, stiekem onder de indruk', 'laconiek, knikkend'] });
+  for (const ev of Object.values(lit(fl, 'export const EVENT_DAYS = '))) bubble('Wereld (straat)', ev.barks, { tag: ['vrolijk, kletserig', 'opgewekt, lacherig', 'stellig, vertellend'] });
+  bubble('Wereld (straat)', lit(fl, 'export const PLANTSOEN_BARKS = '), { tag: ['vrolijk, zonnig', 'lacherig, uitgelaten'] });
+  bubble('Wereld (straat)', lit(fl, 'export const PEERD_BARKS = '), { tag: ['verbaasd, fronsend', 'droog, argwanend'] });
+  bubble('Wereld (straat)', lit(fl, 'export const SUPPORTER_CHANTS = '), { tag: ['zingend, spreekkoor op de tribune', 'scanderend, luid en trots'] });
+
   return out;
 }
 

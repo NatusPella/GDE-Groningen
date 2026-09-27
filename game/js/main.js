@@ -51,6 +51,8 @@ import { initAchievementTracker, updateAchievementTracker } from './achievementt
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics } from './cinematics.js';
+import { initFlavour, updateFlavour } from './flavour.js';
+import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -192,6 +194,8 @@ async function boot() {
   });
   initDayNight(world);
   initCityProps(world);
+  initFlavour(world);
+  initFlavour3D(world, getScene());
   initPhone(world);
   initSaveGame(world);
 
@@ -242,6 +246,7 @@ async function boot() {
     updateGunFx3D(animDt, world, getScene());
     probe.mark('fx+gore');
     updateCityProps(animDt, world, getScene());
+    updateFlavour3D(animDt, world);
     probe.mark('cityprops');
     updatePigeonAfterglow(animDt);
     // cutscenes keep running (and end) while you're a pigeon; its camera wins
@@ -336,6 +341,7 @@ async function boot() {
       updateHoreca(dt, world);
       updateShops(dt, world);
       updateFlitspaal(dt, world);
+      updateFlavour(dt, world);
     } else updateMissions(dt, world);
     updateStory(dt, world);
     updateSideJobs(dt, world);

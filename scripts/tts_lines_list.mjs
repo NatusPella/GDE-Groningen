@@ -31,6 +31,11 @@ const CAST = {
   Geert: { voice: 'Zubenelgenubi', who: 'Groningse kroegbaas, joviaal', pool: ['joviaal, roddelend', 'droog, grinnikend'] },
   'Oma Trijntje': { voice: 'Sulafat', who: 'oude Groningse oma, warm en stellig', pool: ['warm, ontroerd', 'stellig, liefdevol'] },
   'Kapitein Klaas': { voice: 'Enceladus', who: 'oude Groningse schipper, schor', pool: ['samenzweerderig, schor', 'droog, knipogend'] },
+  Verkeersinformatie: { voice: 'Achird', who: 'Groningse radiopresentator van de verkeersinformatie, zakelijk', pool: ['zakelijk, voorlezend, heel licht geamuseerd', 'droog, als een nieuwslezer', 'berustend, professioneel'] },
+  Navigatie: { voice: 'Kore', who: 'kalme navigatiestem in een auto', pool: ['kalm, monotoon, heel licht vermoeid', 'vriendelijk, mechanisch, droog'], accent: 'spoken in standard Dutch, calm and clear like a car navigation voice' },
+  'Radio Nachtstreek': { voice: 'Gacrux', who: 'rustige Groningse nacht-dj op een regionale radiozender', pool: ['zacht, warm, rustig, laat op de avond', 'fluisterend warm, ontspannen'] },
+  'Koe Aaltje': { voice: 'Zephyr', who: 'een sceptische, droge koe uit het Ommeland', pool: ['droog, laconiek, onder de indruk maar laat het niet merken', 'deadpan, zuchtend'] },
+  'Koe Grietje': { voice: 'Autonoe', who: 'een wijze, droge koe uit het Ommeland die alles ziet', pool: ['droog, bedachtzaam', 'deadpan, licht spottend'] },
 };
 const MALE = ['Charon', 'Puck', 'Iapetus', 'Umbriel', 'Alnilam', 'Rasalgethi', 'Enceladus', 'Schedar', 'Sadaltager', 'Zubenelgenubi'];
 const FEMALE = ['Aoede', 'Leda', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Pulcherrima', 'Vindemiatrix', 'Sulafat', 'Achernar'];

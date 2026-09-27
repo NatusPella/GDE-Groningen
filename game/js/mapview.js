@@ -12,6 +12,7 @@ import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
+import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
 } from './routing.js';
@@ -675,7 +676,8 @@ function drawStaticOverlay(ctx) {
       if (!onScreen(sx, sy, 120)) continue;
       const w = ctx.measureText(l.name).width;
       boxes.push([sx - 7, sy - 8, sx + 11 + w, sy + 8]);
-      hover.push({ sx, sy, name: l.name, sub: 'Bezienswaardigheid', teleport: { x: l.x, y: l.y, name: l.name } });
+      const nick = nicknameOf(l.name);
+      hover.push({ sx, sy, name: l.name, sub: nick ? `Bezienswaardigheid · ${nick}` : 'Bezienswaardigheid', teleport: { x: l.x, y: l.y, name: l.name } });
     }
   }
 
@@ -740,6 +742,14 @@ function drawStaticOverlay(ctx) {
       if (!onScreen(sx, sy, 120)) continue;
       drawMapIcon(ctx, 'landmark', sx, sy, ICON, { t: 0 });
       drawLabel(ctx, l.name, sx + 9, sy + 1, '#f5f0e6', 'left');
+    }
+    // nicknamed buildings and the old Oosterpark (flavourlines.js)
+    ctx.font = 'italic 13px ' + FONT;
+    for (const f of FLAVOUR_MAP_PLACES) {
+      const [sx, sy] = toScreen(f.x, f.y);
+      if (!onScreen(sx, sy, 120) || z < MID_ZOOM) continue;
+      drawLabel(ctx, f.name, sx, sy, 'rgba(245, 226, 170, 0.9)', 'center');
+      hover.push({ sx, sy, name: f.name, sub: f.sub });
     }
   }
   state.staticHover = hover;
