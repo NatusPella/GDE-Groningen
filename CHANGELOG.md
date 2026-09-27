@@ -6,6 +6,37 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-09-29
+
+### Nieuw
+- **EIKEA-meubels in je flat**, elk met een eigen voordeel: bank "Zitmoi"
+  (zitten geneest), bed "Sloapstee" (kies je wektijd, pantser terug), tv
+  "Kiekkast" (Sikkom TV en cutscenes terugkijken), boekenkast "Buukenkaas"
+  (verstopte eierballen op de kaart), wandkaart, frituurpan, plant, bureau
+  met pc (+10% bij bijbaantjes) en een lamp die 's avonds echt licht geeft.
+  Bezorgd "tussen 8 en 18 uur", en de boekenkast zet je zelf in elkaar
+  (met één schroefje te weinig).
+- **Padel** op acht echte padelbanen rond Grunn: een dubbelpotje tegen een
+  Gronings kletsend duo, met volle gezondheid en een tijdje "Padelfit" als
+  beloning, medailles en prestaties.
+- **Ontspannen rondvaart**: een los rondje Diepenring met toeristen en de
+  rondleiding, zonder Schipper Wiebe en zonder tijdsdruk.
+- Nieuwe verhaalstappen: onderduiken met een bank van de EIKEA, en stoom
+  afblazen met een potje padel tegen Durk en Douwe.
+- **Sms'jes en hints worden voorgelezen** in de stem van wie ze stuurt,
+  en Sikkom krijgt een eigen nieuwslezer.
+
+### Verbeterd
+- **De rondvaartmissie** gaat nu met een echte rondvaartboot vol toeristen,
+  met twee keer zoveel rondleiding. Tammo vertelt, Anita verbetert hem.
+- **Winkels in het verhaal** zijn veel duidelijker: een balk "Voor het
+  verhaal: …", het juiste artikel bovenaan met "Nodig voor je missie", een
+  gouden ring om de winkel op de kaart, en daarna "Gelukt!".
+- Eten kun je ook met volle gezondheid kopen (om mee te nemen).
+- Sikkom-berichten komen veel minder vaak.
+- Bij de stroomkast in de museumkraak spring je niet meer mee met de
+  spatiebalk, en de toets staat duidelijk in beeld.
+
 ## [0.16.0] - 2026-09-28
 
 ### Nieuw
