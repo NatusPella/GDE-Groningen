@@ -408,7 +408,7 @@ function findSecondary(world, primary) {
   const g = world.storyGuide;
   const onMarker = m && m.phase === 'idle' && Math.hypot(m.marker.x - g?.x, m.marker.y - g?.y) < 4;
   if (g && !onMarker && !(m && m.phase === 'active') && !(world.sideJob && world.sideJob.active)) {
-    add({ id: 'story', x: g.x, y: g.y, h: 3.2, label: g.name, sub: 'Volgende stap in het verhaal', kind: 'mission' }, 80);
+    add({ id: 'story', x: g.x, y: g.y, h: 3.2, label: g.name, sub: g.buy ? 'Voor het verhaal: loop naar binnen (E)' : 'Volgende stap in het verhaal', kind: 'mission' }, 80);
   }
   if (!inV && learning('enter') && !primary) {
     for (const v of world.vehicles) {

@@ -3,7 +3,7 @@ import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
-import { getShopsForRender, getShopsDecluttered, SHOP_TYPES } from './shops.js';
+import { getShopsForRender, getShopsDecluttered, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getHeliSpotsForRender } from './helirun.js';
@@ -11,6 +11,7 @@ import { getPadelSpotsForRender } from './padel.js';
 import { getPostgameSpotsForRender } from './postgame.js';
 import { getStationsForRender } from './stationtravel.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
+import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
 import { ensureCountryEdge } from './countryplan.js';
@@ -839,6 +840,12 @@ function drawDynamicMarkers(ctx, world) {
 
   for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });
   for (const sh of getShopsDecluttered(z >= NEAR_ZOOM ? 1 : 26 / state.scale)) icon(SHOP_TYPES[sh.type].group, 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label);
+  const storyShop = storyTargetShop(world);
+  if (storyShop) {
+    const [sx, sy] = toScreen(storyShop.x, storyShop.y);
+    drawStoryShopRing(ctx, sx, sy, 13, t);
+    icon(null, 'shop-' + storyShop.type, storyShop.x, storyShop.y, storyShop.name, {}, 'Voor het verhaal: ' + world.storyGuide.name.replace(/^Eerst: /, ''));
+  }
   for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif');
   for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de traumaheli');
   for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid');
@@ -850,6 +857,7 @@ function drawDynamicMarkers(ctx, world) {
   }
   for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`);
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, 'Reizen met de trein');
+  for (const e of getEierbalTips()) icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt');
 
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', 'companion', c.x, c.y, c.character === 'tammo' ? 'Tammo' : 'Anita', {}, 'Maat');
