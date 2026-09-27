@@ -29,6 +29,7 @@ const DEFAULTS = {
   drawDistance: 'ver',
   mouseSensitivity: 1,
   invertY: false,
+  autoAim: true,
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
   attractSeen: false,

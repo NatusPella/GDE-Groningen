@@ -1,4 +1,4 @@
-import { normalizeAngle, pointInPolygon, isInWater, WATER_Y } from './util.js';
+import { normalizeAngle, pointInPolygon, isInWater, WATER_Y, closestPointOnSegment } from './util.js';
 import { requestRespawn } from './world.js';
 import { disableVehicle, surfaceUnder } from './vehicle.js';
 import { knockDown } from './ragdoll.js';
@@ -7,6 +7,7 @@ import { DEAD_DURATION } from './pedestrians.js';
 import { propOnBulletPath, shootProp } from './breakables.js';
 import { reportCrime } from './crime.js';
 import { gunShotFx, gunImpactFx } from './gunfx3d.js';
+import { updateAim, aimFireAngle } from './aimassist.js';
 
 export const WEAPONS = {
   fists: { damage: 12, range: 1.1, cooldown: 0.45, ammo: Infinity },
@@ -64,6 +65,7 @@ export function updateCombat(dt, world) {
     if (w.ammo === Infinity || (world.ammo[key] || 0) > 0) world.weapon = key;
   }
   cycleWeaponByWheel(dt, world, input);
+  updateAim(dt, world, WEAPONS[world.weapon] ? WEAPONS[world.weapon].range : 0);
 
   if (!input.mouse.down || fireTimer > 0) return;
 
@@ -73,7 +75,8 @@ export function updateCombat(dt, world) {
 
   // aim = current facing: on foot player.js turns the body to the camera
   // heading while the mouse button is held; driving, the car's heading
-  const angle = world.player.inVehicle ? world.player.inVehicle.angle : world.player.angle;
+  let angle = world.player.inVehicle ? world.player.inVehicle.angle : world.player.angle;
+  if (world.weapon !== 'fists') angle = aimFireAngle(world, angle, weapon);
   fireTimer = weapon.cooldown;
 
   if (world.weapon === 'fists') {
@@ -164,7 +167,7 @@ export function updateBullets(dt, world) {
     if (first === 'wall') { wallImpact(world, b, wall); continue; }
     if (first === 'prop') { propImpact(world, b, prop); continue; }
     if (first === 'car') { vehicleImpact(world, b, car); continue; }
-    if (hitPedestrians(world, b)) continue;
+    if (hitPedestrians(world, b, x0, y0)) continue;
     if (b.owner !== 'player' && hitPlayer(world, b)) continue;
     if (b.traveled > b.range) { groundImpact(world, b); continue; }
 
@@ -181,7 +184,7 @@ function sound(world, x, y, material, strength = 0.5) {
 
 // First building edge crossed between (x0, y0) and (x1, y1): { t, x, y, nx, ny, b }.
 // Buildings the bullet starts inside (fired from a passage) are ignored.
-function wallOnPath(map, x0, y0, x1, y1) {
+export function wallOnPath(map, x0, y0, x1, y1) {
   const dx = x1 - x0, dy = y1 - y0;
   let best = null;
   for (const bld of map.buildingsNear((x0 + x1) / 2, (y0 + y1) / 2, Math.hypot(dx, dy) / 2 + 1)) {
@@ -311,11 +314,20 @@ function wreckVehicle(world, v, byPlayer) {
   }
 }
 
-function hitPedestrians(world, b) {
-  for (const ped of world.pedestrians) {
-    if (ped.state === 'dead') continue;
-    if (b.owner === 'police' && ped.isCop) continue;
-    if (Math.hypot(ped.x - b.x, ped.y - b.y) > ped.radius + 0.12) continue;
+// Swept along this step (a bullet moves ~1 m per frame, more than a body is wide).
+function hitPedestrians(world, b, x0, y0) {
+  let ped = null, bestT = 2;
+  const reach = Math.abs(b.x - x0) + Math.abs(b.y - y0) + 1;
+  for (const q of world.pedestrians) {
+    if (q.state === 'dead') continue;
+    if (b.owner === 'police' && q.isCop) continue;
+    if (Math.abs(q.x - b.x) > reach || Math.abs(q.y - b.y) > reach) continue;
+    const r = q.radius + 0.12;
+    const c = closestPointOnSegment(q.x, q.y, x0, y0, b.x, b.y);
+    if (c.dist2 > r * r || c.t >= bestT) continue;
+    ped = q; bestT = c.t;
+  }
+  if (ped) {
     const bl = Math.hypot(b.vx, b.vy) || 1;
     damagePed(world, ped, b.damage, b.owner === 'player', b.vx / bl, b.vy / bl, false);
     sound(world, ped.x, ped.y, 'flesh', b.pellet ? 0.4 : 0.7);

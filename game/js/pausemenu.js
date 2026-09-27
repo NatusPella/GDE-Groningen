@@ -173,6 +173,7 @@ export function initPauseMenu(w) {
           <label class="pm-row"><span>Muisgevoeligheid</span>
             <input type="range" min="0.3" max="2.5" step="0.05" data-setting="mouseSensitivity"><output></output></label>
           ${toggle('invertY', 'Omhoog/omlaag omkeren')}
+          ${toggle('autoAim', 'Automatisch richten')}
         </div>
         <div data-sub="display" class="pm-group" hidden>
           <label class="pm-row"><span>Helderheid</span>
