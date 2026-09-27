@@ -2,6 +2,7 @@ import {
   BLOCK, PW, ROAD_IN, ROAD_W, MAIN_HW, MAAR_HW, VILLAGE_RING, VILLAGE_X,
   chash, countryWeight, countryRect, edgeDistance, edgeRoad, maarX, maarY, villageOf, parcelAt,
 } from './countryfield.js';
+import { REAL, pushOutOfReal } from './countryreal.js';
 import { EDGE, initCountryEdge, edgeBlocked, edgeBlockBoxes, connectorRuns, pushOutOfEdge, FRINGE } from './countryedge.js';
 
 // Deterministic layout of everything built in the Ommelanden, per polder
@@ -260,7 +261,7 @@ function buildBlock(bx, by) {
   const nearVillage = (x, y, m) => villages.some((v) => Math.hypot(x - v.x, y - v.y) < v.r + m);
   const boxOk = (b) => {
     if (b[0] < inner[0] || b[1] < inner[1] || b[2] > inner[2] || b[3] > inner[3]) return false;
-    for (const q of [[b[0], b[1]], [b[2], b[1]], [b[0], b[3]], [b[2], b[3]], [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2]]) if (!openLand(q[0], q[1])) return false;
+    for (const q of [[b[0], b[1]], [b[2], b[1]], [b[0], b[3]], [b[2], b[3]], [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2]]) if (!openLand(q[0], q[1]) || edgeBlocked(q[0], q[1], 4)) return false;
     for (const v of villages) {
       const cx = Math.max(b[0], Math.min(v.x, b[2])), cy = Math.max(b[1], Math.min(v.y, b[3]));
       if (Math.hypot(cx - v.x, cy - v.y) < v.r + 8) return false;
@@ -375,7 +376,13 @@ export function villagePlan(v) {
   const dx = v.x - r.cx, dy = v.y - r.cy;
   const ang = Math.atan2(dx, -dy); // 0 = north, clockwise
   const sector = ((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8;
-  const list = NAMES[sector];
+  // past the real Ommelanden: names the real map does not use already
+  let list = NAMES[sector];
+  if (REAL.ready) {
+    if (!REAL.nameSet) REAL.nameSet = new Set(REAL.places.map((p) => p.n));
+    const free = list.filter((n) => !REAL.nameSet.has(n));
+    if (free.length) list = free;
+  }
   const ring = Math.max(0, Math.hypot(dx, dy) - Math.max(r.hx, r.hy));
   let idx = Math.min(list.length - 1, Math.floor(ring / 2600) + (chash(v.bx, v.by + 1) < 0.35 ? 1 : 0));
   V = { v, name: list[idx], houses: [], trees: [], graves: [], hedges: [], saddle: chash(v.bx + 3, v.by) < 0.62, colliders: [] };
@@ -700,6 +707,7 @@ export function pushOutOfPlan(obj, radius) {
     }
   }
   if (pushOutOfEdge(obj, radius)) hit = true;
+  if (pushOutOfReal(obj, radius)) hit = true;
   for (const t of turbinesAround(obj.x, obj.y, 12)) if (pushCircle(obj, t.x, t.y, 3.1, radius)) hit = true;
   const { pylons } = pylonsAround(obj.x, obj.y, 12, [], []);
   for (const p of pylons) if (pushCircle(obj, p.x, p.y, 3.4, radius)) hit = true;

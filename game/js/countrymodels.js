@@ -743,3 +743,67 @@ export function barrierGeometry() {
   for (const x of [-0.5, 0.5]) B.box(x, 2.2, 0, 0.02, 4.4, 0.3, 0x5a5e60);
   return B.build();
 }
+
+// ------------------------------------------------------------------ real buildings
+
+// Unit pieces for the real Ommelanden buildings (countryreal.js), scaled per
+// instance: x = length, y = wall or roof height, z = width; tinted by the
+// instance colour (white here). Body: walls with window rows on all sides.
+const WIN = 0x2a3036;
+export function realBodyGeometry(rows = 1, door = true) {
+  const B = new GeoBuilder();
+  B.box(0, 0.5, 0, 1, 1, 1, 0xffffff);
+  const cols = [-0.33, 0, 0.33];
+  for (let r = 0; r < rows; r++) {
+    const y0 = rows === 1 ? 0.34 : 0.12 + (r / rows) * 0.86, h = rows === 1 ? 0.36 : 0.5 / rows;
+    for (const s of [-1, 1]) {
+      for (const x of cols) {
+        if (door && rows === 1 && s < 0 && x === 0) continue;
+        B.box(x, y0 + h / 2, s * 0.503, 0.1, h * 0.85, 0.006, WIN);
+      }
+      B.box(s * 0.503, y0 + h / 2, 0, 0.006, h, 0.2, WIN);
+    }
+  }
+  if (door) B.box(0, 0.3, -0.503, 0.09, 0.6, 0.006, 0x4a3024);
+  return B.build();
+}
+// Plain shed / hall: walls with a big door on one long side.
+export function realShedGeometry() {
+  const B = new GeoBuilder();
+  B.box(0, 0.5, 0, 1, 1, 1, 0xffffff);
+  B.box(0.18, 0.36, -0.503, 0.2, 0.72, 0.006, 0x6a6e70);
+  B.box(-0.3, 0.04, 0.503, 0.4, 0.04, 0.006, 0xb0b0a8);
+  return B.build();
+}
+// Gable roof slopes (ridge along x), a little overhang.
+export function realRoofGeometry() {
+  const B = new GeoBuilder();
+  const o = 0.03;
+  B.quadOut([-0.5 - o, -0.04, 0.5 + o * 2], [0.5 + o, -0.04, 0.5 + o * 2], [0.5 + o, 1, 0], [-0.5 - o, 1, 0], [0, 1, 1], 0xffffff);
+  B.quadOut([-0.5 - o, -0.04, -0.5 - o * 2], [-0.5 - o, 1, 0], [0.5 + o, 1, 0], [0.5 + o, -0.04, -0.5 - o * 2], [0, 1, -1], 0xffffff);
+  return B.build();
+}
+// The two gable-end triangles under that roof (wall colour).
+export function realGableGeometry() {
+  const B = new GeoBuilder();
+  B.triOut([-0.5, 0, 0.5], [-0.5, 0, -0.5], [-0.5, 0.97, 0], [-1, 0, 0], 0xffffff);
+  B.triOut([0.5, 0, 0.5], [0.5, 0.97, 0], [0.5, 0, -0.5], [1, 0, 0], 0xffffff);
+  B.box(-0.501, 0.42, 0, 0.004, 0.22, 0.14, WIN);
+  B.box(0.501, 0.42, 0, 0.004, 0.22, 0.14, WIN);
+  return B.build();
+}
+
+// Distant real building: walls to 0.55 and a gable roof to 1 (flat: a box).
+export function realSilhouetteGeometry(flat = false) {
+  const B = new GeoBuilder();
+  if (flat) {
+    B.box(0, 0.5, 0, 1, 1, 1, 0xffffff);
+    return B.build();
+  }
+  B.box(0, 0.275, 0, 1, 0.55, 1, 0xb88a70);
+  B.quadOut([-0.52, 0.53, 0.54], [0.52, 0.53, 0.54], [0.52, 1, 0], [-0.52, 1, 0], [0, 1, 1], 0xffffff);
+  B.quadOut([-0.52, 0.53, -0.54], [-0.52, 1, 0], [0.52, 1, 0], [0.52, 0.53, -0.54], [0, 1, -1], 0xffffff);
+  B.triOut([-0.5, 0.55, 0.5], [-0.5, 0.55, -0.5], [-0.5, 0.98, 0], [-1, 0, 0], 0xb88a70);
+  B.triOut([0.5, 0.55, 0.5], [0.5, 0.98, 0], [0.5, 0.55, -0.5], [1, 0, 0], 0xb88a70);
+  return B.build();
+}

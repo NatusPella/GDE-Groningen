@@ -1,5 +1,6 @@
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
+import { loadOmmeland, initReal } from './countryreal.js';
 import { Input } from './input.js';
 import { Player } from './player.js';
 import { World } from './world.js';
@@ -132,7 +133,9 @@ function maintainPedestrians(world) {
 
 async function boot() {
   initTheme();
+  const ommeland = loadOmmeland('citymap.json');
   const map = await loadMap('citymap.json', (f) => setLoadProgress(0.05 + f * 0.45));
+  initReal(map, await ommeland);
   setLoadProgress(0.55);
   await yieldToPaint();
   init3D(map);

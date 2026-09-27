@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY } from './countryfield.js';
+import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, realBlock } from './countryfield.js';
+import { REAL, RTILE, roadsInTile, inRealExtent } from './countryreal.js';
 import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
@@ -139,6 +140,7 @@ function onRoad(axis, line, c) {
 }
 
 function roadPos(a, lateral = LANE) {
+  if (a.real) return realPos(a);
   const off = -a.dir * lateral;
   if (a.axis === 'v') return [a.line * BLOCK + ROAD_C + off, a.c];
   return [a.c, a.line * BLOCK + ROAD_C - off];
@@ -194,10 +196,131 @@ function spawnTraffic(px, py, dist) {
 }
 
 function headingOf(a) {
+  if (a.real) { const [ux, uy] = segDir(a); return Math.atan2(uy * a.dir, ux * a.dir); }
   return a.axis === 'v' ? (a.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (a.dir > 0 ? 0 : Math.PI);
 }
 
+// ------------------------------------------------------------------ real roads
+
+// A road user on a real road (countryreal.js): road ri, segment si, t metres
+// from the segment start, dir +1 along the road's points or -1 against.
+function segDir(a) {
+  const P = REAL.roads[a.ri].pts, A = P[a.si], B = P[a.si + 1];
+  const L = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1;
+  return [(B[0] - A[0]) / L, (B[1] - A[1]) / L, L];
+}
+function realPos(a) {
+  const P = REAL.roads[a.ri].pts, A = P[a.si];
+  const [ux, uy] = segDir(a);
+  const r = REAL.roads[a.ri];
+  const lat = r.oneway ? 0 : Math.min(r.w / 4, 2.2) * a.dir;
+  return [A[0] + ux * a.t - uy * lat, A[1] + uy * a.t + ux * lat];
+}
+const realTypes = (kind) => (kind <= 3 ? ['car'] : kind === 7 ? ['car', 'cyclist', 'car'] : ['tractor', 'cyclist', 'car', 'car']);
+
+function spawnRealTraffic(px, py, dist) {
+  const R = Math.random;
+  for (let tries = 0; tries < 8; tries++) {
+    const ang = R() * Math.PI * 2;
+    const x = px + Math.cos(ang) * dist, y = py + Math.sin(ang) * dist;
+    if (!inRealExtent(x, y, 200) || edgeDistance(x, y) < 40) continue;
+    const L = roadsInTile(Math.floor(x / RTILE), Math.floor(y / RTILE));
+    if (!L) continue;
+    const k = Math.floor(R() * (L.length / 2)) * 2;
+    const ri = L[k], si = L[k + 1];
+    const r = REAL.roads[ri];
+    const dir = r.oneway || R() < 0.5 ? 1 : -1;
+    const a = { real: true, ri, si, t: 0, dir, speed: 0, yaw: 0, stride: 0 };
+    const [, , len] = segDir(a);
+    a.t = R() * len;
+    const [wx, wy] = realPos(a);
+    if (Math.hypot(wx - px, wy - py) < dist * 0.75 || edgeDistance(wx, wy) < 30) continue;
+    const opts = realTypes(r.kind);
+    const type = opts[Math.floor(R() * opts.length)];
+    Object.assign(a, { type }, makeTraffic(type, R));
+    if (r.kind <= 3) a.vmax = 20 + R() * 7;
+    else if (r.kind <= 5 && type === 'car') a.vmax = 14 + R() * 5;
+    a.speed = a.vmax * 0.8;
+    a.yaw = headingOf(a);
+    L_add(a);
+    return;
+  }
+}
+function L_add(a) {
+  L.group.add(a.g);
+  L.traffic.push(a);
+}
+
+// Carry on at the end of a road: another road touching this point (not
+// against its one-way direction), else turn round.
+function realJunction(a) {
+  const r = REAL.roads[a.ri];
+  const end = a.dir > 0 ? r.pts[r.pts.length - 1] : r.pts[0];
+  const opts = [];
+  const L = roadsInTile(Math.floor(end[0] / RTILE), Math.floor(end[1] / RTILE)) || [];
+  const seen = new Set();
+  for (let k = 0; k < L.length; k += 2) {
+    const ri = L[k];
+    if (ri === a.ri || seen.has(ri)) continue;
+    seen.add(ri);
+    const o = REAL.roads[ri];
+    if (a.type !== 'car' && o.kind <= 2) continue;
+    o.pts.forEach((q, j) => {
+      if (Math.abs(q[0] - end[0]) > 1.5 || Math.abs(q[1] - end[1]) > 1.5) return;
+      if (j < o.pts.length - 1) opts.push({ ri, si: j, dir: 1 });
+      if (j > 0 && !o.oneway) opts.push({ ri, si: j - 1, dir: -1 });
+    });
+  }
+  if (!opts.length) {
+    if (r.oneway) return false;
+    a.dir = -a.dir;
+    a.speed *= 0.3;
+    return true;
+  }
+  const o = opts[Math.floor(Math.random() * opts.length)];
+  a.ri = o.ri; a.si = o.si; a.dir = o.dir;
+  a.t = o.dir > 0 ? 0 : segDir(a)[2];
+  a.speed *= 0.7;
+  return true;
+}
+
+function stepRealTraffic(a, dt, world) {
+  const p = world.player;
+  const v = p.inVehicle;
+  const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
+  const [wx, wy] = realPos(a);
+  const h = headingOf(a), hx = Math.cos(h), hy = Math.sin(h);
+  const rx = ox - wx, ry = oy - wy;
+  const ahead = rx * hx + ry * hy, side = Math.abs(-rx * hy + ry * hx);
+  let want = a.vmax;
+  if (ahead > 0 && ahead < 18 && side < 2.6) want = ahead < 6 ? 0 : a.vmax * (ahead - 6) / 12;
+  a.speed += (want - a.speed) * Math.min(1, dt * (want < a.speed ? 3 : 0.8));
+  let step = a.speed * dt;
+  for (let guard = 0; guard < 8 && step > 0; guard++) {
+    const len = segDir(a)[2];
+    const room = a.dir > 0 ? len - a.t : a.t;
+    if (step < room) { a.t += step * a.dir; break; }
+    step -= room;
+    const P = REAL.roads[a.ri].pts;
+    if (a.dir > 0 && a.si < P.length - 2) { a.si++; a.t = 0; continue; }
+    if (a.dir < 0 && a.si > 0) { a.si--; a.t = segDir(a)[2]; continue; }
+    a.t = a.dir > 0 ? len : 0;
+    if (!realJunction(a)) { a.gone = true; return; }
+    break;
+  }
+  const [nx, ny] = realPos(a);
+  const d = Math.hypot(ox - nx, oy - ny);
+  const pr = v ? 1.8 : 0.4;
+  if (d < a.radius + pr && d > 1e-3) {
+    const push = (a.radius + pr - d) / d;
+    if (v) { v.x += (ox - nx) * push; v.y += (oy - ny) * push; v.speed *= 0.5; }
+    else if (!world.pigeonMode) { p.x += (ox - nx) * push; p.y += (oy - ny) * push; }
+    a.speed = 0;
+  }
+}
+
 function stepTraffic(a, dt, world) {
+  if (a.real) { stepRealTraffic(a, dt, world); return; }
   const p = world.player;
   const v = p.inVehicle;
   const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
@@ -288,18 +411,61 @@ function spawnBoat(px, py, dist) {
   L.boats.push(b);
 }
 
+// Boats on the real canals and rivers (their centre lines, countryreal.js).
+function spawnRealBoat(px, py, dist) {
+  const ways = REAL.boatways;
+  if (!ways || !ways.length) return;
+  const R = Math.random;
+  for (let tries = 0; tries < 6; tries++) {
+    const w = ways[Math.floor(R() * ways.length)];
+    const i = Math.floor(R() * (w.pts.length - 1));
+    const A = w.pts[i], B = w.pts[i + 1];
+    const f = R();
+    const x = A[0] + (B[0] - A[0]) * f, y = A[1] + (B[1] - A[1]) * f;
+    const d = Math.hypot(x - px, y - py);
+    if (d > dist * 1.1 || d < 120 || edgeDistance(x, y) < 30) continue;
+    const dir = R() < 0.5 ? 1 : -1;
+    const b = { real: w, i, f, dir, lat: 0, speed: 1.8 + R() * 2.2, bob: R() * 6, kind: w.hw > 8 ? (R() < 0.6 ? 1 : 0) : Math.floor(R() * 3) };
+    b.g = new THREE.Mesh(cachedGeo('boat' + b.kind, () => boatGeometry(b.kind)), MAT);
+    b.g.castShadow = true;
+    b.yaw = boatYaw(b);
+    L.group.add(b.g);
+    L.boats.push(b);
+    return;
+  }
+}
+
 function boatPos(b) {
+  if (b.real) {
+    const P = b.real.pts, A = P[b.i], B = P[b.i + 1];
+    const L2 = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1;
+    const ux = (B[0] - A[0]) / L2, uy = (B[1] - A[1]) / L2;
+    const off = Math.min(b.real.hw * 0.4, 6) * b.dir;
+    return [A[0] + (B[0] - A[0]) * b.f - uy * off, A[1] + (B[1] - A[1]) * b.f + ux * off];
+  }
   return b.ln.vert ? [b.ln.c + b.lat, b.t] : [b.t, b.ln.c - b.lat];
 }
 function boatYaw(b) {
+  if (b.real) {
+    const P = b.real.pts, A = P[b.i], B = P[b.i + 1];
+    return Math.atan2((B[1] - A[1]) * b.dir, (B[0] - A[0]) * b.dir);
+  }
   return b.ln.vert ? (b.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (b.dir > 0 ? 0 : Math.PI);
 }
 
 function stepBoat(b, dt, time) {
-  b.t += b.dir * b.speed * dt;
-  if (b.t > b.hi || b.t < b.lo) {
-    b.dir = -b.dir;
-    b.t = Math.min(b.hi, Math.max(b.lo, b.t));
+  if (b.real) {
+    const P = b.real.pts;
+    const segL = () => Math.hypot(P[b.i + 1][0] - P[b.i][0], P[b.i + 1][1] - P[b.i][1]) || 1;
+    b.f += (b.dir * b.speed * dt) / segL();
+    if (b.f > 1) { if (b.i < P.length - 2) { b.i++; b.f = 0; } else { b.f = 1; b.dir = -1; } }
+    if (b.f < 0) { if (b.i > 0) { b.i--; b.f = 1; } else { b.f = 0; b.dir = 1; } }
+  } else {
+    b.t += b.dir * b.speed * dt;
+    if (b.t > b.hi || b.t < b.lo) {
+      b.dir = -b.dir;
+      b.t = Math.min(b.hi, Math.max(b.lo, b.t));
+    }
   }
   b.lat += (-b.dir * 1.3 - b.lat) * Math.min(1, dt * 0.4);
   const target = boatYaw(b);
@@ -436,17 +602,23 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
     L.spawnT -= dt;
     if (active && L.spawnT <= 0) {
       L.spawnT = 1.5 + Math.random() * 2;
-      if (L.traffic.length < MAX_TRAFFIC) spawnTraffic(p.x, p.y, spawnD);
+      if (L.traffic.length < MAX_TRAFFIC) {
+        if (REAL.ready && inRealExtent(p.x, p.y, 400)) spawnRealTraffic(p.x, p.y, spawnD);
+        else spawnTraffic(p.x, p.y, spawnD);
+      }
     }
     L.boatT -= dt;
     if (active && L.boatT <= 0) {
       L.boatT = 3 + Math.random() * 4;
-      if (L.boats.length < MAX_BOATS) spawnBoat(p.x, p.y, spawnD);
+      if (L.boats.length < MAX_BOATS) {
+        if (REAL.ready && inRealExtent(p.x, p.y, 400)) spawnRealBoat(p.x, p.y, spawnD);
+        else spawnBoat(p.x, p.y, spawnD);
+      }
     }
   }
   L.traffic = L.traffic.filter((a) => {
     const [x, y] = roadPos(a);
-    if (Math.hypot(x - p.x, y - p.y) > keepD || !active) { L.group.remove(a.g); return false; }
+    if (Math.hypot(x - p.x, y - p.y) > keepD || !active || a.gone) { L.group.remove(a.g); return false; }
     if (!paused) stepTraffic(a, dt, world);
     placeTraffic(a, paused ? 0 : dt);
     return true;

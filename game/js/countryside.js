@@ -18,7 +18,8 @@ import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
 import { EDGE, edgeBlocked, edgeTileItems } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
-import { thinDitchOn, ditchRamp } from './countryfield.js';
+import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
+import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
 
 // Endless Ommelanden past the real map: a ground ring that follows the
 // player (same terrain shader, so the feathered edge in terrain3d continues
@@ -347,6 +348,7 @@ function genTile(tx, ty) {
   }
   genBridges(tile, bx, by);
   genEdge(tile);
+  if (REAL.ready) genReal(tile);
   for (const sg of blockSigns(bx, by)) if (inTile(tile, sg.x, sg.y)) tile.signs.push(sg);
 
   for (const k in tile.items) {
@@ -405,6 +407,71 @@ function genVillage(tile, v) {
     push(tile, t.poplar ? 'poplar' : 'tree', t.x, t.y, chash(Math.round(t.x), Math.round(t.y)) * 6.28, t.s, t.s, t.s, 0xffffff, 0.1, onTerp ? M3.TERP_H * 0.25 : 0);
   }
   for (const g of V.graves) if (here(g.x, g.y)) push(tile, 'grave', g.x, g.y, g.rot, g.s, g.s, g.s, 0xffffff, 0.12, M3.TERP_H - 0.1);
+}
+
+// The real Ommelanden in this tile: building boxes with their roofs, tree
+// lanes along the country roads, and a bit of farmyard round the barns.
+const REAL_POOL = { house: 'rbBody', block: 'rbBlock', barn: 'rbShed', shed: 'rbShed', glass: 'rbShed' };
+function genReal(tile) {
+  const L = buildingsInTile(tile.tx, tile.ty);
+  if (L) {
+    for (const i of L) {
+      const x = REAL.bx[i], y = REAL.by[i];
+      if (REAL.code[i] === 7 && REAL.churchNear && REAL.churchNear(x, y)) continue;
+      const m = buildingModel(i);
+      const rotY = -m.angle;
+      push(tile, REAL_POOL[m.kind], x, y, rotY, m.long, m.wall, m.short, m.color, 0.05);
+      if (m.roof > 0) {
+        push(tile, 'rbRoof', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall);
+        push(tile, 'rbGable', x, y, rotY, m.long, m.roof, m.short, m.color, 0.05, m.wall);
+      }
+      if (m.kind === 'barn' && urbanWeight(x, y) < 0.3) {
+        const h = chash(Math.round(x) + 3, Math.round(y) - 5);
+        const ca = Math.cos(m.angle), sa = Math.sin(m.angle);
+        const end = h < 0.5 ? 1 : -1;
+        const ex = x + ca * end * (m.long / 2 + 5), ey = y + sa * end * (m.long / 2 + 5);
+        if (h < 0.55 && okSpot(ex, ey, 1)) {
+          const wrap = h < 0.2 ? 0xe8e8e2 : h < 0.4 ? 0x2a2a2a : 0x9fb58a;
+          for (let k = 0; k < 4; k++) push(tile, 'bale', ex - sa * (k - 1.5) * 1.3, ey + ca * (k - 1.5) * 1.3, -m.angle, 0.86, 0.86, 0.86, wrap, 0.05);
+        }
+        const sx = x - sa * (m.short / 2 + 4), sy = y + ca * (m.short / 2 + 4);
+        if (h > 0.6 && okSpot(sx, sy, 1)) {
+          const col = [0x3f7d3a, 0xb8322a, 0x2f5fa8, 0x3f7d3a][Math.floor(h * 40) % 4];
+          push(tile, 'tractorBody', sx, sy, rotY, 1, 1, 1, col, 0.06);
+          push(tile, 'tractorBase', sx, sy, rotY, 1, 1, 1, 0xffffff, 0);
+        }
+      }
+    }
+  }
+  const R = roadsInTile(tile.tx, tile.ty);
+  if (!R) return;
+  for (let k = 0; k < R.length; k += 2) {
+    const r = REAL.roads[R[k]], si = R[k + 1];
+    if (r.bridge) {
+      // a deck where a real road bridge crosses the water
+      const a = r.pts[si], b = r.pts[si + 1];
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (inTile(tile, mx, my) && len > 4 && realWater(mx, my) > -3) push(tile, 'bridge', mx, my, -Math.atan2(b[1] - a[1], b[0] - a[0]), Math.max(1, (len + 2) / 11), 1, (r.w + 1.4) / 5.2, 0xffffff, 0);
+    }
+    if (r.kind < 4 || r.kind > 6) continue;
+    const rh = chash(R[k] * 7 + 1, 313);
+    if (rh > 0.5) continue;
+    const kind = rh < 0.18 ? 'poplar' : 'tree';
+    const step = kind === 'poplar' ? 8 : 10;
+    const a = r.pts[si], b = r.pts[si + 1];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len < 1) continue;
+    const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
+    for (let t = step / 2; t < len; t += step) {
+      for (const side of [-1, 1]) {
+        const off = r.w / 2 + 3.2;
+        const x = a[0] + ux * t - uy * off * side, y = a[1] + uy * t + ux * off * side;
+        if (!inTile(tile, x, y) || !openLand(x, y) || edgeBlocked(x, y, 1.5) || farmAt(x, y, 2)) continue;
+        if (chash(Math.floor(t / 90) + R[k] * 3, side + 9) < 0.2) continue;
+        push(tile, kind, x, y, chash(Math.round(x), Math.round(y)) * 6.28, 0.9 + rh * 0.4, 0.9 + rh * 0.5, 0.9 + rh * 0.4, 0xffffff, 0.1);
+      }
+    }
+  }
 }
 
 // Bridges where a polder road carries on over a maar.
@@ -475,10 +542,16 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const R = mulberry(chash(Math.floor(seed * 1e7), 91));
   const [cx, cy] = W((a0 + a1) / 2, (b0 + b1) / 2);
   if (!openLand(cx, cy) || inVillage(cx, cy, -10)) return;
+  const inReal = REAL.ready && realBlock(bx, by);
+  if (inReal && urbanWeight(cx, cy) > 0.3) return;
   const inset = 3;
   const c0 = W(a0 + inset, b0 + inset), c1 = W(a1 - inset, b1 - inset);
   const rect = [Math.min(c0[0], c1[0]), Math.min(c0[1], c1[1]), Math.max(c0[0], c1[0]), Math.max(c0[1], c1[1])];
-  const herdsOk = openLand(rect[0], rect[1]) && openLand(rect[2], rect[1]) && openLand(rect[0], rect[3]) && openLand(rect[2], rect[3]);
+  let herdsOk = openLand(rect[0], rect[1]) && openLand(rect[2], rect[1]) && openLand(rect[0], rect[3]) && openLand(rect[2], rect[3]);
+  // real roads, water or houses through the strip: no herd grazing on them
+  if (herdsOk && inReal) {
+    for (let i = 0; i <= 4 && herdsOk; i++) for (let j = 0; j <= 4; j++) if (edgeBlocked(rect[0] + ((rect[2] - rect[0]) * i) / 4, rect[1] + ((rect[3] - rect[1]) * j) / 4, 3)) { herdsOk = false; break; }
+  }
 
   // gate at one end of the strip, with short fence wings
   if (R() < 0.45) {
@@ -595,7 +668,7 @@ const PROP_TYPES = {
   mound: { geo: M3.moundGeometry, cap: 40, shadow: false },
   grave: { geo: M3.graveGeometry, cap: 3000, shadow: false },
   gas: { geo: M3.gasSiteGeometry, cap: 40, shadow: true },
-  bridge: { geo: M3.bridgeGeometry, cap: 80, shadow: true },
+  bridge: { geo: M3.bridgeGeometry, cap: 300, shadow: true },
   glass: { geo: M3.greenhouseGeometry, cap: 400, shadow: false },
   clubhouse: { geo: M3.clubhouseGeometry, cap: 40, shadow: true },
   mast: { geo: M3.lightMastGeometry, cap: 200, shadow: true },
@@ -607,6 +680,13 @@ farmGeo(M3.farmOldaGeometry, M3.OLDA_LOOKS).forEach((g, i) => { PROP_TYPES['fold
 farmGeo(M3.farmSmallGeometry, M3.SMALL_LOOKS).forEach((g, i) => { PROP_TYPES['fsmall' + i] = { geo: g, cap: 120, shadow: true }; });
 farmGeo(M3.farmDairyGeometry, M3.FARM_LOOKS).forEach((g, i) => { PROP_TYPES['fdairy' + i] = { geo: g, cap: 120, shadow: true }; });
 for (let k = 0; k < 4; k++) for (let l = 0; l < 2; l++) PROP_TYPES['house' + k + l] = { geo: () => M3.houseGeometry(k, M3.HOUSE_LOOKS[l]), cap: 400, shadow: true };
+Object.assign(PROP_TYPES, {
+  rbBody: { geo: () => M3.realBodyGeometry(1, true), cap: 9000, shadow: true },
+  rbBlock: { geo: () => M3.realBodyGeometry(4, false), cap: 3000, shadow: true },
+  rbShed: { geo: M3.realShedGeometry, cap: 6000, shadow: true },
+  rbRoof: { geo: M3.realRoofGeometry, cap: 10000, shadow: true },
+  rbGable: { geo: M3.realGableGeometry, cap: 10000, shadow: false },
+});
 
 function makePool(geo, mat, cap, shadow) {
   const mesh = new THREE.InstancedMesh(geo, mat, cap);

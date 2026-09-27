@@ -23,6 +23,8 @@ const ICON = 1.25;
 const FONT = '"Bebas Neue", "Arial Narrow", Arial, sans-serif';
 const OVERLAY_Z = 15;
 const MIN_ZOOM = 0.55;
+// with the real Ommelanden loaded the map zooms out to the villages round town
+const MIN_ZOOM_WIDE = 0.34;
 // the map extends this far past the real data, over the Ommelanden
 const COUNTRY_MARGIN = 3200;
 const MAX_ZOOM = 12;
@@ -353,7 +355,7 @@ function sizeCanvas() {
 
 function updateTransform() {
   const [minx, miny, maxx, maxy] = state.bounds;
-  state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, state.zoom));
+  state.zoom = Math.max(state.map.countryExtent ? MIN_ZOOM_WIDE : MIN_ZOOM, Math.min(MAX_ZOOM, state.zoom));
   state.cx = Math.max(minx, Math.min(maxx, state.cx));
   state.cy = Math.max(miny, Math.min(maxy, state.cy));
   state.scale = state.baseScale * state.zoom;
@@ -372,7 +374,7 @@ function toWorld(sx, sy) {
 
 function zoomAt(factor, sx, sy) {
   const [wx, wy] = toWorld(sx, sy);
-  state.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, state.zoom * factor));
+  state.zoom = Math.max(state.map.countryExtent ? MIN_ZOOM_WIDE : MIN_ZOOM, Math.min(MAX_ZOOM, state.zoom * factor));
   const s = state.baseScale * state.zoom;
   state.cx = wx - (sx - state.cw / 2) / s;
   state.cy = wy - (sy - state.ch / 2) / s;
@@ -688,6 +690,7 @@ function drawStaticOverlay(ctx) {
     ctx.font = `${z < MID_ZOOM ? 12 : 14}px ${FONT}`;
     ctx.textBaseline = 'middle';
     for (const v of villageLabels(vx0, vy0, vx1, vy1)) {
+      if ((v.kind === 'hamlet' || v.kind === 'quarter') && z < MID_ZOOM) continue;
       const [sx, sy] = toScreen(v.x, v.y);
       const label = v.name.toUpperCase();
       const w = ctx.measureText(label).width;
@@ -1371,7 +1374,11 @@ export function initMapView(world) {
     world,
     map: world.map,
     real: world.map.meta.bounds,
-    bounds: world.map.meta.bounds.map((v, i) => v + (i < 2 ? -COUNTRY_MARGIN : COUNTRY_MARGIN)),
+    bounds: world.map.meta.bounds.map((v, i) => {
+      const e = world.map.countryExtent;
+      const b = v + (i < 2 ? -COUNTRY_MARGIN : COUNTRY_MARGIN);
+      return e ? (i < 2 ? Math.min(b, e[i] + 800) : Math.max(b, e[i] - 800)) : b;
+    }),
     overlay,
     canvas: overlay.querySelector('canvas'),
     tooltip: overlay.querySelector('.mapview-tooltip'),
