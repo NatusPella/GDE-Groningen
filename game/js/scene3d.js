@@ -1620,7 +1620,14 @@ export function update3D(dt, world) {
           body.position.y = v.susHeave || 0;
         }
       }
-      updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
+      // cutscenes, the trailer and the intro move cars by position while the
+      // world is paused: there the wheels roll the distance actually moved
+      const wud = mesh.userData, lx = wud.spinX, ly = wud.spinY;
+      wud.spinX = v.x; wud.spinY = v.y;
+      if (world.paused || v.cineTemp) {
+        const moved = lx == null ? 0 : (v.x - lx) * Math.cos(v.angle) + (v.y - ly) * Math.sin(v.angle);
+        updateVehicleWheelSpin(mesh, dt > 0 && Math.abs(moved) < 8 ? moved / dt : 0, dt, v.steer || 0);
+      } else updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
       if (v.isBoat) {
         animateBoat(mesh, v, world.time);
         crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);
