@@ -5,7 +5,7 @@ import { boatSeats } from './boattypes.js';
 import { JELLE_LOOK } from './storycast.js';
 import { routeAt, ROUTE_LENGTH, rondvaartWaypoints, rondvaartBerth, prepareDiepenringRoute, diepenringProgress } from './rondvaartchase.js';
 import { getChallengeRecord } from './achievements.js';
-import { pointInPolygon, clamp } from './util.js';
+import { pointInPolygon, clamp, isInWater } from './util.js';
 import { finish, jelle, setTarget } from './postgame.js';
 
 // Elf Bruggenrace: one lap of the Diepenring from the Spilsluizen, under its
@@ -61,7 +61,8 @@ export const BRUGGEN = {
     const b = rondvaartBerth(world.map);
     // a few steps along the quay from the rondvaart mission's own marker
     const a = b.boat.angle || 0;
-    const [x, y] = world.map.escapeBuilding(b.start.x + Math.cos(a) * 6, b.start.y + Math.sin(a) * 6, 0.4);
+    const along = [6, 4, 3, -4].find((k) => !isInWater(world.map, b.start.x + Math.cos(a) * k, b.start.y + Math.sin(a) * k)) ?? 0;
+    const [x, y] = world.map.escapeBuilding(b.start.x + Math.cos(a) * along, b.start.y + Math.sin(a) * along, 0.4);
     return [{ x, y, name: 'Elf Bruggenrace', sub: 'Jelle daagt je uit op het water', berth: b }];
   },
   verb: () => 'Elf Bruggenrace tegen Jelle',
