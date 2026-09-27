@@ -392,6 +392,7 @@ function buildCarMesh(v) {
   if (v.isAmbulance) return assembleCar('van', v.model.len, v.model.wid, 0xf1d21c, { ambulance: true, wrecked: v.wrecked, wheelR: 0.34 });
   if (v.model.name === 'truck') return buildTruckMesh(v);
   if (v.model.name === 'trekkerlimo') return buildTrekkerLimoMesh(v);
+  if (v.model.name === 'foodtruck') return buildFoodtruckMesh(v);
   const police = !!v.isPolice && !v._commandeered;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
   const type = carType(v);
@@ -504,6 +505,70 @@ function buildTrekkerLimoMesh(v) {
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.42;
+  return group;
+}
+
+// The Fjord Frituur: Anita's foodtruck. A blue van with a serving hatch and
+// a striped awning on the right (+z, the kerb side), a roof sign with the
+// seagull and a giant eierbal on top.
+let fjordSignTex = null;
+function fjordSignTexture() {
+  if (fjordSignTex) return fjordSignTex;
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#f4f1e6';
+  g.fillRect(0, 0, 512, 128);
+  g.fillStyle = '#1f4f8f';
+  g.fillRect(0, 0, 512, 12); g.fillRect(0, 116, 512, 12);
+  g.font = 'bold 50px "Arial Black", Arial, sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#1f4f8f';
+  g.fillText('FJORD FRITUUR', 292, 66, 400);
+  // the seagull
+  g.strokeStyle = '#1c1d20'; g.lineWidth = 7; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(14, 58); g.quadraticCurveTo(30, 34, 44, 58); g.quadraticCurveTo(58, 34, 74, 58); g.stroke();
+  fjordSignTex = new THREE.CanvasTexture(c);
+  fjordSignTex.colorSpace = THREE.SRGBColorSpace;
+  fjordSignTex.anisotropy = 4;
+  return fjordSignTex;
+}
+
+function buildFoodtruckMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const wrecked = v.wrecked;
+  const paint = wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x2f6fb0);
+  const group = assembleCar('van', L, W, paint, { wrecked, wheelR: 0.34 });
+  if (wrecked) return group;
+  const geo = cached(`foodtruck|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    // the hatch: a dark opening with a steel counter, the flap propped up as the awning
+    const x0 = -hl + 0.55, x1 = hl - 1.45;
+    const cx = (x0 + x1) / 2, cl = x1 - x0;
+    B.box(cx, 1.45, hw + 0.004, cl, 0.8, 0.01, 0x1c1d20);
+    B.box(cx, 1.3, hw + 0.012, cl * 0.9, 0.35, 0.01, 0xf2c230, G_LAMP);
+    B.box(cx, 1.03, hw + 0.16, cl + 0.1, 0.05, 0.32, CHROME);
+    for (let i = 0; i < 6; i++) {
+      const sx = x0 + (cl * (i + 0.5)) / 6;
+      B.box(sx, 1.98, hw + 0.42, cl / 6, 0.035, 0.9, i % 2 ? 0xf4f1e6 : 0x1f4f8f, 0, 0.5, 0, 0);
+    }
+    for (const x of [x0 + 0.05, x1 - 0.05]) B.geo(tubeGeometry([x, 1.86, hw + 0.8], [x, 1.1, hw + 0.03], 0.018, 0.018, 4), null, CHROME);
+    // snacks on the counter
+    for (let i = 0; i < 4; i++) B.box(cx - cl * 0.3 + i * cl * 0.2, 1.09, hw + 0.18, 0.12, 0.08, 0.1, [0xc9852e, 0xe8c24a, 0x8a4a22, 0xc9852e][i]);
+    // roof: sign frame, an extractor hood, and the eierbal
+    B.box(-0.3, 2.3, 0, L * 0.55, 0.06, 0.08, 0x2a2a2b);
+    for (const x of [-0.3 - L * 0.26, -0.3 + L * 0.26]) B.box(x, 2.22, 0, 0.06, 0.2, 0.06, 0x2a2a2b);
+    B.box(-hl + 0.7, 2.18, -hw * 0.45, 0.5, 0.18, 0.5, CHROME);
+    B.geo(new THREE.SphereGeometry(0.42, 12, 9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xb8742c);
+    B.geo(new THREE.SphereGeometry(0.43, 12, 9, 0, Math.PI * 2, 0, 0.9), composeMatrix(hl - 1.25, 2.55, 0, 0, 0, 0, 1, 0.92, 1), 0xd89a44);
+    B.box(hl - 1.25, 2.12, 0, 0.5, 0.06, 0.5, 0x2a2a2b);
+    return B.build();
+  });
+  group.add(new THREE.Mesh(geo, vehicleMaterials()));
+  const signMat = new THREE.MeshLambertMaterial({ map: fjordSignTexture() });
+  const sign = new THREE.Mesh(cached('foodtruck-sign|' + L, () => new THREE.BoxGeometry(L * 0.55, 0.62, 0.05)), signMat);
+  sign.position.set(-0.3, 2.64, 0);
+  group.add(sign);
   return group;
 }
 
@@ -1077,6 +1142,14 @@ const HULL_SHAPES = {
     f: (t) => (t < 0.6 ? 0.9 + 0.1 * Math.sin((t / 0.6) * Math.PI / 2) : Math.pow(Math.cos(((t - 0.6) / 0.4) * Math.PI / 2), 0.8)),
     top: (t) => 0.24 + 0.14 * t * t, rise: (t) => Math.max(0, (t - 0.6) / 0.4), chine: -0.06, keel: -0.17, floor: 0.1,
   },
+  // Frisian skûtsje: flat bottom, full round bow with a high sheer, a
+  // squarish stern; the hold is decked over with hatches (skutsjeFit)
+  skutsje: {
+    ts: [0, 0.04, 0.12, 0.3, 0.55, 0.72, 0.84, 0.92, 0.97, 1],
+    f: (t) => (t < 0.12 ? 0.8 + 0.2 * Math.sin((t / 0.12) * Math.PI / 2) : t < 0.72 ? 1 : Math.pow(Math.cos(((t - 0.72) / 0.28) * Math.PI / 2), 0.42)),
+    top: (t) => 0.62 + 0.46 * Math.max(0, (t - 0.68) / 0.32) ** 2 + 0.12 * Math.max(0, (0.12 - t) / 0.12) ** 2,
+    rise: (t) => Math.max(0, (t - 0.82) / 0.18), chine: -0.12, keel: -0.26, floor: 0.2, chineK: 0.9,
+  },
 };
 
 function hullStations(L, W, S) {
@@ -1087,7 +1160,7 @@ function hullStations(L, W, S) {
     return {
       x: -hl + t * L, t, hw,
       top: S.top(t),
-      chineW: hw * 0.72,
+      chineW: hw * (S.chineK || 0.72),
       chine: S.chine + (0.22 - S.chine * 0.5) * r * r,
       keel: S.keel + (0.2 - S.keel) * r * r * r,
     };
@@ -1310,6 +1383,183 @@ function waterfietsFit(B, L, W, color, accent) {
   B.box(-1.19, 1.25, 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
 }
 
+// --- skûtsje -------------------------------------------------------------------
+// Tarred black hull with a varnished wale, decked hold with green hatches,
+// fan-shaped leeboards (zwaarden) on both sides, a big rudder with a curved
+// tiller. The rig is a separate child (buildSkutsjeRig) so it can be trimmed
+// and struck under bridges: animateSkutsjeRig.
+
+const VARNISH = 0x8a5a2c, TAR = 0x141516, HATCH = 0x1f5a3a, SAIL_BROWN = 0x7e3419, SPAR = 0x6a4a2a;
+
+function skutsjeFit(B, st, L, W) {
+  const hl = L / 2;
+  const deckY = 0.66;
+  // decks fore and aft, the hold between them under hatch covers
+  const fx0 = hl * 0.42, ax1 = -hl * 0.55;
+  for (const [x0, x1] of [[fx0, hl - 0.05], [-hl + 0.05, ax1]]) {
+    for (let x = x0; x < x1 - 0.01; x += 0.4) {
+      const xm = Math.min(x1, x + 0.4);
+      const h = hullAt(st, (x + xm) / 2);
+      B.box((x + xm) / 2, Math.max(deckY, h.top - 0.05), 0, xm - x, 0.06, Math.max(0.1, h.hw * 2 - 0.14), 0x6e5436);
+    }
+  }
+  const hw0 = hullAt(st, 0).hw;
+  const hx = (fx0 + ax1) / 2, hLen = fx0 - ax1;
+  B.box(hx, deckY + 0.06, 0, hLen, 0.2, hw0 * 2 - 0.3, TAR);
+  for (let i = 0; i < 6; i++) {
+    const x = ax1 + hLen * (i + 0.5) / 6;
+    B.box(x, deckY + 0.22, 0, hLen / 6 - 0.04, 0.1, hw0 * 1.4, HATCH, 0, 0.12);
+    B.box(x, deckY + 0.28, 0, hLen / 6 - 0.04, 0.04, 0.1, VARNISH);
+  }
+  // varnished wale along the sheer and a thin white line under it
+  for (let i = 0; i < st.length - 1; i++) {
+    const a = st[i], b = st[i + 1];
+    for (const s of [1, -1]) {
+      B.quadOut([a.x, a.top - 0.02, s * (a.hw + 0.01)], [b.x, b.top - 0.02, s * (b.hw + 0.01)], [b.x, b.top - 0.16, s * (b.hw + 0.01)], [a.x, a.top - 0.16, s * (a.hw + 0.01)], [0, 0, s], VARNISH);
+      B.quadOut([a.x, a.top - 0.18, s * (a.hw + 0.008)], [b.x, b.top - 0.18, s * (b.hw + 0.008)], [b.x, b.top - 0.21, s * (b.hw + 0.008)], [a.x, a.top - 0.21, s * (a.hw + 0.008)], [0, 0, s], 0xe8e6e0);
+    }
+  }
+  // leeboards: fans hung from the wale just forward of the mast, tipped aft
+  const lx = hl * 0.12;
+  const hwL = hullAt(st, lx);
+  const fan = extrudeProfile([[-0.22, 0], [0.22, 0], [0.62, -1.55], [0.34, -1.95], [-0.34, -2.0], [-0.66, -1.62]], 0.07, 0.02);
+  for (const s of [1, -1]) {
+    B.geo(fan.clone(), composeMatrix(lx, hwL.top - 0.05, s * (hwL.hw + 0.06), s * 0.08, 0, 0.42), VARNISH);
+    B.box(lx, hwL.top + 0.02, s * (hwL.hw + 0.04), 0.14, 0.12, 0.1, 0x2a2a2b);
+  }
+  fan.dispose();
+  // rudder and tiller
+  const sx = st[0].x;
+  B.geo(extrudeProfile([[0, 0.9], [0.1, 0.9], [0.12, -0.2], [-0.75, -0.95], [-0.8, -0.2], [-0.35, 0.9]], 0.09, 0.02), composeMatrix(sx + 0.05, 0, 0), VARNISH);
+  B.geo(tubeGeometry([sx + 0.02, 0.98, 0], [sx + 0.9, 1.12, 0], 0.035, 0.03, 5), null, SPAR);
+  B.geo(tubeGeometry([sx + 0.9, 1.12, 0], [sx + 1.45, 1.02, 0], 0.03, 0.028, 5), null, SPAR);
+  // mast foot (tabernacle) and a stern flag pole
+  const mx = hl * 0.28;
+  for (const s of [1, -1]) B.box(mx, deckY + 0.35, s * 0.12, 0.3, 0.7, 0.06, TAR);
+  B.geo(tubeGeometry([sx + 0.25, 0.7, 0], [sx + 0.2, 2.2, 0], 0.025, 0.02, 4), null, SPAR);
+  // a bowsprit-less round bow gets a little anchor winch
+  B.box(hl - 0.9, deckY + 0.15, 0, 0.35, 0.22, 0.6, TAR);
+}
+
+let pompebledTex = null;
+function pompebledTexture() {
+  if (pompebledTex) return pompebledTex;
+  const Wd = 128, H = 64, c = document.createElement('canvas');
+  c.width = Wd; c.height = H;
+  const g = c.getContext('2d');
+  g.fillStyle = '#f4f2ec';
+  g.fillRect(0, 0, Wd, H);
+  const band = H / 3.5;
+  g.save();
+  g.rotate(0.45);
+  g.fillStyle = '#1d4f9c';
+  for (let i = -4; i < 8; i += 2) g.fillRect(-Wd, i * band, Wd * 3, band);
+  g.restore();
+  g.fillStyle = '#d42a24';
+  for (const [x, y] of [[18, 40], [52, 12], [70, 50], [100, 26]]) {
+    g.beginPath();
+    g.moveTo(x, y + 6);
+    g.bezierCurveTo(x - 9, y, x - 5, y - 8, x, y - 3);
+    g.bezierCurveTo(x + 5, y - 8, x + 9, y, x, y + 6);
+    g.fill();
+  }
+  pompebledTex = new THREE.CanvasTexture(c);
+  pompebledTex.colorSpace = THREE.SRGBColorSpace;
+  return pompebledTex;
+}
+
+// Mast with gaff sail, boom and pompeblêd pennant. rig (pivot at the mast
+// foot) rotates about z to strike the mast; rig.userData.sail rotates about
+// the mast for the trim; the pennant and the stern flag flutter.
+function buildSkutsjeRig(L) {
+  const hl = L / 2;
+  const mastH = Math.min(9, L * 0.85);
+  const boomL = L * 0.58, gaffL = L * 0.4;
+  const rigGeo = cached(`skutsje-rig|${L}`, () => {
+    const B = new GeoBuilder(3);
+    B.geo(tubeGeometry([0, 0, 0], [0, mastH, 0], 0.11, 0.07, 6), null, SPAR);
+    B.box(0, mastH + 0.08, 0, 0.16, 0.16, 0.16, 0x2a2a2b);
+    B.box(0, mastH - 0.3, 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
+    // forestay and shrouds down to the bow and the wale
+    B.geo(tubeGeometry([0, mastH - 0.2, 0], [hl * 0.72 + 0.1, 0.35, 0], 0.012, 0.012, 3), null, 0x2a2a2b);
+    for (const s of [1, -1]) B.geo(tubeGeometry([0, mastH - 0.5, 0], [-0.25, 0.1, s * L * 0.13], 0.012, 0.012, 3), null, 0x2a2a2b);
+    return B.build();
+  });
+  const sailGeo = cached(`skutsje-sail|${L}`, () => {
+    const B = new GeoBuilder(3);
+    const tack = [0.25, 0.55], clew = [-boomL, 0.62], throat = [0.1, mastH * 0.66];
+    const peak = [throat[0] - gaffL * 0.78, throat[1] + gaffL * 0.62];
+    B.geo(tubeGeometry([0.1, 0.5, 0], [clew[0] - 0.2, clew[1] - 0.05, 0], 0.07, 0.06, 5), null, SPAR);
+    B.geo(tubeGeometry([throat[0], throat[1] + 0.1, 0], [peak[0] - 0.15, peak[1] + 0.1, 0], 0.06, 0.05, 5), null, SPAR);
+    // cloth: a 3x3 patch with a little belly to leeward (+z), both faces
+    const P = (u, v) => {
+      const bx = tack[0] + (clew[0] - tack[0]) * u, by = tack[1] + (clew[1] - tack[1]) * u;
+      const tx = throat[0] + (peak[0] - throat[0]) * u, ty = throat[1] + (peak[1] - throat[1]) * u;
+      return [bx + (tx - bx) * v, by + (ty - by) * v, 0.38 * Math.sin(Math.PI * u) * Math.sin(Math.PI * v)];
+    };
+    const N = 3;
+    for (let i = 0; i < N; i++) {
+      for (let j = 0; j < N; j++) {
+        const a = P(i / N, j / N), b = P((i + 1) / N, j / N), c = P((i + 1) / N, (j + 1) / N), d = P(i / N, (j + 1) / N);
+        const col = (i + j) % 2 ? SAIL_BROWN : shadeHex(SAIL_BROWN, 0.9);
+        B.quadOut(a, b, c, d, [0, 0, 1], col);
+        B.quadOut(a, b, c, d, [0, 0, -1], shadeHex(col, 0.8));
+      }
+    }
+    return B.build();
+  });
+  const mats = vehicleMaterials();
+  const rig = new THREE.Group();
+  rig.position.set(hl * 0.28, 0.72, 0);
+  rig.add(new THREE.Mesh(rigGeo, mats));
+  const sail = new THREE.Group();
+  sail.add(new THREE.Mesh(sailGeo, mats));
+  rig.add(sail);
+  const flagMat = new THREE.MeshLambertMaterial({ map: pompebledTexture(), side: THREE.DoubleSide });
+  const pennantGeo = cached('skutsje-pennant', () => {
+    const g = new THREE.BufferGeometry();
+    const len = 2.2, h = 0.34, n = 6;
+    const pos = [], uv = [];
+    for (let i = 0; i < n; i++) {
+      const u0 = i / n, u1 = (i + 1) / n;
+      const h0 = h * (1 - u0 * 0.85), h1 = h * (1 - u1 * 0.85);
+      const x0 = -len * u0, x1 = -len * u1;
+      pos.push(x0, 0, 0, x1, 0, 0, x1, -h1, 0, x0, 0, 0, x1, -h1, 0, x0, -h0, 0);
+      uv.push(u0, 1, u1, 1, u1, 1 - h1 / h, u0, 1, u1, 1 - h1 / h, u0, 1 - h0 / h);
+    }
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.computeVertexNormals();
+    return g;
+  });
+  const pennant = new THREE.Mesh(pennantGeo, flagMat);
+  pennant.position.set(0, mastH + 0.12, 0);
+  rig.add(pennant);
+  const sternFlag = new THREE.Mesh(cached('skutsje-sternflag', () => new THREE.PlaneGeometry(0.75, 0.5).translate(-0.38, -0.25, 0)), flagMat);
+  sternFlag.position.set(-hl + 0.22, 2.2, 0);
+  rig.userData = { sail, pennant, sternFlag, strike: 0, trim: 0.35 };
+  return { rig, sternFlag };
+}
+
+// Called by whoever sails a skûtsje, per frame: trim = boom angle off the
+// centre line (radians, signed: + swings the boom to starboard), strike 0..1
+// (the mast folds aft to pass under a bridge), t = time for the flutter.
+export function animateSkutsjeRig(v, trim, strike, t) {
+  const mesh = getVehicleMesh(v.id);
+  const rig = mesh && mesh.userData.rig;
+  if (!rig) return false;
+  const ud = rig.userData;
+  ud.trim += (trim - ud.trim) * 0.08;
+  ud.strike += (strike - ud.strike) * 0.1;
+  rig.rotation.z = ud.strike * 1.38;
+  ud.sail.rotation.y = ud.trim;
+  ud.sail.scale.z = ud.trim < 0 ? -1 : 1;
+  const flap = Math.sin(t * 7 + v.id) * 0.25 + Math.sin(t * 11.3) * 0.12;
+  ud.pennant.rotation.y = ud.trim * 0.6 + flap;
+  ud.sternFlag.rotation.y = flap * 0.8;
+  return true;
+}
+
 function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
   return cached(`boat|${kind}|${L}|${W}|${hull}|${trim}|${cabin}|${police}`, () => {
     const B = new GeoBuilder(3);
@@ -1327,6 +1577,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
       case 'kajak': kajakFit(B); break;
       case 'dinghy': dinghyFit(B, st, L); break;
       case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
+      case 'skutsje': skutsjeFit(B, st, L, W); break;
       default: sloepFit(B, st, L, W, hull, cabin, police);
     }
     if (kind === 'kano' || kind === 'kajak') {
@@ -1344,10 +1595,15 @@ function buildBoatMesh(v) {
   const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const trims = kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
   const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
   const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
   group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));
+  if (kind === 'skutsje' && !v.wrecked) {
+    const { rig, sternFlag } = buildSkutsjeRig(len);
+    group.add(rig, sternFlag);
+    group.userData.rig = rig;
+  }
   if (police) {
     const lamps = [];
     for (const s of [1, -1]) {

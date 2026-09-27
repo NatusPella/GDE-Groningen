@@ -19,7 +19,7 @@ const _m = new THREE.Matrix4();
 
 function carKind(v) {
   if (v.isBus) return 'bus';
-  if (v.isAmbulance) return 'van';
+  if (v.isAmbulance || v.model.name === 'foodtruck') return 'van';
   if (v.isHeroCar) return 'escort';
   if (v.isPolice) return 'wagon';
   const n = v.model.name;

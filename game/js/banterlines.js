@@ -696,6 +696,57 @@ export const BANTER = [
   { id: 'id-fierljep-mis', trigger: 'idle', needs: 'H18', lines: [
     ['T', 'Weet je nog dat je zei: laten we hopen dat hij een keer mist?', 'amused'],
     ['A', 'Ik heb het nooit zo mooi zien missen.', 'laughing']] },
+
+  // --- after the story: Jelle's challenges and the Fjord Frituur (postgame.js) ---
+  { id: 'pg-bruggen-pass-hek', trigger: 'after:post-bruggen:pass', lines: [
+    ['A', 'Elf bruggen, en Jelle zag alleen ons hek.', 'proud, laughing'],
+    ['T', 'Onder de Herebrug keek hij heel verdrietig.', 'dry'],
+    ['A', 'Zo kijkt hij altijd, Tammo.', 'teasing']] },
+  { id: 'pg-bruggen-pass-motor', trigger: 'after:post-bruggen:pass', lines: [
+    ['T', 'Hij zei dat zijn motor nog koud was.', 'amused, dry'],
+    ['A', 'Na elf bruggen? Dan heeft hij een Friese motor.', 'mocking, cheerful'],
+    ['T', 'Die wordt pas warm in Leeuwarden.', 'deadpan']] },
+  { id: 'pg-bruggen-fail', trigger: 'after:post-bruggen:fail', lines: [
+    ['A', 'Hij kende elke brug. Hij heeft ze vast geteld.', 'annoyed, grudging'],
+    ['T', 'Elf. Dat kan ik ook tellen.', 'defensive'],
+    ['A', 'Tellen wel. Varen nog niet.', 'teasing']] },
+  { id: 'pg-fierljep-pass', trigger: 'after:post-fierljep:pass', lines: [
+    ['T', 'Jelle stond daar met zijn mond open.', 'delighted, dry'],
+    ['A', 'Een Fries zonder woorden. Dat zie je maar één keer.', 'laughing'],
+    ['T', 'Ik heb een foto. In mijn hoofd.', 'satisfied']] },
+  { id: 'pg-fierljep-fail', trigger: 'after:post-fierljep:fail', lines: [
+    ['A', 'Het water was kouder dan het eruitzag.', 'shivering, rueful'],
+    ['T', 'Het water was precies zo koud als het eruitzag.', 'dry'],
+    ['A', 'Volgende keer spring jij eerst.', 'bossy']] },
+  { id: 'pg-skutsje-pass', trigger: 'after:post-skutsje:pass', lines: [
+    ['A', 'Zeilen zonder motor. Dat ik dat nog meemaak.', 'amazed, happy'],
+    ['T', 'De wind was Gronings vandaag.', 'proud, dry'],
+    ['A', 'De wind is van niemand, Tammo.', 'amused'],
+    ['T', 'Vandaag wel.', 'stubborn']] },
+  { id: 'pg-skutsje-fail', trigger: 'after:post-skutsje:fail', lines: [
+    ['T', 'Hij zei steeds "fakmanskip". Is dat erg?', 'confused'],
+    ['A', 'Voor ons wel, vandaag.', 'sighing, laughing']] },
+  { id: 'pg-fjord-pass-kassa', trigger: 'after:fjord:pass', lines: [
+    ['A', 'Hoorde je die kassa? Dat is muziek.', 'thrilled'],
+    ['T', 'Mooier dan G-Music.', 'dry'],
+    ['A', 'Zeg dat maar niet te hard.', 'whispering, laughing']] },
+  { id: 'pg-fjord-pass-hond', trigger: 'after:fjord:pass', lines: [
+    ['T', 'Die man bestelde drie eierballen. Voor zijn hond, zei hij.', 'baffled'],
+    ['A', 'Gelukkige hond.', 'warm'],
+    ['T', 'Ik wil die hond zijn.', 'wistful, deadpan']] },
+  { id: 'pg-fjord-fail', trigger: 'after:fjord:fail', lines: [
+    ['A', 'Een kroket is geen frikandel.', 'patient, teasing'],
+    ['T', 'Ze zijn allebei lang en bruin.', 'defensive'],
+    ['A', 'Daarom heb ik een menukaart gemaakt.', 'dry']] },
+  { id: 'id-pg-revanche', trigger: 'idle', needs: 'H18', lines: [
+    ['T', 'Jelle belt elke dag. Nog één potje, zegt hij.', 'resigned, amused'],
+    ['A', 'Hij kan gewoon niet tegen zijn verlies.', 'teasing'],
+    ['T', 'Dat is heel menselijk.', 'generous, dry'],
+    ['A', 'Dat is heel Fries.', 'laughing']] },
+  { id: 'id-pg-fjord-plek', trigger: 'idle', needs: 'H18', lines: [
+    ['A', 'Bij een wedstrijd staat de rij bij de Euroborg tot aan de parkeerplaats.', 'dreamy, businesslike'],
+    ['T', 'En op de Vismarkt koopt iedereen alleen maar vis.', 'dry'],
+    ['A', 'Tot ze onze eierballen ruiken.', 'confident']] },
 ];
 
 // Short cut-offs when a crash or new stars interrupt a conversation (one line).

@@ -43,6 +43,7 @@ import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pig
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { updatePoleVaults } from './fierljep.js';
+import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
@@ -176,6 +177,7 @@ async function boot() {
   initPigeonMode(world);
   initPigeonSpots(world);
   initHeliRun(world);
+  initPostgame(world);
   initSideJobs(world);
   initStory(world);
   initHud(world);
@@ -279,6 +281,7 @@ async function boot() {
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else if (world.heliRun) updateHeliRun(dt, world);
     else {
+      tryPostgameInteract(world);
       tryTrainInteract(world);
       trySideJobInteract(world);
       tryHeliSpotInteract(world);
@@ -288,7 +291,8 @@ async function boot() {
       tryStationInteract(world);
       tryHorecaInteract(world);
       if (!updateTrainDriving(dt, world)) {
-        player.update(dt, world);
+        // a post-game minigame (the fierljep duel) holds the player in place
+        if (!world.challengeHoldPlayer) player.update(dt, world);
         updateCompanion(dt, world);
       }
       updateEmergency(dt, world);
@@ -339,6 +343,7 @@ async function boot() {
     } else updateMissions(dt, world);
     updateStory(dt, world);
     updateSideJobs(dt, world);
+    updatePostgame(dt, world);
     updateWeather(dt, world);
     updateDayNight(dt, world);
     updateAchievementTracker(dt, world);

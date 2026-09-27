@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
 
 export const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = path.join(REPO, 'game', 'js');
@@ -182,6 +183,24 @@ export function collect() {
   bubble('Bijbaantjes (klanten)', lit(bz, 'const LUKE_LINES = '), { tag: ['teleurgesteld, mopperend', 'zuchtend, berustend'] });
   const bs = src('sidejob_bus.js');
   for (const l of allLits(bs, 'say(world, ped, pick(')) bubble('Bijbaantjes (klanten)', l, { tag: l.includes('Mijn koffie!') ? ['klagend, chagrijnig', 'die boos is, mopperend'] : ['vriendelijk, dankbaar', 'opgewekt'] });
+
+  // --- post-game (postgame.js, pg_lines.js): Jelle's challenges and the Fjord Frituur -> lines manifest
+  const JTAG = {
+    greet: 'joviaal, uitdagend', go: 'luid roepend, als een startschot', lead: 'opschepperig, plagend', behind: 'verbaasd, licht in paniek',
+    win: 'sportief, een beetje beschaamd', lose: 'triomfantelijk, jolig', jump: 'strijdlustig, roepend', splash: 'proestend, verontwaardigd',
+    mark: 'zelfvoldaan, grinnikend', good: 'onder de indruk, verbaasd', wet: 'lachend, plagend',
+  };
+  for (const t of JELLE_LINES.greet) add('Na het verhaal (Jelle)', 'lines', [JELLE], t, { tag: JTAG.greet });
+  for (const [id, kinds] of Object.entries(JELLE_LINES)) {
+    if (id === 'greet') continue;
+    for (const [kind, list] of Object.entries(kinds)) for (const t of list) add('Na het verhaal (Jelle)', 'lines', [JELLE], t, { tag: JTAG[kind] });
+  }
+  const pgWho = { J: JELLE, T: 'Tammo', A: 'Anita' };
+  for (const lines of Object.values(INTROS)) for (const [k, t] of lines) add('Na het verhaal (intro)', 'lines', [pgWho[k]], t, k === 'J' ? { tag: 'uitdagend, charmant' } : {});
+  const DTAG = { open: 'enthousiast, druk', rush: 'gehaast, opgewonden', good: 'tevreden, trots', bad: 'zuchtend, berustend' };
+  for (const [kind, by] of Object.entries(FJORD_DUO)) for (const [k, list] of Object.entries(by)) for (const t of list) add('Na het verhaal (Fjord Frituur)', 'lines', [pgWho[k]], t, { tag: DTAG[kind] });
+  const BTAG = { greet: ['hongerig, vrolijk', 'ongeduldig, joviaal'], happy: ['tevreden, blij', 'smakkend, vrolijk'], wrong: ['verontwaardigd, mopperend', 'die boos is, klagend'], leave: ['chagrijnig, zuchtend', 'ongeduldig, mopperend'] };
+  for (const [kind, list] of Object.entries(FJORD_BUBBLES)) bubble('Na het verhaal (Fjord-klanten)', list, { tag: BTAG[kind] });
 
   return out;
 }

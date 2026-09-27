@@ -180,6 +180,11 @@ function addAfter(trigger) {
   st.pending.push({ trigger, at: world.time });
 }
 
+// after:<id>:pass|fail for things outside missions and bijbaantjes (postgame.js)
+export function banterAfter(trigger) {
+  if (world) addAfter(trigger);
+}
+
 function placeList() {
   if (st.places) return st.places;
   const meta = world.map && world.map.meta;
@@ -213,7 +218,7 @@ function together() {
 
 function quiet() {
   const w = world;
-  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !isCinematicActive() && !isPhoneOpen();
+  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen();
 }
 
 // --- conversation ---------------------------------------------------------------------
