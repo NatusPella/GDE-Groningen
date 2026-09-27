@@ -1,3 +1,4 @@
+import { SPEED_FINE } from './economy.js';
 import { dist } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial } from './pixelart3d.js';
@@ -11,8 +12,7 @@ const TRIGGER_RADIUS = 6;
 const FINE_COOLDOWN = 15;
 const SPEED_MARGIN_KMH = 25; // "a good margin" over the local limit
 const FLAT_LIMIT_KMH = 60; // fallback when a road has no usable speed field
-const MIN_FINE = 35;
-const MAX_FINE = 75;
+const [MIN_FINE, MAX_FINE] = SPEED_FINE;
 const PROP_RADIUS = 70;
 
 function pickPoint(road) {

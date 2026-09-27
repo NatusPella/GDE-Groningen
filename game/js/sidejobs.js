@@ -29,6 +29,7 @@ import bus from './sidejob_bus.js';
 import rondvaart from './sidejob_rondvaart.js';
 import fietsdepot from './sidejob_fietsdepot.js';
 import verhuizing from './sidejob_verhuizing.js';
+import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 
 export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
@@ -80,7 +81,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { bezorger: [18, 35], taxi: [15, 40], bus: [60, 95], rondvaart: [35, 70], fietsdepot: [30, 60], verhuizing: [55, 120] };
+const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], fietsdepot: [45, 90], verhuizing: [80, 180] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -88,7 +89,7 @@ export function getSideJobOffers(w) {
   const why = blockReason(w);
   return spots.map((s) => {
     const r = rec(s.job.id);
-    const [lo, hi] = r.rounds >= 2 ? [Math.round(r.earned / r.rounds * 0.75), Math.round(r.earned / r.rounds * 1.25)] : PAY_GUESS[s.job.id] || [15, 40];
+    const [lo, hi] = r.rounds >= 2 ? [Math.round(r.earned / r.rounds * 0.75), Math.round(r.earned / r.rounds * 1.25)] : PAY_GUESS[s.job.id] || [25, 60];
     const lvl = jobLevel(s.job.id);
     return {
       id: s.job.id, name: s.job.name, blurb: s.job.blurb, x: s.x, y: s.y, level: lvl, title: levelTitle(lvl),
@@ -215,7 +216,7 @@ function introLines(job) {
 // --- rounds -----------------------------------------------------------------
 
 function payFor(c, base) {
-  const lvlMul = 1 + 0.1 * (c.level - 1);
+  const lvlMul = SIDEJOB_PAY_MULT * (1 + SIDEJOB_LEVEL_BONUS * (c.level - 1));
   const streakMul = 1 + 0.06 * Math.min(c.streak, 10);
   return Math.max(1, Math.round(base * lvlMul * streakMul));
 }
@@ -367,7 +368,7 @@ export function updateSideJobs(dt, w) {
 // shift. The boss smooths it over with the police, but the streak and the
 // flawless bonus are gone and each accident costs a bit more. Stars earned
 // any other way (shooting, stealing) still send you home.
-const ACCIDENT_FINE = 15;
+const ACCIDENT_FINE = SIDEJOB_ACCIDENT_FINE;
 const ACCIDENT_LINES = [
   'SIKKOM: Stadjer aan het werk rijdt voetganger van de sokken, voetganger bestelt daarna gewoon een patatje',
   'SIKKOM: "Hij kwam uit het niets," zegt voetganger die midden op straat naar zijn telefoon stond te staren',

@@ -216,6 +216,11 @@ a director:
   `MISSION_IDS` maps story mission ids to `missions.js` def indices (saves
   and medal records use those indices: only append). `computeMoneyTimeline`
   is the worst-case money over the whole arc.
+- `economy.js`: the shared money numbers outside the shop stock (repair,
+  wreck, plates and bust costs, fines, side-job pay factor, post-game
+  prizes, the Fjord Frituur's daily wage, eierbal finds). `storytest.js`
+  checks the economy targets (margins, early car/gun, cheap repairs, top
+  vehicles after the Romp) against it and the shop prices.
 - `story.js`: finds the current step (done = finished/skipped, a passed
   mission, or an activity made moot by a later passed mission; that also
   migrates pre-0.5 saves). It publishes `world.storyGuide` (routing.js uses

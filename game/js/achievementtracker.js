@@ -12,6 +12,7 @@ import {
 import { vehicleContacts } from './vehicle.js';
 import { getTrains, getLevelCrossings, TRAIN_TYPES } from './railway.js';
 import { countryWeight } from './countryfield.js';
+import { EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
 import { getMissionList } from './missions.js';
 import { getScene } from './scene3d.js';
 
@@ -441,7 +442,9 @@ function updateEierballen(dt, w, p, pv) {
     if (pv && pv.isBoat) continue;
     addToSaveSet(w, 'eierballen', e.id);
     const n = found.size;
-    w.addMessage(n >= EIERBAL_TOTAL ? `Alle ${EIERBAL_TOTAL} eierballen gevonden! Smakelijk.` : `Eierbal gevonden! ${n}/${EIERBAL_TOTAL}`, 3);
+    const all = n >= EIERBAL_TOTAL;
+    w.money += EIERBAL_FIND_PAY + (all ? EIERBAL_ALL_BONUS : 0);
+    w.addMessage(all ? `Alle ${EIERBAL_TOTAL} eierballen gevonden! Smakelijk. +€${EIERBAL_FIND_PAY + EIERBAL_ALL_BONUS}` : `Eierbal gevonden! ${n}/${EIERBAL_TOTAL} · +€${EIERBAL_FIND_PAY}`, 3);
     const q = w.audioEvents || (w.audioEvents = []);
     if (q.length < 64) q.push({ kind: 'notify', x: e.x, y: e.y });
   }

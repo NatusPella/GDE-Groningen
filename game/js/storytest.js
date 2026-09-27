@@ -5,7 +5,8 @@
 // started at their marker and finished objective by objective. H3 goes
 // through the fail + "Sla deze missie over" path. Checks that the flow
 // reaches "Wordt vervolgd" at the end of the last open part, that money
-// never runs short (also when every mission is skipped), that an old save
+// never runs short (also when every mission is skipped) with a comfortable
+// margin, that the economy targets hold (economyChecks), that an old save
 // migrates, and logs a report. `console.log('[storytest-capture] name')`
 // makes the desktop app save a screenshot per step.
 
@@ -13,7 +14,8 @@ import { skipCinematic, isCinematicActive } from './cinematics.js';
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave } from './savegame.js';
-import { getOwnedEntries } from './shops.js';
+import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
+import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -56,6 +58,53 @@ function overlay(text) {
   el.textContent = text;
 }
 
+const MIN_MARGIN = 150;
+const MIN_MARGIN_SKIP = 100;
+
+const afterStep = (tl, id) => (tl.rows.find((r) => r.id === id) || {}).after ?? 0;
+
+// Price checks against the story's money: arc costs match the shops, and the
+// targets from the economy pass hold for a player who only does the story.
+function economyChecks(check, tl) {
+  const gun = (k) => WEAPON_STOCK.find((w) => w.key === k).gun;
+  const cars = Object.values(VEHICLE_STOCK).filter((s) => s.kind === 'car' && s.price);
+  const cheapestCar = Math.min(...cars.map((s) => s.price));
+  const cost = (id) => STEP_BY_ID.get(id).cost;
+  check('economy: pistol price = k-wapen', cost('k-wapen') === gun('pistol'), `€${cost('k-wapen')} / €${gun('pistol')}`);
+  check('economy: uzi price = r-uzi', cost('r-uzi') === gun('uzi'), `€${cost('r-uzi')} / €${gun('uzi')}`);
+  check('economy: omafiets price = k-fiets', cost('k-fiets') === VEHICLE_STOCK.omafiets.price);
+  check('economy: incognito price = k-kraakspullen', cost('k-kraakspullen') === OUTFITS.tammo.find((o) => o.id === 'incognito').price);
+  check('economy: motor tuning price = r-tuning', cost('r-tuning') === CAR_UPGRADES.find((u) => u.id === 'motor').price);
+  check('economy: r-auto buys a car', cost('r-auto') >= cheapestCar, `€${cost('r-auto')}, goedkoopste €${cheapestCar}`);
+  const rewards = STEPS.filter((s) => s.kind === 'mission' && s.reward).map((s) => s.reward);
+  const avg = Math.round(rewards.reduce((a, b) => a + b, 0) / rewards.length);
+  const mug = VEHICLE_STOCK.mug.price;
+  const dent = repairCost(30, 1, false);
+  const wreck = replacementFee({ spec: VEHICLE_STOCK.mug });
+  const earlyCash = afterStep(tl, 'H3');
+  check('economy: car or gun + repair after H3', earlyCash - cost('k-wapen') >= Math.min(mug, gun('pistol') + dent), `€${earlyCash} na H3`);
+  check('economy: normal repair cheap', dent <= avg * 0.08, `€${dent} bij 30% schade, missie gem. €${avg}`);
+  check('economy: wreck restore moderate', wreck <= avg * 0.25, `€${wreck} voor een Mug`);
+  const romp = afterStep(tl, 'H13');
+  const top = ['wervelwind', 'raket', 'midibus', 'speedboot'].map((k) => VEHICLE_STOCK[k].price);
+  check('economy: top vehicles reachable after the Romp', romp >= Math.max(...top), `€${romp} na H13, duurste €${Math.max(...top)}`);
+  check('economy: top vehicles still a goal after the Kop', afterStep(tl, 'H6') < Math.max(...top), `€${afterStep(tl, 'H6')} na H6`);
+  const fine = bustFine(5, 1000);
+  check('economy: bust fine gentle', fine <= 200, `€${fine} bij 5 sterren en €1000`);
+  return [
+    ['gem. missiebeloning', `€${avg}`],
+    ['start / na H3 / na H6 / na H13 / eind', `€${tl.rows[0].before} / €${earlyCash} / €${afterStep(tl, 'H6')} / €${romp} / €${tl.end}`],
+    ['pistool / uzi / hagel', WEAPON_STOCK.map((w) => `€${w.gun} (+€${w.ammoPrice})`).join(' / ')],
+    ['Mug / Wervelwind / Raket / Midibus', ['mug', 'wervelwind', 'raket', 'midibus'].map((k) => `€${VEHICLE_STOCK[k].price}`).join(' / ')],
+    ['speedboot', `€${VEHICLE_STOCK.speedboot.price}`],
+    ['reparatie 30% / 100% schade', `€${dent} / €${repairCost(100, 3, false)}`],
+    ['wrak Mug / Raket / Escapade', `€${wreck} / €${replacementFee({ spec: VEHICLE_STOCK.raket })} / €${HERO_REPLACE_FEE}`],
+    ['tuning motor/remmen/grip/turbo', CAR_UPGRADES.map((u) => `€${u.price}`).join(' / ')],
+    ['boete opgepakt 1 / 5 sterren (bij €1000)', `€${bustFine(1, 1000)} / €${fine}`],
+    ['bijbaan loonfactor', `x${SIDEJOB_PAY_MULT}`],
+  ];
+}
+
 export async function runStoryTest(world) {
   const errors = [];
   window.addEventListener('error', (e) => errors.push(String(e.message || e)));
@@ -77,8 +126,11 @@ export async function runStoryTest(world) {
     // money timeline over the whole arc, planned steps included
     const tl = computeMoneyTimeline();
     check('money timeline never below zero', tl.low >= 0, `laagste marge €${tl.low}, eind €${tl.end}`);
+    check('money timeline comfortable margin', tl.low >= MIN_MARGIN, `laagste marge €${tl.low}, minimaal €${MIN_MARGIN}`);
     const tlSkip = computeMoneyTimeline(undefined, 0.5);
-    check('money timeline ok when every mission is skipped', tlSkip.low >= 0, `laagste marge €${tlSkip.low}`);
+    check('money timeline ok when every mission is skipped', tlSkip.low >= MIN_MARGIN_SKIP, `laagste marge €${tlSkip.low}, minimaal €${MIN_MARGIN_SKIP}`);
+    report.timeline = tl.rows;
+    report.economy = economyChecks(check, tl);
     const lastPart = Object.keys(PARTS).filter((k) => PARTS[k].open).pop();
     // every step says who plays it; its phone lines come from the other one
     const noPlayer = STEPS.filter((q) => q.player !== 'tammo' && q.player !== 'anita').map((q) => q.id);
@@ -105,7 +157,10 @@ export async function runStoryTest(world) {
       const entry = { id: cur.id, kind: cur.kind, title: cur.title, moneyBefore: Math.round(world.money), ok: false, notes: [] };
       report.steps.push(entry);
       const t0 = performance.now();
-      if (step.cost) entry.notes.push(world.money >= step.cost ? `kan €${step.cost} betalen` : `te kort voor €${step.cost}: voorschot verwacht`);
+      if (step.cost) {
+        entry.notes.push(world.money >= step.cost ? `kan €${step.cost} betalen` : `te kort voor €${step.cost}: voorschot verwacht`);
+        check(`money ok before ${cur.id}`, world.money >= step.cost, `€${Math.round(world.money)} voor €${step.cost}`);
+      }
       if (step.player) {
         // the swap waits for a quiet moment: keep skipping scenes meanwhile
         const ok = await waitFor(() => {
@@ -231,7 +286,15 @@ export async function runStoryTest(world) {
   const lines = [`STORY TEST ${report.result}`, ''];
   for (const s of report.steps) lines.push(`${s.ok ? 'ok ' : 'XX '} ${s.id.padEnd(15)} €${s.moneyBefore} -> €${s.moneyAfter}  ${s.seconds}s  ${s.notes.join('; ')}`);
   lines.push('');
-  for (const c of report.checks) if (!c.ok || /timeline|vervolgd|migrat|skip/.test(c.name)) lines.push(`${c.ok ? 'ok ' : 'XX '} ${c.name}${c.info ? ' (' + c.info + ')' : ''}`);
+  for (const c of report.checks) if (!c.ok || /timeline|vervolgd|migrat|skip|economy/.test(c.name)) lines.push(`${c.ok ? 'ok ' : 'XX '} ${c.name}${c.info ? ' (' + c.info + ')' : ''}`);
+  if (report.timeline) {
+    lines.push('', 'money timeline (worst case)', 'step            before   cost    pay  after  margin');
+    for (const r of report.timeline) lines.push(`${r.id.padEnd(15)} ${String(r.before).padStart(6)} ${String(r.cost || '').padStart(6)} ${String(r.pay || '').padStart(6)} ${String(r.after).padStart(6)} ${r.margin == null ? '' : String(r.margin).padStart(7)}`);
+  }
+  if (report.economy) {
+    lines.push('', 'economy');
+    for (const [k, v] of report.economy) lines.push(`${k.padEnd(34)} ${v}`);
+  }
   if (errors.length) lines.push('', 'errors:', ...errors.slice(0, 10));
   overlay(lines.join('\n'));
   console.log('[storytest-done] ' + JSON.stringify(report));

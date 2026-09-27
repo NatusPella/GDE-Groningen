@@ -15,6 +15,7 @@ import { BRUGGEN } from './pg_bruggenrace.js';
 import { FIERLJEP } from './pg_fierljep.js';
 import { SKUTSJE } from './pg_skutsje.js';
 import { FJORD, fjordSave, applyFjordSave, fjordUpgradeOffers } from './pg_foodtruck.js';
+import { PG_PRIZE, FJORD_DAY_PAY, FJORD_DAY_HOUR } from './economy.js';
 
 // The post-game: once the story's ending card has played (story.js, read
 // only), Jelle Terpstra challenges Tammo and Anita to three replayable duels
@@ -39,7 +40,7 @@ import { FJORD, fjordSave, applyFjordSave, fjordUpgradeOffers } from './pg_foodt
 
 export const CHALLENGES = [BRUGGEN, FIERLJEP, SKUTSJE, FJORD];
 const BY_ID = new Map(CHALLENGES.map((d) => [d.id, d]));
-const PRIZE = [0, 100, 200, 350];
+const PRIZE = PG_PRIZE;
 const SAY_GAP = 9;
 
 let world = null;
@@ -464,6 +465,18 @@ function invite() {
   world.phoneNotifications.push({ from: 'Anita', text: 'En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.', duration: 8 });
 }
 
+// The Fjord Frituur keeps earning while you're away: a daily wage each morning.
+let lastClock = null;
+function dayWage(w) {
+  const c = w.clock;
+  if (!Number.isFinite(c)) return;
+  const prev = lastClock;
+  lastClock = c;
+  if (!open || prev == null || !(prev < FJORD_DAY_HOUR && c >= FJORD_DAY_HOUR && c - prev < 1)) return;
+  w.money += FJORD_DAY_PAY;
+  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', text: `Goeiemorgen! Gisteren lekker gedraaid: €${FJORD_DAY_PAY} dagomzet op de rekening.`, duration: 6 });
+}
+
 export function updatePostgame(dt, w) {
   world = w;
   if ((openCheckT -= dt) <= 0) {
@@ -479,6 +492,7 @@ export function updatePostgame(dt, w) {
     if (open && spots && document.body.classList.contains('game-started')) invite();
   }
   updateSub(dt);
+  dayWage(w);
   for (const d of CHALLENGES) if (d.idle) d.idle(w, dt);
   if (beam && beam.visible) updateMissionMarker3D(beam, w.time, 'active');
   if (spots) {

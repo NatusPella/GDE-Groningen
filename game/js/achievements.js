@@ -118,7 +118,7 @@ export const ACHIEVEMENTS = [
   { id: 'kusje_25', cat: 'sociaal', title: 'Tortelduifjes', desc: 'Geef 25 kusjes', stat: 'kisses', goal: 25 },
   { id: 'horeca_5', cat: 'sociaal', title: 'Kroegtijger', desc: 'Eet of drink iets bij 5 verschillende zaken', set: 'horeca', goal: 5 },
   { id: 'horeca_25', cat: 'sociaal', title: 'Bitterbal-sommelier', desc: 'Eet of drink iets bij 25 verschillende zaken', set: 'horeca', goal: 25 },
-  { id: 'rijk', cat: 'sociaal', title: 'Groninger koopman', desc: 'Heb €5.000 op zak', stat: 'maxMoney', goal: 5000, unit: '€' },
+  { id: 'rijk', cat: 'sociaal', title: 'Groninger koopman', desc: 'Heb €10.000 op zak', stat: 'maxMoney', goal: 10000, unit: '€' },
   { id: 'koop_1', cat: 'sociaal', title: 'Klant is koning', desc: 'Koop iets in een winkel', stat: 'purchases', goal: 1 },
   { id: 'koop_10', cat: 'sociaal', title: 'Shopaholic', desc: 'Doe 10 aankopen', stat: 'purchases', goal: 10 },
   { id: 'uitgaven', cat: 'sociaal', title: 'Geld moet rollen', desc: 'Geef in winkels in totaal €2.500 uit', stat: 'spent', goal: 2500, unit: '€' },

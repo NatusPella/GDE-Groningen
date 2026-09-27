@@ -1,6 +1,7 @@
 import { clamp, closestPointOnSegment, pointInPolygon } from './util.js';
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
+import { bustFine } from './economy.js';
 import { spawnCopPedestriansNear, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -408,7 +409,7 @@ function updateBust(dt, world) {
     bust.t = 0;
     bust.progress = 0;
     bust.mode = null;
-    requestRespawn(world, { busted: true, moneyPenalty: world.wanted * 150 });
+    requestRespawn(world, { busted: true, moneyPenalty: bustFine(world.wanted, world.money) });
   }
 }
 
