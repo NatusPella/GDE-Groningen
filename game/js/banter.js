@@ -218,7 +218,7 @@ function together() {
 
 function quiet() {
   const w = world;
-  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen();
+  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen() && !w.storyContact;
 }
 
 // --- conversation ---------------------------------------------------------------------
@@ -378,7 +378,7 @@ export function updateBanter(dt, w) {
 
   const tk = st.talk;
   if (tk) {
-    if (!both || isCinematicActive() || isPhoneOpen() || (tk.kind !== 'react' && (isMissionActive() || (w.sideJob && w.sideJob.active)))) { interrupt(null); return; }
+    if (!both || isCinematicActive() || isPhoneOpen() || w.storyContact || (tk.kind !== 'react' && (isMissionActive() || (w.sideJob && w.sideJob.active)))) { interrupt(null); return; }
     if (tk.kind !== 'react' && (crashed || starsUp)) { interrupt(starsUp ? 'stars' : 'crash'); return; }
     tk.t += dt;
     if (tk.t >= tk.until) nextLine();

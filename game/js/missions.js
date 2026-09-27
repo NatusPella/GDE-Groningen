@@ -3,7 +3,7 @@ import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
 import { setUserWaypoint, findWalkPath } from './routing.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, storySpeakerName } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
@@ -245,7 +245,7 @@ function buildDefs(world) {
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
-          lines: [['A', 'Hij is… leeg.'], ['T', 'Misschien is hij even naar de wc.'], ['A', 'Er ligt een kaartje. "Tige tank! – W."'], ['T', 'W? Wie is W?'], ['A', 'Iemand die Fries schrijft. En die eerder was dan wij.']],
+          lines: [['A', 'Hij is… leeg.'], ['T', 'Misschien is hij even naar de wc.'], ['A', 'Er ligt een kaartje. "Tige tank! – W."', { clue: true }], ['T', 'W? Wie is W?'], ['A', 'Iemand die Fries schrijft. En die eerder was dan wij.']],
         },
         { kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Alarm! Drie sterren. Wegwezen, over het water als het kan.' },
       ],
@@ -333,13 +333,15 @@ function buildDefs(world) {
         {
           kind: 'scene', label: 'Aan boord', target: { skutsje: true },
           kicker: 'Het skûtsje', big: 'Chocola?!',
+          cast: [{ key: 'durk', at: [2.3, 0.35], jump: 'Plons.', jumpSide: 1 }, { key: 'douwe', at: [3.2, -0.35], jump: 'Plons.', jumpSide: -1, jumpDelay: 0.4 }],
+          props: [{ kind: 'ball', holder: 'A', from: 'Hier is hij' }],
           lines: [['durk', 'Douwe! Der stiet ien op ús dek!'], ['T', 'Moi. Ik kom voor de Eierbal.'], ['A', 'En ik kom voor hem. Opzij, jongens.'], ['douwe', 'Plons?'], ['durk', 'Plons.'],
-            ['A', 'Hier is hij! De Gouden Eierbal!'], ['T', 'Hij is… zacht. En hij smelt.'], ['A', 'Chocola. Met goudpapier eromheen.']],
+            ['A', 'Hier is hij! De Gouden Eierbal!'], ['T', 'Hij is… zacht. En hij smelt.'], ['A', 'Chocola. Met goudpapier eromheen.', { clue: true }]],
         },
         { kind: 'goto', target: { shore: true, label: 'De kade' }, mode: 'foot', radius: 6, label: 'Spring aan wal, achter Jelle aan', say: 'Jelle springt van boord! Aan wal, achter hem aan.' },
         {
           kind: 'vault', label: 'Jelle', target: { shore: true },
-          lines: [['jelle', 'Moai, Grinzers. Jimme hawwe myn sûkelade fûn.'], ['T', 'Waar is de echte, Jelle?'], ['jelle', 'Dy giet de loft yn. Fan\'e jûn, mei in ballon.'],
+          lines: [['jelle', 'Moai, Grinzers. Jimme hawwe myn sûkelade fûn.'], ['T', 'Waar is de echte, Jelle?'], ['jelle', 'Dy giet de loft yn. Fan\'e jûn, mei in ballon.', { clue: true }],
             ['A', 'Een ballon? Jij bent niet goed wijs.'], ['jelle', 'Ik bin Fries. Wy binne altyd goed wiis.']],
           landing: 'Oant fan\'e jûn, Grinzers!',
         },
@@ -433,6 +435,8 @@ function buildDefs(world) {
         {
           kind: 'scene', label: 'Het podium', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' },
           kicker: 'Gronings Ontzet', big: 'Hij grist de Eierbal!',
+          cast: [{ key: 'jelle', pose: 'hold', at: [2.2, 0] }, { key: 'durk', pose: 'arms', at: [3.5, 1.5] }, { key: 'douwe', pose: 'arms', at: [3.5, -1.5] }, { key: 'berend', pose: 'hips', at: [1.3, 2.7] }],
+          props: [{ kind: 'ball', holder: 'jelle' }],
           lines: [['jelle', 'Moai, Grinzers! Tank foar de Eierbal. Dy nim ik mar mei.'], ['A', 'Hé! Die stond op het podium!'], ['jelle', 'No stiet er yn myn trekker. Oant sjen!'], ['T', 'Anita, de auto! Achter hem aan!']],
         },
         { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!' },
@@ -453,6 +457,8 @@ function buildDefs(world) {
         {
           kind: 'scene', label: 'Opvissen', target: { bank: [-700, -550] },
           kicker: 'Het Reitdiep', big: 'De Eierbal is terug!',
+          cast: [{ key: 'jelle', water: true, pose: 'cheer' }],
+          props: [{ kind: 'ball', holder: 'jelle' }],
           lines: [['jelle', 'Help! Myn polsstok is brutsen! Ik bin wiet!'], ['A', 'Tammo, steek die polsstok uit. We vissen hem op.'], ['T', 'Mijn eerste vangst. Een Fries van tachtig kilo.'],
             ['jelle', 'Tige tank, Grinzers. Echt. Hjir, de Eierbal.'], ['A', 'Kom maar mee, Jelle. Er staat nog een eierbal voor je klaar.']],
         },
@@ -2186,6 +2192,20 @@ function playStageScene(world, st, S) {
       const a = a0 + (u - 0.5) * 0.25;
       return { position: { x: look.x + Math.cos(a) * st.cam.r, y: look.y + Math.sin(a) * st.cam.r, z: st.cam.h }, lookAt: { x: look.x, y: look.y, z: st.cam.lookZ - u * 12 }, fov: 50 };
     };
+  }
+  // with actors: Tammo and Anita where you stand (on the target for a wide
+  // shot), plus the stage's cast; the camera shots above lead where given
+  if (lines.length && !world.pigeonMode) {
+    const wide = !!st.cam;
+    const lookTo = (wide && st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
+    const staged = playCastScene(world, {
+      at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [], props: st.props || [],
+      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo,
+      deck: st.target && st.target.skutsje ? chain.skutsje : null,
+      shot: st.reveal || wide ? shot : null, shotLines: wide ? 1 : 0,
+      poses: st.dropFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? 'cheer' : 'lookup' }) : null,
+    });
+    if (staged) return true;
   }
   const ok = playCinematic({
     id: 'mission-scene', priority: 3, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,

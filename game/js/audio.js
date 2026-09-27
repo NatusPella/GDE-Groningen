@@ -1224,6 +1224,26 @@ function updateChaseBark(world) {
   playPoliceBark(key, x, y);
 }
 
+// Story UI sounds (missionstory.js, storycontact.js): a soft rising sting
+// under a clue, and the ringtone of an incoming story call (two short
+// double rings, a phone in a pocket rather than the room).
+export function playClueSting() {
+  if (!ctx || muted || !stingBus) return;
+  [[659.25, 0, 0.9], [987.77, 0.11, 0.9], [1318.5, 0.22, 1.2]].forEach(([freq, delay, duration]) =>
+    playTone({ freq, type: 'sine', duration, gain: 0.05, delay, bus: stingBus, prio: 2 }));
+  playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
+}
+
+export function playPhoneRing(rings = 2) {
+  if (!ctx || muted || !uiBus) return;
+  for (let k = 0; k < rings; k++) {
+    for (const [d, f] of [[0, 1318.5], [0.16, 1174.7]]) {
+      playTone({ freq: f, type: 'square', duration: 0.12, gain: 0.03, delay: k * 1.1 + d, filterFreq: 2600, bus: uiBus, prio: 2 });
+      playTone({ freq: f * 2, type: 'sine', duration: 0.1, gain: 0.02, delay: k * 1.1 + d + 0.01, bus: uiBus, prio: 2 });
+    }
+  }
+}
+
 export function playSikkomLine(key) {
   playRandomVariant(SIKKOM_AUDIO[key]);
 }
