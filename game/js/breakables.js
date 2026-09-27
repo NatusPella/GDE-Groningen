@@ -69,6 +69,7 @@ export function propsInRadius(x, y, r, kinds = null) {
 export function claimProp(p) {
   if (broken.has(p.key)) return false;
   removeProp(p);
+  p.shotHits = 0;
   broken.set(p.key, { t: world ? world.time : 0, x: p.x, y: p.y, restore: p.onRestore || null });
   if (p.onBreak) p.onBreak(p);
   return true;
@@ -708,6 +709,13 @@ function burst(p, hit) {
     case 'glass':
       for (let i = 0; i < cnt(10); i++) spawnParticle(debris, p.x, rnd(3, 5.4), p.y, vx * 0.3 + rnd(-2, 2), rnd(0, 2), vz * 0.3 + rnd(-2, 2), rnd(0.05, 0.1), pick(GLASS), rnd(4, 7), 0, 1);
       break;
+    case 'posters':
+      for (let i = 0; i < cnt(18); i++) spawnParticle(debris, p.x + rnd(-0.5, 0.5), rnd(0.6, 2.6), p.y + rnd(-0.5, 0.5), vx * rnd(0.2, 0.6) + rnd(-2.5, 2.5), rnd(1, 3.5), vz * rnd(0.2, 0.6) + rnd(-2.5, 2.5), rnd(0.1, 0.2), pick(LITTER), rnd(6, 10), 1.6, 1);
+      for (let i = 0; i < cnt(10); i++) {
+        const a = Math.random() * Math.PI * 2, s = rnd(2, 5);
+        spawnParticle(sparks, p.x, rnd(0.1, 0.4), p.y, Math.cos(a) * s, rnd(1, 3), Math.sin(a) * s, rnd(0.03, 0.05), 0xffc060, rnd(0.25, 0.5));
+      }
+      break;
     case 'signal':
       for (let i = 0; i < cnt(10); i++) spawnParticle(debris, p.x, rnd(2.8, 3.6), p.y, vx * 0.3 + rnd(-2, 2), rnd(0, 2.5), vz * 0.3 + rnd(-2, 2), rnd(0.06, 0.11), pick(SIGNAL), rnd(4, 7), 0, 1);
       break;
@@ -874,12 +882,21 @@ export function propOnBulletPath(x0, y0, x1, y1, z) {
   return best;
 }
 
-// A bullet hit: light props are knocked over, glass ones shatter, the rest
-// only take the dent. Returns true when the prop gave way.
-export function shootProp(p, dx, dy, byPlayer) {
+// A bullet hit: light props are knocked over, glass ones shatter, props with
+// shotHp give way after that many hits, the rest only take the dent. Returns true when the prop gave way.
+export function shootProp(p, dx, dy, byPlayer, weight = 1) {
   if (!p.cell || !world) return false;
   const light = p.mass <= 40 && p.breakSpeed <= 3.5;
   const glassy = p.burst === 'glass' && !p.topple;
+  if (p.shotHp && !light && !glassy) {
+    p.shotHits = (p.shotHits || 0) + weight;
+    if (p.shotHits < p.shotHp) {
+      audio(p.x, p.y, 0.25, p.material);
+      return false;
+    }
+    breakProp(p, { vx: dx * 0.6, vy: dy * 0.6, speed: 2.5, lift: 0.3, nx: dx, ny: dy, byPlayer: !!byPlayer });
+    return true;
+  }
   if (!light && !glassy) {
     audio(p.x, p.y, 0.25, p.material);
     return false;

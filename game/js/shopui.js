@@ -273,7 +273,7 @@ function setPreview(spec) {
     preview.scene.add(sun);
     preview.cam = new THREE.PerspectiveCamera(32, 3, 0.1, 100);
   }
-  const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', health: 100 };
+  const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', isBoat: spec.kind === 'boat', ...(spec.flags || {}), health: 100 };
   preview.mesh = buildVehicleMesh(fake);
   preview.scene.add(preview.mesh);
   const len = spec.model.len || 4;

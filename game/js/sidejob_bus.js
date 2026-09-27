@@ -10,7 +10,8 @@ import {
 
 const STOP_R = 9;
 const STOP_SPEED = 0.8;
-const DWELL = 3.2;
+const DWELL_MIN = 1.2;
+const DWELL_MAX = 3;
 const EARLY_OK = 12;
 const LATE_OK = 5;
 const LATE_FAIL = 75;
@@ -31,7 +32,7 @@ const BUMP_LINES = [
   'Iemand drukt uit protest op alle stopknoppen tegelijk.',
   'Achterin rolt een krat bier door het gangpad.',
 ];
-const EARLY_LINES = ['Te vroeg! In Grunn vertrekt de bus nooit te vroeg. Wachten.', 'Te vroeg bij de halte. Even de deuren open laten staan.'];
+const EARLY_LINES = ['Te vroeg! Lekker rap, maar de dienstregeling vindt je eng.', 'Voor op schema. De passagiers klappen, de planner huilt.'];
 
 export default {
   id: 'bus',
@@ -135,7 +136,8 @@ export default {
 
     const atStop = Math.hypot(v.x - stop.x, v.y - stop.y) < STOP_R;
     if (!d.dwell && inBus && atStop && vehicleSpeed(v) < STOP_SPEED) {
-      d.dwell = DWELL;
+      d.dwell = DWELL_MAX;
+      d.dwellT = 0;
       d.arriveLate = late;
       d.lateMax = Math.max(d.lateMax, late);
       if (late <= LATE_OK) d.onTime++;
@@ -162,13 +164,11 @@ export default {
         if (!pedAlive(world, ped)) continue;
         if (walkPed(world, ped, d.door.x, d.door.y, 2.6, dt, 0.7)) removePed(world, ped);
       }
-      const early = due - d.clock;
-      if (early > EARLY_OK) {
-        if (!d.earlyNoted) { d.earlyNoted = true; c.msg(pick(EARLY_LINES), 3); }
-        return;
-      }
+      d.dwellT += dt;
       d.dwell -= dt;
-      if (d.dwell > 0) return;
+      const boarding = d.waiting.some((ped) => pedAlive(world, ped));
+      if (d.dwell > 0 && (boarding || d.dwellT < DWELL_MIN)) return;
+      if (due - d.clock > EARLY_OK && !d.earlyNoted) { d.earlyNoted = true; c.msg(pick(EARLY_LINES), 3); }
       d.dwell = 0;
       d.earlyNoted = false;
       for (const ped of d.waiting) removePed(world, ped);
@@ -184,7 +184,7 @@ export default {
         c.complete({ base, tip, text: allOn ? 'Rondje keurig op tijd!' : `Rondje gereden (${d.onTime}/${n} op tijd).`, flawless: allOn });
         return;
       }
-      c.msg(`Deuren dicht. Volgende halte: ${d.stops[d.next % d.stops.length].name}.`, 2.6);
+      c.msg(`Deuren dicht, rijden maar! Volgende halte: ${d.stops[d.next % d.stops.length].name}.`, 2.6);
     }
   },
 
@@ -205,8 +205,8 @@ export default {
     return {
       marker: { x: stop.x, y: stop.y },
       dots,
-      progress: d.dwell ? `Halte ${stop.name} · deuren open` : `Halte ${Math.min(d.next, n)}/${n} ${stop.name} · ${sched}`,
-      goal: { label: `Halte ${stop.name}`, desc: d.dwell ? 'Wachten tot de deuren dicht zijn' : 'Stop bij de halte en laat mensen instappen' },
+      progress: d.dwell ? `Halte ${stop.name} · deuren open, nog ${Math.max(1, Math.ceil(d.dwell))} s` : `Halte ${Math.min(d.next, n)}/${n} ${stop.name} · ${sched}`,
+      goal: { label: `Halte ${stop.name}`, desc: d.dwell ? 'Even stilstaan: passagiers stappen in' : 'Stop bij de halte en laat mensen instappen' },
     };
   },
 

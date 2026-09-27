@@ -252,6 +252,8 @@ function nearPlayer(world, t, r) {
 function stepTrain(t, dt, world) {
   const { route, cfg } = t;
   const stops = route.stops;
+  if (t.state === 'player') { stepDriven(t, dt, world); return; }
+  if (t.state === 'parked') { stepParked(t, dt, world); return; }
   if (t.state === 'dwell') {
     t.timer -= dt;
     if (t.timer <= 0) {
@@ -269,18 +271,12 @@ function stepTrain(t, dt, world) {
   const goal = stops[t.target].s;
   const dist = (goal - t.c) * t.dir;
   const vBrake = Math.max(dist > 0.05 ? 0.4 : 0, Math.sqrt(2 * DECEL * Math.max(0, dist)));
-  const vWant = Math.min(cfg.vmax, vBrake);
+  const vWant = Math.min(cfg.vmax, vBrake, blockedSpeed(t));
   if (t.v < vWant) t.v = Math.min(vWant, t.v + ACCEL * (1 - 0.6 * (t.v / cfg.vmax) ** 2) * dt);
   else t.v = Math.max(vWant, t.v - DECEL * 1.6 * dt);
   const step = Math.min(t.v * dt, Math.max(0, dist));
   t.c += step * t.dir;
-  t.clackRun += step;
-  if (t.clackRun > CLACK_EVERY_M) {
-    t.clackRun = 0;
-    const p = world.player;
-    const car = t.cars[(Math.random() * t.cars.length) | 0];
-    if (Math.hypot(p.x - car.x, p.y - car.y) < 140) audio(world, { kind: 'train_clack', x: car.x, y: car.y, strength: Math.min(1, t.v / 20) });
-  }
+  clack(t, step, world);
   if (dist - step < 0.05) {
     t.c = goal;
     t.v = 0;
@@ -292,11 +288,176 @@ function stepTrain(t, dt, world) {
   }
 }
 
+function clack(t, step, world) {
+  t.clackRun += step;
+  if (t.clackRun <= CLACK_EVERY_M) return;
+  t.clackRun = 0;
+  const p = world.player;
+  const car = t.cars[(Math.random() * t.cars.length) | 0];
+  if (Math.hypot(p.x - car.x, p.y - car.y) < 140) audio(world, { kind: 'train_clack', x: car.x, y: car.y, strength: Math.min(1, t.v / 20) });
+}
+
+// --- a train driven by the player (traindrive.js sets t.ctl) ---------------
+// t.cab: +1 when the cab is the +s end; t.pv: signed speed along +s.
+const DRIVE_VMAX_K = 1.45;
+const DRIVE_ACCEL = 1.6;
+const DRIVE_BRAKE = 2.2;
+const DRIVE_EBRAKE = 3.6;
+const DRIVE_REV_MAX = 6;
+const DRIVE_END_DECEL = 2.4;
+const PARK_RESUME_S = 25;
+const PARK_RESUME_DIST = 70;
+const PARK_MAX_S = 180;
+
+function isStolen(t) { return t.state === 'player' || t.state === 'parked'; }
+
+// Arc range of the route the player may drive on: inside the map, never off
+// into the fog where the city is not streamed in.
+function driveRange(route) {
+  if (route.driveRange) return route.driveRange;
+  let lo = null, hi = 0;
+  for (let at = 0; at <= route.len; at += 5) {
+    const [x, y] = routePoint(route, at);
+    if (isOffMap(x, y, -30)) continue;
+    if (lo === null) lo = at;
+    hi = at;
+  }
+  route.driveRange = [lo ?? 0, lo === null ? route.len : hi];
+  return route.driveRange;
+}
+
+export function hijackTrain(t, cab) {
+  t.state = 'player';
+  t.cab = cab;
+  t.pv = 0;
+  t.v = 0;
+  t.dir = cab;
+  t.ctl = { throttle: false, brake: false, emergency: false };
+  t.endWarned = false;
+}
+
+export function parkTrain(t) {
+  t.state = 'parked';
+  t.parkT = 0;
+  t.pv = 0;
+  t.v = 0;
+  t.ctl = null;
+}
+
+// Back into the timetable from wherever it was left: on to the next stop.
+function resumeService(t) {
+  const stops = t.route.stops;
+  const ahead = (dir) => {
+    const list = stops.map((st, i) => i).filter((i) => (stops[i].s - t.c) * dir > 1);
+    if (!list.length) return -1;
+    return dir > 0 ? list[0] : list[list.length - 1];
+  };
+  let dir = t.dir || 1;
+  let idx = ahead(dir);
+  if (idx < 0) { dir = -dir; idx = ahead(dir); }
+  if (idx < 0) idx = 0;
+  Object.assign(t, { state: 'run', dir, target: idx, v: 0, pv: 0, ctl: null, cab: 0 });
+}
+
+export function returnStolenTrains() {
+  for (const t of trains) if (t.state === 'parked') resumeService(t);
+}
+
+function stepParked(t, dt, world) {
+  t.parkT += dt;
+  const p = world.player;
+  const car = t.cars[t.cars.length >> 1];
+  const far = Math.hypot(p.x - car.x, p.y - car.y) > PARK_RESUME_DIST + t.halfLen;
+  if ((t.parkT > PARK_RESUME_S && far) || t.parkT > PARK_MAX_S) resumeService(t);
+}
+
+function stepDriven(t, dt, world) {
+  const { route, cfg } = t;
+  const ctl = t.ctl || {};
+  const vmax = cfg.vmax * DRIVE_VMAX_K;
+  let u = (t.pv || 0) * t.cab;
+  const toward = (target, rate) => { u = u > target ? Math.max(target, u - rate * dt) : Math.min(target, u + rate * dt); };
+  if (ctl.emergency) toward(0, DRIVE_EBRAKE);
+  else if (ctl.throttle && !ctl.brake) {
+    if (u < -0.2) toward(0, DRIVE_BRAKE);
+    else u = Math.min(vmax, u + DRIVE_ACCEL * Math.max(0.08, 1 - (u / vmax) ** 2) * dt);
+  } else if (ctl.brake) {
+    if (u > 0.2) toward(0, DRIVE_BRAKE);
+    else toward(-DRIVE_REV_MAX, DRIVE_ACCEL * 0.5);
+  } else toward(0, 0.05 + 0.0004 * u * u);
+  let pv = u * t.cab;
+  // hard stop short of the end of the drivable track
+  const [lo, hi] = driveRange(route);
+  const md = Math.sign(pv);
+  if (md) {
+    const room = md > 0 ? hi - t.halfLen - t.c : t.c - (lo + t.halfLen);
+    const vAllow = Math.sqrt(2 * DRIVE_END_DECEL * Math.max(0, room));
+    if (Math.abs(pv) > vAllow) {
+      pv = md * vAllow;
+      if (!t.endWarned && room < 120) { t.endWarned = true; world.addMessage('Sein op rood: verder gaat het spoor niet', 3); }
+    } else if (room > 160) t.endWarned = false;
+  }
+  const hit = trainAhead(t, md, Math.abs(pv) * dt + 1.5);
+  if (hit) {
+    if (Math.abs(pv) > 3) {
+      const strength = Math.min(1, Math.abs(pv) / 15);
+      world.lastImpact = { strength, time: world.time, x: hit.x, y: hit.y };
+      world.particles.push({ kind: 'impact', x: hit.x, y: hit.y, strength, until: world.time + 0.4 });
+      world.addMessage('Klap! Er staat een andere trein', 2.5);
+    }
+    pv = 0;
+  }
+  const step = pv * dt;
+  t.c = Math.max(lo + t.halfLen, Math.min(hi - t.halfLen, t.c + step));
+  t.pv = pv;
+  t.v = Math.abs(pv);
+  t.dir = t.v > 0.05 ? Math.sign(pv) : t.cab;
+  clack(t, Math.abs(step), world);
+}
+
+// Another train's carriage within `reach` metres ahead of this train's nose.
+function trainAhead(t, md, reach) {
+  if (!md) return null;
+  const [nx, ny] = routePoint(t.route, t.c + md * (t.halfLen + reach));
+  for (const o of trains) {
+    if (o === t) continue;
+    for (const car of o.cars) {
+      if (Math.abs(car.x - nx) > car.len || Math.abs(car.y - ny) > car.len) continue;
+      const [lx, ly] = carLocal(car, nx, ny);
+      if (Math.abs(lx) < car.len / 2 + 0.5 && Math.abs(ly) < HALF_WIDTH + 0.4) return { x: nx, y: ny };
+    }
+  }
+  return null;
+}
+
+// Scheduled trains hold at a red signal behind a stolen one on their track.
+function blockedSpeed(t) {
+  let vmax = Infinity;
+  const look = t.halfLen + (t.v * t.v) / (2 * DECEL) + 40;
+  for (const o of trains) {
+    if (o === t || !isStolen(o)) continue;
+    const mid = o.cars[o.cars.length >> 1];
+    const [cx, cy] = routePoint(t.route, t.c);
+    if (Math.hypot(mid.x - cx, mid.y - cy) > look + o.halfLen + 20) continue;
+    for (let d = t.halfLen; d < look; d += 6) {
+      const [x, y] = routePoint(t.route, t.c + t.dir * d);
+      let blocked = false;
+      for (const car of o.cars) {
+        const [lx, ly] = carLocal(car, x, y);
+        if (Math.abs(lx) < car.len / 2 + 2 && Math.abs(ly) < HALF_WIDTH + 1) { blocked = true; break; }
+      }
+      if (blocked) { vmax = Math.min(vmax, Math.sqrt(2 * DECEL * Math.max(0, d - t.halfLen - 12))); break; }
+    }
+  }
+  return vmax;
+}
+
 // A crossing warns while any train is on it or will be within WARN_AHEAD_S.
 function trainThreatens(t, at) {
   const rel = (at - t.c) * t.dir;
   if (Math.abs(at - t.c) < t.halfLen + WARN_CLEAR_M) return true;
   if (rel < 0) return false;
+  if (isStolen(t)) return t.state === 'player' && t.v > 0.5 && (rel - t.halfLen) / t.v < WARN_AHEAD_S;
   const next = t.state === 'dwell' ? t.target + t.dir : t.target;
   const goal = t.route.stops[Math.max(0, Math.min(t.route.stops.length - 1, next))].s;
   if ((goal - at) * t.dir < -t.halfLen) return false;
@@ -459,12 +620,12 @@ function resolveContacts(world) {
           if (push) { hitVehicle(v, t, car, push, world); break; }
         }
       }
-      if (!p.inVehicle && (p.z || 0) < 3.5 && Math.abs(p.x - car.x) < reach && Math.abs(p.y - car.y) < reach && !inRailBridgeZone(p.x, p.y)) {
+      if (!p.inVehicle && !world.trainDriving && (p.z || 0) < 3.5 && Math.abs(p.x - car.x) < reach && Math.abs(p.y - car.y) < reach && !inRailBridgeZone(p.x, p.y)) {
         const push = pushOut(car, hl, p.x, p.y, p.radius || 0.35);
         if (push) hitPlayer(t, car, push, world);
       }
       const c = world.companion;
-      if (c && !c.inVehicle && !c.water && c.state !== 'dead' && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !inRailBridgeZone(c.x, c.y)) {
+      if (c && !c.inVehicle && !world.trainDriving && !c.water && c.state !== 'dead' && Math.abs(c.x - car.x) < reach && Math.abs(c.y - car.y) < reach && !inRailBridgeZone(c.x, c.y)) {
         const push = pushOut(car, hl, c.x, c.y, c.radius || 0.35);
         if (push) hitCompanion(c, t, car, push, world);
       }

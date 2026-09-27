@@ -91,7 +91,7 @@ export function carModel(kind, rng = Math.random, colors = GREYS) {
   let color = colors[Math.floor(rng() * colors.length)];
   if (kind === 'taxi') color = rng() < 0.7 ? '#1b1c1f' : '#e8e6e0';
   else if (kind === 'delivery') color = rng() < 0.5 ? '#e0701e' : '#e8c93a';
-  else if (kind === 'cashvan') color = '#5a5e62';
+  else if (kind === 'cashvan') color = '#5b625d';
   else if (kind === 'ambulance') color = '#f1d21c';
   else if (kind === 'truck') color = VAN_COLORS[Math.floor(rng() * VAN_COLORS.length)];
   else if (kind === 'van' && colors !== VAN_COLORS) color = VAN_COLORS[Math.floor(rng() * VAN_COLORS.length)];

@@ -34,7 +34,7 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { setUserWaypoint } from './routing.js';
 import {
   getOwnedEntries, getHeroLook, spawnOwnedEntry, replacementFee, getShopsForRender,
-  VEHICLE_STOCK, PAINTS, CAR_UPGRADES, BIKE_UPGRADES, REDELIVERY_FEE,
+  VEHICLE_STOCK, VEHICLE_UNLOCKS, unlockMet, PAINTS, CAR_UPGRADES, BIKE_UPGRADES, REDELIVERY_FEE,
 } from './shops.js';
 
 const HERO_REPLACE_FEE = 100;
@@ -58,7 +58,7 @@ const MEMES = {
   wervelwind: 'Van de Grote Markt naar Delfzijl voordat je koffie koud is. Flitspalen vinden hem prachtig.',
 };
 
-const SHOP_FOR_KIND = { car: 'Ome Harm Occasions', bike: 'Trap & Toeter', scooter: 'Trap & Toeter' };
+const SHOP_NAME = { auto: 'Ome Harm Occasions', fietsen: 'Trap & Toeter', boot: 'Bootje Huren' };
 const KIND_LABEL = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot' };
 
 let lastDeliveryAt = -Infinity;
@@ -263,11 +263,11 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
   return {
     id, key, hero, owned: true, v,
     ...nameOf(spec, v),
-    kind: spec.kind, kindLabel: KIND_LABEL[spec.kind], color,
+    kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color,
     paint: paintLabel(color, hero ? 'Fjordrood' : 'Fabriekskleur'),
     upgrades: upgrades.map((u) => (list.find((x) => x.id === u) || {}).label).filter(Boolean),
     topSpeed: kmh(perf.maxSpeed), accel: perf.accel, accelScore: Math.max(1, Math.min(10, Math.round(perf.accel / 1.2))),
-    meme: MEMES[hero ? 'hero' : key] || '',
+    meme: MEMES[hero ? 'hero' : key] || spec.desc || '',
     price: hero ? 0 : spec.price,
     status: status.key, statusLabel: status.label, dist: status.dist ?? null, where,
     fee, feeLabel: fee ? `€${fee}` : 'gratis',
@@ -291,19 +291,34 @@ export function getGarageList(world) {
   return out;
 }
 
-// Owned first, then the models still for sale (greyed out in the garage).
+// Garage glyph: bus/truck/boat get their own silhouette.
+function glyphKind(spec) {
+  if (spec.kind === 'boat') return 'boat';
+  const n = spec.model.name;
+  if (n === 'bus' || n === 'midibus') return 'bus';
+  if (n === 'truck' || n === 'trekkerlimo') return 'truck';
+  return spec.kind;
+}
+
+// Owned first, then the models still for sale and the ones still locked
+// (greyed out in the garage).
 export function getGarageCatalog(world) {
   const owned = getGarageList(world);
   const have = new Set(owned.map((e) => e.key));
   const rest = Object.entries(VEHICLE_STOCK).filter(([key]) => !have.has(key)).map(([key, spec]) => {
     const twoWheel = spec.kind !== 'car';
+    const locked = !!spec.unlock;
+    const shop = SHOP_NAME[spec.shop] || '';
     return {
-      id: key, key, hero: false, owned: false, v: null, ...nameOf(spec, null),
-      kind: spec.kind, kindLabel: KIND_LABEL[spec.kind], color: spec.color, paint: paintLabel(spec.color, 'Fabriekskleur'),
+      id: key, key, hero: false, owned: false, locked, v: null, ...nameOf(spec, null),
+      kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color: spec.color, paint: paintLabel(spec.color, 'Fabriekskleur'),
       upgrades: [], topSpeed: kmh(spec.model.maxSpeed), accel: spec.model.accel,
       accelScore: Math.max(1, Math.min(10, Math.round(perfModel(spec.model, [], twoWheel).accel / 1.2))),
-      meme: MEMES[key] || spec.desc, price: spec.price, shop: SHOP_FOR_KIND[spec.kind],
-      status: 'forsale', statusLabel: `Te koop bij ${SHOP_FOR_KIND[spec.kind]}`, where: null, fee: 0, feeLabel: '',
+      meme: MEMES[key] || spec.desc, price: spec.price || 0, shop,
+      unlockText: locked ? VEHICLE_UNLOCKS[spec.unlock].text : '',
+      status: locked ? 'locked' : 'forsale',
+      statusLabel: locked ? (unlockMet(spec) ? 'Vrijgespeeld: komt zo in je garage' : 'Op slot') : `Te koop bij ${shop}`,
+      where: null, fee: 0, feeLabel: '',
     };
   });
   return [...owned, ...rest];
@@ -363,7 +378,7 @@ export function deliverOwnedVehicle(world, id) {
     const o = getOwnedEntries().find((x) => x.key === id);
     if (o && o.v && world.vehicles.includes(o.v) && !o.lost) spot = placeOwnedVehicleNear(world, o.v, px, py);
     else if (o) {
-      spot = findParkingSpot(world, px, py, o.spec.model);
+      spot = o.spec.kind === 'boat' ? jettySpot(world, px, py, 5000) : findParkingSpot(world, px, py, o.spec.model);
       if (spot && !spawnOwnedEntry(world, o, spot.x, spot.y, spot.angle)) spot = null;
     }
   }

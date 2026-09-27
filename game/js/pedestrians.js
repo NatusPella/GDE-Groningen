@@ -10,6 +10,7 @@ import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './mo
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, makeCompanion } from './pedroutes.js';
+import { reportCrime } from './crime.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -34,8 +35,8 @@ const COP_SEEK_GIVEUP_RADIUS = 28;
 const COP_BOARD_REACH = 0.9;
 
 const WITNESS_RADIUS = 45;
-const CALL_MIN = 5;
-const CALL_MAX = 8.5;
+const CALL_MIN = 7;
+const CALL_MAX = 11;
 
 export const CITY_CENTRE = { x: 190, y: 140, r: 380 };
 const NIGHT_HOTSPOTS = [
@@ -381,7 +382,7 @@ function gatherEvents(world) {
       dist(v.x, v.y, li.x, li.y) < v.halfLen + 3);
     if (cop) {
       lastCopCrashAt = world.time;
-      if (world.wanted === 0) world.wanted = 1;
+      reportCrime(world, 'copBump', { seen: true });
       events.push({ kind: 'crash', x: li.x, y: li.y, r: 25, crime: false });
     }
   }
@@ -572,9 +573,9 @@ function throwRider(world, b, u, vx, vy, closing, push) {
   knockDown(ped, world, { kind: 'hit', startPose: 'ride', dead, vx, vy, vz });
   if (dead) { killPed(ped, world); bleedPed(ped, world, { vehicle: u }); }
   if (u.driver === 'player') {
-    world.wanted = Math.min(5, world.wanted + 1);
+    const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit');
     if (dead) world.stats.pedKills++;
-    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: true });
+    pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious });
   }
 }
 
@@ -869,9 +870,9 @@ function checkVehicleImpact(ped, world) {
       // knocking someone over on a bike or scooter is a scene, not a crime
       const crime = dead || !light;
       world.lastPedHitAt = world.time;
-      if (crime) world.wanted = Math.min(5, world.wanted + 1);
+      const serious = crime && reportCrime(world, dead ? 'pedKill' : 'pedHit');
       if (dead) world.stats.pedKills++;
-      pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime });
+      pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: serious });
     }
     return;
   }
