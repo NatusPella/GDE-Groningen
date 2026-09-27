@@ -597,6 +597,15 @@ const crewCtx = {
   },
 };
 
+// Parked, abandoned and bailed-out cars are empty. Must be a real boolean:
+// an undefined .visible does not hide an Object3D.
+function hasAiDriver(v) {
+  if (v.wrecked || v.parked || v.driver === 'player') return false;
+  if (v.driver) return true;
+  if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
+  return !!(v.road || v.racer);
+}
+
 function ensureDriverFigure(mesh, v, dist, deadline) {
   if (!mesh.userData.needsDriver) return;
   if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
@@ -1575,7 +1584,7 @@ export function update3D(dt, world) {
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
-      if (df) df.visible = (!!v.road || v.racer) && !v.wrecked && v.driver !== 'player' && driverDist < DRIVER_FIGURE_DIST;
+      if (df) df.visible = hasAiDriver(v) && driverDist < DRIVER_FIGURE_DIST;
       if (v.isBike || v.isScooter) syncBikeRider(mesh, v, world.time);
       if (v._mount || v._riderAway) syncPoliceMount(mesh, v, animDt);
     }
