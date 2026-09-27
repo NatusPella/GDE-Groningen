@@ -19,6 +19,9 @@ import { FIERLJEP } from './pg_fierljep.js';
 import { SKUTSJE } from './pg_skutsje.js';
 import { FJORD, fjordSave, applyFjordSave, fjordUpgradeOffers } from './pg_foodtruck.js';
 import { PG_PRIZE, FJORD_DAY_PAY, FJORD_DAY_HOUR } from './economy.js';
+import { getOwnedEntries, spawnOwnedEntry } from './shops.js';
+import { findParkingSpot } from './ownedvehicles.js';
+import { Vehicle } from './vehicle.js';
 
 // The post-game: once the story's ending card has played (story.js, read
 // only), Jelle Terpstra challenges Tammo and Anita to three replayable duels
@@ -58,7 +61,7 @@ let sub = null;
 let beam = null;
 
 function freshState() {
-  return { v: 1, invited: false, seen: [], fjord: null };
+  return { v: 1, invited: false, seen: [], fjord: null, revealed: false, guideOff: false, guideHinted: false };
 }
 
 export function isPostgameOpen() {
@@ -462,7 +465,8 @@ function updateSub(dt) {
 function invite() {
   if (state.invited || isCinematicActive() || !world.phoneNotifications) return;
   state.invited = true;
-  startCall(world, { from: JELLE, lines: INVITE_CALL });
+  // after the reveal they're sitting in the truck: no "it's in the garage"
+  startCall(world, { from: JELLE, lines: state.revealed ? INVITE_CALL.slice(0, 1) : INVITE_CALL });
 }
 
 // Jelle rings after the ending (phonefeed.js startCall; voiced, lines manifest)
@@ -483,6 +487,195 @@ function dayWage(w) {
   if (w.phoneNotifications) w.phoneNotifications.push({ from: 'Fjord Frituur', app: 'geld', text: `Goeiemorgen! Gisteren lekker gedraaid: €${FJORD_DAY_PAY} dagomzet op de rekening.`, duration: 6 });
 }
 
+// --- automatic route after the ending ------------------------------------------------
+// Like story.js's world.storyGuide during the story: routing.js follows
+// world.postgameGuide when there's no waypoint, mission or side job. It
+// points at the nearest challenge without a medal (then without gold); in
+// the Fjord Frituur its own spots come first. The map's route line has
+// "Volgende" (next activity) and "Uit"; Ubbo in the phone turns it back on.
+
+const isTruckV = (v) => !!(v && FJORD.vehicle(v));
+let guideSkip = new Set();
+let guideT = 0;
+
+function medalOf(id) {
+  const rec = getChallengeRecord(id);
+  return rec && rec.medal ? rec.medal : 0;
+}
+
+function ownTruck(w) {
+  const o = getOwnedEntries().find((e) => e.key === 'fjordfrituur');
+  return o && o.v && !o.lost && w.vehicles.includes(o.v) && !o.v.wrecked ? o.v : null;
+}
+
+function guideCandidates(w) {
+  const p = w.player;
+  const inTruck = isTruckV(p.inVehicle);
+  const out = [];
+  for (const def of CHALLENGES) {
+    const medal = medalOf(def.id);
+    if (medal >= 3) continue;
+    let best = null, bd = Infinity;
+    if (def.id === 'fjord' && !inTruck) {
+      const t = ownTruck(w);
+      if (t) { best = { x: t.x, y: t.y, name: 'Jouw Fjord Frituur' }; bd = Math.hypot(t.x - p.x, t.y - p.y); }
+    } else {
+      for (const s of spots || []) {
+        if (s.def !== def) continue;
+        const d = Math.hypot(s.x - p.x, s.y - p.y);
+        if (d < bd) { bd = d; best = { x: s.x, y: s.y, name: s.name }; }
+      }
+    }
+    if (!best) continue;
+    const tier = def.id === 'fjord' && inTruck ? -1 : medal ? 1 : 0;
+    out.push({ ...best, id: def.id, medal, rank: tier * 1e6 + bd });
+  }
+  return out.sort((a, b) => a.rank - b.rank);
+}
+
+function pickGuide(w) {
+  if (!open || !spots || run || state.guideOff || !(state.revealed || state.invited)) return null;
+  if (w.challenge || w.pigeonMode || w.heliRun || isMissionActive() || (w.sideJob && w.sideJob.active)) return null;
+  const list = guideCandidates(w);
+  if (!list.length) return null;
+  let pick = list.find((c) => !guideSkip.has(c.id));
+  if (!pick) { guideSkip = new Set(); pick = list[0]; }
+  return pick;
+}
+
+function updateGuide(dt, w) {
+  if ((guideT -= dt) > 0 && !(w.postgameGuide && (w.challenge || run))) return;
+  guideT = 1;
+  const g = pickGuide(w);
+  w.postgameGuide = g ? { x: g.x, y: g.y, name: g.name, id: g.id, pg: true } : null;
+  if (g && !state.guideHinted && !isCinematicActive() && w.phoneNotifications) {
+    state.guideHinted = true;
+    w.phoneNotifications.push({ from: 'GTE VI', text: 'Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart (M): Volgende of Uit; via Ubbo zet je hem weer aan.', duration: 8 });
+  }
+}
+
+// Map and phone controls for the post-game route.
+function guideNext() {
+  const g = world && world.postgameGuide;
+  if (g) guideSkip.add(g.id);
+  state.guideOff = false;
+  guideT = 0;
+  if (world) updateGuide(0, world);
+  return world && world.postgameGuide ? `Route naar ${world.postgameGuide.name}` : 'Geen uitdaging meer te gaan';
+}
+function guideOff() {
+  state.guideOff = true;
+  if (world) world.postgameGuide = null;
+  return 'Automatische route uit. Via Ubbo zet je hem weer aan';
+}
+function guideOn() {
+  state.guideOff = false;
+  guideT = 0;
+  if (world) updateGuide(0, world);
+  return world && world.postgameGuide ? `Route naar ${world.postgameGuide.name}` : 'Alles al goud!';
+}
+
+// --- the reveal: after the credits the Fjord Frituur comes out from under a sheet ------
+// story.js queues it behind the finale; when it ends (or is skipped) Anita
+// sits in the truck with the engine running and the route points at a spot.
+
+const REVEAL_LINES = [
+  { speaker: 'Rikus', text: "Van de beloning kwam de Fjord Frituur. Vier wielen, geen kenteken, en een rij tot aan d'Olle Grieze.", radio: true },
+  { speaker: 'Anita', text: 'Onze eigen Fjord Frituur. Met kenteken, deze keer.' },
+  // Tammo's deadpan verdict borrows the bubble recording
+  { speaker: 'Tammo', text: 'Kon minder.', voiceKey: '~m' },
+];
+
+function revealTruck(w) {
+  const p = w.player;
+  const spot = findParkingSpot(w, p.x, p.y, { name: 'foodtruck', len: 5.4, wid: 2.1 }, { outOfView: false, minDist: 5, maxDist: 45 })
+    || { x: p.x + 4, y: p.y + 3, angle: 0 };
+  const o = getOwnedEntries().find((e) => e.key === 'fjordfrituur');
+  let v = o ? spawnOwnedEntry(w, o, spot.x, spot.y, spot.angle || 0) : null;
+  if (!v) {
+    v = w.vehicles.find((x) => isTruckV(x) && !x.driver);
+    if (!v) {
+      v = new Vehicle(spot.x, spot.y, spot.angle || 0, { name: 'foodtruck', len: 5.4, wid: 2.1, maxSpeed: 34, accel: 6.5, brake: 14, turnRate: 2, color: '#2f6fb0' });
+      v.isFoodtruck = true;
+      v.playerOwned = true;
+      w.vehicles.push(v);
+    }
+    v.x = spot.x; v.y = spot.y; v.angle = spot.angle || 0;
+  }
+  v.speed = 0;
+  return v;
+}
+
+function buildSheet(v) {
+  const g = new THREE.Group();
+  const cloth = new THREE.Mesh(new THREE.BoxGeometry(5.8, 3.7, 2.5), new THREE.MeshLambertMaterial({ color: 0xd9d2c3 }));
+  cloth.position.y = 1.85;
+  g.add(cloth);
+  const band = new THREE.Mesh(new THREE.BoxGeometry(5.9, 0.35, 2.56), new THREE.MeshLambertMaterial({ color: 0xc8202a }));
+  band.position.y = 2.3;
+  g.add(band);
+  g.position.set(v.x, v.z || 0, v.y);
+  g.rotation.y = -(v.angle || 0);
+  return g;
+}
+
+export function queueFjordReveal(w = world) {
+  if (!w || state.revealed) return false;
+  let v = null, sheet = null, around = 0;
+  const lines = [];
+  let at = 1.2;
+  for (const l of REVEAL_LINES) {
+    const vo = lineVoiceFor(l.voiceKey || l.speaker, l.text);
+    const dur = Math.max(vo ? vo.dur + 0.3 : 0, 2.2, Math.min(6, 1 + l.text.length * 0.055));
+    lines.push({ speaker: l.speaker, text: l.text, at, dur, radio: !!l.radio, ...(vo && l.voiceKey ? { voice: vo.src } : {}) });
+    at += dur + 0.3;
+  }
+  // the sheet comes off just before Anita speaks
+  const liftAt = lines[1].at - 1.4;
+  const done = () => {
+    if (sheet) { sheet.removeFromParent(); sheet = null; }
+    state.revealed = true;
+    guideSkip = new Set();
+    guideT = 0;
+    const p = w.player;
+    if (!v || v.wrecked || w.challenge || w.pendingRespawn || p.inVehicle || w.pigeonMode) return;
+    const c = w.companion;
+    if (p.character !== 'anita' && c && c.character === 'anita') { c.character = p.character; p.character = 'anita'; }
+    p.x = v.x; p.y = v.y;
+    p.enterVehicle(v, w);
+  };
+  return playCinematic({
+    id: 'pg-reveal', priority: 2, duration: at + 0.6, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true,
+    kicker: 'Na de aftiteling', title: 'De Fjord Frituur', cardFor: 2.4, lines,
+    onStart: () => {
+      try {
+        v = revealTruck(w);
+        sheet = buildSheet(v);
+        getScene().add(sheet);
+        const p = w.player, c = w.companion;
+        // the two of them in front of the bonnet, facing the camera side
+        around = v.angle || 0;
+        if (!p.inVehicle) { p.x = v.x + Math.cos(around) * 4.2; p.y = v.y + Math.sin(around) * 4.2; }
+        if (c && !c.inVehicle) { c.x = p.x + Math.cos(around + 1.57) * 1.2; c.y = p.y + Math.sin(around + 1.57) * 1.2; }
+      } catch (e) { console.error('fjord reveal', e); }
+    },
+    onEnd: done,
+    shot: (u, t) => {
+      if (!v) return null;
+      if (sheet) {
+        // pulled up and off once Rikus has announced it
+        const k = Math.max(0, Math.min(1, (t - liftAt) / 1.4));
+        sheet.position.y = (v.z || 0) + k * k * 5.5;
+        sheet.rotation.z = k * 0.9;
+        sheet.visible = k < 1;
+      }
+      // along the street (in front of the truck), not into the houses beside it
+      const a = around + 0.35 - u * 0.5, r = 12 - u * 3.5;
+      return { position: { x: v.x + Math.cos(a) * r, y: v.y + Math.sin(a) * r, z: 2.2 + (1 - u) * 1.4 }, lookAt: { x: v.x, y: v.y, z: 1.5 }, fov: 50 };
+    },
+  });
+}
+
 export function updatePostgame(dt, w) {
   world = w;
   if ((openCheckT -= dt) <= 0) {
@@ -499,6 +692,7 @@ export function updatePostgame(dt, w) {
   }
   updateSub(dt);
   dayWage(w);
+  updateGuide(dt, w);
   for (const d of CHALLENGES) if (d.idle) d.idle(w, dt);
   if (beam && beam.visible) updateMissionMarker3D(beam, w.time, 'active');
   if (spots) {
@@ -536,7 +730,10 @@ export function updatePostgame(dt, w) {
 
 export function initPostgame(w) {
   world = w;
-  w.postgameActions = { offers: postgameOffers, upgrades: () => (open ? fjordUpgradeOffers(world) : []), active: () => (run ? run.def.name : ''), stop: () => abortChallenge('Uitdaging gestopt') };
+  w.postgameActions = {
+    offers: postgameOffers, upgrades: () => (open ? fjordUpgradeOffers(world) : []), active: () => (run ? run.def.name : ''), stop: () => abortChallenge('Uitdaging gestopt'),
+    guide: { next: guideNext, off: guideOff, on: guideOn, isOff: () => state.guideOff },
+  };
   w.onRespawn.push((ww, { busted }) => {
     if (run) finish(run, { success: false, medal: 0, reason: busted ? 'Opgepakt: de uitdaging is voorbij' : 'Je bent dood: de uitdaging is voorbij', stats: [] });
   });
@@ -575,6 +772,9 @@ export function applyPostgameSave(d) {
   if (d && typeof d === 'object' && d.v === 1) {
     state.invited = !!d.invited;
     state.seen = Array.isArray(d.seen) ? d.seen.filter((id) => BY_ID.has(id)) : [];
+    state.revealed = !!d.revealed;
+    state.guideOff = !!d.guideOff;
+    state.guideHinted = !!d.guideHinted;
   }
   applyFjordSave(d && d.fjord);
   if (run) stopRun();
@@ -602,4 +802,9 @@ const debugApi = {
   record: (id) => getChallengeRecord(id),
   stat: (k, n) => recordStat(world, k, n),
   save: getPostgameSave,
+  guide: () => (world ? world.postgameGuide : null),
+  guideNext: () => guideNext(),
+  guideOff: () => guideOff(),
+  guideOn: () => guideOn(),
+  reveal: () => queueFjordReveal(world),
 };

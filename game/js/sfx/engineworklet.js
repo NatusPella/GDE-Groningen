@@ -329,10 +329,26 @@ class RoadVoice {
   }
 }
 
+// A NaN target would poison the voice's state for good and, summed into the
+// master bus, silence the whole game: non-finite numbers are dropped.
+function assignFinite(dst, src) {
+  for (const k in src) {
+    const x = src[k];
+    if (typeof x !== 'number' || Number.isFinite(x)) dst[k] = x;
+  }
+}
+
+function finiteOut(out, n) {
+  for (const ch of out) for (let j = 0; j < n; j += 16) if (!Number.isFinite(ch[j])) return false;
+  for (const ch of out) if (!Number.isFinite(ch[n - 1])) return false;
+  return true;
+}
+
 class EngineProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     const o = options.processorOptions || {};
+    this.opts = o;
     this.voices = Array.from({ length: o.voices || 1 }, (_, i) => new EngineVoice(1234 + i * 7919, !!o.running, !!o.stereo));
     this.road = o.road ? new RoadVoice() : null;
     this.port.onmessage = (e) => this.onMsg(e.data);
@@ -345,10 +361,10 @@ class EngineProcessor extends AudioWorkletProcessor {
         const voice = this.voices[p.i];
         if (!voice) continue;
         voice.setKind(p.kind);
-        Object.assign(voice.t, p);
+        assignFinite(voice.t, p);
         if (p.snap) { voice.rpm = p.rpm; voice.load = p.load; voice.pitch = p.pitch || 1; }
       }
-      if (m.road && this.road) Object.assign(this.road.t, m.road);
+      if (m.road && this.road) assignFinite(this.road.t, m.road);
     } else if (m.type === 'start') {
       const voice = this.voices[m.i];
       if (voice) { voice.setKind(m.kind); voice.start(m.at || 0); }
@@ -365,11 +381,19 @@ class EngineProcessor extends AudioWorkletProcessor {
     const dtBlock = 128 / sampleRate;
     for (let i = 0; i < this.voices.length; i++) {
       const out = outputs[i];
-      if (out && out[0]) this.voices[i].render(out, out[0].length, dtBlock);
+      if (!out || !out[0]) continue;
+      this.voices[i].render(out, out[0].length, dtBlock);
+      if (!finiteOut(out, out[0].length)) {
+        for (const ch of out) ch.fill(0);
+        this.voices[i] = new EngineVoice(1234 + i * 7919, !!this.opts.running, !!this.opts.stereo);
+      }
     }
     if (this.road) {
       const out = outputs[this.voices.length] && outputs[this.voices.length][0];
-      if (out) this.road.render(out, out.length, dtBlock);
+      if (out) {
+        this.road.render(out, out.length, dtBlock);
+        if (!finiteOut([out], out.length)) { out.fill(0); this.road = new RoadVoice(); }
+      }
     }
     return true;
   }

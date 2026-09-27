@@ -6,7 +6,8 @@ import { isMapOpen } from './mapview.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
 import { startRespawnScene, respawnFade } from './respawn.js';
-import { playStoryVoice, setStoryScene } from './audio.js';
+import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
+import { isIntroPlaying } from './intromontage.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { lineVoiceFor } from './linevoice.js';
 
@@ -70,6 +71,7 @@ function gameStarted() {
 export function initCinematics(w) {
   world = w;
   if (els) return;
+  setStoryProbe(() => !!active || isIntroPlaying());
   const root = document.createElement('div');
   root.id = 'cine';
   root.setAttribute('aria-live', 'polite');
@@ -219,7 +221,7 @@ function begin(spec) {
   r.classList.add('active');
   // lines with a recording ({ voice }) are spoken as their subtitle comes up
   active.voiced = !!(active.lines && active.lines.some((l) => l.voice));
-  if (active.voiced) setStoryScene(true);
+  if (active.voiced) setStoryScene(true, 'cine');
   // a pausing cutscene brings the player's vehicle to a stop, so resuming
   // doesn't launch you onward at full speed - except the ones that ask to
   // keep the motion (the wijk flyover only plays at low speed anyway)
@@ -241,7 +243,7 @@ function finish(skipped, replaced = false) {
   r.dataset.tint = '';
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
-  if (a && a.voiced) setStoryScene(false);
+  if (a && a.voiced) setStoryScene(false, 'cine');
   try {
     if (a && a.onEnd) a.onEnd(skipped, replaced);
   } finally {

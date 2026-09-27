@@ -1335,7 +1335,7 @@ function updateHeader() {
   if (route) {
     // the primary route first, then the others; the care route can be dismissed
     const all = [route, ...getRoutes().filter((r) => r !== route).reverse()];
-    html = all.map((r) => `<span class="${r.kind}">${routeLabel(r)}: ${formatDistance(r.remaining)}${r.kind === 'care' ? '<button type="button" data-act="care-off" title="Roze route verbergen">Negeren</button>' : ''}</span>`).join('');
+    html = all.map((r) => `<span class="${r.kind}">${routeLabel(r)}: ${formatDistance(r.remaining)}${r.kind === 'care' ? '<button type="button" data-act="care-off" title="Roze route verbergen">Negeren</button>' : ''}${r.target && r.target.pg ? '<button type="button" data-act="pg-next" title="Route naar de volgende uitdaging">Volgende</button><button type="button" data-act="pg-off" title="Automatische route uitzetten">Uit</button>' : ''}</span>`).join('');
   }
   if (html !== state.routeHtml) {
     state.routeHtml = html;
@@ -1441,6 +1441,10 @@ export function initMapView(world) {
     if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
     else if (act === 'clear') clearUserWaypoint();
     else if (act === 'care-off') dismissCareRoute();
+    else if ((act === 'pg-next' || act === 'pg-off') && world.postgameActions) {
+      const g = world.postgameActions.guide;
+      world.addMessage(act === 'pg-next' ? g.next() : g.off(), 3);
+    }
     else if (act === 'in') zoomAt(1.6, state.cw / 2, state.ch / 2);
     else if (act === 'out') zoomAt(1 / 1.6, state.cw / 2, state.ch / 2);
   });
