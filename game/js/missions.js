@@ -26,6 +26,7 @@ import { setMuseumCaseStolen } from './museum3d.js';
 import { startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, heistStageChanged, disposeHeist } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { addDrunk } from './drunk.js';
 
 const TRIGGER_RADIUS = 4;
 const CHECKPOINT_RADIUS = 6;
@@ -154,6 +155,7 @@ function buildDefs(world) {
       checkpointBonus: 22,
       reward: 600,
       onFoot: true,
+      drunk: 0.2, // per pub, drunk.js
       crowds: [walk(279, 124), walk(392, 122), walk(412, 186), walk(378, 222), walk(240, 132)],
       start: walk(250, 115),
       waypoints: [
@@ -1548,6 +1550,7 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   const wp = def.waypoints[chain.wpIndex];
   chain.wpIndex++;
   if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
+  if (def.drunk && wp.name) addDrunk(world, def.drunk);
   if (chain.wpIndex >= def.waypoints.length) {
     if (chain.race) {
       const { position, total } = raceStandings(chain.race);

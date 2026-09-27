@@ -55,6 +55,7 @@ import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
+import { updateDrunk } from './drunk.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -333,6 +334,7 @@ async function boot() {
       updateCombat(dt, world);
       updateBullets(dt, world);
     }
+    updateDrunk(dt, world);
     probe.mark('combat');
     updatePedestrians(dt, world);
     probe.mark('peds');
