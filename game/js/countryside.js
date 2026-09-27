@@ -1,3 +1,4 @@
+import { markInstancesDirty } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { createTerrainMaterial } from './terrain3d.js';
 import {
@@ -905,8 +906,8 @@ function repack(px, py) {
   for (const k in S.pools) {
     const pool = S.pools[k];
     pool.count = counts[k];
-    pool.instanceMatrix.needsUpdate = true;
-    pool.instanceColor.needsUpdate = true;
+    markInstancesDirty(pool.instanceMatrix, counts[k]);
+    markInstancesDirty(pool.instanceColor, counts[k]);
   }
 }
 
@@ -1181,8 +1182,8 @@ function updateAnimals(dt, world, time, simulate) {
     }
     for (const [key, pool] of S.herdPools) {
       pool.count = counts.get(key) || 0;
-      pool.instanceMatrix.needsUpdate = true;
-      pool.instanceColor.needsUpdate = true;
+      markInstancesDirty(pool.instanceMatrix, pool.count);
+      markInstancesDirty(pool.instanceColor, pool.count);
     }
   }
 
@@ -1199,7 +1200,7 @@ function updateAnimals(dt, world, time, simulate) {
     n++;
   }
   S.blobs.count = n;
-  S.blobs.instanceMatrix.needsUpdate = true;
+  markInstancesDirty(S.blobs.instanceMatrix, n);
 
   // ambience.js picks moos/bleats from world.countryAudible: keep it to the
   // two nearest cows and one sheep so it stays an occasional, distant sound

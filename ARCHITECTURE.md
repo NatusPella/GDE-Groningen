@@ -337,12 +337,20 @@ don't collide, and actors are drawn at their height.
 - Streaming is budgeted: new vehicle meshes (3 ms, one per frame beyond
   45 m), street-prop cells (one generate or build per frame), grass chunks.
   Particle pools only upload their buffers while something is alive.
+- No CSS `filter` or `mix-blend-mode` over the canvas: screen-wide tints
+  (death, bust, slow motion) and the trailer's cut flashes are uniforms in
+  the last post pass (`postfx3d.js` `screenFx`, `flashScreen`); only 'laag'
+  on a natively antialiased canvas has no pass and falls back to CSS
+  (body without `gpu-screenfx`). The trailer look runs in the grade pass
+  only.
+- Instanced pools (country props, herds, grass, birds) upload only their
+  used instances (`markInstancesDirty` in util.js), not the whole capacity.
 - `?hitch` (desktop: `--hitch`) enables `hitchprobe.js`: per-section frame
   timings, time spent in blocking GL calls, new shader programs and their
   owners, large buffer uploads; read `window.__hitch.summary()`. The desktop
   app's `--perf-script=<file>` runs a script in the page after starting a
   game and logs its result; `console.log('[capture] name')` from it saves a
-  screenshot. `--bench-eval=<file>` runs a script as soon as the page loads
+  screenshot. `--bench-eval=<file>` runs a script every time the page loads
   (e.g. a tracker that tags every geometry/texture with its creation stack).
 - GPU memory stays flat: streamed-out actors free their geometry, materials
   and skeletons (bone textures) in `disposeObject`; warm-up stand-ins of a

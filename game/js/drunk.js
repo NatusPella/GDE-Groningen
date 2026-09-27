@@ -139,7 +139,9 @@ export function applyDrunkCamera(cam) {
 }
 
 // Warm vignette as a DOM overlay: works on every quality preset for the
-// price of one composited layer.
+// price of one composited layer. Plain alpha blending (a blend mode would
+// make the compositor read the canvas back every frame) and no layer at all
+// while sober.
 function updateVignette() {
   const k = current;
   if (!st.vig) {
@@ -148,7 +150,7 @@ function updateVignette() {
     el.className = 'drunk-vignette';
     el.setAttribute('aria-hidden', 'true');
     el.style.cssText = 'position:fixed;inset:0;pointer-events:none;opacity:0;'
-      + 'background:radial-gradient(ellipse at center, rgba(255,170,80,0) 45%, rgba(170,70,20,0.55) 100%);mix-blend-mode:multiply;';
+      + 'background:radial-gradient(ellipse at center, rgba(90,34,8,0) 45%, rgba(90,34,8,0.5) 100%);display:none;';
     // right above the 3D canvas, under the HUD
     const canvas = document.getElementById('game3d');
     if (canvas) canvas.after(el); else document.body.appendChild(el);
@@ -157,5 +159,8 @@ function updateVignette() {
   const hide = document.body.classList.contains('pigeon-mode');
   const o = hide ? 0 : Math.min(0.9, k * 0.9);
   const s = o.toFixed(2);
-  if (st.vig.style.opacity !== s) st.vig.style.opacity = s;
+  if (st.vig.style.opacity !== s) {
+    st.vig.style.opacity = s;
+    st.vig.style.display = o > 0 ? '' : 'none';
+  }
 }

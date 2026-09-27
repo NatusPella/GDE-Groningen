@@ -1,4 +1,11 @@
 import { waterClearance } from './waterindex.js';
+// Uploads only the first `count` instances of an instanced attribute: a
+// pool sized for thousands would otherwise send its whole array each time.
+export function markInstancesDirty(attr, count) {
+  attr.clearUpdateRanges();
+  if (count > 0) attr.addUpdateRange(0, count * attr.itemSize);
+  attr.needsUpdate = count > 0;
+}
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export const lerp = (a, b, t) => a + (b - a) * t;
 export const dist = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
