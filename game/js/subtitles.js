@@ -49,6 +49,15 @@ export const FY = {
   'Moai.': 'Mooi.',
   'Moai!': 'Mooi!',
   'MOAI!': 'MOOI!',
+  // Jelle's livestream, calls, posts and cards (storyarc.js contact, storycontact.js)
+  'Moai, Grinzers! Hier is Jelle. Jelle Terpstra, van Us Mem Snacks.': 'Mooi, Groningers! Hier is Jelle. Jelle Terpstra, van Us Mem Snacks.',
+  'Zoeken jullie je Gouden Eierbal? Sjoch ris wat ik hier heb.': 'Zoeken jullie je Gouden Eierbal? Kijk eens wat ik hier heb.',
+  'Zwaaien, jongens. Oant sjen op Gronings Ontzet!': 'Zwaaien, jongens. Tot ziens op Gronings Ontzet!',
+  'Moai, Grinzer. Hier is Jelle. Wij moeten eens hardrijden, op jullie ringweg.': 'Mooi, Groninger. Hier is Jelle. Wij moeten eens hardrijden, op jullie ringweg.',
+  'Met een eigen auto, hear. As dat jild der is.': 'Met een eigen auto, hoor. Als dat geld er is.',
+  'Wie heeft mijn flagge…? In DUIF?! Ik weet wel wie die duif is.': 'Wie heeft mijn vlag…? Een DUIF?! Ik weet wel wie die duif is.',
+  'Moai, Grinzers. Kom naar het Stadsbalkon. Ik heb een bod voor jullie.': 'Mooi, Groningers. Kom naar het Stadsbalkon. Ik heb een bod voor jullie.',
+  'Moai, Grinzers! Kijk eens omhoog. Wat een aardich tuorke, no.': 'Mooi, Groningers! Kijk eens omhoog. Wat een aardig torentje, nu.',
   // phone and Sikkom feed (storyarc.js, phone.js, postgame.js)
   'Moai, Grinzers! Hier is Jelle. Operaasje Aaibal is begonnen. Oant sjen op Gronings Ontzet!': 'Mooi, Groningers! Hier is Jelle. Operatie Eierbal is begonnen. Tot ziens op Gronings Ontzet!',
   'Dat vet was van mij! No ja. Ik heb meer. Operaasje Aaibal gaat gewoon door, Grinzers.': 'Dat vet was van mij! Nou ja. Ik heb meer. Operatie Eierbal gaat gewoon door, Groningers.',
