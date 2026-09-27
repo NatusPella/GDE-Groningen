@@ -566,7 +566,7 @@ function markWijk(p) {
 }
 
 function busyWithJob(w) {
-  return !!((w.mission && w.mission.phase === 'active') || (w.sideJob && w.sideJob.active));
+  return !!((w.mission && w.mission.phase === 'active') || (w.sideJob && w.sideJob.active) || w.challenge);
 }
 
 function checkWijk(dt, w) {

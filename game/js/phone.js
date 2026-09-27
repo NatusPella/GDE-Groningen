@@ -120,6 +120,20 @@ function garageTalk(w) {
 }
 
 function jelleTalk() {
+  // after the story (postgame.js): the friendly rival wants a rematch
+  const pg = world && world.postgame && world.postgameActions;
+  if (pg) {
+    const offers = pg.offers().filter((o) => o.id !== 'fjord').sort((a, b) => a.dist - b.dist);
+    const o = offers[0];
+    return {
+      line: pick([
+        'Moai, Grinzers! Revanche? Alve brêgen, in fierljep of in skûtsje. Kies mar.',
+        'Ik ha oefene, hear. Dit kear win ik. Wis en wrachtich.',
+        'Myn mem seit: Jelle, lit dy Grinzers mar winne. Mar myn mem is net hjir.',
+      ]),
+      actions: o ? [{ label: `${o.name} op kaart`, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`${o.name} staat op je kaart`); } }] : [],
+    };
+  }
   return {
     line: pick([
       'Moai! Jimme hawwe myn kaartsje fûn? Tige tank foar it wachtsjen.',
@@ -332,6 +346,15 @@ function ubboRows() {
   const offers = getSideJobOffers(world);
   const active = offers.find((o) => o.active);
   if (active) rows.push({ quit: true, name: 'Dienst stoppen', sub: `Nu bezig: ${active.name}`, run: () => { quitSideJob(); flashAndClose('Dienst gestopt. Ubbo geeft je een sterretje minder'); } });
+  const pg = world.postgameActions;
+  if (pg && world.postgame) {
+    for (const o of pg.offers()) {
+      rows.push({ name: o.name, sub: `${o.blurb} · ${fmtDist(o.dist)}${o.medal ? ` · ${o.medal.toLowerCase()}` : ''}`, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`Route naar ${o.where}`); } });
+    }
+    for (const u of pg.upgrades()) {
+      rows.push({ name: `Fjord Frituur: ${u.name}`, sub: u.owned ? `${u.blurb} · gekocht` : `${u.blurb} · €${u.price}`, run: () => flashAndClose(u.buy()) });
+    }
+  }
   for (const o of offers) {
     rows.push({
       ...o, sub: `${o.blurb} · ${fmtDist(o.dist)}`,

@@ -285,6 +285,8 @@ const PLAYER_STEER_RETURN = 9;
 // The city bus is heavy for the player: slow to pull away, long to stop.
 function playerTune(v) {
   const m = v.model;
+  // v.sailTop: a sailing boat's top speed from the wind (postgame skûtsje-sprint)
+  if (v.isBoat && v.sailTop != null) return { top: v.sailTop, accel: m.accel, brake: m.brake };
   if (v.isBoat) return { top: Math.max(m.maxSpeed, 9.5), accel: Math.max(m.accel, 3.2), brake: Math.max(m.brake, 3.8) };
   if (v.isBus) return { top: 21, accel: 2.4, brake: 5 };
   // shop upgrades scale the two-wheelers' player tuning too

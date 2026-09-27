@@ -7,6 +7,7 @@ import { getAchievementSaveData, applyAchievementSaveData } from './achievements
 import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 import { getStorySave, applyStorySave } from './story.js';
+import { getPostgameSave, applyPostgameSave } from './postgame.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
@@ -78,6 +79,7 @@ function serialize(w) {
     prestaties: getAchievementSaveData(),
     duif: getPigeonSaveData(),
     bijbaan: getSideJobSave(),
+    postgame: getPostgameSave(),
   };
 }
 
@@ -106,7 +108,7 @@ function stateSignature(w) {
     const sh = getShopSave();
     const vehicles = (sh.vehicles || []).map((o) => [o.key, o.color, o.upgrades, !!o.lost]);
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
-      getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(),
+      getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(),
       w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone]);
   } catch (e) {
     return lastSig;
@@ -184,6 +186,7 @@ export function applySave(w, d) {
     applyAchievementSaveData(d.prestaties);
     applyPigeonSaveData(d.duif);
     applySideJobSave(w, d.bijbaan);
+    applyPostgameSave(d.postgame);
     w.loadedFromSave = true;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
     lastMissionsDone = w.stats.missionsDone;

@@ -5,6 +5,7 @@ import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES } from '.
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon } from './helirun.js';
+import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
 import { vehicleDisplayName } from './vehiclenames.js';
@@ -461,7 +462,7 @@ function setRaceRow(k, text, cls = '') {
 
 function updateRaceHud(world) {
   const m = world.mission;
-  const r = m && m.phase === 'active' && !(world.sideJob && world.sideJob.active) ? m.raceHud : null;
+  const r = (m && m.phase === 'active' && !(world.sideJob && world.sideJob.active) ? m.raceHud : null) || world.challengeHud || null;
   els.race.hidden = !r;
   if (!r) return;
   els.racePos.hidden = !r.pos;
@@ -780,6 +781,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       if (kind.startsWith('shop-')) drawShopMapIcon(ctx, kind.slice(5), s);
       else if (kind === 'pigeon') drawPigeonMapIcon(ctx, s);
       else if (kind === 'heli') drawHeliMapIcon(ctx, s);
+      else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
   }
@@ -947,6 +949,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   if (inVehicle) add('flitspaal', world.flitspaalen || [], 'flitspaal', 2);
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
   add('heli', getHeliSpotsForRender(), 'heli', 1, MM_POI_FAR_M);
+  add('postgame', getPostgameSpotsForRender(), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
   add('horeca', getHorecaForRender(), 'horeca', 1);
   add('landmark', world.map.meta.landmarks || [], 'landmark', 2);
 
@@ -1073,6 +1076,12 @@ function drawMinimap(dt, world) {
   if (job) {
     for (const d of job.dots) icon('sj-dot', d.x, d.y);
     if (job.marker && !icon('sj-target', job.marker.x, job.marker.y)) jobEdge = edgeAngle(job.marker.x, job.marker.y);
+  }
+  // a post-game challenge's next checkpoint (postgame.js)
+  const ct = !job && world.challengeTarget;
+  if (ct) {
+    if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), MM_ICON);
+    if (!icon('sj-target', ct.x, ct.y)) jobEdge = edgeAngle(ct.x, ct.y);
   }
   if (showMission) {
     const wps = m.phase === 'active' ? m.remainingWaypoints || [] : [];
