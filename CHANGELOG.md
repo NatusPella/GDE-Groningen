@@ -6,6 +6,23 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-27
+
+### Nieuw
+- **De Museumkraak is een echte kraak**: sluip langs bewakers met
+  zaklampen en draaiende camera's (bukken helpt), zet met een timing-spelletje
+  de stoppenkast uit, en ontdek de lege vitrine met het kaartje van Jelle.
+  Word je gezien, dan begin je dat stukje opnieuw; na drie keer leidt
+  Tammo iedereen af.
+- **Waar is de Fjord?** met een echte goederentrein: je gestolen Fjord rijdt
+  een autowagon op. Ram hem op tijd tot stilstand, of ga bij de overweg aan
+  de Peizerweg staan zodat de machinist moet stoppen.
+- Jelle's ontsnappingen gebruiken nu de echte fierljep-sprong over het water.
+
+### Opgelost
+- Auto's maken geen sprongen meer over toppen en opritten van de ringweg, en
+  springen niet meer naar een andere rijbaan waar wegen over elkaar lopen.
+
 ## [0.10.1] - 2026-09-27
 
 ### Opgelost
