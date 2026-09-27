@@ -107,6 +107,10 @@
 "src": "anita/even_stilstaan_702a7033.mp3",
 "dur": 1.11
 },
+"Anita|Eén schroefje te weinig. Ach, een kauwgompje houdt ook.": {
+"src": "anita/ee_n_schroefje_te_weinig_ach_een_163ad30b.mp3",
+"dur": 4.85
+},
 "Anita|Gas eraf! De toeristen willen het verhaal horen.": {
 "src": "anita/gas_eraf_de_toeristen_willen_het_fdbcd6fe.mp3",
 "dur": 2.77
@@ -191,6 +195,10 @@
 "src": "anita/label_erop_busje_in_50eec318.mp3",
 "dur": 1.69
 },
+"Anita|Lekker lichtje. Nu is het echt gezellig.": {
+"src": "anita/lekker_lichtje_nu_is_het_echt_ge_56a55bf3.mp3",
+"dur": 2.1
+},
 "Anita|Met de auto, hè. Die hoort erbij.": {
 "src": "anita/met_de_auto_he_die_hoort_erbij_c947c0e4.mp3",
 "dur": 2.09
@@ -255,6 +263,10 @@
 "src": "anita/snel_naar_de_overweg_aan_de_peiz_4eabeb5a.mp3",
 "dur": 4.76
 },
+"Anita|Stekkies verkocht aan de buren. Groene vingers, groen geld.": {
+"src": "anita/stekkies_verkocht_aan_de_buren_g_6b6a8b23.mp3",
+"dur": 4.04
+},
 "Anita|Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!": {
 "src": "anita/te_laat_de_fjord_staat_al_op_de__b849d0b2.mp3",
 "dur": 3.45
@@ -295,6 +307,10 @@
 "src": "anita/voor_op_schema_de_passagiers_kla_fcda8867.mp3",
 "dur": 3.89
 },
+"Anita|Wat een bed. Hier kom ik nooit meer uit.": {
+"src": "anita/wat_een_bed_hier_kom_ik_nooit_me_312ce76b.mp3",
+"dur": 3.31
+},
 "Anita|Weer eentje het depot in.": {
 "src": "anita/weer_eentje_het_depot_in_91d10d5f.mp3",
 "dur": 2.06
@@ -302,6 +318,10 @@
 "Anita|Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.": {
 "src": "anita/ze_rijden_de_fjord_zo_de_goedere_5cf4ce50.mp3",
 "dur": 5.82
+},
+"Anita|Zitmoi. Nu snap ik waarom ze hem zo noemen.": {
+"src": "anita/zitmoi_nu_snap_ik_waarom_ze_hem__e2e3fc9b.mp3",
+"dur": 3.52
 },
 "Tammo|Aangekomen! Sjouw alles uit het busje naar de voordeur.": {
 "src": "tammo/aangekomen_sjouw_alles_uit_het_b_5fb1e016.mp3",
@@ -407,6 +427,10 @@
 "src": "tammo/even_stilstaan_c24209f3.mp3",
 "dur": 1.07
 },
+"Tammo|Eén schroefje te weinig. Ach, een kauwgompje houdt ook.": {
+"src": "tammo/ee_n_schroefje_te_weinig_ach_een_c581b3b1.mp3",
+"dur": 3.58
+},
 "Tammo|Gas eraf! De toeristen willen het verhaal horen.": {
 "src": "tammo/gas_eraf_de_toeristen_willen_het_57bcefeb.mp3",
 "dur": 3.4
@@ -495,6 +519,10 @@
 "src": "tammo/label_erop_busje_in_a0a39420.mp3",
 "dur": 2.21
 },
+"Tammo|Lekker lichtje. Nu is het echt gezellig.": {
+"src": "tammo/lekker_lichtje_nu_is_het_echt_ge_c5f8c908.mp3",
+"dur": 2.61
+},
 "Tammo|Met de auto, hè. Die hoort erbij.": {
 "src": "tammo/met_de_auto_he_die_hoort_erbij_c18b6f52.mp3",
 "dur": 1.9
@@ -559,6 +587,10 @@
 "src": "tammo/snel_naar_de_overweg_aan_de_peiz_7a5a2509.mp3",
 "dur": 5.07
 },
+"Tammo|Stekkies verkocht aan de buren. Groene vingers, groen geld.": {
+"src": "tammo/stekkies_verkocht_aan_de_buren_g_686d2c65.mp3",
+"dur": 3.78
+},
 "Tammo|Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!": {
 "src": "tammo/te_laat_de_fjord_staat_al_op_de__fa011930.mp3",
 "dur": 3.24
@@ -599,6 +631,10 @@
 "src": "tammo/voor_op_schema_de_passagiers_kla_03675990.mp3",
 "dur": 4.24
 },
+"Tammo|Wat een bed. Hier kom ik nooit meer uit.": {
+"src": "tammo/wat_een_bed_hier_kom_ik_nooit_me_47767eea.mp3",
+"dur": 3.15
+},
 "Tammo|Weer eentje het depot in.": {
 "src": "tammo/weer_eentje_het_depot_in_d2acfe2d.mp3",
 "dur": 1.55
@@ -606,5 +642,9 @@
 "Tammo|Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.": {
 "src": "tammo/ze_rijden_de_fjord_zo_de_goedere_1679eb24.mp3",
 "dur": 4.65
+},
+"Tammo|Zitmoi. Nu snap ik waarom ze hem zo noemen.": {
+"src": "tammo/zitmoi_nu_snap_ik_waarom_ze_hem__91f00cbf.mp3",
+"dur": 2.56
 }
 }

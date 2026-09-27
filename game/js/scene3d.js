@@ -1932,6 +1932,7 @@ export function update3D(dt, world) {
       playerMesh.userData.crouch = !!player.crouching;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
+      if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
       if (player.carrying) carryOverlay(playerMesh);
       const gun = isRangedWeapon(world.weapon) && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
       const aiming = gun && !world.paused && (world.input.mouse.down || world.input.mouse.rightDown) ? gun : null;
@@ -1979,6 +1980,7 @@ export function update3D(dt, world) {
         companionMesh.rotation.y = -comp.angle;
         companionMesh.userData.crouch = !!comp.crouching;
         animatePersonWalk(companionMesh, Math.hypot(comp.vx, comp.vy), animDt);
+        if (comp.sofaSeat != null) { seatPose(companionMesh); companionMesh.position.y = seatedY(companionMesh, (comp.gz || 0) + comp.sofaSeat); }
         if (comp.carrying) carryOverlay(companionMesh);
       }
     }

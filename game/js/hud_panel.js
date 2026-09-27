@@ -724,6 +724,14 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fill();
       break;
     }
+    case 'eierbalTip': {
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.2 * s, 0, Math.PI * 2);
+      ctx.fillStyle = '#b06a28';
+      ctx.fill();
+      outline(ctx, s, C.yellow, 1.6);
+      break;
+    }
     case 'waypoint': {
       ctx.beginPath();
       ctx.arc(0, 0, 2.4 * s, 0, Math.PI * 2);

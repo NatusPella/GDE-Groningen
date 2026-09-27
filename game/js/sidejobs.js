@@ -32,6 +32,7 @@ import rondvaarttour from './sidejob_rondvaarttour.js';
 import fietsdepot from './sidejob_fietsdepot.js';
 import verhuizing from './sidejob_verhuizing.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
+import { furnitureJobBonus } from './furniture.js';
 
 export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
@@ -220,7 +221,7 @@ function introLines(job) {
 function payFor(c, base) {
   const lvlMul = SIDEJOB_PAY_MULT * (1 + SIDEJOB_LEVEL_BONUS * (c.level - 1));
   const streakMul = 1 + 0.06 * Math.min(c.streak, 10);
-  return Math.max(1, Math.round(base * lvlMul * streakMul));
+  return Math.max(1, Math.round(base * lvlMul * streakMul * furnitureJobBonus()));
 }
 
 function completeRound(c, res = {}) {

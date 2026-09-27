@@ -61,4 +61,9 @@ export const COMPANION_CARDS = [
   'Nait nou, die meeuw kiekt mit!',
   'Een meeuw! Hij wil je patat!',
   'Boink! Die meeuw spreekt Fries.',
+  'Zitmoi. Nu snap ik waarom ze hem zo noemen.',
+  'Eén schroefje te weinig. Ach, een kauwgompje houdt ook.',
+  'Lekker lichtje. Nu is het echt gezellig.',
+  'Wat een bed. Hier kom ik nooit meer uit.',
+  'Stekkies verkocht aan de buren. Groene vingers, groen geld.',
 ];

@@ -10,6 +10,7 @@ import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 import { getStorySave, applyStorySave } from './story.js';
 import { getPostgameSave, applyPostgameSave } from './postgame.js';
 import { applyHomeOnLoad, homeSaveContext } from './home.js';
+import { getFurnitureSave, applyFurnitureSave } from './furniture.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
@@ -113,6 +114,7 @@ function serialize(w) {
     duif: getPigeonSaveData(),
     bijbaan: getSideJobSave(),
     postgame: getPostgameSave(),
+    meubels: getFurnitureSave(),
   };
 }
 
@@ -141,7 +143,7 @@ function stateSignature(w) {
     const sh = getShopSave();
     const vehicles = (sh.vehicles || []).map((o) => [o.key, o.color, o.upgrades, !!o.lost]);
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
-      getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(),
+      getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(), getFurnitureSave(),
       w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone]);
   } catch (e) {
     return lastSig;
@@ -222,6 +224,7 @@ export function applySave(w, d) {
     applyPigeonSaveData(d.duif);
     applySideJobSave(w, d.bijbaan);
     applyPostgameSave(d.postgame);
+    applyFurnitureSave(d.meubels);
     applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
