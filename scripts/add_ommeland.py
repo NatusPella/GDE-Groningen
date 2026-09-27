@@ -49,7 +49,7 @@ PLACE_R = {"town": 650, "village": 300, "hamlet": 140, "suburb": 320, "quarter":
 # (route, base route for the city part, splice after this stop, via, stop at, far end)
 ROUTE_EXT = [
     ("Stoptrein Roodeschool", "Stoptrein Roodeschool", "Groningen Noord", [], ["Sauwerd", "Winsum"], "Roodeschool"),
-    ("Stoptrein Delfzijl", "Stoptrein Roodeschool", "Groningen Noord", [], ["Bedum"], "Delfzijl"),
+    ("Stoptrein Delfzijl", "Stoptrein Roodeschool", "Groningen Noord", [], ["Bedum", "Stedum", "Loppersum"], "Delfzijl"),
     ("Stoptrein Leeuwarden", "Stoptrein Leeuwarden", "Groningen Hoofdstation", [], ["Zuidhorn"], "Leeuwarden"),
     ("Intercity Zwolle", "Intercity Zwolle", "Groningen Europapark", ["Haren"], [], "Zwolle"),
     ("Stoptrein Assen", "Intercity Zwolle", "Groningen Europapark", [], ["Haren"], "Assen"),
@@ -483,13 +483,15 @@ def extend_routes(city, rail_ways, proj, stations, ext):
     def near_nodes(x, y, r):
         return [q for q, p in pos.items() if abs(p[0] - x) < r and abs(p[1] - y) < r and math.hypot(p[0] - x, p[1] - y) < r]
 
+    max_turn = [math.cos(math.radians(50))]
+
     def turn_ok(a, b, c):
         ux, uy = pos[b][0] - pos[a][0], pos[b][1] - pos[a][1]
         vx, vy = pos[c][0] - pos[b][0], pos[c][1] - pos[b][1]
         lu, lv = math.hypot(ux, uy), math.hypot(vx, vy)
         if lu < 1e-6 or lv < 1e-6:
             return True
-        return (ux * vx + uy * vy) / (lu * lv) > math.cos(math.radians(50))
+        return (ux * vx + uy * vy) / (lu * lv) > max_turn[0]
 
     def dijkstra(start_states, goals):
         dist = {}
@@ -565,13 +567,21 @@ def extend_routes(city, rail_ways, proj, stations, ext):
             print(f"  {name}: no track at the splice point")
             continue
         path = None
+        reached = []
         for target in via + stop_at:
             tx, ty = st_xy[target]
             goals = set(near_nodes(tx, ty, 60))
-            seg = dijkstra(starts if path is None else [(path[-1], path[-2])], goals)
+            st0 = starts if path is None else [(path[-1], path[-2])]
+            seg = dijkstra(st0, goals)
+            if not seg:
+                # sharp switches: try once more with a looser turn limit
+                max_turn[0] = math.cos(math.radians(80))
+                seg = dijkstra(st0, goals)
+                max_turn[0] = math.cos(math.radians(50))
             if not seg:
                 print(f"  {name}: no path to {target}")
                 break
+            reached.append(target)
             path = seg if path is None else path + seg[2:] if seg[:2] == path[-2:] else path + seg[1:]
         if not path:
             continue
@@ -594,7 +604,7 @@ def extend_routes(city, rail_ways, proj, stations, ext):
         for k in range(1, len(tail)):
             s_at.append(s_at[-1] + math.hypot(tail[k][0] - tail[k - 1][0], tail[k][1] - tail[k - 1][1]))
         stops = []
-        for st in stop_at:
+        for st in [t for t in stop_at if t in reached]:
             tx, ty = st_xy[st]
             k = min(range(len(tail)), key=lambda k: math.hypot(tail[k][0] - tx, tail[k][1] - ty))
             stops.append({"name": st, "s": round(s_at[k], 1)})
