@@ -173,6 +173,13 @@ function updateHeli(dt, world, pad) {
   }
   h.t += dt;
   if (h.phase === 'scripted') return;
+  // a heli left behind by the trailer or a heli run can lack its flight path:
+  // start over instead of reading a curve that isn't there
+  if ((h.phase === 'inbound' || h.phase === 'outbound') && (!h.curve || !(h.len > 0) || !Number.isFinite(h.s))) {
+    world.skyHeli = null;
+    world._heliTimer = 20;
+    return;
+  }
   let rotorTarget = 1;
   switch (h.phase) {
     case 'inbound': {
