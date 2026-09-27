@@ -33,5 +33,17 @@ ok(!A.mayShowTip(), 'tips are rationed');
 t += 20;
 ok(A.mayShowTip(), 'next tip after the gap');
 
+// phone messages read aloud
+ok(A.mayVoiceText('story'), 'a character\'s text is always read aloud');
+A.noteVoiceText('story');
+ok(A.mayVoiceText('story'), 'story texts have no gap');
+ok(A.mayVoiceText('news'), 'first Sikkom news is read aloud');
+A.noteVoiceText('news');
+t += 20;
+ok(!A.mayVoiceText('news'), 'the next Sikkom news within 45 s only pings');
+ok(A.mayVoiceText('system'), 'the app voice has its own gap');
+t += 30;
+ok(A.mayVoiceText('news'), 'Sikkom news is read aloud again after the gap');
+
 console.log(`${n - fails}/${n} attention rules ok`);
 process.exit(fails ? 1 : 0);

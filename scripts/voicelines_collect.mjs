@@ -7,9 +7,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
-import { CARD_LINES } from '../game/js/cardlines.js';
+import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
 import { STEPS, PARTS } from '../game/js/storyarc.js';
-import { SMS_SAY, smsSpeaker, smsSpoken } from '../game/js/smsvoice.js';
+import { SMS_SAY, smsSpeaker, smsSpoken, cardSpoken } from '../game/js/smsvoice.js';
 
 export const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = path.join(REPO, 'game', 'js');
@@ -275,6 +275,24 @@ export function collect() {
   for (const ev of Object.values(lit(fls, 'export const EVENT_DAYS = '))) sms('Berichten (Sikkom)', 'Sikkom', ev.announce);
   for (const t of lit(fls, 'export const KROLBRUG_FAULTS = ')) sms('Berichten (Sikkom)', 'Gerrit Krolbrug', t);
   for (const t of lit(src('sidejobs.js'), 'const ACCIDENT_LINES = ')) sms('Berichten (Sikkom)', '', t);
+
+  // --- HUD cards that are the companion talking (hudcards.js companionSays) -> hints manifest
+  const HINT_TAG = ['kort, alert, tegen de ander naast je', 'aanwijzend, gehaast', 'droog, adviserend'];
+  // what the TTS reads for key names; the key stays the card text
+  const spoken = (t) => t.replace(/\bW\/S\b/g, 'W en S').replace(/\bA\/D\b/g, 'A en D').replace(/\(Ctrl\)/g, '(control)').replace(/\(Esc > Spel\)/g, '');
+  // a line that names one of them (or Anita's Fjord) is only said by the other
+  const hintWho = (t) => (/\bAnita\b/.test(t) ? ['Tammo'] : /\bTammo\b|mijn Fjord/.test(t) ? ['Anita'] : ['Tammo', 'Anita']);
+  const hint = (t) => add('Hints (Tammo/Anita)', 'hints', hintWho(t), cardSpoken(t), { tag: HINT_TAG, speak: spoken(cardSpoken(t)) });
+  const mis = src('missions.js');
+  for (const t of strings(mis, /\bsay: ('(?:[^'\\]|\\.)*')/g)) hint(t);
+  for (const t of strings(mis, /\bhint\(world, ('(?:[^'\\]|\\.)*')/g)) hint(t);
+  for (const t of strings(mis, /\bhint\(world, `[^`]*`, ('(?:[^'\\]|\\.)*')/g)) hint(t);
+  for (const t of Object.values(lit(mis, 'const MODE_HINT = '))) hint(t);
+  const gameSrc = fs.readdirSync(JS).filter((f) => f.endsWith('.js') && f !== 'cardlines.js').map(src).join('\n');
+  for (const t of COMPANION_CARDS) {
+    if (!gameSrc.includes(t.replace(/'/g, '\\\'')) && !gameSrc.includes(t)) throw new Error(`cardlines.js COMPANION_CARDS: not in the game any more: ${t}`);
+    hint(t);
+  }
 
   return out;
 }

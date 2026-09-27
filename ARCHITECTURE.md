@@ -89,6 +89,14 @@ playing the wrong clip):
   (`cinematics.js` attaches them and stretches the timeline to fit; no
   speaker = `Rikus`, the narrator) and the rondvaart guide (`Tammo`/`Anita`).
 - `audio/npc`: the ambient Gronings phrases.
+- `audio/voicelines/sms` (`smsvoice.js`): phone messages read aloud in the
+  sender's voice (`Sikkom-redactie` reads the Sikkom news, `Ubbo` the app's
+  own texts, `Onbekend nummer (058)` is Mem Terpstra).
+- `audio/voicelines/hints` (`smsvoice.js` `hintVoiceFor`): HUD cards that
+  are the companion talking (mission stage `say:` lines, `hint()` lines,
+  `MODE_HINT`, `cardlines.js` `COMPANION_CARDS`), said by the one you don't
+  play (`react` class); a line naming Tammo or Anita is only recorded for
+  the other.
 
 All voices go through the voice bus (Stemmen slider) and through one
 talking channel, `speech.js` (pure state; `audio.js` plays the clips and
@@ -206,6 +214,14 @@ There are no white toast lines. Three channels, all inside `#hud` (so
     card. "SIKKOM(: | MELDT:)" texts become a Sikkom headline + body;
     `app` is `sikkom`, `bericht` or `geld`. One up at a time with a "+N"
     counter for the waiting ones. Everything lands in the Sikkom history (phone.js).
+    Each card pings and is read aloud in the sender's voice (`smsvoice.js`,
+    `call` class under the owner `sms`: it waits for a playing line, a call
+    or a story scene instead of cutting in; the card stays up until the
+    voice is done). A text with numbers or names passes `say`, a fixed line
+    from `SMS_SAY`, and keeps its full text on the card; `voiced: true`
+    (Sikkom clips, cows, the Krolbrug on the car radio) only pings. Sikkom
+    news and app texts are read aloud at most once per 45/30 s
+    (`attention.js` `mayVoiceText`); story texts (`story: true`) always.
   - `startCall(world, { from, lines: [{ speaker, text, sub }], live, onEnd,
     voice })`: an incoming call (or `live: true`: a Sikkom livestream).
     Rings, then plays line by line, each voiced from the lines manifest

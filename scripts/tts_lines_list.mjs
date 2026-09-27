@@ -83,7 +83,7 @@ for (const e of collect()) {
     }
     const dir = sp.startsWith('~') ? `bubbles/${sp === BUBBLE.f ? 'f' : 'm'}` : slug(sp);
     const accent = (CAST[sp] && CAST[sp].accent) || (isGronings(e.text) ? GRO_ACCENT : ACCENT);
-    jobs.push({ key, speaker: sp, text: e.text, area: e.area, out: e.manifest === 'sms' ? 'sms' : 'lines', file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${accent}] ${e.text}` });
+    jobs.push({ key, speaker: sp, text: e.text, area: e.area, out: e.manifest === 'sms' || e.manifest === 'hints' ? e.manifest : 'lines', say: e.cast.speak || e.text, file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${accent}] ${e.cast.speak || e.text}` });
   }
 }
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_lines.json'), JSON.stringify(jobs, null, 1));
