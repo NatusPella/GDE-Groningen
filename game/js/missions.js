@@ -288,7 +288,7 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: "Vlag van d'Olle Grieze",
-      intro: ['Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Heel Grunn kijkt ernaar.', 'Word een duif bij de toren en pik de vijf touwen los. Pas op voor de Fryske meeuwen.'],
+      intro: ['Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Heel Grunn kijkt ernaar.', 'Fluit een duif bij de toren en pik de vijf touwen los. Pas op voor de Fryske meeuwen.'],
       outro: 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.',
       timeLimit: 240,
       reward: 600,
@@ -305,7 +305,7 @@ function buildDefs(world) {
             ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Dat laat de stad niet zomaar gebeuren.'],
             ['jelle', 'Moai, Grinzers! Kijk eens omhoog. Wat een aardich tuorke, no.'],
             ['A', 'Zie je die vijf gele knopen, Tammo? Die houden hem vast.', { clue: true, look: 'knots' }],
-            ['T', 'Pik, pik, los. Ik word weer duif.'],
+            ['T', 'Ogen dicht, fluiten. Pik, pik, los.'],
           ],
         },
         {
@@ -324,7 +324,7 @@ function buildDefs(world) {
           kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true, shotLines: 2,
           cam: { r: 34, h: 9, lookZ: 34, at: { landmark: 'Martinitoren', off: [0, 14] } },
           kicker: "d'Olle Grieze", big: 'Hij valt!',
-          lines: [['A', 'Hij valt! Tammo, hij valt!'], ['T', 'Dertig meter vlag. Losgepikt. Met mijn snavel.'], ['A', 'Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.']],
+          lines: [['A', 'Daar gaat hij. Kopje onder, Jelle.'], ['T', 'Dertig meter vlag. Losgepikt. Door mijn duif.'], ['A', 'Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.']],
         },
       ],
     },
@@ -361,7 +361,7 @@ function buildDefs(world) {
         {
           kind: 'vault', label: 'Jelle', target: { shore: true },
           lines: [['jelle', 'Moai, Grinzers. Jullie hebben mijn sûkelade gevonden.'], ['T', 'Waar is de echte, Jelle?'], ['jelle', 'Die gaat de lucht in. Fan\'e jûn, met een ballon.', { clue: true }],
-            ['A', 'Een ballon? Jij bent niet goed wijs.'], ['jelle', 'Ik bin Fries. Wy binne altyd goed wiis.']],
+            ['A', 'Een ballon? Doe bist nait goed wies!'], ['jelle', 'Jelle is Fries. Friezen zijn altijd goed wijs.']],
           landing: 'Oant fan\'e jûn, Grinzers!',
         },
       ],

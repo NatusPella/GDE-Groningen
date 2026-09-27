@@ -9,8 +9,8 @@
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
 import { queueStoryContact } from './storycontact.js';
-import { playClueSting } from './audio.js';
-import { lineVoiceFor } from './linevoice.js';
+import { playClueSting, playRadioSting } from './audio.js';
+import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import {
   setMissionHooks, setNextMission, isMissionActive, isMissionCompleted, markMissionCompleted, getMissionDefs,
   unmetRequirement, requirementMet, requirementPlace, isNight, setMissionProgress, getMissionProgress, missionDebug,
@@ -25,6 +25,20 @@ import { playCinematic, isCinematicActive } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
+
+// Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
+// recaps and the epilogue; loaded lazily so Node checks can import this file.
+let studioMod = null, sceneMod = null;
+import('./radiostudio.js').then((m) => { studioMod = m; }).catch(() => {});
+import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
+
+function openStudio() {
+  const scene = sceneMod && sceneMod.getScene && sceneMod.getScene();
+  if (!studioMod || !scene || !world) return null;
+  const s = studioMod.buildRadioStudio(world.player.x, world.player.y);
+  scene.add(s.group);
+  return s;
+}
 
 const LEAD_DELAY = 3;
 const GUIDE_EVERY = 2.5;
@@ -269,7 +283,9 @@ function setNight() {
 // Credits after the epilogue: name cards over the city, no voices.
 const CREDITS = [
   ['Tammo & Anita', 'hoofdrollen'],
+  ['Rikus', 'vertelde het, op Nachtstreek'],
   ['Jelle Terpstra', 'de Fryske Snackkening'],
+  ['Mem Terpstra', 'wist het allang'],
   ['Durk & Douwe', 'op één fatbike'],
   ['Bommen Berend, Oma Trijntje, Kapitein Klaas', 'en de rest van Grunn'],
   ['d\'Olle Grieze', 'keek alles aan en zei niks'],
@@ -288,6 +304,7 @@ function finaleShot(t0 = 0) {
 // "Eerder in GTE VI": the narrator sums up the story so far over slow orbits
 // of the places it happened, when a new part starts.
 function recapPlace(p) {
+  if (p === 'studio') return { studio: true, x: 0, y: 0 };
   if (Array.isArray(p)) return { x: p[0], y: p[1] };
   const lm = (world.map.meta.landmarks || []).find((l) => l.name === p);
   return lm ? { x: lm.x, y: lm.y } : { x: 160, y: 70 };
@@ -298,22 +315,37 @@ function playRecap(part) {
   if (!P || !P.recap) return false;
   let at = 3.4;
   const lines = P.recap.map(([place, text]) => {
-    const v = lineVoiceFor('Verteller', text);
+    const v = lineVoiceFor(NARRATOR, text);
     const dur = Math.max(v ? v.dur + 0.4 : 0, 2.6, Math.min(6, 1 + text.length * 0.055));
-    const l = { speaker: 'Verteller', text, at, dur, place: recapPlace(place) };
+    const l = { speaker: NARRATOR, text, at, dur, place: recapPlace(place) };
     at += dur + 0.3;
     return l;
   });
+  // Rikus tells it on the radio: a station sting, his voice in the broadcast
+  // band, and the studio for the 'studio' lines (else the orbit of the first place)
+  let studio = null, wasStudio = false;
+  const fallback = recapPlace(P.recap.find(([p]) => p !== 'studio')[0]);
   return playCinematic({
     id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: 'Eerder in GTE VI', title: P.title, cardFor: 3.2,
-    lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur })),
+    lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur, radio: true })),
+    onStart: () => { studio = openStudio(); playRadioSting(); },
+    onEnd: () => { if (studio) studio.dispose(); studio = null; },
     shot: (u, t) => {
       let k = lines.findIndex((l) => t < l.at + l.dur + 0.3);
       if (k < 0) k = lines.length - 1;
-      const l = lines[k], c = l.place, lt = Math.max(0, t - (k ? l.at : 0));
+      const l = lines[k], lt = Math.max(0, t - (k ? l.at : 0));
+      if (l.place.studio && studio) {
+        wasStudio = true;
+        studio.tick(t, t > l.at);
+        return { ...studio.shot(k ? 1 : 0)(Math.min(1, lt / (l.dur + (k ? 0 : l.at)))), cut: true };
+      }
+      const c = l.place.studio ? fallback : l.place;
       const a = 0.8 + k * 1.9 + lt * 0.06, r = 66 - lt * 1.6;
-      return { position: { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: 27 - lt * 0.7 }, lookAt: { x: c.x, y: c.y, z: 10 }, fov: 48 };
+      // out of the studio (high above the city) is a hard cut, not a swoop
+      const cut = wasStudio;
+      wasStudio = false;
+      return { position: { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: 27 - lt * 0.7 }, lookAt: { x: c.x, y: c.y, z: 10 }, fov: 48, cut };
     },
   });
 }
@@ -332,21 +364,37 @@ function playFinale(part) {
     if (c && !c.inVehicle) { c.x = p.x + 1.2; c.y = p.y + 0.6; }
   }
   let at = 3.2;
-  const lines = (P.card || []).map(([speaker, text]) => {
-    const dur = Math.max(2.2, Math.min(5.2, 1 + text.length * 0.05));
-    const l = { speaker, text, at, dur };
+  const card = P.card || [];
+  const lines = card.map(([speaker, text], k) => {
+    const v = lineVoiceFor(speaker, text);
+    const dur = Math.max(v ? v.dur + 0.3 : 0, 2.2, Math.min(5.2, 1 + text.length * 0.05));
+    const l = { speaker, text, at, dur, radio: speaker === NARRATOR, studio: speaker === NARRATOR && k === card.length - 1 };
     at += dur + 0.25;
     return l;
   });
+  let studio = null;
+  const orbit = finaleShot(0);
   const ok = playCinematic({
     id: 'story-card', priority: 2, duration: at + 0.6, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: P.end, title: 'Alles voor één eierbal', cardFor: 3, lines, shot: finaleShot(0),
+    kicker: P.end, title: 'Alles voor één eierbal', cardFor: 3, lines,
+    onStart: () => { studio = openStudio(); },
+    onEnd: () => { if (studio) studio.dispose(); studio = null; },
+    // lines are timed to their recordings, so attachVoices keeps these times
+    shot: (u, t) => {
+      const l = lines[lines.length - 1];
+      if (l && l.studio && studio && t >= l.at - 0.2) {
+        studio.tick(t, true);
+        return { ...studio.shot(1)(Math.min(1, (t - l.at) / 5)), cut: true };
+      }
+      return orbit(u, t);
+    },
   });
   if (!ok) return false;
   const q = (spec) => playCinematic({ id: 'story-card', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
-  q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: 'Grand Theft Eierbal VI', shot: finaleShot(40) });
+  const fromStudio = finaleShot(40);
+  q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: 'Grand Theft Eierbal VI', shot: (u, t) => ({ ...fromStudio(u, t), cut: t < 0.1 }) });
   CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
-  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(62) });
+  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(46 + CREDITS.length * 3.2) });
   state.cards.add(part);
   phone('GTE VI', 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.', 9);
   return true;
@@ -372,7 +420,7 @@ function companionSays(w, text) {
   if (!c || c.state === 'dead') return;
   const list = w.extraSpeakers || (w.extraSpeakers = []);
   const dur = Math.max(3, Math.min(6, 1.2 + text.length * 0.06));
-  list.push({ x: c.x, y: c.y, h: 2.1, speechText: text, speechUntil: w.time + dur, follow: c, female: c.character === 'anita' });
+  list.push({ x: c.x, y: c.y, h: 2.1, speechText: text, speechUntil: w.time + dur, follow: c, female: c.character === 'anita', speechName: c.character === 'anita' ? 'Anita' : 'Tammo' });
 }
 
 // --- who plays: Tammo or Anita ----------------------------------------------------------

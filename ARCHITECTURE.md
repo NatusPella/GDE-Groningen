@@ -85,7 +85,7 @@ playing the wrong clip):
   speech bubbles as `~m|`/`~f|` (scene3d speaks a new bubble in the voice
   that matches the ped's model), subtitles without their own recording
   (`cinematics.js` attaches them and stretches the timeline to fit; no
-  speaker = `Verteller`) and the rondvaart guide (`Tammo`/`Anita`).
+  speaker = `Rikus`, the narrator) and the rondvaart guide (`Tammo`/`Anita`).
 - `audio/npc`: the ambient Gronings phrases.
 
 All voices go through the voice bus (Stemmen slider) and through one
@@ -97,7 +97,7 @@ feeds it the AudioContext clock; debug `window.__speech.speechState()`):
   (phonefeed.js calls) > `banter` (car talk) > `job` (bijbaan bosses, the
   rondvaart guide) > `react` (Tammo/Anita voicelines, HUD-card lines, police
   barks, Sikkom, navigation, cows) > `ambient` (speech bubbles, NPC
-  phrases) > `radio` (Radio Nachtstreek, G-Music jingles).
+  phrases) > `radio` (Rikus on Radio Nachtstreek, G-Music jingles).
 - One line at a time (`begin`/`extend`/`end`; a line that never reports
   its end frees the channel after its length). A newcomer of at least `job`
   cuts off a lower line below `call` (its `stop` runs); `story` cuts off
@@ -147,6 +147,16 @@ and in italics (`.nl-sub` in `hud_panel.css`).
   contacts and history (`phone.js`), HUD cards (`hudcards.js`) and
   achievement titles (`achievementsui.js`). Anything shown through these
   gets its subtitle for free; a new text surface calls one of the two.
+- Speaker names: every surface shows the name bold in the speaker's
+  colour before the line, from one table, `js/speakers.js`
+  (`SPEAKER_COLORS`, `speakerHtml(name)`, `paintSpeaker(el, name)`;
+  generic NPCs neutral grey). A bubble shows a name only for a story
+  character (`speechName` on a `world.extraSpeakers` entry).
+- The narrator is Rikus, the Radio Nachtstreek night DJ (`NARRATOR` in
+  `linevoice.js`): recaps and the epilogue cut to his studio
+  (`js/radiostudio.js`, a closed room high above the city), start with a
+  station sting (`playRadioSting`) and play his voice in a broadcast band
+  (`playStoryVoice(src, { radio: true })`, a cinematic line's `radio`).
 - New Frisian line: write it, add its Dutch to `FY`. `voice_coverage.mjs`
   exits 1 for any spoken line that `looksFrisian()` without a translation.
   Voice casts: Jelle/Durk/Douwe are recorded as Dutch with a Frisian

@@ -184,14 +184,21 @@ export const BIKE_RESURFACE = [
   'Fiets uit {a} duikt op in {b}. Het zadel is nog warm.',
 ];
 
-// Night radio outside the city. spoken (the DJ over G-Music)
+// Night radio outside the city: Rikus, the narrator, on Nachtstreek. spoken (over G-Music)
 export const NACHTSTREEK = [
-  'Goedenavond op de stille weg. Dit is Nachtstreek, muziek van hier voor wie nog onderweg is.',
+  'Goedenavond op de stille weg. Hier is Rikus, op Nachtstreek. Muziek van hier, voor wie nog onderweg is.',
   'Nachtstreek. Buiten is het donker, binnen is het warm. Rustig aan op de dijk.',
-  'Het is laat in het Ommeland. De koeien slapen, wij draaien nog even door.',
+  'Het is laat in het Ommeland. De koeien slapen, Rikus draait nog even door.',
   'Nachtstreek, met muziek van hier. Geen haast. Die hebben wij niet.',
   'Voor wie op de dijk rijdt en voor de boer die niet kan slapen: deze is voor jullie.',
+  'Een groet aan mijn oude buurjongen uit het Oosterpark. Hij weet wel wie hij is. Hij rijdt vast weer zonder licht.',
 ];
+
+// Rikus on the story so far, once that mission is done (missions.js id -> line)
+export const NACHTSTREEK_STORY = {
+  museumkraak: 'Een groet aan een dame in Stad die steeds appt met Friesland. Haar vriend weet van niks. Nou: nu wel.',
+  vlag: 'Er schijnt in Stad een jongen te zijn naar wie de duiven luisteren. Ik ken hem. Naar mij luistert hij nooit.',
+};
 
 // Oosterpark: the old stadium. spoken (bubbles, own chants)
 export const SUPPORTER_CHANTS = [

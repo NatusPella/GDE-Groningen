@@ -1034,14 +1034,21 @@ export function stopStoryVoice() {
   speech.end(v.tok);
 }
 
-export function playStoryVoice(src) {
+// radio: Rikus on Nachtstreek (recaps, the studio shots): a gentle
+// broadcast band (no deep lows, rounded highs, a little presence).
+export function playStoryVoice(src, { radio = false } = {}) {
   stopStoryVoice();
   if (!ctx || muted) return;
   const v = { el: new Audio(src), node: null, tok: null };
   v.tok = speech.begin('story', 3, { owner: 'story', stop: () => { if (storyVoice === v) stopStoryVoice(); } });
   try {
     v.node = ctx.createMediaElementSource(v.el);
-    v.node.connect(voiceBus);
+    if (radio) {
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 240;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4600;
+      const pk = ctx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 1900; pk.Q.value = 0.8; pk.gain.value = 3;
+      v.node.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(voiceBus);
+    } else v.node.connect(voiceBus);
   } catch (e) {
     // ignore - plays without the Web Audio graph
   }
@@ -1276,6 +1283,24 @@ export function playClueSting() {
   [[659.25, 0, 0.9], [987.77, 0.11, 0.9], [1318.5, 0.22, 1.2]].forEach(([freq, delay, duration]) =>
     playTone({ freq, type: 'sine', duration, gain: 0.05, delay, bus: stingBus, prio: 2 }));
   playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
+}
+
+// Tammo whistles up a pigeon (pigeonmode.js): a soft two-note "fuu-fiet".
+function playWhistle() {
+  if (!ctx || muted || !uiBus) return;
+  playTone({ freq: 1250, freqEnd: 1500, type: 'sine', duration: 0.2, gain: 0.05, bus: uiBus, prio: 2 });
+  playTone({ freq: 1700, freqEnd: 2350, type: 'sine', duration: 0.3, gain: 0.05, delay: 0.26, bus: uiBus, prio: 2 });
+}
+
+// The Radio Nachtstreek station sting before Rikus tells a recap: a soft
+// rising three-note jingle over a low pad.
+export function playRadioSting() {
+  if (!ctx || muted || !stingBus) return;
+  [[392, 0, 0.35], [523.25, 0.18, 0.35], [659.25, 0.36, 0.9]].forEach(([freq, delay, duration]) => {
+    playTone({ freq, type: 'triangle', duration, gain: 0.045, delay, bus: stingBus, prio: 2 });
+    playTone({ freq: freq * 2, type: 'sine', duration: duration * 0.6, gain: 0.015, delay: delay + 0.01, bus: stingBus, prio: 2 });
+  });
+  playTone({ freq: 196, type: 'sine', duration: 1.5, gain: 0.03, bus: stingBus, prio: 2 });
 }
 
 export function playPhoneRing(rings = 2) {
@@ -2172,6 +2197,7 @@ function playAudioEvents(world) {
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
+      case 'whistle': playWhistle(); break;
       case 'gore': case 'gore_splat': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {
         const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 70 });

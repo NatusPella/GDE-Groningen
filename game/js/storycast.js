@@ -24,4 +24,22 @@ export const PORTRAITS = {
   jelle: { skin: '#e9c29c', hair: '#e8c86a', top: '#1d4f9c', under: '#f7f5ef', scarf: '#c8102e', shades: true, moustache: true },
   durk: { skin: '#e6b98f', hair: '#8a6a3a', top: '#c8102e', beanie: '#1d4f9c', beard: true, big: true },
   douwe: { skin: '#e6b98f', hair: '#8a6a3a', top: '#c8102e', beanie: '#eeeeea', moustache: true, big: true },
+  rikus: { skin: '#e2b48e', hair: '#3a2a1e', top: '#1f7a44', under: '#e8e4da', glasses: true, phones: '#1b1d22' },
+  mem: { skin: '#ecc8a8', hair: '#c9c6c0', top: '#223a66', under: '#f4f1ea', scarf: '#c8102e', glasses: true },
+};
+
+// Rikus, Tammo's childhood friend from the Oosterpark and the night DJ of
+// Radio Nachtstreek (the narrator): FC-green jacket, stubble, thick-rimmed
+// glasses, a bit of a belly from the night shifts.
+export const RIKUS_LOOK = {
+  shirt: 0x1f7a44, skin: 0xe2b48e, hair: 0x3a2a1e, variant: 'male', pants: 0x2b2f3a, shoes: 0xe8e4da, hairStyle: 'short', seed: 1672,
+  look: { top: 'jacket', topColor: 0x1f7a44, facial: 'stubble', glasses: true, shades: false, scarf: false, bottom: 'jeans', shoeType: 'sneaker', age: 'adult', build: 'heavy', buildScale: 1.06, hat: null, bag: null, umbrella: null },
+};
+
+// Mem Terpstra, Jelle's mother (the "Mem" of Us Mem Snacks) and an old
+// friend of Oma Trijntje: navy coat, white collar, glasses, grey bun and the
+// pompeblêd-red scarf her son copied from her.
+export const MEM_LOOK = {
+  shirt: 0x223a66, skin: 0xecc8a8, hair: 0xc9c6c0, variant: 'female', pants: 0x2a2a30, shoes: 0x3a2a1a, hairStyle: 'bun', seed: 1953,
+  look: { top: 'coat', under: 0xf4f1ea, glasses: true, shades: false, scarf: true, scarfColor: 0xc8102e, bottom: 'skirt', shoeType: 'leather', age: 'old', build: 'avg', heightScale: 0.94, hat: null, bag: 'shoulder', umbrella: null },
 };

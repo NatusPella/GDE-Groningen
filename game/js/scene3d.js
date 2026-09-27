@@ -1,4 +1,5 @@
 import { setDualText } from './subtitles.js';
+import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
 import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount } from './models3d_vehicles.js';
@@ -1550,7 +1551,12 @@ function syncSpeechBubbles(world) {
     }
     const scr = projectToScreen(src.x, p.h ?? 2.1, src.y);
     if (!scr) { el.style.display = 'none'; continue; }
-    if (el._text !== p.speechText) { el._text = p.speechText; setDualText(el, p.speechText); }
+    if (el._text !== p.speechText) {
+      el._text = p.speechText;
+      setDualText(el, p.speechText);
+      // story characters (the companion, Jelle) carry their name: world.extraSpeakers speechName
+      if (p.speechName) el.insertAdjacentHTML('afterbegin', speakerHtml(p.speechName).replace('class="spk"', 'class="spk bubble"'));
+    }
     el.style.display = 'block';
     el.style.left = scr.x + 'px';
     el.style.top = scr.y + 'px';

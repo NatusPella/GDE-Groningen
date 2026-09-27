@@ -8,7 +8,7 @@ import { playBubbleVoice } from './audio.js';
 // scripts/voice_coverage.mjs lists what is still missing.
 
 const DIR = new URL('../audio/voicelines/lines/', import.meta.url).href;
-export const NARRATOR = 'Verteller';
+export const NARRATOR = 'Rikus';
 let voices = {};
 fetch(DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
 

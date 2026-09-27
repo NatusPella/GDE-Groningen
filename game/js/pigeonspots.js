@@ -7,8 +7,16 @@ import { isShopOpen } from './shopui.js';
 import { startPigeonMode, isPigeonActive, addPigeonLoft, buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { isInWater } from './util.js';
 
-// Places in the city where Tammo/Anita can become a pigeon: a badge + a few
-// pecking pigeons at each; E turns you into one of them.
+// Places in the city where Tammo, the duivenfluisteraar, can steer a pigeon:
+// a badge + a few pecking pigeons at each; E and he whistles one up (eyes
+// closed, the camera jumps into the bird). The pigeons don't listen to Anita.
+
+// What Anita says at a pigeon spot (a bubble in her own voice, "~f|" lines)
+export const ANITA_NO_PIGEON = [
+  'Duiven luisteren naar Tammo. Naar mij luistert alleen Tammo.',
+  'Tammo! Fluiten! …Hij hoort me niet. De duiven ook niet.',
+  'Ik ben geen duivenkoning. Ik ben de baas van de duivenkoning.',
+];
 const SPOTS = [
   { id: 'vismarkt', landmark: 'Vismarkt', name: 'Vismarkt', host: 'Opa Geert voert hier de duiven', feeder: true },
   { id: 'grotemarkt', landmark: 'Grote Markt', name: 'Grote Markt', host: 'Een zwerm op de keien' },
@@ -183,7 +191,8 @@ export function pigeonSpotPrompt(w) {
   const s = nearestSpot(w);
   if (!s) return null;
   const why = blockReason(w);
-  return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Word een duif', sub: why || s.host, ring: true, dim: !!why };
+  if (w.player.character === 'anita') return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Duiven', sub: 'Die luisteren alleen naar Tammo', ring: true, dim: true };
+  return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Fluit een duif', sub: why || s.host, ring: true, dim: !!why };
 }
 
 export function pigeonSpotSecondary(w) {
@@ -209,6 +218,7 @@ export function tryPigeonSpotInteract(w) {
   const why = blockReason(w);
   if (why) { w.addMessage(why, 2.5); return true; }
   const p = w.player;
+  if (p.character === 'anita') { anitaSays(w); return true; }
   let bird = null, bd = Infinity;
   for (const b of s.birds) {
     const d = Math.hypot(b.x - p.x, b.y - p.y);
@@ -225,6 +235,15 @@ export function tryPigeonSpotInteract(w) {
   if (bird) bird.mesh.visible = false;
   s.marker.visible = false;
   return true;
+}
+
+let anitaIdx = 0;
+function anitaSays(w) {
+  const p = w.player;
+  const list = w.extraSpeakers || (w.extraSpeakers = []);
+  if (list.some((e) => e.follow === p && w.time < e.speechUntil)) return;
+  const text = ANITA_NO_PIGEON[anitaIdx++ % ANITA_NO_PIGEON.length];
+  list.push({ x: p.x, y: p.y, h: 2.2, follow: p, female: true, speechName: 'Anita', speechText: text, speechUntil: w.time + Math.max(3, 1.2 + text.length * 0.06) });
 }
 
 export function updatePigeonSpots(dt, w) {
