@@ -1156,15 +1156,39 @@ function setArm(arm, elbow, z, e, x = 0) {
 const GUN_MAT = markShared(new THREE.MeshStandardMaterial({ color: 0x1b1c1f, roughness: 0.45, metalness: 0.6 }));
 const GUN_WOOD = markShared(new THREE.MeshStandardMaterial({ color: 0x5a3a22, roughness: 0.7 }));
 const HAND_Y = -0.575;
+const heldMat = (color, roughness = 0.7, metalness = 0) => markShared(new THREE.MeshStandardMaterial({ color, roughness, metalness }));
+const BAT_WOOD = heldMat(0xc9a36a, 0.6);
+const POLE_WOOD = heldMat(0x8a6a3e, 0.75);
+const STICK_BLACK = heldMat(0x202226, 0.5);
+const TAPE_WHITE = heldMat(0xe8e6e0, 0.8);
+const BRISTLE = heldMat(0x9c7a3c, 0.95);
+const PUMP_METAL = heldMat(0xb8bec4, 0.35, 0.8);
+const KLOMP_YELLOW = heldMat(0xe0b640, 0.7);
+const TOY_GREEN = heldMat(0x2fb56a, 0.4);
+const TOY_ORANGE = heldMat(0xf0892a, 0.4);
+const CHURN_GREY = heldMat(0x9aa2a8, 0.4, 0.7);
+const ROCKET_RED = heldMat(0xc8261e, 0.6);
+// parts: [x, thickness along x, length down the hand (-y), width (z), y, material, 'c' = round].
+// rest: tilt forward while carried (rad); two: second hand on it when aimed.
 const GUN_SPECS = {
   pistol: { parts: [[0.035, 0.03, 0.2, 0.03, -0.075, GUN_MAT], [-0.02, 0.08, 0.035, 0.028, 0, GUN_MAT]], tip: 0.19 },
-  uzi: { parts: [[0.03, 0.055, 0.27, 0.045, -0.1, GUN_MAT], [-0.03, 0.09, 0.035, 0.03, 0.01, GUN_MAT], [-0.055, 0.12, 0.03, 0.025, -0.1, GUN_MAT]], tip: 0.25 },
-  shotgun: { parts: [[0.03, 0.04, 0.62, 0.04, -0.2, GUN_MAT], [0.0, 0.05, 0.26, 0.05, -0.12, GUN_WOOD], [-0.01, 0.07, 0.3, 0.05, 0.2, GUN_WOOD]], tip: 0.52 },
+  uzi: { parts: [[0.03, 0.055, 0.27, 0.045, -0.1, GUN_MAT], [-0.03, 0.09, 0.035, 0.03, 0.01, GUN_MAT], [-0.055, 0.12, 0.03, 0.025, -0.1, GUN_MAT]], tip: 0.25, two: true },
+  shotgun: { parts: [[0.03, 0.04, 0.62, 0.04, -0.2, GUN_MAT], [0.0, 0.05, 0.26, 0.05, -0.12, GUN_WOOD], [-0.01, 0.07, 0.3, 0.05, 0.2, GUN_WOOD]], tip: 0.52, two: true },
+  jachtgeweer: { parts: [[0.03, 0.03, 0.9, 0.03, -0.32, GUN_MAT], [0.0, 0.055, 0.3, 0.045, -0.1, GUN_WOOD], [-0.01, 0.075, 0.34, 0.05, 0.25, GUN_WOOD], [0.085, 0.045, 0.26, 0.045, -0.1, GUN_MAT, 'c']], tip: 0.95, two: true },
+  waterpistool: { parts: [[0.035, 0.06, 0.22, 0.05, -0.06, TOY_GREEN], [0.1, 0.08, 0.11, 0.07, -0.03, TOY_ORANGE, 'c'], [-0.025, 0.08, 0.045, 0.035, 0, TOY_GREEN]], tip: 0.2 },
+  knuppel: { parts: [[0, 0.035, 0.34, 0.035, 0.1, BAT_WOOD, 'c'], [0, 0.07, 0.5, 0.07, -0.24, BAT_WOOD, 'c']], tip: 0.7, rest: 2.5, melee: true },
+  hockeystick: { parts: [[0, 0.03, 0.95, 0.03, 0.16, STICK_BLACK, 'c'], [-0.07, 0.2, 0.06, 0.03, -0.72, TAPE_WHITE]], tip: 0.75, rest: 0.55, melee: true },
+  bezem: { parts: [[0, 0.03, 1.2, 0.03, 0.34, POLE_WOOD, 'c'], [0, 0.07, 0.12, 0.34, -0.8, BRISTLE]], tip: 0.95, rest: 0.35, melee: true },
+  fietspomp: { parts: [[0, 0.045, 0.44, 0.045, -0.02, PUMP_METAL, 'c'], [0, 0.03, 0.03, 0.16, 0.08, STICK_BLACK]], tip: 0.42, rest: 0.9, melee: true },
+  klomp: { parts: [[0.02, 0.13, 0.28, 0.11, 0.02, KLOMP_YELLOW], [-0.01, 0.09, 0.08, 0.1, -0.26, KLOMP_YELLOW]], tip: 0.34, rest: 1.5, melee: true },
+  polsstok: { parts: [[0, 0.05, 3.4, 0.05, 1.1, POLE_WOOD, 'c']], tip: 2.3, rest: 1.35, melee: true, two: true },
+  carbidbus: { parts: [[0, 0.3, 0.38, 0.3, 0.02, CHURN_GREY, 'c'], [0, 0.2, 0.06, 0.2, -0.34, CHURN_GREY, 'c']], tip: 0.3, rest: 0 },
+  vuurwerk: { parts: [[0, 0.07, 0.24, 0.07, -0.02, ROCKET_RED, 'c'], [0.04, 0.012, 0.6, 0.012, 0.4, BAT_WOOD]], tip: 0.2, rest: 2.8 },
 };
 const gunGeos = {};
 function gunGeometry(key) {
   if (gunGeos[key]) return gunGeos[key];
-  const parts = GUN_SPECS[key].parts.map(([x, h, len, w, y]) => new THREE.BoxGeometry(h, len, w).translate(x, y - len * 0.5 + 0.06, 0));
+  const parts = GUN_SPECS[key].parts.map(([x, h, len, w, y, , shape]) => (shape === 'c' ? new THREE.CylinderGeometry(w / 2, w / 2, len, 10) : new THREE.BoxGeometry(h, len, w)).translate(x, y - len * 0.5 + 0.06, 0));
   const g = { geos: parts.map((pg) => markShared(pg)) };
   gunGeos[key] = g;
   return g;
@@ -1206,24 +1230,99 @@ export function setHeldWeapon(mesh, weapon) {
 // weapon}; now = world.time.
 const PUNCH_S = 0.32;
 const AIM_HOLD_S = 0.7;
-const RECOIL = { pistol: [0.34, 0.5, 0.12], uzi: [0.16, 0.25, 0.06], shotgun: [0.62, 0.8, 0.22] };
+const RECOIL = { pistol: [0.34, 0.5, 0.12], uzi: [0.16, 0.25, 0.06], shotgun: [0.62, 0.8, 0.22], jachtgeweer: [0.7, 0.7, 0.26], waterpistool: [0.05, 0.08, 0.01] };
+
+// Melee swings, u = 0..1 over SWING_S[swing]; w = wind-up share. The curve
+// runs 0 -> -1 (cocked back) -> +1 (the hit) -> 0.
+const SWING_S = { bat: 0.55, slap: 0.45, sweep: 0.5, stab: 0.3, overhead: 0.55, thrust: 0.9, throw: 0.45 };
+const SWING_W = { bat: 0.26, slap: 0.26, sweep: 0.2, stab: 0.2, overhead: 0.33, thrust: 0.38, throw: 0.3 };
+function swingCurve(u, w) {
+  if (u < w) return -smoothstep(0, w, u);
+  if (u < w + 0.14) return -1 + 2 * smoothstep(w, w + 0.14, u);
+  return 1 - smoothstep(w + 0.14, 1, u);
+}
+
+function swingPose(ud, swing, u, gun) {
+  const f = swingCurve(u, SWING_W[swing]);
+  const back = Math.max(0, -f), hit = Math.max(0, f);
+  const blend = u < 0.12 ? u / 0.12 : u > 0.85 ? (1 - u) / 0.15 : 1;
+  const chest = ud.chest;
+  switch (swing) {
+    case 'bat': // two-handed, a flat swing through the chest twist
+      setArm(ud.armR, ud.elbowR, 1.05 + back * 0.5, 0.9 - hit * 0.6, -0.3 * back);
+      setArm(ud.armL, ud.elbowL, 1.05 + back * 0.4, 1.1 - hit * 0.5, 0.3);
+      if (chest) chest.rotation.y = (-0.9 * back + 1.1 * hit) * blend;
+      if (gun) gun.rotation.z = 1.9 - hit * 0.5;
+      break;
+    case 'slap': // hockey: low, stick raised behind, slapped through
+      setArm(ud.armR, ud.elbowR, 0.4 + back * 1.3 + hit * 0.4, 0.4, 0);
+      setArm(ud.armL, ud.elbowL, 0.6 + back * 0.8, 0.9, 0.2);
+      if (chest) chest.rotation.y = (-0.6 * back + 0.7 * hit) * blend;
+      if (gun) gun.rotation.z = 0.5 - back * 0.3;
+      break;
+    case 'sweep': { // the broom: low side-to-side, like chasing the cat off the stoep
+      const s = Math.sin(u * Math.PI * 2) * blend;
+      setArm(ud.armR, ud.elbowR, 0.6 + hit * 0.3, 0.6, s * 0.35);
+      setArm(ud.armL, ud.elbowL, 0.75, 1.1, 0.25);
+      if (chest) chest.rotation.y = s * 0.55;
+      if (gun) gun.rotation.z = 0.5 + hit * 0.4;
+      break;
+    }
+    case 'stab': // the pump jabbed forward like a lance
+      setArm(ud.armR, ud.elbowR, 0.7 + 0.85 * hit + back * 0.1, 1.7 - 1.6 * hit, 0);
+      setArm(ud.armL, ud.elbowL, 0.95, 2.1);
+      if (chest) chest.rotation.y = -0.25 * hit * blend;
+      if (gun) gun.rotation.z = 0.15;
+      break;
+    case 'overhead': // the klomp brought down from above the head
+      setArm(ud.armR, ud.elbowR, 1.5 + back * 1.4 - hit * 0.7, 0.3 + back * 1.1, 0);
+      setArm(ud.armL, ud.elbowL, 0.9, 1.6);
+      if (chest) { chest.rotation.z += (back * 0.25 - hit * 0.35) * blend; chest.rotation.y = -0.2 * hit * blend; }
+      if (gun) gun.rotation.z = 1.5 + back * 0.4;
+      break;
+    case 'thrust': // the polsstok: drawn back, then driven forward with both hands
+      setArm(ud.armR, ud.elbowR, 1.15 - back * 0.45 + hit * 0.35, 0.3 + back * 1.3 - hit * 0.25, 0);
+      setArm(ud.armL, ud.elbowL, 1.3 - back * 0.3 + hit * 0.2, 0.9 + back * 0.8 - hit * 0.6, 0.15);
+      if (chest) chest.rotation.y = (0.25 * back - 0.15 * hit) * blend;
+      if (gun) gun.rotation.z = 1.35 - (1 - back) * 1.2 * blend;
+      break;
+    case 'throw': // overhand lob
+      setArm(ud.armR, ud.elbowR, 1.5 + back * 1.2 - hit * 0.4, 0.4 + back * 1.2, 0);
+      setArm(ud.armL, ud.elbowL, 1.1 * (1 - hit), 0.6);
+      if (chest) chest.rotation.y = (0.35 * back - 0.4 * hit) * blend;
+      if (gun) gun.rotation.z = 0.2;
+      break;
+    default:
+      break;
+  }
+}
+
 export function applyAttackPose(mesh, fx, now, aiming = null) {
   const ud = mesh && mesh.userData;
   if (!ud || !ud.armR || !ud.armL) return;
-  if (ud.gunKey && ud.guns) {
-    const firing = fx && fx.type === 'muzzle' && now - fx.start < AIM_HOLD_S;
-    ud.guns[ud.gunKey].rotation.z = aiming || firing ? 0 : 0.95;
+  const spec = ud.gunKey ? GUN_SPECS[ud.gunKey] : null;
+  const gun = spec && ud.guns ? ud.guns[ud.gunKey] : null;
+  const shot = fx && (fx.type === 'muzzle' || fx.type === 'squirt');
+  if (gun) {
+    const firing = shot && now - fx.start < AIM_HOLD_S;
+    gun.rotation.z = (aiming || firing) && !spec.melee ? 0 : spec.rest ?? 0.95;
   }
-  if (aiming && (!fx || fx.type !== 'muzzle' || now - fx.start >= AIM_HOLD_S - 0.2)) {
+  const swing = fx && fx.start !== undefined && (fx.type === 'throw' ? 'throw' : fx.type === 'melee' && fx.swing !== 'jab' ? fx.swing : null);
+  if (swing && SWING_S[swing]) {
+    const u = (now - fx.start) / SWING_S[swing];
+    if (u >= 0 && u < 1) { swingPose(ud, swing, u, gun); return; }
+  }
+  if (aiming && (!shot || now - fx.start >= AIM_HOLD_S - 0.2)) {
     // raised, steady aim between shots
     setArm(ud.armR, ud.elbowR, 1.55, 0.06);
-    if (aiming === 'uzi' || aiming === 'shotgun') setArm(ud.armL, ud.elbowL, 1.4, 0.55, 0);
+    if (spec && spec.two) setArm(ud.armL, ud.elbowL, 1.4, 0.55, 0);
     return;
   }
+  if (spec && spec.two && spec.melee) setArm(ud.armL, ud.elbowL, 0.7, 1.2, 0.2);
   if (!fx || fx.start === undefined) return;
   const dt = now - fx.start;
   if (fx.type === 'melee') {
-    if (dt < 0 || dt >= PUNCH_S) return;
+    if (dt < 0 || dt >= PUNCH_S || (fx.swing && fx.swing !== 'jab')) return;
     const u = dt / PUNCH_S;
     const ext = u < 0.3 ? smoothstep(0, 0.3, u) : 1 - smoothstep(0.3, 1, u);
     const right = fx.side > 0;
@@ -1234,7 +1333,7 @@ export function applyAttackPose(mesh, fx, now, aiming = null) {
     if (ud.chest) ud.chest.rotation.y = (right ? -1 : 1) * 0.28 * ext;
     return;
   }
-  if (fx.type === 'muzzle') {
+  if (shot) {
     if (dt < 0 || (dt >= AIM_HOLD_S && !aiming)) return;
     const hold = aiming ? 1 : 1 - smoothstep(AIM_HOLD_S - 0.2, AIM_HOLD_S, dt);
     const [armK, elbowK, chestK] = RECOIL[fx.weapon] || RECOIL.pistol;
@@ -1243,7 +1342,7 @@ export function applyAttackPose(mesh, fx, now, aiming = null) {
     const z = ud.armR.rotation.z + (1.55 + armK * kick - ud.armR.rotation.z) * hold;
     const e = (ud.elbowR ? ud.elbowR.rotation.z : 0) * (1 - hold) + (0.06 + elbowK * kick) * hold;
     setArm(ud.armR, ud.elbowR, z, e);
-    if (fx.weapon === 'uzi' || fx.weapon === 'shotgun') {
+    if (spec && spec.two) {
       const zl = ud.armL.rotation.z + (1.4 + armK * 0.7 * kick - ud.armL.rotation.z) * hold;
       setArm(ud.armL, ud.elbowL, zl, (0.55 + elbowK * 0.5 * kick) * hold, 0);
     }

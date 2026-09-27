@@ -96,7 +96,8 @@ function economyChecks(check, tl) {
   return [
     ['gem. missiebeloning', `€${avg}`],
     ['start / na H3 / na H6 / na H13 / eind', `€${tl.rows[0].before} / €${earlyCash} / €${afterStep(tl, 'H6')} / €${romp} / €${tl.end}`],
-    ['pistool / uzi / hagel', WEAPON_STOCK.map((w) => `€${w.gun} (+€${w.ammoPrice})`).join(' / ')],
+    ['wapens (pistool / uzi / hagel)', WEAPON_STOCK.slice(0, 3).map((w) => `€${w.gun} (+€${w.ammoPrice})`).join(' / ')],
+    ['overige wapens', WEAPON_STOCK.slice(3).map((w) => `${w.key} €${w.gun}`).join(', ')],
     ['Mug / Wervelwind / Raket / Midibus', ['mug', 'wervelwind', 'raket', 'midibus'].map((k) => `€${VEHICLE_STOCK[k].price}`).join(' / ')],
     ['speedboot', `€${VEHICLE_STOCK.speedboot.price}`],
     ['reparatie 30% / 100% schade', `€${dent} / €${repairCost(100, 3, false)}`],
