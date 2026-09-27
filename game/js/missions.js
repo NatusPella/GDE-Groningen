@@ -19,6 +19,8 @@ import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { MISSION_IDS, MISSION_STORY_ORDER, missionCode } from './storyarc.js';
 import { requestRespawn } from './world.js';
 import { getMissionRecord } from './achievements.js';
+import { startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, heistStageChanged, disposeHeist } from './heist.js';
+import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const TRIGGER_RADIUS = 4;
@@ -228,12 +230,17 @@ function buildDefs(world) {
       reward: 150,
       requires: ['heist', 'night'],
       start: walk(18, 736),
+      heist: { fuse: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' } },
       stages: [
-        { kind: 'goto', target: { landmark: 'Groninger Museum', off: [-40, 10], snap: 'walk' }, mode: 'any', label: 'Naar de achteringang', say: 'Naar de achteringang. Rustig aan, blijf uit het licht.' },
-        { kind: 'hold', target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, time: 4, mode: 'foot', label: 'Camera\'s uit bij de stroomkast', say: 'De stroomkast. Blijf even staan: de camera\'s gaan één voor één uit.' },
-        { kind: 'goto', target: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine.' },
+        { kind: 'goto', target: { landmark: 'Groninger Museum', off: [-22, -40], snap: 'walk' }, mode: 'any', label: 'Naar de achteringang', say: 'Naar de brug naar het museumeiland. Rustig aan, blijf uit het licht.' },
         {
-          kind: 'scene', label: 'De vitrine',
+          kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, mode: 'foot', radius: 3.5,
+          label: 'Sluip naar de stroomkast', say: 'Bewakers met zaklampen en draaiende camera\'s. Blijf uit de lichtbundels. Bukken (Ctrl) helpt bij de bewakers.',
+        },
+        { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, label: 'Camera\'s uit bij de stroomkast', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera\'s.' },
+        { kind: 'goto', watch: { guards: 1, cameras: 0 }, vitrine: true, target: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.' },
+        {
+          kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
           lines: [['A', 'Hij is… leeg.'], ['T', 'Misschien is hij even naar de wc.'], ['A', 'Er ligt een kaartje. "Tige tank! – W."'], ['T', 'W? Wie is W?'], ['A', 'Iemand die Fries schrijft. En die eerder was dan wij.']],
         },
@@ -357,6 +364,7 @@ function buildDefs(world) {
       timeLimit: null,
       reward: 700,
       vehicle: 'car',
+      fjordTrain: true,
       start: drive(-60, 868),
       stages: [
         {
@@ -364,17 +372,24 @@ function buildDefs(world) {
           targets: [
             { landmark: 'Groninger Museum', off: [44, -30], label: 'Rode auto bij het museum... een brandweerauto. Nee' },
             { at: [-170, 905], label: 'Rode auto aan de Westerhaven... een bakfiets met een regenkap. Nee' },
-            { at: [-10, 876], label: 'Daar! De Fjord, met Durk en Douwe erin' },
+            { at: [-10, 876], label: 'Daar! De Fjord, met Durk en Douwe erin. Achter het station wacht een goederentrein' },
           ],
         },
         { kind: 'board', label: 'Stap in de auto', say: 'Jelmer heeft zijn auto laten staan. Instappen, ze rijden weg!' },
         {
-          kind: 'chase', label: 'Stop de Fjord', say: 'Achter ze aan! Ram hem tot hij stilstaat. Niet op mijn Fjord schieten, hè!',
+          kind: 'chase', label: 'Stop de Fjord', say: 'Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op mijn Fjord schieten, hè!',
           vehicle: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 9, brake: 22, turnRate: 3.2, color: '#a11f1f' },
-          hero: true, name: 'De Fjord', lead: 45, hits: 60, health: 170, flee: [-2600, 700], cruise: 16.5, escape: 380, time: 170,
+          hero: true, name: 'De Fjord', lead: 45, hits: 60, health: 170, flee: [-2600, 700], cruise: 16.5, escape: 380, time: 45,
+          toTrain: true, loaded: 'Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.', late: 'Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!',
           meter: 'Fjord', clock: 'trein', half: 'Hij slingert! Durk krijgt de zenuwen.',
           stopped: 'De Fjord staat stil. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
           lost: 'de Fjord staat op de trein naar Leeuwarden', gone: 'de Fjord is foetsie', burned: 'de Fjord staat in de fik. Anita praat nooit meer tegen je',
+        },
+        {
+          kind: 'train', label: 'Blokkeer de overweg aan de Peizerweg', say: 'Snel, naar de overweg aan de Peizerweg! Ga erbij staan, dan moet de machinist wel stoppen.',
+          caught: 'De trein staat stil. Durk en Douwe rijden de Fjord van de wagon en fietsen weg, allebei op één fatbike.',
+          taken: 'Anita rijdt de Fjord zelf van de wagon af. Moai!',
+          lost: 'de Fjord staat op de trein naar Leeuwarden',
         },
         { kind: 'board', label: 'Stap in je Fjord', say: 'Hij is van ons. Instappen, Anita.' },
         { kind: 'goto', target: { garage: true }, mode: 'vehicle', stop: 1, label: 'Breng de Fjord naar Henk', say: 'Naar de garage. Henk kijkt hem even na, daar staat hij veilig.' },
@@ -941,6 +956,8 @@ function boatProgressText(rv) {
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
   stopRondvaart(world);
+  disposeFjordTrain(world);
+  disposeHeist();
   if (chain.skutsje) {
     const i = world.vehicles.indexOf(chain.skutsje);
     if (i >= 0 && chain.skutsje.driver !== 'player') world.vehicles.splice(i, 1);
@@ -1682,6 +1699,12 @@ function raceCarProblem() {
 //           alongside in a boat (`board` m) for `boardTime` s to jump aboard. Fails past
 //           `escape` m or after `time` s (lost = the reason)
 //   heli    the UMCG trauma heli run (helirun.js, `variant`); passes when the catch works
+//   train   (H16, def `fjordTrain`) stand at the level crossing before the goods train
+//           with the Fjord gets there (fjordtrain.js); a chase with `toTrain` ends when
+//           the fleeing Fjord reaches the train or `time` runs out (`loaded`; stopped first = no train stage)
+//   fuse    (H6, def `heist`) the fuse box timing minigame at target (heist.js)
+// goto `watch` { guards, cameras }: torch cones and sweeping cameras along the way
+// (heist.js); seen = back to where the stage started. Scene `reveal`: the empty case shot.
 // More options: goto `limit` (seconds, `late` = the fail reason), `pay` (money taken when
 // the stage is done, `paid` = the toast), hold `ticks` (three progress toasts) and
 // `fireworks` { every: [min, max], hit, cost, hitText } (bangs that knock you down and
@@ -1807,7 +1830,8 @@ function spawnChaseVehicle(world, def, st) {
   v.missionCar = true;
   v.chaseTarget = true;
   v.label = st.name || '';
-  v.aiOpts = { goal: { x: st.flee[0], y: st.flee[1] }, chase: true, cruise: st.cruise || 15 };
+  const goal = (st.toTrain && fjordLoadPoint()) || { x: st.flee[0], y: st.flee[1] };
+  v.aiOpts = { goal: { x: goal.x, y: goal.y }, chase: true, cruise: st.cruise || 15 };
   world.vehicles.push(v);
   return v;
 }
@@ -1817,10 +1841,16 @@ function spawnChaseVehicle(world, def, st) {
 function stopChaseVehicle(world, def, st) {
   const v = chain.stage && chain.stage.target;
   if (!v) { nextStage(world, def); return; }
+  adoptVehicle(world, v, st);
+  if (st.stopped) world.addMessage(st.stopped, 4.5);
+  nextStage(world, def);
+}
+
+function adoptVehicle(world, v, st) {
   v.road = null;
   v.aiOpts = null;
   v.plan = [];
-  v.driver = null;
+  if (v.driver !== 'player') v.driver = null;
   v.chaseTarget = false;
   if (!st.hero) v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
   v.health = Math.max(v.health, 60);
@@ -1828,8 +1858,22 @@ function stopChaseVehicle(world, def, st) {
   if (old && old !== v) old.missionCar = false;
   chain.vehicle = v;
   chain.boarded = false;
-  if (st.stopped) world.addMessage(st.stopped, 4.5);
+}
+
+// H16: the Fjord drives onto the goods train at the Stationsplein
+function chaseReachedTrain(world, def, st, S, t, dt) {
+  const lp = fjordLoadPoint();
+  if (!lp) return false;
+  const d = dist(t.x, t.y, lp.x, lp.y);
+  S.stuck = d < 45 && Math.abs(t.speed) < 1 ? (S.stuck || 0) + dt : 0;
+  const late = S.t > (st.time || 180) || dist(world.player.x, world.player.y, t.x, t.y) > (st.escape || 380);
+  if (d > 14 && S.stuck < 3 && !late) return false;
+  // it got there (up the ramp), or the clock ran out (it is on the train already)
+  if (d > 14) loadFjordNow(world, t);
+  else loadFjord(world, t);
+  if (st.loaded) world.addMessage(d > 14 ? st.late || st.loaded : st.loaded, 4);
   nextStage(world, def);
+  return true;
 }
 
 function stageNeedsVehicle(world, def) {
@@ -1876,6 +1920,10 @@ function stageProgressText(world, def) {
   }
   if (st.kind === 'boatchase' && S.boat) return S.hold > 0 ? `${st.label} · aan boord ${Math.min(100, Math.round(S.hold / (st.boardTime || 2.5) * 100))}%` : `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.boat.v.x, S.boat.v.y))} m`;
   if (st.kind === 'goto' && st.limit) return `${st.label} · ${fmtTime(st.limit - S.t)}`;
+  if (st.kind === 'train' && fjordTrainState()) {
+    const ft = fjordTrainState();
+    return `${st.label} · trein nog ${Math.max(0, Math.round(ft.cross.s - ft.t.c - ft.t.halfLen))} m`;
+  }
   if (def.eggs && chain.stageIndex >= def.eggs.from && chain.eggs != null) return `${st.label} · eiermeter ${Math.round(chain.eggs)}%`;
   return `${st.label} (${n})`;
 }
@@ -1895,9 +1943,28 @@ function enterStage(world, def, k) {
       if (c) showTowerFlag({ x: c.x, y: c.y, z0: st.flag.z0, z1: st.flag.z1, width: st.flag.width, ropes: S.targets.filter(Boolean) });
     }
   }
+  if (def.fjordTrain && k === 0) spawnFjordTrain(world);
+  if (def.heist) {
+    heistStageChanged();
+    if (k === 0 && startHeist()) placeHeistProps(world, resolveTarget(world, def.heist.fuse, from), resolveTarget(world, def.heist.vitrine, from));
+    if (st.vitrine && vitrineStand()) S.target = { ...vitrineStand(), label: st.label };
+    const fi = def.stages.findIndex((q) => q.kind === 'fuse');
+    if (fi >= 0 && k > fi) { closeFuse(); camerasOff(); }
+  }
   if (st.kind === 'chase') {
     S.target = spawnChaseVehicle(world, def, st);
     S.hp0 = S.target ? S.target.health : 0;
+  }
+  if (st.kind === 'train') {
+    const ft = fjordTrainState();
+    if (!ft || !ft.fjord) {
+      // stopped before it got on: the train leaves without it
+      sendFjordTrainAway();
+      chain.stage = S;
+      nextStage(world, def);
+      return;
+    }
+    S.target = fjordCrossing();
   }
   if (st.kind === 'scene' && st.dropFlag) dropFlag();
   if (st.kind === 'boatchase') S.boat = spawnSkutsje(world, st);
@@ -1905,6 +1972,7 @@ function enterStage(world, def, k) {
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
   if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
   chain.stage = S;
+  if (def.heist && st.watch) guardRoute(world, from, S.target, st.watch);
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chain.timeLeft += st.bonus;
@@ -2073,7 +2141,32 @@ function playStageScene(world, st, S) {
     return { position: { x: c.x + Math.cos(a) * r, y: c.y + Math.sin(a) * r, z: h }, lookAt: { x: c.x, y: c.y, z: 1.4 }, fov: 46 };
   };
   let shot = orbit(world.player.angle + 2.4, 9, 3.2);
-  if (st.cam) {
+  if (st.reveal) {
+    // the empty case: a slow push-in over the player's shoulder onto the
+    // cushion, then a slide round to the two of them beside it
+    const v = vitrineSpot() || c;
+    const roofed = (x, y) => world.map.buildingsNear(x, y, 0.5).some((b) => pointInPolygon(x, y, b.pts));
+    const open = (a, r) => !roofed(v.x + Math.cos(a) * r, v.y + Math.sin(a) * r);
+    // the push-in comes from the most open side, towards the player where possible
+    const toC = Math.atan2(c.y - v.y, c.x - v.x);
+    let a0 = toC, bestN = -1;
+    for (let k = 0; k < 16; k++) {
+      const a = toC + (k / 16) * Math.PI * 2;
+      const n = [1.3, 2.2, 3.4].filter((r) => open(a, r)).length * 3 - Math.min(k, 16 - k) * 0.2;
+      if (n > bestN) { bestN = n; a0 = a; }
+    }
+    const side = [1, -1].find((sd) => open(a0 + sd * 0.9, 2.8) && open(a0 + sd * 0.5, 2.8)) ?? 1;
+    shot = (u) => {
+      if (u < 0.34) {
+        const k0 = u / 0.34, k = k0 * k0 * (3 - 2 * k0);
+        const r = 3.4 - 2.1 * k;
+        return { position: { x: v.x + Math.cos(a0 + 0.12) * r, y: v.y + Math.sin(a0 + 0.12) * r, z: 2.1 - 0.5 * k }, lookAt: { x: v.x, y: v.y, z: 1.08 }, fov: 48 - 10 * k };
+      }
+      const k = (u - 0.34) / 0.66, a = a0 + side * (0.35 + 0.55 * k);
+      const near = Math.hypot(c.x - v.x, c.y - v.y) < 5;
+      return { position: { x: v.x + Math.cos(a) * 2.8, y: v.y + Math.sin(a) * 2.8, z: 1.75 }, lookAt: { x: near ? (v.x + c.x) / 2 : v.x, y: near ? (v.y + c.y) / 2 : v.y, z: 1.2 }, fov: 50 };
+    };
+  } else if (st.cam) {
     // a wide shot from the target, looking up at cam.at (e.g. the tower)
     const look = (st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
     const a0 = Math.atan2(c.y - look.y, c.x - look.x);
@@ -2110,6 +2203,8 @@ function updateStages(dt, world, def) {
     updateEggs(dt, world, def);
     if (chain.phase !== 'active') return;
   }
+  // seen by a guard or camera: the stage waits while you're sent back
+  if (def.heist && updateHeist(dt, world, !!st.watch, S.here)) return;
   const v = chain.vehicle;
   const inCar = !!v && p.inVehicle === v;
   switch (st.kind) {
@@ -2138,6 +2233,11 @@ function updateStages(dt, world, def) {
       if (S.hold >= st.time) nextStage(world, def);
       break;
     }
+    case 'fuse':
+      if (!S.target) { nextStage(world, def); break; }
+      if (p.inVehicle) { hint(world, MODE_HINT.foot || ''); break; }
+      if (updateFuse(dt, world, S.target, world.input)) nextStage(world, def);
+      break;
     case 'garage': {
       const site = inCar ? garageInside(world) : null;
       if (!site || Math.abs(v.speed) > 1.5) { S.hold = 0; break; }
@@ -2157,6 +2257,7 @@ function updateStages(dt, world, def) {
       if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
+      if (st.toTrain && chaseReachedTrain(world, def, st, S, t, dt)) break;
       const d = dist(p.x, p.y, t.x, t.y);
       if (d > (st.escape || 380) || S.t > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
       if (S.hp0 - t.health >= st.hits / 2 && !S.half) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
@@ -2165,6 +2266,16 @@ function updateStages(dt, world, def) {
     case 'boatchase':
       updateBoatChase(dt, world, def, st, S);
       break;
+    case 'train': {
+      const r = updateFjordTrain(dt, world);
+      if (r === 'lost') { fail(world, def, st.lost); break; }
+      if (r !== 'caught' && r !== 'taken') break;
+      const fv = fjordTrainState() && fjordTrainState().fjord;
+      if (fv) adoptVehicle(world, fv, { hero: true });
+      world.addMessage(r === 'taken' ? st.taken : st.caught, 4.5);
+      nextStage(world, def);
+      break;
+    }
     case 'heli':
       updateHeliStage(dt, world, def, st, S);
       break;
@@ -2272,6 +2383,29 @@ export const missionDebug = {
       const cur = def.stages[chain.stageIndex];
       // a cutscene stage plays by itself (skippable); don't jump past it
       if (cur && (cur.kind === 'scene' || cur.kind === 'vault')) { syncPub(world); return true; }
+      if (cur && cur.kind === 'chase' && cur.toTrain && chain.stage && chain.stage.target && fjordLoadPoint()) {
+        // it makes it to the train: the Fjord goes up the ramp now
+        loadFjordNow(world, chain.stage.target);
+        nextStage(world, def);
+        syncPub(world);
+        return true;
+      }
+      if (cur && cur.kind === 'train') {
+        // there in time: the train stops at the crossing, the Fjord is back on the street
+        const c = fjordCrossing();
+        const p = world.player;
+        if (c && !world.pigeonMode) {
+          const pv = p.inVehicle;
+          if (pv) { pv.x = c.x + 12; pv.y = c.y + 6; pv.speed = 0; }
+          p.x = c.x + 12; p.y = c.y + 6;
+        }
+        updateFjordTrain(0, world);
+        const fv = catchFjordTrainNow(world);
+        if (fv) adoptVehicle(world, fv, { hero: true });
+        nextStage(world, def);
+        syncPub(world);
+        return true;
+      }
       if (cur && cur.kind === 'chase') {
         // flat tyres now, and the player right next to the stopped vehicle
         const t = chain.stage && chain.stage.target;
@@ -2286,6 +2420,7 @@ export const missionDebug = {
         syncPub(world);
         return true;
       }
+      if (cur && cur.kind === 'fuse') { closeFuse(); camerasOff(); }
       if (cur && cur.kind === 'boatchase' && chain.stage && chain.stage.boat) chain.stage.boat.speed = 0;
       if (cur && cur.kind === 'heli' && isHeliRunActive()) abortHeliRun();
       if (chain.phase !== 'active') { syncPub(world); return true; }

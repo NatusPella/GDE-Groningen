@@ -48,6 +48,15 @@ export const TRAIN_TYPES = {
     ],
   },
 };
+// story only (fjordtrain.js): a diesel loco with car-carrier flats
+const MISSION_TRAIN_TYPES = {
+  goederen: {
+    label: 'Goederentrein', vmax: 12, height: 4.1, doubleDeck: false, front: 'wink', gap: 0.8,
+    body: 0x3d4a57, stripe: 0xe8b21c, door: 0x2a323b, nose: 0xe8b21c, accent: 0x1c2228,
+    segments: [{ len: 17, kind: 'loco' }, { len: 14, kind: 'flat' }, { len: 14, kind: 'flat' }, { len: 14, kind: 'flat' }],
+  },
+};
+export const FLAT_DECK_Z = 1.25;
 
 let routes = [];
 let trains = [];
@@ -155,7 +164,7 @@ export function inRailBridgeZone(x, y) {
 }
 
 function makeTrain(route, type, atStop, dir, dwell) {
-  const cfg = TRAIN_TYPES[type] || TRAIN_TYPES.gtw;
+  const cfg = TRAIN_TYPES[type] || MISSION_TRAIN_TYPES[type] || TRAIN_TYPES.gtw;
   const segs = cfg.segments;
   const len = segs.reduce((a, g) => a + g.len, 0) + (segs.length - 1) * cfg.gap;
   // arc offset of each segment's centre from the train centre (+s first)
@@ -253,6 +262,7 @@ function stepTrain(t, dt, world) {
   const { route, cfg } = t;
   const stops = route.stops;
   if (t.state === 'player') { stepDriven(t, dt, world); return; }
+  if (t.state === 'mission') { stepMission(t, dt, world); return; }
   if (t.state === 'parked') { stepParked(t, dt, world); return; }
   if (t.state === 'dwell') {
     t.timer -= dt;
@@ -309,7 +319,7 @@ const PARK_RESUME_S = 25;
 const PARK_RESUME_DIST = 70;
 const PARK_MAX_S = 180;
 
-function isStolen(t) { return t.state === 'player' || t.state === 'parked'; }
+function isStolen(t) { return t.state === 'player' || t.state === 'parked' || t.state === 'mission'; }
 
 // Arc range of the route the player may drive on: inside the map, never off
 // into the fog where the city is not streamed in.
@@ -415,6 +425,73 @@ function stepDriven(t, dt, world) {
   clack(t, Math.abs(step), world);
 }
 
+// --- a scripted train for a story mission (fjordtrain.js) -------------------
+// t.ctl: vWant (m/s), stopAt (arc length its nose stops short of, or null),
+// brake (m/s2). It holds for any train on the track ahead.
+export function addMissionTrain(routeName, type, c, dir) {
+  const route = routes.find((r) => r.name === routeName);
+  if (!route) return null;
+  const t = makeTrain(route, type, 0, dir, 0);
+  Object.assign(t, { c, state: 'mission', v: 0, pv: 0, cab: dir, ctl: { vWant: 0, stopAt: null, brake: DECEL } });
+  placeCars(t);
+  trains.push(t);
+  return t;
+}
+
+export function removeMissionTrain(t) {
+  const i = trains.indexOf(t);
+  if (i >= 0) trains.splice(i, 1);
+}
+
+// Keeps the timetable off the mission train's track between arc lengths s0
+// and s1 for `hold` seconds: trains of routes sharing it wait at the
+// platform they stand at, or out at their far terminus.
+export function clearTrackFor(t, s0, s1, world, hold = 240) {
+  const p = world.player;
+  for (const o of trains) {
+    if (o === t || isStolen(o)) continue;
+    let shares = o.route === t.route;
+    for (let at = s0; at <= s1 && !shares; at += 25) {
+      const [x, y] = routePoint(t.route, at);
+      shares = projectOnRoute(o.route, x, y).d < 6;
+    }
+    if (!shares) continue;
+    const mid = o.cars[o.cars.length >> 1];
+    const pr = projectOnRoute(t.route, mid.x, mid.y);
+    const onStretch = pr.d < 8 && pr.s > s0 - o.halfLen - 20 && pr.s < s1 + o.halfLen + 20;
+    // one waiting where it stands (out of the way) keeps waiting; anything
+    // running could come onto the stretch head-on, so it goes out to the terminus
+    if (o.state === 'dwell' && !onStretch) {
+      o.timer = Math.max(o.timer, hold);
+      continue;
+    }
+    let far = -1;
+    o.route.stops.forEach((st, i) => { if (st.offmap) far = i; });
+    if (far < 0) continue;
+    Object.assign(o, { c: o.route.stops[far].s, v: 0, state: 'dwell', target: far, timer: hold, dir: far === 0 ? 1 : -1 });
+    placeCars(o);
+  }
+}
+
+function stepMission(t, dt, world) {
+  const ctl = t.ctl;
+  let vWant = ctl.vWant;
+  if (ctl.stopAt != null) {
+    const room = (ctl.stopAt - (t.c + t.dir * t.halfLen)) * t.dir;
+    vWant = room <= 0 ? 0 : Math.min(vWant, Math.sqrt(2 * ctl.brake * room));
+  }
+  const look = (t.v * t.v) / (2 * DECEL) + 25;
+  for (let d = 4; d < look && vWant > 0; d += 6) {
+    if (trainAhead(t, t.dir, d)) vWant = Math.min(vWant, Math.sqrt(2 * DECEL * Math.max(0, d - 12)));
+  }
+  if (t.v < vWant) t.v = Math.min(vWant, t.v + ACCEL * 0.7 * dt);
+  else t.v = Math.max(vWant, t.v - Math.max(ctl.brake, DECEL) * dt);
+  const step = t.v * dt;
+  t.c = Math.max(t.halfLen, Math.min(t.route.len - t.halfLen, t.c + step * t.dir));
+  t.pv = t.v * t.dir;
+  clack(t, step, world);
+}
+
 // Another train's carriage within `reach` metres ahead of this train's nose.
 function trainAhead(t, md, reach) {
   if (!md) return null;
@@ -457,7 +534,7 @@ function trainThreatens(t, at) {
   const rel = (at - t.c) * t.dir;
   if (Math.abs(at - t.c) < t.halfLen + WARN_CLEAR_M) return true;
   if (rel < 0) return false;
-  if (isStolen(t)) return t.state === 'player' && t.v > 0.5 && (rel - t.halfLen) / t.v < WARN_AHEAD_S;
+  if (isStolen(t)) return t.state !== 'parked' && t.v > 0.5 && (rel - t.halfLen) / t.v < WARN_AHEAD_S;
   const next = t.state === 'dwell' ? t.target + t.dir : t.target;
   const goal = t.route.stops[Math.max(0, Math.min(t.route.stops.length - 1, next))].s;
   if ((goal - at) * t.dir < -t.halfLen) return false;
@@ -609,7 +686,7 @@ function resolveContacts(world) {
       const hl = car.len / 2;
       const reach = hl + 4;
       for (const v of world.vehicles) {
-        if (v.isBoat || v.sinking) continue;
+        if (v.isBoat || v.sinking || v.onTrain) continue;
         if (Math.abs(v.x - car.x) > reach + v.halfLen || Math.abs(v.y - car.y) > reach + v.halfLen) continue;
         if (inRailBridgeZone(v.x, v.y)) continue;
         const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
