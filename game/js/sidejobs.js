@@ -14,6 +14,7 @@
 //   stop(ctx)                         clean up
 // Everything a job spawns that the core should tidy goes through ctx.
 
+import { SMS_SAY } from './smsvoice.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { isMissionActive, getActiveRace } from './missions.js';
@@ -255,7 +256,8 @@ function completeRound(c, res = {}) {
     if (after >= 5) unlockAchievement(world, 'sj_legende');
   }
   if (c.streak % 5 === 0 && world.phoneNotifications && c.job.sikkom) {
-    world.phoneNotifications.push({ text: 'SIKKOM: ' + c.job.sikkom(c), duration: 4 });
+    const say = SMS_SAY['job_' + c.job.id];
+    world.phoneNotifications.push({ text: 'SIKKOM: ' + c.job.sikkom(c), duration: 4, say: say && say.lines[0] });
   }
   c.timeLeft = null;
   c.nextRoundAt = world.time + NEXT_ROUND_DELAY;

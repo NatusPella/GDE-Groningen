@@ -84,7 +84,7 @@ export function updateSikkomFeed(dt, world) {
 
     if (msg) {
       lastKindAt[kind] = world.time;
-      world.phoneNotifications.push({ text: msg, duration: 4 });
+      world.phoneNotifications.push({ text: msg, duration: 4, voiced: true });
       playSikkomLine(audioKey);
       lastToastAt = world.time;
     }

@@ -21,6 +21,7 @@ import { dualHtml } from './subtitles.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { CARD_LINES } from './cardlines.js';
+import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 
 // the HUD's attention budget: one prominent card at a time
@@ -31,6 +32,7 @@ const MAX_TIME = 10;
 const OUT_TIME = 0.45;
 const VOICE_GAP = 6;
 const VOICE_REPEAT = 60;
+const HINT_REPEAT = 20;
 
 const ICON = {
   missie: '<path d="M6 3h2v18H6zM8 4h11l-2.5 4L19 12H8z"/>',
@@ -143,7 +145,7 @@ function fromMessage(text, dur, opts = {}) {
   if (opts.exact && dur < 2 && String(text).length <= 12) { showCount(text, dur); return; }
   const c = classify(text, opts);
   if (!c) return;
-  showCard(world, { ...c, text, duration: dur, key: opts.key || text });
+  showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say });
 }
 
 // spec: { kind, title, body | text, duration, key, icon, kicker, voice: false }
@@ -212,13 +214,35 @@ function leave(c) {
 function speak(c) {
   if (c.spec.voice === false || !world) return;
   const hit = CARD_LINES.find((l) => l.match.test(c.text));
-  if (!hit) return;
+  if (!hit) { companionSays(c); return; }
   const now = world.time;
   if (now - lastVoiceAt < VOICE_GAP || now - (voicedAt.get(hit.say) ?? -Infinity) < VOICE_REPEAT) return;
   const who = world.player && world.player.character === 'anita' ? 'Anita' : 'Tammo';
   const v = lineVoiceFor(who, hit.say);
   if (!v) return;
   if (playLineVoice(v.src, v.dur, 'react')) { lastVoiceAt = now; voicedAt.set(hit.say, now); }
+}
+
+// A card phrased as the companion talking (smsvoice.js hints manifest): said
+// by the one you don't play, once the channel is free while the card is up.
+function companionSays(c) {
+  const who = world.player && world.player.character === 'anita' ? 'Tammo' : 'Anita';
+  const say = c.spec.say || cardSpoken(c.text);
+  const v = hintVoiceFor(who, say);
+  if (!v || world.time - (voicedAt.get(who + say) ?? -Infinity) < HINT_REPEAT) return;
+  c.hint = { v, key: who + say };
+  tryHint(c);
+}
+
+function tryHint(c) {
+  const h = c.hint;
+  if (!h || c.leaving) return;
+  if (c.left < 1) { c.hint = null; return; }
+  if (!playLineVoice(h.v.src, h.v.dur, 'react')) return;
+  c.hint = null;
+  voicedAt.set(h.key, world.time);
+  lastVoiceAt = world.time;
+  c.left = Math.max(c.left, h.v.dur + 0.6);
 }
 
 function showCount(text, dur) {
@@ -246,7 +270,7 @@ export function updateCards(dt, w) {
   if (frozen) return;
   // during a phone call only dangers and the police get a card
   const calling = document.body.classList.contains('hud-call-on');
-  for (const c of visible) c.left -= dt;
+  for (const c of visible) { c.left -= dt; if (c.hint) tryHint(c); }
   for (const c of visible.filter((v) => v.left <= 0)) {
     if (!c.leaving) leave(c);
     else { c.el.remove(); visible.splice(visible.indexOf(c), 1); }
