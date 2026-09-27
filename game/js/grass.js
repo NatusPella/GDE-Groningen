@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { applyWetGround, WET_UNIFORMS } from './terrain3d.js';
 import { applyCutMask } from './cutmask3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
-import { pointInPolygon } from './util.js';
+import { pointInPolygon, markInstancesDirty } from './util.js';
 import { getWaterIndex } from './waterindex.js';
 
 // Green areas: merged per-chunk lawn surfaces with a procedural world-space
@@ -1010,9 +1010,8 @@ function syncTufts(cam, dt) {
       n += k;
     }
     mesh.count = n;
-    mesh.instanceMatrix.clearUpdateRanges?.();
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.instanceColor.needsUpdate = true;
+    markInstancesDirty(mesh.instanceMatrix, n);
+    markInstancesDirty(mesh.instanceColor, n);
   }
   grassFade.value.set(Q.radius * 0.62, Q.radius * 0.95);
   shrubFade.value.set(Q.shrubRadius * 0.7, Q.shrubRadius * 0.98);

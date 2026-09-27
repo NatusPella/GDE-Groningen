@@ -343,8 +343,8 @@ body.hide-minimap #hud .hud-route { bottom: 16px; }
 
 :where(#hud > :not(.hud-damage)) { transition: opacity 0.35s ease; }
 body.cine-hide-hud #hud > :not(.hud-damage) { opacity: 0; }
-body.cine-slowmo #game3d { filter: saturate(0.6) contrast(1.06); transition: filter 0.3s; }
-#game3d { transition: filter 0.4s; }
+/* fallback for 'laag' on a native-AA canvas; otherwise postfx3d.js screenFx */
+body.cine-slowmo:not(.gpu-screenfx) #game3d { filter: saturate(0.6) contrast(1.06); }
 
 /* --- cinematics ------------------------------------------------------- */
 #cine {
@@ -371,8 +371,8 @@ body.cine-slowmo #game3d { filter: saturate(0.6) contrast(1.06); transition: fil
 #cine .cine-tint { position: absolute; inset: 0; opacity: 0; transition: opacity 0.5s; }
 #cine[data-tint="death"] .cine-tint { opacity: 1; background: radial-gradient(ellipse at center, rgba(217, 63, 63, 0.12) 20%, rgba(217, 63, 63, 0.5) 100%); }
 #cine[data-tint="bust"] .cine-tint { opacity: 1; background: radial-gradient(ellipse at center, rgba(12, 20, 14, 0.1) 20%, rgba(12, 20, 14, 0.75) 100%); }
-body:has(#cine[data-tint="death"]) #game3d { filter: grayscale(0.85) contrast(1.1); }
-body:has(#cine[data-tint="bust"]) #game3d { filter: grayscale(1) brightness(0.85); }
+body.cine-tint-death:not(.gpu-screenfx) #game3d { filter: grayscale(0.85) contrast(1.1); }
+body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness(0.85); }
 
 #cine .cine-card {
   position: absolute;

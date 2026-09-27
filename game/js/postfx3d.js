@@ -28,6 +28,9 @@ const GradeShader = {
     uLook: { value: 0 },
     uDrunk: { value: 0 },
     uTime: { value: 0 },
+    uFxSat: { value: 1 },
+    uFxCon: { value: 1 },
+    uFlash: { value: 0 },
     toneMappingExposure: { value: 1 },
   },
   vertexShader: `
@@ -36,7 +39,7 @@ const GradeShader = {
   fragmentShader: `
     uniform sampler2D tDiffuse;
     uniform sampler2D tBloom;
-    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook, uDrunk, uTime;
+    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook, uDrunk, uTime, uFxSat, uFxCon, uFlash;
     uniform vec3 uShadowTint, uHighTint;
     varying vec2 vUv;
     #include <tonemapping_pars_fragment>
@@ -80,6 +83,9 @@ const GradeShader = {
       vec2 q = (vUv - 0.5) * vec2(uAspect, 1.0);
       c *= 1.0 - uVignette * smoothstep(0.35, 1.05, length(q));
       if (uLook > 0.0) c = mix(c, trailerLook(clamp(c, 0.0, 1.0)), uLook);
+      c = mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, uFxSat);
+      c = (c - 0.5) * uFxCon + 0.5;
+      c = mix(c, vec3(1.0, 0.965, 0.9), uFlash);
       float n = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
       c += (n - 0.5) / 255.0;
       gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
@@ -99,16 +105,62 @@ void main() {
 
 // Tone mapping + sRGB only: 'laag' on a canvas without native antialiasing.
 const OutputShader = {
-  uniforms: { tDiffuse: { value: null }, toneMappingExposure: { value: 1 }, uBright: { value: 1 } },
+  uniforms: { tDiffuse: { value: null }, toneMappingExposure: { value: 1 }, uBright: { value: 1 }, uFxSat: { value: 1 }, uFxCon: { value: 1 }, uFlash: { value: 0 } },
   vertexShader: SanitizeShader.vertexShader,
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float uBright; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uBright, uFxSat, uFxCon, uFlash; varying vec2 vUv;
 #include <tonemapping_pars_fragment>
 void main() {
   vec3 c = ACESFilmicToneMapping(texture2D(tDiffuse, vUv).rgb);
   c = pow(max(sRGBTransferOETF(vec4(c, 1.0)).rgb, vec3(0.0)), vec3(1.0 / uBright));
-  gl_FragColor = vec4(c, 1.0);
+  c = mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, uFxSat);
+  c = (c - 0.5) * uFxCon + 0.5;
+  c = mix(c, vec3(1.0, 0.965, 0.9), uFlash);
+  gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }`,
 };
+
+// Screen-wide colour effects (cutscene tints, slow motion, camera flashes)
+// run in the last pass: a CSS filter or blend mode on the canvas costs a
+// full-screen compositing pass every frame, worst on the lowest preset.
+// Only 'laag' on a natively antialiased canvas has no pass; body gets
+// 'gpu-screenfx' whenever there is one, and the CSS fallbacks key off it.
+const FX_TINTS = { '': [1, 1, 1], slowmo: [0.6, 1.06, 1], death: [0.15, 1.1, 1], bust: [0, 1, 0.85] };
+export const screenFx = { tint: '', slowmo: false };
+const fxNow = [1, 1, 1];
+let fxLast = 0, flashAt = -1e9, flashBig = false;
+
+// The trailer's cut flash; false when there is no pass (the caller then
+// uses its DOM overlay).
+export function flashScreen(big = false) {
+  if (!document.body.classList.contains('gpu-screenfx')) return false;
+  flashAt = performance.now();
+  flashBig = big;
+  return true;
+}
+
+function flashLevel(now) {
+  const t = (now - flashAt) / 1000;
+  if (flashBig) {
+    if (t < 0 || t > 0.5) return 0;
+    if (t < 0.15) return 1 - (t / 0.15) * 0.75;
+    if (t < 0.225) return 0.25 + ((t - 0.15) / 0.075) * 0.65;
+    return 0.9 * (1 - (t - 0.225) / 0.275);
+  }
+  return t < 0 || t > 0.28 ? 0 : 0.8 * (1 - t / 0.28) ** 1.6;
+}
+
+function stepScreenFx(u) {
+  const now = performance.now();
+  const dt = Math.min(0.1, (now - fxLast) / 1000);
+  fxLast = now;
+  const want = FX_TINTS[screenFx.tint] || (screenFx.slowmo ? FX_TINTS.slowmo : FX_TINTS['']);
+  const k = Math.min(1, dt * 8);
+  for (let i = 0; i < 3; i++) fxNow[i] += (want[i] - fxNow[i]) * k;
+  u.uFxSat.value = fxNow[0];
+  u.uFxCon.value = fxNow[1];
+  u.uFlash.value = flashLevel(now);
+  return fxNow[2];
+}
 
 // Renders the scene into its own multisampled HDR target and resolves it
 // into the chain through `shader`. Only this target is multisampled: every
@@ -167,6 +219,7 @@ export function createPostFX(renderer, scene, cam) {
 
   function build() {
     dispose();
+    document.body.classList.toggle('gpu-screenfx', !(level === 'laag' && nativeAA));
     if (level === 'laag' && nativeAA) return;
     const pr = renderer.getPixelRatio();
     const rt = new THREE.WebGLRenderTarget(Math.max(1, width * pr), Math.max(1, height * pr), { type: THREE.HalfFloatType });
@@ -223,12 +276,13 @@ export function createPostFX(renderer, scene, cam) {
       if (!composer) return;
       const bright = brightness();
       if (!grade) {
-        composer.passes[0].uniforms.toneMappingExposure.value = renderer.toneMappingExposure;
-        composer.passes[0].uniforms.uBright.value = bright;
+        const u0 = composer.passes[0].uniforms;
+        u0.toneMappingExposure.value = renderer.toneMappingExposure;
+        u0.uBright.value = bright * stepScreenFx(u0);
         return;
       }
       const u = grade.uniforms;
-      u.uBright.value = bright;
+      u.uBright.value = bright * stepScreenFx(u);
       u.uSat.value = L.sat * (1 - storm * 0.22);
       u.uContrast.value = L.con;
       u.uLift.value = L.lift;
