@@ -244,7 +244,61 @@ function setNight() {
   if (!isNight(world)) { world.clock = NIGHT_HOUR; refreshDayNight(world); }
 }
 
+// Credits after the epilogue: name cards over the city, no voices.
+const CREDITS = [
+  ['Tammo & Anita', 'hoofdrollen'],
+  ['Jelle Terpstra', 'de Fryske Snackkening'],
+  ['Durk & Douwe', 'op één fatbike'],
+  ['Bommen Berend, Oma Trijntje, Kapitein Klaas', 'en de rest van Grunn'],
+  ['d\'Olle Grieze', 'keek alles aan en zei niks'],
+];
+
+// A slow climb around d'Olle Grieze for the ending.
+function finaleShot(t0 = 0) {
+  const lm = (world.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { x: 214, y: 13 };
+  return (u, t) => {
+    const a = 0.6 + (t0 + t) * 0.035;
+    const r = 150 - (t0 + t) * 0.6;
+    return { position: { x: lm.x + Math.cos(a) * r, y: lm.y + Math.sin(a) * r, z: 55 + (t0 + t) * 0.5 }, lookAt: { x: lm.x, y: lm.y, z: 40 }, fov: 50 };
+  };
+}
+
+// The end of the story: the epilogue (the last part's card lines), a big
+// "Einde" and the credits; afterwards the world stays open.
+function playFinale(part) {
+  const P = PARTS[part];
+  // the ending plays over the Grote Markt: the world streams around the player
+  const p = world.player;
+  const spot = world.map.nearestRoadPoint(160, 70, 120, false);
+  if (spot && !p.inVehicle) {
+    p.x = spot.x; p.y = spot.y;
+    world.teleported = world.time;
+    const c = world.companion;
+    if (c && !c.inVehicle) { c.x = p.x + 1.2; c.y = p.y + 0.6; }
+  }
+  let at = 3.2;
+  const lines = (P.card || []).map(([speaker, text]) => {
+    const dur = Math.max(2.2, Math.min(5.2, 1 + text.length * 0.05));
+    const l = { speaker, text, at, dur };
+    at += dur + 0.25;
+    return l;
+  });
+  const ok = playCinematic({
+    id: 'story-card', priority: 2, duration: at + 0.6, pause: true, letterbox: true, skippable: true, hideHud: true,
+    kicker: P.end, title: 'Alles voor één eierbal', cardFor: 3, lines, shot: finaleShot(0),
+  });
+  if (!ok) return false;
+  const q = (spec) => playCinematic({ id: 'story-card', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
+  q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: 'Grand Theft Eierbal VI', shot: finaleShot(40) });
+  CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
+  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(62) });
+  state.cards.add(part);
+  phone('GTE VI', 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.', 9);
+  return true;
+}
+
 function playEndCard(part) {
+  if (PARTS[part] && PARTS[part].finale && currentStep().finale) return playFinale(part);
   const ok = playCinematic({
     id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: PARTS[part] ? PARTS[part].end : '', title: 'Alles voor één eierbal', cardFor: 2.4, big: 'Wordt vervolgd…',
@@ -282,6 +336,13 @@ function swapCharacter(w, want) {
 // The step's character, once nothing else is going on: the swap happens at
 // once (never half-way, whatever pauses the game next), under a short fade
 // from black and a line saying who takes over.
+// A step's mission waits until its character has taken over.
+function swapDone(w, i) {
+  const step = rt.cur;
+  if (!step || step.end || step.kind !== 'mission' || missionIdx(step) !== i || !step.player) return true;
+  return w.player.character === step.player;
+}
+
 function updateCharacter(w) {
   const step = rt.cur;
   const want = step && !step.end ? step.player : rt.lastPlayer;
@@ -404,7 +465,7 @@ function onGated() {
 
 export function initStory(w) {
   world = w;
-  setMissionHooks({ waived: (key) => state.waived.has(key), passed: onPassed, failed: onFailed, gated: onGated });
+  setMissionHooks({ waived: (key) => state.waived.has(key), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
   initSkipUi();
   ready = true;
   window.__story = storyApi;
@@ -482,7 +543,7 @@ export function getStoryView() {
   const step = rt.cur || currentStep();
   const avail = STEPS.filter(stepAvailable);
   const done = avail.filter((s) => isDone(s, STEPS.indexOf(s))).length;
-  if (!step || step.end) return { end: true, part: step ? step.end : 'kop', title: 'Wordt vervolgd…', done, total: avail.length };
+  if (!step || step.end) return { end: true, part: step ? step.end : 'kop', title: step && step.finale ? 'Einde. Grunn is van jou.' : 'Wordt vervolgd…', done, total: avail.length };
   return {
     end: false, id: step.id, part: step.part, partTitle: PARTS[step.part].title, kind: step.kind, title: step.title,
     lead: step.lead ? `${who(step.lead[0])}: ${step.lead[1]}` : '', canSkip: canSkipCurrent(), fails: state.fails[step.id] || 0,

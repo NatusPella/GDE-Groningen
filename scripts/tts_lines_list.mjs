@@ -24,6 +24,8 @@ const CAST = {
   [NARRATOR]: { voice: 'Schedar', who: 'Groningse verteller, droog en warm', pool: ['droog, met een knipoog', 'warm, vertellend', 'plagend, laconiek'] },
   'Jelle Terpstra': { voice: 'Fenrir', who: 'ijdele, charmante Friese ondernemer, spreekt Fries', pool: ['charmant, opschepperig', 'zelfvoldaan, grinnikend', 'plechtig, overdreven trots'], accent: 'spoken in West Frisian (Frysk) with a proud Frisian accent' },
   Durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger, spreekt Fries', pool: ['dronken, lallend, samenzweerderig', 'traag, verward'], accent: 'spoken in West Frisian (Frysk), slow and heavy' },
+  Douwe: { voice: 'Orus', who: 'grote, trage Friese handlanger, tweelingbroer van Durk, spreekt Fries', pool: ['traag, berustend', 'verward, sloom'], accent: 'spoken in West Frisian (Frysk), slow and heavy' },
+  'Dokter Dijkstra': { voice: 'Sadachbia', who: 'nuchtere Groningse traumaarts en helikopterpiloot', pool: ['droog, zakelijk', 'streng, stiekem geamuseerd', 'nuchter, laconiek'] },
   Femke: { voice: 'Leda', who: 'energieke Groningse festivalmaker', pool: ['gehaast, enthousiast', 'opgelucht, vrolijk', 'verontwaardigd, snel'] },
   Harm: { voice: 'Alnilam', who: 'oude Groningse wegwerker, gemoedelijk', pool: ['gemoedelijk, trots', 'samenzweerderig, droog'] },
   Geert: { voice: 'Zubenelgenubi', who: 'Groningse kroegbaas, joviaal', pool: ['joviaal, roddelend', 'droog, grinnikend'] },

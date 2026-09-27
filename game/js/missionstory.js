@@ -3,6 +3,7 @@ import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE 
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater } from './util.js';
+import { spawnFxPuff } from './fx3d.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene } from './audio.js';
 import { storyLineVoice } from './linevoice.js';
 
@@ -35,7 +36,17 @@ const NPC = {
   jelle: { name: 'Jelle Terpstra', shirt: 0x2553a6, skin: SKIN.woodLight, variant: 'male', seed: 1953 },
   durk: { name: 'Durk', shirt: 0xc8102e, skin: SKIN.woodLight, variant: 'male', seed: 777 },
   douwe: { name: 'Douwe', shirt: 0xc8102e, skin: SKIN.woodLight, variant: 'male', seed: 777 },
+  dijkstra: { name: 'Dokter Dijkstra', shirt: 0xe8641c, skin: SKIN.woodLight, variant: 'male', seed: 77 },
 };
+
+// Display name for a story speaker key (T, A, V or an NPC key); missions.js
+// uses it for its stage scenes, so voices are looked up under the right name.
+export function storySpeakerName(key) {
+  if (key === 'T') return 'Tammo';
+  if (key === 'A') return 'Anita';
+  if (key === 'V') return 'Verteller';
+  return NPC[key] ? NPC[key].name : key;
+}
 
 // N = the mission's NPC, T = Tammo, A = Anita, V = the narrator (Verteller,
 // wide shots), any other NPC key (e.g. 'durk') = that character speaking off
@@ -344,6 +355,123 @@ const STORY = [
       ['N', 'Kon minder, jong.'],
     ],
     fail: [['T', 'Die meeuwen waren groter dan ik.'], ['A', 'Alles is groter dan jij, als duif.']],
+  },
+  // 13: H14 Skûtsje-kraak
+  {
+    npc: null, ask: 2,
+    intro: [
+      ['A', 'Klaas zei het al: een Fries skûtsje in de Oosterhaven. Rare bemanning.'],
+      ['T', 'En wij hebben een huurbootje. Met een bel.'],
+      ['A', 'Jelle gooit vandaag los. Wij varen erachteraan en springen aan boord.'],
+      ['T', 'Springen. Van een boot. Op een andere boot.'],
+      ['A', 'Jij stuurt, Tammo. Ik zeg wanneer.'],
+      ['T', 'En wie springt er dan?'],
+      ['A', 'Wij allebei. Voortaan vallen we samen, weet je nog?'],
+    ],
+    outroNpc: false,
+    outro: [
+      ['T', 'Chocola. We hebben een boot gekaapt voor chocola.'],
+      ['A', 'Hij was wel lekker.'],
+      ['T', 'Heb jij van de bewijslast gegeten?'],
+      ['A', 'Eén hapje. En Jelle heeft zijn eigen plan verklapt: een ballon, vanavond.'],
+      ['T', 'Wie verklapt er nou zijn eigen plan?'],
+      ['A', 'Iemand die denkt dat hij toch wint. Ik ken een dokter met een heli.'],
+    ],
+    fail: [['T', 'Het skûtsje is weg. Met zeil en al.'], ['A', 'Een zeilboot ontsnapt aan een bootje met een bel. Niet vertellen in de kroeg.']],
+  },
+  // 14: H15 Traumaduif
+  {
+    npc: 'dijkstra', outroPose: 'hips', ask: 5,
+    intro: [
+      ['N', 'Jullie willen met mijn traumaheli achter een ballon aan? Dit is een ziekenhuis, geen kermis.'],
+      ['A', 'In die mand zit de Gouden Eierbal. Het is een noodgeval voor heel Grunn.'],
+      ['N', 'Een Grunneger noodgeval. Daar heb ik een formulier voor… Ach, stap maar in.'],
+      ['A', 'Ik heb ooit een drone gehad.'],
+      ['T', 'Die ligt nog in het Reitdiep.'],
+      ['N', 'Zij vliegt, hij hangt aan het touw. Hoogte en snelheid gelijk houden met de mand.'],
+      ['T', 'Aan het touw. Natuurlijk hang ík aan het touw.'],
+    ],
+    outroNpc: true,
+    outro: [
+      ['N', 'Zo. Mijn heli heeft nog nooit iets zo waardevols vervoerd. Op een wethouder na.'],
+      ['T', 'Ik heb hem. De echte. Hij is zwaar, en hij smelt niet.'],
+      ['A', 'Ik heb een traumaheli gevlogen.'],
+      ['T', 'Je hebt ermee geparkeerd. Op een ballon.'],
+      ['N', 'Die Fries is geland in een weiland bij Ten Boer. Tussen de koeien. Hij was niet blij.'],
+      ['A', 'De koeien ook niet, denk ik.'],
+    ],
+    fail: [['A', 'Die ballon is sneller dan hij eruitziet.'], ['T', 'Alles van Jelle is sneller dan het eruitziet.']],
+  },
+  // 15: H16 Waar is de Fjord?
+  {
+    npc: 'jelmer', outroPose: 'cheer', ask: 3,
+    intro: [
+      ['A', 'Mijn Fjord. Hij stond hier. Nu staat hier een klomp.'],
+      ['T', 'Er zit een briefje in. "Tige tank foar de auto. J."'],
+      ['N', 'Moi moi chat! De Fjord van Anita is foetsie! Wie hem ziet, zet het in de chat!'],
+      ['N', 'Chat zegt: drie rode auto\'s rond het station. Pak een duif, dan zie je ze van boven.'],
+      ['A', 'Durk en Douwe willen hem op de trein naar Leeuwarden zetten. Over mijn lijk.'],
+      ['T', 'Liever over dat van Durk.'],
+    ],
+    outroNpc: true,
+    outro: [
+      ['N', 'Chat gaat los! Tienduizend hartjes voor de Fjord!'],
+      ['A', 'Niemand. Raakt. Mijn. Fjord.'],
+      ['T', 'Ik mag er ook niet in rijden.'],
+      ['A', 'Precies. Niemand.'],
+      ['T', 'Jelle wil ons weg hebben voor Gronings Ontzet. Daar gaat het hem om.'],
+      ['A', 'Dan gaan we juist. Met de Fjord, en met een eierbal.'],
+    ],
+    fail: [['A', 'Mijn Fjord rijdt naar Leeuwarden. Zonder mij.'], ['T', 'Hij komt terug. Hij mist Grunn nu al.']],
+  },
+  // 16: H17 Het Bod
+  {
+    npc: 'jelle', outroPose: 'hips', ask: 0,
+    intro: [
+      ['N', 'Moai, Grinzers. Ik ha in foarstel. Op Gronings Ontzet bakke wy tsjin elkoar, foar de Noardlike Snackpriis.'],
+      ['N', 'Winne jimme, dan meie jimme de Eierbal hâlde. Winne ik, dan krij ik him werom. En is de aaibal Frysk.'],
+      ['T', 'Hij is niet eens van jou, Jelle.'],
+      ['N', 'Dat is in detail, Grinzer.'],
+      ['A', 'Mosterd, eieren, stoetbrood. Een echte Groninger eierbal. Wij winnen dit.'],
+      ['T', 'Eieren van de kippen bij de volkstuin. Die leggen de beste.'],
+      ['A', 'Dan rij jij, Tammo. En niet remmen. Eieren zijn geen pionnen.'],
+    ],
+    outroNpc: false,
+    outro: [
+      ['T', 'Stel dat we winnen. Dan hebben we een Gouden Eierbal. Achttien karaat.'],
+      ['A', 'Dan kunnen we de Fjord Frituur kopen. En nog tien.'],
+      ['T', 'En als we winnen, verkopen we hem toch nog?'],
+      ['A', '…Nee. Hij hoort in Grunn.'],
+      ['T', 'In het museum. Met een alarm dat het doet.'],
+      ['A', 'Oma Trijntje zou trots zijn.'],
+    ],
+    fail: [['T', 'Omelet. Achterin. Overal.'], ['A', 'Dan halen we nieuwe. Die kippen leggen wel door.']],
+  },
+  // 17: H18 Finale: Gronings Ontzet
+  {
+    npc: 'berend', ask: 5,
+    intro: [
+      ['V', 'Achtentwintig augustus. Gronings Ontzet. In 1672 hield Grunn Bommen Berend buiten de stad.'],
+      ['V', 'Dit jaar staat er gewoon een Berend op de Grote Markt. Als voorzitter van de jury.'],
+      ['N', 'Zo. De Noordelijke Snackprijs. Ik proef, ik tel, ik oordeel. Streng.'],
+      ['A', 'Tammo bakt. Ik hou de kraam heel.'],
+      ['T', 'Ik bak nooit onder druk.'],
+      ['N', 'Die twee Friese reuzen daar hebben vuurwerk bij zich. Dat is hier niet de bedoeling.'],
+      ['A', 'Je doet alles onder druk, Tammo. Daarom werkt het.'],
+      ['N', 'Een stad belegeren loopt nooit goed af. Vraag maar na.'],
+    ],
+    outroNpc: false,
+    kiss: true,
+    outro: [
+      ['jelle', 'Goed. Ik priuw jimme aaibal. Mar ik sis neat.'],
+      ['jelle', 'Dit is… better as ús. Net fertelle.'],
+      ['A', 'Jelle zegt dat onze eierbal beter is. Hoorde iedereen dat?'],
+      ['T', 'Heel de Grote Markt, schat.'],
+      ['A', 'De Eierbal gaat terug naar het museum. En de beloning is voor de Fjord Frituur.'],
+      ['T', 'Wij tweeën tegen Grunn. Weet je nog?'],
+      ['A', 'Wij tweeën vóór Grunn.'],
+    ],
+    fail: [['A', 'Hij is weg. Met de Eierbal.'], ['T', 'Grunn geeft nooit op. Wij ook niet.']],
   },
 ];
 
@@ -686,9 +814,11 @@ function onFootAnchor(w) {
 export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', title = '', target = null } = {}) {
   const s = STORY[i];
   if (!s || run) return false;
-  const anchor = onFootAnchor(w);
-  const facing = facingTowards(w, anchor, target);
-  const r = buildRun(w, { npcKey: s.npc, anchor, facing });
+  const v = w.player.inVehicle;
+  const onDeck = !!(v && v.isBoat);
+  const anchor = onDeck ? { x: v.x, y: v.y } : onFootAnchor(w);
+  const facing = onDeck ? v.angle + Math.PI / 2 : facingTowards(w, anchor, target);
+  const r = buildRun(w, { npcKey: onDeck ? null : s.npc, anchor, facing, h: onDeck ? DECK_H : 0 });
   if (!r) return false;
   const all = stageLines(i, stage, 'intro');
   const lines = short ? [s.intro[s.ask]] : all;
@@ -696,7 +826,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   const askText = s.intro[s.ask][1];
   return play(w, 'mission-intro', r, tl, {
     kicker, title, cardFor: short ? tl.total : 3.6, closing: 'glance', target,
-    poses: (t, cur) => ({ N: cur && cur.text === askText ? 'point' : i === 1 ? 'phone' : null, A: i === 5 && cur && cur.who === 'A' ? 'hips' : null }),
+    poses: (t, cur) => ({ N: cur && cur.text === askText ? 'point' : i === 1 || i === 15 ? 'phone' : null, A: (i === 5 || i === 15) && cur && cur.who === 'A' ? 'hips' : null }),
   });
 }
 
@@ -766,7 +896,8 @@ function waterCrossing(w, x, y, maxR = 90, maxSpan = 34) {
 // Jelle Terpstra talks, runs up and vaults over the nearest canal with his
 // polsstok (or over the street when there's no water nearby); Durk and
 // Douwe stay behind and then leg it. lines: [[who, text], ...] before the jump.
-export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, Grinzers!', kicker = '', title = '' } = {}) {
+// fail: the pole snaps halfway and Jelle drops into the water (the finale).
+export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, Grinzers!', kicker = '', title = '', fail = false } = {}) {
   if (run) return false;
   const scene = sceneMod && sceneMod.getScene();
   if (!scene) return false;
@@ -802,7 +933,8 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   const RUN = 1.3, JUMP = 1.7, AFTER = 2.6;
   const jumpAt = talkEnd + RUN, landAt = jumpAt + JUMP, total = landAt + AFTER;
   const apex = 3.5 + span * 0.18;
-  const allLines = [...tl.lines, { who: 'jelle', speaker: NPC.jelle.name, text: landing, at: landAt + 0.1, dur: 2.2 }];
+  const allLines = [...tl.lines, { who: 'jelle', speaker: NPC.jelle.name, text: landing, at: fail ? jumpAt + JUMP * 0.4 : landAt + 0.1, dur: 2.2 }];
+  let splashed = false;
   const hide = w.pedestrians.filter((q) => q.state !== 'dead' && Math.hypot(q.x - c.a.x, q.y - c.a.y) < 18);
   if (hide.length) w.pedestrians = w.pedestrians.filter((q) => !hide.includes(q));
   w.cinematicHidePlayers = true;
@@ -836,7 +968,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
       r.lastT = t;
       const cur = allLines.find((l) => t >= l.at && t < l.at + l.dur);
       const talking = (key) => !!cur && cur.who === key;
-      const fled = t > landAt + 0.6;
+      const fled = !fail && t > landAt + 0.6;
       for (const [m, key] of [[tammo, 'T'], [anita, 'A'], [durk, 'durk'], [douwe, 'douwe']]) {
         resetLimbs(m.userData);
         animatePersonWalk(m, fled && (key === 'durk' || key === 'douwe') ? 3 : 0, dt);
@@ -858,6 +990,27 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
         standActor(jelle, x, y, ang);
         animatePersonWalk(jelle, 6, dt);
         setPole(x + dx * 5, y + dy * 5, 0.9, x - dx * 1.5, y - dy * 1.5, 1.6);
+      } else if (fail && t < landAt) {
+        // up, the pole snaps, straight down into the water
+        const k = (t - jumpAt) / JUMP;
+        const x = lerp(c.a.x, plant.x, Math.min(1, k * 1.15)), y = lerp(c.a.y, plant.y, Math.min(1, k * 1.15));
+        const z = k < 0.45 ? 4 * apex * 0.6 * (k / 0.9) * (1 - k / 0.9) : lerp(apex * 0.6 * 0.99, -0.9, smooth((k - 0.45) / 0.55));
+        standActor(jelle, x, y, ang, z);
+        applyPose(jelle, 'cheer', t, false);
+        if (k < 0.45) setPole(plant.x, plant.y, -0.8, x, y, z + 1.9);
+        else setPole(plant.x, plant.y, -0.8, plant.x + dx * 3 * (k - 0.45), plant.y + dy * 3 * (k - 0.45), 3.8 - (k - 0.45) * 5);
+      } else if (fail) {
+        // bobbing in the water, arms up, while the pair walks to the edge
+        if (!splashed) {
+          splashed = true;
+          for (let q = 0; q < 14; q++) {
+            const a = (q / 14) * Math.PI * 2;
+            spawnFxPuff(plant.x, -0.9, plant.y, Math.cos(a) * 3, 3 + Math.random() * 3, Math.sin(a) * 3, 0.9, 0.3, 1.1, 0.92, 0.96, 1, 0.8, 2, -1);
+          }
+        }
+        standActor(jelle, plant.x, plant.y, ang + Math.PI, -1.05 + Math.sin(t * 3) * 0.08);
+        applyPose(jelle, 'cheer', t, talking('jelle'));
+        pole.visible = false;
       } else if (t < landAt) {
         const k = (t - jumpAt) / JUMP;
         const x = lerp(c.a.x, c.b.x, k), y = lerp(c.a.y, c.b.y, k);
