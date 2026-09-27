@@ -3,7 +3,9 @@ import { paintSpeaker } from './speakers.js';
 import { getClockText } from './hud_panel.js';
 import { readingSeconds } from './world.js';
 import { lineVoiceFor } from './linevoice.js';
-import { playCallVoice, playPhoneRing } from './audio.js';
+import { playCallVoice, playPhoneRing, playSmsVoice, playPhonePing } from './audio.js';
+import { smsVoiceFor, smsKind } from './smsvoice.js';
+import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 
 // The phone on the HUD (bottom left, above the street name): notification
@@ -14,7 +16,10 @@ import { hold as holdChannel, release as releaseChannel } from './speech.js';
 // or push { from, text, duration } onto world.phoneNotifications (the old
 // way, still read every frame). At most two cards are up at once, the
 // newest at the bottom; the older one steps back. A card whose text the
-// HUD just showed as a card is only written to the history.
+// HUD just showed as a card is only written to the history. A card pings and
+// is read aloud in the sender's voice (smsvoice.js; `say` = the fixed line
+// for a text with numbers or names, `voiced: true` = already spoken); the
+// card stays up until the voice is done.
 //
 // Calls: startCall(world, { from, lines: [{ speaker, text, sub }], live,
 // onEnd, voice }) rings, then plays line by line: each line is voiced from
@@ -36,6 +41,8 @@ const RING_TIME = 1.6;
 const LINE_GAP = 0.35;
 const HANGUP_TIME = 1.1;
 const CALL_WAIT_MAX = 90;
+const VOICE_DELAY = 0.45;
+const VOICE_TAIL = 1.2;
 const APP_ICON = {
   sikkom: '<path d="M12 3a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6zm-2 16a2 2 0 0 0 4 0z"/>',
   bericht: '<path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>',
@@ -142,7 +149,27 @@ function showNote(w, n) {
   el.classList.add('on');
   const secs = Math.min(HOLD_MAX, Math.max(HOLD_MIN, (n.duration || 0) + 1, readingSeconds(full) * 1.4));
   el.style.setProperty('--pf-dur', `${secs}s`);
-  cards.push({ el, left: secs, secs });
+  const c = { el, left: secs, secs, voice: null, speaking: false, t: 0 };
+  if (!n.voiced) {
+    const v = smsVoiceFor(n, lineVoiceFor);
+    const kind = v && (n.story ? 'story' : smsKind(v.speaker));
+    if (v && mayVoiceText(kind)) { c.voice = v; noteVoiceText(kind); }
+  }
+  if (!n.voiced) playPhonePing();
+  cards.push(c);
+}
+
+// the card's voice starts once the channel is free, while the card is up
+function voiceCard(c) {
+  if (!c.voice || c.leaving || c.t < VOICE_DELAY) return;
+  const v = c.voice;
+  const r = playSmsVoice(v.src, v.dur, () => { c.speaking = false; c.left = Math.min(c.left, VOICE_TAIL); });
+  if (r === 'wait') return;
+  c.voice = null;
+  if (r !== 'play') return;
+  c.speaking = true;
+  c.left = Math.max(c.left, (v.dur || 3) + VOICE_TAIL);
+  c.el.style.setProperty('--pf-dur', `${c.t + c.left}s`);
 }
 
 // "+2": how many more notifications wait behind the one that is up
@@ -153,7 +180,7 @@ function syncCounter() {
   more.hidden = !notes.length;
   more.textContent = notes.length ? `+${notes.length}` : '';
   // a waiting queue shortens the card that is up (but it stays readable)
-  if (notes.length && up.secs - up.left > HOLD_BUSY) up.left = Math.min(up.left, 0.01);
+  if (notes.length && !up.speaking && !up.voice && up.secs - up.left > HOLD_BUSY) up.left = Math.min(up.left, 0.01);
 }
 
 function dropCard(c) {
@@ -294,7 +321,7 @@ export function updatePhoneFeed(dt, w) {
     if (notes.length > 6) notes.splice(0, notes.length - 6).forEach((n) => remember(w, n.from ? `${n.from}: ${n.text}` : n.text));
     if (!call && !cards.some((c) => !c.leaving) && notes.length) showNote(w, notes.shift());
     syncCounter();
-    for (const c of cards) c.left -= dt;
+    for (const c of cards) { c.t += dt; voiceCard(c); if (c.speaking && c.t > 40) c.speaking = false; if (!c.speaking) c.left -= dt; }
     for (const c of cards.filter((k) => k.left <= 0)) {
       if (!c.leaving) dropCard(c);
       else { c.el.remove(); cards.splice(cards.indexOf(c), 1); }

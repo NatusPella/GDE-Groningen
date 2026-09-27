@@ -1,3 +1,4 @@
+import { SMS_SAY } from './smsvoice.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
@@ -692,7 +693,7 @@ function checkRequirement(w, def, force = false) {
   const place = requirementPlace(w, key);
   const text = REQUIREMENTS[key].text(place ? place.name : chainName(REQUIREMENTS[key]));
   w.addMessage(text, 5);
-  if (w.phoneNotifications) w.phoneNotifications.push({ text: `${def.label}: ${text}${place ? ' Staat op je kaart.' : ''}`, duration: 6 });
+  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'GTE VI', text: `${def.label}: ${text}${place ? ' Staat op je kaart.' : ''}`, duration: 6, say: SMS_SAY.gate.lines[0] });
   hooks.gated(w, chain.index, key);
   return false;
 }

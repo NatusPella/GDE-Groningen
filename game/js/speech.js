@@ -209,6 +209,9 @@ export function tick() {
   }
 }
 
+// A line is playing right now (holds aside).
+export const clipPlaying = () => !!active(clock());
+
 // Anyone talking or holding the channel.
 export function talking() {
   return !!active(clock()) || holds.size > 0;

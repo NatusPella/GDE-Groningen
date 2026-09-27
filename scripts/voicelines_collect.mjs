@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
 import { CARD_LINES } from '../game/js/cardlines.js';
 import { STEPS, PARTS } from '../game/js/storyarc.js';
+import { SMS_SAY, smsSpeaker, smsSpoken } from '../game/js/smsvoice.js';
 
 export const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = path.join(REPO, 'game', 'js');
@@ -249,6 +250,31 @@ export function collect() {
   // --- phone calls outside the story (phonefeed.js startCall) -> lines manifest
   for (const t of Object.values(lit(src('garages.js'), 'const HENK_CALL = '))) add('Telefoon (gesprekken)', 'lines', ['Henk'], t, { tag: 'gemoedelijk, aan de telefoon' });
   for (const l of lit(src('postgame.js'), 'const INVITE_CALL = ')) add('Telefoon (gesprekken)', 'lines', [typeof l.speaker === 'string' ? l.speaker : JELLE], l.text, { tag: 'aan de telefoon, uitdagend en vrolijk' });
+
+  // --- phone messages read aloud (phonefeed.js notification cards, smsvoice.js) -> sms manifest
+  const NEWS_TAG = ['als een regionale nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog', 'als een nieuwslezer, opgewekt en snel'];
+  const APP_TAG = ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'];
+  const tagFor = (sp) => (sp === 'Sikkom-redactie' ? { tag: NEWS_TAG } : sp === 'Ubbo' ? { tag: APP_TAG } : {});
+  const sms = (area, from, text, spoken = null) => {
+    const sp = smsSpeaker(from || (/^SIKKOM/i.test(text) ? 'Sikkom' : from));
+    add(area, 'sms', [sp], spoken || smsSpoken(text), tagFor(sp));
+    out[out.length - 1].fallback = 'lines';
+  };
+  const SWHO = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
+  for (const st of STEPS) {
+    for (const f of ['lead', 'done']) if (st[f]) sms('Berichten (verhaal)', SWHO(st[f][0]), st[f][1]);
+    for (const f of ['after', 'beat']) for (const [k, t] of st[f] || []) sms('Berichten (verhaal)', SWHO(k), t);
+    for (const c of st.contact || []) for (const [k, t] of c.after || []) sms('Berichten (verhaal)', SWHO(k), t);
+    if (st.voorschot) sms('Berichten (verhaal)', st.voorschot.from, st.voorschot.text);
+  }
+  for (const t of strings(src('story.js'), /phone\('GTE VI', ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GTE VI', t);
+  for (const t of strings(src('postgame.js'), /from: 'GTE VI', text: ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GTE VI', t);
+  for (const { speaker, lines } of Object.values(SMS_SAY)) for (const t of lines) add(speaker === 'Sikkom-redactie' ? 'Berichten (Sikkom)' : speaker === 'Ubbo' ? 'Berichten (app)' : 'Berichten (verhaal)', 'sms', [speaker], t, tagFor(speaker));
+  const fls = src('flavourlines.js');
+  for (const t of strings(fls, /export const PLANTSOEN_NEWS = ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (Sikkom)', 'Sikkom', t);
+  for (const ev of Object.values(lit(fls, 'export const EVENT_DAYS = '))) sms('Berichten (Sikkom)', 'Sikkom', ev.announce);
+  for (const t of lit(fls, 'export const KROLBRUG_FAULTS = ')) sms('Berichten (Sikkom)', 'Gerrit Krolbrug', t);
+  for (const t of lit(src('sidejobs.js'), 'const ACCIDENT_LINES = ')) sms('Berichten (Sikkom)', '', t);
 
   return out;
 }

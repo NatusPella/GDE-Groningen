@@ -7,7 +7,8 @@
 import json, os, sys, subprocess, urllib.request, urllib.error, wave, time
 from concurrent.futures import ThreadPoolExecutor
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-OUT = os.path.join(REPO, 'game', 'audio', 'voicelines', 'lines')
+VL = os.path.join(REPO, 'game', 'audio', 'voicelines')
+OUT = os.path.join(VL, 'lines')  # a job's 'out' picks another manifest folder (sms)
 ENV = next((p for p in [os.path.join(REPO, '.env'), os.path.join(REPO, '..', '..', '..', '.env')] if os.path.exists(p)), None)
 KEY = [l.split('=', 1)[1].strip().strip('"\'') for l in open(ENV) if l.startswith('OPENROUTER_API_KEY=')][0]
 ENDPOINT = 'https://openrouter.ai/api/v1/audio/speech'
@@ -51,7 +52,7 @@ def encode(wav, dst):
 
 
 def job(l):
-    dst = f"{OUT}/{l['file']}"
+    dst = f"{VL}/{l.get('out', 'lines')}/{l['file']}"
     if os.path.exists(dst):
         return l, 'skip', probe(dst)
     os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -84,9 +85,11 @@ def job(l):
 lines = json.load(open(os.path.join(REPO, 'scripts', 'tts_lines.json')))
 if args:
     lines = lines[:int(args[0])]
-man_path = f'{OUT}/manifest.json'
-os.makedirs(OUT, exist_ok=True)
-man = json.load(open(man_path)) if os.path.exists(man_path) else {}
+mans = {}
+for out in sorted({l.get('out', 'lines') for l in lines}):
+    p = f'{VL}/{out}/manifest.json'
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    mans[out] = json.load(open(p)) if os.path.exists(p) else {}
 u0 = usage()
 failed = []
 with ThreadPoolExecutor(4) as ex:
@@ -98,10 +101,11 @@ with ThreadPoolExecutor(4) as ex:
         for l, st, dur in ex.map(job, lines[b:b + BATCH]):
             print(st, l['file'], f'{dur:.2f}s' if dur else '')
             if dur:
-                man[l['key']] = {'src': l['file'], 'dur': round(dur, 2)}
+                mans[l.get('out', 'lines')][l['key']] = {'src': l['file'], 'dur': round(dur, 2)}
             else:
                 failed.append(l['file'])
-        json.dump(dict(sorted(man.items())), open(man_path, 'w'), ensure_ascii=False, indent=0)
+        for out, man in mans.items():
+            json.dump(dict(sorted(man.items())), open(f'{VL}/{out}/manifest.json', 'w'), ensure_ascii=False, indent=0)
 time.sleep(3)
 print(f'spent ${usage() - u0:.4f}')
 for f in failed:

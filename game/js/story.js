@@ -9,6 +9,7 @@
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
 import { queueStoryContact } from './storycontact.js';
+import { SMS_SAY } from './smsvoice.js';
 import { playClueSting, playRadioSting } from './audio.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import {
@@ -67,8 +68,8 @@ function freshRuntime() {
 
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
 
-function phone(from, text, duration = 6) {
-  if (world && world.phoneNotifications) world.phoneNotifications.push({ from, text, duration });
+function phone(from, text, duration = 6, say = undefined) {
+  if (world && world.phoneNotifications) world.phoneNotifications.push({ from, text, duration, say, story: true });
 }
 
 function missionIdx(step) {
@@ -203,7 +204,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
   if (!quiet && step.kind === 'activity' && step.done) phone(who(step.done[0]), step.done[1], 5);
-  if (!quiet && step.after) for (const [from, text] of step.after) phone(from, text, 6);
+  if (!quiet && step.after) for (const [from, text] of step.after) phone(who(from), text, 6);
   if (step.beat) for (const [from, text] of step.beat) phone(who(from), text, 6);
   if (!quiet) queueContacts(step, 'after');
   for (const c of CLUES) {
@@ -679,7 +680,9 @@ export function updateStory(dt, w) {
   if (!rt.reminded && w.time - rt.enteredAt > REMIND_AFTER && !isMissionActive()) {
     rt.reminded = true;
     if (step.kind === 'activity') rt.skipUntil = w.time + 60;
-    phone(step.lead ? who(step.lead[0]) : 'Anita', `Nog even dit: ${step.title}. Staat op je kaart, als je zin hebt.`, 6);
+    const from = step.lead ? who(step.lead[0]) : 'Anita';
+    const remind = from === 'Tammo' ? SMS_SAY.remindT : from === 'Anita' ? SMS_SAY.remindA : null;
+    phone(from, `Nog even dit: ${step.title}. Staat op je kaart, als je zin hebt.`, 6, remind ? remind.lines[0] : undefined);
   }
 }
 
