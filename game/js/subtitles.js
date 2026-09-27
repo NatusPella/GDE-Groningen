@@ -18,6 +18,7 @@ export const FY = {
   'Dat is in detail, Grinzer.': 'Dat is een detail, Groninger.',
   'Goed. Ik priuw jimme aaibal. Mar ik sis neat.': 'Goed. Ik proef jullie eierbal. Maar ik zeg niks.',
   'Dit is… better as ús. Net fertelle.': 'Dit is… beter dan de onze. Niet doorvertellen.',
+  'Moai. Sa\'n gouden aaibal… dy heart eins yn Fryslân.': 'Mooi. Zo\'n gouden eierbal… die hoort eigenlijk in Friesland.',
   'Moai! Oant sjen, Grinzers!': 'Mooi! Tot ziens, Groningers!',
   'Moai! Oant sjen op Gronings Ontzet!': 'Mooi! Tot ziens op Gronings Ontzet!',
   'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.': 'Mooi, Groningers. Mijn vet. Mijn tankwagen. Mijn dag.',
@@ -125,6 +126,7 @@ export const FY = {
 };
 
 export const GRO = {
+  'Nait soezen, Tammo. Deurbroezen!': 'Niet treuzelen, Tammo. Doorgaan!',
   'Bist betoeterd?': 'Ben je gek geworden?',
   'Au! Wat dust doe?': 'Au! Wat doe jij?',
   'Au! Doe bist nait goed wies!': 'Au! Jij bent niet goed wijs!',

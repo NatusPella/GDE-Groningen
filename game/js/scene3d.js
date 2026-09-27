@@ -2486,8 +2486,12 @@ function roofTopNear(map, x, y) {
   }
   return top;
 }
+const _guardLast = new THREE.Vector3(1e9, 0, 0);
 function guardCinematicCamera(dt, world) {
   const need = world && world.map ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
+  // a cut to another place starts from its own need, not the old shot's lift
+  if (_guardLast.distanceToSquared(cam.position) > 144) guardLift = need;
+  _guardLast.copy(cam.position);
   guardLift += (need - guardLift) * Math.min(1, dt * (need > guardLift ? 10 : 1.5));
   if (guardLift > 0.01) cam.position.y += guardLift;
   const targets = guardTargets();
