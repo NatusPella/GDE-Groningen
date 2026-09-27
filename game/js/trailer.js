@@ -697,9 +697,9 @@ function buildShots(w) {
   // the aerial drifts on behind the logo, dimmed, instead of a black card
   const logoCam = aerial.continuation();
   const logo = {
-    label: 'Logo', cuts: ['vol'], dur: 4.0, dim: true, keep: true, fadeOut: 0.5, clock: 19.1, clockTo: 19.35, weather: 'helder', focus: tower,
-    cam(u) { return { ...logoCam(u * 4.0), shake: 0.03 }; },
-    caps: [[0.2, 3.6, null, null, null, '<div class="tr-kicker">Grand Theft Eierbal</div><div class="gte-logo"><span class="gte">GTE</span><span class="vi">VI</span></div><div class="tr-kicker" style="margin-top:14px">Nu te spelen</div>']],
+    label: 'Logo', cuts: ['vol'], dur: 4.4, dim: true, keep: true, card: true, fadeOut: 1.0, clock: 19.1, clockTo: 19.35, weather: 'helder', focus: tower,
+    cam(u) { return { ...logoCam(u * 4.4), shake: 0.03 }; },
+    caps: [[0.2, 3.5, null, null, null, '<div class="tr-kicker">Grand Theft Eierbal</div><div class="gte-logo"><span class="gte">GTE</span><span class="vi">VI</span></div><div class="tr-kicker" style="margin-top:14px">Nu te spelen</div>']],
   };
 
   const tagSpot = openSpot(map, vis.x + 6, vis.y - 4, 16);
@@ -871,7 +871,7 @@ function frame(r, dt, realMs) {
   const w = r.w;
   // fadeOut: the shot ends on black, and the next location streams in there
   if (s.fadeOut && !r.state.faded && st > s.dur - s.fadeOut) { r.state.faded = true; ui.black.classList.remove('dim'); ui.black.classList.add('fade'); }
-  if (s.fadeOut && !r.state.streamed && st > s.dur - 0.12) { r.state.streamed = true; streamNext(r, i); }
+  if (s.fadeOut && !r.state.streamed && st > s.dur - s.fadeOut + 0.45) { r.state.streamed = true; streamNext(r, i); }
   if (r.state.streamed) {
     try { r.env.render(dt, 0); } catch (e) { /* ignore */ }
     return;
@@ -925,7 +925,8 @@ function frame(r, dt, realMs) {
   if (r.countCalls) { r.stats[i].calls = (r.stats[i].calls || 0) + r.countCalls.n; r.stats[i].frames = (r.stats[i].frames || 0) + 1; }
 
   if (r.mode === 'benchmark') {
-    if (!s.black && st / k > MEASURE_AFTER_CUT_S) r.stats[i].ms.push(realMs);
+    // title cards are not measured, also when a picture runs behind them
+    if (!s.black && !s.card && st / k > MEASURE_AFTER_CUT_S) r.stats[i].ms.push(realMs);
     r.fpsAcc += realMs; r.fpsN++;
     if (r.fpsAcc > 500) {
       ui.fps.textContent = `BENCHMARK · ${Math.round(1000 / (r.fpsAcc / r.fpsN))} fps`;
