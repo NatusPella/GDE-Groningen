@@ -435,6 +435,9 @@ def missing_buildings(existing, cands):
 PATCHES = [
     {"at": [1573.0, 275.0], "set": {"name": "EIKEA", "landmark": "EIKEA", "landmarkKind": "store", "h": 5, "type": "retail"}},
     {"at": [128.0, 110.0], "set": {"name": "Stadhuis", "h": 6, "type": "civic"}},
+    # Prinsenhof and the DUO "Cruiseschip" (landmarks3d.js models) are taller than OSM says
+    {"at": [261.0, -151.0], "set": {"h": 4}},
+    {"at": [956.0, 1525.0], "set": {"h": 14}},
 ]
 
 GROTE_MARKT = (130.0, 80.0)
