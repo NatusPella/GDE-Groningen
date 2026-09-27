@@ -24,6 +24,7 @@ const GradeShader = {
     uVignette: { value: 0.2 },
     uAspect: { value: 1 },
     uBright: { value: 1 },
+    uLook: { value: 0 },
     toneMappingExposure: { value: 1 },
   },
   vertexShader: `
@@ -32,10 +33,24 @@ const GradeShader = {
   fragmentShader: `
     uniform sampler2D tDiffuse;
     uniform sampler2D tBloom;
-    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright;
+    uniform float uSat, uContrast, uLift, uVignette, uAspect, uBright, uLook;
     uniform vec3 uShadowTint, uHighTint;
     varying vec2 vUv;
     #include <tonemapping_pars_fragment>
+    vec3 softLight(vec3 b, vec3 s) {
+      vec3 d = mix(((16.0 * b - 12.0) * b + 4.0) * b, sqrt(b), step(0.25, b));
+      return mix(b - (1.0 - 2.0 * s) * b * (1.0 - b), b + (2.0 * s - 1.0) * (d - b), step(0.5, s));
+    }
+    // the trailer look (trailer.js): a teal-to-amber soft-light wash along
+    // the diagonal plus a touch more saturation and contrast
+    vec3 trailerLook(vec3 c) {
+      c = clamp((c - 0.5) * 1.06 + 0.5, 0.0, 1.0);
+      c = clamp(mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, 1.14), 0.0, 1.0);
+      vec2 p = vec2((vUv.x - 0.5) * uAspect, 0.5 - vUv.y);
+      float t = dot(p, vec2(0.342, 0.940)) / (uAspect * 0.342 + 0.940) + 0.5;
+      c = mix(c, softLight(c, vec3(0.0, 0.588, 0.667)), 0.18 * (1.0 - smoothstep(0.0, 0.45, t)));
+      return mix(c, softLight(c, vec3(1.0, 0.502, 0.157)), 0.18 * smoothstep(0.45, 1.0, t));
+    }
     void main() {
       vec3 c = texture2D(tDiffuse, vUv).rgb;
       #ifdef USE_BLOOM
@@ -55,6 +70,7 @@ const GradeShader = {
       c = pow(max(c, vec3(0.0)), vec3(1.0 / uBright));
       vec2 q = (vUv - 0.5) * vec2(uAspect, 1.0);
       c *= 1.0 - uVignette * smoothstep(0.35, 1.05, length(q));
+      if (uLook > 0.0) c = mix(c, trailerLook(clamp(c, 0.0, 1.0)), uLook);
       float n = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
       c += (n - 0.5) / 255.0;
       gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
@@ -191,6 +207,9 @@ export function createPostFX(renderer, scene, cam) {
       if (composer) composer.setSize(w, h);
     },
     rebuild() { build(); },
+    // 0..1: the trailer's colour look in the grade pass (no pass on 'laag')
+    look: 0,
+    get hasGrade() { return !!grade; },
     apply(L, storm = 0) {
       if (!composer) return;
       const bright = brightness();
@@ -208,6 +227,7 @@ export function createPostFX(renderer, scene, cam) {
       u.uHighTint.value.copy(L.hiTint).convertLinearToSRGB().lerp(_grey, storm * 0.5);
       u.uVignette.value = L.vig + storm * 0.06;
       u.uAspect.value = width / Math.max(1, height);
+      u.uLook.value = this.look;
       u.toneMappingExposure.value = renderer.toneMappingExposure;
       if (bloom) {
         bloom.strength = L.bloomStr;

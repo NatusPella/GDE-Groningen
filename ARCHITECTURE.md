@@ -171,7 +171,13 @@ don't collide, and actors are drawn at their height.
   owners, large buffer uploads; read `window.__hitch.summary()`. The desktop
   app's `--perf-script=<file>` runs a script in the page after starting a
   game and logs its result; `console.log('[capture] name')` from it saves a
-  screenshot.
+  screenshot. `--bench-eval=<file>` runs a script as soon as the page loads
+  (e.g. a tracker that tags every geometry/texture with its creation stack).
+- GPU memory stays flat: streamed-out actors free their geometry, materials
+  and skeletons (bone textures) in `disposeObject`; warm-up stand-ins of a
+  since disposed source are dropped instead of drawn (a draw would upload it
+  again); the per-road and per-water-polygon geometry caches keep only the
+  most recently shown ones (LRU, like the building parts).
 
 ## Trailer (`js/trailer.js`)
 
@@ -189,7 +195,11 @@ title screen's first camera move and the logo glides into place),
 1/60 s step). The benchmark in a running game saves, reloads with a
 sessionStorage flag and continues the save after "Terug". Captions are
 driven by trailer time, not CSS animations, so slow fixed-step recordings
-stay in sync.
+stay in sync. Actors and props (Tammo, Anita, the pigeon) are built once per
+session and only hidden between shots; the colour look is a uniform in the
+grade pass (`postfx.look`), not a CSS filter over the canvas. A shot with
+`fadeOut` ends on black and streams the next location in there, like the
+black cards.
 
 ## Story
 
