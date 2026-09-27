@@ -19,6 +19,9 @@ Steps (each script edits game/citymap.json in place, see its docstring):
   add_landmark_footprints
   add_shops             meta.shops
   gen_ringroute         game/js/ringroute.js (the ring race lap)
+  fetch_ommeland        the Ommelanden ~12 km round town -> data/ommeland_raw.json.gz (only if missing)
+  add_ommeland          game/ommeland.json + game/ommeland.bin (real roads, rails, water,
+                        villages and buildings past the city map; needs numpy + Pillow)
 
 Keys another tool added to citymap.json that no step produces are carried
 over from the previous file.
@@ -83,6 +86,9 @@ def main():
         json.dump(bounds, f)
 
     run("gen_ringroute")
+    if refresh or not os.path.exists(os.path.join(ROOT, "data", "ommeland_raw.json.gz")):
+        run("fetch_ommeland", *extra)
+    run("add_ommeland")
 
     with open(MAP) as f:
         data = json.load(f)

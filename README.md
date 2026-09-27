@@ -150,8 +150,10 @@ python3 scripts/build_map.py --refresh  # refetch every Overpass cache first
 
 The map covers the whole ringweg (Westelijke, Noordelijke, Oostelijke and
 Zuidelijke Ringweg with Julianaplein, Europaplein, Euvelgunne and
-Noorderhoogebrug) plus ~300 m around it; beyond that the procedural
-Ommelanden take over. The origin stays at the centre of the original city
+Noorderhoogebrug) plus ~300 m around it; beyond that the Ommelanden take
+over: real roads, rails, water and villages in low detail for ~12 km, with
+the procedural fields, ditches, farms and animals in between, and fully
+procedural polders further out. The origin stays at the centre of the original city
 core, so all coordinates in the game keep their meaning. The steps, in order:
 
 1. `fetch_osm.py`: the ways around the city core into `data/ring_raw.json.gz`
@@ -171,14 +173,25 @@ core, so all coordinates in the game keep their meaning. The steps, in order:
 6. `add_helipad.py`, `add_landmark_footprints.py`, `add_shops.py`.
 7. `gen_ringroute.py`: writes `game/js/ringroute.js`, the ring race lap.
 
+8. `fetch_ommeland.py` + `add_ommeland.py`: the real Ommelanden round the
+   city (Zuidhorn to Ten Boer, Winsum to Eelde and the Zuidlaardermeer) into
+   `game/ommeland.json` (roads, narrow waterways, rails, places, churches,
+   stations and the train routes carried on to Haren, Zuidhorn, Sauwerd,
+   Winsum, Bedum, Kropswolde and Martenshoek) and `game/ommeland.bin`
+   (gzip: building boxes and a water distance field). `citymap.json` is not
+   touched. Needs numpy and Pillow. The cache `data/ommeland_raw.json.gz`
+   keeps only trimmed tags and building boxes.
+
 Overpass responses are cached in `data/` together with the box they cover
 (`osmfetch.py`) and refetched when the map outgrows them. Keys another tool
 added to `citymap.json` are carried over by `build_map.py`.
 
 ## Known limits
 
-- The map covers the city inside the ringweg plus ~300 m around it, not all
-  of Groningen.
+- The detailed map covers the city inside the ringweg plus ~300 m around it.
+  The real Ommelanden round it are low detail: flat ground, buildings as
+  simple boxes, roads and water painted on the ground (you wade through the
+  lakes rather than swim).
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.

@@ -1,8 +1,18 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import {
-  BLOCK, ROAD_IN, ROAD_W, MAAR_HW, COUNTRY_UNIFORMS,
-  chash, edgeDistance, countryWeight, edgeRoad, maarX, maarY, setEdgeQuery, setCountryMask,
+  BLOCK, ROAD_IN, ROAD_W, MAAR_HW, COUNTRY_UNIFORMS, EDGE_TEX_W, EDGE_SLOTS,
+  chash, edgeDistance, countryWeight, edgeRoad, maarX, maarY, setEdgeQuery, setCountryMask, realWater,
 } from './countryfield.js';
+import { REAL, realBlocked, buildRealSigns } from './countryreal.js';
+
+// an integer sampler must never see the default float texture
+{
+  const t = new THREE.DataTexture(new Uint16Array(4), 1, 1, THREE.RGBAIntegerFormat, THREE.UnsignedShortType);
+  t.internalFormat = 'RGBA16UI';
+  t.minFilter = t.magFilter = THREE.NearestFilter;
+  t.needsUpdate = true;
+  COUNTRY_UNIFORMS.uEdgeGrid.value = t;
+}
 
 // Where the real map meets the Ommelanden. City roads that run off the map
 // carry on as matching roads (same width, tapering to a polder road) until
@@ -49,17 +59,26 @@ function segDist(px, py, g) {
 
 export function initCountryEdge(map) {
   if (EDGE.ready) return;
+  const t0 = performance.now();
   const B = map.meta.bounds;
   EDGE.bounds = B;
   buildMask(map, B);
-  buildConnectors(map, B);
-  buildCanals(map, B);
-  buildRails(map, B);
-  crossings();
-  buildFringe(B);
+  if (REAL.ready) {
+    // the real Ommelanden replace the roads, canals and outskirts guessed
+    // from the map edge
+    buildReal();
+    buildRails(map, B);
+  } else {
+    buildConnectors(map, B);
+    buildCanals(map, B);
+    buildRails(map, B);
+    crossings();
+    buildFringe(B);
+  }
   bucket();
   uploadTexture();
   setEdgeQuery(surfaceQuery);
+  EDGE.initMs = Math.round(performance.now() - t0);
   EDGE.ready = true;
 }
 
@@ -340,7 +359,7 @@ function makeConnector(e, s, B, laneAbs = null) {
 const smooth01 = (t) => t * t * (3 - 2 * t);
 
 function addSeg(a, b, ha, hb, kind, side, owner) {
-  if (EDGE.segs.length >= MAX_SEGS) return;
+  if (EDGE.segs.length >= (owner && owner.real ? 65000 : MAX_SEGS)) return;
   const g = { ax: a[0], ay: a[1], bx: b[0], by: b[1], ha, hb, kind, side, owner };
   const m = Math.max(ha, hb) + 2;
   g.box = [Math.min(a[0], b[0]) - m, Math.min(a[1], b[1]) - m, Math.max(a[0], b[0]) + m, Math.max(a[1], b[1]) + m];
@@ -436,11 +455,31 @@ function crossings() {
   }
 }
 
+// Real roads and narrow waterways as ground-shader segments, from just
+// inside the city data outwards (the city draws its own part).
+function buildReal() {
+  const keep = (a, b) => edgeDistance(a[0], a[1]) > -40 || edgeDistance(b[0], b[1]) > -40;
+  for (const r of REAL.roads) {
+    const own = { real: true, road: r };
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const a = r.pts[i], b = r.pts[i + 1];
+      if (keep(a, b)) addSeg(a, b, r.w / 2, r.w / 2, 0, -1, own);
+    }
+  }
+  for (const w of REAL.waterways) {
+    const own = { real: true, canal: w };
+    for (let i = 0; i < w.pts.length - 1; i++) {
+      const a = w.pts[i], b = w.pts[i + 1];
+      if (keep(a, b)) addSeg(a, b, w.hw, w.hw, 1, -1, own);
+    }
+  }
+  EDGE.signs.push(...buildRealSigns(edgeDistance));
+}
+
 function buildRails(map, B) {
-  const routes = map.railRoutes || [];
+  const routes = (map.railRoutes || []).map((r) => r.pts).concat(map.countryRails || []);
   const seen = new Set();
-  for (const r of routes) {
-    const P = r.pts;
+  for (const P of routes) {
     for (let i = 1; i < P.length; i++) {
       const a = P[i - 1], b = P[i];
       if (edgeDistance(b[0], b[1]) < -20 && edgeDistance(a[0], a[1]) < -20) continue;
@@ -467,10 +506,18 @@ export function nearRail(x, y) {
 
 // Connector road / canal under (x, y): { kind: 'road' | 'canal', d, hw }.
 const _hit = { kind: null, d: 0, hw: 0, seg: null };
+const JS_GRID = 48;
+const segGrid = new Map();
+const NO_SEGS = [];
+function segsNear(x, y, margin) {
+  if (margin > JS_GRID / 2) return EDGE.segs;
+  const k = Math.floor(x / JS_GRID) * 100003 + Math.floor(y / JS_GRID);
+  return segGrid.get(k) || NO_SEGS;
+}
 export function edgeAt(x, y, margin = 0) {
   _hit.kind = null;
   let bestRoad = null;
-  for (const g of EDGE.segs) {
+  for (const g of segsNear(x, y, margin)) {
     const b = g.box;
     if (x < b[0] - margin || x > b[2] + margin || y < b[1] - margin || y > b[3] + margin) continue;
     const [d, t] = segDist(x, y, g);
@@ -484,10 +531,12 @@ export function edgeAt(x, y, margin = 0) {
 }
 
 function surfaceQuery(x, y) {
-  if (!EDGE.segs.length) return null;
+  if (!EDGE.segs.length && !REAL.ready) return null;
   const h = edgeAt(x, y);
+  if (h && h.kind === 'road') return 'weg';
+  if (REAL.ready && realWater(x, y) > 0.8) return 'sloot';
   if (!h) return null;
-  return h.kind === 'road' ? 'weg' : h.hw - h.d > 0.8 ? 'sloot' : 'gras';
+  return h.hw - h.d > 0.8 ? 'sloot' : 'gras';
 }
 
 // Kept clear of props, farms and turbines: connector roads (with verge),
@@ -497,6 +546,7 @@ export function edgeBlocked(x, y, margin = 3) {
   if (edgeDistance(x, y) > 5000) return false;
   if (edgeAt(x, y, margin)) return true;
   if (nearRail(x, y)) return true;
+  if (realBlocked(x, y, margin)) return true;
   const list = EDGE.byBlock.get(bkey(Math.floor(x / BLOCK), Math.floor(y / BLOCK)));
   if (list) for (const b of list) if (x > b[0] - margin && x < b[2] + margin && y > b[1] - margin && y < b[3] + margin) return true;
   return false;
@@ -827,6 +877,18 @@ function bucket() {
   for (const b of EDGE.bridges) addT(b.x, b.y, 'bridges', b);
   // road corridors and canals as boxes for the farm planner
   for (const g of EDGE.segs) {
+    // JS lookup grid for edgeAt
+    const gm = Math.max(g.ha, g.hb) + JS_GRID / 2;
+    for (let cx = Math.floor((Math.min(g.ax, g.bx) - gm) / JS_GRID); cx <= Math.floor((Math.max(g.ax, g.bx) + gm) / JS_GRID); cx++) {
+      for (let cy = Math.floor((Math.min(g.ay, g.by) - gm) / JS_GRID); cy <= Math.floor((Math.max(g.ay, g.by) + gm) / JS_GRID); cy++) {
+        if (segDist((cx + 0.5) * JS_GRID, (cy + 0.5) * JS_GRID, g)[0] > gm + JS_GRID * 0.71) continue;
+        const k = cx * 100003 + cy;
+        let L = segGrid.get(k);
+        if (!L) segGrid.set(k, (L = []));
+        L.push(g);
+      }
+    }
+    if (g.owner && g.owner.real) continue;
     const m = g.kind ? 6 : 8;
     const n = Math.max(1, Math.ceil(Math.hypot(g.bx - g.ax, g.by - g.ay) / 60));
     for (let i = 0; i < n; i++) {
@@ -836,33 +898,46 @@ function bucket() {
       addB([Math.min(ax, bx) - hw, Math.min(ay, by) - hw, Math.max(ax, bx) + hw, Math.max(ay, by) + hw]);
     }
   }
-  for (const [a, b] of EDGE.rails) {
+  for (const [a, b] of REAL.ready ? [] : EDGE.rails) {
     const hw = 10;
     addB([Math.min(a[0], b[0]) - hw, Math.min(a[1], b[1]) - hw, Math.max(a[0], b[0]) + hw, Math.max(a[1], b[1]) + hw]);
   }
 }
 
-// Segments for the ground shader (row 0 = ends, row 1 = half widths at
-// both ends and the kind) and a 64 m lookup grid naming the (at most 8)
-// segments that can touch each cell, so a pixel tests only those.
-const GRID = 64, GRID_PAD = 4600;
+// Segments for the ground shader (per segment two texels in consecutive
+// rows: ends, then half widths at both ends and the kind; EDGE_TEX_W wide)
+// and a 48 m lookup grid naming the (at most EDGE_SLOTS) segments that can
+// touch each cell, so a pixel tests only those. The grid covers the map
+// bounds plus a margin, and the real Ommelanden when they are loaded.
+const GRID = 48, GRID_PAD = 4600;
 function uploadTexture() {
   const segs = EDGE.segs;
   const n = Math.max(1, segs.length);
-  const data = new Float32Array(n * 2 * 4);
+  const rows = Math.ceil(n / EDGE_TEX_W) * 2;
+  const data = new Float32Array(EDGE_TEX_W * rows * 4);
   segs.forEach((g, i) => {
-    data.set([g.ax, g.ay, g.bx, g.by], i * 4);
-    data.set([g.ha, g.hb, g.kind, 0], (n + i) * 4);
+    const o = ((Math.floor(i / EDGE_TEX_W) * 2) * EDGE_TEX_W + (i % EDGE_TEX_W)) * 4;
+    data.set([g.ax, g.ay, g.bx, g.by], o);
+    data.set([g.ha, g.hb, g.kind, 0], o + EDGE_TEX_W * 4);
   });
-  const tex = new THREE.DataTexture(data, n, 2, THREE.RGBAFormat, THREE.FloatType);
+  const tex = new THREE.DataTexture(data, EDGE_TEX_W, rows, THREE.RGBAFormat, THREE.FloatType);
   tex.minFilter = tex.magFilter = THREE.NearestFilter;
   tex.needsUpdate = true;
   const B = EDGE.bounds;
-  const gx0 = B[0] - GRID_PAD, gy0 = B[1] - GRID_PAD;
-  const w = Math.ceil((B[2] - B[0] + GRID_PAD * 2) / GRID), h = Math.ceil((B[3] - B[1] + GRID_PAD * 2) / GRID);
-  const grid = new Float32Array(w * 2 * h * 4);
+  let [gx0, gy0, gx1, gy1] = [B[0] - GRID_PAD, B[1] - GRID_PAD, B[2] + GRID_PAD, B[3] + GRID_PAD];
+  if (REAL.ready) {
+    const E = REAL.ext;
+    gx0 = Math.min(gx0, E[0]); gy0 = Math.min(gy0, E[1]); gx1 = Math.max(gx1, E[2]); gy1 = Math.max(gy1, E[3]);
+  }
+  const w = Math.ceil((gx1 - gx0) / GRID), h = Math.ceil((gy1 - gy0) / GRID);
+  const TX = EDGE_SLOTS / 4;
+  const grid = new Uint16Array(w * TX * h * 4);
   const fill = new Uint8Array(w * h);
-  segs.forEach((g, i) => {
+  // wide roads claim their slots first, so a crowded cell drops a lane
+  const order = segs.map((g, i) => i).sort((a, b) => (segs[a].kind - segs[b].kind) || (segs[b].ha - segs[a].ha));
+  let dropped = 0;
+  for (const i of order) {
+    const g = segs[i];
     const m = Math.max(g.ha, g.hb) + 3;
     const [x0, y0, x1, y1] = [Math.min(g.ax, g.bx) - m, Math.min(g.ay, g.by) - m, Math.max(g.ax, g.bx) + m, Math.max(g.ay, g.by) + m];
     for (let cy = Math.max(0, Math.floor((y0 - gy0) / GRID)); cy <= Math.min(h - 1, Math.floor((y1 - gy0) / GRID)); cy++) {
@@ -871,13 +946,15 @@ function uploadTexture() {
         const mx = gx0 + (cx + 0.5) * GRID, my = gy0 + (cy + 0.5) * GRID;
         if (segDist(mx, my, g)[0] > m + GRID * 0.71) continue;
         const k = cy * w + cx;
-        if (fill[k] >= 8) continue;
+        if (fill[k] >= EDGE_SLOTS) { dropped++; continue; }
         const slot = fill[k]++;
-        grid[((cy * w * 2) + cx * 2 + (slot >> 2)) * 4 + (slot & 3)] = i + 1;
+        grid[((cy * w * TX) + cx * TX + (slot >> 2)) * 4 + (slot & 3)] = i + 1;
       }
     }
-  });
-  const gtex = new THREE.DataTexture(grid, w * 2, h, THREE.RGBAFormat, THREE.FloatType);
+  }
+  EDGE.gridDropped = dropped;
+  const gtex = new THREE.DataTexture(grid, w * TX, h, THREE.RGBAIntegerFormat, THREE.UnsignedShortType);
+  gtex.internalFormat = 'RGBA16UI';
   gtex.minFilter = gtex.magFilter = THREE.NearestFilter;
   gtex.needsUpdate = true;
   COUNTRY_UNIFORMS.uEdgeTex.value = tex;

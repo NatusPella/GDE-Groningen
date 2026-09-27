@@ -35,6 +35,8 @@ const OFFMAP_JOKES = {
   Winschoten: 'Het Oldambt valt net buiten de kaart',
   Leeuwarden: 'Friesland? Daar heb je een visum voor nodig',
   Roodeschool: 'Einde van de lijn, einde van de kaart',
+  Delfzijl: 'Daar ruikt het naar zee en naar Eemshaven',
+  Assen: 'Drenthe. Daar zijn ze nog rustiger dan hier',
 };
 
 let world = null;
@@ -208,9 +210,49 @@ function entranceSpot(map, x, y, px, py) {
   return map.findOpenSpawn(x, y, 150);
 }
 
+// A halt out in the Ommelanden (countryreal.js): no city data round it, so
+// the machine simply stands on the platform side a few metres off the track.
+function placeCountryStation(def, stops, scene) {
+  const st = stops[0];
+  const [px, py] = routePoint(st.route, st.s);
+  const [tx, ty] = tangentAt(st.route, st.s);
+  let nx = -ty, ny = tx;
+  if ((def.x - px) * nx + (def.y - py) * ny < 0) { nx = -nx; ny = -ny; }
+  const x = px + nx * 7, y = py + ny * 7;
+  const s = {
+    name: def.name, short: shortName(def.name), x, y, stops, exitAngle: Math.atan2(ny, nx), country: true,
+    arrive: { x: x + nx * 3, y: y + ny * 3 },
+  };
+  scene.add(buildMachine(x, y, s.exitAngle));
+  scene.add(buildPlatform(px, py, tx, ty, nx, ny));
+  return s;
+}
+
+// Low concrete platform with a shelter beside a country halt.
+function buildPlatform(px, py, tx, ty, nx, ny) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshLambertMaterial({ color: 0xa8a49a });
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(80, 0.55, 3.2), mat);
+  slab.position.set(px + nx * 3.7, 0.27, py + ny * 3.7);
+  slab.rotation.y = -Math.atan2(ty, tx);
+  slab.receiveShadow = true;
+  g.add(slab);
+  const glass = new THREE.MeshLambertMaterial({ color: 0x9fb8c0, transparent: true, opacity: 0.45 });
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(6, 0.12, 1.8), new THREE.MeshLambertMaterial({ color: 0x2d5fa8 }));
+  const back = new THREE.Mesh(new THREE.BoxGeometry(6, 2.2, 0.05), glass);
+  for (const [m, o, h] of [[roof, 4.6, 2.9], [back, 5.1, 1.7]]) {
+    m.position.set(px + nx * o + tx * 12, h, py + ny * o + ty * 12);
+    m.rotation.y = -Math.atan2(ty, tx);
+    m.castShadow = true;
+    g.add(m);
+  }
+  return g;
+}
+
 function placeStation(map, def, scene) {
   const stops = stopsFor(def.name);
   if (!stops.length || !Number.isFinite(def.x)) return null;
+  if (def.country) return placeCountryStation(def, stops, scene);
   const st = stops[0];
   const [px, py] = routePoint(st.route, st.s);
   const open = entranceSpot(map, def.x, def.y, px, py);
@@ -236,7 +278,8 @@ function placeStation(map, def, scene) {
 export function initStationTravel(w) {
   world = w;
   const scene = getScene();
-  stations = (w.map.stations || []).map((d) => placeStation(w.map, d, scene)).filter(Boolean);
+  const defs = (w.map.stations || []).concat((w.map.countryStations || []).map((d) => ({ ...d, country: true })));
+  stations = defs.map((d) => placeStation(w.map, d, scene)).filter(Boolean);
   if (!fadeEl) {
     fadeEl = document.createElement('div');
     fadeEl.id = 'train-fade';

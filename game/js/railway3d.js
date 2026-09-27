@@ -132,9 +132,10 @@ function runs(samples, keep, into) {
 }
 
 function buildTrackData() {
-  for (const r of map.rails || []) {
-    if (r.pts.length < 2) continue;
-    const samples = samplePolyline(r.pts);
+  const all = (map.rails || []).map((r) => r.pts).concat(map.countryRails || []);
+  for (const pts of all) {
+    if (pts.length < 2) continue;
+    const samples = samplePolyline(pts);
     for (const s of samples) s.cls = classify(s.x, s.y, s.sx, s.sy, s.z);
     runs(samples, (s) => !s.cls, 'bed');
     runs(samples, (s) => s.cls !== 'hidden', 'rails');

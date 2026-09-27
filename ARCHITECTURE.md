@@ -48,6 +48,7 @@ frame then runs, in order:
 | Area | Files |
 |---|---|
 | Map data | `mapdata.js` (`GameMap`: grid-indexed `buildingsNear`, `roadsNear`, `waterNear`, `nearestRoadPoint`, `isOnBridge`, `escapeBuilding`, `groundHeightAt`), `elevation.js` (ring road heights, walls, open cuts), `util.js` |
+| Ommelanden | `countryreal.js` (the real countryside ~12 km round town from `ommeland.json` + `ommeland.bin`: OSM roads, narrow waterways, a 10 m water distance field, rails, places, churches, stations and building boxes; a built-up mask; carries the city train routes on to the real stations; `REAL`, `buildingsInTile`, `pushOutOfReal`, `realBlocked`), `countryfield.js` (field layout shared by JS and the ground shader; inside the real extent the polder blocks lose their procedural roads, maaren and villages), `countryedge.js` (city-edge mask; the real roads and canals as ground-shader segments with a 48 m integer lookup grid), `countryplan.js`, `countryside.js` (streamed 160 m prop tiles, incl. the real buildings), `countryskyline.js`, `countrylife.js` (traffic on the real roads, boats on the real canals), `countrymap.js`, `countrysigns.js` |
 | Input | `input.js` (`isDown`, `wasPressed`, `axis`, `mouse`) |
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Anita) |
 | Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water; a car at zero health is `disabled` and burns until `explodeVehicle` makes it a wreck) |

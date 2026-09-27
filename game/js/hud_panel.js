@@ -14,6 +14,8 @@ import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
+import { edgeDistance, urbanWeight } from './countryfield.js';
+import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
@@ -227,6 +229,12 @@ function pointInPoly(px, py, pts) {
 function currentDistrict(world) {
   const { x, y } = world.player;
   const meta = world.map.meta;
+  // out in the real Ommelanden: the village you are in, else just Ommeland
+  if (REAL.ready && edgeDistance(x, y) > 60) {
+    const p = nearestPlace(x, y, 0, true);
+    const d = p ? Math.hypot(p.x - x, p.y - y) : Infinity;
+    return d < p.r * 1.3 || (d < 2500 && urbanWeight(x, y) > 0.3) ? p.n : 'Ommeland';
+  }
   // Only 2 of the real admin boundaries actually reach into this play area,
   // and they're coarse (e.g. plain "Groningen") - the ~66 named
   // neighbourhood/quarter points give a far more specific, GTA-style
@@ -253,7 +261,7 @@ function updateLocation(dt, world) {
   locationTimer = 0.5;
   const district = currentDistrict(world);
   const rp = world.map.nearestRoadPoint(world.player.x, world.player.y, 60, false);
-  const street = rp && rp.road && rp.road.name;
+  const street = (rp && rp.road && rp.road.name) || (REAL.ready && edgeDistance(world.player.x, world.player.y) > 0 ? realStreetAt(world.player.x, world.player.y) : '');
   els.district.textContent = district || '';
   els.street.textContent = street || '';
 }
@@ -1003,7 +1011,7 @@ function drawMinimap(dt, world) {
     player.x + MM_RADIUS_M, player.y + MM_RADIUS_M
   );
 
-  drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M);
+  if (edgeDistance(player.x, player.y) < 0) drawNeighbourhoodBorders(ctx, dt, world, player, MM_RADIUS_M);
 
   ctx.fillStyle = MINI_STYLE.park;
   for (const g of view.green) fillPoly(ctx, g.pts);
