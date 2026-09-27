@@ -191,16 +191,16 @@ function injectStyles() {
     }
     .mapview-tooltip .sub { color: #3fc97a; margin-left: 6px; }
     .mapview-legend {
-      flex: 0 0 auto; width: 176px; margin: 12px 12px 12px 0; padding: 10px 12px;
+      flex: 0 0 auto; width: 232px; margin: 12px 12px 12px 0; padding: 12px 14px;
       align-self: flex-start; max-height: calc(100% - 24px); overflow-y: auto;
       background: rgba(12, 20, 14, 0.8);
       border: 1px solid rgba(63, 201, 122, 0.35); border-radius: 4px; pointer-events: auto;
     }
-    .mapview-legend h3 { margin: 0 0 2px; font-size: 16px; font-weight: bold; letter-spacing: 1px; color: #3fc97a; }
-    .mapview-legend .hint { margin: 0 0 6px; font: 11px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
+    .mapview-legend h3 { margin: 0 0 2px; font-size: 20px; font-weight: bold; letter-spacing: 1px; color: #3fc97a; }
+    .mapview-legend .hint { margin: 0 0 6px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
     .mapview-legend ul { list-style: none; margin: 0; padding: 0; }
     .mapview-legend li {
-      display: flex; align-items: center; gap: 8px; font-size: 14px; letter-spacing: 0.3px; line-height: 1;
+      display: flex; align-items: center; gap: 10px; font-size: 17px; letter-spacing: 0.3px; line-height: 1;
       padding: 3px 4px; margin: 0 -4px; border-radius: 3px; user-select: none;
     }
     .mapview-legend li[role="checkbox"] { cursor: pointer; }
@@ -216,13 +216,13 @@ function injectStyles() {
     .mapview-legend li[aria-checked="true"] .chk::after {
       content: ''; width: 4px; height: 8px; margin-top: -2px; border: solid #0c140e; border-width: 0 2px 2px 0; transform: rotate(45deg);
     }
-    .mapview-legend .all { margin: 0 0 8px; font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
+    .mapview-legend .all { margin: 0 0 8px; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
     .mapview-legend .all button { background: none; border: 0; padding: 0; font: inherit; color: #3fc97a; cursor: pointer; text-decoration: underline; }
     .mapview-legend .all button:focus-visible { outline: 2px solid #f0ede4; }
-    .mapview-legend li.grp { display: block; margin: 8px 0 2px; padding: 0 4px; font: bold 11px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: #3fc97a; border-bottom: 1px solid rgba(63, 201, 122, 0.3); }
+    .mapview-legend li.grp { display: block; margin: 8px 0 2px; padding: 0 4px; font: bold 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: #3fc97a; border-bottom: 1px solid rgba(63, 201, 122, 0.3); }
     .mapview-legend li.grp:first-child { margin-top: 0; }
-    .mapview-legend canvas { width: 24px; height: 24px; flex: 0 0 24px; }
-    .mapview-legend .note { color: rgba(240, 237, 228, 0.55); font-size: 12px; }
+    .mapview-legend canvas { width: 30px; height: 30px; flex: 0 0 30px; }
+    .mapview-legend .note { color: rgba(240, 237, 228, 0.6); font-size: 14px; }
     @media (max-width: 900px) { .mapview-footer { display: none; } }
     @media (max-width: 700px) { .mapview-legend { display: none; } .mapview-title { display: none; } }
   `;
@@ -1262,9 +1262,10 @@ function buildLegend(root) {
     }
     const li = document.createElement('li');
     const cv = document.createElement('canvas');
-    cv.width = cv.height = 24 * dpr;
+    cv.width = cv.height = 30 * dpr;
     const ctx = cv.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // icons are drawn on a 24 px grid, shown at 30 px
+    ctx.setTransform(dpr * 1.25, 0, 0, dpr * 1.25, 0, 0);
     drawLegendIcon(ctx, row.kind);
     const span = document.createElement('span');
     span.textContent = row.label;
