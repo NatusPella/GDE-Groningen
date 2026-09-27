@@ -173,6 +173,7 @@ export function initPauseMenu(w) {
           <label class="pm-row"><span>Muisgevoeligheid</span>
             <input type="range" min="0.3" max="2.5" step="0.05" data-setting="mouseSensitivity"><output></output></label>
           ${toggle('invertY', 'Omhoog/omlaag omkeren')}
+          ${toggle('autoAim', 'Automatisch richten')}
         </div>
         <div data-sub="display" class="pm-group" hidden>
           <label class="pm-row"><span>Helderheid</span>
@@ -184,6 +185,11 @@ export function initPauseMenu(w) {
           ${toggle('showFog', 'Verkende gebieden op de kaart')}
           ${toggle('cinematicMoments', 'Filmische momenten')}
           <p class="pm-note">Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.</p>
+          <label class="pm-row"><span>Dronken effecten</span>
+            <select data-setting="drunkFx">
+              <option value="aan">Aan</option><option value="mild">Mild</option><option value="uit">Uit</option>
+            </select>
+          </label>
           ${toggle('gore', 'Bloed en ledematen')}
           <p class="pm-note">Uit: aangereden en neergeschoten mensen vallen gewoon om, zonder bloed of rondvliegende ledematen.</p>
         </div>
