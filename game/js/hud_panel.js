@@ -16,6 +16,7 @@ import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint, formatDistance } from './routing.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
+import { initCards, updateCards } from './hudcards.js';
 
 const MINIMAP_SIZE = 230;
 const MM_SCALE = 1.45; // px per meter (css pixels) when standing still
@@ -70,9 +71,12 @@ export function initHud(world) {
   vehName.innerHTML = '<small></small><b></b>';
   root.appendChild(vehName);
 
+  // the objective line: one objective at a time, top centre
   const mission = document.createElement('div');
   mission.className = 'hud-mission';
-  mission.innerHTML = '<div class="hud-mission-label"></div><div class="hud-mission-progress"></div><div class="hud-mission-timer"></div>';
+  mission.setAttribute('aria-live', 'polite');
+  mission.innerHTML = '<svg class="hud-obj-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l9.5 9.5-9.5 9.5L2.5 12z"/></svg>' +
+    '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div></div><div class="hud-mission-timer"></div>';
   root.appendChild(mission);
 
   const nowPlaying = document.createElement('div');
@@ -94,10 +98,7 @@ export function initHud(world) {
     '<div class="hr-row" data-k="best"><span>RECORD</span><b></b></div>';
   root.appendChild(race);
 
-  const toasts = document.createElement('div');
-  toasts.className = 'hud-toasts';
-  toasts.setAttribute('aria-live', 'polite');
-  root.appendChild(toasts);
+  const cards = initCards(world, root);
 
   const location = document.createElement('div');
   location.className = 'hud-location';
@@ -136,7 +137,7 @@ export function initHud(world) {
     missionTimer: mission.querySelector('.hud-mission-timer'),
     district: location.querySelector('.hud-district'),
     street: location.querySelector('.hud-street'),
-    toasts,
+    cards,
     race,
     raceRows: Object.fromEntries([...race.querySelectorAll('.hr-row')].map((r) => [r.dataset.k, r])),
     racePos: race.querySelector('.hr-pos'),
@@ -189,7 +190,7 @@ export function updateHud(dt, world) {
   updateSpeedo(world);
   updateMission(world);
   updateRaceHud(world);
-  updateToasts(world);
+  updateCards(dt, world);
   updateNowPlaying(world);
   updateLocation(dt, world);
   updatePrompts(dt, world);
@@ -402,31 +403,55 @@ function updateMoneyWeapon(dt, world) {
   if (textEl.textContent !== label) textEl.textContent = label;
 }
 
-function updateMission(world) {
+// The objective line: one objective at a time (a mission stage, else the
+// bijbaan's next goal, else "lose the police"), GTA style: the objective
+// big, its live counter small under it, a timer to the right. It pops in
+// again whenever the objective itself changes.
+function currentObjective(world) {
   const m = world.mission;
   const job = world.sideJob;
   if (job && job.active) {
     const timer = job.timeLeft != null ? Math.ceil(job.timeLeft) + 's' : '';
-    if (els.missionLabel.textContent) els.missionLabel.textContent = '';
-    if (els.missionProgress.textContent !== job.progress) els.missionProgress.textContent = job.progress;
-    if (els.missionTimer.textContent !== timer) els.missionTimer.textContent = timer;
-    els.mission.hidden = !job.progress && !timer;
-    return;
+    const g = job.goal;
+    return { kind: 'job', title: g ? g.label : job.progress, sub: g ? job.progress : '', hint: g ? g.desc : '', timer };
   }
-  if (!m) {
-    els.missionLabel.textContent = '';
-    els.missionProgress.textContent = '';
-    els.missionTimer.textContent = '';
-    els.mission.hidden = true;
-    return;
+  if (m && m.phase === 'active') {
+    const text = missionProgressText(m);
+    const timer = m.timeLeft != null && !m.raceHud ? Math.ceil(m.timeLeft) + 's' : '';
+    const cut = text.search(/ · | \(\d+\/\d+\)$/);
+    const sub = cut > 0 ? text.slice(cut).replace(/^ · /, '').replace(/^ \((\d+\/\d+)\)$/, 'stap $1') : '';
+    if (text || timer) return { kind: 'mission', title: cut > 0 ? text.slice(0, cut) : text, sub, timer };
   }
-  // no permanent objective title at the top: the minimap already shows the
-  // mission distance; only a live counter/timer appears during a mission
-  els.missionLabel.textContent = '';
-  els.missionProgress.textContent = missionProgressText(m);
-  // race-like runs show their clock in the race panel instead
-  els.missionTimer.textContent = m.phase === 'active' && m.timeLeft != null && !m.raceHud ? Math.ceil(m.timeLeft) + 's' : '';
-  els.mission.hidden = !els.missionProgress.textContent && !els.missionTimer.textContent;
+  if (world.wanted > 0 && !(m && m.phase === 'active')) {
+    const searching = !!(world.police && world.police.searching);
+    return {
+      kind: 'police', title: searching ? 'Blijf uit het zicht' : 'Ontsnap aan de politie', timer: '',
+      sub: searching ? 'Ze zijn je kwijt' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : world.player.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
+    };
+  }
+  return null;
+}
+
+const OBJ_HINT_TIME = 6;
+
+function updateMission(world) {
+  const o = currentObjective(world);
+  els.mission.hidden = !o || (!o.title && !o.timer);
+  if (els.mission.hidden) { els.objKey = ''; return; }
+  const key = o.kind + '|' + o.title;
+  if (key !== els.objKey) els.objAt = world.time;
+  // a new objective first says how (the bijbaan's hint), then its counter
+  const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
+  if (els.missionLabel.textContent !== o.title) els.missionLabel.textContent = o.title;
+  if (els.missionProgress.textContent !== sub) els.missionProgress.textContent = sub;
+  if (els.missionTimer.textContent !== o.timer) els.missionTimer.textContent = o.timer;
+  if (key !== els.objKey) {
+    els.objKey = key;
+    els.mission.dataset.kind = o.kind;
+    els.mission.classList.remove('pop');
+    void els.mission.offsetWidth;
+    els.mission.classList.add('pop');
+  }
 }
 
 // missions.js leaves these fields set after a mission ends, so gate on the
@@ -488,25 +513,13 @@ function updateNowPlaying(world) {
     els.nowPlaying.classList.remove('on');
     void els.nowPlaying.offsetWidth;
     els.nowPlaying.classList.add('on');
+    els.cards.classList.add('below-np');
   }
   if (np && world.time - np.at > NOW_PLAYING_TIME) {
     els.nowPlaying.classList.remove('on');
+    els.cards.classList.remove('below-np');
     world.nowPlaying = null;
   }
-}
-
-// Only touch the DOM when the list changes, so the aria-live region
-// doesn't get re-announced every frame.
-let lastToastHtml = '';
-function updateToasts(world) {
-  world.messages = world.messages.filter((m) => m.until >= world.time);
-  const html = world.messages
-    .filter((m) => m.text !== 'DOOD' && m.text !== 'OPGEPAKT')
-    .map((m) => `<div class="hud-toast">${escapeHtml(m.text)}</div>`)
-    .join('');
-  if (html === lastToastHtml) return;
-  lastToastHtml = html;
-  els.toasts.innerHTML = html;
 }
 
 function escapeHtml(s) {

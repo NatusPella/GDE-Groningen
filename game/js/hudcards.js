@@ -1,0 +1,255 @@
+// HUD cards: the one place short game messages show up, in the style of
+// the "Nu op G-Music" card (left, under the health bars). Replaces the old
+// white toast lines. world.addMessage(text, seconds, opts) feeds it (via
+// world.cardSink); showCard(world, spec) is the direct API.
+//
+// - Every message gets a category (missie, bijbaan, geld, politie, gevaar,
+//   prestatie, tip): opts.kind, else RULES below, else the running mission
+//   or bijbaan, else tip. Each has its own accent colour and icon.
+// - Redundant messages are dropped (DROP): what a cutscene card, the
+//   now-playing card, the route chip or the mute icon already says.
+// - At most MAX_VISIBLE cards at once; the rest wait in a short queue
+//   (dangers and police first, stale tips expire). The same key (or the
+//   same text) updates the card that is up instead of stacking a new one.
+// - While a cutscene hides the HUD or the game is paused, cards wait.
+// - Countdowns (opts.exact, one short token like "3" or "GO! GO! GO!") are
+//   a big number in the middle of the screen instead.
+// - A few important cards are said out loud by whoever you play
+//   (cardlines.js, lines manifest), on the speech.js channel as a reaction.
+import { readingSeconds } from './world.js';
+import { lineVoiceFor } from './linevoice.js';
+import { playLineVoice } from './audio.js';
+import { CARD_LINES } from './cardlines.js';
+
+const MAX_VISIBLE = 2;
+const MAX_QUEUE = 5;
+const MIN_TIME = 4;
+const MAX_TIME = 10;
+const OUT_TIME = 0.45;
+const VOICE_GAP = 6;
+const VOICE_REPEAT = 60;
+
+const ICON = {
+  missie: '<path d="M6 3h2v18H6zM8 4h11l-2.5 4L19 12H8z"/>',
+  bijbaan: '<path d="M9 4h6a1 1 0 0 1 1 1v2h4a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4V5a1 1 0 0 1 1-1zm1 3h4V6h-4zM3 12h18v1.6H3z"/>',
+  geld: '<circle cx="12" cy="12" r="9.5"/><path class="hc-cut" d="M15.6 8.2a4.6 4.6 0 0 0-7.3 2.1H7v1.4h1.1v.6H7v1.4h1.3a4.6 4.6 0 0 0 7.3 2.1l-.9-1.2a3.1 3.1 0 0 1-4.8-.9h3.3v-1.4H9.6v-.6h3.6v-1.4H9.9a3.1 3.1 0 0 1 4.8-.9z"/>',
+  politie: '<path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/>',
+  gevaar: '<path fill-rule="evenodd" d="M12 2.5L1.5 21h21zM11 9.5h2v6h-2zm0 7.5h2v2h-2z"/>',
+  prestatie: '<path d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.4A5 5 0 0 1 13 14.9V17h3v3H8v-3h3v-2.1A5 5 0 0 1 8.4 12H8a4 4 0 0 1-4-4V5h3zm0 4H6v1a2 2 0 0 0 1 1.7zm10 0v2.7A2 2 0 0 0 18 8V7z"/>',
+  tip: '<path d="M9 21.5h6V20H9zM12 2a7 7 0 0 0-4 12.7V18.5h8v-3.8A7 7 0 0 0 12 2z"/>',
+};
+export const CARD_KINDS = {
+  missie: { label: 'Missie', rank: 2 },
+  bijbaan: { label: 'Bijbaantje', rank: 2 },
+  geld: { label: 'Geld', rank: 2 },
+  politie: { label: 'Politie', rank: 3 },
+  gevaar: { label: 'Let op', rank: 3 },
+  prestatie: { label: 'Prestatie', rank: 2 },
+  tip: { label: 'Tip', rank: 1 },
+};
+
+// Said elsewhere already: the death/busted shot, the mission outro and fail
+// cards, the start location (HUD), the mute icon, the route chip, the
+// now-playing card.
+const DROP = [
+  /^(DOOD|OPGEPAKT)$/,
+  / geklaard! \+€/,
+  /^Missie mislukt: /,
+  /^(?!Opslaan ).+ mislukt( — .*)?$/,
+  /^Je begint bij /,
+  /^Geluid (uit|aan)$/,
+  /^Route naar /,
+  /^Nachtstreek: /,
+  /^Geteleporteerd naar /,
+  // ambient trains and the pigeon's bumps: noise, not news
+  / naar .+ vertrekt$/,
+  / is aangekomen in /,
+  /^(Au! Mien snavel!|Boink\.|Die muur stond der gisteren nog nait\.|Kiek uut, joh!|Bijna platgereden!|Roekoe\?! KIJK WAAR JE RIJDT!)$/,
+];
+
+const RULES = [
+  [/politie|pliesie|agent|getuige|klemgereden|meldkamer|zwaailicht|flitspaal|geflitst|bewaker|gezien!/i, 'politie'],
+  [/brand|zinkt|gezonken|uitgeput|aangereden|nat geworden|code rood|onweer|storm|total loss/i, 'gevaar'],
+  [/record|gevonden!|vrijgespeeld|niveau \d|^(goud|zilver|brons) · |poeppunten/i, 'prestatie'],
+  [/€/, 'geld'],
+];
+
+let world = null;
+let stackEl = null;
+let countEl = null;
+let visible = [];
+let queue = [];
+let countT = 0;
+let lastVoiceAt = -Infinity;
+const voicedAt = new Map();
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const svg = (kind) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[kind] || ICON.tip}</svg>`;
+
+export function initCards(w, root) {
+  world = w;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = new URL('./hudcards.css', import.meta.url).href;
+  document.head.appendChild(link);
+  stackEl = document.createElement('div');
+  stackEl.className = 'hud-cards';
+  stackEl.setAttribute('aria-live', 'polite');
+  root.appendChild(stackEl);
+  countEl = document.createElement('div');
+  countEl.className = 'hud-count';
+  countEl.setAttribute('aria-live', 'assertive');
+  root.appendChild(countEl);
+  visible = [];
+  queue = [];
+  w.cardSink = (text, dur, opts) => fromMessage(text, dur, opts);
+  if (typeof window !== 'undefined') window.__cards = { show: (spec) => showCard(world, spec), state: () => ({ visible: visible.map((c) => c.spec), queue: queue.map((q) => q.spec) }), classify };
+  return stackEl;
+}
+
+// For a running mission/bijbaan the default category is that.
+function contextKind(w) {
+  if (w && w.sideJob && w.sideJob.active) return 'bijbaan';
+  if (w && w.mission && w.mission.phase === 'active') return 'missie';
+  return 'tip';
+}
+
+// "Prefix: rest" or "Short sentence! Rest" become title + body.
+function split(text) {
+  const t = String(text).trim();
+  let m = /^([^:!?."“]{2,26}): (.+)$/.exec(t);
+  if (m) return { title: m[1], body: m[2] };
+  m = /^(.{3,38}?[!?.])\s+(.+)$/.exec(t);
+  if (m) return { title: m[1], body: m[2] };
+  if (t.length <= 38) return { title: t, body: '' };
+  return { title: '', body: t };
+}
+
+export function classify(text, opts = {}, w = world) {
+  const t = String(text || '');
+  if (!t || opts.silent) return null;
+  if (!opts.kind && DROP.some((re) => re.test(t))) return null;
+  let kind = opts.kind;
+  if (!kind) for (const [re, k] of RULES) if (re.test(t)) { kind = k; break; }
+  if (!kind) kind = contextKind(w);
+  return { kind, ...split(t) };
+}
+
+function fromMessage(text, dur, opts = {}) {
+  if (opts.exact && dur < 2 && String(text).length <= 12) { showCount(text, dur); return; }
+  const c = classify(text, opts);
+  if (!c) return;
+  showCard(world, { ...c, text, duration: dur, key: opts.key || text });
+}
+
+// spec: { kind, title, body | text, duration, key, icon, kicker, voice: false }
+export function showCard(w, spec) {
+  if (!stackEl) return;
+  world = w || world;
+  const kind = CARD_KINDS[spec.kind] ? spec.kind : 'tip';
+  let { title = '', body = '' } = spec;
+  if (!title && !body && spec.text) ({ title, body } = split(spec.text));
+  const all = `${title} ${body}`.trim();
+  const secs = Math.min(MAX_TIME, Math.max(MIN_TIME, (spec.duration || 0) * 1.2, readingSeconds(all) * 1.25));
+  const card = { spec: { ...spec, kind, title, body }, secs, key: spec.key || all, at: world ? world.time : 0, text: spec.text || all };
+  const up = visible.find((c) => c.key === card.key && !c.leaving);
+  if (up) { refresh(up, card); return; }
+  queue = queue.filter((q) => q.key !== card.key);
+  queue.push(card);
+  queue.sort((a, b) => CARD_KINDS[b.spec.kind].rank - CARD_KINDS[a.spec.kind].rank || a.at - b.at);
+  while (queue.length > MAX_QUEUE) queue.pop();
+}
+
+function cardHtml(c) {
+  const s = c.spec;
+  const kicker = s.kicker || CARD_KINDS[s.kind].label;
+  return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
+    `<div class="hc-text"><small>${esc(kicker)}</small>${s.title ? `<b>${esc(s.title)}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${esc(s.body)}</span>` : ''}</div>` +
+    '<i class="hc-timer"></i>';
+}
+
+function mount(c) {
+  const el = document.createElement('div');
+  el.className = 'hud-card';
+  el.dataset.kind = c.spec.kind;
+  el.innerHTML = cardHtml(c);
+  el.style.setProperty('--hc-dur', `${c.secs}s`);
+  stackEl.appendChild(el);
+  void el.offsetWidth;
+  el.classList.add('on');
+  c.el = el;
+  c.left = c.secs;
+  visible.push(c);
+  speak(c);
+}
+
+function refresh(up, c) {
+  up.spec = c.spec;
+  up.secs = c.secs;
+  up.left = c.secs;
+  up.el.dataset.kind = c.spec.kind;
+  up.el.innerHTML = cardHtml(up);
+  up.el.style.setProperty('--hc-dur', `${c.secs}s`);
+  up.el.classList.remove('bump');
+  void up.el.offsetWidth;
+  up.el.classList.add('bump');
+}
+
+function leave(c) {
+  if (c.leaving) return;
+  c.leaving = true;
+  c.left = OUT_TIME;
+  c.el.classList.remove('on');
+  c.el.classList.add('out');
+}
+
+function speak(c) {
+  if (c.spec.voice === false || !world) return;
+  const hit = CARD_LINES.find((l) => l.match.test(c.text));
+  if (!hit) return;
+  const now = world.time;
+  if (now - lastVoiceAt < VOICE_GAP || now - (voicedAt.get(hit.say) ?? -Infinity) < VOICE_REPEAT) return;
+  const who = world.player && world.player.character === 'anita' ? 'Anita' : 'Tammo';
+  const v = lineVoiceFor(who, hit.say);
+  if (!v) return;
+  if (playLineVoice(v.src, v.dur, 'react')) { lastVoiceAt = now; voicedAt.set(hit.say, now); }
+}
+
+function showCount(text, dur) {
+  if (!countEl) return;
+  countEl.textContent = text;
+  countEl.dataset.go = /\d/.test(text) ? '' : '1';
+  countEl.classList.remove('on');
+  void countEl.offsetWidth;
+  countEl.classList.add('on');
+  countT = Math.max(0.6, dur);
+}
+
+function hudHidden() {
+  const b = document.body.classList;
+  return !b.contains('game-started') || b.contains('cine-hide-hud');
+}
+
+export function updateCards(dt, w) {
+  if (!stackEl) return;
+  world = w;
+  if (countT > 0 && (countT -= dt) <= 0) countEl.classList.remove('on');
+  const frozen = hudHidden() || w.paused || w.uiPaused;
+  stackEl.classList.toggle('paused', !!frozen);
+  if (frozen) return;
+  for (const c of visible) c.left -= dt;
+  for (const c of visible.filter((v) => v.left <= 0)) {
+    if (!c.leaving) leave(c);
+    else { c.el.remove(); visible.splice(visible.indexOf(c), 1); }
+  }
+  const now = w.time;
+  queue = queue.filter((q) => now - q.at < (q.spec.kind === 'tip' ? 12 : 30));
+  if (!queue.length) return;
+  const up = visible.filter((c) => !c.leaving);
+  if (up.length < MAX_VISIBLE) { mount(queue.shift()); return; }
+  // a danger or police card pushes the oldest less urgent one out early
+  const next = queue[0];
+  const weakest = up.filter((c) => CARD_KINDS[c.spec.kind].rank < CARD_KINDS[next.spec.kind].rank).sort((a, b) => a.left - b.left)[0];
+  if (weakest) leave(weakest);
+  else { const old = up.find((c) => c.secs - c.left > 2.5 && c.left > 1); if (old && queue.length > 2) old.left = Math.min(old.left, 1); }
+}
