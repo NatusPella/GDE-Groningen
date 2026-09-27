@@ -122,7 +122,7 @@ function bark(from, lines, r = 22, dur = 3.2) {
 function playerSays(text) {
   const p = world.player;
   if (!world.extraSpeakers) world.extraSpeakers = [];
-  world.extraSpeakers.push({ x: p.x, y: p.y, h: 2.2, follow: p, female: p.character === 'anita', speechText: text, speechUntil: world.time + 3.2 });
+  world.extraSpeakers.push({ x: p.x, y: p.y, h: 2.2, follow: p, female: p.character === 'anita', speechName: p.character === 'anita' ? 'Anita' : 'Tammo', speechText: text, speechUntil: world.time + 3.2 });
 }
 
 function inCar() {

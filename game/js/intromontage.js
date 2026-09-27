@@ -9,6 +9,7 @@ import { playCinematic } from './cinematics.js';
 import { roofAt, clearKeys, pathShot } from './camerapath.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { dualHtml } from './subtitles.js';
+import { speakerHtml } from './speakers.js';
 import { JELLE_LOOK, pompebledTexture } from './fierljep.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene } from './audio.js';
 import { setThemeDuck, cueTheme } from './theme.js';
@@ -151,7 +152,7 @@ function setSub(line) {
   if (line && line.voice) playStoryVoice(line.voice);
   setThemeDuck(!!line);
   ui.sub.classList.toggle('on', !!line);
-  if (line) ui.sub.innerHTML = (line.who && line.who !== NARRATOR ? `<b>${line.who}:</b>` : '') + dualHtml(line.text);
+  if (line) ui.sub.innerHTML = speakerHtml(line.who) + dualHtml(line.text);
 }
 
 function clockText(h) {

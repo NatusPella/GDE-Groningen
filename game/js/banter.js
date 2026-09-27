@@ -7,6 +7,7 @@
 // Story progress is only read (story.js, missions.js), never written.
 
 import { setDualText } from './subtitles.js';
+import { paintSpeaker } from './speakers.js';
 import { BANTER, REACTIONS, SPEAKERS } from './banterlines.js';
 import { STEPS, missionIndexOf } from './storyarc.js';
 import { currentStep, getStorySave } from './story.js';
@@ -36,7 +37,6 @@ const PROGRESS_EVERY = 2;
 const LINE_GAP = 0.3;
 const REPEAT_AFTER_MS = 3 * 3600 * 1000;
 const HEARD_KEY = 'gte-banter-v1';
-const COLORS = { T: '#8fd3ff', A: '#ffb0cf' };
 
 const VOICE_DIR = new URL('../audio/voicelines/banter/', import.meta.url).href;
 let voices = {};
@@ -352,8 +352,7 @@ function showSub(line) {
   const el = subtitleEl();
   if (line) {
     const sp = el.querySelector('.bt-speaker');
-    sp.textContent = SPEAKERS[line[0]] + ':';
-    sp.style.color = COLORS[line[0]] || '#fff';
+    paintSpeaker(sp, SPEAKERS[line[0]]);
     setDualText(el.querySelector('.bt-line'), line[1]);
   }
   el.style.opacity = line && !st.paused ? '1' : '0';
