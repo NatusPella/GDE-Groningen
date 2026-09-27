@@ -216,6 +216,8 @@ function injectStyles() {
     .mapview-legend .all { margin: 0 0 8px; font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
     .mapview-legend .all button { background: none; border: 0; padding: 0; font: inherit; color: #3fc97a; cursor: pointer; text-decoration: underline; }
     .mapview-legend .all button:focus-visible { outline: 2px solid #f0ede4; }
+    .mapview-legend li.grp { display: block; margin: 8px 0 2px; padding: 0 4px; font: bold 11px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: #3fc97a; border-bottom: 1px solid rgba(63, 201, 122, 0.3); }
+    .mapview-legend li.grp:first-child { margin-top: 0; }
     .mapview-legend canvas { width: 24px; height: 24px; flex: 0 0 24px; }
     .mapview-legend .note { color: rgba(240, 237, 228, 0.55); font-size: 12px; }
     @media (max-width: 900px) { .mapview-footer { display: none; } }
@@ -1186,24 +1188,30 @@ function handleKeys(dt, world) {
 // --- lifecycle --------------------------------------------------------------
 
 const LEGEND = [
+  { group: 'Jij en je route' },
   { kind: 'player', label: 'Jij' },
   { kind: 'userWaypoint', label: 'Jouw bestemming', note: 'altijd zichtbaar' },
   { kind: 'route', label: 'Route', note: 'paars: jouw bestemming, geel: missie, roze: opknappen of repareren' },
   { kind: 'companion', label: 'Maat', layer: 'companion' },
   { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot', layer: 'car' },
+  { group: 'Verhaal en klussen' },
   { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
+  { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
+  { group: 'Winkels en diensten' },
   { kind: 'garage', label: 'Garage en pomp', note: 'rij naar binnen: repareren, spuiten, opvoeren, wrakken', layer: 'garage' },
   { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
   { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks (eten = gezondheid)', layer: 'shops' },
   { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten', layer: 'shopsVoertuigen' },
   { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', note: 'wapens, munitie en vesten', layer: 'shopsWapens' },
+  { group: 'Doen en beleven' },
   { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },
   { kind: 'heli', label: 'Traumaheli', note: 'ballonjacht vanaf het UMCG', layer: 'heli' },
   { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layer: 'postgame' },
-  { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
   { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },
+  { group: 'Onderweg' },
   { kind: 'flitspaal', label: 'Flitspaal', layer: 'flitspaal' },
   { kind: 'landmark', label: 'Bezienswaardigheid', layer: 'landmark' },
+  { group: 'Kaart' },
   { kind: 'text-street', label: 'Straatnamen', layer: 'streets' },
   { kind: 'text-wijk', label: 'Wijknamen', layer: 'wijken' },
   { kind: 'buildings', label: 'Gebouwen', layer: 'buildings' },
@@ -1236,6 +1244,13 @@ function buildLegend(root) {
   const dpr = window.devicePixelRatio || 1;
   const list = document.createElement('ul');
   for (const row of LEGEND) {
+    if (row.group) {
+      const h = document.createElement('li');
+      h.className = 'grp';
+      h.textContent = row.group;
+      list.appendChild(h);
+      continue;
+    }
     const li = document.createElement('li');
     const cv = document.createElement('canvas');
     cv.width = cv.height = 24 * dpr;
