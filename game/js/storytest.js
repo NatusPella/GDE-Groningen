@@ -14,6 +14,8 @@ import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionI
 import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave } from './savegame.js';
 import { getOwnedEntries } from './shops.js';
+import { validateSpots } from './spotcheck.js';
+import { probeRingSolids, driveRingLap } from './ringcheck.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -74,155 +76,171 @@ export async function runStoryTest(world) {
     await drain(world, 1500);
     world.devInvuln = true;
 
-    // money timeline over the whole arc, planned steps included
-    const tl = computeMoneyTimeline();
-    check('money timeline never below zero', tl.low >= 0, `laagste marge €${tl.low}, eind €${tl.end}`);
-    const tlSkip = computeMoneyTimeline(undefined, 0.5);
-    check('money timeline ok when every mission is skipped', tlSkip.low >= 0, `laagste marge €${tlSkip.low}`);
-    const lastPart = Object.keys(PARTS).filter((k) => PARTS[k].open).pop();
-    // every step says who plays it; its phone lines come from the other one
-    const noPlayer = STEPS.filter((q) => q.player !== 'tammo' && q.player !== 'anita').map((q) => q.id);
-    check('every step has a player', !noPlayer.length, noPlayer.join(', '));
-    const selfTalk = STEPS.filter(stepAvailable).filter((q) => {
-      const me = q.player === 'anita' ? 'A' : 'T';
-      return [q.lead, q.done, q.say, ...(q.after || []), ...(q.beat || [])].some((l) => l && l[0] === me);
-    }).map((q) => q.id);
-    check('phone lines come from the companion', !selfTalk.length, selfTalk.join(', '));
-    let swaps = 0, prevChar = null;
-    const defs = getMissionDefs();
-    for (const s of STEPS.filter((q) => q.kind === 'mission' && stepAvailable(q))) {
-      const d = defs[missionIndexOf(s.mission)];
-      check(`reward ${s.id} matches missions.js`, d && d.reward === s.reward, d ? `arc €${s.reward}, def €${d.reward}` : 'geen def');
-    }
-
-    let n = 0;
-    for (let guard = 0; guard < 90; guard++) {
-      await drain(world);
-      const cur = S().current();
-      if (!cur) { check('current step', false, 'geen stap'); break; }
-      if (cur.end) break;
-      const step = STEP_BY_ID.get(cur.id);
-      const entry = { id: cur.id, kind: cur.kind, title: cur.title, moneyBefore: Math.round(world.money), ok: false, notes: [] };
-      report.steps.push(entry);
-      const t0 = performance.now();
-      if (step.cost) entry.notes.push(world.money >= step.cost ? `kan €${step.cost} betalen` : `te kort voor €${step.cost}: voorschot verwacht`);
-      if (step.player) {
-        // the swap waits for a quiet moment: keep skipping scenes meanwhile
-        const ok = await waitFor(() => {
-          if (isCinematicActive()) skipCinematic();
-          return world.player.character === step.player && (!world.companion || world.companion.character !== step.player);
-        }, 20000);
-        check(`${cur.id}: plays as ${step.player}`, ok, ok ? world.player.character : JSON.stringify(S().swapInfo()));
-        if (prevChar && prevChar !== world.player.character) { swaps++; entry.notes.push(`speelt als ${world.player.character}`); }
-        prevChar = world.player.character;
-        await drain(world, 300);
-      }
-      if (cur.kind === 'activity') {
-        S().teleport();
-        await sleep(900);
-        capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
-        const before = world.money;
-        S().complete();
-        if (step.cost) entry.notes.push(`betaald, saldo €${Math.round(world.money)} (was €${Math.round(before)})`);
-        check(`money ok at ${cur.id}`, world.money >= 0, `€${Math.round(world.money)}`);
-      } else {
-        S().teleport();
-        const started = await waitFor(() => isMissionActive(), 4000);
-        if (!started) { entry.notes.push('trigger startte niet, debug-start'); S().complete(); }
-        await sleep(300);
-        await drain(world, 400);
-        capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
-        if (cur.id === 'H3') {
-          S().lose();
-          await drain(world);
-          const offered = S().canSkip();
-          const m0 = world.money;
-          check('skip offered after a failed mission (H3)', offered);
-          check('skip button shown', !!document.querySelector('#story-skip:not([hidden])') || offered);
-          S().skip();
-          entry.notes.push(`mislukt en overgeslagen: +€${Math.round(world.money - m0)}`);
-        } else {
-          for (let k = 0; k < 150 && isMissionActive(); k++) {
-            await drain(world, 300);
-            if (!isMissionActive()) break;
-            const ms = S().mission();
-            const def = ms && getMissionDefs()[ms.index];
-            const stage = def && def.stages && def.stages[ms.stage];
-            if (stage && stage.kind === 'pigeon' && !world.pigeonMode && !entry.waitedPigeon) {
-              entry.waitedPigeon = true;
-              const flew = await waitFor(() => world.pigeonMode, 6000);
-              entry.notes.push(flew ? 'duif-modus gestart' : 'duif-modus startte niet ' + JSON.stringify(S().mission()));
-              check(`${cur.id}: pigeon mode starts`, flew);
-              await drain(world, 300);
-            }
-            const pigeon = window.__debug && window.__debug.pigeon;
-            if (world.pigeonMode && pigeon && pigeon.P && !isCinematicActive()) {
-              // fly over the marked target so the photo really gets taken
-              const m = world.mission.marker;
-              pigeon.P.x = m.x; pigeon.P.y = m.y;
-              pigeon.P.z = Number.isFinite(m.z) ? m.z : Math.max(pigeon.P.z, 25);
-              if ('speed' in pigeon.P) pigeon.P.speed = 0;
-              await sleep(1100);
-              entry.notes.push('duif boven doel');
-              continue;
-            }
-            S().objective();
-            await sleep(350);
-          }
-        }
-        check(`mission ${cur.id} finished`, !isMissionActive());
-      }
-      await drain(world);
-      const after = S().current();
-      entry.ok = !after || after.end || after.id !== cur.id;
-      entry.moneyAfter = Math.round(world.money);
-      entry.seconds = Math.round((performance.now() - t0) / 100) / 10;
-      check(`step ${cur.id} advances`, entry.ok);
-      if (!entry.ok) break;
-    }
-
-    await sleep(600);
-    await waitFor(() => S().cardShown(lastPart), 8000);
-    capture('99-wordt-vervolgd');
+    // every start and target point is on open ground you can walk away from
+    const spots = validateSpots(world);
+    for (const b of spots.bad) console.log('[spotcheck]', b.kind, b.id, b.x, b.y, b.why);
+    check(`all ${spots.total} spots reachable`, !spots.bad.length, spots.bad.map((b) => `${b.kind} ${b.id} (${b.x}, ${b.y}): ${b.why}`).join('; '));
+    // nothing solid across the ring race lap and the ring roads, and a lap really drives
+    const solids = probeRingSolids(world);
+    check('ring roads free of solid obstacles', !solids.length, solids.slice(0, 40).map((h) => `${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
+    const lap = await driveRingLap(world);
+    check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
+    check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));
     await drain(world);
-    const end = S().current();
-    check(`flow reaches "Wordt vervolgd" (${lastPart})`, end && end.end === lastPart, JSON.stringify(end));
-    check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
-    check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
-    check('Tammo and Anita take turns', swaps >= 4, `${swaps} wissels`);
 
-    // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
-    const pg = window.__postgame;
-    if (PARTS[lastPart] && PARTS[lastPart].finale) {
-      check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
-      for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord']) {
-        const p = world.player;
-        if (p.inVehicle && id !== 'fjord') p.exitVehicle(world.map, world);
-        await sleep(300);
-        const started = pg.start(id);
-        await sleep(900);
-        for (let i = 0; i < 4 && isCinematicActive(); i++) { skipCinematic(); await sleep(250); }
-        await sleep(1200);
-        if (started && id !== 'fierljep') capture('pg-' + id);
-        const won = started && pg.win();
-        await waitFor(() => !pg.state(), 6000);
-        const rec = pg.record(id);
-        check(`post-game ${id} runs and records a medal`, started && won && rec && rec.medal > 0, JSON.stringify(rec));
-        await drain(world, 700);
+    // desktop --validate-spots: only the spot check
+    story: {
+      if (new URLSearchParams(location.search).has('spotsonly')) break story;
+      // money timeline over the whole arc, planned steps included
+      const tl = computeMoneyTimeline();
+      check('money timeline never below zero', tl.low >= 0, `laagste marge €${tl.low}, eind €${tl.end}`);
+      const tlSkip = computeMoneyTimeline(undefined, 0.5);
+      check('money timeline ok when every mission is skipped', tlSkip.low >= 0, `laagste marge €${tlSkip.low}`);
+      const lastPart = Object.keys(PARTS).filter((k) => PARTS[k].open).pop();
+      // every step says who plays it; its phone lines come from the other one
+      const noPlayer = STEPS.filter((q) => q.player !== 'tammo' && q.player !== 'anita').map((q) => q.id);
+      check('every step has a player', !noPlayer.length, noPlayer.join(', '));
+      const selfTalk = STEPS.filter(stepAvailable).filter((q) => {
+        const me = q.player === 'anita' ? 'A' : 'T';
+        return [q.lead, q.done, q.say, ...(q.after || []), ...(q.beat || [])].some((l) => l && l[0] === me);
+      }).map((q) => q.id);
+      check('phone lines come from the companion', !selfTalk.length, selfTalk.join(', '));
+      let swaps = 0, prevChar = null;
+      const defs = getMissionDefs();
+      for (const s of STEPS.filter((q) => q.kind === 'mission' && stepAvailable(q))) {
+        const d = defs[missionIndexOf(s.mission)];
+        check(`reward ${s.id} matches missions.js`, d && d.reward === s.reward, d ? `arc €${s.reward}, def €${d.reward}` : 'geen def');
       }
-      check('Fjord Frituur unlocked in the garage', await waitFor(() => getOwnedEntries().some((o) => o.key === 'fjordfrituur'), 5000));
-      if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
-    }
 
-    // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data
-    const money = world.money;
-    applySave(world, { v: 1, money: 1234, missions: { index: 3, completed: [0, 1, 2], seen: [0, 1, 2] }, shops: null });
-    await sleep(400);
-    const mig = S().current();
-    check('old save migrates to H2', mig && mig.id === 'H2', JSON.stringify(mig));
-    check('old save plays as the current step\'s character', await waitFor(() => world.player.character === STEP_BY_ID.get('H2').player, 5000), world.player.character);
-    check('old save keeps money', world.money === 1234, `€${world.money}`);
-    world.money = money;
+      let n = 0;
+      for (let guard = 0; guard < 90; guard++) {
+        await drain(world);
+        const cur = S().current();
+        if (!cur) { check('current step', false, 'geen stap'); break; }
+        if (cur.end) break;
+        const step = STEP_BY_ID.get(cur.id);
+        const entry = { id: cur.id, kind: cur.kind, title: cur.title, moneyBefore: Math.round(world.money), ok: false, notes: [] };
+        report.steps.push(entry);
+        const t0 = performance.now();
+        if (step.cost) entry.notes.push(world.money >= step.cost ? `kan €${step.cost} betalen` : `te kort voor €${step.cost}: voorschot verwacht`);
+        if (step.player) {
+          // the swap waits for a quiet moment: keep skipping scenes meanwhile
+          const ok = await waitFor(() => {
+            if (isCinematicActive()) skipCinematic();
+            return world.player.character === step.player && (!world.companion || world.companion.character !== step.player);
+          }, 20000);
+          check(`${cur.id}: plays as ${step.player}`, ok, ok ? world.player.character : JSON.stringify(S().swapInfo()));
+          if (prevChar && prevChar !== world.player.character) { swaps++; entry.notes.push(`speelt als ${world.player.character}`); }
+          prevChar = world.player.character;
+          await drain(world, 300);
+        }
+        if (cur.kind === 'activity') {
+          S().teleport();
+          await sleep(900);
+          capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
+          const before = world.money;
+          S().complete();
+          if (step.cost) entry.notes.push(`betaald, saldo €${Math.round(world.money)} (was €${Math.round(before)})`);
+          check(`money ok at ${cur.id}`, world.money >= 0, `€${Math.round(world.money)}`);
+        } else {
+          S().teleport();
+          const started = await waitFor(() => isMissionActive(), 4000);
+          if (!started) { entry.notes.push('trigger startte niet, debug-start'); S().complete(); }
+          await sleep(300);
+          await drain(world, 400);
+          capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
+          if (cur.id === 'H3') {
+            S().lose();
+            await drain(world);
+            const offered = S().canSkip();
+            const m0 = world.money;
+            check('skip offered after a failed mission (H3)', offered);
+            check('skip button shown', !!document.querySelector('#story-skip:not([hidden])') || offered);
+            S().skip();
+            entry.notes.push(`mislukt en overgeslagen: +€${Math.round(world.money - m0)}`);
+          } else {
+            for (let k = 0; k < 150 && isMissionActive(); k++) {
+              await drain(world, 300);
+              if (!isMissionActive()) break;
+              const ms = S().mission();
+              const def = ms && getMissionDefs()[ms.index];
+              const stage = def && def.stages && def.stages[ms.stage];
+              if (stage && stage.kind === 'pigeon' && !world.pigeonMode && !entry.waitedPigeon) {
+                entry.waitedPigeon = true;
+                const flew = await waitFor(() => world.pigeonMode, 6000);
+                entry.notes.push(flew ? 'duif-modus gestart' : 'duif-modus startte niet ' + JSON.stringify(S().mission()));
+                check(`${cur.id}: pigeon mode starts`, flew);
+                await drain(world, 300);
+              }
+              const pigeon = window.__debug && window.__debug.pigeon;
+              if (world.pigeonMode && pigeon && pigeon.P && !isCinematicActive()) {
+                // fly over the marked target so the photo really gets taken
+                const m = world.mission.marker;
+                pigeon.P.x = m.x; pigeon.P.y = m.y;
+                pigeon.P.z = Number.isFinite(m.z) ? m.z : Math.max(pigeon.P.z, 25);
+                if ('speed' in pigeon.P) pigeon.P.speed = 0;
+                await sleep(1100);
+                entry.notes.push('duif boven doel');
+                continue;
+              }
+              S().objective();
+              await sleep(350);
+            }
+          }
+          check(`mission ${cur.id} finished`, !isMissionActive());
+        }
+        await drain(world);
+        const after = S().current();
+        entry.ok = !after || after.end || after.id !== cur.id;
+        entry.moneyAfter = Math.round(world.money);
+        entry.seconds = Math.round((performance.now() - t0) / 100) / 10;
+        check(`step ${cur.id} advances`, entry.ok);
+        if (!entry.ok) break;
+      }
+
+      await sleep(600);
+      await waitFor(() => S().cardShown(lastPart), 8000);
+      capture('99-wordt-vervolgd');
+      await drain(world);
+      const end = S().current();
+      check(`flow reaches "Wordt vervolgd" (${lastPart})`, end && end.end === lastPart, JSON.stringify(end));
+      check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
+      check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
+      check('Tammo and Anita take turns', swaps >= 4, `${swaps} wissels`);
+
+      // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
+      const pg = window.__postgame;
+      if (PARTS[lastPart] && PARTS[lastPart].finale) {
+        check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
+        for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord']) {
+          const p = world.player;
+          if (p.inVehicle && id !== 'fjord') p.exitVehicle(world.map, world);
+          await sleep(300);
+          const started = pg.start(id);
+          await sleep(900);
+          for (let i = 0; i < 4 && isCinematicActive(); i++) { skipCinematic(); await sleep(250); }
+          await sleep(1200);
+          if (started && id !== 'fierljep') capture('pg-' + id);
+          const won = started && pg.win();
+          await waitFor(() => !pg.state(), 6000);
+          const rec = pg.record(id);
+          check(`post-game ${id} runs and records a medal`, started && won && rec && rec.medal > 0, JSON.stringify(rec));
+          await drain(world, 700);
+        }
+        check('Fjord Frituur unlocked in the garage', await waitFor(() => getOwnedEntries().some((o) => o.key === 'fjordfrituur'), 5000));
+        if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+      }
+
+      // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data
+      const money = world.money;
+      applySave(world, { v: 1, money: 1234, missions: { index: 3, completed: [0, 1, 2], seen: [0, 1, 2] }, shops: null });
+      await sleep(400);
+      const mig = S().current();
+      check('old save migrates to H2', mig && mig.id === 'H2', JSON.stringify(mig));
+      check('old save plays as the current step\'s character', await waitFor(() => world.player.character === STEP_BY_ID.get('H2').player, 5000), world.player.character);
+      check('old save keeps money', world.money === 1234, `€${world.money}`);
+      world.money = money;
+    }
   } catch (e) {
     errors.push('test: ' + (e && e.stack || e));
   }

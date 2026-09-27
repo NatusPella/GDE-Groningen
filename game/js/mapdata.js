@@ -1,4 +1,5 @@
 import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
+import { inPassage } from './passages.js';
 import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
@@ -285,6 +286,8 @@ export class GameMap {
     this.levelCrossings = data.levelCrossings || [];
     this.railRoutes = data.railRoutes || [];
     this.railLifts = data.railLifts || [];
+    // ways OSM maps through or under a building (passages.js)
+    this.passageWays = (data.passageWays || []).map((p) => ({ ...p, bounds: polygonBounds(p.pts) }));
 
     this.buildingGrid = new SpatialGrid(CELL);
     for (const b of this.buildings) {
@@ -445,12 +448,14 @@ export class GameMap {
   // neighbour building B; one pass alone was reported spawning players
   // inside buildings often enough to notice.
   escapeBuilding(x, y, margin = 0.6) {
+    const x0 = x, y0 = y;
+    const hitAt = (px, py) => this.buildingsNear(px, py, 1).find((b) => {
+      const [minx, miny, maxx, maxy] = b.bounds;
+      return px >= minx && px <= maxx && py >= miny && py <= maxy && pointInPolygon(px, py, b.pts);
+    });
     for (let iter = 0; iter < 6; iter++) {
-      const hit = this.buildingsNear(x, y, 1).find((b) => {
-        const [minx, miny, maxx, maxy] = b.bounds;
-        return x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts);
-      });
-      if (!hit) break;
+      const hit = hitAt(x, y);
+      if (!hit) return [x, y];
       const pts = hit.pts;
       let bestDist2 = Infinity, bestX = x, bestY = y;
       for (let i = 0; i < pts.length - 1; i++) {
@@ -460,6 +465,18 @@ export class GameMap {
       const d = Math.sqrt(bestDist2) || 0.01;
       x += (bestX - x) / d * (d + margin);
       y += (bestY - y) / d * (d + margin);
+    }
+    if (!hitAt(x, y)) return [x, y];
+    // still inside: two footprints kept pushing it back and forth (a block
+    // of row houses). Take the nearest spot that is clear by `margin`.
+    const clear = (px, py) => !hitAt(px, py) && !hitAt(px + margin, py) && !hitAt(px - margin, py) && !hitAt(px, py + margin) && !hitAt(px, py - margin);
+    for (let r = 0.5; r <= 40; r += 0.5) {
+      const n = Math.max(8, Math.round(r * 4));
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2;
+        const px = x0 + Math.cos(a) * r, py = y0 + Math.sin(a) * r;
+        if (clear(px, py)) return [px, py];
+      }
     }
     return [x, y];
   }
@@ -478,7 +495,7 @@ export class GameMap {
       for (const b of this.buildingsNear(px, py, clearance + 0.5)) {
         const [minx, miny, maxx, maxy] = b.bounds;
         if (px < minx - clearance || px > maxx + clearance || py < miny - clearance || py > maxy + clearance) continue;
-        if (pointInPolygon(px, py, b.pts)) return false;
+        if (pointInPolygon(px, py, b.pts) && !inPassage(this, b, px, py)) return false;
       }
       return true;
     };
@@ -503,8 +520,8 @@ export class GameMap {
   // Where to put the player near (x,y): the nearest road point, pushed out of
   // buildings, that you can actually walk away from. Falls back to further
   // road points (proper streets first) and finally to the plain nearest one.
-  findOpenSpawn(x, y, searchRadius = 400) {
-    const first = this.nearestRoadPoint(x, y, searchRadius, false, true);
+  findOpenSpawn(x, y, searchRadius = 400, drivableOnly = false) {
+    const first = this.nearestRoadPoint(x, y, searchRadius, drivableOnly, true);
     const tryPoint = (p) => {
       if (!p) return null;
       const [sx, sy] = this.escapeBuilding(p.x, p.y);
@@ -514,7 +531,7 @@ export class GameMap {
     if (ok) return ok;
     const cands = [];
     for (const road of this.roadsNear(x, y, 160)) {
-      if (road.z) continue;
+      if (road.z || (drivableOnly && (road.cat === 'foot' || road.cat === 'cycle'))) continue;
       const pts = road.pts;
       for (let i = 0; i < pts.length - 1; i++) {
         const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
@@ -534,6 +551,31 @@ export class GameMap {
     if (!first) return null;
     const [sx, sy] = this.escapeBuilding(first.x, first.y);
     return { x: sx, y: sy, road: first.road || null };
+  }
+
+  // Open ground someone can stand on and walk away from: dry (or a bridge),
+  // outside every footprint except its passages, not a closed-off courtyard.
+  isOpenSpot(x, y, reach = 45) {
+    if (isInWater(this, x, y) && !this.isOnBridge(x, y)) return false;
+    for (const b of this.buildingsNear(x, y, 0.5)) {
+      const [minx, miny, maxx, maxy] = b.bounds;
+      if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts) && !inPassage(this, b, x, y)) return false;
+    }
+    return this.canWalkOut(x, y, reach);
+  }
+
+  // (x, y) when that is open ground, else the nearest open spot a few metres
+  // around it, else the nearest reachable street (findOpenSpawn).
+  openSpotNear(x, y, drivableOnly = false) {
+    if (this.isOpenSpot(x, y)) return { x, y };
+    for (let r = 1.5; r <= 9; r += 1.5) {
+      for (let k = 0; k < 12; k++) {
+        const a = (k / 12) * Math.PI * 2, px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
+        if (this.isOpenSpot(px, py)) return { x: px, y: py };
+      }
+    }
+    const o = this.findOpenSpawn(x, y, 250, drivableOnly);
+    return o ? { x: o.x, y: o.y, road: o.road } : { x, y };
   }
 
   // A vehicle's (x,y) can fall inside a water polygon that a bridge actually
@@ -589,6 +631,7 @@ function polyArea(pts) {
 
 export function applyMapExtras(data, ex) {
   if (!ex) return;
+  data.passageWays = ex.passages || [];
   for (const b of ex.buildings || []) data.buildings.push({ ...b });
   for (const p of ex.buildingPatches || []) {
     const [x, y] = p.at;

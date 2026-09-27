@@ -518,13 +518,18 @@ function buildWalls(elev, map) {
 // Does a wall piece block something at height z (absolute)?
 // Returns +1 (must stay on the road side), -1 (must stay outside) or 0.
 function wallSide(w, z) {
-  if (w.kind === 'retain') return z < w.z - 1.2 ? -1 : 0;
+  // (a road in a cutting passes under the deck the embankment ends at)
+  if (w.kind === 'retain') return z < w.z - 1.2 && z > -2 ? -1 : 0;
   if (w.parapet) return z > w.z - 0.6 && z < w.z + 3 ? 1 : 0;
   if (w.kind === 'cut') {
-    if (z < w.top - RAISED) return w.low && z > w.z - 2 ? 1 : 0;
-    return w.fence ? -1 : 0;
+    // the trench wall holds whoever drives down on its floor, not a ramp
+    // alongside that is still near the top
+    if (z < w.top - RAISED) return w.low && z > w.z - 2 && z < w.z + 2.5 ? 1 : 0;
+    // the fence stands at street level: a deck crossing over the cutting clears it
+    return w.fence && z < w.top + 1.5 ? -1 : 0;
   }
-  return w.low && z > w.z - 1.2 && z < w.z + 3 ? 1 : 0;
+  // a crash barrier is under a metre tall: a deck two metres above it clears it
+  return w.low && z > w.z - 1.2 && z < w.z + 2 ? 1 : 0;
 }
 
 // Walkers: push a circle of radius back to its allowed side of every wall.

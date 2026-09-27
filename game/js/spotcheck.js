@@ -1,0 +1,130 @@
+// Every fixed place the player has to reach (mission starts and targets,
+// activities, side jobs, shops, garages, post-game challenges, pigeon, heli,
+// station and Fjord Frituur spots, eierballen, respawn points), checked for
+// being on open ground you can walk away from: not inside a building
+// footprint (a mapped passage is fine), not in the water unless it is a boat
+// spot, and not in a pocket the footprints close off. `validateSpots(world)`
+// returns the offenders; the story test fails on any (desktop
+// --validate-spots runs only this check).
+import { pointInPolygon, isInWater, closestPointOnSegment } from './util.js';
+import { inPassage } from './passages.js';
+import { getMissionDefs, resolveMissionTarget } from './missions.js';
+import { getShopsForRender } from './shops.js';
+import { getGaragesForRender } from './garages.js';
+import { getHorecaForRender } from './horeca.js';
+import { getSideJobList } from './sidejobs.js';
+import { getPigeonSpotsForRender } from './pigeonspots.js';
+import { getHeliSpotsForRender } from './helirun.js';
+import { getStationsForRender } from './stationtravel.js';
+import { getEierballen } from './achievementtracker.js';
+import { CHALLENGES } from './postgame.js';
+
+const DRIVE_REACH = 25;
+const WALK_REACH = 45;
+
+function buildingAt(map, x, y) {
+  for (const b of map.buildingsNear(x, y, 1)) {
+    const [minx, miny, maxx, maxy] = b.bounds;
+    if (x < minx || x > maxx || y < miny || y > maxy || !pointInPolygon(x, y, b.pts)) continue;
+    if (inPassage(map, b, x, y)) continue;
+    return b;
+  }
+  return null;
+}
+
+function driveDist(map, x, y) {
+  let best = Infinity;
+  for (const r of map.roadsNear(x, y, DRIVE_REACH + 10)) {
+    // a car gets down a pedestrian street (the Poelestraat) too
+    if (r.z || r.cat === 'cycle' || (r.cat === 'foot' && !(r.type === 'pedestrian' && (r.width || 0) >= 4))) continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
+      best = Math.min(best, Math.sqrt(cp.dist2) - (r.width || 6) / 2);
+    }
+  }
+  return best;
+}
+
+// What is wrong with the spot, or null.
+export function spotProblem(map, s) {
+  const { x, y, mode } = s;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return 'geen positie';
+  if (mode === 'air') return null;
+  // (a canal's water polygons often stop under a bridge: the boat sails on through)
+  if (mode === 'boat') return isInWater(map, x, y) || map.isOnBridge(x, y) || map.inWaterRaw(x, y) ? null : 'niet op het water';
+  const wet = isInWater(map, x, y) && !map.isOnBridge(x, y);
+  if (wet) return 'in het water';
+  const b = buildingAt(map, x, y);
+  if (b) return `in een gebouw${b.name ? ' (' + b.name + ')' : ''}`;
+  if (!map.canWalkOut(x, y, WALK_REACH)) return 'ingesloten, je kunt er niet weg';
+  if (mode === 'drive' && driveDist(map, x, y) > DRIVE_REACH) return 'te ver van een rijweg';
+  return null;
+}
+
+function stageMode(st) {
+  if (st.kind === 'pigeon' || st.kind === 'heli') return 'air';
+  if (st.mode === 'boat' || st.kind === 'boatchase') return 'boat';
+  if (st.mode === 'vehicle' || st.kind === 'garage') return 'drive';
+  return 'walk';
+}
+
+// Targets that only exist while a mission runs (your boat, the skûtsje, the
+// nearest quay) are left out.
+const RUNTIME = ['rental', 'route', 'shore', 'skutsje'];
+
+export function collectSpots(world) {
+  const out = [];
+  const add = (kind, id, p, mode = 'walk') => { if (p) out.push({ kind, id, x: p.x, y: p.y, mode }); };
+  const defs = getMissionDefs() || [];
+  defs.forEach((d, i) => {
+    const tag = d.id || d.label || `#${i}`;
+    add('missie-start', tag, d.start, d.startAt === 'rental' ? 'air' : 'walk');
+    if (d.dest) add('missie-doel', tag, d.dest, d.onFoot ? 'walk' : 'drive');
+    for (const s of d.stops || []) add('missie-stop', `${tag} ${s.name || ''}`, s, 'drive');
+    for (const c of d.crowds || []) add('missie-menigte', tag, c);
+    // the ring race runs on the ring's decks and cuttings (ringcheck.js); a bike
+    // race may use cycle paths
+    const wpMode = d.type === 'boat' ? 'boat' : d.onFoot || d.requires === 'bike' ? 'walk' : 'drive';
+    if (d.race !== 'ring') (d.waypoints || []).forEach((w, k) => add('missie-checkpoint', `${tag} #${k}`, w, wpMode));
+    if (d.heist) {
+      add('missie-heist', `${tag} stroomkast`, resolveMissionTarget(world, d.heist.fuse, d.start));
+      add('missie-heist', `${tag} vitrine`, resolveMissionTarget(world, d.heist.vitrine, d.start));
+    }
+    (d.stages || []).forEach((st, k) => {
+      const mode = stageMode(st);
+      for (const t of [st.target, ...(st.kind === 'pigeon' ? [] : st.targets || [])]) {
+        if (!t || RUNTIME.some((r) => t[r])) continue;
+        const p = resolveMissionTarget(world, t, d.start);
+        add('missie-doel', `${tag} stage ${k} ${st.kind}${st.label ? ' "' + st.label + '"' : ''}`, p, t.z != null ? 'air' : mode);
+      }
+    });
+  });
+  for (const s of getShopsForRender()) add('winkel', `${s.type} ${s.name || ''}`, s);
+  for (const g of getGaragesForRender()) add('garage', g.name, g, 'drive');
+  for (const h of getHorecaForRender() || []) add('horeca', h.name, h);
+  for (const j of getSideJobList()) add('bijbaan', j.name, j);
+  for (const p of getPigeonSpotsForRender()) add('duivenplek', p.name, p);
+  for (const h of getHeliSpotsForRender()) add('heli', 'traumaheli', h);
+  for (const s of getStationsForRender() || []) add('station', s.name, s);
+  for (const e of getEierballen()) add('eierbal', e.id, e);
+  for (const c of CHALLENGES) {
+    let list = [];
+    try { list = c.spots(world) || []; } catch (e) { list = []; }
+    for (const q of list) add('postgame', `${c.id} ${q.name || ''}`, q, c.vehicle ? 'drive' : 'walk');
+  }
+  const meta = world.map.meta || {};
+  const sites = [...(meta.policeStations || []), ...(meta.careSites || []), ...(meta.hospital ? [meta.hospital] : [])];
+  for (const s of sites) add('respawn', s.name || `${Math.round(s.x)},${Math.round(s.y)}`, world.map.findOpenSpawn(s.x, s.y, 120));
+  return out;
+}
+
+export function validateSpots(world) {
+  const spots = collectSpots(world);
+  const bad = [];
+  for (const s of spots) {
+    const why = spotProblem(world.map, s);
+    if (why) bad.push({ ...s, x: Math.round(s.x * 10) / 10, y: Math.round(s.y * 10) / 10, why });
+  }
+  return { total: spots.length, bad };
+}
+
