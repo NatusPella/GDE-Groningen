@@ -57,7 +57,8 @@ def job(l):
         return l, 'skip', probe(dst)
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     # the provider sometimes refuses or returns nothing; a plainer prompt usually passes
-    tries = [l['prompt'], f"[{l['tag']}, spoken in Dutch] {l['text']}", f"[{l['who']}, in Dutch] {l['text']}"]
+    say = l.get('say', l['text'])
+    tries = [l['prompt'], f"[{l['tag']}, spoken in Dutch] {say}", f"[{l['who']}, in Dutch] {say}"]
     err = None
     for attempt, inp in enumerate(tries):
         try:

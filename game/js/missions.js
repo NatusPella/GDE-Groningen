@@ -1513,10 +1513,10 @@ function startMission(world, def) {
   chain.seen.add(i);
 }
 
-function hint(world, text) {
+function hint(world, text, say = undefined) {
   if (world.time - chain.hintAt < HINT_INTERVAL) return;
   chain.hintAt = world.time;
-  world.addMessage(text, 2.5);
+  world.addMessage(text, 2.5, { say });
 }
 
 // Returns a failure reason when the mission car/boat is gone or left behind.
@@ -1678,7 +1678,7 @@ export function updateMissions(dt, world) {
       const goal = stop || def.dest;
       if (dist(p.x, p.y, goal.x, goal.y) < (stop ? STOP_RADIUS : CHECKPOINT_RADIUS)) {
         if (!stop) succeed(world, def);
-        else if (Math.abs(v.speed) > 2.5) hint(world, `Even stilstaan bij ${stop.name}, anders kan er niemand in.`);
+        else if (Math.abs(v.speed) > 2.5) hint(world, `Even stilstaan bij ${stop.name}, anders kan er niemand in.`, 'Even stilstaan, anders kan er niemand in.');
         else if ((chain.stopT += dt) >= STOP_WAIT) {
           chain.stopIndex++;
           chain.stopT = 0;
