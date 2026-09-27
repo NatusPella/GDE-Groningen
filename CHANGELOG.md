@@ -6,6 +6,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-09-29
+
+### Nieuw
+- **Nieuwe landmarks**: het Stadhuis aan de Grote Markt met zijn zuilengalerij,
+  het Prinsenhof met klokkentorentje, het Gasuniegebouw ("de Apenrots") en het
+  DUO-kantoor aan de Kempkensberg ("het Cruiseschip"), waar je onderdoor kunt
+  rijden.
+
 ## [0.17.0] - 2026-09-29
 
 ### Nieuw
