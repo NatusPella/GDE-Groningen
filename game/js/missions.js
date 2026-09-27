@@ -22,6 +22,7 @@ import { requestRespawn } from './world.js';
 import { getMissionRecord } from './achievements.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { animateSkutsjeRig } from './models3d_vehicles.js';
+import { setMuseumCaseStolen } from './museum3d.js';
 import { startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, heistStageChanged, disposeHeist } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -237,7 +238,7 @@ function buildDefs(world) {
       reward: 150,
       requires: ['heist', 'night'],
       start: walk(18, 736),
-      heist: { fuse: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' } },
+      heist: { fuse: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
       stages: [
         { kind: 'goto', target: { landmark: 'Groninger Museum', off: [-22, -40], snap: 'walk' }, mode: 'any', label: 'Naar de achteringang', say: 'Naar de brug naar het museumeiland. Rustig aan, blijf uit het licht.' },
         {
@@ -245,7 +246,7 @@ function buildDefs(world) {
           label: 'Sluip naar de stroomkast', say: 'Bewakers met zaklampen en draaiende camera\'s. Blijf uit de lichtbundels. Bukken (Ctrl) helpt bij de bewakers.',
         },
         { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, label: 'Camera\'s uit bij de stroomkast', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera\'s.' },
-        { kind: 'goto', watch: { guards: 1, cameras: 0 }, vitrine: true, target: { landmark: 'Groninger Museum', off: [0, 20], snap: 'walk' }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.' },
+        { kind: 'goto', watch: { guards: 1, cameras: 0 }, vitrine: true, target: { landmark: 'Groninger Museum', off: [3, 17] }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.' },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
@@ -494,6 +495,8 @@ export function initMissions(world) {
     pub: { type: null, label: '', phase: 'idle', timeLeft: 0, index: 0, total: defs.length, marker: { x: 0, y: 0 }, distanceToMarker: 0, remainingWaypoints: [] },
   };
   world.mission = chain.pub;
+  // zaal 3's case is empty once H6 has been played
+  setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
     failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood', busted ? 'Opgepakt door de politie' : 'Je bent dood');

@@ -2177,7 +2177,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;
       // building passages (passages.js) are open, the rest of the footprint is wall
-      if (!pointInPolygon(c[0], c[1], b.pts) || inPassage(map, b, c[0], c[1], light ? 0 : 0.35)) continue;
+      if (!pointInPolygon(c[0], c[1], b.pts) || inPassage(map, b, c[0], c[1], light ? 0 : 0.35, light ? 'bike' : 'car')) continue;
       const pts = b.pts;
       let bestDist2 = Infinity, bestX = 0, bestY = 0;
       for (let i = 0; i < pts.length - 1; i++) {

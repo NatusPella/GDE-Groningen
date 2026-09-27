@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, vcMaterial, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
-import { pointInPolygon } from './util.js';
+import { pointInPolygon, closestPointOnSegment } from './util.js';
+import { MUSEUM_ROOMS, rectCorners } from './museumplan.js';
 
 // Procedural models for the named Groningen landmarks, one merged
 // vertex-coloured geometry per building (five shared materials). Geometry is
@@ -335,12 +336,39 @@ function grown(ring, d) {
   return ring.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]);
 }
 
+// On (or inside) one of `rings`: an edge there is a shared wall, drawn once.
+function onRings(rings, x, y) {
+  for (const r of rings) {
+    if (!r) continue;
+    if (pointInPolygon(x, y, r)) return true;
+    for (let i = 0; i < r.length; i++) {
+      const a = r[i], c = r[(i + 1) % r.length];
+      if (closestPointOnSegment(x, y, a[0], a[1], c[0], c[1]).dist2 < 0.04) return true;
+    }
+  }
+  return false;
+}
+
 function groningerMuseum(B, b) {
   const byPart = Object.fromEntries((b.parts || []).map((p) => [p.part, p.pts]));
   const base = -0.6;
+  // walls a block shares with a taller block (the entrance building runs
+  // under the wings and the tower, the bridge ends at their facades) are left
+  // to the taller one: two coplanar walls z-fight
+  const hiddenBy = {
+    entrance: ['wingN', 'wingS', 'tower'],
+    bridge: ['tower', 'mendini'],
+  };
   const blk = (name, y0, y1, color, g = G_PLAIN, capColor = color) => {
     const r = byPart[name];
-    if (r) extrude(B, r, y0, y1, color, g, capColor, G_PLAIN);
+    if (!r) return r;
+    const over = (hiddenBy[name] || []).map((n) => byPart[n]);
+    for (let i = 0; i < r.length; i++) {
+      const a = r[i], c = r[(i + 1) % r.length];
+      if (over.length && onRings(over, (a[0] + c[0]) / 2, (a[1] + c[1]) / 2)) continue;
+      B.quad(W(a[0], y0, a[1]), W(c[0], y0, c[1]), W(c[0], y1, c[1]), W(a[0], y1, a[1]), color, g);
+    }
+    cap(B, r, () => y1, capColor, G_PLAIN);
     return r;
   };
   // De Lucchi pavilion: red brick cube; Starck's aluminium disc on top
@@ -386,7 +414,8 @@ function groningerMuseum(B, b) {
       const [x, z] = F.P(u, v);
       B.box(x, y, z, su, 1.1, sv, col, g, rx, -F.rot + ry, rz);
     }
-    extrude(B, co.map((p) => p), 8, 8.6, 0x5d666b, G_METAL, 0x6a7277, G_PLAIN);
+    // the steel deck sits on the Mendini pavilion (the coop outline sticks out over the water)
+    if (me) extrude(B, grown(me, 0.35), 8, 8.6, 0x5d666b, G_METAL, 0x6a7277, G_PLAIN);
     const [x, z] = F.P(cu + 0.1 * lu, cv);
     B.box(x, 12.8, z, 3, 9.5, 0.9, 0x39434a, G_GLASS, 0.35, -F.rot + 0.6, -0.2);
   }
@@ -395,7 +424,21 @@ function groningerMuseum(B, b) {
     const r = byPart[name];
     if (!r) continue;
     const top = name === 'entrance' ? 5 : 11.5;
-    for (const ed of edgesOf(r)) if (ed.len > 5) ebox(B, ed, ed.len / 2, top - 2.2, ed.len - 1.6, 1.0, 0.05, C.glass, G_GLASS, 0.03);
+    const over = (hiddenBy[name] || []).map((n) => byPart[n]);
+    for (const ed of edgesOf(r)) {
+      if (ed.len <= 5 || (over.length && onRings(over, (ed.a[0] + ed.b[0]) / 2, (ed.a[1] + ed.b[1]) / 2))) continue;
+      ebox(B, ed, ed.len / 2, top - 2.2, ed.len - 1.6, 1.0, 0.05, C.glass, G_GLASS, 0.03);
+    }
+  }
+  // the atrium the cycle bridge runs through (no pavilion of its own in OSM)
+  // and the entrance gang: a flat glass-edged roof over the interior rooms
+  for (const id of ['atrium', 'atriumW', 'gang']) {
+    const rm = MUSEUM_ROOMS.find((q) => q.id === id);
+    if (!rm) continue;
+    const ring = rectCorners(rm);
+    const top = rm.h + (id === 'atriumW' ? 0.4 : 0.45);
+    extrude(B, ring, rm.h + 0.03, top, 0xd9d2c4, G_PLAIN, 0x9aa3a8, G_PLAIN);
+    walls(B, grown(ring, 0.04), rm.h + 0.12, () => top - 0.08, C.glassLight, G_GLASS);
   }
 }
 

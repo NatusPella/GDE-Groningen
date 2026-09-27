@@ -2,6 +2,7 @@
 // footprint (collision.js keeps walkers inside them, vehicle.js and the spot
 // checks treat them as open ground, models3d_buildings.js cuts the opening).
 import { closestPointOnSegment, pointInPolygon } from './util.js';
+import { rectDist } from './museumplan.js';
 
 // A way that enters a footprint and leaves it again is a building passage
 // when OSM maps it as one (tunnel=building_passage, covered, arcades), when
@@ -40,6 +41,17 @@ function outlineDist(x, y, pts) {
     if (cp.dist2 < best) best = cp.dist2;
   }
   return Math.sqrt(best);
+}
+
+// How deep into the footprint a run gets (sampled along it).
+function runDepth(run, ring) {
+  let best = 0;
+  for (let i = 0; i < run.length - 1; i++) {
+    const [ax, ay] = run[i], [bx, by] = run[i + 1];
+    const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 0.5));
+    for (let k = 0; k <= n; k++) best = Math.max(best, outlineDist(ax + (bx - ax) * k / n, ay + (by - ay) * k / n, ring));
+  }
+  return best;
 }
 
 // The OSM passage (tunnel=building_passage, covered, ...) this run follows:
@@ -84,7 +96,12 @@ function computePassages(map, b) {
     const P = r.pts;
     let run = null, s0 = false, lastOut = null;
     const finish = (s1) => {
-      if (run.length > 1) runs.push({ pts: run, r, s0, s1 });
+      // a footway that only grazes the facade (never deeper in than its own
+      // width) is a pavement drawn a little into the wall, not a passage
+      // (a street that clips a corner stays open for the traffic on it, but
+      // there is nothing to show)
+      const graze = run.length > 1 && runDepth(run, b.pts) <= Math.max(1.0, passageHalfWidth(r));
+      if (run.length > 1 && (!graze || (r.cat !== 'foot' && r.cat !== 'cycle'))) runs.push({ pts: run, r, s0, s1, graze });
       run = null;
     };
     for (let i = 0; i < P.length - 1; i++) {
@@ -146,7 +163,7 @@ function computePassages(map, b) {
     const mapped = g.map((ra) => mappedKind(map, ra.pts)).find(Boolean) || null;
     for (const ra of g) {
       if (!keepRun(ra.r, len, mapped)) continue;
-      out.push({ pts: ra.pts, hw: passageHalfWidth(ra.r), len, mapped, cat: ra.r.cat, road: ra.r, shown: len >= CLIP_MIN });
+      out.push({ pts: ra.pts, hw: passageHalfWidth(ra.r), len, mapped, cat: ra.r.cat, road: ra.r, shown: len >= CLIP_MIN && !ra.graze });
     }
   }
   linkDoors(b, doors, out);
@@ -215,7 +232,16 @@ export function nearestCorridor(passages, x, y) {
 }
 
 // Is (x, y) inside one of the corridors cut through footprint `b`?
-export function inPassage(map, b, x, y, slack = 0) {
+// Walkable rooms inside a footprint (b.rooms, museumplan.js): the room of
+// (x, y) or null. `who`: 'walker', 'bike' (rooms open to bikes) or 'car' (none).
+export function roomAt(b, x, y, slack = 0, who = 'walker') {
+  if (!b.rooms || who === 'car') return null;
+  for (const r of b.rooms) if ((who !== 'bike' || r.bikes) && rectDist(r, x, y) < slack) return r;
+  return null;
+}
+
+export function inPassage(map, b, x, y, slack = 0, who = 'walker') {
+  if (b.rooms && roomAt(b, x, y, slack, who)) return true;
   const passages = passagesOf(map, b);
   if (!passages.length) return false;
   const c = nearestCorridor(passages, x, y);

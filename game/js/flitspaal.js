@@ -51,13 +51,34 @@ export function initFlitspaal(world) {
     cams.push(makeCamera(road, p));
   }
 
-  // the pole stands on the right-hand kerb; cam.x/y stays the road trigger point
-  for (const cam of cams) {
-    const kerb = placeTrafficLight(cam, world.map);
-    cam.px = 2 * cam.x - kerb.x;
-    cam.py = 2 * cam.y - kerb.y;
-  }
-  world.flitspaalen = cams;
+  // the pole stands on the right-hand kerb; cam.x/y stays the road trigger point.
+  // Never in a lane (a dual carriageway's other half, a slip road): then the
+  // other kerb, a step further out, or no camera there
+  const map = world.map;
+  const onLanes = (x, y) => map.roadsNear(x, y, 12).some((r) => {
+    if (r.cat === 'foot' || r.cat === 'cycle' || r.bridge || r.z) return false;
+    const hw = (r.width || 6) / 2 + 0.4;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
+      const ex = bx - ax, ey = by - ay, L2 = ex * ex + ey * ey || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / L2));
+      if ((ax + ex * t - x) ** 2 + (ay + ey * t - y) ** 2 < hw * hw) return true;
+    }
+    return false;
+  });
+  world.flitspaalen = cams.filter((cam) => {
+    const kerb = placeTrafficLight(cam, map);
+    const dx = cam.x - kerb.x, dy = cam.y - kerb.y, d = Math.hypot(dx, dy) || 1;
+    for (const [sx, sy] of [[dx / d, dy / d], [-dx / d, -dy / d]]) {
+      for (const extra of [0, 1.5, 3]) {
+        const x = cam.x + sx * (d + extra), y = cam.y + sy * (d + extra);
+        if (onLanes(x, y)) continue;
+        cam.px = x; cam.py = y;
+        return true;
+      }
+    }
+    return false;
+  });
 }
 
 export function updateFlitspaal(dt, world) {

@@ -1,5 +1,6 @@
 import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 import { inPassage } from './passages.js';
+import { attachMuseumPlan } from './museumplan.js';
 import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
@@ -295,6 +296,8 @@ export class GameMap {
       this.buildingGrid.insert(b, b.bounds);
     }
     liftNestedRoofs(this.buildings, this.buildingGrid);
+    // the Groninger Museum's walkable ground floor
+    attachMuseumPlan(this.buildings);
 
     this.roadGrid = new SpatialGrid(CELL);
     for (const r of this.roads) {

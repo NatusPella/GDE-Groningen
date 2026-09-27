@@ -64,12 +64,24 @@ export function registerPortalBoxes(owner, list) {
   for (const b of list) boxes.push(b);
 }
 
+// Interiors (museum3d.js) are only drawn while the player is within `radius`.
+const interiors = [];
+export function registerInterior(obj, at, radius, onShow = null) {
+  obj.visible = false;
+  interiors.push({ obj, x: at.x, y: at.y, radius, onShow });
+}
+
 let lastX = Infinity, lastY = Infinity, frame = 0;
 const picked = [];
 export function updatePortals(x, y, force = false) {
   frame++;
   if (!force && frame % 12 && Math.hypot(x - lastX, y - lastY) < 6) return;
   lastX = x; lastY = y;
+  for (const it of interiors) {
+    const show = Math.hypot(it.x - x, it.y - y) < it.radius;
+    if (show && !it.obj.visible && it.onShow) it.onShow();
+    it.obj.visible = show;
+  }
   picked.length = 0;
   for (const b of boxes) {
     const d = Math.hypot(b.cx - x, b.cy - y) - b.hl;
@@ -135,9 +147,14 @@ export function buildPassageTunnels(b, passages, depth, base = 0) {
       const [t0, t1] = span;
       const at = (t, side, y) => [ax + ux * t + nx * hw * side, base + y, ay + uy * t + ny * hw * side];
       for (const side of [1, -1]) {
+        // a side that runs outside the footprint (an arcade along the facade) stays open
+        const ws = insideSpan(ring, ax + nx * hw * side, ay + ny * hw * side, ux, uy, L);
+        if (!ws) continue;
+        const w0 = Math.max(t0, ws[0]), w1 = Math.min(t1, ws[1]);
+        if (w1 - w0 < 0.3) continue;
         const inward = [-nx * side, 0, -ny * side];
-        B.quadOut(at(t0, side, 0), at(t1, side, 0), at(t1, side, 0.45), at(t0, side, 0.45), inward, SOCKEL, 0);
-        B.quadOut(at(t0, side, 0.45), at(t1, side, 0.45), at(t1, side, H), at(t0, side, H), inward, WALL, 0);
+        B.quadOut(at(w0, side, 0), at(w1, side, 0), at(w1, side, 0.45), at(w0, side, 0.45), inward, SOCKEL, 0);
+        B.quadOut(at(w0, side, 0.45), at(w1, side, 0.45), at(w1, side, H), at(w0, side, H), inward, WALL, 0);
       }
       B.quadOut(at(t0, 1, H), at(t1, 1, H), at(t1, -1, H), at(t0, -1, H), [0, -1, 0], CEIL, 0);
       for (let t = t0 + 1.5; t < t1 - 1; t += 5) {

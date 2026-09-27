@@ -9,6 +9,7 @@ import { resolveRailings } from './bridgerails.js';
 import { resolveElevWalls } from './elevation.js';
 import { pushOutOfWaterObstacles } from './waterindex.js';
 import { passagesOf, nearestCorridor, inPassage } from './passages.js';
+import { rectDist, clampToRect } from './museumplan.js';
 
 export { passagesOf, inPassage };
 
@@ -38,6 +39,17 @@ export function resolveBuildingCollisions(x, y, radius, map) {
       const d = Math.sqrt(bestDist2);
       const inside = pointInPolygon(x, y, pts);
       if (!inside && d >= radius) continue;
+      if (b.rooms) {
+        // walkable rooms (the museum): free well inside one, else held in the
+        // one it is most inside; walking in from outside through a doorway
+        let best = null, bd = Infinity;
+        for (const r of b.rooms) { const rd = rectDist(r, x, y); if (rd < bd) { bd = rd; best = r; } }
+        if (bd <= -radius) continue;
+        if (inside ? bd < PASSAGE_SLACK : rectDist(best, bestX, bestY) < 0) {
+          if (inside) [x, y] = clampToRect(best, x, y, radius);
+          continue;
+        }
+      }
       const passages = passagesOf(map, b);
       if (passages.length) {
         if (inside) {
