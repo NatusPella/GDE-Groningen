@@ -15,6 +15,7 @@ export const SPEAKER_COLORS = {
   Douwe: '#20968a',
   'Bommen Berend': '#a47a34',
   'Oma Trijntje': '#cc5f90',
+  'Mem Terpstra': '#c0507a',
   Sjabbe: '#8c8a3c',
   Jelmer: '#a38a00',
   Sjoerd: '#5f9848',

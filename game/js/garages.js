@@ -348,9 +348,9 @@ function mechanicCall(w) {
 
 // Henk's call (phonefeed.js startCall; voiced, lines manifest "Henk|...")
 const HENK_CALL = {
-  hero: 'Jong, ik hoor je Escapade tot hier rammelen! Kom even langs, dan maak ik hem weer heel.',
-  fiets: 'Jong, ik hoor je fiets tot hier rammelen! Kom even langs, dan maak ik hem weer heel.',
-  bak: 'Jong, ik hoor je bak tot hier rammelen! Kom even langs, dan maak ik hem weer heel.',
+  hero: 'Jong, je Escapade heeft er een paar karaktertrekjes bij. Kom even langs, dan maak ik hem weer heel.',
+  fiets: 'Jong, je fiets heeft er een paar karaktertrekjes bij. Kom even langs, dan maak ik hem weer heel.',
+  bak: 'Jong, je bak heeft er een paar karaktertrekjes bij. Kom even langs, dan maak ik hem weer heel.',
   kaart: 'Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!',
 };
 

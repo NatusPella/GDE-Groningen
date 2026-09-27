@@ -11,12 +11,12 @@
 
 export const FY = {
   // story cutscenes (missionstory.js) and mission scenes (missions.js)
-  'Moai, Grinzers! Wat Grunn kin, kin Fryslân better. Ek hurdriden.': 'Mooi, Groningers! Wat Groningen kan, kan Friesland beter. Ook hardrijden.',
+  'Moai, Grinzers! Wat Grunn kan, kan Fryslân beter. Ook hardrijden.': 'Mooi, Groningers! Wat Groningen kan, kan Friesland beter. Ook hardrijden.',
   'Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Net fertelle, hè?': 'Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Niet doorvertellen, hè?',
   'Moai, Grinzers. Ik heb een voorstel. Op Gronings Ontzet bakken we tegen elkaar, voor de Noordelijke Snackprijs.': 'Mooi, Groningers. Ik heb een voorstel. Op Gronings Ontzet bakken we tegen elkaar, voor de Noordelijke Snackprijs.',
   'Winnen jullie, dan houden jullie de Eierbal. Win ik, dan krijg ik hem terug. En is de aaibal Frysk.': 'Winnen jullie, dan houden jullie de Eierbal. Win ik, dan krijg ik hem terug. En is de eierbal Fries.',
   'Dat is in detail, Grinzer.': 'Dat is een detail, Groninger.',
-  'Goed. Ik priuw jimme aaibal. Mar ik sis neat.': 'Goed. Ik proef jullie eierbal. Maar ik zeg niks.',
+  'Ja, mem. Goed. Ik proef jullie aaibal. Maar ik zeg niks.': 'Ja, mam. Goed. Ik proef jullie eierbal. Maar ik zeg niks.',
   'Dit is… better as ús. Net fertelle.': 'Dit is… beter dan de onze. Niet doorvertellen.',
   'Moai. Sa\'n gouden aaibal… dy heart eins yn Fryslân.': 'Mooi. Zo\'n gouden eierbal… die hoort eigenlijk in Friesland.',
   'Moai! Oant sjen, Grinzers!': 'Mooi! Tot ziens, Groningers!',
@@ -26,7 +26,6 @@ export const FY = {
   'Jim fytse mar, jonges.': 'Fietsen jullie maar, jongens.',
   'Moai, Grinzers. Jullie hebben mijn sûkelade gevonden.': 'Mooi, Groningers. Jullie hebben mijn chocola gevonden.',
   'Die gaat de lucht in. Fan\'e jûn, met een ballon.': 'Die gaat de lucht in. Vanavond, met een ballon.',
-  'Ik bin Fries. Wy binne altyd goed wiis.': 'Ik ben Fries. Wij zijn altijd goed wijs.',
   'Oant fan\'e jûn, Grinzers!': 'Tot vanavond, Groningers!',
   'Moai, Grinzers! Bedankt voor de Eierbal. Die neem ik mar mei.': 'Mooi, Groningers! Bedankt voor de Eierbal. Die neem ik maar mee.',
   'Nu staat hij in mijn trekker. Oant sjen!': 'Nu staat hij in mijn trekker. Tot ziens!',
@@ -35,7 +34,13 @@ export const FY = {
   'Help! Myn polsstok is brutsen! Ik bin wiet!': 'Help! Mijn polsstok is gebroken! Ik ben nat!',
   'Tige tank, Grinzers. Echt. Hjir, de Eierbal.': 'Hartelijk dank, Groningers. Echt. Hier, de Eierbal.',
   'Tige tank! – W.': 'Hartelijk dank! – W.',
-  'Tige tank foar de auto. J.': 'Hartelijk dank voor de auto. J.',
+  'Tige tank foar de auto. W.': 'Hartelijk dank voor de auto. W.',
+  'Priuw, jonge.': 'Proef, jongen.',
+  // Mem Terpstra (storyarc.js contact)
+  'Pas goed op dysels, famke. – M.': 'Pas goed op jezelf, meisje. – M.',
+  'Anita, famke? Met mij. Myn jonges hebben dyn auto.': 'Anita, meisje? Met mij. Mijn jongens hebben jouw auto.',
+  'Op de trein naar Ljouwert, fan\'e middei. Net fertelle dat ik belde.': 'Op de trein naar Leeuwarden, vanmiddag. Niet doorvertellen dat ik belde.',
+  'Tige tank. Eh… dank je. Ik zeg niks tegen Tammo.': 'Hartelijk dank. Eh… dank je. Ik zeg niks tegen Tammo.',
   '"Moai stedsje. Foar in wykein."': '"Mooi stadje. Voor een weekend."',
   '"Oant sjen op Gronings Ontzet."': '"Tot ziens op Gronings Ontzet."',
   '"Tige tank."': '"Hartelijk dank."',
@@ -94,9 +99,9 @@ export const FY = {
   'Hoe vonden jullie dat gatsje?': 'Hoe vonden jullie dat gaatje?',
   'Net slim. Ik laat jullie even voorgaan.': 'Niet erg. Ik laat jullie even voorgaan.',
   'Goed gevaren, hear. Net fertelle in Snits.': 'Goed gevaren, hoor. Niet doorvertellen in Sneek.',
-  'Alve brêgen. Jimme wiene better. Hjoed.': 'Elf bruggen. Jullie waren beter. Vandaag.',
+  'Elf bruggen. Jullie waren beter. Hjoed.': 'Elf bruggen. Jullie waren beter. Vandaag.',
   'Elf bruggen, elf keer voor! Moai, hè?': 'Elf bruggen, elf keer voor! Mooi, hè?',
-  'Oefenje mar, Grinzers. Ik wachtsje.': 'Oefen maar, Groningers. Ik wacht.',
+  'Oefen maar, Grinzers. Jelle wacht wel.': 'Oefen maar, Groningers. Jelle wacht wel.',
   'Sjoch en lear!': 'Kijk en leer!',
   'Deze is voor Fryslân!': 'Deze is voor Friesland!',
   'Wiet! Die telt niet, hear!': 'Nat! Die telt niet, hoor!',
@@ -106,27 +111,26 @@ export const FY = {
   'Ferhip, die heeft geoefend.': 'Verdikkie, die heeft geoefend.',
   'Plons! Zwemmen kunnen jullie teminsten.': 'Plons! Zwemmen kunnen jullie tenminste.',
   'Te betiid los. Dat zie ik van hier.': 'Te vroeg los. Dat zie ik van hier.',
-  'Verder dan ik. Dat seit gjinien troch, hear.': 'Verder dan ik. Dat vertelt niemand door, hoor.',
+  'Verder dan ik. Net fertelle, hear.': 'Verder dan ik. Niet doorvertellen, hoor.',
   'Moaie sprong. Ik ga naar huis en oefenen.': 'Mooie sprong. Ik ga naar huis en oefenen.',
   'Fryslân wint! Maar jullie waren dichtbij.': 'Friesland wint! Maar jullie waren dichtbij.',
-  'Kom werom as jimme fleugels hawwe.': 'Kom terug als jullie vleugels hebben.',
+  'Kom maar werom als jullie vleugels hebben, Grinzers.': 'Kom maar terug als jullie vleugels hebben, Groningers.',
   'Seil los!': 'Zeil los!',
   'Een skûtsje heeft gjin motor nedich. Alleen fakmanskip.': 'Een skûtsje heeft geen motor nodig. Alleen vakmanschap.',
-  'Dyn seil klappert, Grinzer!': 'Je zeil klappert, Groninger!',
+  'Je zeil klappert, Grinzer!': 'Je zeil klappert, Groninger!',
   'De wind is Frysk vandaag.': 'De wind is Fries vandaag.',
   'Hoe kan dat nou? Mijn seil staat goed!': 'Hoe kan dat nou? Mijn zeil staat goed!',
-  'Nee! Net oan myn hek komme!': 'Nee! Niet aan mijn achtersteven komen!',
+  'Nee! Niet aan myn hek komen!': 'Nee! Niet aan mijn achtersteven komen!',
   'Dat is gewoon gelok met de wind.': 'Dat is gewoon geluk met de wind.',
-  'Jullie kunnen zeilen. Ik skamje my in bytsje.': 'Jullie kunnen zeilen. Ik schaam me een beetje.',
+  'Jullie kunnen zeilen. Jelle schaamt zich in bytsje.': 'Jullie kunnen zeilen. Jelle schaamt zich een beetje.',
   'Windkracht en fakmanskip. Jullie hebben het allebei.': 'Windkracht en vakmanschap. Jullie hebben het allebei.',
   'Sa silet in Fries! Moai oan de wyn.': 'Zo zeilt een Fries! Mooi aan de wind.',
   'Trim dat zeil, Grinzers. Dan praten we verder.': 'Trim dat zeil, Groningers. Dan praten we verder.',
   'Moai, Grinzers! Elf bruggen, één rondje Diepenring. Wie het eerst terug is, wint.': 'Mooi, Groningers! Elf bruggen, één rondje Diepenring. Wie het eerst terug is, wint.',
   'Dan zien we jullie dinsdei wel achter mijn boat.': 'Dan zien we jullie dinsdag wel achter mijn boot.',
   'Fierljeppen, Grinzers! Ik zet de mjitte, jullie springen eroverheen.': 'Polsstokverspringen, Groningers! Ik zet de maat, jullie springen eroverheen.',
-  'Dan is dit in hiel grutte plas.': 'Dan is dit een heel grote plas.',
+  'Dan is dit in hele grote plas.': 'Dan is dit een heel grote plas.',
   'Een echte skûtsjesiler heeft gjin motor nedich. Wind en fakmanskip.': 'Een echte skûtsjezeiler heeft geen motor nodig. Wind en vakmanschap.',
-  'Van de Oosterhaven naar de Hoge der A. Wa\'t earst oankomt!': 'Van de Oosterhaven naar de Hoge der A. Wie het eerst aankomt!',
   // achievements (titles)
   'Brêgekening': 'Bruggenkoning',
   'Fierljepkening': 'Fierljepkoning',
@@ -135,6 +139,9 @@ export const FY = {
 };
 
 export const GRO = {
+  'Kiek. Die duiven luuster\'n noar dij, jong.': 'Kijk. Die duiven luisteren naar jou, jongen.',
+  'Een ballon? Doe bist nait goed wies!': 'Een ballon? Jij bent niet goed wijs!',
+  'Heel de Grote Markt, mien wicht.': 'Heel de Grote Markt, meisje.',
   'Nait soezen, Tammo. Deurbroezen!': 'Niet treuzelen, Tammo. Doorgaan!',
   'Bist betoeterd?': 'Ben je gek geworden?',
   'Au! Wat dust doe?': 'Au! Wat doe jij?',
@@ -224,8 +231,8 @@ export function setDualText(el, text) {
 
 // Frisian words that Dutch and Gronings don't use (skûtsje and Fryslân as
 // names aside, like the brands Us Mem and Snits Snel): a line with one needs a Dutch subtitle.
-const FY_WORDS = /\b(moaie?|grinzers?|jimme|jim|hjir|hjoed|dyn|myn|wy|binne|tige|gjin|gjinien|fertelle|oant|sjoch|sjen|fan|foar|efkes|wiet|neat|noait|hawwe|priuw|mjitte|wyn|seil|hiel|grutte|werom|j[ûu]n|[úu]s|hear|fleugels|wachtsje|oefenje|fuort|lear|sis|seit|nedich|fakmanskip|skamje|bytsje|betiid|teminsten|ferhip|wrachtich|jild|gen[ôo]ch|mem|stipkes|flagge|sûkelade|kij|klear|Ljouwert|Snits|Operaasje|Aaibal|hekweach|gatsje|trapfyts|derop|potsje|ek|mar|Frysk|Fryske|dinsdei|gelok)\b/i;
+const FY_WORDS = /\b(moaie?|grinzers?|jimme|jim|hjir|hjoed|dyn|myn|wy|binne|tige|gjin|gjinien|fertelle|oant|sjoch|sjen|fan|foar|efkes|wiet|neat|noait|hawwe|priuw|mjitte|wyn|seil|hiel|grutte|werom|j[ûu]n|[úu]s|hear|fleugels|wachtsje|oefenje|fuort|lear|sis|seit|nedich|fakmanskip|skamje|bytsje|betiid|teminsten|ferhip|wrachtich|jild|gen[ôo]ch|mem|stipkes|flagge|sûkelade|kij|klear|famke|dysels|middei|Ljouwert|Snits|Operaasje|Aaibal|hekweach|gatsje|trapfyts|derop|potsje|ek|mar|Frysk|Fryske|dinsdei|gelok)\b/i;
 export function looksFrisian(text) {
-  const s = String(text || '').replace(/sk[ûu]tsje\w*|Fryslân|JelleWâld|Us Mem|Snits Snel/gi, '');
+  const s = String(text || '').replace(/sk[ûu]tsje\w*|Fryslân|JelleWâld|Us Mem|Mem Terpstra|Snits Snel/gi, '');
   return /[ûêâôú]/.test(s) || FY_WORDS.test(s);
 }

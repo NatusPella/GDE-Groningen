@@ -9,6 +9,7 @@ Regels die voor iedereen gelden:
 - De humor komt van **understatement**. Het hoogste compliment is *"Kon minder."*
 - Fries is een kruiderij, geen hoofdgerecht. Friese zinnen krijgen altijd een Nederlandse ondertitel (FY in `subtitles.js`).
 - De TTS-stemmen en basistags staan in `scripts/tts_lines_list.mjs` (`CAST`). Houd de tags hieronder daarmee in lijn.
+- Elk personage heeft een eigen kleur voor zijn naam in de ondertitels (zie **Sprekerskleuren** onderaan, `game/js/speakers.js`).
 
 ---
 
@@ -42,7 +43,14 @@ Regels die voor iedereen gelden:
   - hij kan nooit iets betalen;
   - hij praat tegen zijn auto;
   - hij noemt elk gebouw bij de bijnaam: de Apenrots, het Cruiseschip, de Kiekdeuse;
-  - hij verliest altijd van Anita als hij gelijk wil hebben.
+  - hij verliest altijd van Anita als hij gelijk wil hebben;
+  - hij is eigenwijs en zit er soms gewoon naast; blijkt hij ongelijk te hebben, dan zegt hij droog: "Dat bedoelde ik ook.";
+  - Anita appt met "iemand uit Friesland" en Tammo wordt daar stilletjes jaloers van ("Is hij lang? Fierljepper zeker."). Het blijkt Mem Terpstra te zijn: "…Een moeder. Ik was jaloers op een moeder.";
+  - Rikus van Nachtstreek is zijn jeugdvriend uit het Oosterpark en plaagt hem op de radio.
+- **Gave: duivenfluisteraar.** Tammo kan duiven sturen. Hij wordt geen duif: hij fluit of klikt met zijn tong, doet zijn ogen dicht en "springt" met de camera in de duif. Zo werkt de duivenmodus.
+  - Bert ontdekt het in H4 ("Kiek. Die duiven luuster'n noar dij, jong."); Tammo doet er droog over ("Duiven luisteren naar niemand."), Anita plaagt ("mijn vriend de duivenkoning").
+  - Het groeit: de vlag in H10 ("Ik fluit. De duif pikt."), de duiven boven het vuurwerk in de finale, Rikus maakt er een jingle van, en Jelle is jaloers ("Friese meeuwen luisteren naar niemand.").
+  - Verhaalstappen met een duif speelt Tammo. Speel je Anita bij een duivenbord, dan lukt het niet, en dat zegt ze ook ("Ik ben geen duivenkoning. Ik ben de baas van de duivenkoning.").
 - **Nooit:**
   - grote emotionele speeches (als hij iets meent, zegt hij het in vijf woorden);
   - Fries;
@@ -61,6 +69,7 @@ Regels die voor iedereen gelden:
   - stelt retorische vragen: "Heb jij een plan? Nee. Ik wel.";
   - geeft instructies als bevelen.
   - Gronings als ze boos of ontroerd is: "Doe bist nait goed wies!"
+  - Zij weet het meestal beter: feiten, de juiste route, de regels, de Groningse geschiedenis. Dat maakt haar soms een beetje een betweter, en dan plaagt Tammo: "Daar gaat Anita, de wandelende Wikipedia van Stad."
 - **Stopwoorden:**
   - "Tammo. Tám-mo."
   - "Rijden, niet praten."
@@ -81,7 +90,8 @@ Regels die voor iedereen gelden:
   - ze heeft altijd al een plan B;
   - ze parkeert overal waar het niet mag;
   - ze weet van elke Groninger wie z'n oom is;
-  - ze doet alsof ze de kus op de boot niet heeft zien aankomen.
+  - ze doet alsof ze de kus op de boot niet heeft zien aankomen;
+  - ze kent "iemand uit Friesland" en zegt niet wie. Ze krijgt appjes die ze wegklikt ("Niks. Iemand uit Friesland.") en weet rare Friese dingen (hoe je suikerbrood roostert). Het is Mem Terpstra, die haar in H16 tipt over de trein naar Leeuwarden.
 - **Nooit:**
   - opgeven;
   - hulpeloos gillen;
@@ -119,7 +129,9 @@ Regels die voor iedereen gelden:
   - elke ontsnapping is een polsstoksprong, en de laatste gaat mis;
   - hij stuurt kaartjes met "Tige tank! – W.", want de J van Jelle was op;
   - hij noemt zijn tweeling-handlangers bij de verkeerde naam;
-  - zijn livestreams hebben altijd drie kijkers, waarvan één zijn moeder.
+  - zijn livestreams hebben altijd drie kijkers, waarvan één zijn moeder;
+  - hij is jaloers op Tammo's duiven: "Friese meeuwen luisteren naar niemand. Ook niet naar mij.";
+  - tegen zijn moeder zegt hij alleen "Ja, mem." In de finale laat zij hem de eierbal proeven.
 - **Nooit:**
   - echt geweld of haat;
   - vloeken;
@@ -183,14 +195,34 @@ Regels die voor iedereen gelden:
   - "Zo. Jullie zijn dat stel waar heel Grunn over kletst? Ik had er meer van verwacht."
   - "Kon minder." *(= hij is diep ontroerd)*
 
-## De Verteller
-**In één zin:** een warme, droge Groningse stem die het verhaal vertelt alsof het een oude legende is, en daarna de lucht eruit prikt.
+## Rikus
+**In één zin:** Tammo's jeugdvriend uit het Oosterpark, nu de nacht-dj van *Radio Nachtstreek*, die het verhaal van Tammo en Anita vertelt alsof het een oude legende is, en daarna de lucht eruit prikt.
 
-- **Stem:** Schedar. Basistag: *Groningse verteller, droog en warm*. Emoties: vertellend, droog met een knipoog, plagend.
+- **Stem:** Schedar (ook op Nachtstreek: één stem). Basistag: *Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog*. Emoties: vertellend, droog met een knipoog, plagend, trots.
+- **Uiterlijk:** FC-groen jack, stoppelbaard, dik montuur, een buikje van de nachtdiensten, studiokoptelefoon (`RIKUS_LOOK` in `storycast.js`).
 - **Zo praat hij:**
+  - als op zijn nachtprogramma: "Hier is Rikus, op Nachtstreek. Luister, ik vertel je hoe het zat met die twee.";
   - plechtig begin, droge afsluiter: "Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet.";
   - vertelt nooit meer dan de speler al weet.
-- **Wanneer:** bij het begin van het spel, de samenvatting aan het begin van elk deel, grote keerpunten en het einde.
+- **Houdt van:** Tammo (maar dat zegt hij niet), Anita's frietwagenplan (hij wil de eerste friet, en krijgt de tweede), het Oosterpark van vroeger, nachtmuziek van hier.
+- **Haat:** haast, stilte op de radio, mensen die "de Grunn" zeggen.
+- **Running gags:**
+  - hij plaagt Tammo op de radio: de duivenfluisteraar van het Oosterpark, met jingle;
+  - hij weet dat Anita appt met Friesland, en zegt het hardop;
+  - hij betaalt nooit, behalve voor die tweede friet.
+- **Wanneer:** het begin (een snelle cut naar de studio in de openingsmontage), de terugblik aan het begin van elk deel (met een stationsjingle en zijn stem in de radioklank), grote keerpunten, de nachtradio in het Ommeland, twee telefoontjes aan Tammo (na H10 en voor de finale), juichend in het publiek bij de finale en de afsluiter van de epiloog vanuit de studio.
+- **Voorbeeldzinnen:**
+  - "Moi, hier is Rikus, op Nachtstreek. Luister. Ik vertel je hoe het zat met die twee."
+  - "De tweede was voor mij. Zelf betaald, natuurlijk. Hier was Rikus, op Nachtstreek. Welterusten, Grunn."
+
+## Mem Terpstra
+**In één zin:** Jelle's moeder, de "Mem" van *Us Mem Snacks*, een oude vriendin van Oma Trijntje uit 1953 en de enige naar wie Jelle luistert.
+
+- **Stem:** Gacrux. Basistag: *warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden*. Emoties: warm, stellig, samenzweerderig.
+- **Uiterlijk:** marineblauwe jas met een witte kraag, bril, grijze knot en de pompeblêd-rode sjaal die haar zoon van haar afkeek (`MEM_LOOK` in `storycast.js`).
+- **Zo praat ze:** kort en stellig, Nederlands met Friese woorden (*famke*, *jonge*, *myn*, *net fertelle*), altijd met een Nederlandse ondertitel.
+- **Rol:** "iemand uit Friesland" met wie Anita appt. Ze tipt Anita in H16 dat haar Fjord op de trein naar Leeuwarden gaat, en in de finale laat ze Jelle proeven: "Priuw, jonge." Ze is één van de drie kijkers van Jelle's livestreams ("Jas aan, jonge.").
+- **Nooit:** gemeen, of partij kiezen tegen haar zoon (ze wil alleen dat hij eerlijk verliest).
 
 ---
 
@@ -208,7 +240,7 @@ Regels die voor iedereen gelden:
 | **Kapitein Klaas** | schorre schipper | Enceladus, *schor, knipogend* | kent elke brug, praat tegen zijn boot |
 | **Hilly** | nieuwsgierige vrouw, plat Gronings | Despina, *kletserig* | ooggetuige in "Waar is de Fjord?" |
 | **Dokter Dijkstra** | nuchtere traumaarts en heli-piloot | Sadachbia, *droog, zakelijk* | "Dit stond niet in het rooster." |
-| **Duivenmelker Bert** | oude wijze duivenman | Iapetus, *zacht, wijs* | praat over duiven als over mensen |
+| **Duivenmelker Bert** | oude wijze duivenman | Iapetus, *zacht, wijs* | praat over duiven als over mensen; ontdekt dat de duiven naar Tammo luisteren |
 | **Schipper Wiebe** | boze rondvaartschipper met megafoon | *luid, woedend* | scheldt je uit, maar alleen in tegeltjeswijsheden |
 | **Aaltje & Grietje** | twee droge commentaarkoeien | Zephyr en Autonoe, *deadpan* | commentaar op je chaos; Aaltje sceptisch, Grietje wijs |
 
@@ -218,4 +250,23 @@ Regels die voor iedereen gelden:
 - Hun bedoeling verschuift van **"Alles voor één eierbal"** (voor de centen en Anita's frietwagen) naar **"Wij tweeën vóór Grunn"** (de eierbal hoort bij Stad).
 - Wie een verhaalstap speelt, past bij wie ze zijn:
   - **Anita:** rijden, regelen, praten met mensen, water;
-  - **Tammo:** sluipen, fietsen, doorzetten, droog blijven onder druk.
+  - **Tammo:** sluipen, fietsen, doorzetten, droog blijven onder druk, en alles met duiven.
+- **Het ritme van hun gesprekjes** (inspiratie: de warme, kibbelende vriendschap uit oude kinder-tv, zonder namen of zinnen te lenen): korte heen-en-weertjes, elkaars zinnen verkeerd afmaken, kleine misverstanden en woordgrapjes, en dan een zachte verzoening ("…Nou ja."). Tammo is de eigenwijze die stellig iets zegt en er soms gewoon naast zit ("Dat bedoelde ik ook."); Anita is de verstandige die meer weet, en soms een beetje saai wordt over regels en plannen. Ze plagen, maar staan altijd aan dezelfde kant en zorgen voor elkaar.
+
+## Sprekerskleuren
+Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutscenes, ballonnetjes, telefoontjes, autogesprekjes en de telefoon. De kleuren staan in `game/js/speakers.js` (`SPEAKER_COLORS`); ze hebben allemaal een luminantie van ongeveer 0,18-0,30, zodat ze leesbaar zijn op de donkere ondertitelschaduw én op het lichte tekstballonnetje. Tammo en Anita zijn blauw en oranje (het Okabe-Ito-paar), dus ook bij kleurenblindheid goed uit elkaar te houden.
+
+| Personage | Kleur | | Personage | Kleur |
+|---|---|---|---|---|
+| Tammo | `#2a8ad4` blauw | | Anita | `#d86b00` oranje |
+| Rikus | `#a35ad6` paars | | Jelle Terpstra | `#d93a63` pompeblêd-rood |
+| Mem Terpstra | `#c0507a` bessenrood | | Durk | `#3f9a3f` groen |
+| Douwe | `#20968a` blauwgroen | | Bommen Berend | `#a47a34` oker |
+| Oma Trijntje | `#cc5f90` roze | | Sjabbe | `#8c8a3c` olijf |
+| Jelmer | `#a38a00` mosterd | | Sjoerd | `#5f9848` grasgroen |
+| Henk | `#6f8bb0` staalblauw | | Harm | `#a5823c` zand |
+| Geert | `#b27850` koper | | Femke | `#b464c4` orchidee |
+| Kapitein Klaas | `#3f86a8` zeeblauw | | Duivenmelker Bert | `#7282c4` duifblauw |
+| Dokter Dijkstra | `#dd4b44` rood | | Hilly | `#c0609e` fuchsia |
+| Schipper Wiebe | `#cf5a2e` roestoranje | | Koe Aaltje / Grietje | `#818b58` / `#94866e` |
+| Voorbijgangers, bazen, radio en navigatie | `#8a8a8a` neutraal grijs | | | |
