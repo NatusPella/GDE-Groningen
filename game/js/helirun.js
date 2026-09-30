@@ -285,6 +285,7 @@ body.heli-run #hud .hud-speedo, body.heli-run #hud .hud-route, body.heli-run #hu
 #heli-hud .hh-msg { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: 34px; letter-spacing: 2px; color: #f0c21a; text-shadow: 0 2px 10px rgba(0,0,0,0.75); opacity: 0; transition: opacity .2s; white-space: nowrap; }
 #heli-hud .hh-msg.on { opacity: 1; }
 #heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); font: 15px 'Arial Narrow', Arial, sans-serif; letter-spacing: .5px; padding: 6px 14px; background: rgba(20,16,6,0.6); border-radius: 6px; transition: opacity .6s; }
+#heli-hud .hh-help kbd { display: inline-block; min-width: 12px; margin: 0 2px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 system-ui, sans-serif; text-align: center; }
 #heli-hud .hh-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96); min-width: 340px; padding: 18px 26px; text-align: center; background: rgba(20,16,6,0.86); border-top: 4px solid #f0c21a; border-radius: 8px; opacity: 0; transition: opacity .35s, transform .35s; }
 #heli-hud .hh-card.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 #heli-hud .hh-card h2 { margin: 0; font-size: 42px; font-weight: normal; letter-spacing: 3px; color: #f0c21a; }
@@ -308,7 +309,7 @@ function initHudDom() {
     <div class="hh-alt"><i class="ring"></i><i class="bal"></i><i class="me"></i><span>0 m</span></div>
     <div class="hh-catch" hidden><div class="lbl"></div><div class="bar"><i></i></div><div class="tips"></div></div>
     <div class="hh-msg"></div>
-    <div class="hh-help">W/S hoogte · A/D opzij · Shift gas · Spatie rem</div>
+    <div class="hh-help"><kbd>W</kbd><kbd>S</kbd> hoogte · <kbd>A</kbd><kbd>D</kbd> opzij · <kbd>SHIFT</kbd> gas · <kbd>SPATIE</kbd> rem</div>
     <div class="hh-card"><h2></h2><p class="sub"></p><div class="medal"></div><p class="rows"></p></div>`;
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
@@ -491,7 +492,7 @@ export function isHeliRunActive() {
 
 export function getHeliRun() {
   if (!run) return null;
-  return { phase: run.phase, s: run.s, len: rail.len, x: run.x, y: run.y, z: run.z, speed: run.speed, variant: run.variant, balloon: { x: run.balloon.x, y: run.balloon.y, z: run.balloon.z } };
+  return { phase: run.phase, s: run.s, len: rail.len, x: run.x, y: run.y, z: run.z, off: run.off, vz: run.vz, voff: run.voff, nextRing: run.nextRing, catchSide: run.catchSide, along: run.along, speed: run.speed, variant: run.variant, balloon: { x: run.balloon.x, y: run.balloon.y, z: run.balloon.z } };
 }
 
 function syncPlayer() {
