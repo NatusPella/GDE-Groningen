@@ -6,6 +6,34 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-09-30
+
+### Nieuw
+- **De Museumkraak is helemaal nieuw**: maak een plan aan de hand van een
+  plattegrond en kies je aanpak (via de achterdeur of vermomd als
+  schoonmakers). Zet de camera's op herhaling, kraak een slot, pik een pasje,
+  sluip langs bewakers met zaklampen, kom door een lasergrid, draai de code
+  van de vitrine (1953) en ontsnap met Tammo in een speedboot. Vergevingsgezind:
+  mis je iets, dan begin je alleen dat stukje opnieuw.
+
+### Verbeterd
+- **Je weet altijd wat je moet doen**: missies zeggen precies wat de opdracht
+  is, en tussen missies door staat de volgende verhaalstap bovenin beeld.
+- **Rustiger begin**: de openingsscène loopt vloeiend over in het spel, geen
+  wijk-filmpje direct na een missie en berichten komen niet allemaal tegelijk.
+- **Thuis**: de ingang zit nu aan de kant van de garage, de woonkamer kijkt
+  uit op het winkelcentrum, en de camera blijft binnen.
+- Het pauzemenu en de kaartlegenda schalen mee met "Grootte interface".
+
+### Opgelost
+- Je kon uit de flat naar beneden vallen en langzaam wegglijden.
+- Ondergrondse garages en fietskelders stonden als dichte blokken op straat,
+  en paden liepen door dichte gebouwen. Waar een pad bij een gebouw eindigt,
+  is nu een deur.
+- Gaten langs de verdiepte ringweg en ontbrekende tunnelmonden.
+- Zwart gras, zwarte struiken en heggen.
+- Na opgepakt worden keek de camera tegen een muur.
+
 ## [0.18.0] - 2026-09-29
 
 ### Nieuw
