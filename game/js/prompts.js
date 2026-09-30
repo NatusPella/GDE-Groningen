@@ -3,7 +3,7 @@ import { getCamera } from './scene3d.js';
 import { getGaragesForRender, garagePrompt } from './garages.js';
 import { getHorecaForRender, nearestHorecaSpot, horecaState } from './horeca.js';
 import { shopPrimaryPrompt, shopSecondaryPrompts } from './shops.js';
-import { homePrompt, homeSecondary } from './home.js';
+import { homePrompt, homeSecondary, isInsideHome } from './home.js';
 import { vehicleDisplayLabel } from './vehiclenames.js';
 import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
@@ -291,6 +291,8 @@ function pedInReach(world, range, cone) {
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = world.player;
+  // upstairs in the flat only the flat's own uses: the street is 34 m below
+  if (isInsideHome()) return homePrompt(world);
   const train = trainPrompt(world);
   if (train) return train;
   const job = sideJobPrompt(world);
@@ -371,6 +373,7 @@ function inFront(world, x, y, f) {
 
 function findSecondary(world, primary) {
   const p = world.player;
+  if (isInsideHome()) return [];
   const f = facing(world);
   const out = [];
   const add = (c, maxD) => {

@@ -25,6 +25,7 @@ const M = {
 for (const m of Object.values(M)) m.userData.shared = true;
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 BOX.userData.shared = true;
+const CUT_H = 1.05; // the flat's walls, cut away at hip height
 
 function box(group, mat, x, y, z, sx, sy, sz, rotY = 0) {
   const m = new THREE.Mesh(BOX, mat);
@@ -115,6 +116,10 @@ export function buildHomeExterior3D(home) {
   box(g, M.glass, L.x + lx * 0.2, 1.3, L.y + ly * 0.2, 0.04, 2.5, 2.1, -L.angle);
   box(g, M.roof, L.x + lx * 1.2, 3.05, L.y + ly * 1.2, 2.4, 0.16, 3.4, -L.angle);
   for (const s of [-1, 1]) box(g, M.steel, L.x + lx * 2.25 + ax * s * 1.55, 1.5, L.y + ly * 2.25 + ay * s * 1.55, 0.1, 3.0, 0.1);
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: signTexture('Voordeur', 'Lift naar de 11e') }));
+  front.position.set(L.x + lx * 0.16, 3.6, L.y + ly * 0.16);
+  front.rotation.y = -L.angle + Math.PI / 2;
+  g.add(front);
   for (const r of home.rack.rails) segBox(g, M.steel, r.x1, r.y1, r.x2, r.y2, 0.06, 0.62, 0.06);
   for (const r of home.rack.rails) {
     const n = Math.max(2, Math.round(Math.hypot(r.x2 - r.x1, r.y2 - r.y1) / 2));
@@ -167,30 +172,44 @@ export function buildLowerTower3D(tower, levels) {
 export function buildFlat3D(flat, skip = new Set()) {
   const g = new THREE.Group();
   const W = flat.w, D = flat.d, T = flat.tower;
-  const low = 1.05;
+  const low = CUT_H;
   // the whole floor slab of the tower, a parapet round it and the other flats as closed blocks
   const slab = new THREE.Group();
   // one storey of plain wall under the floor hides the roof clutter of the tower below
   box(slab, M.wall, T.w / 2, -1.6, T.d / 2, T.w, 3.2, T.d);
   box(slab, M.concrete, T.w / 2, -0.1, T.d / 2, T.w + 0.2, 0.2, T.d + 0.2);
-  for (const [x, z, sx, sz] of [[T.w / 2, 0, T.w, 0.2], [T.w / 2, T.d, T.w, 0.2], [0, T.d / 2, 0.2, T.d], [T.w, T.d / 2, 0.2, T.d]]) box(slab, M.concrete, x, 0.5, z, sx, 1, sz);
+  // (no parapet in front of the flat's own glass and garage-side wall)
+  for (const [x, z, sx, sz] of [[(W + T.w) / 2, 0, T.w - W, 0.2], [T.w / 2, T.d, T.w, 0.2], [0, (D + T.d) / 2, 0.2, T.d - D], [T.w, T.d / 2, 0.2, T.d]]) box(slab, M.concrete, x, 0.5, z, sx, 1, sz);
+  // the neighbours' flats, cut off at the same height as our walls; a corridor
+  // behind the hall leads to the lift
+  const cor = 1.8;
+  for (const [x0, z0, x1, z1] of [[W + 0.3, 0.3, T.w - 0.3, T.d * 0.48], [W + 0.3, T.d * 0.48 + 0.3, T.w - 0.3, T.d - 0.3], [0.3, D + cor, W * 0.5, T.d - 0.3], [W * 0.5 + 0.3, D + cor, W + 0.3, T.d - 0.3]]) {
+    box(slab, M.wall, (x0 + x1) / 2, low / 2, (z0 + z1) / 2, x1 - x0, low, z1 - z0);
+    box(slab, M.roof, (x0 + x1) / 2, low + 0.01, (z0 + z1) / 2, x1 - x0, 0.02, z1 - z0);
+  }
+  box(slab, M.tiles, W / 2, 0.01, D + cor / 2, W, 0.02, cor - 0.1);
   g.add(slab);
   // floors: laminate in the living room, tiles in the kitchen and hall, carpet in the bedroom
   for (const r of flat.rooms) box(g, M[r.floor], (r.x0 + r.x1) / 2, 0.01, (r.z0 + r.z1) / 2, r.x1 - r.x0, 0.02, r.z1 - r.z0);
-  // facade: glass from floor to ceiling in dark frames
-  box(g, M.glass, W / 2, 1.4, 0.05, W, 2.8, 0.04);
-  for (let x = 0; x <= W + 0.01; x += W / 5) box(g, M.frame, x, 1.4, 0.05, 0.08, 2.8, 0.1);
-  box(g, M.frame, W / 2, 2.8, 0.05, W, 0.1, 0.12);
-  box(g, M.frame, W / 2, 0.05, 0.05, W, 0.1, 0.12);
+  // facade: glass from floor to ceiling in dark frames (lowered by setFlatFacade)
+  const facade = new THREE.Group();
+  box(facade, M.glass, W / 2, 1.4, 0.05, W, 2.8, 0.04);
+  for (let x = 0; x <= W + 0.01; x += W / 5) box(facade, M.frame, x, 1.4, 0.05, 0.08, 2.8, 0.1);
+  box(facade, M.frame, W / 2, 2.8, 0.05, W, 0.1, 0.12);
+  box(facade, M.frame, W / 2, 0.05, 0.05, W, 0.1, 0.12);
+  g.add(facade);
+  g.userData.facade = facade;
   // cutaway walls
   for (const [x1, z1, x2, z2] of flat.walls) {
     const len = Math.hypot(x2 - x1, z2 - z1);
     box(g, M.innerWall, (x1 + x2) / 2, low / 2, (z1 + z2) / 2, len, low, 0.14, -Math.atan2(z2 - z1, x2 - x1));
   }
-  // front door (the lift) in the hall
+  // front door in the hall, the lift right behind it in the corridor, a doormat
   const fd = flat.spots.door;
   box(g, M.steel, fd.x, low / 2 + 0.02, fd.z + 0.02, 1.2, low + 0.04, 0.18);
   box(g, M.screen, fd.x + 0.8, 0.9, fd.z - 0.08, 0.14, 0.2, 0.02);
+  box(g, M.steel, fd.x, low / 2, D + cor - 0.35, 1.6, low, 0.5);
+  box(g, M.rug, fd.x, 0.025, fd.z - 0.6, 1.1, 0.01, 0.7);
   // living room: sofa, coffee table, rug, tv, a plant by the window
   const s = flat.spots;
   box(g, M.rug, s.sofa.x, 0.025, s.sofa.z - 1.4, 3.0, 0.01, 2.0);
@@ -236,4 +255,10 @@ export function buildFlat3D(flat, skip = new Set()) {
   g.position.set(flat.ox, flat.floorY, flat.oy);
   g.rotation.y = -flat.angle;
   return g;
+}
+
+// k 0..1: the glass facade from full height down to the cutaway walls.
+export function setFlatFacade(root, k) {
+  const f = root.userData.facade;
+  if (f) f.scale.y = 1 - (1 - CUT_H / 2.8) * k;
 }

@@ -11,18 +11,24 @@
 //   world instance, or an instance marked v.homeStored) is a real parked
 //   vehicle while the player is within NEAR_M: cars in the bays (the
 //   Escapade has its own), long ones (buses, trucks) at the kerb, bikes and
-//   steps in the rack by the lobby, boats on the canal behind the tower.
+//   steps in the rack along the lobby facade, boats on the canal behind the tower.
 //   Walk up, E, drive off: it is no longer stored until you leave it in the
 //   garage (or rack, kerb, mooring) again. More cars than bays: the panel
 //   inside the door shows the next ones. Farther than FAR_M the stored
 //   instances are packed away again (their damage stays on the entry).
-// - The lobby door (E) takes the lift up to the flat on the 11th floor: the
+// - The lobby door (E), on the garage side of the tower next to the roller
+//   door, is the one way in: the lift up to the flat on the 11th floor. The
 //   tower is hidden and drawn up to that floor instead, the flat is a cutaway
-//   on top (walls down). Bed: sleep until morning (or the evening when the
-//   next mission needs the dark) and save; fridge: a fried eierbal (health);
-//   wardrobe: the outfits you own. EIKEA pieces (furniture.js) are delivered
-//   on the next visit and stand at fixed spots, each with a perk. The flat's floor is a surface for
-//   map.groundHeightAt, so walking, jumping and the camera work as outside.
+//   on top (walls down, the glass facade too while the camera is outside it);
+//   from the lift you walk through the hall to the living room behind the
+//   glass facing the shopping centre. Bed: sleep until morning (or the
+//   evening when the next mission needs the dark) and save; fridge: a fried
+//   eierbal (health); wardrobe: the outfits you own. EIKEA pieces
+//   (furniture.js) are delivered on the next visit and stand at fixed spots,
+//   each with a perk. The whole storey is a surface for map.groundHeightAt,
+//   so walking, jumping and the camera work as outside; a safety net puts
+//   anyone who still gets off the floor back at the lift, and whatever moves
+//   the player off the flat (a respawn, "Vastgelopen", a load) takes it down.
 // - New game and loading a save start outside the lobby with the garage
 //   stocked (savegame.js calls applyHomeOnLoad), unless the save was made
 //   mid-mission: then the saved spot is kept. "Naar huis" in the pause menu.
@@ -39,7 +45,7 @@ import { isMissionActive, isNight, getMissionDefs } from './missions.js';
 import { refreshDayNight } from './daynight.js';
 import { recordStat } from './achievements.js';
 import { clearDrunk } from './drunk.js';
-import { buildHomeExterior3D, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D } from './home3d.js';
+import { buildHomeExterior3D, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade } from './home3d.js';
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 
 const NEAR_M = 200;
@@ -52,10 +58,15 @@ const GARAGE_H = 3.4;
 const DOOR_OPEN_M = 14;
 const SHORT_CAR_M = 5.8;
 const FLAT_LEVEL = 11;
+const LOBBY_X = 4.2; // the lobby door on the back facade, metres from the garage corner
 const LEVEL_HEIGHT = 3.1;
 const FLOOR_Y = FLAT_LEVEL * LEVEL_HEIGHT + 0.05;
 const FLOOR_TOP = FLOOR_Y + 0.02;
 const USE_R = 1.5;
+const SLAB_PAD = 2;
+const INTERIOR_CAM = 0.85;
+const CAM_ABOVE_FLOOR = 2.4;
+const GLASS_CLEAR = 0.35;
 const FRIDGE_COOLDOWN = 45;
 const MORNING = 7.5;
 const EVENING = 21.4;
@@ -76,13 +87,15 @@ let home = null;
 let tickT = 0;
 let page = 0;
 let exterior = null;
-let inside = null; // { flatMesh, lowerMesh } while upstairs
+let inside = null; // { flatMesh, lowerMesh, facade } while upstairs
 let busy = false;
 let fridgeAt = -Infinity;
 let lastInVehicle = null;
 let doorOpen = 0;
 let cutaway = 0;
 let introShown = false;
+let fadeGen = 0;
+let camLocal = null; // the follow camera in the flat's frame (homeCamera)
 
 // --- layout ---------------------------------------------------------------------
 
@@ -122,60 +135,69 @@ function buildLayout() {
   const lamps = [];
   for (let u = 4; u < 31; u += 6) { const [x, y] = pw(u, 9.2); lamps.push({ x, y, angle: Math.atan2(U[1], U[0]) }); }
 
-  // tower frame: X along the lobby facade (B -> D), Y inward
+  // tower frame: X along the facade facing the shopping centre (B -> D), Y inward
   const B = TOWER[0], D = TOWER[2], E = TOWER[3];
   const X = unit(sub(D, B)), Y = unit(sub(E, D));
   const tw = len(sub(D, B)), td = len(sub(E, D));
   const tp = (x, y) => [B[0] + X[0] * x + Y[0] * y, B[1] + X[1] * x + Y[1] * y];
-  const out = [-Y[0], -Y[1]];
-  const outAng = Math.atan2(out[1], out[0]);
-  const [lx, ly] = tp(tw / 2, 0);
-  const lobby = { x: lx, y: ly, angle: outAng, use: tp(tw / 2, -1.3), spawn: tp(tw / 2, -2.2) };
+  // the lobby is on the garage side: the back facade (F -> E), a few steps from the roller door
+  const outAng = Math.atan2(Y[1], Y[0]);
+  const [lx, ly] = tp(LOBBY_X, td);
+  const [sx, sy] = tp(LOBBY_X, td + 2.2);
+  const lobby = { x: lx, y: ly, angle: outAng, use: tp(LOBBY_X, td + 1.3), spawn: [sx, sy] };
+  const front = [door.cx + door.nx * 3, door.cy + door.ny * 3];
+  lobby.spawnAngle = Math.atan2(front[1] - sy, front[0] - sx);
   const rack = { slots: [], rails: [] };
-  for (const [a, b] of [[2.0, 8.0], [tw / 2 + 2.2, tw / 2 + 8.2]]) {
-    const r0 = tp(a - 0.4, -0.35), r1 = tp(b + 0.4, -0.35);
+  for (const [a, b] of [[6.8, 12.8], [13.8, 19.8]]) {
+    const r0 = tp(a - 0.4, td + 0.35), r1 = tp(b + 0.4, td + 0.35);
     rack.rails.push({ x1: r0[0], y1: r0[1], x2: r1[0], y2: r1[1] });
-    for (let t = a; t <= b + 0.01; t += 1.0) rack.slots.push({ id: 'r' + rack.slots.length, t, at: (l) => tp(t, -0.45 - l / 2), angle: outAng });
+    for (let t = a; t <= b + 0.01; t += 1.0) rack.slots.push({ id: 'r' + rack.slots.length, t, at: (l) => tp(t, td + 0.45 + l / 2), angle: outAng });
   }
 
-  // the flat: 11 x 9 m in the corner of the 11th floor behind the lobby facade
-  const W = 11, Dd = 9;
+  // the flat: 11 x 9 m in the corner of the 11th floor. The lift and the hall
+  // are on the garage side (x = 0, the back wall), the living room and the
+  // kitchen behind the glass facade (z = 0) that looks out on the shopping
+  // centre. Its frame is square (the tower's corners are not quite right
+  // angles): toFlat has to undo fl exactly, or everyone upstairs drifts.
+  const W = 11, Dd = 9, HALL = 3.4, MID = 5.2;
+  const FY = [-X[1], X[0]];
   const flat = {
-    ox: B[0], oy: B[1], angle: Math.atan2(X[1], X[0]), floorY: FLOOR_Y, w: W, d: Dd, X, Y,
+    ox: B[0], oy: B[1], angle: Math.atan2(X[1], X[0]), floorY: FLOOR_Y, w: W, d: Dd, X, Y: FY,
     tower: { w: tw, d: td },
     rooms: [
-      { name: 'woonkamer', x0: 0, x1: 6.8, z0: 0, z1: 5.2, floor: 'laminate' },
-      { name: 'keuken', x0: 6.8, x1: W, z0: 0, z1: 5.2, floor: 'tiles' },
-      { name: 'slaapkamer', x0: 0, x1: 5.6, z0: 5.2, z1: Dd, floor: 'carpet' },
-      { name: 'gang', x0: 5.6, x1: W, z0: 5.2, z1: Dd, floor: 'tiles' },
+      { name: 'woonkamer', x0: 0, x1: 6.8, z0: 0, z1: MID, floor: 'laminate' },
+      { name: 'keuken', x0: 6.8, x1: W, z0: 0, z1: MID, floor: 'tiles' },
+      { name: 'gang', x0: 0, x1: HALL, z0: MID, z1: Dd, floor: 'tiles' },
+      { name: 'slaapkamer', x0: HALL, x1: W, z0: MID, z1: Dd, floor: 'carpet' },
     ],
-    // cutaway walls [x1, z1, x2, z2]: outer walls, living room | bedroom with a doorway, bedroom | hall
+    // cutaway walls [x1, z1, x2, z2]: outer walls, hall | living room (doorway in line
+    // with the lift), hall | bedroom (doorway), bedroom | living room and kitchen
     walls: [
       [0, 0, 0, Dd], [W, 0, W, Dd], [0, Dd, W, Dd],
-      [0, 5.2, 3.9, 5.2], [4.9, 5.2, 5.6, 5.2],
-      [5.6, 5.2, 5.6, 6.3], [5.6, 7.3, 5.6, Dd],
-      [8.6, 5.2, W, 5.2],
+      [0, MID, 1.0, MID], [2.4, MID, HALL, MID],
+      [HALL, MID, HALL, 6.2], [HALL, 7.4, HALL, Dd],
+      [HALL, MID, W, MID],
     ],
     spots: {
-      sofa: { x: 3.2, z: 3.9 }, tv: { x: 3.2, z: 1.0 }, table: { x: 8.2, z: 3.4 },
+      sofa: { x: 3.7, z: 3.9 }, tv: { x: 3.7, z: 1.0 }, table: { x: 8.2, z: 3.4 },
       counter: { x: 9.0, z: 0.55, w: 3.6 }, fryer: { x: 8.4, z: 0.55 }, fridge: { x: 10.5, z: 1.6 },
-      bed: { x: 2.4, z: 7.6 }, wardrobe: { x: 4.4, z: 8.6 }, door: { x: 9.2, z: Dd - 0.05 },
-      companion: { x: 2.4, z: 3.6 },
+      bed: { x: 8.6, z: 7.6 }, wardrobe: { x: 4.7, z: 8.6 }, door: { x: 1.7, z: Dd - 0.05 },
+      companion: { x: 3.15, z: 3.98, seat: 0.46 },
     },
   };
   // furniture as solid boxes for walking [x0, z0, x1, z1]
   flat.solids = [
-    [1.9, 3.35, 4.5, 4.55], [2.5, 2.1, 3.9, 2.9], [2.3, 0.6, 4.1, 1.35], [0.3, 0.3, 0.9, 0.9],
+    [2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [2.8, 0.2, 4.6, 1.35], [0.2, 0.2, 0.9, 0.9],
     [7.1, 0.2, 10.9, 0.9], [10.1, 1.2, 10.9, 2.0], [7.6, 2.9, 8.8, 3.9],
-    [1.5, 6.5, 3.3, 8.7], [3.55, 8.25, 5.25, 8.95],
+    [7.7, 6.5, 9.5, 8.7], [3.85, 8.25, 5.55, 8.95],
   ];
-  const fl = (x, z) => [B[0] + X[0] * x + Y[0] * z, B[1] + X[1] * x + Y[1] * z];
+  const fl = (x, z) => [B[0] + X[0] * x + FY[0] * z, B[1] + X[1] * x + FY[1] * z];
   const spot = (s, face) => { const [x, y] = fl(s.x, s.z); return { x, y, lx: s.x, lz: s.z, face }; };
   flat.use = {
-    bed: spot({ x: 3.6, z: 7.4 }), wardrobe: spot({ x: 4.4, z: 7.8 }), fridge: spot({ x: 9.9, z: 1.9 }),
-    fryer: spot({ x: 8.4, z: 1.4 }), door: spot({ x: 9.2, z: 8.3 }),
+    bed: spot({ x: 7.2, z: 7.3 }), wardrobe: spot({ x: 4.7, z: 7.8 }), fridge: spot({ x: 9.7, z: 1.9 }),
+    fryer: spot({ x: 8.4, z: 1.4 }), door: spot({ x: 1.7, z: 8.4 }),
   };
-  flat.entry = fl(9.2, 8.2);
+  flat.entry = fl(1.7, 7.9);
   flat.fl = fl;
 
   const court = polyline(KERB);
@@ -251,7 +273,7 @@ export function prepareHomeMap(map) {
   }
   const lob = home.lobby, T = home.tower;
   const rackZone = [0, 1, 2, 3].map((k) => {
-    const x = [0.5, T.w - 0.5][k === 1 || k === 2 ? 1 : 0], y = k < 2 ? -3.2 : 0.2;
+    const x = [0.5, T.w - 0.5][k === 1 || k === 2 ? 1 : 0], y = k < 2 ? T.d + 3.2 : T.d - 0.2;
     return [TOWER[0][0] + T.X[0] * x + T.Y[0] * y, TOWER[0][1] + T.X[1] * x + T.Y[1] * y];
   });
   const kerbZone = (p) => {
@@ -272,9 +294,17 @@ export function prepareHomeMap(map) {
     for (const s of kz) if (closestPointOnSegment(x, y, s.a[0], s.a[1], s.b[0], s.b[1]).dist2 < 64) return true;
     return Math.hypot(x - lob.x, y - lob.y) < 3.5;
   };
-  // the flat's floor is a surface, for the player (and anything up there)
+  // the flat's floor is a surface, for the player (and anything up there): the
+  // whole storey plus a margin, so a step past an edge never finds the street
   const ground = map.groundHeightAt.bind(map);
-  map.groundHeightAt = (x, y, z = 0) => (z > FLOOR_TOP - 3 && z < FLOOR_TOP + 6 && inside && pointInPolygon(x, y, TOWER) ? FLOOR_TOP : ground(x, y, z));
+  map.groundHeightAt = (x, y, z = 0) => (inside && z > FLOOR_TOP - 3 && onSlab(x, y, SLAB_PAD) ? FLOOR_TOP : ground(x, y, z));
+}
+
+// Is (x, y) on the flat's storey (the tower's footprint, pad metres wider)?
+function onSlab(x, y, pad = 0) {
+  const t = home.tower, dx = x - TOWER[0][0], dy = y - TOWER[0][1];
+  const u = dx * t.X[0] + dy * t.X[1], v = dx * t.Y[0] + dy * t.Y[1];
+  return u > -pad && u < t.w + pad && v > -pad && v < t.d + pad;
 }
 
 export function getHome() {
@@ -293,14 +323,15 @@ export function getHomeGarageForRender() {
   return [{ x: d.cx + d.nx * 2, y: d.cy + d.ny * 2, name: 'Jouw garage', sub: 'Al je voertuigen staan hier klaar' }];
 }
 
-// Start and target points for spotcheck.js: the lobby, the garage door, the
-// Escapade's bay and the first mooring.
+// Start and target points for spotcheck.js: the new-game spawn and the front
+// door on the garage side, the garage door, the Escapade's bay and the first mooring.
 export function getHomeSpots(w) {
   if (!home) return [];
   const d = home.garage.door;
   const hero = home.garage.bays.find((b) => b.hero);
   const out = [
     { name: 'lobby', x: home.lobby.spawn[0], y: home.lobby.spawn[1], mode: 'walk' },
+    { name: 'voordeur', x: home.lobby.use[0], y: home.lobby.use[1], mode: 'walk' },
     { name: 'garagedeur', x: d.cx + d.nx * 3, y: d.cy + d.ny * 3, mode: 'drive' },
     { name: 'Escapade-plek', x: hero.x, y: hero.y, mode: 'drive' },
   ];
@@ -331,13 +362,16 @@ export function initHome(w) {
   }
   for (const r of home.rack.rails) addStaticCollider('rail', (r.x1 + r.x2) / 2, (r.y1 + r.y2) / 2, 0.06, Math.hypot(r.x2 - r.x1, r.y2 - r.y1) / 2, Math.atan2(r.y2 - r.y1, r.x2 - r.x1));
   w.homeActions = { goHome: () => goHome(w), canGoHome: () => canGoHome(w) === '' };
-  window.__home = { home, goHome: () => goHome(w), enter: () => enterFlat(w), leave: () => leaveFlat(w), stockNow: () => stockNow(w), state: homeDebug, nextPage: () => nextPage(w) };
+  // a respawn (or anything else that moves the player off the flat) takes the flat down
+  w.onRespawn.push(() => { if (inside) dropFlat(w); });
+  w.camAdjust = homeCamera;
+  window.__home = { home, goHome: () => goHome(w), enter: () => enterFlat(w), leave: () => leaveFlat(w), stockNow: () => stockNow(w), state: homeDebug, nextPage: () => nextPage(w), toFlat, onSlab };
 }
 
-// New game: start outside the lobby, the Escapade in its bay.
+// New game: start outside the lobby looking at the garage door, the Escapade in its bay.
 export function homeSpawnPoint() {
   const s = home ? home.lobby.spawn : [0, 0];
-  return { x: s[0], y: s[1], angle: home ? home.lobby.angle : 0 };
+  return { x: s[0], y: s[1], angle: home ? home.lobby.spawnAngle : 0 };
 }
 
 export function parkHeroAtHome(w) {
@@ -552,8 +586,11 @@ function clampToFlat(p) {
   const f = home.flat;
   const r = 0.32;
   let { lx, lz } = toFlat(p.x, p.y);
-  lx = Math.max(r + 0.1, Math.min(f.w - r - 0.1, lx));
-  lz = Math.max(r + 0.2, Math.min(f.d - r - 0.1, lz));
+  const box = () => {
+    lx = Math.max(r + 0.1, Math.min(f.w - r - 0.1, lx));
+    lz = Math.max(r + 0.2, Math.min(f.d - r - 0.1, lz));
+  };
+  box();
   for (const [x1, z1, x2, z2] of f.walls) {
     const c = closestPointOnSegment(lx, lz, x1, z1, x2, z2);
     if (c.dist2 >= (r + 0.07) ** 2) continue;
@@ -571,6 +608,8 @@ function clampToFlat(p) {
       lx += opts[1] * (opts[0] + r); lz += opts[2] * (opts[0] + r);
     } else { lx += dx / d * (r - d); lz += dz / d * (r - d); }
   }
+  // furniture by the glass never pushes anyone through it
+  box();
   const [x, y] = f.fl(lx, lz);
   p.x = x; p.y = y;
 }
@@ -580,16 +619,20 @@ function canEnter(w) {
   if (p.inVehicle || p.swimming) return 'Eerst uitstappen';
   if (w.wanted > 0) return 'Met de politie op je hielen ga je niet naar huis. Eerst ze kwijt!';
   if (isMissionActive() || (w.sideJob && w.sideJob.active) || w.challenge) return 'Eerst je klus afmaken';
-  if (w.pigeonMode || w.heliRun) return 'Nu even niet';
+  if (w.pigeonMode || w.heliRun || w.pendingRespawn || isCinematicActive()) return 'Nu even niet';
   return '';
 }
 
+// A fade to black, fn in the dark, fade back. A load in between cancels fn.
 function fadeThen(fn, hold = 380) {
   if (busy) return false;
   busy = true;
+  const gen = fadeGen;
   respawnFade(1, 320);
   setTimeout(() => {
-    try { fn(); } catch (e) { console.error('home', e); }
+    if (gen === fadeGen) {
+      try { fn(); } catch (e) { console.error('home', e); }
+    }
     setTimeout(() => { respawnFade(0, 420); busy = false; }, 120);
   }, hold);
   return true;
@@ -598,28 +641,39 @@ function fadeThen(fn, hold = 380) {
 function enterFlat(w) {
   if (inside || !home) return false;
   return fadeThen(() => {
+    // got into a car, died or became a pigeon during the fade: stay outside
+    if (canEnter(w)) return;
     const scene = getScene();
     const f = home.flat;
     deliverFurniture(w);
-    inside = { flatMesh: buildFlat3D(f, furnitureSkip()), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL - 1) : null };
+    inside = { flatMesh: buildFlat3D(f, furnitureSkip()), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL - 1) : null, facade: 0 };
     attachFurniture3D(inside.flatMesh, f);
     if (scene) {
       scene.add(inside.flatMesh);
       if (inside.lowerMesh) scene.add(inside.lowerMesh);
     }
     if (home.towerBuilding) setBuildingHidden(home.towerBuilding, true);
-    const p = w.player;
-    p.x = f.entry[0]; p.y = f.entry[1];
-    p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0;
-    p.gz = FLOOR_TOP;
-    p.angle = Math.atan2(-f.Y[1], -f.Y[0]);
-    w.camYaw = p.angle;
+    toEntry(w);
     placeCompanion(w);
     if (!introShown) {
       introShown = true;
       w.addMessage('Thuis! Bed: slapen en opslaan. Koelkast: eierbal. Kast: je kleren', 6, { kind: 'tip' });
     }
   });
+}
+
+// Just out of the lift, facing the hall and the living room behind it.
+function toEntry(w) {
+  const p = w.player, f = home.flat;
+  resetWalker(p, f.entry[0], f.entry[1], FLOOR_TOP);
+  p.angle = Math.atan2(-f.Y[1], -f.Y[0]);
+  w.camYaw = p.angle;
+}
+
+function resetWalker(p, x, y, gz) {
+  if (p.water && p.leaveWater) p.leaveWater();
+  p.x = x; p.y = y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = gz;
+  p.vault = null; p.climb = null; p.sofaSeat = null;
 }
 
 function leaveFlat(w, after = null) {
@@ -644,27 +698,39 @@ function exitFlatNow(w) {
   if (home.towerBuilding) setBuildingHidden(home.towerBuilding, false);
 }
 
+// The player left the flat without the lift (a respawn, "Vastgelopen", a
+// scene, a vehicle): the flat goes, and nobody is left inside the tower.
+function dropFlat(w) {
+  exitFlatNow(w);
+  const p = w.player;
+  const v = p.inVehicle;
+  if (!inPoly(TOWER, v ? v.x : p.x, v ? v.y : p.y, 1)) return;
+  if (v) { v.driver = null; v.speed = 0; p.inVehicle = null; }
+  placeAtLobby(w);
+}
+
 function placeAtLobby(w) {
   const p = w.player;
   const [x, y] = home.lobby.spawn;
-  p.x = x; p.y = y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
+  resetWalker(p, x, y, 0);
   p.angle = home.lobby.angle;
   w.camYaw = p.angle;
   const c = w.companion;
   if (c && !c.inVehicle && c.state !== 'dead') {
-    c.x = x + Math.cos(p.angle + Math.PI / 2) * 1.1; c.y = y + Math.sin(p.angle + Math.PI / 2) * 1.1;
-    c.vx = 0; c.vy = 0; c.gz = 0;
+    c.x = x - home.tower.X[0] * 1.1; c.y = y - home.tower.X[1] * 1.1;
+    c.vx = 0; c.vy = 0; c.gz = 0; c.sofaSeat = null;
+    c.angle = p.angle;
   }
 }
 
+// The one you don't play waits on the sofa (the Zitmoi when there is one).
 function placeCompanion(w) {
   const c = w.companion;
   if (!c || c.inVehicle || c.state === 'dead') return;
-  const seat = companionSeat();
-  const s = seat || home.flat.spots.companion;
+  const s = companionSeat() || home.flat.spots.companion;
   const [x, y] = home.flat.fl(s.x, s.z);
   c.x = x; c.y = y; c.vx = 0; c.vy = 0; c.gz = FLOOR_TOP;
-  c.sofaSeat = seat ? seat.seat : null;
+  c.sofaSeat = s.seat;
   c.angle = Math.atan2(-home.flat.Y[1], -home.flat.Y[0]);
 }
 
@@ -672,6 +738,7 @@ function placeCompanion(w) {
 // or the evening when the next mission needs the dark.
 function sleep(w, wake = null, wakeMsg = '') {
   return fadeThen(() => {
+    if (!inside) return;
     const m = w.mission;
     const def = m && m.phase === 'idle' ? getMissionDefs()[m.index] : null;
     const needNight = !!def && [].concat(def.requires || []).includes('night');
@@ -700,6 +767,7 @@ function eatEierbal(w) {
 
 function canGoHome(w) {
   if (!home || w.pendingRespawn || isCinematicActive()) return 'Nu even niet';
+  if (inside) return 'Je bent al thuis';
   if (w.player.inVehicle && w.player.inVehicle.isBoat) return 'Eerst van het water af';
   return canEnter({ ...w, player: { ...w.player, inVehicle: null, swimming: false } });
 }
@@ -707,7 +775,7 @@ function canGoHome(w) {
 function goHome(w) {
   const why = canGoHome(w);
   if (why) { w.addMessage(why, 3); return false; }
-  if (near(w, 25) && !inside) return true;
+  if (near(w, 25)) return true;
   return fadeThen(() => {
     const p = w.player;
     if (p.inVehicle) {
@@ -726,9 +794,14 @@ function goHome(w) {
 // Called by savegame.js after a save is applied.
 export function applyHomeOnLoad(w, d) {
   if (!home) return;
+  fadeGen++;
   exitFlatNow(w);
   const busySave = d && d.ctx === 'busy';
-  if (busySave) return;
+  if (busySave) {
+    // a mid-mission save made upstairs: back on the street, not inside the tower
+    if (inPoly(TOWER, w.player.x, w.player.y, 1)) placeAtLobby(w);
+    return;
+  }
   stockNow(w);
   placeAtLobby(w);
 }
@@ -787,9 +860,12 @@ export function homePrompt(w) {
 export function homeSecondary(w) {
   if (!home || inside || w.player.inVehicle) return [];
   const p = w.player;
-  const d = home.garage.door;
+  const d = home.garage.door, L = home.lobby;
   if (Math.abs(d.cx - p.x) > 30 || Math.abs(d.cy - p.y) > 30) return [];
-  return [{ id: 'home-garage', x: d.cx, y: d.cy, h: 4.2, label: 'Jullie garage', sub: 'Loop naar een voertuig en druk E', kind: 'place' }];
+  const out = [{ id: 'home-garage', x: d.cx, y: d.cy, h: 4.2, label: 'Jullie garage', sub: 'Loop naar een voertuig en druk E', kind: 'place' }];
+  // the front door, until you stand at it (then "Naar binnen" takes over)
+  if (Math.hypot(L.x - p.x, L.y - p.y) > 4) out.push({ id: 'home-front', x: L.x, y: L.y, h: 3.3, label: 'Voordeur', sub: 'Met de lift naar jullie flat', kind: 'place' });
+  return out;
 }
 
 export function tryHomeInteract(w) {
@@ -837,7 +913,8 @@ function streamExterior(w, dt) {
   const want = Math.hypot(who.x - dd.cx, who.y - dd.cy) < DOOR_OPEN_M || inPoly(PLINTH, who.x, who.y) ? 1 : 0;
   doorOpen += Math.max(-dt * 0.8, Math.min(dt * 0.8, want - doorOpen));
   setGarageDoor(exterior, doorOpen, GARAGE_H);
-  const cut = !inside && inPoly(PLINTH, who.x, who.y, 0.6) ? 1 : 0;
+  // walls down only once you are really inside (through the roller door)
+  const cut = !inside && inPoly(PLINTH, who.x, who.y) ? 1 : 0;
   cutaway += Math.max(-dt * 3, Math.min(dt * 3, cut - cutaway));
   setGarageCutaway(exterior, cutaway);
 }
@@ -847,6 +924,65 @@ export function inHomeFlat() {
   return !!inside;
 }
 
+// Every frame upstairs: walls and furniture, the floor, the companion on the sofa.
+function keepInFlat(dt, w) {
+  const p = w.player;
+  if (!updateFurnitureInside(dt, w)) clampToFlat(p);
+  // safety net: whatever happens, nobody drops through the floor (or flies off it)
+  if (!Number.isFinite(p.x + p.y + p.gz + p.z) || p.gz < FLOOR_TOP - 0.3 || p.z > 6) {
+    console.warn('[home] off the flat floor, back at the lift', { gz: p.gz, z: p.z });
+    toEntry(w);
+  }
+  p.gz = FLOOR_TOP;
+  placeCompanion(w);
+  // the glass facade drops to the cutaway height while the camera is outside it
+  const want = camLocal && camLocal.lz < 0.4 ? 1 : 0;
+  inside.facade += Math.max(-dt * 4, Math.min(dt * 4, want - inside.facade));
+  setFlatFacade(inside.flatMesh, inside.facade);
+}
+
+// scene3d's follow camera (world.camAdjust, three.js axes: y is up). In the
+// flat a little closer and always above the cutaway walls; outside, never
+// behind the garage's walls while they are up.
+function homeCamera(x, y, z, ex, ey, ez) {
+  if (!home) return null;
+  if (inside) {
+    let t = INTERIOR_CAM;
+    // stay on this side of the glass: in along the ray, and higher the closer it gets
+    const c = toFlat(ex + (x - ex) * t, ez + (z - ez) * t), e = toFlat(ex, ez);
+    if (c.lz < GLASS_CLEAR && e.lz > c.lz) t *= Math.max(0, (e.lz - GLASS_CLEAR) / (e.lz - c.lz));
+    const nx = ex + (x - ex) * t, nz = ez + (z - ez) * t;
+    const close = Math.max(0, 1.6 - Math.hypot(nx - ex, nz - ez));
+    camLocal = toFlat(nx, nz);
+    return [nx, Math.max(ey + (y - ey) * t, FLOOR_TOP + CAM_ABOVE_FLOOR + close * 0.6), nz];
+  }
+  camLocal = null;
+  if (!exterior || cutaway > 0.5 || y > GARAGE_H + 0.6) return null;
+  if (Math.abs(x - home.center.x) > 40 || Math.abs(z - home.center.y) > 40) return null;
+  if (!pointInPolygon(x, z, PLINTH) || pointInPolygon(ex, ez, PLINTH)) return null;
+  let t = 1;
+  for (let i = 0; i < PLINTH.length; i++) {
+    const a = PLINTH[i], b = PLINTH[(i + 1) % PLINTH.length];
+    const s = crossAt(ex, ez, x, z, a[0], a[1], b[0], b[1]);
+    if (s !== null && s < t) t = s;
+  }
+  const dist = Math.hypot(x - ex, z - ez) || 1;
+  t = Math.max(0, t - 0.45 / dist);
+  // in front of the wall, looking down more steeply the closer it has to come
+  const close = Math.max(0, 1.6 - dist * t);
+  return [ex + (x - ex) * t, Math.max(ey + (y - ey) * t, ey + (close > 0 ? 0.4 + close * 1.2 : 0)), ez + (z - ez) * t];
+}
+
+// Where along p0 -> p1 (0..1) it crosses the segment a -> b, or null.
+function crossAt(x0, y0, x1, y1, ax, ay, bx, by) {
+  const dx = x1 - x0, dy = y1 - y0, ex = bx - ax, ey = by - ay;
+  const den = dx * ey - dy * ex;
+  if (Math.abs(den) < 1e-9) return null;
+  const t = ((ax - x0) * ey - (ay - y0) * ex) / den;
+  const u = ((ax - x0) * dy - (ay - y0) * dx) / den;
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t : null;
+}
+
 export function updateHome(dt, w) {
   world = w;
   if (!home) return;
@@ -854,12 +990,13 @@ export function updateHome(dt, w) {
   updateFurniture(dt, w);
   if (inside) {
     const p = w.player;
-    if (p.inVehicle || w.pendingRespawn || w.pigeonMode) exitFlatNow(w);
-    else {
-      if (!updateFurnitureInside(dt, w)) clampToFlat(p);
-      if (p.z < 0.01) p.gz = FLOOR_TOP;
-      placeCompanion(w);
-    }
+    const who = p.inVehicle || p;
+    const { lx, lz } = toFlat(who.x, who.y);
+    const f = home.flat;
+    // moved off the flat by something else than the lift (a teleport, a vehicle)
+    const away = lx < -1.5 || lx > f.w + 1.5 || lz < -1.5 || lz > f.d + 1.5;
+    if (p.inVehicle || w.pigeonMode || away) dropFlat(w);
+    else keepInFlat(dt, w);
   }
   tickT -= dt;
   if (tickT > 0) return;
