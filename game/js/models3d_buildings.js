@@ -4,7 +4,7 @@ import { getLandmarkModel } from './landmarkmodels.js';
 import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
 import { pointInPolygon, WATER_Y } from './util.js';
-import { passagesOf } from './passages.js';
+import { passagesOf, doorsOf } from './passages.js';
 import { applyPortalCut, buildPassageTunnels } from './portalcut3d.js';
 import { buildMuseumInterior } from './museum3d.js';
 
@@ -195,7 +195,7 @@ function addPassages(group, b, parts, depth) {
   const map = mapRef();
   if (!map || !map.buildingsNear) return;
   if (parts.tunnel === undefined) {
-    const mesh = buildPassageTunnels(b, passagesOf(map, b), depth);
+    const mesh = buildPassageTunnels(b, passagesOf(map, b), depth, 0, doorsOf(map, b));
     parts.tunnel = mesh ? mesh.geometry : null;
     parts.tunnelMat = mesh ? mesh.material : null;
   }

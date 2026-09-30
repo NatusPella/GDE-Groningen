@@ -1,7 +1,7 @@
 // Building passages: the corridors that footways and streets cut through a
 // footprint (collision.js keeps walkers inside them, vehicle.js and the spot
 // checks treat them as open ground, models3d_buildings.js cuts the opening).
-import { closestPointOnSegment, pointInPolygon } from './util.js';
+import { closestPointOnSegment, pointInPolygon, polygonBounds } from './util.js';
 import { rectDist } from './museumplan.js';
 
 // A way that enters a footprint and leaves it again is a building passage
@@ -84,6 +84,10 @@ function mappedKind(map, run) {
 // Museum) counts once its pieces together reach the outline twice.
 const EDGE_TOL = 1;
 const JOIN_TOL = 0.4;
+// a way ending this far inside a footprint reads as a door on its facade
+// (a street: a garage door)
+const DOOR_DEPTH = 3.5;
+const doorDepth = (r) => (r.cat === 'foot' || r.cat === 'cycle' ? DOOR_DEPTH : 6);
 function computePassages(map, b) {
   const out = [], doors = [], runs = [];
   if (b.noPassages) return out;
@@ -135,7 +139,14 @@ function computePassages(map, b) {
       finish(outlineDist(e[0], e[1], b.pts) < EDGE_TOL);
     }
     for (const e of [P[0], P[P.length - 1]]) {
-      if (e[0] > minx - 1 && e[0] < maxx + 1 && e[1] > miny - 1 && e[1] < maxy + 1 && outlineDist(e[0], e[1], b.pts) < EDGE_TOL && deadEnd(map, r, e)) doors.push(e);
+      if (!(e[0] > minx - 1 && e[0] < maxx + 1 && e[1] > miny - 1 && e[1] < maxy + 1)) continue;
+      const d = outlineDist(e[0], e[1], b.pts);
+      // (a way that stops a few metres inside the wall has its door on the facade)
+      if (!r.noDoors && (d < EDGE_TOL || (d < doorDepth(r) && pointInPolygon(e[0], e[1], b.pts))) && deadEnd(map, r, e)) {
+        const door = [e[0], e[1]];
+        door.cat = r.cat;
+        doors.push(door);
+      }
     }
   }
   // join runs that meet inside the footprint
@@ -167,7 +178,32 @@ function computePassages(map, b) {
     }
   }
   linkDoors(b, doors, out);
+  b._doors = doors.filter((e) => !e.hall).map((e) => doorOnFacade(b, e));
   return out;
+}
+
+// Where a door at way end `e` sits: the nearest point of the outline, with
+// the edge's direction and outward normal.
+function doorOnFacade(b, e) {
+  const P = b.pts;
+  let best = Infinity, at = null;
+  for (let i = 0; i < P.length - 1; i++) {
+    const cp = closestPointOnSegment(e[0], e[1], P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
+    if (cp.dist2 >= best) continue;
+    best = cp.dist2;
+    const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], l = Math.hypot(dx, dy) || 1;
+    at = { x: cp.x, y: cp.y, ux: dx / l, uy: dy / l, edge: l };
+  }
+  // outward: the side of the edge away from the footprint
+  const nx = -at.uy, ny = at.ux;
+  const out = pointInPolygon(at.x + nx * 0.3, at.y + ny * 0.3, P) ? -1 : 1;
+  return { ...at, nx: nx * out, ny: ny * out, cat: e.cat };
+}
+
+// Doors of `b` (way ends at its facade), as facade points { x, y, ux, uy, nx, ny, cat, edge }.
+export function doorsOf(map, b) {
+  passagesOf(map, b);
+  return b._doors || [];
 }
 
 // Footways that stop dead at a wall are doors. Two doors of one building
@@ -177,7 +213,8 @@ function computePassages(map, b) {
 const HALL_MIN = 4, HALL_MAX = 45, HALL_HW = 1.1;
 function deadEnd(map, way, e) {
   for (const o of map.roadsNear(e[0], e[1], 1)) {
-    if (o === way) continue;
+    // (a ramp down into an underground garage goes on below the street)
+    if (o === way || ((o.tunnel || o.layer < 0) && !offGradeWay(way))) continue;
     for (const q of o.pts) if (Math.abs(q[0] - e[0]) < 0.3 && Math.abs(q[1] - e[1]) < 0.3) return false;
   }
   return true;
@@ -197,6 +234,7 @@ function linkDoors(b, doors, out) {
     const key = Math.min(i, best) + ',' + Math.max(i, best);
     if (linked.has(key)) continue;
     linked.add(key);
+    doors[i].hall = doors[best].hall = true;
     out.push({ pts: [doors[i], doors[best]], hw: HALL_HW, hall: true });
   }
 }
@@ -246,4 +284,159 @@ export function inPassage(map, b, x, y, slack = 0, who = 'walker') {
   if (!passages.length) return false;
   const c = nearestCorridor(passages, x, y);
   return c.d < c.hw + slack;
+}
+
+// --- ways through solid blocks ------------------------------------------------------
+
+const RUN_STEP = 0.5;
+const GRAZE_DEPTH = 1.0;
+
+// Ways at another level than the footprints: viaducts, the sunken ring,
+// tunnels, bridges and decks (OSM layer).
+export function offGradeWay(r) {
+  return !!(r.tunnel || (r.z && r.z.some((z) => Math.abs(z) > 1.5)) || (r.layer && r.layer !== 0));
+}
+
+// Stretches of the centreline of `r` inside footprint `b`: [{ pts, s0, s1 }]
+// (arc length along the way), plus the way's total length.
+export function runsInside(r, b) {
+  const [minx, miny, maxx, maxy] = b.bounds;
+  const P = r.pts, runs = [];
+  let run = null, s = 0;
+  for (let i = 0; i < P.length - 1; i++) {
+    const [ax, ay] = P[i], [bx, by] = P[i + 1];
+    const L = Math.hypot(bx - ax, by - ay);
+    if (Math.max(ax, bx) < minx || Math.min(ax, bx) > maxx || Math.max(ay, by) < miny || Math.min(ay, by) > maxy) {
+      if (run) { runs.push(run); run = null; }
+      s += L;
+      continue;
+    }
+    const n = Math.max(1, Math.ceil(L / RUN_STEP));
+    const last = i === P.length - 2;
+    for (let k = 0; k < n + (last ? 1 : 0); k++) {
+      const t = k / n, x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+      if (x > minx && x < maxx && y > miny && y < maxy && pointInPolygon(x, y, b.pts)) {
+        if (!run) run = { pts: [], s0: s + L * t, s1: 0 };
+        run.pts.push([x, y]);
+        run.s1 = s + L * t;
+      } else if (run) { runs.push(run); run = null; }
+    }
+    s += L;
+  }
+  if (run) runs.push(run);
+  return { runs, total: s };
+}
+
+function inCorridor(ps, x, y, slack) {
+  const P = ps.pts, r = ps.hw + slack;
+  for (let i = 0; i < P.length - 1; i++) {
+    if (closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2 < r * r) return true;
+  }
+  return false;
+}
+
+// What a stretch of way `r` inside `b` is (passagecheck.js lists the classes):
+// 'opening' (a shown passage), 'graze' (clips the facade), 'door' (ends just
+// inside the wall), 'hole' (open for walkers and traffic, nothing shown) or
+// 'solid' (straight through a wall).
+export function classifyRun(map, r, b, run, total) {
+  let depth = 0, shown = 0, open = 0;
+  const passages = passagesOf(map, b);
+  const mine = passages.filter((p) => p.road === r || p.hall);
+  for (const [x, y] of run.pts) {
+    depth = Math.max(depth, outlineDist(x, y, b.pts));
+    let s = false, o = false;
+    for (const ps of mine.length ? mine : passages) {
+      if (!inCorridor(ps, x, y, 0.05)) continue;
+      o = true;
+      if (ps.shown || ps.hall) { s = true; break; }
+    }
+    if (s) shown++;
+    if (o) open++;
+  }
+  const n = run.pts.length;
+  const atEnd = run.s0 < RUN_STEP * 1.5 || run.s1 > total - RUN_STEP * 1.5;
+  let cls;
+  if (b.rooms || shown >= n * 0.9) cls = 'opening';
+  else if (depth <= GRAZE_DEPTH) cls = 'graze';
+  else if (atEnd && depth <= doorDepth(r)) cls = 'door';
+  else if (open >= n * 0.5) cls = 'hole';
+  else cls = 'solid';
+  return { cls, depth, len: run.s1 - run.s0 };
+}
+
+// Polyline P without the [a, b] arc-length spans (sorted, disjoint): the pieces left.
+function cutSpans(P, spans) {
+  const pieces = [];
+  let cur = [], s = 0;
+  const inSpan = (t) => spans.some(([a, b]) => t > a && t < b);
+  if (!inSpan(0)) cur.push(P[0]);
+  for (let i = 0; i < P.length - 1; i++) {
+    const [ax, ay] = P[i], [bx, by] = P[i + 1];
+    const L = Math.hypot(bx - ax, by - ay);
+    const at = (t) => [ax + (bx - ax) * (t - s) / (L || 1), ay + (by - ay) * (t - s) / (L || 1)];
+    for (const [a, b] of spans) {
+      if (a >= s && a < s + L) { cur.push(at(a)); pieces.push(cur); cur = []; }
+      if (b >= s && b < s + L) cur.push(at(b));
+    }
+    if (!inSpan(s + L)) cur.push(P[i + 1]);
+    s += L;
+  }
+  pieces.push(cur);
+  return pieces.filter((q) => q.length > 1);
+}
+
+function wayLength(P) {
+  let L = 0;
+  for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+  return L;
+}
+
+// Footways and cycleways that run through a footprint which is no passage
+// (the indoor streets of the UMCG, pedestrian-area outlines crossing a
+// block, paths that end deep inside a building) are cut at the facade when
+// the map loads: nothing is drawn, walked or routed through the wall, and
+// the cut ends become doors (doorsOf). Streets are left alone (passages.js
+// opens every street through a building). The first piece keeps the way's
+// place in map.roads, the others are appended. Returns what was cut.
+export function clipWaysInBuildings(map) {
+  const cut = [];
+  const n0 = map.roads.length;
+  let removed = false;
+  for (let ri = 0; ri < n0; ri++) {
+    const r = map.roads[ri];
+    if ((r.cat !== 'foot' && r.cat !== 'cycle') || offGradeWay(r) || r.pts.length < 2) continue;
+    const rb = r.bounds;
+    let spans = null;
+    for (const b of map.buildingGrid.query(rb[0], rb[1], rb[2], rb[3])) {
+      const [x0, y0, x1, y1] = b.bounds;
+      if (x1 < rb[0] || x0 > rb[2] || y1 < rb[1] || y0 > rb[3] || b.rooms) continue;
+      const { runs, total } = runsInside(r, b);
+      for (const run of runs) {
+        if (classifyRun(map, r, b, run, total).cls !== 'solid') continue;
+        (spans || (spans = [])).push([Math.max(0, run.s0 - RUN_STEP / 2), Math.min(total, run.s1 + RUN_STEP / 2)]);
+        const m = run.pts[run.pts.length >> 1];
+        cut.push({ road: r, building: b, x: m[0], y: m[1], len: run.s1 - run.s0 });
+      }
+    }
+    if (!spans) continue;
+    spans.sort((a, b) => a[0] - b[0]);
+    const merged = [];
+    for (const sp of spans) {
+      const last = merged[merged.length - 1];
+      if (last && sp[0] <= last[1]) last[1] = Math.max(last[1], sp[1]);
+      else merged.push(sp.slice());
+    }
+    // (the pieces of an area's outline end at the wall without a door)
+    const P = r.pts, ring = Math.hypot(P[0][0] - P[P.length - 1][0], P[0][1] - P[P.length - 1][1]) < 0.5;
+    const ways = cutSpans(P, merged).filter((q) => wayLength(q) >= 1).map((pts) => ({ ...r, pts, bounds: polygonBounds(pts), clipped: true, noDoors: ring }));
+    if (ways.length) map.roads[ri] = ways[0];
+    else { map.roads[ri] = null; removed = true; }
+    for (let i = 1; i < ways.length; i++) map.roads.push(ways[i]);
+  }
+  if (!cut.length) return cut;
+  if (removed) map.roads = map.roads.filter(Boolean);
+  // passages and doors are worked out again with the cut ways
+  for (const b of map.buildings) if (b.passages) { b.passages = null; b._doors = null; }
+  return cut;
 }
