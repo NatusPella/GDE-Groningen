@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
+import { clearOfReal } from './countryreal.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
@@ -403,6 +404,10 @@ export function initShops(world) {
     const cx = eikea.pts.reduce((a, q) => a + q[0], 0) / eikea.pts.length, cy = eikea.pts.reduce((a, q) => a + q[1], 0) / eikea.pts.length;
     const p = placeAtPoi(map, { x: cx, y: cy }, horeca, placed);
     if (p) placed.push({ ...p, type: 'eikea', wijk: 'Sontweg', street: p.street || 'Sontweg' });
+  }
+  for (const s of placed) {
+    const o = clearOfReal(s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
+    if (o) { s.x = o.x; s.y = o.y; }
   }
   nameBranches(placed);
   for (const s of placed) if (s.type === 'eikea') s.name = 'EIKEA Grunn';
