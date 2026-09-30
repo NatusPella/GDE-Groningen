@@ -172,7 +172,8 @@ function buildLayout() {
   const fl = (x, z) => [B[0] + X[0] * x + Y[0] * z, B[1] + X[1] * x + Y[1] * z];
   const spot = (s, face) => { const [x, y] = fl(s.x, s.z); return { x, y, lx: s.x, lz: s.z, face }; };
   flat.use = {
-    bed: spot({ x: 3.6, z: 7.4 }), wardrobe: spot({ x: 4.4, z: 7.8 }), fridge: spot({ x: 9.9, z: 1.9 }),
+    // the bed's spot clear of its solid and nearer the bed than the wardrobe's
+    bed: spot({ x: 3.75, z: 6.9 }), wardrobe: spot({ x: 4.4, z: 7.8 }), fridge: spot({ x: 9.9, z: 1.9 }),
     fryer: spot({ x: 8.4, z: 1.4 }), door: spot({ x: 9.2, z: 8.3 }),
   };
   flat.entry = fl(9.2, 8.2);
