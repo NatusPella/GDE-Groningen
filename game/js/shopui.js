@@ -198,6 +198,7 @@ export function openShopMenu(w, s) {
   root.querySelector('.sm-icon').src = s.icon || shopIconUrl(s.type, 92);
   setStatus('', '');
   root.classList.add('visible');
+  document.body.classList.add('shop-open');
   render();
   const first = root.querySelector('.sm-item.story-ok') || root.querySelector('.sm-item:not([aria-disabled="true"])') || root.querySelector('.sm-item') || root.querySelector('.sm-close');
   if (first) first.focus({ preventScroll: true });
@@ -211,6 +212,7 @@ export function closeShopMenu() {
   finishScratch(false);
   setPreview(null);
   root.classList.remove('visible');
+  document.body.classList.remove('shop-open');
   if (world && world.input) world.input.reset();
   if (bought && world) saveGame(world);
   if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();

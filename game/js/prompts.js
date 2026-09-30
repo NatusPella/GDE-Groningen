@@ -146,10 +146,10 @@ function hiddenNow(world) {
   return !!(cine && cine.classList.contains('active'));
 }
 
-// The key hints step aside for a HUD card, a phone call or a subtitle.
+// The key hints step aside for a HUD card, a phone call, the story's skip offer or a subtitle.
 function hintsQuiet() {
   const b = document.body.classList;
-  if (b.contains('hud-card-on') || b.contains('hud-call-on')) return true;
+  if (b.contains('hud-card-on') || b.contains('hud-call-on') || b.contains('story-skip-on')) return true;
   const sub = document.getElementById('banter-sub');
   return !!(sub && sub.style.opacity === '1');
 }
@@ -382,7 +382,7 @@ function findSecondary(world, primary) {
     const { d, dot } = inFront(world, c.x, c.y, f);
     if (d > maxD || dot < -0.1) return;
     if (d > 3 && c.kind !== 'mission' && !lineOfSight(world.map, p.x, p.y, c.x, c.y)) return;
-    c.score = d * (1.6 - dot);
+    c.score = d * (1.6 - dot) * (c.boost || 1);
     out.push(c);
   };
   const inV = p.inVehicle;
@@ -417,7 +417,8 @@ function findSecondary(world, primary) {
   }
   if (!inV && learning('enter') && !primary) {
     for (const v of world.vehicles) {
-      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan E', kind: 'place' }, 40);
+      // a new player's first ride wins over the place labels around it
+      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan E', kind: 'place', boost: 0.2 }, 40);
     }
   }
   out.sort((a, b) => a.score - b.score);

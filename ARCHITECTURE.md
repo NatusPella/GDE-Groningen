@@ -207,13 +207,17 @@ There are no white toast lines. Three channels, all inside `#hud` (so
 - Objective line (`hud_panel.js` `currentObjective`, top centre): one
   objective at a time, the mission stage (`missionProgressText` split into
   objective and counter), else the bijbaan goal (its hint first, then the
-  counter), else "Ontsnap aan de politie"; pops in when it changes.
+  counter), else "Ontsnap aan de politie", else the next story step
+  (`world.storyGuide`: its name and how to get there, smaller); pops in
+  when it changes. Deliver missions say what to do ("Stap in Berends
+  bakkie", "Rij naar het Boterdiep": def `vehicleName`, `destName`).
 - Phone (`phonefeed.js`, bottom left above the street name):
   - `notifyPhone(world, { from, app, title, text, duration })` (or push
     `{ from, text, duration }` onto `world.phoneNotifications`): a phone
     card. "SIKKOM(: | MELDT:)" texts become a Sikkom headline + body;
     `app` is `sikkom`, `bericht` or `geld`. One up at a time with a "+N"
-    counter for the waiting ones. Everything lands in the Sikkom history (phone.js).
+    counter for the waiting ones; story texts (`story: true`) go ahead of
+    waiting news, and Sikkom's own reactions wait 12 s after a scene. Everything lands in the Sikkom history (phone.js).
     Each card pings and is read aloud in the sender's voice (`smsvoice.js`,
     `call` class under the owner `sms`: it waits for a playing line, a call
     or a story scene instead of cutting in; the card stays up until the
@@ -246,7 +250,10 @@ any two; never during a mission, bijbaan, challenge, race or phone call;
 discovery scenes not while driving faster than 50 km/u). A blocked
 flyover or landmark stays unseen and plays later if the player is still
 (or again) there. Story cutscenes, mission intros/outros and death/busted
-are exempt. On the HUD: one card at a time (`hudcards.js`, tips at most
+are exempt, but when one ends it books a story-level moment, so no flyover
+follows straight after an outro or the opening montage; the next story
+step's text waits 2.5 s after any scene (`sinceCinematic`) and its
+voorschot follows that text. On the HUD: one card at a time (`hudcards.js`, tips at most
 one per 20 s via `mayShowTip`), one objective line, one phone card with a
 "+N" counter (none during a call), key hints hidden while a card, a call
 or car-banter subtitles are up, at most one world prompt (the E prompt, or

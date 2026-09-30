@@ -511,6 +511,17 @@ function currentObjective(world) {
       sub: searching ? 'Ze zijn je kwijt' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : world.player.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
     };
   }
+  // between missions: the next story step, so it is always clear where to go
+  const g = world.storyGuide;
+  if (g && g.name && !world.storyFreePlay && !world.padelGame && !(m && m.phase === 'active')) {
+    const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
+    const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
+    const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
+    const sub = g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
+      : inside ? 'Stap even uit de marker en weer terug'
+      : atMarker ? (near ? 'Loop of rij de gele marker in' : 'Volg de gele route naar de marker') : 'Volg de gele route';
+    return { kind: 'story', title: g.name, sub, timer: '' };
+  }
   return null;
 }
 
@@ -542,7 +553,7 @@ function missionProgressText(m) {
   if (m.phase !== 'active') return '';
   if (m.progressText) return m.progressText;
   if (m.raceHud) return '';
-  if (m.type === 'rampage' && m.killTarget != null) return `Kills: ${Math.max(0, m.killProgress || 0)}/${m.killTarget}`;
+  if (m.type === 'rampage' && m.killTarget != null) return `Maak chaos · ${Math.max(0, m.killProgress || 0)}/${m.killTarget} neer`;
   if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) {
     const cp = `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
     return m.racePos ? `Positie ${m.racePos}/${m.raceTotal} · ${cp}` : cp;

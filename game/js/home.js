@@ -59,6 +59,7 @@ const DOOR_OPEN_M = 14;
 const SHORT_CAR_M = 5.8;
 const FLAT_LEVEL = 11;
 const LOBBY_X = 4.2; // the lobby door on the back facade, metres from the garage corner
+const SPAWN_STEP = 1.8;
 const LEVEL_HEIGHT = 3.1;
 const FLOOR_Y = FLAT_LEVEL * LEVEL_HEIGHT + 0.05;
 const FLOOR_TOP = FLOOR_Y + 0.02;
@@ -331,6 +332,7 @@ export function getHomeSpots(w) {
   const hero = home.garage.bays.find((b) => b.hero);
   const out = [
     { name: 'lobby', x: home.lobby.spawn[0], y: home.lobby.spawn[1], mode: 'walk' },
+    { name: 'nieuw spel', ...homeSpawnPoint(), mode: 'walk' },
     { name: 'voordeur', x: home.lobby.use[0], y: home.lobby.use[1], mode: 'walk' },
     { name: 'garagedeur', x: d.cx + d.nx * 3, y: d.cy + d.ny * 3, mode: 'drive' },
     { name: 'Escapade-plek', x: hero.x, y: hero.y, mode: 'drive' },
@@ -369,9 +371,11 @@ export function initHome(w) {
 }
 
 // New game: start outside the lobby looking at the garage door, the Escapade in its bay.
+// A step off the lobby door, so the first E prompt of a new game is the car, not the lift.
 export function homeSpawnPoint() {
-  const s = home ? home.lobby.spawn : [0, 0];
-  return { x: s[0], y: s[1], angle: home ? home.lobby.spawnAngle : 0 };
+  if (!home) return { x: 0, y: 0, angle: 0 };
+  const [sx, sy] = home.lobby.spawn, a = home.lobby.spawnAngle;
+  return { x: sx + Math.cos(a) * SPAWN_STEP, y: sy + Math.sin(a) * SPAWN_STEP, angle: a };
 }
 
 export function parkHeroAtHome(w) {

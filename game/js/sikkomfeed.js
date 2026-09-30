@@ -1,5 +1,6 @@
 import { playSikkomLine } from './audio.js';
 import { syncPlayerWrecks } from './vehicle.js';
+import { isCinematicActive, sinceCinematic } from './cinematics.js';
 
 const CHECK_INTERVAL = 0.5;
 // Sikkom reacts now and then, not to every star or wreck
@@ -7,6 +8,8 @@ const COOLDOWN = 90;
 const SAME_KIND_COOLDOWN = 300;
 const CHANCE = 0.5;
 const lastKindAt = {};
+let seenLoad = 0;
+const NEWS_AFTER_SCENE = 12;
 
 const WANTED_UP = [
   'SIKKOM MELDT: onrust in Grunn, politie massaal op pad',
@@ -70,7 +73,16 @@ export function updateSikkomFeed(dt, world) {
     return;
   }
 
+  // right after a scene the phone is for the story; the news waits its turn
+  if (isCinematicActive() || sinceCinematic() < NEWS_AFTER_SCENE) return;
   const cur = snapshot(world);
+  // a loaded save jumps every counter: that is no news
+  if ((world.loadCount || 0) !== seenLoad) {
+    seenLoad = world.loadCount || 0;
+    prev = cur;
+    world._sikkomPrev = prev;
+    return;
+  }
 
   if (world.time - lastToastAt >= COOLDOWN) {
     let msg = null, audioKey = null, kind = null;
