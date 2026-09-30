@@ -23,7 +23,7 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
-import { playCinematic, isCinematicActive, isBannerShowing } from './cinematics.js';
+import { playCinematic, isCinematicActive } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -499,8 +499,7 @@ function updateCharacter(w) {
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
   if (!want || w.player.character === want) return;
-  // a result banner (mission passed, padel won) first gets its moment
-  if (isCinematicActive() || isBannerShowing() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
+  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
   swapCharacter(w, want);
   if (!playHandover(w, step)) {
     flash();
