@@ -384,7 +384,7 @@ function render(run) {
     html += `<div>Bestelling:</div><div class="pg-order">${items}${extra}</div><div class="pg-patience" style="width:${Math.max(0, (q.patience / q.max) * 100).toFixed(0)}%"></div>`;
   } else html += `<div class="pg-help">${d.queue.length ? 'De klant komt eraan…' : 'Wachten op klanten…'}</div>`;
   if (d.flash) html += `<div style="color:${d.flash.ok ? '#5dff7a' : '#ff6a4a'};font-size:18px">${esc(d.flash.text)}</div>`;
-  html += '<div class="pg-menu">' + MENU.map((m, i) => `<div><kbd>${i + 1}</kbd>${esc(m.name)}</div>`).join('') + '</div><div class="pg-help">Spatie: serveren · Backspace: opnieuw</div>';
+  html += '<div class="pg-menu">' + MENU.map((m, i) => `<div><kbd>${i + 1}</kbd>${esc(m.name)}</div>`).join('') + '</div><div class="pg-help"><kbd>SPATIE</kbd> serveren · <kbd>BACKSPACE</kbd> opnieuw</div>';
   run.ui.setSlot(html);
 }
 

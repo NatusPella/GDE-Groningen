@@ -543,11 +543,12 @@ function contextRows(world, primary) {
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
   } else if (p.inVehicle) {
-    rows.push(tut('drive', ['WASD'], 'Gas & sturen', 'W gas, S remmen en achteruit, A/D sturen'));
-    rows.push(tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
-    rows.push(tut('horn', ['H'], 'Toeter', 'Aan de kant, fietsers!'));
+    const boat = p.inVehicle.isBoat;
+    rows.push(tut('drive', ['WASD'], boat ? 'Varen' : 'Gas & sturen', boat ? 'W vooruit, S achteruit, A/D sturen' : 'W gas, S remmen en achteruit, A/D sturen'));
+    rows.push(boat ? tut('handbrake', [' '], 'Remmen', 'Afremmen voor een brug of de kade') : tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
+    rows.push(tut('horn', ['H'], 'Toeter', boat ? 'Aan de kant, bootjes!' : 'Aan de kant, fietsers!'));
     rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots', true));
-    rows.push(tut('lookback', ['Q'], 'Achterom', 'Houd Q of de middelste muisknop vast', true));
+    if (!world.noLookBack) rows.push(tut('lookback', ['Q'], 'Achterom', 'Houd Q of de middelste muisknop vast', true));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd RMB vast om te richten' : 'Vuren vanuit de auto'));
   } else if (p.swimming) {
