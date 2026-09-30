@@ -23,7 +23,7 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
-import { playCinematic, isCinematicActive } from './cinematics.js';
+import { playCinematic, isCinematicActive, isBannerShowing } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -499,7 +499,8 @@ function updateCharacter(w) {
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
   if (!want || w.player.character === want) return;
-  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
+  // a result banner (mission passed, padel won) first gets its moment
+  if (isCinematicActive() || isBannerShowing() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
   swapCharacter(w, want);
   if (!playHandover(w, step)) {
     flash();
@@ -626,6 +627,7 @@ function initSkipUi() {
     '#story-skip button{display:flex;gap:10px;align-items:center;font:600 16px/1.2 system-ui,sans-serif;color:#fff;background:rgba(16,18,22,.86);' +
     'border:1px solid rgba(255,210,63,.7);border-radius:10px;padding:10px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
     '#story-skip button:hover{background:rgba(40,36,20,.92)}' +
+    '#story-skip .hud-key{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border:1px solid rgba(255,255,255,.55);border-bottom:3px solid rgba(0,0,0,.6);border-radius:5px;background:linear-gradient(180deg,#4a4f47,#2a2e28);color:#ffd23f;font:bold 14px/1 system-ui,sans-serif}' +
     'body.cine-hide-hud #story-skip{display:none}';
   document.head.appendChild(style);
   document.body.appendChild(root);
