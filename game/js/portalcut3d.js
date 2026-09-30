@@ -105,6 +105,30 @@ tunnelMaterial.userData.shared = true;
 const lampMaterial = new THREE.MeshBasicMaterial({ color: 0xffe4b0 });
 lampMaterial.userData.shared = true;
 const WALL = 0xd9cfbf, CEIL = 0xcac0b0, SOCKEL = 0x8f877c;
+const doorMaterial = vcMaterial();
+doorMaterial.userData.shared = true;
+// [width, height, colour] of the door where a footway, cycleway or street
+// ends at a facade (passages.js doorsOf); a street gets a roller door
+const DOORS = { foot: [1.3, 2.3, 0x4b3526], cycle: [2.2, 2.4, 0x55595d], street: [3.2, 3.0, 0x7d8185] };
+const DOOR_FRAME = 0xcfc6b4, DOOR_SLAT = 0x62666a;
+
+function doorQuad(B, d, w, h, off, color, y0) {
+  const cx = d.x + d.nx * off, cy = d.y + d.ny * off;
+  const ax = cx - d.ux * w / 2, ay = cy - d.uy * w / 2, bx = cx + d.ux * w / 2, by = cy + d.uy * w / 2;
+  B.quadOut([ax, y0, ay], [bx, y0, by], [bx, y0 + h, by], [ax, y0 + h, ay], [d.nx, 0, d.ny], color, 2);
+}
+
+function addDoors(B, doors, depth, base) {
+  for (const d of doors) {
+    const street = !DOORS[d.cat];
+    const [w0, h0, color] = street ? DOORS.street : DOORS[d.cat];
+    const w = Math.min(w0, d.edge - 0.4), h = Math.min(h0, depth - 0.6);
+    if (w < 0.8 || h < 1.8) continue;
+    doorQuad(B, d, w + 0.24, h + 0.12, 0.06, DOOR_FRAME, base);
+    doorQuad(B, d, w, h, 0.09, color, base);
+    if (street) for (let y = 0.35; y < h - 0.1; y += 0.35) doorQuad(B, d, w, 0.04, 0.1, DOOR_SLAT, base + y);
+  }
+}
 
 // Ceiling height of a passage in a building `depth` metres tall.
 export function passageHeight(cat, depth) {
@@ -122,11 +146,13 @@ function insideSpan(ring, ax, ay, ux, uy, L) {
 }
 
 // Walls, ceiling and lamps along every shown passage of `b`, plus its portal
-// boxes. Returns the mesh (or null) and registers the boxes.
-export function buildPassageTunnels(b, passages, depth, base = 0) {
+// boxes, and a door where a way ends at its facade. Returns the mesh (or
+// null) and registers the boxes.
+export function buildPassageTunnels(b, passages, depth, base = 0, doors = []) {
   const shown = passages.filter((p) => p.shown || p.hall);
-  if (!shown.length) return null;
-  const B = new GeoBuilder(2);
+  if (!shown.length && !doors.length) return null;
+  const B = new GeoBuilder(3);
+  addDoors(B, doors, depth, base);
   const list = [];
   const ring = b.pts;
   for (const p of shown) {
@@ -166,7 +192,7 @@ export function buildPassageTunnels(b, passages, depth, base = 0) {
   registerPortalBoxes(b, list);
   const geo = B.build();
   if (!geo) return null;
-  const mesh = new THREE.Mesh(geo, [tunnelMaterial, lampMaterial]);
+  const mesh = new THREE.Mesh(geo, [tunnelMaterial, lampMaterial, doorMaterial]);
   mesh.name = 'passage';
   return mesh;
 }

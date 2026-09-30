@@ -7,7 +7,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { WATER_Y, closestPointOnSegment } from './util.js';
 import {
-  DECK_T, EMB_SLOPE, WALL_T, FENCE_H, BARRIER_H, ROOF_T, RAISED,
+  DECK_T, EMB_SLOPE, WALL_T, FENCE_H, BARRIER_H, ROOF_T, RAISED, COPING,
   surfaceHalfWidth, roofTopAt, coveredAt, isWallBroken,
 } from './elevation.js';
 
@@ -154,6 +154,17 @@ function deckContinues(map, r, p) {
   return false;
 }
 
+// Under a covered section, its round ends not counted: 3 m out of a portal
+// is still within the tunnel's own reach (hs + WALL_T) past its end point.
+function coveredSpanAt(elev, x, y) {
+  for (const s of elev.grid.at(x, y) || []) {
+    if (!s.covered) continue;
+    const cp = closestPointOnSegment(x, y, s.ax, s.ay, s.bx, s.by);
+    if (cp.t > 1e-3 && cp.t < 1 - 1e-3 && cp.dist2 <= (s.hs + WALL_T) ** 2) return true;
+  }
+  return false;
+}
+
 function groundUnder(map, x, y) {
   return map.inWaterRaw(x, y) ? WATER_Y - 0.6 : -0.05;
 }
@@ -231,6 +242,16 @@ export function buildRoadStructure(r, map) {
           prevOver = pc.over;
         }
       }
+    }
+    if (za < -RAISED || zb < -RAISED) {
+      // a floor under the sunken carriageway: where two ways' ribbons meet
+      // (or stop short at a portal) the ground above is cut away, so a
+      // crack would look straight into the void
+      const ext = 0.6, ux = (P[i + 1][0] - P[i][0]), uy = (P[i + 1][1] - P[i][1]), ul = Math.hypot(ux, uy) || 1;
+      const ex = ux / ul * ext, ey = uy / ul * ext;
+      const l0 = edge(i, 1, hs), r0 = edge(i, -1, hs), l1 = edge(i + 1, 1, hs), r1 = edge(i + 1, -1, hs);
+      const fa = Math.min(za, -RAISED) - 0.06, fb = Math.min(zb, -RAISED) - 0.06;
+      B.quad('concrete', [l0[0] - ex, fa, l0[1] - ey], [l1[0] + ex, fb, l1[1] + ey], [r1[0] + ex, fb, r1[1] + ey], [r0[0] - ex, fa, r0[1] - ey]);
     }
     if (r.tunnel && (za < -RAISED || zb < -RAISED)) {
       // roof slab underside across the tunnel, lights along the middle; beside
@@ -321,10 +342,13 @@ export function buildRoadStructure(r, map) {
       const j = i === 0 ? 1 : n - 2;
       const dx = P[i][0] - P[j][0], dy = P[i][1] - P[j][1], l = Math.hypot(dx, dy) || 1;
       const px = P[i][0] + dx / l * 3, py = P[i][1] + dy / l * 3;
-      if (coveredAt(elev, px, py)) continue;
+      if (coveredSpanAt(elev, px, py)) continue;
       const top = roofTopAt(elev, P[i][0], P[i][1], Z[i]);
       const e1 = edge(i, 1, hs + WALL_T), e2 = edge(i, -1, hs + WALL_T);
       B.wallBox('wall', e1[0], e1[1], e2[0], e2[1], 0.6, top - ROOF_T - 0.6, Math.max(top, -0.02), top - ROOF_T - 0.6, Math.max(top, -0.02));
+      // a coping over the portal hides the jagged edge of the cut-away ground
+      const cy = Math.max(top, -0.02) + 0.04, bx = -dx / l * COPING, by = -dy / l * COPING, fx = dx / l * 0.3, fy = dy / l * 0.3;
+      B.quad('wall', [e1[0] + fx, cy, e1[1] + fy], [e2[0] + fx, cy, e2[1] + fy], [e2[0] + bx, cy, e2[1] + by], [e1[0] + bx, cy, e1[1] + by]);
     }
   }
 
@@ -353,11 +377,31 @@ export function buildRoadStructure(r, map) {
       pos.needsUpdate = true;
     };
   };
+  // the ground is cut away (cutmask3d.js, ~1 m texels) a little past the
+  // outer face of an open cutting's wall: a coping strip at street level
+  // covers the edge of the hole (not where a street runs along the top)
+  const coping = (w) => {
+    if (!w.coping) return;
+    const ox = -w.nx, oy = -w.ny, i0 = -WALL_T / 2, i1 = WALL_T / 2 + COPING;
+    B.quad('wall', [w.ax + ox * i0, 0.04, w.ay + oy * i0], [w.bx + ox * i0, 0.04, w.by + oy * i0], [w.bx + ox * i1, 0.04, w.by + oy * i1], [w.ax + ox * i1, 0.04, w.ay + oy * i1]);
+  };
+  for (const w of elev.skirts || []) {
+    if (w.seg.r !== r) continue;
+    B.wallBox('wall', w.ax, w.ay, w.bx, w.by, WALL_T, w.za - 0.1, 0.04, w.zb - 0.1, 0.04);
+    coping(w);
+  }
+  // between two sunken carriageways without a wall: a floor strip across
+  for (const f of elev.floors || []) {
+    if (f.seg.r !== r) continue;
+    const ox = -f.nx, oy = -f.ny, i0 = -(WALL_T / 2 + 0.4), i1 = f.reach + 0.3;
+    B.quad('concrete', [f.ax + ox * i0, f.za - 0.03, f.ay + oy * i0], [f.bx + ox * i0, f.zb - 0.03, f.by + oy * i0], [f.bx + ox * i1, f.zb - 0.03, f.by + oy * i1], [f.ax + ox * i1, f.za - 0.03, f.ay + oy * i1]);
+  }
   for (const w of elev.walls) {
     if (w.seg.r !== r) continue;
     if (w.kind === 'cut') {
       const top = w.top;
       if (w.low) B.wallBox('wall', w.ax, w.ay, w.bx, w.by, WALL_T, w.za - 0.1, top + 0.05, w.zb - 0.1, top + 0.05);
+      if (!w.parapet && Math.abs(top) < 0.05) coping(w);
       if (w.fence) {
         breakable(w, 'fence', () => {
           B.wallBox('fence', w.ax, w.ay, w.bx, w.by, 0.06, top + FENCE_H - 0.08, top + FENCE_H, top + FENCE_H - 0.08, top + FENCE_H);

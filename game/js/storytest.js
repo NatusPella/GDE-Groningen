@@ -17,6 +17,7 @@ import { applySave } from './savegame.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 import { validateSpots } from './spotcheck.js';
+import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -130,6 +131,10 @@ export async function runStoryTest(world) {
     const spots = validateSpots(world);
     for (const b of spots.bad) console.log('[spotcheck]', b.kind, b.id, b.x, b.y, b.why);
     check(`all ${spots.total} spots reachable`, !spots.bad.length, spots.bad.map((b) => `${b.kind} ${b.id} (${b.x}, ${b.y}): ${b.why}`).join('; '));
+    // no street, cycleway or footway runs through a solid wall or an invisible hole
+    const pa = auditPassages(world.map);
+    for (const e of pa.bad) console.log('[passagecheck]', e.cls, e.road, e.building, e.x, e.y, 'depth', e.depth, 'len', e.len);
+    check(`ways through buildings are passages or doors (${JSON.stringify(pa.counts)})`, !pa.bad.length, pa.bad.slice(0, 30).map((e) => `${e.cls} ${e.road} in ${e.building} (${e.x}, ${e.y})`).join('; '));
     // nothing solid across the ring race lap and the ring roads, and a lap really drives
     const solids = probeRingSolids(world);
     check('ring roads free of solid obstacles', !solids.length, solids.slice(0, 40).map((h) => `${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
