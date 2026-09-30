@@ -291,6 +291,8 @@ function pedInReach(world, range, cone) {
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = world.player;
+  // a mission stage's own prompt (heist.js: the distraction, the pickpocket)
+  if (world.missionPrompt && !p.inVehicle) return world.missionPrompt;
   const train = trainPrompt(world);
   if (train) return train;
   const job = sideJobPrompt(world);

@@ -232,11 +232,11 @@ export function nearestCorridor(passages, x, y) {
 }
 
 // Is (x, y) inside one of the corridors cut through footprint `b`?
-// Walkable rooms inside a footprint (b.rooms, museumplan.js): the room of
-// (x, y) or null. `who`: 'walker', 'bike' (rooms open to bikes) or 'car' (none).
+// Walkable rooms inside a footprint (b.rooms, museumplan.js; a room with
+// `shut` is closed off, heist.js): the room of (x, y) or null. `who`: 'walker', 'bike' (rooms open to bikes) or 'car' (none).
 export function roomAt(b, x, y, slack = 0, who = 'walker') {
   if (!b.rooms || who === 'car') return null;
-  for (const r of b.rooms) if ((who !== 'bike' || r.bikes) && rectDist(r, x, y) < slack) return r;
+  for (const r of b.rooms) if (!r.shut && (who !== 'bike' || r.bikes) && rectDist(r, x, y) < slack) return r;
   return null;
 }
 

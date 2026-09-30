@@ -1,0 +1,124 @@
+/* H6 De Museumkraak: the minigame panels, the blueprint, the card and the
+   alarm (heistui.js). Tokens and keycaps as in DESIGN_SYSTEM.md. */
+#heist-ui { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; }
+#heist-ui .hud-key {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px;
+  background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255, 255, 255, 0.35); border-bottom: 2px solid rgba(0, 0, 0, 0.6);
+  border-radius: 4px; color: var(--gron-green-light, #3fc97a); font-size: 13px; font-weight: bold; letter-spacing: 1px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+}
+
+/* --- minigame panel ------------------------------------------------------------ */
+#heist-ui .hx-panel {
+  position: absolute; left: 50%; bottom: 17%; transform: translate(-50%, 12px); opacity: 0; transition: opacity 0.25s, transform 0.25s;
+  min-width: 340px; padding: 12px 18px 12px; border-radius: 8px; text-align: center;
+  background: radial-gradient(ellipse at 50% 0%, rgba(23, 48, 31, 0.94), rgba(12, 20, 14, 0.94));
+  border: 1px solid rgba(63, 201, 122, 0.45); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 18px rgba(63, 201, 122, 0.12);
+}
+#heist-ui .hx-panel.on { opacity: 1; transform: translate(-50%, 0); }
+#heist-ui .hx-panel.shake { animation: hx-shake 0.28s; }
+@keyframes hx-shake { 20% { margin-left: -7px; } 45% { margin-left: 6px; } 70% { margin-left: -4px; } 100% { margin-left: 0; } }
+#heist-ui .hx-title { font-size: 22px; letter-spacing: 2px; color: var(--gron-green-light, #3fc97a); text-shadow: 0 0 10px rgba(63, 201, 122, 0.3); }
+#heist-ui .hx-sub { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; opacity: 0.75; margin-top: 1px; letter-spacing: 0.3px; }
+#heist-ui .hx-keys { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 10px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px; }
+#heist-ui .hx-keys .sep { opacity: 0.35; }
+#heist-ui .hx-skip { margin-top: 8px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; opacity: 0.55; display: flex; align-items: center; justify-content: center; gap: 5px; }
+#heist-ui .hx-skip .hud-key { min-width: 17px; height: 17px; font-size: 11px; padding: 0 4px; }
+
+/* fuse box: a needle over a bar */
+#heist-ui .hx-bar { position: relative; height: 20px; margin-top: 10px; border-radius: 10px; background: #1a241d; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12); }
+#heist-ui .hx-zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(180deg, #3fc97a, #1e9e56); box-shadow: 0 0 12px rgba(63, 201, 122, 0.6); }
+#heist-ui .hx-needle { position: absolute; top: -3px; bottom: -3px; width: 4px; margin-left: -2px; background: #f0ede4; border-radius: 2px; box-shadow: 0 0 6px rgba(255, 255, 255, 0.8); }
+#heist-ui .hx-lamps { display: flex; justify-content: center; gap: 10px; margin-top: 9px; }
+#heist-ui .hx-lamp { width: 13px; height: 13px; border-radius: 50%; background: #2a2e28; border: 1px solid rgba(255, 255, 255, 0.25); }
+#heist-ui .hx-lamp.done { background: var(--gron-green-light, #3fc97a); box-shadow: 0 0 10px rgba(63, 201, 122, 0.8); }
+
+/* lock: pins bouncing in their chambers, the shear line on top */
+#heist-ui .hx-lock { display: flex; justify-content: center; gap: 12px; margin-top: 10px; padding: 8px 14px 10px; border-radius: 6px; background: linear-gradient(180deg, #3a3326, #231e16); border: 1px solid rgba(240, 200, 110, 0.35); }
+#heist-ui .hx-chamber { position: relative; width: 24px; height: 78px; border-radius: 4px; background: #15110b; overflow: hidden; border: 1px solid rgba(0, 0, 0, 0.6); }
+#heist-ui .hx-chamber::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: var(--zone, 16%); background: rgba(63, 201, 122, 0.22); border-bottom: 1px dashed rgba(63, 201, 122, 0.8); }
+#heist-ui .hx-pin { position: absolute; left: 4px; right: 4px; height: 34px; border-radius: 3px 3px 6px 6px; background: linear-gradient(90deg, #b89043, #f0c24e 45%, #9a7430); }
+#heist-ui .hx-chamber.cur { border-color: var(--gron-green-light, #3fc97a); box-shadow: 0 0 10px rgba(63, 201, 122, 0.5); }
+#heist-ui .hx-chamber.set .hx-pin { background: linear-gradient(90deg, #1e9e56, #3fc97a 45%, #0f5c30); }
+
+/* the case's dial */
+#heist-ui .hx-dialrow { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 8px; }
+#heist-ui .hx-dial { width: 150px; height: 150px; }
+#heist-ui .hx-dial .face { fill: #1a241d; stroke: rgba(240, 237, 228, 0.3); stroke-width: 2; }
+#heist-ui .hx-dial .tick { stroke: rgba(240, 237, 228, 0.55); stroke-width: 1.5; }
+#heist-ui .hx-dial .tick.big { stroke: #f0ede4; stroke-width: 2.5; }
+#heist-ui .hx-dial .num { fill: #f0ede4; font: 13px 'Bebas Neue', 'Arial Narrow', sans-serif; text-anchor: middle; dominant-baseline: middle; }
+#heist-ui .hx-dial .hintmark { fill: none; stroke: #f2c14e; stroke-width: 4; opacity: 0; }
+#heist-ui .hx-dial .hintmark.on { opacity: 0.9; }
+#heist-ui .hx-dial .mark { fill: #d93f3f; }
+#heist-ui .hx-dial .hub { fill: #2a2e28; stroke: rgba(240, 237, 228, 0.4); }
+#heist-ui .hx-dial.hot .face { stroke: var(--gron-green-light, #3fc97a); stroke-width: 4; filter: drop-shadow(0 0 6px rgba(63, 201, 122, 0.8)); }
+#heist-ui .hx-code { display: flex; gap: 8px; }
+#heist-ui .hx-digit { min-width: 38px; padding: 4px 6px; border-radius: 4px; font-size: 26px; letter-spacing: 1px; background: #0c140e; border: 1px solid rgba(240, 237, 228, 0.2); color: rgba(240, 237, 228, 0.45); }
+#heist-ui .hx-digit.done { color: var(--gron-green-light, #3fc97a); border-color: rgba(63, 201, 122, 0.7); }
+#heist-ui .hx-digit.cur { color: #f0ede4; border-color: #f0ede4; }
+#heist-ui .hx-feel { width: 120px; height: 8px; margin: 8px auto 0; border-radius: 4px; background: #1a241d; overflow: hidden; }
+#heist-ui .hx-feel i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #1e9e56, #3fc97a); }
+#heist-ui .hx-side { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; opacity: 0.7; margin-top: 5px; }
+
+/* --- the blueprint (plan scene) ------------------------------------------------------- */
+#heist-ui .hx-plan {
+  position: absolute; right: 3vw; top: 12.5vh; width: min(56vw, 880px); opacity: 0; transform: translateX(24px) rotate(0.6deg);
+  transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+  padding: 12px 14px 10px; border-radius: 6px;
+  background: radial-gradient(ellipse at 40% 30%, #17301f, #0c140e 85%);
+  border: 2px solid rgba(63, 201, 122, 0.55); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+#heist-ui .hx-plan.on { opacity: 1; transform: translateX(0) rotate(0.6deg); }
+#heist-ui .hx-plan-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 20px; letter-spacing: 3px; color: var(--gron-green-light, #3fc97a); }
+#heist-ui .hx-plan-head small { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; letter-spacing: 1px; color: rgba(240, 237, 228, 0.6); }
+#heist-ui .hx-plan canvas { display: block; width: 100%; height: auto; margin-top: 6px; border-radius: 3px; }
+#heist-ui .hx-choice { display: none; gap: 12px; margin-top: 10px; }
+#heist-ui .hx-plan.choosing .hx-choice { display: flex; }
+#heist-ui .hx-card {
+  flex: 1; pointer-events: auto; cursor: pointer; text-align: left; padding: 9px 12px 10px; border-radius: 5px;
+  background: rgba(12, 20, 14, 0.85); border: 1px solid rgba(63, 201, 122, 0.4); color: #f0ede4; font: inherit;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+#heist-ui .hx-card:hover, #heist-ui .hx-card.sel { border-color: var(--gron-green-light, #3fc97a); background: rgba(30, 158, 86, 0.2); transform: translateY(-2px); }
+#heist-ui .hx-card b { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 22px; letter-spacing: 2px; color: var(--gron-green-light, #3fc97a); }
+#heist-ui .hx-card span { display: block; margin-top: 3px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.2px; opacity: 0.85; }
+#heist-ui .hx-card em { display: block; margin-top: 4px; font-family: 'Arial Narrow', Arial, sans-serif; font-style: normal; font-size: 12px; opacity: 0.55; }
+#heist-ui .hx-choice-note { display: none; margin-top: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; opacity: 0.6; text-align: center; }
+#heist-ui .hx-plan.choosing .hx-choice-note { display: block; }
+
+/* --- the card on the empty cushion ------------------------------------------------------ */
+#heist-ui .hx-note {
+  position: absolute; left: 50%; top: 42%; width: min(460px, 80vw); padding: 26px 30px 20px; border-radius: 4px; opacity: 0;
+  transform: translate(-50%, -30%) rotate(-7deg) scale(0.8); transition: opacity 0.4s, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: #f6efdc; color: #2b2418; box-shadow: 0 22px 50px rgba(0, 0, 0, 0.6);
+  font-family: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+}
+#heist-ui .hx-note.on { opacity: 1; transform: translate(-50%, -50%) rotate(-3deg) scale(1); }
+#heist-ui .hx-note::before { content: ''; position: absolute; left: 42%; top: -11px; width: 76px; height: 22px; background: rgba(230, 220, 160, 0.75); transform: rotate(4deg); }
+#heist-ui .hx-note .kick { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #8a6f3c; }
+#heist-ui .hx-note .txt { font-size: 34px; line-height: 1.25; margin-top: 8px; }
+#heist-ui .hx-note .nl-sub { display: block; margin-top: 6px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 15px; font-style: italic; color: #6d5d44; }
+
+/* --- the alarm and the laser zap ------------------------------------------------------------ */
+#heist-ui .hx-alarm { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(217, 63, 63, 0.55) 100%); }
+#heist-ui .hx-flash { position: absolute; inset: 0; opacity: 0; background: rgba(217, 63, 63, 0.35); transition: opacity 0.5s; }
+#heist-ui .hx-flash.on { opacity: 1; transition: none; }
+
+/* --- "hold O to skip" when a stage is giving trouble ------------------------------------ */
+#heist-ui .hx-skipchip {
+  position: absolute; left: 50%; top: 21%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; opacity: 0; transition: opacity 0.3s;
+  padding: 5px 12px; border-radius: 16px; background: rgba(12, 20, 14, 0.82); border: 1px solid rgba(63, 201, 122, 0.35);
+  font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px;
+}
+#heist-ui .hx-skipchip.on { opacity: 1; }
+#heist-ui .hx-skipchip svg { width: 20px; height: 20px; transform: rotate(-90deg); }
+#heist-ui .hx-skipchip circle { fill: none; stroke-width: 3; }
+#heist-ui .hx-skipchip .bg { stroke: rgba(240, 237, 228, 0.2); }
+#heist-ui .hx-skipchip .fg { stroke: var(--gron-green-light, #3fc97a); stroke-linecap: round; stroke-dasharray: 50.3; stroke-dashoffset: calc(50.3 * (1 - var(--hold, 0))); }
+body.cine-hide-hud #heist-ui .hx-skipchip, body.cine-hide-hud #heist-ui .hx-panel { opacity: 0; }
+
+@media (max-width: 760px) {
+  #heist-ui .hx-plan { left: 3vw; right: 3vw; width: auto; top: 10vh; }
+  #heist-ui .hx-panel { min-width: 0; width: 86vw; }
+}
