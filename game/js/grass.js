@@ -673,6 +673,8 @@ function generateCell(map, ci, cj, Q, full) {
       if (x < bb[0] - clear || x > bb[2] + clear || y < bb[1] - clear || y > bb[3] + clear) continue;
       if (pointInPolygon(x, y, b.pts)) return true;
     }
+    // (padel courts, the home garage)
+    if (map.reservedAt && map.reservedAt(x, y)) return true;
     return water.inWater(x, y);
   };
   const inCell = (x, y) => x >= x0 && x < x1 && y >= y0 && y < y1;
