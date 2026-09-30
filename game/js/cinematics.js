@@ -888,10 +888,6 @@ export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stat
   banner = { t: 0 };
 }
 
-export function isBannerShowing() {
-  return !!banner;
-}
-
 function updateBanner(dt) {
   if (!banner) return;
   banner.t += dt;
