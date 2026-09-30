@@ -645,6 +645,39 @@ function walkAlongside(c, p, dt, world) {
   c.angle = turnToward(c.angle, f.idleFace, IDLE_FACE_RATE * dt);
 }
 
+// A mission parks the companion: world.companionHold = { x, y, face, crouch,
+// pose } (walks there and waits) or { vehicle } (sits in it as passenger);
+// heist.js uses it for the lookout at the door and the getaway boat.
+function holdCompanion(c, h, dt, world) {
+  if (h.vehicle) {
+    const v = h.vehicle;
+    if (!world.vehicles.includes(v) || v.sinking || (v.passenger && v.passenger !== 'companion')) return false;
+    if (c.inVehicle !== v) {
+      if (c.inVehicle) c.inVehicle.passenger = null;
+      leaveWater(c);
+      c.inVehicle = v;
+      v.passenger = 'companion';
+    }
+    c.x = v.x; c.y = v.y; c.vx = 0; c.vy = 0;
+    return true;
+  }
+  if (c.inVehicle || c.water) return false;
+  const d = dist(c.x, c.y, h.x, h.y);
+  if (d > 30) { c.x = h.x; c.y = h.y; c.vx = 0; c.vy = 0; return true; }
+  if (d > 0.3) {
+    const x0 = c.x, y0 = c.y;
+    seekTowards(c, h.x, h.y, d > 6 ? CATCH_UP_SPEED : WALK_SPEED, dt, world.map);
+    h.stuck = Math.hypot(c.x - x0, c.y - y0) < 0.02 ? (h.stuck || 0) + dt : 0;
+    if (h.stuck > 2.5) { c.x = h.x; c.y = h.y; h.stuck = 0; }
+    return true;
+  }
+  c.vx = 0; c.vy = 0;
+  if (h.face != null) c.angle = turnToward(c.angle, h.face, IDLE_FACE_RATE * dt);
+  c.crouching = !!h.crouch;
+  c.pose = h.pose || null;
+  return true;
+}
+
 export function updateCompanion(dt, world) {
   stepCompanion(dt, world);
   followGround(world);
@@ -677,6 +710,7 @@ function stepCompanion(dt, world) {
     return;
   }
   if (isKnockedDown(c, world)) { c.vx = 0; c.vy = 0; return; }
+  if (world.companionHold && holdCompanion(c, world.companionHold, dt, world)) return;
 
   if (c.water && !c.inVehicle) {
     const boat = p.inVehicle && p.inVehicle.isBoat && !p.inVehicle.passenger && !p.inVehicle.sinking ? p.inVehicle : null;

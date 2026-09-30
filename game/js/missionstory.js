@@ -321,7 +321,7 @@ const STORY = [
       ['T', 'En ik heb een zaklamp.'],
       ['A', 'Die blijft uit, Tammo.'],
       ['T', 'Waarom neem ik hem dan mee?'],
-      ['A', 'Voor de sfeer. Eerst de stroomkast, dan de vitrine. En niemand raakt iets aan.'],
+      ['A', 'Voor de sfeer. Kom, eerst het plan. Ik heb een bouwtekening.'],
     ],
     outroNpc: false,
     outro: [
