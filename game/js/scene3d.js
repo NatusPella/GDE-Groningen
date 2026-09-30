@@ -2126,6 +2126,11 @@ export function update3D(dt, world) {
       if (Math.abs((v.z || 0) - baseH) < 2.5) desiredY = Math.max(desiredY, (v.z || 0) + (v.isBus ? 3.3 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
     }
   }
+  // spaces outside the building raycast adjust the camera themselves (home.js: the flat, the garage)
+  if (world.camAdjust) {
+    const r = world.camAdjust(desiredX, desiredY, desiredZ, eyeX, eyeY, eyeZ);
+    if (r) { desiredX = r[0]; desiredY = r[1]; desiredZ = r[2]; }
+  }
 
   updateCamTreeHiding(world.map, eyeX, eyeY, eyeZ, desiredX, desiredY, desiredZ);
 

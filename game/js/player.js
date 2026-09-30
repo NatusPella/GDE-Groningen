@@ -111,7 +111,7 @@ export class Player {
       if (this.water) {
         if (this.water === 'swim' && !this.inVehicle) this.swimInteract(world);
       } else if (this.inVehicle) this.tryEnterExit(map, vehicles, world);
-      else this.interact(world);
+      else if (!inHomeFlat()) this.interact(world);
     }
     // kissing has its own key (K): E next to a car used to kiss instead of
     // getting in whenever the companion stood close
@@ -199,6 +199,8 @@ export class Player {
   }
 
   tryVault(world) {
+    // upstairs in the flat every prop and railing is down on the street
+    if (inHomeFlat()) return false;
     const { map, input } = world;
     const dir = cameraRelativeMove(input, world.camYaw);
     const a = dir ? dir.angle : this.angle;
