@@ -152,6 +152,14 @@ function sign(group, r, a, side, y, w, lines, bg = '#1c1c1c', fg = '#f4efe2') {
   group.add(m);
 }
 
+const LAMP_DAY = new THREE.Color(0xfff1d6), LAMP_NIGHT = new THREE.Color(0x9a8f7c), LAMP_ALARM = new THREE.Color(0xff2a1a);
+const GLOW_DAY = new THREE.Color(0x2e2a24), GLOW_NIGHT = new THREE.Color(0x27231e), GLOW_ALARM = new THREE.Color(0x5e1712);
+// heist.js (H6): the museum after closing time, and its alarm (0..1)
+export function setMuseumLights(night, alarm = 0) {
+  lampMat.color.copy(night ? LAMP_NIGHT : LAMP_DAY).lerp(LAMP_ALARM, alarm);
+  interiorMat.emissive.copy(night ? GLOW_NIGHT : GLOW_DAY).lerp(GLOW_ALARM, alarm * 0.5);
+}
+
 let caseGroup = null, caseBall = null, caseHidden = false;
 // heist.js hides the case while H6 places its own
 export function setMuseumCaseHidden(v) {
