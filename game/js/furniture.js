@@ -370,7 +370,8 @@ function assemblyMenu(w) {
     sections: () => {
       const last = screws >= SCREWS;
       const step = last
-        ? { id: 'kauwgom', label: 'Schroefje 238 bestaat niet', desc: 'Doos leeg, zak leeg, vloer leeg. Kauwgompje erin?', verb: 'Kauwgom erin', price: 0, keepFocus: true,
+        // same id as the screws: the selection (and the keyboard focus) stays on the step
+        ? { id: 'schroef', label: 'Schroefje 238 bestaat niet', desc: 'Doos leeg, zak leeg, vloer leeg. Kauwgompje erin?', verb: 'Kauwgom erin', price: 0, keepFocus: true,
           preview: { kind: 'product', product: 'kast' }, effect: 'Zelf in elkaar gezet', buy: () => finish(true) }
         : { id: 'schroef', label: `Schroefje ${SCREW_FROM + screws} van 238`, desc: 'Inbussleuteltje erin en draaien. Rechtsom is vast', verb: 'Draaien', price: 0, keepFocus: true,
           preview: { kind: 'product', product: screws >= SCREWS / 2 ? 'kast' : 'pakket' },
