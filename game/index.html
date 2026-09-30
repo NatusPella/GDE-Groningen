@@ -245,6 +245,7 @@
   #pause-menu .pm-navhint { display: inline-flex; align-items: center; gap: 5px; margin-right: 8px; }
   #pause-menu [data-panel="game"] { display: flex; padding: 16px 16px 16px max(16px, 5vw); }
   #pause-menu [data-panel="game"][hidden] { display: none; }
+  #pause-menu [data-panel="game"] > .pm-inner { zoom: min(var(--ui, 1), var(--ui-fit, 9)); }
   #pause-menu .pm-inner.pm-game {
     width: min(440px, calc(100% / var(--ui, 1))); margin: auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; align-content: start;
     padding: 18px 18px 16px; box-sizing: border-box; border-radius: 12px; border: 1px solid rgba(63,201,122,0.28); border-left: 4px solid #3fc97a;
