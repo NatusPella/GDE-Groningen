@@ -293,6 +293,8 @@ function findPrimary(world) {
   const p = world.player;
   // upstairs in the flat only the flat's own uses: the street is 34 m below
   if (isInsideHome()) return homePrompt(world);
+  // a mission stage's own prompt (heist.js: the distraction, the pickpocket)
+  if (world.missionPrompt && !p.inVehicle) return world.missionPrompt;
   const train = trainPrompt(world);
   if (train) return train;
   const job = sideJobPrompt(world);
