@@ -148,16 +148,18 @@ export function deliverFurniture(w) {
   for (const id of state.pending) state.owned.add(id);
   state.pending.clear();
   const list = names.length > 1 ? names.slice(0, -1).join(', ') + ' en ' + names[names.length - 1] : names[0];
-  w.addMessage(`EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59`, 5, { kind: 'tip' });
-  if (state.owned.has('kast') && !state.built.has('kast')) w.addMessage('De Buukenkaas staat nog in de doos. Loop erheen en druk E', 5, { kind: 'tip' });
-  momentHint(w);
+  // one card: tips are rationed (attention.js), a second one would be dropped
+  const next = [];
+  if (state.owned.has('kast') && !state.built.has('kast')) next.push('De Buukenkaas staat nog in de doos: loop erheen en druk E.');
+  if (momentDue()) next.push('Ga even zitten op de Zitmoi (E).');
+  w.addMessage(`EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59. ${next.join(' ')}`.trim(), 6, { kind: next.length ? 'missie' : 'tip' });
   checkComplete(w);
 }
 
 const momentDue = () => !state.moment && has('bank') && storyFlag('zitmoi');
 
 function momentHint(w) {
-  if (momentDue()) w.addMessage('Ga even zitten op de Zitmoi (E)', 5, { kind: 'tip' });
+  if (momentDue()) w.addMessage('Ga even zitten op de Zitmoi (E)', 5, { kind: 'missie' });
 }
 
 // Stock pieces an EIKEA one replaces (home3d.js buildFlat3D skips them).
@@ -482,7 +484,7 @@ function ensureTvEl() {
   tvEl = document.createElement('div');
   tvEl.className = 'fm-tv';
   tvEl.setAttribute('role', 'status');
-  tvEl.innerHTML = '<style>.fm-tv{position:fixed;left:50%;bottom:17%;transform:translateX(-50%);z-index:40;width:min(640px,calc(100vw - 32px));box-sizing:border-box;padding:10px 16px 12px;background:rgba(12,20,14,.9);border:2px solid #3fc97a;border-radius:6px;color:#f0ede4;font:17px/1.35 Arial,sans-serif;pointer-events:none;display:none}.fm-tv.on{display:block}.fm-tv h4{margin:0 0 4px;font:15px \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1.5px;color:#3fc97a}.fm-tv b{color:#e8c93a;margin-right:6px}.fm-tv small{display:block;margin-top:6px;color:rgba(240,237,228,.55);font-size:13px}</style><h4></h4><p style="margin:0"><b></b><span></span></p><small>E: uitzetten · weglopen zet hem ook uit</small>';
+  tvEl.innerHTML = '<style>.fm-tv{position:fixed;left:50%;bottom:17%;transform:translateX(-50%);z-index:40;width:min(640px,calc(100vw - 32px));box-sizing:border-box;padding:10px 16px 12px;background:rgba(12,20,14,.9);border:2px solid #3fc97a;border-radius:6px;color:#f0ede4;font:17px/1.35 Arial,sans-serif;pointer-events:none;display:none}.fm-tv.on{display:block}.fm-tv h4{margin:0 0 4px;font:15px \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1.5px;color:#3fc97a}.fm-tv b{color:#e8c93a;margin-right:6px}.fm-tv small{display:block;margin-top:6px;color:rgba(240,237,228,.55);font-size:13px}.fm-tv kbd{display:inline-block;min-width:12px;margin-right:4px;padding:1px 6px;border:1px solid rgba(255,255,255,.5);border-bottom-width:2px;border-radius:4px;font:bold 12px/1.2 system-ui,sans-serif;color:#f0ede4;text-align:center}</style><h4></h4><p style="margin:0"><b></b><span></span></p><small><kbd>E</kbd> uitzetten · weglopen zet hem ook uit</small>';
   document.body.appendChild(tvEl);
   return tvEl;
 }
@@ -611,7 +613,7 @@ export function updateFurnitureInside(dt, w) {
   }
   updateTv(dt, w);
   if (moment && w.time - moment.t > MOMENT[moment.i][0]) {
-    w.addMessage(MOMENT[moment.i][1], 5, { kind: 'tip' });
+    w.addMessage(MOMENT[moment.i][1], 5, { kind: 'missie', kicker: other(w) });
     if (++moment.i >= MOMENT.length) moment = null;
   }
   if (!seat) return false;

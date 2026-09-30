@@ -406,6 +406,7 @@ const CSS = `
 #pg-panel .pg-order span.bad { background: rgba(255,90,60,0.25); border-color: rgba(255,90,60,0.7); }
 #pg-panel .pg-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; margin-top: 8px; font-size: 13px; color: rgba(240,237,228,0.85); }
 #pg-panel .pg-menu kbd { display: inline-block; min-width: 16px; padding: 0 4px; margin-right: 4px; text-align: center; border-radius: 3px; background: rgba(240,237,228,0.2); font: inherit; }
+#pg-panel .pg-slot > div:not(.pg-menu) kbd { display: inline-block; min-width: 12px; margin: 0 3px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 system-ui, sans-serif; text-align: center; }
 #pg-panel .pg-patience { height: 5px; margin-top: 6px; border-radius: 3px; background: linear-gradient(90deg, #5dff7a, #f2c230); }
 #pg-sub { position: fixed; left: 50%; bottom: 22vh; transform: translateX(-50%); width: min(86vw, 760px); text-align: center; z-index: 40; pointer-events: none;
   font: clamp(15px, 1.5vw, 20px) 'Arial Narrow', Arial, sans-serif; color: #fff; letter-spacing: .3px; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.6); opacity: 0; transition: opacity .25s; }
