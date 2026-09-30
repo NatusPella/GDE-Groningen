@@ -63,7 +63,7 @@
 
 /* --- the blueprint (plan scene) ------------------------------------------------------- */
 #heist-ui .hx-plan {
-  position: absolute; right: 3vw; top: 12.5vh; width: min(56vw, 880px); opacity: 0; transform: translateX(24px) rotate(0.6deg);
+  position: absolute; right: 3vw; top: 12.5vh; width: min(56vw, 880px, calc(114vh - 260px)); opacity: 0; transform: translateX(24px) rotate(0.6deg);
   transition: opacity 0.4s, transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
   padding: 12px 14px 10px; border-radius: 6px;
   background: radial-gradient(ellipse at 40% 30%, #17301f, #0c140e 85%);
