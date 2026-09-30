@@ -338,6 +338,20 @@ def int_tag(tags, key):
         return 0
 
 
+def hidden_structure(tags):
+    """Building ways that are not a block standing on the street: underground
+    garages and bike parkings (layer < 0 unless mapped at the surface) and
+    bridge piers. Extruded from the ground they close off the streets and
+    squares on top of them."""
+    if tags.get("bridge:support"):
+        return "pier"
+    if tags.get("location") == "underground":
+        return "underground"
+    if int_tag(tags, "layer") < 0 and tags.get("location") not in ("surface", "overground", "roof", "rooftop"):
+        return "underground"
+    return None
+
+
 def main():
     elements = load_elements()
 
@@ -371,7 +385,7 @@ def main():
             continue
 
         if "building" in tags:
-            if not is_closed(coords) or len(coords) < 4:
+            if not is_closed(coords) or len(coords) < 4 or hidden_structure(tags):
                 continue
             poly = clip_polygon(coords, world_rect)
             if len(poly) < 4:

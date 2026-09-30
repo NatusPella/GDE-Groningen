@@ -68,8 +68,8 @@ frame then runs, in order:
 | Title and trailer | `startscreen.js` (loading screen, title menu over the live city), `trailer.js` (attract intro, benchmark, recording mode), `intromontage.js` (the "Nieuw spel" opening montage) |
 | UI | `hud_panel.js` + `.css` (minimap: player, routes and targets always; static places only the nearest few per category; the objective line), `hudcards.js` + `.css` (HUD message cards, countdowns), `cardlines.js` (what Tammo/Anita say with a card), `prompts.js` + `.css` (world prompts and the key-cap + pictogram hint chips; `world.missionPrompt` is a mission stage's own prompt), `shopui.js` (shop menus: select, then buy with the button; confirm for expensive items), `vehiclepreview.js` (rotating 3D preview for the shops and the garage tab: vehicles, weapons, people, products), `shopmodels3d.js` (procedural shop products), `pausemenu.js` (tabs; `addMissionsSection` for extra Missies sections), `garageui.js` (garage tab with the 3D viewer), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js` + `.css` (phone notifications and calls), `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots and the pause menu's header, footer and panels) |
 | Audio | `speech.js` (the one talking channel, see "Spoken lines"), `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
-| Building passages and interiors | `passages.js` (the corridors footways and streets cut through a footprint: mapped OSM passages from `mapextras.json` `passages`, streets, short footways/cycleways; walkers, vehicles, spawns and the camera share them), `portalcut3d.js` (building materials discard inside the passage boxes near the player, so the facade shows a real gate; lined tunnels with lamps), `museumplan.js` + `museum3d.js` (the Groninger Museum's walkable ground floor as rooms: cycle passage, atrium, Entreehal, zaal 1, zaal 3 with the Gouden Eierbal case used by H6; a room with `shut` is closed to walkers) |
-| Validation | `spotcheck.js` (every start/target point must be open ground you can walk away from), `ringcheck.js` (nothing solid or open water on the ring race lap and ring roads, a car crosses every water crossing of the major and numbered roads at 80 km/h in both directions and three lanes, a scripted car and the AI racers drive a full lap, every rail lift can be walked, driven and cycled up); both run in the story test, desktop `--validate-spots[=dir]` runs only them |
+| Building passages and interiors | `passages.js` (the corridors footways and streets cut through a footprint: mapped OSM passages from `mapextras.json` `passages`, streets, short footways/cycleways; walkers, vehicles, spawns and the camera share them; a way that ends at a facade gets a door, a footway or cycleway through a solid block is cut at the facade when the map loads, `clipWaysInBuildings`), `portalcut3d.js` (building materials discard inside the passage boxes near the player, so the facade shows a real gate; lined tunnels with lamps; the door panels), `museumplan.js` + `museum3d.js` (the Groninger Museum's walkable ground floor as rooms: cycle passage, atrium, Entreehal, zaal 1, zaal 3 with the Gouden Eierbal case used by H6; a room with `shut` is closed to walkers) |
+| Validation | `spotcheck.js` (every start/target point must be open ground you can walk away from), `ringcheck.js` (nothing solid or open water on the ring race lap and ring roads, a car crosses every water crossing of the major and numbered roads at 80 km/h in both directions and three lanes, a scripted car and the AI racers drive a full lap, every rail lift can be walked, driven and cycled up), `passagecheck.js` (every street, cycleway and footway stretch inside a footprint is an opening, a door, a facade graze or clipped, never through a solid wall or an invisible hole; `node scripts/passage_audit.mjs` lists them from the map data); all run in the story test, desktop `--validate-spots[=dir]` runs only them |
 | 3D | `scene3d.js` (scene, streaming, camera), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 
 ## Spoken lines
@@ -328,6 +328,13 @@ per map (`map.elev`):
 - The open cuts as a mask texture (`cutmask3d.js`): terrain, canal bed and
   grass discard fragments over them near the player; streets and rails
   crossing a cutting get a deck.
+  The mask has ~1 m texels, so the hole reaches a little past the walls:
+  roadstructures3d.js draws a coping strip beside every open wall, a floor
+  under every sunken carriageway, a floor strip between two carriageways
+  without a wall, a portal with coping at every tunnel mouth, and
+  `elev.skirts` (elevation.js, drawn only): low wall faces where a ramp
+  starts down before a retaining wall is needed, beside a street at the top,
+  and across the gaps between wall ends (`joinWallEnds`).
 
 Nothing else needs to know about heights: vehicles on different levels
 don't collide, and actors are drawn at their height.
@@ -353,7 +360,7 @@ don't collide, and actors are drawn at their height.
   `loadMap` before the `GameMap` is built: OSM busways (`road.busOnly`) and
   bus lanes (`road.busLane = {fwd, bwd}`), footprints and heights missing
   from the city-core cache (Grote Markt, UMCG), per-building patches (the
-  EIKEA landmark), gas stations (`meta.fuel`) and padel sites (`meta.padel`:
+  EIKEA landmark; bounds-matched patches remove the underground garages and bridge piers still in citymap.json and turn covered walkways into canopies), gas stations (`meta.fuel`) and padel sites (`meta.padel`:
   OSM `sport=padel` pitches grouped per site, named after their wijk). It lives outside
   citymap.json so the big file stays untouched.
 - The follow camera orbits at `ORBIT_RADIUS` and keeps `CAM_CLEARANCE` from

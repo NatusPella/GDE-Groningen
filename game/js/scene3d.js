@@ -2242,7 +2242,10 @@ function makePrewarmProxy(o, m) {
           : o.isLineSegments ? new THREE.LineSegments(g, m)
             : o.isLine ? new THREE.Line(g, m)
               : new THREE.Mesh(g, m);
-  if (o.instanceColor) proxy.instanceColor = o.instanceColor;
+  // its own colour buffer: disposing the stand-in frees its instance buffers,
+  // and a shared one would leave the real mesh drawing from a deleted buffer
+  // (black grass tufts, shrubs and hedges)
+  if (o.instanceColor) proxy.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(3), 3);
   // own skeleton (and instance buffer): freed after the draw, drawPrewarmBatch
   if (o.isSkinnedMesh) proxy.bind(o.skeleton.clone(), o.bindMatrix);
   // shadow receiving is part of the program key
