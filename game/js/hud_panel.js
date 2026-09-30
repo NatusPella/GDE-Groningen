@@ -541,6 +541,8 @@ function updateMission(world) {
   if (key !== els.objKey) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;
+    // a mission's objective stays up in pigeon mode too (H4's photos, H10's knots)
+    els.mission.classList.toggle('in-mission', o.kind === 'mission');
     els.mission.classList.remove('pop');
     void els.mission.offsetWidth;
     els.mission.classList.add('pop');
