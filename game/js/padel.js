@@ -93,7 +93,8 @@ function roadAt(map, x, y) {
   return false;
 }
 
-// A 12 x 22 m rectangle (court + margin) free of buildings, water and roads.
+// A 12 x 22 m rectangle (court + margin) free of buildings, water and roads
+// (buildings on a metre grid: a corner of a hall slips between coarser samples).
 function fits(map, cx, cy, rot) {
   const f = frameOf(cx, cy, rot);
   for (let u = -6.2; u <= 6.21; u += 2.07) {
@@ -102,7 +103,25 @@ function fits(map, cx, cy, rot) {
       if (solidAt(map, p.x, p.y) || isInWater(map, p.x, p.y) || roadAt(map, p.x, p.y)) return false;
     }
   }
+  for (let u = -6; u <= 6; u += 1) {
+    for (let v = -11; v <= 11; v += 1) {
+      const p = toMap(f, u, v);
+      if (solidAt(map, p.x, p.y)) return false;
+    }
+  }
   return true;
+}
+
+// On a court's pad (the 12 x 22 m rectangle fits() cleared)?
+function onCourt(x, y) {
+  for (const s of sites) {
+    for (const c of s.courts) {
+      const f = c.f, dx = x - f.cx, dy = y - f.cy;
+      if (dx * dx + dy * dy > 170) continue;
+      if (Math.abs(dx * f.ax + dy * f.ay) < 6.2 && Math.abs(dx * f.lx + dy * f.ly) < 11.2) return true;
+    }
+  }
+  return false;
 }
 
 function doorSpot(map, f) {
@@ -381,6 +400,9 @@ export function initPadel(w) {
     for (const c of s.courts) c.mesh = buildCourt(c.f);
     sites.push(s);
   });
+  // no grass through the court floor, no parked cars or clutter on it
+  const prev = w.map.reservedAt;
+  w.map.reservedAt = (x, y) => (prev ? prev(x, y) : false) || onCourt(x, y);
   window.__padel = {
     spots: () => sites.map((s) => ({ id: s.id, name: s.name, x: s.x, y: s.y, courts: s.courts.length, src: s.src })),
     start: (id) => { const s = id ? sites.find((q) => q.id === id) : nearestAny(w); return s ? startMatch(w, s, { force: true }) : false; },
