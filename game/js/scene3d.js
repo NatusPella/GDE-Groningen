@@ -2155,6 +2155,9 @@ export function update3D(dt, world) {
   }
   const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
   let lookX = player.x, lookY = (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp, lookZ = player.y;
+  followPose.position.x = camBase.x; followPose.position.y = camBase.z; followPose.position.z = camBase.y;
+  followPose.lookAt.x = lookX; followPose.lookAt.y = lookZ; followPose.lookAt.z = lookY;
+  followPose.at = performance.now();
   scopeBlend += ((world.scoped && !veh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);
   if (scopeBlend < 0.01) scopeBlend = 0;
   if (scopeBlend > 0) {
@@ -2484,6 +2487,13 @@ function stepWarmup(world) {
 // in from the follow cam, tracks the override smoothly, and eases back out
 // once it is cleared.
 const CAM_OVERRIDE_BLEND_S = 0.9;
+// The follow camera's own pose in map coordinates, kept up to date under a
+// cutscene (collision included unless the override is a hard cut), so a
+// scene can end exactly where play resumes.
+const followPose = { position: { x: 0, y: 0, z: 0 }, lookAt: { x: 0, y: 0, z: 0 }, at: 0 };
+export function getFollowPose() {
+  return followPose.at && performance.now() - followPose.at < 500 ? followPose : null;
+}
 let overrideBlend = 0;
 let overrideActive = false;
 const overridePos = new THREE.Vector3();
@@ -2538,7 +2548,9 @@ function roofTopNear(map, x, y) {
 }
 const _guardLast = new THREE.Vector3(1e9, 0, 0);
 function guardCinematicCamera(dt, world) {
-  const need = world && world.map ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
+  // a shot landing on the follow camera (override.follow) goes where play is, lift or not
+  const landing = !!(world && world.cameraOverride && world.cameraOverride.follow);
+  const need = world && world.map && !landing ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
   // a cut to another place starts from its own need, not the old shot's lift
   if (_guardLast.distanceToSquared(cam.position) > 144) guardLift = need;
   _guardLast.copy(cam.position);

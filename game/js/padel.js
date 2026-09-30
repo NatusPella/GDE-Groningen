@@ -962,7 +962,7 @@ const CSS = `
 #hud .padel-board .pb-teams b { font-weight: normal; font-size: 24px; text-align: right; }
 #hud .padel-board .pb-teams i { font-style: normal; font-size: 24px; color: #ffd23f; text-align: right; min-width: 30px; }
 #hud .padel-board .pb-side { display: flex; flex-direction: column; align-items: flex-end; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); letter-spacing: .3px; }
-#hud .padel-board kbd { display: inline-block; min-width: 12px; margin: 0 2px; padding: 2px 6px; border: 2px solid #f3efe4; border-bottom-width: 3px; border-radius: 5px; font: 700 11px/1 system-ui, sans-serif; letter-spacing: .5px; color: #f3efe4; background: rgba(255,255,255,.08); text-align: center; }
+#hud .padel-board .hud-key { margin: 0 2px; vertical-align: middle; }
 #hud .padel-board .pb-help { display: flex; align-items: center; gap: 3px; margin-top: 3px; }
 #hud .padel-board .pb-flash { font-size: 22px; letter-spacing: 1.5px; color: #5dff7a; min-height: 1em; }
 #hud .padel-board .pb-flash.them { color: #ff9a3c; }
@@ -999,7 +999,8 @@ function updateHud(w) {
   const left = Math.max(0, Math.ceil(MATCH_CAP - g.t));
   const flash = g.flash ? g.flash.text : g.phase === 'serve' && g.server === 0 ? 'Jij serveert: Spatie' : '';
   const clock = g.capped ? 'Laatste punt' : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
-  const help = `${clock} · <kbd>A</kbd><kbd>D</kbd> lopen · <kbd>SPATIE</kbd> slaan · <kbd>BACKSPACE</kbd> opgeven`;
+  const k = (t) => `<span class="hud-key">${t}</span>`;
+  const help = `${clock} · ${k('A')}${k('D')} lopen · ${k('SPATIE')} slaan · ${k('BACKSPACE')} opgeven`;
   const key = [us, them, g.games, g.points, g.server, g.phase === 'intro', flash, help, g.lastWinner].join('|');
   if (key === hud.key) return;
   hud.key = key;

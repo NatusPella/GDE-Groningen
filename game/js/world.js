@@ -91,6 +91,8 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announc
   p.x = sx;
   p.y = sy;
   if (at && Number.isFinite(at.angle)) p.angle = at.angle;
+  // the camera starts behind the new facing, not wherever it looked before (into the bureau's wall)
+  world.camYaw = p.angle;
   if (pick.name && !at) world.spawnLandmarkName = pick.name;
   world.health = 100;
   world.armor = 0;

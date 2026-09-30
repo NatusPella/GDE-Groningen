@@ -441,7 +441,7 @@ export function getLifetimeStats() {
 // --- toast ------------------------------------------------------------------
 
 const CSS = `
-#hud .ach-toast { position: absolute; top: calc(11vh / var(--ui, 1)); left: 50%; z-index: 6; display: flex; align-items: center; gap: 14px;
+#hud .ach-toast { position: absolute; top: calc(11vh / var(--ui, 1)); left: max(50%, 700px); z-index: 6; display: flex; align-items: center; gap: 14px;
   min-width: 300px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: 10px 22px 10px 12px;
   background: linear-gradient(90deg, rgba(12,20,14,0.94) 0%, rgba(12,20,14,0.86) 70%, rgba(12,20,14,0.6) 100%);
   border-left: 4px solid #3fc97a; box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px rgba(63,201,122,0.18);
@@ -458,7 +458,7 @@ const CSS = `
 #hud .ach-toast .ach-title .nl-sub { font-size: 0.55em; letter-spacing: 0.5px; text-transform: none; }
 #hud .ach-toast .ach-desc { font: 14px/1.3 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.75); }
 #hud .ach-toast .ach-pct { font-size: 15px; color: rgba(240,237,228,0.5); margin-left: 8px; letter-spacing: 1px; }
-@media (max-width: 480px) { #hud .ach-toast { min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } #hud .ach-toast .ach-title { font-size: 22px; } }
+@media (max-width: 480px) { #hud .ach-toast { left: 50%; min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } #hud .ach-toast .ach-title { font-size: 22px; } }
 `;
 
 export const TROPHY_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V18h3v3H8v-3h3v-3.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3V3zm0 4H6v1a2 2 0 0 0 1 1.7V7zm10 0v2.7A2 2 0 0 0 18 8V7h-1z"/></svg>';
@@ -506,7 +506,7 @@ function showNextToast() {
   el.classList.toggle('gold', gold);
   const { pct } = getAchievementSummary();
   el.innerHTML = `<span class="ach-ico">${TROPHY_SVG}</span><span class="ach-txt">` +
-    `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct}%</span></span>` +
+    `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span></span>` +
     `<span class="ach-title">${dualHtml(a.title)}</span><span class="ach-desc">${escHtml(a.desc)}</span></span>`;
   void el.offsetWidth;
   el.classList.add('on');

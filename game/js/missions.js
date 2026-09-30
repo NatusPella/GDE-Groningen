@@ -97,6 +97,8 @@ function buildDefs(world) {
       reward: 400,
       // Berend takes €3 off per percent of damage, down to a quarter of the fee
       scratchFine: 3,
+      vehicleName: 'Berends bakkie',
+      destName: 'het Boterdiep',
       start: drive(224, -27),
       dest: drive(-14, -489),
     },
@@ -133,6 +135,8 @@ function buildDefs(world) {
       reward: 850,
       fragile: { label: 'Decor', per: 1.8, failAt: 30, fail: 'het decor ligt in scherven. Het wordt moderne dans' },
       stops: [{ ...drive(96, -318), name: 'de Stadsschouwburg', bonus: 25, arrive: 'De acteurs springen achterin, tussen het decor. "Rustig rijden, hè!"' }],
+      vehicleName: 'de decorauto',
+      destName: 'het Noorderplantsoen',
       start: drive(787, -95),
       dest: drive(189, -590),
     },
@@ -929,6 +933,8 @@ function syncPub(world) {
   pub.marker.y = target.y;
   pub.marker.z = Number.isFinite(target.z) && def.type === 'stages' && st.phase === 'active' ? target.z : null;
   pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
+  pub.armed = !!st.armed;
+  pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
   if (def.type === 'rampage' && st.phase === 'active') {
     pub.killProgress = killCount(world) - st.killBaseline;
     pub.killTarget = def.targetKills;
@@ -1015,9 +1021,10 @@ function nextStop(def) {
 // own position/checkpoint text).
 function progressText(world, def, pub) {
   if (def.type === 'deliver') {
-    const bits = [];
+    if (vehicleToBoard(world, def)) return `Stap in ${def.vehicleName || 'de auto'}`;
     const stop = nextStop(def);
-    if (def.stops) bits.push(stop ? `Eerst naar ${stop.name}` : 'Door naar de bestemming');
+    const to = def.destName || 'de bestemming';
+    const bits = [stop ? `Eerst naar ${stop.name}` : def.stops ? `Door naar ${to}` : `Rij naar ${to}`];
     if (def.fragile) bits.push(`${def.fragile.label} ${pub.cargo ?? 100}% heel`);
     else if (pub.vehicleDamage != null) bits.push(`Schade ${pub.vehicleDamage}%`);
     return bits.join(' · ') || null;
