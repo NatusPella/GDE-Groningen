@@ -466,8 +466,8 @@ const DAILY_MARKET = { x: 162, y: 78, r: 40 };
 function buildFlowerMarket() {
   const spots = [];
   const corners = (x, y, a) => [[1.5, 0.9], [1.5, -0.9], [-1.5, 0.9], [-1.5, -0.9]].map(([s, f]) => [x + Math.cos(a) * f - Math.sin(a) * s, y + Math.sin(a) * f + Math.cos(a) * s]);
-  for (const row of [-13, -5, 5, 13]) {
-    for (let col = -26; col <= 26 && spots.length < 14; col += 4.2) {
+  for (const row of [-5, 5, -13, 13, -21, 21, -29, 29]) {
+    for (let col = -38; col <= 38 && spots.length < 16; col += 4.2) {
       const x = GROTE_MARKT.x + col, y = GROTE_MARKT.y + row;
       const a = row < 0 ? -Math.PI / 2 : Math.PI / 2;
       if (Math.hypot(x - DAILY_MARKET.x, y - DAILY_MARKET.y) < DAILY_MARKET.r) continue;
