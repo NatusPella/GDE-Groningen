@@ -31,7 +31,10 @@ const KISS_DIST = 1.8;
 const KISS_COOLDOWN = 3;
 const SECONDARY_INTERVAL = 0.15;
 const MAX_SECONDARY = 1;
-const MAX_ROWS = 5;
+const MAX_ROWS = 3;
+// key hints come up one by one: a moment after spawning or a cutscene, then one more per stagger
+const ROWS_DELAY = 2.5;
+const ROWS_STAGGER = 1.4;
 
 let root = null;
 let wps = [];
@@ -47,6 +50,9 @@ let pressFlash = 0;
 let prev = { inVehicle: false, mouseDown: false };
 let lookAccum = 0;
 let lastPrimaryKey = '';
+const admitted = new Set();
+let rowGate = ROWS_DELAY;
+let hiddenT = 0;
 const tmp = new THREE.Vector3();
 const camDir = new THREE.Vector3();
 
@@ -169,7 +175,12 @@ export function updatePrompts(dt, world) {
   const hidden = hiddenNow(world);
   root.classList.toggle('off', hidden);
   rowsEl.classList.toggle('off', hidden || hintsQuiet());
-  if (hidden) return;
+  if (hidden) {
+    // after a scene or a respawn the hints build up again from nothing
+    if ((hiddenT += dt) > 1.5) { admitted.clear(); rowGate = ROWS_DELAY; }
+    return;
+  }
+  hiddenT = 0;
 
   const primary = findPrimary(world);
   secondaryTimer -= dt;
@@ -178,7 +189,7 @@ export function updatePrompts(dt, world) {
     secondary = findSecondary(world, primary);
   }
   renderWorldPrompts(world, primary);
-  renderRows(world, primary);
+  renderRows(world, primary, dt);
 }
 
 // --- usage tracking (drives the tutorial level of every hint) ---------------
@@ -519,11 +530,11 @@ function renderWorldPrompts(world, primary) {
 }
 
 // --- compact context stack (bottom right) -----------------------------------
-// One chip per control: key cap + pictogram. Text only while an action is
-// new (the first LEARN_USES uses; the first such row gets the big tutorial
-// look with a description) or rare (a one-word label); once used
-// MASTER_USES times the chip fades out for good. The objective (mission,
-// bijbaan, police) lives in the objective line at the top, not here.
+// One chip per control: key cap + pictogram, at most MAX_ROWS, the most
+// relevant for what you're doing first, coming up one by one. Only the first
+// new one (fewer than LEARN_USES uses) gets text: the big tutorial look with
+// a description; once used MASTER_USES times a chip fades out for good. The
+// objective (mission, bijbaan, police) lives in the objective line at the top.
 
 const PIC = {
   move: '<circle cx="12" cy="4.2" r="2"/><path d="M12 7.5l-1.2 5.5 3 3v5.5M10.8 13l-2.6 7.5M12 8l3.8 3M12 8l-3.8 2.6"/>',
@@ -554,7 +565,6 @@ const PIC = {
 };
 const pic = (id) => (PIC[id] ? `<svg class="ctx-pic" viewBox="0 0 24 24" aria-hidden="true">${PIC[id]}</svg>` : '');
 
-// rare: a one-word label stays until the chip fades out
 function tut(id, keys, label, desc, rare = false) {
   return { id, keys, label, desc, rare, kind: 'tut' };
 }
@@ -591,8 +601,7 @@ function contextRows(world, primary) {
   } else {
     rows.push(tut('move', ['WASD'], 'Lopen', 'W vooruit, S achteruit, A/D opzij'));
     rows.push(tut('look', ['MOUSE'], 'Rondkijken', 'Muis draait de camera om je heen'));
-    if (p.moving) rows.push(tut('sprint', ['SHIFT'], 'Rennen', 'Houd Shift ingedrukt'));
-    rows.push(tut('jump', [' '], 'Springen', 'Over hekjes en paaltjes'));
+    // what you carry (or a fight) comes before sprinting and jumping
     if (armed) {
       const w = WEAPONS[world.weapon];
       if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd vast om in te zoomen, klik om te schieten'));
@@ -603,19 +612,18 @@ function contextRows(world, primary) {
     } else if (world.wanted > 0 || (world.weapon && world.weapon !== 'fists')) {
       rows.push(tut('punch', ['LMB'], 'Slaan', world.weapon === 'fists' ? 'Vuisten eerst, vragen later' : 'Klik om uit te halen, 1 wisselt'));
     }
+    if (p.moving) rows.push(tut('sprint', ['SHIFT'], 'Rennen', 'Houd Shift ingedrukt'));
+    rows.push(tut('jump', [' '], 'Springen', 'Over hekjes en paaltjes'));
     rows.push(tut('crouch', ['CTRL'], 'Bukken', 'Langzaam en klein'));
   }
   rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming', true));
   rows.push(tut('phone', ['T'], 'Telefoon', 'Missies, contacten en Sikkom', true));
 
   const out = [];
-  let learnShown = false;
   for (const r of rows) {
     if (primary && primary.key === 'E' && r.keys[0] === 'E') continue;
     if (mastered(r.id)) continue;
     r.fresh = learning(r.id);
-    r.learn = !learnShown && r.fresh;
-    if (r.learn) learnShown = true;
     out.push(r);
     if (out.length >= MAX_ROWS) break;
   }
@@ -623,20 +631,40 @@ function contextRows(world, primary) {
 }
 
 function rowState(r) {
-  return r.learn ? 'learn' : r.fresh ? 'new' : r.rare ? 'rare' : 'icon';
+  return r.learn ? 'learn' : r.fresh ? 'new' : 'icon';
 }
 
+// Text only on the one row being taught; the others are key cap + pictogram.
 function rowHtml(r) {
   const state = rowState(r);
   const glyphs = r.keys.map((k) => glyphHtml(k)).join('');
-  const text = state === 'icon' ? '' : '<span class="ctx-text"><b>' + esc(r.label) + '</b>' + (state === 'learn' && r.desc ? '<small>' + esc(r.desc) + '</small>' : '') + '</span>';
+  const text = state !== 'learn' ? '' : '<span class="ctx-text"><b>' + esc(r.label) + '</b>' + (r.desc ? '<small>' + esc(r.desc) + '</small>' : '') + '</span>';
   return '<span class="ctx-glyphs">' + glyphs + '</span>' + pic(r.id) + text;
 }
 
 const rowEls = new Map();
 
-function renderRows(world, primary) {
-  const rows = contextRows(world, primary);
+// The rows that are already up stay; a new one joins at most every ROWS_STAGGER
+// seconds (not while the hints step aside), in the context's order.
+function admitRows(want, dt, quiet) {
+  for (const id of admitted) if (!want.some((r) => r.id === id)) admitted.delete(id);
+  if (!quiet) rowGate -= dt;
+  const out = [];
+  for (const r of want) {
+    if (!admitted.has(r.id)) {
+      if (quiet || rowGate > 0) continue;
+      admitted.add(r.id);
+      rowGate = ROWS_STAGGER;
+    }
+    out.push(r);
+  }
+  const learn = out.find((r) => r.fresh);
+  for (const r of out) r.learn = r === learn;
+  return out;
+}
+
+function renderRows(world, primary, dt = 0) {
+  const rows = admitRows(contextRows(world, primary), dt, hintsQuiet());
   const key = rows.map((r) => r.id + ':' + rowState(r)).join('|');
   if (key === rowsKey) return;
   rowsKey = key;

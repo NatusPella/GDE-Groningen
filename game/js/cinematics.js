@@ -20,6 +20,9 @@ const SKIP_HOLD_S = 0.9; // hold Space this long to skip a cutscene
 const LANDMARK_RADIUS = 55;
 const CRASH_COOLDOWN_MS = 20000;
 const BANNER_TIME = 3.8;
+const FAIL_BANNER_TIME = 2.8;
+// after this long, playing on (moving, a click, a key) takes the banner away
+const BANNER_GRACE = 0.9;
 const CAM_MODES = ['', 'BUMPER', 'ZIJKANT', 'HELIKOPTER', 'TELELENS'];
 const WIJK_KEY = 'gte-wijken-seen';
 // cinematics that book their own attention.js moment
@@ -917,18 +920,35 @@ export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stat
   b.classList.remove('in', 'out');
   void b.offsetWidth;
   b.classList.add('in');
-  banner = { t: 0 };
+  // one banner at a time: a new one replaces whatever was up
+  banner = { t: 0, time: kind === 'fail' ? FAIL_BANNER_TIME : BANNER_TIME, out: -1 };
+}
+
+const MOVE_KEYS = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
+const ACT_KEYS = ['e', 'f', ' ', 'm', 't', 'shift'];
+function playingOn() {
+  const inp = world && world.input;
+  if (!inp) return false;
+  return MOVE_KEYS.some((k) => inp.isDown(k)) || ACT_KEYS.some((k) => inp.wasPressed(k)) || !!(inp.mouse && inp.mouse.down);
 }
 
 function updateBanner(dt) {
   if (!banner) return;
   banner.t += dt;
-  if (banner.t > BANNER_TIME && !els.banner.classList.contains('out')) els.banner.classList.add('out');
-  if (banner.t > BANNER_TIME + 0.6) {
+  if (banner.out < 0 && (banner.t > banner.time || (banner.t > BANNER_GRACE && !active && playingOn()))) {
+    banner.out = banner.t;
+    els.banner.classList.add('out');
+  }
+  if (banner.out >= 0 && banner.t > banner.out + 0.55) {
     els.banner.hidden = true;
     els.banner.classList.remove('in', 'out');
     banner = null;
   }
+}
+
+// a mission result banner is on screen (story.js waits with a handover)
+export function isBannerUp() {
+  return !!banner;
 }
 
 // read-only view of the running cutscene for the soft-lock watchdog (safety.js)

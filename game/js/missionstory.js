@@ -6,7 +6,7 @@ import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff } from './fx3d.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
-import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK } from './storycast.js';
+import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
 
@@ -45,6 +45,7 @@ const NPC = {
   mem: { ...MEM_LOOK, name: 'Mem Terpstra' },
   hilly: { name: 'Hilly', shirt: 0xc2549a, skin: SKIN.woodLight, variant: 'female', seed: 4410, hairStyle: 'bob' },
   dijkstra: { name: 'Dokter Dijkstra', shirt: 0xe8641c, skin: SKIN.woodLight, variant: 'male', seed: 77 },
+  rotor: { ...ROTOR_LOOK, name: 'Rotor Roelf' },
 };
 
 // Display name for a story speaker key (T, A, V or an NPC key); missions.js
@@ -62,21 +63,16 @@ export function storySpeakerName(key) {
 // for the short replay version.
 const STORY = [
   {
-    npc: 'berend', outroPose: 'hips', ask: 6,
+    // the first scene of the game: short, the camera comes down onto the square
+    // (the museum line only plays when the opening montage was skipped before it)
+    npc: 'berend', outroPose: 'hips', ask: 2, introOpen: 'descend',
     intro: [
-      ['V', 'Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet.'],
       ['V', 'In het Groninger Museum staat sinds 1953 het stadsjuweel: de Gouden Eierbal. Achttien karaat. Onbetaalbaar.'],
-      ['T', 'Ik heb nog nooit een eierbal gezien die ik niet kon betalen.'],
-      ['A', 'Jij hebt nog nooit iets kunnen betalen, Tammo.'],
       ['V', 'En hier, bij het Martinikerkhof, begint het. Met een bakkie, een norse man en twee mensen zonder cent.'],
-      ['N', 'Zo. Jullie zijn dat stel waar heel Grunn over kletst? Ik had er meer van verwacht.'],
-      ['N', 'Mien bakkie staat hier. Naar het Boterdiep ermee, en geen kras. Ik tel ze.'],
-      ['A', 'Ik rij.'],
-      ['T', 'Jij rijdt als een fietser met een deadline.'],
+      ['N', 'Mien bakkie staat hier. Naar het Boterdiep ermee, en geen kras. Ik tel ze.', { cam: 'track' }],
+      ['A', 'Ik rij.', { cam: 'close' }],
+      ['T', 'Jij rijdt als een fietser met een deadline.', { cam: 'two' }],
       ['A', 'En jij als een fietser zonder fiets. Sleutels, Berend.'],
-      ['N', 'Vóór mijn koffie koud is. En hij daar blijft van de radio af.'],
-      ['T', 'Ik blijf overal van af.'],
-      ['A', 'Dat is nou precies je probleem, Tammo.'],
     ],
     outroNpc: true,
     outro: [
@@ -678,7 +674,7 @@ function timeline(lines, npc, lead = 0.5) {
     const speaker = speakerName(who, npc);
     const voice = voiceFor(speaker, text);
     const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : lineDur(text);
-    const l = { who, speaker, text, at: t, dur: d, voice, clue: !!(o && o.clue), look: (o && o.look) || null };
+    const l = { who, speaker, text, at: t, dur: d, voice, clue: !!(o && o.clue), look: (o && o.look) || null, cam: (o && o.cam) || null };
     t += d + 0.1;
     return l;
   });
@@ -731,13 +727,18 @@ function makeProp(r, p, anchor) {
     const m = fatbikeMesh();
     if (spec.cans) addCans(m, 3);
     const riders = (spec.riders || ['durk', 'douwe']).map((k) => r.extras.find((e) => e.key === k) || null);
-    for (const e of riders) if (e) { e.riding = true; e.mesh.visible = false; }
-    m.visible = false;
+    // mount: the bike stands parked and the riders stand beside it until they get on (playCastScene times it)
+    const mount = !!spec.mount;
+    if (!mount) for (const e of riders) if (e) { e.riding = true; e.mesh.visible = false; }
     const a = Math.atan2(to.y - from.y, to.x - from.x), len = Math.hypot(to.x - from.x, to.y - from.y);
-    const o = { kind: 'fatbike', mesh: m, from, to, at0: spec.at0 ?? 0, dur: spec.dur || 8, auto: !!spec.auto, pos: from };
+    m.visible = mount;
+    if (mount) { m.position.set(from.x, 0, from.y); m.rotation.y = -a; }
+    const o = { kind: 'fatbike', mesh: m, from, to, at0: spec.at0 ?? 0, dur: spec.dur || 8, auto: !!spec.auto, mount, pos: from };
     o.update = (t, dt) => {
       const u = (t - o.at0) / o.dur;
+      if (mount && u < 0) return;
       if (u < 0 || u > 1.05) { m.visible = false; for (const e of riders) if (e) e.mesh.visible = false; return; }
+      if (mount) for (const e of riders) if (e) e.riding = true;
       m.visible = true;
       const x = lerp(from.x, to.x, u), y = lerp(from.y, to.y, u);
       o.pos = { x, y };
@@ -970,6 +971,21 @@ function camsFor(r) {
       const a = camClear(w, P(mid.x - f.x * lerp(9, 6, smooth(u)) + n.x * lerp(5, 3.2, u) * s1, mid.y - f.y * lerp(9, 6, smooth(u)) + n.y * lerp(5, 3.2, u) * s1, h + lerp(4.2, 2.8, u)));
       return pose(a, head({ x: (mid.x + npc.x) / 2, y: (mid.y + npc.y) / 2 }, 1.3), 50);
     },
+    // an opening: from high over the square, swooping down and round onto the group
+    descend: (u) => {
+      const k = smooth(u), e = 1 - (1 - k) * (1 - k);
+      const ex = -f.x * 9 + n.x * 5 * s1, ey = -f.y * 9 + n.y * 5 * s1;
+      const a = Math.atan2(ey, ex) + lerp(1.15, 0, k) * s1, R = lerp(26, 9.5, e);
+      const c = { x: (mid.x + npc.x) / 2, y: (mid.y + npc.y) / 2 };
+      const pos = camClear(w, P(c.x + Math.cos(a) * R, c.y + Math.sin(a) * R, h + lerp(19, 3.6, e)));
+      return pose(pos, head(c, lerp(0.4, 1.3, k)), lerp(56, 48, k));
+    },
+    // over the pair's shoulder, tracking sideways across onto the NPC
+    track: (u) => {
+      const k = smooth(u), sw = lerp(2.9, 0.5, k) * s1, back = lerp(2.3, 1.5, k);
+      const a = camClear(w, P(mid.x - f.x * back + n.x * sw, mid.y - f.y * back + n.y * sw, h + lerp(1.5, 1.78, k)));
+      return pose(a, head(npc, 1.5), lerp(44, 34, k));
+    },
     npc: (u) => {
       const k = smooth(u), sw = lerp(2.2, 1.6, k) * s1, back = lerp(1.9, 1.3, k);
       const a = camClear(w, P(mid.x - f.x * back + n.x * sw, mid.y - f.y * back + n.y * sw, h + lerp(1.62, 1.74, k)));
@@ -1110,11 +1126,18 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
   return ok;
 }
 
-function play(w, id, r, tl, { kicker, title, cardFor, closing, target, poses = () => ({}), banner, bannerAfter }) {
+// opening: the first line's shot ('descend'); a line's own `cam` picks a shot by name
+function lineCam(cams, name, who) {
+  if (name === 'close') return (u) => cams.close(who, u) || cams.duo(u);
+  return cams[name] || null;
+}
+
+function play(w, id, r, tl, { kicker, title, cardFor, closing, opening, target, poses = () => ({}), banner, bannerAfter }) {
   const cams = camsFor(r);
   const lines = tl.lines;
   const plan = lines.map((l, i) => {
-    const base = camFor(r, cams, l.who, i === 0 && lines.length > 1, i === lines.length - 1, closing, target, l.text);
+    const own = i === 0 && opening ? lineCam(cams, opening, l.who) : l.cam ? lineCam(cams, l.cam, l.who) : null;
+    const base = own || camFor(r, cams, l.who, i === 0 && lines.length > 1, i === lines.length - 1, closing, target, l.text);
     return { from: l.at - (i === 0 ? l.at : 0.06), to: l.at + l.dur + 0.06, fn: l.look ? (u) => cams.prop(l.look, u) || base(u) : base };
   });
   if (lines.length === 1) plan[0].fn = closing === 'glance' ? (u) => cams.glance(u, target) : cams.two;
@@ -1178,7 +1201,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   const tl = timeline(lines, r.npcDef, short ? 0.4 : 0.6);
   const askText = s.intro[s.ask][1];
   return play(w, 'mission-intro', r, tl, {
-    kicker, title, cardFor: short ? tl.total : 3.6, closing: 'glance', target,
+    kicker, title, cardFor: short ? tl.total : 3.6, closing: 'glance', opening: full ? s.introOpen : null, target,
     poses: (t, cur) => ({ N: cur && cur.text === askText ? 'point' : i === 1 || i === 15 ? 'phone' : null, A: (i === 5 || i === 15) && cur && cur.who === 'A' ? 'hips' : null }),
   });
 }
@@ -1492,6 +1515,12 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   if (!r) return false;
   const tl = timeline(lines, null, 0.6);
   if (shotLines && tl.lines[shotLines - 1]) shotFor = tl.lines[shotLines - 1].at + tl.lines[shotLines - 1].dur;
+  // a parked prop the cast gets on: they ride off on the first line that looks at it
+  for (const p of r.props) {
+    if (!p.mount) continue;
+    const l = tl.lines.find((q) => q.look === p.kind);
+    p.at0 = l ? l.at - 0.2 : Infinity;
+  }
   const cams = camsFor(r);
   const plan = tl.lines.map((l, i) => {
     const base = camFor(r, cams, l.who, i === 0 && tl.lines.length > 1 && !cast.length, false, 'none', null, l.text);
