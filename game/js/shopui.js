@@ -226,7 +226,8 @@ function currentItems() {
 
 function priceHtml(it) {
   const chip = it.tag ? `<span class="sm-chip">${esc(it.tag)}</span>` : '';
-  const price = it.income > 0 ? `<b class="free">+€${it.income}</b>` : it.price > 0 ? `<b>€${it.price}</b>` : it.disabled ? '' : '<b class="free">Gratis</b>';
+  // it.plain: a choice, not a product (the dorpsquiz answers): no price badge
+  const price = it.plain ? '' : it.income > 0 ? `<b class="free">+€${it.income}</b>` : it.price > 0 ? `<b>€${it.price}</b>` : it.disabled ? '' : '<b class="free">Gratis</b>';
   const reason = it.disabled ? `<small class="no">${esc(it.disabled)}</small>` : '';
   return chip + (it.disabled && it.tag ? '' : price) + reason;
 }
