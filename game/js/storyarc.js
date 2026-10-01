@@ -60,6 +60,8 @@
 //   { type: 'kermis' }                one bumper-car ride on the Grote Markt (kermis.js), free, with Durk & Douwe in it
 //   { type: 'flight', heli, over, r } a free demo flight (storyfun.js): Rotor Roelf's heli parked at `heli`,
 //                                     Jelle's balloon at `over`; flying within r of it (or walking up) completes it
+//   { type: 'carbid', lift }          one round of carbid schieten at boer Roelf's (carbid.js); lift [from, text]: far out
+//                                     and without a car, your own Escapade is dropped off for free with that text
 
 // card: the two lines on the "Wordt vervolgd" card where the built story stops.
 // recap: the "Eerder in GTE VI" card when the part starts: [place, narrator line],
@@ -330,6 +332,24 @@ export const STEPS = [
     contact: [{ via: 'call', from: 'jelle', mood: 'greide', lines: [
       ['jelle', 'Ik sta in een weiland bij Ten Boer. Mei kij. Dit is noch net klear, Grinzers.', { tag: 'buiten adem, boos en beledigd, aan de telefoon' }],
     ] }] },
+  { id: 's-carbid', part: 'staart', kind: 'activity', player: 'tammo', built: true, why: 'Ik schiet. Ik heb die bal toch al vast. Wat kan er misgaan met een melkbus?',
+    title: 'Carbid schieten bij boer Roelf: verstop de Eierbal', goal: { type: 'carbid', lift: ['Henk', 'Je bakkie staat om de hoek, jong. Gratis gebracht. Voor Grunn doe ik dat.'] },
+    lead: ['A', 'Jelle wil zijn bal terug, en Durk en Douwe kennen al onze vaste plekken. Boer Roelf aan de Beijumerweg is de oom van mijn kapster. Daar zoekt niemand. Maar Roelf helpt alleen wie carbid kan schieten.'],
+    say: ['A', 'Niet te veel water. En niet in de bus kijken als hij knalt.'],
+    done: ['A', 'De Eierbal ligt in een melkbus aan de Beijumerweg. En Durk en Douwe trappen nog steeds.'],
+    scene: { kicker: 'Boer Roelf', knal: 'Durk… ze schieten. Trappen!',
+      cast: [{ key: 'roelf', at: [2.3, 1.3] }, { key: 'hilje', at: [2.1, -1.5] }],
+      props: [{ kind: 'ball', holder: 'T', from: 'Wij moeten' }, { kind: 'fatbike', riders: ['durk', 'douwe'], from: [22, 16], to: [20, -22], dur: 6.5, cue: true }],
+      lines: [
+        ['roelf', 'Kon minder.', { tag: 'nors, stiekem onder de indruk' }],
+        ['A', 'Dat betekent dat hij je mag, Tammo.', { tag: 'grinnikend, fluisterend' }],
+        ['T', 'Wij moeten iets verstoppen tot Gronings Ontzet. Iets van Grunn.', { tag: 'zacht, ernstig' }],
+        ['hilje', 'Roelf. Dat is de Gouden Eierbal. Uut t museum.', { tag: 'verbaasd, ad rem' }],
+        ['roelf', 'In de melkbus, doar zuukt gain Fries noar. Op Ontzet breng ik hom zulf.', { tag: 'nuchter, vastberaden', clue: true }],
+        ['durk', 'Douwe! Daar is de duif. Met de bal!', { tag: 'traag, roepend over het weiland', look: 'fatbike' }],
+        ['douwe', 'Durk… ze schieten. Trappen!', { tag: 'geschrokken, traag, trappend' }],
+        ['T', 'Viel mee.', { tag: 'droog, deadpan' }],
+      ] } },
   { id: 's-padel', part: 'staart', kind: 'activity', player: 'tammo', built: true, why: 'Ik speel. Mijn armen trillen nog van dat touw, maar mijn backhand niet.',
     title: 'Een potje padel', goal: { type: 'padel' },
     lead: ['A', 'Jij hing aan een touw onder een heli. Even afreageren: een potje padel. Jelmer zegt dat Durk en Douwe op de padelbaan staan.'],
@@ -439,6 +459,7 @@ export const CLUES = [
   { step: 'H14', kind: 'clue', title: 'Chocola', text: 'De Eierbal op het skûtsje was van chocola, met goudpapier. De echte gaat vanavond per ballon de stad uit.' },
   { step: 's-proefvlucht', kind: 'clue', title: 'De ballon in het Oosterpark', text: 'Vanuit Rotor Roelfs demoheli gezien: Jelles ballon staat klaar in het Oosterpark, Durk en Douwe ernaast. Hij gaat vanavond op.' },
   { step: 'H15', kind: 'clue', title: 'De echte Eierbal', text: 'Uit de mand gehaald, boven Grunn. Hij is zwaar, en hij smelt niet. Jelle staat in een weiland bij Ten Boer.' },
+  { step: 's-carbid', kind: 'clue', title: 'De melkbus', text: 'De echte Eierbal ligt verstopt in een melkbus bij boer Roelf aan de Beijumerweg. Na één knal durfden Durk en Douwe niet meer te komen.' },
   { step: 'H16', kind: 'clue', title: 'De Fjord', text: 'Jelle liet de Fjord jatten: hij wil ons weg hebben voor Gronings Ontzet.' },
   { step: 'H17', kind: 'hart', title: 'Het besluit', text: '"Hij hoort in Grunn." Als we winnen, gaat de Eierbal terug naar het museum.' },
   { step: 'H18', kind: 'hart', title: 'Vóór Grunn', text: 'De Eierbal staat weer in het museum. Jelle vond onze eierbal beter. Net fertelle.' },
