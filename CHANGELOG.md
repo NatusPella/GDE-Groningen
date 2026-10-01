@@ -6,6 +6,39 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-10-01
+
+### Nieuw
+- **Je eigen helikopter**: koop de Wieken Wubbo (€5500) bij Rotor Roelf op
+  vliegveld Eelde. Stijgen en dalen met W/S, vooruit met de pijltjes, Shift
+  voor extra vaart, Spatie om stil te hangen. Landen kan op vlakke grond,
+  platte daken en helipads. Op het dak van je flat ligt nu een eigen
+  helidek met een trap vanuit de hal, en je boten liggen voortaan aan
+  **Jouw steiger**. Allebei staan ze op de kaart. In de garage zit een
+  nieuwe tab Luchtvaart, met drie nieuwe prestaties.
+- **Carbid schieten** bij boer Roelf aan de Beijumerweg: richt de melkbus,
+  giet water bij, steek hem op tijd aan en schiet het deksel zo ver
+  mogelijk. Vijf schoten, medailles en een record.
+- **Kermis op de Grote Markt**: de botsauto's zijn altijd open. 's Avonds
+  en in de Meikermis-weken staat de hele kermis er, met reuzenrad,
+  kraampjes en een draaiorgel.
+- **Autoradio**: wissel met N/B tussen G-Music, Radio Nachtstreek, Radio
+  Grunn (praatradio met Geesje) en uit. Elk voertuig onthoudt zijn zender.
+- **Acht geheimen** verstopt in de stad, met een geheime prestatie. Ga maar
+  zoeken.
+- **Einde van de wereld**: op twaalf plekken waar de weg in het Ommeland
+  ophoudt, wacht iets op je. Vind ze allemaal voor een prestatie.
+- **Dorpsuitjes**: bij elk treinstation in het Ommeland is nu wat te doen,
+  zoals tennis, een rondvaart, de Groningse quiz, de molen, de scheve toren
+  of het strand. Er is ook een plek om te eten of een fiets te huren, met
+  een verstopte eierbal en een wegwijzer op het perron.
+- **Nieuwe missie na het verhaal: De Koe van Ome Jan.** Durk en Douwe
+  hebben koe Geertje gestolen. Haal haar terug over de velden, met de
+  tweeling achter je aan in Jelles trekker-limo.
+
+### Opgelost
+- Een tankstation in het Ommeland stond deels in een gebouw.
+
 ## [0.19.1] - 2026-10-01
 
 ### Opgelost
@@ -350,7 +383,7 @@ Maus' tweede speelsessie verwerkt, en een grote schoonmaak van bekende bugs.
 ### Nieuw
 - **Elk voertuig is te koop of vrij te spelen**: 46 voertuigen, van
   studentenbarrel tot midibus, taxi en speedboot. Speciale voertuigen (de
-  Poen Express, ambulance, tankwagen, Jelle's trekker-limo, stadsbus,
+  Poen Express, ambulance, tankwagen, Jelles trekker-limo, stadsbus,
   politieauto en politieboot) speel je vrij via het verhaal, bijbaantjes en
   prestaties. Alles staat in de Garage in het Escape-menu, met prijs of hoe
   je hem vrijspeelt.
