@@ -43,3 +43,10 @@ export const MEM_LOOK = {
   shirt: 0x223a66, skin: 0xecc8a8, hair: 0xc9c6c0, variant: 'female', pants: 0x2a2a30, shoes: 0x3a2a1a, hairStyle: 'bun', seed: 1953,
   look: { top: 'coat', under: 0xf4f1ea, glasses: true, shades: false, scarf: true, scarfColor: 0xc8102e, bottom: 'skirt', shoeType: 'leather', age: 'old', build: 'avg', heightScale: 0.94, hat: null, bag: 'shoulder', umbrella: null },
 };
+
+// Rotor Roelf, the helicopter dealer from Eelde (shops.js): red jacket and cap
+// in his shop colour, aviator glasses, a salesman's grin.
+export const ROTOR_LOOK = {
+  shirt: 0xb8322a, skin: 0xe2b48c, hair: 0x5a4632, variant: 'male', pants: 0x2b2f3a, shoes: 0x2a2a2a, hairStyle: 'short', seed: 5512,
+  look: { top: 'jacket', topColor: 0xb8322a, hat: 'cap', hatColor: 0xb8322a, glasses: true, shades: true, scarf: false, bottom: 'jeans', shoeType: 'sneaker', age: 'adult', build: 'avg', bag: null, umbrella: null },
+};
