@@ -5,7 +5,7 @@
 //
 // Storage: everything the player earns for good (unlocks, lifetime counters,
 // best mission times/medals) sits in its own key so it survives "Nieuw spel".
-// Per-playthrough bits (found eierballen) travel inside the savegame, which
+// Per-playthrough bits (found eierballen, geheimpjes) travel inside the savegame, which
 // also carries a copy of the unlocked ids so a save restores them if the
 // lifetime key was ever cleared.
 import { dualHtml } from './subtitles.js';
@@ -93,10 +93,22 @@ export const ACHIEVEMENTS = [
   { id: 'umcg_heli', cat: 'verkennen', title: 'Traumaduif', desc: 'Land op het helidek van het UMCG', hidden: true },
   { id: 'ballonjacht', cat: 'verkennen', title: 'Ballonjacht', desc: 'Haal met de traumaheli een heteluchtballon in' },
   { id: 'ballonjacht_goud', cat: 'verkennen', title: 'Gouden rotor', desc: 'Haal goud bij de ballonjacht' },
+  { id: 'eigen_vleugels', cat: 'verkennen', title: 'Eigen vleugels', desc: 'Stijg op met je eigen helikopter' },
+  { id: 'helidak', cat: 'verkennen', title: 'Thuis op het dak', desc: 'Parkeer je heli op het helidek van jullie flat' },
+  { id: 'weiland', cat: 'verkennen', title: 'Boer zoekt landing', desc: 'Land je heli in een weiland in De Ommelanden' },
   { id: 'padel_klaar', cat: 'verkennen', title: 'Glazen kooi', desc: 'Speel een potje padel' },
   { id: 'padel_winst', cat: 'verkennen', title: 'Tegen het glas', desc: 'Win een potje padel' },
   { id: 'padel_goud', cat: 'verkennen', title: 'Padelkoning van Grunn', desc: 'Win een potje padel met 2-0' },
+  { id: 'carbid_klaar', cat: 'verkennen', title: 'Knal in de polder', desc: 'Schiet carbid bij boer Roelf' },
+  { id: 'carbid_goud', cat: 'verkennen', title: 'Oudjoarsknaller', desc: 'Haal goud bij het carbid schieten', medal: true },
+  { id: 'botsauto_klaar', cat: 'verkennen', title: 'Kermisklant', desc: "Rij een ritje in de botsauto's op de Grote Markt" },
+  { id: 'botsauto_goud', cat: 'verkennen', title: 'Koning van de kermis', desc: "Haal goud in de botsauto's", medal: true },
+  { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
+  // the Ommeland extras (worldends.js, dorpsuitjes.js): progress only, never where
+  { id: 'wereldeinde_1', cat: 'verkennen', title: 'Rand van de kaart', desc: 'Vind een plek waar een weg van het Ommeland ophoudt', set: 'wereldeinden', goal: 1 },
+  { id: 'wereldeinde_alle', cat: 'verkennen', title: 'Einde van de wereld', desc: 'Vind alle 12 plekken waar de wegen van het Ommeland ophouden', set: 'wereldeinden', goal: 12 },
+  { id: 'dorpen_alle', cat: 'verkennen', title: 'Ommelander in hart en nieren', desc: 'Doe in elk van de 8 dorpen langs het spoor waar je daar voor komt', set: 'dorpsuitjes', goal: 8 },
 
   // post-game (postgame.js): Jelle's challenges and the Fjord Frituur
   { id: 'bruggen_klaar', cat: 'nahetverhaal', title: 'Elf bruggen', desc: 'Vaar de Elf Bruggenrace tegen Jelle uit' },
@@ -108,6 +120,8 @@ export const ACHIEVEMENTS = [
   { id: 'jelle_alles', cat: 'nahetverhaal', title: 'Better as ús', desc: 'Versla Jelle in alle drie de uitdagingen' },
   { id: 'fjord_klaar', cat: 'nahetverhaal', title: 'Luik open', desc: 'Draai een dienst met de Fjord Frituur' },
   { id: 'fjord_goud', cat: 'nahetverhaal', title: 'Kon minder', desc: 'Goud in een dienst van de Fjord Frituur', medal: true },
+  { id: 'koe_klaar', cat: 'nahetverhaal', title: 'Geertje is thuis', desc: 'Breng de prijskoe van Ome Jan terug naar zijn boerderij' },
+  { id: 'koe_goud', cat: 'nahetverhaal', title: 'Koeienfluisteraar', desc: 'Goud bij De Koe van Ome Jan', medal: true },
   { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de Fjord Frituur', stat: 'fjordEarned', goal: 1000, unit: '€' },
 
   { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: GTW, WINK en de Intercity', set: 'trains', goal: 3 },
@@ -132,6 +146,7 @@ export const ACHIEVEMENTS = [
   { id: 'eierbal_1', cat: 'verzamelen', title: 'Eerste eierbal', desc: 'Vind een verstopte eierbal', save: 'eierballen', goal: 1 },
   { id: 'eierbal_15', cat: 'verzamelen', title: 'Halve portie', desc: `Vind 15 van de ${EIERBAL_TOTAL} eierballen`, save: 'eierballen', goal: 15 },
   { id: 'eierbal_alle', cat: 'verzamelen', title: 'Eierbalkoning', desc: `Vind alle ${EIERBAL_TOTAL} eierballen in één spel`, save: 'eierballen', goal: EIERBAL_TOTAL },
+  { id: 'dorpseierbal_alle', cat: 'verzamelen', title: 'Eierballen van het Ommeland', desc: 'Vind de verstopte eierbal in elk van de 8 dorpen langs het spoor', set: 'dorpseierballen', goal: 8 },
 
   { id: 'duif_martini', cat: 'duif', title: 'Hoogste duif van Grunn', desc: 'Land boven op de Martinitoren' },
   { id: 'duif_forum', cat: 'duif', title: 'Uitzicht vanaf het Forum', desc: 'Land op het dak van het Forum' },
@@ -391,13 +406,14 @@ export function recordChallengeResult(w, id, { value, medal = 0, lower = false }
 // --- savegame ---------------------------------------------------------------
 
 export function getAchievementSaveData() {
-  return { eierballen: [...getSaveSet('eierballen')], unlocked: Object.keys(life.unlocked) };
+  return { eierballen: [...getSaveSet('eierballen')], geheimen: [...getSaveSet('geheimen')], unlocked: Object.keys(life.unlocked) };
 }
 
 export function applyAchievementSaveData(d) {
-  perSave = { eierballen: new Set() };
+  perSave = { eierballen: new Set(), geheimen: new Set() };
   if (!d || typeof d !== 'object') return;
   if (Array.isArray(d.eierballen)) for (const id of d.eierballen) if (typeof id === 'string') perSave.eierballen.add(id);
+  if (Array.isArray(d.geheimen)) for (const id of d.geheimen) if (typeof id === 'string') perSave.geheimen.add(id);
   let merged = false;
   if (Array.isArray(d.unlocked)) {
     for (const id of d.unlocked) if (BY_ID.has(id) && !life.unlocked[id]) { life.unlocked[id] = 1; merged = true; }
@@ -441,7 +457,7 @@ export function getLifetimeStats() {
 // --- toast ------------------------------------------------------------------
 
 const CSS = `
-#hud .ach-toast { position: absolute; top: calc(11vh / var(--ui, 1)); left: 50%; z-index: 6; display: flex; align-items: center; gap: 14px;
+#hud .ach-toast { position: absolute; top: calc(11vh / var(--ui, 1)); left: max(50%, 700px); z-index: 6; display: flex; align-items: center; gap: 14px;
   min-width: 300px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: 10px 22px 10px 12px;
   background: linear-gradient(90deg, rgba(12,20,14,0.94) 0%, rgba(12,20,14,0.86) 70%, rgba(12,20,14,0.6) 100%);
   border-left: 4px solid #3fc97a; box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px rgba(63,201,122,0.18);
@@ -458,7 +474,7 @@ const CSS = `
 #hud .ach-toast .ach-title .nl-sub { font-size: 0.55em; letter-spacing: 0.5px; text-transform: none; }
 #hud .ach-toast .ach-desc { font: 14px/1.3 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.75); }
 #hud .ach-toast .ach-pct { font-size: 15px; color: rgba(240,237,228,0.5); margin-left: 8px; letter-spacing: 1px; }
-@media (max-width: 480px) { #hud .ach-toast { min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } #hud .ach-toast .ach-title { font-size: 22px; } }
+@media (max-width: 480px) { #hud .ach-toast { left: 50%; min-width: 0; width: calc(100vw / var(--ui, 1) - 32px); } #hud .ach-toast .ach-title { font-size: 22px; } }
 `;
 
 export const TROPHY_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V18h3v3H8v-3h3v-3.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3V3zm0 4H6v1a2 2 0 0 0 1 1.7V7zm10 0v2.7A2 2 0 0 0 18 8V7h-1z"/></svg>';
@@ -506,7 +522,7 @@ function showNextToast() {
   el.classList.toggle('gold', gold);
   const { pct } = getAchievementSummary();
   el.innerHTML = `<span class="ach-ico">${TROPHY_SVG}</span><span class="ach-txt">` +
-    `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct}%</span></span>` +
+    `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span></span>` +
     `<span class="ach-title">${dualHtml(a.title)}</span><span class="ach-desc">${escHtml(a.desc)}</span></span>`;
   void el.offsetWidth;
   el.classList.add('on');

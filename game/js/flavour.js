@@ -271,11 +271,16 @@ function plantsoen(p) {
   const h = world.dayNight ? world.dayNight.hour : 12;
   const want = F.sunny && h > 10.5 && h < 20.5 && !w.active && (w.intensity || 0) < 0.05 && (w.wet || 0) < 0.2;
   const d = d2(p, PLANTSOEN);
+  // the first minute of play belongs to the story, not to the news
+  const started = typeof document !== 'undefined' && document.body.classList.contains('game-started');
+  if (!started) F.newsFrom = null; else if (F.newsFrom == null) F.newsFrom = world.time + 60;
   // the park fills up (or empties) while you are not looking
   if (want !== F.plantsoen && (d > 260 || !F.plantsoenSet)) {
+    const first = !F.plantsoenSet;
     F.plantsoen = want;
     F.plantsoenSet = true;
-    if (want && F.plantsoenNewsDay !== F.day && d < 1500) { F.plantsoenNewsDay = F.day; notify('Sikkom', PLANTSOEN_NEWS); }
+    // a park that is already full when the game starts is no news
+    if (want && !first && started && world.time >= F.newsFrom && F.plantsoenNewsDay !== F.day && d < 1500) { F.plantsoenNewsDay = F.day; notify('Sikkom', PLANTSOEN_NEWS); }
   }
   if (F.plantsoen && d < PLANTSOEN.r && ready('plantsoen') && Math.random() < 0.1 && bark(p, PLANTSOEN_BARKS)) hold('plantsoen', 35 + Math.random() * 25);
 }

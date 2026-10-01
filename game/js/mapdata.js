@@ -1,5 +1,5 @@
 import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
-import { inPassage } from './passages.js';
+import { inPassage, clipWaysInBuildings } from './passages.js';
 import { attachMuseumPlan } from './museumplan.js';
 import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
@@ -299,11 +299,17 @@ export class GameMap {
     // the Groninger Museum's walkable ground floor
     attachMuseumPlan(this.buildings);
 
-    this.roadGrid = new SpatialGrid(CELL);
-    for (const r of this.roads) {
-      r.bounds = polygonBounds(r.pts);
-      this.roadGrid.insert(r, r.bounds);
-    }
+    const indexRoads = () => {
+      this.roadGrid = new SpatialGrid(CELL);
+      for (const r of this.roads) {
+        r.bounds = polygonBounds(r.pts);
+        this.roadGrid.insert(r, r.bounds);
+      }
+    };
+    indexRoads();
+    // footways and cycleways through a solid block end at its facade (passages.js)
+    this.clippedWays = clipWaysInBuildings(this);
+    if (this.clippedWays.length) indexRoads();
 
     this.waterGrid = new SpatialGrid(CELL * 2);
     for (const w of this.water) {
@@ -637,6 +643,15 @@ export function applyMapExtras(data, ex) {
   data.passageWays = ex.passages || [];
   for (const b of ex.buildings || []) data.buildings.push({ ...b });
   for (const p of ex.buildingPatches || []) {
+    // `bounds`: the footprint with these bounds (to the metre), not a landmark
+    if (p.bounds) {
+      for (const b of data.buildings) {
+        if (b.landmark || b.pts.length < 3) continue;
+        const bb = polygonBounds(b.pts);
+        if (bb.every((v, i) => Math.abs(v - p.bounds[i]) < 0.6)) Object.assign(b, p.set);
+      }
+      continue;
+    }
     const [x, y] = p.at;
     let best = null, ba = Infinity;
     for (const b of data.buildings) {

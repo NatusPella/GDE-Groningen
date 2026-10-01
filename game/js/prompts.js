@@ -3,7 +3,7 @@ import { getCamera } from './scene3d.js';
 import { getGaragesForRender, garagePrompt } from './garages.js';
 import { getHorecaForRender, nearestHorecaSpot, horecaState } from './horeca.js';
 import { shopPrimaryPrompt, shopSecondaryPrompts } from './shops.js';
-import { homePrompt, homeSecondary } from './home.js';
+import { homePrompt, homeSecondary, isInsideHome } from './home.js';
 import { vehicleDisplayLabel } from './vehiclenames.js';
 import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
@@ -18,7 +18,9 @@ import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { padelPrompt, padelSecondary } from './padel.js';
+import { activityPrompt, activitySecondary } from './activities.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
+import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 
@@ -90,6 +92,8 @@ export function glyphHtml(token, opts = {}) {
   let inner;
   if (token === 'WASD') {
     inner = '<span class="hud-wasd"><span class="hud-key">W</span><span class="hud-key">A</span><span class="hud-key">S</span><span class="hud-key">D</span></span>';
+  } else if (token === 'ARROWS') {
+    inner = '<span class="hud-wasd"><span class="hud-key">↑</span><span class="hud-key">←</span><span class="hud-key">↓</span><span class="hud-key">→</span></span>';
   } else if (token === 'LMB' || token === 'RMB' || token === 'MOUSE' || token === 'WHEEL') {
     inner = MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w' }[token]);
   } else {
@@ -146,10 +150,10 @@ function hiddenNow(world) {
   return !!(cine && cine.classList.contains('active'));
 }
 
-// The key hints step aside for a HUD card, a phone call or a subtitle.
+// The key hints step aside for a HUD card, a phone call, the story's skip offer or a subtitle.
 function hintsQuiet() {
   const b = document.body.classList;
-  if (b.contains('hud-card-on') || b.contains('hud-call-on')) return true;
+  if (b.contains('hud-card-on') || b.contains('hud-call-on') || b.contains('story-skip-on')) return true;
   const sub = document.getElementById('banter-sub');
   return !!(sub && sub.style.opacity === '1');
 }
@@ -208,10 +212,19 @@ function trackUsage(dt, world) {
   if (input.mouse.rightDown && !prev.rightDown && isRangedWeapon(world.weapon)) used(WEAPONS[world.weapon].scope ? 'scope' : 'aim');
   prev.rightDown = input.mouse.rightDown;
 
+  if (inV && world.player.inVehicle.isHeli) {
+    if (pressed('w') || pressed('s')) used('heliUp');
+    if (pressed('a') || pressed('d')) used('heliYaw');
+    if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('heliFly');
+    if (pressed('shift')) used('heliBoost');
+    if (pressed(' ')) used('heliHover');
+    return;
+  }
   if (inV) {
     if (pressed('w') || pressed('s') || pressed('arrowup') || pressed('arrowdown')) used('drive');
     if (pressed(' ')) used('handbrake');
     if (pressed('h')) used('horn');
+    if (pressed('n') || pressed('b')) used('radio');
     if (pressed('q') || input.mouse.middleDown) used('lookback');
     return;
   }
@@ -229,7 +242,7 @@ function vehicleVerb(v) {
   const moving = Math.abs(v.speed || 0) > 0.3;
   const occupied = v.isBoat ? moving : !v.isHeroCar && !!v.road;
   // your own ride (hero car, bought, rented, job vehicle) is never theft
-  if (v.isHeroCar || v.playerOwned || v.missionCar) return { label: v.isBoat ? 'Aan boord' : v.isBike || v.isScooter ? 'Opstappen' : 'Instappen' };
+  if (v.isHeroCar || v.playerOwned || v.missionCar) return { label: v.isBoat ? 'Aan boord' : v.isHeli ? 'Instappen en vliegen' : v.isBike || v.isScooter ? 'Opstappen' : 'Instappen' };
   if (v.isPolice) return { label: 'Jatten', steal: true };
   if (v.parked) return { label: v.isBus ? 'Bus jatten' : 'Auto jatten', steal: true };
   if (v.isBoat) return occupied ? { label: 'Kapen', steal: true } : { label: 'Aan boord' };
@@ -291,6 +304,10 @@ function pedInReach(world, range, cone) {
 // nearest vehicle; clicks come next.
 function findPrimary(world) {
   const p = world.player;
+  // upstairs in the flat only the flat's own uses: the street is 34 m below
+  if (isInsideHome()) return homePrompt(world);
+  // a mission stage's own prompt (heist.js: the distraction, the pickpocket)
+  if (world.missionPrompt && !p.inVehicle) return world.missionPrompt;
   const train = trainPrompt(world);
   if (train) return train;
   const job = sideJobPrompt(world);
@@ -314,6 +331,10 @@ function findPrimary(world) {
   if (heli) return heli;
   const padel = padelPrompt(world);
   if (padel) return padel;
+  const act = activityPrompt(world);
+  if (act) return act;
+  const dorp = ommelandPrompt(world);
+  if (dorp) return dorp;
   const trein = stationPrompt(world);
   if (trein) return trein;
   const food = nearestHorecaSpot(world);
@@ -371,13 +392,14 @@ function inFront(world, x, y, f) {
 
 function findSecondary(world, primary) {
   const p = world.player;
+  if (isInsideHome()) return [];
   const f = facing(world);
   const out = [];
   const add = (c, maxD) => {
     const { d, dot } = inFront(world, c.x, c.y, f);
     if (d > maxD || dot < -0.1) return;
     if (d > 3 && c.kind !== 'mission' && !lineOfSight(world.map, p.x, p.y, c.x, c.y)) return;
-    c.score = d * (1.6 - dot);
+    c.score = d * (1.6 - dot) * (c.boost || 1);
     out.push(c);
   };
   const inV = p.inVehicle;
@@ -398,9 +420,11 @@ function findSecondary(world, primary) {
   for (const c of pigeonSpotSecondary(world)) add(c, 18);
   for (const c of heliSpotSecondary(world)) add(c, 20);
   for (const c of padelSecondary(world)) add(c, 25);
+  for (const c of activitySecondary(world)) add(c, 30);
   for (const c of postgameSecondary(world)) add(c, 25);
   for (const c of sideJobSecondary(world)) add(c, c.maxD || 20);
   for (const c of stationSecondary(world)) add(c, 22);
+  for (const c of ommelandSecondary(world)) add(c, 24);
   const m = world.mission;
   if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active)) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, sub: 'Loop of rij de marker in', kind: 'mission' }, 60);
@@ -412,7 +436,8 @@ function findSecondary(world, primary) {
   }
   if (!inV && learning('enter') && !primary) {
     for (const v of world.vehicles) {
-      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan E', kind: 'place' }, 40);
+      // a new player's first ride wins over the place labels around it
+      if (v.isHeroCar && !v.wrecked && !v.driver) add({ id: 'hero' + v.id, x: v.x, y: v.y, h: 1.6, label: 'Jouw ouwe Escapade', sub: 'Loop erheen, dan E', kind: 'place', boost: 0.2 }, 40);
     }
   }
   out.sort((a, b) => a.score - b.score);
@@ -516,10 +541,16 @@ const PIC = {
   horn: '<path d="M3 9.8v4.4h4l5 4V5.8l-5 4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18.2 6.4a7.6 7.6 0 0 1 0 11.2"/>',
   cinecam: '<rect x="2.5" y="9" width="12.5" height="9.5" rx="1.5"/><path d="M15 12.2l6-3v9.3l-6-3"/><circle cx="6" cy="5.6" r="2.3"/><circle cx="11.5" cy="5.6" r="2.3"/>',
   lookback: '<path d="M8 20.5V10a5 5 0 0 1 10 0v2.2"/><path d="M5 17.5l3 3 3-3"/>',
+  radio: '<rect x="2.5" y="8" width="19" height="12" rx="2"/><path d="M5 8l11-5"/><circle cx="15.5" cy="14" r="3"/><path d="M5.5 12h4M5.5 15h4M5.5 18h4"/>',
   exit: '<path d="M4 3h9.5v18H4z"/><path d="M13.5 12H21M17.8 8.6L21 12l-3.2 3.4"/>',
   swim: '<circle cx="16" cy="6.5" r="2"/><path d="M4.5 12.5l5.2-3.2 4.2 2.4M2 16.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M2 20.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8"/>',
   swimfast: '<path d="M2 16.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M2 20.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M6 4l4 4-4 4M12 4l4 4-4 4"/>',
   climb: '<path d="M3 21h8.5v-8H21"/><path d="M16 9.5V2.5M12.8 5.6L16 2.5l3.2 3.1"/>',
+  heliUp: '<path d="M12 3v18M7.5 7.5L12 3l4.5 4.5M7.5 16.5L12 21l4.5-4.5"/>',
+  heliYaw: '<path d="M19 12a7 7 0 1 1-2.1-5"/><path d="M17.5 2.8l-.6 4.3-4.2-.9"/>',
+  heliFly: '<path d="M3 6h16M11 6v3"/><path d="M5.5 13a4.5 3.5 0 0 1 9 0v1.5h-9zM14.5 12.5h6.5M20 10v4.5M6 19h8"/>',
+  heliBoost: '<path d="M4 6l7 6-7 6M12 6l7 6-7 6"/>',
+  heliHover: '<path d="M5 9h14M5 15h14"/><circle cx="12" cy="12" r="1.5"/>',
 };
 const pic = (id) => (PIC[id] ? `<svg class="ctx-pic" viewBox="0 0 24 24" aria-hidden="true">${PIC[id]}</svg>` : '');
 
@@ -536,12 +567,21 @@ function contextRows(world, primary) {
     rows.push(tut('drive', ['W', 'S'], 'Gas & remmen', 'W optrekken, S remmen en stilstaand achteruit'));
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
+  } else if (p.inVehicle && p.inVehicle.isHeli) {
+    rows.push(tut('heliUp', ['W', 'S'], 'Stijgen & dalen', 'W omhoog, S omlaag: landen doe je laag en langzaam'));
+    rows.push(tut('heliYaw', ['A', 'D'], 'Draaien', 'A/D of de muis draait de neus'));
+    rows.push(tut('heliFly', ['ARROWS'], 'Vliegen', 'Pijltje omhoog vooruit, omlaag achteruit, links/rechts opzij'));
+    rows.push(tut('heliBoost', ['SHIFT'], 'Boost', 'Vol gas vooruit'));
+    rows.push(tut('heliHover', [' '], 'Stilhangen', 'Spatie remt af tot je stil in de lucht hangt'));
+    rows.push(tut('exit', ['E'], 'Uitstappen', 'Alleen als je geland bent'));
   } else if (p.inVehicle) {
-    rows.push(tut('drive', ['WASD'], 'Gas & sturen', 'W gas, S remmen en achteruit, A/D sturen'));
-    rows.push(tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
-    rows.push(tut('horn', ['H'], 'Toeter', 'Aan de kant, fietsers!'));
+    const boat = p.inVehicle.isBoat;
+    rows.push(tut('drive', ['WASD'], boat ? 'Varen' : 'Gas & sturen', boat ? 'W vooruit, S achteruit, A/D sturen' : 'W gas, S remmen en achteruit, A/D sturen'));
+    rows.push(boat ? tut('handbrake', [' '], 'Remmen', 'Afremmen voor een brug of de kade') : tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
+    rows.push(tut('horn', ['H'], 'Toeter', boat ? 'Aan de kant, bootjes!' : 'Aan de kant, fietsers!'));
+    if (!p.inVehicle.isBike && !p.inVehicle.isScooter) rows.push(tut('radio', ['N'], 'Radio', 'N: volgende zender, B: vorige (G-Music, Nachtstreek, Radio Grunn, uit)', true));
     rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots', true));
-    rows.push(tut('lookback', ['Q'], 'Achterom', 'Houd Q of de middelste muisknop vast', true));
+    if (!world.noLookBack) rows.push(tut('lookback', ['Q'], 'Achterom', 'Houd Q of de middelste muisknop vast', true));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd RMB vast om te richten' : 'Vuren vanuit de auto'));
   } else if (p.swimming) {

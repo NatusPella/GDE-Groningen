@@ -29,6 +29,7 @@ const MIN_RIDE = 6;
 const MIN_SPEED = 15 / 3.6;
 const FAST = 100 / 3.6;
 const FAST_HOLD = 2;
+const HELI_HOLD = 8;
 const EVENT_VALID = 45;
 const PLACE_R = 90;
 const CRASH_MIN = 0.3;
@@ -164,8 +165,11 @@ function watchEvents(dt) {
   st.hour = hour;
 
   const v = w.player.inVehicle;
-  st.fastT = v && Math.abs(v.speed || 0) > FAST ? st.fastT + dt : 0;
+  st.fastT = v && !v.isHeli && Math.abs(v.speed || 0) > FAST ? st.fastT + dt : 0;
   if (st.fastT > FAST_HOLD && st.fastT - dt <= FAST_HOLD) pushSituation('speed');
+  // a while up in the own helicopter, above the rooftops
+  st.heliT = v && v.isHeli && !v.onGround && v.z - (v.groundZ || 0) > 20 ? (st.heliT || 0) + dt : 0;
+  if (st.heliT > HELI_HOLD && st.heliT - dt <= HELI_HOLD) pushSituation('heli');
 
   st.situations = st.situations.filter((s) => w.time - s.at < EVENT_VALID);
 }

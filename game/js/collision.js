@@ -43,7 +43,7 @@ export function resolveBuildingCollisions(x, y, radius, map) {
         // walkable rooms (the museum): free well inside one, else held in the
         // one it is most inside; walking in from outside through a doorway
         let best = null, bd = Infinity;
-        for (const r of b.rooms) { const rd = rectDist(r, x, y); if (rd < bd) { bd = rd; best = r; } }
+        for (const r of b.rooms) { if (r.shut) continue; const rd = rectDist(r, x, y); if (rd < bd) { bd = rd; best = r; } }
         if (bd <= -radius) continue;
         if (inside ? bd < PASSAGE_SLACK : rectDist(best, bestX, bestY) < 0) {
           if (inside) [x, y] = clampToRect(best, x, y, radius);

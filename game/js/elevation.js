@@ -17,7 +17,8 @@ export const WALL_T = 0.45;          // retaining wall thickness
 export const FENCE_H = 1.1;
 export const BARRIER_H = 0.9;
 export const ROOF_T = 0.7;           // tunnel roof slab
-export const RAISED = 0.3;           // |z| above which a road counts as off street level
+export const RAISED = 0.3;
+export const COPING = 1.1;           // street-level strip beside an open cutting's wall (roadstructures3d)           // |z| above which a road counts as off street level
 const SHOULDER = 1.8;                // matches roadsurface SIDEWALK_EXTRA (the rendered verge)
 const CELL = 32;
 const WALL_CELL = 24;
@@ -48,7 +49,7 @@ class Grid {
   at(x, y) { return this.map.get(cellKey(Math.floor(x / this.cell), Math.floor(y / this.cell))); }
 }
 
-const EMPTY = { segs: [], walls: [], cuts: [], has: false };
+const EMPTY = { segs: [], walls: [], skirts: [], floors: [], cuts: [], has: false };
 
 export function buildElevation(map) {
   const segs = [];
@@ -74,7 +75,7 @@ export function buildElevation(map) {
     }
   }
   if (!segs.length) return EMPTY;
-  const elev = { segs, grid, has: true, walls: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16) };
+  const elev = { segs, grid, has: true, walls: [], skirts: [], floors: [], brkWalls: [], wallGrid: new Grid(WALL_CELL), cuts: [], map, flatGrid: new Grid(16) };
   // street-level road ribbons near the raised/sunken ones: they pass under
   // embankments (which then need an abutment, not a slope) and over cuttings
   const near = (x, y) => grid.at(x, y);
@@ -91,8 +92,47 @@ export function buildElevation(map) {
   addRailLifts(elev, map);
   classifyFill(elev);
   buildWalls(elev, map);
+  joinWallEnds(elev);
   buildCuts(elev);
   return elev;
+}
+
+// Where one way of a cutting ends and the next begins (or a wall piece is
+// left out at a joint, or the cutting runs into a tunnel), the retaining
+// walls stop short of each other and the cut-away ground shows through: a
+// short wall face (drawn only) bridges every loose end of a cutting's wall
+// to the nearest loose end nearby.
+function joinWallEnds(elev) {
+  const open = (w) => w.kind === 'cut' && w.low && !w.parapet;
+  const CELL = 4, grid = new Map(), ends = [];
+  const key = (x, y) => Math.floor(x / CELL) * 65536 + Math.floor(y / CELL);
+  for (const w of elev.walls) {
+    if (!open(w)) continue;
+    for (const [x, y, z] of [[w.ax, w.ay, w.za], [w.bx, w.by, w.zb]]) {
+      const e = { w, x, y, z, loose: true };
+      ends.push(e);
+      const k = key(x, y);
+      if (!grid.has(k)) grid.set(k, []);
+      grid.get(k).push(e);
+    }
+  }
+  const around = (e, r, fn) => {
+    for (let cx = Math.floor((e.x - r) / CELL); cx <= Math.floor((e.x + r) / CELL); cx++) {
+      for (let cy = Math.floor((e.y - r) / CELL); cy <= Math.floor((e.y + r) / CELL); cy++) {
+        for (const f of grid.get(cx * 65536 + cy) || []) if (f.w !== e.w) fn(f, Math.hypot(f.x - e.x, f.y - e.y));
+      }
+    }
+  };
+  for (const e of ends) around(e, 0.3, (f, d) => { if (d < 0.3) e.loose = false; });
+  for (const e of ends) {
+    if (!e.loose) continue;
+    let best = null, bd = 2.6;
+    around(e, bd, (f, d) => { if (f.loose && d < bd && d > 0.05 && Math.abs(f.z - e.z) < 1.5) { best = f; bd = d; } });
+    if (!best) continue;
+    e.loose = best.loose = false;
+    const nx = e.w.nx + best.w.nx, ny = e.w.ny + best.w.ny, l = Math.hypot(nx, ny) || 1;
+    elev.skirts.push({ ax: e.x, ay: e.y, bx: best.x, by: best.y, nx: nx / l, ny: ny / l, za: e.z, zb: best.z, seg: e.w.seg, coping: e.w.coping && best.w.coping });
+  }
 }
 
 // Track height where the rail climbs over a road (railway.js railZ, the
@@ -464,6 +504,18 @@ function buildWalls(elev, map) {
         // a dip of under a metre needs no retaining wall
         const cut = zr < -1.0;
         const raise = zr > 1.2;
+        if (!cut && !raise && !s.rail && !s.covered && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -RAISED &&
+          !surfaceOf(elev, mx, my, s.r, zr, 1.6) && !onFlatRoad(map, mx, my)) {
+          // where a ramp starts down into a cutting the ground is already cut
+          // away (openCutMask) before a retaining wall is needed: a low
+          // wall face to street level closes the side, drawn only
+          elev.skirts.push({
+            ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
+            bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
+            nx: -nx, ny: -ny, za: s.za + (s.zb - s.za) * t0, zb: s.za + (s.zb - s.za) * t1, seg: s,
+            coping: !onFlatRoad(map, mx + nx * COPING, my + ny * COPING),
+          });
+        }
         if (!cut && !raise) {
           // a shallow ramp beside the deep cutting it leads into: a parapet on its edge
           if (s.rail || s.covered || surfaceOf(elev, mx, my, s.r, zr, 1.0)) continue;
@@ -509,6 +561,19 @@ function buildWalls(elev, map) {
             }
           }
         }
+        if (cut && !s.covered && !s.rail && !piece.low) {
+          // no wall here: another road runs alongside at about this level
+          // (the other carriageway, a ramp merging) or a street passes at
+          // the top. The ground in between is cut away (openCutMask): a
+          // floor strip at road level reaches over to the neighbour's
+          // surface, or beside a street a low wall face closes the side
+          let reach = 0;
+          for (let d = 0.25; d <= 8; d += 0.25) if (surfaceOf(elev, mx + nx * d, my + ny * d, s.r, zr, 1.2)) { reach = d; break; }
+          const ends = { ax: piece.ax, ay: piece.ay, bx: piece.bx, by: piece.by, nx: piece.nx, ny: piece.ny, za: piece.za, zb: piece.zb, seg: s };
+          if (reach) elev.floors.push({ ...ends, reach });
+          else if (onFlatRoad(map, mx, my)) elev.skirts.push({ ...ends, coping: false });
+        }
+        if (cut && piece.low && !s.covered) piece.coping = !onFlatRoad(map, mx, my) && !onFlatRoad(map, mx + nx * COPING, my + ny * COPING);
         if (raise && s.pieces && !joined) {
           const fp = s.pieces[Math.min(s.pieces.length - 1, k * s.pieces.length / n | 0)];
           if (fp && fp.retain[side > 0 ? 0 : 1]) {
@@ -663,10 +728,11 @@ export function openCutMask(elev, maxTex = 4096) {
     }
   }
   // the round end of an open run reaches over the tunnel it runs into: the
-  // ground there is the tunnel roof, not a hole
+  // ground there is the tunnel roof, not a hole (out to the open run's pad
+  // and a texel more, or the corners beside the portal stay open)
   for (const s of elev.segs) {
     if (!s.covered) continue;
-    const r = s.hs + WALL_T;
+    const r = s.hs + pad + res;
     const i0 = Math.max(0, Math.floor((Math.min(s.ax, s.bx) - r - x0) / res));
     const i1 = Math.min(w - 1, Math.ceil((Math.max(s.ax, s.bx) + r - x0) / res));
     const j0 = Math.max(0, Math.floor((Math.min(s.ay, s.by) - r - y0) / res));

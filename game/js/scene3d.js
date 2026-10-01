@@ -2021,13 +2021,15 @@ export function update3D(dt, world) {
   if (world.camYaw == null) world.camYaw = targetAngle;
   let camAngle;
   // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
-  const lookBack = !!camVeh && !world.cameraOverride && (world.input.isDown('q') || !!mouse.middleDown);
+  // (world.noLookBack: a minigame has Q for itself, the skûtsje's sail trim)
+  const lookBack = !!camVeh && !world.cameraOverride && ((world.input.isDown('q') && !world.noLookBack) || !!mouse.middleDown);
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
   if (camVeh) {
     if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
     const fast = Math.min(1, Math.abs(camVeh.speed || 0) / LOOK_FAST_SPEED);
-    if (looking && mouse.dx !== 0 && !lookBack) {
+    // in a helicopter the mouse turns the heli itself (heliflight.js)
+    if (looking && mouse.dx !== 0 && !lookBack && !camVeh.isHeli) {
       lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
       lookYawIdle = 0;
     } else {
@@ -2046,7 +2048,7 @@ export function update3D(dt, world) {
   // vehicles get a longer, higher orbit scaled to their length, so the car
   // doesn't fill the lower half of the screen
   const veh = camVeh;
-  const camScale = veh ? Math.min(3.2, Math.max(1.35, veh.model.len / 2.4)) : 1;
+  const camScale = veh ? (veh.isHeli ? 4.4 : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
   const radius = orbitRadius * camScale;
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
@@ -2128,6 +2130,11 @@ export function update3D(dt, world) {
       if (Math.abs((v.z || 0) - baseH) < 2.5) desiredY = Math.max(desiredY, (v.z || 0) + (v.isBus ? 3.3 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
     }
   }
+  // spaces outside the building raycast adjust the camera themselves (home.js: the flat, the garage)
+  if (world.camAdjust) {
+    const r = world.camAdjust(desiredX, desiredY, desiredZ, eyeX, eyeY, eyeZ);
+    if (r) { desiredX = r[0]; desiredY = r[1]; desiredZ = r[2]; }
+  }
 
   updateCamTreeHiding(world.map, eyeX, eyeY, eyeZ, desiredX, desiredY, desiredZ);
 
@@ -2152,6 +2159,9 @@ export function update3D(dt, world) {
   }
   const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
   let lookX = player.x, lookY = (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp, lookZ = player.y;
+  followPose.position.x = camBase.x; followPose.position.y = camBase.z; followPose.position.z = camBase.y;
+  followPose.lookAt.x = lookX; followPose.lookAt.y = lookZ; followPose.lookAt.z = lookY;
+  followPose.at = performance.now();
   scopeBlend += ((world.scoped && !veh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);
   if (scopeBlend < 0.01) scopeBlend = 0;
   if (scopeBlend > 0) {
@@ -2237,7 +2247,10 @@ function makePrewarmProxy(o, m) {
           : o.isLineSegments ? new THREE.LineSegments(g, m)
             : o.isLine ? new THREE.Line(g, m)
               : new THREE.Mesh(g, m);
-  if (o.instanceColor) proxy.instanceColor = o.instanceColor;
+  // its own colour buffer: disposing the stand-in frees its instance buffers,
+  // and a shared one would leave the real mesh drawing from a deleted buffer
+  // (black grass tufts, shrubs and hedges)
+  if (o.instanceColor) proxy.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(3), 3);
   // own skeleton (and instance buffer): freed after the draw, drawPrewarmBatch
   if (o.isSkinnedMesh) proxy.bind(o.skeleton.clone(), o.bindMatrix);
   // shadow receiving is part of the program key
@@ -2482,6 +2495,13 @@ function stepWarmup(world) {
 // in from the follow cam, tracks the override smoothly, and eases back out
 // once it is cleared.
 const CAM_OVERRIDE_BLEND_S = 0.9;
+// The follow camera's own pose in map coordinates, kept up to date under a
+// cutscene (collision included unless the override is a hard cut), so a
+// scene can end exactly where play resumes.
+const followPose = { position: { x: 0, y: 0, z: 0 }, lookAt: { x: 0, y: 0, z: 0 }, at: 0 };
+export function getFollowPose() {
+  return followPose.at && performance.now() - followPose.at < 500 ? followPose : null;
+}
 let overrideBlend = 0;
 let overrideActive = false;
 const overridePos = new THREE.Vector3();
@@ -2536,7 +2556,9 @@ function roofTopNear(map, x, y) {
 }
 const _guardLast = new THREE.Vector3(1e9, 0, 0);
 function guardCinematicCamera(dt, world) {
-  const need = world && world.map ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
+  // a shot landing on the follow camera (override.follow) goes where play is, lift or not
+  const landing = !!(world && world.cameraOverride && world.cameraOverride.follow);
+  const need = world && world.map && !landing ? Math.max(0, roofTopNear(world.map, cam.position.x, cam.position.z) - cam.position.y) : 0;
   // a cut to another place starts from its own need, not the old shot's lift
   if (_guardLast.distanceToSquared(cam.position) > 144) guardLift = need;
   _guardLast.copy(cam.position);

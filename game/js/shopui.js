@@ -84,7 +84,7 @@ const SHOP_CSS = `
   @keyframes sm-pop { from { transform: scale(1.15); } to { transform: none; } }
   @keyframes sm-jackpot { from { transform: scale(1); text-shadow: none; } to { transform: scale(1.18); text-shadow: 0 0 14px rgba(232,201,58,0.7); } }
   #shop-menu .sm-foot { display: flex; justify-content: space-between; gap: 12px; padding: 8px 18px 12px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
-  #shop-menu .sm-foot b { color: #3fc97a; font-weight: normal; }
+  #shop-menu .sm-foot b { display: inline-block; min-width: 12px; padding: 1px 5px; border: 1px solid rgba(240,237,228,0.45); border-bottom-width: 2px; border-radius: 4px; color: #3fc97a; font: bold 11px/1.2 system-ui, sans-serif; text-align: center; }
   #shop-menu .sm-close { background: transparent; border: 1px solid rgba(63,201,122,0.6); color: #f0ede4; border-radius: 4px; padding: 3px 12px; font: 16px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; cursor: pointer; }
   #shop-menu .sm-close:hover, #shop-menu .sm-close:focus-visible { border-color: #3fc97a; color: #3fc97a; outline: none; }
   #shop-menu .sm-empty { padding: 20px; text-align: center; font: 15px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
@@ -168,7 +168,7 @@ export function initShopUi(w) {
       <div class="sm-list"></div>
       <div class="sm-detail" hidden><div class="sm-dtxt"><b></b><small></small><span class="sm-effect"></span></div><button type="button" class="sm-buy"></button></div>
       <div class="sm-status" role="status" aria-live="polite"></div>
-      <footer class="sm-foot"><span><b>↑ ↓</b> bekijken · <b>Enter</b> naar de knop, nog eens <b>Enter</b> kopen · slepen draait</span><button type="button" class="sm-close">Esc · Weglopen</button></footer>
+      <footer class="sm-foot"><span><b>↑</b> <b>↓</b> bekijken · <b>ENTER</b> naar de knop, nog eens <b>ENTER</b> kopen · slepen draait</span><button type="button" class="sm-close">Esc · Weglopen</button></footer>
     </div>`;
   document.body.appendChild(root);
   root.addEventListener('click', onClick);
@@ -198,6 +198,7 @@ export function openShopMenu(w, s) {
   root.querySelector('.sm-icon').src = s.icon || shopIconUrl(s.type, 92);
   setStatus('', '');
   root.classList.add('visible');
+  document.body.classList.add('shop-open');
   render();
   const first = root.querySelector('.sm-item.story-ok') || root.querySelector('.sm-item:not([aria-disabled="true"])') || root.querySelector('.sm-item') || root.querySelector('.sm-close');
   if (first) first.focus({ preventScroll: true });
@@ -211,6 +212,7 @@ export function closeShopMenu() {
   finishScratch(false);
   setPreview(null);
   root.classList.remove('visible');
+  document.body.classList.remove('shop-open');
   if (world && world.input) world.input.reset();
   if (bought && world) saveGame(world);
   if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
@@ -224,7 +226,8 @@ function currentItems() {
 
 function priceHtml(it) {
   const chip = it.tag ? `<span class="sm-chip">${esc(it.tag)}</span>` : '';
-  const price = it.income > 0 ? `<b class="free">+€${it.income}</b>` : it.price > 0 ? `<b>€${it.price}</b>` : it.disabled ? '' : '<b class="free">Gratis</b>';
+  // it.plain: a choice, not a product (the dorpsquiz answers): no price badge
+  const price = it.plain ? '' : it.income > 0 ? `<b class="free">+€${it.income}</b>` : it.price > 0 ? `<b>€${it.price}</b>` : it.disabled ? '' : '<b class="free">Gratis</b>';
   const reason = it.disabled ? `<small class="no">${esc(it.disabled)}</small>` : '';
   return chip + (it.disabled && it.tag ? '' : price) + reason;
 }

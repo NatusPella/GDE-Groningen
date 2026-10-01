@@ -1027,7 +1027,8 @@ function buildShots(w) {
     minDur: 6.4, home: true,
     lower: '<div class="im-kicker">Welkom in</div><div class="im-title">Grunn</div>',
     enter(r, s) { s.shot = r.flyShot(); },
-    cams: [[0, (u, t, s) => ({ ...s.shot(u), cut: true })]],
+    // soft for the last moment, so the follow camera below has its collision again
+    cams: [[0, (u, t, s) => ({ ...s.shot(u), cut: u < 0.9 })]],
   };
 
   return [dawn, onAir, museumShot, card1, dream, jelleShot, heist, glimpse, card2, hook, card3, swoop];

@@ -45,9 +45,12 @@ import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pig
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
+import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, activityCamera } from './activities.js';
+import { initRadio, updateRadio } from './radiostations.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
+import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
@@ -59,6 +62,7 @@ import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
 import { updateDrunk } from './drunk.js';
+import { updateHelis } from './heliflight.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -175,6 +179,7 @@ async function boot() {
   initTrafficLights(world);
   initRailway(world);
   initStationTravel(world);
+  initOmmelandFun(world);
   initWeather(world);
   initFlitspaal(world);
   initWildlife(world);
@@ -185,6 +190,8 @@ async function boot() {
   initPigeonSpots(world);
   initHeliRun(world);
   initPadel(world);
+  initActivities(world);
+  initRadio(world);
   initPostgame(world);
   initSideJobs(world);
   initStory(world);
@@ -269,6 +276,7 @@ async function boot() {
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
     if (world.padelGame) padelCamera(world);
+    else if (isActivityActive()) activityCamera(world);
     update3D(world.paused ? dt : gameDt, world);
     updateHud(dt, world);
     probe.mark('hud');
@@ -302,15 +310,18 @@ async function boot() {
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else if (world.heliRun) updateHeliRun(dt, world);
     else if (world.padelGame) { updatePadel(dt, world); updateCompanion(dt, world); }
+    else if (isActivityActive()) { updateActivityGame(dt, world); updateCompanion(dt, world); }
     else {
       tryPostgameInteract(world);
       tryPadelInteract(world);
+      tryActivityInteract(world);
       tryTrainInteract(world);
       trySideJobInteract(world);
       tryHeliSpotInteract(world);
       tryGarageInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
+      tryOmmelandInteract(world);
       tryStationInteract(world);
       tryHomeInteract(world);
       tryHorecaInteract(world);
@@ -343,6 +354,7 @@ async function boot() {
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
+    updateHelis(dt, world);
     probe.mark('police+collide');
     if (!world.pigeonMode && !world.heliRun) {
       updateCombat(dt, world);
@@ -357,6 +369,7 @@ async function boot() {
     updatePigeonSpots(dt, world);
     updateHeliSpot(dt);
     updatePadelWorld(dt, world);
+    updateActivitiesWorld(dt, world);
     updatePoleVaults(dt, world);
     probe.mark('wildlife');
     if (!world.pigeonMode && !world.heliRun) {
@@ -372,9 +385,11 @@ async function boot() {
     updateStory(dt, world);
     updateSideJobs(dt, world);
     updatePostgame(dt, world);
+    updateOmmelandFun(dt, world);
     updateWeather(dt, world);
     updateDayNight(dt, world);
     updateAchievementTracker(dt, world);
+    updateRadio(dt, world);
     probe.mark('systems');
   }
 

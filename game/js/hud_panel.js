@@ -1,6 +1,6 @@
 import { dualHtml } from './subtitles.js';
 import { getGaragesForRender } from './garages.js';
-import { getHomeForRender, getHomeGarageForRender } from './home.js';
+import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -8,6 +8,7 @@ import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon } from './helirun.js';
 import { getPadelSpotsForRender, drawPadelMapIcon } from './padel.js';
+import { activityMapIcons, drawActivityMapIcon } from './activities.js';
 import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
@@ -183,6 +184,7 @@ const VEH_ICONS = {
   bike: '<circle cx="6" cy="15.5" r="3.6" class="ln"/><circle cx="18" cy="15.5" r="3.6" class="ln"/><path d="M6 15.5l4-6.5h5.5L18 15.5M10 9l2.8 6.5h2.2M13.5 6.5h2.5" class="ln"/>',
   scooter: '<circle cx="6" cy="16.5" r="2.6" class="ln"/><circle cx="18" cy="16.5" r="2.6" class="ln"/><path d="M6 16.5h7.5l2-9.5h2.5M9 13h6" class="ln"/>',
   boat: '<path d="M2.5 14.5h19l-3 5h-13z"/><path d="M11.5 3v10M11.5 4.5l6 8h-6" class="ln"/>',
+  heli: '<path d="M3 6h16M11 6v3" class="ln"/><path d="M5.5 13a4.5 3.5 0 0 1 9 0v1.5h-9z"/><path d="M14.5 12.5h6.5M20 10v4.5M6 19h8M8 16v3M12 16v3" class="ln"/>',
 };
 
 // GTA-style: the model name shows for a moment when you get into a vehicle
@@ -196,7 +198,7 @@ function updateVehicleName(dt, world) {
       const { make, model } = vehicleDisplayName(v);
       els.vehName.querySelector('small').textContent = make;
       els.vehName.querySelector('b').textContent = model;
-      els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
+      els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isHeli ? 'heli' : v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
       vehNameTimer = 4.5;
       els.vehName.classList.remove('on');
       void els.vehName.offsetWidth;
@@ -511,6 +513,17 @@ function currentObjective(world) {
       sub: searching ? 'Ze zijn je kwijt' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : world.player.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
     };
   }
+  // between missions: the next story step, so it is always clear where to go
+  const g = world.storyGuide;
+  if (g && g.name && !world.storyFreePlay && !world.padelGame && !world.activityGame && !(m && m.phase === 'active')) {
+    const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
+    const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
+    const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
+    const sub = g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
+      : inside ? 'Stap even uit de marker en weer terug'
+      : atMarker ? (near ? 'Loop of rij de gele marker in' : 'Volg de gele route naar de marker') : 'Volg de gele route';
+    return { kind: 'story', title: g.name, sub, timer: '' };
+  }
   return null;
 }
 
@@ -530,6 +543,8 @@ function updateMission(world) {
   if (key !== els.objKey) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;
+    // a mission's objective stays up in pigeon mode too (H4's photos, H10's knots)
+    els.mission.classList.toggle('in-mission', o.kind === 'mission');
     els.mission.classList.remove('pop');
     void els.mission.offsetWidth;
     els.mission.classList.add('pop');
@@ -542,7 +557,7 @@ function missionProgressText(m) {
   if (m.phase !== 'active') return '';
   if (m.progressText) return m.progressText;
   if (m.raceHud) return '';
-  if (m.type === 'rampage' && m.killTarget != null) return `Kills: ${Math.max(0, m.killProgress || 0)}/${m.killTarget}`;
+  if (m.type === 'rampage' && m.killTarget != null) return `Maak chaos · ${Math.max(0, m.killProgress || 0)}/${m.killTarget} neer`;
   if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) {
     const cp = `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
     return m.racePos ? `Positie ${m.racePos}/${m.raceTotal} · ${cp}` : cp;
@@ -742,7 +757,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
     }
     case 'own': {
       // owned vehicle: badge in its own paint with a green 'yours' ring
-      const glyph = { car: 'auto', bike: 'fietsen', scooter: 'fietsen', boat: 'boot' }[opts.vkind] || 'auto';
+      const glyph = { car: 'auto', bike: 'fietsen', scooter: 'fietsen', boat: 'boot', heli: 'heli' }[opts.vkind] || 'auto';
       const paint = opts.color || C.greenDark;
       ctx.beginPath();
       ctx.arc(0, 0, 5 * s, 0, Math.PI * 2);
@@ -773,6 +788,17 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fill();
       ctx.fillStyle = '#2f6fb0';
       ctx.fillRect(-0.7 * s, 0.9 * s, 1.4 * s, 2 * s);
+      break;
+    }
+    case 'homeMooring':
+    case 'homeHelipad': {
+      // your own jetty / helidek: a cream boat or helicopter on the blue home badge
+      ctx.beginPath();
+      ctx.arc(0, 0, 5.4 * s, 0, Math.PI * 2);
+      ctx.fillStyle = '#2f6fb0';
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.4);
+      drawShopGlyph(ctx, kind === 'homeMooring' ? 'boot' : 'heli', 3.5 * s, '#2f6fb0');
       break;
     }
     case 'homeGarage': {
@@ -918,6 +944,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind === 'pigeon') drawPigeonMapIcon(ctx, s);
       else if (kind === 'heli') drawHeliMapIcon(ctx, s);
       else if (kind === 'padel') drawPadelMapIcon(ctx, s);
+      else if (kind.startsWith('act-')) drawActivityMapIcon(ctx, kind, s);
       else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
@@ -1088,6 +1115,8 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   };
   add('home', getHomeForRender(), 'home', 1, MM_POI_FAR_M * 2);
   add('home', getHomeGarageForRender(), 'homeGarage', 1, MM_POI_FAR_M * 2);
+  add('home', getHomeMooringForRender(world), 'homeMooring', 1, MM_POI_FAR_M * 2);
+  add('home', getHomeHelipadForRender(), 'homeHelipad', 1, MM_POI_FAR_M * 2);
   add('garage', getGaragesForRender(), 'garage', 1, MM_POI_FAR_M);
   const shops = nearestWithin(getShopsForRender(), px, py, MM_POI_NEAR_M, 24);
   for (const group of SHOP_GROUPS) {
@@ -1110,6 +1139,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
   add('heli', getHeliSpotsForRender(), 'heli', 1, MM_POI_FAR_M);
   add('padel', getPadelSpotsForRender(), 'padel', 1, MM_POI_FAR_M);
+  for (const a of activityMapIcons(world)) add(a.layer, [a], a.kind, 1, MM_POI_FAR_M);
   add('postgame', getPostgameSpotsForRender(), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
   add('horeca', getHorecaForRender(), 'horeca', 1);
   add('landmark', world.map.meta.landmarks || [], 'landmark', 2);
