@@ -18,6 +18,9 @@ instead of inside it (mapdata.js merges it at load time).
   (tunnel=building_passage/covered/yes, covered=yes/arcade) from the city
   caches; passages.js opens footprints only along a mapped passage or a
   short footway/cycleway run, and models3d_buildings.js cuts the opening.
+- structures: underground garages and bridge piers still in citymap.json
+  (process_osm.py hidden_structure) are removed, covered walkways (raised
+  buildings over a path) become canopies (bounds-matched building patches).
 
 Overpass responses are cached in data/extras_*_raw.json; pass --refresh to
 fetch them again. Re-runnable: the same caches always give the same output.
@@ -440,6 +443,64 @@ PATCHES = [
     {"at": [956.0, 1525.0], "set": {"h": 14}},
 ]
 
+def bounds_of(p):
+    xs, ys = [q[0] for q in p], [q[1] for q in p]
+    return [min(xs), min(ys), max(xs), max(ys)]
+
+
+def way_inside(pts, roads, need=5.0):
+    """Does a road run at least `need` metres inside the polygon?"""
+    x0, y0, x1, y1 = bounds_of(pts)
+    for r in roads:
+        run = 0.0
+        P = r["pts"]
+        for (ax, ay), (bx, by) in zip(P, P[1:]):
+            if max(ax, bx) < x0 or min(ax, bx) > x1 or max(ay, by) < y0 or min(ay, by) > y1:
+                continue
+            L = math.hypot(bx - ax, by - ay)
+            n = max(1, int(L))
+            for k in range(n):
+                if inside(ax + (bx - ax) * k / n, ay + (by - ay) * k / n, pts):
+                    run += L / n
+            if run >= need:
+                return True
+    return False
+
+
+def structure_patches(existing, roads):
+    """Footprints in citymap.json that process_osm.py now leaves out
+    (hidden_structure: underground garages, bridge piers), removed at load
+    time until the map is rebuilt, and small raised buildings (layer >= 1)
+    that a path runs along for 20 m (covered walkways), which become
+    canopies. Matched on their bounds, since an underground garage usually
+    lies under smaller buildings."""
+    import process_osm
+    have = {}
+    for b in existing:
+        have.setdefault(tuple(round(v) for v in bounds_of(b["pts"])), []).append(b)
+    out, seen = [], set()
+    for el in process_osm.load_elements():
+        tags = el.get("tags", {})
+        if el.get("type") != "way" or "building" not in tags or not el.get("geometry"):
+            continue
+        if any(g is None for g in el["geometry"]):
+            continue
+        hidden = process_osm.hidden_structure(tags)
+        raised = not hidden and process_osm.int_tag(tags, "layer") > 0 and tags["building"] != "roof"
+        if not hidden and not raised:
+            continue
+        pts = [process_osm.project(g["lat"], g["lon"]) for g in el["geometry"]]
+        bb = bounds_of(pts)
+        key = tuple(round(v) for v in bb)
+        if key in seen or not any(not b.get("landmark") for b in have.get(key, [])):
+            continue
+        if raised and (abs(area(pts)) > 600 or not way_inside(pts, roads, 20.0)):
+            continue
+        seen.add(key)
+        out.append({"bounds": [round(v, 1) for v in bb], "set": {"remove": True} if hidden else {"type": "roof"}})
+    return out
+
+
 GROTE_MARKT = (130.0, 80.0)
 CORE_R = 250.0
 
@@ -625,10 +686,11 @@ if __name__ == "__main__":
     passages = [p for p in build_passages() if any(x0 <= q[0] <= x1 and y0 <= q[1] <= y1 for q in p["pts"])]
     padel_raw = cached("data/extras_padel_raw.json", map_bbox(citymap["meta"]), padel_query)
     padel, padel_src = build_padel(padel_raw, citymap["meta"])
-    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core, "fuel": fuel_pts, "passages": passages, "padel": padel}
+    hidden = structure_patches(citymap["buildings"], citymap["roads"])
+    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core + hidden, "fuel": fuel_pts, "passages": passages, "padel": padel}
     with open(OUT, "w") as f:
         json.dump(out, f, separators=(",", ":"))
-    print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} fuel={len(fuel_pts)} passages={len(passages)} padel={len(padel)} ({padel_src})")
+    print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} hidden={len(hidden)} fuel={len(fuel_pts)} passages={len(passages)} padel={len(padel)} ({padel_src})")
     for s in padel:
         print("  padel", s["name"], s["x"], s["y"], len(s["courts"]), "courts", s["src"])
     for b in added:

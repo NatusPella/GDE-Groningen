@@ -1560,8 +1560,11 @@ function beginFlight(w) {
   camBlend = CAM_BLEND_S;
   hud.root.hidden = false;
   hud.hintKey = '';
-  w.addMessage(pick(['Moi duuf! Grunn is van joe.', 'Roekoe! De wijk ligt aan je pootjes.', 'Vleugels uit, poep klaar.']) + ' X om weer mens te worden.', 4);
+  // in a mission the stage's own card explains the flight (and X would end it)
+  if (!inMission(w)) w.addMessage(pick(['Moi duuf! Grunn is van joe.', 'Roekoe! De wijk ligt aan je pootjes.', 'Vleugels uit, poep klaar.']) + ' X om weer mens te worden.', 4);
 }
+
+const inMission = (w) => !!(w.mission && w.mission.phase === 'active');
 
 // Where Tammo/Anita reappear: right below the pigeon if that is open, walkable
 // ground; otherwise (roof, water, closed-off courtyard) the nearest street.
@@ -1673,7 +1676,8 @@ export function stopPigeonMode(w = world) {
     outro = { t: 0, x: P.x, y: P.y, z: Math.max(P.z, surfaceAt(P.x, P.y, false).h), yaw: P.yaw };
     const who = pl.character === 'anita' ? 'Anita' : 'Tammo';
     const wijk = wijkAt(map, spot.x, spot.y);
-    w.addMessage(`${who} doet de ogen weer open${wijk ? ' in ' + wijk : ''}. ${score} poeppunten deze vlucht (totaal ${store.total}).`, 4.5);
+    // a flight without points (a mission's, or a short hop) needs no score card
+    if (score > 0) w.addMessage(`${who} doet de ogen weer open${wijk ? ' in ' + wijk : ''}. ${score} poeppunten deze vlucht (totaal ${store.total}).`, 4.5);
     sfx('flap', P.x, P.y, 0.8);
     saveGame(w);
   } else {
@@ -1796,7 +1800,7 @@ export function startPigeonMode(w, spot = null) {
     placePigeonMesh(0);
     // Tammo whistles, closes his eyes and the camera jumps into the bird
     sfx('whistle', pl.x, pl.y, 0.8);
-    w.addMessage(pick(['Tammo fluit zachtjes en doet zijn ogen dicht…', 'Tammo klikt met zijn tong. De duif kijkt op…', 'Ogen dicht, fluiten. Tammo zit ineens in de duif…']), 2.5);
+    if (!inMission(w)) w.addMessage(pick(['Tammo fluit zachtjes en doet zijn ogen dicht…', 'Tammo klikt met zijn tong. De duif kijkt op…', 'Ogen dicht, fluiten. Tammo zit ineens in de duif…']), 2.5);
   } else {
     intro = null;
     P.x = pl.x; P.y = pl.y;

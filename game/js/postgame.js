@@ -19,6 +19,7 @@ import { BRUGGEN } from './pg_bruggenrace.js';
 import { FIERLJEP } from './pg_fierljep.js';
 import { SKUTSJE } from './pg_skutsje.js';
 import { FJORD, fjordSave, applyFjordSave, fjordUpgradeOffers } from './pg_foodtruck.js';
+import { KOE } from './pg_koe.js';
 import { PG_PRIZE, FJORD_DAY_PAY, FJORD_DAY_HOUR } from './economy.js';
 import { getOwnedEntries, spawnOwnedEntry } from './shops.js';
 import { findParkingSpot } from './ownedvehicles.js';
@@ -45,7 +46,7 @@ import { Vehicle } from './vehicle.js';
 // helirun keep quiet then); world.challengeHud feeds the race panel
 // (hud_panel.js), world.challengeTarget the minimap. window.__postgame (debug).
 
-export const CHALLENGES = [BRUGGEN, FIERLJEP, SKUTSJE, FJORD];
+export const CHALLENGES = [BRUGGEN, FIERLJEP, SKUTSJE, FJORD, KOE];
 const BY_ID = new Map(CHALLENGES.map((d) => [d.id, d]));
 const PRIZE = PG_PRIZE;
 const SAY_GAP = 9;
@@ -79,7 +80,7 @@ function checkOpen() {
 
 // --- markers ------------------------------------------------------------------
 
-const ICON_COLORS = { jelle: '#1d4f9c', fjord: '#2f6fb0' };
+const ICON_COLORS = { jelle: '#1d4f9c', fjord: '#2f6fb0', koe: '#4f7a2a' };
 
 function drawGlyph(g, kind, r) {
   g.save();
@@ -92,6 +93,16 @@ function drawGlyph(g, kind, r) {
     g.bezierCurveTo(-10, 0, -6, 8, 0, 3.5);
     g.bezierCurveTo(6, 8, 10, 0, 0, -7);
     g.fill();
+  } else if (kind === 'koe') {
+    // a cow's head: white with a black patch, pink muzzle, two horns
+    g.fillStyle = '#f4f1e6';
+    g.beginPath(); g.ellipse(0, -0.5, 6, 6.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#1c1c1c';
+    g.beginPath(); g.ellipse(-2.6, -2.8, 2.6, 2.2, 0.4, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#e8a0a8';
+    g.beginPath(); g.ellipse(0, 3.6, 4.2, 2.6, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#f2c230'; g.lineWidth = 1.6; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(-4.5, -5.5); g.lineTo(-7, -8.5); g.moveTo(4.5, -5.5); g.lineTo(7, -8.5); g.stroke();
   } else {
     // a paper cone of fries
     g.fillStyle = '#f2c230';
@@ -225,7 +236,7 @@ export function postgameSecondary(w) {
   for (const s of spots) {
     if (Math.abs(s.x - p.x) > 30 || Math.abs(s.y - p.y) > 30) continue;
     if (!!s.def.vehicle !== !!p.inVehicle && s.def.icon !== 'fjord') continue;
-    out.push({ id: 'pg2-' + s.def.id + s.x, x: s.x, y: s.y, h: 2.4, label: s.name, sub: s.def.icon === 'fjord' ? 'Parkeer de Fjord Frituur hier en druk E' : 'Uitdaging van Jelle: loop erheen en druk E', kind: 'place' });
+    out.push({ id: 'pg2-' + s.def.id + s.x, x: s.x, y: s.y, h: 2.4, label: s.name, sub: s.def.icon === 'fjord' ? 'Parkeer de Fjord Frituur hier en druk E' : s.def.icon === 'koe' ? 'Ome Jan heeft je hulp nodig: loop erheen en druk E' : 'Uitdaging van Jelle: loop erheen en druk E', kind: 'place' });
   }
   return out;
 }
@@ -405,7 +416,8 @@ const CSS = `
 #pg-panel .pg-order span.ok { background: rgba(93,255,122,0.2); border-color: rgba(93,255,122,0.6); }
 #pg-panel .pg-order span.bad { background: rgba(255,90,60,0.25); border-color: rgba(255,90,60,0.7); }
 #pg-panel .pg-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; margin-top: 8px; font-size: 13px; color: rgba(240,237,228,0.85); }
-#pg-panel .pg-menu kbd { display: inline-block; min-width: 16px; padding: 0 4px; margin-right: 4px; text-align: center; border-radius: 3px; background: rgba(240,237,228,0.2); font: inherit; }
+#pg-panel .pg-menu kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; margin-right: 5px; box-sizing: border-box; border-radius: 4px; background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255,255,255,0.35); border-bottom: 2px solid rgba(0,0,0,0.6); color: #3fc97a; font: inherit; font-size: 12px; }
+#pg-panel .pg-slot > div:not(.pg-menu) kbd { display: inline-block; min-width: 12px; margin: 0 3px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 system-ui, sans-serif; text-align: center; }
 #pg-panel .pg-patience { height: 5px; margin-top: 6px; border-radius: 3px; background: linear-gradient(90deg, #5dff7a, #f2c230); }
 #pg-sub { position: fixed; left: 50%; bottom: 22vh; transform: translateX(-50%); width: min(86vw, 760px); text-align: center; z-index: 40; pointer-events: none;
   font: clamp(15px, 1.5vw, 20px) 'Arial Narrow', Arial, sans-serif; color: #fff; letter-spacing: .3px; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 12px rgba(0,0,0,.6); opacity: 0; transition: opacity .25s; }

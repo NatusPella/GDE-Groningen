@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
+import { clearOfReal } from './countryreal.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
@@ -15,6 +16,8 @@ import { jobLevel } from './sidejobs.js';
 import { WEAPONS } from './combat.js';
 import { productKey } from './shopmodels3d.js';
 import { furnitureShopItems, furnitureShopNote } from './furniture.js';
+import { makeHeli, registerHelipad } from './heliflight.js';
+import { buildHelipadMesh, buildHeliMesh } from './heli3d.js';
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -37,11 +40,17 @@ export const SHOP_TYPES = {
   boot: { color: '#2a8fb0', label: 'Botenverhuur', chain: 'Bootje Huren', tagline: 'De stad vanaf het water', group: 'shopsVoertuigen' },
   spuit: { color: '#1e9e56', label: 'Spuiterij', chain: 'Spuit & Klaar', tagline: 'Nieuwe kleur, nieuwe kans', group: null },
   eikea: { color: '#1d4fa3', label: 'Woonwarenhuis', chain: 'EIKEA', tagline: 'Zweeds? Nee, Gronings. Zelf in elkaar zetten', group: 'shops' },
+  heli: { color: '#b8322a', label: 'Helikopterdealer', chain: 'Rotor Roelf', tagline: 'Helikopters. Vliegbrevet? Daar doen we op Eelde niet moeilijk over', group: 'shopsVoertuigen' },
 };
+
+// Rotor Roelf, the one helicopter dealer: on Groningen Airport Eelde, by the
+// Machlaan (the kiosk faces the road, the platform with the H behind it).
+const HELI_DEALER = { x: 1595.5, y: 9922.9, road: [1590, 9930], pad: { x: 1606, y: 9909, r: 6 }, street: 'Machlaan', wijk: 'Eelde' };
 
 // Jetties for boat rental: a kade street next to open water.
 const BOAT_JETTIES = ['Hoge der A', 'Oosterkade', 'Noorderhaven', 'Eendrachtskade', 'Winschoterkade'];
 
+const PAD_DECK = 0.12;
 const STREAM_IN = 170;
 const STREAM_OUT = 220;
 const BUILDS_PER_TICK = 2;
@@ -162,6 +171,8 @@ export const VEHICLE_STOCK = {
   sloep: { kind: 'boat', type: 'Sloep', shop: 'boot', label: 'Sloep Nait Soezen', desc: 'Rosé aan boord, pet op, rustig tuffen', price: 900, nameIdx: 0, color: '#e8e6e0', model: { ...BOAT_KINDS.sloep } },
   speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
   rondvaartboot: { kind: 'boat', type: 'Rondvaartboot', shop: 'boot', label: 'Rondvaartboot Stadjer', desc: 'Glazen dak, veertig stoelen, nul passagiers', price: 3500, nameIdx: 1, color: '#1d3350', model: { ...BOAT_KINDS.rondvaart } },
+  // --- the air ---
+  wiekenwubbo: { kind: 'heli', type: 'Helikopter', shop: 'heli', label: 'Wieken Wubbo', desc: 'Tweezits helikopter. Landt op elk plat stuk: het weiland, een plat dak of je eigen helidek', price: 5500, nameIdx: 0, color: '#b8322a', flags: { isHeli: true }, model: { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 } },
   politieboot: { kind: 'boat', type: 'Politieboot', shop: 'boot', label: 'Politie Boot', desc: 'Voor wie de politie op het water ook eens wil ontlopen. Met de politie', unlock: 'vijfsterren', nameIdx: 0, color: '#e8e6e0', flags: { isPolice: true, hijacked: true }, model: { name: 'boat', kind: 'sloep', len: 4.1, wid: 1.65, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' } },
 };
 
@@ -404,8 +415,20 @@ export function initShops(world) {
     const p = placeAtPoi(map, { x: cx, y: cy }, horeca, placed);
     if (p) placed.push({ ...p, type: 'eikea', wijk: 'Sontweg', street: p.street || 'Sontweg' });
   }
+  for (const s of placed) {
+    const o = clearOfReal(s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
+    if (o) { s.x = o.x; s.y = o.y; }
+  }
+  const hd = HELI_DEALER;
+  const hn = Math.hypot(hd.road[0] - hd.x, hd.road[1] - hd.y) || 1;
+  placed.push({ x: hd.x, y: hd.y, type: 'heli', wijk: hd.wijk, street: hd.street, kiosk: { nx: (hd.road[0] - hd.x) / hn, ny: (hd.road[1] - hd.y) / hn }, pad: { ...hd.pad, angle: Math.atan2(hd.road[1] - hd.y, hd.road[0] - hd.x) + Math.PI / 2 } });
   nameBranches(placed);
   for (const s of placed) if (s.type === 'eikea') s.name = 'EIKEA Grunn';
+  for (const s of placed) {
+    if (s.type !== 'heli') continue;
+    s.name = 'Rotor Roelf Eelde';
+    registerHelipad({ id: 'eelde', x: s.pad.x, y: s.pad.y, r: s.pad.r, z: PAD_DECK, name: s.name, exit: true, label: 'Rotor Roelf · E uitstappen' });
+  }
   shops = placed;
   declutterCache.clear();
 }
@@ -453,7 +476,7 @@ export function spawnOwnedEntry(world, o, x, y, angle) {
   if (o.v) removeFromWorld(world, o.v);
   const v = spawnOwned(world, o, x, y, angle);
   if (!v) return null;
-  v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
+  if (!v.isHeli) v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
   o.v = v;
   o.lost = false;
   return v;
@@ -478,7 +501,7 @@ export function nearestShop(world) {
 }
 
 function paintableVehicle(v) {
-  return v && !v.isBoat && !v.isBus && !v.isPolice && !v.wrecked;
+  return v && !v.isBoat && !v.isHeli && !v.isBus && !v.isPolice && !v.wrecked;
 }
 
 function garageForPaint() {
@@ -520,7 +543,7 @@ export function shopPrimaryPrompt(world) {
   const s = nearestShop(world);
   if (!s) return null;
   if (policeWatching(world)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Binnenlopen', sub: `${s.name}: deur op slot, politie op je hielen`, ring: true, dim: true };
-  return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: s.type === 'boot' ? 'Bootje huren' : 'Binnenlopen', sub: storyHere(world, s) || `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
+  return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: s.type === 'boot' ? 'Bootje huren' : s.type === 'heli' ? 'Helikopters bekijken' : 'Binnenlopen', sub: storyHere(world, s) || `${s.name}: ${SHOP_TYPES[s.type].label.toLowerCase()}`, ring: true };
 }
 
 export function shopSecondaryPrompts(world) {
@@ -648,6 +671,7 @@ function shopMenu(world, s) {
     super: (w) => foodSections(w, 'Uit de schappen', SUPER_ITEMS), snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
     fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
     pand: (w) => pandSections(w, s), boot: (w) => bootSections(w, s), eikea: eikeaSections,
+    heli: (w) => vehicleSections(w, 'heli', s),
   }[s.type];
   const view = () => markStoryItems(world, s.type, build(world));
   return { name: s.name, type: s.type, tagline: s.tagline, color: SHOP_TYPES[s.type].color, view, sections: () => view().sections, onBought: (it) => noteStoryPurchase(it.id) };
@@ -713,7 +737,7 @@ function rememberUpgrades(v) {
 
 // Upgrade items for vehicle v (tuning shops, fietsenmakers and garages).
 export function vehicleUpgradeItems(world, v) {
-  if (!v || v.isBoat || v.isBus || v.isPolice || v.wrecked) return [];
+  if (!v || v.isBoat || v.isHeli || v.isBus || v.isPolice || v.wrecked) return [];
   const list = isTwoWheeler(v) ? BIKE_UPGRADES : CAR_UPGRADES;
   const have = new Set(v.upgrades || []);
   const name = v.isHeroCar ? 'Escapade' : vehicleName(v);
@@ -1057,6 +1081,7 @@ const STOCK_GROUPS = {
   auto: [['Occasions', ['Hatchback', 'Barrel', 'Sedan', 'Stationwagen', 'SUV', 'Sportwagen', 'Taxi']], ['Bedrijfswagens', ['Bestelbus', 'Vrachtwagen', 'Midibus', 'Stadsbus']], ['Bijzondere voertuigen', null]],
   fietsen: [['Tweewielers', null]],
   boot: [['Boten te koop', null]],
+  heli: [['Helikopters', null]],
 };
 
 function stockItem(world, key, sp, shop) {
@@ -1077,12 +1102,13 @@ function stockItem(world, key, sp, shop) {
     };
   }
   return {
-    id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · ${sp.kind === 'boat' ? 'ligt klaar aan de steiger' : 'wordt voor de deur gezet'}`, price: sp.price,
+    id: 'v-' + key, label: sp.label, desc: owned ? `${sp.desc} · staat in je garage, bestel hem via je telefoon` : `${sp.desc} · ${sp.kind === 'boat' ? 'ligt klaar aan de steiger' : sp.kind === 'heli' ? 'staat klaar op het platform' : 'wordt voor de deur gezet'}`, price: sp.price,
     swatch: [sp.color], tag: owned ? 'Van jou' : '', disabled: owned ? 'Heb je al' : broke(world, sp.price), preview, stats,
     buy() {
       if (state.vehicles.some((o) => o.key === key) || !pay(world, sp.price)) return null;
       const v = deliver(world, key, sp.color, shop);
       if (!v) { world.money += sp.price; return 'Bezorging mislukt, geld terug'; }
+      if (sp.kind === 'heli') return `${sp.label} staat op het platform achter de kiosk. Stap in en vlieg hem naar het helidek op jullie flat`;
       return `${sp.label} ${sp.kind === 'boat' ? 'ligt aan de steiger' : 'staat voor de deur'}. Van jou, voorgoed: via je telefoon laat je hem overal afleveren`;
     },
   };
@@ -1102,22 +1128,23 @@ function vehicleSections(world, type, shop) {
     sections.push({
       title: 'Jouw voertuigen',
       items: mine.map((o, i) => {
-        const boat = o.spec.kind === 'boat';
-        const here = o.v && world.vehicles.includes(o.v) && dist(o.v.x, o.v.y, boat && shop.water ? shop.water.x : shop.x, boat && shop.water ? shop.water.y : shop.y) < 40;
+        const boat = o.spec.kind === 'boat', heli = o.spec.kind === 'heli' && !!shop.pad;
+        const spot = heli ? shop.pad : boat && shop.water ? shop.water : shop;
+        const here = o.v && world.vehicles.includes(o.v) && dist(o.v.x, o.v.y, spot.x, spot.y) < 40;
         const fee = o.lost ? replacementFee(o) : REDELIVERY_FEE;
         return {
-          id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : o.lost ? 'Total loss: eigen risico, dan staat er een nieuwe voor de deur' : boat ? 'Laat hem naar deze steiger varen' : 'Laat hem hier voor de deur zetten',
+          id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : o.lost ? 'Total loss: eigen risico, dan staat er een nieuwe voor de deur' : boat ? 'Laat hem naar deze steiger varen' : heli ? 'Laat hem hier op het platform zetten' : 'Laat hem hier voor de deur zetten',
           price: fee, tag: o.lost ? 'Total loss' : 'Van jou', swatch: [o.color],
           preview: { kind: o.spec.kind, model: o.spec.model, color: o.color, nameIdx: o.spec.nameIdx, flags: o.spec.flags || null }, stats: vehicleStats(o.spec.model, o.spec.kind),
           disabled: here ? 'Staat al hier' : o.v && o.v.driver === 'player' ? 'Je zit erop' : broke(world, fee),
           buy() {
             if (!pay(world, fee)) return null;
-            const at = boat && shop.water ? shop.water : deliveryPoint(world.map, shop, o.spec.kind === 'car');
+            const at = heli ? { ...shop.pad, z: PAD_DECK } : boat && shop.water ? shop.water : deliveryPoint(world.map, shop, o.spec.kind === 'car');
             if (o.v) removeFromWorld(world, o.v);
-            o.v = spawnOwned(world, o, at.x, at.y, boat ? at.angle : null);
+            o.v = spawnOwned(world, o, at.x, at.y, boat || heli ? at.angle : null, at.z);
             if (!o.v) { world.money += fee; return 'Bezorging mislukt, geld terug'; }
             o.lost = false;
-            return `${o.spec.label} ${boat ? 'ligt aan de steiger' : 'wordt voor de deur gezet'}`;
+            return `${o.spec.label} ${boat ? 'ligt aan de steiger' : heli ? 'staat op het platform' : 'wordt voor de deur gezet'}`;
           },
         };
       }),
@@ -1333,9 +1360,24 @@ function spawnOwnedBoat(world, o, x, y, angle) {
   return v;
 }
 
-function spawnOwned(world, o, x, y, angle = null) {
+// A helicopter stands where it is put: z is the surface under its skids.
+function spawnOwnedHeli(world, o, x, y, angle, z) {
+  const sp = o.spec;
+  const g = Number.isFinite(z) ? z : world.map.groundHeightAt ? world.map.groundHeightAt(x, y, 0) : 0;
+  const v = makeHeli(x, y, g, angle ?? 0, { ...sp.model, color: o.color });
+  Object.assign(v, sp.flags || {});
+  v.id = newVehicleId(sp.nameIdx);
+  v.playerOwned = true;
+  v.upgrades = [];
+  if (Number.isFinite(o.health)) v.health = Math.max(5, Math.min(100, o.health));
+  world.vehicles.push(v);
+  return v;
+}
+
+function spawnOwned(world, o, x, y, angle = null, z = null) {
   const sp = o.spec;
   if (sp.kind === 'boat') return spawnOwnedBoat(world, o, x, y, angle);
+  if (sp.kind === 'heli') return spawnOwnedHeli(world, o, x, y, angle, z);
   const map = world.map;
   const point = map.nearestRoadPoint(x, y, 150, sp.kind === 'car');
   if (!point) return null;
@@ -1382,8 +1424,9 @@ function deliveryPoint(map, shop, car) {
 
 function deliver(world, key, color, shop) {
   const o = { key, spec: VEHICLE_STOCK[key], color, upgrades: [], v: null, lost: false };
-  const at = o.spec.kind === 'boat' && shop.water ? shop.water : deliveryPoint(world.map, shop, o.spec.kind === 'car');
-  o.v = spawnOwned(world, o, at.x, at.y);
+  const heli = o.spec.kind === 'heli' && shop.pad;
+  const at = heli ? { ...shop.pad, z: PAD_DECK } : o.spec.kind === 'boat' && shop.water ? shop.water : deliveryPoint(world.map, shop, o.spec.kind === 'car');
+  o.v = heli ? spawnOwned(world, o, at.x, at.y, at.angle, at.z) : spawnOwned(world, o, at.x, at.y);
   if (!o.v) return null;
   state.vehicles.push(o);
   return o.v;
@@ -1558,6 +1601,7 @@ function streamShopFronts(world) {
       disposeShopFront(s.mesh);
       s.mesh = null;
     }
+    if (s.mesh && s.mesh.userData.demoHeli) s.mesh.userData.demoHeli.visible = !state.vehicles.some((o) => o.spec.kind === 'heli');
   }
 }
 
@@ -1583,7 +1627,7 @@ export function getShopSave() {
     heroUpgrades: [...state.heroUpgrades],
     vehicles: state.vehicles.map((o) => {
       const v = o.v;
-      const pos = o.lost ? null : v ? { x: round(v.x), y: round(v.y), angle: round(v.angle) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
+      const pos = o.lost ? null : v ? { x: round(v.x), y: round(v.y), angle: round(v.angle), ...(v.isHeli ? { z: round(v.onGround ? v.z : v.groundZ ?? 0) } : {}) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
       // a stored one (home.js) keeps its damage on the entry
       const dmg = v && !o.lost ? damageSave(v) : !o.lost && (Number.isFinite(o.health) || (o.dents && o.dents.length)) ? { ...(o.health < 100 ? { health: Math.round(o.health) } : {}), ...(o.dents && o.dents.length ? { dents: o.dents } : {}) } : {};
       return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...(o.lost ? { lost: true } : {}), ...(!o.lost && !pos ? { garage: true } : {}), ...pos, ...dmg };
@@ -1615,7 +1659,9 @@ export function applyShopSave(world, d) {
     const upgrades = Array.isArray(sv.upgrades) ? sv.upgrades.filter((id) => valid.some((u) => u.id === id)) : [];
     const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null, lost: !!sv.lost, health: sv.health, dents: validDents(sv.dents) };
     const has = Number.isFinite(sv.x) && Number.isFinite(sv.y);
-    if (!o.lost && !sv.garage) o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0) : spawnOwned(world, o, world.player.x, world.player.y);
+    // a helicopter without a spot goes back to its pad at home
+    if (spec.kind === 'heli' && !has) sv.garage = true;
+    if (!o.lost && !sv.garage) o.v = has ? spawnOwned(world, o, sv.x, sv.y, Number.isFinite(sv.angle) ? sv.angle : 0, Number.isFinite(sv.z) ? sv.z : null) : spawnOwned(world, o, world.player.x, world.player.y);
     if (!o.v) o.lost = !!sv.lost;
     state.vehicles.push(o);
   }
@@ -1735,6 +1781,13 @@ export function drawShopGlyph(g, type, r, bg) {
       g.moveTo(-0.72, -0.2); g.lineTo(0.72, -0.2); g.lineTo(0.56, 0.62); g.lineTo(-0.56, 0.62); g.closePath(); g.fill();
       g.beginPath(); g.lineWidth = 0.12; g.moveTo(-0.34, -0.2); g.lineTo(-0.2, -0.66); g.lineTo(0.2, -0.66); g.lineTo(0.34, -0.2); g.stroke();
       break;
+    case 'heli':
+      g.beginPath(); g.ellipse(-0.1, 0.12, 0.42, 0.3, 0, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.moveTo(0.2, 0.02); g.lineTo(0.86, -0.06); g.lineTo(0.86, 0.1); g.lineTo(0.2, 0.2); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(0.74, -0.26); g.lineTo(0.9, -0.26); g.lineTo(0.84, 0.08); g.lineTo(0.72, 0.08); g.closePath(); g.fill();
+      g.beginPath(); g.lineWidth = 0.1; g.moveTo(-0.86, -0.4); g.lineTo(0.66, -0.4); g.moveTo(-0.1, -0.4); g.lineTo(-0.1, -0.18);
+      g.moveTo(-0.52, 0.56); g.lineTo(0.3, 0.56); g.moveTo(-0.34, 0.4); g.lineTo(-0.34, 0.56); g.moveTo(0.12, 0.4); g.lineTo(0.12, 0.56); g.stroke();
+      break;
     case 'spuit':
       g.rect(-0.32, -0.3, 0.52, 0.96);
       g.rect(-0.2, -0.5, 0.28, 0.2);
@@ -1809,6 +1862,10 @@ const awningMaterials = {};
 // signs own their texture/material; geometries and the per-type materials are shared
 function disposeShopFront(root) {
   root.userData.disposed = true;
+  if (root.userData.extra) root.userData.extra.traverse((o) => {
+    if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose();
+    for (const m of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) if (!m.userData.shared) m.dispose();
+  });
   root.traverse((o) => {
     if (o.userData.ownMaterial) {
       if (o.material.map) o.material.map.dispose();
@@ -1922,5 +1979,20 @@ function buildShopFront3D(shop) {
   // wait for the web font so the sign doesn't bake in the fallback face
   if (document.fonts && document.fonts.load) document.fonts.load("64px 'Bebas Neue'").then(draw, draw);
   else draw();
+  if (shop.pad) root.add(heliDealerExtras(shop, root));
   return root;
+}
+
+// Rotor Roelf's platform with a demo heli on it (hidden once you own one).
+function heliDealerExtras(shop, root) {
+  const g = new THREE.Group();
+  g.position.set(shop.pad.x, 0, shop.pad.y);
+  g.rotation.y = -shop.pad.angle;
+  g.add(buildHelipadMesh(shop.pad.r, PAD_DECK));
+  const demo = buildHeliMesh({ model: { color: '#e8e6e0' }, id: 0 });
+  demo.position.y = PAD_DECK;
+  g.add(demo);
+  root.userData.demoHeli = demo;
+  root.userData.extra = g;
+  return g;
 }

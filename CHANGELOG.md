@@ -6,6 +6,81 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-10-01
+
+### Nieuw
+- **Je eigen helikopter**: koop de Wieken Wubbo (€5500) bij Rotor Roelf op
+  vliegveld Eelde. Stijgen en dalen met W/S, vooruit met de pijltjes, Shift
+  voor extra vaart, Spatie om stil te hangen. Landen kan op vlakke grond,
+  platte daken en helipads. Op het dak van je flat ligt nu een eigen
+  helidek met een trap vanuit de hal, en je boten liggen voortaan aan
+  **Jouw steiger**. Allebei staan ze op de kaart. In de garage zit een
+  nieuwe tab Luchtvaart, met drie nieuwe prestaties.
+- **Carbid schieten** bij boer Roelf aan de Beijumerweg: richt de melkbus,
+  giet water bij, steek hem op tijd aan en schiet het deksel zo ver
+  mogelijk. Vijf schoten, medailles en een record.
+- **Kermis op de Grote Markt**: de botsauto's zijn altijd open. 's Avonds
+  en in de Meikermis-weken staat de hele kermis er, met reuzenrad,
+  kraampjes en een draaiorgel.
+- **Autoradio**: wissel met N/B tussen G-Music, Radio Nachtstreek, Radio
+  Grunn (praatradio met Geesje) en uit. Elk voertuig onthoudt zijn zender.
+- **Acht geheimen** verstopt in de stad, met een geheime prestatie. Ga maar
+  zoeken.
+- **Einde van de wereld**: op twaalf plekken waar de weg in het Ommeland
+  ophoudt, wacht iets op je. Vind ze allemaal voor een prestatie.
+- **Dorpsuitjes**: bij elk treinstation in het Ommeland is nu wat te doen,
+  zoals tennis, een rondvaart, de Groningse quiz, de molen, de scheve toren
+  of het strand. Er is ook een plek om te eten of een fiets te huren, met
+  een verstopte eierbal en een wegwijzer op het perron.
+- **Nieuwe missie na het verhaal: De Koe van Ome Jan.** Durk en Douwe
+  hebben koe Geertje gestolen. Haal haar terug over de velden, met de
+  tweeling achter je aan in Jelles trekker-limo.
+
+### Opgelost
+- Een tankstation in het Ommeland stond deels in een gebouw.
+
+## [0.19.1] - 2026-10-01
+
+### Opgelost
+- **Vijftien winkels in de buitenwijken waren niet binnen te komen**, waaronder
+  de snackbar voor de eierbal, de fietsenwinkel en de supermarkt voor de
+  finale. Ook een paar cafés en een padelbaan.
+- **Padel** is eerlijker en leuker: tegenstanders maken fouten, het
+  slagmoment is ruimer, en klikken schiet niet meer met je wapen.
+- De ontspannen rondvaart: de boot voer weg voordat je kon instappen.
+- Het bed in de flat liet "Kledingkast" zien, en de boekenkast liet zich
+  niet in elkaar zetten.
+- Bij het skûtsje draaide de camera om als je je zeil aantrok.
+- Toetsen staan overal als duidelijke icoontjes in beeld.
+
+## [0.19.0] - 2026-09-30
+
+### Nieuw
+- **De Museumkraak is helemaal nieuw**: maak een plan aan de hand van een
+  plattegrond en kies je aanpak (via de achterdeur of vermomd als
+  schoonmakers). Zet de camera's op herhaling, kraak een slot, pik een pasje,
+  sluip langs bewakers met zaklampen, kom door een lasergrid, draai de code
+  van de vitrine (1953) en ontsnap met Tammo in een speedboot. Vergevingsgezind:
+  mis je iets, dan begin je alleen dat stukje opnieuw.
+
+### Verbeterd
+- **Je weet altijd wat je moet doen**: missies zeggen precies wat de opdracht
+  is, en tussen missies door staat de volgende verhaalstap bovenin beeld.
+- **Rustiger begin**: de openingsscène loopt vloeiend over in het spel, geen
+  wijk-filmpje direct na een missie en berichten komen niet allemaal tegelijk.
+- **Thuis**: de ingang zit nu aan de kant van de garage, de woonkamer kijkt
+  uit op het winkelcentrum, en de camera blijft binnen.
+- Het pauzemenu en de kaartlegenda schalen mee met "Grootte interface".
+
+### Opgelost
+- Je kon uit de flat naar beneden vallen en langzaam wegglijden.
+- Ondergrondse garages en fietskelders stonden als dichte blokken op straat,
+  en paden liepen door dichte gebouwen. Waar een pad bij een gebouw eindigt,
+  is nu een deur.
+- Gaten langs de verdiepte ringweg en ontbrekende tunnelmonden.
+- Zwart gras, zwarte struiken en heggen.
+- Na opgepakt worden keek de camera tegen een muur.
+
 ## [0.18.0] - 2026-09-29
 
 ### Nieuw
@@ -308,7 +383,7 @@ Maus' tweede speelsessie verwerkt, en een grote schoonmaak van bekende bugs.
 ### Nieuw
 - **Elk voertuig is te koop of vrij te spelen**: 46 voertuigen, van
   studentenbarrel tot midibus, taxi en speedboot. Speciale voertuigen (de
-  Poen Express, ambulance, tankwagen, Jelle's trekker-limo, stadsbus,
+  Poen Express, ambulance, tankwagen, Jelles trekker-limo, stadsbus,
   politieauto en politieboot) speel je vrij via het verhaal, bijbaantjes en
   prestaties. Alles staat in de Garage in het Escape-menu, met prijs of hoe
   je hem vrijspeelt.

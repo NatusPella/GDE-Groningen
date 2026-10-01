@@ -11,6 +11,7 @@ import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
 import { isIntroPlaying } from './intromontage.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { lineVoiceFor } from './linevoice.js';
+import { getFollowPose } from './scene3d.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -21,6 +22,11 @@ const CRASH_COOLDOWN_MS = 20000;
 const BANNER_TIME = 3.8;
 const CAM_MODES = ['', 'BUMPER', 'ZIJKANT', 'HELIKOPTER', 'TELELENS'];
 const WIJK_KEY = 'gte-wijken-seen';
+// cinematics that book their own attention.js moment
+const OWN_MOMENTS = new Set(['wijk', 'landmark', 'crash', 'wanted5']);
+let endedAt = -Infinity;
+// Real seconds since the last cinematic ended (the HUD needs a beat before the next text).
+export const sinceCinematic = () => (performance.now() - endedAt) / 1000;
 const WIJK_DWELL = 1.5;
 const WIJK_MAX_SPEED = 12; // m/s: faster than this the flyover waits
 
@@ -63,6 +69,12 @@ function heading(w) {
 
 function momentsOn() {
   return getSettings().cinematicMoments !== false;
+}
+
+// up in the own helicopter (heliflight.js): no pausing street-level scenes mid-air
+function aloft(w) {
+  const v = w.player && w.player.inVehicle;
+  return !!(v && v.isHeli && !v.onGround);
 }
 
 function gameStarted() {
@@ -247,6 +259,10 @@ function finish(skipped, replaced = false) {
   document.body.classList.remove('cine-hide-hud');
   if (world) world.cameraOverride = null;
   if (a && a.voiced) setStoryScene(false, 'cine');
+  // a story or mission scene counts against the attention budget too: no
+  // wijk flyover straight after an outro or the opening montage
+  if (a && (a.pause || a.hideHud) && !OWN_MOMENTS.has(a.id)) noteMoment('scene');
+  if (a) endedAt = performance.now();
   try {
     if (a && a.onEnd) a.onEnd(skipped, replaced);
   } finally {
@@ -353,7 +369,7 @@ function checkTriggers(dt, w) {
 
   const wantedUp = w.wanted >= 5 && prevWanted < 5;
   prevWanted = w.wanted;
-  if (wantedUp && momentsOn() && !active && mayInterrupt('wanted5', w)) { noteMoment('wanted5'); playWantedFive(w); }
+  if (wantedUp && momentsOn() && !active && !aloft(w) && mayInterrupt('wanted5', w)) { noteMoment('wanted5'); playWantedFive(w); }
 
   const imp = w.lastImpact;
   if (imp && imp !== lastImpactSeen) {
@@ -404,7 +420,7 @@ function checkOmmelanden(w) {
   const [x0, y0, x1, y1] = realMapBox(w.map);
   const p = w.player, m = OMMELANDEN_MARGIN;
   if (p.x > x0 - m && p.x < x1 + m && p.y > y0 - m && p.y < y1 + m) return;
-  if (!mayInterrupt('ommelanden', w)) return;
+  if (aloft(w) || !mayInterrupt('ommelanden', w)) return;
   noteMoment('ommelanden');
   seen.add(OMMELANDEN);
   playOmmelanden(w);
@@ -448,7 +464,7 @@ function checkLandmarks(w) {
     if (!lm.name || seen.has(lm.name)) continue;
     if (Math.hypot(lm.x - p.x, lm.y - p.y) > LANDMARK_RADIUS) continue;
     // over budget: stays unseen, plays on a later visit
-    if (!mayInterrupt('landmark', w)) return;
+    if (aloft(w) || !mayInterrupt('landmark', w)) return;
     noteMoment('landmark');
     seen.add(lm.name);
     playLandmark(w, lm);
@@ -473,13 +489,29 @@ function behindPose(w, back = 7, up = 3.4) {
 function flyInShot(w, first) {
   const p = w.player, a = heading(w);
   const fx = Math.cos(a), fy = Math.sin(a);
-  const keys = [
+  const high = clearKeys(w, [
     first || { pos: W(p.x - fx * 20 + fy * 45, 55, p.y - fy * 20 - fx * 45), look: W(p.x, 4, p.y) },
     { pos: W(p.x - fx * 26 + fy * 14, 30, p.y - fy * 26 - fx * 14), look: W(p.x, 2, p.y) },
-    { pos: W(p.x - fx * 13, 9, p.y - fy * 13), look: W(p.x, 1.2, p.y) },
-    behindPose(w),
-  ];
-  return pathShot(clearKeys(w, keys));
+  ]);
+  const fallback = [{ pos: W(p.x - fx * 13, 9, p.y - fy * 13), look: W(p.x, 1.2, p.y) }, behindPose(w)];
+  let path = null;
+  // The descent ends on the live follow camera, straight down onto it, so
+  // play resumes exactly where the shot stops: a landing key lifted over a
+  // roof (the home tower right behind the new-game spawn) would leave the
+  // camera hanging in the air. Built on the second frame, once the follow
+  // camera has caught up with a player the scene just put back.
+  return (u) => {
+    const f = getFollowPose();
+    if (!path && f && u > 0) {
+      const land = { pos: V(f.position.x, f.position.y, f.position.z), look: V(f.lookAt.x, f.lookAt.y, f.lookAt.z) };
+      const above = { pos: V(land.pos.x, land.pos.y, land.pos.z + 10), look: land.look };
+      path = pathShot([...high, above, land]);
+    }
+    if (!path && u > 0.1) path = pathShot(clearKeys(w, [...high, ...fallback]));
+    if (!path) return { position: high[0].pos, lookAt: high[0].look };
+    const q = path(u);
+    return f ? { ...q, follow: u > 0.75 } : q;
+  };
 }
 
 function skyFlyInShot(w) {
@@ -613,7 +645,7 @@ function checkWijk(dt, w) {
   const v = w.player.inVehicle;
   if (v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
   // over the attention budget: waits while the player is still in the wijk
-  if (!mayInterrupt('wijk', w)) return;
+  if (aloft(w) || !mayInterrupt('wijk', w)) return;
   noteMoment('wijk');
   markWijk(p);
   wijkCand = null;
@@ -757,7 +789,7 @@ function playLandmark(w, lm) {
 function tryCrashReplay(w, x, y) {
   const now = performance.now();
   if (!momentsOn() || active || now - lastCrashAt < CRASH_COOLDOWN_MS || w.pendingRespawn || w.mission || w.race) return;
-  if (!mayInterrupt('crash', w)) return;
+  if (aloft(w) || !mayInterrupt('crash', w)) return;
   noteMoment('crash');
   lastCrashAt = now;
   const a = heading(w);

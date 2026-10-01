@@ -9,6 +9,7 @@
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
 import { queueStoryContact } from './storycontact.js';
+import { isCallActive } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
 import { playClueSting, playRadioSting } from './audio.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
@@ -23,7 +24,7 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
-import { playCinematic, isCinematicActive } from './cinematics.js';
+import { playCinematic, isCinematicActive, sinceCinematic } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -45,6 +46,8 @@ function openStudio() {
 }
 
 const LEAD_DELAY = 3;
+const LEAD_AFTER_SCENE = 2.5;
+const SAY_AFTER_LEAD = 7;
 const GUIDE_EVERY = 2.5;
 const REMIND_AFTER = 300;
 const SKIP_OFFER_S = 30;
@@ -65,7 +68,7 @@ function freshState() {
 }
 
 function freshRuntime() {
-  return { gifts: {}, cur: undefined, enteredAt: 0, leadAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
+  return { gifts: {}, cur: undefined, enteredAt: 0, leadAt: -1, sayAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
 }
 
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
@@ -190,6 +193,7 @@ function enter(step) {
     return;
   }
   rt.leadAt = world.time + LEAD_DELAY;
+  rt.sayAt = -1;
   // the first step of a later part opens with an "Eerder in GTE VI" recap
   const first = STEPS.find((s) => s.part === step.part && stepAvailable(s));
   if (first === step && PARTS[step.part].recap && !state.flags.has('recap:' + step.part)) rt.recapPending = step.part;
@@ -620,12 +624,14 @@ function initSkipUi() {
   const root = document.createElement('div');
   root.id = 'story-skip';
   root.hidden = true;
-  root.innerHTML = '<button type="button"><span class="hud-key">O</span><span>Sla deze missie over, verder met het verhaal</span></button>';
+  root.innerHTML = '<button type="button"><span class="hud-key">O</span><span class="ss-label"></span></button>';
   const style = document.createElement('style');
   style.textContent = '#story-skip{position:fixed;left:50%;bottom:17%;transform:translateX(-50%);z-index:40;pointer-events:auto}' +
-    '#story-skip button{display:flex;gap:10px;align-items:center;font:600 16px/1.2 system-ui,sans-serif;color:#fff;background:rgba(16,18,22,.86);' +
-    'border:1px solid rgba(255,210,63,.7);border-radius:10px;padding:10px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
-    '#story-skip button:hover{background:rgba(40,36,20,.92)}' +
+    '#story-skip button{zoom:var(--ui,1);display:flex;gap:10px;align-items:center;font:18px/1.1 \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1px;color:#f0ede4;' +
+    'background:radial-gradient(ellipse at center,rgba(23,48,31,.94),rgba(12,20,14,.94));border:1px solid rgba(63,201,122,.6);border-radius:4px;padding:9px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
+    '#story-skip button:hover,#story-skip button:focus-visible{border-color:#3fc97a;box-shadow:0 0 0 1px #3fc97a,0 6px 24px rgba(0,0,0,.4);outline:none}' +
+    '#story-skip .hud-key{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;background:linear-gradient(180deg,#4a4f47,#2a2e28);' +
+    'border:1px solid rgba(255,255,255,.35);border-bottom:2px solid rgba(0,0,0,.6);border-radius:4px;color:#3fc97a;font-size:12px}' +
     'body.cine-hide-hud #story-skip{display:none}';
   document.head.appendChild(style);
   document.body.appendChild(root);
@@ -635,12 +641,18 @@ function initSkipUi() {
 
 function hideSkip() {
   if (els) els.root.hidden = true;
+  document.body.classList.remove('story-skip-on');
 }
 
 function updateSkipUi() {
   if (!els) return;
   const show = rt.skipUntil > world.time && skipOffered() && !world.pigeonMode;
-  if (els.root.hidden === show) els.root.hidden = !show;
+  if (show) {
+    const label = rt.cur && rt.cur.kind === 'activity' ? 'Sla deze stap over, verder met het verhaal' : 'Sla deze missie over, verder met het verhaal';
+    const el = els.root.querySelector('.ss-label');
+    if (el.textContent !== label) el.textContent = label;
+  }
+  if (els.root.hidden === show) { els.root.hidden = !show; document.body.classList.toggle('story-skip-on', show); }
   if (show && world.input.wasPressed('o')) { world.input.consume('o'); skipCurrent(); }
 }
 
@@ -708,15 +720,22 @@ export function updateStory(dt, w) {
     w.addMessage(`Nieuwe aanwijzing: ${title}. Lees terug in het pauzemenu, Missies: "Wat weten we?"`, 4.5);
     playClueSting();
   }
-  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive()) {
+  // the next step's text waits until a scene has been over for a moment
+  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
     const buy = isPurchase(step) && (world.storyGuide && world.storyGuide.buy ? world.storyGuide.name : storyBuyLabel(world));
     if (buy) world.addMessage(`Voor het verhaal: ${buy}`, 6, { kind: 'missie', key: 'story-buy' });
-    if (step.say) companionSays(w, step.say[1]);
+    if (step.say) rt.sayAt = w.time + (step.lead ? SAY_AFTER_LEAD : 0);
     queueContacts(step, 'lead');
   }
-  if ((rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }
+  // the companion's remark follows the lead text instead of talking over it
+  if (rt.sayAt >= 0 && w.time >= rt.sayAt && !isCinematicActive() && !isCallActive()) {
+    rt.sayAt = -1;
+    if (step.say) companionSays(w, step.say[1]);
+  }
+  // the voorschot follows the lead that says what it is for
+  if (rt.leadAt < 0 && (rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }
   if (step.kind === 'activity') {
     const g = GOALS[step.goal.type];
     if (step.goal.type === 'night') updateNightWait(step);

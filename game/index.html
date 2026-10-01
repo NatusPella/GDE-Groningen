@@ -122,7 +122,7 @@
   }
   #pause-menu.visible { display: flex; animation: pm-in 0.22s ease-out; }
   @keyframes pm-in { from { opacity: 0; } }
-  #pause-menu .pm-header, #pause-menu .pm-footer, #pause-menu .pm-col > .pm-inner, #pause-menu .pm-map .mapview-header { zoom: var(--ui, 1); }
+  #pause-menu .pm-header, #pause-menu .pm-footer, #pause-menu .pm-col > .pm-inner, #pause-menu .pm-map .mapview-header, #pause-menu .pm-map .mapview-legend { zoom: var(--ui, 1); }
   #pause-menu .pm-header {
     display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 26px; row-gap: 0; padding: 14px 2.4vw 0;
     background: linear-gradient(180deg, rgba(12,20,14,0.92), rgba(12,20,14,0.55));
@@ -245,6 +245,7 @@
   #pause-menu .pm-navhint { display: inline-flex; align-items: center; gap: 5px; margin-right: 8px; }
   #pause-menu [data-panel="game"] { display: flex; padding: 16px 16px 16px max(16px, 5vw); }
   #pause-menu [data-panel="game"][hidden] { display: none; }
+  #pause-menu [data-panel="game"] > .pm-inner { zoom: min(var(--ui, 1), var(--ui-fit, 9)); }
   #pause-menu .pm-inner.pm-game {
     width: min(440px, calc(100% / var(--ui, 1))); margin: auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; align-content: start;
     padding: 18px 18px 16px; box-sizing: border-box; border-radius: 12px; border: 1px solid rgba(63,201,122,0.28); border-left: 4px solid #3fc97a;

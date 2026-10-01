@@ -33,8 +33,15 @@ function compute() {
   return Math.round(Math.min(4, Math.max(0.8, auto * user)) * 1000) / 1000;
 }
 
+// The pause card (about 600 px tall) must fit between the top and the
+// zoomed footer, whatever the interface size: --ui-fit caps its zoom.
+const CARD_H = 600;
+const FOOT_H = 45;
+
 function apply() {
   const s = compute();
+  const fit = Math.max(0.6, (window.innerHeight - FOOT_H * s - 40) / CARD_H);
+  document.documentElement.style.setProperty('--ui-fit', fit.toFixed(3));
   if (s === scale) return;
   scale = s;
   document.documentElement.style.setProperty('--ui', String(s));

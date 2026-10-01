@@ -42,19 +42,19 @@ export const FURNITURE = [
     at: { x: 0.36, z: 2.6, rot: Math.PI / 2, fit: 'h', size: 1.9 }, solid: [0.1, 1.95, 0.66, 3.25], use: { x: 1.15, z: 2.6 } },
   { id: 'bank', short: 'Zitmoi', label: 'Bank "Zitmoi"', price: 299, desc: 'Zit als een Grunneger: stug maar trouw',
     perk: 'Zitten (E): snel weer gezond', stat: ['Herstel op de bank', '+10 gezondheid per seconde'], replaces: true,
-    at: { x: 3.2, z: 3.95, rot: Math.PI, fit: 'w', size: 2.5 }, use: { x: 4.95, z: 3.75 } },
+    at: { x: 3.7, z: 3.95, rot: Math.PI, fit: 'w', size: 2.5 }, use: { x: 5.45, z: 3.75 } },
   { id: 'lamp', short: 'Lichtje Tjoek', label: 'Lamp "Lichtje Tjoek"', price: 15, desc: 'Voor lange winteravonden in Stad',
     perk: "'s Avonds echt licht in de flat", stat: ['Gezelligheid', 'Warm licht, elke avond'],
     at: { x: 0.6, z: 4.7, rot: 0, fit: 'h', size: 1.6 }, solid: [0.38, 4.48, 0.82, 4.92] },
   { id: 'bed', short: 'Sloapstee', label: 'Bed "Sloapstee"', price: 349, desc: 'Tweepersoons, met een dekbed zo dik als pap',
     perk: 'Slapen: +50 pantser, kies zelf hoe laat', stat: ['Uitgerust', 'Pantser 50 en je eigen wekker'], replaces: true,
-    at: { x: 2.4, z: 7.6, rot: Math.PI, fit: 'w', size: 1.75 } },
+    at: { x: 8.6, z: 7.6, rot: Math.PI, fit: 'w', size: 1.75 } },
   { id: 'tv', short: 'Kiekkast', label: 'Tv "Kiekkast"', price: 229, desc: 'Groot scherm, Sikkom TV zit er standaard op',
     perk: 'Terugkijken en het Sikkom Journaal', stat: ['Sikkom TV', 'Gespeelde verhaalscènes terugkijken'], replaces: true,
-    at: { x: 3.2, z: 1.0, rot: 0, fit: 'w', size: 1.7 }, use: { x: 4.75, z: 1.35 } },
+    at: { x: 3.7, z: 1.0, rot: 0, fit: 'w', size: 1.7 }, use: { x: 5.25, z: 1.35 } },
   { id: 'prikbord', short: 'Woar Bin\'k', label: 'Wandkaart "Woar Bin\'k"', price: 19, desc: 'Heel Grunn aan de muur, punaises erbij',
     perk: 'Kies een bestemming: GPS staat klaar', stat: ['Routeplanner', 'Winkels, klussen, stations'],
-    at: { x: 9.8, y: 0.5, z: 5.3, rot: 0, fit: 'w', size: 1.1 }, use: { x: 9.8, z: 6.1 } },
+    at: { x: 0.1, y: 0.5, z: 6.7, rot: Math.PI / 2, fit: 'w', size: 1.1 }, use: { x: 0.95, z: 6.7 } },
   { id: 'frituur', short: 'Vetpot', label: 'Frituurpan "Vetpot"', price: 129, desc: 'Twee manden, heet in één minuut',
     perk: 'Eierbal thuis: +20 pantser, sneller weer trek', stat: ['Frituur thuis', 'Elke 15 s, pantser tot 60'], replaces: true,
     at: { x: 8.4, y: 0.94, z: 0.55, rot: 0, fit: 'w', size: 0.46 } },
@@ -63,7 +63,7 @@ export const FURNITURE = [
     at: { x: 10.5, z: 4.7, rot: 0, fit: 'h', size: 1.15 }, solid: [10.2, 4.4, 10.85, 5.0], use: { x: 9.75, z: 4.45 } },
   { id: 'bureau', short: 'Warkplak', label: 'Bureau "Warkplak" met pc', price: 179, desc: 'Ubbo draait er de hele dag op',
     perk: 'Bijbaantjes betalen 10% meer', stat: ['Bijbaan-loon', '+10% per klus'],
-    at: { x: 6.6, z: 8.62, rot: Math.PI, fit: 'w', size: 1.3 }, solid: [5.92, 8.3, 7.28, 8.95], use: { x: 6.6, z: 7.8 } },
+    at: { x: 10.3, z: 8.62, rot: Math.PI, fit: 'w', size: 1.3 }, solid: [9.65, 8.3, 10.95, 8.95], use: { x: 10.3, z: 7.8 } },
 ];
 const BY_ID = new Map(FURNITURE.map((f) => [f.id, f]));
 const TOTAL = FURNITURE.length;
@@ -148,16 +148,18 @@ export function deliverFurniture(w) {
   for (const id of state.pending) state.owned.add(id);
   state.pending.clear();
   const list = names.length > 1 ? names.slice(0, -1).join(', ') + ' en ' + names[names.length - 1] : names[0];
-  w.addMessage(`EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59`, 5, { kind: 'tip' });
-  if (state.owned.has('kast') && !state.built.has('kast')) w.addMessage('De Buukenkaas staat nog in de doos. Loop erheen en druk E', 5, { kind: 'tip' });
-  momentHint(w);
+  // one card: tips are rationed (attention.js), a second one would be dropped
+  const next = [];
+  if (state.owned.has('kast') && !state.built.has('kast')) next.push('De Buukenkaas staat nog in de doos: loop erheen en druk E.');
+  if (momentDue()) next.push('Ga even zitten op de Zitmoi (E).');
+  w.addMessage(`EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59. ${next.join(' ')}`.trim(), 6, { kind: next.length ? 'missie' : 'tip' });
   checkComplete(w);
 }
 
 const momentDue = () => !state.moment && has('bank') && storyFlag('zitmoi');
 
 function momentHint(w) {
-  if (momentDue()) w.addMessage('Ga even zitten op de Zitmoi (E)', 5, { kind: 'tip' });
+  if (momentDue()) w.addMessage('Ga even zitten op de Zitmoi (E)', 5, { kind: 'missie' });
 }
 
 // Stock pieces an EIKEA one replaces (home3d.js buildFlat3D skips them).
@@ -279,7 +281,7 @@ export function furnitureSlept(w, fromHour, toHour) {
 
 // Where the companion stays in the flat: on the Zitmoi when there is one.
 export function companionSeat() {
-  return has('bank') ? { x: 2.5, z: 3.98, seat: SEAT_Y } : null;
+  return has('bank') ? { x: 3.15, z: 3.98, seat: SEAT_Y } : null;
 }
 
 function newDay() {
@@ -368,7 +370,8 @@ function assemblyMenu(w) {
     sections: () => {
       const last = screws >= SCREWS;
       const step = last
-        ? { id: 'kauwgom', label: 'Schroefje 238 bestaat niet', desc: 'Doos leeg, zak leeg, vloer leeg. Kauwgompje erin?', verb: 'Kauwgom erin', price: 0, keepFocus: true,
+        // same id as the screws: the selection (and the keyboard focus) stays on the step
+        ? { id: 'schroef', label: 'Schroefje 238 bestaat niet', desc: 'Doos leeg, zak leeg, vloer leeg. Kauwgompje erin?', verb: 'Kauwgom erin', price: 0, keepFocus: true,
           preview: { kind: 'product', product: 'kast' }, effect: 'Zelf in elkaar gezet', buy: () => finish(true) }
         : { id: 'schroef', label: `Schroefje ${SCREW_FROM + screws} van 238`, desc: 'Inbussleuteltje erin en draaien. Rechtsom is vast', verb: 'Draaien', price: 0, keepFocus: true,
           preview: { kind: 'product', product: screws >= SCREWS / 2 ? 'kast' : 'pakket' },
@@ -402,7 +405,7 @@ export function getEierbalTips() {
 // --- the Zitmoi ------------------------------------------------------------------------
 
 function seatSpot() {
-  const [x, y] = parent.flat.fl(3.75, 3.98);
+  const [x, y] = parent.flat.fl(4.25, 3.98);
   return { x, y };
 }
 
@@ -429,7 +432,7 @@ function standUp(w, place) {
   if (!p) return;
   p.sofaSeat = null;
   if (place && parent) {
-    const [x, y] = parent.flat.fl(3.75, 3.05);
+    const [x, y] = parent.flat.fl(5.4, 3.6);
     p.x = x; p.y = y;
   }
 }
@@ -482,7 +485,7 @@ function ensureTvEl() {
   tvEl = document.createElement('div');
   tvEl.className = 'fm-tv';
   tvEl.setAttribute('role', 'status');
-  tvEl.innerHTML = '<style>.fm-tv{position:fixed;left:50%;bottom:17%;transform:translateX(-50%);z-index:40;width:min(640px,calc(100vw - 32px));box-sizing:border-box;padding:10px 16px 12px;background:rgba(12,20,14,.9);border:2px solid #3fc97a;border-radius:6px;color:#f0ede4;font:17px/1.35 Arial,sans-serif;pointer-events:none;display:none}.fm-tv.on{display:block}.fm-tv h4{margin:0 0 4px;font:15px \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1.5px;color:#3fc97a}.fm-tv b{color:#e8c93a;margin-right:6px}.fm-tv small{display:block;margin-top:6px;color:rgba(240,237,228,.55);font-size:13px}</style><h4></h4><p style="margin:0"><b></b><span></span></p><small>E: uitzetten · weglopen zet hem ook uit</small>';
+  tvEl.innerHTML = '<style>.fm-tv{position:fixed;left:50%;bottom:17%;transform:translateX(-50%);z-index:40;width:min(640px,calc(100vw - 32px));box-sizing:border-box;padding:10px 16px 12px;background:rgba(12,20,14,.9);border:2px solid #3fc97a;border-radius:6px;color:#f0ede4;font:17px/1.35 Arial,sans-serif;pointer-events:none;display:none}.fm-tv.on{display:block}.fm-tv h4{margin:0 0 4px;font:15px \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1.5px;color:#3fc97a}.fm-tv b{color:#e8c93a;margin-right:6px}.fm-tv small{display:block;margin-top:6px;color:rgba(240,237,228,.55);font-size:13px}.fm-tv kbd{display:inline-block;min-width:12px;margin-right:4px;padding:1px 6px;border:1px solid rgba(255,255,255,.5);border-bottom-width:2px;border-radius:4px;font:bold 12px/1.2 system-ui,sans-serif;color:#f0ede4;text-align:center}</style><h4></h4><p style="margin:0"><b></b><span></span></p><small><kbd>E</kbd> uitzetten · weglopen zet hem ook uit</small>';
   document.body.appendChild(tvEl);
   return tvEl;
 }
@@ -600,18 +603,26 @@ export function updateFurnitureInside(dt, w) {
   world = w;
   if (!parent) return false;
   const f = parent.flat;
-  if (has('lamp')) {
-    const night = (w.dayNight && w.dayNight.night) || 0;
-    if (night > 0.05) {
+  const night = (w.dayNight && w.dayNight.night) || 0;
+  if (night > 0.05) {
+    // the ceiling lamp of the room you are in; the Lichtje Tjoek outshines it in the living room
+    const p = w.player, dx = p.x - f.ox, dy = p.y - f.oy;
+    const px = dx * f.X[0] + dy * f.X[1], pz = dx * f.Y[0] + dy * f.Y[1];
+    const room = f.rooms.find((r) => px >= r.x0 && px <= r.x1 && pz >= r.z0 && pz <= r.z1);
+    const k = Math.min(1, night * 1.5);
+    if (has('lamp') && (!room || room.name === 'woonkamer')) {
       const [lx, ly] = f.fl(0.6, 4.7);
       const [tx, ty] = f.fl(3.0, 3.0);
-      requestSearchlight(lx, f.floorY + 2.6, ly, tx, f.floorY, ty, 4.4, 0.85 * Math.min(1, night * 1.5));
+      requestSearchlight(lx, f.floorY + 2.6, ly, tx, f.floorY, ty, 4.4, 0.85 * k);
       sayOnce(w, 'lamp', 'Lekker lichtje. Nu is het echt gezellig.');
+    } else if (room) {
+      const [cx, cy] = f.fl((room.x0 + room.x1) / 2, (room.z0 + room.z1) / 2);
+      requestSearchlight(cx, f.floorY + 2.7, cy, cx, f.floorY, cy, Math.max(room.x1 - room.x0, room.z1 - room.z0) * 0.6, 0.4 * k);
     }
   }
   updateTv(dt, w);
   if (moment && w.time - moment.t > MOMENT[moment.i][0]) {
-    w.addMessage(MOMENT[moment.i][1], 5, { kind: 'tip' });
+    w.addMessage(MOMENT[moment.i][1], 5, { kind: 'missie', kicker: other(w) });
     if (++moment.i >= MOMENT.length) moment = null;
   }
   if (!seat) return false;

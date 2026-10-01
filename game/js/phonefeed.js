@@ -318,8 +318,17 @@ export function updatePhoneFeed(dt, w) {
   if (!w.phoneNotifications) w.phoneNotifications = [];
   const visible = hudVisible();
   if (visible && !w.paused) {
-    while (w.phoneNotifications.length) notes.push(w.phoneNotifications.shift());
-    if (notes.length > 6) notes.splice(0, notes.length - 6).forEach((n) => remember(w, n.from ? `${n.from}: ${n.text}` : n.text));
+    while (w.phoneNotifications.length) {
+      const n = w.phoneNotifications.shift();
+      // story texts go ahead of the news and app texts that wait
+      const at = n.story ? notes.findIndex((q) => !q.story) : -1;
+      if (at >= 0) notes.splice(at, 0, n); else notes.push(n);
+    }
+    while (notes.length > 6) {
+      const i = notes.findIndex((q) => !q.story);
+      const [n] = notes.splice(i >= 0 ? i : 0, 1);
+      remember(w, n.from ? `${n.from}: ${n.text}` : n.text);
+    }
     if (!call && !cards.some((c) => !c.leaving) && notes.length) showNote(w, notes.shift());
     syncCounter();
     for (const c of cards) { c.t += dt; voiceCard(c); if (c.speaking && c.t > 40) c.speaking = false; if (!c.speaking) c.left -= dt; }

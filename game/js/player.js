@@ -13,6 +13,7 @@ import { railingAhead } from './bridgerails.js';
 import { drunkMove, drunkSteer } from './drunk.js';
 
 import { inHomeFlat } from './home.js';
+import { flyHeli, heliExitBlock } from './heliflight.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -111,7 +112,7 @@ export class Player {
       if (this.water) {
         if (this.water === 'swim' && !this.inVehicle) this.swimInteract(world);
       } else if (this.inVehicle) this.tryEnterExit(map, vehicles, world);
-      else this.interact(world);
+      else if (!inHomeFlat()) this.interact(world);
     }
     // kissing has its own key (K): E next to a car used to kiss instead of
     // getting in whenever the companion stood close
@@ -199,6 +200,8 @@ export class Player {
   }
 
   tryVault(world) {
+    // upstairs in the flat every prop and railing is down on the street
+    if (inHomeFlat()) return false;
     const { map, input } = world;
     const dir = cameraRelativeMove(input, world.camYaw);
     const a = dir ? dir.angle : this.angle;
@@ -541,6 +544,8 @@ export class Player {
   tryEnterExit(map, vehicles, world = null) {
     if (this.inVehicle) {
       if (this.inVehicle.sinking && this.inVehicle.sinking.phase === 'fall') return;
+      const why = heliExitBlock(this.inVehicle);
+      if (why) { if (world) world.addMessage(why, 2.5, { kind: 'tip' }); return; }
       this.exitVehicle(map, world);
       return;
     }
@@ -624,6 +629,11 @@ export class Player {
 
   driveVehicle(dt, input, map, world = null) {
     const v = this.inVehicle;
+    if (v.isHeli && world) {
+      flyHeli(v, dt, world);
+      this.x = v.x; this.y = v.y; this.angle = v.angle;
+      return;
+    }
     const [ax, ay] = input.axis();
     // race countdown (world.startLockUntil) or a Fjord Frituur shift (v.shiftParked):
     // engine idles, handbrake on, no creeping over the line

@@ -347,6 +347,8 @@ const ownVehicle = (v) => !!(v && (v.isHeroCar || v.playerOwned) && !v.wrecked);
 // vehicle), 'heal' (low health), or null; with hysteresis, so the route
 // stays until they are really fixed or healed.
 function careNeed(world) {
+  // dying or being arrested is no moment for a snack tip
+  if (world.pendingRespawn || world.health <= 0) return care;
   const v = world.player.inVehicle;
   const h = v ? v.health ?? 100 : 100;
   if (ownVehicle(v) && !v.isBoat && (h < CARE_DAMAGED || (care === 'repair' && h < CARE_FIXED))) return 'repair';

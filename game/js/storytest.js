@@ -17,6 +17,7 @@ import { applySave } from './savegame.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 import { validateSpots } from './spotcheck.js';
+import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -88,7 +89,7 @@ function economyChecks(check, tl) {
   check('economy: normal repair cheap', dent <= avg * 0.08, `€${dent} bij 30% schade, missie gem. €${avg}`);
   check('economy: wreck restore moderate', wreck <= avg * 0.25, `€${wreck} voor een Mug`);
   const romp = afterStep(tl, 'H13');
-  const top = ['wervelwind', 'raket', 'midibus', 'speedboot'].map((k) => VEHICLE_STOCK[k].price);
+  const top = ['wervelwind', 'raket', 'midibus', 'speedboot', 'wiekenwubbo'].map((k) => VEHICLE_STOCK[k].price);
   check('economy: top vehicles reachable after the Romp', romp >= Math.max(...top), `€${romp} na H13, duurste €${Math.max(...top)}`);
   check('economy: top vehicles still a goal after the Kop', afterStep(tl, 'H6') < Math.max(...top), `€${afterStep(tl, 'H6')} na H6`);
   const fine = bustFine(5, 1000);
@@ -130,6 +131,10 @@ export async function runStoryTest(world) {
     const spots = validateSpots(world);
     for (const b of spots.bad) console.log('[spotcheck]', b.kind, b.id, b.x, b.y, b.why);
     check(`all ${spots.total} spots reachable`, !spots.bad.length, spots.bad.map((b) => `${b.kind} ${b.id} (${b.x}, ${b.y}): ${b.why}`).join('; '));
+    // no street, cycleway or footway runs through a solid wall or an invisible hole
+    const pa = auditPassages(world.map);
+    for (const e of pa.bad) console.log('[passagecheck]', e.cls, e.road, e.building, e.x, e.y, 'depth', e.depth, 'len', e.len);
+    check(`ways through buildings are passages or doors (${JSON.stringify(pa.counts)})`, !pa.bad.length, pa.bad.slice(0, 30).map((e) => `${e.cls} ${e.road} in ${e.building} (${e.x}, ${e.y})`).join('; '));
     // nothing solid across the ring race lap and the ring roads, and a lap really drives
     const solids = probeRingSolids(world);
     check('ring roads free of solid obstacles', !solids.length, solids.slice(0, 40).map((h) => `${h.route} +${h.s} m ${h.kind} ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
@@ -299,7 +304,7 @@ export async function runStoryTest(world) {
       const pg = window.__postgame;
       if (PARTS[lastPart] && PARTS[lastPart].finale) {
         check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
-        for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord']) {
+        for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord', 'koe']) {
           const p = world.player;
           if (p.inVehicle && id !== 'fjord') p.exitVehicle(world.map, world);
           await sleep(300);
@@ -316,6 +321,28 @@ export async function runStoryTest(world) {
         }
         check('Fjord Frituur unlocked in the garage', await waitFor(() => getOwnedEntries().some((o) => o.key === 'fjordfrituur'), 5000));
         if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+      }
+
+      // the Ommeland extras (ommelandfun.js): twelve wereldeinden, a dorpsuitje per station
+      const om = window.__ommeland;
+      if (om) {
+        const ends = om.ends();
+        check(`all 12 wereldeinden placed at the edge of the data`, ends.length === 12, ends.map((e) => `${e.id} ${e.road}`).join(', '));
+        const vs = om.villages();
+        check(`every Ommeland station has its dorpsuitjes (${vs.length})`, vs.length === 8 && vs.every((v) => v.acts.length === 2 && v.egg), JSON.stringify(vs.filter((v) => v.acts.length < 2 || !v.egg).map((v) => v.name)));
+        if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+        const before = om.endsFound();
+        om.go(ends[0].x, ends[0].y);
+        check('a wereldeinde is found by walking up to it', await waitFor(() => om.endsFound() > before || ends[0].found, 6000), JSON.stringify(ends[0]));
+        await sleep(600);
+        capture('om-wereldeinde');
+        await drain(world, 700);
+        const bell = vs.find((v) => v.name === 'Loppersum');
+        const used = bell && om.use('Loppersum', 'special');
+        check('a dorpsuitje can be done (Loppersum, de klok)', used && await waitFor(() => om.villages().find((v) => v.name === 'Loppersum').done, 4000));
+        await sleep(500);
+        capture('om-dorp');
+        await drain(world, 700);
       }
 
       // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data

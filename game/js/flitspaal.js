@@ -87,7 +87,7 @@ export function updateFlitspaal(dt, world) {
   const cams = world.flitspaalen;
   if (!cams || !cams.length) return;
   const v = world.player.inVehicle;
-  if (!v || v.wrecked) return;
+  if (!v || v.wrecked || v.isHeli) return;
 
   const speedKmh = Math.abs(v.speed) * 3.6;
   for (const cam of cams) {

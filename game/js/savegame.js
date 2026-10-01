@@ -227,6 +227,7 @@ export function applySave(w, d) {
     applyFurnitureSave(d.meubels);
     applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
+    w.loadCount = (w.loadCount || 0) + 1;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
     restoredMoney = lost ? w.money : -1;
     if (lost) saveSoon(3);

@@ -24,7 +24,10 @@ import { getMissionRecord } from './achievements.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
-import { startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, heistStageChanged, disposeHeist } from './heist.js';
+import {
+  startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
+  heistApproach, heistSpotAt, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate,
+} from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { addDrunk } from './drunk.js';
@@ -94,6 +97,8 @@ function buildDefs(world) {
       reward: 400,
       // Berend takes €3 off per percent of damage, down to a quarter of the fee
       scratchFine: 3,
+      vehicleName: 'Berends bakkie',
+      destName: 'het Boterdiep',
       start: drive(224, -27),
       dest: drive(-14, -489),
     },
@@ -130,6 +135,8 @@ function buildDefs(world) {
       reward: 850,
       fragile: { label: 'Decor', per: 1.8, failAt: 30, fail: 'het decor ligt in scherven. Het wordt moderne dans' },
       stops: [{ ...drive(96, -318), name: 'de Stadsschouwburg', bonus: 25, arrive: 'De acteurs springen achterin, tussen het decor. "Rustig rijden, hè!"' }],
+      vehicleName: 'de decorauto',
+      destName: 'het Noorderplantsoen',
       start: drive(787, -95),
       dest: drive(189, -590),
     },
@@ -242,21 +249,50 @@ function buildDefs(world) {
       reward: 400,
       requires: ['heist', 'night'],
       start: walk(18, 736),
-      heist: { fuse: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
+      heist: { fuse: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
+      // heist.js: the plan picks the approach; stages with `only` belong to one of them
       stages: [
-        { kind: 'goto', target: { landmark: 'Groninger Museum', off: [-22, -40], snap: 'walk' }, mode: 'any', label: 'Naar de achteringang', say: 'Naar de brug naar het museumeiland. Rustig aan, blijf uit het licht.' },
         {
-          kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, mode: 'foot', radius: 3.5,
-          label: 'Sluip naar de stroomkast', say: 'Bewakers met zaklampen en draaiende camera\'s. Blijf uit de lichtbundels. Bukken (Ctrl) helpt bij de bewakers.',
+          kind: 'plan', label: 'Het plan', kicker: 'Groninger Museum', title: 'De bouwtekening',
+          lines: [
+            ['A', 'Oké, luister. Het museum ligt op een eiland in het Verbindingskanaal.', { focus: 'island' }],
+            ['T', 'Dus we moeten zwemmen.', { focus: 'water' }],
+            ['A', 'Er zijn bruggen, Tammo. Eerst de stroomkast bij de fietsenstalling.', { focus: 'fuse' }],
+            ['A', 'Dan draaien de camera\'s de hele nacht een filmpje van een leeg museum.', { focus: 'cams' }],
+            ['T', 'En de bewakers?', { focus: 'guards' }],
+            ['A', 'Die lopen rond met zaklampen. Blijf uit hun licht.', { focus: 'guards' }],
+            ['A', 'In zaal 3 hangen lasers. Bukken, springen, wachten. Daarachter staat de vitrine.', { focus: 'lasers' }],
+            ['T', 'Met een slot erop. En de code?', { focus: 'vitrine' }],
+            ['A', 'Achttien karaat uit 1953. Raad eens.', { focus: 'vitrine' }],
+            ['A', 'Naar binnen kan via de achterdeur: slotje openpeuteren en sluipen.', { focus: 'routeA' }],
+            ['T', 'Of we worden schoonmakers. Ik heb twee overalls "geleend". En een emmer.', { focus: 'routeB' }],
+            ['T', 'Jij bent de baas. Jij kiest.', { focus: 'choice' }],
+          ],
         },
-        { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-30, 28], snap: 'walk' }, label: 'Camera\'s uit bij de stroomkast', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera\'s.' },
-        { kind: 'goto', watch: { guards: 1, cameras: 0 }, vitrine: true, target: { landmark: 'Groninger Museum', off: [3, 17] }, mode: 'foot', stop: 1, label: 'Naar de vitrine', say: 'Camera\'s uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.' },
+        {
+          kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, mode: 'foot', radius: 3.5,
+          label: 'Sluip naar de stroomkast', say: 'Eerst de stroomkast. Twee camera\'s en een bewaker: blijf uit de lichtbundels. Bukken (Ctrl) helpt.',
+        },
+        { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, label: 'Camera\'s op herhaling', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan draaien de camera\'s op herhaling.' },
+        { kind: 'goto', only: 'sluip', target: { heistSpot: 'achterdeur' }, mode: 'foot', radius: 1.6, label: 'Naar de achterdeur', say: 'Camera\'s op herhaling. Nu de achterdeur, in de fietspassage.' },
+        { kind: 'lock', only: 'sluip', target: { heistSpot: 'achterdeur' }, opens: 'achterdeur', label: 'Peuter het slot open', say: 'Slotje openpeuteren. Spatie als het pinnetje in het groen staat. Ik hou de wacht.' },
+        { kind: 'goto', only: 'sluip', post: 'zaal1', target: { heistSpot: 'deur1' }, mode: 'foot', radius: 1.4, label: 'Sluip door zaal 1', say: 'Zaal 1. Die bewaker loopt rondjes. Wacht tot hij je zijn rug toekeert, en dan bukken.' },
+        { kind: 'pickpocket', only: 'vermomd', post: 'rookplek', target: { heistSpot: 'rookplek' }, label: 'Rol het pasje van de bewaker', say: 'Overall aan, emmer mee. Die bewaker bij de glazen deur heeft het pasje. Sluip achter hem en blijf even staan.' },
+        { kind: 'goto', only: 'vermomd', target: { heistSpot: 'glasdeur' }, opens: 'glasdeur', mode: 'foot', radius: 1.4, label: 'Door de glazen deur', say: 'Pasje erlangs en door de glazen deur. Gewoon doen alsof je hier werkt.' },
+        { kind: 'goto', post: 'entreehal', distract: true, target: { heistSpot: 'deur3' }, mode: 'foot', radius: 1.3, label: 'Door de Entreehal', say: 'De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.' },
+        { kind: 'laser', target: { heistSpot: 'stand' }, label: 'Door de lasers van zaal 3', say: 'Zaal 3. Bukken (Ctrl) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.' },
+        { kind: 'crack', target: { heistSpot: 'stand' }, label: 'Kraak de vitrine', say: 'De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.' },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
           lines: [['A', 'Hij is… leeg.'], ['T', 'Misschien is hij even naar de wc.'], ['A', 'Er ligt een kaartje. "Tige tank! – W."', { clue: true }], ['T', 'W? Wie is W?'], ['A', 'Iemand die Fries schrijft. En die eerder was dan wij.']],
         },
-        { kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Alarm! Drie sterren. Wegwezen, over het water als het kan.' },
+        {
+          kind: 'getaway', stars: 2, target: { heistSpot: 'boot' }, label: 'Alarm! Rennen, naar de boot', say: 'Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!',
+          lines: [['T', 'Instappen! De motor draait al!'], ['A', 'Tammo, sinds wanneer kun jij varen?'], ['T', 'Sinds nu. Vol gas!']],
+        },
+        { kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.' },
+        { kind: 'shot', label: 'Weg van het museum', big: 'Iemand was ze voor.' },
       ],
     },
     // --- Romp story missions (storyarc.js H8, H10) ---------------------------
@@ -897,6 +933,8 @@ function syncPub(world) {
   pub.marker.y = target.y;
   pub.marker.z = Number.isFinite(target.z) && def.type === 'stages' && st.phase === 'active' ? target.z : null;
   pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
+  pub.armed = !!st.armed;
+  pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
   if (def.type === 'rampage' && st.phase === 'active') {
     pub.killProgress = killCount(world) - st.killBaseline;
     pub.killTarget = def.targetKills;
@@ -983,9 +1021,10 @@ function nextStop(def) {
 // own position/checkpoint text).
 function progressText(world, def, pub) {
   if (def.type === 'deliver') {
-    const bits = [];
+    if (vehicleToBoard(world, def)) return `Stap in ${def.vehicleName || 'de auto'}`;
     const stop = nextStop(def);
-    if (def.stops) bits.push(stop ? `Eerst naar ${stop.name}` : 'Door naar de bestemming');
+    const to = def.destName || 'de bestemming';
+    const bits = [stop ? `Eerst naar ${stop.name}` : def.stops ? `Door naar ${to}` : `Rij naar ${to}`];
     if (def.fragile) bits.push(`${def.fragile.label} ${pub.cargo ?? 100}% heel`);
     else if (pub.vehicleDamage != null) bits.push(`Schade ${pub.vehicleDamage}%`);
     return bits.join(' · ') || null;
@@ -1768,9 +1807,14 @@ function raceCarProblem() {
 //   train   (H16, def `fjordTrain`) stand at the level crossing before the goods train
 //           with the Fjord gets there (fjordtrain.js); a chase with `toTrain` ends when
 //           the fleeing Fjord reaches the train or `time` runs out (`loaded`; stopped first = no train stage)
-//   fuse    (H6, def `heist`) the fuse box timing minigame at target (heist.js)
+//   H6 (def `heist`, heist.js): plan (the blueprint and the choice of approach; a
+//           stage with `only` runs for that approach), fuse (the fuse box), lock (the
+//           back door), pickpocket (the pass off a guard), laser (the grid in zaal 3),
+//           crack (the case's dial), getaway (the alarm, the run to the boat and a short
+//           scene), shot (the closing wide shot); `opens` a door when the stage is done
 // goto `watch` { guards, cameras }: torch cones and sweeping cameras along the way
-// (heist.js); seen = back to where the stage started. Scene `reveal`: the empty case shot.
+// (heist.js); goto `post`: the guards of a named post inside, `distract`: E sends them
+// to the window; seen = back to where the stage started. Scene `reveal`: the empty case shot.
 // More options: goto `limit` (seconds, `late` = the fail reason), `pay` (money taken when
 // the stage is done, `paid` = the toast), hold `ticks` (three progress toasts) and
 // `fireworks` { every: [min, max], hit, cost, hitText } (bangs that knock you down and
@@ -1782,7 +1826,7 @@ function raceCarProblem() {
 // target with z must be reached at that height (+-8 m), r = its radius.
 // Scene options: cam { r, h, lookZ, at } (a wide shot), dropFlag.
 // Targets: { x, y } | { at: [x, y], snap } | { shop } | { garage: true } |
-// { landmark, off: [dx, dy], snap, z, r } | { pigeonSpot } | { heli } | { rental } (your
+// { landmark, off: [dx, dy], snap, z, r } | { pigeonSpot } | { heistSpot } (heist.js) | { heli } | { rental } (your
 // rented boat) | { route } (the nearest point on the Diepenring) | { shore } (the nearest
 // street) | { skutsje } | { bank: [x, y] } (the water's edge near there); snap: 'walk' | 'drive'.
 
@@ -1816,6 +1860,7 @@ function resolveTarget(world, spec, from) {
     const [dx, dy] = spec.off || [0, 0];
     return { ...snap(lm.x + dx, lm.y + dy), label: spec.label || spec.landmark, z: spec.z, r: spec.r };
   }
+  if (spec.heistSpot) return heistSpotAt(map, spec.heistSpot);
   if (spec.pigeonSpot) {
     const ps = getPigeonSpotsForRender().find((q) => q.id === spec.pigeonSpot);
     return ps ? { x: ps.x, y: ps.y, label: ps.name } : null;
@@ -1977,7 +2022,8 @@ function stageProgressText(world, def) {
   const S = chain.stage;
   const st = def.stages && def.stages[chain.stageIndex];
   if (!S || !st) return null;
-  const n = `${chain.stageIndex + 1}/${def.stages.length}`;
+  const list = def.heist ? def.stages.filter((q) => !q.only || q.only === heistApproach()) : def.stages;
+  const n = `${list.indexOf(st) + 1}/${list.length}`;
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
   if (st.kind === 'escape') return `${st.label} · ${'★'.repeat(world.wanted)}`;
@@ -2019,9 +2065,15 @@ function enterStage(world, def, k) {
   if (st.showFlag && !hasTowerFlag()) showMissionFlag(world, def, from);
   if (def.fjordTrain && k === 0) spawnFjordTrain(world);
   if (def.heist) {
-    heistStageChanged();
-    if (k === 0 && startHeist()) placeHeistProps(world, resolveTarget(world, def.heist.fuse, from), resolveTarget(world, def.heist.vitrine, from));
+    if (k === 0 && startHeist(world)) {
+      placeHeistProps(world, resolveTarget(world, def.heist.fuse, from), resolveTarget(world, def.heist.vitrine, from));
+      // the cameras and the guard outside stand from the start (the plan shows them)
+      def.stages.forEach((q, j) => { if (q.watch) guardRoute(world, from, resolveTarget(world, q.target, from), q.watch, j); });
+    }
+    if (st.only && st.only !== heistApproach()) { enterStage(world, def, k + 1); return; }
     if (st.vitrine && vitrineStand()) S.target = { ...vitrineStand(), label: st.label };
+    const moved = heistEnterStage(world, st, S, k);
+    if (moved) S.target = moved;
     const fi = def.stages.findIndex((q) => q.kind === 'fuse');
     if (fi >= 0 && k > fi) { closeFuse(); camerasOff(); }
   }
@@ -2046,7 +2098,6 @@ function enterStage(world, def, k) {
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
   if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
   chain.stage = S;
-  if (def.heist && st.watch) guardRoute(world, from, S.target, st.watch);
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chain.timeLeft += st.bonus;
@@ -2055,6 +2106,7 @@ function enterStage(world, def, k) {
 
 function nextStage(world, def) {
   const cur = def.stages[chain.stageIndex];
+  if (def.heist) heistLeaveStage(world, cur);
   if (cur && cur.pay) {
     const amt = Math.min(cur.pay, Math.max(0, Math.floor(world.money)));
     world.money -= amt;
@@ -2279,7 +2331,7 @@ function playStageScene(world, st, S) {
       shot: st.reveal || wide ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
       props: [...(st.props || []), ...(st.knots ? [{ kind: 'point', name: 'knots', at: flagKnotsFocus }] : [])],
-      update: st.dropFlag || st.showFlag ? (t, dt) => updateStoryProps(st.dropFlag ? dt * 0.45 : dt) : null,
+      update: st.dropFlag || st.showFlag ? (t, dt) => updateStoryProps(st.dropFlag ? dt * 0.45 : dt) : st.reveal ? heistRevealUpdate : null,
     });
     if (staged) return true;
   }
@@ -2311,8 +2363,16 @@ function updateStages(dt, world, def) {
     updateEggs(dt, world, def);
     if (chain.phase !== 'active') return;
   }
-  // seen by a guard or camera: the stage waits while you're sent back
-  if (def.heist && updateHeist(dt, world, !!st.watch, S.here)) return;
+  // seen by a guard or camera: the stage waits while you're sent back; O held: skip it
+  if (def.heist) {
+    const h = updateHeist(dt, world, st, S);
+    if (h === 'skip') {
+      if (st.kind === 'getaway') heistSkipGetaway(world, true);
+      missionDebug.complete(world);
+      return;
+    }
+    if (h) return;
+  }
   const v = chain.vehicle;
   const inCar = !!v && p.inVehicle === v;
   switch (st.kind) {
@@ -2345,6 +2405,35 @@ function updateStages(dt, world, def) {
       if (!S.target) { nextStage(world, def); break; }
       if (p.inVehicle) { hint(world, MODE_HINT.foot || ''); break; }
       if (updateFuse(dt, world, S.target, world.input)) nextStage(world, def);
+      break;
+    case 'plan':
+      if (updatePlanStage(dt, world, st, S, def)) nextStage(world, def);
+      break;
+    case 'lock':
+      if (p.inVehicle) { hint(world, MODE_HINT.foot || ''); break; }
+      if (updateLock(dt, world, S.target)) nextStage(world, def);
+      break;
+    case 'pickpocket':
+      if (updatePickpocket(dt, world)) nextStage(world, def);
+      break;
+    case 'laser':
+      if (updateLasers(dt, world, S.target)) nextStage(world, def);
+      break;
+    case 'crack':
+      if (updateCrack(dt, world, S.target)) nextStage(world, def);
+      break;
+    case 'getaway':
+      if (updateGetaway(dt, world, st, S)) {
+        if (heistBoat()) chain.vehicle = heistBoat();
+        nextStage(world, def);
+      }
+      break;
+    case 'shot':
+      if (!S.started) {
+        if (isCinematicActive()) break;
+        S.started = true;
+        playEndingShot(world, st, () => { S.shotDone = true; });
+      } else if (S.shotDone) nextStage(world, def);
       break;
     case 'garage': {
       const site = inCar ? garageInside(world) : null;
@@ -2489,7 +2578,11 @@ export const missionDebug = {
       if (chain.stagePending) { chain.stagePending = false; enterStage(world, def, 0); }
       const cur = def.stages[chain.stageIndex];
       // a cutscene stage plays by itself (skippable); don't jump past it
-      if (cur && (cur.kind === 'scene' || cur.kind === 'vault')) { syncPub(world); return true; }
+      if (cur && (cur.kind === 'scene' || cur.kind === 'vault' || cur.kind === 'shot')) { syncPub(world); return true; }
+      if (cur && cur.kind === 'getaway') {
+        heistSkipGetaway(world, false);
+        if (heistBoat()) chain.vehicle = heistBoat();
+      }
       if (cur && cur.kind === 'chase' && cur.toTrain && chain.stage && chain.stage.target && fjordLoadPoint()) {
         // it makes it to the train: the Fjord goes up the ramp now
         loadFjordNow(world, chain.stage.target);

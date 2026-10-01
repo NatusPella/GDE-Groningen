@@ -19,6 +19,10 @@
 "src": "anita/alarm_drie_sterren_wegwezen_over_038e4fcb.mp3",
 "dur": 4.36
 },
+"Anita|Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!": {
+"src": "anita/alarm_het_kussen_was_een_drukpla_e320454d.mp3",
+"dur": 4.25
+},
 "Anita|Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.": {
 "src": "anita/alarm_twee_sterren_rij_een_garag_3b185baa.mp3",
 "dur": 8.79
@@ -47,6 +51,10 @@
 "src": "anita/brand_geblust_dat_scheelt_n_boel_7b56e0ec.mp3",
 "dur": 2.18
 },
+"Anita|Camera's op herhaling. Nu de achterdeur, in de fietspassage.": {
+"src": "anita/camera_s_op_herhaling_nu_de_acht_5c076a9e.mp3",
+"dur": 4.36
+},
 "Anita|Camera's uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.": {
 "src": "anita/camera_s_uit_naar_binnen_naar_de_f0a2f406.mp3",
 "dur": 5.3
@@ -63,9 +71,21 @@
 "src": "anita/de_eierbal_is_terug_54c4f322.mp3",
 "dur": 2.92
 },
+"Anita|De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.": {
+"src": "anita/de_entreehal_ee_n_bewaker_loopt__60a24607.mp3",
+"dur": 7.33
+},
+"Anita|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan draaien de camera's op herhaling.": {
+"src": "anita/de_stroomkast_druk_op_spatie_als_6b7171e1.mp3",
+"dur": 6.94
+},
 "Anita|De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera's.": {
 "src": "anita/de_stroomkast_druk_op_spatie_als_19e9767c.mp3",
 "dur": 7.14
+},
+"Anita|De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.": {
+"src": "anita/de_vitrine_draai_met_a_en_d_voel_2c510bb4.mp3",
+"dur": 6.61
 },
 "Anita|Dit gaat over het water. Pak een boot.": {
 "src": "anita/dit_gaat_over_het_water_pak_een__ff5141fc.mp3",
@@ -78,6 +98,10 @@
 "Anita|Een meeuw! Hij wil je patat!": {
 "src": "anita/een_meeuw_hij_wil_je_patat_19185921.mp3",
 "dur": 2.99
+},
+"Anita|Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken (Ctrl) helpt.": {
+"src": "anita/eerst_de_stroomkast_twee_camera__e2957af3.mp3",
+"dur": 7.77
 },
 "Anita|Eerst deze fiets in het busje zetten": {
 "src": "anita/eerst_deze_fiets_in_het_busje_ze_6eabcf3b.mp3",
@@ -122,6 +146,10 @@
 "Anita|Gas vasthouden: luik dicht en wegrijden": {
 "src": "anita/gas_vasthouden_luik_dicht_en_weg_d59dd28b.mp3",
 "dur": 3.36
+},
+"Anita|Geef maar. Ik doe het met mijn bibliotheekpasje.": {
+"src": "anita/geef_maar_ik_doe_het_met_mijn_bi_a7d17ddc.mp3",
+"dur": 2.74
 },
 "Anita|Gezien! De bewaker schijnt je recht in je gezicht. Terug het donker in.": {
 "src": "anita/gezien_de_bewaker_schijnt_je_rec_55f7f695.mp3",
@@ -171,6 +199,22 @@
 "src": "anita/he_de_deuren_zijn_nog_open_9dbe65df.mp3",
 "dur": 1.53
 },
+"Anita|Ik gooi een steentje in het water. Kijk, ze kijken allemaal de andere kant op.": {
+"src": "anita/ik_gooi_een_steentje_in_het_wate_fa5790ba.mp3",
+"dur": 3.75
+},
+"Anita|Ik laat een emmer vallen. Nu, ze kijken allemaal weg!": {
+"src": "anita/ik_laat_een_emmer_vallen_nu_ze_k_fd0dde60.mp3",
+"dur": 3.38
+},
+"Anita|Ik tik op het raam. Nu!": {
+"src": "anita/ik_tik_op_het_raam_nu_e570e110.mp3",
+"dur": 1.65
+},
+"Anita|Ik zie een kastje met LASER erop. Ik druk gewoon op alles.": {
+"src": "anita/ik_zie_een_kastje_met_laser_erop_51770ff5.mp3",
+"dur": 5.01
+},
 "Anita|Instappen! W/S hoogte, A/D opzij, Shift sneller. Achter die ballon aan.": {
 "src": "anita/instappen_w_s_hoogte_a_d_opzij_s_ecbe0dcd.mp3",
 "dur": 6.92
@@ -194,6 +238,14 @@
 "Anita|Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.": {
 "src": "anita/jelmers_chat_zag_een_rode_auto_b_9e1e2a54.mp3",
 "dur": 5.7
+},
+"Anita|Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.": {
+"src": "anita/jij_stuurt_ik_kijk_achterom_schu_9b927c94.mp3",
+"dur": 4.45
+},
+"Anita|Laat mij maar. Alle zekeringen tegelijk eruit.": {
+"src": "anita/laat_mij_maar_alle_zekeringen_te_eb1f8867.mp3",
+"dur": 4.8
 },
 "Anita|Label erop, busje in.": {
 "src": "anita/label_erop_busje_in_50eec318.mp3",
@@ -231,6 +283,10 @@
 "src": "anita/nait_nou_die_meeuw_kiekt_mit_3b702270.mp3",
 "dur": 3.01
 },
+"Anita|Nee, die klikte niet. Voel maar.": {
+"src": "anita/nee_die_klikte_niet_voel_maar_f06c94ea.mp3",
+"dur": 1.91
+},
 "Anita|Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.": {
 "src": "anita/nieuwe_kleur_nieuw_leven_door_na_73450ad0.mp3",
 "dur": 5.21
@@ -255,9 +311,29 @@
 "src": "anita/op_de_fiets_he_het_is_een_fietsr_559cdfb2.mp3",
 "dur": 2.33
 },
+"Anita|Overall aan, emmer mee. Die bewaker bij de glazen deur heeft het pasje. Sluip achter hem en blijf even staan.": {
+"src": "anita/overall_aan_emmer_mee_die_bewake_652d4014.mp3",
+"dur": 7.36
+},
+"Anita|Pasje binnen. Vlugge vingers, zeg.": {
+"src": "anita/pasje_binnen_vlugge_vingers_zeg_3cfc9b22.mp3",
+"dur": 3.7
+},
+"Anita|Pasje erlangs en door de glazen deur. Gewoon doen alsof je hier werkt.": {
+"src": "anita/pasje_erlangs_en_door_de_glazen__519b72ad.mp3",
+"dur": 3.78
+},
+"Anita|Piep! Die laser zag je. Terug naar het begin.": {
+"src": "anita/piep_die_laser_zag_je_terug_naar_45a0f364.mp3",
+"dur": 4.8
+},
 "Anita|Plons! Duiven kinnen nait zwemmen.": {
 "src": "anita/plons_duiven_kinnen_nait_zwemmen_eb5f019c.mp3",
 "dur": 3.41
+},
+"Anita|Probeer 1953. Negentien, vijf, drie.": {
+"src": "anita/probeer_1953_negentien_vijf_drie_9471149f.mp3",
+"dur": 4.93
 },
 "Anita|Regen! De friet wordt slap. Doortrappen!": {
 "src": "anita/regen_de_friet_wordt_slap_doortr_4b301c3c.mp3",
@@ -266,6 +342,10 @@
 "Anita|Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.": {
 "src": "anita/rustig_rijden_met_platte_banden__7b844533.mp3",
 "dur": 6.21
+},
+"Anita|Slotje openpeuteren. Spatie als het pinnetje in het groen staat. Ik hou de wacht.": {
+"src": "anita/slotje_openpeuteren_spatie_als_h_ca7aa99a.mp3",
+"dur": 5.86
 },
 "Anita|Snel, naar de overweg aan de Peizerweg! Ga erbij staan, dan moet de machinist wel stoppen.": {
 "src": "anita/snel_naar_de_overweg_aan_de_peiz_4eabeb5a.mp3",
@@ -323,6 +403,14 @@
 "src": "anita/weer_eentje_het_depot_in_91d10d5f.mp3",
 "dur": 2.06
 },
+"Anita|Zaal 1. Die bewaker loopt rondjes. Wacht tot hij je zijn rug toekeert, en dan bukken.": {
+"src": "anita/zaal_1_die_bewaker_loopt_rondjes_0ddbf1f3.mp3",
+"dur": 6.65
+},
+"Anita|Zaal 3. Bukken (Ctrl) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.": {
+"src": "anita/zaal_3_bukken_ctrl_onder_de_hoge_f23af198.mp3",
+"dur": 9.33
+},
 "Anita|Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.": {
 "src": "anita/ze_rijden_de_fjord_zo_de_goedere_5cf4ce50.mp3",
 "dur": 5.82
@@ -346,6 +434,10 @@
 "Tammo|Alarm! Drie sterren. Wegwezen, over het water als het kan.": {
 "src": "tammo/alarm_drie_sterren_wegwezen_over_04bf74c4.mp3",
 "dur": 4.3
+},
+"Tammo|Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!": {
+"src": "tammo/alarm_het_kussen_was_een_drukpla_09dabe32.mp3",
+"dur": 4.81
 },
 "Tammo|Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.": {
 "src": "tammo/alarm_twee_sterren_rij_een_garag_0c131696.mp3",
@@ -375,6 +467,10 @@
 "src": "tammo/brand_geblust_dat_scheelt_n_boel_09071dc2.mp3",
 "dur": 2.27
 },
+"Tammo|Camera's op herhaling. Nu de achterdeur, in de fietspassage.": {
+"src": "tammo/camera_s_op_herhaling_nu_de_acht_be674738.mp3",
+"dur": 3.83
+},
 "Tammo|Camera's uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.": {
 "src": "tammo/camera_s_uit_naar_binnen_naar_de_3b592670.mp3",
 "dur": 4.31
@@ -391,9 +487,21 @@
 "src": "tammo/de_eierbal_is_terug_0a74d9c8.mp3",
 "dur": 1.87
 },
+"Tammo|De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.": {
+"src": "tammo/de_entreehal_ee_n_bewaker_loopt__16b635cf.mp3",
+"dur": 6.71
+},
+"Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan draaien de camera's op herhaling.": {
+"src": "tammo/de_stroomkast_druk_op_spatie_als_53d1c090.mp3",
+"dur": 7.37
+},
 "Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera's.": {
 "src": "tammo/de_stroomkast_druk_op_spatie_als_050eaae5.mp3",
 "dur": 5.94
+},
+"Tammo|De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.": {
+"src": "tammo/de_vitrine_draai_met_a_en_d_voel_53067312.mp3",
+"dur": 5.81
 },
 "Tammo|Dit gaat over het water. Pak een boot.": {
 "src": "tammo/dit_gaat_over_het_water_pak_een__43ff9072.mp3",
@@ -406,6 +514,10 @@
 "Tammo|Een meeuw! Hij wil je patat!": {
 "src": "tammo/een_meeuw_hij_wil_je_patat_3193d48a.mp3",
 "dur": 2.06
+},
+"Tammo|Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken (Ctrl) helpt.": {
+"src": "tammo/eerst_de_stroomkast_twee_camera__0915600b.mp3",
+"dur": 8.27
 },
 "Tammo|Eerst deze fiets in het busje zetten": {
 "src": "tammo/eerst_deze_fiets_in_het_busje_ze_798a7b41.mp3",
@@ -450,6 +562,10 @@
 "Tammo|Gas vasthouden: luik dicht en wegrijden": {
 "src": "tammo/gas_vasthouden_luik_dicht_en_weg_18db98da.mp3",
 "dur": 3.2
+},
+"Tammo|Geef maar. Ik doe het met mijn bibliotheekpasje.": {
+"src": "tammo/geef_maar_ik_doe_het_met_mijn_bi_6cf1739f.mp3",
+"dur": 3.05
 },
 "Tammo|Gezien! De bewaker schijnt je recht in je gezicht. Terug het donker in.": {
 "src": "tammo/gezien_de_bewaker_schijnt_je_rec_62405a68.mp3",
@@ -503,6 +619,22 @@
 "src": "tammo/he_de_deuren_zijn_nog_open_71018d52.mp3",
 "dur": 1.83
 },
+"Tammo|Ik gooi een steentje in het water. Kijk, ze kijken allemaal de andere kant op.": {
+"src": "tammo/ik_gooi_een_steentje_in_het_wate_8e1dd8ed.mp3",
+"dur": 3.62
+},
+"Tammo|Ik laat een emmer vallen. Nu, ze kijken allemaal weg!": {
+"src": "tammo/ik_laat_een_emmer_vallen_nu_ze_k_25d0085a.mp3",
+"dur": 4.73
+},
+"Tammo|Ik tik op het raam. Nu!": {
+"src": "tammo/ik_tik_op_het_raam_nu_010a1978.mp3",
+"dur": 1.66
+},
+"Tammo|Ik zie een kastje met LASER erop. Ik druk gewoon op alles.": {
+"src": "tammo/ik_zie_een_kastje_met_laser_erop_09e84d8f.mp3",
+"dur": 3.84
+},
 "Tammo|Instappen! W/S hoogte, A/D opzij, Shift sneller. Achter die ballon aan.": {
 "src": "tammo/instappen_w_s_hoogte_a_d_opzij_s_5e40154c.mp3",
 "dur": 5.81
@@ -526,6 +658,14 @@
 "Tammo|Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.": {
 "src": "tammo/jelmers_chat_zag_een_rode_auto_b_ee33cc02.mp3",
 "dur": 4.68
+},
+"Tammo|Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.": {
+"src": "tammo/jij_stuurt_ik_kijk_achterom_schu_eff245a5.mp3",
+"dur": 4.45
+},
+"Tammo|Laat mij maar. Alle zekeringen tegelijk eruit.": {
+"src": "tammo/laat_mij_maar_alle_zekeringen_te_582b0025.mp3",
+"dur": 3.03
 },
 "Tammo|Label erop, busje in.": {
 "src": "tammo/label_erop_busje_in_a0a39420.mp3",
@@ -563,6 +703,10 @@
 "src": "tammo/nait_nou_die_meeuw_kiekt_mit_7647bcda.mp3",
 "dur": 2.35
 },
+"Tammo|Nee, die klikte niet. Voel maar.": {
+"src": "tammo/nee_die_klikte_niet_voel_maar_ee079d67.mp3",
+"dur": 2.11
+},
 "Tammo|Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.": {
 "src": "tammo/nieuwe_kleur_nieuw_leven_door_na_9b9cb305.mp3",
 "dur": 4.81
@@ -587,9 +731,29 @@
 "src": "tammo/op_de_fiets_he_het_is_een_fietsr_7ac48394.mp3",
 "dur": 2.5
 },
+"Tammo|Overall aan, emmer mee. Die bewaker bij de glazen deur heeft het pasje. Sluip achter hem en blijf even staan.": {
+"src": "tammo/overall_aan_emmer_mee_die_bewake_548e6f3d.mp3",
+"dur": 6.66
+},
+"Tammo|Pasje binnen. Vlugge vingers, zeg.": {
+"src": "tammo/pasje_binnen_vlugge_vingers_zeg_febbe053.mp3",
+"dur": 2.52
+},
+"Tammo|Pasje erlangs en door de glazen deur. Gewoon doen alsof je hier werkt.": {
+"src": "tammo/pasje_erlangs_en_door_de_glazen__23a0ac70.mp3",
+"dur": 4.01
+},
+"Tammo|Piep! Die laser zag je. Terug naar het begin.": {
+"src": "tammo/piep_die_laser_zag_je_terug_naar_50ec9a02.mp3",
+"dur": 2.92
+},
 "Tammo|Plons! Duiven kinnen nait zwemmen.": {
 "src": "tammo/plons_duiven_kinnen_nait_zwemmen_ae326d5e.mp3",
 "dur": 2.72
+},
+"Tammo|Probeer 1953. Negentien, vijf, drie.": {
+"src": "tammo/probeer_1953_negentien_vijf_drie_25bc73fa.mp3",
+"dur": 5.14
 },
 "Tammo|Regen! De friet wordt slap. Doortrappen!": {
 "src": "tammo/regen_de_friet_wordt_slap_doortr_8fe93d02.mp3",
@@ -598,6 +762,10 @@
 "Tammo|Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.": {
 "src": "tammo/rustig_rijden_met_platte_banden__34853900.mp3",
 "dur": 6.41
+},
+"Tammo|Slotje openpeuteren. Spatie als het pinnetje in het groen staat. Ik hou de wacht.": {
+"src": "tammo/slotje_openpeuteren_spatie_als_h_1f24d39f.mp3",
+"dur": 6.19
 },
 "Tammo|Snel, naar de overweg aan de Peizerweg! Ga erbij staan, dan moet de machinist wel stoppen.": {
 "src": "tammo/snel_naar_de_overweg_aan_de_peiz_7a5a2509.mp3",
@@ -654,6 +822,14 @@
 "Tammo|Weer eentje het depot in.": {
 "src": "tammo/weer_eentje_het_depot_in_d2acfe2d.mp3",
 "dur": 1.55
+},
+"Tammo|Zaal 1. Die bewaker loopt rondjes. Wacht tot hij je zijn rug toekeert, en dan bukken.": {
+"src": "tammo/zaal_1_die_bewaker_loopt_rondjes_d45891e1.mp3",
+"dur": 5.54
+},
+"Tammo|Zaal 3. Bukken (Ctrl) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.": {
+"src": "tammo/zaal_3_bukken_ctrl_onder_de_hoge_c6d2db7b.mp3",
+"dur": 9.45
 },
 "Tammo|Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.": {
 "src": "tammo/ze_rijden_de_fjord_zo_de_goedere_1679eb24.mp3",

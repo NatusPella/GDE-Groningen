@@ -53,6 +53,9 @@ export function vehicleSeat(v, driver) {
     seat = driver ? s[0] : s[1] || { ...s[0], x: s[0].x + 0.6 };
   } else if (v.isBike || v.isScooter) {
     seat = driver ? bikeRiderSeat(v) : bikeBuddySeat(v);
+  } else if (v.isHeli) {
+    // the pilot on the right, like in a real helicopter
+    seat = { x: 0.62, z: driver ? 0.4 : -0.4, y: 0.98, face: 0, pose: driver ? { ...SEAT_CAR, arms: 'wheel' } : SEAT_CAR };
   } else {
     const hl = v.model.len / 2, hw = v.model.wid / 2;
     const k = carKind(v);
