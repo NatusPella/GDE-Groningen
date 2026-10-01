@@ -1,7 +1,10 @@
 // Story steps around the free-roam extras (storyarc.js): the bumper-car ride
-// on the Grote Markt where Tammo corners Durk & Douwe (r-kermis, kermis.js)
-// and the free demo flight in Rotor Roelf's Wieken Wubbo that spots Jelle's
-// balloon in the Oosterpark (s-proefvlucht, heliflight.js).
+// on the Grote Markt where Tammo corners Durk & Douwe (r-kermis, kermis.js),
+// the free demo flight in Rotor Roelf's Wieken Wubbo that spots Jelle's
+// balloon in the Oosterpark (s-proefvlucht, heliflight.js) and carbid
+// schieten at boer Roelf's, who hides the Eierbal in his melkbus and scares
+// the twins off with a knal (s-carbid, carbid.js; far out and without a car,
+// Henk drops your own Escapade off for free).
 //
 // story.js merges FUN_GOALS into its goal types, calls updateStoryFun every
 // frame and storyFunDone when a step is done. While such a step is current,
@@ -13,6 +16,10 @@
 
 import { getStat } from './achievements.js';
 import { KERMIS } from './kermis.js';
+import { CARBID } from './carbid.js';
+import { placeOwnedVehicleNear, findParkingSpot, isOwnVehicle } from './ownedvehicles.js';
+import { spawnHeroCarNear } from './vehicle.js';
+import { flashScreen } from './postfx3d.js';
 import { makeHeli, HELI_MODEL } from './heliflight.js';
 import { playCastScene } from './missionstory.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
@@ -31,7 +38,10 @@ const BALLOON_GONE_R = 450;
 const ANIM_R = 320;
 const SCENE_DELAY = 3.5;
 const SCENE_GIVE_UP = 25;
-const KERMIS_SCENE_R = 120;
+const SCENE_R = 120;
+const LIFT_AFTER = 10;
+const LIFT_FAR = 800;
+const LIFT_NEAR_CAR = 150;
 // the balloon H15 chases (helirun.js, variant traumaduif)
 const BALLOON_SEED = 1810;
 const NAMES = { T: 'Tammo', A: 'Anita', durk: 'Durk', douwe: 'Douwe', rotor: 'Rotor Roelf' };
@@ -42,7 +52,7 @@ let balloon = null;
 let pending = null;
 let spotTry = -1;
 // scenes started, per kind (the story test checks them)
-const played = { meet: 0, spot: 0, kermis: 0 };
+const played = { meet: 0, spot: 0, kermis: 0, carbid: 0, lift: 0 };
 
 const groundAt = (w, x, y) => (w.map.groundHeightAt ? w.map.groundHeightAt(x, y, 0) : 0);
 const flightStep = (st) => !!(st && !st.end && st.kind === 'activity' && st.goal && st.goal.type === 'flight');
@@ -227,22 +237,74 @@ function updateMeet(w, st, base) {
   }
 }
 
-// The bumper-car ride's payoff at the booth: the twins, dizzy, then off on their one fatbike.
-function playKermisScene(w, st) {
+// Where a step is done: the bumper-car ride's payoff at the booth (the twins,
+// dizzy, then off on their one fatbike), or Roelf and Hilje at the churn after
+// carbid schieten (the Eierbal goes into the melkbus, a knal sends the twins off).
+function playDoneScene(w, st) {
   const sc = st.scene;
-  const at = KERMIS.spots()[0];
-  if (!sc || !at || Math.hypot(w.player.x - at.x, w.player.y - at.y) > KERMIS_SCENE_R) return true;
-  return playCastScene(w, { at: { x: at.x, y: at.y }, facing: sc.face ?? null, lines: sc.lines, cast: sc.cast || [], props: sc.props || [], kicker: sc.kicker || '' });
+  const carbid = st.goal.type === 'carbid';
+  const at = (carbid ? CARBID : KERMIS).spots()[0];
+  if (!sc || !at || Math.hypot(w.player.x - at.x, w.player.y - at.y) > SCENE_R) return true;
+  let banged = false;
+  const update = sc.knal ? (t, dt, cur) => {
+    if (banged || !cur || cur.text !== sc.knal) return;
+    banged = true;
+    CARBID.knal(w);
+    flashScreen(true);
+  } : null;
+  const ok = playCastScene(w, { at: { x: at.x, y: at.y }, facing: carbid ? CARBID.field().rot : sc.face ?? null, lines: sc.lines, cast: sc.cast || [], props: sc.props || [], kicker: sc.kicker || '', update });
+  // the scene has its own Roelf and Hilje: the ones in the field step aside meanwhile (the game is paused)
+  if (ok && carbid) CARBID.farmersVisible(false);
+  return ok;
+}
+
+// Far from Roelf's and nothing to drive: Henk brings your own Escapade, free.
+function updateLift(w, st, base) {
+  if (base.lifted || w.time - (base.since ?? w.time) < LIFT_AFTER || isCinematicActive() || isMissionActive() || w.pigeonMode || w.wanted > 0) return;
+  base.lifted = true;
+  liftNow(w, st);
+}
+
+function liftNow(w, st) {
+  const at = CARBID.spots()[0];
+  const p = w.player;
+  if (!at || !st.goal.lift || Math.hypot(p.x - at.x, p.y - at.y) < LIFT_FAR) return false;
+  const own = (v) => v && !v.wrecked && !v.sinking && !v.isBoat && !v.isHeli && !v.isBike && !v.isScooter && isOwnVehicle(v);
+  if (own(p.inVehicle) || w.vehicles.some((v) => own(v) && Math.hypot(v.x - p.x, v.y - p.y) < LIFT_NEAR_CAR)) return false;
+  let car = w.vehicles.find((v) => v.isHeroCar && !v.wrecked && !v.sinking);
+  let spot = car ? placeOwnedVehicleNear(w, car, p.x, p.y) : null;
+  if (!car) {
+    const s = findParkingSpot(w, p.x, p.y, { len: 4.0, wid: 1.65, name: 'escort' });
+    car = s && spawnHeroCarNear(w.map, s.x, s.y);
+    if (car) {
+      for (const v of w.vehicles) if (v.isHeroCar && v.wrecked) v.isHeroCar = false;
+      car.x = s.x; car.y = s.y; car.angle = s.angle; car.speed = 0;
+      car.z = w.map.spawnZ ? w.map.spawnZ(s.x, s.y) : 0;
+      w.vehicles.push(car);
+      spot = s;
+    }
+  }
+  if (!spot) return false;
+  played.lift++;
+  const [from, text] = st.goal.lift;
+  if (w.phoneNotifications) w.phoneNotifications.push({ from, text, duration: 6, story: true });
+  w.addMessage('Je Escapade staat om de hoek: hij staat op je kaart', 5, { kind: 'tip' });
+  return true;
 }
 
 // The scene waits for the ride's result card; the step's done text follows it.
 function updatePending(w) {
   if (!pending) return;
   const finish = () => { const f = pending.after; pending = null; if (f) f(); };
-  if (pending.playing) { if (!isCinematicActive()) finish(); return; }
+  if (pending.playing) {
+    if (isCinematicActive()) return;
+    if (pending.step.goal.type === 'carbid') CARBID.farmersVisible(true);
+    finish();
+    return;
+  }
   if (w.time > pending.until) { finish(); return; }
   if (w.time < pending.at || isCinematicActive() || isActivityActive() || isMissionActive() || w.pigeonMode || w.pendingRespawn) return;
-  if (playKermisScene(w, pending.step) && isCinematicActive()) { pending.playing = true; played.kermis++; }
+  if (playDoneScene(w, pending.step) && isCinematicActive()) { pending.playing = true; played[pending.step.goal.type]++; }
   else finish();
 }
 
@@ -253,6 +315,11 @@ export const FUN_GOALS = {
     begin: (st, b) => { b.rides = getStat('botsautoRides'); },
     met: (st, b) => getStat('botsautoRides') > (b.rides ?? Infinity),
     place: () => { const s = KERMIS.spots()[0]; return s ? { x: s.x, y: s.y } : null; },
+  },
+  carbid: {
+    begin: (st, b) => { b.games = getStat('carbidGames'); b.since = world ? world.time : 0; b.lifted = false; },
+    met: (st, b) => getStat('carbidGames') > (b.games ?? Infinity),
+    place: () => { const s = CARBID.spots()[0]; return s ? { x: s.x, y: s.y } : null; },
   },
   flight: {
     begin: (st, b) => { b.spotted = false; b.spotting = false; b.met = false; },
@@ -270,11 +337,13 @@ export function initStoryFun(w) {
   window.__storyFun = {
     state: () => ({ activity: world.storyActivity || null, demo: demo && demo.v ? { x: demo.v.x, y: demo.v.y, z: demo.v.z, owned: !!demo.v.playerOwned, mine: world.player.inVehicle === demo.v } : null, balloon: balloon ? { x: balloon.b.x, y: balloon.b.y } : null, pending: !!pending, played: { ...played } }),
     demo: () => (demo ? demo.v : null),
-    // replay a step's scene where it plays ('r-kermis': at the booth, 's-proefvlucht': over the balloon)
+    // the s-carbid lift right now (far out, nothing to drive): true when the Escapade was dropped off
+    lift: (id = 's-carbid') => { const st = STEP_BY_ID.get(id); return !!(st && st.goal && st.goal.lift) && liftNow(world, st); },
+    // replay a step's scene where it plays ('r-kermis': the booth, 's-proefvlucht': the balloon, 's-carbid': the churn)
     scene: (id) => {
       const st = STEP_BY_ID.get(id);
       if (!st || !st.goal) return false;
-      return st.goal.type === 'flight' ? playSpotScene(world, st, {}) : playKermisScene(world, st);
+      return st.goal.type === 'flight' ? playSpotScene(world, st, {}) : playDoneScene(world, st);
     },
   };
 }
@@ -290,13 +359,14 @@ export function updateStoryFun(dt, w, step, base) {
     updateMeet(w, st, base);
     updateSpotting(w, st, base);
   }
+  if (st && st.kind === 'activity' && st.goal && st.goal.type === 'carbid' && base) updateLift(w, st, base);
   updatePending(w);
 }
 
-// A step is done (not skipped): the bumper-car scene follows once the ride's
-// result card is gone, then `after` (the step's done text). False: no scene.
+// A step is done (not skipped): its scene follows once the minigame's result
+// card is gone, then `after` (the step's done text). False: no scene.
 export function storyFunDone(w, step, after = null) {
-  if (!(step && step.scene && step.goal && step.goal.type === 'kermis')) return false;
+  if (!(step && step.scene && step.goal && (step.goal.type === 'kermis' || step.goal.type === 'carbid'))) return false;
   pending = { step, at: w.time + SCENE_DELAY, until: w.time + SCENE_GIVE_UP, after, playing: false };
   return true;
 }
