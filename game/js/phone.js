@@ -17,6 +17,7 @@ import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoic
 const RING_TIME = 0.9;
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
 import { getPadelSpotsForRender } from './padel.js';
+import { activityUbboRows } from './activities.js';
 
 const ICONS = {
   contacten: '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8c0-3.3 3.1-6 7-6s7 2.7 7 6v1H5z"/>',
@@ -369,6 +370,9 @@ function ubboRows() {
   if (pad) {
     const busy = world.time < pad.q.nextAt;
     rows.push({ name: `Padel: ${pad.q.name}`, sub: `${busy ? 'baan even bezet' : 'potje padel, volle gezondheid'} · ${fmtDist(pad.d)}`, run: () => { setUserWaypoint(pad.q.x, pad.q.y, pad.q.name); flashAndClose(`Route naar ${pad.q.name}: loop naar de deur en druk E`); } });
+  }
+  for (const a of activityUbboRows(world)) {
+    rows.push({ name: a.name, sub: `${a.sub} · ${fmtDist(a.dist)}`, run: () => { setUserWaypoint(a.x, a.y, a.name); flashAndClose(`Route naar ${a.where}: ${a.hint}`); } });
   }
   for (const o of offers) {
     rows.push({

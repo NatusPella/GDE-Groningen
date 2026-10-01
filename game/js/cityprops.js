@@ -43,6 +43,7 @@ function hash(cx, cy) {
 
 function isFree(map, x, y, r, footOk = true) {
   if (isInWater(map, x, y) || isInsideBuilding(map, x, y)) return false;
+  if (map.reservedAt && map.reservedAt(x, y)) return false;
   for (const [dx, dy] of [[r, 0], [-r, 0], [0, r], [0, -r]]) {
     if (isInsideBuilding(map, x + dx, y + dy) || isInWater(map, x + dx, y + dy)) return false;
   }

@@ -260,6 +260,22 @@ export function collect() {
       }
     }
   }
+  // the free-roam activities (funlines.js): boer Roelf and Hilje at the carbid field and
+  // kermisbaas Jan in their own voices, the other bumper-car drivers as any bubble
+  const fun = src('funlines.js');
+  const GRO_SPOKEN = 'spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent';
+  const CTAG = { start: ['joviaal, uitnodigend', 'nuchter, droog'], early: ['spottend, droog'], late: ['ongeduldig, mopperend'], good: ['enthousiast, roepend', 'opgewonden, luid'], hit: ['juichend, trots'], miss: ['droog, laconiek'], endGood: ['stiekem onder de indruk, droog'], endPoor: ['berustend, vriendelijk'] };
+  const FCAST = { ...lit(fun, 'export const CARBID_CAST = '), ...lit(fun, 'export const KERMIS_CAST = ') };
+  for (const table of ['CARBID_LINES', 'KERMIS_LINES']) {
+    for (const [name, kinds] of Object.entries(lit(fun, `export const ${table} = `))) {
+      const c = FCAST[name];
+      for (const [k, list] of Object.entries(kinds)) for (const t of list) add(table === 'CARBID_LINES' ? 'Carbid schieten' : 'Kermis', 'lines', [c.female ? BUBBLE.f : BUBBLE.m], t, { persona: { voice: c.voice, who: c.who, accent: GRO_SPOKEN }, tag: CTAG[k] || ['luid, joviaal, door een microfoon', 'roepend over de muziek heen'] });
+    }
+  }
+  bubble('Kermis', [...lit(fun, 'export const BOTS_BUMPED = '), ...lit(fun, 'export const BOTS_HIT = ')], { tag: ['lacherig, uitgelaten, in een botsauto', 'gillend van plezier', 'uitdagend, plagend'] });
+  // the talk station on the car radio (radiostations.js): Geesje; the rest it plays is recorded already
+  const RADIO_HOST = fun.match(/export const RADIO_HOST = '([^']+)'/)[1];
+  for (const list of Object.values(lit(fun, 'export const RADIO_GRUNN = '))) for (const t of list) add('Radio Grunn', 'lines', [RADIO_HOST], t, { tag: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice', 'vlot en opgewekt, als radiopresentatrice'] });
   for (const t of lit(fl, 'export const KROLBRUG_FAULTS = ')) add('Wereld (radio & navigatie)', 'lines', ['Verkeersinformatie'], t);
   for (const t of lit(fl, 'export const RING_ZUID_GPS = ')) add('Wereld (radio & navigatie)', 'lines', ['Navigatie'], t);
   for (const t of lit(fl, 'export const NACHTSTREEK = ')) add('Wereld (radio & navigatie)', 'lines', [NARRATOR], t, { tag: ['zacht, warm, rustig, laat op de avond, als nacht-dj op de radio', 'warm, ontspannen, droog, als nacht-dj op de radio'] });
@@ -333,6 +349,7 @@ export function collect() {
   for (const t of strings(fls, /export const PLANTSOEN_NEWS = ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (Sikkom)', 'Sikkom', t);
   for (const ev of Object.values(lit(fls, 'export const EVENT_DAYS = '))) sms('Berichten (Sikkom)', 'Sikkom', ev.announce);
   for (const t of lit(fls, 'export const KROLBRUG_FAULTS = ')) sms('Berichten (Sikkom)', 'Gerrit Krolbrug', t);
+  sms('Berichten (Sikkom)', 'Sikkom', evalLit(src('funlines.js').match(/export const KERMIS_NEWS = ("[^"]*")/)[1]));
   for (const t of lit(src('sidejobs.js'), 'const ACCIDENT_LINES = ')) sms('Berichten (Sikkom)', '', t);
 
   // --- HUD cards that are the companion talking (hudcards.js companionSays) -> hints manifest
