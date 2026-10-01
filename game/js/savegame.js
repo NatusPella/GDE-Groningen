@@ -11,6 +11,9 @@ import { getStorySave, applyStorySave } from './story.js';
 import { getPostgameSave, applyPostgameSave } from './postgame.js';
 import { applyHomeOnLoad, homeSaveContext } from './home.js';
 import { getFurnitureSave, applyFurnitureSave } from './furniture.js';
+import { abortHeliRun } from './helirun.js';
+import { quitPadel } from './padel.js';
+import { stopVillageMini } from './dorpsuitjes.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
@@ -195,6 +198,10 @@ export function applySave(w, d) {
     // a running scene (train trip, intro) would otherwise finish against the loaded state
     skipAllCinematics();
     if (w.pigeonMode && w.pigeonActions) w.pigeonActions.stop();
+    // a heli run, padel match or village minigame would keep holding the player
+    abortHeliRun();
+    quitPadel(w);
+    stopVillageMini();
     const lost = !(typeof d.money === 'number' && Number.isFinite(d.money)) && ('money' in d);
     w.money = lost ? estimateLostMoney(d) : Math.max(0, num(d.money, 0));
     w._goodMoney = w.money;

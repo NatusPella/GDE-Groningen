@@ -1012,6 +1012,11 @@ export function isPadelActive() {
   return !!game;
 }
 
+// A loaded save ends a running match (savegame.js).
+export function quitPadel(w) {
+  if (game) endMatch(w, { quit: true });
+}
+
 // --- HUD: the scoreboard (the HUD card look) -------------------------------------
 
 const CSS = `
