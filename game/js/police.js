@@ -121,6 +121,17 @@ const policeState = new WeakMap();
 const heliRender = { heli: null };
 // a heli posed by a cutscene (trailer.js) instead of updatePoliceHeli
 export function setPoliceHeliRender(h) { heliRender.heli = h; }
+
+// The player's own helicopter in the air (heliflight.js), or null.
+function playerAloft(world) {
+  const pv = world.player.inVehicle;
+  return pv && pv.isHeli && !pv.onGround ? pv : null;
+}
+// Up above the rooftops everyone on the street can see you.
+function aloftInSight(world) {
+  const a = playerAloft(world);
+  return !!a && a.z - (a.groundZ || 0) > 25;
+}
 function getState(world) {
   let s = policeState.get(world);
   if (!s) {
@@ -270,7 +281,7 @@ function updateChase(v, dt, world) {
   v._losTimer = (v._losTimer || 0) - dt;
   if (v._losTimer <= 0) {
     v._losTimer = 0.25;
-    v._sees = d < SEE_RANGE_CAR && hasLineOfSight(world.map, v.x, v.y, p.x, p.y);
+    v._sees = d < SEE_RANGE_CAR && (aloftInSight(world) || hasLineOfSight(world.map, v.x, v.y, p.x, p.y));
     v._direct = d < DIRECT_CHASE_DIST && v._sees && !pol.searching;
   }
   tunePoliceCar(v, world, d, v._sees);
@@ -340,7 +351,7 @@ function pursuitCruise(v, d, pv, searching) {
 }
 
 function updateRam(v, dt, world, pv, d, ps) {
-  if (!pv || pv.isBoat || v._mount || v._motor) return false;
+  if (!pv || pv.isBoat || (pv.isHeli && !pv.onGround) || v._mount || v._motor) return false;
   const t = world.time;
   if (v._ramUntil) {
     if (t < v._ramUntil && d < RAM_ABORT_DIST && bodyGap(v, pv) > RAM_CONTACT_GAP) return true;
@@ -387,7 +398,7 @@ function updateBust(dt, world) {
     const pv = p.inVehicle;
     if (!pv) {
       if (Math.hypot(p.vx || 0, p.vy || 0) < FOOT_BUST_MAX_SPEED && !p.water && copPedWithin(world, FOOT_BUST_RANGE)) mode = 'foot';
-    } else if (!pv.isBoat && Math.abs(pv.speed) < CAR_BUST_MAX_SPEED && (policeCarBeside(world, pv) || copPedWithin(world, pv.halfWid + CAR_BUST_COP_RANGE))) {
+    } else if (!pv.isBoat && !(pv.isHeli && !pv.onGround) && Math.abs(pv.speed) < CAR_BUST_MAX_SPEED && (policeCarBeside(world, pv) || copPedWithin(world, pv.halfWid + CAR_BUST_COP_RANGE))) {
       mode = 'car';
     }
   }
@@ -538,16 +549,19 @@ function updatePoliceHeli(dt, world) {
   const pol = world.police;
   const center = pol.searching && pol.searchCenter ? pol.searchCenter : world.player;
   heli.orbitAngle += HELI_ORBIT_SPEED * dt;
-  const orbit = pol.searching ? Math.min(pol.searchRadius * 0.6, 40) : HELI_ORBIT_RADIUS;
+  // the player flying their own heli: a wider orbit above them, and a little faster
+  const air = playerAloft(world);
+  const orbit = pol.searching ? Math.min(pol.searchRadius * 0.6, 40) : air ? HELI_ORBIT_RADIUS * 1.6 : HELI_ORBIT_RADIUS;
   const targetX = center.x + Math.cos(heli.orbitAngle) * orbit;
   const targetY = center.y + Math.sin(heli.orbitAngle) * orbit;
   const t = Math.min(1, dt * HELI_FOLLOW_LERP);
   let mx = (targetX - heli.x) * t, my = (targetY - heli.y) * t;
-  const m = Math.hypot(mx, my), maxStep = HELI_MAX_SPEED * dt;
+  const m = Math.hypot(mx, my), maxStep = (air ? HELI_MAX_SPEED * 1.3 : HELI_MAX_SPEED) * dt;
   if (m > maxStep) { mx *= maxStep / m; my *= maxStep / m; }
   heli.x += mx;
   heli.y += my;
-  heli.z += (HELI_ALTITUDE - heli.z) * Math.min(1, dt * 0.8);
+  const alt = air ? Math.max(HELI_ALTITUDE, air.z + 14) : HELI_ALTITUDE;
+  heli.z += (alt - heli.z) * Math.min(1, dt * 0.8);
   heli.angle = Math.atan2(targetY - heli.y, targetX - heli.x);
 
   let sx, sy;
@@ -594,6 +608,8 @@ function anyUnitSees(world) {
   }
   const h = world.policeHeli;
   if (h && Math.hypot(h.spotX - p.x, h.spotY - p.y) < HELI_SEE_RADIUS && !hiddenFromAbove(world.map, p.x, p.y)) return true;
+  // a helicopter in the air is hard to miss for the one next to it
+  if (h && playerAloft(world) && Math.hypot(h.x - p.x, h.y - p.y) < 140) return true;
   return false;
 }
 
@@ -620,7 +636,7 @@ function refreshVehicleSight(world, dt) {
     if (v._losTimer > 0) continue;
     v._losTimer = 0.3;
     const d = Math.hypot(p.x - v.x, p.y - v.y);
-    v._sees = d < SEE_RANGE_CAR && hasLineOfSight(world.map, v.x, v.y, p.x, p.y);
+    v._sees = d < SEE_RANGE_CAR && (aloftInSight(world) || hasLineOfSight(world.map, v.x, v.y, p.x, p.y));
   }
 }
 
@@ -695,7 +711,7 @@ function tryRoadblock(world, state) {
   const p = world.player;
   const pv = p.inVehicle;
   if (world.wanted < ROADBLOCK_WANTED || !pol.seenRecently || pol.searching) return;
-  if (!pv || pv.isBoat || Math.abs(pv.speed) < 6 || world.time < state.nextRoadblockAt) return;
+  if (!pv || pv.isBoat || pv.isHeli || Math.abs(pv.speed) < 6 || world.time < state.nextRoadblockAt) return;
   if (world.vehicles.some((v) => v._roadblock)) return;
   state.nextRoadblockAt = world.time + 3;
   const heading = pv.speed >= 0 ? pv.angle : pv.angle + Math.PI;

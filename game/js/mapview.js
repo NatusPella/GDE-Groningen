@@ -1,6 +1,6 @@
 import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
-import { getHomeForRender, getHomeGarageForRender } from './home.js';
+import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -11,6 +11,7 @@ import { getPadelSpotsForRender } from './padel.js';
 import { activityMapIcons, ACTIVITY_LEGEND } from './activities.js';
 import { getPostgameSpotsForRender } from './postgame.js';
 import { getStationsForRender } from './stationtravel.js';
+import { VILLAGES } from './ommelandlines.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
@@ -822,6 +823,8 @@ function drawDynamicMarkers(ctx, world) {
   for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name || 'Garage');
   for (const h of getHomeForRender()) icon('home', 'home', h.x, h.y, h.name, {}, h.sub);
   for (const h of getHomeGarageForRender()) icon('homeGarage', 'home', h.x, h.y, h.name, {}, h.sub);
+  for (const h of getHomeMooringForRender(world)) icon('home', 'homeMooring', h.x, h.y, h.name, {}, h.sub);
+  for (const h of getHomeHelipadForRender()) icon('home', 'homeHelipad', h.x, h.y, h.name, {}, h.sub);
 
   const m = world.mission;
   const job = world.sideJob && world.sideJob.active ? world.sideJob : null;
@@ -858,7 +861,7 @@ function drawDynamicMarkers(ctx, world) {
     icon(null, 'sj-target', ct.x, ct.y, 'Checkpoint', {}, 'Uitdaging');
   }
   for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`);
-  for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, 'Reizen met de trein');
+  for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}` : 'Reizen met de trein');
   for (const e of getEierbalTips()) icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt');
 
   const c = world.companion;
@@ -999,6 +1002,8 @@ function buildSearchIndex(world) {
   for (const h of world.map.meta.horeca || []) if (h.name) entries.push({ label: h.name, kind: 'Horeca', pri: 3, x: h.x, y: h.y, zoom: 8 });
   for (const g of getGaragesForRender()) entries.push({ label: g.name, kind: 'Garage', pri: 4, x: g.x, y: g.y, zoom: 7 });
   for (const h of getHomeForRender()) entries.push({ label: h.name, kind: 'Jullie flat en garage', pri: 0, x: h.x, y: h.y, zoom: 7 });
+  for (const h of getHomeMooringForRender(world)) entries.push({ label: h.name, kind: 'Boten thuis', pri: 1, x: h.x, y: h.y, zoom: 8 });
+  for (const h of getHomeHelipadForRender()) entries.push({ label: h.name, kind: 'Heli thuis', pri: 1, x: h.x, y: h.y, zoom: 8 });
   for (const sh of getShopsForRender()) entries.push({ label: sh.name, kind: SHOP_TYPES[sh.type].label, pri: 3, x: sh.x, y: sh.y, zoom: 8 });
   for (const sj of getSideJobSpotsForRender()) entries.push({ label: sj.job.name, kind: sj.job.kicker || 'Bijbaantje', pri: 1, x: sj.x, y: sj.y, zoom: 8 });
   for (const st of getStationsForRender()) entries.push({ label: st.name, kind: 'Treinstation', pri: 0, x: st.x, y: st.y, zoom: 7 });
@@ -1214,7 +1219,9 @@ const LEGEND = [
   { kind: 'companion', label: 'Maat', layer: 'companion' },
   { kind: 'home', label: 'Thuis', note: 'flat met bed, koelkast en kledingkast', layer: 'home' },
   { kind: 'homeGarage', label: 'Jouw garage', note: 'al je voertuigen staan hier klaar', layer: 'home' },
-  { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot', layer: 'car' },
+  { kind: 'homeMooring', label: 'Jouw steiger', note: 'je boten liggen hier, afleveren brengt ze hierheen', layer: 'home' },
+  { kind: 'homeHelipad', label: 'Jouw helidek', note: 'op het dak van jullie flat, voor je eigen heli', layer: 'home' },
+  { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot, heli', layer: 'car' },
   { group: 'Verhaal en klussen' },
   { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
   { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
@@ -1222,7 +1229,7 @@ const LEGEND = [
   { kind: 'garage', label: 'Garage en pomp', note: 'rij naar binnen: repareren, spuiten, opvoeren, wrakken', layer: 'garage' },
   { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
   { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks (eten = gezondheid)', layer: 'shops' },
-  { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten', layer: 'shopsVoertuigen' },
+  { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, helikopters (Eelde)', layer: 'shopsVoertuigen' },
   { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', note: 'wapens, munitie en vesten', layer: 'shopsWapens' },
   { group: 'Doen en beleven' },
   { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },

@@ -1237,7 +1237,7 @@ function gameplay(dt, world) {
     if (o === v || o.isBoat || o.wrecked || Math.abs(o.x - p.x) > 250 || Math.abs(o.y - p.y) > 250) continue;
     if (countryWeight(o.x, o.y) > 0.5 && pushOutOfPlan(o, 1.2)) o.speed *= 0.3;
   }
-  if (v && !v.isBoat && !v.sinking && !v.wrecked) {
+  if (v && !v.isBoat && !v.isHeli && !v.sinking && !v.wrecked) {
     const surf = groundAt(world.map, v.x, v.y);
     const sp = Math.abs(v.speed);
     if (surf === 'gras' || surf === 'sloot') {

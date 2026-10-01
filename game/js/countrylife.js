@@ -252,6 +252,12 @@ function L_add(a) {
   L.traffic.push(a);
 }
 
+// Road ends with something standing on them (worldends.js): traffic turns round there.
+let roadBlocks = [];
+export function setRealRoadBlocks(list) {
+  roadBlocks = list || [];
+}
+
 // Carry on at the end of a road: another road touching this point (not
 // against its one-way direction), else turn round.
 function realJunction(a) {
@@ -291,6 +297,14 @@ function stepRealTraffic(a, dt, world) {
   const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
   const [wx, wy] = realPos(a);
   const h = headingOf(a), hx = Math.cos(h), hy = Math.sin(h);
+  for (const b of roadBlocks) {
+    const bx = b.x - wx, by = b.y - wy, ah = bx * hx + by * hy;
+    if (ah > 0 && ah < 16 && Math.abs(-bx * hy + by * hx) < 6) {
+      if (REAL.roads[a.ri].oneway) a.speed = 0;
+      else { a.dir = -a.dir; a.speed *= 0.3; }
+      return;
+    }
+  }
   const rx = ox - wx, ry = oy - wy;
   const ahead = rx * hx + ry * hy, side = Math.abs(-rx * hy + ry * hx);
   let want = a.vmax;
@@ -312,7 +326,7 @@ function stepRealTraffic(a, dt, world) {
   const [nx, ny] = realPos(a);
   const d = Math.hypot(ox - nx, oy - ny);
   const pr = v ? 1.8 : 0.4;
-  if (d < a.radius + pr && d > 1e-3) {
+  if (d < a.radius + pr && d > 1e-3 && !(v && v.isHeli && !v.onGround)) {
     const push = (a.radius + pr - d) / d;
     if (v) { v.x += (ox - nx) * push; v.y += (oy - ny) * push; v.speed *= 0.5; }
     else if (!world.pigeonMode) { p.x += (ox - nx) * push; p.y += (oy - ny) * push; }
@@ -368,7 +382,7 @@ function stepTraffic(a, dt, world) {
   const [nx, ny] = roadPos(a);
   const d = Math.hypot(ox - nx, oy - ny);
   const pr = v ? 1.8 : 0.4;
-  if (d < a.radius + pr && d > 1e-3) {
+  if (d < a.radius + pr && d > 1e-3 && !(v && v.isHeli && !v.onGround)) {
     const push = (a.radius + pr - d) / d;
     if (v) { v.x += (ox - nx) * push; v.y += (oy - ny) * push; v.speed *= 0.5; }
     else if (!world.pigeonMode) { p.x += (ox - nx) * push; p.y += (oy - ny) * push; }

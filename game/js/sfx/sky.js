@@ -1,5 +1,5 @@
-// Sky props audio (see skyprops.js): the trauma helicopter's rotor and the
-// hot-air balloon burners. Deliberately soft: a rounded low blade thump
+// Sky props audio (see skyprops.js): the trauma helicopter's rotor, the
+// player's own helicopters (heliflight.js) and the hot-air balloon burners. Deliberately soft: a rounded low blade thump
 // rather than a buzzy chop, air absorption with distance and Doppler.
 
 const SOUND_C = 343;
@@ -9,7 +9,8 @@ const BLADE_RATE = 15.5;
 const BURNER_RANGE = 650;
 const BURNER_LEVEL = 0.32;
 
-let kit = null, ctx = null, noise = null, heli = null;
+let kit = null, ctx = null, noise = null, heli = null, own = null;
+const OWN_LEVEL = 0.3;
 const burnSeen = new WeakMap();
 
 function brownNoise(seconds) {
@@ -101,19 +102,32 @@ function doppler(x, y, h, vx, vy, vz) {
 }
 
 function updateHeli(world) {
-  const h = world.skyHeli;
+  heli = rotorVoice(heli, world.skyHeli, HELI_LEVEL);
+  // the nearest own helicopter with its rotor turning
+  const L = kit.listener;
+  let best = null, bd = HELI_RANGE;
+  for (const v of world.vehicles) {
+    if (!v.isHeli || !(v.rotor > 0.02) || v.sinking) continue;
+    const d = Math.hypot(v.x - L.x, v.y - L.z);
+    if (d < bd) { bd = d; best = v; }
+  }
+  own = rotorVoice(own, best, OWN_LEVEL);
+}
+
+function rotorVoice(voice, h, levelMax) {
   const src = h ? doppler(h.x, h.y, h.z + 2, h.vx || 0, h.vy || 0, h.vz || 0) : null;
   const audible = h && h.rotor > 0.02 && src.d < HELI_RANGE;
   if (!audible) {
-    if (heli && heli.active) { setT(heli.level.gain, 0, 0.3); heli.active = false; }
-    return;
+    if (voice && voice.active) { setT(voice.level.gain, 0, 0.3); voice.active = false; }
+    return voice;
   }
-  if (!heli) heli = buildHeliVoice();
+  if (!voice) voice = buildHeliVoice();
+  const heli = voice;
   heli.active = true;
   kit.setPannerPos(heli.panner, h.x, h.y, h.z + 2, true);
   const rpm = h.rotor, f = src.f;
   const edge = Math.min(1, (HELI_RANGE - src.d) / 300);
-  setT(heli.level.gain, HELI_LEVEL * Math.pow(rpm, 1.5) * edge, 0.2);
+  setT(heli.level.gain, levelMax * Math.pow(rpm, 1.5) * edge, 0.2);
   setT(heli.lfo.frequency, BLADE_RATE * (0.35 + 0.65 * rpm) * f, 0.15);
   setT(heli.src.playbackRate, (0.8 + 0.2 * rpm) * f, 0.15);
   setT(heli.body.frequency, 240 * f, 0.15);
@@ -121,6 +135,7 @@ function updateHeli(world) {
   setT(heli.whine.frequency, 1320 * (0.5 + 0.5 * rpm) * f, 0.2);
   setT(heli.whineGain.gain, 0.02 * rpm * Math.max(0, 1 - src.d / 220), 0.2);
   setT(heli.air.frequency, 320 + 4200 / (1 + src.d / 70), 0.2);
+  return voice;
 }
 
 function playBurner(b) {

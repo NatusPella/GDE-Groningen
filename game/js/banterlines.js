@@ -19,7 +19,7 @@
 //     story:end:<part>           while the built story waits at that part's "Wordt vervolgd"
 //   3 place:<landmark>           driving past a map.meta.landmarks entry (by name)
 //     wijk:<name>                entering a wijk (map.meta.neighbourhoodPoints name)
-//   4 situation:<kind>           storm, onweer, rain, night, dawn, speed, flitser
+//   4 situation:<kind>           storm, onweer, rain, night, dawn, speed, flitser, heli (flying the own heli)
 //     idle                       chit-chat when nothing else is going on
 //
 // Adding Romp/Staart lines: append exchanges with new ids, gate them with
@@ -459,6 +459,16 @@ export const BANTER = [
   { id: 'si-flitser-album', trigger: 'situation:flitser', lines: [
     ['T', 'Geflitst. Weer een foto voor het album.', 'resigned'],
     ['A', 'Het duurste fotoalbum van Grunn.', 'dry']] },
+  { id: 'si-heli-hemel', trigger: 'situation:heli', lines: [
+    ['T', 'Geen stoplicht, geen flitspaal, geen fietser. Dit is de hemel.', 'blissful, dreamy'],
+    ['A', 'Een beetje hoog voor iemand met hoogtevrees.', 'teasing, nervous'],
+    ['T', 'Ik heb geen hoogtevrees. Ik heb landingsvrees.', 'deadpan']] },
+  { id: 'si-heli-maquette', trigger: 'situation:heli', lines: [
+    ['A', 'Van hierboven is Grunn net een maquette. Kijk, de Martinitoren!', 'amazed, excited'],
+    ['T', 'En daar staat de Escapade. Van boven ziet hij er ook oud uit.', 'dry, fond']] },
+  { id: 'si-heli-eierbal', trigger: 'situation:heli', lines: [
+    ['T', 'Kun je eigenlijk een eierbal halen met een helikopter?', 'curious, hungry'],
+    ['A', 'Alleen als de snackbar een plat dak heeft.', 'amused, practical']] },
 
   // --- idle chit-chat -----------------------------------------------------------
   { id: 'id-tegenwind', trigger: 'idle', lines: [

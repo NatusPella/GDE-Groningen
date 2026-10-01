@@ -33,9 +33,9 @@ export function createVehiclePreview(canvas, { interactive = false, active = () 
       return;
     }
     const len = (p.spec && p.spec.model && p.spec.model.len) || 4;
-    const dist = Math.max(3.2, len * 1.55) * p.zoom;
+    const dist = Math.max(3.2, len * (p.spec && p.spec.kind === 'heli' ? 1.15 : 1.55)) * p.zoom;
     p.cam.position.set(0, len * 0.42 + 0.6 * p.zoom, dist);
-    p.cam.lookAt(0, p.spec && p.spec.kind === 'car' ? 0.75 : 0.6, 0);
+    p.cam.lookAt(0, p.spec && p.spec.kind === 'heli' ? 1.5 : p.spec && p.spec.kind === 'car' ? 0.75 : 0.6, 0);
   }
 
   function tick() {
@@ -111,7 +111,7 @@ export function createVehiclePreview(canvas, { interactive = false, active = () 
         p.fit = { c: new THREE.Vector3(0, sphere.center.y, 0), r: Math.max(0.05, sphere.radius) };
       }
     } else {
-      const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', isBoat: spec.kind === 'boat', ...(spec.flags || {}), health: 100 };
+      const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', isBoat: spec.kind === 'boat', isHeli: spec.kind === 'heli', ...(spec.flags || {}), health: 100 };
       p.mesh = buildVehicleMesh(fake);
     }
     p.scene.add(p.mesh);

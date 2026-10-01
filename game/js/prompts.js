@@ -20,6 +20,7 @@ import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { padelPrompt, padelSecondary } from './padel.js';
 import { activityPrompt, activitySecondary } from './activities.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
+import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 
@@ -91,6 +92,8 @@ export function glyphHtml(token, opts = {}) {
   let inner;
   if (token === 'WASD') {
     inner = '<span class="hud-wasd"><span class="hud-key">W</span><span class="hud-key">A</span><span class="hud-key">S</span><span class="hud-key">D</span></span>';
+  } else if (token === 'ARROWS') {
+    inner = '<span class="hud-wasd"><span class="hud-key">↑</span><span class="hud-key">←</span><span class="hud-key">↓</span><span class="hud-key">→</span></span>';
   } else if (token === 'LMB' || token === 'RMB' || token === 'MOUSE' || token === 'WHEEL') {
     inner = MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w' }[token]);
   } else {
@@ -209,6 +212,14 @@ function trackUsage(dt, world) {
   if (input.mouse.rightDown && !prev.rightDown && isRangedWeapon(world.weapon)) used(WEAPONS[world.weapon].scope ? 'scope' : 'aim');
   prev.rightDown = input.mouse.rightDown;
 
+  if (inV && world.player.inVehicle.isHeli) {
+    if (pressed('w') || pressed('s')) used('heliUp');
+    if (pressed('a') || pressed('d')) used('heliYaw');
+    if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('heliFly');
+    if (pressed('shift')) used('heliBoost');
+    if (pressed(' ')) used('heliHover');
+    return;
+  }
   if (inV) {
     if (pressed('w') || pressed('s') || pressed('arrowup') || pressed('arrowdown')) used('drive');
     if (pressed(' ')) used('handbrake');
@@ -231,7 +242,7 @@ function vehicleVerb(v) {
   const moving = Math.abs(v.speed || 0) > 0.3;
   const occupied = v.isBoat ? moving : !v.isHeroCar && !!v.road;
   // your own ride (hero car, bought, rented, job vehicle) is never theft
-  if (v.isHeroCar || v.playerOwned || v.missionCar) return { label: v.isBoat ? 'Aan boord' : v.isBike || v.isScooter ? 'Opstappen' : 'Instappen' };
+  if (v.isHeroCar || v.playerOwned || v.missionCar) return { label: v.isBoat ? 'Aan boord' : v.isHeli ? 'Instappen en vliegen' : v.isBike || v.isScooter ? 'Opstappen' : 'Instappen' };
   if (v.isPolice) return { label: 'Jatten', steal: true };
   if (v.parked) return { label: v.isBus ? 'Bus jatten' : 'Auto jatten', steal: true };
   if (v.isBoat) return occupied ? { label: 'Kapen', steal: true } : { label: 'Aan boord' };
@@ -322,6 +333,8 @@ function findPrimary(world) {
   if (padel) return padel;
   const act = activityPrompt(world);
   if (act) return act;
+  const dorp = ommelandPrompt(world);
+  if (dorp) return dorp;
   const trein = stationPrompt(world);
   if (trein) return trein;
   const food = nearestHorecaSpot(world);
@@ -411,6 +424,7 @@ function findSecondary(world, primary) {
   for (const c of postgameSecondary(world)) add(c, 25);
   for (const c of sideJobSecondary(world)) add(c, c.maxD || 20);
   for (const c of stationSecondary(world)) add(c, 22);
+  for (const c of ommelandSecondary(world)) add(c, 24);
   const m = world.mission;
   if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active)) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, sub: 'Loop of rij de marker in', kind: 'mission' }, 60);
@@ -532,6 +546,11 @@ const PIC = {
   swim: '<circle cx="16" cy="6.5" r="2"/><path d="M4.5 12.5l5.2-3.2 4.2 2.4M2 16.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M2 20.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8"/>',
   swimfast: '<path d="M2 16.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M2 20.5c2 0 3-1.8 5-1.8s3 1.8 5 1.8 3-1.8 5-1.8 3 1.8 5 1.8M6 4l4 4-4 4M12 4l4 4-4 4"/>',
   climb: '<path d="M3 21h8.5v-8H21"/><path d="M16 9.5V2.5M12.8 5.6L16 2.5l3.2 3.1"/>',
+  heliUp: '<path d="M12 3v18M7.5 7.5L12 3l4.5 4.5M7.5 16.5L12 21l4.5-4.5"/>',
+  heliYaw: '<path d="M19 12a7 7 0 1 1-2.1-5"/><path d="M17.5 2.8l-.6 4.3-4.2-.9"/>',
+  heliFly: '<path d="M3 6h16M11 6v3"/><path d="M5.5 13a4.5 3.5 0 0 1 9 0v1.5h-9zM14.5 12.5h6.5M20 10v4.5M6 19h8"/>',
+  heliBoost: '<path d="M4 6l7 6-7 6M12 6l7 6-7 6"/>',
+  heliHover: '<path d="M5 9h14M5 15h14"/><circle cx="12" cy="12" r="1.5"/>',
 };
 const pic = (id) => (PIC[id] ? `<svg class="ctx-pic" viewBox="0 0 24 24" aria-hidden="true">${PIC[id]}</svg>` : '');
 
@@ -548,6 +567,13 @@ function contextRows(world, primary) {
     rows.push(tut('drive', ['W', 'S'], 'Gas & remmen', 'W optrekken, S remmen en stilstaand achteruit'));
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
+  } else if (p.inVehicle && p.inVehicle.isHeli) {
+    rows.push(tut('heliUp', ['W', 'S'], 'Stijgen & dalen', 'W omhoog, S omlaag: landen doe je laag en langzaam'));
+    rows.push(tut('heliYaw', ['A', 'D'], 'Draaien', 'A/D of de muis draait de neus'));
+    rows.push(tut('heliFly', ['ARROWS'], 'Vliegen', 'Pijltje omhoog vooruit, omlaag achteruit, links/rechts opzij'));
+    rows.push(tut('heliBoost', ['SHIFT'], 'Boost', 'Vol gas vooruit'));
+    rows.push(tut('heliHover', [' '], 'Stilhangen', 'Spatie remt af tot je stil in de lucht hangt'));
+    rows.push(tut('exit', ['E'], 'Uitstappen', 'Alleen als je geland bent'));
   } else if (p.inVehicle) {
     const boat = p.inVehicle.isBoat;
     rows.push(tut('drive', ['WASD'], boat ? 'Varen' : 'Gas & sturen', boat ? 'W vooruit, S achteruit, A/D sturen' : 'W gas, S remmen en achteruit, A/D sturen'));

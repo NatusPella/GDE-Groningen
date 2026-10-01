@@ -22,6 +22,7 @@
 //     as plain view objects for the phone app and the pause-menu garage.
 //   deliverOwnedVehicle(world, id) -> { ok, text }
 //     "Laten afleveren": fee, cooldown, out-of-view placement, message (no route: the car shows on the map).
+//     Boats go home to "Jouw steiger" behind the tower, the helicopter to the helidek on its roof (home.js).
 //   locateOwnedVehicle(world, id) -> { ok, text, x, y }
 //     "Waar staat hij?": where it is; a route only via an explicit "Zet route".
 //   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
@@ -37,8 +38,9 @@ import {
 } from './shops.js';
 
 import { HERO_REPLACE_FEE } from './economy.js';
-import { getHomeForRender } from './home.js';
+import { getHomeForRender, getHomeMooringForRender, getHomePad } from './home.js';
 const DELIVERY_COOLDOWN = 30;
+const HELI_FERRY_FEE = 60;
 const NEAR_M = 200;
 const MAX_TESTS = 700;
 const STEP = 6;
@@ -56,10 +58,11 @@ const MEMES = {
   koopman: 'Hond achterin, oma voorin, zondag naar Pieterburen. Kofferbak voor een halve verhuizing.',
   klusbus: 'Ramt alles opzij, net als een Stadjer bij de Hema-uitverkoop.',
   wervelwind: 'Van de Grote Markt naar Delfzijl voordat je koffie koud is. Flitspalen vinden hem prachtig.',
+  wiekenwubbo: 'Geen file op de Ring, geen flitspaal, geen parkeerplek nodig. Wel een plat dak.',
 };
 
-const SHOP_NAME = { auto: 'Ome Harm Occasions', fietsen: 'Trap & Toeter', boot: 'Bootje Huren' };
-const KIND_LABEL = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot' };
+const SHOP_NAME = { auto: 'Ome Harm Occasions', fietsen: 'Trap & Toeter', boot: 'Bootje Huren', heli: 'Rotor Roelf Eelde' };
+const KIND_LABEL = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot', heli: 'Helikopter' };
 
 let lastDeliveryAt = -Infinity;
 
@@ -244,10 +247,10 @@ function nameOf(spec, v) {
   return n.make ? { make: n.make, model: n.model, label: `${n.make} ${n.model}` } : { make: '', model: n.model, label: n.model };
 }
 
-function statusOf(world, v, lost) {
+function statusOf(world, v, lost, kind) {
   if (lost) return { key: 'lost', label: 'Total loss' };
   if (world.player.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
-  if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: 'Thuis in de garage' };
+  if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: kind === 'heli' ? 'Thuis op het helidek' : kind === 'boat' ? 'Thuis aan jouw steiger' : 'Thuis in de garage' };
   const d = Math.hypot(v.x - world.player.x, v.y - world.player.y);
   return d < NEAR_M ? { key: 'near', label: 'In de buurt', dist: d } : { key: 'far', label: 'Ergens in Grunn', dist: d };
 }
@@ -256,10 +259,10 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
   const twoWheel = spec.kind === 'bike' || spec.kind === 'scooter';
   const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
   const perf = perfModel(spec.model, upgrades, twoWheel);
-  const status = statusOf(world, v, lost);
+  const status = statusOf(world, v, lost, spec.kind);
   const where = v && status.key !== 'garage' && status.key !== 'lost'
     ? { street: streetAt(world.map, v.x, v.y), wijk: wijkAt(world.map, v.x, v.y) } : null;
-  const fee = hero ? (lost || !v ? HERO_REPLACE_FEE : 0) : lost ? replacementFee({ spec }) : REDELIVERY_FEE;
+  const fee = hero ? (lost || !v ? HERO_REPLACE_FEE : 0) : lost ? replacementFee({ spec }) : status.key === 'garage' && (spec.kind === 'heli' || spec.kind === 'boat') ? 0 : spec.kind === 'heli' ? HELI_FERRY_FEE : REDELIVERY_FEE;
   return {
     id, key, hero, owned: true, v, spec,
     ...nameOf(spec, v),
@@ -294,6 +297,7 @@ export function getGarageList(world) {
 // Garage glyph: bus/truck/boat get their own silhouette.
 function glyphKind(spec) {
   if (spec.kind === 'boat') return 'boat';
+  if (spec.kind === 'heli') return 'heli';
   const n = spec.model.name;
   if (n === 'bus' || n === 'midibus') return 'bus';
   if (n === 'truck' || n === 'trekkerlimo') return 'truck';
@@ -360,6 +364,8 @@ export function deliverOwnedVehicle(world, id) {
   if (wait > 0) return { ok: false, text: `De bezorger is nog onderweg met de vorige. Probeer het over ${wait} s` };
   if (world.money < e.fee) return { ok: false, text: `Te weinig geld: afleveren kost ${e.feeLabel}` };
 
+  const home = homeDelivery(world, e);
+  if (home) return home;
   const px = world.player.x, py = world.player.y;
   let spot = null;
   if (e.hero) {
@@ -389,12 +395,50 @@ export function deliverOwnedVehicle(world, id) {
   return { ok: true, text, x: spot.x, y: spot.y };
 }
 
+// Boats and the helicopter are brought home: the boat to "Jouw steiger", the
+// heli to the helidek (home.js spawns them there once you are near).
+function homeDelivery(world, e) {
+  const kind = e.spec.kind;
+  if (kind !== 'boat' && kind !== 'heli') return null;
+  const o = getOwnedEntries().find((x) => x.key === e.id);
+  if (!o) return null;
+  const short = e.model;
+  const where = kind === 'heli' ? 'op het helidek van jullie flat' : 'aan jouw steiger achter de House of Groningen';
+  const after = kind === 'heli' ? '. Lift omhoog en de trap naar het dak' : '';
+  if (e.status === 'garage') {
+    const text = `Je ${short} ${kind === 'heli' ? 'staat' : 'ligt'} al klaar ${where}${after}`;
+    world.addMessage(text, 5);
+    return { ok: true, text, ...homeSpot(world, kind) };
+  }
+  const v = o.v;
+  if (v) {
+    if ((v.health ?? 100) < 100) o.health = v.health;
+    const i = world.vehicles.indexOf(v);
+    if (i >= 0) world.vehicles.splice(i, 1);
+    o.v = null;
+  }
+  o.lost = false;
+  if (e.fee) world.money -= e.fee;
+  lastDeliveryAt = world.time;
+  const text = `Je ${short} ${kind === 'heli' ? 'wordt naar het helidek van jullie flat gevlogen' : 'wordt naar jouw steiger achter de House of Groningen gevaren'}${after}`;
+  world.addMessage(text, 5);
+  return { ok: true, text, ...homeSpot(world, kind) };
+}
+
+function homeSpot(world, kind) {
+  const p = kind === 'heli' ? getHomePad() : getHomeMooringForRender(world)[0];
+  return p ? { x: p.x, y: p.y } : {};
+}
+
 export function locateOwnedVehicle(world, id) {
   const e = getGarageList(world).find((x) => x.id === id);
   if (!e) return { ok: false, text: 'Dat voertuig heb je niet' };
   const short = e.hero ? 'Escapade' : e.model;
   if (e.status === 'lost') return { ok: false, text: `Je ${short} is total loss. Laat een nieuwe afleveren` };
   if (e.status === 'garage') {
+    const kind = e.spec.kind;
+    const hs = kind === 'heli' || kind === 'boat' ? homeSpot(world, kind) : null;
+    if (hs && hs.x != null) return { ok: true, text: kind === 'heli' ? `Je ${short} staat thuis op het helidek, boven op de House of Groningen` : `Je ${short} ligt thuis aan jouw steiger in Paddepoel`, ...hs };
     const h = getHomeForRender()[0];
     if (!h) return { ok: false, text: `Je ${short} staat in de garage. Laat hem afleveren` };
     return { ok: true, text: `Je ${short} staat thuis in de garage in Paddepoel`, x: h.x, y: h.y };
