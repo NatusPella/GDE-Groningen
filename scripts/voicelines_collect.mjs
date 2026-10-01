@@ -11,6 +11,7 @@ import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
 import { STEPS, PARTS } from '../game/js/storyarc.js';
 import { SMS_SAY, smsSpeaker, smsSpoken, cardSpoken } from '../game/js/smsvoice.js';
 import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT } from '../game/js/rondvaartlines.js';
+import { DUO as OM_DUO, WORLD_ENDS, WORLD_END_FINAL, VILLAGES, KOE_LINES, KOE_WHO, KOE_CALL } from '../game/js/ommelandlines.js';
 
 // The tourists on the rondvaartboot: one fixed voice each (tts_lines_list.mjs).
 export const TOURISTS = {
@@ -302,6 +303,22 @@ export function collect() {
   for (const [kind, by] of Object.entries(FJORD_DUO)) for (const [k, list] of Object.entries(by)) for (const t of list) add('Na het verhaal (Fjord Frituur)', 'lines', [pgWho[k]], t, { tag: DTAG[kind] });
   const BTAG = { greet: ['hongerig, vrolijk', 'ongeduldig, joviaal'], happy: ['tevreden, blij', 'smakkend, vrolijk'], wrong: ['verontwaardigd, mopperend', 'die boos is, klagend'], leave: ['chagrijnig, zuchtend', 'ongeduldig, mopperend'] };
   for (const [kind, list] of Object.entries(FJORD_BUBBLES)) bubble('Na het verhaal (Fjord-klanten)', list, { tag: BTAG[kind] });
+
+  // --- the Ommeland extras (ommelandlines.js): wereldeinden, dorpsuitjes and
+  // De Koe van Ome Jan -> lines manifest; a DUO line is said by the companion
+  const omWho = (who) => (who === OM_DUO ? ['Tammo', 'Anita'] : [who]);
+  for (const e of [...WORLD_ENDS, WORLD_END_FINAL]) add('Ommeland (wereldeinden)', 'lines', omWho(e.who), e.text, e.tag ? { tag: e.tag } : {});
+  for (const V of Object.values(VILLAGES)) {
+    for (const part of [V.special, V.amenity]) {
+      if (!part.who || !part.lines) continue;
+      for (const t of Array.isArray(part.lines) ? part.lines : Object.values(part.lines)) add('Ommeland (dorpen)', 'lines', omWho(part.who), t, part.tag ? { tag: part.tag } : {});
+    }
+  }
+  const KOE_AREA = 'Na het verhaal (De Koe van Ome Jan)';
+  for (const kind of ['intro', 'outro', 'spotted', 'untie', 'alarm', 'chase', 'close', 'ram', 'broken', 'lost']) for (const [k, t, tag] of KOE_LINES[kind]) add(KOE_AREA, 'lines', [KOE_WHO[k]], t, tag ? { tag } : {});
+  for (const t of [...KOE_LINES.greet, ...KOE_LINES.thanks]) add(KOE_AREA, 'lines', [KOE_WHO.J], t, { tag: 'gemoedelijk, roepend over het hek' });
+  for (const list of Object.values(KOE_LINES.duo)) for (const t of list) add(KOE_AREA, 'lines', ['Tammo', 'Anita'], t, { tag: ['gehaast, aansporend', 'opgewonden, roepend'] });
+  for (const l of KOE_CALL) add('Telefoon (gesprekken)', 'lines', [l.speaker], l.text, { tag: l.speaker === 'Anita' ? 'aan de telefoon, verontwaardigd' : 'aan de telefoon, beschaamd maar charmant' });
 
   // --- HUD cards said out loud by whoever you play (cardlines.js) -> lines manifest
   for (const l of CARD_LINES) add('HUD-kaarten (Tammo/Anita)', 'lines', ['Tammo', 'Anita'], l.say, { tag: ['kort, alert, tegen de ander naast je', 'droog, reagerend op wat er net gebeurde'] });

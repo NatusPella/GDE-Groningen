@@ -18,6 +18,7 @@ const NAMES = {
   ambulance: [['Ambulance', 'Spoedrit']],
   scooter: [['E-step', 'Zoemzoem'], ['Deelstep', 'Stadswesp']],
   boat: [['Sloep', 'Nait Soezen'], ['Sloep', 'Grachtengast']],
+  heli: [['Rotor Roelf', 'Wieken Wubbo']],
 };
 const BOATS = {
   rondvaart: [['Rondvaartboot', 'Diepenring'], ['Rondvaartboot', 'Stadjer']],

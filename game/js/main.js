@@ -50,6 +50,7 @@ import { initRadio, updateRadio } from './radiostations.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
+import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
@@ -61,6 +62,7 @@ import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
 import { updateDrunk } from './drunk.js';
+import { updateHelis } from './heliflight.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -177,6 +179,7 @@ async function boot() {
   initTrafficLights(world);
   initRailway(world);
   initStationTravel(world);
+  initOmmelandFun(world);
   initWeather(world);
   initFlitspaal(world);
   initWildlife(world);
@@ -318,6 +321,7 @@ async function boot() {
       tryGarageInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
+      tryOmmelandInteract(world);
       tryStationInteract(world);
       tryHomeInteract(world);
       tryHorecaInteract(world);
@@ -350,6 +354,7 @@ async function boot() {
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
+    updateHelis(dt, world);
     probe.mark('police+collide');
     if (!world.pigeonMode && !world.heliRun) {
       updateCombat(dt, world);
@@ -380,6 +385,7 @@ async function boot() {
     updateStory(dt, world);
     updateSideJobs(dt, world);
     updatePostgame(dt, world);
+    updateOmmelandFun(dt, world);
     updateWeather(dt, world);
     updateDayNight(dt, world);
     updateAchievementTracker(dt, world);

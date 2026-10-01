@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
+import { buildHeliMesh } from './heli3d.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -1682,6 +1683,7 @@ function buildVehicleMeshFor(v) {
   if (v.isBus && v.model.name === 'midibus') return buildMidiBusMesh(v);
   if (v.isBus) return buildBusMesh(v);
   if (v.isBoat) return buildBoatMesh(v);
+  if (v.isHeli) return buildHeliMesh(v);
   if (v.isHeroCar) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);
   return buildCarMesh(v);
 }

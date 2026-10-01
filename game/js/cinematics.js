@@ -71,6 +71,12 @@ function momentsOn() {
   return getSettings().cinematicMoments !== false;
 }
 
+// up in the own helicopter (heliflight.js): no pausing street-level scenes mid-air
+function aloft(w) {
+  const v = w.player && w.player.inVehicle;
+  return !!(v && v.isHeli && !v.onGround);
+}
+
 function gameStarted() {
   return document.body.classList.contains('game-started');
 }
@@ -363,7 +369,7 @@ function checkTriggers(dt, w) {
 
   const wantedUp = w.wanted >= 5 && prevWanted < 5;
   prevWanted = w.wanted;
-  if (wantedUp && momentsOn() && !active && mayInterrupt('wanted5', w)) { noteMoment('wanted5'); playWantedFive(w); }
+  if (wantedUp && momentsOn() && !active && !aloft(w) && mayInterrupt('wanted5', w)) { noteMoment('wanted5'); playWantedFive(w); }
 
   const imp = w.lastImpact;
   if (imp && imp !== lastImpactSeen) {
@@ -414,7 +420,7 @@ function checkOmmelanden(w) {
   const [x0, y0, x1, y1] = realMapBox(w.map);
   const p = w.player, m = OMMELANDEN_MARGIN;
   if (p.x > x0 - m && p.x < x1 + m && p.y > y0 - m && p.y < y1 + m) return;
-  if (!mayInterrupt('ommelanden', w)) return;
+  if (aloft(w) || !mayInterrupt('ommelanden', w)) return;
   noteMoment('ommelanden');
   seen.add(OMMELANDEN);
   playOmmelanden(w);
@@ -458,7 +464,7 @@ function checkLandmarks(w) {
     if (!lm.name || seen.has(lm.name)) continue;
     if (Math.hypot(lm.x - p.x, lm.y - p.y) > LANDMARK_RADIUS) continue;
     // over budget: stays unseen, plays on a later visit
-    if (!mayInterrupt('landmark', w)) return;
+    if (aloft(w) || !mayInterrupt('landmark', w)) return;
     noteMoment('landmark');
     seen.add(lm.name);
     playLandmark(w, lm);
@@ -639,7 +645,7 @@ function checkWijk(dt, w) {
   const v = w.player.inVehicle;
   if (v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
   // over the attention budget: waits while the player is still in the wijk
-  if (!mayInterrupt('wijk', w)) return;
+  if (aloft(w) || !mayInterrupt('wijk', w)) return;
   noteMoment('wijk');
   markWijk(p);
   wijkCand = null;
@@ -783,7 +789,7 @@ function playLandmark(w, lm) {
 function tryCrashReplay(w, x, y) {
   const now = performance.now();
   if (!momentsOn() || active || now - lastCrashAt < CRASH_COOLDOWN_MS || w.pendingRespawn || w.mission || w.race) return;
-  if (!mayInterrupt('crash', w)) return;
+  if (aloft(w) || !mayInterrupt('crash', w)) return;
   noteMoment('crash');
   lastCrashAt = now;
   const a = heading(w);

@@ -2066,7 +2066,8 @@ function updateEngineSynth(dt, world) {
   const S = engineState;
   const v = world.player.inVehicle;
   const t = ctx.currentTime;
-  const motor = !!(v && !v.isBike && !v.wrecked && !v.shiftParked && !humanPowered(v));
+  // a helicopter's rotor is sfx/sky.js, not a car engine
+  const motor = !!(v && !v.isBike && !v.isHeli && !v.wrecked && !v.shiftParked && !humanPowered(v));
   if (motor && v !== S.vehicle) {
     S.vehicle = v;
     S.kind = engineKind(v);
@@ -2083,7 +2084,7 @@ function updateEngineSynth(dt, world) {
 
   const rain = clamp(world.weather ? world.weather.intensity || 0 : 0, 0, 1);
   let road = { gain: 0 };
-  if (v && !v.wrecked && !world.paused) {
+  if (v && !v.wrecked && !v.isHeli && !world.paused) {
     const speed = Math.abs(v.speed);
     const small = v.isBike || v.isScooter;
     const surface = v.isBoat ? 4 : SURFACE_CODE[v.surface] ?? 0;
@@ -2147,7 +2148,7 @@ function trafficEngineParams(v, dt, fresh) {
 function updateEngine(dt, world) {
   if (synth.player) { updateEngineSynth(dt, world); return; }
   const v = world.player.inVehicle;
-  const motor = v && !v.isBike && !humanPowered(v);
+  const motor = v && !v.isBike && !v.isHeli && !humanPowered(v);
   const speed = motor ? Math.abs(v.speed) : 0;
   const t = ctx.currentTime;
   let targetGain = 0, targetFreq = 42, cutoff = 300;
@@ -2332,7 +2333,7 @@ function updateRumble(dt, world) {
   const t = ctx.currentTime;
   const r = rumbleVoice;
   if (synth.player) return;
-  if (!v || v.isBoat || v.wrecked || world.paused) { r.gain.gain.setTargetAtTime(0, t, 0.1); return; }
+  if (!v || v.isBoat || v.isHeli || v.wrecked || world.paused) { r.gain.gain.setTargetAtTime(0, t, 0.1); return; }
   const p = RUMBLE[v.surface] || RUMBLE.asfalt;
   const speed = Math.abs(v.speed);
   const scale = v.isBike || v.isScooter ? 0.45 : v.isBus ? 1.3 : 1;
@@ -2625,7 +2626,7 @@ function vehicleVoiceParams(v) {
 }
 
 function isEngineRunning(v) {
-  if (v.wrecked || v.isBike || v.parked || v.driver === 'player' || humanPowered(v)) return false;
+  if (v.wrecked || v.isBike || v.isHeli || v.parked || v.driver === 'player' || humanPowered(v)) return false;
   if (Math.abs(v.speed) > 0.2) return true;
   return v.isBoat || v.racer || (!!v.road && !v.isHeroCar);
 }

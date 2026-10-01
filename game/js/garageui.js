@@ -12,6 +12,7 @@ const GLYPHS = {
   truck: '<path d="M2 12h26v22H2zM30 18h8l6 8v8h-14z"/><circle cx="10" cy="36" r="4"/><circle cx="36" cy="36" r="4"/><rect x="32" y="20" width="6" height="5" fill="#10180f"/>',
   boat: '<path d="M4 28h40l-6 10H10zM14 18h14v8H14zM30 14h3v12h-3z"/><path d="M6 42c3 0 3-2 6-2s3 2 6 2 3-2 6-2 3 2 6 2 3-2 6-2 3 2 6 2" fill="none" stroke="currentColor" stroke-width="2"/>',
   scooter: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="34" r="6"/><circle cx="38" cy="34" r="6"/><path d="M17 34h14l5-18h5M31 34l-3-9H15"/></g><path d="M14 22h13v5H12z"/>',
+  heli: '<g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 9h34M21 9v6M10 41h20M14 35v6M26 35v6M30 25h12M41 19v10"/></g><path d="M8 27a12 10 0 0 1 24 0v6H8z"/>',
 };
 
 export function vehicleGlyph(kind, color) {
@@ -108,7 +109,7 @@ function card(e) {
     ['Trekkracht', `<span class="gar-bar"><i style="width:${e.accelScore * 10}%"></i></span>${e.accelScore}/10`],
     ['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`],
   ];
-  if (e.owned && e.kind !== 'boat') stats.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
+  if (e.owned && e.kind !== 'boat' && e.kind !== 'heli') stats.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
   else if (e.locked) stats.push(['Vrijspelen', esc(e.unlockText)]);
   else if (!e.owned) stats.push(['Prijs', `€${e.price.toLocaleString('nl-NL')}`]);
   const where = whereText(e);
@@ -175,6 +176,7 @@ const CATS = [
   ['fietsen', 'Fietsen'],
   ['scooters', 'Scooters & steps'],
   ['boten', 'Boten'],
+  ['luchtvaart', 'Luchtvaart'],
   ['speciaal', 'Speciaal'],
 ];
 const FILTERS = [['all', 'Alles'], ['owned', 'Van jou'], ['sale', 'Te koop'], ['locked', 'Op slot']];
@@ -185,6 +187,7 @@ const view = { cat: 'all', filter: 'all', sort: 'naam' };
 // Story/achievement unlocks are "Speciaal", whatever they drive like.
 function categoryOf(e) {
   const spec = e.spec || {};
+  if (spec.kind === 'heli') return 'luchtvaart';
   if (spec.unlock) return 'speciaal';
   if (spec.kind === 'boat') return 'boten';
   if (spec.kind === 'bike') return 'fietsen';
@@ -219,7 +222,7 @@ function toolbarHtml(list) {
 
 const HEADS = {
   owned: ['Van jou', 'voorgoed in je garage'],
-  sale: ['Nog te koop', 'Ome Harm Occasions, Trap & Toeter en Bootje Huren'],
+  sale: ['Nog te koop', 'Ome Harm Occasions, Trap & Toeter, Bootje Huren en Rotor Roelf op Eelde'],
   locked: ['Vrij te spelen', 'via het verhaal en prestaties'],
 };
 
@@ -280,7 +283,7 @@ export function renderGaragePanel(el, world, msg = '') {
   const owned = list.filter((e) => e.owned);
   el.innerHTML =
     `<h2>Garage <small>${owned.length} van ${list.length} verzameld</small></h2>` +
-    `<p class="gar-note">Gekocht of vrijgespeeld is voorgoed van jou; gejat telt niet. Laat je voertuig afleveren en het staat om de hoek, buiten beeld. Ook via je telefoon (T).</p>` +
+    `<p class="gar-note">Gekocht of vrijgespeeld is voorgoed van jou; gejat telt niet. Laat je voertuig afleveren en het staat om de hoek, buiten beeld; boten gaan naar jouw steiger, de heli naar het helidek op jullie flat. Ook via je telefoon (T).</p>` +
     `<p class="gar-msg" role="status">${esc(msg)}</p>` +
     `<div class="gar-toolbar">${toolbarHtml(list)}</div>` +
     `<div class="gar-layout"><div class="gar-list">${listHtml(list)}</div><aside class="gar-viewer" aria-live="polite"></aside></div>`;
