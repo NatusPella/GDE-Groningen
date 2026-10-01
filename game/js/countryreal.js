@@ -287,6 +287,27 @@ export function pushOutOfReal(obj, radius) {
   return hit;
 }
 
+// A fixed spot (a shop door, a café, a padel door) inside a real building
+// box, moved to just outside it: in the Ommelanden those boxes are solid, so
+// a door inside one can never be reached. null when the spot is clear.
+// ok(x, y): the caller's own test (not in the water, not in a city footprint).
+export function clearOfReal(x, y, ok = () => true, margin = 0.9) {
+  const i = buildingAt(x, y, 0.2);
+  if (i < 0) return null;
+  // the four sides of the box, nearest first
+  const [u, v, c, s] = localOf(i, x, y);
+  const hw = REAL.bw[i] / 2 + margin, hl = REAL.bl[i] / 2 + margin;
+  const exits = [[hw, v], [-hw, v], [u, hl], [u, -hl]]
+    .map(([eu, ev]) => ({ x: REAL.bx[i] + eu * c - ev * s, y: REAL.by[i] + eu * s + ev * c, d: Math.hypot(eu - u, ev - v) }))
+    .sort((a, b) => a.d - b.d);
+  for (const e of exits) {
+    const o = { x: e.x, y: e.y };
+    for (let k = 0; k < 3 && buildingAt(o.x, o.y, 0.2) >= 0; k++) pushOutOfReal(o, margin);
+    if (buildingAt(o.x, o.y, 0.2) < 0 && ok(o.x, o.y)) return o;
+  }
+  return null;
+}
+
 // Real places whose label point lies in the window: [{ name, x, y, r }].
 export function realPlaceLabels(x0, y0, x1, y1) {
   const out = [];

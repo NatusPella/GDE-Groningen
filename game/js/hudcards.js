@@ -145,7 +145,7 @@ function fromMessage(text, dur, opts = {}) {
   if (opts.exact && dur < 2 && String(text).length <= 12) { showCount(text, dur); return; }
   const c = classify(text, opts);
   if (!c) return;
-  showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say });
+  showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say, kicker: opts.kicker });
 }
 
 // spec: { kind, title, body | text, duration, key, icon, kicker, voice: false }
@@ -168,11 +168,21 @@ export function showCard(w, spec) {
   while (queue.length > MAX_QUEUE) queue.pop();
 }
 
+// A key named in a card becomes a key cap: [E], "(E)", "druk (op) E/Spatie".
+const KEYS = 'A|D|W|S|E|F|R|T|O|K|Q|Z|M|G|H|L|N|P|X|C|U|Spatie|Enter|Tab|Shift|Backspace|Esc';
+const KEY_RE = new RegExp(`\\[(${KEYS})\\]|\\((${KEYS})\\)|(\\b[Dd]ruk (?:op )?)(${KEYS})\\b`, 'g');
+function keycaps(html) {
+  return html.replace(KEY_RE, (m, a, b, pre, c) => {
+    const k = a || b || c;
+    return (pre || '') + `<kbd class="hud-key">${k === 'Spatie' ? 'SPATIE' : k.toUpperCase()}</kbd>`;
+  });
+}
+
 function cardHtml(c) {
   const s = c.spec;
   const kicker = s.kicker || CARD_KINDS[s.kind].label;
   return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
-    `<div class="hc-text"><small>${esc(kicker)}</small>${s.title ? `<b>${dualHtml(s.title)}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${dualHtml(s.body)}</span>` : ''}</div>` +
+    `<div class="hc-text"><small>${esc(kicker)}</small>${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
     '<i class="hc-timer"></i>';
 }
 

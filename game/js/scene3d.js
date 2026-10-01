@@ -2019,7 +2019,8 @@ export function update3D(dt, world) {
   if (world.camYaw == null) world.camYaw = targetAngle;
   let camAngle;
   // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
-  const lookBack = !!camVeh && !world.cameraOverride && (world.input.isDown('q') || !!mouse.middleDown);
+  // (world.noLookBack: a minigame has Q for itself, the skûtsje's sail trim)
+  const lookBack = !!camVeh && !world.cameraOverride && ((world.input.isDown('q') && !world.noLookBack) || !!mouse.middleDown);
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
   if (camVeh) {
