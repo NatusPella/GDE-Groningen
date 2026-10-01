@@ -67,7 +67,7 @@ const moved = async (fn, label, min = 0.6) => {
   const d = Math.hypot(o.x - x0, o.y - y0);
   if (!(d >= min)) {
     const why = await pausedWhy();
-    if (!why.pause && !why.map && !why.shop && !why.phone && !why.cine && !w.pendingRespawn) issue('stuck', `${label} moved ${d.toFixed(2)} m at ${B.tag} (${Math.round(o.x)},${Math.round(o.y)}) ${JSON.stringify(why)}`);
+    if (!why.pause && !why.map && !why.shop && !why.phone && !why.cine && !w.pendingRespawn) issue('stuck', `${label} moved ${d.toFixed(2)} m at ${B.tag} (${Math.round(o.x)},${Math.round(o.y)}) ${JSON.stringify(why)} ${JSON.stringify({ act: w.activityGame || null, padel: !!w.padelGame, heli: !!w.heliRun, pig: !!w.pigeonMode, rag: !!p.ragdoll, train: !!w.trainDriving, hold: !!w.challengeHoldPlayer, mg: w.minigameUntil > w.time, paused: !!w.paused, water: p.water || null, camOv: !!w.cameraOverride, ts: w.timeScale })}`);
   }
   return d;
 };
