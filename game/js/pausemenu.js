@@ -13,6 +13,7 @@ import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailer.js';
 import { glyphHtml } from './prompts.js';
+import { DEV } from './devflags.js';
 
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
@@ -167,7 +168,7 @@ export function addMissionsSection(sec) {
 }
 
 const FOOTERS = {
-  map: '<b>Klik</b> bestemming · <b>Rechtsklik / Del</b> wissen · <b>Shift+klik</b> teleporteren · <b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> centreren',
+  map: `<b>Klik</b> bestemming · <b>Rechtsklik / Del</b> wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}<b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> centreren`,
   missions: '<b>Klik</b> op een missie om de route te zetten · geklaarde missies kun je opnieuw spelen voor een betere medaille',
   garage: '<b>Laten afleveren</b> zet je voertuig om de hoek, buiten beeld · gekochte voertuigen blijven voorgoed van jou',
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',

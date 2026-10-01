@@ -61,7 +61,7 @@ function act(a) {
   else if (a === 'win') S.win();
   else if (a === 'lose') S.lose();
   else if (a === 'teleport') S.teleport();
-  else if (a === 'skip') { if (!S.skip()) S.complete(); }
+  else if (a === 'skip') { if (!S.skip(true)) S.complete(); }
   else if (a === 'money') world.money += 500;
   else if (a === 'invuln') world.devInvuln = !world.devInvuln;
   else if (a === 'night' || a === 'day') { world.clock = a === 'night' ? 21.5 : 12; }

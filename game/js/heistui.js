@@ -354,6 +354,7 @@ export function skipChip(show, hold = 0) {
     root.appendChild(skipEl);
   }
   skipEl.classList.toggle('on', !!show && !panel);
+  if (panel) panel.classList.toggle('skip-on', !!show);
   skipEl.style.setProperty('--hold', String(Math.max(0, Math.min(1, hold))));
 }
 
