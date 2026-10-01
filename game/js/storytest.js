@@ -205,7 +205,7 @@ export async function runStoryTest(world) {
           S().teleport();
           await sleep(900);
           capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
-          check(`${cur.id}: can be skipped from the pause menu`, S().canSkip() && S().view().canSkip);
+          check(`${cur.id}: no skip offered before a first try`, !S().canSkip() && !S().view().canSkip);
           const before = world.money;
           if (step.goal && step.goal.type === 'padel' && window.__padel) {
             // a real match at the court the guide points to, ended at once (a loss still counts)
@@ -280,7 +280,7 @@ export async function runStoryTest(world) {
           await sleep(300);
           await drain(world, 400);
           capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
-          check(`${cur.id}: can be skipped from the pause menu`, S().canSkip() && S().view().canSkip);
+          check(`${cur.id}: no skip offered before a first try`, !S().canSkip() && !S().view().canSkip);
           if (cur.id === 'H15' || cur.id === 'H17') {
             // Staart: a failed heli run (H15) and a running mission skipped from the pause menu (H17)
             const m0 = world.money;
@@ -291,7 +291,7 @@ export async function runStoryTest(world) {
               check('H15: fail ends the heli run', !world.heliRun && !isMissionActive());
               check('H15: skip offered after the fail', S().canSkip());
             }
-            const ok = S().skip();
+            const ok = S().skip(cur.id === 'H17');
             await drain(world);
             check(`${cur.id}: skip works`, ok && !isMissionActive() && S().current().id !== cur.id, JSON.stringify(S().current()));
             entry.notes.push(`${cur.id === 'H15' ? 'mislukt en ' : 'tijdens de missie '}overgeslagen: +€${Math.round(world.money - m0)}`);
