@@ -40,6 +40,9 @@
 //            ('angry', 'smug', 'wet', 'greide'); title/sign (card), handle/viewers (live),
 //            caption/likes (post). lines: [who, text, { tag, clue }] with tag the TTS delivery;
 //            a Frisian line's Dutch subtitle comes from subtitles.js FY (keyed by the text).
+//   scene    { kicker, lines, cast, props }: (activity) a short cutscene where the step is done
+//            (storyfun.js); lines [who, text, { tag, clue }], who 'T' | 'A' | a missionstory.js NPC key
+//   meet     the same, played once when the player reaches the step's starting spot
 //
 // GOAL TYPES (story.js GOALS)
 //   { type: 'shop', shop }            enter a shop of that type (shops.js SHOP_TYPES key)
@@ -54,6 +57,9 @@
 //   { type: 'train' }                 one train trip (stationtravel.js), routed to the nearest station
 //   { type: 'egg' }                   find one more hidden eierbal (achievementtracker), routed to the nearest
 //   { type: 'padel' }                 play one padel match, won or lost (padel.js), routed to the nearest court
+//   { type: 'kermis' }                one bumper-car ride on the Grote Markt (kermis.js), free, with Durk & Douwe in it
+//   { type: 'flight', heli, over, r } a free demo flight (storyfun.js): Rotor Roelf's heli parked at `heli`,
+//                                     Jelle's balloon at `over`; flying within r of it (or walking up) completes it
 
 // card: the two lines on the "Wordt vervolgd" card where the built story stops.
 // recap: the "Eerder in GTE VI" card when the part starts: [place, narrator line],
@@ -234,6 +240,23 @@ export const STEPS = [
       ['rikus', 'Te laat, ik heb al een jingle. En doe Anita de groeten. Die appt met Friesland, hoor ik.', { tag: 'plagend, samenzweerderig, aan de telefoon' }],
       ['T', '…Dat hoor ik ook steeds.', { tag: 'mompelend, stiekem jaloers, aan de telefoon' }],
     ] }] },
+  { id: 'r-kermis', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik doe de botsauto\'s. Ik rij al jaren zo, nu mag het eindelijk.',
+    title: "Botsauto's: Durk en Douwe klemrijden", goal: { type: 'kermis' },
+    lead: ['A', 'Sinds die duif zoeken Durk en Douwe jou. Draai het om: ze zitten in de botsauto\'s op de Grote Markt. Kermisbaas Jan laat je gratis instappen als je ze klemrijdt.'],
+    say: ['A', 'In de flank, Tammo. Reuzen kijken nooit opzij.'],
+    done: ['A', 'Eén botsing en Durk vertelt alles. Stel je voor wat één biertje doet.'],
+    scene: { kicker: "De botsauto's", face: Math.PI,
+      cast: [{ key: 'durk', at: [2.5, 0.8] }, { key: 'douwe', at: [3.3, -0.5] }],
+      props: [{ kind: 'fatbike', riders: ['durk', 'douwe'], from: [5.2, 2.6], to: [7, -16], dur: 5, mount: true }],
+      lines: [
+        ['durk', 'Douwe… alles draait.', { tag: 'traag, duizelig, wankelend' }],
+        ['douwe', '…draait.', { tag: 'sloom, misselijk' }],
+        ['T', 'Moi, jongens. Lekker gebotst?', { tag: 'droog, laconiek' }],
+        ['durk', 'Baas zegt: jij bent de duif. Wij moeten jou volgen.', { tag: 'traag, verward, nog duizelig' }],
+        ['durk', 'Maar eerst bier. Vanavond in de Poelestraat, de baas trakteert. Net fertelle, hè?', { tag: 'samenzweerderig, traag, recht tegen Tammo', clue: true }],
+        ['douwe', 'Durk. Dat was geheim. …Hè.', { tag: 'geschrokken, traag', look: 'fatbike' }],
+        ['T', 'Ik zeg niks.', { tag: 'deadpan, droog' }],
+      ] } },
   { id: 'r-eierbal', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik zoek hem wel. Ik ruik een eierbal op honderd meter.',
     title: 'Verstopte eierbal zoeken', goal: { type: 'egg' },
     lead: ['A', 'Sinds 1953, het jaar van de Gouden Eierbal, verstopt Grunn overal eierballen. Er ligt er één vlakbij. Eén voor de moed, voordat we Durk en Douwe in de kroeg opzoeken.'],
@@ -277,6 +300,28 @@ export const STEPS = [
       ['douwe', 'Baas? Durk en ik zijn nat. We fietsen wel naar huis.', { tag: 'sloom, druipnat, aan de telefoon' }],
       ['douwe', 'Baas? O. Verkeerd nummer.', { tag: 'verward, beschaamd' }],
     ] }] },
+  { id: 's-proefvlucht', part: 'staart', kind: 'activity', player: 'anita', built: true, why: 'Ik vlieg. Rotor Roelf denkt dat we een heli kopen. Dat laat ik even zo.',
+    title: 'Proefvlucht: zoek de ballon vanuit de lucht', goal: { type: 'flight', heli: [785, -118], over: [1593, -466], r: 170 },
+    lead: ['T', 'Jij hebt Rotor Roelf gebeld, hè? Hij staat met een demoheli bij het UMCG. Gratis proefvlucht, kopen hoeft niet. Dan zoeken we die ballon van bovenaf.'],
+    say: ['T', 'Ik zit achterin. Met mijn ogen dicht.'],
+    done: ['T', 'Zet Roelf zijn heli maar weer bij het UMCG neer. Dokter Dijkstra staat daar ook.'],
+    meet: { kicker: 'Rotor Roelf',
+      cast: [{ key: 'rotor', at: [2.4, 0.6], pose: 'point' }],
+      lines: [
+        ['rotor', 'Moi! Rotor Roelf, van Eelde. Dit is de Wieken Wubbo. De proefvlucht is gratis.', { tag: 'joviaal, verkoperig' }],
+        ['A', 'Mooi. We kopen hem misschien. Misschien.', { tag: 'zelfverzekerd, poeslief' }],
+        ['T', 'Wij kunnen nog geen fietsbel betalen.', { tag: 'fluisterend, droog' }],
+        ['rotor', 'W is omhoog, de pijltjes vooruit. En nait tegen d\'Olle Grieze aan, hè?', { tag: 'gemoedelijk, waarschuwend' }],
+      ] },
+    scene: { kicker: 'Het Oosterpark',
+      lines: [
+        ['A', 'Daar! In het Oosterpark. Een ballon, en hij staat al bol.', { tag: 'opgewonden, wijzend, door de koptelefoon' }],
+        ['T', 'Mijn Oosterpark. Daar heb ik leren fietsen.', { tag: 'verontwaardigd, droog, door de koptelefoon' }],
+        ['durk', 'Douwe! Een helikopter! Zwaaien!', { tag: 'traag, roepend naar boven' }],
+        ['douwe', '…zwaaien.', { tag: 'sloom, zwaaiend' }],
+        ['A', 'Vanavond gaat hij op, met de Eierbal. En deze heli heeft geen touw.', { tag: 'vastberaden, snel', clue: true }],
+        ['T', 'Dokter Dijkstra wel.', { tag: 'droog, stiekem trots' }],
+      ] } },
   { id: 'H15', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'traumaduif', why: 'Ik vlieg die heli. Jij krijgt al hoogtevrees op een stoeprand.',
     title: 'Traumaduif', reward: 1500,
     lead: ['T', 'Dokter Dijkstra staat bij de traumaheli op het UMCG. Jij vliegt. Ik hang, schijnt het.'],
@@ -387,10 +432,12 @@ export const CLUES = [
   { step: 'H8', kind: 'clue', title: 'Operaasje Aaibal', text: 'Zonder vet bakt niemand in Grunn een eierbal op Gronings Ontzet. Dan wint Jelle de Noordelijke Snackprijs.' },
   { step: 'H9', kind: 'clue', title: 'Een Fries op de ringweg', text: 'Jelle rijdt zelf in de trekker-limo. Hij verloor, en belde boos: "Dit is net klear."' },
   { step: 'H10', kind: 'clue', title: 'De vlag', text: 'Jelle hing een Friese vlag aan d\'Olle Grieze. Een duif pikte hem los. Hij weet wie die duif is.' },
+  { step: 'r-kermis', kind: 'clue', title: 'De botsauto\'s', text: 'Durk en Douwe moesten Tammo volgen. Na één ritje botsauto zei Durk: "Vanavond bier in de Poelestraat, de baas trakteert."' },
   { step: 'H11', kind: 'clue', title: 'Het skûtsje', text: 'Durk, dronken in de Poelestraat: "De bal leit op it skûtsje."' },
   { step: 'H12', kind: 'hart', title: 'Oma Trijntje, 1953', text: 'Oma Trijntje stond model voor de Eierbal. "Die bal is gien geld, jong. Die bal is Grunn." Misschien moeten we hem niet verkopen.' },
   { step: 'H13', kind: 'hart', title: 'Wij tweeën', text: 'Na de rondvaart: de kus. "Wij tweeën tegen Grunn… of misschien: vóór Grunn."' },
   { step: 'H14', kind: 'clue', title: 'Chocola', text: 'De Eierbal op het skûtsje was van chocola, met goudpapier. De echte gaat vanavond per ballon de stad uit.' },
+  { step: 's-proefvlucht', kind: 'clue', title: 'De ballon in het Oosterpark', text: 'Vanuit Rotor Roelfs demoheli gezien: Jelles ballon staat klaar in het Oosterpark, Durk en Douwe ernaast. Hij gaat vanavond op.' },
   { step: 'H15', kind: 'clue', title: 'De echte Eierbal', text: 'Uit de mand gehaald, boven Grunn. Hij is zwaar, en hij smelt niet. Jelle staat in een weiland bij Ten Boer.' },
   { step: 'H16', kind: 'clue', title: 'De Fjord', text: 'Jelle liet de Fjord jatten: hij wil ons weg hebben voor Gronings Ontzet.' },
   { step: 'H17', kind: 'hart', title: 'Het besluit', text: '"Hij hoort in Grunn." Als we winnen, gaat de Eierbal terug naar het museum.' },

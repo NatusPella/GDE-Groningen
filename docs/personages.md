@@ -243,6 +243,7 @@ Regels die voor iedereen gelden:
 | **Duivenmelker Bert** | oude wijze duivenman | Iapetus, *zacht, wijs* | praat over duiven als over mensen; ontdekt dat de duiven naar Tammo luisteren |
 | **Schipper Wiebe** | boze rondvaartschipper met megafoon | *luid, woedend* | scheldt je uit, maar alleen in tegeltjeswijsheden |
 | **Aaltje & Grietje** | twee droge commentaarkoeien | Zephyr en Autonoe, *deadpan* | commentaar op je chaos; Aaltje sceptisch, Grietje wijs |
+| **Rotor Roelf** | joviale helikopterverkoper van Eelde | Achird, *joviaal, verkoperig* | geeft een gratis proefvlucht aan iedereen die "misschien" koopt: "En nait tegen d'Olle Grieze aan, hè?" |
 
 ## Hoe Tammo en Anita met elkaar omgaan
 - Anita leidt, Tammo relativeert. Maar als het er echt op aankomt, is Tammo degene die het goede zegt, en in vijf woorden.
@@ -269,4 +270,5 @@ Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutsc
 | Kapitein Klaas | `#3f86a8` zeeblauw | | Duivenmelker Bert | `#7282c4` duifblauw |
 | Dokter Dijkstra | `#dd4b44` rood | | Hilly | `#c0609e` fuchsia |
 | Schipper Wiebe | `#cf5a2e` roestoranje | | Koe Aaltje / Grietje | `#818b58` / `#94866e` |
+| Rotor Roelf | `#2a9ab8` hemelsblauw | | | |
 | Voorbijgangers, bazen, radio en navigatie | `#8a8a8a` neutraal grijs | | | |

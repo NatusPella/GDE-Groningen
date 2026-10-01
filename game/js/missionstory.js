@@ -6,7 +6,7 @@ import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff } from './fx3d.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
-import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK } from './storycast.js';
+import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
 
@@ -45,6 +45,7 @@ const NPC = {
   mem: { ...MEM_LOOK, name: 'Mem Terpstra' },
   hilly: { name: 'Hilly', shirt: 0xc2549a, skin: SKIN.woodLight, variant: 'female', seed: 4410, hairStyle: 'bob' },
   dijkstra: { name: 'Dokter Dijkstra', shirt: 0xe8641c, skin: SKIN.woodLight, variant: 'male', seed: 77 },
+  rotor: { ...ROTOR_LOOK, name: 'Rotor Roelf' },
 };
 
 // Display name for a story speaker key (T, A, V or an NPC key); missions.js
@@ -726,13 +727,18 @@ function makeProp(r, p, anchor) {
     const m = fatbikeMesh();
     if (spec.cans) addCans(m, 3);
     const riders = (spec.riders || ['durk', 'douwe']).map((k) => r.extras.find((e) => e.key === k) || null);
-    for (const e of riders) if (e) { e.riding = true; e.mesh.visible = false; }
-    m.visible = false;
+    // mount: the bike stands parked and the riders stand beside it until they get on (playCastScene times it)
+    const mount = !!spec.mount;
+    if (!mount) for (const e of riders) if (e) { e.riding = true; e.mesh.visible = false; }
     const a = Math.atan2(to.y - from.y, to.x - from.x), len = Math.hypot(to.x - from.x, to.y - from.y);
-    const o = { kind: 'fatbike', mesh: m, from, to, at0: spec.at0 ?? 0, dur: spec.dur || 8, auto: !!spec.auto, pos: from };
+    m.visible = mount;
+    if (mount) { m.position.set(from.x, 0, from.y); m.rotation.y = -a; }
+    const o = { kind: 'fatbike', mesh: m, from, to, at0: spec.at0 ?? 0, dur: spec.dur || 8, auto: !!spec.auto, mount, pos: from };
     o.update = (t, dt) => {
       const u = (t - o.at0) / o.dur;
+      if (mount && u < 0) return;
       if (u < 0 || u > 1.05) { m.visible = false; for (const e of riders) if (e) e.mesh.visible = false; return; }
+      if (mount) for (const e of riders) if (e) e.riding = true;
       m.visible = true;
       const x = lerp(from.x, to.x, u), y = lerp(from.y, to.y, u);
       o.pos = { x, y };
@@ -1509,6 +1515,12 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   if (!r) return false;
   const tl = timeline(lines, null, 0.6);
   if (shotLines && tl.lines[shotLines - 1]) shotFor = tl.lines[shotLines - 1].at + tl.lines[shotLines - 1].dur;
+  // a parked prop the cast gets on: they ride off on the first line that looks at it
+  for (const p of r.props) {
+    if (!p.mount) continue;
+    const l = tl.lines.find((q) => q.look === p.kind);
+    p.at0 = l ? l.at - 0.2 : Infinity;
+  }
   const cams = camsFor(r);
   const plan = tl.lines.map((l, i) => {
     const base = camFor(r, cams, l.who, i === 0 && tl.lines.length > 1 && !cast.length, false, 'none', null, l.text);
