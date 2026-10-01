@@ -56,6 +56,8 @@ let lodT = 0;
 let ufo = null;
 let ducks = null;
 let race = null;
+let peerdSeen = -1;
+const nightNo = (w) => (w.flavour ? w.flavour.night : 0);
 
 const found = (id) => getSaveSet('geheimen').has(id);
 
@@ -326,7 +328,7 @@ function ufoNight(w) {
 
 function peerdNight(w) {
   const h = hour(w);
-  return !found('peerd') && (w.flavour ? w.flavour.night : 0) >= 1 && (h >= 0.5 && h < 5);
+  return !found('peerd') && nightNo(w) >= 1 && (h >= 0.5 && h < 5);
 }
 
 function lod(w) {
@@ -352,7 +354,8 @@ function lod(w) {
   if (ufo && ufoWanted && !ufo.leave && !ufo.gone) ufo.g.visible = true;
   if (ufo && !ufoNight(w)) { ufo.gone = false; ufo.leave = 0; ufo.z = UFO.z; }
   if (peerdNight(w) && !meshes.peerd && nearP(w, TOWER, 700)) meshes.peerd = buildPeerd();
-  if (meshes.peerd) meshes.peerd.visible = peerdNight(w) || (found('peerd') && hour(w) < 5 && hour(w) >= 0.5);
+  // once: after the night it was found it is gone for good
+  if (meshes.peerd) meshes.peerd.visible = peerdNight(w) || (peerdSeen === nightNo(w) && hour(w) < 5 && hour(w) >= 0.5);
 }
 
 function proximity(w, dt) {
@@ -366,6 +369,7 @@ function proximity(w, dt) {
     }
   }
   if (meshes.peerd && meshes.peerd.visible && !found('peerd') && nearP(w, TOWER, 150)) {
+    peerdSeen = nightNo(w);
     discover(w, 'peerd', 'Wacht even. Staat daar een paard boven op de Martinitoren? Het Peerd van Ome Loeks, met uitzicht.');
   }
   if (meshes.bike && !found('fiets') && nearP(w, BIKE_TREE, 18)) discover(w, 'fiets', 'Hoog in een boom op Zernike hangt een fiets. Niemand weet hoe. Iedereen weet wie: studenten.');
