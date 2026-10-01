@@ -312,7 +312,7 @@ function stepRealTraffic(a, dt, world) {
   const [nx, ny] = realPos(a);
   const d = Math.hypot(ox - nx, oy - ny);
   const pr = v ? 1.8 : 0.4;
-  if (d < a.radius + pr && d > 1e-3) {
+  if (d < a.radius + pr && d > 1e-3 && !(v && v.isHeli && !v.onGround)) {
     const push = (a.radius + pr - d) / d;
     if (v) { v.x += (ox - nx) * push; v.y += (oy - ny) * push; v.speed *= 0.5; }
     else if (!world.pigeonMode) { p.x += (ox - nx) * push; p.y += (oy - ny) * push; }
@@ -368,7 +368,7 @@ function stepTraffic(a, dt, world) {
   const [nx, ny] = roadPos(a);
   const d = Math.hypot(ox - nx, oy - ny);
   const pr = v ? 1.8 : 0.4;
-  if (d < a.radius + pr && d > 1e-3) {
+  if (d < a.radius + pr && d > 1e-3 && !(v && v.isHeli && !v.onGround)) {
     const push = (a.radius + pr - d) / d;
     if (v) { v.x += (ox - nx) * push; v.y += (oy - ny) * push; v.speed *= 0.5; }
     else if (!world.pigeonMode) { p.x += (ox - nx) * push; p.y += (oy - ny) * push; }

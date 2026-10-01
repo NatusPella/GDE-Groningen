@@ -77,7 +77,7 @@ const FRIDGE_COOLDOWN = 45;
 const MORNING = 7.5;
 const EVENING = 21.4;
 const PAD_R = 7.5;
-const PAD_DECK = 0.15;
+const PAD_DECK = 1.2;
 
 // OSM (House of Groningen, way 749915414): the tower and its parking plinth.
 const TOWER = [[-1282.3, -1104.7], [-1270.4, -1111.1], [-1264.3, -1114.4], [-1251.2, -1090.3], [-1269.4, -1080.5]];

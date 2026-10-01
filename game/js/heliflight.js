@@ -253,8 +253,11 @@ export function flyHeli(v, dt, w) {
   const hspeed0 = Math.hypot(vx, vy);
   let hitH = 0, rotorHit = false;
   const probeTop = (lx, lz, x, y) => { const [px, py] = local(v, lx, lz, x, y); const r = roofAt(map, px, py); return r ? r.top : -Infinity; };
-  for (const [lx, lz, h] of BODY_PROBES) if (probeTop(lx, lz, nx, ny) > oz + h + 0.05) { hitH = 1; break; }
-  if (!hitH && v.rotor > 0.3) for (const [lx, lz, h] of ROTOR_PROBES) if (probeTop(lx, lz, nx, ny) > oz + h + 0.05) { hitH = 2; rotorHit = true; break; }
+  // a probe moving into a building blocks; one that already overlapped (a
+  // spawn or a takeoff right next to a wall) may move out again
+  const enters = (lx, lz, h) => probeTop(lx, lz, nx, ny) > oz + h + 0.05 && probeTop(lx, lz, ox, oy) <= oz + h + 0.05;
+  for (const [lx, lz, h] of BODY_PROBES) if (enters(lx, lz, h)) { hitH = 1; break; }
+  if (!hitH && v.rotor > 0.3) for (const [lx, lz, h] of ROTOR_PROBES) if (enters(lx, lz, h)) { hitH = 2; rotorHit = true; break; }
   if (hitH) {
     nx = ox; ny = oy;
     const impact = hspeed0;
@@ -262,7 +265,7 @@ export function flyHeli(v, dt, w) {
     if (impact > 2.5 && w.time - (v.hitAt || -9) > 0.35) {
       v.hitAt = w.time;
       reportImpact(w, v.x, v.y, impact * (rotorHit ? 1.2 : 1), true);
-      hurt(v, (impact - 2.5) * (rotorHit ? 5.5 : 3.5), w);
+      hurt(v, (impact - 2.5) * (rotorHit ? 4 : 2.6), w);
       if (rotorHit) say('rotor', 'Au! De rotor tikt het gebouw', 2, 'gevaar', 3);
     }
   }
