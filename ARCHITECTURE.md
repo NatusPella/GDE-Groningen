@@ -202,7 +202,7 @@ There are no white toast lines. Three channels, all inside `#hud` (so
   rest" and "Short sentence! Rest" split into title and body. Redundant
   messages are dropped (`DROP`: death/busted, mission passed/failed, start
   location, mute, route set, the radio, ambient trains, pigeon bumps). One
-  card at a time (see "Attention budget"), a short queue (dangers and police first, tips expire),
+  card at a time (see "Attention budget"), a short queue (dangers and police first; tips wait out the tip gap, important ones that teach a key or pass `important` longest, stale plain tips expire),
   the same key updates the card that is up; cards wait while a cutscene
   hides the HUD. `opts.exact` countdowns ("3", "GO! GO! GO!") are a big
   number in the middle. `cardlines.js` lists the few cards Tammo/Anita say
@@ -458,8 +458,11 @@ a director:
   short for a required purchase, switches who you play (`step.player`:
   Tammo and Anita trade roles behind a short fade; there is no free switch)
   and waits for the night at a garage, offers
-  "Sla deze missie over" (O, or the pause menu Missies tab) after a failed
-  mission and for any activity, and saves under `story` in the savegame.
+  "Sla deze missie over" (O, or the pause menu Missies tab) only once the
+  player has tried: after a failed attempt, a requirement unmet for 90 s, an
+  activity open for 5 minutes or a story mission running for 6 (never
+  before a first try; `skip(true)` forces it for the dev panel and the story
+  test), and saves under `story` in the savegame.
   `missions.js` reports back through `setMissionHooks` (passed, failed,
   gated, waived requirements).
 - Missions: requirements (`requires`: weapon, bike, car, heist, night,

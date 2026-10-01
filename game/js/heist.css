@@ -23,6 +23,7 @@
 #heist-ui .hx-keys { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 10px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 14px; letter-spacing: 0.3px; }
 #heist-ui .hx-keys .sep { opacity: 0.35; }
 #heist-ui .hx-skip { margin-top: 8px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; opacity: 0.55; display: flex; align-items: center; justify-content: center; gap: 5px; }
+#heist-ui .hx-panel:not(.skip-on) .hx-skip { display: none; }
 #heist-ui .hx-skip .hud-key { min-width: 17px; height: 17px; font-size: 11px; padding: 0 4px; }
 
 /* fuse box: a needle over a bar */
