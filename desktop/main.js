@@ -61,9 +61,26 @@ async function serve(request) {
   const file = path.normalize(path.join(GAME_DIR, rel));
   if (!file.startsWith(GAME_DIR)) return new Response('Forbidden', { status: 403 });
   try {
-    const body = await fs.readFile(file);
     const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
-    return new Response(body, { status: 200, headers: { 'content-type': type, 'cache-control': 'no-cache' } });
+    // media elements ask for byte ranges (seeking, buffering ahead): answer
+    // with just that slice, so the player never re-reads a track from byte 0
+    const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') || '');
+    if (range && (range[1] || range[2])) {
+      const fh = await fs.open(file, 'r');
+      try {
+        const size = (await fh.stat()).size;
+        const start = range[1] ? +range[1] : Math.max(0, size - +range[2]);
+        const end = range[1] && range[2] ? Math.min(+range[2], size - 1) : size - 1;
+        if (start >= size || start > end) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${size}` } });
+        const buf = Buffer.alloc(end - start + 1);
+        await fh.read(buf, 0, buf.length, start);
+        return new Response(buf, { status: 206, headers: { 'content-type': type, 'cache-control': 'no-cache', 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${size}`, 'content-length': String(buf.length) } });
+      } finally {
+        await fh.close();
+      }
+    }
+    const body = await fs.readFile(file);
+    return new Response(body, { status: 200, headers: { 'content-type': type, 'cache-control': 'no-cache', 'accept-ranges': 'bytes', 'content-length': String(body.length) } });
   } catch (e) {
     return new Response('Not found', { status: 404 });
   }

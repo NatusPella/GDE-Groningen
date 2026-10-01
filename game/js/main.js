@@ -1,6 +1,7 @@
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
 import { loadOmmeland, initReal } from './countryreal.js';
+import { ensureCountryEdge } from './countryplan.js';
 import { Input } from './input.js';
 import { Player } from './player.js';
 import { World } from './world.js';
@@ -149,6 +150,9 @@ async function boot() {
   await yieldToPaint();
   init3D(map);
   resize3D();
+  // the map-edge layout (~0.3 s) during loading, not on the first trip out;
+  // after init3D, which sets the country bounds it measures from
+  ensureCountryEdge(map);
   setLoadProgress(0.8);
   await yieldToPaint();
   window.addEventListener('resize', resize3D);
