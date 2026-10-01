@@ -6,7 +6,7 @@ import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff } from './fx3d.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
-import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK } from './storycast.js';
+import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
 
@@ -46,6 +46,8 @@ const NPC = {
   hilly: { name: 'Hilly', shirt: 0xc2549a, skin: SKIN.woodLight, variant: 'female', seed: 4410, hairStyle: 'bob' },
   dijkstra: { name: 'Dokter Dijkstra', shirt: 0xe8641c, skin: SKIN.woodLight, variant: 'male', seed: 77 },
   rotor: { ...ROTOR_LOOK, name: 'Rotor Roelf' },
+  roelf: { ...ROELF_LOOK, name: 'Boer Roelf' },
+  hilje: { ...HILJE_LOOK, name: 'Hilje' },
 };
 
 // Display name for a story speaker key (T, A, V or an NPC key); missions.js
@@ -733,7 +735,7 @@ function makeProp(r, p, anchor) {
     const a = Math.atan2(to.y - from.y, to.x - from.x), len = Math.hypot(to.x - from.x, to.y - from.y);
     m.visible = mount;
     if (mount) { m.position.set(from.x, 0, from.y); m.rotation.y = -a; }
-    const o = { kind: 'fatbike', mesh: m, from, to, at0: spec.at0 ?? 0, dur: spec.dur || 8, auto: !!spec.auto, mount, pos: from };
+    const o = { kind: 'fatbike', mesh: m, from, to, at0: spec.at0 ?? 0, dur: spec.dur || 8, auto: !!spec.auto, mount, cue: !!spec.cue, pos: from };
     o.update = (t, dt) => {
       const u = (t - o.at0) / o.dur;
       if (mount && u < 0) return;
@@ -1515,11 +1517,11 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   if (!r) return false;
   const tl = timeline(lines, null, 0.6);
   if (shotLines && tl.lines[shotLines - 1]) shotFor = tl.lines[shotLines - 1].at + tl.lines[shotLines - 1].dur;
-  // a parked prop the cast gets on: they ride off on the first line that looks at it
+  // a parked prop the cast gets on (mount), or one that comes by (cue): it moves on the first line that looks at it
   for (const p of r.props) {
-    if (!p.mount) continue;
+    if (!p.mount && !p.cue) continue;
     const l = tl.lines.find((q) => q.look === p.kind);
-    p.at0 = l ? l.at - 0.2 : Infinity;
+    p.at0 = l ? l.at - (p.mount ? 0.2 : 1.4) : Infinity;
   }
   const cams = camsFor(r);
   const plan = tl.lines.map((l, i) => {

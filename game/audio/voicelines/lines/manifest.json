@@ -131,6 +131,10 @@
 "src": "anita/dan_staat_die_in_storing_dat_is__8ea0d27e.mp3",
 "dur": 4.61
 },
+"Anita|Dat betekent dat hij je mag, Tammo.": {
+"src": "anita/dat_betekent_dat_hij_je_mag_tamm_e7d46a95.mp3",
+"dur": 2.53
+},
 "Anita|Dat is een reclameslogan, Tammo.": {
 "src": "anita/dat_is_een_reclameslogan_tammo_35087a7f.mp3",
 "dur": 2.59
@@ -1055,6 +1059,14 @@
 "src": "boer_hindrik/doar_achter_is_niks_meer_mien_jo_f56bb12a.mp3",
 "dur": 6.1
 },
+"Boer Roelf|In de melkbus, doar zuukt gain Fries noar. Op Ontzet breng ik hom zulf.": {
+"src": "boer_roelf/in_de_melkbus_doar_zuukt_gain_fr_631a4d79.mp3",
+"dur": 5.37
+},
+"Boer Roelf|Kon minder.": {
+"src": "boer_roelf/kon_minder_00d23d62.mp3",
+"dur": 0.82
+},
 "Boerin Geesje|Eet smakelk! En nait alles in ain moal, hè.": {
 "src": "boerin_geesje/eet_smakelk_en_nait_alles_in_ain_fedb8520.mp3",
 "dur": 3.07
@@ -1162,6 +1174,10 @@
 "Douwe|Durk… je telefoon staat aan.": {
 "src": "douwe/durk_je_telefoon_staat_aan_d33ba53c.mp3",
 "dur": 3.37
+},
+"Douwe|Durk… ze schieten. Trappen!": {
+"src": "douwe/durk_ze_schieten_trappen_16920ddc.mp3",
+"dur": 3.58
 },
 "Douwe|En de baas?": {
 "src": "douwe/en_de_baas_b9f96ff0.mp3",
@@ -1290,6 +1306,10 @@
 "Durk|De baas zegt: geen vet, geen eierbal op Gronings Ontzet.": {
 "src": "durk/de_baas_zegt_geen_vet_geen_eierb_063109d6.mp3",
 "dur": 6.68
+},
+"Durk|Douwe! Daar is de duif. Met de bal!": {
+"src": "durk/douwe_daar_is_de_duif_met_de_bal_c3b0519f.mp3",
+"dur": 4.26
 },
 "Durk|Douwe! Der stiet ien op ús dek!": {
 "src": "durk/douwe_der_stiet_ien_op_u_s_dek_6673f597.mp3",
@@ -1498,6 +1518,10 @@
 "Henk|Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!": {
 "src": "henk/volg_de_roze_lijn_op_je_kaart_da_550fcbc1.mp3",
 "dur": 4.45
+},
+"Hilje|Roelf. Dat is de Gouden Eierbal. Uut t museum.": {
+"src": "hilje/roelf_dat_is_de_gouden_eierbal_u_a2560de9.mp3",
+"dur": 4.42
 },
 "Hilly|De ain zat te zingen. Fries, docht ik. Dat heur je hier nait vaak.": {
 "src": "hilly/de_ain_zat_te_zingen_fries_docht_c0097dcc.mp3",
@@ -3271,6 +3295,10 @@
 "src": "tammo/ik_rij_het_decor_femke_vindt_mij_2280b63d.mp3",
 "dur": 4.22
 },
+"Tammo|Ik schiet. Ik heb die bal toch al vast. Wat kan er misgaan met een melkbus?": {
+"src": "tammo/ik_schiet_ik_heb_die_bal_toch_al_78505912.mp3",
+"dur": 4.61
+},
 "Tammo|Ik speel. Mijn armen trillen nog van dat touw, maar mijn backhand niet.": {
 "src": "tammo/ik_speel_mijn_armen_trillen_nog__705264d9.mp3",
 "dur": 5.93
@@ -3607,6 +3635,10 @@
 "src": "tammo/vaar_er_met_je_huurboot_achteraa_a8a18403.mp3",
 "dur": 5.67
 },
+"Tammo|Viel mee.": {
+"src": "tammo/viel_mee_ac666aef.mp3",
+"dur": 0.89
+},
 "Tammo|Vlieg naar het Groninger Museum en zweef boven drie camera's en twee bewakers: dan staan ze op de foto.": {
 "src": "tammo/vlieg_naar_het_groninger_museum__2f31709e.mp3",
 "dur": 7.48
@@ -3690,6 +3722,10 @@
 "Tammo|Wij kunnen nog geen fietsbel betalen.": {
 "src": "tammo/wij_kunnen_nog_geen_fietsbel_bet_a6ee7891.mp3",
 "dur": 2.28
+},
+"Tammo|Wij moeten iets verstoppen tot Gronings Ontzet. Iets van Grunn.": {
+"src": "tammo/wij_moeten_iets_verstoppen_tot_g_91d1cddb.mp3",
+"dur": 4.89
 },
 "Tammo|Wij tweeën tegen Grunn. Weet je nog?": {
 "src": "tammo/wij_tweee_n_tegen_grunn_weet_je__ba27f0d7.mp3",
@@ -4490,6 +4526,10 @@
 "~f|Niemand kijkt naar een duif. Dat is ons plan.": {
 "src": "bubbles/f/niemand_kijkt_naar_een_duif_dat__785f42e6.mp3",
 "dur": 3.42
+},
+"~f|Niet te veel water. En niet in de bus kijken als hij knalt.": {
+"src": "bubbles/f/niet_te_veel_water_en_niet_in_de_8367ade3.mp3",
+"dur": 5.71
 },
 "~f|Noar hoes, joe baaident. Oefenen!": {
 "src": "bubbles/f/noar_hoes_joe_baaident_oefenen_5bb75623.mp3",
