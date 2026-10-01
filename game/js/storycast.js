@@ -50,3 +50,14 @@ export const ROTOR_LOOK = {
   shirt: 0xb8322a, skin: 0xe2b48c, hair: 0x5a4632, variant: 'male', pants: 0x2b2f3a, shoes: 0x2a2a2a, hairStyle: 'short', seed: 5512,
   look: { top: 'jacket', topColor: 0xb8322a, hat: 'cap', hatColor: 0xb8322a, glasses: true, shades: true, scarf: false, bottom: 'jeans', shoeType: 'sneaker', age: 'adult', build: 'avg', bag: null, umbrella: null },
 };
+
+// Boer Roelf and Hilje, the farmers at the carbid field on the Beijumerweg
+// (carbid.js), who hide the Eierbal in the story (storyarc.js s-carbid).
+export const ROELF_LOOK = {
+  shirt: 0x2f4f7a, skin: 0xe2b48c, variant: 'male', seed: 5101, pants: 0x2f4f7a, shoes: 0x2a2a2a, hairStyle: 'short', hair: 0xb8b2a8,
+  look: { age: 'old', hat: 'flatcap', hatColor: 0x4a4038, top: 'jacket', bottom: 'trousers', bag: null, umbrella: null, glasses: false },
+};
+export const HILJE_LOOK = {
+  shirt: 0x7a3a4a, skin: 0xd9a57c, variant: 'female', seed: 5102, pants: 0x3a3a40, shoes: 0x2a2a2a, hairStyle: 'bun', hair: 0xc8c2b8,
+  look: { age: 'old', top: 'coat', bottom: 'skirt', bag: null, umbrella: null },
+};

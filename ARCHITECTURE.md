@@ -449,7 +449,9 @@ a director:
   (r-kermis, a free bumper-car ride with Durk & Douwe in it, kermis.js reads
   `world.storyActivity`, then their scene at the booth) and `flight`
   (s-proefvlucht, Rotor Roelf's demo heli at the UMCG, a missionCar he takes
-  back, and Jelle's balloon in the Oosterpark); a step's `meet`/`scene` lines.
+  back, and Jelle's balloon in the Oosterpark) and `carbid` (s-carbid, a round
+  at boer Roelf's: he hides the Eierbal in his melkbus, a knal scares off the
+  twins; far out on foot, Henk drops the Escapade off free); a step's `meet`/`scene` lines.
 - `story.js`: finds the current step (done = finished/skipped, a passed
   mission, or an activity made moot by a later passed mission; that also
   migrates pre-0.5 saves). It publishes `world.storyGuide` (routing.js uses

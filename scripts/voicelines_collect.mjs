@@ -344,6 +344,7 @@ export function collect() {
   const SWHO = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
   for (const st of STEPS) {
     for (const f of ['lead', 'done']) if (st[f]) sms('Berichten (verhaal)', SWHO(st[f][0]), st[f][1]);
+    if (st.goal && st.goal.lift) sms('Berichten (verhaal)', st.goal.lift[0], st.goal.lift[1]);
     for (const f of ['after', 'beat']) for (const [k, t] of st[f] || []) sms('Berichten (verhaal)', SWHO(k), t);
     for (const c of st.contact || []) for (const [k, t] of c.after || []) sms('Berichten (verhaal)', SWHO(k), t);
     if (st.voorschot) sms('Berichten (verhaal)', st.voorschot.from, st.voorschot.text);

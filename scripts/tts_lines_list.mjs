@@ -61,6 +61,9 @@ const CAST = {
   'Ome Jan': { voice: 'Charon', who: 'oude Groningse melkveeboer bij Ten Boer, praat plat Gronings', pool: ['nuchter, gemoedelijk'], accent: GRO_ACCENT },
   'Koe Geertje': { voice: 'Kore', who: 'een droge, eigenwijze prijskoe uit het Ommeland', pool: ['deadpan, droog'] },
   // the helicopter dealer from Eelde in the demo-flight story step (storyarc.js s-proefvlucht)
+  // the carbid farmers in the story step s-carbid (same voices as their carbid.js bubbles)
+  'Boer Roelf': { voice: 'Charon', who: 'oude Groningse boer op zijn erf, praat plat Gronings, nuchter en droog', pool: ['nuchter, droog', 'nors, stiekem onder de indruk'], accent: GRO_ACCENT },
+  Hilje: { voice: 'Despina', who: 'Groningse boerin op leeftijd, praat plat Gronings, ad rem', pool: ['ad rem, verbaasd', 'nuchter, plagend'], accent: GRO_ACCENT },
   'Rotor Roelf': { voice: 'Achird', who: 'joviale Groningse helikopterverkoper van vliegveld Eelde, verkoperig, praat een beetje Gronings', pool: ['joviaal, verkoperig', 'gemoedelijk, waarschuwend'] },
   // phone messages read aloud (sms manifest): the Sikkom newsreader and the phone's own app voice
   'Sikkom-redactie': { voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor', pool: ['als een nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog'] },
