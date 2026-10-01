@@ -30,6 +30,8 @@ export const SPEAKER_COLORS = {
   'Schipper Wiebe': '#cf5a2e',
   'Koe Aaltje': '#818b58',
   'Koe Grietje': '#94866e',
+  'Ome Jan': '#7a8a3a',
+  'Koe Geertje': '#9a7a5a',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
 export const NEUTRAL = '#8a8a8a';

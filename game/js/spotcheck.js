@@ -1,6 +1,7 @@
 // Every fixed place the player has to reach (mission starts and targets,
 // activities, side jobs, shops, garages, post-game challenges, pigeon, heli,
-// station and Fjord Frituur spots, eierballen, respawn points), checked for
+// station and Fjord Frituur spots, eierballen, respawn points, the Ommeland
+// extras' wereldeinden and dorpsuitjes), checked for
 // being on open ground you can walk away from: not inside a building
 // footprint (a mapped passage is fine), not in the water unless it is a boat
 // spot, and not in a pocket the footprints close off. `validateSpots(world)`
@@ -20,6 +21,7 @@ import { getPadelSpotsForRender } from './padel.js';
 import { getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { CHALLENGES } from './postgame.js';
+import { getOmmelandSpots } from './ommelandfun.js';
 
 const DRIVE_REACH = 25;
 const WALK_REACH = 45;
@@ -116,6 +118,7 @@ export function collectSpots(world) {
     try { list = c.spots(world) || []; } catch (e) { list = []; }
     for (const q of list) add('postgame', `${c.id} ${q.name || ''}`, q, c.vehicle ? 'drive' : 'walk');
   }
+  for (const o of getOmmelandSpots(world)) add(o.kind, o.id, o);
   const meta = world.map.meta || {};
   const sites = [...(meta.policeStations || []), ...(meta.careSites || []), ...(meta.hospital ? [meta.hospital] : [])];
   for (const s of sites) add('respawn', s.name || `${Math.round(s.x)},${Math.round(s.y)}`, world.map.findOpenSpawn(s.x, s.y, 120));

@@ -9,6 +9,7 @@ import { saveGame } from './savegame.js';
 import { manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { isInWater } from './util.js';
+import { VILLAGES } from './ommelandlines.js';
 
 // Fast travel by train between the on-map stations (map.stations): a ticket
 // machine at each, a small menu, a short skippable ride cinematic.
@@ -386,7 +387,7 @@ function menuFor(w, here) {
         const via = legs.length > 1 ? ` · overstappen op ${legs[0].to.route.stops[legs[0].to.idx].name.replace(/^Groningen\s+/, '')}` : '';
         trips.push({
           id: 'trein-' + dest.short, label: dest.name,
-          desc: `${lineLabel(legs[0])} · ${spoor(here, legs[0])} · ${info.minutes} min${via}`,
+          desc: `${lineLabel(legs[0])} · ${spoor(here, legs[0])} · ${info.minutes} min${via}${VILLAGES[dest.name] ? ` · Te doen: ${VILLAGES[dest.name].teaser.toLowerCase()}` : ''}`,
           price: info.price, swatch: [legs[0].train.type === 'virm' ? '#ffc917' : '#00a3ad'],
           disabled: w.money < info.price ? 'Te weinig geld' : null,
           buy() {
