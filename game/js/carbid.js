@@ -23,7 +23,9 @@ import { CARBID_LINES } from './funlines.js';
 // medals and a record. The field's frame: u along the firing line, v across
 // it (to the right, seen from the churn). `window.__carbid` debug.
 
-const FIELD = { x: 1736, y: -4046, rot: 0 };
+// a long strip of meadow between two ditches, fired along (the tree rows
+// stand on the ditches, beside the range rather than across it)
+const FIELD = { x: 1748, y: -3972, rot: -Math.PI / 2 };
 const SHOTS = 5;
 const YAW_MAX = 0.42, EL_MIN = 0.26, EL_MAX = 0.8;
 const POUR_RATE = 0.5;
@@ -36,11 +38,10 @@ const MEDAL_AT = [0, 45, 80, 120];
 const POINTS = { baal: 10, ton: 20, pop: 40 };
 const DUSK = 19.2;
 
-// on the strips between the ditches (u = 24, 64 and 104 run across the line)
 const TARGETS = [
-  { kind: 'baal', u: 15, v: 4 }, { kind: 'baal', u: 32, v: -5 }, { kind: 'baal', u: 38, v: 7 }, { kind: 'baal', u: 47, v: -2 },
-  { kind: 'ton', u: 47, v: -2, on: 3 }, { kind: 'baal', u: 55, v: 10 }, { kind: 'baal', u: 73, v: -9 },
-  { kind: 'baal', u: 81, v: 4 }, { kind: 'ton', u: 81, v: 4, on: 7 }, { kind: 'ton', u: 89, v: -4 }, { kind: 'pop', u: 96, v: 6 },
+  { kind: 'baal', u: 15, v: 3 }, { kind: 'baal', u: 32, v: -4 }, { kind: 'baal', u: 38, v: 5 }, { kind: 'baal', u: 47, v: -1 },
+  { kind: 'ton', u: 47, v: -1, on: 3 }, { kind: 'baal', u: 55, v: 6 }, { kind: 'baal', u: 73, v: -5 },
+  { kind: 'baal', u: 81, v: 3 }, { kind: 'ton', u: 81, v: 3, on: 7 }, { kind: 'ton', u: 89, v: -3 }, { kind: 'pop', u: 96, v: 4 },
 ];
 
 let game = null;
@@ -154,9 +155,14 @@ function buildField() {
     root.add(m);
   }
   // landing ring (the gas preview) lives in world space
-  const ring = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.25, 28).rotateX(-Math.PI / 2), M.ring);
+  // landing ring with a post, so it still reads a hundred metres out
+  const ring = new THREE.Group();
+  const disc = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.25, 28).rotateX(-Math.PI / 2), M.ring);
+  disc.renderOrder = 3;
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.6, 6).translate(0, 1.3, 0), M.ring);
+  ring.add(disc, post);
+  ring.userData.disc = disc;
   ring.visible = false;
-  ring.renderOrder = 3;
   getScene().add(root, ring);
   // Roelf and Hilje
   const roelf = buildPersonMesh(0x2f4f7a, 0xe2b48c, { variant: 'male', seed: 5101, pants: 0x2f4f7a, shoes: 0x2a2a2a, hairStyle: 'short', hair: 0xb8b2a8, look: { age: 'old', hat: 'flatcap', hatColor: 0x4a4038, top: 'jacket', bottom: 'trousers', bag: null, umbrella: null, glasses: false } });
@@ -307,8 +313,10 @@ function mouthPos(g) {
 }
 
 function ignite(w, g) {
-  const power = gasAt(g, g.gasT);
-  const kind = power < 0.12 ? 'dud' : g.gasT < g.rise * 0.72 ? 'early' : g.gasT > g.rise + 1.1 && power < g.peak * 0.8 ? 'late' : 'good';
+  const gas = gasAt(g, g.gasT);
+  const kind = gas < 0.12 ? 'dud' : g.gasT < g.rise * 0.72 ? 'early' : g.gasT > g.rise + 1.1 && gas < g.peak * 0.8 ? 'late' : 'good';
+  // lit too soon the mixture is still thin: a weak plof
+  const power = kind === 'early' ? gas * 0.6 : gas;
   const m = mouthPos(g);
   const { c, s } = dirOf(g);
   const big = kind === 'good' || power > 0.7;
@@ -601,9 +609,11 @@ function sync3D(w, dt) {
     const lp = predict(g, pw);
     b.ring.visible = true;
     b.ring.position.set(lp.x, 0.08, lp.y);
-    b.ring.material = g.gasT > g.rise + 1.1 ? mats.ringBad : mats.ring;
-    const s = 0.8 + 0.25 * Math.sin(g.t * 9);
-    b.ring.scale.set(s, 1, s);
+    const mat = g.gasT > g.rise + 1.1 ? mats.ringBad : mats.ring;
+    for (const m of b.ring.children) m.material = mat;
+    const s = (0.8 + 0.25 * Math.sin(g.t * 9)) * (1 + lp.d / 45);
+    b.ring.userData.disc.scale.set(s, 1, s);
+    b.ring.children[1].scale.set(1 + lp.d / 40, 1 + lp.d / 60, 1 + lp.d / 40);
   } else b.ring.visible = false;
 }
 
@@ -619,9 +629,9 @@ function camera(w) {
     pos = { x: L.x - hx * 7 - hy * 5, y: L.y - hy * 7 + hx * 5, z: Math.max(1.8, L.z * 0.7 + 2.2) };
     at = { x: L.x + hx * 2, y: L.y + hy * 2, z: Math.max(0.3, L.z) };
   } else {
-    pos = { x: FIELD.x - c * 5.5 + s * 1.2, y: FIELD.y - s * 5.5 - c * 1.2, z: 4.2 };
+    pos = { x: FIELD.x - c * 6 + s * 1.3, y: FIELD.y - s * 6 - c * 1.3, z: 3.8 };
     const look = g.phase === 'gas' ? predict(g, Math.max(0.3, gasAt(g, g.gasT))) : { x: FIELD.x + c * 40, y: FIELD.y + s * 40 };
-    at = { x: (FIELD.x + c * 18) * 0.5 + look.x * 0.5, y: (FIELD.y + s * 18) * 0.5 + look.y * 0.5, z: 0.4 };
+    at = { x: (FIELD.x + c * 14) * 0.6 + look.x * 0.4, y: (FIELD.y + s * 14) * 0.6 + look.y * 0.4, z: 0 };
   }
   // smooth: the chase eases in instead of cutting each frame
   if (!g.cam) g.cam = { pos: { ...pos }, at: { ...at } };

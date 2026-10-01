@@ -24,7 +24,7 @@ const D = (x, y) => ({ x, y });
 const DOOR = { x: 216.05, y: 3.62, a: -1.9 };
 const ROOM_Z = 360;
 const UFO = { x: -1880, y: -2050, z: 55 };
-const TOWER = { x: 214, y: 13, top: 97.5 };
+const TOWER = { x: 214.5, y: 13.5, top: 95.3 };
 const JELLE_AT = D(290, -200);
 const VENDING = { x: 102.62, y: 150, a: Math.PI };
 const BENCH = { x: 248, y: -63, a: Math.PI / 2 };

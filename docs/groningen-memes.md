@@ -38,6 +38,9 @@ personen. Namen, uiterlijk en formuleringen altijd zelf verzinnen.
 | KEI-week, kroegen zonder sluitingstijd | Al deels in de game; bij zonsopgang komen dezelfde NPC's nog uit dezelfde kroeg. |
 | Het station dat nooit echt klaar is | Kapotte lift of ontbrekende fietsgoot als kleine grap (veroudert snel). |
 | Gaswinning en instanties | Alleen satire gericht op overheid, industrie en bureaucratie (dossiers, loketten), nooit op gedupeerden. |
+| Carbid schieten (oudejaarsdag, melkbus op het erf) | `carbid.js`: bij boer Roelf en Hilje in de polder, deksel op balen en tonnen, Gronings commentaar. |
+| Kermis op de Grote Markt (Meikermis) | `kermis.js`: botsauto's altijd, 's avonds de hele kermis met reuzenrad en draaiorgel. |
+| Fiets in een boom, UFO boven Zernike, "Kon minder" op een bankje | `geheimen.js`: acht verstopte geheimpjes, samen een verborgen prestatie. |
 
 ## Liever niet
 
