@@ -316,9 +316,11 @@ function buildFair() {
 const CROWD_SPOTS = [[-8.5, -15.5, 0.2], [-7.4, -15.8, 2.6], [-2.2, -15.6, 1.3], [-0.6, -16.2, -1.7], [6.2, -15.4, 0.6], [7.5, -16.1, 2.9],
   [-4, -7.4, 1.6], [3.5, -7.5, 1.4], [-11.8, -3.5, -0.4], [11.2, 2.5, 3.1], [-22, -45, 0.9], [-29, -44.6, 2.2]];
 
-function buildCrowd() {
-  const out = [];
+// A few visitors per call (the LOD tick), so the crowd doesn't build in one frame.
+function buildCrowd(out = []) {
+  const from = out.length;
   CROWD_SPOTS.forEach(([u, v, face], i) => {
+    if (i < from || i >= from + 3) return;
     const f = i % 3 === 0;
     const m = buildPersonMesh([0x3f6ea8, 0xc8261e, 0x2f8a4a, 0xe0a526, 0x6a4a8a, 0x26262a][i % 6], [0xe2b48c, 0xd9a57c, 0x9a6a4a, 0xc89070][i % 4], { variant: f ? 'female' : 'male', seed: 6300 + i });
     const p = toW(u, v);
@@ -481,6 +483,8 @@ function steer(car, thr, turn, dt, max = 5) {
   // a bumper car turns on the spot and slides a lot
   car.va += (turn * 2.6 - car.va) * Math.min(1, dt * 6);
   car.a += car.va * dt;
+  if (car.a > Math.PI) car.a -= Math.PI * 2;
+  else if (car.a < -Math.PI) car.a += Math.PI * 2;
   car.vu += ca * thr * 7 * dt;
   car.vv += sa * thr * 7 * dt;
   const sp = Math.hypot(car.vu, car.vv);
@@ -690,7 +694,7 @@ function updateLod(w, dt) {
   }
   if (on && !fair && d < DETAIL_M) fair = buildFair();
   if (fair) fair.root.visible = on && d < DETAIL_M + 200;
-  if (on && !crowd && d < 140) crowd = buildCrowd();
+  if (on && d < 140 && (!crowd || crowd.length < CROWD_SPOTS.length)) crowd = buildCrowd(crowd || []);
   else if (crowd && (!on || d > 180)) disposeCrowd();
   // the first kermis evening of the day gets a Sikkom item
   const day = w.flavour ? w.flavour.day : 0;
