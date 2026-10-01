@@ -460,19 +460,25 @@ vec2 cEdgeSD(vec2 p) {
   return clamp(vec2(sdR, sdC), -4.0, 4.0);
 }
 
-// cEdge from the baked distances where they exist (one texture read instead
-// of the segment loop); junctions come out as one outline.
-vec3 cEdgeAt(vec2 p, float px) {
+// The baked texel at p (road and canal distances, the two field noises):
+// false where neither level covers p.
+bool cBake(vec2 p, out vec4 t) {
   vec2 u = (p - uBakeRect0.xy) / uBakeRect0.z;
-  vec4 t;
-  if (uBakeRect0.w > 0.5 && min(u.x, u.y) > 0.002 && max(u.x, u.y) < 0.998) t = textureLod(uBake0, u, 0.0);
-  else {
-    u = (p - uBakeRect1.xy) / uBakeRect1.z;
-    if (uBakeRect1.w > 0.5 && min(u.x, u.y) > 0.002 && max(u.x, u.y) < 0.998) t = textureLod(uBake1, u, 0.0);
-    else return cEdge(p, px);
-  }
+  if (uBakeRect0.w > 0.5 && min(u.x, u.y) > 0.002 && max(u.x, u.y) < 0.998) { t = textureLod(uBake0, u, 0.0); return true; }
+  u = (p - uBakeRect1.xy) / uBakeRect1.z;
+  if (uBakeRect1.w > 0.5 && min(u.x, u.y) > 0.002 && max(u.x, u.y) < 0.998) { t = textureLod(uBake1, u, 0.0); return true; }
+  t = vec4(0.0);
+  return false;
+}
+// cEdge from the baked distances (one texture read instead of the segment
+// loop); junctions come out as one outline.
+vec3 cEdgeFrom(vec4 t, float px) {
   float sdR = t.r * 8.0 - 4.0, sdC = t.g * 8.0 - 4.0;
   return vec3(1.0 - smoothstep(-px - 0.05, px + 0.05, sdR), 1.0 - smoothstep(-px, px, sdC), sdR < 2.5 ? abs(sdR + 0.3) : 1e3);
+}
+vec3 cEdgeAt(vec2 p, float px) {
+  vec4 t;
+  return cBake(p, t) ? cEdgeFrom(t, px) : cEdge(p, px);
 }
 
 float countryWeight(vec2 p) {
@@ -492,6 +498,8 @@ float countryWeight(vec2 p) {
 
 vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float px = length(fwidth(p));
+  vec4 bk;
+  bool baked = cBake(p, bk);
   float detail = 1.0 - smoothstep(0.05, 0.6, px);
   vec2 bf = floor(p / C_BLOCK);
   int bx = int(bf.x), by = int(bf.y);
@@ -522,7 +530,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
     keepD *= 1.0 - urb;
   }
 
-  float n1 = cNoise(p * 0.03), n2 = cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
+  float n1 = baked ? bk.b : cNoise(p * 0.03), n2 = baked ? bk.a : cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
   vec3 grassA = cLin(88.0, 122.0, 54.0), grassB = cLin(79.0, 114.0, 52.0), grassC = cLin(104.0, 138.0, 62.0);
   vec3 c = seed < 0.35 ? grassA : (seed < 0.7 ? grassB : grassC);
   c *= 0.86 + 0.26 * (n1 * 0.6 + n2 * 0.4);
@@ -602,7 +610,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
 
   // roads and canals carried on from the city
   vec3 ce = vec3(0.0, 0.0, 1e3);
-  if (edD > -20.0) ce = cEdgeAt(p, px);
+  if (edD > -20.0) ce = baked ? cEdgeFrom(bk, px) : cEdge(p, px);
   if (ce.x > 0.0) {
     vec3 asph = cLin(74.0, 74.0, 76.0) * (0.9 + 0.2 * n3);
     float el = (1.0 - smoothstep(0.08, 0.08 + px, ce.z)) * detail;

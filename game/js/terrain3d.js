@@ -130,7 +130,7 @@ function wetOnBeforeCompile(shader, surf) {
       if (cw < 1.0) diffuseColor.rgb *= terrainAlbedo(vWetXZ, tFw);
       if (cw > 0.0) diffuseColor.rgb = mix(diffuseColor.rgb, countryAlbedo(vWetXZ, cw, sRough, sDip), cw);` : ''}
       ${surf ? surf.color : ''}
-      float wetP = wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3 + sDip * 0.35;
+      float wetP = uWet > 0.001 ? wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3 + sDip * 0.35 : 0.0;
       float puddle = smoothstep(0.74 - 0.12 * uWet, 0.8 - 0.12 * uWet, wetP) * uWet;
       diffuseColor.rgb *= mix(1.0, 0.58, uWet) * mix(1.0, 0.5, puddle);`)
     .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>

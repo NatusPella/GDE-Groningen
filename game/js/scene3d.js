@@ -1133,38 +1133,68 @@ function ensureTreeCapacity(n) {
 // --- per-frame sync ------------------------------------------------------
 
 function syncBuildings(world, px, py) {
-  // Detail set must be exactly "centre within DRAW_DIST": farlod.js hides
-  // its copy of a building by the same test, so no unload hysteresis here.
+  // Detail set must be exactly "centre within detailR": farlod.js hides its
+  // copy of a building by the same test, so no unload hysteresis here.
+  // Missing meshes are built nearest first within a per-frame budget (a
+  // teleport or a train arrival would otherwise build a whole district in
+  // one frame); until the ring is complete, detailR shrinks to the nearest
+  // building still missing and the far LOD covers everything past it.
   const view = world.map.buildingsNear(px, py, DRAW_DIST);
   const seen = new Set();
   const centreDist = (b) => Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py);
-  const want = (b, r) => {
-    if (centreDist(b) > r) return;
+  const missing = [];
+  const want = (b, r, lod) => {
+    const d = centreDist(b);
+    if (d > r) return;
     seen.add(b);
-    if (!buildingMeshes.has(b)) {
-      let mesh = prefetchedBuildings.get(b);
-      if (mesh) prefetchedBuildings.delete(b);
-      else mesh = makeBuildingMesh(b);
-      mesh.visible = !hiddenBuildings.has(b);
-      scene.add(mesh);
-      buildingMeshes.set(b, mesh);
-    }
+    if (!buildingMeshes.has(b)) missing.push([d, b, lod]);
   };
-  for (const b of view) if (!b.landmark) want(b, DRAW_DIST);
-  for (const b of landmarkBuildings) want(b, isSkyline(b) ? landmarkDist() : Math.max(DRAW_DIST, viewDist));
+  for (const b of view) if (!b.landmark) want(b, DRAW_DIST, true);
+  for (const b of landmarkBuildings) want(b, isSkyline(b) ? landmarkDist() : Math.max(DRAW_DIST, viewDist), false);
   for (const [b, mesh] of buildingMeshes) {
     if (seen.has(b)) continue;
     // no dispose: parts geometry and materials are shared/cached per building
     scene.remove(mesh);
     buildingMeshes.delete(b);
   }
+  missing.sort((a, b) => a[0] - b[0]);
+  const deadline = performance.now() + (performance.now() < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
+  let built = 0;
+  buildingDetailR = DRAW_DIST;
+  for (const [d, b, lod] of missing) {
+    let mesh = prefetchedBuildings.get(b);
+    if (!mesh) {
+      if (built > 0 && performance.now() > deadline) {
+        if (lod) buildingDetailR = Math.min(buildingDetailR, d - 0.01);
+        continue;
+      }
+      mesh = makeBuildingMesh(b);
+      built++;
+    }
+    prefetchedBuildings.delete(b);
+    mesh.visible = !hiddenBuildings.has(b);
+    buildingMeshes.set(b, mesh);
+    scene.add(mesh);
+  }
+  // shown only once the far LOD stops drawing them
+  if (buildingDetailR < DRAW_DIST) {
+    for (const [b, mesh] of buildingMeshes) {
+      if (b.landmark) continue;
+      const inside = centreDist(b) <= buildingDetailR;
+      if (inside !== !!mesh.parent) { if (inside) scene.add(mesh); else scene.remove(mesh); }
+    }
+  } else if (buildingsStaged) {
+    for (const mesh of buildingMeshes.values()) if (!mesh.parent) scene.add(mesh);
+  }
+  buildingsStaged = buildingDetailR < DRAW_DIST;
   // Build the meshes of buildings just outside the detail radius ahead of
   // time (within a small per-frame budget), so crossing DRAW_DIST only has
   // to add an already built mesh to the scene.
   for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20) prefetchedBuildings.delete(b);
-  const deadline = performance.now() + BUILDING_PREFETCH_MS;
+  if (missing.length > built) return;
+  const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
   for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
-    if (performance.now() > deadline) break;
+    if (performance.now() > prefetchEnd) break;
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
     if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
@@ -1172,6 +1202,23 @@ function syncBuildings(world, px, py) {
     precompile(mesh);
     prefetchedBuildings.set(b, mesh);
   }
+}
+
+// Streaming budgets (ms per frame) for buildings and roads; a jump of the
+// player (teleport, train, respawn) raises them for a moment.
+const BUILDING_BUILD_MS = 4;
+const BUILDING_BUILD_BOOST_MS = 9;
+const ROAD_BUILD_MS = 2.5;
+const STREAM_JUMP = 60;
+let streamBoostUntil = 0;
+let streamLastX = null, streamLastY = 0;
+let buildingDetailR = DRAW_DIST;
+let roadDetailR = DRAW_DIST;
+let buildingsStaged = false;
+function noteStreamJump(px, py) {
+  if (streamLastX === null || Math.hypot(px - streamLastX, py - streamLastY) > STREAM_JUMP) streamBoostUntil = performance.now() + 1500;
+  streamLastX = px;
+  streamLastY = py;
 }
 
 const BUILDING_PREFETCH = 30;
@@ -1222,6 +1269,8 @@ function useSkylineMaterials(root) {
 // First-time water/shore builds of polygons still far out in the fog are
 // spread over frames; anything within the detail radius is built at once.
 const WATER_BUILD_BUDGET_MS = 3;
+// past the budget only water this close is still built at once
+const WATER_NEAR = 45;
 
 // Streamed-out roads and water keep their cached geometry (on the map item)
 // for a cheap way back, up to a bound: beyond it the least recently shown
@@ -1256,7 +1305,7 @@ function syncWater(items, cache, y, map, px, py) {
   for (const poly of items) {
     if (!cache.has(poly) && performance.now() > deadline) {
       const [minx, miny, maxx, maxy] = poly.bounds;
-      if (Math.hypot(Math.max(minx - px, 0, px - maxx), Math.max(miny - py, 0, py - maxy)) > DRAW_DIST) continue;
+      if (Math.hypot(Math.max(minx - px, 0, px - maxx), Math.max(miny - py, 0, py - maxy)) > WATER_NEAR) continue;
     }
     seen.add(poly);
     if (!cache.has(poly)) {
@@ -1285,12 +1334,25 @@ function syncRoads(world, px, py) {
   const view = world.map.roadsNear(px, py, DRAW_DIST);
   const seen = new Set();
   for (const r of view) seen.add(r);
+  // nearest first within a budget; the far LOD's roads cover the rest
+  const missing = [];
   for (const r of view) {
-    if (!roadMeshes.has(r)) {
+    if (roadMeshes.has(r)) continue;
+    const [x0, y0, x1, y1] = r.bounds || [px, py, px, py];
+    missing.push([Math.hypot(Math.max(x0 - px, 0, px - x1), Math.max(y0 - py, 0, py - y1)), r]);
+  }
+  roadDetailR = DRAW_DIST;
+  if (missing.length) {
+    missing.sort((a, b) => a[0] - b[0]);
+    const deadline = performance.now() + (performance.now() < streamBoostUntil ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
+    let built = 0;
+    for (const [d, r] of missing) {
+      if (built > 0 && !r._geoRoad && performance.now() > deadline) { roadDetailR = Math.max(24, d); break; }
       coldRoads.delete(r);
       const mesh = freezeStatic(buildRoadGroup(r));
       scene.add(mesh);
       roadMeshes.set(r, mesh);
+      built++;
     }
   }
   for (const [r, mesh] of roadMeshes) {
@@ -1357,6 +1419,8 @@ const FADE_STEPS = 16;
 const PED_FADE_TIME = 0.6;
 const PED_EDGE_FADE = 14;
 const PED_BUILD_BUDGET_MS = 2.5;
+// a jump builds the people round the player at once, up to this much more
+const PED_INSTANT_EXTRA_MS = 6;
 const PED_JUMP_DIST = 40;
 const pedFadingOut = [];
 const fadeVariants = new Map();
@@ -1453,9 +1517,10 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (Math.hypot(p.x - player.x, p.y - player.y) >= DRAW_DIST) continue;
     seen.add(p);
     if (pedMeshes.has(p)) continue;
-    if (!instant && built > 0 && performance.now() > deadline) continue;
+    const over = built > 0 && performance.now() > deadline;
+    if (over && (!instant || performance.now() > deadline + PED_INSTANT_EXTRA_MS)) continue;
     const mesh = buildPedActor(p);
-    mesh.userData.fade = instant || p.noFade ? 1 : 0;
+    mesh.userData.fade = (instant && !over) || p.noFade ? 1 : 0;
     scene.add(mesh);
     pedMeshes.set(p, mesh);
     built++;
@@ -1589,6 +1654,7 @@ export function update3D(dt, world) {
   const animDt = world.paused ? 0 : dt;
   const player = world.player;
 
+  noteStreamJump(player.x, player.y);
   syncBuildings(world, player.x, player.y);
   probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
@@ -1894,7 +1960,9 @@ export function update3D(dt, world) {
   probe.mark('3d:tod+weather');
   updateEnvironment(dt);
   probe.mark('3d:env');
-  farLod.update(player.x, player.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, DRAW_DIST);
+  // while streaming catches up after a jump the far LOD stands in closer
+  const lodR = viewDist > DRAW_DIST + 20 ? Math.min(DRAW_DIST, buildingDetailR, roadDetailR + 8) : DRAW_DIST;
+  farLod.update(player.x, player.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR);
   probe.mark('3d:farlod');
 
   if (player.character !== playerCharacter) {

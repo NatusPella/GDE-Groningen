@@ -1,9 +1,10 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { COUNTRY_GLSL, COUNTRY_UNIFORMS } from './countryfield.js';
 
-// The ground shader's costliest part is the loop over the real roads and
-// canals near each pixel (cEdge). Round the player those distances are
-// rendered once into two textures instead (a fine level of 0.5 m texels and
+// The ground shader's costliest parts are the loop over the real roads and
+// canals near each pixel (cEdge) and its value noises. Round the player the
+// distances and the two broad field noises are rendered once into two
+// textures instead (a fine level of 0.5 m texels and
 // a coarse one of 2 m), which the shader reads with one fetch; pixels past
 // both still run the loop. Signed distances filter well, so edges and the
 // painted lines stay sharp when the texels are magnified. A level is only
@@ -29,8 +30,9 @@ function init() {
 uniform vec4 uArea;
 varying vec2 vUv;
 void main() {
-  vec2 sd = cEdgeSD(uArea.xy + vUv * uArea.z);
-  gl_FragColor = vec4(sd * 0.125 + 0.5, 0.0, 1.0);
+  vec2 p = uArea.xy + vUv * uArea.z;
+  vec2 sd = cEdgeSD(p);
+  gl_FragColor = vec4(sd * 0.125 + 0.5, cNoise(p * 0.03), cNoise(p * 0.13 + 5.0));
 }`,
     depthTest: false, depthWrite: false,
   });
@@ -47,14 +49,15 @@ void main() {
     COUNTRY_UNIFORMS['uBake' + i].value = rt.texture;
     return { ...L, rt, rect: COUNTRY_UNIFORMS['uBakeRect' + i], cx: NaN, cy: NaN };
   });
-  B = { mat, scene, cam: new THREE.Camera(), levels, bakes: 0 };
+  // off: debug switch back to the per-pixel loop (window.__countryBake.off)
+  B = { mat, scene, cam: new THREE.Camera(), levels, bakes: 0, off: false };
   window.__countryBake = B;
 }
 
 // Before the frame's render: at most one level is re-rendered, centred on
 // the player snapped to a few texels so its sampling grid never shifts.
 export function updateCountryBake(renderer, px, py, active) {
-  if (!active || !COUNTRY_UNIFORMS.uEdgeTex.value || !COUNTRY_UNIFORMS.uEdgeGrid.value) {
+  if (!active || !COUNTRY_UNIFORMS.uEdgeTex.value || !COUNTRY_UNIFORMS.uEdgeGrid.value || (B && B.off)) {
     if (B) for (const L of B.levels) L.rect.value[3] = 0;
     return;
   }
