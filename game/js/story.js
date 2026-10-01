@@ -30,6 +30,7 @@ import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { queueFjordReveal } from './postgame.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
+import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy } from './storyfun.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -224,7 +225,11 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   delete state.fails[step.id];
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
-  if (!quiet && step.kind === 'activity' && step.done) phone(who(step.done[0]), step.done[1], 5);
+  if (!quiet && step.kind === 'activity' && step.done) {
+    // a step with a closing scene (storyfun.js) sends its done text after it
+    const send = () => phone(who(step.done[0]), step.done[1], 5);
+    if (skipped || !storyFunDone(world, step, send)) send();
+  }
   if (!quiet && !skipped && step.kind === 'activity' && isPurchase(step)) {
     const next = currentStep();
     world.addMessage(next && !next.end ? `Gelukt! Terug naar het verhaal: ${next.title}` : 'Gelukt! Terug naar het verhaal', 5, { kind: 'missie', key: 'story-buy' });
@@ -714,6 +719,8 @@ function onGated() {
 export function initStory(w) {
   world = w;
   setMissionHooks({ waived: (key) => state.waived.has(key), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
+  Object.assign(GOALS, FUN_GOALS);
+  initStoryFun(w);
   initSkipUi();
   ready = true;
   window.__story = storyApi;
@@ -731,6 +738,7 @@ export function updateStory(dt, w) {
   rt.runT = step && !step.end && step.kind === 'mission' && activeMissionIndex() === missionIdx(step) ? (rt.runT || 0) + dt : 0;
   updateSkipUi();
   updateCharacter(w);
+  updateStoryFun(dt, w, step, rt.base);
   if (!step) return;
   if (step.end) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
@@ -747,7 +755,7 @@ export function updateStory(dt, w) {
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment
-  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE) {
+  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE && !storyFunBusy()) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
     const buy = isPurchase(step) && (world.storyGuide && world.storyGuide.buy ? world.storyGuide.name : storyBuyLabel(world));
