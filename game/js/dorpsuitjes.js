@@ -604,6 +604,11 @@ export function isVillageMiniActive() {
   return !!mini;
 }
 
+// A loaded save ends a running minigame (savegame.js).
+export function stopVillageMini() {
+  endMini();
+}
+
 // --- per frame, prompts, input -------------------------------------------------------------
 
 function nearestAct(w) {
