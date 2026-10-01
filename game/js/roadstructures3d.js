@@ -92,15 +92,56 @@ function roofReach(elev, r, x, y, nx, ny, off) {
   return best;
 }
 
-function miters(P) {
+// Where way r's end point i (0 or last) carries straight on into exactly one
+// other way end (OSM splits a street into ways at every tag change), the
+// direction from that node into the other way; null at a junction or a dead
+// end. Ribbons and structures cut their end along the bisector there, like
+// at a vertex inside a way, so the two ways join without a wedge.
+export function jointAway(map, r, i) {
+  const P = r.pts, p = P[i], last = P.length - 1;
+  let away = null;
+  for (const o of map.roadsNear(p[0], p[1], 0.5)) {
+    const Q = o.pts;
+    for (let k = 0; k < Q.length; k++) {
+      if (Math.abs(Q[k][0] - p[0]) > 0.05 || Math.abs(Q[k][1] - p[1]) > 0.05) continue;
+      if (o === r && k === i) continue;
+      const end = k === 0 || k === Q.length - 1;
+      // a closed way (a roundabout) carries on into its own other end
+      if (!end || away || (o === r && last < 2)) return null;
+      const q = Q[k === 0 ? 1 : k - 1];
+      const dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy);
+      if (l < 1e-3) return null;
+      away = [dx / l, dy / l];
+    }
+  }
+  return away;
+}
+
+// Miter (scaled normal) at end i of a polyline whose end segment has normal
+// segN, joining it to the way that carries on in direction `away`.
+export function jointMiter(segN, away, start, minCos) {
+  const on = start ? [away[1], -away[0]] : [-away[1], away[0]];
+  let mx = segN[0] + on[0], my = segN[1] + on[1];
+  const ml = Math.hypot(mx, my);
+  if (ml < 1e-3) return segN.slice();
+  mx /= ml; my /= ml;
+  const sc = 1 / Math.max(mx * segN[0] + my * segN[1], minCos);
+  return [mx * sc, my * sc];
+}
+
+function miters(P, r = null, map = null) {
   const n = P.length, segN = [], out = [];
   for (let i = 0; i < n - 1; i++) {
     const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], l = Math.hypot(dx, dy) || 1;
     segN.push([-dy / l, dx / l]);
   }
   for (let i = 0; i < n; i++) {
-    if (i === 0) { out.push(segN[0]); continue; }
-    if (i === n - 1) { out.push(segN[n - 2]); continue; }
+    if (i === 0 || i === n - 1) {
+      const sn = segN[i === 0 ? 0 : n - 2];
+      const away = r && map ? jointAway(map, r, i) : null;
+      out.push(away ? jointMiter(sn, away, i === 0, 0.5) : sn);
+      continue;
+    }
     const a = segN[i - 1], b = segN[i];
     let mx = a[0] + b[0], my = a[1] + b[1];
     const ml = Math.hypot(mx, my);
@@ -177,7 +218,7 @@ export function buildRoadStructure(r, map) {
   const B = new Buf();
   const P = r.pts, Z = r.z, n = P.length;
   const hs = surfaceHalfWidth(r);
-  const M = miters(P);
+  const M = miters(P, r, map);
   const deck = !!r.bridge && !r.tunnel;
   const edge = (i, side, off) => [P[i][0] + M[i][0] * off * side, P[i][1] + M[i][1] * off * side];
 
@@ -267,6 +308,21 @@ export function buildRoadStructure(r, map) {
 
   closeSlope(0);
   closeSlope(1);
+
+  // a raised path or cycleway has no sidewalk ribbon out to the deck edge or
+  // the top of the slope (hs): a shoulder strip closes the gap beside it
+  const hw = r.width / 2;
+  if (hs - hw > 0.05) {
+    for (let i = 0; i < n - 1; i++) {
+      const za = Z[i], zb = Z[i + 1];
+      if (za <= RAISED && zb <= RAISED) continue;
+      const a0 = Math.max(0, za) + 0.025, b0 = Math.max(0, zb) + 0.025;
+      for (const side of [1, -1]) {
+        const ia = edge(i, side, hw), ib = edge(i + 1, side, hw), oa = edge(i, side, hs), ob = edge(i + 1, side, hs);
+        B.quad(deck ? 'concrete' : 'grass', [ia[0], a0, ia[1]], [ib[0], b0, ib[1]], [ob[0], b0, ob[1]], [oa[0], a0, oa[1]]);
+      }
+    }
+  }
 
   // piers, lights and portals by arc length
   let s = 0;

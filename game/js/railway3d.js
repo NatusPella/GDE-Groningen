@@ -111,8 +111,10 @@ function samplePolyline(pts) {
   return out;
 }
 
-// Runs of consecutive samples that pass `keep`, each handed to the chunk of its midpoint.
-function runs(samples, keep, into) {
+// Runs of consecutive samples that pass `keep`, each handed to the chunk of
+// its midpoint. grow: a run also takes the sample on either side, so an
+// embankment and the deck it runs into overlap instead of leaving a gap.
+function runs(samples, keep, into, grow = false) {
   let cur = [];
   const flush = () => {
     if (cur.length >= 2) {
@@ -124,9 +126,13 @@ function runs(samples, keep, into) {
   for (let i = 0; i < samples.length; i++) {
     const s = samples[i];
     if (keep(s)) {
+      if (grow && !cur.length && i > 0) cur.push(samples[i - 1]);
       cur.push(s);
       if (cur.length > 60) { flush(); cur.push(s); }
-    } else flush();
+    } else {
+      if (grow && cur.length) cur.push(s);
+      flush();
+    }
   }
   flush();
 }
@@ -139,8 +145,8 @@ function buildTrackData() {
     for (const s of samples) s.cls = classify(s.x, s.y, s.sx, s.sy, s.z);
     runs(samples, (s) => !s.cls, 'bed');
     runs(samples, (s) => s.cls !== 'hidden', 'rails');
-    runs(samples, (s) => !s.water && s.z > 0.05 && s.z < DECK_Z, 'embank');
-    runs(samples, (s) => s.water || s.z >= DECK_Z - 0.05, 'deck');
+    runs(samples, (s) => !s.water && s.z > 0.05 && s.z < DECK_Z, 'embank', true);
+    runs(samples, (s) => s.water || s.z >= DECK_Z - 0.05, 'deck', true);
     let acc = 0;
     for (let i = 0; i < samples.length - 1; i++) {
       const a = samples[i], b = samples[i + 1];
@@ -224,19 +230,43 @@ function embankProfile(s) {
   const top = BED_Y + s.z, foot = 2.1 + s.z * 1.3;
   return [[[-foot, 0.02], [-2.1, top]], [[2.1, top], [foot, 0.02]]];
 }
-
-function deckProfile(s) {
-  const z = s.z, b = z - (s.water && z < DECK_Z ? WATER_DECK_DEPTH : DECK_DEPTH), h = DECK_HALF;
-  return [
-    [[-h, z + 0.12], [-h, b], [h, b], [h, z + 0.12]],
-    [[-h + 0.1, z + 1.15], [-h + 0.1, z + 0.12]],
-    [[h - 0.1, z + 0.12], [h - 0.1, z + 1.15]],
-  ];
+// the cross-section closing an embankment's end (it is hollow under the bed)
+function embankCap(s) {
+  const top = BED_Y + s.z, foot = 2.1 + s.z * 1.3;
+  return [[-foot, 0.02], [-2.1, top], [2.1, top], [foot, 0.02]];
 }
 
-function stripGeometry(list, profileOf) {
+// A trough: sides with a ledge out to the ballast bed's edge (or you look
+// down past the bed into the deck), the bottom, and the parapets.
+const LEDGE = 2.05;
+function deckProfile(s) {
+  const z = s.z, b = deckBottom(s), h = DECK_HALF, t = z + 0.025;
+  return [
+    [[-LEDGE, t], [-h, t], [-h, b], [h, b], [h, t], [LEDGE, t]],
+    [[-h + 0.1, z + 1.15], [-h + 0.1, t]],
+    [[h - 0.1, t], [h - 0.1, z + 1.15]],
+  ];
+}
+function deckCap(s) {
+  const t = s.z + 0.025, b = deckBottom(s), h = DECK_HALF;
+  return [[-h, t], [-h, b], [h, b], [h, t]];
+}
+const deckBottom = (s) => s.z - (s.water && s.z < DECK_Z ? WATER_DECK_DEPTH : DECK_DEPTH);
+
+// capOf: the convex cross-section closing both ends of every run
+function stripGeometry(list, profileOf, capOf = null) {
   const pos = [], idx = [];
   for (const run of list) {
+    if (capOf) {
+      for (const [s, dir] of [[run[0], -1], [run[run.length - 1], 1]]) {
+        const nx = -s.sy, ny = s.sx, base = pos.length / 3, cap = capOf(s);
+        for (const [o, h] of cap) pos.push(s.x + nx * o, h, s.y + ny * o);
+        for (let k = 1; k < cap.length - 1; k++) {
+          if (dir > 0) idx.push(base, base + k, base + k + 1);
+          else idx.push(base, base + k + 1, base + k);
+        }
+      }
+    }
     const profiles = run.map(profileOf);
     for (let part = 0; part < profiles[0].length; part++) {
       const n = profiles[0][part].length;
@@ -306,12 +336,12 @@ function buildChunk(c) {
     group.add(m);
   }
   if (c.embank.length) {
-    const m = new THREE.Mesh(stripGeometry(c.embank, embankProfile), EMBANK_MAT);
+    const m = new THREE.Mesh(stripGeometry(c.embank, embankProfile, embankCap), EMBANK_MAT);
     m.receiveShadow = true;
     group.add(m);
   }
   if (c.deck.length) {
-    const m = new THREE.Mesh(stripGeometry(c.deck, deckProfile), DECK_MAT);
+    const m = new THREE.Mesh(stripGeometry(c.deck, deckProfile, deckCap), DECK_MAT);
     m.receiveShadow = true;
     m.castShadow = true;
     group.add(m);
@@ -699,6 +729,14 @@ let trackBuilt = false;
 export function initRailway3D(sceneRef, mapRef) {
   scene = sceneRef;
   map = mapRef;
+}
+
+// Every chunk's track bed as built meshes, for scripts/mesh_audit.mjs
+// (railway.js initRailway must have loaded the lifts).
+export function buildTrackMeshes(mapRef) {
+  map = mapRef;
+  if (!trackBuilt) { buildTrackData(); trackBuilt = true; }
+  return [...chunks.values()].map(buildChunk);
 }
 
 export function updateRailway3D(dt, world) {
