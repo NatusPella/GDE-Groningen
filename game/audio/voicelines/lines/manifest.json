@@ -91,6 +91,10 @@
 "src": "anita/daar_staat_hij_een_auto_met_een__350081f3.mp3",
 "dur": 3.67
 },
+"Anita|Daar! In het Oosterpark. Een ballon, en hij staat al bol.": {
+"src": "anita/daar_in_het_oosterpark_een_ballo_6cf718d6.mp3",
+"dur": 4.52
+},
 "Anita|Dan draaien de camera's de hele nacht een filmpje van een leeg museum.": {
 "src": "anita/dan_draaien_de_camera_s_de_hele__736a179b.mp3",
 "dur": 5.65
@@ -563,6 +567,10 @@
 "src": "anita/ik_vlieg_die_heli_jij_krijgt_al__2d4251c6.mp3",
 "dur": 3.75
 },
+"Anita|Ik vlieg. Rotor Roelf denkt dat we een heli kopen. Dat laat ik even zo.": {
+"src": "anita/ik_vlieg_rotor_roelf_denkt_dat_w_816ecbad.mp3",
+"dur": 6.04
+},
 "Anita|Ik wacht wel bij Henk. Jij valt in slaap in je koffie.": {
 "src": "anita/ik_wacht_wel_bij_henk_jij_valt_i_7ad1251f.mp3",
 "dur": 3.18
@@ -726,6 +734,10 @@
 "Anita|Minder dan in Amsterdam, mevrouw. Veel minder.": {
 "src": "anita/minder_dan_in_amsterdam_mevrouw__efa1ea19.mp3",
 "dur": 3.49
+},
+"Anita|Mooi. We kopen hem misschien. Misschien.": {
+"src": "anita/mooi_we_kopen_hem_misschien_miss_6b7c9ddc.mp3",
+"dur": 2.55
 },
 "Anita|Morgen beter. We moeten nog inbakken.": {
 "src": "anita/morgen_beter_we_moeten_nog_inbak_aaee8cc8.mp3",
@@ -914,6 +926,10 @@
 "Anita|Van die poort is niks meer over. De wijk en de zaal hebben de naam gehouden.": {
 "src": "anita/van_die_poort_is_niks_meer_over__12a7cbf6.mp3",
 "dur": 4.67
+},
+"Anita|Vanavond gaat hij op, met de Eierbal. En deze heli heeft geen touw.": {
+"src": "anita/vanavond_gaat_hij_op_met_de_eier_29982b54.mp3",
+"dur": 5.12
 },
 "Anita|Vet is heet, de rij is lang. Kom op.": {
 "src": "anita/vet_is_heet_de_rij_is_lang_kom_o_20071bbd.mp3",
@@ -1183,6 +1199,14 @@
 "src": "douwe/ze_loopt_harder_dan_de_trekker_0fdefddf.mp3",
 "dur": 2.72
 },
+"Douwe|…draait.": {
+"src": "douwe/draait_50a0f80a.mp3",
+"dur": 2.01
+},
+"Douwe|…zwaaien.": {
+"src": "douwe/zwaaien_6a627934.mp3",
+"dur": 0.73
+},
 "Duivenmelker Bert|Die Fries noemde d'Olle Grieze \"in aardich tuorke\". Een áárdig torentje!": {
 "src": "duivenmelker_bert/die_fries_noemde_d_olle_grieze_i_61e53a5c.mp3",
 "dur": 6.64
@@ -1231,6 +1255,10 @@
 "src": "durk/baas_zegt_geen_vet_geen_eierbal__321371f9.mp3",
 "dur": 6.66
 },
+"Durk|Baas zegt: jij bent de duif. Wij moeten jou volgen.": {
+"src": "durk/baas_zegt_jij_bent_de_duif_wij_m_217be2e7.mp3",
+"dur": 6.07
+},
 "Durk|Baas, is dat net de…": {
 "src": "durk/baas_is_dat_net_de_ea8ab360.mp3",
 "dur": 2.99
@@ -1267,6 +1295,10 @@
 "src": "durk/douwe_der_stiet_ien_op_u_s_dek_6673f597.mp3",
 "dur": 2.99
 },
+"Durk|Douwe! Een helikopter! Zwaaien!": {
+"src": "durk/douwe_een_helikopter_zwaaien_29cab831.mp3",
+"dur": 4.1
+},
 "Durk|Douwe! Er staat iemand op ons dek!": {
 "src": "durk/douwe_er_staat_iemand_op_ons_dek_1aa7780f.mp3",
 "dur": 3.66
@@ -1282,6 +1314,10 @@
 "Durk|Douwe. Daar komt ien aan.": {
 "src": "durk/douwe_daar_komt_ien_aan_9a9e1d2f.mp3",
 "dur": 3.28
+},
+"Durk|Douwe… alles draait.": {
+"src": "durk/douwe_alles_draait_11cf7e05.mp3",
+"dur": 2.93
 },
 "Durk|Hebbe! Bijna!": {
 "src": "durk/hebbe_bijna_4e36d550.mp3",
@@ -1306,6 +1342,10 @@
 "Durk|Jelle mag dit net weten.": {
 "src": "durk/jelle_mag_dit_net_weten_f31ff472.mp3",
 "dur": 2.13
+},
+"Durk|Maar eerst bier. Vanavond in de Poelestraat, de baas trakteert. Net fertelle, hè?": {
+"src": "durk/maar_eerst_bier_vanavond_in_de_p_7c0cb38e.mp3",
+"dur": 7.44
 },
 "Durk|Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Net fertelle, hè?": {
 "src": "durk/onze_baas_is_slim_de_bal_de_bal__ab6e2008.mp3",
@@ -2603,6 +2643,14 @@
 "src": "verteller/zo_begon_het_niet_met_een_buit_m_9d029297.mp3",
 "dur": 6.92
 },
+"Rotor Roelf|Moi! Rotor Roelf, van Eelde. Dit is de Wieken Wubbo. De proefvlucht is gratis.": {
+"src": "rotor_roelf/moi_rotor_roelf_van_eelde_dit_is_b176a920.mp3",
+"dur": 6.91
+},
+"Rotor Roelf|W is omhoog, de pijltjes vooruit. En nait tegen d'Olle Grieze aan, hè?": {
+"src": "rotor_roelf/w_is_omhoog_de_pijltjes_vooruit__5f27eb01.mp3",
+"dur": 5.76
+},
 "Schipper Lammert|Dit kanaal gaat helemaal naar Friesland. Wij keren ruim op tijd om.": {
 "src": "schipper_lammert/dit_kanaal_gaat_helemaal_naar_fr_b2be66c9.mp3",
 "dur": 5.16
@@ -2899,6 +2947,10 @@
 "src": "tammo/doe_de_boodschappen_voor_de_echt_ea9c6d5e.mp3",
 "dur": 8.1
 },
+"Tammo|Dokter Dijkstra wel.": {
+"src": "tammo/dokter_dijkstra_wel_b577bd89.mp3",
+"dur": 1.43
+},
 "Tammo|Duiven luisteren naar niemand.": {
 "src": "tammo/duiven_luisteren_naar_niemand_30a87cdc.mp3",
 "dur": 2.47
@@ -3155,6 +3207,10 @@
 "src": "tammo/ik_doe_de_boodschappen_ik_rem_vo_c897218e.mp3",
 "dur": 4.27
 },
+"Tammo|Ik doe de botsauto's. Ik rij al jaren zo, nu mag het eindelijk.": {
+"src": "tammo/ik_doe_de_botsauto_s_ik_rij_al_j_eaf80936.mp3",
+"dur": 5.08
+},
 "Tammo|Ik doe de mayo. Dat kan ik.": {
 "src": "tammo/ik_doe_de_mayo_dat_kan_ik_bbbc932b.mp3",
 "dur": 1.94
@@ -3395,6 +3451,10 @@
 "src": "tammo/met_vlaggetjes_met_van_die_rode__42c5a171.mp3",
 "dur": 3.72
 },
+"Tammo|Mijn Oosterpark. Daar heb ik leren fietsen.": {
+"src": "tammo/mijn_oosterpark_daar_heb_ik_lere_56e599b2.mp3",
+"dur": 2.86
+},
 "Tammo|Mijn droom is dat jij blijft. En een eierbal.": {
 "src": "tammo/mijn_droom_is_dat_jij_blijft_en__a95b1f32.mp3",
 "dur": 3.07
@@ -3410,6 +3470,10 @@
 "Tammo|Misschien moeten we hem niet verkopen. Misschien moeten we hem terugbrengen.": {
 "src": "tammo/misschien_moeten_we_hem_niet_ver_e9aff4d8.mp3",
 "dur": 3.53
+},
+"Tammo|Moi, jongens. Lekker gebotst?": {
+"src": "tammo/moi_jongens_lekker_gebotst_9c6a21d0.mp3",
+"dur": 2.47
 },
 "Tammo|Moi. Ik kom voor de Eierbal.": {
 "src": "tammo/moi_ik_kom_voor_de_eierbal_d80b1b47.mp3",
@@ -3622,6 +3686,10 @@
 "Tammo|Wie verklapt er nou zijn eigen plan?": {
 "src": "tammo/wie_verklapt_er_nou_zijn_eigen_p_5c11612a.mp3",
 "dur": 2.37
+},
+"Tammo|Wij kunnen nog geen fietsbel betalen.": {
+"src": "tammo/wij_kunnen_nog_geen_fietsbel_bet_a6ee7891.mp3",
+"dur": 2.28
 },
 "Tammo|Wij tweeën tegen Grunn. Weet je nog?": {
 "src": "tammo/wij_tweee_n_tegen_grunn_weet_je__ba27f0d7.mp3",
@@ -4170,6 +4238,10 @@
 "~f|In de Apenrots vergaderen ze al jaren over de gaskraan.": {
 "src": "bubbles/f/in_de_apenrots_vergaderen_ze_al__654c3278.mp3",
 "dur": 4.25
+},
+"~f|In de flank, Tammo. Reuzen kijken nooit opzij.": {
+"src": "bubbles/f/in_de_flank_tammo_reuzen_kijken__6ab4a945.mp3",
+"dur": 4.42
 },
 "~f|Is dit die van Anita?": {
 "src": "bubbles/f/is_dit_die_van_anita_8c67e6b9.mp3",
@@ -4723,6 +4795,10 @@
 "src": "bubbles/m/avond_collega_wacht_eens_jij_ben_98e5d2c3.mp3",
 "dur": 4.13
 },
+"~m|Baas zei niks over botsen.": {
+"src": "bubbles/m/baas_zei_niks_over_botsen_fab46818.mp3",
+"dur": 2.79
+},
 "~m|Bah! Een duif!": {
 "src": "bubbles/m/bah_een_duif_d2b7dab4.mp3",
 "dur": 1.45
@@ -4859,9 +4935,17 @@
 "src": "bubbles/m/doe_raakst_hom_nait_eens_jong_eaf20a51.mp3",
 "dur": 1.74
 },
+"~m|Douwe, de duif rijdt achter ons!": {
+"src": "bubbles/m/douwe_de_duif_rijdt_achter_ons_4e0abe96.mp3",
+"dur": 3.83
+},
 "~m|Durk, de bal. De bal, Durk.": {
 "src": "bubbles/m/durk_de_bal_de_bal_durk_8102b114.mp3",
 "dur": 3.52
+},
+"~m|Durk, ik word misselijk.": {
+"src": "bubbles/m/durk_ik_word_misselijk_86fa9410.mp3",
+"dur": 3.5
 },
 "~m|Duurde lang. Stond de brug open?": {
 "src": "bubbles/m/duurde_lang_stond_de_brug_open_67138ba3.mp3",
@@ -4915,6 +4999,10 @@
 "src": "bubbles/m/goeiemiddag_2598fc43.mp3",
 "dur": 1.66
 },
+"~m|Gratis rondje, jong! Bots die twij reuzen mor oet mien baan.": {
+"src": "bubbles/m/gratis_rondje_jong_bots_die_twij_eca7ba28.mp3",
+"dur": 4.33
+},
 "~m|Groen en wit, van het Oosterpark tot aan de ring!": {
 "src": "bubbles/m/groen_en_wit_van_het_oosterpark__098e6d67.mp3",
 "dur": 4.08
@@ -4942,6 +5030,10 @@
 "~m|Hebbes!": {
 "src": "bubbles/m/hebbes_738d6ae3.mp3",
 "dur": 1.45
+},
+"~m|Hebbes, duif!": {
+"src": "bubbles/m/hebbes_duif_305239d3.mp3",
+"dur": 2.71
 },
 "~m|Heerlijk weer, hè!": {
 "src": "bubbles/m/heerlijk_weer_he_1f650012.mp3",
@@ -5055,6 +5147,10 @@
 "src": "bubbles/m/he_mien_patat_4fe9a740.mp3",
 "dur": 1.43
 },
+"~m|Hé! Niet zo hard, wij zijn groot!": {
+"src": "bubbles/m/he_niet_zo_hard_wij_zijn_groot_00f5040f.mp3",
+"dur": 4.68
+},
 "~m|Hé! Rot op, joh!": {
 "src": "bubbles/m/he_rot_op_joh_42f4e9df.mp3",
 "dur": 1.56
@@ -5130,6 +5226,10 @@
 "~m|Ik zag hem wel. Ik was alleen te laat.": {
 "src": "bubbles/m/ik_zag_hem_wel_ik_was_alleen_te__ecb56d52.mp3",
 "dur": 3.0
+},
+"~m|Ik zit achterin. Met mijn ogen dicht.": {
+"src": "bubbles/m/ik_zit_achterin_met_mijn_ogen_di_1975f11f.mp3",
+"dur": 2.62
 },
 "~m|In de Apenrots vergaderen ze al jaren over de gaskraan.": {
 "src": "bubbles/m/in_de_apenrots_vergaderen_ze_al__f36a2dc1.mp3",
@@ -5534,6 +5634,10 @@
 "~m|Rustig an, jong!": {
 "src": "bubbles/m/rustig_an_jong_f0e16a6d.mp3",
 "dur": 1.18
+},
+"~m|Sorry. …Hè.": {
+"src": "bubbles/m/sorry_he_d606ef13.mp3",
+"dur": 1.38
 },
 "~m|Staan blijven! De pliesie is onderweg!": {
 "src": "bubbles/m/staan_blijven_de_pliesie_is_onde_ea20b6b7.mp3",
