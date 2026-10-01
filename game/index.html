@@ -130,6 +130,7 @@
   #pause-menu[data-level="section"] { background-color: rgba(6,11,8,0.52); }
   #pause-menu.prestart { background-color: rgba(6,11,8,0.84); }
   body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidden; }
+  body:has(#pause-menu.visible[data-level="section"]) #hud { visibility: hidden; }
   @keyframes pm-in { from { opacity: 0; } }
   @keyframes pm-card { from { opacity: 0; transform: translateX(-14px); } }
   @keyframes pm-sheet { from { opacity: 0; transform: translateX(calc(26px * var(--ui, 1))); } }
@@ -186,7 +187,7 @@
   #pause-menu .pm-secondary:hover:not(:disabled) { border-color: var(--pm-acc); background: rgba(30,158,86,0.18); }
   #pause-menu .pm-danger { background: transparent; color: #ff6f61; border: 1px solid rgba(217,63,63,0.85); }
   #pause-menu .pm-danger:hover { background: rgba(217,63,63,0.16); }
-  #pause-menu .pm-small { display: inline-flex; align-items: center; gap: 8px; font-size: 18px; padding: 8px 13px 6px; }
+  #pause-menu .pm-small { display: inline-flex; align-items: center; gap: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; padding: 8px 13px 6px; }
   #pause-menu button:active:not(:disabled) { transform: translateY(1px); }
   #pause-menu button:disabled { opacity: 0.4; cursor: default; }
   #pause-menu .pm-ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; transition: transform 0.15s; }
