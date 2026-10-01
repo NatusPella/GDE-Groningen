@@ -1216,6 +1216,11 @@ function touchParts(b) {
   }
 }
 
+// Height of the bottom of the walls.
+export function buildingBase(b) {
+  return archetypeOf(b) === 'houseboat' ? HOUSEBOAT_BASE_Y : 0;
+}
+
 // Massing + rough colours for the far LOD layer (farlod.js).
 export function buildingLodStyle(b) {
   const box = bboxOf(b);

@@ -1,8 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { applyWetGround } from './terrain3d.js';
-import { buildRoadStructure, buildOverpassDeck } from './roadstructures3d.js';
+import { buildRoadStructure, buildOverpassDeck, jointAway, jointMiter } from './roadstructures3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
-import { pointInPolygon } from './util.js';
+import { pointInPolygon, closestPointOnSegment } from './util.js';
+import { getWaterIndex } from './waterindex.js';
 import { allSignals, yieldArms } from './junctions.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
@@ -19,6 +20,8 @@ const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
 const CARRIAGE = new Set(['major', 'normal', 'minor']);
 const JUNCTION_DIP = -0.004;
 const KERB_H = 0.13;
+// a sidewalk at the quay ends this far before the water, under the coping
+const SHORE_INSET = 0.4;
 
 // ---------------------------------------------------------------- shaders
 
@@ -230,21 +233,23 @@ const SURF_SHADER = { key: 'roadsurf1', vertexCommon: VERTEX_COMMON, vertexMain:
 // ---------------------------------------------------------------- materials
 
 const SURFACES = {
-  asphalt: { define: 'SURF_ASPHALT', roughness: 0.88, colors: { major: 0x57595c, normal: 0x4b4d50, minor: 0x505255 } },
-  cycle: { define: 'SURF_CYCLE', roughness: 0.86, colors: { cycle: 0x823b2d } },
-  klinker_red: { define: 'SURF_KLINKER', extra: 'KLINKER_RED', roughness: 0.9, colors: { any: 0x6c4236 } },
-  klinker_grey: { define: 'SURF_KLINKER', roughness: 0.9, colors: { any: 0x7a766e } },
-  tiles: { define: 'SURF_TILES', roughness: 0.93, colors: { sidewalk: 0x7b776d, any: 0x837e74 } },
-  gravel: { define: 'SURF_GRAVEL', roughness: 0.97, colors: { any: 0x9a8f78 } },
+  asphalt: { define: 'SURF_ASPHALT', roughness: 0.88, rank: 3, colors: { major: 0x57595c, normal: 0x4b4d50, minor: 0x505255 } },
+  cycle: { define: 'SURF_CYCLE', roughness: 0.86, rank: 3, colors: { cycle: 0x823b2d } },
+  klinker_red: { define: 'SURF_KLINKER', extra: 'KLINKER_RED', roughness: 0.9, rank: 2, colors: { any: 0x6c4236 } },
+  klinker_grey: { define: 'SURF_KLINKER', roughness: 0.9, rank: 1, colors: { any: 0x7a766e } },
+  tiles: { define: 'SURF_TILES', roughness: 0.93, rank: 2, colors: { sidewalk: 0x7b776d, any: 0x837e74 } },
+  gravel: { define: 'SURF_GRAVEL', roughness: 0.97, rank: 0, colors: { any: 0x9a8f78 } },
 };
 
 let detail = true;
 let qualityVersion = 0;
 const materials = new Map();
 
-function makeMaterial(color, layer, roughness, defines, extra = {}) {
+// rank: a sub-step inside the layer (0-3), so two surfaces of one layer that
+// overlap at a junction (asphalt and klinkers) have a fixed winner
+function makeMaterial(color, layer, roughness, defines, extra = {}, rank = 0) {
   const m = new THREE.MeshStandardMaterial({
-    color, roughness, polygonOffset: true, polygonOffsetFactor: -layer, polygonOffsetUnits: -layer * 4, ...extra,
+    color, roughness, polygonOffset: true, polygonOffsetFactor: -layer, polygonOffsetUnits: -layer * 4 - rank, ...extra,
   });
   m.defines = { ...defines };
   if (detail && defines.SURF_MARKING === undefined) m.defines.SURF_BUMP = '';
@@ -261,7 +266,7 @@ function surfaceMaterial(layerName, surf) {
   const color = def.colors[layerName] ?? def.colors.any ?? Object.values(def.colors)[0];
   const defines = { [def.define]: '' };
   if (def.extra) defines[def.extra] = '';
-  m = makeMaterial(color, GROUND_LAYER[layerName], def.roughness, defines);
+  m = makeMaterial(color, GROUND_LAYER[layerName], def.roughness, defines, {}, def.rank);
   materials.set(key, m);
   return m;
 }
@@ -476,8 +481,13 @@ function analyse(r) {
   }
   const miter = [];
   for (let i = 0; i < n; i++) {
-    if (i === 0) { miter.push(segN[0].slice()); continue; }
-    if (i === n - 1) { miter.push(segN[n - 2].slice()); continue; }
+    if (i === 0 || i === n - 1) {
+      // an end that carries straight on into the next way is cut on the bisector
+      const sn = segN[i === 0 ? 0 : n - 2];
+      const away = netMap ? jointAway(netMap, r, i) : null;
+      miter.push(away ? jointMiter(sn, away, i === 0, 0.4) : sn.slice());
+      continue;
+    }
     const a = segN[i - 1], b = segN[i];
     let mx = a[0] + b[0], my = a[1] + b[1];
     const ml = Math.hypot(mx, my);
@@ -494,7 +504,7 @@ function analyse(r) {
     s, miter, segN, L, hw, e0, e1,
     S0: e0.J > 0 ? e0.J : -1e4,
     S1: e1.J > 0 ? L - e1.J : L + 1e4,
-    cuts: [], crossings: [],
+    cuts: [], crossings: [], zones: [], plain: r.cat === 'foot',
   };
 
   for (let i = 1; i < n - 1; i++) {
@@ -518,6 +528,7 @@ function analyse(r) {
         const side = od[0] * right[0] + od[1] * right[1] > 0 ? 1 : -1;
         const hl = (foot ? 1.2 : o.width / 2 / Math.max(sn, 0.35) + 1.2);
         rs.cuts.push([s[i] - hl, s[i] + hl, side]);
+        if (sharesLayer(r, o)) rs.zones.push([s[i], hl + (SIDEWALK_CATS.has(o.cat) ? SIDEWALK_EXTRA / Math.max(sn, 0.35) : 0)]);
       }
     }
   }
@@ -558,6 +569,32 @@ function analyse(r) {
   } else rs.crossings = [];
 
   return (r._rs = rs);
+}
+
+// Ribbons of r and o lie in the same ground layer where they cross: the same
+// category, or both with a sidewalk.
+function sharesLayer(r, o) {
+  return GROUND_LAYER[r.cat] === GROUND_LAYER[o.cat] || (SIDEWALK_CATS.has(r.cat) && SIDEWALK_CATS.has(o.cat));
+}
+
+// The junction zones round segment i of r: the end of the last one at or
+// before its start and the start of the first one at or after its end (as
+// aSurf.w and aSurfEnd). Inside a zone (and up to a few metres out) the
+// surface shaders drop the patterns tied to the way's own coordinates (lane
+// wear, gutters, patches, tile courses), so the ribbons of two ways that
+// cross there look the same and cannot flicker against each other.
+function segmentZone(rs, i) {
+  // footways and squares are one junction zone from end to end: their paving
+  // lies in world space, so the dense paths and outlines of squares that
+  // overlap everywhere look the same wherever they do
+  if (rs.plain) return [1e4, -1e4];
+  const a = rs.s[i], b = rs.s[i + 1];
+  let w = rs.S0, e = rs.S1;
+  for (const [c, hl] of rs.zones) {
+    if (c <= a + 1e-6) w = Math.max(w, c + hl);
+    if (c >= b - 1e-6) e = Math.min(e, c - hl);
+  }
+  return [w, e];
 }
 
 function project(rs, pts, x, y) {
@@ -610,23 +647,153 @@ function finishGeometry(pos, nrm, idx, extra) {
   return g;
 }
 
-function ribbonInto(r, rs, half, B, surfWidth) {
+// clip: edge limits along the way (ribbonClip), or null for a plain ribbon
+// of half width `half`. Where an edge is cut back the segment gets a
+// station every DENSE metres, so the edge follows the quay or the
+// carriageway alongside.
+const DENSE = 3;
+function ribbonInto(r, rs, half, B, surfWidth, clip = null) {
   const n = r.pts.length;
-  const base = B.pos.length / 3;
-  for (let i = 0; i < n; i++) {
-    const p = r.pts[i], m = rs.miter[i];
-    const y = ((i === 0 && rs.e0.J > 0) || (i === n - 1 && rs.e1.J > 0) ? JUNCTION_DIP : 0) + (r.z ? r.z[i] : 0);
-    for (const sg of [1, -1]) {
-      B.pos.push(p[0] + m[0] * half * sg, y, p[1] + m[1] * half * sg);
+  const station = (k, t, zone) => {
+    const p = r.pts[k], m = rs.miter[k];
+    const q = k + 1 < n ? r.pts[k + 1] : p, mq = k + 1 < n ? rs.miter[k + 1] : m;
+    const x = p[0] + (q[0] - p[0]) * t, z = p[1] + (q[1] - p[1]) * t;
+    const mx = m[0] + (mq[0] - m[0]) * t, mz = m[1] + (mq[1] - m[1]) * t;
+    const sv = rs.s[k] + (k + 1 < n ? rs.s[k + 1] - rs.s[k] : 0) * t;
+    const h0 = r.z ? r.z[k] + (k + 1 < n ? r.z[k + 1] - r.z[k] : 0) * t : 0;
+    const dip = t === 0 && ((k === 0 && rs.e0.J > 0) || (k === n - 1 && rs.e1.J > 0)) ? JUNCTION_DIP : 0;
+    const lim = clip ? (t === 0 ? clip.pts[k] : clip.at(x, z, mx, mz, k, t)) : null;
+    const at = B.pos.length / 3;
+    for (let j = 0; j < 2; j++) {
+      const sg = j ? -1 : 1, h = lim ? lim[j] : half;
+      B.pos.push(x + mx * h * sg, h0 + dip, z + mz * h * sg);
       B.nrm.push(0, 1, 0);
-      B.surf.push(half * sg, rs.s[i], surfWidth, rs.S0);
-      B.end.push(rs.S1);
+      B.surf.push(h * sg, sv, surfWidth, zone[0]);
+      B.end.push(zone[1]);
     }
-  }
+    return at;
+  };
+  // points are shared by consecutive segments unless a junction zone starts or ends there
+  let prev = -1, pz = null;
   for (let i = 0; i < n - 1; i++) {
-    const a = base + i * 2;
-    B.idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+    const zone = segmentZone(rs, i);
+    let a = prev >= 0 && pz[0] === zone[0] && pz[1] === zone[1] ? prev : station(i, 0, zone);
+    for (const t of clip ? clip.steps(i) : []) {
+      const b = station(i, t, zone);
+      B.idx.push(a, b, a + 1, a + 1, b, b + 1);
+      a = b;
+    }
+    const b = station(i + 1, 0, zone);
+    B.idx.push(a, b, a + 1, a + 1, b, b + 1);
+    prev = b; pz = zone;
   }
+}
+
+// Edge limits of r's carriageway ('road') or sidewalk ('walk') ribbon:
+//  - at the quay a street-level ribbon stops SHORE_INSET short of the water
+//    (under the coping) instead of hanging out over the canal;
+//  - beside a way in the same ground layer whose ribbon it would overlap (the
+//    two carriageways of a dual road, a street and the service road or the
+//    sidewalk of the street alongside) it stops halfway between them (by
+//    width): two coplanar ribbons with their own patterns flicker where
+//    they overlap.
+// Null when neither applies, else { at(x, y, mx, my, k, t): [right, left]
+// half widths (miter units), pts: those at every point, steps(i): the extra
+// stations (0..1) along segment i }.
+function ribbonClip(r, rs, kind) {
+  if (!netMap || r.pts.length < 2) return null;
+  const sidewalk = kind === 'walk';
+  const half = r.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0);
+  const [x0, y0, x1, y1] = r.bounds || boundsOf(r.pts);
+  const pad = half * 2.5 + 1;
+  const wet = !r.bridge && !r.z && netMap.water.some((w) => w.bounds && w.bounds[0] < x1 + pad && w.bounds[2] > x0 - pad && w.bounds[1] < y1 + pad && w.bounds[3] > y0 - pad);
+  const index = wet ? getWaterIndex(netMap) : null;
+  const partners = netMap.roadGrid.query(x0 - pad - 8, y0 - pad - 8, x1 + pad + 8, y1 + pad + 8).filter((o) => o !== r && o.pts.length >= 2 && !!o.z === !!r.z
+    && (sidewalk ? SIDEWALK_CATS.has(o.cat) && SIDEWALK_CATS.has(r.cat) : GROUND_LAYER[o.cat] === GROUND_LAYER[r.cat]));
+  if (!index && !partners.length) return null;
+  const P = r.pts, n = P.length;
+  // the sidewalk is never narrower than the carriageway on top of it
+  const road = sidewalk ? roadClip(r, rs) : null;
+  const at = (x, y, mx, my, k, t) => {
+    const ml = Math.hypot(mx, my) || 1, reach = half * ml;
+    const d = dirAt(P, Math.min(k, n - 2), 1);
+    const res = [half, half];
+    // (a path drawn out over the water without a bridge: nothing there)
+    if (index && index.inWater(x, y)) return [0, 0];
+    if (index) {
+      for (let j = 0; j < 2; j++) {
+        const sg = j ? -1 : 1, ux = mx / ml * sg, uy = my / ml * sg, probe = reach + SHORE_INSET + 0.1;
+        if (!index.inWater(x + ux * probe, y + uy * probe)) continue;
+        // (no edge on the way out: the way runs along the water's edge itself)
+        const ray = index.rayDist(x, y, ux, uy, probe + 0.5);
+        const w = (ray >= probe + 0.5 - 1e-6 ? 0 : ray) - SHORE_INSET;
+        if (w < reach) res[j] = Math.min(res[j], Math.max(0, w / ml));
+      }
+    }
+    const zr = r.z ? r.z[k] + (k + 1 < n ? r.z[k + 1] - r.z[k] : 0) * t : 0;
+    for (const o of partners) {
+      const oh = o.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0);
+      const [ox0, oy0, ox1, oy1] = o.bounds;
+      if (x < ox0 - reach - oh || x > ox1 + reach + oh || y < oy0 - reach - oh || y > oy1 + reach + oh) continue;
+      let best = Infinity, bi = 0, bx = 0, by = 0, bt = 0;
+      const Q = o.pts;
+      for (let i = 0; i < Q.length - 1; i++) {
+        const cp = closestPointOnSegment(x, y, Q[i][0], Q[i][1], Q[i + 1][0], Q[i + 1][1]);
+        if (cp.dist2 < best) { best = cp.dist2; bi = i; bx = cp.x; by = cp.y; bt = cp.t; }
+      }
+      const dist = Math.sqrt(best);
+      // no overlap, or a duplicate lying on top
+      if (dist >= reach + oh || dist < 0.3) continue;
+      const od = dirAt(Q, bi, 1);
+      if (Math.abs(od[0] * d[0] + od[1] * d[1]) < 0.9) continue;
+      if (r.z && Math.abs(zr - (o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt)) > 0.8) continue;
+      // beside the point, not ahead of it (where o ends or joins)
+      const lat = ((bx - x) * mx + (by - y) * my) / ml;
+      if (Math.abs(lat) < 0.8 * dist) continue;
+      const j = lat > 0 ? 0 : 1;
+      res[j] = Math.min(res[j], Math.max(0.5, Math.abs(lat) * reach / (reach + oh) / ml));
+    }
+    const lo = road ? (t === 0 ? road.pts[k] : road.at(x, y, mx, my, k, t)) : null;
+    for (let j = 0; j < 2; j++) res[j] = Math.max(res[j], lo ? lo[j] : sidewalk ? rs.hw : 0);
+    return res;
+  };
+  const pts = P.map((p, k) => at(p[0], p[1], rs.miter[k][0], rs.miter[k][1], k, 0));
+  const cut = (lim) => lim[0] < half - 1e-3 || lim[1] < half - 1e-3;
+  const steps = (i) => {
+    const k = Math.floor((rs.s[i + 1] - rs.s[i]) / DENSE);
+    if (k < 1) return [];
+    const m0 = rs.miter[i], m1 = rs.miter[i + 1], p0 = P[i], p1 = P[i + 1];
+    const ends = [cut(pts[i])];
+    for (let q = 1; q <= k; q++) {
+      const t = q / (k + 1);
+      ends.push(cut(at(p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, m0[0] + (m1[0] - m0[0]) * t, m0[1] + (m1[1] - m0[1]) * t, i, t)));
+    }
+    ends.push(cut(pts[i + 1]));
+    // the stations where an edge is cut back, and their neighbours
+    const out = [];
+    for (let q = 1; q <= k; q++) if (ends[q] || ends[q - 1] || ends[q + 1]) out.push(q / (k + 1));
+    return out;
+  };
+  return { at, steps, pts };
+}
+
+function boundsOf(P) {
+  let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+  for (const [x, y] of P) { a = Math.min(a, x); b = Math.min(b, y); c = Math.max(c, x); d = Math.max(d, y); }
+  return [a, b, c, d];
+}
+
+// The carriageway's limits, cached on rs: the kerbs, edge lines and the
+// sidewalk follow them.
+function roadClip(r, rs) {
+  if (rs.roadClip === undefined) rs.roadClip = ribbonClip(r, rs, 'road');
+  return rs.roadClip;
+}
+
+// Is side j (0 right of the miter, 1 left) of r's carriageway cut back anywhere?
+function sideCut(r, rs, j) {
+  const c = roadClip(r, rs);
+  return !!c && c.pts.some((p) => p[j] < rs.hw - 0.3);
 }
 
 function newBuf() { return { pos: [], nrm: [], idx: [], surf: [], end: [] }; }
@@ -637,7 +804,7 @@ function bufGeometry(B) {
 function ribbonGeometry(r, half, surfWidth = r.width) {
   const rs = analyse(r);
   const B = newBuf();
-  ribbonInto(r, rs, half, B, surfWidth);
+  ribbonInto(r, rs, half, B, surfWidth, roadClip(r, rs));
   return bufGeometry(B);
 }
 
@@ -647,7 +814,13 @@ function hasKerbs(r) {
 
 function kerbIntervals(rs, side) {
   let iv = [[rs.e0.J > 0 ? rs.e0.J : 0, rs.e1.J > 0 ? rs.L - rs.e1.J : rs.L]];
-  for (const [a, b, sd] of rs.cuts) {
+  // none where the carriageway meets the one alongside (the kerb would stand
+  // in it) or the sidewalk stops at the quay (it would hang over the water)
+  const off = [];
+  const j = side > 0 ? 0 : 1;
+  const cut = (k) => (rs.roadClip && rs.roadClip.pts[k][j] < rs.hw - 0.05) || (rs.walkClip && rs.walkClip.pts[k][j] < rs.hw + 0.5);
+  for (let i = 0; i < rs.s.length - 1; i++) if (cut(i) || cut(i + 1)) off.push([rs.s[i] - 1, rs.s[i + 1] + 1, side]);
+  for (const [a, b, sd] of rs.cuts.concat(off)) {
     if (sd !== side && sd !== 0) continue;
     const next = [];
     for (const [x, y] of iv) {
@@ -705,7 +878,9 @@ function kerbInto(r, rs, B) {
 function sidewalkGeometry(r) {
   const rs = analyse(r);
   const B = newBuf();
-  ribbonInto(r, rs, rs.hw + SIDEWALK_EXTRA, B, r.width);
+  roadClip(r, rs);
+  rs.walkClip = ribbonClip(r, rs, 'walk');
+  ribbonInto(r, rs, rs.hw + SIDEWALK_EXTRA, B, r.width, rs.walkClip);
   if (hasKerbs(r)) kerbInto(r, rs, B);
   return bufGeometry(B);
 }
@@ -714,15 +889,21 @@ function sidewalkGeometry(r) {
 
 function markBuf() { return { pos: [], nrm: [], uv: [], idx: [] }; }
 
+// Paint that lies over other paint in one marking mesh sits a few mm higher
+// (bus lane red, then white lines, then manholes, grates and symbols), so the
+// overlaps never fight over the same depth.
+const PAINT_RED = 0, PAINT_WHITE = 0.004, PAINT_DECAL = 0.008;
+
 function stripAlong(r, rs, M, s0, s1, off, half, uvc = UV_WHITE) {
   if (s1 - s0 < 0.05) return;
   const tmp = [0, 0, 0, 0];
   const base = M.pos.length / 3;
   const st = stations(rs, s0, s1);
+  const lift = uvc === UV_RED ? PAINT_RED : PAINT_WHITE;
   for (const sv of st) {
     for (const o of [off + half, off - half]) {
       at(r, rs, sv, o, tmp);
-      M.pos.push(tmp[0], tmp[3], tmp[1]);
+      M.pos.push(tmp[0], tmp[3] + lift, tmp[1]);
       M.nrm.push(0, 1, 0);
       M.uv.push(uvc[0], uvc[1]);
     }
@@ -804,7 +985,7 @@ function decal(r, rs, M, sAlong, off, len, wid, uv) {
   const base = M.pos.length / 3;
   const corners = [[-1, -1, uv[0], uv[1]], [1, -1, uv[2], uv[1]], [-1, 1, uv[0], uv[3]], [1, 1, uv[2], uv[3]]];
   for (const [u, v, tu, tv] of corners) {
-    M.pos.push(c[0] + fx * u * len / 2 + nrmv[0] * v * wid / 2, c[3], c[1] + fy * u * len / 2 + nrmv[1] * v * wid / 2);
+    M.pos.push(c[0] + fx * u * len / 2 + nrmv[0] * v * wid / 2, c[3] + PAINT_DECAL, c[1] + fy * u * len / 2 + nrmv[1] * v * wid / 2);
     M.nrm.push(0, 1, 0);
     M.uv.push(tu, tv);
   }
@@ -821,7 +1002,7 @@ function busDecal(r, rs, M, sAlong, off, dir) {
   const base = M.pos.length / 3;
   const [u0, v0, u1, v1] = UV_BUS;
   for (const [a, b, tu, tv] of [[-1, -1, u0, v0], [1, -1, u0, v1], [-1, 1, u1, v0], [1, 1, u1, v1]]) {
-    M.pos.push(c[0] + fx * a * len / 2 + rx * b * wid / 2, c[3], c[1] + fy * a * len / 2 + ry * b * wid / 2);
+    M.pos.push(c[0] + fx * a * len / 2 + rx * b * wid / 2, c[3] + PAINT_DECAL, c[1] + fy * a * len / 2 + ry * b * wid / 2);
     M.nrm.push(0, 1, 0);
     M.uv.push(tu, tv);
   }
@@ -856,7 +1037,7 @@ function triangleMark(r, rs, M, sBase, sApex, off, halfBase) {
   const base = M.pos.length / 3;
   for (const [sv, o] of [[sBase, off - halfBase], [sBase, off + halfBase], [sApex, off]]) {
     at(r, rs, sv, o, tmp);
-    M.pos.push(tmp[0], tmp[3], tmp[1]);
+    M.pos.push(tmp[0], tmp[3] + PAINT_WHITE, tmp[1]);
     M.nrm.push(0, 1, 0);
     M.uv.push(UV_WHITE[0], UV_WHITE[1]);
   }
@@ -895,8 +1076,9 @@ function markingGeometry(r) {
 
   if (asphalt && b > a) {
     if (r.cat === 'major') {
-      stripClipped(r, rs, M, a, b, hw - 0.35, 0.075);
-      stripClipped(r, rs, M, a, b, -hw + 0.35, 0.075);
+      // (no edge line on a side cut back at the quay or against the other carriageway)
+      if (!sideCut(r, rs, 0)) stripClipped(r, rs, M, a, b, hw - 0.35, 0.075);
+      if (!sideCut(r, rs, 1)) stripClipped(r, rs, M, a, b, -hw + 0.35, 0.075);
       if (!r.oneway) {
         if (r.width >= 12) { stripAlong(r, rs, M, a, b, 0.12, 0.05); stripAlong(r, rs, M, a, b, -0.12, 0.05); }
         else stripAlong(r, rs, M, a, b, 0, 0.06);
@@ -943,6 +1125,7 @@ function markingGeometry(r) {
     }
     if (hasKerbs(r)) {
       for (const side of [1, -1]) {
+        if (sideCut(r, rs, side > 0 ? 0 : 1)) continue;
         for (let s = a + 4 + rnd(r, side + 9) * 10; s < b - 2; s += 16 + rnd(r, s) * 8) decal(r, rs, M, s, side * (hw - 0.2), 0.5, 0.3, UV_GRATE);
       }
     }
