@@ -359,7 +359,12 @@ function quiz(w, a) {
   const L = a.def.lines;
   const order = [...QUIZ.keys()].sort((i, j) => chash(i * 7 + Math.floor(w.time), 3) - chash(j * 7 + Math.floor(w.time), 3)).slice(0, 3);
   let k = 0, right = 0;
+  // a question only pops up while you are still at the table (not after walking off, a respawn or a load)
+  const load0 = w.loadCount || 0;
+  const here = () => !w.pendingRespawn && !w.player.inVehicle && (w.loadCount || 0) === load0 && !isMissionActive()
+    && Math.hypot(w.player.x - a.ux, w.player.y - a.uy) < 8;
   const ask = () => {
+    if (!here()) return;
     const [q, good, ...bad] = QUIZ[order[k]];
     const answers = [good, ...bad].map((t, i) => ({ t, ok: i === 0, h: chash(order[k] * 13 + i, k) })).sort((x, y) => x.h - y.h);
     openShopMenu(w, {
@@ -374,6 +379,7 @@ function quiz(w, a) {
           k++;
           if (k < 3) setTimeout(() => { if (!isCinematicActive() && !isShopOpen()) ask(); }, 2600);
           else setTimeout(() => {
+            if ((w.loadCount || 0) !== load0) return;
             if (right === 3) { w.money += 25; say(w, a, L.all); }
             w.addMessage(`Dorpsquiz: ${right} van 3 goed · +€${right * 10 + (right === 3 ? 25 : 0)}`, 4, { kind: 'geld' });
             doneSpecial(w, a);
@@ -602,6 +608,11 @@ function endMini() {
 
 export function isVillageMiniActive() {
   return !!mini;
+}
+
+// A loaded save ends a running minigame (savegame.js).
+export function stopVillageMini() {
+  endMini();
 }
 
 // --- per frame, prompts, input -------------------------------------------------------------

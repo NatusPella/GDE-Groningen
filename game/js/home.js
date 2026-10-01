@@ -50,6 +50,9 @@ import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
 import { buildHomeExterior3D, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade } from './home3d.js';
 import { registerHelipad } from './heliflight.js';
+import { isPadelActive } from './padel.js';
+import { isVillageMiniActive } from './dorpsuitjes.js';
+import { isActivityActive } from './activities.js';
 import { buildHelipadMesh } from './heli3d.js';
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 
@@ -662,7 +665,7 @@ function canEnter(w) {
   if (p.inVehicle || p.swimming) return 'Eerst uitstappen';
   if (w.wanted > 0) return 'Met de politie op je hielen ga je niet naar huis. Eerst ze kwijt!';
   if (isMissionActive() || (w.sideJob && w.sideJob.active) || w.challenge) return 'Eerst je klus afmaken';
-  if (w.pigeonMode || w.heliRun || w.pendingRespawn || isCinematicActive()) return 'Nu even niet';
+  if (w.pigeonMode || w.heliRun || w.pendingRespawn || isCinematicActive() || isPadelActive() || isVillageMiniActive() || isActivityActive()) return 'Nu even niet';
   return '';
 }
 
