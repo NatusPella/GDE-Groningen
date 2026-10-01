@@ -5,7 +5,7 @@
 // spot check each have a single hook here instead of one per activity.
 //
 // An activity: { id, init(w), spots() -> [{ x, y, name, id }], prompt(w),
-// secondary(w), interact(w) -> handled, active() -> its minigame runs,
+// secondary(w), interact(w) -> handled, active() -> its minigame runs, quit(w),
 // update(dt, w) while active (instead of the player update), tick(dt, w)
 // every frame, camera(w) while active, and for the maps: layer, legend
 // { kind, label, note }, icon(ctx, s), mapSub(spot, w), ubbo(w) }.
@@ -37,6 +37,12 @@ function current() {
 
 export function isActivityActive() {
   return !!current();
+}
+
+// A loaded save ends a running minigame (savegame.js).
+export function quitActivity(w) {
+  for (const a of LIST) if (a.active() && a.quit) a.quit(w);
+  w.activityGame = null;
 }
 
 // main.js: instead of player.update while a minigame runs
