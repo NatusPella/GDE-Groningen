@@ -10,6 +10,7 @@ import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savegame.js';
 import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
+import { buildingAt as realBuildingAt } from './countryreal.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -47,12 +48,14 @@ function wijkAt(map, x, y) {
   return best;
 }
 
+// A city footprint, water, the ring's heights, or a real Ommelanden building
+// box (solid out in the countryside; spotcheck.js finds a bay inside one).
 function solidAt(map, x, y) {
   for (const b of map.buildingsNear(x, y, 1)) {
     const [minx, miny, maxx, maxy] = b.bounds;
     if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
   }
-  return isInWater(map, x, y) || (map.offStreetLevel && map.offStreetLevel(x, y));
+  return isInWater(map, x, y) || (map.offStreetLevel && map.offStreetLevel(x, y)) || realBuildingAt(x, y, 0.3) >= 0;
 }
 
 function onOtherRoad(map, x, y, own) {

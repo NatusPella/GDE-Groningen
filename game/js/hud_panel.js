@@ -8,6 +8,7 @@ import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
 import { getHeliSpotsForRender, drawHeliMapIcon } from './helirun.js';
 import { getPadelSpotsForRender, drawPadelMapIcon } from './padel.js';
+import { activityMapIcons, drawActivityMapIcon } from './activities.js';
 import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
@@ -513,7 +514,7 @@ function currentObjective(world) {
   }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
-  if (g && g.name && !world.storyFreePlay && !world.padelGame && !(m && m.phase === 'active')) {
+  if (g && g.name && !world.storyFreePlay && !world.padelGame && !world.activityGame && !(m && m.phase === 'active')) {
     const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
     const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
     const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
@@ -931,6 +932,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind === 'pigeon') drawPigeonMapIcon(ctx, s);
       else if (kind === 'heli') drawHeliMapIcon(ctx, s);
       else if (kind === 'padel') drawPadelMapIcon(ctx, s);
+      else if (kind.startsWith('act-')) drawActivityMapIcon(ctx, kind, s);
       else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
@@ -1123,6 +1125,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
   add('heli', getHeliSpotsForRender(), 'heli', 1, MM_POI_FAR_M);
   add('padel', getPadelSpotsForRender(), 'padel', 1, MM_POI_FAR_M);
+  for (const a of activityMapIcons(world)) add(a.layer, [a], a.kind, 1, MM_POI_FAR_M);
   add('postgame', getPostgameSpotsForRender(), (q) => 'pg-' + q.kind, 2, MM_POI_FAR_M);
   add('horeca', getHorecaForRender(), 'horeca', 1);
   add('landmark', world.map.meta.landmarks || [], 'landmark', 2);
