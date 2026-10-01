@@ -14,7 +14,7 @@ import { KROLBRUG, PLANTSOEN, GROTE_MARKT, OOSTERPARK, krolLevel } from './flavo
 let root = null;
 let map = null;
 const boards = [];
-let krol = null, picnic = null, peerd = null, plaque = null, flags = null, plants = null;
+let krol = null, picnic = null, peerd = null, plaque = null, flags = null, plants = null, flowerMarket = null;
 let lastStage = -1, lastNight = -1, lastKrolText = '', lastKrolLevel = -1, lastPeerd = null;
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
 const UP = new THREE.Vector3(0, 1, 0);
@@ -58,6 +58,7 @@ export function initFlavour3D(world, scene) {
   buildPlaque();
   buildFlags();
   buildPlants();
+  buildFlowerMarket();
   if (world.flavour) world.flavour.boards = boards.map((b) => ({ x: b.x, y: b.y, face: b.face }));
 }
 
@@ -455,6 +456,95 @@ function updatePlants(world) {
   plants.pot.instanceMatrix.needsUpdate = plants.leaf.instanceMatrix.needsUpdate = true;
 }
 
+// --- Bloemetjesmarkt stalls -------------------------------------------------------------
+
+// Flower stalls in rows on the Grote Markt (clear of the daily market and the
+// kermis), striped awnings, zinc buckets full of colour and a banner.
+const FLOWER_COLORS = [0xd8333f, 0xf2c230, 0xe86fa8, 0xf4f1ea, 0x8e4fc0, 0xee7a2a, 0xc2185b, 0xffe36e];
+const AWNINGS = [0x2f7a4f, 0xd24a3a, 0x3565a8, 0xe0a526];
+const DAILY_MARKET = { x: 162, y: 78, r: 40 };
+function buildFlowerMarket() {
+  const spots = [];
+  const corners = (x, y, a) => [[1.5, 0.9], [1.5, -0.9], [-1.5, 0.9], [-1.5, -0.9]].map(([s, f]) => [x + Math.cos(a) * f - Math.sin(a) * s, y + Math.sin(a) * f + Math.cos(a) * s]);
+  for (const row of [-13, -5, 5, 13]) {
+    for (let col = -26; col <= 26 && spots.length < 14; col += 4.2) {
+      const x = GROTE_MARKT.x + col, y = GROTE_MARKT.y + row;
+      const a = row < 0 ? -Math.PI / 2 : Math.PI / 2;
+      if (Math.hypot(x - DAILY_MARKET.x, y - DAILY_MARKET.y) < DAILY_MARKET.r) continue;
+      const pts = [[x, y], ...corners(x, y, a)];
+      if (pts.some(([px, py]) => !free(px, py, 1) || map.onCarriageway(px, py, 0.8) || (map.reservedAt && map.reservedAt(px, py)))) continue;
+      spots.push({ x, y, a });
+    }
+  }
+  const g = new THREE.Group();
+  g.visible = false;
+  root.add(g);
+  if (!spots.length) { flowerMarket = { g }; return; }
+  const n = spots.length;
+  const col = new THREE.Color();
+  const table = instanced(new THREE.BoxGeometry(2.6, 0.08, 1.3).translate(0, 0.86, 0), std(0xe9e3d2), n);
+  const legs = instanced(new THREE.CylinderGeometry(0.035, 0.035, 2.4, 5).translate(0, 1.2, 0), std(0x6f6a62), n * 4);
+  const roof = instanced(new THREE.BoxGeometry(2.9, 0.06, 1.75), std(0xffffff), n);
+  const bucket = instanced(new THREE.CylinderGeometry(0.17, 0.13, 0.32, 8).translate(0, 0.16, 0), std(0x9aa3a8, { metalness: 0.4, roughness: 0.5 }), n * 8);
+  const bloom = instanced(new THREE.IcosahedronGeometry(0.16, 0), std(0xffffff, { flatShading: true }), n * 8 * 3);
+  const leaf = instanced(new THREE.IcosahedronGeometry(0.2, 0), std(0x3f8a3a, { flatShading: true }), n * 8);
+  const r = rng(1953);
+  let nb = 0, nf = 0;
+  spots.forEach((s, i) => {
+    const c = Math.cos(s.a), sn = Math.sin(s.a);
+    const at = (f, sd) => [s.x + c * f - sn * sd, s.y + sn * f + c * sd];
+    place(table, i, s.x, 0, s.y, -s.a + Math.PI / 2);
+    [[0.6, 1.35], [0.6, -1.35], [-0.6, 1.35], [-0.6, -1.35]].forEach(([f, sd], k) => { const [x, y] = at(f, sd); place(legs, i * 4 + k, x, 0, y); });
+    place(roof, i, s.x, 2.42, s.y, -s.a + Math.PI / 2, 0.12);
+    roof.setColorAt(i, col.setHex(AWNINGS[i % AWNINGS.length]));
+    // four buckets on the table, four on the cobbles in front
+    for (let k = 0; k < 8; k++) {
+      const front = k >= 4, sd = -0.95 + (k % 4) * 0.63;
+      const [x, y] = at(front ? 1.05 : 0.15, sd + (r() - 0.5) * 0.1);
+      const h = front ? 0 : 0.9;
+      place(bucket, nb, x, h, y);
+      place(leaf, nb, x, h + 0.38, y, r() * 6, 0, 0.9 + r() * 0.3);
+      const hue = FLOWER_COLORS[Math.floor(r() * FLOWER_COLORS.length)];
+      for (let q = 0; q < 3; q++) {
+        const qa = r() * Math.PI * 2;
+        place(bloom, nf, x + Math.cos(qa) * 0.09, h + 0.5 + r() * 0.12, y + Math.sin(qa) * 0.09, qa, 0, 0.75 + r() * 0.35);
+        bloom.setColorAt(nf, col.setHex(hue).offsetHSL(0, 0, (r() - 0.5) * 0.12));
+        nf++;
+      }
+      nb++;
+    }
+  });
+  g.add(table, legs, roof, bucket, bloom, leaf);
+  g.add(flowerBanner(spots));
+  flowerMarket = { g };
+}
+
+// "BLOEMETJESMARKT" between two poles over the walkway of the first row
+function flowerBanner(spots) {
+  const s = spots[0];
+  const tex = canvasTex(1024, 192);
+  const c = tex.image, x = c.getContext('2d');
+  x.fillStyle = '#2f7a4f'; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = '#f4f1ea'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  fitText(x, 'BLOEMETJESMARKT', c.width - 80, 120, 900); x.fillText('BLOEMETJESMARKT', c.width / 2, c.height / 2 + 6);
+  tex.needsUpdate = true;
+  const g = new THREE.Group();
+  const fx = Math.cos(s.a) * 3.2, fy = Math.sin(s.a) * 3.2;
+  g.position.set(s.x + fx, 0, s.y + fy);
+  g.rotation.y = -s.a + Math.PI / 2;
+  const pole = new THREE.CylinderGeometry(0.06, 0.06, 4.4, 6).translate(0, 2.2, 0);
+  const pm = std(0x6f6a62);
+  for (const k of [-3.1, 3.1]) { const m = new THREE.Mesh(pole, pm); m.position.x = k; g.add(m); }
+  const geo = new THREE.PlaneGeometry(6, 1.1), mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 });
+  for (const turn of [0, Math.PI]) {
+    const cloth = new THREE.Mesh(geo, mat);
+    cloth.position.y = 3.7;
+    cloth.rotation.y = turn;
+    g.add(cloth);
+  }
+  return g;
+}
+
 // --- per frame ---------------------------------------------------------------------
 
 export function updateFlavour3D(dt, world) {
@@ -502,5 +592,6 @@ export function updateFlavour3D(dt, world) {
   if (flags) flags.visible = F.event === 'bommenberend' && near(GROTE_MARKT.x, GROTE_MARKT.y, 520);
   const plantsOn = F.event === 'bloemetjesmarkt' && near(GROTE_MARKT.x, GROTE_MARKT.y, 600);
   plants.g.visible = plantsOn;
+  if (flowerMarket) flowerMarket.g.visible = plantsOn;
   if (plantsOn) updatePlants(world);
 }
