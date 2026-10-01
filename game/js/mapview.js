@@ -10,6 +10,7 @@ import { getHeliSpotsForRender } from './helirun.js';
 import { getPadelSpotsForRender } from './padel.js';
 import { getPostgameSpotsForRender } from './postgame.js';
 import { getStationsForRender } from './stationtravel.js';
+import { VILLAGES } from './ommelandlines.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
@@ -858,7 +859,7 @@ function drawDynamicMarkers(ctx, world) {
     icon(null, 'sj-target', ct.x, ct.y, 'Checkpoint', {}, 'Uitdaging');
   }
   for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`);
-  for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, 'Reizen met de trein');
+  for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}` : 'Reizen met de trein');
   for (const e of getEierbalTips()) icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt');
 
   const c = world.companion;

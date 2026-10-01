@@ -304,7 +304,7 @@ export async function runStoryTest(world) {
       const pg = window.__postgame;
       if (PARTS[lastPart] && PARTS[lastPart].finale) {
         check('post-game opens after the ending', await waitFor(() => pg && pg.open() && pg.spots().length >= 4, 8000), JSON.stringify(pg && pg.spots().map((q) => q.id)));
-        for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord']) {
+        for (const id of ['bruggen', 'fierljep', 'skutsje', 'fjord', 'koe']) {
           const p = world.player;
           if (p.inVehicle && id !== 'fjord') p.exitVehicle(world.map, world);
           await sleep(300);
@@ -321,6 +321,28 @@ export async function runStoryTest(world) {
         }
         check('Fjord Frituur unlocked in the garage', await waitFor(() => getOwnedEntries().some((o) => o.key === 'fjordfrituur'), 5000));
         if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+      }
+
+      // the Ommeland extras (ommelandfun.js): twelve wereldeinden, a dorpsuitje per station
+      const om = window.__ommeland;
+      if (om) {
+        const ends = om.ends();
+        check(`all 12 wereldeinden placed at the edge of the data`, ends.length === 12, ends.map((e) => `${e.id} ${e.road}`).join(', '));
+        const vs = om.villages();
+        check(`every Ommeland station has its dorpsuitjes (${vs.length})`, vs.length === 8 && vs.every((v) => v.acts.length === 2 && v.egg), JSON.stringify(vs.filter((v) => v.acts.length < 2 || !v.egg).map((v) => v.name)));
+        if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+        const before = om.endsFound();
+        om.go(ends[0].x, ends[0].y);
+        check('a wereldeinde is found by walking up to it', await waitFor(() => om.endsFound() > before || ends[0].found, 6000), JSON.stringify(ends[0]));
+        await sleep(600);
+        capture('om-wereldeinde');
+        await drain(world, 700);
+        const bell = vs.find((v) => v.name === 'Loppersum');
+        const used = bell && om.use('Loppersum', 'special');
+        check('a dorpsuitje can be done (Loppersum, de klok)', used && await waitFor(() => om.villages().find((v) => v.name === 'Loppersum').done, 4000));
+        await sleep(500);
+        capture('om-dorp');
+        await drain(world, 700);
       }
 
       // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data

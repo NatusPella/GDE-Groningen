@@ -19,6 +19,7 @@ import { BRUGGEN } from './pg_bruggenrace.js';
 import { FIERLJEP } from './pg_fierljep.js';
 import { SKUTSJE } from './pg_skutsje.js';
 import { FJORD, fjordSave, applyFjordSave, fjordUpgradeOffers } from './pg_foodtruck.js';
+import { KOE } from './pg_koe.js';
 import { PG_PRIZE, FJORD_DAY_PAY, FJORD_DAY_HOUR } from './economy.js';
 import { getOwnedEntries, spawnOwnedEntry } from './shops.js';
 import { findParkingSpot } from './ownedvehicles.js';
@@ -45,7 +46,7 @@ import { Vehicle } from './vehicle.js';
 // helirun keep quiet then); world.challengeHud feeds the race panel
 // (hud_panel.js), world.challengeTarget the minimap. window.__postgame (debug).
 
-export const CHALLENGES = [BRUGGEN, FIERLJEP, SKUTSJE, FJORD];
+export const CHALLENGES = [BRUGGEN, FIERLJEP, SKUTSJE, FJORD, KOE];
 const BY_ID = new Map(CHALLENGES.map((d) => [d.id, d]));
 const PRIZE = PG_PRIZE;
 const SAY_GAP = 9;
@@ -79,7 +80,7 @@ function checkOpen() {
 
 // --- markers ------------------------------------------------------------------
 
-const ICON_COLORS = { jelle: '#1d4f9c', fjord: '#2f6fb0' };
+const ICON_COLORS = { jelle: '#1d4f9c', fjord: '#2f6fb0', koe: '#4f7a2a' };
 
 function drawGlyph(g, kind, r) {
   g.save();
@@ -92,6 +93,16 @@ function drawGlyph(g, kind, r) {
     g.bezierCurveTo(-10, 0, -6, 8, 0, 3.5);
     g.bezierCurveTo(6, 8, 10, 0, 0, -7);
     g.fill();
+  } else if (kind === 'koe') {
+    // a cow's head: white with a black patch, pink muzzle, two horns
+    g.fillStyle = '#f4f1e6';
+    g.beginPath(); g.ellipse(0, -0.5, 6, 6.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#1c1c1c';
+    g.beginPath(); g.ellipse(-2.6, -2.8, 2.6, 2.2, 0.4, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#e8a0a8';
+    g.beginPath(); g.ellipse(0, 3.6, 4.2, 2.6, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#f2c230'; g.lineWidth = 1.6; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(-4.5, -5.5); g.lineTo(-7, -8.5); g.moveTo(4.5, -5.5); g.lineTo(7, -8.5); g.stroke();
   } else {
     // a paper cone of fries
     g.fillStyle = '#f2c230';
@@ -225,7 +236,7 @@ export function postgameSecondary(w) {
   for (const s of spots) {
     if (Math.abs(s.x - p.x) > 30 || Math.abs(s.y - p.y) > 30) continue;
     if (!!s.def.vehicle !== !!p.inVehicle && s.def.icon !== 'fjord') continue;
-    out.push({ id: 'pg2-' + s.def.id + s.x, x: s.x, y: s.y, h: 2.4, label: s.name, sub: s.def.icon === 'fjord' ? 'Parkeer de Fjord Frituur hier en druk E' : 'Uitdaging van Jelle: loop erheen en druk E', kind: 'place' });
+    out.push({ id: 'pg2-' + s.def.id + s.x, x: s.x, y: s.y, h: 2.4, label: s.name, sub: s.def.icon === 'fjord' ? 'Parkeer de Fjord Frituur hier en druk E' : s.def.icon === 'koe' ? 'Ome Jan heeft je hulp nodig: loop erheen en druk E' : 'Uitdaging van Jelle: loop erheen en druk E', kind: 'place' });
   }
   return out;
 }

@@ -1,0 +1,521 @@
+import { Vehicle, makeTwoWheeler } from './vehicle.js';
+import { getVehicleMesh } from './models3d_vehicles.js';
+import { buildPersonMesh, seatPerson, animatePersonWalk } from './models3d_people.js';
+import { buildCowMesh3D } from './wildlife.js';
+import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
+import { getScene } from './scene3d.js';
+import { REAL, RTILE, buildingsInTile, buildingModel, pushOutOfReal } from './countryreal.js';
+import { urbanWeight } from './countryfield.js';
+import { findOpenSpot, realRoadNear, placeNamed } from './ommelandplace.js';
+import { buildProp, disposeProp, animateProp, personMesh, sitDown } from './ommelandprops3d.js';
+import { speak, duoSpeaker } from './ommelandtalk.js';
+import { finish, say, setTarget, isPostgameOpen } from './postgame.js';
+import { playCinematic, isCinematicActive } from './cinematics.js';
+import { startCall } from './phonefeed.js';
+import { getChallengeRecord } from './achievements.js';
+import { KOE_LINES, KOE_WHO, KOE_CALL } from './ommelandlines.js';
+
+// De Koe van Ome Jan (post-game, postgame.js challenge def): Durk and Douwe
+// have taken Ome Jan's prize cow Geertje from his farm near Ten Boer to a
+// barn out in the fields, to show her at a Frisian cattle show. Drive out,
+// untie her, and lead her home across the fields while the twins chase you
+// in Jelle's trekker-limo; ram the trekker to stall it (three times and it
+// gives up). Geertje follows you (on foot or in any vehicle) as long as you
+// stay close; if the trekker stays on her heels the twins grab her. Medal by
+// time from leaving the farm to Geertje back in the yard.
+
+const COW_MAX = 9.5, COW_ACC = 5, COW_LOST = 70, LOST_FAIL = 90;
+const TRACTOR = { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 9.2, accel: 3.6, brake: 10, turnRate: 1.9, color: '#1b1c1f' };
+const GRAB_R = 6, GRAB_UP = 18, GRAB_DOWN = 10, RAM_STALL = 5, RAMS_TO_BREAK = 3, PANIC = 1.2;
+const HOME_R = 14, LIMIT = 900, HEAD_START = 4;
+
+let sites = null;
+let yard = null;
+let current = null;
+
+// --- where ---------------------------------------------------------------------------
+
+function barnsAround(x, y, r0, r1, pred) {
+  const out = [];
+  const t0x = Math.floor((x - r1) / RTILE), t1x = Math.floor((x + r1) / RTILE);
+  const t0y = Math.floor((y - r1) / RTILE), t1y = Math.floor((y + r1) / RTILE);
+  for (let tx = t0x; tx <= t1x; tx++) {
+    for (let ty = t0y; ty <= t1y; ty++) {
+      for (const i of buildingsInTile(tx, ty) || []) {
+        const d = Math.hypot(REAL.bx[i] - x, REAL.by[i] - y);
+        if (d < r0 || d > r1) continue;
+        const m = buildingModel(i);
+        if (m.kind !== 'barn' && m.kind !== 'shed') continue;
+        if (pred && !pred(i, d, m)) continue;
+        out.push({ i, d, x: REAL.bx[i], y: REAL.by[i], m });
+      }
+    }
+  }
+  return out.sort((a, b) => a.i - b.i);
+}
+
+// Open ground beside a building (its long side), within reach of (tx, ty).
+function besideBuilding(map, b, towards, opts) {
+  const a0 = Math.atan2(towards.y - b.y, towards.x - b.x);
+  return findOpenSpot(map, b.x, b.y, { rMin: b.m.short / 2 + 6, rMax: b.m.long / 2 + 22, a0, spread: 1.2, step: 3, opts });
+}
+
+function findSites(map) {
+  const tb = placeNamed('Ten Boer');
+  if (!tb) return null;
+  // Ome Jan: a farm with a barn 0.5-1.7 km out of Ten Boer, his yard gate on the road side
+  let farm = null, best = Infinity;
+  for (const b of barnsAround(tb.x, tb.y, 500, 1700, (i) => urbanWeight(REAL.bx[i], REAL.by[i]) < 0.12)) {
+    const road = realRoadNear(b.x, b.y, 70);
+    if (!road || road.road.kind > 6) continue;
+    const q = besideBuilding(map, b, road, { r: 3.2, road: 1 });
+    if (!q) continue;
+    const score = Math.abs(b.d - 950);
+    if (score < best) { best = score; farm = { x: q.x, y: q.y, b, a: Math.atan2(road.y - q.y, road.x - q.x) }; }
+  }
+  if (!farm) return null;
+  // the twins' barn: out in the fields, 1.1-1.9 km on, away from the roads
+  let hide = null;
+  best = Infinity;
+  for (const b of barnsAround(farm.x, farm.y, 1100, 1900, (i) => urbanWeight(REAL.bx[i], REAL.by[i]) < 0.05)) {
+    const road = realRoadNear(b.x, b.y, 45);
+    if (road && road.d < 20) continue;
+    const q = besideBuilding(map, b, farm, { r: 5, road: 8 });
+    if (!q) continue;
+    const score = Math.abs(b.d - 1400) - (road ? 0 : 150);
+    if (score < best) { best = score; hide = { x: q.x, y: q.y, b, a: Math.atan2(farm.y - q.y, farm.x - q.x) }; }
+  }
+  if (!hide) return null;
+  return { farm, hide, dist: Math.hypot(hide.x - farm.x, hide.y - farm.y) };
+}
+
+function ensureSites(map) {
+  if (!sites && REAL.ready) sites = findSites(map) || false;
+  return sites || null;
+}
+
+export function getKoeSites(map) {
+  return ensureSites(map);
+}
+
+// debug (window.__ommeland.koeCow): put Geertje somewhere
+export function koeCowTo(x, y) {
+  const c = current && current.data.cow;
+  if (!c) return false;
+  c.x = x; c.y = y;
+  return true;
+}
+
+// --- the yard: Ome Jan at his gate (and Geertje, once she's home) ----------------------
+
+function buildYard(w, S) {
+  const f = S.farm;
+  const prop = buildProp('erf', {});
+  prop.group.position.set(f.x, 0, f.y);
+  prop.group.rotation.y = -f.a;
+  getScene().add(prop.group);
+  const jan = personMesh('omejan');
+  const jx = f.x + Math.cos(f.a + 1.6) * 2.2, jy = f.y + Math.sin(f.a + 1.6) * 2.2;
+  jan.position.set(jx, 0, jy);
+  jan.rotation.y = -f.a;
+  getScene().add(jan);
+  yard = { prop, jan, jx, jy, greetAt: -99, cow: null };
+}
+
+function dropYard() {
+  if (!yard) return;
+  disposeProp(yard.prop);
+  yard.jan.removeFromParent();
+  yard.jan.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+  if (yard.cow) yard.cow.removeFromParent();
+  yard = null;
+}
+
+function idleYard(w, dt) {
+  const S = sites;
+  if (!S || !isPostgameOpen()) { dropYard(); return; }
+  const p = w.player;
+  const d = Math.hypot(S.farm.x - p.x, S.farm.y - p.y);
+  if (!yard && d < 220) buildYard(w, S);
+  else if (yard && d > 320) { dropYard(); return; }
+  if (!yard) return;
+  animatePersonWalk(yard.jan, 0, dt);
+  const rec = getChallengeRecord('koe');
+  const home = !!(rec && rec.medal) && !w.challenge;
+  if (home && !yard.cow) {
+    yard.cow = buildCowMesh3D(0.61);
+    yard.cow.position.set(S.farm.x + Math.cos(S.farm.a + Math.PI) * 6, 0, S.farm.y + Math.sin(S.farm.a + Math.PI) * 6);
+    yard.cow.rotation.y = -S.farm.a;
+    getScene().add(yard.cow);
+  }
+  if (!w.challenge && !p.inVehicle && d < 10 && w.time - yard.greetAt > 50 && !isCinematicActive()) {
+    yard.greetAt = w.time;
+    const list = home ? KOE_LINES.thanks : KOE_LINES.greet;
+    speak(w, KOE_WHO.J, list[Math.floor(Math.random() * list.length)], { x: yard.jx, y: yard.jy });
+  }
+}
+
+// --- the run ---------------------------------------------------------------------------
+
+const lineOf = ([k, text]) => ({ speaker: KOE_WHO[k], text });
+
+function sayKey(run, [k, text], prio = true) {
+  return say(run, KOE_WHO[k], text, prio);
+}
+
+function sayDuo(run, list, prio = false) {
+  const t = list[Math.floor(Math.random() * list.length)];
+  return say(run, duoSpeaker(run.world).name, t, prio);
+}
+
+function playScene(run, id, lines, center, onEnd) {
+  let at = 0.6;
+  const L = lines.map((l) => {
+    const o = lineOf(l);
+    const dur = Math.max(2.2, Math.min(5.5, 1 + o.text.length * 0.055));
+    const out = { ...o, at, dur };
+    at += dur + 0.25;
+    return out;
+  });
+  const a0 = center.a + 0.9;
+  return playCinematic({
+    id, priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
+    kicker: id === 'koe-intro' ? 'Na het verhaal' : 'Geertje is thuis', title: KOE.name, cardFor: 2.4, lines: L,
+    shot: (u) => {
+      const a = a0 + u * 0.6;
+      return { position: { x: center.x + Math.cos(a) * 8, y: center.y + Math.sin(a) * 8, z: 2.8 }, lookAt: { x: center.x, y: center.y, z: 1.4 }, fov: 50 };
+    },
+    onEnd,
+  });
+}
+
+function twinFigure(look, x, y, a, seat = 0) {
+  const m = buildPersonMesh(look.shirt, look.skin, look);
+  m.position.set(x, 0, y);
+  m.rotation.y = -a;
+  if (seat) sitDown(m, seat);
+  getScene().add(m);
+  return m;
+}
+
+function freeFigure(m) {
+  if (!m) return;
+  m.removeFromParent();
+  m.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+}
+
+// Durk behind the wheel of the trekker-limo, Douwe on its roof
+function crewTractor(d) {
+  const mesh = getVehicleMesh(d.tractor.id);
+  if (!mesh || mesh.userData.omCrew) return;
+  const body = mesh.userData.body || mesh;
+  // scene3d seats a generic driver once the trekker is near; Durk takes his place
+  const df = mesh.userData.driverFigure;
+  if (!df) return;
+  const durk = buildPersonMesh(DURK_LOOK.shirt, DURK_LOOK.skin, DURK_LOOK);
+  seatPerson(durk, true);
+  durk.position.copy(df.position);
+  durk.rotation.copy(df.rotation);
+  durk.visible = df.visible;
+  df.removeFromParent();
+  df.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
+  mesh.userData.driverFigure = durk;
+  body.add(durk);
+  const douwe = buildPersonMesh(DOUWE_LOOK.shirt, DOUWE_LOOK.skin, DOUWE_LOOK);
+  douwe.position.set(-1.3, 1.62, 0);
+  body.add(douwe);
+  mesh.userData.omCrew = { durk, douwe };
+}
+
+function stageText(run) {
+  const d = run.data;
+  if (d.stage === 'drive') return 'Rij naar de schuur van Durk en Douwe';
+  if (d.stage === 'untie') return run.world.player.inVehicle ? 'Stap uit en maak Geertje los' : 'Loop naar Geertje en druk E';
+  if (d.stage === 'escort') return d.cowWait ? 'Terug naar Geertje: ze wacht op je' : 'Breng Geertje naar Ome Jan';
+  return '';
+}
+
+function setupHideout(run) {
+  const w = run.world, d = run.data, H = sites.hide;
+  const prop = buildProp('hideout', {});
+  prop.group.position.set(H.x, 0, H.y);
+  prop.group.rotation.y = -H.a;
+  getScene().add(prop.group);
+  d.hideProp = prop;
+  const loc = (lx, lz) => [H.x + lx * Math.cos(H.a) - lz * Math.sin(H.a), H.y + lx * Math.sin(H.a) + lz * Math.cos(H.a)];
+  // Geertje tied to the barn, the twins on their bales
+  const [cx, cy] = loc(-1, -4.2);
+  d.cow = { x: cx, y: cy, a: H.a, v: 0, stride: 0, mesh: buildCowMesh3D(0.61) };
+  d.cow.mesh.position.set(cx, 0, cy);
+  d.cow.mesh.rotation.y = -H.a;
+  getScene().add(d.cow.mesh);
+  const [ax, ay] = loc(2, -2.5), [bx, by] = loc(2, -1.2);
+  d.durk = twinFigure(DURK_LOOK, ax - Math.cos(H.a) * 0.6, ay - Math.sin(H.a) * 0.6, H.a + Math.PI, 0);
+  d.douwe = twinFigure(DOUWE_LOOK, bx - Math.cos(H.a) * 0.6, by - Math.sin(H.a) * 0.6, H.a + Math.PI, 0);
+  // Jelle's trekker-limo parked beside the barn
+  const [tx, ty] = loc(3, 18);
+  const t = new Vehicle(tx, ty, H.a + Math.PI / 2, { ...TRACTOR });
+  t.driver = 'twins';
+  t.scripted = true;
+  t.missionCar = true;
+  t.label = 'Trekker-limo';
+  w.vehicles.push(t);
+  d.tractor = t;
+}
+
+function untie(run) {
+  const d = run.data;
+  d.stage = 'escort';
+  d.chaseAt = run.t + HEAD_START;
+  run.world.missionPrompt = null;
+  sayKey(run, KOE_LINES.untie[0]);
+  d.queue = [[1.6, KOE_LINES.alarm[0]], [3.4, KOE_LINES.alarm[1]]];
+  // the twins run for the trekker
+  freeFigure(d.durk); freeFigure(d.douwe);
+  d.durk = d.douwe = null;
+  setTarget({ x: sites.farm.x, y: sites.farm.y });
+}
+
+function cowStep(run, dt) {
+  const w = run.world, d = run.data, c = d.cow;
+  const p = w.player, pv = p.inVehicle;
+  const lx = pv ? pv.x : p.x, ly = pv ? pv.y : p.y;
+  const head = pv ? pv.angle : p.angle || 0;
+  const dist = Math.hypot(lx - c.x, ly - c.y);
+  d.cowWait = dist > COW_LOST;
+  let want = 0, tx = c.x, ty = c.y;
+  if (!d.cowWait) {
+    const back = pv ? pv.halfLen + 4 : 3;
+    tx = lx - Math.cos(head) * back; ty = ly - Math.sin(head) * back;
+    const dd = Math.hypot(tx - c.x, ty - c.y);
+    want = Math.min(COW_MAX * (d.grab > 5 ? PANIC : 1), Math.max(0, (dd - 1.5) * 1.1));
+  }
+  c.v += Math.max(-COW_ACC * 2 * dt, Math.min(COW_ACC * dt, want - c.v));
+  if (c.v > 0.05) {
+    const goal = Math.atan2(ty - c.y, tx - c.x);
+    let da = goal - c.a;
+    da = Math.atan2(Math.sin(da), Math.cos(da));
+    c.a += Math.max(-3 * dt, Math.min(3 * dt, da));
+    c.x += Math.cos(c.a) * c.v * dt;
+    c.y += Math.sin(c.a) * c.v * dt;
+    pushOutOfReal(c, 1.2);
+  }
+  c.stride += c.v * dt * 1.6;
+  const m = c.mesh;
+  m.position.set(c.x, Math.abs(Math.sin(c.stride)) * Math.min(0.12, c.v * 0.015), c.y);
+  m.rotation.y = -c.a;
+  const legs = m.userData.legs;
+  if (legs) legs.forEach((b, i) => { b.rotation.z = Math.sin(c.stride + (i % 2 ? Math.PI : 0) + (i > 1 ? 0.8 : 0)) * Math.min(0.7, c.v * 0.09); });
+  return dist;
+}
+
+// Kinematic: the twins' own speed and heading (the traffic systems leave a
+// scripted vehicle alone, collisions still shove it about).
+function drive(t, d, dt, want, steer) {
+  d.tv += Math.max(-TRACTOR.brake * dt, Math.min(TRACTOR.accel * dt, want - d.tv));
+  if (d.tv > 0.2) t.angle += Math.max(-1, Math.min(1, steer)) * TRACTOR.turnRate * Math.min(1, d.tv / 4) * dt;
+  t.speed = d.tv;
+  t.x += Math.cos(t.angle) * d.tv * dt;
+  t.y += Math.sin(t.angle) * d.tv * dt;
+}
+
+function tractorStep(run, dt) {
+  const w = run.world, d = run.data, t = d.tractor, c = d.cow;
+  if (!w.vehicles.includes(t)) w.vehicles.push(t);
+  crewTractor(d);
+  if (d.broken || run.t < d.chaseAt) { drive(t, d, dt, 0, 0); return Infinity; }
+  if (t.disabled || t.wrecked) { breakDown(run); return Infinity; }
+  // a ram from the player's vehicle stalls the trekker
+  const pv = w.player.inVehicle;
+  if (pv && pv !== t && run.t > d.ramCool) {
+    const gap = Math.hypot(pv.x - t.x, pv.y - t.y);
+    if (gap < (pv.halfLen + t.halfLen) * 0.9 && Math.abs(pv.speed || 0) > 5.5) {
+      d.rams++;
+      d.ramCool = run.t + 2;
+      d.stallUntil = run.t + RAM_STALL;
+      d.tv = 0;
+      if (d.rams >= RAMS_TO_BREAK) { breakDown(run); return Infinity; }
+      sayKey(run, KOE_LINES.ram[(d.rams - 1) % KOE_LINES.ram.length]);
+    }
+  }
+  const dist = Math.hypot(c.x - t.x, c.y - t.y);
+  if (run.t < d.stallUntil) { drive(t, d, dt, 0, 0); return dist; }
+  const lead = 0.6;
+  const gx = c.x + Math.cos(c.a) * c.v * lead, gy = c.y + Math.sin(c.a) * c.v * lead;
+  let da = Math.atan2(gy - t.y, gx - t.x) - t.angle;
+  da = Math.atan2(Math.sin(da), Math.cos(da));
+  const want = dist < 5 ? 1.5 : Math.abs(da) > 1.3 ? 3.5 : TRACTOR.maxSpeed;
+  drive(t, d, dt, want, da * 2.2);
+  return dist;
+}
+
+function breakDown(run) {
+  const d = run.data;
+  if (d.broken) return;
+  d.broken = true;
+  sayKey(run, KOE_LINES.broken[0]);
+}
+
+function deliver(run) {
+  const d = run.data;
+  d.stage = 'outro';
+  const S = sites, el = d.elapsed;
+  const par = S.dist / 13 + S.dist / 8.2 + 25;
+  const medal = el <= par ? 3 : el <= par * 1.35 ? 2 : 1;
+  const res = {
+    success: true, medal, value: Math.round(el * 10) / 10, lower: true, title: 'GEERTJE IS THUIS',
+    reason: medal === 3 ? 'Ome Jan heeft er geen woorden voor. Wel kaas.' : 'Geertje staat weer op stal',
+    stats: [['Tijd', fmt(el)], ['Trekker gerammd', `${d.rams}x`]],
+  };
+  d.cow.v = 0;
+  const done = () => finish(run, res);
+  if (!playScene(run, 'koe-outro', KOE_LINES.outro, { x: S.farm.x, y: S.farm.y, a: S.farm.a }, done)) done();
+}
+
+function fmt(s) {
+  const t = Math.max(0, s), m = Math.floor(t / 60);
+  return `${m}:${String(Math.floor(t - m * 60)).padStart(2, '0')}`;
+}
+
+export const KOE = {
+  id: 'koe',
+  name: 'De Koe van Ome Jan',
+  blurb: 'Durk en Douwe hebben de prijskoe van Ome Jan gejat',
+  icon: 'koe',
+  jelle: false,
+  banter: 'koe',
+  reach: 3,
+  spots(world) {
+    const S = ensureSites(world.map);
+    return S ? [{ x: S.farm.x, y: S.farm.y, name: 'De Koe van Ome Jan', sub: 'Ome Jan bij Ten Boer mist zijn prijskoe' }] : [];
+  },
+  verb: () => 'De Koe van Ome Jan',
+  promptSub: () => 'Ome Jan mist zijn prijskoe Geertje',
+  start(run) {
+    const w = run.world;
+    if (!ensureSites(w.map)) return 'Ome Jan is even niet thuis';
+    Object.assign(run.data, { stage: 'intro', tv: 0, elapsed: 0, rams: 0, ramCool: 0, stallUntil: 0, grab: 0, maxGrab: 0, lostT: 0, broken: false, queue: [], called: false, lastDuo: 0 });
+    setupHideout(run);
+    current = run;
+    run.ui.setSlot('<div class="pg-help">Geertje loopt achter je aan, te voet of met een voertuig, zolang je in de buurt blijft. Ram de trekker om hem stil te zetten.</div>');
+    const go = () => {
+      if (run.data.stage !== 'intro') return;
+      run.data.stage = 'drive';
+      setTarget({ x: sites.hide.x, y: sites.hide.y });
+      // Ome Jan's old moped, for when you came by train
+      const p = w.player;
+      const near = w.vehicles.some((v) => !v.wrecked && !v.isBoat && (v.playerOwned || v.isHeroCar || v.driver === 'player') && Math.hypot(v.x - p.x, v.y - p.y) < 80);
+      if (!near) {
+        const f = sites.farm;
+        const m = makeTwoWheeler('moped', f.x + Math.cos(f.a - 1.6) * 3, f.y + Math.sin(f.a - 1.6) * 3, f.a);
+        m.missionCar = true;
+        w.vehicles.push(m);
+        run.data.moped = m;
+        w.addMessage('Ome Jan leent je zijn ouwe brommer', 3);
+      }
+    };
+    run.data.go = go;
+    if (!playScene(run, 'koe-intro', KOE_LINES.intro, { x: sites.farm.x, y: sites.farm.y, a: sites.farm.a }, go)) go();
+    return true;
+  },
+  keys(run, input) {
+    const d = run.data;
+    if (d.stage !== 'untie' || !d.cow || run.world.player.inVehicle) return;
+    const p = run.world.player;
+    if (Math.hypot(d.cow.x - p.x, d.cow.y - p.y) > 3.2) return;
+    if (input.wasPressed('e') || input.wasPressed('f')) {
+      input.consume('e');
+      input.consume('f');
+      untie(run);
+    }
+  },
+  update(run, dt) {
+    const w = run.world, d = run.data, p = w.player;
+    if (d.stage === 'intro' && !isCinematicActive('koe-intro')) d.go();
+    if (d.stage === 'intro' || d.stage === 'outro') return;
+    d.elapsed += dt;
+    for (let i = d.queue.length - 1; i >= 0; i--) {
+      if ((d.queue[i][0] -= dt) <= 0) { sayKey(run, d.queue[i][1]); d.queue.splice(i, 1); }
+    }
+    if (d.elapsed > LIMIT) { finish(run, { success: false, medal: 0, title: 'GEERTJE IS WEG', reason: 'Te lang onderweg. Durk en Douwe zijn met Geertje naar Friesland.', stats: [] }); return; }
+    const H = sites.hide;
+    const lx = p.inVehicle ? p.inVehicle.x : p.x, ly = p.inVehicle ? p.inVehicle.y : p.y;
+    if (d.stage === 'drive') {
+      if (!d.called && (d.elapsed > 25 || (d.elapsed > 10 && p.inVehicle))) { d.called = true; startCall(w, { from: 'Jelle Terpstra', lines: KOE_CALL }); }
+      if (Math.hypot(H.x - lx, H.y - ly) < 45) {
+        d.stage = 'untie';
+        sayKey(run, KOE_LINES.spotted[0]);
+        d.queue.push([3, KOE_LINES.spotted[1]]);
+        setTarget({ x: d.cow.x, y: d.cow.y });
+      }
+    } else if (d.stage === 'untie') {
+      const near = !p.inVehicle && Math.hypot(d.cow.x - p.x, d.cow.y - p.y) < 3.2;
+      w.missionPrompt = near ? { id: 'koe-untie', x: d.cow.x, y: d.cow.y, h: 1.9, key: 'E', label: 'Geertje losmaken', sub: 'Durk en Douwe kijken de andere kant op', ring: true } : null;
+    } else if (d.stage === 'escort') {
+      const dist = cowStep(run, dt);
+      const td = tractorStep(run, dt);
+      if (d.cowWait) {
+        d.lostT += dt;
+        if (run.t - d.lastDuo > 14) { d.lastDuo = run.t; sayDuo(run, KOE_LINES.duo.wait, true); }
+        if (d.lostT > LOST_FAIL) { finish(run, { success: false, medal: 0, title: 'GEERTJE IS WEG', reason: 'Je bent Geertje kwijtgeraakt. Ome Jan is in alle staten.', stats: [] }); return; }
+      } else d.lostT = 0;
+      if (td < GRAB_R) {
+        d.grab = Math.min(100, d.grab + GRAB_UP * dt * (1.4 - td / GRAB_R));
+        if (d.grab > 50 && !d.saidClose) { d.saidClose = true; sayKey(run, KOE_LINES.close[0]); }
+        if (run.t - d.lastDuo > 10) { d.lastDuo = run.t; sayDuo(run, KOE_LINES.duo.near); }
+      } else {
+        d.grab = Math.max(0, d.grab - GRAB_DOWN * dt);
+        if (d.grab < 20) d.saidClose = false;
+      }
+      d.maxGrab = Math.max(d.maxGrab, d.grab);
+      if (d.grab >= 100) {
+        sayKey(run, KOE_LINES.lost[0]);
+        finish(run, { success: false, medal: 0, title: 'GEERTJE IS WEG', reason: 'Durk en Douwe hebben Geertje weer. Op weg naar de keuring in Friesland.', stats: [] });
+        return;
+      }
+      if (!d.broken && run.t > d.chaseAt && run.t - run.lastSay > 11) {
+        d.chaseLine = ((d.chaseLine ?? -1) + 1) % KOE_LINES.chase.length;
+        sayKey(run, KOE_LINES.chase[d.chaseLine], false);
+      } else if (run.t - d.lastDuo > 22 && dist < 30) { d.lastDuo = run.t; sayDuo(run, p.inVehicle && Math.abs(p.inVehicle.speed || 0) > COW_MAX ? KOE_LINES.duo.slow : KOE_LINES.duo.go); }
+      setTarget({ x: sites.farm.x, y: sites.farm.y });
+      if (Math.hypot(d.cow.x - sites.farm.x, d.cow.y - sites.farm.y) < HOME_R) deliver(run);
+    }
+    const rows = [['Doel', stageText(run)], ['Tijd', fmt(d.elapsed)]];
+    if (d.stage === 'escort') {
+      rows.push(['Durk & Douwe', d.broken ? 'trekker kapot' : run.t < d.stallUntil ? 'motor stil' : `grijpen ${Math.round(d.grab)}%`]);
+      rows.push(['Trekker gerammd', `${d.rams}/${RAMS_TO_BREAK}`]);
+    }
+    run.ui.setRows(rows);
+  },
+  hud: () => null,
+  stop(run) {
+    const w = run.world, d = run.data;
+    if (current === run) current = null;
+    w.missionPrompt = null;
+    if (d.hideProp) disposeProp(d.hideProp);
+    if (d.cow) d.cow.mesh.removeFromParent();
+    freeFigure(d.durk); freeFigure(d.douwe);
+    if (d.tractor) {
+      const i = w.vehicles.indexOf(d.tractor);
+      if (i >= 0) w.vehicles.splice(i, 1);
+    }
+    if (d.moped && w.player.inVehicle !== d.moped) {
+      const i = w.vehicles.indexOf(d.moped);
+      if (i >= 0) w.vehicles.splice(i, 1);
+    }
+  },
+  idle(world, dt) {
+    if (sites) idleYard(world, dt);
+  },
+  debugWin(run) {
+    const d = run.data;
+    if (d.stage === 'intro') d.go();
+    d.elapsed = Math.max(d.elapsed, 60);
+    if (d.cow) { d.cow.x = sites.farm.x; d.cow.y = sites.farm.y; }
+    finish(run, { success: true, medal: 3, value: d.elapsed, lower: true, title: 'GEERTJE IS THUIS', reason: 'Geertje staat weer op stal', stats: [['Tijd', fmt(d.elapsed)]] });
+  },
+  debugState(run) {
+    const d = run.data;
+    return { stage: d.stage, grab: Math.round(d.grab), rams: d.rams, cow: d.cow ? [Math.round(d.cow.x), Math.round(d.cow.y)] : null, tractor: d.tractor ? [Math.round(d.tractor.x), Math.round(d.tractor.y)] : null };
+  },
+};

@@ -19,6 +19,7 @@ import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { padelPrompt, padelSecondary } from './padel.js';
 import { postgamePrompt, postgameSecondary } from './postgame.js';
+import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 
@@ -328,6 +329,8 @@ function findPrimary(world) {
   if (heli) return heli;
   const padel = padelPrompt(world);
   if (padel) return padel;
+  const dorp = ommelandPrompt(world);
+  if (dorp) return dorp;
   const trein = stationPrompt(world);
   if (trein) return trein;
   const food = nearestHorecaSpot(world);
@@ -416,6 +419,7 @@ function findSecondary(world, primary) {
   for (const c of postgameSecondary(world)) add(c, 25);
   for (const c of sideJobSecondary(world)) add(c, c.maxD || 20);
   for (const c of stationSecondary(world)) add(c, 22);
+  for (const c of ommelandSecondary(world)) add(c, 24);
   const m = world.mission;
   if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active)) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, sub: 'Loop of rij de marker in', kind: 'mission' }, 60);

@@ -100,6 +100,10 @@ export const ACHIEVEMENTS = [
   { id: 'padel_winst', cat: 'verkennen', title: 'Tegen het glas', desc: 'Win een potje padel' },
   { id: 'padel_goud', cat: 'verkennen', title: 'Padelkoning van Grunn', desc: 'Win een potje padel met 2-0' },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
+  // the Ommeland extras (worldends.js, dorpsuitjes.js): progress only, never where
+  { id: 'wereldeinde_1', cat: 'verkennen', title: 'Rand van de kaart', desc: 'Vind een plek waar een weg van het Ommeland ophoudt', set: 'wereldeinden', goal: 1 },
+  { id: 'wereldeinde_alle', cat: 'verkennen', title: 'Einde van de wereld', desc: 'Vind alle 12 plekken waar de wegen van het Ommeland ophouden', set: 'wereldeinden', goal: 12 },
+  { id: 'dorpen_alle', cat: 'verkennen', title: 'Ommelander in hart en nieren', desc: 'Doe in elk van de 8 dorpen langs het spoor waar je daar voor komt', set: 'dorpsuitjes', goal: 8 },
 
   // post-game (postgame.js): Jelle's challenges and the Fjord Frituur
   { id: 'bruggen_klaar', cat: 'nahetverhaal', title: 'Elf bruggen', desc: 'Vaar de Elf Bruggenrace tegen Jelle uit' },
@@ -111,6 +115,8 @@ export const ACHIEVEMENTS = [
   { id: 'jelle_alles', cat: 'nahetverhaal', title: 'Better as ús', desc: 'Versla Jelle in alle drie de uitdagingen' },
   { id: 'fjord_klaar', cat: 'nahetverhaal', title: 'Luik open', desc: 'Draai een dienst met de Fjord Frituur' },
   { id: 'fjord_goud', cat: 'nahetverhaal', title: 'Kon minder', desc: 'Goud in een dienst van de Fjord Frituur', medal: true },
+  { id: 'koe_klaar', cat: 'nahetverhaal', title: 'Geertje is thuis', desc: 'Breng de prijskoe van Ome Jan terug naar zijn boerderij' },
+  { id: 'koe_goud', cat: 'nahetverhaal', title: 'Koeienfluisteraar', desc: 'Goud bij De Koe van Ome Jan', medal: true },
   { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de Fjord Frituur', stat: 'fjordEarned', goal: 1000, unit: '€' },
 
   { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: GTW, WINK en de Intercity', set: 'trains', goal: 3 },
@@ -135,6 +141,7 @@ export const ACHIEVEMENTS = [
   { id: 'eierbal_1', cat: 'verzamelen', title: 'Eerste eierbal', desc: 'Vind een verstopte eierbal', save: 'eierballen', goal: 1 },
   { id: 'eierbal_15', cat: 'verzamelen', title: 'Halve portie', desc: `Vind 15 van de ${EIERBAL_TOTAL} eierballen`, save: 'eierballen', goal: 15 },
   { id: 'eierbal_alle', cat: 'verzamelen', title: 'Eierbalkoning', desc: `Vind alle ${EIERBAL_TOTAL} eierballen in één spel`, save: 'eierballen', goal: EIERBAL_TOTAL },
+  { id: 'dorpseierbal_alle', cat: 'verzamelen', title: 'Eierballen van het Ommeland', desc: 'Vind de verstopte eierbal in elk van de 8 dorpen langs het spoor', set: 'dorpseierballen', goal: 8 },
 
   { id: 'duif_martini', cat: 'duif', title: 'Hoogste duif van Grunn', desc: 'Land boven op de Martinitoren' },
   { id: 'duif_forum', cat: 'duif', title: 'Uitzicht vanaf het Forum', desc: 'Land op het dak van het Forum' },

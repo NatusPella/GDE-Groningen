@@ -48,6 +48,7 @@ import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
+import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
@@ -176,6 +177,7 @@ async function boot() {
   initTrafficLights(world);
   initRailway(world);
   initStationTravel(world);
+  initOmmelandFun(world);
   initWeather(world);
   initFlitspaal(world);
   initWildlife(world);
@@ -312,6 +314,7 @@ async function boot() {
       tryGarageInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
+      tryOmmelandInteract(world);
       tryStationInteract(world);
       tryHomeInteract(world);
       tryHorecaInteract(world);
@@ -374,6 +377,7 @@ async function boot() {
     updateStory(dt, world);
     updateSideJobs(dt, world);
     updatePostgame(dt, world);
+    updateOmmelandFun(dt, world);
     updateWeather(dt, world);
     updateDayNight(dt, world);
     updateAchievementTracker(dt, world);
