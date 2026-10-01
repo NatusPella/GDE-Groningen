@@ -84,7 +84,9 @@ function buildMenu() {
 
 function createWindow() {
   // --trailer=3840x2160: that many device pixels of page, whatever the screen
-  const rec = TRAILER && TRAILER.includes('=') ? TRAILER.split('=')[1].split('x').map(Number) : null;
+  // --window-size=1280x720: a test run's window in CSS px (HUD layout checks with --smoke-test)
+  const size = argValue('--window-size');
+  const rec = TRAILER && TRAILER.includes('=') ? TRAILER.split('=')[1].split('x').map(Number) : size ? size.split('x').map((v) => Number(v) * (require('electron').screen.getPrimaryDisplay().scaleFactor || 1)) : null;
   const recScale = rec ? require('electron').screen.getPrimaryDisplay().scaleFactor || 1 : 1;
   const win = new BrowserWindow({
     ...(rec && rec[0] > 0 && rec[1] > 0
