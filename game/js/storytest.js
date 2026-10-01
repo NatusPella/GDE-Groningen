@@ -3,7 +3,9 @@
 // plays every available story step through the debug hooks: activities are
 // completed the way a player would (purchases are paid), missions are
 // started at their marker and finished objective by objective. H3 goes
-// through the fail + "Sla deze missie over" path. Checks that the flow
+// through the fail + "Sla deze missie over" path; the padel match, the story
+// bumper-car ride and the demo flight are played for real (storyfun.js
+// scenes included). Checks that the flow
 // reaches "Wordt vervolgd" at the end of the last open part, that money
 // never runs short (also when every mission is skipped) with a comfortable
 // margin, that the economy targets hold (economyChecks), that an old save
@@ -13,7 +15,9 @@
 import { skipCinematic, isCinematicActive } from './cinematics.js';
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
-import { applySave } from './savegame.js';
+import { applySave, saveGame, loadLatestSave } from './savegame.js';
+import { isVillageMiniActive } from './dorpsuitjes.js';
+import { isActivityActive } from './activities.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 import { validateSpots } from './spotcheck.js';
@@ -203,7 +207,7 @@ export async function runStoryTest(world) {
           S().teleport();
           await sleep(900);
           capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
-          check(`${cur.id}: can be skipped from the pause menu`, S().canSkip() && S().view().canSkip);
+          check(`${cur.id}: no skip offered before a first try`, !S().canSkip() && !S().view().canSkip);
           const before = world.money;
           if (step.goal && step.goal.type === 'padel' && window.__padel) {
             // a real match at the court the guide points to, ended at once (a loss still counts)
@@ -216,6 +220,58 @@ export async function runStoryTest(world) {
             pd.finish(false);
             check(`${cur.id}: padel match completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 5000));
             check(`${cur.id}: padel gives full health`, world.health >= 100, String(world.health));
+          } else if (step.goal && step.goal.type === 'kermis' && window.__kermis && window.__activities) {
+            // the story ride from the booth (E): free even when broke, Durk & Douwe in two of the cars
+            const km = window.__kermis, sf = window.__storyFun;
+            const p = world.player, s = km.spot();
+            if (p.inVehicle) p.exitVehicle(world.map, world);
+            p.x = s.x; p.y = s.y;
+            world.wanted = 0;
+            const cash = world.money;
+            world.money = 1;
+            const scenes = sf.state().played.kermis;
+            window.__activities.get('kermis').interact(world);
+            await sleep(1200);
+            const st = km.state();
+            check(`${cur.id}: story ride starts free with Durk and Douwe`, st && st.twins.join() === 'durk,douwe' && world.money === 1, JSON.stringify({ st, money: world.money }));
+            world.money = cash;
+            capture(`${String(n).padStart(2, '0')}-${cur.id}-ride`);
+            km.finish();
+            check(`${cur.id}: the ride completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 15000));
+            check(`${cur.id}: the twins' scene plays after the ride`, await waitFor(() => sf.state().played.kermis > scenes, 20000), JSON.stringify(sf.state()));
+            await sleep(2500);
+            capture(`${String(n).padStart(2, '0')}-${cur.id}-scene`);
+            await sleep(800);
+            check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
+          } else if (step.goal && step.goal.type === 'flight' && window.__storyFun) {
+            // the free demo flight: Rotor Roelf at his heli, up and over the balloon, back and out
+            const sf = window.__storyFun, p = world.player;
+            const v = (await waitFor(() => sf.demo(), 5000)) && sf.demo();
+            check(`${cur.id}: Rotor Roelf's demo heli waits, not owned`, v && v.isHeli && v.missionCar && !v.playerOwned, JSON.stringify(sf.state()));
+            if (v) {
+              if (p.inVehicle) p.exitVehicle(world.map, world);
+              p.x = v.x + 4; p.y = v.y + 1;
+              check(`${cur.id}: Rotor Roelf's scene plays at his heli`, await waitFor(() => sf.state().played.meet > 0, 8000), JSON.stringify(sf.state()));
+              await drain(world, 300);
+              p.enterVehicle(v, world);
+              const [bx, by] = step.goal.over;
+              Object.assign(v, { x: bx - 120, y: by + 10, z: 40, onGround: false, airborne: true, vx: 0, vy: 0, vz: 0, speed: 0 });
+              await sleep(900);
+              check(`${cur.id}: the balloon stands in the park`, !!sf.state().balloon, JSON.stringify(sf.state()));
+              if (await waitFor(() => sf.state().played.spot > 0 && isCinematicActive(), 15000)) {
+                await sleep(2500);
+                capture(`${String(n).padStart(2, '0')}-${cur.id}-spot`);
+                await sleep(800);
+              }
+              const spotted = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
+              check(`${cur.id}: spotting the balloon from the air completes the step`, spotted && sf.state().played.spot > 0, JSON.stringify(sf.state()));
+              const [hx, hy] = step.goal.heli;
+              const gz = world.map.groundHeightAt ? world.map.groundHeightAt(hx, hy, 0) : 0;
+              Object.assign(v, { x: hx, y: hy, z: gz, groundZ: gz, onGround: true, airborne: false, vx: 0, vy: 0, vz: 0, speed: 0 });
+              await sleep(500);
+              if (p.inVehicle === v) p.exitVehicle(world.map, world);
+            }
+            check(`${cur.id}: no helicopter bought for the demo flight`, !getOwnedEntries().some((o) => o.spec && o.spec.kind === 'heli'));
           } else S().complete();
           if (step.cost) entry.notes.push(`betaald, saldo €${Math.round(world.money)} (was €${Math.round(before)})`);
           check(`money ok at ${cur.id}`, world.money >= 0, `€${Math.round(world.money)}`);
@@ -226,7 +282,7 @@ export async function runStoryTest(world) {
           await sleep(300);
           await drain(world, 400);
           capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
-          check(`${cur.id}: can be skipped from the pause menu`, S().canSkip() && S().view().canSkip);
+          check(`${cur.id}: no skip offered before a first try`, !S().canSkip() && !S().view().canSkip);
           if (cur.id === 'H15' || cur.id === 'H17') {
             // Staart: a failed heli run (H15) and a running mission skipped from the pause menu (H17)
             const m0 = world.money;
@@ -237,7 +293,7 @@ export async function runStoryTest(world) {
               check('H15: fail ends the heli run', !world.heliRun && !isMissionActive());
               check('H15: skip offered after the fail', S().canSkip());
             }
-            const ok = S().skip();
+            const ok = S().skip(cur.id === 'H17');
             await drain(world);
             check(`${cur.id}: skip works`, ok && !isMissionActive() && S().current().id !== cur.id, JSON.stringify(S().current()));
             entry.notes.push(`${cur.id === 'H15' ? 'mislukt en ' : 'tijdens de missie '}overgeslagen: +€${Math.round(world.money - m0)}`);
@@ -299,6 +355,7 @@ export async function runStoryTest(world) {
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
       check('Tammo and Anita take turns', swaps >= 4, `${swaps} wissels`);
+      check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 
       // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
       const pg = window.__postgame;
@@ -343,6 +400,40 @@ export async function runStoryTest(world) {
         await sleep(500);
         capture('om-dorp');
         await drain(world, 700);
+      }
+
+      // a heli run keeps its players hidden past the safety watchdog, and a loaded
+      // save ends whatever holds the player (heli run, padel match, village tennis)
+      if (window.__heliRun && window.__padel) {
+        if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+        saveGame(world, { toast: false });
+        window.__heliRun.start('ballonjacht');
+        await sleep(600);
+        for (let i = 0; i < 8 && isCinematicActive(); i++) { skipCinematic(); await sleep(250); }
+        await sleep(3800);
+        check('heli run keeps the players hidden past the safety watchdog', world.heliRun && world.cinematicHidePlayers);
+        loadLatestSave(world);
+        check('a loaded save ends a heli run', !world.heliRun);
+        await drain(world, 700);
+        window.__padel.start();
+        await sleep(1200);
+        const padelOn = !!world.padelGame;
+        loadLatestSave(world);
+        check('a loaded save ends a padel match', padelOn && !world.padelGame, `match started: ${padelOn}`);
+        await drain(world, 700);
+        if (om && om.use('Haren', 'special')) {
+          const tennisOn = isVillageMiniActive();
+          loadLatestSave(world);
+          check('a loaded save ends village tennis', tennisOn && !isVillageMiniActive(), `tennis started: ${tennisOn}`);
+          await drain(world, 700);
+        }
+        if (window.__kermis && window.__kermis.start()) {
+          await sleep(1200);
+          const ridingOn = isActivityActive();
+          loadLatestSave(world);
+          check("a loaded save ends the botsauto's", ridingOn && !isActivityActive(), `ride started: ${ridingOn}`);
+          await drain(world, 700);
+        }
       }
 
       // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data

@@ -24,12 +24,13 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
-import { playCinematic, isCinematicActive, sinceCinematic } from './cinematics.js';
+import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { queueFjordReveal } from './postgame.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
+import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy } from './storyfun.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -53,9 +54,12 @@ const REMIND_AFTER = 300;
 const SKIP_OFFER_S = 30;
 const SKIP_SHARE = 0.5;
 const GATED_SKIP_S = 90;
+const STUCK_SKIP_S = 360;
 const NIGHT_GARAGE_M = 16;
 const NIGHT_HOUR = 21.4;
 const SWAP_FADE = 0.45;
+const SWAP_CALM = 1.2;
+const SWAP_CARD_WAIT = 8;
 
 let world = null;
 let ready = false;
@@ -221,10 +225,14 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   delete state.fails[step.id];
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
-  if (!quiet && step.kind === 'activity' && step.done) phone(who(step.done[0]), step.done[1], 5);
+  if (!quiet && step.kind === 'activity' && step.done) {
+    // a step with a closing scene (storyfun.js) sends its done text after it
+    const send = () => phone(who(step.done[0]), step.done[1], 5);
+    if (skipped || !storyFunDone(world, step, send)) send();
+  }
   if (!quiet && !skipped && step.kind === 'activity' && isPurchase(step)) {
     const next = currentStep();
-    world.addMessage(next && !next.end ? `Gelukt! Terug naar het verhaal: ${next.title}` : 'Gelukt! Terug naar het verhaal', 5, { kind: 'missie', key: 'story-bought' });
+    world.addMessage(next && !next.end ? `Gelukt! Terug naar het verhaal: ${next.title}` : 'Gelukt! Terug naar het verhaal', 5, { kind: 'missie', key: 'story-buy' });
   }
   if (!quiet && step.after) for (const [from, text] of step.after) phone(who(from), text, 6);
   if (step.beat) for (const [from, text] of step.beat) phone(who(from), text, 6);
@@ -257,7 +265,7 @@ function refreshGuide() {
     if (gate) { place = requirementPlace(world, gate); why = `Eerst: ${storyBuyLabel(world, place) || gateLabel(gate)}`; }
     if (rt.gate && rt.gate !== 'night' && !gate && !rt.gateCard) {
       rt.gateCard = true;
-      world.addMessage(`Gelukt! Terug naar het verhaal: ${step.title}`, 5, { kind: 'missie', key: 'story-bought' });
+      world.addMessage(`Gelukt! Terug naar het verhaal: ${step.title}`, 5, { kind: 'missie', key: 'story-buy' });
     }
     else if (def) place = def.start;
     // a requirement that stays unmet (no money, the rental boat sank) also makes the step skippable
@@ -498,12 +506,26 @@ function swapDone(w, i) {
   return w.player.character === step.player;
 }
 
+// A calm moment for the handover: no mission banner up and a beat after a
+// scene ended or a menu (a shop) closed; the game skips updateStory while paused.
+function calmForSwap() {
+  const now = performance.now();
+  // a HUD card that is up (the purchase's "Gelukt!") is read first, for a while at most
+  const card = document.body.classList.contains('hud-card-on');
+  rt.cardSince = card ? rt.cardSince || now : 0;
+  const reading = card && now - rt.cardSince < SWAP_CARD_WAIT * 1000;
+  if (now - (rt.tickAt || 0) > 250 || isBannerUp() || reading || sinceCinematic() < SWAP_CALM) rt.calmAt = now;
+  rt.tickAt = now;
+  return now - rt.calmAt > SWAP_CALM * 1000;
+}
+
 function updateCharacter(w) {
   const step = rt.cur;
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
+  const calm = calmForSwap();
   if (!want || w.player.character === want) return;
-  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
+  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn || !calm) return;
   swapCharacter(w, want);
   if (!playHandover(w, step)) {
     flash();
@@ -576,26 +598,34 @@ function flash() {
 
 // --- skipping --------------------------------------------------------------------------
 
-// Every step can be skipped from the pause menu (Missies tab), a running
-// story mission too (it is aborted first); the O button on screen only shows
-// after a failure, a long gate or a long wait on an activity.
-export function canSkipCurrent() {
+// One rule for every step, in the pause menu (Missies tab) and the O button
+// on screen: a skip is only offered once the player has tried, after a failed
+// attempt, a requirement that stays unmet, or a long time stuck on the step
+// (a running story mission too: it is aborted first). force: the dev panel
+// and the story test.
+function skipEarned(step) {
+  if ((state.fails[step.id] || 0) >= 1) return true;
+  if (rt.gatedSince >= 0 && world.time - rt.gatedSince > GATED_SKIP_S) return true;
+  if (isMissionActive()) return rt.runT > STUCK_SKIP_S;
+  return step.kind === 'activity' && world.time - rt.enteredAt > REMIND_AFTER;
+}
+
+export function canSkipCurrent({ force = false } = {}) {
   const step = rt.cur;
   if (!step || step.end) return false;
-  if (isMissionActive()) return step.kind === 'mission' && activeMissionIndex() === missionIdx(step);
-  return true;
+  if (isMissionActive() && !(step.kind === 'mission' && activeMissionIndex() === missionIdx(step))) return false;
+  return force || skipEarned(step);
 }
 
 function skipOffered() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) return false;
-  if (step.kind === 'activity') return true;
-  return (state.fails[step.id] || 0) >= 1 || (rt.gatedSince >= 0 && world.time - rt.gatedSince > GATED_SKIP_S);
+  return skipEarned(step);
 }
 
-export function skipCurrent() {
+export function skipCurrent({ force = false } = {}) {
   const step = rt.cur;
-  if (!canSkipCurrent()) return false;
+  if (!canSkipCurrent({ force })) return false;
   if (isMissionActive() && !failActiveMission(world, 'Missie overgeslagen', 'Overgeslagen')) return false;
   if (step.kind === 'mission') {
     const i = missionIdx(step);
@@ -689,6 +719,8 @@ function onGated() {
 export function initStory(w) {
   world = w;
   setMissionHooks({ waived: (key) => state.waived.has(key), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
+  Object.assign(GOALS, FUN_GOALS);
+  initStoryFun(w);
   initSkipUi();
   ready = true;
   window.__story = storyApi;
@@ -703,8 +735,10 @@ export function updateStory(dt, w) {
   const same = cur === rt.cur || (cur.end && rt.cur && rt.cur.end === cur.end);
   if (!same) enter(cur);
   const step = rt.cur;
+  rt.runT = step && !step.end && step.kind === 'mission' && activeMissionIndex() === missionIdx(step) ? (rt.runT || 0) + dt : 0;
   updateSkipUi();
   updateCharacter(w);
+  updateStoryFun(dt, w, step, rt.base);
   if (!step) return;
   if (step.end) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
@@ -721,7 +755,7 @@ export function updateStory(dt, w) {
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment
-  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE) {
+  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE && !storyFunBusy()) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
     const buy = isPurchase(step) && (world.storyGuide && world.storyGuide.buy ? world.storyGuide.name : storyBuyLabel(world));
@@ -875,8 +909,8 @@ export const storyApi = {
   timeline: () => computeMoneyTimeline(),
   jump: devJumpTo,
   complete: devCompleteStep,
-  skip: skipCurrent,
-  canSkip: canSkipCurrent,
+  skip: (force) => skipCurrent({ force: !!force }),
+  canSkip: () => canSkipCurrent(),
   win: () => missionDebug.win(world),
   lose: () => missionDebug.lose(world),
   objective: () => missionDebug.complete(world),
