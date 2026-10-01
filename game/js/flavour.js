@@ -350,7 +350,7 @@ function events(p, step) {
   if (F.announceAt != null && world.time >= F.announceAt) {
     F.announceAt = null;
     notify('Sikkom', ev.announce);
-    world.addMessage(`Vandaag in Grunn: ${ev.name}`, 5);
+    world.addMessage(ev.card ? `${ev.name}: ${ev.card}` : `Vandaag in Grunn: ${ev.name}`, 6, { kind: 'tip', kicker: 'Vandaag in Grunn', important: true, key: 'event-day' });
   }
   const centre = d2(p, CITY_CENTRE) < CITY_CENTRE.r + 80;
   if (centre && ready('evbark') && Math.random() < 0.12 && bark(p, ev.barks)) hold('evbark', 22 + Math.random() * 18);

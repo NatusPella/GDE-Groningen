@@ -148,7 +148,7 @@ function fromMessage(text, dur, opts = {}) {
   if (opts.exact && dur < 2 && String(text).length <= 12) { showCount(text, dur); return; }
   const c = classify(text, opts);
   if (!c) return;
-  showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say, kicker: opts.kicker });
+  showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say, kicker: opts.kicker, important: opts.important });
 }
 
 // spec: { kind, title, body | text, duration, key, icon, kicker, voice: false }

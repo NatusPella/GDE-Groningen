@@ -129,6 +129,7 @@ export const EVENT_DAYS = {
   bloemetjesmarkt: {
     name: 'Bloemetjesmarkt',
     announce: 'Bloemetjesmarkt! Binnenstad vol touringcars en kamerplanten. Parkeren? Vergeet het maar.',
+    card: 'De hele dag bloemenkramen op de Grote Markt',
     barks: [
       'Nog één plantje. Echt de laatste.',
       'Past die ficus nog in de bus?',
