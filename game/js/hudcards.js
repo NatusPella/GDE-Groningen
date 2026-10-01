@@ -9,7 +9,8 @@
 // - Redundant messages are dropped (DROP): what a cutscene card, the
 //   now-playing card, the route chip or the mute icon already says.
 // - At most MAX_VISIBLE cards at once; the rest wait in a short queue
-//   (dangers and police first, stale tips expire). The same key (or the
+//   (dangers and police first; important tips, spec.important or one that
+//   teaches a key, before the rest, and only stale plain tips expire). The same key (or the
 //   same text) updates the card that is up instead of stacking a new one.
 // - While a cutscene hides the HUD or the game is paused, cards wait.
 // - Countdowns (opts.exact, one short token like "3" or "GO! GO! GO!") are
@@ -30,6 +31,8 @@ const MAX_QUEUE = 5;
 const MIN_TIME = 4;
 const MAX_TIME = 10;
 const OUT_TIME = 0.45;
+const TIP_STALE = 35;
+const TIP_KEEP = 120;
 const VOICE_GAP = 6;
 const VOICE_REPEAT = 60;
 const HINT_REPEAT = 20;
@@ -159,18 +162,23 @@ export function showCard(w, spec) {
   if (title && body && title.toLowerCase() === (spec.kicker || CARD_KINDS[kind].label).toLowerCase()) { title = body; body = ''; }
   const all = `${title} ${body}`.trim();
   const secs = Math.min(MAX_TIME, Math.max(MIN_TIME, (spec.duration || 0) * 1.2, readingSeconds(all) * 1.25));
-  const card = { spec: { ...spec, kind, title, body }, secs, key: spec.key || all, at: world ? world.time : 0, text: spec.text || all };
+  const card = { spec: { ...spec, kind, title, body }, secs, key: spec.key || all, at: world ? world.time : 0, age: 0, text: spec.text || all };
+  card.important = kind === 'tip' && (!!spec.important || teaches(all));
   const up = visible.find((c) => c.key === card.key && !c.leaving);
   if (up) { refresh(up, card); return; }
   queue = queue.filter((q) => q.key !== card.key);
   queue.push(card);
-  queue.sort((a, b) => CARD_KINDS[b.spec.kind].rank - CARD_KINDS[a.spec.kind].rank || a.at - b.at);
+  queue.sort((a, b) => CARD_KINDS[b.spec.kind].rank - CARD_KINDS[a.spec.kind].rank || b.important - a.important || a.at - b.at);
   while (queue.length > MAX_QUEUE) queue.pop();
 }
 
 // A key named in a card becomes a key cap: [E], "(E)", "druk (op) E/Spatie".
 const KEYS = 'A|D|W|S|E|F|R|T|O|K|Q|Z|M|G|H|L|N|P|X|C|U|Spatie|Enter|Tab|Shift|Backspace|Esc';
 const KEY_RE = new RegExp(`\\[(${KEYS})\\]|\\((${KEYS})\\)|(\\b[Dd]ruk (?:op )?)(${KEYS})\\b`, 'g');
+function teaches(text) {
+  KEY_RE.lastIndex = 0;
+  return KEY_RE.test(text);
+}
 function keycaps(html) {
   return html.replace(KEY_RE, (m, a, b, pre, c) => {
     const k = a || b || c;
@@ -285,8 +293,10 @@ export function updateCards(dt, w) {
     if (!c.leaving) leave(c);
     else { c.el.remove(); visible.splice(visible.indexOf(c), 1); }
   }
-  const now = w.time;
-  queue = queue.filter((q) => now - q.at < (q.spec.kind === 'tip' ? 12 : 30));
+  // age only counts while a card could be shown; tips wait out the tip gap,
+  // an important one (it teaches a key, or says so) much longer
+  for (const q of queue) q.age += dt;
+  queue = queue.filter((q) => q.age < (q.spec.kind !== 'tip' ? 30 : q.important ? TIP_KEEP : TIP_STALE));
   if (!queue.length) return;
   const up = visible.filter((c) => !c.leaving);
   if (calling && CARD_KINDS[queue[0].spec.kind].rank < CARD_PRIORITY.politie) return;
