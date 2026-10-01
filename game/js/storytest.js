@@ -89,7 +89,7 @@ function economyChecks(check, tl) {
   check('economy: normal repair cheap', dent <= avg * 0.08, `€${dent} bij 30% schade, missie gem. €${avg}`);
   check('economy: wreck restore moderate', wreck <= avg * 0.25, `€${wreck} voor een Mug`);
   const romp = afterStep(tl, 'H13');
-  const top = ['wervelwind', 'raket', 'midibus', 'speedboot'].map((k) => VEHICLE_STOCK[k].price);
+  const top = ['wervelwind', 'raket', 'midibus', 'speedboot', 'wiekenwubbo'].map((k) => VEHICLE_STOCK[k].price);
   check('economy: top vehicles reachable after the Romp', romp >= Math.max(...top), `€${romp} na H13, duurste €${Math.max(...top)}`);
   check('economy: top vehicles still a goal after the Kop', afterStep(tl, 'H6') < Math.max(...top), `€${afterStep(tl, 'H6')} na H6`);
   const fine = bustFine(5, 1000);

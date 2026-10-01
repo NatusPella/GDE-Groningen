@@ -210,7 +210,7 @@ export function resolvePropCollisions(vehicles, w) {
   world = w;
   const pl = w.player;
   for (const v of vehicles) {
-    if (v.wrecked || v.sinking) continue;
+    if (v.wrecked || v.sinking || (v.isHeli && !v.onGround)) continue;
     const mine = v.driver === 'player';
     if (!mine && (v.isBike || v.isScooter)) continue;
     const dx = v.x - pl.x, dy = v.y - pl.y;

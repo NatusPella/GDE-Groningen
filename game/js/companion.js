@@ -323,6 +323,7 @@ function blockedAt(world, x, y, r, dynamic) {
   }
   for (const v of world.vehicles || []) {
     if (v.isBoat || v.sinking || Math.abs(v.x - x) > v.halfLen + 1 || Math.abs(v.y - y) > v.halfLen + 1) continue;
+    if (v.isHeli && !v.onGround) continue;
     if (pushCircleOutOfVehicle(x, y, r, v)) return true;
   }
   return false;
@@ -734,6 +735,9 @@ function stepCompanion(dt, world) {
     // every vehicle takes the two of them: a bike on the rack (or the
     // fatbike's long saddle), a step standing behind; a boat is stepped
     // into from the quay edge, so it gets a longer reach
+    // a helicopter only takes them on board while it stands on their level
+    const heliAway = v.isHeli && (!v.onGround || Math.abs((v.z || 0) - (c.gz || 0)) > 2.5);
+    if (heliAway) { c.vx = 0; c.vy = 0; return; }
     const canRide = !v.sinking && !v.riderOff;
     if (canRide && !v.passenger && dist(c.x, c.y, v.x, v.y) < (v.isBoat ? BOARD_DIST + 2.5 : BOARD_DIST)) {
       c.inVehicle = v;
@@ -788,6 +792,7 @@ function stepCompanion(dt, world) {
   for (const v of world.vehicles) {
     if (v.isBoat || v.sinking || v === c.inVehicle) continue;
     if (Math.abs(v.x - c.x) > v.halfLen + 1 || Math.abs(v.y - c.y) > v.halfLen + 1) continue;
+    if (v.isHeli && Math.abs((v.z || 0) - (c.gz || 0)) > 2) continue;
     const push = pushCircleOutOfVehicle(c.x, c.y, c.radius, v);
     if (!push) continue;
     // parked, slow or wrecked: a solid body to walk around; a bike only
