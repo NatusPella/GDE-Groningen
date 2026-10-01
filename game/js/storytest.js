@@ -237,8 +237,10 @@ export async function runStoryTest(world) {
             km.finish();
             check(`${cur.id}: the ride completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 15000));
             check(`${cur.id}: the twins' scene plays after the ride`, await waitFor(() => sf.state().played.kermis > scenes, 20000), JSON.stringify(sf.state()));
+            await sleep(2500);
             capture(`${String(n).padStart(2, '0')}-${cur.id}-scene`);
-            await waitFor(() => !sf.state().pending, 20000, 200);
+            await sleep(800);
+            check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
           } else if (step.goal && step.goal.type === 'flight' && window.__storyFun) {
             // the free demo flight: Rotor Roelf at his heli, up and over the balloon, back and out
             const sf = window.__storyFun, p = world.player;
@@ -254,7 +256,12 @@ export async function runStoryTest(world) {
               Object.assign(v, { x: bx - 120, y: by + 10, z: 40, onGround: false, airborne: true, vx: 0, vy: 0, vz: 0, speed: 0 });
               await sleep(900);
               check(`${cur.id}: the balloon stands in the park`, !!sf.state().balloon, JSON.stringify(sf.state()));
-              const spotted = await waitFor(() => { const c = S().current(); if (sf.state().played.spot && isCinematicActive()) { capture(`${String(n).padStart(2, '0')}-${cur.id}-spot`); skipCinematic(); } return !c || c.id !== cur.id; }, 20000);
+              if (await waitFor(() => sf.state().played.spot > 0 && isCinematicActive(), 15000)) {
+                await sleep(2500);
+                capture(`${String(n).padStart(2, '0')}-${cur.id}-spot`);
+                await sleep(800);
+              }
+              const spotted = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
               check(`${cur.id}: spotting the balloon from the air completes the step`, spotted && sf.state().played.spot > 0, JSON.stringify(sf.state()));
               const [hx, hy] = step.goal.heli;
               const gz = world.map.groundHeightAt ? world.map.groundHeightAt(hx, hy, 0) : 0;
