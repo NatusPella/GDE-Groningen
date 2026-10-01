@@ -3,7 +3,9 @@
 // plays every available story step through the debug hooks: activities are
 // completed the way a player would (purchases are paid), missions are
 // started at their marker and finished objective by objective. H3 goes
-// through the fail + "Sla deze missie over" path. Checks that the flow
+// through the fail + "Sla deze missie over" path; the padel match, the story
+// bumper-car ride and the demo flight are played for real (storyfun.js
+// scenes included). Checks that the flow
 // reaches "Wordt vervolgd" at the end of the last open part, that money
 // never runs short (also when every mission is skipped) with a comfortable
 // margin, that the economy targets hold (economyChecks), that an old save
@@ -218,6 +220,58 @@ export async function runStoryTest(world) {
             pd.finish(false);
             check(`${cur.id}: padel match completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 5000));
             check(`${cur.id}: padel gives full health`, world.health >= 100, String(world.health));
+          } else if (step.goal && step.goal.type === 'kermis' && window.__kermis && window.__activities) {
+            // the story ride from the booth (E): free even when broke, Durk & Douwe in two of the cars
+            const km = window.__kermis, sf = window.__storyFun;
+            const p = world.player, s = km.spot();
+            if (p.inVehicle) p.exitVehicle(world.map, world);
+            p.x = s.x; p.y = s.y;
+            world.wanted = 0;
+            const cash = world.money;
+            world.money = 1;
+            const scenes = sf.state().played.kermis;
+            window.__activities.get('kermis').interact(world);
+            await sleep(1200);
+            const st = km.state();
+            check(`${cur.id}: story ride starts free with Durk and Douwe`, st && st.twins.join() === 'durk,douwe' && world.money === 1, JSON.stringify({ st, money: world.money }));
+            world.money = cash;
+            capture(`${String(n).padStart(2, '0')}-${cur.id}-ride`);
+            km.finish();
+            check(`${cur.id}: the ride completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 15000));
+            check(`${cur.id}: the twins' scene plays after the ride`, await waitFor(() => sf.state().played.kermis > scenes, 20000), JSON.stringify(sf.state()));
+            await sleep(2500);
+            capture(`${String(n).padStart(2, '0')}-${cur.id}-scene`);
+            await sleep(800);
+            check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
+          } else if (step.goal && step.goal.type === 'flight' && window.__storyFun) {
+            // the free demo flight: Rotor Roelf at his heli, up and over the balloon, back and out
+            const sf = window.__storyFun, p = world.player;
+            const v = (await waitFor(() => sf.demo(), 5000)) && sf.demo();
+            check(`${cur.id}: Rotor Roelf's demo heli waits, not owned`, v && v.isHeli && v.missionCar && !v.playerOwned, JSON.stringify(sf.state()));
+            if (v) {
+              if (p.inVehicle) p.exitVehicle(world.map, world);
+              p.x = v.x + 4; p.y = v.y + 1;
+              check(`${cur.id}: Rotor Roelf's scene plays at his heli`, await waitFor(() => sf.state().played.meet > 0, 8000), JSON.stringify(sf.state()));
+              await drain(world, 300);
+              p.enterVehicle(v, world);
+              const [bx, by] = step.goal.over;
+              Object.assign(v, { x: bx - 120, y: by + 10, z: 40, onGround: false, airborne: true, vx: 0, vy: 0, vz: 0, speed: 0 });
+              await sleep(900);
+              check(`${cur.id}: the balloon stands in the park`, !!sf.state().balloon, JSON.stringify(sf.state()));
+              if (await waitFor(() => sf.state().played.spot > 0 && isCinematicActive(), 15000)) {
+                await sleep(2500);
+                capture(`${String(n).padStart(2, '0')}-${cur.id}-spot`);
+                await sleep(800);
+              }
+              const spotted = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
+              check(`${cur.id}: spotting the balloon from the air completes the step`, spotted && sf.state().played.spot > 0, JSON.stringify(sf.state()));
+              const [hx, hy] = step.goal.heli;
+              const gz = world.map.groundHeightAt ? world.map.groundHeightAt(hx, hy, 0) : 0;
+              Object.assign(v, { x: hx, y: hy, z: gz, groundZ: gz, onGround: true, airborne: false, vx: 0, vy: 0, vz: 0, speed: 0 });
+              await sleep(500);
+              if (p.inVehicle === v) p.exitVehicle(world.map, world);
+            }
+            check(`${cur.id}: no helicopter bought for the demo flight`, !getOwnedEntries().some((o) => o.spec && o.spec.kind === 'heli'));
           } else S().complete();
           if (step.cost) entry.notes.push(`betaald, saldo €${Math.round(world.money)} (was €${Math.round(before)})`);
           check(`money ok at ${cur.id}`, world.money >= 0, `€${Math.round(world.money)}`);
@@ -301,6 +355,7 @@ export async function runStoryTest(world) {
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
       check('Tammo and Anita take turns', swaps >= 4, `${swaps} wissels`);
+      check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 
       // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
       const pg = window.__postgame;

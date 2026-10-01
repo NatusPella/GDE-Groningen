@@ -10,7 +10,8 @@ import { spawnFxSpark } from './fx3d.js';
 import { addStaticCollider } from './breakables.js';
 import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
-import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS } from './funlines.js';
+import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
+import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
 // the south side of the square all the time (always open, €3 a ride);
@@ -414,15 +415,19 @@ function nearStand(w) {
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
 }
 
+// The story step (storyarc.js r-kermis, storyfun.js sets world.storyActivity):
+// Jan lets you in for free and Durk & Douwe ride along.
+const storyRide = (w) => w.storyActivity === 'kermis';
+
 function blockReason(w) {
-  return activityBlock(w) || (w.money < PRICE ? `Te weinig geld: een ritje kost €${PRICE}` : null);
+  return activityBlock(w) || (!storyRide(w) && w.money < PRICE ? `Te weinig geld: een ritje kost €${PRICE}` : null);
 }
 
 function prompt(w) {
   if (!nearStand(w)) return null;
   const why = blockReason(w);
   const rec = getChallengeRecord('botsauto');
-  const sub = why || (rec && rec.best != null ? `€${PRICE} · record: ${rec.best} punten${rec.medal ? ' · ' + MEDALS[rec.medal].toLowerCase() : ''}` : `€${PRICE} per ritje · ${kermisOn(w) ? 'kermisavond: dubbel prijzengeld' : 'botsen tegen Jan zijn vaste klanten'}`);
+  const sub = why || (storyRide(w) ? 'Gratis van Jan: Durk en Douwe rijden mee' : rec && rec.best != null ? `€${PRICE} · record: ${rec.best} punten${rec.medal ? ' · ' + MEDALS[rec.medal].toLowerCase() : ''}` : `€${PRICE} per ritje · ${kermisOn(w) ? 'kermisavond: dubbel prijzengeld' : 'botsen tegen Jan zijn vaste klanten'}`);
   return { id: 'botsauto', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: "Botsauto's", sub, ring: true, dim: !!why };
 }
 
@@ -436,7 +441,7 @@ function interact(w) {
   if (!nearStand(w)) return false;
   const why = blockReason(w);
   if (why) { w.addMessage(why, 2.5); return true; }
-  start(w);
+  start(w, { free: storyRide(w) });
   return true;
 }
 
@@ -446,9 +451,12 @@ function start(w, { free = false } = {}) {
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
   if (!free) w.money -= PRICE;
+  const story = storyRide(w);
   const meLook = p.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   const mateLook = p.character === 'anita' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
-  const riders = [{ look: meLook, name: 'jij' }, { look: mateLook, name: p.character === 'anita' ? 'Tammo' : 'Anita', mate: true }, ...DRIVERS.map((d) => ({ name: d.name, look: { shirt: d.shirt, skin: 0xe2b48c, variant: d.variant, seed: 6400 + d.name.length, look: { age: d.age, hat: null, bag: null, umbrella: null } } }))];
+  const bots = DRIVERS.map((d) => ({ name: d.name, look: { shirt: d.shirt, skin: 0xe2b48c, variant: d.variant, seed: 6400 + d.name.length, look: { age: d.age, hat: null, bag: null, umbrella: null } } }));
+  if (story) bots.splice(0, 2, { name: 'Durk', twin: 'durk', look: DURK_LOOK }, { name: 'Douwe', twin: 'douwe', look: DOUWE_LOOK });
+  const riders = [{ look: meLook, name: 'jij' }, { look: mateLook, name: p.character === 'anita' ? 'Tammo' : 'Anita', mate: true }, ...bots];
   const cars = built.cars;
   const starts = [[-6, 0, 0], [6, 0, Math.PI], [-2, -3.5, 0.6], [2, 3.5, -2.4], [-2, 3.5, -0.6], [2, -3.5, 2.4]];
   cars.forEach((car, i) => {
@@ -456,7 +464,7 @@ function start(w, { free = false } = {}) {
     car.rider = buildPersonMesh(r.look.shirt, r.look.skin, r.look);
     seatPerson(car.rider, true);
     getScene().add(car.rider);
-    car.name = r.name; car.mate = !!r.mate; car.player = i === 0;
+    car.name = r.name; car.mate = !!r.mate; car.player = i === 0; car.twin = r.twin || null;
     [car.u, car.v, car.a] = starts[i];
     car.vu = car.vv = car.va = 0;
     car.ai = { tx: rand(-HU + 2, HU - 2), ty: rand(-HV + 2, HV - 2), chase: 0, t: rand(1, 3) };
@@ -471,8 +479,9 @@ function start(w, { free = false } = {}) {
   document.body.classList.add('kermis-on');
   ensureHud();
   hud.root.hidden = false;
-  showCard(w, { kind: 'tip', kicker: "Botsauto's", title: 'Instappen!', body: '[W] [S] gas en achteruit, [A] [D] sturen. Bots ze in de flank voor extra punten. 75 seconden.', duration: 7, key: 'kermis-help', voice: false });
-  janSay(w, 'start');
+  if (story) showCard(w, { kind: 'missie', kicker: "Botsauto's", title: 'Durk en Douwe rijden mee', body: 'De twee rode hoodies. [W] [S] gas en achteruit, [A] [D] sturen: bots ze in de flank. 75 seconden.', duration: 7, key: 'kermis-help', voice: false });
+  else showCard(w, { kind: 'tip', kicker: "Botsauto's", title: 'Instappen!', body: '[W] [S] gas en achteruit, [A] [D] sturen. Bots ze in de flank voor extra punten. 75 seconden.', duration: 7, key: 'kermis-help', voice: false });
+  janSay(w, story ? 'story' : 'start');
   return true;
 }
 
@@ -673,11 +682,13 @@ function botSay(w, car, list) {
   const g = game;
   if (!g || car.player || car.mate || g.t - g.lastSay < 3.5 || Math.random() < 0.5) return;
   g.lastSay = g.t;
+  const own = car.twin && KERMIS_TWINS[car.twin];
+  if (own) list = list === BOTS_HIT ? own.hit : own.bumped;
   const text = list[Math.floor(Math.random() * list.length)];
   const pos = { get x() { return toW(car.u, car.v).x; }, get y() { return toW(car.u, car.v).y; } };
   const sp = w.extraSpeakers || (w.extraSpeakers = []);
   const female = DRIVERS.find((d) => d.name === car.name)?.variant === 'female';
-  sp.push({ x: pos.x, y: pos.y, h: 2, follow: pos, female, speechText: text, speechUntil: w.time + 2.4, kermis: true });
+  sp.push({ x: pos.x, y: pos.y, h: 2, follow: pos, female, speechName: own ? car.name : undefined, speechText: text, speechUntil: w.time + 2.4, kermis: true });
 }
 
 // --- per frame -------------------------------------------------------------------------------
@@ -800,7 +811,7 @@ export const KERMIS = {
       spot: () => ({ ...STAND }),
       on: () => kermisOn(w),
       start: (free = true) => start(w, { free }),
-      state: () => (game ? { phase: game.phase, t: game.t, left: game.phaseT, score: game.score, hits: game.hits, combo: game.combo, me: built ? { u: built.cars[0].u, v: built.cars[0].v, a: built.cars[0].a } : null } : null),
+      state: () => (game ? { phase: game.phase, t: game.t, left: game.phaseT, score: game.score, hits: game.hits, combo: game.combo, twins: built ? built.cars.filter((c) => c.twin).map((c) => c.twin) : [], me: built ? { u: built.cars[0].u, v: built.cars[0].v, a: built.cars[0].a } : null } : null),
       finish: () => { if (!game) return false; game.phase = 'ride'; game.phaseT = 0.01; return true; },
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
     };

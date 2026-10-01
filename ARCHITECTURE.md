@@ -445,6 +445,11 @@ a director:
   prizes, the Fjord Frituur's daily wage, eierbal finds). `storytest.js`
   checks the economy targets (margins, early car/gun, cheap repairs, top
   vehicles after the Romp) against it and the shop prices.
+- `storyfun.js`: the story steps around the free-roam extras: goal `kermis`
+  (r-kermis, a free bumper-car ride with Durk & Douwe in it, kermis.js reads
+  `world.storyActivity`, then their scene at the booth) and `flight`
+  (s-proefvlucht, Rotor Roelf's demo heli at the UMCG, a missionCar he takes
+  back, and Jelle's balloon in the Oosterpark); a step's `meet`/`scene` lines.
 - `story.js`: finds the current step (done = finished/skipped, a passed
   mission, or an activity made moot by a later passed mission; that also
   migrates pre-0.5 saves). It publishes `world.storyGuide` (routing.js uses
