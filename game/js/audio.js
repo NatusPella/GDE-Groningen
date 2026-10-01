@@ -1499,6 +1499,24 @@ export function playSikkomLine(key) {
   playRandomVariant(SIKKOM_AUDIO[key]);
 }
 
+// The car radio's station (radiostations.js): 'gmusic' as always,
+// 'nachtstreek' the same records through an old radio without the G-Music
+// jingles, 'grunn' (talk) and 'uit' hold G-Music like a scenario track does.
+let radioStation = 'gmusic';
+const radioHolds = () => radioStation === 'grunn' || radioStation === 'uit';
+export function setRadioStation(id) {
+  const prev = radioStation;
+  radioStation = id;
+  // tuning in to Nachtstreek lands in another record than G-Music had on
+  if (id === 'nachtstreek' && prev !== id && gmusicStarted && gmusicTracks.length && !gmusicHeld) advanceGmusicQueue();
+}
+
+// A steady source for another module (kermis.js's barrel organ): it
+// connects its own nodes to `bus`. null until the audio runs.
+export function ambientOut() {
+  return ctx && worldBus && !muted ? { ctx, bus: worldBus } : null;
+}
+
 // Fire-and-forget: initAudio() stays sync, this just fills in gmusicTracks
 // whenever the manifest resolves. An empty or missing manifest leaves it
 // empty, which every playback path below treats as "nothing to play".
@@ -1685,8 +1703,9 @@ function advanceGmusicQueue() {
   }
   const prevEl = gmusicCurrentEl;
   // a jingle never talks over a voice: skip it and go straight on with music
-  while (gmusicQueue.length > 1 && gmusicQueue[0].gmusicJingleKey && !speech.radioMayTalk()) gmusicQueue.shift();
-  if (gmusicQueue[0].gmusicJingleKey && !speech.radioMayTalk() && gmusicTracks.length) gmusicQueue = [nextTrackEl()];
+  const noJingle = () => !speech.radioMayTalk() || radioStation !== 'gmusic';
+  while (gmusicQueue.length > 1 && gmusicQueue[0].gmusicJingleKey && noJingle()) gmusicQueue.shift();
+  if (gmusicQueue[0].gmusicJingleKey && noJingle() && gmusicTracks.length) gmusicQueue = [nextTrackEl()];
   const el = gmusicQueue.shift();
   gmusicCurrentEl = el;
   if (prevEl && prevEl !== el && !prevEl.paused) prevEl.pause();
@@ -1698,7 +1717,7 @@ function advanceGmusicQueue() {
 // Queued rather than layered over the running track: it replaces the next
 // ambient jingle so music never overlaps.
 function enqueueGmusicJingle(key) {
-  if (!gmusicStarted || !speech.radioMayTalk()) return;
+  if (!gmusicStarted || !speech.radioMayTalk() || radioStation !== 'gmusic') return;
   const next = gmusicQueue[0];
   if (next && next.gmusicJingleKey === key) return;
   const el = makeJingleEl(key);
@@ -2740,11 +2759,11 @@ function updateGMusic(dt, world) {
   }
 
   if (pendingTrackAnnounce) {
-    world.nowPlaying = { title: pendingTrackAnnounce, artist: trackArtist(pendingTrackAnnounce), at: world.time };
+    world.nowPlaying = { title: pendingTrackAnnounce, artist: radioStation === 'nachtstreek' ? 'Radio Nachtstreek · Rikus draait' : trackArtist(pendingTrackAnnounce), at: world.time };
     pendingTrackAnnounce = null;
   }
 
-  const scene = updateScenarioMusic(dt, world);
+  const scene = updateScenarioMusic(dt, world) || radioHolds();
 
   // Only spoken lines (the speech.js channel) dip the music, gently;
   // vehicles, sirens and stings never touch it. A scenario track fades
@@ -2957,7 +2976,8 @@ function guarded(name, fn) {
 // world.drunk too so a sober (or respawned) player never keeps it
 function musicLowpassHz(world) {
   const lvl = world.drunk > 0 ? drunkLevel() : 0;
-  return Number.isFinite(lvl) ? 20000 * Math.pow(0.045, clamp(lvl, 0, 1)) : 20000;
+  const hz = Number.isFinite(lvl) ? 20000 * Math.pow(0.045, clamp(lvl, 0, 1)) : 20000;
+  return radioStation === 'nachtstreek' ? Math.min(hz, 3400) : hz;
 }
 
 function applyOutputGains(tc) {
@@ -3003,7 +3023,7 @@ function watchdog(world, force = false) {
     musicLp.frequency.setTargetAtTime(20000, ctx.currentTime, 0.3);
     fix('lowpass');
   }
-  if (gmusicHeld && !scenarioNow) { gmusicHeld = false; gmusicRetryAt = 0; playGmusicCurrent(); fix('gmusic-held'); }
+  if (gmusicHeld && !scenarioNow && !radioHolds()) { gmusicHeld = false; gmusicRetryAt = 0; playGmusicCurrent(); fix('gmusic-held'); }
   const el = gmusicCurrentEl;
   if (el && el.error && gmusicPendingSince === null) { reviveGmusicEl(el); fix('gmusic-dead'); }
   if (meter) {
