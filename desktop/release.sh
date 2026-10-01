@@ -78,7 +78,17 @@ De eerste keer: open de app, klik **Gereed** bij de melding, ga naar **Systeemin
 en klik onderaan op **Open toch**. Daarna start hij gewoon.
 
 EOF
-gh release create "$TAG" "$DMG" "$EXE" --title "GTE VI $VERSION" --notes-file "$NOTES" $PRE
+# create the release first, then upload each build with a few retries:
+# a 300 MB upload sometimes times out on the first try
+gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "GTE VI $VERSION" --notes-file "$NOTES" $PRE
+for f in "$DMG" "$EXE"; do
+  ok=""
+  for i in 1 2 3 4; do
+    if gh release upload "$TAG" "$f" --clobber; then ok=1; break; fi
+    echo "upload of $f failed, retry $i"; sleep 10
+  done
+  [ -n "$ok" ] || { echo "Upload failed: $f (builds stay in dist/)"; exit 1; }
+done
 rm -f "$NOTES"
 # keep the disk free: the builds are on GitHub now
 rm -rf dist build

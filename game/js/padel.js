@@ -12,6 +12,7 @@ import { banterAfter } from './banter.js';
 import { pointInPolygon, isInWater, clamp } from './util.js';
 import { currentStep } from './story.js';
 import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
+import { buildingAt as realBuildingAt } from './countryreal.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -37,12 +38,14 @@ import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 const FLOOR_Y = 0.1;
 const W2 = 5, L2 = 10, NET_H = 0.92, WALL_H = 4, BALL_R = 0.05;
 const G = 9.8;
-const REACH = 1.3, REACH_Z = 2.4;
-const ME_SPEED = 5.8, OPP_SPEED = 4.3, MATE_SPEED = 3.2;
+const REACH = 1.45, REACH_Z = 2.4;
+// a swing just after the ball left your reach still counts, as a late shot
+const LATE_S = 0.15;
+const ME_SPEED = 5.8, MATE_SPEED = 3.2;
 const SWING_T = 0.32, SWING_BUFFER = 0.24;
 const GAMES_TO_WIN = 2;
-const MATCH_CAP = 115;
-const INTRO_S = 2.6, POINT_S = 1.7, OUTRO_S = 1.2;
+const MATCH_CAP = 150;
+const INTRO_S = 2.6, POINT_S = 1.5, OUTRO_S = 1.2;
 const COOLDOWN_S = 240;
 const FIT_WIN_S = 300, FIT_LOSE_S = 180, FIT_RATE = 1.2;
 const PRIZE = [0, 0, 40, 60];
@@ -50,6 +53,10 @@ const USE_RADIUS = 2.6;
 const DETAIL_M = 170, VIS_M = 520;
 const ACCENT = '#3aa6e8';
 const CALL = ['0', '15', '30', '40'];
+// per pair: the chance they miss a return, and of an unforced error when they
+// do reach it (into the net or straight into the glass) and of a smash on a
+// weak ball; the regulars are the easier pair
+const OPP = { pair: { miss: 0.03, err: 0.05, smash: 0.4, speed: 4.3, pace: 1.4 }, twins: { miss: 0.025, err: 0.025, smash: 0.55, speed: 4.6, pace: 1.3 } };
 
 let sites = [];
 let game = null;
@@ -72,7 +79,9 @@ function toMap(f, u, v) {
   return { x: f.cx + f.ax * u + f.lx * v, y: f.cy + f.ay * u + f.ly * v };
 }
 
+// city footprints and the Ommelanden building boxes
 function solidAt(map, x, y) {
+  if (realBuildingAt(x, y, 0.3) >= 0) return true;
   for (const b of map.buildingsNear(x, y, 1)) {
     const [minx, miny, maxx, maxy] = b.bounds;
     if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
@@ -279,10 +288,12 @@ function buildCourt(f) {
 
   const detail = new THREE.Group();
   const glass = [], fence = [], frame = [];
+  // your end's back fence and posts: hidden during a match, the camera looks through there
+  const nearFence = [], nearFrame = [];
   for (const s of [-1, 1]) {
     // back wall: glass to 3 m, fence to 4 m
     glass.push(panel(-W2, s * L2, W2, s * L2, 0, 3));
-    fence.push(panel(-W2, s * L2, W2, s * L2, 3, 4));
+    (s < 0 ? nearFence : fence).push(panel(-W2, s * L2, W2, s * L2, 3, 4));
     for (const side of [-1, 1]) {
       const x = side * W2;
       glass.push(panel(x, s * L2, x, s * (L2 - 2), 0, 3));
@@ -296,10 +307,11 @@ function buildCourt(f) {
     const h = Math.abs(v) >= L2 - 0.01 ? 4 : 3;
     for (const side of [-1, 1]) frame.push(box(0.09, h, 0.09, side * W2, h / 2, v));
   }
-  for (let u = -W2 + 2; u < W2; u += 2) for (const s of [-1, 1]) frame.push(box(0.09, 4, 0.09, u, 2, s * L2));
+  for (let u = -W2 + 2; u < W2; u += 2) for (const s of [-1, 1]) (s < 0 ? nearFrame : frame).push(box(0.09, 4, 0.09, u, 2, s * L2));
+  nearFrame.push(box(2 * W2, 0.07, 0.07, 0, 4, -L2));
+  frame.push(box(2 * W2, 0.07, 0.07, 0, 4, L2));
   for (const side of [-1, 1]) {
     frame.push(box(0.07, 0.07, 2 * L2, side * W2, 3, 0));
-    for (const s of [-1, 1]) frame.push(box(2 * W2, 0.07, 0.07, 0, 4, s * L2));
     frame.push(box(0.1, 1.05, 0.1, side * (W2 + 0.15), 0.52, 0));
   }
   // light poles outside the corners
@@ -318,6 +330,12 @@ function buildCourt(f) {
   const fr = new THREE.Mesh(merge(frame), m.frame);
   fr.castShadow = true;
   detail.add(fr);
+  const near = new THREE.Group();
+  near.add(new THREE.Mesh(merge(nearFence), m.fence));
+  const nf = new THREE.Mesh(merge(nearFrame), m.frame);
+  nf.castShadow = true;
+  near.add(nf);
+  detail.add(near);
   const net = new THREE.Mesh(panel(-W2 - 0.15, 0, W2 + 0.15, 0, 0.05, 0.88), m.net);
   detail.add(net);
   detail.add(new THREE.Mesh(box(2 * W2 + 0.3, 0.06, 0.03, 0, 0.9, 0), m.tape));
@@ -329,7 +347,7 @@ function buildCourt(f) {
   cone.renderOrder = 3;
   group.add(cone);
   getScene().add(group);
-  return { group, detail, cone };
+  return { group, detail, cone, near };
 }
 
 function updateNight(w) {
@@ -534,11 +552,12 @@ function startMatch(w, s, { force = false } = {}) {
   game.land = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.32, 20).rotateX(-Math.PI / 2), materials().land);
   for (const m of [game.ballMesh, game.shadow, game.ring, game.land]) { m.visible = false; getScene().add(m); }
   w.padelGame = game;
+  if (s.court.mesh) s.court.mesh.near.visible = false;
   w.cinematicHidePlayers = true;
   document.body.classList.add('padel-on');
   ensureHud();
   hud.root.hidden = false;
-  showCard(w, { kind: 'tip', kicker: 'Padel', title: twins ? 'Tegen Durk en Douwe' : 'Potje padel', body: 'A/D lopen, Spatie slaan als de ring groen is. Eerst naar 2 games.', key: 'padel-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Padel', title: twins ? 'Tegen Durk en Douwe' : 'Potje padel', body: '[A] [D] [W] [S] lopen, [Spatie] slaan als de ring groen is. Eerst naar 2 games.', duration: 7, key: 'padel-help', voice: false });
   oppSay(w, 0, 'start', true);
   placeActors(w, 0);
   return true;
@@ -570,8 +589,10 @@ function serveSetup() {
   g.rally = 0;
 }
 
-function hitBall(g, who, side, ut, vt, T, fault = false) {
+function hitBall(g, who, side, ut, vt, T, fault = false, q = 0.5) {
   const b = g.ball;
+  g.shotQ = q;
+  g.sinceHot = 9;
   b.hitter = side;
   b.bounces = 0;
   b.crossed = false;
@@ -694,9 +715,10 @@ function predictLanding(g) {
   // the opponents decide once per shot whether they will reach it
   if (b.hitter === 0) {
     const o = g.opp.reduce((a, c) => (Math.abs(c.u - r.u) + Math.abs(c.v - r.v) < Math.abs(a.u - r.u) + Math.abs(a.v - r.v) ? c : a));
-    const far = Math.hypot(o.u - r.u, o.v - r.v) / OPP_SPEED > r.t + 0.15;
+    const opp = g.twins ? OPP.twins : OPP.pair;
+    const far = Math.hypot(o.u - r.u, o.v - r.v) / opp.speed > r.t + 0.15;
     g.chaser = o;
-    g.oppMiss = far ? Math.random() < 0.7 : Math.random() < (g.twins ? 0.17 : 0.11) + g.rally * 0.012;
+    g.oppMiss = far ? Math.random() < 0.55 : Math.random() < opp.miss + g.rally * 0.02 + Math.max(0, g.shotQ - 0.6) * 0.7;
     g.mateTry = false;
   } else {
     g.chaser = null;
@@ -718,11 +740,11 @@ function playerSwing(w, g) {
   const deep = input.isDown('w') || input.isDown('arrowup'), short = input.isDown('s') || input.isDown('arrowdown');
   let ut = right ? 3.7 : left ? -3.7 : -Math.sign((g.opp[0].u + g.opp[1].u) / 2 || 1) * rand(1.2, 3);
   let vt = deep ? 8.8 : short ? 3.4 : 6.6;
-  let T = (deep ? 0.55 : 0) + 1.5 - 0.6 * q;
+  let T = (deep ? 0.5 : 0) + 1.4 - 0.6 * q;
   ut += rand(-1, 1) * (1 - q) * 2.4;
   vt += rand(-1, 1) * (1 - q) * 1.8;
   const fault = q < 0.16 && Math.random() < 0.55;
-  hitBall(g, me, 0, clamp(ut, -4.6, 4.6), clamp(vt, 1.2, 9.6), T, fault);
+  hitBall(g, me, 0, clamp(ut, -4.6, 4.6), clamp(vt, 1.2, 9.6), T, fault, q);
   g.lastQ = q;
   if (q > 0.85 && !fault) g.flash = { text: 'Perfect!', t: 0.8, small: true };
 }
@@ -733,7 +755,20 @@ function oppHit(g, o) {
   const away = me.u > 0 ? rand(-4.2, -1.2) : rand(1.2, 4.2);
   const ut = Math.random() < 0.65 ? away : rand(-4, 4);
   const lob = Math.random() < 0.2;
-  hitBall(g, o, 1, ut, rand(-9, -4.2), (lob ? 0.6 : 0) + 1.5 - 0.5 * q);
+  const opp = g.twins ? OPP.twins : OPP.pair;
+  if (Math.random() < opp.err + g.rally * 0.004) {
+    // an unforced error: into the net, or long, straight into your back glass
+    if (Math.random() < 0.6) hitBall(g, o, 1, ut, 0, 0.55, true);
+    else hitBall(g, o, 1, ut, -11.5, 0.9);
+    return;
+  }
+  // a weak ball of yours sits up for a smash: fast and deep into a corner
+  if (g.shotQ < 0.45 && Math.random() < opp.smash) {
+    hitBall(g, o, 1, away, rand(-9.2, -7.4), rand(0.85, 1));
+    g.flash = { text: 'Smash!', t: 0.8, small: true };
+    return;
+  }
+  hitBall(g, o, 1, ut, rand(-9, -4.2), (lob ? 0.6 : 0) + opp.pace - 0.5 * q);
 }
 
 function moveTo(a, u, v, speed, dt) {
@@ -799,9 +834,12 @@ function updateMatch(w, dt) {
     stepBall(w, dt);
     const b = g.ball;
     if (g.phase === 'rally' && b.live) {
-      // you
-      if (b.hitter === 1 && b.crossed && inReach(me, b) && g.buffer > 0) {
-        g.late = me.swing < SWING_T - 0.12 ? 0.12 : 0;
+      // you (a moment after the ball passed you still counts, as a late shot)
+      const hot = b.hitter === 1 && b.crossed && inReach(me, b);
+      g.sinceHot = hot ? 0 : g.sinceHot + dt;
+      const late = !hot && b.hitter === 1 && g.sinceHot < LATE_S && b.z > 0.08 && b.z < REACH_Z;
+      if ((hot || late) && g.buffer > 0) {
+        g.late = late ? 0.2 : me.swing < SWING_T - 0.12 ? 0.12 : 0;
         g.buffer = 0;
         playerSwing(w, g);
       }
@@ -809,7 +847,7 @@ function updateMatch(w, dt) {
       const mate = g.mate;
       if (b.live && b.hitter === 1 && b.crossed && b.bounces === 0 && g.mateTry && inReach(mate, b) && b.z > 0.7 && Math.hypot(b.u - me.u, b.v - me.v) > 2.4) {
         g.mateTry = false;
-        hitBall(g, mate, 0, rand(-4, 4), rand(4, 8.5), 1.15);
+        hitBall(g, mate, 0, rand(-4, 4), rand(4, 8.5), 1.15, false, 0.6);
       }
       // them
       if (b.live && b.hitter === 0 && b.crossed && g.chaser && !g.oppMiss) {
@@ -831,7 +869,7 @@ function updateMatch(w, dt) {
     if (g.phase === 'rally' && b && b.live && o === g.chaser && g.pred) { tu = g.pred.u + (o.u < g.pred.u ? -0.35 : 0.35); tv = Math.max(1.2, g.pred.v + 0.4); }
     else if (g.phase === 'rally' && b) tu = clamp(o.hu * 0.6 + b.u * 0.25, -4.5, 4.5);
     if (g.phase === 'serve' && g.server === 1 && o === g.opp[(g.points[0] + g.points[1]) % 2]) continue;
-    moveTo(o, tu, tv, OPP_SPEED * (g.oppMiss && o === g.chaser ? 0.7 : 1), dt);
+    moveTo(o, tu, tv, (g.twins ? OPP.twins : OPP.pair).speed * (g.oppMiss && o === g.chaser ? 0.7 : 1), dt);
   }
   const mate = g.mate;
   const mu2 = clamp(-Math.sign(me.u || 1) * 2.2 + (b ? b.u * 0.25 : 0), -4.3, 4.3);
@@ -919,6 +957,7 @@ function endMatch(w, { quit = false } = {}) {
   if (!g) return;
   game = null;
   w.padelGame = null;
+  if (g.site.court.mesh) g.site.court.mesh.near.visible = true;
   w.cinematicHidePlayers = false;
   w.cameraOverride = null;
   document.body.classList.remove('padel-on');
@@ -928,7 +967,8 @@ function endMatch(w, { quit = false } = {}) {
   const p = w.player;
   p.x = g.exitX; p.y = g.exitY; p.angle = g.f.rot + Math.PI;
   if (w.extraSpeakers) w.extraSpeakers = w.extraSpeakers.filter((e) => !g.opp.some((o) => e.speechName === o.name));
-  g.site.nextAt = w.time + COOLDOWN_S;
+  // a match given up only blocks the court for a moment
+  g.site.nextAt = w.time + (quit ? 20 : COOLDOWN_S);
   if (quit) { w.addMessage('Potje padel opgegeven', 2.5); return; }
   matches++;
   const win = g.games[0] > g.games[1] || (g.games[0] === g.games[1] && g.lastWinner === 0);
@@ -988,7 +1028,7 @@ const CSS = `
 #hud .padel-board .pb-help { display: flex; align-items: center; gap: 3px; margin-top: 3px; }
 #hud .padel-board .pb-flash { font-size: 22px; letter-spacing: 1.5px; color: #5dff7a; min-height: 1em; }
 #hud .padel-board .pb-flash.them { color: #ff9a3c; }
-body.padel-on #hud .hud-speedo, body.padel-on #hud .hud-route, body.padel-on .phonefeed-card { display: none !important; }
+body.padel-on #hud .hud-speedo, body.padel-on #hud .hud-route, body.padel-on #hud .phonefeed .pf-card { display: none !important; }
 @media (max-width: 480px) { #hud .padel-board { top: 64px; } }
 `;
 
@@ -1022,7 +1062,7 @@ function updateHud(w) {
   const flash = g.flash ? g.flash.text : g.phase === 'serve' && g.server === 0 ? 'Jij serveert: Spatie' : '';
   const clock = g.capped ? 'Laatste punt' : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
   const k = (t) => `<span class="hud-key">${t}</span>`;
-  const help = `${clock} · ${k('A')}${k('D')} lopen · ${k('SPATIE')} slaan · ${k('BACKSPACE')} opgeven`;
+  const help = `${clock} · ${k('A')}${k('D')}${k('W')}${k('S')} lopen · ${k('SPATIE')} slaan · ${k('BACKSPACE')} opgeven`;
   const key = [us, them, g.games, g.points, g.server, g.phase === 'intro', flash, help, g.lastWinner].join('|');
   if (key === hud.key) return;
   hud.key = key;
