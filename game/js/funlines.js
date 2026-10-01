@@ -44,6 +44,8 @@ export const KERMIS_CAST = {
 export const KERMIS_LINES = {
   Jan: {
     start: ['Instappen, instappen! Botsen mag, kopstoten nait!', 'Nog één rondje! Wie dut mit?'],
+    // the story ride (storyarc.js r-kermis): free, Durk & Douwe in two of the cars
+    story: ['Gratis rondje, jong! Bots die twij reuzen mor oet mien baan.'],
     last: ['Leste rondje, mensen!'],
     end: ['Afstappen, de tied is om!'],
   },
@@ -55,6 +57,13 @@ export const KERMIS_NEWS = "Kermis op de Grote Markt! Botsauto's, suikerspin en 
 // The other drivers in the bumper cars (bubbles, any voice).
 export const BOTS_BUMPED = ['Au, mien nek!', 'Hé! Kiek toch uut!', 'Ik krieg die wel!'];
 export const BOTS_HIT = ['Hebbes!', 'Ha! Raak!'];
+
+// Durk & Douwe in the story ride (bubbles in their own voices): when you bump
+// them and when they bump you.
+export const KERMIS_TWINS = {
+  durk: { bumped: ['Hé! Niet zo hard, wij zijn groot!', 'Douwe, de duif rijdt achter ons!'], hit: ['Hebbes, duif!'] },
+  douwe: { bumped: ['Durk, ik word misselijk.', 'Baas zei niks over botsen.'], hit: ['Sorry. …Hè.'] },
+};
 
 // Radio Grunn: the talk station on the car radio. Geesje presents; between
 // her bits run the Sikkom news, the traffic, the cows and Rikus's
