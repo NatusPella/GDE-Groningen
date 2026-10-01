@@ -158,8 +158,9 @@ function watchCinematic(dt, w) {
   if (!c) {
     cineSeen = null;
     // a scene that ended with an error can leave the players hidden
-    // (the padel match hides the players on purpose: padel.js draws its own)
-    cineT = !w.padelGame && (w.cinematicHidePlayers || w.cinematicHideNav || document.body.classList.contains('cine-hide-hud')) ? cineT + dt : 0;
+    // (a padel match, heli run or post-game challenge hides them on purpose and draws its own)
+    const owned = w.padelGame || w.heliRun || w.challenge;
+    cineT = !owned && (w.cinematicHidePlayers || w.cinematicHideNav || document.body.classList.contains('cine-hide-hud')) ? cineT + dt : 0;
     if (cineT > 3) { console.warn('[safety] scene leftovers cleared'); clearSceneLeftovers(w); cineT = 0; }
     return;
   }
