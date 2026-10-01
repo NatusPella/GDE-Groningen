@@ -24,7 +24,7 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
-import { playCinematic, isCinematicActive, sinceCinematic } from './cinematics.js';
+import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -57,6 +57,7 @@ const STUCK_SKIP_S = 360;
 const NIGHT_GARAGE_M = 16;
 const NIGHT_HOUR = 21.4;
 const SWAP_FADE = 0.45;
+const SWAP_CALM = 1.2;
 
 let world = null;
 let ready = false;
@@ -499,12 +500,22 @@ function swapDone(w, i) {
   return w.player.character === step.player;
 }
 
+// A calm moment for the handover: no mission banner up and a beat after a
+// scene ended or a menu (a shop) closed; the game skips updateStory while paused.
+function calmForSwap() {
+  const now = performance.now();
+  if (now - (rt.tickAt || 0) > 250 || isBannerUp() || sinceCinematic() < SWAP_CALM) rt.calmAt = now;
+  rt.tickAt = now;
+  return now - rt.calmAt > SWAP_CALM * 1000;
+}
+
 function updateCharacter(w) {
   const step = rt.cur;
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
+  const calm = calmForSwap();
   if (!want || w.player.character === want) return;
-  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
+  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn || !calm) return;
   swapCharacter(w, want);
   if (!playHandover(w, step)) {
     flash();
