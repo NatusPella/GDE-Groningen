@@ -469,7 +469,7 @@ function onKey(e) {
     }
     return;
   }
-  const t = e.target;
+  const t = e.target instanceof Element ? e.target : null;
   // text fields (the searches) have their own keys, Escape included
   if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox'].includes(t.type)))) return;
   const dir = ARROWS[k];
@@ -967,6 +967,7 @@ function showTab(name, how) {
   prevBtn.querySelector('span:not(.hud-key)').textContent = sectionOf(ids[(i - 1 + ids.length) % ids.length])[1];
   nextBtn.querySelector('span:not(.hud-key)').textContent = sectionOf(ids[(i + 1) % ids.length])[1];
   sheet.querySelector('.pm-cycle').hidden = ids.length < 2;
+  prevBtn.hidden = ids.length < 3;
   if (prev !== name) {
     // the sheet slides in from the card; switching sections fades the content
     sheet.classList.remove('pm-enter', 'pm-swap');
