@@ -58,6 +58,7 @@ const NIGHT_GARAGE_M = 16;
 const NIGHT_HOUR = 21.4;
 const SWAP_FADE = 0.45;
 const SWAP_CALM = 1.2;
+const SWAP_CARD_WAIT = 8;
 
 let world = null;
 let ready = false;
@@ -226,7 +227,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   if (!quiet && step.kind === 'activity' && step.done) phone(who(step.done[0]), step.done[1], 5);
   if (!quiet && !skipped && step.kind === 'activity' && isPurchase(step)) {
     const next = currentStep();
-    world.addMessage(next && !next.end ? `Gelukt! Terug naar het verhaal: ${next.title}` : 'Gelukt! Terug naar het verhaal', 5, { kind: 'missie', key: 'story-bought' });
+    world.addMessage(next && !next.end ? `Gelukt! Terug naar het verhaal: ${next.title}` : 'Gelukt! Terug naar het verhaal', 5, { kind: 'missie', key: 'story-buy' });
   }
   if (!quiet && step.after) for (const [from, text] of step.after) phone(who(from), text, 6);
   if (step.beat) for (const [from, text] of step.beat) phone(who(from), text, 6);
@@ -259,7 +260,7 @@ function refreshGuide() {
     if (gate) { place = requirementPlace(world, gate); why = `Eerst: ${storyBuyLabel(world, place) || gateLabel(gate)}`; }
     if (rt.gate && rt.gate !== 'night' && !gate && !rt.gateCard) {
       rt.gateCard = true;
-      world.addMessage(`Gelukt! Terug naar het verhaal: ${step.title}`, 5, { kind: 'missie', key: 'story-bought' });
+      world.addMessage(`Gelukt! Terug naar het verhaal: ${step.title}`, 5, { kind: 'missie', key: 'story-buy' });
     }
     else if (def) place = def.start;
     // a requirement that stays unmet (no money, the rental boat sank) also makes the step skippable
@@ -504,7 +505,11 @@ function swapDone(w, i) {
 // scene ended or a menu (a shop) closed; the game skips updateStory while paused.
 function calmForSwap() {
   const now = performance.now();
-  if (now - (rt.tickAt || 0) > 250 || isBannerUp() || sinceCinematic() < SWAP_CALM) rt.calmAt = now;
+  // a HUD card that is up (the purchase's "Gelukt!") is read first, for a while at most
+  const card = document.body.classList.contains('hud-card-on');
+  rt.cardSince = card ? rt.cardSince || now : 0;
+  const reading = card && now - rt.cardSince < SWAP_CARD_WAIT * 1000;
+  if (now - (rt.tickAt || 0) > 250 || isBannerUp() || reading || sinceCinematic() < SWAP_CALM) rt.calmAt = now;
   rt.tickAt = now;
   return now - rt.calmAt > SWAP_CALM * 1000;
 }
