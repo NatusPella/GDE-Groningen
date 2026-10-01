@@ -13,7 +13,10 @@
 //   Escapade has its own), long ones (buses, trucks) at the kerb, bikes and
 //   steps in the rack along the lobby facade, boats on the canal behind the tower.
 //   Walk up, E, drive off: it is no longer stored until you leave it in the
-//   garage (or rack, kerb, mooring) again. More cars than bays: the panel
+//   garage (or rack, kerb, mooring) again. The helicopter (heliflight.js)
+//   has the helidek on the tower's roof: "Trap naar het dak" in the flat's
+//   hall puts you in its seat, landing on the deck and E parks it there and
+//   takes the lift down to the flat. More cars than bays: the panel
 //   inside the door shows the next ones. Farther than FAR_M the stored
 //   instances are packed away again (their damage stays on the entry).
 // - The lobby door (E), on the garage side of the tower next to the roller
@@ -43,9 +46,11 @@ import { respawnFade } from './respawn.js';
 import { saveGame } from './savegame.js';
 import { isMissionActive, isNight, getMissionDefs } from './missions.js';
 import { refreshDayNight } from './daynight.js';
-import { recordStat } from './achievements.js';
+import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
 import { buildHomeExterior3D, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade } from './home3d.js';
+import { registerHelipad } from './heliflight.js';
+import { buildHelipadMesh } from './heli3d.js';
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 
 const NEAR_M = 200;
@@ -71,6 +76,8 @@ const GLASS_CLEAR = 0.35;
 const FRIDGE_COOLDOWN = 45;
 const MORNING = 7.5;
 const EVENING = 21.4;
+const PAD_R = 7.5;
+const PAD_DECK = 0.15;
 
 // OSM (House of Groningen, way 749915414): the tower and its parking plinth.
 const TOWER = [[-1282.3, -1104.7], [-1270.4, -1111.1], [-1264.3, -1114.4], [-1251.2, -1090.3], [-1269.4, -1080.5]];
@@ -182,7 +189,7 @@ function buildLayout() {
     spots: {
       sofa: { x: 3.7, z: 3.9 }, tv: { x: 3.7, z: 1.0 }, table: { x: 8.2, z: 3.4 },
       counter: { x: 9.0, z: 0.55, w: 3.6 }, fryer: { x: 8.4, z: 0.55 }, fridge: { x: 10.5, z: 1.6 },
-      bed: { x: 8.6, z: 7.6 }, wardrobe: { x: 4.7, z: 8.6 }, door: { x: 1.7, z: Dd - 0.05 },
+      bed: { x: 8.6, z: 7.6 }, wardrobe: { x: 4.7, z: 8.6 }, door: { x: 1.7, z: Dd - 0.05 }, roof: { x: 0.08, z: 6.6 },
       companion: { x: 3.15, z: 3.98, seat: 0.46 },
     },
   };
@@ -196,7 +203,7 @@ function buildLayout() {
   const spot = (s, face) => { const [x, y] = fl(s.x, s.z); return { x, y, lx: s.x, lz: s.z, face }; };
   flat.use = {
     bed: spot({ x: 7.2, z: 7.3 }), wardrobe: spot({ x: 4.7, z: 7.8 }), fridge: spot({ x: 9.7, z: 1.9 }),
-    fryer: spot({ x: 8.4, z: 1.4 }), door: spot({ x: 1.7, z: 8.4 }),
+    fryer: spot({ x: 8.4, z: 1.4 }), door: spot({ x: 1.7, z: 8.4 }), dak: spot({ x: 0.75, z: 6.6 }),
   };
   flat.entry = fl(1.7, 7.9);
   flat.fl = fl;
@@ -264,6 +271,12 @@ export function prepareHomeMap(map) {
     t._ring = null;
     regrid(map.buildingGrid, t, t.bounds);
     home.towerBuilding = t;
+    // the helidek in the middle of the roof, along the long side
+    const top = Math.max(2.4, (t.h || 3) * LEVEL_HEIGHT) + (t.lift || 0);
+    const T = home.tower;
+    const cx = TOWER[0][0] + T.X[0] * T.w / 2 + T.Y[0] * T.d / 2, cy = TOWER[0][1] + T.X[1] * T.w / 2 + T.Y[1] * T.d / 2;
+    home.pad = { id: 'home', x: cx, y: cy, r: PAD_R, z: top + PAD_DECK, roof: top, angle: Math.atan2(T.Y[1], T.Y[0]), name: 'Jouw helidek', exit: false, label: 'Jouw helidek · E: parkeren' };
+    registerHelipad(home.pad);
   }
   // the parking aisles and the deck ramp inside the plinth are ours now
   for (const r of map.roadsNear(c.x, c.y, 40).slice()) {
@@ -324,6 +337,28 @@ export function getHomeGarageForRender() {
   return [{ x: d.cx + d.nx * 2, y: d.cy + d.ny * 2, name: 'Jouw garage', sub: 'Al je voertuigen staan hier klaar' }];
 }
 
+// "Jouw steiger": where the boats lie behind the tower.
+function mooringPoint(w) {
+  const side = bankSide(w);
+  const p = home.bank.at(40);
+  return { x: p.x + p.dir[1] * side * 2, y: p.y - p.dir[0] * side * 2 };
+}
+
+export function getHomeMooringForRender(w) {
+  if (!home || !w) return [];
+  return [{ ...mooringPoint(w), name: 'Jouw steiger', sub: 'Hier liggen je boten. Laten afleveren brengt ze hierheen' }];
+}
+
+// "Jouw helidek" on the roof, once there is a helicopter to park on it.
+export function getHomeHelipadForRender() {
+  if (!home || !home.pad || !getOwnedEntries().some((o) => o.spec.kind === 'heli')) return [];
+  return [{ x: home.pad.x, y: home.pad.y, name: 'Jouw helidek', sub: 'Op het dak: land hier en druk E. Vanuit de flat: trap naar het dak' }];
+}
+
+export function getHomePad() {
+  return home ? home.pad || null : null;
+}
+
 // Start and target points for spotcheck.js: the new-game spawn and the front
 // door on the garage side, the garage door, the Escapade's bay and the first mooring.
 export function getHomeSpots(w) {
@@ -337,9 +372,8 @@ export function getHomeSpots(w) {
     { name: 'garagedeur', x: d.cx + d.nx * 3, y: d.cy + d.ny * 3, mode: 'drive' },
     { name: 'Escapade-plek', x: hero.x, y: hero.y, mode: 'drive' },
   ];
-  const side = bankSide(w);
-  const p = home.bank.at(40);
-  out.push({ name: 'steiger', x: p.x + p.dir[1] * side * 2, y: p.y - p.dir[0] * side * 2, mode: 'boat' });
+  out.push({ name: 'steiger', ...mooringPoint(w), mode: 'boat' });
+  if (home.pad) out.push({ name: 'helidek', x: home.pad.x, y: home.pad.y, mode: 'air' });
   return out;
 }
 
@@ -391,14 +425,14 @@ function park(w, v, x, y, angle) {
   v.x = x; v.y = y; v.angle = angle;
   v.speed = 0; v.throttle = 0; v.steer = 0; v.driftX = 0; v.driftY = 0; v.yawVel = 0;
   v.road = null; v.parked = false; v.driver = null; v.horn = false;
-  if (!v.isBoat) v.z = 0;
+  if (!v.isBoat && !v.isHeli) v.z = 0;
   if (!w.vehicles.includes(v)) w.vehicles.push(v);
 }
 
 // --- vehicles --------------------------------------------------------------------
 
 const lenOf = (spec) => (spec.model && spec.model.len) || 4;
-const kindOf = (spec) => (spec.kind === 'boat' ? 'boat' : spec.kind === 'car' ? (lenOf(spec) > SHORT_CAR_M ? 'long' : 'car') : 'bike');
+const kindOf = (spec) => (spec.kind === 'boat' ? 'boat' : spec.kind === 'heli' ? 'heli' : spec.kind === 'car' ? (lenOf(spec) > SHORT_CAR_M ? 'long' : 'car') : 'bike');
 
 function stash(w, o) {
   const v = o.v;
@@ -422,7 +456,7 @@ function occupied(w, x, y, r, ignore) {
 
 // Stored entries in a fixed order, cars paged over the bays.
 function storedEntries() {
-  const out = { car: [], long: [], bike: [], boat: [] };
+  const out = { car: [], long: [], bike: [], boat: [], heli: [] };
   for (const o of getOwnedEntries()) {
     if (o.lost) continue;
     const v = o.v;
@@ -480,6 +514,9 @@ function wantedSlots(w, stored) {
     const [x, y] = r.at(lenOf(o.spec));
     want.set(o, { x, y, angle: r.angle, id: r.id });
   });
+  // one helicopter on the roof (not while the flat below it is open)
+  const pad = home.pad;
+  if (pad && stored.heli[0] && !inside) want.set(stored.heli[0], { x: pad.x, y: pad.y, angle: pad.angle, id: 'pad', z: pad.z });
   return want;
 }
 
@@ -495,6 +532,7 @@ function inStoreZone(w, v, spec) {
     const p = closestOnLine(home.bank, v.x, v.y);
     return p < 12;
   }
+  if (v.isHeli) return !!home.pad && !!v.onGround && Math.hypot(v.x - home.pad.x, v.y - home.pad.y) < PAD_R + 0.5 && Math.abs(v.z - home.pad.z) < 1;
   if (inPoly(PLINTH, v.x, v.y)) return true;
   if (k === 'long') return closestOnLine(home.court, v.x, v.y) < 6;
   if (k === 'bike') return home.rack.slots.some((s) => { const [x, y] = s.at(1.8); return Math.hypot(v.x - x, v.y - y) < 2.4; });
@@ -522,7 +560,7 @@ function updateVehicles(w) {
       v.homeSlot = null;
       v._homeX = v.x; v._homeY = v.y;
       const name = v === hero ? 'Escapade' : specOf.get(v).label;
-      w.addMessage(v.isBoat ? `${name} ligt weer thuis aan de steiger` : `${name} staat weer thuis`, 3, { kind: 'tip' });
+      w.addMessage(v.isBoat ? `${name} ligt weer thuis aan de steiger` : v.isHeli ? `${name} staat weer op het helidek` : `${name} staat weer thuis`, 3, { kind: 'tip' });
     }
   }
   lastInVehicle = pv;
@@ -552,6 +590,7 @@ function updateVehicles(w) {
     const v = spawnOwnedEntry(w, o, s.x, s.y, s.angle);
     if (!v) continue;
     v.x = s.x; v.y = s.y; v.angle = s.angle; v.speed = 0; v.road = null;
+    if (v.isHeli) { v.z = s.z; v.groundZ = s.z; v.onGround = true; v.landKind = 'pad'; v.landPad = home.pad; }
     v.homeStored = true;
     v.homeSlot = s.id;
     v._homeX = s.x; v._homeY = s.y;
@@ -657,6 +696,7 @@ function enterFlat(w) {
       if (inside.lowerMesh) scene.add(inside.lowerMesh);
     }
     if (home.towerBuilding) setBuildingHidden(home.towerBuilding, true);
+    stashRoofHeli(w);
     toEntry(w);
     placeCompanion(w);
     if (!introShown) {
@@ -836,15 +876,43 @@ const FLAT_PROMPTS = {
   fridge: ['Eierbal pakken', 'Uit de vriezer, even door de frituur: gezondheid vol'],
   fryer: ['Eierbal pakken', 'De frituurpan staat al warm'],
   door: ['Met de lift naar beneden', 'Naar de straat en de garage'],
+  dak: ['Trap naar het dak', 'Naar het helidek: je heli staat klaar'],
 };
+
+// The helicopter's entry in the collection, if there is one.
+function heliEntry() {
+  return getOwnedEntries().find((o) => o.spec.kind === 'heli') || null;
+}
+
+// Why the roof stairs lead nowhere right now ('' = the heli waits up there).
+function roofBlock() {
+  const o = heliEntry();
+  if (!o) return 'Het dak is leeg. Een heli koop je bij Rotor Roelf op Eelde';
+  if (o.lost) return 'Je heli is total loss. Regel een nieuwe via je telefoon (T)';
+  if (o.v && !o.v.homeStored) return 'Je heli staat niet op het dak. Laat hem afleveren via je telefoon (T)';
+  return '';
+}
+
+function onHomePad(w) {
+  const v = w.player.inVehicle;
+  return !!(v && v.isHeli && home.pad && v.onGround && !v.wrecked && v.landPad === home.pad);
+}
 
 export function homePrompt(w) {
   if (!home || busy) return null;
   const p = w.player;
+  if (onHomePad(w)) {
+    const why = canPark(w);
+    return { id: 'home-pad', x: home.pad.x, y: home.pad.y, h: home.pad.z + 3.4, key: 'E', label: 'Parkeren en naar binnen', sub: why || 'Met de lift naar jullie flat', ring: true };
+  }
   if (p.inVehicle) return null;
   if (inside) {
     const u = flatUse(w);
     if (!u) return null;
+    if (u.k === 'dak') {
+      const why = roofBlock();
+      return { id: 'home-dak', x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label: FLAT_PROMPTS.dak[0], sub: why || FLAT_PROMPTS.dak[1], ring: true, dim: !!why };
+    }
     const [label, sub] = furniturePrompt(u.k, w) || FLAT_PROMPTS[u.k];
     return { id: 'home-' + u.k, x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label, sub, ring: true };
   }
@@ -893,7 +961,90 @@ export function tryHomeInteract(w) {
   else if (pr.id === 'home-wardrobe') openShopMenu(w, wardrobeMenu(w));
   else if (pr.id === 'home-fridge' || pr.id === 'home-fryer') eatEierbal(w);
   else if (pr.id === 'home-door') leaveFlat(w);
+  else if (pr.id === 'home-dak') {
+    const why = roofBlock();
+    if (why) w.addMessage(why, 3.5, { kind: 'tip' });
+    else toRoof(w);
+  } else if (pr.id === 'home-pad') parkOnPad(w);
   return true;
+}
+
+// --- the helidek ------------------------------------------------------------------
+
+// Nobody in the flat sees the roof: the heli waits unspawned meanwhile.
+function stashRoofHeli(w) {
+  const o = heliEntry();
+  if (o && o.v && o.v.homeStored && o.v.driver !== 'player') stash(w, o);
+}
+
+// The flat's roof stairs: out of the flat and straight into the pilot's seat.
+function toRoof(w) {
+  fadeThen(() => {
+    if (!inside || roofBlock()) return;
+    const o = heliEntry();
+    exitFlatNow(w);
+    const pad = home.pad;
+    let v = o.v && w.vehicles.includes(o.v) ? o.v : spawnOwnedEntry(w, o, pad.x, pad.y, pad.angle);
+    if (!v) { placeAtLobby(w); w.addMessage('De heli wil niet. Probeer het straks nog eens', 3); return; }
+    v.x = pad.x; v.y = pad.y; v.angle = pad.angle; v.z = pad.z;
+    v.groundZ = pad.z; v.onGround = true; v.landKind = 'pad'; v.landPad = pad;
+    v.speed = 0; v.driftX = 0; v.driftY = 0; v.vx = 0; v.vy = 0; v.vz = 0;
+    v.homeStored = true; v.homeSlot = 'pad'; v._homeX = pad.x; v._homeY = pad.y;
+    const p = w.player;
+    resetWalker(p, pad.x, pad.y, pad.z);
+    p.enterVehicle(v, w);
+    p.angle = v.angle;
+    w.camYaw = v.angle;
+    const c = w.companion;
+    if (c && c.state !== 'dead' && !c.inVehicle) {
+      c.sofaSeat = null;
+      c.x = pad.x; c.y = pad.y; c.gz = pad.z; c.vx = 0; c.vy = 0;
+      c.inVehicle = v;
+      v.passenger = 'companion';
+    }
+    w.addMessage('Boven op het dak. W: opstijgen, A/D draaien, pijltjes vliegen', 5, { kind: 'tip' });
+  }, 520);
+}
+
+function canPark(w) {
+  if (w.wanted > 0) return 'Met de politie op je hielen: eerst ze kwijt, dan naar binnen';
+  if (isMissionActive() || (w.sideJob && w.sideJob.active) || w.challenge) return 'Eerst je klus afmaken';
+  return '';
+}
+
+// Landed on the helidek, E: the heli stays up here, the lift takes you both down.
+function parkOnPad(w) {
+  const why = canPark(w);
+  if (why) { w.addMessage(why, 3); return; }
+  fadeThen(() => {
+    const p = w.player;
+    const v = p.inVehicle;
+    if (!v || !v.isHeli || !onHomePad(w)) return;
+    const c = w.companion;
+    if (c && c.inVehicle === v) { c.inVehicle = null; v.passenger = null; }
+    v.driver = null; v.horn = false; v.throttle = 0;
+    v.speed = 0; v.driftX = 0; v.driftY = 0; v.vx = 0; v.vy = 0; v.vz = 0;
+    p.inVehicle = null;
+    v.homeStored = true; v.homeSlot = 'pad'; v._homeX = v.x; v._homeY = v.y;
+    lastInVehicle = null;
+    recordStat(w, 'heliParked');
+    unlockAchievement(w, 'helidak');
+    if (canEnter(w)) { placeAtLobby(w); return; }
+    const scene = getScene();
+    const f = home.flat;
+    deliverFurniture(w);
+    inside = { flatMesh: buildFlat3D(f, furnitureSkip()), lowerMesh: home.towerBuilding ? buildLowerTower3D(home.towerBuilding, FLAT_LEVEL - 1) : null, facade: 0 };
+    attachFurniture3D(inside.flatMesh, f);
+    if (scene) {
+      scene.add(inside.flatMesh);
+      if (inside.lowerMesh) scene.add(inside.lowerMesh);
+    }
+    if (home.towerBuilding) setBuildingHidden(home.towerBuilding, true);
+    stashRoofHeli(w);
+    toEntry(w);
+    placeCompanion(w);
+    w.addMessage('Heli geparkeerd op het dak. Thuis!', 3, { kind: 'tip' });
+  }, 520);
 }
 
 // --- frame -------------------------------------------------------------------------
@@ -905,6 +1056,13 @@ function streamExterior(w, dt) {
   const d = Math.hypot(p.x - home.center.x, p.y - home.center.y);
   if (!exterior && d < STREAM_IN) {
     exterior = buildHomeExterior3D(home);
+    if (home.pad) {
+      const pad = buildHelipadMesh(PAD_R, PAD_DECK);
+      pad.position.set(home.pad.x, home.pad.roof, home.pad.y);
+      pad.rotation.y = -home.pad.angle;
+      exterior.add(pad);
+      exterior.userData.pad = pad;
+    }
     scene.add(exterior);
   } else if (exterior && d > STREAM_OUT) {
     scene.remove(exterior);
@@ -912,6 +1070,7 @@ function streamExterior(w, dt) {
     exterior = null;
   }
   if (!exterior) return;
+  if (exterior.userData.pad) exterior.userData.pad.visible = !inside;
   const who = p.inVehicle || p;
   const dd = home.garage.door;
   const want = Math.hypot(who.x - dd.cx, who.y - dd.cy) < DOOR_OPEN_M || inPoly(PLINTH, who.x, who.y) ? 1 : 0;

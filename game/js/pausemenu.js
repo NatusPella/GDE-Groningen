@@ -52,6 +52,14 @@ const CONTROL_GROUPS = [
     [['CTRL+LMB'], 'Carbidbus neerzetten'],
     [['WHEEL'], 'Volgend of vorig wapen (scrollen)'],
   ]],
+  ['heli', 'Helikopter', [
+    [['W', 'S'], 'Stijgen en dalen; landen: laag en langzaam boven een vlak stuk'],
+    [['A', 'D'], 'Draaien (de muis draait ook)'],
+    [['ARROWS'], 'Vooruit, achteruit en opzij vliegen'],
+    [['SHIFT'], 'Boost: vol gas vooruit'],
+    [['SPACE'], 'Stilhangen: afremmen tot je stil in de lucht hangt'],
+    [['E'], 'Uitstappen (alleen geland); op je helidek: parkeren en naar binnen'],
+  ]],
   ['duif', 'Duif', [
     [['WASD'], 'Lopen, in de lucht: sturen'],
     [['SPACE'], 'Opstijgen, klapwieken'],
@@ -77,10 +85,11 @@ const GROUP_ICONS = {
   lopen: '<circle cx="13" cy="4.5" r="2"/><path d="M11 21l2-6-3-3 1-5 4 3 3 1M10 12l-3 2M13 15l3 6"/>',
   rijden: '<path d="M4 16l1.5-5A2 2 0 0 1 7.4 9.6h9.2a2 2 0 0 1 1.9 1.4L20 16v3h-3M7 19H4v-3h16"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
   vechten: '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>',
+  heli: '<path d="M3 5h16M11 5v3"/><path d="M5 13a5 4 0 0 1 10 0v2H5zM15 12h6M20 9v5M6 20h9M8 17v3M13 17v3"/>',
   duif: '<path d="M3 13c3 0 5-2 7-5 1 3 3 4 6 4l5-3-2 5c-2 4-6 6-10 5l-4 2 1-4c-2-1-3-2-3-4z"/><circle cx="16.5" cy="10.5" r="0.4"/>',
   menu: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 18.5h3"/>',
 };
-const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd' };
+const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' };
 
 function controlsHtml() {
   const alt = (a) => a.split('+').map((t) => glyphHtml(t)).join('<span class="pm-k-sep">+</span>');
