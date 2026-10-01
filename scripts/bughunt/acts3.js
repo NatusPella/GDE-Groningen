@@ -50,7 +50,7 @@
       teleport(s.x, s.y, false); await sleep(1500);
       await tap('e'); await sleep(2500); await quiet();
       for (let i = 0; i < 6 && (gh.room() || gh.race()); i++) { await tap('e'); await sleep(1500); await quiet(); }
-      if (gh.room()) { log('geheim room still open', k); await tap('escape'); await sleep(500); if (PM.isPauseMenuOpen()) PM.closePauseMenu(); }
+      if (gh.room()) { log('geheim room still open', k, JSON.stringify({ pig: !!w.pigeonMode, heli: !!w.heliRun, padel: !!w.padelGame, paused: w.paused, ui: !!w.uiPaused, act: w.activityGame, resp: !!w.pendingRespawn, train: !!w.trainDriving, keys: [...w.input.keys].join('') })); await tap('escape'); await sleep(500); if (PM.isPauseMenuOpen()) PM.closePauseMenu(); }
       if (SU.isShopOpen()) SU.closeShopMenu();
       await sleep(500);
       await expectClear('geheim ' + k);
