@@ -285,10 +285,10 @@ function updateUi(run) {
   let html = '';
   if (d.phase === 'aim1' || d.phase === 'aim2') {
     const label = d.phase === 'aim1' ? '1. Aanloop' : '2. Pak de polsstok';
-    html = `<div>${label}: druk op <b>Spatie</b> als de streep in het midden is</div><div class="pg-bar"><i style="left:38%;width:24%"></i><i class="gold" style="left:46%;width:8%"></i><u style="left:${(d.needle * 100).toFixed(1)}%"></u></div>`;
+    html = `<div>${label}: druk op <kbd>SPATIE</kbd> als de streep in het midden is</div><div class="pg-bar"><i style="left:38%;width:24%"></i><i class="gold" style="left:46%;width:8%"></i><u style="left:${(d.needle * 100).toFixed(1)}%"></u></div>`;
   } else if (d.phase === 'climb') {
     const k = clamp(d.taps / CLIMB_TAPS, 0, 1);
-    html = `<div>3. Klimmen: <b>Spatie</b> zo snel als je kunt!</div><div class="pg-bar"><i class="gold" style="left:0;width:${(k * 100).toFixed(0)}%"></i></div>`;
+    html = `<div>3. Klimmen: <kbd>SPATIE</kbd> zo snel als je kunt!</div><div class="pg-bar"><i class="gold" style="left:0;width:${(k * 100).toFixed(0)}%"></i></div>`;
   } else if (d.phase === 'next' || d.phase === 'jvault' || d.phase === 'jelle') html = '<div class="pg-help">Jelle kijkt toe. Of doet alsof.</div>';
   run.ui.setSlot(html);
 }

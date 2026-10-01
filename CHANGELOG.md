@@ -6,6 +6,20 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-10-01
+
+### Opgelost
+- **Vijftien winkels in de buitenwijken waren niet binnen te komen**, waaronder
+  de snackbar voor de eierbal, de fietsenwinkel en de supermarkt voor de
+  finale. Ook een paar cafés en een padelbaan.
+- **Padel** is eerlijker en leuker: tegenstanders maken fouten, het
+  slagmoment is ruimer, en klikken schiet niet meer met je wapen.
+- De ontspannen rondvaart: de boot voer weg voordat je kon instappen.
+- Het bed in de flat liet "Kledingkast" zien, en de boekenkast liet zich
+  niet in elkaar zetten.
+- Bij het skûtsje draaide de camera om als je je zeil aantrok.
+- Toetsen staan overal als duidelijke icoontjes in beeld.
+
 ## [0.19.0] - 2026-09-30
 
 ### Nieuw

@@ -97,6 +97,8 @@ export function updateCombat(dt, world) {
   fireTimer = Math.max(0, fireTimer - dt);
 
   const { input } = world;
+  // a minigame (padel, the fuse box) owns the mouse buttons and number keys
+  if (world.padelGame || world.minigameUntil > world.time) { world.scoped = false; pendingSwing = null; return; }
   if (!hasWeapon(world, world.weapon)) world.weapon = 'fists';
   for (let i = 1; i <= SLOTS; i++) {
     if (input.wasPressed(String(i))) selectWeaponSlot(world, i);

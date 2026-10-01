@@ -885,7 +885,8 @@ const BOAT_WAYPOINT_MAX = 9;
 // stands entirely apart from updateTrafficAI.
 export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   if (v.wrecked || v.scripted) return; // scripted: a mission module steers this boat itself
-  if (!v.waterPoly) { v.applyControls(dt, 0, 0, true); return; }
+  // a mission, side-job or own boat waits where it lies until the player boards it
+  if (!v.waterPoly || v.missionCar || v.playerOwned || v.homeStored) { v.applyControls(dt, 0, 0, true); return; }
 
   // Police pursuit: the waypoint is simply the player's live position.
   const chasing = v.isPolice && !v.hijacked && world.wanted > 0;
@@ -975,7 +976,8 @@ export function findEnterableVehicle(x, y, vehicles, reach = ENTER_REACH) {
     if (v.wrecked || v.sinking || v.driver || v.disabled) continue;
     const pad = v.halfLen + reach + 1.5;
     if (Math.abs(v.x - x) > pad || Math.abs(v.y - y) > pad) continue;
-    const r = (v.isBike || v.isScooter ? reach * 0.7 : reach) + Math.min(1, Math.abs(v.speed) * 0.1);
+    // a moored boat is boarded from the quay: a step across the gap to the hull
+    const r = (v.isBike || v.isScooter ? reach * 0.7 : v.isBoat ? reach + 1.2 : reach) + Math.min(1, Math.abs(v.speed) * 0.1);
     const d = distToVehicleBody(v, x, y);
     if (d > r || d / r >= bestScore) continue;
     bestScore = d / r;
