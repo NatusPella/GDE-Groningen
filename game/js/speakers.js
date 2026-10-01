@@ -33,6 +33,8 @@ export const SPEAKER_COLORS = {
   'Ome Jan': '#7a8a3a',
   'Koe Geertje': '#9a7a5a',
   'Rotor Roelf': '#2a9ab8',
+  'Boer Roelf': '#9a7a52',
+  Hilje: '#a8709a',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
 export const NEUTRAL = '#8a8a8a';

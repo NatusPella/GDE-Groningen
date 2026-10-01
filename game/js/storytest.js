@@ -270,6 +270,36 @@ export async function runStoryTest(world) {
               if (p.inVehicle === v) p.exitVehicle(world.map, world);
             }
             check(`${cur.id}: no helicopter bought for the demo flight`, !getOwnedEntries().some((o) => o.spec && o.spec.kind === 'heli'));
+          } else if (step.goal && step.goal.type === 'carbid' && window.__carbid && window.__activities && window.__storyFun) {
+            // the lift: on foot in town, Henk drops the Escapade off for free; then a real round at boer Roelf's churn
+            const cb = window.__carbid, sf = window.__storyFun, p = world.player;
+            if (p.inVehicle) p.exitVehicle(world.map, world);
+            const town = world.map.nearestRoadPoint(706, -325, 120, false) || { x: 706, y: -325 };
+            p.x = town.x; p.y = town.y;
+            for (const v of world.vehicles) if (v.isHeroCar && !v.wrecked) { v.x += 2000; v.y += 2000; }
+            world.wanted = 0;
+            await sleep(500);
+            const lifted = sf.lift();
+            const hero = world.vehicles.find((v) => v.isHeroCar && !v.wrecked);
+            check(`${cur.id}: Henk drops the Escapade off for the ride out`, lifted && hero && Math.hypot(hero.x - p.x, hero.y - p.y) < 260, JSON.stringify({ lifted, hero: hero && [Math.round(hero.x), Math.round(hero.y)], p: [Math.round(p.x), Math.round(p.y)] }));
+            const s = cb.spot();
+            p.x = s.x; p.y = s.y;
+            await sleep(1500);
+            const cash = world.money;
+            const scenes = sf.state().played.carbid;
+            window.__activities.get('carbid').interact(world);
+            await sleep(1200);
+            check(`${cur.id}: carbid starts free at the churn`, !!cb.state() && world.money >= cash, JSON.stringify({ st: cb.state(), money: world.money, cash }));
+            cb.fire(1, 0, 0.5);
+            await sleep(2500);
+            capture(`${String(n).padStart(2, '0')}-${cur.id}-knal`);
+            cb.finish();
+            check(`${cur.id}: the round completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 15000));
+            check(`${cur.id}: Roelf and Hilje's scene plays after the round`, await waitFor(() => sf.state().played.carbid > scenes, 20000), JSON.stringify(sf.state()));
+            await sleep(2500);
+            capture(`${String(n).padStart(2, '0')}-${cur.id}-scene`);
+            await sleep(800);
+            check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
           } else S().complete();
           if (step.cost) entry.notes.push(`betaald, saldo €${Math.round(world.money)} (was €${Math.round(before)})`);
           check(`money ok at ${cur.id}`, world.money >= 0, `€${Math.round(world.money)}`);

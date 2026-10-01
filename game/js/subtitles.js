@@ -161,6 +161,9 @@ export const GRO = {
   'Gratis rondje, jong! Bots die twij reuzen mor oet mien baan.': 'Gratis rondje, jongen! Bots die twee reuzen maar uit mijn baan.',
   'W is omhoog, de pijltjes vooruit. En nait tegen d\'Olle Grieze aan, hè?': 'W is omhoog, de pijltjes vooruit. En niet tegen de Martinitoren aan, hè?',
   '"De leste, hè."': '"De laatste, hè."',
+  // boer Roelf and Hilje hide the Eierbal (storyarc.js s-carbid)
+  'Roelf. Dat is de Gouden Eierbal. Uut t museum.': 'Roelf. Dat is de Gouden Eierbal. Uit het museum.',
+  'In de melkbus, doar zuukt gain Fries noar. Op Ontzet breng ik hom zulf.': 'In de melkbus, daar zoekt geen Fries naar. Op Ontzet breng ik hem zelf.',
   // the Ommeland extras (ommelandlines.js): the people at the end of the world and in the villages
   'Doar achter is niks meer, mien jong. Doar holdt de wereld op. Ik heb t zulf zain.': 'Daar achter is niks meer, jongen. Daar houdt de wereld op. Ik heb het zelf gezien.',
   'Mooi, hè? Hier kiek ik al veertig joar noar. Der is nog nooit wat veranderd.': 'Mooi, hè? Hier kijk ik al veertig jaar naar. Er is nog nooit wat veranderd.',
