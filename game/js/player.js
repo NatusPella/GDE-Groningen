@@ -13,6 +13,7 @@ import { railingAhead } from './bridgerails.js';
 import { drunkMove, drunkSteer } from './drunk.js';
 
 import { inHomeFlat } from './home.js';
+import { flyHeli, heliExitBlock } from './heliflight.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -543,6 +544,8 @@ export class Player {
   tryEnterExit(map, vehicles, world = null) {
     if (this.inVehicle) {
       if (this.inVehicle.sinking && this.inVehicle.sinking.phase === 'fall') return;
+      const why = heliExitBlock(this.inVehicle);
+      if (why) { if (world) world.addMessage(why, 2.5, { kind: 'tip' }); return; }
       this.exitVehicle(map, world);
       return;
     }
@@ -626,6 +629,11 @@ export class Player {
 
   driveVehicle(dt, input, map, world = null) {
     const v = this.inVehicle;
+    if (v.isHeli && world) {
+      flyHeli(v, dt, world);
+      this.x = v.x; this.y = v.y; this.angle = v.angle;
+      return;
+    }
     const [ax, ay] = input.axis();
     // race countdown (world.startLockUntil) or a Fjord Frituur shift (v.shiftParked):
     // engine idles, handbrake on, no creeping over the line

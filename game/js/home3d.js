@@ -210,6 +210,15 @@ export function buildFlat3D(flat, skip = new Set()) {
   box(g, M.screen, fd.x + 0.8, 0.9, fd.z - 0.08, 0.14, 0.2, 0.02);
   box(g, M.steel, fd.x, low / 2, D + cor - 0.35, 1.6, low, 0.5);
   box(g, M.rug, fd.x, 0.025, fd.z - 0.6, 1.1, 0.01, 0.7);
+  // the door to the roof stairs on the hall's side wall, with its sign
+  const rd = flat.spots.roof;
+  if (rd) {
+    box(g, M.frame, rd.x, low / 2 + 0.02, rd.z, 0.14, low + 0.04, 1.05);
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.225), new THREE.MeshBasicMaterial({ map: signTexture('DAK', 'helidek') }));
+    sign.position.set(rd.x + 0.09, low + 0.3, rd.z);
+    sign.rotation.y = Math.PI / 2;
+    g.add(sign);
+  }
   // living room: sofa, coffee table, rug, tv, a plant by the window
   const s = flat.spots;
   box(g, M.rug, s.sofa.x, 0.025, s.sofa.z - 1.4, 3.0, 0.01, 2.0);

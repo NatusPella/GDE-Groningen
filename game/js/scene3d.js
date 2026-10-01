@@ -2025,7 +2025,8 @@ export function update3D(dt, world) {
   if (camVeh) {
     if (!camWasInVehicle) { lookYaw = normalizeAngleDelta(world.camYaw - targetAngle); lookYawIdle = 0; }
     const fast = Math.min(1, Math.abs(camVeh.speed || 0) / LOOK_FAST_SPEED);
-    if (looking && mouse.dx !== 0 && !lookBack) {
+    // in a helicopter the mouse turns the heli itself (heliflight.js)
+    if (looking && mouse.dx !== 0 && !lookBack && !camVeh.isHeli) {
       lookYaw = normalizeAngleDelta(lookYaw + mouse.dx * lookK);
       lookYawIdle = 0;
     } else {
@@ -2044,7 +2045,7 @@ export function update3D(dt, world) {
   // vehicles get a longer, higher orbit scaled to their length, so the car
   // doesn't fill the lower half of the screen
   const veh = camVeh;
-  const camScale = veh ? Math.min(3.2, Math.max(1.35, veh.model.len / 2.4)) : 1;
+  const camScale = veh ? (veh.isHeli ? 4.4 : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
   const radius = orbitRadius * camScale;
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
