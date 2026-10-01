@@ -15,6 +15,7 @@ import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionI
 import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave, saveGame, loadLatestSave } from './savegame.js';
 import { isVillageMiniActive } from './dorpsuitjes.js';
+import { isActivityActive } from './activities.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 import { validateSpots } from './spotcheck.js';
@@ -369,6 +370,13 @@ export async function runStoryTest(world) {
           const tennisOn = isVillageMiniActive();
           loadLatestSave(world);
           check('a loaded save ends village tennis', tennisOn && !isVillageMiniActive(), `tennis started: ${tennisOn}`);
+          await drain(world, 700);
+        }
+        if (window.__kermis && window.__kermis.start()) {
+          await sleep(1200);
+          const ridingOn = isActivityActive();
+          loadLatestSave(world);
+          check("a loaded save ends the botsauto's", ridingOn && !isActivityActive(), `ride started: ${ridingOn}`);
           await drain(world, 700);
         }
       }
