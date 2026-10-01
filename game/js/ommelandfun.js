@@ -30,6 +30,7 @@ export function initOmmelandFun(w) {
 // Props block the player on foot and in a vehicle: a plain circle push-out.
 function pushOut(w) {
   const p = w.player, v = p.inVehicle;
+  if (v && v.isHeli && !v.onGround) return;
   const o = v || p;
   const R = v ? Math.max(0.9, v.halfWid || 0.9) : 0.35;
   solids.length = 0;

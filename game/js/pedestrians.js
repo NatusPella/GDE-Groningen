@@ -553,7 +553,7 @@ function knockOffRiders(world) {
     if (!byPlayerBike && !b.road) continue;
     const bvx = Math.cos(b.angle) * b.speed, bvy = Math.sin(b.angle) * b.speed;
     for (const u of world.vehicles) {
-      if (u === b || u.isBoat || u.sinking) continue;
+      if (u === b || u.isBoat || u.sinking || (u.isHeli && !u.onGround)) continue;
       if (Math.abs(u.x - b.x) > u.halfLen + 1.5 || Math.abs(u.y - b.y) > u.halfLen + 1.5) continue;
       const push = pushCircleOutOfVehicle(b.x, b.y, 0.55, u);
       if (!push) continue;

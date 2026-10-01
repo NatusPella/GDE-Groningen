@@ -2442,5 +2442,33 @@
 "Anita|Dat glas staat er al sinds de bouw, Tammo.": {
 "src": "padel-fail_1_a_bcc686.mp3",
 "dur": 3.41
+},
+"Tammo|Geen stoplicht, geen flitspaal, geen fietser. Dit is de hemel.": {
+"src": "si-heli-hemel_0_t_ed3ab0.mp3",
+"dur": 6.85
+},
+"Anita|Een beetje hoog voor iemand met hoogtevrees.": {
+"src": "si-heli-hemel_1_a_5b8b93.mp3",
+"dur": 3.78
+},
+"Tammo|Ik heb geen hoogtevrees. Ik heb landingsvrees.": {
+"src": "si-heli-hemel_2_t_3de688.mp3",
+"dur": 3.34
+},
+"Anita|Van hierboven is Grunn net een maquette. Kijk, de Martinitoren!": {
+"src": "si-heli-maquette_0_a_797bee.mp3",
+"dur": 5.17
+},
+"Tammo|En daar staat de Escapade. Van boven ziet hij er ook oud uit.": {
+"src": "si-heli-maquette_1_t_f8c427.mp3",
+"dur": 4.42
+},
+"Tammo|Kun je eigenlijk een eierbal halen met een helikopter?": {
+"src": "si-heli-eierbal_0_t_f3f87e.mp3",
+"dur": 3.32
+},
+"Anita|Alleen als de snackbar een plat dak heeft.": {
+"src": "si-heli-eierbal_1_a_e7f212.mp3",
+"dur": 4.37
 }
 }

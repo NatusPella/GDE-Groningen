@@ -2384,6 +2384,62 @@
   "who": "Groningse vrouw, lacherig en ad rem"
  },
  {
+  "file": "si-heli-hemel_0_t_ed3ab0.mp3",
+  "speaker": "Tammo",
+  "text": "Geen stoplicht, geen flitspaal, geen fietser. Dit is de hemel.",
+  "tag": "blissful, dreamy",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "si-heli-hemel_1_a_5b8b93.mp3",
+  "speaker": "Anita",
+  "text": "Een beetje hoog voor iemand met hoogtevrees.",
+  "tag": "teasing, nervous",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "si-heli-hemel_2_t_3de688.mp3",
+  "speaker": "Tammo",
+  "text": "Ik heb geen hoogtevrees. Ik heb landingsvrees.",
+  "tag": "deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "si-heli-maquette_0_a_797bee.mp3",
+  "speaker": "Anita",
+  "text": "Van hierboven is Grunn net een maquette. Kijk, de Martinitoren!",
+  "tag": "amazed, excited",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "si-heli-maquette_1_t_f8c427.mp3",
+  "speaker": "Tammo",
+  "text": "En daar staat de Escapade. Van boven ziet hij er ook oud uit.",
+  "tag": "dry, fond",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "si-heli-eierbal_0_t_f3f87e.mp3",
+  "speaker": "Tammo",
+  "text": "Kun je eigenlijk een eierbal halen met een helikopter?",
+  "tag": "curious, hungry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "si-heli-eierbal_1_a_e7f212.mp3",
+  "speaker": "Anita",
+  "text": "Alleen als de snackbar een plat dak heeft.",
+  "tag": "amused, practical",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
   "file": "id-tegenwind_0_t_a3fb17.mp3",
   "speaker": "Tammo",
   "text": "Tegenwind. Alweer.",
@@ -3515,6 +3571,54 @@
   "file": "h15-fail_1_a_500588.mp3",
   "speaker": "Anita",
   "text": "Die ballon had geen passagier die steeds \"rustig aan\" riep.",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "st-padel_0_a_78d8de.mp3",
+  "speaker": "Anita",
+  "text": "Padel. Twee tegen twee, in een glazen doos.",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "st-padel_1_t_de9e95.mp3",
+  "speaker": "Tammo",
+  "text": "Net als ons leven.",
+  "tag": "dry, deadpan",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "padel-pass_0_a_70e82c.mp3",
+  "speaker": "Anita",
+  "text": "Jij kunt padellen. Wie had dat gedacht.",
+  "tag": "surprised, amused",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem"
+ },
+ {
+  "file": "padel-pass_1_t_6eabde.mp3",
+  "speaker": "Tammo",
+  "text": "Ik. Al jaren.",
+  "tag": "smug, dry",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "padel-fail_0_t_adc681.mp3",
+  "speaker": "Tammo",
+  "text": "Dat glas stond verkeerd.",
+  "tag": "grumpy",
+  "voice": "Algenib",
+  "who": "Stadjer, droog en sarcastisch"
+ },
+ {
+  "file": "padel-fail_1_a_bcc686.mp3",
+  "speaker": "Anita",
+  "text": "Dat glas staat er al sinds de bouw, Tammo.",
   "tag": "teasing",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem"
