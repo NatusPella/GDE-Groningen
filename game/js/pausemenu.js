@@ -977,7 +977,7 @@ function showTab(name, how) {
   if (!prestart && pref.last !== name) { pref.last = name; savePref(); }
   if (name === 'map') {
     const r = getDiscoveredRatio();
-    if (r) sheet.querySelector('.pm-sheet-sub').textContent = `${Math.round(r * 100)}% van Grunn verkend · ${hint.toLowerCase()}`;
+    if (r >= 0.01) sheet.querySelector('.pm-sheet-sub').textContent = `${Math.round(r * 100)}% van Grunn verkend · ${hint.toLowerCase()}`;
   }
   if (name === 'missions') { showSubtab('missions', pref.sub.missions || 'verhaal'); renderMissions(); }
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
