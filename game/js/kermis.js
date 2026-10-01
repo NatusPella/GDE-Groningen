@@ -812,6 +812,7 @@ export const KERMIS = {
   secondary,
   interact,
   active: () => !!game,
+  quit: (w) => end(w, { quit: true }),
   update(dt, w) {
     if (!game) return;
     if (w.pendingRespawn) { end(w, { quit: true }); return; }
