@@ -61,7 +61,7 @@ float tNoise(vec2 p) {
              mix(tHash(i + vec2(0.0, 1.0)), tHash(i + vec2(1.0, 1.0)), u.x), u.y);
 }
 
-vec3 terrainAlbedo(vec2 p) {
+vec3 terrainAlbedo(vec2 p, vec2 fwp) {
   float macro = tNoise(p * 0.02) * 0.65 + tNoise(p * 0.07) * 0.35;
   vec3 c = mix(uColorA, uColorB, smoothstep(0.35, 0.75, macro));
   c = mix(c, uColorDetail, tNoise(p * 0.6) * 0.12);
@@ -71,7 +71,7 @@ vec3 terrainAlbedo(vec2 p) {
   b.x += step(1.0, mod(floor(b.y), 2.0)) * 0.5;
   vec2 cell = floor(b);
   vec2 f = fract(b);
-  vec2 fw = max(fwidth(b), vec2(1e-4));
+  vec2 fw = max(fwp / vec2(0.22, 0.11), vec2(1e-4));
   vec2 edge = smoothstep(vec2(0.0), fw * 1.5, f) * smoothstep(vec2(0.0), fw * 1.5, 1.0 - f);
   float joint = 1.0 - edge.x * edge.y;
   float detail = 1.0 - smoothstep(0.25, 0.9, max(fw.x, fw.y));
@@ -125,8 +125,9 @@ function wetOnBeforeCompile(shader, surf) {
     .replace('#include <common>', '#include <common>\n' + WET_GLSL + (shader.__terrain ? ALBEDO_GLSL + COUNTRY_GLSL : '') + (surf ? surf.fragmentCommon : ''))
     .replace('#include <color_fragment>', `#include <color_fragment>
       float sDip = 0.0, sRough = 0.0, sHeight = 0.0;
-      ${shader.__terrain ? `diffuseColor.rgb *= terrainAlbedo(vWetXZ);
+      ${shader.__terrain ? `vec2 tFw = fwidth(vWetXZ);
       float cw = countryWeight(vWetXZ);
+      if (cw < 1.0) diffuseColor.rgb *= terrainAlbedo(vWetXZ, tFw);
       if (cw > 0.0) diffuseColor.rgb = mix(diffuseColor.rgb, countryAlbedo(vWetXZ, cw, sRough, sDip), cw);` : ''}
       ${surf ? surf.color : ''}
       float wetP = wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3 + sDip * 0.35;

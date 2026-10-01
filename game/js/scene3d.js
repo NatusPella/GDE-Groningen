@@ -54,6 +54,8 @@ import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside } from './countryside.js';
+import { updateCountryBake } from './countrybake.js';
+import { edgeDistance } from './countryfield.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
@@ -2173,6 +2175,7 @@ export function update3D(dt, world) {
   prewarmLightVariants();
   probe.mark('3d:prewarm');
 
+  updateCountryBake(renderer, player.x, player.y, edgeDistance(player.x, player.y) > -700);
   postfx.render();
   probe.mark('3d:render');
   probe.identify(scene);
