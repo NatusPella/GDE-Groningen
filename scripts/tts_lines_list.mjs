@@ -45,6 +45,8 @@ const CAST = {
   'Koe Grietje': { voice: 'Autonoe', who: 'een wijze, droge koe uit het Ommeland die alles ziet', pool: ['droog, bedachtzaam', 'deadpan, licht spottend'] },
   // phone messages read aloud (sms manifest): the Sikkom newsreader and the phone's own app voice
   'Sikkom-redactie': { voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor', pool: ['als een nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog'] },
+  // Geesje presents the talk station Radio Grunn on the car radio (radiostations.js)
+  Geesje: { voice: 'Pulcherrima', who: 'Groningse radiopresentatrice van praatzender Radio Grunn, warm en droog', pool: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice'] },
   Ubbo: { voice: 'Laomedeia', who: 'de vriendelijke stem van de telefoon-app Ubbo', pool: ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'], accent: 'spoken in standard Dutch, clear and friendly like a phone assistant' },
 };
 const MALE = ['Charon', 'Puck', 'Iapetus', 'Umbriel', 'Alnilam', 'Rasalgethi', 'Enceladus', 'Schedar', 'Sadaltager', 'Zubenelgenubi'];

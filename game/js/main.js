@@ -45,6 +45,8 @@ import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pig
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
+import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, activityCamera } from './activities.js';
+import { initRadio, updateRadio } from './radiostations.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
@@ -185,6 +187,8 @@ async function boot() {
   initPigeonSpots(world);
   initHeliRun(world);
   initPadel(world);
+  initActivities(world);
+  initRadio(world);
   initPostgame(world);
   initSideJobs(world);
   initStory(world);
@@ -269,6 +273,7 @@ async function boot() {
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
     if (world.padelGame) padelCamera(world);
+    else if (isActivityActive()) activityCamera(world);
     update3D(world.paused ? dt : gameDt, world);
     updateHud(dt, world);
     probe.mark('hud');
@@ -302,9 +307,11 @@ async function boot() {
     if (world.pigeonMode) updatePigeonMode(dt, world);
     else if (world.heliRun) updateHeliRun(dt, world);
     else if (world.padelGame) { updatePadel(dt, world); updateCompanion(dt, world); }
+    else if (isActivityActive()) { updateActivityGame(dt, world); updateCompanion(dt, world); }
     else {
       tryPostgameInteract(world);
       tryPadelInteract(world);
+      tryActivityInteract(world);
       tryTrainInteract(world);
       trySideJobInteract(world);
       tryHeliSpotInteract(world);
@@ -357,6 +364,7 @@ async function boot() {
     updatePigeonSpots(dt, world);
     updateHeliSpot(dt);
     updatePadelWorld(dt, world);
+    updateActivitiesWorld(dt, world);
     updatePoleVaults(dt, world);
     probe.mark('wildlife');
     if (!world.pigeonMode && !world.heliRun) {
@@ -375,6 +383,7 @@ async function boot() {
     updateWeather(dt, world);
     updateDayNight(dt, world);
     updateAchievementTracker(dt, world);
+    updateRadio(dt, world);
     probe.mark('systems');
   }
 

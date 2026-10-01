@@ -3,7 +3,10 @@
 // station and Fjord Frituur spots, eierballen, respawn points), checked for
 // being on open ground you can walk away from: not inside a building
 // footprint (a mapped passage is fine), not in the water unless it is a boat
-// spot, and not in a pocket the footprints close off. `validateSpots(world)`
+// spot, not in a pocket the footprints close off, and out in the Ommelanden
+// not inside what is solid there (the real building boxes, farmsteads,
+// villages, turbines, pylons: the same countryplan.js query collision.js
+// uses, with the map-edge mask built first). `validateSpots(world)`
 // returns the offenders; the story test fails on any (desktop
 // --validate-spots runs only this check).
 import { getHomeSpots } from './home.js';
@@ -20,6 +23,10 @@ import { getPadelSpotsForRender } from './padel.js';
 import { getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { CHALLENGES } from './postgame.js';
+import { activitySpots } from './activities.js';
+import { ensureCountryEdge, pushOutOfPlan } from './countryplan.js';
+import { countryWeight } from './countryfield.js';
+import { buildingAt as realBuildingAt } from './countryreal.js';
 
 const DRIVE_REACH = 25;
 const WALK_REACH = 45;
@@ -47,6 +54,15 @@ function driveDist(map, x, y) {
   return best;
 }
 
+// Out in the Ommelanden (countryWeight > 0.5) the countryside colliders are
+// solid for walkers and vehicles alike (collision.js resolveWalker).
+function countrySolid(x, y) {
+  if (countryWeight(x, y) <= 0.5) return null;
+  const o = { x, y };
+  if (!pushOutOfPlan(o, 0.35)) return null;
+  return realBuildingAt(x, y, 0.35) >= 0 ? 'in een Ommelander gebouw' : 'in een erf, dorp, molen of mast in de Ommelanden';
+}
+
 // What is wrong with the spot, or null.
 export function spotProblem(map, s) {
   const { x, y, mode } = s;
@@ -58,6 +74,8 @@ export function spotProblem(map, s) {
   if (wet) return 'in het water';
   const b = buildingAt(map, x, y);
   if (b) return `in een gebouw${b.name ? ' (' + b.name + ')' : ''}`;
+  const solid = countrySolid(x, y);
+  if (solid) return solid;
   if (!map.canWalkOut(x, y, WALK_REACH)) return 'ingesloten, je kunt er niet weg';
   if (mode === 'drive' && driveDist(map, x, y) > DRIVE_REACH) return 'te ver van een rijweg';
   return null;
@@ -109,6 +127,7 @@ export function collectSpots(world) {
   for (const p of getPigeonSpotsForRender()) add('duivenplek', p.name, p);
   for (const h of getHeliSpotsForRender()) add('heli', 'traumaheli', h);
   for (const p of getPadelSpotsForRender()) add('padel', p.name, p);
+  for (const a of activitySpots()) add(a.kind, a.id, a, a.mode);
   for (const s of getStationsForRender() || []) add('station', s.name, s);
   for (const e of getEierballen()) add('eierbal', e.id, e);
   for (const c of CHALLENGES) {
@@ -123,6 +142,8 @@ export function collectSpots(world) {
 }
 
 export function validateSpots(world) {
+  // the Ommelanden masks are built lazily in play; the check needs them now
+  ensureCountryEdge(world.map);
   const spots = collectSpots(world);
   const bad = [];
   for (const s of spots) {

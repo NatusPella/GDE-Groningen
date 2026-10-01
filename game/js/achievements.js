@@ -5,7 +5,7 @@
 //
 // Storage: everything the player earns for good (unlocks, lifetime counters,
 // best mission times/medals) sits in its own key so it survives "Nieuw spel".
-// Per-playthrough bits (found eierballen) travel inside the savegame, which
+// Per-playthrough bits (found eierballen, geheimpjes) travel inside the savegame, which
 // also carries a copy of the unlocked ids so a save restores them if the
 // lifetime key was ever cleared.
 import { dualHtml } from './subtitles.js';
@@ -96,6 +96,11 @@ export const ACHIEVEMENTS = [
   { id: 'padel_klaar', cat: 'verkennen', title: 'Glazen kooi', desc: 'Speel een potje padel' },
   { id: 'padel_winst', cat: 'verkennen', title: 'Tegen het glas', desc: 'Win een potje padel' },
   { id: 'padel_goud', cat: 'verkennen', title: 'Padelkoning van Grunn', desc: 'Win een potje padel met 2-0' },
+  { id: 'carbid_klaar', cat: 'verkennen', title: 'Knal in de polder', desc: 'Schiet carbid bij boer Roelf' },
+  { id: 'carbid_goud', cat: 'verkennen', title: 'Oudjoarsknaller', desc: 'Haal goud bij het carbid schieten', medal: true },
+  { id: 'botsauto_klaar', cat: 'verkennen', title: 'Kermisklant', desc: "Rij een ritje in de botsauto's op de Grote Markt" },
+  { id: 'botsauto_goud', cat: 'verkennen', title: 'Koning van de kermis', desc: "Haal goud in de botsauto's", medal: true },
+  { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
 
   // post-game (postgame.js): Jelle's challenges and the Fjord Frituur
@@ -391,13 +396,14 @@ export function recordChallengeResult(w, id, { value, medal = 0, lower = false }
 // --- savegame ---------------------------------------------------------------
 
 export function getAchievementSaveData() {
-  return { eierballen: [...getSaveSet('eierballen')], unlocked: Object.keys(life.unlocked) };
+  return { eierballen: [...getSaveSet('eierballen')], geheimen: [...getSaveSet('geheimen')], unlocked: Object.keys(life.unlocked) };
 }
 
 export function applyAchievementSaveData(d) {
-  perSave = { eierballen: new Set() };
+  perSave = { eierballen: new Set(), geheimen: new Set() };
   if (!d || typeof d !== 'object') return;
   if (Array.isArray(d.eierballen)) for (const id of d.eierballen) if (typeof id === 'string') perSave.eierballen.add(id);
+  if (Array.isArray(d.geheimen)) for (const id of d.geheimen) if (typeof id === 'string') perSave.geheimen.add(id);
   let merged = false;
   if (Array.isArray(d.unlocked)) {
     for (const id of d.unlocked) if (BY_ID.has(id) && !life.unlocked[id]) { life.unlocked[id] = 1; merged = true; }
