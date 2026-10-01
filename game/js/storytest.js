@@ -15,7 +15,9 @@
 import { skipCinematic, isCinematicActive } from './cinematics.js';
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
-import { applySave } from './savegame.js';
+import { applySave, saveGame, loadLatestSave } from './savegame.js';
+import { isVillageMiniActive } from './dorpsuitjes.js';
+import { isActivityActive } from './activities.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 import { validateSpots } from './spotcheck.js';
@@ -428,6 +430,40 @@ export async function runStoryTest(world) {
         await sleep(500);
         capture('om-dorp');
         await drain(world, 700);
+      }
+
+      // a heli run keeps its players hidden past the safety watchdog, and a loaded
+      // save ends whatever holds the player (heli run, padel match, village tennis)
+      if (window.__heliRun && window.__padel) {
+        if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+        saveGame(world, { toast: false });
+        window.__heliRun.start('ballonjacht');
+        await sleep(600);
+        for (let i = 0; i < 8 && isCinematicActive(); i++) { skipCinematic(); await sleep(250); }
+        await sleep(3800);
+        check('heli run keeps the players hidden past the safety watchdog', world.heliRun && world.cinematicHidePlayers);
+        loadLatestSave(world);
+        check('a loaded save ends a heli run', !world.heliRun);
+        await drain(world, 700);
+        window.__padel.start();
+        await sleep(1200);
+        const padelOn = !!world.padelGame;
+        loadLatestSave(world);
+        check('a loaded save ends a padel match', padelOn && !world.padelGame, `match started: ${padelOn}`);
+        await drain(world, 700);
+        if (om && om.use('Haren', 'special')) {
+          const tennisOn = isVillageMiniActive();
+          loadLatestSave(world);
+          check('a loaded save ends village tennis', tennisOn && !isVillageMiniActive(), `tennis started: ${tennisOn}`);
+          await drain(world, 700);
+        }
+        if (window.__kermis && window.__kermis.start()) {
+          await sleep(1200);
+          const ridingOn = isActivityActive();
+          loadLatestSave(world);
+          check("a loaded save ends the botsauto's", ridingOn && !isActivityActive(), `ride started: ${ridingOn}`);
+          await drain(world, 700);
+        }
       }
 
       // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data
