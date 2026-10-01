@@ -53,6 +53,7 @@ const REMIND_AFTER = 300;
 const SKIP_OFFER_S = 30;
 const SKIP_SHARE = 0.5;
 const GATED_SKIP_S = 90;
+const STUCK_SKIP_S = 360;
 const NIGHT_GARAGE_M = 16;
 const NIGHT_HOUR = 21.4;
 const SWAP_FADE = 0.45;
@@ -576,26 +577,34 @@ function flash() {
 
 // --- skipping --------------------------------------------------------------------------
 
-// Every step can be skipped from the pause menu (Missies tab), a running
-// story mission too (it is aborted first); the O button on screen only shows
-// after a failure, a long gate or a long wait on an activity.
-export function canSkipCurrent() {
+// One rule for every step, in the pause menu (Missies tab) and the O button
+// on screen: a skip is only offered once the player has tried, after a failed
+// attempt, a requirement that stays unmet, or a long time stuck on the step
+// (a running story mission too: it is aborted first). force: the dev panel
+// and the story test.
+function skipEarned(step) {
+  if ((state.fails[step.id] || 0) >= 1) return true;
+  if (rt.gatedSince >= 0 && world.time - rt.gatedSince > GATED_SKIP_S) return true;
+  if (isMissionActive()) return rt.runT > STUCK_SKIP_S;
+  return step.kind === 'activity' && world.time - rt.enteredAt > REMIND_AFTER;
+}
+
+export function canSkipCurrent({ force = false } = {}) {
   const step = rt.cur;
   if (!step || step.end) return false;
-  if (isMissionActive()) return step.kind === 'mission' && activeMissionIndex() === missionIdx(step);
-  return true;
+  if (isMissionActive() && !(step.kind === 'mission' && activeMissionIndex() === missionIdx(step))) return false;
+  return force || skipEarned(step);
 }
 
 function skipOffered() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) return false;
-  if (step.kind === 'activity') return true;
-  return (state.fails[step.id] || 0) >= 1 || (rt.gatedSince >= 0 && world.time - rt.gatedSince > GATED_SKIP_S);
+  return skipEarned(step);
 }
 
-export function skipCurrent() {
+export function skipCurrent({ force = false } = {}) {
   const step = rt.cur;
-  if (!canSkipCurrent()) return false;
+  if (!canSkipCurrent({ force })) return false;
   if (isMissionActive() && !failActiveMission(world, 'Missie overgeslagen', 'Overgeslagen')) return false;
   if (step.kind === 'mission') {
     const i = missionIdx(step);
@@ -703,6 +712,7 @@ export function updateStory(dt, w) {
   const same = cur === rt.cur || (cur.end && rt.cur && rt.cur.end === cur.end);
   if (!same) enter(cur);
   const step = rt.cur;
+  rt.runT = step && !step.end && step.kind === 'mission' && activeMissionIndex() === missionIdx(step) ? (rt.runT || 0) + dt : 0;
   updateSkipUi();
   updateCharacter(w);
   if (!step) return;
@@ -875,8 +885,8 @@ export const storyApi = {
   timeline: () => computeMoneyTimeline(),
   jump: devJumpTo,
   complete: devCompleteStep,
-  skip: skipCurrent,
-  canSkip: canSkipCurrent,
+  skip: (force) => skipCurrent({ force: !!force }),
+  canSkip: () => canSkipCurrent(),
   win: () => missionDebug.win(world),
   lose: () => missionDebug.lose(world),
   objective: () => missionDebug.complete(world),
