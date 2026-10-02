@@ -24,6 +24,7 @@ import { playLineVoice } from './audio.js';
 import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
+import { unseenAchievementCount } from './achievements.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -88,6 +89,8 @@ let stackEl = null;
 let countEl = null;
 let waitEl = null;
 let waitN = 0;
+let awardEl = null;
+let awardN = 0;
 let visible = [];
 let queue = [];
 let countT = 0;
@@ -107,10 +110,16 @@ export function initCards(w, root) {
   stackEl.className = 'hud-cards';
   stackEl.setAttribute('aria-live', 'polite');
   root.appendChild(stackEl);
+  const chips = document.createElement('div');
+  chips.className = 'hc-chips';
+  stackEl.appendChild(chips);
   waitEl = document.createElement('div');
   waitEl.className = 'hc-wait';
   waitEl.hidden = true;
-  stackEl.appendChild(waitEl);
+  awardEl = document.createElement('div');
+  awardEl.className = 'hc-wait hc-award';
+  awardEl.hidden = true;
+  chips.append(waitEl, awardEl);
   countEl = document.createElement('div');
   countEl.className = 'hud-count';
   countEl.setAttribute('aria-live', 'assertive');
@@ -129,6 +138,16 @@ function syncWait() {
   waitN = n;
   waitEl.hidden = !n;
   if (n) waitEl.innerHTML = `<i></i>${n} ${n === 1 ? 'melding wacht' : 'meldingen wachten'}`;
+}
+
+// Unlocked but not yet looked at in Prestaties; information only.
+const AWARD_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></svg>';
+function syncAward() {
+  const n = unseenAchievementCount();
+  if (n === awardN) return;
+  awardN = n;
+  awardEl.hidden = !n;
+  if (n) awardEl.innerHTML = `${AWARD_SVG}${n} ${n === 1 ? 'prestatie wacht' : 'prestaties wachten'}`;
 }
 
 // For a running mission/bijbaan the default category is that.
@@ -301,6 +320,7 @@ export function updateCards(dt, w) {
   stackEl.classList.toggle('paused', !!frozen);
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
   syncWait();
+  syncAward();
   if (frozen) return;
   // during a phone call only dangers and the police get a card
   const calling = document.body.classList.contains('hud-call-on');

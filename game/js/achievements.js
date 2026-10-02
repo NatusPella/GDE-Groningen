@@ -183,7 +183,7 @@ let toastUntil = 0;
 let toastTimer = 0;
 
 function blankLife() {
-  return { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, challenges: {} };
+  return { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, challenges: {}, fresh: [] };
 }
 
 function fmtTime(s) {
@@ -206,6 +206,7 @@ function loadLife() {
         life.missions[i] = { best: Number.isFinite(r.best) ? r.best : null, medal: Math.max(0, Math.min(3, r.medal | 0)), runs: r.runs | 0 };
       }
     }
+    if (Array.isArray(d.fresh)) life.fresh = d.fresh.filter((id) => life.unlocked[id]);
     if (d.challenges && typeof d.challenges === 'object') {
       for (const [id, r] of Object.entries(d.challenges)) {
         if (!r || typeof r !== 'object') continue;
@@ -357,9 +358,24 @@ export function unlockAchievement(w, id, { silent = false } = {}) {
   if (w) world = w;
   life.unlocked[id] = Date.now();
   markDirty(true);
-  if (!silent) queueToast(a);
+  if (!silent) { queueToast(a); life.fresh.push(id); }
   checkGoals((x) => !!x.count);
   return true;
+}
+
+// Unlocked since the player last opened Prestaties (the HUD chip).
+export function unseenAchievementCount() {
+  return life.fresh.length;
+}
+
+export function markAchievementsSeen() {
+  if (!life.fresh.length) return;
+  life.fresh = [];
+  markDirty();
+}
+
+export function isAchievementFresh(id) {
+  return life.fresh.includes(id);
 }
 
 // --- missions ---------------------------------------------------------------
