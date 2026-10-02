@@ -79,6 +79,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   menu's en tellers.
 
 ### Veranderd
+- **Fatbikes tellen niet als fiets** loopt nu zoals in het script: van de Grote
+  Markt de Oude Ebbingestraat uit, over de Ebbingebrug en langs het water naar
+  Oma Trijntje aan de Noorderhaven. De fatbikes komen overal om je heen, niet
+  alleen aan de uiteinden; de klok en de medailletijden zijn langer.
 - **Nieuw spel** is strakker: de opening duurt anderhalve minuut in plaats van
   bijna twee. Kortere trailerflitsen, de dageraad in de Korenbloemstraat in één
   beweging van de toren naar de lekke band en de radio, en het stille moment aan
