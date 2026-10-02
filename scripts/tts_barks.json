@@ -1,0 +1,362 @@
+[
+ {
+  "file": "tammo/wapen_opgepakt.wav",
+  "speaker": "Tammo",
+  "text": "Oh, dat werkt wel.",
+  "tag": "droog, tevreden",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden."
+ },
+ {
+  "file": "tammo/wapen_opgepakt_v1.wav",
+  "speaker": "Tammo",
+  "text": "Mooi, die kan ik gebruiken.",
+  "tag": "droog, tevreden",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden."
+ },
+ {
+  "file": "tammo/wapen_opgepakt_v2.wav",
+  "speaker": "Tammo",
+  "text": "Precies wat ik zocht.",
+  "tag": "droog, tevreden",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden."
+ },
+ {
+  "file": "tammo/geld_opgepakt.wav",
+  "speaker": "Tammo",
+  "text": "Kassa. Mooi zo.",
+  "tag": "droog, stiekem blij",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij."
+ },
+ {
+  "file": "tammo/geld_opgepakt_v1.wav",
+  "speaker": "Tammo",
+  "text": "Ach, dat komt altijd van pas.",
+  "tag": "droog, stiekem blij",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij."
+ },
+ {
+  "file": "tammo/geld_opgepakt_v2.wav",
+  "speaker": "Tammo",
+  "text": "Weer een paar euro rijker.",
+  "tag": "droog, stiekem blij",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij."
+ },
+ {
+  "file": "tammo/auto_gejat.wav",
+  "speaker": "Tammo",
+  "text": "Hij staat los. Kom op.",
+  "tag": "laconiek, haastig",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig."
+ },
+ {
+  "file": "tammo/auto_gejat_v1.wav",
+  "speaker": "Tammo",
+  "text": "Nou, die lenen we effe.",
+  "tag": "laconiek, haastig",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig."
+ },
+ {
+  "file": "tammo/auto_gejat_v2.wav",
+  "speaker": "Tammo",
+  "text": "Instappen dan maar.",
+  "tag": "laconiek, haastig",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig."
+ },
+ {
+  "file": "tammo/missie_gestart.wav",
+  "speaker": "Tammo",
+  "text": "Nou, daar gaan we weer.",
+  "tag": "berustend, droog",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog."
+ },
+ {
+  "file": "tammo/missie_gestart_v1.wav",
+  "speaker": "Tammo",
+  "text": "Hup, aan de slag dan.",
+  "tag": "berustend, droog",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog."
+ },
+ {
+  "file": "tammo/missie_gestart_v2.wav",
+  "speaker": "Tammo",
+  "text": "Alweer een klusje.",
+  "tag": "berustend, droog",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog."
+ },
+ {
+  "file": "tammo/missie_gelukt.wav",
+  "speaker": "Tammo",
+  "text": "Klaar is Kees.",
+  "tag": "droog, stiekem trots",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots."
+ },
+ {
+  "file": "tammo/missie_gelukt_v1.wav",
+  "speaker": "Tammo",
+  "text": "Nou, dat is dat dan.",
+  "tag": "droog, stiekem trots",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots."
+ },
+ {
+  "file": "tammo/missie_gelukt_v2.wav",
+  "speaker": "Tammo",
+  "text": "Kon minder.",
+  "tag": "droog, stiekem trots",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots."
+ },
+ {
+  "file": "tammo/missie_mislukt.wav",
+  "speaker": "Tammo",
+  "text": "Ach, goed. Opnieuw dan.",
+  "tag": "zuchtend, laconiek",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek."
+ },
+ {
+  "file": "tammo/missie_mislukt_v1.wav",
+  "speaker": "Tammo",
+  "text": "Nou, dat ging even niet.",
+  "tag": "zuchtend, laconiek",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek."
+ },
+ {
+  "file": "tammo/missie_mislukt_v2.wav",
+  "speaker": "Tammo",
+  "text": "Dat is niks geworden.",
+  "tag": "zuchtend, laconiek",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek."
+ },
+ {
+  "file": "tammo/opgepakt.wav",
+  "speaker": "Tammo",
+  "text": "Nee toch. Niet weer de bak in.",
+  "tag": "berustend, mopperend",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend."
+ },
+ {
+  "file": "tammo/opgepakt_v1.wav",
+  "speaker": "Tammo",
+  "text": "Daar hebben we hem weer.",
+  "tag": "berustend, mopperend",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend."
+ },
+ {
+  "file": "tammo/opgepakt_v2.wav",
+  "speaker": "Tammo",
+  "text": "Kon beter, denk ik.",
+  "tag": "berustend, mopperend",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend."
+ },
+ {
+  "file": "tammo/water_panic.wav",
+  "speaker": "Tammo",
+  "text": "Water! Water!",
+  "tag": "in paniek, proestend, feller dan normaal",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal."
+ },
+ {
+  "file": "tammo/water_panic_v1.wav",
+  "speaker": "Tammo",
+  "text": "Nat. Weer nat.",
+  "tag": "in paniek, proestend, feller dan normaal",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal."
+ },
+ {
+  "file": "tammo/water_panic_v2.wav",
+  "speaker": "Tammo",
+  "text": "Ik zwem echt niet graag, hè!",
+  "tag": "in paniek, proestend, feller dan normaal",
+  "voice": "Orus",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal."
+ },
+ {
+  "file": "anita/wapen_opgepakt.wav",
+  "speaker": "Anita",
+  "text": "Precies wat ik nodig had.",
+  "tag": "zelfverzekerd, tevreden",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden."
+ },
+ {
+  "file": "anita/wapen_opgepakt_v1.wav",
+  "speaker": "Anita",
+  "text": "Handig, dat kan ik gebruiken.",
+  "tag": "zelfverzekerd, tevreden",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden."
+ },
+ {
+  "file": "anita/wapen_opgepakt_v2.wav",
+  "speaker": "Anita",
+  "text": "Die ziet er gevaarlijk uit. Mooi!",
+  "tag": "zelfverzekerd, tevreden",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden."
+ },
+ {
+  "file": "anita/geld_opgepakt.wav",
+  "speaker": "Anita",
+  "text": "Mooi! Komt goed van pas!",
+  "tag": "enthousiast, snel",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
+ },
+ {
+  "file": "anita/geld_opgepakt_v1.wav",
+  "speaker": "Anita",
+  "text": "Mooi! Weer wat extra!",
+  "tag": "enthousiast, snel",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
+ },
+ {
+  "file": "anita/geld_opgepakt_v2.wav",
+  "speaker": "Anita",
+  "text": "Kassa, zullen we maar zeggen.",
+  "tag": "enthousiast, snel",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
+ },
+ {
+  "file": "anita/missie_gestart.wav",
+  "speaker": "Anita",
+  "text": "Here we go again.",
+  "tag": "enthousiast, plagend",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend."
+ },
+ {
+  "file": "anita/missie_gestart_v1.wav",
+  "speaker": "Anita",
+  "text": "En daar gaan we dan weer.",
+  "tag": "enthousiast, plagend",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend."
+ },
+ {
+  "file": "anita/missie_gestart_v2.wav",
+  "speaker": "Anita",
+  "text": "Alweer iets te doen.",
+  "tag": "enthousiast, plagend",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend."
+ },
+ {
+  "file": "anita/missie_gelukt.wav",
+  "speaker": "Anita",
+  "text": "Zo moet het!",
+  "tag": "triomfantelijk, lacherig",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig."
+ },
+ {
+  "file": "anita/missie_gelukt_v1.wav",
+  "speaker": "Anita",
+  "text": "Nou, dat is geregeld!",
+  "tag": "triomfantelijk, lacherig",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig."
+ },
+ {
+  "file": "anita/missie_gelukt_v2.wav",
+  "speaker": "Anita",
+  "text": "Die is weer af!",
+  "tag": "triomfantelijk, lacherig",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig."
+ },
+ {
+  "file": "anita/missie_mislukt.wav",
+  "speaker": "Anita",
+  "text": "Had beter gekund.",
+  "tag": "geërgerd, ad rem",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem."
+ },
+ {
+  "file": "anita/missie_mislukt_v1.wav",
+  "speaker": "Anita",
+  "text": "Dat liep niet zoals gepland.",
+  "tag": "geërgerd, ad rem",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem."
+ },
+ {
+  "file": "anita/missie_mislukt_v2.wav",
+  "speaker": "Anita",
+  "text": "Nou, dat werd niks.",
+  "tag": "geërgerd, ad rem",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem."
+ },
+ {
+  "file": "anita/opgepakt.wav",
+  "speaker": "Anita",
+  "text": "Serieus, Tammo.",
+  "tag": "ongelovig, verwijtend",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend."
+ },
+ {
+  "file": "anita/opgepakt_v1.wav",
+  "speaker": "Anita",
+  "text": "Alweer, Tammo!",
+  "tag": "ongelovig, verwijtend",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend."
+ },
+ {
+  "file": "anita/opgepakt_v2.wav",
+  "speaker": "Anita",
+  "text": "Dit wordt een gewoonte!",
+  "tag": "ongelovig, verwijtend",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend."
+ },
+ {
+  "file": "anita/kus.wav",
+  "speaker": "Anita",
+  "text": "Doe voorzichtig, ja!",
+  "tag": "warm, plagend, zacht",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht."
+ },
+ {
+  "file": "anita/kus_v1.wav",
+  "speaker": "Anita",
+  "text": "Let een beetje op jezelf.",
+  "tag": "warm, plagend, zacht",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht."
+ },
+ {
+  "file": "anita/kus_v2.wav",
+  "speaker": "Anita",
+  "text": "Doe rustig aan, mien jong!",
+  "tag": "warm, plagend, zacht",
+  "voice": "Callirrhoe",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht."
+ }
+]

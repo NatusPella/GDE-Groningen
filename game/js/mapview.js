@@ -18,6 +18,7 @@ import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
+import { DEV } from './devflags.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
@@ -1412,7 +1413,7 @@ export function initMapView(world) {
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" data-act="in" aria-label="Inzoomen">+</button><button type="button" data-act="out" aria-label="Uitzoomen">−</button></div>' +
     '<div class="mapview-tooltip"></div><aside class="mapview-legend"></aside></div>' +
-    '<div class="mapview-footer"><b>Klik</b> bestemming zetten · <b>Rechtsklik</b> wissen · <b>Shift+klik</b> teleporteren · ' +
+    `<div class="mapview-footer"><b>Klik</b> bestemming zetten · <b>Rechtsklik</b> wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}` +
     '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> bestemming wissen · <b>Q / E</b> tabblad · <b>M / Esc</b> sluiten</div>';
   document.body.appendChild(overlay);
 

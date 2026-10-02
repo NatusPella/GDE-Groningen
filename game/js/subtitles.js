@@ -10,6 +10,8 @@
 // fails on any spoken line that reads as Frisian (looksFrisian) without one.
 
 export const FY = {
+  // Durk after the story bumper-car ride (storyarc.js r-kermis)
+  'Maar eerst bier. Vanavond in de Poelestraat, de baas trakteert. Net fertelle, hè?': 'Maar eerst bier. Vanavond in de Poelestraat, de baas trakteert. Niet doorvertellen, hè?',
   // story cutscenes (missionstory.js) and mission scenes (missions.js)
   'Moai, Grinzers! Wat Grunn kan, kan Fryslân beter. Ook hardrijden.': 'Mooi, Groningers! Wat Groningen kan, kan Friesland beter. Ook hardrijden.',
   'Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Net fertelle, hè?': 'Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Niet doorvertellen, hè?',
@@ -155,6 +157,13 @@ export const FY = {
 };
 
 export const GRO = {
+  // kermisbaas Jan and Rotor Roelf in the story steps around the kermis and the demo flight (storyarc.js, kermis.js, storyfun.js)
+  'Gratis rondje, jong! Bots die twij reuzen mor oet mien baan.': 'Gratis rondje, jongen! Bots die twee reuzen maar uit mijn baan.',
+  'W is omhoog, de pijltjes vooruit. En nait tegen d\'Olle Grieze aan, hè?': 'W is omhoog, de pijltjes vooruit. En niet tegen de Martinitoren aan, hè?',
+  '"De leste, hè."': '"De laatste, hè."',
+  // boer Roelf and Hilje hide the Eierbal (storyarc.js s-carbid)
+  'Roelf. Dat is de Gouden Eierbal. Uut t museum.': 'Roelf. Dat is de Gouden Eierbal. Uit het museum.',
+  'In de melkbus, doar zuukt gain Fries noar. Op Ontzet breng ik hom zulf.': 'In de melkbus, daar zoekt geen Fries naar. Op Ontzet breng ik hem zelf.',
   // the Ommeland extras (ommelandlines.js): the people at the end of the world and in the villages
   'Doar achter is niks meer, mien jong. Doar holdt de wereld op. Ik heb t zulf zain.': 'Daar achter is niks meer, jongen. Daar houdt de wereld op. Ik heb het zelf gezien.',
   'Mooi, hè? Hier kiek ik al veertig joar noar. Der is nog nooit wat veranderd.': 'Mooi, hè? Hier kijk ik al veertig jaar naar. Er is nog nooit wat veranderd.',
