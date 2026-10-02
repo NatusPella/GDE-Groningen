@@ -769,7 +769,7 @@ export const CARBID = {
   ubbo(w) {
     const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
     const rec = getChallengeRecord('carbid');
-    return { name: 'Carbid schieten', sub: `${rec && rec.medal ? 'record: ' + MEDALS[rec.medal].toLowerCase() : 'vijf knallen in de polder'}`, dist: d, x: STAND.x, y: STAND.y, where: 'het carbidveld van boer Roelf', hint: 'loop naar de melkbus en druk E' };
+    return { name: 'Carbid schieten', sub: `${rec && rec.medal ? 'record: ' + MEDALS[rec.medal].toLowerCase() : 'vijf knallen in de polder'}`, dist: d, x: STAND.x, y: STAND.y, play: 'carbid', where: 'het carbidveld van boer Roelf', hint: 'loop naar de melkbus en druk E' };
   },
   runs: () => runs,
   // for the story step (storyfun.js): the field's frame, the knal, and the two farmers

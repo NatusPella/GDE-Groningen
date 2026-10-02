@@ -277,7 +277,7 @@ export function collect() {
   bubble('Kermis', [...lit(fun, 'export const BOTS_BUMPED = '), ...lit(fun, 'export const BOTS_HIT = ')], { tag: ['lacherig, uitgelaten, in een botsauto', 'gillend van plezier', 'uitdagend, plagend'] });
   // Durk & Douwe in the story ride (storyarc.js r-kermis), in their own voices
   const TWIN_ACCENT = 'spoken in Dutch with a heavy Frisian accent, slow';
-  const TWIN_VOICE = { durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger Durk, spreekt Nederlands met een zwaar Fries accent' }, douwe: { voice: 'Orus', who: 'grote, trage Friese handlanger Douwe, tweelingbroer van Durk, spreekt Nederlands met een zwaar Fries accent' } };
+  const TWIN_VOICE = { durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger Durk, spreekt Nederlands met een zwaar Fries accent' }, douwe: { voice: 'Algenib', who: 'grote, trage Friese handlanger Douwe, tweelingbroer van Durk, spreekt Nederlands met een zwaar Fries accent' } };
   for (const [k, kinds] of Object.entries(lit(fun, 'export const KERMIS_TWINS = '))) for (const list of Object.values(kinds)) for (const t of list) add('Kermis', 'lines', [BUBBLE.m], t, { persona: { ...TWIN_VOICE[k], accent: TWIN_ACCENT }, tag: ['traag, verontwaardigd, in een botsauto', 'sloom, duizelig, in een botsauto'] });
   // the talk station on the car radio (radiostations.js): Geesje; the rest it plays is recorded already
   const RADIO_HOST = fun.match(/export const RADIO_HOST = '([^']+)'/)[1];

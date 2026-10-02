@@ -261,7 +261,7 @@ const STORY = [
     ],
     fail: [['A', 'Gids zijn is moeilijker dan het lijkt.'], ['T', 'Links water. Rechts ook. Onder ons: fietsen.']],
   },
-  // 8: H2 Pinnen met de hele automaat
+  // 8: H2 Even pinnen
   {
     npc: 'sjabbe', outroPose: 'hips', ask: 4,
     intro: [
@@ -286,7 +286,7 @@ const STORY = [
     ],
     fail: [['A', 'Die automaat pint nu voor de pliesie.'], ['T', 'Hopelijk rekenen ze niks.']],
   },
-  // 9: H4 Duif op verkenning
+  // 9: H4 Kieken van boven
   {
     npc: 'bert', outroPose: 'hips', ask: 0, before: 'limo',
     intro: [
@@ -311,7 +311,7 @@ const STORY = [
     ],
     fail: [['T', 'Hij wilde alleen maar brood.'], ['A', 'Jij stuurt, Tammo. Niet het brood.']],
   },
-  // 10: H6 De Museumkraak
+  // 10: H6 Het museum stond er al zo
   {
     npc: null, ask: 4,
     intro: [
@@ -334,7 +334,7 @@ const STORY = [
     ],
     fail: [['A', 'Nou zien ze ons wél.'], ['T', 'Ik zei toch: zaklamp aan.']],
   },
-  // 11: H8 Vet gekaapt
+  // 11: H8 Al het vet van Grunn
   {
     npc: 'femke', outroPose: 'cheer', ask: 1,
     intro: [
@@ -356,7 +356,7 @@ const STORY = [
     ],
     fail: [['T', 'Weg is het vet.'], ['A', 'Dan gaan we het halen. Nog een keer.']],
   },
-  // 12: H10 Vlag van d'Olle Grieze
+  // 12: H10 Er hangt iets Fries aan d'Olle Grieze
   {
     npc: 'bert', outroPose: 'cheer', ask: 1,
     intro: [
@@ -377,7 +377,7 @@ const STORY = [
     ],
     fail: [['T', 'Die meeuwen waren groter dan mijn duif.'], ['A', 'Alles is groter dan een duif, duivenkoning.']],
   },
-  // 13: H14 Skûtsje-kraak
+  // 13: H14 Geleend van de Friezen
   {
     npc: null, ask: 2,
     intro: [
@@ -404,7 +404,7 @@ const STORY = [
     ],
     fail: [['T', 'Het skûtsje is weg. Met zeil en al.'], ['A', 'Een zeilboot ontsnapt aan een bootje met een bel. Niet vertellen in de kroeg.']],
   },
-  // 14: H15 Traumaduif
+  // 14: H15 Spoedeisende duif
   {
     npc: 'dijkstra', outroPose: 'hips', ask: 5,
     intro: [
@@ -427,7 +427,7 @@ const STORY = [
     ],
     fail: [['A', 'Die ballon is sneller dan hij eruitziet.'], ['T', 'Alles van Jelle is sneller dan het eruitziet.']],
   },
-  // 15: H16 Waar is de Fjord?
+  // 15: H16 Iedereen heeft een rode auto gezien
   {
     npc: 'jelmer', outroPose: 'cheer', ask: 3,
     intro: [
@@ -455,7 +455,7 @@ const STORY = [
     ],
     fail: [['A', 'Mijn Fjord naar Leeuwarden? Niet zonder mij. Nog een keer.'], ['T', 'Hij komt terug. Hij mist Grunn nu al.']],
   },
-  // 16: H17 Het Bod
+  // 16: H17 Het bod viel tegen
   {
     npc: 'jelle', outroPose: 'hips', ask: 0,
     introCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'wave' }], introProps: ['limo'],
@@ -480,7 +480,7 @@ const STORY = [
     ],
     fail: [['T', 'Omelet. Achterin. Overal.'], ['A', 'Dan halen we nieuwe. Die kippen leggen wel door.']],
   },
-  // 17: H18 Finale: Gronings Ontzet
+  // 17: H18 Ontzet, net als in 1672
   {
     npc: 'berend', ask: 5,
     introCast: [{ key: 'jelle', pose: 'self' }, { key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'arms' }],

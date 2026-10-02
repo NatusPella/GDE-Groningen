@@ -75,7 +75,8 @@
   inset: 0;
   background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0, 0, 0, 0.55) calc(10% - 1px) 10%);
 }
-#hud .hud-bar-fill { height: 100%; transition: width 0.15s linear; }
+#hud .hud-bar-fill { position: relative; height: 100%; transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
+#hud .hud-bar-ghost { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255, 255, 255, 0.4); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
 #hud .hud-bar-fill.health { background: linear-gradient(#5fe07a, #2fa84a); }
 #hud .hud-bar-fill.armor { background: linear-gradient(#7cc0ff, #3a7fd0); }
 #hud .hud-meter.low .hud-bar-fill.health { background: linear-gradient(#ff6a5a, #c42f2f); }
@@ -266,6 +267,7 @@ body.shop-open #hud .hud-mission { visibility: hidden; }
 body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !important; }
 #hud .hud-mission[data-kind="job"] { --obj: #ff9a3c; }
 #hud .hud-mission[data-kind="police"] { --obj: #6c9bff; }
+#hud .hud-mission[data-kind="goal"] { --obj: #3fc97a; }
 #hud .hud-mission[data-kind="story"] { padding-top: 5px; padding-bottom: 6px; }
 #hud .hud-mission[data-kind="story"] .hud-mission-label { font-size: 21px; }
 #hud .hud-mission[data-kind="story"] .hud-mission-progress { font-size: 14px; }
