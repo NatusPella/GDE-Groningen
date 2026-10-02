@@ -6,7 +6,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Eén klik naar een stand die past.** Merkt de game bij de eerste start
+  dat je computer het zwaar heeft, dan stelt hij rechtsonder een lichtere
+  stand voor: één keer op Toepassen en alles staat goed. Bij Instellingen ›
+  Beeld kies je nu Laag, Gemiddeld of Hoog in één keer, en de benchmark
+  vertelt welke stand het best past, met de fps die je ermee haalt.
+
 ### Verbeterd
+- **De game draait veel soepeler op laptops zonder losse videokaart** en
+  op een drukke computer: resolutie en details gaan vanzelf even omlaag
+  als het beeld hapert en komen terug als er weer ruimte is.
+- **De stad achter het pauzemenu en het hoofdmenu kost minder**: hij loopt
+  gewoon door, maar je computer wordt minder warm.
 - **Alle stemmen zijn opnieuw ingesproken** met een nieuwer spraakmodel.
   Iedereen klinkt natuurlijker en de emotie per zin komt beter over.
 - **Tammo heeft een nieuwe stem** en praat nu als een echte Stadjer, met

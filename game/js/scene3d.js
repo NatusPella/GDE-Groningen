@@ -42,6 +42,10 @@ import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
+import { updateBuildingBatches, buildingBatchStats } from './buildingbatch3d.js';
+
+// ?nobatch: every building drawn on its own (A/B checks of the batching)
+const NO_BATCH = typeof location !== 'undefined' && /[?&]nobatch\b/.test(location.search);
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
@@ -816,7 +820,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: buildingBatchStats };
 }
 
 // seconds between renders behind a menu that covers part / most of the view
@@ -1701,6 +1705,10 @@ export function update3D(dt, world) {
 
   noteStreamJump(player.x, player.y);
   syncBuildings(world, player.x, player.y);
+  if (!NO_BATCH) {
+    updateBuildingBatches({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: player.x, py: player.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
+      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
+  }
   probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
   updatePortals(player.x, player.y);
