@@ -194,6 +194,25 @@ export function initHud(world) {
     mmCtx: mmCanvas.getContext('2d'),
   };
   initPrompts(root);
+  watchRightStack(root, topRight, race);
+}
+
+// The right column flows under the top-right block: the race panel sits just
+// below it and the story phone (storycontact.js) below both, via
+// --hud-tr-bottom and --hud-stack-top (HUD px, so the uiscale zoom holds).
+function watchRightStack(root, topRight, race) {
+  if (typeof ResizeObserver === 'undefined') return;
+  const GAP = 8;
+  const place = () => {
+    const trBottom = topRight.offsetTop + topRight.offsetHeight;
+    const stack = race.hidden ? trBottom : trBottom + GAP + race.offsetHeight;
+    root.style.setProperty('--hud-tr-bottom', `${trBottom}px`);
+    root.style.setProperty('--hud-stack-top', `${stack + GAP + 2}px`);
+  };
+  const ro = new ResizeObserver(place);
+  ro.observe(topRight);
+  ro.observe(race);
+  place();
 }
 
 const VEH_ICONS = {
