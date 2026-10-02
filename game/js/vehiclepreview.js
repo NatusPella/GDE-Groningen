@@ -51,7 +51,7 @@ function buildObject(spec, sphereFit = false) {
     let fit;
     if (spec.kind === 'person') {
       const hs = body.scale.y || 1;
-      fit = spec.frame === 'head' ? { c: new THREE.Vector3(0, 1.5 * hs, 0), r: 0.36 * hs } : { c: new THREE.Vector3(0, 0.95 * hs, 0), r: 0.95 * hs };
+      fit = spec.frame === 'head' ? { c: new THREE.Vector3(0, 1.62 * hs, 0), r: 0.27 * hs } : { c: new THREE.Vector3(0, 0.95 * hs, 0), r: 0.95 * hs };
     } else {
       body.updateMatrixWorld(true);
       const sphere = new THREE.Box3().setFromObject(body).getBoundingSphere(new THREE.Sphere());

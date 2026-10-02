@@ -4,6 +4,8 @@
   --gron-green: #1e9e56;
   --gron-green-light: #3fc97a;
   --mm-size: 230px;
+  /* the minimap steps up for the speed and damage badge in a vehicle */
+  --mm-bottom: 16px;
   /* HUD scale from uiscale.js; vw/vh inside #hud must be divided by it */
   zoom: var(--ui, 1);
 }
@@ -24,20 +26,46 @@
   align-items: center;
   gap: 10px;
   padding: 6px 10px 6px 6px;
-  background: linear-gradient(90deg, rgba(10, 14, 18, 0.8), rgba(10, 14, 18, 0.45) 75%, rgba(10, 14, 18, 0));
+  background: linear-gradient(90deg, rgba(12, 20, 14, 0.82), rgba(12, 20, 14, 0.55) 70%, rgba(12, 20, 14, 0));
   border-left: 3px solid var(--spk);
 }
-#hud .hud-portrait {
+/* a render of the real character model (vehiclepreview.js); the drawn
+   silhouette shows until it is there */
+#hud .hud-portrait, #hud .hud-mate-pic {
+  position: relative;
   flex: 0 0 46px;
   width: 46px;
   height: 46px;
+  box-sizing: border-box;
   border-radius: 50%;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 35%, var(--spk), color-mix(in srgb, var(--spk) 35%, #0b0f14));
-  box-shadow: 0 0 0 2px var(--spk), 0 0 12px color-mix(in srgb, var(--spk) 45%, transparent);
+  border: 2px solid var(--spk);
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--spk) 45%, #17301f), #0c140e);
+  transition: border-color var(--dur-base, 200ms) var(--ease-out, ease-out), box-shadow var(--dur-base, 200ms) var(--ease-out, ease-out), filter var(--dur-slow, 320ms) var(--ease-out, ease-out);
 }
-#hud .hud-portrait svg { display: block; width: 100%; height: 100%; fill: #f3efe6; }
-#hud .hud-portrait .hair { fill: #2b2118; }
+#hud .hud-portrait svg { display: block; width: 100%; height: 100%; fill: rgba(243, 239, 230, 0.5); }
+#hud .hud-portrait .hair { fill: rgba(43, 33, 24, 0.7); }
+#hud .hud-portrait img, #hud .hud-mate-pic img { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+#hud .hud-mate-pic img:not([src]) { display: none; }
+#hud .hud-portrait img.on, #hud .hud-mate-pic img.on { opacity: 1; }
+#hud .hud-portrait:has(img.on) svg { opacity: 0; }
+#hud .hud-portrait.low { border-color: #d93f3f; box-shadow: 0 0 10px rgba(217, 63, 63, 0.6); filter: saturate(0.55) brightness(0.9); }
+#hud .hud-mate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 3px 10px 3px 3px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 13px;
+  background: linear-gradient(90deg, rgba(12, 20, 14, 0.8), rgba(12, 20, 14, 0));
+  border-left: 3px solid var(--spk);
+}
+#hud .hud-mate[hidden] { display: none; }
+#hud .hud-mate.in { animation: hud-slide-in var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+#hud .hud-mate-pic { flex-basis: 28px; width: 28px; height: 28px; }
+@keyframes hud-slide-in { from { opacity: 0; transform: translateX(-10px); } }
 #hud .hud-id-main { flex: 1; min-width: 0; }
 #hud .hud-character {
   font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
@@ -50,8 +78,9 @@
 }
 #hud .hud-meter { display: flex; align-items: center; gap: 5px; height: 15px; margin-top: 3px; }
 #hud .hud-meter svg { flex: 0 0 14px; width: 14px; height: 14px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8)); }
-#hud .hud-meter.hp svg { fill: #ff5a5a; }
-#hud .hud-meter.ar svg { fill: #5aa8ff; }
+#hud .hud-meter.hp svg { fill: var(--gron-green-light); }
+#hud .hud-meter.ar svg { fill: #c8d0c9; }
+#hud .hud-meter.low.hp svg { fill: #d93f3f; }
 #hud .hud-meter b {
   flex: 0 0 26px;
   text-align: right;
@@ -63,25 +92,19 @@
   position: relative;
   flex: 1;
   height: 9px;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 1px;
   overflow: hidden;
 }
-/* ten segments */
-#hud .hud-bar::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(0, 0, 0, 0.55) calc(10% - 1px) 10%);
-}
+/* ten segments with a gap */
+#hud .hud-bar::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 2px), #0e1810 calc(10% - 2px) 10%); }
 #hud .hud-bar-fill { position: relative; height: 100%; transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
 #hud .hud-bar-ghost { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255, 255, 255, 0.4); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
-#hud .hud-bar-fill.health { background: linear-gradient(#5fe07a, #2fa84a); }
-#hud .hud-bar-fill.armor { background: linear-gradient(#7cc0ff, #3a7fd0); }
-#hud .hud-meter.low .hud-bar-fill.health { background: linear-gradient(#ff6a5a, #c42f2f); }
+#hud .hud-bar-fill.health { background: var(--gron-green-light); }
+#hud .hud-bar-fill.armor { background: #c8d0c9; }
+#hud .hud-meter.low .hud-bar-fill.health { background: #d93f3f; }
 #hud .hud-meter.low svg, #hud .hud-meter.low b { animation: hud-low 0.9s ease-in-out infinite alternate; }
-#hud .hud-meter.low b { color: #ff8a7a; }
+#hud .hud-meter.low b { color: #d93f3f; }
 @keyframes hud-low { from { opacity: 1; transform: scale(1); } to { opacity: 0.55; transform: scale(1.12); } }
 #hud .hud-meter.ar.empty { opacity: 0.45; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-meter.low svg, #hud .hud-meter.low b { animation: none; } }
@@ -105,65 +128,62 @@
 #hud .hud-chip.drunk { color: #ffd36a; border-color: rgba(255, 211, 106, 0.5); }
 #hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: #ffd36a; stroke-width: 1.8; stroke-linejoin: round; }
 
+/* one block: time of day, wanted stars, money, weapon */
 #hud .hud-top-right {
   position: absolute;
   top: 14px;
   right: 14px;
-  text-align: right;
-  color: var(--hud-fg);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 232px;
+  box-sizing: border-box;
+  padding: 10px 14px 12px;
+  border-radius: 10px;
+  background: rgba(10, 19, 13, 0.78);
+  border: 1px solid rgba(63, 201, 122, 0.16);
+  border-right: 3px solid var(--gron-green-light);
+  color: #f0ede4;
   text-shadow: var(--hud-shadow);
-  font-weight: bold;
 }
+#hud .hud-tr-sep { display: block; height: 1px; background: rgba(63, 201, 122, 0.16); }
+#hud .hud-tr-row { display: flex; align-items: center; justify-content: space-between; }
+#hud .hud-tr-row small { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #a3b2a6; text-shadow: none; }
 
-#hud .hud-wanted {
-  font-size: 22px;
-  letter-spacing: 2px;
-  color: #e8c93a;
-  line-height: 1;
-}
-
-#hud .hud-wanted .off { color: rgba(255, 255, 255, 0.25); }
-#hud .hud-wanted.searching .on { animation: hud-star-blink 0.7s steps(2, jump-none) infinite; }
+#hud .hud-wanted { display: flex; justify-content: flex-end; gap: 3px; line-height: 0; }
+#hud .hud-wanted svg { width: 19px; height: 19px; fill: none; stroke: rgba(240, 237, 228, 0.32); stroke-width: 1.5; stroke-linejoin: round; }
+#hud .hud-wanted svg.on { fill: #e8c93a; stroke: #e8c93a; filter: drop-shadow(0 0 4px rgba(232, 201, 58, 0.45)); }
+#hud .hud-wanted.searching svg.on { animation: hud-star-blink 0.7s steps(2, jump-none) infinite; }
 @keyframes hud-star-blink { 0% { opacity: 1; } 100% { opacity: 0.2; } }
 
-#hud .hud-clock {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-  padding: 3px 12px 2px 10px;
-  color: #f0ede4;
-  font-weight: normal;
-  background: linear-gradient(270deg, rgba(12, 20, 14, 0.78), rgba(23, 48, 31, 0.35));
-  border-right: 3px solid var(--gron-green-light);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-}
+#hud .hud-clock { display: flex; align-items: center; justify-content: space-between; }
 #hud .hud-clock[hidden] { display: none; }
+#hud .hud-dp { display: flex; align-items: center; gap: 7px; }
 #hud .hud-clock b {
   font-weight: normal;
-  font-size: 34px;
-  line-height: 1;
-  letter-spacing: 2px;
+  font-size: 38px;
+  line-height: 0.9;
+  letter-spacing: 1px;
   font-variant-numeric: tabular-nums;
 }
 #hud .hud-clock small {
-  align-self: flex-end;
-  margin-bottom: 4px;
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: 2px;
   color: var(--gron-green-light);
+  text-shadow: none;
 }
 #hud .hud-clock-icon {
-  width: 20px;
-  height: 20px;
-  fill: var(--gron-green-light);
-  stroke: var(--gron-green-light);
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  width: 18px;
+  height: 18px;
+  fill: #e8c93a;
+  stroke: #e8c93a;
 }
 #hud .hud-clock.night .hud-clock-icon { fill: #f0ede4; stroke: none; }
 
 #hud .hud-money.rolling { color: var(--gron-green-light); }
 #hud .hud-money-delta {
+  margin-top: -7px;
+  text-align: right;
   font-size: 17px;
   height: 0;
   opacity: 0;
@@ -181,69 +201,90 @@
   background: radial-gradient(ellipse at center, rgba(217, 63, 63, 0) 45%, rgba(217, 63, 63, 0.55) 100%);
 }
 
+/* speed and damage, under the minimap (which steps up for it) */
+body.hud-in-vehicle #hud { --mm-bottom: 56px; }
 #hud .hud-speedo {
   position: absolute;
-  right: calc(var(--mm-size) + 30px);
-  bottom: 18px;
+  right: 46px;
+  bottom: 14px;
   display: none;
-  align-items: baseline;
-  gap: 4px;
+  align-items: center;
+  gap: 12px;
+  width: 170px;
+  box-sizing: border-box;
+  padding: 6px 12px;
+  border-radius: 10px;
   color: #f0ede4;
-  text-shadow: var(--hud-shadow);
-  letter-spacing: 0.5px;
+  background: rgba(10, 19, 13, 0.9);
+  border: 1px solid rgba(63, 201, 122, 0.16);
+  transition: border-color var(--dur-base, 200ms) var(--ease-out, ease-out);
 }
-#hud .hud-speedo.visible { display: flex; }
-#hud .hud-speedo b { font-size: 34px; line-height: 1; min-width: 2ch; text-align: right; }
-#hud .hud-speedo span { font-size: 14px; color: var(--gron-green-light); }
-body.hide-minimap #hud .hud-speedo { right: 16px; bottom: 50px; }
+#hud .hud-speedo.visible { display: flex; animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+@keyframes hud-rise { from { opacity: 0; transform: translateY(8px); } }
+#hud .hud-speedo .sp-num { display: flex; align-items: baseline; gap: 4px; }
+#hud .hud-speedo b { font-weight: normal; font-size: 30px; line-height: 1; min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+#hud .hud-speedo .sp-num span { font-size: 13px; color: var(--gron-green-light); }
+#hud .hud-speedo .sp-dmg { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+#hud .hud-speedo .sp-dmg small { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 11px; color: #a3b2a6; }
+#hud .hud-speedo .sp-bar { display: block; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+#hud .hud-speedo .sp-bar i { display: block; width: 0; height: 100%; border-radius: 3px; background: var(--gron-green-light); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out), background-color var(--dur-base, 200ms); }
+#hud .hud-speedo.hurt { border-color: rgba(217, 63, 63, 0.55); }
+#hud .hud-speedo.hurt .sp-dmg small { color: #d93f3f; }
+#hud .hud-speedo.hurt .sp-bar i { background: #d93f3f; }
+#hud .hud-speedo.no-dmg { width: auto; }
+#hud .hud-speedo.no-dmg .sp-dmg { display: none; }
+body.hide-minimap #hud .hud-speedo { right: 16px; }
 
+/* savegame.js's toast, moved into the location chip by hud_panel.js */
 #hud .hud-saved {
   position: absolute;
   left: 16px;
   bottom: 70px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  font-size: 15px;
-  letter-spacing: 1px;
-  color: #f0ede4;
-  background: rgba(15, 30, 20, 0.7);
-  border: 1px solid rgba(63, 201, 122, 0.5);
-  border-radius: 4px;
+  gap: 5px;
+  font-family: 'Arial Narrow', Arial, sans-serif;
+  font-size: 12px;
+  color: #a3b2a6;
   opacity: 0;
-  transform: translateX(-8px);
-  transition: opacity 0.3s, transform 0.3s;
+  transform: translateX(-6px);
+  transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out);
 }
-#hud .hud-saved svg { color: var(--gron-green-light); animation: hud-disk 1s ease-in-out infinite; }
+#hud .hud-location .hud-saved { position: static; margin-left: 10px; flex: none; }
+#hud .hud-saved svg { width: 13px; height: 13px; color: var(--gron-green-light); }
+#hud .hud-saved span { text-transform: lowercase; }
 #hud .hud-saved.visible { opacity: 1; transform: none; }
-@keyframes hud-disk { 50% { opacity: 0.45; } }
 
 #hud .hud-money {
-  margin-top: 4px;
-  font-size: 20px;
-  color: #3fbf3f;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 1px;
+  color: var(--gron-green-light);
+  font-variant-numeric: tabular-nums;
 }
 
 #hud .hud-weapon {
-  margin-top: 4px;
-  font-size: 15px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 10px;
 }
+#hud .hud-weapon-col { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 0; }
+#hud .hud-weapon-text { font-size: 18px; letter-spacing: 1.5px; line-height: 1; white-space: nowrap; }
+#hud .hud-weapon-ammo { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; color: #a3b2a6; text-shadow: none; }
+#hud .hud-weapon-ammo[data-num="1"] { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; line-height: 1; color: #f0ede4; font-variant-numeric: tabular-nums; }
 
 #hud .hud-weapon-icon {
-  width: 52px;
+  width: 58px;
   height: 26px;
-  fill: var(--hud-fg, #f0ede4);
-  color: var(--hud-fg, #f0ede4);
+  flex: none;
+  fill: #f0ede4;
+  color: #f0ede4;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
 }
 
-#hud .hud-weapon.switched .hud-weapon-icon { animation: hud-weapon-pop 0.35s ease-out; }
-@keyframes hud-weapon-pop { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
+#hud .hud-weapon.switched .hud-weapon-icon { animation: hud-weapon-pop var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+@keyframes hud-weapon-pop { 0% { transform: scale(1.25); opacity: 0.4; } 100% { transform: scale(1); opacity: 1; } }
 
 /* --- objective line: one objective at a time, top centre ------------- */
 #hud .hud-mission {
@@ -379,7 +420,8 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-minimap-wrap {
   position: absolute;
   right: 16px;
-  bottom: 16px;
+  bottom: var(--mm-bottom);
+  transition: bottom var(--dur-slow, 320ms) var(--ease-out, ease-out);
   width: var(--mm-size);
   height: var(--mm-size);
   border-radius: 50%;
@@ -398,8 +440,9 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-route {
   position: absolute;
   right: 16px;
-  bottom: calc(var(--mm-size) + 26px);
+  bottom: calc(var(--mm-size) + var(--mm-bottom) + 10px);
   width: calc(var(--mm-size) + 6px);
+  transition: bottom var(--dur-slow, 320ms) var(--ease-out, ease-out);
   text-align: center;
   font-size: 16px;
   font-weight: bold;
@@ -769,7 +812,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
   /* GTA-style: bottom right, just above the minimap */
   position: absolute;
   right: 16px;
-  bottom: calc(var(--mm-size) + 62px);
+  bottom: calc(var(--mm-size) + var(--mm-bottom) + 46px);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -836,42 +879,44 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 /* --- race panel (checkpoint races, kroegentocht, rondvaart) ------------ */
 #hud .hud-race {
   position: absolute;
-  top: 190px;
+  top: 200px;
   right: 14px;
-  width: 250px;
+  width: 232px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 3px;
+  gap: 2px;
+  padding: 8px 14px 10px;
+  border-radius: 10px;
+  background: rgba(10, 19, 13, 0.78);
+  border: 1px solid rgba(63, 201, 122, 0.16);
+  border-right: 3px solid var(--gron-green-light);
   color: #f0ede4;
   text-shadow: var(--hud-shadow);
+  animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out);
 }
 #hud .hud-race[hidden], #hud .hud-race [hidden] { display: none; }
 #hud .hud-race .hr-pos {
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 0 12px 2px;
+  gap: 6px;
   line-height: 0.9;
 }
-#hud .hud-race .hr-pos b { font-weight: normal; font-size: 64px; letter-spacing: 1px; }
-#hud .hud-race .hr-pos span { font-size: 24px; letter-spacing: 2px; color: var(--gron-green-light); }
-#hud .hud-race .hr-pos[data-lead="1"] b { color: var(--gron-green-light); text-shadow: var(--hud-shadow), 0 0 18px rgba(63, 201, 122, 0.4); }
+#hud .hud-race .hr-pos b { font-weight: normal; font-size: 56px; }
+#hud .hud-race .hr-pos span { font-size: 22px; color: #a3b2a6; }
+#hud .hud-race .hr-pos[data-lead="1"] b { color: var(--gron-green-light); }
 #hud .hud-race .hr-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 3px 12px 2px;
-  background: linear-gradient(270deg, rgba(12, 20, 14, 0.8), rgba(23, 48, 31, 0.3));
-  border-right: 3px solid var(--gron-green);
 }
-#hud .hud-race .hr-row span { font-size: 15px; letter-spacing: 2px; color: rgba(240, 237, 228, 0.75); }
-#hud .hud-race .hr-row b { font-weight: normal; font-size: 26px; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
-#hud .hud-race .hr-row[data-state="low"] { border-right-color: #d93f3f; }
+#hud .hud-race .hr-row span { font-size: 15px; letter-spacing: 1px; color: #a3b2a6; }
+#hud .hud-race .hr-row b { font-weight: normal; font-size: 22px; font-variant-numeric: tabular-nums; }
 #hud .hud-race .hr-row[data-state="low"] b { color: #d93f3f; animation: hud-star-blink 0.6s steps(2, jump-none) infinite; }
-#hud .hud-race .hr-row[data-state="ahead"] b { color: var(--gron-green-light); }
-@media (max-height: 640px) { #hud .hud-race { top: 160px; width: 210px; } #hud .hud-race .hr-pos b { font-size: 48px; } #hud .hud-race .hr-row b { font-size: 21px; } }
+#hud .hud-race .hr-row[data-state="ahead"] b, #hud .hud-race .hr-row[data-k="best"] b { color: var(--gron-green-light); }
+@media (max-height: 640px) { #hud .hud-race .hr-pos b { font-size: 44px; } #hud .hud-race .hr-row b { font-size: 19px; } }
 
 /* story subtitles: a highlighted clue (missionstory.js) */
 #cine.sub-clue .cine-line { color: #f2d36b; }
