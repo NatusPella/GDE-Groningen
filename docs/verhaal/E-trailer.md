@@ -58,9 +58,10 @@
 **Bouwstatus (2 oktober 2026, `game/js/trailer.js`)**
 - Alle 24 shots staan erin, ongeveer 91 s. De korte cut (`kort`, ongeveer 38 s) heeft de shots 1, 2, 3, 5, 6, 7, 12, 13, 16, 17, 19 en 22, dus met de naamkaarten van Anita en Tammo.
 - **Stand-ins** van bestaande of goedkope props:
-  - De terrassen: tafels, stoelen en parasols als instanced meshes, met zittende figuranten.
-  - Het Noorderplantsoen: kleedjes (canvas-ruit), twee barbecues met gloeiende kolen en een frisbee, op het open gras ten oosten van de vijver.
-  - De pinautomaat: de steekwagen uit de openingsmontage, geen aanhanger.
+  - De terrassen: tafels, stoelen en parasols als instanced meshes, met zittende figuranten. Ze staan alleen op het plein, nooit op de straat of het fietspad dwars over de Vismarkt. Rond de terrassen en het plantsoen rijdt geen verkeer.
+  - De duiven: zwermen van 64 tot 72 vogels in twee instanced draw calls (`makeBirds` in `intromontage.js`, dus ook in de openingsmontage). Ze vliegen op en cirkelen boven het plein.
+  - Het Noorderplantsoen: kleedjes (canvas-ruit), twee barbecues met gloeiende kolen en een frisbee, op een open grasveld in het Noorderplantsoen, meer dan 30 m van elke weg en elk fietspad.
+  - De pinautomaat: de steekwagen uit de openingsmontage, geen aanhanger. Anita loopt erachter en duwt hem.
   - Tammo's deur: een losse deur met kozijn tegen een gevel in de Herestraat.
   - De botsauto van Durk & Douwe: een eigen exemplaar in de tent van `kermis.js`.
   - De pion: een kegel van drie meshes.
