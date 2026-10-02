@@ -2,6 +2,7 @@ import { pointInPolygon } from './util.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
+import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
 
 const STRAY_M = 25;
 const TELEPORT_M = 150;
@@ -10,13 +11,13 @@ const REACH_M = 8;
 const SNAP_MAX_M = 480;
 
 let graph = null;
-let userWaypoint = null;
 // Up to three routes at once, each its own colour (hud_panel ROUTE_COLORS):
-// your own waypoint (purple), the objective (mission/story yellow, bijbaan
-// orange) and the care route (pink: food when you're hurt, a garage when
-// your OWN vehicle is damaged). The primary one (getActiveRoute: waypoint,
-// else objective, else care) drives the 3D ribbon and the route chip;
-// map and minimap draw them all (getRoutes).
+// the player's own goal (goal.js, purple), the objective (an active mission
+// or the story yellow, a bijbaan orange) and the care route (pink: food when
+// you're hurt, a garage when your OWN vehicle is damaged). Priority: an
+// active bijbaan or mission, then the goal, then the story step, then the
+// post-game guide. The primary one (getActiveRoute) drives the 3D ribbon
+// and the route chip; map and minimap draw them all (getRoutes).
 const slots = { user: newSlot(), objective: newSlot(), care: newSlot() };
 let route = null;
 function newSlot() { return { route: null, key: '', at: -Infinity }; }
@@ -324,11 +325,19 @@ function travelMode(player) {
   return v.isBike ? 'walk' : 'drive';
 }
 
-function objectiveTarget(world) {
+function busyTarget(world) {
   const job = world.sideJob;
   if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label } : null;
   const m = world.mission;
   if (m && m.marker && m.phase === 'active') return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
+  return undefined;
+}
+
+function objectiveTarget(world) {
+  const busy = busyTarget(world);
+  if (busy !== undefined) return busy;
+  // the player's own goal waits the story out (it takes the user slot)
+  if (getGoal()) return null;
   // the story's next step (story.js): a mission start, or the shop, spot or
   // garage the next activity needs
   const g = world.storyGuide;
@@ -336,8 +345,8 @@ function objectiveTarget(world) {
   // after the ending: the nearest post-game challenge still to win (postgame.js)
   const pg = world.postgameGuide;
   if (pg && !world.challenge) return { x: pg.x, y: pg.y, kind: 'mission', name: pg.name, pg: true };
-  // once the built story has ended (story.js), free-play missions wait for the player to pick one
-  if (m && m.marker && m.phase !== 'cooldown' && !world.storyFreePlay) return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
+  const m = world.mission;
+  if (m && m.marker && m.phase !== 'cooldown' && !world.storyFreePlay && missionOnMap(world)) return { x: m.marker.x, y: m.marker.y, kind: 'mission', name: m.label || 'Missie' };
   return null;
 }
 
@@ -486,13 +495,9 @@ export function updateRouting(dt, world) {
   if (!graph) buildGraph(world.map);
   const p = world.player;
 
-  if (userWaypoint && Math.hypot(userWaypoint.x - p.x, userWaypoint.y - p.y) < REACH_M) {
-    userWaypoint = null;
-    world.addMessage('Bestemming bereikt', 3);
-  }
-
   const mode = world.pigeonMode ? 'fly' : travelMode(p);
-  updateSlot(world, slots.user, userWaypoint ? { x: userWaypoint.x, y: userWaypoint.y, kind: 'user', name: userWaypoint.name } : null, mode);
+  const gt = busyTarget(world) === undefined && !world.challenge ? goalTarget(world) : null;
+  updateSlot(world, slots.user, gt ? { x: gt.x, y: gt.y, kind: 'user', name: gt.name } : null, mode);
   updateSlot(world, slots.objective, objectiveTarget(world), mode);
   const ct = world.pigeonMode ? null : updateCare(world);
   // no care route to where you're already standing
@@ -536,16 +541,20 @@ export function getRouteAhead(maxLen, r = route) {
   return out;
 }
 
+// A place on the map as the player's goal (goal.js); kept under this name
+// for the many "zet op je kaart" callers.
 export function setUserWaypoint(x, y, name = '') {
-  userWaypoint = { x, y, name };
+  setGoal({ kind: 'place', x, y, name: name || 'Bestemming' }, { quiet: true });
 }
 
 export function clearUserWaypoint() {
-  userWaypoint = null;
+  clearGoal();
 }
 
+// The goal's spot (any kind of goal), for the pin on the maps and in 3D.
 export function getUserWaypoint() {
-  return userWaypoint;
+  const g = getGoal();
+  return g ? { x: g.x, y: g.y, name: g.name } : null;
 }
 
 export function getRoutingStats() {

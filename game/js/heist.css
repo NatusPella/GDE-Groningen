@@ -1,4 +1,4 @@
-/* H6 De Museumkraak: the minigame panels, the blueprint, the card and the
+/* H6 Het museum stond er al zo: the minigame panels, the blueprint, the card and the
    alarm (heistui.js). Tokens and keycaps as in DESIGN_SYSTEM.md. */
 #heist-ui { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; }
 #heist-ui .hud-key {
