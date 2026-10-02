@@ -1,4 +1,4 @@
-// H6 "De Museumkraak", the showpiece heist. missions.js runs the stages; this
+// H6 "Het museum stond er al zo", the showpiece heist. missions.js runs the stages; this
 // module owns what happens in them:
 //   plan        the blueprint of the museum (heistui.js) while Anita explains,
 //               then the choice of approach: 'sluip' (the back door, a lock,

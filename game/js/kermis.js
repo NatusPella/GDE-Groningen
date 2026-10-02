@@ -843,7 +843,7 @@ export const KERMIS = {
   ubbo(w) {
     const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
     const rec = getChallengeRecord('botsauto');
-    return { name: kermisOn(w) ? 'Kermis op de Grote Markt' : "Botsauto's op de Grote Markt", sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : `€${PRICE} per ritje`, dist: d, x: STAND.x, y: STAND.y, where: "de botsauto's", hint: 'loop naar de kassa en druk E' };
+    return { name: kermisOn(w) ? 'Kermis op de Grote Markt' : "Botsauto's op de Grote Markt", sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : `€${PRICE} per ritje`, dist: d, x: STAND.x, y: STAND.y, play: 'kermis', where: "de botsauto's", hint: 'loop naar de kassa en druk E' };
   },
   runs: () => rides,
 };

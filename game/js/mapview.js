@@ -19,6 +19,10 @@ import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { DEV } from './devflags.js';
+import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
+import { getTodoItems, chooseTodo, mapIconUrl } from './todo.js';
+import { getMissionList } from './missions.js';
+import { MEDALS } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
@@ -196,38 +200,53 @@ function injectStyles() {
     }
     .mapview-tooltip .sub { color: #3fc97a; margin-left: 6px; }
     .mapview-legend {
-      flex: 0 0 auto; width: 232px; margin: 12px 12px 12px 0; padding: 12px 14px;
-      align-self: flex-start; max-height: calc(100% - 24px); overflow-y: auto;
+      flex: 0 0 auto; width: 280px; margin: 12px 12px 12px 0; padding: 12px;
+      align-self: flex-start; max-height: calc(100% - 24px); overflow-y: auto; box-sizing: border-box;
+      display: flex; flex-direction: column; gap: 8px;
       background: rgba(12, 20, 14, 0.8);
       border: 1px solid rgba(63, 201, 122, 0.35); border-radius: 4px; pointer-events: auto;
     }
-    .mapview-legend h3 { margin: 0 0 2px; font-size: 20px; font-weight: bold; letter-spacing: 1px; color: #3fc97a; }
-    .mapview-legend .hint { margin: 0 0 6px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
-    .mapview-legend ul { list-style: none; margin: 0; padding: 0; }
+    .mapview-legend h3 { margin: 0 2px; font-size: 24px; font-weight: normal; letter-spacing: 1px; color: #3fc97a; }
+    .mapview-legend .hint { margin: 0 2px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.6); }
+    .mapview-legend .mv-grp { border-radius: 10px; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .mapview-legend .mv-grp-head { display: flex; justify-content: space-between; width: 100%; padding: 8px 12px; background: none; border: 0; cursor: pointer; font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; color: rgba(240, 237, 228, 0.62); }
+    .mapview-legend .mv-grp-head:focus-visible { outline: 2px solid #f0ede4; }
+    .mapview-legend ul { list-style: none; margin: 0; padding: 0 8px 8px; }
+    .mapview-legend ul[hidden] { display: none; }
     .mapview-legend li {
-      display: flex; align-items: center; gap: 10px; font-size: 17px; letter-spacing: 0.3px; line-height: 1;
-      padding: 3px 4px; margin: 0 -4px; border-radius: 3px; user-select: none;
+      display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 18px; letter-spacing: 0.3px; line-height: 1;
+      padding: 4px; border-radius: 6px; user-select: none; transition: background var(--dur-fast, 120ms);
     }
-    .mapview-legend li[role="checkbox"] { cursor: pointer; }
-    .mapview-legend li[role="checkbox"]:hover { background: rgba(63, 201, 122, 0.12); }
-    .mapview-legend li[role="checkbox"]:focus-visible { outline: 2px solid #f0ede4; }
-    .mapview-legend li[aria-checked="false"] > canvas, .mapview-legend li[aria-checked="false"] > span:not(.chk) { opacity: 0.4; }
-    .mapview-legend .chk {
-      margin-left: auto; flex: 0 0 16px; width: 16px; height: 16px; box-sizing: border-box; border-radius: 3px;
-      border: 2px solid rgba(240, 237, 228, 0.6); display: flex; align-items: center; justify-content: center;
-      transition: background 0.12s, border-color 0.12s;
+    .mapview-legend li[role="switch"] { cursor: pointer; }
+    .mapview-legend li[role="switch"]:hover { background: rgba(63, 201, 122, 0.12); }
+    .mapview-legend li[role="switch"]:focus-visible { outline: 2px solid #f0ede4; }
+    .mapview-legend li[aria-checked="false"] > canvas, .mapview-legend li[aria-checked="false"] > span:not(.chk) { opacity: 0.45; }
+    .mapview-legend .chk { position: relative; width: 38px; height: 22px; border-radius: 11px; background: rgba(255, 255, 255, 0.12); transition: background var(--dur-base, 200ms) var(--ease-out, ease); }
+    .mapview-legend .chk::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #f0ede4; transition: transform var(--dur-base, 200ms) var(--ease-pop, ease); }
+    .mapview-legend li[aria-checked="true"] .chk { background: #1e9e56; }
+    .mapview-legend li[aria-checked="true"] .chk::after { transform: translateX(16px); }
+    .mapview-legend .always { font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
+    .mapview-legend canvas { width: 30px; height: 30px; }
+    .mapview-legend .note { color: rgba(240, 237, 228, 0.6); font: 12px 'Arial Narrow', Arial, sans-serif; }
+    .mapview-card {
+      position: absolute; z-index: 3; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; width: 360px; max-width: calc(100% - 16px); box-sizing: border-box;
+      padding: 12px; border-radius: 12px; background: rgba(10, 19, 13, 0.94); border: 1px solid rgba(63, 201, 122, 0.45); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      pointer-events: auto; animation: mv-card-in var(--dur-slow, 320ms) var(--ease-out, ease-out);
     }
-    .mapview-legend li[aria-checked="true"] .chk { background: #3fc97a; border-color: #3fc97a; }
-    .mapview-legend li[aria-checked="true"] .chk::after {
-      content: ''; width: 4px; height: 8px; margin-top: -2px; border: solid #0c140e; border-width: 0 2px 2px 0; transform: rotate(45deg);
-    }
-    .mapview-legend .all { margin: 0 0 8px; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
-    .mapview-legend .all button { background: none; border: 0; padding: 0; font: inherit; color: #3fc97a; cursor: pointer; text-decoration: underline; }
-    .mapview-legend .all button:focus-visible { outline: 2px solid #f0ede4; }
-    .mapview-legend li.grp { display: block; margin: 8px 0 2px; padding: 0 4px; font: bold 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: #3fc97a; border-bottom: 1px solid rgba(63, 201, 122, 0.3); }
-    .mapview-legend li.grp:first-child { margin-top: 0; }
-    .mapview-legend canvas { width: 30px; height: 30px; flex: 0 0 30px; }
-    .mapview-legend .note { color: rgba(240, 237, 228, 0.6); font-size: 14px; }
+    .mapview-card[hidden] { display: none; }
+    @keyframes mv-card-in { from { opacity: 0; transform: translateX(-10px); } }
+    .mapview-card .mv-ico { width: 52px; height: 52px; border-radius: 10px; display: grid; place-items: center; background: #10261a; border: 1px solid rgba(63, 201, 122, 0.16); }
+    .mapview-card .mv-ico img { width: 36px; height: 36px; }
+    .mapview-card > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .mapview-card b { font-weight: normal; font-size: 22px; letter-spacing: 1px; line-height: 1.05; }
+    .mapview-card small, .mapview-card .mv-rec { font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.65); letter-spacing: 0.2px; }
+    .mapview-card .mv-rec { display: flex; align-items: center; gap: 8px; }
+    .mapview-card .mv-pips { display: inline-flex; gap: 4px; }
+    .mapview-card .mv-pip { display: inline-grid; place-items: center; width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid; font: 12px 'Bebas Neue', sans-serif; padding-top: 1px; }
+    .mapview-card .mv-pip[data-m="1"] { color: #c8834a; } .mapview-card .mv-pip[data-m="2"] { color: #cfd6dc; } .mapview-card .mv-pip[data-m="3"] { color: #e8c93a; }
+    .mapview-card .mv-pip[data-on] { color: #0c140e; border-color: transparent; }
+    .mapview-card .mv-pip[data-m="1"][data-on] { background: #c8834a; } .mapview-card .mv-pip[data-m="2"][data-on] { background: #cfd6dc; } .mapview-card .mv-pip[data-m="3"][data-on] { background: #e8c93a; }
+    .mapview-card .mv-btns { display: flex; gap: 6px; margin-top: 4px; }
     @media (max-width: 900px) { .mapview-footer { display: none; } }
     @media (max-width: 700px) { .mapview-legend { display: none; } .mapview-title { display: none; } }
   `;
@@ -811,12 +830,13 @@ function drawDynamicMarkers(ctx, world) {
   const t = performance.now() / 1000;
   const hover = [];
   const z = state.zoom;
-  const icon = (layer, kind, x, y, name, opts, sub) => {
+  // pick: what a click on the marker offers ({ goal, todo }, see markerCard)
+  const icon = (layer, kind, x, y, name, opts, sub, pick) => {
     if (layer && !layerOn(layer)) return;
     const [sx, sy] = toScreen(x, y);
     if (sx < -20 || sy < -20 || sx > state.cw + 20 || sy > state.ch + 20) return;
     drawMapIcon(ctx, kind, sx, sy, ICON, { t, ...opts });
-    if (name) hover.push({ sx, sy, name, sub });
+    if (name) hover.push({ sx, sy, name, sub, x, y, kind, ...pick });
   };
 
   for (const r of getRoutes()) drawFullRoute(ctx, world, t, r);
@@ -833,14 +853,27 @@ function drawDynamicMarkers(ctx, world) {
     for (const d of job.dots) icon(null, 'sj-dot', d.x, d.y, d.label || job.label);
     if (job.marker) icon(null, 'sj-target', job.marker.x, job.marker.y, job.label, {}, job.goal ? job.goal.label : 'Klus');
   }
-  if (m && m.marker && m.phase !== 'cooldown' && layerOn('mission') && !job) {
+  // map rule: a mission shows only while it runs, as the story's step or as the goal
+  const showMission = !!(m && missionOnMap(world) && !job);
+  if (layerOn('klussen') && !job) {
+    for (const k of getMissionList()) {
+      if (!k.done || (showMission && k.index === m.index) || k.status === 'actief') continue;
+      icon(null, 'missionIdle', k.start.x, k.start.y, k.code ? `${k.code} · ${k.label}` : k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index });
+    }
+  }
+  if (showMission) {
     const wps = m.phase === 'active' ? m.remainingWaypoints || [] : [];
     if (wps.length) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), ICON);
       for (const w of wps) icon(null, 'waypoint', w.x, w.y, 'Checkpoint');
     }
     icon(null, m.phase === 'active' ? 'missionActive' : 'missionIdle', m.marker.x, m.marker.y,
-      m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten');
+      m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten', m.phase === 'active' ? null : { todo: 'm:' + m.index });
+  }
+  // the story's step stays on the map while a goal of your own waits it out
+  const sg = world.storyGuide;
+  if (sg && !world.storyFreePlay && !(showMission && Math.hypot(m.marker.x - sg.x, m.marker.y - sg.y) < 4) && !(sg.buy && storyTargetShop(world))) {
+    icon(null, 'missionIdle', sg.x, sg.y, sg.name, {}, 'Verhaal', { story: true });
   }
 
   for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });
@@ -851,17 +884,22 @@ function drawDynamicMarkers(ctx, world) {
     drawStoryShopRing(ctx, sx, sy, 13, t);
     icon(null, 'shop-' + storyShop.type, storyShop.x, storyShop.y, storyShop.name, {}, 'Voor het verhaal: ' + world.storyGuide.name.replace(/^Eerst: /, ''));
   }
-  for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif');
-  for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de traumaheli');
-  for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid');
-  for (const a of activityMapIcons(world)) icon(a.layer, a.kind, a.x, a.y, a.name, {}, a.sub);
-  for (const q of getPostgameSpotsForRender()) icon('postgame', 'pg-' + q.kind, q.x, q.y, q.name, {}, q.busy ? `Nu: ${q.busy.label}` : q.sub);
+  for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif', { goal: { kind: 'play', id: 'duif', name: 'Duivenmodus', sub: ps.name, x: ps.x, y: ps.y }, todo: 'mg:duif' });
+  const play = (id, name, sub, x, y, todo) => ({ goal: { kind: 'play', id, name, sub, x, y }, todo });
+  for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de traumaheli', play('heli', 'Ballonjacht', hs.name, hs.x, hs.y, 'mg:heli'));
+  for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid', play('padel', 'Padel', ps.name, ps.x, ps.y, 'mg:padel'));
+  const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'] };
+  for (const a of activityMapIcons(world)) {
+    const ap = ACT_PLAY[a.layer];
+    icon(a.layer, a.kind, a.x, a.y, a.name, {}, a.sub, ap ? play(ap[0], ap[1], a.name, a.x, a.y, ap[2]) : null);
+  }
+  for (const q of getPostgameSpotsForRender()) icon('postgame', 'pg-' + q.kind, q.x, q.y, q.name, {}, q.busy ? `Nu: ${q.busy.label}` : q.sub, q.id ? { goal: { kind: 'challenge', id: q.id, name: q.name, x: q.x, y: q.y }, todo: 'pg:' + q.id } : null);
   const ct = !job && world.challengeTarget;
   if (ct) {
     if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), ICON);
     icon(null, 'sj-target', ct.x, ct.y, 'Checkpoint', {}, 'Uitdaging');
   }
-  for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`);
+  for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id });
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}` : 'Reizen met de trein');
   for (const e of getEierbalTips()) icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt');
 
@@ -876,7 +914,21 @@ function drawDynamicMarkers(ctx, world) {
   forEachPoliceUnit(world, (x, y, kind) => icon(null, kind, x, y, kind === 'policeHorse' ? 'Bereden politie' : kind === 'policeBike' ? 'Politie op de fiets' : 'Politie'));
 
   const wp = getUserWaypoint();
-  if (wp) icon(null, 'userWaypoint', wp.x, wp.y, 'Bestemming', {}, wp.name ? `${wp.name} · klik of rechtsklik om te wissen` : 'klik of rechtsklik om te wissen');
+  if (wp) {
+    // a new goal gets one soft ring (motion spec)
+    const g = getGoal();
+    if (g !== state.ringGoal) { state.ringGoal = g; state.ringAt = t; }
+    const k = (t - state.ringAt) / 0.7;
+    if (k < 1 && !document.documentElement.classList.contains('reduce-motion')) {
+      const [sx, sy] = toScreen(wp.x, wp.y);
+      ctx.beginPath();
+      ctx.arc(sx, sy - 8 * ICON, 6 + k * 18, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(63, 201, 122, ${(0.6 * (1 - k)).toFixed(3)})`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+    icon(null, 'userWaypoint', wp.x, wp.y, `Doel: ${wp.name}`, {}, 'klik voor details · rechtsklik of Del om te wissen', { isGoal: true });
+  }
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
   state.dynHover = hover;
@@ -1015,11 +1067,25 @@ function buildSearchIndex(world) {
   return entries;
 }
 
+const TODO_KIND = { missies: 'Missie', minigames: 'Minigame', bijbaantjes: 'Bijbaantje', ommeland: 'Ommeland', nahetverhaal: 'Na het verhaal', verhaal: 'Verhaal' };
+
+// Missions and activities change with progress: indexed per search.
+function todoEntries() {
+  const out = [];
+  for (const it of getTodoItems(state.world)) {
+    if (it.dist == null || it.status === 'slot') continue;
+    const label = (it.code ? it.code + ' ' : '') + it.title;
+    const norm = normalize(label);
+    out.push({ label: it.code ? `${it.code} · ${it.title}` : it.title, kind: it.status === 'klaar' && it.group === 'missies' ? 'Klus' : TODO_KIND[it.group] || 'Te doen', pri: 0, x: it.x, y: it.y, zoom: 6, todo: it.key, icon: it.icon, norm, compact: norm.replace(/ /g, '') });
+  }
+  return out;
+}
+
 function search(q) {
   const n = normalize(q);
   if (!n) return [];
   const res = [];
-  for (const e of state.searchIndex) {
+  for (const e of [...todoEntries(), ...state.searchIndex]) {
     let score;
     if (e.norm.startsWith(n)) score = 0;
     else if ((' ' + e.norm).includes(' ' + n)) score = 1;
@@ -1061,6 +1127,15 @@ function renderResults() {
 }
 
 function chooseResult(e) {
+  if (e.todo) {
+    centreOn(e.x, e.y, e.zoom);
+    state.searchInput.value = '';
+    state.results.hidden = true;
+    state.searchInput.blur();
+    const [sx, sy] = toScreen(e.x, e.y);
+    showCard(state.world, { name: e.label, x: e.x, y: e.y, kind: e.icon, todo: e.todo, sx, sy }, sx, sy);
+    return;
+  }
   const map = state.map;
   const spot = map.nearestRoadPoint(e.x, e.y, 120) || { x: e.x, y: e.y };
   setUserWaypoint(spot.x, spot.y, e.label);
@@ -1172,20 +1247,68 @@ function handleClick(world, sx, sy, shift) {
     else teleportTo(world, { x: wx, y: wy, name: streetAt(wx, wy, 60) || wijkAt(wx, wy) || 'deze plek' });
     return;
   }
-  const wp = getUserWaypoint();
-  if (wp) {
-    const [px, py] = toScreen(wp.x, wp.y);
-    if ((px - sx) ** 2 + ((py - 8) - sy) ** 2 < 14 * 14) {
-      clearUserWaypoint();
-      updateTooltip(sx, sy);
-      return;
-    }
-  }
+  if (state.card) { hideCard(); if (!h) return; }
+  // a marker: a small card with what it is and "Zet als doel"
+  if (h && h.name !== 'Jij') { showCard(world, h, sx, sy); return; }
   const spot = state.map.nearestRoadPoint(wx, wy, 60);
   const x = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.x : wx;
   const y = spot && Math.hypot(spot.x - wx, spot.y - wy) < 30 ? spot.y : wy;
-  const name = (h && h.name !== 'Jij' ? h.name : null) || streetAt(x, y, 40) || wijkAt(x, y) || '';
+  const name = streetAt(x, y, 40) || wijkAt(x, y) || '';
   setUserWaypoint(x, y, name);
+}
+
+// --- marker card ---------------------------------------------------------------
+
+const escHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function cardTodo(world, key) {
+  return key ? getTodoItems(world).find((it) => it.key === key) || null : null;
+}
+
+// h: a hover entry ({ name, sub, x, y, kind, goal, todo, isGoal, story }).
+function showCard(world, h, sx, sy) {
+  if (!Number.isFinite(h.x)) {
+    const t = h.teleport;
+    const [wx, wy] = t ? [t.x, t.y] : toWorld(h.sx, h.sy);
+    h = { ...h, x: wx, y: wy };
+  }
+  const it = cardTodo(world, h.todo);
+  const goal = getGoal();
+  const d = Math.hypot(h.x - world.player.x, h.y - world.player.y);
+  const pips = it && it.medal != null ? `<span class="mv-pips">${[1, 2, 3].map((m) => `<span class="mv-pip" data-m="${m}"${it.medal >= m ? ' data-on' : ''} title="${MEDALS[m]}">${'BZG'[m - 1]}</span>`).join('')}</span>` : '';
+  const meta = [it ? it.meta : h.sub, formatDistance(d), h.isGoal ? 'jouw doel' : ''].filter(Boolean).map(escHtml).join(' · ');
+  let btn;
+  if (h.isGoal) btn = '<button type="button" class="mapview-btn ghost" data-card="clear">Doel wissen</button>';
+  else if (h.story) btn = goal ? '<button type="button" class="mapview-btn" data-card="story">Terug naar het verhaal</button>' : '';
+  else btn = '<button type="button" class="mapview-btn" data-card="goal">Zet als doel</button>';
+  const el = state.cardEl;
+  el.innerHTML = `<span class="mv-ico">${h.kind ? `<img src="${mapIconUrl(h.kind)}" alt="">` : ''}</span><div><b>${escHtml(it ? (it.code ? it.code + ' · ' : '') + it.title : h.name)}</b>` +
+    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}` +
+    `<div class="mv-btns">${btn}<button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>`;
+  el.hidden = false;
+  state.card = { h, it };
+  const w = el.offsetWidth, hh = el.offsetHeight;
+  el.style.left = Math.max(8, Math.min(state.cw - w - 8, sx + 14)) + 'px';
+  el.style.top = Math.max(8, Math.min(state.ch - hh - 8, sy - hh / 2)) + 'px';
+}
+
+function hideCard() {
+  state.card = null;
+  if (state.cardEl) state.cardEl.hidden = true;
+}
+
+function cardAction(world, act) {
+  const c = state.card;
+  if (!c) return;
+  hideCard();
+  if (act === 'clear') clearGoal();
+  else if (act === 'story') clearGoal();
+  else if (act === 'goal') {
+    const h = c.h;
+    if (c.it && c.it.goal && (c.it.goal === 'story' || c.it.goal.kind === 'mission')) chooseTodo(world, c.it);
+    else if (h.goal) setGoal(h.goal);
+    else setGoal({ kind: 'place', name: h.name, sub: h.sub, x: h.x, y: h.y });
+  }
 }
 
 function canvasPos(e) {
@@ -1212,41 +1335,40 @@ function handleKeys(dt, world) {
 
 // --- lifecycle --------------------------------------------------------------
 
+// "Op de kaart": what the map and the minimap show. Altijd has no switch;
+// a row with several layers switches them together (same keys as before,
+// mapfilters.js); Diensten and Onderweg start folded.
 const LEGEND = [
-  { group: 'Jij en je route' },
-  { kind: 'player', label: 'Jij' },
-  { kind: 'userWaypoint', label: 'Jouw bestemming', note: 'altijd zichtbaar' },
-  { kind: 'route', label: 'Route', note: 'paars: jouw bestemming, geel: missie, roze: opknappen of repareren' },
-  { kind: 'companion', label: 'Maat', layer: 'companion' },
-  { kind: 'home', label: 'Thuis', note: 'flat met bed, koelkast en kledingkast', layer: 'home' },
-  { kind: 'homeGarage', label: 'Jouw garage', note: 'al je voertuigen staan hier klaar', layer: 'home' },
-  { kind: 'homeMooring', label: 'Jouw steiger', note: 'je boten liggen hier, afleveren brengt ze hierheen', layer: 'home' },
-  { kind: 'homeHelipad', label: 'Jouw helidek', note: 'op het dak van jullie flat, voor je eigen heli', layer: 'home' },
-  { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot, heli', layer: 'car' },
-  { group: 'Verhaal en klussen' },
-  { kind: 'missionIdle', label: 'Missie', note: 'start, doel en checkpoints', layer: 'mission' },
-  { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'bezorgen, taxi, bus, rondvaart, fietsdepot, verhuizen', layer: 'bijbaan' },
-  { group: 'Winkels en diensten' },
-  { kind: 'garage', label: 'Garage en pomp', note: 'rij naar binnen: repareren, spuiten, opvoeren, wrakken', layer: 'garage' },
-  { kind: 'horeca', label: 'Horeca', layer: 'horeca' },
-  { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks (eten = gezondheid)', layer: 'shops' },
-  { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, helikopters (Eelde)', layer: 'shopsVoertuigen' },
-  { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', note: 'wapens, munitie en vesten', layer: 'shopsWapens' },
-  { group: 'Doen en beleven' },
-  { kind: 'pigeon', label: 'Duiven', note: 'word een duif', layer: 'duif' },
-  { kind: 'heli', label: 'Traumaheli', note: 'ballonjacht vanaf het UMCG', layer: 'heli' },
-  { kind: 'padel', label: 'Padelbanen', note: 'potje padel: volle gezondheid en extra herstel', layer: 'padel' },
-  ...ACTIVITY_LEGEND,
-  { kind: 'sj-rondvaarttour', label: 'Ontspannen rondvaart', note: 'rondje Diepenring met toeristen, zonder haast', layer: 'rondvaarttour' },
-  { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layer: 'postgame' },
-  { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layer: 'trein' },
-  { group: 'Onderweg' },
-  { kind: 'flitspaal', label: 'Flitspaal', layer: 'flitspaal' },
-  { kind: 'landmark', label: 'Bezienswaardigheid', layer: 'landmark' },
-  { group: 'Kaart' },
-  { kind: 'text-street', label: 'Straatnamen', layer: 'streets' },
-  { kind: 'text-wijk', label: 'Wijknamen', layer: 'wijken' },
-  { kind: 'buildings', label: 'Gebouwen', layer: 'buildings' },
+  { group: 'Altijd', rows: [
+    { kind: 'player', label: 'Jij', note: 'en wie er met je meerijdt' },
+    { kind: 'missionIdle', label: 'Verhaal', dyn: 'story' },
+    { kind: 'userWaypoint', label: 'Jouw doel', dyn: 'goal' },
+    { kind: 'route', label: 'Route', note: 'paars: jouw doel, geel: verhaal of missie, roze: opknappen of repareren' },
+  ] },
+  { group: 'Te doen', rows: [
+    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer)] },
+    { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'start bij de baas', layers: ['bijbaan', 'rondvaarttour'] },
+    { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
+    { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layers: ['postgame'] },
+  ] },
+  { group: 'Diensten', folded: true, rows: [
+    { kind: 'home', label: 'Thuis', note: 'flat, garage, steiger en helidek', layers: ['home', 'homeGarage'] },
+    { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot, heli', layers: ['car'] },
+    { kind: 'garage', label: 'Garage en pomp', note: 'repareren, spuiten, opvoeren, wrakken', layers: ['garage'] },
+    { kind: 'horeca', label: 'Horeca', layers: ['horeca'] },
+    { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, super, snacks', layers: ['shops'] },
+    { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, heli\'s', layers: ['shopsVoertuigen'] },
+    { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', layers: ['shopsWapens'] },
+    { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layers: ['trein'] },
+  ] },
+  { group: 'Onderweg', folded: true, rows: [
+    { kind: 'companion', label: 'Maat', layers: ['companion'] },
+    { kind: 'flitspaal', label: 'Flitspaal', layers: ['flitspaal'] },
+    { kind: 'landmark', label: 'Bezienswaardigheid', layers: ['landmark'] },
+    { kind: 'text-street', label: 'Straatnamen', layers: ['streets'] },
+    { kind: 'text-wijk', label: 'Wijknamen', layers: ['wijken'] },
+    { kind: 'buildings', label: 'Gebouwen', layers: ['buildings'] },
+  ] },
 ];
 
 function drawLegendIcon(ctx, kind) {
@@ -1274,69 +1396,84 @@ function drawLegendIcon(ctx, kind) {
 
 function buildLegend(root) {
   const dpr = window.devicePixelRatio || 1;
-  const list = document.createElement('ul');
-  for (const row of LEGEND) {
-    if (row.group) {
-      const h = document.createElement('li');
-      h.className = 'grp';
-      h.textContent = row.group;
-      list.appendChild(h);
-      continue;
-    }
-    const li = document.createElement('li');
-    const cv = document.createElement('canvas');
-    cv.width = cv.height = 30 * dpr;
-    const ctx = cv.getContext('2d');
-    // icons are drawn on a 24 px grid, shown at 30 px
-    ctx.setTransform(dpr * 1.25, 0, 0, dpr * 1.25, 0, 0);
-    drawLegendIcon(ctx, row.kind);
-    const span = document.createElement('span');
-    span.textContent = row.label;
-    if (row.kind === 'companion') state.legendMaat = span;
-    li.append(cv, span);
-    if (row.note) {
+  root.innerHTML = '<h3>Op de kaart</h3>';
+  state.legendDyn = {};
+  for (const g of LEGEND) {
+    const box = document.createElement('div');
+    box.className = 'mv-grp';
+    const head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'mv-grp-head';
+    head.setAttribute('aria-expanded', String(!g.folded));
+    head.innerHTML = `<span>${g.group}</span><span aria-hidden="true">${g.folded ? '+' : '–'}</span>`;
+    const list = document.createElement('ul');
+    list.hidden = !!g.folded;
+    head.addEventListener('click', () => {
+      list.hidden = !list.hidden;
+      head.setAttribute('aria-expanded', String(!list.hidden));
+      head.lastElementChild.textContent = list.hidden ? '+' : '–';
+    });
+    for (const row of g.rows) {
+      const li = document.createElement('li');
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = 30 * dpr;
+      const ctx = cv.getContext('2d');
+      // icons are drawn on a 24 px grid, shown at 30 px
+      ctx.setTransform(dpr * 1.25, 0, 0, dpr * 1.25, 0, 0);
+      drawLegendIcon(ctx, row.kind);
+      const span = document.createElement('span');
+      span.textContent = row.label;
       const n = document.createElement('span');
       n.className = 'note';
-      n.textContent = row.note;
+      n.textContent = row.note || '';
       span.append(document.createElement('br'), n);
-    }
-    if (row.layer) {
-      li.setAttribute('role', 'checkbox');
-      li.tabIndex = 0;
-      li.setAttribute('aria-checked', String(layerOn(row.layer)));
-      li.title = 'Klik om aan/uit te zetten (kaart en minimap)';
-      const box = document.createElement('span');
-      box.className = 'chk';
-      box.setAttribute('aria-hidden', 'true');
-      li.appendChild(box);
-      li.dataset.layer = row.layer;
-      const toggle = () => {
-        const on = !layerOn(row.layer);
-        setLayer(row.layer, on);
-        li.setAttribute('aria-checked', String(on));
-      };
-      li.addEventListener('click', toggle);
-      li.addEventListener('keydown', (e) => {
-        if (e.target !== li || (e.key !== 'Enter' && e.key !== ' ')) return;
-        e.preventDefault();
-        e.stopPropagation();
-        toggle();
-      });
-    }
-    list.appendChild(li);
-  }
-  root.innerHTML = '<h3>LEGENDA</h3><p class="hint">Vink aan wat je op de kaart en de minimap wilt zien.</p>' +
-    '<p class="all"><button type="button" data-all="1">Alles aan</button> · <button type="button" data-all="0">Alles uit</button></p>';
-  for (const b of root.querySelectorAll('[data-all]')) {
-    b.addEventListener('click', () => {
-      const on = b.dataset.all === '1';
-      for (const li of list.querySelectorAll('li[data-layer]')) {
-        setLayer(li.dataset.layer, on);
-        li.setAttribute('aria-checked', String(on));
+      if (row.dyn) state.legendDyn[row.dyn] = n;
+      if (row.kind === 'companion') state.legendMaat = span.firstChild;
+      li.append(cv, span);
+      if (row.layers) {
+        li.setAttribute('role', 'switch');
+        li.tabIndex = 0;
+        const on = () => row.layers.some((k) => layerOn(k));
+        li.setAttribute('aria-checked', String(on()));
+        li.title = 'Klik om aan of uit te zetten (kaart en minimap)';
+        const sw = document.createElement('span');
+        sw.className = 'chk';
+        sw.setAttribute('aria-hidden', 'true');
+        li.appendChild(sw);
+        const toggle = () => {
+          const v = !on();
+          for (const k of row.layers) setLayer(k, v);
+          li.setAttribute('aria-checked', String(v));
+        };
+        li.addEventListener('click', toggle);
+        li.addEventListener('keydown', (e) => {
+          if (e.target !== li || (e.key !== 'Enter' && e.key !== ' ')) return;
+          e.preventDefault();
+          e.stopPropagation();
+          toggle();
+        });
+      } else {
+        const a = document.createElement('span');
+        a.className = 'always';
+        a.textContent = 'altijd';
+        li.appendChild(a);
       }
-    });
+      list.appendChild(li);
+    }
+    box.append(head, list);
+    root.appendChild(box);
   }
-  root.appendChild(list);
+  const foot = document.createElement('p');
+  foot.className = 'hint';
+  foot.textContent = 'Missies buiten het verhaal staan pas op de kaart als je ze als doel kiest.';
+  root.appendChild(foot);
+}
+
+function refreshLegend(world) {
+  const d = state.legendDyn || {};
+  const g = getGoal();
+  if (d.goal) d.goal.textContent = g ? [g.name, g.sub].filter(Boolean).join(' · ') : 'klik op de kaart of op iets dat je wilt doen';
+  if (d.story) d.story.textContent = world.storyGuide ? world.storyGuide.name : world.storyFreePlay ? 'het verhaal is uit' : '';
 }
 
 function openMap(world) {
@@ -1348,9 +1485,11 @@ function openMap(world) {
   state.dirty = true;
   const c = world.companion;
   if (state.legendMaat) state.legendMaat.textContent = c ? `Maat (${c.character === 'tammo' ? 'Tammo' : 'Anita'})` : 'Maat';
+  refreshLegend(world);
 }
 
 function closeMap() {
+  hideCard();
   state.open = false;
   state.overlay.classList.remove('open');
   state.tooltip.style.display = 'none';
@@ -1388,6 +1527,7 @@ function render(world) {
   drawDynamicMarkers(ctx, world);
   drawChrome(ctx);
   updateHeader();
+  if (state.frame % 20 === 0) refreshLegend(world);
   const ms = performance.now() - t0;
   const perf = state.perf;
   perf.frameMs = ms;
@@ -1405,16 +1545,16 @@ export function initMapView(world) {
   overlay.setAttribute('aria-label', 'Kaart van Groningen');
   overlay.innerHTML =
     '<div class="mapview-header"><span class="mapview-title">KAART VAN GRONINGEN</span>' +
-    '<div class="mapview-search"><input type="search" placeholder="Zoek straat of plek…" aria-label="Zoek straat of plek" autocomplete="off" spellcheck="false">' +
+    '<div class="mapview-search"><input type="search" placeholder="Zoek een plek, missie of minigame…" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
     '<ul class="mapview-results" role="listbox" hidden></ul></div>' +
     '<button type="button" class="mapview-btn" data-act="centre">Centreer op mij</button>' +
-    '<button type="button" class="mapview-btn ghost" data-act="clear" hidden>Bestemming wissen</button>' +
+    '<button type="button" class="mapview-btn ghost" data-act="clear" hidden>Doel wissen</button>' +
     '<span class="mapview-route"></span></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" data-act="in" aria-label="Inzoomen">+</button><button type="button" data-act="out" aria-label="Uitzoomen">−</button></div>' +
-    '<div class="mapview-tooltip"></div><aside class="mapview-legend"></aside></div>' +
-    `<div class="mapview-footer"><b>Klik</b> bestemming zetten · <b>Rechtsklik</b> wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}` +
-    '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> bestemming wissen · <b>Q / E</b> tabblad · <b>M / Esc</b> sluiten</div>';
+    '<div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend"></aside></div>' +
+    `<div class="mapview-footer"><b>Klik</b> doel kiezen · <b>Rechtsklik</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}` +
+    '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> doel wissen · <b>Q / E</b> tabblad · <b>M / Esc</b> sluiten</div>';
   document.body.appendChild(overlay);
 
   const compose = document.createElement('canvas');
@@ -1463,6 +1603,14 @@ export function initMapView(world) {
     perf: { composeMs: 0, frameMs: 0, avgMs: 0, maxMs: 0 },
   };
   state.ctx = state.canvas.getContext('2d');
+  state.cardEl = overlay.querySelector('.mapview-card');
+  state.cardEl.addEventListener('mousedown', (e) => e.stopPropagation());
+  state.cardEl.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-card]');
+    if (!b) return;
+    if (b.dataset.card === 'close') hideCard();
+    else cardAction(world, b.dataset.card);
+  });
   state.canvas.tabIndex = -1;
   state.searchIndex = buildSearchIndex(world);
   initFog(world);
@@ -1527,6 +1675,7 @@ export function initMapView(world) {
     if (d) {
       if (!d.moved && Math.hypot(sx - d.sx, sy - d.sy) > DRAG_PX) {
         d.moved = true;
+        hideCard();
         cv.classList.add('dragging');
         state.tooltip.style.display = 'none';
       }

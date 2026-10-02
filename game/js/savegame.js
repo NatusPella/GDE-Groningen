@@ -15,6 +15,7 @@ import { abortHeliRun } from './helirun.js';
 import { quitPadel } from './padel.js';
 import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
+import { getGoalSave, applyGoalSave } from './goal.js';
 
 const KEY = 'gte-save-v1';
 const VERSION = 1;
@@ -119,6 +120,7 @@ function serialize(w) {
     bijbaan: getSideJobSave(),
     postgame: getPostgameSave(),
     meubels: getFurnitureSave(),
+    doel: getGoalSave(),
   };
 }
 
@@ -147,7 +149,7 @@ function stateSignature(w) {
     const sh = getShopSave();
     const vehicles = (sh.vehicles || []).map((o) => [o.key, o.color, o.upgrades, !!o.lost]);
     return JSON.stringify([sh.outfit, sh.ownedOutfits, sh.hair, sh.heroColor, sh.heroUpgrades, vehicles,
-      getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(), getFurnitureSave(),
+      getMissionProgress(), getStorySave(), getAchievementSaveData(), getPigeonSaveData(), getSideJobSave(), getPostgameSave(), getFurnitureSave(), getGoalSave(),
       w.visitedLandmarks instanceof Set ? w.visitedLandmarks.size : 0, w.stats.missionsDone]);
   } catch (e) {
     return lastSig;
@@ -234,6 +236,7 @@ export function applySave(w, d) {
     applySideJobSave(w, d.bijbaan);
     applyPostgameSave(d.postgame);
     applyFurnitureSave(d.meubels);
+    applyGoalSave(d.doel);
     applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
     w.loadCount = (w.loadCount || 0) + 1;
