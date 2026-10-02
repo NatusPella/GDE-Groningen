@@ -553,14 +553,18 @@ data plus a director:
   props, drifts, near misses, pigeon flocks and the water truck on the Grote
   Markt (stuntavond.js); people hit there are knocked down, never killed
   (`world.stuntSafe`, pedestrians.js). A def `window` (H6) is a timer over a
-  range of stages, `moment` a card at a checkpoint (H5). A failed mission's
+  range of stages, `moment` a staged scene at a checkpoint (H5: missionstory.js
+  `playEyeContact`, Anita on her own bike at the all-green crossing; its `text` is
+  the fallback toast). A failed mission's
   banner reads "Sikkom.". In `missionstory.js` an entry's `replay` is the short
   outro of a replay (the mission as a klus), `outroNpcKey` another NPC for the
   outro, a line's `kiss` the line the kiss happens on. Type `stages` builds a mission from
   small objectives (board, goto, hold, garage, escape, pigeon, scene, chase,
   vault; documented above `resolveTarget`); the new missions H2, H4, H6, H8
   and H10 use it (H6 adds plan, fuse, lock, pickpocket, laser, crack, getaway and shot, and `only` stages per approach), and the Staart adds boatchase (H14's skûtsje on the Diepenring
-  route), heli (helirun.js as a stage), fireworks on a hold, a timed goto,
+  route), heli (helirun.js as a stage), fireworks on a hold, a chase `route` with a
+  radio report per street and a `swarm` (H18's pigeons over the fireworks,
+  missionstory.js `playPigeonSwarm`), a timed goto,
   `pay` and an egg meter (H17). `storyprops3d.js` holds temporary story props (H10's
   flag), `missionstory.js` `playVaultScene` Jelle's fierljep escape, and
   `racers.js` puts Jelle's trekker-limo in the ring race (`opts.jelle`). Dialogue for every mission index
