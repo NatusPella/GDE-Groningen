@@ -17,7 +17,7 @@ import { updateSwimmers3D } from './swimmers3d.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
-import { getHorecaForRender, buildHorecaMarkerMesh3D, horecaPads3D } from './horeca.js';
+import { getHorecaForRender, buildHorecaMarkerMesh3D, horecaPads3D, updateHorecaPads3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
@@ -49,6 +49,7 @@ import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js'
 // ?nobatch: every building drawn on its own (A/B checks of the batching)
 const NO_BATCH = typeof location !== 'undefined' && /[?&]nobatch\b/.test(location.search);
 const NO_WHEEL_INSTANCES = NO_BATCH;
+const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
@@ -168,6 +169,7 @@ const speechBubbleEls = new Map();
 let billboardRoot = null;
 let flitspaalBuilt = false;
 let horecaBuilt = false;
+let horecaPads = null;
 const staticProps = [];
 let policeHeliMesh = null;
 let playerMesh = null;
@@ -1887,7 +1889,8 @@ export function update3D(dt, world) {
     const horecaSpots = getHorecaForRender();
     if (horecaSpots.length) {
       horecaBuilt = true;
-      scene.add(horecaPads3D(horecaSpots));
+      horecaPads = horecaPads3D(horecaSpots);
+      scene.add(horecaPads);
       for (const h of horecaSpots) {
         const mesh = buildHorecaMarkerMesh3D(false);
         mesh.position.set(h.x, 0, h.y);
@@ -1896,6 +1899,7 @@ export function update3D(dt, world) {
       }
     }
   }
+  if (horecaPads) updateHorecaPads3D(horecaPads, player.x, player.y, DRAW_DIST + 10);
   for (const mesh of staticProps) {
     mesh.visible = !mesh.userData.broken && Math.abs(mesh.position.x - player.x) < DRAW_DIST && Math.abs(mesh.position.z - player.y) < DRAW_DIST;
     // hundreds of these exist city-wide; hidden ones need no matrix updates
@@ -2323,7 +2327,8 @@ export function update3D(dt, world) {
   limitActorShadows(wildlifeMeshes, player.x, player.y);
   if (!NO_WHEEL_INSTANCES) {
     beginWheels(scene);
-    for (const mesh of vehicleMeshes.values()) addVehicleWheels(mesh);
+    wheelFrustum.setFromProjectionMatrix(wheelProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+    for (const mesh of vehicleMeshes.values()) addVehicleWheels(mesh, wheelFrustum);
     endWheels();
   }
   updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness, dt);
