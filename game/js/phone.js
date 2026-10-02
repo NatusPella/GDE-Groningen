@@ -67,7 +67,7 @@ function buddyName(w) {
 function contacts(w) {
   return [
     { id: 'buddy', name: buddyName(w), sub: 'Maat', talk: buddyTalk },
-    { id: 'berend', name: 'Bommen Berend', sub: 'Opdrachtgever', talk: berendTalk },
+    { id: 'berend', name: 'Berend Bos', sub: 'Opdrachtgever', talk: berendTalk },
     { id: 'garage', name: 'Garage Knalpot', speaker: 'Henk', sub: 'Henk, auto’s & excuses', talk: garageTalk },
     { id: 'mam', name: 'Mam', sub: 'Thuis', talk: mamTalk },
     ...(storyFlag('jelle') ? [{ id: 'jelle', name: 'Jelle Terpstra', sub: 'De Fryske Snackkening', talk: jelleTalk }] : []),

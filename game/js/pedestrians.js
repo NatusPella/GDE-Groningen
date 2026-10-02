@@ -438,6 +438,8 @@ function ejectDriver(world, ev) {
   return ped;
 }
 
+const stuntSafeAt = (world, ped) => { const z = world.stuntSafe; return !!z && Math.hypot(ped.x - z.x, ped.y - z.y) < z.r; };
+
 function killPed(ped, world) {
   releaseFromScene(ped);
   setPedPose(ped, null);
@@ -603,11 +605,13 @@ function throwRider(world, b, u, vx, vy, closing, push) {
     b._thrownCop = ped;
   }
   ped.health -= 6 + closing * 2.5;
+  if (stuntSafeAt(world, ped)) ped.health = Math.max(1, ped.health);
   const dead = ped.health <= 0;
   world.pedestrians.push(ped);
   knockDown(ped, world, { kind: 'hit', startPose: 'ride', dead, vx, vy, vz });
   if (dead) { killPed(ped, world); bleedPed(ped, world, { vehicle: u }); }
   if (u.driver === 'player') {
+    world.lastPedHitAt = world.time;
     const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit');
     if (dead) world.stats.pedKills++;
     pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious });
@@ -892,6 +896,8 @@ function checkVehicleImpact(ped, world) {
     setPedPose(ped, null);
     // slow cars and bikes floor you, fast cars kill
     ped.health -= light ? 8 + speed * 2 : speed < 7 ? 10 + speed * 2.5 : 999;
+    // H3's stunt evening (stuntavond.js): a knock, never a casualty
+    if (stuntSafeAt(world, ped)) ped.health = Math.max(1, ped.health);
     const dead = ped.health <= 0;
     // fast enough to kill outright: Carmageddon-style burst (falls back to the ragdoll with gore off)
     const gib = dead && !light && speed >= GIB_SPEED && splatterPed(ped, world, { vx: ped.knockVX, vy: ped.knockVY, vz: 3 + speed * 0.15, vehicle: v });

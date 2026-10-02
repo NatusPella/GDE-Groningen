@@ -3,9 +3,29 @@
 "src": "anita/berend_zei_dat_er_al_een_fries_z_20c65a17.mp3",
 "dur": 10.96
 },
+"Anita|De Eierbal ligt in een melkbus aan de Beijumerweg. Daar zoekt geen Fries.": {
+"src": "anita/de_eierbal_ligt_in_een_melkbus_a_6455c194.mp3",
+"dur": 6.42
+},
 "Anita|De Eierbal ligt in een melkbus aan de Beijumerweg. En Durk en Douwe trappen nog steeds.": {
 "src": "anita/de_eierbal_ligt_in_een_melkbus_a_878635ca.mp3",
 "dur": 5.97
+},
+"Anita|De bal moet tot het Ontzet veilig staan. Boer Roelf aan de Beijumerweg helpt alleen wie carbid kan schieten.": {
+"src": "anita/de_bal_moet_tot_het_ontzet_veili_bbc4aeb4.mp3",
+"dur": 6.27
+},
+"Anita|De inschrijving voor de Snackprijs kost honderdvijftig euro. Jelmer betaalt dat, voor content. Grote Markt, met de Escapade.": {
+"src": "anita/de_inschrijving_voor_de_snackpri_ca14e017.mp3",
+"dur": 7.9
+},
+"Anita|De kermis wordt opgebouwd voor het Ontzet. Durk en Douwe zitten in de botsauto's op de Grote Markt. Kermisbaas Jan laat je gratis instappen.": {
+"src": "anita/de_kermis_wordt_opgebouwd_voor_h_66e62cf6.mp3",
+"dur": 8.53
+},
+"Anita|Duivenmelker Bert zit bij het Stationsplein. Hij wil dat iemand gaat kijken bij het museum. Van boven.": {
+"src": "anita/duivenmelker_bert_zit_bij_het_st_860c7a90.mp3",
+"dur": 5.22
 },
 "Anita|Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?": {
 "src": "anita/durk_en_douwe_fietsen_weg_met_ee_cea27952.mp3",
@@ -19,17 +39,37 @@
 "src": "anita/een_eigen_fiets_met_bonnetje_nu__87f83306.mp3",
 "dur": 3.84
 },
+"Anita|Er hangt een reuzenvlag aan de Martinitoren. Bert staat op de Grote Markt. Fluiten maar, duivenkoning.": {
+"src": "anita/er_hangt_een_reuzenvlag_aan_de_m_c0eb0c02.mp3",
+"dur": 7.39
+},
+"Anita|Even afreageren. Je armen trillen nog van dat touw. Een potje padel.": {
+"src": "anita/even_afreageren_je_armen_trillen_ded1b618.mp3",
+"dur": 4.8
+},
 "Anita|Eén botsing en Durk vertelt alles. Stel je voor wat één biertje doet.": {
 "src": "anita/ee_n_botsing_en_durk_vertelt_all_8b58c08b.mp3",
 "dur": 4.89
+},
+"Anita|Eén botsing en Durk vertelt alles. Vanavond de Poelestraat.": {
+"src": "anita/ee_n_botsing_en_durk_vertelt_all_0d050dc6.mp3",
+"dur": 5.47
 },
 "Anita|Femke van Noorderzon belt. Spoedklus, decor moet naar het Noorderplantsoen. En ze heeft iets gezien, zegt ze.": {
 "src": "anita/femke_van_noorderzon_belt_spoedk_ab8fed35.mp3",
 "dur": 7.3
 },
+"Anita|Femke van Noorderzon heeft een rit, en een alibi. Bij de Stadsschouwburg.": {
+"src": "anita/femke_van_noorderzon_heeft_een_r_f0e53854.mp3",
+"dur": 5.13
+},
 "Anita|Geluk gehad. Vanavond de Poelestraat, daar drinken Durk en Douwe.": {
 "src": "anita/geluk_gehad_vanavond_de_poelestr_d6c3161b.mp3",
 "dur": 3.66
+},
+"Anita|Harm staat bij de start van de ringweg, bij het Julianaplein. En Jelle ook, met zijn trekker-limo.": {
+"src": "anita/harm_staat_bij_de_start_van_de_r_617a3024.mp3",
+"dur": 5.54
 },
 "Anita|Harm staat bij de start van de ringweg. En Jelle ook, met zijn trekker-limo. Laten we hem inhalen.": {
 "src": "anita/harm_staat_bij_de_start_van_de_r_22165f8d.mp3",
@@ -47,9 +87,17 @@
 "src": "anita/hij_wordt_thuisbezorgd_kom_naar__a4f13946.mp3",
 "dur": 5.17
 },
+"Anita|Jelle daagt je uit op de ringweg. Rij de Escapade naar Knal & Kolder en druk R, voor wat extra paardjes.": {
+"src": "anita/jelle_daagt_je_uit_op_de_ringweg_47da211e.mp3",
+"dur": 6.31
+},
 "Anita|Jelle daagt je uit, Tammo: \"Op de ringweg, met een eigen auto. As dat jild der is.\" Harm laat alleen eigen auto's starten. Kopen dus, niet lenen.": {
 "src": "anita/jelle_daagt_je_uit_tammo_op_de_r_f51665c4.mp3",
 "dur": 10.1
+},
+"Anita|Jelle doet een bod, op de radio. Stadsbalkon. Neem geld mee voor boodschappen.": {
+"src": "anita/jelle_doet_een_bod_op_de_radio_s_79b49263.mp3",
+"dur": 7.18
 },
 "Anita|Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Met rode blaadjes. Daar moet een duif aan te pas komen. Fluiten maar, duivenkoning.": {
 "src": "anita/jelle_heeft_een_reuzenvlag_aan_d_9daf86a7.mp3",
@@ -87,6 +135,14 @@
 "src": "anita/oma_trijntje_belt_ze_wil_ons_iet_8672269d.mp3",
 "dur": 6.3
 },
+"Anita|Oma Trijntje wil ons iets vertellen over de bal. Maar eerst de fatbikes, in de Oude Ebbingestraat.": {
+"src": "anita/oma_trijntje_wil_ons_iets_vertel_aeab583e.mp3",
+"dur": 5.99
+},
+"Anita|Onze huurboot ligt klaar. Jij stuurt, ik zeg wanneer. Het skûtsje wacht niet.": {
+"src": "anita/onze_huurboot_ligt_klaar_jij_stu_aaf4f6e8.mp3",
+"dur": 4.93
+},
 "Anita|Onze huurboot ligt klaar. Stap in, Tammo: jij stuurt, en het skûtsje wacht niet.": {
 "src": "anita/onze_huurboot_ligt_klaar_stap_in_88ed817f.mp3",
 "dur": 5.68
@@ -102,6 +158,10 @@
 "Anita|Sjabbe zei: echt geld ligt in het museum. Dan moeten we het eerst van boven zien. Duivenmelker Bert leent je een duif, bij het Stationsplein.": {
 "src": "anita/sjabbe_zei_echt_geld_ligt_in_het_76f7f38e.mp3",
 "dur": 7.48
+},
+"Anita|Sjoerd van de KEI-commissie heeft een neef bij de museumbeveiliging. Hij praat alleen met wie de KEI-race rijdt. Op een eigen fiets, met bonnetje.": {
+"src": "anita/sjoerd_van_de_kei_commissie_heef_3e859ecb.mp3",
+"dur": 8.19
 },
 "Anita|Sjoerd van de KEI-commissie weet alles wat er rond het museum fietst. Hij praat alleen met wie meedoet, en meedoen mag alleen op een eigen fiets. Trap & Toeter.": {
 "src": "anita/sjoerd_van_de_kei_commissie_weet_4193bd7d.mp3",
@@ -131,6 +191,10 @@
 "src": "mem_terpstra/pas_goed_op_dysels_famke_m_6c08fe1e.mp3",
 "dur": 2.46
 },
+"Mem Terpstra|Pas op dysels, famke. – M.": {
+"src": "mem_terpstra/pas_op_dysels_famke_m_85ebd7bb.mp3",
+"dur": 2.4
+},
 "Oma Trijntje|Breng hem thuis, jong. Niet voor het geld. Voor Grunn.": {
 "src": "oma_trijntje/breng_hem_thuis_jong_niet_voor_h_e5a931aa.mp3",
 "dur": 3.9
@@ -138,6 +202,10 @@
 "Oma Trijntje|Mosterd, eieren en stoetbrood. Dan komt het goed, jong. Dat deed ik in 1953 ook zo.": {
 "src": "oma_trijntje/mosterd_eieren_en_stoetbrood_dan_0e505738.mp3",
 "dur": 6.45
+},
+"Oma Trijntje|Mosterd, eieren en stoetbrood. Dan komt het goud, jong. Dat deed ik in 1953 ook zo.": {
+"src": "oma_trijntje/mosterd_eieren_en_stoetbrood_dan_7a419ddb.mp3",
+"dur": 6.89
 },
 "Oma Trijntje|Voor de boodschappen. Een echte eierbal maak je niet met lege handen, jong.": {
 "src": "oma_trijntje/voor_de_boodschappen_een_echte_e_1019c816.mp3",
@@ -167,6 +235,10 @@
 "src": "sikkom_redactie/die_gejatte_fiets_staat_nu_ergen_bfdbf3f0.mp3",
 "dur": 3.37
 },
+"Sikkom-redactie|Duif pikt Friese vlag van d'Olle Grieze. Op de vlag stond FOAR MEM. Stadjers juichen, de toren zelf zegt niks.": {
+"src": "sikkom_redactie/duif_pikt_friese_vlag_van_d_olle_948b2f7e.mp3",
+"dur": 7.26
+},
 "Sikkom-redactie|Duif pikt Friese vlag van d'Olle Grieze. Stadjers juichen, de toren zelf zegt niks.": {
 "src": "sikkom_redactie/duif_pikt_friese_vlag_van_d_olle_cb9d3087.mp3",
 "dur": 5.37
@@ -179,6 +251,10 @@
 "src": "sikkom_redactie/er_rijdt_niets_boven_groningen_s_a569f409.mp3",
 "dur": 5.27
 },
+"Sikkom-redactie|Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen kochten alles op. Contant, oet n klomp. Op de tankwagen stond Us Mem Vet.\"": {
+"src": "sikkom_redactie/frituurvet_uitverkocht_in_heel_g_911acd3f.mp3",
+"dur": 10.23
+},
 "Sikkom-redactie|Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons.\"": {
 "src": "sikkom_redactie/frituurvet_uitverkocht_in_heel_g_e522fa85.mp3",
 "dur": 9.6
@@ -190,6 +266,10 @@
 "Sikkom-redactie|Gevonden: een fiets die gisteren nog ergens anders stond. Niemand weet van niks.": {
 "src": "sikkom_redactie/gevonden_een_fiets_die_gisteren__d4220672.mp3",
 "dur": 4.34
+},
+"Sikkom-redactie|Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: \"Wij snappen er niks van.\"": {
+"src": "sikkom_redactie/gouden_eierbal_foetsie_politie_z_6334e640.mp3",
+"dur": 6.15
 },
 "Sikkom-redactie|Gouden Eierbal foetsie. Stad in rouw. Museum: \"Wij snappen er niks van, de camera's stonden uit.\"": {
 "src": "sikkom_redactie/gouden_eierbal_foetsie_stad_in_r_3ca87f20.mp3",
@@ -218,6 +298,10 @@
 "Sikkom-redactie|Kermis op de Grote Markt! Botsauto's, suikerspin en een reuzenrad tot diep in de nacht.": {
 "src": "sikkom_redactie/kermis_op_de_grote_markt_botsaut_01d7f5e3.mp3",
 "dur": 6.03
+},
+"Sikkom-redactie|Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.": {
+"src": "sikkom_redactie/noordelijke_snackprijs_naar_grun_8601bb1d.mp3",
+"dur": 9.83
 },
 "Sikkom-redactie|Peerd van Ome Loeks gezien op een rotonde. Gemeente: “Het beeld staat gewoon op zijn plek.”": {
 "src": "sikkom_redactie/peerd_van_ome_loeks_gezien_op_ee_228ed1fb.mp3",
@@ -259,6 +343,10 @@
 "src": "sikkom_redactie/weer_meldingen_van_het_peerd_op__2c9ce3d3.mp3",
 "dur": 4.83
 },
+"Sikkom-redactie|Zomeravond op de Grote Markt: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert. Gewonden: nul. Natte mensen: veel.": {
+"src": "sikkom_redactie/zomeravond_op_de_grote_markt_par_fa526aa1.mp3",
+"dur": 9.21
+},
 "Sjabbe|Hier, een voorschot voor een blaffer. Terugbetalen met rente. Of met een Eierbal.": {
 "src": "sjabbe/hier_een_voorschot_voor_een_blaf_3fb8241f.mp3",
 "dur": 5.49
@@ -274,6 +362,14 @@
 "Tammo|Achtentwintig augustus. Gronings Ontzet. Onze kraam staat op de Grote Markt, en Jelle de zijne ook. Kom je?": {
 "src": "tammo/achtentwintig_augustus_gronings__d496282c.mp3",
 "dur": 6.24
+},
+"Tammo|Achtentwintig augustus. Gronings Ontzet. Onze kraam staat op de Grote Markt. Kom je?": {
+"src": "tammo/achtentwintig_augustus_gronings__73ec3a20.mp3",
+"dur": 5.07
+},
+"Tammo|Anita. De Escapade is weg. Op zijn plek staat een klomp.": {
+"src": "tammo/anita_de_escapade_is_weg_op_zijn_1fc26bb3.mp3",
+"dur": 4.0
 },
 "Tammo|Anita. Niet schrikken. Je Fjord is weg. Jelmer zegt dat zijn chat hem bij het station zag.": {
 "src": "tammo/anita_niet_schrikken_je_fjord_is_1d0d9e0a.mp3",
@@ -295,6 +391,10 @@
 "src": "tammo/de_tankwagen_van_us_mem_vet_rijd_c0c84231.mp3",
 "dur": 6.62
 },
+"Tammo|De tankwagen van Us Mem Vet rijdt over de Europaweg. Tijd voor banden.": {
+"src": "tammo/de_tankwagen_van_us_mem_vet_rijd_378790f1.mp3",
+"dur": 4.57
+},
 "Tammo|Die automaat van gisteren staat nog in de Herestraat. Jij wilde hem verzilveren, toch?": {
 "src": "tammo/die_automaat_van_gisteren_staat__16d4a93f.mp3",
 "dur": 4.58
@@ -307,9 +407,17 @@
 "src": "tammo/donker_de_bewakers_wisselen_het__7cdf2bde.mp3",
 "dur": 2.58
 },
+"Tammo|Drie minuten zonder camera's, om twaalf uur. Dus niet opvallen: zwart incognito bij Stoer & Stads, of via het water met een bootje van Bootje Huren.": {
+"src": "tammo/drie_minuten_zonder_camera_s_om__c82f2b71.mp3",
+"dur": 8.51
+},
 "Tammo|Durk en Douwe hangen rond bij al onze vaste plekken, Jelle laat ons volgen. Een ronde bij het Fietsdepot of een verhuizing: daar zoekt niemand ons.": {
 "src": "tammo/durk_en_douwe_hangen_rond_bij_al_26c8fce9.mp3",
 "dur": 8.53
+},
+"Tammo|Een boot op onze naam, voor een middag.": {
+"src": "tammo/een_boot_op_onze_naam_voor_een_m_c1f7681b.mp3",
+"dur": 2.62
 },
 "Tammo|Een boot op onze naam, voor een middag. Ik stuur, jij springt. Of andersom.": {
 "src": "tammo/een_boot_op_onze_naam_voor_een_m_fa41fce3.mp3",
@@ -318,6 +426,10 @@
 "Tammo|Een skûtsje. Dat is een Friese zeilboot, toch? En die van Jelle ligt ergens hier in de stad.": {
 "src": "tammo/een_sku_tsje_dat_is_een_friese_z_212a7b4f.mp3",
 "dur": 5.09
+},
+"Tammo|Even pinnen in de Herestraat? Ik kom eraan.": {
+"src": "tammo/even_pinnen_in_de_herestraat_ik__91b914fc.mp3",
+"dur": 3.04
 },
 "Tammo|Eén ronde en ik ruik naar kapsalon. Maar de kraakpot groeit.": {
 "src": "tammo/ee_n_ronde_en_ik_ruik_naar_kapsa_834de2d5.mp3",
@@ -335,6 +447,14 @@
 "src": "tammo/geert_van_de_groote_griet_zegt_d_d9d817fe.mp3",
 "dur": 6.63
 },
+"Tammo|Geert zegt dat Durk en Douwe aan zijn bar zingen. Poelestraat. Een kroegentocht dus. Voor het onderzoek.": {
+"src": "tammo/geert_zegt_dat_durk_en_douwe_aan_cf245d5f.mp3",
+"dur": 6.33
+},
+"Tammo|Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken: pak de trein.": {
+"src": "tammo/heel_grunn_zoekt_de_eierbal_en_d_8c234ceb.mp3",
+"dur": 7.33
+},
 "Tammo|Heel Grunn zoekt de Eierbal, en wij stonden met een zaklamp in dat museum. Even onderduiken: pak de trein, maakt niet uit waarheen.": {
 "src": "tammo/heel_grunn_zoekt_de_eierbal_en_w_82d4d2af.mp3",
 "dur": 7.0
@@ -343,9 +463,21 @@
 "src": "tammo/het_is_zover_de_museumkraak_via__7974be87.mp3",
 "dur": 4.21
 },
+"Tammo|Het is zover. Via het Verbindingskanaal, om twaalf uur. Drie minuten.": {
+"src": "tammo/het_is_zover_via_het_verbindings_159c08be.mp3",
+"dur": 4.31
+},
+"Tammo|Het skûtsje gooit vandaag los. Wij hebben een eigen boot nodig: de sloep van Bootje Huren is genoeg.": {
+"src": "tammo/het_sku_tsje_gooit_vandaag_los_w_e26ccff4.mp3",
+"dur": 5.98
+},
 "Tammo|Hij stuurt nu ook complimentjes. Straks nodigt hij ons uit voor zijn verjaardag.": {
 "src": "tammo/hij_stuurt_nu_ook_complimentjes__a92d5677.mp3",
 "dur": 3.89
+},
+"Tammo|Iedereen kijkt naar Sikkom. Niemand naar ons.": {
+"src": "tammo/iedereen_kijkt_naar_sikkom_niema_2161c823.mp3",
+"dur": 2.32
 },
 "Tammo|Jelmer wil zijn stunt op de Grote Markt, maar hij leent niks meer uit. Met de poen van Sjabbe koop jij een blaffer bij Pang & Zo.": {
 "src": "tammo/jelmer_wil_zijn_stunt_op_de_grot_f7fd38c5.mp3",
@@ -355,9 +487,17 @@
 "src": "tammo/jij_hebt_rotor_roelf_gebeld_he_h_25036928.mp3",
 "dur": 9.09
 },
+"Tammo|Kapitein Klaas heeft een rondvaartboot die even van niemand is. Bij de Spilsluizen.": {
+"src": "tammo/kapitein_klaas_heeft_een_rondvaa_72b26516.mp3",
+"dur": 4.36
+},
 "Tammo|Kapitein Klaas heeft een rondvaartboot die even van niemand is. Vanaf het water zien we misschien dat skûtsje.": {
 "src": "tammo/kapitein_klaas_heeft_een_rondvaa_c708017a.mp3",
 "dur": 5.77
+},
+"Tammo|Ken ik ja nait roeken.": {
+"src": "tammo/ken_ik_ja_nait_roeken_ac70d077.mp3",
+"dur": 1.25
 },
 "Tammo|Klaas zegt dat het skûtsje vandaag losgooit. Wij hebben een eigen boot nodig: huur er een bij Bootje Huren. De sloep is genoeg.": {
 "src": "tammo/klaas_zegt_dat_het_sku_tsje_vand_6616f442.mp3",
@@ -366,6 +506,10 @@
 "Tammo|Klapperman. Jelmer wacht al op de Grote Markt met zijn telefoon.": {
 "src": "tammo/klapperman_jelmer_wacht_al_op_de_845a6179.mp3",
 "dur": 3.07
+},
+"Tammo|Middernacht. Drie minuten. Het is tijd.": {
+"src": "tammo/middernacht_drie_minuten_het_is__74740167.mp3",
+"dur": 3.08
 },
 "Tammo|Niemand heeft ons gezien. En nu weet ik ook hoe we langs die tweeling komen: met een duif.": {
 "src": "tammo/niemand_heeft_ons_gezien_en_nu_w_db8a6a59.mp3",
@@ -383,9 +527,25 @@
 "src": "tammo/nou_zijn_we_echte_boeven_met_bon_31e700c3.mp3",
 "dur": 3.73
 },
+"Tammo|Nou zijn we echte boeven. Met bonnetje. Nu nog wachten tot middernacht, bij Henk.": {
+"src": "tammo/nou_zijn_we_echte_boeven_met_bon_48642c21.mp3",
+"dur": 4.74
+},
+"Tammo|Om twaalf uur gaan de camera's uit. Tot die tijd wachten we bij Henk, in de garage.": {
+"src": "tammo/om_twaalf_uur_gaan_de_camera_s_u_61a6107c.mp3",
+"dur": 4.39
+},
 "Tammo|Ratelaar. Nu die tankwagen, voordat het vet in Friesland is.": {
 "src": "tammo/ratelaar_nu_die_tankwagen_voorda_bf9d0dd1.mp3",
 "dur": 4.08
+},
+"Tammo|Rikus heeft werk voor ons. Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.": {
+"src": "tammo/rikus_heeft_werk_voor_ons_berend_ab3bf9e3.mp3",
+"dur": 5.03
+},
+"Tammo|Rotor Roelf staat met een demoheli bij het UMCG. Gratis proefvlucht, kopen hoeft niet. Dan zoeken we die ballon van bovenaf.": {
+"src": "tammo/rotor_roelf_staat_met_een_demohe_cc7a685f.mp3",
+"dur": 6.97
 },
 "Tammo|Wat we bij het museum zagen, kost geld: spullen, een boot misschien. Sjabbe wil contant. Eén ronde Hap & Rap bezorgen.": {
 "src": "tammo/wat_we_bij_het_museum_zagen_kost_9e70e255.mp3",

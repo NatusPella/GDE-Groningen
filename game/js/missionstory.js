@@ -9,6 +9,7 @@ import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
+import { showNameCard } from './namecard.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Anita's relationship
@@ -28,7 +29,13 @@ const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoi
 
 const SKIN = HABBO_PALETTE;
 export const NPC = {
-  berend: { name: 'Bommen Berend', shirt: 0x4a5a3a, skin: SKIN.woodLight, variant: 'male', seed: 393 },
+  berend: { name: 'Berend Bos', shirt: 0x4a5a3a, skin: SKIN.woodLight, variant: 'male', seed: 393 },
+  torenwachter: { name: 'Torenwachter', shirt: 0x3a3a3a, skin: SKIN.woodLight, variant: 'male', seed: 1469 },
+  terras: { name: 'Terrasgast', shirt: 0xd8d2c0, skin: SKIN.woodMid, variant: 'female', seed: 2817 },
+  snackbar: { name: 'Snackbarhouder', shirt: 0xf2f0ea, skin: SKIN.woodLight, variant: 'male', seed: 3301 },
+  toerist: { name: 'Toerist', shirt: 0xe07b1f, skin: SKIN.woodLight, variant: 'female', seed: 4120 },
+  kind: { name: 'Kind', shirt: 0x2e7d4f, skin: SKIN.woodLight, variant: 'male', seed: 5170, look: { age: 'child' } },
+  henk: { name: 'Henk', shirt: 0x5a5a62, skin: SKIN.woodMid, variant: 'male', seed: 2019 },
   jelmer: { name: 'Jelmer', shirt: 0xe2b93b, skin: SKIN.woodMid, variant: 'male', seed: 164 },
   sjoerd: { name: 'Sjoerd', shirt: 0x2e7d4f, skin: SKIN.woodLight, variant: 'male', seed: 1507 },
   femke: { name: 'Femke', shirt: 0x7a3f8f, skin: SKIN.woodLight, variant: 'female', seed: 198, hairStyle: 'curly' },
@@ -60,60 +67,71 @@ export function storySpeakerName(key) {
 }
 
 // N = the mission's NPC, T = Tammo, A = Anita, V = the narrator (Rikus on Radio Nachtstreek,
-// wide shots), any other NPC key (e.g. 'durk') = that character speaking off
-// camera. `ask` is the NPC line kept
-// for the short replay version.
+// wide shots, his voice in the broadcast band), any other NPC key (e.g. 'durk') = that
+// character speaking off camera or as an extra. `ask` is the intro line kept for the short
+// version (a mission seen before); `replay` the outro when the mission is replayed as a klus
+// (it makes sense without the story). Line options: clue, look, cam, card (a CHARACTERS key:
+// its name card shows with the line), kiss (the kiss happens on this line).
+// Entry options: introNpc: false (the intro has no NPC), outroNpcKey (another NPC for the
+// outro), introCast/outroCast/introProps/outroProps, kiss (the outro is staged as a couple).
 const STORY = [
   {
-    // the first scene of the game: short, the camera comes down onto the square
-    // (the museum line only plays when the opening montage was skipped before it)
+    // 0: H1 Berend telt de krassen (the first scene after the opening: the camera comes down onto the square)
     npc: 'berend', outroPose: 'hips', ask: 2, introOpen: 'descend',
     intro: [
-      ['V', 'In het Groninger Museum staat sinds 1953 het stadsjuweel: de Gouden Eierbal. Achttien karaat. Onbetaalbaar.'],
-      ['V', 'En hier, bij het Martinikerkhof, begint het. Met een bakkie, een norse man en twee mensen zonder cent.'],
-      ['N', 'Mien bakkie staat hier. Naar het Boterdiep ermee, en geen kras. Ik tel ze.', { cam: 'track' }],
+      ['N', 'Goidag.', { cam: 'track', card: 'berend' }],
+      ['A', 'Goidag, Berend.'],
+      ['N', 'Ik heb gisteren alle krassen geteld. Nul. Zo blijft het.'],
+      ['T', 'Waarom noemt iedereen jou eigenlijk Bommen Berend?'],
+      ['N', 'Veertig jaar speel ik hem, op het Ontzet. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.'],
       ['A', 'Ik rij.', { cam: 'close' }],
       ['T', 'Jij rijdt als een fietser met een deadline.', { cam: 'two' }],
       ['A', 'En jij als een fietser zonder fiets. Sleutels, Berend.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Hij staat er nog. Geen kras. …Kon minder.'],
-      ['A', 'Probeer eens: dank je, Berend.'],
-      ['N', '…Dank je. Niet tegen de buren zeggen. Ik heb al sinds 1672 een reputatie.'],
-      ['N', 'Er wou hier trouwens al een Fries m\'n bakkie kopen. Contant, uit een klomp.', { clue: true }],
-      ['T', 'Wij zeggen nooit wat. Tegen elkaar al helemaal niet.'],
+      ['N', '…Goud.'],
+      ['A', 'Dat is trede twee, Tammo.'],
+      ['N', 'Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus.', { clue: true }],
+      ['T', 'Wat moet een Fries met jouw bakkie?'],
+      ['N', 'Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.'],
+      ['T', 'Hij zei moi.'],
+      ['A', 'Tegen mij.'],
     ],
-    fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Welke Berend? Welk bakkie?']],
+    replay: [['N', 'Weer nul krassen. Ik begin het je bijna te gunnen.']],
+    fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Hij schrijft er vast een brief over.']],
   },
   {
-    npc: 'jelmer', outroPose: 'cheer', ask: 0,
+    // 1: H3 Iets met de Grote Markt (a summer stunt evening, nobody gets hurt)
+    npc: 'jelmer', outroPose: 'cheer', ask: 4,
     intro: [
-      ['N', 'Moi moi chat! Sikkom zegt dat de Grote Markt dood is. Tijd om dat recht te zetten!'],
-      ['N', 'Jullie doen mee, toch? Content, jongens. Content!'],
+      ['N', 'Moi moi chat! Dik feest vandaag! Zomeravond op de Grote Markt!', { card: 'jelmer' }],
       ['T', 'Ik ben geen content. Ik ben Tammo.'],
       ['A', 'Spreek voor jezelf. Ik ben heel veel content.'],
-      ['T', 'Na Berends bakkie wilde ik eigenlijk een eierbal op de bank.'],
-      ['A', 'Die eierbal moet je eerst verdienen. Hup.'],
-      ['N', 'Chat, zeg allemaal moi tegen Tammo!'],
-      ['T', 'Nee.'],
+      ['T', 'En die terrassen?'],
+      ['N', 'Die zijn het publiek! Niemand raken, wel laten schrikken!'],
+      ['torenwachter', 'Tammo. Torenwachter. Er staan mensen op de Grote Markt.', { card: 'torenwachter' }],
+      ['T', 'Het is de Grote Markt.'],
+      ['torenwachter', 'Ik meld alleen.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Tienduizend kijkers! De Martinitoren is trending!'],
-      ['T', 'Zeg tegen de chat dat ik niet op de foto wil.'],
-      ['A', 'Te laat. Je pet heeft al meer volgers dan jij.'],
-      ['N', 'Wacht, wie is "JelleWâld"? "Moai stedsje. Foar in wykein." Wat is dat voor taal?', { clue: true }],
-      ['A', 'Fries. Die zie je hier vaker dan je denkt.'],
-      ['T', 'De pet blijft.'],
+      ['terras', 'Kon minder!'],
+      ['N', 'Tienduizend kijkers! En kijk: "JelleWâld" in de chat. "Groot Loug. Moai foar in wykein."', { clue: true }],
+      ['A', 'Groot Loug. Zo noemen wíj onszelf. Dat mag hij niet.'],
+      ['N', '"En dat famke yn it read: sa\'n leaf gesicht."'],
+      ['T', 'Wie is die man.'],
+      ['A', 'Is dat een vraag?'],
+      ['T', 'Nee.'],
     ],
+    replay: [['N', 'Chat, hij is er weer! De man zonder content! Niemand raken, hè!']],
     fail: [['A', 'Saai. Zelfs de duiven gaan weg.'], ['T', 'Die zijn gewoon naar de Vismarkt.']],
   },
   {
-    npc: 'sjoerd', outroPose: 'cheer', ask: 1,
+    // 2: H5 Wind tegen, beide kanten op
+    npc: 'sjoerd', outroPose: 'cheer', ask: 0,
     intro: [
-      ['N', 'KEI-week. De eerstejaars zeggen dat niemand hun rondje door de stad sneller rijdt. Schattig.'],
-      ['N', 'Rondje vanaf het Academiegebouw. Winnaar krijgt eeuwige roem. En een bierviltje.'],
+      ['N', 'Op de kruispunten is alles tegelijk groen. Niemand heeft voorrang. Maak oogcontact.', { card: 'sjoerd' }],
       ['A', 'Tammo heeft hier nog gestudeerd. Twee weken.'],
       ['T', 'Drie. De derde was ik ziek.'],
       ['A', 'Van het studeren?'],
@@ -121,395 +139,398 @@ const STORY = [
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Record. Jullie komen op het bierviltje. Achterkant. Regels zijn regels.'],
-      ['N', 'Tweede werd "Snits Snel". Gesponsord door Us Mem Snacks. Nooit van gehoord.', { clue: true }],
-      ['A', 'Niet slecht voor drie weken studie.'],
-      ['T', 'Ik heb veel geleerd, toen.'],
-      ['A', 'Zoals?'],
-      ['T', 'Dat ik bij jou in de buurt moet blijven.'],
+      ['N', 'Record. Jullie komen op het bierviltje. Achterkant.'],
+      ['A', 'Je neef werkt \'s nachts in het museum?'],
+      ['N', 'Om twaalf uur gaan de camera\'s drie minuten uit voor een update. Al sinds 2019. Niemand weet waarom. Dat mag ik eigenlijk niet zeggen.', { clue: true }],
+      ['T', 'Je zei het ook niet.'],
+      ['N', 'Precies. Proost.'],
+      ['A', 'Drie minuten.'],
+      ['T', 'Ik heb in drie minuten nog nooit iets goeds gedaan.'],
+      ['A', 'Dan wordt het tijd.'],
     ],
+    replay: [['N', 'Wind tegen? Natuurlijk. Beide kanten op. Proost.']],
     fail: [['T', 'Eerstejaars. Die hebben nog energie.'], ['A', 'En ouders die de huur betalen.']],
   },
   {
-    npc: 'femke', outroPose: 'cheer', ask: 1,
-    outroCast: [{ key: 'durk', at: [9, -8] }, { key: 'douwe', at: [9, -8] }],
-    outroProps: [{ kind: 'fatbike', riders: ['durk', 'douwe'], from: [9, -11], to: [9, 12], cans: true, auto: true }],
+    // 3: H7 Heel aankomen is ook een kunst
+    npc: 'femke', outroPose: 'cheer', ask: 0,
     intro: [
-      ['N', 'Gelukkig, jullie zijn er! Het decor moest gisteren al staan, en het ligt nog hier in de auto.'],
-      ['N', 'Zo begint het in het Noorderplantsoen. Zonder decor is het gewoon picknicken.'],
-      ['T', 'Wij hebben geen rijbewijs voor theater.'],
-      ['A', 'Hij bedoelt: komt goed. Hij wordt altijd een beetje nerveus van kunst.'],
-      ['T', 'Ik ben niet nerveus. Ik ben… aandachtig.'],
-      ['N', 'Rijden! Het publiek zit al op z\'n meegebrachte kussentje!'],
+      ['N', 'Breekbaar. Het is een stuk over wind.', { card: 'femke' }],
+      ['T', 'In Grunn. Dat is geen kunst. Dat is het weerbericht.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Het decor staat! Komen jullie vanavond kijken? Het is een stuk over wind.'],
-      ['N', 'O, en vanochtend bij de groothandel: twee reuzen op één fatbike. Ze kochten al het frituurvet op. Alles.'],
-      ['A', 'Al het vet? Wie heeft er nou zoveel vet nodig?'],
-      ['N', 'Ze hadden een tankwagen. "Us Mem Vet" stond erop.', { clue: true }],
-      ['A', 'Tammo. Kijk. Daar, op die ene fatbike.', { look: 'fatbike' }],
-      ['T', 'Twee reuzen. Eén fiets. Acht jerrycans.', { look: 'fatbike' }],
-      ['N', 'Dat zijn ze! Die twee van de groothandel!', { look: 'fatbike' }],
-      ['A', 'Tammo houdt niet van theater.'],
-      ['T', 'Wel als jij naast me zit.'],
-      ['A', '…Zei je dat nou hardop?'],
-      ['T', 'Nee. Dat was de wind.'],
+      ['N', 'Heel! Bijna heel. En bij de groothandel: twee reuzen met een klomp vol geld. Ze kochten al het frituurvet van Stad. "Us Mem Vet" stond op de tankwagen.', { clue: true }],
+      ['A', 'Geen vet, geen eierballen op het Ontzet. Geen eierballen, geen Grunn in de Snackprijs.'],
+      ['T', 'Hij hoeft niet te winnen. Wij moeten alleen niet kunnen meedoen.'],
+      ['N', 'Blijven jullie kijken?'],
+      ['T', 'Ik kan heel goed tegen wind. Alleen niet tegen kunst.'],
+      ['A', 'Hij kan wel tegen kunst. Als ik naast hem zit.'],
+      ['T', '…Zei je dat nou hardop?'],
+      ['A', 'Nee. Dat was de wind.'],
     ],
+    replay: [['N', 'Het decor moet weer gisteren al staan. Het is altijd gisteren bij Noorderzon.']],
     fail: [['A', 'Dan wordt het moderne dans.'], ['T', 'Zonder decor. Daar krijg je hier subsidie voor.']],
   },
   {
-    npc: 'harm', outroPose: 'cheer', ask: 1,
+    // 4: H9 Ring Zuid, laatste fase
+    npc: 'harm', outroPose: 'cheer', ask: 0,
     introCast: [{ key: 'jelle', pose: 'arms' }], introProps: ['limo'],
     intro: [
-      ['N', 'Twintig jaar heb ik aan die ringweg gewerkt. Mijn kleinzoon denkt dat ik een pion ben.'],
-      ['N', 'Eén rondje om de stad, vol gas. Als de weg het houdt, mag ik eindelijk met pensioen.'],
-      ['A', 'Een rondje? Is dat alles?'],
-      ['T', 'Bij het Noorderplantsoen trok jij me nog net voor die bus weg.'],
-      ['A', 'Anders was je nu een bushaltebordje. Gordel om.'],
-      ['T', 'Ik had hem heus wel gezien. Ik liet hem gewoon voorgaan.'],
-      ['N', 'Eén ding nog: die zwarte trekker op de grid. Dat is een Fries. Hij heeft zich ingeschreven als sponsor.'],
-      ['jelle', 'Moai, Grinzers! Wat Grunn kan, kan Fryslân beter. Ook hardrijden.'],
-      ['A', 'Hij rijdt in een trekker, Tammo. Als hij wint, verhuizen we.'],
+      ['N', 'Eén rondje om de stad, vol gas. Als de weg het houdt, mag ik eindelijk met pensioen.', { card: 'harm' }],
+      ['jelle', 'Moai, Grinzer. Onze echte derby is tegen Cambuur. Jullie zijn een uitje. Wie wint, mag famke een eierbal geven.'],
+      ['A', 'Famke koopt haar eigen eierbal.'],
+      ['T', 'Dat neem ik je kwalijk.', { cam: 'close' }],
+      ['A', 'Dat was een hele zin, Tammo.'],
+      ['T', 'Ik voelde het.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Hij ligt er nog! Ik ga met pensioen! Eindelijk mag ik er zelf overheen!'],
-      ['T', 'Die laatste bocht was spannend.'],
-      ['A', 'Je pakte mijn hand.'],
+      ['N', 'Hij ligt er! Ik ga met pensioen! Eindelijk mag ik er zelf overheen!'],
+      ['A', 'Je pakte mijn hand in de bocht.'],
       ['T', 'Voor de grip.'],
-      ['A', 'Natuurlijk, Tammo. Voor de grip.'],
-      ['T', 'Hij reed in een tréker. En hij haalde me bijna in.'],
-      ['A', 'Hij haalde je in, Tammo. Twee keer. Maar jij stond op het podium.'],
+      ['A', 'We zaten in een auto, Tammo. Met stuur.'],
+      ['T', 'Met veel bocht.'],
+      ['jelle', 'Dit is net klear, Grinzer.'],
     ],
+    replay: [['N', 'De laatste fase. Weer. Ik kom elke keer kijken.']],
     fail: [['T', 'De weg is klaar. Wij nog niet.'], ['A', 'Nog een rondje. Ik let op de pionnen.']],
   },
   {
+    // 5: H11 Nog eentje dan
     npc: 'geert', outroPose: 'hips', ask: 0,
     outroCast: [{ key: 'durk', pose: 'sway', at: [3.0, 1.1] }, { key: 'douwe', pose: 'arms', at: [3.1, 2.1] }],
     intro: [
-      ['N', 'Vier kroegen, één avond, alles te voet. Wie het haalt, komt bij mij aan de muur.'],
-      ['N', 'En Anita: mijn nieuwe barman wil heel graag je nummer.'],
+      ['N', 'Vier kroegen, één avond, alles te voet. En Anita: mijn nieuwe barman wil heel graag je nummer.', { card: 'geert' }],
       ['T', 'Die barman heeft het druk.'],
       ['A', 'O ja? Sinds wanneer bepaal jij dat?'],
-      ['T', 'Sinds nu. En we lopen, hè. Niemand rijdt vanavond.'],
+      ['T', 'Sinds nu.'],
       ['A', 'Jaloers én verantwoordelijk. Wat heb je met Tammo gedaan?'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Alle vier! Morgen hangen jullie aan de muur. Naast de wc, maar toch.'],
-      ['A', 'Die barman was best leuk.'],
-      ['T', 'Hij had een snor.'],
-      ['A', 'Ik hou niet van snorren. Ik hou van petten.'],
-      ['T', '…Goed om te weten. Eierbal?'],
-      ['N', 'Trouwens: die grote aan de bar zingt al een uur Friese liedjes. Die van de tweeling.'],
-      ['durk', 'Onze baas… is slim. De bal… de bal ligt op het skûtsje. Hik. Net fertelle, hè?', { clue: true }],
+      ['durk', 'De bal… leit op it skûtsje. Hik. En mem… mem wil hem niet eens.', { clue: true }],
       ['douwe', 'Durk. Dat was geheim. …Hè.'],
-      ['A', 'Het skûtsje. Tammo, de Eierbal ligt op een boot.'],
-      ['T', 'Ik vertel het niemand. Behalve jou.'],
+      ['A', 'Zijn moeder wil hem niet eens? Waarom doet hij het dan?'],
+      ['T', 'Iedereen doet weleens iets voor iemand die er niet om vraagt.'],
+      ['T', 'Die barman had een snor.'],
+      ['A', 'Ik hou niet van snorren. Ik hou van petten.'],
+      ['T', '…Goed om te weten.'],
+      ['A', 'Dat was het moment, Tammo. Om iets te zeggen.'],
+      ['T', 'Nog eentje dan?'],
+      ['A', '…Ja. Nog eentje dan.'],
+      ['A', '…moi.', { cam: 'two' }],
+      ['T', '…moi.', { cam: 'two' }],
     ],
+    replay: [['N', 'Vier kroegen? Nog eentje dan.']],
     fail: [['A', 'Drie kroegen is ook een tocht.'], ['T', 'Een tochtje. Morgen de rest.']],
   },
   {
-    npc: 'trijntje', outroPose: 'hips', ask: 1,
+    // 6: H12 Fatbikes tellen niet als fiets (Oude Ebbingestraat)
+    npc: 'trijntje', outroPose: 'hips', ask: 0,
     intro: [
-      ['N', 'Die fatbikes! Ze scheuren over het fietspad alsof heel Grunn van hen is.'],
-      ['N', 'Loop jij daar heelhuids overheen, dan laat ik de gemeente een filmpje zien.'],
-      ['A', 'Ik loop wel.'],
-      ['T', 'Nee, ik loop. Jij hebt al eens een bus voor me tegengehouden.'],
-      ['A', 'Dat was een bus, Tammo. Dit zijn pubers op dikke banden.'],
-      ['T', 'Juist daarom.'],
-      ['N', 'Ach, wat een lieverd. Hou dij goud, jong.'],
+      ['N', 'Loop jij daar heelhuids overheen, jong, dan vertel ik je iets over die bal.', { card: 'trijntje' }],
+      ['T', 'Fatbikes tellen niet als fiets, oma.'],
+      ['N', 'Daarom mag je ze ook ontwijken.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Heelhuids! Dat filmpje gaat naar de gemeenteraad. En naar mijn bridgeclub.'],
-      ['A', 'Je had kunnen vallen, sukkel.'],
-      ['T', 'Maar ik viel niet.'],
-      ['A', 'Nooit meer zonder mij.'],
-      ['T', 'Afgesproken. Voortaan vallen we samen.'],
-      ['N', 'En nog iets, nu jullie toch zo dapper zijn. In 1953 stond ik model voor die Gouden Eierbal. Die handjes eromheen: die zijn van mij.', { clue: true }],
-      ['N', 'Die bal is gien geld, jong. Die bal is Grunn. En Grunn geeft nooit op.', { clue: true }],
-      ['A', 'Dan hebben we bijna een oma verkocht.'],
-      ['T', 'We brengen hem terug. Naar Stad.'],
-      ['V', 'Voor het eerst dachten ze niet aan geld. Dat is in Grunn al bijna een wonder.'],
+      ['N', 'Eet je krentjebrij.'],
+      ['T', 'Ik ben vierendertig, oma.'],
+      ['N', 'Dan eet je hem al vierendertig jaar te weinig.'],
+      ['N', '1953. Ik won met mijn eierbal. Die handjes om de bal op die foto zijn van mij. Tweede werd een Fries meisje: Gerda Terpstra.', { clue: true }],
+      ['N', 'Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet.'],
+      ['A', 'Terpstra. Jelle Terpstra.'],
+      ['N', 'Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.'],
+      ['N', 'Die bal is gien geld, jong. Die bal is Grunn. En jij: één zin, hè. Niet zeventig jaar.', { clue: true }],
+      ['T', 'Ik zeg wel wat.'],
+      ['N', 'Niet tegen haar.'],
     ],
+    replay: [['N', 'Hest weer veur \'n ander? Dat was geen compliment, jong.']],
     fail: [['T', 'Au. Ik heb nu profiel op mijn rug.'], ['A', 'Kom, ik help je overeind. Weer.']],
   },
   {
-    npc: 'klaas', ask: 1,
+    // 7: H13 Alles klopt, behalve de papieren (the kiss)
+    npc: 'klaas', ask: 0,
     intro: [
-      ['N', 'Die rondvaartboot is… tijdelijk van niemand. Jullie varen, ik kijk de andere kant op.'],
-      ['N', 'Eén rondje over de Diepenring. Doe alsof je gids bent, dan vraagt niemand iets.'],
-      ['A', 'Tammo als gids. Dit wil ik zien.'],
-      ['T', 'Links ziet u Grunn. Rechts ziet u ook Grunn.'],
-      ['A', 'Tijdelijk van niemand. En wie is niemand?'],
-      ['N', 'Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.'],
-      ['N', 'Komt hij toch: Wiebe kent elke brug blind. Behalve die bij het museum. Die is nieuw, pas dertig jaar.'],
-      ['T', 'Dus als het misgaat, varen we heel hard naar het museum.'],
-      ['N', 'En kijk even naar de Oosterhaven. Daar ligt sinds gisteren een Fries skûtsje. Mooi ding. Rare bemanning.', { clue: true }],
+      ['N', 'Jullie varen, ik kijk de andere kant op. Wie is niemand? Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.', { card: 'klaas' }],
+      ['T', 'Links ziet u Grunn. Rechts ziet u ook Grunn. Onder u ziet u fietsen.'],
+      ['toerist', 'Hoeveel?'],
+      ['T', 'Meer dan mensen. Iedereen heeft er één, en één in het water.'],
     ],
     outroNpc: false,
     kiss: true,
     outro: [
+      ['A', 'Daar. Het skûtsje. Twee reuzen met hun voeten in het water.', { clue: true }],
       ['T', 'Weet je nog, Berends bakkie? Toen kreeg ik de sleutels niet eens.'],
       ['A', 'Die krijg je nog steeds niet.'],
       ['T', 'Maar de rest wel?'],
-      ['A', 'De rest wel. Wij tweeën tegen Grunn.'],
-      ['T', 'Wij tweeën tegen Grunn. En daarna een eierbal.'],
-      ['A', '…Of misschien: wij tweeën vóór Grunn.'],
+      ['A', 'Moi.'],
+      ['T', '…Moi.', { kiss: true, cam: 'kiss' }],
+      ['A', 'Dat was voor de toeristen.'],
+      ['T', 'Die zijn al uitgestapt.'],
+      ['A', '…Ja.'],
     ],
+    replay: [['T', 'Links Grunn. Rechts ook. Alles klopt. Behalve de papieren.']],
     fail: [['A', 'Gids zijn is moeilijker dan het lijkt.'], ['T', 'Links water. Rechts ook. Onder ons: fietsen.']],
   },
-  // 8: H2 Even pinnen
   {
-    npc: 'sjabbe', outroPose: 'hips', ask: 4,
+    // 8: H2 Even pinnen (Durk & Douwe rip out the ATM with Anita's pass in it)
+    npc: 'sjabbe', outroPose: 'hips', ask: 4, introNpc: false,
+    introCast: [{ key: 'durk', pose: 'arms', at: [5.2, 1.6] }, { key: 'douwe', pose: 'arms', at: [5.4, -0.4] }], introProps: ['limo', { kind: 'atm', at: [3.2, 2.6] }],
     intro: [
-      ['A', 'Daar staat hij. Een auto met een hele pinautomaat achterin.'],
-      ['T', 'Die van gisteren? Ik dacht dat we die hadden teruggebracht.'],
-      ['A', 'We hebben hem verplaatst, Tammo. Dat is iets anders.'],
-      ['T', 'En nu?'],
-      ['A', 'Naar Pand & Poen. Sjabbe koopt alles. Echt alles.'],
-      ['T', 'Ook een automaat met een alarm erin?'],
-      ['A', '…Welk alarm?'],
+      ['A', 'Hij heeft mijn pas. Hij heeft mijn pas en hij…'],
+      ['durk', 'Douwe. Hij is los.', { card: 'durk' }],
+      ['douwe', '…los.'],
+      ['T', 'Moi. Wat is er gebeurd?'],
+      ['A', 'Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand.'],
+      ['T', 'Dus we pinnen even.'],
+      ['A', '…Er komt een politieauto aan. Instappen.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Een pinautomaat. Met verse lak. Die had ik nog niet.'],
-      ['N', 'Wat denk je dat hij waard is? De helft. Vierhonderd, zonder pasjes.'],
-      ['A', 'Vierhonderd? Daar koop je nog geen halve foodtruck van.'],
-      ['T', 'Foodtruck?'],
-      ['A', 'De Fjord Frituur. Vier wielen, geen kenteken. Mijn droom, Tammo.', { clue: true }],
-      ['N', 'Te weinig voor jullie droom. Echt geld ligt in het museum. De Gouden Eierbal, achttien karaat.'],
-      ['T', 'Dat is toch gewoon een verhaaltje?'],
-      ['A', 'Achttien karaat verhaaltje.'],
+      ['N', 'Braid noar de zin.', { card: 'sjabbe' }],
+      ['N', 'Vierhonderd, voor de onderdelen.'],
+      ['A', 'Daar koop je nog geen halve frietwagen van.'],
+      ['N', 'Jullie dromen klein. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft.'],
+      ['N', 'En hun baas vroeg waar het museum alarmen heeft.', { clue: true }],
+      ['A', 'Het museum. De Gouden Eierbal.'],
+      ['N', 'Achttien karaat. Ik zeg niks. Ik zeg alleen: wie hem eerst heeft, heeft hem.'],
     ],
-    fail: [['A', 'Die automaat pint nu voor de pliesie.'], ['T', 'Hopelijk rekenen ze niks.']],
+    replay: [['N', 'Weer een automaat? Dit wordt een gewoonte. Een goede.']],
+    fail: [['A', 'Mijn pas pint nu voor de pliesie.'], ['T', 'Hopelijk rekenen ze niks.']],
   },
-  // 9: H4 Kieken van boven
   {
+    // 9: H4 Kieken van boven (the first mentor)
     npc: 'bert', outroPose: 'hips', ask: 0, before: 'limo',
     intro: [
-      ['N', 'Jullie willen het museum bekijken zonder dat iemand jullie ziet? Neem een duif.'],
-      ['N', 'Niemand kijkt ooit naar een duif. Alleen als hij op je jas poept.'],
+      ['N', 'Niemand kijkt naar een duif. Behalve als hij op je jas poept.', { card: 'bert' }],
       ['T', 'Hoe stuur je een duif?'],
       ['N', 'Diep in de ogen kieken. Fluiten. Ogen dicht.'],
-      ['N', 'Kiek. Die duiven luuster\'n noar dij, jong.', { clue: true }],
+      ['N', 'Kiek. Een keudeldoemke. Hij luustert noar dij, jong.', { clue: true }],
       ['T', 'Duiven luisteren naar niemand.'],
       ['A', 'Mijn vriend de duivenkoning.'],
-      ['A', 'Drie camera\'s en twee bewakers. Allemaal op de foto, Tammo.'],
-      ['T', 'En als hij op een bewaker poept?'],
-      ['A', 'Dan heet het afleiding.'],
+      ['T', '"Vriend."'],
+      ['A', 'Wat?'],
+      ['T', 'Ow.'],
     ],
     outroNpc: false,
     outro: [
-      ['A', 'Drie camera\'s, twee bewakers. En een stroomkast achter de fietsenstalling.'],
-      ['T', 'En een zwarte trekker bij de achteringang. Met een limousine erachter geplakt.', { clue: true }],
-      ['A', 'Een trekker-limo? In Grunn?'],
-      ['T', 'Met vlaggetjes. Met van die rode blaadjes erop.'],
-      ['A', 'Dat is geen boer. Dat is een Fries.'],
+      ['A', 'Drie camera\'s, twee bewakers, en een stroomkast achter de fietsenstalling.'],
+      ['T', 'En een zwarte trekker bij de achteringang, met een limousine erachter. Vlaggetjes met rode blaadjes. Een man in een blauw colbert die de alarmen telt.', { clue: true }],
+      ['A', 'Pompeblêden. Een Fries. Hij gaat het echt doen.'],
+      ['T', 'Hoe weet jij wat pompeblêden zijn?'],
+      ['A', 'Dat weet je gewoon.'],
+      ['T', 'Dat weet niemand. Behalve Friezen.'],
     ],
+    replay: [['N', 'Zo. De duivenkoning is weer aan het werk.']],
     fail: [['T', 'Hij wilde alleen maar brood.'], ['A', 'Jij stuurt, Tammo. Niet het brood.']],
   },
-  // 10: H6 Het museum stond er al zo
   {
-    npc: null, ask: 4,
+    // 10: H6 Het museum stond er al zo (the threshold; the empty case is a stage scene in missions.js)
+    npc: null, ask: 2,
     intro: [
-      ['A', 'Het is donker, de camera\'s weten we, de stroomkast weten we.'],
-      ['T', 'En ik heb een zaklamp.'],
-      ['A', 'Die blijft uit, Tammo.'],
-      ['T', 'Waarom neem ik hem dan mee?'],
-      ['A', 'Voor de sfeer. Kom, eerst het plan. Ik heb een bouwtekening.'],
+      ['T', 'Weet je zeker dat dit gebouw nog niet gekraakt is? Het ziet er al zo uit.'],
+      ['A', 'Dat is architectuur. Eerst dertig jaar mopperen, dan trots. Zo gaat dat hier.'],
+      ['A', 'Om twaalf uur. Drie minuten. Hand.'],
+      ['T', 'Wat?'],
+      ['A', 'Geef me je hand. Het is donker daarbinnen.'],
+      ['T', '…Voor de grip.', { cam: 'two' }],
+      ['A', 'Voor de grip.'],
     ],
     outroNpc: false,
     outro: [
-      ['A', '"Tige tank." Hij bedankt ons. Hij. Bedankt. Ons.'],
-      ['T', 'Ik vind het wel beleefd, eigenlijk.'],
-      ['A', 'Tammo.'],
-      ['T', 'Dus we zijn inbrekers zonder buit.'],
-      ['A', 'Wandelaars. Met een zaklamp.'],
-      ['A', 'Weet je wat daar voor mij in die vitrine stond, Tammo? Een foodtruck. Mijn Fjord Frituur.'],
-      ['T', 'Dan halen we hem terug. Wie die W ook is.'],
-      ['V', 'Zo begon het. Niet met een buit, maar met een kaartje. En met een Fries die al lang op ze wachtte.'],
+      ['T', 'Hij heeft hem gestolen om hem eerlijk te winnen.'],
+      ['A', 'En de camera\'s van daarnet hebben óns gefilmd.'],
     ],
-    fail: [['A', 'Nou zien ze ons wél.'], ['T', 'Ik zei toch: zaklamp aan.']],
+    replay: [['A', 'Drie minuten. Hand.'], ['T', 'Voor de grip.'], ['A', 'Natuurlijk.']],
+    fail: [['A', 'Nou zien ze ons wél.'], ['T', 'Drie minuten is kort.']],
   },
-  // 11: H8 Al het vet van Grunn
   {
-    npc: 'femke', outroPose: 'cheer', ask: 1,
+    // 11: H8 Al het vet van Grunn
+    npc: 'snackbar', outroPose: 'cheer', ask: 0, introNpc: false,
     intro: [
-      ['N', 'Daar rijdt hij! De tankwagen van Us Mem Vet, vol met al het frituurvet van Grunn.'],
-      ['N', 'Zonder vet bakt er straks niemand meer iets in deze stad. Geen patat, geen kroket. Niks.'],
-      ['T', 'Geen eierbal?'],
-      ['N', 'Geen eierbal.'],
-      ['T', 'Dit is persoonlijk.'],
-      ['A', 'Banden stuk, tankwagen pakken, naar de Oosterpoort. Daar staat de feesttent met de frituurpannen.'],
-      ['T', 'En als hij over de Krolbrug wil?'],
-      ['A', 'Dan staat die in storing. Dat is het enige waar je in deze stad op kunt rekenen.'],
+      ['A', 'Banden stuk, tankwagen pakken, naar de Oosterpoort.'],
+      ['T', 'En de Krolbrug?'],
+      ['V', 'Storingsbericht: de Krolbrug is in storing.'],
+      ['A', 'Zie je. Daar kun je op rekenen.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Het vet is terug! De frituurpannen gaan weer aan. Ik ruik het al.'],
-      ['A', 'Een tankwagen vol frituurvet. Wat wil die man met al dat vet?'],
-      ['T', 'Frituren. Hij is Fries. Hij frituurt.'],
-      ['A', 'Hij wil niet frituren. Hij wil dat wíj niet frituren.'],
+      ['N', 'Vet! Valt mie nait of!'],
+      ['A', 'Trede drie, Tammo.'],
+      ['T', 'Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten.'],
     ],
+    replay: [['N', 'Weer vet in de pannen. Valt mie nait of.']],
     fail: [['T', 'Weg is het vet.'], ['A', 'Dan gaan we het halen. Nog een keer.']],
   },
-  // 12: H10 Er hangt iets Fries aan d'Olle Grieze
   {
-    npc: 'bert', outroPose: 'cheer', ask: 1,
+    // 12: H10 Er hangt iets Fries aan d'Olle Grieze (FOAR MEM)
+    npc: 'bert', outroPose: 'cheer', ask: 0,
     intro: [
-      ['N', 'Hebben jullie hem gezien? Een Friese vlag van dertig meter. Aan onze toren!'],
       ['N', 'Die Fries noemde d\'Olle Grieze "in aardich tuorke". Een áárdig torentje!'],
-      ['N', 'Vijf touwen houden hem vast. Een duif met een scherpe snavel pikt ze zo los.'],
-      ['T', 'Ik fluit. De duif pikt. Zo simpel is het.'],
-      ['A', 'Pas op voor de meeuwen. Jelle heeft ze meegenomen uit Harlingen.'],
-      ['N', 'Fryske meeuwen. Groot, brutaal, en ze verstaan geen Gronings.'],
+      ['A', '"Foar mem." Voor zijn moeder.', { clue: true }],
+      ['T', 'Hij hangt een vlag aan onze toren voor zijn moeder.'],
+      ['A', 'Dat is eigenlijk best lief.'],
+      ['T', 'Het is vandalisme.'],
+      ['A', 'Lief vandalisme.'],
+      ['N', 'Vijf touwen. Een duif met een scherpe snavel.'],
+      ['T', 'Ik fluit. Hij pikt.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Hij ligt op de keien! Heel Grunn staat te klappen.'],
-      ['A', 'Heel Grunn stond te klappen voor een duif.'],
+      ['N', 'Kon minder, jong.'],
+      ['A', 'Heel Grunn klapt voor een duif.'],
       ['T', 'Niet voor de duif. Voor mij. Ik floot.'],
       ['A', 'Ik klapte ook. Een beetje.'],
-      ['N', 'Kon minder, jong.'],
+      ['torenwachter', 'Tammo. De vlag ligt op de Grote Markt.'],
+      ['T', 'Weet ik.'],
+      ['torenwachter', 'Ik meld alleen.'],
     ],
+    replay: [['N', 'Weer iets aan de toren? Fluiten maar, jong.']],
     fail: [['T', 'Die meeuwen waren groter dan mijn duif.'], ['A', 'Alles is groter dan een duif, duivenkoning.']],
   },
-  // 13: H14 Geleend van de Friezen
   {
-    npc: null, ask: 2,
+    // 13: H14 Geleend van de Friezen (a chocolate ball, "Foar mem")
+    npc: null, ask: 0,
     intro: [
-      ['A', 'Klaas zei het al: een Fries skûtsje in de Oosterhaven. Rare bemanning.'],
-      ['T', 'En wij hebben een huurbootje. Met een bel.'],
-      ['A', 'Jelle gooit vandaag los. Wij varen erachteraan en springen aan boord.'],
       ['T', 'Springen. Van een boot. Op een andere boot.'],
-      ['A', 'Jij stuurt, Tammo. Ik zeg wanneer.'],
-      ['T', 'En wie springt er dan?'],
-      ['A', 'Wij allebei. Voortaan vallen we samen, weet je nog?'],
+      ['A', 'Jij stuurt, ik zeg wanneer.'],
     ],
     outroNpc: false,
     outro: [
       ['T', 'Chocola. We hebben een boot gekaapt voor chocola.'],
-      ['A', 'Hij was wel lekker.'],
-      ['T', 'Heb jij van de bewijslast gegeten?'],
-      ['A', 'Eén hapje. En Jelle heeft zijn eigen plan verklapt: een ballon, vanavond.'],
-      ['T', 'Wie verklapt er nou zijn eigen plan?'],
-      ['A', 'Iemand die denkt dat hij toch wint. Ik ken een dokter met een heli.'],
-      ['T', 'Ik zeg niks. …Ik was opgelucht. Dat hij van chocola was.'],
-      ['A', 'Omdat we hem dan niet hoeven te verkopen.'],
-      ['T', 'Omdat Oma Trijntje hem dan nog heeft.'],
-      ['V', 'Chocola. Soms is de nep het beste nieuws van de hele dag.'],
+      ['A', 'Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft.', { clue: true }],
+      ['T', 'Hij is romantischer dan ik.'],
+      ['A', 'Iedereen is romantischer dan jij.'],
+      ['klaas', 'Proeksel, jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon.'],
     ],
+    replay: [['A', 'Weer een skûtsje? Laat de chocola deze keer heel, Tammo.']],
     fail: [['T', 'Het skûtsje is weg. Met zeil en al.'], ['A', 'Een zeilboot ontsnapt aan een bootje met een bel. Niet vertellen in de kroeg.']],
   },
-  // 14: H15 Spoedeisende duif
   {
-    npc: 'dijkstra', outroPose: 'hips', ask: 5,
+    // 14: H15 Spoedeisende duif
+    npc: 'dijkstra', outroPose: 'hips', ask: 0,
     intro: [
-      ['N', 'Jullie willen met mijn traumaheli achter een ballon aan? Dit is een ziekenhuis, geen kermis.'],
-      ['A', 'In die mand zit de Gouden Eierbal. Het is een noodgeval voor heel Grunn.'],
-      ['N', 'Dit stond niet in het rooster. …Ach. Een Grunneger noodgeval. Stap maar in.'],
-      ['A', 'Ik heb ooit een drone gehad.'],
-      ['T', 'Die ligt nog in het Reitdiep.'],
-      ['N', 'Zij vliegt, hij hangt aan het touw. Hoogte en snelheid gelijk houden met de mand.'],
-      ['T', 'Aan het touw. Natuurlijk hang ík aan het touw.'],
+      ['N', 'Zij vliegt. Hij hangt.', { card: 'dijkstra' }],
+      ['T', 'Natuurlijk hang ík.'],
+      ['A', 'Ik vraag het, Tammo. Wil je hangen?'],
+      ['T', '…Ja. Dank je dat je het vraagt.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Zo. Mijn heli heeft nog nooit iets zo waardevols vervoerd. Op een wethouder na.'],
-      ['T', 'Ik heb hem. De echte. Hij is zwaar, en hij smelt niet.'],
-      ['A', 'Ik heb een traumaheli gevlogen.'],
-      ['T', 'Je hebt ermee geparkeerd. Op een ballon.'],
-      ['N', 'Die Fries is geland in een weiland bij Ten Boer. Tussen de koeien. Hij was niet blij.'],
-      ['A', 'De koeien ook niet, denk ik.'],
+      ['T', 'Ik heb hem. De echte. Hij smelt niet.'],
+      ['A', 'Je praatte de hele tijd, aan dat touw.'],
+      ['T', 'Ik had hoogtevrees.'],
+      ['A', 'Je zei "doe bist schier". Tegen de ballon.'],
+      ['T', '…Hij was mooi.'],
+      ['N', 'Die Fries is geland in een weiland bij Ten Boer. Tussen de koeien. Hij was niet blij. De koeien ook niet.'],
     ],
+    replay: [['N', 'Weer een spoedeisende duif? Ik zet het deze keer in het rooster.']],
     fail: [['A', 'Die ballon is sneller dan hij eruitziet.'], ['T', 'Alles van Jelle is sneller dan het eruitziet.']],
   },
-  // 15: H16 Iedereen heeft een rode auto gezien
   {
-    npc: 'jelmer', outroPose: 'cheer', ask: 3,
+    // 15: H16 Iedereen heeft een rode auto gezien (the low point: Tammo's Escapade is gone)
+    npc: null, ask: 6,
     intro: [
-      ['A', 'Mijn Fjord. Hij stond hier. Nu staat hier een klomp.'],
-      ['T', 'Er zit een briefje in. "Tige tank foar de auto. W." Nog steeds geen J.', { clue: true }],
-      ['N', 'Moi moi chat! De Fjord van Anita is foetsie! Wie hem ziet, zet het in de chat!'],
-      ['N', 'Chat zegt: een rode auto bij de Westerhaven. Ga rondvragen, ik blijf live!'],
-      ['A', 'Durk en Douwe willen hem op de trein naar Leeuwarden zetten. Over mijn lijk.'],
-      ['T', 'Liever over dat van Durk.'],
-      ['T', 'Hoe weet jij dat van die trein?'],
-      ['A', 'Iemand uit Friesland. Niet nu, Tammo.'],
+      ['T', '"Tige tank foar de auto. – W." De Fjord Frituur. Zonder Fjord.', { clue: true }],
+      ['T', 'Wie heb je verteld waar we wonen?'],
+      ['A', 'Niemand.'],
+      ['T', 'Je appt al weken met Friesland.'],
+      ['A', '…Ga je dit nu doen? Nu?'],
+      ['T', 'Ik vraag het alleen.'],
+      ['A', 'Nee, je vraagt het niet. Je vraagt nooit iets. Jij zegt nooit iets, Tammo, en dan word je stil en boos op mij.', { cam: 'close' }],
+      ['A', 'Ik haal jouw auto wel terug. Alleen.'],
+    ],
+    outroNpc: false,
+    outro: [
+      ['A', 'Hoe wist jij dat hij hier was?'],
+      ['T', 'Ik luisterde naar Rikus. En ik ben de trein achterna gefietst. Wind tegen.'],
+      ['A', 'Beide kanten op.'],
+      ['A', '"Iemand uit Friesland" is Mem Terpstra. Ze wil dat haar zoon ophoudt.', { clue: true }],
+      ['T', '…Een moeder. Ik was jaloers op een moeder.'],
+      ['A', 'Een beetje, hè.'],
+      ['T', 'Sorry. Dat ik nooit wat zeg.'],
+      ['A', 'Je zei net iets.'],
+      ['T', 'Het voelde raar.'],
+      ['A', 'Het klonk goed.'],
+    ],
+    replay: [['jelmer', 'Chat, iedereen heeft weer een rode auto gezien!']],
+    fail: [['A', 'Op de trein naar Ljouwert. Niet zonder mij. Nog een keer.'], ['A', 'Hij komt terug. Hij mist Grunn nu al.']],
+  },
+  {
+    // 16: H17 Het bod viel tegen (the choice), then Oma's kitchen
+    npc: 'jelle', outroPose: 'hips', ask: 4, outroNpcKey: 'trijntje',
+    introCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'arms' }], introProps: ['limo'],
+    intro: [
+      ['N', 'Ik ben een redelijk man. Jullie hebben iets wat van mem is.'],
+      ['T', 'Van Grunn.'],
+      ['N', 'Details. Geef me de bal, en op het Ontzet bak ik gewoon tegen jullie. Eerlijk.'],
+      ['T', 'Het is jouw droom. Jij kiest.'],
+      ['A', '…Het bod viel tegen.', { cam: 'close' }],
+      ['N', 'Tegen? Dit is meer dan…'],
+      ['A', 'Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders.'],
+      ['N', 'Wat dan?'],
+      ['A', 'Dat iemand één keer zegt dat ze de beste was. Dat kost niks. Daarom doe je het niet.', { clue: true }],
+      ['N', '…We bakken op het Ontzet. Wie wint, krijgt de bal.'],
     ],
     outroNpc: true,
     outro: [
-      ['N', 'Chat gaat los! Tienduizend hartjes voor de Fjord!'],
-      ['A', 'Niemand. Raakt. Mijn. Fjord.'],
-      ['T', 'Ik mag er ook niet in rijden.'],
-      ['A', 'Precies. Niemand.'],
-      ['T', 'Jelle wil ons weg hebben voor Gronings Ontzet. Daar gaat het hem om.'],
-      ['A', 'Dan gaan we juist. Met de Fjord, en met een eierbal.'],
-      ['T', 'En wie is die iemand uit Friesland?'],
-      ['A', 'Mem Terpstra. Jelle z\'n moeder. Ze kent Oma Trijntje nog van 1953.', { clue: true }],
-      ['T', '…Een moeder. Ik was jaloers op een moeder.'],
-      ['A', 'Een beetje, hè.'],
+      ['N', 'Mosterd, eieren, stoetbrood. Grove mosterd, niet dat zoete spul.'],
+      ['T', 'Oma, hoe zei opa het eigenlijk?'],
+      ['N', 'Niet. Hij zei: "Woist ja wel."'],
+      ['T', 'En wist je het?'],
+      ['N', 'Al jaren. Maar ik wilde het één keer hóren, jong. Eén keer is genoeg.', { clue: true }],
+      ['N', 'En bel Gerda Terpstra voor me.'],
+      ['A', 'Nu?'],
+      ['N', 'Ik ben tweeënnegentig. Alles is nu.'],
     ],
-    fail: [['A', 'Mijn Fjord naar Leeuwarden? Niet zonder mij. Nog een keer.'], ['T', 'Hij komt terug. Hij mist Grunn nu al.']],
-  },
-  // 16: H17 Het bod viel tegen
-  {
-    npc: 'jelle', outroPose: 'hips', ask: 0,
-    introCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'wave' }], introProps: ['limo'],
-    intro: [
-      ['N', 'Moai, Grinzers. Ik heb een voorstel. Op Gronings Ontzet bakken we tegen elkaar, voor de Noordelijke Snackprijs.'],
-      ['N', 'Winnen jullie, dan houden jullie de Eierbal. Win ik, dan krijg ik hem terug. En is de aaibal Frysk.'],
-      ['T', 'Hij is niet eens van jou, Jelle.'],
-      ['N', 'Dat is in detail, Grinzer.'],
-      ['A', 'Mosterd, eieren, stoetbrood. Een echte Groninger eierbal. Wij winnen dit.'],
-      ['T', 'Eieren van de kippen bij de volkstuin. Die leggen de beste.'],
-      ['A', 'Dan rij jij, Tammo. En niet remmen. Eieren zijn geen pionnen.'],
-    ],
-    outroNpc: false,
-    outro: [
-      ['T', 'Stel dat we winnen. Dan hebben we een Gouden Eierbal. Achttien karaat.'],
-      ['A', 'Dan kunnen we de Fjord Frituur kopen. En nog tien.'],
-      ['T', 'En als we winnen, verkopen we hem toch nog?'],
-      ['A', '…Nee. Hij hoort in Grunn.', { clue: true }],
-      ['T', 'In het museum. Met een alarm dat het doet.'],
-      ['A', 'Oma Trijntje zou trots zijn.'],
-      ['V', 'En zo werden twee dieven, ergens tussen de mosterd en het stoetbrood, gewoon twee Stadjers.'],
-    ],
+    replay: [['N', 'Eieren heel? Dan komt het goud.']],
     fail: [['T', 'Omelet. Achterin. Overal.'], ['A', 'Dan halen we nieuwe. Die kippen leggen wel door.']],
   },
-  // 17: H18 Ontzet, net als in 1672
   {
-    npc: 'berend', ask: 5,
+    // 17: H18 Ontzet, net als in 1672 (the finale: the jury, then behind the stall the five words)
+    npc: 'berend', ask: 3,
     introCast: [{ key: 'jelle', pose: 'self' }, { key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'arms' }],
-    outroCast: [{ key: 'jelle' }, { key: 'durk', pose: 'shrug' }, { key: 'douwe', pose: 'shrug' }, { key: 'mem', pose: 'point', at: [2.2, 2.3] }, { key: 'rikus', pose: 'cheer', at: [4.4, -1.9] }],
+    outroCast: [{ key: 'jelle' }, { key: 'mem', pose: 'point', at: [2.2, 2.3] }, { key: 'trijntje', pose: 'hips', at: [2.4, -2.2] }, { key: 'durk', pose: 'shrug', at: [4.2, 1.2] }, { key: 'douwe', pose: 'shrug', at: [4.3, -0.6] }, { key: 'rikus', pose: 'cheer', at: [4.4, -2.6] }],
     intro: [
-      ['V', 'Achtentwintig augustus. Gronings Ontzet. In 1672 hield Grunn Bommen Berend buiten de stad.'],
-      ['V', 'Dit jaar staat er gewoon een Berend op de Grote Markt. Als voorzitter van de jury.'],
-      ['N', 'Zo. De Noordelijke Snackprijs. Ik proef, ik tel, ik oordeel. Streng.'],
+      ['V', 'Moi, Grunn. Nachtstreek, in het daglicht. Ik voel me een vleermuis.'],
+      ['N', 'Grunn! Geef je over!'],
+      ['kind', 'Nee!'],
+      ['N', 'Elk jaar hetzelfde. Ik word er niet jonger op. Ik zit ook in de jury. Ik proef, ik tel, ik oordeel.'],
       ['A', 'Tammo bakt. Ik hou de kraam heel.'],
       ['T', 'Ik bak nooit onder druk.'],
-      ['N', 'Die twee Friese reuzen daar hebben vuurwerk bij zich. Dat is hier niet de bedoeling.'],
-      ['A', 'Je doet alles onder druk, Tammo. Daarom werkt het.'],
-      ['N', 'Een stad belegeren loopt nooit goed af. Vraag maar na.'],
+      ['A', 'Je doet alles onder druk. Daarom werkt het.'],
     ],
-    outroNpc: false,
-    kiss: true,
+    outroNpc: true,
     outro: [
-      ['mem', 'Priuw, jonge.'],
-      ['jelle', 'Ja, mem. Goed. Ik proef jullie aaibal. Maar ik zeg niks.'],
-      ['jelle', 'Dit is… better as ús. Net fertelle.', { clue: true }],
-      ['A', 'Jelle zegt dat onze eierbal beter is. Hoorde iedereen dat?'],
-      ['berend', 'En die duiven boven het vuurwerk. Waren die van jou, jong?'],
-      ['T', 'Ze hadden toevallig zin.'],
-      ['T', 'Heel de Grote Markt, mien wicht.'],
-      ['A', 'De Eierbal gaat terug naar het museum. En de beloning is voor de Fjord Frituur.'],
-      ['T', 'Wij tweeën tegen Grunn. Weet je nog?'],
-      ['A', 'Wij tweeën vóór Grunn.'],
+      ['N', 'Goud. …Valt mie nait of.'],
+      ['N', '…Braid noar de zin. …Kon minder.'],
+      ['V', 'Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede. Dat is nog nooit gebeurd.'],
+      ['trijntje', 'Gerda. Jouw eierbal was beter. In 1953.'],
+      ['mem', 'Trijntje. Dat duurde lang.'],
+      ['trijntje', 'Ik ben Gronings. Wij zeggen het één keer. Dan is het waar.'],
+      ['mem', 'Sjochst? Dat wie alles wat ik woe. Priuw, jonge.'],
+      ['jelle', '…Valt mie nait of.'],
+      ['T', 'Hij praat Gronings.'],
+      ['A', 'Dan is het ernstig.'],
+      ['jelle', 'Better as ús. Net fertelle.', { clue: true }],
+      ['N', 'De Noordelijke Snackprijs gaat naar Grunn. De bal blijft in Stad. En op het bordje in het museum komt een tweede naam: Gerda Terpstra, 1953.'],
+      ['N', 'Ik schrijf de gemeente er wel een brief over.'],
+      ['V', 'We schakelen over naar de kraam. Er is een peiling die al weken openstaat.'],
+      ['A', 'Tammo. Iedereen luistert.', { cam: 'two' }],
+      ['T', '…Woist ja wel.', { cam: 'two' }],
+      ['A', 'Dat telt. Maar ik wil het één keer horen.', { cam: 'two' }],
+      ['T', 'Ik wil bij jou blijven.', { cam: 'close' }],
+      ['A', 'Vijf woorden.', { cam: 'two' }],
+      ['T', 'Ik had er meer. Die waren minder goed.', { cam: 'two' }],
+      ['A', 'Mien jong. Dat duurde twaalf jaar.', { cam: 'two' }],
+      ['T', 'Kon minder.', { cam: 'two' }],
+      ['A', 'Kon veel minder.', { cam: 'two' }],
+      ['V', 'Peiling gesloten.'],
     ],
-    fail: [['A', 'Hij is weg met de Eierbal. Plan B, Tammo.'], ['T', 'Grunn geeft nooit op. Wij ook niet.']],
+    replay: [['N', 'Ik proef, ik tel, ik oordeel. …Kon minder.']],
+    fail: [['A', 'Hij is weg met de bal. Plan B, Tammo.'], ['T', 'Plan A is ook van jou.']],
   },
 ];
 
@@ -676,7 +697,7 @@ function timeline(lines, npc, lead = 0.5) {
     const speaker = speakerName(who, npc);
     const voice = voiceFor(speaker, text);
     const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : lineDur(text);
-    const l = { who, speaker, text, at: t, dur: d, voice, clue: !!(o && o.clue), look: (o && o.look) || null, cam: (o && o.cam) || null };
+    const l = { who, speaker, text, at: t, dur: d, voice, clue: !!(o && o.clue), look: (o && o.look) || null, cam: (o && o.cam) || null, card: (o && o.card) || null, kiss: !!(o && o.kiss) };
     t += d + 0.1;
     return l;
   });
@@ -716,6 +737,25 @@ function makeProp(r, p, anchor) {
       return { kind: 'limo', mesh: m, x, y, a };
     }
     return null;
+  }
+  if (spec.kind === 'atm') {
+    // H2: the cash machine Durk & Douwe pulled out of the wall, on its side on the trailer
+    const [fw, sd] = spec.at || [3, 2];
+    const x = anchor.x + f.x * fw + n.x * sd, y = anchor.y + f.y * fw + n.y * sd;
+    const m = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 0.6), new THREE.MeshStandardMaterial({ color: 0x9aa0a6, roughness: 0.5, metalness: 0.4 }));
+    body.position.y = 0.8;
+    const screen = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.28, 0.02), new THREE.MeshStandardMaterial({ color: 0x1e9e56, emissive: 0x0c4a28 }));
+    screen.position.set(0, 1.15, 0.31);
+    const trailer = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.25, 1.4), new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.8 }));
+    trailer.position.y = 0.35;
+    body.position.y += 0.47;
+    screen.position.y += 0.47;
+    m.add(trailer, body, screen);
+    m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    m.position.set(x, r.h, y);
+    m.rotation.y = -(Math.atan2(f.y, f.x) + 0.4);
+    return { kind: 'atm', mesh: m, x, y, own: true };
   }
   if (spec.kind === 'point') {
     const o = { kind: spec.name, mesh: { visible: true }, virtual: true, pos: { x: anchor.x, y: anchor.y }, z: 1.3 };
@@ -886,7 +926,10 @@ function cleanupRun(r) {
   r.cleaned = true;
   r.group.removeFromParent();
   for (const m of [r.tammo, r.anita, r.npc, ...r.extras.map((e) => e.mesh)]) if (m) disposeActor(m);
-  for (const p of r.props) if (p.attached) p.mesh.removeFromParent();
+  for (const p of r.props) {
+    if (p.attached) p.mesh.removeFromParent();
+    if (p.own) p.mesh.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
+  }
   r.w.cinematicHidePlayers = false;
   r.w.cinematicHideNav = false;
   if (r.peds && r.peds.length) r.w.pedestrians.push(...r.peds);
@@ -1093,9 +1136,11 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
       const cur = lines.find((l) => t >= l.at && t < l.at + l.dur);
       if (cur && cur !== r.voiced) {
         r.voiced = cur;
-        if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src);
+        // Rikus is always on the radio: his voice in the broadcast band
+        if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' });
         else stopStoryVoice();
         if (cur.clue) playClueSting();
+        if (cur.card) showNameCard(cur.card);
       }
       if (update) update(t, dt, cur);
       animate(r, t, dt, cur ? cur.who : null, poses(t, cur), cur);
@@ -1195,7 +1240,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   const anchor = onDeck ? { x: v.x, y: v.y } : onFootAnchor(w);
   const facing = onDeck ? v.angle + Math.PI / 2 : facingTowards(w, anchor, target);
   const full = !short && stage >= i && !onDeck;
-  const r = buildRun(w, { npcKey: onDeck ? null : s.npc, anchor, facing, h: onDeck ? DECK_H : 0, extras: full ? s.introCast || [] : [], props: full ? s.introProps || [] : [] });
+  const r = buildRun(w, { npcKey: onDeck || s.introNpc === false ? null : s.npc, anchor, facing, h: onDeck ? DECK_H : 0, extras: full ? s.introCast || [] : [], props: full ? s.introProps || [] : [] });
   if (!r) return false;
   // narration the opening montage (intromontage.js) already told is skipped
   const all = stageLines(i, stage, 'intro').filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
@@ -1225,19 +1270,23 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
   const full = !short && stage >= i;
   const kiss = !!s.kiss && full;
   let r;
+  // a replay (the mission as a klus) has its own short outro that needs no story
+  const lines = short ? s.replay || [stageLines(i, stage, 'outro').slice(-1)[0]] : stageLines(i, stage, 'outro');
+  const outroKey = s.outroNpcKey || s.npc;
+  const wantNpc = short ? lines.some((l) => l[0] === 'N') : !!s.outroNpc && !kiss;
   if (v && v.isBoat) {
     r = buildRun(w, { anchor: { x: v.x, y: v.y }, facing: v.angle + Math.PI / 2, kiss, h: DECK_H });
   } else {
     const anchor = onFootAnchor(w);
-    r = buildRun(w, { npcKey: s.outroNpc && !kiss ? s.npc : null, anchor, facing: facingTowards(w, anchor, null), kiss, extras: full ? s.outroCast || [] : [], props: full ? s.outroProps || [] : [] });
+    r = buildRun(w, { npcKey: wantNpc ? outroKey : null, anchor, facing: facingTowards(w, anchor, null), kiss, extras: full ? s.outroCast || [] : [], props: full ? s.outroProps || [] : [] });
   }
   if (!r) { showBanner(banner); return false; }
-  const all = stageLines(i, stage, 'outro');
-  const lines = short ? [all[all.length - 1]] : all;
-  const tl = timeline(lines, r.npcDef, short ? 0.3 : 0.5);
+  const tl = timeline(lines, r.npcDef || NPC[outroKey], short ? 0.3 : 0.5);
+  // the kiss: on the line marked `kiss`, else on the last line
+  const kissLine = kiss ? tl.lines.find((l) => l.kiss) || tl.lines[tl.lines.length - 1] : null;
   return play(w, 'mission-outro', r, tl, {
-    closing: kiss ? 'kiss' : 'rise', banner,
-    poses: (t, cur) => (kiss && cur === tl.lines[tl.lines.length - 1]
+    closing: kiss && kissLine === tl.lines[tl.lines.length - 1] ? 'kiss' : 'rise', banner,
+    poses: (t, cur) => (kiss && cur === kissLine
       ? { T: 'kissT', A: 'kissA' }
       : kiss ? {} : { N: s.outroPose || null }),
   });
@@ -1245,7 +1294,7 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
 
 export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   const s = STORY[i];
-  const banner = { kind: 'fail', title: 'MISSIE MISLUKT', reason, stats };
+  const banner = { kind: 'fail', title: 'Sikkom.', reason, stats };
   if (!s || run) { showBanner(banner); return false; }
   const v = w.player.inVehicle;
   let r;
@@ -1502,7 +1551,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
 // `props`. deck: a boat to stand on (H14's skûtsje). shot(u, t): a camera for
 // the first `shotFor` seconds (the whole scene when 0), else the camera
 // follows the speaker. big: a card after the talk, over the same set.
-export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null, update = null } = {}) {
+export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null, update = null, solo = false } = {}) {
   if (run) return false;
   const anchor = deck ? { x: deck.x, y: deck.y } : freeSpot(w, at.x, at.y);
   // someone in the water (Jelle after his failed fierljep): the nearest wet spot
@@ -1515,6 +1564,8 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   const face = deck ? deck.angle : facing != null ? facing : facingTowards(w, anchor, lookTo);
   const r = buildRun(w, { anchor, facing: face, h: deck ? SKUTSJE_DECK : 0, extras: spots, props });
   if (!r) return false;
+  // solo: Anita on her own (H16, the chase in H18), Tammo is elsewhere
+  if (solo) r.tammo.visible = false;
   const tl = timeline(lines, null, 0.6);
   if (shotLines && tl.lines[shotLines - 1]) shotFor = tl.lines[shotLines - 1].at + tl.lines[shotLines - 1].dur;
   // a parked prop the cast gets on (mount), or one that comes by (cue): it moves on the first line that looks at it
@@ -1730,9 +1781,10 @@ function playLimoReveal(w, done) {
 export function storyReplayLines(i) {
   const s = STORY[i];
   if (!s) return [];
-  const npc = NPC[s.npc];
-  return [...(s.intro || []), ...(s.outro || [])].map(([who, text]) => {
-    const speaker = speakerName(who, npc);
+  const npc = NPC[s.npc], outNpc = NPC[s.outroNpcKey || s.npc];
+  const n = (s.intro || []).length;
+  return [...(s.intro || []), ...(s.outro || [])].map(([who, text], k) => {
+    const speaker = speakerName(who, k < n ? npc : outNpc);
     const v = voiceFor(speaker, text);
     return { speaker, text, src: v ? VOICE_DIR + v.src : null, dur: v ? v.dur : 0 };
   });

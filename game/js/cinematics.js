@@ -732,7 +732,7 @@ export function playMissionOutro(w, info) {
 }
 
 export function playMissionFailed(w, info, withShot = true) {
-  showBanner({ kind: 'fail', title: 'MISSIE MISLUKT', ...info });
+  showBanner({ kind: 'fail', title: 'Sikkom.', ...info });
   if (!withShot) return false;
   const p = w.player, a = heading(w);
   const px = p.x, py = p.y;
