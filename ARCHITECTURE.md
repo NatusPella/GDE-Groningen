@@ -56,7 +56,7 @@ frame then runs, in order:
 | People and animals | `pedestrians.js`, `wildlife.js` |
 | Combat and police | `combat.js` (weapons in slots 1-4 by kind: melee swings that land after a wind-up with per-weapon reach, knockdown and prop breaking, guns, water, throws; bullets swept against walls, props, car boxes and people; recoil in `world.camKick`; `world.scoped` for the jachtgeweer scope, drawn by scene3d.js and aimassist.js), `throwables.js` (water spray, carbidbus and firework rockets: flight, fuse, blasts via pedestrians.js `blastPeople`, and their own 3D, called from gunfx3d.js), `aimassist.js` (right-mouse soft lock on the best target in a cone, hostiles first and never through walls, Tab/flick to switch, light hip-fire bend; lock reticle; setting `autoAim`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js`, `policemounts.js` (bike/horse units, crews on foot, and quiet wanted-0 patrols in the binnenstad and parks), `crime.js`, `drunk.js` (`world.drunk` from the kroegentocht pubs: camera sway, double vision in the grade pass, warm vignette, wandering feet and steering, muffled music, hiccups; setting `drunkFx`, reduced motion; drunk driving adds police heat) (small offences build heat first: a star only when police see it, a witness phones it in, or it piles up) |
 | Traffic | `trafficlights.js` (conflict-free phases per axis, protected lefts or split phasing, Groningen all-bikes phase), `junctions.js` (priority classes, extra signals at busy main-road crossings, give-way arms for haaientanden and B6 signs), `trafficfleet.js` (vehicle kinds per wijk stereotype), `emergency.js` (ambulance calls, player siren on L, traffic yields) |
-| Story | `storyarc.js` (the arc as data), `story.js` (director), `storycontact.js` (Jelle's and the twins' calls, voicemails, livestreams, Sikkom posts and cards on the phone), `storycast.js` (the Frisian cast's looks), `storyshop.js` (story purchases: what the current step or mission gate wants bought and where, the shop menu's banner, qualifying items first with "Nodig voor je missie", others "telt niet voor je missie"; purchase counts for `goal.buy` steps), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
+| Story | `storyarc.js` (the arc as data), `story.js` (director), `storycontact.js` (Radio Nachtstreek fragments ("Bel Rikus" before every mission, the rubrieken after), Jelle's and the twins' calls, voicemails, livestreams, Sikkom posts and cards on the phone), `namecard.js` (GTA-style name cards at a first meeting), `stuntavond.js` (H3's stunt evening), `storycast.js` (the Frisian cast's looks), `storyshop.js` (story purchases: what the current step or mission gate wants bought and where, the shop menu's banner, qualifying items first with "Nodig voor je missie", others "telt niet voor je missie"; purchase counts for `goal.buy` steps), `storydev.js` (`?dev` panel), `storytest.js` (`?storytest`), `devflags.js`, `banter.js` + `banterlines.js` (Tammo and Anita talk in the car) |
 | Game systems | `missions.js`, `garages.js` (Garage Knalpot workshops and Pomp & Poets stations: roller door, R menu for repair, paint, upgrades and wrecks; Henk's phone call), `shops.js` (the only source of weapons, ammo and armour; food restores health; Rotor Roelf on Groningen Airport Eelde sells the Wieken Wubbo helicopter, delivered on its platform), `horeca.js`, `flitspaal.js`, `trafficlights.js`, `weather.js`, `skyprops.js`, `pigeonspots.js` + `pigeonmode.js` (word een duif) |
 | Home | `home.js` (Thuis: Tammo and Anita's flat in the House of Groningen tower, Paddepoel. `prepareHomeMap(map)` right after loadMap splits the OSM footprint into the tower and its plinth, which becomes the private garage; `map.reservedAt` keeps parked cars and clutter out of the garage, bike rack and kerb. Owned vehicles "in de garage" (shops.js entry without instance, or `v.homeStored`) are real parked vehicles within 200 m: bays, kerb for long ones, rack, moorings on the canal; leaving an own vehicle there stores it again; the panel pages cars when there are more than bays. The lobby door, on the garage side next to the roller door, is the one way in: a lift to the cutaway flat on the 11th floor (hall on the garage side, living room behind the glass facing the shopping centre; the facade drops too while the camera is outside it). The tower is hidden (scene3d `setBuildingHidden`), the whole storey is a surface for `groundHeightAt`, a safety net puts anyone off the floor back at the lift, and a respawn, "Vastgelopen" or load takes the flat down (never inside the tower). `world.camAdjust` (scene3d follow cam) keeps the camera closer and above the cutaway walls upstairs and out of the garage's walls outside. Bed = sleep + save, fridge = eierbal, wardrobe = owned outfits. EIKEA furniture (`furniture.js`, bought in shops.js `eikeaSections`, saved as `meubels`): delivered on the next visit, placed at fixed spots, each with a perk (sofa heal, bed armour + wake time, Sikkom TV replays, eierbal tips, wall-map routes, fryer armour, plant money, +10% side-job pay, night light); `window.__furniture`. New games and loaded saves start at home unless saved mid-mission (save `ctx`); "Naar huis" in the pause menu; debug `window.__home`), `home3d.js` (its meshes); the tower's roof has the helidek (`home.pad`): the flat's hall has "Trap naar het dak" (straight into the heli's seat, the companion too), landing on the deck and E parks it there and takes the lift to the flat; a stored heli waits on the deck (not while the flat is open); "Jouw steiger" (`getHomeMooringForRender`) and "Jouw helidek" icons on the map and minimap; "Laten afleveren" (ownedvehicles.js) brings boats to the moorings and the heli to the deck |
 | Special gameplay | `helirun.js` (UMCG trauma heli "on rails": height, sideways offset and speed only; rings, gusts, timer, then hold station beside a drifting balloon; standalone *Ballonjacht* at the UMCG spot, `startHeliRun({ variant: 'ballonjacht' \| 'traumaduif', onFinish })` for the story; drives `world.skyHeli` via `scriptHeli` and a `scripted` balloon in `world.balloons`; while `world.heliRun` main.js skips the player, police, combat, missions, phone and saving), `fierljep.js` (pole vault over a canal for any NPC: `poleVault(npc, from, to, { fail, appearance, camera, slowmo, keepActor, swimTime, onDone })` returns `{ done, phase, release, dispose }`; `findVaultSpot(map, x, y)` finds a 5-22 m crossing; sets `npc.scripted` / `npc.hideMesh` so pedestrians.js and scene3d.js leave the NPC to it; the camera is a cinematics.js shot). Both have a preview row in the `?dev` panel. `padel.js` (padel courts from `meta.padel`, placed on free ground next to the OSM spot; E at the door plays a short doubles match with its own camera and scoreboard, `world.padelGame` replaces the player update; rewards full health plus `world.padelFitUntil` regen; story goal `{ type: 'padel' }`; lines in `padellines.js`; `window.__padel` debug) |
@@ -503,8 +503,9 @@ black cards.
 
 ## Story
 
-The story "Alles voor één eierbal" (docs/verhaal-voorstel.md) is data plus
-a director:
+The story "Alles voor één eierbal" (docs/verhaal/D-definitief.md: one
+Groningen summer, the last two weeks of August, epilogue in September) is
+data plus a director:
 
 - `storyarc.js`: `STEPS`, every main mission (H1-H18) and the guided
   activities in between, in play order, with `PARTS` (kop, romp, staart).
@@ -512,7 +513,14 @@ a director:
   at the first unavailable step and shows that part's "Wordt vervolgd" card.
   `MISSION_IDS` maps story mission ids to `missions.js` def indices (saves
   and medal records use those indices: only append). `computeMoneyTimeline`
-  is the worst-case money over the whole arc.
+  is the worst-case money over the whole arc. `RETIRED_STEPS` lists the steps
+  0.22 dropped (eierbal, gun, uzi, car, bank, side jobs); a save that had them
+  done just loses those ids. `SPEAKERS` maps speaker keys to names (contacts,
+  scenes, the collector), `CHARACTERS` holds every character's name card,
+  bio and quote; story.js keeps who was met (`met:<key>` flags,
+  `getStoryCharacters`, `getStoryCluesByPart`) for a later Verhaal menu.
+  A mission step with `solo` leaves the companion behind (missions.js
+  `companionHold`, H16).
 - `economy.js`: the shared money numbers outside the shop stock (repair,
   wreck, plates and bust costs, fines, side-job pay factor, post-game
   prizes, the Fjord Frituur's daily wage, eierbal finds, and the replay pay: a passed mission pays `klusloon` (50%) and each medal tier once per playthrough a bonus of 15/25/40% of the reward, `medalBonus`; missions.js keeps the paid tiers in the save under `missions.medals`). `storytest.js`
@@ -541,7 +549,14 @@ a director:
   `missions.js` reports back through `setMissionHooks` (passed, failed,
   gated, waived requirements).
 - Missions: requirements (`requires`: weapon, bike, car, heist, night,
-  boat; also an array) gate the start. Type `stages` builds a mission from
+  boat; also an array) gate the start. Type `stunt` (H3) scores knocked-over
+  props, drifts, near misses, pigeon flocks and the water truck on the Grote
+  Markt (stuntavond.js); people hit there are knocked down, never killed
+  (`world.stuntSafe`, pedestrians.js). A def `window` (H6) is a timer over a
+  range of stages, `moment` a card at a checkpoint (H5). A failed mission's
+  banner reads "Sikkom.". In `missionstory.js` an entry's `replay` is the short
+  outro of a replay (the mission as a klus), `outroNpcKey` another NPC for the
+  outro, a line's `kiss` the line the kiss happens on. Type `stages` builds a mission from
   small objectives (board, goto, hold, garage, escape, pigeon, scene, chase,
   vault; documented above `resolveTarget`); the new missions H2, H4, H6, H8
   and H10 use it (H6 adds plan, fuse, lock, pickpocket, laser, crack, getaway and shot, and `only` stages per approach), and the Staart adds boatchase (H14's skûtsje on the Diepenring
@@ -588,7 +603,12 @@ Staging (story experience):
 - Contacts: a step's `contact` entries (storyarc.js, documented there) are
   queued by story.js on `after` or `lead` and played by storycontact.js when
   the game is quiet, voiced from the lines manifest; their `after` texts
-  follow on the phone once the contact is over. `world.storyContact` keeps
+  follow on the phone once the contact is over. `via: 'radio'` is Nachtstreek
+  on the phone: a station sting, then Rikus and his caller in the broadcast
+  band (audio.js `playContactVoice(src, { radio })`). Every mission opens with
+  one ("Bel Rikus", on `lead`); a mission stage's `radio` puts one on air while
+  it plays (H6's getaway, H16, H18's chase). A line's `card` (also in cutscene
+  lines) shows that character's name card the first time. `world.storyContact` keeps
   the car banter quiet meanwhile. Jelle's replies when you call him
   (phone.js) are voiced too.
 - The arc: `PARTS.<part>.recap` plays an "Eerder in GTE VI" card when a later

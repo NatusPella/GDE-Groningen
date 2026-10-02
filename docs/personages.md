@@ -10,11 +10,16 @@ Regels die voor iedereen gelden:
 - Fries is een kruiderij, geen hoofdgerecht. Friese zinnen krijgen altijd een Nederlandse ondertitel (FY in `subtitles.js`).
 - De TTS-stemmen en basistags staan in `scripts/tts_lines_list.mjs` (`CAST`), die van Tammo en Anita in `scripts/tts_cast.mjs` (`DUO`). Houd de tags hieronder daarmee in lijn.
 - Elk personage heeft een eigen kleur voor zijn naam in de ondertitels (zie **Sprekerskleuren** onderaan, `game/js/speakers.js`).
+- Het verhaal staat in `docs/verhaal/D-definitief.md`: één Groningse zomer, de laatste twee weken van augustus (Kop: KEI-week, Romp: Noorderzon, Staart: kermis en Gronings Ontzet op 28 augustus), met een epiloog in september.
+- Bij de eerste ontmoeting krijgt elk personage een **naamkaart** in GTA-stijl: de naam in Bebas en één droge regel (`CHARACTERS` in `game/js/storyarc.js`, getoond door `namecard.js`). Daar staan ook een korte bio en een citaat per personage.
+- De **complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte*.
 
 ---
 
 ## Tammo
 **In één zin:** een droge Stadjer met een groot hart en een kleine portemonnee, die liever een grap maakt dan toegeeft dat hij iets eng vindt.
+
+**Naamkaart:** *Stadjer. Groot hart. Kleine portemonnee.* Tammo, Anita en Rikus zijn het clubje van de stoep in het Oosterpark. Tammo is al twaalf jaar verliefd op Anita en zegt het nooit; pas in de finale: "Ik wil bij jou blijven." Vijf woorden. Daarvoor zegt hij hooguit "Woist ja wel", zoals zijn opa.
 
 - **Stem:** Orus, ingesproken in Gronings dialect: *a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties*. Daardoor zegt hij soms een Gronings woord waar de ondertitel Nederlands heeft ("Mien droom"). Emoties: droog, laconiek, zuchtend, deadpan, stiekem trots. Hij schreeuwt alleen als het echt misgaat, en dan klinkt hij "feller dan normaal".
 - **Zo praat hij:**
@@ -29,7 +34,7 @@ Regels die voor iedereen gelden:
   - "Ik zeg niks." (en dan zegt hij iets)
 - **Houdt van:**
   - eierballen, en dan wel warm;
-  - zijn rode **Fjord Escapade**, die hij "het bakkie" noemt;
+  - zijn rode **Fjord Escapade**, die nauwelijks rijdt. Die wordt aan het eind, met een luik erin, de eerste Fjord Frituur;
   - FC Groningen en Oosterpark-nostalgie;
   - d'Olle Grieze als baken ("dan ben ik thuis");
   - fietsen tegen de wind in, omdat dat karakter bouwt.
@@ -63,6 +68,8 @@ Regels die voor iedereen gelden:
 ## Anita
 **In één zin:** snel, ad rem en de baas van het duo. Ze lacht om alles behalve om mensen die haar droom kleineren.
 
+**Naamkaart:** *Heeft altijd een plan B. Plan A is ook van haar.* Ze heeft geen auto; haar droom, de blauwe frietwagen, komt op Tammo's Escapade ("De Fjord Frituur, op een Fjord. Dan klopt de naam ook.").
+
 - **Stem:** Callirrhoe. Basistag: *Groningse vrouw, lacherig en ad rem*. Emoties: plagend, zelfverzekerd, enthousiast, bazig, warm, grinnikend.
 - **Zo praat ze:**
   - snel, ze onderbreekt Tammo;
@@ -91,7 +98,7 @@ Regels die voor iedereen gelden:
   - ze parkeert overal waar het niet mag;
   - ze weet van elke Groninger wie z'n oom is;
   - ze doet alsof ze de kus op de boot niet heeft zien aankomen;
-  - ze kent "iemand uit Friesland" en zegt niet wie. Ze krijgt appjes die ze wegklikt ("Niks. Iemand uit Friesland.") en weet rare Friese dingen (hoe je suikerbrood roostert). Het is Mem Terpstra, die haar in H16 tipt over de trein naar Leeuwarden.
+  - ze kent "iemand uit Friesland" en zegt niet wie. Ze krijgt appjes die ze wegklikt ("Niks. Iemand uit Friesland.") en weet rare Friese dingen (hoe je suikerbrood roostert). Het is Mem Terpstra, die in H16 op Nachtstreek belt over de trein naar Ljouwert, perron 3.
 - **Nooit:**
   - opgeven;
   - hulpeloos gillen;
@@ -103,6 +110,8 @@ Regels die voor iedereen gelden:
 
 ## Jelle Terpstra
 **In één zin:** de ijdele, charmante Friese snackbaron van *Us Mem Snacks*, die vindt dat alles wat lekker is eigenlijk Fries is. Hij is de schurk, maar vooral ijdel en nooit echt gemeen.
+
+**Naamkaart:** *Snackkoning. Fries. Heel tevreden met zichzelf.* Eigenlijk is hij een zoon die zijn moeder gelijk wil geven. Zijn **Operaasje Aaibal** heeft vier stappen: de wisseltrofee van de Noordelijke Snackprijs stelen, al het frituurvet opkopen zodat geen Stadjer kan bakken, Stad vernederen, en op Gronings Ontzet winnen, zodat de bal volgens artikel 4 van het reglement van Friesland is. "Foar mem." Zijn moeder wil dat helemaal niet. Hij belt graag in bij Nachtstreek ("Gezellig programma.") en flirt met "famke in het rood".
 
 - **Stem:** Fenrir. Basistag: *ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden*. Emoties: charmant, opschepperig, zelfvoldaan, plechtig, en betrapt als het misgaat.
 - **Zo praat hij:**
@@ -167,10 +176,12 @@ Regels die voor iedereen gelden:
   - ze betalen contant, uit een klomp.
 - **Nooit:** slim zijn op het goede moment, en gemeen zijn.
 
-## Bommen Berend
-**In één zin:** de norse oude Stadjer met een bakkie, een hart van goud en een hekel aan alles wat nieuw is. Hij is het voorbeeldpersonage: kort, nors, en stiekem trots op Tammo en Anita.
+## Berend Bos
+**In één zin:** de chagrijnige Stadjer uit de Schildersbuurt die al veertig jaar **Bommen Berend** speelt in het naspel van het Ontzet: elk jaar valt hij de stad aan, en elk jaar verliest hij. Hij schrijft de gemeente brieven. Kort, nors, en stiekem trots op Tammo en Anita.
 
-- **Stem:** Charon. Basistag: *norse oude Groningse man met een bakkie*. Emoties: nors, stiekem trots, mopperend, verbaasd.
+**Naamkaart:** *Speelt veertig jaar Bommen Berend. Verliest elk jaar.* (De echte Bommen Berend was de bisschop van Münster, in 1672.)
+
+- **Stem:** Charon. Basistag: *Berend Bos, chagrijnige oude Stadjer die al veertig jaar Bommen Berend speelt*. Emoties: nors, stiekem trots, mopperend, verbaasd.
 - **Zo praat hij:**
   - korte, grommende zinnen;
   - complimenten verpakt als klacht;
@@ -190,7 +201,9 @@ Regels die voor iedereen gelden:
   - de nieuwe Grote Markt.
 - **Running gags:**
   - elke NPC legt anders uit wie er in 1672 nou eigenlijk won, en Berend wordt daar boos om;
-  - hij is jurylid in de finale, en "Kon minder." is zijn hoogste cijfer.
+  - hij schreef in 1977 een brief over de sectoren in het centrum, en daarna elke week;
+  - hij is jurylid in de finale en loopt hardop de complimentenladder af; bij de Groninger eierbal zegt hij niks meer: een kloet in de strotte, de hoogste trede.
+  - "Goidag" tegen vreemden, en "Moi" alleen als hij je mag (tegen Anita, in H1).
 - **Voorbeeldzinnen:**
   - "Zo. Jullie zijn dat stel waar heel Grunn over kletst? Ik had er meer van verwacht."
   - "Kon minder." *(= hij is diep ontroerd)*
@@ -210,7 +223,7 @@ Regels die voor iedereen gelden:
   - hij plaagt Tammo op de radio: de duivenfluisteraar van het Oosterpark, met jingle;
   - hij weet dat Anita appt met Friesland, en zegt het hardop;
   - hij betaalt nooit, behalve voor die tweede friet.
-- **Wanneer:** het begin (een snelle cut naar de studio in de openingsmontage), de terugblik aan het begin van elk deel (met een stationsjingle en zijn stem in de radioklank), grote keerpunten, de nachtradio in het Ommeland, twee telefoontjes aan Tammo (na H10 en voor de finale), juichend in het publiek bij de finale en de afsluiter van de epiloog vanuit de studio.
+- **Wanneer:** elke missie begint met **Bel Rikus** op Nachtstreek: een Stadjer met een probleem belt in (de radiokaart op de telefoon, zijn stem in de radioklank). Na missies volgen de rubrieken: de **fietstunnel-update** ("Bijna klaar", het jaartal schuift elke keer op), het **storingsbericht** (de Krolbrug, in de Staart achttien bruggen tegelijk), de **torenwachter** en de peiling **"Woist ja wel?"** (zijn ze het of niet?). Verder: de opening, de terugblik aan het begin van elk deel, live op de Grote Markt bij de finale ("Nachtstreek, in het daglicht. Ik voel me een vleermuis.") en het slot vanuit de studio.
 - **Voorbeeldzinnen:**
   - "Moi, hier is Rikus, op Nachtstreek. Luister. Ik vertel je hoe het zat met die twee."
   - "De tweede was voor mij. Zelf betaald, natuurlijk. Hier was Rikus, op Nachtstreek. Welterusten, Grunn."
@@ -221,7 +234,8 @@ Regels die voor iedereen gelden:
 - **Stem:** Gacrux. Basistag: *warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden*. Emoties: warm, stellig, samenzweerderig.
 - **Uiterlijk:** marineblauwe jas met een witte kraag, bril, grijze knot en de pompeblêd-rode sjaal die haar zoon van haar afkeek (`MEM_LOOK` in `storycast.js`).
 - **Zo praat ze:** kort en stellig, Nederlands met Friese woorden (*famke*, *jonge*, *myn*, *net fertelle*), altijd met een Nederlandse ondertitel.
-- **Rol:** "iemand uit Friesland" met wie Anita appt. Ze tipt Anita in H16 dat haar Fjord op de trein naar Leeuwarden gaat, en in de finale laat ze Jelle proeven: "Priuw, jonge." Ze is één van de drie kijkers van Jelle's livestreams ("Jas aan, jonge.").
+- **Naamkaart:** *Iemand uit Friesland.* Voluit **Gerda Terpstra** uit Ljouwert.
+- **Rol:** in 1953 werd ze als jonge bakster tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Haar zoon heeft dat nooit losgelaten; zij wel. Ze appt Anita stiekem ("Pas op dysels, famke. – M."), belt in H16 naar Nachtstreek over de trein naar Ljouwert, en in de finale zegt Trijntje het eindelijk: "Gerda. Jouw eierbal was beter." "Dat duurde lang." Dan laat ze Jelle proeven: "Priuw, jonge." Op het bordje in het museum komt haar naam erbij.
 - **Nooit:** gemeen, of partij kiezen tegen haar zoon (ze wil alleen dat hij eerlijk verliest).
 
 ---
@@ -233,10 +247,10 @@ Regels die voor iedereen gelden:
 | **Jelmer** | hyperactieve streamer | Puck, *jong, hyper* | leest chats hardop voor, verzint trends |
 | **Sjoerd** | droge wedstrijdleider (KEI, races) | Umbriel, *droog, schamper* | "Regels zijn regels. Behalve de mijne." |
 | **Henk** | gemoedelijke garagehouder, monteur | Sadaltager, *gemoedelijk* | belt als je auto schade heeft, noemt elke deuk "een karaktertrekje" |
-| **Ome Harm** | oude wegwerker, occasionhandelaar | Alnilam, *gemoedelijk, trots* | "Deze heeft nog nooit een omleiding gezien." |
+| **Harm** | wegwerker, twintig jaar Ring Zuid | Alnilam, *gemoedelijk, trots* | "Vorig jaar was het de voorlaatste." |
 | **Geert** | joviale kroegbaas | Zubenelgenubi, *joviaal, roddelend* | weet alles van iedereen, vertelt het voor een biertje |
 | **Femke** | gehaaste festivalmaker (Noorderzon) | Leda, *gehaast, enthousiast* | alles moet "gisteren" |
-| **Oma Trijntje** | stond in 1953 model voor de Gouden Eierbal | Sulafat, *warm, stellig* | het morele kompas: "Hij is van Stad, jong. Niet van jou." |
+| **Oma Trijntje** | 92, won in 1953 de Snackprijs met de beste eierbal van Stad (haar handjes om de bal op de foto); de tweede mentor | Sulafat, *warm, stellig* | wist dat Gerda's eierbal beter was en zei het zeventig jaar niet: "Ik ben Gronings. Wij zeggen het één keer. Dan is het waar." |
 | **Kapitein Klaas** | schorre schipper | Enceladus, *schor, knipogend* | kent elke brug, praat tegen zijn boot |
 | **Hilly** | nieuwsgierige vrouw, plat Gronings | Despina, *kletserig* | ooggetuige in "Waar is de Fjord?" |
 | **Dokter Dijkstra** | nuchtere traumaarts en heli-piloot | Sadachbia, *droog, zakelijk* | "Dit stond niet in het rooster." |
@@ -244,11 +258,14 @@ Regels die voor iedereen gelden:
 | **Schipper Wiebe** | boze rondvaartschipper met megafoon | *luid, woedend* | scheldt je uit, maar alleen in tegeltjeswijsheden |
 | **Aaltje & Grietje** | twee droge commentaarkoeien | Zephyr en Autonoe, *deadpan* | commentaar op je chaos; Aaltje sceptisch, Grietje wijs |
 | **Rotor Roelf** | joviale helikopterverkoper van Eelde | Achird, *joviaal, verkoperig* | geeft een gratis proefvlucht aan iedereen die "misschien" koopt: "En nait tegen d'Olle Grieze aan, hè?" |
+| **De torenwachter** | hele oude man boven in d'Olle Grieze, alleen een stem aan de telefoon | Iapetus, *oud, droog, onverstoorbaar* | belt Tammo en Rikus over wat hij ziet: "Ik meld alleen." |
+| **Snackbarhouder** | veertig jaar open in de Oosterpoort, lege pannen | Rasalgethi, *wanhopig, dan juichend* | "Vet! Valt mie nait of!" |
 
 ## Hoe Tammo en Anita met elkaar omgaan
 - Anita leidt, Tammo relativeert. Maar als het er echt op aankomt, is Tammo degene die het goede zegt, en in vijf woorden.
 - Ze plagen elkaar constant, maar kritiek van buitenaf pikken ze niet: dan staan ze pal voor elkaar.
 - Hun bedoeling verschuift van **"Alles voor één eierbal"** (voor de centen en Anita's frietwagen) naar **"Wij tweeën vóór Grunn"** (de eierbal hoort bij Stad).
+- **De romance in vijf stappen:** Kop: beste vrienden, ze zeggen "goidag" tegen vreemden en niks tegen elkaar. H6: elkaars hand in het donker, "Voor de grip." Romp: jaloezie (Jelle, "iemand uit Friesland") en een "moi" dat net te zacht is. H13: "Moi." "…Moi." Dan de kus, en daarna doen ze alsof er niks gebeurd is. H16: ruzie, "Jij zegt nooit iets." H18: "Woist ja wel." "Dat telt. Maar ik wil het één keer horen." "Ik wil bij jou blijven." 
 - Wie een verhaalstap speelt, past bij wie ze zijn:
   - **Anita:** rijden, regelen, praten met mensen, water;
   - **Tammo:** sluipen, fietsen, doorzetten, droog blijven onder druk, en alles met duiven.
@@ -262,7 +279,7 @@ Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutsc
 | Tammo | `#2a8ad4` blauw | | Anita | `#d86b00` oranje |
 | Rikus | `#a35ad6` paars | | Jelle Terpstra | `#d93a63` pompeblêd-rood |
 | Mem Terpstra | `#c0507a` bessenrood | | Durk | `#3f9a3f` groen |
-| Douwe | `#20968a` blauwgroen | | Bommen Berend | `#a47a34` oker |
+| Douwe | `#20968a` blauwgroen | | Berend Bos | `#a47a34` oker |
 | Oma Trijntje | `#cc5f90` roze | | Sjabbe | `#8c8a3c` olijf |
 | Jelmer | `#a38a00` mosterd | | Sjoerd | `#5f9848` grasgroen |
 | Henk | `#6f8bb0` staalblauw | | Harm | `#a5823c` zand |
@@ -270,5 +287,5 @@ Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutsc
 | Kapitein Klaas | `#3f86a8` zeeblauw | | Duivenmelker Bert | `#7282c4` duifblauw |
 | Dokter Dijkstra | `#dd4b44` rood | | Hilly | `#c0609e` fuchsia |
 | Schipper Wiebe | `#cf5a2e` roestoranje | | Koe Aaltje / Grietje | `#818b58` / `#94866e` |
-| Rotor Roelf | `#2a9ab8` hemelsblauw | | | |
+| Rotor Roelf | `#2a9ab8` hemelsblauw | | Torenwachter | `#9a8f6a` steen |
 | Voorbijgangers, bazen, radio en navigatie | `#8a8a8a` neutraal grijs | | | |

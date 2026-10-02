@@ -7,7 +7,8 @@
 // Tammo and Anita trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
+import { setMeetHook } from './namecard.js';
 import { queueStoryContact } from './storycontact.js';
 import { isCallActive } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
@@ -56,7 +57,7 @@ const SKIP_SHARE = 0.5;
 const GATED_SKIP_S = 90;
 const STUCK_SKIP_S = 360;
 const NIGHT_GARAGE_M = 16;
-const NIGHT_HOUR = 21.4;
+const NIGHT_HOUR = 23.9;
 const SWAP_FADE = 0.45;
 const SWAP_CALM = 1.2;
 const SWAP_CARD_WAIT = 8;
@@ -322,16 +323,25 @@ export function prepareStoryShop() {
   if (step && !step.end) checkVoorschot(step);
 }
 
-// Waiting at a garage for the night: a short card, then the clock jumps.
+// Waiting at Henk's garage for midnight (k-nacht): one koekje, then the clock jumps.
+const HENK_WAIT = [
+  { speaker: 'Henk', text: 'Kovvie mit kouke?', at: 0.5, dur: 2.2 },
+  { speaker: 'Tammo', text: 'Graag.', at: 2.8, dur: 1.4 },
+  { speaker: 'Henk', text: 'Eén. Het is geen Ontzet. En ik vraag niet waarom jullie in het zwart zijn.', at: 4.3, dur: 3.6 },
+  { speaker: 'Tammo', text: 'Een begrafenis.', at: 8.0, dur: 1.8 },
+  { speaker: 'Henk', text: 'Om twaalf uur \'s nachts.', at: 9.9, dur: 2.0 },
+  { speaker: 'Anita', text: 'Een hele late.', at: 12.0, dur: 1.9 },
+];
+
 function updateNightWait(step) {
   if (rt.nightWait || isNight(world) || world.pigeonMode || isCinematicActive()) return;
   const g = GOALS.night.place();
   if (!g || Math.hypot(g.x - world.player.x, g.y - world.player.y) > NIGHT_GARAGE_M) return;
   rt.nightWait = true;
   const ok = playCinematic({
-    id: 'story-wait', priority: 2, duration: 3.2, pause: true, letterbox: true, skippable: true, hideHud: true,
-    big: 'Wachten tot het donker is…',
-    lines: [{ speaker: 'Henk', text: 'Blijf maar even hangen. Koffie staat achterin.', at: 0.5, dur: 2.4 }],
+    id: 'story-wait', priority: 2, duration: 14.4, pause: true, letterbox: true, skippable: true, hideHud: true,
+    big: 'Wachten tot middernacht…',
+    lines: HENK_WAIT,
     onEnd: () => setNight(),
   });
   if (!ok) setNight();
@@ -343,13 +353,15 @@ function setNight() {
 
 // Credits after the epilogue: name cards over the city, no voices.
 const CREDITS = [
-  ['Tammo & Anita', 'hoofdrollen'],
+  ['Tammo & Anita', 'Vijf woorden'],
   ['Rikus', 'vertelde het, op Nachtstreek'],
-  ['Jelle Terpstra', 'de Fryske Snackkening'],
-  ['Mem Terpstra', 'wist het allang'],
-  ['Durk & Douwe', 'op één fatbike'],
-  ['Bommen Berend, Oma Trijntje, Kapitein Klaas', 'en de rest van Grunn'],
-  ['d\'Olle Grieze', 'keek alles aan en zei niks'],
+  ['Jelle Terpstra', 'de Fryske Snackkening, foar mem'],
+  ['Gerda Terpstra', 'tweede in 1953. Nu op het bordje'],
+  ['Oma Trijntje', 'zei het één keer. Dan is het waar'],
+  ['Berend Bos', 'verloor weer. Net als in 1672'],
+  ['Durk & Douwe', 'twee reuzen, één brein'],
+  ['De torenwachter', 'meldde alleen'],
+  ['Bert, Sjabbe, Jelmer, Sjoerd, Femke, Harm, Geert, Klaas, Henk en Dokter Dijkstra', 'en de rest van Grunn'],
 ];
 
 // A slow climb around d'Olle Grieze for the ending.
@@ -388,7 +400,7 @@ function playRecap(part) {
   const fallback = recapPlace(P.recap.find(([p]) => p !== 'studio')[0]);
   return playCinematic({
     id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: 'Eerder in GTE VI', title: P.title, cardFor: 3.2,
+    kicker: P.date ? `${P.title.split(':')[0]} · ${P.date}` : 'Eerder in GTE VI', title: P.title, cardFor: 3.2,
     lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur, radio: true })),
     onStart: () => { studio = openStudio(); playRadioSting(); },
     onEnd: () => { if (studio) studio.dispose(); studio = null; },
@@ -437,7 +449,7 @@ function playFinale(part) {
   const orbit = finaleShot(0);
   const ok = playCinematic({
     id: 'story-card', priority: 2, duration: at + 0.6, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: P.end, title: 'Alles voor één eierbal', cardFor: 3, lines,
+    kicker: 'Epiloog · september', title: 'Alles voor één eierbal', cardFor: 3, lines,
     onStart: () => { studio = openStudio(); },
     onEnd: () => { if (studio) studio.dispose(); studio = null; },
     // lines are timed to their recordings, so attachVoices keeps these times
@@ -453,7 +465,7 @@ function playFinale(part) {
   if (!ok) return false;
   const q = (spec) => playCinematic({ id: 'story-card', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
   const fromStudio = finaleShot(40);
-  q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: 'Grand Theft Eierbal VI', shot: (u, t) => ({ ...fromStudio(u, t), cut: t < 0.1 }) });
+  q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: 'Grand Theft Eierbal VI · Een zomer in Grunn', shot: (u, t) => ({ ...fromStudio(u, t), cut: t < 0.1 }) });
   CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
   q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(46 + CREDITS.length * 3.2) });
   // then the Fjord Frituur comes out from under its sheet and Anita drives off in it
@@ -723,6 +735,7 @@ export function initStory(w) {
   world = w;
   setMissionHooks({ waived: (key) => state.waived.has(key), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
   Object.assign(GOALS, FUN_GOALS);
+  setMeetHook(meet);
   initStoryFun(w);
   initSkipUi();
   ready = true;
@@ -815,6 +828,20 @@ export function applyStorySave(d) {
   for (const [id, n] of Object.entries(d.fails || {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) state.fails[id] = n;
 }
 
+// Who Tammo and Anita have met (name cards, namecard.js): a 'met:<key>' flag each.
+function meet(key) {
+  const f = 'met:' + key;
+  if (state.flags.has(f)) return false;
+  state.flags.add(f);
+  return true;
+}
+
+// For a later "Verhaal" menu: every character with name, card line, bio and
+// quote, and whether they were met in this playthrough.
+export function getStoryCharacters() {
+  return Object.entries(CHARACTERS).map(([key, c]) => ({ key, ...c, met: state.flags.has('met:' + key) }));
+}
+
 export function storyFlag(name) {
   return state.flags.has(name);
 }
@@ -828,7 +855,16 @@ export function getStoryJournal() {
   const part = step && (step.part || step.end) || 'kop';
   const done = new Set(STEPS.filter((s, k) => isDone(s, k)).map((s) => s.id));
   const found = CLUES.filter((c) => done.has(c.step)).map((c) => ({ ...c, isNew: rt.newClues.has(c.title) })).reverse();
-  return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur ook.' : WHY[part] || '', found, total: CLUES.length };
+  return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur staat op de Vismarkt.' : WHY[part] || '', found, total: CLUES.length };
+}
+
+// The clues per part, for a later "Verhaal" menu: { kop: [...], romp, staart }, each
+// { step, kind, title, text, found }.
+export function getStoryCluesByPart() {
+  const done = new Set(STEPS.filter((s, k) => isDone(s, k)).map((s) => s.id));
+  const out = {};
+  for (const part of Object.keys(PARTS)) out[part] = CLUES.filter((c) => (STEP_BY_ID.get(c.step) || {}).part === part).map((c) => ({ ...c, found: done.has(c.step) }));
+  return out;
 }
 
 export function markCluesSeen() {
@@ -935,6 +971,8 @@ export const storyApi = {
   view: getStoryView,
   save: getStorySave,
   timeline: () => computeMoneyTimeline(),
+  characters: () => getStoryCharacters(),
+  clues: () => getStoryCluesByPart(),
   jump: devJumpTo,
   complete: devCompleteStep,
   skip: (force) => skipCurrent({ force: !!force }),
