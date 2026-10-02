@@ -4,6 +4,9 @@ import { buildWeaponMesh, buildPersonMesh, animatePersonWalk } from './models3d_
 import { buildProductMesh } from './shopmodels3d.js';
 
 const OBJECT_KINDS = new Set(['weapon', 'person', 'product']);
+// a person seen from the front, the face turned a little into the screen
+// (the model faces its local -x)
+export const PORTRAIT_ANGLE = -1.55;
 
 // Rotating 3D previews of vehicles, weapons, people and products.
 // spec = { kind, model, color, nameIdx, flags } for a vehicle, or

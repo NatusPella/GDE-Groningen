@@ -1,5 +1,6 @@
 import { dualHtml, dutchFor } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
+import { noteSpoken } from './characters.js';
 import { getClockText } from './hud_panel.js';
 import { readingSeconds } from './world.js';
 import { lineVoiceFor } from './linevoice.js';
@@ -236,6 +237,7 @@ function showLine(c) {
   const l = c.lines[c.i];
   const sp = callEl.querySelector('.pf-speaker');
   paintSpeaker(sp, l.speaker || c.from);
+  noteSpoken(world, l.speaker || c.from);
   callEl.querySelector('.pf-say').textContent = l.text;
   // the Dutch under a Frisian/Gronings line (subtitles.js), unless given
   callEl.querySelector('.pf-sub').textContent = l.sub || dutchFor(l.text) || '';
