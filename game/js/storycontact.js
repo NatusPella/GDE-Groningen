@@ -27,6 +27,7 @@ import { PORTRAITS } from './storycast.js';
 import { getClockText } from './hud_panel.js';
 import { dualHtml, dutchFor } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
+import { noteSpoken } from './characters.js';
 
 let mission = null;
 import('./missionstory.js').then((m) => { mission = m; }).catch(() => {});
@@ -209,6 +210,7 @@ function setBubble(line, c = null) {
   if (!els || !els.bubble) return;
   const who = line && (c && c.caller && c.via !== 'radio' && line[0] === c.from ? c.caller : nameOf(line[0]));
   els.bubble.innerHTML = line ? speakerHtml(who) + dualHtml(line[1]) : '';
+  if (line) noteSpoken(world, who);
 }
 
 function showCard(c, line) {

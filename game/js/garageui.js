@@ -1,7 +1,11 @@
-// Garage tab of the pause menu (and the styles of the phone's "Voertuigen"
-// app): every owned vehicle as a card, plus the models still for sale.
+// Garage section of the pause menu (and the styles of the phone's
+// "Voertuigen" app): every vehicle as a card with a rendered thumbnail, the
+// selected one turning in the viewer. Thumbnails and the viewer both come
+// from vehiclepreview.js's one shared renderer, so the garage never opens a
+// WebGL context of its own.
 import { getGarageCatalog, whereText } from './ownedvehicles.js';
-import { createVehiclePreview } from './vehiclepreview.js';
+import { createSharedPreview, renderSnapshot } from './vehiclepreview.js';
+import { fillBars } from './motion.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -25,75 +29,84 @@ function injectStyle() {
   styled = true;
   const st = document.createElement('style');
   st.textContent = `
-#pause-menu .pm-garage { width: min(1180px, calc(100% / var(--ui, 1))); }
-#pause-menu .gar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-#pause-menu .gar-card { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid rgba(63,201,122,0.35); border-left: 4px solid #3fc97a; border-radius: 6px; background: rgba(15,92,48,0.18); }
-#pause-menu .gar-card[data-status="lost"] { border-left-color: #c9412e; }
-#pause-menu .gar-card[data-status="locked"] { opacity: 0.6; border-style: dashed; border-left-color: #e8c93a; background: rgba(0,0,0,0.2); }
-#pause-menu .gar-card[data-status="locked"] .gar-status { color: #e8c93a; }
-#pause-menu .gar-card[data-status="forsale"] { opacity: 0.55; border-style: dashed; border-left-style: solid; border-left-color: rgba(240,237,228,0.3); background: rgba(0,0,0,0.15); }
-#pause-menu .gar-top { display: flex; gap: 10px; align-items: center; }
-#pause-menu .gar-icon { flex: none; width: 54px; height: 54px; border-radius: 8px; display: grid; place-items: center; background: rgba(240,237,228,0.08); box-shadow: inset 0 0 0 1px rgba(240,237,228,0.12); }
-#pause-menu .gar-icon svg { width: 44px; height: 44px; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.6)); }
-#pause-menu .gar-card[data-status="forsale"] .gar-icon svg { filter: grayscale(1); }
-#pause-menu .gar-name { display: flex; flex-direction: column; min-width: 0; }
-#pause-menu .gar-name small { font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: rgba(240,237,228,0.55); }
-#pause-menu .gar-name b { font-weight: normal; font-size: 22px; letter-spacing: 1px; line-height: 1.05; }
-#pause-menu .gar-meme { margin: 0; font: italic 14px/1.35 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); }
-#pause-menu .gar-stats { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
-#pause-menu .gar-stats dt { color: rgba(240,237,228,0.5); }
-#pause-menu .gar-stats dd { margin: 0; color: #f0ede4; display: flex; align-items: center; gap: 6px; }
-#pause-menu .gar-bar { display: inline-block; width: 70px; height: 6px; border-radius: 3px; background: rgba(240,237,228,0.15); overflow: hidden; }
-#pause-menu .gar-bar i { display: block; height: 100%; background: #3fc97a; }
-#pause-menu .gar-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240,237,228,0.5); flex: none; }
-#pause-menu .gar-status { font: 13px 'Arial Narrow', Arial, sans-serif; color: #3fc97a; letter-spacing: 0.3px; }
-#pause-menu .gar-card[data-status="far"] .gar-status, #pause-menu .gar-card[data-status="garage"] .gar-status { color: #e8c93a; }
-#pause-menu .gar-card[data-status="lost"] .gar-status { color: #ff7a66; }
-#pause-menu .gar-card[data-status="forsale"] .gar-status { color: rgba(240,237,228,0.7); }
-#pause-menu .gar-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
-#pause-menu .gar-actions button { flex: 1 1 auto; font: inherit; font-size: 16px; letter-spacing: 1px; padding: 6px 10px; border-radius: 4px; cursor: pointer; color: #f0ede4; background: rgba(30,158,86,0.25); border: 1px solid rgba(63,201,122,0.6); }
-#pause-menu .gar-actions button:hover, #pause-menu .gar-actions button:focus-visible { background: rgba(30,158,86,0.5); outline: none; border-color: #3fc97a; }
-#pause-menu .gar-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 400px); gap: 18px; align-items: start; }
-#pause-menu .gar-list { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-#pause-menu .gar-card { cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.15s; }
-#pause-menu .gar-card:hover, #pause-menu .gar-card:focus-visible { outline: none; border-color: #3fc97a; background: rgba(30,158,86,0.28); transform: translateY(-1px); }
-#pause-menu .gar-card.sel { border-color: #3fc97a; box-shadow: 0 0 0 2px rgba(63,201,122,0.55), 0 8px 22px rgba(0,0,0,0.35); opacity: 1; }
-#pause-menu .gar-viewer { position: sticky; top: 0; display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 10px;
-  background: linear-gradient(180deg, rgba(23,48,31,0.9), rgba(12,20,14,0.92)); border: 1px solid rgba(63,201,122,0.35); box-shadow: 0 14px 34px rgba(0,0,0,0.45); }
-#pause-menu .gar-stage { position: relative; height: 230px; border-radius: 8px; overflow: hidden;
-  background: radial-gradient(ellipse at 50% 72%, rgba(63,201,122,0.28) 0%, rgba(12,20,14,0) 68%), linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0)); }
+#pause-menu .pm-garage { width: min(1240px, calc(100% / var(--ui, 1))); }
+#pause-menu .gar-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; margin: 2px 0 6px; }
+#pause-menu .gar-cats { display: flex; flex-wrap: wrap; gap: 8px; }
+#pause-menu .gar-pill { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 19px; cursor: pointer; font: 18px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.2px;
+  color: var(--pm-ink); background: transparent; border: 1px solid rgba(240,237,228,0.22); transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out); }
+#pause-menu .gar-pill small { font: 13px 'Arial Narrow', Arial, sans-serif; opacity: 0.8; }
+#pause-menu .gar-pill:hover { border-color: rgba(63,201,122,0.6); background: rgba(30,158,86,0.14); }
+#pause-menu .gar-pill[aria-pressed="true"] { background: #1e9e56; border-color: #3fc97a; color: #f6fff8; }
+#pause-menu .gar-tools { display: flex; gap: 8px; }
+#pause-menu .gar-tool { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 8px; cursor: pointer; font: 14px 'Arial Narrow', Arial, sans-serif;
+  color: var(--pm-ink); background: transparent; border: 1px solid rgba(240,237,228,0.22); }
+#pause-menu .gar-tool:hover, #pause-menu .gar-tool:focus-within { border-color: rgba(63,201,122,0.6); }
+#pause-menu .gar-tool svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .gar-tool select { font: inherit; color: inherit; background: transparent; border: 0; padding: 0; cursor: pointer; }
+#pause-menu .gar-tool select option { background: #0c140e; }
+#pause-menu .gar-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+#pause-menu .gar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; align-content: start; }
+#pause-menu .gar-card { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 10px; text-align: left; cursor: pointer; font: inherit; color: var(--pm-ink);
+  background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08);
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+#pause-menu .gar-card:hover { border-color: rgba(63,201,122,0.4); transform: translateY(-1px); }
+#pause-menu .gar-card.sel { background: rgba(30,158,86,0.14); border-color: rgba(63,201,122,0.55); }
+#pause-menu .gar-card[data-group="locked"] .gar-thumb img { filter: brightness(0.3) saturate(0); }
+#pause-menu .gar-card[data-group="sale"] .gar-thumb img { filter: saturate(0.6); }
+#pause-menu .gar-thumb { position: relative; display: grid; place-items: center; height: 96px; border-radius: 10px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 70%, #24492f 0%, #10211a 70%); border: 1px solid rgba(63,201,122,0.16); }
+#pause-menu .gar-thumb > svg { width: 44px; height: 44px; color: rgba(240,237,228,0.22); transition: opacity var(--dur-slow) var(--ease-out); }
+#pause-menu .gar-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
+#pause-menu .gar-thumb img.on { opacity: 1; }
+#pause-menu .gar-thumb:has(img.on) > svg { opacity: 0; }
+#pause-menu .gar-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+#pause-menu .gar-name small { font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: #a3b2a6; }
+#pause-menu .gar-name b { font-weight: normal; font-size: 21px; letter-spacing: 1px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pause-menu .gar-meter { display: grid; grid-template-columns: 74px minmax(0, 1fr); align-items: center; gap: 8px; font: 12px 'Arial Narrow', Arial, sans-serif; color: #a3b2a6; }
+#pause-menu .gar-meter > span { display: block; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden; }
+#pause-menu .gar-meter i { display: block; width: 0; height: 100%; border-radius: 3px; background: #3fc97a; transition: width var(--dur-bar) var(--ease-out); }
+#pause-menu .gar-chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px; border-radius: 12px; white-space: nowrap;
+  font: 15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #a3b2a6; border: 1.5px solid rgba(240,237,228,0.25); }
+#pause-menu .gar-chip svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .gar-chip[data-k="locked"] { border-style: dashed; border-color: #6f7f73; }
+#pause-menu .gar-chip[data-k="lost"] { color: #d93f3f; border-color: rgba(217,63,63,0.6); }
+#pause-menu .gar-chip[data-k="mine"] { color: #3fc97a; border-color: rgba(63,201,122,0.5); }
+#pause-menu .gar-viewer { position: sticky; top: 0; display: flex; flex-direction: column; gap: 14px; min-height: 520px; box-sizing: border-box; padding: 16px; border-radius: 12px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(63,201,122,0.16); }
+#pause-menu .gar-viewer > :not(.gar-stage) { animation: pm-rise var(--dur-base) var(--ease-out); }
+#pause-menu .gar-stage { position: relative; flex: none; height: 200px; border-radius: 10px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 70%, #24492f 0%, #10211a 70%); border: 1px solid rgba(63,201,122,0.16); }
 #pause-menu .gar-stage canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
 #pause-menu .gar-stage canvas:active { cursor: grabbing; }
-#pause-menu .gar-stage .gar-hint { position: absolute; left: 10px; bottom: 8px; font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.55); pointer-events: none; }
-#pause-menu .gar-lock { position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 6px; padding: 4px 10px 3px; border-radius: 4px; font-size: 16px; letter-spacing: 1px; color: #0c140e; background: #e8c93a; }
-#pause-menu .gar-lock.sale { background: #f0ede4; }
-#pause-menu .gar-lock svg { width: 14px; height: 14px; fill: currentColor; }
-#pause-menu .gar-viewer .gar-name b { font-size: 30px; }
-#pause-menu .gar-viewer .gar-actions button { font-size: 18px; padding: 9px 12px; }
-@media (max-width: 980px) { #pause-menu .gar-layout { grid-template-columns: 1fr; } #pause-menu .gar-viewer { position: static; order: -1; } }
-#pause-menu .gar-note { margin: 0; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.6); }
-#pause-menu .gar-toolbar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
-#pause-menu .gar-cats button small, #pause-menu .gar-filters button small { font-size: 0.78em; opacity: 0.7; margin-left: 2px; }
-#pause-menu .gar-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
-#pause-menu .gar-filters { display: inline-flex; border: 1px solid rgba(63,201,122,0.45); border-radius: 6px; overflow: hidden; }
-#pause-menu .gar-filters button { font: inherit; font-size: 17px; letter-spacing: 1px; padding: 6px 12px 4px; cursor: pointer; color: rgba(240,237,228,0.8); background: rgba(12,20,14,0.6); border: none; border-right: 1px solid rgba(63,201,122,0.3); }
-#pause-menu .gar-filters button:last-child { border-right: none; }
-#pause-menu .gar-filters button:hover { color: #f0ede4; background: rgba(30,158,86,0.2); }
-#pause-menu .gar-filters button[aria-pressed="true"] { color: #0c140e; background: #3fc97a; }
-#pause-menu .gar-sort { display: inline-flex; align-items: center; gap: 8px; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.5px; color: rgba(240,237,228,0.7); }
-#pause-menu .gar-sort select { font: inherit; font-size: 15px; background: #0c140e; color: #f0ede4; border: 1px solid rgba(63,201,122,0.6); border-radius: 6px; padding: 5px 8px; }
-#pause-menu .gar-list > h2:first-child { margin-top: 4px; }
+#pause-menu .gar-stage .gar-hint { position: absolute; right: 8px; bottom: 6px; font: 11px 'Arial Narrow', Arial, sans-serif; color: #a3b2a6; pointer-events: none; }
+#pause-menu .gar-kicker { font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: #3fc97a; }
+#pause-menu .gar-viewer .gar-name b { font-size: 34px; letter-spacing: 1.5px; white-space: normal; }
+#pause-menu .gar-meme { margin: 0; font: 15px/1.45 'Arial Narrow', Arial, sans-serif; }
+#pause-menu .gar-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; margin: 0; font: 15px 'Arial Narrow', Arial, sans-serif; }
+#pause-menu .gar-facts dt { color: #a3b2a6; }
+#pause-menu .gar-facts dd { margin: 0; display: flex; align-items: center; gap: 6px; }
+#pause-menu .gar-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240,237,228,0.5); flex: none; }
+#pause-menu .gar-actions { margin-top: auto; display: flex; flex-wrap: wrap; gap: 8px; }
+#pause-menu .gar-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 8px; cursor: pointer;
+  font: 20px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.2px; color: var(--pm-ink); background: transparent; border: 1px solid rgba(240,237,228,0.28); }
+#pause-menu .gar-actions button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .gar-actions button:hover { border-color: #3fc97a; }
+#pause-menu .gar-actions .gar-go { background: #1e9e56; color: #f6fff8; border-color: #3fc97a; }
+#pause-menu .gar-actions .gar-go:hover { background: #2fb56a; }
+#pause-menu .gar-msg { margin: 0; font: 14px 'Arial Narrow', Arial, sans-serif; color: #3fc97a; }
+#pause-menu .gar-msg:empty { display: none; }
+#pause-menu .gar-note { margin: 0; font: 13px 'Arial Narrow', Arial, sans-serif; color: #a3b2a6; }
 #pause-menu .gar-empty { padding: 18px 0; }
-#pause-menu .gar-msg { min-height: 1.3em; margin: 0; font: 14px 'Arial Narrow', Arial, sans-serif; color: #e8c93a; }
+@media (max-width: 980px) { #pause-menu .gar-layout { grid-template-columns: 1fr; } #pause-menu .gar-viewer { position: static; order: -1; min-height: 0; } }
 #hud .ph-swatch { flex: none; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240,237,228,0.5); margin-right: 8px; }
 #hud .ph-swatch.lg { width: 22px; height: 22px; }
-#hud .ph-chip[data-status="lost"] { border-color: #c9412e; color: #ff7a66; }
+#hud .ph-chip[data-status="lost"] { border-color: #d93f3f; color: #d93f3f; }
 #hud .ph-veh { padding: 8px 8px 10px; display: flex; flex-direction: column; gap: 6px; }
 #hud .ph-veh-top { display: flex; align-items: center; }
 #hud .ph-veh p { margin: 0; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; line-height: 1.3; }
 #hud .ph-veh-meme { font-style: italic; color: rgba(240,237,228,0.85); }
 #hud .ph-veh-facts { color: rgba(240,237,228,0.6); }
-#hud .ph-veh-msg { color: #e8c93a; }
+#hud .ph-veh-msg { color: #3fc97a; }
 `;
   document.head.appendChild(st);
 }
@@ -102,95 +115,33 @@ export function initGarageStyles() {
   injectStyle();
 }
 
-function card(e) {
-  const stats = [
-    ['Type', esc(e.kindLabel)],
-    ['Topsnelheid', `${e.topSpeed} km/u`],
-    ['Trekkracht', `<span class="gar-bar"><i style="width:${e.accelScore * 10}%"></i></span>${e.accelScore}/10`],
-    ['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`],
-  ];
-  if (e.owned && e.kind !== 'boat' && e.kind !== 'heli') stats.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
-  else if (e.locked) stats.push(['Vrijspelen', esc(e.unlockText)]);
-  else if (!e.owned) stats.push(['Prijs', `€${e.price.toLocaleString('nl-NL')}`]);
-  const where = whereText(e);
-  const actions = !e.owned ? '' : `<div class="gar-actions">` +
-    (e.status !== 'driving' ? `<button type="button" data-garage-deliver="${esc(e.id)}">Laten afleveren · ${esc(e.feeLabel)}</button>` : '') +
-    (e.status === 'near' || e.status === 'far' ? `<button type="button" data-garage-find="${esc(e.id)}">Waar staat hij?</button>` : '') +
-    `</div>`;
-  return `<article class="gar-card" tabindex="0" data-garage-select="${esc(e.id)}" data-status="${e.status}">` +
-    `<div class="gar-top"><span class="gar-icon">${vehicleGlyph(e.kind, e.color)}</span>` +
-    `<span class="gar-name"><small>${esc(e.make || e.kindLabel)}</small><b>${esc(e.model)}</b></span></div>` +
-    `<p class="gar-meme">${esc(e.meme)}</p>` +
-    `<dl class="gar-stats">${stats.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` +
-    `<div class="gar-status">${esc(e.statusLabel)}${where ? ' · ' + esc(where) : ''}</div>` +
-    actions + `</article>`;
-}
-
-// --- viewer: the selected vehicle as a rotating model --------------------------
-
-let viewer = null, viewerCanvas = null;
-let selected = null;
-let lastList = [];
-const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
-
-function previewSpec(e) {
-  if (!e || !e.spec || !e.spec.model) return null;
-  return { kind: e.spec.kind === 'scooter' ? 'scooter' : e.spec.kind, model: e.spec.model, color: e.color, nameIdx: e.spec.nameIdx || 0, flags: e.hero ? { isHeroCar: true } : e.spec.flags || null };
-}
-
-function viewerHtml(e) {
-  const badge = e.locked ? `<span class="gar-lock">${LOCK}Op slot</span>` : !e.owned ? `<span class="gar-lock sale">Te koop · €${e.price.toLocaleString('nl-NL')}</span>` : '';
-  const actions = !e.owned ? '' : '<div class="gar-actions">' +
-    (e.status !== 'driving' ? `<button type="button" data-garage-deliver="${esc(e.id)}">Laten afleveren · ${esc(e.feeLabel)}</button>` : '') +
-    (e.status === 'near' || e.status === 'far' ? `<button type="button" data-garage-find="${esc(e.id)}">Waar staat hij?</button>` : '') + '</div>';
-  const facts = [e.kindLabel, `${e.topSpeed} km/u`, `trekkracht ${e.accelScore}/10`, e.paint, ...(e.upgrades || [])].filter(Boolean).join(' · ');
-  return `<div class="gar-stage"><canvas aria-label="3D-model van ${esc(e.model)}"></canvas>${badge}<span class="gar-hint">Slepen: draaien · scrollen: zoomen</span></div>` +
-    `<div class="gar-name"><small>${esc(e.make || e.kindLabel)}</small><b>${esc(e.model)}</b></div>` +
-    `<p class="gar-meme">${esc(e.meme)}</p><p class="gar-note">${esc(facts)}</p>` +
-    `<div class="gar-status">${esc(e.statusLabel)}${whereText(e) ? ' · ' + esc(whereText(e)) : ''}</div>` +
-    (e.locked && e.unlockText ? `<p class="gar-note">Vrijspelen: ${esc(e.unlockText)}</p>` : '') + actions;
-}
-
-// Shows vehicle `id` in the viewer (pausemenu.js: a click or Enter on a card).
-export function selectGarageVehicle(el, id) {
-  const e = lastList.find((x) => x.id === id);
-  const box = el.querySelector('.gar-viewer');
-  if (!e || !box) return;
-  selected = id;
-  for (const c of el.querySelectorAll('.gar-card')) c.classList.toggle('sel', c.dataset.garageSelect === id);
-  box.innerHTML = viewerHtml(e);
-  // one canvas and GL context for every card: it moves into the new stage
-  const fresh = box.querySelector('canvas');
-  if (viewer) {
-    viewerCanvas.setAttribute('aria-label', fresh.getAttribute('aria-label'));
-    fresh.replaceWith(viewerCanvas);
-  } else {
-    const c = viewerCanvas = fresh;
-    viewer = createVehiclePreview(c, { interactive: true, active: () => c.isConnected && c.offsetParent !== null, pixelRatio: () => Math.min(1.5, devicePixelRatio) });
-  }
-  viewer.show(previewSpec(e));
-  viewer.wake();
-}
-
-// Frees the viewer's GL context (tab switched or menu closed).
-export function disposeGarageViewer() {
-  if (viewer) { viewer.dispose(); viewer = null; viewerCanvas = null; }
-}
+const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const PIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>';
+const SORT_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/></svg>';
+const THUMB_W = 320, THUMB_H = 150;
 
 const CATS = [
   ['all', 'Alles'],
   ['autos', "Auto's"],
-  ['bussen', 'Bussen & vrachtwagens'],
+  ['bussen', 'Bussen'],
   ['fietsen', 'Fietsen'],
-  ['scooters', 'Scooters & steps'],
+  ['scooters', 'Scooters'],
   ['boten', 'Boten'],
-  ['luchtvaart', 'Luchtvaart'],
+  ['luchtvaart', 'Lucht'],
   ['speciaal', 'Speciaal'],
 ];
-const FILTERS = [['all', 'Alles'], ['owned', 'Van jou'], ['sale', 'Te koop'], ['locked', 'Op slot']];
+const FILTERS = [['all', 'alles'], ['owned', 'van jou'], ['sale', 'te koop'], ['locked', 'op slot']];
 const SORTS = [['naam', 'Naam'], ['prijs', 'Prijs'], ['snelheid', 'Snelheid']];
 const BIG_TYPES = new Set(['Bestelbus', 'Vrachtwagen', 'Midibus', 'Stadsbus', 'Tankwagen', 'Geldwagen']);
+const GROUPS = ['owned', 'sale', 'locked'];
+const GROUP_LABEL = { owned: 'van jou', sale: 'te koop', locked: 'op slot' };
 const view = { cat: 'all', filter: 'all', sort: 'naam' };
+
+let viewer = null;
+let selected = null;
+let lastList = [];
+let topSpeedMax = 1;
+const bars = new Map();
 
 // Story/achievement unlocks are "Speciaal", whatever they drive like.
 function categoryOf(e) {
@@ -205,59 +156,136 @@ function categoryOf(e) {
 }
 const groupOf = (e) => e.owned ? 'owned' : e.locked ? 'locked' : 'sale';
 const priceOf = (e) => e.price || (e.spec && e.spec.price) || 0;
+const euro = (n) => `€${Number(n).toLocaleString('nl-NL')}`;
 const SORTERS = {
   naam: (a, b) => String(a.model).localeCompare(String(b.model), 'nl'),
   prijs: (a, b) => priceOf(a) - priceOf(b) || SORTERS.naam(a, b),
   snelheid: (a, b) => b.topSpeed - a.topSpeed || SORTERS.naam(a, b),
 };
 const inCat = (e) => view.cat === 'all' || categoryOf(e) === view.cat;
+// yours first, then for sale, then locked; within each the chosen order
+const shownList = (list) => list.filter((e) => inCat(e) && (view.filter === 'all' || groupOf(e) === view.filter))
+  .sort((a, b) => GROUPS.indexOf(groupOf(a)) - GROUPS.indexOf(groupOf(b)) || (SORTERS[view.sort] || SORTERS.naam)(a, b));
+
+function previewSpec(e) {
+  if (!e || !e.spec || !e.spec.model) return null;
+  return { kind: e.spec.kind === 'scooter' ? 'scooter' : e.spec.kind, model: e.spec.model, color: e.color, nameIdx: e.spec.nameIdx || 0, flags: e.hero ? { isHeroCar: true } : e.spec.flags || null };
+}
+
+// The short chip on a card: where it is, its price, or the lock.
+function chipHtml(e) {
+  if (e.locked) return `<span class="gar-chip" data-k="locked">${LOCK}Op slot</span>`;
+  if (!e.owned) return `<span class="gar-chip">${euro(priceOf(e))}</span>`;
+  if (e.status === 'lost') return '<span class="gar-chip" data-k="lost">Total loss</span>';
+  const label = e.status === 'garage' ? 'Thuis' : e.status === 'driving' ? 'Je zit erin' : 'Van jou';
+  return `<span class="gar-chip" data-k="mine">${label}</span>`;
+}
+
+function meters(e) {
+  const speed = Math.round(Math.min(100, (e.topSpeed / topSpeedMax) * 100));
+  return `<span class="gar-meter">Snelheid<span><i data-bar="s-${esc(e.id)}" data-w="${speed}"></i></span></span>` +
+    `<span class="gar-meter">Trekkracht<span><i data-bar="a-${esc(e.id)}" data-w="${e.accelScore * 10}"></i></span></span>`;
+}
+
+function card(e) {
+  return `<button type="button" class="gar-card${e.id === selected ? ' sel' : ''}" data-garage-select="${esc(e.id)}" data-group="${groupOf(e)}">` +
+    `<span class="gar-thumb" data-thumb="${esc(e.id)}">${vehicleGlyph(e.kind, 'currentColor')}</span>` +
+    `<span class="gar-name"><small>${esc(e.make || e.kindLabel)}</small><b>${esc(e.model)}</b></span>` +
+    meters(e) + chipHtml(e) + '</button>';
+}
+
+function viewerHtml(e, msg) {
+  const rows = [];
+  if (e.owned) rows.push(['Waar', esc([e.statusLabel, whereText(e)].filter(Boolean).join(' · '))]);
+  else if (e.locked) rows.push(['Vrijspelen', esc(e.unlockText || 'Via het verhaal of een prestatie')]);
+  else rows.push(['Prijs', `${euro(priceOf(e))}${e.shop ? ` bij ${esc(e.shop)}` : ''}`]);
+  rows.push(['Topsnelheid', `${e.topSpeed} km/u`], ['Trekkracht', `${e.accelScore} van 10`]);
+  rows.push(['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`]);
+  if (e.owned && e.kind !== 'boat' && e.kind !== 'heli') rows.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
+  const actions = !e.owned ? '' : '<div class="gar-actions">' +
+    (e.status !== 'driving' ? `<button type="button" class="gar-go" data-garage-deliver="${esc(e.id)}">Laten afleveren${e.fee ? ` · ${esc(e.feeLabel)}` : ''}</button>` : '') +
+    (e.status === 'near' || e.status === 'far' ? `<button type="button" data-garage-find="${esc(e.id)}">${PIN}Waar staat hij?</button>` : '') + '</div>';
+  return `<div class="gar-stage"><canvas aria-label="3D-model van ${esc(e.model)}"></canvas><span class="gar-hint">Sleep om te draaien</span></div>` +
+    `<div class="gar-name"><span class="gar-kicker">${esc([e.make, e.kindLabel, GROUP_LABEL[groupOf(e)]].filter(Boolean).join(' · '))}</span><b>${esc(e.model)}</b></div>` +
+    (e.meme ? `<p class="gar-meme">${esc(e.meme)}</p>` : '') +
+    `<dl class="gar-facts">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>` +
+    `<p class="gar-msg" role="status">${esc(msg || '')}</p>` + actions;
+}
+
+// Shows vehicle `id` in the viewer (pausemenu.js: a click or Enter on a
+// card). The viewer draws through the shared renderer: switching cards only
+// swaps the model.
+export function selectGarageVehicle(el, id, msg = '') {
+  const e = lastList.find((x) => x.id === id);
+  const box = el.querySelector('.gar-viewer');
+  if (!e || !box) return;
+  selected = id;
+  for (const c of el.querySelectorAll('.gar-card')) c.classList.toggle('sel', c.dataset.garageSelect === id);
+  if (viewer) viewer.dispose();
+  box.innerHTML = viewerHtml(e, msg);
+  const c = box.querySelector('canvas');
+  viewer = createSharedPreview(c, { interactive: true, active: () => c.isConnected && c.offsetParent !== null });
+  viewer.show(previewSpec(e));
+}
+
+// Drops the viewer's model (tab switched or menu closed).
+export function disposeGarageViewer() {
+  if (viewer) { viewer.dispose(); viewer = null; }
+}
 
 function toolbarHtml(list) {
-  const here = list.filter(inCat);
-  const count = (f) => here.filter((e) => f === 'all' || groupOf(e) === f).length;
-  return '<nav class="pm-subtabs gar-cats" role="tablist" aria-label="Soort voertuig">' +
+  return '<div class="gar-cats" role="group" aria-label="Soort voertuig">' +
     CATS.map(([id, label]) => {
       const all = list.filter((e) => id === 'all' || categoryOf(e) === id);
       if (!all.length) return '';
-      return `<button type="button" role="tab" data-garage-cat="${id}" aria-selected="${view.cat === id}">${esc(label)} <small>${all.filter((e) => e.owned).length}/${all.length}</small></button>`;
-    }).join('') + '</nav>' +
-    '<div class="gar-tools"><div class="gar-filters" role="group" aria-label="Toon">' +
-    FILTERS.map(([id, label]) => `<button type="button" data-garage-filter="${id}" aria-pressed="${view.filter === id}">${esc(label)} <small>${count(id)}</small></button>`).join('') +
-    '</div><label class="gar-sort">Sorteren op <select data-garage-sort>' +
-    SORTS.map(([id, label]) => `<option value="${id}"${view.sort === id ? ' selected' : ''}>${esc(label)}</option>`).join('') +
-    '</select></label></div>';
+      return `<button type="button" class="gar-pill" data-garage-cat="${id}" aria-pressed="${view.cat === id}">${esc(label)}<small>${all.filter((e) => e.owned).length}/${all.length}</small></button>`;
+    }).join('') + '</div>' +
+    '<div class="gar-tools"><label class="gar-tool">Toon: <select data-garage-filter>' +
+    FILTERS.map(([id, label]) => `<option value="${id}"${view.filter === id ? ' selected' : ''}>${label}</option>`).join('') + '</select></label>' +
+    `<button type="button" class="gar-tool" data-garage-sort aria-label="Sorteren op ${(SORTS.find(([id]) => id === view.sort) || SORTS[0])[1].toLowerCase()}">${SORT_IC}${(SORTS.find(([id]) => id === view.sort) || SORTS[0])[1]}</button></div>`;
 }
 
-const HEADS = {
-  owned: ['Van jou', 'voorgoed in je garage'],
-  sale: ['Nog te koop', 'Ome Harm Occasions, Trap & Toeter, Bootje Huren en Rotor Roelf op Eelde'],
-  locked: ['Vrij te spelen', 'via het verhaal en prestaties'],
-};
+function gridHtml(list) {
+  const shown = shownList(list);
+  if (!shown.length) return '<p class="gar-note gar-empty">Niks in deze selectie. Kies een andere soort of toon alles.</p>';
+  return `<div class="gar-grid">${shown.map(card).join('')}</div>`;
+}
 
-function listHtml(list) {
-  const shown = list.filter((e) => inCat(e) && (view.filter === 'all' || groupOf(e) === view.filter));
-  if (!shown.length) return '<p class="gar-note gar-empty">Niks in deze selectie. Kies een andere soort of filter.</p>';
-  return ['owned', 'sale', 'locked'].map((g) => {
-    const items = shown.filter((e) => groupOf(e) === g).sort(SORTERS[view.sort] || SORTERS.naam);
-    if (!items.length) return '';
-    return `<h2>${HEADS[g][0]} <small>${items.length} · ${HEADS[g][1]}</small></h2><div class="gar-grid">${items.map(card).join('')}</div>`;
-  }).join('');
+// Fills in the rendered thumbnails as they come (a few per frame).
+function loadThumbs(el) {
+  for (const t of el.querySelectorAll('[data-thumb]')) {
+    const spec = previewSpec(lastList.find((x) => x.id === t.dataset.thumb));
+    if (!spec) continue;
+    renderSnapshot(spec, THUMB_W, THUMB_H, (url) => {
+      if (!url || !t.isConnected || t.querySelector('img')) return;
+      const img = new Image();
+      img.alt = '';
+      img.src = url;
+      t.appendChild(img);
+      requestAnimationFrame(() => img.classList.add('on'));
+    }, { angle: 0.75 });
+  }
 }
 
 function pickShown(el) {
-  const cards = [...el.querySelectorAll('.gar-list .gar-card')];
+  const cards = [...el.querySelectorAll('.gar-card')];
   const keep = cards.find((c) => c.dataset.garageSelect === selected) || cards[0];
   if (!keep) { disposeGarageViewer(); const box = el.querySelector('.gar-viewer'); if (box) box.innerHTML = ''; return; }
-  if (keep.dataset.garageSelect !== selected || !viewer) selectGarageVehicle(el, keep.dataset.garageSelect);
-  else for (const c of cards) c.classList.toggle('sel', c.dataset.garageSelect === selected);
+  selectGarageVehicle(el, keep.dataset.garageSelect);
+}
+
+function showList(el) {
+  const listEl = el.querySelector('.gar-list');
+  listEl.innerHTML = gridHtml(lastList);
+  fillBars(listEl, bars);
+  loadThumbs(listEl);
 }
 
 function refreshList(el) {
   const tools = el.querySelector('.gar-toolbar');
-  const listEl = el.querySelector('.gar-list');
-  if (!tools || !listEl) return;
+  if (!tools || !el.querySelector('.gar-list')) return;
   tools.innerHTML = toolbarHtml(lastList);
-  listEl.innerHTML = listHtml(lastList);
+  showList(el);
   pickShown(el);
 }
 
@@ -266,19 +294,19 @@ function bindToolbar(el) {
   el.dataset.garBound = '1';
   el.addEventListener('click', (ev) => {
     const c = ev.target.closest('[data-garage-cat]');
-    const f = ev.target.closest('[data-garage-filter]');
-    if (!c && !f) return;
+    const s = ev.target.closest('[data-garage-sort]');
+    if (!c && !s) return;
     if (c) view.cat = c.dataset.garageCat;
-    if (f) view.filter = f.dataset.garageFilter;
+    if (s) view.sort = SORTS[(SORTS.findIndex(([id]) => id === view.sort) + 1) % SORTS.length][0];
     refreshList(el);
-    const again = el.querySelector(c ? `[data-garage-cat="${view.cat}"]` : `[data-garage-filter="${view.filter}"]`);
+    const again = el.querySelector(c ? `[data-garage-cat="${view.cat}"]` : '[data-garage-sort]');
     if (again) again.focus({ preventScroll: true });
   });
   el.addEventListener('change', (ev) => {
-    if (!ev.target.matches('[data-garage-sort]')) return;
-    view.sort = ev.target.value;
+    if (!ev.target.matches('[data-garage-filter]')) return;
+    view.filter = ev.target.value;
     refreshList(el);
-    const sel = el.querySelector('[data-garage-sort]');
+    const sel = el.querySelector('[data-garage-filter]');
     if (sel) sel.focus({ preventScroll: true });
   });
 }
@@ -288,13 +316,14 @@ export function renderGaragePanel(el, world, msg = '') {
   bindToolbar(el);
   const list = getGarageCatalog(world);
   lastList = list;
+  topSpeedMax = Math.max(1, ...list.map((e) => e.topSpeed || 0));
   const owned = list.filter((e) => e.owned);
   el.innerHTML =
-    `<h2>Garage <small>${owned.length} van ${list.length} verzameld</small></h2>` +
-    `<p class="gar-note">Gekocht of vrijgespeeld is voorgoed van jou; gejat telt niet. Laat je voertuig afleveren en het staat om de hoek, buiten beeld; boten gaan naar jouw steiger, de heli naar het helidek op jullie flat. Ook via je telefoon (T).</p>` +
-    `<p class="gar-msg" role="status">${esc(msg)}</p>` +
+    `<h2>Garage <small>${owned.length} van ${list.length} voertuigen van jou</small></h2>` +
     `<div class="gar-toolbar">${toolbarHtml(list)}</div>` +
-    `<div class="gar-layout"><div class="gar-list">${listHtml(list)}</div><aside class="gar-viewer" aria-live="polite"></aside></div>`;
+    '<div class="gar-layout"><div class="gar-list"></div><aside class="gar-viewer" aria-live="polite" aria-label="Details"></aside></div>';
   disposeGarageViewer();
+  showList(el);
   pickShown(el);
+  if (msg && selected) selectGarageVehicle(el, selected, msg);
 }
