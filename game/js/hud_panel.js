@@ -27,7 +27,9 @@ import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
-import { speakerColor } from './speakers.js';
+// portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
+// colours stay in subtitles
+const HUD_ACCENT = '#3fc97a';
 
 const HEART_PATH = 'M12 21s-7.8-4.7-9.6-10A5.3 5.3 0 0 1 12 6.1a5.3 5.3 0 0 1 9.6 4.9C19.8 16.3 12 21 12 21z';
 const SHIELD_PATH = 'M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z';
@@ -336,7 +338,7 @@ function updateCharacter(dt, world) {
     els.idKey = key;
     const name = CHARACTER_LABELS[ch];
     els.character.textContent = name;
-    els.character.closest('.hud-top-left').style.setProperty('--spk', speakerColor(name));
+    els.character.closest('.hud-top-left').style.setProperty('--spk', HUD_ACCENT);
     els.portrait.querySelector('.hair').setAttribute('d', HAIR[ch]);
     els.drunk.hidden = !drunk;
     els.portraitT = 0;
@@ -385,7 +387,7 @@ function updateMate(world) {
   els.mate.hidden = !text;
   if (!text) return;
   els.mateTxt.textContent = text;
-  els.mate.style.setProperty('--spk', speakerColor(c.character === 'anita' ? 'Anita' : 'Tammo'));
+  els.mate.style.setProperty('--spk', HUD_ACCENT);
   setPortrait(els.mateImg, c.character === 'anita' ? 'anita' : 'tammo', 'mateLookKey');
   if (!was) { els.mate.classList.remove('in'); void els.mate.offsetWidth; els.mate.classList.add('in'); }
 }
