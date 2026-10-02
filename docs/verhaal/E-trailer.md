@@ -55,6 +55,29 @@
 - Vervalt: de flitspaal, de explosies in de Oosterstraat en "duif poept op een corpsbal". Die passen niet bij de zomer-toon en de droge humor.
 - Nieuwe stem: één regel van Rikus (shot 1) en één van Berend (shot 24), ingesproken met de bestaande pijplijn.
 
+**Bouwstatus (2 oktober 2026, `game/js/trailer.js`)**
+- Alle 24 shots staan erin, ongeveer 91 s. De korte cut (`kort`, ongeveer 38 s) heeft de shots 1, 2, 3, 5, 6, 7, 12, 13, 16, 17, 19 en 22, dus met de naamkaarten van Anita en Tammo.
+- **Stand-ins** van bestaande of goedkope props:
+  - De terrassen: tafels, stoelen en parasols als instanced meshes, met zittende figuranten. Ze staan alleen op het plein, nooit op de straat of het fietspad dwars over de Vismarkt. Rond de terrassen en het plantsoen rijdt geen verkeer.
+  - De duiven: zwermen van 64 tot 72 vogels in twee instanced draw calls (`makeBirds` in `intromontage.js`, dus ook in de openingsmontage). Ze vliegen op en cirkelen boven het plein.
+  - Het Noorderplantsoen: kleedjes (canvas-ruit), twee barbecues met gloeiende kolen en een frisbee, op een open grasveld in het Noorderplantsoen, meer dan 30 m van elke weg en elk fietspad.
+  - De pinautomaat: de steekwagen uit de eerste openingsmontage (nu `trailerprops.js`, met de vitrinezaal en de vlaggen), geen aanhanger. Anita loopt erachter en duwt hem.
+  - Tammo's deur: een losse deur met kozijn tegen een gevel in de Herestraat.
+  - De botsauto van Durk & Douwe: een eigen exemplaar in de tent van `kermis.js`.
+  - De pion: een kegel van drie meshes.
+  - Het frituurvet: gele druppels als instanced deeltjes uit de tankwagen van H8.
+  - De carbidbus: een melkbus op een bok met een rood deksel en een rookwolk. Het deksel vliegt eraf.
+  - De trekker in de ringrace: het trekkermodel uit het Ommeland.
+  - Berends bakkie: een gewone sedan met een kras.
+- **Aangepast:**
+  - Shot 7 rijdt over het autodeel van de Herestraat.
+  - Shot 8: Jelle staat rechtop door het dak van de trekker-limo, op de weg van het oude Fjord-shot.
+  - Shot 12 heeft de politieheli met zoeklicht boven de achtervolging, dus geen apart heli-shot.
+  - Shot 1 heeft radioruis in Rikus' opname zelf, maar geen meeuwen of fietsbel.
+  - De draaiorgel van de kermis klinkt alleen live, niet in de video.
+  - Ijsjes zijn er niet.
+- **Vervallen:** de flitspaal, de explosies in de Oosterstraat, de duif op de corpsbal, de trein en de oude kaartjes ("Het noorden heeft één stad", "En één Fries").
+
 ## De opening van *Nieuw spel*
 
 Dezelfde aanpak in het klein: de trailer uit het definitieve script, van ongeveer 40 seconden, met de naamkaarten van Anita en Tammo. Die gaat over in de radio en de keukentafel. Daardoor is de attract-intro ook overbodig.
