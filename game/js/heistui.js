@@ -1,4 +1,4 @@
-// The screen side of H6 De Museumkraak (heist.js holds the game state): the
+// The screen side of H6 Het museum stond er al zo (heist.js holds the game state): the
 // minigame panels (fuse box, lock, the case's dial), the blueprint of the
 // museum for the plan scene with the choice of approach, the card on the
 // empty cushion, the alarm vignette and the "hold O to skip" chip.
