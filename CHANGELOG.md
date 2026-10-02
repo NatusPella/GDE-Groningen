@@ -79,6 +79,12 @@ nieuwe functies, `y` voor alleen bugfixes.
   menu's en tellers.
 
 ### Veranderd
+- **Ontzet, net als in 1672:** de achtervolging volgt het script. Jelle scheurt
+  vanaf de hoek van de Grote Markt de Oude Boteringestraat in, over de
+  Boteringebrug, langs de Spilsluizen en de Oude Ebbingestraat weer terug naar
+  de markt, en de torenwachter meldt elke straat. Blijf erbij (rammen helpt):
+  dan fluit Tammo en vliegen de duiven van d'Olle Grieze door het vuurwerk op de
+  voorruit van de trekker, nu als scène in plaats van een kaartje.
 - **Wind tegen, beide kanten op:** het oogcontact is nu een echte scène in plaats
   van een kaartje. Op het kruispunt waar alles groen is komt Anita op haar eigen
   fiets van de andere kant, ze kijken elkaar aan en remmen allebei.

@@ -562,7 +562,9 @@ data plus a director:
   small objectives (board, goto, hold, garage, escape, pigeon, scene, chase,
   vault; documented above `resolveTarget`); the new missions H2, H4, H6, H8
   and H10 use it (H6 adds plan, fuse, lock, pickpocket, laser, crack, getaway and shot, and `only` stages per approach), and the Staart adds boatchase (H14's skûtsje on the Diepenring
-  route), heli (helirun.js as a stage), fireworks on a hold, a timed goto,
+  route), heli (helirun.js as a stage), fireworks on a hold, a chase `route` with a
+  radio report per street and a `swarm` (H18's pigeons over the fireworks,
+  missionstory.js `playPigeonSwarm`), a timed goto,
   `pay` and an egg meter (H17). `storyprops3d.js` holds temporary story props (H10's
   flag), `missionstory.js` `playVaultScene` Jelle's fierljep escape, and
   `racers.js` puts Jelle's trekker-limo in the ring race (`opts.jelle`). Dialogue for every mission index
