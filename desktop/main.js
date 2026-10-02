@@ -238,6 +238,8 @@ function createWindow() {
           // next to the smoke-test png: <smoke>-<name>.png
           win.webContents.on('console-message', async (e, legacyLevel, legacyMessage) => {
             const message = String(e.message !== undefined ? e.message : legacyMessage);
+            // console.log('[profile] 8000') from the script: a CPU profile of that many ms
+            if (message.startsWith('[profile] ')) { runProfile(win, Number(message.slice(10)) || 6000).catch((err) => console.log('[profile]', err.message)); return; }
             if (!message.startsWith('[capture] ')) return;
             const img = await win.webContents.capturePage();
             fsSync.writeFileSync(smoke.split('=')[1].replace(/\.png$/, `-${message.slice(10).trim()}.png`), img.toPNG());
