@@ -126,6 +126,7 @@ export function initStoryContact(w) {
   root.className = 'sc-phone';
   root.setAttribute('aria-live', 'polite');
   (document.getElementById('hud') || document.body).appendChild(root);
+  window.addEventListener('resize', () => { if (cur && root.classList.contains('show')) fitPhone(cur.c); });
   cardEl = document.createElement('div');
   cardEl.id = 'sc-card';
   document.body.appendChild(cardEl);
