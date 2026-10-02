@@ -203,7 +203,19 @@ function nowSec() {
 }
 
 function masterLevel() {
-  return MASTER_VOLUME * getSettings().masterVolume;
+  return MASTER_VOLUME * getSettings().masterVolume * (menuAudio ? MENU_LEVEL : 1);
+}
+
+// Title screen: the city itself at a lower level and no music; the theme song
+// waits for Doorgaan / Nieuw spel (theme.js). Leaving re-primes the change
+// detectors so loading a save doesn't chime its money and armour.
+const MENU_LEVEL = 0.55;
+let menuAudio = false;
+export function setMenuAudio(on) {
+  if (menuAudio === !!on) return;
+  menuAudio = !!on;
+  if (!menuAudio && worldReady && lastWorld) primeWorld(lastWorld);
+  if (ctx && master) applyOutputGains(0.6);
 }
 
 onSettingsChange((st) => {
@@ -2874,7 +2886,7 @@ export function updateAudio(dt, world) {
   events.length = 0;
   if (ctx.state !== 'running') resumeCtx('frame');
 
-  if (world.input.wasPressed('u')) {
+  if (!menuAudio && world.input.wasPressed('u')) {
     muted = !muted;
     saveMuted();
     applyOutputGains(0.05);
@@ -2890,7 +2902,7 @@ export function updateAudio(dt, world) {
   guarded('world', () => updateWorldAudio(dt, world));
   guarded('ducking', () => updateDucking(dt));
   if (bank.pending() === 0 && warmList.length) bank.warm([warmList.pop()]);
-  guarded('gmusic', () => updateGMusic(dt, world));
+  if (!menuAudio) guarded('gmusic', () => updateGMusic(dt, world));
 }
 
 function updateWorldAudio(dt, world) {
