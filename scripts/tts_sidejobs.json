@@ -6,7 +6,8 @@
   "text": "Moi! Welkom bij Hap & Rap. De e-fatbike staat voor je klaar, de thermobox zit erop.",
   "tag": "cheerful, welcoming",
   "voice": "Zephyr",
-  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+  "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, welcoming."
  },
  {
   "file": "bezorger/intro_1.mp3",
@@ -15,7 +16,8 @@
   "text": "Ophalen bij de zaak, bezorgen voor het eten koud is. Warm eten is fooi, lauw eten is een klacht.",
   "tag": "businesslike, fast",
   "voice": "Zephyr",
-  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+  "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: businesslike, fast."
  },
  {
   "file": "bezorger/intro_2.mp3",
@@ -24,7 +26,8 @@
   "text": "En let op de wind. In Grunn heb je altijd tegenwind. Ook als je omdraait.",
   "tag": "laughing, teasing",
   "voice": "Zephyr",
-  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+  "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: laughing, teasing."
  },
  {
   "file": "taxi/intro_0.mp3",
@@ -32,9 +35,10 @@
   "cast": "taxi",
   "text": "Centrale hier. Je taxi staat klaar voor het station, daklampje en al.",
   "tag": "bored, matter-of-fact",
-  "voice": "Orus",
+  "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
-  "radio": true
+  "radio": true,
+  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored, matter-of-fact."
  },
  {
   "file": "taxi/intro_1.mp3",
@@ -42,9 +46,10 @@
   "cast": "taxi",
   "text": "Stop naast de klant, laat ze instappen en breng ze heel naar hun adres. Rustig rijden levert fooi op.",
   "tag": "instructive, calm",
-  "voice": "Orus",
+  "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
-  "radio": true
+  "radio": true,
+  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: instructive, calm."
  },
  {
   "file": "taxi/intro_2.mp3",
@@ -52,9 +57,10 @@
   "cast": "taxi",
   "text": "En studenten na het stappen: bochten netjes. De vorige chauffeur rijdt nog steeds met de ramen open.",
   "tag": "amused, gossiping",
-  "voice": "Orus",
+  "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
-  "radio": true
+  "radio": true,
+  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: amused, gossiping."
  },
  {
   "file": "bus/intro_0.mp3",
@@ -63,7 +69,8 @@
   "text": "Moi! Lijn 3 heeft vandaag geen chauffeur, dus jij mag. Twaalf meter harmonicabus, ga er maar aan staan.",
   "tag": "enthusiastic, a bit nervous",
   "voice": "Achird",
-  "who": "Groningse man, stipt en een beetje pedant"
+  "who": "Groningse man, stipt en een beetje pedant",
+  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: enthusiastic, a bit nervous."
  },
  {
   "file": "bus/intro_1.mp3",
@@ -72,7 +79,8 @@
   "text": "Stop bij elke halte tot de deuren weer dicht zijn. Te vroeg vertrekken is in Grunn erger dan te laat.",
   "tag": "stern, pedantic",
   "voice": "Achird",
-  "who": "Groningse man, stipt en een beetje pedant"
+  "who": "Groningse man, stipt en een beetje pedant",
+  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: stern, pedantic."
  },
  {
   "file": "bus/intro_2.mp3",
@@ -81,7 +89,8 @@
   "text": "Rustig remmen, hè. Er zitten mensen met koffie in. En mensen die koffie willen.",
   "tag": "worried, warning",
   "voice": "Achird",
-  "who": "Groningse man, stipt en een beetje pedant"
+  "who": "Groningse man, stipt en een beetje pedant",
+  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: worried, warning."
  },
  {
   "file": "rondvaart/intro_0.mp3",
@@ -90,7 +99,8 @@
   "text": "Moi, ik ben Geert. Mijn rug doet het niet meer, dus jij bent vandaag de gids.",
   "tag": "groaning, apologetic",
   "voice": "Algieba",
-  "who": "oude Groningse schipper met rugpijn, bromstem"
+  "who": "oude Groningse schipper met rugpijn, bromstem",
+  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, apologetic."
  },
  {
   "file": "rondvaart/intro_1.mp3",
@@ -99,7 +109,8 @@
   "text": "Vaar van steiger naar steiger. Bij elk mooi plekje: gas eraf, dan vertel ik het verhaal via de speaker.",
   "tag": "explaining, warm",
   "voice": "Algieba",
-  "who": "oude Groningse schipper met rugpijn, bromstem"
+  "who": "oude Groningse schipper met rugpijn, bromstem",
+  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: explaining, warm."
  },
  {
   "file": "rondvaart/intro_2.mp3",
@@ -108,7 +119,8 @@
   "text": "Te hard langs? Dan missen ze het. En toeristen die iets missen, geven geen fooi.",
   "tag": "grumpy, warning",
   "voice": "Algieba",
-  "who": "oude Groningse schipper met rugpijn, bromstem"
+  "who": "oude Groningse schipper met rugpijn, bromstem",
+  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: grumpy, warning."
  },
  {
   "file": "fietsdepot/intro_0.mp3",
@@ -117,7 +129,8 @@
   "text": "Moi, ik ben Ria van de handhaving. Rond het station staan weer fietsen overal behalve in de rekken.",
   "tag": "stern, businesslike",
   "voice": "Kore",
-  "who": "Groningse handhaafster, streng en droog"
+  "who": "Groningse handhaafster, streng en droog",
+  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike."
  },
  {
   "file": "fietsdepot/intro_1.mp3",
@@ -126,7 +139,8 @@
   "text": "Fietsen met een oranje label mogen weg. Oppakken, naar het busje van het fietsdepot, erin. Elke fiets telt.",
   "tag": "strict, instructive",
   "voice": "Kore",
-  "who": "Groningse handhaafster, streng en droog"
+  "who": "Groningse handhaafster, streng en droog",
+  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, instructive."
  },
  {
   "file": "fietsdepot/intro_2.mp3",
@@ -135,7 +149,8 @@
   "text": "Komt er een student aanrennen? Wegwezen, of je bent die fiets kwijt. En niet slaan, hè.",
   "tag": "dry, warning",
   "voice": "Kore",
-  "who": "Groningse handhaafster, streng en droog"
+  "who": "Groningse handhaafster, streng en droog",
+  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: dry, warning."
  },
  {
   "file": "verhuizing/intro_0.mp3",
@@ -144,7 +159,8 @@
   "text": "Het is KEI-week: half Nederland zoekt een kamer in Grunn en de andere helft verhuist er net uit.",
   "tag": "harried, dramatic",
   "voice": "Sadachbia",
-  "who": "gehaaste Groningse verhuizer, joviaal"
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, dramatic."
  },
  {
   "file": "verhuizing/intro_1.mp3",
@@ -153,7 +169,8 @@
   "text": "Sjouw de spullen van de oude kamer naar het busje, rij voorzichtig naar het nieuwe adres en zet alles voor de deur.",
   "tag": "fast, instructive",
   "voice": "Sadachbia",
-  "who": "gehaaste Groningse verhuizer, joviaal"
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: fast, instructive."
  },
  {
   "file": "verhuizing/intro_2.mp3",
@@ -162,7 +179,8 @@
   "text": "Elke klap in het busje kost je. Plant Henk heeft al genoeg meegemaakt.",
   "tag": "sighing, joking",
   "voice": "Sadachbia",
-  "who": "gehaaste Groningse verhuizer, joviaal"
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sighing, joking."
  },
  {
   "file": "bezorger/greet_0.mp3",
@@ -171,7 +189,8 @@
   "text": "Daar ben je weer! Thermobox erop, trappen maar.",
   "tag": "cheerful, fast",
   "voice": "Zephyr",
-  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+  "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, fast."
  },
  {
   "file": "bezorger/done_0.mp3",
@@ -180,7 +199,8 @@
   "text": "Warm afgeleverd! Zo mag ik het zien.",
   "tag": "delighted",
   "voice": "Zephyr",
-  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+  "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: delighted."
  },
  {
   "file": "bezorger/done_1.mp3",
@@ -189,7 +209,8 @@
   "text": "Weer een tevreden klant. En een fooi, als het goed is.",
   "tag": "amused, playful",
   "voice": "Zephyr",
-  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+  "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: amused, playful."
  },
  {
   "file": "bezorger/fail_0.mp3",
@@ -198,7 +219,8 @@
   "text": "Lauw eten, boze klant. Morgen beter, hè.",
   "tag": "disappointed sigh",
   "voice": "Zephyr",
-  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+  "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: disappointed sigh."
  },
  {
   "file": "bezorger/level_0.mp3",
@@ -207,7 +229,8 @@
   "text": "Jij bent mijn snelste fietser. Zeg het niet tegen de anderen.",
   "tag": "conspiratorial whisper, proud",
   "voice": "Zephyr",
-  "who": "jonge Stadjer, vrouw, opgewekt en snel"
+  "who": "jonge Stadjer, vrouw, opgewekt en snel",
+  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: conspiratorial whisper, proud."
  },
  {
   "file": "taxi/greet_0.mp3",
@@ -215,9 +238,10 @@
   "cast": "taxi",
   "text": "Centrale hier. Je taxi staat weer klaar. Rustig aan vandaag.",
   "tag": "bored radio dispatcher",
-  "voice": "Orus",
+  "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
-  "radio": true
+  "radio": true,
+  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored radio dispatcher."
  },
  {
   "file": "taxi/done_0.mp3",
@@ -225,9 +249,10 @@
   "cast": "taxi",
   "text": "Centrale: klant heel afgeleverd. Keurig.",
   "tag": "dry, approving",
-  "voice": "Orus",
+  "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
-  "radio": true
+  "radio": true,
+  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: dry, approving."
  },
  {
   "file": "taxi/done_1.mp3",
@@ -235,9 +260,10 @@
   "cast": "taxi",
   "text": "Centrale hier. Die klant gaf vijf sterren. Wat heb je gedaan?",
   "tag": "suspicious, surprised",
-  "voice": "Orus",
+  "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
-  "radio": true
+  "radio": true,
+  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: suspicious, surprised."
  },
  {
   "file": "taxi/fail_0.mp3",
@@ -245,9 +271,10 @@
   "cast": "taxi",
   "text": "Centrale hier. Die klant belt net. Hij is niet blij.",
   "tag": "annoyed, weary",
-  "voice": "Orus",
+  "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
-  "radio": true
+  "radio": true,
+  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: annoyed, weary."
  },
  {
   "file": "taxi/level_0.mp3",
@@ -255,9 +282,10 @@
   "cast": "taxi",
   "text": "Centrale: jij krijgt voortaan de goede ritten.",
   "tag": "grudging respect",
-  "voice": "Orus",
+  "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
-  "radio": true
+  "radio": true,
+  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: grudging respect."
  },
  {
   "file": "bus/greet_0.mp3",
@@ -266,7 +294,8 @@
   "text": "Lijn drie wacht op je. Op tijd vertrekken, niet te vroeg.",
   "tag": "pedantic, strict",
   "voice": "Achird",
-  "who": "Groningse man, stipt en een beetje pedant"
+  "who": "Groningse man, stipt en een beetje pedant",
+  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: pedantic, strict."
  },
  {
   "file": "bus/done_0.mp3",
@@ -275,7 +304,8 @@
   "text": "Halte gehaald, op de minuut. Prachtig.",
   "tag": "moved, satisfied",
   "voice": "Achird",
-  "who": "Groningse man, stipt en een beetje pedant"
+  "who": "Groningse man, stipt en een beetje pedant",
+  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: moved, satisfied."
  },
  {
   "file": "bus/done_1.mp3",
@@ -284,7 +314,8 @@
   "text": "Niemand koffie gemorst? Dan ben je beter dan de vorige.",
   "tag": "dry, amused",
   "voice": "Achird",
-  "who": "Groningse man, stipt en een beetje pedant"
+  "who": "Groningse man, stipt en een beetje pedant",
+  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: dry, amused."
  },
  {
   "file": "bus/fail_0.mp3",
@@ -293,7 +324,8 @@
   "text": "Dit komt in het rapport. Met een rode pen.",
   "tag": "cold anger",
   "voice": "Achird",
-  "who": "Groningse man, stipt en een beetje pedant"
+  "who": "Groningse man, stipt en een beetje pedant",
+  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: cold anger."
  },
  {
   "file": "bus/level_0.mp3",
@@ -302,7 +334,8 @@
   "text": "Zo stipt heb ik nog nooit iemand zien rijden. Ik krijg er tranen van.",
   "tag": "emotional, voice cracking",
   "voice": "Achird",
-  "who": "Groningse man, stipt en een beetje pedant"
+  "who": "Groningse man, stipt en een beetje pedant",
+  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: emotional, voice cracking."
  },
  {
   "file": "rondvaart/greet_0.mp3",
@@ -311,7 +344,8 @@
   "text": "Ah, mijn gids. Mijn rug doet nog steeds pijn, dus jij vaart.",
   "tag": "groaning, weary",
   "voice": "Algieba",
-  "who": "oude Groningse schipper met rugpijn, bromstem"
+  "who": "oude Groningse schipper met rugpijn, bromstem",
+  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, weary."
  },
  {
   "file": "rondvaart/done_0.mp3",
@@ -320,7 +354,8 @@
   "text": "Mooi verteld. Ze hingen aan je lippen.",
   "tag": "warm, proud",
   "voice": "Algieba",
-  "who": "oude Groningse schipper met rugpijn, bromstem"
+  "who": "oude Groningse schipper met rugpijn, bromstem",
+  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: warm, proud."
  },
  {
   "file": "rondvaart/done_1.mp3",
@@ -329,7 +364,8 @@
   "text": "Die toeristen gaan dit thuis nog jaren vertellen.",
   "tag": "chuckling",
   "voice": "Algieba",
-  "who": "oude Groningse schipper met rugpijn, bromstem"
+  "who": "oude Groningse schipper met rugpijn, bromstem",
+  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: chuckling."
  },
  {
   "file": "rondvaart/fail_0.mp3",
@@ -338,7 +374,8 @@
   "text": "Au. Nee, niet mijn rug. Mijn boot! Wat heb je gedaan?",
   "tag": "pained, then shocked",
   "voice": "Algieba",
-  "who": "oude Groningse schipper met rugpijn, bromstem"
+  "who": "oude Groningse schipper met rugpijn, bromstem",
+  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: pained, then shocked."
  },
  {
   "file": "rondvaart/level_0.mp3",
@@ -347,7 +384,8 @@
   "text": "Jij kent het water beter dan ik. En ik vaar hier al veertig jaar.",
   "tag": "impressed, nostalgic",
   "voice": "Algieba",
-  "who": "oude Groningse schipper met rugpijn, bromstem"
+  "who": "oude Groningse schipper met rugpijn, bromstem",
+  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: impressed, nostalgic."
  },
  {
   "file": "fietsdepot/greet_0.mp3",
@@ -356,7 +394,8 @@
   "text": "Moi. Het station staat weer vol fietsen. Aan de slag.",
   "tag": "stern, businesslike",
   "voice": "Kore",
-  "who": "Groningse handhaafster, streng en droog"
+  "who": "Groningse handhaafster, streng en droog",
+  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike."
  },
  {
   "file": "fietsdepot/done_0.mp3",
@@ -365,7 +404,8 @@
   "text": "Weer een fiets in het busje. Het rek huilt van geluk.",
   "tag": "deadpan",
   "voice": "Kore",
-  "who": "Groningse handhaafster, streng en droog"
+  "who": "Groningse handhaafster, streng en droog",
+  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: deadpan."
  },
  {
   "file": "fietsdepot/done_1.mp3",
@@ -374,7 +414,8 @@
   "text": "Netjes. Die student vindt hem nooit meer terug.",
   "tag": "smug, satisfied",
   "voice": "Kore",
-  "who": "Groningse handhaafster, streng en droog"
+  "who": "Groningse handhaafster, streng en droog",
+  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: smug, satisfied."
  },
  {
   "file": "fietsdepot/fail_0.mp3",
@@ -383,7 +424,8 @@
   "text": "Zo gaat dat niet. Kom maar terug als je het wel kan.",
   "tag": "strict, disapproving",
   "voice": "Kore",
-  "who": "Groningse handhaafster, streng en droog"
+  "who": "Groningse handhaafster, streng en droog",
+  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, disapproving."
  },
  {
   "file": "fietsdepot/level_0.mp3",
@@ -392,7 +434,8 @@
   "text": "Jij bent een natuurtalent. Je moet bij de handhaving.",
   "tag": "impressed, almost smiling",
   "voice": "Kore",
-  "who": "Groningse handhaafster, streng en droog"
+  "who": "Groningse handhaafster, streng en droog",
+  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: impressed, almost smiling."
  },
  {
   "file": "verhuizing/greet_0.mp3",
@@ -401,7 +444,8 @@
   "text": "Nog meer studenten, nog meer dozen. Sjouwen maar!",
   "tag": "harried, jovial",
   "voice": "Sadachbia",
-  "who": "gehaaste Groningse verhuizer, joviaal"
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, jovial."
  },
  {
   "file": "verhuizing/done_0.mp3",
@@ -410,7 +454,8 @@
   "text": "Alles heel aangekomen. Zelfs Plant Henk.",
   "tag": "relieved, laughing",
   "voice": "Sadachbia",
-  "who": "gehaaste Groningse verhuizer, joviaal"
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: relieved, laughing."
  },
  {
   "file": "verhuizing/done_1.mp3",
@@ -419,7 +464,8 @@
   "text": "Weer een student blij. Nou ja, blij. Hij heeft een kamer.",
   "tag": "sarcastic",
   "voice": "Sadachbia",
-  "who": "gehaaste Groningse verhuizer, joviaal"
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sarcastic."
  },
  {
   "file": "verhuizing/fail_0.mp3",
@@ -428,7 +474,8 @@
   "text": "Dat was de laatste keer dat ik je de breekbare doos gaf.",
   "tag": "exasperated",
   "voice": "Sadachbia",
-  "who": "gehaaste Groningse verhuizer, joviaal"
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: exasperated."
  },
  {
   "file": "verhuizing/level_0.mp3",
@@ -437,7 +484,8 @@
   "text": "Jij sjouwt als een beer. Een voorzichtige beer.",
   "tag": "hearty laugh",
   "voice": "Sadachbia",
-  "who": "gehaaste Groningse verhuizer, joviaal"
+  "who": "gehaaste Groningse verhuizer, joviaal",
+  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: hearty laugh."
  },
  {
   "file": "duo/tammo_start_0.mp3",
@@ -445,8 +493,9 @@
   "cast": "Tammo",
   "text": "Werken. Voor geld. Wat een concept.",
   "tag": "dry, deadpan",
-  "voice": "Algenib",
-  "who": "Stadjer, droog en sarcastisch"
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry, deadpan."
  },
  {
   "file": "duo/tammo_end_0.mp3",
@@ -454,8 +503,9 @@
   "cast": "Tammo",
   "text": "Genoeg gewerkt voor een week.",
   "tag": "tired, deadpan",
-  "voice": "Algenib",
-  "who": "Stadjer, droog en sarcastisch"
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: tired, deadpan."
  },
  {
   "file": "duo/anita_start_0.mp3",
@@ -464,7 +514,8 @@
   "text": "Bijbaantje! Eindelijk iets nuttigs.",
   "tag": "enthusiastic, teasing",
   "voice": "Callirrhoe",
-  "who": "Groningse vrouw, lacherig en ad rem"
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthusiastic, teasing."
  },
  {
   "file": "duo/anita_end_0.mp3",
@@ -473,6 +524,7 @@
   "text": "Kijk ons nou, harde werkers.",
   "tag": "proud, laughing",
   "voice": "Callirrhoe",
-  "who": "Groningse vrouw, lacherig en ad rem"
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: proud, laughing."
  }
 ]

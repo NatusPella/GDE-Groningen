@@ -6,6 +6,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Alle stemmen zijn opnieuw ingesproken** met een nieuwer spraakmodel.
+  Iedereen klinkt natuurlijker en de emotie per zin komt beter over.
+- **Tammo heeft een nieuwe stem** en praat nu als een echte Stadjer, met
+  hier en daar een Gronings woord ("Mien droom"). Douwe en de
+  taxicentralist hebben Tammo's oude stem gekregen.
+
 ## [0.21.0] - 2026-10-01
 
 ### Nieuw
