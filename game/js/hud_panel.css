@@ -6,6 +6,9 @@
   --mm-size: 230px;
   /* the minimap steps up for the speed and damage badge in a vehicle */
   --mm-bottom: 16px;
+  /* the right column under the top-right block (hud_panel.js measures it) */
+  --hud-tr-bottom: 200px;
+  --hud-stack-top: 210px;
   /* HUD scale from uiscale.js; vw/vh inside #hud must be divided by it */
   zoom: var(--ui, 1);
 }
@@ -652,7 +655,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
   right: 22px;
   bottom: 0;
   width: 270px;
-  height: min(500px, calc(100vh / var(--ui, 1) - 80px));
+  height: min(500px, calc(100vh / var(--ui, 1) - var(--hud-tr-bottom) - 28px));
   transform: translateY(105%);
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   pointer-events: none;
@@ -879,7 +882,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 /* --- race panel (checkpoint races, kroegentocht, rondvaart) ------------ */
 #hud .hud-race {
   position: absolute;
-  top: 200px;
+  top: calc(var(--hud-tr-bottom) + 8px);
   right: 14px;
   width: 232px;
   box-sizing: border-box;

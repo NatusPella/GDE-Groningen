@@ -123,6 +123,12 @@ nieuwe functies, `y` voor alleen bugfixes.
   hier en daar een Gronings woord ("Mien droom"). Douwe en de
   taxicentralist hebben Tammo's oude stem gekregen.
 
+### Opgelost
+- Telefoontjes, voicemails en Bel Rikus vallen niet meer over het blok
+  rechtsboven (tijd, sterren, geld, wapen): de telefoon schuift eronder,
+  en ook onder het racepaneel. Is er te weinig ruimte, dan wordt hij
+  compacter of gaat hij ernaast staan, vrij van de minimap.
+
 ## [0.21.0] - 2026-10-01
 
 ### Nieuw

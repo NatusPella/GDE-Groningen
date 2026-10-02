@@ -60,15 +60,21 @@ function injectStyle() {
   const st = document.createElement('style');
   st.id = 'storycontact-style';
   st.textContent = `
-#hud .sc-phone { position: absolute; right: 22px; top: 118px; width: 250px; border-radius: 26px; padding: 10px 9px 14px;
-  background: linear-gradient(180deg, #23262b, #121418); border: 2px solid #3a3f46; box-shadow: 0 14px 34px rgba(0,0,0,.6);
+#hud .sc-phone { position: absolute; right: 14px; top: var(--hud-stack-top, 210px); width: 232px; box-sizing: border-box; border-radius: 26px; padding: 10px 9px 14px;
+  max-height: calc(100vh / var(--ui, 1) - var(--hud-stack-top, 210px) - var(--mm-size, 230px) - var(--mm-bottom, 16px) - 46px); overflow: hidden;
+  background: #0c140e; border: 2px solid #1e9e56; box-shadow: 0 14px 34px rgba(0,0,0,.6), 0 0 0 3px rgba(12,20,14,.85);
   color: #f2f2f2; font-family: 'Arial Narrow', Arial, sans-serif; transform: translateY(40px) rotate(3deg); opacity: 0;
-  transition: transform .35s ease, opacity .3s ease; pointer-events: none; }
+  transition: transform var(--dur-slow, 320ms) var(--ease-out, ease-out), opacity var(--dur-base, 200ms) var(--ease-out, ease-out); pointer-events: none; }
+body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(--hud-stack-top, 210px) - 60px); }
+#hud .sc-phone.aside { top: calc(var(--hud-tr-bottom, 200px) + 8px); right: 258px; max-height: calc(100vh / var(--ui, 1) - var(--hud-tr-bottom, 200px) - 200px); }
+#hud .sc-phone.compact .sc-portrait, #hud .sc-phone.compact .sc-wave { display: none; }
+#hud .sc-phone.compact .sc-screen { min-height: 0; }
+#hud .sc-phone.compact .sc-livecanvas, #hud .sc-phone.compact .sc-postimg { height: 88px; }
 #hud .sc-phone.show { transform: translateY(0) rotate(0); opacity: 1; }
 #hud .sc-phone.ring { animation: sc-shake .5s infinite; }
 @keyframes sc-shake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-2.2deg); } 75% { transform: rotate(2.2deg); } }
 #hud .sc-top { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,.55); padding: 0 8px 6px; }
-#hud .sc-screen { position: relative; border-radius: 18px; overflow: hidden; background: #0d0f12; min-height: 250px; display: flex; flex-direction: column; }
+#hud .sc-screen { position: relative; border-radius: 18px; overflow: hidden; background: radial-gradient(ellipse at top, #17301f 0%, #0c140e 85%); border: 1px solid rgba(63,201,122,.35); min-height: 250px; display: flex; flex-direction: column; }
 #hud .sc-head { text-align: center; padding: 14px 10px 6px; }
 #hud .sc-state { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #3fc97a; }
 #hud .sc-name { font-size: 22px; font-weight: bold; margin-top: 2px; }
@@ -86,7 +92,7 @@ function injectStyle() {
 #hud .sc-dot, #sc-live .sc-dot { background: #e0262f; color: #fff; font-weight: bold; border-radius: 4px; padding: 1px 5px; letter-spacing: 1px; }
 #hud .sc-livecanvas { width: 100%; height: 170px; image-rendering: pixelated; display: block; }
 #hud .sc-chat, #sc-live .sc-chat { font-size: 11px; line-height: 1.35; padding: 4px 9px; color: rgba(255,255,255,.85); height: 44px; overflow: hidden; }
-#hud .sc-chat b, #sc-live .sc-chat b { color: #8fd3ff; margin-right: 4px; }
+#hud .sc-chat b, #sc-live .sc-chat b { color: #3fc97a; margin-right: 4px; }
 #hud .sc-post { padding: 8px; }
 #hud .sc-posthead { display: flex; align-items: center; gap: 7px; font-size: 13px; }
 #hud .sc-posthead canvas { width: 28px; height: 28px; border-radius: 50%; image-rendering: pixelated; }
@@ -279,6 +285,7 @@ function start(c) {
   }
   if (c.via === 'card') { cur.phase = 'talk'; next(); return; }
   renderPhone(c);
+  fitPhone(c);
   root.classList.add('show');
   if (c.via === 'call' || c.via === 'voicemail') { root.classList.add('ring'); playPhoneRing(2); cur.until = RING_S; } else if (c.via === 'radio') { playRadioSting(); cur.until = 1.6; } else { cur.until = 0.9; playPhoneRing(1); }
 }
@@ -295,7 +302,27 @@ function next() {
   if (line[2] && line[2].clue) playClueSting();
   if (line[2] && line[2].card) showNameCard(line[2].card);
   if (c.via === 'card') showCard(c, line);
-  else setBubble(line, c);
+  else { setBubble(line, c); if (root.scrollHeight > root.clientHeight + 1) fitPhone(c); }
+}
+
+// Full phone under the top-right column; without the room the portrait goes,
+// then it steps aside to the left of the column (clear of the minimap). One
+// layout for the whole call, so it does not jump between lines.
+const FITS = [[], ['compact'], ['aside'], ['aside', 'compact']];
+function fitPhone(c) {
+  if (!root) return;
+  const bubble = els && els.bubble;
+  const before = bubble ? bubble.innerHTML : '';
+  const texts = bubble ? c.lines.map((l) => speakerHtml(nameOf(l[0])) + dualHtml(l[1])) : [''];
+  let fit = FITS[FITS.length - 1];
+  for (const cls of FITS) {
+    root.classList.remove('compact', 'aside');
+    root.classList.add(...cls);
+    if (texts.every((t) => { if (bubble) bubble.innerHTML = t; return root.scrollHeight <= root.clientHeight + 1; })) { fit = cls; break; }
+  }
+  root.classList.remove('compact', 'aside');
+  root.classList.add(...fit);
+  if (bubble) bubble.innerHTML = before;
 }
 
 function finish() {
