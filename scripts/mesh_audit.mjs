@@ -452,10 +452,15 @@ BLD.forEach((B, bi) => {
     }
     if (!n || land / n < 0.5) return;
   }
+  // facades by the water stand on a foundation down below the waterline
+  const found = MB.buildingFoundation && MB.buildingFoundation(b);
+  const wetAt = new Set();
+  if (found) found.edges.forEach((e, i) => { if (found.wet[i]) wetAt.add(e.ax + ',' + e.ay); });
   for (let i = 0; i < ring.length; i++) {
     const [ax, ay] = ring[i], [bx, by] = ring[(i + 1) % ring.length];
     const L = Math.hypot(bx - ax, by - ay);
     if (L < 0.5) continue;
+    const edgeBase = found ? (wetAt.has(ax + ',' + ay) ? found.y : 0) : base;
     let nx = -(by - ay) / L, ny = (bx - ax) / L;
     const mx = (ax + bx) / 2, my = (ay + by) / 2;
     if (pointInPolygon(mx + nx * 0.3, my + ny * 0.3, ring)) { nx = -nx; ny = -ny; }
@@ -463,7 +468,7 @@ BLD.forEach((B, bi) => {
     for (let j = 0; j < k; j++) {
       const t = (j + 0.5) / k;
       const x = ax + (bx - ax) * t + nx * 0.3, y = ay + (by - ay) * t + ny * 0.3;
-      if (inArea(x, y)) baseProbes.push([x, y, base, bi, L / k, nx, ny]);
+      if (inArea(x, y)) baseProbes.push([x, y, edgeBase, bi, L / k, nx, ny]);
     }
   }
 });
@@ -760,7 +765,7 @@ for (let tile = 0; tile < TX * TY; tile++) {
       e.float += len;
       if (g === null) e.voidLen += len;
       if (drop > e.drop) { e.drop = drop; e.at = [x, y]; }
-    } else if (g - base > 0.3 && groundKind !== 'water') { e.sink += len; if (!e.at) e.at = [x, y]; }
+    } else if ((base > -0.5 || BLD[bi].b.type === 'houseboat') && g - base > 0.3 && groundKind !== 'water') { e.sink += len; if (!e.at) e.at = [x, y]; }
   }
 }
 log('rasterised');
