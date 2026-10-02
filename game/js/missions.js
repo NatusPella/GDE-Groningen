@@ -103,9 +103,9 @@ function buildDefs(world) {
       intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.', 'Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.'],
       outro: 'Berend zei goud. En moi. Tegen Anita.',
       timeLimit: 85,
-      reward: 400,
-      // Berend takes €3 off per percent of damage, down to a quarter of the fee
-      scratchFine: 3,
+      reward: 50,
+      // Berend takes 50 cents off per percent of damage, down to a quarter of the fee
+      scratchFine: 0.5,
       vehicleName: 'Berends bakkie',
       destName: 'het Boterdiep',
       start: drive(224, -27),
