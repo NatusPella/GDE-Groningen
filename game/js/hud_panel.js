@@ -21,11 +21,15 @@ import { edgeDistance, urbanWeight } from './countryfield.js';
 import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { storyWaiting, missionOnMap } from './goal.js';
-import { setGhostBar, ring } from './motion.js';
+import { setGhostBar, ring, pop } from './motion.js';
+import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
+import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
-import { speakerColor } from './speakers.js';
+// portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
+// colours stay in subtitles
+const HUD_ACCENT = '#3fc97a';
 
 const HEART_PATH = 'M12 21s-7.8-4.7-9.6-10A5.3 5.3 0 0 1 12 6.1a5.3 5.3 0 0 1 9.6 4.9C19.8 16.3 12 21 12 21z';
 const SHIELD_PATH = 'M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z';
@@ -54,7 +58,7 @@ export function initHud(world) {
   topLeft.className = 'hud-top-left';
   topLeft.innerHTML =
     '<div class="hud-id">' +
-      '<div class="hud-portrait" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7.2"/><path class="hair"/><path d="M6 40c1-9 7-13.5 14-13.5S33 31 34 40z"/></svg></div>' +
+      '<div class="hud-portrait" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7.2"/><path class="hair"/><path d="M6 40c1-9 7-13.5 14-13.5S33 31 34 40z"/></svg><img alt=""></div>' +
       '<div class="hud-id-main">' +
         '<div class="hud-name-row"><div class="hud-character"></div><div class="hud-status">' +
           '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
@@ -63,16 +67,19 @@ export function initHud(world) {
         `<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>` +
         `<div class="hud-meter ar" role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>` +
       '</div>' +
-    '</div>';
+    '</div>' +
+    '<div class="hud-mate" hidden><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></div>';
   root.appendChild(topLeft);
 
   const topRight = document.createElement('div');
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
-    '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><svg class="hud-clock-icon" viewBox="0 0 24 24" aria-hidden="true"></svg><b></b><small></small></div>' +
-    '<div class="hud-wanted"></div>' +
-    '<div class="hud-money"></div>' +
+    '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-dp"><svg class="hud-clock-icon" viewBox="0 0 24 24" aria-hidden="true"></svg><small></small></span><b></b></div>' +
+    '<div class="hud-wanted" role="img"></div>' +
+    '<i class="hud-tr-sep"></i>' +
+    '<div class="hud-tr-row"><small>Op zak</small><span class="hud-money"></span></div>' +
     '<div class="hud-money-delta"></div>' +
+    '<i class="hud-tr-sep"></i>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
 
@@ -82,7 +89,7 @@ export function initHud(world) {
 
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<b></b><span>km/u</span>';
+  speedo.innerHTML = '<span class="sp-num"><b></b><span>km/u</span></span><span class="sp-dmg"><small>Schade</small><span class="sp-bar"><i></i></span></span>';
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -146,6 +153,11 @@ export function initHud(world) {
     hpNum: topLeft.querySelector('.hud-meter.hp b'),
     arNum: topLeft.querySelector('.hud-meter.ar b'),
     portrait: topLeft.querySelector('.hud-portrait'),
+    portraitImg: topLeft.querySelector('.hud-portrait img'),
+    mate: topLeft.querySelector('.hud-mate'),
+    mateImg: topLeft.querySelector('.hud-mate img'),
+    mateTxt: topLeft.querySelector('.hud-mate-txt'),
+    mateKey: '', portraitKey: '', portraitT: 0,
     drunk: topLeft.querySelector('.hud-chip.drunk'),
     idKey: '', hpKey: '', arKey: '',
     mute: topLeft.querySelector('.hud-mute'),
@@ -156,12 +168,16 @@ export function initHud(world) {
     damage,
     speedo,
     speedoValue: speedo.querySelector('b'),
+    speedoDmg: speedo.querySelector('.sp-bar i'),
+    speedoDmgLabel: speedo.querySelector('.sp-dmg small'),
+    speedoKey: '',
     weapon: topRight.querySelector('.hud-weapon'),
     mission,
     vehName,
     missionLabel: mission.querySelector('.hud-mission-label'),
     missionProgress: mission.querySelector('.hud-mission-progress'),
     missionTimer: mission.querySelector('.hud-mission-timer'),
+    locationEl: location,
     district: location.querySelector('.hud-district'),
     street: location.querySelector('.hud-street'),
     cards,
@@ -217,7 +233,7 @@ function updateVehicleName(dt, world) {
 
 export function updateHud(dt, world) {
   updateVehicleName(dt, world);
-  updateCharacter(world);
+  updateCharacter(dt, world);
   updateBars(world);
   els.mute.hidden = !isMuted();
   updateWanted(world);
@@ -294,6 +310,11 @@ function updateLocation(dt, world) {
   locationTimer -= dt;
   if (locationTimer > 0) return;
   locationTimer = 0.5;
+  // savegame.js's "Opgeslagen" sits in the location chip
+  if (!els.savedIn) {
+    const t = document.querySelector('#hud > .hud-saved');
+    if (t) { els.locationEl.appendChild(t); els.savedIn = true; }
+  }
   const district = currentDistrict(world);
   const rp = world.map.nearestRoadPoint(world.player.x, world.player.y, 60, false);
   const street = (rp && rp.road && rp.road.name) || (REAL.ready && edgeDistance(world.player.x, world.player.y) > 0 ? realStreetAt(world.player.x, world.player.y) : '');
@@ -308,17 +329,67 @@ const HAIR = {
   anita: 'M12.6 14c-.4-5.4 3-8.6 7.4-8.6s7.8 3.2 7.4 8.6c-1.8-2.6-4.4-3.8-7.4-3.8s-5.6 1.2-7.4 3.8zM26.4 11.5c3.4 1.2 4.6 5.6 2.8 9.4-.6-2.4-1.8-3.8-3.4-4.4z',
 };
 
-function updateCharacter(world) {
+function updateCharacter(dt, world) {
   const ch = world.player.character === 'anita' ? 'anita' : 'tammo';
   const drunk = (world.drunk || 0) > 0.08;
   const key = ch + (drunk ? 'd' : '');
-  if (key === els.idKey) return;
-  els.idKey = key;
-  const name = CHARACTER_LABELS[ch];
-  els.character.textContent = name;
-  els.character.closest('.hud-id').style.setProperty('--spk', speakerColor(name));
-  els.portrait.querySelector('.hair').setAttribute('d', HAIR[ch]);
-  els.drunk.hidden = !drunk;
+  if (key !== els.idKey) {
+    const swap = els.idKey && els.idKey[0] !== key[0];
+    els.idKey = key;
+    const name = CHARACTER_LABELS[ch];
+    els.character.textContent = name;
+    els.character.closest('.hud-top-left').style.setProperty('--spk', HUD_ACCENT);
+    els.portrait.querySelector('.hair').setAttribute('d', HAIR[ch]);
+    els.drunk.hidden = !drunk;
+    els.portraitT = 0;
+    if (swap) pop(els.portrait);
+  }
+  // the outfits (wardrobe, the heist overall) change the looks in place
+  els.portraitT -= dt;
+  if (els.portraitT <= 0) {
+    els.portraitT = 1;
+    setPortrait(els.portraitImg, ch, 'portraitKey');
+  }
+  updateMate(world);
+}
+
+const LOOKS = { tammo: TAMMO_APPEARANCE, anita: ANITA_APPEARANCE };
+const PORTRAIT_PX = 96;
+
+// A head-and-shoulders render of the real character model (vehiclepreview.js
+// shared renderer, cached per look); the drawn silhouette shows until then.
+function setPortrait(img, ch, keyField) {
+  const look = LOOKS[ch];
+  const key = ch + JSON.stringify(look);
+  if (els[keyField] === key) return;
+  els[keyField] = key;
+  renderSnapshot({ kind: 'person', look: { ...look }, frame: 'head' }, PORTRAIT_PX, PORTRAIT_PX, (url) => {
+    if (els[keyField] !== key || !url) return;
+    img.src = url;
+    img.classList.add('on');
+  }, { angle: PORTRAIT_ANGLE });
+}
+
+// "Anita rijdt mee": the companion's own small portrait while they are with you.
+function updateMate(world) {
+  const c = world.companion;
+  const p = world.player;
+  let text = '';
+  if (c && !world.pigeonMode && !c.hidden) {
+    const name = c.character === 'anita' ? 'Anita' : 'Tammo';
+    if (p.inVehicle && c.inVehicle === p.inVehicle) text = `${name} ${p.inVehicle.isBike ? 'fietst' : p.inVehicle.isBoat ? 'vaart' : p.inVehicle.isHeli ? 'vliegt' : 'rijdt'} mee`;
+    else if (!c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) < 30) text = `${name} loopt mee`;
+  }
+  const key = text && c.character + text;
+  if (key === els.mateKey) return;
+  const was = els.mateKey;
+  els.mateKey = key;
+  els.mate.hidden = !text;
+  if (!text) return;
+  els.mateTxt.textContent = text;
+  els.mate.style.setProperty('--spk', HUD_ACCENT);
+  setPortrait(els.mateImg, c.character === 'anita' ? 'anita' : 'tammo', 'mateLookKey');
+  if (!was) { els.mate.classList.remove('in'); void els.mate.offsetWidth; els.mate.classList.add('in'); }
 }
 
 const clampPct = (v) => Math.max(0, Math.min(100, Number.isFinite(v) ? v : 0));
@@ -330,6 +401,7 @@ function updateBars(world) {
     els.hpNum.textContent = hp;
     els.hpRow.setAttribute('aria-valuenow', hp);
     els.hpRow.classList.toggle('low', hp < 30 && hp > 0);
+    els.portrait.classList.toggle('low', hp < 30);
   }
   if (ar !== els.arKey) {
     els.arKey = ar;
@@ -340,17 +412,20 @@ function updateBars(world) {
   }
 }
 
+const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6-5.4-3.2-5.4 3.2 1.3-6-4.5-4 6-.6z"/></svg>';
 let wantedKey = '';
+let wantedShown = 0;
 function updateWanted(world) {
   const searching = !!(world.police && world.police.searching);
   const key = world.wanted + (searching ? 's' : '');
   if (key === wantedKey) return;
   wantedKey = key;
-  let html = '';
-  for (let i = 0; i < 5; i++) {
-    html += i < world.wanted ? '<span class="on">★</span>' : '<span class="off">★</span>';
-  }
-  els.wanted.innerHTML = html;
+  if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
+  const stars = [...els.wanted.children];
+  stars.forEach((st, i) => st.classList.toggle('on', i < world.wanted));
+  // a new star pops in, one at a time
+  for (let i = wantedShown; i < world.wanted; i++) pop(stars[i]);
+  wantedShown = world.wanted;
   els.wanted.classList.toggle('searching', searching && world.wanted > 0);
   els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5${searching ? ', politie zoekt je' : ''}`);
 }
@@ -414,11 +489,27 @@ function updateDamage(dt, world) {
   els.damage.style.opacity = o.toFixed(3);
 }
 
+// Speed and, for a vehicle that can break, its damage under the minimap.
 function updateSpeedo(world) {
   const v = world.player.inVehicle || world.trainCam;
   els.speedo.classList.toggle('visible', !!v);
-  if (!v) return;
+  document.body.classList.toggle('hud-in-vehicle', !!v);
+  if (!v) { els.speedoKey = ''; return; }
   els.speedoValue.textContent = String(Math.round(Math.abs(v.speed || 0) * 3.6));
+  const dmg = v === world.trainCam || !Number.isFinite(v.health) ? -1 : Math.round(clampPct(100 - v.health));
+  const key = v.id + ':' + dmg;
+  if (key === els.speedoKey) return;
+  const was = Number(els.speedoKey.split(':')[1]);
+  const fresh = !els.speedoKey.startsWith(v.id + ':');
+  els.speedoKey = key;
+  els.speedo.classList.toggle('no-dmg', dmg < 0);
+  if (dmg < 0) return;
+  els.speedo.classList.toggle('hurt', dmg >= 60);
+  els.speedoDmgLabel.textContent = dmg >= 60 ? `Schade ${dmg}%` : 'Schade';
+  if (fresh) els.speedoDmg.style.transition = 'none';
+  els.speedoDmg.style.width = dmg + '%';
+  if (fresh) { void els.speedoDmg.offsetWidth; els.speedoDmg.style.transition = ''; }
+  else if (dmg > was + 4) pop(els.speedo);
 }
 
 const WEAPON_LABELS = {
@@ -475,18 +566,23 @@ function updateMoneyWeapon(dt, world) {
   els.money.textContent = '€' + Math.round(moneyShown).toLocaleString('nl-NL');
   els.money.classList.toggle('rolling', diff !== 0);
   const ammo = world.ammo ? world.ammo[world.weapon] : undefined;
-  const ammoText = ammo === undefined || NO_COUNT.has(world.weapon) ? '' : ammo === Infinity ? ' ∞' : ' ' + ammo;
   const weaponKey = WEAPON_ICONS[world.weapon] ? world.weapon : 'fists';
+  const sub = weaponKey === 'fists' ? 'geen wapen' : ammo === undefined || NO_COUNT.has(world.weapon) ? 'slaan' : ammo === Infinity ? '∞' : String(ammo);
   if (els.weapon.dataset.key !== weaponKey) {
     els.weapon.dataset.key = weaponKey;
-    els.weapon.innerHTML = `<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true">${WEAPON_ICONS[weaponKey]}</svg><span class="hud-weapon-text"></span>`;
+    els.weapon.innerHTML = `<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true">${WEAPON_ICONS[weaponKey]}</svg><span class="hud-weapon-col"><span class="hud-weapon-text"></span><small class="hud-weapon-ammo"></small></span>`;
     els.weapon.classList.remove('switched');
     void els.weapon.offsetWidth;
     els.weapon.classList.add('switched');
   }
-  const label = (WEAPON_LABELS[world.weapon] || 'VUISTEN') + ammoText;
+  const label = WEAPON_LABELS[world.weapon] || 'VUISTEN';
   const textEl = els.weapon.querySelector('.hud-weapon-text');
   if (textEl.textContent !== label) textEl.textContent = label;
+  const ammoEl = els.weapon.querySelector('.hud-weapon-ammo');
+  if (ammoEl.textContent !== sub) {
+    ammoEl.textContent = sub;
+    ammoEl.dataset.num = /^\d+$/.test(sub) ? '1' : '';
+  }
 }
 
 // The objective line: one objective at a time (a mission stage, else the

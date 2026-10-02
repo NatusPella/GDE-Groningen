@@ -61,7 +61,7 @@
   - De terrassen: tafels, stoelen en parasols als instanced meshes, met zittende figuranten. Ze staan alleen op het plein, nooit op de straat of het fietspad dwars over de Vismarkt. Rond de terrassen en het plantsoen rijdt geen verkeer.
   - De duiven: zwermen van 64 tot 72 vogels in twee instanced draw calls (`makeBirds` in `intromontage.js`, dus ook in de openingsmontage). Ze vliegen op en cirkelen boven het plein.
   - Het Noorderplantsoen: kleedjes (canvas-ruit), twee barbecues met gloeiende kolen en een frisbee, op een open grasveld in het Noorderplantsoen, meer dan 30 m van elke weg en elk fietspad.
-  - De pinautomaat: de steekwagen uit de openingsmontage, geen aanhanger. Anita loopt erachter en duwt hem.
+  - De pinautomaat: de steekwagen uit de eerste openingsmontage (nu `trailerprops.js`, met de vitrinezaal en de vlaggen), geen aanhanger. Anita loopt erachter en duwt hem.
   - Tammo's deur: een losse deur met kozijn tegen een gevel in de Herestraat.
   - De botsauto van Durk & Douwe: een eigen exemplaar in de tent van `kermis.js`.
   - De pion: een kegel van drie meshes.
@@ -91,11 +91,3 @@ Dezelfde aanpak in het klein: de trailer uit het definitieve script, van ongevee
 - **Nooit in de repo:** de standaardmap is `~/Downloads`. De app weigert een uitvoerpad binnen de repo, en `*.mp4` en frame-mappen komen in `.gitignore`.
 - **Duur:** door de vaste stap draait de export langzamer dan realtime. Op deze Mac waarschijnlijk 5 tot 15 minuten.
 - **Thumbnail:** de app maakt er een PNG van shot 22 bij voor YouTube, ook in Downloads.
-
-## "Wat is er nieuw" na een update
-
-- De game onthoudt de laatst geopende versie (`gte-last-version` in localStorage).
-- **Na een update:** het startscherm opent direct "Wat is er nieuw". Bovenaan staan de versies sinds je vorige keer, gemarkeerd als *Nieuw sinds je vorige keer*. Esc of Enter brengt je naar het menu.
-- **De allereerste keer** (nog nooit een versie gehad): niets, gewoon het menu. Wie al een save of instellingen van vóór deze functie heeft, telt wél als terugkerende speler.
-- **Dev-builds** (`VERSION = 'dev'`) slaan dit over.
-- **Volgorde:** als het prestatie-advies van de eerste start ook verschijnt, komt dat eerst en "Wat is er nieuw" daarna.

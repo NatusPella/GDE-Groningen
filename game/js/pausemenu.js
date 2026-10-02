@@ -2,8 +2,8 @@
 // it). A fixed rail on the left (Doorgaan, the sections, Opslaan/Laden,
 // Hoofdmenu) never changes shape; the sheet beside it shows one section.
 // Esc opens on Overzicht; from another section Esc/Backspace go back to it,
-// then close. Sections: Overzicht, Te doen (todoui.js), Kaart, Garage,
-// Prestaties, Instellingen, Besturing.
+// then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
+// (verhaalui.js), Kaart, Garage, Prestaties, Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio } from './mapview.js';
@@ -21,6 +21,8 @@ import { getUiScale } from './uiscale.js';
 import { DEV } from './devflags.js';
 import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummary, selectTodo } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
+import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } from './verhaalui.js';
+import { anyFresh } from './characters.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
 
@@ -144,6 +146,7 @@ const ICONS = {
   map: '<path d="M3 6.2l6-2.2 6 2.2 6-2.2v13.8l-6 2.2-6-2.2-6 2.2zM9 4v13.8M15 6.2V20"/>',
   overzicht: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
   todo: '<path d="M6 3v18M6 4h12l-2.5 4L18 12H6"/>',
+  verhaal: '<path d="M4 5.5C6.5 4 9.5 4 12 6c2.5-2 5.5-2 8-.5V19c-2.5-1.5-5.5-1.5-8 .5-2.5-2-5.5-2-8-.5zM12 6v13.5"/>',
   garage: '<path d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/>',
   prestaties: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
@@ -157,6 +160,7 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 const SECTIONS = [
   ['overzicht', 'Overzicht', ''],
   ['todo', 'Te doen', 'Verhaal, missies, minigames en meer'],
+  ['verhaal', 'Verhaal', 'Personages en aanwijzingen'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
@@ -166,6 +170,7 @@ const SECTIONS = [
 const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
+  verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
   settings: [['sound', 'Geluid'], ['video', 'Beeld'], ['camera', 'Camera & muis'], ['display', 'Weergave']],
 };
 
@@ -175,6 +180,7 @@ const FOOTERS = {
   map: `<b>Klik</b> doel kiezen · <b>Rechtsklik / Del</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}<b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> naar jezelf`,
   garage: '<b>Laten afleveren</b> zet je voertuig om de hoek, buiten beeld · gekochte voertuigen blijven voorgoed van jou',
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
+  verhaal: 'Wie je spreekt, komt erbij · <b>Slepen</b> draait het model · niemand verklapt wat nog komt',
   settings: 'Instellingen worden automatisch bewaard',
   controls: '<b>/</b> zoeken · <b>Toetshints</b> aan of uit onder Instellingen › Weergave',
 };
@@ -339,6 +345,9 @@ export function initPauseMenu(w) {
           </div></section>
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-garage"></div></section>
+          <section data-panel="verhaal" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
+            <div data-of="verhaal" data-sub="personages"></div><div data-of="verhaal" data-sub="aanwijzingen" hidden></div>
+          </div></section>
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-ach"></div></section>
           <section data-panel="settings" class="pm-panel pm-col" hidden><div class="pm-inner pm-narrow">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-cinner">
@@ -365,7 +374,7 @@ export function initPauseMenu(w) {
     const cyc = e.target.closest('[data-cycle]');
     if (cyc) return cycleSection(Number(cyc.dataset.cycle));
     const st = e.target.closest('[data-subtab]');
-    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); return; }
+    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); return; }
     const seg = e.target.closest('.pm-seg [data-value]');
     if (seg) { setSetting(seg.parentElement.dataset.setting, seg.dataset.value); syncControls(); return; }
     const pre = e.target.closest('[data-preset]');
@@ -387,6 +396,7 @@ export function initPauseMenu(w) {
     if (gf) return garageFind(gf.dataset.garageFind);
     const gs = e.target.closest('[data-garage-select]');
     if (gs) return selectGarageVehicle(garageEl(), gs.dataset.garageSelect);
+    if (tab === 'verhaal' && verhaalClick(e, activePanel())) return;
     const action = e.target.closest('[data-action]');
     if (action) runAction(action.dataset.action);
   });
@@ -649,6 +659,7 @@ function moveFocus(dir) {
   if (prevSub && best.dataset.subtab && best.dataset.of === prevSub) {
     showSubtab(best.dataset.of, best.dataset.subtab);
     if (prevSub === 'todo') renderTodoPanel();
+    if (prevSub === 'verhaal') renderVerhaalPanel();
   }
 }
 
@@ -750,7 +761,7 @@ function showSubtab(of, name) {
   if (pref.sub[of] !== name) { pref.sub[of] = name; savePref(); }
   const panel = root.querySelector(`[data-panel="${of}"]`);
   if (panel) panel.scrollTop = 0;
-  if (of === 'todo' && name === 'verhaal') { markCluesSeen(); syncNavBadges(); }
+  if ((of === 'todo' && name === 'verhaal') || (of === 'verhaal' && name === 'aanwijzingen')) { markCluesSeen(); syncNavBadges(); }
   if (of === 'settings') root.querySelector('[data-bench-confirm]').hidden = true;
 }
 
@@ -871,6 +882,22 @@ function syncNavBadges() {
   if (nav) nav.toggleAttribute('data-new', fresh);
   const sub = root.querySelector('[data-of="todo"][data-subtab="verhaal"]');
   if (sub) sub.toggleAttribute('data-new', fresh);
+  const met = anyFresh();
+  const vNav = root.querySelector('[data-goto="verhaal"]');
+  if (vNav) vNav.toggleAttribute('data-new', fresh || met);
+  const vPeople = root.querySelector('[data-of="verhaal"][data-subtab="personages"]');
+  if (vPeople) vPeople.toggleAttribute('data-new', met);
+  const vClues = root.querySelector('[data-of="verhaal"][data-subtab="aanwijzingen"]');
+  if (vClues) vClues.toggleAttribute('data-new', fresh);
+}
+
+function renderVerhaalPanel() {
+  const panel = root.querySelector('[data-panel="verhaal"]');
+  try {
+    renderVerhaal(panel, pref.sub.verhaal || 'personages');
+    if (tab === 'verhaal') sheet.querySelector('.pm-sheet-sub').textContent = verhaalSummary();
+  } catch (err) { console.error('verhaal', err); }
+  syncNavBadges();
 }
 
 function syncSaveButtons() {
@@ -934,6 +961,7 @@ function showTab(name, how) {
   for (const p of root.querySelectorAll('[data-panel]')) p.hidden = p.dataset.panel !== name;
   if (world) setMapActive(world, open && name === 'map');
   if (name !== 'garage') disposeGarageViewer();
+  if (name !== 'verhaal') disposeVerhaalViewer();
   root.querySelector('.pm-foot-tab').innerHTML = prestart ? '' : FOOTERS[name] || '';
   root.querySelector('.pm-foot-keys').innerHTML = keysHtml();
   root.querySelector('#pm-title').textContent = prestart ? 'Menu' : 'Pauze';
@@ -957,6 +985,7 @@ function showTab(name, how) {
   if (name === HOME) renderOverviewPanel();
   if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'verhaal'); renderTodoPanel(); }
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
+  if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); }
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'sound'); syncControls(); syncDesktopControls(); }
@@ -1000,6 +1029,7 @@ function setOpen(value, name = HOME, how = 'direct') {
   } else {
     if (world) setMapActive(world, false);
     disposeGarageViewer();
+    disposeVerhaalViewer();
     if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
     const p = prestart;
     prestart = null;

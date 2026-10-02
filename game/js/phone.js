@@ -1,8 +1,9 @@
 import { dualHtml } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
+import { noteSpoken } from './characters.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay, isCinematicActive } from './cinematics.js';
 import { getMissionList, getNextMission } from './missions.js';
-import { playMission, isPlayAheadOpen } from './todo.js';
+import { playMission, isPlayAheadOpen, getTodoItems, chooseTodo, placeName } from './todo.js';
 import { setGoal } from './goal.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { saveGame } from './savegame.js';
@@ -66,7 +67,7 @@ function buddyName(w) {
 function contacts(w) {
   return [
     { id: 'buddy', name: buddyName(w), sub: 'Maat', talk: buddyTalk },
-    { id: 'berend', name: 'Bommen Berend', sub: 'Opdrachtgever', talk: berendTalk },
+    { id: 'berend', name: 'Berend Bos', sub: 'Opdrachtgever', talk: berendTalk },
     { id: 'garage', name: 'Garage Knalpot', speaker: 'Henk', sub: 'Henk, auto’s & excuses', talk: garageTalk },
     { id: 'mam', name: 'Mam', sub: 'Thuis', talk: mamTalk },
     ...(storyFlag('jelle') ? [{ id: 'jelle', name: 'Jelle Terpstra', sub: 'De Fryske Snackkening', talk: jelleTalk }] : []),
@@ -348,46 +349,89 @@ function activate() {
   }
 }
 
-// Ubbo: klusjes op afroep, the side jobs as a gig-economy app.
+// Ubbo: klusjes op afroep. One list in sections (what runs now, the story,
+// things to do nearby, the side jobs), nearest first; Enter makes a row the
+// goal. Rows: { section, icon, name, sub, side, stop, dim, run }.
 const fmtDist = (m) => (m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`);
+const UBBO_SECTIONS = { nu: 'Nu bezig', verhaal: 'Verhaal', uitdaging: 'Uitdagingen', dichtbij: 'Dichtbij te doen', baan: 'Bijbaantjes' };
+const UBBO_ICONS = {
+  stop: '<rect x="7" y="7" width="10" height="10" rx="1.5"/>',
+  story: '<path d="M7 4v16M7 5h10l-2 3.5L17 12H7"/>',
+  play: '<circle cx="11" cy="11" r="6"/><path d="M15.5 15.5L20 20"/>',
+  cup: '<path d="M8 4h8v3a4 4 0 0 1-8 0zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 11v4M9 19h6l-.8-4h-4.4z"/>',
+  job: '<rect x="4" y="8" width="16" height="11" rx="2"/><path d="M9 8V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v2M4 13h16"/>',
+  route: '<path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10zM12 9a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>',
+};
+const ubboIcon = (id) => `<svg viewBox="0 0 24 24" aria-hidden="true">${UBBO_ICONS[id] || UBBO_ICONS.play}</svg>`;
 
 function ubboRows() {
   const rows = [];
-  const offers = getSideJobOffers(world);
+  const w = world;
+  const offers = getSideJobOffers(w);
   const active = offers.find((o) => o.active);
-  if (active) rows.push({ quit: true, name: 'Dienst stoppen', sub: `Nu bezig: ${active.name}`, run: () => { quitSideJob(); flashAndClose('Dienst gestopt. Ubbo geeft je een sterretje minder'); } });
-  const pg = world.postgameActions;
-  if (pg && world.postgame) {
-    for (const o of pg.offers()) {
-      rows.push({ name: o.name, sub: `${o.blurb} · ${fmtDist(o.dist)}${o.medal ? ` · ${o.medal.toLowerCase()}` : ''}`, run: () => { setGoal({ kind: 'challenge', id: o.id, name: o.name, sub: o.where, x: o.x, y: o.y }, { quiet: true }); flashAndClose(`Doel: ${o.name}`); } });
+  if (active) {
+    const job = w.sideJob && w.sideJob.active ? w.sideJob : null;
+    rows.push({ section: 'nu', icon: 'stop', stop: true, name: active.name, sub: `Dienst loopt${job && job.progress ? ` · ${job.progress}` : ''}`, side: 'Stoppen', run: () => { quitSideJob(); flashAndClose('Dienst gestopt. Ubbo geeft je een sterretje minder'); } });
+  }
+  let todo = [];
+  try { todo = getTodoItems(w); } catch (e) { /* story not ready yet */ }
+  const story = todo.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies'));
+  if (story && story.goal) {
+    rows.push({
+      section: 'verhaal', icon: 'story', name: `${story.code ? story.code + ' · ' : ''}${story.title}`,
+      sub: (story.x != null && placeName(w, story.x, story.y)) || story.meta || '', side: story.dist != null ? fmtDist(story.dist) : '',
+      run: () => { setOpen(false); chooseTodo(w, story); },
+    });
+  }
+  const pg = w.postgameActions;
+  if (pg && w.postgame) {
+    for (const o of [...pg.offers()].sort((a, b) => a.dist - b.dist)) {
+      rows.push({ section: 'uitdaging', icon: 'cup', name: o.name, sub: `${o.blurb}${o.medal ? ` · ${o.medal.toLowerCase()}` : ''}`, side: fmtDist(o.dist), run: () => { setGoal({ kind: 'challenge', id: o.id, name: o.name, sub: o.where, x: o.x, y: o.y }, { quiet: true }); flashAndClose(`Doel: ${o.name}`); } });
     }
     if (pg.guide) {
       const off = pg.guide.isOff();
-      rows.push({ name: off ? 'Automatische route aan' : 'Route: volgende uitdaging', sub: off ? 'De GPS wijst weer de dichtstbijzijnde uitdaging aan' : 'Sla deze over, de GPS wijst de volgende aan', run: () => flashAndClose(off ? pg.guide.on() : pg.guide.next()) });
+      rows.push({ section: 'uitdaging', icon: 'route', name: off ? 'Automatische route aan' : 'Route: volgende uitdaging', sub: off ? 'De GPS wijst weer de dichtstbijzijnde aan' : 'Sla deze over, de GPS wijst de volgende aan', side: '', run: () => flashAndClose(off ? pg.guide.on() : pg.guide.next()) });
     }
     for (const u of pg.upgrades()) {
-      rows.push({ name: `Fjord Frituur: ${u.name}`, sub: u.owned ? `${u.blurb} · gekocht` : `${u.blurb} · €${u.price}`, run: () => flashAndClose(u.buy()) });
+      rows.push({ section: 'uitdaging', icon: 'job', name: `Fjord Frituur: ${u.name}`, sub: u.blurb, side: u.owned ? 'gekocht' : `€${u.price}`, run: () => flashAndClose(u.buy()) });
     }
   }
-  const pad = getPadelSpotsForRender().map((q) => ({ q, d: Math.hypot(q.x - world.player.x, q.y - world.player.y) })).sort((a, b) => a.d - b.d)[0];
+  const near = [];
+  const pad = getPadelSpotsForRender().map((q) => ({ q, d: Math.hypot(q.x - w.player.x, q.y - w.player.y) })).sort((a, b) => a.d - b.d)[0];
   if (pad) {
-    const busy = world.time < pad.q.nextAt;
-    rows.push({ name: `Padel: ${pad.q.name}`, sub: `${busy ? 'baan even bezet' : 'potje padel, volle gezondheid'} · ${fmtDist(pad.d)}`, run: () => { setGoal({ kind: 'play', id: 'padel', name: 'Padel', sub: pad.q.name, x: pad.q.x, y: pad.q.y }, { quiet: true }); flashAndClose(`Doel: padel. Loop naar de deur en druk E`); } });
+    const busy = w.time < pad.q.nextAt;
+    near.push({ section: 'dichtbij', icon: 'play', name: 'Padel', sub: `${pad.q.name}${busy ? ' · baan even bezet' : ''}`, dist: pad.d, run: () => { setGoal({ kind: 'play', id: 'padel', name: 'Padel', sub: pad.q.name, x: pad.q.x, y: pad.q.y }, { quiet: true }); flashAndClose('Doel: padel. Loop naar de deur en druk E'); } });
   }
-  for (const a of activityUbboRows(world)) {
-    rows.push({ name: a.name, sub: `${a.sub} · ${fmtDist(a.dist)}`, run: () => { setGoal(a.play ? { kind: 'play', id: a.play, name: a.name, sub: a.where, x: a.x, y: a.y } : { kind: 'place', name: a.name, x: a.x, y: a.y }, { quiet: true }); flashAndClose(`Doel: ${a.name}. ${a.hint}`); } });
+  for (const a of activityUbboRows(w)) {
+    near.push({ section: 'dichtbij', icon: 'play', name: a.name, sub: a.sub, dist: a.dist, run: () => { setGoal(a.play ? { kind: 'play', id: a.play, name: a.name, sub: a.where, x: a.x, y: a.y } : { kind: 'place', name: a.name, x: a.x, y: a.y }, { quiet: true }); flashAndClose(`Doel: ${a.name}. ${a.hint}`); } });
   }
+  for (const r of near.sort((a, b) => a.dist - b.dist)) rows.push({ ...r, side: fmtDist(r.dist) });
   for (const o of offers) {
+    if (o.active) continue;
     rows.push({
-      ...o, sub: `${o.blurb} · ${fmtDist(o.dist)}`,
+      section: 'baan', icon: 'job', name: o.name, sub: [`€${o.pay[0]}–${o.pay[1]} per rit`, o.level ? `niv. ${o.level}` : '', o.blocked ? o.blocked.toLowerCase() : ''].filter(Boolean).join(' · '),
+      side: fmtDist(o.dist), dim: !!o.blocked,
       run: () => {
-        if (o.active) { flashAndClose('Daar ben je al mee bezig'); return; }
         setGoal({ kind: 'job', id: o.id, name: o.name, sub: 'Bijbaantje', x: o.x, y: o.y }, { quiet: true });
         flashAndClose(o.blocked ? `Doel: ${o.name}. Let op: ${o.blocked.toLowerCase()}` : `Doel: ${o.name}. Loop erheen en druk E`);
       },
     });
   }
   return rows;
+}
+
+function ubboHtml() {
+  let last = '';
+  const body = ubboRows().map((r, i) => {
+    const head = r.section !== last ? `<div class="ub-head">${UBBO_SECTIONS[r.section]}</div>` : '';
+    last = r.section;
+    return head + `<button type="button" class="ub-row${i === st.sel ? ' sel' : ''}${r.stop ? ' stop' : ''}${r.dim ? ' dim' : ''}" data-idx="${i}">` +
+      `<span class="ub-ic">${ubboIcon(r.icon)}</span><span class="ub-txt"><b>${esc(r.name)}</b><small>${esc(r.sub)}</small></span>` +
+      (r.side ? `<span class="ub-side">${esc(r.side)}</span>` : '') + '</button>';
+  }).join('');
+  return '<div class="ph-head ub-top"><button type="button" class="ph-back" data-back aria-label="Terug">‹</button><span>Ubbo</span><small>dichtbij eerst</small></div>' +
+    `<div class="ph-list ub-list">${body || '<p class="ph-empty">Niks te doen. Dat gebeurt nooit in Grunn.</p>'}</div>` +
+    '<div class="ph-foot">Enter: zet als doel</div>';
 }
 
 function currentVehicle() {
@@ -426,6 +470,7 @@ function talk(call) {
   call.phase = 'talk';
   call.line = res.line || '';
   call.actions = [...(res.actions || []), { label: 'Ophangen', run: () => { stopBanterVoice(); goHome(); } }];
+  if (call.line) noteSpoken(world, call.contact.speaker || call.contact.name);
   // Jelle answers in his own voice (the lines manifest)
   const v = call.contact.id === 'jelle' && lineVoiceFor('Jelle Terpstra', call.line);
   if (v) playBanterVoice(v.src);
@@ -478,13 +523,7 @@ function render() {
       vehicleActions().map((a, i) => `<button type="button" class="ph-row ph-action${i === st.sel ? ' sel' : ''}" data-idx="${i}">${esc(a.label)}</button>`).join('') +
       '</div><div class="ph-foot">Afgeleverd buiten beeld, om de hoek</div>';
   } else if (st.screen === 'ubbo') {
-    html = header('Ubbo') + '<div class="ph-foot">Klusjes op afroep. Ubbo Emmius zou trots zijn.</div>' +
-      `<div class="ph-list">${ubboRows().map((r, i) =>
-        `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}${r.quit ? ' hangup' : ''}" data-idx="${i}">` +
-        `<span class="ph-rowtext"><b>${esc(r.name)}</b><small>${esc(r.sub)}${r.level ? ` · niv. ${r.level}` : ''}</small></span>` +
-        (r.pay ? `<span class="ph-chip" data-status="${r.active ? 'actief' : r.blocked ? 'open' : 'geklaard'}">€${r.pay[0]}-${r.pay[1]}</span>` : '') +
-        '</button>').join('')}</div>` +
-      '<div class="ph-foot">Enter: route erheen · verdiensten per rit, geschat</div>';
+    html = ubboHtml();
   } else if (st.screen === 'sikkom') {
     const items = w.phoneHistory || [];
     html = header('Sikkom') + `<div class="ph-list ph-feed">${items.length ? items.map((n) =>

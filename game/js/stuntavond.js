@@ -1,0 +1,207 @@
+// H3 "Iets met de Grote Markt": a summer stunt evening for Jelmer's stream,
+// nobody gets hurt. In a car on the square you score with what you knock
+// over (parasols, kliko's, cardboard boards put out for the evening), with
+// drifts and near misses, with every pigeon flock you send up and once with
+// the council's water truck, which sprays the terrace when you nudge it.
+// Points chain into a combo; hitting someone costs points and the combo
+// ("Chat vindt dat niet leuk") and never kills them (world.stuntSafe,
+// pedestrians.js). missions.js runs it as def type 'stunt'.
+
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { makeProp, addProp, removeProp } from './breakables.js';
+import { Vehicle } from './vehicle.js';
+import { spawnFxPuff } from './fx3d.js';
+
+let sceneMod = null;
+import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
+
+const COMBO_S = 4;
+const COMBO_MAX = 5;
+const HIT_COST = 250;
+const NEAR_MISS = 40;
+const DRIFT_PER_S = 60;
+const FLOCK = 120;
+const SPRAY = 300;
+const KINDS = [
+  { kind: 'parasol', pts: 120, n: 10, opts: { r: 0.3, h: 2.4, mass: 12, material: 'plastic', breakSpeed: 0.6, breakCost: 0 } },
+  { kind: 'kliko', pts: 80, n: 10, opts: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0, burst: 'litter' } },
+  { kind: 'stoepbord', pts: 60, n: 10, opts: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 } },
+];
+const SAY_HIT = ['Chat vindt dat niet leuk.', 'Niemand raken, zei ik!', 'Au. Strafpunten.'];
+const SAY_COMBO = ['Combo!', 'Chat gaat los!', 'Dik feest!'];
+
+let run = null;
+let seq = 0;
+
+const COLORS = { parasol: [0x1e9e56, 0xf0ede4, 0xc8102e], kliko: [0x3f7a3a, 0x4a4d50], stoepbord: [0x6b4a2e] };
+function propMesh(kind, k) {
+  const g = new THREE.Group();
+  const col = COLORS[kind][k % COLORS[kind].length];
+  const mat = (c) => new THREE.MeshLambertMaterial({ color: c });
+  if (kind === 'parasol') {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.3, 6), mat(0xdddddd));
+    pole.position.y = 1.15;
+    const top = new THREE.Mesh(new THREE.ConeGeometry(1.2, 0.5, 8), mat(col));
+    top.position.y = 2.2;
+    g.add(pole, top);
+  } else if (kind === 'kliko') {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.05, 0.7), mat(col));
+    b.position.y = 0.53;
+    g.add(b);
+  } else {
+    const a = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.95, 0.04), mat(col));
+    a.position.y = 0.48;
+    a.rotation.x = 0.18;
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), mat(0x1c2a20));
+    face.position.set(0, 0.5, 0.05);
+    face.rotation.x = 0.18;
+    g.add(a, face);
+  }
+  g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  return g;
+}
+
+function disposeGroup(g) {
+  g.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
+}
+
+function addPoints(w, pts, label) {
+  const R = run;
+  const now = w.time;
+  R.combo = now - R.lastAt < COMBO_S ? Math.min(COMBO_MAX, R.combo + 1) : 1;
+  R.lastAt = now;
+  const got = Math.round(pts * R.combo);
+  R.score += got;
+  R.events++;
+  if (label) w.addMessage(`${label} +${got}${R.combo > 1 ? ` (x${R.combo})` : ''}`, 1.6, { kind: 'missie', key: 'stunt' });
+  else if (R.combo >= 3 && R.combo !== R.saidCombo) { R.saidCombo = R.combo; w.addMessage(`${SAY_COMBO[R.combo % SAY_COMBO.length]} x${R.combo}`, 1.4, { kind: 'missie', key: 'stunt' }); }
+}
+
+// opts: { center: {x, y}, radius, target }
+export function startStunt(w, { center, radius = 45, target = 1500 } = {}) {
+  stopStunt(w);
+  const scene = sceneMod && sceneMod.getScene && sceneMod.getScene();
+  const group = new THREE.Group();
+  group.name = 'stuntavond';
+  if (scene) scene.add(group);
+  const id = ++seq;
+  run = { center, radius, target, score: 0, combo: 1, lastAt: -99, saidCombo: 0, events: 0, hits: 0, broken: 0, flocks: new Set(), props: [], group, drift: 0, near: new WeakSet(), lastHit: w.lastPedHitAt || -1, sprayed: false, sprayT: 0, truck: null };
+  // the props for the evening, on open ground round the square
+  const open = (x, y) => (!w.map.isOpenSpot || w.map.isOpenSpot(x, y)) && !w.map.buildingsNear(x, y, 0.8).length;
+  let k = 0;
+  for (const spec of KINDS) {
+    let placed = 0;
+    for (let tries = 0; placed < spec.n && tries < spec.n * 12; tries++) {
+      const a = Math.random() * Math.PI * 2, r = 6 + Math.random() * (radius - 8);
+      const x = center.x + Math.cos(a) * r, y = center.y + Math.sin(a) * r;
+      if (!open(x, y) || run.props.some((p) => Math.hypot(p.x - x, p.y - y) < 2.5)) continue;
+      const mesh = propMesh(spec.kind, k++);
+      mesh.position.set(x, 0, y);
+      group.add(mesh);
+      const p = makeProp(spec.kind, x, y, {
+        ...spec.opts, key: `stunt${id}-${spec.kind}-${placed}`,
+        makeMesh: () => propMesh(spec.kind, k),
+        disposeMesh: (m) => disposeGroup(m),
+        onBreak: () => {
+          mesh.visible = false;
+          if (!run || run.group !== group) return;
+          run.broken++;
+          addPoints(w, spec.pts, null);
+        },
+      });
+      if (addProp(p)) { run.props.push(p); placed++; } else { group.remove(mesh); disposeGroup(mesh); }
+    }
+  }
+  // the council's water truck, parked at the edge of the terrace
+  for (let tries = 0; tries < 30 && !run.truck; tries++) {
+    const a = Math.random() * Math.PI * 2, r = radius * 0.6;
+    const x = center.x + Math.cos(a) * r, y = center.y + Math.sin(a) * r;
+    if (!open(x, y) || !open(x + Math.cos(a + 1.57) * 4, y + Math.sin(a + 1.57) * 4)) continue;
+    const v = new Vehicle(x, y, a + Math.PI / 2, { name: 'truck', tank: true, len: 6.2, wid: 2.3, maxSpeed: 10, accel: 3, brake: 10, turnRate: 1.2, color: '#e8e6e0' });
+    v.speed = 0;
+    v.missionCar = true;
+    v.label = 'Waterwagen gemeente';
+    w.vehicles.push(v);
+    run.truck = v;
+    run.truckHp = v.health;
+  }
+  w.stuntSafe = { x: center.x, y: center.y, r: radius + 25 };
+  return true;
+}
+
+export function stopStunt(w) {
+  if (!run) return;
+  for (const p of run.props) removeProp(p);
+  run.group.removeFromParent();
+  disposeGroup(run.group);
+  if (run.truck) {
+    run.truck.missionCar = false;
+    const i = w.vehicles.indexOf(run.truck);
+    if (i >= 0 && run.truck.driver !== 'player') w.vehicles.splice(i, 1);
+  }
+  w.stuntSafe = null;
+  run = null;
+}
+
+// Each frame while H3 runs: 'done' once the target is reached, else null.
+export function updateStunt(dt, w) {
+  const R = run;
+  if (!R) return null;
+  const p = w.player, v = p.inVehicle;
+  const inZone = Math.hypot(p.x - R.center.x, p.y - R.center.y) < R.radius + 10;
+  // someone got hit: points off, the combo gone (pedestrians.js keeps them alive)
+  if ((w.lastPedHitAt || -1) !== R.lastHit) {
+    R.lastHit = w.lastPedHitAt;
+    if (inZone) {
+      R.hits++;
+      R.score = Math.max(0, R.score - HIT_COST);
+      R.combo = 1;
+      R.lastAt = -99;
+      w.addMessage(`${SAY_HIT[R.hits % SAY_HIT.length]} -${HIT_COST}`, 2, { kind: 'gevaar', key: 'stunt' });
+    }
+  }
+  if (v && !v.isBoat && inZone) {
+    // drifting through the square
+    const slip = Math.hypot(v.driftX || 0, v.driftY || 0);
+    if (slip > 2.2 && Math.abs(v.speed) > 6) {
+      R.drift += dt;
+      if (R.drift > 0.5) { R.drift = 0; addPoints(w, DRIFT_PER_S * 0.5, null); }
+    } else R.drift = 0;
+    // near misses: fast past someone, without touching
+    if (Math.abs(v.speed) > 8) {
+      for (const ped of w.pedestrians) {
+        if (ped.state === 'dead' || ped.ragdoll || R.near.has(ped)) continue;
+        const d = Math.hypot(ped.x - v.x, ped.y - v.y);
+        if (d < 3.2 && d > 1.6) { R.near.add(ped); addPoints(w, NEAR_MISS, 'Rakelings!'); }
+      }
+    }
+    // the water truck
+    if (R.truck && !R.sprayed && (R.truck.health < R.truckHp - 1 || Math.hypot(R.truck.x - v.x, R.truck.y - v.y) < R.truck.model.len * 0.5)) {
+      R.sprayed = true;
+      R.sprayT = 4;
+      addPoints(w, SPRAY, 'De waterwagen sproeit het terras nat!');
+    }
+  }
+  if (R.sprayT > 0 && R.truck) {
+    R.sprayT -= dt;
+    const t = R.truck, c = Math.cos(t.angle), s = Math.sin(t.angle);
+    for (let k = 0; k < 4; k++) {
+      const side = k % 2 ? 1 : -1;
+      spawnFxPuff(t.x - c * 2.5, 1.4, t.y - s * 2.5, -s * side * 7 + (Math.random() - 0.5) * 2, 3 + Math.random() * 2, c * side * 7 + (Math.random() - 0.5) * 2, 0.9, 0.15, 0.6, 0.85, 0.92, 0.95, 0.7, 1.4, -1);
+    }
+  }
+  // pigeon flocks sent up from the square
+  for (const a of w.wildlife || []) {
+    if (a.kind !== 'pigeon' || a.state !== 'fly' || !a.flock || R.flocks.has(a.flock)) continue;
+    if (Math.hypot(a.x - R.center.x, a.y - R.center.y) > R.radius + 10) continue;
+    if (!(a.fledAt > (w.time - 1))) continue;
+    R.flocks.add(a.flock);
+    addPoints(w, FLOCK, 'Duiven de lucht in!');
+  }
+  return R.score >= R.target ? 'done' : null;
+}
+
+export function stuntStatus() {
+  if (!run) return null;
+  return { score: run.score, target: run.target, combo: run.combo, hits: run.hits, broken: run.broken, flocks: run.flocks.size, sprayed: run.sprayed };
+}

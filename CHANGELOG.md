@@ -15,6 +15,42 @@ nieuwe functies, `y` voor alleen bugfixes.
   Het is ook de benchmark onder Instellingen › Beeld.
 - **Desktop: de trailer als video.** `--trailer-video` maakt er een MP4 van
   (1080p60, met muziek en stemmen) in je Downloads, plus een thumbnail.
+- **Het definitieve verhaal: een zomer in Grunn.** Twee weken augustus, van
+  de KEI-week via Noorderzon naar de kermis en Gronings Ontzet, met een
+  epiloog in september. Alle cutscènes, telefoontjes en berichten zijn
+  herschreven en opnieuw ingesproken. Jelle wil de Gouden Eierbal eerlijk
+  winnen op de Noordelijke Snackprijs, "foar mem", en Oma Trijntje heeft in
+  1953 iets nooit gezegd.
+- **Nieuw spel** opent als een trailer, met naamkaarten voor Anita en Tammo,
+  en daarna de keukentafel in de Oosterparkwijk, met Nachtstreek op de radio.
+- **Bel Rikus.** Elke missie begint op Nachtstreek: een Stadjer met een
+  probleem belt in. Na missies de rubrieken: de fietstunnel-update, het
+  storingsbericht, de torenwachter en de peiling "Woist ja wel?".
+- **Naamkaarten** in GTA-stijl bij elke eerste ontmoeting, met één droge regel.
+- **Berend telt de krassen** heeft een nieuwe Berend: Berend Bos, die al
+  veertig jaar Bommen Berend speelt. Hij zit in de finale ook in de jury.
+- **Iets met de Grote Markt** is een zomerse stuntavond: punten voor
+  parasols, kliko's, borden, duiven en de waterwagen, strafpunten als je
+  iemand raakt. Er vallen geen slachtoffers meer.
+- Missies die mislukken eindigen met "Sikkom.".
+- Elke missie heeft een korte afsluiter voor als je hem opnieuw speelt als klus.
+
+- **Verhaal in het pauzemenu**: alle personages die je gesproken hebt, met
+  hun 3D-model om rond te draaien, hun bekendste uitspraak, wie ze zijn en
+  welke missies je samen speelt. Wie je nog niet sprak, is een silhouet.
+  Daarnaast alle aanwijzingen per deel van het verhaal.
+- **HUD: echte gezichten.** Linksboven zie je Tammo of Anita zoals ze er
+  nu bij lopen, en je maat met een eigen fotootje zolang die meerijdt of
+  meeloopt. Tijd, sterren, geld en wapen staan rechtsboven in één blok; in
+  een voertuig staan snelheid en schade onder de minimap. Wachtende
+  meldingen tellen mee onder de kaartjes, en "opgeslagen" staat bij je
+  locatie. Niks in de HUD is klikbaar.
+- **Garage** opnieuw: elk voertuig met een plaatje van het echte model,
+  balkjes voor snelheid en trekkracht, en één viewer die draait.
+- **Prestaties** opnieuw: een overzicht bovenaan, de categorieën links met
+  Bijna binnen eerst, en wat je onlangs behaalde.
+- **Ubbo** opnieuw: wat nu loopt, je verhaalstap, wat er dichtbij te doen
+  is en de bijbaantjes, dichtstbij eerst.
 - **Eén klik naar een stand die past.** Merkt de game bij de eerste start
   dat je computer het zwaar heeft, dan stelt hij rechtsonder een lichtere
   stand voor: één keer op Toepassen en alles staat goed. Bij Instellingen ›
@@ -41,6 +77,20 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Vooruit spelen mag**, maar het spel vraagt eerst of je dat echt wilt.
 - **Beweging beperken** onder Instellingen › Weergave: geen animaties in
   menu's en tellers.
+
+### Veranderd
+- Minder verplichte aankopen: alleen een fiets, kraakspullen (zwart of een
+  bootje) en een huurboot. De eierbal, het pistool, de uzi, de auto, de bank
+  en de bijbaantjes zijn geen verhaalstap meer (te koop blijven ze). Tuning
+  van de Escapade blijft aanbevolen. Oude saves lopen gewoon door.
+- De Escapade is vanaf het begin van Tammo, en die wordt in H16 gejat (niet
+  "Anita's Fjord"). Anita haalt hem alleen terug.
+- H2: Durk en Douwe trekken de pinautomaat uit de muur, met Anita's pas erin.
+- H6: na de stroomkast heb je drie minuten.
+- H12 speelt in de Oude Ebbingestraat in plaats van de Folkingestraat.
+- H18: kraam heel houden, Jelle inhalen en terug naar de jury voordat de
+  eierballen koud zijn.
+- De autogesprekken volgen het nieuwe verhaal.
 
 ### Verbeterd
 - **De game draait veel soepeler op laptops zonder losse videokaart** en

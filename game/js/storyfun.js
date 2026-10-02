@@ -1,4 +1,5 @@
-// Story steps around the free-roam extras (storyarc.js): the bumper-car ride
+// Story steps around the free-roam extras (storyarc.js): any activity step's
+// closing `scene` (where the player is, once the shop or minigame is done), the bumper-car ride
 // on the Grote Markt where Tammo corners Durk & Douwe (r-kermis, kermis.js),
 // the free demo flight in Rotor Roelf's Wieken Wubbo that spots Jelle's
 // balloon in the Oosterpark (s-proefvlucht, heliflight.js) and carbid
@@ -243,7 +244,8 @@ function updateMeet(w, st, base) {
 function playDoneScene(w, st) {
   const sc = st.scene;
   const carbid = st.goal.type === 'carbid';
-  const at = (carbid ? CARBID : KERMIS).spots()[0];
+  // other activities (the bike shop, the tuning garage, the boat rental) play where the player is
+  const at = carbid || st.goal.type === 'kermis' ? (carbid ? CARBID : KERMIS).spots()[0] : { x: w.player.x, y: w.player.y };
   if (!sc || !at || Math.hypot(w.player.x - at.x, w.player.y - at.y) > SCENE_R) return true;
   let banged = false;
   const update = sc.knal ? (t, dt, cur) => {
@@ -304,7 +306,7 @@ function updatePending(w) {
   }
   if (w.time > pending.until) { finish(); return; }
   if (w.time < pending.at || isCinematicActive() || isActivityActive() || isMissionActive() || w.pigeonMode || w.pendingRespawn) return;
-  if (playDoneScene(w, pending.step) && isCinematicActive()) { pending.playing = true; played[pending.step.goal.type]++; }
+  if (playDoneScene(w, pending.step) && isCinematicActive()) { pending.playing = true; const k = pending.step.goal.type; played[k] = (played[k] || 0) + 1; }
   else finish();
 }
 
@@ -366,7 +368,7 @@ export function updateStoryFun(dt, w, step, base) {
 // A step is done (not skipped): its scene follows once the minigame's result
 // card is gone, then `after` (the step's done text). False: no scene.
 export function storyFunDone(w, step, after = null) {
-  if (!(step && step.scene && step.goal && (step.goal.type === 'kermis' || step.goal.type === 'carbid'))) return false;
+  if (!(step && step.scene && step.goal && step.goal.type !== 'flight')) return false;
   pending = { step, at: w.time + SCENE_DELAY, until: w.time + SCENE_GIVE_UP, after, playing: false };
   return true;
 }

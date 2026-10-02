@@ -150,23 +150,28 @@ const WEATHER_KINDS = [
   { kind: 'storm', weight: 5, peak: 1, dur: [30, 55] },
 ];
 
-function pickWeatherKind() {
-  let r = Math.random() * WEATHER_KINDS.reduce((sum, k) => sum + k.weight, 0);
-  for (const k of WEATHER_KINDS) { r -= k.weight; if (r <= 0) return k; }
-  return WEATHER_KINDS[0];
+// During the story it is summer (late August): longer dry spells, the odd
+// shower, no full storms. world.storyFreePlay (story.js) ends the summer.
+const summer = (world) => !!world && !world.storyFreePlay;
+
+function pickWeatherKind(world) {
+  const kinds = summer(world) ? WEATHER_KINDS.filter((k) => k.kind !== 'storm') : WEATHER_KINDS;
+  let r = Math.random() * kinds.reduce((sum, k) => sum + k.weight, 0);
+  for (const k of kinds) { r -= k.weight; if (r <= 0) return k; }
+  return kinds[0];
 }
 const RAMP_TIME = 9;
 const TOPPLE_RANGE = 40;
 const TOPPLE_THRESHOLD = 0.5;
 
-function rollTimer() {
-  return DRY_MIN + Math.random() * (DRY_MAX - DRY_MIN);
+function rollTimer(world) {
+  return (DRY_MIN + Math.random() * (DRY_MAX - DRY_MIN)) * (summer(world) ? 1.8 : 1);
 }
 
 export function initWeather(world) {
   world.weather = {
     active: false,
-    timer: rollTimer(),
+    timer: rollTimer(world),
     intensity: 0,
     windAngle: Math.random() * Math.PI * 2,
     duration: 0,
@@ -221,7 +226,7 @@ export function updateWeather(dt, world) {
     w.intensity = Math.max(0, w.intensity - dt / RAMP_TIME);
     w.timer -= dt;
     if (w.timer <= 0) {
-      const k = pickWeatherKind();
+      const k = pickWeatherKind(world);
       w.active = true;
       w.kind = k.kind;
       w.peak = k.peak;
@@ -255,7 +260,7 @@ export function updateWeather(dt, world) {
 
   if (w.elapsed >= w.duration) {
     w.active = false;
-    w.timer = rollTimer();
+    w.timer = rollTimer(world);
     if (w.kind === 'storm') {
       world.addMessage('Storm trekt weg, Grunn droogt weer op.', 3);
       if (world.phoneNotifications) {
