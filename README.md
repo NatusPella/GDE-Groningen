@@ -42,7 +42,10 @@ SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
 and a settings sheet) at 1920x1080 and devicePixelRatio 1, and prints frame
 times, main-thread time, GPU time, long tasks and draw calls per route.
 Flags: `--preset=quality:laag,shadows:false,...` (settings for that run
-only), `--cpu-throttle=4` (a slower CPU), `--nobatch`. `scripts/perf/ab.sh`
+only, as key:value pairs), `--cpu-throttle=4` (a slower CPU), `--nobatch`,
+`--hitch`; env `PERF_ONLY=foot,ring,heli,village,pause,sheet`,
+`PERF_PROFILE=<routes>` (CPU profile), `PERF_DIAG=1` (draw calls per owner),
+`PERF_SIM=0-2` (load-adaptive simulation level). `scripts/perf/ab.sh`
 alternates two staged builds (A/B) and prints medians. `--gfx-advice[=<GPU
 string>]` shows the first-run graphics advice in a test run.
 `node scripts/gfx_profile_test.mjs` checks the GPU classification.
