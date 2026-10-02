@@ -585,7 +585,7 @@ function roomTexture(w, h, draw) {
   return t;
 }
 
-function buildVitrineRoom() {
+export function buildVitrineRoom() {
   const g = new THREE.Group();
   const own = [];
   const mesh = (geo, mat) => { own.push(geo, mat); const m = new THREE.Mesh(geo, mat); g.add(m); return m; };
@@ -635,7 +635,7 @@ function buildVitrineRoom() {
 }
 
 // A cash machine on a sack truck, rolled away by Tammo.
-function buildAtm() {
+export function buildAtm() {
   const g = new THREE.Group(), own = [];
   const box = (w, h, d, color, x, y, z, emissive = 0) => {
     const geo = new THREE.BoxGeometry(w, h, d), mat = new THREE.MeshStandardMaterial({ color, roughness: 0.6, emissive, emissiveIntensity: emissive ? 1 : 0 });
@@ -665,7 +665,7 @@ function buildAtm() {
   return g;
 }
 
-function disposeOwned(o) {
+export function disposeOwned(o) {
   o.removeFromParent();
   for (const x of (o.userData && o.userData.own) || []) x.dispose();
 }
@@ -678,7 +678,7 @@ function makeSilhouette() {
   return m;
 }
 
-function buildFlag() {
+export function buildFlag() {
   const g = new THREE.Group(), own = [];
   const poleGeo = new THREE.CylinderGeometry(0.025, 0.03, 2.6, 6), poleMat = new THREE.MeshBasicMaterial({ color: 0x06080a });
   const pole = new THREE.Mesh(poleGeo, poleMat);
@@ -695,7 +695,7 @@ function buildFlag() {
   return g;
 }
 
-function waveFlag(f, t) {
+export function waveFlag(f, t) {
   const { cloth, base } = f.userData;
   const p = cloth.geometry.attributes.position;
   for (let i = 0; i < p.count; i++) {
