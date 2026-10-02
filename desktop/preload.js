@@ -14,4 +14,6 @@ contextBridge.exposeInMainWorld('gteDesktop', {
   quit: () => ipcRenderer.send('gte:quit'),
   // only answered in a --trailer-frames run (main.js)
   captureFrame: (n) => ipcRenderer.invoke('gte:capture-frame', n),
+  // only in a --trailer-video run: the sound sheet the export mixes
+  videoBegin: (sheet) => ipcRenderer.invoke('gte:video-begin', sheet),
 });
