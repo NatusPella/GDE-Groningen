@@ -11,6 +11,14 @@
 "src": "anita/achter_die_trekker_aan_de_pliesi_49a839f9.mp3",
 "dur": 4.9
 },
+"Anita|Achter die trekker aan! Ram hem tot hij stilstaat. Niet schieten, er is kermis.": {
+"src": "anita/achter_die_trekker_aan_ram_hem_t_5c30cbad.mp3",
+"dur": 4.5
+},
+"Anita|Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op Tammo's auto schieten, hè!": {
+"src": "anita/achter_ze_aan_ram_hem_tot_hij_st_c0f23884.mp3",
+"dur": 5.27
+},
 "Anita|Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op mijn Fjord schieten, hè!": {
 "src": "anita/achter_ze_aan_ram_hem_tot_hij_st_4346babc.mp3",
 "dur": 5.68
@@ -75,9 +83,17 @@
 "src": "anita/de_entreehal_ee_n_bewaker_loopt__60a24607.mp3",
 "dur": 5.92
 },
+"Anita|De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.": {
+"src": "anita/de_navigatie_stuurt_je_om_via_de_db7edfb2.mp3",
+"dur": 7.81
+},
 "Anita|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan draaien de camera's op herhaling.": {
 "src": "anita/de_stroomkast_druk_op_spatie_als_6b7171e1.mp3",
 "dur": 7.24
+},
+"Anita|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.": {
+"src": "anita/de_stroomkast_druk_op_spatie_als_bc378149.mp3",
+"dur": 5.98
 },
 "Anita|De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera's.": {
 "src": "anita/de_stroomkast_druk_op_spatie_als_19e9767c.mp3",
@@ -90,6 +106,10 @@
 "Anita|Dit gaat over het water. Pak een boot.": {
 "src": "anita/dit_gaat_over_het_water_pak_een__ff5141fc.mp3",
 "dur": 2.46
+},
+"Anita|Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
+"src": "anita/durk_en_douwe_steken_per_ongeluk_95319b7c.mp3",
+"dur": 5.81
 },
 "Anita|Durk en Douwe steken vuurwerk af! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
 "src": "anita/durk_en_douwe_steken_vuurwerk_af_f17887d1.mp3",
@@ -159,6 +179,10 @@
 "src": "anita/handen_vol_eerst_neerzetten_3fa47397.mp3",
 "dur": 1.6
 },
+"Anita|Henk heeft de auto klaargezet. Instappen, achter die trekker aan!": {
+"src": "anita/henk_heeft_de_auto_klaargezet_in_6f438d54.mp3",
+"dur": 2.91
+},
 "Anita|Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!": {
 "src": "anita/henk_heeft_de_auto_klaargezet_in_d58cce47.mp3",
 "dur": 3.74
@@ -166,6 +190,10 @@
 "Anita|Het piepje wordt sneller. Achter het station, bij de goederentrein!": {
 "src": "anita/het_piepje_wordt_sneller_achter__ab752fc0.mp3",
 "dur": 3.81
+},
+"Anita|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
+"src": "anita/het_piepje_wordt_sneller_achter__fe9a4987.mp3",
+"dur": 3.82
 },
 "Anita|Hij grist de Eierbal!": {
 "src": "anita/hij_grist_de_eierbal_0e0d3417.mp3",
@@ -222,6 +250,10 @@
 "Anita|Instappen, Femke heeft hem voor ons klaargezet. Daar gaat de tankwagen!": {
 "src": "anita/instappen_femke_heeft_hem_voor_o_90e18b04.mp3",
 "dur": 4.07
+},
+"Anita|Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.": {
+"src": "anita/instappen_de_automaat_ligt_achte_0dda1f21.mp3",
+"dur": 4.33
 },
 "Anita|Instappen: de automaat ligt achterin. Hij piept een beetje.": {
 "src": "anita/instappen_de_automaat_ligt_achte_8c072a36.mp3",
@@ -355,6 +387,14 @@
 "src": "anita/stekkies_verkocht_aan_de_buren_g_6b6a8b23.mp3",
 "dur": 3.47
 },
+"Anita|Tammo fluit. Een zwerm duiven valt over het vuurwerk heen op de voorruit van de trekker!": {
+"src": "anita/tammo_fluit_een_zwerm_duiven_val_fa5d7594.mp3",
+"dur": 5.24
+},
+"Anita|Te laat: de Escapade staat al op de goederentrein naar Ljouwert!": {
+"src": "anita/te_laat_de_escapade_staat_al_op__4ca85458.mp3",
+"dur": 3.62
+},
 "Anita|Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!": {
 "src": "anita/te_laat_de_fjord_staat_al_op_de__b849d0b2.mp3",
 "dur": 3.3
@@ -362,6 +402,10 @@
 "Anita|Te vroeg! Lekker rap, maar de dienstregeling vindt je eng.": {
 "src": "anita/te_vroeg_lekker_rap_maar_de_dien_05b9aa3c.mp3",
 "dur": 2.89
+},
+"Anita|Terug naar de kraam, met de bal! Voordat de eierballen koud zijn.": {
+"src": "anita/terug_naar_de_kraam_met_de_bal_v_62eccca5.mp3",
+"dur": 3.68
 },
 "Anita|Uitstappen bij de duiven. Een duif rijdt geen auto.": {
 "src": "anita/uitstappen_bij_de_duiven_een_dui_fcb19364.mp3",
@@ -411,6 +455,10 @@
 "src": "anita/zaal_3_bukken_ctrl_onder_de_hoge_f23af198.mp3",
 "dur": 7.61
 },
+"Anita|Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.": {
+"src": "anita/ze_rijden_de_escapade_zo_de_goed_5001f153.mp3",
+"dur": 3.63
+},
 "Anita|Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.": {
 "src": "anita/ze_rijden_de_fjord_zo_de_goedere_5cf4ce50.mp3",
 "dur": 3.37
@@ -430,6 +478,10 @@
 "Tammo|Achter die trekker aan! De pliesie rijdt ook mee. Ram of schiet zijn banden stuk.": {
 "src": "tammo/achter_die_trekker_aan_de_pliesi_743e132d.mp3",
 "dur": 4.38
+},
+"Tammo|Achter die trekker aan! Ram hem tot hij stilstaat. Niet schieten, er is kermis.": {
+"src": "tammo/achter_die_trekker_aan_ram_hem_t_7c45b759.mp3",
+"dur": 4.41
 },
 "Tammo|Alarm! Drie sterren. Wegwezen, over het water als het kan.": {
 "src": "tammo/alarm_drie_sterren_wegwezen_over_04bf74c4.mp3",
@@ -491,9 +543,17 @@
 "src": "tammo/de_entreehal_ee_n_bewaker_loopt__16b635cf.mp3",
 "dur": 5.92
 },
+"Tammo|De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.": {
+"src": "tammo/de_navigatie_stuurt_je_om_via_de_205a960a.mp3",
+"dur": 6.99
+},
 "Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan draaien de camera's op herhaling.": {
 "src": "tammo/de_stroomkast_druk_op_spatie_als_53d1c090.mp3",
 "dur": 6.44
+},
+"Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.": {
+"src": "tammo/de_stroomkast_druk_op_spatie_als_51c4169c.mp3",
+"dur": 5.8
 },
 "Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera's.": {
 "src": "tammo/de_stroomkast_druk_op_spatie_als_050eaae5.mp3",
@@ -506,6 +566,10 @@
 "Tammo|Dit gaat over het water. Pak een boot.": {
 "src": "tammo/dit_gaat_over_het_water_pak_een__43ff9072.mp3",
 "dur": 2.05
+},
+"Tammo|Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
+"src": "tammo/durk_en_douwe_steken_per_ongeluk_d25a3f74.mp3",
+"dur": 6.3
 },
 "Tammo|Durk en Douwe steken vuurwerk af! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
 "src": "tammo/durk_en_douwe_steken_vuurwerk_af_e45573ad.mp3",
@@ -575,6 +639,10 @@
 "src": "tammo/handen_vol_eerst_neerzetten_488b5b86.mp3",
 "dur": 2.0
 },
+"Tammo|Henk heeft de auto klaargezet. Instappen, achter die trekker aan!": {
+"src": "tammo/henk_heeft_de_auto_klaargezet_in_d7a94fbf.mp3",
+"dur": 3.28
+},
 "Tammo|Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!": {
 "src": "tammo/henk_heeft_de_auto_klaargezet_in_ed669858.mp3",
 "dur": 3.37
@@ -583,9 +651,17 @@
 "src": "tammo/het_piepje_wordt_sneller_achter__5d96918a.mp3",
 "dur": 3.1
 },
+"Tammo|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
+"src": "tammo/het_piepje_wordt_sneller_achter__783e2e79.mp3",
+"dur": 3.57
+},
 "Tammo|Hij grist de Eierbal!": {
 "src": "tammo/hij_grist_de_eierbal_0d28be01.mp3",
 "dur": 1.37
+},
+"Tammo|Hij is terug. Instappen, Anita. Hij rijdt nog. Nauwelijks.": {
+"src": "tammo/hij_is_terug_instappen_anita_hij_65ac767d.mp3",
+"dur": 3.54
 },
 "Tammo|Hij is van ons. Instappen, Anita.": {
 "src": "tammo/hij_is_van_ons_instappen_anita_c323b87d.mp3",
@@ -642,6 +718,10 @@
 "Tammo|Instappen, Femke heeft hem voor ons klaargezet. Daar gaat de tankwagen!": {
 "src": "tammo/instappen_femke_heeft_hem_voor_o_d9d16dce.mp3",
 "dur": 3.72
+},
+"Tammo|Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.": {
+"src": "tammo/instappen_de_automaat_ligt_achte_3bae4d1b.mp3",
+"dur": 4.2
 },
 "Tammo|Instappen: de automaat ligt achterin. Hij piept een beetje.": {
 "src": "tammo/instappen_de_automaat_ligt_achte_8166055a.mp3",
@@ -775,6 +855,10 @@
 "src": "tammo/stekkies_verkocht_aan_de_buren_g_686d2c65.mp3",
 "dur": 3.83
 },
+"Tammo|Te laat: de Escapade staat al op de goederentrein naar Ljouwert!": {
+"src": "tammo/te_laat_de_escapade_staat_al_op__8dce568b.mp3",
+"dur": 3.58
+},
 "Tammo|Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!": {
 "src": "tammo/te_laat_de_fjord_staat_al_op_de__fa011930.mp3",
 "dur": 3.07
@@ -782,6 +866,10 @@
 "Tammo|Te vroeg! Lekker rap, maar de dienstregeling vindt je eng.": {
 "src": "tammo/te_vroeg_lekker_rap_maar_de_dien_450aff67.mp3",
 "dur": 3.31
+},
+"Tammo|Terug naar de kraam, met de bal! Voordat de eierballen koud zijn.": {
+"src": "tammo/terug_naar_de_kraam_met_de_bal_v_44a7550f.mp3",
+"dur": 3.13
 },
 "Tammo|Uitstappen bij de duiven. Een duif rijdt geen auto.": {
 "src": "tammo/uitstappen_bij_de_duiven_een_dui_c5c698a5.mp3",
@@ -830,6 +918,10 @@
 "Tammo|Zaal 3. Bukken (Ctrl) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.": {
 "src": "tammo/zaal_3_bukken_ctrl_onder_de_hoge_c6d2db7b.mp3",
 "dur": 7.44
+},
+"Tammo|Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.": {
+"src": "tammo/ze_rijden_de_escapade_zo_de_goed_65c1f5eb.mp3",
+"dur": 4.02
 },
 "Tammo|Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.": {
 "src": "tammo/ze_rijden_de_fjord_zo_de_goedere_1679eb24.mp3",
