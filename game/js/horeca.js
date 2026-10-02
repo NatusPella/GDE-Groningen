@@ -150,10 +150,26 @@ export function buildHorecaMarkerMesh3D(withPad = true) {
 
 export function horecaPads3D(list) {
   const m = new THREE.InstancedMesh(padGeometry, padMaterial, list.length);
-  const t = new THREE.Matrix4();
-  list.forEach((h, i) => m.setMatrixAt(i, t.makeTranslation(h.x, 0.03, h.y)));
-  m.computeBoundingSphere();
+  m.count = 0;
+  m.frustumCulled = false;
   m.name = 'horeca-pads';
   m.matrixAutoUpdate = false;
+  m.userData.spots = list;
+  m.userData.at = null;
   return m;
+}
+
+// only the pads within r of (px, py), refreshed when the player has moved a bit
+const _padM = new THREE.Matrix4();
+export function updateHorecaPads3D(m, px, py, r) {
+  const at = m.userData.at;
+  if (at && Math.abs(at[0] - px) + Math.abs(at[1] - py) < 10) return;
+  m.userData.at = [px, py];
+  let n = 0;
+  for (const h of m.userData.spots) {
+    if (Math.abs(h.x - px) > r || Math.abs(h.y - py) > r) continue;
+    m.setMatrixAt(n++, _padM.makeTranslation(h.x, 0.03, h.y));
+  }
+  m.count = n;
+  m.instanceMatrix.needsUpdate = true;
 }

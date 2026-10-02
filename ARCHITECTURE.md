@@ -433,10 +433,10 @@ don't collide, and actors are drawn at their height.
   detail mesh only); roads use 96 m cells and two roads make a batch.
 - `wheelinstances3d.js`: vehicle wheels keep their own meshes (spin, steer,
   skid marks) on a hidden layer; one InstancedMesh per wheel geometry and
-  material draws them all from their world matrices each frame.
+  material draws those of the vehicles in (or near) the view each frame.
 - Village centres (`countryvillage.js`) bake every item into one mesh per
   material and shadow flag while laying out (four draws a village); the
-  horeca pads are one InstancedMesh; the city terrain is cut in 800 m tiles.
+  horeca pads near the player are one InstancedMesh.
 - The minimap's Ommeland layer (`drawCountryMinimap`) is static: drawn into
   world-aligned 256 px tiles per half-octave zoom step (at most one new tile
   a frame, LRU of 40) and blitted.

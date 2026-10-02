@@ -63,11 +63,14 @@ export function beginWheels(scene) {
   for (const p of pools.values()) p.n = 0;
 }
 
-// one vehicle's group (in the scene, matrices about to be drawn)
-export function addVehicleWheels(group) {
+const _sphere = new THREE.Sphere();
+
+// one vehicle's group (in the scene, matrices about to be drawn); frustum:
+// the camera's last one, vehicles well outside it add no instances
+export function addVehicleWheels(group, frustum = null) {
   const wheels = group.userData.wheels;
   if (!wheels || !wheels.length) return;
-  const ok = group.visible && !!group.parent;
+  const ok = group.visible && !!group.parent && !(frustum && !frustum.intersectsSphere(_sphere.set(group.position, 8)));
   group.updateMatrixWorld(true);
   for (const w of wheels) {
     const m = w.material;
