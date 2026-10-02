@@ -143,10 +143,12 @@ function inGreen(map, x, y) {
   return false;
 }
 
-function nearBridge(map, x, y, pad = 0.8) {
-  for (const r of map.roadsNear(x, y, 14)) {
+// pad: beyond the carriageway, or with `deck` beyond the deck's own edge
+// (buildBridgeDecks: sidewalks included)
+function nearBridge(map, x, y, pad = 0.8, deck = false) {
+  for (const r of map.roadsNear(x, y, 16)) {
     if (!r.bridge) continue;
-    const t = r.width / 2 + pad;
+    const t = (deck ? deckHalf(r) : r.width / 2) + pad;
     for (let i = 0; i < r.pts.length - 1; i++) {
       if (closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]).dist2 < t * t) return true;
     }
@@ -195,7 +197,7 @@ function shoreRuns(poly, map, index) {
       const x = a[0] + dx * sm, y = a[1] + dy * sm;
       let cls = null;
       const dry = !index.inWater(x + nx * 1.2, y + ny * 1.2);
-      if (dry && nearBridge(map, x, y)) cls = 'abut';
+      if (dry && nearBridge(map, x, y, 0.3, true)) cls = 'abut';
       else if (dry) {
         if (pond || inGreen(map, x + nx * 2.5, y + ny * 2.5)) cls = 'bank';
         else if (Math.hypot(x - CENTRE_X, y - CENTRE_Y) > 1100 && !nearBuilt(map, x + nx * 3, y + ny * 3, 7)) cls = 'bank';
@@ -255,8 +257,8 @@ const STONE_DARK = lin(0x7c776d);
 const METAL = lin(0x2a2d2f);
 const RUST = lin(0x4a3527);
 
-// bare: abutment under a bridge deck - brick face only, no coping or apron
-// that would poke through the road surface.
+// bare: abutment under a bridge deck - no coping that would poke through
+// the deck; the apron (terrain level, under the deck) runs up to the wall.
 function buildWallRun(run, wy, B, index, bare = false) {
   const { pts, N } = run;
   const mid = pts[pts.length >> 1];
@@ -288,9 +290,8 @@ function buildWallRun(run, wy, B, index, bare = false) {
     wall.quad(a, b, c, d, -tx, 0, -ty);
   }
 
-  if (bare) return;
-  // coping blocks
-  for (let i = 0; i < pts.length - 1; i++) {
+  // coping blocks (none under a bridge deck: they would poke through it)
+  for (let i = 0; i < pts.length - 1 && !bare; i++) {
     const p0 = pts[i], p1 = pts[i + 1];
     const len = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
     const nb = Math.max(1, Math.round(len / 1.6));
@@ -323,7 +324,7 @@ function buildWallRun(run, wy, B, index, bare = false) {
     let w = APRON;
     if (index.inWater(p[0] + m[0] * w, p[1] + m[1] * w) || index.inWater(p[0] + m[0] * w * 0.5, p[1] + m[1] * w * 0.5)) w = 0.7;
     ids.push([
-      apron.v(p[0] + m[0] * (COPE_IN - 0.05), TERRAIN_Y, p[1] + m[1] * (COPE_IN - 0.05), DRY),
+      apron.v(p[0] + m[0] * (bare ? 0 : COPE_IN - 0.05), TERRAIN_Y, p[1] + m[1] * (bare ? 0 : COPE_IN - 0.05), DRY),
       apron.v(p[0] + m[0] * w, TERRAIN_Y, p[1] + m[1] * w, DRY),
     ]);
   }
@@ -335,7 +336,21 @@ const GRASS_DARK = lin(0x4d6a3a);
 const MUD = lin(0x5a4a36);
 const MUD_DARK = lin(0x2f2a22);
 
-function buildBankRun(run, wy, B, rnd) {
+// Under a street or sidewalk ribbon (street level, not a bridge): a bank's
+// crest stays below it instead of poking through the paving.
+function underStreet(map, x, y) {
+  for (const r of map.roadsNear(x, y, 8)) {
+    if (r.bridge || r.z) continue;
+    const t = r.width / 2 + (STREET_CATS.has(r.cat) ? 1.8 : 0) + 0.15;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      if (closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]).dist2 < t * t) return true;
+    }
+  }
+  return false;
+}
+const STREET_CATS = new Set(['major', 'normal', 'minor']);
+
+function buildBankRun(run, wy, B, rnd, map) {
   const { pts, N } = run;
   const mid = pts[pts.length >> 1];
   const acc = B('stone', mid[0], mid[1]);
@@ -352,6 +367,9 @@ function buildBankRun(run, wy, B, rnd) {
       [-1.9 + (h2 - 0.5) * 0.4, wy - 0.06, mixc(MUD, MUD_DARK, 0.5)],
       [-2.9, wy - 0.66, MUD_DARK],
     ];
+    for (const row of prof) {
+      if (row[1] > TERRAIN_Y + 0.003 && underStreet(map, p[0] + m[0] * row[0], p[1] + m[1] * row[0])) row[1] = TERRAIN_Y + 0.003;
+    }
     cols.push(prof.map(([o, y, c]) => acc.v(p[0] + m[0] * o, y, p[1] + m[1] * o, c)));
   }
   for (let i = 0; i < pts.length - 1; i++) {
@@ -619,13 +637,14 @@ function placeHouseboats(run, wy, B, map, index, rnd) {
 const DECK_T = 0.5, DECK_OVERRUN = 1.5;
 const DECK_SIDE = lin(0x8d887e), DECK_SOFFIT = lin(0x4a4843);
 const DECK_WIDE = new Set(['major', 'normal', 'minor']);
+const deckHalf = (r) => (r.width || 4) / 2 + (DECK_WIDE.has(r.cat) ? 1.8 : 0.15);
 
 function buildBridgeDecks(poly, map, B) {
   const [bx0, by0, bx1, by1] = poly.bounds;
   const inPoly = (x, y) => x >= bx0 && x <= bx1 && y >= by0 && y <= by1 && pointInPolygon(x, y, poly.pts);
   for (const r of map.roadGrid.query(bx0, by0, bx1, by1)) {
     if (!r.bridge || r.pts.length < 2) continue;
-    const half = (r.width || 4) / 2 + (DECK_WIDE.has(r.cat) ? 1.8 : 0.15);
+    const half = deckHalf(r);
     for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], b = r.pts[i + 1];
       const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -698,7 +717,7 @@ export function buildShore(poly, map, { waterY, apronMaterial }) {
         buildWallRun(piece, waterY, B, index);
         wallProps(piece, waterY, B, rnd);
       } else {
-        buildBankRun(piece, waterY, B, rnd);
+        buildBankRun(piece, waterY, B, rnd, map);
       }
     }
   }

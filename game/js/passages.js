@@ -397,15 +397,19 @@ function wayLength(P) {
 // block, paths that end deep inside a building) are cut at the facade when
 // the map loads: nothing is drawn, walked or routed through the wall, and
 // the cut ends become doors (doorsOf). Streets are left alone (passages.js
-// opens every street through a building). The first piece keeps the way's
-// place in map.roads, the others are appended. Returns what was cut.
+// opens every street through a building). Tunnels without a height profile
+// (garage ramps and basement drives under a block) would be drawn at street
+// level straight through the walls: their stretches inside are cut as well.
+// The first piece keeps the way's place in map.roads, the others are
+// appended. Returns what was cut.
+const underground = (r) => (r.tunnel || r.layer < 0) && !(r.z && r.z.some((z) => Math.abs(z) > 1.5));
 export function clipWaysInBuildings(map) {
   const cut = [];
   const n0 = map.roads.length;
   let removed = false;
   for (let ri = 0; ri < n0; ri++) {
     const r = map.roads[ri];
-    if ((r.cat !== 'foot' && r.cat !== 'cycle') || offGradeWay(r) || r.pts.length < 2) continue;
+    if (r.pts.length < 2 || (!underground(r) && ((r.cat !== 'foot' && r.cat !== 'cycle') || offGradeWay(r)))) continue;
     const rb = r.bounds;
     let spans = null;
     for (const b of map.buildingGrid.query(rb[0], rb[1], rb[2], rb[3])) {
