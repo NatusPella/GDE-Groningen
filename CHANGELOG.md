@@ -12,6 +12,14 @@ nieuwe functies, `y` voor alleen bugfixes.
   stand voor: één keer op Toepassen en alles staat goed. Bij Instellingen ›
   Beeld kies je nu Laag, Gemiddeld of Hoog in één keer, en de benchmark
   vertelt welke stand het best past, met de fps die je ermee haalt.
+- **Wat is er nieuw na een update.** Open je een nieuwe versie, dan begint
+  het startscherm bij "Wat is er nieuw", met de versies sinds je vorige keer
+  gemarkeerd. De allereerste keer niet.
+- **Het startscherm klinkt als de stad**: gedempt verkeer, meeuwen en
+  fietsbellen, zonder muziek. De themesong begint pas bij Doorgaan of Nieuw
+  spel en speelt één keer de game in.
+- **Geen intro meer vóór het menu**: je ziet meteen de levende stad. De
+  trailer blijft als benchmark onder Instellingen.
 - **Kies zelf je doel.** Zet een missie, minigame, bijbaantje of plek als
   doel en de route gaat erheen; het verhaal wacht. Bovenin staat dan
   "Doel: …". Klaar of gewist? Dan pakt de route vanzelf het verhaal weer op.

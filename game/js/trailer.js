@@ -33,7 +33,6 @@ import { flashScreen } from './postfx3d.js';
 // the title screen's tick/render/relocate.
 
 const Q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-const TEST_FLAGS = ['stil', 'dev', 'storytest', 'noattract', 'hitch', 'shaderdebug'];
 const BENCH_KEY = 'gte-benchmark-pending';
 const SKIP_HOLD_S = 0.9;
 const STEP = 1 / 60;
@@ -53,9 +52,9 @@ export function pendingTrailer() {
   let bench = null;
   try { bench = sessionStorage.getItem(BENCH_KEY); sessionStorage.removeItem(BENCH_KEY); } catch (e) { /* ignore */ }
   if (bench) return { mode: 'benchmark', cut: 'vol', fromGame: true };
-  // every launch opens with the attract intro, except test runs
-  if (TEST_FLAGS.some((k) => Q.has(k))) return null;
-  return { mode: 'attract', cut: 'kort' };
+  // no intro before the menu: the title screen's live city is the attract,
+  // and Nieuw spel opens with its own trailer-style opening
+  return null;
 }
 
 // In a running game the benchmark starts from a fresh load of the title

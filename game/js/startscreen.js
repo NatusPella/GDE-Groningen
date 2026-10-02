@@ -1,9 +1,11 @@
 import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
 import { VERSION } from './version.js';
+import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer, runTrailer, runBenchmarkSuite, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
+import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
 import { MENU_FRAME_S, getRenderer } from './scene3d.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
@@ -238,8 +240,9 @@ const inline = (s) => esc(s)
 
 // Just enough Markdown for CHANGELOG.md: version headings, section headings,
 // bullets (with wrapped continuation lines) and paragraphs. The title, the
-// intro and an empty [Unreleased] section are left out.
-function changelogHtml(md) {
+// intro and an empty [Unreleased] section are left out. `fresh` marks the
+// versions newer than the one last played (see whatsnew.js).
+function changelogHtml(md, fresh = () => false) {
   const out = [];
   let block = null; // { kind: 'p' | 'li', text }
   let inList = false;
@@ -264,7 +267,8 @@ function changelogHtml(md) {
       started = true;
       if (ver[1].toLowerCase() === 'unreleased') { started = false; continue; }
       const date = ver[2] ? new Date(ver[2]).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-      out.push(`<h3>Versie ${esc(ver[1])}${date ? `<small>${esc(date)}</small>` : ''}</h3>`);
+      const isNew = fresh(ver[1]);
+      out.push(`<h3${isNew ? ' class="ss-news-new"' : ''}>Versie ${esc(ver[1])}${date ? `<small>${esc(date)}</small>` : ''}${isNew ? '<span class="ss-news-tag">Nieuw sinds je vorige keer</span>' : ''}</h3>`);
       continue;
     }
     if (!started) continue;
@@ -280,12 +284,20 @@ function changelogHtml(md) {
   return out.join('');
 }
 
+// since: the version last played; null marks only the newest version
+let newsSince;
 let changelogCache = null;
 function loadChangelog() {
   if (!changelogCache) {
+    let first = null;
+    const fresh = newsSince === undefined ? () => false
+      : (v) => {
+        if (first === null) first = v;
+        return newsSince ? compareVersions(v, newsSince) > 0 : v === first;
+      };
     changelogCache = fetch('./CHANGELOG.md', { cache: 'no-store' })
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
-      .then(changelogHtml)
+      .then((md) => changelogHtml(md, fresh))
       .catch(() => { changelogCache = null; return '<p>De lijst met wijzigingen kon niet worden geladen.</p>'; });
   }
   return changelogCache;
@@ -412,11 +424,13 @@ export function runStartScreen(world, { render, relocate, tick }) {
       const it = items[i];
       if (it.act !== 'news') news.hidden = true;
       if (it.act === 'continue') {
+        startTheme();
         restoreWorld();
         applySave(world, readSave());
         finish('game');
       } else if (it.act === 'new') {
         if (save && !confirmNew) { setConfirm(true); return; }
+        startTheme();
         restoreWorld();
         clearSave();
         finish('game');
@@ -507,6 +521,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
         if (next !== 'again') break;
       }
       await fadeOutTrailer(false, backHome);
+      stopTheme();
       trailerOn = false;
       const cont = items.findIndex((it) => it.act === 'continue');
       // the result and its one-click preset wait in Instellingen > Beeld
@@ -520,6 +535,10 @@ export function runStartScreen(world, { render, relocate, tick }) {
     };
     const onBenchmark = () => benchmark(false);
     window.addEventListener('gte-benchmark', onBenchmark);
+    // after an update the menu opens on "Wat is er nieuw"
+    const update = /[?&]storytest/.test(location.search) ? null : checkWhatsNew(VERSION);
+    if (update) { newsSince = update.since; changelogCache = null; }
+    markVersionSeen(VERSION);
     const intro = pendingTrailer();
     const playIntro = async () => {
       trailerOn = true;
@@ -542,8 +561,15 @@ export function runStartScreen(world, { render, relocate, tick }) {
       }
     };
     if (intro) playIntro();
-    else showMenu(false);
-    if (!intro || intro.mode === 'attract') startGfxAdvisor(getRenderer().getContext());
+    else {
+      showMenu(false);
+      startGfxAdvisor(getRenderer().getContext());
+      if (update) {
+        const n = items.findIndex((it) => it.act === 'news');
+        focus(n);
+        openNews();
+      }
+    }
 
     let renderDt = 0;
     const loop = (now) => {
