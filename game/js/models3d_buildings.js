@@ -199,7 +199,7 @@ function addPassages(group, b, parts, depth) {
     parts.tunnel = mesh ? mesh.geometry : null;
     parts.tunnelMat = mesh ? mesh.material : null;
   }
-  if (parts.tunnel) group.add(new THREE.Mesh(parts.tunnel, parts.tunnelMat));
+  if (parts.tunnel) { const t = new THREE.Mesh(parts.tunnel, parts.tunnelMat); t.userData.noBatch = true; group.add(t); }
 }
 
 const UNIT_BOX = new THREE.BoxGeometry(1, 1, 1);
@@ -1302,6 +1302,8 @@ export function buildBuildingMesh(b) {
   }
 
   if (!parts.detail) parts.detail = buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roofHex, frame).geo;
-  group.add(new THREE.Mesh(parts.detail, [detailMaterial, glassMaterial, wallMat, roofMat]));
+  const detail = new THREE.Mesh(parts.detail, [detailMaterial, glassMaterial, wallMat, roofMat]);
+  group.add(detail);
+  group.userData.facadeDetail = detail;
   return group;
 }

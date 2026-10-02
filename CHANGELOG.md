@@ -7,6 +7,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Eén klik naar een stand die past.** Merkt de game bij de eerste start
+  dat je computer het zwaar heeft, dan stelt hij rechtsonder een lichtere
+  stand voor: één keer op Toepassen en alles staat goed. Bij Instellingen ›
+  Beeld kies je nu Laag, Gemiddeld of Hoog in één keer, en de benchmark
+  vertelt welke stand het best past, met de fps die je ermee haalt.
 - **Kies zelf je doel.** Zet een missie, minigame, bijbaantje of plek als
   doel en de route gaat erheen; het verhaal wacht. Bovenin staat dan
   "Doel: …". Klaar of gewist? Dan pakt de route vanzelf het verhaal weer op.
@@ -22,6 +27,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   menu's en tellers.
 
 ### Verbeterd
+- **De game draait veel soepeler op laptops zonder losse videokaart** en
+  op een drukke computer: resolutie en details gaan vanzelf even omlaag
+  als het beeld hapert en komen terug als er weer ruimte is.
+- **De stad achter het pauzemenu en het hoofdmenu kost minder**: hij loopt
+  gewoon door, maar je computer wordt minder warm.
 - Het pauzemenu heeft één vaste kolom links die niet meer verspringt.
 - Op de kaart staan alleen nog je verhaalmissie en je doel; gespeelde
   missies kun je aanzetten als Klussen. Klik op iets voor een kaartje met

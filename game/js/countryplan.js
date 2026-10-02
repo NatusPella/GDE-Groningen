@@ -3,6 +3,7 @@ import {
   chash, countryWeight, countryRect, edgeDistance, edgeRoad, maarX, maarY, villageOf, parcelAt,
 } from './countryfield.js';
 import { REAL, pushOutOfReal } from './countryreal.js';
+import { pushOutOfVillage } from './countryvillage.js';
 import { EDGE, initCountryEdge, edgeBlocked, edgeBlockBoxes, connectorRuns, pushOutOfEdge, FRINGE } from './countryedge.js';
 
 // Deterministic layout of everything built in the Ommelanden, per polder
@@ -708,6 +709,7 @@ export function pushOutOfPlan(obj, radius) {
   }
   if (pushOutOfEdge(obj, radius)) hit = true;
   if (pushOutOfReal(obj, radius)) hit = true;
+  if (pushOutOfVillage(obj, radius)) hit = true;
   for (const t of turbinesAround(obj.x, obj.y, 12)) if (pushCircle(obj, t.x, t.y, 3.1, radius)) hit = true;
   const { pylons } = pylonsAround(obj.x, obj.y, 12, [], []);
   for (const p of pylons) if (pushCircle(obj, p.x, p.y, 3.4, radius)) hit = true;

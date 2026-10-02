@@ -1,6 +1,7 @@
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
 import { loadOmmeland, initReal } from './countryreal.js';
+import { ensureCountryEdge } from './countryplan.js';
 import { Input } from './input.js';
 import { Player } from './player.js';
 import { World } from './world.js';
@@ -25,9 +26,10 @@ import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
-import { init3D, update3D, resize3D, getScene } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, setMenuCover, MENU_FRAME_S, refreshRenderScale } from './scene3d.js';
+import { noteFrame, hideAdvice } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
-import { initPauseMenu, isPauseMenuOpen, openPauseMenu } from './pausemenu.js';
+import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
@@ -151,6 +153,9 @@ async function boot() {
   await yieldToPaint();
   init3D(map);
   resize3D();
+  // the map-edge layout (~0.3 s) during loading, not on the first trip out;
+  // after init3D, which sets the country bounds it measures from
+  ensureCountryEdge(map);
   setLoadProgress(0.8);
   await yieldToPaint();
   window.addEventListener('resize', resize3D);
@@ -227,21 +232,28 @@ async function boot() {
   await finishLoading();
   await waitForStart(world);
   document.body.classList.add('game-started');
+  hideAdvice();
   input.tryLock();
   initAudio(world);
+  // a benchmark started from a game: its result waits in Instellingen > Beeld
+  if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
 
   let last = performance.now();
+  let menuDt = 0;
   let trafficTimer = 0;
   let pedTimer = 0;
   function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const frameMs = now - last;
+    const dt = Math.min(0.05, frameMs / 1000);
     last = now;
     probe.begin(now);
+    const t0 = performance.now();
     try {
       frameBody(dt);
     } catch (err) {
       showFrameError(err);
     }
+    if (!world.paused && noteFrame(frameMs, performance.now() - t0)) refreshRenderScale();
     input.endFrame();
     probe.end();
     requestAnimationFrame(frame);
@@ -281,7 +293,14 @@ async function boot() {
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
     if (world.padelGame) padelCamera(world);
     else if (isActivityActive()) activityCamera(world);
-    update3D(world.paused ? dt : gameDt, world);
+    // behind a menu the city keeps rendering, at a lower rate
+    const cover = isMapOpen() ? 2 : Math.max(pauseMenuCover(), isShopOpen() ? 1 : 0);
+    setMenuCover(cover);
+    menuDt += world.paused ? dt : gameDt;
+    if (!cover || menuDt >= MENU_FRAME_S[cover]) {
+      update3D(Math.min(0.1, menuDt), world);
+      menuDt = 0;
+    }
     updateHud(dt, world);
     probe.mark('hud');
   }
