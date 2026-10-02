@@ -86,6 +86,8 @@ const RULES = [
 let world = null;
 let stackEl = null;
 let countEl = null;
+let waitEl = null;
+let waitN = 0;
 let visible = [];
 let queue = [];
 let countT = 0;
@@ -105,6 +107,10 @@ export function initCards(w, root) {
   stackEl.className = 'hud-cards';
   stackEl.setAttribute('aria-live', 'polite');
   root.appendChild(stackEl);
+  waitEl = document.createElement('div');
+  waitEl.className = 'hc-wait';
+  waitEl.hidden = true;
+  stackEl.appendChild(waitEl);
   countEl = document.createElement('div');
   countEl.className = 'hud-count';
   countEl.setAttribute('aria-live', 'assertive');
@@ -114,6 +120,15 @@ export function initCards(w, root) {
   w.cardSink = (text, dur, opts) => fromMessage(text, dur, opts);
   if (typeof window !== 'undefined') window.__cards = { show: (spec) => showCard(world, spec), state: () => ({ visible: visible.map((c) => c.spec), queue: queue.map((q) => q.spec) }), classify };
   return stackEl;
+}
+
+// How many cards wait their turn (tips not counted: they may never come).
+function syncWait() {
+  const n = queue.filter((q) => q.spec.kind !== 'tip').length;
+  if (n === waitN) return;
+  waitN = n;
+  waitEl.hidden = !n;
+  if (n) waitEl.innerHTML = `<i></i>${n} ${n === 1 ? 'melding wacht' : 'meldingen wachten'}`;
 }
 
 // For a running mission/bijbaan the default category is that.
@@ -285,6 +300,7 @@ export function updateCards(dt, w) {
   const frozen = hudHidden() || w.paused || w.uiPaused;
   stackEl.classList.toggle('paused', !!frozen);
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
+  syncWait();
   if (frozen) return;
   // during a phone call only dangers and the police get a card
   const calling = document.body.classList.contains('hud-call-on');
