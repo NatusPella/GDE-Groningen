@@ -67,6 +67,12 @@ export const COUNTRY_UNIFORMS = {
   uRealWaterRect: { value: [0, 0, 1, 0] },
   uUrbanTex: { value: null },
   uUrbanRect: { value: [0, 0, 1, 0] },
+  // the road / canal distances of cEdge baked round the player (countrybake.js):
+  // rect = [x0, y0, size, on], a fine level and a coarse one
+  uBake0: { value: null },
+  uBakeRect0: { value: [0, 0, 1, 0] },
+  uBake1: { value: null },
+  uBakeRect1: { value: [0, 0, 1, 0] },
 };
 
 // Real-data zone: { bx0, by0, bx1, by1, water: { x0, y0, cell, w, h, data },
@@ -326,6 +332,11 @@ uniform sampler2D uRealWater;
 uniform vec4 uRealWaterRect;
 uniform sampler2D uUrbanTex;
 uniform vec4 uUrbanRect;
+uniform sampler2D uBake0;
+uniform vec4 uBakeRect0;
+uniform sampler2D uBake1;
+uniform vec4 uBakeRect1;
+float cEdD = 0.0;
 const float C_BLOCK = ${BLOCK.toFixed(1)};
 const float C_PW = ${PW.toFixed(1)};
 const float C_PL = ${PL.toFixed(1)};
@@ -421,14 +432,65 @@ vec3 cEdge(vec2 p, float px) {
   return vec3(road, canal, line);
 }
 
+// Signed distances (m, clamped to +-4) to the nearest road edge and to the
+// nearest canal's water edge: what countrybake.js stores per texel.
+vec2 cEdgeSD(vec2 p) {
+  float sdR = 4.0, sdC = 4.0;
+  vec2 g = (p - uEdgeGridRect.xy) / uEdgeGridRect.z;
+  if (g.x < 0.0 || g.y < 0.0 || g.x >= uEdgeGridSize.x || g.y >= uEdgeGridSize.y) return vec2(sdR, sdC);
+  ivec2 c = ivec2(floor(g));
+  uvec4 s0 = texelFetch(uEdgeGrid, ivec2(c.x * 3, c.y), 0);
+  if (s0.x == 0u) return vec2(sdR, sdC);
+  uvec4 s1 = texelFetch(uEdgeGrid, ivec2(c.x * 3 + 1, c.y), 0);
+  uvec4 s2 = s1.w == 0u ? uvec4(0u) : texelFetch(uEdgeGrid, ivec2(c.x * 3 + 2, c.y), 0);
+  for (int k = 0; k < ${EDGE_SLOTS}; k++) {
+    uint id = k < 4 ? s0[k] : k < 8 ? s1[k - 4] : s2[k - 8];
+    if (id == 0u) break;
+    int i = int(id) - 1;
+    ivec2 at = ivec2(i % ${EDGE_TEX_W}, (i / ${EDGE_TEX_W}) * 2);
+    vec4 A = texelFetch(uEdgeTex, at, 0);
+    vec2 ab = A.zw - A.xy;
+    float t = clamp(dot(p - A.xy, ab) / max(dot(ab, ab), 1e-3), 0.0, 1.0);
+    float d = length(p - A.xy - ab * t);
+    vec4 W = texelFetch(uEdgeTex, at + ivec2(0, 1), 0);
+    float hw = mix(W.x, W.y, t);
+    if (W.z < 0.5) sdR = min(sdR, d - hw);
+    else sdC = min(sdC, d - hw + 1.2);
+  }
+  return clamp(vec2(sdR, sdC), -4.0, 4.0);
+}
+
+// The baked texel at p (road and canal distances, the two field noises):
+// false where neither level covers p.
+bool cBake(vec2 p, out vec4 t) {
+  vec2 u = (p - uBakeRect0.xy) / uBakeRect0.z;
+  if (uBakeRect0.w > 0.5 && min(u.x, u.y) > 0.002 && max(u.x, u.y) < 0.998) { t = textureLod(uBake0, u, 0.0); return true; }
+  u = (p - uBakeRect1.xy) / uBakeRect1.z;
+  if (uBakeRect1.w > 0.5 && min(u.x, u.y) > 0.002 && max(u.x, u.y) < 0.998) { t = textureLod(uBake1, u, 0.0); return true; }
+  t = vec4(0.0);
+  return false;
+}
+// cEdge from the baked distances (one texture read instead of the segment
+// loop); junctions come out as one outline.
+vec3 cEdgeFrom(vec4 t, float px) {
+  float sdR = t.r * 8.0 - 4.0, sdC = t.g * 8.0 - 4.0;
+  return vec3(1.0 - smoothstep(-px - 0.05, px + 0.05, sdR), 1.0 - smoothstep(-px, px, sdC), sdR < 2.5 ? abs(sdR + 0.3) : 1e3);
+}
+vec3 cEdgeAt(vec2 p, float px) {
+  vec4 t;
+  return cBake(p, t) ? cEdgeFrom(t, px) : cEdge(p, px);
+}
+
 float countryWeight(vec2 p) {
   float d = cEdgeDist(p);
+  cEdD = d;
   if (d < -${(FEATHER_IN + FEATHER_NOISE).toFixed(1)}) return 0.0;
+  if (d > ${(FEATHER_OUT + FEATHER_NOISE / 2 + 1).toFixed(1)}) return 1.0;
   float n = (cNoise(p * 0.012) + 0.5 * cNoise(p * 0.05 + vec2(17.0, 3.0))) / 1.5;
   float cw = smoothstep(-${FEATHER_IN.toFixed(1)}, ${FEATHER_OUT.toFixed(1)}, d + (n - 0.5) * ${FEATHER_NOISE.toFixed(1)});
   // the roads and canals running off the map are fully country from the edge on
   if (cw < 1.0 && d > -16.0 && d < 90.0) {
-    vec3 e = cEdge(p, 0.5);
+    vec3 e = cEdgeAt(p, 0.5);
     cw = max(cw, max(max(e.x, e.y), smoothstep(-0.5, 0.5, cRealWater(p))));
   }
   return cw;
@@ -436,6 +498,8 @@ float countryWeight(vec2 p) {
 
 vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float px = length(fwidth(p));
+  vec4 bk;
+  bool baked = cBake(p, bk);
   float detail = 1.0 - smoothstep(0.05, 0.6, px);
   vec2 bf = floor(p / C_BLOCK);
   int bx = int(bf.x), by = int(bf.y);
@@ -456,7 +520,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   bool inReal = cReal(bx, by);
   float urb = inReal ? cUrban(p) : 0.0;
   // thin ditches fade in over the first few hundred metres past the city
-  float edD = cEdgeDist(p);
+  float edD = cEdD;
   float keepD = 1.0;
   float ramp = smoothstep(20.0, 450.0, edD);
   keepD = 1.0 - urb;
@@ -466,7 +530,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
     keepD *= 1.0 - urb;
   }
 
-  float n1 = cNoise(p * 0.03), n2 = cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
+  float n1 = baked ? bk.b : cNoise(p * 0.03), n2 = baked ? bk.a : cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
   vec3 grassA = cLin(88.0, 122.0, 54.0), grassB = cLin(79.0, 114.0, 52.0), grassC = cLin(104.0, 138.0, 62.0);
   vec3 c = seed < 0.35 ? grassA : (seed < 0.7 ? grassB : grassC);
   c *= 0.86 + 0.26 * (n1 * 0.6 + n2 * 0.4);
@@ -546,7 +610,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
 
   // roads and canals carried on from the city
   vec3 ce = vec3(0.0, 0.0, 1e3);
-  if (edD > -20.0) ce = cEdge(p, px);
+  if (edD > -20.0) ce = baked ? cEdgeFrom(bk, px) : cEdge(p, px);
   if (ce.x > 0.0) {
     vec3 asph = cLin(74.0, 74.0, 76.0) * (0.9 + 0.2 * n3);
     float el = (1.0 - smoothstep(0.08, 0.08 + px, ce.z)) * detail;

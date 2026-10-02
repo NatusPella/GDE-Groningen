@@ -22,6 +22,7 @@ const ENGINE_VOICES = 4;
 const ENGINE_RANGE = 70;
 const SIREN_VOICES = 3;
 const SPEECH_RANGE = 45;
+const HRTF_NEAR = 14;
 const GMUSIC_MANIFEST_URL = './audio/gmusic/manifest.json';
 const GMUSIC_VOLUME = 0.85;
 const GMUSIC_DUCK_VOLUME = 0.5;
@@ -202,7 +203,19 @@ function nowSec() {
 }
 
 function masterLevel() {
-  return MASTER_VOLUME * getSettings().masterVolume;
+  return MASTER_VOLUME * getSettings().masterVolume * (menuAudio ? MENU_LEVEL : 1);
+}
+
+// Title screen: the city itself at a lower level and no music; the theme song
+// waits for Doorgaan / Nieuw spel (theme.js). Leaving re-primes the change
+// detectors so loading a save doesn't chime its money and armour.
+const MENU_LEVEL = 0.55;
+let menuAudio = false;
+export function setMenuAudio(on) {
+  if (menuAudio === !!on) return;
+  menuAudio = !!on;
+  if (!menuAudio && worldReady && lastWorld) primeWorld(lastWorld);
+  if (ctx && master) applyOutputGains(0.6);
 }
 
 onSettingsChange((st) => {
@@ -296,7 +309,8 @@ function spatialOut(x, y, opts = {}) {
   if (!ctx || muted || !voiceOk(opts.prio ?? 1)) return null;
   const h = opts.h ?? SOURCE_HEIGHT;
   if (distToListener(x, y, h) > (opts.range ?? MAX_DISTANCE)) return null;
-  const panner = makePanner(opts);
+  // HRTF only where it is heard as such: far one-shots pan with equal power
+  const panner = makePanner(opts.model || distToListener(x, y, h) < HRTF_NEAR ? opts : { ...opts, model: 'equalpower' });
   setPannerPos(panner, x, y, h);
   panner.connect(opts.bus || sfxBus);
   let refs = 0;
@@ -1078,7 +1092,7 @@ function playClip(src, pos = null) {
     const node = ctx.createMediaElementSource(el);
     nodes.push(node);
     if (pos) {
-      const panner = makePanner({ ref: 4, rolloff: 1.2 });
+      const panner = makePanner({ ref: 4, rolloff: 1.2, model: distToListener(pos.x, pos.y, pos.h ?? 1.6) < HRTF_NEAR ? 'HRTF' : 'equalpower' });
       setPannerPos(panner, pos.x, pos.y, pos.h ?? 1.6);
       node.connect(panner).connect(voiceBus);
       nodes.push(panner);
@@ -1897,7 +1911,9 @@ function ensureCtx() {
   if (SILENT_MODE) return false;
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return false;
-  ctx = new AC();
+  // 'balanced' gives the audio thread a few quanta of headroom: a busy CPU
+  // (shader compiles, a heavy frame) then no longer starves the output
+  try { ctx = new AC({ latencyHint: 'balanced' }); } catch (e) { ctx = new AC(); }
   speech.setSpeechClock(() => ctx.currentTime);
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   window.addEventListener('pointerdown', unlockAudio, true);
@@ -2876,7 +2892,7 @@ export function updateAudio(dt, world) {
   events.length = 0;
   if (ctx.state !== 'running') resumeCtx('frame');
 
-  if (world.input.wasPressed('u')) {
+  if (!menuAudio && world.input.wasPressed('u')) {
     muted = !muted;
     saveMuted();
     applyOutputGains(0.05);
@@ -2892,7 +2908,7 @@ export function updateAudio(dt, world) {
   guarded('world', () => updateWorldAudio(dt, world));
   guarded('ducking', () => updateDucking(dt));
   if (bank.pending() === 0 && warmList.length) bank.warm([warmList.pop()]);
-  guarded('gmusic', () => updateGMusic(dt, world));
+  if (!menuAudio) guarded('gmusic', () => updateGMusic(dt, world));
 }
 
 function updateWorldAudio(dt, world) {
