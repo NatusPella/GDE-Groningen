@@ -392,7 +392,7 @@ don't collide, and actors are drawn at their height.
 - Grote Markt and Vismarkt (`marktgebouwen.js`, notes and sources in
   `docs/markt-gebouwen.md`): `buildBuildingMesh` asks `marktKind(b)` first.
   - `'model'`: an own landmark-style model by name (Korenbeurs, Het Groot
-    Handelshuis, Calmershuis), drawn with `LANDMARK_MATERIALS` and the
+    Handelshuis, Calmershuis, the kiosk), drawn with `LANDMARK_MATERIALS` and the
     `LM` helpers that landmarks3d.js exports.
   - `'facade'`: ordinary buildings with an open edge within 32 m of one of
     the `SQUARES` polygons, or with a mapextras `markt` key (a
