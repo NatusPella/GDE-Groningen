@@ -103,7 +103,7 @@ x 150-240, y 40-160. The Vismarkt runs WSW-ENE from the Korenbeurs
 
 ### Martinitoren and kiosk
 - Martinitoren: unchanged (GLB model).
-- Kiosk: a small glass box on the south side, unchanged.
+- Kiosk: a one-storey glass box (it was a three-storey house) with a flat overhanging roof.
 
 ## Vismarkt
 

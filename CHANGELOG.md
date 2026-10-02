@@ -18,7 +18,8 @@ nieuwe functies, `y` voor alleen bugfixes.
   - Het Groot Handelshuis in grijs mozaïek;
   - De Drie Gezusters, het Market Hotel en Merckt;
   - de Korenbeurs met Mercurius, Neptunus en Ceres;
-  - het zwarte Calmershuis.
+  - het zwarte Calmershuis;
+  - een glazen kiosk.
 - **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
   zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
   kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
