@@ -10,6 +10,7 @@ import { saveGame } from './savegame.js';
 import { setUserWaypoint } from './routing.js';
 import { storyFlag } from './story.js';
 import { getHeroCar, getClockText } from './hud_panel.js';
+import { storyDate } from './calendar.js';
 import { getGarageList, deliverOwnedVehicle, locateOwnedVehicle, whereText } from './ownedvehicles.js';
 import { initGarageStyles } from './garageui.js';
 import { getSideJobOffers, quitSideJob } from './sidejobs.js';
@@ -485,7 +486,7 @@ function render() {
   const w = world;
   let html = '';
   if (st.screen === 'home') {
-    html = `<div class="ph-home"><div class="ph-bigclock">${esc(clockText)}</div><div class="ph-date">Grunn</div>` +
+    html = `<div class="ph-home"><div class="ph-bigclock">${esc(clockText)}</div><div class="ph-date">${esc(storyDate(w).long)} · Grunn</div>` +
       `<div class="ph-grid">${APPS.map((a, i) => `<button type="button" class="ph-app${i === st.sel ? ' sel' : ''}" data-idx="${i}">` +
         `<span class="ph-icon">${icon(a.id)}</span><span>${a.label}</span></button>`).join('')}</div>` +
       `<div class="ph-flash">${esc(st.flash || '')}</div></div>`;

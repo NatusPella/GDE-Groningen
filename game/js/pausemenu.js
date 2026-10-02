@@ -10,6 +10,7 @@ import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscover
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
+import { storyDate } from './calendar.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
@@ -848,7 +849,7 @@ function renderOverviewPanel() {
   const r = getDiscoveredRatio();
   const s = getSaveSummary();
   const ago = s ? Math.round((Date.now() - s.savedAt) / 60000) : -1;
-  sheet.querySelector('.pm-sheet-sub').textContent = [getClockText(world), r >= 0.01 ? `${Math.round(r * 100)}% van Grunn verkend` : '',
+  sheet.querySelector('.pm-sheet-sub').textContent = [`${storyDate(world).long} ${getClockText(world)}`.trim(), r >= 0.01 ? `${Math.round(r * 100)}% van Grunn verkend` : '',
     ago < 0 ? '' : ago < 1 ? 'net opgeslagen' : ago < 120 ? `laatst opgeslagen ${ago} min geleden` : ''].filter(Boolean).join(' · ');
 }
 

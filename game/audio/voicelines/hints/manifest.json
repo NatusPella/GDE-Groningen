@@ -7,13 +7,13 @@
 "src": "anita/achter_die_tankwagen_aan_schiete_1edc6d3f.mp3",
 "dur": 4.37
 },
+"Anita|Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.": {
+"src": "anita/achter_die_trekker_aan_blijf_erb_5f3ed1c4.mp3",
+"dur": 4.45
+},
 "Anita|Achter die trekker aan! De pliesie rijdt ook mee. Ram of schiet zijn banden stuk.": {
 "src": "anita/achter_die_trekker_aan_de_pliesi_49a839f9.mp3",
 "dur": 4.9
-},
-"Anita|Achter die trekker aan! Ram hem tot hij stilstaat. Niet schieten, er is kermis.": {
-"src": "anita/achter_die_trekker_aan_ram_hem_t_5c30cbad.mp3",
-"dur": 4.5
 },
 "Anita|Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op Tammo's auto schieten, hè!": {
 "src": "anita/achter_ze_aan_ram_hem_tot_hij_st_c0f23884.mp3",
@@ -475,13 +475,13 @@
 "src": "tammo/achter_die_tankwagen_aan_schiete_24c61cc6.mp3",
 "dur": 3.91
 },
+"Tammo|Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.": {
+"src": "tammo/achter_die_trekker_aan_blijf_erb_fd5b112c.mp3",
+"dur": 5.01
+},
 "Tammo|Achter die trekker aan! De pliesie rijdt ook mee. Ram of schiet zijn banden stuk.": {
 "src": "tammo/achter_die_trekker_aan_de_pliesi_743e132d.mp3",
 "dur": 4.38
-},
-"Tammo|Achter die trekker aan! Ram hem tot hij stilstaat. Niet schieten, er is kermis.": {
-"src": "tammo/achter_die_trekker_aan_ram_hem_t_7c45b759.mp3",
-"dur": 4.41
 },
 "Tammo|Alarm! Drie sterren. Wegwezen, over het water als het kan.": {
 "src": "tammo/alarm_drie_sterren_wegwezen_over_04bf74c4.mp3",

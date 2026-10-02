@@ -7,6 +7,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
+  zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
+  kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
+  Europaweg, carbid in het Ommeland. Met naamkaarten voor Anita, Tammo,
+  Jelle Terpstra en Durk & Douwe, Rikus op de radio en Berend na het logo.
+  Het is ook de benchmark onder Instellingen › Beeld.
+- **Desktop: de trailer als video.** `--trailer-video` maakt er een MP4 van
+  (1080p60, met muziek en stemmen) in je Downloads, plus een thumbnail.
 - **Het definitieve verhaal: een zomer in Grunn.** Twee weken augustus, van
   de KEI-week via Noorderzon naar de kermis en Gronings Ontzet, met een
   epiloog in september. Alle cutscènes, telefoontjes en berichten zijn
@@ -69,8 +77,36 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Vooruit spelen mag**, maar het spel vraagt eerst of je dat echt wilt.
 - **Beweging beperken** onder Instellingen › Weergave: geen animaties in
   menu's en tellers.
+- **Een dag en datum in Grunn.** Overzicht en de telefoon zeggen welke dag
+  het is ("Vrijdag 14 augustus"): elk deel begint op zijn eigen datum, de
+  stappen lopen door de dagen heen tot Gronings Ontzet op vrijdag 28
+  augustus, en na het verhaal is het september. Wie een nacht doorspeelt,
+  gaat een dag verder.
+- **Overzicht laat de plek zien** van de huidige stap: een plaatje uit de
+  stad, met de gele marker, zodra je er in de buurt bent geweest.
+- **"1 prestatie wacht"** in de HUD tot je Prestaties opent; daar staan de
+  nieuwe dan bovenaan bij Onlangs behaald.
+- **Ballonjacht heeft zilver**: brons voor de ballon, zilver vanaf 2.600 en
+  goud vanaf 3.300 punten, met B/Z/G in Te doen.
 
 ### Veranderd
+- **Ontzet, net als in 1672:** de achtervolging volgt het script. Jelle scheurt
+  vanaf de hoek van de Grote Markt de Oude Boteringestraat in, over de
+  Boteringebrug, langs de Spilsluizen en de Oude Ebbingestraat weer terug naar
+  de markt, en de torenwachter meldt elke straat. Blijf erbij (rammen helpt):
+  dan fluit Tammo en vliegen de duiven van d'Olle Grieze door het vuurwerk op de
+  voorruit van de trekker, nu als scène in plaats van een kaartje.
+- **Wind tegen, beide kanten op:** het oogcontact is nu een echte scène in plaats
+  van een kaartje. Op het kruispunt waar alles groen is komt Anita op haar eigen
+  fiets van de andere kant, ze kijken elkaar aan en remmen allebei.
+- **Fatbikes tellen niet als fiets** loopt nu zoals in het script: van de Grote
+  Markt de Oude Ebbingestraat uit, over de Ebbingebrug en langs het water naar
+  Oma Trijntje aan de Noorderhaven. De fatbikes komen overal om je heen, niet
+  alleen aan de uiteinden; de klok en de medailletijden zijn langer.
+- **Nieuw spel** is strakker: de opening duurt anderhalve minuut in plaats van
+  bijna twee. Kortere trailerflitsen, de dageraad in de Korenbloemstraat in één
+  beweging van de toren naar de lekke band en de radio, en het stille moment aan
+  de keukentafel loopt over in Anita's zin. Het tweede logo is weg.
 - Minder verplichte aankopen: alleen een fiets, kraakspullen (zwart of een
   bootje) en een huurboot. De eierbal, het pistool, de uzi, de auto, de bank
   en de bijbaantjes zijn geen verhaalstap meer (te koop blijven ze). Tuning
