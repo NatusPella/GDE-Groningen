@@ -161,7 +161,9 @@ function createWindow() {
     (smoke || storyTest || process.argv.includes('--perf-test')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
     TRAILER && trailerFrames && 'frames', process.argv.includes('--attract') && 'attract',
-    !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`].filter(Boolean).join('&');
+    !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,
+    // --preset=laag: that graphics preset for this run only (not saved)
+    argValue('--preset') && `preset=${encodeURIComponent(argValue('--preset'))}`].filter(Boolean).join('&');
   // --benchmark --profile: a CPU profile of 30 s of the first run
   if (BENCH && process.argv.includes('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
   if (BENCH || TRAILER || argValue('--bench-eval')) {
@@ -172,6 +174,13 @@ function createWindow() {
   }
   // --bench-eval=<file>: debug script run in the page as soon as it loads
   // (e.g. a GPU-memory tracker for --benchmark or --perf-script runs)
+  // --cpu-throttle=4: slows the page's CPU like DevTools does (perf runs on a
+  // weak machine stand-in, scripts/perf/run.sh)
+  const throttle = Number(argValue('--cpu-throttle'));
+  if (throttle > 1) win.webContents.once('did-finish-load', async () => {
+    const dbg = win.webContents.debugger;
+    try { if (!dbg.isAttached()) dbg.attach('1.3'); await dbg.sendCommand('Emulation.setCPUThrottlingRate', { rate: throttle }); } catch (e) { console.log('[cpu-throttle]', e.message); }
+  });
   const evalFile = argValue('--bench-eval');
   if (evalFile) win.webContents.on('dom-ready', () => win.webContents.executeJavaScript(fsSync.readFileSync(evalFile, 'utf8')).catch((e) => console.log('[bench-eval]', e.message)));
   if (TRAILER && trailerFrames) {
@@ -348,7 +357,7 @@ function createWindow() {
 // inclusive time, and time per file
 async function runProfile(win, ms = 6000) {
   const dbg = win.webContents.debugger;
-  dbg.attach('1.3');
+  if (!dbg.isAttached()) dbg.attach('1.3');
   await dbg.sendCommand('Profiler.enable');
   await dbg.sendCommand('Profiler.setSamplingInterval', { interval: 200 });
   await dbg.sendCommand('Profiler.start');
