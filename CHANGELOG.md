@@ -79,6 +79,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   menu's en tellers.
 
 ### Veranderd
+- **Nieuw spel** is strakker: de opening duurt anderhalve minuut in plaats van
+  bijna twee. Kortere trailerflitsen, de dageraad in de Korenbloemstraat in één
+  beweging van de toren naar de lekke band en de radio, en het stille moment aan
+  de keukentafel loopt over in Anita's zin. Het tweede logo is weg.
 - Minder verplichte aankopen: alleen een fiets, kraakspullen (zwart of een
   bootje) en een huurboot. De eierbal, het pistool, de uzi, de auto, de bank
   en de bijbaantjes zijn geen verhaalstap meer (te koop blijven ze). Tuning
