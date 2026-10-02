@@ -8,7 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js/pg_lines.js';
 import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
-import { STEPS, PARTS } from '../game/js/storyarc.js';
+import { STEPS, PARTS, SPEAKERS } from '../game/js/storyarc.js';
 import { SMS_SAY, smsSpeaker, smsSpoken, cardSpoken } from '../game/js/smsvoice.js';
 import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT } from '../game/js/rondvaartlines.js';
 import { DUO as OM_DUO, WORLD_ENDS, WORLD_END_FINAL, VILLAGES, KOE_LINES, KOE_WHO, KOE_CALL } from '../game/js/ommelandlines.js';
@@ -89,7 +89,8 @@ export function collect() {
   // N = the mission's NPC; V = the narrator; another NPC key speaks off camera
   const nm = (k, npc) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k === 'V' ? NARRATOR : k !== 'N' && NPC[k] ? NPC[k].name : NPC[npc].name);
   STORY.forEach((s, i) => {
-    for (const kind of ['intro', 'outro', 'fail']) for (const [k, t] of s[kind] || []) add('Missie-cutscenes', 'story', [nm(k, s.npc)], t, { mission: i, kind });
+    // the outro (and its replay version) may have its own NPC (outroNpcKey)
+    for (const kind of ['intro', 'outro', 'replay', 'fail']) for (const [k, t] of s[kind] || []) add('Missie-cutscenes', 'story', [nm(k, kind === 'outro' || kind === 'replay' ? s.outroNpcKey || s.npc : s.npc)], t, { mission: i, kind });
   });
   for (const st of DUO) for (const kind of ['intro', 'outro']) for (const [k, t] of st[kind]) add('Missie-cutscenes', 'story', [nm(k)], t, { kind: 'duo' });
   // missionstory.js falls back to the lines manifest (linevoice.storyLineVoice)
@@ -165,7 +166,7 @@ export function collect() {
 
   // --- how Jelle and the twins reach them (storycontact.js), the "Eerder in GTE VI"
   // recaps and the handover lines (story.js) -> lines manifest
-  const CONTACT = { jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', rikus: NARRATOR, mem: 'Mem Terpstra', T: 'Tammo', A: 'Anita' };
+  const CONTACT = SPEAKERS;
   for (const st of STEPS) for (const c of st.contact || []) for (const [k, t, o] of c.lines) add('Verhaal-contact (telefoon)', 'lines', [CONTACT[k]], t, o && o.tag ? { tag: o.tag } : {});
   for (const P of Object.values(PARTS)) for (const [, t] of P.recap || []) add('Verhaal-kaarten', 'lines', [NARRATOR], t, { tag: ['warm, vertellend, als een terugblik', 'droog, met een knipoog, samenvattend'] });
   for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);

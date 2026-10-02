@@ -10,6 +10,29 @@
 // fails on any spoken line that reads as Frisian (looksFrisian) without one.
 
 export const FY = {
+  // the definitive script (docs/verhaal/D-definitief.md)
+  'Moai foar in wykein': 'Mooi voor een weekendje',
+  'dat famke yn it read: sa\'n leaf gesicht': 'dat meisje in het rood: wat een lief gezicht',
+  'leit op it skûtsje': 'ligt op het skûtsje',
+  'Oant sjen op it Ontset': 'Tot ziens op het Ontzet',
+  'Tige tank foar de auto': 'Bedankt voor de auto',
+  'Myn soan hat dy reade auto op de trein nei Ljouwert set.': 'Mijn zoon heeft die rode auto op de trein naar Leeuwarden gezet.',
+  'Sjochst? Dat wie alles wat ik woe.': 'Zie je? Dat was alles wat ik wilde.',
+  'Pas op dysels, famke. – M.': 'Pas op jezelf, meisje. – M.',
+  'Ik bin sa werom': 'Ik ben zo terug',
+  'Ik woe him allinnich oan mem jaan. Foar de útslach.': 'Ik wilde hem alleen aan mem geven. Voor de uitslag.',
+  'Dit is net klear, Grinzer.': 'Dit is nog niet klaar, Groninger.',
+  'Moai, Grinzer.': 'Mooi, Groninger.',
+  'Moai, Rikus.': 'Mooi, Rikus.',
+  'Dat vet was van mij. No ja.': 'Dat vet was van mij. Nou ja.',
+  'As dat jild der is.': 'Als dat geld er is.',
+  'Better as ús. Net fertelle.': 'Beter dan de onze. Niet doorvertellen.',
+  'Net fertelle, hè': 'Niet doorvertellen, hè',
+  'Foar mem': 'Voor mem',
+  'foar mem': 'voor mem',
+  'FOAR MEM': 'VOOR MEM',
+  'famke': 'meisje',
+  'Famke': 'Meisje',
   // Durk after the story bumper-car ride (storyarc.js r-kermis)
   'Maar eerst bier. Vanavond in de Poelestraat, de baas trakteert. Net fertelle, hè?': 'Maar eerst bier. Vanavond in de Poelestraat, de baas trakteert. Niet doorvertellen, hè?',
   // story cutscenes (missionstory.js) and mission scenes (missions.js)
@@ -157,6 +180,32 @@ export const FY = {
 };
 
 export const GRO = {
+  // the definitive script (docs/verhaal/D-definitief.md)
+  'Dik feest vandaag': 'Geweldig feest vandaag',
+  'Groot Loug': 'Een groot dorp',
+  'Goidag': 'Goedendag',
+  'Een keudeldoemke': 'Een lieverdje',
+  'Hij luustert noar dij, jong': 'Hij luistert naar jou, jongen',
+  'Diep in de ogen kieken': 'Diep in de ogen kijken',
+  'As \'t nait gait zoas \'t mot, mot \'t mor zoas \'t gait.': 'Als het niet gaat zoals het moet, moet het maar zoals het gaat.',
+  'Braid noar de zin': 'Helemaal tevreden',
+  'Valt mie nait of': 'Dat valt me niet tegen',
+  'Eet je krentjebrij': 'Eet je bessensap met gort en krenten',
+  'Die bal is gien geld, jong': 'Die bal is geen geld, jongen',
+  'Hest weer veur \'n ander?': 'Heb je het weer voor elkaar?',
+  'Doar zuukt gain Fries noar': 'Daar zoekt geen Fries naar',
+  'Kovvie mit kouke?': 'Koffie met koek?',
+  'doe bist schier': 'jij bent mooi',
+  'Doe bist schier': 'Jij bent mooi',
+  'Ken ik ja nait roeken': 'Hoe moet ik dat nou weten',
+  'Woist ja wel': 'Je weet het toch',
+  'een kloet in de strotte': 'een brok in de keel',
+  'Proeksel, jongens': 'Natte rommel, jongens',
+  'Dan komt het goud': 'Dan komt het goed',
+  'twijduustern': 'de schemer',
+  'Nait tegen d\'Olle Grieze aan': 'Niet tegen de Martinitoren aan',
+  '…Goud.': '…Goed. (Gronings compliment)',
+  'Kon veel minder': 'Heel erg goed (Gronings: kon veel minder)',
   // kermisbaas Jan and Rotor Roelf in the story steps around the kermis and the demo flight (storyarc.js, kermis.js, storyfun.js)
   'Gratis rondje, jong! Bots die twij reuzen mor oet mien baan.': 'Gratis rondje, jongen! Bots die twee reuzen maar uit mijn baan.',
   'W is omhoog, de pijltjes vooruit. En nait tegen d\'Olle Grieze aan, hè?': 'W is omhoog, de pijltjes vooruit. En niet tegen de Martinitoren aan, hè?',

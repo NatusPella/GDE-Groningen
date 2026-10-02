@@ -1322,7 +1322,8 @@ export function pauseContactVoice(paused) {
   else v.el.play().catch(() => {});
 }
 
-export function playContactVoice(src) {
+// radio: Rikus' Nachtstreek on the phone (storycontact.js), in the same broadcast band as playStoryVoice
+export function playContactVoice(src, { radio = false } = {}) {
   stopContactVoice();
   if (!ctx || muted) return false;
   const v = { el: newVoiceEl(src), node: null, tok: null };
@@ -1330,7 +1331,12 @@ export function playContactVoice(src) {
   if (!v.tok) { releaseEl(v.el); return false; }
   try {
     v.node = ctx.createMediaElementSource(v.el);
-    v.node.connect(voiceBus);
+    if (radio) {
+      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 240;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4600;
+      const pk = ctx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 1900; pk.Q.value = 0.8; pk.gain.value = 3;
+      v.node.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(voiceBus);
+    } else v.node.connect(voiceBus);
   } catch (e) {
     // ignore - plays without the Web Audio graph
   }
