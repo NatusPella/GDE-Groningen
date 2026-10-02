@@ -106,7 +106,7 @@
 #hud .hud-meter.low svg, #hud .hud-meter.low b { animation: hud-low 0.9s ease-in-out infinite alternate; }
 #hud .hud-meter.low b { color: #d93f3f; }
 @keyframes hud-low { from { opacity: 1; transform: scale(1); } to { opacity: 0.55; transform: scale(1.12); } }
-#hud .hud-meter.ar.empty { opacity: 0.45; }
+#hud .hud-meter[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-meter.low svg, #hud .hud-meter.low b { animation: none; } }
 #hud .hud-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; min-width: 0; }
 #hud .hud-name-row .hud-character { margin-bottom: 0; }
