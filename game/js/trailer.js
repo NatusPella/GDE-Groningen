@@ -7,7 +7,7 @@ import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat, makeBirds, scatterBirds, updateBirds, buildAtm, buildVitrineRoom, buildFlag, waveFlag } from './intromontage.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE, seatPose, seatPerson, seatedY } from './models3d_people.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK } from './storycast.js';
-import { spawnPedestriansNear } from './pedestrians.js';
+import { spawnPedestriansNear, isOnRoad } from './pedestrians.js';
 import { KERMIS } from './kermis.js';
 import { tractorBodyGeometry, tractorBaseGeometry } from './countrymodels.js';
 import { vcMaterial } from './pixelart3d.js';
@@ -649,26 +649,32 @@ function buildShots(w) {
   const vm = openSpot(map, vis.x, vis.y, 20);
   const vmA = -0.55;
   const vf = { x: Math.cos(vmA), y: Math.sin(vmA) }, vn = { x: -vf.y, y: vf.x };
+  // terrace tables on the square only: never on a road or cycle path (the
+  // Vismarkt has a street through it), nearest the dolly line first
   const tables = [];
-  for (let i = 0; i < 7; i++) {
-    for (const side of [-1, 1]) {
-      const x = vm.x + vf.x * (i * 2.9 - 6) + vn.x * side * 3.6, y = vm.y + vf.y * (i * 2.9 - 6) + vn.y * side * 3.6;
-      if (!roofAt(map, x, y) && !roofAt(map, x + 1, y) && !roofAt(map, x, y + 1)) tables.push({ x, y, a: vmA + Math.PI / 2 });
+  for (let i = 0; i < 8; i++) {
+    for (const off of [-3.6, 3.6, -6.4, 6.4, -9.2, 9.2]) {
+      const x = vm.x + vf.x * (i * 2.9 - 7) + vn.x * off, y = vm.y + vf.y * (i * 2.9 - 7) + vn.y * off;
+      if (!roofAt(map, x, y) && !roofAt(map, x + 1.4, y) && !roofAt(map, x, y + 1.4) && !roofAt(map, x - 1.4, y) && !roofAt(map, x, y - 1.4) && !isOnRoad(map, x, y, 1.6)) tables.push({ x, y, a: vmA + Math.PI / 2, d: Math.abs(off) });
     }
   }
+  tables.sort((a, b) => a.d - b.d);
+  tables.length = Math.min(tables.length, 12);
   const vismarkt = {
     label: 'Terrassen op de Vismarkt', cuts: ['vol', 'kort'], dur: 4.0, kort: 2.6, clock: 13.2, weather: 'helder', focus: vm,
     caps: [[0.6, 3.0, 'Een zomer.']],
     prep(r) { r.prop('terrace', () => buildTerrace(tables)); for (let i = 0; i < 16; i++) extra(r, i); },
     enter(r, s) {
       r.prop('terrace', () => buildTerrace(tables));
-      s.birds = makeBirds(r.group, vm.x + vf.x * 3, vm.y + vf.y * 3, 3.5);
+      clearAround(r, vm, 70);
+      s.birds = makeBirds(r.group, vm.x + vf.x * 4, vm.y + vf.y * 4, 5.5, 72);
       s.gone = false;
       s.extraPeds = spawnPedestriansNear(map, vm.x, vm.y, 30, Math.random);
       r.w.pedestrians.push(...s.extraPeds);
     },
     tick(r, s, t, dt) {
       tables.slice(0, 8).forEach((tb, i) => {
+        if (tb.d > 7) return;
         for (const k of [0, 1]) {
           const a = tb.a + k * Math.PI, m = extra(r, i * 2 + k);
           sitAt(m, tb.x + Math.cos(a) * 0.62, tb.y + Math.sin(a) * 0.62, a + Math.PI, 0.47, CHAIR);
@@ -687,8 +693,8 @@ function buildShots(w) {
   };
 
   // blankets on the lawn, a barbecue, a frisbee between two of them
-  // the open lawn east of the pond (the landmark point sits on the edge)
-  const pk = openSpot(map, park.x + 120, park.y + 110, 20);
+  // an open lawn in the Noorderplantsoen, 30+ m from any road or path
+  const pk = openSpot(map, park.x + 153, park.y + 3, 10);
   const pz = gz(pk.x, pk.y);
   const pa = Math.PI / 2, pf = { x: Math.cos(pa), y: Math.sin(pa) }, pn = { x: -pf.y, y: pf.x };
   const pAt = (f, n) => ({ x: pk.x + pf.x * f + pn.x * n, y: pk.y + pf.y * f + pn.y * n });
@@ -700,6 +706,7 @@ function buildShots(w) {
     prep(r) { r.prop('picnic', () => buildPicnic(blankets, grills)); for (let i = 16; i < 28; i++) extra(r, i); },
     enter(r, s) {
       s.g = r.prop('picnic', () => buildPicnic(blankets, grills));
+      clearAround(r, pk, 60);
       s.extraPeds = spawnPedestriansNear(map, pk.x, pk.y, 25, Math.random);
       r.w.pedestrians.push(...s.extraPeds);
     },
@@ -743,16 +750,19 @@ function buildShots(w) {
     tick(r, s, t, dt) {
       s.d += 1.7 * dt;
       const q = { x: hq.x + hf.x * s.d + hn.x * 0.8, y: hq.y + hf.y * s.d + hn.y * 0.8 };
+      // she pushes the machine on its sack truck ahead of her, hands on the handles
       stage(r.actor('anita'), q.x, q.y, hq.a, { speed: 1.7, pose: t > 1.1 ? 'lookR' : null, dt, t });
       const ud = r.actor('anita').userData;
-      ud.armL.rotation.set(-0.35, 0, -0.55); ud.elbowL.rotation.z = 0.2;
-      s.atm.position.set(q.x - hf.x * 1.15, gz(q.x, q.y), q.y - hf.y * 1.15);
-      s.atm.rotation.set(0, -hq.a + Math.PI, -0.42);
+      ud.armL.rotation.set(-0.12, 0, 1.0); ud.elbowL.rotation.z = 0.45;
+      ud.armR.rotation.set(0.12, 0, 1.0); ud.elbowR.rotation.z = 0.45;
+      s.atm.position.set(q.x + hf.x * 0.95, gz(q.x, q.y), q.y + hf.y * 0.95);
+      s.atm.rotation.set(0, -hq.a, 0.32);
       s.q = q;
     },
     cam(u, t, s) {
-      const q = s.q, d = lerp(5.2, 4.2, smooth(u));
-      return { position: P(q.x + hf.x * d - hn.x * 1.6, q.y + hf.y * d - hn.y * 1.6, 1.25), lookAt: P(q.x - hf.x * 0.5, q.y - hf.y * 0.5, 1.2), fov: 44, shake: 0.03 };
+      // three-quarter front, wide enough of the machine to see her behind it
+      const q = s.q, d = lerp(4.6, 3.8, smooth(u));
+      return { position: P(q.x + hf.x * d - hn.x * 2.6, q.y + hf.y * d - hn.y * 2.6, 1.3), lookAt: P(q.x + hf.x * 0.4, q.y + hf.y * 0.4, 1.15), fov: 46, shake: 0.03 };
     },
   };
 
@@ -839,7 +849,8 @@ function buildShots(w) {
       Object.assign(s.car, { x: q.x, y: q.y, angle: a, speed: 6 });
       const f = { x: Math.cos(a), y: Math.sin(a) }, n = { x: -f.y, y: f.x };
       const m = cast(r, 'jelle', JELLE_LOOK);
-      stage(m, q.x - f.x * 0.8, q.y - f.y * 0.8, a, { h: 0.55, pose: t > 0.6 ? 'hips' : null, dt, t });
+      // up through the limousine's roof, behind the tractor cab
+      stage(m, q.x - f.x * 1.7, q.y - f.y * 1.7, a, { h: 1.05, pose: t > 0.6 ? 'hips' : null, dt, t });
       m.userData.blob.visible = false;
       m.userData.head.rotation.y = 0.15;
       s.flags.forEach((fl, i) => {
@@ -853,7 +864,7 @@ function buildShots(w) {
     cam(u, t, s) {
       const q = s.q, f = Math.cos(s.a), g = Math.sin(s.a);
       // low at the kerb, three-quarter front: Jelle clear of the tractor cab
-      return { position: P(q.x + f * lerp(6.5, 5.2, u) + g * 4.6, q.y + g * lerp(6.5, 5.2, u) - f * 4.6, 0.5), lookAt: P(q.x - f * 0.9, q.y - g * 0.9, 1.9), fov: 48, shake: 0.02 };
+      return { position: P(q.x + f * lerp(3.5, 2.5, u) + g * 7, q.y + g * lerp(3.5, 2.5, u) - f * 7, 0.6), lookAt: P(q.x - f * 1.2, q.y - g * 1.2, 2.1), fov: 50, shake: 0.02 };
     },
   };
 
@@ -1037,6 +1048,7 @@ function buildShots(w) {
       s.d = 95;
       const q = lane(euro, s.d, 1.5);
       s.truck = tempCar(r, q.x, q.y, q.a, { model: TANKER });
+      for (let d = 95; d <= 185; d += 15) clearAround(r, lane(euro, d, 0), 26, s.truck);
       s.drops = r.prop('drops', buildDrops);
       s.drops.count = 0; s.drops.userData.next = 0;
     },
@@ -1093,8 +1105,9 @@ function buildShots(w) {
       stage(r.actor('anita'), q.x - f.x * 0.9 + n.x * hw, q.y - f.y * 0.9 + n.y * hw, q.a + Math.PI / 2 + 0.2, { h: 0.55, pose: 'lookR', dt, t });
     },
     cam(u, t, s) {
-      const b = s.boat, f = Math.cos(b.angle), g = Math.sin(b.angle), k = smooth(u);
-      return { position: P(b.x + f * lerp(30, 9, k) - g * lerp(16, 7.5, k), b.y + g * lerp(30, 9, k) + f * lerp(16, 7.5, k), lerp(46, 2.6, k)), lookAt: P(b.x - f * 1.2, b.y - g * 1.2, lerp(-1, 1.2, k)), fov: 52, shake: 0.06 };
+      // down from the drone height in the first two thirds, then along the rail
+      const b = s.boat, f = Math.cos(b.angle), g = Math.sin(b.angle), k = smooth(u * 1.5);
+      return { position: P(b.x + f * lerp(30, 6.5, k) - g * lerp(16, 6, k), b.y + g * lerp(30, 6.5, k) + f * lerp(16, 6, k), lerp(46, 2.2, k)), lookAt: P(b.x - f * 1.3, b.y - g * 1.3, lerp(-1, 1.3, k)), fov: 50, shake: 0.05 };
     },
   };
 
@@ -1177,7 +1190,7 @@ function buildShots(w) {
 
   const box = cityBox(map);
   const land = { x: (box[0] + box[2]) / 2 + 300, y: box[1] - 260 };
-  const churnAt = { x: land.x + 34, y: land.y - 46 };
+  const churnAt = { x: land.x - 20, y: land.y + 17 };
   const ommeland = {
     label: 'De Ommelanden', cuts: ['vol'], dur: 4.0, clock: 19.0, weather: 'helder', focus: land,
     sfx: [[2.2, 'knal']],
@@ -1200,7 +1213,8 @@ function buildShots(w) {
       smoke.material.opacity = Math.max(0, 0.75 - k * 0.45);
     },
     cam(u) {
-      return { position: P(land.x - 40 + u * 30, land.y + 30, lerp(3, 7, u)), lookAt: P(churnAt.x + 6, churnAt.y - 30, 2), fov: 50, shake: 0.04 };
+      const cz = gz(churnAt.x, churnAt.y);
+      return { position: P(land.x - 40 + u * 22, land.y + 30, cz + lerp(2.2, 3.2, u)), lookAt: P(churnAt.x + 3, churnAt.y - 9, cz + 1.4), fov: 48, shake: 0.04 };
     },
   };
 
@@ -1240,11 +1254,14 @@ function buildShots(w) {
     lines: [[1.05, 1.75, 'Bommen Berend', '…Kon minder.']],
     prep(r) { cast(r, 'berend', BEREND_LOOK); },
     enter(r, s) {
-      const rp = map.nearestRoadPoint ? map.nearestRoadPoint(bq.x, bq.y, 40, true) : null;
-      s.a = rp && rp.road && Number.isFinite(rp.angle) ? rp.angle : 0.3;
-      s.c = rp ? { x: rp.x, y: rp.y } : bq;
-      s.car = tempCar(r, s.c.x, s.c.y, s.a, { model: BAKKIE });
+      // parked at the kerb; Berend stands on the pavement beside it
+      const rp = roadPoint(map, bq.x, bq.y);
+      s.a = rp ? rp.a : 0.3;
       s.f = { x: Math.cos(s.a), y: Math.sin(s.a) }; s.n = { x: -s.f.y, y: s.f.x };
+      const half = rp ? (rp.road.width || 6) / 2 : 3;
+      s.c = rp ? { x: rp.x + s.n.x * (half - 1.05), y: rp.y + s.n.y * (half - 1.05) } : bq;
+      s.car = tempCar(r, s.c.x, s.c.y, s.a, { model: BAKKIE });
+      clearAround(r, s.c, 40, s.car);
       s.scratch = r.prop('scratch', () => new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.012, 0.01), new THREE.MeshBasicMaterial({ color: 0xd8dde2 })));
     },
     tick(r, s, t, dt) {
@@ -1263,7 +1280,8 @@ function buildShots(w) {
     },
     cam(u, t, s) {
       const { f, n, sp } = s;
-      return { position: P(sp.x + n.x * 1.7 + f.x * 1.9, sp.y + n.y * 1.7 + f.y * 1.9, 1.3), lookAt: P(sp.x + n.x * 0.4, sp.y + n.y * 0.4, 1.05), fov: lerp(34, 30, u), shake: 0.01 };
+      // along the car's flank: Berend in profile, the scratch in front of him
+      return { position: P(sp.x + f.x * 2.6 + n.x * 0.75, sp.y + f.y * 2.6 + n.y * 0.75, 1.35), lookAt: P(sp.x + n.x * 0.35 - f.x * 0.2, sp.y + n.y * 0.35 - f.y * 0.2, 1.1), fov: lerp(40, 34, u), shake: 0.01 };
     },
   };
 
@@ -1337,6 +1355,27 @@ function clearRoad(r, path, dist) {
     }
     return true;
   });
+}
+
+// No traffic or cyclists near a staged spot (terraces, the park, Berend):
+// nothing drives through the people there.
+function clearAround(r, c, dist, keep = null) {
+  r.w.vehicles = r.w.vehicles.filter((v) => v === keep || v.cineTemp || v.driver === 'player' || v.isHeroCar || v.isBoat || Math.hypot(v.x - c.x, v.y - c.y) > dist);
+}
+
+// The nearest drivable road point with the road's heading there.
+function roadPoint(map, x, y) {
+  const rp = map.nearestRoadPoint(x, y, 60, true, true);
+  if (!rp) return null;
+  let best = Infinity, a = 0;
+  const pts = rp.road.pts;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+    const L = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+    const d = Math.hypot(rp.x - mx, rp.y - my) - L / 2;
+    if (d < best) { best = d; a = Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0]); }
+  }
+  return { ...rp, a };
 }
 
 function clearShot(r) {
