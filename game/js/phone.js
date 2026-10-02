@@ -1,7 +1,9 @@
 import { dualHtml } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay, isCinematicActive } from './cinematics.js';
-import { getMissionList, getNextMission, trackMission } from './missions.js';
+import { getMissionList, getNextMission } from './missions.js';
+import { playMission } from './todo.js';
+import { setGoal } from './goal.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { saveGame } from './savegame.js';
 import { setUserWaypoint } from './routing.js';
@@ -92,12 +94,13 @@ function berendTalk(w, call) {
   const list = getMissionList();
   const idx = call.offer != null ? call.offer : next.index;
   const m = list[idx];
-  const done = m.status === 'geklaard' ? ' Al eens gedaan. Geld is geld.' : '';
+  const done = m.done ? ' Al eens gedaan, dus klusloon. Geld is geld.' : '';
   const needs = m.needs ? ` Maar eerst: ${m.needs}` : '';
   return {
-    line: `Kom mor. Klusje: "${m.label}". €${m.reward}, contant.${done}${needs}`,
+    line: `Kom mor. Klusje: "${m.label}". €${m.pay}, contant.${done}${needs}`,
     actions: [
-      { label: 'Klus aannemen', run: () => { trackMission(w, idx); flashAndClose(`Route naar ${m.label}`); } },
+      // a later story mission asks first (todo.js); the phone closes for that question
+      { label: 'Klus aannemen', run: () => { setOpen(false); playMission(w, idx, () => flashAndClose(`Route naar ${m.label}`)); } },
       { label: 'Iets anders?', run: () => { call.offer = (idx + 1) % list.length; talk(call); } },
     ],
   };
@@ -316,8 +319,8 @@ function activate() {
     if (!m) return;
     if (m.status === 'actief') { flashAndClose('Deze missie loopt al'); return; }
     if (getMissionList().some((x) => x.status === 'actief')) { flashAndClose('Maak eerst je huidige missie af'); return; }
-    trackMission(w, m.index);
-    flashAndClose(m.needs ? 'Eerst naar de winkel: staat op je kaart' : `Route naar ${m.label}`);
+    setOpen(false);
+    playMission(w, m.index, () => flashAndClose(m.needs ? 'Eerst naar de winkel: staat op je kaart' : `Route naar ${m.label}`));
     return;
   }
   if (st.screen === 'call' && st.call && st.call.phase === 'talk') {
@@ -356,7 +359,7 @@ function ubboRows() {
   const pg = world.postgameActions;
   if (pg && world.postgame) {
     for (const o of pg.offers()) {
-      rows.push({ name: o.name, sub: `${o.blurb} · ${fmtDist(o.dist)}${o.medal ? ` · ${o.medal.toLowerCase()}` : ''}`, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`Route naar ${o.where}`); } });
+      rows.push({ name: o.name, sub: `${o.blurb} · ${fmtDist(o.dist)}${o.medal ? ` · ${o.medal.toLowerCase()}` : ''}`, run: () => { setGoal({ kind: 'challenge', id: o.id, name: o.name, sub: o.where, x: o.x, y: o.y }, { quiet: true }); flashAndClose(`Doel: ${o.name}`); } });
     }
     if (pg.guide) {
       const off = pg.guide.isOff();
@@ -369,18 +372,18 @@ function ubboRows() {
   const pad = getPadelSpotsForRender().map((q) => ({ q, d: Math.hypot(q.x - world.player.x, q.y - world.player.y) })).sort((a, b) => a.d - b.d)[0];
   if (pad) {
     const busy = world.time < pad.q.nextAt;
-    rows.push({ name: `Padel: ${pad.q.name}`, sub: `${busy ? 'baan even bezet' : 'potje padel, volle gezondheid'} · ${fmtDist(pad.d)}`, run: () => { setUserWaypoint(pad.q.x, pad.q.y, pad.q.name); flashAndClose(`Route naar ${pad.q.name}: loop naar de deur en druk E`); } });
+    rows.push({ name: `Padel: ${pad.q.name}`, sub: `${busy ? 'baan even bezet' : 'potje padel, volle gezondheid'} · ${fmtDist(pad.d)}`, run: () => { setGoal({ kind: 'play', id: 'padel', name: 'Padel', sub: pad.q.name, x: pad.q.x, y: pad.q.y }, { quiet: true }); flashAndClose(`Doel: padel. Loop naar de deur en druk E`); } });
   }
   for (const a of activityUbboRows(world)) {
-    rows.push({ name: a.name, sub: `${a.sub} · ${fmtDist(a.dist)}`, run: () => { setUserWaypoint(a.x, a.y, a.name); flashAndClose(`Route naar ${a.where}: ${a.hint}`); } });
+    rows.push({ name: a.name, sub: `${a.sub} · ${fmtDist(a.dist)}`, run: () => { setGoal(a.play ? { kind: 'play', id: a.play, name: a.name, sub: a.where, x: a.x, y: a.y } : { kind: 'place', name: a.name, x: a.x, y: a.y }, { quiet: true }); flashAndClose(`Doel: ${a.name}. ${a.hint}`); } });
   }
   for (const o of offers) {
     rows.push({
       ...o, sub: `${o.blurb} · ${fmtDist(o.dist)}`,
       run: () => {
         if (o.active) { flashAndClose('Daar ben je al mee bezig'); return; }
-        setUserWaypoint(o.x, o.y, `Ubbo: ${o.name}`);
-        flashAndClose(o.blocked ? `Route naar ${o.name}. Let op: ${o.blocked.toLowerCase()}` : `Route naar ${o.name}: loop erheen en druk E`);
+        setGoal({ kind: 'job', id: o.id, name: o.name, sub: 'Bijbaantje', x: o.x, y: o.y }, { quiet: true });
+        flashAndClose(o.blocked ? `Doel: ${o.name}. Let op: ${o.blocked.toLowerCase()}` : `Doel: ${o.name}. Loop erheen en druk E`);
       },
     });
   }
@@ -456,7 +459,7 @@ function render() {
   } else if (st.screen === 'missies') {
     html = header('Missies') + `<div class="ph-list">${getMissionList().map((m, i) =>
       `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-rowtext"><b>${m.code ? esc(m.code) + ' · ' : ''}${esc(m.label)}</b>` +
-      `<small>€${m.reward}</small></span><span class="ph-chip" data-status="${m.status}">${STATUS_LABEL[m.status]}</span></button>`).join('')}</div>` +
+      `<small>${m.done ? `klus · €${m.pay} klusloon` : `€${m.reward}`}</small></span><span class="ph-chip" data-status="${m.status}">${STATUS_LABEL[m.status]}</span></button>`).join('')}</div>` +
       '<div class="ph-foot">Enter: route erheen</div>';
   } else if (st.screen === 'voertuigen') {
     html = header('Mijn voertuigen') + `<div class="ph-list">${getGarageList(w).map((e, i) =>
