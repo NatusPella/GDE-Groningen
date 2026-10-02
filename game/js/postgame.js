@@ -187,7 +187,7 @@ function removeSpots() {
 
 export function getPostgameSpotsForRender() {
   if (!open || !spots) return [];
-  return spots.map((s) => ({ x: s.x, y: s.y, name: s.name, sub: s.sub, kind: s.def.icon, busy: s.data.busy ? s.data.busy(world) : null }));
+  return spots.map((s) => ({ id: s.def.id, x: s.x, y: s.y, name: s.name, sub: s.sub, kind: s.def.icon, busy: s.data.busy ? s.data.busy(world) : null }));
 }
 
 // --- prompts and starting -----------------------------------------------------

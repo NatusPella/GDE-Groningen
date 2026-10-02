@@ -355,7 +355,7 @@ function closeDialog(go) {
   const d = dlg;
   d.el.hidden = true;
   if (d.world) {
-    d.world.uiPaused = d.wasPaused;
+    d.world.uiPaused = false;
     if (d.world.input) d.world.input.reset();
   }
   if (d.prevFocus && d.prevFocus.isConnected) d.prevFocus.focus({ preventScroll: true });
@@ -373,7 +373,6 @@ export function confirmPlayAhead(world, ahead, onGo) {
   el.querySelector('[data-ga="go"]').textContent = `Toch ${ahead.code} spelen`;
   dlg.onGo = onGo;
   dlg.world = world;
-  dlg.wasPaused = !!world.uiPaused;
   dlg.prevFocus = document.activeElement;
   world.uiPaused = true;
   if (document.pointerLockElement) document.exitPointerLock();

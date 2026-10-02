@@ -20,7 +20,7 @@ import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
 import { edgeDistance, urbanWeight } from './countryfield.js';
 import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
-import { storyWaiting } from './goal.js';
+import { storyWaiting, missionOnMap } from './goal.js';
 import { setGhostBar, ring } from './motion.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
@@ -1272,7 +1272,8 @@ function drawMinimap(dt, world) {
   const owned = getOwnedVehiclesForMap(world);
   const reserve = (x, y) => { if (inRange(x, y)) placed.push(...toScreen(x, y)); };
   if (job && job.marker) reserve(job.marker.x, job.marker.y);
-  const showMission = !!(m && m.marker && m.phase !== 'cooldown' && !job && minimapShows('mission'));
+  // map rule (goal.js): the story's mission, the goal's or the one that runs
+  const showMission = !!(m && missionOnMap(world) && !job);
   if (showMission) reserve(m.marker.x, m.marker.y);
   if (wp) reserve(wp.x, wp.y);
   const showOwn = minimapShows('car');

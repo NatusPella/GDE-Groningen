@@ -2,7 +2,7 @@ import { dualHtml } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay, isCinematicActive } from './cinematics.js';
 import { getMissionList, getNextMission } from './missions.js';
-import { playMission } from './todo.js';
+import { playMission, isPlayAheadOpen } from './todo.js';
 import { setGoal } from './goal.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { saveGame } from './savegame.js';
@@ -237,7 +237,7 @@ function setOpen(v) {
 }
 
 function refreshPause() {
-  if (world) world.uiPaused = open || cinematicPausesGameplay();
+  if (world) world.uiPaused = open || cinematicPausesGameplay() || isPlayAheadOpen();
 }
 
 function itemCount() {

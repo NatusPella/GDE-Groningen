@@ -1,9 +1,12 @@
 // Map layer visibility: one switch per legend category, shared by the full
 // map and the minimap (the minimap only draws the nearest few of each).
-// Player, destination, route and police are always drawn and have no switch.
+// Player, the goal, the route, the story's mission and police are always
+// drawn and have no switch. Klussen (passed missions) start switched off:
+// missions outside the story only show once they are the player's goal.
 const STORAGE_KEY = 'gte-map-layers';
 const OLD_MINIMAP_KEY = 'gte-minimap-layers';
-const ALWAYS_ON = new Set(['route', 'userWaypoint', 'police']);
+const ALWAYS_ON = new Set(['route', 'userWaypoint', 'police', 'mission']);
+const DEFAULT_OFF = new Set(['klussen']);
 
 let layers = null;
 
@@ -21,7 +24,8 @@ function load() {
 
 export function layerOn(key) {
   if (!layers) load();
-  return ALWAYS_ON.has(key) || layers[key] !== false;
+  if (ALWAYS_ON.has(key)) return true;
+  return DEFAULT_OFF.has(key) ? layers[key] === true : layers[key] !== false;
 }
 
 export function setLayer(key, on) {
