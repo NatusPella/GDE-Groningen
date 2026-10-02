@@ -1,25 +1,25 @@
 // Writes scripts/tts_lines.json: one TTS job per recording that
 // voice_coverage.mjs reports missing from the lines manifest (bubbles,
-// subtitles, the story lines not in story/manifest.json). Every job gets a
-// Gemini voice and a local character + delivery tag. Then:
+// subtitles, the story lines not in story/manifest.json), plus every
+// recording whose tts.json entry is missing or has another model than
+// TTS_MODEL (re-recorded in place, story/ included). Every job gets a Gemini voice and a
+// speech_metadata style (character, delivery tag, accent). Then:
 //   node scripts/tts_lines_list.mjs && python3 scripts/tts_lines.py [max_jobs]
-// Jobs for the story/jobs manifests are recorded into the lines manifest too
-// (their own pipelines stay untouched); missionstory.js falls back to it.
+// New jobs for the story/jobs manifests are recorded into the lines manifest
+// (missionstory.js falls back to it); the jobs manifest has its own pipeline.
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { collect, isVoiced, missingKeys, BUBBLE, NARRATOR, REPO } from './voicelines_collect.mjs';
+import { collect, isVoiced, missingKeys, manifest, BUBBLE, NARRATOR, REPO } from './voicelines_collect.mjs';
+import { ACCENT, GRO_ACCENT, DUO, TTS_MODEL, styleOf } from './tts_cast.mjs';
 import { GRO } from '../game/js/subtitles.js';
 
-const ACCENT = 'spoken in Dutch with a Groningen accent';
-// Gronings dialect lines (Grunnegs): said as written, not turned into Dutch
-const GRO_ACCENT = 'spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent';
 const GRO_WORDS = /\b(mien|nait|moar|mor|goud|kiek|joe|doar|noar|hoes|ain|hail|mout|stoet|wicht|oet|veur|zain|laven|dij|wies|lopst|rieden)\b/i;
 const isGronings = (t) => t in GRO || GRO_WORDS.test(t);
 // Fixed cast; Tammo and Anita match the story/job recordings.
 const CAST = {
-  Tammo: { voice: 'Algenib', who: 'Stadjer, droog en sarcastisch', pool: ['droog, laconiek', 'sarcastisch, zuchtend', 'deadpan, licht verbaasd', 'mompelend, stiekem trots', 'droog, met een stille grijns'] },
-  Anita: { voice: 'Callirrhoe', who: 'Groningse vrouw, lacherig en ad rem', pool: ['lacherig, ad rem', 'plagend, zelfverzekerd', 'enthousiast, snel', 'ongeduldig, bazig', 'warm, grinnikend'] },
+  Tammo: { ...DUO.Tammo, pool: ['droog, laconiek', 'sarcastisch, zuchtend', 'deadpan, licht verbaasd', 'mompelend, stiekem trots', 'droog, met een stille grijns'] },
+  Anita: { ...DUO.Anita, pool: ['lacherig, ad rem', 'plagend, zelfverzekerd', 'enthousiast, snel', 'ongeduldig, bazig', 'warm, grinnikend'] },
   Sjabbe: { voice: 'Rasalgethi', who: 'sluwe Groningse heler, hees en zakelijk', pool: ['zakelijk, onder de indruk', 'afdingend, droog', 'samenzweerderig, zacht'] },
   'Duivenmelker Bert': { voice: 'Iapetus', who: 'oude Groningse duivenmelker, zacht en wijs', pool: ['geheimzinnig, rustig', 'grinnikend, wijs', 'plechtig, fluisterend'] },
   'Bommen Berend': { voice: 'Charon', who: 'norse oude Groningse man met een bakkie', pool: ['nors, stiekem trots', 'mopperend, verbaasd'] },
@@ -31,7 +31,7 @@ const CAST = {
   'Mem Terpstra': { voice: 'Gacrux', who: 'warme, stellige oude Friese moeder, spreekt Nederlands met Friese woorden', pool: ['warm, stellig', 'zacht, samenzweerderig'], accent: 'spoken in Dutch with a warm Frisian accent, the Frisian words said in Frisian (Frysk)' },
   'Jelle Terpstra': { voice: 'Fenrir', who: 'ijdele, charmante Friese ondernemer, spreekt Nederlands met Friese woorden', pool: ['charmant, opschepperig', 'zelfvoldaan, grinnikend', 'plechtig, overdreven trots'], accent: 'spoken in Dutch with a proud Frisian accent, the Frisian words said in Frisian (Frysk)' },
   Durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger, spreekt Nederlands met een zwaar Fries accent', pool: ['dronken, lallend, samenzweerderig', 'traag, verward'], accent: 'spoken in Dutch with a heavy Frisian accent, slow' },
-  Douwe: { voice: 'Orus', who: 'grote, trage Friese handlanger, tweelingbroer van Durk, spreekt Nederlands met een zwaar Fries accent', pool: ['traag, berustend', 'verward, sloom'], accent: 'spoken in Dutch with a heavy Frisian accent, slow' },
+  Douwe: { voice: 'Algenib', who: 'grote, trage Friese handlanger, tweelingbroer van Durk, spreekt Nederlands met een zwaar Fries accent', pool: ['traag, berustend', 'verward, sloom'], accent: 'spoken in Dutch with a heavy Frisian accent, slow' },
   'Dokter Dijkstra': { voice: 'Sadachbia', who: 'nuchtere Groningse traumaarts en helikopterpiloot', pool: ['droog, zakelijk', 'streng, stiekem geamuseerd', 'nuchter, laconiek'] },
   Femke: { voice: 'Leda', who: 'energieke Groningse festivalmaker', pool: ['gehaast, enthousiast', 'opgelucht, vrolijk', 'verontwaardigd, snel'] },
   Harm: { voice: 'Alnilam', who: 'oude Groningse wegwerker, gemoedelijk', pool: ['gemoedelijk, trots', 'samenzweerderig, droog'] },
@@ -39,6 +39,8 @@ const CAST = {
   Hilly: { voice: 'Despina', who: 'Groningse vrouw op leeftijd, praat plat Gronings, nieuwsgierig', pool: ['kletserig, nieuwsgierig', 'stellig, wijzend'], accent: 'spoken in the Gronings dialect of Groningen, Netherlands' },
   'Oma Trijntje': { voice: 'Sulafat', who: 'oude Groningse oma, warm en stellig', pool: ['warm, ontroerd', 'stellig, liefdevol'] },
   'Kapitein Klaas': { voice: 'Enceladus', who: 'oude Groningse schipper, schor', pool: ['samenzweerderig, schor', 'droog, knipogend'] },
+  // the rondvaart chase (rondvaartchase.js SHOUT); the megaphone sound is added in the game
+  'Schipper Wiebe': { voice: 'Alnilam', who: 'woedende Groningse rondvaartschipper die zijn boot achterna zit, roept door een megafoon', pool: ['woedend, schreeuwend', 'buiten adem, verontwaardigd roepend'], accent: GRO_ACCENT },
   Verkeersinformatie: { voice: 'Achird', who: 'Groningse radiopresentator van de verkeersinformatie, zakelijk', pool: ['zakelijk, voorlezend, heel licht geamuseerd', 'droog, als een nieuwslezer', 'berustend, professioneel'] },
   Navigatie: { voice: 'Kore', who: 'kalme navigatiestem in een auto', pool: ['kalm, monotoon, heel licht vermoeid', 'vriendelijk, mechanisch, droog'], accent: 'spoken in standard Dutch, calm and clear like a car navigation voice' },
   'Koe Aaltje': { voice: 'Zephyr', who: 'een sceptische, droge koe uit het Ommeland', pool: ['droog, laconiek, onder de indruk maar laat het niet merken', 'deadpan, zuchtend'] },
@@ -87,31 +89,53 @@ function mood(speaker, text, key) {
   return pick(c.pool, key);
 }
 
+function makeJob(e, sp, out, file) {
+  const key = `${sp}|${e.text}`;
+  let job;
+  if (sp === BUBBLE.m || sp === BUBBLE.f) {
+    const f = sp === BUBBLE.f;
+    const who = e.cast.who ? WHO[e.cast.who][f ? 1 : 0] : f ? WHO.vrouw : WHO.man;
+    // a bubble a main character says (story steps): their own voice
+    const as = e.cast.as && CAST[e.cast.as];
+    const pe = e.cast.persona;
+    job = pe ? { voice: pe.voice, who: pe.who, tag: pick(e.cast.tag, key), accent: pe.accent } : as ? { voice: as.voice, who: as.who, tag: mood(e.cast.as, e.text, key), accent: as.accent } : { voice: pick(f ? FEMALE : MALE, key), who: isGronings(e.text) ? `${who}, spreekt Gronings dialect` : who, tag: pick(e.cast.tag, key) };
+  } else {
+    // "Tammo (gids)": the same voice as Tammo
+    const c = CAST[sp] || CAST[sp.replace(/ \(.*\)$/, '')];
+    if (!c) throw new Error(`no cast for ${sp}`);
+    job = { voice: c.voice, who: c.who, tag: pick(e.cast.tag, key) || mood(sp, e.text, key), accent: c.accent };
+  }
+  const dir = sp.startsWith('~') ? `bubbles/${sp === BUBBLE.f ? 'f' : 'm'}` : slug(sp);
+  const accent = job.accent || (isGronings(e.text) ? GRO_ACCENT : ACCENT);
+  delete job.accent;
+  return { key, speaker: sp, text: e.text, area: e.area, out, say: e.cast.speak || e.text, file: file || `${dir}/${slug(e.text).slice(0, 32)}_${hash(key).slice(0, 8)}.mp3`, ...job, style: styleOf(job.who, job.tag, accent) };
+}
+
+// how each recording in a voicelines folder was made (gemini_tts.py writes it)
+const logs = {};
+const ttsLog = (name) => {
+  const p = path.join(REPO, 'game', 'audio', 'voicelines', name, 'tts.json');
+  return (logs[name] ??= fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : {});
+};
+
+// the manifest that plays a speaker's recording of this line, its entry and log
+function recording(e, sp) {
+  const k = `${sp}|${e.text}`;
+  for (const m of [e.manifest, e.fallback]) if (m && manifest(m)[k]) return { out: m, entry: manifest(m)[k], log: ttsLog(m)[k] };
+  return null;
+}
+
 const jobs = [];
+const seen = new Set();
+const push = (j) => { if (!seen.has(j.out + '|' + j.key)) { seen.add(j.out + '|' + j.key); jobs.push(j); } };
 for (const e of collect()) {
-  if (e.manifest === 'npc' || isVoiced(e)) continue;
-  for (const sp of missingKeys(e)) {
-    const key = `${sp}|${e.text}`;
-    const h = hash(key).slice(0, 8);
-    let job;
-    if (sp === BUBBLE.m || sp === BUBBLE.f) {
-      const f = sp === BUBBLE.f;
-      const who = e.cast.who ? WHO[e.cast.who][f ? 1 : 0] : f ? WHO.vrouw : WHO.man;
-      // a bubble a main character says (story steps): their own voice
-      const as = e.cast.as && CAST[e.cast.as];
-      const pe = e.cast.persona;
-      job = pe ? { voice: pe.voice, who: pe.who, tag: pick(e.cast.tag, key), accent: pe.accent } : as ? { voice: as.voice, who: as.who, tag: mood(e.cast.as, e.text, key) } : { voice: pick(f ? FEMALE : MALE, key), who: isGronings(e.text) ? `${who}, spreekt Gronings dialect` : who, tag: pick(e.cast.tag, key) };
-    } else {
-      // "Tammo (gids)": the same voice as Tammo
-      const c = CAST[sp] || CAST[sp.replace(/ \(.*\)$/, '')];
-      if (!c) throw new Error(`no cast for ${sp}`);
-      job = { voice: c.voice, who: c.who, tag: pick(e.cast.tag, key) || mood(sp, e.text, key) };
-    }
-    const dir = sp.startsWith('~') ? `bubbles/${sp === BUBBLE.f ? 'f' : 'm'}` : slug(sp);
-    const accent = job.accent || (CAST[sp] && CAST[sp].accent) || (isGronings(e.text) ? GRO_ACCENT : ACCENT);
-    delete job.accent;
-    jobs.push({ key, speaker: sp, text: e.text, area: e.area, out: e.manifest === 'sms' || e.manifest === 'hints' ? e.manifest : 'lines', say: e.cast.speak || e.text, file: `${dir}/${slug(e.text).slice(0, 32)}_${h}.mp3`, ...job, prompt: `[${job.who}, ${job.tag}, ${accent}] ${e.cast.speak || e.text}` });
+  if (e.manifest === 'npc') continue;
+  if (!isVoiced(e)) for (const sp of missingKeys(e)) push(makeJob(e, sp, e.manifest === 'sms' || e.manifest === 'hints' ? e.manifest : 'lines'));
+  for (const sp of e.speakers) {
+    const r = recording(e, sp);
+    if (r && r.out !== 'jobs' && r.log?.model !== TTS_MODEL) push(makeJob(e, sp, r.out, r.entry.src));
   }
 }
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_lines.json'), JSON.stringify(jobs, null, 1));
-console.log(jobs.length, 'jobs', jobs.reduce((a, j) => a + j.text.length, 0), 'chars');
+const redo = jobs.filter((j) => manifest(j.out)[j.key]).length;
+console.log(jobs.length, 'jobs', `(${redo} re-recordings)`, jobs.reduce((a, j) => a + j.text.length, 0), 'chars');

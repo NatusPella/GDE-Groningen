@@ -83,7 +83,8 @@ playing the wrong clip):
 
 - `audio/voicelines/story`: story cutscenes (`missionstory.js`), the intro
   montage and the rondvaart chase. `missionstory.js` falls back to the lines
-  manifest for story lines recorded there.
+  manifest for story lines recorded there. Re-recorded in place by
+  `scripts/tts_lines*.{mjs,py}`.
 - `audio/voicelines/jobs`: bijbaantje bosses and Tammo/Anita's shift lines
   (`sidejobvoice.js`, `scripts/tts_sidejobs*.{mjs,py}`).
 - `audio/voicelines/lines` (`linevoice.js`, `scripts/tts_lines*.{mjs,py}`):
@@ -92,6 +93,11 @@ playing the wrong clip):
   (`cinematics.js` attaches them and stretches the timeline to fit; no
   speaker = `Rikus`, the narrator) and the rondvaart guide (`Tammo`/`Anita`).
 - `audio/npc`: the ambient Gronings phrases.
+- `audio/voicelines/tammo`, `audio/voicelines/anita`: the reaction barks
+  `audio.js` plays for whoever you play, three WAV variants per trigger
+  (`scripts/tts_barks*.{mjs,py}`; no manifest, only `tts.json`).
+- `audio/voicelines/banter`: car banter (`banterlines.js`,
+  `scripts/tts_banter*.{mjs,py}`).
 - `audio/voicelines/sms` (`smsvoice.js`): phone messages read aloud in the
   sender's voice (`Sikkom-redactie` reads the Sikkom news, `Ubbo` the app's
   own texts, `Onbekend nummer (058)` is Mem Terpstra).
@@ -144,9 +150,25 @@ feeds it the AudioContext clock; debug `window.__speech.speechState()`):
 Skipping a cutscene stops its voice. `node scripts/voice_coverage.mjs` lists spoken lines without a
 recording per area and exits 1 if any are missing; new spoken tables are
 registered in `scripts/voicelines_collect.mjs`. To fill the gaps:
-`node scripts/tts_lines_list.mjs && python3 scripts/tts_lines.py` (Gemini
-TTS via OpenRouter, key in `.env`; clips are trimmed and normalised to
--18 LUFS, the level of the story lines; the run stops at `--budget`).
+`node scripts/tts_lines_list.mjs && python3 scripts/tts_lines.py` (clips
+are trimmed and normalised to -18 LUFS, the level of the story lines; the
+run stops at `--budget`).
+
+All TTS scripts call Gemini 3.8 Flash TTS through `scripts/gemini_tts.py`
+(OpenRouter, paid from its balance; key in `.env`). 3.8 reads the input
+verbatim, so the delivery goes in `speech_metadata.style`, built by
+`styleOf(who, tag, accent)` in `scripts/tts_cast.mjs`; that file also holds
+Tammo's and Anita's voices for every pipeline. Tammo's style asks for
+Gronings dialect, so his clips may say a Gronings word where the subtitle
+has the Dutch one ("Mien droom").
+
+Every voicelines folder has a `tts.json` next to its `manifest.json`, keyed
+the same, that says exactly how each clip was made: `src`, `model`,
+`voice`, `input` (the text sent, with any inline tags), `style`, `post`
+(the ffmpeg chain) and `date`. Every pipeline writes it as it records, and
+the game never loads it. A clip whose entry is missing or names another
+model counts as outdated, and the next run of its pipeline re-records it in
+place.
 
 ### Dialect subtitles (Frisian and Gronings)
 

@@ -49,7 +49,8 @@ function resolveSpec(spec, base) {
 async function main() {
   console.log(`staging GTE VI ${version}`);
   fs.rmSync(path.join(HERE, 'build'), { recursive: true, force: true });
-  fs.cpSync(SRC, OUT, { recursive: true });
+  // tts.json records how each voice clip was made; the game never reads it
+  fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' });
   // the start screen's "Wat is er nieuw" panel reads the changelog
   fs.copyFileSync(path.join(HERE, '..', 'CHANGELOG.md'), path.join(OUT, 'CHANGELOG.md'));
 

@@ -1,0 +1,470 @@
+{
+"Anita|Bijbaantje! Eindelijk iets nuttigs.": {
+"src": "duo/anita_start_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "Bijbaantje! Eindelijk iets nuttigs.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthusiastic, teasing.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Anita|Kijk ons nou, harde werkers.": {
+"src": "duo/anita_end_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "Kijk ons nou, harde werkers.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: proud, laughing.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Centrale Grunn Taxi|Centrale hier. Die klant belt net. Hij is niet blij.": {
+"src": "taxi/fail_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algenib",
+"input": "Centrale hier. Die klant belt net. Hij is niet blij.",
+"style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: annoyed, weary.",
+"post": "ffmpeg -af highpass=f=320,lowpass=f=3400,acompressor=threshold=-18dB:ratio=4,volume=1.6,alimiter=limit=0.85,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Centrale Grunn Taxi|Centrale hier. Die klant gaf vijf sterren. Wat heb je gedaan?": {
+"src": "taxi/done_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algenib",
+"input": "Centrale hier. Die klant gaf vijf sterren. Wat heb je gedaan?",
+"style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: suspicious, surprised.",
+"post": "ffmpeg -af highpass=f=320,lowpass=f=3400,acompressor=threshold=-18dB:ratio=4,volume=1.6,alimiter=limit=0.85,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Centrale Grunn Taxi|Centrale hier. Je taxi staat klaar voor het station, daklampje en al.": {
+"src": "taxi/intro_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algenib",
+"input": "Centrale hier. Je taxi staat klaar voor het station, daklampje en al.",
+"style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored, matter-of-fact.",
+"post": "ffmpeg -af highpass=f=320,lowpass=f=3400,acompressor=threshold=-18dB:ratio=4,volume=1.6,alimiter=limit=0.85,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Centrale Grunn Taxi|Centrale hier. Je taxi staat weer klaar. Rustig aan vandaag.": {
+"src": "taxi/greet_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algenib",
+"input": "Centrale hier. Je taxi staat weer klaar. Rustig aan vandaag.",
+"style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored radio dispatcher.",
+"post": "ffmpeg -af highpass=f=320,lowpass=f=3400,acompressor=threshold=-18dB:ratio=4,volume=1.6,alimiter=limit=0.85,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Centrale Grunn Taxi|Centrale: jij krijgt voortaan de goede ritten.": {
+"src": "taxi/level_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algenib",
+"input": "Centrale: jij krijgt voortaan de goede ritten.",
+"style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: grudging respect.",
+"post": "ffmpeg -af highpass=f=320,lowpass=f=3400,acompressor=threshold=-18dB:ratio=4,volume=1.6,alimiter=limit=0.85,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Centrale Grunn Taxi|Centrale: klant heel afgeleverd. Keurig.": {
+"src": "taxi/done_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algenib",
+"input": "Centrale: klant heel afgeleverd. Keurig.",
+"style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: dry, approving.",
+"post": "ffmpeg -af highpass=f=320,lowpass=f=3400,acompressor=threshold=-18dB:ratio=4,volume=1.6,alimiter=limit=0.85,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Centrale Grunn Taxi|En studenten na het stappen: bochten netjes. De vorige chauffeur rijdt nog steeds met de ramen open.": {
+"src": "taxi/intro_2.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algenib",
+"input": "En studenten na het stappen: bochten netjes. De vorige chauffeur rijdt nog steeds met de ramen open.",
+"style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: amused, gossiping.",
+"post": "ffmpeg -af highpass=f=320,lowpass=f=3400,acompressor=threshold=-18dB:ratio=4,volume=1.6,alimiter=limit=0.85,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Centrale Grunn Taxi|Stop naast de klant, laat ze instappen en breng ze heel naar hun adres. Rustig rijden levert fooi op.": {
+"src": "taxi/intro_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algenib",
+"input": "Stop naast de klant, laat ze instappen en breng ze heel naar hun adres. Rustig rijden levert fooi op.",
+"style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: instructive, calm.",
+"post": "ffmpeg -af highpass=f=320,lowpass=f=3400,acompressor=threshold=-18dB:ratio=4,volume=1.6,alimiter=limit=0.85,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Handhaver Ria|Fietsen met een oranje label mogen weg. Oppakken, naar het busje van het fietsdepot, erin. Elke fiets telt.": {
+"src": "fietsdepot/intro_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Kore",
+"input": "Fietsen met een oranje label mogen weg. Oppakken, naar het busje van het fietsdepot, erin. Elke fiets telt.",
+"style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, instructive.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Handhaver Ria|Jij bent een natuurtalent. Je moet bij de handhaving.": {
+"src": "fietsdepot/level_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Kore",
+"input": "Jij bent een natuurtalent. Je moet bij de handhaving.",
+"style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: impressed, almost smiling.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Handhaver Ria|Komt er een student aanrennen? Wegwezen, of je bent die fiets kwijt. En niet slaan, hè.": {
+"src": "fietsdepot/intro_2.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Kore",
+"input": "Komt er een student aanrennen? Wegwezen, of je bent die fiets kwijt. En niet slaan, hè.",
+"style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: dry, warning.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Handhaver Ria|Moi, ik ben Ria van de handhaving. Rond het station staan weer fietsen overal behalve in de rekken.": {
+"src": "fietsdepot/intro_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Kore",
+"input": "Moi, ik ben Ria van de handhaving. Rond het station staan weer fietsen overal behalve in de rekken.",
+"style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Handhaver Ria|Moi. Het station staat weer vol fietsen. Aan de slag.": {
+"src": "fietsdepot/greet_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Kore",
+"input": "Moi. Het station staat weer vol fietsen. Aan de slag.",
+"style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Handhaver Ria|Netjes. Die student vindt hem nooit meer terug.": {
+"src": "fietsdepot/done_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Kore",
+"input": "Netjes. Die student vindt hem nooit meer terug.",
+"style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: smug, satisfied.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Handhaver Ria|Weer een fiets in het busje. Het rek huilt van geluk.": {
+"src": "fietsdepot/done_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Kore",
+"input": "Weer een fiets in het busje. Het rek huilt van geluk.",
+"style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: deadpan.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Handhaver Ria|Zo gaat dat niet. Kom maar terug als je het wel kan.": {
+"src": "fietsdepot/fail_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Kore",
+"input": "Zo gaat dat niet. Kom maar terug als je het wel kan.",
+"style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, disapproving.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Hap & Rap|Daar ben je weer! Thermobox erop, trappen maar.": {
+"src": "bezorger/greet_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Daar ben je weer! Thermobox erop, trappen maar.",
+"style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, fast.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Hap & Rap|En let op de wind. In Grunn heb je altijd tegenwind. Ook als je omdraait.": {
+"src": "bezorger/intro_2.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "En let op de wind. In Grunn heb je altijd tegenwind. Ook als je omdraait.",
+"style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: laughing, teasing.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Hap & Rap|Jij bent mijn snelste fietser. Zeg het niet tegen de anderen.": {
+"src": "bezorger/level_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Jij bent mijn snelste fietser. Zeg het niet tegen de anderen.",
+"style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: conspiratorial whisper, proud.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Hap & Rap|Lauw eten, boze klant. Morgen beter, hè.": {
+"src": "bezorger/fail_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Lauw eten, boze klant. Morgen beter, hè.",
+"style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: disappointed sigh.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Hap & Rap|Moi! Welkom bij Hap & Rap. De e-fatbike staat voor je klaar, de thermobox zit erop.": {
+"src": "bezorger/intro_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Moi! Welkom bij Hap & Rap. De e-fatbike staat voor je klaar, de thermobox zit erop.",
+"style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, welcoming.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Hap & Rap|Ophalen bij de zaak, bezorgen voor het eten koud is. Warm eten is fooi, lauw eten is een klacht.": {
+"src": "bezorger/intro_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Ophalen bij de zaak, bezorgen voor het eten koud is. Warm eten is fooi, lauw eten is een klacht.",
+"style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: businesslike, fast.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Hap & Rap|Warm afgeleverd! Zo mag ik het zien.": {
+"src": "bezorger/done_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Warm afgeleverd! Zo mag ik het zien.",
+"style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: delighted.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Hap & Rap|Weer een tevreden klant. En een fooi, als het goed is.": {
+"src": "bezorger/done_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Weer een tevreden klant. En een fooi, als het goed is.",
+"style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: amused, playful.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Stadsvervoer|Dit komt in het rapport. Met een rode pen.": {
+"src": "bus/fail_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achird",
+"input": "Dit komt in het rapport. Met een rode pen.",
+"style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: cold anger.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Stadsvervoer|Halte gehaald, op de minuut. Prachtig.": {
+"src": "bus/done_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achird",
+"input": "Halte gehaald, op de minuut. Prachtig.",
+"style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: moved, satisfied.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Stadsvervoer|Lijn drie wacht op je. Op tijd vertrekken, niet te vroeg.": {
+"src": "bus/greet_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achird",
+"input": "Lijn drie wacht op je. Op tijd vertrekken, niet te vroeg.",
+"style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: pedantic, strict.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Stadsvervoer|Moi! Lijn 3 heeft vandaag geen chauffeur, dus jij mag. Twaalf meter harmonicabus, ga er maar aan staan.": {
+"src": "bus/intro_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achird",
+"input": "Moi! Lijn 3 heeft vandaag geen chauffeur, dus jij mag. Twaalf meter harmonicabus, ga er maar aan staan.",
+"style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: enthusiastic, a bit nervous.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Stadsvervoer|Niemand koffie gemorst? Dan ben je beter dan de vorige.": {
+"src": "bus/done_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achird",
+"input": "Niemand koffie gemorst? Dan ben je beter dan de vorige.",
+"style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: dry, amused.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Stadsvervoer|Rustig remmen, hè. Er zitten mensen met koffie in. En mensen die koffie willen.": {
+"src": "bus/intro_2.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achird",
+"input": "Rustig remmen, hè. Er zitten mensen met koffie in. En mensen die koffie willen.",
+"style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: worried, warning.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Stadsvervoer|Stop bij elke halte tot de deuren weer dicht zijn. Te vroeg vertrekken is in Grunn erger dan te laat.": {
+"src": "bus/intro_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achird",
+"input": "Stop bij elke halte tot de deuren weer dicht zijn. Te vroeg vertrekken is in Grunn erger dan te laat.",
+"style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: stern, pedantic.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Planner Stadsvervoer|Zo stipt heb ik nog nooit iemand zien rijden. Ik krijg er tranen van.": {
+"src": "bus/level_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achird",
+"input": "Zo stipt heb ik nog nooit iemand zien rijden. Ik krijg er tranen van.",
+"style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: emotional, voice cracking.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Schipper Geert|Ah, mijn gids. Mijn rug doet nog steeds pijn, dus jij vaart.": {
+"src": "rondvaart/greet_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algieba",
+"input": "Ah, mijn gids. Mijn rug doet nog steeds pijn, dus jij vaart.",
+"style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, weary.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Schipper Geert|Au. Nee, niet mijn rug. Mijn boot! Wat heb je gedaan?": {
+"src": "rondvaart/fail_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algieba",
+"input": "Au. Nee, niet mijn rug. Mijn boot! Wat heb je gedaan?",
+"style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: pained, then shocked.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Schipper Geert|Die toeristen gaan dit thuis nog jaren vertellen.": {
+"src": "rondvaart/done_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algieba",
+"input": "Die toeristen gaan dit thuis nog jaren vertellen.",
+"style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: chuckling.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Schipper Geert|Jij kent het water beter dan ik. En ik vaar hier al veertig jaar.": {
+"src": "rondvaart/level_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algieba",
+"input": "Jij kent het water beter dan ik. En ik vaar hier al veertig jaar.",
+"style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: impressed, nostalgic.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Schipper Geert|Moi, ik ben Geert. Mijn rug doet het niet meer, dus jij bent vandaag de gids.": {
+"src": "rondvaart/intro_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algieba",
+"input": "Moi, ik ben Geert. Mijn rug doet het niet meer, dus jij bent vandaag de gids.",
+"style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, apologetic.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Schipper Geert|Mooi verteld. Ze hingen aan je lippen.": {
+"src": "rondvaart/done_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algieba",
+"input": "Mooi verteld. Ze hingen aan je lippen.",
+"style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: warm, proud.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Schipper Geert|Te hard langs? Dan missen ze het. En toeristen die iets missen, geven geen fooi.": {
+"src": "rondvaart/intro_2.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algieba",
+"input": "Te hard langs? Dan missen ze het. En toeristen die iets missen, geven geen fooi.",
+"style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: grumpy, warning.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Schipper Geert|Vaar van steiger naar steiger. Bij elk mooi plekje: gas eraf, dan vertel ik het verhaal via de speaker.": {
+"src": "rondvaart/intro_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Algieba",
+"input": "Vaar van steiger naar steiger. Bij elk mooi plekje: gas eraf, dan vertel ik het verhaal via de speaker.",
+"style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: explaining, warm.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Tammo|Genoeg gewerkt voor een week.": {
+"src": "duo/tammo_end_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Genoeg gewerkt voor een week.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: tired, deadpan.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Tammo|Werken. Voor geld. Wat een concept.": {
+"src": "duo/tammo_start_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Werken. Voor geld. Wat een concept.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry, deadpan.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Alles heel aangekomen. Zelfs Plant Henk.": {
+"src": "verhuizing/done_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Sadachbia",
+"input": "Alles heel aangekomen. Zelfs Plant Henk.",
+"style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: relieved, laughing.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Dat was de laatste keer dat ik je de breekbare doos gaf.": {
+"src": "verhuizing/fail_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Sadachbia",
+"input": "Dat was de laatste keer dat ik je de breekbare doos gaf.",
+"style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: exasperated.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Elke klap in het busje kost je. Plant Henk heeft al genoeg meegemaakt.": {
+"src": "verhuizing/intro_2.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Sadachbia",
+"input": "Elke klap in het busje kost je. Plant Henk heeft al genoeg meegemaakt.",
+"style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sighing, joking.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Het is KEI-week: half Nederland zoekt een kamer in Grunn en de andere helft verhuist er net uit.": {
+"src": "verhuizing/intro_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Sadachbia",
+"input": "Het is KEI-week: half Nederland zoekt een kamer in Grunn en de andere helft verhuist er net uit.",
+"style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, dramatic.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Jij sjouwt als een beer. Een voorzichtige beer.": {
+"src": "verhuizing/level_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Sadachbia",
+"input": "Jij sjouwt als een beer. Een voorzichtige beer.",
+"style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: hearty laugh.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Nog meer studenten, nog meer dozen. Sjouwen maar!": {
+"src": "verhuizing/greet_0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Sadachbia",
+"input": "Nog meer studenten, nog meer dozen. Sjouwen maar!",
+"style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, jovial.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Sjouw de spullen van de oude kamer naar het busje, rij voorzichtig naar het nieuwe adres en zet alles voor de deur.": {
+"src": "verhuizing/intro_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Sadachbia",
+"input": "Sjouw de spullen van de oude kamer naar het busje, rij voorzichtig naar het nieuwe adres en zet alles voor de deur.",
+"style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: fast, instructive.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Verhuisbedrijf Van Kamer naar Kamer|Weer een student blij. Nou ja, blij. Hij heeft een kamer.": {
+"src": "verhuizing/done_1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Sadachbia",
+"input": "Weer een student blij. Nou ja, blij. Hij heeft een kamer.",
+"style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sarcastic.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,asetnsamples=n=1152:p=0 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+}
+}
