@@ -8,7 +8,7 @@ Regels die voor iedereen gelden:
 
 - De humor komt van **understatement**. Het hoogste compliment is *"Kon minder."*
 - Fries is een kruiderij, geen hoofdgerecht. Friese zinnen krijgen altijd een Nederlandse ondertitel (FY in `subtitles.js`).
-- De TTS-stemmen en basistags staan in `scripts/tts_lines_list.mjs` (`CAST`). Houd de tags hieronder daarmee in lijn.
+- De TTS-stemmen en basistags staan in `scripts/tts_lines_list.mjs` (`CAST`), die van Tammo en Anita in `scripts/tts_cast.mjs` (`DUO`). Houd de tags hieronder daarmee in lijn.
 - Elk personage heeft een eigen kleur voor zijn naam in de ondertitels (zie **Sprekerskleuren** onderaan, `game/js/speakers.js`).
 
 ---
@@ -16,7 +16,7 @@ Regels die voor iedereen gelden:
 ## Tammo
 **In één zin:** een droge Stadjer met een groot hart en een kleine portemonnee, die liever een grap maakt dan toegeeft dat hij iets eng vindt.
 
-- **Stem:** Algenib. Basistag: *Stadjer, droog en sarcastisch*. Emoties: droog, laconiek, zuchtend, deadpan, stiekem trots. Hij schreeuwt alleen als het echt misgaat, en dan klinkt hij "feller dan normaal".
+- **Stem:** Orus, ingesproken in Gronings dialect: *a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties*. Daardoor zegt hij soms een Gronings woord waar de ondertitel Nederlands heeft ("Mien droom"). Emoties: droog, laconiek, zuchtend, deadpan, stiekem trots. Hij schreeuwt alleen als het echt misgaat, en dan klinkt hij "feller dan normaal".
 - **Zo praat hij:**
   - korte zinnen;
   - understatement: "Viel mee." na een ontploffing;
@@ -146,7 +146,7 @@ Regels die voor iedereen gelden:
 
 - **Stemmen:**
   - Durk: Algieba, *grote trage Friese handlanger, zwaar Fries accent*.
-  - Douwe: Orus, *tweelingbroer van Durk*.
+  - Douwe: Algenib, *tweelingbroer van Durk*.
   - Emoties: traag, verward, berustend. Durk kan ook dronken en lallend.
 - **Uiterlijk:**
   - allebei in een rode hoodie;
