@@ -923,3 +923,24 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 #cine.sub-clue .cine-sub::before { content: 'Aanwijzing'; display: block; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; font-size: 13px; letter-spacing: 3px; color: #f2c14e; margin-bottom: 2px; text-transform: uppercase; }
 #cine[data-accent="tammo"] .cine-title { color: #9cc1f0; }
 #cine[data-accent="anita"] .cine-title { color: #f39a8c; }
+
+/* --- Ubbo (phone.js): sections, a round icon per row, distance right ---- */
+#hud .ub-top small { margin-left: auto; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; letter-spacing: 0; color: #a3b2a6; }
+#hud .ub-list { display: flex; flex-direction: column; gap: 6px; padding: 4px 10px 8px; }
+#hud .ub-head { padding: 8px 2px 0; font-size: 15px; letter-spacing: 1.4px; color: #a3b2a6; }
+#hud .phone .ub-row {
+  display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%;
+  padding: 8px 10px; border-radius: 8px; text-align: left;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background var(--dur-fast, 120ms) var(--ease-out, ease-out), border-color var(--dur-fast, 120ms) var(--ease-out, ease-out);
+}
+#hud .phone .ub-row.sel, #hud .phone .ub-row:hover { background: rgba(30, 158, 86, 0.2); border-color: rgba(63, 201, 122, 0.55); }
+#hud .ub-ic { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #1e9e56; }
+#hud .ub-ic svg { width: 18px; height: 18px; fill: none; stroke: #f6fff8; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#hud .ub-row.stop .ub-ic { background: #d93f3f; }
+#hud .ub-row.stop .ub-ic svg { fill: #f6fff8; stroke: none; }
+#hud .ub-row.dim { opacity: 0.6; }
+#hud .ub-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+#hud .ub-txt b { font-weight: normal; font-size: 17px; letter-spacing: 0.8px; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .ub-txt small { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; color: #a3b2a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hud .ub-side { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; color: #3fc97a; white-space: nowrap; }
