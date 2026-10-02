@@ -76,13 +76,23 @@ const tick = () => {
 let done = false;
 requestAnimationFrame(tick);
 
+const DN = await imp('daynight');
+// the same light and weather on every run: 14:00, clear
+const fixWorld = () => {
+  w.clock = 14;
+  w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
+  if (DN.refreshDayNight) DN.refreshDayNight(w);
+};
+
 async function run(name, setup, move, teardown) {
   if (ONLY.length && !ONLY.includes(name)) return null;
+  fixWorld();
   const ctx = await setup();
   let t0 = performance.now() + 6000;
   mover = (now) => move(ctx, (now - t0) / 1000);
   await sleep(6000);
   t0 = performance.now();
+  fixWorld();
   calls = 0; tris = 0; renders = 0;
   const f0 = frameCount();
   H.start();

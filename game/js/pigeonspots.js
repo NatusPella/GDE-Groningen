@@ -26,7 +26,7 @@ const SPOTS = [
   { id: 'volkstuin', x: 1010, y: 1537, name: 'Duiventil volkstuin', host: 'Duivenmelker Bert leent je een duif', loft: true },
 ];
 const USE_RADIUS = 2.4;
-const ANIM_RADIUS = 70;
+const FLOCK_DRAW = 45;
 const BADGE_COLOR = '#56709e';
 const TINTS = [0x8a93a6, 0x6f7584, 0xa79f94, 0x5d6270, 0x9aa3b8];
 
@@ -131,7 +131,8 @@ function placeSpot(map, def, scene) {
   if (!Number.isFinite(ax)) return null;
   const open = map.findOpenSpawn(ax, ay, 200);
   if (!open) return null;
-  const spot = { id: def.id, name: def.name, host: def.host, x: open.x, y: open.y, birds: [], extra: null, used: null, marker: buildMarker(open.x, open.y) };
+  const spot = { id: def.id, name: def.name, host: def.host, x: open.x, y: open.y, birds: [], extra: null, used: null, marker: buildMarker(open.x, open.y), flock: new THREE.Group() };
+  scene.add(spot.flock);
   scene.add(spot.marker);
 
   if (def.loft) {
@@ -159,7 +160,10 @@ function placeSpot(map, def, scene) {
     mesh.position.set(p[0], 0, p[1]);
     const yaw = Math.random() * Math.PI * 2;
     mesh.rotation.set(0, -yaw, 0);
-    scene.add(mesh);
+    // ~30 parts a bird: only the body casts a shadow
+    mesh.traverse((o) => { o.castShadow = false; });
+    mesh.userData.body.children[0].castShadow = true;
+    spot.flock.add(mesh);
     spot.birds.push({ mesh, x: p[0], y: p[1], yaw, seed: Math.random() * 10 });
   }
   return spot;
@@ -256,7 +260,9 @@ export function updatePigeonSpots(dt, w) {
       s.marker.visible = true;
       s.used = null;
     }
-    if (Math.abs(s.x - p.x) > ANIM_RADIUS || Math.abs(s.y - p.y) > ANIM_RADIUS) continue;
+    // a bird is a few pixels beyond this, but some 30 draw calls
+    s.flock.visible = Math.hypot(s.x - p.x, s.y - p.y) < FLOCK_DRAW;
+    if (!s.flock.visible) continue;
     for (const b of s.birds) {
       if (!b.mesh.visible) continue;
       const peck = Math.max(0, Math.sin(t * 2.1 + b.seed * 3.7)) ** 8;
