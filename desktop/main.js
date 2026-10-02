@@ -17,7 +17,8 @@ function saveWindowState(state) {
 
 const SCHEME = 'app';
 const HOST = 'game';
-const GAME_DIR = app.isPackaged ? path.join(process.resourcesPath, 'game') : path.join(__dirname, 'build', 'game');
+// GTE_GAME_DIR serves another staged copy (perf runs against an older build)
+const GAME_DIR = app.isPackaged ? path.join(process.resourcesPath, 'game') : process.env.GTE_GAME_DIR || path.join(__dirname, 'build', 'game');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
