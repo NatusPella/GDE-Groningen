@@ -5,7 +5,7 @@
 import { dualHtml } from './subtitles.js';
 import {
   getAchievementView, getAchievementSummary, getLifetimeStats, getMissionRecord, formatMissionTime,
-  MISSION_GOALS, MEDALS, EIERBAL_TOTAL, TROPHY_SVG, getStat,
+  MISSION_GOALS, MEDALS, EIERBAL_TOTAL, TROPHY_SVG, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
 } from './achievements.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars, countTo, pop } from './motion.js';
@@ -79,6 +79,7 @@ const CSS = `
 #pause-menu .pa-rc .pa-txt { flex: 1; }
 #pause-menu .pa-rc .pa-txt b { font-size: 19px; }
 #pause-menu .pa-rc > small { font: 13px 'Arial Narrow', Arial, sans-serif; color: #a3b2a6; white-space: nowrap; }
+#pause-menu .pa-rc > small.pa-new { color: #3fc97a; letter-spacing: 1px; text-transform: uppercase; }
 #pause-menu .pa-figs { display: flex; flex-wrap: wrap; gap: 6px; }
 #pause-menu .pa-figs span { display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 10px; border-radius: 8px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); font: 13px 'Arial Narrow', Arial, sans-serif; color: #a3b2a6; }
 #pause-menu .pa-figs b { font: 18px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.5px; color: var(--pm-ink); }
@@ -159,10 +160,10 @@ function whenText(at) {
 }
 
 function recentBlock(all) {
-  const list = all.filter((a) => a.unlocked && a.at).sort((a, b) => b.at - a.at).slice(0, 3);
+  const list = all.filter((a) => a.unlocked && a.at).sort((a, b) => b.at - a.at).slice(0, Math.max(3, freshIds.size));
   if (!list.length) return '';
   return '<h3>Onlangs behaald</h3><div class="pa-recent">' + list.map((a) =>
-    `<div class="pa-rc"><span class="pa-ico">${TROPHY_SVG}</span><span class="pa-txt"><b>${dualHtml(a.title)}</b><small>${esc(a.desc)}</small></span><small>${whenText(a.at)}</small></div>`).join('') + '</div>';
+    `<div class="pa-rc"><span class="pa-ico">${TROPHY_SVG}</span><span class="pa-txt"><b>${dualHtml(a.title)}</b><small>${esc(a.desc)}</small></span><small${freshIds.has(a.id) ? ' class="pa-new"' : ''}>${freshIds.has(a.id) ? 'nieuw' : whenText(a.at)}</small></div>`).join('') + '</div>';
 }
 
 function medalsBlock() {
@@ -194,10 +195,16 @@ function figuresBlock(st) {
 
 const RING_C = 2 * Math.PI * 42;
 
-export function renderAchievementsPanel(el) {
+// Opening Prestaties clears the HUD's "prestatie wacht" chip; what was new
+// stays marked while the player clicks through the categories.
+let freshIds = new Set();
+
+export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   if (!el) return;
   ensureStyle();
   const view = getAchievementView();
+  if (!keepFresh) freshIds = new Set(view.flatMap((c) => c.items).filter((a) => isAchievementFresh(a.id)).map((a) => a.id));
+  if (unseenAchievementCount()) markAchievementsSeen();
   const sum = getAchievementSummary();
   const st = getLifetimeStats();
   const all = view.flatMap((c) => c.items);
@@ -242,7 +249,7 @@ export function renderAchievementsPanel(el) {
       const b = e.target.closest('[data-achcat]');
       if (!b) return;
       filter = b.dataset.achcat;
-      renderAchievementsPanel(el);
+      renderAchievementsPanel(el, { keepFresh: true });
       const again = el.querySelector(`[data-achcat="${filter}"]`);
       if (again) again.focus({ preventScroll: true });
     });
