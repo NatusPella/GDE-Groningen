@@ -6,7 +6,30 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Kies zelf je doel.** Zet een missie, minigame, bijbaantje of plek als
+  doel en de route gaat erheen; het verhaal wacht. Bovenin staat dan
+  "Doel: …". Klaar of gewist? Dan pakt de route vanzelf het verhaal weer op.
+- **Te doen** in het pauzemenu: het hele verhaal per deel, alles wat er te
+  doen is per soort, en wat er dichtbij is. Met medailles, records en
+  "Zet als doel".
+- **Overzicht**: Esc opent op je verhaalstap, wat er dichtbij te doen is en
+  welke prestaties bijna binnen zijn.
+- **Missies opnieuw spelen** levert klusloon op, en de eerste keer brons,
+  zilver of goud een bonus.
+- **Vooruit spelen mag**, maar het spel vraagt eerst of je dat echt wilt.
+- **Beweging beperken** onder Instellingen › Weergave: geen animaties in
+  menu's en tellers.
+
 ### Verbeterd
+- Het pauzemenu heeft één vaste kolom links die niet meer verspringt.
+- Op de kaart staan alleen nog je verhaalmissie en je doel; gespeelde
+  missies kun je aanzetten als Klussen. Klik op iets voor een kaartje met
+  "Zet als doel", en zoek ook op missies en minigames.
+- De kaartlegenda heet nu "Op de kaart", met Diensten en Onderweg ingeklapt.
+- Kleine animaties als iets verandert: tellers lopen op, balkjes vullen
+  zich en je ziet wat je aan gezondheid verloor.
+- De missies hebben nieuwe, drogere namen.
 - **Alle stemmen zijn opnieuw ingesproken** met een nieuwer spraakmodel.
   Iedereen klinkt natuurlijker en de emotie per zin komt beter over.
 - **Tammo heeft een nieuwe stem** en praat nu als een echte Stadjer, met

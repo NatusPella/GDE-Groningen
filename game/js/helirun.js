@@ -55,7 +55,7 @@ const VARIANTS = {
     failText: 'De ballon is weg…', hitsText: 'Te vaak tegen de ballon: de piloot breekt af.',
   },
   traumaduif: {
-    title: 'Traumaduif', sub: 'Haal de Eierbal uit de mand van Jelle\'s ballon', timeLimit: 165, ringBonus: 3, seed: 1810,
+    title: 'Spoedeisende duif', sub: 'Haal de Eierbal uit de mand van Jelle\'s ballon', timeLimit: 165, ringBonus: 3, seed: 1810,
     catchText: 'Tammo gaat aan het touw: hou hoogte en snelheid van de mand vast', doneText: 'Tammo heeft de Eierbal!',
     failText: 'De ballon verdwijnt richting de Ommelanden…', hitsText: 'Drie keer tegen de mand: Tammo moet terug naar binnen.',
   },
