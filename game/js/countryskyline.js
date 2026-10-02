@@ -11,6 +11,7 @@ import {
   TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H,
 } from './countrymodels.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
+import { markInstancesDirty } from './util.js';
 
 // The Ommelanden skyline: church towers, turbine rows, poldermolens, pylon
 // lines and a hazy band of tree belts and farm roofs on the horizon. One
@@ -151,7 +152,7 @@ function putSeg(L, a, b, thick) {
 const ROOF_TINT = [0xa04a30, 0x5a5e62, 0x8a7a52];
 const SIL_SCALE = { khr: [1, 1, 1], olda: [1.15, 1.15, 1.3], small: [0.5, 0.58, 0.46], dairy: [1.25, 0.62, 1.45] };
 
-function* gatherGen(px, py) {
+function* gatherGen(px, py, nearR) {
   const L = {};
   const b0x = Math.floor((px - R_TALL) / BLOCK), b1x = Math.floor((px + R_TALL) / BLOCK);
   const b0y = Math.floor((py - R_TALL) / BLOCK), b1y = Math.floor((py + R_TALL) / BLOCK);
@@ -194,11 +195,13 @@ function* gatherGen(px, py) {
     for (let oy = -n; oy <= n; oy++) for (let ox = -n; ox <= n; ox++) if (ox * ox + oy * oy <= n * n && ox * ox + oy * oy >= 2) tiles.push([ox * ox + oy * oy, tx0 + ox, ty0 + oy]);
     tiles.sort((a, b) => a[0] - b[0]);
     let k = 0;
+    // the countryside props draw everything within nearR themselves
+    const nr2 = nearR * nearR;
     for (const [, tx, ty] of tiles) {
       const B = buildingsInTile(tx, ty);
       if (B) {
         for (const i of B) {
-          if (REAL.bw[i] * REAL.bl[i] < 45) continue;
+          if (REAL.bw[i] * REAL.bl[i] < 45 || (REAL.bx[i] - px) ** 2 + (REAL.by[i] - py) ** 2 < nr2) continue;
           const m = buildingModel(i);
           if (m.kind === 'house' || m.kind === 'barn') put(L, 'rbSil', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall + m.roof, m.short, m.kind === 'barn' ? m.roofColor : m.roofColor);
           else put(L, 'rbSilFlat', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall, m.short, m.color);
@@ -320,14 +323,14 @@ function upload(L) {
       pool.instanceColor.array.set(it.c);
     }
     pool.count = n;
-    pool.instanceMatrix.needsUpdate = true;
-    pool.instanceColor.needsUpdate = true;
+    markInstancesDirty(pool.instanceMatrix, n);
+    markInstancesDirty(pool.instanceColor, n);
   }
 }
 
 // ------------------------------------------------------------------ frame
 
-export function updateSkyline(dt, world, scene, cam) {
+export function updateSkyline(dt, world, scene, cam, nearR = 0) {
   if (!K) init(scene);
   const t0 = performance.now();
   const p = world.player;
@@ -370,7 +373,7 @@ export function updateSkyline(dt, world, scene, cam) {
   if (!K.gather && (moved || (K.dirty && !K.warm.length))) {
     K.dirty = false;
     K.gatherAt = [p.x, p.y];
-    K.gather = gatherGen(p.x, p.y);
+    K.gather = gatherGen(p.x, p.y, nearR);
   }
   if (K.gather) {
     const t1 = performance.now();

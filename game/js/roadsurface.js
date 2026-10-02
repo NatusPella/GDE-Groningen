@@ -1168,7 +1168,8 @@ export function buildRoadGroup(r) {
   // viaduct deck, embankment, cutting walls, tunnel roof / deck over a cutting
   if (netMap && netMap.elev && netMap.elev.has) {
     const struct = r.z ? buildRoadStructure(r, netMap) : buildOverpassDeck(r, netMap);
-    if (struct) group.add(struct);
+    // crash barriers are knocked out of this mesh one by one: never batched
+    if (struct) { struct.userData.noBatch = true; group.add(struct); }
   }
   return group;
 }
