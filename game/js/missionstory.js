@@ -1801,7 +1801,6 @@ export function playPigeonSwarm(w, { limo, stall, lines = [], kicker = '', onDon
   // a ledge on the stall side of the tower, not inside it
   const tw = Math.atan2(stall.y - tower.y, stall.x - tower.x);
   const perch = { x: tower.x + Math.cos(tw) * 7, y: tower.y + Math.sin(tw) * 7 };
-  const toLimo = Math.atan2(limo.y - stall.y, limo.x - stall.x);
   const face = chooseFacing(w, stall.x, stall.y, Math.atan2(tower.y - stall.y, tower.x - stall.x));
   const r = buildRun(w, { anchor: stall, facing: face, noPair: true });
   if (!r) return false;
@@ -1871,9 +1870,11 @@ export function playPigeonSwarm(w, { limo, stall, lines = [], kicker = '', onDon
         return pose(camClear(w, P(c.x - Math.cos(h) * 7 + side.x, c.y - Math.sin(h) * 7 + side.y, c.z + 3)), P(c.x, c.y, c.z), 50);
       }
       if (who === 'A') {
-        // from behind Anita's car: a trekker-limo covered in pigeons
+        // from Anita's side, at most 14 m back: a trekker-limo covered in pigeons
         const pv = w.player.inVehicle || w.player;
-        return pose(camClear(w, P(pv.x - Math.cos(toLimo) * 2, pv.y - Math.sin(toLimo) * 2, 2.4)), P(limo.x, limo.y, 1.2), 46);
+        const back = Math.min(14, Math.max(6, Math.hypot(pv.x - limo.x, pv.y - limo.y)));
+        const fromA = Math.atan2(pv.y - limo.y, pv.x - limo.x);
+        return pose(camClear(w, P(limo.x + Math.cos(fromA) * back, limo.y + Math.sin(fromA) * back, 2.4)), P(limo.x, limo.y, 1.2), 46);
       }
       // the windscreen, from the front: nothing but pigeons
       return pose(camClear(w, P(limo.x + fwd.x * 5.5 + fwd.y * 1.5, limo.y + fwd.y * 5.5 - fwd.x * 1.5, 1.6)), P(glass.x, glass.y, 1.4), 40);

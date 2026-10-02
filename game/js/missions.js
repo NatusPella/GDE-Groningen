@@ -2077,7 +2077,8 @@ function bankNear(map, x, y) {
 // The fleeing vehicle of a chase stage: on the start road, `lead` metres on
 // from the mission start, pointing away from the player where the road allows.
 function spawnChaseVehicle(world, def, st) {
-  const base = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : def.start;
+  const from = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : null;
+  const base = from && from.road ? from : def.start;
   const road = base.road;
   if (!road) return null;
   const at = pointAlongRoad(road, base, st.lead || 40);
