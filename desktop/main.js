@@ -167,6 +167,8 @@ function createWindow() {
     argValue('--preset') && `preset=${encodeURIComponent(argValue('--preset'))}`,
     // --gfx-advice[=<gpu string>]: the first-run graphics advice also in a test run
     process.argv.some((a) => a === '--gfx-advice' || a.startsWith('--gfx-advice=')) && 'gfxadvies',
+    // --nobatch: city buildings drawn one by one (A/B of buildingbatch3d.js)
+    process.argv.includes('--nobatch') && 'nobatch',
     argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean).join('&');
   // --benchmark --profile: a CPU profile of 30 s of the first run
   if (BENCH && process.argv.includes('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
