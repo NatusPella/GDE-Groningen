@@ -250,6 +250,12 @@ function anitaSays(w) {
   list.push({ x: p.x, y: p.y, h: 2.2, follow: p, female: true, speechName: 'Anita', speechText: text, speechUntil: w.time + Math.max(3, 1.2 + text.length * 0.06) });
 }
 
+// The trailer (trailer.js) films the squares without the spots' map
+// markers and their decorative birds; play shows them again.
+export function hidePigeonSpots(on) {
+  for (const s of spots) { s.marker.visible = !on && !s.used; s.flock.visible = !on; }
+}
+
 export function updatePigeonSpots(dt, w) {
   const p = w.player;
   const t = w.time;

@@ -18,6 +18,7 @@ import { getTrains, placeTrain } from './railway.js';
 import { routeAt as canalAt, ROUTE_LENGTH as CANAL_LENGTH } from './rondvaartchase.js';
 import { RING_ROUTE } from './ringroute.js';
 import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
+import { hidePigeonSpots } from './pigeonspots.js';
 import { setPoliceHeliRender } from './police.js';
 import { roofAt } from './camerapath.js';
 import { kickTheme, setThemeDuck } from './theme.js';
@@ -693,8 +694,9 @@ function buildShots(w) {
   };
 
   // blankets on the lawn, a barbecue, a frisbee between two of them
-  // an open lawn in the Noorderplantsoen, 30+ m from any road or path
-  const pk = openSpot(map, park.x + 153, park.y + 3, 10);
+  // an open lawn in the Noorderplantsoen: 30+ m from any road, path or
+  // water, no building within 16 m
+  const pk = openSpot(map, park.x - 153, park.y + 51, 10);
   const pz = gz(pk.x, pk.y);
   const pa = Math.PI / 2, pf = { x: Math.cos(pa), y: Math.sin(pa) }, pn = { x: -pf.y, y: pf.x };
   const pAt = (f, n) => ({ x: pk.x + pf.x * f + pn.x * n, y: pk.y + pf.y * f + pn.y * n });
@@ -762,7 +764,7 @@ function buildShots(w) {
     cam(u, t, s) {
       // three-quarter front, wide enough of the machine to see her behind it
       const q = s.q, d = lerp(4.6, 3.8, smooth(u));
-      return { position: P(q.x + hf.x * d - hn.x * 2.6, q.y + hf.y * d - hn.y * 2.6, 1.3), lookAt: P(q.x + hf.x * 0.4, q.y + hf.y * 0.4, 1.15), fov: 46, shake: 0.03 };
+      return { position: P(q.x + hf.x * d - hn.x * 3.6, q.y + hf.y * d - hn.y * 3.6, 1.35), lookAt: P(q.x + hf.x * 0.3, q.y + hf.y * 0.3, 1.2), fov: 46, shake: 0.03 };
     },
   };
 
@@ -1045,7 +1047,7 @@ function buildShots(w) {
     slow: (t) => (t < 0.8 ? 1 : 0.4),
     enter(r, s) {
       clearRoad(r, euro, 10);
-      s.d = 95;
+      s.d = s.d0 = 95;
       const q = lane(euro, s.d, 1.5);
       s.truck = tempCar(r, q.x, q.y, q.a, { model: TANKER });
       for (let d = 95; d <= 185; d += 15) clearAround(r, lane(euro, d, 0), 26, s.truck);
@@ -1067,8 +1069,9 @@ function buildShots(w) {
     },
     cam(u, t, s) {
       const q = s.q, f = Math.cos(q.a), g = Math.sin(q.a);
-      // low beside the road, the tanker sliding across the frame
-      return { position: P(q.x + f * lerp(7, 2, u) - g * 10, q.y + g * lerp(7, 2, u) + f * 10, 0.8), lookAt: P(q.x, q.y, 1.5), fov: 52, shake: 0.06 };
+      // low on the cleared road ahead (the other lane): it slides towards us
+      const c = lane(euro, s.d0 + 64, -3.2);
+      return { position: P(c.x, c.y, gz(c.x, c.y) + 0.7), lookAt: P(q.x, q.y, 1.6), fov: 46, shake: 0.06 };
     },
   };
 
@@ -1105,9 +1108,11 @@ function buildShots(w) {
       stage(r.actor('anita'), q.x - f.x * 0.9 + n.x * hw, q.y - f.y * 0.9 + n.y * hw, q.a + Math.PI / 2 + 0.2, { h: 0.55, pose: 'lookR', dt, t });
     },
     cam(u, t, s) {
-      // down from the drone height in the first two thirds, then along the rail
-      const b = s.boat, f = Math.cos(b.angle), g = Math.sin(b.angle), k = smooth(u * 1.5);
-      return { position: P(b.x + f * lerp(30, 6.5, k) - g * lerp(16, 6, k), b.y + g * lerp(30, 6.5, k) + f * lerp(16, 6, k), lerp(46, 2.2, k)), lookAt: P(b.x - f * 1.3, b.y - g * 1.3, lerp(-1, 1.3, k)), fov: 50, shake: 0.05 };
+      // down from the drone height onto the water astern (the quays are
+      // built up), ending on the two at the rail
+      const b = s.boat, f = Math.cos(b.angle), g = Math.sin(b.angle), k = smooth(u * 1.4);
+      const back = lerp(26, 7.5, k), side = lerp(10, 1.2, k);
+      return { position: P(b.x - f * back - g * side, b.y - g * back + f * side, lerp(40, 2.1, k)), lookAt: P(b.x - f * 0.8, b.y - g * 0.8, lerp(-1, 1.3, k)), fov: 48, shake: 0.05 };
     },
   };
 
@@ -1670,6 +1675,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     r.label = label;
     ui.black.classList.add('on');
     ui.root.classList.add('on');
+    hidePigeonSpots(true);
     // props and extra actors are built under the opening black, not on their cut
     for (const s of shots) if (s.prep) { try { s.prep(r); } catch (e) { console.error('trailer prep', s.label, e && e.stack); } }
     for (const o of group.children) if (o.userData.trailerActor) o.visible = false;
@@ -1708,6 +1714,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       if (nativeRender) ren.render = nativeRender;
       setThemeDuck(false);
       stopVoices();
+      hidePigeonSpots(false);
       const last = r.shots[r.idx];
       if (last && last.exit) { try { last.exit(r, r.state); } catch (e) { /* ignore */ } }
       clearShot(r);
