@@ -7,6 +7,22 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Verhaal in het pauzemenu**: alle personages die je gesproken hebt, met
+  hun 3D-model om rond te draaien, hun bekendste uitspraak, wie ze zijn en
+  welke missies je samen speelt. Wie je nog niet sprak, is een silhouet.
+  Daarnaast alle aanwijzingen per deel van het verhaal.
+- **HUD: echte gezichten.** Linksboven zie je Tammo of Anita zoals ze er
+  nu bij lopen, en je maat met een eigen fotootje zolang die meerijdt of
+  meeloopt. Tijd, sterren, geld en wapen staan rechtsboven in één blok; in
+  een voertuig staan snelheid en schade onder de minimap. Wachtende
+  meldingen tellen mee onder de kaartjes, en "opgeslagen" staat bij je
+  locatie. Niks in de HUD is klikbaar.
+- **Garage** opnieuw: elk voertuig met een plaatje van het echte model,
+  balkjes voor snelheid en trekkracht, en één viewer die draait.
+- **Prestaties** opnieuw: een overzicht bovenaan, de categorieën links met
+  Bijna binnen eerst, en wat je onlangs behaalde.
+- **Ubbo** opnieuw: wat nu loopt, je verhaalstap, wat er dichtbij te doen
+  is en de bijbaantjes, dichtstbij eerst.
 - **Eén klik naar een stand die past.** Merkt de game bij de eerste start
   dat je computer het zwaar heeft, dan stelt hij rechtsonder een lichtere
   stand voor: één keer op Toepassen en alles staat goed. Bij Instellingen ›

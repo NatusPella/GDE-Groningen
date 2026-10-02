@@ -27,7 +27,7 @@ fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) 
 const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text);
 
 const SKIN = HABBO_PALETTE;
-const NPC = {
+export const NPC = {
   berend: { name: 'Bommen Berend', shirt: 0x4a5a3a, skin: SKIN.woodLight, variant: 'male', seed: 393 },
   jelmer: { name: 'Jelmer', shirt: 0xe2b93b, skin: SKIN.woodMid, variant: 'male', seed: 164 },
   sjoerd: { name: 'Sjoerd', shirt: 0x2e7d4f, skin: SKIN.woodLight, variant: 'male', seed: 1507 },
