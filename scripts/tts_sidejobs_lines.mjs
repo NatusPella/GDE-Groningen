@@ -4,19 +4,19 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { DUO as DUO_CAST, styleOf } from './tts_cast.mjs';
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ROOT = path.join(REPO, 'game', 'js') + '/';
 const JOBS = ['bezorger', 'taxi', 'bus', 'rondvaart', 'fietsdepot', 'verhuizing'];
 // who speaks, which Gemini voice, and the local character tag they are voiced with
 const CAST = {
   bezorger: { voice: 'Zephyr', who: 'jonge Stadjer, vrouw, opgewekt en snel' },
-  taxi: { voice: 'Orus', who: 'Groningse centralist over de portofoon, laconiek', radio: true },
+  taxi: { voice: 'Algenib', who: 'Groningse centralist over de portofoon, laconiek', radio: true },
   bus: { voice: 'Achird', who: 'Groningse man, stipt en een beetje pedant' },
   rondvaart: { voice: 'Algieba', who: 'oude Groningse schipper met rugpijn, bromstem' },
   fietsdepot: { voice: 'Kore', who: 'Groningse handhaafster, streng en droog' },
   verhuizing: { voice: 'Sadachbia', who: 'gehaaste Groningse verhuizer, joviaal' },
-  Tammo: { voice: 'Algenib', who: 'Stadjer, droog en sarcastisch' },
-  Anita: { voice: 'Callirrhoe', who: 'Groningse vrouw, lacherig en ad rem' },
+  ...DUO_CAST,
 };
 const INTRO_TAGS = {
   bezorger: ['cheerful, welcoming', 'businesslike, fast', 'laughing, teasing'],
@@ -43,6 +43,9 @@ for (const id of JOBS) {
   for (const [kind, list] of Object.entries(JOB_LINES[id])) list.forEach((l, n) => out.push({ file: `${id}/${kind}_${n}.mp3`, speaker: boss, cast: id, text: l.t, tag: l.tag }));
 }
 for (const [who, kinds] of Object.entries(DUO)) for (const [kind, list] of Object.entries(kinds)) list.forEach((l, n) => out.push({ file: `duo/${who.toLowerCase()}_${kind}_${n}.mp3`, speaker: who, cast: who, text: l.t, tag: l.tag }));
-for (const l of out) Object.assign(l, CAST[l.cast]);
+for (const l of out) {
+  const { accent, ...c } = CAST[l.cast];
+  Object.assign(l, c, { style: styleOf(c.who, l.tag, accent) });
+}
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_sidejobs.json'), JSON.stringify(out, null, 1));
 console.log(out.length, 'lines', out.reduce((a, l) => a + l.text.length, 0), 'chars');

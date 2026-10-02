@@ -6,6 +6,50 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Alle stemmen zijn opnieuw ingesproken** met een nieuwer spraakmodel.
+  Iedereen klinkt natuurlijker en de emotie per zin komt beter over.
+- **Tammo heeft een nieuwe stem** en praat nu als een echte Stadjer, met
+  hier en daar een Gronings woord ("Mien droom"). Douwe en de
+  taxicentralist hebben Tammo's oude stem gekregen.
+
+## [0.21.0] - 2026-10-01
+
+### Nieuw
+- **Het escape-menu is helemaal nieuw**: één menu als overlay over het
+  gepauzeerde spel. Kaart, Missies, Garage, Prestaties, Instellingen en
+  Besturing schuiven er als paneel naast. Esc of Backspace gaat een stap
+  terug, Q/E wisselt van onderdeel, en het menu onthoudt waar je was.
+  Missies is opgedeeld in Verhaal, Missies en Bijbaantjes, zonder
+  overlappende kolommen. Het startscherm gebruikt hetzelfde menu.
+- **Drie nieuwe verhaalstappen**:
+  - Tammo rijdt Durk en Douwe klem in de botsauto's op de kermis.
+  - Anita maakt een gratis proefvlucht met Rotor Roelf.
+  - Tammo schiet carbid bij boer Roelf aan de Beijumerweg.
+
+  Ze kosten niks en zijn over te slaan.
+- De **Bloemetjesmarkt** is nu echt te zien: kramen over de hele Grote
+  Markt, een spandoek en een kaartje "Vandaag in Grunn".
+
+### Verbeterd
+- De intro van de eerste missie is half zo lang en de camera beweegt mee.
+- Een missie overslaan kan pas als je hem een keer hebt geprobeerd.
+- Toetshints komen één voor één, maximaal drie tegelijk, en vooral als
+  icoontje.
+- "Missie mislukt" verdwijnt na een paar seconden of zodra je iets doet.
+- De wissel tussen Tammo en Anita wacht tot je het resultaat hebt gezien.
+- Na een aankoop voor het verhaal zie je meteen "Gelukt! Terug naar het
+  verhaal".
+- Tips raken niet meer kwijt voordat je ze hebt gezien.
+
+### Opgelost
+- Een opgeslagen spel laden stopte een heli-rit, padel, dorpstennis, carbid
+  of de botsauto's niet: je werd teruggetrokken.
+- "Naar huis" deed niets tijdens padel, dorpsspelletjes, carbid of de
+  botsauto's.
+- De dorpsquiz ging door met een nieuwe vraag terwijl je al weg was.
+- Bij de ballonjacht verschenen Tammo en Anita ineens onder de heli.
+
 ## [0.20.0] - 2026-10-01
 
 ### Nieuw

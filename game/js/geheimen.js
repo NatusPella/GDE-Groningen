@@ -554,6 +554,7 @@ export const GEHEIMEN = {
   secondary: () => [],
   interact,
   active: () => !!room,
+  quit: (w) => { if (room) leaveRoom(w); },
   update(dt, w) {
     if (!room) return;
     room.t += dt;
