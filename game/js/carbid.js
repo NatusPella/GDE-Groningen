@@ -12,6 +12,7 @@ import { countrySurface } from './countryfield.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { addStaticCollider } from './breakables.js';
 import { CARBID_LINES } from './funlines.js';
+import { ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 
 // Carbid schieten, the Groningen New Year's bang, on a meadow off the
 // Beijumerweg between Beijum and Zuidwolde. Boer Roelf and Hilje have a
@@ -165,8 +166,8 @@ function buildField() {
   ring.visible = false;
   getScene().add(root, ring);
   // Roelf and Hilje
-  const roelf = buildPersonMesh(0x2f4f7a, 0xe2b48c, { variant: 'male', seed: 5101, pants: 0x2f4f7a, shoes: 0x2a2a2a, hairStyle: 'short', hair: 0xb8b2a8, look: { age: 'old', hat: 'flatcap', hatColor: 0x4a4038, top: 'jacket', bottom: 'trousers', bag: null, umbrella: null, glasses: false } });
-  const hilje = buildPersonMesh(0x7a3a4a, 0xd9a57c, { variant: 'female', seed: 5102, pants: 0x3a3a40, shoes: 0x2a2a2a, hairStyle: 'bun', hair: 0xc8c2b8, look: { age: 'old', top: 'coat', bottom: 'skirt', bag: null, umbrella: null } });
+  const roelf = buildPersonMesh(ROELF_LOOK.shirt, ROELF_LOOK.skin, ROELF_LOOK);
+  const hilje = buildPersonMesh(HILJE_LOOK.shirt, HILJE_LOOK.skin, HILJE_LOOK);
   const place = (m, u, v, face) => { const p = toW(u, v); m.position.set(p.x, 0, p.y); m.rotation.y = -(FIELD.rot + face); getScene().add(m); return { mesh: m, u, v, x: p.x, y: p.y, face }; };
   const farmers = { Roelf: place(roelf, -2.6, -2.4, 0.7), Hilje: place(hilje, -3.6, 2.8, -0.5) };
   return { root, churn, lid, lidHome, ring, farmers };
@@ -713,6 +714,17 @@ function spots() {
   return [{ id: 'carbid', name: 'Carbid schieten', x: STAND.x, y: STAND.y }];
 }
 
+// A knal from the churn without a game (storyfun.js: boer Roelf scares off the twins).
+function knal(w) {
+  if (!built) return false;
+  const m = toW(0.6, 0);
+  pushAudioEvent(w, { kind: 'weapon', sub: 'carbid', x: m.x, y: m.y });
+  spawnExplosionFx(m.x + C * 0.4, m.y + S * 0.4, 1, 0x8a9197, 0.6);
+  flashMuzzleLight(m.x, 1.5, m.y, 3.5);
+  for (let k = 0; k < 10; k++) spawnFxPuff(m.x, 1, m.y, C * rand(2, 6) + rand(-1, 1), rand(0.5, 2), S * rand(2, 6) + rand(-1, 1), rand(1, 2), 0.3, 1.6, 0.86, 0.86, 0.84, 0.5, 1.4, 0.3);
+  return true;
+}
+
 export const CARBID = {
   id: 'carbid',
   layer: 'carbid',
@@ -737,6 +749,7 @@ export const CARBID = {
   secondary,
   interact,
   active: () => !!game,
+  quit: (w) => end(w, { quit: true }),
   update(dt, w) {
     if (!game) return;
     if (w.pendingRespawn) { end(w, { quit: true }); return; }
@@ -759,4 +772,11 @@ export const CARBID = {
     return { name: 'Carbid schieten', sub: `${rec && rec.medal ? 'record: ' + MEDALS[rec.medal].toLowerCase() : 'vijf knallen in de polder'}`, dist: d, x: STAND.x, y: STAND.y, where: 'het carbidveld van boer Roelf', hint: 'loop naar de melkbus en druk E' };
   },
   runs: () => runs,
+  // for the story step (storyfun.js): the field's frame, the knal, and the two farmers
+  // stepping aside while a cutscene has its own Roelf and Hilje
+  field: () => ({ ...FIELD }),
+  knal,
+  farmersVisible(on) {
+    if (built) for (const f of Object.values(built.farmers)) f.mesh.visible = on;
+  },
 };

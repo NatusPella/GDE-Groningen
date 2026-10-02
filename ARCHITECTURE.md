@@ -69,7 +69,7 @@ frame then runs, in order:
 | Ommeland extras | `ommelandfun.js` (hub for main.js, prompts.js and spotcheck.js; solid props push the player out; `window.__ommeland`), `worldends.js` (twelve wereldeinden where real roads cross the edge of the Ommeland data, picked round the four edges from the road data: a prop, a voiced line, a card "3 van 12", lifetime set `wereldeinden` for Prestaties, the twelfth plays the final gag), `dorpsuitjes.js` (per Ommeland station: one special (tennis, canal trip, Gronings quiz, mill, leaning tower, wierde, bell, beach), a café, farm shop, beach kiosk or bike rental, a hidden eierbal and a signpost; placed per village when the player heads its way, props only within ~300 m; sets `dorpsuitjes`, `dorpseierballen`), `ommelandplace.js` (open ground, roads, water and shore in the real data), `ommelandprops3d.js` (the props, one vertex-colour mesh each plus sign textures), `ommelandtalk.js` (voiced name bubbles; DUO lines are the companion's), `ommelandlines.js` (all text, pure data; registered in voicelines_collect.mjs). The station menu and the map name a village's things to do. |
 | Soft-lock safety | `safety.js` (pause menu "Vastgelopen? Zet me vrij" and "Missie afbreken" (counts as a fail, so the story skip opens); watchdogs for cutscenes and respawn scenes that run far too long, players out of the world, scene flags left behind) |
 | Title and trailer | `startscreen.js` (loading screen, title menu over the live city), `trailer.js` (attract intro, benchmark, recording mode), `intromontage.js` (the "Nieuw spel" opening montage) |
-| UI | `hud_panel.js` + `.css` (minimap: player, routes and targets always; static places only the nearest few per category; the objective line), `hudcards.js` + `.css` (HUD message cards, countdowns), `cardlines.js` (what Tammo/Anita say with a card), `prompts.js` + `.css` (world prompts and the key-cap + pictogram hint chips; `world.missionPrompt` is a mission stage's own prompt), `shopui.js` (shop menus: select, then buy with the button; confirm for expensive items), `vehiclepreview.js` (rotating 3D preview for the shops and the garage tab: vehicles, weapons, people, products), `shopmodels3d.js` (procedural shop products), `pausemenu.js` (tabs; `addMissionsSection` for extra Missies sections), `garageui.js` (garage tab with the 3D viewer), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js` + `.css` (phone notifications and calls), `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots and the pause menu's header, footer and panels) |
+| UI | `hud_panel.js` + `.css` (minimap: player, routes and targets always; static places only the nearest few per category; the objective line), `hudcards.js` + `.css` (HUD message cards, countdowns), `cardlines.js` (what Tammo/Anita say with a card), `prompts.js` + `.css` (world prompts and the key-cap + pictogram hint chips; `world.missionPrompt` is a mission stage's own prompt), `shopui.js` (shop menus: select, then buy with the button; confirm for expensive items), `vehiclepreview.js` (rotating 3D preview for the shops and the garage tab: vehicles, weapons, people, products), `shopmodels3d.js` (procedural shop products), `pausemenu.js` (one overlay over the paused game: Esc opens the pause card, each section (Kaart, Missies with Verhaal/Missies/Bijbaantjes, Garage, Prestaties, Instellingen, Besturing) opens as a sheet beside it while the card becomes the section rail; Esc/Backspace one level back then close, Q/E switch sections, arrows move the focus spatially, the last section and sub-tab are kept in `gte-menu-v1`; `openPauseMenu(name)` from M or the phone opens a section directly and Esc then closes; the start screen's Instellingen is the same menu with only Instellingen and Besturing; `addMissionsSection` for extra sections under Missies › Verhaal), `garageui.js` (garage tab with the 3D viewer), `mapview.js` (full map, legend toggles, click/right-click waypoints), `mapfilters.js` (one visibility switch per legend category, shared by the full map and the minimap), `routing.js` (GPS route for waypoints, missions and side jobs), `phonefeed.js` + `.css` (phone notifications and calls), `sikkomfeed.js`, `subtitles.js` (Dutch subtitles under Frisian and Gronings lines, see Spoken lines), `uiscale.js` (HUD scale `--ui`: window size times the "Grootte interface" setting, applied as CSS zoom on the HUD roots and the pause menu's card, sheet header, panels and footer) |
 | Audio | `speech.js` (the one talking channel, see "Spoken lines"), `audio.js` (G-Music, voicelines, synthesised effects; buses for music, effects and voices), `linevoice.js` (recordings for speech bubbles, unvoiced cutscene subtitles and the rondvaart guide, `audio/voicelines/lines`), `scenariomusic.js` (race/chase loops that pause G-Music) |
 | Building passages and interiors | `passages.js` (the corridors footways and streets cut through a footprint: mapped OSM passages from `mapextras.json` `passages`, streets, short footways/cycleways; walkers, vehicles, spawns and the camera share them; a way that ends at a facade gets a door, a footway or cycleway through a solid block is cut at the facade when the map loads, `clipWaysInBuildings`), `portalcut3d.js` (building materials discard inside the passage boxes near the player, so the facade shows a real gate; lined tunnels with lamps; the door panels), `museumplan.js` + `museum3d.js` (the Groninger Museum's walkable ground floor as rooms: cycle passage, atrium, Entreehal, zaal 1, zaal 3 with the Gouden Eierbal case used by H6; a room with `shut` is closed to walkers) |
 | Validation | `spotcheck.js` (every start/target point must be open ground you can walk away from), `ringcheck.js` (nothing solid or open water on the ring race lap and ring roads, a car crosses every water crossing of the major and numbered roads at 80 km/h in both directions and three lanes, a scripted car and the AI racers drive a full lap, every rail lift can be walked, driven and cycled up), `passagecheck.js` (every street, cycleway and footway stretch inside a footprint is an opening, a door, a facade graze or clipped, never through a solid wall or an invisible hole; `node scripts/passage_audit.mjs` lists them from the map data); all run in the story test, desktop `--validate-spots[=dir]` runs only them; out in the Ommelanden spotcheck.js also rejects spots inside what is solid there (the real building boxes, farmsteads, villages, turbines and pylons), with the same countryplan.js `pushOutOfPlan` query collision.js uses and the map-edge mask built first (`ensureCountryEdge`); garages.js keeps its bays clear of real building boxes |
@@ -202,7 +202,7 @@ There are no white toast lines. Three channels, all inside `#hud` (so
   rest" and "Short sentence! Rest" split into title and body. Redundant
   messages are dropped (`DROP`: death/busted, mission passed/failed, start
   location, mute, route set, the radio, ambient trains, pigeon bumps). One
-  card at a time (see "Attention budget"), a short queue (dangers and police first, tips expire),
+  card at a time (see "Attention budget"), a short queue (dangers and police first; tips wait out the tip gap, important ones that teach a key or pass `important` longest, stale plain tips expire),
   the same key updates the card that is up; cards wait while a cutscene
   hides the HUD. `opts.exact` countdowns ("3", "GO! GO! GO!") are a big
   number in the middle. `cardlines.js` lists the few cards Tammo/Anita say
@@ -445,6 +445,13 @@ a director:
   prizes, the Fjord Frituur's daily wage, eierbal finds). `storytest.js`
   checks the economy targets (margins, early car/gun, cheap repairs, top
   vehicles after the Romp) against it and the shop prices.
+- `storyfun.js`: the story steps around the free-roam extras: goal `kermis`
+  (r-kermis, a free bumper-car ride with Durk & Douwe in it, kermis.js reads
+  `world.storyActivity`, then their scene at the booth) and `flight`
+  (s-proefvlucht, Rotor Roelf's demo heli at the UMCG, a missionCar he takes
+  back, and Jelle's balloon in the Oosterpark) and `carbid` (s-carbid, a round
+  at boer Roelf's: he hides the Eierbal in his melkbus, a knal scares off the
+  twins; far out on foot, Henk drops the Escapade off free); a step's `meet`/`scene` lines.
 - `story.js`: finds the current step (done = finished/skipped, a passed
   mission, or an activity made moot by a later passed mission; that also
   migrates pre-0.5 saves). It publishes `world.storyGuide` (routing.js uses
@@ -453,8 +460,11 @@ a director:
   short for a required purchase, switches who you play (`step.player`:
   Tammo and Anita trade roles behind a short fade; there is no free switch)
   and waits for the night at a garage, offers
-  "Sla deze missie over" (O, or the pause menu Missies tab) after a failed
-  mission and for any activity, and saves under `story` in the savegame.
+  "Sla deze missie over" (O, or the pause menu's Missies › Verhaal) only once the
+  player has tried: after a failed attempt, a requirement unmet for 90 s, an
+  activity open for 5 minutes or a story mission running for 6 (never
+  before a first try; `skip(true)` forces it for the dev panel and the story
+  test), and saves under `story` in the savegame.
   `missions.js` reports back through `setMissionHooks` (passed, failed,
   gated, waived requirements).
 - Missions: requirements (`requires`: weapon, bike, car, heist, night,
@@ -510,7 +520,7 @@ Staging (story experience):
   (phone.js) are voiced too.
 - The arc: `PARTS.<part>.recap` plays an "Eerder in GTE VI" card when a later
   part starts (story.js `playRecap`, once per save, flag `recap:<part>`);
-  `CLUES` and `WHY` feed "Wat weten we?" in the pause menu (Missies tab,
+  `CLUES` and `WHY` feed "Wat weten we?" in the pause menu (Missies › Verhaal,
   story.js `getStoryJournal`: a clue shows once its step is done, a toast
   and a sting announce it); each step's `why` is the handover line when
   Tammo and Anita trade places (story.js `playHandover`: a whip in the
