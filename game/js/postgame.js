@@ -1,5 +1,6 @@
 import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
+import { noteSpoken } from './characters.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
@@ -460,6 +461,7 @@ export function esc(s) {
 function showSub(speaker, text) {
   const el = ensureUi().sub;
   paintSpeaker(el.firstChild, speaker);
+  noteSpoken(world, speaker);
   setDualText(el.lastChild, text);
   el.style.opacity = '1';
   sub = { left: Math.max(2.4, Math.min(6, 1 + text.length * 0.06)) };

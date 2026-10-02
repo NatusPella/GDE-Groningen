@@ -22,7 +22,7 @@ import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { storyWaiting, missionOnMap } from './goal.js';
 import { setGhostBar, ring, pop } from './motion.js';
-import { renderSnapshot } from './vehiclepreview.js';
+import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
@@ -353,8 +353,6 @@ function updateCharacter(dt, world) {
 
 const LOOKS = { tammo: TAMMO_APPEARANCE, anita: ANITA_APPEARANCE };
 const PORTRAIT_PX = 96;
-// a slight three-quarter view, the face turned a little into the screen
-export const PORTRAIT_ANGLE = -1.55;
 
 // A head-and-shoulders render of the real character model (vehiclepreview.js
 // shared renderer, cached per look); the drawn silhouette shows until then.

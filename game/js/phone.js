@@ -1,5 +1,6 @@
 import { dualHtml } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
+import { noteSpoken } from './characters.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay, isCinematicActive } from './cinematics.js';
 import { getMissionList, getNextMission } from './missions.js';
 import { playMission, isPlayAheadOpen, getTodoItems, chooseTodo, placeName } from './todo.js';
@@ -469,6 +470,7 @@ function talk(call) {
   call.phase = 'talk';
   call.line = res.line || '';
   call.actions = [...(res.actions || []), { label: 'Ophangen', run: () => { stopBanterVoice(); goHome(); } }];
+  if (call.line) noteSpoken(world, call.contact.speaker || call.contact.name);
   // Jelle answers in his own voice (the lines manifest)
   const v = call.contact.id === 'jelle' && lineVoiceFor('Jelle Terpstra', call.line);
   if (v) playBanterVoice(v.src);
