@@ -6,7 +6,7 @@ import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, storySpeakerName } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
@@ -93,9 +93,11 @@ function buildDefs(world) {
   const ring = (i) => ({ x: RING_ROUTE[i][0], y: RING_ROUTE[i][1], z: map.spawnZ ? map.spawnZ(RING_ROUTE[i][0], RING_ROUTE[i][1]) : 0, road: null });
   const kei = (i) => ({ x: KEI_ROUTE[i][0], y: KEI_ROUTE[i][1], road: null });
   const berth = rondvaartBerth(map);
-  // H12: the Oude Ebbingestraat, from the Ebbingebrug down to the Grote Markt
-  const fatStart = walk(30, -255), fatEnd = walk(118, -12);
-  const lanePath = findWalkPath(map, fatStart.x, fatStart.y, fatEnd.x, fatEnd.y);
+  // H12: up the Oude Ebbingestraat from the Grote Markt to the Ebbingebrug, then
+  // along the water (Spilsluizen, Lopendediep) to Oma Trijntje at the Noorderhaven
+  const fatStart = walk(118, -12), fatBridge = walk(30, -258), fatEnd = walk(-286, -111);
+  const laneLegs = [findWalkPath(map, fatStart.x, fatStart.y, fatBridge.x, fatBridge.y), findWalkPath(map, fatBridge.x, fatBridge.y, fatEnd.x, fatEnd.y)];
+  const lanePts = laneLegs.every(Boolean) ? [...laneLegs[0].pts, ...laneLegs[1].pts.slice(1)] : [[fatStart.x, fatStart.y], [fatBridge.x, fatBridge.y], [fatEnd.x, fatEnd.y]];
   return [
     {
       type: 'deliver',
@@ -190,12 +192,14 @@ function buildDefs(world) {
     {
       type: 'fatbike',
       label: 'Fatbikes tellen niet als fiets',
-      intro: ['De Oude Ebbingestraat: smal, druk, en vol fatbikes die van twee kanten komen, over de stoep. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop de straat door naar Oma Trijntje, bij de Grote Markt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.'],
+      intro: ['De Oude Ebbingestraat: smal, druk, en vol fatbikes die van twee kanten komen, over de stoep. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop de straat uit, over de Ebbingebrug en langs het water naar Oma Trijntje aan de Noorderhaven. Geschept worden doet pijn, maar zolang je blijft ademen telt het.'],
       outro: 'Overeind gebleven tussen de fatbikes. Oma Trijntje is trots.',
-      timeLimit: 80,
+      timeLimit: 140,
       reward: 500,
       onFoot: true,
-      lane: lanePath ? lanePath.pts : [[fatStart.x, fatStart.y], [fatEnd.x, fatEnd.y]],
+      lane: lanePts,
+      // passed on the way: a toast, once
+      notes: [{ ...fatBridge, text: 'De Ebbingebrug. Nu langs het water, naar de Noorderhaven. Daar rijden ze nog harder.' }],
       start: fatStart,
       dest: fatEnd,
     },
@@ -534,15 +538,33 @@ function buildDefs(world) {
         },
         { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, achter die trekker aan!' },
         {
-          kind: 'chase', label: 'Haal de trekker-limo van Jelle in', stars: 1, say: 'Achter die trekker aan! Ram hem tot hij stilstaat. Niet schieten, er is kermis.',
+          // D-definitief H18: from the corner of the Grote Markt up the Oude Boteringestraat,
+          // over the Boteringebrug, along the Spilsluizen and back down the Oude Ebbingestraat
+          // into the fireworks; the torenwachter reports every street, then Tammo whistles
+          kind: 'chase', label: 'Haal de trekker-limo van Jelle in', stars: 1, say: 'Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.',
           vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' },
-          name: 'Trekker-limo van Jelle', lead: 50, hits: 90, flee: [-1900, -900], cruise: 16, escape: 400, time: 220,
+          name: 'Trekker-limo van Jelle', from: [19, 97], lead: 6, hits: 90, flee: [-1900, -900], cruise: 15, escape: 400, time: 220,
+          meter: 'trekker',
+          route: [
+            { at: [-60, -40], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.']] } },
+            { at: [-140, -188], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Boteringebrug. Over het water, de bocht te ruim. Ik meld alleen.']] } },
+            { at: [28, -262], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Spilsluizen. Hij rijdt een rondje om de toren. Ik meld alleen.']] } },
+            { at: [70, -150], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Ebbingestraat. Terug naar de markt, recht onder het vuurwerk door.']] } },
+            { at: [112, -29] },
+          ],
+          // halfway on the meter, or back at the market with you close: the pigeons
+          swarm: {
+            stall: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, near: 170,
+            lines: [
+              ['T', 'Kom op, jongens. Eén keer luisteren.'],
+              ['torenwachter', 'Duiven. Boven het vuurwerk. Allemaal tegelijk. Ik meld alleen.'],
+              ['jelle', 'Wat is dit?! Ik sjoch neat!'],
+              ['A', 'Duiven luisteren naar niemand. Behalve naar hem.'],
+            ],
+          },
           half: 'Tammo fluit. Een zwerm duiven valt over het vuurwerk heen op de voorruit van de trekker!',
           stopped: 'De trekker-limo staat stil, vol duiven. Jelle stapt uit, met de Eierbal in zijn armen.',
           lost: 'Jelle is weg met de Eierbal', gone: 'Jelle is foetsie, met de Eierbal', burned: 'de trekker staat in de fik. De Eierbal smelt bijna',
-          radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [
-            ['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.'],
-          ] },
         },
         {
           kind: 'scene', label: 'Voor mem', kicker: 'Gronings Ontzet', solo: true,
@@ -1350,7 +1372,9 @@ function laneProject(g, x, y) {
 function spawnLaneBike(world, def, dir, s0 = null) {
   const g = laneGeom(def);
   const fat = Math.random() < LANE_FAT_SHARE;
-  const s = s0 ?? (dir > 0 ? 0 : g.len);
+  // a long lane (H12) feeds bikes in around the player instead of only at its ends
+  const pl = s0 == null && g.len > 220 ? laneProject(g, world.player.x, world.player.y).s : null;
+  const s = s0 ?? (pl != null ? clamp(pl + dir * -(45 + Math.random() * 30), 0, g.len) : dir > 0 ? 0 : g.len);
   const q = laneAt(g, s);
   // never out of thin air on top of the player
   if (dist(q.x, q.y, world.player.x, world.player.y) < 12) return;
@@ -1378,11 +1402,12 @@ function spawnLaneBike(world, def, dir, s0 = null) {
 function startLane(world, def) {
   const g = laneGeom(def);
   chain.fatbikeHits = 0;
+  chain.notesSaid = null;
   chain.hitGraceUntil = world.time + 2.5;
   chain.laneT = 0.4;
   chain.laneDir = 1;
   const p = world.player;
-  for (let s = 10, dir = -1; s < g.len; s += 11 + Math.random() * 6, dir = -dir) {
+  for (let s = 10, dir = -1; s < Math.min(g.len, 120); s += 11 + Math.random() * 6, dir = -dir) {
     const q = laneAt(g, s);
     if (dist(q.x, q.y, p.x, p.y) > 12) spawnLaneBike(world, def, dir, s);
   }
@@ -1419,7 +1444,7 @@ function updateLaneBikes(dt, world, def) {
     b.lat += dl;
     b.speed = Math.min(b.speed + dt * 1.5, v.model.fat ? 8.5 : 6.2);
     b.s += b.dir * b.speed * dt;
-    if (b.s < -3 || b.s > g.len + 3) {
+    if (b.s < -3 || b.s > g.len + 3 || (g.len > 220 && Math.abs(b.s - pl.s) > 110)) {
       const i = world.vehicles.indexOf(v);
       if (i >= 0) world.vehicles.splice(i, 1);
       chain.bikes.splice(k, 1);
@@ -1685,6 +1710,16 @@ function vehicleProblem(world, def) {
   return null;
 }
 
+// H5's all-green crossing: a staged scene (missionstory.js playEyeContact) that
+// pauses the race; both brake, so the player rolls on slowly. The text is the fallback.
+function playMoment(world, m) {
+  const p = world.player, v = p.inVehicle;
+  const heading = v ? v.angle : p.angle;
+  const staged = !isCinematicActive() && playEyeContact(world, { at: { x: p.x, y: p.y }, heading });
+  if (staged && v) v.speed *= 0.3;
+  if (!staged) world.addMessage(m.text, 4.5, { kind: 'missie' });
+}
+
 // Index of the waypoint the player is at: the current one or, while the
 // current one is only a `via` (route guidance along the streets), any later
 // via or the next real checkpoint, so cutting a corner never strands you.
@@ -1703,7 +1738,10 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   chain.wpIndex++;
   if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
-  if (def.moment && !chain.momentDone && chain.wpIndex >= def.moment.at) { chain.momentDone = true; world.addMessage(def.moment.text, 4.5, { kind: 'missie' }); }
+  if (def.moment && !chain.momentDone && chain.wpIndex >= def.moment.at) {
+    chain.momentDone = true;
+    playMoment(world, def.moment);
+  }
   if (chain.wpIndex >= def.waypoints.length) {
     if (chain.race) {
       const { position, total } = raceStandings(chain.race);
@@ -1867,6 +1905,12 @@ export function updateMissions(dt, world) {
   } else if (def.type === 'fatbike') {
     updateLaneBikes(dt, world, def);
     checkLaneHits(world);
+    for (const n of def.notes || []) {
+      if (chain.notesSaid && chain.notesSaid.has(n)) continue;
+      if (dist(p.x, p.y, n.x, n.y) > 14) continue;
+      (chain.notesSaid || (chain.notesSaid = new Set())).add(n);
+      world.addMessage(n.text, 4, { kind: 'missie' });
+    }
     if (dist(p.x, p.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS && !isKnockedDown(p, world)) {
       succeed(world, def);
     }
@@ -1928,7 +1972,10 @@ function raceCarProblem() {
 // the stage is done, `paid` = the toast), hold `ticks` (three progress toasts) and
 // `fireworks` { every: [min, max], hit, cost, hitText } (bangs that knock you down and
 // cost hold time); chase `hero` (the fleeing car is Anita's own Fjord), `clock`, `meter`,
-// `half`, `lost`, `gone`, `burned`; def `eggs` { from, failAt, fail }: from stage `from`
+// `half`, `lost`, `gone`, `burned`, `from` [x, y] (spawn on that road instead of the start's),
+// `route` [{ at, radio, say }] (drives point to point, each one's radio report on reaching it,
+// then `flee`) and `swarm` { stall, near, lines } (H18: at half the meter, or after the route
+// with you within `near` m, the pigeons come down on it: missionstory.js playPigeonSwarm); def `eggs` { from, failAt, fail }: from stage `from`
 // on, hard braking and knocks break the eggs.
 // Pigeon options: spotTime, gulls: [min, max] seconds between diving gulls,
 // flag: Jelle's banner (storyprops3d.js) whose ropes are the targets; a
@@ -2030,9 +2077,11 @@ function bankNear(map, x, y) {
 // The fleeing vehicle of a chase stage: on the start road, `lead` metres on
 // from the mission start, pointing away from the player where the road allows.
 function spawnChaseVehicle(world, def, st) {
-  const road = def.start.road;
+  const from = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : null;
+  const base = from && from.road ? from : def.start;
+  const road = base.road;
   if (!road) return null;
-  const at = pointAlongRoad(road, def.start, st.lead || 40);
+  const at = pointAlongRoad(road, base, st.lead || 40);
   const p = world.player;
   let v = null;
   for (const pick of [0.1, 0.9]) {
@@ -2051,10 +2100,38 @@ function spawnChaseVehicle(world, def, st) {
   v.missionCar = true;
   v.chaseTarget = true;
   v.label = st.name || '';
-  const goal = (st.toTrain && fjordLoadPoint()) || { x: st.flee[0], y: st.flee[1] };
+  const first = st.route && st.route[0];
+  const goal = (st.toTrain && fjordLoadPoint()) || (first ? { x: first.at[0], y: first.at[1] } : { x: st.flee[0], y: st.flee[1] });
   v.aiOpts = { goal: { x: goal.x, y: goal.y }, chase: true, cruise: st.cruise || 15 };
   world.vehicles.push(v);
   return v;
+}
+
+// A chase `route` ({ at, radio }): the fleeing vehicle drives from point to point;
+// reaching one puts its radio report on air, after the last it heads for `flee`.
+function updateChaseRoute(world, st, S, t) {
+  const leg = S.leg || 0;
+  const wp = st.route[leg];
+  if (!wp || dist(t.x, t.y, wp.at[0], wp.at[1]) > (wp.r || 22)) return;
+  if (wp.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...wp.radio });
+  if (wp.say) world.addMessage(wp.say, 3);
+  S.leg = leg + 1;
+  const next = st.route[S.leg];
+  if (!next) S.routeDone = true;
+  t.aiOpts = { ...t.aiOpts, goal: next ? { x: next.at[0], y: next.at[1] } : { x: st.flee[0], y: st.flee[1] } };
+  t.planAt = 0;
+}
+
+// H18: Tammo whistles and the pigeons come down over the fireworks onto the
+// fleeing trekker (missionstory.js playPigeonSwarm); it stops when the scene ends.
+function startSwarm(world, def, st, S, t) {
+  S.swarm = 'playing';
+  const stall = resolveTarget(world, st.swarm.stall, { x: t.x, y: t.y });
+  const done = () => { t.speed = 0; S.swarm = 'done'; };
+  if (isCinematicActive() || !playPigeonSwarm(world, { limo: t, stall, lines: st.swarm.lines, onDone: done })) {
+    world.addMessage(st.half, 3.5);
+    done();
+  }
 }
 
 // Flat tyres: the chased vehicle rolls to a stop and becomes the mission
@@ -2578,13 +2655,16 @@ function updateStages(dt, world, def) {
       break;
     case 'chase': {
       const t = S.target;
+      if (S.swarm) { if (S.swarm === 'done') stopChaseVehicle(world, def, st); break; }
       if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
+      if (st.route) updateChaseRoute(world, st, S, t);
+      const d = dist(p.x, p.y, t.x, t.y);
+      if (st.swarm && (S.hp0 - t.health >= st.hits / 2 || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
       if (st.toTrain && chaseReachedTrain(world, def, st, S, t, dt)) break;
-      const d = dist(p.x, p.y, t.x, t.y);
       if (d > (st.escape || 380) || S.t > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
-      if (S.hp0 - t.health >= st.hits / 2 && !S.half) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
+      if (S.hp0 - t.health >= st.hits / 2 && !S.half && !st.swarm) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
       break;
     }
     case 'boatchase':
