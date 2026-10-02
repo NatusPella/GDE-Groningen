@@ -674,6 +674,7 @@ const pokeSpots = new Map();
 const voidCells = [];
 const floating = new Map();
 const floatSpots = new Map();
+const floatOffGrade = new Map();
 const baseHits = new Map();   // bi -> { float, sink, void }
 const spotKey = (x, y, g = 10) => Math.round(x / g) * g + ',' + Math.round(y / g) * g;
 const bump = (m, k, v = 1) => m.set(k, (m.get(k) || 0) + v);
@@ -748,6 +749,13 @@ for (let tile = 0; tile < TX * TY; tile++) {
     const kind = SRC[si].kind;
     if (PROBE_AT.some(([qx, qy]) => Math.hypot(qx - x, qy - y) < 12)) console.error(`floating ${kind} ${x.toFixed(1)},${y.toFixed(1)} h ${h.toFixed(2)} n ${nx.toFixed(2)},${ny.toFixed(2)} below ${g === null ? 'void' : g.toFixed(2)} ${SRC[si].owner ? (SRC[si].owner.cat || '') + ':' + (SRC[si].owner.type || '') + ' ' + (SRC[si].owner.name || '') + ' ' + JSON.stringify(SRC[si].owner.pts[0]) : ''}`);
     bump(floating, kind, len);
+    // ways with a height profile (the ring, its ramps, viaducts): raised or sunken
+    const ow = SRC[si].owner;
+    if (ow && ow.z) {
+      const zs = ow.z, lo = Math.min(...zs), hi = Math.max(...zs);
+      bump(floatOffGrade, lo < -1.5 ? 'sunken' : hi > 1.5 ? 'raised' : 'level', len);
+      if (lo < -1.5) bump(floatSpots, 'sunken|' + spotKey(x, y), len);
+    }
     bump(floatSpots, kind + '|' + spotKey(x, y), len);
   }
   // building bases
@@ -868,7 +876,7 @@ for (const v of voids) {
 results.void = { count: voids.length, area: +voids.reduce((a, v) => a + v.n * CS * CS, 0).toFixed(1), byContext: round(voidByCtx) };
 
 // floating edges
-results.floating = { length: +[...floating.values()].reduce((a, b) => a + b, 0).toFixed(1), byKind: round(Object.fromEntries(floating)) };
+results.floating = { length: +[...floating.values()].reduce((a, b) => a + b, 0).toFixed(1), byKind: round(Object.fromEntries(floating)), profiled: round(Object.fromEntries(floatOffGrade)) };
 for (const [k, len] of floatSpots) {
   const [kind, xy] = k.split('|');
   const [x, y] = xy.split(',').map(Number);
@@ -1025,7 +1033,7 @@ if (has('json')) {
     '(a) gaps',
     `  joint     ${R.joint.count} way joints with a wedge > 5 cm (worst ${R.joint.worst} m)`,
     `  void      ${R.void.count} holes, ${R.void.area} m²  ${fmt(R.void.byContext, (v) => `${v.count}/${v.area} m²`)}`,
-    `  floating  ${R.floating.length} m of edge in the air  ${fmt(R.floating.byKind, (v) => v + ' m')}`,
+    `  floating  ${R.floating.length} m of edge in the air  ${fmt(R.floating.byKind, (v) => v + ' m')}; on profiled ways ${fmt(R.floating.profiled, (v) => v + ' m')}`,
     `  base      ${R.base.floating} buildings floating (${R.base.floatLength} m of wall), ${R.base.sinking} sinking (${R.base.sinkLength} m)`,
     `  seam      city terrain / Ommeland ring overlap ${R.seam.overlap} m, gap ${R.seam.gap} m`,
     '(b) ways through buildings',

@@ -443,7 +443,8 @@ export function buildRoadStructure(r, map) {
   };
   for (const w of elev.skirts || []) {
     if (w.seg.r !== r) continue;
-    B.wallBox('wall', w.ax, w.ay, w.bx, w.by, WALL_T, w.za - 0.1, 0.04, w.zb - 0.1, 0.04);
+    const top = w.top ?? 0.04;
+    B.wallBox('wall', w.ax, w.ay, w.bx, w.by, WALL_T, w.za - 0.1, top, w.zb - 0.1, top);
     coping(w);
   }
   // between two sunken carriageways without a wall: a floor strip across
