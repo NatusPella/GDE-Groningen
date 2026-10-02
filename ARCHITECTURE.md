@@ -427,12 +427,34 @@ don't collide, and actors are drawn at their height.
   well inside the detail radius (15 m margin); a cell is unmerged at once
   when a member leaves the detail radius, is hidden or rebuilt. Merging is
   spread over frames (2 ms budget); the buildings' own meshes stay in the
-  scene, hidden, for the camera's ray tests. `?nobatch` turns it off.
+  scene, hidden, for the camera's ray tests. `?nobatch` turns it off
+  (and the wheel instancing below). On 'laag' (or a busy CPU) the facade
+  details within their radius get their own batcher (`facadeBatcher`, the
+  detail mesh only); roads use 96 m cells and two roads make a batch.
+- `wheelinstances3d.js`: vehicle wheels keep their own meshes (spin, steer,
+  skid marks) on a hidden layer; one InstancedMesh per wheel geometry and
+  material draws them all from their world matrices each frame.
+- Village centres (`countryvillage.js`) bake every item into one mesh per
+  material and shadow flag while laying out (four draws a village); the
+  horeca pads are one InstancedMesh; the city terrain is cut in 800 m tiles.
+- The minimap's Ommeland layer (`drawCountryMinimap`) is static: drawn into
+  world-aligned 256 px tiles per half-octave zoom step (at most one new tile
+  a frame, LRU of 40) and blitted.
+- Load-adaptive simulation (`simload.js`): while `cpuLevel` is 1-2 the
+  traffic, cyclist, scooter and walker targets drop to 75% / 55% (the
+  farthest ordinary ones out past 110 m go first), traffic and plain walkers
+  beyond 90 / 60 m think every second / third frame with the skipped time
+  added, and walkers beyond 45 m animate at half rate. Player, mission,
+  story, police, racer and scripted vehicles and people are never thinned.
+  `window.__simLoad.force(n)` (perf runs: `PERF_SIM=n`) pins the level.
 - Perf runs: `scripts/perf/run.sh` (fixed routes in the desktop build at
   1920x1080, dpr 1: city on foot, the ring by car, the heli over the
   Ommeland at 40 m/s, the pause menu, a settings sheet; frame and
   main-thread times, GPU timer query, long tasks, draw calls per frame;
-  `--cpu-throttle=N`, `--preset=k:v,...`), `scripts/perf/ab.sh` for
+  `--cpu-throttle=N`, `--preset=k:v,...`; `PERF_ONLY=village` adds the heli
+  circling a village centre, `PERF_PROFILE=foot,ring` profiles several
+  routes, `PERF_DIAG=1` lists draw calls per owner, `--hitch` adds the slow
+  frames' breakdown), `scripts/perf/ab.sh` for
   interleaved A/B runs against another staged build (`GTE_STAGE_SRC`,
   `GTE_STAGE_OUT`, `GTE_GAME_DIR`).
 

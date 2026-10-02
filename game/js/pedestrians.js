@@ -556,6 +556,8 @@ function knockOffRiders(world) {
     if (!byPlayerBike && !b.road) continue;
     const bvx = Math.cos(b.angle) * b.speed, bvy = Math.sin(b.angle) * b.speed;
     for (const u of world.vehicles) {
+      // no vehicle is longer than 2 * (FAR_REACH - 1.5): most pairs end here
+      if (Math.abs(u.x - b.x) > FAR_REACH || Math.abs(u.y - b.y) > FAR_REACH) continue;
       if (u === b || u.isBoat || u.sinking || (u.isHeli && !u.onGround)) continue;
       if (Math.abs(u.x - b.x) > u.halfLen + 1.5 || Math.abs(u.y - b.y) > u.halfLen + 1.5) continue;
       const push = pushCircleOutOfVehicle(b.x, b.y, 0.55, u);
@@ -861,8 +863,11 @@ function managePopulation(world) {
 const PED_OPTS = { ped: true, kick: false };
 const PED_SEAT_OPTS = { ped: true, kick: false, skipSeats: true };
 
+const FAR_REACH = 14;
+
 function checkVehicleImpact(ped, world) {
   for (const v of world.vehicles) {
+    if (Math.abs(v.x - ped.x) > FAR_REACH || Math.abs(v.y - ped.y) > FAR_REACH) continue;
     if (v.isBoat || v.sinking) continue;
     if (Math.abs(v.x - ped.x) > v.halfLen + 1 || Math.abs(v.y - ped.y) > v.halfLen + 1) continue;
     if (Math.abs((v.z || 0) - (ped.gz || 0)) > 2) continue;
