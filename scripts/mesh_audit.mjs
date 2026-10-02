@@ -51,6 +51,39 @@ const { passageHeight } = await import('../game/js/portalcut3d.js');
 const THREE = await import('three');
 const WATER_MAT = new THREE.MeshBasicMaterial({ transparent: true });
 
+// true triangle total: every triangle the generators emit, per category,
+// counted per drawn mesh (instanced meshes times their instance count)
+const TRIS = {};
+function triCount(root) {
+  let n = 0;
+  root.traverse((o) => {
+    if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
+    const g = o.geometry, all = g.index ? g.index.count : g.attributes.position.count;
+    const drawn = Math.min(all, g.drawRange.count) - Math.min(all, g.drawRange.start);
+    n += Math.floor(drawn / 3) * (o.isInstancedMesh ? o.count : 1);
+  });
+  return n;
+}
+const tally = (cat, root) => { if (root) TRIS[cat] = (TRIS[cat] || 0) + triCount(root); };
+// triangles of a .glb, from its JSON chunk (meshes under the scene's nodes)
+function glbTris(file) {
+  const buf = fs.readFileSync(file);
+  const json = JSON.parse(buf.toString('utf8', 20, 20 + buf.readUInt32LE(12)));
+  let n = 0;
+  const visit = (i) => {
+    const node = json.nodes[i];
+    if (node.mesh !== undefined) {
+      for (const p of json.meshes[node.mesh].primitives) {
+        if (p.mode !== undefined && p.mode !== 4) continue;
+        n += Math.floor(json.accessors[p.indices !== undefined ? p.indices : p.attributes.POSITION].count / 3);
+      }
+    }
+    for (const c of node.children || []) visit(c);
+  };
+  for (const i of json.scenes[json.scene || 0].nodes) visit(i);
+  return n;
+}
+
 const root = new URL('../game/', import.meta.url);
 const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
@@ -164,6 +197,7 @@ const ROAD_SRC = new Map();
 for (const r of map.roads) {
   if (!near(r.bounds, 20)) continue;
   const g = buildRoadGroup(r);
+  tally('roads', g);
   g.updateMatrixWorld(true);
   const list = [];
   for (const c of g.children) {
@@ -175,18 +209,24 @@ for (const r of map.roads) {
   }
   ROAD_SRC.set(r, list);
 }
-addGroup(buildRailDecks(map), 'struct', null, () => 'struct:raildeck');
+{
+  const decks = buildRailDecks(map);
+  tally('rail decks', decks);
+  addGroup(decks, 'struct', null, () => 'struct:raildeck');
+}
 log('roads built', SRC.length, 'meshes');
 
 // terrain (only where it has holes: round water and over open cuttings)
 const terrain = buildTerrainMesh3D(map.meta.bounds, map.water);
 terrain.updateMatrixWorld(true);
+tally('terrain', terrain);
 const terrainMat = matOf(terrain.material, 'terrain');
 const index = getWaterIndex(map);
 for (const w of map.water) {
   if (!near(w.bounds, 20)) continue;
   const shore = buildShore(w, map, { waterY: WATER_Y, apronMaterial: terrain.material });
   if (shore) {
+    tally('quays and banks', shore);
     shore.updateMatrixWorld(true);
     shore.traverse((o) => {
       if (!o.isMesh) return;
@@ -200,6 +240,7 @@ for (const w of map.water) {
   const wm = new THREE.Mesh(buildWaterGeometry(w, index), WATER_MAT);
   wm.position.y = WATER_Y;
   wm.updateMatrixWorld(true);
+  tally('water', wm);
   addMesh(wm, 'water', w, 'water');
 }
 log('shore and water built');
@@ -211,6 +252,7 @@ try {
   const r3 = await import('../game/js/railway3d.js');
   if (!r3.buildTrackMeshes) throw new Error('railway3d.js has no buildTrackMeshes');
   for (const g of r3.buildTrackMeshes(map)) {
+    tally('track', g);
     g.updateMatrixWorld(true);
     g.traverse((o) => {
       if (!o.isMesh || o.isInstancedMesh) return;
@@ -235,6 +277,21 @@ for (const b of map.buildings) {
   BLD.push({ b, ring, tris });
 }
 log('footprints', BLD.length);
+
+// building meshes (procedural; the one .glb landmark counted from its file)
+{
+  const { buildBuildingMesh } = MB;
+  const glb = { Martinitoren: new URL('models/martinitoren.glb', root) };
+  for (const b of map.buildings) {
+    if (b.hidden || !near(b.bounds, 10)) continue;
+    if (b.landmark && glb[b.name] && fs.existsSync(glb[b.name])) { TRIS.buildings = (TRIS.buildings || 0) + glbTris(glb[b.name]); continue; }
+    try { tally('buildings', buildBuildingMesh(b)); } catch (e) { TRIS.buildingErrors = (TRIS.buildingErrors || 0) + 1; }
+  }
+  try { tally('canopies', (await import('../game/js/canopies3d.js')).buildCanopies(map)); } catch (e) { log('canopies skipped:', e.message); }
+  TRIS.total = Object.entries(TRIS).reduce((a, [k, v]) => (k === 'buildingErrors' ? a : a + v), 0);
+  results.triangles = TRIS;
+  log('triangles', TRIS.total);
+}
 
 // ------------------------------------------------------------------ tiles
 
@@ -959,6 +1016,7 @@ if (has('json')) {
   const R = results, Z = R.zfight;
   const lines = [
     `mesh audit${AREA ? ' ' + AREA.join(',') : ''}: ${SRC.length} meshes, ${BINS.total} triangle refs, ${((Date.now() - T0) / 1000).toFixed(0)} s`,
+    `triangles ${R.triangles.total.toLocaleString('en')}  ${fmt(Object.fromEntries(Object.entries(R.triangles).filter(([k]) => k !== 'total')), (v) => v.toLocaleString('en'))}`,
     '(a) gaps',
     `  joint     ${R.joint.count} way joints with a wedge > 5 cm (worst ${R.joint.worst} m)`,
     `  void      ${R.void.count} holes, ${R.void.area} m²  ${fmt(R.void.byContext, (v) => `${v.count}/${v.area} m²`)}`,
