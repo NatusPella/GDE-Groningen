@@ -10,7 +10,7 @@ import { NPC } from './missionstory.js';
 import { getStorySteps, getStoryJournal } from './story.js';
 import { PARTS, CLUES, WHY } from './storyarc.js';
 import { speakerColor } from './speakers.js';
-import { dualHtml } from './subtitles.js';
+import { dutchFor } from './subtitles.js';
 import { fillBars, pop } from './motion.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -54,7 +54,7 @@ const CSS = `
 #pause-menu .vh-kicker { font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: #3fc97a; }
 #pause-menu .vh-viewer h3 { margin: 0; font-weight: normal; font-size: 34px; letter-spacing: 1.5px; line-height: 1; }
 #pause-menu .vh-quote { margin: 0; padding-left: 12px; border-left: 3px solid var(--spk); font: italic 17px/1.35 'Arial Narrow', Arial, sans-serif; }
-#pause-menu .vh-quote .nl-sub { font-size: 13px; }
+#pause-menu .vh-quote small { display: block; margin-top: 3px; font: normal 13px 'Arial Narrow', Arial, sans-serif; color: #a3b2a6; }
 #pause-menu .vh-bio { margin: 0; font: 15px/1.45 'Arial Narrow', Arial, sans-serif; }
 #pause-menu .vh-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; margin: 0; font: 15px 'Arial Narrow', Arial, sans-serif; }
 #pause-menu .vh-facts dt { color: #a3b2a6; }
@@ -138,9 +138,9 @@ function viewerHtml(c) {
   const steps = missionChips(c);
   return stage +
     `<div><span class="vh-kicker">${esc(c.role)}</span><h3>${esc(c.name)}</h3></div>` +
-    `<p class="vh-quote" style="--spk:${speakerColor(c.speakers[0])}">“${dualHtml(c.quote)}”</p>` +
+    `<p class="vh-quote" style="--spk:${speakerColor(c.speakers[0])}">“${esc(c.quote)}”${dutchFor(c.quote) ? `<small>${esc(dutchFor(c.quote))}</small>` : ''}</p>` +
     `<p class="vh-bio">${esc(c.bio)}</p>` +
-    `<dl class="vh-facts"><dt>Voor het duo</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen</dt><dd>${steps}</dd>` : ''}</dl>`;
+    `<dl class="vh-facts"><dt>${c.always ? 'In het duo' : 'Voor het duo'}</dt><dd>${esc(c.relation)}</dd>${steps ? `<dt>Samen</dt><dd>${steps}</dd>` : ''}</dl>`;
 }
 
 function loadPics(el) {
