@@ -7,6 +7,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
+  zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
+  kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
+  Europaweg, carbid in het Ommeland. Met naamkaarten voor Anita, Tammo,
+  Jelle Terpstra en Durk & Douwe, Rikus op de radio en Berend na het logo.
+  Het is ook de benchmark onder Instellingen › Beeld.
+- **Desktop: de trailer als video.** `--trailer-video` maakt er een MP4 van
+  (1080p60, met muziek en stemmen) in je Downloads, plus een thumbnail.
 - **Het definitieve verhaal: een zomer in Grunn.** Twee weken augustus, van
   de KEI-week via Noorderzon naar de kermis en Gronings Ontzet, met een
   epiloog in september. Alle cutscènes, telefoontjes en berichten zijn
