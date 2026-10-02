@@ -65,7 +65,7 @@ export function initHud(world) {
           '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit" title="Geluid uit (U)" hidden>🔇</span>' +
         '</div></div>' +
         `<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>` +
-        `<div class="hud-meter ar" role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>` +
+        `<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>` +
       '</div>' +
     '</div>' +
     '<div class="hud-mate" hidden><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></div>';
@@ -408,7 +408,9 @@ function updateBars(world) {
     setGhostBar(els.armorFill, els.armorFill.previousElementSibling, ar);
     els.arNum.textContent = ar;
     els.arRow.setAttribute('aria-valuenow', ar);
-    els.arRow.classList.toggle('empty', ar <= 0);
+    const wasHidden = els.arRow.hidden;
+    els.arRow.hidden = ar <= 0;
+    if (wasHidden && ar > 0) pop(els.arRow);
   }
 }
 
