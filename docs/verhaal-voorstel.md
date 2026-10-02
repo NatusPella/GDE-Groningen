@@ -166,6 +166,8 @@ De omslag in één zin: in de kop willen ze de Eierbal *voor zichzelf*, in de st
 
 ## 5. Trailermodus voor YouTube
 
+> **Vervangen (2 oktober 2026):** de shotlijst hieronder is de eerste trailer. De huidige is "GTE VI — Een zomer in Grunn" uit `docs/verhaal/E-trailer.md` (24 shots, naamkaarten, MP4-export met `--trailer-video`). De attract-intro bij de eerste start is vervallen.
+
 Eén sequentie met drie ingangen: een verborgen **benchmark**, een **attract-intro bij de eerste start** en een **desktopschakelaar** voor opnames. Er komt nergens een menuknop "Trailer".
 
 ### 5a. Verstopt als "Benchmark"
