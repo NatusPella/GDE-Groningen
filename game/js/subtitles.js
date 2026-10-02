@@ -11,6 +11,11 @@
 
 export const FY = {
   // the definitive script (docs/verhaal/D-definitief.md)
+  'Ljouwert': 'Leeuwarden',
+  'pompeblêden': 'pompeblêden (de Friese plompenbladeren)',
+  'iets wat van mem is': 'iets wat van mijn moeder is',
+  'dat mem hem': 'dat mijn moeder hem',
+  '…Tige tank.': '…Bedankt.',
   'Moai foar in wykein': 'Mooi voor een weekendje',
   'dat famke yn it read: sa\'n leaf gesicht': 'dat meisje in het rood: wat een lief gezicht',
   'leit op it skûtsje': 'ligt op het skûtsje',
