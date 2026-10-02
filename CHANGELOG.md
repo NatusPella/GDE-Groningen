@@ -7,6 +7,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
+  zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
+  kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
+  Europaweg, carbid in het Ommeland. Met naamkaarten voor Anita, Tammo,
+  Jelle Terpstra en Durk & Douwe, Rikus op de radio en Berend na het logo.
+  Het is ook de benchmark onder Instellingen › Beeld.
+- **Desktop: de trailer als video.** `--trailer-video` maakt er een MP4 van
+  (1080p60, met muziek en stemmen) in je Downloads, plus een thumbnail.
 - **Eén klik naar een stand die past.** Merkt de game bij de eerste start
   dat je computer het zwaar heeft, dan stelt hij rechtsonder een lichtere
   stand voor: één keer op Toepassen en alles staat goed. Bij Instellingen ›
