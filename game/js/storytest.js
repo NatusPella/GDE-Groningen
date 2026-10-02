@@ -77,19 +77,19 @@ function economyChecks(check, tl) {
   const cars = Object.values(VEHICLE_STOCK).filter((s) => s.kind === 'car' && s.price);
   const cheapestCar = Math.min(...cars.map((s) => s.price));
   const cost = (id) => STEP_BY_ID.get(id).cost;
-  check('economy: pistol price = k-wapen', cost('k-wapen') === gun('pistol'), `€${cost('k-wapen')} / €${gun('pistol')}`);
-  check('economy: uzi price = r-uzi', cost('r-uzi') === gun('uzi'), `€${cost('r-uzi')} / €${gun('uzi')}`);
   check('economy: omafiets price = k-fiets', cost('k-fiets') === VEHICLE_STOCK.omafiets.price);
   check('economy: incognito price = k-kraakspullen', cost('k-kraakspullen') === OUTFITS.tammo.find((o) => o.id === 'incognito').price);
   check('economy: motor tuning price = r-tuning', cost('r-tuning') === CAR_UPGRADES.find((u) => u.id === 'motor').price);
-  check('economy: r-auto buys a car', cost('r-auto') >= cheapestCar, `€${cost('r-auto')}, goedkoopste €${cheapestCar}`);
+  // the definitive script: only the bike, the heist gear and the boat are story purchases (tuning is recommended)
+  check('economy: three story purchases', STEPS.filter((s) => s.cost && !s.optional && s.kind === 'activity').length === 3, STEPS.filter((s) => s.cost && s.kind === 'activity').map((s) => s.id).join(', '));
+  check('economy: a car is within reach after the Kop', afterStep(tl, 'H6') >= cheapestCar, `€${afterStep(tl, 'H6')} na H6, goedkoopste €${cheapestCar}`);
   const rewards = STEPS.filter((s) => s.kind === 'mission' && s.reward).map((s) => s.reward);
   const avg = Math.round(rewards.reduce((a, b) => a + b, 0) / rewards.length);
   const mug = VEHICLE_STOCK.mug.price;
   const dent = repairCost(30, 1, false);
   const wreck = replacementFee({ spec: VEHICLE_STOCK.mug });
   const earlyCash = afterStep(tl, 'H3');
-  check('economy: car or gun + repair after H3', earlyCash - cost('k-wapen') >= Math.min(mug, gun('pistol') + dent), `€${earlyCash} na H3`);
+  check('economy: gun + repair after H3', earlyCash >= gun('pistol') + dent, `€${earlyCash} na H3`);
   check('economy: normal repair cheap', dent <= avg * 0.08, `€${dent} bij 30% schade, missie gem. €${avg}`);
   check('economy: wreck restore moderate', wreck <= avg * 0.25, `€${wreck} voor een Mug`);
   const romp = afterStep(tl, 'H13');
