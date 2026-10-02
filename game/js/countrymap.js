@@ -448,8 +448,52 @@ export function villageLabels(x0, y0, x1, y1) {
   return out;
 }
 
-// Minimap entry (replaces the old flat meadow + ditch grid).
+// Minimap entry (replaces the old flat meadow + ditch grid). The country
+// layer is static, so it is drawn into world-aligned tiles once per zoom step
+// and blitted (drawing it live cost a fifth of a frame over the Ommeland);
+// at most one new tile per frame, a missing one shows the plain meadow.
+const MINI_TILE_PX = 256, MINI_PAD_PX = 6, MINI_TILES_MAX = 40, MINI_BUILDS = 1;
+const miniTiles = new Map();
+
+function miniTile(tx, ty, lvl, T, scale, pxPerM, build) {
+  const key = tx + ',' + ty + ',' + lvl;
+  let t = miniTiles.get(key);
+  if (t) { miniTiles.delete(key); miniTiles.set(key, t); return t; }
+  if (!build) return null;
+  const pad = MINI_PAD_PX / scale;
+  const c = document.createElement('canvas');
+  c.width = c.height = MINI_TILE_PX + MINI_PAD_PX * 2;
+  const g = c.getContext('2d');
+  g.setTransform(scale, 0, 0, scale, -(tx * T - pad) * scale, -(ty * T - pad) * scale);
+  const x0 = tx * T - pad * 2, y0 = ty * T - pad * 2, x1 = (tx + 1) * T + pad * 2, y1 = (ty + 1) * T + pad * 2;
+  drawCountryBase(g, x0, y0, x1, y1, MINI_STYLE);
+  drawCountryDetail(g, x0, y0, x1, y1, pxPerM, MINI_STYLE);
+  t = { c, fresh: true };
+  miniTiles.set(key, t);
+  while (miniTiles.size > MINI_TILES_MAX) miniTiles.delete(miniTiles.keys().next().value);
+  return t;
+}
+
 export function drawCountryMinimap(ctx, x0, y0, x1, y1, pxPerM = 1.2) {
-  drawCountryBase(ctx, x0, y0, x1, y1, MINI_STYLE);
-  drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, MINI_STYLE);
+  const m = ctx.getTransform();
+  const dev = Math.hypot(m.a, m.b) || 1;
+  // zoom steps of a half octave, drawn at the next step up
+  const lvl = Math.ceil(Math.log2(dev) * 2);
+  const scale = 2 ** (lvl / 2);
+  const T = MINI_TILE_PX / scale;
+  let built = 0;
+  ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  // a hair of overlap so the rotated tiles never show a seam
+  const e = 0.6 / dev;
+  for (let ty = Math.floor(y0 / T); ty <= Math.floor(y1 / T); ty++) {
+    for (let tx = Math.floor(x0 / T); tx <= Math.floor(x1 / T); tx++) {
+      const t = miniTile(tx, ty, lvl, T, scale, pxPerM * scale / dev, built < MINI_BUILDS);
+      if (!t) continue;
+      if (t.fresh) { t.fresh = false; built++; }
+      const sp = MINI_PAD_PX - e * scale;
+      ctx.drawImage(t.c, sp, sp, MINI_TILE_PX + 2 * e * scale, MINI_TILE_PX + 2 * e * scale, tx * T - e, ty * T - e, T + 2 * e, T + 2 * e);
+    }
+  }
+  ctx.restore();
 }
