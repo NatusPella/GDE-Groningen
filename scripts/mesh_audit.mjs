@@ -644,6 +644,7 @@ function zfCell(base, n, marks, x, y) {
     const a = Mp.name + (fp >> 2 ? '#' + (fp >> 2) : ''), b = Mq.name + (fq >> 2 ? '#' + (fq >> 2) : '');
     const pairKey = a < b ? a + ' | ' + b : b + ' | ' + a;
     bump(marks ? zf.mark : zf.road, pairKey, CS * CS);
+    if (atJunction(x, y)) zfJunction[marks ? 'mark' : 'road'] += CS * CS;
     bump(zfSpots, (marks ? 'mark' : 'road') + '~' + spotKey(x, y) + '~' + pairKey);
     return;
   }
@@ -668,6 +669,33 @@ function bucketSteep() {
 }
 
 const zf = { road: new Map(), mark: new Map() };
+// junctions: nodes where three or more arms of different ways meet; a cell
+// within 15 m of one counts as at a junction
+const zfJunction = { road: 0, mark: 0 };
+const JGRID = new Map();
+{
+  const arms = new Map();
+  const k = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
+  for (const r of map.roads) {
+    r.pts.forEach((p, i) => {
+      const e = arms.get(k(p)) || arms.set(k(p), { p, n: 0, roads: new Set() }).get(k(p));
+      e.n += i === 0 || i === r.pts.length - 1 ? 1 : 2;
+      e.roads.add(r);
+    });
+  }
+  for (const { p, n, roads } of arms.values()) {
+    if (n < 3 || roads.size < 2) continue;
+    const g = Math.floor(p[0] / 15) + ',' + Math.floor(p[1] / 15);
+    (JGRID.get(g) || JGRID.set(g, []).get(g)).push(p);
+  }
+}
+function atJunction(x, y) {
+  const gx = Math.floor(x / 15), gy = Math.floor(y / 15);
+  for (let i = gx - 1; i <= gx + 1; i++) for (let j = gy - 1; j <= gy + 1; j++) {
+    for (const p of JGRID.get(i + ',' + j) || []) if ((p[0] - x) ** 2 + (p[1] - y) ** 2 < 225) return true;
+  }
+  return false;
+}
 const zfSpots = new Map();
 let pokeArea = 0;
 const pokeSpots = new Map();
@@ -963,8 +991,8 @@ function boundsOf(P) {
 // ------------------------------------------------------------------ (c) z-fighting
 
 results.zfight = {
-  road: { area: sum(zf.road), top: topPairs(zf.road) },
-  mark: { area: sum(zf.mark), top: topPairs(zf.mark) },
+  road: { area: sum(zf.road), junction: +zfJunction.road.toFixed(1), top: topPairs(zf.road) },
+  mark: { area: sum(zf.mark), junction: +zfJunction.mark.toFixed(1), top: topPairs(zf.mark) },
   poke: { area: +pokeArea.toFixed(1) },
 };
 for (const [k, n] of zfSpots) {
@@ -1039,8 +1067,8 @@ if (has('json')) {
     '(b) ways through buildings',
     `  passage   ${R.passage.solid} solid, ${R.passage.hole} hole, ${R.passage.low} low portals, ${R.passage.railSolid} rails through a building`,
     '(c) z-fighting',
-    `  road      ${Z.road.area} m²  ${Z.road.top.slice(0, 4).join('; ')}`,
-    `  mark      ${Z.mark.area} m²  ${Z.mark.top.slice(0, 4).join('; ')}`,
+    `  road      ${Z.road.area} m² (at junctions ${Z.road.junction} m²)  ${Z.road.top.slice(0, 4).join('; ')}`,
+    `  mark      ${Z.mark.area} m² (at junctions ${Z.mark.junction} m²)  ${Z.mark.top.slice(0, 4).join('; ')}`,
     `  poke      ${Z.poke.area} m² of quay coping above streets`,
     `  roof      ${Z.roof.pairs} footprint pairs, ${Z.roof.area} m²`,
     `  water     ${Z.water.pairs} polygon pairs, ${Z.water.area} m²`,
