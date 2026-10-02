@@ -1,3 +1,4 @@
+import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
 import { resolveBuildingCollisions, findExitSpot } from './player.js';
 import { resolveWalker } from './collision.js';
@@ -829,7 +830,7 @@ function managePopulation(world) {
     if (p.nightlife) nightlife++;
     else walkers++;
   }
-  const desired = !night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT;
+  const desired = scaledTarget(!night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT);
   spawnBudget = Math.max(0, desired - walkers);
 
   if (walkers > desired + 3) {
@@ -1021,9 +1022,15 @@ export function updatePedestrians(dt, world) {
   let filming = 0;
   const pv = player.inVehicle;
   const dodgeVehicle = pv && !pv.isBoat && pv.speed > -0.5 ? pv : null;
+  const frameDt = dt;
+  const farAI = farAIDist();
   for (let i = peds.length - 1; i >= 0; i--) {
     const ped = peds[i];
     if (ped.scripted) continue; // posed by its owner (fierljep.js)
+    // far plain walkers think less often on a CPU-bound machine (simload.js)
+    if (farAI < Infinity && ped.state === 'wander' && !ped.isCop && !ped.scene && !ped.ragdoll && !ped.missionCrowd && !ped.jobPed &&
+      skipFar(ped, i, Math.abs(ped.x - player.x) + Math.abs(ped.y - player.y), frameDt)) continue;
+    const dt = takeDt(ped, frameDt);
 
     if (ped.state === 'dead') {
       if (ped.pose) setPedPose(ped, null);

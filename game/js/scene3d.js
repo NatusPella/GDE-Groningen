@@ -43,6 +43,7 @@ import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.j
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
+import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
 // ?nobatch: every building drawn on its own (A/B checks of the batching)
@@ -1614,7 +1615,14 @@ function syncPedestrianMeshes(world, player, animDt) {
     }
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
-    animatePersonWalk(mesh, p.speed || 0, animDt);
+    // far walkers animate at half rate on a CPU-bound machine (simload.js)
+    if (simLevel() && !p.ragdoll && Math.abs(p.x - player.x) + Math.abs(p.y - player.y) > 45) {
+      ud.animAcc = (ud.animAcc || 0) + animDt;
+      ud.animTick = (ud.animTick || 0) + 1;
+      if (ud.animTick & 1) continue;
+      animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
+      ud.animAcc = 0;
+    } else animatePersonWalk(mesh, p.speed || 0, animDt);
     if (p.greetUntil > world.time) {
       const left = p.greetUntil - world.time;
       waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
