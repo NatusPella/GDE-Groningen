@@ -169,7 +169,7 @@ const radio = (lines, caller = '') => ({ via: 'radio', from: 'rikus', caller, mo
 export const STEPS = [
   // --- Kop: "Moi, Grunn" (KEI-week, half augustus) ---------------------------------
   { id: 'H1', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'berend', why: 'Ik rij, Tammo. Berend vertrouwt jou nog niet eens met een fietsbel.',
-    title: 'Berend telt de krassen', reward: 50, minReward: 15,
+    title: 'Berend telt de krassen', reward: 50, minReward: 12,
     lead: ['T', 'Rikus heeft werk voor ons. Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.'],
     contact: [belRikus([
       ['berend', 'Rikus. Berend, Schildersbuurt. Mijn bakkie moet naar het Boterdiep, naar mijn zus. En je mag met de auto niet meer door het centrum, sinds 1977. Ik heb een brief gestuurd.', { tag: 'nors, mopperend, aan de telefoon op de radio' }],
