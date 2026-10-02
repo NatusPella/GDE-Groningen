@@ -1,6 +1,7 @@
 import { screenFx } from './postfx3d.js';
 import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
+import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { isMapOpen } from './mapview.js';
@@ -304,6 +305,7 @@ function updateSubtitles() {
   const l = lines[idx];
   els.root.classList.toggle('has-sub', !!l);
   paintSpeaker(els.speaker, l && l.speaker);
+  if (l && l.speaker) noteSpoken(world, l.speaker);
   setDualText(els.line, l ? l.text : '');
   els.root.classList.toggle('sub-clue', !!(l && l.clue));
   if (l && l.voice) playStoryVoice(l.voice, { radio: !!l.radio });
@@ -730,7 +732,7 @@ export function playMissionOutro(w, info) {
 }
 
 export function playMissionFailed(w, info, withShot = true) {
-  showBanner({ kind: 'fail', title: 'MISSIE MISLUKT', ...info });
+  showBanner({ kind: 'fail', title: 'Sikkom.', ...info });
   if (!withShot) return false;
   const p = w.player, a = heading(w);
   const px = p.x, py = p.y;

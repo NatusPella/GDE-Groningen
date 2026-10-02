@@ -8,13 +8,18 @@
 //   post       a Sikkom post with a selfie, read out as a video
 //   card       a handwritten card or note, read out in the writer's voice
 //   scene      a 3D cutscene (missionstory.js playLivestream), inside the LIVE frame
-// Lines: [who, text, { tag, clue }] with who 'jelle' | 'durk' | 'douwe' | 'T' | 'A';
+//   radio      Radio Nachtstreek on the phone: a station sting, Rikus and his caller in
+//              the broadcast band ("Bel Rikus" before a mission, the rubrieken after one)
+// Lines: [who, text, { tag, clue, card }] with who a storyarc.js SPEAKERS key; card shows
+// that CHARACTERS key's name card (namecard.js) with the line;
 // a Frisian line gets its Dutch subtitle from subtitles.js (dualHtml). Voices come
 // from the lines manifest (linevoice.js, "<name>|<text>"), recorded by
 // scripts/tts_lines*.{mjs,py}; voicelines_collect.mjs lists these lines.
 
 import { lineVoiceFor } from './linevoice.js';
-import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice, pauseContactVoice as pauseBanterVoice, holdContactChannel, playPhoneRing, playClueSting } from './audio.js';
+import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice, pauseContactVoice as pauseBanterVoice, holdContactChannel, playPhoneRing, playClueSting, playRadioSting } from './audio.js';
+import { SPEAKERS } from './storyarc.js';
+import { showNameCard } from './namecard.js';
 import { isCallActive } from './phonefeed.js';
 import { isCinematicActive } from './cinematics.js';
 import { readingSeconds } from './world.js';
@@ -22,11 +27,12 @@ import { PORTRAITS } from './storycast.js';
 import { getClockText } from './hud_panel.js';
 import { dualHtml, dutchFor } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
+import { noteSpoken } from './characters.js';
 
 let mission = null;
 import('./missionstory.js').then((m) => { mission = m; }).catch(() => {});
 
-export const CONTACT_NAMES = { jelle: 'Jelle Terpstra', durk: 'Durk', douwe: 'Douwe', rikus: 'Rikus', mem: 'Mem Terpstra', T: 'Tammo', A: 'Anita' };
+export const CONTACT_NAMES = SPEAKERS;
 const RING_S = 2.3;
 const QUIET_S = 1.6;
 
@@ -177,6 +183,10 @@ function renderPhone(c) {
   } else if (c.via === 'post') {
     body = `<div class="sc-post"><div class="sc-posthead"><canvas></canvas><b>${esc(c.handle || 'JelleWâld')}</b><span style="margin-left:auto;color:#3fc97a;font-size:11px">SIKKOM</span></div>` +
       `<canvas class="sc-postimg"></canvas><div class="sc-likes">&#9829; ${esc(c.likes || '4.012')} · ${esc(c.caption || 'video')}</div></div><div class="sc-bubble"></div>`;
+  } else if (c.via === 'radio') {
+    body = `<div class="sc-head"><div class="sc-state">Radio Nachtstreek · live</div><canvas class="sc-portrait"></canvas><div class="sc-name">${esc(c.caller ? 'Bel Rikus' : 'Nachtstreek')}</div>` +
+      `<div class="sc-sub">${esc(c.caller || 'met Rikus')}</div></div>` +
+      '<div class="sc-wave">' + '<i></i>'.repeat(14) + '</div><div class="sc-bubble"></div>';
   } else {
     const state = c.via === 'voicemail' ? 'Voicemail' : 'Inkomend gesprek';
     body = `<div class="sc-head"><div class="sc-state">${state}</div><canvas class="sc-portrait"></canvas><div class="sc-name">${esc(caller)}</div>` +
@@ -190,7 +200,7 @@ function renderPhone(c) {
     bars: [...root.querySelectorAll('.sc-wave i')], live: root.querySelector('.sc-livecanvas'),
   };
   const cv = root.querySelector('.sc-portrait, .sc-livecanvas, .sc-postimg');
-  if (cv) paintPortrait(cv, who, c.mood || (c.via === 'live' ? 'limo' : ''), c.via !== 'call' && c.via !== 'voicemail');
+  if (cv) paintPortrait(cv, who, c.mood || (c.via === 'live' ? 'limo' : ''), c.via !== 'call' && c.via !== 'voicemail' && c.via !== 'radio');
   const av = root.querySelector('.sc-posthead canvas');
   if (av) paintPortrait(av, who, 'smug');
 }
@@ -198,8 +208,9 @@ function renderPhone(c) {
 // a caller behind an unknown number stays unknown in the subtitle too
 function setBubble(line, c = null) {
   if (!els || !els.bubble) return;
-  const who = line && (c && c.caller && line[0] === c.from ? c.caller : nameOf(line[0]));
+  const who = line && (c && c.caller && c.via !== 'radio' && line[0] === c.from ? c.caller : nameOf(line[0]));
   els.bubble.innerHTML = line ? speakerHtml(who) + dualHtml(line[1]) : '';
+  if (line) noteSpoken(world, who);
 }
 
 function showCard(c, line) {
@@ -244,10 +255,11 @@ function lineTime(line) {
 
 function logHistory(c) {
   if (!world) return;
-  const kind = { call: 'belde', voicemail: 'sprak in', live: 'was live', post: 'op Sikkom', card: 'liet een kaartje achter', scene: 'was live' }[c.via] || '';
+  const kind = { call: 'belde', voicemail: 'sprak in', live: 'was live', post: 'op Sikkom', card: 'liet een kaartje achter', scene: 'was live', radio: 'op Nachtstreek' }[c.via] || '';
   const text = c.lines.map((l) => dutchFor(l[1]) || l[1]).join(' ');
   const h = world.phoneHistory || (world.phoneHistory = []);
-  h.unshift({ text: `${c.caller || nameOf(c.from || 'jelle')} ${kind}: ${text}`, at: getClockText(world) || '' });
+  const by = c.via === 'radio' ? 'Rikus' : c.caller || nameOf(c.from || 'jelle');
+  h.unshift({ text: `${by} ${kind}: ${text}`, at: getClockText(world) || '' });
   if (h.length > 30) h.length = 30;
 }
 
@@ -268,7 +280,7 @@ function start(c) {
   if (c.via === 'card') { cur.phase = 'talk'; next(); return; }
   renderPhone(c);
   root.classList.add('show');
-  if (c.via === 'call' || c.via === 'voicemail') { root.classList.add('ring'); playPhoneRing(2); cur.until = RING_S; } else { cur.until = 0.9; playPhoneRing(1); }
+  if (c.via === 'call' || c.via === 'voicemail') { root.classList.add('ring'); playPhoneRing(2); cur.until = RING_S; } else if (c.via === 'radio') { playRadioSting(); cur.until = 1.6; } else { cur.until = 0.9; playPhoneRing(1); }
 }
 
 function next() {
@@ -279,8 +291,9 @@ function next() {
   const { v, dur } = lineTime(line);
   cur.t = 0;
   cur.until = dur;
-  if (v) playBanterVoice(v.src);
+  if (v) playBanterVoice(v.src, { radio: c.via === 'radio' });
   if (line[2] && line[2].clue) playClueSting();
+  if (line[2] && line[2].card) showNameCard(line[2].card);
   if (c.via === 'card') showCard(c, line);
   else setBubble(line, c);
 }
@@ -321,7 +334,7 @@ export function updateStoryContact(dt, w) {
     if (cur.t < cur.until) return;
     cur.phase = 'talk';
     root.classList.remove('ring');
-    if (els.state) els.state.textContent = cur.c.via === 'voicemail' ? 'Voicemail · afspelen' : 'Verbonden';
+    if (els.state && cur.c.via !== 'radio') els.state.textContent = cur.c.via === 'voicemail' ? 'Voicemail · afspelen' : 'Verbonden';
     if (els.chat) {
       const lines = [...CHAT].sort(() => Math.random() - 0.5).slice(0, 3);
       els.chat.innerHTML = lines.map(([u, t]) => `<div><b>${esc(u)}</b>${esc(t)}</div>`).join('');

@@ -29,10 +29,13 @@ function flagTexture() {
     g.bezierCurveTo(x + 14, y - 30, x + 34, y - 2, x, y + 26);
     g.fill();
   }
+  // a white band along the bottom with Jelle's dedication (H10)
+  g.fillStyle = '#f4f2ea';
+  g.fillRect(0, 318, 256, 66);
   g.fillStyle = '#141414';
-  g.font = 'bold 30px sans-serif';
+  g.font = 'bold 46px sans-serif';
   g.textAlign = 'center';
-  g.fillText('MOAI!', 128, 372);
+  g.fillText('FOAR MEM', 128, 368);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;

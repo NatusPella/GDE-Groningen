@@ -1,7 +1,8 @@
 import { SMS_SAY } from './smsvoice.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
-import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
+import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear } from './vehicle.js';
+import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
@@ -33,6 +34,11 @@ import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
+import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
+
+// radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
+let contactMod = null;
+import('./storycontact.js').then((m) => { contactMod = m; }).catch(() => {});
 
 const TRIGGER_RADIUS = 4;
 const CHECKPOINT_RADIUS = 6;
@@ -87,32 +93,34 @@ function buildDefs(world) {
   const ring = (i) => ({ x: RING_ROUTE[i][0], y: RING_ROUTE[i][1], z: map.spawnZ ? map.spawnZ(RING_ROUTE[i][0], RING_ROUTE[i][1]) : 0, road: null });
   const kei = (i) => ({ x: KEI_ROUTE[i][0], y: KEI_ROUTE[i][1], road: null });
   const berth = rondvaartBerth(map);
-  const fatStart = walk(12.1, 497.3), fatEnd = walk(-42, 262);
+  // H12: the Oude Ebbingestraat, from the Ebbingebrug down to the Grote Markt
+  const fatStart = walk(30, -255), fatEnd = walk(118, -12);
   const lanePath = findWalkPath(map, fatStart.x, fatStart.y, fatEnd.x, fatEnd.y);
   return [
     {
       type: 'deliver',
       label: 'Berend telt de krassen',
-      intro: ['Bommen Berend wil z\'n bakkie vóór de koffie terug. Hij staat bij het Martinikerkhof.', 'Rij \'m heel naar het Boterdiep. Berend telt krassen zoals een ander schaapjes.'],
-      outro: 'Berend zei zowaar \'dank je\'. Dat is sinds 1672 niet meer gebeurd.',
+      intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.', 'Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.'],
+      outro: 'Berend zei goud. En moi. Tegen Anita.',
       timeLimit: 85,
-      reward: 400,
-      // Berend takes €3 off per percent of damage, down to a quarter of the fee
-      scratchFine: 3,
+      reward: 50,
+      // Berend takes 50 cents off per percent of damage, down to a quarter of the fee
+      scratchFine: 0.5,
       vehicleName: 'Berends bakkie',
       destName: 'het Boterdiep',
       start: drive(224, -27),
       dest: drive(-14, -489),
+      say: 'De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.',
     },
     {
-      type: 'rampage',
+      type: 'stunt',
       label: 'Iets met de Grote Markt',
-      intro: ['Sikkom kopt: \'Grote Markt saaier dan een lege mensa\'. Dat laten we niet op ons zitten.', 'Acht man neer in 45 seconden. Voor de clicks, zegt Jelmer.'],
-      outro: 'De Grote Markt is weer wakker. D\'Olle Grieze keek ervan op.',
-      timeLimit: 45,
-      reward: 500,
-      targetKills: 8,
-      requires: 'weapon',
+      intro: ['Sikkom kopt: \'Grote Markt saaier dan een lege mensa\'. Jelmer wil een zomeravond vol content.', 'Met de auto over de Grote Markt: parasols, kliko\'s en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.'],
+      outro: 'De Grote Markt is weer wakker. Nul gewonden, veel natte mensen.',
+      timeLimit: 120,
+      reward: 150,
+      // stuntavond.js: the points to reach, on the square round `center`
+      stunt: { center: { x: 168, y: 72 }, radius: 46, target: 1500 },
       start: walk(204, 113),
     },
     {
@@ -122,6 +130,8 @@ function buildDefs(world) {
       outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
       race: 'kei',
       requires: 'bike',
+      // the all-green crossing: Anita comes the other way on her own bike
+      moment: { at: 3, text: 'Alles groen. Anita komt van de andere kant, op haar eigen fiets. Oogcontact. Jullie remmen allebei.' },
       timeLimit: 35,
       checkpointBonus: 20,
       reward: 550,
@@ -148,7 +158,6 @@ function buildDefs(world) {
       intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de stad over de ringweg, tegen vier gekken. Alleen het podium telt.'],
       outro: 'Podium op de ringweg! Hij ligt er nog. Op een paar pionnen na.',
       race: 'ring',
-      requires: 'car',
       timeLimit: 60,
       checkpointBonus: 16,
       reward: 1200,
@@ -181,7 +190,7 @@ function buildDefs(world) {
     {
       type: 'fatbike',
       label: 'Fatbikes tellen niet als fiets',
-      intro: ['De Folkingestraat: smal, druk, en vol fatbikes die van twee kanten komen. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop de straat door naar de Vismarkt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.'],
+      intro: ['De Oude Ebbingestraat: smal, druk, en vol fatbikes die van twee kanten komen, over de stoep. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop de straat door naar Oma Trijntje, bij de Grote Markt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.'],
       outro: 'Overeind gebleven tussen de fatbikes. Oma Trijntje is trots.',
       timeLimit: 80,
       reward: 500,
@@ -207,14 +216,14 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Even pinnen',
-      intro: ['De pinautomaat van gisteren ligt nog achterin een auto in de Herestraat.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan verzilveren bij Pand & Poen.'],
-      outro: 'Sjabbe telt vierhonderd euro uit. En hij vertelt over het museum.',
+      intro: ['Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita\'s pas erin. De aanhanger bleef achter.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.'],
+      outro: 'Sjabbe gaf Anita haar pas terug. En hij vertelde over het museum.',
       timeLimit: null,
       reward: 400,
       vehicle: 'car',
       start: drive(229, 402),
       stages: [
-        { kind: 'board', label: 'Stap in de auto met de automaat', say: 'Instappen: de automaat ligt achterin. Hij piept een beetje.' },
+        { kind: 'board', label: 'Stap in de auto met de automaat', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },
         { kind: 'garage', stars: 2, target: { garage: true }, label: 'Naar Spuit & Klaar voor een nieuwe kleur', say: 'Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
         { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', stop: 1.2, label: 'Naar Pand & Poen', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
       ],
@@ -250,6 +259,8 @@ function buildDefs(world) {
       timeLimit: null,
       reward: 400,
       requires: ['heist', 'night'],
+      // midnight: three minutes without cameras, from the fuse box until the case is open
+      window: { after: 'fuse', until: 'crack', secs: 180, label: 'camera\'s uit', late: 'de drie minuten zijn om. De camera\'s staan weer aan' },
       start: walk(18, 736),
       heist: { fuse: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
       // heist.js: the plan picks the approach; stages with `only` belong to one of them
@@ -275,7 +286,7 @@ function buildDefs(world) {
           kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, mode: 'foot', radius: 3.5,
           label: 'Sluip naar de stroomkast', say: 'Eerst de stroomkast. Twee camera\'s en een bewaker: blijf uit de lichtbundels. Bukken (Ctrl) helpt.',
         },
-        { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, label: 'Camera\'s op herhaling', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan draaien de camera\'s op herhaling.' },
+        { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, label: 'Camera\'s op herhaling', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.' },
         { kind: 'goto', only: 'sluip', target: { heistSpot: 'achterdeur' }, mode: 'foot', radius: 1.6, label: 'Naar de achterdeur', say: 'Camera\'s op herhaling. Nu de achterdeur, in de fietspassage.' },
         { kind: 'lock', only: 'sluip', target: { heistSpot: 'achterdeur' }, opens: 'achterdeur', label: 'Peuter het slot open', say: 'Slotje openpeuteren. Spatie als het pinnetje in het groen staat. Ik hou de wacht.' },
         { kind: 'goto', only: 'sluip', post: 'zaal1', target: { heistSpot: 'deur1' }, mode: 'foot', radius: 1.4, label: 'Sluip door zaal 1', say: 'Zaal 1. Die bewaker loopt rondjes. Wacht tot hij je zijn rug toekeert, en dan bukken.' },
@@ -287,13 +298,23 @@ function buildDefs(world) {
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
-          lines: [['A', 'Hij is… leeg.'], ['T', 'Misschien is hij even naar de wc.'], ['A', 'Er ligt een kaartje. "Tige tank! – W."', { clue: true }], ['T', 'W? Wie is W?'], ['A', 'Iemand die Fries schrijft. En die eerder was dan wij.']],
+          lines: [['A', '"Tige tank! – W."', { clue: true }], ['T', 'Hij bedankt ons.'], ['A', 'Hij. Bedankt. Ons.'], ['T', 'Beleefd, eigenlijk.'], ['A', 'Tammo.']],
         },
         {
           kind: 'getaway', stars: 2, target: { heistSpot: 'boot' }, label: 'Alarm! Rennen, naar de boot', say: 'Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!',
           lines: [['T', 'Instappen! De motor draait al!'], ['A', 'Tammo, sinds wanneer kun jij varen?'], ['T', 'Sinds nu. Vol gas!']],
         },
-        { kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.' },
+        {
+          kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.',
+          // Nachtstreek, live, while they flee: Jelle calls in
+          radio: { caller: 'Een beller uit Ljouwert', lines: [
+            ['rikus', 'We hebben een beller. Uit… Ljouwert?'],
+            ['jelle', 'Moai, Rikus. Jelle Terpstra, van Us Mem Snacks. Ik wil een groet doen aan twee mensen in een museum.', { card: 'jelle' }],
+            ['rikus', 'Jelle. Je bent live.'],
+            ['jelle', 'Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4: de trofee gaat naar wie op Gronings Ontzet wint. Ik heb hem alvast meegenomen. Dat scheelt een rit.', { clue: true }],
+            ['jelle', 'En geen vet, geen Grinzer aan de start. Oant sjen op it Ontset!'],
+          ] },
+        },
         { kind: 'shot', label: 'Weg van het museum', big: 'Iemand was ze voor.' },
       ],
     },
@@ -342,10 +363,10 @@ function buildDefs(world) {
           kicker: "d'Olle Grieze", title: 'Een Friese vlag',
           cast: [{ key: 'jelle', pose: 'self', at: [3.4, 1.4] }], knots: true,
           lines: [
-            ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Dat laat de stad niet zomaar gebeuren.'],
-            ['jelle', 'Moai, Grinzers! Kijk eens omhoog. Wat een aardich tuorke, no.'],
+            ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Onderaan, in grote letters: foar mem.'],
+            ['jelle', 'Moai, Grinzers! Kijk eens omhoog. Foar mem.'],
             ['A', 'Zie je die vijf gele knopen, Tammo? Die houden hem vast.', { clue: true, look: 'knots' }],
-            ['T', 'Ogen dicht, fluiten. Pik, pik, los.'],
+            ['T', 'Ik fluit. Hij pikt.'],
           ],
         },
         {
@@ -395,7 +416,7 @@ function buildDefs(world) {
           cast: [{ key: 'durk', at: [2.3, 0.35], jump: 'Plons.', jumpSide: 1 }, { key: 'douwe', at: [3.2, -0.35], jump: 'Plons.', jumpSide: -1, jumpDelay: 0.4 }],
           props: [{ kind: 'ball', holder: 'A', from: 'Hier is hij' }],
           lines: [['durk', 'Douwe! Er staat iemand op ons dek!'], ['T', 'Moi. Ik kom voor de Eierbal.'], ['A', 'En ik kom voor hem. Opzij, jongens.'], ['douwe', 'Plons?'], ['durk', 'Plons.'],
-            ['A', 'Hier is hij! De Gouden Eierbal!'], ['T', 'Hij is… zacht. En hij smelt.'], ['A', 'Chocola. Met goudpapier eromheen.', { clue: true }]],
+            ['A', 'Hier is hij! In een kist. Met een kaartje: "Foar mem."', { clue: true }], ['T', 'Hij knispert. Hij is… zacht.'], ['A', 'Chocola. Met goudpapier eromheen.']],
         },
         { kind: 'goto', target: { shore: true, label: 'De kade' }, mode: 'foot', radius: 6, label: 'Spring aan wal, achter Jelle aan', say: 'Jelle springt van boord! Aan wal, achter hem aan.' },
         {
@@ -423,45 +444,53 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Iedereen heeft een rode auto gezien',
-      intro: ['Anita\'s Fjord is gejat. Jelmers chat zag een rode auto bij de Westerhaven.', 'Vraag rond, volg het piepje van de zender en haal hem terug voordat hij op de trein naar Leeuwarden staat.'],
-      outro: 'De Fjord is terug. Niemand raakt hem nog aan.',
+      intro: ['Tammo\'s Escapade is gejat. Op zijn plek staat een klomp. Jelmers chat zag een rode auto bij de Westerhaven.', 'Alleen: vraag rond, volg het piepje van de zender die Henk erin zette en haal hem terug voordat hij op de trein naar Ljouwert staat.'],
+      outro: 'De Escapade is terug. En Tammo zei sorry.',
       timeLimit: null,
       reward: 1100,
       vehicle: 'car',
       fjordTrain: true,
+      // Anita alone: Tammo stays behind with the klomp
+      solo: true,
       start: drive(-60, 868),
       stages: [
-        { kind: 'goto', target: { at: [-170, 905], snap: 'walk', label: 'De Westerhaven' }, mode: 'any', radius: 14, label: 'Naar de Westerhaven: daar zag Jelmers chat een rode auto', say: 'Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.' },
         {
-          kind: 'scene', label: 'Rondvragen', target: { at: [-170, 905], snap: 'walk' },
+          kind: 'goto', target: { at: [-170, 905], snap: 'walk', label: 'De Westerhaven' }, mode: 'any', radius: 14, label: 'Naar de Westerhaven: daar zag Jelmers chat een rode auto', say: 'Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.',
+          // Mem Terpstra calls Nachtstreek while Anita looks
+          radio: { caller: 'Gerda Terpstra, Ljouwert', lines: [
+            ['mem', 'Rikus. Gerda Terpstra, Ljouwert. Myn soan hat dy reade auto op de trein nei Ljouwert set. Zeg tegen dat famke: perron 3.', { card: 'mem', clue: true }],
+            ['rikus', 'Mevrouw Terpstra, waarom helpt u ons?'],
+            ['mem', 'Omdat mijn zoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.'],
+          ] },
+        },
+        {
+          kind: 'scene', label: 'Rondvragen', target: { at: [-170, 905], snap: 'walk' }, solo: true,
           kicker: 'De Westerhaven', cast: [{ key: 'hilly', pose: 'point', at: [2.1, 0] }],
           lines: [
             ['hilly', 'Rooie auto? Mit twij grode kerels der in? Dij binnen net richten stasjon reden.'],
-            ['A', 'Twee grote kerels. Dat zijn Durk en Douwe.'],
+            ['A', 'Twee grote kerels. Durk en Douwe.'],
             ['hilly', 'De ain zat te zingen. Fries, docht ik. Dat heur je hier nait vaak.'],
-            ['T', 'Anita, je Fjord heeft toch nog die oude zender van Henk?'],
-            ['A', 'Ja! Hij piept. Achter het station!', { clue: true }],
+            ['A', 'De Escapade heeft nog die oude zender van Henk. Hij piept. Achter het station!', { clue: true }],
           ],
         },
-        { kind: 'goto', target: { at: [-10, 876], snap: 'walk', label: 'Achter het station' }, mode: 'any', radius: 16, label: 'Volg het piepje van de zender naar achter het station', say: 'Het piepje wordt sneller. Achter het station, bij de goederentrein!' },
+        { kind: 'goto', target: { at: [-10, 876], snap: 'walk', label: 'Achter het station' }, mode: 'any', radius: 16, label: 'Volg het piepje van de zender naar achter het station', say: 'Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.' },
         { kind: 'board', label: 'Stap in de auto', say: 'Jelmer heeft zijn auto laten staan. Instappen, ze rijden weg!' },
         {
-          kind: 'chase', label: 'Stop de Fjord', say: 'Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op mijn Fjord schieten, hè!',
+          kind: 'chase', label: 'Stop de Escapade', say: 'Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op Tammo\'s auto schieten, hè!',
           vehicle: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 9, brake: 22, turnRate: 3.2, color: '#a11f1f' },
-          hero: true, name: 'De Fjord', lead: 45, hits: 60, health: 170, flee: [-2600, 700], cruise: 16.5, escape: 380, time: 45,
-          toTrain: true, loaded: 'Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.', late: 'Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!',
-          meter: 'Fjord', clock: 'trein', half: 'Hij slingert! Durk krijgt de zenuwen.',
-          stopped: 'De Fjord staat stil. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
-          lost: 'de Fjord staat op de trein naar Leeuwarden', gone: 'de Fjord is foetsie', burned: 'de Fjord staat in de fik. Anita praat nooit meer tegen je',
+          hero: true, name: 'De Escapade', lead: 45, hits: 60, health: 170, flee: [-2600, 700], cruise: 16.5, escape: 380, time: 45,
+          toTrain: true, loaded: 'Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.', late: 'Te laat: de Escapade staat al op de goederentrein naar Ljouwert!',
+          meter: 'Escapade', clock: 'trein', half: 'Hij slingert! Durk krijgt de zenuwen.',
+          stopped: 'De Escapade staat stil. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
+          lost: 'de Escapade staat op de trein naar Ljouwert', gone: 'de Escapade is foetsie', burned: 'de Escapade staat in de fik. Tammo praat nooit meer tegen je',
         },
         {
           kind: 'train', label: 'Blokkeer de overweg aan de Peizerweg', say: 'Snel, naar de overweg aan de Peizerweg! Ga erbij staan, dan moet de machinist wel stoppen.',
-          caught: 'De trein staat stil. Durk en Douwe rijden de Fjord van de wagon en fietsen weg, allebei op één fatbike.',
-          taken: 'Anita rijdt de Fjord zelf van de wagon af. Moai!',
-          lost: 'de Fjord staat op de trein naar Leeuwarden',
+          caught: 'De trein staat stil. Durk en Douwe rijden de Escapade van de wagon en fietsen weg, allebei op één fatbike.',
+          taken: 'Anita rijdt de Escapade zelf van de wagon af. Moai!',
+          lost: 'de Escapade staat op de trein naar Ljouwert',
         },
-        { kind: 'board', label: 'Stap in je Fjord', say: 'Hij is van ons. Instappen, Anita.' },
-        { kind: 'goto', target: { garage: true }, mode: 'vehicle', stop: 1, label: 'Breng de Fjord naar Henk', say: 'Naar de garage. Henk kijkt hem even na, daar staat hij veilig.' },
+        { kind: 'board', label: 'Stap in de Escapade', say: 'Hij is terug. Instappen, Anita. Hij rijdt nog. Nauwelijks.' },
       ],
     },
     {
@@ -483,8 +512,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Ontzet, net als in 1672',
-      intro: ['Gronings Ontzet. De Grote Markt vol kramen, de jury en een Fries met een plan.', 'Hou de kraam heel tegen het vuurwerk, en laat de Eierbal niet uit het oog.'],
-      outro: 'Jelle proefde een echte eierbal. De Gouden Eierbal gaat terug naar het museum.',
+      intro: ['Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste Fjord Frituur.', 'Hou de kraam heel tegen het vuurwerk, en laat de Eierbal niet uit het oog.'],
+      outro: 'De Snackprijs gaat naar Grunn. De Gouden Eierbal blijft in Stad, met twee namen op het bordje.',
       timeLimit: null,
       reward: 4000,
       vehicle: 'car',
@@ -492,39 +521,39 @@ function buildDefs(world) {
       stages: [
         {
           kind: 'hold', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, radius: 9, time: 30, mode: 'foot',
-          label: 'Verdedig de kraam tegen het vuurwerk', say: 'Durk en Douwe steken vuurwerk af! Blijf bij de kraam en stap opzij als er een pijl aankomt.',
+          label: 'Hou de kraam heel tegen het vuurwerk', say: 'Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.',
           ticks: ['De eerste eierballen gaan het vet in.', 'Berend ruikt al iets. Hij knikt bijna.', 'Nog even! De jury pakt de vorken.'],
           fireworks: { every: [0.9, 1.7], hit: 2.2, cost: 3, hitText: 'Pang! Vol raak. Even liggen, dan weer naar de kraam.' },
         },
         {
-          kind: 'scene', label: 'Het podium', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' },
+          kind: 'scene', label: 'Het naspel', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' },
           kicker: 'Gronings Ontzet', big: 'Hij grist de Eierbal!',
           cast: [{ key: 'jelle', pose: 'hold', at: [2.2, 0] }, { key: 'durk', pose: 'arms', at: [3.5, 1.5] }, { key: 'douwe', pose: 'arms', at: [3.5, -1.5] }, { key: 'berend', pose: 'hips', at: [1.3, 2.7] }],
           props: [{ kind: 'ball', holder: 'jelle' }],
-          lines: [['jelle', 'Moai, Grinzers! Bedankt voor de Eierbal. Die neem ik mar mei.'], ['A', 'Hé! Die stond op het podium!'], ['jelle', 'Nu staat hij in mijn trekker. Oant sjen!'], ['T', 'Anita, de auto! Achter hem aan!']],
+          lines: [['jelle', 'Mem moet hem zien. Vóór de uitslag. Ik bin sa werom!'], ['A', 'Hé! Die staat op de jurytafel!'], ['berend', 'Dit hoort niet bij het naspel.'], ['T', 'Anita, de auto! Ik hou de eierballen warm.']],
         },
-        { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!' },
+        { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, achter die trekker aan!' },
         {
-          kind: 'chase', label: 'Stop de trekker-limo van Jelle', stars: 2, say: 'Achter die trekker aan! De pliesie rijdt ook mee. Ram of schiet zijn banden stuk.',
+          kind: 'chase', label: 'Haal de trekker-limo van Jelle in', stars: 1, say: 'Achter die trekker aan! Ram hem tot hij stilstaat. Niet schieten, er is kermis.',
           vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' },
           name: 'Trekker-limo van Jelle', lead: 50, hits: 90, flee: [-1900, -900], cruise: 16, escape: 400, time: 220,
-          half: 'Hij slingert! De vlaggetjes vliegen eraf.',
-          stopped: 'De trekker-limo ligt stil. Jelle springt eruit met de Eierbal en rent naar het Reitdiep!',
-          lost: 'Jelle is ontsnapt met de Eierbal', gone: 'Jelle is foetsie, met de Eierbal', burned: 'de trekker staat in de fik. De Eierbal smelt bijna',
-        },
-        { kind: 'goto', target: { bank: [-700, -550], label: 'Het Reitdiep' }, mode: 'any', radius: 9, calm: true, label: 'Achter Jelle aan, naar het Reitdiep', say: 'Hij rent naar het Reitdiep, met zijn polsstok. Erachteraan!' },
-        {
-          kind: 'vault', fail: true, label: 'Jelle', target: { bank: [-700, -550] },
-          lines: [['jelle', 'Jullie krijgen me nooit! Ik ben de beste fierljepper fan Fryslân!'], ['A', 'Het Reitdiep is te breed, Jelle!'], ['jelle', 'Neat is te breed foar Jelle Terpstra!']],
-          landing: 'Nee… nee… NEE!',
+          half: 'Tammo fluit. Een zwerm duiven valt over het vuurwerk heen op de voorruit van de trekker!',
+          stopped: 'De trekker-limo staat stil, vol duiven. Jelle stapt uit, met de Eierbal in zijn armen.',
+          lost: 'Jelle is weg met de Eierbal', gone: 'Jelle is foetsie, met de Eierbal', burned: 'de trekker staat in de fik. De Eierbal smelt bijna',
+          radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [
+            ['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.'],
+          ] },
         },
         {
-          kind: 'scene', label: 'Opvissen', target: { bank: [-700, -550] },
-          kicker: 'Het Reitdiep', big: 'De Eierbal is terug!',
-          cast: [{ key: 'jelle', water: true, pose: 'cheer' }],
+          kind: 'scene', label: 'Voor mem', kicker: 'Gronings Ontzet', solo: true,
+          cast: [{ key: 'jelle', pose: 'hold', at: [2.0, 0.3] }],
           props: [{ kind: 'ball', holder: 'jelle' }],
-          lines: [['jelle', 'Help! Myn polsstok is brutsen! Ik bin wiet!'], ['A', 'Tammo, steek die polsstok uit. We vissen hem op.'], ['T', 'Mijn eerste vangst. Een Fries van tachtig kilo.'],
-            ['jelle', 'Tige tank, Grinzers. Echt. Hjir, de Eierbal.'], ['A', 'Kom maar mee, Jelle. Er staat nog een eierbal voor je klaar.']],
+          lines: [['jelle', 'Ik woe him allinnich oan mem jaan. Foar de útslach.'], ['A', 'Ze staat op de Grote Markt, Jelle. Bij de jury. Geef maar.'], ['jelle', '…Tige tank.']],
+        },
+        {
+          kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', radius: 9, limit: 150, calm: true,
+          label: 'Terug naar de kraam, voordat de eierballen koud zijn', late: 'de eierballen zijn koud. Berend proeft niks wat koud is',
+          say: 'Terug naar de kraam, met de bal! Voordat de eierballen koud zijn.',
         },
       ],
     },
@@ -865,11 +894,13 @@ function runStats(world, def) {
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
   const kills = killCount(world) - r.kills;
-  if (def.type === 'rampage' || kills > 0) stats.push(['Kills', String(Math.max(0, kills))]);
+  if (def.type === 'rampage' || (kills > 0 && def.type !== 'stunt')) stats.push(['Kills', String(Math.max(0, kills))]);
   const rv = def.type === 'boat' ? rondvaartStatus() : null;
   if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
   if (def.type === 'fatbike') stats.push(['Geschept', String(chain.fatbikeHits || 0)]);
+  const su = def.type === 'stunt' ? stuntStatus() : null;
+  if (su) stats.push(['Punten', String(su.score)], ['Omver', String(su.broken)], ['Mensen geraakt', String(su.hits)]);
   if (r.hurt > 0.5 || (!rv && !r.vehicleUsed)) stats.push(['Verwondingen', `${Math.round(r.hurt)}%`]);
   if (r.racePos) stats.push(['Positie', `${r.racePos}/${r.raceTotal}`]);
   return stats;
@@ -935,7 +966,7 @@ function syncPub(world) {
   pub.total = st.defs.length;
   const board = st.phase === 'active' ? vehicleToBoard(world, def) : null;
   let target;
-  if (st.phase !== 'active' || def.type === 'rampage') target = def.start;
+  if (st.phase !== 'active' || def.type === 'rampage' || def.type === 'stunt') target = def.start;
   else if (board) target = board;
   else if (def.type === 'deliver') target = nextStop(def) || def.dest;
   else if (def.type === 'fatbike') target = def.dest;
@@ -951,6 +982,7 @@ function syncPub(world) {
     pub.killProgress = killCount(world) - st.killBaseline;
     pub.killTarget = def.targetKills;
   }
+  pub.stunt = def.type === 'stunt' && st.phase === 'active' ? stuntStatus() : null;
   if (def.type === 'checkpoint' || def.type === 'boat') {
     pub.wpIndex = def.waypoints.slice(0, st.wpIndex).filter((wp) => !wp.via).length;
     pub.wpTotal = def.waypoints.filter((wp) => !wp.via).length;
@@ -1043,6 +1075,12 @@ function progressText(world, def, pub) {
   }
   if (def.type === 'fatbike') return `Geschept: ${chain.fatbikeHits || 0} · Gezondheid ${Math.max(0, Math.round(world.health))}%`;
   if (def.type === 'stages') return stageProgressText(world, def);
+  if (def.type === 'stunt') {
+    const s = stuntStatus();
+    if (!s) return null;
+    if (!world.player.inVehicle) return `Stap in de Escapade · punten ${s.score}/${s.target}`;
+    return `Punten ${s.score}/${s.target}${s.combo > 1 ? ` · combo x${s.combo}` : ''} · niemand raken`;
+  }
   return null;
 }
 
@@ -1068,6 +1106,8 @@ function releaseMissionVehicle(world) {
   if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.aiOpts = null; }
   releaseLaneBikes(world);
   releaseCrowd(world);
+  stopStunt(world);
+  if (chain.soloHold) { chain.soloHold = false; world.companionHold = null; }
   if (chain.race) {
     disposeRace(world, chain.race);
     chain.race = null;
@@ -1555,7 +1595,18 @@ function startMission(world, def) {
   chain.boarded = false;
   chain.hintAt = -Infinity;
   chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
-  if (def.type === 'rampage') {
+  chain.windowT = 0;
+  chain.momentDone = false;
+  if (def.solo) {
+    // the companion stays where the mission starts (H16: Tammo with the klomp)
+    const p0 = world.player;
+    world.companionHold = { x: p0.x + Math.cos(p0.angle + 2) * 1.6, y: p0.y + Math.sin(p0.angle + 2) * 1.6, face: p0.angle, pose: 'phone' };
+    chain.soloHold = true;
+  }
+  if (def.type === 'stunt') {
+    startStunt(world, def.stunt);
+    bringHeroCar(world, def);
+  } else if (def.type === 'rampage') {
     chain.killBaseline = killCount(world);
     if (!(world.ammo[world.weapon] > 0)) world.weapon = ['pistol', 'uzi', 'shotgun', 'jachtgeweer'].find((k) => world.ammo[k] > 0) || world.weapon;
   } else if (def.type === 'deliver' && def.start.road) {
@@ -1592,7 +1643,25 @@ function startMission(world, def) {
     const who = speakerName(world);
     playMissionIntro(world, { kicker, title: `Missie: ${title}`, lines: (def.intro || []).map((text) => ({ speaker: who, text })), objective });
   }
+  if (def.say) world.addMessage(def.say, 5);
   chain.seen.add(i);
+}
+
+// H3 is a stunt evening in the Escapade: when it is not near, Henk parks it at the square.
+function bringHeroCar(world, def) {
+  const p = world.player;
+  if (p.inVehicle && !p.inVehicle.isBoat && !p.inVehicle.isBike) return;
+  const c = def.stunt && def.stunt.center ? def.stunt.center : def.start;
+  let car = world.vehicles.find((v) => v.isHeroCar && !v.wrecked && !v.sinking);
+  if (car && dist(car.x, car.y, p.x, p.y) < 70) return;
+  if (car && car.driver !== 'player') {
+    if (placeOwnedVehicleNear(world, car, p.x, p.y)) { world.addMessage('Henk heeft de Escapade aan de rand van de Grote Markt gezet.', 4); return; }
+  }
+  car = spawnHeroCarNear(world.map, (p.x + c.x) / 2, (p.y + c.y) / 2);
+  if (!car) return;
+  for (const v of world.vehicles) if (v.isHeroCar && v.wrecked) v.isHeroCar = false;
+  world.vehicles.push(car);
+  world.addMessage('Henk heeft de Escapade aan de rand van de Grote Markt gezet.', 4);
 }
 
 function hint(world, text, say = undefined) {
@@ -1634,6 +1703,7 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   chain.wpIndex++;
   if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
+  if (def.moment && !chain.momentDone && chain.wpIndex >= def.moment.at) { chain.momentDone = true; world.addMessage(def.moment.text, 4.5, { kind: 'missie' }); }
   if (chain.wpIndex >= def.waypoints.length) {
     if (chain.race) {
       const { position, total } = raceStandings(chain.race);
@@ -1714,7 +1784,7 @@ export function updateMissions(dt, world) {
   // the clock starts at the race's GO, not while the grid waits
   if ((!chain.race || chain.race.phase === 'race') && !isCinematicActive()) chain.timeLeft -= dt;
   if (chain.timeLeft <= 0) {
-    fail(world, def, def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : 'tijd op. Zelfs de bus was sneller');
+    fail(world, def, def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' ? 'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
     syncPub(world);
     return;
   }
@@ -1773,6 +1843,8 @@ export function updateMissions(dt, world) {
     if (killCount(world) - chain.killBaseline >= def.targetKills) {
       succeed(world, def);
     }
+  } else if (def.type === 'stunt') {
+    if (updateStunt(dt, world) === 'done') succeed(world, def);
   } else if (def.type === 'checkpoint') {
     if (chain.race) {
       updateRace(dt, world, chain.race, chain.wpIndex);
@@ -2055,7 +2127,20 @@ function stageMarker(world, def) {
   return S.target || S.here;
 }
 
+// H6's three minutes: the stages after `window.after` up to and including `window.until`.
+function inWindow(def) {
+  const W = def.window;
+  if (!W || !def.stages) return false;
+  const a = def.stages.findIndex((q) => q.kind === W.after), b = def.stages.findIndex((q) => q.kind === W.until);
+  return a >= 0 && b >= 0 && chain.stageIndex > a && chain.stageIndex <= b;
+}
+
 function stageProgressText(world, def) {
+  const text = stageProgressBase(world, def);
+  return text && inWindow(def) ? `${text} · ${def.window.label} ${fmtTime(def.window.secs - chain.windowT)}` : text;
+}
+
+function stageProgressBase(world, def) {
   const S = chain.stage;
   const st = def.stages && def.stages[chain.stageIndex];
   if (!S || !st) return null;
@@ -2139,6 +2224,7 @@ function enterStage(world, def, k) {
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chain.timeLeft += st.bonus;
   if (st.say) world.addMessage(st.say, 4.5);
+  if (st.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...st.radio });
 }
 
 function nextStage(world, def) {
@@ -2363,7 +2449,7 @@ function playStageScene(world, st, S) {
     const lookTo = (wide && st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
     const staged = playCastScene(world, {
       at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
-      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo,
+      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo,
       deck: st.target && st.target.skutsje ? chain.skutsje : null,
       shot: st.reveal || wide ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
@@ -2396,6 +2482,10 @@ function updateStages(dt, world, def) {
   const S = chain.stage;
   if (!st || !S) return;
   S.t += dt;
+  if (inWindow(def) && !isCinematicActive()) {
+    chain.windowT += dt;
+    if (chain.windowT > def.window.secs) { fail(world, def, def.window.late); return; }
+  }
   if (def.eggs && chain.stageIndex >= def.eggs.from) {
     updateEggs(dt, world, def);
     if (chain.phase !== 'active') return;

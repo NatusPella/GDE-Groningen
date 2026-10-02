@@ -460,14 +460,19 @@ export function coveredAt(elev, x, y) {
 // ------------------------------------------------------------------ walls
 
 function surfaceOf(elev, x, y, except, zNear, tol, rail = false) {
+  return surfaceZ(elev, x, y, except, zNear, tol, rail) !== null;
+}
+// the highest such surface's height, or null
+function surfaceZ(elev, x, y, except, zNear, tol, rail = false) {
   const list = elev.grid.at(x, y);
-  if (!list) return false;
+  if (!list) return null;
+  let best = null;
   for (const s of list) {
     if (s.r === except || !!s.rail !== rail) continue;
     const q = onSeg(s, x, y);
-    if (q.d <= s.hs + 0.2 && Math.abs(q.z - zNear) < tol) return true;
+    if (q.d <= s.hs + 0.2 && Math.abs(q.z - zNear) < tol && (best === null || q.z > best)) best = q.z;
   }
-  return false;
+  return best;
 }
 
 // Floor height of another open sunken road at (x, y), or null.
@@ -517,8 +522,20 @@ function buildWalls(elev, map) {
           });
         }
         if (!cut && !raise) {
+          if (s.rail || s.covered) continue;
+          // a ramp out of the cutting tucked under the edge of a higher way
+          // alongside (a slip road climbing faster): the cut-away ground
+          // between them is closed by a wall face up to the other surface
+          const zn = surfaceZ(elev, mx, my, s.r, zr, 1.6);
+          if (zn !== null && zn > zr + 0.5 && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -RAISED) {
+            elev.skirts.push({
+              ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
+              bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
+              nx: -nx, ny: -ny, za: s.za + (s.zb - s.za) * t0, zb: s.za + (s.zb - s.za) * t1, seg: s, coping: false, top: zn,
+            });
+          }
           // a shallow ramp beside the deep cutting it leads into: a parapet on its edge
-          if (s.rail || s.covered || surfaceOf(elev, mx, my, s.r, zr, 1.0)) continue;
+          if (surfaceOf(elev, mx, my, s.r, zr, 1.0)) continue;
           const zo = sunkenNeighbourZ(elev, mx + nx * 1.2, my + ny * 1.2, s.r);
           if (zo === null || zo > zr - 1.0) continue;
           const par = {
@@ -548,6 +565,12 @@ function buildWalls(elev, map) {
           piece.fence = !s.covered && !joined && !onFlatRoad(map, mx, my) &&
             ![1.5, 3.5, 6].some((d) => surfaceOf(elev, mx + nx * d, my + ny * d, s.r, zr, 3));
           piece.top = s.covered ? roofTopAt(elev, mx, my, zr) : 0;
+          if (!s.covered && joined) {
+            // the way alongside lies higher (a slip road climbing out beside
+            // it, overlapping the verge): the wall rises to its surface
+            const zn = surfaceZ(elev, mx, my, s.r, zr, 1.6);
+            if (zn !== null && zn > zr + 0.5) { piece.low = true; piece.top = zn; }
+          }
           if (!s.covered && !joined) {
             // beside another sunken road (a ramp climbing out of the cutting
             // next to the main carriageway) the lower road's wall only rises

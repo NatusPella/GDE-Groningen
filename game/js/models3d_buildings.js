@@ -442,7 +442,7 @@ function shapeFromPts(pts) {
 function buildMainGeometry(b, depth) {
   const geo = new THREE.ExtrudeGeometry(shapeFromPts(b.pts), { depth, bevelEnabled: false });
   geo.rotateX(-Math.PI / 2);
-  return geo;
+  return addFoundation(geo, b);
 }
 
 // --- facade primitives (wall-local: s along edge, y up, d outward) --------------------
@@ -1214,6 +1214,74 @@ function touchParts(b) {
     if (parts) for (const k of Object.keys(parts)) if (parts[k] && parts[k].dispose) parts[k].dispose();
     old._geo3dParts = null;
   }
+}
+
+// Facades standing at (or over) the water get a foundation wall down below
+// the waterline, a hand's width inside the facade so it never lies in the
+// plane of a quay wall.
+const FOUNDATION_Y = WATER_Y - 0.5;
+const FOUNDATION_INSET = 0.08;
+const isWet = (map, e, s, d) => map.inWaterRaw(e.ax + e.tx * s + e.nx * d, e.ay + e.ty * s + e.ny * d);
+export function buildingFoundation(b) {
+  if (b._foundation !== undefined) return b._foundation;
+  const map = mapRef();
+  if (!map || !map.inWaterRaw || archetypeOf(b) === 'houseboat') return (b._foundation = null);
+  const edges = bboxOf(b).edges;
+  const wet = edges.map((e) => {
+    const n = Math.max(1, Math.round(e.len));
+    for (let i = 0; i < n; i++) {
+      const s = ((i + 0.5) / n) * e.len;
+      if (isWet(map, e, s, 0.3) || isWet(map, e, s, 1.0)) return true;
+    }
+    return false;
+  });
+  return (b._foundation = wet.some(Boolean) ? { y: FOUNDATION_Y, edges, wet } : null);
+}
+
+function addFoundation(geo, b) {
+  const f = buildingFoundation(b);
+  if (!f) return geo;
+  const { edges, wet, y } = f, N = edges.length;
+  // inset ring corners (mitred), corner i between edges i-1 and i
+  const corner = edges.map((e, i) => {
+    const p = edges[(i + N - 1) % N];
+    const mx = p.nx + e.nx, my = p.ny + e.ny, k = 1 + p.nx * e.nx + p.ny * e.ny;
+    const s = k > 0.25 ? FOUNDATION_INSET / k : FOUNDATION_INSET;
+    return k > 0.25 ? [e.ax - mx * s, e.ay - my * s] : [e.ax - e.nx * s, e.ay - e.ny * s];
+  });
+  const pos = [], nor = [], uv = [];
+  for (let i = 0; i < N; i++) {
+    if (!wet[i]) continue;
+    const e = edges[i], a = corner[i], c = corner[(i + 1) % N];
+    const quad = [[a, y], [c, y], [c, 0], [a, y], [c, 0], [a, 0]];
+    for (const [[x, z], h] of quad) {
+      pos.push(x, h, z);
+      nor.push(e.nx, 0, e.ny);
+      uv.push((x - a[0]) * e.tx + (z - a[1]) * e.ty, h);
+    }
+  }
+  const base = geo.attributes, n0 = base.position.count, n1 = pos.length / 3;
+  const join = (attr, extra, size) => {
+    const out = new Float32Array((n0 + n1) * size);
+    out.set(attr.array);
+    out.set(extra, n0 * size);
+    return new THREE.BufferAttribute(out, size);
+  };
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', join(base.position, pos, 3));
+  out.setAttribute('normal', join(base.normal, nor, 3));
+  out.setAttribute('uv', join(base.uv, uv, 2));
+  // extrusion groups: caps (flat roof) then sides (walls); the foundation joins the walls
+  for (const g of geo.groups) out.addGroup(g.start, g.materialIndex === 1 ? n0 + n1 - g.start : g.count, g.materialIndex);
+  geo.dispose();
+  return out;
+}
+
+// Height of the bottom of the walls (the foundation's foot by the water).
+export function buildingBase(b) {
+  if (archetypeOf(b) === 'houseboat') return HOUSEBOAT_BASE_Y;
+  const f = buildingFoundation(b);
+  return f ? f.y : 0;
 }
 
 // Massing + rough colours for the far LOD layer (farlod.js).

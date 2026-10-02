@@ -23,6 +23,13 @@ const CAST = {
   Sjabbe: { voice: 'Rasalgethi', who: 'sluwe Groningse heler, hees en zakelijk', pool: ['zakelijk, onder de indruk', 'afdingend, droog', 'samenzweerderig, zacht'] },
   'Duivenmelker Bert': { voice: 'Iapetus', who: 'oude Groningse duivenmelker, zacht en wijs', pool: ['geheimzinnig, rustig', 'grinnikend, wijs', 'plechtig, fluisterend'] },
   'Bommen Berend': { voice: 'Charon', who: 'norse oude Groningse man met een bakkie', pool: ['nors, stiekem trots', 'mopperend, verbaasd'] },
+  // the definitive script: Berend Bos plays Bommen Berend in the Ontzet re-enactment
+  'Berend Bos': { voice: 'Charon', who: 'Berend Bos, chagrijnige oude Stadjer uit de Schildersbuurt die al veertig jaar Bommen Berend speelt, nors en droog', pool: ['nors, stiekem trots', 'mopperend, droog', 'plechtig, nors'] },
+  Torenwachter: { voice: 'Iapetus', who: 'de torenwachter, een hele oude man boven in de Martinitoren, onverstoorbaar en droog, meldt alleen', pool: ['oud, droog, onverstoorbaar, door de telefoon', 'traag, zakelijk, door de telefoon'] },
+  Terrasgast: { voice: 'Erinome', who: 'natte, vrolijke Groningse terrasgast op de Grote Markt', pool: ['juichend, lacherig'] },
+  Snackbarhouder: { voice: 'Rasalgethi', who: 'oude Groningse snackbarhouder uit de Oosterpoort', pool: ['wanhopig, ontdaan', 'opgetogen, juichend'] },
+  Toerist: { voice: 'Pulcherrima', who: 'nieuwsgierige toeriste uit de Randstad op een rondvaartboot', pool: ['nieuwsgierig, vragend'], accent: 'spoken in standard Dutch with an Amsterdam accent' },
+  Kind: { voice: 'Leda', who: 'een klein Gronings kind in het publiek op de Grote Markt, roept luid en dapper', pool: ['luid, dapper roepend'] },
   Jelmer: { voice: 'Puck', who: 'jonge Groningse streamer, hyper', pool: ['verbaasd, hardop voorlezend', 'opgewonden, snel'] },
   Sjoerd: { voice: 'Umbriel', who: 'Groningse wedstrijdleider, droog', pool: ['droog, licht verbaasd', 'schamper, mopperend'] },
   Henk: { voice: 'Sadaltager', who: 'gemoedelijke Groningse garagehouder', pool: ['gemoedelijk, rustig'] },

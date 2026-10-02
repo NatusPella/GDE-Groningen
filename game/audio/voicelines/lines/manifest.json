@@ -1,7 +1,23 @@
 {
+"Anita|\"Foar mem.\" Voor zijn moeder.": {
+"src": "anita/foar_mem_voor_zijn_moeder_5e27a379.mp3",
+"dur": 2.47
+},
+"Anita|\"Iemand uit Friesland\" is Mem Terpstra. Ze wil dat haar zoon ophoudt.": {
+"src": "anita/iemand_uit_friesland_is_mem_terp_1cc2496f.mp3",
+"dur": 4.96
+},
+"Anita|\"Tige tank! – W.\"": {
+"src": "anita/tige_tank_w_4aa1f48f.mp3",
+"dur": 1.57
+},
 "Anita|\"Tige tank.\" Hij bedankt ons. Hij. Bedankt. Ons.": {
 "src": "anita/tige_tank_hij_bedankt_ons_hij_be_4a01c34e.mp3",
 "dur": 4.74
+},
+"Anita|\"Uw plan is sympathiek.\" Dat betekent nee, met een strikje.": {
+"src": "anita/uw_plan_is_sympathiek_dat_beteke_58ba3a77.mp3",
+"dur": 5.31
 },
 "Anita|Aa is gewoon een oud woord voor water, Tammo. Half Nederland heeft wel een Aa.": {
 "src": "anita/aa_is_gewoon_een_oud_woord_voor__1a9dab14.mp3",
@@ -31,6 +47,10 @@
 "src": "anita/allebei_zeggen_ze_hier_8029df29.mp3",
 "dur": 1.25
 },
+"Anita|Alleen: vraag rond, volg het piepje van de zender die Henk erin zette en haal hem terug voordat hij op de trein naar Ljouwert staat.": {
+"src": "anita/alleen_vraag_rond_volg_het_piepj_f1709607.mp3",
+"dur": 8.24
+},
 "Anita|Allemaal! Elke eierbal van Grunn. Ik ben trots op ons.": {
 "src": "anita/allemaal_elke_eierbal_van_grunn__d9cbe921.mp3",
 "dur": 4.63
@@ -55,9 +75,21 @@
 "src": "anita/anita_s_fjord_is_gejat_jelmers_c_b3e44280.mp3",
 "dur": 4.5
 },
+"Anita|Banden stuk, tankwagen pakken, naar de Oosterpoort.": {
+"src": "anita/banden_stuk_tankwagen_pakken_naa_212b2331.mp3",
+"dur": 4.33
+},
 "Anita|Banden stuk, tankwagen pakken, naar de Oosterpoort. Daar staat de feesttent met de frituurpannen.": {
 "src": "anita/banden_stuk_tankwagen_pakken_naa_5e21ab44.mp3",
 "dur": 5.81
+},
+"Anita|Beide kanten op.": {
+"src": "anita/beide_kanten_op_d0d52292.mp3",
+"dur": 0.99
+},
+"Anita|Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.": {
+"src": "anita/berend_bos_wil_zijn_bakkie_bij_z_19c6e36f.mp3",
+"dur": 5.57
 },
 "Anita|Bij het Stationsplein leent duivenmelker Bert je een duif.": {
 "src": "anita/bij_het_stationsplein_leent_duiv_b680c7dc.mp3",
@@ -87,6 +119,14 @@
 "src": "anita/daar_gaat_hij_kopje_onder_jelle_3913e4bc.mp3",
 "dur": 2.41
 },
+"Anita|Daar heb ik jóu leren fietsen.": {
+"src": "anita/daar_heb_ik_jo_u_leren_fietsen_a62fbc38.mp3",
+"dur": 1.77
+},
+"Anita|Daar koop je nog geen halve frietwagen van.": {
+"src": "anita/daar_koop_je_nog_geen_halve_frie_ecce29a2.mp3",
+"dur": 1.98
+},
 "Anita|Daar staat hij. Een auto met een hele pinautomaat achterin.": {
 "src": "anita/daar_staat_hij_een_auto_met_een__350081f3.mp3",
 "dur": 4.64
@@ -94,6 +134,14 @@
 "Anita|Daar! In het Oosterpark. Een ballon, en hij staat al bol.": {
 "src": "anita/daar_in_het_oosterpark_een_ballo_6cf718d6.mp3",
 "dur": 3.94
+},
+"Anita|Daar. Het skûtsje. Twee reuzen met hun voeten in het water.": {
+"src": "anita/daar_het_sku_tsje_twee_reuzen_me_425f0be1.mp3",
+"dur": 4.07
+},
+"Anita|Daar. In het Oosterpark. Een ballon, en hij staat al bol.": {
+"src": "anita/daar_in_het_oosterpark_een_ballo_963049b4.mp3",
+"dur": 4.1
 },
 "Anita|Dan draaien de camera's de hele nacht een filmpje van een leeg museum.": {
 "src": "anita/dan_draaien_de_camera_s_de_hele__736a179b.mp3",
@@ -119,6 +167,10 @@
 "src": "anita/dan_heet_het_afleiding_5ab4f43c.mp3",
 "dur": 2.88
 },
+"Anita|Dan is het ernstig.": {
+"src": "anita/dan_is_het_ernstig_00c6c4a9.mp3",
+"dur": 1.07
+},
 "Anita|Dan kunnen we de Fjord Frituur kopen. En nog tien.": {
 "src": "anita/dan_kunnen_we_de_fjord_frituur_k_273fd608.mp3",
 "dur": 3.23
@@ -131,21 +183,65 @@
 "src": "anita/dan_staat_die_in_storing_dat_is__8ea0d27e.mp3",
 "dur": 4.5
 },
+"Anita|Dan wordt het tijd.": {
+"src": "anita/dan_wordt_het_tijd_ce1f343b.mp3",
+"dur": 1.01
+},
 "Anita|Dat betekent dat hij je mag, Tammo.": {
 "src": "anita/dat_betekent_dat_hij_je_mag_tamm_e7d46a95.mp3",
 "dur": 2.17
+},
+"Anita|Dat iemand één keer zegt dat ze de beste was. Dat kost niks. Daarom doe je het niet.": {
+"src": "anita/dat_iemand_e_e_n_keer_zegt_dat_z_9780d9eb.mp3",
+"dur": 5.94
+},
+"Anita|Dat is architectuur. Eerst dertig jaar mopperen, dan trots. Zo gaat dat hier.": {
+"src": "anita/dat_is_architectuur_eerst_dertig_b8239893.mp3",
+"dur": 4.68
 },
 "Anita|Dat is een reclameslogan, Tammo.": {
 "src": "anita/dat_is_een_reclameslogan_tammo_35087a7f.mp3",
 "dur": 2.47
 },
+"Anita|Dat is eigenlijk best lief.": {
+"src": "anita/dat_is_eigenlijk_best_lief_9b6f3fab.mp3",
+"dur": 2.19
+},
 "Anita|Dat is geen boer. Dat is een Fries.": {
 "src": "anita/dat_is_geen_boer_dat_is_een_frie_f9004457.mp3",
 "dur": 2.35
 },
+"Anita|Dat is trede twee, Tammo.": {
+"src": "anita/dat_is_trede_twee_tammo_52ea7e6c.mp3",
+"dur": 1.94
+},
+"Anita|Dat telt. Maar ik wil het één keer horen.": {
+"src": "anita/dat_telt_maar_ik_wil_het_e_e_n_k_f82b4078.mp3",
+"dur": 2.43
+},
+"Anita|Dat was een hele zin, Tammo.": {
+"src": "anita/dat_was_een_hele_zin_tammo_2668085f.mp3",
+"dur": 2.42
+},
+"Anita|Dat was het moment, Tammo. Om iets te zeggen.": {
+"src": "anita/dat_was_het_moment_tammo_om_iets_8754716b.mp3",
+"dur": 3.1
+},
+"Anita|Dat was voor de toeristen.": {
+"src": "anita/dat_was_voor_de_toeristen_db5ee663.mp3",
+"dur": 1.42
+},
+"Anita|Dat weet je gewoon.": {
+"src": "anita/dat_weet_je_gewoon_27acfb05.mp3",
+"dur": 1.42
+},
 "Anita|De Eierbal gaat terug naar het museum. En de beloning is voor de Fjord Frituur.": {
 "src": "anita/de_eierbal_gaat_terug_naar_het_m_72ca725e.mp3",
 "dur": 5.48
+},
+"Anita|De Escapade heeft nog die oude zender van Henk. Hij piept. Achter het station!": {
+"src": "anita/de_escapade_heeft_nog_die_oude_z_302289ce.mp3",
+"dur": 4.45
 },
 "Anita|De Fjord Frituur. Vier wielen, geen kenteken. Mijn droom, Tammo.": {
 "src": "anita/de_fjord_frituur_vier_wielen_gee_9baa8097.mp3",
@@ -158,6 +254,10 @@
 "Anita|De Oosterhaven: woonboten, sloepen en één eend die hier al jaren de baas is.": {
 "src": "anita/de_oosterhaven_woonboten_sloepen_ada1a1fe.mp3",
 "dur": 6.1
+},
+"Anita|De Oude Ebbingestraat: smal, druk, en vol fatbikes die van twee kanten komen, over de stoep. Remmen hebben ze wel, gebruiken doen ze ze niet.": {
+"src": "anita/de_oude_ebbingestraat_smal_druk__5a37986a.mp3",
+"dur": 10.5
 },
 "Anita|De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.": {
 "src": "anita/de_zuidelijke_ringweg_is_af_echt_f6de9052.mp3",
@@ -207,6 +307,10 @@
 "src": "anita/die_lopen_rond_met_zaklampen_bli_4005d37d.mp3",
 "dur": 3.55
 },
+"Anita|Die rijdt nauwelijks.": {
+"src": "anita/die_rijdt_nauwelijks_9aeeb774.mp3",
+"dur": 2.26
+},
 "Anita|Die straat daar heet echt \"Voor 't voormalig klein Poortje\". Hier zat ooit een klein poortje in de stadswal.": {
 "src": "anita/die_straat_daar_heet_echt_voor_t_f797feeb.mp3",
 "dur": 7.18
@@ -227,9 +331,21 @@
 "src": "anita/drie_camera_s_en_twee_bewakers_a_454f6500.mp3",
 "dur": 4.64
 },
+"Anita|Drie camera's, twee bewakers, en een stroomkast achter de fietsenstalling.": {
+"src": "anita/drie_camera_s_twee_bewakers_en_e_1f1c59e0.mp3",
+"dur": 3.7
+},
 "Anita|Drie camera's, twee bewakers. En een stroomkast achter de fietsenstalling.": {
 "src": "anita/drie_camera_s_twee_bewakers_en_e_e4b03d80.mp3",
 "dur": 4.7
+},
+"Anita|Drie minuten.": {
+"src": "anita/drie_minuten_bfd9631e.mp3",
+"dur": 0.96
+},
+"Anita|Drie minuten. Hand.": {
+"src": "anita/drie_minuten_hand_105eb756.mp3",
+"dur": 1.55
 },
 "Anita|Durk en Douwe willen hem op de trein naar Leeuwarden zetten. Over mijn lijk.": {
 "src": "anita/durk_en_douwe_willen_hem_op_de_t_bbbd9d1c.mp3",
@@ -259,9 +375,29 @@
 "src": "anita/een_eierbal_en_nog_warm_ook_c470c576.mp3",
 "dur": 2.37
 },
+"Anita|Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto.": {
+"src": "anita/een_frietwagen_is_een_auto_met_e_5c9e74bf.mp3",
+"dur": 5.49
+},
+"Anita|Een hele late.": {
+"src": "anita/een_hele_late_6dad9997.mp3",
+"dur": 2.25
+},
+"Anita|Een kat is ook sympathiek. Die krijgt ook geen lening.": {
+"src": "anita/een_kat_is_ook_sympathiek_die_kr_9157d3f9.mp3",
+"dur": 2.79
+},
+"Anita|Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft.": {
+"src": "anita/een_oefenbal_hij_oefent_hoe_hij__92a52b03.mp3",
+"dur": 4.09
+},
 "Anita|Een skûtsje in de Oosterhaven. Met onze Eierbal erop.": {
 "src": "anita/een_sku_tsje_in_de_oosterhaven_m_de8fa872.mp3",
 "dur": 4.16
+},
+"Anita|Een sloep met een bel. Ik stuur.": {
+"src": "anita/een_sloep_met_een_bel_ik_stuur_af80a435.mp3",
+"dur": 2.25
 },
 "Anita|Een tankwagen vol frituurvet. Wat wil die man met al dat vet?": {
 "src": "anita/een_tankwagen_vol_frituurvet_wat_954bd8d8.mp3",
@@ -286,6 +422,10 @@
 "Anita|Eerst de acteurs oppikken aan de Turfsingel, dan door naar het Noorderplantsoen. Elke klap en het decor ligt in scherven.": {
 "src": "anita/eerst_de_acteurs_oppikken_aan_de_46e38470.mp3",
 "dur": 7.62
+},
+"Anita|Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.": {
+"src": "anita/eerst_de_pliesie_kwijt_dan_een_n_f130e92c.mp3",
+"dur": 6.97
 },
 "Anita|Eerst de pliesie kwijt, dan een nieuwe kleur, dan verzilveren bij Pand & Poen.": {
 "src": "anita/eerst_de_pliesie_kwijt_dan_een_n_20c24f81.mp3",
@@ -314,6 +454,10 @@
 "Anita|En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.": {
 "src": "anita/en_de_fjord_frituur_is_van_ons_h_076bd186.mp3",
 "dur": 6.94
+},
+"Anita|En de camera's van daarnet hebben óns gefilmd.": {
+"src": "anita/en_de_camera_s_van_daarnet_hebbe_7a74bb58.mp3",
+"dur": 3.15
 },
 "Anita|En een Groningse die niet van verliezen houdt.": {
 "src": "anita/en_een_groningse_die_niet_van_ve_91d9a8a7.mp3",
@@ -351,6 +495,10 @@
 "src": "anita/ee_n_rondje_om_de_stad_over_de_r_fb46b908.mp3",
 "dur": 5.26
 },
+"Anita|Famke koopt haar eigen eierbal.": {
+"src": "anita/famke_koopt_haar_eigen_eierbal_f8778fd4.mp3",
+"dur": 3.18
+},
 "Anita|Flits. Daar gaat mijn geld.": {
 "src": "anita/flits_daar_gaat_mijn_geld_48bef083.mp3",
 "dur": 3.4
@@ -367,9 +515,21 @@
 "src": "anita/gaat_die_open_dan_staan_boven_ho_59d094e7.mp3",
 "dur": 3.66
 },
+"Anita|Geef me je hand. Het is donker daarbinnen.": {
+"src": "anita/geef_me_je_hand_het_is_donker_da_fb4a4f90.mp3",
+"dur": 2.38
+},
 "Anita|Geef mij het stuur. Jij rijdt een pinautomaat binnen een minuut het Diep in.": {
 "src": "anita/geef_mij_het_stuur_jij_rijdt_een_e9d1b626.mp3",
 "dur": 3.53
+},
+"Anita|Geef mij het stuur. Mijn pas zit in die automaat.": {
+"src": "anita/geef_mij_het_stuur_mijn_pas_zit__e79a90bb.mp3",
+"dur": 3.75
+},
+"Anita|Geen vet, geen eierballen op het Ontzet. Geen eierballen, geen Grunn in de Snackprijs.": {
+"src": "anita/geen_vet_geen_eierballen_op_het__58d383a3.mp3",
+"dur": 5.56
 },
 "Anita|Geertje blijft staan. Terug, ze wacht op ons!": {
 "src": "anita/geertje_blijft_staan_terug_ze_wa_a947676d.mp3",
@@ -379,13 +539,33 @@
 "src": "anita/geleend_ze_hebben_haar_gewoon_ge_86ff6651.mp3",
 "dur": 2.45
 },
+"Anita|Gisteren was gisteren. Spring nou maar.": {
+"src": "anita/gisteren_was_gisteren_spring_nou_4cf4d2f5.mp3",
+"dur": 3.03
+},
+"Anita|Goidag, Berend.": {
+"src": "anita/goidag_berend_7e2a2c15.mp3",
+"dur": 1.84
+},
 "Anita|Gronings Ontzet. De Grote Markt vol kramen, de jury en een Fries met een plan.": {
 "src": "anita/gronings_ontzet_de_grote_markt_v_9d8254d7.mp3",
 "dur": 7.26
 },
+"Anita|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste Fjord Frituur.": {
+"src": "anita/gronings_ontzet_de_noordelijke_s_7dfa54e0.mp3",
+"dur": 11.27
+},
+"Anita|Groot Loug. Zo noemen wíj onszelf. Dat mag hij niet.": {
+"src": "anita/groot_loug_zo_noemen_wi_j_onszel_802c4b16.mp3",
+"dur": 4.46
+},
 "Anita|Grunn staat erom bekend dat de kroegen hier geen vaste sluitingstijd hebben. Geen grap.": {
 "src": "anita/grunn_staat_erom_bekend_dat_de_k_1da28533.mp3",
 "dur": 4.7
+},
+"Anita|Heel Grunn klapt voor een duif.": {
+"src": "anita/heel_grunn_klapt_voor_een_duif_6a9476b7.mp3",
+"dur": 2.71
 },
 "Anita|Heel Grunn stond te klappen voor een duif.": {
 "src": "anita/heel_grunn_stond_te_klappen_voor_2855b3e1.mp3",
@@ -407,9 +587,21 @@
 "src": "anita/het_is_donker_de_camera_s_weten__e80c7401.mp3",
 "dur": 3.72
 },
+"Anita|Het is koud.": {
+"src": "anita/het_is_koud_76b004a9.mp3",
+"dur": 1.82
+},
 "Anita|Het is mijn Fjord. Ik haal hem zelf terug.": {
 "src": "anita/het_is_mijn_fjord_ik_haal_hem_ze_1df3cf11.mp3",
 "dur": 2.7
+},
+"Anita|Het klonk goed.": {
+"src": "anita/het_klonk_goed_5f8467e9.mp3",
+"dur": 1.22
+},
+"Anita|Het museum. De Gouden Eierbal.": {
+"src": "anita/het_museum_de_gouden_eierbal_70526a93.mp3",
+"dur": 4.52
 },
 "Anita|Het skûtsje. Tammo, de Eierbal ligt op een boot.": {
 "src": "anita/het_sku_tsje_tammo_de_eierbal_li_033eddc5.mp3",
@@ -431,13 +623,29 @@
 "src": "anita/hier_is_hij_de_gouden_eierbal_7a3099c2.mp3",
 "dur": 2.83
 },
+"Anita|Hier is hij! In een kist. Met een kaartje: \"Foar mem.\"": {
+"src": "anita/hier_is_hij_in_een_kist_met_een__3cdb328e.mp3",
+"dur": 4.27
+},
 "Anita|Hij haalde je in, Tammo. Twee keer. Maar jij stond op het podium.": {
 "src": "anita/hij_haalde_je_in_tammo_twee_keer_358a3822.mp3",
 "dur": 5.27
 },
+"Anita|Hij heeft mijn pas. Hij heeft mijn pas en hij…": {
+"src": "anita/hij_heeft_mijn_pas_hij_heeft_mij_cdca4be2.mp3",
+"dur": 2.93
+},
+"Anita|Hij is nog steeds van jou, hè. Niet van de frietwagen.": {
+"src": "anita/hij_is_nog_steeds_van_jou_he_nie_049e45e0.mp3",
+"dur": 4.11
+},
 "Anita|Hij is weg met de Eierbal. Plan B, Tammo.": {
 "src": "anita/hij_is_weg_met_de_eierbal_plan_b_dc960115.mp3",
 "dur": 2.54
+},
+"Anita|Hij is weg met de bal. Plan B, Tammo.": {
+"src": "anita/hij_is_weg_met_de_bal_plan_b_tam_cdf67fd2.mp3",
+"dur": 2.47
 },
 "Anita|Hij is weg. Met de Eierbal.": {
 "src": "anita/hij_is_weg_met_de_eierbal_39f8f90c.mp3",
@@ -446,6 +654,14 @@
 "Anita|Hij is… leeg.": {
 "src": "anita/hij_is_leeg_2a550bed.mp3",
 "dur": 1.37
+},
+"Anita|Hij kan wel tegen kunst. Als ik naast hem zit.": {
+"src": "anita/hij_kan_wel_tegen_kunst_als_ik_n_36ff338e.mp3",
+"dur": 3.08
+},
+"Anita|Hij komt terug. Hij mist Grunn nu al.": {
+"src": "anita/hij_komt_terug_hij_mist_grunn_nu_c4581a54.mp3",
+"dur": 3.05
 },
 "Anita|Hij kreeg Grunn niet. Op 28 augustus trok hij af, en dat vieren we nog elk jaar: Gronings Ontzet.": {
 "src": "anita/hij_kreeg_grunn_niet_op_28_augus_b9c85ed4.mp3",
@@ -475,6 +691,14 @@
 "src": "anita/hij_wil_niet_frituren_hij_wil_da_b05654e7.mp3",
 "dur": 4.51
 },
+"Anita|Hij. Bedankt. Ons.": {
+"src": "anita/hij_bedankt_ons_425a025f.mp3",
+"dur": 2.16
+},
+"Anita|Hoe wist jij dat hij hier was?": {
+"src": "anita/hoe_wist_jij_dat_hij_hier_was_5e049787.mp3",
+"dur": 1.52
+},
 "Anita|Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.": {
 "src": "anita/hoor_je_dat_heel_de_grote_markt__7fa7e2e6.mp3",
 "dur": 5.42
@@ -483,9 +707,17 @@
 "src": "anita/hou_de_kraam_heel_tegen_het_vuur_be5c5200.mp3",
 "dur": 5.27
 },
+"Anita|Hé! Die staat op de jurytafel!": {
+"src": "anita/he_die_staat_op_de_jurytafel_06e0699c.mp3",
+"dur": 2.74
+},
 "Anita|Hé! Die stond op het podium!": {
 "src": "anita/he_die_stond_op_het_podium_bd96beba.mp3",
 "dur": 1.92
+},
+"Anita|Iedereen is romantischer dan jij.": {
+"src": "anita/iedereen_is_romantischer_dan_jij_d4d4b30b.mp3",
+"dur": 2.21
 },
 "Anita|Iemand die Fries schrijft. En die eerder was dan wij.": {
 "src": "anita/iemand_die_fries_schrijft_en_die_4e105cb5.mp3",
@@ -527,6 +759,10 @@
 "src": "anita/ik_haal_die_ratelaar_jij_houdt_h_d9ca1391.mp3",
 "dur": 3.0
 },
+"Anita|Ik haal jouw auto wel terug. Alleen.": {
+"src": "anita/ik_haal_jouw_auto_wel_terug_alle_ec11f547.mp3",
+"dur": 2.18
+},
 "Anita|Ik heb een traumaheli gevlogen.": {
 "src": "anita/ik_heb_een_traumaheli_gevlogen_b42eadcb.mp3",
 "dur": 2.12
@@ -534,6 +770,10 @@
 "Anita|Ik heb ooit een drone gehad.": {
 "src": "anita/ik_heb_ooit_een_drone_gehad_af5334c8.mp3",
 "dur": 2.01
+},
+"Anita|Ik hou de kraam heel. Jij bakt.": {
+"src": "anita/ik_hou_de_kraam_heel_jij_bakt_84b8f009.mp3",
+"dur": 2.42
 },
 "Anita|Ik huur de boot. Klaas geeft mij korting, hij noemt me meisje.": {
 "src": "anita/ik_huur_de_boot_klaas_geeft_mij__0a4aa963.mp3",
@@ -567,6 +807,10 @@
 "src": "anita/ik_vaar_jij_bent_de_gids_jij_moe_1fe901d1.mp3",
 "dur": 3.94
 },
+"Anita|Ik vlieg die heli. Jij hangt. Als je wilt.": {
+"src": "anita/ik_vlieg_die_heli_jij_hangt_als__e24e51f5.mp3",
+"dur": 3.06
+},
 "Anita|Ik vlieg die heli. Jij krijgt al hoogtevrees op een stoeprand.": {
 "src": "anita/ik_vlieg_die_heli_jij_krijgt_al__2d4251c6.mp3",
 "dur": 3.34
@@ -574,6 +818,10 @@
 "Anita|Ik vlieg. Rotor Roelf denkt dat we een heli kopen. Dat laat ik even zo.": {
 "src": "anita/ik_vlieg_rotor_roelf_denkt_dat_w_816ecbad.mp3",
 "dur": 5.36
+},
+"Anita|Ik vraag het, Tammo. Wil je hangen?": {
+"src": "anita/ik_vraag_het_tammo_wil_je_hangen_e3cbabd0.mp3",
+"dur": 3.0
 },
 "Anita|Ik wacht wel bij Henk. Jij valt in slaap in je koffie.": {
 "src": "anita/ik_wacht_wel_bij_henk_jij_valt_i_7ad1251f.mp3",
@@ -599,6 +847,10 @@
 "src": "anita/in_zaal_3_hangen_lasers_bukken_s_64abc588.mp3",
 "dur": 7.63
 },
+"Anita|Is dat een vraag?": {
+"src": "anita/is_dat_een_vraag_b03323fc.mp3",
+"dur": 1.15
+},
 "Anita|Ja! Hij piept. Achter het station!": {
 "src": "anita/ja_hij_piept_achter_het_station_2bddcd74.mp3",
 "dur": 3.14
@@ -607,13 +859,45 @@
 "src": "anita/ja_alles_voor_e_e_n_eierbal_c4727670.mp3",
 "dur": 2.78
 },
+"Anita|Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders.": {
+"src": "anita/je_biedt_geld_voor_iets_wat_geen_c84908bb.mp3",
+"dur": 4.98
+},
 "Anita|Je doet alles onder druk, Tammo. Daarom werkt het.": {
 "src": "anita/je_doet_alles_onder_druk_tammo_d_2ce7e702.mp3",
 "dur": 3.35
 },
+"Anita|Je doet alles onder druk. Daarom werkt het.": {
+"src": "anita/je_doet_alles_onder_druk_daarom__d4d33ba5.mp3",
+"dur": 2.59
+},
+"Anita|Je neef werkt 's nachts in het museum?": {
+"src": "anita/je_neef_werkt_s_nachts_in_het_mu_c9f1f715.mp3",
+"dur": 2.52
+},
+"Anita|Je opa had drie gestolen fietsen.": {
+"src": "anita/je_opa_had_drie_gestolen_fietsen_caf96674.mp3",
+"dur": 2.27
+},
+"Anita|Je pakte mijn hand in de bocht.": {
+"src": "anita/je_pakte_mijn_hand_in_de_bocht_062769db.mp3",
+"dur": 3.2
+},
+"Anita|Je praatte de hele tijd, aan dat touw.": {
+"src": "anita/je_praatte_de_hele_tijd_aan_dat__bd1ed937.mp3",
+"dur": 4.19
+},
 "Anita|Je was een duif, geen toerist.": {
 "src": "anita/je_was_een_duif_geen_toerist_eca8eb39.mp3",
 "dur": 4.48
+},
+"Anita|Je zei \"doe bist schier\". Tegen de ballon.": {
+"src": "anita/je_zei_doe_bist_schier_tegen_de__561a3198.mp3",
+"dur": 2.9
+},
+"Anita|Je zei net iets.": {
+"src": "anita/je_zei_net_iets_dd310473.mp3",
+"dur": 1.18
 },
 "Anita|Jelle daagt jullie uit voor de Noordelijke Snackprijs op Gronings Ontzet. Winnen jullie, dan houden jullie de Eierbal.": {
 "src": "anita/jelle_daagt_jullie_uit_voor_de_n_94c1b044.mp3",
@@ -651,6 +935,10 @@
 "src": "anita/jij_stuurt_tammo_niet_het_brood_f30be497.mp3",
 "dur": 2.55
 },
+"Anita|Jij stuurt, ik zeg wanneer.": {
+"src": "anita/jij_stuurt_ik_zeg_wanneer_f6514353.mp3",
+"dur": 1.85
+},
 "Anita|Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.": {
 "src": "anita/jouw_dag_is_voorbij_jelle_het_ve_104b62d7.mp3",
 "dur": 3.36
@@ -683,6 +971,14 @@
 "src": "anita/kom_op_geertje_naar_huis_5a4e8cea.mp3",
 "dur": 2.22
 },
+"Anita|Kom. Werk.": {
+"src": "anita/kom_werk_0f1c8fc9.mp3",
+"dur": 1.03
+},
+"Anita|Kon veel minder.": {
+"src": "anita/kon_veel_minder_f21a0177.mp3",
+"dur": 1.15
+},
 "Anita|Koud! Koud, koud, koud. Heerlijk.": {
 "src": "anita/koud_koud_koud_koud_heerlijk_861198ff.mp3",
 "dur": 5.16
@@ -694,6 +990,10 @@
 "Anita|Laatste lichting: nooit. Eindelijk een brievenbus die eerlijk is.": {
 "src": "anita/laatste_lichting_nooit_eindelijk_83b6385b.mp3",
 "dur": 5.52
+},
+"Anita|Lief vandalisme.": {
+"src": "anita/lief_vandalisme_e1edf691.mp3",
+"dur": 2.28
 },
 "Anita|Links de Prinsentuin, uit de zestiende eeuw.": {
 "src": "anita/links_de_prinsentuin_uit_de_zest_a285ca55.mp3",
@@ -707,6 +1007,10 @@
 "src": "anita/links_het_groninger_museum_0c8846cf.mp3",
 "dur": 1.88
 },
+"Anita|Loop de straat door naar Oma Trijntje, bij de Grote Markt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
+"src": "anita/loop_de_straat_door_naar_oma_tri_fbfe6a59.mp3",
+"dur": 7.02
+},
 "Anita|Loop de straat door naar de Vismarkt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
 "src": "anita/loop_de_straat_door_naar_de_vism_523f6a90.mp3",
 "dur": 5.33
@@ -718,6 +1022,14 @@
 "Anita|Mem Terpstra. Jelle z'n moeder. Ze kent Oma Trijntje nog van 1953.": {
 "src": "anita/mem_terpstra_jelle_z_n_moeder_ze_15bcd3d3.mp3",
 "dur": 5.09
+},
+"Anita|Met de auto over de Grote Markt: parasols, kliko's en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.": {
+"src": "anita/met_de_auto_over_de_grote_markt__0c6127ab.mp3",
+"dur": 8.58
+},
+"Anita|Mien jong. Dat duurde twaalf jaar.": {
+"src": "anita/mien_jong_dat_duurde_twaalf_jaar_12be86ca.mp3",
+"dur": 2.79
 },
 "Anita|Mijn Fjord naar Leeuwarden? Niet zonder mij. Nog een keer.": {
 "src": "anita/mijn_fjord_naar_leeuwarden_niet__f466b885.mp3",
@@ -731,6 +1043,14 @@
 "src": "anita/mijn_fjord_hij_stond_hier_nu_sta_eac5d9a2.mp3",
 "dur": 3.36
 },
+"Anita|Mijn pas pint nu voor de pliesie.": {
+"src": "anita/mijn_pas_pint_nu_voor_de_pliesie_fd5c832e.mp3",
+"dur": 2.21
+},
+"Anita|Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand.": {
+"src": "anita/mijn_pas_zit_in_die_automaat_en__cbcd453b.mp3",
+"dur": 6.9
+},
 "Anita|Mijn vriend de duivenkoning.": {
 "src": "anita/mijn_vriend_de_duivenkoning_1b952b25.mp3",
 "dur": 1.99
@@ -738,6 +1058,10 @@
 "Anita|Minder dan in Amsterdam, mevrouw. Veel minder.": {
 "src": "anita/minder_dan_in_amsterdam_mevrouw__efa1ea19.mp3",
 "dur": 2.73
+},
+"Anita|Moi.": {
+"src": "anita/moi_3f8a9d26.mp3",
+"dur": 1.03
 },
 "Anita|Mooi. We kopen hem misschien. Misschien.": {
 "src": "anita/mooi_we_kopen_hem_misschien_miss_6b7c9ddc.mp3",
@@ -767,6 +1091,10 @@
 "src": "anita/nait_soezen_tammo_deurbroezen_59e60b98.mp3",
 "dur": 2.32
 },
+"Anita|Natuurlijk.": {
+"src": "anita/natuurlijk_6079e694.mp3",
+"dur": 1.42
+},
 "Anita|Nee, Tammo. De Domtoren in Utrecht is hoger. Maar d'Olle Grieze is wel de mooiste.": {
 "src": "anita/nee_tammo_de_domtoren_in_utrecht_a1a1428c.mp3",
 "dur": 5.28
@@ -775,6 +1103,14 @@
 "src": "anita/nee_het_is_niet_ingestort_het_ho_00530f99.mp3",
 "dur": 6.66
 },
+"Anita|Nee, je vraagt het niet. Je vraagt nooit iets. Jij zegt nooit iets, Tammo, en dan word je stil en boos op mij.": {
+"src": "anita/nee_je_vraagt_het_niet_je_vraagt_3055f0ca.mp3",
+"dur": 6.97
+},
+"Anita|Nee. Dat was de wind.": {
+"src": "anita/nee_dat_was_de_wind_fd88cfb5.mp3",
+"dur": 2.1
+},
 "Anita|Net als het Gedempte Zuiderdiep, verderop. Waar nu de bussen rijden, voeren vroeger schepen.": {
 "src": "anita/net_als_het_gedempte_zuiderdiep__4920a54f.mp3",
 "dur": 4.95
@@ -782,6 +1118,10 @@
 "Anita|Niemand klaagt. Nou ja: iedereen klaagt, maar in het Gronings.": {
 "src": "anita/niemand_klaagt_nou_ja_iedereen_k_aebc786c.mp3",
 "dur": 5.0
+},
+"Anita|Niemand.": {
+"src": "anita/niemand_a495de6d.mp3",
+"dur": 1.53
 },
 "Anita|Niemand. Raakt. Mijn. Fjord.": {
 "src": "anita/niemand_raakt_mijn_fjord_9d6b3145.mp3",
@@ -803,6 +1143,10 @@
 "src": "anita/nu_komen_hier_vooral_fietsen_bin_da99656a.mp3",
 "dur": 3.34
 },
+"Anita|Nu?": {
+"src": "anita/nu_b53a9e19.mp3",
+"dur": 0.67
+},
 "Anita|Oei. Dat zag de pliesie.": {
 "src": "anita/oei_dat_zag_de_pliesie_1cc8a9bf.mp3",
 "dur": 2.56
@@ -810,6 +1154,10 @@
 "Anita|Oké, luister. Het museum ligt op een eiland in het Verbindingskanaal.": {
 "src": "anita/oke_luister_het_museum_ligt_op_e_13889df0.mp3",
 "dur": 4.77
+},
+"Anita|Om twaalf uur. Drie minuten. Hand.": {
+"src": "anita/om_twaalf_uur_drie_minuten_hand_23636134.mp3",
+"dur": 2.8
 },
 "Anita|Oma Trijntje zou trots zijn.": {
 "src": "anita/oma_trijntje_zou_trots_zijn_12863d90.mp3",
@@ -823,6 +1171,10 @@
 "src": "anita/onze_eigen_fjord_frituur_met_ken_f20cf151.mp3",
 "dur": 4.05
 },
+"Anita|Op de trein naar Ljouwert. Niet zonder mij. Nog een keer.": {
+"src": "anita/op_de_trein_naar_ljouwert_niet_z_1ac1772b.mp3",
+"dur": 4.09
+},
 "Anita|Ossen, Tammo. Het staat er gewoon.": {
 "src": "anita/ossen_tammo_het_staat_er_gewoon_e5941e96.mp3",
 "dur": 2.8
@@ -834,6 +1186,10 @@
 "Anita|Pas op voor de meeuwen. Jelle heeft ze meegenomen uit Harlingen.": {
 "src": "anita/pas_op_voor_de_meeuwen_jelle_hee_830f6886.mp3",
 "dur": 4.55
+},
+"Anita|Pompeblêden. Een Fries. Hij gaat het echt doen.": {
+"src": "anita/pompeble_den_een_fries_hij_gaat__90543b65.mp3",
+"dur": 4.2
 },
 "Anita|Precies. Niemand.": {
 "src": "anita/precies_niemand_a93845ce.mp3",
@@ -867,6 +1223,10 @@
 "src": "anita/rij_m_heel_naar_het_boterdiep_be_53a1f21f.mp3",
 "dur": 4.65
 },
+"Anita|Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.": {
+"src": "anita/rij_hem_heel_naar_het_boterdiep__260c01fa.mp3",
+"dur": 8.11
+},
 "Anita|Rij naar de drukte, zet hem stil en open het luik.": {
 "src": "anita/rij_naar_de_drukte_zet_hem_stil__5c31daaf.mp3",
 "dur": 3.14
@@ -883,6 +1243,14 @@
 "src": "anita/sikkom_kopt_grote_markt_saaier_d_5d3cbfee.mp3",
 "dur": 5.92
 },
+"Anita|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
+"src": "anita/sikkom_kopt_grote_markt_saaier_d_4a166f82.mp3",
+"dur": 7.19
+},
+"Anita|Spijt van de zomer?": {
+"src": "anita/spijt_van_de_zomer_8f53d298.mp3",
+"dur": 2.07
+},
 "Anita|Tammo bakt. Ik hou de kraam heel.": {
 "src": "anita/tammo_bakt_ik_hou_de_kraam_heel_6b87a162.mp3",
 "dur": 2.33
@@ -890,6 +1258,10 @@
 "Anita|Tammo vertelt, ik stuur. Vragen over de geschiedenis mag u gerust aan mij stellen.": {
 "src": "anita/tammo_vertelt_ik_stuur_vragen_ov_01c650e4.mp3",
 "dur": 5.9
+},
+"Anita|Tammo's Escapade is gejat. Op zijn plek staat een klomp. Jelmers chat zag een rode auto bij de Westerhaven.": {
+"src": "anita/tammo_s_escapade_is_gejat_op_zij_e6659ca4.mp3",
+"dur": 7.15
 },
 "Anita|Tammo, sinds wanneer kun jij varen?": {
 "src": "anita/tammo_sinds_wanneer_kun_jij_vare_57f5c842.mp3",
@@ -903,6 +1275,10 @@
 "src": "anita/tammo_970a6793.mp3",
 "dur": 1.37
 },
+"Anita|Tammo. Iedereen luistert.": {
+"src": "anita/tammo_iedereen_luistert_f134cc0b.mp3",
+"dur": 2.05
+},
 "Anita|Tammo. Kijk. Daar, op die ene fatbike.": {
 "src": "anita/tammo_kijk_daar_op_die_ene_fatbi_b9fb1e89.mp3",
 "dur": 2.59
@@ -911,9 +1287,21 @@
 "src": "anita/te_voet_he_de_hele_poelestraat_s_e22a2461.mp3",
 "dur": 5.31
 },
+"Anita|Tegen mij.": {
+"src": "anita/tegen_mij_5ddf28ef.mp3",
+"dur": 2.1
+},
+"Anita|Terpstra. Jelle Terpstra.": {
+"src": "anita/terpstra_jelle_terpstra_78047a5f.mp3",
+"dur": 2.62
+},
 "Anita|Tige tank. Eh… dank je. Ik zeg niks tegen Tammo.": {
 "src": "anita/tige_tank_eh_dank_je_ik_zeg_niks_43e9f571.mp3",
 "dur": 3.23
+},
+"Anita|Trede drie, Tammo.": {
+"src": "anita/trede_drie_tammo_f43429c0.mp3",
+"dur": 2.06
 },
 "Anita|Twaalf keer het einde van de wereld. En we staan er nog. Kon minder.": {
 "src": "anita/twaalf_keer_het_einde_van_de_wer_7fb669da.mp3",
@@ -922,6 +1310,14 @@
 "Anita|Twee grote kerels. Dat zijn Durk en Douwe.": {
 "src": "anita/twee_grote_kerels_dat_zijn_durk__78b66230.mp3",
 "dur": 3.52
+},
+"Anita|Twee grote kerels. Durk en Douwe.": {
+"src": "anita/twee_grote_kerels_durk_en_douwe_89df6b4e.mp3",
+"dur": 3.15
+},
+"Anita|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita's pas erin. De aanhanger bleef achter.": {
+"src": "anita/twee_reuzen_trokken_een_pinautom_5fac08bf.mp3",
+"dur": 7.97
 },
 "Anita|Vaar er met je huurboot achteraan, ga langszij en spring aan boord.": {
 "src": "anita/vaar_er_met_je_huurboot_achteraa_391ea6ed.mp3",
@@ -943,9 +1339,17 @@
 "src": "anita/vierhonderd_daar_koop_je_nog_gee_20a0df35.mp3",
 "dur": 3.15
 },
+"Anita|Vijf woorden.": {
+"src": "anita/vijf_woorden_1cd012de.mp3",
+"dur": 1.09
+},
 "Anita|Vlieg naar het Groninger Museum en zweef boven drie camera's en twee bewakers: dan staan ze op de foto.": {
 "src": "anita/vlieg_naar_het_groninger_museum__d11459ce.mp3",
 "dur": 5.35
+},
+"Anita|Voor de grip.": {
+"src": "anita/voor_de_grip_7a6af210.mp3",
+"dur": 1.27
 },
 "Anita|Voor de sfeer. Eerst de stroomkast, dan de vitrine. En niemand raakt iets aan.": {
 "src": "anita/voor_de_sfeer_eerst_de_stroomkas_031cc24d.mp3",
@@ -963,6 +1367,10 @@
 "src": "anita/wandelaars_met_een_zaklamp_c177150e.mp3",
 "dur": 2.33
 },
+"Anita|Wat?": {
+"src": "anita/wat_8e0c039a.mp3",
+"dur": 0.6
+},
 "Anita|Water tot aan de enkels. Dit is de Groningse Rivièra.": {
 "src": "anita/water_tot_aan_de_enkels_dit_is_d_dbd13a81.mp3",
 "dur": 6.48
@@ -975,9 +1383,17 @@
 "src": "anita/we_hebben_hem_verplaatst_tammo_d_4710baa8.mp3",
 "dur": 3.85
 },
+"Anita|We springen allebei. Voortaan vallen we samen.": {
+"src": "anita/we_springen_allebei_voortaan_val_34d6b143.mp3",
+"dur": 3.48
+},
 "Anita|We varen onder de Herebrug door.": {
 "src": "anita/we_varen_onder_de_herebrug_door_bba73876.mp3",
 "dur": 2.21
+},
+"Anita|We zaten in een auto, Tammo. Met stuur.": {
+"src": "anita/we_zaten_in_een_auto_tammo_met_s_b783c80e.mp3",
+"dur": 2.82
 },
 "Anita|We zijn ze kwijt. Rustig aan nu, niet opvallen.": {
 "src": "anita/we_zijn_ze_kwijt_rustig_aan_nu_n_6be983a4.mp3",
@@ -986,6 +1402,10 @@
 "Anita|We zinken! Eruit, eruit!": {
 "src": "anita/we_zinken_eruit_eruit_ab35cd33.mp3",
 "dur": 2.99
+},
+"Anita|Weer een skûtsje? Laat de chocola deze keer heel, Tammo.": {
+"src": "anita/weer_een_sku_tsje_laat_de_chocol_b5511977.mp3",
+"dur": 4.24
 },
 "Anita|Weet je wat daar voor mij in die vitrine stond, Tammo? Een foodtruck. Mijn Fjord Frituur.": {
 "src": "anita/weet_je_wat_daar_voor_mij_in_die_dba05e11.mp3",
@@ -1023,6 +1443,10 @@
 "src": "anita/ze_houdt_ons_bij_niet_te_hard_he_bd8354a1.mp3",
 "dur": 2.67
 },
+"Anita|Ze staat op de Grote Markt, Jelle. Bij de jury. Geef maar.": {
+"src": "anita/ze_staat_op_de_grote_markt_jelle_9332559c.mp3",
+"dur": 3.69
+},
 "Anita|Zeg dat maar niet te hard. Hier zijn ze trots op hun eigen grachten.": {
 "src": "anita/zeg_dat_maar_niet_te_hard_hier_z_3d5aeba9.mp3",
 "dur": 4.07
@@ -1039,9 +1463,41 @@
 "src": "anita/zie_je_die_vijf_gele_knopen_tamm_1d4d1e71.mp3",
 "dur": 3.47
 },
+"Anita|Zie je. Daar kun je op rekenen.": {
+"src": "anita/zie_je_daar_kun_je_op_rekenen_1b8c1e53.mp3",
+"dur": 2.89
+},
+"Anita|Zijn moeder wil hem niet eens? Waarom doet hij het dan?": {
+"src": "anita/zijn_moeder_wil_hem_niet_eens_wa_bfc3d165.mp3",
+"dur": 4.65
+},
 "Anita|Zwaai maar. Ze zwaaien terug. Of ze gooien een brood.": {
 "src": "anita/zwaai_maar_ze_zwaaien_terug_of_z_0bdce3dd.mp3",
 "dur": 3.28
+},
+"Anita|…Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.": {
+"src": "anita/dat_is_het_liefste_wat_iemand_oo_214bfd94.mp3",
+"dur": 5.24
+},
+"Anita|…Er komt een politieauto aan. Instappen.": {
+"src": "anita/er_komt_een_politieauto_aan_inst_4ede8b87.mp3",
+"dur": 4.56
+},
+"Anita|…Ga je dit nu doen? Nu?": {
+"src": "anita/ga_je_dit_nu_doen_nu_7c19590e.mp3",
+"dur": 1.57
+},
+"Anita|…Het bod viel tegen.": {
+"src": "anita/het_bod_viel_tegen_a34073c6.mp3",
+"dur": 2.44
+},
+"Anita|…Ja.": {
+"src": "anita/ja_f13ec633.mp3",
+"dur": 1.04
+},
+"Anita|…Ja. Nog eentje dan.": {
+"src": "anita/ja_nog_eentje_dan_743a7a1e.mp3",
+"dur": 1.58
 },
 "Anita|…Nee. Hij hoort in Grunn.": {
 "src": "anita/nee_hij_hoort_in_grunn_30013314.mp3",
@@ -1055,6 +1511,78 @@
 "src": "anita/welk_alarm_5917994b.mp3",
 "dur": 1.76
 },
+"Anita|…moi.": {
+"src": "anita/moi_3090f8a2.mp3",
+"dur": 0.55
+},
+"Berend Bos|De Noordelijke Snackprijs gaat naar Grunn. De bal blijft in Stad. En op het bordje in het museum komt een tweede naam: Gerda Terpstra, 1953.": {
+"src": "berend_bos/de_noordelijke_snackprijs_gaat_n_81a784a9.mp3",
+"dur": 9.31
+},
+"Berend Bos|Dit hoort niet bij het naspel.": {
+"src": "berend_bos/dit_hoort_niet_bij_het_naspel_0e80684a.mp3",
+"dur": 2.03
+},
+"Berend Bos|Elk jaar hetzelfde. Ik word er niet jonger op. Ik zit ook in de jury. Ik proef, ik tel, ik oordeel.": {
+"src": "berend_bos/elk_jaar_hetzelfde_ik_word_er_ni_873ea553.mp3",
+"dur": 7.44
+},
+"Berend Bos|En daarna elke week. Wie rijdt er voor mij?": {
+"src": "berend_bos/en_daarna_elke_week_wie_rijdt_er_8594b764.mp3",
+"dur": 3.77
+},
+"Berend Bos|Goidag.": {
+"src": "berend_bos/goidag_47ed4320.mp3",
+"dur": 0.82
+},
+"Berend Bos|Goud. …Valt mie nait of.": {
+"src": "berend_bos/goud_valt_mie_nait_of_87183de9.mp3",
+"dur": 1.72
+},
+"Berend Bos|Grunn! Geef je over!": {
+"src": "berend_bos/grunn_geef_je_over_ae48bca8.mp3",
+"dur": 1.65
+},
+"Berend Bos|Ik heb gisteren alle krassen geteld. Nul. Zo blijft het.": {
+"src": "berend_bos/ik_heb_gisteren_alle_krassen_get_362679db.mp3",
+"dur": 3.34
+},
+"Berend Bos|Ik proef, ik tel, ik oordeel. …Kon minder.": {
+"src": "berend_bos/ik_proef_ik_tel_ik_oordeel_kon_m_4a440296.mp3",
+"dur": 3.34
+},
+"Berend Bos|Ik schrijf de gemeente er wel een brief over.": {
+"src": "berend_bos/ik_schrijf_de_gemeente_er_wel_ee_1a561132.mp3",
+"dur": 2.42
+},
+"Berend Bos|Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus.": {
+"src": "berend_bos/overdrijf_niet_er_was_hier_trouw_a238b37f.mp3",
+"dur": 8.31
+},
+"Berend Bos|Rikus. Berend, Schildersbuurt. Mijn bakkie moet naar het Boterdiep, naar mijn zus. En je mag met de auto niet meer door het centrum, sinds 1977. Ik heb een brief gestuurd.": {
+"src": "berend_bos/rikus_berend_schildersbuurt_mijn_d5389762.mp3",
+"dur": 9.78
+},
+"Berend Bos|Veertig jaar speel ik hem, op het Ontzet. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.": {
+"src": "berend_bos/veertig_jaar_speel_ik_hem_op_het_43f28d37.mp3",
+"dur": 7.73
+},
+"Berend Bos|Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.": {
+"src": "berend_bos/wat_moet_een_fries_met_ons_ze_ko_c0f826bb.mp3",
+"dur": 5.3
+},
+"Berend Bos|Weer nul krassen. Ik begin het je bijna te gunnen.": {
+"src": "berend_bos/weer_nul_krassen_ik_begin_het_je_40b9da81.mp3",
+"dur": 2.81
+},
+"Berend Bos|…Braid noar de zin. …Kon minder.": {
+"src": "berend_bos/braid_noar_de_zin_kon_minder_021ef108.mp3",
+"dur": 2.8
+},
+"Berend Bos|…Goud.": {
+"src": "berend_bos/goud_bbfe1874.mp3",
+"dur": 0.98
+},
 "Boer Hindrik|Doar achter is niks meer, mien jong. Doar holdt de wereld op. Ik heb t zulf zain.": {
 "src": "boer_hindrik/doar_achter_is_niks_meer_mien_jo_f56bb12a.mp3",
 "dur": 4.61
@@ -1066,6 +1594,14 @@
 "Boer Roelf|Kon minder.": {
 "src": "boer_roelf/kon_minder_00d23d62.mp3",
 "dur": 0.77
+},
+"Boer Roelf|Stad wil altijd onze spullen. Vroeger graan, nu stilte en lucht.": {
+"src": "boer_roelf/stad_wil_altijd_onze_spullen_vro_881a409a.mp3",
+"dur": 4.64
+},
+"Boer Roelf|…Ja. Kon minder. In de melkbus. Doar zuukt gain Fries noar.": {
+"src": "boer_roelf/ja_kon_minder_in_de_melkbus_doar_b7f477f2.mp3",
+"dur": 4.12
 },
 "Boerin Geesje|Eet smakelk! En nait alles in ain moal, hè.": {
 "src": "boerin_geesje/eet_smakelk_en_nait_alles_in_ain_fedb8520.mp3",
@@ -1103,6 +1639,10 @@
 "src": "dokter_dijkstra/die_fries_is_geland_in_een_weila_999f2629.mp3",
 "dur": 5.92
 },
+"Dokter Dijkstra|Die Fries is geland in een weiland bij Ten Boer. Tussen de koeien. Hij was niet blij. De koeien ook niet.": {
+"src": "dokter_dijkstra/die_fries_is_geland_in_een_weila_28c7f2e7.mp3",
+"dur": 5.43
+},
 "Dokter Dijkstra|Dit stond niet in het rooster. …Ach. Een Grunneger noodgeval. Stap maar in.": {
 "src": "dokter_dijkstra/dit_stond_niet_in_het_rooster_ac_e7493422.mp3",
 "dur": 4.31
@@ -1111,13 +1651,29 @@
 "src": "dokter_dijkstra/een_grunneger_noodgeval_daar_heb_f28241a8.mp3",
 "dur": 4.71
 },
+"Dokter Dijkstra|Ik leen niks uit. Ik doe een spoedeisende duif.": {
+"src": "dokter_dijkstra/ik_leen_niks_uit_ik_doe_een_spoe_4a98d239.mp3",
+"dur": 3.08
+},
 "Dokter Dijkstra|Jullie willen met mijn traumaheli achter een ballon aan? Dit is een ziekenhuis, geen kermis.": {
 "src": "dokter_dijkstra/jullie_willen_met_mijn_traumahel_a05cadc9.mp3",
 "dur": 5.47
 },
+"Dokter Dijkstra|Rikus. Dijkstra, UMCG. Ik hoor dat er een Grunneger noodgeval is. Het staat niet in het rooster.": {
+"src": "dokter_dijkstra/rikus_dijkstra_umcg_ik_hoor_dat__a243f0ca.mp3",
+"dur": 6.08
+},
+"Dokter Dijkstra|Weer een spoedeisende duif? Ik zet het deze keer in het rooster.": {
+"src": "dokter_dijkstra/weer_een_spoedeisende_duif_ik_ze_528a6602.mp3",
+"dur": 4.1
+},
 "Dokter Dijkstra|Zij vliegt, hij hangt aan het touw. Hoogte en snelheid gelijk houden met de mand.": {
 "src": "dokter_dijkstra/zij_vliegt_hij_hangt_aan_het_tou_53199b16.mp3",
 "dur": 4.71
+},
+"Dokter Dijkstra|Zij vliegt. Hij hangt.": {
+"src": "dokter_dijkstra/zij_vliegt_hij_hangt_2128bd19.mp3",
+"dur": 1.69
 },
 "Dokter Dijkstra|Zo. Mijn heli heeft nog nooit iets zo waardevols vervoerd. Op een wethouder na.": {
 "src": "dokter_dijkstra/zo_mijn_heli_heeft_nog_nooit_iet_d6eece8c.mp3",
@@ -1219,6 +1775,10 @@
 "src": "douwe/draait_50a0f80a.mp3",
 "dur": 1.22
 },
+"Douwe|…los.": {
+"src": "douwe/los_c76fc87e.mp3",
+"dur": 0.51
+},
 "Douwe|…zwaaien.": {
 "src": "douwe/zwaaien_6a627934.mp3",
 "dur": 1.5
@@ -1255,21 +1815,53 @@
 "src": "duivenmelker_bert/kiek_die_duiven_luuster_n_noar_d_4e02acc9.mp3",
 "dur": 2.64
 },
+"Duivenmelker Bert|Kiek. Een keudeldoemke. Hij luustert noar dij, jong.": {
+"src": "duivenmelker_bert/kiek_een_keudeldoemke_hij_luuste_08d1629f.mp3",
+"dur": 3.02
+},
 "Duivenmelker Bert|Kon minder, jong.": {
 "src": "duivenmelker_bert/kon_minder_jong_06b2d862.mp3",
 "dur": 1.12
+},
+"Duivenmelker Bert|Niemand kijkt naar een duif. Behalve als hij op je jas poept.": {
+"src": "duivenmelker_bert/niemand_kijkt_naar_een_duif_beha_aa3107b7.mp3",
+"dur": 3.69
 },
 "Duivenmelker Bert|Niemand kijkt ooit naar een duif. Alleen als hij op je jas poept.": {
 "src": "duivenmelker_bert/niemand_kijkt_ooit_naar_een_duif_8a1b9007.mp3",
 "dur": 4.53
 },
+"Duivenmelker Bert|Rikus. Bert, duivenmelker, Stationsplein. Er staat elke nacht een zwarte trekker bij het museum, met een limousine erachter. Mijn duiven worden er zenuwachtig van.": {
+"src": "duivenmelker_bert/rikus_bert_duivenmelker_stations_ad5a9228.mp3",
+"dur": 10.96
+},
+"Duivenmelker Bert|Van boven. Met een duif. Ik ken alleen niemand die duiven spreekt.": {
+"src": "duivenmelker_bert/van_boven_met_een_duif_ik_ken_al_b9e204c4.mp3",
+"dur": 4.05
+},
 "Duivenmelker Bert|Vijf touwen houden hem vast. Een duif met een scherpe snavel pikt ze zo los.": {
 "src": "duivenmelker_bert/vijf_touwen_houden_hem_vast_een__89f2395f.mp3",
 "dur": 5.61
 },
+"Duivenmelker Bert|Vijf touwen. Een duif met een scherpe snavel.": {
+"src": "duivenmelker_bert/vijf_touwen_een_duif_met_een_sch_5bd20253.mp3",
+"dur": 4.06
+},
+"Duivenmelker Bert|Weer iets aan de toren? Fluiten maar, jong.": {
+"src": "duivenmelker_bert/weer_iets_aan_de_toren_fluiten_m_639d3f93.mp3",
+"dur": 3.13
+},
+"Duivenmelker Bert|Zo. De duivenkoning is weer aan het werk.": {
+"src": "duivenmelker_bert/zo_de_duivenkoning_is_weer_aan_h_34135f15.mp3",
+"dur": 3.96
+},
 "Durk|Baas zegt: geen vet, geen eierbal op Gronings Ontzet.": {
 "src": "durk/baas_zegt_geen_vet_geen_eierbal__321371f9.mp3",
 "dur": 6.14
+},
+"Durk|Baas zegt: jij bent de duif. Maar eerst bier. Vanavond, de Poelestraat. Net fertelle, hè?": {
+"src": "durk/baas_zegt_jij_bent_de_duif_maar__3b2f0799.mp3",
+"dur": 7.42
 },
 "Durk|Baas zegt: jij bent de duif. Wij moeten jou volgen.": {
 "src": "durk/baas_zegt_jij_bent_de_duif_wij_m_217be2e7.mp3",
@@ -1307,6 +1899,10 @@
 "src": "durk/de_baas_zegt_geen_vet_geen_eierb_063109d6.mp3",
 "dur": 6.68
 },
+"Durk|De bal… leit op it skûtsje. Hik. En mem… mem wil hem niet eens.": {
+"src": "durk/de_bal_leit_op_it_sku_tsje_hik_e_dc91886f.mp3",
+"dur": 7.46
+},
 "Durk|Douwe! Daar is de duif. Met de bal!": {
 "src": "durk/douwe_daar_is_de_duif_met_de_bal_c3b0519f.mp3",
 "dur": 3.89
@@ -1334,6 +1930,10 @@
 "Durk|Douwe. Daar komt ien aan.": {
 "src": "durk/douwe_daar_komt_ien_aan_9a9e1d2f.mp3",
 "dur": 2.1
+},
+"Durk|Douwe. Hij is los.": {
+"src": "durk/douwe_hij_is_los_2c22348f.mp3",
+"dur": 3.05
 },
 "Durk|Douwe… alles draait.": {
 "src": "durk/douwe_alles_draait_11cf7e05.mp3",
@@ -1387,9 +1987,21 @@
 "src": "durk/u_s_motor_hij_is_stil_ddbfce6a.mp3",
 "dur": 2.74
 },
+"Femke|Blijven jullie kijken?": {
+"src": "femke/blijven_jullie_kijken_db4f48dc.mp3",
+"dur": 1.05
+},
+"Femke|Breekbaar. Het is een stuk over wind.": {
+"src": "femke/breekbaar_het_is_een_stuk_over_w_4000f699.mp3",
+"dur": 3.46
+},
 "Femke|Daar rijdt hij! De tankwagen van Us Mem Vet, vol met al het frituurvet van Grunn.": {
 "src": "femke/daar_rijdt_hij_de_tankwagen_van__87df4c02.mp3",
 "dur": 5.93
+},
+"Femke|Dat klinkt als theater, Rikus.": {
+"src": "femke/dat_klinkt_als_theater_rikus_a703b34d.mp3",
+"dur": 2.14
 },
 "Femke|Dat zijn ze! Die twee van de groothandel!": {
 "src": "femke/dat_zijn_ze_die_twee_van_de_groo_d226962c.mp3",
@@ -1403,6 +2015,14 @@
 "src": "femke/gelukkig_jullie_zijn_er_het_deco_6ecae4b6.mp3",
 "dur": 4.9
 },
+"Femke|Heel! Bijna heel. En bij de groothandel: twee reuzen met een klomp vol geld. Ze kochten al het frituurvet van Stad. \"Us Mem Vet\" stond op de tankwagen.": {
+"src": "femke/heel_bijna_heel_en_bij_de_grooth_6b4625bb.mp3",
+"dur": 10.52
+},
+"Femke|Het decor moet weer gisteren al staan. Het is altijd gisteren bij Noorderzon.": {
+"src": "femke/het_decor_moet_weer_gisteren_al__b2e6aa44.mp3",
+"dur": 4.74
+},
 "Femke|Het vet is terug! De frituurpannen gaan weer aan. Ik ruik het al.": {
 "src": "femke/het_vet_is_terug_de_frituurpanne_948c3416.mp3",
 "dur": 3.96
@@ -1410,6 +2030,10 @@
 "Femke|O, en vanochtend bij de groothandel: twee reuzen op één fatbike. Ze kochten al het frituurvet op. Alles.": {
 "src": "femke/o_en_vanochtend_bij_de_groothand_9b003c6e.mp3",
 "dur": 6.88
+},
+"Femke|Rikus! Femke, Noorderzon. Het decor moest gisteren al staan. En iedereen die vandaag voor mij rijdt, heeft gisteravond decor gebouwd. Bij mij. Tot laat.": {
+"src": "femke/rikus_femke_noorderzon_het_decor_c77ffe06.mp3",
+"dur": 8.43
 },
 "Femke|Ze hadden een tankwagen. \"Us Mem Vet\" stond erop.": {
 "src": "femke/ze_hadden_een_tankwagen_us_mem_v_b5edc28b.mp3",
@@ -1419,9 +2043,21 @@
 "src": "femke/zonder_vet_bakt_er_straks_nieman_01dc3c30.mp3",
 "dur": 5.06
 },
+"Geert|Rikus. Geert, Poelestraat. Er zitten twee Friese reuzen aan mijn bar en ze zingen al een uur. Ik zoek iemand die vier kroegen doet, om ze bij te houden.": {
+"src": "geert/rikus_geert_poelestraat_er_zitte_f0ec34e8.mp3",
+"dur": 9.39
+},
 "Geert|Trouwens: die grote aan de bar zingt al een uur Friese liedjes. Die van de tweeling.": {
 "src": "geert/trouwens_die_grote_aan_de_bar_zi_c7676f04.mp3",
 "dur": 5.17
+},
+"Geert|Vier kroegen, één avond, alles te voet. En Anita: mijn nieuwe barman wil heel graag je nummer.": {
+"src": "geert/vier_kroegen_e_e_n_avond_alles_t_41372117.mp3",
+"dur": 6.94
+},
+"Geert|Vier kroegen? Nog eentje dan.": {
+"src": "geert/vier_kroegen_nog_eentje_dan_140c592f.mp3",
+"dur": 2.54
 },
 "Geesje (Radio Grunn)|Dan het verkeer.": {
 "src": "geesje_radio_grunn/dan_het_verkeer_8dcbdfea.mp3",
@@ -1479,9 +2115,25 @@
 "src": "geesje_radio_grunn/rikus_van_nachtstreek_stuurde_on_59d2268d.mp3",
 "dur": 2.37
 },
+"Harm|De laatste fase. Weer. Ik kom elke keer kijken.": {
+"src": "harm/de_laatste_fase_weer_ik_kom_elke_2b679eaf.mp3",
+"dur": 2.87
+},
 "Harm|Eén ding nog: die zwarte trekker op de grid. Dat is een Fries. Hij heeft zich ingeschreven als sponsor.": {
 "src": "harm/ee_n_ding_nog_die_zwarte_trekker_b6109712.mp3",
 "dur": 5.98
+},
+"Harm|Hij ligt er! Ik ga met pensioen! Eindelijk mag ik er zelf overheen!": {
+"src": "harm/hij_ligt_er_ik_ga_met_pensioen_e_80cd957d.mp3",
+"dur": 4.27
+},
+"Harm|Rikus. Harm, wegwerker. Twintig jaar Ring Zuid. Vandaag is het echt de laatste fase. Ik wil dat iemand erop rijdt voordat ze weer iets bedenken.": {
+"src": "harm/rikus_harm_wegwerker_twintig_jaa_760c59ca.mp3",
+"dur": 9.1
+},
+"Harm|Vorig jaar was het de voorlaatste.": {
+"src": "harm/vorig_jaar_was_het_de_voorlaatst_ff33ef1a.mp3",
+"dur": 2.15
 },
 "Harm|Wij zijn hier sinds 2019 bezig. Nog even, dan is het af. Of wij.": {
 "src": "harm/wij_zijn_hier_sinds_2019_bezig_n_dc6ff6b8.mp3",
@@ -1490,6 +2142,10 @@
 "Henk|Blijf maar even hangen. Koffie staat achterin.": {
 "src": "henk/blijf_maar_even_hangen_koffie_st_b25d55cb.mp3",
 "dur": 2.14
+},
+"Henk|Eén. Het is geen Ontzet. En ik vraag niet waarom jullie in het zwart zijn.": {
+"src": "henk/ee_n_het_is_geen_ontzet_en_ik_vr_6ae0a313.mp3",
+"dur": 4.29
 },
 "Henk|Jong, ik hoor je Escapade tot hier rammelen! Kom even langs, dan maak ik hem weer heel.": {
 "src": "henk/jong_ik_hoor_je_escapade_tot_hie_d1bd24a7.mp3",
@@ -1514,6 +2170,14 @@
 "Henk|Jong, je fiets heeft er een paar karaktertrekjes bij. Kom even langs, dan maak ik hem weer heel.": {
 "src": "henk/jong_je_fiets_heeft_er_een_paar__81edb5ce.mp3",
 "dur": 5.19
+},
+"Henk|Kovvie mit kouke?": {
+"src": "henk/kovvie_mit_kouke_5d407eb5.mp3",
+"dur": 1.19
+},
+"Henk|Om twaalf uur 's nachts.": {
+"src": "henk/om_twaalf_uur_s_nachts_7d2cdc67.mp3",
+"dur": 1.43
 },
 "Henk|Volg de roze lijn op je kaart, dan sta je zo bij mij. Tot zo!": {
 "src": "henk/volg_de_roze_lijn_op_je_kaart_da_550fcbc1.mp3",
@@ -1546,6 +2210,14 @@
 "Jelle Terpstra|Better as dat wurdt it net, Grinzer.": {
 "src": "jelle_terpstra/better_as_dat_wurdt_it_net_grinz_ab2c5782.mp3",
 "dur": 4.27
+},
+"Jelle Terpstra|Better as ús. Net fertelle.": {
+"src": "jelle_terpstra/better_as_u_s_net_fertelle_11dc9b50.mp3",
+"dur": 2.15
+},
+"Jelle Terpstra|Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4: de trofee gaat naar wie op Gronings Ontzet wint. Ik heb hem alvast meegenomen. Dat scheelt een rit.": {
+"src": "jelle_terpstra/daarom_bel_ik_reglement_van_de_n_66b915fd.mp3",
+"dur": 10.78
 },
 "Jelle Terpstra|Dan is dit in hele grote plas.": {
 "src": "jelle_terpstra/dan_is_dit_in_hele_grote_plas_64afbc93.mp3",
@@ -1615,6 +2287,10 @@
 "src": "jelle_terpstra/de_wyn_is_frysk_hjoed_6a4f9dcd.mp3",
 "dur": 3.08
 },
+"Jelle Terpstra|Details. Geef me de bal, en op het Ontzet bak ik gewoon tegen jullie. Eerlijk.": {
+"src": "jelle_terpstra/details_geef_me_de_bal_en_op_het_747654b3.mp3",
+"dur": 5.71
+},
 "Jelle Terpstra|Deze brug is van mij. En de volgende ek.": {
 "src": "jelle_terpstra/deze_brug_is_van_mij_en_de_volge_b6c3b1e3.mp3",
 "dur": 3.31
@@ -1630,6 +2306,10 @@
 "Jelle Terpstra|Die gaat de lucht in. Fan'e jûn, met een ballon.": {
 "src": "jelle_terpstra/die_gaat_de_lucht_in_fan_e_ju_n__4251f8c4.mp3",
 "dur": 3.39
+},
+"Jelle Terpstra|Dit is net klear, Grinzer.": {
+"src": "jelle_terpstra/dit_is_net_klear_grinzer_e6e5a6d3.mp3",
+"dur": 2.19
 },
 "Jelle Terpstra|Dit is net klear, Grinzer. Op Gronings Ontzet sjogge wy wol wa't it hurdst giet.": {
 "src": "jelle_terpstra/dit_is_net_klear_grinzer_op_gron_c2bba58d.mp3",
@@ -1655,6 +2335,10 @@
 "src": "jelle_terpstra/dizze_is_foar_frysla_n_bf462a8f.mp3",
 "dur": 1.59
 },
+"Jelle Terpstra|Doe de groeten aan de pet. Wij moeten eens hardrijden, op jullie ringweg. As dat jild der is.": {
+"src": "jelle_terpstra/doe_de_groeten_aan_de_pet_wij_mo_43556407.mp3",
+"dur": 5.87
+},
 "Jelle Terpstra|Dy giet de loft yn. Fan'e jûn, mei in ballon.": {
 "src": "jelle_terpstra/dy_giet_de_loft_yn_fan_e_ju_n_me_13146dcb.mp3",
 "dur": 3.06
@@ -1678,6 +2362,10 @@
 "Jelle Terpstra|Elf bruggen. Jullie waren beter. Hjoed.": {
 "src": "jelle_terpstra/elf_bruggen_jullie_waren_beter_h_c674289d.mp3",
 "dur": 3.02
+},
+"Jelle Terpstra|En geen vet, geen Grinzer aan de start. Oant sjen op it Ontset!": {
+"src": "jelle_terpstra/en_geen_vet_geen_grinzer_aan_de__3c29f0a7.mp3",
+"dur": 5.4
 },
 "Jelle Terpstra|Fan de Oosterhaven nei de Hoge der A. Wa't earst oankomt!": {
 "src": "jelle_terpstra/fan_de_oosterhaven_nei_de_hoge_d_a0294281.mp3",
@@ -1718,6 +2406,10 @@
 "Jelle Terpstra|Gas derop! Of is dat in trapfyts?": {
 "src": "jelle_terpstra/gas_derop_of_is_dat_in_trapfyts_94b41bea.mp3",
 "dur": 2.79
+},
+"Jelle Terpstra|Gezellig programma. Jullie zijn net een groot dorp.": {
+"src": "jelle_terpstra/gezellig_programma_jullie_zijn_n_74e496f8.mp3",
+"dur": 2.94
 },
 "Jelle Terpstra|Goed farre, hear. Net fertelle yn Snits.": {
 "src": "jelle_terpstra/goed_farre_hear_net_fertelle_yn__054bf1e7.mp3",
@@ -1771,6 +2463,10 @@
 "src": "jelle_terpstra/ien_twa_trije_fuort_a2a11fcf.mp3",
 "dur": 2.7
 },
+"Jelle Terpstra|Ik ben een redelijk man. Jullie hebben iets wat van mem is.": {
+"src": "jelle_terpstra/ik_ben_een_redelijk_man_jullie_h_7f6c78f9.mp3",
+"dur": 3.52
+},
 "Jelle Terpstra|Ik bin Fries. Wy binne altyd goed wiis.": {
 "src": "jelle_terpstra/ik_bin_fries_wy_binne_altyd_goed_1af1cd25.mp3",
 "dur": 4.49
@@ -1790,6 +2486,10 @@
 "Jelle Terpstra|Ik stean yn in greide by Ten Boer. Mei kij. Dit is noch net klear, Grinzers.": {
 "src": "jelle_terpstra/ik_stean_yn_in_greide_by_ten_boe_257ed370.mp3",
 "dur": 6.2
+},
+"Jelle Terpstra|Ik woe him allinnich oan mem jaan. Foar de útslach.": {
+"src": "jelle_terpstra/ik_woe_him_allinnich_oan_mem_jaa_bb5d49cd.mp3",
+"dur": 2.63
 },
 "Jelle Terpstra|In echte skûtsjesiler hat gjin motor nedich. Wyn en fakmanskip.": {
 "src": "jelle_terpstra/in_echte_sku_tsjesiler_hat_gjin__7fdd2d3f.mp3",
@@ -1863,6 +2563,10 @@
 "src": "jelle_terpstra/mei_in_eigen_auto_hear_as_dat_ji_9e824707.mp3",
 "dur": 3.28
 },
+"Jelle Terpstra|Mem moet hem zien. Vóór de uitslag. Ik bin sa werom!": {
+"src": "jelle_terpstra/mem_moet_hem_zien_vo_o_r_de_uits_1c919467.mp3",
+"dur": 3.18
+},
 "Jelle Terpstra|Met een eigen auto, hear. As dat jild der is.": {
 "src": "jelle_terpstra/met_een_eigen_auto_hear_as_dat_j_1acf019a.mp3",
 "dur": 2.79
@@ -1907,6 +2611,10 @@
 "src": "jelle_terpstra/moai_grinzer_hjir_is_jelle_wy_mo_d43ee088.mp3",
 "dur": 4.77
 },
+"Jelle Terpstra|Moai, Grinzer. Onze echte derby is tegen Cambuur. Jullie zijn een uitje. Wie wint, mag famke een eierbal geven.": {
+"src": "jelle_terpstra/moai_grinzer_onze_echte_derby_is_8b7cc71c.mp3",
+"dur": 8.96
+},
 "Jelle Terpstra|Moai, Grinzers! Alve brêgen, ien rûntsje Diepenring. Wa't earst werom is, wint.": {
 "src": "jelle_terpstra/moai_grinzers_alve_bre_gen_ien_r_7db814ea.mp3",
 "dur": 6.5
@@ -1926,6 +2634,10 @@
 "Jelle Terpstra|Moai, Grinzers! Hjir is Jelle. Jelle Terpstra, fan Us Mem Snacks.": {
 "src": "jelle_terpstra/moai_grinzers_hjir_is_jelle_jell_03676684.mp3",
 "dur": 5.53
+},
+"Jelle Terpstra|Moai, Grinzers! Kijk eens omhoog. Foar mem.": {
+"src": "jelle_terpstra/moai_grinzers_kijk_eens_omhoog_f_b8143cd9.mp3",
+"dur": 3.61
 },
 "Jelle Terpstra|Moai, Grinzers! Kijk eens omhoog. Wat een aardich tuorke, no.": {
 "src": "jelle_terpstra/moai_grinzers_kijk_eens_omhoog_w_477cecca.mp3",
@@ -1995,6 +2707,10 @@
 "src": "jelle_terpstra/moai_grinzers_revanche_elf_brugg_a6187ff6.mp3",
 "dur": 8.1
 },
+"Jelle Terpstra|Moai, Rikus. Jelle Terpstra, van Us Mem Snacks. Ik wil een groet doen aan twee mensen in een museum.": {
+"src": "jelle_terpstra/moai_rikus_jelle_terpstra_van_us_0c2f084d.mp3",
+"dur": 6.67
+},
 "Jelle Terpstra|Moai. Sa'n gouden aaibal… dy heart eins yn Fryslân.": {
 "src": "jelle_terpstra/moai_sa_n_gouden_aaibal_dy_heart_42ee4f67.mp3",
 "dur": 5.08
@@ -2051,6 +2767,10 @@
 "src": "jelle_terpstra/oefenje_mar_grinzers_ik_wachtsje_a91ac101.mp3",
 "dur": 2.91
 },
+"Jelle Terpstra|Omdat het een gezellig programma is.": {
+"src": "jelle_terpstra/omdat_het_een_gezellig_programma_94783919.mp3",
+"dur": 2.19
+},
 "Jelle Terpstra|Plons! Swimme kinne jimme teminsten.": {
 "src": "jelle_terpstra/plons_swimme_kinne_jimme_teminst_0d7c2a55.mp3",
 "dur": 3.02
@@ -2058,6 +2778,18 @@
 "Jelle Terpstra|Plons! Zwemmen kunnen jullie teminsten.": {
 "src": "jelle_terpstra/plons_zwemmen_kunnen_jullie_temi_0ec110b3.mp3",
 "dur": 2.41
+},
+"Jelle Terpstra|Rikus. Dat vet was van mij. No ja. Ik heb meer. Doe de groeten aan famke in het rood. Hij niet.": {
+"src": "jelle_terpstra/rikus_dat_vet_was_van_mij_no_ja__aae20753.mp3",
+"dur": 6.47
+},
+"Jelle Terpstra|Rikus. De echte gaat vanavond de lucht in, met een ballon. Ik wil dat mem hem van boven ziet aankomen. En een ballon kun je niet kapen.": {
+"src": "jelle_terpstra/rikus_de_echte_gaat_vanavond_de__17e0b99b.mp3",
+"dur": 8.31
+},
+"Jelle Terpstra|Rikus. Ik doe een bod. Op de radio, dan is het officieel. Genoeg voor tien frietwagens, voor de bal. Kom naar het Stadsbalkon.": {
+"src": "jelle_terpstra/rikus_ik_doe_een_bod_op_de_radio_cfff3d99.mp3",
+"dur": 7.6
 },
 "Jelle Terpstra|Sa silet in Fries! Moai oan de wyn.": {
 "src": "jelle_terpstra/sa_silet_in_fries_moai_oan_de_wy_495658ef.mp3",
@@ -2102,6 +2834,10 @@
 "Jelle Terpstra|Te betiid los. Dat zie ik van hier.": {
 "src": "jelle_terpstra/te_betiid_los_dat_zie_ik_van_hie_00c28cfe.mp3",
 "dur": 2.35
+},
+"Jelle Terpstra|Tegen? Dit is meer dan…": {
+"src": "jelle_terpstra/tegen_dit_is_meer_dan_d30ff74f.mp3",
+"dur": 3.06
 },
 "Jelle Terpstra|Tige tank foar it lienen fan de auto. Hy riedt better as myn trekker. Net fertelle.": {
 "src": "jelle_terpstra/tige_tank_foar_it_lienen_fan_de__36259703.mp3",
@@ -2151,6 +2887,10 @@
 "src": "jelle_terpstra/wachtsje_efkes_myn_motor_is_noch_54795ac9.mp3",
 "dur": 2.89
 },
+"Jelle Terpstra|Wat dan?": {
+"src": "jelle_terpstra/wat_dan_28497e59.mp3",
+"dur": 0.58
+},
 "Jelle Terpstra|Wie heeft mijn flagge…? In DUIF?! Ik weet wel wie die duif is.": {
 "src": "jelle_terpstra/wie_heeft_mijn_flagge_in_duif_ik_9ec18682.mp3",
 "dur": 4.42
@@ -2191,6 +2931,22 @@
 "src": "jelle_terpstra/zwaaien_jongens_oant_sjen_op_gro_97589144.mp3",
 "dur": 3.63
 },
+"Jelle Terpstra|…Tige tank.": {
+"src": "jelle_terpstra/tige_tank_986842dd.mp3",
+"dur": 1.08
+},
+"Jelle Terpstra|…Valt mie nait of.": {
+"src": "jelle_terpstra/valt_mie_nait_of_22bcb4b3.mp3",
+"dur": 1.34
+},
+"Jelle Terpstra|…We bakken op het Ontzet. Wie wint, krijgt de bal.": {
+"src": "jelle_terpstra/we_bakken_op_het_ontzet_wie_wint_e6eef5d1.mp3",
+"dur": 3.75
+},
+"Jelmer|\"En dat famke yn it read: sa'n leaf gesicht.\"": {
+"src": "jelmer/en_dat_famke_yn_it_read_sa_n_lea_a59a1fa7.mp3",
+"dur": 2.76
+},
 "Jelmer|Chat gaat los! Tienduizend hartjes voor de Fjord!": {
 "src": "jelmer/chat_gaat_los_tienduizend_hartje_6b91e30b.mp3",
 "dur": 3.25
@@ -2203,9 +2959,41 @@
 "src": "jelmer/chat_zegt_een_rode_auto_bij_de_w_ce5e2b9d.mp3",
 "dur": 4.2
 },
+"Jelmer|Chat, hij is er weer! De man zonder content! Niemand raken, hè!": {
+"src": "jelmer/chat_hij_is_er_weer_de_man_zonde_3d1cb7f9.mp3",
+"dur": 4.78
+},
+"Jelmer|Chat, iedereen heeft weer een rode auto gezien!": {
+"src": "jelmer/chat_iedereen_heeft_weer_een_rod_c95cb863.mp3",
+"dur": 3.25
+},
+"Jelmer|Die zijn het publiek! Niemand raken, wel laten schrikken!": {
+"src": "jelmer/die_zijn_het_publiek_niemand_rak_93870f81.mp3",
+"dur": 3.26
+},
 "Jelmer|Moi moi chat! De Fjord van Anita is foetsie! Wie hem ziet, zet het in de chat!": {
 "src": "jelmer/moi_moi_chat_de_fjord_van_anita__163f01db.mp3",
 "dur": 4.77
+},
+"Jelmer|Moi moi chat! Dik feest vandaag! Zomeravond op de Grote Markt!": {
+"src": "jelmer/moi_moi_chat_dik_feest_vandaag_z_bd05190e.mp3",
+"dur": 4.73
+},
+"Jelmer|Niemand raken! Alleen spullen. Spullen zijn content.": {
+"src": "jelmer/niemand_raken_alleen_spullen_spu_b9beed43.mp3",
+"dur": 2.29
+},
+"Jelmer|Rikus! De Escapade van Tammo is foetsie! De chat ziet overal rode auto's!": {
+"src": "jelmer/rikus_de_escapade_van_tammo_is_f_24d37ffb.mp3",
+"dur": 4.26
+},
+"Jelmer|Rikus! Jelmer. Sikkom zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!": {
+"src": "jelmer/rikus_jelmer_sikkom_zegt_dat_de__9ff1182e.mp3",
+"dur": 7.74
+},
+"Jelmer|Tienduizend kijkers! En kijk: \"JelleWâld\" in de chat. \"Groot Loug. Moai foar in wykein.\"": {
+"src": "jelmer/tienduizend_kijkers_en_kijk_jell_b8fafe1c.mp3",
+"dur": 5.89
 },
 "Jelmer|Wacht, wie is \"JelleWâld\"? \"Moai stedsje. Foar in wykein.\" Wat is dat voor taal?": {
 "src": "jelmer/wacht_wie_is_jellewa_ld_moai_ste_0009ea98.mp3",
@@ -2214,6 +3002,26 @@
 "Kapitein Klaas|En kijk even naar de Oosterhaven. Daar ligt sinds gisteren een Fries skûtsje. Mooi ding. Rare bemanning.": {
 "src": "kapitein_klaas/en_kijk_even_naar_de_oosterhaven_6da14c11.mp3",
 "dur": 6.78
+},
+"Kapitein Klaas|Ik vis al dertig jaar fietsen uit de Diepenring. Ik mag alles.": {
+"src": "kapitein_klaas/ik_vis_al_dertig_jaar_fietsen_ui_080198c3.mp3",
+"dur": 4.22
+},
+"Kapitein Klaas|Jullie varen, ik kijk de andere kant op. Wie is niemand? Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.": {
+"src": "kapitein_klaas/jullie_varen_ik_kijk_de_andere_k_304d084b.mp3",
+"dur": 7.88
+},
+"Kapitein Klaas|Proeksel, jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon.": {
+"src": "kapitein_klaas/proeksel_jongens_ik_heb_net_twee_0b08464c.mp3",
+"dur": 6.08
+},
+"Kapitein Klaas|Rikus. Klaas. Ik heb een rondvaartboot die even van niemand is. En in de Oosterhaven ligt een skûtsje. Rare bemanning: groot en nat.": {
+"src": "kapitein_klaas/rikus_klaas_ik_heb_een_rondvaart_8493fc28.mp3",
+"dur": 9.37
+},
+"Kind|Nee!": {
+"src": "kind/nee_de85bdcd.mp3",
+"dur": 1.02
 },
 "Koe Aaltje|Ik heb het gezien. Ik zeg niks.": {
 "src": "koe_aaltje/ik_heb_het_gezien_ik_zeg_niks_910e23de.mp3",
@@ -2311,6 +3119,10 @@
 "src": "mem_terpstra/anita_famke_met_mij_myn_jonges_h_5c5cfd74.mp3",
 "dur": 4.49
 },
+"Mem Terpstra|Omdat mijn zoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.": {
+"src": "mem_terpstra/omdat_mijn_zoon_gekke_dingen_doe_ba3d0020.mp3",
+"dur": 11.89
+},
 "Mem Terpstra|Op de trein naar Ljouwert, fan'e middei. Net fertelle dat ik belde.": {
 "src": "mem_terpstra/op_de_trein_naar_ljouwert_fan_e__109d7dff.mp3",
 "dur": 3.75
@@ -2318,6 +3130,18 @@
 "Mem Terpstra|Priuw, jonge.": {
 "src": "mem_terpstra/priuw_jonge_dd8250ed.mp3",
 "dur": 1.14
+},
+"Mem Terpstra|Rikus. Gerda Terpstra, Ljouwert. Myn soan hat dy reade auto op de trein nei Ljouwert set. Zeg tegen dat famke: perron 3.": {
+"src": "mem_terpstra/rikus_gerda_terpstra_ljouwert_my_1de0d781.mp3",
+"dur": 9.29
+},
+"Mem Terpstra|Sjochst? Dat wie alles wat ik woe. Priuw, jonge.": {
+"src": "mem_terpstra/sjochst_dat_wie_alles_wat_ik_woe_a8f323b1.mp3",
+"dur": 3.2
+},
+"Mem Terpstra|Trijntje. Dat duurde lang.": {
+"src": "mem_terpstra/trijntje_dat_duurde_lang_ab6a3674.mp3",
+"dur": 1.86
 },
 "Molenaar Fenna|Doar ligt t Reitdiep. Vroeger voeren ze zo noar zee. Nou voaren d'r allent nog toeristen.": {
 "src": "molenaar_fenna/doar_ligt_t_reitdiep_vroeger_voe_f373447a.mp3",
@@ -2355,13 +3179,93 @@
 "src": "oma_geessien/mooi_he_hier_kiek_ik_al_veertig__9e2b3f60.mp3",
 "dur": 5.35
 },
+"Oma Trijntje|1953. Ik won met mijn eierbal. Die handjes om de bal op die foto zijn van mij. Tweede werd een Fries meisje: Gerda Terpstra.": {
+"src": "oma_trijntje/1953_ik_won_met_mijn_eierbal_die_395cf4f6.mp3",
+"dur": 10.89
+},
+"Oma Trijntje|Al jaren. Maar ik wilde het één keer hóren, jong. Eén keer is genoeg.": {
+"src": "oma_trijntje/al_jaren_maar_ik_wilde_het_e_e_n_d7f5895b.mp3",
+"dur": 5.61
+},
+"Oma Trijntje|Daarom mag je ze ook ontwijken.": {
+"src": "oma_trijntje/daarom_mag_je_ze_ook_ontwijken_acbe46e7.mp3",
+"dur": 1.98
+},
+"Oma Trijntje|Dan eet je hem al vierendertig jaar te weinig.": {
+"src": "oma_trijntje/dan_eet_je_hem_al_vierendertig_j_dad9cfc5.mp3",
+"dur": 3.14
+},
+"Oma Trijntje|De twee die het niet zeggen. Je weet best wie.": {
+"src": "oma_trijntje/de_twee_die_het_niet_zeggen_je_w_7646b439.mp3",
+"dur": 2.7
+},
 "Oma Trijntje|Die bal is gien geld, jong. Die bal is Grunn. En Grunn geeft nooit op.": {
 "src": "oma_trijntje/die_bal_is_gien_geld_jong_die_ba_400b492d.mp3",
 "dur": 5.68
 },
+"Oma Trijntje|Die bal is gien geld, jong. Die bal is Grunn. En jij: één zin, hè. Niet zeventig jaar.": {
+"src": "oma_trijntje/die_bal_is_gien_geld_jong_die_ba_c28dcac6.mp3",
+"dur": 6.64
+},
+"Oma Trijntje|Eet je krentjebrij.": {
+"src": "oma_trijntje/eet_je_krentjebrij_72421ef7.mp3",
+"dur": 1.37
+},
+"Oma Trijntje|Eieren heel? Dan komt het goud.": {
+"src": "oma_trijntje/eieren_heel_dan_komt_het_goud_ab18a8cf.mp3",
+"dur": 2.3
+},
+"Oma Trijntje|En bel Gerda Terpstra voor me.": {
+"src": "oma_trijntje/en_bel_gerda_terpstra_voor_me_bed4af0c.mp3",
+"dur": 2.43
+},
 "Oma Trijntje|En nog iets, nu jullie toch zo dapper zijn. In 1953 stond ik model voor die Gouden Eierbal. Die handjes eromheen: die zijn van mij.": {
 "src": "oma_trijntje/en_nog_iets_nu_jullie_toch_zo_da_d9e30544.mp3",
 "dur": 10.42
+},
+"Oma Trijntje|Gerda. Jouw eierbal was beter. In 1953.": {
+"src": "oma_trijntje/gerda_jouw_eierbal_was_beter_in__cf246a7b.mp3",
+"dur": 4.51
+},
+"Oma Trijntje|Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet.": {
+"src": "oma_trijntje/haar_eierbal_was_beter_ik_wist_h_501ad5b0.mp3",
+"dur": 6.41
+},
+"Oma Trijntje|Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.": {
+"src": "oma_trijntje/haar_zoon_zeker_ik_heb_het_nooit_1281350a.mp3",
+"dur": 8.85
+},
+"Oma Trijntje|Hest weer veur 'n ander? Dat was geen compliment, jong.": {
+"src": "oma_trijntje/hest_weer_veur_n_ander_dat_was_g_3f4b300c.mp3",
+"dur": 3.92
+},
+"Oma Trijntje|Ik ben Gronings. Wij zeggen het één keer. Dan is het waar.": {
+"src": "oma_trijntje/ik_ben_gronings_wij_zeggen_het_e_78e0c4b7.mp3",
+"dur": 4.03
+},
+"Oma Trijntje|Ik ben tweeënnegentig. Alles is nu.": {
+"src": "oma_trijntje/ik_ben_tweee_nnegentig_alles_is__fdd929b6.mp3",
+"dur": 3.38
+},
+"Oma Trijntje|Loop jij daar heelhuids overheen, jong, dan vertel ik je iets over die bal.": {
+"src": "oma_trijntje/loop_jij_daar_heelhuids_overheen_498d3495.mp3",
+"dur": 4.35
+},
+"Oma Trijntje|Mosterd, eieren, stoetbrood. Grove mosterd, niet dat zoete spul.": {
+"src": "oma_trijntje/mosterd_eieren_stoetbrood_grove__cde89d68.mp3",
+"dur": 5.87
+},
+"Oma Trijntje|Niet tegen haar.": {
+"src": "oma_trijntje/niet_tegen_haar_fb98be77.mp3",
+"dur": 1.14
+},
+"Oma Trijntje|Niet. Hij zei: \"Woist ja wel.\"": {
+"src": "oma_trijntje/niet_hij_zei_woist_ja_wel_b403ed56.mp3",
+"dur": 2.95
+},
+"Oma Trijntje|Rikus. Trijntje. Die fatbikes rijden over de stoep alsof Stad van hen is. Stuur die twee.": {
+"src": "oma_trijntje/rikus_trijntje_die_fatbikes_rijd_a1d2f3cc.mp3",
+"dur": 7.26
 },
 "Ome Jan|Geertje stait weer op stal. Doe mor rustig an.": {
 "src": "ome_jan/geertje_stait_weer_op_stal_doe_m_7a1862f4.mp3",
@@ -2411,9 +3315,33 @@
 "src": "radio_nachtstreek/voor_wie_op_de_dijk_rijdt_en_voo_bc2fe483.mp3",
 "dur": 5.41
 },
+"Rikus|'t Het nog nooit zo donker west, of 't wer altied wel weer licht.": {
+"src": "rikus/t_het_nog_nooit_zo_donker_west_o_0c12c9ac.mp3",
+"dur": 3.89
+},
 "Rikus|Achtentwintig augustus. Gronings Ontzet. In 1672 hield Grunn Bommen Berend buiten de stad.": {
 "src": "verteller/achtentwintig_augustus_gronings__553f903d.mp3",
 "dur": 8.46
+},
+"Rikus|Achtentwintig augustus. Gronings Ontzet. In 1672 hield Stad een bisschop buiten.": {
+"src": "rikus/achtentwintig_augustus_gronings__2e7dda33.mp3",
+"dur": 7.05
+},
+"Rikus|Behalve in de fietstunnel. Die is er nog niet. 2029, zeggen ze. Bijna.": {
+"src": "rikus/behalve_in_de_fietstunnel_die_is_b0f6f1c7.mp3",
+"dur": 5.25
+},
+"Rikus|Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen.": {
+"src": "rikus/berend_stuurde_een_brief_hij_wil_02d95dd5.mp3",
+"dur": 5.28
+},
+"Rikus|Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede. Dat is nog nooit gebeurd.": {
+"src": "rikus/berend_zegt_niks_meer_hij_heeft__58935050.mp3",
+"dur": 5.32
+},
+"Rikus|Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs.": {
+"src": "rikus/bij_de_vismarkt_staat_een_blauwe_ab2092de.mp3",
+"dur": 6.73
 },
 "Rikus|Chocola. Soms is de nep het beste nieuws van de hele dag.": {
 "src": "verteller/chocola_soms_is_de_nep_het_beste_80ff95e1.mp3",
@@ -2427,9 +3355,21 @@
 "src": "verteller/de_gouden_eierbal_staat_weer_in__7ed92c77.mp3",
 "dur": 6.59
 },
+"Rikus|De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en met twee namen op het bordje.": {
+"src": "rikus/de_gouden_eierbal_staat_weer_in__ad534942.mp3",
+"dur": 5.66
+},
 "Rikus|De buren hebben je al gezien. Zwaai maar even.": {
 "src": "verteller/de_buren_hebben_je_al_gezien_zwa_c577f4ba.mp3",
 "dur": 2.53
+},
+"Rikus|De fietstunnel-update: 2031. Hij is bijna klaar. En ik sta morgen vooraan. Tweede friet is voor mij.": {
+"src": "rikus/de_fietstunnel_update_2031_hij_i_3f4471b7.mp3",
+"dur": 7.06
+},
+"Rikus|De torenwachter belde: \"Lange rij bij de Vismarkt. Ik meld alleen.\"": {
+"src": "rikus/de_torenwachter_belde_lange_rij__3b4db009.mp3",
+"dur": 3.94
 },
 "Rikus|De tweede dan. Ik betaal. Voor één keer.": {
 "src": "rikus/de_tweede_dan_ik_betaal_voor_e_e_c62374c3.mp3",
@@ -2447,13 +3387,33 @@
 "src": "verteller/dertig_meter_fries_doek_aan_de_t_af4d5766.mp3",
 "dur": 5.42
 },
+"Rikus|Dertig meter Fries doek, aan de trots van Grunn. Onderaan, in grote letters: foar mem.": {
+"src": "rikus/dertig_meter_fries_doek_aan_de_t_54068ee2.mp3",
+"dur": 6.8
+},
+"Rikus|Dit is erger dan de fietstunnel.": {
+"src": "rikus/dit_is_erger_dan_de_fietstunnel_9e78c04c.mp3",
+"dur": 2.05
+},
+"Rikus|Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi.": {
+"src": "rikus/dit_is_voor_twee_stadjers_ze_zeg_2e2c708a.mp3",
+"dur": 4.28
+},
 "Rikus|Dit jaar staat er gewoon een Berend op de Grote Markt. Als voorzitter van de jury.": {
 "src": "verteller/dit_jaar_staat_er_gewoon_een_ber_66f5ef20.mp3",
 "dur": 5.59
 },
+"Rikus|Dokter, leen je een heli uit?": {
+"src": "rikus/dokter_leen_je_een_heli_uit_a20ed2c8.mp3",
+"dur": 2.49
+},
 "Rikus|Een duif pikte zijn vlag van d'Olle Grieze, en in de kroeg verklapte een dronken Durk het skûtsje.": {
 "src": "verteller/een_duif_pikte_zijn_vlag_van_d_o_b7a5b8e9.mp3",
 "dur": 5.39
+},
+"Rikus|Een duif pikte zijn vlag van d'Olle Grieze. Er stond op: foar mem.": {
+"src": "rikus/een_duif_pikte_zijn_vlag_van_d_o_66c2244c.mp3",
+"dur": 4.5
 },
 "Rikus|Een groet aan een dame in Stad die steeds appt met Friesland. Haar vriend weet van niks. Nou: nu wel.": {
 "src": "rikus/een_groet_aan_een_dame_in_stad_d_373d3eef.mp3",
@@ -2463,6 +3423,18 @@
 "src": "rikus/een_groet_aan_mijn_oude_buurjong_d6f1cedb.mp3",
 "dur": 6.04
 },
+"Rikus|Een luisteraar meldt een trekker in de Herestraat, om half acht 's ochtends. Ik zeg niks. Fietsen mag daar overdag ook niet.": {
+"src": "rikus/een_luisteraar_meldt_een_trekker_526bd147.mp3",
+"dur": 8.86
+},
+"Rikus|Een luisteraar uit Haren stemde nee. Hij woont niet in Stad, zegt hij.": {
+"src": "rikus/een_luisteraar_uit_haren_stemde__7cfc4b26.mp3",
+"dur": 3.85
+},
+"Rikus|Een terrasgast belt: \"Ik zat net op de Grote Markt en ik ben nat. Het was de beste avond van mijn zomer.\" Dank je wel.": {
+"src": "rikus/een_terrasgast_belt_ik_zat_net_o_0927e212.mp3",
+"dur": 6.79
+},
 "Rikus|Een wierde. Hier gooiden ze een bult op tegen de zee, eeuwen voor de dijken.": {
 "src": "rikus/een_wierde_hier_gooiden_ze_een_b_c8987a70.mp3",
 "dur": 5.09
@@ -2471,9 +3443,17 @@
 "src": "verteller/eerder_in_gte_vi_jelle_terpstra__e4215a2b.mp3",
 "dur": 6.62
 },
+"Rikus|Eerder in GTE VI. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.": {
+"src": "rikus/eerder_in_gte_vi_jelle_kocht_al__5819918c.mp3",
+"dur": 7.55
+},
 "Rikus|Eerder in GTE VI. Twee Stadjers zonder cent, en één droom op vier wielen: Anita's Fjord Frituur.": {
 "src": "verteller/eerder_in_gte_vi_twee_stadjers_z_e469c49a.mp3",
 "dur": 7.72
+},
+"Rikus|Eerder in GTE VI. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.": {
+"src": "rikus/eerder_in_gte_vi_twee_stadjers_z_49dc9a52.mp3",
+"dur": 6.93
 },
 "Rikus|Elke straat een schilder. Elke buur een mening.": {
 "src": "verteller/elke_straat_een_schilder_elke_bu_d147e45b.mp3",
@@ -2483,6 +3463,14 @@
 "src": "verteller/en_hier_bij_het_martinikerkhof_b_eff86d61.mp3",
 "dur": 7.08
 },
+"Rikus|En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald.": {
+"src": "rikus/en_ik_heb_de_tweede_friet_hij_he_c23f7319.mp3",
+"dur": 4.67
+},
+"Rikus|En op Nachtstreek belde een Fries. Jelle Terpstra. Hij wil hem eerlijk winnen, op Gronings Ontzet.": {
+"src": "rikus/en_op_nachtstreek_belde_een_frie_614782a4.mp3",
+"dur": 6.21
+},
 "Rikus|En op Sikkom lachte een Fries in een blauw colbert. Jelle Terpstra. Operaasje Aaibal was begonnen.": {
 "src": "verteller/en_op_sikkom_lachte_een_fries_in_495208a7.mp3",
 "dur": 7.14
@@ -2491,13 +3479,41 @@
 "src": "verteller/en_op_de_rondvaartboot_kusten_ze_a9319c9d.mp3",
 "dur": 5.83
 },
+"Rikus|En op de rondvaartboot zeiden ze moi. Allebei. Ik zeg niks.": {
+"src": "rikus/en_op_de_rondvaartboot_zeiden_ze_361a7f9e.mp3",
+"dur": 3.56
+},
+"Rikus|En voor Tammo, als je luistert: ze zegt nooit \"kom\" tegen iemand die ze niet mee wil hebben. Doe er wat mee.": {
+"src": "rikus/en_voor_tammo_als_je_luistert_ze_06076b90.mp3",
+"dur": 6.82
+},
 "Rikus|En zo werden twee dieven, ergens tussen de mosterd en het stoetbrood, gewoon twee Stadjers.": {
 "src": "verteller/en_zo_werden_twee_dieven_ergens__09d1b85e.mp3",
 "dur": 5.56
 },
+"Rikus|Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist.": {
+"src": "rikus/er_is_iets_gestolen_dat_niemand__3d79044a.mp3",
+"dur": 4.33
+},
 "Rikus|Er schijnt in Stad een jongen te zijn naar wie de duiven luisteren. Ik ken hem. Naar mij luistert hij nooit.": {
 "src": "rikus/er_schijnt_in_stad_een_jongen_te_40f83f96.mp3",
 "dur": 5.64
+},
+"Rikus|Femke, dat klinkt als een alibi.": {
+"src": "rikus/femke_dat_klinkt_als_een_alibi_27fc19b2.mp3",
+"dur": 2.11
+},
+"Rikus|Geen beller vanavond. Twee vrienden van me zijn een museum gaan \"bekijken\". Ik zeg niks. Ik draai drie minuten stilte.": {
+"src": "rikus/geen_beller_vanavond_twee_vriend_e02e0efa.mp3",
+"dur": 7.82
+},
+"Rikus|Geen beller. Ik bel zelf. Het skûtsje gooit los. Ik zeg niks. Ik zet mijn koptelefoon op.": {
+"src": "rikus/geen_beller_ik_bel_zelf_het_sku__56719765.mp3",
+"dur": 5.87
+},
+"Rikus|Geert, dat is geen klus. Dat is een avond.": {
+"src": "rikus/geert_dat_is_geen_klus_dat_is_ee_a19470b8.mp3",
+"dur": 2.87
 },
 "Rikus|Genoemd naar helden. De bewoners doen hun best.": {
 "src": "verteller/genoemd_naar_helden_de_bewoners__e5654fdf.mp3",
@@ -2507,9 +3523,17 @@
 "src": "rikus/goedenavond_op_de_stille_weg_hie_0cdec72d.mp3",
 "dur": 7.61
 },
+"Rikus|Groot Loug, Jelle. Dat mogen alleen wij zeggen.": {
+"src": "rikus/groot_loug_jelle_dat_mogen_allee_a3b0e08f.mp3",
+"dur": 3.15
+},
 "Rikus|Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet.": {
 "src": "verteller/grunn_tweehonderdduizend_mensen__fb045b2f.mp3",
 "dur": 6.79
+},
+"Rikus|Harm, dat zei je vorig jaar ook.": {
+"src": "rikus/harm_dat_zei_je_vorig_jaar_ook_817987d4.mp3",
+"dur": 1.95
 },
 "Rikus|Het hart van Grunn. Klopt het hardst na middernacht.": {
 "src": "verteller/het_hart_van_grunn_klopt_het_har_061c6f2e.mp3",
@@ -2531,6 +3555,10 @@
 "src": "verteller/het_plan_was_simpel_de_gouden_ei_9e048f2a.mp3",
 "dur": 7.77
 },
+"Rikus|Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is op.": {
+"src": "rikus/het_ruikt_naar_suiker_dat_komt_u_d8afd717.mp3",
+"dur": 3.63
+},
 "Rikus|Het waait hier altijd. Ook als het niet waait.": {
 "src": "verteller/het_waait_hier_altijd_ook_als_he_fa8c6676.mp3",
 "dur": 2.29
@@ -2547,9 +3575,37 @@
 "src": "rikus/hoeft_ook_niet_ik_zeg_het_vannac_9364f522.mp3",
 "dur": 5.79
 },
+"Rikus|Iedereen heeft een rode auto gezien. Ik ook. Ik heb er zelf een.": {
+"src": "rikus/iedereen_heeft_een_rode_auto_gez_42b1f365.mp3",
+"dur": 3.84
+},
 "Rikus|Iedereen komt hier aan. Niet iedereen gaat weer weg.": {
 "src": "verteller/iedereen_komt_hier_aan_niet_iede_73d0c3a7.mp3",
 "dur": 3.19
+},
+"Rikus|Ik heb een bericht van een vaste beller. Voor de pet.": {
+"src": "rikus/ik_heb_een_bericht_van_een_vaste_8f397787.mp3",
+"dur": 3.07
+},
+"Rikus|Ik heb een jingle gemaakt: \"De duivenfluisteraar van het Oosterpark.\" Tammo, ik weet dat je luistert. Zeg het nou eens tegen haar.": {
+"src": "rikus/ik_heb_een_jingle_gemaakt_de_dui_416fdb75.mp3",
+"dur": 8.47
+},
+"Rikus|Ik ken iemand.": {
+"src": "rikus/ik_ken_iemand_b4c91262.mp3",
+"dur": 0.87
+},
+"Rikus|Ik ken twee mensen die het altijd druk maken. Ook als dat niet hoeft. Niemand raken, hè, Jelmer.": {
+"src": "rikus/ik_ken_twee_mensen_die_het_altij_af46836d.mp3",
+"dur": 5.98
+},
+"Rikus|Ik wel.": {
+"src": "rikus/ik_wel_9d5b70e9.mp3",
+"dur": 0.5
+},
+"Rikus|In 1977?": {
+"src": "rikus/in_1977_82c870a7.mp3",
+"dur": 1.89
 },
 "Rikus|In het Groninger Museum staat sinds 1953 het stadsjuweel: de Gouden Eierbal. Achttien karaat. Onbetaalbaar.": {
 "src": "verteller/in_het_groninger_museum_staat_si_7b1f8198.mp3",
@@ -2558,6 +3614,18 @@
 "Rikus|Jelle Terpstra proefde op de Grote Markt zijn eerste echte Groninger eierbal.": {
 "src": "verteller/jelle_terpstra_proefde_op_de_gro_ddd4f1fd.mp3",
 "dur": 5.37
+},
+"Rikus|Jelle, ben jij nu een vaste beller?": {
+"src": "rikus/jelle_ben_jij_nu_een_vaste_belle_4d5c845b.mp3",
+"dur": 2.2
+},
+"Rikus|Jelle. Je bent live.": {
+"src": "rikus/jelle_je_bent_live_f0d63fed.mp3",
+"dur": 1.46
+},
+"Rikus|Klaas, mag dat?": {
+"src": "rikus/klaas_mag_dat_fb8bb1b2.mp3",
+"dur": 1.24
 },
 "Rikus|Koeien, sloten en een horizon. Verder niks. Heerlijk.": {
 "src": "verteller/koeien_sloten_en_een_horizon_ver_49683977.mp3",
@@ -2571,6 +3639,22 @@
 "src": "verteller/maar_niet_iedereen_in_grunn_heef_7f2f2deb.mp3",
 "dur": 3.97
 },
+"Rikus|Met tegenwind?": {
+"src": "rikus/met_tegenwind_cc1f336b.mp3",
+"dur": 0.83
+},
+"Rikus|Mevrouw Terpstra, waarom helpt u ons?": {
+"src": "rikus/mevrouw_terpstra_waarom_helpt_u__13cc0d20.mp3",
+"dur": 2.53
+},
+"Rikus|Moi, Grunn. Nachtstreek, in het daglicht. Ik voel me een vleermuis.": {
+"src": "rikus/moi_grunn_nachtstreek_in_het_dag_567a1e20.mp3",
+"dur": 5.15
+},
+"Rikus|Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens.": {
+"src": "rikus/moi_nachtstreek_het_laatste_uur__cf796f48.mp3",
+"dur": 8.15
+},
 "Rikus|Moi, Tammo. Ik hoor dat jullie op Gronings Ontzet gaan bakken. Ik sta vooraan.": {
 "src": "rikus/moi_tammo_ik_hoor_dat_jullie_op__85cd9c8a.mp3",
 "dur": 5.62
@@ -2582,6 +3666,14 @@
 "Rikus|Moi. Hier kent iedereen elkaar, dus doe een beetje normaal.": {
 "src": "verteller/moi_hier_kent_iedereen_elkaar_du_1e256d78.mp3",
 "dur": 3.39
+},
+"Rikus|Moi. Nachtstreek, het laatste kwartier.": {
+"src": "rikus/moi_nachtstreek_het_laatste_kwar_ceaa4a87.mp3",
+"dur": 2.89
+},
+"Rikus|Morgen gooit er een skûtsje los in de Oosterhaven. Ik zeg daar niks over.": {
+"src": "rikus/morgen_gooit_er_een_sku_tsje_los_cadda2bc.mp3",
+"dur": 4.22
 },
 "Rikus|Muziek, kroegen en altijd wel ergens herrie.": {
 "src": "verteller/muziek_kroegen_en_altijd_wel_erg_0df5a748.mp3",
@@ -2599,6 +3691,10 @@
 "src": "verteller/oma_trijntje_stond_in_1953_model_2091a892.mp3",
 "dur": 7.28
 },
+"Rikus|Oma Trijntje vertelde over 1953. Over Gerda Terpstra. Zeventig jaar trots, in één zin.": {
+"src": "rikus/oma_trijntje_vertelde_over_1953__647a77c7.mp3",
+"dur": 6.98
+},
 "Rikus|Op elke hoek een snackbar. Grunn op z’n best.": {
 "src": "verteller/op_elke_hoek_een_snackbar_grunn__e6a1329f.mp3",
 "dur": 3.22
@@ -2606,6 +3702,26 @@
 "Rikus|Parkeren kost hier meer dan je auto.": {
 "src": "verteller/parkeren_kost_hier_meer_dan_je_a_9a094179.mp3",
 "dur": 1.68
+},
+"Rikus|Peiling gesloten.": {
+"src": "rikus/peiling_gesloten_b355a130.mp3",
+"dur": 1.42
+},
+"Rikus|Peiling, Woist ja wel: hij pakte haar hand in een auto met stuur. Ja: 88 procent.": {
+"src": "rikus/peiling_woist_ja_wel_hij_pakte_h_20bc8109.mp3",
+"dur": 6.55
+},
+"Rikus|Peiling, Woist ja wel: ze remden allebei voor elkaar, op een kruispunt waar alles groen was. Ja: 74 procent.": {
+"src": "rikus/peiling_woist_ja_wel_ze_remden_a_386ca7c1.mp3",
+"dur": 8.66
+},
+"Rikus|Peiling, Woist ja wel: …ik krijg net een foto binnen van een rondvaartboot. Ik zeg niks. De peiling is gesloten.": {
+"src": "rikus/peiling_woist_ja_wel_ik_krijg_ne_fe46a593.mp3",
+"dur": 6.69
+},
+"Rikus|Peiling: was Tammo net jaloers op een chatbericht? Ja: 61 procent. \"Ken ik ja nait roeken\": 27 procent.": {
+"src": "rikus/peiling_was_tammo_net_jaloers_op_8f326124.mp3",
+"dur": 9.12
 },
 "Rikus|Radio Nachtstreek, live vanaf het einde van de wereld. Het bereik is hier prima. Er staat ook niks in de weg.": {
 "src": "rikus/radio_nachtstreek_live_vanaf_het_21a1889a.mp3",
@@ -2627,6 +3743,14 @@
 "src": "verteller/stoer_eerlijk_en_met_de_fiets_to_8a05ff2a.mp3",
 "dur": 3.53
 },
+"Rikus|Storingsbericht: achttien bruggen in storing. Niemand merkt verschil.": {
+"src": "rikus/storingsbericht_achttien_bruggen_5014774d.mp3",
+"dur": 4.41
+},
+"Rikus|Storingsbericht: de Krolbrug is in storing.": {
+"src": "rikus/storingsbericht_de_krolbrug_is_i_ad1ffb0e.mp3",
+"dur": 3.35
+},
 "Rikus|Tammo! Rikus hier. Heel Grunn heeft het over een duif die een Friese vlag van de toren pikte.": {
 "src": "rikus/tammo_rikus_hier_heel_grunn_heef_5315c8ed.mp3",
 "dur": 7.01
@@ -2638,6 +3762,10 @@
 "Rikus|Van de beloning kwam de Fjord Frituur. Vier wielen, geen kenteken, en een rij tot aan d'Olle Grieze.": {
 "src": "verteller/van_de_beloning_kwam_de_fjord_fr_9a96dc54.mp3",
 "dur": 7.1
+},
+"Rikus|Vandaag staat er weer een Berend op de Grote Markt, in kostuum, en hij verliest weer. Net als in 1672.": {
+"src": "rikus/vandaag_staat_er_weer_een_berend_bcaa7420.mp3",
+"dur": 7.92
 },
 "Rikus|Voetbal, kantoren en een hoop glas.": {
 "src": "verteller/voetbal_kantoren_en_een_hoop_gla_9a12857c.mp3",
@@ -2659,13 +3787,49 @@
 "src": "rikus/voor_wie_op_de_dijk_rijdt_en_voo_c4565eba.mp3",
 "dur": 4.41
 },
+"Rikus|Waarom vertel je dat, Jelle?": {
+"src": "rikus/waarom_vertel_je_dat_jelle_c47e0920.mp3",
+"dur": 1.33
+},
+"Rikus|Wat dan?": {
+"src": "rikus/wat_dan_68b122a0.mp3",
+"dur": 0.44
+},
+"Rikus|Wat? Dat weet je zelf wel. Woist ja wel.": {
+"src": "rikus/wat_dat_weet_je_zelf_wel_woist_j_fb5f113b.mp3",
+"dur": 2.36
+},
+"Rikus|We hebben een beller. Uit… Ljouwert?": {
+"src": "rikus/we_hebben_een_beller_uit_ljouwer_c539d517.mp3",
+"dur": 2.56
+},
+"Rikus|We schakelen over naar de kraam. Er is een peiling die al weken openstaat.": {
+"src": "rikus/we_schakelen_over_naar_de_kraam__7a572a81.mp3",
+"dur": 4.33
+},
+"Rikus|Welke twee, Trijntje?": {
+"src": "rikus/welke_twee_trijntje_37b66714.mp3",
+"dur": 1.56
+},
+"Rikus|Wil je dat iemand gaat kijken, Bert?": {
+"src": "rikus/wil_je_dat_iemand_gaat_kijken_be_cf937965.mp3",
+"dur": 2.22
+},
 "Rikus|Winkelen, wonen en de ringweg om de hoek.": {
 "src": "verteller/winkelen_wonen_en_de_ringweg_om__9a70f29b.mp3",
 "dur": 2.98
 },
+"Rikus|Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – W.\"": {
+"src": "rikus/ze_wilden_de_gouden_eierbal_hale_d7d8fd31.mp3",
+"dur": 6.31
+},
 "Rikus|Zo begon het. Niet met een buit, maar met een kaartje. En met een Fries die al lang op ze wachtte.": {
 "src": "verteller/zo_begon_het_niet_met_een_buit_m_9d029297.mp3",
 "dur": 5.93
+},
+"Rotor Roelf|Moi! Rotor Roelf, van Eelde. De proefvlucht is gratis. Nait tegen d'Olle Grieze aan, hè?": {
+"src": "rotor_roelf/moi_rotor_roelf_van_eelde_de_pro_ca056fe5.mp3",
+"dur": 5.25
 },
 "Rotor Roelf|Moi! Rotor Roelf, van Eelde. Dit is de Wieken Wubbo. De proefvlucht is gratis.": {
 "src": "rotor_roelf/moi_rotor_roelf_van_eelde_dit_is_b176a920.mp3",
@@ -2687,13 +3851,33 @@
 "src": "schipper_lammert/zo_dat_was_het_mooier_wordt_het__67444151.mp3",
 "dur": 2.6
 },
+"Sjabbe|Achttien karaat. Ik zeg niks. Ik zeg alleen: wie hem eerst heeft, heeft hem.": {
+"src": "sjabbe/achttien_karaat_ik_zeg_niks_ik_z_afb88bb5.mp3",
+"dur": 5.03
+},
+"Sjabbe|Braid noar de zin.": {
+"src": "sjabbe/braid_noar_de_zin_3249d499.mp3",
+"dur": 0.94
+},
 "Sjabbe|Een pinautomaat. Met verse lak. Die had ik nog niet.": {
 "src": "sjabbe/een_pinautomaat_met_verse_lak_di_33c7adf9.mp3",
 "dur": 4.22
 },
+"Sjabbe|En hun baas vroeg waar het museum alarmen heeft.": {
+"src": "sjabbe/en_hun_baas_vroeg_waar_het_museu_114e0476.mp3",
+"dur": 4.62
+},
+"Sjabbe|Jullie dromen klein. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft.": {
+"src": "sjabbe/jullie_dromen_klein_die_reuzen_k_4b4485ee.mp3",
+"dur": 8.52
+},
 "Sjabbe|Te weinig voor jullie droom. Echt geld ligt in het museum. De Gouden Eierbal, achttien karaat.": {
 "src": "sjabbe/te_weinig_voor_jullie_droom_echt_766e428e.mp3",
 "dur": 5.65
+},
+"Sjabbe|Vierhonderd, voor de onderdelen.": {
+"src": "sjabbe/vierhonderd_voor_de_onderdelen_ae8a5985.mp3",
+"dur": 2.46
 },
 "Sjabbe|Vierhonderd. Meer is hij niet waard, zonder pasjes.": {
 "src": "sjabbe/vierhonderd_meer_is_hij_niet_waa_0b9daa8a.mp3",
@@ -2703,17 +3887,61 @@
 "src": "sjabbe/wat_denk_je_dat_hij_waard_is_de__55ce96da.mp3",
 "dur": 3.93
 },
+"Sjabbe|Weer een automaat? Dit wordt een gewoonte. Een goede.": {
+"src": "sjabbe/weer_een_automaat_dit_wordt_een__849b50ce.mp3",
+"dur": 3.61
+},
+"Sjoerd|Altijd tegenwind. Beide kanten op. Dat staat in het reglement.": {
+"src": "sjoerd/altijd_tegenwind_beide_kanten_op_d5ca4ba0.mp3",
+"dur": 3.59
+},
 "Sjoerd|KEI-week. De eerstejaars zeggen dat niemand hun rondje door de stad sneller rijdt. Schattig.": {
 "src": "sjoerd/kei_week_de_eerstejaars_zeggen_d_de5819c4.mp3",
 "dur": 5.79
+},
+"Sjoerd|Om twaalf uur gaan de camera's drie minuten uit voor een update. Al sinds 2019. Niemand weet waarom. Dat mag ik eigenlijk niet zeggen.": {
+"src": "sjoerd/om_twaalf_uur_gaan_de_camera_s_d_135c9818.mp3",
+"dur": 9.0
+},
+"Sjoerd|Op de kruispunten is alles tegelijk groen. Niemand heeft voorrang. Maak oogcontact.": {
+"src": "sjoerd/op_de_kruispunten_is_alles_tegel_afc45dab.mp3",
+"dur": 4.97
+},
+"Sjoerd|Precies. Proost.": {
+"src": "sjoerd/precies_proost_8954adc8.mp3",
+"dur": 1.29
+},
+"Sjoerd|Record. Jullie komen op het bierviltje. Achterkant.": {
+"src": "sjoerd/record_jullie_komen_op_het_bierv_4a09b465.mp3",
+"dur": 3.5
 },
 "Sjoerd|Record. Jullie komen op het bierviltje. Achterkant. Regels zijn regels.": {
 "src": "sjoerd/record_jullie_komen_op_het_bierv_beef6663.mp3",
 "dur": 4.95
 },
+"Sjoerd|Rikus. Sjoerd, KEI-commissie. De eerstejaars zeggen dat niemand sneller door Stad fietst. Ik zoek iemand die ze leert hoe het hier werkt.": {
+"src": "sjoerd/rikus_sjoerd_kei_commissie_de_ee_40d29e2c.mp3",
+"dur": 8.08
+},
 "Sjoerd|Tweede werd \"Snits Snel\". Gesponsord door Us Mem Snacks. Nooit van gehoord.": {
 "src": "sjoerd/tweede_werd_snits_snel_gesponsor_75ec365e.mp3",
 "dur": 5.6
+},
+"Sjoerd|Wind tegen? Natuurlijk. Beide kanten op. Proost.": {
+"src": "sjoerd/wind_tegen_natuurlijk_beide_kant_513a5364.mp3",
+"dur": 3.51
+},
+"Snackbarhouder|Rikus. Mijn pannen zijn leeg. Ik ben veertig jaar open en mijn pannen zijn leeg.": {
+"src": "snackbarhouder/rikus_mijn_pannen_zijn_leeg_ik_b_f3a83390.mp3",
+"dur": 5.05
+},
+"Snackbarhouder|Vet! Valt mie nait of!": {
+"src": "snackbarhouder/vet_valt_mie_nait_of_2ba543c4.mp3",
+"dur": 1.78
+},
+"Snackbarhouder|Weer vet in de pannen. Valt mie nait of.": {
+"src": "snackbarhouder/weer_vet_in_de_pannen_valt_mie_n_fab1aef8.mp3",
+"dur": 2.64
 },
 "Strandtent Tineke|Moi! IJsje, patatje of allebei? Hier op t strand telt t nait.": {
 "src": "strandtent_tineke/moi_ijsje_patatje_of_allebei_hie_ec18f88c.mp3",
@@ -2823,6 +4051,14 @@
 "src": "tammo_gids/we_varen_nu_over_het_verbindings_d794bcf0.mp3",
 "dur": 5.44
 },
+"Tammo|\"Tige tank foar de auto. – W.\" De Fjord Frituur. Zonder Fjord.": {
+"src": "tammo/tige_tank_foar_de_auto_w_de_fjor_3e46631e.mp3",
+"dur": 5.19
+},
+"Tammo|\"Vriend.\"": {
+"src": "tammo/vriend_bc3f134f.mp3",
+"dur": 0.6
+},
 "Tammo|Aan de kade bij de Spilsluizen ligt een rondvaartboot die 'even van niemand' is. Vraag maar niet hoe.": {
 "src": "tammo/aan_de_kade_bij_de_spilsluizen_l_7bc84b10.mp3",
 "dur": 5.7
@@ -2834,6 +4070,10 @@
 "Tammo|Acht man neer in 45 seconden. Voor de clicks, zegt Jelmer.": {
 "src": "tammo/acht_man_neer_in_45_seconden_voo_e39707aa.mp3",
 "dur": 4.98
+},
+"Tammo|Alleen: vraag rond, volg het piepje van de zender die Henk erin zette en haal hem terug voordat hij op de trein naar Ljouwert staat.": {
+"src": "tammo/alleen_vraag_rond_volg_het_piepj_6d7c9c65.mp3",
+"dur": 5.98
 },
 "Tammo|Allemaal! Elke eierbal van Grunn. Ik ben trots op ons.": {
 "src": "tammo/allemaal_elke_eierbal_van_grunn__38c6a0fe.mp3",
@@ -2859,9 +4099,21 @@
 "src": "tammo/anita_de_auto_achter_hem_aan_e5537890.mp3",
 "dur": 1.97
 },
+"Tammo|Anita, de auto! Ik hou de eierballen warm.": {
+"src": "tammo/anita_de_auto_ik_hou_de_eierball_805eac7b.mp3",
+"dur": 3.03
+},
 "Tammo|Anita, je Fjord heeft toch nog die oude zender van Henk?": {
 "src": "tammo/anita_je_fjord_heeft_toch_nog_di_0ef7854a.mp3",
 "dur": 3.13
+},
+"Tammo|Beleefd, eigenlijk.": {
+"src": "tammo/beleefd_eigenlijk_9c9c9209.mp3",
+"dur": 1.52
+},
+"Tammo|Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.": {
+"src": "tammo/berend_bos_wil_zijn_bakkie_bij_z_ea684d3f.mp3",
+"dur": 5.11
 },
 "Tammo|Bij het Stationsplein leent duivenmelker Bert je een duif.": {
 "src": "tammo/bij_het_stationsplein_leent_duiv_6ac030bb.mp3",
@@ -2883,13 +4135,29 @@
 "src": "tammo/code_rood_hou_je_fiets_maar_goed_a9317401.mp3",
 "dur": 2.64
 },
+"Tammo|Daarom.": {
+"src": "tammo/daarom_ff18d48b.mp3",
+"dur": 0.6
+},
 "Tammo|Dan halen we hem terug. Wie die W ook is.": {
 "src": "tammo/dan_halen_we_hem_terug_wie_die_w_7c1b884b.mp3",
 "dur": 2.44
 },
+"Tammo|Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.": {
+"src": "tammo/dan_rijdt_hij_nauwelijks_voor_jo_f1f6d7cc.mp3",
+"dur": 4.92
+},
 "Tammo|Dat is toch gewoon een verhaaltje?": {
 "src": "tammo/dat_is_toch_gewoon_een_verhaaltj_50b39da3.mp3",
 "dur": 1.33
+},
+"Tammo|Dat neem ik je kwalijk.": {
+"src": "tammo/dat_neem_ik_je_kwalijk_666f8b1b.mp3",
+"dur": 1.24
+},
+"Tammo|Dat weet niemand. Behalve Friezen.": {
+"src": "tammo/dat_weet_niemand_behalve_friezen_d8106c89.mp3",
+"dur": 2.05
 },
 "Tammo|De Folkingestraat: smal, druk, en vol fatbikes die van twee kanten komen. Remmen hebben ze wel, gebruiken doen ze ze niet.": {
 "src": "tammo/de_folkingestraat_smal_druk_en_v_5d24e144.mp3",
@@ -2899,9 +4167,17 @@
 "src": "tammo/de_grote_markt_is_voor_mij_jelme_8515116f.mp3",
 "dur": 4.42
 },
+"Tammo|De Grote Markt is voor mij. Spullen omver, mensen niet.": {
+"src": "tammo/de_grote_markt_is_voor_mij_spull_e2eb1996.mp3",
+"dur": 3.8
+},
 "Tammo|De Oosterhaven: woonboten, sloepen en één eend die hier al jaren de baas is.": {
 "src": "tammo/de_oosterhaven_woonboten_sloepen_5ef56989.mp3",
 "dur": 6.09
+},
+"Tammo|De Oude Ebbingestraat: smal, druk, en vol fatbikes die van twee kanten komen, over de stoep. Remmen hebben ze wel, gebruiken doen ze ze niet.": {
+"src": "tammo/de_oude_ebbingestraat_smal_druk__99a3369a.mp3",
+"dur": 8.63
 },
 "Tammo|De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.": {
 "src": "tammo/de_zuidelijke_ringweg_is_af_echt_17ee368c.mp3",
@@ -2930,6 +4206,10 @@
 "Tammo|Dertig meter vlag. Losgepikt. Met mijn snavel.": {
 "src": "tammo/dertig_meter_vlag_losgepikt_met__6dfae123.mp3",
 "dur": 4.63
+},
+"Tammo|Die barman had een snor.": {
+"src": "tammo/die_barman_had_een_snor_5fb00741.mp3",
+"dur": 1.45
 },
 "Tammo|Die heeft de pliesie gebeld. Doorlopen.": {
 "src": "tammo/die_heeft_de_pliesie_gebeld_door_6b5243c4.mp3",
@@ -2963,6 +4243,14 @@
 "src": "tammo/die_was_nog_niet_eens_van_ons_88d8ee0b.mp3",
 "dur": 1.29
 },
+"Tammo|Die zijn al uitgestapt.": {
+"src": "tammo/die_zijn_al_uitgestapt_aa7a396c.mp3",
+"dur": 1.32
+},
+"Tammo|Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten.": {
+"src": "tammo/dit_is_het_eerste_wat_ik_ooit_he_1e6bfde4.mp3",
+"dur": 3.44
+},
 "Tammo|Dit is persoonlijk.": {
 "src": "tammo/dit_is_persoonlijk_bffdfb23.mp3",
 "dur": 1.13
@@ -2974,6 +4262,10 @@
 "Tammo|Dokter Dijkstra wel.": {
 "src": "tammo/dokter_dijkstra_wel_b577bd89.mp3",
 "dur": 1.26
+},
+"Tammo|Drie minuten is kort.": {
+"src": "tammo/drie_minuten_is_kort_4c41a096.mp3",
+"dur": 1.87
 },
 "Tammo|Duiven luisteren naar niemand.": {
 "src": "tammo/duiven_luisteren_naar_niemand_30a87cdc.mp3",
@@ -2987,13 +4279,25 @@
 "src": "tammo/dus_we_moeten_zwemmen_9a4aba23.mp3",
 "dur": 1.31
 },
+"Tammo|Dus we pinnen even.": {
+"src": "tammo/dus_we_pinnen_even_a34f0a43.mp3",
+"dur": 1.51
+},
 "Tammo|Dus we zijn inbrekers zonder buit.": {
 "src": "tammo/dus_we_zijn_inbrekers_zonder_bui_97b35930.mp3",
 "dur": 1.96
 },
+"Tammo|Een begrafenis.": {
+"src": "tammo/een_begrafenis_a4d1ad17.mp3",
+"dur": 1.12
+},
 "Tammo|Een eierbal! En nog warm ook.": {
 "src": "tammo/een_eierbal_en_nog_warm_ook_f434558b.mp3",
 "dur": 2.1
+},
+"Tammo|Een fiets kopen. In Grunn. Mijn opa draait zich om in zijn graf.": {
+"src": "tammo/een_fiets_kopen_in_grunn_mijn_op_477c3bf9.mp3",
+"dur": 4.01
 },
 "Tammo|Een kroket is geen frikandel. Genoteerd.": {
 "src": "tammo/een_kroket_is_geen_frikandel_gen_97f44ffd.mp3",
@@ -3014,6 +4318,10 @@
 "Tammo|Eerst de acteurs oppikken aan de Turfsingel, dan door naar het Noorderplantsoen. Elke klap en het decor ligt in scherven.": {
 "src": "tammo/eerst_de_acteurs_oppikken_aan_de_6456105f.mp3",
 "dur": 6.16
+},
+"Tammo|Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.": {
+"src": "tammo/eerst_de_pliesie_kwijt_dan_een_n_1c3757c6.mp3",
+"dur": 5.31
 },
 "Tammo|Eerst de pliesie kwijt, dan een nieuwe kleur, dan verzilveren bij Pand & Poen.": {
 "src": "tammo/eerst_de_pliesie_kwijt_dan_een_n_b0c00b92.mp3",
@@ -3047,13 +4355,25 @@
 "src": "tammo/en_als_we_winnen_verkopen_we_hem_528649c9.mp3",
 "dur": 2.14
 },
+"Tammo|En de Krolbrug?": {
+"src": "tammo/en_de_krolbrug_d7ea012d.mp3",
+"dur": 1.1
+},
 "Tammo|En de bewakers?": {
 "src": "tammo/en_de_bewakers_bc591e8d.mp3",
 "dur": 1.15
 },
+"Tammo|En die terrassen?": {
+"src": "tammo/en_die_terrassen_be5ca243.mp3",
+"dur": 1.0
+},
 "Tammo|En een meeuw op het dak. Zoals beloofd.": {
 "src": "tammo/en_een_meeuw_op_het_dak_zoals_be_c78f1ed5.mp3",
 "dur": 2.0
+},
+"Tammo|En een zwarte trekker bij de achteringang, met een limousine erachter. Vlaggetjes met rode blaadjes. Een man in een blauw colbert die de alarmen telt.": {
+"src": "tammo/en_een_zwarte_trekker_bij_de_ach_e8df29fe.mp3",
+"dur": 8.55
 },
 "Tammo|En een zwarte trekker bij de achteringang. Met een limousine erachter geplakt.": {
 "src": "tammo/en_een_zwarte_trekker_bij_de_ach_bea7e1d3.mp3",
@@ -3063,6 +4383,10 @@
 "src": "tammo/en_ik_heb_een_zaklamp_e12fa4f4.mp3",
 "dur": 1.18
 },
+"Tammo|En jullie willen onze snackbars.": {
+"src": "tammo/en_jullie_willen_onze_snackbars_bad50a48.mp3",
+"dur": 1.75
+},
 "Tammo|En nu?": {
 "src": "tammo/en_nu_79487c27.mp3",
 "dur": 0.53
@@ -3070,6 +4394,10 @@
 "Tammo|En om vier uur zegt heel Grunn hier \"nog één\".": {
 "src": "tammo/en_om_vier_uur_zegt_heel_grunn_h_98cc0de4.mp3",
 "dur": 2.97
+},
+"Tammo|En over gisteren…": {
+"src": "tammo/en_over_gisteren_d7a571b0.mp3",
+"dur": 2.1
 },
 "Tammo|En wie is die iemand uit Friesland?": {
 "src": "tammo/en_wie_is_die_iemand_uit_friesla_f8220e03.mp3",
@@ -3082,6 +4410,10 @@
 "Tammo|En wij hebben een huurbootje. Met een bel.": {
 "src": "tammo/en_wij_hebben_een_huurbootje_met_cc1d22e2.mp3",
 "dur": 2.84
+},
+"Tammo|En wist je het?": {
+"src": "tammo/en_wist_je_het_35831ad9.mp3",
+"dur": 0.8
 },
 "Tammo|Er zit een briefje in. \"Tige tank foar de auto. J.\"": {
 "src": "tammo/er_zit_een_briefje_in_tige_tank__07829e1e.mp3",
@@ -3102,6 +4434,10 @@
 "Tammo|Eén rondje om de stad over de ringweg, tegen vier gekken. Alleen het podium telt.": {
 "src": "tammo/ee_n_rondje_om_de_stad_over_de_r_e7218147.mp3",
 "dur": 5.15
+},
+"Tammo|Fatbikes tellen niet als fiets, oma.": {
+"src": "tammo/fatbikes_tellen_niet_als_fiets_o_1a38666a.mp3",
+"dur": 2.44
 },
 "Tammo|Flits. Daar gaat mijn geld.": {
 "src": "tammo/flits_daar_gaat_mijn_geld_89ba17ef.mp3",
@@ -3139,9 +4475,17 @@
 "src": "tammo/graag_gedaan_kon_minder_f17cedf4.mp3",
 "dur": 1.56
 },
+"Tammo|Graag.": {
+"src": "tammo/graag_f0d04895.mp3",
+"dur": 0.65
+},
 "Tammo|Gronings Ontzet. De Grote Markt vol kramen, de jury en een Fries met een plan.": {
 "src": "tammo/gronings_ontzet_de_grote_markt_v_de4444c0.mp3",
 "dur": 6.05
+},
+"Tammo|Gronings Ontzet. De Noordelijke Snackprijs op de Grote Markt, Berend in de jury, en de Escapade met een luik: de eerste Fjord Frituur.": {
+"src": "tammo/gronings_ontzet_de_noordelijke_s_fdaa654c.mp3",
+"dur": 8.5
 },
 "Tammo|Grunn geeft nooit op. Wij ook niet.": {
 "src": "tammo/grunn_geeft_nooit_op_wij_ook_nie_b83ab646.mp3",
@@ -3163,9 +4507,25 @@
 "src": "tammo/het_schuitendiep_vroeger_kwamen__3a8bf2a3.mp3",
 "dur": 3.29
 },
+"Tammo|Het is Grunn.": {
+"src": "tammo/het_is_grunn_8c76e263.mp3",
+"dur": 0.71
+},
+"Tammo|Het is de Grote Markt.": {
+"src": "tammo/het_is_de_grote_markt_3d75948a.mp3",
+"dur": 1.12
+},
 "Tammo|Het is een snackwedstrijd, Rikus. Geen concert.": {
 "src": "tammo/het_is_een_snackwedstrijd_rikus__daa1ec03.mp3",
 "dur": 2.91
+},
+"Tammo|Het is jouw droom. Jij kiest.": {
+"src": "tammo/het_is_jouw_droom_jij_kiest_7d48df3a.mp3",
+"dur": 1.76
+},
+"Tammo|Het is vandalisme.": {
+"src": "tammo/het_is_vandalisme_22dfc978.mp3",
+"dur": 1.99
 },
 "Tammo|Het skûtsje is weg. Met zeil en al.": {
 "src": "tammo/het_sku_tsje_is_weg_met_zeil_en__8e4870f5.mp3",
@@ -3175,25 +4535,65 @@
 "src": "tammo/het_theehuis_is_open_als_het_nie_6e2ddb48.mp3",
 "dur": 3.5
 },
+"Tammo|Het voelde raar.": {
+"src": "tammo/het_voelde_raar_96696100.mp3",
+"dur": 1.02
+},
 "Tammo|Hier houdt Grunn op. Kon minder. Eerlijk bord.": {
 "src": "tammo/hier_houdt_grunn_op_kon_minder_e_8751dfc9.mp3",
 "dur": 2.52
+},
+"Tammo|Hij bedankt ons.": {
+"src": "tammo/hij_bedankt_ons_eefa80b4.mp3",
+"dur": 1.59
+},
+"Tammo|Hij hangt een vlag aan onze toren voor zijn moeder.": {
+"src": "tammo/hij_hangt_een_vlag_aan_onze_tore_0e630bb8.mp3",
+"dur": 2.63
+},
+"Tammo|Hij heeft hem gestolen om hem eerlijk te winnen.": {
+"src": "tammo/hij_heeft_hem_gestolen_om_hem_ee_494e9cd1.mp3",
+"dur": 3.45
+},
+"Tammo|Hij hoeft niet te winnen. Wij moeten alleen niet kunnen meedoen.": {
+"src": "tammo/hij_hoeft_niet_te_winnen_wij_moe_fa620991.mp3",
+"dur": 3.05
 },
 "Tammo|Hij is niet eens van jou, Jelle.": {
 "src": "tammo/hij_is_niet_eens_van_jou_jelle_63a66100.mp3",
 "dur": 1.53
 },
+"Tammo|Hij is romantischer dan ik.": {
+"src": "tammo/hij_is_romantischer_dan_ik_7aedc806.mp3",
+"dur": 1.84
+},
+"Tammo|Hij is van ons. Hij weet het alleen nog niet.": {
+"src": "tammo/hij_is_van_ons_hij_weet_het_alle_143790e1.mp3",
+"dur": 2.07
+},
 "Tammo|Hij is… zacht. En hij smelt.": {
 "src": "tammo/hij_is_zacht_en_hij_smelt_a78705dc.mp3",
 "dur": 2.35
+},
+"Tammo|Hij knispert. Hij is… zacht.": {
+"src": "tammo/hij_knispert_hij_is_zacht_30caa6e3.mp3",
+"dur": 3.17
 },
 "Tammo|Hij komt terug. Hij mist Grunn nu al.": {
 "src": "tammo/hij_komt_terug_hij_mist_grunn_nu_e5584930.mp3",
 "dur": 2.18
 },
+"Tammo|Hij praat Gronings.": {
+"src": "tammo/hij_praat_gronings_15c2a835.mp3",
+"dur": 1.79
+},
 "Tammo|Hij reed in een tréker. En hij haalde me bijna in.": {
 "src": "tammo/hij_reed_in_een_tre_ker_en_hij_h_c38e1999.mp3",
 "dur": 2.77
+},
+"Tammo|Hij schrijft er vast een brief over.": {
+"src": "tammo/hij_schrijft_er_vast_een_brief_o_10ea5381.mp3",
+"dur": 1.73
 },
 "Tammo|Hij staat in de fik! Eruit, nu!": {
 "src": "tammo/hij_staat_in_de_fik_eruit_nu_ab3e6df7.mp3",
@@ -3203,6 +4603,10 @@
 "src": "tammo/hij_wilde_alleen_maar_brood_c76294dc.mp3",
 "dur": 1.34
 },
+"Tammo|Hij zei moi.": {
+"src": "tammo/hij_zei_moi_265c0bc4.mp3",
+"dur": 1.21
+},
 "Tammo|Hoe stuur je een duif?": {
 "src": "tammo/hoe_stuur_je_een_duif_feac13a2.mp3",
 "dur": 1.85
@@ -3210,6 +4614,10 @@
 "Tammo|Hoe weet jij dat van die trein?": {
 "src": "tammo/hoe_weet_jij_dat_van_die_trein_143047dc.mp3",
 "dur": 1.21
+},
+"Tammo|Hoe weet jij wat pompeblêden zijn?": {
+"src": "tammo/hoe_weet_jij_wat_pompeble_den_zi_14dc7b4a.mp3",
+"dur": 1.95
 },
 "Tammo|Hoe word je een duif?": {
 "src": "tammo/hoe_word_je_een_duif_01d113a7.mp3",
@@ -3223,9 +4631,17 @@
 "src": "tammo/hou_de_kraam_heel_tegen_het_vuur_774a6f17.mp3",
 "dur": 4.05
 },
+"Tammo|Iedereen doet weleens iets voor iemand die er niet om vraagt.": {
+"src": "tammo/iedereen_doet_weleens_iets_voor__6f8d051e.mp3",
+"dur": 2.62
+},
 "Tammo|Ik bak nooit onder druk.": {
 "src": "tammo/ik_bak_nooit_onder_druk_1296b715.mp3",
 "dur": 1.36
+},
+"Tammo|Ik ben vierendertig, oma.": {
+"src": "tammo/ik_ben_vierendertig_oma_050b585c.mp3",
+"dur": 2.33
 },
 "Tammo|Ik doe de boodschappen. Ik rem voor eieren, dat weet je.": {
 "src": "tammo/ik_doe_de_boodschappen_ik_rem_vo_c897218e.mp3",
@@ -3247,9 +4663,21 @@
 "src": "tammo/ik_fluit_de_duif_pikt_zo_simpel__75ea7337.mp3",
 "dur": 3.9
 },
+"Tammo|Ik fluit. Hij pikt.": {
+"src": "tammo/ik_fluit_hij_pikt_f79a7342.mp3",
+"dur": 1.47
+},
 "Tammo|Ik ga naar Knal & Kolder. Ik weet precies welk geluid ik wil.": {
 "src": "tammo/ik_ga_naar_knal_kolder_ik_weet_p_ebc3d35b.mp3",
 "dur": 2.85
+},
+"Tammo|Ik had er meer. Die waren minder goed.": {
+"src": "tammo/ik_had_er_meer_die_waren_minder__07a2a32a.mp3",
+"dur": 2.12
+},
+"Tammo|Ik had hoogtevrees.": {
+"src": "tammo/ik_had_hoogtevrees_a8931daf.mp3",
+"dur": 1.2
 },
 "Tammo|Ik heb een heel scherpe snavel. Als duif.": {
 "src": "tammo/ik_heb_een_heel_scherpe_snavel_a_535e9fa2.mp3",
@@ -3259,9 +4687,21 @@
 "src": "tammo/ik_heb_hem_de_echte_hij_is_zwaar_d4c39f49.mp3",
 "dur": 3.43
 },
+"Tammo|Ik heb hem. De echte. Hij smelt niet.": {
+"src": "tammo/ik_heb_hem_de_echte_hij_smelt_ni_7dd37e33.mp3",
+"dur": 2.3
+},
+"Tammo|Ik heb in drie minuten nog nooit iets goeds gedaan.": {
+"src": "tammo/ik_heb_in_drie_minuten_nog_nooit_fb01467e.mp3",
+"dur": 2.95
+},
 "Tammo|Ik heb nog nooit een eierbal gezien die ik niet kon betalen.": {
 "src": "tammo/ik_heb_nog_nooit_een_eierbal_gez_ffe009f8.mp3",
 "dur": 4.32
+},
+"Tammo|Ik kan heel goed tegen wind. Alleen niet tegen kunst.": {
+"src": "tammo/ik_kan_heel_goed_tegen_wind_alle_4c4f7ecc.mp3",
+"dur": 2.87
 },
 "Tammo|Ik kan niet meer. Naar de kant!": {
 "src": "tammo/ik_kan_niet_meer_naar_de_kant_976ac4b6.mp3",
@@ -3278,6 +4718,10 @@
 "Tammo|Ik loop wel tussen die fatbikes door. Ik ben toch al bont en blauw.": {
 "src": "tammo/ik_loop_wel_tussen_die_fatbikes__6a9d2e75.mp3",
 "dur": 3.63
+},
+"Tammo|Ik luisterde naar Rikus. En ik ben de trein achterna gefietst. Wind tegen.": {
+"src": "tammo/ik_luisterde_naar_rikus_en_ik_be_ff9bed5b.mp3",
+"dur": 4.0
 },
 "Tammo|Ik mag er ook niet in rijden.": {
 "src": "tammo/ik_mag_er_ook_niet_in_rijden_cd7bf355.mp3",
@@ -3307,6 +4751,10 @@
 "src": "tammo/ik_spring_normaal_alleen_over_ee_d7f6f163.mp3",
 "dur": 2.17
 },
+"Tammo|Ik spring.": {
+"src": "tammo/ik_spring_6baea4eb.mp3",
+"dur": 0.72
+},
 "Tammo|Ik stuur. Ik heb vroeger op het Reitdiep gezeild. Twee keer.": {
 "src": "tammo/ik_stuur_ik_heb_vroeger_op_het_r_6a147607.mp3",
 "dur": 3.43
@@ -3318,6 +4766,22 @@
 "Tammo|Ik vind het wel beleefd, eigenlijk.": {
 "src": "tammo/ik_vind_het_wel_beleefd_eigenlij_9c835ede.mp3",
 "dur": 1.8
+},
+"Tammo|Ik voelde het.": {
+"src": "tammo/ik_voelde_het_0c299bf1.mp3",
+"dur": 0.98
+},
+"Tammo|Ik vraag het alleen.": {
+"src": "tammo/ik_vraag_het_alleen_6c045294.mp3",
+"dur": 1.18
+},
+"Tammo|Ik wel. De Escapade.": {
+"src": "tammo/ik_wel_de_escapade_8ce4f245.mp3",
+"dur": 1.66
+},
+"Tammo|Ik wil bij jou blijven.": {
+"src": "tammo/ik_wil_bij_jou_blijven_7b7a374c.mp3",
+"dur": 1.52
 },
 "Tammo|Ik word de duif. Ik eet al jaren brood van de grond.": {
 "src": "tammo/ik_word_de_duif_ik_eet_al_jaren__671eece8.mp3",
@@ -3339,6 +4803,10 @@
 "src": "tammo/ik_zeg_niks_ik_was_opgelucht_dat_42b954de.mp3",
 "dur": 3.68
 },
+"Tammo|Ik zeg wel wat.": {
+"src": "tammo/ik_zeg_wel_wat_77bf1120.mp3",
+"dur": 0.97
+},
 "Tammo|Ik zei toch: zaklamp aan.": {
 "src": "tammo/ik_zei_toch_zaklamp_aan_b166a45d.mp3",
 "dur": 2.3
@@ -3351,6 +4819,10 @@
 "src": "tammo/ik_zoek_hem_wel_ik_ruik_een_eier_a31ecc1f.mp3",
 "dur": 3.13
 },
+"Tammo|In Grunn. Dat is geen kunst. Dat is het weerbericht.": {
+"src": "tammo/in_grunn_dat_is_geen_kunst_dat_i_657f572b.mp3",
+"dur": 3.1
+},
 "Tammo|In het museum. Met een alarm dat het doet.": {
 "src": "tammo/in_het_museum_met_een_alarm_dat__bb1ce2c9.mp3",
 "dur": 2.66
@@ -3359,9 +4831,17 @@
 "src": "tammo/instappen_de_motor_draait_al_bce8d6de.mp3",
 "dur": 1.95
 },
+"Tammo|Je appt al weken met Friesland.": {
+"src": "tammo/je_appt_al_weken_met_friesland_9bf06b4a.mp3",
+"dur": 2.21
+},
 "Tammo|Je hebt ermee geparkeerd. Op een ballon.": {
 "src": "tammo/je_hebt_ermee_geparkeerd_op_een__7dbe23ca.mp3",
 "dur": 2.45
+},
+"Tammo|Je zei het ook niet.": {
+"src": "tammo/je_zei_het_ook_niet_914c90de.mp3",
+"dur": 0.98
 },
 "Tammo|Jelle daagt jullie uit voor de Noordelijke Snackprijs op Gronings Ontzet. Winnen jullie, dan houden jullie de Eierbal.": {
 "src": "tammo/jelle_daagt_jullie_uit_voor_de_n_4819ba7f.mp3",
@@ -3407,6 +4887,10 @@
 "src": "tammo/kom_op_geertje_naar_huis_d28fdf5d.mp3",
 "dur": 1.81
 },
+"Tammo|Kon minder.": {
+"src": "tammo/kon_minder_a00feb0f.mp3",
+"dur": 0.65
+},
 "Tammo|Koud! Koud, koud, koud. Heerlijk.": {
 "src": "tammo/koud_koud_koud_koud_heerlijk_f8a2f234.mp3",
 "dur": 3.63
@@ -3439,6 +4923,10 @@
 "src": "tammo/liever_over_dat_van_durk_7c828a44.mp3",
 "dur": 1.55
 },
+"Tammo|Links Grunn. Rechts ook. Alles klopt. Behalve de papieren.": {
+"src": "tammo/links_grunn_rechts_ook_alles_klo_c5b8e45e.mp3",
+"dur": 3.66
+},
 "Tammo|Links de Prinsentuin, uit de zestiende eeuw.": {
 "src": "tammo/links_de_prinsentuin_uit_de_zest_0cc7580d.mp3",
 "dur": 3.26
@@ -3450,6 +4938,14 @@
 "Tammo|Links het Groninger Museum.": {
 "src": "tammo/links_het_groninger_museum_46a0be80.mp3",
 "dur": 1.99
+},
+"Tammo|Links ziet u Grunn. Rechts ziet u ook Grunn. Onder u ziet u fietsen.": {
+"src": "tammo/links_ziet_u_grunn_rechts_ziet_u_4785840c.mp3",
+"dur": 4.54
+},
+"Tammo|Loop de straat door naar Oma Trijntje, bij de Grote Markt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
+"src": "tammo/loop_de_straat_door_naar_oma_tri_ef0e45de.mp3",
+"dur": 6.85
 },
 "Tammo|Loop de straat door naar de Vismarkt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
 "src": "tammo/loop_de_straat_door_naar_de_vism_c01b5691.mp3",
@@ -3467,13 +4963,25 @@
 "src": "tammo/mag_ik_nou_eindelijk_21d32bf0.mp3",
 "dur": 1.12
 },
+"Tammo|Meer dan mensen. Iedereen heeft er één, en één in het water.": {
+"src": "tammo/meer_dan_mensen_iedereen_heeft_e_2a6ae6c1.mp3",
+"dur": 3.7
+},
 "Tammo|Met Grunn z'n Eierbal, bedoel je.": {
 "src": "tammo/met_grunn_z_n_eierbal_bedoel_je_b368247e.mp3",
 "dur": 1.66
 },
+"Tammo|Met de auto over de Grote Markt: parasols, kliko's en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.": {
+"src": "tammo/met_de_auto_over_de_grote_markt__b7d58f55.mp3",
+"dur": 8.45
+},
 "Tammo|Met een slot erop. En de code?": {
 "src": "tammo/met_een_slot_erop_en_de_code_6fbcd64c.mp3",
 "dur": 2.11
+},
+"Tammo|Met veel bocht.": {
+"src": "tammo/met_veel_bocht_aa42f5d9.mp3",
+"dur": 1.01
 },
 "Tammo|Met vlaggetjes. Met van die rode blaadjes erop.": {
 "src": "tammo/met_vlaggetjes_met_van_die_rode__42c5a171.mp3",
@@ -3503,17 +5011,33 @@
 "src": "tammo/moi_jongens_lekker_gebotst_9c6a21d0.mp3",
 "dur": 1.88
 },
+"Tammo|Moi. De bank?": {
+"src": "tammo/moi_de_bank_4497e8ad.mp3",
+"dur": 2.08
+},
 "Tammo|Moi. Ik kom voor de Eierbal.": {
 "src": "tammo/moi_ik_kom_voor_de_eierbal_d80b1b47.mp3",
 "dur": 2.18
+},
+"Tammo|Moi. Wat is er gebeurd?": {
+"src": "tammo/moi_wat_is_er_gebeurd_308856fa.mp3",
+"dur": 1.6
 },
 "Tammo|Nacht. Via het Verbindingskanaal naar de achterkant van het Groninger Museum.": {
 "src": "tammo/nacht_via_het_verbindingskanaal__3600d228.mp3",
 "dur": 4.65
 },
+"Tammo|Natuurlijk hang ík.": {
+"src": "tammo/natuurlijk_hang_i_k_c8f27623.mp3",
+"dur": 1.23
+},
 "Tammo|Nee, het is niet ingestort. Het hoort zo, dat heeft een architect bedacht.": {
 "src": "tammo/nee_het_is_niet_ingestort_het_ho_54edc6a1.mp3",
 "dur": 4.01
+},
+"Tammo|Nee. Van de winter ook niet. Alvast.": {
+"src": "tammo/nee_van_de_winter_ook_niet_alvas_db2498c4.mp3",
+"dur": 2.47
 },
 "Tammo|Niemand klaagde. Dat is hier een compliment.": {
 "src": "tammo/niemand_klaagde_dat_is_hier_een__9dc59934.mp3",
@@ -3535,6 +5059,10 @@
 "src": "tammo/nieuw_record_kon_minder_he_3c45c6e1.mp3",
 "dur": 1.81
 },
+"Tammo|Nog eentje dan?": {
+"src": "tammo/nog_eentje_dan_9301fd43.mp3",
+"dur": 1.0
+},
 "Tammo|Noorderzon mist een auto vol breekbaar decor, en de acteurs staan nog bij de Stadsschouwburg.": {
 "src": "tammo/noorderzon_mist_een_auto_vol_bre_bf0d5abe.mp3",
 "dur": 5.45
@@ -3555,6 +5083,10 @@
 "src": "tammo/ogen_dicht_fluiten_pik_pik_los_c52524bf.mp3",
 "dur": 3.12
 },
+"Tammo|Oma, hoe zei opa het eigenlijk?": {
+"src": "tammo/oma_hoe_zei_opa_het_eigenlijk_c57d1eee.mp3",
+"dur": 2.1
+},
 "Tammo|Omdat Oma Trijntje hem dan nog heeft.": {
 "src": "tammo/omdat_oma_trijntje_hem_dan_nog_h_cfa14ed5.mp3",
 "dur": 2.05
@@ -3571,9 +5103,17 @@
 "src": "tammo/overdag_slaapt_het_hier_om_twaal_0a796e23.mp3",
 "dur": 4.93
 },
+"Tammo|Ow.": {
+"src": "tammo/ow_65167695.mp3",
+"dur": 0.44
+},
 "Tammo|Pik, pik, los. Ik word weer duif.": {
 "src": "tammo/pik_pik_los_ik_word_weer_duif_fa187f5d.mp3",
 "dur": 3.05
+},
+"Tammo|Plan A is ook van jou.": {
+"src": "tammo/plan_a_is_ook_van_jou_0ede5c78.mp3",
+"dur": 1.48
 },
 "Tammo|Promotie! Meer geld, maar ook zwaarder werk.": {
 "src": "tammo/promotie_meer_geld_maar_ook_zwaa_189476ea.mp3",
@@ -3591,6 +5131,10 @@
 "src": "tammo/rij_m_heel_naar_het_boterdiep_be_13302926.mp3",
 "dur": 4.4
 },
+"Tammo|Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.": {
+"src": "tammo/rij_hem_heel_naar_het_boterdiep__b4b38db9.mp3",
+"dur": 7.21
+},
 "Tammo|Rikus. Niet doen.": {
 "src": "tammo/rikus_niet_doen_a2be5460.mp3",
 "dur": 1.57
@@ -3607,9 +5151,21 @@
 "src": "tammo/sikkom_kopt_grote_markt_saaier_d_e45e1897.mp3",
 "dur": 5.27
 },
+"Tammo|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
+"src": "tammo/sikkom_kopt_grote_markt_saaier_d_f018d7eb.mp3",
+"dur": 6.96
+},
+"Tammo|Sinds nu.": {
+"src": "tammo/sinds_nu_76c51547.mp3",
+"dur": 0.91
+},
 "Tammo|Sinds nu. Vol gas!": {
 "src": "tammo/sinds_nu_vol_gas_92673ed2.mp3",
 "dur": 1.8
+},
+"Tammo|Sorry. Dat ik nooit wat zeg.": {
+"src": "tammo/sorry_dat_ik_nooit_wat_zeg_02ce452d.mp3",
+"dur": 1.71
 },
 "Tammo|Springen. Van een boot. Op een andere boot.": {
 "src": "tammo/springen_van_een_boot_op_een_and_1eca4296.mp3",
@@ -3619,6 +5175,14 @@
 "src": "tammo/stel_dat_we_winnen_dan_hebben_we_ee7b6d4c.mp3",
 "dur": 4.31
 },
+"Tammo|Sympathiek is toch goed?": {
+"src": "tammo/sympathiek_is_toch_goed_5f906362.mp3",
+"dur": 1.27
+},
+"Tammo|Tammo's Escapade is gejat. Op zijn plek staat een klomp. Jelmers chat zag een rode auto bij de Westerhaven.": {
+"src": "tammo/tammo_s_escapade_is_gejat_op_zij_7195175c.mp3",
+"dur": 6.7
+},
 "Tammo|Te voet, hè. De hele Poelestraat staat vol dronken studenten, en die lopen je zo omver.": {
 "src": "tammo/te_voet_he_de_hele_poelestraat_s_7f6d72be.mp3",
 "dur": 4.93
@@ -3627,6 +5191,10 @@
 "src": "tammo/twaalf_keer_het_einde_van_de_wer_8c8bf3b8.mp3",
 "dur": 4.14
 },
+"Tammo|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita's pas erin. De aanhanger bleef achter.": {
+"src": "tammo/twee_reuzen_trokken_een_pinautom_b6e3c1b5.mp3",
+"dur": 6.82
+},
 "Tammo|Twee reuzen. Eén fiets. Acht jerrycans.": {
 "src": "tammo/twee_reuzen_ee_n_fiets_acht_jerr_192829d9.mp3",
 "dur": 3.14
@@ -3634,6 +5202,10 @@
 "Tammo|Vaar er met je huurboot achteraan, ga langszij en spring aan boord.": {
 "src": "tammo/vaar_er_met_je_huurboot_achteraa_a8a18403.mp3",
 "dur": 3.82
+},
+"Tammo|Van Grunn.": {
+"src": "tammo/van_grunn_bfe982e1.mp3",
+"dur": 0.74
 },
 "Tammo|Viel mee.": {
 "src": "tammo/viel_mee_ac666aef.mp3",
@@ -3659,6 +5231,10 @@
 "src": "tammo/waarom_neem_ik_hem_dan_mee_7b2e2cd2.mp3",
 "dur": 1.59
 },
+"Tammo|Waarom noemt iedereen jou eigenlijk Bommen Berend?": {
+"src": "tammo/waarom_noemt_iedereen_jou_eigenl_5d7e376e.mp3",
+"dur": 2.3
+},
 "Tammo|Wacht. Wat rijdt daar het museumterrein op?": {
 "src": "tammo/wacht_wat_rijdt_daar_het_museumt_28cbe83c.mp3",
 "dur": 2.24
@@ -3666,6 +5242,14 @@
 "Tammo|Was dat nou een trekker?": {
 "src": "tammo/was_dat_nou_een_trekker_18fdca95.mp3",
 "dur": 1.2
+},
+"Tammo|Wat moet een Fries met jouw bakkie?": {
+"src": "tammo/wat_moet_een_fries_met_jouw_bakk_1225b089.mp3",
+"dur": 1.8
+},
+"Tammo|Wat?": {
+"src": "tammo/wat_4a65f8a8.mp3",
+"dur": 0.6
 },
 "Tammo|Water tot aan de enkels. Dit is de Groningse Rivièra.": {
 "src": "tammo/water_tot_aan_de_enkels_dit_is_d_ab3b9889.mp3",
@@ -3695,6 +5279,14 @@
 "src": "tammo/we_zinken_eruit_eruit_eba9b719.mp3",
 "dur": 2.06
 },
+"Tammo|Weet ik.": {
+"src": "tammo/weet_ik_15768772.mp3",
+"dur": 0.5
+},
+"Tammo|Weet je zeker dat dit gebouw nog niet gekraakt is? Het ziet er al zo uit.": {
+"src": "tammo/weet_je_zeker_dat_dit_gebouw_nog_d2a10e0b.mp3",
+"dur": 3.73
+},
 "Tammo|Weg is het vet.": {
 "src": "tammo/weg_is_het_vet_5e7397b4.mp3",
 "dur": 0.88
@@ -3707,9 +5299,17 @@
 "src": "tammo/wie_de_trap_op_loopt_krijgt_uitz_f1978d1a.mp3",
 "dur": 3.06
 },
+"Tammo|Wie heb je verteld waar we wonen?": {
+"src": "tammo/wie_heb_je_verteld_waar_we_wonen_3d37769d.mp3",
+"dur": 1.63
+},
 "Tammo|Wie hier woont, heeft een tuin die meebeweegt.": {
 "src": "tammo/wie_hier_woont_heeft_een_tuin_di_909d2e7b.mp3",
 "dur": 3.21
+},
+"Tammo|Wie is die man.": {
+"src": "tammo/wie_is_die_man_391f1b51.mp3",
+"dur": 1.28
 },
 "Tammo|Wie steelt er nou een koe?": {
 "src": "tammo/wie_steelt_er_nou_een_koe_47bcdbe2.mp3",
@@ -3762,6 +5362,74 @@
 "Tammo|…Een moeder. Ik was jaloers op een moeder.": {
 "src": "tammo/een_moeder_ik_was_jaloers_op_een_ba08190a.mp3",
 "dur": 2.76
+},
+"Tammo|…Goed om te weten.": {
+"src": "tammo/goed_om_te_weten_77938a03.mp3",
+"dur": 1.53
+},
+"Tammo|…Hij was mooi.": {
+"src": "tammo/hij_was_mooi_094f9068.mp3",
+"dur": 1.62
+},
+"Tammo|…Ja. Dank je dat je het vraagt.": {
+"src": "tammo/ja_dank_je_dat_je_het_vraagt_18ce42db.mp3",
+"dur": 2.51
+},
+"Tammo|…Moi.": {
+"src": "tammo/moi_72f38cea.mp3",
+"dur": 0.5
+},
+"Tammo|…Ook waar.": {
+"src": "tammo/ook_waar_db897d09.mp3",
+"dur": 0.67
+},
+"Tammo|…Voor de grip.": {
+"src": "tammo/voor_de_grip_1848a5dc.mp3",
+"dur": 0.95
+},
+"Tammo|…Woist ja wel.": {
+"src": "tammo/woist_ja_wel_69987c14.mp3",
+"dur": 0.87
+},
+"Tammo|…Zei je dat nou hardop?": {
+"src": "tammo/zei_je_dat_nou_hardop_f7362c38.mp3",
+"dur": 1.76
+},
+"Tammo|…moi.": {
+"src": "tammo/moi_3b0ba6b5.mp3",
+"dur": 0.73
+},
+"Terrasgast|Kon minder!": {
+"src": "terrasgast/kon_minder_4cf769a5.mp3",
+"dur": 0.86
+},
+"Toerist|Hoeveel?": {
+"src": "toerist/hoeveel_a0b2c416.mp3",
+"dur": 0.82
+},
+"Torenwachter|Iets Fries. Ik meld alleen.": {
+"src": "torenwachter/iets_fries_ik_meld_alleen_f4dfa1b0.mp3",
+"dur": 1.81
+},
+"Torenwachter|Ik meld alleen.": {
+"src": "torenwachter/ik_meld_alleen_992b3884.mp3",
+"dur": 1.16
+},
+"Torenwachter|Rikus. Torenwachter. Er hangt iets aan mijn toren.": {
+"src": "torenwachter/rikus_torenwachter_er_hangt_iets_3659c84e.mp3",
+"dur": 3.19
+},
+"Torenwachter|Tammo. De vlag ligt op de Grote Markt.": {
+"src": "torenwachter/tammo_de_vlag_ligt_op_de_grote_m_6e2c57fb.mp3",
+"dur": 3.18
+},
+"Torenwachter|Tammo. Torenwachter. Er staan mensen op de Grote Markt.": {
+"src": "torenwachter/tammo_torenwachter_er_staan_mens_6a381a79.mp3",
+"dur": 3.86
+},
+"Torenwachter|Trekker, Oude Boteringestraat. Ik meld alleen.": {
+"src": "torenwachter/trekker_oude_boteringestraat_ik__8e409e70.mp3",
+"dur": 3.19
 },
 "Trainer Bouke|Nou ja. De ballenmachine vond het gezellig.": {
 "src": "trainer_bouke/nou_ja_de_ballenmachine_vond_het_5f4bbb46.mp3",
@@ -4047,6 +5715,10 @@
 "src": "bubbles/f/en_blijf_van_mijn_fiets_af_he_607a0732.mp3",
 "dur": 1.74
 },
+"~f|Even afreageren. Je armen trillen nog van dat touw.": {
+"src": "bubbles/f/even_afreageren_je_armen_trillen_d5e52fe4.mp3",
+"dur": 4.64
+},
 "~f|Frikandel? Ik zei kroket!": {
 "src": "bubbles/f/frikandel_ik_zei_kroket_4cd7abdf.mp3",
 "dur": 2.43
@@ -4058,6 +5730,10 @@
 "~f|Gekocht, hè. Een geleende fiets telt niet bij Sjoerd.": {
 "src": "bubbles/f/gekocht_he_een_geleende_fiets_te_ef6d096b.mp3",
 "dur": 2.9
+},
+"~f|Gekocht, hè. Met bonnetje. Een geleende fiets telt niet bij Sjoerd.": {
+"src": "bubbles/f/gekocht_he_met_bonnetje_een_gele_6709bfad.mp3",
+"dur": 3.83
 },
 "~f|Goed speuld, mien jong.": {
 "src": "bubbles/f/goed_speuld_mien_jong_0b6e4172.mp3",
@@ -4990,6 +6666,10 @@
 "~m|Duurde lang. Stond de brug open?": {
 "src": "bubbles/m/duurde_lang_stond_de_brug_open_67138ba3.mp3",
 "dur": 2.34
+},
+"~m|Een kaartje naar maakt niet uit waar. Ik kijk wel uit het raam.": {
+"src": "bubbles/m/een_kaartje_naar_maakt_niet_uit__cf511824.mp3",
+"dur": 3.46
 },
 "~m|Een sloep met een bel. Jelle gaat trillen.": {
 "src": "bubbles/m/een_sloep_met_een_bel_jelle_gaat_90818799.mp3",
