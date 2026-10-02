@@ -108,6 +108,53 @@ function bridgeStructures(buildings, roads, water) {
   return out;
 }
 
+// Houseboats OSM draws (partly) over the bank: slid the shortest way out onto
+// open water, clear of other footprints; one that cannot float is dropped.
+function mooredHouseboats(buildings, water) {
+  const boats = buildings.filter((b) => b.type === 'houseboat');
+  if (!boats.length) return new Set();
+  const dropped = new Set();
+  const box = new Map();
+  const boundsOf = (b) => box.get(b) || box.set(b, polygonBounds(b.pts)).get(b);
+  for (const b of boats) {
+    const [minx, miny, maxx, maxy] = polygonBounds(b.pts);
+    const R = 10;
+    const pools = water.filter((w) => {
+      const wb = w.bounds || (w.bounds = polygonBounds(w.pts));
+      return wb[0] < maxx + R && wb[2] > minx - R && wb[1] < maxy + R && wb[3] > miny - R;
+    });
+    const wet = (x, y) => pools.some((w) => x >= w.bounds[0] && x <= w.bounds[2] && y >= w.bounds[1] && y <= w.bounds[3] && pointInPolygon(x, y, w.pts));
+    const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
+    const samples = b.pts.map(([x, y]) => {
+      const dx = cx - x, dy = cy - y, l = Math.hypot(dx, dy) || 1, k = Math.min(0.3, l / 2) / l;
+      return [x + dx * k, y + dy * k];
+    });
+    for (let x = minx + 0.4; x < maxx; x += 0.8) for (let y = miny + 0.4; y < maxy; y += 0.8) if (pointInPolygon(x, y, b.pts)) samples.push([x, y]);
+    const dry = (ox, oy) => samples.reduce((n, [x, y]) => n + (wet(x + ox, y + oy) ? 0 : 1), 0);
+    if (dry(0, 0) <= samples.length * 0.03) continue;
+    const others = buildings.filter((o) => {
+      if (o === b || dropped.has(o)) return false;
+      const ob = boundsOf(o);
+      return ob[0] < maxx + R && ob[2] > minx - R && ob[1] < maxy + R && ob[3] > miny - R;
+    });
+    const clear = (ox, oy) => !others.some((o) => {
+      const ob = boundsOf(o);
+      if (ob[0] > maxx + ox || ob[2] < minx + ox || ob[1] > maxy + oy || ob[3] < miny + oy) return false;
+      return samples.some(([x, y]) => pointInPolygon(x + ox, y + oy, o.pts)) || o.pts.some(([x, y]) => pointInPolygon(x - ox, y - oy, b.pts));
+    });
+    let shift = null;
+    for (let d = 0.5; d <= 8 && !shift; d += 0.5) {
+      for (let a = 0; a < 16 && !shift; a++) {
+        const ox = Math.cos(a * Math.PI / 8) * d, oy = Math.sin(a * Math.PI / 8) * d;
+        if (dry(ox, oy) === 0 && clear(ox, oy)) shift = [ox, oy];
+      }
+    }
+    if (shift) { b.pts = b.pts.map(([x, y]) => [x + shift[0], y + shift[1]]); box.delete(b); }
+    else dropped.add(b);
+  }
+  return dropped;
+}
+
 const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
 const isRingRoad = (r) => RING_TYPES.has(r.type) || (!!r.z && r.cat === 'major');
 
@@ -278,7 +325,8 @@ export class GameMap {
     const onRing = buildingsOnRing(all, data.roads);
     const isCanopy = (b) => b.type === 'roof' || overRails.has(b);
     this.canopies = all.filter((b) => isCanopy(b) && !onRing.has(b));
-    this.buildings = all.filter((b) => !isCanopy(b) && !onRing.has(b));
+    const sunkBoats = mooredHouseboats(all, data.water);
+    this.buildings = all.filter((b) => !isCanopy(b) && !onRing.has(b) && !sunkBoats.has(b));
     this.water = data.water;
     this.green = data.green;
     this.trees = data.trees || [];
