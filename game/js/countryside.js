@@ -21,6 +21,7 @@ import { EDGE, edgeBlocked, edgeTileItems } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
 import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
+import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
 
 // Endless Ommelanden past the real map: a ground ring that follows the
 // player (same terrain shader, so the feathered edge in terrain3d continues
@@ -36,7 +37,6 @@ const GROUND_Y = -0.05;
 const GROUND_HALF = 4000;
 const GROUND_SNAP = 500;
 const GEN_BUDGET_MS = 1.2;
-const REPACK_EVERY = 0.3;
 const REED_R = 230;
 const SIM_R = 170;
 const SKIN_R = 90;
@@ -249,7 +249,9 @@ function inTile(tile, x, y) {
   return x >= x0 && x < x0 + TILE && y >= y0 && y < y0 + TILE;
 }
 
-function genTile(tx, ty) {
+// A generator: the tile is laid out a section at a time, so streaming can
+// spread a dense one (a village, a farm cluster) over several frames.
+function* genTileSteps(tx, ty) {
   const tile = { tx, ty, items: {}, animals: [], flocks: [], signs: [], farms: 0, cx: (tx + 0.5) * TILE, cy: (ty + 0.5) * TILE };
   const x0 = tx * TILE, y0 = ty * TILE;
   const bx = Math.floor(x0 / BLOCK), by = Math.floor(y0 / BLOCK);
@@ -261,6 +263,7 @@ function genTile(tx, ty) {
   const W = (a, b) => blockToWorld(bx, by, rot, a, b);
   const lineAng = rot ? 0 : Math.PI / 2; // three rotY that lays local +X along the strip direction b
   const plan = blockPlan(bx, by);
+  yield;
 
   // strip-boundary lines: tree rows, hedges, electric fences
   for (let col = Math.ceil(aMin / PW); col * PW < aMax; col++) {
@@ -301,6 +304,7 @@ function genTile(tx, ty) {
       flush();
     }
   }
+  yield;
 
   // polder-road verges: tree lanes of oaks / poplars
   for (const s of [0, 1]) {
@@ -321,7 +325,9 @@ function genTile(tx, ty) {
     }
   }
 
+  yield;
   // parcels whose centre lies in this tile
+  let parcels = 0;
   for (let col = Math.floor(aMin / PW); col * PW < aMax; col++) {
     const a0 = col * PW, a1 = a0 + PW;
     const ac = (a0 + a1) / 2;
@@ -333,6 +339,7 @@ function genTile(tx, ty) {
       const bc = (b0 + b1) / 2;
       if (bc < bMin || bc >= bMax) continue;
       genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng);
+      if (++parcels % 3 === 0) yield;
     }
   }
 
@@ -341,6 +348,7 @@ function genTile(tx, ty) {
     if (!inTile(tile, f.x, f.y)) continue;
     genFarm(tile, farmDetail(f));
     tile.farms++;
+    yield;
   }
   if (plan.gas && inTile(tile, plan.gas.x, plan.gas.y)) push(tile, 'gas', plan.gas.x, plan.gas.y, 0, 1, 1, 1, 0xffffff, 0);
   for (const v of [plan.village, villageOf(bx + 1, by)]) {
@@ -349,7 +357,8 @@ function genTile(tx, ty) {
   }
   genBridges(tile, bx, by);
   genEdge(tile);
-  if (REAL.ready) genReal(tile);
+  yield;
+  if (REAL.ready) yield* genReal(tile);
   for (const sg of blockSigns(bx, by)) if (inTile(tile, sg.x, sg.y)) tile.signs.push(sg);
 
   for (const k in tile.items) {
@@ -413,18 +422,23 @@ function genVillage(tile, v) {
 // The real Ommelanden in this tile: building boxes with their roofs, tree
 // lanes along the country roads, and a bit of farmyard round the barns.
 const REAL_POOL = { house: 'rbBody', block: 'rbBlock', barn: 'rbShed', shed: 'rbShed', glass: 'rbShed' };
-function genReal(tile) {
+function* genReal(tile) {
   const L = buildingsInTile(tile.tx, tile.ty);
   if (L) {
+    let n = 0;
     for (const i of L) {
+      if (++n % 30 === 0) yield;
       const x = REAL.bx[i], y = REAL.by[i];
       if (REAL.code[i] === 7 && REAL.churchNear && REAL.churchNear(x, y)) continue;
       const m = buildingModel(i);
       const rotY = -m.angle;
       push(tile, REAL_POOL[m.kind], x, y, rotY, m.long, m.wall, m.short, m.color, 0.05);
+      // the mid tier: a plain box and one closed roof (countryside chunks)
+      push(tile, 'rbBox', x, y, rotY, m.long, m.wall, m.short, m.color, 0.05);
       if (m.roof > 0) {
         push(tile, 'rbRoof', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall);
         push(tile, 'rbGable', x, y, rotY, m.long, m.roof, m.short, m.color, 0.05, m.wall);
+        push(tile, 'rbRoofMid', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall);
       }
       if (m.kind === 'barn' && urbanWeight(x, y) < 0.3) {
         const h = chash(Math.round(x) + 3, Math.round(y) - 5);
@@ -446,7 +460,9 @@ function genReal(tile) {
   }
   const R = roadsInTile(tile.tx, tile.ty);
   if (!R) return;
+  yield;
   for (let k = 0; k < R.length; k += 2) {
+    if (k % 60 === 58) yield;
     const r = REAL.roads[R[k]], si = R[k + 1];
     if (r.bridge) {
       // a deck where a real road bridge crosses the water
@@ -681,25 +697,115 @@ farmGeo(M3.farmOldaGeometry, M3.OLDA_LOOKS).forEach((g, i) => { PROP_TYPES['fold
 farmGeo(M3.farmSmallGeometry, M3.SMALL_LOOKS).forEach((g, i) => { PROP_TYPES['fsmall' + i] = { geo: g, cap: 120, shadow: true }; });
 farmGeo(M3.farmDairyGeometry, M3.FARM_LOOKS).forEach((g, i) => { PROP_TYPES['fdairy' + i] = { geo: g, cap: 120, shadow: true }; });
 for (let k = 0; k < 4; k++) for (let l = 0; l < 2; l++) PROP_TYPES['house' + k + l] = { geo: () => M3.houseGeometry(k, M3.HOUSE_LOOKS[l]), cap: 400, shadow: true };
+// the real buildings in two tiers: detailed near the player, box + roof
+// further out (lod), chosen per tile
 Object.assign(PROP_TYPES, {
-  rbBody: { geo: () => M3.realBodyGeometry(1, true), cap: 9000, shadow: true },
-  rbBlock: { geo: () => M3.realBodyGeometry(4, false), cap: 3000, shadow: true },
-  rbShed: { geo: M3.realShedGeometry, cap: 6000, shadow: true },
-  rbRoof: { geo: M3.realRoofGeometry, cap: 10000, shadow: true },
-  rbGable: { geo: M3.realGableGeometry, cap: 10000, shadow: false },
+  rbBody: { geo: () => M3.realBodyGeometry(1, true), cap: 9000, shadow: true, lod: 'near' },
+  rbBlock: { geo: () => M3.realBodyGeometry(4, false), cap: 3000, shadow: true, lod: 'near' },
+  rbShed: { geo: M3.realShedGeometry, cap: 6000, shadow: true, lod: 'near' },
+  rbRoof: { geo: M3.realRoofGeometry, cap: 10000, shadow: true, lod: 'near' },
+  rbGable: { geo: M3.realGableGeometry, cap: 10000, shadow: false, lod: 'near' },
+  rbBox: { geo: () => M3.boxGeometry(1, 1, 1, 0xffffff), cap: 9000, shadow: true, lod: 'mid' },
+  rbRoofMid: { geo: M3.realRoofMidGeometry, cap: 9000, shadow: true, lod: 'mid' },
 });
 
-function makePool(geo, mat, cap, shadow) {
-  const mesh = new THREE.InstancedMesh(geo, mat, cap);
-  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+// Props are drawn per chunk of CHUNK x CHUNK tiles: one instanced mesh per
+// prop type present, with the chunk's bounding sphere, so the renderer culls
+// whole chunks against the view and the shadow camera, and a tile coming or
+// going re-uploads only its own chunk.
+const CHUNK = 2;
+const MID_R = 300;
+const CHUNK_MS = 1.0;
+
+function typeGeo(k) {
+  return S.geos[k] || (S.geos[k] = markShared(PROP_TYPES[k].geo()));
+}
+
+function chunkMesh(ch, k, n) {
+  const T = PROP_TYPES[k];
+  const cap = Math.ceil(n / 64) * 64;
+  const mesh = new THREE.InstancedMesh(typeGeo(k), T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, cap);
   mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
   mesh.count = 0;
-  mesh.frustumCulled = false;
-  mesh.castShadow = shadow;
+  mesh.boundingSphere = ch.sphere;
+  mesh.castShadow = !!T.shadow;
   mesh.receiveShadow = true;
   mesh.matrixAutoUpdate = false;
   mesh.userData.shared = true;
+  mesh.userData.kind = 'country:' + k;
+  if (T.paving) mesh.renderOrder = -1;
   return mesh;
+}
+
+function chunkFor(t) {
+  const kx = Math.floor(t.tx / CHUNK), ky = Math.floor(t.ty / CHUNK), key = kx * 100003 + ky;
+  let ch = S.chunks.get(key);
+  if (!ch) {
+    const half = (CHUNK * TILE) / 2, cx = kx * CHUNK * TILE + half, cy = ky * CHUNK * TILE + half;
+    ch = { key, cx, cy, tiles: new Set(), meshes: new Map(), dirty: true, sphere: new THREE.Sphere(new THREE.Vector3(cx, 8, cy), half * 1.42 + 30) };
+    S.chunks.set(key, ch);
+  }
+  return ch;
+}
+
+const inTier = (k, t) => { const lod = PROP_TYPES[k].lod; return !lod || (lod === 'mid') === t.mid; };
+
+function rebuildChunk(ch) {
+  ch.dirty = false;
+  const want = new Map();
+  for (const t of ch.tiles) {
+    for (const k in t.items) {
+      if (k === 'reed' || !inTier(k, t)) continue;
+      want.set(k, (want.get(k) || 0) + t.items[k].c.length / 3);
+    }
+  }
+  for (const [k, mesh] of ch.meshes) {
+    if (want.get(k)) continue;
+    S.group.remove(mesh);
+    mesh.dispose();
+    ch.meshes.delete(k);
+  }
+  for (const [k, n] of want) {
+    let mesh = ch.meshes.get(k);
+    if (mesh && mesh.instanceMatrix.count < n) { S.group.remove(mesh); mesh.dispose(); mesh = null; }
+    if (!mesh) { mesh = chunkMesh(ch, k, n); ch.meshes.set(k, mesh); S.group.add(mesh); }
+    let off = 0;
+    for (const t of ch.tiles) {
+      const it = t.items[k];
+      if (!it || !inTier(k, t)) continue;
+      mesh.instanceMatrix.array.set(it.m, off * 16);
+      mesh.instanceColor.array.set(it.c, off * 3);
+      off += it.c.length / 3;
+    }
+    mesh.count = off;
+    markInstancesDirty(mesh.instanceMatrix, off);
+    markInstancesDirty(mesh.instanceColor, off);
+  }
+}
+
+function dropChunk(ch) {
+  for (const mesh of ch.meshes.values()) { S.group.remove(mesh); mesh.dispose(); }
+  ch.meshes.clear();
+  S.chunks.delete(ch.key);
+}
+
+// Tier per tile (with some slack), then the dirty chunks nearest first.
+function syncChunks(px, py, budgetEnd) {
+  for (const t of S.tiles.values()) {
+    const d = Math.hypot(t.cx - px, t.cy - py);
+    const mid = d > MID_R + (t.mid ? -30 : 30);
+    if (mid !== t.mid) { t.mid = mid; chunkFor(t).dirty = true; }
+    if (t.reedMesh) t.reedMesh.visible = d < REED_R;
+  }
+  const list = [];
+  for (const ch of S.chunks.values()) if (ch.dirty) list.push([Math.hypot(ch.cx - px, ch.cy - py), ch]);
+  list.sort((a, b) => a[0] - b[0]);
+  let n = 0;
+  for (const [, ch] of list) {
+    if (n > 0 && performance.now() > budgetEnd) break;
+    if (ch.tiles.size) rebuildChunk(ch); else dropChunk(ch);
+    n++;
+  }
 }
 
 function init(scene) {
@@ -710,11 +816,10 @@ function init(scene) {
   const propMat = markShared(vcMaterial({ roughness: 0.9 }));
   const reedMat = markShared(vcMaterial({ roughness: 0.9, side: THREE.DoubleSide }));
   const pavingMat = markShared(vcMaterial({ roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
-  const pools = {};
-  // pools are created on first use so an empty type costs nothing
+  // geometries are made on first use (or one per frame ahead of need)
   S = {
-    group, pools, groundKey: '', blobs: null, propMat, reedMat, pavingMat,
-    tiles: new Map(), queue: [], wantKey: '', repackTimer: 0, dirty: true, reedKey: '',
+    group, geos: {}, chunks: new Map(), gen: null, groundKey: '', blobs: null, propMat, reedMat, pavingMat,
+    tiles: new Map(), queue: [], wantKey: '', genMax: 0,
     animals: [], animalDirty: true,
     skinned: new Map(), meshPool: new Map(), herdPools: new Map(),
     farmCount: 0, signs: new Map(), flocks: [], poolWarm: Object.keys(PROP_TYPES),
@@ -747,19 +852,18 @@ function init(scene) {
   blobs.matrixAutoUpdate = false;
   group.add(blobs);
   S.blobs = blobs;
-  window.__countryside = S;
-}
-
-function poolOf(k) {
-  let p = S.pools[k];
-  if (!p) {
-    const T = PROP_TYPES[k];
-    p = makePool(markShared(T.geo()), T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, T.cap, T.shadow);
-    if (T.paving) p.renderOrder = -1;
-    S.group.add(p);
-    S.pools[k] = p;
+  // hidden samples of the prop materials for the shader warm-up (scene3d)
+  const warm = new THREE.Group();
+  warm.visible = false;
+  for (const [k, shadow] of [['tree', true], ['reed', false], ['slab', false]]) {
+    const m = chunkMesh({ sphere: new THREE.Sphere() }, k, 1);
+    m.count = 1;
+    m.castShadow = shadow;
+    warm.add(m);
   }
-  return p;
+  for (const m of villageWarmMeshes()) warm.add(m);
+  group.add(warm);
+  window.__countryside = S;
 }
 
 // ------------------------------------------------------------------ ground ring
@@ -836,23 +940,37 @@ function syncTiles(px, py, viewDist, budgetEnd) {
       if (Math.hypot(t.cx - px, t.cy - py) > R + TILE * 1.3) {
         unloadTile(t);
         S.tiles.delete(k);
-        S.dirty = true;
       }
     }
+    // a half-built tile the player has left behind is dropped
+    if (S.gen && !want.some((w) => w.k === S.gen.w.k)) S.gen = null;
   }
-  let made = 0;
-  while (S.queue.length && (made === 0 || performance.now() < budgetEnd)) {
-    const w = S.queue.shift();
-    if (S.tiles.has(w.k)) continue;
-    const t = genTile(w.tx, w.ty);
-    S.tiles.set(w.k, t);
-    loadTile(t);
-    S.dirty = true;
-    made++;
+  let steps = 0;
+  while (steps === 0 || performance.now() < budgetEnd) {
+    if (!S.gen) {
+      let w = null;
+      while (S.queue.length && !w) { const c = S.queue.shift(); if (!S.tiles.has(c.k)) w = c; }
+      if (!w) break;
+      S.gen = { w, steps: genTileSteps(w.tx, w.ty) };
+    }
+    const a = performance.now();
+    const r = S.gen.steps.next();
+    S.genMax = Math.max(S.genMax * 0.999, performance.now() - a);
+    steps++;
+    if (r.done) {
+      const t = r.value;
+      S.tiles.set(S.gen.w.k, t);
+      loadTile(t);
+      S.gen = null;
+    }
   }
 }
 
 function loadTile(t) {
+  t.mid = Math.hypot(t.cx - S.px, t.cy - S.py) > MID_R;
+  const ch = chunkFor(t);
+  ch.tiles.add(t);
+  ch.dirty = true;
   for (const a of t.animals) S.animals.push(a);
   if (t.animals.length) S.animalDirty = true;
   for (const f of t.flocks) S.flocks.push(f);
@@ -867,6 +985,10 @@ function loadTile(t) {
 }
 
 function unloadTile(t) {
+  const ch = chunkFor(t);
+  ch.tiles.delete(t);
+  ch.dirty = true;
+  if (t.reedMesh) { S.group.remove(t.reedMesh); t.reedMesh.dispose(); t.reedMesh = null; }
   if (t.animals.length) {
     const gone = new Set(t.animals);
     S.animals = S.animals.filter((a) => !gone.has(a));
@@ -881,33 +1003,6 @@ function unloadTile(t) {
   if (t.signMeshes) {
     for (const m of t.signMeshes) { S.group.remove(m); disposeSign(m); }
     t.signMeshes = null;
-  }
-}
-
-function repack(px, py) {
-  const counts = {};
-  for (const k in S.pools) counts[k] = 0;
-  const reedR2 = REED_R * REED_R;
-  for (const t of S.tiles.values()) {
-    const nearReed = (t.cx - px) ** 2 + (t.cy - py) ** 2 < reedR2;
-    for (const k in t.items) {
-      if (PROP_TYPES[k].near && !nearReed) continue;
-      const pool = S.pools[k];
-      if (!pool) { S.dirty = true; continue; }
-      const it = t.items[k];
-      const n = it.c.length / 3;
-      const cap = PROP_TYPES[k].cap;
-      if (counts[k] + n > cap) continue;
-      pool.instanceMatrix.array.set(it.m, counts[k] * 16);
-      pool.instanceColor.array.set(it.c, counts[k] * 3);
-      counts[k] += n;
-    }
-  }
-  for (const k in S.pools) {
-    const pool = S.pools[k];
-    pool.count = counts[k];
-    markInstancesDirty(pool.instanceMatrix, counts[k]);
-    markInstancesDirty(pool.instanceColor, counts[k]);
   }
 }
 
@@ -969,7 +1064,17 @@ function addReeds(t) {
     }
   }
   const it = tmp.items.reed;
-  t.items.reed = it ? { m: new Float32Array(it.m), c: new Float32Array(it.c) } : { m: new Float32Array(0), c: new Float32Array(0) };
+  if (!it || !it.c.length) return;
+  // the tile's own mesh, shown only while the tile is near
+  const n = it.c.length / 3;
+  const mesh = chunkMesh({ sphere: new THREE.Sphere(new THREE.Vector3(t.cx, 1, t.cy), TILE * 0.72) }, 'reed', n);
+  mesh.instanceMatrix.array.set(it.m);
+  mesh.instanceColor.array.set(it.c);
+  mesh.count = n;
+  markInstancesDirty(mesh.instanceMatrix, n);
+  markInstancesDirty(mesh.instanceColor, n);
+  t.reedMesh = mesh;
+  S.group.add(mesh);
 }
 
 // ------------------------------------------------------------------ animals
@@ -997,6 +1102,19 @@ function releaseSkin(a) {
   if (!S.meshPool.has(key)) S.meshPool.set(key, []);
   const pool = S.meshPool.get(key);
   if (pool.length < 12) pool.push(mesh);
+}
+
+function makePool(geo, mat, cap, shadow) {
+  const mesh = new THREE.InstancedMesh(geo, mat, cap);
+  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
+  mesh.count = 0;
+  mesh.frustumCulled = false;
+  mesh.castShadow = shadow;
+  mesh.receiveShadow = true;
+  mesh.matrixAutoUpdate = false;
+  mesh.userData.shared = true;
+  return mesh;
 }
 
 function herdPool(key) {
@@ -1289,30 +1407,24 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
   const t0 = performance.now();
   const near = edgeDistance(p.x, p.y) > -(propRadius(viewDist) + 200);
   updateGround(p.x, p.y);
+  S.px = p.x; S.py = p.y;
   if (near || S.tiles.size) {
-    syncTiles(p.x, p.y, viewDist, t0 + GEN_BUDGET_MS);
-    const reedKey = Math.floor(p.x / TILE) + ',' + Math.floor(p.y / TILE);
-    if (reedKey !== S.reedKey) { S.reedKey = reedKey; S.dirty = true; }
-    if (!S.queue.length && performance.now() < t0 + GEN_BUDGET_MS) {
+    syncTiles(p.x, p.y, viewDist, t0 + GEN_BUDGET_MS * (S.queue.length > 6 ? 2 : 1));
+    if (!S.queue.length && !S.gen && performance.now() < t0 + GEN_BUDGET_MS) {
       for (const t of S.tiles.values()) {
         if (t.reeds || (t.cx - p.x) ** 2 + (t.cy - p.y) ** 2 > REED_R * REED_R) continue;
         addReeds(t);
-        S.dirty = true;
         break;
       }
     }
-    // build one missing prop pool per frame, before tiles need it
-    if (S.poolWarm.length) poolOf(S.poolWarm.shift());
-    S.repackTimer -= dt;
-    if (S.dirty && S.repackTimer <= 0) {
-      S.repackTimer = REPACK_EVERY;
-      S.dirty = false;
-      repack(p.x, p.y);
-    }
+    // make one missing prop geometry per frame, before tiles need it
+    if (S.poolWarm.length) typeGeo(S.poolWarm.shift());
+    syncChunks(p.x, p.y, Math.max(performance.now(), t0 + GEN_BUDGET_MS) + CHUNK_MS);
+    updateVillages(dt, world, scene);
     updateAnimals(world.paused ? 0 : dt, world, world.time, !world.paused);
   } else if (!S.idle) {
     // back in the city: drop whatever the last countryside frame left drawn
-    for (const pool of Object.values(S.pools)) pool.count = 0;
+    for (const ch of [...S.chunks.values()]) dropChunk(ch);
     for (const pool of S.herdPools.values()) pool.count = 0;
     for (const a of [...S.skinned.keys()]) releaseSkin(a);
     S.blobs.count = 0;
@@ -1320,7 +1432,8 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
   }
   S.idle = !(near || S.tiles.size);
   gameplay(dt, world);
-  updateSkyline(dt, world, scene, cam);
+  // the skyline leaves out what the props draw, less what it may lag behind
+  updateSkyline(dt, world, scene, cam, Math.max(0, propRadius(viewDist) - 250));
   updateCountryLife(dt, world, scene, S.idle ? [] : S.flocks, scene.fog ? scene.fog.far : viewDist);
   const ms = performance.now() - t0;
   S.ms = (S.ms || 0) * 0.95 + ms * 0.05;
@@ -1330,12 +1443,13 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
 export function countrysideStats() {
   if (!S) return null;
   const pools = {};
-  for (const [k, m] of Object.entries(S.pools)) pools[k] = m.count;
+  let meshes = 0;
+  for (const ch of S.chunks.values()) for (const [k, m] of ch.meshes) { pools[k] = (pools[k] || 0) + m.count; meshes++; }
   let herd = 0;
   for (const m of S.herdPools.values()) herd += m.count;
   return {
-    ms: +(S.ms || 0).toFixed(3), maxMs: +(S.maxMs || 0).toFixed(2), tiles: S.tiles.size, queue: S.queue.length,
+    ms: +(S.ms || 0).toFixed(3), maxMs: +(S.maxMs || 0).toFixed(2), genMax: +S.genMax.toFixed(2), tiles: S.tiles.size, queue: S.queue.length, chunks: S.chunks.size, meshes,
     animals: S.animals.length, skinned: S.skinned.size, herd, farms: S.farmCount, flocks: S.flocks.length, pools,
-    skyline: skylineStats(), life: lifeStats(),
+    skyline: skylineStats(), life: lifeStats(), villages: villageStats(),
   };
 }
