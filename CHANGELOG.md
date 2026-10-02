@@ -69,6 +69,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Vooruit spelen mag**, maar het spel vraagt eerst of je dat echt wilt.
 - **Beweging beperken** onder Instellingen › Weergave: geen animaties in
   menu's en tellers.
+- **Een dag en datum in Grunn.** Overzicht en de telefoon zeggen welke dag
+  het is ("Vrijdag 14 augustus"): elk deel begint op zijn eigen datum, de
+  stappen lopen door de dagen heen tot Gronings Ontzet op vrijdag 28
+  augustus, en na het verhaal is het september. Wie een nacht doorspeelt,
+  gaat een dag verder.
+- **Overzicht laat de plek zien** van de huidige stap: een plaatje uit de
+  stad, met de gele marker, zodra je er in de buurt bent geweest.
+- **"1 prestatie wacht"** in de HUD tot je Prestaties opent; daar staan de
+  nieuwe dan bovenaan bij Onlangs behaald.
+- **Ballonjacht heeft zilver**: brons voor de ballon, zilver vanaf 2.600 en
+  goud vanaf 3.300 punten, met B/Z/G in Te doen.
 
 ### Veranderd
 - Minder verplichte aankopen: alleen een fiets, kraakspullen (zwart of een
