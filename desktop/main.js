@@ -192,7 +192,7 @@ function createWindow() {
           font: document.fonts.check('40px Bebas Neue'),
           desktop: !!window.gteDesktop, fullscreen: window.gteDesktop ? window.gteDesktop.isFullscreen() : null,
           menu: [...document.querySelectorAll('#start-screen .ss-item')].map((e) => e.firstChild && e.firstChild.textContent).join(' | '),
-          pauseButtons: [...document.querySelectorAll('#pause-menu .pm-game > [data-action]')].map((b) => b.dataset.action).join(','),
+          pauseButtons: [...document.querySelectorAll('#pause-menu .pm-game [data-action]')].map((b) => b.dataset.action).join(','),
           fullscreenToggle: !!document.querySelector('[data-desktop="fullscreen"]'),
         })`);
         console.log('[smoke]', info);
