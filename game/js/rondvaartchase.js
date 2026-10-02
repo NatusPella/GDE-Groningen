@@ -1,4 +1,4 @@
-// Missie 8, "Rondvaart met valse papieren": een heel rondje Diepenring met
+// Missie 8, "Alles klopt, behalve de papieren": een heel rondje Diepenring met
 // toeristen aan boord. Rustig begin, dan komt Schipper Wiebe (de echte
 // eigenaar) in z'n sloep achter je aan. Botsingen maken de toeristen bang;
 // rustig langs bezienswaardigheden varen (de gids vertelt) maakt ze blij.

@@ -23,6 +23,7 @@ const DEFAULTS = {
   cameraDistance: 1,
   showMinimap: true,
   showHints: true,
+  reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
   gore: true,

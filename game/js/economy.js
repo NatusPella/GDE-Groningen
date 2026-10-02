@@ -40,3 +40,22 @@ export const FJORD_DAY_HOUR = 7;
 // Hidden eierballen.
 export const EIERBAL_FIND_PAY = 50;
 export const EIERBAL_ALL_BONUS = 1000;
+
+// Replays: a mission already passed pays a klusloon (a share of its reward),
+// and each medal tier (brons, zilver, goud) pays a one-time bonus per
+// playthrough the first time it is reached for that mission.
+export const KLUSLOON_SHARE = 0.5;
+export const MEDAL_BONUS_SHARE = [0, 0.15, 0.25, 0.4];
+
+const round5 = (v) => Math.round(v / 5) * 5;
+
+export function klusloon(reward) {
+  return round5(reward * KLUSLOON_SHARE);
+}
+
+// Bonus for going from medal `from` to `to` (0 none .. 3 goud) on a mission.
+export function medalBonus(reward, from, to) {
+  let sum = 0;
+  for (let m = from + 1; m <= to; m++) sum += round5(reward * (MEDAL_BONUS_SHARE[m] || 0));
+  return sum;
+}
