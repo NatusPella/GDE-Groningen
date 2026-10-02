@@ -19,7 +19,10 @@ export function initDayNight(world) {
 
 export function updateDayNight(dt, world) {
   if (typeof world.clock !== 'number' || !isFinite(world.clock)) world.clock = START_HOUR;
-  world.clock = (world.clock + dt * 24 / DAY_LENGTH_S) % 24;
+  const next = world.clock + dt * 24 / DAY_LENGTH_S;
+  // midnights played through (calendar.js counts the days with it)
+  if (next >= 24) world.dayWraps = (world.dayWraps | 0) + 1;
+  world.clock = next % 24;
   refreshDayNight(world);
 }
 

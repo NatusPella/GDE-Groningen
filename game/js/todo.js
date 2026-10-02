@@ -14,7 +14,7 @@ import { STEP_BY_ID } from './storyarc.js';
 import { getMissionRecord, getChallengeRecord, MISSION_GOALS, MEDALS, formatMissionTime, getStat, isUnlocked, getSaveSet, uniqueCount, EIERBAL_TOTAL } from './achievements.js';
 import { getSideJobOffers, getSideJobList } from './sidejobs.js';
 import { getPadelSpotsForRender } from './padel.js';
-import { getHeliSpotsForRender } from './helirun.js';
+import { getHeliSpotsForRender, HELI_MEDAL_SCORES } from './helirun.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getPigeonSaveData } from './pigeonmode.js';
 import { activityMapIcons } from './activities.js';
@@ -169,9 +169,13 @@ function minigameItems(world) {
     detail: { kicker: 'Minigame · Grote Markt', text: 'Botsen tegen vijf rijders, Tammo of Anita incluis. Van opzij en van achteren telt het dubbel.', rows: [] } }, kermis);
   const heli = getHeliSpotsForRender();
   const best = getStat('heliBest');
+  const hr = getChallengeRecord('ballonjacht');
+  const heliMedal = Math.max(hr ? hr.medal : 0, isUnlocked('ballonjacht_goud') ? 3 : 0,
+    best >= HELI_MEDAL_SCORES[2] ? 2 : 0, isUnlocked('ballonjacht') ? 1 : 0);
   add({ key: 'mg:heli', playId: 'heli', icon: 'heli', title: 'Ballonjacht', meta: 'Traumaheli op het UMCG',
-    medal: isUnlocked('ballonjacht_goud') ? 3 : isUnlocked('ballonjacht') ? 1 : 0, record: best ? `Topscore ${best.toLocaleString('nl-NL')}` : 'Nog niet gespeeld',
-    detail: { kicker: 'Minigame · UMCG', text: 'Met de traumaheli door de ringen, tegen de wind in, en dan stil hangen naast een ballon.', rows: [] } }, heli);
+    medal: heliMedal, record: best ? `Topscore ${best.toLocaleString('nl-NL')}` : 'Nog niet gespeeld',
+    detail: { kicker: 'Minigame · UMCG', text: 'Met de traumaheli door de ringen, tegen de wind in, en dan stil hangen naast een ballon.', rows: [],
+      medals: [[1, 'Haal de ballon in'], [2, `${HELI_MEDAL_SCORES[2].toLocaleString('nl-NL')} punten`], [3, `${HELI_MEDAL_SCORES[3].toLocaleString('nl-NL')} punten`]] } }, heli);
   const pigeon = getPigeonSpotsForRender();
   const pb = getPigeonSaveData().best;
   add({ key: 'mg:duif', playId: 'duif', icon: 'pigeon', title: 'Duivenmodus', meta: `${pigeon.length} duivenplekken · alleen Tammo`,
