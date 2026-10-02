@@ -35,9 +35,22 @@ app.setName('GTE VI');
 // touch the player's saves, settings or achievements
 // --trailer[=WxH] plays the trailer for recordings (js/trailer.js), also on a
 // throwaway profile; --trailer-shot=N one shot, --trailer-cut=kort the short
-// cut, --trailer-frames=<dir> saves every frame as a png
-const TRAILER = process.argv.find((a) => a === '--trailer' || a.startsWith('--trailer='));
+// cut, --trailer-frames=<dir> saves every frame as a png,
+// --trailer-video[=<file.mp4>] encodes the run straight to an MP4 with sound
+// (trailervideo.js; default ~/Downloads, 1920x1080 unless --trailer=WxH)
+const VIDEO = process.argv.find((a) => a === '--trailer-video' || a.startsWith('--trailer-video='));
+const TRAILER = process.argv.find((a) => a === '--trailer' || a.startsWith('--trailer=')) || (VIDEO && '--trailer');
 const argValue = (name) => { const a = process.argv.find((x) => x.startsWith(name + '=')); return a ? a.slice(name.length + 1) : null; };
+const TRAILER_SIZE = TRAILER && TRAILER.includes('=') ? TRAILER.split('=')[1] : VIDEO ? '1920x1080' : null;
+let video = null;
+if (VIDEO) {
+  const tv = require('./trailervideo.js');
+  const ffmpeg = tv.findFfmpeg();
+  if (!ffmpeg) { console.error('[video] ffmpeg not found (looked in /opt/homebrew/bin, /usr/local/bin and PATH); install it, e.g. brew install ffmpeg'); process.exit(1); }
+  try {
+    video = { tv, ffmpeg, out: tv.resolveOutput(VIDEO.includes('=') ? VIDEO.slice(VIDEO.indexOf('=') + 1) : null, __dirname) };
+  } catch (e) { console.error('[video]', e.message); process.exit(1); }
+}
 // --benchmark[=N] runs the benchmark N times from the title screen, logs every
 // shot's fps / draw calls / GPU memory and quits (throwaway profile)
 const BENCH = process.argv.find((a) => a === '--benchmark' || a.startsWith('--benchmark='));
@@ -106,7 +119,7 @@ function createWindow() {
   // --trailer=3840x2160: that many device pixels of page, whatever the screen
   // --window-size=1280x720: a test run's window in CSS px (HUD layout checks with --smoke-test)
   const size = argValue('--window-size');
-  const rec = TRAILER && TRAILER.includes('=') ? TRAILER.split('=')[1].split('x').map(Number) : size ? size.split('x').map((v) => Number(v) * (require('electron').screen.getPrimaryDisplay().scaleFactor || 1)) : null;
+  const rec = TRAILER_SIZE ? TRAILER_SIZE.split('x').map(Number) : size ? size.split('x').map((v) => Number(v) * (require('electron').screen.getPrimaryDisplay().scaleFactor || 1)) : null;
   const recScale = rec ? require('electron').screen.getPrimaryDisplay().scaleFactor || 1 : 1;
   const win = new BrowserWindow({
     ...(rec && rec[0] > 0 && rec[1] > 0
@@ -163,7 +176,7 @@ function createWindow() {
     // automated runs never get the first-launch attract intro
     (smoke || storyTest || process.argv.includes('--perf-test')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
-    TRAILER && trailerFrames && 'frames', process.argv.includes('--attract') && 'attract',
+    TRAILER && (trailerFrames || video) && 'frames', video && 'video', video && 'stil', process.argv.includes('--attract') && 'attract',
     !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,
     // --preset=laag: that graphics preset for this run only (not saved)
     argValue('--preset') && `preset=${encodeURIComponent(argValue('--preset'))}`,
@@ -191,7 +204,16 @@ function createWindow() {
   });
   const evalFile = argValue('--bench-eval');
   if (evalFile) win.webContents.on('dom-ready', () => win.webContents.executeJavaScript(fsSync.readFileSync(evalFile, 'utf8')).catch((e) => console.log('[bench-eval]', e.message)));
-  if (TRAILER && trailerFrames) {
+  if (video) {
+    const [W, H] = TRAILER_SIZE.split('x').map(Number);
+    video.run = video.tv.setupTrailerVideo({ ipcMain, win, out: video.out, size: [W - (W % 2), H - (H % 2)], gameDir: GAME_DIR, ffmpeg: video.ffmpeg });
+    // the page quits after its last frame: let ffmpeg finish the file first
+    app.on('before-quit', (e) => {
+      if (video.closed) return;
+      e.preventDefault();
+      video.run.finish().then((code) => { video.closed = true; app.exit(code ? 1 : 0); });
+    });
+  } else if (TRAILER && trailerFrames) {
     fsSync.mkdirSync(trailerFrames, { recursive: true });
     ipcMain.removeHandler('gte:capture-frame');
     ipcMain.handle('gte:capture-frame', async (e, n) => {
