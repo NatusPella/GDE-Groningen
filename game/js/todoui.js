@@ -10,6 +10,7 @@ import { getGoal, clearGoal, storyWaiting } from './goal.js';
 import { formatDistance } from './routing.js';
 import { dualHtml } from './subtitles.js';
 import { fillBars, pop, shine, countTo } from './motion.js';
+import { placeShot } from './placeshot.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
@@ -101,14 +102,24 @@ function heroHtml(world) {
   const goal = getGoal();
   const title = cur && cur.kind === 'mission' ? `${cur.id} · ${cur.title}` : sv.title;
   const where = it && it.x != null ? placeName(world, it.x, it.y) : '';
+  const shot = it && it.x != null ? placeShot(world, it.key, it.x, it.y, (url) => showHeroShot(it.key, url, where)) : null;
   return `<article class="ov-hero"${it ? ` data-todo-hero="${esc(it.key)}"` : ''}>` +
-    `<span class="ov-tile"><img src="${mapIconUrl(it ? it.icon : 'missionIdle', 64)}" alt="">${where ? `<small>${esc(where)}</small>` : ''}</span>` +
+    (shot ? heroShotHtml(shot, where) : `<span class="ov-tile"><img src="${mapIconUrl(it ? it.icon : 'missionIdle', 64)}" alt="">${where ? `<small>${esc(where)}</small>` : ''}</span>`) +
     `<div class="ov-hero-txt"><span class="td-kicker">Nu in het verhaal ${pill('nu')}${it && it.dist != null ? `<span class="td-dist">${formatDistance(it.dist)}</span>` : ''}</span>` +
     `<h3>${esc(title)}</h3>${cur && cur.lead ? `<p>${esc(cur.lead)}</p>` : ''}` +
     `<div class="ov-part"><span>${esc(PARTS[sv.part].title)}</span><span class="td-bar"><i data-bar="ov-part" data-w="${steps.length ? Math.round((done / steps.length) * 100) : 0}"></i></span><span><span data-num="ov-part" data-to="${done}">${done}</span> van ${steps.length} stappen</span></div>` +
     `<div class="ov-btns">${it ? `<button type="button" class="pm-primary pm-small" data-todo-goal="${esc(it.key)}">${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button>` : ''}` +
     `<button type="button" class="pm-secondary pm-small" data-todo-view="verhaal">Hele verhaal</button>` +
     `${sv.canSkip ? `<button type="button" class="pm-secondary pm-small" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div></div></article>`;
+}
+
+const PIN_SVG = '<svg class="ov-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>';
+const heroShotHtml = (url, where) => `<span class="ov-tile ov-shot"><img src="${url}" alt="">${PIN_SVG}${where ? `<small>${esc(where)}</small>` : ''}</span>`;
+
+// the still arrives a frame after the menu opened: swap it in for the tile
+function showHeroShot(key, url, where) {
+  const tile = document.querySelector(`[data-todo-hero="${CSS.escape(key)}"] .ov-tile:not(.ov-shot)`);
+  if (tile) tile.outerHTML = heroShotHtml(url, where);
 }
 
 function goalStrip(world) {

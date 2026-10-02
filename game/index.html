@@ -369,10 +369,15 @@
   #pause-menu .ov-goal { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; background: rgba(10,19,13,0.88); border: 1px solid rgba(63,201,122,0.45); }
   #pause-menu .ov-goal b { font-weight: normal; font-size: 22px; letter-spacing: 1px; }
   #pause-menu .ov-goal small { flex: 1; min-width: 0; font: 14px 'Arial Narrow', Arial, sans-serif; color: var(--pm-dim); }
-  #pause-menu .ov-hero { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 18px; padding: 16px; border-radius: 12px; background: rgba(30,158,86,0.1); border: 1px solid rgba(63,201,122,0.4); }
+  #pause-menu .ov-hero { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; padding: 16px; border-radius: 12px; background: rgba(30,158,86,0.1); border: 1px solid rgba(63,201,122,0.4); }
   #pause-menu .ov-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 140px; border-radius: 10px; background: radial-gradient(ellipse at 50% 70%, #24492f 0%, #10211a 70%); border: 1px solid rgba(63,201,122,0.16); }
   #pause-menu .ov-tile img { width: 64px; height: 64px; }
   #pause-menu .ov-tile small { font: 12px 'Arial Narrow', Arial, sans-serif; color: var(--pm-ink); text-align: center; padding: 0 8px; }
+  #pause-menu .ov-shot { position: relative; display: block; aspect-ratio: 300 / 170; min-height: 0; overflow: hidden; background: #1a3323; align-self: start; animation: ov-shot-in var(--dur-base, 200ms) var(--ease-out, ease-out); }
+  #pause-menu .ov-shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  #pause-menu .ov-shot .ov-pin { position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; transform: translate(-50%, -100%); fill: none; stroke: #e8c93a; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8)); }
+  #pause-menu .ov-shot small { position: absolute; left: 6px; bottom: 5px; padding: 0; font-size: 11px; color: #f0ede4; text-align: left; text-shadow: 0 1px 2px #000; }
+  @keyframes ov-shot-in { from { opacity: 0; } }
   #pause-menu .ov-hero-txt { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   #pause-menu .ov-hero h3 { margin: 0; font-weight: normal; font-size: 36px; letter-spacing: 1.5px; line-height: 1; }
   #pause-menu .ov-hero p { margin: 0; font: 15px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; }
