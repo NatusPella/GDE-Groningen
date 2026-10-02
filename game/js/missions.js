@@ -6,7 +6,7 @@ import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, storySpeakerName } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
@@ -1692,6 +1692,16 @@ function vehicleProblem(world, def) {
   return null;
 }
 
+// H5's all-green crossing: a staged scene (missionstory.js playEyeContact) that
+// pauses the race; both brake, so the player rolls on slowly. The text is the fallback.
+function playMoment(world, m) {
+  const p = world.player, v = p.inVehicle;
+  const heading = v ? v.angle : p.angle;
+  const staged = !isCinematicActive() && playEyeContact(world, { at: { x: p.x, y: p.y }, heading });
+  if (staged && v) v.speed *= 0.3;
+  if (!staged) world.addMessage(m.text, 4.5, { kind: 'missie' });
+}
+
 // Index of the waypoint the player is at: the current one or, while the
 // current one is only a `via` (route guidance along the streets), any later
 // via or the next real checkpoint, so cutting a corner never strands you.
@@ -1710,7 +1720,10 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   chain.wpIndex++;
   if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
-  if (def.moment && !chain.momentDone && chain.wpIndex >= def.moment.at) { chain.momentDone = true; world.addMessage(def.moment.text, 4.5, { kind: 'missie' }); }
+  if (def.moment && !chain.momentDone && chain.wpIndex >= def.moment.at) {
+    chain.momentDone = true;
+    playMoment(world, def.moment);
+  }
   if (chain.wpIndex >= def.waypoints.length) {
     if (chain.race) {
       const { position, total } = raceStandings(chain.race);

@@ -553,7 +553,9 @@ data plus a director:
   props, drifts, near misses, pigeon flocks and the water truck on the Grote
   Markt (stuntavond.js); people hit there are knocked down, never killed
   (`world.stuntSafe`, pedestrians.js). A def `window` (H6) is a timer over a
-  range of stages, `moment` a card at a checkpoint (H5). A failed mission's
+  range of stages, `moment` a staged scene at a checkpoint (H5: missionstory.js
+  `playEyeContact`, Anita on her own bike at the all-green crossing; its `text` is
+  the fallback toast). A failed mission's
   banner reads "Sikkom.". In `missionstory.js` an entry's `replay` is the short
   outro of a replay (the mission as a klus), `outroNpcKey` another NPC for the
   outro, a line's `kiss` the line the kiss happens on. Type `stages` builds a mission from

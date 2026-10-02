@@ -79,6 +79,9 @@ nieuwe functies, `y` voor alleen bugfixes.
   menu's en tellers.
 
 ### Veranderd
+- **Wind tegen, beide kanten op:** het oogcontact is nu een echte scène in plaats
+  van een kaartje. Op het kruispunt waar alles groen is komt Anita op haar eigen
+  fiets van de andere kant, ze kijken elkaar aan en remmen allebei.
 - **Fatbikes tellen niet als fiets** loopt nu zoals in het script: van de Grote
   Markt de Oude Ebbingestraat uit, over de Ebbingebrug en langs het water naar
   Oma Trijntje aan de Noorderhaven. De fatbikes komen overal om je heen, niet
