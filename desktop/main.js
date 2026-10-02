@@ -54,6 +54,8 @@ protocol.registerSchemesAsPrivileged([
 
 // the theme song starts on the title screen without waiting for a click
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+// laptops with an integrated and a separate GPU: render on the separate one
+app.commandLine.appendSwitch('force_high_performance_gpu');
 
 async function serve(request) {
   const url = new URL(request.url);

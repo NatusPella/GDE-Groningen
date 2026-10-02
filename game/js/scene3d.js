@@ -725,7 +725,8 @@ export function init3D(map) {
   preloadLandmarkModels();
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
-  renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag' });
+  // laptops with two GPUs: the fast one
+  renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag', powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
