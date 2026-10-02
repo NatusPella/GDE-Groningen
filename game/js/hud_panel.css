@@ -208,14 +208,14 @@
 body.hud-in-vehicle #hud { --mm-bottom: 56px; }
 #hud .hud-speedo {
   position: absolute;
-  right: 46px;
+  right: 16px;
   bottom: 14px;
   display: none;
   align-items: center;
-  gap: 12px;
-  width: 170px;
+  gap: 10px;
+  width: 236px;
   box-sizing: border-box;
-  padding: 6px 12px;
+  padding: 3px 12px 3px 6px;
   border-radius: 10px;
   color: #f0ede4;
   background: rgba(10, 19, 13, 0.9);
@@ -224,6 +224,21 @@ body.hud-in-vehicle #hud { --mm-bottom: 56px; }
 }
 #hud .hud-speedo.visible { display: flex; animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 @keyframes hud-rise { from { opacity: 0; transform: translateY(8px); } }
+/* the vehicle itself, greying and darkening with its damage (--dmg 0..1) */
+#hud .hud-speedo .sp-pic { flex: 0 0 62px; width: 62px; height: 34px; overflow: hidden; }
+#hud .hud-speedo .sp-pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  /* the still is framed loosely; crop in on the vehicle */
+  transform: scale(1.45);
+  filter: saturate(calc(1 - var(--dmg, 0) * 0.8)) brightness(calc(1 - var(--dmg, 0) * 0.25));
+  transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), filter var(--dur-slow, 320ms) var(--ease-out, ease-out);
+}
+#hud .hud-speedo .sp-pic img.on { opacity: 1; }
+#hud .hud-speedo.no-pic .sp-pic { display: none; }
+#hud .hud-speedo.no-pic { right: 46px; width: 170px; padding: 6px 12px; }
 #hud .hud-speedo .sp-num { display: flex; align-items: baseline; gap: 4px; }
 #hud .hud-speedo b { font-weight: normal; font-size: 30px; line-height: 1; min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
 #hud .hud-speedo .sp-num span { font-size: 13px; color: var(--gron-green-light); }
@@ -236,7 +251,7 @@ body.hud-in-vehicle #hud { --mm-bottom: 56px; }
 #hud .hud-speedo.hurt .sp-bar i { background: #d93f3f; }
 #hud .hud-speedo.no-dmg { width: auto; }
 #hud .hud-speedo.no-dmg .sp-dmg { display: none; }
-body.hide-minimap #hud .hud-speedo { right: 16px; }
+body.hide-minimap #hud .hud-speedo, body.hide-minimap #hud .hud-speedo.no-pic { right: 16px; }
 
 /* savegame.js's toast, moved into the location chip by hud_panel.js */
 #hud .hud-saved {

@@ -89,7 +89,7 @@ export function initHud(world) {
 
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<span class="sp-num"><b></b><span>km/u</span></span><span class="sp-dmg"><small>Schade</small><span class="sp-bar"><i></i></span></span>';
+  speedo.innerHTML = '<span class="sp-pic" aria-hidden="true"><img alt=""></span><span class="sp-num"><b></b><span>km/u</span></span><span class="sp-dmg"><small>Schade</small><span class="sp-bar"><i></i></span></span>';
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -171,6 +171,8 @@ export function initHud(world) {
     speedoDmg: speedo.querySelector('.sp-bar i'),
     speedoDmgLabel: speedo.querySelector('.sp-dmg small'),
     speedoKey: '',
+    speedoPic: speedo.querySelector('.sp-pic img'),
+    speedoPicKey: '',
     weapon: topRight.querySelector('.hud-weapon'),
     mission,
     vehName,
@@ -523,7 +525,9 @@ function updateSpeedo(world) {
   const was = Number(els.speedoKey.split(':')[1]);
   const fresh = !els.speedoKey.startsWith(v.id + ':');
   els.speedoKey = key;
+  if (fresh) setSpeedoPic(v === world.trainCam ? null : v);
   els.speedo.classList.toggle('no-dmg', dmg < 0);
+  els.speedo.style.setProperty('--dmg', dmg < 0 ? '0' : (dmg / 100).toFixed(2));
   if (dmg < 0) return;
   els.speedo.classList.toggle('hurt', dmg >= 60);
   els.speedoDmgLabel.textContent = dmg >= 60 ? `Schade ${dmg}%` : 'Schade';
@@ -531,6 +535,36 @@ function updateSpeedo(world) {
   els.speedoDmg.style.width = dmg + '%';
   if (fresh) { void els.speedoDmg.offsetWidth; els.speedoDmg.style.transition = ''; }
   else if (dmg > was + 4) pop(els.speedo);
+}
+
+const SPEEDO_PIC_W = 62;
+const SPEEDO_PIC_H = 34;
+const VEH_FLAGS = ['isPolice', 'isBus', 'isTaxi', 'isAmbulance', 'isHeroCar'];
+
+// A still of the vehicle you are in (vehiclepreview.js, cached per model and
+// colour), rendered once on getting in; its damage shows as a CSS filter.
+function setSpeedoPic(v) {
+  const img = els.speedoPic;
+  const m = v && v.model;
+  if (!m || !m.name) { els.speedoPicKey = ''; els.speedo.classList.add('no-pic'); img.classList.remove('on'); return; }
+  const flags = {};
+  for (const f of VEH_FLAGS) if (v[f]) flags[f] = true;
+  const kind = v.isHeli ? 'heli' : v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : 'car';
+  const model = {};
+  for (const [k, val] of Object.entries(m)) if (k !== 'rider' && (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean')) model[k] = val;
+  const spec = { kind, model, color: m.color, nameIdx: 0, flags };
+  const key = JSON.stringify(spec);
+  els.speedo.classList.remove('no-pic');
+  if (els.speedoPicKey === key) return;
+  els.speedoPicKey = key;
+  img.classList.remove('on');
+  const px = Math.min(3, Math.max(2, Math.ceil(hudPixelRatio())));
+  renderSnapshot(spec, SPEEDO_PIC_W * px, SPEEDO_PIC_H * px, (url) => {
+    if (els.speedoPicKey !== key) return;
+    if (!url) { els.speedo.classList.add('no-pic'); return; }
+    img.src = url;
+    img.classList.add('on');
+  }, { angle: 0.75 });
 }
 
 const WEAPON_LABELS = {

@@ -122,6 +122,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Tammo heeft een nieuwe stem** en praat nu als een echte Stadjer, met
   hier en daar een Gronings woord ("Mien droom"). Douwe en de
   taxicentralist hebben Tammo's oude stem gekregen.
+- **Snelheid en schade met je voertuig erbij**: het badge onder de minimap
+  toont een plaatje van de auto, fiets of boot waar je in zit. Hoe meer
+  schade, hoe grauwer hij wordt.
+- Zonder bescherming verdwijnt het lege schildbalkje uit je kaartje
+  linksboven; het komt terug zodra je weer bescherming hebt.
 
 ### Opgelost
 - Telefoontjes, voicemails en Bel Rikus vallen niet meer over het blok
