@@ -41,6 +41,7 @@ import { updateSkyProps3D } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
+import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
@@ -818,6 +819,15 @@ export function init3D(map) {
   window.__scene3d = { scene, cam, renderer, postfx, farLod };
 }
 
+// seconds between renders behind a menu that covers part / most of the view
+export const MENU_FRAME_S = [0, 1 / 30, 1 / 20];
+let menuCover = 0, menuShadowDone = false;
+// main.js / startscreen.js: a menu covers the view (0 none, 1 part, 2 most)
+export function setMenuCover(level) {
+  if (level !== menuCover) menuShadowDone = false;
+  menuCover = level;
+}
+
 // Read-only access for systems that need the view pose (e.g. the 3D audio listener).
 export function getCamera() {
   return cam;
@@ -825,6 +835,10 @@ export function getCamera() {
 
 export function getScene() {
   return scene;
+}
+
+export function getRenderer() {
+  return renderer;
 }
 
 // Rebuild the Tammo/Anita meshes next frame (their appearance objects changed).
@@ -841,9 +855,11 @@ function applyViewSettings(st) {
   const level = QUALITY_PRESETS[st.quality] ? st.quality : 'hoog';
   const preset = QUALITY_PRESETS[level];
   const prevRatio = renderer.getPixelRatio();
-  renderer.setPixelRatio(Math.min(preset.pixelRatio, window.devicePixelRatio || 1));
+  renderer.setPixelRatio(renderPixelRatio(st, preset));
   resize3D();
   setNightLightQuality(level);
+  facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
+  facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
   else if (prevRatio !== renderer.getPixelRatio()) postfx.rebuild();
   const shadows = st.shadows && preset.shadows;
@@ -856,6 +872,22 @@ function applyViewSettings(st) {
   cam.fov = baseFov = st.fov;
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
+}
+
+function renderPixelRatio(st, preset) {
+  return Math.min(preset.pixelRatio, window.devicePixelRatio || 1) * (st.resolution || 1) * dynamicScale();
+}
+
+// gfxprofile.js changed the dynamic render scale or cpuLevel
+export function refreshRenderScale() {
+  if (!renderer) return;
+  const st = getSettings();
+  const ratio = renderPixelRatio(st, QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog);
+  facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
+  if (ratio === renderer.getPixelRatio()) return;
+  renderer.setPixelRatio(ratio);
+  resize3D();
+  postfx.rebuild();
 }
 
 function applyShadowLevel(level) {
@@ -1187,6 +1219,14 @@ function syncBuildings(world, px, py) {
     for (const mesh of buildingMeshes.values()) if (!mesh.parent) scene.add(mesh);
   }
   buildingsStaged = buildingDetailR < DRAW_DIST;
+  // 'laag': window frames, trims and shopfronts only up close
+  if (facadeDetailDist < DRAW_DIST || facadeDetailCulled) {
+    for (const [b, mesh] of buildingMeshes) {
+      const det = mesh.userData.facadeDetail;
+      if (det) det.visible = centreDist(b) <= facadeDetailDist;
+    }
+    facadeDetailCulled = facadeDetailDist < DRAW_DIST;
+  }
   // Build the meshes of buildings just outside the detail radius ahead of
   // time (within a small per-frame budget), so crossing DRAW_DIST only has
   // to add an already built mesh to the scene.
@@ -1213,6 +1253,11 @@ const STREAM_JUMP = 60;
 let streamBoostUntil = 0;
 let streamLastX = null, streamLastY = 0;
 let buildingDetailR = DRAW_DIST;
+const FACADE_DETAIL_DIST = { laag: 80 };
+let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist = Infinity;
+// gfxprofile.js cpuLevel (a busy machine): fewer facade details
+const CPU_FACADE_DIST = [Infinity, 100, 70];
+let shadowFrame = 0;
 let roadDetailR = DRAW_DIST;
 let buildingsStaged = false;
 function noteStreamJump(px, py) {
@@ -2254,7 +2299,13 @@ export function update3D(dt, world) {
   probe.mark('3d:prewarm');
 
   updateCountryBake(renderer, player.x, player.y, edgeDistance(player.x, player.y) > -700);
+  // behind a menu the world stands still: the shadow map from the first
+  // frame is reused
+  // a busy CPU (cpuLevel 1+) renders the shadow map every other frame
+  renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !(cpuLevel() > 0 && (shadowFrame++ & 1));
+  if (menuCover) menuShadowDone = true;
   postfx.render();
+  renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);
 }

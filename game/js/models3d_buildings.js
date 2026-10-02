@@ -1302,6 +1302,8 @@ export function buildBuildingMesh(b) {
   }
 
   if (!parts.detail) parts.detail = buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roofHex, frame).geo;
-  group.add(new THREE.Mesh(parts.detail, [detailMaterial, glassMaterial, wallMat, roofMat]));
+  const detail = new THREE.Mesh(parts.detail, [detailMaterial, glassMaterial, wallMat, roofMat]);
+  group.add(detail);
+  group.userData.facadeDetail = detail;
   return group;
 }

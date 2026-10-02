@@ -3,8 +3,10 @@ import { VERSION } from './version.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
-import { pendingTrailer, runTrailer, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
+import { pendingTrailer, runTrailer, runBenchmarkSuite, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
 import { COW_LOADING } from './flavourlines.js';
+import { MENU_FRAME_S, getRenderer } from './scene3d.js';
+import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 
 const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -441,6 +443,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
       if (isPauseMenuOpen() || done || trailerOn) return;
+      if (e.target && e.target.closest && e.target.closest('#gfx-advice')) return;
       const k = e.key;
       if (!news.hidden) {
         const page = newsBody.clientHeight * 0.85;
@@ -496,16 +499,24 @@ export function runStartScreen(world, { render, relocate, tick }) {
       trailerOn = true;
       screen.classList.remove('visible');
       news.hidden = true;
+      let next = 'back';
       for (;;) {
-        const res = await runTrailer(world, { mode: 'benchmark', cut: 'vol', env });
+        const res = await runBenchmarkSuite(world, env);
         if (res.aborted) break;
-        if (await showBenchmarkResults(res.stats) !== 'again') break;
+        next = await showBenchmarkResults(res);
+        if (next !== 'again') break;
       }
       await fadeOutTrailer(false, backHome);
       trailerOn = false;
       const cont = items.findIndex((it) => it.act === 'continue');
-      if (fromGame && cont >= 0) { activate(cont); return; }
+      // the result and its one-click preset wait in Instellingen > Beeld
+      if (fromGame && cont >= 0) {
+        if (next === 'settings') world.openSettingsOnStart = 'video';
+        activate(cont);
+        return;
+      }
       showMenu(false);
+      if (next === 'settings') openPauseMenu('settings', { prestart: true, sub: 'video', onClose: () => focus(sel) });
     };
     const onBenchmark = () => benchmark(false);
     window.addEventListener('gte-benchmark', onBenchmark);
@@ -532,12 +543,15 @@ export function runStartScreen(world, { render, relocate, tick }) {
     };
     if (intro) playIntro();
     else showMenu(false);
+    if (!intro || intro.mode === 'attract') startGfxAdvisor(getRenderer().getContext());
 
+    let renderDt = 0;
     const loop = (now) => {
       if (done) return;
       if (trailerOn) { last = now; requestAnimationFrame(loop); return; }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
+      renderDt += dt;
       shotT += dt;
       phaseT += dt;
       if (phase === 'show' && shotT > shotDur) { phase = 'out'; phaseT = 0; fade.style.opacity = '1'; }
@@ -545,8 +559,15 @@ export function runStartScreen(world, { render, relocate, tick }) {
       else if (phase === 'black' && phaseT > BLACK_HOLD_S) { phase = 'show'; phaseT = 0; fade.style.opacity = '0'; }
       pose = shot(shotT);
       world.cameraOverride = { ...pose, cut: true };
-      if (tick) { try { tick(dt); } catch (err) { console.error(err); } }
-      try { render(dt); } catch (err) { console.error(err); }
+      // the menu covers part of the city, the settings sheet most of it; the
+      // first-run check measures at full rate
+      const every = isAdvisorSampling() ? 0 : MENU_FRAME_S[isPauseMenuOpen() ? 2 : 1];
+      if (renderDt >= every) {
+        const step = Math.min(0.1, renderDt);
+        renderDt = 0;
+        if (tick) { try { tick(step); } catch (err) { console.error(err); } }
+        try { render(step); } catch (err) { console.error(err); }
+      }
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);

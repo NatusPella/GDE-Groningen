@@ -164,7 +164,10 @@ function createWindow() {
     TRAILER && trailerFrames && 'frames', process.argv.includes('--attract') && 'attract',
     !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,
     // --preset=laag: that graphics preset for this run only (not saved)
-    argValue('--preset') && `preset=${encodeURIComponent(argValue('--preset'))}`].filter(Boolean).join('&');
+    argValue('--preset') && `preset=${encodeURIComponent(argValue('--preset'))}`,
+    // --gfx-advice[=<gpu string>]: the first-run graphics advice also in a test run
+    process.argv.some((a) => a === '--gfx-advice' || a.startsWith('--gfx-advice=')) && 'gfxadvies',
+    argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean).join('&');
   // --benchmark --profile: a CPU profile of 30 s of the first run
   if (BENCH && process.argv.includes('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
   if (BENCH || TRAILER || argValue('--bench-eval')) {
