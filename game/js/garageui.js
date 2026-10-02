@@ -128,7 +128,7 @@ function card(e) {
 
 // --- viewer: the selected vehicle as a rotating model --------------------------
 
-let viewer = null;
+let viewer = null, viewerCanvas = null;
 let selected = null;
 let lastList = [];
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
@@ -158,15 +158,23 @@ export function selectGarageVehicle(el, id) {
   if (!e || !box) return;
   selected = id;
   for (const c of el.querySelectorAll('.gar-card')) c.classList.toggle('sel', c.dataset.garageSelect === id);
-  if (viewer) { viewer.dispose(); viewer = null; }
   box.innerHTML = viewerHtml(e);
-  viewer = createVehiclePreview(box.querySelector('canvas'), { interactive: true, active: () => !!box.isConnected && box.offsetParent !== null });
+  // one canvas and GL context for every card: it moves into the new stage
+  const fresh = box.querySelector('canvas');
+  if (viewer) {
+    viewerCanvas.setAttribute('aria-label', fresh.getAttribute('aria-label'));
+    fresh.replaceWith(viewerCanvas);
+  } else {
+    const c = viewerCanvas = fresh;
+    viewer = createVehiclePreview(c, { interactive: true, active: () => c.isConnected && c.offsetParent !== null, pixelRatio: () => Math.min(1.5, devicePixelRatio) });
+  }
   viewer.show(previewSpec(e));
+  viewer.wake();
 }
 
 // Frees the viewer's GL context (tab switched or menu closed).
 export function disposeGarageViewer() {
-  if (viewer) { viewer.dispose(); viewer = null; }
+  if (viewer) { viewer.dispose(); viewer = null; viewerCanvas = null; }
 }
 
 const CATS = [

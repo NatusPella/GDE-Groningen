@@ -17,7 +17,8 @@ function saveWindowState(state) {
 
 const SCHEME = 'app';
 const HOST = 'game';
-const GAME_DIR = app.isPackaged ? path.join(process.resourcesPath, 'game') : path.join(__dirname, 'build', 'game');
+// GTE_GAME_DIR serves another staged copy (perf runs against an older build)
+const GAME_DIR = app.isPackaged ? path.join(process.resourcesPath, 'game') : process.env.GTE_GAME_DIR || path.join(__dirname, 'build', 'game');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
@@ -53,6 +54,8 @@ protocol.registerSchemesAsPrivileged([
 
 // the theme song starts on the title screen without waiting for a click
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+// laptops with an integrated and a separate GPU: render on the separate one
+app.commandLine.appendSwitch('force_high_performance_gpu');
 
 async function serve(request) {
   const url = new URL(request.url);
@@ -61,9 +64,26 @@ async function serve(request) {
   const file = path.normalize(path.join(GAME_DIR, rel));
   if (!file.startsWith(GAME_DIR)) return new Response('Forbidden', { status: 403 });
   try {
-    const body = await fs.readFile(file);
     const type = MIME[path.extname(file).toLowerCase()] || 'application/octet-stream';
-    return new Response(body, { status: 200, headers: { 'content-type': type, 'cache-control': 'no-cache' } });
+    // media elements ask for byte ranges (seeking, buffering ahead): answer
+    // with just that slice, so the player never re-reads a track from byte 0
+    const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') || '');
+    if (range && (range[1] || range[2])) {
+      const fh = await fs.open(file, 'r');
+      try {
+        const size = (await fh.stat()).size;
+        const start = range[1] ? +range[1] : Math.max(0, size - +range[2]);
+        const end = range[1] && range[2] ? Math.min(+range[2], size - 1) : size - 1;
+        if (start >= size || start > end) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${size}` } });
+        const buf = Buffer.alloc(end - start + 1);
+        await fh.read(buf, 0, buf.length, start);
+        return new Response(buf, { status: 206, headers: { 'content-type': type, 'cache-control': 'no-cache', 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${size}`, 'content-length': String(buf.length) } });
+      } finally {
+        await fh.close();
+      }
+    }
+    const body = await fs.readFile(file);
+    return new Response(body, { status: 200, headers: { 'content-type': type, 'cache-control': 'no-cache', 'accept-ranges': 'bytes', 'content-length': String(body.length) } });
   } catch (e) {
     return new Response('Not found', { status: 404 });
   }
@@ -144,7 +164,14 @@ function createWindow() {
     (smoke || storyTest || process.argv.includes('--perf-test')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
     TRAILER && trailerFrames && 'frames', process.argv.includes('--attract') && 'attract',
-    !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`].filter(Boolean).join('&');
+    !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,
+    // --preset=laag: that graphics preset for this run only (not saved)
+    argValue('--preset') && `preset=${encodeURIComponent(argValue('--preset'))}`,
+    // --gfx-advice[=<gpu string>]: the first-run graphics advice also in a test run
+    process.argv.some((a) => a === '--gfx-advice' || a.startsWith('--gfx-advice=')) && 'gfxadvies',
+    // --nobatch: city buildings drawn one by one (A/B of buildingbatch3d.js)
+    process.argv.includes('--nobatch') && 'nobatch',
+    argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean).join('&');
   // --benchmark --profile: a CPU profile of 30 s of the first run
   if (BENCH && process.argv.includes('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
   if (BENCH || TRAILER || argValue('--bench-eval')) {
@@ -155,6 +182,13 @@ function createWindow() {
   }
   // --bench-eval=<file>: debug script run in the page as soon as it loads
   // (e.g. a GPU-memory tracker for --benchmark or --perf-script runs)
+  // --cpu-throttle=4: slows the page's CPU like DevTools does (perf runs on a
+  // weak machine stand-in, scripts/perf/run.sh)
+  const throttle = Number(argValue('--cpu-throttle'));
+  if (throttle > 1) win.webContents.once('did-finish-load', async () => {
+    const dbg = win.webContents.debugger;
+    try { if (!dbg.isAttached()) dbg.attach('1.3'); await dbg.sendCommand('Emulation.setCPUThrottlingRate', { rate: throttle }); } catch (e) { console.log('[cpu-throttle]', e.message); }
+  });
   const evalFile = argValue('--bench-eval');
   if (evalFile) win.webContents.on('dom-ready', () => win.webContents.executeJavaScript(fsSync.readFileSync(evalFile, 'utf8')).catch((e) => console.log('[bench-eval]', e.message)));
   if (TRAILER && trailerFrames) {
@@ -204,6 +238,8 @@ function createWindow() {
           // next to the smoke-test png: <smoke>-<name>.png
           win.webContents.on('console-message', async (e, legacyLevel, legacyMessage) => {
             const message = String(e.message !== undefined ? e.message : legacyMessage);
+            // console.log('[profile] 8000') from the script: a CPU profile of that many ms
+            if (message.startsWith('[profile] ')) { runProfile(win, Number(message.slice(10)) || 6000).catch((err) => console.log('[profile]', err.message)); return; }
             if (!message.startsWith('[capture] ')) return;
             const img = await win.webContents.capturePage();
             fsSync.writeFileSync(smoke.split('=')[1].replace(/\.png$/, `-${message.slice(10).trim()}.png`), img.toPNG());
@@ -331,7 +367,7 @@ function createWindow() {
 // inclusive time, and time per file
 async function runProfile(win, ms = 6000) {
   const dbg = win.webContents.debugger;
-  dbg.attach('1.3');
+  if (!dbg.isAttached()) dbg.attach('1.3');
   await dbg.sendCommand('Profiler.enable');
   await dbg.sendCommand('Profiler.setSamplingInterval', { interval: 200 });
   await dbg.sendCommand('Profiler.start');

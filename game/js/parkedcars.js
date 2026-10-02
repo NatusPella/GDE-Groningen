@@ -1,6 +1,7 @@
 import { Vehicle, MODELS } from './vehicle.js';
 import { pointInPolygon, closestPointOnSegment, inWaterPoly } from './util.js';
 import { propsInRadius } from './breakables.js';
+import { villageKerbs, villageSlotFree } from './countryvillage.js';
 
 // Kerbside parking along residential streets: half a car length up on the
 // stoep, clear of the traffic lane. Slots are deterministic per road segment
@@ -121,6 +122,24 @@ function* genCell(world, st, gx, gy) {
           yield;
           if (fits) slots.push({ x, y, angle, model: m, v: null, taken: false });
         }
+      }
+    }
+  }
+  // the streets round an Ommelanden village centre (countryvillage.js)
+  for (const k of villageKerbs(x0, y0, CELL)) {
+    for (const side of [1, -1]) {
+      if (hash(k.id, 3, side) > 0.55) continue;
+      const nx = -k.uy * side, ny = k.ux * side;
+      const angle = Math.atan2(k.uy, k.ux) + (side < 0 ? Math.PI : 0);
+      for (let n = 0, t = END_CLEAR + hash(k.id, 5, side) * 3; t < k.len - END_CLEAR; n++, t += SLOT_GAP) {
+        if (hash(k.id * 7 + n, 9, side) > 0.5) continue;
+        const m = MODELS[Math.floor(hash(k.id, n, side + 4) * MODELS.length)];
+        const off = k.hw + m.wid / 2 + 0.4;
+        const x = k.ax + k.ux * t + nx * off, y = k.ay + k.uy * t + ny * off;
+        if (x < x0 || x >= x0 + CELL || y < y0 || y >= y0 + CELL) continue;
+        const fits = villageSlotFree(x, y, angle, m.len + 0.6, m.wid + 0.4);
+        yield;
+        if (fits) slots.push({ x, y, angle, model: m, v: null, taken: false });
       }
     }
   }

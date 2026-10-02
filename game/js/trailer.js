@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
-import { getSettings, setSetting, QUALITY_PRESETS } from './settings.js';
+import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
+import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat, makeBirds, scatterBirds, updateBirds } from './intromontage.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -32,7 +33,6 @@ import { flashScreen } from './postfx3d.js';
 // the title screen's tick/render/relocate.
 
 const Q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-const TEST_FLAGS = ['stil', 'dev', 'storytest', 'noattract', 'hitch', 'shaderdebug'];
 const BENCH_KEY = 'gte-benchmark-pending';
 const SKIP_HOLD_S = 0.9;
 const STEP = 1 / 60;
@@ -52,9 +52,9 @@ export function pendingTrailer() {
   let bench = null;
   try { bench = sessionStorage.getItem(BENCH_KEY); sessionStorage.removeItem(BENCH_KEY); } catch (e) { /* ignore */ }
   if (bench) return { mode: 'benchmark', cut: 'vol', fromGame: true };
-  // every launch opens with the attract intro, except test runs
-  if (TEST_FLAGS.some((k) => Q.has(k))) return null;
-  return { mode: 'attract', cut: 'kort' };
+  // no intro before the menu: the title screen's live city is the attract,
+  // and Nieuw spel opens with its own trailer-style opening
+  return null;
 }
 
 // In a running game the benchmark starts from a fresh load of the title
@@ -186,6 +186,8 @@ const CSS = `
 #trailer-result .tr-nums span { font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: rgba(240, 237, 228, 0.7); text-transform: uppercase; }
 #trailer-result p { margin: 6px 0; font: 16px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; }
 #trailer-result .tr-advice { color: #f0ede4; border-left: 3px solid #3fc97a; padding-left: 10px; margin-top: 12px; }
+#trailer-result .tr-advice b { color: #3fc97a; }
+#trailer-result .tr-advice small { display: block; margin-top: 2px; font-size: 14px; color: rgba(240, 237, 228, 0.7); }
 #trailer-result .tr-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 #trailer-result button { font: 20px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1.5px; padding: 7px 16px; border-radius: 3px; cursor: pointer; background: transparent; color: #f0ede4; border: 1px solid rgba(63, 201, 122, 0.6); }
 #trailer-result button.primary { background: linear-gradient(90deg, #1e9e56, #3fc97a); color: #0c140e; border-color: transparent; }
@@ -936,7 +938,7 @@ function frame(r, dt, realMs) {
     if (!s.black && !s.card && st / k > MEASURE_AFTER_CUT_S) r.stats[i].ms.push(realMs);
     r.fpsAcc += realMs; r.fpsN++;
     if (r.fpsAcc > 500) {
-      ui.fps.textContent = `BENCHMARK · ${Math.round(1000 / (r.fpsAcc / r.fpsN))} fps`;
+      ui.fps.textContent = `BENCHMARK${r.label ? ` · ${r.label}` : ''} · ${Math.round(1000 / (r.fpsAcc / r.fpsN))} fps`;
       r.fpsAcc = 0; r.fpsN = 0;
     }
   }
@@ -945,12 +947,12 @@ function frame(r, dt, realMs) {
 function computeStats(r) {
   const all = [];
   const shots = [];
-  for (const s of r.stats) {
-    if (!s || !s.ms.length) continue;
+  r.stats.forEach((s, idx) => {
+    if (!s || !s.ms.length) return;
     all.push(...s.ms);
     const mean = s.ms.reduce((a, b) => a + b, 0) / s.ms.length;
-    if (s.ms.length >= 20) shots.push({ label: s.label, fps: 1000 / mean });
-  }
+    if (s.ms.length >= 20) shots.push({ label: s.label, fps: 1000 / mean, idx });
+  });
   if (!all.length) return null;
   const mean = all.reduce((a, b) => a + b, 0) / all.length;
   const sorted = all.slice().sort((a, b) => b - a);
@@ -964,7 +966,7 @@ function computeStats(r) {
 
 // runTrailer(world, { mode, cut, shot, frames, env: { tick, render, relocate } })
 // resolves with { skipped, aborted, stats, continuation }.
-export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, frames = false, env }) {
+export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, frames = false, env, label = '' }) {
   if (running) return Promise.resolve({ skipped: true, aborted: true });
   ensureUi();
   return new Promise((resolve) => {
@@ -1017,7 +1019,8 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     ui.root.classList.toggle('skippable', mode === 'attract');
     ui.skip.style.setProperty('--hold', '0');
     ui.skip.classList.remove('holding');
-    ui.fps.textContent = 'BENCHMARK';
+    ui.fps.textContent = 'BENCHMARK' + (label ? ` · ${label}` : '');
+    r.label = label;
     ui.black.classList.add('on');
     ui.root.classList.add('on');
     kickTheme();
@@ -1118,6 +1121,35 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
   });
 }
 
+// The benchmark from Instellingen: the full cut on the current settings,
+// then every other preset on the two heaviest shots of that run. A preset's
+// fps is the full run's average times its measured speed-up on those shots.
+export async function runBenchmarkSuite(world, env) {
+  const cur = currentPreset();
+  const res = await runTrailer(world, { mode: 'benchmark', cut: 'vol', env });
+  if (res.aborted || !res.stats || BENCH_RUNS) return res;
+  const probe = res.stats.shots.slice(0, 2);
+  const fps = {};
+  if (cur) fps[cur] = res.stats.avg;
+  for (const name of PRESET_ORDER) {
+    if (name === cur || !probe.length) continue;
+    const restore = withTempSettings(GFX_PRESETS[name]);
+    let ratio = 0, n = 0, aborted = false;
+    try {
+      for (const s of probe) {
+        const r = await runTrailer(world, { mode: 'benchmark', cut: 'vol', shot: s.idx + 1, env, label: presetLabel(name) });
+        if (r.aborted) { aborted = true; break; }
+        if (r.stats) { ratio += r.stats.avg / s.fps; n++; }
+      }
+    } finally { restore(); }
+    if (aborted) break;
+    if (n) fps[name] = res.stats.avg * ratio / n;
+  }
+  res.presetFps = fps;
+  res.preset = cur;
+  return res;
+}
+
 // Fade the trailer overlay away: to black and then off (skip/abort), or by
 // sliding the bars out over the running picture (the attract hand-off).
 let lookFade = 0;
@@ -1158,36 +1190,31 @@ export function fadeOutTrailer(handOff, atBlack = null) {
 
 // --- benchmark results ----------------------------------------------------------------
 
-const QUALITY_ORDER = ['laag', 'middel', 'hoog'];
-const DRAW_ORDER = ['kort', 'normaal', 'ver'];
-
+// One recommended preset (gfxprofile.js) that sets everything at once.
 function advise(stats) {
   const st = getSettings();
-  const qi = QUALITY_ORDER.indexOf(st.quality), di = DRAW_ORDER.indexOf(st.drawDistance);
-  const cap = (s) => s[0].toUpperCase() + s.slice(1);
+  const cur = currentPreset(st);
+  const i = PRESET_ORDER.indexOf(cur || st.quality);
+  const rec = (name, why) => ({ text: `${why} Aanbevolen: <b>${presetLabel(name)}</b>`, what: describePreset(name), apply: name });
   if (stats.avg < 40 || stats.low < 22) {
-    if (qi > 0) {
-      const q = QUALITY_ORDER[qi - 1];
-      const extra = di > 1 ? ` of zichtafstand 'normaal'` : '';
-      return { text: `Probeer kwaliteit '${q}'${extra}. Dan loopt Grunn soepeler.`, apply: { quality: q } };
-    }
-    if (di > 0) {
-      const d = DRAW_ORDER[di - 1];
-      return { text: `Probeer zichtafstand '${d}'. Dan loopt Grunn soepeler.`, apply: { drawDistance: d } };
-    }
+    if (i > 0) return rec(PRESET_ORDER[i - 1], 'Grunn hapert hier en daar.');
+    if (cur !== 'laag') return rec('laag', 'Grunn hapert hier en daar.');
     return { text: 'Alles staat al zo licht mogelijk. Sluit andere programma’s en tabbladen voor wat extra lucht.', apply: null };
   }
-  if (stats.avg >= 75 && stats.low >= 45 && qi < QUALITY_ORDER.length - 1) {
-    const q = QUALITY_ORDER[qi + 1];
-    return { text: `Er is ruimte over: probeer kwaliteit '${q}'.`, apply: { quality: q } };
-  }
-  return { text: `Kwaliteit '${st.quality}' draait prima. ${cap(st.quality) === 'Hoog' ? 'Genieten maar.' : 'Niks aan veranderen.'}`, apply: null };
+  if (stats.avg >= 75 && stats.low >= 45 && i < PRESET_ORDER.length - 1) return rec(PRESET_ORDER[i + 1], 'Er is ruimte over.');
+  return { text: `${cur ? `Stand ${presetLabel(cur)}` : 'Je eigen instellingen'} draait prima. ${cur === 'hoog' ? 'Genieten maar.' : 'Niks aan veranderen.'}`, apply: null };
 }
 
 let resultEl = null;
 
 // Shows the results card; resolves with 'again' or 'back'.
-export function showBenchmarkResults(stats) {
+export function showBenchmarkResults(res) {
+  const stats = res && res.stats;
+  // a player's run: the result goes to Instellingen > Beeld (gfxprofile.js)
+  if (!BENCH_RUNS) {
+    setBenchResult(stats, res.preset, res.presetFps || {});
+    return Promise.resolve('settings');
+  }
   if (!resultEl) {
     resultEl = document.createElement('div');
     resultEl.id = 'trailer-result';
@@ -1205,13 +1232,13 @@ export function showBenchmarkResults(stats) {
   const st = getSettings();
   const r = Math.round;
   const adv = stats ? advise(stats) : { text: 'Er is niets gemeten. Probeer het nog een keer.', apply: null };
-  const meta = `Kwaliteit ${st.quality} · schaduwen ${st.shadows && QUALITY_PRESETS[st.quality].shadows ? 'aan' : 'uit'} · zichtafstand ${st.drawDistance} · ${innerWidth}×${innerHeight}`;
+  const meta = `Kwaliteit ${st.quality} · schaduwen ${st.shadows && QUALITY_PRESETS[st.quality].shadows ? 'aan' : 'uit'} · zichtafstand ${st.drawDistance} · resolutie ${Math.round(st.resolution * 100)}%${st.autoResolution ? ' (auto)' : ''} · ${innerWidth}×${innerHeight}`;
   resultEl.innerHTML = `<div class="tr-res">
     <h2 id="tr-res-title">Benchmark</h2>
     <div class="tr-meta">${meta}</div>
     ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.low)}</b><span>1%-low</span></div></div>
     ${stats.heaviest ? `<p>Zwaarste shot: ${stats.heaviest.label}: ${r(stats.heaviest.fps)} fps</p>` : ''}` : ''}
-    <p class="tr-advice">${adv.text}</p>
+    <p class="tr-advice">${adv.text}${adv.what ? `<small>${adv.what}</small>` : ''}</p>
     <div class="tr-actions">
       <button type="button" class="primary" data-act="apply"${adv.apply ? '' : ' hidden'}>Toepassen</button>
       <button type="button" data-act="again">Nog een keer</button>
@@ -1229,7 +1256,7 @@ export function showBenchmarkResults(stats) {
     };
     const act = (a, btn) => {
       if (a === 'apply' && adv.apply) {
-        for (const [k, v] of Object.entries(adv.apply)) setSetting(k, v);
+        applyPreset(adv.apply);
         resultEl.querySelector('.tr-advice').textContent = 'Toegepast. Draai de benchmark nog een keer om het verschil te zien.';
         btn.hidden = true;
         buttons()[0].focus({ preventScroll: true });
