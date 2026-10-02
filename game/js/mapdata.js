@@ -85,6 +85,42 @@ function liftNestedRoofs(list, grid) {
       if (pointInPolygon(cx, cy, o.pts)) { b.lift = 0.4; break; }
     }
   }
+  // footprints that only partly overlap: the smaller one steps up (pairs met
+  // in a fine grid, each judged once in the cell holding their overlap's corner)
+  const top = (b) => b.h + (b.lift || 0) / 3.1;
+  const area = (b) => (b.bounds[2] - b.bounds[0]) * (b.bounds[3] - b.bounds[1]);
+  const G = 16, cells = new Map();
+  for (const b of list) {
+    const [x0, y0, x1, y1] = b.bounds;
+    for (let i = Math.floor(x0 / G); i <= Math.floor(x1 / G); i++) {
+      for (let j = Math.floor(y0 / G); j <= Math.floor(y1 / G); j++) {
+        const k = i * 100003 + j;
+        const c = cells.get(k);
+        if (c) c.push(b); else cells.set(k, [b]);
+      }
+    }
+  }
+  const steps = [];
+  for (const [k, c] of cells) {
+    for (let p = 0; p < c.length; p++) {
+      const b = c[p];
+      for (let q = p + 1; q < c.length; q++) {
+        const o = c[q];
+        if (Math.abs(o.h - b.h) > 0.02 || (o.lift || 0) !== (b.lift || 0)) continue;
+        const x0 = Math.max(b.bounds[0], o.bounds[0]), y0 = Math.max(b.bounds[1], o.bounds[1]);
+        const x1 = Math.min(b.bounds[2], o.bounds[2]), y1 = Math.min(b.bounds[3], o.bounds[3]);
+        if (x1 - x0 < 0.5 || y1 - y0 < 0.5 || Math.floor(x0 / G) * 100003 + Math.floor(y0 / G) !== k) continue;
+        const inRect = ([x, y]) => x > x0 && x < x1 && y > y0 && y < y1;
+        if (!o.pts.some((v) => inRect(v) && pointInPolygon(v[0], v[1], b.pts)) && !b.pts.some((v) => inRect(v) && pointInPolygon(v[0], v[1], o.pts))) continue;
+        let hit = 0;
+        for (let x = x0 + 0.25; x < x1 && hit < 4; x += 0.5) {
+          for (let y = y0 + 0.25; y < y1 && hit < 4; y += 0.5) if (pointInPolygon(x, y, b.pts) && pointInPolygon(x, y, o.pts)) hit++;
+        }
+        if (hit >= 4) steps.push(area(b) <= area(o) ? b : o);
+      }
+    }
+  }
+  for (const b of new Set(steps)) b.lift = (b.lift || 0) + 0.4;
 }
 
 function buildingsOverRails(buildings, rails) {
