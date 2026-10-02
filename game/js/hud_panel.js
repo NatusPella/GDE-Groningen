@@ -20,6 +20,8 @@ import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
 import { edgeDistance, urbanWeight } from './countryfield.js';
 import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
+import { storyWaiting } from './goal.js';
+import { setGhostBar, ring } from './motion.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
@@ -36,7 +38,7 @@ let mmScale = MM_SCALE;
 // GTA-style: purple for your own waypoint, yellow for missions, orange for
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
 export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c', care: '#ff5fb4' };
-export const routeLabel = (r) => (r.kind === 'user' ? 'Bestemming' : r.kind === 'job' ? 'Klus' : r.kind === 'care' ? (r.target && r.target.why === 'repair' ? 'Garage' : 'Opknappen') : 'Missie');
+export const routeLabel = (r) => (r.kind === 'user' ? 'Doel' : r.kind === 'job' ? 'Klus' : r.kind === 'care' ? (r.target && r.target.why === 'repair' ? 'Garage' : 'Opknappen') : 'Missie');
 
 let els = null;
 
@@ -58,8 +60,8 @@ export function initHud(world) {
           '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
           '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit" title="Geluid uit (U)" hidden>🔇</span>' +
         '</div></div>' +
-        `<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-fill health"></div></div><b></b></div>` +
-        `<div class="hud-meter ar" role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-fill armor"></div></div><b></b></div>` +
+        `<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>` +
+        `<div class="hud-meter ar" role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>` +
       '</div>' +
     '</div>';
   root.appendChild(topLeft);
@@ -242,7 +244,7 @@ function updateRouteChip(world) {
   } else if (!route && getUserWaypoint()) {
     const wp = getUserWaypoint();
     kind = 'user';
-    text = `Bestemming: ${formatDistance(Math.hypot(wp.x - world.player.x, wp.y - world.player.y))}`;
+    text = `Doel: ${formatDistance(Math.hypot(wp.x - world.player.x, wp.y - world.player.y))}`;
   }
   if (text === els.routeText) return;
   els.routeText = text;
@@ -324,14 +326,14 @@ function updateBars(world) {
   const hp = Math.round(clampPct(world.health)), ar = Math.round(clampPct(world.armor));
   if (hp !== els.hpKey) {
     els.hpKey = hp;
-    els.healthFill.style.width = hp + '%';
+    setGhostBar(els.healthFill, els.healthFill.previousElementSibling, hp);
     els.hpNum.textContent = hp;
     els.hpRow.setAttribute('aria-valuenow', hp);
     els.hpRow.classList.toggle('low', hp < 30 && hp > 0);
   }
   if (ar !== els.arKey) {
     els.arKey = ar;
-    els.armorFill.style.width = ar + '%';
+    setGhostBar(els.armorFill, els.armorFill.previousElementSibling, ar);
     els.arNum.textContent = ar;
     els.arRow.setAttribute('aria-valuenow', ar);
     els.arRow.classList.toggle('empty', ar <= 0);
@@ -513,6 +515,17 @@ function currentObjective(world) {
       sub: searching ? 'Ze zijn je kwijt' : world.trainDriving ? 'Een trein houden ze niet zomaar tegen' : world.player.inVehicle ? 'Of laat je bak spuiten bij Spuit & Klaar' : 'Pak een bak en smeer hem',
     };
   }
+  // the player's own goal (goal.js): the story waits meanwhile
+  const goal = world.goal;
+  if (goal && !world.padelGame && !world.activityGame && !world.heliRun && !world.challenge && !(m && m.phase === 'active')) {
+    const r = getActiveRoute();
+    const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - world.player.x, goal.y - world.player.y);
+    const wait = storyWaiting(world);
+    const first = r && r.kind === 'user' && r.target && /^Eerst: /.test(r.target.name) ? r.target.name : '';
+    const sub = [first || goal.sub, formatDistance(d), wait ? `verhaal wacht: ${wait.code}` : ''].filter(Boolean).join(' · ');
+    // the HUD takes no clicks: say where the goal can be dropped, the first few times
+    return { kind: 'goal', title: `Doel: ${goal.name}`, sub, hint: goalHints <= GOAL_HINTS ? `${sub} · wissen via Te doen of de kaart` : '', timer: '' };
+  }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
   if (g && g.name && !world.storyFreePlay && !world.padelGame && !world.activityGame && !(m && m.phase === 'active')) {
@@ -528,13 +541,15 @@ function currentObjective(world) {
 }
 
 const OBJ_HINT_TIME = 6;
+const GOAL_HINTS = 3;
+let goalHints = 0;
 
 function updateMission(world) {
   const o = currentObjective(world);
   els.mission.hidden = !o || (!o.title && !o.timer);
   if (els.mission.hidden) { els.objKey = ''; return; }
   const key = o.kind + '|' + o.title;
-  if (key !== els.objKey) els.objAt = world.time;
+  if (key !== els.objKey) { els.objAt = world.time; if (o.kind === 'goal') goalHints++; }
   // a new objective first says how (the bijbaan's hint), then its counter
   const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
   if (els.missionLabel.textContent !== o.title) els.missionLabel.textContent = o.title;
@@ -548,6 +563,7 @@ function updateMission(world) {
     els.mission.classList.remove('pop');
     void els.mission.offsetWidth;
     els.mission.classList.add('pop');
+    if (o.kind === 'goal') ring(els.mission);
   }
 }
 

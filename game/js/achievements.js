@@ -334,6 +334,10 @@ export function hasUnique(key, value) {
   return (life.sets[key] || []).includes(value);
 }
 
+export function uniqueCount(key) {
+  return (life.sets[key] || []).length;
+}
+
 export function getSaveSet(key) {
   return perSave[key] || (perSave[key] = new Set());
 }

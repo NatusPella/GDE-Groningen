@@ -2,7 +2,8 @@ import { SMS_SAY } from './smsvoice.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler } from './vehicle.js';
-import { setUserWaypoint, findWalkPath } from './routing.js';
+import { findWalkPath } from './routing.js';
+import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
@@ -31,6 +32,7 @@ import {
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { addDrunk } from './drunk.js';
+import { klusloon, medalBonus } from './economy.js';
 
 const TRIGGER_RADIUS = 4;
 const CHECKPOINT_RADIUS = 6;
@@ -545,6 +547,8 @@ export function initMissions(world) {
     wpIndex: 0,
     completed: new Set(),
     seen: new Set(),
+    // highest medal whose bonus this playthrough has paid, per mission index
+    medalPaid: {},
     run: null,
     race: null,
     vehicle: null,
@@ -606,7 +610,8 @@ export function getMissionList() {
   const w = worldRef;
   return chain.defs.map((d, i) => ({
     index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), start: { x: d.start.x, y: d.start.y },
-    needs: w ? requirementText(w, d) : null,
+    needs: w ? requirementText(w, d) : null, done: chain.completed.has(i), klusloon: klusloon(d.reward), medalPaid: chain.medalPaid[i] || 0,
+    pay: chain.completed.has(i) ? klusloon(d.reward) : d.reward,
   }));
 }
 
@@ -804,7 +809,9 @@ export function isMissionActive() {
   return !!chain && chain.phase === 'active';
 }
 
-// Makes mission i the next one in the chain and routes the player to its start.
+// Makes mission i the next one in the chain and the player's goal (goal.js).
+// Callers that offer story missions ahead of the story go through todo.js
+// playMission first, which asks.
 export function trackMission(world, i) {
   if (!chain || !chain.defs[i]) return false;
   if (chain.phase === 'active') return i === chain.index;
@@ -813,14 +820,15 @@ export function trackMission(world, i) {
   chain.armed = true;
   chain.wpIndex = 0;
   const d = chain.defs[i];
-  if (checkRequirement(world, d, true)) setUserWaypoint(d.start.x, d.start.y, d.label);
+  checkRequirement(world, d, true);
   syncPub(world);
+  setGoal({ kind: 'mission', id: i, x: d.start.x, y: d.start.y, name: missionCode(i) ? `${missionCode(i)} · ${d.label}` : d.label }, { quiet: true });
   return true;
 }
 
 export function getMissionProgress() {
   if (!chain) return null;
-  return { index: chain.index, completed: [...chain.completed], seen: [...chain.seen] };
+  return { index: chain.index, completed: [...chain.completed], seen: [...chain.seen], medals: { ...chain.medalPaid } };
 }
 
 export function setMissionProgress(world, prog) {
@@ -831,6 +839,10 @@ export function setMissionProgress(world, prog) {
   const valid = (list) => (Array.isArray(list) ? list : []).filter((i) => Number.isInteger(i) && i >= 0 && i < n);
   chain.completed = new Set(valid(prog.completed));
   chain.seen = new Set([...valid(prog.seen), ...chain.completed]);
+  chain.medalPaid = {};
+  if (prog.medals && typeof prog.medals === 'object') {
+    for (const [k, v] of Object.entries(prog.medals)) if (chain.defs[k] && Number.isInteger(v)) chain.medalPaid[k] = Math.max(0, Math.min(3, v));
+  }
   chain.phase = 'idle';
   chain.armed = true;
   chain.wpIndex = 0;
@@ -1086,11 +1098,11 @@ function storyStage(i) {
 }
 
 // Berend fines scratches; intact fragile cargo earns a bonus.
-function rewardAdjust(def) {
+function rewardAdjust(def, base) {
   const r = chain.run;
   if (!r) return { amount: 0, text: '' };
   if (def.scratchFine && r.vehDamage >= 1) {
-    const fine = Math.min(Math.round(def.reward * 0.75), Math.round(r.vehDamage * def.scratchFine));
+    const fine = Math.min(Math.round(base * 0.75), Math.round(r.vehDamage * def.scratchFine));
     return { amount: -fine, text: ` (€${fine} ingehouden voor krassen)` };
   }
   if (def.fragile) {
@@ -1101,14 +1113,17 @@ function rewardAdjust(def) {
 }
 
 function succeed(world, def) {
+  const i = chain.index;
+  // a replay pays the klusloon; the first pass the full reward
+  const replay = chain.completed.has(i);
+  const base = replay ? klusloon(def.reward) : def.reward;
   const tip = def.type === 'boat' ? rondvaartTip() : 0;
-  const adj = rewardAdjust(def);
-  const reward = def.reward + tip + adj.amount;
+  const adj = rewardAdjust(def, base);
+  const reward = base + tip + adj.amount;
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
   world.money += reward;
   world.stats.missionsDone++;
-  world.addMessage(`${def.label} geklaard! +€${def.reward}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
-  const i = chain.index;
+  world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
   const stats = runStats(world, def);
   // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
   const r = chain.run;
@@ -1125,6 +1140,28 @@ function succeed(world, def) {
   chain.wpIndex = 0;
   chain.stage = null;
   hooks.passed(world, i);
+}
+
+// achievementtracker.js after a medal run: the one-time bonus for each tier
+// reached for the first time in this playthrough. Returns the amount paid.
+export function payMedalBonus(world, i, medal) {
+  const d = chain && chain.defs[i];
+  if (!d) return 0;
+  const from = chain.medalPaid[i] || 0;
+  if (medal <= from) return 0;
+  const bonus = medalBonus(d.reward, from, medal);
+  chain.medalPaid[i] = medal;
+  if (bonus > 0) world.money += bonus;
+  return bonus;
+}
+
+// Bonus still to earn on mission i: [{ medal, amount }] for the tiers not yet paid.
+export function medalBonusLeft(i) {
+  const d = chain && chain.defs[i];
+  if (!d) return [];
+  const out = [];
+  for (let m = (chain.medalPaid[i] || 0) + 1; m <= 3; m++) out.push({ medal: m, amount: medalBonus(d.reward, m - 1, m) });
+  return out;
 }
 
 // After mission i: the next unfinished one in story order, else the next
