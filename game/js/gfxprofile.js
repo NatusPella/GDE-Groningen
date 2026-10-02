@@ -1,0 +1,260 @@
+// Graphics presets, GPU detection, the first-run advice card and dynamic
+// resolution. A preset sets every graphics setting at once; the player can
+// still change each one in Instellingen > Beeld.
+import { getSettings, setSetting } from './settings.js';
+
+export const GFX_PRESETS = {
+  laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
+  middel: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 1, autoResolution: true },
+  hoog: { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true },
+};
+export const PRESET_ORDER = ['laag', 'middel', 'hoog'];
+const LABELS = { laag: 'Laag', middel: 'Gemiddeld', hoog: 'Hoog' };
+export const presetLabel = (name) => LABELS[name] || name;
+
+// "schaduwen uit · resolutie 75%, automatisch · zichtafstand kort"
+export function describePreset(name) {
+  const p = GFX_PRESETS[name];
+  const res = `resolutie ${Math.round(p.resolution * 100)}%${p.autoResolution ? ', automatisch' : ''}`;
+  return [p.shadows ? 'schaduwen aan' : 'schaduwen uit', res, `zichtafstand ${p.drawDistance}`].join(' · ');
+}
+
+const SETTING_WORDS = {
+  quality: (v) => `kwaliteit ${v}`,
+  shadows: (v) => (v ? 'schaduwen aan' : 'schaduwen uit'),
+  resolution: (v) => `resolutie ${Math.round(v * 100)}%`,
+  autoResolution: (v) => (v ? 'automatische resolutie aan' : 'automatische resolutie uit'),
+  drawDistance: (v) => `zichtafstand ${v}`,
+};
+// what applying a preset changes compared with the current settings
+export function describeChanges(name, st = getSettings()) {
+  return Object.entries(GFX_PRESETS[name]).filter(([k, v]) => st[k] !== v).map(([k, v]) => SETTING_WORDS[k](v)).join(' · ');
+}
+
+// a small gear, for the advice card and the benchmark banner
+export const GEAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.5 7.5 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.5 7.5 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.5 7.5 0 0 0 2.6-1.5l2.4 1 2-3.4z"/></svg>';
+
+export function applyPreset(name) {
+  for (const [k, v] of Object.entries(GFX_PRESETS[name])) setSetting(k, v);
+}
+
+// the preset the settings match exactly, else null (the player tuned them)
+export function currentPreset(st = getSettings()) {
+  return PRESET_ORDER.find((n) => Object.entries(GFX_PRESETS[n]).every(([k, v]) => st[k] === v)) || null;
+}
+
+// --- benchmark result ---------------------------------------------------
+
+// trailer.js runBenchmarkSuite: the full run on the current settings plus
+// the other presets on its heaviest shots; Instellingen > Beeld shows it.
+let bench = null;
+export const getBenchResult = () => bench;
+
+// the best looking preset that runs smoothly (50 fps), else the fastest
+export function recommendPreset(fps, cur) {
+  const measured = PRESET_ORDER.filter((n) => fps[n] > 0);
+  if (!measured.length) return null;
+  const smooth = measured.filter((n) => fps[n] >= 50);
+  const pick = smooth.length ? smooth[smooth.length - 1] : measured.reduce((a, b) => (fps[b] > fps[a] ? b : a));
+  return pick === cur ? null : pick;
+}
+
+export function setBenchResult(stats, preset, fps) {
+  bench = stats ? { avg: stats.avg, low: stats.low, heaviest: stats.heaviest, preset, fps, rec: recommendPreset(fps, preset), banner: true } : null;
+}
+
+export function dismissBenchBanner() {
+  if (bench) bench.banner = false;
+}
+
+// --- GPU detection ------------------------------------------------------
+
+export function readGpu(gl) {
+  let renderer = '';
+  try {
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    renderer = String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+  } catch (e) { /* masked */ }
+  // ?gpu=<renderer string>: test the advice as if on that GPU
+  const fake = typeof location !== 'undefined' && /[?&]gpu=([^&]+)/.exec(location.search);
+  if (fake) renderer = decodeURIComponent(fake[1]);
+  const nav = typeof navigator !== 'undefined' ? navigator : {};
+  return { renderer, maxTexture: gl.getParameter(gl.MAX_TEXTURE_SIZE) || 0, cores: nav.hardwareConcurrency || 0, memory: nav.deviceMemory || 0 };
+}
+
+const lower = (a, b) => PRESET_ORDER[Math.min(PRESET_ORDER.indexOf(a), PRESET_ORDER.indexOf(b))];
+
+// Pure: the preset a GPU string and machine suggest. ANGLE strings look like
+// "ANGLE (Intel, Intel(R) UHD Graphics 620 Direct3D11 vs_5_0 ps_5_0, D3D11)".
+export function classifyGpu({ renderer = '', maxTexture = 0, cores = 0, memory = 0 }) {
+  const r = renderer.toLowerCase();
+  let tier = 'hoog', why = 'onbekend';
+  if (/swiftshader|llvmpipe|softpipe|software|basic render/.test(r)) { tier = 'laag'; why = 'software'; }
+  else if (/mali|adreno|powervr|videocore|vivante|tegra|immortalis/.test(r)) { tier = 'laag'; why = 'mobiel'; }
+  else if (/intel/.test(r)) {
+    if (/arc\(tm\) a\d|arc a\d/.test(r)) { tier = 'hoog'; why = 'intel arc'; }
+    else if (/arc/.test(r)) { tier = 'middel'; why = 'intel arc igpu'; }
+    else { tier = 'laag'; why = 'intel igpu'; }
+  } else if (/radeon|amd/.test(r)) {
+    if (/rx\s?\d|radeon pro|vii|r9 /.test(r)) { tier = 'hoog'; why = 'radeon'; }
+    else { tier = 'middel'; why = 'radeon igpu'; }
+  } else if (/nvidia|geforce|quadro|rtx|gtx/.test(r)) {
+    if (/\bmx\s?\d{3}|\bgt\s?\d{3}\b|\b9\d0m\b/.test(r)) { tier = 'middel'; why = 'geforce instap'; }
+    else { tier = 'hoog'; why = 'geforce'; }
+  } else if (/apple/.test(r)) { tier = 'hoog'; why = 'apple'; }
+  if (maxTexture && maxTexture < 8192) { tier = 'laag'; why += ', kleine textures'; }
+  if (cores && cores <= 2) { tier = 'laag'; why += ', 2 kernen'; }
+  else if (cores && cores <= 4) { tier = lower(tier, 'middel'); why += ', 4 kernen'; }
+  if (memory && memory <= 4) { tier = lower(tier, 'middel'); why += ', weinig geheugen'; }
+  return { tier, why };
+}
+
+// Pure: what a few seconds of frame times say (median ms at the current
+// settings) combined with the GPU's own tier.
+export function adviseFromSample(gpuTier, medianMs, current) {
+  const measured = medianMs > 30 ? 'laag' : medianMs > 20 ? 'middel' : 'hoog';
+  let pick = lower(gpuTier, measured);
+  // a weak GPU that still renders smoothly here only drops one step
+  if (measured === 'hoog' && pick === 'laag') pick = 'middel';
+  return PRESET_ORDER.indexOf(pick) < PRESET_ORDER.indexOf(current || 'hoog') ? pick : null;
+}
+
+// --- first-run advice ----------------------------------------------------
+
+const ADVICE_KEY = 'gte-gfx-advice';
+let sampling = false;
+export const isAdvisorSampling = () => sampling;
+
+function readAdvice() {
+  try { return localStorage.getItem(ADVICE_KEY); } catch (e) { return 'x'; }
+}
+function writeAdvice(v) {
+  try { localStorage.setItem(ADVICE_KEY, v); } catch (e) { /* ignore */ }
+}
+
+const CSS = `
+#gfx-advice { position: fixed; right: 28px; bottom: 64px; z-index: 31; width: min(400px, calc(100vw - 32px)); box-sizing: border-box;
+  background: rgba(10, 19, 13, 0.94); border: 1px solid rgba(63, 201, 122, 0.45); border-radius: 12px; box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  padding: 16px 20px 18px; color: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; animation: gfx-adv-in 0.35s ease both; }
+@keyframes gfx-adv-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+#gfx-advice h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 26px; font-weight: normal; letter-spacing: 1.5px; color: #3fc97a; }
+#gfx-advice h3 svg { width: 20px; height: 20px; fill: none; stroke: #3fc97a; stroke-width: 1.8; stroke-linejoin: round; }
+#gfx-advice p { margin: 0 0 6px; font: 16px/1.38 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; }
+#gfx-advice .gfx-what { font-size: 14px; color: rgba(240, 237, 228, 0.6); }
+#gfx-advice .gfx-row { display: flex; gap: 8px; margin-top: 14px; }
+#gfx-advice button { font: 19px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1.5px; padding: 7px 16px; border-radius: 4px; cursor: pointer;
+  background: transparent; color: #f0ede4; border: 1px solid rgba(63, 201, 122, 0.6); }
+#gfx-advice button.primary { background: #1e9e56; color: #0c140e; border-color: #1e9e56; }
+#gfx-advice button:hover, #gfx-advice button:focus-visible { border-color: #3fc97a; color: #3fc97a; outline: none; }
+#gfx-advice button.primary:hover, #gfx-advice button.primary:focus-visible { background: #3fc97a; border-color: #3fc97a; color: #0c140e; box-shadow: 0 0 0 2px #f0ede4; }
+`;
+
+let card = null;
+
+function showAdvice(pick) {
+  const style = document.createElement('style');
+  style.textContent = CSS;
+  document.head.appendChild(style);
+  card = document.createElement('div');
+  card.id = 'gfx-advice';
+  card.className = 'gfx-advice';
+  card.setAttribute('role', 'dialog');
+  card.setAttribute('aria-labelledby', 'gfx-adv-title');
+  card.innerHTML = `<h3 id="gfx-adv-title">${GEAR_SVG}Soepeler spelen?</h3>
+    <p>Je computer heeft het zwaar met deze stand. Met ${presetLabel(pick)} loopt Grunn een stuk vloeiender. Je kunt het altijd terugzetten bij Instellingen › Beeld.</p>
+    <p class="gfx-what">${presetLabel(pick)}: ${describePreset(pick)}</p>
+    <div class="gfx-row"><button type="button" class="primary" data-act="apply">Toepassen</button><button type="button" data-act="no">Nee, bedankt</button></div>`;
+  card.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    if (b.dataset.act === 'apply') {
+      applyPreset(pick);
+      writeAdvice('toegepast:' + pick);
+      card.innerHTML = `<h3>${GEAR_SVG}Toegepast</h3><p>Beeld staat nu op ${presetLabel(pick)}. Terugzetten kan altijd bij Instellingen › Beeld.</p>`;
+      setTimeout(hideAdvice, 4000);
+    } else {
+      writeAdvice('nee');
+      hideAdvice();
+    }
+  });
+  document.body.appendChild(card);
+}
+
+export function hideAdvice() {
+  if (card) { card.remove(); card = null; }
+}
+
+// From the title screen on (also during the attract intro): a few seconds of
+// frame times plus the GPU string. Asks once; never when the player already
+// picked graphics settings of their own.
+export function startGfxAdvisor(gl) {
+  const q = location.search;
+  if (!/[?&]gfxadvies\b/.test(q)) {
+    if (readAdvice() || /[?&](noattract|storytest|trailer|benchmark|stil)\b/.test(q)) return;
+    if (currentPreset() !== 'hoog') return;
+  }
+  const gpu = classifyGpu(readGpu(gl));
+  const times = [];
+  let last = 0, t0 = 0;
+  sampling = true;
+  const step = (now) => {
+    if (document.hidden) { last = 0; requestAnimationFrame(step); return; }
+    if (!t0) t0 = now;
+    if (last && now - t0 > 2500) times.push(now - last);
+    last = now;
+    if (now - t0 < 7000 || times.length < 60) { requestAnimationFrame(step); return; }
+    sampling = false;
+    times.sort((a, b) => a - b);
+    const median = times[times.length >> 1];
+    const pick = adviseFromSample(gpu.tier, median, currentPreset() || 'hoog');
+    window.__gfxAdvice = { gpu, median: +median.toFixed(1), pick };
+    if (!pick) { writeAdvice('ok'); return; }
+    if (!document.body.classList.contains('game-started')) showAdvice(pick);
+  };
+  requestAnimationFrame(step);
+}
+
+// --- adaptive quality ---------------------------------------------------
+
+// With autoResolution on, slow frames step the view down quickly and good
+// frames step it back up slowly. GPU-bound (frame much longer than the main
+// thread's work): render scale, down to 60%. CPU-bound (a busy machine, many
+// draws): cpuLevel 1-2, fewer facade details and a shadow map every other
+// frame (scene3d.js).
+const DYN_MIN = 0.6;
+const SLOW_MS = 27, GOOD_MS = 19;
+const dyn = { scale: 1, cpuLevel: 0, n: 0, sum: 0, cpu: 0, good: 0, cool: 0 };
+export const dynamicScale = () => dyn.scale;
+export const cpuLevel = () => dyn.cpuLevel;
+
+// One rendered in-game frame: interval and main-thread ms. True when
+// something changed.
+export function noteFrame(ms, cpuMs) {
+  if (!getSettings().autoResolution) {
+    if (dyn.scale === 1 && dyn.cpuLevel === 0) return false;
+    dyn.scale = 1; dyn.cpuLevel = 0;
+    return true;
+  }
+  if (!(ms > 0) || ms > 250) return false;
+  if (dyn.cool > 0) { dyn.cool -= ms; return false; }
+  dyn.n++; dyn.sum += ms; dyn.cpu += cpuMs;
+  if (dyn.sum < 1000) return false;
+  const avg = dyn.sum / dyn.n, cpu = dyn.cpu / dyn.n;
+  dyn.n = dyn.sum = dyn.cpu = 0;
+  const was = dyn.scale + dyn.cpuLevel * 10;
+  if (avg > SLOW_MS) {
+    dyn.good = 0;
+    if (avg - cpu > 6 && dyn.scale > DYN_MIN) dyn.scale = Math.max(DYN_MIN, dyn.scale - 0.1);
+    else if (dyn.cpuLevel < 2) dyn.cpuLevel++;
+    else if (dyn.scale > DYN_MIN) dyn.scale = Math.max(DYN_MIN, dyn.scale - 0.1);
+  } else if (avg < GOOD_MS && ++dyn.good >= 4) {
+    dyn.good = 0;
+    if (dyn.scale < 1) dyn.scale = Math.min(1, dyn.scale + 0.05);
+    else if (dyn.cpuLevel > 0) dyn.cpuLevel--;
+  }
+  dyn.scale = Math.round(dyn.scale * 20) / 20;
+  if (dyn.scale + dyn.cpuLevel * 10 === was) return false;
+  dyn.cool = 600;
+  if (typeof window !== 'undefined') window.__gfxDyn = { scale: dyn.scale, cpuLevel: dyn.cpuLevel, avg: +avg.toFixed(1), cpu: +cpu.toFixed(1) };
+  return true;
+}

@@ -35,6 +35,18 @@ SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
   0 on PASS. Use a throwaway profile:
   `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-test-story npx electron . --windowed --story-test=/tmp/st`
 
+### Performance runs
+
+`scripts/perf/run.sh <name> [flags]` plays fixed routes in the desktop build
+(city on foot, the ring by car, the heli over the Ommeland, the pause menu
+and a settings sheet) at 1920x1080 and devicePixelRatio 1, and prints frame
+times, main-thread time, GPU time, long tasks and draw calls per route.
+Flags: `--preset=quality:laag,shadows:false,...` (settings for that run
+only), `--cpu-throttle=4` (a slower CPU), `--nobatch`. `scripts/perf/ab.sh`
+alternates two staged builds (A/B) and prints medians. `--gfx-advice[=<GPU
+string>]` shows the first-run graphics advice in a test run.
+`node scripts/gfx_profile_test.mjs` checks the GPU classification.
+
 ### Trailer mode
 
 One scripted sequence of shots through Grunn (`js/trailer.js`, design in

@@ -1,10 +1,14 @@
 import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
 import { VERSION } from './version.js';
+import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
-import { pendingTrailer, runTrailer, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
+import { pendingTrailer, runTrailer, runBenchmarkSuite, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
+import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
+import { MENU_FRAME_S, getRenderer } from './scene3d.js';
+import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 
 const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -236,8 +240,9 @@ const inline = (s) => esc(s)
 
 // Just enough Markdown for CHANGELOG.md: version headings, section headings,
 // bullets (with wrapped continuation lines) and paragraphs. The title, the
-// intro and an empty [Unreleased] section are left out.
-function changelogHtml(md) {
+// intro and an empty [Unreleased] section are left out. `fresh` marks the
+// versions newer than the one last played (see whatsnew.js).
+function changelogHtml(md, fresh = () => false) {
   const out = [];
   let block = null; // { kind: 'p' | 'li', text }
   let inList = false;
@@ -262,7 +267,8 @@ function changelogHtml(md) {
       started = true;
       if (ver[1].toLowerCase() === 'unreleased') { started = false; continue; }
       const date = ver[2] ? new Date(ver[2]).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-      out.push(`<h3>Versie ${esc(ver[1])}${date ? `<small>${esc(date)}</small>` : ''}</h3>`);
+      const isNew = fresh(ver[1]);
+      out.push(`<h3${isNew ? ' class="ss-news-new"' : ''}>Versie ${esc(ver[1])}${date ? `<small>${esc(date)}</small>` : ''}${isNew ? '<span class="ss-news-tag">Nieuw sinds je vorige keer</span>' : ''}</h3>`);
       continue;
     }
     if (!started) continue;
@@ -278,12 +284,20 @@ function changelogHtml(md) {
   return out.join('');
 }
 
+// since: the version last played; null marks only the newest version
+let newsSince;
 let changelogCache = null;
 function loadChangelog() {
   if (!changelogCache) {
+    let first = null;
+    const fresh = newsSince === undefined ? () => false
+      : (v) => {
+        if (first === null) first = v;
+        return newsSince ? compareVersions(v, newsSince) > 0 : v === first;
+      };
     changelogCache = fetch('./CHANGELOG.md', { cache: 'no-store' })
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(r.status))))
-      .then(changelogHtml)
+      .then((md) => changelogHtml(md, fresh))
       .catch(() => { changelogCache = null; return '<p>De lijst met wijzigingen kon niet worden geladen.</p>'; });
   }
   return changelogCache;
@@ -410,11 +424,13 @@ export function runStartScreen(world, { render, relocate, tick }) {
       const it = items[i];
       if (it.act !== 'news') news.hidden = true;
       if (it.act === 'continue') {
+        startTheme();
         restoreWorld();
         applySave(world, readSave());
         finish('game');
       } else if (it.act === 'new') {
         if (save && !confirmNew) { setConfirm(true); return; }
+        startTheme();
         restoreWorld();
         clearSave();
         finish('game');
@@ -441,6 +457,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
       if (isPauseMenuOpen() || done || trailerOn) return;
+      if (e.target && e.target.closest && e.target.closest('#gfx-advice')) return;
       const k = e.key;
       if (!news.hidden) {
         const page = newsBody.clientHeight * 0.85;
@@ -496,19 +513,32 @@ export function runStartScreen(world, { render, relocate, tick }) {
       trailerOn = true;
       screen.classList.remove('visible');
       news.hidden = true;
+      let next = 'back';
       for (;;) {
-        const res = await runTrailer(world, { mode: 'benchmark', cut: 'vol', env });
+        const res = await runBenchmarkSuite(world, env);
         if (res.aborted) break;
-        if (await showBenchmarkResults(res.stats) !== 'again') break;
+        next = await showBenchmarkResults(res);
+        if (next !== 'again') break;
       }
       await fadeOutTrailer(false, backHome);
+      stopTheme();
       trailerOn = false;
       const cont = items.findIndex((it) => it.act === 'continue');
-      if (fromGame && cont >= 0) { activate(cont); return; }
+      // the result and its one-click preset wait in Instellingen > Beeld
+      if (fromGame && cont >= 0) {
+        if (next === 'settings') world.openSettingsOnStart = 'video';
+        activate(cont);
+        return;
+      }
       showMenu(false);
+      if (next === 'settings') openPauseMenu('settings', { prestart: true, sub: 'video', onClose: () => focus(sel) });
     };
     const onBenchmark = () => benchmark(false);
     window.addEventListener('gte-benchmark', onBenchmark);
+    // after an update the menu opens on "Wat is er nieuw"
+    const update = /[?&]storytest/.test(location.search) ? null : checkWhatsNew(VERSION);
+    if (update) { newsSince = update.since; changelogCache = null; }
+    markVersionSeen(VERSION);
     const intro = pendingTrailer();
     const playIntro = async () => {
       trailerOn = true;
@@ -531,13 +561,23 @@ export function runStartScreen(world, { render, relocate, tick }) {
       }
     };
     if (intro) playIntro();
-    else showMenu(false);
+    else {
+      showMenu(false);
+      startGfxAdvisor(getRenderer().getContext());
+      if (update) {
+        const n = items.findIndex((it) => it.act === 'news');
+        focus(n);
+        openNews();
+      }
+    }
 
+    let renderDt = 0;
     const loop = (now) => {
       if (done) return;
       if (trailerOn) { last = now; requestAnimationFrame(loop); return; }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
+      renderDt += dt;
       shotT += dt;
       phaseT += dt;
       if (phase === 'show' && shotT > shotDur) { phase = 'out'; phaseT = 0; fade.style.opacity = '1'; }
@@ -545,8 +585,15 @@ export function runStartScreen(world, { render, relocate, tick }) {
       else if (phase === 'black' && phaseT > BLACK_HOLD_S) { phase = 'show'; phaseT = 0; fade.style.opacity = '0'; }
       pose = shot(shotT);
       world.cameraOverride = { ...pose, cut: true };
-      if (tick) { try { tick(dt); } catch (err) { console.error(err); } }
-      try { render(dt); } catch (err) { console.error(err); }
+      // the menu covers part of the city, the settings sheet most of it; the
+      // first-run check measures at full rate
+      const every = isAdvisorSampling() ? 0 : MENU_FRAME_S[isPauseMenuOpen() ? 2 : 1];
+      if (renderDt >= every) {
+        const step = Math.min(0.1, renderDt);
+        renderDt = 0;
+        if (tick) { try { tick(step); } catch (err) { console.error(err); } }
+        try { render(step); } catch (err) { console.error(err); }
+      }
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
