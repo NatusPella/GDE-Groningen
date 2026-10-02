@@ -793,6 +793,17 @@ export function realGableGeometry() {
   return B.build();
 }
 
+// Mid-distance roof: the slopes and both gable ends in one piece (tinted
+// with the roof colour).
+export function realRoofMidGeometry() {
+  const B = new GeoBuilder();
+  B.quadOut([-0.52, -0.04, 0.54], [0.52, -0.04, 0.54], [0.52, 1, 0], [-0.52, 1, 0], [0, 1, 1], 0xffffff);
+  B.quadOut([-0.52, -0.04, -0.54], [-0.52, 1, 0], [0.52, 1, 0], [0.52, -0.04, -0.54], [0, 1, -1], 0xffffff);
+  B.triOut([-0.5, 0, 0.5], [-0.5, 0, -0.5], [-0.5, 0.97, 0], [-1, 0, 0], 0xc8b8a8);
+  B.triOut([0.5, 0, 0.5], [0.5, 0.97, 0], [0.5, 0, -0.5], [1, 0, 0], 0xc8b8a8);
+  return B.build();
+}
+
 // Distant real building: walls to 0.55 and a gable roof to 1 (flat: a box).
 export function realSilhouetteGeometry(flat = false) {
   const B = new GeoBuilder();

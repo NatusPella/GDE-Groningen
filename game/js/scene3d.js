@@ -41,6 +41,11 @@ import { updateSkyProps3D } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
+import { dynamicScale, cpuLevel } from './gfxprofile.js';
+import { buildingBatcher, roadBatcher } from './staticbatch3d.js';
+
+// ?nobatch: every building drawn on its own (A/B checks of the batching)
+const NO_BATCH = typeof location !== 'undefined' && /[?&]nobatch\b/.test(location.search);
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
@@ -54,6 +59,8 @@ import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside } from './countryside.js';
+import { updateCountryBake } from './countrybake.js';
+import { edgeDistance } from './countryfield.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
@@ -718,7 +725,8 @@ export function init3D(map) {
   preloadLandmarkModels();
   setBuildingMap(map);
   canvas3 = document.getElementById('game3d');
-  renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag' });
+  // laptops with two GPUs: the fast one
+  renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag', powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -813,7 +821,16 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), roads: roadBatcher.info() }) };
+}
+
+// seconds between renders behind a menu that covers part / most of the view
+export const MENU_FRAME_S = [0, 1 / 30, 1 / 20];
+let menuCover = 0, menuShadowDone = false;
+// main.js / startscreen.js: a menu covers the view (0 none, 1 part, 2 most)
+export function setMenuCover(level) {
+  if (level !== menuCover) menuShadowDone = false;
+  menuCover = level;
 }
 
 // Read-only access for systems that need the view pose (e.g. the 3D audio listener).
@@ -823,6 +840,10 @@ export function getCamera() {
 
 export function getScene() {
   return scene;
+}
+
+export function getRenderer() {
+  return renderer;
 }
 
 // Rebuild the Tammo/Anita meshes next frame (their appearance objects changed).
@@ -839,9 +860,11 @@ function applyViewSettings(st) {
   const level = QUALITY_PRESETS[st.quality] ? st.quality : 'hoog';
   const preset = QUALITY_PRESETS[level];
   const prevRatio = renderer.getPixelRatio();
-  renderer.setPixelRatio(Math.min(preset.pixelRatio, window.devicePixelRatio || 1));
+  renderer.setPixelRatio(renderPixelRatio(st, preset));
   resize3D();
   setNightLightQuality(level);
+  facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
+  facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
   else if (prevRatio !== renderer.getPixelRatio()) postfx.rebuild();
   const shadows = st.shadows && preset.shadows;
@@ -854,6 +877,22 @@ function applyViewSettings(st) {
   cam.fov = baseFov = st.fov;
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
+}
+
+function renderPixelRatio(st, preset) {
+  return Math.min(preset.pixelRatio, window.devicePixelRatio || 1) * (st.resolution || 1) * dynamicScale();
+}
+
+// gfxprofile.js changed the dynamic render scale or cpuLevel
+export function refreshRenderScale() {
+  if (!renderer) return;
+  const st = getSettings();
+  const ratio = renderPixelRatio(st, QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog);
+  facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
+  if (ratio === renderer.getPixelRatio()) return;
+  renderer.setPixelRatio(ratio);
+  resize3D();
+  postfx.rebuild();
 }
 
 function applyShadowLevel(level) {
@@ -1131,38 +1170,76 @@ function ensureTreeCapacity(n) {
 // --- per-frame sync ------------------------------------------------------
 
 function syncBuildings(world, px, py) {
-  // Detail set must be exactly "centre within DRAW_DIST": farlod.js hides
-  // its copy of a building by the same test, so no unload hysteresis here.
+  // Detail set must be exactly "centre within detailR": farlod.js hides its
+  // copy of a building by the same test, so no unload hysteresis here.
+  // Missing meshes are built nearest first within a per-frame budget (a
+  // teleport or a train arrival would otherwise build a whole district in
+  // one frame); until the ring is complete, detailR shrinks to the nearest
+  // building still missing and the far LOD covers everything past it.
   const view = world.map.buildingsNear(px, py, DRAW_DIST);
   const seen = new Set();
   const centreDist = (b) => Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py);
-  const want = (b, r) => {
-    if (centreDist(b) > r) return;
+  const missing = [];
+  const want = (b, r, lod) => {
+    const d = centreDist(b);
+    if (d > r) return;
     seen.add(b);
-    if (!buildingMeshes.has(b)) {
-      let mesh = prefetchedBuildings.get(b);
-      if (mesh) prefetchedBuildings.delete(b);
-      else mesh = makeBuildingMesh(b);
-      mesh.visible = !hiddenBuildings.has(b);
-      scene.add(mesh);
-      buildingMeshes.set(b, mesh);
-    }
+    if (!buildingMeshes.has(b)) missing.push([d, b, lod]);
   };
-  for (const b of view) if (!b.landmark) want(b, DRAW_DIST);
-  for (const b of landmarkBuildings) want(b, isSkyline(b) ? landmarkDist() : Math.max(DRAW_DIST, viewDist));
+  for (const b of view) if (!b.landmark) want(b, DRAW_DIST, true);
+  for (const b of landmarkBuildings) want(b, isSkyline(b) ? landmarkDist() : Math.max(DRAW_DIST, viewDist), false);
   for (const [b, mesh] of buildingMeshes) {
     if (seen.has(b)) continue;
     // no dispose: parts geometry and materials are shared/cached per building
     scene.remove(mesh);
     buildingMeshes.delete(b);
   }
+  missing.sort((a, b) => a[0] - b[0]);
+  const deadline = performance.now() + (performance.now() < streamBoostUntil ? BUILDING_BUILD_BOOST_MS : BUILDING_BUILD_MS);
+  let built = 0;
+  buildingDetailR = DRAW_DIST;
+  for (const [d, b, lod] of missing) {
+    let mesh = prefetchedBuildings.get(b);
+    if (!mesh) {
+      if (built > 0 && performance.now() > deadline) {
+        if (lod) buildingDetailR = Math.min(buildingDetailR, d - 0.01);
+        continue;
+      }
+      mesh = makeBuildingMesh(b);
+      built++;
+    }
+    prefetchedBuildings.delete(b);
+    mesh.visible = !hiddenBuildings.has(b);
+    buildingMeshes.set(b, mesh);
+    scene.add(mesh);
+  }
+  // shown only once the far LOD stops drawing them
+  if (buildingDetailR < DRAW_DIST) {
+    for (const [b, mesh] of buildingMeshes) {
+      if (b.landmark) continue;
+      const inside = centreDist(b) <= buildingDetailR;
+      if (inside !== !!mesh.parent) { if (inside) scene.add(mesh); else scene.remove(mesh); }
+    }
+  } else if (buildingsStaged) {
+    for (const mesh of buildingMeshes.values()) if (!mesh.parent) scene.add(mesh);
+  }
+  buildingsStaged = buildingDetailR < DRAW_DIST;
+  // 'laag': window frames, trims and shopfronts only up close
+  if (facadeDetailDist < DRAW_DIST || facadeDetailCulled) {
+    for (const [b, mesh] of buildingMeshes) {
+      const det = mesh.userData.facadeDetail;
+      if (det) det.visible = centreDist(b) <= facadeDetailDist;
+    }
+    facadeDetailCulled = facadeDetailDist < DRAW_DIST;
+  }
   // Build the meshes of buildings just outside the detail radius ahead of
   // time (within a small per-frame budget), so crossing DRAW_DIST only has
   // to add an already built mesh to the scene.
   for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20) prefetchedBuildings.delete(b);
-  const deadline = performance.now() + BUILDING_PREFETCH_MS;
+  if (missing.length > built) return;
+  const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
   for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
-    if (performance.now() > deadline) break;
+    if (performance.now() > prefetchEnd) break;
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
     if (d <= DRAW_DIST || d > DRAW_DIST + BUILDING_PREFETCH) continue;
@@ -1170,6 +1247,28 @@ function syncBuildings(world, px, py) {
     precompile(mesh);
     prefetchedBuildings.set(b, mesh);
   }
+}
+
+// Streaming budgets (ms per frame) for buildings and roads; a jump of the
+// player (teleport, train, respawn) raises them for a moment.
+const BUILDING_BUILD_MS = 4;
+const BUILDING_BUILD_BOOST_MS = 9;
+const ROAD_BUILD_MS = 2.5;
+const STREAM_JUMP = 60;
+let streamBoostUntil = 0;
+let streamLastX = null, streamLastY = 0;
+let buildingDetailR = DRAW_DIST;
+const FACADE_DETAIL_DIST = { laag: 80 };
+let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist = Infinity;
+// gfxprofile.js cpuLevel (a busy machine): fewer facade details
+const CPU_FACADE_DIST = [Infinity, 100, 70];
+let shadowFrame = 0;
+let roadDetailR = DRAW_DIST;
+let buildingsStaged = false;
+function noteStreamJump(px, py) {
+  if (streamLastX === null || Math.hypot(px - streamLastX, py - streamLastY) > STREAM_JUMP) streamBoostUntil = performance.now() + 1500;
+  streamLastX = px;
+  streamLastY = py;
 }
 
 const BUILDING_PREFETCH = 30;
@@ -1220,6 +1319,8 @@ function useSkylineMaterials(root) {
 // First-time water/shore builds of polygons still far out in the fog are
 // spread over frames; anything within the detail radius is built at once.
 const WATER_BUILD_BUDGET_MS = 3;
+// past the budget only water this close is still built at once
+const WATER_NEAR = 45;
 
 // Streamed-out roads and water keep their cached geometry (on the map item)
 // for a cheap way back, up to a bound: beyond it the least recently shown
@@ -1254,7 +1355,7 @@ function syncWater(items, cache, y, map, px, py) {
   for (const poly of items) {
     if (!cache.has(poly) && performance.now() > deadline) {
       const [minx, miny, maxx, maxy] = poly.bounds;
-      if (Math.hypot(Math.max(minx - px, 0, px - maxx), Math.max(miny - py, 0, py - maxy)) > DRAW_DIST) continue;
+      if (Math.hypot(Math.max(minx - px, 0, px - maxx), Math.max(miny - py, 0, py - maxy)) > WATER_NEAR) continue;
     }
     seen.add(poly);
     if (!cache.has(poly)) {
@@ -1283,12 +1384,25 @@ function syncRoads(world, px, py) {
   const view = world.map.roadsNear(px, py, DRAW_DIST);
   const seen = new Set();
   for (const r of view) seen.add(r);
+  // nearest first within a budget; the far LOD's roads cover the rest
+  const missing = [];
   for (const r of view) {
-    if (!roadMeshes.has(r)) {
+    if (roadMeshes.has(r)) continue;
+    const [x0, y0, x1, y1] = r.bounds || [px, py, px, py];
+    missing.push([Math.hypot(Math.max(x0 - px, 0, px - x1), Math.max(y0 - py, 0, py - y1)), r]);
+  }
+  roadDetailR = DRAW_DIST;
+  if (missing.length) {
+    missing.sort((a, b) => a[0] - b[0]);
+    const deadline = performance.now() + (performance.now() < streamBoostUntil ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
+    let built = 0;
+    for (const [d, r] of missing) {
+      if (built > 0 && !r._geoRoad && performance.now() > deadline) { roadDetailR = Math.max(24, d); break; }
       coldRoads.delete(r);
       const mesh = freezeStatic(buildRoadGroup(r));
       scene.add(mesh);
       roadMeshes.set(r, mesh);
+      built++;
     }
   }
   for (const [r, mesh] of roadMeshes) {
@@ -1355,6 +1469,8 @@ const FADE_STEPS = 16;
 const PED_FADE_TIME = 0.6;
 const PED_EDGE_FADE = 14;
 const PED_BUILD_BUDGET_MS = 2.5;
+// a jump builds the people round the player at once, up to this much more
+const PED_INSTANT_EXTRA_MS = 6;
 const PED_JUMP_DIST = 40;
 const pedFadingOut = [];
 const fadeVariants = new Map();
@@ -1451,9 +1567,10 @@ function syncPedestrianMeshes(world, player, animDt) {
     if (Math.hypot(p.x - player.x, p.y - player.y) >= DRAW_DIST) continue;
     seen.add(p);
     if (pedMeshes.has(p)) continue;
-    if (!instant && built > 0 && performance.now() > deadline) continue;
+    const over = built > 0 && performance.now() > deadline;
+    if (over && (!instant || performance.now() > deadline + PED_INSTANT_EXTRA_MS)) continue;
     const mesh = buildPedActor(p);
-    mesh.userData.fade = instant || p.noFade ? 1 : 0;
+    mesh.userData.fade = (instant && !over) || p.noFade ? 1 : 0;
     scene.add(mesh);
     pedMeshes.set(p, mesh);
     built++;
@@ -1587,7 +1704,12 @@ export function update3D(dt, world) {
   const animDt = world.paused ? 0 : dt;
   const player = world.player;
 
+  noteStreamJump(player.x, player.y);
   syncBuildings(world, player.x, player.y);
+  if (!NO_BATCH) {
+    buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: player.x, py: player.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
+      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
+  }
   probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
   updatePortals(player.x, player.y);
@@ -1599,6 +1721,7 @@ export function update3D(dt, world) {
   updateShore(waterNight, cam);
   probe.mark('3d:water');
   syncRoads(world, player.x, player.y);
+  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: null, px: player.x, py: player.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
   probe.mark('3d:roads');
   syncTrees(world, player.x, player.y);
   probe.mark('3d:trees');
@@ -1892,7 +2015,9 @@ export function update3D(dt, world) {
   probe.mark('3d:tod+weather');
   updateEnvironment(dt);
   probe.mark('3d:env');
-  farLod.update(player.x, player.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, DRAW_DIST);
+  // while streaming catches up after a jump the far LOD stands in closer
+  const lodR = viewDist > DRAW_DIST + 20 ? Math.min(DRAW_DIST, buildingDetailR, roadDetailR + 8) : DRAW_DIST;
+  farLod.update(player.x, player.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR);
   probe.mark('3d:farlod');
 
   if (player.character !== playerCharacter) {
@@ -2183,7 +2308,14 @@ export function update3D(dt, world) {
   prewarmLightVariants();
   probe.mark('3d:prewarm');
 
+  updateCountryBake(renderer, player.x, player.y, edgeDistance(player.x, player.y) > -700);
+  // behind a menu the world stands still: the shadow map from the first
+  // frame is reused
+  // a busy CPU (cpuLevel 1+) renders the shadow map every other frame
+  renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !(cpuLevel() > 0 && (shadowFrame++ & 1));
+  if (menuCover) menuShadowDone = true;
   postfx.render();
+  renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);
 }
