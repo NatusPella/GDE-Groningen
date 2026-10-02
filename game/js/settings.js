@@ -57,7 +57,21 @@ function load() {
   }
 }
 
-const settings = load();
+// ?preset=quality:laag,drawDistance:kort (desktop --preset=...): settings for
+// this run only, for perf runs on a throwaway profile
+function urlOverrides(out) {
+  const m = typeof location !== 'undefined' && /[?&]preset=([^&]+)/.exec(location.search);
+  if (!m) return out;
+  for (const pair of decodeURIComponent(m[1]).split(',')) {
+    const [k, v] = pair.split(':');
+    if (!(k in DEFAULTS) || v === undefined) continue;
+    const t = typeof DEFAULTS[k];
+    out[k] = t === 'number' ? Number(v) : t === 'boolean' ? v === 'true' : v;
+  }
+  return out;
+}
+
+const settings = urlOverrides(load());
 const listeners = new Set();
 
 export function getSettings() {
