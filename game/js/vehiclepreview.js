@@ -38,8 +38,9 @@ function setupScene() {
   return { scene, rim, cam: new THREE.PerspectiveCamera(32, 3, 0.1, 100) };
 }
 
-// { mesh, body, fit } for a spec, or null.
-function buildObject(spec) {
+// { mesh, body, fit } for a spec, or null. sphereFit: frame vehicles by
+// their bounding sphere too (any canvas shape, tall buses and bikes).
+function buildObject(spec, sphereFit = false) {
   if (OBJECT_KINDS.has(spec.kind)) {
     const body = spec.kind === 'weapon' ? buildWeaponMesh(spec.weapon)
       : spec.kind === 'person' ? buildPersonMesh(spec.look.shirt, spec.look.skin, spec.look)
@@ -61,7 +62,11 @@ function buildObject(spec) {
     return { mesh, body, fit };
   }
   const fake = { id: -1 - (spec.nameIdx || 0), model: { ...spec.model, color: spec.color }, isBike: spec.kind === 'bike', isScooter: spec.kind === 'scooter', isBoat: spec.kind === 'boat', isHeli: spec.kind === 'heli', ...(spec.flags || {}), health: 100 };
-  return { mesh: buildVehicleMesh(fake), body: null, fit: null };
+  const mesh = buildVehicleMesh(fake);
+  if (!sphereFit) return { mesh, body: null, fit: null };
+  mesh.updateMatrixWorld(true);
+  const sphere = new THREE.Box3().setFromObject(mesh).getBoundingSphere(new THREE.Sphere());
+  return { mesh, body: null, fit: { c: new THREE.Vector3(0, sphere.center.y, 0), r: Math.max(0.3, sphere.radius * 0.78) } };
 }
 
 function frameCamera(cam, spec, fit, zoom) {
@@ -242,7 +247,7 @@ export function createSharedPreview(canvas, { interactive = false, active = () =
       p.ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
-    const o = buildObject(spec);
+    const o = buildObject(spec, true);
     if (!o) { show(null); return; }
     canvas.classList.add('on');
     p.mesh = o.mesh;
@@ -277,7 +282,7 @@ let pumping = false;
 const SHOT_BUDGET_MS = 6;
 
 function shoot(spec, w, h, angle) {
-  const o = buildObject(spec);
+  const o = buildObject(spec, true);
   if (!o) return '';
   o.mesh.rotation.y = angle;
   const src = renderShared(o.mesh, spec, o.fit, w, h, 1);
