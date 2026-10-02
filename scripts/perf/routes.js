@@ -70,6 +70,8 @@ const teleport = (x, y) => {
 let mover = null;
 const tick = () => {
   if (!wantMenu && PM.isPauseMenuOpen()) PM.closePauseMenu();
+  // the camera pitch follows the (uncaptured) mouse height: the same every run
+  D.input.mouse.y = innerHeight * 0.4;
   if (mover) mover(performance.now());
   if (!done) requestAnimationFrame(tick);
 };
@@ -96,6 +98,7 @@ async function run(name, setup, move, teardown) {
   calls = 0; tris = 0; renders = 0;
   const f0 = frameCount();
   H.start();
+  if (window.__perfProfile === name) console.log('[profile] ' + Math.min(DUR, 10000));
   await sleep(DUR);
   const res = H.stop();
   const frames = Math.max(1, res.frames);
