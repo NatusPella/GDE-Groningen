@@ -13,7 +13,7 @@ import { vehicleContacts } from './vehicle.js';
 import { getTrains, getLevelCrossings, TRAIN_TYPES } from './railway.js';
 import { countryWeight } from './countryfield.js';
 import { EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
-import { getMissionList } from './missions.js';
+import { getMissionList, payMedalBonus } from './missions.js';
 import { getScene } from './scene3d.js';
 
 const NEAR_MISS_SPEED = 12;
@@ -352,9 +352,11 @@ function finishRun(r, success) {
   r = { touches: 0, hard: 0, carTouches: 0, rivalTouches: 0, fatHits: 0, timeLeft: 0, ...r };
   const medal = medalFor(r);
   const res = recordMissionResult(world, r.index, { time: r.elapsed, medal, extra: challengeMet(r) });
+  const bonus = world ? payMedalBonus(world, r.index, medal) : 0;
   if (res && world) {
     const bits = [`${MEDALS[medal]} · ${formatMissionTime(r.elapsed)}`];
     if (res.newBest) bits.push('nieuw record!');
+    if (bonus) bits.push(`medaillebonus +€${bonus}`);
     world.addMessage(bits.join(' · '), 4);
   }
   return res;

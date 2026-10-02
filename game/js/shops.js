@@ -180,9 +180,9 @@ const missionDone = (id) => isMissionCompleted(missionIndexById(id));
 
 // text: the condition in the garage and the shop; ok(): met in this save.
 export const VEHICLE_UNLOCKS = {
-  pinautomaat: { text: 'Klaar missie "Pinnen met de hele automaat"', ok: () => missionDone('pinautomaat') },
+  pinautomaat: { text: 'Klaar missie "Even pinnen"', ok: () => missionDone('pinautomaat') },
   fatbike: { text: 'Klaar missie "Fatbike-terreur": de buurtzorg bedankt je', ok: () => missionDone('fatbike') },
-  vetgekaapt: { text: 'Klaar missie "Vet gekaapt"', ok: () => missionDone('vetgekaapt') },
+  vetgekaapt: { text: 'Klaar missie "Al het vet van Grunn"', ok: () => missionDone('vetgekaapt') },
   ringweg: { text: 'Win de ringweg-race van Jelle', ok: () => missionDone('ringweg') },
   // world.postgame (postgame.js): the story's ending was played, also after skipping the finale
   ontzet: { text: 'Speel het verhaal uit: Gronings Ontzet', ok: () => missionDone('ontzet') || !!(worldRef && worldRef.postgame) },

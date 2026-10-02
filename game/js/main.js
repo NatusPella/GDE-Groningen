@@ -11,6 +11,8 @@ import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory } from './story.js';
+import { initGoal, updateGoal } from './goal.js';
+import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
@@ -195,6 +197,8 @@ async function boot() {
   initPostgame(world);
   initSideJobs(world);
   initStory(world);
+  initGoal(world);
+  initMotion();
   initStoryContact(world);
   initHud(world);
   initMapView(world);
@@ -383,6 +387,7 @@ async function boot() {
       updateFlavour(dt, world);
     } else updateMissions(dt, world);
     updateStory(dt, world);
+    updateGoal(dt, world);
     updateSideJobs(dt, world);
     updatePostgame(dt, world);
     updateOmmelandFun(dt, world);

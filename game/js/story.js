@@ -210,7 +210,7 @@ function enter(step) {
 // The mission marker shows the mission of this step, or the next mission
 // step after an activity.
 function pointMissionChain(step) {
-  if (isMissionActive()) return;
+  if (isMissionActive() || goalIsMission()) return;
   const k = STEPS.indexOf(step);
   for (let j = k; j < STEPS.length; j++) {
     const s = STEPS[j];
@@ -253,6 +253,9 @@ function queueContacts(step, on) {
   }
 }
 
+// a mission the player chose as their goal (goal.js) keeps the marker
+const goalIsMission = () => !!(world.goal && world.goal.kind === 'mission');
+
 function refreshGuide() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) { world.storyGuide = null; return; }
@@ -273,7 +276,7 @@ function refreshGuide() {
     rt.gatedSince = gate ? (rt.gatedSince >= 0 ? rt.gatedSince : world.time) : -1;
     if (gate && world.time - rt.gatedSince > GATED_SKIP_S && !rt.gateOffered) { rt.gateOffered = true; rt.skipUntil = world.time + SKIP_OFFER_S; }
     // the player picked another mission meanwhile: arm this one again once they are at its start
-    if (!gate && def && Math.hypot(def.start.x - world.player.x, def.start.y - world.player.y) < 40) setNextMission(world, missionIdx(step));
+    if (!gate && def && !goalIsMission() && Math.hypot(def.start.x - world.player.x, def.start.y - world.player.y) < 40) setNextMission(world, missionIdx(step));
   } else {
     const g = GOALS[step.goal.type];
     place = g && g.place(step);
@@ -598,7 +601,7 @@ function flash() {
 
 // --- skipping --------------------------------------------------------------------------
 
-// One rule for every step, in the pause menu (Missies tab) and the O button
+// One rule for every step, in the pause menu (Overzicht, Te doen) and the O button
 // on screen: a skip is only offered once the player has tried, after a failed
 // attempt, a requirement that stays unmet, or a long time stuck on the step
 // (a running story mission too: it is aborted first). force: the dev panel
@@ -751,7 +754,7 @@ export function updateStory(dt, w) {
   }
   if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
     const title = rt.clueToasts.shift();
-    w.addMessage(`Nieuwe aanwijzing: ${title}. Lees terug in het pauzemenu, Missies: "Wat weten we?"`, 4.5);
+    w.addMessage(`Nieuwe aanwijzing: ${title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"`, 4.5);
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment
@@ -830,6 +833,31 @@ export function getStoryJournal() {
 
 export function markCluesSeen() {
   rt.newClues.clear();
+}
+
+// Every step of the arc for the pause menu's Te doen › Verhaal, in play
+// order: { id, part, kind, title, mission (index), player, reward, cost, goal,
+// lead, done, skipped, current, available }.
+export function getStorySteps() {
+  const step = rt.cur || currentStep();
+  const cur = step && !step.end ? step.id : null;
+  return STEPS.map((s, k) => ({
+    id: s.id, part: s.part, kind: s.kind, title: s.title, mission: missionIdx(s), player: s.player || null,
+    reward: s.reward || 0, cost: s.cost || 0, goal: s.goal || null, lead: s.lead ? s.lead[1] : '',
+    done: isDone(s, k), skipped: state.skipped.has(s.id), current: s.id === cur, available: stepAvailable(s),
+  }));
+}
+
+// A story mission later than the current step (playing it now runs ahead of
+// the story): { code, title, now: { code, title } }, else null.
+export function storyMissionAhead(i) {
+  const k = STEPS.findIndex((s) => s.kind === 'mission' && missionIdx(s) === i);
+  if (k < 0 || isDone(STEPS[k], k)) return null;
+  const step = rt.cur || currentStep();
+  if (!step || step.end) return null;
+  const c = STEPS.indexOf(step);
+  if (c < 0 || k <= c) return null;
+  return { code: STEPS[k].id, title: STEPS[k].title, now: { code: step.kind === 'mission' ? step.id : '', title: step.title } };
 }
 
 export function getStoryView() {
