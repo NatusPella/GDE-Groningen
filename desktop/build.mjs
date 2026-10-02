@@ -7,8 +7,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const SRC = path.join(HERE, '..', 'game');
-const OUT = path.join(HERE, 'build', 'game');
+// GTE_STAGE_SRC / GTE_STAGE_OUT stage another checkout (perf runs against main)
+const SRC = process.env.GTE_STAGE_SRC || path.join(HERE, '..', 'game');
+const OUT = process.env.GTE_STAGE_OUT || path.join(HERE, 'build', 'game');
 const CACHE = path.join(HERE, 'vendor-cache');
 const CDN = 'https://cdn.jsdelivr.net/npm/';
 const THREE = CDN + 'three@0.160.0/build/three.module.js';

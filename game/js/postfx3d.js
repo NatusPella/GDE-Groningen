@@ -237,8 +237,8 @@ export function createPostFX(renderer, scene, cam) {
       bloom = new UnrealBloomPass(new THREE.Vector2(width, height), 0.2, 0.35, 2.5);
       // Bloom at CSS-pixel resolution regardless of devicePixelRatio: it is
       // blurred anyway and this keeps retina cost flat.
-      const setBloomSize = bloom.setSize.bind(bloom);
-      bloom.setSize = (w, h) => setBloomSize(w / pr, h / pr);
+      const setBloomSize = bloom.setSize.bind(bloom), k = Math.max(1, pr);
+      bloom.setSize = (w, h) => setBloomSize(w / k, h / k);
       // the grade pass adds the bloom itself instead of the pass blending
       // it over the full-resolution buffer (one full-screen pass less)
       const quad = bloom.fsQuad, draw = quad.render.bind(quad);

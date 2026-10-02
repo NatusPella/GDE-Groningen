@@ -3,6 +3,7 @@
 // Instellingen, Besturing) opens as a sheet beside it while the card turns
 // into the section rail. Esc/Backspace go back one level, then close.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
+import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio } from './mapview.js';
 import { getMissionList, trackMission } from './missions.js';
 import { getStoryView, skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
@@ -220,6 +221,11 @@ export function isPauseMenuOpen() {
   return open;
 }
 
+// How much of the city the menu hides: 0 closed, 1 the pause card, 2 a sheet.
+export function pauseMenuCover() {
+  return !open ? 0 : tab === 'game' ? 1 : 2;
+}
+
 const started = () => document.body.classList.contains('game-started');
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => id));
@@ -253,12 +259,21 @@ function settingsHtml() {
       ${slider('voiceVolume', 'Stemmen')}
       <p class="pm-note">Muziek is G-Music en de titelsong, stemmen zijn Tammo, Anita, de politie en de mensen op straat.</p>
     </div>
-    <div data-of="settings" data-sub="video" class="pm-group" hidden>
-      ${segmented('quality', 'Kwaliteit', Object.keys(QUALITY_PRESETS).map((q) => [q, q[0].toUpperCase() + q.slice(1)]))}
-      ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm<small>F11 of Alt+Enter</small></span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
+    <div data-of="settings" data-sub="video" class="pm-group pm-video" hidden>
+      <div class="pm-bench" data-bench-banner hidden></div>
+      <div class="pm-presets" role="radiogroup" aria-label="Voorinstelling">
+        ${[...PRESET_ORDER, 'eigen'].map((n) => `<button type="button" role="radio" class="pm-preset" data-preset="${n}" aria-checked="false">
+          <span class="pm-pill" hidden>Aanbevolen</span><b>${n === 'eigen' ? 'Eigen' : presetLabel(n)}</b><span class="pm-fps"></span>
+          <small>${n === 'eigen' ? 'Wat je hieronder zelf instelt' : esc(describePreset(n))}</small></button>`).join('')}
+      </div>
+      <h4 class="pm-subhead">Zelf instellen</h4>
+      ${segmented('quality', 'Kwaliteit<small>Licht, gloed en kleuren</small>', Object.keys(QUALITY_PRESETS).map((q) => [q, q[0].toUpperCase() + q.slice(1)]))}
       ${toggle('shadows', 'Schaduwen')}
+      ${segmented('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
+      ${toggle('autoResolution', 'Automatische resolutie', 'Resolutie en details gaan even omlaag als het beeld hapert')}
       ${segmented('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver']])}
-      <div class="pm-row"><span>Benchmark<small>Test hoe soepel Grunn draait op deze computer (±1,5 min)</small></span><button type="button" class="pm-secondary pm-small" data-action="bench">Benchmark draaien</button></div>
+      ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm<small>F11 of Alt+Enter</small></span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
+      <div class="pm-row"><span>Benchmark<small>Test hoe soepel Grunn draait op deze computer en welke stand past (±2 min)</small></span><button type="button" class="pm-secondary pm-small" data-action="bench">Benchmark draaien</button></div>
       <div class="pm-confirm pm-ok" data-bench-confirm hidden>
         <p data-bench-text></p>
         <div class="pm-confirm-row"><button type="button" class="pm-primary pm-small" data-action="bench-go">Starten</button>
@@ -384,6 +399,12 @@ export function initPauseMenu(w) {
     if (st) return showSubtab(st.dataset.of, st.dataset.subtab);
     const seg = e.target.closest('.pm-seg [data-value]');
     if (seg) { setSetting(seg.parentElement.dataset.setting, seg.dataset.value); syncControls(); return; }
+    const pre = e.target.closest('[data-preset]');
+    if (pre) {
+      if (pre.dataset.preset === 'eigen') { const first = root.querySelector('[data-sub="video"] .pm-subhead + .pm-row [data-value]'); if (first) first.focus(); }
+      else { applyPreset(pre.dataset.preset); syncControls(); }
+      return;
+    }
     if (e.target.closest('[data-story-skip]')) {
       if (skipCurrent()) setOpen(false);
       else renderMissions();
@@ -707,7 +728,7 @@ function runAction(a) {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
     box.querySelector('[data-bench-text]').textContent = prestart
-      ? 'Benchmark starten? Duurt ongeveer anderhalve minuut. Esc stopt.'
+      ? 'Benchmark starten? Duurt ongeveer twee minuten. Esc stopt.'
       : 'Benchmark starten? Je spel wordt eerst opgeslagen. Esc stopt.';
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();
@@ -726,6 +747,13 @@ function runAction(a) {
   } else if (a === 'reset') {
     resetSettings();
     syncControls();
+  } else if (a === 'bench-apply' || a === 'bench-dismiss') {
+    const res = getBenchResult();
+    if (a === 'bench-apply' && res && res.rec) applyPreset(res.rec);
+    dismissBenchBanner();
+    syncControls();
+    const cur = root.querySelector('.pm-preset[aria-checked="true"]');
+    if (cur) cur.focus();
   }
 }
 
@@ -796,14 +824,17 @@ function syncDesktopControls() {
 function syncControls() {
   const st = getSettings();
   const shadowsAllowed = QUALITY_PRESETS[st.quality].shadows;
+  syncPresets(st);
   for (const el of root.querySelectorAll('[data-setting]')) {
     const v = st[el.dataset.setting];
     if (el.classList.contains('pm-seg')) {
-      for (const b of el.querySelectorAll('[data-value]')) {
+      const btns = [...el.querySelectorAll('[data-value]')];
+      for (const b of btns) {
         const on = b.dataset.value === String(v);
         b.setAttribute('aria-checked', String(on));
         b.tabIndex = on ? 0 : -1;
       }
+      if (!btns.some((b) => b.tabIndex === 0)) btns[0].tabIndex = 0;
       continue;
     }
     if (el.type === 'checkbox') el.checked = v;
@@ -817,6 +848,34 @@ function syncControls() {
   const shadowBox = root.querySelector('[data-setting="shadows"]');
   shadowBox.disabled = !shadowsAllowed;
   shadowBox.closest('.pm-row').classList.toggle('pm-disabled', !shadowsAllowed);
+}
+
+// The preset cards and, after a benchmark, its banner with one preset to
+// apply (gfxprofile.js). Only measured numbers are shown.
+function syncPresets(st) {
+  const cur = currentPreset(st) || 'eigen';
+  const res = getBenchResult();
+  for (const b of root.querySelectorAll('.pm-preset')) {
+    const n = b.dataset.preset;
+    b.setAttribute('aria-checked', String(n === cur));
+    b.querySelector('.pm-pill').hidden = !(res && res.rec === n);
+    const fps = res && (n === 'eigen' ? (res.preset ? 0 : res.avg) : res.fps[n]);
+    b.querySelector('.pm-fps').textContent = fps ? `± ${Math.round(fps)} fps` : '';
+  }
+  const ban = root.querySelector('[data-bench-banner]');
+  ban.hidden = !(res && res.banner);
+  if (ban.hidden) return;
+  const r = Math.round;
+  const was = res.preset ? `Op ${presetLabel(res.preset)}` : 'Met je eigen instellingen';
+  const hitch = res.low < 30 && res.heaviest ? `, met haperingen in ‘${esc(res.heaviest.label)}’` : '';
+  const then = res.rec ? ` Op ${presetLabel(res.rec)} wordt dat ongeveer ${r(res.fps[res.rec])} fps.` : ' Dat draait prima.';
+  const changes = res.rec ? describeChanges(res.rec, st) : '';
+  ban.innerHTML = `<span class="pm-bench-badge">${GEAR_SVG}</span><div class="pm-bench-body">
+    <h4>${res.rec ? `Benchmark klaar: kies ${presetLabel(res.rec)}` : 'Benchmark klaar'}</h4>
+    <p>${was} haalde je computer gemiddeld ${r(res.avg)} fps${hitch}.${then}</p>
+    ${changes ? `<p class="pm-bench-what">Dit verandert: ${esc(changes)}</p>` : ''}
+    <div class="pm-confirm-row">${res.rec ? '<button type="button" class="pm-primary pm-small" data-action="bench-apply">Toepassen</button><button type="button" class="pm-secondary pm-small" data-action="bench-dismiss">Niet nu</button>'
+      : '<button type="button" class="pm-secondary pm-small" data-action="bench-dismiss">Sluiten</button>'}</div></div>`;
 }
 
 const card = ({ tag = 'div', attrs = '', num, title, text, status: st, chip = '' }) =>
@@ -991,6 +1050,7 @@ function showTab(name, how) {
 // { prestart: true } only Instellingen and Besturing (start screen).
 export function openPauseMenu(name = 'game', opts = {}) {
   if (opts.prestart) prestart = { onClose: opts.onClose || null };
+  if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   setOpen(true, name, 'direct');
 }
 

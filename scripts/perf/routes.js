@@ -28,6 +28,30 @@ let calls = 0, tris = 0, renders = 0;
 const origRender = r.render.bind(r);
 r.render = function (s, c) { origRender(s, c); calls += r.info.render.calls; tris += r.info.render.triangles; renders++; };
 const frameCount = () => H.frames.length;
+// PERF_DIAG=1: draw calls per frame by owner (first named ancestor), shadow pass apart
+const diag = new Map();
+let inShadow = false;
+const origRBD = r.renderBufferDirect.bind(r);
+if (window.__perfDiag) {
+  const ownerOf = (o) => {
+    let a = o, label = '';
+    while (a && !label) { label = (a.userData && (a.userData.kind || a.userData.type || a.userData.propKind)) || a.name || ''; a = a.parent; }
+    if (label) return label;
+    let top = o; while (top.parent && top.parent !== sc.scene) top = top.parent;
+    const g = o.geometry || {};
+    return 'u:' + (o.isInstancedMesh ? 'inst' : o.isSkinnedMesh ? 'skinned' : o.type) + ' top=' + (top === o ? 'self' : top.name || top.type) +
+      ' ud=' + Object.keys(o.userData || {}).slice(0, 3).join('/') + ' geo=' + (g.type || '') + (g.userData && Object.keys(g.userData).length ? '[' + Object.keys(g.userData).slice(0, 2).join('/') + ']' : '') +
+      ' v' + (g.attributes && g.attributes.position ? (g.attributes.position.count < 100 ? '<100' : g.attributes.position.count < 1000 ? '<1k' : '>1k') : '?');
+  };
+  const smRender = r.shadowMap.render.bind(r.shadowMap);
+  r.shadowMap.render = (...a) => { inShadow = true; try { smRender(...a); } finally { inShadow = false; } };
+  r.renderBufferDirect = function (camera, scene, geometry, material, object, group) {
+    const shadow = inShadow;
+    const k = (shadow ? '[sh] ' : '') + ownerOf(object) + ' ' + (material.type || '');
+    if (H.recording) diag.set(k, (diag.get(k) || 0) + 1);
+    return origRBD(camera, scene, geometry, material, object, group);
+  };
+}
 
 const pathLen = (pts) => { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; };
 const at = (pts, s) => {
@@ -69,6 +93,7 @@ async function run(name, setup, move, teardown) {
     programs: r.info.programs.length, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
     heapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, at: [Math.round((p.inVehicle || p).x), Math.round((p.inVehicle || p).y)],
     pr: r.getPixelRatio(), canvas: [r.domElement.width, r.domElement.height] };
+  if (window.__perfDiag) { out.diag = [...diag.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40).map(([k, n]) => [k, +(n / frames).toFixed(1)]); diag.clear(); }
   console.log('[capture] ' + name);
   await sleep(400);
   if (teardown) await teardown(ctx);
@@ -123,4 +148,5 @@ results.routes.sheet = await run('sheet', async () => { teleport(100, 77); await
 done = true;
 clearInterval(skipper);
 r.render = origRender;
+r.renderBufferDirect = origRBD;
 return JSON.stringify(results);
