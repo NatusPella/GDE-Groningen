@@ -92,7 +92,7 @@ function buildDefs(world) {
   return [
     {
       type: 'deliver',
-      label: "Bommen Berend wil z'n bakkie",
+      label: 'Berend telt de krassen',
       intro: ['Bommen Berend wil z\'n bakkie vóór de koffie terug. Hij staat bij het Martinikerkhof.', 'Rij \'m heel naar het Boterdiep. Berend telt krassen zoals een ander schaapjes.'],
       outro: 'Berend zei zowaar \'dank je\'. Dat is sinds 1672 niet meer gebeurd.',
       timeLimit: 85,
@@ -106,7 +106,7 @@ function buildDefs(world) {
     },
     {
       type: 'rampage',
-      label: 'Chaos op de Grote Markt',
+      label: 'Iets met de Grote Markt',
       intro: ['Sikkom kopt: \'Grote Markt saaier dan een lege mensa\'. Dat laten we niet op ons zitten.', 'Acht man neer in 45 seconden. Voor de clicks, zegt Jelmer.'],
       outro: 'De Grote Markt is weer wakker. D\'Olle Grieze keek ervan op.',
       timeLimit: 45,
@@ -117,7 +117,7 @@ function buildDefs(world) {
     },
     {
       type: 'checkpoint',
-      label: 'KEI-weekrace door Grunn',
+      label: 'Wind tegen, beide kanten op',
       intro: ['KEI-week: eerstejaars op fietsen met polsbandjes denken dat ze Grunn al kennen.', 'Eén rondje door de binnenstad, op de fiets, tegen vier eerstejaars. Alleen het podium telt, en niet stoppen voor gratis tasjes.'],
       outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
       race: 'kei',
@@ -130,7 +130,7 @@ function buildDefs(world) {
     },
     {
       type: 'deliver',
-      label: 'Spoedklus voor Noorderzon',
+      label: 'Heel aankomen is ook een kunst',
       intro: ['Noorderzon mist een auto vol breekbaar decor, en de acteurs staan nog bij de Stadsschouwburg.', 'Eerst de acteurs oppikken aan de Turfsingel, dan door naar het Noorderplantsoen. Elke klap en het decor ligt in scherven.'],
       outro: 'Het decor staat. Het publiek dacht dat de gierende banden bij de show hoorden.',
       timeLimit: 110,
@@ -144,7 +144,7 @@ function buildDefs(world) {
     },
     {
       type: 'checkpoint',
-      label: 'Ringweg-race: eindelijk klaar?',
+      label: 'Ring Zuid, laatste fase',
       intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de stad over de ringweg, tegen vier gekken. Alleen het podium telt.'],
       outro: 'Podium op de ringweg! Hij ligt er nog. Op een paar pionnen na.',
       race: 'ring',
@@ -157,7 +157,7 @@ function buildDefs(world) {
     },
     {
       type: 'checkpoint',
-      label: 'Kroegentocht: Poelestraat plat',
+      label: 'Nog eentje dan',
       intro: ['Kroegentocht! Vier kroegen, één avond, nul excuses. Grunn slaapt toch nooit.', 'Te voet, hè. De hele Poelestraat staat vol dronken studenten, en die lopen je zo omver.'],
       outro: 'Vier kroegen gehaald. Morgen wordt het een eierbalontbijt.',
       timeLimit: 95,
@@ -180,7 +180,7 @@ function buildDefs(world) {
     },
     {
       type: 'fatbike',
-      label: 'Fatbike-terreur: blijf overeind',
+      label: 'Fatbikes tellen niet als fiets',
       intro: ['De Folkingestraat: smal, druk, en vol fatbikes die van twee kanten komen. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop de straat door naar de Vismarkt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.'],
       outro: 'Overeind gebleven tussen de fatbikes. Oma Trijntje is trots.',
       timeLimit: 80,
@@ -192,7 +192,7 @@ function buildDefs(world) {
     },
     {
       type: 'boat',
-      label: 'Rondvaart met valse papieren',
+      label: 'Alles klopt, behalve de papieren',
       intro: ['Aan de kade bij de Spilsluizen ligt een rondvaartboot die \'even van niemand\' is. Vraag maar niet hoe.', 'Eén heel rondje Diepenring, vol toeristen. Rustig varen, vertellen, wijzen. En hou je achterkant in de gaten.'],
       outro: 'Rondje Diepenring voltooid. Niemand vroeg naar je papieren.',
       timeLimit: 90,
@@ -206,7 +206,7 @@ function buildDefs(world) {
     // a list of small objectives run by the stage runner below
     {
       type: 'stages',
-      label: 'Pinnen met de hele automaat',
+      label: 'Even pinnen',
       intro: ['De pinautomaat van gisteren ligt nog achterin een auto in de Herestraat.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan verzilveren bij Pand & Poen.'],
       outro: 'Sjabbe telt vierhonderd euro uit. En hij vertelt over het museum.',
       timeLimit: null,
@@ -221,7 +221,7 @@ function buildDefs(world) {
     },
     {
       type: 'stages',
-      label: 'Duif op verkenning',
+      label: 'Kieken van boven',
       intro: ['Bij het Stationsplein leent duivenmelker Bert je een duif.', 'Vlieg naar het Groninger Museum en zweef boven drie camera\'s en twee bewakers: dan staan ze op de foto.'],
       outro: 'Drie camera\'s, twee bewakers en een zwarte trekker-limo bij de achteringang.',
       timeLimit: 200,
@@ -244,7 +244,7 @@ function buildDefs(world) {
     },
     {
       type: 'stages',
-      label: 'De Museumkraak',
+      label: 'Het museum stond er al zo',
       intro: ['Nacht. Via het Verbindingskanaal naar de achterkant van het Groninger Museum.', 'Eerst de stroomkast, dan de vitrine. En daarna wegwezen, het liefst over het water.'],
       outro: 'De vitrine was leeg. Iemand was ze voor.',
       timeLimit: null,
@@ -300,7 +300,7 @@ function buildDefs(world) {
     // --- Romp story missions (storyarc.js H8, H10) ---------------------------
     {
       type: 'stages',
-      label: 'Vet gekaapt',
+      label: 'Al het vet van Grunn',
       intro: ['De tankwagen van Us Mem Vet rijdt met al het frituurvet van Grunn de stad uit.', 'Schiet of ram zijn banden stuk, kaap hem en breng het vet naar de Oosterpoort.'],
       outro: 'Het vet is terug in Grunn. Jelle sprong over de gracht, de tweeling fietste erachteraan.',
       timeLimit: null,
@@ -327,7 +327,7 @@ function buildDefs(world) {
     },
     {
       type: 'stages',
-      label: "Vlag van d'Olle Grieze",
+      label: "Er hangt iets Fries aan d'Olle Grieze",
       intro: ['Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Heel Grunn kijkt ernaar.', 'Fluit een duif bij de toren en pik de vijf touwen los. Pas op voor de Fryske meeuwen.'],
       outro: 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.',
       timeLimit: 240,
@@ -371,7 +371,7 @@ function buildDefs(world) {
     // --- Staart story missions (storyarc.js H14-H18) ---------------------------
     {
       type: 'stages',
-      label: 'Skûtsje-kraak',
+      label: 'Geleend van de Friezen',
       intro: ['Jelle\'s skûtsje gooit los. Met de Gouden Eierbal aan boord, zegt Klaas.', 'Vaar er met je huurboot achteraan, ga langszij en spring aan boord.'],
       outro: 'De Eierbal was van chocola. Jelle sprong weg, maar hij verklapte zijn plan: een ballon.',
       timeLimit: null,
@@ -408,7 +408,7 @@ function buildDefs(world) {
     },
     {
       type: 'stages',
-      label: 'Traumaduif',
+      label: 'Spoedeisende duif',
       intro: ['Jelle\'s ballon vertrekt met de echte Eierbal. Dokter Dijkstra van het UMCG heeft een traumaheli.', 'Anita vliegt, Tammo hangt aan het touw. Hou hoogte en snelheid van de mand vast.'],
       outro: 'Tammo haalde de Eierbal uit de mand. Jelle landde in een weiland, tussen de koeien.',
       timeLimit: null,
@@ -422,7 +422,7 @@ function buildDefs(world) {
     },
     {
       type: 'stages',
-      label: 'Waar is de Fjord?',
+      label: 'Iedereen heeft een rode auto gezien',
       intro: ['Anita\'s Fjord is gejat. Jelmers chat zag een rode auto bij de Westerhaven.', 'Vraag rond, volg het piepje van de zender en haal hem terug voordat hij op de trein naar Leeuwarden staat.'],
       outro: 'De Fjord is terug. Niemand raakt hem nog aan.',
       timeLimit: null,
@@ -466,7 +466,7 @@ function buildDefs(world) {
     },
     {
       type: 'stages',
-      label: 'Het Bod',
+      label: 'Het bod viel tegen',
       intro: ['Jelle daagt jullie uit voor de Noordelijke Snackprijs op Gronings Ontzet. Winnen jullie, dan houden jullie de Eierbal.', 'Doe de boodschappen voor de echte eierbal: mosterd, verse eieren van de volkstuin en stoetbrood. En niet hard remmen met die eieren.'],
       outro: 'Alles is binnen, de eieren zijn heel. En ze weten wat ze met de Eierbal doen als ze winnen.',
       timeLimit: null,
@@ -482,7 +482,7 @@ function buildDefs(world) {
     },
     {
       type: 'stages',
-      label: 'Finale: Gronings Ontzet',
+      label: 'Ontzet, net als in 1672',
       intro: ['Gronings Ontzet. De Grote Markt vol kramen, de jury en een Fries met een plan.', 'Hou de kraam heel tegen het vuurwerk, en laat de Eierbal niet uit het oog.'],
       outro: 'Jelle proefde een echte eierbal. De Gouden Eierbal gaat terug naar het museum.',
       timeLimit: null,

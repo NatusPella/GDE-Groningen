@@ -9,7 +9,7 @@ import { getAchievementView, MEDALS } from './achievements.js';
 import { getGoal, clearGoal, storyWaiting } from './goal.js';
 import { formatDistance } from './routing.js';
 import { dualHtml } from './subtitles.js';
-import { fillBars, pop, shine } from './motion.js';
+import { fillBars, pop, shine, countTo } from './motion.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
@@ -19,8 +19,16 @@ const ui = { kind: 'alles', near: false, sel: null, open: null, more: new Set() 
 const seen = new Map();
 const bars = new Map();
 
+const nums = new Map();
+
 function animateChanges(scope) {
   fillBars(scope, bars);
+  for (const n of scope.querySelectorAll('[data-num]')) {
+    const to = Number(n.dataset.to);
+    if (nums.has(n.dataset.num)) n.dataset.moValue = String(nums.get(n.dataset.num));
+    nums.set(n.dataset.num, to);
+    countTo(n, to, (v) => Math.round(v).toLocaleString('nl-NL'));
+  }
   for (const c of scope.querySelectorAll('[data-todo]')) {
     const it = byKey.get(c.dataset.todo);
     if (!it) continue;
@@ -97,7 +105,7 @@ function heroHtml(world) {
     `<span class="ov-tile"><img src="${mapIconUrl(it ? it.icon : 'missionIdle', 64)}" alt="">${where ? `<small>${esc(where)}</small>` : ''}</span>` +
     `<div class="ov-hero-txt"><span class="td-kicker">Nu in het verhaal ${pill('nu')}${it && it.dist != null ? `<span class="td-dist">${formatDistance(it.dist)}</span>` : ''}</span>` +
     `<h3>${esc(title)}</h3>${cur && cur.lead ? `<p>${esc(cur.lead)}</p>` : ''}` +
-    `<div class="ov-part"><span>${esc(PARTS[sv.part].title)}</span><span class="td-bar"><i data-bar="ov-part" data-w="${steps.length ? Math.round((done / steps.length) * 100) : 0}"></i></span><span>${done} van ${steps.length} stappen</span></div>` +
+    `<div class="ov-part"><span>${esc(PARTS[sv.part].title)}</span><span class="td-bar"><i data-bar="ov-part" data-w="${steps.length ? Math.round((done / steps.length) * 100) : 0}"></i></span><span><span data-num="ov-part" data-to="${done}">${done}</span> van ${steps.length} stappen</span></div>` +
     `<div class="ov-btns">${it ? `<button type="button" class="pm-primary pm-small" data-todo-goal="${esc(it.key)}">${goal ? 'Terug naar het verhaal' : 'Zet als doel'}</button>` : ''}` +
     `<button type="button" class="pm-secondary pm-small" data-todo-view="verhaal">Hele verhaal</button>` +
     `${sv.canSkip ? `<button type="button" class="pm-secondary pm-small" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div></div></article>`;
@@ -123,7 +131,7 @@ export function renderOverview(el, world, help) {
     (near.length ? near.map((it) => card(it)).join('') : '<p class="pm-note">Niks in de buurt. Kijk bij Te doen.</p>') +
     '</div><div class="ov-col"><h2>Bijna binnen <small>prestaties</small></h2><div class="ov-ach">' +
     (ach.length ? ach.map((a) => `<button type="button" class="ov-a" data-goto="prestaties"><b>${dualHtml(a.title)}</b><small>${esc(a.desc)}</small>` +
-      `<span class="td-bar"><i data-bar="ach-${esc(a.id)}" data-w="${Math.round((a.progress.cur / a.progress.goal) * 100)}"></i></span><span class="ov-a-n">${a.progress.cur} van ${a.progress.goal}${a.progress.unit ? ' ' + esc(a.progress.unit) : ''}</span></button>`).join('')
+      `<span class="td-bar"><i data-bar="ach-${esc(a.id)}" data-w="${Math.round((a.progress.cur / a.progress.goal) * 100)}"></i></span><span class="ov-a-n"><span data-num="ach-${esc(a.id)}" data-to="${a.progress.cur}">${a.progress.cur}</span> van ${a.progress.goal}${a.progress.unit ? ' ' + esc(a.progress.unit) : ''}</span></button>`).join('')
       : '<p class="pm-note">Speel wat rond, dan komen ze vanzelf.</p>') +
     '</div></div></div>' +
     (help.length ? `<div class="ov-help"><span>Hulp</span>${help.map(([a, ic, label]) => `<button type="button" class="pm-secondary pm-small" data-action="${a}">${ic}<span>${esc(label)}</span></button>`).join('')}</div>` : '');
@@ -158,7 +166,7 @@ function storyHtml() {
     const locked = !P.open || !list.some((s) => s.available);
     const head = `<button type="button" class="td-part-head" data-part-toggle="${part}" aria-expanded="${open}">` +
       `<b>${esc(P.title)}</b>${known.length ? `<span class="td-chip">${known.length} ${known.length === 1 ? 'aanwijzing' : 'aanwijzingen'}</span>` : ''}${locked ? pill('slot') : ''}` +
-      `<span class="td-bar"><i data-bar="part-${part}" data-w="${list.length ? Math.round((done / list.length) * 100) : 0}"></i></span><span class="td-count">${done} van ${list.length}</span><span class="td-pm">${open ? '–' : '+'}</span></button>`;
+      `<span class="td-bar"><i data-bar="part-${part}" data-w="${list.length ? Math.round((done / list.length) * 100) : 0}"></i></span><span class="td-count"><span data-num="part-${part}" data-to="${done}">${done}</span> van ${list.length}</span><span class="td-pm">${open ? '–' : '+'}</span></button>`;
     if (!open) return `<section class="td-part">${head}</section>`;
     const first = list.findIndex((s) => !s.done);
     let cut = list.length - 1;
