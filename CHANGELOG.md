@@ -7,6 +7,18 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **De Grote Markt en de Vismarkt lijken nu echt.** De gevelwanden zijn
+  opgedeeld in panden van 5 tot 9 meter, elk met een eigen gevel:
+  lijstgevels, gepleisterde gevels met consoles, trapgevels, klokgevels,
+  winkelpanden van rond 1900 en de wederopbouw aan de noordkant. Ze hebben
+  hoge schuiframen, winkelpuien en markiezen. Nieuw of herbouwd:
+  - het Stadhuis met zijn vier zuilen en fronton op de markt;
+  - het Goudkantoor met drie topgevels;
+  - het Waagstraatcomplex van Natalini;
+  - Het Groot Handelshuis in grijs mozaïek;
+  - De Drie Gezusters, het Market Hotel en Merckt;
+  - de Korenbeurs met Mercurius, Neptunus en Ceres;
+  - het zwarte Calmershuis.
 - **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
   zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
   kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
