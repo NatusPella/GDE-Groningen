@@ -284,6 +284,16 @@ export function buildRoadStructure(r, map) {
         }
       }
     }
+    if (za > RAISED || zb > RAISED) {
+      // a slab just under the raised carriageway: where its ribbon is cut back
+      // against a way alongside (a slip road splitting off) the cracks
+      // between the two ribbons look onto it instead of the ground far below
+      const ext = 0.6, ux = (P[i + 1][0] - P[i][0]), uy = (P[i + 1][1] - P[i][1]), ul = Math.hypot(ux, uy) || 1;
+      const ex = ux / ul * ext, ey = uy / ul * ext;
+      const l0 = edge(i, 1, hs), r0 = edge(i, -1, hs), l1 = edge(i + 1, 1, hs), r1 = edge(i + 1, -1, hs);
+      const fa = Math.max(za, 0) - 0.06, fb = Math.max(zb, 0) - 0.06;
+      B.quad('concrete', [l0[0] - ex, fa, l0[1] - ey], [l1[0] + ex, fb, l1[1] + ey], [r1[0] + ex, fb, r1[1] + ey], [r0[0] - ex, fa, r0[1] - ey]);
+    }
     if (za < -RAISED || zb < -RAISED) {
       // a floor under the sunken carriageway: where two ways' ribbons meet
       // (or stop short at a portal) the ground above is cut away, so a
