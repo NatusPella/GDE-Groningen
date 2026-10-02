@@ -2,10 +2,10 @@
 // subscribe with onSettingsChange() to apply changes live.
 
 const STORAGE_KEY = 'gte-settings';
-const SETTINGS_VERSION = 3;
+const SETTINGS_VERSION = 4;
 
 export const QUALITY_PRESETS = {
-  laag: { pixelRatio: 1, shadows: false, shadowMapSize: 1024 },
+  laag: { pixelRatio: 1, shadows: true, shadowMapSize: 1024 },
   middel: { pixelRatio: 1.5, shadows: true, shadowMapSize: 1024 },
   hoog: { pixelRatio: 2, shadows: true, shadowMapSize: 2048 },
 };
@@ -28,6 +28,10 @@ const DEFAULTS = {
   cinematicMoments: true,
   gore: true,
   drawDistance: 'ver',
+  // render scale (1 = full); autoResolution lowers it and some detail while
+  // frames are slow (gfxprofile.js)
+  resolution: 1,
+  autoResolution: true,
   mouseSensitivity: 1,
   invertY: false,
   autoAim: true,
@@ -46,19 +50,36 @@ function load() {
       if (typeof raw[k] === typeof DEFAULTS[k]) out[k] = raw[k];
     }
     if (!QUALITY_PRESETS[out.quality]) out.quality = DEFAULTS.quality;
+    if (!(out.resolution >= 0.5 && out.resolution <= 1)) out.resolution = DEFAULTS.resolution;
     // v2 made the long view distance the default; older saves stored the
     // previous default without the player ever choosing it
     if ((raw.v || 0) < 2) out.drawDistance = DEFAULTS.drawDistance;
     // v3 split off voices and turned effects down so the music carries;
     // an untouched old 100% effects slider moves to the new default
     if ((raw.v || 0) < 3 && out.sfxVolume === 1) out.sfxVolume = DEFAULTS.sfxVolume;
+    // up to v3 'laag' had no shadows whatever the switch said
+    if ((raw.v || 0) < 4 && out.quality === 'laag') out.shadows = false;
     return out;
   } catch (e) {
     return { ...DEFAULTS };
   }
 }
 
-const settings = load();
+// ?preset=quality:laag,drawDistance:kort (desktop --preset=...): settings for
+// this run only, for perf runs on a throwaway profile
+function urlOverrides(out) {
+  const m = typeof location !== 'undefined' && /[?&]preset=([^&]+)/.exec(location.search);
+  if (!m) return out;
+  for (const pair of decodeURIComponent(m[1]).split(',')) {
+    const [k, v] = pair.split(':');
+    if (!(k in DEFAULTS) || v === undefined) continue;
+    const t = typeof DEFAULTS[k];
+    out[k] = t === 'number' ? Number(v) : t === 'boolean' ? v === 'true' : v;
+  }
+  return out;
+}
+
+const settings = urlOverrides(load());
 const listeners = new Set();
 
 export function getSettings() {
@@ -66,11 +87,28 @@ export function getSettings() {
 }
 
 export function setSetting(key, value) {
+  if (typeof DEFAULTS[key] === 'number' && typeof value === 'string') value = Number(value);
   if (!(key in DEFAULTS) || settings[key] === value) return;
   settings[key] = value;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...settings, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
   applyHudClasses();
   for (const cb of listeners) cb(settings, key);
+}
+
+// Values for a moment (the benchmark tries the presets), not saved; the
+// returned function puts the previous values back.
+export function withTempSettings(values) {
+  const prev = {};
+  const put = (vals) => {
+    for (const [k, v] of Object.entries(vals)) {
+      if (!(k in DEFAULTS) || settings[k] === v) continue;
+      settings[k] = v;
+      for (const cb of listeners) cb(settings, k);
+    }
+  };
+  for (const k of Object.keys(values)) prev[k] = settings[k];
+  put(values);
+  return () => put(prev);
 }
 
 export function resetSettings() {
