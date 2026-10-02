@@ -56,6 +56,7 @@ const MODELS = {
   Korenbeurs: (B, b, ring, edges) => korenbeurs(B, ring, edges),
   'Het Groot Handelshuis': (B, b, ring, edges) => grootHandelshuis(B, b, ring, edges),
   Calmershuis: (B, b, ring, edges) => calmershuis(B, ring, edges),
+  'Kiosk Grote Markt': (B, b, ring) => kiosk(B, ring),
 };
 const NO_FACADE = new Set(['church', 'cathedral', 'industrial', 'shed', 'garage', 'garages', 'houseboat', 'roof', 'kiosk', 'carport', 'service', 'construction']);
 
@@ -680,6 +681,20 @@ function calmershuis(B, ring, srcEdges) {
       if (!long) LM.ebox(B, e, t, eave + 1.2, 0.8, 1.2, 0.05, C.glass, g.GLASS, 0.03);
     }
   }
+}
+
+// --- Kiosk Grote Markt ------------------------------------------------------------
+
+// One storey glass box with a flat overhanging roof (newspapers, toilet).
+function kiosk(B, ring) {
+  const { G: g } = LM;
+  const F = LM.minAreaFrame(ring);
+  const rect = [[F.u0, F.v0], [F.u1, F.v0], [F.u1, F.v1], [F.u0, F.v1]].map(([u, v]) => F.P(u, v));
+  LM.extrude(B, rect, 0, 0.5, 0x6a6e72, g.METAL);
+  LM.walls(B, rect, 0.5, () => 3.0, C.glassLight, g.GLASS);
+  for (const e of LM.edgesOf(rect)) for (const t of LM.slots(e.len, 1.4, 0)) LM.ebox(B, e, t, 0.5, 0.1, 2.5, 0.08, 0x3a3d40, g.METAL, 0);
+  const [x, z] = F.P((F.u0 + F.u1) / 2, (F.v0 + F.v1) / 2);
+  LM.obox(B, x, z, 3.0, F.u1 - F.u0 + 0.8, F.v1 - F.v0 + 0.8, 0.35, F.rot, 0x3a3d40, g.METAL);
 }
 
 // --- entry point -------------------------------------------------------------------
