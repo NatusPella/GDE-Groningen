@@ -17,7 +17,7 @@ import { updateSwimmers3D } from './swimmers3d.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
-import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
+import { getHorecaForRender, buildHorecaMarkerMesh3D, horecaPads3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
@@ -42,10 +42,12 @@ import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
-import { buildingBatcher, roadBatcher } from './staticbatch3d.js';
+import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
+import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
 // ?nobatch: every building drawn on its own (A/B checks of the batching)
 const NO_BATCH = typeof location !== 'undefined' && /[?&]nobatch\b/.test(location.search);
+const NO_WHEEL_INSTANCES = NO_BATCH;
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
@@ -821,7 +823,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), roads: roadBatcher.info() }) };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info() }) };
 }
 
 // seconds between renders behind a menu that covers part / most of the view
@@ -1160,6 +1162,7 @@ function ensureTreeCapacity(n) {
     m.castShadow = m.receiveShadow = true;
     m.count = 0;
     m.matrixAutoUpdate = false;
+    m.name = 'trees';
     scene.add(m);
     treeInstanced.push(m);
   };
@@ -1210,6 +1213,7 @@ function syncBuildings(world, px, py) {
     }
     prefetchedBuildings.delete(b);
     mesh.visible = !hiddenBuildings.has(b);
+    if (!mesh.name) mesh.name = b.landmark ? 'landmark' : 'building';
     buildingMeshes.set(b, mesh);
     scene.add(mesh);
   }
@@ -1361,6 +1365,7 @@ function syncWater(items, cache, y, map, px, py) {
     if (!cache.has(poly)) {
       coldWater.delete(poly);
       const mesh = freezeStatic(buildWaterMesh(poly, y, map));
+      if (!mesh.name) mesh.name = 'water';
       scene.add(mesh);
       cache.set(poly, mesh);
     }
@@ -1400,6 +1405,7 @@ function syncRoads(world, px, py) {
       if (built > 0 && !r._geoRoad && performance.now() > deadline) { roadDetailR = Math.max(24, d); break; }
       coldRoads.delete(r);
       const mesh = freezeStatic(buildRoadGroup(r));
+      if (!mesh.name) mesh.name = 'road';
       scene.add(mesh);
       roadMeshes.set(r, mesh);
       built++;
@@ -1709,6 +1715,10 @@ export function update3D(dt, world) {
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: player.x, py: player.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
       withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
+    if (facadeDetailDist < DRAW_DIST) {
+      facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: player.x, py: player.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
+        withDetail: true, budgetMs: 1 });
+    } else facadeBatcher.clear();
   }
   probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
@@ -1869,8 +1879,9 @@ export function update3D(dt, world) {
     const horecaSpots = getHorecaForRender();
     if (horecaSpots.length) {
       horecaBuilt = true;
+      scene.add(horecaPads3D(horecaSpots));
       for (const h of horecaSpots) {
-        const mesh = buildHorecaMarkerMesh3D();
+        const mesh = buildHorecaMarkerMesh3D(false);
         mesh.position.set(h.x, 0, h.y);
         scene.add(mesh);
         staticProps.push(mesh);
@@ -2302,6 +2313,11 @@ export function update3D(dt, world) {
   limitActorShadows(pedMeshes, player.x, player.y);
   limitActorShadows(vehicleMeshes, player.x, player.y);
   limitActorShadows(wildlifeMeshes, player.x, player.y);
+  if (!NO_WHEEL_INSTANCES) {
+    beginWheels(scene);
+    for (const mesh of vehicleMeshes.values()) addVehicleWheels(mesh);
+    endWheels();
+  }
   updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness, dt);
   probe.mark('3d:lights');
   stepWarmup(world);

@@ -129,12 +129,16 @@ function drawFoodBadge() {
 
 let badgeMaterial = null;
 
-export function buildHorecaMarkerMesh3D() {
+// withPad false: the pads come from horecaPads3D, one draw for all of them
+export function buildHorecaMarkerMesh3D(withPad = true) {
   if (!badgeMaterial) badgeMaterial = new THREE.SpriteMaterial({ map: drawFoodBadge(), transparent: true, depthWrite: false, fog: true });
   const group = new THREE.Group();
-  const pad = new THREE.Mesh(padGeometry, padMaterial);
-  pad.position.y = 0.03;
-  group.add(pad);
+  group.name = 'horeca-marker';
+  if (withPad) {
+    const pad = new THREE.Mesh(padGeometry, padMaterial);
+    pad.position.y = 0.03;
+    group.add(pad);
+  }
   const badge = new THREE.Sprite(badgeMaterial);
   badge.scale.set(0.48, 0.48, 1);
   const phase = Math.random() * Math.PI * 2;
@@ -142,4 +146,14 @@ export function buildHorecaMarkerMesh3D() {
   badge.position.y = 2.3;
   group.add(badge);
   return group;
+}
+
+export function horecaPads3D(list) {
+  const m = new THREE.InstancedMesh(padGeometry, padMaterial, list.length);
+  const t = new THREE.Matrix4();
+  list.forEach((h, i) => m.setMatrixAt(i, t.makeTranslation(h.x, 0.03, h.y)));
+  m.computeBoundingSphere();
+  m.name = 'horeca-pads';
+  m.matrixAutoUpdate = false;
+  return m;
 }

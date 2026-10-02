@@ -239,7 +239,7 @@ function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
 // at a real-world target size instead, so resolution scales with map size
 // and stays meaningful regardless of how big the map is.
 const TARGET_CELL_SIZE_M = 10;
-const TERRAIN_TILE_M = 400;
+const TERRAIN_TILE_M = 800;
 
 export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   const [minx, miny, maxx, maxy] = bounds;
