@@ -1,9 +1,10 @@
 import { getSettings, onSettingsChange } from './settings.js';
 
-// The GTE VI theme song: starts on the first interaction in the title screen
-// (browsers block audio before a user gesture), loops while the title screen
-// is up, plays its last round into the game and then hands over to G-Music,
-// which waits for isThemePlaying() to end.
+// The GTE VI theme song: silent on the title screen (that one sounds like the
+// city, audio.js setMenuAudio), starts with Doorgaan / Nieuw spel, plays once
+// into the game and then hands over to G-Music, which waits for
+// isThemeActive() to end. The benchmark trailer plays it too and rewinds it
+// for the real start (stopTheme).
 
 const SRC = './audio/theme/miles_past_the_city_square.mp3';
 const BASE_VOLUME = 0.55 * 0.85; // same level as G-Music: master 0.55 x music 0.85
@@ -48,10 +49,25 @@ function tryStart() {
   }
 }
 
-// Tries to start without a gesture (allowed in the desktop app); browsers
-// keep waiting for the first click or key.
+// Starts the song from the top: the trailer's soundtrack, and the start of
+// play (Doorgaan / Nieuw spel). Called from a click or key, so browsers allow
+// it; a blocked start retries on the next gesture.
+let wanted = false;
 export function kickTheme() {
+  if (!el || state === 'done' || SILENT_MODE) return;
+  wanted = true;
+  if (state === 'idle') { try { el.currentTime = 0; } catch (e) { /* not loaded yet */ } }
   tryStart();
+}
+export const startTheme = kickTheme;
+
+// Back to silent and rewound: after the benchmark on the title screen.
+export function stopTheme() {
+  if (!el || state === 'done') return;
+  wanted = false;
+  el.pause();
+  try { el.currentTime = 0; } catch (e) { /* ignore */ }
+  state = 'idle';
 }
 
 // The opening montage restarts the song so its cuts land on the beat; after
@@ -60,6 +76,7 @@ export function cueTheme(at = 0) {
   if (!el || state === 'done' || SILENT_MODE) return false;
   try { el.currentTime = at; } catch (e) { return false; }
   el.loop = false;
+  wanted = true;
   tryStart();
   return true;
 }
@@ -78,16 +95,10 @@ export function initTheme() {
   if (SILENT_MODE || el) return;
   el = new Audio(SRC);
   el.preload = 'auto';
-  el.loop = true;
+  el.loop = false;
   el.addEventListener('ended', finish);
   el.addEventListener('error', finish);
-  const onGesture = () => {
-    tryStart();
-    if (state !== 'idle') {
-      window.removeEventListener('pointerdown', onGesture, true);
-      window.removeEventListener('keydown', onGesture, true);
-    }
-  };
+  const onGesture = () => { if (wanted) tryStart(); };
   window.addEventListener('pointerdown', onGesture, true);
   window.addEventListener('keydown', onGesture, true);
   document.addEventListener('visibilitychange', () => {
@@ -99,8 +110,6 @@ export function initTheme() {
   // mute (U) lives in audio.js; poll its persisted flag instead of coupling
   fadeTimer = setInterval(() => {
     if (!el) return;
-    // loop only on the title screen; once the game runs the song ends normally
-    if (el.loop && document.body.classList.contains('game-started')) el.loop = false;
     if (state === 'playing') el.volume = targetVolume();
   }, 250);
 }
