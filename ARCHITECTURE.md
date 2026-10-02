@@ -389,6 +389,28 @@ don't collide, and actors are drawn at their height.
   EIKEA landmark; bounds-matched patches remove the underground garages and bridge piers still in citymap.json and turn covered walkways into canopies), gas stations (`meta.fuel`) and padel sites (`meta.padel`:
   OSM `sport=padel` pitches grouped per site, named after their wijk). It lives outside
   citymap.json so the big file stays untouched.
+- Grote Markt and Vismarkt (`marktgebouwen.js`, notes and sources in
+  `docs/markt-gebouwen.md`): `buildBuildingMesh` asks `marktKind(b)` first.
+  - `'model'`: an own landmark-style model by name (Korenbeurs, Het Groot
+    Handelshuis, Calmershuis), drawn with `LANDMARK_MATERIALS` and the
+    `LM` helpers that landmarks3d.js exports.
+  - `'facade'`: ordinary buildings with an open edge within 32 m of one of
+    the `SQUARES` polygons, or with a mapextras `markt` key (a
+    per-building override such as `drieGezusters36`). They get the
+    historic-centre treatment: each street edge is split into seeded plots,
+    and each plot has its own gable kind, colour, eave (0.3-1.9 m above
+    the b.h body), windows, shopfront and roof volume on the body's flat
+    top. The `NATALINI` and `POSTWAR` zones pick the Waagstraat complex
+    and the postwar north wall mixes.
+  - Geometry is a shell and a facade-detail mesh: the detail is hidden past
+    the 'laag' detail radius and left out of unmerged batches. Both use
+    `MARKT_FACADE_MATERIALS` (the landmark plain/brick/metal/tile
+    materials and the interior glass, panes with `paneUV`), so the cells
+    batch to a few draw calls.
+  - Collision still uses the footprint; everything stays inside it below
+    head height.
+  - `scripts/markt_audit.mjs` counts the area's triangles and batched draw
+    calls.
 - The follow camera orbits at `ORBIT_RADIUS` and keeps `CAM_CLEARANCE` from
   nearby buildings, which must stay larger than the 0.5 m near plane.
 
