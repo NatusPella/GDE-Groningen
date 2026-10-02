@@ -6,7 +6,7 @@ import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, storySpeakerName } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
@@ -538,15 +538,33 @@ function buildDefs(world) {
         },
         { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, achter die trekker aan!' },
         {
-          kind: 'chase', label: 'Haal de trekker-limo van Jelle in', stars: 1, say: 'Achter die trekker aan! Ram hem tot hij stilstaat. Niet schieten, er is kermis.',
+          // D-definitief H18: from the corner of the Grote Markt up the Oude Boteringestraat,
+          // over the Boteringebrug, along the Spilsluizen and back down the Oude Ebbingestraat
+          // into the fireworks; the torenwachter reports every street, then Tammo whistles
+          kind: 'chase', label: 'Haal de trekker-limo van Jelle in', stars: 1, say: 'Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.',
           vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' },
-          name: 'Trekker-limo van Jelle', lead: 50, hits: 90, flee: [-1900, -900], cruise: 16, escape: 400, time: 220,
+          name: 'Trekker-limo van Jelle', from: [19, 97], lead: 6, hits: 90, flee: [-1900, -900], cruise: 15, escape: 400, time: 220,
+          meter: 'trekker',
+          route: [
+            { at: [-60, -40], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.']] } },
+            { at: [-140, -188], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Boteringebrug. Over het water, de bocht te ruim. Ik meld alleen.']] } },
+            { at: [28, -262], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Spilsluizen. Hij rijdt een rondje om de toren. Ik meld alleen.']] } },
+            { at: [70, -150], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Ebbingestraat. Terug naar de markt, recht onder het vuurwerk door.']] } },
+            { at: [112, -29] },
+          ],
+          // halfway on the meter, or back at the market with you close: the pigeons
+          swarm: {
+            stall: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, near: 170,
+            lines: [
+              ['T', 'Kom op, jongens. Eén keer luisteren.'],
+              ['torenwachter', 'Duiven. Boven het vuurwerk. Allemaal tegelijk. Ik meld alleen.'],
+              ['jelle', 'Wat is dit?! Ik sjoch neat!'],
+              ['A', 'Duiven luisteren naar niemand. Behalve naar hem.'],
+            ],
+          },
           half: 'Tammo fluit. Een zwerm duiven valt over het vuurwerk heen op de voorruit van de trekker!',
           stopped: 'De trekker-limo staat stil, vol duiven. Jelle stapt uit, met de Eierbal in zijn armen.',
           lost: 'Jelle is weg met de Eierbal', gone: 'Jelle is foetsie, met de Eierbal', burned: 'de trekker staat in de fik. De Eierbal smelt bijna',
-          radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [
-            ['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.'],
-          ] },
         },
         {
           kind: 'scene', label: 'Voor mem', kicker: 'Gronings Ontzet', solo: true,
@@ -1954,7 +1972,10 @@ function raceCarProblem() {
 // the stage is done, `paid` = the toast), hold `ticks` (three progress toasts) and
 // `fireworks` { every: [min, max], hit, cost, hitText } (bangs that knock you down and
 // cost hold time); chase `hero` (the fleeing car is Anita's own Fjord), `clock`, `meter`,
-// `half`, `lost`, `gone`, `burned`; def `eggs` { from, failAt, fail }: from stage `from`
+// `half`, `lost`, `gone`, `burned`, `from` [x, y] (spawn on that road instead of the start's),
+// `route` [{ at, radio, say }] (drives point to point, each one's radio report on reaching it,
+// then `flee`) and `swarm` { stall, near, lines } (H18: at half the meter, or after the route
+// with you within `near` m, the pigeons come down on it: missionstory.js playPigeonSwarm); def `eggs` { from, failAt, fail }: from stage `from`
 // on, hard braking and knocks break the eggs.
 // Pigeon options: spotTime, gulls: [min, max] seconds between diving gulls,
 // flag: Jelle's banner (storyprops3d.js) whose ropes are the targets; a
@@ -2056,9 +2077,10 @@ function bankNear(map, x, y) {
 // The fleeing vehicle of a chase stage: on the start road, `lead` metres on
 // from the mission start, pointing away from the player where the road allows.
 function spawnChaseVehicle(world, def, st) {
-  const road = def.start.road;
+  const base = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : def.start;
+  const road = base.road;
   if (!road) return null;
-  const at = pointAlongRoad(road, def.start, st.lead || 40);
+  const at = pointAlongRoad(road, base, st.lead || 40);
   const p = world.player;
   let v = null;
   for (const pick of [0.1, 0.9]) {
@@ -2077,10 +2099,38 @@ function spawnChaseVehicle(world, def, st) {
   v.missionCar = true;
   v.chaseTarget = true;
   v.label = st.name || '';
-  const goal = (st.toTrain && fjordLoadPoint()) || { x: st.flee[0], y: st.flee[1] };
+  const first = st.route && st.route[0];
+  const goal = (st.toTrain && fjordLoadPoint()) || (first ? { x: first.at[0], y: first.at[1] } : { x: st.flee[0], y: st.flee[1] });
   v.aiOpts = { goal: { x: goal.x, y: goal.y }, chase: true, cruise: st.cruise || 15 };
   world.vehicles.push(v);
   return v;
+}
+
+// A chase `route` ({ at, radio }): the fleeing vehicle drives from point to point;
+// reaching one puts its radio report on air, after the last it heads for `flee`.
+function updateChaseRoute(world, st, S, t) {
+  const leg = S.leg || 0;
+  const wp = st.route[leg];
+  if (!wp || dist(t.x, t.y, wp.at[0], wp.at[1]) > (wp.r || 22)) return;
+  if (wp.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...wp.radio });
+  if (wp.say) world.addMessage(wp.say, 3);
+  S.leg = leg + 1;
+  const next = st.route[S.leg];
+  if (!next) S.routeDone = true;
+  t.aiOpts = { ...t.aiOpts, goal: next ? { x: next.at[0], y: next.at[1] } : { x: st.flee[0], y: st.flee[1] } };
+  t.planAt = 0;
+}
+
+// H18: Tammo whistles and the pigeons come down over the fireworks onto the
+// fleeing trekker (missionstory.js playPigeonSwarm); it stops when the scene ends.
+function startSwarm(world, def, st, S, t) {
+  S.swarm = 'playing';
+  const stall = resolveTarget(world, st.swarm.stall, { x: t.x, y: t.y });
+  const done = () => { t.speed = 0; S.swarm = 'done'; };
+  if (isCinematicActive() || !playPigeonSwarm(world, { limo: t, stall, lines: st.swarm.lines, onDone: done })) {
+    world.addMessage(st.half, 3.5);
+    done();
+  }
 }
 
 // Flat tyres: the chased vehicle rolls to a stop and becomes the mission
@@ -2604,13 +2654,16 @@ function updateStages(dt, world, def) {
       break;
     case 'chase': {
       const t = S.target;
+      if (S.swarm) { if (S.swarm === 'done') stopChaseVehicle(world, def, st); break; }
       if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
+      if (st.route) updateChaseRoute(world, st, S, t);
+      const d = dist(p.x, p.y, t.x, t.y);
+      if (st.swarm && (S.hp0 - t.health >= st.hits / 2 || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
       if (st.toTrain && chaseReachedTrain(world, def, st, S, t, dt)) break;
-      const d = dist(p.x, p.y, t.x, t.y);
       if (d > (st.escape || 380) || S.t > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
-      if (S.hp0 - t.health >= st.hits / 2 && !S.half) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
+      if (S.hp0 - t.health >= st.hits / 2 && !S.half && !st.swarm) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
       break;
     }
     case 'boatchase':

@@ -3,7 +3,8 @@ import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, standBehindPose,
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
-import { spawnFxPuff } from './fx3d.js';
+import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
+import { makeBirds, updateBirds } from './intromontage.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
@@ -1773,6 +1774,114 @@ function playLimoReveal(w, done) {
       return pose(P(perch.x, perch.y, perch.z + bob), look, t > DRIVE + 1 ? 30 : 38);
     },
     onDone: () => done(),
+  });
+}
+
+// --- H18: the pigeons over the Ontzet fireworks -----------------------------------
+
+const FW_TINTS = [[1, 0.35, 0.3], [1, 0.85, 0.3], [0.4, 0.8, 1], [0.6, 1, 0.5], [1, 0.5, 0.9]];
+
+function fireworkBurst(w, x, y, z) {
+  const [r0, g0, b0] = FW_TINTS[Math.floor(Math.random() * FW_TINTS.length)];
+  for (let k = 0; k < 18; k++) {
+    const a = (k / 18) * Math.PI * 2, up = (Math.random() - 0.3) * 6;
+    spawnFxPuff(x, z, y, Math.cos(a) * 7, up, Math.sin(a) * 7, 0.9, 0.35, 1.2, r0, g0, b0, 0.95, 1.8, -0.4);
+    spawnFxSpark(x, z, y, Math.cos(a) * 10, up + 2, Math.sin(a) * 10, 0.8);
+  }
+  (w.audioEvents || (w.audioEvents = [])).push({ kind: 'weapon', sub: 'burst', x, y });
+}
+
+// Tammo whistles at the stall, the pigeons lift off d'Olle Grieze, fly through
+// the Ontzet fireworks over the Grote Markt and land on the trekker-limo's
+// windscreen (D-definitief H18). limo: the fleeing vehicle; stall: { x, y }.
+export function playPigeonSwarm(w, { limo, stall, lines = [], kicker = '', onDone = null } = {}) {
+  if (run || !limo || !stall) return false;
+  const lm = (w.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren');
+  const tower = lm ? { x: lm.x, y: lm.y } : { x: stall.x - 40, y: stall.y - 40 };
+  // a ledge on the stall side of the tower, not inside it
+  const tw = Math.atan2(stall.y - tower.y, stall.x - tower.x);
+  const perch = { x: tower.x + Math.cos(tw) * 7, y: tower.y + Math.sin(tw) * 7 };
+  const toLimo = Math.atan2(limo.y - stall.y, limo.x - stall.x);
+  const face = chooseFacing(w, stall.x, stall.y, Math.atan2(tower.y - stall.y, tower.x - stall.x));
+  const r = buildRun(w, { anchor: stall, facing: face, noPair: true });
+  if (!r) return false;
+  r.tammo.visible = true;
+  standActor(r.tammo, stall.x, stall.y, face);
+  const flock = makeBirds(r.group, perch.x, perch.y, 3, 80);
+  const tl = timeline(lines, null, 0.6);
+  const L = tl.lines;
+  // the flight: off the tower top, a dip through the bursts over the square, onto the glass
+  const fwd = { x: Math.cos(limo.angle), y: Math.sin(limo.angle) };
+  const glass = { x: limo.x + fwd.x * 1.4, y: limo.y + fwd.y * 1.4 };
+  const over = { x: (tower.x + stall.x) / 2, y: (tower.y + stall.y) / 2 };
+  const leave = L[0] ? L[0].at + L[0].dur * 0.6 : 1.5;
+  const land = L[2] ? L[2].at - 0.2 : leave + 4;
+  const flightAt = (u) => {
+    // two legs: the ledge (55 m) -> over the square (28 m) -> the windscreen (1.6 m)
+    if (u < 0.5) {
+      const k = smooth(u / 0.5);
+      return P(lerp(perch.x, over.x, k), lerp(perch.y, over.y, k), lerp(55, 28, k));
+    }
+    const k = (u - 0.5) / 0.5, e = k * k * (3 - 2 * k);
+    return P(lerp(over.x, glass.x, e), lerp(over.y, glass.y, e), lerp(28, 1.6, e * e));
+  };
+  const offs = flock.list.map(() => ({ a: Math.random() * Math.PI * 2, d: Math.sqrt(Math.random()), z: Math.random() - 0.5, ph: Math.random() * 6 }));
+  let nextBurst = 0.4, whistled = false;
+  return runScene(r, tl, {
+    id: 'mission-swarm', kicker: kicker || 'Gronings Ontzet', title: 'Boven het vuurwerk', cardFor: 2.2,
+    update: (t, dt) => {
+      if (!whistled && t > 0.25) { whistled = true; (w.audioEvents || (w.audioEvents = [])).push({ kind: 'whistle', x: stall.x, y: stall.y }); }
+      // the fireworks go up over the square until the birds are through
+      if (t < land && (nextBurst -= dt) <= 0) {
+        nextBurst = 0.28 + Math.random() * 0.3;
+        const a = Math.random() * Math.PI * 2, d = Math.random() * 22;
+        fireworkBurst(w, over.x + Math.cos(a) * d, over.y + Math.sin(a) * d, 22 + Math.random() * 14);
+      }
+      const u = clamp01((t - leave) / Math.max(0.5, land - leave));
+      const c = flightAt(u);
+      const ahead = flightAt(Math.min(1, u + 0.02));
+      const h = Math.atan2(ahead.y - c.y, ahead.x - c.x);
+      // a loose cloud in the air, a tight carpet on the bonnet and the glass
+      const spread = t < leave ? 2.5 : u < 0.97 ? 5 - u * 2.5 : 1.3;
+      flock.list.forEach((p, i) => {
+        const o = offs[i];
+        const sx = Math.cos(o.a + t * 0.6) * o.d * spread, sy = Math.sin(o.a + t * 0.6) * o.d * spread;
+        p.x = c.x + sx; p.y = c.y + sy;
+        p.z = Math.max(1.2, c.z + o.z * spread * (u > 0.97 ? 0.3 : 1) + Math.sin(t * 3 + o.ph) * 0.2);
+        if (t < leave) p.z = 55 + o.z;
+        p.h = u > 0.97 ? o.a : h;
+        p.vx = p.vy = p.vz = 0; p.air = 0; p.delay = 0; p.fly = t >= leave - 0.3;
+      });
+      updateBirds(flock, dt, t);
+    },
+    poses: (t) => ({ T: t < leave + 0.5 ? 'wave' : 'point' }),
+    camera: (t, cur) => {
+      const who = cur ? cur.who : null;
+      if (t < leave + 0.4 || who === 'T') {
+        // low past Tammo at the stall, d'Olle Grieze and the bursts behind him
+        const back = { x: stall.x - Math.cos(face) * 4.5 + Math.cos(face + 1.4) * 1.2, y: stall.y - Math.sin(face) * 4.5 + Math.sin(face + 1.4) * 1.2 };
+        return pose(camClear(w, P(back.x, back.y, 1.3)), P(tower.x, tower.y, 30), 52);
+      }
+      const u = clamp01((t - leave) / Math.max(0.5, land - leave));
+      if (t < land + 0.3) {
+        // alongside the flock through the fireworks
+        const c = flightAt(u), n = flightAt(Math.min(1, u + 0.06));
+        const h = Math.atan2(n.y - c.y, n.x - c.x);
+        const side = { x: -Math.sin(h) * 9, y: Math.cos(h) * 9 };
+        return pose(camClear(w, P(c.x - Math.cos(h) * 7 + side.x, c.y - Math.sin(h) * 7 + side.y, c.z + 3)), P(c.x, c.y, c.z), 50);
+      }
+      if (who === 'A') {
+        // from behind Anita's car: a trekker-limo covered in pigeons
+        const pv = w.player.inVehicle || w.player;
+        return pose(camClear(w, P(pv.x - Math.cos(toLimo) * 2, pv.y - Math.sin(toLimo) * 2, 2.4)), P(limo.x, limo.y, 1.2), 46);
+      }
+      // the windscreen, from the front: nothing but pigeons
+      return pose(camClear(w, P(limo.x + fwd.x * 5.5 + fwd.y * 1.5, limo.y + fwd.y * 5.5 - fwd.x * 1.5, 1.6)), P(glass.x, glass.y, 1.4), 40);
+    },
+    onDone: (skipped) => {
+      flock.body.dispose(); flock.wings.dispose();
+      if (onDone) onDone(skipped);
+    },
   });
 }
 
