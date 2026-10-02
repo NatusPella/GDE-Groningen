@@ -93,9 +93,11 @@ function buildDefs(world) {
   const ring = (i) => ({ x: RING_ROUTE[i][0], y: RING_ROUTE[i][1], z: map.spawnZ ? map.spawnZ(RING_ROUTE[i][0], RING_ROUTE[i][1]) : 0, road: null });
   const kei = (i) => ({ x: KEI_ROUTE[i][0], y: KEI_ROUTE[i][1], road: null });
   const berth = rondvaartBerth(map);
-  // H12: the Oude Ebbingestraat, from the Ebbingebrug down to the Grote Markt
-  const fatStart = walk(30, -255), fatEnd = walk(118, -12);
-  const lanePath = findWalkPath(map, fatStart.x, fatStart.y, fatEnd.x, fatEnd.y);
+  // H12: up the Oude Ebbingestraat from the Grote Markt to the Ebbingebrug, then
+  // along the water (Spilsluizen, Lopendediep) to Oma Trijntje at the Noorderhaven
+  const fatStart = walk(118, -12), fatBridge = walk(30, -258), fatEnd = walk(-286, -111);
+  const laneLegs = [findWalkPath(map, fatStart.x, fatStart.y, fatBridge.x, fatBridge.y), findWalkPath(map, fatBridge.x, fatBridge.y, fatEnd.x, fatEnd.y)];
+  const lanePts = laneLegs.every(Boolean) ? [...laneLegs[0].pts, ...laneLegs[1].pts.slice(1)] : [[fatStart.x, fatStart.y], [fatBridge.x, fatBridge.y], [fatEnd.x, fatEnd.y]];
   return [
     {
       type: 'deliver',
@@ -190,12 +192,14 @@ function buildDefs(world) {
     {
       type: 'fatbike',
       label: 'Fatbikes tellen niet als fiets',
-      intro: ['De Oude Ebbingestraat: smal, druk, en vol fatbikes die van twee kanten komen, over de stoep. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop de straat door naar Oma Trijntje, bij de Grote Markt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.'],
+      intro: ['De Oude Ebbingestraat: smal, druk, en vol fatbikes die van twee kanten komen, over de stoep. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop de straat uit, over de Ebbingebrug en langs het water naar Oma Trijntje aan de Noorderhaven. Geschept worden doet pijn, maar zolang je blijft ademen telt het.'],
       outro: 'Overeind gebleven tussen de fatbikes. Oma Trijntje is trots.',
-      timeLimit: 80,
+      timeLimit: 140,
       reward: 500,
       onFoot: true,
-      lane: lanePath ? lanePath.pts : [[fatStart.x, fatStart.y], [fatEnd.x, fatEnd.y]],
+      lane: lanePts,
+      // passed on the way: a toast, once
+      notes: [{ ...fatBridge, text: 'De Ebbingebrug. Nu langs het water, naar de Noorderhaven. Daar rijden ze nog harder.' }],
       start: fatStart,
       dest: fatEnd,
     },
@@ -1350,7 +1354,9 @@ function laneProject(g, x, y) {
 function spawnLaneBike(world, def, dir, s0 = null) {
   const g = laneGeom(def);
   const fat = Math.random() < LANE_FAT_SHARE;
-  const s = s0 ?? (dir > 0 ? 0 : g.len);
+  // a long lane (H12) feeds bikes in around the player instead of only at its ends
+  const pl = s0 == null && g.len > 220 ? laneProject(g, world.player.x, world.player.y).s : null;
+  const s = s0 ?? (pl != null ? clamp(pl + dir * -(45 + Math.random() * 30), 0, g.len) : dir > 0 ? 0 : g.len);
   const q = laneAt(g, s);
   // never out of thin air on top of the player
   if (dist(q.x, q.y, world.player.x, world.player.y) < 12) return;
@@ -1378,11 +1384,12 @@ function spawnLaneBike(world, def, dir, s0 = null) {
 function startLane(world, def) {
   const g = laneGeom(def);
   chain.fatbikeHits = 0;
+  chain.notesSaid = null;
   chain.hitGraceUntil = world.time + 2.5;
   chain.laneT = 0.4;
   chain.laneDir = 1;
   const p = world.player;
-  for (let s = 10, dir = -1; s < g.len; s += 11 + Math.random() * 6, dir = -dir) {
+  for (let s = 10, dir = -1; s < Math.min(g.len, 120); s += 11 + Math.random() * 6, dir = -dir) {
     const q = laneAt(g, s);
     if (dist(q.x, q.y, p.x, p.y) > 12) spawnLaneBike(world, def, dir, s);
   }
@@ -1419,7 +1426,7 @@ function updateLaneBikes(dt, world, def) {
     b.lat += dl;
     b.speed = Math.min(b.speed + dt * 1.5, v.model.fat ? 8.5 : 6.2);
     b.s += b.dir * b.speed * dt;
-    if (b.s < -3 || b.s > g.len + 3) {
+    if (b.s < -3 || b.s > g.len + 3 || (g.len > 220 && Math.abs(b.s - pl.s) > 110)) {
       const i = world.vehicles.indexOf(v);
       if (i >= 0) world.vehicles.splice(i, 1);
       chain.bikes.splice(k, 1);
@@ -1867,6 +1874,12 @@ export function updateMissions(dt, world) {
   } else if (def.type === 'fatbike') {
     updateLaneBikes(dt, world, def);
     checkLaneHits(world);
+    for (const n of def.notes || []) {
+      if (chain.notesSaid && chain.notesSaid.has(n)) continue;
+      if (dist(p.x, p.y, n.x, n.y) > 14) continue;
+      (chain.notesSaid || (chain.notesSaid = new Set())).add(n);
+      world.addMessage(n.text, 4, { kind: 'missie' });
+    }
     if (dist(p.x, p.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS && !isKnockedDown(p, world)) {
       succeed(world, def);
     }

@@ -226,7 +226,7 @@ const STORY = [
     fail: [['A', 'Drie kroegen is ook een tocht.'], ['T', 'Een tochtje. Morgen de rest.']],
   },
   {
-    // 6: H12 Fatbikes tellen niet als fiets (Oude Ebbingestraat)
+    // 6: H12 Fatbikes tellen niet als fiets (Oude Ebbingestraat, Noorderhaven)
     npc: 'trijntje', outroPose: 'hips', ask: 0,
     intro: [
       ['N', 'Loop jij daar heelhuids overheen, jong, dan vertel ik je iets over die bal.', { card: 'trijntje' }],

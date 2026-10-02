@@ -39,7 +39,7 @@ export const MISSION_GOALS = [
   { name: 'Heel aankomen is ook een kunst', gold: 105, silver: 125, wanted: 1, extra: ['Decor in één stuk', 'Bezorg het Noorderzon-decor zonder één harde klap'] },
   { name: 'Ring Zuid, laatste fase', gold: 150, silver: 190, wanted: 5, byPlace: true, extra: ['Netjes ingehaald', 'Win de ringweg-race zonder een rivaal te raken'] },
   { name: 'Nog eentje dan', gold: 95, silver: 120, wanted: 0, extra: ['Laatste ronde', 'Haal alle vier de kroegen met nog een volle minuut op de klok'] },
-  { name: 'Fatbikes tellen niet als fiets', gold: 48, silver: 66, wanted: 0, extra: ['Geen bandafdruk', 'Kom het Zuiderpark door zonder één keer geschept te worden'] },
+  { name: 'Fatbikes tellen niet als fiets', gold: 95, silver: 120, wanted: 0, extra: ['Geen bandafdruk', 'Kom van de Grote Markt tot de Noorderhaven zonder één keer geschept te worden'] },
   { name: 'Alles klopt, behalve de papieren', gold: 510, silver: 610, wanted: 0, happy: [80, 50], extra: ['Glad water', 'Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe'] },
 ];
 export const GOLD_DAMAGE = 25;
