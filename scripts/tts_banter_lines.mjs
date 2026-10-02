@@ -7,19 +7,16 @@ import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { BANTER, REACTIONS, SPEAKERS } from '../game/js/banterlines.js';
+import { DUO, styleOf } from './tts_cast.mjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-// same Gemini voices and character tags as the bijbaantje duo lines (tts_sidejobs_lines.mjs)
-const CAST = {
-  Tammo: { voice: 'Algenib', who: 'Stadjer, droog en sarcastisch' },
-  Anita: { voice: 'Callirrhoe', who: 'Groningse vrouw, lacherig en ad rem' },
-};
 const out = [];
-const add = (base, n, [s, text, tag]) => {
+const add = (base, n, [s, text, tag = 'casual, conversational']) => {
   const speaker = SPEAKERS[s];
   if (!speaker) throw new Error(`${base}: unknown speaker ${s}`);
   const hash = crypto.createHash('sha1').update(speaker + '|' + text).digest('hex').slice(0, 6);
-  out.push({ file: `${base}_${n}_${s.toLowerCase()}_${hash}.mp3`, speaker, text, tag: tag || 'casual, conversational', ...CAST[speaker] });
+  const c = DUO[speaker];
+  out.push({ file: `${base}_${n}_${s.toLowerCase()}_${hash}.mp3`, speaker, text, tag, voice: c.voice, who: c.who, style: styleOf(c.who, tag, c.accent) });
 };
 const ids = new Set();
 for (const ex of BANTER) {
