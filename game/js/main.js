@@ -19,7 +19,7 @@ import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, updateShops, tryShopInteract } from './shops.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
-import { initAudio, updateAudio } from './audio.js';
+import { initAudio, updateAudio, setMenuAudio } from './audio.js';
 import { updateBanter } from './banter.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
@@ -84,6 +84,7 @@ function waitForStart(world) {
   };
   const tick = (dt) => {
     world.time += dt;
+    updateAudio(dt, world);
     updateTrafficLights(dt, world);
     for (const v of world.vehicles) {
       if (v.driver === 'player' || v.isPolice || v.cineTemp) continue;
@@ -225,10 +226,13 @@ async function boot() {
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   await finishLoading();
+  // the title screen already sounds like the city (quieter, no music)
+  setMenuAudio(true);
+  initAudio(world);
   await waitForStart(world);
   document.body.classList.add('game-started');
   input.tryLock();
-  initAudio(world);
+  setMenuAudio(false);
 
   let last = performance.now();
   let trafficTimer = 0;
