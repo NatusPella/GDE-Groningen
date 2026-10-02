@@ -1,32 +1,24 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// Static batching for city buildings: the meshes of every building in a
-// 48 m cell are merged into one mesh per material, which turns a few
-// hundred draw calls in a street into a few dozen. Only buildings well
-// inside the detail radius are merged (the far LOD takes over at its edge,
-// so a merged building must never outlive its own detail mesh); their own
-// meshes stay in the scene, hidden, for the camera's ray tests. A cell is
-// merged a few pieces per frame within a time budget and swapped in at once.
-// Building geometry already holds world coordinates (meshes sit at the origin).
+// Static batching for city buildings and roads: the meshes of every
+// building (road) in a 48 m cell are merged into one mesh per material, which
+// turns a few hundred draw calls in a street into a few dozen. Only items
+// well inside the detail radius are merged (the far LOD takes over at its
+// edge, so a merged building must never outlive its own detail mesh); their
+// own meshes stay in the scene, hidden, for the camera's ray tests. A cell
+// is merged a few pieces per frame within a time budget and swapped in at
+// once. Their geometry already holds world coordinates (meshes sit at the
+// origin; small child offsets are baked in).
 
 const CELL = 48;
 const MARGIN = 15;
 const MIN_MEMBERS = 3;
 
-const cells = new Map();
-let job = null;
-let frame = 0;
-let root = null;
-const stats = { cells: 0, merged: 0, meshes: 0, builds: 0, dropped: 0 };
-
 const ids = new WeakMap();
 let nextId = 1;
 const idOf = (b) => { let i = ids.get(b); if (!i) ids.set(b, i = nextId++); return i; };
-const centreOf = (b) => [(b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2];
-
-function eligible(b, mesh) {
-  return !b.landmark && mesh.parent && mesh.visible && mesh.position.y === 0 && !mesh.userData.noBatch;
-}
+const FAR = [1e9, 1e9];
+const centreOf = (b) => (b.bounds ? [(b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2] : FAR);
 
 // the child meshes of a building that go into its cell's batch
 function partsOf(mesh, withDetail) {
@@ -50,7 +42,7 @@ function attrSig(g) {
   }).join(',');
 }
 
-function unmerge(c) {
+function unmerge(B, c) {
   if (!c.group) return;
   for (const m of c.members) for (const p of m.parts) p.visible = true;
   c.group.removeFromParent();
@@ -58,12 +50,12 @@ function unmerge(c) {
   c.group = null;
   c.members = [];
   c.sig = '';
-  stats.merged--;
+  B.stats.merged--;
 }
 
 // --- merging --------------------------------------------------------------
 
-function startJob(c, list, withDetail) {
+function startJob(B, c, list, withDetail) {
   const pieces = [];
   for (const m of list) {
     for (const p of m.parts) {
@@ -76,14 +68,14 @@ function startJob(c, list, withDetail) {
       }
     }
   }
-  job = { c, list, withDetail, pieces, i: 0, buckets: new Map() };
+  B.job = { c, list, withDetail, pieces, i: 0, buckets: new Map() };
 }
 
 const _v = new THREE.Vector3();
 const _n = new THREE.Matrix3();
 let remap = new Int32Array(1024);
 
-function addPiece(pc) {
+function addPiece(job, pc) {
   const { g, mat, part } = pc;
   const key = `${mat.uuid}|${part.castShadow ? 1 : 0}|${attrSig(g)}`;
   let bk = job.buckets.get(key);
@@ -142,9 +134,10 @@ function addPiece(pc) {
 
 const IDENTITY = new THREE.Matrix4();
 
-function finishJob(scene) {
+function finishJob(B) {
+  const job = B.job;
   const group = new THREE.Group();
-  group.name = 'building-batch';
+  group.name = B.name;
   for (const bk of job.buckets.values()) {
     if (!bk.idx || !bk.chunks.length) continue;
     const geo = new THREE.BufferGeometry();
@@ -170,97 +163,115 @@ function finishJob(scene) {
     mesh.castShadow = bk.cast;
     mesh.receiveShadow = true;
     mesh.matrixAutoUpdate = false;
-    mesh.userData.buildingBatch = true;
+    mesh.userData.staticBatch = true;
     group.add(mesh);
   }
   group.matrixAutoUpdate = false;
   const c = job.c;
-  unmerge(c);
+  unmerge(B, c);
   c.group = group;
   c.members = job.list;
   c.sig = job.sig;
   c.withDetail = job.withDetail;
   for (const m of c.members) for (const p of m.parts) p.visible = false;
-  root.add(group);
-  stats.merged++;
-  stats.builds++;
-  job = null;
+  B.root.add(group);
+  B.stats.merged++;
+  B.stats.builds++;
+  B.job = null;
 }
 
 // --- per frame -------------------------------------------------------------
 
-// ctx: { scene, meshes (Map building -> group), hidden (Set), px, py,
-// detailR, drawDist, withDetail, budgetMs }
-export function updateBuildingBatches(ctx) {
-  if (!root) {
-    root = new THREE.Group();
-    root.name = 'building-batches';
-    root.matrixAutoUpdate = false;
-    ctx.scene.add(root);
-  }
-  frame++;
-  const { meshes, hidden, px, py } = ctx;
-  const dist = (b) => { const [x, y] = centreOf(b); return Math.hypot(x - px, y - py); };
-  // merged cells must never hold a building that left its detail radius,
-  // got hidden or rebuilt
-  for (const c of cells.values()) {
-    if (!c.group) continue;
-    let bad = c.withDetail !== ctx.withDetail;
-    for (let i = 0; i < c.members.length && !bad; i++) {
-      const m = c.members[i];
-      if (meshes.get(m.b) !== m.mesh || hidden.has(m.b) || !m.mesh.parent || dist(m.b) > ctx.detailR - 1) bad = true;
+// opts: { name, eligible(item, mesh), valid(item, mesh, ctx, dist) }: which
+// items may be merged, and whether a merged one may stay merged.
+export function createStaticBatcher(opts) {
+  const B = { name: opts.name, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
+  const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && opts.valid(m.b, m.mesh, ctx, dist);
+
+  // ctx: { scene, meshes (Map item -> group), hidden (Set or null), px, py,
+  // detailR, drawDist, withDetail, budgetMs }
+  function update(ctx) {
+    if (!B.root) {
+      B.root = new THREE.Group();
+      B.root.name = B.name + 'es';
+      B.root.matrixAutoUpdate = false;
+      ctx.scene.add(B.root);
     }
-    if (bad) { unmerge(c); stats.dropped++; continue; }
-    for (const m of c.members) for (const p of m.parts) p.visible = false;
-  }
-  if (job) {
-    const deadline = performance.now() + ctx.budgetMs;
-    while (job.i < job.pieces.length && performance.now() < deadline) addPiece(job.pieces[job.i++]);
-    if (job.i >= job.pieces.length) {
-      const stale = job.list.some((m) => meshes.get(m.b) !== m.mesh || hidden.has(m.b) || !m.mesh.parent || dist(m.b) > ctx.detailR - 1) || job.withDetail !== ctx.withDetail;
-      if (stale) job = null; else finishJob(ctx.scene);
+    B.frame++;
+    const { meshes, hidden, px, py } = ctx;
+    const dist = (b) => { const [x, y] = centreOf(b); return Math.hypot(x - px, y - py); };
+    for (const c of B.cells.values()) {
+      if (!c.group) continue;
+      let bad = c.withDetail !== ctx.withDetail;
+      for (let i = 0; i < c.members.length && !bad; i++) if (!memberOk(c.members[i], ctx, dist)) bad = true;
+      if (bad) { unmerge(B, c); B.stats.dropped++; continue; }
+      for (const m of c.members) for (const p of m.parts) p.visible = false;
     }
-    return;
-  }
-  if (frame % 8) return;
-  // wanted membership per cell
-  const inner = Math.min(ctx.drawDist, ctx.detailR) - MARGIN;
-  const want = new Map();
-  for (const [b, mesh] of meshes) {
-    if (hidden.has(b) || !eligible(b, mesh)) continue;
-    const d = dist(b);
-    if (d > inner) continue;
-    const [x, y] = centreOf(b);
-    const key = `${Math.floor(x / CELL)},${Math.floor(y / CELL)}`;
-    let w = want.get(key);
-    if (!w) want.set(key, w = { key, d: Infinity, list: [] });
-    w.d = Math.min(w.d, d);
-    w.list.push({ b, mesh, parts: null });
-  }
-  for (const c of cells.values()) if (c.group && !want.has(c.key)) unmerge(c);
-  let best = null;
-  for (const w of want.values()) {
-    if (w.list.length < MIN_MEMBERS) {
-      const c = cells.get(w.key);
-      if (c && c.group) unmerge(c);
-      continue;
+    if (B.job) {
+      const job = B.job;
+      const deadline = performance.now() + ctx.budgetMs;
+      while (job.i < job.pieces.length && performance.now() < deadline) addPiece(job, job.pieces[job.i++]);
+      if (job.i >= job.pieces.length) {
+        if (job.withDetail !== ctx.withDetail || job.list.some((m) => !memberOk(m, ctx, dist))) B.job = null;
+        else finishJob(B);
+      }
+      return;
     }
-    w.sig = w.list.map((m) => idOf(m.b)).sort((a, b) => a - b).join('|') + (ctx.withDetail ? '+d' : '');
-    const c = cells.get(w.key);
-    if (c && c.group && c.sig === w.sig) continue;
-    if (!best || w.d < best.d) best = w;
+    if (B.frame % 8) return;
+    const inner = Math.min(ctx.drawDist, ctx.detailR) - MARGIN;
+    const want = new Map();
+    for (const [b, mesh] of meshes) {
+      if ((hidden && hidden.has(b)) || !mesh.parent || !mesh.visible || mesh.userData.noBatch || !opts.eligible(b, mesh)) continue;
+      const d = dist(b);
+      if (d > inner) continue;
+      const [x, y] = centreOf(b);
+      const key = `${Math.floor(x / CELL)},${Math.floor(y / CELL)}`;
+      let w = want.get(key);
+      if (!w) want.set(key, w = { key, d: Infinity, list: [] });
+      w.d = Math.min(w.d, d);
+      w.list.push({ b, mesh, parts: null });
+    }
+    for (const c of B.cells.values()) if (c.group && !want.has(c.key)) unmerge(B, c);
+    let best = null;
+    for (const w of want.values()) {
+      if (w.list.length < MIN_MEMBERS) {
+        const c = B.cells.get(w.key);
+        if (c && c.group) unmerge(B, c);
+        continue;
+      }
+      w.sig = w.list.map((m) => idOf(m.b)).sort((a, b) => a - b).join('|') + (ctx.withDetail ? '+d' : '');
+      const c = B.cells.get(w.key);
+      if (c && c.group && c.sig === w.sig) continue;
+      if (!best || w.d < best.d) best = w;
+    }
+    B.stats.cells = want.size;
+    if (!best) return;
+    let c = B.cells.get(best.key);
+    if (!c) B.cells.set(best.key, c = { key: best.key, group: null, members: [], sig: '', withDetail: ctx.withDetail });
+    for (const m of best.list) m.parts = partsOf(m.mesh, ctx.withDetail);
+    startJob(B, c, best.list, ctx.withDetail);
+    B.job.sig = best.sig;
   }
-  stats.cells = want.size;
-  if (!best) return;
-  let c = cells.get(best.key);
-  if (!c) cells.set(best.key, c = { key: best.key, group: null, members: [], sig: '', withDetail: ctx.withDetail });
-  for (const m of best.list) m.parts = partsOf(m.mesh, ctx.withDetail);
-  startJob(c, best.list, ctx.withDetail);
-  job.sig = best.sig;
+
+  function info() {
+    let meshesN = 0;
+    for (const c of B.cells.values()) if (c.group) meshesN += c.group.children.length;
+    return { ...B.stats, meshes: meshesN, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null };
+  }
+
+  return { update, info };
 }
 
-export function buildingBatchStats() {
-  let meshesN = 0;
-  for (const c of cells.values()) if (c.group) meshesN += c.group.children.length;
-  return { ...stats, meshes: meshesN, job: job ? `${job.i}/${job.pieces.length}` : null };
-}
+// buildings: never past their detail radius (the far LOD draws them there)
+export const buildingBatcher = createStaticBatcher({
+  name: 'building-batch',
+  eligible: (b, mesh) => !b.landmark && mesh.position.y === 0,
+  valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,
+});
+
+// roads: merged while their own meshes are there
+export const roadBatcher = createStaticBatcher({
+  name: 'road-batch',
+  eligible: () => true,
+  valid: () => true,
+});
