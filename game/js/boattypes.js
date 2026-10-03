@@ -16,14 +16,17 @@ export const BOAT_KINDS = {
   waterfiets: { kind: 'waterfiets', name: 'boat', len: 2.6, wid: 1.6, maxSpeed: 2.0, accel: 1.0, brake: 1.6, turnRate: 1.3, color: '#f0eee8', cabin: '#2a8fb0' },
   rubberboot: { kind: 'rubberboot', name: 'boat', len: 3.4, wid: 1.6, maxSpeed: 6, accel: 2.6, brake: 2.4, turnRate: 1.6, color: '#3c4044', cabin: '#d8572a' },
   dinghy: { kind: 'dinghy', name: 'boat', len: 2.8, wid: 1.25, maxSpeed: 3.0, accel: 1.4, brake: 2.0, turnRate: 1.5, color: '#2f4a3a' },
+  // stand-up paddle board, one paddler standing
+  sup: { kind: 'sup', name: 'boat', len: 3.2, wid: 0.8, maxSpeed: 1.9, accel: 0.8, brake: 1.4, turnRate: 1.2, color: '#2a8fb0' },
+  supWit: { kind: 'sup', name: 'boat', len: 3.0, wid: 0.78, maxSpeed: 1.8, accel: 0.8, brake: 1.4, turnRate: 1.2, color: '#f2f0ea' },
   // Frisian sailing barge (Jelle's): not in the ambient mix
   skutsje: { kind: 'skutsje', name: 'boat', len: 10, wid: 2.8, maxSpeed: 7, accel: 0.9, brake: 1.3, turnRate: 0.8, color: '#1b1d1f', cabin: '#8a5a2c' },
 };
 
 // Ambient traffic mix (weights).
 const TRAFFIC = [
-  ['sloep', 22], ['sloepGrijs', 12], ['rondvaart', 10], ['kano', 11], ['kajak', 8],
-  ['waterfiets', 10], ['rubberboot', 14], ['dinghy', 10],
+  ['sloep', 20], ['sloepGrijs', 10], ['rondvaart', 9], ['kano', 13], ['kajak', 11],
+  ['waterfiets', 12], ['rubberboot', 12], ['dinghy', 10], ['sup', 7], ['supWit', 5],
 ];
 const TRAFFIC_TOTAL = TRAFFIC.reduce((s, [, w]) => s + w, 0);
 
@@ -72,6 +75,12 @@ export function boatSeats(v) {
       return [
         { x: -hl * 0.58, z: 0, y: 0.18, face: 0, pose: { recline: -0.05, footX: 0.62, footY: -0.12, arms: 'paddle' } },
         { x: hl * 0.5, z: 0, y: 0.18, face: 0, pose: { recline: -0.05, footX: 0.6, footY: -0.12, arms: 'paddle' } },
+      ];
+    case 'sup':
+      // the paddler stands mid-board; seat 1 sits cross-legged on the nose
+      return [
+        { x: -0.15, z: 0, y: 0.12, face: 0, stand: true, pose: { arms: 'sup' } },
+        { x: 0.75, z: 0, y: 0.12, face: 0, pose: { recline: 0.08, footX: 0.5, footY: -0.02, splay: 0.35, arms: 'lap' } },
       ];
     case 'kajak':
       // seat 1: a stowaway on the fore deck, so Tammo and Anita still fit
@@ -122,6 +131,7 @@ export function boatCrewCount(v) {
     case 'rondvaart': return 5 + Math.floor(r * 5);
     case 'kano': return r < 0.6 ? 2 : 1;
     case 'kajak': return 1;
+    case 'sup': return 1;
     case 'waterfiets': return r < 0.7 ? 2 : 1;
     case 'dinghy': return r < 0.5 ? 2 : 1;
     default: return 1 + Math.floor(r * 3);
@@ -132,5 +142,5 @@ export function boatCrewCount(v) {
 // and pedal craft only a white all-round lamp.
 export function boatIsMotorised(v) {
   const k = boatKind(v);
-  return k !== 'kano' && k !== 'kajak' && k !== 'waterfiets';
+  return k !== 'kano' && k !== 'kajak' && k !== 'waterfiets' && k !== 'sup';
 }

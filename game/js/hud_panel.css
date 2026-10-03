@@ -213,7 +213,7 @@ body.hud-in-vehicle #hud { --mm-bottom: 56px; }
   display: none;
   align-items: center;
   gap: 10px;
-  width: 236px;
+  width: 262px;
   box-sizing: border-box;
   padding: 3px 12px 3px 6px;
   border-radius: 10px;
@@ -238,19 +238,27 @@ body.hud-in-vehicle #hud { --mm-bottom: 56px; }
 }
 #hud .hud-speedo .sp-pic img.on { opacity: 1; }
 #hud .hud-speedo.no-pic .sp-pic { display: none; }
-#hud .hud-speedo.no-pic { right: 46px; width: 170px; padding: 6px 12px; }
+#hud .hud-speedo.no-pic { right: 46px; width: 210px; padding: 6px 12px; }
 #hud .hud-speedo .sp-num { display: flex; align-items: baseline; gap: 4px; }
 #hud .hud-speedo b { font-weight: normal; font-size: 30px; line-height: 1; min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
 #hud .hud-speedo .sp-num span { font-size: 13px; color: var(--gron-green-light); }
-#hud .hud-speedo .sp-dmg { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
-#hud .hud-speedo .sp-dmg small { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 11px; color: #a3b2a6; }
-#hud .hud-speedo .sp-bar { display: block; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
-#hud .hud-speedo .sp-bar i { display: block; width: 0; height: 100%; border-radius: 3px; background: var(--gron-green-light); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out), background-color var(--dur-base, 200ms); }
+/* name and condition: make in small caps over the model, a heart and a bar that empties with damage */
+#hud .hud-speedo .sp-info { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+#hud .hud-speedo .sp-name { display: flex; align-items: baseline; gap: 5px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1; }
+#hud .hud-speedo .sp-name small { flex: 0 0 auto; font-size: 11px; letter-spacing: 1.5px; color: var(--gron-green-light); text-transform: uppercase; }
+#hud .hud-speedo .sp-name small:empty { display: none; }
+#hud .hud-speedo .sp-name em { font-style: normal; font-size: 15px; letter-spacing: 0.4px; overflow: hidden; text-overflow: ellipsis; }
+#hud .hud-speedo .sp-hp { display: flex; align-items: center; gap: 5px; }
+#hud .hud-speedo .sp-hp svg { flex: 0 0 11px; width: 11px; height: 11px; fill: var(--gron-green-light); transition: fill var(--dur-base, 200ms); }
+#hud .hud-speedo .sp-bar { display: block; flex: 1; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+#hud .hud-speedo .sp-bar i { display: block; width: 100%; height: 100%; border-radius: 3px; background: var(--gron-green-light); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out), background-color var(--dur-base, 200ms); }
+#hud .hud-speedo.worn .sp-bar i { background: var(--gron-green); }
 #hud .hud-speedo.hurt { border-color: rgba(217, 63, 63, 0.55); }
-#hud .hud-speedo.hurt .sp-dmg small { color: #d93f3f; }
+#hud .hud-speedo.hurt .sp-hp svg { fill: #d93f3f; animation: sp-beat 0.9s ease-in-out infinite; }
 #hud .hud-speedo.hurt .sp-bar i { background: #d93f3f; }
-#hud .hud-speedo.no-dmg { width: auto; }
-#hud .hud-speedo.no-dmg .sp-dmg { display: none; }
+@keyframes sp-beat { 50% { transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { #hud .hud-speedo.hurt .sp-hp svg { animation: none; } }
+#hud .hud-speedo.no-dmg .sp-hp { display: none; }
 body.hide-minimap #hud .hud-speedo, body.hide-minimap #hud .hud-speedo.no-pic { right: 16px; }
 
 /* savegame.js's toast, moved into the location chip by hud_panel.js */

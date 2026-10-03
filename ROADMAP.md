@@ -54,6 +54,50 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Nalopen: het Verhaal-menu, Ubbo, het plaatje van de plek in het Overzicht, en het prestatie-advies samen met "Wat is er nieuw" bij een update.
 - [ ] De laadtijd van de kaart meten op een rustige machine: rijen groeperen, woonboten, daken.
 
+## Speelfeedback 3 okt (gaat mee in 0.24)
+
+**Pakket A: verhaalverloop en opening** (`claude/feedback-verhaal`)
+- [~] Te veel tegelijk: één wachtrij voor telefoontjes, radio, autogesprekken, meldingen en cutscenes.
+- [~] Samen gaan wonen: in de opening huren Tammo en Anita samen een appartement in Paddepoel, weg uit de krappe studentenkamer. Daarna is Paddepoel thuis.
+- [~] Onderduiken: een duidelijke bestemming, plus 2 à 3 keuzes voor iets leuks samen.
+- [~] Geen "Kop/Romp/Staart" meer in beeld, maar gewone namen voor de delen.
+- [~] Kusjes kunnen soms nog te vroeg, afhankelijk van of je Tammo of Anita speelt.
+- [~] "Koop een huurboot" wordt "huur een boot". De "tredes" worden duidelijk uitgelegd.
+- [~] Een eigen icoon per missie.
+
+**Pakket B: missies** (`claude/feedback-missies`)
+- [~] H3: duidelijk hoe je punten scoort, met een live score en een doel.
+- [~] H6: allebei in zwarte kleding. Na de kraak wijst de waypoint naar een kade bij het Hoofdstation. In de trein weer gewone kleren.
+- [~] H8: de tankwagen van Us Mem Vet staat op een logische plek, met tekst erop. Kapen is de bedoelde route.
+- [~] H5: geen op elkaar af fietsen terwijl ze samen op één fiets zitten.
+- [~] H11: per kroeg een korte cutscene met een drankje.
+- [~] H13:
+  - de echte uitslag in plaats van altijd 3e;
+  - cutscenes bij de brug en bij de boosheid van de tegenstander;
+  - Tammo gaat verder met zijn feitjes;
+  - de kus krijgt opbouw;
+  - de instapscène is beter in beeld.
+- [~] H14: de boeven fietsen niet meer door een muur.
+
+**Pakket C: wereld, geluid en HUD** (`claude/feedback-wereld`)
+- [x] Voertuigbadge: naam en merk erbij, en conditie met een hartje in plaats van "schade".
+- [x] "Prestaties wachten" staat alleen kort in beeld (net als "meldingen wachten").
+- [x] Een prettiger brommergeluid.
+- [x] Zwemmers in zwemkleding die niet zwaaien als drenkelingen. Meer leven op het water: bootjes, kano's, suppers en zwanen.
+- [x] Betere waterlijn en golfslag voor alle boten. Remsporen liggen op de bovenste weglaag en blijven langer liggen.
+- [x] Cutscenes laden details rond de camera, niet rond de speler. Een rijkere minimap in het Ommeland.
+- [ ] Nog in het echt bekijken: de boten en zwemmers op het water en de ring (de screenshots van die plekken lukten niet).
+
+**Pakket D: heli, carbid en padel** (start zodra er ruimte is)
+- [ ] De heli-missie herbouwen: opstijgen bij Airport Eelde, onderweg een spoedgeval naar het UMCG, dan naar de ballon. Geen tweede heli en een logische landing. De ballonvlucht moet goed te doen zijn.
+- [ ] Nieuwe heli-besturing: WASD voor sturen en vooruit/achteruit, Shift voor snelheid, Spatie voor omhoog en Ctrl voor omlaag.
+- [ ] De kaart draait goed mee tijdens de heli-missie met de cirkels.
+- [ ] Een betere missienaam dan "Spoedeisende duif".
+- [ ] Een route naar carbid en padel in het verhaal. TTS tijdens padel, en geen waypoint naar de volgende missie tijdens het spel.
+- [ ] Een reden waarom je padel speelt tegen Durk en Douwe.
+
+**Ring:** nog steeds zwarte lagen hier en daar. Dat valt onder mesh ronde 4 en 5, die gepauzeerd zijn.
+
 ## 0.24: echte zwakke hardware en de webversie
 
 - [ ] Meten op een echte Intel-laptop (Iris Xe of UHD 620) en een Chromebook of vergelijkbaar toestel. Daarvoor is hardware van Alexander of een kennis nodig.

@@ -369,6 +369,38 @@ function underStreet(map, x, y) {
 }
 const STREET_CATS = new Set(['major', 'normal', 'minor']);
 
+// Spots on the grassy banks where someone can sit at the waterline with
+// their feet in the water (swimmers3d.js), by 64 m tile.
+const BANK_TILE = 64;
+const bankSeats = new Map();
+const SEAT_OFF = -1.1;
+export function bankSeatsNear(x, y, r) {
+  const out = [];
+  for (let tx = Math.floor((x - r) / BANK_TILE); tx <= Math.floor((x + r) / BANK_TILE); tx++) {
+    for (let ty = Math.floor((y - r) / BANK_TILE); ty <= Math.floor((y + r) / BANK_TILE); ty++) {
+      const list = bankSeats.get(tx + ',' + ty);
+      if (list) for (const s of list) if (Math.hypot(s.x - x, s.y - y) < r) out.push(s);
+    }
+  }
+  return out;
+}
+
+function addBankSeat(p, m, prof) {
+  // the bank height at SEAT_OFF, between the profile rows either side of it
+  let z = null;
+  for (let r = 0; r < prof.length - 1; r++) {
+    const [o0, y0] = prof[r], [o1, y1] = prof[r + 1];
+    if (o0 >= SEAT_OFF && o1 <= SEAT_OFF) { z = y0 + (y1 - y0) * (o0 - SEAT_OFF) / Math.max(1e-3, o0 - o1); break; }
+  }
+  if (z == null) return;
+  const x = p[0] + m[0] * SEAT_OFF, y = p[1] + m[1] * SEAT_OFF;
+  const k = Math.floor(x / BANK_TILE) + ',' + Math.floor(y / BANK_TILE);
+  let list = bankSeats.get(k);
+  if (!list) bankSeats.set(k, list = []);
+  if (list.some((q) => Math.hypot(q.x - x, q.y - y) < 4)) return;
+  list.push({ x, y, z, face: Math.atan2(-m[1], -m[0]) });
+}
+
 function buildBankRun(run, wy, B, rnd, map) {
   const { pts, N } = run;
   const mid = pts[pts.length >> 1];
@@ -389,6 +421,7 @@ function buildBankRun(run, wy, B, rnd, map) {
     for (const row of prof) {
       if (row[1] > TERRAIN_Y + 0.003 && underStreet(map, p[0] + m[0] * row[0], p[1] + m[1] * row[0])) row[1] = TERRAIN_Y + 0.003;
     }
+    if (i % 4 === 2 && h < 0.5) addBankSeat(p, m, prof);
     cols.push(prof.map(([o, y, c]) => acc.v(p[0] + m[0] * o, y, p[1] + m[1] * o, c)));
   }
   for (let i = 0; i < pts.length - 1; i++) {
