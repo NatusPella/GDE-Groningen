@@ -25,6 +25,7 @@ import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { unseenAchievementCount } from './achievements.js';
+import { isPauseMenuOpen } from './pausemenu.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -348,7 +349,7 @@ export function updateCards(dt, w) {
   stackEl.classList.toggle('paused', !!frozen);
   syncWait();
   syncAward();
-  tickChips(dt, !!frozen, !!(w.paused || w.uiPaused));
+  tickChips(dt, !!frozen, isPauseMenuOpen());
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
   document.body.classList.toggle('hud-chip-on', waitT > 0 || awardT > 0);
   if (frozen) return;
