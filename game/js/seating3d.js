@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { seatPose, SEAT_CONTACT, SEAT_CAR, blendSeatPose, standBehindPose, waveOverlay, carryOverlay, animatePersonWalk, buildPersonMesh, PERSON_RIG } from './models3d_people.js';
+import { seatPose, SEAT_CONTACT, SEAT_CAR, blendSeatPose, standBehindPose, supPose, waveOverlay, carryOverlay, animatePersonWalk, buildPersonMesh, PERSON_RIG } from './models3d_people.js';
 import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
 import { WATER_Y } from './util.js';
 
@@ -126,7 +126,8 @@ export function placeSeated(person, vehMesh, v, seat, t = 0) {
   localToWorld(vehMesh, v, seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z, person.position);
   vehicleQuat(vehMesh, v, person.quaternion);
   if (seat.face) person.quaternion.multiply(_qy.setFromAxisAngle(_up, seat.face));
-  if (seat.stand) standBehindPose(person);
+  if (seat.stand && seat.pose && seat.pose.arms === 'sup') supPose(person, t);
+  else if (seat.stand) standBehindPose(person);
   else seatPose(person, seat.pose, t);
 }
 
@@ -299,7 +300,7 @@ export function syncBoatCrew(mesh, v, ctx) {
     const shirt = v.isPolice ? 0x1f3f8f : CREW_SHIRTS[Math.floor(hash(seed, 1.3) * CREW_SHIRTS.length)];
     const skin = CREW_SKINS[Math.floor(hash(seed, 2.9) * CREW_SKINS.length)];
     const p = buildPersonMesh(shirt, skin, { seed });
-    seatPose(p, ud.crewSeats[k].pose, 0);
+    poseCrew(p, ud.crewSeats[k], 0);
     placeLocal(p, ud.crewSeats[k]);
     mesh.add(p);
     ctx.prep(p, mesh);
@@ -311,9 +312,9 @@ export function syncBoatCrew(mesh, v, ctx) {
     c.mesh.visible = show;
     if (!show) continue;
     const moving = Math.abs(v.speed) > 0.3;
-    const animated = c.seat.pose && (c.seat.pose.arms === 'paddle' || c.seat.pose.pedal);
+    const animated = c.seat.pose && (c.seat.pose.arms === 'paddle' || c.seat.pose.arms === 'sup' || c.seat.pose.pedal);
     if (near && (animated || c.greetUntil > ctx.time || c.waved)) {
-      seatPose(c.mesh, c.seat.pose, moving ? ctx.time + c.seat.x : 0);
+      poseCrew(c.mesh, c.seat, moving ? ctx.time + c.seat.x : 0);
       c.waved = false;
       if (c.greetUntil > ctx.time) {
         const left = c.greetUntil - ctx.time;
@@ -339,9 +340,14 @@ export function syncBoatCrew(mesh, v, ctx) {
   }
 }
 
+function poseCrew(p, seat, t) {
+  if (seat.stand) supPose(p, t);
+  else seatPose(p, seat.pose, t);
+}
+
 function placeLocal(p, seat) {
   const sy = p.scale.y || 1;
-  p.position.set(seat.x, seat.y - SEAT_CONTACT * sy, seat.z);
+  p.position.set(seat.x, seat.stand ? seat.y : seat.y - SEAT_CONTACT * sy, seat.z);
   p.rotation.set(0, seat.face || 0, 0);
 }
 
