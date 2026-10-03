@@ -7,7 +7,7 @@
 // Tammo and Anita trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber } from './storyarc.js';
 import { setMeetHook } from './namecard.js';
 import { queueStoryContact } from './storycontact.js';
 import { isCallActive } from './phonefeed.js';
@@ -403,7 +403,7 @@ function playRecap(part) {
   const fallback = recapPlace(P.recap.find(([p]) => p !== 'studio')[0]);
   return playCinematic({
     id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: P.date ? `${P.title.split(':')[0]} · ${P.date}` : `Eerder in ${SERIES}`, title: P.title, cardFor: 3.2,
+    kicker: P.date ? `${partNumber(part)} · ${P.date}` : `Eerder in ${SERIES}`, title: P.name || P.title, cardFor: 3.2,
     lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur, radio: true })),
     onStart: () => { studio = openStudio(); playRadioSting(); },
     onEnd: () => { if (studio) studio.dispose(); studio = null; },
