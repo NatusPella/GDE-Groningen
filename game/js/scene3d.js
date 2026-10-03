@@ -64,7 +64,7 @@ import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside } from './countryside.js';
-import { setCountryNight } from './countrybuilding.js';
+import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance } from './countryfield.js';
 import { probe } from './hitchprobe.js';
@@ -872,6 +872,7 @@ function applyViewSettings(st) {
   renderer.setPixelRatio(renderPixelRatio(st, preset));
   resize3D();
   setNightLightQuality(level);
+  setCountryFacadeLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
