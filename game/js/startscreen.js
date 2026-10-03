@@ -9,6 +9,7 @@ import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
 import { MENU_FRAME_S, getRenderer } from './scene3d.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
+import { ABOUT_HTML } from './credits.js';
 
 const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -339,6 +340,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
+    items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
     if (window.gteDesktop && window.gteDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     const pct = getAchievementSummary().pct;
     const badge = (it) => it.act === 'continue' && pct > 0 ? `<span class="ss-pct" title="Prestaties behaald" style="font-size:0.5em;letter-spacing:1px;margin-left:12px;opacity:0.8;vertical-align:middle">${pct}% voltooid</span>` : '';
@@ -422,7 +424,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     };
     const activate = (i) => {
       const it = items[i];
-      if (it.act !== 'news') news.hidden = true;
+      if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
         startTheme();
         restoreWorld();
@@ -436,6 +438,8 @@ export function runStartScreen(world, { render, relocate, tick }) {
         finish('game');
       } else if (it.act === 'news') {
         openNews();
+      } else if (it.act === 'about') {
+        openAbout();
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
       } else if (it.act === 'exit') {
@@ -444,11 +448,21 @@ export function runStartScreen(world, { render, relocate, tick }) {
     };
     const news = screen.querySelector('.ss-news');
     const newsBody = news.querySelector('.ss-news-body');
-    const openNews = () => {
+    const newsTitle = news.querySelector('h2');
+    const showPanel = (title) => {
+      newsTitle.textContent = title;
+      news.setAttribute('aria-label', title);
       news.hidden = false;
       newsBody.scrollTop = 0;
       newsBody.focus({ preventScroll: true });
-      loadChangelog().then((html) => { if (!news.hidden) newsBody.innerHTML = html; });
+    };
+    const openNews = () => {
+      showPanel('Wat is er nieuw');
+      loadChangelog().then((html) => { if (!news.hidden && newsTitle.textContent === 'Wat is er nieuw') newsBody.innerHTML = html; });
+    };
+    const openAbout = () => {
+      showPanel('Over GTE VI');
+      newsBody.innerHTML = ABOUT_HTML;
     };
     const closeNews = () => {
       news.hidden = true;

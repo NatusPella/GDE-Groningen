@@ -443,8 +443,9 @@ vec3 cEdge(vec2 p, float px) {
 }
 
 // Road markings of the real road under p (only asked for near the camera,
-// on road pixels): x = white paint, y = the red fietssuggestiestrook.
-// Segment texel W.w = (kind + 8 * oneway) * 4096 + metres along the road.
+// on road pixels): x = white paint, y = red asphalt (the cycle lanes OSM
+// has on a road, or a whole fietspad). Segment texel W.w = (kind + 8 *
+// oneway + 16 * cycle lanes + 32 * fietspad) * 4096 + metres along the road.
 vec2 cMark(vec2 p, float px) {
   vec2 g = (p - uEdgeGridRect.xy) / uEdgeGridRect.z;
   if (g.x < 0.0 || g.y < 0.0 || g.x >= uEdgeGridSize.x || g.y >= uEdgeGridSize.y) return vec2(0.0);
@@ -470,20 +471,23 @@ vec2 cMark(vec2 p, float px) {
     if (d - h < bd) { bd = d - h; dc = d; hw = h; code = floor(W.w / 4096.0); along = W.w - code * 4096.0 + t * L; }
   }
   if (bd >= 0.0) return vec2(0.0);
+  if (code > 31.5) return vec2(0.0, 1.0);
   float kind = mod(code, 8.0);
-  bool one = code > 7.5;
+  bool one = mod(code, 16.0) > 7.5;
+  bool lanes = code > 15.5;
   float line = 0.0, strip = 0.0;
   float aa = px + 0.02;
-  if (kind < 1.5 || (kind > 2.5 && kind < 4.5 && !one)) {
+  if (lanes && hw > 2.4) {
+    // fietsstroken: red asphalt 1.5 m in from each edge behind a line
+    float e = hw - dc;
+    float dl = kind > 4.5 ? step(fract(along / 2.0), 0.5) : 1.0;
+    line = (1.0 - smoothstep(0.06, 0.06 + aa, abs(e - 1.5))) * dl;
+    strip = 1.0 - smoothstep(1.45, 1.45 + aa, e);
+    if (kind < 4.5 && !one) line = max(line, (1.0 - smoothstep(0.07, 0.07 + aa, dc)) * step(fract(along / 12.0), 0.25));
+  } else if (kind < 1.5 || (kind > 2.5 && kind < 4.5 && !one)) {
     // centre line (lane divider on a motorway carriageway): 3 m on, 9 m off
     float dash = step(fract(along / 12.0), 0.25);
     line = (1.0 - smoothstep(0.07, 0.07 + aa, dc)) * dash;
-  } else if (kind > 4.5 && kind < 6.5 && hw > 2.4) {
-    // erftoegangsweg: no centre line, a dashed line 1.4 m in from each edge
-    // with red asphalt outside it
-    float e = hw - dc;
-    line = (1.0 - smoothstep(0.06, 0.06 + aa, abs(e - 1.4))) * step(fract(along / 2.0), 0.5);
-    strip = 1.0 - smoothstep(1.35, 1.35 + aa, e);
   }
   return vec2(line, strip);
 }
@@ -670,8 +674,9 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   if (ce.x > 0.0) {
     vec3 asph = cLin(74.0, 74.0, 76.0) * (0.9 + 0.2 * n3);
     float el = (1.0 - smoothstep(0.08, 0.08 + px, ce.z)) * detail;
-    if (px < 0.4 && ce.x > 0.5) {
-      vec2 mk = cMark(p, px) * (1.0 - smoothstep(0.2, 0.4, px));
+    if (px < 1.2 && ce.x > 0.5) {
+      // the red asphalt carries further out than the white paint
+      vec2 mk = cMark(p, px) * vec2(1.0 - smoothstep(0.2, 0.4, px), 1.0 - smoothstep(0.8, 1.2, px));
       asph = mix(asph, cLin(150.0, 78.0, 66.0) * (0.9 + 0.2 * n3), mk.y * 0.85);
       asph = mix(asph, cLin(214.0, 210.0, 198.0), mk.x * 0.85);
     }
@@ -719,7 +724,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   c = mix(c, cLin(70.0, 72.0, 44.0) * (0.8 + 0.3 * n3), bank * 0.8 * smoothstep(0.86, 0.98, cw));
   // the open water near the player is the real surface below (countrywater.js)
   vec2 qR = abs(p - uCountryRect.xy) - uCountryRect.zw;
-  if (rw > 0.0 && roadM < 0.5 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
+  if ((rw > 0.0 || ce.y > 0.5) && roadM < 0.5 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
   // the city water's shallow / deep tones (water3d.js), glossy so the sky
   // reflects in it; a slow drifting sheen where it is not weed
   vec3 wc = mix(cLin(44.0, 74.0, 56.0), cLin(11.0, 36.0, 32.0), 0.35 + 0.4 * n2 + 0.25 * wQ);
