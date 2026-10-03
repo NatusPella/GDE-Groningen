@@ -189,11 +189,12 @@ function finishJob(B) {
 // --- per frame -------------------------------------------------------------
 
 // opts: { name, eligible(item, mesh), valid(item, mesh, ctx, dist), cell,
-// minMembers, part(mesh), inner(ctx), fresh }: which items may be merged,
+// minMembers, part(mesh), inner(ctx), fresh, dist(item, px, py) }: which items may be merged,
 // whether a merged one may stay merged, the cell size, the fewest items worth
 // a batch, the one child mesh to merge instead of all of them, the distance
 // an item must be within to be merged (default: the detail radius less a
-// margin), and how many newcomers redo a merged cell (default 3).
+// margin), how many newcomers redo a merged cell (default 3), and the
+// item's distance (default: from its bounds' centre).
 export function createStaticBatcher(opts) {
   const B = { name: opts.name, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
   const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
@@ -210,7 +211,7 @@ export function createStaticBatcher(opts) {
     }
     B.frame++;
     const { meshes, hidden, px, py } = ctx;
-    const dist = (b) => { const [x, y] = centreOf(b); return Math.hypot(x - px, y - py); };
+    const dist = opts.dist ? (b) => opts.dist(b, px, py) : (b) => { const [x, y] = centreOf(b); return Math.hypot(x - px, y - py); };
     for (const c of B.cells.values()) {
       if (!c.group) continue;
       let bad = c.withDetail !== ctx.withDetail;
@@ -256,7 +257,7 @@ export function createStaticBatcher(opts) {
       if (c && c.group && c.withDetail === ctx.withDetail) {
         let fresh = 0;
         for (const m of w.list) if (!c.memberSet.has(m.b)) fresh++;
-        if (!fresh || ((opts.inner || w.far > inner) && fresh < Math.max(opts.fresh || 3, w.list.length / 4))) continue;
+        if (!fresh || (w.far > inner && fresh < Math.max(opts.fresh || 3, w.list.length / 4))) continue;
       }
       if (!best || w.d < best.d) best = w;
     }
@@ -309,9 +310,14 @@ export const roadBatcher = createStaticBatcher({
   name: 'road-batch',
   cell: 96,
   minMembers: 2,
-  // a road is valid wherever its mesh is in the scene; a merged cell is
-  // redone once two roads have come into view
-  inner: () => Infinity,
+  // a road is valid wherever its mesh is in the scene (bounds within the
+  // draw distance); merged once its nearest point is 15 m inside that, so
+  // it stays a while; a merged cell is redone once two roads have come in
+  dist: (r, px, py) => {
+    const b = r.bounds;
+    return b ? Math.hypot(Math.max(b[0] - px, 0, px - b[2]), Math.max(b[1] - py, 0, py - b[3])) : 1e9;
+  },
+  inner: (ctx) => ctx.drawDist - 15,
   fresh: 2,
   eligible: () => true,
   valid: () => true,
