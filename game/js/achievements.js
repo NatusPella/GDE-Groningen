@@ -9,6 +9,7 @@
 // also carries a copy of the unlocked ids so a save restores them if the
 // lifetime key was ever cleared.
 import { dualHtml } from './subtitles.js';
+import { mayStart, noteToast } from './narrative.js';
 
 const KEY = 'gte-prestaties-v1';
 const WRITE_DELAY_MS = 2500;
@@ -526,6 +527,8 @@ function queueToast(a) {
 function toastBlocked() {
   const b = document.body;
   if (!b.classList.contains('game-started') || b.classList.contains('cine-hide-hud')) return true;
+  // narrative.js: held during cutscenes and story calls, a beat apart from other toasts
+  if (!mayStart('award')) return true;
   const pm = document.getElementById('pause-menu');
   return !!(pm && pm.classList.contains('visible'));
 }
@@ -541,6 +544,7 @@ function showNextToast() {
   if (!el || !a) { toastUntil = 0; return; }
   const gold = a.medal || a.id === 'alle_goud';
   el.classList.toggle('gold', gold);
+  noteToast();
   const { pct } = getAchievementSummary();
   el.innerHTML = `<span class="ach-ico">${TROPHY_SVG}</span><span class="ach-txt">` +
     `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span></span>` +

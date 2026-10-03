@@ -7,6 +7,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Samen gaan wonen** in de opening: de zolder in de Korenbloemstraat is te
+  klein (en te duur voor één), dus huren Tammo en Anita samen een flat in de
+  House of Groningen in Paddepoel. "Als huisgenoten." Met een verhuisdag bij
+  de toren, en daarna is Paddepoel thuis. Nieuwe autogesprekken over de lift
+  en de afwas.
+- **Even onderduiken** na de kraak heeft nu een duidelijke bestemming en drie
+  keuzes, allemaal op de kaart: de trein vanaf het Hoofdstation, een ijsje in
+  het Noorderplantsoen of de zonsondergang aan de Hoge der A. Elke keuze heeft
+  een korte scène waarin ze naar elkaar toe groeien.
+- **Een eigen icoon per missie** in Te doen, op de kaart en minimap, in de
+  telefoon en op de missiekaart in de HUD.
+- **De complimentenladder** staat uitgelegd in "Wat weten we?" (Ow, Goud,
+  Valt mie nait of, Braid noar de zin, Kon minder en de stilte).
 - **Controllersupport** voor Xbox-, PlayStation- en Steam Deck-controllers:
   lopen, rennen, springen, bukken, de camera, rijden met gas en rem op de
   triggers, de handrem, in- en uitstappen, richten en schieten, wapens
@@ -73,6 +86,24 @@ nieuwe functies, `y` voor alleen bugfixes.
   het zeil niet meer voor de scène hangt.
 - **Durk en Douwe fietsen niet meer door muren** na Jelles polsstoksprong
   (H8, H14): ze nemen de vrije kant op, of slaan buiten beeld de hoek om.
+- **Niet meer alles tegelijk**: één wachtrij voor het verhaal. Telefoontjes,
+  "Bel Rikus" op de radio, autogesprekken, berichten, prestaties en HUD-kaarten
+  komen na elkaar, met een korte pauze ertussen, en nooit tijdens een filmpje.
+  Autogesprekken wachten tot het verhaal klaar is. Kaarten gaan even opzij als
+  er een ondertitel of de radio in beeld is. Een "Bel Rikus" die door een
+  filmpje werd onderbroken, speelt de rest later.
+- **De delen hebben gewone namen**: "Deel 1: KEI-week", "Deel 2: Noorderzon" en
+  "Deel 3: Kermis en Ontzet", in Te doen, het Overzicht, het Verhaal-menu en
+  op de titelkaarten.
+- **"Huur een boot"** in plaats van "koop een huurboot"; boten en dorpsfietsen
+  hebben een knop "Huren voor".
+- **De treden** worden duidelijk: Anita zegt "trede twee van de
+  complimentenladder", en Tammo telt ze in de auto op.
+
+### Opgelost
+- Kusjes konden te vroeg als je "Alles klopt, behalve de papieren" vooruit
+  speelde vanuit Te doen. Nu pas als het verhaal er echt is.
+
 - **Voertuigbadge**: het merk en de naam van je voertuig staan erbij, en de
   staat ervan is een hartje met een balk die leegloopt bij schade (rood als
   het slecht gaat), in plaats van "Schade".

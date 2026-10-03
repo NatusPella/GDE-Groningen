@@ -889,7 +889,7 @@ const RENTALS = [
 
 function bootSections(world, shop) {
   const items = RENTALS.map((r) => ({
-    id: 'r-' + r.id, label: r.label, desc: `${r.desc} · ligt aan de steiger`, price: r.price, disabled: broke(world, r.price),
+    id: 'r-' + r.id, label: r.label, desc: `${r.desc} · ligt aan de steiger`, price: r.price, verb: 'Huren voor', disabled: broke(world, r.price),
     preview: { kind: 'boat', model: r.model, color: r.model.color, nameIdx: r.nameIdx }, stats: vehicleStats(r.model, 'boat'),
     buy() {
       if (!pay(world, r.price)) return null;

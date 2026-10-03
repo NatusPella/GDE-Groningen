@@ -47,9 +47,17 @@
 "src": "anita/allebei_zeggen_ze_hier_8029df29.mp3",
 "dur": 1.25
 },
+"Anita|Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.": {
+"src": "anita/alleen_kan_ik_de_huur_niet_betal_82dcf0eb.mp3",
+"dur": 4.22
+},
 "Anita|Alleen: vraag rond, volg het piepje van de zender die Henk erin zette en haal hem terug voordat hij op de trein naar Ljouwert staat.": {
 "src": "anita/alleen_vraag_rond_volg_het_piepj_f1709607.mp3",
 "dur": 8.24
+},
+"Anita|Alleen?": {
+"src": "anita/alleen_75b2d578.mp3",
+"dur": 0.87
 },
 "Anita|Allemaal! Elke eierbal van Grunn. Ik ben trots op ons.": {
 "src": "anita/allemaal_elke_eierbal_van_grunn__d9cbe921.mp3",
@@ -62,6 +70,10 @@
 "Anita|Alles is groter dan jij, als duif.": {
 "src": "anita/alles_is_groter_dan_jij_als_duif_a2d0582d.mp3",
 "dur": 2.65
+},
+"Anita|Als huisgenoten, Tammo. Teken nou maar.": {
+"src": "anita/als_huisgenoten_tammo_teken_nou__42a4f20a.mp3",
+"dur": 3.13
 },
 "Anita|Anita vliegt, Tammo hangt aan het touw. Hou hoogte en snelheid van de mand vast.": {
 "src": "anita/anita_vliegt_tammo_hangt_aan_het_458822d9.mp3",
@@ -143,9 +155,17 @@
 "src": "anita/daar_in_het_oosterpark_een_ballo_963049b4.mp3",
 "dur": 4.1
 },
+"Anita|Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.": {
+"src": "anita/daarom_paddepoel_elfde_verdiepin_29148dbb.mp3",
+"dur": 5.27
+},
 "Anita|Dan draaien de camera's de hele nacht een filmpje van een leeg museum.": {
 "src": "anita/dan_draaien_de_camera_s_de_hele__736a179b.mp3",
 "dur": 4.94
+},
+"Anita|Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes.": {
+"src": "anita/dan_eet_jij_het_op_dat_doe_je_al_fc681117.mp3",
+"dur": 3.18
 },
 "Anita|Dan gaan we het halen. Nog een keer.": {
 "src": "anita/dan_gaan_we_het_halen_nog_een_ke_eb567ada.mp3",
@@ -398,6 +418,10 @@
 "Anita|Een hele late.": {
 "src": "anita/een_hele_late_6dad9997.mp3",
 "dur": 2.25
+},
+"Anita|Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.": {
+"src": "anita/een_kaartje_naar_maakt_niet_uit__f241d65f.mp3",
+"dur": 5.7
 },
 "Anita|Een kat is ook sympathiek. Die krijgt ook geen lening.": {
 "src": "anita/een_kat_is_ook_sympathiek_die_kr_9157d3f9.mp3",
@@ -807,6 +831,10 @@
 "src": "anita/ik_kan_niet_meer_naar_de_kant_d15251b9.mp3",
 "dur": 2.4
 },
+"Anita|Ik kies waar we heen gaan. Jij kijkt veel te schuldig om te kiezen.": {
+"src": "anita/ik_kies_waar_we_heen_gaan_jij_ki_6b2910bf.mp3",
+"dur": 3.91
+},
 "Anita|Ik klapte ook. Een beetje.": {
 "src": "anita/ik_klapte_ook_een_beetje_0f29f1b4.mp3",
 "dur": 1.62
@@ -887,6 +915,10 @@
 "src": "anita/je_bent_best_een_goede_gids_weet_c1eb1178.mp3",
 "dur": 2.97
 },
+"Anita|Je bent niet rijk, Tammo. Je bent huisgenoot.": {
+"src": "anita/je_bent_niet_rijk_tammo_je_bent__debd74a3.mp3",
+"dur": 2.57
+},
 "Anita|Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders.": {
 "src": "anita/je_biedt_geld_voor_iets_wat_geen_c84908bb.mp3",
 "dur": 4.98
@@ -902,6 +934,10 @@
 "Anita|Je hand.": {
 "src": "anita/je_hand_c4f8f8e0.mp3",
 "dur": 0.79
+},
+"Anita|Je kijkt naar mij, Tammo. De zon is daar.": {
+"src": "anita/je_kijkt_naar_mij_tammo_de_zon_i_26fa7145.mp3",
+"dur": 4.09
 },
 "Anita|Je neef werkt 's nachts in het museum?": {
 "src": "anita/je_neef_werkt_s_nachts_in_het_mu_c9f1f715.mp3",
@@ -959,6 +995,10 @@
 "src": "anita/jelle_s_sku_tsje_gooit_los_met_d_82679214.mp3",
 "dur": 3.76
 },
+"Anita|Jij hebt een pet. Dat is een vermomming.": {
+"src": "anita/jij_hebt_een_pet_dat_is_een_verm_d93a7b5f.mp3",
+"dur": 2.14
+},
 "Anita|Jij hebt nog nooit iets kunnen betalen, Tammo.": {
 "src": "anita/jij_hebt_nog_nooit_iets_kunnen_b_99887d0a.mp3",
 "dur": 2.46
@@ -974,6 +1014,10 @@
 "Anita|Jij stuurt, ik zeg wanneer.": {
 "src": "anita/jij_stuurt_ik_zeg_wanneer_f6514353.mp3",
 "dur": 1.85
+},
+"Anita|Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.": {
+"src": "anita/jij_zei_dat_de_zee_achter_de_dij_727756f5.mp3",
+"dur": 4.56
 },
 "Anita|Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.": {
 "src": "anita/jouw_dag_is_voorbij_jelle_het_ve_104b62d7.mp3",
@@ -1343,13 +1387,25 @@
 "src": "anita/tige_tank_eh_dank_je_ik_zeg_niks_43e9f571.mp3",
 "dur": 3.23
 },
+"Anita|Trede drie van de complimentenladder, Tammo.": {
+"src": "anita/trede_drie_van_de_complimentenla_75c65251.mp3",
+"dur": 2.64
+},
 "Anita|Trede drie, Tammo.": {
 "src": "anita/trede_drie_tammo_f43429c0.mp3",
 "dur": 2.06
 },
+"Anita|Trede twee van de complimentenladder, Tammo.": {
+"src": "anita/trede_twee_van_de_complimentenla_bcac631e.mp3",
+"dur": 3.52
+},
 "Anita|Twaalf keer het einde van de wereld. En we staan er nog. Kon minder.": {
 "src": "anita/twaalf_keer_het_einde_van_de_wer_7fb669da.mp3",
 "dur": 4.34
+},
+"Anita|Twee bolletjes. Jij betaalt, ik ben voortvluchtig.": {
+"src": "anita/twee_bolletjes_jij_betaalt_ik_be_44fc24fe.mp3",
+"dur": 3.49
 },
 "Anita|Twee grote kerels. Dat zijn Durk en Douwe.": {
 "src": "anita/twee_grote_kerels_dat_zijn_durk__78b66230.mp3",
@@ -1454,6 +1510,10 @@
 "Anita|Weer een skûtsje? Laat de chocola deze keer heel, Tammo.": {
 "src": "anita/weer_een_sku_tsje_laat_de_chocol_b5511977.mp3",
 "dur": 4.24
+},
+"Anita|Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken.": {
+"src": "anita/weet_je_nog_met_de_trein_naar_de_06d2e916.mp3",
+"dur": 4.99
 },
 "Anita|Weet je wat daar voor mij in die vitrine stond, Tammo? Een foodtruck. Mijn Fjord Frituur.": {
 "src": "anita/weet_je_wat_daar_voor_mij_in_die_dba05e11.mp3",
@@ -3391,6 +3451,10 @@
 "src": "rikus/berend_stuurde_een_brief_hij_wil_02d95dd5.mp3",
 "dur": 5.28
 },
+"Rikus|Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede van de complimentenladder. Dat is nog nooit gebeurd.": {
+"src": "rikus/berend_zegt_niks_meer_hij_heeft__cc47f28b.mp3",
+"dur": 8.0
+},
 "Rikus|Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede. Dat is nog nooit gebeurd.": {
 "src": "rikus/berend_zegt_niks_meer_hij_heeft__58935050.mp3",
 "dur": 5.32
@@ -4143,6 +4207,10 @@
 "src": "tammo/alleen_vraag_rond_volg_het_piepj_6d7c9c65.mp3",
 "dur": 5.98
 },
+"Tammo|Alleen: waar laat je hem? Op deze zolder kun je niet eens rechtop staan.": {
+"src": "tammo/alleen_waar_laat_je_hem_op_deze__51691e36.mp3",
+"dur": 3.2
+},
 "Tammo|Allemaal! Elke eierbal van Grunn. Ik ben trots op ons.": {
 "src": "tammo/allemaal_elke_eierbal_van_grunn__38c6a0fe.mp3",
 "dur": 3.55
@@ -4291,6 +4359,10 @@
 "src": "tammo/die_barman_had_een_snor_5fb00741.mp3",
 "dur": 1.45
 },
+"Tammo|Die gaat toch onder.": {
+"src": "tammo/die_gaat_toch_onder_dca81c2d.mp3",
+"dur": 1.16
+},
 "Tammo|Die heeft de pliesie gebeld. Doorlopen.": {
 "src": "tammo/die_heeft_de_pliesie_gebeld_door_6b5243c4.mp3",
 "dur": 1.79
@@ -4415,6 +4487,10 @@
 "src": "tammo/eieren_van_de_kippen_bij_de_volk_d365dd12.mp3",
 "dur": 3.31
 },
+"Tammo|Elf hoog. Met een lift. Ik voel me rijk.": {
+"src": "tammo/elf_hoog_met_een_lift_ik_voel_me_990dee52.mp3",
+"dur": 3.01
+},
 "Tammo|Elk jaar vissen ze er honderden uit. De rest heeft zich aangepast.": {
 "src": "tammo/elk_jaar_vissen_ze_er_honderden__7ce375d6.mp3",
 "dur": 3.66
@@ -4494,6 +4570,10 @@
 "Tammo|En wist je het?": {
 "src": "tammo/en_wist_je_het_35831ad9.mp3",
 "dur": 0.8
+},
+"Tammo|Er was geen zee. Alleen een dijk.": {
+"src": "tammo/er_was_geen_zee_alleen_een_dijk_f4163f8d.mp3",
+"dur": 2.02
 },
 "Tammo|Er zit een briefje in. \"Tige tank foar de auto. J.\"": {
 "src": "tammo/er_zit_een_briefje_in_tige_tank__07829e1e.mp3",
@@ -4623,6 +4703,10 @@
 "src": "tammo/hier_houdt_grunn_op_kon_minder_e_8751dfc9.mp3",
 "dur": 2.52
 },
+"Tammo|Hier zat ik vroeger. Als het thuis te druk was.": {
+"src": "tammo/hier_zat_ik_vroeger_als_het_thui_08798569.mp3",
+"dur": 2.57
+},
 "Tammo|Hij bedankt ons.": {
 "src": "tammo/hij_bedankt_ons_eefa80b4.mp3",
 "dur": 1.59
@@ -4662,6 +4746,10 @@
 "Tammo|Hij komt terug. Hij mist Grunn nu al.": {
 "src": "tammo/hij_komt_terug_hij_mist_grunn_nu_e5584930.mp3",
 "dur": 2.18
+},
+"Tammo|Hij ligt er ook. Een beetje.": {
+"src": "tammo/hij_ligt_er_ook_een_beetje_0fb538f4.mp3",
+"dur": 2.68
 },
 "Tammo|Hij praat Gronings.": {
 "src": "tammo/hij_praat_gronings_15c2a835.mp3",
@@ -4718,6 +4806,10 @@
 "Tammo|Ik bak nooit onder druk.": {
 "src": "tammo/ik_bak_nooit_onder_druk_1296b715.mp3",
 "dur": 1.36
+},
+"Tammo|Ik ben ook voortvluchtig.": {
+"src": "tammo/ik_ben_ook_voortvluchtig_09822361.mp3",
+"dur": 1.41
 },
 "Tammo|Ik ben vierendertig, oma.": {
 "src": "tammo/ik_ben_vierendertig_oma_050b585c.mp3",
@@ -4951,6 +5043,10 @@
 "src": "tammo/jij_bent_de_baas_jij_kiest_be5115b8.mp3",
 "dur": 2.57
 },
+"Tammo|Jouw ijs smelt.": {
+"src": "tammo/jouw_ijs_smelt_bb2eff3c.mp3",
+"dur": 1.11
+},
 "Tammo|KEI-week: eerstejaars op fietsen met polsbandjes denken dat ze Grunn al kennen.": {
 "src": "tammo/kei_week_eerstejaars_op_fietsen__05179016.mp3",
 "dur": 5.57
@@ -5078,6 +5174,10 @@
 "Tammo|Met een slot erop. En de code?": {
 "src": "tammo/met_een_slot_erop_en_de_code_6fbcd64c.mp3",
 "dur": 2.11
+},
+"Tammo|Met een zakje friet. Dat telt.": {
+"src": "tammo/met_een_zakje_friet_dat_telt_bef2de86.mp3",
+"dur": 1.73
 },
 "Tammo|Met veel bocht.": {
 "src": "tammo/met_veel_bocht_aa42f5d9.mp3",
@@ -5214,6 +5314,10 @@
 "Tammo|Ow.": {
 "src": "tammo/ow_65167695.mp3",
 "dur": 0.44
+},
+"Tammo|Paddepoel? Dat is buitenland.": {
+"src": "tammo/paddepoel_dat_is_buitenland_0c85e17f.mp3",
+"dur": 1.92
 },
 "Tammo|Pik, pik, los. Ik word weer duif.": {
 "src": "tammo/pik_pik_los_ik_word_weer_duif_fa187f5d.mp3",
@@ -5487,6 +5591,10 @@
 "src": "tammo/ook_waar_db897d09.mp3",
 "dur": 0.67
 },
+"Tammo|…Samen.": {
+"src": "tammo/samen_14256fe1.mp3",
+"dur": 0.73
+},
 "Tammo|…Straks.": {
 "src": "tammo/straks_624071a2.mp3",
 "dur": 0.73
@@ -5498,6 +5606,10 @@
 "Tammo|…Woist ja wel.": {
 "src": "tammo/woist_ja_wel_69987c14.mp3",
 "dur": 0.87
+},
+"Tammo|…Ze zijn lekker, jouw restjes.": {
+"src": "tammo/ze_zijn_lekker_jouw_restjes_10547032.mp3",
+"dur": 1.51
 },
 "Tammo|…Zei je dat nou hardop?": {
 "src": "tammo/zei_je_dat_nou_hardop_f7362c38.mp3",
@@ -7022,6 +7134,10 @@
 "~m|Hé, rustig an!": {
 "src": "bubbles/m/he_rustig_an_6f377722.mp3",
 "dur": 1.08
+},
+"~m|Iets leuks. Samen. En niet opvallen.": {
+"src": "bubbles/m/iets_leuks_samen_en_niet_opvalle_5ad4024a.mp3",
+"dur": 3.12
 },
 "~m|Ik ben niet dronken, ik ben Gronings!": {
 "src": "bubbles/m/ik_ben_niet_dronken_ik_ben_groni_544e10f9.mp3",

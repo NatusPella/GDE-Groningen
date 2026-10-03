@@ -55,7 +55,7 @@ export function mapIconUrl(kind, px = 40) {
   const ctx = c.getContext('2d');
   ctx.scale((px * 2) / 24, (px * 2) / 24);
   // the mission rings are drawn wider than the disc icons
-  const big = { missionIdle: 1.5, missionActive: 1.5, landmark: 1.8, eierbalTip: 2 }[kind] || 2.3;
+  const big = { missionIdle: 1.5, missionActive: 1.5, landmark: 1.8, eierbalTip: 2 }[kind] || (/^m[ia]-/.test(kind) ? 1.55 : 2.3);
   try { drawMapIcon(ctx, kind, 12, 12, big, { t: 0.3 }); } catch (e) { /* unknown kind: empty */ }
   return (iconUrls[k] = c.toDataURL());
 }
@@ -131,7 +131,7 @@ function missionItems(world) {
     if (next && status !== 'klaar') rows.push(['Daarna', next.title]);
     if (rec && rec.best != null) rows.push(['Record', `${rec.medal ? MEDALS[rec.medal] + ' · ' : ''}${formatMissionTime(rec.best)}`]);
     return {
-      key: 'm:' + i, group: 'missies', icon: 'missionIdle', title: m.label, code: m.code || '', meta, status,
+      key: 'm:' + i, group: 'missies', icon: 'mi-' + i, title: m.label, code: m.code || '', meta, status,
       medal: g && status !== 'later' ? (rec ? rec.medal : 0) : null, record: status === 'later' ? '' : record, x: m.start.x, y: m.start.y, mission: i, needs: m.needs,
       goal: step && step.current && !active ? 'story' : { kind: 'mission', id: i, name: m.code ? `${m.code} · ${m.label}` : m.label, sub: place, x: def.start.x, y: def.start.y },
       detail: {

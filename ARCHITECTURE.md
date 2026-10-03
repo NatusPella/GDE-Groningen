@@ -286,6 +286,37 @@ one place label when there is none), and during a call (`body.hud-call-on`)
 the now-playing card, vehicle name and hints step aside.
 `node scripts/attention_test.mjs` checks the rules.
 
+## Narrative scheduler
+
+`narrative.js` puts the story's items in one line, so nothing narrative
+overlaps another or a cutscene. Each module keeps its own queue and asks
+`mayStart(kind)` before it starts an item; it reports what plays or waits
+through a probe (`registerNarrative(kind, { active, pending })`, sampled
+every frame by `updateNarrative()` in main.js). Kinds: `scene`
+(cinematics.js: every cutscene, the intro, the mission banner), `contact`
+(storycontact.js: "Bel Rikus" and the other story contacts), `call`
+(phonefeed.js calls), `text` (a story text on the phone), `say` (the
+companion's remark when a step starts, story.js), `banter` (banter.js), and
+the toasts `phone`, `award` (achievements.js) and `card` (hudcards.js).
+- Nothing starts during a scene; talk waits 2.5 s after one, toasts 1.2 s.
+- One talking item at a time (contact, call, remark, banter), 2 s apart.
+- Banter waits for a contact or call that is ready, and 8 s after anything
+  narrative; a running exchange stops after its line when one is ready
+  (`storyWaiting`).
+- A step's story text waits for its "Bel Rikus"; a contact lets a story text
+  that is being read finish first.
+- Toasts also wait while a subtitle shows (`sub-cine`, `sub-banter`), and the
+  phone and HUD cards that are up step aside meanwhile (`heldBack`); the
+  Kiekdoar news (sikkomfeed.js) is dropped then, since its voice plays at once.
+- Toasts are held while a contact or call talks (HUD dangers, the police and
+  the cards of a running mission or bijbaan excepted), and never pop up
+  within 1.5 s of each other (`noteToast`).
+- A contact cut off by a cutscene or respawn plays its rest later, except a
+  "Bel Rikus" whose mission has started. story.js holds the recap, the end
+  card and the Tammo/Anita handover while something narrative plays, and
+  attention.js lets no flyover start over talk (`narrativeBusy`).
+`node scripts/narrative_test.mjs` checks the rules.
+
 ## Routes
 
 `routing.js` keeps up to three routes at once, each in its own colour
