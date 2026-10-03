@@ -691,7 +691,8 @@ function currentObjective(world) {
     const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
     const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
     const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
-    const sub = g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
+    const sub = g.alt ? `${near ? 'Je bent er' : 'Volg de gele route'} · of kies: ${g.alt}, op de kaart`
+      : g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
       : inside ? 'Stap even uit de marker en weer terug'
       : atMarker ? (near ? 'Loop of rij de gele marker in' : 'Volg de gele route naar de marker') : 'Volg de gele route';
     return { kind: 'story', title: g.name, sub, timer: '' };

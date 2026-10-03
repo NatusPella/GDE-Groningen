@@ -172,6 +172,8 @@ export function collect() {
   for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);
   // the scenes of activity steps (storyfun.js): where one is done, and Rotor Roelf at his demo heli
   for (const st of STEPS) for (const sc of [st.scene, st.meet]) for (const [k, t, o] of (sc && sc.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, o && o.tag ? { tag: o.tag } : {});
+  // r-trein's choice (storyarc.js HIDEOUTS): each option's scene
+  for (const st of STEPS) for (const o of (st.goal && st.goal.options) || []) for (const [k, t, op] of (o.scene && o.scene.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, op && op.tag ? { tag: op.tag } : {});
   // the trekker-limo pulling up at the museum (missionstory.js playLimoReveal)
   for (const [k, t] of lit(src('missionstory.js'), 'export const LIMO_LINES = ')) add('Missie-cutscenes', 'lines', [nm(k)], t);
   // Jelle on the phone (phone.js jelleTalk)
@@ -345,6 +347,7 @@ export function collect() {
   const SWHO = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
   for (const st of STEPS) {
     for (const f of ['lead', 'done']) if (st[f]) sms('Berichten (verhaal)', SWHO(st[f][0]), st[f][1]);
+    for (const o of (st.goal && st.goal.options) || []) if (o.done) sms('Berichten (verhaal)', SWHO(o.done[0]), o.done[1]);
     if (st.goal && st.goal.lift) sms('Berichten (verhaal)', st.goal.lift[0], st.goal.lift[1]);
     for (const f of ['after', 'beat']) for (const [k, t] of st[f] || []) sms('Berichten (verhaal)', SWHO(k), t);
     for (const c of st.contact || []) for (const [k, t] of c.after || []) sms('Berichten (verhaal)', SWHO(k), t);

@@ -62,6 +62,8 @@
 //   { type: 'sideJob', job }          one more round of that side job (sidejobs.js id, or an array: any of them)
 //   { type: 'night' }                 wait at a garage until it's dark (or it already is)
 //   { type: 'train' }                 one train trip (stationtravel.js), routed to the nearest station
+//   { type: 'hideout', options }      one of HIDEOUTS, the player's pick: a train trip or walking up to
+//                                     a spot; its scene and done text follow (storyfun.js)
 //   { type: 'egg' }                   find one more hidden eierbal (achievementtracker), routed to the nearest
 //   { type: 'padel' }                 play one padel match, won or lost (padel.js), routed to the nearest court
 //   { type: 'kermis' }                one bumper-car ride on the Grote Markt (kermis.js), free, with Durk & Douwe in it
@@ -163,6 +165,47 @@ export const MISSION_IDS = [
 // simply drops them (story.js applyStorySave); their purchases stay owned.
 export const RETIRED_STEPS = ['k-eierbal', 'k-wapen', 'k-bijbaan', 'r-uzi', 'r-auto', 'r-bijbaan', 'r-eierbal', 'r-bank'];
 
+// r-trein, "Even onderduiken": after the kraak Tammo and Anita lie low, and
+// the player picks one of these (all three on the map, the route to the
+// nearest). Each ends in a short scene where the two of them grow a little
+// closer (storyfun.js). id is saved; at: 'station' (that station, the train
+// goal: one trip, the scene where it arrives) or [x, y] (walk or drive up to
+// it); clock: the hour the scene plays at; look: where they look, as an
+// offset from the spot; done: the companion's text afterwards.
+export const HIDEOUTS = [
+  { id: 'trein', name: 'De trein vanaf het Hoofdstation', short: 'trein', at: 'station', station: 'Groningen Hoofdstation',
+    done: ['T', 'Iedereen kijkt naar Kiekdoar. Niemand naar ons.'],
+    scene: { kicker: 'Even onderduiken: de trein',
+      lines: [
+        ['A', 'Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.', { tag: 'zacht, plagend' }],
+        ['A', 'Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken.', { tag: 'nostalgisch, warm' }],
+        ['T', 'Er was geen zee. Alleen een dijk.', { tag: 'droog' }],
+        ['A', 'Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.', { tag: 'lachend, verwijtend' }],
+        ['T', 'Hij ligt er ook. Een beetje.', { tag: 'zacht, droog, met een glimlach' }],
+      ] } },
+  { id: 'ijsje', name: 'Een ijsje in het Noorderplantsoen', short: 'ijsje', at: [133.3, -718.7], r: 16,
+    done: ['T', 'Niemand zoekt een boef met een ijsje.'],
+    scene: { kicker: 'Even onderduiken: het Noorderplantsoen',
+      lines: [
+        ['A', 'Twee bolletjes. Jij betaalt, ik ben voortvluchtig.', { tag: 'plagend, zelfverzekerd' }],
+        ['T', 'Ik ben ook voortvluchtig.', { tag: 'droog' }],
+        ['A', 'Jij hebt een pet. Dat is een vermomming.', { tag: 'ad rem' }],
+        ['T', 'Jouw ijs smelt.', { tag: 'deadpan' }],
+        ['A', 'Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes.', { tag: 'warm, plagend' }],
+        ['T', '…Ze zijn lekker, jouw restjes.', { tag: 'zacht, net te eerlijk' }],
+      ] } },
+  { id: 'hogedera', name: 'De zonsondergang aan de Hoge der A', short: 'zonsondergang', at: [-437, 101], r: 16, clock: 20.9, look: [-60, 10],
+    done: ['T', 'Twijduustern. Niemand zoekt ons in het donker.'],
+    scene: { kicker: 'Even onderduiken: de Hoge der A',
+      lines: [
+        ['T', 'Hier zat ik vroeger. Als het thuis te druk was.', { tag: 'zacht, nostalgisch' }],
+        ['A', 'Alleen?', { tag: 'zacht, nieuwsgierig' }],
+        ['T', 'Met een zakje friet. Dat telt.', { tag: 'droog' }],
+        ['A', 'Je kijkt naar mij, Tammo. De zon is daar.', { tag: 'zacht, plagend, een beetje verlegen' }],
+        ['T', 'Die gaat toch onder.', { tag: 'droog, warm, kijkt niet weg' }],
+      ] } },
+];
+
 // "Bel Rikus": the radio fragment that opens a mission (played with its lead).
 const belRikus = (lines, caller = '') => ({ via: 'radio', on: 'lead', from: 'rikus', caller, mood: 'night', lines });
 // A Nachtstreek fragment after a mission (a rubriek, a peiling, a caller).
@@ -251,10 +294,10 @@ export const STEPS = [
     unlocks: 'jelle' },
 
   // --- Romp: "Stad in rouw" (Noorderzon) -------------------------------------------
-  { id: 'r-trein', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik koop de kaartjes. Jij kijkt veel te schuldig voor een conducteur.',
-    title: 'Even onderduiken: een treinreis', goal: { type: 'train' }, cost: 8,
-    lead: ['T', 'Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken: pak de trein.'],
-    say: ['T', 'Een kaartje naar maakt niet uit waar. Ik kijk wel uit het raam.'],
+  { id: 'r-trein', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik kies waar we heen gaan. Jij kijkt veel te schuldig om te kiezen.',
+    title: 'Even onderduiken: iets leuks samen', goal: { type: 'hideout', options: HIDEOUTS }, cost: 8,
+    lead: ['T', 'Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken, wij tweeën. De trein vanaf het Hoofdstation, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A. Kies maar, ze staan op je kaart.'],
+    say: ['T', 'Iets leuks. Samen. En niet opvallen.'],
     done: ['T', 'Iedereen kijkt naar Kiekdoar. Niemand naar ons.'] },
   { id: 'H7', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'noorderzon', why: 'Ik rij het decor. Femke vindt mij rustig. Ze kent me nog niet.',
     title: 'Heel aankomen is ook een kunst', reward: 850,
