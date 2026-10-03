@@ -799,6 +799,12 @@ export function applyMapExtras(data, ex) {
       a.push(r, i);
     });
   }
+  // height fixes on profiled ways (scripts/add_map_extras.py ROAD_Z):
+  // every road with a height profile through that vertex takes z there
+  for (const p of ex.roadZ || []) {
+    const a = at.get(exKey(p.at));
+    if (a) for (let i = 0; i < a.length; i += 2) if (a[i].z) a[i].z[a[i + 1]] = p.z;
+  }
   // roads sharing the consecutive vertices a -> b: [{ road, same }]
   const along = (a, b) => {
     const out = [];
