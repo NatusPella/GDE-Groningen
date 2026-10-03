@@ -1,1 +1,28 @@
-[]
+[
+ {
+  "key": "Rikus|Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.",
+  "speaker": "Rikus",
+  "text": "Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.",
+  "area": "Verhaal-kaarten",
+  "out": "lines",
+  "say": "Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.",
+  "file": "rikus/eerder_in_gde_twee_stadjers_zond_045fd8bb.mp3",
+  "voice": "Schedar",
+  "who": "Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog",
+  "tag": "droog, met een knipoog, samenvattend",
+  "style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog, samenvattend."
+ },
+ {
+  "key": "Rikus|Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.",
+  "speaker": "Rikus",
+  "text": "Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.",
+  "area": "Verhaal-kaarten",
+  "out": "lines",
+  "say": "Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.",
+  "file": "rikus/eerder_in_gde_jelle_kocht_al_het_c0baad5b.mp3",
+  "voice": "Schedar",
+  "who": "Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog",
+  "tag": "droog, met een knipoog, samenvattend",
+  "style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog, samenvattend."
+ }
+]
