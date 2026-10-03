@@ -389,6 +389,28 @@ don't collide, and actors are drawn at their height.
   EIKEA landmark; bounds-matched patches remove the underground garages and bridge piers still in citymap.json and turn covered walkways into canopies), gas stations (`meta.fuel`) and padel sites (`meta.padel`:
   OSM `sport=padel` pitches grouped per site, named after their wijk). It lives outside
   citymap.json so the big file stays untouched.
+- Grote Markt and Vismarkt (`marktgebouwen.js`, notes and sources in
+  `docs/markt-gebouwen.md`): `buildBuildingMesh` asks `marktKind(b)` first.
+  - `'model'`: an own landmark-style model by name (Korenbeurs, Het Groot
+    Handelshuis, Calmershuis, the kiosk), drawn with `LANDMARK_MATERIALS` and the
+    `LM` helpers that landmarks3d.js exports.
+  - `'facade'`: ordinary buildings with an open edge within 32 m of one of
+    the `SQUARES` polygons, or with a mapextras `markt` key (a
+    per-building override such as `drieGezusters36`). They get the
+    historic-centre treatment: each street edge is split into seeded plots,
+    and each plot has its own gable kind, colour, eave (0.3-1.9 m above
+    the b.h body), windows, shopfront and roof volume on the body's flat
+    top. The `NATALINI` and `POSTWAR` zones pick the Waagstraat complex
+    and the postwar north wall mixes.
+  - Geometry is a shell and a facade-detail mesh: the detail is hidden past
+    the 'laag' detail radius and left out of unmerged batches. Both use
+    `MARKT_FACADE_MATERIALS` (the landmark plain/brick/metal/tile
+    materials and the interior glass, panes with `paneUV`), so the cells
+    batch to a few draw calls.
+  - Collision still uses the footprint; everything stays inside it below
+    head height.
+  - `scripts/markt_audit.mjs` counts the area's triangles and batched draw
+    calls.
 - The follow camera orbits at `ORBIT_RADIUS` and keeps `CAM_CLEARANCE` from
   nearby buildings, which must stay larger than the 0.5 m near plane.
 
@@ -427,12 +449,34 @@ don't collide, and actors are drawn at their height.
   well inside the detail radius (15 m margin); a cell is unmerged at once
   when a member leaves the detail radius, is hidden or rebuilt. Merging is
   spread over frames (2 ms budget); the buildings' own meshes stay in the
-  scene, hidden, for the camera's ray tests. `?nobatch` turns it off.
+  scene, hidden, for the camera's ray tests. `?nobatch` turns it off
+  (and the wheel instancing below). On 'laag' (or a busy CPU) the facade
+  details within their radius get their own batcher (`facadeBatcher`, the
+  detail mesh only); roads use 96 m cells and two roads make a batch.
+- `wheelinstances3d.js`: vehicle wheels keep their own meshes (spin, steer,
+  skid marks) on a hidden layer; one InstancedMesh per wheel geometry and
+  material draws those of the vehicles in (or near) the view each frame.
+- Village centres (`countryvillage.js`) bake every item into one mesh per
+  material and shadow flag while laying out (four draws a village); the
+  horeca pads near the player are one InstancedMesh.
+- The minimap's Ommeland layer (`drawCountryMinimap`) is static: drawn into
+  world-aligned 256 px tiles per half-octave zoom step (at most one new tile
+  a frame, LRU of 40) and blitted.
+- Load-adaptive simulation (`simload.js`): while `cpuLevel` is 1-2 the
+  traffic, cyclist, scooter and walker targets drop to 75% / 55% (the
+  farthest ordinary ones out past 110 m go first), traffic and plain walkers
+  beyond 90 / 60 m think every second / third frame with the skipped time
+  added, and walkers beyond 45 m animate at half rate. Player, mission,
+  story, police, racer and scripted vehicles and people are never thinned.
+  `window.__simLoad.force(n)` (perf runs: `PERF_SIM=n`) pins the level.
 - Perf runs: `scripts/perf/run.sh` (fixed routes in the desktop build at
   1920x1080, dpr 1: city on foot, the ring by car, the heli over the
   Ommeland at 40 m/s, the pause menu, a settings sheet; frame and
   main-thread times, GPU timer query, long tasks, draw calls per frame;
-  `--cpu-throttle=N`, `--preset=k:v,...`), `scripts/perf/ab.sh` for
+  `--cpu-throttle=N`, `--preset=k:v,...`; `PERF_ONLY=village` adds the heli
+  circling a village centre, `PERF_PROFILE=foot,ring` profiles several
+  routes, `PERF_DIAG=1` lists draw calls per owner, `--hitch` adds the slow
+  frames' breakdown), `scripts/perf/ab.sh` for
   interleaved A/B runs against another staged build (`GTE_STAGE_SRC`,
   `GTE_STAGE_OUT`, `GTE_GAME_DIR`).
 
@@ -553,14 +597,18 @@ data plus a director:
   props, drifts, near misses, pigeon flocks and the water truck on the Grote
   Markt (stuntavond.js); people hit there are knocked down, never killed
   (`world.stuntSafe`, pedestrians.js). A def `window` (H6) is a timer over a
-  range of stages, `moment` a card at a checkpoint (H5). A failed mission's
+  range of stages, `moment` a staged scene at a checkpoint (H5: missionstory.js
+  `playEyeContact`, Anita on her own bike at the all-green crossing; its `text` is
+  the fallback toast). A failed mission's
   banner reads "Sikkom.". In `missionstory.js` an entry's `replay` is the short
   outro of a replay (the mission as a klus), `outroNpcKey` another NPC for the
   outro, a line's `kiss` the line the kiss happens on. Type `stages` builds a mission from
   small objectives (board, goto, hold, garage, escape, pigeon, scene, chase,
   vault; documented above `resolveTarget`); the new missions H2, H4, H6, H8
   and H10 use it (H6 adds plan, fuse, lock, pickpocket, laser, crack, getaway and shot, and `only` stages per approach), and the Staart adds boatchase (H14's skûtsje on the Diepenring
-  route), heli (helirun.js as a stage), fireworks on a hold, a timed goto,
+  route), heli (helirun.js as a stage), fireworks on a hold, a chase `route` with a
+  radio report per street and a `swarm` (H18's pigeons over the fireworks,
+  missionstory.js `playPigeonSwarm`), a timed goto,
   `pay` and an egg meter (H17). `storyprops3d.js` holds temporary story props (H10's
   flag), `missionstory.js` `playVaultScene` Jelle's fierljep escape, and
   `racers.js` puts Jelle's trekker-limo in the ring race (`opts.jelle`). Dialogue for every mission index

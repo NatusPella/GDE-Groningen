@@ -67,6 +67,7 @@ import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
+import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -129,6 +130,32 @@ function showFrameError(err) {
 }
 
 const PED_TARGET = 45;
+
+// over budget on a CPU-bound machine: the farthest ordinary cars and
+// cyclists out of sight go first (simload.js)
+function thinTraffic(world) {
+  const { player, vehicles } = world;
+  const want = { car: scaledTarget(30), bike: scaledTarget(16), scooter: scaledTarget(10) };
+  const kindOf = (v) => (v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus || v.isBoat || v.parked || v.wrecked ? null : 'car');
+  const have = { car: [], bike: [], scooter: [] };
+  for (const v of vehicles) {
+    const k = kindOf(v);
+    if (!k || keepVehicle(v) || v.missionFatbike) continue;
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d > 110) have[k].push([d, v]);
+  }
+  for (const k in have) {
+    const all = have[k];
+    let excess = vehicles.reduce((n, v) => n + (kindOf(v) === k && !keepVehicle(v) ? 1 : 0), 0) - want[k];
+    if (excess <= 2) continue;
+    all.sort((a, b) => b[0] - a[0]);
+    for (const [, v] of all) {
+      if (excess <= 0) break;
+      vehicles.splice(vehicles.indexOf(v), 1);
+      excess--;
+    }
+  }
+}
 const PED_DESPAWN_DIST = 150;
 
 const input = new Input();
@@ -321,11 +348,12 @@ async function boot() {
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
       trafficTimer = 1.5;
-      manageTrafficPopulation(world);
-      manageBikePopulation(world);
+      manageTrafficPopulation(world, { target: scaledTarget(30) });
+      manageBikePopulation(world, { target: scaledTarget(16) });
       manageBusPopulation(world);
-      manageScooterPopulation(world);
+      manageScooterPopulation(world, { target: scaledTarget(10) });
       manageBoatPopulation(world);
+      if (simLevel()) thinTraffic(world);
     }
     pedTimer -= dt;
     if (pedTimer <= 0) {
@@ -363,11 +391,17 @@ async function boot() {
     probe.mark('player');
 
     updateTrafficLights(dt, world);
-    for (const v of world.vehicles) {
+    nextSimFrame();
+    const farAI = farAIDist();
+    for (let i = 0; i < world.vehicles.length; i++) {
+      const v = world.vehicles[i];
       // police.js drives its own units; an abandoned or burning one just rolls out here
       if (v.driver === 'player' || v.isBoat || (v.isPolice && !v.disabled && !(v.hijacked && !v.driver))) continue;
-      updateTrafficAI(v, dt, map, world, Math.random);
-      resolveVehicleBuildingCollision(v, map, dt);
+      // far ordinary traffic thinks less often on a CPU-bound machine (simload.js)
+      if (farAI < Infinity && !keepVehicle(v) && skipFar(v, i, Math.abs(v.x - player.x) + Math.abs(v.y - player.y), dt)) continue;
+      const vdt = takeDt(v, dt);
+      updateTrafficAI(v, vdt, map, world, Math.random);
+      resolveVehicleBuildingCollision(v, map, vdt);
     }
     for (const v of world.vehicles) {
       if (v.isBoat && v.driver !== 'player') updateBoatAI(v, dt, map, world, Math.random);

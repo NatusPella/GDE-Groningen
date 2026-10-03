@@ -7,6 +7,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **De Grote Markt en de Vismarkt lijken nu echt.** De gevelwanden zijn
+  opgedeeld in panden van 5 tot 9 meter, elk met een eigen gevel:
+  lijstgevels, gepleisterde gevels met consoles, trapgevels, klokgevels,
+  winkelpanden van rond 1900 en de wederopbouw aan de noordkant. Ze hebben
+  hoge schuiframen, winkelpuien en markiezen. Nieuw of herbouwd:
+  - het Stadhuis met zijn vier zuilen en fronton op de markt;
+  - het Goudkantoor met drie topgevels;
+  - het Waagstraatcomplex van Natalini;
+  - Het Groot Handelshuis in grijs mozaïek;
+  - De Drie Gezusters, het Market Hotel en Merckt;
+  - de Korenbeurs met Mercurius, Neptunus en Ceres;
+  - het zwarte Calmershuis;
+  - een glazen kiosk.
 - **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
   zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
   kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
@@ -90,6 +103,23 @@ nieuwe functies, `y` voor alleen bugfixes.
   goud vanaf 3.300 punten, met B/Z/G in Te doen.
 
 ### Veranderd
+- **Ontzet, net als in 1672:** de achtervolging volgt het script. Jelle scheurt
+  vanaf de hoek van de Grote Markt de Oude Boteringestraat in, over de
+  Boteringebrug, langs de Spilsluizen en de Oude Ebbingestraat weer terug naar
+  de markt, en de torenwachter meldt elke straat. Blijf erbij (rammen helpt):
+  dan fluit Tammo en vliegen de duiven van d'Olle Grieze door het vuurwerk op de
+  voorruit van de trekker, nu als scène in plaats van een kaartje.
+- **Wind tegen, beide kanten op:** het oogcontact is nu een echte scène in plaats
+  van een kaartje. Op het kruispunt waar alles groen is komt Anita op haar eigen
+  fiets van de andere kant, ze kijken elkaar aan en remmen allebei.
+- **Fatbikes tellen niet als fiets** loopt nu zoals in het script: van de Grote
+  Markt de Oude Ebbingestraat uit, over de Ebbingebrug en langs het water naar
+  Oma Trijntje aan de Noorderhaven. De fatbikes komen overal om je heen, niet
+  alleen aan de uiteinden; de klok en de medailletijden zijn langer.
+- **Nieuw spel** is strakker: de opening duurt anderhalve minuut in plaats van
+  bijna twee. Kortere trailerflitsen, de dageraad in de Korenbloemstraat in één
+  beweging van de toren naar de lekke band en de radio, en het stille moment aan
+  de keukentafel loopt over in Anita's zin. Het tweede logo is weg.
 - Minder verplichte aankopen: alleen een fiets, kraakspullen (zwart of een
   bootje) en een huurboot. De eierbal, het pistool, de uzi, de auto, de bank
   en de bijbaantjes zijn geen verhaalstap meer (te koop blijven ze). Tuning
