@@ -214,7 +214,7 @@ async function boot() {
   await yieldToPaint();
   window.addEventListener('resize', resize3D);
 
-  // every game starts at home: outside the lobby of Tammo and Anita's flat
+  // every game starts at home: outside the lobby of Tammo and Tessa's flat
   // (home.js), the Escapade in the garage
   const spawn = homeSpawnPoint();
   const sx = spawn.x, sy = spawn.y;

@@ -42,7 +42,7 @@ const CONTROL_GROUPS = [
     [['CTRL'], 'Bukken'],
     [['E', 'F'], 'Instappen, winkel in, praten, bijbaantje beginnen'],
     [['E'], 'Bij een duivenbord: word een duif'],
-    [['K'], 'Kusje geven aan Tammo of Anita'],
+    [['K'], 'Kusje geven aan Tammo of Tessa'],
   ]],
   ['rijden', 'Rijden', [
     [['WASD'], 'Gas, remmen en achteruit, sturen'],
@@ -274,7 +274,7 @@ function settingsHtml() {
       ${slider('musicVolume', 'Muziek')}
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
-      <p class="pm-note">Muziek is G-Music en de titelsong, stemmen zijn Tammo, Anita, de politie en de mensen op straat.</p>
+      <p class="pm-note">Muziek is G-Music en de titelsong, stemmen zijn Tammo, Tessa, de politie en de mensen op straat.</p>
     </div>
     <div data-of="settings" data-sub="video" class="pm-group pm-video" hidden>
       <div class="pm-bench" data-bench-banner hidden></div>
@@ -851,7 +851,7 @@ function runAction(a) {
     root.querySelector('[data-action="restart"]').focus();
   } else if (a === 'menu' || a === 'exit') {
     // save, then back to the title screen (Doorgaan) or close the app; a
-    // pigeon first turns back into Tammo/Anita so the save has a street spot
+    // pigeon first turns back into Tammo/Tessa so the save has a street spot
     if (world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
     if (world) saveGame(world);
     if (a === 'exit' && DESKTOP) DESKTOP.quit();
@@ -1097,7 +1097,7 @@ function syncRail() {
 
 function refreshInfo() {
   if (!world) return;
-  const c = world.pigeonMode ? 'Duif' : world.player.character === 'anita' ? 'Anita' : 'Tammo';
+  const c = world.pigeonMode ? 'Duif' : world.player.character === 'anita' ? 'Tessa' : 'Tammo';
   const set = (k, text) => { for (const el of root.querySelectorAll(`[data-info="${k}"]`)) el.textContent = text; };
   set('char', c);
   set('clock', getClockText(world));

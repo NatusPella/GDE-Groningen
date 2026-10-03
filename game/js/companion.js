@@ -11,7 +11,7 @@ import { passagesOf } from './collision.js';
 const SWIM_EDGE_CLEAR = 0.7;
 import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 
-// Tammo and Anita are always out together: whichever one the player is NOT
+// Tammo and Tessa are always out together: whichever one the player is NOT
 // controlling is this module's "companion" - an AI-controlled buddy that
 // follows on foot, rides along as a passenger when the player drives, and
 // respawns-and-walks-back if it gets killed. Swapping control (the 'c' key,
@@ -108,7 +108,7 @@ function respawnCompanion(world) {
   c.state = 'alive';
   c.inVehicle = null;
   leaveWater(c);
-  const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
+  const name = c.character === 'tammo' ? 'Tammo' : 'Tessa';
   world.addMessage(`${name} komt er weer aan`, 3);
 }
 
@@ -813,7 +813,7 @@ function stepCompanion(dt, world) {
         vx: Math.cos(v.angle) * v.speed * 0.9 + Math.cos(away) * sp * 0.35,
         vy: Math.sin(v.angle) * v.speed * 0.9 + Math.sin(away) * sp * 0.35,
       });
-      const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
+      const name = c.character === 'tammo' ? 'Tammo' : 'Tessa';
       world.addMessage(`${name} is aangereden!`, 3);
       break;
     }

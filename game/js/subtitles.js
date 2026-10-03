@@ -69,7 +69,7 @@ export const FY = {
   'Priuw, jonge.': 'Proef, jongen.',
   // Mem Terpstra (storyarc.js contact)
   'Pas goed op dysels, famke. – M.': 'Pas goed op jezelf, meisje. – M.',
-  'Anita, famke? Met mij. Myn jonges hebben dyn auto.': 'Anita, meisje? Met mij. Mijn jongens hebben jouw auto.',
+  'Tessa, famke? Met mij. Myn jonges hebben dyn auto.': 'Tessa, meisje? Met mij. Mijn jongens hebben jouw auto.',
   'Op de trein naar Ljouwert, fan\'e middei. Net fertelle dat ik belde.': 'Op de trein naar Leeuwarden, vanmiddag. Niet doorvertellen dat ik belde.',
   'Tige tank. Eh… dank je. Ik zeg niks tegen Tammo.': 'Hartelijk dank. Eh… dank je. Ik zeg niks tegen Tammo.',
   '"Moai stedsje. Foar in wykein."': '"Mooi stadje. Voor een weekend."',

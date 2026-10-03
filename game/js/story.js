@@ -4,11 +4,12 @@
 // voorschot when a purchase is out of reach, offers "Sla deze missie over"
 // after a failure and shows the "Wordt vervolgd" card where the built part
 // of the story ends. Each step says who the player controls (step.player):
-// Tammo and Anita trade places at its start, behind a short fade. After the
+// Tammo and Tessa trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber } from './storyarc.js';
 import { setMeetHook } from './namecard.js';
+import { displayName } from './speakers.js';
 import { queueStoryContact } from './storycontact.js';
 import { isCallActive } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
@@ -365,7 +366,7 @@ function setNight() {
 
 // Credits after the epilogue: name cards over the city, no voices.
 const CREDITS = [
-  ['Tammo & Anita', 'Vijf woorden'],
+  ['Tammo & Tessa', 'Vijf woorden'],
   ['Rikus', 'vertelde het, op Nachtstreek'],
   ['Jelle Terpstra', 'de Fryske Snackkening, foar mem'],
   ['Gerda Terpstra', 'tweede in 1953. Nu op het bordje'],
@@ -482,7 +483,7 @@ function playFinale(part) {
   CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
   q({ duration: 4.5, logo: true, shot: finaleShot(46 + CREDITS.length * 3.2) });
   q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(50.5 + CREDITS.length * 3.2) });
-  // then the Fjord Frituur comes out from under its sheet and Anita drives off in it
+  // then the Fjord Frituur comes out from under its sheet and Tessa drives off in it
   queueFjordReveal(world);
   state.cards.add(part);
   phone(SERIES, 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.', 9);
@@ -513,11 +514,11 @@ function companionSays(w, text) {
   rt.sayUntil = w.time + dur;
 }
 
-// --- who plays: Tammo or Anita ----------------------------------------------------------
+// --- who plays: Tammo or Tessa ----------------------------------------------------------
 
 const charName = (c) => (c === 'anita' ? 'Anita' : 'Tammo');
 
-// Tammo and Anita trade roles where they stand: the body you control becomes
+// Tammo and Tessa trade roles where they stand: the body you control becomes
 // the other one, and so does the companion (scene3d.js rebuilds the meshes).
 function swapCharacter(w, want) {
   const p = w.player, c = w.companion;
@@ -562,7 +563,7 @@ function updateCharacter(w) {
   swapCharacter(w, want);
   if (!playHandover(w, step)) {
     flash();
-    w.addMessage(`${charName(w.player.character)} neemt het over`, 2.5);
+    w.addMessage(`${displayName(charName(w.player.character))} neemt het over`, 2.5);
   }
 }
 
@@ -767,7 +768,7 @@ export function initStory(w) {
 const KISS_STEP = 'H13';
 // H13 itself, not a later mission played ahead; and only once the story has
 // got there: H13 played ahead from Te doen ("H13 nu al spelen?") left the
-// missions before it open, and whoever you played then (Tammo or Anita,
+// missions before it open, and whoever you played then (Tammo or Tessa,
 // depending on the step you were at) could kiss from H7 on.
 function kissUnlockedNow() {
   const step = STEP_BY_ID.get(KISS_STEP);
@@ -877,7 +878,7 @@ export function applyStorySave(d) {
   if (world) world.kissUnlocked = kissUnlockedNow();
 }
 
-// Who Tammo and Anita have met (name cards, namecard.js): a 'met:<key>' flag each.
+// Who Tammo and Tessa have met (name cards, namecard.js): a 'met:<key>' flag each.
 function meet(key) {
   const f = 'met:' + key;
   if (state.flags.has(f)) return false;
@@ -898,7 +899,7 @@ export function storyFlag(name) {
 // --- views for the pause menu, phone and dev tools ------------------------------------------
 
 // "Wat weten we?": the clues and turning points of the steps done so far
-// (newest first) and what Tammo and Anita are after in this part.
+// (newest first) and what Tammo and Tessa are after in this part.
 export function getStoryJournal() {
   const step = rt.cur || currentStep();
   const part = step && (step.part || step.end) || 'kop';

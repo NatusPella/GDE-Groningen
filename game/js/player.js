@@ -537,7 +537,7 @@ export class Player {
       until: world.time + 1.4,
       kind: 'kiss',
     });
-    const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
+    const name = c.character === 'tammo' ? 'Tammo' : 'Tessa';
     world.addMessage(`Kusje voor ${name}! (+${KISS_HEAL} gezondheid)`, 2.5);
     return true;
   }

@@ -223,10 +223,6 @@
 "src": "h9-pass-grip_0_a_9d6ca3.mp3",
 "dur": 2.79
 },
-"Tammo|Grip, Anita. Dat heet grip.": {
-"src": "h9-pass-grip_1_t_cf5e99.mp3",
-"dur": 2.12
-},
 "Tammo|Die weg is sneller dan wij.": {
 "src": "h9-fail_0_t_4f7bbd.mp3",
 "dur": 1.41
@@ -430,10 +426,6 @@
 "Tammo|Die bank past nu overal door. Het is een halve bank.": {
 "src": "job-verhuizing-fail_1_t_385dc7.mp3",
 "dur": 3.71
-},
-"Tammo|Ik heb dromen, Anita. Ze zijn rond en gepaneerd.": {
-"src": "st-eierbal_0_t_1a5e28.mp3",
-"dur": 3.99
 },
 "Anita|Het is een ei in een jasje, Tammo.": {
 "src": "st-eierbal_1_a_829e40.mp3",
@@ -1639,10 +1631,6 @@
 "src": "id-komtgoud_3_a_2694b3.mp3",
 "dur": 1.91
 },
-"Tammo|Anita! Echt?": {
-"src": "id-tigetank_2_t_716934.mp3",
-"dur": 1.63
-},
 "Tammo|Au. Mijn hoofd.": {
 "src": "react-crash_0_t_bb6dbb.mp3",
 "dur": 1.71
@@ -2327,10 +2315,6 @@
 "src": "id-wikipedia_1_a_fb79d9.mp3",
 "dur": 4.68
 },
-"Tammo|Daar gaat Anita, de wandelende Wikipedia van Stad.": {
-"src": "id-wikipedia_2_t_e853de.mp3",
-"dur": 3.67
-},
 "Anita|Iemand moet het weten.": {
 "src": "id-wikipedia_3_a_a9d6d5.mp3",
 "dur": 1.85
@@ -2778,10 +2762,6 @@
 "Anita|Natuurlijk.": {
 "src": "h11-pass-vraagt_2_a_6079e6.mp3",
 "dur": 1.54
-},
-"Tammo|Over Jelle, Anita.": {
-"src": "h11-pass-vraagt_3_t_59bebc.mp3",
-"dur": 1.58
 },
 "Anita|Wat bedoelde ze, \"niet tegen haar\"?": {
 "src": "h12-pass-niettegenhaar_0_a_60ebe7.mp3",
@@ -3906,5 +3886,25 @@
 "Tammo|Iemand met een trekker-limo.": {
 "src": "h6-pass-w_1_t_4632a2.mp3",
 "dur": 1.74
+},
+"Tammo|Grip, Tessa. Dat heet grip.": {
+"src": "h9-pass-grip_1_t_248a1d.mp3",
+"dur": 2.15
+},
+"Tammo|Over Jelle, Tessa.": {
+"src": "h11-pass-vraagt_3_t_d761dc.mp3",
+"dur": 1.87
+},
+"Tammo|Ik heb dromen, Tessa. Ze zijn rond en gepaneerd.": {
+"src": "st-eierbal_0_t_c3510a.mp3",
+"dur": 3.2
+},
+"Tammo|Daar gaat Tessa, de wandelende Wikipedia van Stad.": {
+"src": "id-wikipedia_2_t_91bcfe.mp3",
+"dur": 3.49
+},
+"Tammo|Tessa! Echt?": {
+"src": "id-tigetank_2_t_aa2eda.mp3",
+"dur": 1.29
 }
 }

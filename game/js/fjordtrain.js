@@ -1,5 +1,5 @@
 // H16 "Iedereen heeft een rode auto gezien": the goods train to Leeuwarden that Durk and Douwe
-// load Anita's Fjord onto. It waits on the line west of the Hoofdstation;
+// load Tessa's Fjord onto. It waits on the line west of the Hoofdstation;
 // the fleeing Fjord drives up onto the last flat (or is already on it when
 // the chase clock runs out), the
 // train leaves, and the player stops it by standing at the Peizerweg level
@@ -177,7 +177,7 @@ export function updateFjordTrain(dt, world) {
   if (!ft) return null;
   const t = ft.t, v = ft.fjord, p = world.player;
   if (v && v.onTrain && p.inVehicle === v) {
-    // Anita got in up there: down off the flat, beside the train
+    // Tessa got in up there: down off the flat, beside the train
     const car = rearFlat();
     const nx = -Math.sin(car.angle), ny = Math.cos(car.angle);
     const side = Math.sign((p.x - car.x) * nx + (p.y - car.y) * ny) || 1;

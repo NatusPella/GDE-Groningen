@@ -382,7 +382,7 @@ export async function runStoryTest(world) {
       check(`flow reaches "Wordt vervolgd" (${lastPart})`, end && end.end === lastPart, JSON.stringify(end));
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
-      check('Tammo and Anita take turns', swaps >= 4, `${swaps} wissels`);
+      check('Tammo and Tessa take turns', swaps >= 4, `${swaps} wissels`);
       check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 
       // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur

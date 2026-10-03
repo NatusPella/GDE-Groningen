@@ -662,7 +662,7 @@ function hitCompanion(c, t, car, push, world) {
   if (dead) { c.state = 'dead'; c.deadUntil = world.time + COMPANION_DOWN_S; }
   c.vx = 0; c.vy = 0;
   knockDown(c, world, { kind: 'hit', dead, vx: Math.cos(car.angle) * tv * 0.5 + push.nx * 6, vy: Math.sin(car.angle) * tv * 0.5 + push.ny * 6, vz: 4 + Math.min(4, t.v * 0.25), lieFor: 2.5 });
-  world.addMessage(`${c.character === 'tammo' ? 'Tammo' : 'Anita'} is aangereden door de trein!`, 3);
+  world.addMessage(`${c.character === 'tammo' ? 'Tammo' : 'Tessa'} is aangereden door de trein!`, 3);
 }
 
 function hitPedestrian(ped, t, car, push, world) {

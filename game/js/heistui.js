@@ -229,7 +229,7 @@ function drawPlan() {
   g.textAlign = 'center';
   g.fillStyle = 'rgba(240, 237, 228, 0.55)';
   for (const r of data.rooms) if (r.name) g.fillText(r.name.toUpperCase(), X(r.c[0]), Y(r.c[1]) + 5);
-  // routes: drawn on by Anita's pen while they are the topic, kept after
+  // routes: drawn on by Tessa's pen while they are the topic, kept after
   const route = (pts, color, k) => {
     if (!pts || pts.length < 2 || (!plan.seen.has(k) && f !== 'choice')) return;
     let L = 0;

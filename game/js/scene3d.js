@@ -669,7 +669,7 @@ function ensureDriverFigure(mesh, v, dist, deadline) {
 }
 
 // On a bike or step the player is drawn as a rider figure in their own look
-// (Tammo or Anita) inside the bike mesh - the bike's built-in NPC rider is
+// (Tammo or Tessa) inside the bike mesh - the bike's built-in NPC rider is
 // hidden - so pedal IK and the bike's lean apply as for any cyclist.
 function syncPlayerRider(pv, pvMesh, hide) {
   const want = pv && (pv.isBike || pv.isScooter) && pvMesh && !pv.riderOff && !pv.sinking;
@@ -874,7 +874,7 @@ export function getRenderer() {
   return renderer;
 }
 
-// Rebuild the Tammo/Anita meshes next frame (their appearance objects changed).
+// Rebuild the Tammo/Tessa meshes next frame (their appearance objects changed).
 export function refreshCharacterMeshes() {
   playerCharacter = null;
   companionCharacter = null;
@@ -2206,7 +2206,7 @@ export function update3D(dt, world) {
     }
   }
 
-  // companion (Tammo/Anita, whichever the player isn't controlling) -
+  // companion (Tammo/Tessa, whichever the player isn't controlling) -
   // walks alongside on foot, or rides along in whatever the player drives:
   // passenger seat, boat bench, bike rack, fatbike saddle or step deck
   const comp = world.companion;

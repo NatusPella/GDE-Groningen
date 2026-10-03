@@ -2,7 +2,7 @@
 // pure data, so scripts/voicelines_collect.mjs can read it in Node. Spoken
 // lines are recorded into the lines manifest ("<speaker>|<text>"); a DUO line
 // is said by the companion (the one you don't play) and recorded for Tammo
-// and Anita both. Gronings and Frisian lines get their Dutch in subtitles.js.
+// and Tessa both. Gronings and Frisian lines get their Dutch in subtitles.js.
 // `tag` is the TTS delivery.
 
 export const DUO = 'duo';
@@ -105,7 +105,7 @@ export const QUIZ = [
 ];
 
 // --- De Koe van Ome Jan (pg_koe.js) ----------------------------------------------
-// Speakers by key: J Ome Jan, G Koe Geertje, D Durk, O Douwe, T Tammo, A Anita.
+// Speakers by key: J Ome Jan, G Koe Geertje, D Durk, O Douwe, T Tammo, A Tessa.
 export const KOE_WHO = { J: 'Ome Jan', G: 'Koe Geertje', D: 'Durk', O: 'Douwe', T: 'Tammo', A: 'Anita' };
 export const KOE_LINES = {
   intro: [

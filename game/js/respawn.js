@@ -553,7 +553,7 @@ function begin(w, pending, opts) {
   const state = { w, pending, opts, dest, plan, done: false, vehicle: null, heli: null, fromX, fromY, doorCam: doorCam(w, plan) };
   const name = dest.site.name;
   const penalty = opts.moneyPenalty ? `, €${opts.moneyPenalty} boete` : '';
-  const partner = w.companion ? (w.companion.character === 'tammo' ? 'Tammo' : 'Anita') : null;
+  const partner = w.companion ? (w.companion.character === 'tammo' ? 'Tammo' : 'Tessa') : null;
   const withCar = partner ? `${partner} staat klaar met de Escapade.` : 'De Escapade staat klaar.';
   const bureau = name.replace(/^Politiebureau\s+/, 'Bureau ');
   state.message = dest.mode === 'police'

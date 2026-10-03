@@ -92,7 +92,7 @@ function bikeRiderSeat(v) {
   return { x: fat ? -0.26 : -0.3, z: 0, y: (fat ? 0.93 : 1.02) - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
 }
 
-// Tammo/Anita riding along: side-saddle on the rack ("achterop"), astride
+// Tammo/Tessa riding along: side-saddle on the rack ("achterop"), astride
 // behind the rider on a fatbike's long saddle, or standing behind on a step.
 function bikeBuddySeat(v) {
   if (v.isScooter && v.model.moped) return { x: -0.6, z: 0, y: 0.84, face: 0, pose: { recline: -0.1, footX: 0.2, footY: -0.5, splay: 0.25, arms: 'hug' } };

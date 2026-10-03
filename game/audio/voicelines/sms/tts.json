@@ -845,15 +845,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Anita. De Escapade is weg. Op zijn plek staat een klomp.": {
-"src": "tammo/anita_de_escapade_is_weg_op_zijn_1fc26bb3.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Orus",
-"input": "Anita. De Escapade is weg. Op zijn plek staat een klomp.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
 "Tammo|Anita. Niet schrikken. Je Fjord is weg. Jelmer zegt dat zijn chat hem bij het station zag.": {
 "src": "tammo/anita_niet_schrikken_je_fjord_is_1d0d9e0a.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1285,6 +1276,15 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Tammo|Tessa. De Escapade is weg. Op zijn plek staat een klomp.": {
+"src": "tammo/tessa_de_escapade_is_weg_op_zijn_1eb3810a.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Tessa. De Escapade is weg. Op zijn plek staat een klomp.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
 },
 "Tammo|Twijduustern. Niemand zoekt ons in het donker.": {
 "src": "tammo/twijduustern_niemand_zoekt_ons_i_5d961aec.mp3",

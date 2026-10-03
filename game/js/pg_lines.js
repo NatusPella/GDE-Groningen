@@ -62,13 +62,13 @@ export const INTROS = {
 
 // Fjord Frituur customers: speech bubbles (voiced per sex, ~m/~f).
 export const FJORD_BUBBLES = {
-  greet: ['Moi! Ik heb honger.', 'Doe maar wat, snel graag!', 'Is dit die van Anita?', 'Wat ruikt dat lekker!', 'Ik sta hier al tien minuten. Grapje.', 'Moi! Doe mie mor n eierbal.', 'Kom op, mien jong, ik heb honger as n peerd.', 'Eindelijk een frituur op wielen!'],
+  greet: ['Moi! Ik heb honger.', 'Doe maar wat, snel graag!', 'Is dit die van Tessa?', 'Wat ruikt dat lekker!', 'Ik sta hier al tien minuten. Grapje.', 'Moi! Doe mie mor n eierbal.', 'Kom op, mien jong, ik heb honger as n peerd.', 'Eindelijk een frituur op wielen!'],
   happy: ['Kon minder!', 'Heerlijk, dank je wel!', 'Tot morgen, hè!', 'De beste van Grunn.', 'Dat is goud spul, mien wicht!'],
   wrong: ['Dit heb ik niet besteld!', 'Frikandel? Ik zei kroket!', 'Nee, nee, nee. Opnieuw.'],
   leave: ['Laat maar, ik ga naar de Vismarkt.', 'Te lang, jong. Veel te lang.', 'Ik goa wel noar hoes. Stoet eten.'],
 };
 
-// Tammo and Anita during a Fjord Frituur shift: the companion says them
+// Tammo and Tessa during a Fjord Frituur shift: the companion says them
 // (subtitle with their voice). T / A per moment.
 export const FJORD_DUO = {
   open: { A: ['Luik open! Grunn heeft honger.', 'Vet is heet, de rij is lang. Kom op.'], T: ['Ik doe de mayo. Dat kan ik.', 'Luik open. Ik heb een schort om.'] },
