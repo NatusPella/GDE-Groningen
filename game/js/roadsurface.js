@@ -867,6 +867,18 @@ function ribbonClip(r, rs, kind) {
     return res;
   };
   const pts = P.map((p, k) => at(p[0], p[1], rs.miter[k][0], rs.miter[k][1], k, 0));
+  // where a narrower bridge lands on this way at the quay, the end is at
+  // least as wide as the bridge (no notch of water between the two)
+  if (index) {
+    for (const k of [0, n - 1]) {
+      const list = nodeIndex.get(nodeKey(P[k])) || [];
+      if (list.length !== 4) continue;
+      const o = list[0] === r ? list[2] : list[0], oi = list[0] === r ? list[3] : list[1];
+      if (o === r || !o.bridge || (oi !== 0 && oi !== o.pts.length - 1)) continue;
+      const oh = Math.min(half, o.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0));
+      for (let j = 0; j < 2; j++) pts[k][j] = Math.max(pts[k][j], oh);
+    }
+  }
   const cut = (lim) => lim[0] < half - 1e-3 || lim[1] < half - 1e-3;
   const steps = (i) => {
     const k = Math.floor((rs.s[i + 1] - rs.s[i]) / DENSE);
