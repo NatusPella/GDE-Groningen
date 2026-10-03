@@ -50,6 +50,7 @@
 //   scene    { kicker, lines, cast, props }: (activity) a short cutscene where the step is done
 //            (storyfun.js); lines [who, text, { tag, clue }], who 'T' | 'A' | a missionstory.js NPC key
 //   meet     the same, played once when the player reaches the step's starting spot
+//            (Rotor Roelf by his demo heli for a flight goal; Durk & Douwe at the court for padel)
 //
 // GOAL TYPES (story.js GOALS)
 //   { type: 'shop', shop }            enter a shop of that type (shops.js SHOP_TYPES key)
@@ -67,8 +68,8 @@
 //   { type: 'egg' }                   find one more hidden eierbal (achievementtracker), routed to the nearest
 //   { type: 'padel' }                 play one padel match, won or lost (padel.js), routed to the nearest court
 //   { type: 'kermis' }                one bumper-car ride on the Grote Markt (kermis.js), free, with Durk & Douwe in it
-//   { type: 'flight', heli, over, r } a free demo flight (storyfun.js): Rotor Roelf's heli parked at `heli`,
-//                                     Jelle's balloon at `over`; flying within r of it (or walking up) completes it
+//   { type: 'flight', heli, pad }     meet Rotor Roelf at his demo heli, parked at `heli` on helipad `pad`
+//                                     (storyfun.js); walking up (his `meet` scene) completes it, the flight is H15
 //   { type: 'carbid', lift }          one round of carbid schieten at boer Roelf's (carbid.js); lift [from, text]: far out
 //                                     and without a car, your own Escapade is dropped off for free with that text
 
@@ -105,7 +106,7 @@ export const CHARACTERS = {
   geert: { name: 'Geert', card: 'Poelestraat. Nog eentje dan.', step: 'H11', bio: 'Kroegbaas in de Poelestraat.', quote: 'Vier kroegen? Nog eentje dan.' },
   trijntje: { name: 'Oma Trijntje', card: 'Bakte in 1953 de beste eierbal van Stad. Zegt het zelf ook.', step: 'H12', bio: 'Tweeënnegentig. Won in 1953 de Snackprijs, net voor een jonge Friese bakster. De tweede mentor. Zeventig jaar trots, in één zin.', quote: 'Die bal is gien geld, jong. Die bal is Grunn.' },
   klaas: { name: 'Kapitein Klaas', card: 'Vist al dertig jaar fietsen uit de Diepenring.', step: 'H13', bio: 'Oude schipper met een rondvaartboot die even van niemand is.', quote: 'Ik mag alles.' },
-  dijkstra: { name: 'Dokter Dijkstra', card: 'UMCG. Doet een spoedeisende duif.', step: 'H15', bio: 'Traumaarts en heli-piloot. Leent niks uit, maar doet wel een spoedeisende duif.', quote: 'Zij vliegt. Hij hangt.' },
+  dijkstra: { name: 'Dokter Dijkstra', card: 'UMCG. Het staat niet in het rooster.', step: 'H15', bio: 'Traumaarts en heli-piloot. Zijn traumaheli staat in onderhoud en zijn nachtdienst heeft honger. Hij leent niks uit, maar hij vliegt wel mee.', quote: 'Zij vliegt. Hij hangt.' },
   mem: { name: 'Mem Terpstra', card: 'Iemand uit Friesland.', step: 'H16', bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Anita stiekem.', quote: 'Dat wie alles wat ik woe.' },
 };
 
@@ -429,33 +430,56 @@ export const STEPS = [
     ], 'Jelle, Ljouwert')],
     after: [['Kiekdoar', 'Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: "Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!"']] },
   { id: 's-proefvlucht', part: 'staart', kind: 'activity', player: 'anita', built: true, why: 'Ik vlieg. Rotor Roelf denkt dat we een heli kopen. Dat laat ik even zo.',
-    title: 'Proefvlucht: zoek de ballon vanuit de lucht', goal: { type: 'flight', heli: [785, -118], over: [1593, -466], r: 170 },
-    lead: ['T', 'Rotor Roelf staat met een demoheli bij het UMCG. Gratis proefvlucht, kopen hoeft niet. Dan zoeken we die ballon van bovenaf.'],
+    title: 'Proefvlucht: naar Rotor Roelf op Eelde', goal: { type: 'flight', heli: [1606, 9909], pad: 'eelde' },
+    lead: ['T', 'Rotor Roelf op Eelde geeft een gratis proefvlucht. Kopen hoeft niet. Dan zoeken we die ballon van bovenaf.'],
     say: ['T', 'Ik zit achterin. Met mijn ogen dicht.'],
-    done: ['T', 'Zet Roelf zijn heli maar weer bij het UMCG neer. Dokter Dijkstra staat daar ook.'],
+    done: ['T', 'Roelf zegt: gratis, als hij heel terugkomt. Jij vliegt.'],
     meet: { kicker: 'Rotor Roelf',
       cast: [{ key: 'rotor', at: [2.4, 0.6], pose: 'point' }],
       lines: [
         ['rotor', 'Moi! Rotor Roelf, van Eelde. De proefvlucht is gratis. Nait tegen d\'Olle Grieze aan, hè?', { tag: 'joviaal, verkoperig, waarschuwend' }],
         ['A', 'Mooi. We kopen hem misschien. Misschien.', { tag: 'zelfverzekerd, poeslief' }],
         ['T', 'Wij kunnen nog geen fietsbel betalen.', { tag: 'fluisterend, droog' }],
-      ] },
-    scene: { kicker: 'Het Oosterpark',
-      lines: [
-        ['A', 'Daar. In het Oosterpark. Een ballon, en hij staat al bol.', { tag: 'opgewonden, wijzend, door de koptelefoon', clue: true }],
-        ['T', 'Mijn Oosterpark. Daar heb ik leren fietsen.', { tag: 'verontwaardigd, droog, door de koptelefoon' }],
-        ['A', 'Daar heb ik jóu leren fietsen.', { tag: 'plagend, warm, door de koptelefoon' }],
-        ['T', '…Ook waar.', { tag: 'zacht, gewonnen, door de koptelefoon' }],
       ] } },
+  // H15 is one flight in Rotor Roelf's demo heli (helirun.js 'traumaduif'): off from Eelde,
+  // Dokter Dijkstra's spoedje via the UMCG deck, the balloon, and back down on the H.
+  // The `flight:*` contacts are said over the headsets at those moments (helirun.js).
   { id: 'H15', part: 'staart', kind: 'mission', player: 'anita', built: true, mission: 'traumaduif', why: 'Ik vlieg die heli. Jij hangt. Als je wilt.',
-    title: 'Spoedeisende duif', reward: 1500,
-    lead: ['T', 'Dokter Dijkstra staat bij de traumaheli op het UMCG. Jij vliegt. Ik hang, schijnt het.'],
+    title: 'Het staat niet in het rooster', reward: 1500,
+    lead: ['T', 'De rotor draait. Jij vliegt, ik zit achterin. Stap maar in bij Roelf.'],
     contact: [belRikus([
-      ['dijkstra', 'Rikus. Dijkstra, UMCG. Ik hoor dat er een Grunneger noodgeval is. Het staat niet in het rooster.', { tag: 'droog, zakelijk, aan de telefoon op de radio' }],
-      ['rikus', 'Dokter, leen je een heli uit?', { tag: 'hoopvol, als nacht-dj op de radio' }],
-      ['dijkstra', 'Ik leen niks uit. Ik doe een spoedeisende duif.', { tag: 'nuchter, stiekem geamuseerd, aan de telefoon op de radio' }],
-    ], 'Dijkstra, UMCG')],
-    after: [['Kiekdoar', 'Traumaheli haalt Gouden Eierbal uit ballon. UMCG: "Het stond niet in het rooster, maar het was een geslaagde operatie."']] },
+      ['dijkstra', 'Rikus. Dijkstra, UMCG. Mijn traumaheli staat in onderhoud op Eelde. En de nachtdienst heeft honger.', { tag: 'droog, zakelijk, aan de telefoon op de radio' }],
+      ['rikus', 'Dokter, wat moet ik daarmee?', { tag: 'verbaasd, droog, als nacht-dj op de radio' }],
+      ['dijkstra', 'Niks. Maar als er vanavond een heli langskomt: het staat niet in het rooster.', { tag: 'nuchter, stiekem geamuseerd, aan de telefoon op de radio' }],
+    ], 'Dijkstra, UMCG'),
+    { via: 'headset', on: 'flight:call', from: 'dijkstra', lines: [
+      ['dijkstra', 'Wieken Wubbo, hier Dijkstra, UMCG. Ik heb een spoedje. Mijn traumaheli staat bij Roelf in onderhoud.', { tag: 'droog, zakelijk, door de helikopterradio' }],
+      ['dijkstra', 'Achterin staat een koeltas. Daar zit de lunch van de nachtdienst in. Die hebben twaalf uur niks gehad.', { tag: 'nuchter, dringend, door de helikopterradio' }],
+      ['A', 'Dat is geen noodgeval.', { tag: 'droog, door de koptelefoon' }],
+      ['dijkstra', 'Jij hebt nooit nachtdienst gedaan. Landen op de H van het UMCG, graag.', { tag: 'streng, stiekem geamuseerd, door de helikopterradio' }],
+    ] },
+    { via: 'headset', on: 'flight:pickup', from: 'dijkstra', lines: [
+      ['dijkstra', 'Eierballen. Nog warm. Jullie zijn mijn helden.', { tag: 'opgelucht, warm, roepend boven de rotor uit' }],
+      ['dijkstra', 'En nu die ballon. Ik heb een lier. Zij vliegt. Hij hangt.', { tag: 'zakelijk, beslist, door de koptelefoon' }],
+      ['T', 'Natuurlijk hang ík.', { tag: 'droog, berustend, door de koptelefoon' }],
+      ['A', 'Ik vraag het, Tammo. Wil je hangen?', { tag: 'warm, plagend, door de koptelefoon' }],
+      ['T', '…Ja. Dank je dat je het vraagt.', { tag: 'zacht, ontroerd, door de koptelefoon' }],
+    ] },
+    { via: 'headset', on: 'flight:spot', from: 'A', lines: [
+      ['A', 'Daar. In het Oosterpark. Een ballon, en hij staat al bol.', { tag: 'opgewonden, wijzend, door de koptelefoon', clue: true }],
+      ['T', 'Mijn Oosterpark. Daar heb ik leren fietsen.', { tag: 'verontwaardigd, droog, door de koptelefoon' }],
+      ['A', 'Daar heb ik jóu leren fietsen.', { tag: 'plagend, warm, door de koptelefoon' }],
+      ['T', '…Ook waar.', { tag: 'zacht, gewonnen, door de koptelefoon' }],
+    ] },
+    { via: 'headset', on: 'flight:hang', from: 'dijkstra', lines: [
+      ['dijkstra', 'Lier gaat uit. Rustig, Anita. Naast de mand, niet erop.', { tag: 'kalm, geconcentreerd, door de koptelefoon' }],
+      ['T', 'Ik hang. Ik hang echt.', { tag: 'nerveus, buiten adem, in de wind' }],
+    ] },
+    { via: 'headset', on: 'flight:caught', from: 'T', lines: [
+      ['T', 'Ik heb hem! De echte!', { tag: 'triomfantelijk, buiten adem, in de wind' }],
+      ['dijkstra', 'Lier in. Terug naar het UMCG, en netjes op de H.', { tag: 'zakelijk, tevreden, door de koptelefoon' }],
+    ] }],
+    after: [['Kiekdoar', 'Demoheli uit Eelde haalt Gouden Eierbal uit ballon. UMCG: "Het stond niet in het rooster. De nachtdienst heeft wel gegeten."']] },
   { id: 's-carbid', part: 'staart', kind: 'activity', player: 'tammo', built: true, why: 'Ik schiet. Ik heb die bal toch al vast. Wat kan er misgaan met een melkbus?',
     title: 'Carbid schieten bij boer Roelf: verstop de Eierbal', goal: { type: 'carbid', lift: ['Henk', 'Je bakkie staat om de hoek, jong. Gratis gebracht. Voor Grunn doe ik dat.'] },
     lead: ['A', 'De bal moet tot het Ontzet veilig staan. Boer Roelf aan de Beijumerweg helpt alleen wie carbid kan schieten.'],
@@ -472,10 +496,22 @@ export const STEPS = [
         ['douwe', 'Durk… ze schieten. Trappen!', { tag: 'geschrokken, traag, trappend' }],
       ] } },
   { id: 's-padel', part: 'staart', kind: 'activity', player: 'tammo', built: true, why: 'Ik speel. Mijn armen trillen nog van dat touw, maar mijn backhand niet.',
-    title: 'Een potje padel', goal: { type: 'padel' },
-    lead: ['A', 'Even afreageren. Je armen trillen nog van dat touw. Een potje padel.'],
+    title: 'Padel tegen Durk en Douwe', goal: { type: 'padel' },
+    lead: ['A', 'Durk en Douwe dagen je uit. Padel, nu meteen. Ze zeggen dat het van Jelle moet.'],
     say: ['A', 'Even afreageren. Je armen trillen nog van dat touw.'],
-    done: ['A', 'Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?'] },
+    done: ['A', 'Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?'],
+    // at the court: Jelle sent the twins to keep the pair busy for an hour (H16: meanwhile the Escapade goes)
+    meet: { kicker: 'De padelbaan',
+      cast: [{ key: 'durk', at: [2.6, 0.9] }, { key: 'douwe', at: [2.4, -1.2] }],
+      lines: [
+        ['durk', 'Tammo. Wij dagen je uit. Padel, wij tegen jullie.', { tag: 'plechtig, uitdagend, vlot' }],
+        ['douwe', 'Van Jelle moeten we jullie een uur bezighouden.', { tag: 'traag, eerlijk, behulpzaam' }],
+        ['durk', 'Douwe. Dat was geheim.', { tag: 'traag, verwijtend' }],
+        ['douwe', '…Hè.', { tag: 'beteuterd, traag' }],
+        ['A', 'Een uur? Waarom een uur?', { tag: 'achterdochtig, scherp' }],
+        ['durk', 'Dat weten wij ook niet. Wij zijn alleen de bezigheid.', { tag: 'traag, trots' }],
+        ['T', 'Twintig minuten. Dan staat het twee-nul.', { tag: 'droog, strijdlustig' }],
+      ] } },
   { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', solo: true, built: true, mission: 'fjord', why: 'Ik haal jouw auto wel terug. Alleen.',
     title: 'Iedereen heeft een rode auto gezien', reward: 1100,
     lead: ['T', 'Anita. De Escapade is weg. Op zijn plek staat een klomp.'],
@@ -580,8 +616,8 @@ export const CLUES = [
   { step: 'H12', kind: 'hart', title: 'Oma Trijntje, 1953', text: 'Oma won in 1953. Tweede werd een Fries meisje, Gerda Terpstra. Haar eierbal was beter, en Oma heeft het nooit gezegd. "Die bal is gien geld, jong. Die bal is Grunn."' },
   { step: 'H13', kind: 'hart', title: 'Moi', text: '"Moi." "…Moi." Op de rondvaartboot. Daarna deden ze alsof er niks gebeurd was.' },
   { step: 'H14', kind: 'clue', title: 'Chocola', text: 'De bal op het skûtsje was van chocola, met een kaartje: "Foar mem." De echte gaat vanavond de lucht in, met een ballon.' },
-  { step: 's-proefvlucht', kind: 'clue', title: 'De ballon in het Oosterpark', text: 'Vanuit Rotor Roelfs demoheli gezien: Jelles ballon staat al bol, in het Oosterpark.' },
-  { step: 'H15', kind: 'clue', title: 'De echte Eierbal', text: 'Uit de mand gehaald, aan een touw onder de heli. Hij is zwaar, en hij smelt niet. Jelle staat in een weiland bij Ten Boer.' },
+  { step: 's-proefvlucht', kind: 'clue', title: 'Een demoheli op Eelde', text: 'Rotor Roelf geeft een gratis proefvlucht, op Eelde. Kopen hoeft niet. Zegt hij.' },
+  { step: 'H15', kind: 'clue', title: 'De echte Eierbal', text: 'Jelles ballon stond bol in het Oosterpark. Tammo haalde de bal uit de mand, aan de lier van Dokter Dijkstra. Hij is zwaar, en hij smelt niet. Jelle staat in een weiland bij Ten Boer.' },
   { step: 's-carbid', kind: 'clue', title: 'De melkbus', text: 'De echte Eierbal ligt in een melkbus bij boer Roelf aan de Beijumerweg. Doar zuukt gain Fries noar.' },
   { step: 's-padel', kind: 'clue', title: 'Een autosleutel', text: 'Na het padel fietsten Durk en Douwe weg. Met een autosleutel.' },
   { step: 'H16', kind: 'hart', title: 'Mem Terpstra', text: '"Iemand uit Friesland" is Gerda Terpstra. Ze wil dat haar zoon ophoudt. Tammo was jaloers op een moeder. Hij zei sorry. Het klonk goed.' },

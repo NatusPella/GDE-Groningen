@@ -13,6 +13,8 @@ import { pointInPolygon, isInWater, clamp } from './util.js';
 import { currentStep } from './story.js';
 import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 import { buildingAt as realBuildingAt } from './countryreal.js';
+import { bubbleVoiceFor } from './linevoice.js';
+import { playLineVoice } from './audio.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -930,6 +932,13 @@ export function padelCamera(w) {
   w.cameraOverride = { position: { x: cam.x, y: cam.y, z: 5.3 }, lookAt: { x: at.x, y: at.y, z: 0.7 }, fov: 55, cut: true };
 }
 
+// An opponent's line: a speech bubble, voiced up front like the other
+// minigame voices (the court is wide, a positional bubble voice got lost).
+function voiceBubble(w, sp) {
+  const v = bubbleVoiceFor(sp.speechText, sp.female);
+  if (v && playLineVoice(v.src, v.dur, 'job')) sp._voicedText = sp.speechText;
+}
+
 // A line from one of the opponents (a speech bubble with its recording).
 function oppSay(w, who, kind, force = false) {
   const g = game;
@@ -942,7 +951,9 @@ function oppSay(w, who, kind, force = false) {
   g.lastSay = g.t;
   const pos = { get x() { return toMap(g.f, o.u, o.v).x; }, get y() { return toMap(g.f, o.u, o.v).y; } };
   const list = w.extraSpeakers || (w.extraSpeakers = []);
-  list.push({ x: pos.x, y: pos.y, h: 2.3, follow: pos, female: o.female, speechName: o.name, speechText: text, speechUntil: w.time + Math.max(2.6, 1.2 + text.length * 0.06) });
+  const sp = { x: pos.x, y: pos.y, h: 2.3, follow: pos, female: o.female, speechName: o.name, speechText: text, speechUntil: w.time + Math.max(2.6, 1.2 + text.length * 0.06) };
+  voiceBubble(w, sp);
+  list.push(sp);
 }
 
 function medalOf(g) {
@@ -991,7 +1002,11 @@ function endMatch(w, { quit = false } = {}) {
   const who = g.opp[win ? 1 : 0];
   const list = w.extraSpeakers || (w.extraSpeakers = []);
   const text = (g.lines[who.name][win ? 'lost' : 'won'] || [])[0];
-  if (text) list.push({ x: g.exitX, y: g.exitY, h: 2.3, female: who.female, speechName: who.name, speechText: text, speechUntil: w.time + 3.5 });
+  if (text) {
+    const sp = { x: g.exitX, y: g.exitY, h: 2.3, female: who.female, speechName: who.name, speechText: text, speechUntil: w.time + 3.5 };
+    voiceBubble(w, sp);
+    list.push(sp);
+  }
   banterAfter(`after:padel:${win ? 'pass' : 'fail'}`);
 }
 

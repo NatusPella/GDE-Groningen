@@ -31,6 +31,12 @@ function bubbleEntry(text, female) {
 
 export const hasBubbleVoice = (text) => !!bubbleEntry(text, false);
 
+// A bubble's recording as { src, dur } (for lines a minigame says up front).
+export function bubbleVoiceFor(text, female) {
+  const v = bubbleEntry(text, female);
+  return v ? { src: DIR + v.src, dur: v.dur } : null;
+}
+
 // Called once per new bubble text; pos = { x, y } of the speaker.
 export function speakBubble(text, female, pos) {
   const v = bubbleEntry(text, female);

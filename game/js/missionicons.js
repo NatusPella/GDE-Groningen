@@ -35,7 +35,7 @@ export const MISSION_ICONS = {
   vlag: { fill: 'M11 1.8L13 8H9zM9 8h4v13H9zM13 9h8l-2 3 2 3h-8zM10.3 11v2.4h1.4V11z' },
   // H14 Geleend van de Friezen: the skûtsje
   skutsje: { fill: 'M3 16h18l-3 4.5H6zM11 3h1.4v12.5H11zM12.8 4L20 14.5h-7.2zM10.6 6L5 14.5h5.6z' },
-  // H15 Spoedeisende duif: the traumaheli
+  // H15 Het staat niet in het rooster: the heli
   traumaduif: { fill: 'M8 10h6a5 4 0 0 1 0 8H8a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2zM14 11.4v3h2.4a2.6 1.5 0 0 0 0-3zM1.5 12H6v1.6H1.5zM1.5 9.5h1.6V12H1.5zM5 6.5h14v1.4H5zM11.3 7.9h1.4V10h-1.4zM9 18h1.3v2H9zM15 18h1.3v2H15zM7 20h11v1.4H7z' },
   // H16 Iedereen heeft een rode auto gezien: zoeken
   fjord: { fill: 'M10 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm0 2.2a4.8 4.8 0 1 0 0 9.6 4.8 4.8 0 0 0 0-9.6zM14.9 16.5l1.6-1.6 5.3 5.3-1.6 1.6z' },

@@ -6,7 +6,7 @@ import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender, drawPigeonMapIcon } from './pigeonspots.js';
-import { getHeliSpotsForRender, drawHeliMapIcon } from './helirun.js';
+import { getHeliSpotsForRender, drawHeliMapIcon, getHeliRunMarks } from './helirun.js';
 import { getPadelSpotsForRender, drawPadelMapIcon } from './padel.js';
 import { activityMapIcons, drawActivityMapIcon } from './activities.js';
 import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
@@ -698,7 +698,7 @@ function currentObjective(world) {
   }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
-  if (g && g.name && !world.storyFreePlay && !world.padelGame && !world.activityGame && !(m && m.phase === 'active')) {
+  if (g && g.name && !world.storyFreePlay && !world.padelGame && !world.activityGame && !world.heliRun && !(m && m.phase === 'active')) {
     const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
     const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
     const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
@@ -1526,6 +1526,10 @@ function drawMinimap(dt, world) {
     if (ahead && ahead.length > 1) drawRoadRoute(ctx, [[player.x, player.y], ...ahead].map(([x, y]) => toScreen(x, y)), ROUTE_COLORS[route.kind] || ROUTE_COLORS.user, route === getActiveRoute() ? 4 : 3);
   }
   const inRange = (x, y) => (x - player.x) ** 2 + (y - player.y) ** 2 <= iconRangeM * iconRangeM;
+  const heliMarks = getHeliRunMarks();
+  if (heliMarks) drawHeliRunMarks(ctx, heliMarks, toScreen, inRange, mmScale, t);
+  // a minigame on the spot (padel, carbid, the kermis) or a heli run: no other mission or story marks
+  const busyGame = !!(world.padelGame || world.activityGame || world.heliRun);
   const placed = [];
   const icon = (kind, x, y, opts) => {
     if (!inRange(x, y)) return false;
@@ -1543,12 +1547,12 @@ function drawMinimap(dt, world) {
   const reserve = (x, y) => { if (inRange(x, y)) placed.push(...toScreen(x, y)); };
   if (job && job.marker) reserve(job.marker.x, job.marker.y);
   // map rule (goal.js): the story's mission, the goal's or the one that runs
-  const showMission = !!(m && missionOnMap(world) && !job);
+  const showMission = !!(m && missionOnMap(world) && !job && !busyGame);
   if (showMission) reserve(m.marker.x, m.marker.y);
   if (wp) reserve(wp.x, wp.y);
   const showOwn = minimapShows('car');
   if (showOwn) for (const o of owned) reserve(o.x, o.y);
-  const storyShop = storyTargetShop(world);
+  const storyShop = busyGame ? null : storyTargetShop(world);
   const storyAt = storyShop && inRange(storyShop.x, storyShop.y) ? toScreen(storyShop.x, storyShop.y) : null;
   if (storyAt) placed.push(storyAt[0], storyAt[1]);
   drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t);
@@ -1580,7 +1584,9 @@ function drawMinimap(dt, world) {
   }
 
   let wpEdge = null;
-  if (wp && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
+  if (wp && !busyGame && !icon('userWaypoint', wp.x, wp.y)) wpEdge = edgeAngle(wp.x, wp.y);
+  let heliEdge = null;
+  if (heliMarks && heliMarks.target && !inRange(heliMarks.target.x, heliMarks.target.y)) heliEdge = edgeAngle(heliMarks.target.x, heliMarks.target.y);
 
   let heroEdge = null;
   if (showOwn) for (const o of owned) {
@@ -1608,10 +1614,54 @@ function drawMinimap(dt, world) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
     drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, wp ? 0.8 : s, 'mission');
   }
+  if (heliEdge != null) {
+    drawEdgeArrow(ctx, cx + Math.cos(heliEdge) * edgeR, cy + Math.sin(heliEdge) * edgeR, heliEdge, '#5dff7a', 1 + pulseAt(t) * 0.2, 'mission');
+  }
   if (wpEdge != null) {
     const s = 1 + pulseAt(t) * 0.2;
     drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, ROUTE_COLORS.user, s, 'user');
   }
+}
+
+// A heli run (helirun.js): its rings as circles where they hang, the H to land
+// on and the balloon. Drawn through toScreen, so they stay put while the map turns.
+const HELI_RING_COLORS = { next: '#ffc21a', later: 'rgba(255,233,160,0.75)', done: '#5dff7a', miss: '#ff5a3c' };
+function drawHeliRunMarks(ctx, marks, toScreen, inRange, scale, t) {
+  ctx.save();
+  for (const r of marks.rings) {
+    if (r.state === 'done' || r.state === 'miss' || !inRange(r.x, r.y)) continue;
+    const [sx, sy] = toScreen(r.x, r.y);
+    ctx.beginPath();
+    ctx.arc(sx, sy, Math.max(4, 11 * scale) * (r.state === 'next' ? 1 + pulseAt(t) * 0.25 : 1), 0, Math.PI * 2);
+    ctx.lineWidth = r.state === 'next' ? 3 : 2;
+    ctx.strokeStyle = HELI_RING_COLORS[r.state] || HELI_RING_COLORS.later;
+    ctx.stroke();
+  }
+  if (marks.pad && inRange(marks.pad.x, marks.pad.y)) {
+    const [sx, sy] = toScreen(marks.pad.x, marks.pad.y);
+    ctx.beginPath();
+    ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#1e9e56';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#f0ede4';
+    ctx.stroke();
+    ctx.fillStyle = '#f0ede4';
+    ctx.fillRect(sx - 3.5, sy - 4, 1.8, 8);
+    ctx.fillRect(sx + 1.7, sy - 4, 1.8, 8);
+    ctx.fillRect(sx - 3.5, sy - 0.9, 7, 1.8);
+  }
+  if (marks.balloon && inRange(marks.balloon.x, marks.balloon.y)) {
+    const [sx, sy] = toScreen(marks.balloon.x, marks.balloon.y);
+    ctx.beginPath();
+    ctx.arc(sx, sy, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff7ab6';
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#0c140e';
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 function drawNorthIndicator(ctx, cx, cy, screenAngle) {
