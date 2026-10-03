@@ -16,7 +16,7 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
+import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
 import { edgeDistance, urbanWeight } from './countryfield.js';
 import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
@@ -1377,6 +1377,36 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   for (const [kind, sx, sy] of drawn) drawMapIcon(ctx, kind, sx, sy, MM_POI_ICON, { t });
 }
 
+// Village and town names on the minimap out in the Ommeland (the list is
+// refreshed when the player has moved a bit), upright over the rotating map.
+const VILLAGE_KINDS = new Set(['town', 'village', 'hamlet', undefined]);
+let villageCache = { x: Infinity, y: Infinity, list: [] };
+function drawVillageNames(ctx, player, radius, toScreen) {
+  if (Math.hypot(player.x - villageCache.x, player.y - villageCache.y) > 25) {
+    const r = radius * 1.5;
+    villageCache = { x: player.x, y: player.y, list: villageLabels(player.x - r, player.y - r, player.x + r, player.y + r).filter((v) => VILLAGE_KINDS.has(v.kind)) };
+  }
+  const lim = (radius - 14 / mmScale) ** 2;
+  ctx.save();
+  ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(12, 20, 14, 0.85)';
+  ctx.fillStyle = '#f0ede4';
+  let n = 0;
+  for (const v of villageCache.list) {
+    if ((v.x - player.x) ** 2 + (v.y - player.y) ** 2 > lim) continue;
+    const [sx, sy] = toScreen(v.x, v.y);
+    const label = v.name.toUpperCase();
+    ctx.strokeText(label, sx, sy);
+    ctx.fillText(label, sx, sy);
+    if (++n >= 3) break;
+  }
+  ctx.restore();
+}
+
 function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
@@ -1446,6 +1476,8 @@ function drawMinimap(dt, world) {
     const dx = x - player.x, dy = y - player.y;
     return [cx + (dx * cosR - dy * sinR) * mmScale, cy + (dx * sinR + dy * cosR) * mmScale];
   };
+
+  if (edgeDistance(player.x, player.y) > -150) drawVillageNames(ctx, player, MM_RADIUS_M, toScreen);
 
   const search = getPoliceSearch(world);
   if (search) {
