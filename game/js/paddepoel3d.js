@@ -321,12 +321,12 @@ function lantern(B, x, y, r, y0, h, rot) {
 
 const SIGNS = {
   paddepoel: { text: 'Paddepoel', bg: '#4a3f42', fg: '#ffffff', aspect: 6 },
-  albert: { text: 'Albert Hijgt', bg: '#1f78c8', fg: '#ffffff', aspect: 6 },
-  dumbo: { text: 'DUMBO', bg: '#f2c500', fg: '#222222', aspect: 4 },
+  albert: { text: 'Albert Hijgt', bg: '#2d5c9e', fg: '#ffffff', aspect: 6 },
+  dumbo: { text: 'DUMBO', bg: '#e9a419', fg: '#222222', aspect: 4 },
   gym: { text: 'Zweet & Zwoeg', bg: '#202426', fg: '#ff6a1a', aspect: 7 },
-  wiebel: { text: 'Wiebel', bg: '#d0212d', fg: '#ffffff', aspect: 2.2 },
-  kruidvet: { text: 'Kruidvet', bg: '#e2007a', fg: '#ffffff', aspect: 4 },
-  blokkie: { text: 'Blokkie', bg: '#e30613', fg: '#ffffff', aspect: 4 },
+  wiebel: { text: 'Wiebel', bg: '#c43a5a', fg: '#ffffff', aspect: 2.2 },
+  kruidvet: { text: 'Kruidvet', bg: '#a83a8c', fg: '#ffffff', aspect: 4 },
+  blokkie: { text: 'Blokkie', bg: '#b84a26', fg: '#ffffff', aspect: 4 },
   akzie: { text: 'AKZIE', bg: '#ffffff', fg: '#1d4fa3', aspect: 4 },
   bakker: { text: 'Bakker Bert', bg: '#f4e6c8', fg: '#7a3b12', aspect: 5 },
   stads: { text: 'Stoer & Stads', bg: '#7a4fb0', fg: '#ffffff', aspect: 6 },

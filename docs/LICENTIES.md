@@ -49,7 +49,7 @@ geen `node_modules` in git.
 | Geluidseffecten (motor, foley, ambience, UI) | gesynthetiseerd in `game/js/sfx/*.js` | eigen werk | ok |
 | Muziek: 14 G-Music-nummers, 2 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
 | Stemmen: ~3.400 clips in `game/audio/voicelines` (gelogd in `tts.json`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe) | Gemini TTS via OpenRouter | zie §4 | ok |
-| Oudere clips zonder `tts.json`: `audio/npc`, `audio/police`, `audio/sikkom`, `audio/gmusic/jingles` | Gemini TTS (o.a. "Gemini 3.1 Flash TTS Preview", commits `f661a12` en `fc4fe8c`) | als hierboven; was een preview-model | **ONDUIDELIJK**: herkomst niet per clip gelogd. Advies: opnieuw inspreken met 3.8 en loggen, dan is alles herleidbaar |
+| Vaste clips: `audio/npc`, `audio/police`, `audio/nieuws`, `audio/gmusic/jingles` | Gemini TTS via OpenRouter, `google/gemini-3.8-flash-tts` (`scripts/tts_barks_lines.mjs`, stemmen in `tts_cast.mjs` `CLIP_CAST`) | zie §4 | **opgelost** (3 okt): waren gemaakt met een previewmodel zonder log; nu opnieuw ingesproken en per map gelogd in `tts.json` |
 | App-icoon `desktop/resources/icon.svg/png` | eigen ontwerp (GDE-logo) met ingebedde subset van Big Shoulders Display | OFL staat inbedden toe | ok |
 
 ## 3. Inventaris: kaart en andere data
@@ -82,11 +82,11 @@ download), moet ze onder de ODbL aanbieden of de manier om ze opnieuw te
 maken. Dat doen de scripts in `scripts/` al. Gevolg: de licentie van het
 project (§7) moet deze bestanden **uitzonderen**: die blijven ODbL.
 
-**Namen uit OSM in het spel**: horeca (470 echte namen, op de kaart, in
-de zoekfunctie en in meldingen als "Je hebt net al wat gehad bij …"),
-huisartsenposten bij respawn ("Huisarts van de Riet") en de garages
-(die worden in het spel wél vervangen door "Garage Knalpot <wijk>"). Dit is
-feitelijke kaartinformatie, laag risico. Zie §6.3 voor een voorstel.
+**Namen uit OSM in het spel**: horeca (470 echte namen) staan alleen nog
+op de kaart en in de zoekfunctie; meldingen en de bestelprompt gebruiken
+een verzonnen café per plek (`horeca.js` `CAFE_NAMES`). Huisartsenposten bij
+respawn heten "Huisartsenpost <wijk>" (`add_police_stations.py`) en garages
+"Garage Knalpot <wijk>". Feitelijke kaartinformatie, laag risico (§6.3).
 
 ## 4. Gegenereerde inhoud: Google Gemini en OpenRouter
 
@@ -188,11 +188,11 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
 
 | Naam | Waar | Echt merk? | Gedaan / voorstel |
 |---|---|---|---|
-| **Sikkom** (146×: nieuwsticker, SMS-afzender, Radio Grunn "Sikkom-nieuws", `audio/sikkom/`, `sikkomfeed.js`) | overal | **ja**: sikkom.nl, Groningse nieuwstitel van Dagblad van het Noorden / Mediahuis ([OOG](https://www.oogtv.nl/2025/11/dagblad-van-het-noorden-moet-bezuinigen-mediahuis-wil-meer-videos-van-sikkom/)). Het spel laat "Sikkom" berichten over geweld en politie brengen. | **RISICO gemiddeld**, niet zelf aangepast omdat de naam in ingesproken audio zit. Voorstel: parodienaam zoals **"Sikkepit"**, **"Stikkom"** of **"Zeg Mor"**, teksten aanpassen en de clips in `audio/sikkom`, `sms/sikkom_redactie` en de Radio Grunn-regels opnieuw inspreken. |
-| **Radio Grunn** | autoradio, 14× in code + audio | lijkt sterk op **Grunn FM** (echte commerciële zender, FM 89.1, [grunn.fm](https://grunn.fm)) | laag-gemiddeld. Voorstel: "Radio Stad" of "Proatradio Grunn"; zit in audio, dus met opnieuw inspreken |
-| **Bakkie Peut** (tankstation Pleiadenlaan, `thuis3d.js`) | bord in de wereld | **ja**: Peut is een echte tankstationketen en "Bakkie Peut" is hun koffie ([peut.nl](https://www.peut.nl/)); groen/limoen huisstijl | **aangepast** naar **"Bakkie Prut"** (alleen bordtekst en commentaar) |
+| **Sikkom** (146×: nieuwsticker, SMS-afzender, Radio Grunn "Sikkom-nieuws", `audio/sikkom/`, `sikkomfeed.js`) | overal | **ja**: sikkom.nl, Groningse nieuwstitel van Dagblad van het Noorden / Mediahuis ([OOG](https://www.oogtv.nl/2025/11/dagblad-van-het-noorden-moet-bezuinigen-mediahuis-wil-meer-videos-van-sikkom/)). Het spel liet "Sikkom" berichten over geweld en politie brengen. | **opgelost** (3 okt): de nieuwssite heet nu **Kiekdoar** ("kijk daar"): app, berichten, TV, nieuwslezers, voetgangers en alle ingesproken regels. Interne namen (`sikkomfeed.js`, app-id `sikkom`) bleven, die ziet de speler niet. Het scherm "Sikkom." bij een net mislukte missie blijft: dat is het Groningse woord voor "bijna" (Schierste Grunneger Woord 2024), geen verwijzing naar de site. |
+| **Radio Grunn** | autoradio, 14× in code + audio | lijkt sterk op **Grunn FM** (echte commerciële zender, FM 89.1, [grunn.fm](https://grunn.fm)) | **opgelost** (3 okt): heet nu **Radio Proat** ("Radio Nachtstreek" bestond al als zender van Rikus); idents opnieuw ingesproken |
+| **Bakkie Peut** (tankstation Pleiadenlaan, `thuis3d.js`) | bord in de wereld | **ja**: Peut is een echte tankstationketen en "Bakkie Peut" is hun koffie ([peut.nl](https://www.peut.nl/)); groen/limoen huisstijl | **aangepast** naar **"Bakkie Prut"**, en het bord is nu petrolblauw met een okergele streep in plaats van groen/limoen |
 | "Hema-uitverkoop" (`ownedvehicles.js`, beschrijving klusbus) | tekst | ja | **aangepast** naar "Wiebel-uitverkoop" (de bestaande Wibra-parodie) |
-| Albert Hijgt, DUMBO, Kruidvet, Blokkie, AKZIE, Wiebel, Bakker Bert (`paddepoel3d.js`) | gevelborden | parodieën op AH, Jumbo, Kruidvat, Blokker, Action, Wibra, Bakker Bart | parodie ok. Kleuren liggen dicht op de echte huisstijl (Kruidvet `#e2007a` = Kruidvat-roze, DUMBO geel, Albert Hijgt blauw). Laag risico; desgewenst één kleur verschuiven. "Dumbo" is ook een Disney-naam, maar in een andere betekenis. |
+| Albert Hijgt, DUMBO, Kruidvet, Blokkie, AKZIE, Wiebel, Bakker Bert (`paddepoel3d.js`) | gevelborden | parodieën op AH, Jumbo, Kruidvat, Blokker, Action, Wibra, Bakker Bart | parodie ok. **Kleuren verschoven** (3 okt), niet meer de exacte huisstijl: Kruidvet pruimpaars `#a83a8c` (was Kruidvat-roze `#e2007a`), Albert Hijgt donkerblauw `#2d5c9e`, DUMBO amber `#e9a419`, Blokkie roestrood `#b84a26` (was Blokker-rood `#e30613`), Wiebel framboos `#c43a5a`. AKZIE was al omgekeerd (blauwe letters op wit). "Dumbo" is ook een Disney-naam, maar in een andere betekenis. |
 | EIKEA | woonwarenhuis, blauw | parodie op IKEA | laag. IKEA treedt soms op tegen parodieën; geel-blauw niet combineren. |
 | Fjord Escapade / Fjord Frituur | auto en foodtruck | parodie op Ford Escort | laag; geen Ford-ovaallogo gebruiken |
 | Voertuigmerken (`vehiclenames.js`) | HUD | verzonnen (Dollard, Hunze, Wadden…) | ok |
@@ -213,12 +213,13 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
   **Vraag aan de eigenaar**: zijn Tammo en Anita op echte personen
   gebaseerd? Zo ja: schriftelijke toestemming vragen. Zo nee: de
   credit herformuleren (bijv. "als Tammo & Anita").
-- Huisartsenpraktijken uit OSM (bijv. "Huisarts van de Riet") verschijnen
-  als respawnplek. Laag risico; voorstel: in `build_map.py` vervangen door
-  "Huisartsenpost <wijk>".
-- Echte horecanamen (OSM) op de kaart en in meldingen: feitelijk, laag
-  risico. Als je het helemaal schoon wilt: in meldingen "de kroeg"
-  gebruiken in plaats van de echte naam.
+- Huisartsenpraktijken uit OSM (bijv. "Huisarts van de Riet") waren
+  respawnplekken. **Opgelost** (3 okt): ze heten nu "Huisartsenpost <wijk>"
+  (`add_police_stations.py` en `citymap.json`).
+- Echte horecanamen (OSM): **opgelost** voor meldingen (3 okt). Meldingen,
+  de bestelprompt en de kroegentocht gebruiken verzonnen cafés (Café De
+  Lallende Koe, Kroeg 't Scheve Toorntje …); de kaart en de zoekfunctie
+  houden de OSM-namen (feitelijk, laag risico).
 - "Schipper Wiebe", "Bommen Berend" (historisch: de bisschop van Münster,
   1672): verzonnen of historisch, ok.
 
@@ -435,12 +436,12 @@ tegen politie en burgers met bloed. De Gemini-API-regel over minderjarigen
    spel, `productName`, releasebestanden, README, disclaimer). De `appId`
    blijft `nl.natuspella.gte-vi` (anders verweesde saves). Nog doen: de
    handmatige registercheck.
-3. **Sikkom** en **Radio Grunn** hernoemen + opnieuw inspreken (§6.2).
+3. ~~**Sikkom** en **Radio Grunn** hernoemen + opnieuw inspreken~~
+   **gedaan**: Kiekdoar en Radio Proat (§6.2).
 4. **Tammo & Anita**: echte mensen of niet? Toestemming of credit
    herformuleren (§6.3).
 5. **Esri-luchtfoto** weg uit repo en historie (zie `docs/PUBLICEREN.md`).
-6. **Oudere TTS-clips** (`npc`, `police`, `sikkom`, jingles) opnieuw maken
-   met het huidige model en loggen.
+6. ~~**Oudere TTS-clips** opnieuw maken en loggen~~ **gedaan** (§2).
 7. **Browserversie**: three.js en Bebas Neue zelf hosten (privacy).
 8. **Muziekbron** vastleggen: Gemini-app of API, welk abonnement (§4.3).
 9. **Steam**: wel of niet ($100), en dan BOIP-registratie wel of niet

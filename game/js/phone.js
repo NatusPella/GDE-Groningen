@@ -36,7 +36,7 @@ const ICONS = {
 const APPS = [
   { id: 'contacten', label: 'Contacten' },
   { id: 'missies', label: 'Missies' },
-  { id: 'sikkom', label: 'Sikkom' },
+  { id: 'sikkom', label: 'Kiekdoar' },
   { id: 'kaart', label: 'Kaart' },
   { id: 'voertuigen', label: 'Voertuigen' },
   { id: 'ubbo', label: 'Ubbo' },
@@ -159,7 +159,7 @@ function mamTalk() {
   return {
     line: pick([
       'Heb je wel een jas aan? Het waait weer flink in Grunn.',
-      'Ik zag je op Sikkom. Ik zeg niks. Je vader zag het ook.',
+      'Ik zag je op Kiekdoar. Ik zeg niks. Je vader zag het ook.',
       'Kom je zondag eten? Er is hutspot. En neem die Anita ook mee.',
     ]),
   };
@@ -527,7 +527,7 @@ function render() {
     html = ubboHtml();
   } else if (st.screen === 'sikkom') {
     const items = w.phoneHistory || [];
-    html = header('Sikkom') + `<div class="ph-list ph-feed">${items.length ? items.map((n) =>
+    html = header('Kiekdoar') + `<div class="ph-list ph-feed">${items.length ? items.map((n) =>
       `<div class="ph-news"><small>${esc(n.at || '')}</small><p>${dualHtml(n.text)}</p></div>`).join('')
       : '<p class="ph-empty">Nog geen nieuws. Grunn is rustig… nog wel.</p>'}</div>`;
   }

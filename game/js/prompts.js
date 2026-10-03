@@ -589,7 +589,7 @@ function contextRows(world, primary) {
     rows.push(tut('drive', ['WASD'], boat ? 'Varen' : 'Gas & sturen', boat ? 'W vooruit, S achteruit, A/D sturen' : 'W gas, S remmen en achteruit, A/D sturen'));
     rows.push(boat ? tut('handbrake', [' '], 'Remmen', 'Afremmen voor een brug of de kade') : tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
     rows.push(tut('horn', ['H'], 'Toeter', boat ? 'Aan de kant, bootjes!' : 'Aan de kant, fietsers!'));
-    if (!p.inVehicle.isBike && !p.inVehicle.isScooter) rows.push(tut('radio', ['N'], 'Radio', 'N: volgende zender, B: vorige (G-Music, Nachtstreek, Radio Grunn, uit)', true));
+    if (!p.inVehicle.isBike && !p.inVehicle.isScooter) rows.push(tut('radio', ['N'], 'Radio', 'N: volgende zender, B: vorige (G-Music, Nachtstreek, Radio Proat, uit)', true));
     rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots', true));
     if (!world.noLookBack) rows.push(tut('lookback', ['Q'], 'Achterom', 'Houd Q of de middelste muisknop vast', true));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
@@ -617,7 +617,7 @@ function contextRows(world, primary) {
     rows.push(tut('crouch', ['CTRL'], 'Bukken', 'Langzaam en klein'));
   }
   rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming', true));
-  rows.push(tut('phone', ['T'], 'Telefoon', 'Missies, contacten en Sikkom', true));
+  rows.push(tut('phone', ['T'], 'Telefoon', 'Missies, contacten en Kiekdoar', true));
 
   const out = [];
   for (const r of rows) {

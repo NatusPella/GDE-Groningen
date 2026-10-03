@@ -229,7 +229,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 
 *Waarom nu:* de inschrijving voor de Snackprijs kost €150, en zonder de Fjord Frituur kan Anita niet meedoen. Jelmer betaalt voor content. Het is ook de eerste keer dat Jelle zich laat zien.
 
-*De missie verandert:* geen rampage met slachtoffers meer, maar een **zomerse stuntavond zonder slachtoffers**. Sikkom schreef dat de Grote Markt "dood" is, en Jelmer wil hem laten leven. Je haalt punten met:
+*De missie verandert:* geen rampage met slachtoffers meer, maar een **zomerse stuntavond zonder slachtoffers**. Kiekdoar schreef dat de Grote Markt "dood" is, en Jelmer wil hem laten leven. Je haalt punten met:
 - stunts met de Escapade tussen de kramen door;
 - parasols, kliko's en kartonnen reclameborden omverrijden;
 - een duivenzwerm laten opvliegen;
@@ -238,7 +238,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat niet leuk"). Mensen springen opzij, lachen en filmen mee.
 
 **Bel Rikus.**
-- **Jelmer:** Rikus! Jelmer. Sikkom zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!
+- **Jelmer:** Rikus! Jelmer. Kiekdoar zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!
 - **Rikus:** Ik ken twee mensen die het altijd druk maken. Ook als dat niet hoeft. Niemand raken, hè, Jelmer.
 - **Jelmer:** Niemand raken! Alleen spullen. Spullen zijn content.
 
@@ -395,7 +395,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 **Bij een herhaling.** **Anita:** Drie minuten. Hand. **Tammo:** Voor de grip. **Anita:** Natuurlijk.
 
-**Bericht van Sikkom:** Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."
+**Bericht van Kiekdoar:** Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."
 
 ## Overgang (cutscène, Nachtstreek)
 - **Rikus:** Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht. *(Het is nog nooit zo donker geweest, of het werd altijd wel weer licht.)*
@@ -408,7 +408,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 ## Tussendoor: onderduiken met de trein
 - **Anita:** Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.
-- **Tammo (in de trein):** Iedereen kijkt naar Sikkom. Niemand naar ons.
+- **Tammo (in de trein):** Iedereen kijkt naar Kiekdoar. Niemand naar ons.
 
 ---
 
@@ -892,7 +892,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 ## Wat er in de game verandert
 
 **Verhaal en teksten**
-- Alle cutscènes, leads, telefoontjes en Sikkom-berichten volgens dit script. Daarna worden ze ingesproken met de nieuwe stemmen, en dat kost een paar euro.
+- Alle cutscènes, leads, telefoontjes en Kiekdoar-berichten volgens dit script. Daarna worden ze ingesproken met de nieuwe stemmen, en dat kost een paar euro.
 - De naamkaarten in GTA-stijl en de trailer-opening (de intromontage wordt herschreven).
 - "Bel Rikus" vóór elke missie: een kort radiofragment. Dit kan via de bestaande radiostudio en de Nachtstreek-functies (`radiostudio.js`, `playRadioSting`).
 - Een korte outro bij herhaling voor elke missie, als klus.

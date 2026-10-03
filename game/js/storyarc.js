@@ -187,14 +187,14 @@ export const STEPS = [
     title: 'Iets met de Grote Markt', reward: 150,
     lead: ['A', 'De inschrijving voor de Snackprijs kost honderdvijftig euro. Jelmer betaalt dat, voor content. Grote Markt, met de Escapade.'],
     contact: [belRikus([
-      ['jelmer', 'Rikus! Jelmer. Sikkom zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!', { tag: 'hyper, opgewonden, aan de telefoon op de radio' }],
+      ['jelmer', 'Rikus! Jelmer. Kiekdoar zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!', { tag: 'hyper, opgewonden, aan de telefoon op de radio' }],
       ['rikus', 'Ik ken twee mensen die het altijd druk maken. Ook als dat niet hoeft. Niemand raken, hè, Jelmer.', { tag: 'droog, waarschuwend, als nacht-dj op de radio' }],
       ['jelmer', 'Niemand raken! Alleen spullen. Spullen zijn content.', { tag: 'snel, enthousiast, aan de telefoon op de radio' }],
     ], 'Jelmer, streamer'), radio([
       ['rikus', 'Een terrasgast belt: "Ik zat net op de Grote Markt en ik ben nat. Het was de beste avond van mijn zomer." Dank je wel.', { tag: 'warm, droog, als nacht-dj op de radio' }],
       ['rikus', 'Peiling: was Tammo net jaloers op een chatbericht? Ja: 61 procent. "Ken ik ja nait roeken": 27 procent.', { tag: 'plagend, als nacht-dj op de radio' }],
     ])],
-    after: [['Sikkom', 'Zomeravond op de Grote Markt: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert. Gewonden: nul. Natte mensen: veel.']],
+    after: [['Kiekdoar', 'Zomeravond op de Grote Markt: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert. Gewonden: nul. Natte mensen: veel.']],
     unlocks: 'snackprijs' },
   { id: 'H4', part: 'kop', kind: 'mission', player: 'tammo', built: true, mission: 'duifverkenning', why: 'Laat mij maar. Bert zegt dat ik een echt duivengezicht heb.',
     title: 'Kieken van boven', reward: 350,
@@ -245,7 +245,7 @@ export const STEPS = [
     contact: [belRikus([
       ['rikus', 'Geen beller vanavond. Twee vrienden van me zijn een museum gaan "bekijken". Ik zeg niks. Ik draai drie minuten stilte.', { tag: 'zacht, samenzweerderig, laat op de avond, als nacht-dj op de radio' }],
     ])],
-    after: [['Sikkom', 'Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."']],
+    after: [['Kiekdoar', 'Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."']],
     unlocks: 'jelle' },
 
   // --- Romp: "Stad in rouw" (Noorderzon) -------------------------------------------
@@ -253,7 +253,7 @@ export const STEPS = [
     title: 'Even onderduiken: een treinreis', goal: { type: 'train' }, cost: 8,
     lead: ['T', 'Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken: pak de trein.'],
     say: ['T', 'Een kaartje naar maakt niet uit waar. Ik kijk wel uit het raam.'],
-    done: ['T', 'Iedereen kijkt naar Sikkom. Niemand naar ons.'] },
+    done: ['T', 'Iedereen kijkt naar Kiekdoar. Niemand naar ons.'] },
   { id: 'H7', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'noorderzon', why: 'Ik rij het decor. Femke vindt mij rustig. Ze kent me nog niet.',
     title: 'Heel aankomen is ook een kunst', reward: 850,
     lead: ['A', 'Femke van Noorderzon heeft een rit, en een alibi. Bij de Stadsschouwburg.'],
@@ -262,7 +262,7 @@ export const STEPS = [
       ['rikus', 'Femke, dat klinkt als een alibi.', { tag: 'droog, plagend, als nacht-dj op de radio' }],
       ['femke', 'Dat klinkt als theater, Rikus.', { tag: 'opgewekt, onschuldig, aan de telefoon op de radio' }],
     ], 'Femke, Noorderzon')],
-    after: [['Sikkom', 'Frituurvet uitverkocht in heel Grunn. Groothandel: "Twee reuzen kochten alles op. Contant, oet n klomp. Op de tankwagen stond Us Mem Vet."']] },
+    after: [['Kiekdoar', 'Frituurvet uitverkocht in heel Grunn. Groothandel: "Twee reuzen kochten alles op. Contant, oet n klomp. Op de tankwagen stond Us Mem Vet."']] },
   { id: 'H8', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'vetgekaapt', why: 'Die tankwagen is voor mij. Ik ga voor geen enkele vetvlek opzij.',
     title: 'Al het vet van Grunn', reward: 950,
     lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Tijd voor banden.'],
@@ -301,7 +301,7 @@ export const STEPS = [
       ['rikus', 'Peiling, Woist ja wel: hij pakte haar hand in een auto met stuur. Ja: 88 procent.', { tag: 'plagend, als nacht-dj op de radio' }],
       ['rikus', 'Een luisteraar uit Haren stemde nee. Hij woont niet in Stad, zegt hij.', { tag: 'droog, met een knipoog, als nacht-dj op de radio' }],
     ])],
-    after: [['Sikkom', 'Er rijdt niets boven Groningen: Stadjers op het podium, Friese trekker op de vluchtstrook.']] },
+    after: [['Kiekdoar', 'Er rijdt niets boven Groningen: Stadjers op het podium, Friese trekker op de vluchtstrook.']] },
   { id: 'H10', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'vlag', why: 'Ik fluit wel een duif. Die touwen zijn zo los.',
     title: "Er hangt iets Fries aan d'Olle Grieze", reward: 600,
     lead: ['A', 'Er hangt een reuzenvlag aan de Martinitoren. Bert staat op de Grote Markt. Fluiten maar, duivenkoning.'],
@@ -313,7 +313,7 @@ export const STEPS = [
       ['rikus', 'Ik heb een jingle gemaakt: "De duivenfluisteraar van het Oosterpark." Tammo, ik weet dat je luistert. Zeg het nou eens tegen haar.', { tag: 'warm, plagend, als nacht-dj op de radio' }],
       ['rikus', 'Wat? Dat weet je zelf wel. Woist ja wel.', { tag: 'zacht, droog, als nacht-dj op de radio' }],
     ])],
-    after: [['Sikkom', 'Duif pikt Friese vlag van d\'Olle Grieze. Op de vlag stond FOAR MEM. Stadjers juichen, de toren zelf zegt niks.']] },
+    after: [['Kiekdoar', 'Duif pikt Friese vlag van d\'Olle Grieze. Op de vlag stond FOAR MEM. Stadjers juichen, de toren zelf zegt niks.']] },
   { id: 'r-kermis', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik doe de botsauto\'s. Ik rij al jaren zo, nu mag het eindelijk.',
     title: "Botsauto's: Durk en Douwe klemrijden", goal: { type: 'kermis' },
     lead: ['A', 'De kermis wordt opgebouwd voor het Ontzet. Durk en Douwe zitten in de botsauto\'s op de Grote Markt. Kermisbaas Jan laat je gratis instappen.'],
@@ -382,7 +382,7 @@ export const STEPS = [
       ['rikus', 'Waarom vertel je dat, Jelle?', { tag: 'verbaasd, droog, als nacht-dj op de radio' }],
       ['jelle', 'Omdat het een gezellig programma is.', { tag: 'charmant, onschuldig, aan de telefoon op de radio' }],
     ], 'Jelle, Ljouwert')],
-    after: [['Sikkom', 'Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: "Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!"']] },
+    after: [['Kiekdoar', 'Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: "Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!"']] },
   { id: 's-proefvlucht', part: 'staart', kind: 'activity', player: 'anita', built: true, why: 'Ik vlieg. Rotor Roelf denkt dat we een heli kopen. Dat laat ik even zo.',
     title: 'Proefvlucht: zoek de ballon vanuit de lucht', goal: { type: 'flight', heli: [785, -118], over: [1593, -466], r: 170 },
     lead: ['T', 'Rotor Roelf staat met een demoheli bij het UMCG. Gratis proefvlucht, kopen hoeft niet. Dan zoeken we die ballon van bovenaf.'],
@@ -410,7 +410,7 @@ export const STEPS = [
       ['rikus', 'Dokter, leen je een heli uit?', { tag: 'hoopvol, als nacht-dj op de radio' }],
       ['dijkstra', 'Ik leen niks uit. Ik doe een spoedeisende duif.', { tag: 'nuchter, stiekem geamuseerd, aan de telefoon op de radio' }],
     ], 'Dijkstra, UMCG')],
-    after: [['Sikkom', 'Traumaheli haalt Gouden Eierbal uit ballon. UMCG: "Het stond niet in het rooster, maar het was een geslaagde operatie."']] },
+    after: [['Kiekdoar', 'Traumaheli haalt Gouden Eierbal uit ballon. UMCG: "Het stond niet in het rooster, maar het was een geslaagde operatie."']] },
   { id: 's-carbid', part: 'staart', kind: 'activity', player: 'tammo', built: true, why: 'Ik schiet. Ik heb die bal toch al vast. Wat kan er misgaan met een melkbus?',
     title: 'Carbid schieten bij boer Roelf: verstop de Eierbal', goal: { type: 'carbid', lift: ['Henk', 'Je bakkie staat om de hoek, jong. Gratis gebracht. Voor Grunn doe ik dat.'] },
     lead: ['A', 'De bal moet tot het Ontzet veilig staan. Boer Roelf aan de Beijumerweg helpt alleen wie carbid kan schieten.'],
@@ -456,7 +456,7 @@ export const STEPS = [
     ]), { via: 'call', from: 'jelle', mood: 'smug', lines: [
       ['jelle', 'Moai dien, Grinzers. Volgend jaar weer? Dan mogen jullie naar Ljouwert komen.', { tag: 'warm, sportief, aan de telefoon, \'s avonds' }],
     ], after: [['T', 'Wij tweeën vóór Grunn. Kon minder, hè?']] }],
-    after: [['Sikkom', 'Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.']] },
+    after: [['Kiekdoar', 'Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.']] },
 ];
 
 export const STEP_BY_ID = new Map(STEPS.map((s) => [s.id, s]));

@@ -8,7 +8,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - Er is één testronde per release: de verhaaltest in Electron, de node-tests, en een korte speeltest. Agents doen tussendoor alleen lichte checks.
 - De legenda: `[x]` is klaar, `[~]` loopt (met de branch erachter), `[ ]` is open, en `[?]` wacht op een besluit.
 
-## 0.23: alles wat nu loopt, plus een speeltest
+## 0.23: uitgebracht op 3 okt 2026 (een paar punten schuiven door)
 
 **Visueel en wereld**
 - [~] Mesh ronde 3 (`claude/mesh-ronde3`): stoeptegels die flikkeren op kruispunten, water en markering die flikkeren, spoorbedden, de laatste kieren bij verhoogde en verdiepte wegen, 291 gaten, de Griffeweg, zwevende en zinkende gebouwen.
@@ -102,10 +102,10 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] Disclaimer op het laad- en startscherm en in de README. Bakkie Peut heet nu Bakkie Prut, en de Hema-uitverkoop is Wiebel.
 - [x] De voorwaarden voor muziek en stemmen (Gemini via OpenRouter) zijn vastgelegd. Ze zijn vrij te verspreiden in een gratis game, met een AI-label, en mogen niet gebruikt worden om modellen te trainen.
 - [ ] **Licentie (advies):** MIT voor de code, CC BY-NC 4.0 voor verhaal, stemmen en art, en ODbL voor de kaartdata. Daarna een `LICENSE`-bestand toevoegen.
-- [ ] **Sikkom** (een echt merk van het DvhN) krijgt een eigen parodienaam, bijvoorbeeld "Sjikkom" of "Grunnfeed". **Radio Grunn** (te dicht bij Grunn FM) wordt bijvoorbeeld "Radio Nachtstreek". Daarna die regels opnieuw inspreken, voor waarschijnlijk minder dan $0,50.
+- [x] **Sikkom** (een echt merk van het DvhN) heet nu **Kiekdoar**, en **Radio Grunn** (te dicht bij Grunn FM) heet **Radio Proat**. De regels met de oude namen zijn opnieuw ingesproken. Het scherm "Sikkom." bij een net mislukte missie blijft, want dat is het Groningse woord voor "bijna".
 - [ ] **De Esri-satellietfoto** (`data/satellite_reference.jpg`) uit de repo en uit de geschiedenis halen. Dat gebeurt samen met het herschrijven van het e-mailadres, na akkoord.
-- [ ] De ongelogde, oudere stemclips (npc, politie, sikkom, jingles) opnieuw inspreken en loggen.
-- [ ] De kleuren van parodiewinkels minder exact maken, zoals het roze van Kruidvet. Echte cafénamen uit OSM in berichten vervangen door verzonnen namen.
+- [x] De ongelogde, oudere stemclips (npc, politie, nieuws, jingles) zijn opnieuw ingesproken met 3.8 en gelogd, via `tts_barks_lines.mjs`.
+- [x] De kleuren van de parodiewinkels zijn verschoven (Kruidvet, Albert Hijgt, DUMBO, Blokkie, Wiebel en Bakkie Prut). Cafés heten in berichten en in de kroegentocht naar verzonnen zaken; de kaart houdt de OSM-namen. Huisartsenposten bij respawn hebben een algemene naam.
 - [x] Het logo met **Big Shoulders Display** (OFL), de plaatsnaam op een plaatsnaambord-vorm, en Gronings groen (`claude/gde-naam`). Het bord is groen met een witte rand in plaats van blauw: blauw zou de enige blauwe kleur in de game zijn en leest als een echt verkeersbord; de vorm zegt al "plaatsnaambord". Ook het app-icoon is nieuw. Lettertype en OFL staan in `licenses/`, `NOTICE.md` en `docs/LICENTIES.md`.
 - [ ] Handmatig in het merkenregister zoeken naar "GDE" en "Grootste Diefstal Ever" (EUIPO en BOIP, ongeveer 15 minuten).
 
@@ -150,6 +150,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
 
 ## Klaar
 
+- [x] 0.23.0 (3 okt 2026): echte gebouwen ronde 2, Ommeland ronde 2, gevels en wegen die minder flikkeren, bestuurders op de goede plek, een soepele ring in cutscenes, laadtijd van 10 naar 6 s, kusjes na H13, juridische basis (Over, disclaimer, licenties) en de webversie (alleen lokaal).
 - [x] 0.22.0 (3 okt 2026):
   - het definitieve verhaal en alle stemmen opnieuw ingesproken;
   - de trailer en de video-export;
