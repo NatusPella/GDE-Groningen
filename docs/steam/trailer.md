@@ -1,9 +1,17 @@
-# Steam-trailer
+# Steam-trailers
 
-Wat de trailer op de winkelpagina nodig heeft, naast de bestaande
-YouTube-trailer "GDE Groningen — Een zomer in Grunn" (`game/js/trailer.js`,
-shotlijst in `docs/verhaal/E-trailer.md`, export met
-`npx electron . --trailer-video`, zie README › Trailer mode).
+Twee trailers voor de winkelpagina, naast de oude YouTube-trailer "Een
+zomer in Grunn" (de cut `vol`, die ook de benchmark blijft):
+
+1. **Gameplay** (`--trailer-cut=gameplay`, ~62 s): de eerste trailer op
+   Steam. Het logo in de eerste seconden, daarna snelle shots van de systemen
+   met de echte HUD en een paar tekstkaarten.
+2. **Verhaal** (`--trailer-cut=verhaal`, ~80 s): de tweede trailer. De
+   boog van het verhaal tot de kraak, met echte ingesproken regels uit de
+   game, naamkaarten en de set pieces, tot het Ontzet op 28 augustus.
+
+Alles staat in `game/js/trailer.js` (de shots, en `CUT_ORDER` met de volgorde
+en lengte per cut). Export: zie README › Trailer mode, en onderaan hier.
 
 ## Eisen van Steam
 
@@ -17,78 +25,126 @@ Nagekeken in Steamworks (*Trailers*, 3 oktober 2026):
     toch terug.
 - **Volgorde:** de eerste twee trailers komen vóór de screenshots. Steam
   maakt van de **eerste seconden van de eerste trailer** automatisch een
-  microtrailer van 6 seconden (die zie je in lijsten en bij hover).
+  microtrailer van 6 seconden (die zie je in lijsten en bij hover). Daarom
+  is de gameplay-trailer de eerste, met het logo vanaf 0,5 s.
 - **Gameplay eerst:** Steam raadt aan dat de eerste trailer laat zien hoe
   het spel speelt, met de HUD.
 - **Thumbnails:** Steam maakt ze zelf (600×380 en 232×130); een eigen frame
-  van 1920×1080 mag. Gebruik `beelden/screenshots/` of het PNG-thumbnail
-  dat `--trailer-video` naast de mp4 zet.
+  van 1920×1080 mag. `--trailer-video` zet een PNG naast de mp4 (gameplay:
+  het logo boven de Martinitoren; verhaal: de luchtfoto).
 - Een game kan niet uitkomen terwijl een trailer nog wordt gecodeerd: upload
   hem ruim op tijd.
 
-## Lengte
+## Geen spoilers
 
-- **Hoofdtrailer: 60–90 seconden.** De volledige cut is nu ~91 s. Dat kan,
-  maar de eerste 4 s zijn zwart (Rikus op de radio). Voor Steam is dat
-  zonde, want die eerste seconden worden de microtrailer.
-- **Advies:** voor Steam de volgorde iets omgooien, of de korte cut
-  (`--trailer-cut=kort`, ~38 s) als tweede trailer gebruiken.
+- **Niet in een trailer:** de lege vitrine, het kaartje "Tige tank!", wie de
+  Eierbal meeneemt, H16 ("Tige tank foar de auto"), de chocolade bal en de
+  ballon. Dat geldt ook voor de oude cut: shot 11 is nu de Eierbal in zijn
+  vitrine.
+- **De haak is de geplande kraak:** de Gouden Eierbal ligt nog in de vitrine,
+  gloeit, de camera schuift naar binnen, en Tessa zegt "Vannacht. Het museum.
+  Geen zaklamp."
+- Alles tot het midden van het verhaal alleen als hint. Jelle is de rivaal
+  ("Zelfs zijn naam klinkt als een fierljepper"), niet de dader.
+- Geen regels waarin "Anita" wordt gezegd (de naam is nu Tessa).
 
-## Het logo aan het begin
+## Shotlijst: gameplay (~62 s)
 
-Nu komt het logo pas in shot 23 van 24 (1:23), op de luchtfoto bij
-zonsondergang, met "Een zomer in Grunn" eronder. Op YouTube werkt dat als
-ontknoping; op Steam niet: de microtrailer en wie na drie seconden
-wegklikt, zien geen naam.
+Steam's eerste trailer. Snel gesneden, droge kaarten. Shots met **HUD** zijn
+`hud: true`: de echte HUD (`hud_panel.js`, `hudcards.js`, `stunthud.js`, de
+HUD van `helirun.js`, de telefoon) draait mee, zonder balken of vignet.
 
-Voor de Steam-versie:
+| # | s | Shot (id) | Laat zien | Systeem / missie |
+|---|---|---|---|---|
+| 1 | 2,8 | `steamLogo` | het GDE-logo over de Martinitoren in de ochtend | `logo.js` |
+| 2 | 2,8 | `gpCity` | Stad vanaf de rand van het Ommeland, hoog. Kaart: *Een hele stad. Een heel Ommeland.* | de kaart, `countryreal.js` |
+| 3 | 4,2 | `hudDrive` | **HUD**: de Escapade de Herestraat op, voertuigbadge, snelheid, minimap, missiekaart *Iets met de Grote Markt*, je eigen doel *Doel: Grote Markt · wissen via Te doen* | `vehicle.js`, `hudcards.js`, `goal.js` (H3) |
+| 4 | 3,6 | `hudChase` | **HUD**: achtervolging met drie sterren, *Ontsnap aan de politie*, politieheli met zoeklicht | `police.js`, wanted-sterren |
+| 5 | 2,8 | `pigeon` | de duif langs de wijzerplaat. Kaart: *Of ga als duif.* | duivenmodus (`pigeonmode.js`) |
+| 6 | 3,6 | `hudHeli` | **HUD**: de heli door de ringen boven Stad, de pijl naar de volgende ring, hoogtemeter, score | ballonjacht (`helirun.js`) |
+| 7 | 2,8 | `boat` | de rondvaartboot op de Diepenring | boten en grachten (`boattypes.js`) |
+| 8 | 3,4 | `ommeland` | Ommeland bij zonsondergang, de carbidbus knalt | carbid, het Ommeland |
+| 9 | 3,8 | `hudStunt` | **HUD**: de stuntavond op de Grote Markt, parasols en kliko's om, duiven op, het scorepaneel met combo | stuntavond (H3, `stuntavond.js`) |
+| 10 | 2,8 | `kermis` | de kermis bij nacht. Kaart: *Botsauto's. Padel. Ballonjacht.* / *Even geen missie* | `kermis.js`, minigames |
+| 11 | 3,4 | `hudJob` | **HUD**: een bijbaantje, *Bezorg bij de Oosterpoort*, Hap & Rap 3/5, de klok loopt | bijbaantjes (`sidejobs.js`) |
+| 12 | 3,6 | `hudPhone` | **HUD**: de telefoon open op Ubbo: verhaal, dichtbij te doen, bijbaantjes | de telefoon, Ubbo / Te doen (`phone.js`) |
+| 13 | 3,2 | `timelapse` | een dag boven Stad in drie seconden. Kaart: *Dag en nacht.* / *En dan het weer* | dag en nacht (`daynight.js`) |
+| 14 | 2,6 | `storm` | onweer boven het Forum. *Zomer? Ja.* | weer (`weather.js`) |
+| 15 | 2,8 | `race` | de ringrace. Kaart: *18 missies.* / *En een ringweg* | Ring Zuid (H7) |
+| 16 | 2,8 | `tanker` | de tankwagen slipt, het vet klotst | H8 |
+| 17 | 2,8 | `vismarkt` | terrassen en duiven. Kaart: *Toetsenbord of controller.* / *Nederlands gesproken* | besturing, gamepad |
+| 18 | 3,6 | `aerial` | luchtfoto bij zonsondergang | – |
+| 19 | 4,5 | `logo` | het logo met *Gratis · Nederlands gesproken* | – |
 
-1. **Logo binnen de eerste 3 seconden**, over beeld (de zonsopgang bij de
-   Martinitoren of de Vismarkt), 2 s in beeld, met de wordmark uit
-   `logo.js` (`logoHtml()`). Daarna de radio-opening.
-2. **De zwarte radio-opening inkorten** of er beeld onder leggen (de stad
-   bij zonsopgang), zodat de microtrailer geen zwart vlak is.
-3. **Aan het eind blijft het logo** zoals nu. Een regel als "Gratis op
-   Steam" mag niet op de capsules, in een trailer wel; liever toch alleen
-   het logo en de tagline.
-4. **Meer gameplay met HUD**: nu is de hele trailer zonder HUD. Voeg twee of
-   drie korte stukjes met HUD toe (rijden met de minimap en de missiekaart,
-   de heli met de ringen). Zie `beelden/screenshots/01-missie-hud.jpg` en
-   `04-heli-hud.jpg` (en `07-ommeland.jpg`) voor de beelden.
+Muziek: de themesong vanaf 0 s. Geen stemmen.
 
-Technisch is dat een nieuwe cut naast `vol` en `kort`, bijv. `steam`
-(`cuts: ['steam']` op de shots, en een logo-shot met `cuts: ['steam']`
-vooraan). Nog niet gebouwd.
+Niet gefilmd, wel op een kaart: padel (een baan opbouwen kost te veel voor
+2 s) en de controller zelf.
 
-## Het oude logo: is "GTE VI" er nog?
+## Shotlijst: verhaal (~80 s)
 
-**Nee.** De logokaart in `trailer.js` (shot "Logo") gebruikt `logoHtml()`
-uit `game/js/logo.js` en toont dus de nieuwe wordmark: **GDE**, het groene
-plaatsnaambord GRONINGEN en *Zomer vol misdaad*, met de tagline "Een zomer
-in Grunn". De standaardnaam van de export is
-`GDE-Groningen-Een-zomer-in-Grunn.mp4`. Er staat in `trailer.js` geen "GTE
-VI" of "Grand Theft" meer; alleen interne sleutels (`gte-benchmark-pending`,
-`gte-muted`, `window.gteDesktop`) heten nog zo, en die zie je niet.
+Toon: zomer, droog, de muziek bouwt op. De boog: Grunn in de zomer → Tammo
+en Tessa zijn blut maar hebben een droom (de Fjord Frituur) → de Gouden
+Eierbal → het plan voor het museum → Jelle als rivaal → de zomer escaleert →
+richting het Gronings Ontzet op 28 augustus → logo. Alle stemmen zijn
+bestaande opnames (`audio/voicelines/`), geen nieuwe TTS.
 
-Wel nalopen vóór de upload:
+| # | s | Shot | Regel (bron) | Kaart |
+|---|---|---|---|---|
+| 1 | 4,0 | Radio, zwart | **Rikus:** "Augustus. In Grunn heet dat zomer." (`trailer/rikus_augustus`) | *Radio Nachtstreek 06:12* |
+| 2 | 4,0 | Zonsopgang bij de Martinitoren | – | *Grunn.* |
+| 3 | 3,4 | Terrassen op de Vismarkt | – | *Een zomer.* |
+| 4 | 3,0 | Naamkaart Tessa (pinautomaat) | – | **TESSA** |
+| 5 | 3,0 | Naamkaart Tammo (deur) | – | **TAMMO** |
+| 6 | 4,6 | Noorderplantsoen | **Tessa:** "De Fjord Frituur. Blauw, met een meeuw erop." (banter `id-fjord-meeuw`) | – |
+| 7 | 3,6 | De Escapade in de Herestraat | **Tessa:** "Iemand moet de Fjord Frituur betalen." (banter `st-bijbaan`) | – |
+| 8 | 3,4 | Duif langs de Martinitoren | **Tessa:** "Zonder die Eierbal geen Fjord Frituur." (banter `st-end-kop-fjord`, na de Kop) | *Kieken van boven.* |
+| 9 | 6,0 | **De Gouden Eierbal in de vitrine**, gloeiend, langzame push-in | **Tammo:** "Achttien karaat. Hoeveel eierballen is dat?" (H2) · **Tessa:** "Vannacht. Het museum. Geen zaklamp." (vóór H6) | *De Gouden Eierbal.* / *Groninger Museum* |
+| 10 | 4,2 | Naamkaart Jelle Terpstra (trekker-limo) | **Tessa:** "Jelle Terpstra. Zelfs zijn naam klinkt als een fierljepper." (banter `id-fierljeppen`) | **JELLE TERPSTRA** |
+| 11 | 3,2 | Naamkaart Durk & Douwe (botsauto) | – | **DURK & DOUWE** |
+| 12 | 4,2 | Achtervolging met zwaailichten | – | *Lange avonden.* |
+| 13 | 4,0 | Ringrace | – | *Ring Zuid. Laatste fase.* |
+| 14 | 4,0 | De tankwagen op de Europaweg | – | *Al het vet van Grunn.* |
+| 15 | 4,0 | Rondvaartboot, Tammo en Tessa aan de reling | – (de muziek zakt) | – |
+| 16 | 3,6 | Traumaheli boven het UMCG | – | *Het staat niet in het rooster.* |
+| 17 | 4,0 | Kermis bij nacht | **Rikus:** "Achtentwintig augustus. Gronings Ontzet. In 1672 hield Stad een bisschop buiten." (radio) | *28 augustus.* |
+| 18 | 5,6 | Luchtfoto bij zonsondergang | (Rikus loopt door) | *Er gaat niets boven Grunn.* |
+| 19 | 5,0 | Logo (*Zomer vol misdaad* in het woordmerk) | – | *Een zomer in Grunn* |
+| 20 | 3,0 | Berend en de kras | **Berend:** "…Kon minder." | – |
 
-- **Video's die vóór 0.24 zijn geëxporteerd** tonen nog de oude "GTE
-  VI"-kaart (de 0.22-trailer heette "GTE VI — Een zomer in Grunn"). Exporteer
-  opnieuw vanaf de huidige main; gebruik geen oude mp4 uit `~/Downloads`.
-- De naamkaarten zijn bevroren beelden "in trailerstijl" (oranje-warme
-  waas, grote naam linksonder). Dat is een knipoog die volgens
-  `docs/LICENTIES.md` §8.2 mag, zolang naam en logo op zichzelf staan. Geen
-  roze-paars zonsondergangverloop toevoegen.
-- `docs/verhaal/E-trailer.md` noemt de toon "een trailerparodie op GTA VI".
-  Dat is een interne notitie; niet overnemen in de trailertitel of de
-  beschrijving op Steam of YouTube.
+De themesong zakt onder elke regel iets weg (in de export; live alleen
+onder de boot).
+
+## Wat er in de oude cut is veranderd
+
+- Shot 11 is nu **de Gouden Eierbal in zijn vitrine** (gloed, push-in),
+  zonder kaartje: geen spoiler meer, ook niet in de benchmark.
+- De druppels van de tankwagen zijn groter en de camera staat dichterbij.
+- Durk in de Poelestraat staat onder een warme terraslamp, en de camera rijdt
+  tot vlak voor hem.
+- Ondertitels en naamkaartregels zijn groter (ongeveer 44 en 48 px bij
+  1080p).
+- De zwarte overlay (in- en uitfaden) volgt de trailerklok in plaats van een
+  CSS-transitie, dus de fades staan nu ook in de export. CSS-animaties in de
+  HUD lopen in een opname ook op de trailerklok.
+
+## Export
+
+Eén export tegelijk, onder `nice`, alleen als de game niet speelt:
+
+```
+cd desktop && npm run stage
+nice -n 10 npx electron . --trailer-cut=gameplay --trailer-video=~/Downloads/GDE-Groningen-trailer-gameplay.mp4
+nice -n 10 npx electron . --trailer-cut=verhaal --trailer-video=~/Downloads/GDE-Groningen-trailer-verhaal.mp4
+```
+
+Een opname die met beeld begint (gameplay) laadt eerst ~2,5 s achter
+zwart, zodat de eerste frames meteen scherp zijn.
 
 ## Checklist voor de upload
 
-- [ ] Steam-cut met het logo in de eerste 3 s en HUD-gameplay (of de huidige
-      cut, als besluit).
+- [ ] Gameplay-trailer als eerste, verhaal-trailer als tweede.
 - [ ] Opnieuw exporteren vanaf main (1920×1080, 60 fps).
-- [ ] Eigen thumbnail kiezen (1920×1080).
-- [ ] De korte cut als tweede trailer.
-- [ ] Titel van de trailer op Steam: "Een zomer in Grunn" (geen andere
-      merknamen).
+- [ ] Eigen thumbnail (de PNG naast de mp4).
+- [ ] Titels op Steam: "Gameplay" en "Een zomer in Grunn" (geen andere
+      merknamen; "trailerparodie" is een interne notitie).

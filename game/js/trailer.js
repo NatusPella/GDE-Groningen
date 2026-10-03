@@ -895,8 +895,8 @@ function buildShots(w) {
   const LIMO = { ...MODELS[0], name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#0d0d0f' };
   const jelle = {
     label: 'Jelle Terpstra', cuts: ['vol'], dur: 4.0, clock: 18.9, weather: 'helder', focus: lane(fjordRoad, 70, 2),
-    voice: [[0.05, 'audio/voicelines/banter/h6-pass-aaibal_0_t_60cf31.mp3', ['verhaal'], 2.76]],
-    lines: [[0.05, 2.2, 'Tammo', 'Die man met die trekker was live. Jelle Terpstra.', ['verhaal']]],
+    voice: [[0.05, 'audio/voicelines/banter/id-fierljeppen_0_a_aa6499.mp3', ['verhaal'], 5.35]],
+    lines: [[0.05, 2.3, 'Anita', 'Jelle Terpstra. Zelfs zijn naam klinkt als een fierljepper.', ['verhaal']]],
     slow: () => 0.45, freezeAt: 2.3, name: { at: 2.3, title: 'Jelle Terpstra', line: 'Snackkoning. Fries. Heel tevreden met zichzelf.' },
     prep(r) { cast(r, 'jelle', JELLE_LOOK); r.prop('flagL', buildFlag); r.prop('flagR', buildFlag); },
     enter(r, s) {
@@ -1009,8 +1009,9 @@ function buildShots(w) {
       glow.material.opacity = 0.42 + Math.sin(t * 2.4) * 0.08;
     },
     cam(u, t, s) {
-      const c = s.at, k = smooth(u), a = 0.7, R = lerp(3.6, 1.55, k);
-      return { position: P(c.x + Math.cos(a) * R, c.y + Math.sin(a) * R, c.z + lerp(1.9, 1.55, k)), lookAt: P(c.x, c.y, c.z + lerp(1.3, 1.22, k)), fov: lerp(40, 30, k), shake: 0.006 };
+      // a slow push-in on the case: the heist is still a plan
+      const c = s.at, k = smooth(u), a = 0.7, R = lerp(3.9, 2.1, k);
+      return { position: P(c.x + Math.cos(a) * R, c.y + Math.sin(a) * R, c.z + lerp(1.85, 1.6, k)), lookAt: P(c.x, c.y, c.z + 1.3), fov: lerp(40, 31, k), shake: 0.006 };
     },
   };
 
@@ -1611,7 +1612,7 @@ function buildShots(w) {
       const q = lane(fjordRoad, s.d, 1.6);
       s.car = tempCar(r, q.x, q.y, q.a, { model: { ...MODELS[8], color: '#c9541e' } });
       hudPlayer(r, s.car);
-      r.w.sideJob = { active: true, goal: { label: 'Bezorg bij de Oosterpoort', desc: '' }, progress: 'Hap & Rap · 3/5', timeLeft: 44, dots: [] };
+      r.w.sideJob = { active: true, goal: { label: 'Bezorg bij de Oosterpoort', desc: '' }, progress: 'Hap & Rap · 3/5', timeLeft: 44, dots: [], marker: { x: 452, y: 1064 } };
     },
     tick(r, s, t, dt) {
       const v = 12;
@@ -1692,6 +1693,8 @@ function vitrineRoom(r) {
     glow.position.set(0, 1.29, 0);
     room.add(glow);
     room.userData.glow = glow;
+    // the museum room has no environment to reflect: a warmer, self-lit gold
+    room.userData.ball.material = new THREE.MeshStandardMaterial({ color: 0xf0bc3a, metalness: 0.35, roughness: 0.3, emissive: 0xb07a14, emissiveIntensity: 0.75 });
     return room;
   });
 }
