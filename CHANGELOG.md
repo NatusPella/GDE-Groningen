@@ -37,6 +37,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   "Sikkom." bij een net mislukte missie blijft: dat is het Groningse woord
   voor "bijna".
 - **De praatzender heet nu Radio Proat**, met nieuwe idents van Geesje.
+- **Geen kraskaarten en loten meer.** De winkel Rook & Geluk heet nu
+  **Krant & Kauwgom** (kranten, strips, snoep en een eierbal uit de muur).
+  In plaats van gokken krijg je een **spaarkaart**: elke aankoop daar is een
+  stempel, en een volle kaart van 10 stempels lever je in voor €10. Geen
+  inzet en geen geluk nodig. Nieuwe prestatie: "Stempeltje erbij".
 - Alle regels met de oude namen zijn opnieuw ingesproken. De oudere clips
   van voetgangers, politie, het nieuws en de G-Music-jingles zijn ook
   opnieuw ingesproken, met dezelfde stemmen als de rest. Nu is van elke

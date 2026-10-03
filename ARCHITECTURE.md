@@ -316,9 +316,10 @@ Every shop item can carry `preview` (a `vehiclepreview.js` spec: a vehicle,
 character in the chosen outfit or hairdo, or `{ kind: 'product', product }`
 from `shopmodels3d.js`), `stats` (bars `{ label, v, to, text }`, `to` = after
 buying: weapon schade/bereik/snelheid/munitie, vehicle stats before/after an
-upgrade, gezondheid/pantser) and `effect` (a chip in the detail bar);
-`reveal` plays the kraslot scratch card before the result. One small preview
-renderer serves every shop (pixel ratio capped); its model is freed on close.
+upgrade, gezondheid/pantser) and `effect` (a chip in the detail bar).
+Krant & Kauwgom stamps every purchase on a spaarkaart (`state.stamps`, saved
+with the shops); a full card pays a fixed prize. One small preview renderer
+serves every shop (pixel ratio capped); its model is freed on close.
 The panel scales with `--ui`. Shops that buy and sell list Kopen first.
 
 ## Heights
