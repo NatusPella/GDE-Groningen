@@ -60,7 +60,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 | **Woist ja wel?** | Peiling onder de luisteraars: zijn ze het of niet? |
 | **Sikkom.** | Het scherm bij een missie die net mislukt, in plaats van "MISSIE MISLUKT" |
 
-**De Groningse complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte* (een brok in de keel).
+**De Groningse complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte* (een brok in de keel). Elke stap heet een **trede**. Omdat niet elke speler de ladder kent, zegt Anita bij de eerste trede (H1) "van de complimentenladder", telt Tammo in het autogesprek daarna alle zes treden op, en staat de ladder vanaf H1 in "Wat weten we?" (pauzemenu, Te doen) met wat elke trede betekent.
 
 **De romance in vijf stappen**
 | Wanneer | Wat |
@@ -170,7 +170,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 
 **Outro (cutscène, Boterdiep).**
 - **Berend** *(loopt om het bakkie heen)*: …Goud.
-- **Anita:** Dat is trede twee, Tammo.
+- **Anita:** Trede twee van de complimentenladder, Tammo.
 - **Berend:** Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus.
 - **Tammo:** Wat moet een Fries met jouw bakkie?
 - **Berend:** Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.
@@ -452,7 +452,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 **Outro (cutscène, Oosterpoort).** *Snackbarhouders met lege pannen juichen.*
 - **Snackbarhouder:** Vet! Valt mie nait of! *(Dat valt me niet tegen!)*
-- **Anita:** Trede drie, Tammo.
+- **Anita:** Trede drie van de complimentenladder, Tammo.
 - **Tammo:** Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten.
 - *Anita's telefoon trilt: "Pas op dysels, famke. – M." (Pas op jezelf, meisje.) Ze stopt hem snel weg. Tammo ziet het.*
 
@@ -837,7 +837,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - **Berend** *(bij de Friese eierbal)*: Goud. …Valt mie nait of.
 - **Berend** *(bij de Groninger eierbal)*: …Braid noar de zin. …Kon minder.
 - *Hij zegt niks meer. Hij slikt.*
-- **Rikus:** Berend zegt niks meer. Hij heeft een kloet in de strotte *(een brok in de keel)*. Dat is de hoogste trede. Dat is nog nooit gebeurd.
+- **Rikus:** Berend zegt niks meer. Hij heeft een kloet in de strotte *(een brok in de keel)*. Dat is de hoogste trede van de complimentenladder. Dat is nog nooit gebeurd.
 - **Oma Trijntje en Mem Terpstra** *komen samen naar voren.*
 - **Oma Trijntje:** Gerda. Jouw eierbal was beter. In 1953.
 - **Mem:** Trijntje. Dat duurde lang.

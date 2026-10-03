@@ -244,7 +244,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   for (const c of CLUES) {
     if (c.step !== step.id) continue;
     rt.newClues.add(c.title);
-    if (!quiet) rt.clueToasts.push(c.title);
+    if (!quiet) rt.clueToasts.push(c);
   }
 }
 
@@ -792,8 +792,8 @@ export function updateStory(dt, w) {
     if (playRecap(part)) { state.flags.add('recap:' + part); rt.leadAt = w.time + LEAD_DELAY; }
   }
   if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
-    const title = rt.clueToasts.shift();
-    w.addMessage(`Nieuwe aanwijzing: ${title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"`, 4.5);
+    const c = rt.clueToasts.shift();
+    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"`, 4.5);
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment

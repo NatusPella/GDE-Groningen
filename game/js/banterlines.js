@@ -47,8 +47,8 @@ export const BANTER = [
     ['A', 'Vijftig euro. Dat is een ventieldopje van de Fjord.', 'wistful, dry'],
     ['T', 'Dan hebben we er één. Dat is een begin.', 'dry, encouraging']] },
   { id: 'h1-pass-ladder', trigger: 'after:H1:pass', lines: [
-    ['A', 'Berend zei "goud". Dat is trede twee.', 'impressed, laughing'],
-    ['T', 'Er zijn er zes.', 'dry'],
+    ['A', 'Berend zei "goud". Trede twee van de complimentenladder.', 'impressed, laughing'],
+    ['T', 'Ow, goud, valt mie nait of, braid noar de zin, kon minder. En bovenaan zeg je niks meer. Zes treden.', 'dry, counting on his fingers'],
     ['A', 'Dan hebben we er nog vier.', 'determined, cheerful'],
     ['T', 'Bij Berend? Die haalt niemand.', 'deadpan']] },
   { id: 'h1-fail-tellen', trigger: 'after:H1:fail', lines: [
@@ -1071,7 +1071,7 @@ export const BANTER = [
     ['T', 'Ze hebben overlegd.', 'dry'],
     ['A', 'Eindelijk samenwerking in Stad.', 'laughing']] },
   { id: 'id-ladder', trigger: 'idle', needs: 'H8', until: 'H18', lines: [
-    ['A', 'Hoeveel treden heeft die ladder van jullie eigenlijk?', 'curious'],
+    ['A', 'Hoeveel treden heeft die complimentenladder van jullie eigenlijk?', 'curious'],
     ['T', 'Ow. Goud. Valt mie nait of. Braid noar de zin. Kon minder.', 'counting, dry'],
     ['A', 'Dat zijn er vijf.', 'dry'],
     ['T', 'De zesde zeg je niet.', 'quiet'],
