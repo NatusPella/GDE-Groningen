@@ -7,6 +7,7 @@ import { pointInPolygon, WATER_Y } from './util.js';
 import { passagesOf, doorsOf } from './passages.js';
 import { applyPortalCut, buildPassageTunnels } from './portalcut3d.js';
 import { buildMuseumInterior } from './museum3d.js';
+import { marktKind, buildMarktGroup } from './marktgebouwen.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -1311,6 +1312,19 @@ export function buildBuildingMesh(b) {
       model.position.z += box.cy;
       group.add(model);
       if (!b._geo3dParts) b._geo3dParts = {};
+      addPassages(group, b, b._geo3dParts, Math.max(2.4, b.h * LEVEL_HEIGHT));
+      return group;
+    }
+  }
+
+  // Grote Markt / Vismarkt: own models and the historic facades (marktgebouwen.js)
+  if (marktKind(b)) {
+    const box = bboxOf(b);
+    markPartyWalls(b, box.edges);
+    if (!b._geo3dParts) b._geo3dParts = {};
+    touchParts(b);
+    const group = buildMarktGroup(b, b._geo3dParts, sanitizeFootprint(b.pts).pts, box.edges);
+    if (group) {
       addPassages(group, b, b._geo3dParts, Math.max(2.4, b.h * LEVEL_HEIGHT));
       return group;
     }

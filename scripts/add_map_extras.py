@@ -438,6 +438,16 @@ def missing_buildings(existing, cands):
 PATCHES = [
     {"at": [1573.0, 275.0], "set": {"name": "EIKEA", "landmark": "EIKEA", "landmarkKind": "store", "h": 5, "type": "retail"}},
     {"at": [128.0, 110.0], "set": {"name": "Stadhuis", "h": 6, "type": "civic"}},
+    # Grote Markt facades and heights (marktgebouwen.js, docs/markt-gebouwen.md)
+    {"at": [172.5, 155.0], "set": {"markt": "drieGezusters36"}},
+    {"at": [179.8, 151.0], "set": {"markt": "drieGezusters37"}},
+    {"at": [188.8, 147.7], "set": {"name": "De Drie Gezusters", "markt": "drieGezusters39"}},
+    {"at": [167.3, 160.2], "set": {"markt": "grandTheatre"}},
+    {"at": [252.0, 78.0], "set": {"name": "Westcord Market Hotel", "markt": "marketHotel", "h": 6}},
+    {"at": [262.0, 110.0], "set": {"markt": "merckt"}},
+    {"at": [236.0, 55.0], "set": {"markt": "mutuaFides"}},
+    {"at": [85.0, -8.0], "set": {"h": 6}},
+    {"at": [85.0, 90.0], "set": {"markt": "nataliniTower"}},
     # Prinsenhof and the DUO "Cruiseschip" (landmarks3d.js models) are taller than OSM says
     {"at": [261.0, -151.0], "set": {"h": 4}},
     {"at": [956.0, 1525.0], "set": {"h": 14}},
