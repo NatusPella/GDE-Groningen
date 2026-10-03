@@ -317,7 +317,7 @@ function buildDefs(world) {
         {
           kind: 'escape', stars: 3, label: 'Naar de kade bij het Hoofdstation', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.',
           // a mooring on the Verbindingskanaal in front of the station: the run ends there, once the police are gone
-          target: { x: -40, y: 849, label: 'Kade bij het Hoofdstation' }, dock: 14,
+          target: { x: -40, y: 849, label: 'Kade bij het Hoofdstation' }, dock: 14, mode: 'boat',
           // Nachtstreek, live, while they flee: Jelle calls in
           radio: { caller: 'Een beller uit Ljouwert', lines: [
             ['rikus', 'We hebben een beller. Uit… Ljouwert?'],
