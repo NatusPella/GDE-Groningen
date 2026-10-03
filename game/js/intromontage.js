@@ -23,6 +23,7 @@ import { RING_ROUTE } from './ringroute.js';
 import { smoothPath, pathHeights, cineDrive } from './cinedrive.js';
 import { WATER_Y } from './util.js';
 import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, buildRope } from './introkitchen3d.js';
+import { logoHtml } from './logo.js';
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -116,7 +117,7 @@ const CSS = `
 #intro-montage .im-kicker { font-size: clamp(16px, 2vw, 26px); letter-spacing: 6px; color: #3fc97a; text-transform: uppercase; margin-bottom: 6px; }
 #intro-montage .im-title { font-size: clamp(56px, 11vw, 160px); line-height: 0.9; text-transform: uppercase; text-shadow: 0 0 40px rgba(63, 201, 122, 0.25); }
 #intro-montage .im-title .amp { color: #3fc97a; }
-#intro-montage .im-card .gte-logo { font-size: clamp(110px, 20vw, 250px); }
+#intro-montage .im-card .gde-logo { font-size: clamp(110px, 19vw, 230px); text-shadow: none; }
 #intro-montage .im-lower { top: auto; bottom: calc(11vh + 6vh); left: 6vw; right: auto; opacity: 0; transform: translateX(-30px); transition: opacity 0.5s, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8); }
 #intro-montage .im-lower.on { opacity: 1; transform: none; }
 #intro-montage .im-lower .im-title { font-size: clamp(48px, 8vw, 110px); }
@@ -926,7 +927,7 @@ function buildShots(w) {
 
   const title = {
     minDur: 3.6, black: true,
-    card: '<div class="gte-logo"><span class="gte">GTE</span><span class="vi">VI</span></div><div class="im-tagline">Er gaat niets boven Grunn. Behalve de Martinitoren.</div><div class="im-kicker">Een zomer in Grunn</div>',
+    card: logoHtml() + '<div class="im-tagline">Er gaat niets boven Grunn. Behalve de Martinitoren.</div><div class="im-kicker">Een zomer in Grunn</div>',
   };
 
   // --- opening ---------------------------------------------------------------

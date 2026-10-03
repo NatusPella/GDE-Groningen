@@ -329,7 +329,7 @@ export const BANTER = [
 
   { id: 'h15-pass-touw', trigger: 'after:H15:pass', lines: [
     ['T', 'Ik hing aan een touw boven Grunn. Mijn moeder mag dit nooit weten.', 'shaken, dry'],
-    ['A', 'Ze weet het al. Het staat op Sikkom.', 'giggling'],
+    ['A', 'Ze weet het al. Het staat op Kiekdoar.', 'giggling'],
     ['T', 'Met foto?', 'alarmed'],
     ['A', 'Met filmpje. Je gilde.', 'delighted']] },
   { id: 'h15-pass-schier', trigger: 'after:H15:pass', arc: true, lines: [
@@ -1061,9 +1061,9 @@ export const BANTER = [
     ['A', 'Woist ja wel.', 'sly, soft'],
     ['T', 'Ken ik ja nait roeken.', 'deadpan, flustered']] },
   { id: 'id-sikkom', trigger: 'idle', needs: 'H6', lines: [
-    ['A', 'Sikkom schrijft dat de dieven in het zwart waren.', 'reading, amused'],
+    ['A', 'Kiekdoar schrijft dat de dieven in het zwart waren.', 'reading, amused'],
     ['T', 'Dat waren we ook.', 'dry'],
-    ['A', 'Sikkom schrijft nooit iets wat klopt.', 'puzzled'],
+    ['A', 'Kiekdoar schrijft nooit iets wat klopt.', 'puzzled'],
     ['T', 'Nu wel. Dat is pas eng.', 'deadpan']] },
   { id: 'id-storing', trigger: 'idle', needs: 'H13', lines: [
     ['T', 'Rikus zegt: achttien bruggen in storing.', 'weary'],

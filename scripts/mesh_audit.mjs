@@ -786,6 +786,7 @@ for (let tile = 0; tile < TX * TY; tile++) {
       const zs = ow.z, lo = Math.min(...zs), hi = Math.max(...zs);
       bump(floatOffGrade, lo < -1.5 ? 'sunken' : hi > 1.5 ? 'raised' : 'level', len);
       if (lo < -1.5) bump(floatSpots, 'sunken|' + spotKey(x, y), len);
+      else if (hi > 1.5) bump(floatSpots, 'raised|' + spotKey(x, y), len);
     }
     bump(floatSpots, kind + '|' + spotKey(x, y), len);
   }

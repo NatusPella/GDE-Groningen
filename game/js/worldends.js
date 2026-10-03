@@ -192,7 +192,7 @@ export function updateWorldEnds(dt, w) {
   if (finalAt && w.time > finalAt && !isCinematicActive()) {
     finalAt = 0;
     speak(w, WORLD_END_FINAL.who, WORLD_END_FINAL.text);
-    notifyPhone(w, { from: 'Sikkom', app: 'sikkom', text: WORLD_END_FINAL.news, duration: 8, voiced: true });
+    notifyPhone(w, { from: 'Kiekdoar', app: 'sikkom', text: WORLD_END_FINAL.news, duration: 8, voiced: true });
   }
 }
 

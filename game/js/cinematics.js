@@ -10,6 +10,7 @@ import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStr
 import { startRespawnScene, respawnFade } from './respawn.js';
 import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
 import { isIntroPlaying } from './intromontage.js';
+import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { lineVoiceFor } from './linevoice.js';
 import { getFollowPose } from './scene3d.js';
@@ -229,8 +230,9 @@ function begin(spec) {
   setDualText(els.kicker, active.kicker || '');
   els.title.textContent = active.title || '';
   r.classList.toggle('has-card', !!(active.title || active.kicker));
-  setDualText(els.big, active.big || '');
-  r.classList.toggle('has-big', !!active.big);
+  if (active.logo) els.big.innerHTML = logoHtml();
+  else setDualText(els.big, active.big || '');
+  r.classList.toggle('has-big', !!(active.big || active.logo));
   els.lineIndex = -1;
   els.speaker.textContent = '';
   els.line.textContent = '';
@@ -571,7 +573,7 @@ function playGameStart(w) {
   const where = w.loadedFromSave ? 'Welkom terug in Grunn' : w.spawnLandmarkName ? `Je begint bij ${w.spawnLandmarkName}` : 'Welkom in Grunn';
   playCinematic({
     id: 'start', priority: 3, duration: 5.5, pause: true,
-    kicker: 'Grand Theft Eierbal', title: 'GTE VI',
+    kicker: SUBTITLE, title: GAME_NAME,
     lines: [{ speaker: '', text: where }],
     shot: flyInShot(w, first),
   });
@@ -741,6 +743,7 @@ export function playMissionOutro(w, info) {
 }
 
 export function playMissionFailed(w, info, withShot = true) {
+  // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   showBanner({ kind: 'fail', title: 'Sikkom.', ...info });
   if (!withShot) return false;
   const p = w.player, a = heading(w);

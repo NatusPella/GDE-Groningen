@@ -5,6 +5,7 @@
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
 // (verhaalui.js), Kaart, Garage, Prestaties, Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
+import { logoHtml } from './logo.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio } from './mapview.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
@@ -326,7 +327,6 @@ function settingsHtml() {
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       ${toggle('cinematicMoments', 'Filmische momenten', 'Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.')}
       ${segmented('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
-      ${toggle('gore', 'Bloed en ledematen', 'Uit: aangereden en neergeschoten mensen vallen gewoon om, zonder bloed of rondvliegende ledematen.')}
     </div>
     <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="reset">${icon('restart')}<span>Standaardinstellingen</span></button></div>`;
 }
@@ -344,7 +344,7 @@ export function initPauseMenu(w) {
     <div class="pm-stage">
       <nav class="pm-rail" aria-label="Pauzemenu">
         <div class="pm-inner pm-game">
-          <div class="pm-q-head"><b id="pm-title">Pauze</b><span class="pm-q-info"><span data-info="char"></span><span data-info="clock"></span><span data-info="money"></span></span></div>
+          <div class="pm-q-head">${logoHtml({ sub: false, cls: 'pm-logo', decorative: true })}<b id="pm-title">Pauze</b><span class="pm-q-info"><span data-info="char"></span><span data-info="clock"></span><span data-info="money"></span></span></div>
           ${qBtn('resume', 'resume', 'Doorgaan', 'pm-primary pm-q-main', ' aria-keyshortcuts="Escape"').replace('</button>', `${key('Esc')}</button>`)}
           ${SECTIONS.map(([id, label]) => `<button type="button" class="pm-secondary pm-q-nav" data-goto="${id}" aria-current="false">${icon(id)}<span>${label}</span>${id === 'map' ? key('M') : ''}</button>`).join('')}
           <span class="pm-rail-gap"></span>

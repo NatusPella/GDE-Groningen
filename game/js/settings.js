@@ -4,7 +4,7 @@ import { normalizeKeyBinds, normalizePadBinds } from './controls.js';
 // subscribe with onSettingsChange() to apply changes live.
 
 const STORAGE_KEY = 'gte-settings';
-const SETTINGS_VERSION = 5;
+const SETTINGS_VERSION = 6;
 
 export const QUALITY_PRESETS = {
   laag: { pixelRatio: 1, shadows: true, shadowMapSize: 1024 },
@@ -28,7 +28,6 @@ const DEFAULTS = {
   reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
-  gore: true,
   drawDistance: 'ver',
   // render scale (1 = full); autoResolution lowers it and some detail while
   // frames are slow (gfxprofile.js)
@@ -76,7 +75,7 @@ function load() {
     if ((raw.v || 0) < 3 && out.sfxVolume === 1) out.sfxVolume = DEFAULTS.sfxVolume;
     // up to v3 'laag' had no shadows whatever the switch said
     if ((raw.v || 0) < 4 && out.quality === 'laag') out.shadows = false;
-    // v5 added the bindings; whatever is stored is checked, a damaged table
+    // v6 added the bindings; whatever is stored is checked, a damaged table
     // falls back to the defaults
     out.keyBinds = normalizeKeyBinds(out.keyBinds);
     out.padBinds = normalizePadBinds(out.padBinds);
@@ -84,6 +83,11 @@ function load() {
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
+    // v5 removed the blood-and-limbs switch along with the gore itself:
+    // drop the stored value so it does not linger in the settings file
+    if ((raw.v || 0) < 5 && 'gore' in raw) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
+    }
     return out;
   } catch (e) {
     return { ...DEFAULTS };

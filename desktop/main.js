@@ -1,4 +1,4 @@
-// GTE VI desktop shell: serves the (offline, vendored) game from app://game/
+// GDE Groningen desktop shell: serves the (offline, vendored) game from app://game/
 // so ES modules, fetch, AudioWorklet and localStorage behave exactly like
 // on http://localhost, without a server or an internet connection.
 const { app, BrowserWindow, Menu, protocol, shell, ipcMain } = require('electron');
@@ -28,9 +28,15 @@ const MIME = {
   '.wasm': 'application/wasm', '.txt': 'text/plain; charset=utf-8',
 };
 
-// GTE VI everywhere, also when run unpackaged (npm start): menu, About
+// Saves, settings and achievements live in userData, which Electron names
+// after the app. The game was called "GTE VI" until 0.24: keep that folder,
+// or a rename would orphan every save. Same for appId / AppUserModelId.
+const LEGACY_NAME = 'GTE VI';
+app.setPath('userData', path.join(app.getPath('appData'), LEGACY_NAME));
+// the name everywhere, also when run unpackaged (npm start): menu, About
 // panel, Dock, Windows taskbar grouping
-app.setName('GTE VI');
+const APP_NAME = 'GDE Groningen';
+app.setName(APP_NAME);
 // test runs (--stil / --smoke-test) get a throwaway profile, so they never
 // touch the player's saves, settings or achievements
 // --trailer[=WxH] plays the trailer for recordings (js/trailer.js), also on a
@@ -105,10 +111,10 @@ async function serve(request) {
 function buildMenu() {
   if (process.platform !== 'darwin') { Menu.setApplicationMenu(null); return; }
   Menu.setApplicationMenu(Menu.buildFromTemplate([
-    { label: 'GTE VI', submenu: [
-      { role: 'about', label: 'Over GTE VI' }, { type: 'separator' },
-      { role: 'hide', label: 'Verberg GTE VI' }, { role: 'hideOthers', label: 'Verberg andere' }, { role: 'unhide', label: 'Toon alles' },
-      { type: 'separator' }, { role: 'quit', label: 'Stop GTE VI' },
+    { label: APP_NAME, submenu: [
+      { role: 'about', label: `Over ${APP_NAME}` }, { type: 'separator' },
+      { role: 'hide', label: `Verberg ${APP_NAME}` }, { role: 'hideOthers', label: 'Verberg andere' }, { role: 'unhide', label: 'Toon alles' },
+      { type: 'separator' }, { role: 'quit', label: `Stop ${APP_NAME}` },
     ] },
     { label: 'Beeld', submenu: [{ role: 'togglefullscreen', label: 'Volledig scherm' }, { role: 'reload', label: 'Herladen' }] },
     { label: 'Venster', submenu: [{ role: 'minimize', label: 'Minimaliseer' }, { role: 'close', label: 'Sluit venster' }] },
@@ -126,7 +132,7 @@ function createWindow() {
       ? { width: Math.round(rec[0] / recScale), height: Math.round(rec[1] / recScale), useContentSize: true, enableLargerThanScreen: true, resizable: false }
       : { width: 1600, height: 900, minWidth: 960, minHeight: 600 }),
     backgroundColor: '#0c140e',
-    title: 'GTE VI',
+    title: APP_NAME,
     autoHideMenuBar: true,
     show: false,
     fullscreen: !rec && !process.argv.includes('--windowed') && loadWindowState().fullscreen,
@@ -475,11 +481,11 @@ if (!app.requestSingleInstanceLock()) {
   ipcMain.on('gte:quit', () => app.quit());
   app.whenReady().then(() => {
     app.setAboutPanelOptions({
-      applicationName: 'GTE VI',
+      applicationName: APP_NAME,
       applicationVersion: app.getVersion(),
       version: '',
       copyright: '© 2026 NatusPella · Made with love in Groningen, with AI',
-      credits: 'Grand Theft Eierbal VI',
+      credits: 'Zomer vol misdaad · GDE = Grootste Diefstal Ever',
     });
     if (process.platform === 'darwin' && !app.isPackaged && app.dock) app.dock.setIcon(path.join(__dirname, 'resources', 'icon.png'));
     protocol.handle(SCHEME, serve);

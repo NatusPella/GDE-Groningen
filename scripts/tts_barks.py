@@ -1,16 +1,16 @@
-# Voices the reaction barks in scripts/tts_barks.json (tts_barks_lines.mjs)
-# with Gemini 3.8 Flash TTS (gemini_tts.py) into game/audio/voicelines/<who>/
-# as 24 kHz mono WAV, trimmed and loudness-matched to the other lines (-18
-# LUFS), with how each was made in that folder's tts.json. audio.js has the
-# paths hard-coded, so there is no manifest; clips logged with
-# gemini_tts.MODEL are skipped.
+# Voices the fixed-path clips in scripts/tts_barks.json (tts_barks_lines.mjs:
+# barks, street phrases, police, news feed, jingles) with Gemini 3.8 Flash TTS
+# (gemini_tts.py) into game/audio/<folder>/ as 24 kHz mono WAV, trimmed and
+# loudness-matched to the other lines (-18 LUFS), with how each was made in
+# that folder's tts.json. audio.js has the paths hard-coded, so there is no
+# manifest; clips logged with gemini_tts.MODEL are skipped.
 #   node scripts/tts_barks_lines.mjs && python3 scripts/tts_barks.py
 import json, os, subprocess, urllib.error, wave, time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-VL = os.path.join(REPO, 'game', 'audio', 'voicelines')
+AUDIO = os.path.join(REPO, 'game', 'audio')
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12'
 LOUD = 'I=-18:TP=-1.5:LRA=11'
 # logged with every clip; the second loudnorm pass uses the first pass's measurements
@@ -29,14 +29,15 @@ def encode(src, dst):
 
 
 def job(l):
-    dst = f"{VL}/{l['file']}"
+    dst = f"{AUDIO}/{l['file']}"
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
     if current(logs[os.path.dirname(l['file'])], f"{l['speaker']}|{l['text']}", dst):
         return l, 'skip', None
     err = None
     for attempt, style in enumerate(tries(l)):
         try:
-            pcm = speak(l['voice'], l['text'], style)
-            check(pcm, l['text'])
+            pcm = speak(l['voice'], l.get('say', l['text']), style)
+            check(pcm, l.get('say', l['text']))
             raw = dst[:-4] + '.tmp.wav'
             with wave.open(raw, 'wb') as w:
                 w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
@@ -52,7 +53,7 @@ def job(l):
 
 
 barks = json.load(open(os.path.join(REPO, 'scripts', 'tts_barks.json')))
-logs = defaultdict(dict, {d: load_log(f'{VL}/{d}') for d in {os.path.dirname(l['file']) for l in barks}})
+logs = defaultdict(dict, {d: load_log(f'{AUDIO}/{d}') for d in {os.path.dirname(l['file']) for l in barks}})
 u0 = usage()
 with ThreadPoolExecutor(4) as ex:
     for l, st, style in ex.map(job, barks):
@@ -61,6 +62,6 @@ with ThreadPoolExecutor(4) as ex:
         if style is not None:
             logs[os.path.dirname(l['file'])][f"{l['speaker']}|{l['text']}"] = logged(l, os.path.basename(l['file']), style, POST)
 for d, log in logs.items():
-    save_log(f'{VL}/{d}', log)
+    save_log(f'{AUDIO}/{d}', log)
 time.sleep(3)
 print(f'spent ${usage() - u0:.4f}')
