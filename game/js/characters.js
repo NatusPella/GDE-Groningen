@@ -28,7 +28,7 @@ export const CHARACTERS = [
     role: 'Stadjer. Groot hart. Kleine portemonnee.',
     bio: 'Droog, uit het Oosterpark, met een rode Fjord Escapade die nauwelijks rijdt. Kan duiven sturen, en doet daar heel gewoon over. Al twaalf jaar verliefd op zijn beste vriendin. Hij zegt het nooit.',
     quote: 'Ik zeg niks. Dat is ook een antwoord.',
-    relation: 'De helft van het duo. Zegt het belangrijke in vijf woorden.',
+    relation: 'De helft van het duo, en sinds de KEI-week haar huisgenoot in Paddepoel. Zegt het belangrijke in vijf woorden.',
     missions: ['H3', 'H4', 'H5', 'H7', 'H9', 'H10', 'H12', 'H14', 'H17'],
   },
   {
@@ -36,7 +36,7 @@ export const CHARACTERS = [
     role: 'Heeft altijd een plan B. Plan A is ook van haar.',
     bio: 'Snel, ad rem en de baas van het duo. Droomt van de Fjord Frituur, een blauwe frietwagen, en regelt alles zelf. Een frietwagen is een auto met een luik, en ze heeft geen auto.',
     quote: 'Rijden, niet praten.',
-    relation: 'De andere helft. Leidt, regelt en wint meestal.',
+    relation: 'De andere helft. Huurde de flat in Paddepoel, met hem als huisgenoot. Leidt, regelt en wint meestal.',
     missions: ['H1', 'H2', 'H6', 'H8', 'H11', 'H13', 'H15', 'H16', 'H18'],
   },
   {

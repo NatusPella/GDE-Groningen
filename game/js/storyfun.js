@@ -33,8 +33,12 @@ import { getScene } from './scene3d.js';
 import { DURK_LOOK, DOUWE_LOOK, ROTOR_LOOK } from './storycast.js';
 import { STEP_BY_ID } from './storyarc.js';
 import { getPadelSpotsForRender } from './padel.js';
+import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
+import { refreshDayNight } from './daynight.js';
 
 const MEET_R = 9;
+const HIDEOUT_R = 14;
+const HIDEOUT_STILL = 3;
 const WALK_UP_R = 45;
 const AIR_MIN = 6;
 const GONE_R = 50;
@@ -268,6 +272,9 @@ function playDoneScene(w, st) {
   // other activities (the bike shop, the tuning garage, the boat rental) play where the player is
   const at = carbid || st.goal.type === 'kermis' ? (carbid ? CARBID : KERMIS).spots()[0] : { x: w.player.x, y: w.player.y };
   if (!sc || !at || Math.hypot(w.player.x - at.x, w.player.y - at.y) > SCENE_R) return true;
+  // a scene at an hour of its own (the sunset at the Hoge der A)
+  if (sc.clock != null && Math.abs(((w.clock - sc.clock + 36) % 24) - 12) > 0.5) { w.clock = sc.clock; refreshDayNight(w); }
+  const lookTo = sc.look ? { x: at.x + sc.look[0], y: at.y + sc.look[1] } : null;
   let banged = false;
   const update = sc.knal ? (t, dt, cur) => {
     if (banged || !cur || cur.text !== sc.knal) return;
@@ -275,7 +282,7 @@ function playDoneScene(w, st) {
     CARBID.knal(w);
     flashScreen(true);
   } : null;
-  const ok = playCastScene(w, { at: { x: at.x, y: at.y }, facing: carbid ? CARBID.field().rot : sc.face ?? null, lines: sc.lines, cast: sc.cast || [], props: sc.props || [], kicker: sc.kicker || '', update });
+  const ok = playCastScene(w, { at: { x: at.x, y: at.y }, facing: carbid ? CARBID.field().rot : sc.face ?? null, lookTo, lines: sc.lines, cast: sc.cast || [], props: sc.props || [], kicker: sc.kicker || '', update });
   // the scene has its own Roelf and Hilje: the ones in the field step aside meanwhile (the game is paused)
   if (ok && carbid) CARBID.farmersVisible(false);
   return ok;
@@ -331,9 +338,67 @@ function updatePending(w) {
   else finish();
 }
 
+// --- "Even onderduiken" (r-trein): the player's pick of storyarc.js HIDEOUTS ---------------
+
+// Where an option is: its station, or the nearest walkable point to its spot
+// (the Noorderplantsoen's landmark lies in the pond).
+const hideoutAt = new Map();
+export function hideoutSpot(o) {
+  if (hideoutAt.has(o.id)) return hideoutAt.get(o.id);
+  let at = null;
+  if (o.at === 'station') {
+    const s = getStationsForRender().find((q) => q.name === o.station) || getStationsForRender()[0];
+    at = s ? { x: s.x, y: s.y } : null;
+  } else if (world && world.map) {
+    const rp = world.map.nearestRoadPoint(o.at[0], o.at[1], 160, false, true);
+    at = rp ? { x: rp.x, y: rp.y } : { x: o.at[0], y: o.at[1] };
+  }
+  if (at) hideoutAt.set(o.id, at);
+  return at;
+}
+
+// Every option with its spot, for the map (world.storyChoices) and the route.
+export function hideoutChoices(st) {
+  return st.goal.options.map((o) => { const s = hideoutSpot(o); return s ? { id: o.id, x: s.x, y: s.y, name: o.name, short: o.short } : null; }).filter(Boolean);
+}
+
+// The step as it played out: the scene and done text of the option picked
+// (the first one when the step was completed another way).
+export function hideoutStep(st, base) {
+  const o = st.goal.options.find((q) => q.id === (base && base.choice)) || st.goal.options[0];
+  return { ...st, done: o.done || st.done, scene: o.scene ? { ...o.scene, clock: o.clock, look: o.look } : null, choice: o.id };
+}
+
 // --- story.js hooks -----------------------------------------------------------------
 
 export const FUN_GOALS = {
+  hideout: {
+    begin: (st, b) => { b.trips = getTrainTripCount(); b.choice = null; },
+    met: (st, b) => {
+      if (b.choice) return true;
+      if (getTrainTripCount() > (b.trips ?? Infinity)) { b.choice = 'trein'; return true; }
+      const p = world && world.player;
+      if (!p || isMissionActive() || world.pigeonMode || isCinematicActive()) return false;
+      const v = p.inVehicle;
+      if (v && Math.abs(v.speed || 0) > HIDEOUT_STILL) return false;
+      const x = v ? v.x : p.x, y = v ? v.y : p.y;
+      for (const o of st.goal.options) {
+        if (o.at === 'station') continue;
+        const s = hideoutSpot(o);
+        if (s && Math.hypot(s.x - x, s.y - y) < (o.r || HIDEOUT_R)) { b.choice = o.id; return true; }
+      }
+      return false;
+    },
+    place: (st) => {
+      const p = world.player;
+      let best = null, bd = Infinity;
+      for (const c of hideoutChoices(st)) {
+        const d = Math.hypot(c.x - p.x, c.y - p.y);
+        if (d < bd) { bd = d; best = c; }
+      }
+      return best;
+    },
+  },
   kermis: {
     begin: (st, b) => { b.rides = getStat('botsautoRides'); },
     met: (st, b) => getStat('botsautoRides') > (b.rides ?? Infinity),
@@ -379,6 +444,8 @@ export function updateStoryFun(dt, w, step, base) {
   world = w;
   const st = step && !step.end ? step : null;
   w.storyActivity = st && st.kind === 'activity' && st.goal ? st.goal.type : null;
+  // all the onderduik options on the map, not only the one the route takes
+  w.storyChoices = st && st.goal && st.goal.type === 'hideout' ? hideoutChoices(st) : null;
   updateDemo(w, st, dt);
   updateBalloon(w, st, dt);
   if (flightStep(st) && base) {

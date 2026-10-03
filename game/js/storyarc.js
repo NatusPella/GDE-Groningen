@@ -63,6 +63,8 @@
 //   { type: 'sideJob', job }          one more round of that side job (sidejobs.js id, or an array: any of them)
 //   { type: 'night' }                 wait at a garage until it's dark (or it already is)
 //   { type: 'train' }                 one train trip (stationtravel.js), routed to the nearest station
+//   { type: 'hideout', options }      one of HIDEOUTS, the player's pick: a train trip or walking up to
+//                                     a spot; its scene and done text follow (storyfun.js)
 //   { type: 'egg' }                   find one more hidden eierbal (achievementtracker), routed to the nearest
 //   { type: 'padel' }                 play one padel match, won or lost (padel.js), routed to the nearest court
 //   { type: 'kermis' }                one bumper-car ride on the Grote Markt (kermis.js), free, with Durk & Douwe in it
@@ -87,8 +89,8 @@ export const SPEAKERS = {
 // who was met (`met:<key>` flags, getStoryCharacters). bio and quote are for
 // that menu; `step` is where they first turn up.
 export const CHARACTERS = {
-  anita: { name: 'Anita', card: 'Heeft altijd een plan B. Plan A is ook van haar.', step: 'H1', bio: 'Snel, ad rem en de baas van het duo. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf.', quote: 'Een frietwagen is een auto met een luik, Tammo.' },
-  tammo: { name: 'Tammo', card: 'Stadjer. Groot hart. Kleine portemonnee.', step: 'H1', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Al twaalf jaar verliefd op zijn beste vriendin. Hij zegt het nooit.', quote: 'Ik zeg niks. Dat is ook een antwoord.' },
+  anita: { name: 'Anita', card: 'Heeft altijd een plan B. Plan A is ook van haar.', step: 'H1', bio: 'Snel, ad rem en de baas van het duo. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.', quote: 'Een frietwagen is een auto met een luik, Tammo.' },
+  tammo: { name: 'Tammo', card: 'Stadjer. Groot hart. Kleine portemonnee.', step: 'H1', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Al twaalf jaar verliefd op zijn beste vriendin, en sinds de KEI-week haar huisgenoot in Paddepoel. Hij zegt het nooit.', quote: 'Ik zeg niks. Dat is ook een antwoord.' },
   rikus: { name: 'Rikus', card: 'Weet alles. Zegt niks. Behalve op de radio.', step: 'H1', bio: 'De derde van het clubje van de stoep in het Oosterpark. Presenteert Nachtstreek, live, elke nacht. Bel Rikus.', quote: 'Ik zeg niks. Ik draai drie minuten stilte.' },
   berend: { name: 'Berend Bos', card: 'Speelt veertig jaar Bommen Berend. Verliest elk jaar.', step: 'H1', bio: 'Chagrijnige Stadjer uit de Schildersbuurt. Speelt al veertig jaar de bisschop in het naspel van het Ontzet, valt elk jaar de stad aan en verliest elk jaar. Schrijft de gemeente brieven.', quote: 'Ik proef, ik tel, ik oordeel.' },
   durk: { name: 'Durk & Douwe', card: 'Twee reuzen. Eén brein. Ze delen het.', step: 'H2', bio: 'Jelles tweelinghandlangers. Groot, traag en eerlijk tot op het bot, vooral als ze iets geheim moeten houden.', quote: 'Durk. Dat was geheim. …Hè.' },
@@ -108,14 +110,16 @@ export const CHARACTERS = {
   mem: { name: 'Mem Terpstra', card: 'Iemand uit Friesland.', step: 'H16', bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Anita stiekem.', quote: 'Dat wie alles wat ik woe.' },
 };
 
+// The ids kop/romp/staart are internal (saves); players only see `title`
+// ("Deel 1: KEI-week") and `name`, the part's subtitle on its date card.
 // card: the two lines on the "Wordt vervolgd" card where the built story stops.
-// date: the date card of the part ("Kop · 14 augustus").
+// date: the date card of the part ("Deel 1 · 14 augustus").
 // recap: the "Eerder in GDE" card when the part starts: [place, narrator line],
 // place a map landmark name, [x, y] or 'studio' (Rikus at the Nachtstreek mic; story.js playRecap).
 export const PARTS = {
-  kop: { title: 'Kop: "Moi, Grunn"', date: '14 augustus', open: true, end: 'Einde van de Kop',
+  kop: { title: 'Deel 1: KEI-week', name: 'Moi, Grunn', date: '14 augustus', open: true, end: 'Einde van deel 1',
     card: [['Anita', 'Iemand heeft onze Eierbal gejat.'], ['Tammo', 'Die was nog niet eens van ons.']] },
-  romp: { title: 'Romp: "Stad in rouw"', date: '18 augustus', open: true, end: 'Einde van de Romp',
+  romp: { title: 'Deel 2: Noorderzon', name: 'Stad in rouw', date: '18 augustus', open: true, end: 'Einde van deel 2',
     recap: [
       ['studio', 'Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist.'],
       ['Groninger Museum', '\'t Het nog nooit zo donker west, of \'t wer altied wel weer licht.'],
@@ -126,7 +130,7 @@ export const PARTS = {
     ],
     card: [['Anita', 'Een skûtsje in de Oosterhaven. Met onze Eierbal erop.'], ['Tammo', 'Met Grunn z\'n Eierbal, bedoel je.']] },
   // the last part's card is the ending: an epilogue and credits (story.js playFinale)
-  staart: { title: 'Staart: "Gronings Ontzet"', date: '24 augustus', open: true, end: 'Einde', finale: true,
+  staart: { title: 'Deel 3: Kermis en Ontzet', name: 'Gronings Ontzet', date: '24 augustus', open: true, end: 'Einde', finale: true,
     recap: [
       ['studio', 'Morgen gooit er een skûtsje los in de Oosterhaven. Ik zeg daar niks over.'],
       ['studio', 'Storingsbericht: achttien bruggen in storing. Niemand merkt verschil.'],
@@ -162,6 +166,47 @@ export const MISSION_IDS = [
 // simply drops them (story.js applyStorySave); their purchases stay owned.
 export const RETIRED_STEPS = ['k-eierbal', 'k-wapen', 'k-bijbaan', 'r-uzi', 'r-auto', 'r-bijbaan', 'r-eierbal', 'r-bank'];
 
+// r-trein, "Even onderduiken": after the kraak Tammo and Anita lie low, and
+// the player picks one of these (all three on the map, the route to the
+// nearest). Each ends in a short scene where the two of them grow a little
+// closer (storyfun.js). id is saved; at: 'station' (that station, the train
+// goal: one trip, the scene where it arrives) or [x, y] (walk or drive up to
+// it); clock: the hour the scene plays at; look: where they look, as an
+// offset from the spot; done: the companion's text afterwards.
+export const HIDEOUTS = [
+  { id: 'trein', name: 'De trein vanaf het Hoofdstation', short: 'trein', at: 'station', station: 'Groningen Hoofdstation',
+    done: ['T', 'Iedereen kijkt naar Kiekdoar. Niemand naar ons.'],
+    scene: { kicker: 'Even onderduiken: de trein',
+      lines: [
+        ['A', 'Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.', { tag: 'zacht, plagend' }],
+        ['A', 'Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken.', { tag: 'nostalgisch, warm' }],
+        ['T', 'Er was geen zee. Alleen een dijk.', { tag: 'droog' }],
+        ['A', 'Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.', { tag: 'lachend, verwijtend' }],
+        ['T', 'Hij ligt er ook. Een beetje.', { tag: 'zacht, droog, met een glimlach' }],
+      ] } },
+  { id: 'ijsje', name: 'Een ijsje in het Noorderplantsoen', short: 'ijsje', at: [133.3, -718.7], r: 16,
+    done: ['T', 'Niemand zoekt een boef met een ijsje.'],
+    scene: { kicker: 'Even onderduiken: het Noorderplantsoen',
+      lines: [
+        ['A', 'Twee bolletjes. Jij betaalt, ik ben voortvluchtig.', { tag: 'plagend, zelfverzekerd' }],
+        ['T', 'Ik ben ook voortvluchtig.', { tag: 'droog' }],
+        ['A', 'Jij hebt een pet. Dat is een vermomming.', { tag: 'ad rem' }],
+        ['T', 'Jouw ijs smelt.', { tag: 'deadpan' }],
+        ['A', 'Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes.', { tag: 'warm, plagend' }],
+        ['T', '…Ze zijn lekker, jouw restjes.', { tag: 'zacht, net te eerlijk' }],
+      ] } },
+  { id: 'hogedera', name: 'De zonsondergang aan de Hoge der A', short: 'zonsondergang', at: [-437, 101], r: 16, clock: 20.9, look: [-60, 10],
+    done: ['T', 'Twijduustern. Niemand zoekt ons in het donker.'],
+    scene: { kicker: 'Even onderduiken: de Hoge der A',
+      lines: [
+        ['T', 'Hier zat ik vroeger. Als het thuis te druk was.', { tag: 'zacht, nostalgisch' }],
+        ['A', 'Alleen?', { tag: 'zacht, nieuwsgierig' }],
+        ['T', 'Met een zakje friet. Dat telt.', { tag: 'droog' }],
+        ['A', 'Je kijkt naar mij, Tammo. De zon is daar.', { tag: 'zacht, plagend, een beetje verlegen' }],
+        ['T', 'Die gaat toch onder.', { tag: 'droog, warm, kijkt niet weg' }],
+      ] } },
+];
+
 // "Bel Rikus": the radio fragment that opens a mission (played with its lead).
 const belRikus = (lines, caller = '') => ({ via: 'radio', on: 'lead', from: 'rikus', caller, mood: 'night', lines });
 // A Nachtstreek fragment after a mission (a rubriek, a peiling, a caller).
@@ -171,7 +216,7 @@ export const STEPS = [
   // --- Kop: "Moi, Grunn" (KEI-week, half augustus) ---------------------------------
   { id: 'H1', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'berend', why: 'Ik rij, Tammo. Berend vertrouwt jou nog niet eens met een fietsbel.',
     title: 'Berend telt de krassen', reward: 50, minReward: 12,
-    lead: ['T', 'Rikus heeft werk voor ons. Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.'],
+    lead: ['T', 'De dozen kunnen wachten. Rikus heeft werk voor ons: Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.'],
     contact: [belRikus([
       ['berend', 'Rikus. Berend, Schildersbuurt. Mijn bakkie moet naar het Boterdiep, naar mijn zus. En je mag met de auto niet meer door het centrum, sinds 1977. Ik heb een brief gestuurd.', { tag: 'nors, mopperend, aan de telefoon op de radio' }],
       ['rikus', 'In 1977?', { tag: 'droog, als nacht-dj op de radio', card: 'rikus' }],
@@ -250,10 +295,10 @@ export const STEPS = [
     unlocks: 'jelle' },
 
   // --- Romp: "Stad in rouw" (Noorderzon) -------------------------------------------
-  { id: 'r-trein', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik koop de kaartjes. Jij kijkt veel te schuldig voor een conducteur.',
-    title: 'Even onderduiken: een treinreis', goal: { type: 'train' }, cost: 8,
-    lead: ['T', 'Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken: pak de trein.'],
-    say: ['T', 'Een kaartje naar maakt niet uit waar. Ik kijk wel uit het raam.'],
+  { id: 'r-trein', part: 'romp', kind: 'activity', player: 'anita', built: true, why: 'Ik kies waar we heen gaan. Jij kijkt veel te schuldig om te kiezen.',
+    title: 'Even onderduiken: iets leuks samen', goal: { type: 'hideout', options: HIDEOUTS }, cost: 8,
+    lead: ['T', 'Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken, wij tweeën. De trein vanaf het Hoofdstation, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A. Kies maar, ze staan op je kaart.'],
+    say: ['T', 'Iets leuks. Samen. En niet opvallen.'],
     done: ['T', 'Iedereen kijkt naar Kiekdoar. Niemand naar ons.'] },
   { id: 'H7', part: 'romp', kind: 'mission', player: 'tammo', built: true, mission: 'noorderzon', why: 'Ik rij het decor. Femke vindt mij rustig. Ze kent me nog niet.',
     title: 'Heel aankomen is ook een kunst', reward: 850,
@@ -495,6 +540,9 @@ export const STEPS = [
     after: [['Kiekdoar', 'Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.']] },
 ];
 
+// "Deel 1" for the date cards.
+export const partNumber = (part) => (PARTS[part] ? PARTS[part].title.split(':')[0] : '');
+
 export const STEP_BY_ID = new Map(STEPS.map((s) => [s.id, s]));
 
 export function stepAvailable(step) {
@@ -540,7 +588,8 @@ export function computeMoneyTimeline(start = START_MONEY, payShare = 1) {
 
 // "Wat weten we?" (pause menu, Te doen › Verhaal): what Tammo and Anita know so far.
 // A clue shows once its step is done, so the journal never spoils ahead.
-// kind: 'clue' (about Jelle's plan), 'hart' (motivations and turning points).
+// kind: 'clue' (about Jelle's plan), 'hart' (motivations and turning points),
+// 'taal' (Gronings the story leans on: the complimentenladder and its treden).
 export const WHY = {
   kop: 'De Gouden Eierbal halen voordat die Fries het doet. Daarna zien we wel. Voor de Fjord Frituur.',
   romp: 'Uitzoeken waar de bal is, en wat Jelle van plan is met al dat vet.',
@@ -548,6 +597,7 @@ export const WHY = {
 };
 
 export const CLUES = [
+  { step: 'H1', kind: 'taal', title: 'De complimentenladder', text: 'Een Stadjer geeft geen complimenten, hij klimt een ladder. Zes treden: Ow (aardig), Goud (goed), Valt mie nait of (valt niet tegen: heel goed), Braid noar de zin (helemaal tevreden), Kon minder (beter bestaat niet) en bovenaan niks meer, met een kloet in de strotte (een brok in de keel). Berend zei "Goud": trede twee.' },
   { step: 'H1', kind: 'clue', title: 'Een Fries met een klomp', text: 'Berend: een Fries in een blauw colbert wilde zijn bakkie kopen. Contant, uit een klomp. In augustus.' },
   { step: 'H2', kind: 'clue', title: 'De reuzen en het museum', text: 'Sjabbe: twee reuzen kochten alles wat met frituren te maken heeft. Hun baas vroeg waar het museum alarmen heeft. De Gouden Eierbal, achttien karaat.' },
   { step: 'H2', kind: 'hart', title: 'De bal van Grunn', text: 'Tammo\'s opa stond in 1953 op de Grote Markt toen we hem wonnen. Hij huilde. Tammo zegt niks. Dat is ook een antwoord.' },

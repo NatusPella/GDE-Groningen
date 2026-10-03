@@ -14,6 +14,7 @@ import { currentStep, getStorySave } from './story.js';
 import { isMissionActive, isMissionCompleted } from './missions.js';
 import { getSideJobList } from './sidejobs.js';
 import { isCinematicActive } from './cinematics.js';
+import { registerNarrative, mayStart, storyWaiting } from './narrative.js';
 import { isPhoneOpen } from './phone.js';
 import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from './audio.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
@@ -55,6 +56,8 @@ const WIJK_NAMES = new Set(BANTER.filter((ex) => ex.trigger.startsWith('wijk:'))
 let world = null;
 let heard = loadHeard();
 let st = fresh();
+registerNarrative('banter', { active: () => !!st.talk });
+registerNarrative('sub-banter', { active: () => !!st.talk && !st.paused });
 
 function fresh() {
   return {
@@ -224,7 +227,7 @@ function together() {
 
 function quiet() {
   const w = world;
-  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen() && !w.storyContact;
+  return w.wanted === 0 && !isMissionActive() && !(w.sideJob && w.sideJob.active) && !w.challenge && !isCinematicActive() && !isPhoneOpen() && !w.storyContact && mayStart('banter');
 }
 
 // --- conversation ---------------------------------------------------------------------
@@ -389,7 +392,8 @@ export function updateBanter(dt, w) {
     if (!both || isCinematicActive() || isPhoneOpen() || w.storyContact || (tk.kind !== 'react' && (isMissionActive() || (w.sideJob && w.sideJob.active)))) { interrupt(null); return; }
     if (tk.kind !== 'react' && (crashed || starsUp)) { interrupt(starsUp ? 'stars' : 'crash'); return; }
     tk.t += dt;
-    if (tk.t >= tk.until) nextLine();
+    // a story contact or call waits (narrative.js): stop after this line
+    if (tk.t >= tk.until) { if (tk.kind !== 'react' && storyWaiting()) interrupt(null); else nextLine(); }
     return;
   }
 

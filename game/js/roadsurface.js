@@ -5,6 +5,7 @@ import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { getWaterIndex } from './waterindex.js';
 import { allSignals, yieldArms } from './junctions.js';
+import { groundHeightAt } from './elevation.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
 // shared wet-ground shader, mitred ribbons carrying road-space coordinates,
@@ -747,7 +748,7 @@ function finishGeometry(pos, nrm, idx, extra) {
 // station every DENSE metres, so the edge follows the quay or the
 // carriageway alongside.
 const DENSE = 3;
-function ribbonInto(r, rs, half, B, surfWidth, clip = null, near = null) {
+function ribbonInto(r, rs, half, B, surfWidth, clip = null, near = null, drop = false) {
   const n = r.pts.length;
   const station = (k, t, zone) => {
     const p = r.pts[k], m = rs.miter[k];
@@ -765,9 +766,17 @@ function ribbonInto(r, rs, half, B, surfWidth, clip = null, near = null) {
       B.nrm.push(0, 1, 0);
       B.surf.push(h * sg, sv, surfWidth, zone[0]);
       B.end.push(zone[1]);
+      if (drops) {
+        // a cut-back edge over a lower surface (a ramp merging with the
+        // carriageway alongside at another height): how far it drops there
+        const ml = Math.hypot(mx, mz) || 1, ex = x + mx * h * sg, ez = z + mz * h * sg;
+        const low = h < half - 0.05 ? groundHeightAt(netMap.elev, ex + mx / ml * sg * 0.15, ez + mz / ml * sg * 0.15, h0 - 0.15, 0) : h0;
+        drops[j].push([ex, ez, h0 + dip, h0 - low > 0.1 && h0 - low < 3 ? low : h0 + dip, sv, mx / ml * sg, mz / ml * sg]);
+      }
     }
     return at;
   };
+  const drops = drop && r.z && clip && netMap && netMap.elev && netMap.elev.has ? [[], []] : null;
   // every station is shared by the triangles either side (a seam of doubled
   // points is a crack to the audit and a T-joint to the rasteriser); the
   // zones get stations at their centre and both ends, so the linearly
@@ -794,6 +803,27 @@ function ribbonInto(r, rs, half, B, surfWidth, clip = null, near = null) {
     const b = station(i + 1, 0, zoneAt(rs, s1, zones));
     B.idx.push(a, b, a + 1, a + 1, b, b + 1);
     prev = b;
+  }
+  if (!drops) return;
+  // a face down from that edge to the surface below (drawn only)
+  for (let j = 0; j < 2; j++) {
+    const D = drops[j];
+    for (let i = 0; i < D.length - 1; i++) {
+      const p = D[i], q = D[i + 1];
+      if (p[3] >= p[2] && q[3] >= q[2]) continue;
+      const v = B.pos.length / 3;
+      for (const e of [p, q]) {
+        for (const y of [Math.min(e[3], e[2]) - 0.02, e[2]]) {
+          B.pos.push(e[0], y, e[1]);
+          B.nrm.push(e[5], 0, e[6]);
+          B.surf.push(0, e[4], -1, -1e4);
+          B.end.push(1e9);
+        }
+      }
+      // (v, v+1: bottom and top here; v+2, v+3 at the next station)
+      if (j === 0) B.idx.push(v, v + 2, v + 1, v + 1, v + 2, v + 3);
+      else B.idx.push(v, v + 1, v + 2, v + 1, v + 3, v + 2);
+    }
   }
 }
 
@@ -843,7 +873,8 @@ function ribbonClip(r, rs, kind) {
     for (const o of partners) {
       const oh = o.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0);
       const [ox0, oy0, ox1, oy1] = o.bounds;
-      if (x < ox0 - reach - oh || x > ox1 + reach + oh || y < oy0 - reach - oh || y > oy1 + reach + oh) continue;
+      const ohs = o.width / 2 + (SIDEWALK_CATS.has(o.cat) ? SIDEWALK_EXTRA : 0.3), ox = Math.max(oh, o.z ? ohs : 0);
+      if (x < ox0 - reach - ox || x > ox1 + reach + ox || y < oy0 - reach - ox || y > oy1 + reach + ox) continue;
       let best = Infinity, bi = 0, bx = 0, by = 0, bt = 0;
       const Q = o.pts;
       for (let i = 0; i < Q.length - 1; i++) {
@@ -852,14 +883,21 @@ function ribbonClip(r, rs, kind) {
       }
       const dist = Math.sqrt(best);
       // no overlap, or a duplicate lying on top
-      if (dist >= reach + oh || dist < 0.3) continue;
+      if (dist >= reach + ox || dist < 0.3) continue;
       const od = dirAt(Q, bi, 1);
       if (Math.abs(od[0] * d[0] + od[1] * d[1]) < 0.9) continue;
-      if ((r.z || o.z) && Math.abs(zr - (o.z ? o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt : 0)) > 0.8) continue;
+      const oz = o.z ? o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt : 0;
       // beside the point, not ahead of it (where o ends or joins)
       const lat = ((bx - x) * mx + (by - y) * my) / ml;
       if (Math.abs(lat) < 0.8 * dist) continue;
       const j = lat > 0 ? 0 : 1;
+      if ((r.z || o.z) && Math.abs(zr - oz) > 0.8) {
+        // an open cutting alongside: this ribbon stops on the middle of its
+        // retaining wall (or the wall face closing it) instead of hanging
+        // out over the sunken way
+        if (o.z && !o.tunnel && !o.bridge && oz < -0.25 && zr - oz > 0.8) res[j] = Math.min(res[j], Math.max(0, (Math.abs(lat) - ohs - 0.225) / ml));
+        continue;
+      }
       res[j] = Math.min(res[j], Math.max(0.5, Math.abs(lat) * reach / (reach + oh) / ml));
     }
     const lo = road ? (t === 0 ? road.pts[k] : road.at(x, y, mx, my, k, t)) : null;
@@ -925,7 +963,7 @@ function bufGeometry(B) {
 function ribbonGeometry(r, half, surfWidth = r.width) {
   const rs = analyse(r);
   const B = newBuf();
-  ribbonInto(r, rs, half, B, surfWidth, roadClip(r, rs), surfWidth ? nearZones(r, rs, 'road') : null);
+  ribbonInto(r, rs, half, B, surfWidth, roadClip(r, rs), surfWidth ? nearZones(r, rs, 'road') : null, !SIDEWALK_CATS.has(r.cat));
   return bufGeometry(B);
 }
 
@@ -1001,7 +1039,7 @@ function sidewalkGeometry(r) {
   const B = newBuf();
   roadClip(r, rs);
   rs.walkClip = ribbonClip(r, rs, 'walk');
-  ribbonInto(r, rs, rs.hw + SIDEWALK_EXTRA, B, r.width, rs.walkClip, nearZones(r, rs, 'walk'));
+  ribbonInto(r, rs, rs.hw + SIDEWALK_EXTRA, B, r.width, rs.walkClip, nearZones(r, rs, 'walk'), true);
   if (hasKerbs(r)) kerbInto(r, rs, B);
   return bufGeometry(B);
 }

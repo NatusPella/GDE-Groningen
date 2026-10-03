@@ -28,6 +28,7 @@ import { getClockText } from './hud_panel.js';
 import { dualHtml, dutchFor } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
 import { noteSpoken } from './characters.js';
+import { registerNarrative, mayStart } from './narrative.js';
 
 let mission = null;
 import('./missionstory.js').then((m) => { mission = m; }).catch(() => {});
@@ -132,6 +133,7 @@ export function initStoryContact(w) {
   document.body.appendChild(cardEl);
   liveEl = document.createElement('div');
   liveEl.id = 'sc-live';
+  registerNarrative('contact', { active: () => !!cur, pending: () => queue.length > 0 && !!world && ready(world) });
   liveEl.innerHTML = '<div class="sc-liveframe"><div class="sc-livebar"></div><div class="sc-chat"></div><div class="sc-hearts">&#9829;</div></div>';
   document.body.appendChild(liveEl);
 }
@@ -270,8 +272,13 @@ function logHistory(c) {
   if (h.length > 30) h.length = 30;
 }
 
-function canPlay(w) {
+function ready(w) {
   return document.body.classList.contains('game-started') && !isCinematicActive() && !w.pigeonMode && !w.heliRun && !w.pendingRespawn && !w.paused && !isCallActive();
+}
+
+// narrative.js: one story item at a time, a beat after a cutscene
+function canPlay(w) {
+  return ready(w) && mayStart('contact');
 }
 
 function start(c) {
@@ -354,8 +361,19 @@ export function updateStoryContact(dt, w) {
   if (!!w.paused !== !!cur.held) { cur.held = !!w.paused; pauseBanterVoice(cur.held); }
   if (cardEl && cur.c.via === 'card' && cur.i >= 0) cardEl.classList.toggle('show', !w.paused);
   if (w.paused) return;
-  // a cutscene or a respawn cuts the line
-  if (isCinematicActive() || w.pendingRespawn) { stopBanterVoice(); finish(); return; }
+  // a cutscene or a respawn cuts the line; the rest of it plays again later
+  // (a "Bel Rikus" stays cut once its mission has started: it was its opening)
+  if (isCinematicActive() || w.pendingRespawn) {
+    const c = cur.c, from = Math.max(0, cur.i);
+    const missionOn = !!(w.mission && w.mission.phase === 'active');
+    stopBanterVoice();
+    if (c.via !== 'scene' && from < c.lines.length && !(c.on === 'lead' && missionOn)) {
+      queue.unshift({ ...c, lines: c.lines.slice(from) });
+      cur.c = { ...c, onDone: null };
+    }
+    finish();
+    return;
+  }
   cur.t += dt;
   if (els && els.bars.length && cur.phase === 'talk') els.bars.forEach((b, k) => { b.style.height = `${4 + Math.abs(Math.sin(cur.t * 9 + k * 1.7)) * 16}px`; });
   if (cur.phase === 'ring') {

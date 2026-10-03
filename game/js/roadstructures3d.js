@@ -12,6 +12,7 @@ import {
 } from './elevation.js';
 
 const PIER_EVERY = 24;
+const LOW_FILL = 0.15;     // ramp height from which its sides get a slope
 const SLOPE_FOOT = -0.07;  // embankment foot just under the terrain (-0.05)
 const LIGHT_EVERY = 12;
 
@@ -113,6 +114,12 @@ export function jointAway(map, r, i) {
       if (l < 1e-3) return null;
       away = [dx / l, dy / l];
     }
+  }
+  // two ways meeting in a V (ramps merging at a node, a hairpin) do not
+  // carry on: a bisector cut there would be stretched metres past the node
+  if (away) {
+    const q = P[i === 0 ? 1 : i - 1], ix = p[0] - q[0], iy = p[1] - q[1], il = Math.hypot(ix, iy);
+    if (il > 1e-3 && (ix * away[0] + iy * away[1]) / il < -0.3) return null;
   }
   return away;
 }
@@ -246,8 +253,11 @@ export function buildRoadStructure(r, map) {
   };
   for (let i = 0; i < n - 1; i++) {
     const za = Z[i], zb = Z[i + 1];
-    if (deck || (za <= RAISED && zb <= RAISED)) { closeSlope(0); closeSlope(1); }
-    if (za > RAISED || zb > RAISED) {
+    // (the low foot of a ramp, under RAISED, still stands a hand's width
+    // over the terrain: a grass slope down to it, drawn only)
+    const low = !deck && za <= RAISED && zb <= RAISED && Math.max(za, zb) > LOW_FILL;
+    if (deck || (za <= RAISED && zb <= RAISED && !low)) { closeSlope(0); closeSlope(1); }
+    if (za > RAISED || zb > RAISED || low) {
       if (deck) deckBox(i, 0, 1, Math.max(za, 0), Math.max(zb, 0));
       else {
         const sg = segOf.get(i);
