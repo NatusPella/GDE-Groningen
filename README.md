@@ -5,6 +5,12 @@ Groningen (binnenstad plus surroundings), built from OpenStreetMap data.
 Vanilla JS ES modules and Three.js (r0.160, loaded from a CDN via an import
 map). No build step and no npm dependencies. All in-game text is in Dutch.
 
+> **Fanparodie, niet gelieerd aan of goedgekeurd door Rockstar Games of
+> Take-Two Interactive.** A free, non-commercial fan parody. "Grand Theft
+> Auto" and "GTA" are trademarks of Take-Two Interactive. Names, characters,
+> brands and events in the game are fictional; real streets and public
+> buildings are only the setting.
+
 ## Run it
 
 ```bash
@@ -46,7 +52,9 @@ only, as key:value pairs), `--cpu-throttle=4` (a slower CPU), `--nobatch`,
 `--hitch`; env `PERF_ONLY=foot,ring,heli,village,pause,sheet`,
 `PERF_PROFILE=<routes>` (CPU profile), `PERF_DIAG=1` (draw calls per owner),
 `PERF_SIM=0-2` (load-adaptive simulation level). `scripts/perf/ab.sh`
-alternates two staged builds (A/B) and prints medians. `--gfx-advice[=<GPU
+alternates two staged builds (A/B) and prints medians. Map loading:
+`window.__loadMarks` has the boot timeline up to the title screen and the
+desktop flag `--profile-load[=ms]` logs a CPU profile of the page load. `--gfx-advice[=<GPU
 string>]` shows the first-run graphics advice in a test run.
 `node scripts/gfx_profile_test.mjs` checks the GPU classification.
 
@@ -237,3 +245,21 @@ added to `citymap.json` are carried over by `build_map.py`.
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.
 - No save/load.
+
+## Licences and credits
+
+Map data © OpenStreetMap contributors, available under the
+[Open Database License](https://www.openstreetmap.org/copyright); the map
+files (`game/citymap.json`, `game/mapextras.json`, `game/ommeland.*`,
+`data/`) stay under the ODbL. Music and voices are generated with Google
+Gemini. Third-party software and fonts (three.js, Bebas Neue, Electron) and
+their licences: [NOTICE.md](NOTICE.md) and `licenses/`. The licence for the
+project's own code and content is not chosen yet; see
+[docs/LICENTIES.md](docs/LICENTIES.md) for the inventory, the options and the
+open risks, and [docs/PUBLICEREN.md](docs/PUBLICEREN.md) for the checklist
+before the repo goes public.
+
+Privacy: the game keeps progress and settings in the browser's localStorage
+on your own device. No accounts, no telemetry, no analytics. The browser
+version loads three.js from jsDelivr and the font from Google Fonts; the
+desktop build loads nothing from the internet.

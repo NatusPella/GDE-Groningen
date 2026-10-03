@@ -48,7 +48,7 @@ if (window.__perfDiag) {
     while (a && !label) { label = (a.userData && (a.userData.kind || a.userData.type || a.userData.propKind)) || a.name || ''; a = a.parent; }
     if (label === 'building' || label === 'landmark' || label === 'road' || label === 'water') {
       const g = o.geometry || {}, n = g.attributes && g.attributes.position ? g.attributes.position.count : 0;
-      return label + (o.parent && o.parent.userData.facadeDetail === o ? ':detail' : '') + ' ' + (g.type || '').replace('Geometry', '') + (n < 100 ? '<100' : n < 1000 ? '<1k' : '>1k');
+      return label + (o.parent && o.parent.userData.facadeDetail === o ? ':detail' : '') + (o.userData.roadStructure ? ':struct' : '') + ' ' + (g.type || '').replace('Geometry', '') + (n < 100 ? '<100' : n < 1000 ? '<1k' : '>1k');
     }
     if (label) return label;
     let top = o; while (top.parent && top.parent !== sc.scene) top = top.parent;

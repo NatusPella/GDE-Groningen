@@ -279,14 +279,17 @@ function markPartyWalls(b, edges) {
   const near = map.buildingsNear((minx + maxx) / 2, (miny + maxy) / 2, Math.max(maxx - minx, maxy - miny) / 2 + 2)
     .filter((o) => o !== b && o.pts && o.bounds);
   if (!near.length) return;
-  const inside = (x, y) => near.some((o) => x >= o.bounds[0] && x <= o.bounds[2] && y >= o.bounds[1] && y <= o.bounds[3] && pointInPolygon(x, y, o.pts));
+  const inside = (x, y) => near.find((o) => x >= o.bounds[0] && x <= o.bounds[2] && y >= o.bounds[1] && y <= o.bounds[3] && pointInPolygon(x, y, o.pts));
   for (const e of edges) {
     const ts = e.len > 3 ? [0.2, 0.5, 0.8] : [0.5];
-    let hits = 0;
+    let hits = 0, top = Infinity;
     for (const t of ts) {
-      if (inside(e.ax + e.tx * e.len * t + e.nx * 0.6, e.ay + e.ty * e.len * t + e.ny * 0.6)) hits++;
+      const o = inside(e.ax + e.tx * e.len * t + e.nx * 0.6, e.ay + e.ty * e.len * t + e.ny * 0.6);
+      if (o) { hits++; top = Math.min(top, o.landmark ? Infinity : Math.max(2.4, o.h * LEVEL_HEIGHT) + (o.lift || 0)); }
     }
     e.party = hits * 2 > ts.length;
+    // the lowest neighbour's roof along a party wall: above it the wall shows
+    if (e.party) e.partyTop = top;
   }
 }
 

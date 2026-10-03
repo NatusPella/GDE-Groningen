@@ -191,6 +191,11 @@ function injectStyles() {
       border: 1px solid rgba(63, 201, 122, 0.6); border-radius: 4px; cursor: pointer; line-height: 1;
     }
     .mapview-zoom button:hover { border-color: #3fc97a; background: #0f5c30; }
+    .mapview-osm {
+      position: absolute; left: 12px; bottom: 12px; pointer-events: none;
+      padding: 2px 8px; border-radius: 3px; background: rgba(12, 20, 14, 0.7);
+      font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; color: rgba(240, 237, 228, 0.7);
+    }
     .mapview-tooltip {
       position: absolute; pointer-events: none;
       background: rgba(12, 20, 14, 0.92);
@@ -1552,6 +1557,7 @@ export function initMapView(world) {
     '<span class="mapview-route"></span></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" data-act="in" aria-label="Inzoomen">+</button><button type="button" data-act="out" aria-label="Uitzoomen">−</button></div>' +
+    '<div class="mapview-osm">© OpenStreetMap-bijdragers · openstreetmap.org/copyright</div>' +
     '<div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend"></aside></div>' +
     `<div class="mapview-footer"><b>Klik</b> doel kiezen · <b>Rechtsklik</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}` +
     '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> doel wissen · <b>Q / E</b> tabblad · <b>M / Esc</b> sluiten</div>';
