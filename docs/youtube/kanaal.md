@@ -113,11 +113,10 @@ GDE Groningen – Zomer vol misdaad is een gratis open-wereld misdaadparodie in 
 ▶ itch.io: (link volgt)
 
 00:00 Een zomer in Grunn
-00:11 Tammo en Tessa
-00:22 De Fjord Frituur en de Eierbal
-00:35 Jelle Terpstra
-00:46 Ring Zuid, vet en de heli
-01:02 28 augustus
+00:11 Tammo, Tessa en de Fjord Frituur
+00:25 De Gouden Eierbal en Jelle Terpstra
+00:43 Lange avonden
+00:59 28 augustus
 
 Gratis · Nederlands · singleplayer · offline · geen aankopen in de game.
 
@@ -134,7 +133,7 @@ naar beneden afgerond). YouTube eist dat het eerste hoofdstuk op
 
 ## Gameplaytrailer
 
-Bron: `game/js/trailer.js`, cut `gameplay` (~62 s, met de echte HUD), shotlijst in
+Bron: `game/js/trailer.js`, cut `gameplay` (~63 s, 28 shots, met de echte HUD), shotlijst in
 `docs/steam/trailer.md`. Bestand: `~/Downloads/GDE-Groningen-trailer-gameplay.mp4`
 (1080p60, H.264, AAC 48 kHz, `+faststart`).
 
@@ -153,11 +152,11 @@ Rijden, fietsen, varen en vliegen. Missies met Tammo en Tessa, bijbaantjes (taxi
 ▶ Steam: (link volgt)
 ▶ itch.io: (link volgt)
 
-00:00 Rijden en de politie
-00:13 Duif, heli, boot en Ommeland
-00:26 Stuntavond, minigames, bijbaantjes en Ubbo
-00:39 Dag, nacht, weer en 18 missies
-00:51 Grunn
+00:00 Berends bakkie, de pinautomaat en de stuntavond
+00:11 Duif, KEI-race, museum en de tankwagen
+00:21 Ring Zuid, de kroeg, fatbikes en het water
+00:32 Heli, politie en de trekker-limo
+00:43 Carbid, bijbaantjes, Ubbo en het weer
 
 Gratis · Nederlands · singleplayer · offline · toetsenbord en muis of controller.
 
