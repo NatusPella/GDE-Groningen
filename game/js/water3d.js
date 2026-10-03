@@ -327,6 +327,9 @@ export function buildWaterGeometry(poly, index, shoreFix = null) {
     if (v === undefined) { v = pos.length / 2; pos.push(x, y); keys.set(k, v); }
     return v;
   };
+  // vertices of the cells the outline crosses stay put: the outline may be a
+  // seam with the next water polygon (no shore there to keep the jitter off)
+  const rim = new Set();
   const tri = (a, b, c) => {
     if (a === b || b === c || a === c) return;
     const cr = (pos[b * 2 + 1] - pos[a * 2 + 1]) * (pos[c * 2] - pos[a * 2]) - (pos[b * 2] - pos[a * 2]) * (pos[c * 2 + 1] - pos[a * 2 + 1]);
@@ -360,6 +363,7 @@ export function buildWaterGeometry(poly, index, shoreFix = null) {
       if (contour.length > 1 && contour[0].distanceTo(contour[contour.length - 1]) < 1e-4) contour.pop();
       if (contour.length < 3) return;
       const ids = contour.map((c) => vert(c.x, c.y));
+      for (const v of ids) rim.add(v);
       if (contour.length === 3) { tri(ids[0], ids[1], ids[2]); return; }
       for (const t of THREE.ShapeUtils.triangulateShape(contour, [])) tri(ids[t[0]], ids[t[1]], ids[t[2]]);
       return;
@@ -378,7 +382,7 @@ export function buildWaterGeometry(poly, index, shoreFix = null) {
     const ns = index ? index.nearestShore(x, y, 24) : { d: 24, i: -1, tx: 1, ty: 0 };
     let tx = ns.tx, ty = ns.ty;
     if (tx * 0.8 + ty * 0.6 < 0) { tx = -tx; ty = -ty; }
-    if (ns.d > cell * 1.2) {
+    if (ns.d > cell * 1.2 && !rim.has(i)) {
       x += (jitterHash(x, y) - 0.5) * cell * 0.45;
       y += (jitterHash(y, x) - 0.5) * cell * 0.45;
     }
