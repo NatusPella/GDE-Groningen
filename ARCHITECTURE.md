@@ -445,9 +445,15 @@ don't collide, and actors are drawn at their height.
   preset's fps is the full average times its measured speed-up there. The
   result is a banner in Instellingen › Beeld with one recommended preset.
 - `staticbatch3d.js`: the meshes of the buildings (and roads) in a 48 m cell are
-  merged into one mesh per material once every building of the cell is
-  well inside the detail radius (15 m margin); a cell is unmerged at once
-  when a member leaves the detail radius, is hidden or rebuilt. Merging is
+  merged into one mesh per material from the buildings well inside the
+  detail radius (15 m margin); a cell is unmerged at once when a member
+  leaves the detail radius, is hidden or rebuilt. Hysteresis: a merged cell
+  is only rebuilt for newcomers when there are a few (3, or a quarter) or
+  the cell is then complete; until then they draw on their own. Roads
+  merge by their nearest point (15 m inside the draw distance). A road's
+  civil works (roadstructures3d.js: decks, walls, barriers) go into its
+  road cell; a knocked-out crash barrier bumps its geometry's
+  `userData.batchVer`, which redoes the cell. Merging is
   spread over frames (2 ms budget); the buildings' own meshes stay in the
   scene, hidden, for the camera's ray tests. `?nobatch` turns it off
   (and the wheel instancing below). On 'laag' (or a busy CPU) the facade
@@ -458,10 +464,22 @@ don't collide, and actors are drawn at their height.
   material draws those of the vehicles in (or near) the view each frame.
 - Village centres (`countryvillage.js`) bake every item into one mesh per
   material and shadow flag while laying out (four draws a village); the
-  horeca pads near the player are one InstancedMesh.
+  horeca pads and their bobbing badges near the player are one
+  InstancedMesh each (the badge is a camera-facing quad, bobbing in the
+  vertex shader).
+- On 'laag' the Ommeland building facade shader (`countrybuilding.js`,
+  `FACADE_LOW`) skips the brick and roof-tile textures and window frames.
 - The minimap's Ommeland layer (`drawCountryMinimap`) is static: drawn into
   world-aligned 256 px tiles per half-octave zoom step (at most one new tile
-  a frame, LRU of 40) and blitted.
+  a frame, LRU of 40) and blitted. Its water and meadow images (the 10 m
+  water field is ~6 M pixels) are filled in row bands a few ms a frame from
+  the title screen on (`warmCountryMaps`), not on the first tile.
+- Loading: `window.__loadMarks` holds the boot timeline (ms since
+  navigation: map, ommeland, init3D, countryEdge, world, systems, title);
+  the desktop app's `--profile-load[=ms]` profiles the page load. The
+  Ommeland row grouping (`ensureRows`, 40-60 ms) runs on first use (the
+  skyline, while loading) or else when the title screen is idle. Large static polygons
+  (water) use `pointInStaticPolygon` (edges bucketed in height bands).
 - Load-adaptive simulation (`simload.js`): while `cpuLevel` is 1-2 the
   traffic, cyclist, scooter and walker targets drop to 75% / 55% (the
   farthest ordinary ones out past 110 m go first), traffic and plain walkers
