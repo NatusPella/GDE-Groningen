@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions
-title GTE VI - Grand Theft Eierbal VI
+title GDE Groningen - Zomer vol misdaad
 cd /d "%~dp0"
 
 rem Uitgepakte ZIP: de game staat naast dit bestand
@@ -12,7 +12,7 @@ if exist "%~dp0GTE-VI\start.bat" (
 rem Direct vanuit de ZIP geopend: Windows heeft alleen dit ene bestand
 rem uitgepakt. Zoek de ZIP op en pak hem eenmalig uit naar %LOCALAPPDATA%\GTE-VI.
 echo.
-echo   GTE VI wordt klaargezet, een moment...
+echo   GDE Groningen wordt klaargezet, een moment...
 echo.
 set "GTE_HERE=%~dp0"
 set "GTE_SELF=%~f0"
@@ -39,6 +39,7 @@ foreach ($d in $dirs) {
   if (-not $d -or -not (Test-Path -LiteralPath $d)) { continue }
   $found = @()
   if ($name) { $found = @(Get-ChildItem -LiteralPath $d -Filter $name -File -ErrorAction SilentlyContinue) }
+  if (-not $found.Count) { $found = @(Get-ChildItem -LiteralPath $d -Filter 'GDE-Groningen*.zip' -File -ErrorAction SilentlyContinue) }
   if (-not $found.Count) { $found = @(Get-ChildItem -LiteralPath $d -Filter 'GTE-VI*.zip' -File -ErrorAction SilentlyContinue) }
   if ($found.Count) { $zip = ($found | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName; break }
 }

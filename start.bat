@@ -1,11 +1,11 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
-title GTE VI - Grand Theft Eierbal VI
+title GDE Groningen - Zomer vol misdaad
 cd /d "%~dp0"
 
 echo.
 echo   ==========================================
-echo    GTE VI - Grand Theft Eierbal VI
+echo    GDE Groningen - Zomer vol misdaad
 echo   ==========================================
 echo.
 
@@ -67,7 +67,7 @@ for /l %%P in (8765,1,8775) do (
 )
 if not defined PORT (
   echo   [!] Geen vrije poort gevonden tussen 8765 en 8775.
-  echo       Sluit andere GTE VI-vensters en probeer het opnieuw.
+  echo       Sluit andere GDE-vensters en probeer het opnieuw.
   goto :fail
 )
 

@@ -67,7 +67,7 @@ const CHARGE_EVERY = [3.5, 6];
 const CHARGE_SPEED = 4.6;
 const CHARGE_MAX_T = 4.5;
 const DRUNK_LINES = ['Proost!', 'Nog ééntje dan!', 'Ik hou van jullie allemaal!', 'Waar is mijn fiets?', 'KEI-week! KEI-week!', 'Wie heeft mijn pet?', 'Ik ben niet dronken, ik ben Gronings!', 'Kom, nog één kroeg!'];
-const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Sikkom?', 'Ik ken jou! Van... ergens!', 'Opzij, ik moet naar de wc!', 'Polonaise! Iedereen mee!'];
+const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Kiekdoar?', 'Ik ken jou! Van... ergens!', 'Opzij, ik moet naar de wc!', 'Polonaise! Iedereen mee!'];
 
 
 // The nearest road point, unless that lies inside a building or a closed-off
@@ -117,7 +117,7 @@ function buildDefs(world) {
     {
       type: 'stunt',
       label: 'Iets met de Grote Markt',
-      intro: ['Sikkom kopt: \'Grote Markt saaier dan een lege mensa\'. Jelmer wil een zomeravond vol content.', 'Met de auto over de Grote Markt: parasols, kliko\'s en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.'],
+      intro: ['Kiekdoar kopt: \'Grote Markt saaier dan een lege mensa\'. Jelmer wil een zomeravond vol content.', 'Met de auto over de Grote Markt: parasols, kliko\'s en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.'],
       outro: 'De Grote Markt is weer wakker. Nul gewonden, veel natte mensen.',
       timeLimit: 120,
       reward: 150,
@@ -180,13 +180,13 @@ function buildDefs(world) {
       start: walk(250, 115),
       waypoints: [
         via(walk(304.3, 130.9)),
-        kroeg('Het Concerthuis', 368, 118.6),
+        kroeg('Café De Lallende Koe', 368, 118.6),
         via(walk(416.2, 125.8)),
-        kroeg("'t Pakhuis", 410.5, 170.9),
+        kroeg("Kroeg 't Scheve Toorntje", 410.5, 170.9),
         via(walk(431.2, 182.1)), via(walk(393.9, 194.8)), via(walk(399.8, 210.6)), via(walk(365.9, 223)),
-        kroeg('Nachtcafé Warhol', 352.6, 224.7),
+        kroeg('Nachtcafé De Uil van Half Vier', 352.6, 224.7),
         via(walk(316.1, 243.9)), via(walk(262.2, 128.3)),
-        kroeg('Groote Griet', 213.6, 135.9),
+        kroeg('Café De Dikke Duif', 213.6, 135.9),
       ],
     },
     {
@@ -594,7 +594,6 @@ export function initMissions(world) {
     phase: 'idle',
     timeLeft: 0,
     cooldownTimer: 0,
-    killBaseline: 0,
     wpIndex: 0,
     completed: new Set(),
     seen: new Set(),
@@ -791,7 +790,7 @@ function checkRequirement(w, def, force = false) {
   const place = requirementPlace(w, key);
   const text = REQUIREMENTS[key].text(place ? place.name : chainName(REQUIREMENTS[key]));
   w.addMessage(text, 5);
-  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'GTE VI', text: `${def.label}: ${text}${place ? ' Staat op je kaart.' : ''}`, duration: 6, say: SMS_SAY.gate.lines[0] });
+  if (w.phoneNotifications) w.phoneNotifications.push({ from: 'GDE', text: `${def.label}: ${text}${place ? ' Staat op je kaart.' : ''}`, duration: 6, say: SMS_SAY.gate.lines[0] });
   hooks.gated(w, chain.index, key);
   return false;
 }
@@ -909,14 +908,10 @@ function fmtTime(s) {
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }
 
-const killCount = (world) => world.stats.pedKills + world.stats.copKills;
-
 function runStats(world, def) {
   const r = chain.run;
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
-  const kills = killCount(world) - r.kills;
-  if (def.type === 'rampage' || (kills > 0 && def.type !== 'stunt')) stats.push(['Kills', String(Math.max(0, kills))]);
   const rv = def.type === 'boat' ? rondvaartStatus() : null;
   if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
@@ -988,7 +983,7 @@ function syncPub(world) {
   pub.total = st.defs.length;
   const board = st.phase === 'active' ? vehicleToBoard(world, def) : null;
   let target;
-  if (st.phase !== 'active' || def.type === 'rampage' || def.type === 'stunt') target = def.start;
+  if (st.phase !== 'active' || def.type === 'stunt') target = def.start;
   else if (board) target = board;
   else if (def.type === 'deliver') target = nextStop(def) || def.dest;
   else if (def.type === 'fatbike') target = def.dest;
@@ -1000,10 +995,6 @@ function syncPub(world) {
   pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
   pub.armed = !!st.armed;
   pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
-  if (def.type === 'rampage' && st.phase === 'active') {
-    pub.killProgress = killCount(world) - st.killBaseline;
-    pub.killTarget = def.targetKills;
-  }
   pub.stunt = def.type === 'stunt' && st.phase === 'active' ? stuntStatus() : null;
   if (def.type === 'checkpoint' || def.type === 'boat') {
     pub.wpIndex = def.waypoints.slice(0, st.wpIndex).filter((wp) => !wp.via).length;
@@ -1619,7 +1610,7 @@ function startMission(world, def) {
   chain.cargoWarn = 100;
   chain.boarded = false;
   chain.hintAt = -Infinity;
-  chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
+  chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
   chain.momentDone = false;
   if (def.solo) {
@@ -1631,9 +1622,6 @@ function startMission(world, def) {
   if (def.type === 'stunt') {
     startStunt(world, def.stunt);
     bringHeroCar(world, def);
-  } else if (def.type === 'rampage') {
-    chain.killBaseline = killCount(world);
-    if (!(world.ammo[world.weapon] > 0)) world.weapon = ['pistol', 'uzi', 'shotgun', 'jachtgeweer'].find((k) => world.ammo[k] > 0) || world.weapon;
   } else if (def.type === 'deliver' && def.start.road) {
     chain.vehicle = spawnMissionCar(world, def);
     world.vehicles.push(chain.vehicle);
@@ -1700,7 +1688,7 @@ function vehicleProblem(world, def) {
   const v = chain.vehicle;
   const p = world.player;
   if (!v || !world.vehicles.includes(v)) return def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie';
-  if (v.wrecked || v.disabled) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Sikkom heeft al foto\'s';
+  if (v.wrecked || v.disabled) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Kiekdoar heeft al foto\'s';
   if (p.inVehicle === v) { chain.boarded = true; return null; }
   if (def.type === 'boat' && p.inVehicle && p.inVehicle.isBoat) return null;
   if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {
@@ -1876,10 +1864,6 @@ export function updateMissions(dt, world) {
           world.addMessage(`${stop.arrive}${stop.bonus ? ` (+${stop.bonus}s)` : ''}`, 3.5);
         }
       } else chain.stopT = 0;
-    }
-  } else if (def.type === 'rampage') {
-    if (killCount(world) - chain.killBaseline >= def.targetKills) {
-      succeed(world, def);
     }
   } else if (def.type === 'stunt') {
     if (updateStunt(dt, world) === 'done') succeed(world, def);
