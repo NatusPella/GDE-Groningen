@@ -775,14 +775,6 @@
 "src": "pl-paddepoel_0_t_d7040c.mp3",
 "dur": 1.93
 },
-"Anita|Het is vier kilometer van de Grote Markt.": {
-"src": "pl-paddepoel_1_a_3c2fd5.mp3",
-"dur": 2.55
-},
-"Tammo|Precies. Buitenland.": {
-"src": "pl-paddepoel_2_t_f79550.mp3",
-"dur": 1.52
-},
 "Anita|Het stadion. De trots van het noorden.": {
 "src": "pl-euroborg_0_a_7fe02d.mp3",
 "dur": 3.41
@@ -854,14 +846,6 @@
 "Anita|De Herewegbuurt. Huizen met een naam op het hek.": {
 "src": "wk-hereweg_0_a_b065d7.mp3",
 "dur": 3.65
-},
-"Tammo|Ons huis heeft ook een naam.": {
-"src": "wk-hereweg_1_t_ac3547.mp3",
-"dur": 1.6
-},
-"Anita|\"Achterstallig onderhoud\" is geen naam.": {
-"src": "wk-hereweg_2_a_a29fcc.mp3",
-"dur": 2.73
 },
 "Tammo|Europapark. Kantoren en een station waar nooit iemand uitstapt.": {
 "src": "wk-europapark_0_t_a685eb.mp3",
@@ -2475,14 +2459,6 @@
 "src": "h1-pass-ventieldopje_1_t_b4d484.mp3",
 "dur": 1.83
 },
-"Anita|Berend zei \"goud\". Dat is trede twee.": {
-"src": "h1-pass-ladder_0_a_cb4de8.mp3",
-"dur": 4.52
-},
-"Tammo|Er zijn er zes.": {
-"src": "h1-pass-ladder_1_t_39b6bc.mp3",
-"dur": 0.94
-},
 "Anita|Dan hebben we er nog vier.": {
 "src": "h1-pass-ladder_2_a_f6b03c.mp3",
 "dur": 2.22
@@ -3739,10 +3715,6 @@
 "src": "id-storing_3_a_7b115b.mp3",
 "dur": 2.25
 },
-"Anita|Hoeveel treden heeft die ladder van jullie eigenlijk?": {
-"src": "id-ladder_0_a_b3d0ca.mp3",
-"dur": 2.28
-},
 "Tammo|Ow. Goud. Valt mie nait of. Braid noar de zin. Kon minder.": {
 "src": "id-ladder_1_t_bfe0ad.mp3",
 "dur": 4.08
@@ -3858,5 +3830,77 @@
 "Anita|Kiekdoar schrijft nooit iets wat klopt.": {
 "src": "id-sikkom_2_a_699175.mp3",
 "dur": 3.18
+},
+"Anita|Berend zei \"goud\". Trede twee van de complimentenladder.": {
+"src": "h1-pass-ladder_0_a_6dac0a.mp3",
+"dur": 4.45
+},
+"Tammo|Ow, goud, valt mie nait of, braid noar de zin, kon minder. En bovenaan zeg je niks meer. Zes treden.": {
+"src": "h1-pass-ladder_1_t_997bd7.mp3",
+"dur": 6.52
+},
+"Anita|Je woont hier, Tammo.": {
+"src": "pl-paddepoel_1_a_c3d4f7.mp3",
+"dur": 1.28
+},
+"Tammo|Precies. Ik ben expat.": {
+"src": "pl-paddepoel_2_t_203dac.mp3",
+"dur": 1.91
+},
+"Anita|De Korenbloemstraat. Mijn oude zolder.": {
+"src": "wk-oosterpark-zolder_0_a_7e902b.mp3",
+"dur": 3.48
+},
+"Tammo|Waar je niet rechtop kon staan.": {
+"src": "wk-oosterpark-zolder_1_t_b3c039.mp3",
+"dur": 1.8
+},
+"Anita|Jij stond altijd scheef. Met twee bakken koffie.": {
+"src": "wk-oosterpark-zolder_2_a_2c3b3f.mp3",
+"dur": 3.63
+},
+"Tammo|Nu sta ik recht. Elf hoog.": {
+"src": "wk-oosterpark-zolder_3_t_d1ba6b.mp3",
+"dur": 1.95
+},
+"Tammo|Onze flat heeft ook een naam.": {
+"src": "wk-hereweg_1_t_59043f.mp3",
+"dur": 1.42
+},
+"Anita|\"House of Groningen\" is geen naam. Dat is een folder.": {
+"src": "wk-hereweg_2_a_eab02f.mp3",
+"dur": 3.76
+},
+"Anita|Ons eigen huis. Nou ja, van de verhuurder.": {
+"src": "id-verhuisd_0_a_ab1cf5.mp3",
+"dur": 4.49
+},
+"Tammo|Met een lift.": {
+"src": "id-verhuisd_1_t_0edb4b.mp3",
+"dur": 0.77
+},
+"Anita|Dat is de vierde keer dat je die lift noemt.": {
+"src": "id-verhuisd_2_a_b4b2f2.mp3",
+"dur": 3.12
+},
+"Tammo|Ik heb nog nooit een lift gehad.": {
+"src": "id-verhuisd_3_t_f5f42e.mp3",
+"dur": 1.44
+},
+"Tammo|Wie doet er eigenlijk de afwas? Bij huisgenoten.": {
+"src": "id-huisgenoten_0_t_817c55.mp3",
+"dur": 2.57
+},
+"Anita|Wie het laatst kookte.": {
+"src": "id-huisgenoten_1_a_e0f568.mp3",
+"dur": 1.11
+},
+"Tammo|Ik kook nooit.": {
+"src": "id-huisgenoten_2_t_af120c.mp3",
+"dur": 0.84
+},
+"Anita|Hoeveel treden heeft die complimentenladder van jullie eigenlijk?": {
+"src": "id-ladder_0_a_960e76.mp3",
+"dur": 3.61
 }
 }
