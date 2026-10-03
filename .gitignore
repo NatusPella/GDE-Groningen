@@ -16,3 +16,7 @@ web-dist/
 web/.cache/
 GTE-VI-*-web.zip
 GDE-Groningen-*-web.zip
+
+# Steam (SteamPipe) content and logs: copies of desktop/dist (steam/README.md)
+steam/content/
+steam/output/

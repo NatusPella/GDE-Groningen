@@ -1,0 +1,12 @@
+// Windows depot (OS: Windows, 64-bit): everything in ../content/windows/,
+// filled by `node steam/copy-builds.mjs`. Launch option: GDE Groningen.exe
+"DepotBuildConfig"
+{
+	"DepotID" "DEPOT_ID_WINDOWS"
+	"FileMapping"
+	{
+		"LocalPath" "windows/*"
+		"DepotPath" "."
+		"recursive" "1"
+	}
+}

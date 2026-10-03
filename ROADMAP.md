@@ -110,7 +110,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [~] Een webversie bouwen (`claude/webversie`): `npm run web` in `desktop/` maakt `web-dist/` uit de offline-staging, met relatieve paden, een laadscherm dat de MB's van de kaart telt, een service worker die alles cachet (per versie, ook offline), en audio die pas laadt als hij speelt. Getest in headless Chrome; nog niet in Safari, Firefox en op echte zwakke hardware.
 - [x] Audio comprimeren (Opus) voor de webversie: 149 MB wordt 85 MB (muziek de helft, stemmen 28% kleiner, want die waren al 48 kbps). Safari vóór 18.4 krijgt de mp3's.
 - [?] Waar de webversie komt: itch.io (een gratis account) of GitHub Pages zodra de repo openbaar is. Beide kunnen: de map past binnen de limieten van itch.io (521 van de 1000 bestanden, 258 van de 500 MB), en `npm run web:zip` maakt de zip.
-- [ ] Het releasescript publiceert de webversie mee.
+- [~] Het releasescript maakt de webversie mee: `npm run release -- minor --web` legt `GDE-Groningen-<versie>-web.zip` lokaal klaar (`claude/builds`). Uploaden of publiceren doet het bewust niet, want de plek is nog niet gekozen (zie hierboven).
 - [x] Three.js en de lettertypes in de webversie zelf hosten, zonder jsDelivr of Google Fonts, voor privacy en offline gebruik: `npm run web` vendort ze net als de desktopbuild (`claude/webversie`).
 
 **Architectuur (op basis van metingen; eerst een profiel van de hoofdthread maken, op Laag en met een vertraagde CPU)**
@@ -178,21 +178,25 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.000 omzet. Alexander beslist of hij dat ervoor overheeft; de game maken we in elk geval klaar.
 
 - **Geen code signing nodig.** Steam start de game zelf, en macOS zet geen quarantainelabel op downloads via Steam. De ad-hoc-handtekening van electron-builder is genoeg voor Apple Silicon.
-- **AI-melding** in de inhoudsvragenlijst van Valve, die op de winkelpagina komt. Vooraf gegenereerd: alle stemmen (Gemini TTS) en alle muziek (Gemini). Live gegenereerd: niets.
+- **AI-melding** in de inhoudsvragenlijst van Valve, die op de winkelpagina komt. Vooraf gegenereerd: alle stemmen (Gemini TTS) en alle muziek (Gemini). Live gegenereerd: niets. De tekst om in te vullen staat in `docs/steam/winkelpagina.md`.
 - [ ] De actuele regels van Steamworks online nalopen: het AI-beleid, de fee, de review en de wachttijden.
 - [ ] **Branding verder van GTA af.** Dit is het grootste risico, want Valve reviewt op IP en Take-Two treedt actief op.
   - een eigen naam en logo, zonder "VI" in GTA-stijl en zonder het GTA-lettertype;
   - geen verwijzing naar GTA in de titel;
   - een duidelijke disclaimer.
 - [ ] Leeftijdsclassificatie (IARC): de vragenlijst invullen volgens [docs/LEEFTIJD.md](docs/LEEFTIJD.md). Het doel is 16.
-- [ ] Winkelpagina:
-  - capsule-afbeeldingen in alle Steam-formaten;
-  - screenshots;
-  - de trailer;
-  - een Nederlandse en een Engelse beschrijving.
-- [ ] Een Steam-build: de Windows-, Mac- en Linux-builds via SteamPipe, met een uploadscript.
+- [~] Winkelpagina (`claude/steam-pagina`, alles in `docs/steam/`; er is niets naar Steam gestuurd):
+  - [x] een Nederlandse en een Engelse beschrijving, korte beschrijving, kenmerken, 20 tags, talen, inhoudslabels, AI-melding, disclaimer en privacy: `docs/steam/winkelpagina.md`;
+  - [x] capsule-afbeeldingen in alle Steam-formaten (header, small, main, vertical, page background, library capsule/header/hero/logo, community-icoon) in `docs/steam/beelden/`, opnieuw te maken met `nice -n 10 node scripts/steam_images.mjs` (één headless Chrome en één devserver);
+  - [x] screenshots (1920×1080) in `docs/steam/beelden/screenshots/`;
+  - [ ] systeemeisen bevestigen met een meting op een Intel-laptop (nu voorlopig, zie de winkelpagina);
+  - [ ] de trailer: een Steam-cut met het logo in de eerste 3 s en HUD-gameplay, zie `docs/steam/trailer.md`;
+  - [ ] besluit: de disclaimer op de winkelpagina met of zonder merknamen (nu zonder).
+- [~] Een Steam-build: de Windows-, Mac- en Linux-builds via SteamPipe (`claude/builds`). De sjablonen staan in `steam/` (`app_build.vdf` en een depot per OS, met nep-id's), `steam/copy-builds.mjs` zet de uitgepakte builds in `steam/content/`, en `steam/README.md` beschrijft het uploaden met `steamcmd`. Nog te doen zodra er een app-id is: de id's invullen en de eerste upload.
 - [ ] De Steam-overlay met Electron en Chromium testen, en oplossen of accepteren.
-- [ ] Steam Deck: een Linux-build en een test op het toestel. De controllersupport (0.25) is er, en de HUD en het menu zijn op 1280×800 nagekeken.
+- [~] Steam Deck: een Linux-build en een test op het toestel. De controllersupport (0.25) is er, en de HUD en het menu zijn op 1280×800 nagekeken.
+  - [x] De Linux-build: `npm run dist:linux` of `npm run release -- minor --linux` maakt `GDE-Groningen-<versie>-linux.AppImage` en `.tar.gz` (x64), ook op de Mac zonder Docker (`claude/builds`). Saves staan in `~/.config/GTE VI`.
+  - [ ] Testen op een echte Steam Deck en op een Linux-pc: start hij, werkt de controller, en is `--no-sandbox` nodig binnen de Steam Linux Runtime.
 - [ ] Optioneel: Steam-achievements en cloud-saves via steamworks.js, gekoppeld aan de bestaande prestaties.
 - [ ] De planning: 30 dagen wachten na betaling, minimaal 2 weken "coming soon", en de review van de pagina en de build.
 - [?] Het besluit: $100 betalen en naar Steam (Alexander).

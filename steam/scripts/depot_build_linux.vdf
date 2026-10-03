@@ -1,0 +1,13 @@
+// Linux + Steam Deck depot (OS: Linux / SteamOS, 64-bit): everything in
+// ../content/linux/, filled by `node steam/copy-builds.mjs`.
+// Launch option: gde-groningen
+"DepotBuildConfig"
+{
+	"DepotID" "DEPOT_ID_LINUX"
+	"FileMapping"
+	{
+		"LocalPath" "linux/*"
+		"DepotPath" "."
+		"recursive" "1"
+	}
+}
