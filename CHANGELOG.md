@@ -6,7 +6,15 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Je garage staat er weer.** Kwam je thuis met de helikopter, als duif of
+  na padel of een uitje, dan ontbrak de garage onder de House of Groningen.
+  Hij staat er nu altijd, en van ver zie je zijn gevel en dakrand ook.
+
 ### Verbeterd
+- **Rond de House of Groningen en Atlas** staan nu bomen en hagen langs het
+  water, bankjes met uitzicht op de vaart, parklantaarns, jonge bomen in
+  bakken langs de garagegevel en lantaarns aan de kant van de Pleiadenlaan.
 - **Winkelcentrum Paddepoel heeft weer daglicht.** Het glazen dak over de
   winkelstraten is nu echt glas: je ziet de lucht erdoor en de straten
   eronder zijn niet meer donker. De winkelblokken zijn voor helikopter en
