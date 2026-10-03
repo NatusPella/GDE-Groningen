@@ -140,9 +140,22 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 - **Tammo:** Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.
 - *Anita kijkt hem aan. Hij kijkt naar zijn koffie.*
 - **Anita:** …Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.
+- **Tammo:** Alleen: waar laat je hem? Op deze zolder kun je niet eens rechtop staan.
+- **Anita** *(schuift een papier over tafel)*: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.
+- **Tammo:** Paddepoel? Dat is buitenland.
+- **Anita:** Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.
+- **Tammo:** …Samen.
+- **Anita:** Als huisgenoten, Tammo. Teken nou maar.
 - **Rikus (radio):** En voor Tammo, als je luistert: ze zegt nooit "kom" tegen iemand die ze niet mee wil hebben. Doe er wat mee.
 - *Haar telefoon trilt.*
 - **Anita:** Kom. Werk.
+
+**Verhuisdag (cutscène, Paddepoel).** *De House of Groningen aan de Pleiadenlaan, elf hoog. De Escapade met een matras op het dak, Tammo met een verhuisdoos.*
+- **Tammo:** Elf hoog. Met een lift. Ik voel me rijk.
+- **Anita:** Je bent niet rijk, Tammo. Je bent huisgenoot.
+- *De camera zwiept omhoog: "Welkom in Grunn." Het spel begint voor de deur van de flat. Paddepoel is vanaf nu thuis.*
+
+*Waarom:* de zolder in de Korenbloemstraat (Oosterparkwijk) is te klein en te duur voor één. Samen kunnen ze net een flat in Paddepoel huren, "als huisgenoten". Het past bij de romance: ze wonen samen, maar zeggen niks. De eerste autogesprekken gaan over de lift en de afwas; Tammo's eerste bericht begint met "De dozen kunnen wachten."
 
 ---
 

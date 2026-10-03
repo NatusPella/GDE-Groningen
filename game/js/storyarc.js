@@ -86,8 +86,8 @@ export const SPEAKERS = {
 // who was met (`met:<key>` flags, getStoryCharacters). bio and quote are for
 // that menu; `step` is where they first turn up.
 export const CHARACTERS = {
-  anita: { name: 'Anita', card: 'Heeft altijd een plan B. Plan A is ook van haar.', step: 'H1', bio: 'Snel, ad rem en de baas van het duo. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf.', quote: 'Een frietwagen is een auto met een luik, Tammo.' },
-  tammo: { name: 'Tammo', card: 'Stadjer. Groot hart. Kleine portemonnee.', step: 'H1', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Al twaalf jaar verliefd op zijn beste vriendin. Hij zegt het nooit.', quote: 'Ik zeg niks. Dat is ook een antwoord.' },
+  anita: { name: 'Anita', card: 'Heeft altijd een plan B. Plan A is ook van haar.', step: 'H1', bio: 'Snel, ad rem en de baas van het duo. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.', quote: 'Een frietwagen is een auto met een luik, Tammo.' },
+  tammo: { name: 'Tammo', card: 'Stadjer. Groot hart. Kleine portemonnee.', step: 'H1', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Al twaalf jaar verliefd op zijn beste vriendin, en sinds de KEI-week haar huisgenoot in Paddepoel. Hij zegt het nooit.', quote: 'Ik zeg niks. Dat is ook een antwoord.' },
   rikus: { name: 'Rikus', card: 'Weet alles. Zegt niks. Behalve op de radio.', step: 'H1', bio: 'De derde van het clubje van de stoep in het Oosterpark. Presenteert Nachtstreek, live, elke nacht. Bel Rikus.', quote: 'Ik zeg niks. Ik draai drie minuten stilte.' },
   berend: { name: 'Berend Bos', card: 'Speelt veertig jaar Bommen Berend. Verliest elk jaar.', step: 'H1', bio: 'Chagrijnige Stadjer uit de Schildersbuurt. Speelt al veertig jaar de bisschop in het naspel van het Ontzet, valt elk jaar de stad aan en verliest elk jaar. Schrijft de gemeente brieven.', quote: 'Ik proef, ik tel, ik oordeel.' },
   durk: { name: 'Durk & Douwe', card: 'Twee reuzen. Eén brein. Ze delen het.', step: 'H2', bio: 'Jelles tweelinghandlangers. Groot, traag en eerlijk tot op het bot, vooral als ze iets geheim moeten houden.', quote: 'Durk. Dat was geheim. …Hè.' },
@@ -172,7 +172,7 @@ export const STEPS = [
   // --- Kop: "Moi, Grunn" (KEI-week, half augustus) ---------------------------------
   { id: 'H1', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'berend', why: 'Ik rij, Tammo. Berend vertrouwt jou nog niet eens met een fietsbel.',
     title: 'Berend telt de krassen', reward: 50, minReward: 12,
-    lead: ['T', 'Rikus heeft werk voor ons. Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.'],
+    lead: ['T', 'De dozen kunnen wachten. Rikus heeft werk voor ons: Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.'],
     contact: [belRikus([
       ['berend', 'Rikus. Berend, Schildersbuurt. Mijn bakkie moet naar het Boterdiep, naar mijn zus. En je mag met de auto niet meer door het centrum, sinds 1977. Ik heb een brief gestuurd.', { tag: 'nors, mopperend, aan de telefoon op de radio' }],
       ['rikus', 'In 1977?', { tag: 'droog, als nacht-dj op de radio', card: 'rikus' }],

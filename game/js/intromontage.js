@@ -25,6 +25,7 @@ import { WATER_Y } from './util.js';
 import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, buildRope } from './introkitchen3d.js';
 import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
+import { homeSpawnPoint } from './home.js';
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -36,9 +37,11 @@ fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) 
 // "Trailer" and "Opening"): first a GTA VI trailer parody (sun on d'Olle
 // Grieze, cyclists, a gull with a frikandel, freeze frames with name cards
 // for Anita and Tammo, flashes ahead in the story, the title), then the
-// opening scene: dawn in the Oosterparkwijk, Rikus on Nachtstreek, and the
-// kitchen table where the Fjord Frituur gets its car. Ends in the swoop down
-// to the spawn. Narration it told is skipped in H1's intro.
+// opening scene: dawn in the Oosterparkwijk, Rikus on Nachtstreek, the
+// attic kitchen table where the Fjord Frituur gets its car and the two of
+// them a flat (the rent split in two), then moving day at the House of
+// Groningen in Paddepoel. Ends in the swoop down to the spawn there, their
+// new home. Narration it told is skipped in H1's intro.
 
 const SEEN_KEY = 'gte-intro-seen';
 const PED_TARGET = 40;
@@ -1093,6 +1096,40 @@ function buildShots(w) {
     ],
   };
 
+  // the attic is too small for a frietwagen, and for the two of them: the
+  // flat in Paddepoel, the rent split in two (docs/verhaal/D-definitief.md, "Opening")
+  const huur = {
+    minDur: 6, clock: 5.93, focus: home, kitchen: true, lead: 0.5,
+    lines: [
+      ['T', 'Alleen: waar laat je hem? Op deze zolder kun je niet eens rechtop staan.', 'droog, kijkt omhoog naar het schuine dak'],
+      ['A', 'Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.', 'zakelijk, snel, stiekem trots, schuift een papier over tafel'],
+      ['T', 'Paddepoel? Dat is buitenland.', 'geschrokken, droog'],
+      ['A', 'Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.', 'nuchter, ad rem'],
+      ['T', '…Samen.', 'zacht, overvallen'],
+      ['A', 'Als huisgenoten, Tammo. Teken nou maar.', 'snel, net te zakelijk, ontwijkend'],
+    ],
+    enter(r, s) {
+      s.kit = useKitchen(r, KIT);
+      for (const c of s.kit.tableCups) c.visible = true;
+    },
+    tick(r, s, t) {
+      const L = huur.timed;
+      const said = (i, d = 0) => !!L[i] && t > L[i].at + d;
+      // he looks up at the sloping roof, she down at the papers, then at him
+      sitK(r.tammo, KITCHEN.tammoSeat, Math.PI, said(0) && !said(0, 1.6) ? 0.32 : said(4) ? -0.3 : -0.05);
+      sitK(r.anita, KITCHEN.anitaSeat, 0, said(1) && !said(1, 1.4) ? -0.32 : 0.04, said(5) ? 0.25 : 0);
+    },
+    cams: [
+      [0, (u, t) => pose(K(-1.4, -0.32, 1.3), tammoHead, 30, t, 0.004)],
+      ['L1', (u, t) => pose(K(0.36, 0.12, 1.24), K(KITCHEN.drawing.u - 0.04, KITCHEN.drawing.v, KITCHEN.tableH), lerp(36, 32, u), t, 0.003)],
+      ['L1+2.2', (u, t) => pose(K(1.4, 0.3, 1.3), anitaHead, 30, t, 0.004)],
+      ['L2', (u, t) => pose(K(-1.4, -0.32, 1.3), tammoHead, 30, t, 0.004)],
+      ['L3', (u, t) => pose(K(1.4, 0.3, 1.3), anitaHead, 30, t, 0.004)],
+      ['L4', (u, t) => pose(K(lerp(-1.55, -1.12, smooth(u)), lerp(-0.36, -0.26, u), 1.27), tammoHead, lerp(31, 26, u), t, 0.003)],
+      ['L5', (u, t) => pose(K(0, -1.38, 1.24), K(0, 0, 1.02), 40, t, 0.002)],
+    ],
+  };
+
   // Rikus on the old radio with advice for Tammo, then her phone buzzes
   const radioTip = {
     minDur: 6, clock: 5.95, focus: home, kitchen: true, lead: 0.4,
@@ -1124,6 +1161,81 @@ function buildShots(w) {
     ],
   };
 
+  // moving day: the Escapade at the House of Groningen, a mattress on the
+  // roof and a box in his arms, the tower up to the eleventh floor
+  const lobby = homeSpawnPoint();
+  const kerb = street(map, lobby.x + Math.cos(lobby.angle) * 10, lobby.y + Math.sin(lobby.angle) * 10);
+  const kf = { x: Math.cos(kerb.a), y: Math.sin(kerb.a) };
+  const BOX_MAT = new THREE.MeshStandardMaterial({ color: 0xb08850, roughness: 0.95 });
+  const BED_MAT = new THREE.MeshStandardMaterial({ color: 0xe8e2d4, roughness: 1 });
+  const verhuis = {
+    minDur: 6.5, clock: 10.6, stamp: '10:36', focus: lobby,
+    caption: ['PADDEPOEL', 'House of Groningen. Elf hoog, de huur door twee.'], capAt: 0.6,
+    lead: 2.2,
+    lines: [
+      ['T', 'Elf hoog. Met een lift. Ik voel me rijk.', 'droog, trots, met een verhuisdoos in zijn armen'],
+      ['A', 'Je bent niet rijk, Tammo. Je bent huisgenoot.', 'plagend, warm, net te snel'],
+    ],
+    enter(r, s) {
+      const at = { x: lobby.x + (kerb.x - lobby.x) * 0.85, y: lobby.y + (kerb.y - lobby.y) * 0.85 };
+      s.car = tempCar(r, at.x, at.y, kerb.a);
+      const geo = new THREE.BoxGeometry(1, 1, 1);
+      s.geo = geo;
+      s.bed = new THREE.Mesh(geo, BED_MAT);
+      s.bed.scale.set(2.0, 0.22, 1.35);
+      s.box = new THREE.Mesh(geo, BOX_MAT);
+      s.box.scale.set(0.5, 0.38, 0.42);
+      s.boxes = [0, 1, 2].map(() => new THREE.Mesh(geo, BOX_MAT));
+      for (const m of [s.bed, s.box, ...s.boxes]) { m.castShadow = true; r.group.add(m); }
+    },
+    exit(r, s) { if (s.geo) s.geo.dispose(); },
+    tick(r, s, t, dt) {
+      const c = s.car;
+      if (c) {
+        s.bed.position.set(c.x, (c.z || 0) + 1.62, c.y);
+        s.bed.rotation.set(0, -c.angle, 0.05);
+        // a stack of boxes on the pavement behind the car
+        s.boxes.forEach((b, k) => {
+          b.scale.set(0.55, 0.42, 0.45);
+          b.position.set(c.x - kf.x * 3.4 + (lobby.x - c.x) * 0.25, (c.z || 0) + 0.21 + (k === 2 ? 0.42 : 0), c.y - kf.y * 3.4 + (lobby.y - c.y) * 0.25 + (k === 1 ? 0.6 : 0));
+          b.rotation.y = k * 0.4;
+        });
+      }
+      const a = lobby.angle + Math.PI;
+      // Tammo walks to the door with a box, Anita by the car, hands on her hips
+      const k = clamp01(t / 4.5);
+      const tx = lerp(lobby.x + Math.cos(lobby.angle) * 5, lobby.x + Math.cos(lobby.angle) * 1.6, k);
+      const ty = lerp(lobby.y + Math.sin(lobby.angle) * 5, lobby.y + Math.sin(lobby.angle) * 1.6, k);
+      const z = r.w.map.spawnZ ? r.w.map.spawnZ(tx, ty) : 0;
+      stage(r.tammo, tx, ty, a, { h: z, speed: k < 1 ? 1 : 0, pose: 'cups', dt, t });
+      s.box.position.set(tx + Math.cos(a) * 0.38, z + 1.08, ty + Math.sin(a) * 0.38);
+      s.box.rotation.set(0, -a, 0);
+      const ax = lobby.x + Math.cos(lobby.angle) * 4.2 + Math.cos(lobby.angle + Math.PI / 2) * 1.6;
+      const ay = lobby.y + Math.sin(lobby.angle) * 4.2 + Math.sin(lobby.angle + Math.PI / 2) * 1.6;
+      stage(r.anita, ax, ay, Math.atan2(ty - ay, tx - ax), { h: r.w.map.spawnZ ? r.w.map.spawnZ(ax, ay) : 0, pose: 'hips', dt, t });
+    },
+    cams: [
+      // up the tower to the eleventh floor, then down to the two of them
+      [0, (u, t) => {
+        const k = smooth(u);
+        const out = lobby.angle, side = lobby.angle + Math.PI / 2;
+        const pos = clearCam(map, P(lobby.x + Math.cos(out) * 16 + Math.cos(side) * 7, lobby.y + Math.sin(out) * 16 + Math.sin(side) * 7, lerp(2, 3.2, k)));
+        return pose(pos, P(lobby.x - Math.cos(out) * 6, lobby.y - Math.sin(out) * 6, lerp(38, 3, k)), lerp(58, 46, k), t, 0.01);
+      }],
+      ['L0', (u, t) => {
+        const out = lobby.angle, side = lobby.angle - Math.PI / 2;
+        const pos = clearCam(map, P(lobby.x + Math.cos(out) * 7.5 + Math.cos(side) * 3.2, lobby.y + Math.sin(out) * 7.5 + Math.sin(side) * 3.2, 1.75));
+        return pose(pos, P(lobby.x + Math.cos(out) * 2.6, lobby.y + Math.sin(out) * 2.6, 1.45), lerp(40, 36, u), t, 0.006);
+      }],
+      ['L1', (u, t) => {
+        const ax = lobby.x + Math.cos(lobby.angle) * 4.2 + Math.cos(lobby.angle + Math.PI / 2) * 1.6;
+        const ay = lobby.y + Math.sin(lobby.angle) * 4.2 + Math.sin(lobby.angle + Math.PI / 2) * 1.6;
+        const pos = clearCam(map, P(ax + Math.cos(lobby.angle) * 2.4 - Math.cos(lobby.angle + Math.PI / 2) * 0.8, ay + Math.sin(lobby.angle) * 2.4 - Math.sin(lobby.angle + Math.PI / 2) * 0.8, 1.6));
+        return pose(pos, P(ax, ay, 1.5), lerp(34, 30, u), t, 0.004);
+      }],
+    ],
+  };
+
   const swoop = {
     minDur: 4.6, home: true,
     lower: '<div class="im-kicker">Welkom in</div><div class="im-title">Grunn</div>',
@@ -1134,7 +1246,7 @@ function buildShots(w) {
 
   return [
     sun, bikes, gull, boat, anitaCard, tammoCard, pigeon, limo, tanker, heli, title,
-    dateCard, dawn, kitchenIn, kitchenCar, liefste, radioTip, swoop,
+    dateCard, dawn, kitchenIn, kitchenCar, liefste, huur, radioTip, verhuis, swoop,
   ];
 }
 
