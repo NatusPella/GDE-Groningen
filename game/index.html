@@ -39,7 +39,6 @@
   #loading .ld-fill { height: 100%; background: linear-gradient(90deg, #1e9e56, #3fc97a); transform-origin: left; transform: scaleX(0.04); box-shadow: 0 0 12px rgba(63,201,122,0.6); transition: transform 0.2s linear; }
   #loading .ld-status { margin-top: 10px; font-size: 18px; letter-spacing: 3px; color: #3fc97a; }
   #loading .ld-status.error { color: #d93f3f; font: 15px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; }
-  #loading .ld-legal { position: absolute; left: 16px; right: 16px; bottom: 3vh; margin: 0; text-align: center; font: 12px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.5); }
   #loading .ld-tip { margin: 26px auto 0; max-width: 440px; min-height: 2.8em; font: 16px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.8); transition: opacity 0.25s; }
   #loading .ld-tip.swap { opacity: 0; }
 
@@ -86,7 +85,6 @@
     box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
   }
   #start-screen .ss-credit { position: absolute; right: 4vw; top: 4vh; margin: 0; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: rgba(240,237,228,0.7); text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
-  #start-screen .ss-credit .ss-legal { display: block; margin-top: 4px; font-size: 12px; text-align: right; color: rgba(240,237,228,0.55); }
   #start-screen .ss-credit .ss-ver { margin-left: 10px; color: rgba(63,201,122,0.85); letter-spacing: 1.5px; }
   #start-screen .ss-credit .heart { display: inline-block; animation: ss-beat 1.6s ease-in-out infinite; }
   @keyframes ss-beat { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.18); } }
@@ -515,7 +513,6 @@
     <div class="ld-status">Grunn laden…</div>
     <p class="ld-tip">Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.</p>
   </div>
-  <p class="ld-legal">GDE is een fanparodie op GTA, niet gelieerd aan of goedgekeurd door Rockstar Games of Take-Two Interactive. Namen, personages en gebeurtenissen zijn verzonnen. Kaartdata © OpenStreetMap-bijdragers, openstreetmap.org/copyright.</p>
 </div>
 <div id="start-screen">
   <div class="ss-content">
@@ -530,7 +527,7 @@
     <div class="ss-news-body" tabindex="0"></div>
   </section>
   <p class="ss-foot"><span class="key">Esc</span> in het spel: menu, kaart &amp; besturing</p>
-  <p class="ss-credit">Made with <span class="heart" aria-label="love">❤️</span> in Groningen, with AI<span class="ss-ver"></span><span class="ss-legal">Fanparodie op GTA · niet van Rockstar Games of Take-Two</span></p>
+  <p class="ss-credit">Made with <span class="heart" aria-label="love">❤️</span> in Groningen, with AI<span class="ss-ver"></span></p>
 </div>
 <!-- GLTFLoader.js (used by landmarkmodels.js) imports the bare specifier
      "three" internally rather than a full CDN URL like every other module

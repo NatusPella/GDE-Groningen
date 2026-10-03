@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Veranderd
+- De disclaimer staat niet meer op het laad- en startscherm, alleen nog in
+  Over, de aftiteling en de README.
+
 ### Gewijzigd
 - **H6: de lege vitrine is nu een echte onthulling.** De koepel is van
   matglas met een gouden gloed, dus je ziet pas wat er (niet) op het kussen
