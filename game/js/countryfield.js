@@ -442,6 +442,52 @@ vec3 cEdge(vec2 p, float px) {
   return vec3(road, canal, line);
 }
 
+// Road markings of the real road under p (only asked for near the camera,
+// on road pixels): x = white paint, y = the red fietssuggestiestrook.
+// Segment texel W.w = (kind + 8 * oneway) * 4096 + metres along the road.
+vec2 cMark(vec2 p, float px) {
+  vec2 g = (p - uEdgeGridRect.xy) / uEdgeGridRect.z;
+  if (g.x < 0.0 || g.y < 0.0 || g.x >= uEdgeGridSize.x || g.y >= uEdgeGridSize.y) return vec2(0.0);
+  ivec2 c = ivec2(floor(g));
+  uvec4 s0 = texelFetch(uEdgeGrid, ivec2(c.x * 3, c.y), 0);
+  if (s0.x == 0u) return vec2(0.0);
+  uvec4 s1 = texelFetch(uEdgeGrid, ivec2(c.x * 3 + 1, c.y), 0);
+  uvec4 s2 = s1.w == 0u ? uvec4(0u) : texelFetch(uEdgeGrid, ivec2(c.x * 3 + 2, c.y), 0);
+  float bd = 0.0, dc = 0.0, hw = 0.0, along = 0.0, code = 0.0;
+  for (int k = 0; k < ${EDGE_SLOTS}; k++) {
+    uint id = k < 4 ? s0[k] : k < 8 ? s1[k - 4] : s2[k - 8];
+    if (id == 0u) break;
+    int i = int(id) - 1;
+    ivec2 at = ivec2(i % ${EDGE_TEX_W}, (i / ${EDGE_TEX_W}) * 2);
+    vec4 W = texelFetch(uEdgeTex, at + ivec2(0, 1), 0);
+    if (W.z > 0.5 || W.w < 4096.0) continue;
+    vec4 A = texelFetch(uEdgeTex, at, 0);
+    vec2 ab = A.zw - A.xy;
+    float L = max(length(ab), 1e-3);
+    float t = clamp(dot(p - A.xy, ab) / (L * L), 0.0, 1.0);
+    float d = length(p - A.xy - ab * t);
+    float h = mix(W.x, W.y, t);
+    if (d - h < bd) { bd = d - h; dc = d; hw = h; code = floor(W.w / 4096.0); along = W.w - code * 4096.0 + t * L; }
+  }
+  if (bd >= 0.0) return vec2(0.0);
+  float kind = mod(code, 8.0);
+  bool one = code > 7.5;
+  float line = 0.0, strip = 0.0;
+  float aa = px + 0.02;
+  if (kind < 1.5 || (kind > 2.5 && kind < 4.5 && !one)) {
+    // centre line (lane divider on a motorway carriageway): 3 m on, 9 m off
+    float dash = step(fract(along / 12.0), 0.25);
+    line = (1.0 - smoothstep(0.07, 0.07 + aa, dc)) * dash;
+  } else if (kind > 4.5 && kind < 6.5 && hw > 2.4) {
+    // erftoegangsweg: no centre line, a dashed line 1.4 m in from each edge
+    // with red asphalt outside it
+    float e = hw - dc;
+    line = (1.0 - smoothstep(0.06, 0.06 + aa, abs(e - 1.4))) * step(fract(along / 2.0), 0.5);
+    strip = 1.0 - smoothstep(1.35, 1.35 + aa, e);
+  }
+  return vec2(line, strip);
+}
+
 // Signed distances (m, clamped to +-4) to the nearest road edge and to the
 // nearest canal's water edge: what countrybake.js stores per texel.
 vec2 cEdgeSD(vec2 p) {
@@ -624,6 +670,11 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   if (ce.x > 0.0) {
     vec3 asph = cLin(74.0, 74.0, 76.0) * (0.9 + 0.2 * n3);
     float el = (1.0 - smoothstep(0.08, 0.08 + px, ce.z)) * detail;
+    if (px < 0.4 && ce.x > 0.5) {
+      vec2 mk = cMark(p, px) * (1.0 - smoothstep(0.2, 0.4, px));
+      asph = mix(asph, cLin(150.0, 78.0, 66.0) * (0.9 + 0.2 * n3), mk.y * 0.85);
+      asph = mix(asph, cLin(214.0, 210.0, 198.0), mk.x * 0.85);
+    }
     asph = mix(asph, cLin(214.0, 210.0, 198.0), el * 0.85);
     c = mix(c, asph, ce.x);
     sRough -= ce.x * 0.1;

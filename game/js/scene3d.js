@@ -64,6 +64,7 @@ import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside } from './countryside.js';
+import { setCountryNight } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance } from './countryfield.js';
 import { probe } from './hitchprobe.js';
@@ -2853,6 +2854,7 @@ function applyTimeOfDay(dt, world) {
   setStarOpacity(skyDome, L.night * (1 - storm));
   setNightFactor(1.5 * L.night, curveAt(WINDOW_LIT, L.hour), curveAt(SHOP_LIT, L.hour));
   farLod.setNight(1.5 * L.night, curveAt(WINDOW_LIT, L.hour));
+  setCountryNight(1.5 * L.night, curveAt(WINDOW_LIT, L.hour));
   scene.fog.near = lightBase.fogNear;
   scene.fog.far = lightBase.fogFar;
   setTrafficLightGlow(1 + 3 * L.night);

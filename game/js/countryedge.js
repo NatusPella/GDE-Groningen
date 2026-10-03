@@ -462,9 +462,14 @@ function buildReal() {
   const keep = (a, b) => edgeDistance(a[0], a[1]) > -40 || edgeDistance(b[0], b[1]) > -40;
   for (const r of REAL.roads) {
     const own = { real: true, road: r };
+    let s = 0;
     for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], b = r.pts[i + 1];
+      const n = EDGE.segs.length;
       if (keep(a, b)) addSeg(a, b, r.w / 2, r.w / 2, 0, -1, own);
+      // road markings: kind, one-way and the distance along for the dashes
+      if (EDGE.segs.length > n) EDGE.segs[n].mark = (r.kind + (r.oneway ? 8 : 0)) * 4096 + (s % 3996);
+      s += Math.hypot(b[0] - a[0], b[1] - a[1]);
     }
   }
   for (const w of REAL.waterways) {
@@ -927,7 +932,7 @@ function uploadTexture() {
   segs.forEach((g, i) => {
     const o = ((Math.floor(i / EDGE_TEX_W) * 2) * EDGE_TEX_W + (i % EDGE_TEX_W)) * 4;
     data.set([g.ax, g.ay, g.bx, g.by], o);
-    data.set([g.ha, g.hb, g.kind, 0], o + EDGE_TEX_W * 4);
+    data.set([g.ha, g.hb, g.kind, g.mark || 0], o + EDGE_TEX_W * 4);
   });
   const tex = new THREE.DataTexture(data, EDGE_TEX_W, rows, THREE.RGBAFormat, THREE.FloatType);
   tex.minFilter = tex.magFilter = THREE.NearestFilter;
