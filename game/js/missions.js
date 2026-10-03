@@ -17,7 +17,7 @@ import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } fr
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
-import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState } from './shops.js';
+import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState, setStoryOutfit } from './shops.js';
 import { getGaragesForRender, garageInside } from './garages.js';
 import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
@@ -1186,6 +1186,8 @@ function succeed(world, def) {
     world.lastPerfectRun = world.time;
   }
   playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats, reason });
+  // a replayed kraak has no train trip after it: their own clothes straight away
+  if (def.heist && replay) setStoryOutfit(null);
   releaseMissionVehicle(world);
   chain.completed.add(chain.index);
   chain.run = null;
@@ -1239,6 +1241,8 @@ function fail(world, def, reason) {
 function endInFailure(world, text) {
   world.addMessage(text, 3.5);
   clearStoryProps();
+  // H6 failed: out of the black again (startMission puts it back on)
+  if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
   if (world.pigeonMode) stopPigeonMode(world);
   // an aborted or skipped H15 must not leave the heli run flying on
   if (isHeliRunActive()) abortHeliRun();
@@ -1614,6 +1618,9 @@ function startMission(world, def) {
   chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
   chain.momentDone = false;
+  // the kraak: both in black, whoever bought it (off again on the train, stationtravel.js)
+  // (any other mission: the train was skipped somehow, so their own clothes again)
+  setStoryOutfit(def.heist ? 'incognito' : null);
   if (def.solo) {
     // the companion stays where the mission starts (H16: Tammo with the klomp)
     const p0 = world.player;
