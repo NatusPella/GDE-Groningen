@@ -85,12 +85,20 @@ from the end of the radio intro. Used three ways:
   from the title screen on a throwaway profile, logs fps, draw calls and GPU
   memory (`renderer.info`) per shot and quits; add `--profile` for a CPU
   profile.
+- **Steam cuts**: `gameplay` (~62 s, Steam's first trailer: the logo in
+  the first seconds, then the systems with the real HUD: driving, stars,
+  the heli rings, the stunt evening score, a side job, Ubbo on the phone)
+  and `verhaal` (~80 s, the story up to the planned museum heist with voiced
+  lines from the game). Shot lists and spoiler rules in
+  `docs/steam/trailer.md`; their order is `CUT_ORDER` in `js/trailer.js`.
+  `?trailer&cut=gameplay` / `--trailer-cut=verhaal` etc.
 - **Short cut** (`kort`, ~38 s, with the Anita and Tammo name cards): the
   basis for the *Nieuw spel* opening. `?attract` (desktop `--attract`)
   plays it before the menu; hold Space (~0.9 s) to skip.
 - **Recording**: `?trailer` (desktop `--trailer`) plays the full cut on a
   fixed 1/60 s step without HUD; the desktop app quits after the last frame.
-  Options: `&cut=kort` / `--trailer-cut=kort` (the short cut), `&shot=N` /
+  Options: `&cut=kort` / `--trailer-cut=kort` (the short cut; also
+  `verhaal`, `gameplay`), `&shot=N` /
   `--trailer-shot=N` (only shot N, 1-based; `window.__trailer.list()` prints
   the list, `window.__trailer.freeze(N, t)` holds shot N at t seconds),
   `--trailer=3840x2160` (page size in device pixels),
