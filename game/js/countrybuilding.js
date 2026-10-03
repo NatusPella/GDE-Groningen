@@ -157,8 +157,10 @@ const FRAG_FACADE = /* glsl */`
     float L = xFace ? vBS.z : vBS.x;
     float h = vBInfo.y + vBLoc.y;
     float top = vBInfo.w;
+#ifndef FACADE_LOW
     if (style < 3.5) diffuseColor.rgb *= texture2D(uBBrick, vec2(u + (xFace ? 0.25 : 0.0), h) * 2.0).rgb * 1.1;
     else diffuseColor.rgb *= 1.0 - 0.07 * smoothstep(0.35, 0.5, abs(fract(u * 1.25) - 0.5));
+#endif
     // bay width, window size, storey height, sill: per style
     vec4 S = style < 1.5 ? vec4(2.7, 1.1, 1.35, 2.75) : style < 2.5 ? vec4(3.0, 1.6, 1.45, 3.0) : style < 3.5 ? vec4(5.5, 0.9, 0.6, 99.0) : vec4(9.0, 0.0, 0.0, 99.0);
     float sill = style < 2.5 ? 0.85 : 1.9;
@@ -197,8 +199,12 @@ const FRAG_FACADE = /* glsl */`
       diffuseColor.rgb = mix(diffuseColor.rgb, dc, dm);
     }
     if (win > 0.0) {
+#ifdef FACADE_LOW
+      float frame = 0.0;
+#else
       float frame = bRect(vec2(lu, lv - S.z * 0.5), vec2(S.y + 0.16, S.z + 0.16) * 0.5, fw) - win;
       if (part > 3.5) frame = 0.0;
+#endif
       vec3 glass = mix(vec3(0.035, 0.045, 0.055), vec3(0.16, 0.2, 0.24), clamp(lv / max(S.z, 0.5), 0.0, 1.0) * 0.8);
       diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.85, 0.8), max(frame, 0.0) * (style < 2.5 ? 1.0 : 0.4));
       diffuseColor.rgb = mix(diffuseColor.rgb, glass, win);
@@ -215,7 +221,9 @@ const FRAG_FACADE = /* glsl */`
     float ru = endFace ? vBLoc.z : vBLoc.x;
     float rv = (1.0 - vBLoc.y / vBS.y) * length(vec2(vBS.y, (endFace ? vBS.x : vBS.z) * 0.5));
     if (style > 6.5) diffuseColor.rgb *= 1.0 - 0.14 * smoothstep(0.3, 0.5, abs(fract(ru * 5.0) - 0.5));
+#ifndef FACADE_LOW
     else diffuseColor.rgb *= texture2D(uBTile, vec2(ru, rv)).rgb * 1.08;
+#endif
   } else if (part > 4.5 && part < 5.5 && n.y > 0.5) {
     // flat roof: bitumen with a lighter edge
     float e = min(vBS.x * 0.5 - abs(vBLoc.x), vBS.z * 0.5 - abs(vBLoc.z));
@@ -236,11 +244,24 @@ function hex(c) {
 
 // Patches a vertex-colour material into the facade material; extra(sh) runs
 // first (the skyline adds its own vertex pull and haze).
+// 'laag': no brick or tile texture and no window frames (two texture reads
+// and a box test less per pixel of every Ommeland building)
+let facadeLow = false;
+const facadeMats = [];
+export function setCountryFacadeLevel(level) {
+  const low = level === 'laag';
+  if (low === facadeLow) return;
+  facadeLow = low;
+  for (const m of facadeMats) m.needsUpdate = true;
+}
+
 export function applyFacade(m, key, extra = null) {
   textures();
+  facadeMats.push(m);
   m.onBeforeCompile = (sh) => {
     if (extra) extra(sh);
     Object.assign(sh.uniforms, U);
+    if (facadeLow) sh.fragmentShader = '#define FACADE_LOW\n' + sh.fragmentShader;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', `#include <common>\n${VERT_HEAD}`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>\n${VERT_BEGIN}`)
@@ -250,7 +271,7 @@ export function applyFacade(m, key, extra = null) {
       .replace('#include <color_fragment>', `#include <color_fragment>\n${FRAG_FACADE}`)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += bGlow;');
   };
-  m.customProgramCacheKey = () => 'country-bld-' + key;
+  m.customProgramCacheKey = () => 'country-bld-' + key + (facadeLow ? '-low' : '');
   return m;
 }
 
