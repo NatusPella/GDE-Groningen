@@ -24,6 +24,7 @@ const BOATS = {
   rondvaart: [['Rondvaartboot', 'Diepenring'], ['Rondvaartboot', 'Stadjer']],
   kano: [['Kano', 'Peddelpiet'], ['Kano', 'Reitdiepper']],
   kajak: [['Kajak', 'Waterjuffer']],
+  sup: [['SUP', 'Rechtop Roelie'], ['SUP', 'Plankgast']],
   waterfiets: [['Waterfiets', 'Trapkoppel'], ['Waterfiets', 'Zwaantje']],
   rubberboot: [['Rubberboot', 'Stuiterbal'], ['Rubberboot', 'Zeehond']],
   dinghy: [['Bijbootje', 'Woonbootje'], ['Roeiboot', 'Kleine Jan']],

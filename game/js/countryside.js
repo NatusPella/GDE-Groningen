@@ -1468,7 +1468,8 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
   // the map-edge layout is built once, well before the player can see it
   if (!EDGE.ready && world.map && edgeDistance(world.player.x, world.player.y) > -1600) ensureCountryEdge(world.map);
   if (!S) init(scene);
-  const p = world.player;
+  // streams around the camera's focus in a cutscene (scene3d.js updateStreamFocus)
+  const p = world.streamFocus || world.player;
   const t0 = performance.now();
   const near = edgeDistance(p.x, p.y) > -(propRadius(viewDist) + 200);
   updateGround(p.x, p.y);

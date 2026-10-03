@@ -80,12 +80,13 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [~] H14: de boeven fietsen niet meer door een muur.
 
 **Pakket C: wereld, geluid en HUD** (`claude/feedback-wereld`)
-- [~] Voertuigbadge: naam en merk erbij, en conditie met een hartje in plaats van "schade".
-- [~] "Prestaties wachten" staat alleen kort in beeld.
-- [~] Een prettiger brommergeluid.
-- [~] Zwemmers in zwemkleding die niet zwaaien als drenkelingen. Meer leven op het water: bootjes, kano's en suppers.
-- [~] Betere waterlijn en golfslag voor alle boten. Remsporen liggen op de bovenste weglaag en blijven langer liggen.
-- [~] Cutscenes laden details rond de camera, niet rond de speler. Een rijkere minimap in het Ommeland.
+- [x] Voertuigbadge: naam en merk erbij, en conditie met een hartje in plaats van "schade".
+- [x] "Prestaties wachten" staat alleen kort in beeld (net als "meldingen wachten").
+- [x] Een prettiger brommergeluid.
+- [x] Zwemmers in zwemkleding die niet zwaaien als drenkelingen. Meer leven op het water: bootjes, kano's, suppers en zwanen.
+- [x] Betere waterlijn en golfslag voor alle boten. Remsporen liggen op de bovenste weglaag en blijven langer liggen.
+- [x] Cutscenes laden details rond de camera, niet rond de speler. Een rijkere minimap in het Ommeland.
+- [ ] Nog in het echt bekijken: de boten en zwemmers op het water en de ring (de screenshots van die plekken lukten niet).
 
 **Pakket D: heli, carbid en padel** (start zodra er ruimte is)
 - [ ] De heli-missie herbouwen: opstijgen bij Airport Eelde, onderweg een spoedgeval naar het UMCG, dan naar de ballon. Geen tweede heli en een logische landing. De ballonvlucht moet goed te doen zijn.

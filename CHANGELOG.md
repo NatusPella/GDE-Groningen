@@ -28,8 +28,40 @@ nieuwe functies, `y` voor alleen bugfixes.
   naamkaarten), met een donker vlak erachter als je wilt; kleurenblinde
   paletten (deuteranopie, protanopie, tritanopie) voor markers, routes, de
   kaart en de HUD.
+- **Meer leven op het water**: suppers (stand-up paddle), meer kano's,
+  kajaks en waterfietsen tussen de sloepen, en hier en daar een paar zwanen.
+  Op Laag varen er wat minder.
+- **Zwemmers in zwemkleding** (zwembroek, badpak of bikini). Ze zwemmen een
+  rustige schoolslag, drijven op hun rug of watertrappelen kalm, en soms zit
+  er iemand op de oever met de voeten in het water. Ze zwaaien niet meer.
 
 ### Verbeterd
+- **Voertuigbadge**: het merk en de naam van je voertuig staan erbij, en de
+  staat ervan is een hartje met een balk die leegloopt bij schade (rood als
+  het slecht gaat), in plaats van "Schade".
+- **"Prestatie wacht" en "meldingen wachten"** staan nog maar een paar
+  seconden in beeld na iets nieuws en vervagen dan. Na het pauzemenu komt
+  "prestatie wacht" nog even terug zolang je hem niet bekeken hebt.
+- **De brommer klinkt prettiger**: zachter, ronder en minder schel, een
+  tweetakt zonder zaaggeluid. De Snorscooter klinkt nu ook als brommer en
+  niet meer als een e-step.
+- **Boten drijven echt**: ze deinen op dezelfde golven als het water,
+  kantelen bij snelheid, remmen en bochten, en hun boord komt nooit meer
+  onder water (ook de achterkant van de rondvaartboot niet).
+- **Hekgolf en boeggolf**: langere zogen achter grote boten, de golfjes in
+  de V, een lichte sliert tussen de armen, en een boeggolf die met de boot
+  meedeint.
+- **Remsporen** volgen het wegdek onder elke band (ook op bruggen, op- en
+  afritten en de verhoogde en verdiepte ring), liggen boven de wegmarkering
+  en blijven veel langer liggen.
+- **Cutscenes, de trailer en het titelscherm** laden de stad rond de camera
+  in plaats van rond de speler: gebouwen, wegen, water, bomen, gras,
+  schaduwen en het Ommeland. De wijkvlucht en de volgende trailershot worden
+  vooraf opgebouwd.
+- **De minimap in het Ommeland** lijkt op die in de stad: wegen in dezelfde
+  kleuren en breedtes, fietspaden rood, gebouwen in de stadskleuren en de
+  namen van dorpen. Tijdens het in- en uitzoomen valt er geen leeg weiland
+  meer in.
 - Routes en markers verschillen nooit alleen in kleur: de verhaalroute is
   doorgetrokken, je eigen doel gestreept, een klus gestippeld en opknappen
   streep-punt; de pijlen aan de rand van de minimap dragen een ring, punt of
