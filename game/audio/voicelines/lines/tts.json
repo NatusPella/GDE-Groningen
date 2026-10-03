@@ -17,14 +17,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|\"Tige tank! – W.\"": {
-"src": "anita/tige_tank_w_4aa1f48f.mp3",
+"Anita|\"Tige tank! – J.\"": {
+"src": "anita/tige_tank_j_b7986cbd.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Callirrhoe",
-"input": "\"Tige tank! – W.\"",
+"input": "\"Tige tank! – J.\"",
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Anita|\"Tige tank.\" Hij bedankt ons. Hij. Bedankt. Ons.": {
 "src": "anita/tige_tank_hij_bedankt_ons_hij_be_4a01c34e.mp3",
@@ -1160,15 +1160,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Er ligt een kaartje. \"Tige tank! – W.\"": {
-"src": "anita/er_ligt_een_kaartje_tige_tank_w_3f5bfb50.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Callirrhoe",
-"input": "Er ligt een kaartje. \"Tige tank! – W.\"",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
 "Anita|Er zijn bruggen, Tammo. Eerst de stroomkast bij de fietsenstalling.": {
 "src": "anita/er_zijn_bruggen_tammo_eerst_de_s_382f2b58.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2023,6 +2014,15 @@
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, vragend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Anita|J. Van Jelle. Natuurlijk.": {
+"src": "anita/j_van_jelle_natuurlijk_cdcd1e4a.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "J. Van Jelle. Natuurlijk.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, grinnikend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
 },
 "Anita|Ja! Hij piept. Achter het station!": {
 "src": "anita/ja_hij_piept_achter_het_station_2bddcd74.mp3",
@@ -7613,15 +7613,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Rikus|Maar de vitrine was leeg. Op het kussen lag alleen een kaartje: \"Tige tank! – W.\"": {
-"src": "verteller/maar_de_vitrine_was_leeg_op_het__277b7c82.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Schedar",
-"input": "Maar de vitrine was leeg. Op het kussen lag alleen een kaartje: \"Tige tank! – W.\"",
-"style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: warm, vertellend, als een terugblik.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
 "Rikus|Maar niet iedereen in Grunn heeft goud. Sommigen hebben alleen elkaar.": {
 "src": "verteller/maar_niet_iedereen_in_grunn_heef_7f2f2deb.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -8036,14 +8027,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Rikus|Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – W.\"": {
-"src": "rikus/ze_wilden_de_gouden_eierbal_hale_d7d8fd31.mp3",
+"Rikus|Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – J.\"": {
+"src": "rikus/ze_wilden_de_gouden_eierbal_hale_4a263103.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Schedar",
-"input": "Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – W.\"",
+"input": "Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – J.\"",
 "style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog, samenvattend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Rikus|Zo begon het. Niet met een buit, maar met een kaartje. En met een Fries die al lang op ze wachtte.": {
 "src": "verteller/zo_begon_het_niet_met_een_buit_m_9d029297.mp3",
@@ -8585,14 +8576,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|\"Tige tank foar de auto. – W.\" De Fjord Frituur. Zonder Fjord.": {
-"src": "tammo/tige_tank_foar_de_auto_w_de_fjor_3e46631e.mp3",
+"Tammo|\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.": {
+"src": "tammo/tige_tank_foar_de_auto_j_de_fjor_ad0e71dc.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Orus",
-"input": "\"Tige tank foar de auto. – W.\" De Fjord Frituur. Zonder Fjord.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
+"input": "\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Tammo|\"Vriend.\"": {
 "src": "tammo/vriend_bc3f134f.mp3",
@@ -8728,6 +8719,15 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Tammo|Beleefd.": {
+"src": "tammo/beleefd_031d0dc5.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Beleefd.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
 },
 "Tammo|Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.": {
 "src": "tammo/berend_bos_wil_zijn_bakkie_bij_z_ea684d3f.mp3",
