@@ -341,6 +341,8 @@ const STORY = [
     ],
     outroNpc: false,
     outro: [
+      ['A', 'J. Van Jelle. Natuurlijk.'],
+      ['T', 'Beleefd.'],
       ['T', 'Hij heeft hem gestolen om hem eerlijk te winnen.'],
       ['A', 'En de camera\'s van daarnet hebben óns gefilmd.'],
     ],
@@ -434,7 +436,7 @@ const STORY = [
     // 15: H16 Iedereen heeft een rode auto gezien (the low point: Tammo's Escapade is gone)
     npc: null, ask: 6,
     intro: [
-      ['T', '"Tige tank foar de auto. – W." De Fjord Frituur. Zonder Fjord.', { clue: true }],
+      ['T', '"Tige tank foar de auto. – J." De Fjord Frituur. Zonder Fjord.', { clue: true }],
       ['T', 'Wie heb je verteld waar we wonen?'],
       ['A', 'Niemand.'],
       ['T', 'Je appt al weken met Friesland.'],
@@ -1148,7 +1150,8 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
       if (update) update(t, dt, cur);
       animate(r, t, dt, cur ? cur.who : null, poses(t, cur), cur);
       let p = camera(t, cur);
-      if (cur && cur.clue && p) p = pushIn(p, smooth((t - cur.at) / Math.min(1.8, cur.dur)));
+      // held: the shot frames the clue itself
+      if (cur && cur.clue && p && !p.held) p = pushIn(p, smooth((t - cur.at) / Math.min(1.8, cur.dur)));
       if (!live && p && r.shake) {
         const j = r.shake;
         p = { ...p, position: P(p.position.x + Math.sin(t * 1.7) * j, p.position.y + Math.cos(t * 1.3) * j, p.position.z + Math.sin(t * 2.1 + 1) * j * 0.6) };
@@ -1568,7 +1571,8 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
 // `props`. deck: a boat to stand on (H14's skûtsje). shot(u, t): a camera for
 // the first `shotFor` seconds (the whole scene when 0), else the camera
 // follows the speaker. big: a card after the talk, over the same set.
-export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null, update = null, solo = false } = {}) {
+// lead: seconds before the first line (a silent beat for the shot).
+export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', lead = 0.6, shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null, update = null, solo = false } = {}) {
   if (run) return false;
   const anchor = deck ? { x: deck.x, y: deck.y } : freeSpot(w, at.x, at.y);
   // someone in the water (Jelle after his failed fierljep): the nearest wet spot
@@ -1583,7 +1587,7 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   if (!r) return false;
   // solo: Anita on her own (H16, the chase in H18), Tammo is elsewhere
   if (solo) r.tammo.visible = false;
-  const tl = timeline(lines, null, 0.6);
+  const tl = timeline(lines, null, lead);
   if (shotLines && tl.lines[shotLines - 1]) shotFor = tl.lines[shotLines - 1].at + tl.lines[shotLines - 1].dur;
   // a parked prop the cast gets on (mount), or one that comes by (cue): it moves on the first line that looks at it
   for (const p of r.props) {
