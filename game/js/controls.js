@@ -182,7 +182,11 @@ export const PAD_MAPS = {
 // name ('a', 'rt', ...) or 'lstick'/'rstick'; null when the pad has none.
 export function padSlotFor(token, ctx = 'foot') {
   const map = PAD_MAPS[ctx] || FOOT;
-  const t = String(token).toUpperCase();
+  let t = String(token).trim().toUpperCase();
+  const ARROW = { '↑': 'arrowup', '↓': 'arrowdown', '←': 'arrowleft', '→': 'arrowright' };
+  if (/^[↑↓←→]{2,}$/.test(t)) t = 'ARROWS';
+  else if (ARROW[t]) token = ARROW[t];
+  if (t === '⌫') token = 'backspace';
   if (t === 'MOUSE') return 'rstick';
   if (t === 'WASD' || t === 'ARROWS') return map.stick === 'nav' ? 'dpad' : 'lstick';
   if (t === 'LMB') return find(map, '@fire') || find(map, '@gas');
@@ -196,6 +200,8 @@ export function padSlotFor(token, ctx = 'foot') {
   if (map.stick === 'arrows' && k.startsWith('arrow')) return 'lstick';
   const hit = find(map, k);
   if (hit) return hit;
+  // in menus Backspace and the key that opened it (T, M) go back like Esc
+  if (ctx === 'menu' && (k === 'backspace' || k === 't')) return find(map, 'escape');
   // 'f' does what 'e' does in most places (enter, use)
   if (k === 'f') return find(map, 'e');
   return null;
