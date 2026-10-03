@@ -6,7 +6,7 @@ import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
-import { countrySurface } from './countryfield.js';
+import { countrySurface, countryRect, rectOutside } from './countryfield.js';
 import { roadPriority } from './junctions.js';
 import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, MIDIBUS_MODEL } from './trafficfleet.js';
 import { sirenYield } from './emergency.js';
@@ -859,11 +859,33 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
 // A wander target with room around it that the boat can reach in a straight
 // line through open water (sampled every 3 m), so the route doesn't cut
 // across a bend in the canal; falls back to any spot with some room.
+// Where the boat's canal runs off the map and carries on as Ommeland water
+// (waterindex.js setCountryClearance), now and then a spot out in the
+// country, and from out there spots further along or back into the city.
+function countryBoatSpot(v, rng, map, ch) {
+  const out = rectOutside(v.x, v.y) > 0;
+  let x, y;
+  if (out) {
+    if (rng() < 0.3) return null;
+    const a = v.angle + (rng() - 0.5) * 2.2, d = 15 + rng() * 35;
+    x = v.x + Math.cos(a) * d; y = v.y + Math.sin(a) * d;
+  } else {
+    if (!ch.done) return null;
+    const ex = ch.edge || (ch.edge = ch.pts.filter((q) => rectOutside(q.x, q.y) > -40));
+    if (!ex.length || rng() > 0.35) return null;
+    const q = ex[Math.floor(rng() * ex.length)];
+    const r = countryRect(), sx = Math.abs(q.x - r.cx) - r.hx, sy = Math.abs(q.y - r.cy) - r.hy;
+    const k = 4 - rectOutside(q.x, q.y) + rng() * 40;
+    x = q.x + (sx > sy ? Math.sign(q.x - r.cx) * k : 0); y = q.y + (sx > sy ? 0 : Math.sign(q.y - r.cy) * k);
+  }
+  return rectOutside(x, y) > 0 && waterClearance(map, x, y, 3) >= 3 ? { x, y, d: 3 } : null;
+}
+
 function pickBoatWaypoint(v, rng, map) {
-  const pts = waterChannelPoints(map, v.waterPoly, 2).pts;
+  const ch = waterChannelPoints(map, v.waterPoly, 2), pts = ch.pts;
   let fallback = null;
   for (let attempt = 0; attempt < 14 && pts.length; attempt++) {
-    const q = pts[Math.floor(rng() * pts.length)];
+    const q = countryBoatSpot(v, rng, map, ch) || pts[Math.floor(rng() * pts.length)];
     const x = q.x, y = q.y;
     const d = Math.hypot(x - v.x, y - v.y);
     if (d < 6) continue;
@@ -880,8 +902,9 @@ function pickBoatWaypoint(v, rng, map) {
 const BOAT_WAYPOINT_MIN = 4;
 const BOAT_WAYPOINT_MAX = 9;
 
-// Simple wander/patrol confined to the water body the boat spawned in
-// (v.waterPoly, set by spawnBoatOnWater) - no road graph involved, so this
+// Simple wander/patrol on the water body the boat spawned in (and out into
+// the Ommeland where its canal carries on past the map edge; v.waterPoly,
+// set by spawnBoatOnWater) - no road graph involved, so this
 // stands entirely apart from updateTrafficAI.
 export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   if (v.wrecked || v.scripted) return; // scripted: a mission module steers this boat itself
