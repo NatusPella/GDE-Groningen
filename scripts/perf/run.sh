@@ -2,8 +2,8 @@
 # Repeatable perf routes in the desktop build (run `npm run stage` in desktop/ first).
 #   scripts/perf/run.sh <name> [electron flags...]
 #   e.g. scripts/perf/run.sh high
-#        scripts/perf/run.sh low --preset=laag
-#        scripts/perf/run.sh low-cpu4 --preset=laag --cpu-throttle=4
+#        scripts/perf/run.sh low --preset=quality:laag,shadows:false,drawDistance:kort,resolution:0.75
+#        scripts/perf/run.sh low-cpu4 --preset=quality:laag --cpu-throttle=4
 # 1920x1080 CSS px at devicePixelRatio 1, silent, throwaway profile, fixed
 # routes (routes.js). Waits until no other Electron runs and the 1-minute
 # load average is below PERF_MAX_LOAD (default: no limit; the load is recorded). Output: $PERF_OUT/<name>.json
@@ -21,8 +21,8 @@ while true; do
 done
 echo "start $(date +%T) load $(sysctl -n vm.loadavg)" >&2
 # PERF_DUR=ms per route (default 20000), PERF_ONLY=foot,ring,heli,pause,sheet,
-# PERF_DIAG=1 adds draw calls per owner, PERF_PROFILE=<route> a CPU profile of it
-{ echo "window.__perfDur = ${PERF_DUR:-20000}; window.__perfOnly = '${PERF_ONLY:-}'; window.__perfDiag = ${PERF_DIAG:-0}; window.__perfProfile = '${PERF_PROFILE:-}';"; cat $HERE/routes.js; } > $OUT/_$N.js
+# PERF_SIM=0-2 forces the load-adaptive simulation level (simload.js), PERF_DIAG=1 adds draw calls per owner, PERF_PROFILE=<route>[,<route>] a CPU profile of each; --hitch adds slow-frame breakdowns
+{ echo "window.__perfDur = ${PERF_DUR:-20000}; window.__perfOnly = '${PERF_ONLY:-}'; window.__perfDiag = ${PERF_DIAG:-0}; window.__perfProfile = '${PERF_PROFILE:-}'; window.__perfSim = '${PERF_SIM:-}';"; cat $HERE/routes.js; } > $OUT/_$N.js
 PROFILE=gte-vi-test-perf
 rm -rf "${TMPDIR:-/tmp}/$PROFILE"
 GTE_TEST_PROFILE=$PROFILE ./node_modules/.bin/electron . --windowed --stil --force-device-scale-factor=1 --window-size=1920x1080 \
