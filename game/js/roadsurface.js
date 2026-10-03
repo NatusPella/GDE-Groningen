@@ -461,9 +461,10 @@ function endInfo(r, i, away, hw) {
     if (oi < o.pts.length - 1) dirs.push(dirAt(o.pts, oi, 1));
     for (const od of dirs) {
       const cos = od[0] * away[0] + od[1] * away[1];
-      if (Math.abs(cos) > 0.85) continue;
+      if (cos < -0.85) continue;
       const si = Math.sqrt(1 - cos * cos);
-      J = Math.max(J, (o.width / 2 + hw * Math.abs(cos)) / si + 1);
+      // (a slip road merging at a shallow angle overlaps the other way for metres)
+      J = Math.max(J, Math.min(30, (o.width / 2 + hw * Math.abs(cos)) / Math.max(si, 0.15) + 1));
     }
   }
   return { J: Math.max(J, 1) };
@@ -708,7 +709,8 @@ function ribbonClip(r, rs, kind) {
   const pad = half * 2.5 + 1;
   const wet = !r.bridge && !r.z && netMap.water.some((w) => w.bounds && w.bounds[0] < x1 + pad && w.bounds[2] > x0 - pad && w.bounds[1] < y1 + pad && w.bounds[3] > y0 - pad);
   const index = wet ? getWaterIndex(netMap) : null;
-  const partners = netMap.roadGrid.query(x0 - pad - 8, y0 - pad - 8, x1 + pad + 8, y1 + pad + 8).filter((o) => o !== r && o.pts.length >= 2 && !!o.z === !!r.z
+  // (a way with a height profile clips one without where they lie level side by side)
+  const partners = netMap.roadGrid.query(x0 - pad - 8, y0 - pad - 8, x1 + pad + 8, y1 + pad + 8).filter((o) => o !== r && o.pts.length >= 2
     && (sidewalk ? SIDEWALK_CATS.has(o.cat) && SIDEWALK_CATS.has(r.cat) : GROUND_LAYER[o.cat] === GROUND_LAYER[r.cat]));
   if (!index && !partners.length) return null;
   const P = r.pts, n = P.length;
@@ -746,7 +748,7 @@ function ribbonClip(r, rs, kind) {
       if (dist >= reach + oh || dist < 0.3) continue;
       const od = dirAt(Q, bi, 1);
       if (Math.abs(od[0] * d[0] + od[1] * d[1]) < 0.9) continue;
-      if (r.z && Math.abs(zr - (o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt)) > 0.8) continue;
+      if ((r.z || o.z) && Math.abs(zr - (o.z ? o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt : 0)) > 0.8) continue;
       // beside the point, not ahead of it (where o ends or joins)
       const lat = ((bx - x) * mx + (by - y) * my) / ml;
       if (Math.abs(lat) < 0.8 * dist) continue;

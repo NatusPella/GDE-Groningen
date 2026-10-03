@@ -4,6 +4,7 @@ import { createBrickDetailTexture } from './pixelart3d.js';
 import { onSettingsChange } from './settings.js';
 import { getWaterIndex, addWaterObstacle } from './waterindex.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
+import { surfaceHalfWidth } from './elevation.js';
 
 // Canal edges built per water polygon: brick quay walls with a stone coping,
 // wet band and algae line, a paving apron hiding the terrain hole edge, and
@@ -14,7 +15,7 @@ import { pointInPolygon, closestPointOnSegment } from './util.js';
 const CENTRE_X = 100, CENTRE_Y = 77;
 const STEP = 3;
 const TERRAIN_Y = -0.05;
-const COPE_TOP = 0.07, COPE_BOT = -0.13, COPE_OUT = 0.12, COPE_IN = 0.46;
+const COPE_TOP = 0.07, COPE_FLUSH = 0.008, COPE_BOT = -0.13, COPE_OUT = 0.12, COPE_IN = 0.46;
 const APRON = 3.6;
 const TILE = 256;
 const EXTRAS_DIST = 300;
@@ -157,6 +158,19 @@ function nearBridge(map, x, y, pad = 0.8, deck = false) {
   return false;
 }
 
+// On the paved surface of a street-level way (carriageway and sidewalk)?
+function onStreet(map, x, y) {
+  for (const rd of map.roadsNear(x, y, 12)) {
+    if (rd.bridge || rd.tunnel) continue;
+    const t = surfaceHalfWidth(rd) + 0.1, P = rd.pts, Z = rd.z;
+    for (let i = 0; i < P.length - 1; i++) {
+      if (Z && (Math.abs(Z[i]) > 0.3 || Math.abs(Z[i + 1]) > 0.3)) continue;
+      if (closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]).dist2 < t * t) return true;
+    }
+  }
+  return false;
+}
+
 function nearBuilt(map, x, y, r) {
   for (const b of map.buildingsNear(x, y, r)) {
     const bb = b.bounds;
@@ -262,7 +276,7 @@ const RUST = lin(0x4a3527);
 
 // bare: abutment under a bridge deck - no coping that would poke through
 // the deck; the apron (terrain level, under the deck) runs up to the wall.
-function buildWallRun(run, wy, B, index, bare = false) {
+function buildWallRun(run, wy, B, index, bare = false, map = null) {
   const { pts, N } = run;
   const mid = pts[pts.length >> 1];
   const wall = B('wall', mid[0], mid[1]), stone = B('stone', mid[0], mid[1]), apron = B('apron', mid[0], mid[1]);
@@ -309,7 +323,9 @@ function buildWallRun(run, wy, B, index, bare = false) {
       const oa = [ax - n0[0] * COPE_OUT, ay - n0[1] * COPE_OUT], ob = [bx - n1[0] * COPE_OUT, by - n1[1] * COPE_OUT];
       const ia = [ax + n0[0] * COPE_IN, ay + n0[1] * COPE_IN], ib = [bx + n1[0] * COPE_IN, by + n1[1] * COPE_IN];
       const v = (q, y) => stone.v(q[0], y, q[1], col);
-      const t0a = v(oa, COPE_TOP), t0b = v(ob, COPE_TOP), t1b = v(ib, COPE_TOP), t1a = v(ia, COPE_TOP);
+      // under a street or sidewalk running along the quay the coping lies flush
+      const top = map && (onStreet(map, ia[0], ia[1]) || onStreet(map, ib[0], ib[1]) || onStreet(map, ax, ay) || onStreet(map, bx, by)) ? COPE_FLUSH : COPE_TOP;
+      const t0a = v(oa, top), t0b = v(ob, top), t1b = v(ib, top), t1a = v(ia, top);
       const f0a = v(oa, COPE_BOT), f0b = v(ob, COPE_BOT);
       const w0a = v([ax, ay], COPE_BOT), w0b = v([bx, by], COPE_BOT);
       const b0a = v(ia, TERRAIN_Y - 0.02), b0b = v(ib, TERRAIN_Y - 0.02);
@@ -717,7 +733,7 @@ export function buildShore(poly, map, { waterY, apronMaterial }) {
       if (piece.cls === 'abut') {
         buildWallRun(piece, waterY, B, index, true);
       } else if (piece.cls === 'wall') {
-        buildWallRun(piece, waterY, B, index);
+        buildWallRun(piece, waterY, B, index, false, map);
         wallProps(piece, waterY, B, rnd);
       } else {
         buildBankRun(piece, waterY, B, rnd, map);

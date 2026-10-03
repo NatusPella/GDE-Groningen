@@ -284,6 +284,16 @@ export function buildRoadStructure(r, map) {
         }
       }
     }
+    if (za > RAISED || zb > RAISED) {
+      // a slab just under the raised carriageway: where its ribbon is cut back
+      // against a way alongside (a slip road splitting off) the cracks
+      // between the two ribbons look onto it instead of the ground far below
+      const ext = 0.6, ux = (P[i + 1][0] - P[i][0]), uy = (P[i + 1][1] - P[i][1]), ul = Math.hypot(ux, uy) || 1;
+      const ex = ux / ul * ext, ey = uy / ul * ext;
+      const l0 = edge(i, 1, hs), r0 = edge(i, -1, hs), l1 = edge(i + 1, 1, hs), r1 = edge(i + 1, -1, hs);
+      const fa = Math.max(za, 0) - 0.06, fb = Math.max(zb, 0) - 0.06;
+      B.quad('concrete', [l0[0] - ex, fa, l0[1] - ey], [l1[0] + ex, fb, l1[1] + ey], [r1[0] + ex, fb, r1[1] + ey], [r0[0] - ex, fa, r0[1] - ey]);
+    }
     if (za < -RAISED || zb < -RAISED) {
       // a floor under the sunken carriageway: where two ways' ribbons meet
       // (or stop short at a portal) the ground above is cut away, so a
@@ -291,7 +301,7 @@ export function buildRoadStructure(r, map) {
       const ext = 0.6, ux = (P[i + 1][0] - P[i][0]), uy = (P[i + 1][1] - P[i][1]), ul = Math.hypot(ux, uy) || 1;
       const ex = ux / ul * ext, ey = uy / ul * ext;
       const l0 = edge(i, 1, hs), r0 = edge(i, -1, hs), l1 = edge(i + 1, 1, hs), r1 = edge(i + 1, -1, hs);
-      const fa = Math.min(za, -RAISED) - 0.06, fb = Math.min(zb, -RAISED) - 0.06;
+      const fa = Math.min(za - 0.06, -0.12), fb = Math.min(zb - 0.06, -0.12);
       B.quad('concrete', [l0[0] - ex, fa, l0[1] - ey], [l1[0] + ex, fb, l1[1] + ey], [r1[0] + ex, fb, r1[1] + ey], [r0[0] - ex, fa, r0[1] - ey]);
     }
     if (r.tunnel && (za < -RAISED || zb < -RAISED)) {
@@ -309,17 +319,19 @@ export function buildRoadStructure(r, map) {
   closeSlope(0);
   closeSlope(1);
 
-  // a raised path or cycleway has no sidewalk ribbon out to the deck edge or
-  // the top of the slope (hs): a shoulder strip closes the gap beside it
+  // a raised or sunken path or cycleway has no sidewalk ribbon out to the
+  // deck edge, the top of the slope or the cutting's wall (hs): a shoulder
+  // strip closes the gap beside it
   const hw = r.width / 2;
   if (hs - hw > 0.05) {
     for (let i = 0; i < n - 1; i++) {
       const za = Z[i], zb = Z[i + 1];
-      if (za <= RAISED && zb <= RAISED) continue;
-      const a0 = Math.max(0, za) + 0.025, b0 = Math.max(0, zb) + 0.025;
+      const up = za > RAISED || zb > RAISED, down = za < -RAISED || zb < -RAISED;
+      if (!up && !down) continue;
+      const a0 = (up ? Math.max(0, za) : za) + 0.025, b0 = (up ? Math.max(0, zb) : zb) + 0.025;
       for (const side of [1, -1]) {
         const ia = edge(i, side, hw), ib = edge(i + 1, side, hw), oa = edge(i, side, hs), ob = edge(i + 1, side, hs);
-        B.quad(deck ? 'concrete' : 'grass', [ia[0], a0, ia[1]], [ib[0], b0, ib[1]], [ob[0], b0, ob[1]], [oa[0], a0, oa[1]]);
+        B.quad(deck || down ? 'concrete' : 'grass', [ia[0], a0, ia[1]], [ib[0], b0, ib[1]], [ob[0], b0, ob[1]], [oa[0], a0, oa[1]]);
       }
     }
   }
