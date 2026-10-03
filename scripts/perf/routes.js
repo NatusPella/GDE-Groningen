@@ -23,6 +23,8 @@ const VEH = await imp('vehicle');
 const HF = await imp('heliflight');
 const PM = await imp('pausemenu');
 const RR = await imp('ringroute');
+// the geometry worker's job counts (builds before it have no geojobs.js)
+const GJ = await imp('geojobs').catch(() => null);
 if (window.__perfSim !== undefined && window.__perfSim !== '' && window.__simLoad) window.__simLoad.force(Number(window.__perfSim));
 const ONLY = (window.__perfOnly || '').split(',').filter(Boolean);
 const DUR = window.__perfDur || 20000;
@@ -123,11 +125,11 @@ async function run(name, setup, move, teardown) {
     programs: r.info.programs.length, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
     heapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, at: [Math.round((p.inVehicle || p).x), Math.round((p.inVehicle || p).y)],
     vehicles: w.vehicles.length, peds: w.pedestrians.length, simLevel: window.__simLoad ? window.__simLoad.level() : null, dyn: window.__gfxDyn || null,
-    batches: sc.batches ? sc.batches() : null,
+    batches: sc.batches ? sc.batches() : null, geo: GJ ? { ...GJ.geoStats } : null,
     pr: r.getPixelRatio(), canvas: [r.domElement.width, r.domElement.height] };
   if (window.__hitch) {
     const hs = window.__hitch.summary();
-    out.hitch = { over50: hs.over50, over100: hs.over100, slow: hs.slow.slice(0, 25), programs: hs.programs.slice(0, 20).map((q) => q.name) };
+    out.hitch = { sections: hs.sections, over50: hs.over50, over100: hs.over100, slow: hs.slow.slice(0, 25), programs: hs.programs.slice(0, 20).map((q) => q.name) };
   }
   if (window.__perfDiag) { out.diag = [...diag.entries()].sort((a, b) => b[1] - a[1]).slice(0, 80).map(([k, n]) => [k, +(n / frames).toFixed(1)]); diag.clear(); }
   console.log('[capture] ' + name);
