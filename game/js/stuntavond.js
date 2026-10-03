@@ -4,7 +4,7 @@
 // drifts and near misses, with every pigeon flock you send up and once with
 // the council's water truck, which sprays the terrace when you nudge it.
 // Points chain into a combo; hitting someone costs points and the combo
-// ("Chat vindt dat niet leuk") and never kills them (world.stuntSafe,
+// ("Chat vindt dat niet leuk") and never knocks them out (world.stuntSafe,
 // pedestrians.js). missions.js runs it as def type 'stunt'.
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';

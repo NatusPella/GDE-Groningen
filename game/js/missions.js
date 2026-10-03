@@ -594,7 +594,6 @@ export function initMissions(world) {
     phase: 'idle',
     timeLeft: 0,
     cooldownTimer: 0,
-    killBaseline: 0,
     wpIndex: 0,
     completed: new Set(),
     seen: new Set(),
@@ -909,14 +908,10 @@ function fmtTime(s) {
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }
 
-const killCount = (world) => world.stats.pedKills + world.stats.copKills;
-
 function runStats(world, def) {
   const r = chain.run;
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
-  const kills = killCount(world) - r.kills;
-  if (def.type === 'rampage' || (kills > 0 && def.type !== 'stunt')) stats.push(['Kills', String(Math.max(0, kills))]);
   const rv = def.type === 'boat' ? rondvaartStatus() : null;
   if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
@@ -988,7 +983,7 @@ function syncPub(world) {
   pub.total = st.defs.length;
   const board = st.phase === 'active' ? vehicleToBoard(world, def) : null;
   let target;
-  if (st.phase !== 'active' || def.type === 'rampage' || def.type === 'stunt') target = def.start;
+  if (st.phase !== 'active' || def.type === 'stunt') target = def.start;
   else if (board) target = board;
   else if (def.type === 'deliver') target = nextStop(def) || def.dest;
   else if (def.type === 'fatbike') target = def.dest;
@@ -1000,10 +995,6 @@ function syncPub(world) {
   pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
   pub.armed = !!st.armed;
   pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
-  if (def.type === 'rampage' && st.phase === 'active') {
-    pub.killProgress = killCount(world) - st.killBaseline;
-    pub.killTarget = def.targetKills;
-  }
   pub.stunt = def.type === 'stunt' && st.phase === 'active' ? stuntStatus() : null;
   if (def.type === 'checkpoint' || def.type === 'boat') {
     pub.wpIndex = def.waypoints.slice(0, st.wpIndex).filter((wp) => !wp.via).length;
@@ -1619,7 +1610,7 @@ function startMission(world, def) {
   chain.cargoWarn = 100;
   chain.boarded = false;
   chain.hintAt = -Infinity;
-  chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
+  chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
   chain.momentDone = false;
   if (def.solo) {
@@ -1631,9 +1622,6 @@ function startMission(world, def) {
   if (def.type === 'stunt') {
     startStunt(world, def.stunt);
     bringHeroCar(world, def);
-  } else if (def.type === 'rampage') {
-    chain.killBaseline = killCount(world);
-    if (!(world.ammo[world.weapon] > 0)) world.weapon = ['pistol', 'uzi', 'shotgun', 'jachtgeweer'].find((k) => world.ammo[k] > 0) || world.weapon;
   } else if (def.type === 'deliver' && def.start.road) {
     chain.vehicle = spawnMissionCar(world, def);
     world.vehicles.push(chain.vehicle);
@@ -1876,10 +1864,6 @@ export function updateMissions(dt, world) {
           world.addMessage(`${stop.arrive}${stop.bonus ? ` (+${stop.bonus}s)` : ''}`, 3.5);
         }
       } else chain.stopT = 0;
-    }
-  } else if (def.type === 'rampage') {
-    if (killCount(world) - chain.killBaseline >= def.targetKills) {
-      succeed(world, def);
     }
   } else if (def.type === 'stunt') {
     if (updateStunt(dt, world) === 'done') succeed(world, def);
