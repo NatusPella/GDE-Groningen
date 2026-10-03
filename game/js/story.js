@@ -7,7 +7,7 @@
 // Tammo and Anita trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
 import { setMeetHook } from './namecard.js';
 import { queueStoryContact } from './storycontact.js';
 import { isCallActive } from './phonefeed.js';
@@ -91,32 +91,15 @@ function missionIdx(step) {
 
 // --- which step is next ----------------------------------------------------------
 
-// Done: finished or skipped, a mission the chain already counts as passed,
-// or an activity that a later, passed mission has made moot (old saves and
-// missions played ahead via the phone).
+const doneId = (id) => state.done.has(id);
+
 function isDone(step, k) {
-  if (state.done.has(step.id)) return true;
-  if (step.kind === 'mission') {
-    const i = missionIdx(step);
-    return i >= 0 && isMissionCompleted(i);
-  }
-  for (let j = k + 1; j < STEPS.length; j++) {
-    const s = STEPS[j];
-    if (s.kind === 'mission' && (state.done.has(s.id) || (missionIdx(s) >= 0 && isMissionCompleted(missionIdx(s))))) return true;
-  }
-  return false;
+  return stepDone(k, doneId, isMissionCompleted);
 }
 
 // The next step to play, or { end: part } where the built story stops.
 export function currentStep() {
-  let lastPart = 'kop';
-  for (let k = 0; k < STEPS.length; k++) {
-    const s = STEPS[k];
-    if (!stepAvailable(s)) return { end: lastPart, next: s };
-    lastPart = s.part;
-    if (!isDone(s, k)) return s;
-  }
-  return { end: lastPart, next: null, finale: true };
+  return nextStoryStep(doneId, isMissionCompleted);
 }
 
 // --- goals of activity steps --------------------------------------------------------
