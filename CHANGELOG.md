@@ -121,6 +121,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 - De autogesprekken volgen het nieuwe verhaal.
 
 ### Verbeterd
+- **Winkelcentrum Paddepoel lijkt nu op het echte.** Vanuit je flat kijk je
+  uit op lage winkelblokken met donkere gevels, een glazen kapdak over de
+  winkelstraten en een glazen piramide boven het binnenplein. De ingangen
+  zijn hoge glazen puntgevels met witte "Paddepoel"-letters, langs de
+  buitenkant hangt een glazen luifel met bolle lantaarns en bloembakken.
+  Aan de Eikenlaan wonen mensen boven de winkels, en aan de zuidkant staat
+  het nieuwe blok van aluminium met een supermarkt en een sportschool erop.
 - **De game draait veel soepeler op laptops zonder losse videokaart** en
   op een drukke computer: resolutie en details gaan vanzelf even omlaag
   als het beeld hapert en komen terug als er weer ruimte is.
