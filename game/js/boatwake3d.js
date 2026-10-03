@@ -3,18 +3,20 @@ import { WATER_Y, inWaterPoly } from './util.js';
 
 // Boat wakes: foam laid down in the world behind the stern (so it stays where
 // the boat was, not glued to the hull), spreading into a Kelvin V with two
-// arms that widen and fade, a churned band straight behind the prop, and a
-// small bow wave. Arms die out where they reach a quay or bank. Everything
-// sits a few cm above the water's swell and draws after it without depth
-// writes, so it never z-fights the surface.
+// arms that widen and fade (with the faint banding of the transverse waves
+// along them), a churned band straight behind the prop, a wide pale slick
+// between the arms, and a bow wave that rides up and down with the hull.
+// Longer hulls leave longer wakes. Arms die out where they reach a quay or
+// bank. Everything sits a few cm above the water's swell and draws after it
+// without depth writes, so it never z-fights the surface.
 
-const LIFE = 4.2;
+const lifeOf = (v) => Math.min(7, 3.4 + v.model.len * 0.36);
 const STEP = 0.6;
-const MAX_SAMPLES = 46;
+const MAX_SAMPLES = 60;
 const KELVIN = 0.36; // tan(19.5deg): lateral spread per metre the boat moves on
 const MAX_SPREAD = 7;
 const LIFT = 0.13;
-const RIBBONS = 3;
+const RIBBONS = 4;
 const VERTS = (MAX_SAMPLES + 1) * 2;
 
 let foamTex = null;
@@ -132,9 +134,9 @@ function updateBow(mesh, v, time, light, spd) {
         const hug = st.hw * Math.pow(Math.min(1, s / (hl * 0.55)), 0.6);
         const peel = Math.max(0, s - hl * 0.35) * (0.22 + 0.2 * k);
         const inner = hug + peel + 0.02;
-        const w = (0.05 + 0.3 * t) * (0.5 + 0.7 * k);
+        const w = (0.06 + 0.36 * t) * (0.5 + 0.9 * k);
         const x = st.x - s;
-        const a = Math.min(1, t * 7) * Math.pow(1 - t, 1.4) * (0.35 + 0.65 * k);
+        const a = Math.min(1, t * 7) * Math.pow(1 - t, 1.3) * (0.4 + 0.75 * k) * (0.85 + 0.15 * Math.sin(flow * 3 + i));
         P[vi * 3] = x; P[vi * 3 + 1] = 0; P[vi * 3 + 2] = st.z + side * (inner - w * 0.25);
         P[vi * 3 + 3] = x; P[vi * 3 + 4] = 0; P[vi * 3 + 5] = st.z + side * (inner + w);
         for (const o of [0, 4]) { C[vi * 4 + o] = light; C[vi * 4 + o + 1] = light; C[vi * 4 + o + 2] = light * 1.02; C[vi * 4 + o + 3] = a; }
@@ -209,6 +211,7 @@ function writeRibbon(w, r, count, row, light) {
 }
 
 function updateWake(w, v, map, time, light) {
+  const LIFE = lifeOf(v);
   const spd = v.wrecked || v.sinking ? 0 : Math.abs(v.speed);
   const hx = Math.cos(v.angle), hy = Math.sin(v.angle);
   const hl = v.model.len / 2, hw = v.model.wid / 2;
@@ -244,7 +247,9 @@ function updateWake(w, v, map, time, light) {
       const shore = want > lim ? Math.max(0, 1 - (want - lim) / 1.2) : 1;
       const width = 0.35 + age * 0.45 + p.spd * 0.04;
       const fade = Math.pow(Math.max(0, 1 - age / LIFE), 1.8);
-      const a = fade * shore * strength(p.spd) * 0.75 * (i === 0 ? 0.6 : 1);
+      // the transverse waves show as soft bands along the arm
+      const band = 0.72 + 0.28 * Math.sin(p.d * 1.7 - age * 2.2);
+      const a = fade * shore * strength(p.spd) * 0.78 * band * (i === 0 ? 0.6 : 1);
       return [p.x, p.y, p.nx * side, p.ny * side, off - width * 0.5, off + width * 0.5, a, p.d / 4.5 + side * 0.31];
     }, light);
   }
@@ -257,6 +262,15 @@ function updateWake(w, v, map, time, light) {
     const lim = Math.min(p.limL, p.limR) + 0.5;
     return [p.x, p.y, p.nx, p.ny, -Math.min(half, lim), Math.min(half, lim), fade * strength(p.spd) * (soft ? 0.3 : 0.85), p.d / 2.6 + 0.5];
   }, light);
+  // the pale slick between the arms, wider and longer-lived than the churn
+  writeRibbon(w, 3, count, (i) => {
+    const p = pts[i];
+    const age = time - p.t;
+    const half = hw * 0.9 + age * (0.22 + p.spd * 0.05);
+    const fade = Math.pow(Math.max(0, 1 - age / LIFE), 1.2) * Math.min(1, age * 2 + 0.2);
+    const lim = Math.min(p.limL, p.limR) + 0.3;
+    return [p.x, p.y, p.nx, p.ny, -Math.min(half, lim), Math.min(half, lim), fade * strength(p.spd) * 0.22, p.d / 7 + 0.2];
+  }, light);
   const g = w.trail.geometry;
   g.attributes.position.needsUpdate = true;
   g.attributes.color.needsUpdate = true;
@@ -267,7 +281,8 @@ function updateWake(w, v, map, time, light) {
   w.bow.visible = bowOn;
   if (bowOn) {
     const seed = (v.id || 0) * 1.7;
-    w.bow.position.set(v.x, WATER_Y + LIFT + 0.015 + Math.sin(time * 1.6 + seed) * 0.03, v.y);
+    const heave = v._buoyY != null ? v._buoyY : Math.sin(time * 1.6 + seed) * 0.03;
+    w.bow.position.set(v.x, WATER_Y + LIFT + 0.015 + heave * 0.8, v.y);
     w.bow.rotation.y = -v.angle;
     updateBow(w.bow, v, time, light, spd);
   }
