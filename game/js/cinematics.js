@@ -14,7 +14,7 @@ import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
-import { getFollowPose } from './scene3d.js';
+import { getFollowPose, prewarmStreamAt } from './scene3d.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -62,6 +62,7 @@ let wijkSeen = null;
 let wijkCand = null;
 let wijkDwell = 0;
 let wijkTimer = 0;
+let wijkPrep = null;
 // hold-to-skip: when Space went down (performance.now ms), and whether the
 // press started during a cutscene - then it is swallowed until its keyup
 let skipHoldSince = null;
@@ -175,8 +176,24 @@ export function getCinemaCamMode() {
   return camMode;
 }
 
+// spec.prewarm: [{ x, y }] map points the scene will show, built ahead
+// (scene3d.js prewarmStreamAt) so its first frames are not the far LOD.
+function prewarmPoints(points) {
+  for (const p of points || []) if (p) prewarmStreamAt(p.x, p.y);
+}
+
+// The point a pose shows (as scene3d.js streams it): the look target, at
+// most 50 m out from the eye.
+function poseFocus(pose) {
+  if (!pose || !pose.position || !pose.lookAt) return null;
+  const ex = pose.position.x, ey = pose.position.y, dx = pose.lookAt.x - ex, dy = pose.lookAt.y - ey;
+  const d = Math.hypot(dx, dy), k = d > 50 ? 50 / d : 1;
+  return { x: ex + dx * k, y: ey + dy * k };
+}
+
 export function playCinematic(spec) {
   if (!els) return false;
+  prewarmPoints(spec.prewarm);
   const priority = spec.priority ?? 1;
   if (active) {
     if (priority > active.priority) finish(true, true);
@@ -656,6 +673,8 @@ function checkWijk(dt, w) {
   if (!p || wijkSeen.has(p.name)) { wijkCand = null; return; }
   if (!wijkCand || wijkCand.name !== p.name) { wijkCand = p; wijkDwell = 0; return; }
   wijkDwell += step;
+  // a second before the flyover can start, its street is picked and built ahead
+  if (wijkDwell >= WIJK_DWELL - 1 && (!wijkPrep || wijkPrep.name !== wijkCand.name) && !active && !busyWithJob(w)) prepWijk(w, wijkCand);
   if (wijkDwell < WIJK_DWELL || active || !momentsOn() || w.pendingRespawn || w.wanted > 0 || w.time < (w.quietUntil || 0)) return;
   // never during a mission, race or bijbaantje: the wijk stays unseen and
   // plays once the player is free again (and still in it)
@@ -673,8 +692,22 @@ function checkWijk(dt, w) {
 
 export { pathShot, roofAt, clearKeys };
 
-function playWijk(w, wijk) {
+// The flyover's camera path, its pose samples prewarmed (the path is pure:
+// pathShot keyframes). Reused by playWijk while the player is still about
+// where it was planned.
+function prepWijk(w, wijk) {
+  const p = w.player;
   const shot = wijkStreetShot(w, wijk, heading(w), behindPose(w, 8, 3.8));
+  wijkPrep = { name: wijk.name, shot, x: p.x, y: p.y, at: performance.now() };
+  if (shot) prewarmPoints([0, 0.25, 0.5, 0.7].map((u) => poseFocus(shot(u))));
+}
+
+function playWijk(w, wijk) {
+  const pr = wijkPrep && wijkPrep.name === wijk.name ? wijkPrep : null;
+  const p = w.player;
+  const fresh = pr && pr.shot && Math.hypot(p.x - pr.x, p.y - pr.y) < 6 && performance.now() - pr.at < 8000;
+  const shot = fresh ? pr.shot : wijkStreetShot(w, wijk, heading(w), behindPose(w, 8, 3.8));
+  wijkPrep = null;
   if (!shot) return false;
   return playCinematic({
     id: 'wijk', priority: 1, duration: 11, pause: true, keepMotion: true,
