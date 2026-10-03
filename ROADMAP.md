@@ -75,6 +75,12 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 ## Juridisch en publiceren (vóór 1.0)
 
+- [?] **Nieuwe naam, als reeks.** Het voorstel: **GDE Groningen – Zomer vol misdaad**.
+  - GDE staat voor Grote Diefstal Eierbal, en is de vaste reeksnaam.
+  - Per game wisselen de plek en de ondertitel, bijvoorbeeld GDE Drenthe en GDE Leeuwarden.
+  - Het cijfer "VI" en de woorden "Grand Theft" vallen weg.
+  - Daarna moeten het logo, het titelscherm, de trailer, de README en de namen van de releasebestanden mee. Interne `gte-*`-sleutels blijven, zodat saves blijven werken.
+  - Wacht op Alexander en op het naam-advies van het juridische agent.
 - [~] Inventaris van bronnen en licenties (`claude/juridisch`): `docs/LICENTIES.md` en `docs/PUBLICEREN.md`.
 - [ ] Credits in de game: OpenStreetMap (ODbL), lettertypes, three.js.
 - [ ] Disclaimer: "Fanparodie, niet gelieerd aan Rockstar Games of Take-Two".
