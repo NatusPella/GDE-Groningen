@@ -1,8 +1,33 @@
+import { keyTranslation } from './controls.js';
+import { onSettingsChange } from './settings.js';
+
 // With Shift held e.key is '!' etc., so digits are also tracked via e.code.
 function digitFromCode(code) {
   const m = /^(?:Digit|Numpad)([0-9])$/.exec(code || '');
   return m ? m[1] : null;
 }
+
+// A canonical key (controls.js) as KeyboardEvent key and code, for the
+// events that stand in for a rebound key or a controller button.
+const EVENT_KEYS = { ' ': [' ', 'Space'], shift: ['Shift', 'ShiftLeft'], control: ['Control', 'ControlLeft'], tab: ['Tab', 'Tab'], backspace: ['Backspace', 'Backspace'], escape: ['Escape', 'Escape'], enter: ['Enter', 'Enter'], delete: ['Delete', 'Delete'], arrowup: ['ArrowUp', 'ArrowUp'], arrowdown: ['ArrowDown', 'ArrowDown'], arrowleft: ['ArrowLeft', 'ArrowLeft'], arrowright: ['ArrowRight', 'ArrowRight'] };
+export function keyEventInit(k) {
+  if (EVENT_KEYS[k]) return { key: EVENT_KEYS[k][0], code: EVENT_KEYS[k][1] };
+  if (/^[a-z]$/.test(k)) return { key: k, code: 'Key' + k.toUpperCase() };
+  if (/^[0-9]$/.test(k)) return { key: k, code: 'Digit' + k };
+  return { key: k, code: '' };
+}
+
+// Sends a stand-in key event to the focused element, like a real key would.
+// `from` marks where it came from ('remap' or 'pad') so it isn't translated again.
+export function sendKey(type, k, from, extra = {}) {
+  const target = (typeof document !== 'undefined' && document.activeElement) || window;
+  const ev = new KeyboardEvent(type, { ...keyEventInit(k), bubbles: true, cancelable: true, ...extra });
+  ev.__gte = from;
+  target.dispatchEvent(ev);
+  return ev;
+}
+
+const isTextField = (t) => !!(t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button'].includes(t.type)) || t.isContentEditable));
 
 export class Input {
   constructor(target = window) {
@@ -13,11 +38,32 @@ export class Input {
     // the key each physical key went down as: its keyup can report another
     // e.key (Option or Shift pressed in between), which would leave it stuck
     this._byCode = new Map();
+    // held by the controller (gamepad.js): buttons and the stick's WASD;
+    // axis() takes the stick's analog value instead of these
+    this.padKeys = new Set();
+    this.padAxis = [0, 0];
+    this.padLook = false;
+    // rebound keys (Instellingen > Besturing): physical key -> canonical key
+    this._remap = new Map();
+    this._remapByCode = new Map();
+    this.captureKey = null;
+    onSettingsChange((st, key) => { if (!key || key === 'keyBinds') this._remap = keyTranslation(st.keyBinds); });
+
+    // capture, and registered before every other key listener: a rebound key
+    // is swallowed here and sent on as the key it stands in for
+    window.addEventListener('keydown', (e) => this._translate(e), true);
+    window.addEventListener('keyup', (e) => this._translate(e), true);
 
     target.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
+      if (e.__gte === 'pad') {
+        if (!this.padKeys.has(k) && !this.keys.has(k)) this._justPressed.add(k);
+        this.padKeys.add(k);
+        if (k === ' ' || k === 'tab' || k.startsWith('arrow')) e.preventDefault();
+        return;
+      }
       if (k !== 'escape') this.tryLock();
-      if (!this.keys.has(k)) this._justPressed.add(k);
+      if (!this.keys.has(k) && !this.padKeys.has(k)) this._justPressed.add(k);
       this.keys.add(k);
       if (e.code) this._byCode.set(e.code, k);
       const digit = digitFromCode(e.code);
@@ -33,6 +79,7 @@ export class Input {
     });
     target.addEventListener('keyup', (e) => {
       const k = e.key.toLowerCase();
+      if (e.__gte === 'pad') { this.padKeys.delete(k); return; }
       this.keys.delete(k);
       if (e.code && this._byCode.has(e.code)) { this.keys.delete(this._byCode.get(e.code)); this._byCode.delete(e.code); }
       // macOS sends no keyup for keys pressed while Cmd is held
@@ -83,6 +130,46 @@ export class Input {
     }, { passive: false });
   }
 
+  _translate(e) {
+    if (e.__gte) return;
+    // a real key hands the hints back to the keyboard (gamepad.js)
+    if (e.isTrusted && e.type === 'keydown' && this.onRealKey) this.onRealKey();
+    const raw = (e.key || '').toLowerCase();
+    if (e.type === 'keydown' && this.captureKey) {
+      if (e.repeat) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const cb = this.captureKey;
+      this.captureKey = null;
+      cb(raw, e);
+      return;
+    }
+    if (e.metaKey || e.ctrlKey && raw !== 'control' || e.altKey) return;
+    let canon;
+    if (e.type === 'keyup' && e.code && this._remapByCode.has(e.code)) {
+      canon = this._remapByCode.get(e.code);
+      this._remapByCode.delete(e.code);
+    } else {
+      if (!this._remap.size || !this._remap.has(raw) || isTextField(e.target)) return;
+      canon = this._remap.get(raw);
+      if (e.type === 'keydown' && e.code) this._remapByCode.set(e.code, canon);
+    }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (canon == null) return;
+    const ev = new KeyboardEvent(e.type, { ...keyEventInit(canon), repeat: e.repeat, shiftKey: e.shiftKey && canon !== 'shift', bubbles: true, cancelable: true });
+    ev.__gte = 'remap';
+    (e.target || window).dispatchEvent(ev);
+  }
+
+  // Controller (gamepad.js): hold or release a key without a DOM event.
+  padHold(k, on) {
+    if (on) {
+      if (!this.padKeys.has(k) && !this.keys.has(k)) this._justPressed.add(k);
+      this.padKeys.add(k);
+    } else this.padKeys.delete(k);
+  }
+
   // Captures the mouse for looking around; needs a user gesture (click or
   // key). Embedded browsers (e.g. an app's preview pane) refuse pointer
   // lock, so then plain cursor movement over the game steers instead.
@@ -101,10 +188,10 @@ export class Input {
   // true while mouse motion should steer the camera: pointer captured, or the
   // uncaptured fallback while playing (no menu open)
   lookActive() {
-    return this.mouse.locked || (!!this.lookFallback && !!this.canLock && this.canLock());
+    return this.mouse.locked || ((!!this.lookFallback || this.padLook) && !!this.canLock && this.canLock());
   }
 
-  isDown(k) { return this.keys.has(k); }
+  isDown(k) { return this.keys.has(k) || this.padKeys.has(k); }
   wasPressed(k) { return this._justPressed.has(k); }
   // swallow a key press so later handlers this frame don't act on it too
   consume(k) { this._justPressed.delete(k); }
@@ -112,6 +199,8 @@ export class Input {
   reset() {
     this.keys.clear();
     this._byCode.clear();
+    this._remapByCode.clear();
+    this.padKeys.clear();
     this._justPressed.clear();
     this.mouse.down = false;
     this.mouse.middleDown = false;
@@ -129,6 +218,7 @@ export class Input {
   }
 
   axis() {
+    if (this.padAxis[0] || this.padAxis[1]) return [this.padAxis[0], this.padAxis[1]];
     let x = 0, y = 0;
     if (this.isDown('a') || this.isDown('arrowleft')) x -= 1;
     if (this.isDown('d') || this.isDown('arrowright')) x += 1;
