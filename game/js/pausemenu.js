@@ -325,6 +325,7 @@ function settingsHtml() {
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
       ${toggle('showMinimap', 'Minimap')}
       ${toggle('showHints', 'Toetshints')}
+      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}
       ${toggle('reduceMotion', 'Beweging beperken', 'Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand, zonder animatie.')}
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       ${toggle('cinematicMoments', 'Filmische momenten', 'Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.')}

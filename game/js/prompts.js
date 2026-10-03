@@ -78,6 +78,7 @@ function used(id, n = 1) {
 }
 
 const count = (id) => uses[id] || 0;
+export const hintUses = count;
 const learning = (id) => count(id) < LEARN_USES;
 const mastered = (id) => count(id) >= MASTER_USES;
 
