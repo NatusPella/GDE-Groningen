@@ -7,7 +7,7 @@ N.setNarrativeClock(() => t);
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name, JSON.stringify(N.narrativeState())); } };
 const on = {}, wait = {};
-for (const k of ['scene', 'contact', 'call', 'text', 'say', 'banter']) N.registerNarrative(k, { active: () => !!on[k], pending: () => !!wait[k] });
+for (const k of ['scene', 'contact', 'call', 'text', 'say', 'banter', 'sub-cine', 'sub-banter']) N.registerNarrative(k, { active: () => !!on[k], pending: () => !!wait[k] });
 const step = (s) => { t += s; N.updateNarrative(); };
 
 ok(N.mayStart('contact') && N.mayStart('banter') && N.mayStart('card'), 'all clear when nothing plays');
@@ -59,6 +59,17 @@ ok(N.narrativeBusy(), 'banter counts as busy (no flyovers over car talk)');
 ok(!N.mayStart('contact'), 'a contact waits for banter to end (banter.js cuts itself off for a ready contact)');
 on.banter = false; step(0); step(2.1);
 ok(N.mayStart('contact'), 'the contact after the banter');
+
+step(3);
+on['sub-banter'] = true; step(0.1);
+ok(!N.mayStart('phone') && !N.mayStart('award') && !N.mayStart('card'), 'no phone, Kiekdoar or HUD card over a subtitle');
+ok(N.heldBack(), 'cards that are up step aside while a subtitle shows');
+ok(N.mayStart('card', { urgent: true }), 'a danger card still shows over a subtitle');
+on['sub-banter'] = false; step(0);
+ok(!N.heldBack() && N.mayStart('phone'), 'cards come back after the subtitle');
+on.contact = true; step(0.1);
+ok(N.heldBack(), 'cards step aside for the radio');
+on.contact = false; step(0);
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

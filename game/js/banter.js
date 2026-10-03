@@ -57,6 +57,7 @@ let world = null;
 let heard = loadHeard();
 let st = fresh();
 registerNarrative('banter', { active: () => !!st.talk });
+registerNarrative('sub-banter', { active: () => !!st.talk && !st.paused });
 
 function fresh() {
   return {
