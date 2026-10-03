@@ -115,6 +115,12 @@ export function jointAway(map, r, i) {
       away = [dx / l, dy / l];
     }
   }
+  // two ways meeting in a V (ramps merging at a node, a hairpin) do not
+  // carry on: a bisector cut there would be stretched metres past the node
+  if (away) {
+    const q = P[i === 0 ? 1 : i - 1], ix = p[0] - q[0], iy = p[1] - q[1], il = Math.hypot(ix, iy);
+    if (il > 1e-3 && (ix * away[0] + iy * away[1]) / il < -0.3) return null;
+  }
   return away;
 }
 
