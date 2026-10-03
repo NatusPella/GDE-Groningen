@@ -23,6 +23,7 @@ import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './cou
 import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
 import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
 import { buildingMaterial, bldCode, STYLE } from './countrybuilding.js';
+import { glowMaterial, poolGeometry } from './countryglow.js';
 
 // Endless Ommelanden past the real map: a ground ring that follows the
 // player (same terrain shader, so the feathered edge in terrain3d continues
@@ -377,6 +378,8 @@ const PAIRED = { tractor: ['tractorBody', 'tractorBase'], trailer: ['trailerBody
 
 function genFarm(tile, f) {
   push(tile, FARM_POOL[f.type] + f.look, f.x, f.y, -f.angle, 1, 1, 1, 0xffffff, 0.04);
+  const fc = Math.cos(f.angle), fs = Math.sin(f.angle);
+  push(tile, 'glowPool', f.x + fc * 22 - fs * 14, f.y + fs * 22 + fc * 14, -f.angle, 1.3, 1, 1.3, 0xffffff, 0);
   for (const it of f.items) {
     const rotY = -f.angle + it.rot;
     const pair = PAIRED[it.kind];
@@ -478,6 +481,8 @@ function* genReal(tile) {
           for (let k = 0; k < 4; k++) push(tile, 'bale', ex - sa * (k - 1.5) * 1.3, ey + ca * (k - 1.5) * 1.3, -m.angle, 0.86, 0.86, 0.86, wrap, 0.05);
         }
         const sx = x - sa * (m.short / 2 + 4), sy = y + ca * (m.short / 2 + 4);
+        // the yard light over the barn door
+        if (h < 0.75) push(tile, 'glowPool', x - sa * (m.short / 2 + 3), y + ca * (m.short / 2 + 3), rotY, 1.3, 1, 1.3, 0xffffff, 0);
         if (h > 0.6 && okSpot(sx, sy, 1)) {
           const col = [0x3f7d3a, 0xb8322a, 0x2f5fa8, 0x3f7d3a][Math.floor(h * 40) % 4];
           push(tile, 'tractorBody', sx, sy, rotY, 1, 1, 1, col, 0.06);
@@ -734,6 +739,8 @@ Object.assign(PROP_TYPES, {
   rbGable: { geo: M3.realGableGeometry, cap: 10000, shadow: false, lod: 'near', bld: true },
   rbHip: { geo: M3.realHipGeometry, cap: 6000, shadow: true, bld: true },
   rbRoofMid: { geo: M3.realRoofMidGeometry, cap: 9000, shadow: true, lod: 'mid', bld: true },
+  // yard lights at night (countryglow.js; hidden by day)
+  glowPool: { geo: () => poolGeometry(5), cap: 2000, shadow: false, glow: true },
 });
 
 // Props are drawn per chunk of CHUNK x CHUNK tiles: one instanced mesh per
@@ -751,7 +758,7 @@ function typeGeo(k) {
 function chunkMesh(ch, k, n) {
   const T = PROP_TYPES[k];
   const cap = Math.ceil(n / 64) * 64;
-  const mesh = new THREE.InstancedMesh(typeGeo(k), T.bld ? buildingMaterial() : T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, cap);
+  const mesh = new THREE.InstancedMesh(typeGeo(k), T.bld ? buildingMaterial() : T.glow ? glowMaterial() : T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, cap);
   mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
   mesh.count = 0;
   mesh.boundingSphere = ch.sphere;

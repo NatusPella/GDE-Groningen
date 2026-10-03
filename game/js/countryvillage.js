@@ -4,6 +4,7 @@ import { chash, edgeDistance, realWater } from './countryfield.js';
 import { edgeAt } from './countryedge.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { roundTreeGeometry } from './countrymodels.js';
+import { glowMaterial, poolGeometry } from './countryglow.js';
 import { Pedestrian } from './pedestrians.js';
 
 // Village centres for the real Ommelanden: the OSM church (drawn by the
@@ -178,6 +179,8 @@ const TYPES = {
   tree: { geo: roundTreeGeometry, shadow: true },
   lamp: { geo: lampGeometry, shadow: true },
   lampHead: { geo: lampHeadGeometry, shadow: false, mat: 'lamp' },
+  // the light pool under the head, a little out over the street
+  pool: { geo: () => poolGeometry(5.5, 0.9, 0), shadow: false, mat: 'glow' },
   bike: { geo: bikeGeometry, shadow: false },
   rack: { geo: rackGeometry, shadow: false },
   table: { geo: tableGeometry, shadow: true },
@@ -310,6 +313,7 @@ function* layout(p) {
       const [lx, ly] = at(u, v);
       put(L, 'lamp', lx, ly, -ang);
       put(L, 'lampHead', lx, ly, -ang);
+      put(L, 'pool', lx, ly, -ang);
       solid(L, lx, ly, 0.15);
     }
     // a bike rack on the square's road side
@@ -418,6 +422,7 @@ function* layout(p) {
       const rot = Math.atan2(ux * side, uy * side);
       put(L, 'lamp', x, y, rot);
       put(L, 'lampHead', x, y, rot);
+      put(L, 'pool', x, y, rot);
       solid(L, x, y, 0.15);
       if (++n % 40 === 0) yield;
     }
@@ -429,6 +434,7 @@ function* layout(p) {
 
 function matOf(T) {
   if (T.mat === 'lamp') return LAMP_MAT;
+  if (T.mat === 'glow') return glowMaterial();
   if (T.mat === 'sign') return signMat || (signMat = markShared(new THREE.MeshStandardMaterial({ map: signAtlas(), roughness: 0.6, vertexColors: true })));
   return MAT;
 }
@@ -436,7 +442,7 @@ function matOf(T) {
 // Hidden samples of each material and shadow flag, so the shader warm-up
 // compiles them on the title screen instead of on arrival in a village.
 export function villageWarmMeshes() {
-  return [['bench', true], ['slab', false], ['lampHead', false], ['sign00', false]].map(([k, shadow]) => {
+  return [['bench', true], ['slab', false], ['lampHead', false], ['sign00', false], ['pool', false]].map(([k, shadow]) => {
     const m = new THREE.Mesh(geoOf(k), matOf(TYPES[k]));
     m.castShadow = shadow;
     m.receiveShadow = true;
