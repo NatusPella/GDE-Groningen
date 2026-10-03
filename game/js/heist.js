@@ -1103,7 +1103,7 @@ export function heistRevealUpdate(t, dt, cur) {
     const k = Math.min(1, Math.max(0, (t - REVEAL.lift0) / (REVEAL.lift1 - REVEAL.lift0)));
     H.caseLid.position.y = LID_UP * k * k * (3 - 2 * k);
   }
-  if (cur && cur.clue) UI.showNote('Tige tank! – W.');
+  if (cur && cur.clue) UI.showNote('Tige tank! – J.');
   else UI.hideNote();
 }
 

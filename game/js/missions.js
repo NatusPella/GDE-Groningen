@@ -308,7 +308,7 @@ function buildDefs(world) {
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
           kicker: 'Groninger Museum, zaal 3',
-          lines: [['A', '"Tige tank! – W."', { clue: true }], ['T', 'Hij bedankt ons.'], ['A', 'Hij. Bedankt. Ons.']],
+          lines: [['A', '"Tige tank! – J."', { clue: true }], ['T', 'Hij bedankt ons.'], ['A', 'Hij. Bedankt. Ons.']],
         },
         {
           kind: 'getaway', stars: 2, target: { heistSpot: 'boot' }, label: 'Alarm! Rennen, naar de boot', say: 'Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!',

@@ -389,12 +389,10 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 *(Gameplay: sluipen op een timer van drie minuten, via het Verbindingskanaal.)*
 
-**Outro (cutscène, de lege vitrine).**
-- **Anita:** "Tige tank! – W." *(Hartelijk dank!)*
+**Outro (cutscène, de lege vitrine).** *De koepel is van matglas met een gouden gloed: wat erin ligt zie je pas als hij opengaat. Het slot klikt, de camera schuift in stilte naar de vitrine, de koepel komt omhoog: een leeg kussen. Close-up van het kaartje. Zes à acht seconden, wegklikbaar.*
+- **Anita:** "Tige tank! – J." *(Hartelijk dank!)*
 - **Tammo:** Hij bedankt ons.
 - **Anita:** Hij. Bedankt. Ons.
-- **Tammo:** Beleefd, eigenlijk.
-- **Anita:** Tammo.
 - *Het alarm gaat af en het noodlicht springt aan. Ze rennen.*
 
 **Radio, live, terwijl ze vluchten.**
@@ -404,6 +402,8 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - **Rikus:** Jelle. Je bent live.
 - **Jelle:** Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4: de trofee gaat naar wie op Gronings Ontzet wint. Ik heb hem alvast meegenomen. Dat scheelt een rit.
 - **Jelle:** En geen vet, geen Grinzer aan de start. Oant sjen op it Ontset! *(Tot ziens op het Ontzet!)*
+- **Anita:** J. Van Jelle. Natuurlijk.
+- **Tammo:** Beleefd.
 - **Tammo:** Hij heeft hem gestolen om hem eerlijk te winnen.
 - **Anita:** En de camera's van daarnet hebben óns gefilmd.
 
@@ -811,7 +811,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Rikus:** Iedereen heeft een rode auto gezien. Ik ook. Ik heb er zelf een.
 
 **Intro (cutscène).** *Op de plek van de Escapade staat een klomp. Er zit een briefje in.*
-- **Tammo:** "Tige tank foar de auto. – W." *(Bedankt voor de auto.)* De Fjord Frituur. Zonder Fjord.
+- **Tammo:** "Tige tank foar de auto. – J." *(Bedankt voor de auto.)* De Fjord Frituur. Zonder Fjord.
 - **Tammo:** Wie heb je verteld waar we wonen?
 - **Anita:** Niemand.
 - **Tammo:** Je appt al weken met Friesland.
