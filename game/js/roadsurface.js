@@ -6,6 +6,8 @@ import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { getWaterIndex } from './waterindex.js';
 import { allSignals, yieldArms } from './junctions.js';
 import { groundHeightAt } from './elevation.js';
+import { runGeo, geoWorkerActive } from './geojobs.js';
+import { geometryFromPlain } from './geokernels.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
 // shared wet-ground shader, mitred ribbons carrying road-space coordinates,
@@ -1301,6 +1303,64 @@ function markingGeometry(r) {
 
   if (!M.idx.length) return null;
   return finishGeometry(M.pos, M.nrm, M.idx, [['uv', M.uv, 2]]);
+}
+
+// The surface geometries of a road as buildRoadGroup makes them, uncached,
+// for marking detail `det` (the geometry worker builds them from its own copy
+// of the map, geokernels.js).
+export function roadSurfaceGeometries(r, det = detail) {
+  const prev = detail;
+  detail = det;
+  try {
+    const surf = roadSurface(r);
+    return {
+      sidewalk: SIDEWALK_CATS.has(r.cat) ? sidewalkGeometry(r) : null,
+      road: ribbonGeometry(r, r.width / 2, surf === 'tiles' || surf === 'gravel' ? 0 : r.width),
+      mark: markingGeometry(r),
+    };
+  } finally {
+    detail = prev;
+  }
+}
+export function roadDetail() {
+  return detail;
+}
+
+// a road's identity in both copies of the map: class and points
+export const roadKey = (r) => r._gkey || (r._gkey = r.cat + ':' + r.type + ':' + r.width + ':' + r.pts.join(';'));
+
+// The surfaces are built in the geometry worker (geokernels.js roadGeo) once
+// its own copy of the map is loaded; until then, without a worker, or for a
+// road it does not know, here as before. False while a road's surfaces are
+// on their way (the request goes out on the first call).
+const RW = { state: 0 };
+function roadWorkerReady() {
+  if (RW.state === 0 && netMap && geoWorkerActive() && typeof location !== 'undefined') {
+    RW.state = 1;
+    runGeo('roadInit', { url: new URL('citymap.json', location.href).href, keys: netMap.roads.map(roadKey) }, (res) => {
+      RW.state = res && !res.missing ? 2 : -1;
+    });
+  }
+  return RW.state === 2 && geoWorkerActive();
+}
+export function roadGeometryReady(r) {
+  if (r._geoRoad && r._geoMarkQ === qualityVersion) return true;
+  if (r._geoMain || !roadWorkerReady()) return true;
+  if (r._geoPending === qualityVersion) return false;
+  const q = r._geoPending = qualityVersion;
+  runGeo('roadGeo', { key: roadKey(r), detail }, (res) => {
+    if (r._geoPending === q) r._geoPending = null;
+    if (!res) { r._geoMain = true; return; }
+    const parts = [geometryFromPlain(res.sidewalk), geometryFromPlain(res.road), geometryFromPlain(res.mark)];
+    if (q !== qualityVersion) { for (const g of parts) if (g) g.dispose(); return; }
+    const [sidewalk, road, mark] = parts;
+    if (!r._geoSidewalk && sidewalk) r._geoSidewalk = sidewalk; else if (sidewalk) sidewalk.dispose();
+    if (!r._geoRoad) r._geoRoad = road; else road.dispose();
+    if (r._geoMark) r._geoMark.dispose();
+    r._geoMark = mark;
+    r._geoMarkQ = q;
+  });
+  return false;
 }
 
 // ---------------------------------------------------------------- road group

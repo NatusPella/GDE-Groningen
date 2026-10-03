@@ -32,14 +32,24 @@ const FEATHER_OUT = 20;
 const FEATHER_NOISE = 110;
 
 const rect = { cx: 0, cy: 0, hx: 1e9, hy: 1e9 };
+let bounds0 = null;
 
 export function setCountryBounds(bounds) {
+  bounds0 = bounds;
   const [minx, miny, maxx, maxy] = bounds;
   rect.cx = (minx + maxx) / 2;
   rect.cy = (miny + maxy) / 2;
   rect.hx = (maxx - minx) / 2;
   rect.hy = (maxy - miny) / 2;
   COUNTRY_UNIFORMS.uCountryRect.value = [rect.cx, rect.cy, rect.hx, rect.hy];
+}
+
+// what setCountryBounds / setRealZone were given (the geometry worker repeats them)
+export function countryBounds() {
+  return bounds0;
+}
+export function realZone() {
+  return real;
 }
 
 export function countryRect() {
