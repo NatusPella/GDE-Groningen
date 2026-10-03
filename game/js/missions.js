@@ -1867,7 +1867,7 @@ export function updateMissions(dt, world) {
       } else chain.stopT = 0;
     }
   } else if (def.type === 'stunt') {
-    if (updateStunt(dt, world) === 'done') succeed(world, def);
+    if (updateStunt(dt, world, chain.timeLeft) === 'done') succeed(world, def);
   } else if (def.type === 'checkpoint') {
     if (chain.race) {
       updateRace(dt, world, chain.race, chain.wpIndex);
