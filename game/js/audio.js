@@ -172,7 +172,7 @@ let sirenAudible = 0;
 
 let seenBullets = new WeakSet();
 let seenParticles = new WeakSet();
-let seenDeadPeds = new WeakSet();
+let seenDownPeds = new WeakSet();
 let seenWrecks = new WeakSet();
 const lastCrashAt = new WeakMap();
 const hornWasOn = new WeakMap();
@@ -1938,13 +1938,13 @@ export function initAudio(world) {
 function primeWorld(world) {
   for (const b of world.bullets) seenBullets.add(b);
   for (const pt of world.particles) seenParticles.add(pt);
-  for (const ped of world.pedestrians) if (ped.state === 'dead') seenDeadPeds.add(ped);
+  for (const ped of world.pedestrians) if (ped.state === 'dead') seenDownPeds.add(ped);
   for (const v of world.vehicles) if (v.wrecked) seenWrecks.add(v);
 
   prev = {
-    kills: world.stats.kills,
-    copKills: world.stats.copKills,
-    pedKills: world.stats.pedKills,
+    knockouts: world.stats.knockouts,
+    copHarm: world.stats.copKnockouts + world.stats.copCarsWrecked,
+    pedKnockouts: world.stats.pedKnockouts,
     health: world.health,
     armor: world.armor,
     money: world.money,
@@ -2467,7 +2467,7 @@ function playAudioEvents(world) {
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
       case 'whistle': playWhistle(); break;
-      case 'gore': case 'gore_splat': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'ko': case 'poof': playKnockEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {
         const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 70 });
         const k = clamp(e.strength ?? 0.5, 0, 1);
@@ -2527,15 +2527,16 @@ function playBulletHit(x, y, material, k) {
   if ((material === 'stone' || material === 'metal') && Math.random() < 0.18) playBuf('ric_whine', { out, gain: 0.08, rate: 0.9 + Math.random() * 0.3, delay: 0.01 });
 }
 
-function playGoreEvent(kind, x, y, k) {
-  const out = spatialOut(x, y, { ref: kind === 'gore' ? 7 : 4, rolloff: 1.1, range: kind === 'gore' ? 80 : 45 });
+// ko: a body hitting the ground plus the cartoon "seeing stars" twinkle;
+// poof: a bird flapping off in a fluster.
+function playKnockEvent(kind, x, y, k) {
+  const out = spatialOut(x, y, { ref: kind === 'ko' ? 6 : 4, rolloff: 1.1, range: kind === 'ko' ? 70 : 45 });
   if (!out) return;
   const r = 0.9 + Math.random() * 0.2;
-  if (kind === 'gore') {
-    playBuf('squelch_' + Math.floor(Math.random() * 3), { out, gain: 0.3 + k * 0.22, rate: r, prio: 2 });
-    playBuf('body_hit', { out, gain: 0.22, rate: 0.7 * r });
-  } else if (kind === 'gore_splat') playBuf('gore_splat', { out, gain: 0.12 + k * 0.14, rate: r * (0.85 + Math.random() * 0.4) });
-  else {
+  if (kind === 'ko') {
+    playBuf('body_fall', { out, gain: 0.25 + k * 0.2, rate: r });
+    playBuf('dizzy', { out, gain: 0.16, rate: r, delay: 0.25 });
+  } else {
     playBuf('poof', { out, gain: 0.22 + k * 0.1, rate: r });
     playBuf('flutter', { out, gain: 0.16, rate: r * 1.2 });
   }
@@ -2732,11 +2733,13 @@ function updateWorldEvents(world) {
     else if (pt.kind === 'splash') { splashes.push(pt); playSplash(pt.x, pt.y); }
   }
 
-  const newlyDead = [];
+  // knocked out this frame (the 'dead' state is a KO, pedestrians.js)
+  const newlyDown = [];
   for (const ped of world.pedestrians) {
-    if (ped.state !== 'dead' || seenDeadPeds.has(ped)) continue;
-    seenDeadPeds.add(ped);
-    newlyDead.push(ped);
+    if (ped.state !== 'dead') { seenDownPeds.delete(ped); continue; }
+    if (seenDownPeds.has(ped)) continue;
+    seenDownPeds.add(ped);
+    newlyDown.push(ped);
   }
 
   if (!world.paused) updateContactAudio(world);
@@ -2749,16 +2752,17 @@ function updateWorldEvents(world) {
   }
 
   const at = (src) => spatialAt((src || p).x, (src || p).y);
-  if (world.stats.kills > prev.kills) {
-    const out = at(newlyDead[0] || newlyWrecked[0]);
+  const copHarm = world.stats.copKnockouts + world.stats.copCarsWrecked;
+  if (world.stats.knockouts > prev.knockouts) {
+    const out = at(newlyDown[0] || newlyWrecked[0]);
     if (out) playHit(out);
   }
-  if (world.stats.copKills > prev.copKills) {
-    const out = at(newlyDead.find((d) => d.isCop) || newlyWrecked.find((v) => v.isPolice));
+  if (copHarm > prev.copHarm) {
+    const out = at(newlyDown.find((d) => d.isCop) || newlyWrecked.find((v) => v.isPolice));
     if (out) playCopSting(out);
   }
-  if (world.stats.pedKills > prev.pedKills) {
-    const out = at(newlyDead.find((d) => !d.isCop));
+  if (world.stats.pedKnockouts > prev.pedKnockouts) {
+    const out = at(newlyDown.find((d) => !d.isCop));
     if (out) playPedSting(out);
   }
 }
@@ -2963,9 +2967,9 @@ function updateWorldAudio(dt, world) {
   }
   updateChaseBark(world);
   prev.wanted = world.wanted;
-  prev.kills = world.stats.kills;
-  prev.copKills = world.stats.copKills;
-  prev.pedKills = world.stats.pedKills;
+  prev.knockouts = world.stats.knockouts;
+  prev.copHarm = world.stats.copKnockouts + world.stats.copCarsWrecked;
+  prev.pedKnockouts = world.stats.pedKnockouts;
   prev.health = world.health;
   prev.armor = world.armor;
   prev.money = world.money;
@@ -3121,7 +3125,7 @@ if (typeof window !== 'undefined') {
 let lastWorld = null;
 
 const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
-  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0',
+  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'dizzy', 'body_fall',
   'imp_water', 'imp_wood', 'imp_dirt', 'imp_metal_2', 'imp_metal_1', 'imp_metal_0', 'imp_stone_2', 'imp_stone_1', 'imp_stone_0',
   'gun_echo', 'gun_shotgun_1', 'gun_shotgun_0', 'gun_uzi_2', 'gun_uzi_1', 'gun_uzi_0', 'gun_pistol_2', 'gun_pistol_1', 'gun_pistol_0'];
 
