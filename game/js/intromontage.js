@@ -20,6 +20,7 @@ import { scriptHeli } from './skyprops.js';
 import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { routeAt as canalAt, ROUTE_LENGTH as CANAL_LENGTH } from './rondvaartchase.js';
 import { RING_ROUTE } from './ringroute.js';
+import { smoothPath, pathHeights, cineDrive } from './cinedrive.js';
 import { WATER_Y } from './util.js';
 import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, buildRope } from './introkitchen3d.js';
 
@@ -844,22 +845,25 @@ function buildShots(w) {
   };
 
   // flash: the black trekker-limo on Ring Zuid
-  const ring = polyline(RING_ROUTE.slice(0, 16).map((p) => [p[0], p[1]]));
+  const ring = smoothPath(RING_ROUTE.slice(0, 16));
+  let ringZ = null;
   const limo = {
     minDur: 1.5, clock: 19.6, focus: ring.at(30),
     enter(r, s) {
       clearRoadNear(r, ring, 8);
+      ringZ = ringZ || pathHeights(map, ring, map.spawnZ ? map.spawnZ(RING_ROUTE[0][0], RING_ROUTE[0][1]) : 0);
       s.d = 10;
       s.q = ring.at(s.d);
-      s.z = map.spawnZ ? map.spawnZ(s.q.x, s.q.y) : 0;
+      s.z = ringZ(s.d);
       s.v = tempCar(r, s.q.x, s.q.y, s.q.a, { model: { ...MODELS[0], name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#0d0d0f' } });
+      cineDrive(s.v, map, s.q, 15, 0, s.z);
       sfx(r.w, 'horn', s.q.x, s.q.y);
     },
     tick(r, s, t, dt) {
       s.d += 15 * dt;
       s.q = ring.at(s.d);
-      s.z = map.spawnZ ? map.spawnZ(s.q.x, s.q.y) : 0;
-      if (s.v) Object.assign(s.v, { x: s.q.x, y: s.q.y, angle: s.q.a, speed: 15, z: s.z });
+      s.z = ringZ(s.d);
+      if (s.v) cineDrive(s.v, map, s.q, 15, dt, s.z);
     },
     cams: [[0, (u, t, s) => {
       const q = s.q, f = { x: Math.cos(q.a), y: Math.sin(q.a) };
