@@ -8,6 +8,7 @@ import { currentStep, storyVoorschotInfo } from './story.js';
 import { getMissionDefs, unmetRequirement, requirementMet, requirementPlace, activeStage } from './missions.js';
 import { VEHICLE_STOCK, SHOP_TYPES } from './shops.js';
 import { STEPS } from './storyarc.js';
+import { displayName } from './speakers.js';
 
 const GUNS = new Set(['pistol', 'uzi', 'shotgun', 'jachtgeweer']);
 const stockOf = (id) => (id && id.startsWith('v-') ? VEHICLE_STOCK[id.slice(2)] : null);
@@ -44,7 +45,7 @@ const speaker = (step) => (step.player === 'anita' ? 'Anita' : 'Tammo');
 
 function fromStep(step, extra) {
   const lead = step.lead ? step.lead[1] : '';
-  return { stepId: step.id, voorschotId: step.id, title: step.title, why: step.why ? `${speaker(step)}: ${step.why}` : '', lead, cost: step.cost || 0, ...extra };
+  return { stepId: step.id, voorschotId: step.id, title: step.title, why: step.why ? `${displayName(speaker(step))}: ${step.why}` : '', lead, cost: step.cost || 0, ...extra };
 }
 
 // What the story asks to buy now, or null:

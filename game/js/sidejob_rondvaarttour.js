@@ -1,6 +1,6 @@
 // Uitje: ontspannen rondvaart. The H13 tour without the conflict: the
 // rondvaartboot at the Spilsluizen quay, a boat full of tourists, one whole
-// round of the Diepenring with Tammo at the microphone and Anita correcting
+// round of the Diepenring with Tammo at the microphone and Tessa correcting
 // him (rondvaartlines.js, shared with the mission). No Schipper Wiebe, no
 // timer, nothing to fail: a calm, bump-free round makes the tip. Runs on the
 // side-job core (start badge, E prompt, Ubbo, rounds, pay); the tour itself
@@ -31,7 +31,7 @@ export default {
   boardFirst: true,
   vehicleWord: 'de rondvaartboot',
   blurb: 'Een rondje Diepenring met toeristen, zonder haast',
-  tagline: 'Rustig varen, Tammo vertelt, Anita verbetert hem. Geen haast, geen Wiebe.',
+  tagline: 'Rustig varen, Tammo vertelt, Tessa verbetert hem. Geen haast, geen Wiebe.',
 
   // on the quay a few metres along from the H13 start marker
   anchor(map) {

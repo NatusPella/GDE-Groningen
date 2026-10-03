@@ -1,5 +1,5 @@
 // The cast for the pause menu's Verhaal › Personages: who they are, their
-// best-known line, what they are to Tammo and Anita, the missions you play
+// best-known line, what they are to Tammo and Tessa, the missions you play
 // with them and the 3D model. Pure data plus the "met" record: a character
 // unlocks the first time they speak to you (cutscene, call, mission line;
 // see noteSpoken), and stays unlocked for good, like vehicles in the garage.
@@ -32,7 +32,7 @@ export const CHARACTERS = [
     missions: ['H3', 'H4', 'H5', 'H7', 'H9', 'H10', 'H12', 'H14', 'H17'],
   },
   {
-    id: 'anita', name: 'Anita', speakers: ['Anita'], model: 'anita', always: true,
+    id: 'anita', name: 'Tessa', speakers: ['Anita'], model: 'anita', always: true,
     role: 'Heeft altijd een plan B. Plan A is ook van haar.',
     bio: 'Snel, ad rem en de baas van het duo. Droomt van de Fjord Frituur, een blauwe frietwagen, en regelt alles zelf. Een frietwagen is een auto met een luik, en ze heeft geen auto.',
     quote: 'Rijden, niet praten.',
@@ -68,7 +68,7 @@ export const CHARACTERS = [
     role: 'Twee reuzen. Eén brein. Ze delen het.',
     bio: 'Jelles tweelinghandlanger, blauwe muts en baard. Trok een pinautomaat uit de muur. Verklapt elk geheim zodra hij één biertje op heeft.',
     quote: 'Net fertelle, hè?',
-    relation: 'Werkt voor Jelle. Zit Tammo en Anita steeds in de weg.',
+    relation: 'Werkt voor Jelle. Zit Tammo en Tessa steeds in de weg.',
     missions: ['H2', 'H8', 'H11', 'H14', 'H16', 'H18'],
   },
   {
@@ -82,9 +82,9 @@ export const CHARACTERS = [
   {
     id: 'mem', name: 'Mem Terpstra', speakers: ['Mem Terpstra', 'Gerda Terpstra', 'Mem'], model: 'mem',
     role: 'Iemand uit Friesland.',
-    bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Anita stiekem.',
+    bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Tessa stiekem.',
     quote: 'Sjochst? Dat wie alles wat ik woe.',
-    relation: 'De "iemand uit Friesland" met wie Anita appt.',
+    relation: 'De "iemand uit Friesland" met wie Tessa appt.',
     missions: ['H8', 'H16', 'H18'],
   },
   {
@@ -164,7 +164,7 @@ export const CHARACTERS = [
     role: 'Poelestraat. Nog eentje dan.',
     bio: 'Kroegbaas in de Poelestraat. Weet alles van iedereen, en van twee zingende Friese reuzen aan zijn bar.',
     quote: 'Vier kroegen? Nog eentje dan.',
-    relation: 'Stuurt Anita de kroegen langs.',
+    relation: 'Stuurt Tessa de kroegen langs.',
     missions: ['H11'],
   },
   {
@@ -172,7 +172,7 @@ export const CHARACTERS = [
     role: 'Vist al dertig jaar fietsen uit de Diepenring.',
     bio: 'Oude schipper met een rondvaartboot die even van niemand is. Mag alles.',
     quote: 'Ik mag alles.',
-    relation: 'Geeft Anita zijn rondvaartboot mee.',
+    relation: 'Geeft Tessa zijn rondvaartboot mee.',
     missions: ['H13', 'H14'],
   },
   {
@@ -188,7 +188,7 @@ export const CHARACTERS = [
     role: 'UMCG. Het staat niet in het rooster.',
     bio: 'Traumaarts en heli-piloot. Zijn traumaheli staat in onderhoud en zijn nachtdienst heeft honger. Hij leent niks uit, maar hij vliegt wel mee.',
     quote: 'Zij vliegt. Hij hangt.',
-    relation: 'Vliegt Anita naar de ballon.',
+    relation: 'Vliegt Tessa naar de ballon.',
     missions: ['H15'],
   },
   {

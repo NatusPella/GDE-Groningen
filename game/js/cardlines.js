@@ -1,6 +1,6 @@
-// What Tammo or Anita (whoever you play) says out loud when a HUD card
+// What Tammo or Tessa (whoever you play) says out loud when a HUD card
 // shows (hudcards.js). Matched against the card text; the spoken line is
-// recorded for both in the lines manifest ("Tammo|<say>", "Anita|<say>"),
+// recorded for both in the lines manifest ("Tammo|<say>", "Tessa|<say>"),
 // registered in scripts/voicelines_collect.mjs. Only moments worth a voice:
 // dangers, the police, big wins. Everything else stays a silent card.
 export const CARD_LINES = [

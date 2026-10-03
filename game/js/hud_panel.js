@@ -361,8 +361,8 @@ function updateLocation(dt, world) {
   els.street.textContent = street || '';
 }
 
-const CHARACTER_LABELS = { tammo: 'Tammo', anita: 'Anita' };
-// short crop for Tammo, a ponytail for Anita (drawn over the head circle)
+const CHARACTER_LABELS = { tammo: 'Tammo', anita: 'Tessa' };
+// short crop for Tammo, a ponytail for Tessa (drawn over the head circle)
 const HAIR = {
   tammo: 'M12.4 14.5c-.6-5.6 3-9 7.6-9s8.2 3 7.6 9c-1.6-3-4.4-4.2-7.6-4.2s-6 1.2-7.6 4.2z',
   anita: 'M12.6 14c-.4-5.4 3-8.6 7.4-8.6s7.8 3.2 7.4 8.6c-1.8-2.6-4.4-3.8-7.4-3.8s-5.6 1.2-7.4 3.8zM26.4 11.5c3.4 1.2 4.6 5.6 2.8 9.4-.6-2.4-1.8-3.8-3.4-4.4z',
@@ -409,13 +409,13 @@ function setPortrait(img, ch, keyField) {
   }, { angle: PORTRAIT_ANGLE });
 }
 
-// "Anita rijdt mee": the companion's own small portrait while they are with you.
+// "Tessa rijdt mee": the companion's own small portrait while they are with you.
 function updateMate(world) {
   const c = world.companion;
   const p = world.player;
   let text = '';
   if (c && !world.pigeonMode && !c.hidden) {
-    const name = c.character === 'anita' ? 'Anita' : 'Tammo';
+    const name = c.character === 'anita' ? 'Tessa' : 'Tammo';
     if (p.inVehicle && c.inVehicle === p.inVehicle) text = `${name} ${p.inVehicle.isBike ? 'fietst' : p.inVehicle.isBoat ? 'vaart' : p.inVehicle.isHeli ? 'vliegt' : 'rijdt'} mee`;
     else if (!c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) < 30) text = `${name} loopt mee`;
   }

@@ -592,7 +592,7 @@ function noteCard(text) {
     c.textAlign = 'center';
     c.fillText(text, w / 2, h / 2 + 10);
     c.font = 'italic 26px Georgia, serif';
-    c.fillText('– W.', w * 0.72, h - 22);
+    c.fillText('– J.', w * 0.72, h - 22);
   });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.125), new THREE.MeshBasicMaterial({ map: tex }));
   return m;
@@ -757,8 +757,8 @@ function buildShots(w) {
   const hq = here.at(40);
   const hf = { x: Math.cos(hq.a), y: Math.sin(hq.a) }, hn = { x: -hf.y, y: hf.x };
   const anita = {
-    label: 'Anita', cuts: ['vol', 'kort'], dur: 3.0, clock: 8.1, weather: 'helder', focus: hq,
-    freezeAt: 1.55, name: { at: 1.55, title: 'Anita', line: 'Heeft altijd een plan B. Plan A is ook van haar.' },
+    label: 'Tessa', cuts: ['vol', 'kort'], dur: 3.0, clock: 8.1, weather: 'helder', focus: hq,
+    freezeAt: 1.55, name: { at: 1.55, title: 'Tessa', line: 'Heeft altijd een plan B. Plan A is ook van haar.' },
     enter(r, s) {
       clearRoad(r, here, 6);
       s.atm = r.prop('atm', buildAtm);
@@ -1329,6 +1329,7 @@ function vitrineRoom(r) {
     const room = buildVitrineRoom();
     room.userData.ball.visible = false;
     const card = noteCard('Tige tank!');
+    card.name = 'tige-tank';
     // propped up on the cushion, facing the push-in (vitrine cam, a = 0.7)
     card.scale.setScalar(1.25);
     card.position.set(0.02, 1.2, 0.03);
@@ -1799,6 +1800,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       freeze: (i, t = 1) => { if (!shots[i - 1]) return false; frozen = { T: starts[i - 1] + Math.min(t, shotDur(r, shots[i - 1]) - 0.05) }; r.T = starts[i - 1] - 0.001; r.idx = -1; return true; },
       play: () => { frozen = null; },
       stop: () => end(true, true),
+      prop: (name) => trailerProps.get(name) || null,
     };
     // a video export starts once main.js has the sound sheet
     Promise.resolve(begun).then(() => requestAnimationFrame((now) => { last = now; loop(now); }));

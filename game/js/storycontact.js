@@ -1,4 +1,4 @@
-// How Jelle Terpstra (and Durk & Douwe) reach Tammo and Anita: every story
+// How Jelle Terpstra (and Durk & Douwe) reach Tammo and Tessa: every story
 // contact is diegetic and voiced. story.js queues the `contact` entries of
 // storyarc.js steps here; they play one at a time when the game is quiet
 // (no cutscene, no pigeon, no respawn). Kinds (`via`):
@@ -223,7 +223,7 @@ function setBubble(line, c = null) {
 }
 
 function showCard(c, line) {
-  const signed = c.sign || (c.from === 'jelle' ? 'W.' : '');
+  const signed = c.sign || (c.from === 'jelle' ? 'J.' : '');
   cardEl.innerHTML = `<div class="sc-cardkick">${esc(c.title || 'Een kaartje')}</div><div class="sc-cardtext">${dualHtml(line[1])}` +
     `</div>${signed ? `<div class="sc-sign">– ${esc(signed)}</div>` : ''}`;
   cardEl.classList.add('show');

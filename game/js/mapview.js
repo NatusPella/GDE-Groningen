@@ -941,7 +941,7 @@ function drawDynamicMarkers(ctx, world) {
   for (const e of getEierbalTips()) icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt');
 
   const c = world.companion;
-  if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', 'companion', c.x, c.y, c.character === 'tammo' ? 'Tammo' : 'Anita', {}, 'Maat');
+  if (c && c.state !== 'dead' && !c.inVehicle) icon('companion', 'companion', c.x, c.y, c.character === 'tammo' ? 'Tammo' : 'Tessa', {}, 'Maat');
 
   const search = getPoliceSearch(world);
   if (search) {
@@ -1523,7 +1523,7 @@ function openMap(world) {
   ensureLevel0();
   state.dirty = true;
   const c = world.companion;
-  if (state.legendMaat) state.legendMaat.textContent = c ? `Maat (${c.character === 'tammo' ? 'Tammo' : 'Anita'})` : 'Maat';
+  if (state.legendMaat) state.legendMaat.textContent = c ? `Maat (${c.character === 'tammo' ? 'Tammo' : 'Tessa'})` : 'Maat';
   refreshLegend(world);
 }
 

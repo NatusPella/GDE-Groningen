@@ -161,7 +161,7 @@ export const VEHICLE_STOCK = {
   politie: { kind: 'car', type: 'Politieauto', shop: 'auto', label: 'Politie Achtervolger', desc: 'Afgeschreven, opgeknapt, zwaailicht doet het nog', unlock: 'ontsnapt', nameIdx: 0, color: '#1c1c1c', flags: { isPolice: true, hijacked: true }, model: CAR_M('police', 4.3, 1.8, 55, 11, 20, 2.8) },
   tankwagen: { kind: 'car', type: 'Tankwagen', shop: 'auto', label: 'Us Mem Vet Tankwagen', desc: 'Nog half vol frituurvet. Rijdt op zijn eigen lading', unlock: 'vetgekaapt', nameIdx: 0, color: '#e6c21a', model: CAR_M('truck', 7.2, 2.35, 28, 4.5, 13, 1.5, { tank: true }) },
   trekkerlimo: { kind: 'car', type: 'Trekker-limo', shop: 'auto', label: 'Terpstra Trekker-limo', desc: 'Gewonnen van Jelle. Hij wil hem terug, jij toetert', unlock: 'ringweg', nameIdx: 0, color: '#1b1c1f', model: CAR_M('trekkerlimo', 5.6, 2.0, 40, 7, 14, 2.1) },
-  fjordfrituur: { kind: 'car', type: 'Foodtruck', shop: 'auto', label: 'Fjord Frituur', desc: 'Anita\'s foodtruck, nu van jullie. Parkeer bij drukte en open het luik', unlock: 'ontzet', nameIdx: 0, color: '#2f6fb0', flags: { isFoodtruck: true }, model: CAR_M('foodtruck', 5.4, 2.1, 34, 6.5, 14, 2.0) },
+  fjordfrituur: { kind: 'car', type: 'Foodtruck', shop: 'auto', label: 'Fjord Frituur', desc: 'Tessa\'s foodtruck, nu van jullie. Parkeer bij drukte en open het luik', unlock: 'ontzet', nameIdx: 0, color: '#2f6fb0', flags: { isFoodtruck: true }, model: CAR_M('foodtruck', 5.4, 2.1, 34, 6.5, 14, 2.0) },
   // --- boats ---
   kano: { kind: 'boat', type: 'Kano', shop: 'boot', label: 'Kano Peddelpiet', desc: 'Zelf peddelen, spierpijn inbegrepen', price: 150, nameIdx: 0, color: '#c8502a', model: { ...BOAT_KINDS.kano } },
   kajak: { kind: 'boat', type: 'Kajak', shop: 'boot', label: 'Kajak Waterjuffer', desc: 'Voor één, laag bij de eenden', price: 120, nameIdx: 0, color: '#e0b020', model: { ...BOAT_KINDS.kajak } },
@@ -1005,7 +1005,7 @@ function currentChar(world) {
 
 function outfitSections(world) {
   const ch = currentChar(world);
-  const name = ch === 'anita' ? 'Anita' : 'Tammo';
+  const name = ch === 'anita' ? 'Tessa' : 'Tammo';
   const items = OUTFITS[ch].map((o) => {
     const key = ch + ':' + o.id;
     const owned = state.ownedOutfits.has(key);
@@ -1039,7 +1039,7 @@ function outfitSections(world) {
 export function wardrobeMenu(world) {
   const ch = currentChar(world);
   const items = () => outfitSections(world)[0].items.filter((it) => state.ownedOutfits.has(ch + ':' + it.id.slice(2)));
-  return { name: 'Kledingkast', type: 'kleding', tagline: 'Alles wat je ooit gekocht hebt, netjes op een hangertje', color: '#2f6fb0', sections: () => [{ title: `Kast van ${ch === 'anita' ? 'Anita' : 'Tammo'}`, note: 'Meer kleren? Die liggen bij de kledingwinkel', items: items() }] };
+  return { name: 'Kledingkast', type: 'kleding', tagline: 'Alles wat je ooit gekocht hebt, netjes op een hangertje', color: '#2f6fb0', sections: () => [{ title: `Kast van ${ch === 'anita' ? 'Tessa' : 'Tammo'}`, note: 'Meer kleren? Die liggen bij de kledingwinkel', items: items() }] };
 }
 
 function shakeWanted(world, stars) {

@@ -34,20 +34,20 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
   - de **Kop** is het begin: KEI-week en alles is nieuw;
   - de **Romp** is de volle zomer: Noorderzon en de hitte;
   - de **Staart** is het einde: kermis, Ontzet en de laatste warme avond.
-- **Epiloog in september:** de terrassen gaan naar binnen, en Rikus ruikt de suikerlucht uit Hoogkerk ("Het ruikt naar suiker. De zomer is op."). Tammo en Anita staan in hun jassen bij de Fjord Frituur, en er staat nog steeds een rij.
+- **Epiloog in september:** de terrassen gaan naar binnen, en Rikus ruikt de suikerlucht uit Hoogkerk ("Het ruikt naar suiker. De zomer is op."). Tammo en Tessa staan in hun jassen bij de Fjord Frituur, en er staat nog steeds een rij.
 - **Zomerliefde, maar dan Gronings:** een zomer waarin twee vrienden het eindelijk zeggen, en hun liefde houdt het ook als de zomer voorbij is. Het slot speelt daarom in september.
 - **In de game:** het weersysteem staat tijdens het verhaal op "zomer" (meer zon, lange avonden, af en toe een bui), de trailer krijgt als ondertitel "Een zomer in Grunn", en elk deel opent met een titelkaart met de datum ("Deel 1 · 14 augustus").
 - **Kop, Romp en Staart** zijn werktitels voor dit script. De speler ziet ze nergens: in de game heten de delen "Deel 1: KEI-week", "Deel 2: Noorderzon" en "Deel 3: Kermis en Ontzet".
 
 **De personages, kort.**
 - **Tammo:** Stadjer uit het Oosterpark. Droog, met een groot hart en een kleine portemonnee. Al twaalf jaar verliefd op zijn beste vriendin en zegt het nooit. Hij heeft een rode **Fjord Escapade** die nauwelijks rijdt.
-- **Anita:** snel, ad rem, en de baas van het duo. Ze droomt van de **Fjord Frituur**, een frietwagen. Ze regelt alles zelf.
+- **Tessa:** snel, ad rem, en de baas van het duo. Ze droomt van de **Fjord Frituur**, een frietwagen. Ze regelt alles zelf.
 - **Rikus:** de derde van het vriendenclubje van de stoep in het Oosterpark. Hij presenteert **Nachtstreek**, live, elke nacht. Hij weet alles en zegt niks, behalve op de radio.
 - **Berend Bos:** een chagrijnige Stadjer die al veertig jaar Bommen Berend speelt in het naspel van het Ontzet. Elk jaar valt hij de stad aan, en elk jaar verliest hij. Hij schrijft de gemeente brieven.
 - **Duivenmelker Bert:** de eerste mentor. Hij ziet dat duiven naar Tammo luisteren.
 - **Oma Trijntje:** won in 1953 met de beste eierbal van Stad. De tweede mentor.
 - **Jelle Terpstra:** de Friese snackkoning in een blauw colbert, met een trekker-limo. Ijdel, charmant, en eigenlijk een zoon die zijn moeder gelijk wil geven.
-- **Mem Terpstra (Gerda):** "iemand uit Friesland". Ze appt Anita stiekem omdat ze wil dat haar zoon ophoudt.
+- **Mem Terpstra (Gerda):** "iemand uit Friesland". Ze appt Tessa stiekem omdat ze wil dat haar zoon ophoudt.
 - **Durk en Douwe:** Jelles tweelinghandlangers. Twee reuzen met één brein, en ze delen het.
 
 **Vaste rubrieken op Nachtstreek**
@@ -60,14 +60,14 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 | **Woist ja wel?** | Peiling onder de luisteraars: zijn ze het of niet? |
 | **Sikkom.** | Het scherm bij een missie die net mislukt, in plaats van "MISSIE MISLUKT" |
 
-**De Groningse complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte* (een brok in de keel). Elke stap heet een **trede**. Omdat niet elke speler de ladder kent, zegt Anita bij de eerste trede (H1) "van de complimentenladder", telt Tammo in het autogesprek daarna alle zes treden op, en staat de ladder vanaf H1 in "Wat weten we?" (pauzemenu, Te doen) met wat elke trede betekent.
+**De Groningse complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte* (een brok in de keel). Elke stap heet een **trede**. Omdat niet elke speler de ladder kent, zegt Tessa bij de eerste trede (H1) "van de complimentenladder", telt Tammo in het autogesprek daarna alle zes treden op, en staat de ladder vanaf H1 in "Wat weten we?" (pauzemenu, Te doen) met wat elke trede betekent.
 
 **De romance in vijf stappen**
 | Wanneer | Wat |
 |---|---|
-| Kop | Beste vrienden. Tammo zegt het nooit, Anita weet het half. Ze zeggen "goidag" tegen vreemden en niks tegen elkaar |
+| Kop | Beste vrienden. Tammo zegt het nooit, Tessa weet het half. Ze zeggen "goidag" tegen vreemden en niks tegen elkaar |
 | De kraak (H6) | Elkaars hand in het donker. "Voor de grip." |
-| Romp | Jaloezie: Jelle flirt openlijk, en Anita appt met "iemand uit Friesland". Bij het afscheid zeggen ze stiekem "moi", net te zacht |
+| Romp | Jaloezie: Jelle flirt openlijk, en Tessa appt met "iemand uit Friesland". Bij het afscheid zeggen ze stiekem "moi", net te zacht |
 | De rondvaart (H13) | "Moi." "…Moi." Dan de kus. Daarna doen ze alsof er niks gebeurd is |
 | Dieptepunt (H16) | Ruzie: "Jij zegt nooit iets." |
 | Finale (H18) | "Woist ja wel." "Dat telt. Maar ik wil het één keer horen." "Ik wil bij jou blijven." Vijf woorden. |
@@ -78,9 +78,9 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 
 | # | Missie / stap | Plek in de heldenreis | Wat er gebeurt | Wat de speler leert |
 |---|---|---|---|---|
-| | **Trailer en opening** | Gewone wereld | Wie ze zijn, de Fjord-droom, de Escapade | Wie Tammo en Anita zijn |
+| | **Trailer en opening** | Gewone wereld | Wie ze zijn, de Fjord-droom, de Escapade | Wie Tammo en Tessa zijn |
 | 1 | **H1** Berend telt de krassen | Gewone wereld | De eerste klus. Er zijn Friese kopers met een klomp | Rijden zonder schade |
-| 2 | **H2** Even pinnen | De roep | Reuzen trekken een automaat met Anita's pas eruit. Sjabbe noemt het museum | De pliesie kwijtraken, spuiten |
+| 2 | **H2** Even pinnen | De roep | Reuzen trekken een automaat met Tessa's pas eruit. Sjabbe noemt het museum | De pliesie kwijtraken, spuiten |
 | | *De weigering* | Weigering | Tammo: "Dat is de bal van Grunn." | |
 | 3 | **H3** Iets met de Grote Markt | Een eerste stap | Geld en inschrijving voor de Snackprijs. Jelle komt in de chat | Stuntavond zonder slachtoffers: punten voor spullen en stunts, strafpunten voor mensen |
 | 4 | **H4** Kieken van boven | De mentor (Bert) | De duivenkoning ziet de trekker bij het museum | Duivenmodus |
@@ -92,7 +92,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 | 7 | **H7** Heel aankomen is ook een kunst | Beproeving | Een alibi. Al het vet is opgekocht | Breekbare lading |
 | 8 | **H8** Al het vet van Grunn | Beproeving | De eerste overwinning op Jelle | Kapen |
 | | *Tuning* | | De Escapade opvoeren bij Knal & Kolder | Garage |
-| 9 | **H9** Ring Zuid, laatste fase | Rivaliteit | Jelle daagt Tammo uit vanwege Anita | Autorace |
+| 9 | **H9** Ring Zuid, laatste fase | Rivaliteit | Jelle daagt Tammo uit vanwege Tessa | Autorace |
 | 10 | **H10** Er hangt iets Fries aan d'Olle Grieze | Het mysterie | Op de vlag staat "FOAR MEM" | Duivenmodus, gevorderd |
 | | *Botsauto's* | | Durk verklapt de kroeg | Kermis |
 | 11 | **H11** Nog eentje dan | Onthulling 1 | "De bal ligt op het skûtsje. Mem wil hem niet eens." | Te voet |
@@ -120,7 +120,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 ## Trailer (cutscène, ongeveer 40 seconden)
 
 *Een trailerparodie op GTA VI, met flitsen vooruit in het verhaal. Zon op d'Olle Grieze in plaats van palmbomen. Fietsers in plaats van flamingo's. Een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel, synthmuziek.*
-- *Flits: een vrouw in een rode jas met een pinautomaat op een aanhanger. Bevroren beeld:* **ANITA**, met "Heeft altijd een plan B. Plan A is ook van haar."
+- *Flits: een vrouw in een rode jas met een pinautomaat op een aanhanger. Bevroren beeld:* **TESSA**, met "Heeft altijd een plan B. Plan A is ook van haar."
 - *Flits: een man met een pet die een deur openhoudt en schuldig in de camera kijkt. Bevroren beeld:* **TAMMO**, met "Stadjer. Groot hart. Kleine portemonnee."
 - *Flitsen: een duif boven het museum, een trekker-limo op de ring, een tankwagen die slipt, een helikopter met een man aan een touw boven het Oosterpark.*
 - *Titel:* het GDE-logo (**GDE**, GRONINGEN op het plaatsnaambord, *Zomer vol misdaad*), met "Er gaat niets boven Grunn. Behalve de Martinitoren." Ondertitel: *Een zomer in Grunn.*
@@ -129,30 +129,30 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 
 *Zonsopgang. De camera zakt langs d'Olle Grieze naar een smalle straat in de Oosterparkwijk. Een zolderraam, een rode Fjord Escapade met een lekke band voor de deur. Op een oude radio, zacht: Nachtstreek.*
 - **Rikus (radio):** Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest *(schemer)*, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens.
-- *Binnen. Anita aan de keukentafel met papieren en een tekening van een blauwe frietwagen: FJORD FRITUUR. Tammo komt binnen met twee bakken koffie van de nachtwinkel.*
+- *Binnen. Tessa aan de keukentafel met papieren en een tekening van een blauwe frietwagen: FJORD FRITUUR. Tammo komt binnen met twee bakken koffie van de nachtwinkel.*
 - **Tammo:** Moi. De bank?
-- **Anita:** "Uw plan is sympathiek." Dat betekent nee, met een strikje.
+- **Tessa:** "Uw plan is sympathiek." Dat betekent nee, met een strikje.
 - **Tammo:** Sympathiek is toch goed?
-- **Anita:** Een kat is ook sympathiek. Die krijgt ook geen lening.
-- **Anita:** Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto.
+- **Tessa:** Een kat is ook sympathiek. Die krijgt ook geen lening.
+- **Tessa:** Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto.
 - **Tammo:** Ik wel. De Escapade.
-- **Anita:** Die rijdt nauwelijks.
+- **Tessa:** Die rijdt nauwelijks.
 - **Tammo:** Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.
-- *Anita kijkt hem aan. Hij kijkt naar zijn koffie.*
-- **Anita:** …Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.
+- *Tessa kijkt hem aan. Hij kijkt naar zijn koffie.*
+- **Tessa:** …Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.
 - **Tammo:** Alleen: waar laat je hem? Op deze zolder kun je niet eens rechtop staan.
-- **Anita** *(schuift een papier over tafel)*: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.
+- **Tessa** *(schuift een papier over tafel)*: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.
 - **Tammo:** Paddepoel? Dat is buitenland.
-- **Anita:** Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.
+- **Tessa:** Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.
 - **Tammo:** …Samen.
-- **Anita:** Als huisgenoten, Tammo. Teken nou maar.
+- **Tessa:** Als huisgenoten, Tammo. Teken nou maar.
 - **Rikus (radio):** En voor Tammo, als je luistert: ze zegt nooit "kom" tegen iemand die ze niet mee wil hebben. Doe er wat mee.
 - *Haar telefoon trilt.*
-- **Anita:** Kom. Werk.
+- **Tessa:** Kom. Werk.
 
 **Verhuisdag (cutscène, Paddepoel).** *De House of Groningen aan de Pleiadenlaan, elf hoog. De Escapade met een matras op het dak, Tammo met een verhuisdoos.*
 - **Tammo:** Elf hoog. Met een lift. Ik voel me rijk.
-- **Anita:** Je bent niet rijk, Tammo. Je bent huisgenoot.
+- **Tessa:** Je bent niet rijk, Tammo. Je bent huisgenoot.
 - *De camera zwiept omhoog: "Welkom in Grunn." Het spel begint voor de deur van de flat. Paddepoel is vanaf nu thuis.*
 
 *Waarom:* de zolder in de Korenbloemstraat (Oosterparkwijk) is te klein en te duur voor één. Samen kunnen ze net een flat in Paddepoel huren, "als huisgenoten". Het past bij de romance: ze wonen samen, maar zeggen niks. De eerste autogesprekken gaan over de lift en de afwas; Tammo's eerste bericht begint met "De dozen kunnen wachten."
@@ -171,30 +171,30 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 
 **Intro (cutscène, Martinikerkhof).**
 - **Berend:** Goidag.
-- **Anita:** Goidag, Berend.
+- **Tessa:** Goidag, Berend.
 - **Berend:** Ik heb gisteren alle krassen geteld. Nul. Zo blijft het.
 - **Tammo:** Waarom noemt iedereen jou eigenlijk Bommen Berend?
 - **Berend:** Veertig jaar speel ik hem, op het Ontzet. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.
-- **Anita:** Ik rij.
+- **Tessa:** Ik rij.
 - **Tammo:** Jij rijdt als een fietser met een deadline.
-- **Anita:** En jij als een fietser zonder fiets. Sleutels, Berend.
+- **Tessa:** En jij als een fietser zonder fiets. Sleutels, Berend.
 
 *(Gameplay: bezorgen zonder schade. De navigatie stuurt je om via de Diepenring, vanwege de sectoren uit 1977.)*
 
 **Outro (cutscène, Boterdiep).**
 - **Berend** *(loopt om het bakkie heen)*: …Goud.
-- **Anita:** Trede twee van de complimentenladder, Tammo.
+- **Tessa:** Trede twee van de complimentenladder, Tammo.
 - **Berend:** Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus.
 - **Tammo:** Wat moet een Fries met jouw bakkie?
 - **Berend:** Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.
 - *Berend gaat naar binnen.*
 - **Tammo:** Hij zei moi.
-- **Anita:** Tegen mij.
+- **Tessa:** Tegen mij.
 
 **Bij een herhaling.** **Berend:** Weer nul krassen. Ik begin het je bijna te gunnen.
 
 **Autogesprek**
-- **Anita:** Vijftig euro. Dat is een ventieldopje van de Fjord.
+- **Tessa:** Vijftig euro. Dat is een ventieldopje van de Fjord.
 - **Tammo:** Dan hebben we er één. Dat is een begin.
 
 ---
@@ -204,44 +204,44 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 **Bel Rikus.**
 - **Rikus:** Een luisteraar meldt een trekker in de Herestraat, om half acht 's ochtends. Ik zeg niks. Fietsen mag daar overdag ook niet.
 
-**Intro (cutscène, Herestraat).** *Anita bij een pinautomaat. Hij slikt haar pas in.*
-- **Anita:** Hij heeft mijn pas. Hij heeft mijn pas en hij…
+**Intro (cutscène, Herestraat).** *Tessa bij een pinautomaat. Hij slikt haar pas in.*
+- **Tessa:** Hij heeft mijn pas. Hij heeft mijn pas en hij…
 - *Een zwarte trekker met een kabel. Twee reuzen trekken de hele automaat uit de muur en laden hem op een aanhanger.*
 - **Naamkaart:** **DURK & DOUWE**, met "Twee reuzen. Eén brein. Ze delen het."
 - **Durk:** Douwe. Hij is los.
 - **Douwe:** …los.
 - *De trekker rijdt weg. De aanhanger blijft achter een paal haken en schiet los. Ze rijden door zonder hem.*
 - **Tammo (komt aangelopen):** Moi. Wat is er gebeurd?
-- **Anita:** Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand.
+- **Tessa:** Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand.
 - **Tammo:** Dus we pinnen even.
-- **Anita:** …Er komt een politieauto aan. Instappen.
+- **Tessa:** …Er komt een politieauto aan. Instappen.
 
 *(Gameplay blijft: met de automaat achterin de pliesie kwijtraken, spuiten bij Spuit & Klaar, en naar Pand & Poen.)*
 
 **Outro (cutscène, Pand & Poen).**
 - **Naamkaart:** **SJABBE**, met "Koopt alles. Vraagt niks."
-- *Sjabbe wrikt de klep open en geeft Anita haar pas.*
+- *Sjabbe wrikt de klep open en geeft Tessa haar pas.*
 - **Sjabbe:** Braid noar de zin *(helemaal tevreden)*. Vierhonderd, voor de onderdelen.
-- **Anita:** Daar koop je nog geen halve frietwagen van.
+- **Tessa:** Daar koop je nog geen halve frietwagen van.
 - **Sjabbe:** Jullie dromen klein. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas vroeg waar het museum alarmen heeft.
-- **Anita:** Het museum. De Gouden Eierbal.
+- **Tessa:** Het museum. De Gouden Eierbal.
 - **Sjabbe:** Achttien karaat. Ik zeg niks. Ik zeg alleen: wie hem eerst heeft, heeft hem.
 
 **Bij een herhaling.** **Sjabbe:** Weer een automaat? Dit wordt een gewoonte. Een goede.
 
 **Autogesprek *(de weigering)***
-- **Anita:** Als iemand die bal steelt, Tammo, dan liever wij. Dan is hij tenminste nog in Stad.
+- **Tessa:** Als iemand die bal steelt, Tammo, dan liever wij. Dan is hij tenminste nog in Stad.
 - **Tammo:** Mijn opa stond in 1953 op de Grote Markt toen we hem wonnen. Hij huilde. Hij huilde nooit.
-- **Anita:** Je opa huilde bij elke voetbalwedstrijd.
+- **Tessa:** Je opa huilde bij elke voetbalwedstrijd.
 - **Tammo:** Dat was verlies. Dit was anders.
-- **Anita:** …Je mag nee zeggen.
+- **Tessa:** …Je mag nee zeggen.
 - **Tammo:** Ik zeg niks. Dat is ook een antwoord.
 
 ---
 
 ## 3 · H3 · Iets met de Grote Markt
 
-*Waarom nu:* de inschrijving voor de Snackprijs kost €150, en zonder de Fjord Frituur kan Anita niet meedoen. Jelmer betaalt voor content. Het is ook de eerste keer dat Jelle zich laat zien.
+*Waarom nu:* de inschrijving voor de Snackprijs kost €150, en zonder de Fjord Frituur kan Tessa niet meedoen. Jelmer betaalt voor content. Het is ook de eerste keer dat Jelle zich laat zien.
 
 *De missie verandert:* geen rampage met slachtoffers meer, maar een **zomerse stuntavond zonder slachtoffers**. Kiekdoar schreef dat de Grote Markt "dood" is, en Jelmer wil hem laten leven. Je haalt punten met:
 - stunts met de Escapade tussen de kramen door;
@@ -259,7 +259,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 **Intro (cutscène).** *Er staat een hijskraan, zoals altijd. Een terras vol mensen in de avondzon.*
 - **Jelmer:** Moi moi chat! Dik feest vandaag *(dik = geweldig)*! Zomeravond op de Grote Markt!
 - **Tammo:** Ik ben geen content. Ik ben Tammo.
-- **Anita:** Spreek voor jezelf. Ik ben heel veel content.
+- **Tessa:** Spreek voor jezelf. Ik ben heel veel content.
 - **Tammo:** En die terrassen?
 - **Jelmer:** Die zijn het publiek! Niemand raken, wel laten schrikken!
 - **Torenwachter (telefoon):** Tammo. Torenwachter. Er staan mensen op de Grote Markt.
@@ -269,11 +269,11 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 **Outro (cutscène).** *Parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert, nat van de sproeiwagen.*
 - **Terrasgast:** Kon minder!
 - **Jelmer:** Tienduizend kijkers! En kijk: "JelleWâld" in de chat. "Groot Loug. Moai foar in wykein." *(Een groot dorp. Mooi voor een weekendje.)*
-- **Anita:** Groot Loug. Zo noemen wíj onszelf. Dat mag hij niet.
+- **Tessa:** Groot Loug. Zo noemen wíj onszelf. Dat mag hij niet.
 - **Jelmer:** "En dat famke yn it read: sa'n leaf gesicht." *(En dat meisje in het rood: wat een lief gezicht.)*
-- *Tammo kijkt naar Anita's rode jas, en dan naar de telefoon.*
+- *Tammo kijkt naar Tessa's rode jas, en dan naar de telefoon.*
 - **Tammo:** Wie is die man.
-- **Anita:** Is dat een vraag?
+- **Tessa:** Is dat een vraag?
 - **Tammo:** Nee.
 
 **Bij een herhaling.** **Jelmer:** Chat, hij is er weer! De man zonder content! Niemand raken, hè!
@@ -301,32 +301,32 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - *Tammo fluit. Een duif landt op zijn pet.*
 - **Bert:** Kiek. Een keudeldoemke *(een lieverdje)*. Hij luustert noar dij, jong.
 - **Tammo:** Duiven luisteren naar niemand.
-- **Anita:** Mijn vriend de duivenkoning.
+- **Tessa:** Mijn vriend de duivenkoning.
 - **Tammo:** "Vriend."
-- **Anita:** Wat?
+- **Tessa:** Wat?
 - **Tammo:** Ow.
 
 **Outro (cutscène).**
-- **Anita:** Drie camera's, twee bewakers, en een stroomkast achter de fietsenstalling.
+- **Tessa:** Drie camera's, twee bewakers, en een stroomkast achter de fietsenstalling.
 - **Tammo:** En een zwarte trekker bij de achteringang, met een limousine erachter. Vlaggetjes met rode blaadjes. Een man in een blauw colbert die de alarmen telt.
-- **Anita:** Pompeblêden. Een Fries. Hij gaat het echt doen.
+- **Tessa:** Pompeblêden. Een Fries. Hij gaat het echt doen.
 - **Tammo:** Hoe weet jij wat pompeblêden zijn?
-- **Anita:** Dat weet je gewoon.
+- **Tessa:** Dat weet je gewoon.
 - **Tammo:** Dat weet niemand. Behalve Friezen.
 
 **Bij een herhaling.** **Bert:** Zo. De duivenkoning is weer aan het werk.
 
 **Autogesprek**
 - **Tammo:** We gaan het dus echt doen.
-- **Anita:** We gaan hem eerder halen dan die Fries. Daarna zien we wel.
+- **Tessa:** We gaan hem eerder halen dan die Fries. Daarna zien we wel.
 - **Tammo:** "Daarna zien we wel" is geen plan.
-- **Anita:** As 't nait gait zoas 't mot, mot 't mor zoas 't gait. *(Als het niet gaat zoals het moet, moet het maar zoals het gaat.)*
+- **Tessa:** As 't nait gait zoas 't mot, mot 't mor zoas 't gait. *(Als het niet gaat zoals het moet, moet het maar zoals het gaat.)*
 - **Tammo:** Dat is ook geen plan. Dat is een tegeltje.
 
 ## Tussendoor: de fiets *(KEI-week)*
-*Lead (Anita):* "Sjoerd van de KEI-commissie heeft een neef bij de museumbeveiliging. Hij praat alleen met wie de KEI-race rijdt. Op een eigen fiets, met bonnetje."
+*Lead (Tessa):* "Sjoerd van de KEI-commissie heeft een neef bij de museumbeveiliging. Hij praat alleen met wie de KEI-race rijdt. Op een eigen fiets, met bonnetje."
 - **Bij Trap & Toeter (Tammo):** Een fiets kopen. In Grunn. Mijn opa draait zich om in zijn graf.
-- **Anita:** Je opa had drie gestolen fietsen.
+- **Tessa:** Je opa had drie gestolen fietsen.
 - **Tammo:** Daarom.
 
 ---
@@ -340,22 +340,22 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 **Intro (cutscène, Academiegebouw).**
 - **Sjoerd:** Op de kruispunten is alles tegelijk groen. Niemand heeft voorrang. Maak oogcontact.
-- **Anita:** Tammo heeft hier nog gestudeerd. Twee weken.
+- **Tessa:** Tammo heeft hier nog gestudeerd. Twee weken.
 - **Tammo:** Drie. De derde was ik ziek.
-- **Anita:** Van het studeren?
+- **Tessa:** Van het studeren?
 - **Tammo:** Van de mensa.
 
-*(Gameplay: fietsrace. Op een kruispunt waar alles tegelijk groen is, komt Anita van de andere kant op haar eigen fiets. Oogcontact, en allebei remmen.)*
+*(Gameplay: fietsrace. Op een kruispunt waar alles tegelijk groen is, komt Tessa van de andere kant op haar eigen fiets. Oogcontact, en allebei remmen.)*
 
 **Outro (cutscène, café).**
 - **Sjoerd:** Record. Jullie komen op het bierviltje. Achterkant.
-- **Anita:** Je neef werkt 's nachts in het museum?
+- **Tessa:** Je neef werkt 's nachts in het museum?
 - **Sjoerd:** Om twaalf uur gaan de camera's drie minuten uit voor een update. Al sinds 2019. Niemand weet waarom. Dat mag ik eigenlijk niet zeggen.
 - **Tammo:** Je zei het ook niet.
 - **Sjoerd:** Precies. Proost.
-- **Anita (zacht):** Drie minuten.
+- **Tessa (zacht):** Drie minuten.
 - **Tammo:** Ik heb in drie minuten nog nooit iets goeds gedaan.
-- **Anita:** Dan wordt het tijd.
+- **Tessa:** Dan wordt het tijd.
 
 **Bij een herhaling.** **Sjoerd:** Wind tegen? Natuurlijk. Beide kanten op. Proost.
 
@@ -369,7 +369,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - **Henk:** Eén. Het is geen Ontzet. En ik vraag niet waarom jullie in het zwart zijn.
 - **Tammo:** Een begrafenis.
 - **Henk:** Om twaalf uur 's nachts.
-- **Anita:** Een hele late.
+- **Tessa:** Een hele late.
 
 ---
 
@@ -380,21 +380,19 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 **Intro (cutscène, kade bij het Groninger Museum, nacht).**
 - **Tammo:** Weet je zeker dat dit gebouw nog niet gekraakt is? Het ziet er al zo uit.
-- **Anita:** Dat is architectuur. Eerst dertig jaar mopperen, dan trots. Zo gaat dat hier.
-- **Anita:** Om twaalf uur. Drie minuten. Hand.
+- **Tessa:** Dat is architectuur. Eerst dertig jaar mopperen, dan trots. Zo gaat dat hier.
+- **Tessa:** Om twaalf uur. Drie minuten. Hand.
 - **Tammo:** Wat?
-- **Anita:** Geef me je hand. Het is donker daarbinnen.
+- **Tessa:** Geef me je hand. Het is donker daarbinnen.
 - **Tammo:** …Voor de grip.
-- **Anita:** Voor de grip.
+- **Tessa:** Voor de grip.
 
 *(Gameplay: sluipen op een timer van drie minuten, via het Verbindingskanaal.)*
 
-**Outro (cutscène, de lege vitrine).**
-- **Anita:** "Tige tank! – W." *(Hartelijk dank!)*
+**Outro (cutscène, de lege vitrine).** *De koepel is van matglas met een gouden gloed: wat erin ligt zie je pas als hij opengaat. Het slot klikt, de camera schuift in stilte naar de vitrine, de koepel komt omhoog: een leeg kussen. Close-up van het kaartje. Zes à acht seconden, wegklikbaar.*
+- **Tessa:** "Tige tank! – J." *(Hartelijk dank!)*
 - **Tammo:** Hij bedankt ons.
-- **Anita:** Hij. Bedankt. Ons.
-- **Tammo:** Beleefd, eigenlijk.
-- **Anita:** Tammo.
+- **Tessa:** Hij. Bedankt. Ons.
 - *Het alarm gaat af en het noodlicht springt aan. Ze rennen.*
 
 **Radio, live, terwijl ze vluchten.**
@@ -404,10 +402,12 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - **Rikus:** Jelle. Je bent live.
 - **Jelle:** Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4: de trofee gaat naar wie op Gronings Ontzet wint. Ik heb hem alvast meegenomen. Dat scheelt een rit.
 - **Jelle:** En geen vet, geen Grinzer aan de start. Oant sjen op it Ontset! *(Tot ziens op het Ontzet!)*
+- **Tessa:** J. Van Jelle. Natuurlijk.
+- **Tammo:** Beleefd.
 - **Tammo:** Hij heeft hem gestolen om hem eerlijk te winnen.
-- **Anita:** En de camera's van daarnet hebben óns gefilmd.
+- **Tessa:** En de camera's van daarnet hebben óns gefilmd.
 
-**Bij een herhaling.** **Anita:** Drie minuten. Hand. **Tammo:** Voor de grip. **Anita:** Natuurlijk.
+**Bij een herhaling.** **Tessa:** Drie minuten. Hand. **Tammo:** Voor de grip. **Tessa:** Natuurlijk.
 
 **Bericht van Kiekdoar:** Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."
 
@@ -426,27 +426,27 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze eindigt in een korte scène waarin ze een beetje naar elkaar toe groeien.
 
 **De trein** *(vanaf het Hoofdstation, een rit naar maakt niet uit waar)*
-- **Anita:** Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.
-- **Anita:** Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken.
+- **Tessa:** Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.
+- **Tessa:** Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken.
 - **Tammo:** Er was geen zee. Alleen een dijk.
-- **Anita:** Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.
+- **Tessa:** Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.
 - **Tammo:** Hij ligt er ook. Een beetje.
 - *Bericht (Tammo):* Iedereen kijkt naar Kiekdoar. Niemand naar ons.
 
 **Een ijsje in het Noorderplantsoen**
-- **Anita:** Twee bolletjes. Jij betaalt, ik ben voortvluchtig.
+- **Tessa:** Twee bolletjes. Jij betaalt, ik ben voortvluchtig.
 - **Tammo:** Ik ben ook voortvluchtig.
-- **Anita:** Jij hebt een pet. Dat is een vermomming.
+- **Tessa:** Jij hebt een pet. Dat is een vermomming.
 - **Tammo:** Jouw ijs smelt.
-- **Anita:** Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes.
+- **Tessa:** Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes.
 - **Tammo:** …Ze zijn lekker, jouw restjes.
 - *Bericht (Tammo):* Niemand zoekt een boef met een ijsje.
 
 **De zonsondergang aan de Hoge der A** *(de klok springt naar de avond)*
 - **Tammo:** Hier zat ik vroeger. Als het thuis te druk was.
-- **Anita:** Alleen?
+- **Tessa:** Alleen?
 - **Tammo:** Met een zakje friet. Dat telt.
-- **Anita:** Je kijkt naar mij, Tammo. De zon is daar.
+- **Tessa:** Je kijkt naar mij, Tammo. De zon is daar.
 - **Tammo:** Die gaat toch onder.
 - *Bericht (Tammo):* Twijduustern. Niemand zoekt ons in het donker.
 
@@ -465,13 +465,13 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Outro (cutscène, Noorderplantsoen).**
 - **Femke:** Heel! Bijna heel. En bij de groothandel: twee reuzen met een klomp vol geld. Ze kochten al het frituurvet van Stad. "Us Mem Vet" stond op de tankwagen.
-- **Anita:** Geen vet, geen eierballen op het Ontzet. Geen eierballen, geen Grunn in de Snackprijs.
+- **Tessa:** Geen vet, geen eierballen op het Ontzet. Geen eierballen, geen Grunn in de Snackprijs.
 - **Tammo:** Hij hoeft niet te winnen. Wij moeten alleen niet kunnen meedoen.
 - **Femke:** Blijven jullie kijken?
 - **Tammo:** Ik kan heel goed tegen wind. Alleen niet tegen kunst.
-- **Anita:** Hij kan wel tegen kunst. Als ik naast hem zit.
+- **Tessa:** Hij kan wel tegen kunst. Als ik naast hem zit.
 - **Tammo:** …Zei je dat nou hardop?
-- **Anita:** Nee. Dat was de wind.
+- **Tessa:** Nee. Dat was de wind.
 
 **Bij een herhaling.** **Femke:** Het decor moet weer gisteren al staan. Het is altijd gisteren bij Noorderzon.
 
@@ -484,16 +484,16 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Rikus:** Dit is erger dan de fietstunnel.
 
 **Intro (cutscène, Europaweg).**
-- **Anita:** Banden stuk, tankwagen pakken, naar de Oosterpoort.
+- **Tessa:** Banden stuk, tankwagen pakken, naar de Oosterpoort.
 - **Tammo:** En de Krolbrug?
 - **Rikus (radio, op de achtergrond):** Storingsbericht: de Krolbrug is in storing.
-- **Anita:** Zie je. Daar kun je op rekenen.
+- **Tessa:** Zie je. Daar kun je op rekenen.
 
 **Outro (cutscène, Oosterpoort).** *Snackbarhouders met lege pannen juichen.*
 - **Snackbarhouder:** Vet! Valt mie nait of! *(Dat valt me niet tegen!)*
-- **Anita:** Trede drie van de complimentenladder, Tammo.
+- **Tessa:** Trede drie van de complimentenladder, Tammo.
 - **Tammo:** Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten.
-- *Anita's telefoon trilt: "Pas op dysels, famke. – M." (Pas op jezelf, meisje.) Ze stopt hem snel weg. Tammo ziet het.*
+- *Tessa's telefoon trilt: "Pas op dysels, famke. – M." (Pas op jezelf, meisje.) Ze stopt hem snel weg. Tammo ziet het.*
 
 **Radio.**
 - **Jelle:** Rikus. Dat vet was van mij. No ja *(nou ja)*. Ik heb meer. Doe de groeten aan famke in het rood. Hij niet.
@@ -503,16 +503,16 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Autogesprek**
 - **Tammo:** Wie appt jou nou steeds?
-- **Anita:** Niks. Iemand uit Friesland.
+- **Tessa:** Niks. Iemand uit Friesland.
 - **Tammo:** Is hij lang?
-- **Anita:** Tammo.
+- **Tessa:** Tammo.
 - **Tammo:** Fierljepper zeker.
-- **Anita:** Rijden, niet praten.
+- **Tessa:** Rijden, niet praten.
 
 ## Tussendoor: tuning
 *Lead (Jelle, via Rikus):* "Doe de groeten aan de pet. Wij moeten eens hardrijden, op jullie ringweg. As dat jild der is." *(Als dat geld er is.)*
 - **Bij Knal & Kolder:** de Escapade krijgt een uitlaat die klinkt als een boze koelkast.
-- **Anita:** Hij is nog steeds van jou, hè. Niet van de frietwagen.
+- **Tessa:** Hij is nog steeds van jou, hè. Niet van de frietwagen.
 - **Tammo:** Hij is van ons. Hij weet het alleen nog niet.
 
 ---
@@ -526,16 +526,16 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Intro (cutscène, Julianaplein).**
 - **Jelle (uit de trekker-limo):** Moai, Grinzer. Onze echte derby is tegen Cambuur. Jullie zijn een uitje. Wie wint, mag famke een eierbal geven.
-- **Anita:** Famke koopt haar eigen eierbal.
+- **Tessa:** Famke koopt haar eigen eierbal.
 - **Tammo** *(heel kalm)*: Dat neem ik je kwalijk.
-- **Anita:** Dat was een hele zin, Tammo.
+- **Tessa:** Dat was een hele zin, Tammo.
 - **Tammo:** Ik voelde het.
 
 **Outro (cutscène).**
 - **Harm:** Hij ligt er! Ik ga met pensioen! Eindelijk mag ik er zelf overheen!
-- **Anita:** Je pakte mijn hand in de bocht.
+- **Tessa:** Je pakte mijn hand in de bocht.
 - **Tammo:** Voor de grip.
-- **Anita:** We zaten in een auto, Tammo. Met stuur.
+- **Tessa:** We zaten in een auto, Tammo. Met stuur.
 - **Tammo:** Met veel bocht.
 - **Jelle (telefoon):** Dit is net klear, Grinzer. *(Dit is nog niet klaar.)*
 
@@ -555,19 +555,19 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Intro (cutscène, Grote Markt, omhoog kijkend).** *Een reuzenvlag van dertig meter met pompeblêden. Onderaan, in grote letters: FOAR MEM.*
 - **Bert:** Die Fries noemde d'Olle Grieze "in aardich tuorke". *(Een aardig torentje.)* Een áárdig torentje!
-- **Anita:** "Foar mem." Voor zijn moeder.
+- **Tessa:** "Foar mem." Voor zijn moeder.
 - **Tammo:** Hij hangt een vlag aan onze toren voor zijn moeder.
-- **Anita:** Dat is eigenlijk best lief.
+- **Tessa:** Dat is eigenlijk best lief.
 - **Tammo:** Het is vandalisme.
-- **Anita:** Lief vandalisme.
+- **Tessa:** Lief vandalisme.
 - **Bert:** Vijf touwen. Een duif met een scherpe snavel.
 - **Tammo:** Ik fluit. Hij pikt.
 
 **Outro (cutscène).** *De vlag zakt als een theaterdoek. De Grote Markt klapt.*
 - **Bert:** Kon minder, jong.
-- **Anita:** Heel Grunn klapt voor een duif.
+- **Tessa:** Heel Grunn klapt voor een duif.
 - **Tammo:** Niet voor de duif. Voor mij. Ik floot.
-- **Anita:** Ik klapte ook. Een beetje.
+- **Tessa:** Ik klapte ook. Een beetje.
 - **Torenwachter (telefoon):** Tammo. De vlag ligt op de Grote Markt.
 - **Tammo:** Weet ik.
 - **Torenwachter:** Ik meld alleen.
@@ -594,24 +594,24 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Rikus:** Geert, dat is geen klus. Dat is een avond.
 
 **Intro (cutscène).**
-- **Geert:** Vier kroegen, één avond, alles te voet. En Anita: mijn nieuwe barman wil heel graag je nummer.
+- **Geert:** Vier kroegen, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer.
 - **Tammo:** Die barman heeft het druk.
-- **Anita:** O ja? Sinds wanneer bepaal jij dat?
+- **Tessa:** O ja? Sinds wanneer bepaal jij dat?
 - **Tammo:** Sinds nu.
-- **Anita:** Jaloers én verantwoordelijk. Wat heb je met Tammo gedaan?
+- **Tessa:** Jaloers én verantwoordelijk. Wat heb je met Tammo gedaan?
 
 **Outro (cutscène, de vierde kroeg).**
 - **Durk** *(zingend, half op de bar)*: De bal… leit op it skûtsje. *(De bal ligt op het skûtsje.)* Hik. En mem… mem wil hem niet eens.
 - **Douwe:** Durk. Dat was geheim. …Hè.
-- **Anita:** Zijn moeder wil hem niet eens? Waarom doet hij het dan?
+- **Tessa:** Zijn moeder wil hem niet eens? Waarom doet hij het dan?
 - **Tammo:** Iedereen doet weleens iets voor iemand die er niet om vraagt.
-- *Anita kijkt hem aan.*
+- *Tessa kijkt hem aan.*
 - **Tammo:** Die barman had een snor.
-- **Anita:** Ik hou niet van snorren. Ik hou van petten.
+- **Tessa:** Ik hou niet van snorren. Ik hou van petten.
 - **Tammo:** …Goed om te weten.
-- **Anita:** Dat was het moment, Tammo. Om iets te zeggen.
+- **Tessa:** Dat was het moment, Tammo. Om iets te zeggen.
 - **Tammo:** Nog eentje dan?
-- **Anita:** …Ja. Nog eentje dan.
+- **Tessa:** …Ja. Nog eentje dan.
 - *Buiten zeggen ze bij het afscheid allebei "moi", net te zacht, zodat de ander het niet hoort.*
 
 **Bij een herhaling.** **Geert:** Vier kroegen? Nog eentje dan.
@@ -639,7 +639,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tammo:** Ik ben vierendertig, oma.
 - **Oma Trijntje:** Dan eet je hem al vierendertig jaar te weinig.
 - **Oma Trijntje:** 1953. Ik won met mijn eierbal. Die handjes om de bal op die foto zijn van mij. Tweede werd een Fries meisje: Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet.
-- **Anita:** Terpstra. Jelle Terpstra.
+- **Tessa:** Terpstra. Jelle Terpstra.
 - **Oma Trijntje:** Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.
 - **Oma Trijntje:** Die bal is gien geld, jong. Die bal is Grunn. *(Die bal is geen geld, jongen.)* En jij: één zin, hè. Niet zeventig jaar.
 - **Tammo:** Ik zeg wel wat.
@@ -648,9 +648,9 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 **Bij een herhaling.** **Oma Trijntje:** Hest weer veur 'n ander? *(Heb je het weer voor elkaar?)* Dat was geen compliment, jong.
 
 **Autogesprek**
-- **Anita:** Wat bedoelde ze, "niet tegen haar"?
+- **Tessa:** Wat bedoelde ze, "niet tegen haar"?
 - **Tammo:** Oma's zeggen dingen.
-- **Anita:** Tammo.
+- **Tessa:** Tammo.
 - **Tammo:** Rijden, niet praten. Dat zeg jij altijd.
 
 ---
@@ -671,16 +671,16 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 *(Gameplay: rondvaart met gidsmomenten en Schipper Wiebe op je hielen.)*
 
 **Outro (cutscène, de boot ligt stil bij de Oosterhaven, de toeristen zijn weg, avondlicht).**
-- **Anita:** Daar. Het skûtsje. Twee reuzen met hun voeten in het water.
+- **Tessa:** Daar. Het skûtsje. Twee reuzen met hun voeten in het water.
 - **Tammo:** Weet je nog, Berends bakkie? Toen kreeg ik de sleutels niet eens.
-- **Anita:** Die krijg je nog steeds niet.
+- **Tessa:** Die krijg je nog steeds niet.
 - **Tammo:** Maar de rest wel?
-- **Anita:** Moi.
+- **Tessa:** Moi.
 - **Tammo:** …Moi.
 - *De camera blijft net te lang hangen. Dan kust ze hem. Kort. Daarna kijken ze allebei naar het water.*
-- **Anita:** Dat was voor de toeristen.
+- **Tessa:** Dat was voor de toeristen.
 - **Tammo:** Die zijn al uitgestapt.
-- **Anita:** …Ja.
+- **Tessa:** …Ja.
 
 **Bij een herhaling.** **Tammo (als gids):** Links Grunn. Rechts ook. Alles klopt. Behalve de papieren.
 
@@ -696,11 +696,11 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 *De laatste week naar 28 augustus. De kermis staat op de Grote Markt.*
 
 ## Tussendoor: bootje huren
-- **Anita:** Een sloep met een bel. Ik stuur.
+- **Tessa:** Een sloep met een bel. Ik stuur.
 - **Tammo:** Ik spring.
-- **Anita:** We springen allebei. Voortaan vallen we samen.
+- **Tessa:** We springen allebei. Voortaan vallen we samen.
 - **Tammo:** En over gisteren…
-- **Anita:** Gisteren was gisteren. Spring nou maar.
+- **Tessa:** Gisteren was gisteren. Spring nou maar.
 
 ---
 
@@ -711,13 +711,13 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Intro (cutscène).**
 - **Tammo:** Springen. Van een boot. Op een andere boot.
-- **Anita:** Jij stuurt, ik zeg wanneer.
+- **Tessa:** Jij stuurt, ik zeg wanneer.
 
 **Outro (cutscène, aan boord).** *In een kist ligt een gouden bal, en het goudpapier knispert. Er hangt een kaartje aan: "Foar mem."*
 - **Tammo:** Chocola. We hebben een boot gekaapt voor chocola.
-- **Anita:** Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft.
+- **Tessa:** Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft.
 - **Tammo:** Hij is romantischer dan ik.
-- **Anita:** Iedereen is romantischer dan jij.
+- **Tessa:** Iedereen is romantischer dan jij.
 - **Kapitein Klaas (telefoon):** Proeksel, jongens. *(Natte rommel.)* Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon.
 
 **Radio.**
@@ -725,12 +725,12 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Rikus:** Waarom vertel je dat, Jelle?
 - **Jelle:** Omdat het een gezellig programma is.
 
-**Bij een herhaling.** **Anita:** Weer een skûtsje? Laat de chocola deze keer heel, Tammo.
+**Bij een herhaling.** **Tessa:** Weer een skûtsje? Laat de chocola deze keer heel, Tammo.
 
 ## Tussendoor: proefvlucht
 *(Naar Rotor Roelf op Eelde. Zijn demoheli staat klaar op het platform.)*
 - **Rotor Roelf:** Moi! Rotor Roelf, van Eelde. De proefvlucht is gratis. Nait tegen d'Olle Grieze aan, hè?
-- **Anita:** Mooi. We kopen hem misschien. Misschien.
+- **Tessa:** Mooi. We kopen hem misschien. Misschien.
 - **Tammo:** Wij kunnen nog geen fietsbel betalen.
 
 ---
@@ -745,28 +745,28 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Intro (cutscène, het platform op Eelde).**
 - **Rotor Roelf:** Volgetankt. Rechtdoor naar het noorden, dan zie je Stad vanzelf.
-- **Anita:** En als we iets raken?
+- **Tessa:** En als we iets raken?
 - **Rotor Roelf:** Dan heb je hem gekocht. Moi!
 
 **Onderweg (door de helikopterradio).**
 - **Dokter Dijkstra:** Wieken Wubbo, hier Dijkstra, UMCG. Ik heb een spoedje. Mijn traumaheli staat bij Roelf in onderhoud.
 - **Dokter Dijkstra:** Achterin staat een koeltas. Daar zit de lunch van de nachtdienst in. Die hebben twaalf uur niks gehad.
-- **Anita:** Dat is geen noodgeval.
+- **Tessa:** Dat is geen noodgeval.
 - **Dokter Dijkstra:** Jij hebt nooit nachtdienst gedaan. Landen op de H van het UMCG, graag.
 
 **Op het helidek van het UMCG.**
 - **Dokter Dijkstra:** Eierballen. Nog warm. Jullie zijn mijn helden.
 - **Dokter Dijkstra:** En nu die ballon. Ik heb een lier. Zij vliegt. Hij hangt.
 - **Tammo:** Natuurlijk hang ík.
-- **Anita:** Ik vraag het, Tammo. Wil je hangen?
+- **Tessa:** Ik vraag het, Tammo. Wil je hangen?
 - **Tammo:** …Ja. Dank je dat je het vraagt.
 
 **Boven Stad.**
-- **Anita:** Daar. In het Oosterpark. Een ballon, en hij staat al bol.
+- **Tessa:** Daar. In het Oosterpark. Een ballon, en hij staat al bol.
 - **Tammo:** Mijn Oosterpark. Daar heb ik leren fietsen.
-- **Anita:** Daar heb ik jóu leren fietsen.
+- **Tessa:** Daar heb ik jóu leren fietsen.
 - **Tammo:** …Ook waar.
-- **Dokter Dijkstra:** Lier gaat uit. Rustig, Anita. Naast de mand, niet erop.
+- **Dokter Dijkstra:** Lier gaat uit. Rustig, Tessa. Naast de mand, niet erop.
 - **Tammo:** Ik hang. Ik hang echt.
 - *(Gameplay: naast de mand blijven hangen tot Tammo de bal heeft.)*
 - **Tammo:** Ik heb hem! De echte!
@@ -774,9 +774,9 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Outro (cutscène, het UMCG).** *Tammo houdt de bal vast. Hij is zwaar en echt.*
 - **Tammo:** Ik heb hem. De echte. Hij smelt niet.
-- **Anita:** Je praatte de hele tijd, aan dat touw.
+- **Tessa:** Je praatte de hele tijd, aan dat touw.
 - **Tammo:** Ik had hoogtevrees.
-- **Anita:** Je zei "doe bist schier" *(jij bent mooi)*. Tegen de ballon.
+- **Tessa:** Je zei "doe bist schier" *(jij bent mooi)*. Tegen de ballon.
 - **Tammo:** …Hij was mooi.
 - **Dokter Dijkstra:** Die Fries is geland in een weiland bij Ten Boer. Tussen de koeien. Hij was niet blij. De koeien ook niet.
 
@@ -794,12 +794,12 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Douwe:** Van Jelle moeten we jullie een uur bezighouden.
 - **Durk:** Douwe. Dat was geheim.
 - **Douwe:** …Hè.
-- **Anita:** Een uur? Waarom een uur?
+- **Tessa:** Een uur? Waarom een uur?
 - **Durk:** Dat weten wij ook niet. Wij zijn alleen de bezigheid.
 - **Tammo:** Twintig minuten. Dan staat het twee-nul.
-- **Anita:** Even afreageren. Je armen trillen nog van dat touw.
+- **Tessa:** Even afreageren. Je armen trillen nog van dat touw.
 - **Tammo:** Mijn backhand niet.
-- *Na de partij:* **Anita:** Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?
+- *Na de partij:* **Tessa:** Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?
 - **Tammo:** Ken ik ja nait roeken. *(Hoe moet ik dat nou weten.)*
 
 ---
@@ -811,16 +811,16 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Rikus:** Iedereen heeft een rode auto gezien. Ik ook. Ik heb er zelf een.
 
 **Intro (cutscène).** *Op de plek van de Escapade staat een klomp. Er zit een briefje in.*
-- **Tammo:** "Tige tank foar de auto. – W." *(Bedankt voor de auto.)* De Fjord Frituur. Zonder Fjord.
+- **Tammo:** "Tige tank foar de auto. – J." *(Bedankt voor de auto.)* De Fjord Frituur. Zonder Fjord.
 - **Tammo:** Wie heb je verteld waar we wonen?
-- **Anita:** Niemand.
+- **Tessa:** Niemand.
 - **Tammo:** Je appt al weken met Friesland.
-- **Anita:** …Ga je dit nu doen? Nu?
+- **Tessa:** …Ga je dit nu doen? Nu?
 - **Tammo:** Ik vraag het alleen.
-- **Anita:** Nee, je vraagt het niet. Je vraagt nooit iets. Jij zegt nooit iets, Tammo, en dan word je stil en boos op mij. Ik haal jouw auto wel terug. Alleen.
+- **Tessa:** Nee, je vraagt het niet. Je vraagt nooit iets. Jij zegt nooit iets, Tammo, en dan word je stil en boos op mij. Ik haal jouw auto wel terug. Alleen.
 - *Ze loopt weg. Tammo blijft staan met de klomp in zijn handen.*
 
-*(Gameplay: je speelt als Anita, alleen. Zoek de Escapade via het piepje van de zender die Henk erin zette, en haal hem van de trein naar Ljouwert.)*
+*(Gameplay: je speelt als Tessa, alleen. Zoek de Escapade via het piepje van de zender die Henk erin zette, en haal hem van de trein naar Ljouwert.)*
 
 **Radio, tijdens de missie (Mem Terpstra belt in).**
 - **Naamkaart:** **MEM TERPSTRA**, met "Iemand uit Friesland."
@@ -829,16 +829,16 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Mem:** Omdat mijn zoon gekke dingen doet om iets voor mij te winnen wat ik niet meer hoef. En omdat ik in 1953 tweede werd, tegen Trijntje. Dat heeft hij nooit losgelaten. Ik wel.
 
 **Outro (cutscène, perron, de Escapade op een wagon. Tammo staat er al.)**
-- **Anita:** Hoe wist jij dat hij hier was?
+- **Tessa:** Hoe wist jij dat hij hier was?
 - **Tammo:** Ik luisterde naar Rikus. En ik ben de trein achterna gefietst. Wind tegen.
-- **Anita:** Beide kanten op.
-- **Anita:** "Iemand uit Friesland" is Mem Terpstra. Ze wil dat haar zoon ophoudt.
+- **Tessa:** Beide kanten op.
+- **Tessa:** "Iemand uit Friesland" is Mem Terpstra. Ze wil dat haar zoon ophoudt.
 - **Tammo:** …Een moeder. Ik was jaloers op een moeder.
-- **Anita:** Een beetje, hè.
+- **Tessa:** Een beetje, hè.
 - **Tammo:** Sorry. Dat ik nooit wat zeg.
-- **Anita:** Je zei net iets.
+- **Tessa:** Je zei net iets.
 - **Tammo:** Het voelde raar.
-- **Anita:** Het klonk goed.
+- **Tessa:** Het klonk goed.
 
 **Bij een herhaling.** **Jelmer:** Chat, iedereen heeft weer een rode auto gezien!
 
@@ -853,13 +853,13 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Jelle:** Ik ben een redelijk man. Jullie hebben iets wat van mem is.
 - **Tammo:** Van Grunn.
 - **Jelle:** Details. Geef me de bal, en op het Ontzet bak ik gewoon tegen jullie. Eerlijk.
-- *Anita kijkt lang naar het koffertje.*
+- *Tessa kijkt lang naar het koffertje.*
 - **Tammo:** Het is jouw droom. Jij kiest.
-- **Anita:** …Het bod viel tegen.
+- **Tessa:** …Het bod viel tegen.
 - **Jelle:** Tegen? Dit is meer dan…
-- **Anita:** Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders.
+- **Tessa:** Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders.
 - **Jelle:** Wat dan?
-- **Anita:** Dat iemand één keer zegt dat ze de beste was. Dat kost niks. Daarom doe je het niet.
+- **Tessa:** Dat iemand één keer zegt dat ze de beste was. Dat kost niks. Daarom doe je het niet.
 - *Jelle zwijgt. Dat is voor het eerst.*
 - **Jelle:** …We bakken op het Ontzet. Wie wint, krijgt de bal.
 
@@ -872,7 +872,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tammo:** En wist je het?
 - **Oma Trijntje:** Al jaren. Maar ik wilde het één keer hóren, jong. Eén keer is genoeg.
 - **Oma Trijntje:** En bel Gerda Terpstra voor me.
-- **Anita:** Nu?
+- **Tessa:** Nu?
 - **Oma Trijntje:** Ik ben tweeënnegentig. Alles is nu.
 
 **Bij een herhaling.** **Oma Trijntje:** Eieren heel? Dan komt het goud. *(Dan komt het goed.)*
@@ -893,9 +893,9 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Berend (in de rol):** Grunn! Geef je over!
 - **Kind in het publiek:** Nee!
 - **Berend (uit de rol, tegen Tammo):** Elk jaar hetzelfde. Ik word er niet jonger op. Ik zit ook in de jury. Ik proef, ik tel, ik oordeel.
-- **Anita:** Tammo bakt. Ik hou de kraam heel.
+- **Tessa:** Tammo bakt. Ik hou de kraam heel.
 - **Tammo:** Ik bak nooit onder druk.
-- **Anita:** Je doet alles onder druk. Daarom werkt het.
+- **Tessa:** Je doet alles onder druk. Daarom werkt het.
 
 *(Gameplay in drie stukken:*
 1. *De kraam heel houden. Durk en Douwe steken per ongeluk hun vuurwerk aan.*
@@ -914,22 +914,22 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Mem (tegen Jelle):** Sjochst? Dat wie alles wat ik woe. *(Zie je? Dat was alles wat ik wilde.)* Priuw, jonge. *(Proef, jongen.)*
 - **Jelle** *(proeft de Groninger eierbal)*: …Valt mie nait of.
 - **Tammo:** Hij praat Gronings.
-- **Anita:** Dan is het ernstig.
+- **Tessa:** Dan is het ernstig.
 - **Jelle:** Better as ús. Net fertelle. *(Beter dan de onze. Niet doorvertellen.)*
 - **Berend:** De Noordelijke Snackprijs gaat naar Grunn. De bal blijft in Stad. En op het bordje in het museum komt een tweede naam: Gerda Terpstra, 1953. Ik schrijf de gemeente er wel een brief over.
 
-**Achter de kraam (cutscène, Rikus live erbij).** *Het lawaai van de markt. Tammo en Anita achter de frituur.*
+**Achter de kraam (cutscène, Rikus live erbij).** *Het lawaai van de markt. Tammo en Tessa achter de frituur.*
 - **Rikus:** We schakelen over naar de kraam. Er is een peiling die al weken openstaat.
-- **Anita:** Tammo. Iedereen luistert.
+- **Tessa:** Tammo. Iedereen luistert.
 - **Tammo:** …Woist ja wel.
-- **Anita:** Dat telt. Maar ik wil het één keer horen.
+- **Tessa:** Dat telt. Maar ik wil het één keer horen.
 - **Tammo:** Ik wil bij jou blijven.
 - *Ze telt op haar vingers.*
-- **Anita:** Vijf woorden.
+- **Tessa:** Vijf woorden.
 - **Tammo:** Ik had er meer. Die waren minder goed.
-- **Anita:** Mien jong. Dat duurde twaalf jaar.
+- **Tessa:** Mien jong. Dat duurde twaalf jaar.
 - **Tammo:** Kon minder.
-- **Anita:** Kon veel minder.
+- **Tessa:** Kon veel minder.
 - **Rikus:** Peiling gesloten.
 
 **Telefoon (Jelle, 's avonds).**
@@ -940,10 +940,10 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 *Een paar weken later. De terrassen gaan naar binnen. De wind is kouder. Bij de Vismarkt staat de Fjord Frituur, met een rij tot de Korenbeurs.*
 - **Rikus (radio):** Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is op.
-- *Tammo en Anita achter de frituur, in hun jassen. Ze delen één bakje friet.*
-- **Anita:** Het is koud.
+- *Tammo en Tessa achter de frituur, in hun jassen. Ze delen één bakje friet.*
+- **Tessa:** Het is koud.
 - **Tammo:** Het is Grunn.
-- **Anita:** Spijt van de zomer?
+- **Tessa:** Spijt van de zomer?
 - **Tammo:** Nee. Van de winter ook niet. Alvast.
 
 ## Slot (cutscène, Nachtstreek, nacht)
@@ -974,7 +974,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 | Missie / stap | Verandering |
 |---|---|
 | H1 | De navigatie stuurt je om via de sectoren uit 1977 |
-| H2 | Durk en Douwe trekken de automaat eruit, met Anita's pas erin |
+| H2 | Durk en Douwe trekken de automaat eruit, met Tessa's pas erin |
 | H3 | Geen rampage met slachtoffers meer: een stuntavond waarin je punten haalt met spullen en stunts. Mensen raken kost punten |
 | H5 | Een kruispunt waar alles tegelijk groen is, met oogcontact als romancemoment |
 | H6 | Een timer van drie minuten |
@@ -982,7 +982,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 | H10 | De vlag krijgt "FOAR MEM" |
 | H12 | Verhuist van de Folkingestraat naar de Oude Ebbingestraat en de Noorderhaven |
 | H14 | Een chocoladebal met het kaartje "Foar mem" |
-| H16 | Je speelt alleen als Anita. De Escapade wordt gejat, niet "Anita's Fjord" |
+| H16 | Je speelt alleen als Tessa. De Escapade wordt gejat, niet "Tessa's Fjord" |
 | H18 | Drie stukken: kraam, achtervolging met duiven, jury |
 | Koopstappen | Eierbal, pistool, uzi, auto en bank zijn niet meer verplicht |
 
@@ -991,4 +991,4 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - Nieuw: **de torenwachter**, een kleine stem die alleen telefoontjes doet en geen model nodig heeft.
 - **Mem Terpstra** heet voluit Gerda.
 - **Oma Trijntje** is 92.
-- Ook de personagebijbel wordt bijgewerkt: Tammo en Anita zijn vrienden van de stoep in het Oosterpark, Tammo heeft de Escapade, en de rivaliteit van 1953.
+- Ook de personagebijbel wordt bijgewerkt: Tammo en Tessa zijn vrienden van de stoep in het Oosterpark, Tammo heeft de Escapade, en de rivaliteit van 1953.

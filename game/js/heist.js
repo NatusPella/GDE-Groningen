@@ -1,6 +1,6 @@
 // H6 "Het museum stond er al zo", the showpiece heist. missions.js runs the stages; this
 // module owns what happens in them:
-//   plan        the blueprint of the museum (heistui.js) while Anita explains,
+//   plan        the blueprint of the museum (heistui.js) while Tessa explains,
 //               then the choice of approach: 'sluip' (the back door, a lock,
 //               the guard in zaal 1) or 'vermomd' (cleaners' overalls, a pass
 //               lifted from the guard at the glass door; guards only see you
@@ -293,9 +293,11 @@ export function placeHeistProps(world, fuseSpot, vitrineSpot) {
     const card = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.1), new THREE.MeshBasicMaterial({ color: 0xf4f0e2, side: THREE.DoubleSide }));
     card.rotation.x = -Math.PI / 2 + 0.25;
     card.position.set(0.05, 1.09, 0.04);
+    card.visible = false;
     g.add(card);
+    // frosted, warm-lit glass: you see a golden glow, not what lies on the cushion
     const lidG = new THREE.Group();
-    const glass = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.75, 0.9), new THREE.MeshStandardMaterial({ color: 0xcfe6ff, transparent: true, opacity: 0.18, roughness: 0.05, metalness: 0.1, depthWrite: false }));
+    const glass = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.75, 0.9), new THREE.MeshStandardMaterial({ color: 0xf3e6c4, emissive: 0x8a6418, emissiveIntensity: 0.55, transparent: true, opacity: 0.82, roughness: 0.6, metalness: 0.1, depthWrite: false }));
     glass.position.y = 1.38;
     lidG.add(glass);
     box(lidG, 0.94, 0.05, 0.94, 0xb8a36a, 0, 1.77, 0);
@@ -303,6 +305,7 @@ export function placeHeistProps(world, fuseSpot, vitrineSpot) {
     H.root.add(g);
     H.vitrine = { x: vitrine.x, y: vitrine.y };
     H.caseLid = lidG;
+    H.caseCard = card;
     H.stand = inMuseum ? SPOTS.stand() : besides(world.map, vitrine, 1.5);
   }
 }
@@ -609,6 +612,7 @@ export function heistLeaveStage(world, st) {
   if (st.kind === 'fuse') camerasOff();
   if (st.kind === 'laser') lasersOff();
   if (st.kind === 'crack') { releaseHold(world); H.caseOpen = true; }
+  if (st.kind === 'scene' && st.reveal) revealCase();
   world.missionPrompt = null;
 }
 
@@ -645,7 +649,7 @@ export function updateHeist(dt, world, st, S) {
     UI.setAlarmUi(0.08 + k * 0.2);
     if ((H.alarmBeep -= dt) <= 0) { H.alarmBeep = 1.6; audio(world, 'alarm', MUSEUM_CASE.x, MUSEUM_CASE.y - 14); }
   }
-  if (H.caseOpen && H.caseLid && H.caseLid.position.y < 0.55) H.caseLid.position.y = Math.min(0.55, H.caseLid.position.y + dt * 0.5);
+  if (H.revealed && H.caseLid && H.caseLid.position.y < LID_UP) H.caseLid.position.y = Math.min(LID_UP, H.caseLid.position.y + dt * 0.8);
   // hold O: skip this stage (offered once it gives trouble)
   const skippable = st && st.kind !== 'scene' && st.kind !== 'shot' && !isCinematicActive();
   const offer = skippable && (H.trouble >= 2 || H.stageT > SKIP_AFTER);
@@ -1081,8 +1085,25 @@ export function updateCrack(dt, world, target) {
 
 // --- the reveal: the card on the cushion -----------------------------------------------------
 
+// The unlocked case stays shut until the reveal scene lifts the dome, so the
+// empty cushion is only seen there. Times in seconds from the scene start;
+// missions.js times its camera and the first line on these.
+export const REVEAL = { push: 1.1, lift0: 1.1, lift1: 2.0, card: 2.2 };
+const LID_UP = 0.85;
+
+function revealCase() {
+  if (!H) return;
+  H.revealed = true;
+  if (H.caseCard) H.caseCard.visible = true;
+}
+
 export function heistRevealUpdate(t, dt, cur) {
-  if (cur && cur.clue) UI.showNote('Tige tank! – W.');
+  if (H && H.caseLid) {
+    if (t >= REVEAL.lift0) revealCase();
+    const k = Math.min(1, Math.max(0, (t - REVEAL.lift0) / (REVEAL.lift1 - REVEAL.lift0)));
+    H.caseLid.position.y = LID_UP * k * k * (3 - 2 * k);
+  }
+  if (cur && cur.clue) UI.showNote('Tige tank! – J.');
   else UI.hideNote();
 }
 

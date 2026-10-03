@@ -73,7 +73,7 @@ export const JOB_LINES = {
   },
 };
 
-// Tammo and Anita on the job, whichever the player is.
+// Tammo and Tessa on the job, whichever the player is.
 export const DUO_JOB_LINES = {
   Tammo: {
     start: [{ t: 'Werken. Voor geld. Wat een concept.', tag: 'dry, deadpan' }],

@@ -58,7 +58,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 **Pakket A: verhaalverloop en opening** (`claude/feedback-verhaal`, klaar voor review)
 - [x] Te veel tegelijk: één wachtrij (`narrative.js`) voor telefoontjes, radio, autogesprekken, meldingen, prestaties, HUD-kaarten en cutscenes; kaarten gaan opzij voor ondertitels en de radio.
-- [x] Samen gaan wonen: in de opening huren Tammo en Anita samen een flat in Paddepoel, weg uit de krappe zolder. Daarna is Paddepoel thuis.
+- [x] Samen gaan wonen: in de opening huren Tammo en Tessa samen een flat in Paddepoel, weg uit de krappe zolder. Daarna is Paddepoel thuis.
 - [x] Onderduiken: een duidelijke bestemming, met drie keuzes (trein, ijsje in het Noorderplantsoen, zonsondergang aan de Hoge der A), elk met een scène.
 - [x] Geen "Kop/Romp/Staart" meer in beeld: "Deel 1: KEI-week", "Deel 2: Noorderzon", "Deel 3: Kermis en Ontzet".
 - [x] Kusjes te vroeg: H13 vooruit spelen zette ze aan. Nu pas als het verhaal bij H13 is.
@@ -70,7 +70,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] H3: een uitleg vooraf (wat punten oplevert en het doel), een live scorepaneel met voortgangsbalk en combo, een pop-up per actie en "nog X punten" tegen het eind. Het doel is altijd haalbaar.
 - [x] H6: allebei in zwarte kleding. Na de kraak wijst de waypoint naar een kade bij het Hoofdstation, en daar eindigt de missie. In de trein weer gewone kleren.
 - [x] H8: de tankwagen van Us Mem Vet staat bij de groothandel aan de Bornholmstraat, met "US MEM VET" op de tank. Erin springen is de bedoelde route, banden plat kan nog steeds.
-- [x] H5: Anita fietst op haar eigen fiets (zoals in D), dus het oogcontact op het kruispunt klopt.
+- [x] H5: Tessa fietst op haar eigen fiets (zoals in D), dus het oogcontact op het kruispunt klopt.
 - [x] H11: per kroeg een korte, overslaanbare proost (ander glas, ander shot, één zin of geen).
 - [x] H13:
   - geen plaatsing, maar de medaille: goud was sneller dan de boot kan varen, dus het was bijna altijd brons. Goud en zilver zijn nu haalbaar;
@@ -132,15 +132,19 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - Agenten worden uitgeschakeld en staan later weer op. De alcohol blijft, met een inhoudslabel.
 - [ ] De IARC-vragenlijst echt invullen.
 - [x] **Geen gesimuleerd gokken meer** (`claude/geen-gokken`). De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
-- [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
+- [~] Onboarding: de eerste 10 minuten zonder uitleg te snappen (`claude/v025`). Audit en wijzigingen in [docs/ONBOARDING.md](docs/ONBOARDING.md).
+  - [x] uitleg over doelen, niet over toetsen: op het moment zelf, één kaartje tegelijk via de narrative-planner en elk één keer: de eerste klus, geld en winkels, zelf kiezen op de kaart en Te doen (`onboarding.js`);
+  - [x] geen toetshints meer voor lopen, kijken, rennen, springen en rijden; alleen E, T, M, Esc, kusjes, wapens, heli en trein;
+  - [x] uit te zetten voor ervaren spelers (Instellingen › Weergave), en het eerste kaartje zegt dat;
+  - [ ] toetsen met spelers die de game niet kennen (de vragen staan in docs/ONBOARDING.md).
 - [~] Toegankelijkheid (`claude/toegankelijk`, in headless Chrome getest met een nagebootste controller; nog niet op echte hardware):
   - [x] toetsen en controllerknoppen opnieuw toewijzen, met ruilen bij een conflict en "Standaard herstellen";
   - [x] volledige controllersupport via de Gamepad API (Xbox, PlayStation, Steam Deck): spel, minigames en alle menu's, hints met de knoppen van je controller, trillen;
   - [x] een grootte voor de ondertitels, met een vlak erachter;
   - [x] markers die werken voor kleurenblinden: patronen en vormen, plus drie paletten;
   - [ ] testen met een echte Xbox-, PlayStation- en Steam Deck-controller (zie de lijst in de PR).
-- [ ] Opt-in foutrapporten of een logbestand om mee te sturen.
-- [ ] Een save-garantie: saves vanaf 1.0 blijven werken, met een migratietest op oude saves.
+- [x] **Foutrapport** (`claude/v025`): fouten en waarschuwingen in een lokaal logboek (`errorlog.js`) met versie, verhaalstap, instellingen en GPU-klasse, zonder persoonlijke gegevens. Onder Instellingen › Foutrapport: kopiëren of (desktop) opslaan als bestand. Er wordt niets verstuurd.
+- [x] **Save-garantie** (`claude/v025`): saves en instellingen hebben een versie en worden stap voor stap gemigreerd (`savemigrate.js`); `node scripts/save_migration_test.mjs` laadt saves zoals 0.4, 0.21, 0.22, 0.23 en 0.24 ze schreven. Bij elke release die de save verandert: een migratiestap en een fixture erbij.
 - [ ] Feature freeze.
 
 ## Juridisch en publiceren (vóór 1.0)
@@ -165,6 +169,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Handmatig in het merkenregister zoeken naar "GDE" en "Grootste Diefstal Ever" (EUIPO en BOIP, ongeveer 15 minuten).
 
   1. **Schriftelijke toestemming** van de maker of makers. Dat is het veiligste, en kan meteen een mooie samenwerking of promotie opleveren. Doe dit vóór elke publieke release, en zeker vóór Steam.
+  - [x] 3 okt: de eigenaar koos een andere naam voor haar. Anita heet nu Tessa, overal waar je het ziet of hoort (de interne sleutel `anita` blijft, voor de saves).
 
 - [?] **Muziek:** met welk Gemini-product en welk abonnement is ze gemaakt? Dat moet in `docs/LICENTIES.md`.
 - [?] BOIP-registratie (ongeveer €244 tot €271): advies is nu niet, want zonder kosten is de afspraak.
@@ -172,6 +177,19 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [?] Het werkadres in de oude geschiedenis vervangen. Dat is een herschrijving plus force push, na de laatste merge en alleen na akkoord.
 - [ ] Een secrets-scan vlak voor het openbaar maken (de laatste scan, op 3 okt, vond niets).
 - [?] De repo openbaar maken, waarmee Pages, Actions en het bouwen in CI gratis worden.
+
+## YouTube-kanaal
+
+Alles staat in `docs/youtube/kanaal.md` (`claude/youtube-kit`). Er is niets geüpload en niets aangemaakt; kanaal en uploads doet Alexander.
+
+- [x] Kanaalbeelden in `docs/youtube/beelden/`: profielfoto (800×800), banner (2560×1440, veilige zone 1546×423, plus een controleversie met hulplijnen), watermerk (150×150, transparant) en twee thumbnails (1280×720) voor de verhaal- en de gameplaytrailer. Opnieuw te maken met `nice -n 10 node scripts/youtube_images.mjs`, dat de helpers van `scripts/steam_images.mjs` hergebruikt.
+- [x] De thumbnails tonen de Gouden Eierbal in zijn vitrine, nooit de lege vitrine of het kaartje "Tige tank!". De render komt uit de trailer met de bal teruggezet (`__trailer.prop()`).
+- [x] Naam- en handlevoorstellen (advies `@GDEGroningen`), kanaalbeschrijving (NL met een Engelse regel), links, titels, beschrijvingen, tags en hoofdstukken voor beide trailers, de AI-melding (advies: "Nee", maar stemmen en muziek wel noemen), de disclaimer zonder merknamen, "niet voor kinderen", afspeellijsten en een uploadplan voor de eerste week.
+- [ ] Kanaal aanmaken als merkaccount en de branding uploaden (Alexander).
+- [ ] De gameplaytrailer maken (de Steam-cut met HUD, zie `docs/steam/trailer.md`) en de hoofdstuktijden invullen.
+- [ ] De verhaaltrailer opnieuw exporteren met Tessa in plaats van Anita (naamkaart in shot 5).
+- [?] Shot 11 (de lege vitrine met "Tige tank!") in de YouTube-versie houden of eruit knippen (Alexander).
+
 
 ## Steam-klaar (optioneel, na of rond 1.0)
 

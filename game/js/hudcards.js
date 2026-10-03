@@ -203,6 +203,9 @@ function split(text) {
   return { title: '', body: t };
 }
 
+// A card is up or waiting (onboarding.js waits for an empty HUD).
+export const cardsBusy = () => visible.some((c) => !c.leaving) || queue.length > 0;
+
 export function classify(text, opts = {}, w = world) {
   const t = String(text || '');
   if (!t || opts.silent) return null;

@@ -8,7 +8,7 @@ Regels die voor iedereen gelden:
 
 - De humor komt van **understatement**. Het hoogste compliment is *"Kon minder."*
 - Fries is een kruiderij, geen hoofdgerecht. Friese zinnen krijgen altijd een Nederlandse ondertitel (FY in `subtitles.js`).
-- De TTS-stemmen en basistags staan in `scripts/tts_lines_list.mjs` (`CAST`), die van Tammo en Anita in `scripts/tts_cast.mjs` (`DUO`). Houd de tags hieronder daarmee in lijn.
+- De TTS-stemmen en basistags staan in `scripts/tts_lines_list.mjs` (`CAST`), die van Tammo en Tessa in `scripts/tts_cast.mjs` (`DUO`). Houd de tags hieronder daarmee in lijn.
 - Elk personage heeft een eigen kleur voor zijn naam in de ondertitels (zie **Sprekerskleuren** onderaan, `game/js/speakers.js`).
 - Het verhaal staat in `docs/verhaal/D-definitief.md`: één Groningse zomer, de laatste twee weken van augustus (Kop: KEI-week, Romp: Noorderzon, Staart: kermis en Gronings Ontzet op 28 augustus), met een epiloog in september.
 - Bij de eerste ontmoeting krijgt elk personage een **naamkaart** in GTA-stijl: de naam in Bebas en één droge regel (`CHARACTERS` in `game/js/storyarc.js`, getoond door `namecard.js`). Daar staan ook een korte bio en een citaat per personage.
@@ -19,14 +19,14 @@ Regels die voor iedereen gelden:
 ## Tammo
 **In één zin:** een droge Stadjer met een groot hart en een kleine portemonnee, die liever een grap maakt dan toegeeft dat hij iets eng vindt.
 
-**Naamkaart:** *Stadjer. Groot hart. Kleine portemonnee.* Tammo, Anita en Rikus zijn het clubje van de stoep in het Oosterpark. Tammo is al twaalf jaar verliefd op Anita en zegt het nooit; pas in de finale: "Ik wil bij jou blijven." Vijf woorden. Daarvoor zegt hij hooguit "Woist ja wel", zoals zijn opa.
+**Naamkaart:** *Stadjer. Groot hart. Kleine portemonnee.* Tammo, Tessa en Rikus zijn het clubje van de stoep in het Oosterpark. Tammo is al twaalf jaar verliefd op Tessa en zegt het nooit; pas in de finale: "Ik wil bij jou blijven." Vijf woorden. Daarvoor zegt hij hooguit "Woist ja wel", zoals zijn opa.
 
 - **Stem:** Orus, ingesproken in Gronings dialect: *a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties*. Daardoor zegt hij soms een Gronings woord waar de ondertitel Nederlands heeft ("Mien droom"). Emoties: droog, laconiek, zuchtend, deadpan, stiekem trots. Hij schreeuwt alleen als het echt misgaat, en dan klinkt hij "feller dan normaal".
 - **Zo praat hij:**
   - korte zinnen;
   - understatement: "Viel mee." na een ontploffing;
   - reageert op chaos met een droge observatie;
-  - zegt "mien wicht" tegen Anita als hij het meent.
+  - zegt "mien wicht" tegen Tessa als hij het meent.
   - Gronings in kleine doses: *moi*, *kon minder*, *nait soezen*, *goud*.
 - **Stopwoorden:**
   - "Kon minder."
@@ -48,14 +48,14 @@ Regels die voor iedereen gelden:
   - hij kan nooit iets betalen;
   - hij praat tegen zijn auto;
   - hij noemt elk gebouw bij de bijnaam: de Apenrots, het Cruiseschip, de Kiekdeuse;
-  - hij verliest altijd van Anita als hij gelijk wil hebben;
+  - hij verliest altijd van Tessa als hij gelijk wil hebben;
   - hij is eigenwijs en zit er soms gewoon naast; blijkt hij ongelijk te hebben, dan zegt hij droog: "Dat bedoelde ik ook.";
-  - Anita appt met "iemand uit Friesland" en Tammo wordt daar stilletjes jaloers van ("Is hij lang? Fierljepper zeker."). Het blijkt Mem Terpstra te zijn: "…Een moeder. Ik was jaloers op een moeder.";
+  - Tessa appt met "iemand uit Friesland" en Tammo wordt daar stilletjes jaloers van ("Is hij lang? Fierljepper zeker."). Het blijkt Mem Terpstra te zijn: "…Een moeder. Ik was jaloers op een moeder.";
   - Rikus van Nachtstreek is zijn jeugdvriend uit het Oosterpark en plaagt hem op de radio.
 - **Gave: duivenfluisteraar.** Tammo kan duiven sturen. Hij wordt geen duif: hij fluit of klikt met zijn tong, doet zijn ogen dicht en "springt" met de camera in de duif. Zo werkt de duivenmodus.
-  - Bert ontdekt het in H4 ("Kiek. Die duiven luuster'n noar dij, jong."); Tammo doet er droog over ("Duiven luisteren naar niemand."), Anita plaagt ("mijn vriend de duivenkoning").
+  - Bert ontdekt het in H4 ("Kiek. Die duiven luuster'n noar dij, jong."); Tammo doet er droog over ("Duiven luisteren naar niemand."), Tessa plaagt ("mijn vriend de duivenkoning").
   - Het groeit: de vlag in H10 ("Ik fluit. De duif pikt."), de duiven boven het vuurwerk in de finale, Rikus maakt er een jingle van, en Jelle is jaloers ("Friese meeuwen luisteren naar niemand.").
-  - Verhaalstappen met een duif speelt Tammo. Speel je Anita bij een duivenbord, dan lukt het niet, en dat zegt ze ook ("Ik ben geen duivenkoning. Ik ben de baas van de duivenkoning.").
+  - Verhaalstappen met een duif speelt Tammo. Speel je Tessa bij een duivenbord, dan lukt het niet, en dat zegt ze ook ("Ik ben geen duivenkoning. Ik ben de baas van de duivenkoning.").
 - **Nooit:**
   - grote emotionele speeches (als hij iets meent, zegt hij het in vijf woorden);
   - Fries;
@@ -65,7 +65,7 @@ Regels die voor iedereen gelden:
   - "Het museum heeft camera's. Ik heb een pet."
   - "Wij tweeën vóór Grunn. Kon minder, hè?"
 
-## Anita
+## Tessa
 **In één zin:** snel, ad rem en de baas van het duo. Ze lacht om alles behalve om mensen die haar droom kleineren.
 
 **Naamkaart:** *Heeft altijd een plan B. Plan A is ook van haar.* Ze heeft geen auto; haar droom, de blauwe frietwagen, komt op Tammo's Escapade ("De Fjord Frituur, op een Fjord. Dan klopt de naam ook.").
@@ -76,7 +76,7 @@ Regels die voor iedereen gelden:
   - stelt retorische vragen: "Heb jij een plan? Nee. Ik wel.";
   - geeft instructies als bevelen.
   - Gronings als ze boos of ontroerd is: "Doe bist nait goed wies!"
-  - Zij weet het meestal beter: feiten, de juiste route, de regels, de Groningse geschiedenis. Dat maakt haar soms een beetje een betweter, en dan plaagt Tammo: "Daar gaat Anita, de wandelende Wikipedia van Stad."
+  - Zij weet het meestal beter: feiten, de juiste route, de regels, de Groningse geschiedenis. Dat maakt haar soms een beetje een betweter, en dan plaagt Tammo: "Daar gaat Tessa, de wandelende Wikipedia van Stad."
 - **Stopwoorden:**
   - "Tammo. Tám-mo."
   - "Rijden, niet praten."
@@ -136,7 +136,7 @@ Regels die voor iedereen gelden:
   - eierballen, tot hij er een proeft.
 - **Running gags:**
   - elke ontsnapping is een polsstoksprong, en de laatste gaat mis;
-  - hij stuurt kaartjes met "Tige tank! – W.", want de J van Jelle was op;
+  - hij stuurt kaartjes met "Tige tank! – J.", zo beleefd is hij;
   - hij noemt zijn tweeling-handlangers bij de verkeerde naam;
   - zijn livestreams hebben altijd drie kijkers, waarvan één zijn moeder;
   - hij is jaloers op Tammo's duiven: "Friese meeuwen luisteren naar niemand. Ook niet naar mij.";
@@ -177,7 +177,7 @@ Regels die voor iedereen gelden:
 - **Nooit:** slim zijn op het goede moment, en gemeen zijn.
 
 ## Berend Bos
-**In één zin:** de chagrijnige Stadjer uit de Schildersbuurt die al veertig jaar **Bommen Berend** speelt in het naspel van het Ontzet: elk jaar valt hij de stad aan, en elk jaar verliest hij. Hij schrijft de gemeente brieven. Kort, nors, en stiekem trots op Tammo en Anita.
+**In één zin:** de chagrijnige Stadjer uit de Schildersbuurt die al veertig jaar **Bommen Berend** speelt in het naspel van het Ontzet: elk jaar valt hij de stad aan, en elk jaar verliest hij. Hij schrijft de gemeente brieven. Kort, nors, en stiekem trots op Tammo en Tessa.
 
 **Naamkaart:** *Speelt veertig jaar Bommen Berend. Verliest elk jaar.* (De echte Bommen Berend was de bisschop van Münster, in 1672.)
 
@@ -186,7 +186,7 @@ Regels die voor iedereen gelden:
   - korte, grommende zinnen;
   - complimenten verpakt als klacht;
   - veel Gronings: "Wat mout, dat mout.", "Kom mor.";
-  - noemt Tammo en Anita "dat stel".
+  - noemt Tammo en Tessa "dat stel".
 - **Houdt van:**
   - zijn bakkie;
   - Gronings Ontzet (28 augustus);
@@ -203,13 +203,13 @@ Regels die voor iedereen gelden:
   - elke NPC legt anders uit wie er in 1672 nou eigenlijk won, en Berend wordt daar boos om;
   - hij schreef in 1977 een brief over de sectoren in het centrum, en daarna elke week;
   - hij is jurylid in de finale en loopt hardop de complimentenladder af; bij de Groninger eierbal zegt hij niks meer: een kloet in de strotte, de hoogste trede.
-  - "Goidag" tegen vreemden, en "Moi" alleen als hij je mag (tegen Anita, in H1).
+  - "Goidag" tegen vreemden, en "Moi" alleen als hij je mag (tegen Tessa, in H1).
 - **Voorbeeldzinnen:**
   - "Zo. Jullie zijn dat stel waar heel Grunn over kletst? Ik had er meer van verwacht."
   - "Kon minder." *(= hij is diep ontroerd)*
 
 ## Rikus
-**In één zin:** Tammo's jeugdvriend uit het Oosterpark, nu de nacht-dj van *Radio Nachtstreek*, die het verhaal van Tammo en Anita vertelt alsof het een oude legende is, en daarna de lucht eruit prikt.
+**In één zin:** Tammo's jeugdvriend uit het Oosterpark, nu de nacht-dj van *Radio Nachtstreek*, die het verhaal van Tammo en Tessa vertelt alsof het een oude legende is, en daarna de lucht eruit prikt.
 
 - **Stem:** Schedar (ook op Nachtstreek: één stem). Basistag: *Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog*. Emoties: vertellend, droog met een knipoog, plagend, trots.
 - **Uiterlijk:** FC-groen jack, stoppelbaard, dik montuur, een buikje van de nachtdiensten, studiokoptelefoon (`RIKUS_LOOK` in `storycast.js`).
@@ -217,11 +217,11 @@ Regels die voor iedereen gelden:
   - als op zijn nachtprogramma: "Hier is Rikus, op Nachtstreek. Luister, ik vertel je hoe het zat met die twee.";
   - plechtig begin, droge afsluiter: "Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet.";
   - vertelt nooit meer dan de speler al weet.
-- **Houdt van:** Tammo (maar dat zegt hij niet), Anita's frietwagenplan (hij wil de eerste friet, en krijgt de tweede), het Oosterpark van vroeger, nachtmuziek van hier.
+- **Houdt van:** Tammo (maar dat zegt hij niet), Tessa's frietwagenplan (hij wil de eerste friet, en krijgt de tweede), het Oosterpark van vroeger, nachtmuziek van hier.
 - **Haat:** haast, stilte op de radio, mensen die "de Grunn" zeggen.
 - **Running gags:**
   - hij plaagt Tammo op de radio: de duivenfluisteraar van het Oosterpark, met jingle;
-  - hij weet dat Anita appt met Friesland, en zegt het hardop;
+  - hij weet dat Tessa appt met Friesland, en zegt het hardop;
   - hij betaalt nooit, behalve voor die tweede friet.
 - **Wanneer:** elke missie begint met **Bel Rikus** op Nachtstreek: een Stadjer met een probleem belt in (de radiokaart op de telefoon, zijn stem in de radioklank). Na missies volgen de rubrieken: de **fietstunnel-update** ("Bijna klaar", het jaartal schuift elke keer op), het **storingsbericht** (de Krolbrug, in de Staart achttien bruggen tegelijk), de **torenwachter** en de peiling **"Woist ja wel?"** (zijn ze het of niet?). Verder: de opening, de terugblik aan het begin van elk deel, live op de Grote Markt bij de finale ("Nachtstreek, in het daglicht. Ik voel me een vleermuis.") en het slot vanuit de studio.
 - **Voorbeeldzinnen:**
@@ -235,7 +235,7 @@ Regels die voor iedereen gelden:
 - **Uiterlijk:** marineblauwe jas met een witte kraag, bril, grijze knot en de pompeblêd-rode sjaal die haar zoon van haar afkeek (`MEM_LOOK` in `storycast.js`).
 - **Zo praat ze:** kort en stellig, Nederlands met Friese woorden (*famke*, *jonge*, *myn*, *net fertelle*), altijd met een Nederlandse ondertitel.
 - **Naamkaart:** *Iemand uit Friesland.* Voluit **Gerda Terpstra** uit Ljouwert.
-- **Rol:** in 1953 werd ze als jonge bakster tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Haar zoon heeft dat nooit losgelaten; zij wel. Ze appt Anita stiekem ("Pas op dysels, famke. – M."), belt in H16 naar Nachtstreek over de trein naar Ljouwert, en in de finale zegt Trijntje het eindelijk: "Gerda. Jouw eierbal was beter." "Dat duurde lang." Dan laat ze Jelle proeven: "Priuw, jonge." Op het bordje in het museum komt haar naam erbij.
+- **Rol:** in 1953 werd ze als jonge bakster tweede bij de Snackprijs, tegen Trijntje, met de betere eierbal. Haar zoon heeft dat nooit losgelaten; zij wel. Ze appt Tessa stiekem ("Pas op dysels, famke. – M."), belt in H16 naar Nachtstreek over de trein naar Ljouwert, en in de finale zegt Trijntje het eindelijk: "Gerda. Jouw eierbal was beter." "Dat duurde lang." Dan laat ze Jelle proeven: "Priuw, jonge." Op het bordje in het museum komt haar naam erbij.
 - **Nooit:** gemeen, of partij kiezen tegen haar zoon (ze wil alleen dat hij eerlijk verliest).
 
 ---
@@ -261,22 +261,22 @@ Regels die voor iedereen gelden:
 | **De torenwachter** | hele oude man boven in d'Olle Grieze, alleen een stem aan de telefoon | Iapetus, *oud, droog, onverstoorbaar* | belt Tammo en Rikus over wat hij ziet: "Ik meld alleen." |
 | **Snackbarhouder** | veertig jaar open in de Oosterpoort, lege pannen | Rasalgethi, *wanhopig, dan juichend* | "Vet! Valt mie nait of!" |
 
-## Hoe Tammo en Anita met elkaar omgaan
-- Anita leidt, Tammo relativeert. Maar als het er echt op aankomt, is Tammo degene die het goede zegt, en in vijf woorden.
+## Hoe Tammo en Tessa met elkaar omgaan
+- Tessa leidt, Tammo relativeert. Maar als het er echt op aankomt, is Tammo degene die het goede zegt, en in vijf woorden.
 - Ze plagen elkaar constant, maar kritiek van buitenaf pikken ze niet: dan staan ze pal voor elkaar.
-- Hun bedoeling verschuift van **"Alles voor één eierbal"** (voor de centen en Anita's frietwagen) naar **"Wij tweeën vóór Grunn"** (de eierbal hoort bij Stad).
+- Hun bedoeling verschuift van **"Alles voor één eierbal"** (voor de centen en Tessa's frietwagen) naar **"Wij tweeën vóór Grunn"** (de eierbal hoort bij Stad).
 - **De romance in vijf stappen:** Kop: beste vrienden, ze zeggen "goidag" tegen vreemden en niks tegen elkaar. H6: elkaars hand in het donker, "Voor de grip." Romp: jaloezie (Jelle, "iemand uit Friesland") en een "moi" dat net te zacht is. H13: "Moi." "…Moi." Dan de kus, en daarna doen ze alsof er niks gebeurd is. H16: ruzie, "Jij zegt nooit iets." H18: "Woist ja wel." "Dat telt. Maar ik wil het één keer horen." "Ik wil bij jou blijven." 
 - Wie een verhaalstap speelt, past bij wie ze zijn:
-  - **Anita:** rijden, regelen, praten met mensen, water;
+  - **Tessa:** rijden, regelen, praten met mensen, water;
   - **Tammo:** sluipen, fietsen, doorzetten, droog blijven onder druk, en alles met duiven.
-- **Het ritme van hun gesprekjes** (inspiratie: de warme, kibbelende vriendschap uit oude kinder-tv, zonder namen of zinnen te lenen): korte heen-en-weertjes, elkaars zinnen verkeerd afmaken, kleine misverstanden en woordgrapjes, en dan een zachte verzoening ("…Nou ja."). Tammo is de eigenwijze die stellig iets zegt en er soms gewoon naast zit ("Dat bedoelde ik ook."); Anita is de verstandige die meer weet, en soms een beetje saai wordt over regels en plannen. Ze plagen, maar staan altijd aan dezelfde kant en zorgen voor elkaar.
+- **Het ritme van hun gesprekjes** (inspiratie: de warme, kibbelende vriendschap uit oude kinder-tv, zonder namen of zinnen te lenen): korte heen-en-weertjes, elkaars zinnen verkeerd afmaken, kleine misverstanden en woordgrapjes, en dan een zachte verzoening ("…Nou ja."). Tammo is de eigenwijze die stellig iets zegt en er soms gewoon naast zit ("Dat bedoelde ik ook."); Tessa is de verstandige die meer weet, en soms een beetje saai wordt over regels en plannen. Ze plagen, maar staan altijd aan dezelfde kant en zorgen voor elkaar.
 
 ## Sprekerskleuren
-Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutscenes, ballonnetjes, telefoontjes, autogesprekjes en de telefoon. De kleuren staan in `game/js/speakers.js` (`SPEAKER_COLORS`); ze hebben allemaal een luminantie van ongeveer 0,18-0,30, zodat ze leesbaar zijn op de donkere ondertitelschaduw én op het lichte tekstballonnetje. Tammo en Anita zijn blauw en oranje (het Okabe-Ito-paar), dus ook bij kleurenblindheid goed uit elkaar te houden.
+Elke naam staat vet in de eigen kleur voor de zin ("**Tammo:** tekst"), in cutscenes, ballonnetjes, telefoontjes, autogesprekjes en de telefoon. De kleuren staan in `game/js/speakers.js` (`SPEAKER_COLORS`); ze hebben allemaal een luminantie van ongeveer 0,18-0,30, zodat ze leesbaar zijn op de donkere ondertitelschaduw én op het lichte tekstballonnetje. Tammo en Tessa zijn blauw en oranje (het Okabe-Ito-paar), dus ook bij kleurenblindheid goed uit elkaar te houden.
 
 | Personage | Kleur | | Personage | Kleur |
 |---|---|---|---|---|
-| Tammo | `#2a8ad4` blauw | | Anita | `#d86b00` oranje |
+| Tammo | `#2a8ad4` blauw | | Tessa | `#d86b00` oranje |
 | Rikus | `#a35ad6` paars | | Jelle Terpstra | `#d93a63` pompeblêd-rood |
 | Mem Terpstra | `#c0507a` bessenrood | | Durk | `#3f9a3f` groen |
 | Douwe | `#20968a` blauwgroen | | Berend Bos | `#a47a34` oker |
