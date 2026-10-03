@@ -104,6 +104,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 - De autogesprekken volgen het nieuwe verhaal.
 
 ### Verbeterd
+- **Het water in het Ommeland is nu hetzelfde water als in de stad.** De
+  kanalen, diepen en meren buiten de stad liggen op dezelfde hoogte als de
+  grachten, met dezelfde golfjes, weerspiegeling van de lucht, regen,
+  nachtlichtjes en kroos, tussen modderige oevers. Waar een gracht de stad
+  uit loopt, stroomt hij nu zonder dijkje door het Ommeland in. Je kunt erin
+  vallen en zwemmen, en een auto die erin rijdt zinkt, net als in de stad.
+  Sloten en maren hebben de kleur van het stadswater en glanzen mee.
 - **De game draait veel soepeler op laptops zonder losse videokaart** en
   op een drukke computer: resolutie en details gaan vanzelf even omlaag
   als het beeld hapert en komen terug als er weer ruimte is.
