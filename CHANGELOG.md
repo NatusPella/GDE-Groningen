@@ -152,6 +152,15 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Tammo heeft een nieuwe stem** en praat nu als een echte Stadjer, met
   hier en daar een Gronings woord ("Mien droom"). Douwe en de
   taxicentralist hebben Tammo's oude stem gekregen.
+- **Het Ommeland ziet er net zo goed uit als de stad.** Rijtjeshuizen zijn
+  één rij met één hoogte, één baksteen en de nok langs de straat;
+  boerderijen hebben een schilddak. Gevels hebben ramen op maat, een
+  voordeur aan de straatkant, metselwerk en dakpannen, en 's avonds brandt
+  hier en daar licht, ook in dorpen ver weg. Dorpslantaarns en erven geven
+  een plas licht op de grond, auto's en trekkers rijden met koplampen.
+  Kerken staan op hun echte plek en maat, met een kruiskerk en een kerkje
+  met dakruiter erbij. Wegen hebben middenstrepen en op de smalle
+  polderwegen rode fietsstroken.
 
 ## [0.21.0] - 2026-10-01
 
