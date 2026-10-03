@@ -78,7 +78,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - Burgers raken knock-out, staan op en schelden, maar gaan niet dood. Wapens raken ze niet.
   - Agenten worden uitgeschakeld en staan later weer op. De alcohol blijft, met een inhoudslabel.
 - [ ] De IARC-vragenlijst echt invullen.
-- [?] Kraskaarten en loten bij Rook & Geluk zijn gesimuleerd gokken. Volgens PEGI kan dat 18 geven. Maken we er een prijsvraag zonder inzet van, halen we ze weg, of laten we ze staan? Zie docs/LEEFTIJD.md.
+- [~] Kraskaarten en loten bij Rook & Geluk zijn gesimuleerd gokken, wat volgens PEGI 18 geeft. Het advies is een spaarkaart zonder inzet, en daar wordt nu aan gewerkt (`claude/geen-gokken`).
 - [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
 - [ ] Toegankelijkheid:
   - toetsen opnieuw toewijzen;
@@ -97,7 +97,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - De releasebestanden heten `GDE-Groningen-<versie>-mac.dmg` en `GDE-Groningen-<versie>-windows-portable.exe`, de webzip `GDE-Groningen-<versie>-web.zip`.
   - Blijft bewust "GTE": de `gte-*`-sleutels in localStorage, de appId `nl.natuspella.gte-vi`, de userData-map `GTE VI` (expliciet vastgezet in `desktop/main.js`, anders verweesde saves), de cachenamen van de webversie, de `gte:`-IPC-kanalen, `GTE_*`-variabelen, bestands- en reponamen. Zie README, "The old name".
   - De conflictcheck via webzoekopdrachten vond niets (`docs/LICENTIES.md` §8.2). De handmatige registercheck staat hieronder nog open.
-  - Nog met de oude naam: twee ingesproken recaps van Rikus zeggen "Eerder in GTE VI" (deel 2 en 3, `storyarc.js`). De ondertitel blijft gelijk aan de opname tot die opnieuw ingesproken is; dat kan mee met de Sikkom- en radio-hernoeming.
+  - De recaps van Rikus zeggen nu "Eerder in GDE", opnieuw ingesproken.
 - [x] Inventaris van bronnen en licenties: `docs/LICENTIES.md`, `docs/PUBLICEREN.md`, `NOTICE.md` en `licenses/`.
 - [x] Credits in de game via het menu-item "Over", een vermelding van OpenStreetMap op de kaart, en de eindcredits.
 - [x] Disclaimer op het laad- en startscherm en in de README. Bakkie Peut heet nu Bakkie Prut, en de Hema-uitverkoop is Wiebel.
