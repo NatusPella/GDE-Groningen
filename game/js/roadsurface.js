@@ -857,7 +857,9 @@ function ribbonClip(r, rs, kind) {
   const road = sidewalk ? roadClip(r, rs) : null;
   const at = (x, y, mx, my, k, t) => {
     const ml = Math.hypot(mx, my) || 1, reach = half * ml;
-    const d = dirAt(P, Math.min(k, n - 2), 1);
+    // (at an end along its miter: a way carrying on from there shares it, so
+    // both see the way alongside as beside them or not)
+    const d = t === 0 && (k === 0 || k === n - 1) ? [my / ml, -mx / ml] : dirAt(P, Math.min(k, n - 2), 1);
     const sn = rs.segN[Math.min(k, n - 2)];
     const res = [half, half];
     // (a path drawn out over the water without a bridge: nothing there)
