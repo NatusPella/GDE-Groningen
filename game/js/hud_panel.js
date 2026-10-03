@@ -28,6 +28,7 @@ import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
+import { drawMissionGlyph } from './missionicons.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = '#3fc97a';
@@ -1136,8 +1137,37 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
+      else if (kind.startsWith('mi-') || kind.startsWith('ma-')) drawMissionMapIcon(ctx, kind, s, opts, t);
   }
   ctx.restore();
+}
+
+// A story mission on the map: the yellow ring with the mission's own icon
+// (missionicons.js) on a dark disc; 'ma-<i>' while it runs, 'mi-<i>' else.
+function drawMissionMapIcon(ctx, kind, s, opts, t) {
+  const active = kind[1] === 'a';
+  const pulse = pulseAt(t);
+  const r = (active ? 6.6 + pulse * 0.8 : 6 + pulse * 1.2) * s;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(12,20,14,0.85)';
+  ctx.globalAlpha = opts.alpha ?? 1;
+  ctx.fill();
+  outline(ctx, s, 'rgba(0,0,0,0.6)', 3.4);
+  ctx.globalAlpha = (opts.alpha ?? 1) * (active ? 1 : 0.65 + pulse * 0.35);
+  outline(ctx, s, C.yellow, 2);
+  ctx.globalAlpha = opts.alpha ?? 1;
+  if (!drawMissionGlyph(ctx, +kind.slice(3), 8.4 * s, C.yellow)) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 2.6 * s, 0, Math.PI * 2);
+    ctx.fillStyle = C.yellow;
+    ctx.fill();
+  }
+}
+
+// The map kind for mission i: its icon in the ring, or the plain ring.
+export function missionMapKind(i, active) {
+  return Number.isInteger(i) && i >= 0 ? (active ? 'ma-' : 'mi-') + i : active ? 'missionActive' : 'missionIdle';
 }
 
 // Pulsing red/blue police search ring; (x, y) and r in screen pixels.
@@ -1497,7 +1527,7 @@ function drawMinimap(dt, world) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), MM_ICON);
       for (const w of wps) icon('waypoint', w.x, w.y);
     }
-    const kind = m.phase === 'active' ? 'missionActive' : 'missionIdle';
+    const kind = missionMapKind(m.index, m.phase === 'active');
     if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
   }
 
