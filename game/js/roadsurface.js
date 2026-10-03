@@ -855,11 +855,18 @@ function ribbonClip(r, rs, kind) {
       if (dist >= reach + oh || dist < 0.3) continue;
       const od = dirAt(Q, bi, 1);
       if (Math.abs(od[0] * d[0] + od[1] * d[1]) < 0.9) continue;
-      if ((r.z || o.z) && Math.abs(zr - (o.z ? o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt : 0)) > 0.8) continue;
+      const oz = o.z ? o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt : 0;
       // beside the point, not ahead of it (where o ends or joins)
       const lat = ((bx - x) * mx + (by - y) * my) / ml;
       if (Math.abs(lat) < 0.8 * dist) continue;
       const j = lat > 0 ? 0 : 1;
+      if ((r.z || o.z) && Math.abs(zr - oz) > 0.8) {
+        // an open cutting alongside: this ribbon stops on the middle of its
+        // retaining wall (or the wall face closing it) instead of hanging
+        // out over the sunken way
+        if (o.z && !o.tunnel && !o.bridge && oz < -0.25 && zr - oz > 0.8) res[j] = Math.min(res[j], Math.max(0, (Math.abs(lat) - oh - 0.225) / ml));
+        continue;
+      }
       res[j] = Math.min(res[j], Math.max(0.5, Math.abs(lat) * reach / (reach + oh) / ml));
     }
     const lo = road ? (t === 0 ? road.pts[k] : road.at(x, y, mx, my, k, t)) : null;
