@@ -36,7 +36,7 @@ fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) 
 // Opening of a fresh game, cut to the theme's beat (docs/verhaal/D-definitief.md,
 // "Trailer" and "Opening"): first a GTA VI trailer parody (sun on d'Olle
 // Grieze, cyclists, a gull with a frikandel, freeze frames with name cards
-// for Anita and Tammo, flashes ahead in the story, the title), then the
+// for Tessa and Tammo, flashes ahead in the story, the title), then the
 // opening scene: dawn in the Oosterparkwijk, Rikus on Nachtstreek, the
 // attic kitchen table where the Fjord Frituur gets its car and the two of
 // them a flat (the rent split in two), then moving day at the House of
@@ -639,7 +639,7 @@ function useKitchen(r, at) {
 }
 
 // Trailer: sun on d'Olle Grieze, cyclists, a gull, a work boat, freeze
-// frames with name cards for Anita and Tammo, flashes ahead (a pigeon over
+// frames with name cards for Tessa and Tammo, flashes ahead (a pigeon over
 // the museum, the trekker-limo on the ring, a skidding tanker, a man on a
 // rope under a helicopter over the Oosterpark), the title. Opening: dawn in
 // the Oosterparkwijk, Rikus on the radio, the kitchen table.
@@ -777,13 +777,13 @@ function buildShots(w) {
     }]],
   };
 
-  // Anita in the Herestraat, a cash machine on a trailer behind her: freeze
+  // Tessa in the Herestraat, a cash machine on a trailer behind her: freeze
   const here = street(map, 229, 402);
   const rf = { x: Math.cos(here.a), y: Math.sin(here.a) }, rn = { x: -rf.y, y: rf.x };
   const lane = (d, off) => ({ x: here.x + rf.x * d + rn.x * off, y: here.y + rf.y * d + rn.y * off });
   const anitaCard = {
     minDur: 3.1, clock: 8.4, focus: here, freeze: 1.2,
-    tags: [[1.5, 99, 'Anita', 'Heeft altijd een plan B. Plan A is ook van haar.']],
+    tags: [[1.5, 99, 'Tessa', 'Heeft altijd een plan B. Plan A is ook van haar.']],
     enter(r, s) {
       clearRoadNear(r, polyline([[here.x - rf.x * 30, here.y - rf.y * 30], [here.x + rf.x * 30, here.y + rf.y * 30]]), 6);
       s.trailer = buildAtmTrailer();
@@ -1000,7 +1000,7 @@ function buildShots(w) {
     ],
   };
 
-  // inside: Anita with her papers, Tammo in with two coffees from the night shop
+  // inside: Tessa with her papers, Tammo in with two coffees from the night shop
   const tStand = { u: 0.78, v: 0.72 };
   const tFace = Math.atan2(KITCHEN.anitaSeat.v - tStand.v, KITCHEN.anitaSeat.u - tStand.u);
   const tl = Math.hypot(tStand.u - KITCHEN.anitaSeat.u, tStand.v - KITCHEN.anitaSeat.v);
@@ -1074,7 +1074,7 @@ function buildShots(w) {
     ],
   };
 
-  // nobody talks: she looks at him, he looks at his coffee; then a slow push-in on Anita
+  // nobody talks: she looks at him, he looks at his coffee; then a slow push-in on Tessa
   const liefste = {
     minDur: 4, clock: 5.92, focus: home, kitchen: true, lead: 1.5,
     lines: [['A', '…Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.', 'zacht, ontroerd, verrast, met een glimlach die ze probeert in te houden']],
@@ -1202,7 +1202,7 @@ function buildShots(w) {
         });
       }
       const a = lobby.angle + Math.PI;
-      // Tammo walks to the door with a box, Anita by the car, hands on her hips
+      // Tammo walks to the door with a box, Tessa by the car, hands on her hips
       const k = clamp01(t / 4.5);
       const tx = lerp(lobby.x + Math.cos(lobby.angle) * 5, lobby.x + Math.cos(lobby.angle) * 1.6, k);
       const ty = lerp(lobby.y + Math.sin(lobby.angle) * 5, lobby.y + Math.sin(lobby.angle) * 1.6, k);

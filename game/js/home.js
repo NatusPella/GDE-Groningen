@@ -1,4 +1,4 @@
-// Thuis: Tammo and Anita's flat in the House of Groningen tower at the
+// Thuis: Tammo and Tessa's flat in the House of Groningen tower at the
 // Pleiadenlaan (Paddepoel), with a private garage in its plinth.
 //
 // - prepareHomeMap(map) (main.js, right after loadMap): the OSM footprint of

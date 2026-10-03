@@ -53,7 +53,7 @@ Afbeeldingen in de beschrijving (`[img]`) kunnen later; ze moeten eerst als
 
 ```
 [h2]Een zomer in Grunn[/h2]
-Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Anita hebben samen precies genoeg geld voor een patatje. Anita wil een frietwagen. Tammo wil Anita, maar dat zegt hij niet. Al twaalf jaar niet.
+Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen. Tammo wil Tessa, maar dat zegt hij niet. Al twaalf jaar niet.
 
 Dan ligt de [b]Gouden Eierbal[/b], de wisseltrofee van de Noordelijke Snackprijs, ineens niet meer in het museum. En er rijdt een Friese snackkoning met een trekker-limo door de binnenstad.
 
@@ -95,7 +95,7 @@ De stad is gebouwd uit OpenStreetMap: de echte straten, grachten, bruggen en geb
 
 ```
 [h2]A summer in Grunn[/h2]
-August in Groningen. Freshers' week, the Noorderzon festival, the fair on the Grote Markt and, to round it off, Gronings Ontzet. Tammo and Anita have just enough money between them for one portion of chips. Anita wants a chip van. Tammo wants Anita, but he hasn't said so. Not in twelve years.
+August in Groningen. Freshers' week, the Noorderzon festival, the fair on the Grote Markt and, to round it off, Gronings Ontzet. Tammo and Tessa have just enough money between them for one portion of chips. Tessa wants a chip van. Tammo wants Tessa, but he hasn't said so. Not in twelve years.
 
 Then the [b]Golden Eierbal[/b], the challenge trophy of the Northern Snack Prize, is suddenly no longer in the museum. And a Frisian snack king is cruising the old town in a tractor limo.
 

@@ -576,7 +576,7 @@ function buildTrekkerLimoMesh(v) {
   return group;
 }
 
-// The Fjord Frituur: Anita's foodtruck. A blue van with a serving hatch and
+// The Fjord Frituur: Tessa's foodtruck. A blue van with a serving hatch and
 // a striped awning on the right (+z, the kerb side), a roof sign with the
 // seagull and a giant eierbal on top.
 let fjordSignTex = null;

@@ -58,7 +58,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 **Pakket A: verhaalverloop en opening** (`claude/feedback-verhaal`, klaar voor review)
 - [x] Te veel tegelijk: één wachtrij (`narrative.js`) voor telefoontjes, radio, autogesprekken, meldingen, prestaties, HUD-kaarten en cutscenes; kaarten gaan opzij voor ondertitels en de radio.
-- [x] Samen gaan wonen: in de opening huren Tammo en Anita samen een flat in Paddepoel, weg uit de krappe zolder. Daarna is Paddepoel thuis.
+- [x] Samen gaan wonen: in de opening huren Tammo en Tessa samen een flat in Paddepoel, weg uit de krappe zolder. Daarna is Paddepoel thuis.
 - [x] Onderduiken: een duidelijke bestemming, met drie keuzes (trein, ijsje in het Noorderplantsoen, zonsondergang aan de Hoge der A), elk met een scène.
 - [x] Geen "Kop/Romp/Staart" meer in beeld: "Deel 1: KEI-week", "Deel 2: Noorderzon", "Deel 3: Kermis en Ontzet".
 - [x] Kusjes te vroeg: H13 vooruit spelen zette ze aan. Nu pas als het verhaal bij H13 is.
@@ -70,7 +70,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] H3: een uitleg vooraf (wat punten oplevert en het doel), een live scorepaneel met voortgangsbalk en combo, een pop-up per actie en "nog X punten" tegen het eind. Het doel is altijd haalbaar.
 - [x] H6: allebei in zwarte kleding. Na de kraak wijst de waypoint naar een kade bij het Hoofdstation, en daar eindigt de missie. In de trein weer gewone kleren.
 - [x] H8: de tankwagen van Us Mem Vet staat bij de groothandel aan de Bornholmstraat, met "US MEM VET" op de tank. Erin springen is de bedoelde route, banden plat kan nog steeds.
-- [x] H5: Anita fietst op haar eigen fiets (zoals in D), dus het oogcontact op het kruispunt klopt.
+- [x] H5: Tessa fietst op haar eigen fiets (zoals in D), dus het oogcontact op het kruispunt klopt.
 - [x] H11: per kroeg een korte, overslaanbare proost (ander glas, ander shot, één zin of geen).
 - [x] H13:
   - geen plaatsing, maar de medaille: goud was sneller dan de boot kan varen, dus het was bijna altijd brons. Goud en zilver zijn nu haalbaar;
@@ -165,6 +165,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Handmatig in het merkenregister zoeken naar "GDE" en "Grootste Diefstal Ever" (EUIPO en BOIP, ongeveer 15 minuten).
 
   1. **Schriftelijke toestemming** van de maker of makers. Dat is het veiligste, en kan meteen een mooie samenwerking of promotie opleveren. Doe dit vóór elke publieke release, en zeker vóór Steam.
+  - [x] 3 okt: de eigenaar koos een andere naam voor haar. Anita heet nu Tessa, overal waar je het ziet of hoort (de interne sleutel `anita` blijft, voor de saves).
 
 - [?] **Muziek:** met welk Gemini-product en welk abonnement is ze gemaakt? Dat moet in `docs/LICENTIES.md`.
 - [?] BOIP-registratie (ongeveer €244 tot €271): advies is nu niet, want zonder kosten is de afspraak.

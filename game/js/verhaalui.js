@@ -187,7 +187,7 @@ function cluesHtml() {
   const jr = getStoryJournal();
   const found = new Map(jr.found.map((c) => [c.title, c]));
   const cur = steps.find((s) => s.current);
-  return '<h2>Aanwijzingen <small>wat Tammo en Anita weten, per deel</small></h2><div class="vh-parts">' + Object.keys(PARTS).map((part) => {
+  return '<h2>Aanwijzingen <small>wat Tammo en Tessa weten, per deel</small></h2><div class="vh-parts">' + Object.keys(PARTS).map((part) => {
     const list = steps.filter((s) => s.part === part);
     const clues = CLUES.filter((c) => list.some((s) => s.id === c.step));
     if (!clues.length) return '';

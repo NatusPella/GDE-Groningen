@@ -23,7 +23,7 @@ export const MISSION_ICONS = {
   fatbike: { fill: 'M13.5 2.2a2.1 2.1 0 1 1 0 4.2 2.1 2.1 0 0 1 0-4.2z', stroke: 'M12.6 8.4L10.6 14l3 2.2V21M10.6 14L8 20.6M12.6 8.4l3.4 3 3-.6M12.6 8.4l-3.8 1.8-1.2 3' },
   // H13 Alles klopt, behalve de papieren: the rondvaartboot
   rondvaart: { fill: 'M2 14h20l-2.5 5h-15zM5 13V9.5A1.5 1.5 0 0 1 6.5 8h11A1.5 1.5 0 0 1 19 9.5V13zM7 9.6v2.2h2.4V9.6zM10.8 9.6v2.2h2.4V9.6zM14.6 9.6v2.2H17V9.6zM10.7 2.6a1.6 1.6 0 0 1 1.3.6 1.6 1.6 0 0 1 2.6 1.3c0 1.1-1.5 1.9-2.6 2.6-1.1-.7-2.6-1.5-2.6-2.6a1.6 1.6 0 0 1 1.3-1.9z' },
-  // H2 Even pinnen: the ATM with Anita's pass
+  // H2 Even pinnen: the ATM with Tessa's pass
   pinautomaat: { fill: 'M4 2.5h16a1 1 0 0 1 1 1V16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1zM6 4.6v5h12v-5zM8 12.6V14h8v-1.4zM9 18h6v3.5H9z' },
   // H4 Kieken van boven: Bert's pigeon
   duifverkenning: { fill: 'M3 13c3-1 5.2-4 9-4 1.6 0 2.6-1.6 3.8-2.6 1.2-.9 2.9-.6 3.7.5l1.5.5-1.6.8c.2 3.7-2.3 7-6.4 7.8L10 20H7.5l1.8-3.4C6.6 16.4 4.4 15 3 13zM17.6 7.8a.7.7 0 1 0 0 1.4.7.7 0 0 0 0-1.4z' },

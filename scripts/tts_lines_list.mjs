@@ -16,7 +16,7 @@ import { GRO } from '../game/js/subtitles.js';
 
 const GRO_WORDS = /\b(mien|nait|moar|mor|goud|kiek|joe|doar|noar|hoes|ain|hail|mout|stoet|wicht|oet|veur|zain|laven|dij|wies|lopst|rieden)\b/i;
 const isGronings = (t) => t in GRO || GRO_WORDS.test(t);
-// Fixed cast; Tammo and Anita match the story/job recordings.
+// Fixed cast; Tammo and Tessa match the story/job recordings.
 const CAST = {
   Tammo: { ...DUO.Tammo, pool: ['droog, laconiek', 'sarcastisch, zuchtend', 'deadpan, licht verbaasd', 'mompelend, stiekem trots', 'droog, met een stille grijns'] },
   Anita: { ...DUO.Anita, pool: ['lacherig, ad rem', 'plagend, zelfverzekerd', 'enthousiast, snel', 'ongeduldig, bazig', 'warm, grinnikend'] },

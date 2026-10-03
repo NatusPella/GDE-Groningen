@@ -1,6 +1,6 @@
 // H6 "Het museum stond er al zo", the showpiece heist. missions.js runs the stages; this
 // module owns what happens in them:
-//   plan        the blueprint of the museum (heistui.js) while Anita explains,
+//   plan        the blueprint of the museum (heistui.js) while Tessa explains,
 //               then the choice of approach: 'sluip' (the back door, a lock,
 //               the guard in zaal 1) or 'vermomd' (cleaners' overalls, a pass
 //               lifted from the guard at the glass door; guards only see you

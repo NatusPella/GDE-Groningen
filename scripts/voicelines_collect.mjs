@@ -111,7 +111,7 @@ export function collect() {
   const SHOUT = lit(rc, 'const SHOUT = ');
   for (const [kind, list] of Object.entries(SHOUT)) for (const t of list) add('Rondvaart-missie', 'story', ['Schipper Wiebe (megafoon)'], t, { kind });
   // the tour (rondvaartlines.js, mission and relaxed tour): Tammo at the
-  // microphone, Anita correcting him, tourists in bubbles; new recordings
+  // microphone, Tessa correcting him, tourists in bubbles; new recordings
   // go to the lines manifest (rondvaartchase.js looks in both)
   const TOURIST_CAST = {
     D: { persona: TOURISTS.D, tag: ['enthousiast, verrukt', 'nieuwsgierig, vrolijk'] },
@@ -155,7 +155,7 @@ export function collect() {
     for (const t of lit(s, 'intro: ')) add('Bijbaantjes (baas)', 'jobs', [boss], t);
     for (const list of Object.values(JOB_LINES[id])) for (const l of list) add('Bijbaantjes (baas)', 'jobs', [boss], l.t);
   }
-  for (const [who, kinds] of Object.entries(DUO_JOB)) for (const list of Object.values(kinds)) for (const l of list) add('Bijbaantjes (Tammo/Anita)', 'jobs', [who], l.t);
+  for (const [who, kinds] of Object.entries(DUO_JOB)) for (const list of Object.values(kinds)) for (const l of list) add('Bijbaantjes (Tammo/Tessa)', 'jobs', [who], l.t);
 
   // --- rondvaart bijbaan: the player is the tour guide -> lines manifest
   const rv = src('sidejob_rondvaart.js');
@@ -264,7 +264,7 @@ export function collect() {
     add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.m], t, { as: 'Tammo' });
     add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.f], t, { as: 'Anita' });
   }
-  // Anita at a pigeon spot: the pigeons only listen to Tammo (pigeonspots.js)
+  // Tessa at a pigeon spot: the pigeons only listen to Tammo (pigeonspots.js)
   for (const t of lit(src('pigeonspots.js'), 'export const ANITA_NO_PIGEON = ')) add('Wereld (bijnamen & koeien)', 'lines', [BUBBLE.f], t, { as: 'Anita' });
   // padel opponents (padellines.js): the regulars in their own voices, Durk and Douwe as in the story
   const PADEL_CAST = {
@@ -346,7 +346,7 @@ export function collect() {
   for (const l of KOE_CALL) add('Telefoon (gesprekken)', 'lines', [l.speaker], l.text, { tag: l.speaker === 'Anita' ? 'aan de telefoon, verontwaardigd' : 'aan de telefoon, beschaamd maar charmant' });
 
   // --- HUD cards said out loud by whoever you play (cardlines.js) -> lines manifest
-  for (const l of CARD_LINES) add('HUD-kaarten (Tammo/Anita)', 'lines', ['Tammo', 'Anita'], l.say, { tag: ['kort, alert, tegen de ander naast je', 'droog, reagerend op wat er net gebeurde'] });
+  for (const l of CARD_LINES) add('HUD-kaarten (Tammo/Tessa)', 'lines', ['Tammo', 'Anita'], l.say, { tag: ['kort, alert, tegen de ander naast je', 'droog, reagerend op wat er net gebeurde'] });
   // --- phone calls outside the story (phonefeed.js startCall) -> lines manifest
   for (const t of Object.values(lit(src('garages.js'), 'const HENK_CALL = '))) add('Telefoon (gesprekken)', 'lines', ['Henk'], t, { tag: 'gemoedelijk, aan de telefoon' });
   for (const l of lit(src('postgame.js'), 'const INVITE_CALL = ')) add('Telefoon (gesprekken)', 'lines', [typeof l.speaker === 'string' ? l.speaker : JELLE], l.text, { tag: 'aan de telefoon, uitdagend en vrolijk' });
@@ -383,9 +383,9 @@ export function collect() {
   const HINT_TAG = ['kort, alert, tegen de ander naast je', 'aanwijzend, gehaast', 'droog, adviserend'];
   // what the TTS reads for key names; the key stays the card text
   const spoken = (t) => t.replace(/\bW\/S\b/g, 'W en S').replace(/\bA\/D\b/g, 'A en D').replace(/\(Ctrl\)/g, '(control)').replace(/\(Esc > Spel\)/g, '');
-  // a line that names one of them (or Anita's Fjord) is only said by the other
-  const hintWho = (t) => (/\bAnita\b/.test(t) ? ['Tammo'] : /\bTammo\b|mijn Fjord/.test(t) ? ['Anita'] : ['Tammo', 'Anita']);
-  const hint = (t) => add('Hints (Tammo/Anita)', 'hints', hintWho(t), cardSpoken(t), { tag: HINT_TAG, speak: spoken(cardSpoken(t)) });
+  // a line that names one of them (or Tessa's Fjord) is only said by the other
+  const hintWho = (t) => (/\bTessa\b/.test(t) ? ['Tammo'] : /\bTammo\b|mijn Fjord/.test(t) ? ['Anita'] : ['Tammo', 'Anita']);
+  const hint = (t) => add('Hints (Tammo/Tessa)', 'hints', hintWho(t), cardSpoken(t), { tag: HINT_TAG, speak: spoken(cardSpoken(t)) });
   const mis = src('missions.js');
   for (const t of strings(mis, /\bsay: ('(?:[^'\\]|\\.)*')/g)) hint(t);
   for (const t of strings(mis, /\bhint\(world, ('(?:[^'\\]|\\.)*')/g)) hint(t);

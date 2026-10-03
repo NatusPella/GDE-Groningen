@@ -84,7 +84,7 @@ export function getSaveSummary() {
   const d = readSave();
   if (!d) return null;
   const done = d.missions && Array.isArray(d.missions.completed) ? d.missions.completed.length : 0;
-  return { money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Anita' : 'Tammo' };
+  return { money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo' };
 }
 
 export function clearSave() {

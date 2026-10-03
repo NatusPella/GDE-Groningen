@@ -1,7 +1,7 @@
-// Tammo and Anita's car banter as data (banter.js plays it). Pure data: no
+// Tammo and Tessa's car banter as data (banter.js plays it). Pure data: no
 // imports, so scripts/tts_banter_lines.mjs can read it in Node.
 // The beats follow docs/verhaal/D-definitief.md: one summer in August, the
-// Escapade is Tammo's, the Fjord Frituur is Anita's dream, and Tammo never
+// Escapade is Tammo's, the Fjord Frituur is Tessa's dream, and Tammo never
 // says it out loud before H18.
 //
 // Exchange fields
@@ -11,7 +11,7 @@
 //   until    story step id(s) that must NOT be done yet (lines that go stale)
 //   arc      (after:*) only when the mission was played in story order: every story
 //            mission before it is done, like the full dialogue in missionstory.js
-//   lines    [speaker, text, tag]: speaker 'T' (Tammo) or 'A' (Anita); tag is the
+//   lines    [speaker, text, tag]: speaker 'T' (Tammo) or 'A' (Tessa); tag is the
 //            emotion the recording is made with (English, a few words)
 //
 // TRIGGERS, by priority
@@ -213,7 +213,7 @@ export const BANTER = [
     ['T', 'Dat zeiden ze in de vorige laatste fase ook.', 'dry']] },
   { id: 'h9-pass-grip', trigger: 'after:H9:pass', arc: true, lines: [
     ['A', 'Je pakte weer mijn hand, in die bocht.', 'teasing, warm'],
-    ['T', 'Grip, Anita. Dat heet grip.', 'embarrassed, dry']] },
+    ['T', 'Grip, Tessa. Dat heet grip.', 'embarrassed, dry']] },
   { id: 'h9-pass-kwalijk', trigger: 'after:H9:pass', arc: true, lines: [
     ['A', '"Dat neem ik je kwalijk." Dat was voor mij, hè.', 'soft, sly'],
     ['T', 'Dat was voor het verkeer.', 'flat'],
@@ -257,7 +257,7 @@ export const BANTER = [
     ['A', 'Iets doen voor iemand die er niet om vraagt. Dat zei je.', 'thoughtful'],
     ['T', 'Over Jelle.', 'quick'],
     ['A', 'Natuurlijk.', 'knowing, amused'],
-    ['T', 'Over Jelle, Anita.', 'insisting, dry']] },
+    ['T', 'Over Jelle, Tessa.', 'insisting, dry']] },
   { id: 'h11-fail', trigger: 'after:H11:fail', lines: [
     ['T', 'Drie kroegen is ook een prestatie.', 'slurring slightly'],
     ['A', 'Voor een dinsdag, ja.', 'laughing']] },
@@ -901,7 +901,7 @@ export const BANTER = [
     ['A', 'Wat zou jij doen met een miljoen?', 'dreamy'],
     ['T', 'Een eierbal. En de rest sparen voor een tweede eierbal.', 'serious']] },
   { id: 'st-eierbal', trigger: 'idle', lines: [
-    ['T', 'Ik heb dromen, Anita. Ze zijn rond en gepaneerd.', 'dreamy'],
+    ['T', 'Ik heb dromen, Tessa. Ze zijn rond en gepaneerd.', 'dreamy'],
     ['A', 'Het is een ei in een jasje, Tammo.', 'amused'],
     ['T', 'Zo zijn de beste mensen ook.', 'wise, deadpan']] },
   { id: 'id-taal', trigger: 'idle', lines: [
@@ -1017,7 +1017,7 @@ export const BANTER = [
   { id: 'id-wikipedia', trigger: 'idle', needs: 'H1', lines: [
     ['T', 'De Martinitoren is honderd meter. Minstens.', 'confident'],
     ['A', 'Zevenennegentig. En een beetje. Klaar rond 1482.', 'matter-of-fact'],
-    ['T', 'Daar gaat Anita, de wandelende Wikipedia van Stad.', 'teasing'],
+    ['T', 'Daar gaat Tessa, de wandelende Wikipedia van Stad.', 'teasing'],
     ['A', 'Iemand moet het weten.', 'smug'],
     ['T', 'Zevenennegentig bedoelde ik ook.', 'deadpan']] },
 
@@ -1093,7 +1093,7 @@ export const BANTER = [
     ['A', 'Wat doe je dan?', 'soft, curious'],
     ['T', 'Dan slik je.', 'deadpan, soft']] },
 
-  // the Fjord Frituur (Anita's dream) and the Eierbal
+  // the Fjord Frituur (Tessa's dream) and the Eierbal
   { id: 'id-komtgoud', trigger: 'idle', needs: 'H6', lines: [
     ['T', 'Denk jij dat we die Eierbal ooit terugzien?', 'worried, quiet'],
     ['A', 'Komt goud, mien jong.', 'warm, reassuring'],
@@ -1137,7 +1137,7 @@ export const BANTER = [
   { id: 'id-tigetank', trigger: 'idle', needs: 'H6', lines: [
     ['T', 'Ik blijf aan dat kaartje denken. "Tige tank."', 'brooding'],
     ['A', 'Hij had tenminste een mooi handschrift.', 'grudging'],
-    ['T', 'Anita! Echt?', 'shocked']] },
+    ['T', 'Tessa! Echt?', 'shocked']] },
 
   // the romance, in steps (Tammo never says it before H18)
   { id: 'id-moi-zacht', trigger: 'idle', needs: 'H11', until: 'H13', lines: [

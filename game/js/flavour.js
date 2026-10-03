@@ -119,7 +119,7 @@ function bark(from, lines, r = 22, dur = 3.2) {
 }
 
 // A bubble over the player, spoken in their own voice (recorded as the
-// ~m / ~f bubble of that text in Tammo's / Anita's voice).
+// ~m / ~f bubble of that text in Tammo's / Tessa's voice).
 function playerSays(text) {
   const p = world.player;
   if (!world.extraSpeakers) world.extraSpeakers = [];

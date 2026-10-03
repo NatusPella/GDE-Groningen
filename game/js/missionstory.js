@@ -13,7 +13,7 @@ import { storyLineVoice } from './linevoice.js';
 import { showNameCard } from './namecard.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
-// payoff (success) and a short sting (fail). Tammo and Anita's relationship
+// payoff (success) and a short sting (fail). Tammo and Tessa's relationship
 // moves one step per mission; `stage` is how far the player has got.
 
 let sceneMod = null;
@@ -67,7 +67,7 @@ export function storySpeakerName(key) {
   return NPC[key] ? NPC[key].name : key;
 }
 
-// N = the mission's NPC, T = Tammo, A = Anita, V = the narrator (Rikus on Radio Nachtstreek,
+// N = the mission's NPC, T = Tammo, A = Tessa, V = the narrator (Rikus on Radio Nachtstreek,
 // wide shots, his voice in the broadcast band), any other NPC key (e.g. 'durk') = that
 // character speaking off camera or as an extra. `ask` is the intro line kept for the short
 // version (a mission seen before); `replay` the outro when the mission is replayed as a klus
@@ -202,7 +202,7 @@ const STORY = [
     npc: 'geert', outroPose: 'hips', ask: 0,
     outroCast: [{ key: 'durk', pose: 'sway', at: [3.0, 1.1] }, { key: 'douwe', pose: 'arms', at: [3.1, 2.1] }],
     intro: [
-      ['N', 'Vier kroegen, één avond, alles te voet. En Anita: mijn nieuwe barman wil heel graag je nummer.', { card: 'geert' }],
+      ['N', 'Vier kroegen, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer.', { card: 'geert' }],
       ['T', 'Die barman heeft het druk.'],
       ['A', 'O ja? Sinds wanneer bepaal jij dat?'],
       ['T', 'Sinds nu.'],
@@ -276,7 +276,7 @@ const STORY = [
     fail: [['A', 'Gids zijn is moeilijker dan het lijkt.'], ['T', 'Links water. Rechts ook. Onder ons: fietsen.']],
   },
   {
-    // 8: H2 Even pinnen (Durk & Douwe rip out the ATM with Anita's pass in it)
+    // 8: H2 Even pinnen (Durk & Douwe rip out the ATM with Tessa's pass in it)
     npc: 'sjabbe', outroPose: 'hips', ask: 4, introNpc: false,
     introCast: [{ key: 'durk', pose: 'arms', at: [5.2, 1.6] }, { key: 'douwe', pose: 'arms', at: [5.4, -0.4] }], introProps: ['limo', { kind: 'atm', at: [3.2, 2.6] }],
     intro: [
@@ -537,7 +537,7 @@ const STORY = [
   },
 ];
 
-// Tammo/Anita lines for when a mission is played before the ones leading up
+// Tammo/Tessa lines for when a mission is played before the ones leading up
 // to it (via the phone), so no callback refers to something that hasn't happened.
 const DUO_BY_STAGE = [
   { intro: [['A', 'Ik rij. Geen discussie.'], ['T', 'Er was ook geen discussie. Er was alleen jij.']], outro: [['T', 'Dat ging… verrassend goed.'], ['A', 'Verrassend voor jou.']] },
@@ -1567,7 +1567,7 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
 // --- staged scenes: the Frisian cast on screen --------------------------------------
 
 // A mission stage cutscene (missions.js 'scene' stages) with actors: Tammo
-// and Anita where the player stands, plus `cast` (see buildRun extras) and
+// and Tessa where the player stands, plus `cast` (see buildRun extras) and
 // `props`. deck: a boat to stand on (H14's skûtsje). shot(u, t): a camera for
 // the first `shotFor` seconds (the whole scene when 0), else the camera
 // follows the speaker. big: a card after the talk, over the same set.
@@ -1585,7 +1585,7 @@ export function playCastScene(w, { at, facing = null, lines = [], cast = [], pro
   const face = deck ? deck.angle : facing != null ? facing : facingTowards(w, anchor, lookTo);
   const r = buildRun(w, { anchor, facing: face, h: deck ? SKUTSJE_DECK : 0, extras: spots, props });
   if (!r) return false;
-  // solo: Anita on her own (H16, the chase in H18), Tammo is elsewhere
+  // solo: Tessa on her own (H16, the chase in H18), Tammo is elsewhere
   if (solo) r.tammo.visible = false;
   const tl = timeline(lines, null, lead);
   if (shotLines && tl.lines[shotLines - 1]) shotFor = tl.lines[shotLines - 1].at + tl.lines[shotLines - 1].dur;
@@ -1890,7 +1890,7 @@ export function playPigeonSwarm(w, { limo, stall, lines = [], kicker = '', onDon
         return pose(camClear(w, P(c.x - Math.cos(h) * 7 + side.x, c.y - Math.sin(h) * 7 + side.y, c.z + 3)), P(c.x, c.y, c.z), 50);
       }
       if (who === 'A') {
-        // from Anita's side, at most 14 m back: a trekker-limo covered in pigeons
+        // from Tessa's side, at most 14 m back: a trekker-limo covered in pigeons
         const pv = w.player.inVehicle || w.player;
         const back = Math.min(14, Math.max(6, Math.hypot(pv.x - limo.x, pv.y - limo.y)));
         const fromA = Math.atan2(pv.y - limo.y, pv.x - limo.x);
@@ -1939,7 +1939,7 @@ function clearRun(w, x, y, a, len) {
   return len;
 }
 
-// The KEI race's all-green crossing (D-definitief H5): Tammo rides in, Anita
+// The KEI race's all-green crossing (D-definitief H5): Tammo rides in, Tessa
 // comes from the other side on her own bike, they look at each other and
 // both brake. No words. at/heading: where the player is and which way he rides.
 export function playEyeContact(w, { at, heading, onDone = null } = {}) {
@@ -1960,7 +1960,7 @@ export function playEyeContact(w, { at, heading, onDone = null } = {}) {
   const bT = cineBike('#2f4f6f', 0x3f6ea8), bA = cineBike('#7a2a24', 0x9e3027);
   r.group.add(tammo, anita, bT, bA);
   r.extras.push({ key: 'T', mesh: tammo, riding: true }, { key: 'A', mesh: anita, riding: true });
-  // Tammo stops just short of the crossing, Anita in it, both facing in
+  // Tammo stops just short of the crossing, Tessa in it, both facing in
   const tEnd = { x: at.x - Math.cos(a) * 1.6, y: at.y - Math.sin(a) * 1.6 };
   const aEnd = { x: at.x + Math.cos(from) * 2.6, y: at.y + Math.sin(from) * 2.6 };
   const tStart = { x: tEnd.x - Math.cos(a) * back, y: tEnd.y - Math.sin(a) * back };
@@ -2012,7 +2012,7 @@ export function playEyeContact(w, { at, heading, onDone = null } = {}) {
 }
 
 // --- H13: a quiet moment on the tour boat's afterdeck ------------------------------------
-// Tammo comes back from the microphone to stand by Anita at the helm; they lean
+// Tammo comes back from the microphone to stand by Tessa at the helm; they lean
 // on the rail side by side, a hand's width apart. The camera starts low on
 // their hands and ends on the two of them. Lines use T/A.
 
@@ -2125,7 +2125,7 @@ export function playToast(w, { at, facing = 0, lines = [], variant = 0, glass = 
         return pose(camClear(w, P(c.x + n.x * side * lerp(3.1, 2.4, k), c.y + n.y * side * lerp(3.1, 2.4, k), 1.6)), P(c.x, c.y, 1.4), 40);
       }
       if (v === 1) {
-        // over Anita's shoulder onto Tammo
+        // over Tessa's shoulder onto Tammo
         return pose(camClear(w, P(c.x + f.x * 1.9 + n.x * side * 0.7, c.y + f.y * 1.9 + n.y * side * 0.7, 1.72)), P(c.x - f.x * 0.42, c.y - f.y * 0.42, 1.5), lerp(36, 32, k));
       }
       if (v === 2) {
