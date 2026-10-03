@@ -6,6 +6,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Veranderd
+- **Kusjes geven kan pas na de eerste kus** in "Alles klopt, behalve de
+  papieren". Daarvoor staat de optie nergens: geen K-hint, niet in
+  Besturing en geen kusjes-prestaties. Op dat moment meldt de game "Nieuw:
+  geef elkaar een kusje met K".
+
 ### Verbeterd
 - **Boerderijen en huizen in het Ommeland hebben hun echte vorm.** Een
   L-vormig huis of een boerderij met een aanbouw was één doos; nu zijn het
