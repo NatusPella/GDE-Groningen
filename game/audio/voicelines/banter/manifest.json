@@ -171,14 +171,6 @@
 "src": "h6-pass-lucht_2_t_366124.mp3",
 "dur": 2.38
 },
-"Anita|W. Wie tekent er nou met een W?": {
-"src": "h6-pass-w_0_a_ee42c8.mp3",
-"dur": 2.52
-},
-"Anita|Iemand die \"tige tank\" schrijft, Tammo. Dat is Fries.": {
-"src": "h6-pass-w_2_a_94df91.mp3",
-"dur": 3.67
-},
 "Tammo|Die man met die trekker was live. Jelle Terpstra.": {
 "src": "h6-pass-aaibal_0_t_60cf31.mp3",
 "dur": 2.76
@@ -1430,10 +1422,6 @@
 "Tammo|Ik lijst hem in. In mijn hoofd.": {
 "src": "h1-pass-konminder_3_t_e092e3.mp3",
 "dur": 1.67
-},
-"Tammo|Willem? Wietse? Wubbo?": {
-"src": "h6-pass-w_1_t_14d2bb.mp3",
-"dur": 2.01
 },
 "Anita|Zeg dat niet te hard. Dit is nu echt de laatste fase.": {
 "src": "h9-pass-traditie_1_a_4e9037.mp3",
@@ -3910,5 +3898,13 @@
 "Tammo|Gratis bestaat niet in Eelde. Hij telt de krassen.": {
 "src": "st-h15_1_t_06f477.mp3",
 "dur": 3.22
+},
+"Anita|Een J onder je buit zetten. Wie doet dat nou?": {
+"src": "h6-pass-w_0_a_e1591d.mp3",
+"dur": 3.24
+},
+"Tammo|Iemand met een trekker-limo.": {
+"src": "h6-pass-w_1_t_4632a2.mp3",
+"dur": 1.74
 }
 }
