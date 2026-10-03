@@ -247,6 +247,10 @@
 "src": "anita/ik_zie_een_kastje_met_laser_erop_51770ff5.mp3",
 "dur": 3.82
 },
+"Anita|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien, Ctrl omlaag.": {
+"src": "anita/instappen_bij_roelf_spatie_omhoo_210daad1.mp3",
+"dur": 6.41
+},
 "Anita|Instappen! W/S hoogte, A/D opzij, Shift sneller. Achter die ballon aan.": {
 "src": "anita/instappen_w_s_hoogte_a_d_opzij_s_ecbe0dcd.mp3",
 "dur": 6.45
@@ -322,6 +326,10 @@
 "Anita|Naar de huurboot. Het skûtsje gooit zo los.": {
 "src": "anita/naar_de_huurboot_het_sku_tsje_go_b0ce231a.mp3",
 "dur": 2.96
+},
+"Anita|Naar het helidek van Rotor Roelf, op Eelde.": {
+"src": "anita/naar_het_helidek_van_rotor_roelf_6bfee9fd.mp3",
+"dur": 2.79
 },
 "Anita|Naar het helidek van het UMCG.": {
 "src": "anita/naar_het_helidek_van_het_umcg_b75b6fb5.mp3",
@@ -446,6 +454,10 @@
 "Anita|Uitstappen: Dokter Dijkstra wacht bij de heli.": {
 "src": "anita/uitstappen_dokter_dijkstra_wacht_a87bb6bf.mp3",
 "dur": 2.19
+},
+"Anita|Uitstappen: Rotor Roelf wacht bij zijn heli.": {
+"src": "anita/uitstappen_rotor_roelf_wacht_bij_cfda0789.mp3",
+"dur": 3.21
 },
 "Anita|Varen! De Diepenring op, daar komt het skûtsje langs.": {
 "src": "anita/varen_de_diepenring_op_daar_komt_44fbd0d6.mp3",
@@ -735,6 +747,10 @@
 "src": "tammo/ik_zie_een_kastje_met_laser_erop_09e84d8f.mp3",
 "dur": 3.63
 },
+"Tammo|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien, Ctrl omlaag.": {
+"src": "tammo/instappen_bij_roelf_spatie_omhoo_a5b3da26.mp3",
+"dur": 5.61
+},
 "Tammo|Instappen! W/S hoogte, A/D opzij, Shift sneller. Achter die ballon aan.": {
 "src": "tammo/instappen_w_s_hoogte_a_d_opzij_s_5e40154c.mp3",
 "dur": 4.97
@@ -810,6 +826,10 @@
 "Tammo|Naar de huurboot. Het skûtsje gooit zo los.": {
 "src": "tammo/naar_de_huurboot_het_sku_tsje_go_8499a09f.mp3",
 "dur": 2.19
+},
+"Tammo|Naar het helidek van Rotor Roelf, op Eelde.": {
+"src": "tammo/naar_het_helidek_van_rotor_roelf_0fa8011d.mp3",
+"dur": 3.03
 },
 "Tammo|Naar het helidek van het UMCG.": {
 "src": "tammo/naar_het_helidek_van_het_umcg_61a06ded.mp3",
@@ -930,6 +950,10 @@
 "Tammo|Uitstappen: Dokter Dijkstra wacht bij de heli.": {
 "src": "tammo/uitstappen_dokter_dijkstra_wacht_4614ed02.mp3",
 "dur": 2.38
+},
+"Tammo|Uitstappen: Rotor Roelf wacht bij zijn heli.": {
+"src": "tammo/uitstappen_rotor_roelf_wacht_bij_682e2734.mp3",
+"dur": 2.35
 },
 "Tammo|Varen! De Diepenring op, daar komt het skûtsje langs.": {
 "src": "tammo/varen_de_diepenring_op_daar_komt_b2fe627f.mp3",

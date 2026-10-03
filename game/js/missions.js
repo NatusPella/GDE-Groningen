@@ -14,6 +14,7 @@ import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
 import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, playRondvaartBoarding, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
+import { helipadById } from './heliflight.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -444,16 +445,16 @@ function buildDefs(world) {
     },
     {
       type: 'stages',
-      label: 'Spoedeisende duif',
-      intro: ['Jelle\'s ballon vertrekt met de echte Eierbal. Dokter Dijkstra van het UMCG heeft een traumaheli.', 'Anita vliegt, Tammo hangt aan het touw. Hou hoogte en snelheid van de mand vast.'],
-      outro: 'Tammo haalde de Eierbal uit de mand. Jelle landde in een weiland, tussen de koeien.',
+      label: 'Het staat niet in het rooster',
+      intro: ['Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.', 'Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.'],
+      outro: 'Tammo haalde de Eierbal uit de mand en Anita zette de heli netjes op de H. Jelle landde in een weiland, tussen de koeien.',
       timeLimit: null,
       reward: 1500,
-      // moved next to the heli spot at the UMCG once that exists (resolveSpotStarts)
-      start: walk(706, -325),
-      startSpot: 'heli',
+      // one flight in Rotor Roelf's demo heli: off from his pad on Eelde (resolveSpotStarts)
+      start: { x: 1599, y: 9914, road: null },
+      startSpot: 'eelde',
       stages: [
-        { kind: 'heli', variant: 'traumaduif', target: { heli: true }, label: 'Haal de Eierbal uit de ballon', say: 'Instappen! W/S hoogte, A/D opzij, Shift sneller. Achter die ballon aan.', lost: 'de ballon is ontsnapt, richting de Ommelanden' },
+        { kind: 'heli', variant: 'traumaduif', target: { helipad: 'eelde', label: 'Rotor Roelf, Eelde' }, label: 'Vlieg naar het UMCG, dan achter de ballon aan', say: 'Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien, Ctrl omlaag.', lost: 'de ballon is ontsnapt, richting de Ommelanden' },
       ],
     },
     {
@@ -1798,6 +1799,14 @@ function resolveSpotStarts(world) {
       for (const d of chain.defs) if (d.startSpot === 'heli') d.start = { ...world.map.openSpotNear(hs.x + 3.5, hs.y + 1.5), road: null };
     }
   }
+  if (!chain.eeldeStart) {
+    // H15 starts beside Rotor Roelf's pad on Eelde, between the pad and his kiosk
+    const ep = helipadById('eelde');
+    if (ep) {
+      chain.eeldeStart = true;
+      for (const d of chain.defs) if (d.startSpot === 'eelde') d.start = { x: ep.x - 7, y: ep.y + 5, road: null };
+    }
+  }
   if (chain.spotStarts) return;
   const spots = getPigeonSpotsForRender();
   if (!spots.length) return;
@@ -1982,7 +1991,7 @@ function raceCarProblem() {
 //   boatchase  Jelle's skûtsje sails the Diepenring from `lead` metres ahead of you; stay
 //           alongside in a boat (`board` m) for `boardTime` s to jump aboard. Fails past
 //           `escape` m or after `time` s (lost = the reason)
-//   heli    the UMCG trauma heli run (helirun.js, `variant`); passes when the catch works
+//   heli    a heli run in Rotor Roelf's demo heli (helirun.js, `variant`); passes on the final landing
 //   train   (H16, def `fjordTrain`) stand at the level crossing before the goods train
 //           with the Fjord gets there (fjordtrain.js); a chase with `toTrain` ends when
 //           the fleeing Fjord reaches the train or `time` runs out (`loaded`; stopped first = no train stage)
@@ -2008,7 +2017,7 @@ function raceCarProblem() {
 // target with z must be reached at that height (+-8 m), r = its radius.
 // Scene options: cam { r, h, lookZ, at } (a wide shot), dropFlag.
 // Targets: { x, y } | { at: [x, y], snap } | { shop } | { garage: true } |
-// { landmark, off: [dx, dy], snap, z, r } | { pigeonSpot } | { heistSpot } (heist.js) | { heli } | { rental } (your
+// { landmark, off: [dx, dy], snap, z, r } | { pigeonSpot } | { heistSpot } (heist.js) | { heli } | { helipad: id } | { rental } (your
 // rented boat) | { route } (the nearest point on the Diepenring) | { shore } (the nearest
 // street) | { skutsje } | { bank: [x, y] } (the water's edge near there); snap: 'walk' | 'drive'.
 
@@ -2046,6 +2055,10 @@ function resolveTarget(world, spec, from) {
   if (spec.pigeonSpot) {
     const ps = getPigeonSpotsForRender().find((q) => q.id === spec.pigeonSpot);
     return ps ? { x: ps.x, y: ps.y, label: ps.name } : null;
+  }
+  if (spec.helipad) {
+    const hp = helipadById(spec.helipad);
+    return hp ? { x: hp.x, y: hp.y, label: spec.label || hp.name } : null;
   }
   if (spec.heli) {
     const hs = getHeliSpotsForRender()[0];
@@ -2418,10 +2431,10 @@ function updateHeliStage(dt, world, def, st, S) {
     return;
   }
   if (S.started || isCinematicActive()) return;
-  if (p.inVehicle) { hint(world, 'Uitstappen: Dokter Dijkstra wacht bij de heli.'); return; }
-  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, 'Naar het helidek van het UMCG.'); return; }
+  if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
+  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
   S.started = startHeliRun({ variant: st.variant, onFinish: (res) => { S.result = res; } });
-  if (!S.started && S.t > 10) { world.addMessage('De heli wil niet opstijgen. Dokter Dijkstra vliegt zelf en brengt de Eierbal.', 4); nextStage(world, def); }
+  if (!S.started && S.t > 10) { world.addMessage('De heli wil niet opstijgen. Rotor Roelf vliegt zelf, en Dokter Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
 }
 
 // --- H18: Durk & Douwe's fireworks rain down on a hold stage --------------------
