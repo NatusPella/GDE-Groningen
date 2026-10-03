@@ -231,12 +231,12 @@ function flatsOnTop(B) {
   const ring = [p, q, [q[0] + vx * FLATS_DEPTH, q[1] + vy * FLATS_DEPTH], [p[0] + vx * FLATS_DEPTH, p[1] + vy * FLATS_DEPTH]];
   const edges = edgesOf(ring);
   for (const e of edges) {
-    eface(B, e, 0, e.len, y0, y1, C.flatBrick, G_BRICK);
+    eface(B, e, 0, e.len, y0, y1, C.flatBrick, G_BRICK, 0.025);
     if (e.len < 15) continue;
     for (let f = 0; f < FLATS_STOREYS; f++) {
       const fy = y0 + f * FLOOR;
       for (let t = 2.5; t < e.len - 2; t += 5.4) {
-        ebox(B, e, t, fy + 0.9, 2.6, 1.5, 0.05, C.glass, G_GLASS, 0.02);
+        ebox(B, e, t, fy + 0.9, 2.6, 1.5, 0.07, C.glass, G_GLASS, 0);
         // balcony: white slab, teal front
         ebox(B, e, t + 2.2, fy + 0.02, 2.4, 0.2, 1.4, C.white, G_PLAIN, 0);
         ebox(B, e, t + 2.2, fy + 0.22, 2.4, 1.0, 0.06, C.teal, G_PLAIN, 1.36);
@@ -244,7 +244,7 @@ function flatsOnTop(B) {
     }
   }
   cap(B, ring, y1, C.roof, G_PLAIN);
-  for (const e of edges) ebox(B, e, e.len / 2, y1 - 0.4, e.len + 0.2, 0.7, 0.12, C.teal, G_PLAIN, 0.02);
+  for (const e of edges) ebox(B, e, e.len / 2, y1 - 0.4, e.len + 0.2, 0.7, 0.14, C.teal, G_PLAIN, 0);
 }
 
 // Landmark builder (landmarks3d.js BUILDERS) for one footprint of the mall.
