@@ -17,7 +17,7 @@ import { updateSwimmers3D } from './swimmers3d.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
-import { getHorecaForRender, buildHorecaMarkerMesh3D } from './horeca.js';
+import { getHorecaForRender, buildHorecaMarkerMesh3D, horecaPads3D, updateHorecaPads3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
@@ -43,10 +43,14 @@ import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
-import { buildingBatcher, roadBatcher } from './staticbatch3d.js';
+import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
+import { simLevel } from './simload.js';
+import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
 // ?nobatch: every building drawn on its own (A/B checks of the batching)
 const NO_BATCH = typeof location !== 'undefined' && /[?&]nobatch\b/.test(location.search);
+const NO_WHEEL_INSTANCES = NO_BATCH;
+const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
@@ -166,6 +170,7 @@ const speechBubbleEls = new Map();
 let billboardRoot = null;
 let flitspaalBuilt = false;
 let horecaBuilt = false;
+let horecaPads = null;
 const staticProps = [];
 let policeHeliMesh = null;
 let playerMesh = null;
@@ -824,7 +829,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), roads: roadBatcher.info() }) };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info() }) };
 }
 
 // seconds between renders behind a menu that covers part / most of the view
@@ -1162,6 +1167,7 @@ function ensureTreeCapacity(n) {
     m.castShadow = m.receiveShadow = true;
     m.count = 0;
     m.matrixAutoUpdate = false;
+    m.name = 'trees';
     scene.add(m);
     treeInstanced.push(m);
   };
@@ -1212,6 +1218,7 @@ function syncBuildings(world, px, py) {
     }
     prefetchedBuildings.delete(b);
     mesh.visible = !hiddenBuildings.has(b);
+    if (!mesh.name) mesh.name = b.landmark ? 'landmark' : 'building';
     buildingMeshes.set(b, mesh);
     scene.add(mesh);
   }
@@ -1363,6 +1370,7 @@ function syncWater(items, cache, y, map, px, py) {
     if (!cache.has(poly)) {
       coldWater.delete(poly);
       const mesh = freezeStatic(buildWaterMesh(poly, y, map));
+      if (!mesh.name) mesh.name = 'water';
       scene.add(mesh);
       cache.set(poly, mesh);
     }
@@ -1402,6 +1410,7 @@ function syncRoads(world, px, py) {
       if (built > 0 && !r._geoRoad && performance.now() > deadline) { roadDetailR = Math.max(24, d); break; }
       coldRoads.delete(r);
       const mesh = freezeStatic(buildRoadGroup(r));
+      if (!mesh.name) mesh.name = 'road';
       scene.add(mesh);
       roadMeshes.set(r, mesh);
       built++;
@@ -1610,7 +1619,14 @@ function syncPedestrianMeshes(world, player, animDt) {
     }
     mesh.position.set(p.x, p.gz || 0, p.y);
     mesh.rotation.y = -p.angle;
-    animatePersonWalk(mesh, p.speed || 0, animDt);
+    // far walkers animate at half rate on a CPU-bound machine (simload.js)
+    if (simLevel() && !p.ragdoll && Math.abs(p.x - player.x) + Math.abs(p.y - player.y) > 45) {
+      ud.animAcc = (ud.animAcc || 0) + animDt;
+      ud.animTick = (ud.animTick || 0) + 1;
+      if (ud.animTick & 1) continue;
+      animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
+      ud.animAcc = 0;
+    } else animatePersonWalk(mesh, p.speed || 0, animDt);
     if (p.greetUntil > world.time) {
       const left = p.greetUntil - world.time;
       waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
@@ -1711,6 +1727,10 @@ export function update3D(dt, world) {
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: player.x, py: player.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
       withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
+    if (facadeDetailDist < DRAW_DIST) {
+      facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: player.x, py: player.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
+        withDetail: true, budgetMs: 1 });
+    } else facadeBatcher.clear();
   }
   probe.mark('3d:buildings');
   setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
@@ -1871,14 +1891,17 @@ export function update3D(dt, world) {
     const horecaSpots = getHorecaForRender();
     if (horecaSpots.length) {
       horecaBuilt = true;
+      horecaPads = horecaPads3D(horecaSpots);
+      scene.add(horecaPads);
       for (const h of horecaSpots) {
-        const mesh = buildHorecaMarkerMesh3D();
+        const mesh = buildHorecaMarkerMesh3D(false);
         mesh.position.set(h.x, 0, h.y);
         scene.add(mesh);
         staticProps.push(mesh);
       }
     }
   }
+  if (horecaPads) updateHorecaPads3D(horecaPads, player.x, player.y, DRAW_DIST + 10);
   for (const mesh of staticProps) {
     mesh.visible = !mesh.userData.broken && Math.abs(mesh.position.x - player.x) < DRAW_DIST && Math.abs(mesh.position.z - player.y) < DRAW_DIST;
     // hundreds of these exist city-wide; hidden ones need no matrix updates
@@ -2304,6 +2327,12 @@ export function update3D(dt, world) {
   limitActorShadows(pedMeshes, player.x, player.y);
   limitActorShadows(vehicleMeshes, player.x, player.y);
   limitActorShadows(wildlifeMeshes, player.x, player.y);
+  if (!NO_WHEEL_INSTANCES) {
+    beginWheels(scene);
+    wheelFrustum.setFromProjectionMatrix(wheelProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+    for (const mesh of vehicleMeshes.values()) addVehicleWheels(mesh, wheelFrustum);
+    endWheels();
+  }
   updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness, dt);
   probe.mark('3d:lights');
   stepWarmup(world);

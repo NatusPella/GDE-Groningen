@@ -3,7 +3,8 @@ import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, standBehindPose,
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
-import { spawnFxPuff } from './fx3d.js';
+import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
+import { makeBirds, updateBirds } from './intromontage.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
@@ -226,7 +227,7 @@ const STORY = [
     fail: [['A', 'Drie kroegen is ook een tocht.'], ['T', 'Een tochtje. Morgen de rest.']],
   },
   {
-    // 6: H12 Fatbikes tellen niet als fiets (Oude Ebbingestraat)
+    // 6: H12 Fatbikes tellen niet als fiets (Oude Ebbingestraat, Noorderhaven)
     npc: 'trijntje', outroPose: 'hips', ask: 0,
     intro: [
       ['N', 'Loop jij daar heelhuids overheen, jong, dan vertel ik je iets over die bal.', { card: 'trijntje' }],
@@ -1773,6 +1774,220 @@ function playLimoReveal(w, done) {
       return pose(P(perch.x, perch.y, perch.z + bob), look, t > DRIVE + 1 ? 30 : 38);
     },
     onDone: () => done(),
+  });
+}
+
+// --- H18: the pigeons over the Ontzet fireworks -----------------------------------
+
+const FW_TINTS = [[1, 0.35, 0.3], [1, 0.85, 0.3], [0.4, 0.8, 1], [0.6, 1, 0.5], [1, 0.5, 0.9]];
+
+function fireworkBurst(w, x, y, z) {
+  const [r0, g0, b0] = FW_TINTS[Math.floor(Math.random() * FW_TINTS.length)];
+  for (let k = 0; k < 18; k++) {
+    const a = (k / 18) * Math.PI * 2, up = (Math.random() - 0.3) * 6;
+    spawnFxPuff(x, z, y, Math.cos(a) * 7, up, Math.sin(a) * 7, 0.9, 0.35, 1.2, r0, g0, b0, 0.95, 1.8, -0.4);
+    spawnFxSpark(x, z, y, Math.cos(a) * 10, up + 2, Math.sin(a) * 10, 0.8);
+  }
+  (w.audioEvents || (w.audioEvents = [])).push({ kind: 'weapon', sub: 'burst', x, y });
+}
+
+// Tammo whistles at the stall, the pigeons lift off d'Olle Grieze, fly through
+// the Ontzet fireworks over the Grote Markt and land on the trekker-limo's
+// windscreen (D-definitief H18). limo: the fleeing vehicle; stall: { x, y }.
+export function playPigeonSwarm(w, { limo, stall, lines = [], kicker = '', onDone = null } = {}) {
+  if (run || !limo || !stall) return false;
+  const lm = (w.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren');
+  const tower = lm ? { x: lm.x, y: lm.y } : { x: stall.x - 40, y: stall.y - 40 };
+  // a ledge on the stall side of the tower, not inside it
+  const tw = Math.atan2(stall.y - tower.y, stall.x - tower.x);
+  const perch = { x: tower.x + Math.cos(tw) * 7, y: tower.y + Math.sin(tw) * 7 };
+  const face = chooseFacing(w, stall.x, stall.y, Math.atan2(tower.y - stall.y, tower.x - stall.x));
+  const r = buildRun(w, { anchor: stall, facing: face, noPair: true });
+  if (!r) return false;
+  r.tammo.visible = true;
+  standActor(r.tammo, stall.x, stall.y, face);
+  const flock = makeBirds(r.group, perch.x, perch.y, 3, 80);
+  const tl = timeline(lines, null, 0.6);
+  const L = tl.lines;
+  // the flight: off the tower top, a dip through the bursts over the square, onto the glass
+  const fwd = { x: Math.cos(limo.angle), y: Math.sin(limo.angle) };
+  const glass = { x: limo.x + fwd.x * 1.4, y: limo.y + fwd.y * 1.4 };
+  const over = { x: (tower.x + stall.x) / 2, y: (tower.y + stall.y) / 2 };
+  const leave = L[0] ? L[0].at + L[0].dur * 0.6 : 1.5;
+  const land = L[2] ? L[2].at - 0.2 : leave + 4;
+  const flightAt = (u) => {
+    // two legs: the ledge (55 m) -> over the square (28 m) -> the windscreen (1.6 m)
+    if (u < 0.5) {
+      const k = smooth(u / 0.5);
+      return P(lerp(perch.x, over.x, k), lerp(perch.y, over.y, k), lerp(55, 28, k));
+    }
+    const k = (u - 0.5) / 0.5, e = k * k * (3 - 2 * k);
+    return P(lerp(over.x, glass.x, e), lerp(over.y, glass.y, e), lerp(28, 1.6, e * e));
+  };
+  const offs = flock.list.map(() => ({ a: Math.random() * Math.PI * 2, d: Math.sqrt(Math.random()), z: Math.random() - 0.5, ph: Math.random() * 6 }));
+  let nextBurst = 0.4, whistled = false;
+  return runScene(r, tl, {
+    id: 'mission-swarm', kicker: kicker || 'Gronings Ontzet', title: 'Boven het vuurwerk', cardFor: 2.2,
+    update: (t, dt) => {
+      if (!whistled && t > 0.25) { whistled = true; (w.audioEvents || (w.audioEvents = [])).push({ kind: 'whistle', x: stall.x, y: stall.y }); }
+      // the fireworks go up over the square until the birds are through
+      if (t < land && (nextBurst -= dt) <= 0) {
+        nextBurst = 0.28 + Math.random() * 0.3;
+        const a = Math.random() * Math.PI * 2, d = Math.random() * 22;
+        fireworkBurst(w, over.x + Math.cos(a) * d, over.y + Math.sin(a) * d, 22 + Math.random() * 14);
+      }
+      const u = clamp01((t - leave) / Math.max(0.5, land - leave));
+      const c = flightAt(u);
+      const ahead = flightAt(Math.min(1, u + 0.02));
+      const h = Math.atan2(ahead.y - c.y, ahead.x - c.x);
+      // a loose cloud in the air, a tight carpet on the bonnet and the glass
+      const spread = t < leave ? 2.5 : u < 0.97 ? 5 - u * 2.5 : 1.3;
+      flock.list.forEach((p, i) => {
+        const o = offs[i];
+        const sx = Math.cos(o.a + t * 0.6) * o.d * spread, sy = Math.sin(o.a + t * 0.6) * o.d * spread;
+        p.x = c.x + sx; p.y = c.y + sy;
+        p.z = Math.max(1.2, c.z + o.z * spread * (u > 0.97 ? 0.3 : 1) + Math.sin(t * 3 + o.ph) * 0.2);
+        if (t < leave) p.z = 55 + o.z;
+        p.h = u > 0.97 ? o.a : h;
+        p.vx = p.vy = p.vz = 0; p.air = 0; p.delay = 0; p.fly = t >= leave - 0.3;
+      });
+      updateBirds(flock, dt, t);
+    },
+    poses: (t) => ({ T: t < leave + 0.5 ? 'wave' : 'point' }),
+    camera: (t, cur) => {
+      const who = cur ? cur.who : null;
+      if (t < leave + 0.4 || who === 'T') {
+        // low past Tammo at the stall, d'Olle Grieze and the bursts behind him
+        const back = { x: stall.x - Math.cos(face) * 4.5 + Math.cos(face + 1.4) * 1.2, y: stall.y - Math.sin(face) * 4.5 + Math.sin(face + 1.4) * 1.2 };
+        return pose(camClear(w, P(back.x, back.y, 1.3)), P(tower.x, tower.y, 30), 52);
+      }
+      const u = clamp01((t - leave) / Math.max(0.5, land - leave));
+      if (t < land + 0.3) {
+        // alongside the flock through the fireworks
+        const c = flightAt(u), n = flightAt(Math.min(1, u + 0.06));
+        const h = Math.atan2(n.y - c.y, n.x - c.x);
+        const side = { x: -Math.sin(h) * 9, y: Math.cos(h) * 9 };
+        return pose(camClear(w, P(c.x - Math.cos(h) * 7 + side.x, c.y - Math.sin(h) * 7 + side.y, c.z + 3)), P(c.x, c.y, c.z), 50);
+      }
+      if (who === 'A') {
+        // from Anita's side, at most 14 m back: a trekker-limo covered in pigeons
+        const pv = w.player.inVehicle || w.player;
+        const back = Math.min(14, Math.max(6, Math.hypot(pv.x - limo.x, pv.y - limo.y)));
+        const fromA = Math.atan2(pv.y - limo.y, pv.x - limo.x);
+        return pose(camClear(w, P(limo.x + Math.cos(fromA) * back, limo.y + Math.sin(fromA) * back, 2.4)), P(limo.x, limo.y, 1.2), 46);
+      }
+      // the windscreen, from the front: nothing but pigeons
+      return pose(camClear(w, P(limo.x + fwd.x * 5.5 + fwd.y * 1.5, limo.y + fwd.y * 5.5 - fwd.x * 1.5, 1.6)), P(glass.x, glass.y, 1.4), 40);
+    },
+    onDone: (skipped) => {
+      flock.body.dispose(); flock.wings.dispose();
+      if (onDone) onDone(skipped);
+    },
+  });
+}
+
+// --- H5: the all-green crossing -------------------------------------------------
+
+let bikeN = 0;
+function cineBike(color, rider) {
+  const g = buildVehicleMesh({ id: 'cine-bike-' + (bikeN++ % 4), isBike: true, model: { name: 'bike', color, rider, len: 1.8, wid: 0.6 } });
+  for (const c of g.children) if (c.userData && c.userData.pelvis) c.visible = false;
+  g.rotation.order = 'YXZ';
+  g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  return g;
+}
+
+function rideBike(bike, m, x, y, a, t, dt, speed, lean = 0) {
+  const c = Math.cos(a), s = Math.sin(a);
+  bike.position.set(x, 0, y);
+  bike.rotation.set(lean, -a, 0);
+  updateVehicleWheelSpin(bike, speed, dt);
+  m.visible = true;
+  m.position.set(x - c * 0.3, seatedY(m, 1.0), y - s * 0.3);
+  m.rotation.order = 'YXZ';
+  m.rotation.set(lean, -a, 0);
+  m.userData.faceA = a;
+  seatPose(m, { recline: speed > 0.5 ? -0.2 : -0.05, footX: 0.5, footY: -0.42, pedal: speed > 0.5, arms: 'wheel' }, t * Math.min(1.6, speed * 0.3 + 0.4));
+}
+
+// Clear ground (no wall, water or car) from (x, y) along angle a, in metres.
+function clearRun(w, x, y, a, len) {
+  for (let d = 2; d <= len; d += 1.5) {
+    const px = x + Math.cos(a) * d, py = y + Math.sin(a) * d;
+    if (blocked(w, px, py) || carAt(w, px, py, 1.2)) return d - 1.5;
+  }
+  return len;
+}
+
+// The KEI race's all-green crossing (D-definitief H5): Tammo rides in, Anita
+// comes from the other side on her own bike, they look at each other and
+// both brake. No words. at/heading: where the player is and which way he rides.
+export function playEyeContact(w, { at, heading, onDone = null } = {}) {
+  if (run || !at) return false;
+  const a = Number.isFinite(heading) ? heading : 0;
+  // she comes in across his path from the clearer side, else head-on
+  const sides = [a + Math.PI / 2, a - Math.PI / 2, a];
+  const runs = sides.map((b) => clearRun(w, at.x, at.y, b, 16));
+  let k = runs[0] >= runs[1] ? 0 : 1;
+  if (runs[k] < 8 && runs[2] > runs[k]) k = 2;
+  const from = sides[k];
+  const herA = from + Math.PI;
+  const back = Math.max(6, clearRun(w, at.x, at.y, a + Math.PI, 14));
+  const herLen = Math.max(6, runs[k]);
+  const r = buildRun(w, { anchor: at, facing: a, noPair: true });
+  if (!r) return false;
+  const tammo = makeActor(TAMMO_APPEARANCE), anita = makeActor(ANITA_APPEARANCE);
+  const bT = cineBike('#2f4f6f', 0x3f6ea8), bA = cineBike('#7a2a24', 0x9e3027);
+  r.group.add(tammo, anita, bT, bA);
+  r.extras.push({ key: 'T', mesh: tammo, riding: true }, { key: 'A', mesh: anita, riding: true });
+  // Tammo stops just short of the crossing, Anita in it, both facing in
+  const tEnd = { x: at.x - Math.cos(a) * 1.6, y: at.y - Math.sin(a) * 1.6 };
+  const aEnd = { x: at.x + Math.cos(from) * 2.6, y: at.y + Math.sin(from) * 2.6 };
+  const tStart = { x: tEnd.x - Math.cos(a) * back, y: tEnd.y - Math.sin(a) * back };
+  const aStart = { x: at.x + Math.cos(from) * herLen, y: at.y + Math.sin(from) * herLen };
+  const RIDE = 2.6, BRAKE = 0.7, TOTAL = 7.2;
+  // steady speed, then a short braking ease into the stop
+  const posAt = (p0, p1, t) => {
+    const u = t < RIDE ? (t / RIDE) * 0.86 : 0.86 + 0.14 * smooth((t - RIDE) / BRAKE);
+    const v = Math.hypot(p1.x - p0.x, p1.y - p0.y) * 0.86 / RIDE;
+    return { x: lerp(p0.x, p1.x, u), y: lerp(p0.y, p1.y, u), speed: t < RIDE ? v : t < RIDE + BRAKE ? v * 0.4 * (1 - (t - RIDE) / BRAKE) : 0 };
+  };
+  const tl = { lines: [], total: TOTAL };
+  let braked = false;
+  const mid = { x: (tEnd.x + aEnd.x) / 2, y: (tEnd.y + aEnd.y) / 2 };
+  const high = camClear(w, P(at.x - Math.cos(a) * 9 + Math.cos(from) * 7, at.y - Math.sin(a) * 9 + Math.sin(from) * 7, 7.5));
+  const low = camClear(w, P(at.x - Math.cos(from) * 4 - Math.cos(a) * 3, at.y - Math.sin(from) * 4 - Math.sin(a) * 3, 0.9));
+  const dTA = Math.atan2(aEnd.y - tEnd.y, aEnd.x - tEnd.x);
+  const over = (q, d, z) => camClear(w, P(q.x - Math.cos(d) * 1.5 - Math.sin(d) * 0.5, q.y - Math.sin(d) * 1.5 + Math.cos(d) * 0.5, z));
+  const look = (m, ma, tx, ty, k) => {
+    const d = Math.atan2(ty - m.position.z, tx - m.position.x) - ma;
+    m.userData.head.rotation.y = -Math.max(-1.1, Math.min(1.1, Math.atan2(Math.sin(d), Math.cos(d)))) * k;
+  };
+  return runScene(r, tl, {
+    id: 'mission-scene', kicker: 'KEI-week · alles groen', title: 'Oogcontact', cardFor: 2.4,
+    update: (t, dt) => {
+      const qt = posAt(tStart, tEnd, t), qa = posAt(aStart, aEnd, t);
+      const dip = t > RIDE && t < RIDE + BRAKE ? Math.sin((t - RIDE) / BRAKE * Math.PI) * 0.06 : 0;
+      rideBike(bT, tammo, qt.x, qt.y, a, t, dt, qt.speed, dip);
+      rideBike(bA, anita, qa.x, qa.y, herA, t, dt, qa.speed, -dip);
+      if (t > RIDE && !braked) { braked = true; playClueSting(); }
+      // from just before the brake they only look at each other
+      if (t > RIDE - 0.4) {
+        const k = smooth((t - RIDE + 0.4) / 0.8);
+        look(tammo, a, anita.position.x, anita.position.z, k);
+        look(anita, herA, tammo.position.x, tammo.position.z, k);
+        if (t > 5.2) anita.userData.head.rotation.z += 0.08;
+      }
+    },
+    camera: (t) => {
+      if (t < 1.9) return pose(high, P(lerp(at.x, mid.x, t / 1.9), lerp(at.y, mid.y, t / 1.9), 0.8), 50);
+      if (t < RIDE + BRAKE + 0.3) return pose(low, P(anita.position.x, anita.position.z, 1.2), 42);
+      // over his shoulder at her, then over hers at him, then the two of them
+      if (t < 5.1) return pose(over(tEnd, dTA, 1.75), P(aEnd.x, aEnd.y, 1.55), 32);
+      if (t < 6.3) return pose(over(aEnd, dTA + Math.PI, 1.7), P(tEnd.x, tEnd.y, 1.6), 30);
+      return pose(camClear(w, P(mid.x - Math.sin(dTA) * 6, mid.y + Math.cos(dTA) * 6, 2.2)), P(mid.x, mid.y, 1.0), 44);
+    },
+    onDone: (skipped) => { if (onDone) onDone(skipped); },
   });
 }
 
