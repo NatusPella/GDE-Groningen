@@ -13,6 +13,7 @@
 // makes the desktop app save a screenshot per step.
 
 import { skipCinematic, isCinematicActive } from './cinematics.js';
+import { skipStoryContact } from './storycontact.js';
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave, saveGame, loadLatestSave } from './savegame.js';
@@ -196,8 +197,10 @@ export async function runStoryTest(world) {
         }
         if (step.player) {
           // the swap waits for a quiet moment: keep skipping scenes meanwhile
+          // (story contacts too: a fast run piles them up, a radio call from a mission ago holds the handover off)
           const ok = await waitFor(() => {
             if (isCinematicActive()) skipCinematic();
+            else skipStoryContact();
             return world.player.character === step.player && (!world.companion || world.companion.character !== step.player);
           }, 20000);
           check(`${cur.id}: plays as ${step.player}`, ok, ok ? world.player.character : JSON.stringify(S().swapInfo()));
@@ -206,6 +209,7 @@ export async function runStoryTest(world) {
           await drain(world, 300);
         }
         if (cur.kind === 'activity') {
+          const courts0 = window.__storyFun ? window.__storyFun.state().played.court : 0;
           S().teleport();
           await sleep(900);
           capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
@@ -215,7 +219,9 @@ export async function runStoryTest(world) {
             // the twins' challenge at the court, then a real match there, ended at once (a loss still counts)
             const pd = window.__padel, sf = window.__storyFun;
             if (sf && sf.court) {
-              check(`${cur.id}: Durk and Douwe challenge you at the court`, sf.court(), JSON.stringify(sf.state()));
+              // walking up to the court (the teleport) may already have played it
+              const met = sf.state().played.court > courts0 || sf.court();
+              check(`${cur.id}: Durk and Douwe challenge you at the court`, met, JSON.stringify(sf.state()));
               await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !isCinematicActive(); }, 15000, 200);
             }
             const started = pd.start();
@@ -259,7 +265,7 @@ export async function runStoryTest(world) {
             if (v) {
               if (p.inVehicle) p.exitVehicle(world.map, world);
               p.x = v.x - 6; p.y = v.y + 5;
-              check(`${cur.id}: Rotor Roelf's scene plays at his heli`, await waitFor(() => sf.state().played.meet > 0, 8000), JSON.stringify(sf.state()));
+              check(`${cur.id}: Rotor Roelf's scene plays at his heli`, await waitFor(() => sf.state().played.meet > 0, 8000), JSON.stringify({ ...sf.state(), mission: isMissionActive(), cine: isCinematicActive(), inVehicle: p.inVehicle ? p.inVehicle.type || p.inVehicle.model || true : false, d: Math.round(Math.hypot(p.x - v.x, p.y - v.y) * 10) / 10 }));
               const met = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
               check(`${cur.id}: meeting Roelf completes the step`, met, JSON.stringify(S().current()));
             }
