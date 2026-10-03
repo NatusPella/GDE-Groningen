@@ -6,7 +6,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-10-03
+
 ### Nieuw
+- **De game heet nu GDE Groningen – Zomer vol misdaad.** GDE staat voor
+  Grootste Diefstal Ever. Het nieuwe logo zet GRONINGEN op een groen
+  plaatsnaambord, op het laadscherm, het titelscherm, in het pauzemenu, de
+  trailer, de aftiteling en het app-icoon. "GTE VI" en "Grand Theft" zijn
+  overal weg. Je saves, instellingen en prestaties blijven gewoon staan.
 - **H15 is één vlucht: "Het staat niet in het rooster"** (was "Spoedeisende
   duif"). Je stijgt op bij Rotor Roelf op Eelde, onderweg belt Dokter
   Dijkstra met een spoedje (de nachtdienst heeft honger), je landt op de H
@@ -127,6 +134,16 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **De treden** worden duidelijk: Anita zegt "trede twee van de
   complimentenladder", en Tammo telt ze in de auto op.
 
+- **Minder haperingen en minder geheugen**: wegen, terrein, straatobjecten,
+  oevers en het water in het Ommeland worden in een aparte thread gebouwd. Op
+  de ring zijn de laatste pieken weg, en de game gebruikt ongeveer 170 MB
+  minder geheugen. Heeft je computer het druk, dan tekent de minimap minder
+  vaak.
+- **De ring ziet er netter uit**: geen zwarte laag meer tussen de straat en de
+  verdiepte rijbanen, minder losse randen naast verhoogde wegen, en een
+  gebouw aan de Expositielaan zakt niet meer weg.
+- **Boten kunnen de stad uit varen**, het Ommeland in en weer terug.
+
 ### Opgelost
 - De minimap draaide niet mee tijdens de heli-missie en de ringen stonden er
   niet goed op; nu draait de kaart met de heli en staan de ringen, de H en de
@@ -186,11 +203,6 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Dieren die je aanrijdt**, vallen even om en lopen dan weg. Vogels
   fladderen op en laten een paar veren achter.
 - In de uitslag van een missie staat geen regel "Kills" meer.
-- **De game heet nu GDE Groningen – Zomer vol misdaad.** GDE staat voor
-  Grootste Diefstal Ever. Het nieuwe logo zet GRONINGEN op een groen
-  plaatsnaambord, op het laadscherm, het titelscherm, in het pauzemenu, de
-  trailer, de aftiteling en het app-icoon. "GTE VI" en "Grand Theft" zijn
-  overal weg. Je saves, instellingen en prestaties blijven gewoon staan.
 - De downloads heten nu `GDE-Groningen-<versie>-mac.dmg` en
   `GDE-Groningen-<versie>-windows-portable.exe`. Op de Mac kun je de oude
   app "GTE VI" weggooien nadat je de nieuwe hebt geïnstalleerd.
