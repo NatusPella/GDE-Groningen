@@ -8,7 +8,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - Er is één testronde per release: de verhaaltest in Electron, de node-tests, en een korte speeltest. Agents doen tussendoor alleen lichte checks.
 - De legenda: `[x]` is klaar, `[~]` loopt (met de branch erachter), `[ ]` is open, en `[?]` wacht op een besluit.
 
-## 0.23: alles wat nu loopt, plus een speeltest
+## 0.23: uitgebracht op 3 okt 2026 (een paar punten schuiven door)
 
 **Visueel en wereld**
 - [~] Mesh ronde 3 (`claude/mesh-ronde3`): stoeptegels die flikkeren op kruispunten, water en markering die flikkeren, spoorbedden, de laatste kieren bij verhoogde en verdiepte wegen, 291 gaten, de Griffeweg, zwevende en zinkende gebouwen.
@@ -148,6 +148,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
 
 ## Klaar
 
+- [x] 0.23.0 (3 okt 2026): echte gebouwen ronde 2, Ommeland ronde 2, gevels en wegen die minder flikkeren, bestuurders op de goede plek, een soepele ring in cutscenes, laadtijd van 10 naar 6 s, kusjes na H13, juridische basis (Over, disclaimer, licenties) en de webversie (alleen lokaal).
 - [x] 0.22.0 (3 okt 2026):
   - het definitieve verhaal en alle stemmen opnieuw ingesproken;
   - de trailer en de video-export;
