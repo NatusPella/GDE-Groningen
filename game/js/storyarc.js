@@ -109,7 +109,7 @@ export const CHARACTERS = {
 
 // card: the two lines on the "Wordt vervolgd" card where the built story stops.
 // date: the date card of the part ("Kop · 14 augustus").
-// recap: the "Eerder in GTE VI" card when the part starts: [place, narrator line],
+// recap: the "Eerder in GDE" card when the part starts: [place, narrator line],
 // place a map landmark name, [x, y] or 'studio' (Rikus at the Nachtstreek mic; story.js playRecap).
 export const PARTS = {
   kop: { title: 'Kop: "Moi, Grunn"', date: '14 augustus', open: true, end: 'Einde van de Kop',
@@ -119,7 +119,7 @@ export const PARTS = {
       ['studio', 'Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist.'],
       ['Groninger Museum', '\'t Het nog nooit zo donker west, of \'t wer altied wel weer licht.'],
       ['studio', 'Behalve in de fietstunnel. Die is er nog niet. 2029, zeggen ze. Bijna.'],
-      ['Grote Markt', 'Eerder in GTE VI. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.'],
+      ['Grote Markt', 'Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.'],
       ['Groninger Museum', 'Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: "Tige tank! – W."'],
       ['Martinitoren', 'En op Nachtstreek belde een Fries. Jelle Terpstra. Hij wil hem eerlijk winnen, op Gronings Ontzet.'],
     ],
@@ -129,7 +129,7 @@ export const PARTS = {
     recap: [
       ['studio', 'Morgen gooit er een skûtsje los in de Oosterhaven. Ik zeg daar niks over.'],
       ['studio', 'Storingsbericht: achttien bruggen in storing. Niemand merkt verschil.'],
-      ['Noorderplantsoen', 'Eerder in GTE VI. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.'],
+      ['Noorderplantsoen', 'Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.'],
       ['Martinitoren', 'Een duif pikte zijn vlag van d\'Olle Grieze. Er stond op: foar mem.'],
       ['Grote Markt', 'Oma Trijntje vertelde over 1953. Over Gerda Terpstra. Zeventig jaar trots, in één zin.'],
       [[741, 418], 'En op de rondvaartboot zeiden ze moi. Allebei. Ik zeg niks.'],

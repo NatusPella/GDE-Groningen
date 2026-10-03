@@ -6722,6 +6722,24 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Rikus|Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.": {
+"src": "rikus/eerder_in_gde_jelle_kocht_al_het_c0baad5b.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Schedar",
+"input": "Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.",
+"style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog, samenvattend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
+"Rikus|Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.": {
+"src": "rikus/eerder_in_gde_twee_stadjers_zond_045fd8bb.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Schedar",
+"input": "Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.",
+"style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog, samenvattend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Rikus|Eerder in GTE VI. Jelle Terpstra kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.": {
 "src": "verteller/eerder_in_gte_vi_jelle_terpstra__e4215a2b.mp3",
 "model": "google/gemini-3.8-flash-tts",
