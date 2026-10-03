@@ -8,9 +8,10 @@ import {
 import {
   churchGeometry, turbineTowerGeometry, turbineRotorGeometry, lightGeometry, millBodyGeometry, millSailsGeometry,
   pylonGeometry, wireGeometry, flareGeometry, beltGeometry, farmSilhouetteGeometry, clumpGeometry, realSilhouetteGeometry,
-  TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H,
+  TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H, CHURCH_SPAN,
 } from './countrymodels.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
+import { applyFacade, bldCode, STYLE, ROOF_PAL } from './countrybuilding.js';
 import { markInstancesDirty } from './util.js';
 
 // The Ommelanden skyline: church towers, turbine rows, poldermolens, pylon
@@ -75,8 +76,10 @@ ${light ? 'gl_FragColor.rgb *= 0.12 + 0.88 * step(0.35, fract(uTime * 0.5 + 0.2)
 const TYPES = {
   church0: { geo: () => churchGeometry(0), mat: 'tall', cap: 160, shadow: true },
   church1: { geo: () => churchGeometry(1), mat: 'tall', cap: 160, shadow: true },
-  rbSil: { geo: realSilhouetteGeometry, mat: 'belt', cap: 9000 },
-  rbSilFlat: { geo: () => realSilhouetteGeometry(true), mat: 'belt', cap: 3000 },
+  church2: { geo: () => churchGeometry(2), mat: 'tall', cap: 60, shadow: true },
+  church3: { geo: () => churchGeometry(3), mat: 'tall', cap: 60, shadow: true },
+  rbSil: { geo: realSilhouetteGeometry, mat: 'bld', cap: 9000 },
+  rbSilFlat: { geo: () => realSilhouetteGeometry(true), mat: 'bld', cap: 3000 },
   turbine: { geo: turbineTowerGeometry, mat: 'tall', cap: 400, shadow: true },
   rotor: { geo: turbineRotorGeometry, mat: 'rotorT', cap: 400 },
   light: { geo: lightGeometry, mat: 'light', cap: 400 },
@@ -104,7 +107,10 @@ function init(scene) {
     rotorT: skyMaterial('rotorT', { rotor: 1.15 }),
     rotorM: skyMaterial('rotorM', { rotor: 0.55 }),
     light: skyMaterial('light', { light: true }),
+    bld: skyMaterial('bld', { belt: true }),
   };
+  // the far real buildings: the belt haze plus the facade (lit windows at night)
+  applyFacade(mats.bld, 'sky', mats.bld.onBeforeCompile);
   const pools = {};
   for (const [k, T] of Object.entries(TYPES)) {
     const mesh = new THREE.InstancedMesh(markShared(T.geo()), mats[T.mat], T.cap);
@@ -127,7 +133,7 @@ function init(scene) {
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color();
 const _e = new THREE.Euler(), _x = new THREE.Vector3(1, 0, 0), _d = new THREE.Vector3();
 
-function put(L, type, x, h, y, rotY, sx, sy, sz, color = 0xffffff) {
+function put(L, type, x, h, y, rotY, sx, sy, sz, color = 0xffffff, code = 0) {
   const list = L[type] || (L[type] = { m: [], c: [] });
   if (list.c.length / 3 >= TYPES[type].cap) return;
   _e.set(0, rotY, 0);
@@ -135,7 +141,7 @@ function put(L, type, x, h, y, rotY, sx, sy, sz, color = 0xffffff) {
   _m.compose(_p.set(x, h, y), _q, _s.set(sx, sy, sz));
   for (let i = 0; i < 16; i++) list.m.push(_m.elements[i]);
   _c.set(color);
-  list.c.push(_c.r, _c.g, _c.b);
+  list.c.push(_c.r + code * 2, _c.g, _c.b);
 }
 
 function putSeg(L, a, b, thick) {
@@ -149,6 +155,7 @@ function putSeg(L, a, b, thick) {
   list.c.push(1, 1, 1);
 }
 
+const SIL_STYLE = { house: STYLE.house, block: STYLE.block, barn: STYLE.barn, shed: STYLE.shed, glass: STYLE.glass };
 const ROOF_TINT = [0xa04a30, 0x5a5e62, 0x8a7a52];
 const SIL_SCALE = { khr: [1, 1, 1], olda: [1.15, 1.15, 1.3], small: [0.5, 0.58, 0.46], dairy: [1.25, 0.62, 1.45] };
 
@@ -186,7 +193,8 @@ function* gatherGen(px, py, nearR) {
   if (REAL.ready) {
     for (const c of REAL.churches) {
       if ((c.x - px) ** 2 + (c.y - py) ** 2 > rt2) continue;
-      put(L, chash(Math.round(c.x), Math.round(c.y)) < 0.6 ? 'church0' : 'church1', c.x + 1, -0.05, c.y, 0, 1, 1, 1);
+      const f = churchFit(c);
+      put(L, 'church' + f.v, f.x, -0.05, f.y, f.rot, f.sx, f.sy, f.sz);
     }
     yield;
     const n = Math.ceil(R_BELT / RTILE);
@@ -203,8 +211,9 @@ function* gatherGen(px, py, nearR) {
         for (const i of B) {
           if (REAL.bw[i] * REAL.bl[i] < 45 || (REAL.bx[i] - px) ** 2 + (REAL.by[i] - py) ** 2 < nr2) continue;
           const m = buildingModel(i);
-          if (m.kind === 'house' || m.kind === 'barn') put(L, 'rbSil', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall + m.roof, m.short, m.kind === 'barn' ? m.roofColor : m.roofColor);
-          else put(L, 'rbSilFlat', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall, m.short, m.color);
+          const style = SIL_STYLE[m.kind];
+          if (m.roof > 0) put(L, 'rbSil', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, (m.wall + m.roof) * 0.98, m.short, m.color, bldCode(style, Math.max(0, ROOF_PAL.indexOf(m.roofColor))));
+          else put(L, 'rbSilFlat', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall, m.short, m.color, bldCode(style));
         }
       }
       if (++k % 60 === 0) yield;
@@ -245,6 +254,36 @@ function* gatherGen(px, py, nearR) {
     }
   }
   return { L, missing };
+}
+
+// The OSM church outline (the biggest church box within 35 m of the point)
+// picks the variant and scales and turns it to fit, tower to the west.
+function churchFit(c) {
+  if (c._fit) return c._fit;
+  let best = -1, ba = 0;
+  for (let oy = -1; oy <= 1; oy++) {
+    for (let ox = -1; ox <= 1; ox++) {
+      for (const i of buildingsInTile(Math.floor(c.x / RTILE) + ox, Math.floor(c.y / RTILE) + oy) || []) {
+        if (REAL.code[i] !== 7 || Math.hypot(REAL.bx[i] - c.x, REAL.by[i] - c.y) > 35) continue;
+        const a = REAL.bw[i] * REAL.bl[i];
+        if (a > ba) { ba = a; best = i; }
+      }
+    }
+  }
+  const h = chash(Math.round(c.x), Math.round(c.y));
+  if (best < 0) return (c._fit = { v: h < 0.6 ? 0 : 1, x: c.x + 1, y: c.y, rot: 0, sx: 1, sy: 1, sz: 1 });
+  const w = REAL.bw[best], l = REAL.bl[best];
+  let ang = w >= l ? REAL.ba[best] : REAL.ba[best] + Math.PI / 2;
+  if (Math.cos(ang) < 0) ang += Math.PI;
+  const long = Math.max(w, l), short = Math.min(w, l);
+  const v = ba < 200 ? 3 : ba > 550 && short / long > 0.5 ? 2 : h < 0.6 ? 0 : 1;
+  const [x0, x1, wd] = CHURCH_SPAN[v];
+  const sx = Math.min(1.8, Math.max(0.55, long / (x1 - x0))), sz = Math.min(1.8, Math.max(0.6, short / wd));
+  const sy = Math.min(1.35, Math.max(0.75, Math.sqrt(sx * sz)));
+  // the template's footprint centre onto the outline's centre
+  const mid = ((x0 + x1) / 2) * sx;
+  const x = REAL.bx[best] - Math.cos(ang) * mid, y = REAL.by[best] - Math.sin(ang) * mid;
+  return (c._fit = { v, x, y, rot: -ang, sx, sy, sz });
 }
 
 function rot2(lx, lz, angle) {

@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { chash } from './countryfield.js';
 import { GeoBuilder, composeMatrix, tubeGeometry, loftGeometry } from './pixelart3d.js';
+import { withParts, PART } from './countrybuilding.js';
 
 // Flat-shaded, vertex-coloured geometry for the Ommelanden: vegetation,
 // farmsteads and their yard machinery, village houses and church, turbines,
@@ -447,8 +448,14 @@ export function graveGeometry() {
 }
 
 // Romanesque brick church on the terp, tower to the west (-X). variant 0:
-// Groningen saddle-roof tower, 1: needle spire.
+// Groningen saddle-roof tower, 1: needle spire, 2: cruciform with a spire
+// over the crossing, 3: small zaalkerk with a roof turret (dakruiter).
+// CHURCH_SPAN: [x0, x1, width] of each variant's footprint, to fit it to
+// the OSM outline.
+export const CHURCH_SPAN = [[-14.2, 17.5, 11], [-14.2, 17.5, 11], [-14.2, 19, 21], [-8.4, 10.6, 9]];
 export function churchGeometry(variant) {
+  if (variant === 2) return cruciformChurchGeometry();
+  if (variant === 3) return chapelGeometry();
   const B = new GeoBuilder();
   const BR = 0x8a4a36, ROOF = variant ? 0x3e4449 : 0x9a4a30, TR = 0xe8e0d0;
   B.box(2, 4, 0, 20, 8, 11, BR);
@@ -473,6 +480,55 @@ export function churchGeometry(variant) {
     B.box(-11, 38.6, 0, 0.12, 1.4, 0.12, 0xc9a227);
     B.box(-11, 39.1, 0, 0.12, 0.12, 0.8, 0xc9a227);
   }
+  return B.build();
+}
+
+function arches(B, x0, x1, step, z, y, h, s) {
+  for (let x = x0; x <= x1; x += step) {
+    B.box(x, y, z, 1.0, h, 0.1, 0x2a3236);
+    B.geo(new THREE.CircleGeometry(0.5, 6, 0, Math.PI), composeMatrix(x, y + h / 2, z + s * 0.04, 0, s > 0 ? 0 : Math.PI, 0), 0x2a3236);
+  }
+}
+
+function cruciformChurchGeometry() {
+  const B = new GeoBuilder();
+  const BR = 0x84462f, ROOF = 0x3e4449, TR = 0xe8e0d0;
+  B.box(1, 5, 0, 22, 10, 11, BR);
+  gableRoofX(B, -10, 12, 5.5, 10, 16.5, ROOF, BR);
+  B.box(7, 5, 0, 7, 10, 21, BR);
+  gableRoofZ(B, 3.5, 10.5, 10.5, 10, 16.5, ROOF, BR);
+  B.geo(new THREE.CylinderGeometry(5.5, 5.5, 9, 8, 1, false, 0, Math.PI).rotateY(Math.PI / 2), composeMatrix(12, 4.5, 0), BR);
+  B.geo(new THREE.ConeGeometry(5.8, 4.5, 8, 1, true, 0, Math.PI).rotateY(Math.PI / 2), composeMatrix(12, 11.25, 0), ROOF);
+  for (const s of [-1, 1]) {
+    arches(B, -7, 1, 3.2, s * 5.52, 5.6, 4.2, s);
+    B.geo(new THREE.CircleGeometry(1.6, 12), composeMatrix(7, 7.2, s * 10.53, 0, s > 0 ? 0 : Math.PI, 0), 0x2a3236);
+  }
+  // crossing flèche
+  B.box(7, 17.2, 0, 2.2, 2.4, 2.2, ROOF);
+  B.geo(new THREE.ConeGeometry(1.6, 9, 8).rotateY(Math.PI / 8), composeMatrix(7, 22.9, 0), ROOF);
+  // west tower with a spire
+  B.box(-11.2, 13, 0, 6, 26, 6, BR);
+  for (const s of [-1, 1]) { B.box(-11.2, 22, s * 3.02, 1.4, 2.6, 0.1, 0x1e2226); B.box(-11.2 + s * 3.02, 22, 0, 0.1, 2.6, 1.4, 0x1e2226); }
+  B.box(-14.25, 18, 0, 0.1, 1.5, 1.5, TR);
+  B.box(-14.25, 2.2, 0, 0.14, 4.4, 2.2, 0x3a2a22);
+  B.geo(new THREE.ConeGeometry(4.1, 15, 8, 1, true).rotateY(Math.PI / 8), composeMatrix(-11.2, 33.5, 0), ROOF);
+  B.box(-11.2, 41.6, 0, 0.12, 1.4, 0.12, 0xc9a227);
+  return B.build();
+}
+
+function chapelGeometry() {
+  const B = new GeoBuilder();
+  const BR = 0x9a5a40, ROOF = 0x9a4a30, W = 0xece6da;
+  B.box(1, 3.4, 0, 18, 6.8, 9, BR);
+  gableRoofX(B, -8, 10, 4.5, 6.8, 12, ROOF, BR);
+  for (const s of [-1, 1]) arches(B, -5, 7, 3, s * 4.52, 3.8, 3.2, s);
+  B.box(-8.05, 1.3, 0, 0.14, 2.6, 1.6, 0x3a2a22);
+  B.geo(new THREE.CircleGeometry(0.9, 10), composeMatrix(-8.06, 7.8, 0, 0, -Math.PI / 2, 0), 0x2a3236);
+  // dakruiter on the west end of the ridge
+  B.box(-5.5, 12.4, 0, 1.5, 1.8, 1.5, W);
+  B.box(-5.5, 12.6, 0, 1.56, 0.9, 0.9, 0x2a2e30);
+  B.geo(new THREE.ConeGeometry(1.15, 4.2, 8).rotateY(Math.PI / 8), composeMatrix(-5.5, 15.4, 0), 0x3e4449);
+  B.box(-5.5, 17.8, 0, 0.1, 1.0, 0.1, 0xc9a227);
   return B.build();
 }
 
@@ -748,32 +804,17 @@ export function barrierGeometry() {
 
 // Unit pieces for the real Ommelanden buildings (countryreal.js), scaled per
 // instance: x = length, y = wall or roof height, z = width; tinted by the
-// instance colour (white here). Body: walls with window rows on all sides.
-const WIN = 0x2a3036;
-export function realBodyGeometry(rows = 1, door = true) {
+// instance colour (white here) and drawn with the facade material
+// (countrybuilding.js), which paints windows and doors from the part ids.
+// Body: the walls and a flat top, no bottom.
+export function realBodyGeometry() {
   const B = new GeoBuilder();
-  B.box(0, 0.5, 0, 1, 1, 1, 0xffffff);
-  const cols = [-0.33, 0, 0.33];
-  for (let r = 0; r < rows; r++) {
-    const y0 = rows === 1 ? 0.34 : 0.12 + (r / rows) * 0.86, h = rows === 1 ? 0.36 : 0.5 / rows;
-    for (const s of [-1, 1]) {
-      for (const x of cols) {
-        if (door && rows === 1 && s < 0 && x === 0) continue;
-        B.box(x, y0 + h / 2, s * 0.503, 0.1, h * 0.85, 0.006, WIN);
-      }
-      B.box(s * 0.503, y0 + h / 2, 0, 0.006, h, 0.2, WIN);
-    }
-  }
-  if (door) B.box(0, 0.3, -0.503, 0.09, 0.6, 0.006, 0x4a3024);
-  return B.build();
-}
-// Plain shed / hall: walls with a big door on one long side.
-export function realShedGeometry() {
-  const B = new GeoBuilder();
-  B.box(0, 0.5, 0, 1, 1, 1, 0xffffff);
-  B.box(0.18, 0.36, -0.503, 0.2, 0.72, 0.006, 0x6a6e70);
-  B.box(-0.3, 0.04, 0.503, 0.4, 0.04, 0.006, 0xb0b0a8);
-  return B.build();
+  B.quadOut([-0.5, 0, 0.5], [0.5, 0, 0.5], [0.5, 1, 0.5], [-0.5, 1, 0.5], [0, 0, 1], 0xffffff);
+  B.quadOut([-0.5, 0, -0.5], [-0.5, 1, -0.5], [0.5, 1, -0.5], [0.5, 0, -0.5], [0, 0, -1], 0xffffff);
+  B.quadOut([0.5, 0, -0.5], [0.5, 1, -0.5], [0.5, 1, 0.5], [0.5, 0, 0.5], [1, 0, 0], 0xffffff);
+  B.quadOut([-0.5, 0, -0.5], [-0.5, 0, 0.5], [-0.5, 1, 0.5], [-0.5, 1, -0.5], [-1, 0, 0], 0xffffff);
+  B.quadOut([-0.5, 1, -0.5], [-0.5, 1, 0.5], [0.5, 1, 0.5], [0.5, 1, -0.5], [0, 1, 0], 0xffffff);
+  return withParts(B.build(), (x, y, z, nx, ny) => (ny > 0.5 ? PART.top : PART.wall));
 }
 // Gable roof slopes (ridge along x), a little overhang.
 export function realRoofGeometry() {
@@ -781,16 +822,28 @@ export function realRoofGeometry() {
   const o = 0.03;
   B.quadOut([-0.5 - o, -0.04, 0.5 + o * 2], [0.5 + o, -0.04, 0.5 + o * 2], [0.5 + o, 1, 0], [-0.5 - o, 1, 0], [0, 1, 1], 0xffffff);
   B.quadOut([-0.5 - o, -0.04, -0.5 - o * 2], [-0.5 - o, 1, 0], [0.5 + o, 1, 0], [0.5 + o, -0.04, -0.5 - o * 2], [0, 1, -1], 0xffffff);
-  return B.build();
+  return withParts(B.build(), () => PART.roof);
 }
-// The two gable-end triangles under that roof (wall colour).
+// Hipped roof: the ridge ends (part 'ridge') are pulled in by the shader to
+// half the instance depth, so one piece fits every footprint.
+export function realHipGeometry() {
+  const B = new GeoBuilder();
+  const ox = 0.03, oz = 0.06, e = -0.04;
+  const A = [-0.5 - ox, e, -0.5 - oz], Bq = [0.5 + ox, e, -0.5 - oz], C = [0.5 + ox, e, 0.5 + oz], D = [-0.5 - ox, e, 0.5 + oz];
+  const R0 = [-0.5, 1, 0], R1 = [0.5, 1, 0];
+  B.quadOut(D, C, R1, R0, [0, 1, 1], 0xffffff);
+  B.quadOut(A, R0, R1, Bq, [0, 1, -1], 0xffffff);
+  B.triOut(A, D, R0, [-1, 1, 0], 0xffffff);
+  B.triOut(Bq, R1, C, [1, 1, 0], 0xffffff);
+  return withParts(B.build(), (x, y) => (y > 0.99 ? PART.ridge : PART.roof));
+}
+// The two gable-end triangles under that roof (wall colour, attic window
+// from the shader).
 export function realGableGeometry() {
   const B = new GeoBuilder();
   B.triOut([-0.5, 0, 0.5], [-0.5, 0, -0.5], [-0.5, 0.97, 0], [-1, 0, 0], 0xffffff);
   B.triOut([0.5, 0, 0.5], [0.5, 0.97, 0], [0.5, 0, -0.5], [1, 0, 0], 0xffffff);
-  B.box(-0.501, 0.42, 0, 0.004, 0.22, 0.14, WIN);
-  B.box(0.501, 0.42, 0, 0.004, 0.22, 0.14, WIN);
-  return B.build();
+  return withParts(B.build(), () => PART.gable);
 }
 
 // Mid-distance roof: the slopes and both gable ends in one piece (tinted
@@ -801,20 +854,21 @@ export function realRoofMidGeometry() {
   B.quadOut([-0.52, -0.04, -0.54], [-0.52, 1, 0], [0.52, 1, 0], [0.52, -0.04, -0.54], [0, 1, -1], 0xffffff);
   B.triOut([-0.5, 0, 0.5], [-0.5, 0, -0.5], [-0.5, 0.97, 0], [-1, 0, 0], 0xc8b8a8);
   B.triOut([0.5, 0, 0.5], [0.5, 0.97, 0], [0.5, 0, -0.5], [1, 0, 0], 0xc8b8a8);
-  return B.build();
+  return withParts(B.build(), (x, y, z, nx, ny) => (ny > 0.3 ? PART.roof : PART.plain));
 }
 
-// Distant real building: walls to 0.55 and a gable roof to 1 (flat: a box).
+// Distant real building: walls to 0.55 and a gable roof to 1 (flat: a box),
+// tinted with the wall colour; the roof takes its colour from the code.
 export function realSilhouetteGeometry(flat = false) {
   const B = new GeoBuilder();
-  if (flat) {
-    B.box(0, 0.5, 0, 1, 1, 1, 0xffffff);
-    return B.build();
-  }
-  B.box(0, 0.275, 0, 1, 0.55, 1, 0xb88a70);
+  if (flat) return realBodyGeometry();
+  B.quadOut([-0.5, 0, 0.5], [0.5, 0, 0.5], [0.5, 0.55, 0.5], [-0.5, 0.55, 0.5], [0, 0, 1], 0xffffff);
+  B.quadOut([-0.5, 0, -0.5], [-0.5, 0.55, -0.5], [0.5, 0.55, -0.5], [0.5, 0, -0.5], [0, 0, -1], 0xffffff);
   B.quadOut([-0.52, 0.53, 0.54], [0.52, 0.53, 0.54], [0.52, 1, 0], [-0.52, 1, 0], [0, 1, 1], 0xffffff);
   B.quadOut([-0.52, 0.53, -0.54], [-0.52, 1, 0], [0.52, 1, 0], [0.52, 0.53, -0.54], [0, 1, -1], 0xffffff);
-  B.triOut([-0.5, 0.55, 0.5], [-0.5, 0.55, -0.5], [-0.5, 0.98, 0], [-1, 0, 0], 0xb88a70);
-  B.triOut([0.5, 0.55, 0.5], [0.5, 0.98, 0], [0.5, 0.55, -0.5], [1, 0, 0], 0xb88a70);
-  return B.build();
+  B.quadOut([-0.5, 0, -0.5], [-0.5, 0, 0.5], [-0.5, 0.55, 0.5], [-0.5, 0.55, -0.5], [-1, 0, 0], 0xffffff);
+  B.quadOut([0.5, 0, -0.5], [0.5, 0.55, -0.5], [0.5, 0.55, 0.5], [0.5, 0, 0.5], [1, 0, 0], 0xffffff);
+  B.triOut([-0.5, 0.55, 0.5], [-0.5, 0.55, -0.5], [-0.5, 0.98, 0], [-1, 0, 0], 0xffffff);
+  B.triOut([0.5, 0.55, 0.5], [0.5, 0.98, 0], [0.5, 0.55, -0.5], [1, 0, 0], 0xffffff);
+  return withParts(B.build(), (x, y, z, nx, ny) => (ny > 0.3 ? PART.silRoof : PART.silWall));
 }

@@ -5,6 +5,7 @@ import { REAL, RTILE, roadsInTile, inRealExtent } from './countryreal.js';
 import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
+import { glowMaterial, headlightGeometry } from './countryglow.js';
 
 // Life in the Ommelanden: a few slow road users on the polder roads (a
 // tractor, a cyclist, the odd car), boats puttering along the maaren, and
@@ -168,6 +169,10 @@ function makeTraffic(type, R) {
     vmax = 4 + R() * 1.8; radius = 0.6;
   }
   g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  // headlights (one additive mesh, hidden by day with the glow material)
+  const hl = new THREE.Mesh(cachedGeo('hl' + type, () => (type === 'car' ? headlightGeometry(2.08, 0.66, 0.55, 18) : type === 'tractor' ? headlightGeometry(2.12, 1.15, 0.4, 12) : headlightGeometry(0.75, 0.85, 0, 7))), glowMaterial());
+  hl.renderOrder = 2;
+  g.add(hl);
   return { g, vmax, radius };
 }
 

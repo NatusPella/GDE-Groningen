@@ -44,28 +44,124 @@ const pairs = (p) => {
 };
 
 // Model for building i: what the countryside props, skyline and maps draw.
-// kind: 'house' (gable), 'block' (flat, windows), 'barn', 'shed', 'glass'.
+// kind: 'house' (gable or hip), 'block' (flat, windows), 'barn', 'shed',
+// 'glass'. Buildings that share walls (groupRows) are one row: one height,
+// one brick and roof, the ridge along the row; long is then the width along
+// the row (it can be the shorter side), short the depth.
 export const BRICKS = [0x9a4a36, 0x8a3e30, 0xa8583e, 0x7a4636, 0xb87a56, 0xd8d0c0, 0x94503c, 0x6e3e32];
+const BRICK_FAMILY = [
+  [0x9a4a36, 0x94503c, 0x8a4434], [0x8a3e30, 0x7e3a2e, 0x8e4434], [0xa8583e, 0xb06446, 0x9e5038],
+  [0x7a4636, 0x6e3e32, 0x744234], [0xb87a56, 0xae6e4c, 0xc08462], [0xd8d0c0, 0xe2dccc, 0xcfc6b4],
+];
 const ROOF_TILE = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e];
 const BARN_ROOF = [0x3a3e40, 0x4a5a48, 0x6a6e6c, 0x3a3e40];
 const SHED_WALL = [0x8a9296, 0x5a6a78, 0xb8b6ae, 0x6f7a6c, 0x9a8a70];
 export function buildingModel(i) {
   const code = REAL.code[i], w = REAL.bw[i], l = REAL.bl[i], area = w * l * REAL.fill[i];
-  const lv = REAL.lv[i];
-  const h = chash(REAL.bx[i], REAL.by[i]);
-  const long = Math.max(w, l), short = Math.min(w, l);
-  let kind = 'house', wall = 3 + h * 2.6, roof = Math.min(6, Math.max(2.2, short * 0.55)), color = BRICKS[Math.floor(h * 97) % BRICKS.length], rc = ROOF_TILE[Math.floor(h * 53) % ROOF_TILE.length];
+  const root = REAL.row ? REAL.row[i] : i, ax = REAL.rowAxis ? REAL.rowAxis[i] : -1;
+  const row = ax >= 0 && REAL.rowN[root] > 1;
+  const lv = row ? REAL.rowLv[root] : REAL.lv[i];
+  // the row's seed sets height and palette; the unit's own only small things
+  const h = chash(REAL.bx[root], REAL.by[root]), hu = chash(REAL.bx[i] + 7, REAL.by[i] - 3);
+  let long = Math.max(w, l), short = Math.min(w, l), angle = w >= l ? REAL.ba[i] : REAL.ba[i] + Math.PI / 2;
+  if (row) { long = ax === 0 ? w : l; short = ax === 0 ? l : w; angle = ax === 0 ? REAL.ba[i] : REAL.ba[i] + Math.PI / 2; }
+  const depth = row ? REAL.rowDep[root] : short;
+  const fam = BRICK_FAMILY[Math.floor(h * 97) % BRICK_FAMILY.length];
+  let kind = 'house', wall = 3 + h * 2.6, roof = Math.min(6, Math.max(2.2, depth * 0.55)), hip = false;
+  let color = fam[hu < 0.18 ? 1 + (Math.floor(hu * 11) % 2) : 0], rc = ROOF_TILE[Math.floor(h * 53) % ROOF_TILE.length];
   const urban = urbanWeight(REAL.bx[i], REAL.by[i]);
-  if (code === 8 || code === 10 || (code === 0 && area < 38)) { kind = 'shed'; wall = 2.4 + h * 0.6; roof = 0; color = h < 0.5 ? 0x6a5a48 : 0x8a8478; }
+  if (code === 8 || code === 10 || (code === 0 && area < 38)) { kind = 'shed'; wall = 2.4 + hu * 0.6; roof = 0; color = hu < 0.5 ? 0x6a5a48 : 0x8a8478; }
   else if (code === 5) { kind = 'glass'; wall = 3.6; roof = 0; color = 0xc8dcd6; }
   else if (code === 2 || code === 9 || lv >= 3) { kind = 'block'; wall = Math.max(2, lv || (code === 9 ? 2 : 4)) * 3 + 0.6; roof = 0; color = h < 0.5 ? color : [0xd8d0c0, 0xb8b0a0, 0x8a8a84][Math.floor(h * 7) % 3]; }
   else if (code === 6) { kind = 'shed'; wall = 6 + h * 4; roof = 0; color = SHED_WALL[Math.floor(h * 31) % SHED_WALL.length]; }
-  else if (code === 4 || (code === 0 && area > 380 && urban < 0.5)) { kind = 'barn'; wall = 3.4 + h; roof = Math.min(9, Math.max(3.5, short * 0.42)); color = h < 0.4 ? 0x7a4a3a : SHED_WALL[Math.floor(h * 31) % SHED_WALL.length]; rc = BARN_ROOF[Math.floor(h * 13) % BARN_ROOF.length]; }
-  else if (code === 3) { wall = 3.6; roof = Math.min(7.5, Math.max(4, short * 0.6)); }
+  else if (code === 4 || (code === 0 && area > 380 && urban < 0.5)) {
+    kind = 'barn'; wall = 3.4 + h; roof = Math.min(9, Math.max(3.5, short * 0.42)); hip = h < 0.7;
+    color = h < 0.4 ? 0x7a4a3a : SHED_WALL[Math.floor(h * 31) % SHED_WALL.length]; rc = BARN_ROOF[Math.floor(h * 13) % BARN_ROOF.length];
+  }
+  else if (code === 3) { wall = 3.6; roof = Math.min(7.5, Math.max(4, short * 0.6)); hip = true; }
   else if (code === 0 && area > 380) { kind = 'block'; wall = 6.5 + h * 5; roof = 0; color = SHED_WALL[Math.floor(h * 31) % SHED_WALL.length]; }
   else if (lv) { wall = lv * 2.9 + 0.3; }
-  if (kind === 'house' && long > 26 && area > 300) { kind = 'block'; wall = 6 + h * 3; roof = 0; }
-  return { kind, wall, roof, color, roofColor: rc, long, short, angle: (w >= l ? REAL.ba[i] : REAL.ba[i] + Math.PI / 2) };
+  // one OSM outline for a whole terrace stays a pitched row, not a block
+  if (kind === 'house' && !row && long > 26 && area > 300 && (code !== 1 || short > 14)) { kind = 'block'; wall = 6 + h * 3; roof = 0; }
+  // a big detached house out in the polder is a farmhouse with a hipped roof
+  if (kind === 'house' && !row && !hip && area > 150 && urban < 0.35) { hip = true; wall = Math.min(wall, 3.4); roof = Math.min(8, Math.max(4.5, short * 0.62)); }
+  else if (kind === 'house' && !row && !hip && hu < 0.12) hip = true;
+  return { kind, wall, roof, hip, color, roofColor: rc, long, short, angle, row };
+}
+
+// Buildings that share a wall (aligned boxes less than a metre apart with
+// most of the wall in common) form a row: a terrace, a pair of semis.
+// REAL.row[i] is the row's lowest index, rowAxis[i] the unit's own axis
+// along the row (0: along ba, 1: across it, -1: detached); rowN, rowLv and
+// rowDep (mean depth) are kept at that first index.
+function groupRows() {
+  const n = REAL.n, CELL = 32;
+  const { bx: X, by: Y, bw: W, bl: L, ba: A } = REAL;
+  const par = new Int32Array(n);
+  for (let i = 0; i < n; i++) par[i] = i;
+  const find = (i) => { while (par[i] !== i) { par[i] = par[par[i]]; i = par[i]; } return i; };
+  const axis = new Int8Array(n).fill(-1);
+  const cls = new Uint8Array(n), rad = new Float32Array(n), ca = new Float32Array(n), sa = new Float32Array(n);
+  // counting-sort grid of the candidates by the cell of their centre
+  const [ex0, ey0, ex1, ey1] = REAL.ext;
+  const gw = Math.ceil((ex1 - ex0) / CELL) + 2, gh = Math.ceil((ey1 - ey0) / CELL) + 2;
+  const cellOf = new Int32Array(n).fill(-1), start = new Int32Array(gw * gh + 1);
+  for (let i = 0; i < n; i++) {
+    const c = REAL.code[i];
+    if ((c !== 0 && c !== 1 && c !== 2) || REAL.fill[i] < 0.6 || W[i] * L[i] < 30) continue;
+    const gx = Math.floor((X[i] - ex0) / CELL) + 1, gy = Math.floor((Y[i] - ey0) / CELL) + 1;
+    if (gx < 1 || gy < 1 || gx >= gw - 1 || gy >= gh - 1) continue;
+    cls[i] = c === 2 || REAL.lv[i] >= 3 ? 2 : 1;
+    rad[i] = Math.sqrt(W[i] * W[i] + L[i] * L[i]) / 2 + 0.8;
+    ca[i] = Math.cos(A[i]); sa[i] = Math.sin(A[i]);
+    cellOf[i] = gy * gw + gx;
+    start[cellOf[i] + 1]++;
+  }
+  for (let k = 0; k < gw * gh; k++) start[k + 1] += start[k];
+  const fillAt = start.slice(0, gw * gh), order = new Int32Array(start[gw * gh]);
+  for (let i = 0; i < n; i++) if (cellOf[i] >= 0) order[fillAt[cellOf[i]]++] = i;
+  const touch = (a, b) => {
+    const cd = ca[a] * ca[b] + sa[a] * sa[b], sd = Math.abs(sa[a] * ca[b] - ca[a] * sa[b]);
+    if (Math.min(Math.abs(cd), sd) > 0.17) return -1;
+    const swap = Math.abs(cd) < 0.7071;
+    const hau = W[a] / 2, hav = L[a] / 2;
+    const hbu = (swap ? L[b] : W[b]) / 2, hbv = (swap ? W[b] : L[b]) / 2;
+    const dx = X[b] - X[a], dy = Y[b] - Y[a];
+    const u = dx * ca[a] + dy * sa[a], v = -dx * sa[a] + dy * ca[a];
+    const gu = Math.abs(u) - hau - hbu, gv = Math.abs(v) - hav - hbv;
+    if (gu > -0.8 && gu < 1 && gv < 0 && Math.min(hav, v + hbv) - Math.max(-hav, v - hbv) > 1.2 * Math.min(hav, hbv)) return 0;
+    if (gv > -0.8 && gv < 1 && gu < 0 && Math.min(hau, u + hbu) - Math.max(-hau, u - hbu) > 1.2 * Math.min(hau, hbu)) return 1;
+    return -1;
+  };
+  // each pair once: the own cell (b after a) and four of the eight neighbours
+  const NB = [0, 1, gw - 1, gw, gw + 1];
+  for (let p = 0; p < order.length; p++) {
+    const a = order[p], ka = cellOf[a];
+    for (let o = 0; o < 5; o++) {
+      const kb = ka + NB[o];
+      for (let q = o === 0 ? p + 1 : start[kb]; q < start[kb + 1]; q++) {
+        const b = order[q];
+        if (cls[a] !== cls[b]) continue;
+        const dx = X[b] - X[a], dy = Y[b] - Y[a], r = rad[a] + rad[b];
+        if (dx * dx + dy * dy > r * r) continue;
+        const t = touch(a, b);
+        if (t < 0) continue;
+        if (axis[a] < 0) axis[a] = t;
+        if (axis[b] < 0) axis[b] = Math.abs(ca[a] * ca[b] + sa[a] * sa[b]) < 0.7071 ? 1 - t : t;
+        const ra = find(a), rb = find(b);
+        if (ra !== rb) par[Math.max(ra, rb)] = Math.min(ra, rb);
+      }
+    }
+  }
+  const rowN = new Uint16Array(n), rowLv = new Uint8Array(n), rowDep = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const r = (par[i] = find(i));
+    if (rowN[r] < 65535) rowN[r]++;
+    rowLv[r] = Math.max(rowLv[r], REAL.lv[i]);
+    rowDep[r] += axis[i] === 1 ? REAL.bw[i] : axis[i] === 0 ? REAL.bl[i] : Math.min(REAL.bw[i], REAL.bl[i]);
+  }
+  for (let i = 0; i < n; i++) if (rowN[i]) rowDep[i] /= rowN[i];
+  REAL.row = par; REAL.rowAxis = axis; REAL.rowN = rowN; REAL.rowLv = rowLv; REAL.rowDep = rowDep;
 }
 
 export function initReal(map, om) {
@@ -88,6 +184,9 @@ export function initReal(map, om) {
     if (!a) REAL.bTiles.set(k, (a = []));
     a.push(i);
   }
+  const tr = performance.now();
+  groupRows();
+  REAL.rowMs = Math.round(performance.now() - tr);
   const wm = om.water;
   const water = { ...wm, data: new Uint8Array(buf, 12 + n * stride * 2, wm.w * wm.h) };
   const urban = urbanGrid(om.extent);
