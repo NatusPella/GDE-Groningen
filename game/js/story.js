@@ -753,12 +753,18 @@ export function initStory(w) {
 // prompt, the key and the Besturing row don't exist (player.js, prompts.js,
 // pausemenu.js read world.kissUnlocked).
 const KISS_STEP = 'H13';
-// H13 itself, not a later mission played ahead
+// H13 itself, not a later mission played ahead; and only once the story has
+// got there: H13 played ahead from Te doen ("H13 nu al spelen?") left the
+// missions before it open, and whoever you played then (Tammo or Anita,
+// depending on the step you were at) could kiss from H7 on.
 function kissUnlockedNow() {
   const step = STEP_BY_ID.get(KISS_STEP);
   if (!step) return false;
   const i = missionIdx(step);
-  return state.done.has(KISS_STEP) || state.skipped.has(KISS_STEP) || (i >= 0 && isMissionCompleted(i));
+  const passed = state.done.has(KISS_STEP) || state.skipped.has(KISS_STEP) || (i >= 0 && isMissionCompleted(i));
+  if (!passed) return false;
+  const k = STEPS.indexOf(step);
+  return STEPS.slice(0, k).every((s, j) => s.kind !== 'mission' || !stepAvailable(s) || isDone(s, j));
 }
 
 export function updateStory(dt, w) {
