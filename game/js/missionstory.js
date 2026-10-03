@@ -1376,7 +1376,19 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   group.add(pole);
   // the twins' getaway: both of them on one fatbike, parked behind them
   const bike = fail ? null : fatbikeMesh();
-  const bS = at0(8.5, 6.2), awayA = Math.atan2(-dy, -dx) + 0.5;
+  const bS = at0(8.5, 6.2);
+  // they ride off along open ground (a street, the quay), never through a wall or
+  // into the water: the clearest heading, preferring away from the canal; where
+  // even that runs out they turn the corner out of shot (rideMax)
+  const RIDE_NEED = 12;
+  const away0 = Math.atan2(-dy, -dx) + 0.5;
+  let awayA = away0, rideMax = 0;
+  for (let k = 0; k < 16; k++) {
+    const a = away0 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * (Math.PI / 8);
+    const run = clearRun(w, bS.x, bS.y, a, RIDE_NEED + 2);
+    if (run > rideMax + 0.5) { rideMax = run; awayA = a; }
+    if (run >= RIDE_NEED) break;
+  }
   if (bike) {
     group.add(bike);
     bike.position.set(bS.x, 0, bS.y);
@@ -1465,7 +1477,8 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
         // off they go, slowly, far too heavy for one fatbike
         const s2 = Math.max(0, ft - 1.1);
         const v = Math.min(3.2, 0.6 + s2 * 1.4), d = s2 * (0.6 + Math.min(3.2, s2 * 1.4) * 0.5);
-        rideFatbike(bike, durk, douwe, bS.x + Math.cos(awayA) * d, bS.y + Math.sin(awayA) * d, awayA, t, dt, v);
+        if (d < rideMax - 0.5) rideFatbike(bike, durk, douwe, bS.x + Math.cos(awayA) * d, bS.y + Math.sin(awayA) * d, awayA, t, dt, v);
+        else { bike.visible = false; durk.visible = false; douwe.visible = false; }
       }
       const twinsCam = riding && t > landAt + AFTER - 0.2
         ? pose(camClear(w, P(bS.x + Math.cos(awayA + 1.4) * 5.5 - Math.cos(awayA) * 2, bS.y + Math.sin(awayA + 1.4) * 5.5 - Math.sin(awayA) * 2, 1.9)), P(bike.position.x, bike.position.z, 1.2), 44)
