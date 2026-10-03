@@ -19,6 +19,7 @@ import { updatePolice } from './police.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
+import { updateOnboarding } from './onboarding.js';
 import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
@@ -494,6 +495,7 @@ async function boot() {
     } else updateMissions(dt, world);
     updateStory(dt, world);
     updateGoal(dt, world);
+    updateOnboarding(dt, world);
     updateSideJobs(dt, world);
     updatePostgame(dt, world);
     updateOmmelandFun(dt, world);

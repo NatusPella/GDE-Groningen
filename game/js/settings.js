@@ -25,6 +25,8 @@ const DEFAULTS = {
   cameraDistance: 1,
   showMinimap: true,
   showHints: true,
+  // short tip cards for new players (onboarding.js)
+  onboardingTips: true,
   reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
