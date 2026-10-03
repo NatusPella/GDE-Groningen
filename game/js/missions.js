@@ -135,6 +135,9 @@ function buildDefs(world) {
       requires: 'bike',
       // the all-green crossing: Anita comes the other way on her own bike
       moment: { at: 3, text: 'Alles groen. Anita komt van de andere kant, op haar eigen fiets. Oogcontact. Jullie remmen allebei.' },
+      // each on their own bike (D: she comes the other way at the all-green crossing), so she gets off his
+      ownBike: true,
+      say: 'Ik fiets zelf, op mijn eigen fiets. Met bonnetje. Zie je op het kruispunt.',
       timeLimit: 35,
       checkpointBonus: 20,
       reward: 550,
@@ -1659,6 +1662,7 @@ function startMission(world, def) {
     chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320, jelle: true });
   } else if (def.race === 'kei') {
     chain.race = createRace(world, KEI_ROUTE, KEI_CHECKPOINTS, { bikes: true, band: 70 });
+    if (def.ownBike) companionOwnBike(world);
   }
   if (def.crowds) spawnCrowds(world, def);
   const i = chain.index;
@@ -1673,6 +1677,21 @@ function startMission(world, def) {
   }
   if (def.say) world.addMessage(def.say, 5);
   chain.seen.add(i);
+}
+
+// H5: the race is one bike each. The companion gets off the player's bike and
+// stays by the start (it is also the finish) for the race; in the all-green
+// moment (playEyeContact) she comes the other way on her own bike.
+function companionOwnBike(world) {
+  const c = world.companion;
+  if (!c || c.state === 'dead') return;
+  const p = world.player;
+  if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
+  const a = p.angle + Math.PI / 2;
+  const spot = world.map.openSpotNear ? world.map.openSpotNear(p.x + Math.cos(a) * 2.5, p.y + Math.sin(a) * 2.5) : { x: p.x + Math.cos(a) * 2.5, y: p.y + Math.sin(a) * 2.5 };
+  c.x = spot.x; c.y = spot.y; c.vx = 0; c.vy = 0;
+  world.companionHold = { x: spot.x, y: spot.y, face: p.angle, pose: 'phone' };
+  chain.soloHold = true;
 }
 
 // H3 is a stunt evening in the Escapade: when it is not near, Henk parks it at the square.
