@@ -296,7 +296,7 @@ function isPurchase(step, gate) {
 }
 
 function gateLabel(key) {
-  return { weapon: 'koop een wapen', bike: 'koop een fiets', car: 'koop een auto', heist: 'zwart incognito of een huurboot', night: 'wachten tot het donker is', boat: 'huur een boot' }[key] || key;
+  return { weapon: 'koop een wapen', bike: 'koop een fiets', car: 'koop een auto', heist: 'koop zwart incognito of huur een boot', night: 'wachten tot het donker is', boat: 'huur een boot' }[key] || key;
 }
 
 // Tops up the money for a purchase the step needs, once per step.
