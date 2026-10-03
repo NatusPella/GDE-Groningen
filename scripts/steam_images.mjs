@@ -4,7 +4,7 @@
 //   nice -n 10 node scripts/steam_images.mjs --capture [--only=vismarkt,ring]
 // One dev server (scripts/devserver.py) and one headless Chrome, both killed
 // at the end. The renders come from the trailer (?trailer, held with
-// window.__trailer.freeze) and from a short game session (?dev) for the HUD
+// window.__trailer.freeze) and from a short game session (window.__story.jump, __heliRun) for the HUD
 // shots. Output: docs/steam/beelden/ (screenshots as JPEG q90 at 1920x1080,
 // capsules as PNG; the in-game key-art renders in bron/ as JPEG). The capsule
 // layouts are HTML/CSS with the real wordmark (game/index.html .gde-logo) and
