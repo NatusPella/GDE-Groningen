@@ -600,14 +600,17 @@ don't collide, and actors are drawn at their height.
   old meshes stay until the new ones arrive.
 - City road surfaces (`roadsurface.js`): on the first `syncRoads` the worker
   loads its own copy of the map (`citymap.json` + extras, the same
-  `GameMap`, ~90 MB of worker heap) and drops the roads the main thread no
-  longer has (`home.js`); roads are matched by `roadKey` (class, type,
-  width, points). `roadGeometryReady(r)` requests a road's sidewalk,
-  carriageway and marking geometry (`roadSurfaceGeometries`, the code
-  `buildRoadGroup` uses) and returns false until it is back; `syncRoads`
-  then lets the far LOD cover from the nearest road still on its way. The
-  civil works (`roadstructures3d.js`) stay on the main thread. Until the
-  worker's map is ready, roads build on the main thread as before.
+  `GameMap`) and drops the roads the main thread no longer has (`home.js`);
+  `slimWorkerMap` then drops what the worker never reads (buildings keep
+  only their bounds in the grid; canopies, trees), which takes the copy from
+  64 to 33 MB of heap (`scripts/perf/mapmem.mjs`); roads are matched by
+  `roadKey` (class, type, width, points). `roadGeometryReady(r)` requests a
+  road's sidewalk, carriageway and marking geometry
+  (`roadSurfaceGeometries`, the code `buildRoadGroup` uses) and returns
+  false until it is back; `syncRoads` then lets the far LOD cover from the
+  nearest road still on its way. The civil works (`roadstructures3d.js`)
+  stay on the main thread. Until the worker's map is ready, roads build on
+  the main thread as before.
 - Terrain (`terrain3d.js` `terrainArrays` / `terrainGroup`): built in the
   worker while the game loads; `init3D` adds an empty group with the
   material, and `main.js` awaits `terrainReady()` before the title screen.

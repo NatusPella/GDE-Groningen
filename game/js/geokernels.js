@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { setCountryBounds, setRealZone } from './countryfield.js';
 import { tileWater, chunkWaterArrays, canalWaterFrom, openWaterFrom } from './countrywatergeo.js';
-import { loadMap } from './mapdata.js';
+import { loadMap, slimWorkerMap } from './mapdata.js';
 import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js';
 import { terrainArrays } from './terrain3d.js';
 
@@ -130,6 +130,7 @@ async function roadInit({ url, keys }) {
     map.roads.splice(i, 1);
     for (const arr of map.roadGrid.map.values()) { const j = arr.indexOf(r); if (j >= 0) arr.splice(j, 1); }
   }
+  slimWorkerMap(map);
   setRoadNetwork(map);
   RD.byKey = new Map(map.roads.map((r) => [roadKey(r), r]));
   let missing = 0;
