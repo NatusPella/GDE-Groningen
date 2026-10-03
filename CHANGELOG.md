@@ -6,11 +6,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Over** in het hoofdmenu: credits, licenties en privacy. De kaartdata
+  komt van OpenStreetMap; dat staat nu ook op het laadscherm, linksonder op
+  de grote kaart en in de aftiteling.
+- Duidelijke disclaimer: GTE VI is een fanparodie en heeft niets met
+  Rockstar Games of Take-Two te maken. Namen en gebeurtenissen zijn verzonnen.
+
 ### Veranderd
 - **Kusjes geven kan pas na de eerste kus** in "Alles klopt, behalve de
   papieren". Daarvoor staat de optie nergens: geen K-hint, niet in
   Besturing en geen kusjes-prestaties. Op dat moment meldt de game "Nieuw:
   geef elkaar een kusje met K".
+- Het tankstation aan de Pleiadenlaan heet nu Bakkie Prut.
 
 ## [0.22.0] - 2026-10-03
 
