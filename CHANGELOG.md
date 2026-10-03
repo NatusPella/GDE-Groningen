@@ -20,6 +20,15 @@ nieuwe functies, `y` voor alleen bugfixes.
   worden stap voor stap bijgewerkt als je ze laadt. Saves vanaf 1.0 blijven
   werken in elke latere versie. Voor de eerste bijwerking bewaart het spel
   een kopie van je oude save.
+- **Twee Steam-trailers.** `--trailer-cut=gameplay` (~63 s) begint met het
+  logo en laat in shots van twee seconden zo veel mogelijk missies zien, met
+  de echte HUD: van Berends bakkie en de pinautomaat tot het skûtsje,
+  sterren en politie, de heli door de ringen, de stuntavond met zijn score,
+  een bijbaantje, Ubbo op de telefoon, dag en nacht, met droge kaarten
+  ("Een hele stad. Een heel Ommeland.", "18 missies.", "Gratis ·
+  Nederlands gesproken"). `--trailer-cut=verhaal` (~80 s) vertelt het
+  verhaal tot de geplande kraak, met echte regels uit de game: de Fjord
+  Frituur, de Gouden Eierbal, Jelle, en Rikus over het Ontzet.
 
 ### Gewijzigd
 - **Anita heet nu Tessa.** Het duo is nu Tammo en Tessa, overal waar je het
@@ -33,6 +42,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   zichzelf. De hints linksonder gaan nu alleen nog over in- en uitstappen,
   je telefoon, de kaart, het pauzemenu (nieuw), kusjes, wapens en de
   helikopter en de trein.
+- **Trailer: geen lege vitrine meer.** Shot 11 toont de Gouden Eierbal in
+  zijn vitrine, gloeiend, ook in de benchmark. De tankwagen laat dikkere
+  druppels vet vallen, Durk zingt in de Poelestraat onder een terraslamp, en
+  ondertitels en naamkaarten zijn groter. De fades naar en van zwart staan
+  nu ook in de video-export (dat waren harde cuts).
 - **H6: de lege vitrine is nu een echte onthulling.** De koepel is van
   matglas met een gouden gloed, dus je ziet pas wat er (niet) op het kussen
   ligt als je het slot gekraakt hebt: de camera schuift in stilte naar binnen,
