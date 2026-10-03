@@ -351,6 +351,7 @@ function onRings(rings, x, y) {
   return false;
 }
 
+const PROUST = [0xe0483e, 0x2f7fc1, 0xf2c23a, 0x3fa65a, 0x8a4fb0, 0xf08a3c, 0x1f3d7a, 0xe86fa0];
 function groningerMuseum(B, b) {
   const byPart = Object.fromEntries((b.parts || []).map((p) => [p.part, p.pts]));
   const base = -0.6;
@@ -387,14 +388,32 @@ function groningerMuseum(B, b) {
   // the gold tower
   const tw = blk('tower', base, 30, C.gold, G_METAL, 0xb88f38);
   if (tw) {
-    walls(B, grown(tw, 0.06), 26.4, () => 28.2, 0x2a2622, G_GLASS);
+    // Mendini's depot tower: closed, clad in gold laminate panels; the seams
+    // between them as a slightly darker gold grid, a rim on top
     const e = edgesOf(tw);
-    for (const ed of e) if (ed.len > 3) ebox(B, ed, ed.len / 2, 30, ed.len + 0.1, 0.6, 0.35, 0xe8c25a, G_METAL, -0.05);
+    for (const ed of e) {
+      if (ed.len <= 3) continue;
+      ebox(B, ed, ed.len / 2, 30, ed.len + 0.1, 0.6, 0.35, 0xe8c25a, G_METAL, -0.05);
+      for (let y = 2.5; y < 29.5; y += 2.7) ebox(B, ed, ed.len / 2, y, ed.len, 0.1, 0.04, 0xb88f38, G_METAL, 0.01);
+      for (const t of slots(ed.len, 2.4, 0)) ebox(B, ed, t - ed.len / slots(ed.len, 2.4, 0).length / 2, base, 0.1, 30 - base, 0.04, 0xb88f38, G_METAL, 0.01);
+    }
   }
   // Mendini's east pavilion with Coop Himmelb(l)au's shards on top
   const me = blk('mendini', base, 8, 0xe5b3ae, G_PLAIN, 0x9e9690);
   if (me) {
-    for (const ed of edgesOf(me)) if (ed.len > 4) ebox(B, ed, ed.len / 2, 5.4, ed.len - 1, 1.1, 0.05, 0x7fb3a0, G_PLAIN, 0.03);
+    for (const ed of edgesOf(me)) {
+      if (ed.len <= 4) continue;
+      ebox(B, ed, ed.len / 2, 5.4, ed.len - 1, 1.1, 0.05, 0x7fb3a0, G_PLAIN, 0.03);
+      // the "Proust" motif: Mendini's pointillist dots in many colours
+      const n = Math.floor(ed.len / 1.6);
+      for (let i = 0; i < n; i++) {
+        for (let k = 0; k < 3; k++) {
+          const h = (Math.sin(i * 12.99 + k * 78.23 + ed.a[0]) * 43758.5) % 1;
+          const c = PROUST[Math.floor(Math.abs(h) * PROUST.length)];
+          ebox(B, ed, (i + 0.5) * ed.len / n + (Math.abs(h) - 0.5) * 0.5, 0.6 + k * 1.5 + Math.abs(h) * 0.5, 0.55, 0.55, 0.04, c, G_PLAIN, 0.03);
+        }
+      }
+    }
   }
   const co = byPart.coop;
   if (co) {
@@ -430,6 +449,10 @@ function groningerMuseum(B, b) {
     for (const ed of edgesOf(r)) {
       if (ed.len <= 5 || (over.length && onRings(over, (ed.a[0] + ed.b[0]) / 2, (ed.a[1] + ed.b[1]) / 2))) continue;
       ebox(B, ed, ed.len / 2, top - 2.2, ed.len - 1.6, 1.0, 0.05, C.glass, G_GLASS, 0.03);
+      // laminate panel joints
+      const seam = name === 'wingN' ? 0xc9b25c : name === 'wingS' ? 0x6f8fa8 : 0xb97565;
+      for (const t of slots(ed.len, 2.4, 0.4)) ebox(B, ed, t, base, 0.08, top - 2.3 - base, 0.03, seam, G_PLAIN, 0.01);
+      ebox(B, ed, ed.len / 2, top - 0.6, ed.len, 0.25, 0.08, seam, G_PLAIN, 0.01);
     }
   }
   // the atrium the cycle bridge runs through (no pavilion of its own in OSM)
