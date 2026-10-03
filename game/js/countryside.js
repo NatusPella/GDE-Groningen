@@ -468,8 +468,9 @@ function* genReal(tile) {
         else {
           push(tile, 'rbRoof', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
           push(tile, 'rbGable', x, y, rotY, m.long, m.roof, m.short, m.color, 0.05, m.wall, bldCode(style));
-          push(tile, 'rbRoofMid', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
         }
+        // past MID_R every roof is the one closed gable piece (one draw per chunk)
+        push(tile, 'rbRoofMid', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
       }
       if (m.kind === 'barn' && urbanWeight(x, y) < 0.3) {
         const h = chash(Math.round(x) + 3, Math.round(y) - 5);
@@ -737,7 +738,7 @@ Object.assign(PROP_TYPES, {
   rbBody: { geo: M3.realBodyGeometry, cap: 18000, shadow: true, bld: true },
   rbRoof: { geo: M3.realRoofGeometry, cap: 10000, shadow: true, lod: 'near', bld: true },
   rbGable: { geo: M3.realGableGeometry, cap: 10000, shadow: false, lod: 'near', bld: true },
-  rbHip: { geo: M3.realHipGeometry, cap: 6000, shadow: true, bld: true },
+  rbHip: { geo: M3.realHipGeometry, cap: 6000, shadow: true, lod: 'near', bld: true },
   rbRoofMid: { geo: M3.realRoofMidGeometry, cap: 9000, shadow: true, lod: 'mid', bld: true },
   // yard lights at night (countryglow.js; hidden by day)
   glowPool: { geo: () => poolGeometry(5), cap: 2000, shadow: false, glow: true },
