@@ -81,7 +81,9 @@ function economyChecks(check, tl) {
   check('economy: incognito price = k-kraakspullen', cost('k-kraakspullen') === OUTFITS.tammo.find((o) => o.id === 'incognito').price);
   check('economy: motor tuning price = r-tuning', cost('r-tuning') === CAR_UPGRADES.find((u) => u.id === 'motor').price);
   // the definitive script: only the bike, the heist gear and the boat are story purchases (tuning is recommended)
-  check('economy: three story purchases', STEPS.filter((s) => s.cost && !s.optional && s.kind === 'activity').length === 3, STEPS.filter((s) => s.cost && s.kind === 'activity').map((s) => s.id).join(', '));
+  // a train fare is not a purchase
+  const buys = STEPS.filter((s) => s.cost && !s.optional && s.kind === 'activity' && s.goal?.type !== 'train');
+  check('economy: three story purchases', buys.length === 3, buys.map((s) => s.id).join(', '));
   check('economy: a car is within reach after the Kop', afterStep(tl, 'H6') >= cheapestCar, `€${afterStep(tl, 'H6')} na H6, goedkoopste €${cheapestCar}`);
   const rewards = STEPS.filter((s) => s.kind === 'mission' && s.reward).map((s) => s.reward);
   const avg = Math.round(rewards.reduce((a, b) => a + b, 0) / rewards.length);
