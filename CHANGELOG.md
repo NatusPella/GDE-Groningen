@@ -6,6 +6,27 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Uitleg voor nieuwe spelers:** korte tips op het moment dat je ze nodig
+  hebt, één tegelijk en elk maar één keer: je eerste klus en waar je heen
+  moet, geld en winkels, je telefoon, de kaart en Te doen. Speel je vaker
+  zulke games, zet ze dan uit onder Instellingen › Weergave › "Uitleg voor
+  nieuwe spelers". Wie de toets al gebruikt, krijgt die tip niet meer.
+- **Foutrapport** onder Instellingen: gaat er iets mis, dan schrijft het spel
+  dat op in een logboek op je eigen apparaat. Je kunt het kopiëren of, in de
+  desktopversie, als bestand opslaan om mee te sturen met een melding. Er
+  wordt niets verstuurd.
+- **Save-garantie:** elke save heeft nu een versienummer, en oudere saves
+  worden stap voor stap bijgewerkt als je ze laadt. Saves vanaf 1.0 blijven
+  werken in elke latere versie. Voor de eerste bijwerking bewaart het spel
+  een kopie van je oude save.
+
+### Veranderd
+- Oude saves nemen de tellers mee van vóór 0.24 ("kills" heten nu
+  knock-outs), in plaats van ze te laten vallen.
+- Een save van een nieuwere versie van het spel wordt niet meer
+  overschreven zonder kopie.
+
 ## [0.24.0] - 2026-10-03
 
 ### Nieuw
