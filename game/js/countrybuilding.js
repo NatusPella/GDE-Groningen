@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { setGlowNight } from './countryglow.js';
 import { vcMaterial, markShared, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
 
 // The one material of the real Ommelanden buildings (countryreal.js), near,
@@ -48,6 +49,7 @@ export function bldCode(style, door = 0) {
 export function setCountryNight(glow, litFrac) {
   U.uBNight.value = glow;
   U.uBLit.value = litFrac;
+  setGlowNight(glow);
 }
 
 const VERT_HEAD = /* glsl */`
