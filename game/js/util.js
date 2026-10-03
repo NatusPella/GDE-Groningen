@@ -50,6 +50,13 @@ export function pointInPolygon(px, py, poly) {
 // test runs first because map.isOnBridge scans nearby roads and is only
 // needed to veto a hit.
 // z (absolute height, optional): below the canal in an aqueduct is dry.
+// Water past the map's own polygons (the Ommeland canals and lakes,
+// countrywater.js): (x, y) => boolean, bridges already left out.
+let extraWater = null;
+export function setExtraWater(fn) {
+  extraWater = fn;
+}
+
 export function isInWater(map, x, y, z = 0) {
   for (const w of map.waterNear(x, y, 0.5)) {
     const [minx, miny, maxx, maxy] = w.bounds;
@@ -60,7 +67,7 @@ export function isInWater(map, x, y, z = 0) {
       return !map.isOnBridge(x, y);
     }
   }
-  return false;
+  return !!extraWater && z <= 1.5 && extraWater(x, y);
 }
 
 // Canal surface: real Groningen canals lie 2-2.5 m below the quays, which
@@ -75,7 +82,7 @@ export function inWaterPoly(map, x, y) {
     if (x < minx || x > maxx || y < miny || y > maxy) continue;
     if (pointInPolygon(x, y, w.pts)) return true;
   }
-  return false;
+  return !!extraWater && extraWater(x, y);
 }
 
 // Hull probes (bow, stern, both beams, the quarters, the centre) in boat-local
