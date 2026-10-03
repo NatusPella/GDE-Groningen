@@ -1,10 +1,10 @@
 import { normalizeKeyBinds, normalizePadBinds } from './controls.js';
+import { migrateSettings, SETTINGS_VERSION } from './savemigrate.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
 
 const STORAGE_KEY = 'gte-settings';
-const SETTINGS_VERSION = 6;
 
 export const QUALITY_PRESETS = {
   laag: { pixelRatio: 1, shadows: true, shadowMapSize: 1024 },
@@ -25,6 +25,8 @@ const DEFAULTS = {
   cameraDistance: 1,
   showMinimap: true,
   showHints: true,
+  // short tip cards for new players (onboarding.js)
+  onboardingTips: true,
   reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
@@ -60,32 +62,24 @@ const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'deck'];
 function load() {
   if (typeof localStorage === 'undefined') return { ...DEFAULTS };
   try {
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const stored = localStorage.getItem(STORAGE_KEY);
+    // older files run through the migrations (savemigrate.js) and are written
+    // back once; a file from a newer game is read as it is
+    const mig = migrateSettings(JSON.parse(stored || '{}'));
+    const raw = mig ? mig.data : JSON.parse(stored);
     const out = { ...DEFAULTS };
     for (const k of Object.keys(DEFAULTS)) {
       if (typeof raw[k] === typeof DEFAULTS[k]) out[k] = raw[k];
     }
     if (!QUALITY_PRESETS[out.quality]) out.quality = DEFAULTS.quality;
     if (!(out.resolution >= 0.5 && out.resolution <= 1)) out.resolution = DEFAULTS.resolution;
-    // v2 made the long view distance the default; older saves stored the
-    // previous default without the player ever choosing it
-    if ((raw.v || 0) < 2) out.drawDistance = DEFAULTS.drawDistance;
-    // v3 split off voices and turned effects down so the music carries;
-    // an untouched old 100% effects slider moves to the new default
-    if ((raw.v || 0) < 3 && out.sfxVolume === 1) out.sfxVolume = DEFAULTS.sfxVolume;
-    // up to v3 'laag' had no shadows whatever the switch said
-    if ((raw.v || 0) < 4 && out.quality === 'laag') out.shadows = false;
-    // v6 added the bindings; whatever is stored is checked, a damaged table
-    // falls back to the defaults
     out.keyBinds = normalizeKeyBinds(out.keyBinds);
     out.padBinds = normalizePadBinds(out.padBinds);
     if (!(out.subtitleSize in SUBTITLE_SIZES)) out.subtitleSize = DEFAULTS.subtitleSize;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
-    // v5 removed the blood-and-limbs switch along with the gore itself:
-    // drop the stored value so it does not linger in the settings file
-    if ((raw.v || 0) < 5 && 'gore' in raw) {
+    if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
     }
     return out;

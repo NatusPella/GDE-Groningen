@@ -1,0 +1,5 @@
+{
+  "_era": "settings before v2 (no v): the old view distance default, effects at 100%, 'laag' with shadows on, the gore switch",
+  "_expect": { "drawDistance": null, "sfxVolume": 0.75, "shadows": false, "gore": null, "quality": "laag", "showHints": false },
+  "settings": { "masterVolume": 0.8, "sfxVolume": 1, "quality": "laag", "shadows": true, "drawDistance": "normaal", "gore": true, "showHints": false }
+}

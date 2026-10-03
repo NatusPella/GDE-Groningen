@@ -336,11 +336,11 @@ de beschrijving en de content survey zeggen het:
 
 NL:
 
-> Geen gegevens. De game bewaart je voortgang en instellingen alleen op je eigen computer. Er gaat niets naar een server: geen account, geen tracking, geen statistieken, geen advertenties.
+> Geen gegevens. De game bewaart je voortgang en instellingen alleen op je eigen computer. Er gaat niets naar een server: geen account, geen tracking, geen statistieken, geen advertenties. Fouten komen in een logboek op je eigen computer; dat verstuurt niets, je kunt het zelf kopiëren als je een fout meldt.
 
 EN:
 
-> No data collected. Your progress and settings are stored only on your own computer. Nothing is sent to any server: no account, no tracking, no analytics, no ads.
+> No data collected. Your progress and settings are stored only on your own computer. Nothing is sent to any server: no account, no tracking, no analytics, no ads. Errors go into a log on your own computer that sends nothing; you can copy it yourself when you report a bug.
 
 (Steam zelf meet speeltijd en prestaties; dat valt onder het beleid van
 Valve. Als er later Steam Cloud of Steam-achievements bij komen via
