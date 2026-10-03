@@ -107,14 +107,16 @@ export const CHARACTERS = {
   mem: { name: 'Mem Terpstra', card: 'Iemand uit Friesland.', step: 'H16', bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Anita stiekem.', quote: 'Dat wie alles wat ik woe.' },
 };
 
+// The ids kop/romp/staart are internal (saves); players only see `title`
+// ("Deel 1: KEI-week") and `name`, the part's subtitle on its date card.
 // card: the two lines on the "Wordt vervolgd" card where the built story stops.
-// date: the date card of the part ("Kop · 14 augustus").
+// date: the date card of the part ("Deel 1 · 14 augustus").
 // recap: the "Eerder in GDE" card when the part starts: [place, narrator line],
 // place a map landmark name, [x, y] or 'studio' (Rikus at the Nachtstreek mic; story.js playRecap).
 export const PARTS = {
-  kop: { title: 'Kop: "Moi, Grunn"', date: '14 augustus', open: true, end: 'Einde van de Kop',
+  kop: { title: 'Deel 1: KEI-week', name: 'Moi, Grunn', date: '14 augustus', open: true, end: 'Einde van deel 1',
     card: [['Anita', 'Iemand heeft onze Eierbal gejat.'], ['Tammo', 'Die was nog niet eens van ons.']] },
-  romp: { title: 'Romp: "Stad in rouw"', date: '18 augustus', open: true, end: 'Einde van de Romp',
+  romp: { title: 'Deel 2: Noorderzon', name: 'Stad in rouw', date: '18 augustus', open: true, end: 'Einde van deel 2',
     recap: [
       ['studio', 'Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist.'],
       ['Groninger Museum', '\'t Het nog nooit zo donker west, of \'t wer altied wel weer licht.'],
@@ -125,7 +127,7 @@ export const PARTS = {
     ],
     card: [['Anita', 'Een skûtsje in de Oosterhaven. Met onze Eierbal erop.'], ['Tammo', 'Met Grunn z\'n Eierbal, bedoel je.']] },
   // the last part's card is the ending: an epilogue and credits (story.js playFinale)
-  staart: { title: 'Staart: "Gronings Ontzet"', date: '24 augustus', open: true, end: 'Einde', finale: true,
+  staart: { title: 'Deel 3: Kermis en Ontzet', name: 'Gronings Ontzet', date: '24 augustus', open: true, end: 'Einde', finale: true,
     recap: [
       ['studio', 'Morgen gooit er een skûtsje los in de Oosterhaven. Ik zeg daar niks over.'],
       ['studio', 'Storingsbericht: achttien bruggen in storing. Niemand merkt verschil.'],
@@ -458,6 +460,9 @@ export const STEPS = [
     ], after: [['T', 'Wij tweeën vóór Grunn. Kon minder, hè?']] }],
     after: [['Kiekdoar', 'Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.']] },
 ];
+
+// "Deel 1" for the date cards.
+export const partNumber = (part) => (PARTS[part] ? PARTS[part].title.split(':')[0] : '');
 
 export const STEP_BY_ID = new Map(STEPS.map((s) => [s.id, s]));
 

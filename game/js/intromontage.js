@@ -24,6 +24,7 @@ import { smoothPath, pathHeights, cineDrive } from './cinedrive.js';
 import { WATER_Y } from './util.js';
 import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, buildRope } from './introkitchen3d.js';
 import { logoHtml } from './logo.js';
+import { PARTS, partNumber } from './storyarc.js';
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -949,7 +950,7 @@ function buildShots(w) {
     L.bloomStr *= 0.6;
   };
 
-  const dateCard = { minDur: 1.6, black: true, card: '<div class="im-kicker">Kop · 14 augustus</div><div class="im-title">Moi, Grunn</div>' };
+  const dateCard = { minDur: 1.6, black: true, card: `<div class="im-kicker">${partNumber('kop')} · ${PARTS.kop.date}</div><div class="im-title">${PARTS.kop.name}</div>` };
 
   // sunrise: down along d'Olle Grieze, over the Oosterparkwijk into a narrow
   // street, the red Escapade with a flat tyre at the door, Rikus at his mic

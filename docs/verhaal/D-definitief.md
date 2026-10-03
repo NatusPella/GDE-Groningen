@@ -36,7 +36,8 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
   - de **Staart** is het einde: kermis, Ontzet en de laatste warme avond.
 - **Epiloog in september:** de terrassen gaan naar binnen, en Rikus ruikt de suikerlucht uit Hoogkerk ("Het ruikt naar suiker. De zomer is op."). Tammo en Anita staan in hun jassen bij de Fjord Frituur, en er staat nog steeds een rij.
 - **Zomerliefde, maar dan Gronings:** een zomer waarin twee vrienden het eindelijk zeggen, en hun liefde houdt het ook als de zomer voorbij is. Het slot speelt daarom in september.
-- **In de game:** het weersysteem staat tijdens het verhaal op "zomer" (meer zon, lange avonden, af en toe een bui), de trailer krijgt als ondertitel "Een zomer in Grunn", en elk deel opent met een titelkaart met de datum ("Kop · 14 augustus").
+- **In de game:** het weersysteem staat tijdens het verhaal op "zomer" (meer zon, lange avonden, af en toe een bui), de trailer krijgt als ondertitel "Een zomer in Grunn", en elk deel opent met een titelkaart met de datum ("Deel 1 · 14 augustus").
+- **Kop, Romp en Staart** zijn werktitels voor dit script. De speler ziet ze nergens: in de game heten de delen "Deel 1: KEI-week", "Deel 2: Noorderzon" en "Deel 3: Kermis en Ontzet".
 
 **De personages, kort.**
 - **Tammo:** Stadjer uit het Oosterpark. Droog, met een groot hart en een kleine portemonnee. Al twaalf jaar verliefd op zijn beste vriendin en zegt het nooit. Hij heeft een rode **Fjord Escapade** die nauwelijks rijdt.
