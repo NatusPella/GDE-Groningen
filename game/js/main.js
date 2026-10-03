@@ -64,7 +64,7 @@ import { initSafety, updateSafety } from './safety.js';
 import { updateCinematics } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
-import { prepareHomeMap, initHome, updateHome, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
+import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
@@ -388,6 +388,7 @@ async function boot() {
       updateHome(dt, world);
       updateEmergency(dt, world);
     }
+    updateHomeExterior(dt, world);
     probe.mark('player');
 
     updateTrafficLights(dt, world);
