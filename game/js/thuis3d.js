@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { registerBuildingModel, modelKit, LANDMARK_MATERIALS } from './landmarks3d.js';
+import { GeoBuilder } from './pixelart3d.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 
 // The real look of Tammo and Anita's two homes, as models for the buildings
@@ -19,6 +20,9 @@ import { pointInPolygon, closestPointOnSegment } from './util.js';
 //   stedenbouw.nl "Twee gebouwen, twee gebruikers, een ensemble",
 //   brinkmanbaksteencentrum.nl (Atlas & House of Groningen),
 //   dijkhuis-ingenieurs.nl, mwpo.nl, wijzigingsplan Atlas en Pleione.
+// - The petrol station across the service road (Pleiadenlaan 4): a BP with a
+//   shop, car wash and coffee corner; here the parody "Bakkie Peut" in the
+//   same green-and-white canopy livery, no real logo.
 // - Korenbloemstraat (Bloemenbuurt, Oosterparkwijk): municipal workers'
 //   housing by S.J. Bouma (Gemeentewerken), late 1920s / early 1930s:
 //   terraced two-storey houses in bright red brick with contrasting coloured
@@ -145,6 +149,146 @@ registerBuildingModel('atlasToren', (B, b, ring) => {
   ensembleTower(B, ring, { levels: b.h, crown: true, brick: tint(HOG.brick, 0.96), noPlinth: (x, y) => f.closed(x, y) });
 });
 
+// --- Bakkie Peut (the petrol station on the Pleiadenlaan) ------------------------
+
+const PEUT = { green: 0x0f7a3a, lime: 0x9cc53a, white: 0xf1f2ee, grey: 0xc9ccc8, dark: 0x22262a, glass: 0x34444c, curb: 0xa7a59d };
+
+function peutSignTexture(lines) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#0f7a3a'; g.fillRect(0, 0, 256, 512);
+  g.fillStyle = '#f1f2ee'; g.fillRect(14, 14, 228, 150);
+  g.fillStyle = '#0f7a3a';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = 'bold 50px sans-serif'; g.fillText('BAKKIE', 128, 62);
+  g.font = 'bold 64px sans-serif'; g.fillText('PEUT', 128, 122);
+  g.fillStyle = '#9cc53a'; g.fillRect(14, 172, 228, 10);
+  lines.forEach(([name, price], i) => {
+    const y = 214 + i * 74;
+    g.fillStyle = '#16191c'; g.fillRect(14, y - 30, 228, 60);
+    g.fillStyle = '#f1f2ee'; g.font = 'bold 24px sans-serif'; g.textAlign = 'left'; g.fillText(name, 26, y);
+    g.fillStyle = '#ffb43a'; g.font = 'bold 34px monospace'; g.textAlign = 'right'; g.fillText(price, 232, y);
+  });
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+function fasciaTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 64;
+  const g = c.getContext('2d');
+  g.fillStyle = '#0f7a3a'; g.fillRect(0, 0, 512, 64);
+  g.fillStyle = '#9cc53a'; g.fillRect(0, 52, 512, 6);
+  g.fillStyle = '#f1f2ee'; g.font = 'bold 36px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('BAKKIE PEUT', 256, 27);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// The canopy over the pumps (a building=roof footprint, drawn instead of the
+// plain canopy slab): returns the mesh and where its columns and islands stand.
+export function buildPeutCanopy(c, map) {
+  const ring = c.pts[0][0] === c.pts[c.pts.length - 1][0] && c.pts[0][1] === c.pts[c.pts.length - 1][1] ? c.pts.slice(0, -1) : c.pts;
+  const F = K.minAreaFrame(ring);
+  const B = new GeoBuilder(5);
+  const Y = 5.2, um = (F.u0 + F.u1) / 2, vm = (F.v0 + F.v1) / 2, L = F.u1 - F.u0, Wd = F.v1 - F.v0;
+  // the roof: white underside, a green fascia with a lime stripe
+  K.fbox(B, F, um, vm, Y, L + 0.6, Wd + 0.6, 0.9, PEUT.white, PLAIN);
+  K.fbox(B, F, um, vm, Y + 0.1, L + 0.7, Wd + 0.7, 0.6, PEUT.green, PLAIN);
+  K.fbox(B, F, um, vm, Y + 0.02, L + 0.72, Wd + 0.72, 0.08, PEUT.lime, PLAIN);
+  const posts = [], islands = [];
+  // two islands along the long axis, two pumps on each, a column at either end
+  for (const s of [-1, 1]) {
+    const v = vm + s * Wd * 0.25;
+    K.fbox(B, F, um, v, 0, L * 0.62, 1.1, 0.16, PEUT.curb, PLAIN);
+    islands.push({ p: F.P(um, v), half: L * 0.31, angle: F.rot });
+    for (const du of [-0.17, 0.17]) {
+      const u = um + du * L;
+      K.fbox(B, F, u, v, 0.16, 0.75, 0.5, 1.75, PEUT.white, PLAIN);
+      K.fbox(B, F, u, v, 1.91, 0.8, 0.55, 0.22, PEUT.green, PLAIN);
+      K.fbox(B, F, u, v, 1.1, 0.42, 0.56, 0.32, PEUT.dark, GLASS);
+      K.fbox(B, F, u, v, 0.6, 0.06, 0.62, 0.5, PEUT.dark, METAL);
+    }
+    for (const du of [-0.38, 0.38]) {
+      const u = um + du * L;
+      K.fbox(B, F, u, v, 0.16, 0.38, 0.38, Y - 0.16, PEUT.white, PLAIN);
+      posts.push(F.P(u, v));
+    }
+  }
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(B.build(), LANDMARK_MATERIALS));
+  // fascia lettering on the long sides
+  const ftex = fasciaTexture();
+  const fmat = new THREE.MeshBasicMaterial({ map: ftex });
+  for (const s of [-1, 1]) {
+    const [x, z] = F.P(um, vm + s * (Wd / 2 + 0.37));
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(L * 0.7, 9), 0.56), fmat);
+    m.position.set(x, Y + 0.4, z);
+    m.rotation.y = -F.rot + (s > 0 ? 0 : Math.PI);
+    g.add(m);
+  }
+  // the price mast at the street corner, on the side away from the shop
+  const street = nearestStreet(map, ...F.P(um, vm));
+  if (street) {
+    let best = null;
+    for (const p of ring) {
+      const d = Math.hypot(p[0] - street[0], p[1] - street[1]);
+      if (!best || d < best.d) best = { d, p };
+    }
+    const dx = street[0] - best.p[0], dy = street[1] - best.p[1], dl = Math.hypot(dx, dy) || 1;
+    const k = Math.min(4, Math.max(1.5, best.d - 6));
+    const mx = best.p[0] + dx / dl * k, my = best.p[1] + dy / dl * k;
+    const mast = new GeoBuilder(5);
+    K.obox(mast, mx, my, 0, 1.7, 0.45, 0.5, Math.atan2(dy, dx) + Math.PI / 2, PEUT.grey, PLAIN);
+    K.obox(mast, mx, my, 0.5, 1.5, 0.35, 7.0, Math.atan2(dy, dx) + Math.PI / 2, PEUT.green, PLAIN);
+    g.add(new THREE.Mesh(mast.build(), LANDMARK_MATERIALS));
+    const smat = new THREE.MeshBasicMaterial({ map: peutSignTexture([['Euro 95', '2,09'], ['Diesel', '1,84'], ['Bakkie', '0,95'], ['Eierbal', '2,50']]) });
+    for (const s of [-1, 1]) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(1.36, 2.72), smat);
+      const off = s * 0.19;
+      m.position.set(mx + dx / dl * off, 5.0, my + dy / dl * off);
+      m.rotation.y = -Math.atan2(dy, dx) + Math.PI / 2 + (s > 0 ? 0 : Math.PI);
+      g.add(m);
+    }
+    posts.push([mx, my]);
+  }
+  return { group: g, posts, islands };
+}
+
+function nearestStreet(map, x, y) {
+  let best = null;
+  for (const r of map.roadsNear(x, y, 60)) {
+    if (r.cat !== 'major' && r.cat !== 'normal') continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const q = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
+      if (!best || q.dist2 < best.d2) best = { d2: q.dist2, p: [q.x, q.y], w: r.width || 6 };
+    }
+  }
+  return best && best.p;
+}
+
+// The shop: white panels, a green band along the top, glass facing the pumps.
+registerBuildingModel('peutShop', (B, b, ring) => {
+  const H = 4.4;
+  const toward = b.modelFrame.toward;
+  for (const e of K.edgesOf(ring)) {
+    const front = (toward[0] - e.a[0]) * e.nx + (toward[1] - e.a[1]) * e.ny > 0 && e.len > 5;
+    equad(B, e, e.len / 2, 0, e.len, H, 0, PEUT.white, PLAIN);
+    K.ebox(B, e, e.len / 2, H - 0.85, e.len + 0.1, 0.85, 0.12, PEUT.green, PLAIN, 0);
+    K.ebox(B, e, e.len / 2, H - 0.95, e.len + 0.1, 0.1, 0.13, PEUT.lime, PLAIN, 0);
+    if (front) {
+      equad(B, e, e.len / 2, 0.05, e.len - 1.2, 3.1, 0.03, PEUT.dark, METAL);
+      equad(B, e, e.len / 2, 0.12, e.len - 1.4, 2.96, 0.06, PEUT.glass, GLASS);
+      equad(B, e, e.len * 0.3, 0.12, 1.8, 2.3, 0.09, PEUT.dark, METAL);
+    } else if (e.len > 4) {
+      K.ebox(B, e, e.len / 2, 0, e.len, 0.4, 0.05, PEUT.grey, PLAIN, 0);
+    }
+  }
+  K.cap(B, ring, () => H, 0x6c6e6c, PLAIN);
+});
+
 // --- Korenbloemstraat: Bouma's terraced houses ----------------------------------
 
 const KB = {
@@ -250,7 +394,7 @@ export function tagKorenbloemstraat(map) {
   if (home) home.b.modelFrame.zolder = true;
 }
 
-// The Paddepoel ensemble. tower: home.js's building and
+// The Paddepoel ensemble and the petrol station. tower: home.js's building and
 // layout frame; plinth: the garage polygon; lobby: the lobby door.
 export function tagPleiadenlaan(map, { tower, frame, plinth, lobby }) {
   const nearPlinth = (x, y) => {
@@ -269,5 +413,13 @@ export function tagPleiadenlaan(map, { tower, frame, plinth, lobby }) {
     atlas.model = 'atlasToren';
     atlas.modelFrame = { closed };
     atlas._geo3dParts = null;
+  }
+  const canopy = (map.canopies || []).find((c) => pointInPolygon(-1314, -1075, c.pts));
+  if (canopy) canopy.custom = (m) => buildPeutCanopy(canopy, m);
+  const shop = map.buildingsNear(-1327, -1058, 20).find((b) => pointInPolygon(-1327, -1058, b.pts) && b.h <= 3);
+  if (shop) {
+    shop.model = 'peutShop';
+    shop.modelFrame = { toward: [-1314, -1075] };
+    shop._geo3dParts = null;
   }
 }
