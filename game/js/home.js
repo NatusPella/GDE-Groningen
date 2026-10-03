@@ -1099,7 +1099,7 @@ function toRoof(w) {
       c.inVehicle = v;
       v.passenger = 'companion';
     }
-    w.addMessage('Boven op het dak. W: opstijgen, A/D draaien, pijltjes vliegen', 5, { kind: 'tip' });
+    w.addMessage('Boven op het dak. Spatie: opstijgen, W/S vooruit en remmen, A/D draaien, Ctrl omlaag', 5, { kind: 'tip' });
   }, 520);
 }
 

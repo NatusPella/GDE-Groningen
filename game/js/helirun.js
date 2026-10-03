@@ -1,152 +1,92 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
+import { getScene, prewarmStreamAt } from './scene3d.js';
+import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE } from './models3d_people.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
-import { clamp, pointInPolygon } from './util.js';
+import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
+import { lineVoiceFor } from './linevoice.js';
+import { playLineVoice } from './audio.js';
+import { SPEAKERS, STEP_BY_ID } from './storyarc.js';
+import { speakerHtml } from './speakers.js';
+import { dualHtml } from './subtitles.js';
+import { clamp } from './util.js';
+import * as P from './heliplan.js';
 
-// UMCG trauma heli "on rails": the yellow trauma heli (skyprops.js) flies a
-// fixed route over Grunn; the player only controls height (W/S), a small
-// sideways offset (A/D) and speed (Shift faster, Space slower). Fly through
-// the rings (points and extra time), ride out gusts, then catch the drifting
-// hot-air balloon: hold the basket's height and speed beside it for a few
-// seconds. Started standalone at the UMCG (map icon + E), or by the story.
+// A heli run: one flight in Rotor Roelf's demo heli (the Wieken Wubbo,
+// heliflight.js, flown with the normal heli keys) with a plan on top
+// (heliplan.js): rings, Jelle's balloon and a landing on a marked H.
+//   ballonjacht  (standalone, E at the UMCG spot) off from the UMCG deck: a ring
+//                tour over Stad, catch up with the balloon, land on the deck again
+//   traumaduif   (story H15) off from Rotor Roelf's pad on Eelde: Dokter Dijkstra
+//                calls with a spoedje, land on the UMCG deck, she climbs in with
+//                her lier, rings to the Oosterpark, Tammo takes the Eierbal from the
+//                basket, back down on the UMCG deck
+// An arrow and the distance point at the next ring, pad or the basket; the
+// minimap shows the rings where they are and turns with the heli. A little
+// steering and height help (heliplan.js assist) keeps it doable.
 //
 // API
-//   startHeliRun({ variant, onFinish, timeLimit }) -> boolean
-//     variant: 'ballonjacht' (standalone, default) or 'traumaduif' (story H15:
-//     Tammo takes the Eierbal from the basket). Returns false when a run is
-//     already going or the player can't leave (in a vehicle, pigeon mode).
-//     onFinish(result) runs after the result card, once the player is back
-//     on the street next to the UMCG:
-//       { variant, success, aborted, score, medal (0 none, 1 brons, 2 zilver,
-//         3 goud), medalName, rings, ringsTotal, time, timeLeft, hits }
-//   abortHeliRun()        ends the run at once (onFinish gets aborted: true)
-//   isHeliRunActive()     true while a run owns the player and the camera
-//   getHeliRun()          read-only state for missions ({ phase, s, len, x, y, z, speed, balloon })
+//   startHeliRun({ variant, onFinish }) -> boolean (false: a run is going, or the player can't leave)
+//     onFinish(result) once the player is back on the street:
+//       { variant, success, aborted, score, medal (0-3), medalName, rings, ringsTotal, time, timeLeft, hits }
+//   abortHeliRun(), isHeliRunActive(), getHeliRun() (read-only state)
+//   getHeliRunMarks() -> { rings: [{ x, y, state }], pad, balloon, target } for the maps
 // main.js calls initHeliRun, updateHeliRun (instead of the player update while
 // world.heliRun is set) and tryHeliSpotInteract; prompts.js, hud_panel.js and
 // mapview.js use heliSpotPrompt, heliSpotSecondary, getHeliSpotsForRender and
-// drawHeliMapIcon. window.__heliRun (debug): start, abort, autopilot, state.
+// drawHeliMapIcon. world.heliRunTarget is where routing.js draws the line.
+// window.__heliRun (debug): start, abort, autopilot, state, marks.
 
-const LEVEL_HEIGHT = 3.1;
 const USE_RADIUS = 2.6;
-const SPEED_MIN = 14, SPEED_MAX = 44, SPEED_START = 26;
-const ACCEL = 9, BRAKE = 12;
-const CLIMB = 13, SLIDE = 11, OFFSET_MAX = 32;
-const Z_MIN = 22, Z_MAX = 260;
-const RING_R = 7.5;
 const RING_SCORE = 100, CATCH_SCORE = 1000, TIME_SCORE = 10, HIT_PENALTY = 100;
 // Brons for any catch; zilver and goud need these scores.
-export const HELI_MEDAL_SCORES = [0, 0, 2600, 3300];
+export const HELI_MEDAL_SCORES = [0, 0, 2400, 3000];
 const MEDALS = HELI_MEDAL_SCORES;
 const MEDAL_NAMES = ['', 'Brons', 'Zilver', 'Goud'];
-const INTRO_S = 4.2, RESULT_S = 5.5;
-const CATCH_NEED = 5;
-const BALLOON_SPEED = 4;
-const SAMPLE_M = 2;
+const INTRO_S = 3.6, RESULT_S = 5.5, PICKUP_S = 2.5, FADE_S = 0.7;
+const BALLOON_GONE_M = 1800;
+const BALLOON_SEED = 1810;
 
 const VARIANTS = {
   ballonjacht: {
-    title: 'Ballonjacht', sub: 'Vlieg door de ringen en haal de ballon in', timeLimit: 150, ringBonus: 3, seed: 424242,
-    catchText: 'Koppelen: hou hoogte en snelheid van de mand vast', doneText: 'Gekoppeld! De ballonvaarders zwaaien.',
-    failText: 'De ballon is weg…', hitsText: 'Te vaak tegen de ballon: de piloot breekt af.',
+    title: 'Ballonjacht', sub: 'Vlieg door de ringen en haal de ballon in', timeLimit: 300, ringBonus: 3,
+    doneText: 'Gekoppeld en geland! De ballonvaarders zwaaien.', failText: 'De ballon is weg…', catchText: 'Koppelen: hou hoogte en snelheid van de mand vast',
   },
   traumaduif: {
-    title: 'Spoedeisende duif', sub: 'Haal de Eierbal uit de mand van Jelle\'s ballon', timeLimit: 165, ringBonus: 3, seed: 1810,
-    catchText: 'Tammo gaat aan het touw: hou hoogte en snelheid van de mand vast', doneText: 'Tammo heeft de Eierbal!',
-    failText: 'De ballon verdwijnt richting de Ommelanden…', hitsText: 'Drie keer tegen de mand: Tammo moet terug naar binnen.',
+    title: 'Het staat niet in het rooster', sub: 'Rotor Roelfs demoheli: op naar Stad', timeLimit: 0, ringBonus: 0,
+    doneText: 'Geland, met de Eierbal!', failText: 'De ballon verdwijnt richting de Ommelanden…', catchText: 'Tammo hangt aan de lier: blijf naast de mand',
   },
 };
-
-// Route over Grunn: [x, y, ring?]; ring = [height, sideways offset].
-const ROUTE = [
-  [750, -268],
-  [560, -420, [62, 0]],
-  [300, -640, [55, -8]],
-  [133, -719, [38, 6]],
-  [-120, -560, [60, 10]],
-  [-190, -250, [75, -6]],
-  [-143, -32, [58, 0]],
-  [40, -20, [50, 8]],
-  [150, -60, [110, -4]],
-  [300, 40, [70, 0]],
-  [260, 250, [48, -10]],
-  [13, 254, [36, 0]],
-  [-200, 420, [64, 8]],
-  [-60, 650, [52, -8]],
-  [71, 798, [44, 0]],
-  [-60, 948, [70, 10]],
-  [-350, 1150, [90, -6]],
-  [-700, 1350],
-];
-const BALLOON_START = { x: -800, y: 1380, z: 150 };
-const BALLOON_DIR = (() => { const l = Math.hypot(-0.5, 0.87); return { x: -0.5 / l, y: 0.87 / l }; })();
 
 let world = null;
 let scene = null;
 let run = null;
 let spot = null;
-let rail = null;
 let hud = null;
 let autopilot = false;
 
-const rand = (a, b) => a + Math.random() * (b - a);
-const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
-const approach = (v, t, r) => (v < t ? Math.min(t, v + r) : Math.max(t, v - r));
 function sfx(kind, strength = 0.6) {
-  if (run) pushAudioEvent(world, { kind, x: run.x, y: run.y, strength });
+  if (run) pushAudioEvent(world, { kind, x: run.v.x, y: run.v.y, strength });
 }
 
-// --- rail -------------------------------------------------------------------
+// --- pads -------------------------------------------------------------------
 
-function buildRail() {
-  const curve = new THREE.CatmullRomCurve3(ROUTE.map((p) => new THREE.Vector3(p[0], p[1], 0)), false, 'centripetal');
-  curve.arcLengthDivisions = 1200;
-  const len = curve.getLength();
-  const n = Math.ceil(len / SAMPLE_M) + 1;
-  const X = new Float32Array(n), Y = new Float32Array(n), TX = new Float32Array(n), TY = new Float32Array(n);
-  const p = new THREE.Vector3(), t = new THREE.Vector3();
-  for (let i = 0; i < n; i++) {
-    const u = Math.min(1, (i * SAMPLE_M) / len);
-    curve.getPointAt(u, p);
-    curve.getTangentAt(u, t);
-    X[i] = p.x; Y[i] = p.y;
-    const l = Math.hypot(t.x, t.y) || 1;
-    TX[i] = t.x / l; TY[i] = t.y / l;
-  }
-  const rings = [];
-  for (const wp of ROUTE) {
-    if (!wp[2]) continue;
-    let best = 0, bd = Infinity;
-    for (let i = 0; i < n; i++) {
-      const d = (X[i] - wp[0]) ** 2 + (Y[i] - wp[1]) ** 2;
-      if (d < bd) { bd = d; best = i; }
-    }
-    rings.push({ s: best * SAMPLE_M, z: wp[2][0], off: wp[2][1] });
-  }
-  return { len, n, X, Y, TX, TY, rings };
+function runPads(w) {
+  const u = helipadInfo(w.map);
+  const out = {};
+  if (u) out.umcg = { id: 'umcg', x: u.x, y: u.y, deck: u.deck, r: u.r, angle: u.angle };
+  const e = helipadById('eelde');
+  if (e) out.eelde = { id: 'eelde', x: e.x, y: e.y, deck: e.z, r: e.r, angle: -Math.PI / 2 };
+  return out;
 }
 
-const _rp = { x: 0, y: 0, tx: 1, ty: 0 };
-function railAt(s) {
-  const f = clamp(s / SAMPLE_M, 0, rail.n - 1.001);
-  const i = Math.floor(f), k = f - i;
-  _rp.x = rail.X[i] + (rail.X[i + 1] - rail.X[i]) * k;
-  _rp.y = rail.Y[i] + (rail.Y[i + 1] - rail.Y[i]) * k;
-  const tx = rail.TX[i] + (rail.TX[i + 1] - rail.TX[i]) * k, ty = rail.TY[i] + (rail.TY[i + 1] - rail.TY[i]) * k;
-  const l = Math.hypot(tx, ty) || 1;
-  _rp.tx = tx / l; _rp.ty = ty / l;
-  return _rp;
-}
+// --- 3D: rings, the H beacon, Tammo on the lier, the start spot ---------------
 
-// --- 3D: rings and the start spot -------------------------------------------
-
-const RING_GEO = new THREE.TorusGeometry(RING_R, 0.42, 8, 40);
+const RING_GEO = new THREE.TorusGeometry(P.RING_R, 0.5, 8, 44);
 const RING_MATS = {
   next: new THREE.MeshBasicMaterial({ color: 0xffc21a, transparent: true, opacity: 0.95, fog: false }),
   later: new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.35, fog: false }),
@@ -154,21 +94,48 @@ const RING_MATS = {
   miss: new THREE.MeshBasicMaterial({ color: 0xff5a3c, transparent: true, opacity: 0.5, fog: false }),
 };
 
-function buildRings() {
+function buildRings(leg) {
   const group = new THREE.Group();
   group.name = 'helirun-rings';
-  for (const r of rail.rings) {
-    const p = railAt(r.s);
-    const nx = -p.ty, ny = p.tx;
+  for (const r of leg.rings) {
     const m = new THREE.Mesh(RING_GEO, RING_MATS.later);
-    m.position.set(p.x + nx * r.off, r.z, p.y + ny * r.off);
-    m.rotation.y = -Math.atan2(p.ty, p.tx) + Math.PI / 2;
+    m.position.set(r.x, r.z, r.y);
+    m.rotation.y = -r.yaw + Math.PI / 2;
     group.add(m);
     r.mesh = m;
-    r.x = p.x + nx * r.off; r.y = p.y + ny * r.off;
+    r.state = 'later';
   }
   scene.add(group);
   return group;
+}
+
+// A tall light column and a pulsing ring on the deck: where to land.
+function buildBeacon() {
+  const g = new THREE.Group();
+  g.name = 'helirun-beacon';
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 90, 16, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0x5dff7a, transparent: true, opacity: 0.22, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+  beam.position.y = 45;
+  const ring = new THREE.Mesh(new THREE.RingGeometry(4.6, 5.6, 40).rotateX(-Math.PI / 2),
+    new THREE.MeshBasicMaterial({ color: 0x5dff7a, transparent: true, opacity: 0.85, depthWrite: false, fog: false }));
+  ring.position.y = 0.08;
+  g.add(beam, ring);
+  g.userData.ring = ring;
+  g.visible = false;
+  scene.add(g);
+  return g;
+}
+
+function buildHanger() {
+  const g = new THREE.Group();
+  g.name = 'helirun-lier';
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1, 6), new THREE.MeshLambertMaterial({ color: 0x2a2a2a }));
+  const man = buildPersonMesh(TAMMO_APPEARANCE.shirt, TAMMO_APPEARANCE.skin, TAMMO_APPEARANCE);
+  g.add(rope, man);
+  g.userData = { rope, man };
+  g.visible = false;
+  scene.add(g);
+  return g;
 }
 
 const SPOT_COLOR = '#f0c21a';
@@ -251,7 +218,7 @@ function placeSpot(map) {
   if (!pad) return null;
   const open = map.findOpenSpawn(pad.x, pad.y, 250);
   if (!open) return null;
-  const s = { id: 'umcg', name: 'Traumaheli UMCG', x: open.x, y: open.y, marker: buildSpotMarker(open.x, open.y) };
+  const s = { id: 'umcg', name: 'Ballonjacht UMCG', x: open.x, y: open.y, marker: buildSpotMarker(open.x, open.y) };
   scene.add(s.marker);
   s.pilot = buildPilot(map, open.x, open.y);
   return s;
@@ -266,8 +233,9 @@ body.heli-run #hud .hud-speedo, body.heli-run #hud .hud-route, body.heli-run #hu
 #heli-hud[hidden] { display: none; }
 #heli-hud { position: fixed; inset: 0; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; z-index: 5; }
 #heli-hud .hh-panel { position: absolute; top: 14px; left: 14px; min-width: 200px; padding: 10px 14px 12px; background: linear-gradient(160deg, rgba(20,16,6,0.8), rgba(20,16,6,0.5)); border-left: 4px solid #f0c21a; border-radius: 0 6px 6px 0; box-shadow: 0 4px 18px rgba(0,0,0,0.35); }
-#heli-hud .hh-title { font-size: 26px; letter-spacing: 3px; color: #f0c21a; line-height: 1; }
+#heli-hud .hh-title { font-size: 24px; letter-spacing: 2px; color: #f0c21a; line-height: 1; max-width: 260px; }
 #heli-hud .hh-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-top: 4px; font-size: 16px; letter-spacing: 1px; color: rgba(240,237,228,0.75); }
+#heli-hud .hh-row[hidden] { display: none; }
 #heli-hud .hh-row b { font-weight: normal; font-size: 24px; color: #f0ede4; }
 #heli-hud .hh-row b.low { color: #ff6a4a; }
 #heli-hud .hh-score b { color: #f0c21a; font-size: 30px; }
@@ -275,20 +243,32 @@ body.heli-run #hud .hud-speedo, body.heli-run #hud .hud-route, body.heli-run #hu
 #heli-hud .hh-alt i { position: absolute; left: 4px; right: 4px; height: 4px; margin-top: -2px; border-radius: 2px; }
 #heli-hud .hh-alt .me { background: #f0c21a; box-shadow: 0 0 8px #f0c21a; }
 #heli-hud .hh-alt .bal { background: #ff7ab6; }
-#heli-hud .hh-alt .ring { background: rgba(255,233,160,0.7); height: 2px; }
+#heli-hud .hh-alt .ring { background: rgba(93,255,122,0.85); height: 3px; }
 #heli-hud .hh-alt span { position: absolute; left: -2px; right: -2px; bottom: -22px; text-align: center; font-size: 15px; }
-#heli-hud .hh-catch { position: absolute; left: 50%; bottom: 17%; transform: translateX(-50%); width: 520px; text-align: center; }
+#heli-hud .hh-guide { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); text-align: center; padding: 6px 16px 8px; background: rgba(20,16,6,0.6); border-radius: 8px; min-width: 220px; max-width: 90vw; }
+#heli-hud .hh-guide[hidden] { display: none; }
+#heli-hud .hh-arrow { display: block; width: 46px; height: 46px; margin: 0 auto; }
+#heli-hud .hh-arrow path { fill: #5dff7a; stroke: #0c140e; stroke-width: 2; }
+#heli-hud .hh-goal { font-size: 20px; letter-spacing: 1px; line-height: 1.1; }
+#heli-hud .hh-goal small { display: block; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); letter-spacing: 0; }
+#heli-hud .hh-goal .up, #heli-hud .hh-goal .down { color: #ffc21a; }
+#heli-hud .hh-catch { position: absolute; left: 50%; bottom: 17%; transform: translateX(-50%); width: min(520px, 90vw); text-align: center; }
 #heli-hud .hh-catch[hidden] { display: none; }
 #heli-hud .hh-catch .lbl { font-size: 20px; letter-spacing: 1px; text-shadow: 0 2px 6px rgba(0,0,0,0.7); }
 #heli-hud .hh-catch .bar { height: 10px; margin-top: 6px; background: rgba(240,237,228,0.15); border-radius: 5px; overflow: hidden; }
 #heli-hud .hh-catch .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #f0c21a, #5dff7a); }
 #heli-hud .hh-catch .tips { margin-top: 5px; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); }
 #heli-hud .hh-catch .tips .ok { color: #5dff7a; }
-#heli-hud .hh-msg { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: 34px; letter-spacing: 2px; color: #f0c21a; text-shadow: 0 2px 10px rgba(0,0,0,0.75); opacity: 0; transition: opacity .2s; white-space: nowrap; }
+#heli-hud .hh-msg { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); font-size: 34px; letter-spacing: 2px; color: #f0c21a; text-shadow: 0 2px 10px rgba(0,0,0,0.75); opacity: 0; transition: opacity .2s; white-space: nowrap; }
 #heli-hud .hh-msg.on { opacity: 1; }
-#heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); font: 15px 'Arial Narrow', Arial, sans-serif; letter-spacing: .5px; padding: 6px 14px; background: rgba(20,16,6,0.6); border-radius: 6px; transition: opacity .6s; }
+#heli-hud .hh-say { position: absolute; left: 50%; bottom: 27%; transform: translateX(-50%); width: max-content; max-width: min(640px, 90vw); padding: 6px 14px; background: rgba(12,12,12,0.66); border-radius: 6px; font: 18px/1.3 'Arial Narrow', Arial, sans-serif; text-align: center; opacity: 0; transition: opacity .2s; }
+#heli-hud .hh-say.on { opacity: 1; }
+#heli-hud .hh-help { position: absolute; left: 50%; bottom: 7%; transform: translateX(-50%); max-width: 92vw; font: 15px 'Arial Narrow', Arial, sans-serif; letter-spacing: .5px; padding: 6px 14px; background: rgba(20,16,6,0.6); border-radius: 6px; transition: opacity .6s; text-align: center; }
 #heli-hud .hh-help kbd { display: inline-block; min-width: 12px; margin: 0 2px; padding: 1px 6px; border: 1px solid rgba(240,237,228,0.6); border-bottom-width: 3px; border-radius: 5px; background: rgba(255,255,255,0.08); color: #f3efe4; font: bold 12px/1.2 system-ui, sans-serif; text-align: center; }
-#heli-hud .hh-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96); min-width: 340px; padding: 18px 26px; text-align: center; background: rgba(20,16,6,0.86); border-top: 4px solid #f0c21a; border-radius: 8px; opacity: 0; transition: opacity .35s, transform .35s; }
+#heli-hud .hh-fade { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity .6s; }
+#heli-hud .hh-fade.on { opacity: 1; }
+#heli-hud .hh-fade span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 30px; letter-spacing: 3px; color: #f0c21a; white-space: nowrap; }
+#heli-hud .hh-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.96); min-width: min(340px, 90vw); padding: 18px 26px; text-align: center; background: rgba(20,16,6,0.86); border-top: 4px solid #f0c21a; border-radius: 8px; opacity: 0; transition: opacity .35s, transform .35s; }
 #heli-hud .hh-card.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 #heli-hud .hh-card h2 { margin: 0; font-size: 42px; font-weight: normal; letter-spacing: 3px; color: #f0c21a; }
 #heli-hud .hh-card p { margin: 4px 0 0; font: 16px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); }
@@ -303,23 +283,27 @@ function initHudDom() {
   root.id = 'heli-hud';
   root.hidden = true;
   root.innerHTML = `<div class="hh-panel"><div class="hh-title"></div>
-    <div class="hh-row"><span>Tijd</span><b data-k="time">0</b></div>
+    <div class="hh-row" data-r="time"><span>Tijd</span><b data-k="time">0</b></div>
     <div class="hh-row"><span>Snelheid</span><b data-k="speed">0</b></div>
-    <div class="hh-row"><span>Ringen</span><b data-k="rings">0</b></div>
+    <div class="hh-row" data-r="rings"><span>Ringen</span><b data-k="rings">0</b></div>
     <div class="hh-row"><span>Ballon</span><b data-k="dist">-</b></div>
     <div class="hh-row hh-score"><span>Score</span><b data-k="score">0</b></div></div>
+    <div class="hh-guide" hidden><svg class="hh-arrow" viewBox="-24 -24 48 48" aria-hidden="true"><path d="M0 -20 L14 10 L0 3 L-14 10 Z"/></svg><div class="hh-goal"></div></div>
     <div class="hh-alt"><i class="ring"></i><i class="bal"></i><i class="me"></i><span>0 m</span></div>
     <div class="hh-catch" hidden><div class="lbl"></div><div class="bar"><i></i></div><div class="tips"></div></div>
     <div class="hh-msg"></div>
-    <div class="hh-help"><kbd>W</kbd><kbd>S</kbd> hoogte · <kbd>A</kbd><kbd>D</kbd> opzij · <kbd>SHIFT</kbd> gas · <kbd>SPATIE</kbd> rem</div>
+    <div class="hh-say" role="status"></div>
+    <div class="hh-help"><kbd>W</kbd><kbd>S</kbd> vooruit en remmen · <kbd>A</kbd><kbd>D</kbd> draaien · <kbd>SHIFT</kbd> sneller · <kbd>SPATIE</kbd> omhoog · <kbd>CTRL</kbd> omlaag · <kbd>⌫</kbd> stoppen</div>
+    <div class="hh-fade"><span></span></div>
     <div class="hh-card"><h2></h2><p class="sub"></p><div class="medal"></div><p class="rows"></p></div>`;
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
   hud = {
-    root, title: q('.hh-title'), vals: {}, cache: {},
-    alt: q('.hh-alt'), altMe: q('.hh-alt .me'), altBal: q('.hh-alt .bal'), altRing: q('.hh-alt .ring'), altLbl: q('.hh-alt span'),
+    root, title: q('.hh-title'), vals: {}, cache: {}, rows: { time: q('[data-r="time"]'), rings: q('[data-r="rings"]') },
+    guide: q('.hh-guide'), arrow: q('.hh-arrow'), goal: q('.hh-goal'),
+    altMe: q('.hh-alt .me'), altBal: q('.hh-alt .bal'), altRing: q('.hh-alt .ring'), altLbl: q('.hh-alt span'),
     catchEl: q('.hh-catch'), catchLbl: q('.hh-catch .lbl'), catchBar: q('.hh-catch .bar i'), catchTips: q('.hh-catch .tips'),
-    msg: q('.hh-msg'), help: q('.hh-help'), card: q('.hh-card'),
+    msg: q('.hh-msg'), say: q('.hh-say'), help: q('.hh-help'), fade: q('.hh-fade'), fadeText: q('.hh-fade span'), card: q('.hh-card'),
   };
   for (const el of root.querySelectorAll('[data-k]')) hud.vals[el.dataset.k] = el;
 }
@@ -338,26 +322,77 @@ function flash(text, s = 1.6) {
   run.msgT = s;
 }
 
-const altY = (z) => (1 - clamp((z - Z_MIN) / (Z_MAX - Z_MIN), 0, 1)) * 100 + '%';
+const fmtDist = (d) => (d > 950 ? `${(d / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(d / 10) * 10} m`);
+const Z_LO = 0, Z_HI = 130;
+const altY = (z) => (1 - clamp((z - Z_LO) / (Z_HI - Z_LO), 0, 1)) * 100 + '%';
 
 function updateHud(dt) {
-  const r = run;
+  const r = run, v = r.v, b = r.b;
   if (r.msgT > 0 && (r.msgT -= dt) <= 0) hud.msg.classList.remove('on');
-  const t = Math.max(0, r.timeLeft);
-  setVal('time', `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`, t < 20 ? 'low' : '');
-  setVal('speed', `${Math.round(r.speed * 3.6)} km/u`);
-  setVal('rings', `${r.ringsHit}/${rail.rings.length}`);
-  const bd = Math.hypot(r.balloon.x - r.x, r.balloon.y - r.y);
-  setVal('dist', bd > 950 ? `${(bd / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(bd / 10) * 10} m`);
+  if (r.V.timeLimit) {
+    const t = Math.max(0, r.timeLeft);
+    setVal('time', `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`, t < 20 ? 'low' : '');
+  }
+  setVal('speed', `${Math.round(Math.hypot(v.vx || 0, v.vy || 0) * 3.6)} km/u`);
+  setVal('rings', `${r.st.ringsHit}/${r.ringsTotal}`);
+  setVal('dist', b.phase === 'ground' ? 'nog aan de grond' : fmtDist(Math.hypot(b.x - v.x, b.y - v.y)));
   setVal('score', String(Math.max(0, Math.round(r.score))));
-  hud.altMe.style.top = altY(r.z);
-  hud.altBal.style.top = altY(r.balloon.z);
-  const next = rail.rings[r.nextRing];
-  hud.altRing.style.display = next && r.phase === 'rail' ? '' : 'none';
-  if (next) hud.altRing.style.top = altY(next.z);
-  const lbl = `${Math.round(r.z)} m`;
+  hud.altMe.style.top = altY(v.z);
+  hud.altBal.style.top = altY(b.z);
+  const tgt = r.tgt;
+  hud.altRing.style.display = tgt && r.phase === 'fly' ? '' : 'none';
+  if (tgt) hud.altRing.style.top = altY(tgt.z);
+  const lbl = `${Math.round(Math.max(0, v.z - (v.groundZ ?? 0)))} m`;
   if (hud.cache.alt !== lbl) { hud.cache.alt = lbl; hud.altLbl.textContent = lbl; }
-  if (r.t > 9) hud.help.style.opacity = '0';
+  if (r.t > 16) hud.help.style.opacity = '0';
+  // the arrow: the target's bearing relative to the nose, its distance and height
+  const guide = r.phase === 'fly' && !!tgt;
+  hud.guide.hidden = !guide;
+  if (guide) {
+    const rel = Math.atan2(tgt.y - v.y, tgt.x - v.x) - v.angle;
+    hud.arrow.style.transform = `rotate(${(rel * 180 / Math.PI + 90).toFixed(1)}deg)`;
+    const d = Math.hypot(tgt.x - v.x, tgt.y - v.y);
+    const dz = tgt.z - v.z;
+    const hint = tgt.kind === 'pad' ? (d < 20 && !v.onGround ? '<span class="down">▼ Ctrl: landen</span>' : '') :
+      dz > 4 ? '<span class="up">▲ hoger</span>' : dz < -4 ? '<span class="down">▼ lager</span>' : 'hoogte goed';
+    const html = `${r.legLabel}<small>${tgt.label ? tgt.label + ' · ' : ''}${fmtDist(d)}${hint ? ' · ' + hint : ''}</small>`;
+    if (hud.cache.goal !== html) { hud.cache.goal = html; hud.goal.innerHTML = html; }
+  }
+}
+
+// --- lines over the headsets (storyarc.js H15, contacts `on: 'flight:*'`) -------
+
+function flightLines(key) {
+  const st = STEP_BY_ID.get('H15');
+  const c = st && (st.contact || []).find((q) => q.on === 'flight:' + key);
+  return c ? c.lines : [];
+}
+
+function sayLines(key) {
+  if (!run || run.variant !== 'traumaduif' || run.said.has(key)) return;
+  run.said.add(key);
+  for (const l of flightLines(key)) run.say.queue.push(l);
+}
+
+function updateSay(dt) {
+  const s = run.say;
+  if (world.paused) return;
+  if (s.cur) {
+    s.t += dt;
+    if (s.t < s.until) return;
+    s.cur = null;
+    hud.say.classList.remove('on');
+  }
+  if (!s.queue.length) return;
+  const [k, text] = s.queue.shift();
+  const name = SPEAKERS[k] || k;
+  const v = lineVoiceFor(name, text);
+  if (v) playLineVoice(v.src, v.dur, 'call');
+  s.cur = text;
+  s.t = 0;
+  s.until = v ? v.dur + 0.35 : Math.max(2.2, 1 + text.length * 0.055);
+  hud.say.innerHTML = speakerHtml(name) + dualHtml(text);
+  hud.say.classList.add('on');
 }
 
 // --- start / stop -----------------------------------------------------------
@@ -369,79 +404,120 @@ function blockReason(w) {
   return null;
 }
 
+// The demo heli Rotor Roelf parked on the pad (storyfun.js), or a new one.
+function heliOn(w, pad) {
+  let v = w.vehicles.find((q) => q.isHeli && q.storyDemo && !q.wrecked && !q.sinking && Math.hypot(q.x - pad.x, q.y - pad.y) < 20);
+  if (!v) {
+    v = makeHeli(pad.x, pad.y, pad.deck, pad.angle, { ...HELI_MODEL, color: '#e8e6e0' });
+    v.missionCar = true;
+    w.vehicles.push(v);
+  }
+  v.x = pad.x; v.y = pad.y; v.z = pad.deck; v.angle = pad.angle;
+  v.vx = 0; v.vy = 0; v.vz = 0; v.speed = 0; v.driftX = 0; v.driftY = 0; v.yawRate = 0;
+  v.onGround = true; v.groundZ = pad.deck; v.landKind = 'pad'; v.landPad = helipadById(pad.id);
+  v.health = 100;
+  v.disabled = false;
+  v.heliRun = true;
+  return v;
+}
+
 export function startHeliRun(opts = {}) {
   const w = world;
-  if (!w || run || !rail || w.pigeonMode || isCinematicActive() || document.body.classList.contains('intro-montage')) return false;
+  if (!w || run || w.pigeonMode || isCinematicActive() || document.body.classList.contains('intro-montage')) return false;
   const pl = w.player;
-  if (pl.inVehicle) return false;
-  const pad = helipadInfo(w.map);
-  if (!pad) return false;
-  const V = { ...(VARIANTS[opts.variant] || VARIANTS.ballonjacht) };
+  if (pl.inVehicle && !pl.inVehicle.storyDemo) return false;
+  const pads = runPads(w);
+  if (!pads.umcg) return false;
   const variant = VARIANTS[opts.variant] ? opts.variant : 'ballonjacht';
-  if (opts.timeLimit) V.timeLimit = opts.timeLimit;
-  const heli = scriptHeli(w);
-  if (!heli) return false;
-  Object.assign(heli, { x: pad.x, y: pad.y, z: pad.deck, heading: pad.angle, pitch: 0, bank: 0, rotor: 0.35, groundZ: pad.deck, downwash: 0, searchlight: 0, landing: false });
+  const V = { ...VARIANTS[variant] };
+  const plan = P.makePlan(variant, pads);
+  const st = P.newRunState();
+  let startPad = pads.umcg;
+  if (variant === 'traumaduif') {
+    if (pads.eelde) startPad = pads.eelde;
+    // no Eelde pad: start on the UMCG deck with Dijkstra already aboard
+    else st.leg = plan.legs.findIndex((l) => l.kind === 'rings');
+  }
+  if (pl.inVehicle) pl.inVehicle.driver = null;
+  const v = heliOn(w, startPad);
+  // the yellow trauma heli is in for a service meanwhile (it would sit on the deck)
+  const sky = scriptHeli(w);
+  if (sky) Object.assign(sky, { x: startPad.x, y: startPad.y, z: -400, rotor: 0 });
 
-  const balloon = {
-    x: BALLOON_START.x, y: BALLOON_START.y, z: BALLOON_START.z, targetZ: BALLOON_START.z, vz: 0, drift: BALLOON_SPEED, spin: 0.01,
-    yaw: 0, seed: V.seed, phase: 'float', timer: 0, burn: 0, burnLeft: 0, nextBurn: 3, burnSeq: 0, burnDur: 0, age: 0, scripted: true,
+  const gz = w.map.groundHeightAt ? w.map.groundHeightAt(P.BALLOON_AT.x, P.BALLOON_AT.y, 0) : 0;
+  const b = {
+    x: P.BALLOON_AT.x, y: P.BALLOON_AT.y, z: gz, ground: gz, phase: 'ground', vz: 0, spin: 0.01, yaw: 0.4, seed: BALLOON_SEED,
+    timer: 0, burn: 0, burnLeft: 0, nextBurn: 2, burnSeq: 0, burnDur: 0, age: 0, scripted: true,
   };
-  w.balloons.push(balloon);
+  if (!w.balloons) w.balloons = [];
+  w.balloons.push(b);
 
+  const ringLeg = plan.legs.find((l) => l.kind === 'rings');
   run = {
-    V, variant, onFinish: opts.onFinish || null, pad, heli, balloon,
-    phase: 'intro', t: 0, phaseT: 0, s: 0, speed: SPEED_START, z: pad.deck, off: 0, vz: 0, voff: 0,
-    x: pad.x, y: pad.y, heading: pad.angle, timeLeft: V.timeLimit, elapsed: 0,
-    score: 0, ringsHit: 0, nextRing: 0, hits: 0, hitCd: 0, bumps: 0,
-    gust: null, gustT: rand(9, 14), catchP: 0, along: -60, catchSide: 1, msgT: 0,
-    cam: null, shake: 0, prevCine: { hide: w.cinematicHidePlayers, nav: w.cinematicHideNav },
+    V, variant, plan, st, pads, v, b, onFinish: opts.onFinish || null,
+    phase: 'intro', t: 0, phaseT: 0, timeLeft: V.timeLimit || 0, elapsed: 0, score: 0, hits: 0, msgT: 0,
+    ringsTotal: ringLeg ? ringLeg.rings.length : 0, tgt: null, legLabel: '', said: new Set(), faded: false,
+    say: { queue: [], cur: null, t: 0, until: 0 }, startPad, cam: null,
+    prevCine: { hide: w.cinematicHidePlayers, nav: w.cinematicHideNav },
     start: { x: pl.x, y: pl.y, angle: pl.angle }, result: null,
   };
-  run.rings = buildRings();
+  run.rings = ringLeg ? buildRings(ringLeg) : null;
+  run.beacon = buildBeacon();
+  run.hanger = buildHanger();
+  pl.inVehicle = v;
+  v.driver = 'player';
+  pl.x = v.x; pl.y = v.y; pl.angle = v.angle;
+  // the other one rides along (and hangs from the lier later)
+  const c = w.companion;
+  if (c && c.state !== 'dead' && !c.inVehicle) { c.inVehicle = v; v.passenger = 'companion'; }
+  w.camYaw = v.angle;
   w.heliRun = true;
   w.cinematicHidePlayers = true;
-  w.cinematicHideNav = true;
   document.body.classList.add('heli-run');
   hud.root.hidden = false;
   hud.cache = {};
   hud.title.textContent = V.title.toUpperCase();
+  hud.rows.time.hidden = !V.timeLimit;
+  hud.rows.rings.hidden = !run.ringsTotal;
   hud.card.classList.remove('on');
   hud.catchEl.hidden = true;
+  hud.guide.hidden = true;
   hud.help.style.opacity = '1';
+  hud.fade.classList.remove('on');
   flash(V.sub, 3.5);
   w.input.reset();
-  syncPlayer();
   return true;
 }
 
 function finish(success, why = '') {
   const r = run;
   if (!r || r.phase === 'result') return;
-  const timeBonus = success ? Math.round(Math.max(0, r.timeLeft) * TIME_SCORE) : 0;
-  if (success) r.score += CATCH_SCORE + timeBonus;
+  const timeBonus = success && r.V.timeLimit ? Math.round(Math.max(0, r.timeLeft) * TIME_SCORE) : 0;
+  if (success) r.score += timeBonus;
   const score = Math.max(0, Math.round(r.score));
   let medal = 0;
   if (success) for (let m = 3; m >= 1; m--) if (score >= MEDALS[m]) { medal = m; break; }
   if (success && !medal) medal = 1;
   r.result = {
-    variant: r.variant, success, aborted: false, score, medal, medalName: MEDAL_NAMES[medal], rings: r.ringsHit,
-    ringsTotal: rail.rings.length, time: Math.round(r.elapsed * 10) / 10, timeLeft: Math.max(0, Math.round(r.timeLeft)), hits: r.hits,
+    variant: r.variant, success, aborted: false, score, medal, medalName: MEDAL_NAMES[medal], rings: r.st.ringsHit,
+    ringsTotal: r.ringsTotal, time: Math.round(r.elapsed * 10) / 10, timeLeft: Math.max(0, Math.round(r.timeLeft)), hits: r.hits,
   };
   r.phase = 'result';
   r.phaseT = 0;
   hud.catchEl.hidden = true;
+  hud.guide.hidden = true;
   hud.msg.classList.remove('on');
   hud.card.querySelector('h2').textContent = success ? r.V.doneText.split('!')[0] + '!' : 'Mislukt';
   hud.card.querySelector('.sub').textContent = success ? r.V.doneText : why || r.V.failText;
   hud.card.querySelector('.medal').textContent = medal ? `${MEDAL_NAMES[medal]} · ${score} punten` : `${score} punten`;
-  hud.card.querySelector('.rows').textContent = `Ringen ${r.ringsHit}/${rail.rings.length} · tijdbonus ${timeBonus} · botsingen ${r.hits}`;
+  hud.card.querySelector('.rows').textContent = `Ringen ${r.st.ringsHit}/${r.ringsTotal}${timeBonus ? ` · tijdbonus ${timeBonus}` : ''} · botsingen ${r.hits}`;
   hud.card.classList.add('on');
   sfx(success ? 'prestatie' : 'notify', 0.8);
   if (success) {
     recordStat(world, 'heliRuns');
     setStatMax(world, 'heliBest', score);
     unlockAchievement(world, 'ballonjacht');
+    unlockAchievement(world, 'umcg_heli');
     if (r.variant === 'ballonjacht') recordChallengeResult(world, 'ballonjacht', { value: score, medal });
     if (medal === 3) unlockAchievement(world, 'ballonjacht_goud');
   }
@@ -451,33 +527,49 @@ function cleanup(aborted) {
   const r = run;
   const w = world;
   run = null;
-  if (r.rings) { scene.remove(r.rings); }
-  const bi = w.balloons.indexOf(r.balloon);
+  for (const o of [r.rings, r.beacon, r.hanger]) if (o) scene.remove(o);
+  const bi = w.balloons.indexOf(r.b);
   if (bi >= 0) {
-    if (r.result && r.result.success) { r.balloon.scripted = false; r.balloon.phase = 'float'; r.balloon.targetZ = r.balloon.z; }
+    if (r.result && r.result.success) { r.b.scripted = false; r.b.phase = 'float'; r.b.targetZ = r.b.z; r.b.drift = P.BALLOON_SPEED; }
     else w.balloons.splice(bi, 1);
   }
-  landHeliOnPad(w, 20);
-  if (w.skyHeli) unlockAchievement(w, 'umcg_heli');
+  landHeliOnPad(w, 30);
+  // Rotor Roelf takes his demo heli back
+  const v = r.v;
+  v.driver = null;
+  v.passenger = null;
+  v.heliRun = false;
+  const vi = w.vehicles.indexOf(v);
+  if (vi >= 0) w.vehicles.splice(vi, 1);
   w.heliRun = false;
+  w.heliRunTarget = null;
   w.cinematicHidePlayers = r.prevCine.hide || false;
   w.cinematicHideNav = r.prevCine.nav || false;
   w.cameraOverride = null;
   document.body.classList.remove('heli-run');
   hud.root.hidden = true;
   hud.card.classList.remove('on');
+  hud.say.classList.remove('on');
+  hud.fade.classList.remove('on');
   const pl = w.player;
-  const back = spot || r.start;
+  pl.inVehicle = null;
+  // back on the street by the UMCG (a run given up at Eelde stays at Eelde)
+  const atEelde = r.startPad.id === 'eelde' && Math.hypot(v.x - r.startPad.x, v.y - r.startPad.y) < 400;
+  const back = atEelde ? { x: r.startPad.x - 7, y: r.startPad.y + 5 } : spot || r.start;
   pl.x = back.x; pl.y = back.y;
   pl.angle = r.start.angle;
   pl.vx = 0; pl.vy = 0; pl.z = 0; pl.vz = 0;
   pl.water = null; pl.swimming = false; pl.climb = null;
+  w.camYaw = pl.angle;
   const c = w.companion;
-  if (c && c.state !== 'dead' && !c.inVehicle) { c.x = pl.x + 1.2; c.y = pl.y + 0.6; }
+  if (c && c.state !== 'dead') {
+    if (c.inVehicle === v) c.inVehicle = null;
+    if (!c.inVehicle) { c.x = pl.x + 1.2; c.y = pl.y + 0.6; }
+  }
   w.input.reset();
   const result = r.result || {
-    variant: r.variant, success: false, aborted: true, score: 0, medal: 0, medalName: '', rings: r.ringsHit,
-    ringsTotal: rail.rings.length, time: r.elapsed, timeLeft: Math.round(r.timeLeft), hits: r.hits,
+    variant: r.variant, success: false, aborted: true, score: 0, medal: 0, medalName: '', rings: r.st.ringsHit,
+    ringsTotal: r.ringsTotal, time: r.elapsed, timeLeft: Math.round(r.timeLeft), hits: r.hits,
   };
   if (aborted) result.aborted = true;
   if (r.onFinish) { try { r.onFinish(result); } catch (e) { console.error('heli run onFinish', e); } }
@@ -495,347 +587,297 @@ export function isHeliRunActive() {
 
 export function getHeliRun() {
   if (!run) return null;
-  return { phase: run.phase, s: run.s, len: rail.len, x: run.x, y: run.y, z: run.z, off: run.off, vz: run.vz, voff: run.voff, nextRing: run.nextRing, catchSide: run.catchSide, along: run.along, speed: run.speed, variant: run.variant, balloon: { x: run.balloon.x, y: run.balloon.y, z: run.balloon.z } };
+  const leg = run.plan.legs[run.st.leg];
+  return {
+    phase: run.phase, leg: leg ? leg.kind : null, legIndex: run.st.leg, ring: run.st.ring, rings: run.st.ringsHit, catchP: run.st.catchP,
+    x: run.v.x, y: run.v.y, z: run.v.z, speed: Math.hypot(run.v.vx || 0, run.v.vy || 0), onGround: !!run.v.onGround, variant: run.variant,
+    balloon: { x: run.b.x, y: run.b.y, z: run.b.z, phase: run.b.phase }, target: run.tgt,
+  };
 }
 
-function syncPlayer() {
-  const pl = world.player;
-  pl.x = run.x; pl.y = run.y;
-  pl.vx = 0; pl.vy = 0;
+// For the minimap and the big map: rings where they are, the H and the balloon.
+export function getHeliRunMarks() {
+  if (!run) return null;
+  const leg = run.plan.legs.find((l) => l.kind === 'rings');
+  const cur = run.plan.legs[run.st.leg];
+  const rings = leg ? leg.rings.map((q) => ({ x: q.x, y: q.y, state: q.state })) : [];
+  const pad = cur && (cur.kind === 'pad' || cur.kind === 'pickup') ? run.pads[cur.pad || 'umcg'] : null;
+  return { rings, pad: pad ? { x: pad.x, y: pad.y } : null, balloon: run.b.phase === 'ground' && cur && cur.kind !== 'rings' ? null : { x: run.b.x, y: run.b.y }, target: run.tgt };
 }
 
 // --- flight -----------------------------------------------------------------
 
-function controls(dt) {
-  const r = run, inp = world.input;
-  let up = (inp.isDown('w') || inp.isDown('arrowup') ? 1 : 0) - (inp.isDown('s') || inp.isDown('arrowdown') ? 1 : 0);
-  let side = (inp.isDown('d') || inp.isDown('arrowright') ? 1 : 0) - (inp.isDown('a') || inp.isDown('arrowleft') ? 1 : 0);
-  let thr = (inp.isDown('shift') ? 1 : 0) - (inp.isDown(' ') ? 1 : 0);
-  if (autopilot) [up, side, thr] = autoInput();
-  r.vz = approach(r.vz, up * CLIMB, dt * 30);
-  r.voff = approach(r.voff, side * SLIDE, dt * 28);
-  r.speed = clamp(r.speed + (thr > 0 ? ACCEL * thr : thr < 0 ? BRAKE * thr : 0) * dt, r.phase === 'catch' ? 0 : SPEED_MIN, SPEED_MAX);
-  if (r.gust) {
-    const g = r.gust;
-    const k = Math.sin(Math.PI * clamp(g.t / g.dur, 0, 1));
-    r.voff += g.side * g.power * k * dt;
-    r.vz += g.lift * k * dt;
+const HELD = ['w', 's', 'a', 'd', ' ', 'control', 'shift', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
+
+// One frame of real flight with the given keys (null: the player's own).
+function flyWith(dt, keys) {
+  const w = world, v = run.v;
+  if (!keys) {
+    flyHeli(v, dt, w);
+    return new Set(HELD.filter((k) => w.input.isDown(k)));
   }
-  r.z = clamp(r.z + r.vz * dt, Z_MIN, Z_MAX);
+  const real = w.input;
+  w.input = { isDown: (k) => keys.has(k), lookActive: () => false, mouse: { dx: 0, dy: 0 } };
+  try { flyHeli(v, dt, w); } finally { w.input = real; }
+  return keys;
 }
 
-function autoInput() {
+function legStarted(leg) {
   const r = run;
-  let tz = r.z, toff = r.off, tv = 34;
-  if (r.phase === 'rail') {
-    const ring = rail.rings[r.nextRing];
-    if (ring) { tz = ring.z; toff = ring.off; }
-    else tz = r.balloon.z;
-  } else {
-    tz = r.balloon.z + 1;
-    toff = 16 * r.catchSide;
-    tv = r.phase === 'catch' ? BALLOON_SPEED - r.along * 0.6 : 40;
+  r.legLabel = leg ? leg.label || '' : '';
+  if (!leg) return;
+  if (leg.kind === 'rings') {
+    if (r.b.phase === 'ground') P.launchBalloon(r.b);
+    sayLines('spot');
+    flash(r.variant === 'traumaduif' ? 'De ballon stijgt op!' : 'Door de ringen!', 2);
+  } else if (leg.kind === 'catch') {
+    if (r.b.phase === 'ground') P.launchBalloon(r.b);
+    hud.catchEl.hidden = false;
+    hud.catchLbl.textContent = r.V.catchText;
+    sayLines('hang');
+    flash('Naar de mand!', 1.6);
+  } else if (leg.kind === 'pad') {
+    hud.catchEl.hidden = true;
+    flash(leg.why === 'spoed' ? 'Spoedje: naar het UMCG' : 'Terug naar het UMCG', 2);
+  } else if (leg.kind === 'pickup') {
+    r.phase = 'pickup';
+    r.phaseT = 0;
+    sayLines('pickup');
   }
-  const f = (d, dead) => (d > dead ? 1 : d < -dead ? -1 : 0);
-  return [f(tz - r.z - r.vz * 0.4, 0.8), f(toff - r.off - r.voff * 0.35, 0.6), f(tv - r.speed, 0.6)];
 }
 
-function updateGust(dt) {
+function onEvents(events) {
   const r = run;
-  const w = world.weather || {};
-  const storm = w.active && (w.kind === 'storm' || w.kind === 'onweer') ? 1.7 : 1 + (w.intensity || 0) * 0.5;
-  if (r.gust) {
-    r.gust.t += dt;
-    if (r.gust.t >= r.gust.dur) r.gust = null;
-    return;
-  }
-  r.gustT -= dt;
-  if (r.gustT <= 0) {
-    const side = Math.random() < 0.5 ? -1 : 1;
-    r.gust = { t: -1, dur: 2.4, side, power: rand(9, 15) * storm, lift: rand(-5, 3) * storm };
-    r.gustT = rand(7, 12) / storm;
-    flash(side > 0 ? 'Rukwind van links!' : 'Rukwind van rechts!', 1.8);
-    sfx('whoosh', 0.9);
-    r.shake = 0.5;
-  }
-}
-
-function roofAt(x, y) {
-  let top = 0;
-  for (const b of world.map.buildingsNear(x, y, 5)) {
-    const [x0, y0, x1, y1] = b.bounds;
-    if (x < x0 - 4 || x > x1 + 4 || y < y0 - 4 || y > y1 + 4) continue;
-    if (!pointInPolygon(x, y, b.pts)) continue;
-    top = Math.max(top, (b.h || 3) * LEVEL_HEIGHT + (b.lift || 0));
-  }
-  return top;
-}
-
-function checkCollision(dt) {
-  const r = run;
-  r.hitCd -= dt;
-  const top = roofAt(r.x, r.y);
-  if (top && r.z < top + 3) {
-    r.z = top + 3;
-    if (r.vz < 0) r.vz = 0;
-    if (r.hitCd <= 0) {
-      r.hitCd = 1.5;
-      r.hits++;
-      r.score -= HIT_PENALTY;
-      r.speed = Math.max(SPEED_MIN, r.speed * 0.6);
-      r.shake = 1;
-      flash('Au! Rotor langs het dak', 1.5);
-      sfx('bonk', 1);
-    }
-  }
-}
-
-function updateBalloon(dt) {
-  const b = run.balloon;
-  b.age += dt;
-  const t = run.t;
-  const gust = run.gust ? Math.sin(Math.PI * clamp(run.gust.t / run.gust.dur, 0, 1)) * run.gust.side * 0.8 : 0;
-  b.vx = BALLOON_DIR.x * BALLOON_SPEED - BALLOON_DIR.y * gust;
-  b.vy = BALLOON_DIR.y * BALLOON_SPEED + BALLOON_DIR.x * gust;
-  b.x += b.vx * dt;
-  b.y += b.vy * dt;
-  const zWant = BALLOON_START.z + Math.sin(t * 0.21) * 14 + Math.sin(t * 0.53 + 1) * 4;
-  b.vz = (zWant - b.z) * 0.8;
-  b.z += b.vz * dt;
-  b.yaw += b.spin * dt;
-  if (b.burnLeft > 0) { b.burnLeft -= dt; if (b.burnLeft <= 0) b.nextBurn = rand(4, 9); }
-  else if ((b.nextBurn -= dt) <= 0) { b.burnLeft = rand(1.2, 2.6); b.burnSeq++; }
-  b.burn += ((b.burnLeft > 0 ? 1 : 0) - b.burn) * Math.min(1, dt * 10);
-}
-
-function passRings() {
-  const r = run;
-  while (r.nextRing < rail.rings.length && rail.rings[r.nextRing].s <= r.s) {
-    const ring = rail.rings[r.nextRing];
-    const d = Math.hypot(r.z - ring.z, r.off - ring.off);
-    if (d <= RING_R) {
-      r.ringsHit++;
+  const ringLeg = r.plan.legs.find((l) => l.kind === 'rings');
+  for (const [e, d] of events) {
+    if (e === 'ring') {
       r.score += RING_SCORE;
       r.timeLeft += r.V.ringBonus;
-      ring.mesh.material = RING_MATS.done;
-      flash(`Ring! +${RING_SCORE}  +${r.V.ringBonus} s`, 1.1);
+      ringLeg.rings[d].state = 'done';
+      flash(r.V.ringBonus ? `Ring! +${RING_SCORE}  +${r.V.ringBonus} s` : `Ring! +${RING_SCORE}`, 1.1);
       sfx('notify', 0.7);
-    } else {
-      ring.mesh.material = RING_MATS.miss;
+    } else if (e === 'miss') {
+      ringLeg.rings[d].state = 'miss';
       flash('Ring gemist', 1);
+    } else if (e === 'bump') {
+      r.hits++;
+      r.score -= HIT_PENALTY;
+      sfx('bonk', 1);
+      flash('Pas op de ballon! Niet erop, ernaast', 1.8);
+    } else if (e === 'caught') {
+      r.score += CATCH_SCORE;
+      sfx('prestatie', 0.7);
+      flash(r.variant === 'traumaduif' ? 'Tammo heeft de Eierbal!' : 'Gekoppeld!', 2.2);
+      sayLines('caught');
+    } else if (e === 'landed' && d === 'home') {
+      finish(true);
+      return;
+    } else if (e === 'landed') {
+      flash('Geland op de H', 1.4);
     }
-    r.nextRing++;
-  }
-  for (let i = r.nextRing; i < rail.rings.length; i++) {
-    const m = rail.rings[i].mesh;
-    const want = i === r.nextRing ? RING_MATS.next : RING_MATS.later;
-    if (m.material !== want) m.material = want;
-    if (i > r.nextRing + 3) break;
-  }
-  if (r.nextRing > 1) {
-    const old = rail.rings[r.nextRing - 2].mesh;
-    if (old.visible) old.visible = false;
+    if (e === 'leg' && run && run.phase !== 'result') legStarted(r.plan.legs[r.st.leg]);
   }
 }
 
-function flyRail(dt) {
-  const r = run;
-  controls(dt);
-  updateGust(dt);
-  r.off = clamp(r.off + r.voff * dt, -OFFSET_MAX, OFFSET_MAX);
-  r.s += r.speed * dt;
-  passRings();
-  const p = railAt(r.s);
-  const nx = -p.ty, ny = p.tx;
-  const px = r.x, py = r.y;
-  r.x = p.x + nx * r.off;
-  r.y = p.y + ny * r.off;
-  r.hdgWant = Math.atan2(p.ty, p.tx);
-  r.hvx = dt > 0 ? (r.x - px) / dt : 0;
-  r.hvy = dt > 0 ? (r.y - py) / dt : 0;
-  if (r.s >= rail.len - 1) {
-    r.phase = 'approach';
-    r.phaseT = 0;
-    flash('Achter die ballon aan!', 2);
+function updateRingMeshes() {
+  const leg = run.plan.legs.find((l) => l.kind === 'rings');
+  if (!leg) return;
+  const active = run.plan.legs[run.st.leg] === leg;
+  leg.rings.forEach((q, i) => {
+    let state = q.state;
+    if (state !== 'done' && state !== 'miss') state = active && i === run.st.ring ? 'next' : 'later';
+    q.state = state;
+    if (q.mesh.material !== RING_MATS[state]) q.mesh.material = RING_MATS[state];
+    q.mesh.visible = state === 'next' || state === 'later' || (active && i >= run.st.ring - 1);
+  });
+}
+
+function updateProps(dt) {
+  const r = run, v = r.v;
+  const cur = r.plan.legs[r.st.leg];
+  const padLeg = cur && (cur.kind === 'pad' || cur.kind === 'pickup');
+  r.beacon.visible = !!padLeg && r.phase !== 'result';
+  if (padLeg) {
+    const p = r.pads[cur.pad || 'umcg'];
+    r.beacon.position.set(p.x, p.deck, p.y);
+    const k = 1 + Math.sin(r.t * 4) * 0.08;
+    r.beacon.userData.ring.scale.set(k, 1, k);
+  }
+  // Tammo on the lier from the catch until the heli is low over the H
+  const hang = r.variant === 'traumaduif' && cur && (cur.kind === 'catch' || (cur.kind === 'pad' && cur.why === 'home' && !v.onGround && v.z - (v.groundZ ?? 0) > 12));
+  r.hanger.visible = !!hang;
+  if (hang) {
+    const L = cur.kind === 'catch' ? 9 : 4;
+    const { rope, man } = r.hanger.userData;
+    r.hanger.position.set(v.x, v.z, v.y);
+    rope.scale.y = L;
+    rope.position.y = -L / 2;
+    man.position.y = -L - 1.7;
+    man.rotation.y = -v.angle + Math.PI / 2;
+    animatePersonWalk(man, 0, dt);
   }
 }
 
-// After the rail: steer to a point beside the balloon, then hold station.
-function flyChase(dt) {
-  const r = run, b = r.balloon;
-  controls(dt);
-  updateGust(dt);
-  const fx = BALLOON_DIR.x, fy = BALLOON_DIR.y, nx = -fy, ny = fx;
-  if (r.phase === 'approach') {
-    r.off = clamp(r.off + r.voff * dt, -OFFSET_MAX, OFFSET_MAX);
-    const tx = b.x - fx * 30 + nx * 16 * r.catchSide, ty = b.y - fy * 30 + ny * 16 * r.catchSide;
-    const dx = tx - r.x, dy = ty - r.y, d = Math.hypot(dx, dy) || 1;
-    const px = r.x, py = r.y;
-    const step = Math.min(d, r.speed * dt);
-    r.x += (dx / d) * step;
-    r.y += (dy / d) * step;
-    r.hdgWant = Math.atan2(dy, dx);
-    r.hvx = dt > 0 ? (r.x - px) / dt : 0;
-    r.hvy = dt > 0 ? (r.y - py) / dt : 0;
-    if (d < 45) {
-      r.phase = 'catch';
-      r.phaseT = 0;
-      r.along = (r.x - b.x) * fx + (r.y - b.y) * fy;
-      r.off = (r.x - b.x) * nx + (r.y - b.y) * ny;
-      hud.catchEl.hidden = false;
-      hud.catchLbl.textContent = r.V.catchText;
-      flash('Koppelen!', 1.5);
-    }
+// After the cruise: the cut to the city, south of the UMCG, nose north.
+function cutToCity() {
+  const r = run, v = r.v, u = r.pads.umcg;
+  v.x = u.x; v.y = u.y + P.ENTRY.back; v.z = P.ENTRY.z;
+  v.angle = -Math.PI / 2;
+  v.vx = 0; v.vy = -22; v.vz = 0; v.speed = 22; v.driftX = 0; v.driftY = 0; v.yawRate = 0;
+  v.onGround = false;
+  v.rotor = 1;
+  r.cam = null;
+  world.camYaw = v.angle;
+}
+
+const PILOT_CRUISE = new Set();
+
+export function updateHeliRun(dt, w) {
+  if (!run) return;
+  const r = run, v = r.v;
+  r.t += dt;
+  r.phaseT += dt;
+  P.stepBalloon(r.b, dt);
+  animateBurner(dt);
+  if (w.input.wasPressed('backspace') && r.phase !== 'result') {
+    w.input.consume('backspace');
+    w.addMessage('Vlucht afgebroken: Rotor Roelf haalt zijn heli op', 3);
+    cleanup(true);
     return;
   }
-  // catch: position relative to the balloon's track
-  r.along += (r.speed - BALLOON_SPEED) * dt;
-  r.off = clamp(r.off + r.voff * dt, -40, 40);
-  r.along = clamp(r.along, -120, 60);
-  if (r.speed > BALLOON_SPEED + 12 && r.along > 0) r.speed = Math.max(BALLOON_SPEED, r.speed - BRAKE * dt);
-  const px = r.x, py = r.y;
-  r.x = b.x + fx * r.along + nx * r.off;
-  r.y = b.y + fy * r.along + ny * r.off;
-  r.hdgWant = Math.atan2(fy, fx);
-  r.hvx = dt > 0 ? (r.x - px) / dt : 0;
-  r.hvy = dt > 0 ? (r.y - py) / dt : 0;
-
-  const dz = r.z - (b.z + 1);
-  const lat = Math.abs(r.off);
-  const rel = r.speed - BALLOON_SPEED;
-  const okZ = Math.abs(dz) < 3.5, okLat = lat > 11 && lat < 22, okAlong = Math.abs(r.along) < 8, okV = Math.abs(rel) < 3;
-  if (lat < 10 && Math.abs(r.along) < 10 && dz > -6 && dz < 20 && r.hitCd <= 0) {
-    r.bumps++;
-    r.hits++;
-    r.score -= HIT_PENALTY;
-    r.hitCd = 2;
-    r.off = Math.sign(r.off || 1) * 18;
-    r.catchP = Math.max(0, r.catchP - 2);
-    r.shake = 1;
-    sfx('bonk', 1);
-    if (r.bumps >= 3) { finish(false, r.V.hitsText); return; }
-    flash(`Pas op de ballon! (${3 - r.bumps} over)`, 1.8);
+  const leg = r.plan.legs[r.st.leg];
+  if (r.phase === 'intro') {
+    // the rotor spools up on the pad
+    v.rotor = Math.min(1, 0.35 + r.phaseT * 0.4);
+    if (r.phaseT >= INTRO_S) {
+      if (leg && leg.kind === 'cruise') {
+        r.phase = 'cruise';
+        r.phaseT = 0;
+        r.legLabel = 'Op weg naar Stad';
+        sayLines('call');
+        prewarmStreamAt(r.pads.umcg.x, r.pads.umcg.y + P.ENTRY.back * 0.5);
+        prewarmStreamAt(r.pads.umcg.x, r.pads.umcg.y);
+      } else { r.phase = 'fly'; r.phaseT = 0; legStarted(leg); }
+    }
+  } else if (r.phase === 'cruise') {
+    // autopilot: up, then north at full speed while Dijkstra calls; a cut to the city
+    PILOT_CRUISE.clear();
+    if (v.z - (v.groundZ ?? 0) < 45) PILOT_CRUISE.add(' ');
+    if (r.phaseT > 2) { PILOT_CRUISE.add('w'); PILOT_CRUISE.add('shift'); }
+    const err = Math.atan2(Math.sin(-Math.PI / 2 - v.angle), Math.cos(-Math.PI / 2 - v.angle));
+    if (Math.abs(err) > 0.1) PILOT_CRUISE.add(err > 0 ? 'd' : 'a');
+    flyWith(dt, PILOT_CRUISE);
+    if (r.phaseT > P.CRUISE_S - FADE_S && !r.faded) { r.faded = true; hud.fadeText.textContent = 'Even later, boven Stad'; hud.fade.classList.add('on'); }
+    if (r.phaseT >= P.CRUISE_S + 0.5) {
+      cutToCity();
+      hud.fade.classList.remove('on');
+      P.nextLeg(r.st);
+      r.phase = 'fly';
+      r.phaseT = 0;
+      legStarted(r.plan.legs[r.st.leg]);
+    }
+  } else if (r.phase === 'pickup') {
+    // on the UMCG deck: Dijkstra climbs in with the lier
+    v.rotor = 1;
+    if (r.phaseT >= PICKUP_S && !r.say.cur && !r.say.queue.length) {
+      P.nextLeg(r.st);
+      r.phase = 'fly';
+      r.phaseT = 0;
+      legStarted(r.plan.legs[r.st.leg]);
+    }
+  } else if (r.phase === 'fly') {
+    r.elapsed += dt;
+    if (r.V.timeLimit) r.timeLeft -= dt;
+    const mode = P.legMode(leg);
+    r.tgt = P.legTarget(r.plan, r.st, r.b, r.pads, v);
+    const held = flyWith(dt, autopilot ? P.pilotKeys(v, r.tgt, mode) : null);
+    if (!v.wrecked) P.assist(v, held, r.tgt, dt, mode, r.b);
+    const hp = v.health;
+    onEvents(P.advance(r.plan, r.st, v, r.b, dt));
+    if (!run) return;
+    if (run.phase === 'fly') {
+      if (r.lastHp !== undefined && hp < r.lastHp - 2) { r.hits++; r.score -= HIT_PENALTY; }
+      r.lastHp = v.health;
+      updateCatchHud();
+      const far = r.b.phase !== 'ground' && Math.hypot(r.b.x - v.x, r.b.y - v.y) > BALLOON_GONE_M && (leg.kind === 'rings' || leg.kind === 'catch');
+      if (v.wrecked || v.health <= 0) finish(false, 'De Wieken Wubbo is neergestort. Rotor Roelf is niet blij.');
+      else if (far) finish(false, r.V.failText);
+      else if (r.V.timeLimit && r.timeLeft <= 0) finish(false);
+    }
+  } else if (r.phase === 'result') {
+    if (!v.onGround && !v.wrecked) flyWith(dt, new Set());
+    if (r.phaseT >= RESULT_S) { cleanup(false); return; }
   }
-  r.hitCd -= dt;
-  const inZone = okZ && okLat && okAlong && okV;
-  r.catchP = clamp(r.catchP + (inZone ? dt : -dt * 0.5), 0, CATCH_NEED);
-  hud.catchBar.style.width = `${(r.catchP / CATCH_NEED) * 100}%`;
-  const tip = (ok, good, bad) => `<span class="${ok ? 'ok' : ''}">${ok ? good : bad}</span>`;
-  const tips = [
-    tip(okZ, 'hoogte goed', dz > 0 ? 'lager' : 'hoger'),
-    tip(okLat, 'afstand goed', lat <= 11 ? 'verder weg' : 'dichterbij'),
-    tip(okAlong && okV, 'snelheid goed', r.along < -8 || (rel < -3 && r.along < 8) ? 'sneller' : 'langzamer'),
-  ].join(' · ');
-  if (hud.cache.tips !== tips) { hud.cache.tips = tips; hud.catchTips.innerHTML = tips; }
-  if (r.catchP >= CATCH_NEED) finish(true);
+  if (!run) return;
+  w.heliRunTarget = r.phase === 'fly' && r.tgt ? { x: r.tgt.x, y: r.tgt.y, name: r.tgt.label || r.legLabel } : null;
+  updateRingMeshes();
+  updateProps(dt);
+  updateCamera(dt);
+  syncPlayer();
+  updateSay(dt);
+  updateHud(dt);
 }
 
-function attitude(dt) {
-  const r = run, h = r.heli;
-  const prev = r.heading;
-  let dh = r.hdgWant - r.heading;
-  dh = Math.atan2(Math.sin(dh), Math.cos(dh));
-  r.heading += dh * Math.min(1, dt * 3);
-  const yawRate = dt > 0 ? Math.atan2(Math.sin(r.heading - prev), Math.cos(r.heading - prev)) / dt : 0;
-  const bankT = clamp(Math.atan((r.speed * yawRate) / 9.81) + r.voff * 0.025, -0.5, 0.5);
-  const pitchT = clamp(-0.1 - 0.006 * r.speed + (r.prevSpeed !== undefined ? -(r.speed - r.prevSpeed) / Math.max(dt, 1e-3) * 0.012 : 0), -0.4, 0.2);
-  r.prevSpeed = r.speed;
-  h.bank += (bankT - h.bank) * Math.min(1, dt * 2.5);
-  h.pitch += (pitchT - h.pitch) * Math.min(1, dt * 2);
-  h.heading = r.heading;
-  h.x = r.x; h.y = r.y; h.z = r.z;
-  h.vx = r.hvx || 0; h.vy = r.hvy || 0; h.vz = r.vz;
-  h.v = r.speed;
-  h.rotor = 1;
-  h.downwash = 0;
+function animateBurner(dt) {
+  const b = run.b;
+  if (b.phase === 'ground' && run.st.leg < 1) return;
+  if (b.burnLeft > 0) b.burnLeft -= dt;
+  else if ((b.nextBurn -= dt) <= 0) { b.burnLeft = b.phase === 'rise' ? 2.5 : 1.6; b.nextBurn = 3 + Math.random() * 5; b.burnSeq++; }
+  b.burn += ((b.burnLeft > 0 ? 1 : 0) - b.burn) * Math.min(1, dt * 10);
+  b.yaw += 0.01 * dt;
+}
+
+function updateCatchHud() {
+  const r = run;
+  const c = r.st.check;
+  if (!c || hud.catchEl.hidden) return;
+  hud.catchBar.style.width = `${(r.st.catchP / P.CATCH.need) * 100}%`;
+  const tip = (ok, good, bad) => `<span class="${ok ? 'ok' : ''}">${ok ? good : bad}</span>`;
+  const tips = [
+    tip(c.okZ, 'hoogte goed', c.dz > 0 ? 'lager (Ctrl)' : 'hoger (Spatie)'),
+    tip(c.okLat, 'afstand goed', c.lat <= P.CATCH.near ? 'verder weg' : 'dichterbij'),
+    tip(c.okV, 'snelheid goed', 'rustiger: laat W los'),
+  ].join(' · ');
+  if (hud.cache.tips !== tips) { hud.cache.tips = tips; hud.catchTips.innerHTML = tips; }
+}
+
+function syncPlayer() {
+  const pl = world.player, v = run.v;
+  pl.x = v.x; pl.y = v.y; pl.angle = v.angle;
+  pl.vx = 0; pl.vy = 0;
 }
 
 // --- camera -----------------------------------------------------------------
 
+// Flying: the normal heli follow cam (scene3d.js), so the minimap turns with
+// the heli. The intro, the cruise, the pickup and the result card get a shot.
 function updateCamera(dt) {
-  const r = run, b = r.balloon;
-  let pos, look, fov = 62;
-  if (r.phase === 'intro') {
-    const pad = r.pad;
-    const a = pad.angle + 2.2 + r.phaseT * 0.08;
-    pos = { x: pad.x + Math.cos(a) * 30, y: pad.y + Math.sin(a) * 30, z: pad.deck + 7 + r.phaseT * 1.2 };
-    look = { x: r.x, y: r.y, z: r.z + 1.5 };
-    fov = 55;
+  const r = run, v = r.v, b = r.b;
+  let pos = null, look = null, fov = 55;
+  if (r.phase === 'intro' || r.phase === 'pickup') {
+    const a = (r.startPad.angle || 0) + 2.2 + r.phaseT * 0.12;
+    pos = { x: v.x + Math.cos(a) * 26, y: v.y + Math.sin(a) * 26, z: v.z + 8 + r.phaseT * 0.6 };
+    look = { x: v.x, y: v.y, z: v.z + 1.5 };
+  } else if (r.phase === 'cruise') {
+    const ch = Math.cos(v.angle), sh = Math.sin(v.angle);
+    pos = { x: v.x - ch * 30 + sh * 12, y: v.y - sh * 30 - ch * 12, z: v.z + 9 };
+    look = { x: v.x + ch * 30, y: v.y + sh * 30, z: v.z };
+    fov = 60;
   } else if (r.phase === 'result') {
-    const a = r.phaseT * 0.18 + r.heading + 2.4;
-    const mx = (r.x + b.x) / 2, my = (r.y + b.y) / 2, mz = (r.z + b.z) / 2 + 6;
-    pos = { x: mx + Math.cos(a) * 55, y: my + Math.sin(a) * 55, z: mz + 12 };
+    const a = r.phaseT * 0.18 + v.angle + 2.4;
+    const near = Math.hypot(b.x - v.x, b.y - v.y) < 200;
+    const mx = near ? (v.x + b.x) / 2 : v.x, my = near ? (v.y + b.y) / 2 : v.y, mz = (near ? (v.z + b.z) / 2 : v.z) + 4;
+    pos = { x: mx + Math.cos(a) * 45, y: my + Math.sin(a) * 45, z: mz + 12 };
     look = { x: mx, y: my, z: mz };
-    fov = 55;
-  } else {
-    const catching = r.phase === 'catch';
-    const back = catching ? 34 : 20 + r.speed * 0.2;
-    const up = catching ? 9 : 6.5;
-    const ch = Math.cos(r.heading), sh = Math.sin(r.heading);
-    pos = { x: r.x - ch * back, y: r.y - sh * back, z: r.z + up };
-    if (catching) {
-      const nx = -sh, ny = ch, side = -Math.sign(r.off || 1);
-      pos.x += nx * side * 10; pos.y += ny * side * 10;
-    }
-    const lx = r.x + ch * 40, ly = r.y + sh * 40;
-    const bd = Math.hypot(b.x - r.x, b.y - r.y);
-    const k = catching ? 0.5 : r.phase === 'approach' ? 0.35 : clamp(1 - bd / 2500, 0, 0.2);
-    const bx = r.x + (b.x - r.x) * Math.min(1, 60 / Math.max(bd, 1)), by = r.y + (b.y - r.y) * Math.min(1, 60 / Math.max(bd, 1));
-    look = { x: lx + (bx - lx) * k, y: ly + (by - ly) * k, z: r.z + (catching ? (b.z + 8 - r.z) * 0.5 : 0) };
-    fov = catching ? 58 : clamp(56 + (r.speed - SPEED_MIN) * 0.55, 56, 76);
   }
+  if (!pos) { r.cam = null; world.cameraOverride = null; return; }
   if (!r.cam) r.cam = { ...pos };
   else {
-    const s = 1 - Math.exp(-(r.phase === 'rail' || r.phase === 'approach' ? 6 : 3) * dt);
+    const s = 1 - Math.exp(-(r.phase === 'cruise' ? 6 : 3) * dt);
     r.cam.x += (pos.x - r.cam.x) * s; r.cam.y += (pos.y - r.cam.y) * s; r.cam.z += (pos.z - r.cam.z) * s;
   }
-  let sx = 0, sy = 0;
-  if (r.shake > 0) {
-    r.shake = Math.max(0, r.shake - dt * 1.6);
-    sx = (Math.random() - 0.5) * r.shake * 0.8; sy = (Math.random() - 0.5) * r.shake * 0.8;
-  }
-  world.cameraOverride = { position: { x: r.cam.x + sx, y: r.cam.y, z: r.cam.z + sy }, lookAt: look, fov, cut: true };
-}
-
-// --- per frame --------------------------------------------------------------
-
-export function updateHeliRun(dt, w) {
-  if (!run) return;
-  const r = run;
-  r.t += dt;
-  r.phaseT += dt;
-  updateBalloon(dt);
-  if (r.phase === 'intro') {
-    const h = r.heli, pad = r.pad;
-    const k = smooth((r.phaseT - 1.2) / (INTRO_S - 1.2));
-    h.rotor = Math.min(1, 0.35 + r.phaseT * 0.4);
-    r.z = pad.deck + k * 16;
-    h.z = r.z;
-    h.downwash = clamp(1 - k, 0, 1) * h.rotor;
-    h.groundZ = pad.deck;
-    r.hdgWant = r.heading = h.heading = Math.atan2(railAt(8).y - pad.y, railAt(8).x - pad.x);
-    if (r.phaseT >= INTRO_S) { r.phase = 'rail'; r.phaseT = 0; r.s = 0; }
-  } else if (r.phase === 'result') {
-    r.speed = approach(r.speed, BALLOON_SPEED, dt * 6);
-    r.x += BALLOON_DIR.x * BALLOON_SPEED * dt; r.y += BALLOON_DIR.y * BALLOON_SPEED * dt;
-    r.hdgWant = Math.atan2(BALLOON_DIR.y, BALLOON_DIR.x);
-    attitude(dt);
-    if (r.phaseT >= RESULT_S) { updateCamera(dt); syncPlayer(); cleanup(false); return; }
-  } else {
-    r.elapsed += dt;
-    r.timeLeft -= dt;
-    if (r.phase === 'rail') flyRail(dt);
-    else flyChase(dt);
-    if (run && run.phase !== 'result') {
-      checkCollision(dt);
-      attitude(dt);
-      if (r.timeLeft <= 0) finish(false);
-    }
-  }
-  if (!run) return;
-  updateCamera(dt);
-  syncPlayer();
-  updateHud(dt);
+  world.cameraOverride = { position: { ...r.cam }, lookAt: look, fov, cut: true };
+  world.camYaw = v.angle;
 }
 
 // --- start spot ---------------------------------------------------------------
@@ -849,14 +891,14 @@ function nearSpot(w) {
 export function heliSpotPrompt(w) {
   if (!nearSpot(w)) return null;
   const why = blockReason(w);
-  return { id: 'heli-umcg', x: spot.x, y: spot.y, h: 2.75, key: 'E', label: 'Ballonjacht met de traumaheli', sub: why || 'Dokter Dijkstra laat je meevliegen', ring: true, dim: !!why };
+  return { id: 'heli-umcg', x: spot.x, y: spot.y, h: 2.75, key: 'E', label: 'Ballonjacht met de heli', sub: why || 'Dokter Dijkstra laat je meevliegen', ring: true, dim: !!why };
 }
 
 export function heliSpotSecondary(w) {
   if (!spot || w.heliRun || w.pigeonMode || w.player.inVehicle) return [];
   const { x, y } = w.player;
   if (Math.abs(spot.x - x) > 20 || Math.abs(spot.y - y) > 20) return [];
-  return [{ id: 'heli2-umcg', x: spot.x, y: spot.y, h: 2.2, label: 'Traumaheli', sub: 'Loop erheen en druk E', kind: 'place' }];
+  return [{ id: 'heli2-umcg', x: spot.x, y: spot.y, h: 2.2, label: 'Ballonjacht', sub: 'Loop erheen en druk E', kind: 'place' }];
 }
 
 // Runs before the shop/horeca/player E handlers.
@@ -889,7 +931,6 @@ export function updateHeliSpot(dt) {
 export function initHeliRun(w) {
   world = w;
   scene = getScene();
-  rail = buildRail();
   initHudDom();
   spot = placeSpot(w.map);
   // T (phone) stays shut while flying
@@ -902,7 +943,7 @@ export function initHeliRun(w) {
     set autopilot(v) { autopilot = !!v; },
     get autopilot() { return autopilot; },
     state: getHeliRun,
+    marks: getHeliRunMarks,
     spot: () => spot,
-    rail: () => ({ len: rail.len, rings: rail.rings.map((r) => ({ s: r.s, z: r.z, off: r.off })) }),
   };
 }
