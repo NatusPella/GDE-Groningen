@@ -271,7 +271,7 @@ function onFlatRoad(map, x, y) {
 // highest, so a car keeps to the road it is driving on.
 const STAY_ON = 0.35;
 const OVERLAP_BAND = 1.2;
-const _roadZ = [], _roadD = [];
+const _roadZ = [], _roadD = [], _capZ = [], _capD = [], _capX = [], _capY = [], _capR = [], _midS = [];
 
 // Nearest street-level road ribbon near the raised ones at (x, y): distance
 // to its centreline over its half width (Infinity when on none).
@@ -297,7 +297,7 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
   let best = -Infinity, lowest = Infinity, bestRoad = false, cap = -Infinity, capRoad = false;
   let ground = true;
   const lim = zHint + stepUp;
-  _roadZ.length = _roadD.length = 0;
+  _roadZ.length = _roadD.length = _capZ.length = _capD.length = _capX.length = _capY.length = _capR.length = _midS.length = 0;
   for (const s of list) {
     const q = onSeg(s, x, y);
     let z = null, road = false;
@@ -312,17 +312,40 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
     }
     if (z === null) continue;
     if (z <= lim) {
-      // past a segment's end its flat end cap would put a small step in a
-      // ramp; the next segment's own ribbon is the smooth surface there
-      const end = q.t <= 0 || q.t >= 1;
+      // (a hair past the end still counts as on the segment: a point on a
+      // vertex is on both of its segments, not on their caps)
+      const along = (x - s.ax) * s.ux + (y - s.ay) * s.uy;
+      const end = along < -0.05 || along > s.len + 0.05;
       // (only a road's real ends lose the overlap choice; a cap at an inner
       // vertex is the same road carrying on)
       const tip = (q.t <= 0 && s.i === 0) || (q.t >= 1 && s.i === s.r.pts.length - 2);
-      if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs + (tip ? 1 : 0)); }
-      if (end) { if (z > cap) { cap = z; capRoad = road; } }
-      else if (z > best) { best = z; bestRoad = road; }
+      if (road && end) {
+        _capZ.push(z); _capD.push(q.d / s.hs + (tip ? 1 : 0));
+        _capX.push(q.t <= 0 ? s.ax : s.bx); _capY.push(q.t <= 0 ? s.ay : s.by); _capR.push(s.r);
+      } else {
+        if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs); _midS.push(s); }
+        if (end) { if (z > cap) { cap = z; capRoad = road; } }
+        else if (z > best) { best = z; bestRoad = road; }
+      }
     }
     if (z < lowest) lowest = z;
+  }
+  // a road's flat end cap reaches over the ramp it joins (the next segments
+  // of the same road, or the next way at a ramp's foot): where that ribbon is
+  // here, the cap would be a small step in it, so it only counts where
+  // neither the same road nor a ribbon carrying on from its end vertex at
+  // its height covers the point
+  for (let i = 0; i < _capZ.length; i++) {
+    const z = _capZ[i];
+    let joined = false;
+    for (const m of _midS) {
+      if (m.r === _capR[i]) { joined = true; break; }
+      const q = onSeg(m, _capX[i], _capY[i]);
+      if (q.d <= m.hs && Math.abs(q.z - z) < 0.05) { joined = true; break; }
+    }
+    if (joined) continue;
+    _roadZ.push(z); _roadD.push(_capD[i]);
+    if (z > cap) { cap = z; capRoad = true; }
   }
   if ((cap > best + 0.5 || best === -Infinity) && cap > best) { best = cap; bestRoad = capRoad; }
   if (!ground && onFlatRoad(elev.map, x, y)) ground = true;
