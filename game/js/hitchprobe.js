@@ -21,6 +21,9 @@ let mem0 = null;
 const gaps = [];
 const slow = [];
 const allPrograms = [];
+// ms per section summed over every frame (gl:* overlaps the section it ran in)
+const totals = new Map();
+let totalFrames = 0;
 
 function topSections(list) {
   return list.filter((s) => s[1] > 2).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([l, ms]) => `${l} ${ms.toFixed(1)}`);
@@ -103,7 +106,11 @@ export const probe = {
     if (!enabled) return;
     const cpu = +(performance.now() - t0).toFixed(1);
     const at = +(performance.now() / 1000).toFixed(2);
+    for (const [l, ms] of sections) totals.set(l, (totals.get(l) || 0) + ms);
+    totals.set('frame', (totals.get('frame') || 0) + cpu);
+    totalFrames++;
     for (const k in glTime) {
+      if (glTime[k]) totals.set('gl:' + k, (totals.get('gl:' + k) || 0) + glTime[k]);
       if (glTime[k] > 2) sections.push(['gl:' + k, glTime[k]]);
       glTime[k] = 0;
     }
@@ -159,6 +166,7 @@ function summary() {
     frames: g.length, p50: q(0.5), p95: q(0.95), p99: q(0.99), max: q(1),
     over50: over(50), over100: over(100), over200: over(200),
     slow: slow.slice(),
+    sections: Object.fromEntries([...totals].sort((a, b) => b[1] - a[1]).map(([l, ms]) => [l, +(ms / Math.max(1, totalFrames)).toFixed(2)])),
     programs: allPrograms.map((r) => ({ at: r.at, name: r.who || r.name, key: r.p.cacheKey })),
   };
 }
@@ -166,6 +174,6 @@ function summary() {
 if (enabled) {
   globalThis.__hitch = {
     summary,
-    reset() { gaps.length = 0; slow.length = 0; allPrograms.length = 0; rafPrev = 0; prev = null; },
+    reset() { totals.clear(); totalFrames = 0; gaps.length = 0; slow.length = 0; allPrograms.length = 0; rafPrev = 0; prev = null; },
   };
 }
