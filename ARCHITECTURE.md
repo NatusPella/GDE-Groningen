@@ -486,7 +486,10 @@ don't collide, and actors are drawn at their height.
   civil works (roadstructures3d.js: decks, walls, barriers) go into its
   road cell; a knocked-out crash barrier bumps its geometry's
   `userData.batchVer`, which redoes the cell. Merging is
-  spread over frames (2 ms budget); the buildings' own meshes stay in the
+  spread over frames (2 ms budget, roads 1 ms): first the pieces, then the
+  merged buffers a chunk at a time (`finishWork`, a generator; the bounds
+  are three's, computed over the chunks), and the cell swaps in when all
+  is ready; the buildings' own meshes stay in the
   scene, hidden, for the camera's ray tests. `?nobatch` turns it off
   (and the wheel instancing below). On 'laag' (or a busy CPU) the facade
   details within their radius get their own batcher (`facadeBatcher`, the
@@ -503,9 +506,11 @@ don't collide, and actors are drawn at their height.
   `FACADE_LOW`) skips the brick and roof-tile textures and window frames.
 - The minimap's Ommeland layer (`drawCountryMinimap`) is static: drawn into
   world-aligned 256 px tiles per half-octave zoom step (at most one new tile
-  a frame, LRU of 40) and blitted. Its water and meadow images (the 10 m
-  water field is ~6 M pixels) are filled in row bands a few ms a frame from
-  the title screen on (`warmCountryMaps`), not on the first tile.
+  a frame, LRU of 40) and blitted. While the CPU is the bottleneck
+  (simload.js level 1-2) the minimap redraws every second or third frame.
+  Its water and meadow images (the 10 m water field is ~6 M pixels) are
+  filled in row bands a few ms a frame from the title screen on
+  (`warmCountryMaps`), not on the first tile.
 - Loading: `window.__loadMarks` holds the boot timeline (ms since
   navigation: map, ommeland, init3D, countryEdge, world, systems, title);
   the desktop app's `--profile-load[=ms]` profiles the page load. The
@@ -600,23 +605,36 @@ don't collide, and actors are drawn at their height.
   old meshes stay until the new ones arrive.
 - City road surfaces (`roadsurface.js`): on the first `syncRoads` the worker
   loads its own copy of the map (`citymap.json` + extras, the same
-  `GameMap`, ~90 MB of worker heap) and drops the roads the main thread no
-  longer has (`home.js`); roads are matched by `roadKey` (class, type,
-  width, points). `roadGeometryReady(r)` requests a road's sidewalk,
-  carriageway and marking geometry (`roadSurfaceGeometries`, the code
-  `buildRoadGroup` uses) and returns false until it is back; `syncRoads`
-  then lets the far LOD cover from the nearest road still on its way. The
-  civil works (`roadstructures3d.js`) stay on the main thread. Until the
-  worker's map is ready, roads build on the main thread as before.
+  `GameMap`) and drops the roads the main thread no longer has (`home.js`);
+  `slimWorkerMap` then drops what the worker never reads (buildings keep
+  only their bounds in the grid; canopies, trees), which takes the copy from
+  64 to 33 MB of heap (`scripts/perf/mapmem.mjs`); roads are matched by
+  `roadKey` (class, type, width, points). `roadGeometryReady(r)` requests a
+  road's sidewalk, carriageway and marking geometry
+  (`roadSurfaceGeometries`, the code `buildRoadGroup` uses) and returns
+  false until it is back; `syncRoads` then lets the far LOD cover from the
+  nearest road still on its way. The civil works (`roadstructures3d.js`)
+  stay on the main thread. Until the worker's map is ready, roads build on
+  the main thread as before.
+- City shores (`quaywalls.js`): `shoreParts` (walls, banks, aprons,
+  houseboats, bridge decks as geometry, plus the bank seats and houseboat
+  hulls it places) runs on the worker's map once that is loaded; the map
+  rectangle and the real water field go along once (`shoreInit`). A
+  polygon is named by its place in `map.water`. `requestShore` hands the
+  group to `scene3d.js` `buildWaterMesh`, which adds it to the water group
+  when it arrives; the seats (`bankSeatsNear`) and hulls
+  (`addWaterObstacle`) are applied then, on the main thread.
 - Terrain (`terrain3d.js` `terrainArrays` / `terrainGroup`): built in the
   worker while the game loads; `init3D` adds an empty group with the
   material, and `main.js` awaits `terrainReady()` before the title screen.
 - Results must stay identical to the main-thread build:
   `scripts/perf/geocheck.sh` compares the old code, the kernel on the main
   thread and the worker byte for byte (city cells round the centre, ~200
-  water chunks round the map, every road, the terrain). The kernels share
-  their code with the main thread (`geokernels.js`, `countrywatergeo.js`,
-  `roadSurfaceGeometries`, `terrainArrays`), so a change there reaches both;
+  water chunks round the map, every road, every city shore, the terrain),
+  and the road batch cells against the old one-frame finish. The kernels
+  share their code with the main thread (`geokernels.js`,
+  `countrywatergeo.js`, `roadSurfaceGeometries`, `shoreParts`,
+  `terrainArrays`), so a change there reaches both;
   the check should pass after it.
 
 ## Name and logo

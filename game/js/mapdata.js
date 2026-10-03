@@ -726,6 +726,28 @@ export class GameMap {
   }
 }
 
+// The worker's map only builds road surfaces and shores, so after loading it
+// drops what those never read: buildings keep just their bounds in the grid
+// (quaywalls.js nearBuilt), canopies and trees go. Measured with
+// scripts/perf/mapmem.mjs (docs/PERF-PROFIEL.md).
+export function slimWorkerMap(map) {
+  const light = new Map();
+  for (const arr of map.buildingGrid.map.values()) {
+    for (let i = 0; i < arr.length; i++) {
+      const b = arr[i];
+      let l = light.get(b);
+      if (!l) light.set(b, l = { bounds: b.bounds });
+      arr[i] = l;
+    }
+  }
+  map.buildings = [];
+  map.canopies = [];
+  map.clippedWays = [];
+  map.trees = [];
+  map.treeGrid = null;
+  return map;
+}
+
 // onProgress(0..1) reports download progress when the size is known.
 // game/mapextras.json (scripts/add_map_extras.py): data kept next to
 // citymap.json and merged here - extra footprints, per-building patches

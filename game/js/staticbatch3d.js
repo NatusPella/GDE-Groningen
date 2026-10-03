@@ -6,9 +6,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 // well inside the detail radius are merged (the far LOD takes over at its
 // edge, so a merged building must never outlive its own detail mesh); their
 // own meshes stay in the scene, hidden, for the camera's ray tests. A cell
-// is merged a few pieces per frame within a time budget and swapped in at
-// once. Their geometry already holds world coordinates (meshes sit at the
-// origin; small child offsets are baked in).
+// is merged a few pieces per frame within a time budget, its buffers filled
+// the same way, and swapped in at once. Their geometry already holds world
+// coordinates (meshes sit at the origin; small child offsets are baked in).
 
 const CELL = 48;
 const MARGIN = 15;
@@ -140,31 +140,59 @@ function addPiece(job, pc) {
 
 const IDENTITY = new THREE.Matrix4();
 
-function finishJob(B) {
-  const job = B.job;
-  const group = new THREE.Group();
-  group.name = B.name;
+// The merged buffers are filled a chunk at a time (a generator, stepped under
+// the same per-frame budget as the pieces), so a large cell never lands in
+// one frame. The bounds are three's computeBoundingBox and
+// computeBoundingSphere done over the chunks: the same values.
+const _p = new THREE.Vector3();
+function* finishWork(job) {
+  job.geos = [];
   for (const bk of job.buckets.values()) {
     if (!bk.idx || !bk.chunks.length) continue;
     const geo = new THREE.BufferGeometry();
-    bk.names.forEach((name, ni) => {
+    const box = new THREE.Box3();
+    for (let ni = 0; ni < bk.names.length; ni++) {
+      const name = bk.names[ni];
       const first = bk.chunks[0].data[name];
       const n = first.length / bk.chunks[0].verts;
       const out = new first.constructor(bk.verts * n);
       let o = 0;
-      for (const ch of bk.chunks) { out.set(ch.data[name], o); o += ch.data[name].length; }
+      for (const ch of bk.chunks) {
+        const src = ch.data[name];
+        out.set(src, o);
+        o += src.length;
+        if (name === 'position') for (let i = 0; i < src.length; i += 3) box.expandByPoint(_p.set(src[i], src[i + 1], src[i + 2]));
+        yield;
+      }
       geo.setAttribute(name, new THREE.BufferAttribute(out, n, bk.norm[ni]));
-    });
+    }
     const index = new Uint32Array(bk.idx);
     let base = 0, o = 0;
     for (const ch of bk.chunks) {
       for (let i = 0; i < ch.index.length; i++) index[o + i] = ch.index[i] + base;
       o += ch.index.length;
       base += ch.verts;
+      yield;
     }
     geo.setIndex(new THREE.BufferAttribute(index, 1));
-    geo.computeBoundingSphere();
-    geo.computeBoundingBox();
+    const center = box.getCenter(new THREE.Vector3());
+    let maxR2 = 0;
+    for (const ch of bk.chunks) {
+      const src = ch.data.position;
+      for (let i = 0; i < src.length; i += 3) maxR2 = Math.max(maxR2, center.distanceToSquared(_p.set(src[i], src[i + 1], src[i + 2])));
+      yield;
+    }
+    geo.boundingSphere = new THREE.Sphere(center, Math.sqrt(maxR2));
+    geo.boundingBox = box;
+    job.geos.push({ geo, bk });
+  }
+}
+
+function finishJob(B) {
+  const job = B.job;
+  const group = new THREE.Group();
+  group.name = B.name;
+  for (const { geo, bk } of job.geos) {
     const mesh = new THREE.Mesh(geo, bk.mat);
     mesh.castShadow = bk.cast;
     mesh.receiveShadow = true;
@@ -223,10 +251,17 @@ export function createStaticBatcher(opts) {
       const job = B.job;
       const deadline = performance.now() + ctx.budgetMs;
       while (job.i < job.pieces.length && performance.now() < deadline) addPiece(job, job.pieces[job.i++]);
-      if (job.i >= job.pieces.length) {
-        if (job.withDetail !== ctx.withDetail || job.list.some((m) => !memberOk(m, ctx, dist))) B.job = null;
-        else { finishJob(B); B.kick = true; }
+      if (job.i < job.pieces.length) return;
+      const stale = () => job.withDetail !== ctx.withDetail || job.list.some((m) => !memberOk(m, ctx, dist));
+      if (!job.fin) {
+        if (stale()) { B.job = null; return; }
+        job.fin = finishWork(job);
       }
+      let done = false;
+      while (performance.now() < deadline && !(done = job.fin.next().done));
+      if (!done) return;
+      if (stale()) B.job = null;
+      else { finishJob(B); B.kick = true; }
       return;
     }
     if (B.frame % 8 && !B.kick) return;
@@ -285,6 +320,18 @@ export function createStaticBatcher(opts) {
   }
 
   return { update, info, clear };
+}
+
+// scripts/perf/geocheck.js: one cell's merge in a single call, with the
+// buckets the old one-frame finish would have merged
+export function mergeAtOnce(list, withDetail = true) {
+  const B = { job: null };
+  for (const m of list) m.parts = partsOf(m.mesh, withDetail);
+  startJob(B, null, list, withDetail);
+  const job = B.job;
+  while (job.i < job.pieces.length) addPiece(job, job.pieces[job.i++]);
+  for (const _ of finishWork(job));
+  return job;
 }
 
 // buildings: never past their detail radius (the far LOD draws them there)

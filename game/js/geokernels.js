@@ -1,9 +1,10 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { setCountryBounds, setRealZone } from './countryfield.js';
 import { tileWater, chunkWaterArrays, canalWaterFrom, openWaterFrom } from './countrywatergeo.js';
-import { loadMap } from './mapdata.js';
+import { loadMap, slimWorkerMap } from './mapdata.js';
 import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js';
 import { terrainArrays } from './terrain3d.js';
+import { shoreParts } from './quaywalls.js';
 
 // Geometry jobs that run in the geometry worker (geoworker.js) or, as a
 // fallback, on the main thread (geojobs.js): data in, typed arrays out. Only
@@ -120,7 +121,7 @@ export function geometryFromPlain(p) {
 
 // worker side: its own copy of the map, from the same files, with the roads
 // the main thread has dropped since (home.js) taken out the same way
-const RD = { byKey: null };
+const RD = { byKey: null, map: null };
 async function roadInit({ url, keys }) {
   const map = await loadMap(url);
   const want = new Set(keys);
@@ -130,7 +131,9 @@ async function roadInit({ url, keys }) {
     map.roads.splice(i, 1);
     for (const arr of map.roadGrid.map.values()) { const j = arr.indexOf(r); if (j >= 0) arr.splice(j, 1); }
   }
+  slimWorkerMap(map);
   setRoadNetwork(map);
+  RD.map = map;
   RD.byKey = new Map(map.roads.map((r) => [roadKey(r), r]));
   let missing = 0;
   for (const k of keys) if (!RD.byKey.has(k)) missing++;
@@ -145,6 +148,24 @@ function roadGeo({ key, detail }) {
   return { result: { sidewalk: plainGeometry(g.sidewalk, transfer), road: plainGeometry(g.road, transfer), mark: plainGeometry(g.mark, transfer) }, transfer };
 }
 
+// --- city shores (quaywalls.js), on the worker's map -------------------------
+
+function shoreInit({ bounds, zone }) {
+  setCountryBounds(bounds);
+  setRealZone(zone);
+  return { result: true, transfer: [] };
+}
+
+// wi: the polygon's place in map.water (both maps come from the same file);
+// its point count and first point make sure it is the same one
+function shore({ wi, n, x, y, waterY, withApron }) {
+  const poly = RD.map && RD.map.water[wi];
+  if (!poly || poly.pts.length !== n || poly.pts[0][0] !== x || poly.pts[0][1] !== y) return { result: null, transfer: [] };
+  const s = shoreParts(poly, RD.map, waterY, withApron);
+  const transfer = [];
+  return { result: { parts: s.parts.map((q) => ({ kind: q.kind, geo: plainGeometry(q.geo, transfer) })), seats: s.seats, hulls: s.hulls }, transfer };
+}
+
 // --- terrain (terrain3d.js), while the game loads ----------------------------
 
 function terrain({ bounds, water }) {
@@ -152,4 +173,4 @@ function terrain({ bounds, water }) {
   return { result: T, transfer: [T.positions.buffer, T.normals.buffer, ...T.tiles.map((t) => t.index.buffer)] };
 }
 
-export const KERNELS = { cityMerge, waterInit, waterChunk, roadInit, roadGeo, terrain };
+export const KERNELS = { cityMerge, waterInit, waterChunk, roadInit, roadGeo, shoreInit, shore, terrain };

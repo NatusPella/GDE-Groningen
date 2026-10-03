@@ -1,5 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { SHORE_RW, rectOutside, realWater } from './countryfield.js';
+import { SHORE_RW, rectOutside, realWater, realActive, realZone, countryBounds } from './countryfield.js';
+import { runGeo } from './geojobs.js';
+import { geometryFromPlain } from './geokernels.js';
+import { workerMapReady } from './roadsurface.js';
 import { createBrickDetailTexture } from './pixelart3d.js';
 import { onSettingsChange } from './settings.js';
 import { getWaterIndex, addWaterObstacle } from './waterindex.js';
@@ -385,20 +388,23 @@ export function bankSeatsNear(x, y, r) {
   return out;
 }
 
-function addBankSeat(p, m, prof) {
+function bankSeatAt(p, m, prof) {
   // the bank height at SEAT_OFF, between the profile rows either side of it
   let z = null;
   for (let r = 0; r < prof.length - 1; r++) {
     const [o0, y0] = prof[r], [o1, y1] = prof[r + 1];
     if (o0 >= SEAT_OFF && o1 <= SEAT_OFF) { z = y0 + (y1 - y0) * (o0 - SEAT_OFF) / Math.max(1e-3, o0 - o1); break; }
   }
-  if (z == null) return;
-  const x = p[0] + m[0] * SEAT_OFF, y = p[1] + m[1] * SEAT_OFF;
-  const k = Math.floor(x / BANK_TILE) + ',' + Math.floor(y / BANK_TILE);
+  if (z == null) return null;
+  return { x: p[0] + m[0] * SEAT_OFF, y: p[1] + m[1] * SEAT_OFF, z, face: Math.atan2(-m[1], -m[0]) };
+}
+
+function addBankSeat(s) {
+  const k = Math.floor(s.x / BANK_TILE) + ',' + Math.floor(s.y / BANK_TILE);
   let list = bankSeats.get(k);
   if (!list) bankSeats.set(k, list = []);
-  if (list.some((q) => Math.hypot(q.x - x, q.y - y) < 4)) return;
-  list.push({ x, y, z, face: Math.atan2(-m[1], -m[0]) });
+  if (list.some((q) => Math.hypot(q.x - s.x, q.y - s.y) < 4)) return;
+  list.push(s);
 }
 
 function buildBankRun(run, wy, B, rnd, map) {
@@ -421,7 +427,7 @@ function buildBankRun(run, wy, B, rnd, map) {
     for (const row of prof) {
       if (row[1] > TERRAIN_Y + 0.003 && underStreet(map, p[0] + m[0] * row[0], p[1] + m[1] * row[0])) row[1] = TERRAIN_Y + 0.003;
     }
-    if (i % 4 === 2 && h < 0.5) addBankSeat(p, m, prof);
+    if (i % 4 === 2 && h < 0.5) { const s = bankSeatAt(p, m, prof); if (s) sink.seats.push(s); }
     cols.push(prof.map(([o, y, c]) => acc.v(p[0] + m[0] * o, y, p[1] + m[1] * o, c)));
   }
   for (let i = 0; i < pts.length - 1; i++) {
@@ -671,7 +677,7 @@ function placeHouseboats(run, wy, B, map, index, rnd) {
       if (ok) {
         houseboat(B('extras', cx, cz), B('glass', cx, cz), frame(cx, wy, cz, dx, dz, n[0], n[1]), L, W, rnd, wy);
         const hl = L / 2, hw = W / 2;
-        addWaterObstacle(map, [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, w]) => [cx + dx * u * hl + n[0] * w * hw, cz + dz * u * hl + n[1] * w * hw]));
+        sink.hulls.push([[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, w]) => [cx + dx * u * hl + n[0] * w * hw, cz + dz * u * hl + n[1] * w * hw]));
         s += L + 2 + rnd() * 5;
       } else {
         s += 4 + rnd() * 6;
@@ -747,8 +753,12 @@ function chop(run, maxSeg) {
 
 const MATERIAL_OF = { wall: 'brick', stone: 'stone', extras: 'extras', glass: 'glass' };
 
-export function buildShore(poly, map, { waterY, apronMaterial }) {
-  if (poly._shore !== undefined) return poly._shore;
+// A polygon's shore as geometry, plus the bank seats and houseboat hulls it
+// places (applied by shoreGroup); no materials, scene or DOM, so it also runs
+// in the geometry worker.
+let sink = null;
+export function shoreParts(poly, map, waterY, withApron) {
+  sink = { seats: [], hulls: [] };
   const index = getWaterIndex(map);
   const runs = shoreRuns(poly, map, index);
   const buckets = new Map();
@@ -774,22 +784,71 @@ export function buildShore(poly, map, { waterY, apronMaterial }) {
     }
   }
   buildBridgeDecks(poly, map, B);
-  const M = materials();
-  const group = new THREE.Group();
+  const parts = [];
   for (const acc of buckets.values()) {
     if (acc.empty) continue;
     const isApron = acc.kind === 'apron';
-    if (isApron && !apronMaterial) continue;
+    if (isApron && !withApron) continue;
     const plain = isApron || acc.kind === 'glass';
-    const mesh = new THREE.Mesh(acc.geometry(!plain, acc.kind === 'wall'), isApron ? apronMaterial : M[MATERIAL_OF[acc.kind]]);
+    parts.push({ kind: acc.kind, geo: acc.geometry(!plain, acc.kind === 'wall') });
+  }
+  const out = { parts, seats: sink.seats, hulls: sink.hulls };
+  sink = null;
+  return out;
+}
+
+function shoreGroup(map, { parts, seats, hulls }, apronMaterial) {
+  for (const s of seats) addBankSeat(s);
+  for (const h of hulls) addWaterObstacle(map, h);
+  const M = materials();
+  const group = new THREE.Group();
+  for (const { kind, geo } of parts) {
+    const mesh = new THREE.Mesh(geo, kind === 'apron' ? apronMaterial : M[MATERIAL_OF[kind]]);
     mesh.receiveShadow = true;
-    if (acc.kind === 'extras' || acc.kind === 'glass') {
-      mesh.castShadow = acc.kind === 'extras';
+    if (kind === 'extras' || kind === 'glass') {
+      mesh.castShadow = kind === 'extras';
       mesh.visible = showExtras;
       extrasMeshes.add(mesh);
     }
     group.add(mesh);
   }
-  poly._shore = group.children.length ? group : null;
+  return group.children.length ? group : null;
+}
+
+export function buildShore(poly, map, { waterY, apronMaterial }) {
+  if (poly._shore !== undefined) return poly._shore;
+  poly._shore = shoreGroup(map, shoreParts(poly, map, waterY, !!apronMaterial), apronMaterial);
   return poly._shore;
+}
+
+// The shores are built in the geometry worker (geokernels.js shore) from its
+// own copy of the map once that is loaded (roadsurface.js), with the map
+// rectangle and the real water field sent once; until then, or without a
+// worker, here as before. done(shore) may run before requestShore returns.
+let shoreInitSent = false;
+function shoreWorker() {
+  if (!workerMapReady() || !realActive() || !countryBounds()) return false;
+  if (!shoreInitSent) {
+    shoreInitSent = true;
+    const z = realZone();
+    const grid = (G) => ({ ...G, data: G.data.slice() });
+    runGeo('shoreInit', { bounds: countryBounds(), zone: { ...z, water: grid(z.water), urban: grid(z.urban) } });
+  }
+  return true;
+}
+
+export function requestShore(poly, map, opts, done) {
+  if (poly._shore !== undefined) { done(poly._shore); return; }
+  if (poly._shoreWait) { poly._shoreWait.push(done); return; }
+  const wi = map.water.indexOf(poly);
+  if (wi < 0 || !shoreWorker()) { done(buildShore(poly, map, opts)); return; }
+  const wait = poly._shoreWait = [done];
+  runGeo('shore', { wi, n: poly.pts.length, x: poly.pts[0][0], y: poly.pts[0][1], waterY: opts.waterY, withApron: !!opts.apronMaterial }, (res) => {
+    poly._shoreWait = null;
+    if (poly._shore === undefined) {
+      if (!res) buildShore(poly, map, opts);
+      else poly._shore = shoreGroup(map, { parts: res.parts.map((q) => ({ kind: q.kind, geo: geometryFromPlain(q.geo) })), seats: res.seats, hulls: res.hulls }, opts.apronMaterial);
+    }
+    for (const f of wait) f(poly._shore);
+  });
 }
