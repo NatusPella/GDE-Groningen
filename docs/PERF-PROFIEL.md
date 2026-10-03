@@ -84,10 +84,10 @@ een worker (`sfx/dspworker.js`).
    - het samenvoegen van de straatmeubel-cellen (`cityprops`, 14% op foot);
    - het water van het Ommeland (bemonsteren van het waterveld en de
      kanalen, samenvoegen, normalen).
-2. **Niet nu**: stadswegen en stadswater (de grootste post op de ring).
-   Die hangen aan het hele wegennet, de hoogtes en de kades, waar mesh
-   ronde 4 nu aan werkt; verplaatsen zou daar elke merge breken. Eerst na
-   die ronde.
+2. **Na mesh ronde 4**: de stadswegen (oppervlak, stoep, markering) en
+   tijdens het laden het terrein; zie "Ronde 2" hieronder. Het stadswater
+   bleef op de hoofdthread: daarvan is het watervlak maar 25% van de tijd,
+   de oevers en kades (`quaywalls.js buildShore`) 75%.
 3. **Niet nu**: het uitleggen van de Ommeland-tegels (`genTileSteps`). Die
    code leunt op `countryplan` → `countryvillage` → `pedestrians` → het
    halve spel; in een worker vraagt dat eerst een splitsing in pure
@@ -129,5 +129,67 @@ met profiler, 8.0 s. Daarvan: `loadMap` 2.1 s (de `GameMap`-constructor
   extra download (geschat ~0.8 s, ~3 s bij CPU×4).
 - De afgeleide kaartdata (`liftNestedRoofs` en indexen) in het bouwscript
   bakken: ~0.5 s, kleine extra download.
-- Allebei raken ze terrein, water en gebouwen, waar mesh ronde 4 nu aan
-  werkt; daarom nog niet gebouwd. De lat (30 s) wordt nu gehaald.
+- Allebei raken ze terrein, water en gebouwen, waar mesh ronde 4 aan
+  werkte. Het terrein is na die ronde naar de worker gegaan (hieronder);
+  bakken blijft af. De lat (30 s) wordt gehaald.
+
+## Ronde 2: stadswegen en terrein in de worker (na mesh ronde 4)
+
+- **Stadswegen**: de worker laadt een eigen kopie van de kaart (zelfde
+  bestanden, zelfde `GameMap`, ~1 s zonder throttle, buiten de
+  hoofdthread) en bouwt per weg het oppervlak, de stoep en de markering.
+  De kunstwerken (dekken, muren, vangrails) blijven op de hoofdthread.
+  Kosten: **~90 MB extra heap** in de worker (gemeten op de hoofdthread
+  voor een tweede `GameMap`). Op een Chromebook met 4 GB is dat merkbaar;
+  als dat een probleem blijkt, kan de worker na het laden de gebouwen uit
+  zijn kopie laten vallen, of alleen het wegennet krijgen.
+- **Terrein**: tijdens het laden (989k vertices, 528 tegels); de worker
+  start al bij `boot`, zodat zijn modules laden terwijl de kaart binnenkomt.
+- Bit-gelijk (`geocheck.sh`): alle 10.967 wegen (1.16 M vertices), het
+  terrein, 283 cellen en 197 waterchunks.
+
+A/B (main na mesh ronde 4 tegen `claude/workers`), Laag + CPU×4, drie paren,
+load 4 tot 6 (rustige machine). Hoofdthread in ms per frame:
+
+| route | sectie | A | B |
+|-------|--------|--:|--:|
+| ring | `3d:roads` | 1.22 | 0.82 (−33%) |
+| foot | `cityprops` | 0.53 | 0.29 |
+| ring | long tasks (gemiddeld, ~350 frames) | 57 | 44 |
+| foot | long tasks (gemiddeld, ~340 frames) | 50 | 36 |
+
+De hele frametijd verschilt niet meetbaar (ring 35.5 tegen 35.1 ms, foot
+37.2 tegen 35.8 ms). De medianen van de long tasks schommelen (ring 36
+tegen 43), dus het verschil daarin is ruis. De resterende pieken van 20 tot
+25 ms in `3d:roads` komen van `staticbatch3d.js finishJob`, dat een hele
+wegcel in één keer samenvoegt, en van de kunstwerken. Draw calls op de ring
+zijn 223 tegen 234: de wegen komen een paar frames later binnen, en de
+batcher voegt ze daarna samen.
+
+Laden, CPU×4, twee paren: `init3D` gaat van 2.3 s naar 0.8 tot 0.9 s,
+en het terrein is klaar vóór `systems` (er wordt niet op gewacht). Het
+titelscherm komt op 11.0 en 11.3 s (A) tegen 9.8 en 11.1 s (B); in de
+tweede B-run downloadde de kaart traag.
+
+## BatchedMesh (stap 4): niet gedaan
+
+Draw calls op Laag (`PERF_DIAG=1`): foot 413, ring 214, heli 129. De grote
+posten zijn al samengevoegd (`building-batch`, `road-batch`,
+`facade-batch`) of geïnstanced (Ommeland-props, skyline). Wat overblijft
+zijn skinned mensen (die kan `BatchedMesh` niet aan), onderdelen van
+voertuigen met elk een eigen materiaal of kleur, en de losse gebouwen en
+wegen aan de rand van de batch-cellen. `BatchedMesh` in three r160 tekent elke
+geometrie één keer (instancing via `addInstance` kwam pas in r166), heeft
+`WEBGL_multi_draw` nodig om echt minder calls te geven, en kent geen
+kleur per object. Er is dus geen groep die er duidelijk op vooruitgaat.
+Opnieuw bekijken bij een three-upgrade.
+
+## Wat nog kan
+
+- `staticbatch3d.js finishJob` over frames verdelen, of in de worker doen.
+  Dat zijn de pieken die nog over zijn op de ring.
+- De oevers en kades (`quaywalls.js buildShore`), het grootste deel van
+  het stadswater.
+- De minimap van het Ommeland en de HUD: 15 tot 20% op heli en village.
+- De Ommeland-tegels (`genTileSteps`), na een splitsing van `countryplan`
+  in pure datamodules.
