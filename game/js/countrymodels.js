@@ -453,19 +453,36 @@ export function graveGeometry() {
 // CHURCH_SPAN: [x0, x1, width] of each variant's footprint, to fit it to
 // the OSM outline.
 export const CHURCH_SPAN = [[-14.2, 17.5, 11], [-14.2, 17.5, 11], [-14.2, 19, 21], [-8.4, 10.6, 9]];
+// The walls are painted by the facade material (countrybuilding.js): brick
+// in metres everywhere, the nave's round-arched windows from its part id
+// (PART.churchNave + 0: variants 0/1, 1: cruciform, 2: zaalkerk).
 export function churchGeometry(variant) {
-  if (variant === 2) return cruciformChurchGeometry();
-  if (variant === 3) return chapelGeometry();
+  if (variant === 2) return churchParts(cruciformChurchGeometry(), 1, -10, 12, 10, 5.5);
+  if (variant === 3) return churchParts(chapelGeometry(), 2, -8, 10, 6.8, 4.5);
+  return churchParts(churchBody(variant), 0, -8, 12, 8, 5.5);
+}
+
+// Part ids: the nave's long walls (x0..x1, up to top, at z = +-hz) get the
+// windows, every other brick-red upright face the brick only.
+function churchParts(geo, w, x0, x1, top, hz) {
+  const c = geo.attributes.color;
+  let i = -1;
+  return withParts(geo, (x, y, z, nx, ny, nz) => {
+    i++;
+    const r = c.getX(i), g = c.getY(i);
+    if (Math.abs(ny) > 0.3 || r < 0.08 || g > r * 0.45) return PART.plain;
+    if (Math.abs(nz) > 0.9 && Math.abs(Math.abs(z) - hz) < 0.05 && x > x0 - 0.05 && x < x1 + 0.05 && y < top + 0.05) return PART.churchNave + w;
+    return PART.churchBrick;
+  });
+}
+
+function churchBody(variant) {
   const B = new GeoBuilder();
   const BR = 0x8a4a36, ROOF = variant ? 0x3e4449 : 0x9a4a30, TR = 0xe8e0d0;
   B.box(2, 4, 0, 20, 8, 11, BR);
   gableRoofX(B, -8, 12, 5.5, 8, 14.5, ROOF, BR);
   B.geo(new THREE.CylinderGeometry(5.5, 5.5, 7, 8, 1, false, 0, Math.PI).rotateY(Math.PI / 2), composeMatrix(12, 3.5, 0), BR);
   B.geo(new THREE.ConeGeometry(5.8, 4.5, 8, 1, true, 0, Math.PI).rotateY(Math.PI / 2), composeMatrix(12, 9.25, 0), ROOF);
-  for (let x = -5; x <= 9; x += 3.5) for (const s of [-1, 1]) {
-    B.box(x, 4.6, s * 5.52, 1.1, 3.6, 0.1, 0x2a3236);
-    B.geo(new THREE.CircleGeometry(0.55, 6, 0, Math.PI), composeMatrix(x, 6.4, s * 5.56, 0, s > 0 ? 0 : Math.PI, 0), 0x2a3236);
-  }
   B.box(-11, 11, 0, 6.4, 22, 6.4, BR);
   for (const s of [-1, 1]) {
     B.box(-11, 18.5, s * 3.22, 1.6, 2.8, 0.1, 0x1e2226);
@@ -483,13 +500,6 @@ export function churchGeometry(variant) {
   return B.build();
 }
 
-function arches(B, x0, x1, step, z, y, h, s) {
-  for (let x = x0; x <= x1; x += step) {
-    B.box(x, y, z, 1.0, h, 0.1, 0x2a3236);
-    B.geo(new THREE.CircleGeometry(0.5, 6, 0, Math.PI), composeMatrix(x, y + h / 2, z + s * 0.04, 0, s > 0 ? 0 : Math.PI, 0), 0x2a3236);
-  }
-}
-
 function cruciformChurchGeometry() {
   const B = new GeoBuilder();
   const BR = 0x84462f, ROOF = 0x3e4449, TR = 0xe8e0d0;
@@ -499,10 +509,7 @@ function cruciformChurchGeometry() {
   gableRoofZ(B, 3.5, 10.5, 10.5, 10, 16.5, ROOF, BR);
   B.geo(new THREE.CylinderGeometry(5.5, 5.5, 9, 8, 1, false, 0, Math.PI).rotateY(Math.PI / 2), composeMatrix(12, 4.5, 0), BR);
   B.geo(new THREE.ConeGeometry(5.8, 4.5, 8, 1, true, 0, Math.PI).rotateY(Math.PI / 2), composeMatrix(12, 11.25, 0), ROOF);
-  for (const s of [-1, 1]) {
-    arches(B, -7, 1, 3.2, s * 5.52, 5.6, 4.2, s);
-    B.geo(new THREE.CircleGeometry(1.6, 12), composeMatrix(7, 7.2, s * 10.53, 0, s > 0 ? 0 : Math.PI, 0), 0x2a3236);
-  }
+  for (const s of [-1, 1]) B.geo(new THREE.CircleGeometry(1.6, 12), composeMatrix(7, 7.2, s * 10.53, 0, s > 0 ? 0 : Math.PI, 0), 0x2a3236);
   // crossing flèche
   B.box(7, 17.2, 0, 2.2, 2.4, 2.2, ROOF);
   B.geo(new THREE.ConeGeometry(1.6, 9, 8).rotateY(Math.PI / 8), composeMatrix(7, 22.9, 0), ROOF);
@@ -521,7 +528,6 @@ function chapelGeometry() {
   const BR = 0x9a5a40, ROOF = 0x9a4a30, W = 0xece6da;
   B.box(1, 3.4, 0, 18, 6.8, 9, BR);
   gableRoofX(B, -8, 10, 4.5, 6.8, 12, ROOF, BR);
-  for (const s of [-1, 1]) arches(B, -5, 7, 3, s * 4.52, 3.8, 3.2, s);
   B.box(-8.05, 1.3, 0, 0.14, 2.6, 1.6, 0x3a2a22);
   B.geo(new THREE.CircleGeometry(0.9, 10), composeMatrix(-8.06, 7.8, 0, 0, -Math.PI / 2, 0), 0x2a3236);
   // dakruiter on the west end of the ridge
