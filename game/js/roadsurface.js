@@ -1298,8 +1298,9 @@ export function buildRoadGroup(r) {
   // viaduct deck, embankment, cutting walls, tunnel roof / deck over a cutting
   if (netMap && netMap.elev && netMap.elev.has) {
     const struct = r.z ? buildRoadStructure(r, netMap) : buildOverpassDeck(r, netMap);
-    // crash barriers are knocked out of this mesh one by one: never batched
-    if (struct) { struct.userData.noBatch = true; group.add(struct); }
+    // merged with the road's cell; a knocked-out crash barrier bumps its
+    // geometry's batchVer, which redoes the cell
+    if (struct) { struct.userData.batchChildren = true; group.add(struct); }
   }
   return group;
 }

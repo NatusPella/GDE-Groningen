@@ -1,7 +1,8 @@
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
-import { loadOmmeland, initReal } from './countryreal.js';
+import { loadOmmeland, initReal, warmRows } from './countryreal.js';
 import { ensureCountryEdge } from './countryplan.js';
+import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { Player } from './player.js';
 import { World } from './world.js';
@@ -171,19 +172,29 @@ function maintainPedestrians(world) {
   }
 }
 
+// load timeline (ms since navigation) for perf runs: window.__loadMarks
+const loadMarks = window.__loadMarks = {};
+const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
+
 async function boot() {
+  markLoad('boot');
   initTheme();
   const ommeland = loadOmmeland('citymap.json');
   const map = await loadMap('citymap.json', (f) => setLoadProgress(0.05 + f * 0.45));
+  markLoad('map');
   initReal(map, await ommeland);
+  markLoad('ommeland');
   prepareHomeMap(map);
   setLoadProgress(0.55);
   await yieldToPaint();
+  markLoad('prepared');
   init3D(map);
   resize3D();
+  markLoad('init3D');
   // the map-edge layout (~0.3 s) during loading, not on the first trip out;
   // after init3D, which sets the country bounds it measures from
   ensureCountryEdge(map);
+  markLoad('countryEdge');
   setLoadProgress(0.8);
   await yieldToPaint();
   window.addEventListener('resize', resize3D);
@@ -236,6 +247,7 @@ async function boot() {
   initHud(world);
   initMapView(world);
   initPauseMenu(world);
+  markLoad('world');
   setLoadProgress(0.92);
   await yieldToPaint();
   // mouse-look: clicking the game captures the mouse; Esc releases it (the
@@ -257,7 +269,12 @@ async function boot() {
   initSafety(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
+  markLoad('systems');
   await finishLoading();
+  markLoad('title');
+  // the minimap's and map's Ommeland water and meadow images, a few ms a frame
+  warmCountryMaps();
+  warmRows();
   // the title screen already sounds like the city (quieter, no music)
   setMenuAudio(true);
   initAudio(world);
