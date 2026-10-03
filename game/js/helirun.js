@@ -6,7 +6,7 @@ import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { pushAudioEvent } from './pedestrians.js';
-import { unlockAchievement, setStatMax, recordStat } from './achievements.js';
+import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
 import { clamp, pointInPolygon } from './util.js';
 
 // UMCG trauma heli "on rails": the yellow trauma heli (skyprops.js) flies a
@@ -41,7 +41,9 @@ const CLIMB = 13, SLIDE = 11, OFFSET_MAX = 32;
 const Z_MIN = 22, Z_MAX = 260;
 const RING_R = 7.5;
 const RING_SCORE = 100, CATCH_SCORE = 1000, TIME_SCORE = 10, HIT_PENALTY = 100;
-const MEDALS = [0, 0, 2600, 3300];
+// Brons for any catch; zilver and goud need these scores.
+export const HELI_MEDAL_SCORES = [0, 0, 2600, 3300];
+const MEDALS = HELI_MEDAL_SCORES;
 const MEDAL_NAMES = ['', 'Brons', 'Zilver', 'Goud'];
 const INTRO_S = 4.2, RESULT_S = 5.5;
 const CATCH_NEED = 5;
@@ -440,6 +442,7 @@ function finish(success, why = '') {
     recordStat(world, 'heliRuns');
     setStatMax(world, 'heliBest', score);
     unlockAchievement(world, 'ballonjacht');
+    if (r.variant === 'ballonjacht') recordChallengeResult(world, 'ballonjacht', { value: score, medal });
     if (medal === 3) unlockAchievement(world, 'ballonjacht_goud');
   }
 }

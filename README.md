@@ -42,38 +42,56 @@ SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
 and a settings sheet) at 1920x1080 and devicePixelRatio 1, and prints frame
 times, main-thread time, GPU time, long tasks and draw calls per route.
 Flags: `--preset=quality:laag,shadows:false,...` (settings for that run
-only), `--cpu-throttle=4` (a slower CPU), `--nobatch`. `scripts/perf/ab.sh`
+only, as key:value pairs), `--cpu-throttle=4` (a slower CPU), `--nobatch`,
+`--hitch`; env `PERF_ONLY=foot,ring,heli,village,pause,sheet`,
+`PERF_PROFILE=<routes>` (CPU profile), `PERF_DIAG=1` (draw calls per owner),
+`PERF_SIM=0-2` (load-adaptive simulation level). `scripts/perf/ab.sh`
 alternates two staged builds (A/B) and prints medians. `--gfx-advice[=<GPU
 string>]` shows the first-run graphics advice in a test run.
 `node scripts/gfx_profile_test.mjs` checks the GPU classification.
 
 ### Trailer mode
 
-One scripted sequence of shots through Grunn (`js/trailer.js`, design in
-`docs/verhaal-voorstel.md` section 5), used three ways:
+"GTE VI — Een zomer in Grunn": one scripted sequence of 24 shots through
+Grunn (`js/trailer.js`, shot list in `docs/verhaal/E-trailer.md`), ~91 s,
+with name cards over freeze frames (Anita, Tammo, Jelle Terpstra, Durk &
+Douwe), two voice lines (Rikus on the radio, Berend after the logo;
+`scripts/tts_trailer.py` into `audio/voicelines/trailer/`) and the theme song
+from the end of the radio intro. Used three ways:
 
-- **Attract intro**: the short cut (~33 s, city and features only) plays
-  once on the first launch, and once for existing players after the update
-  that added it (`attractSeen` in `gte-settings`; *Standaardinstellingen*
-  keeps it). Hold Space (~0.9 s) to skip. Never with `?stil`, `?dev`,
-  `?storytest` or `?noattract`; the desktop smoke, perf and story tests add
-  `noattract`. `?attract` (desktop `--attract`) plays it on request.
 - **Benchmark**: *Instellingen → Beeld → Benchmark draaien* plays the full
-  cut (~82 s) in real time with an fps counter, then shows average fps,
-  1%-low, the heaviest shot and a quality suggestion (*Toepassen*). From a
-  running game it saves first and continues that save afterwards. Esc stops.
-  Desktop `--benchmark[=N]` runs it N times straight from the title screen
-  on a throwaway profile, logs fps, draw calls and GPU memory
-  (`renderer.info`) per shot and quits; add `--profile` for a CPU profile.
+  cut in real time with an fps counter, then measures the other presets on
+  the two heaviest shots; the result and the recommended preset wait in
+  *Beeld*. Name-card freeze frames, title cards and the black intro are not
+  measured. From a running game it saves first and continues that save
+  afterwards. Esc stops. Desktop `--benchmark[=N]` runs it N times straight
+  from the title screen on a throwaway profile, logs fps, draw calls and GPU
+  memory (`renderer.info`) per shot and quits; add `--profile` for a CPU
+  profile.
+- **Short cut** (`kort`, ~38 s, with the Anita and Tammo name cards): the
+  basis for the *Nieuw spel* opening. `?attract` (desktop `--attract`)
+  plays it before the menu; hold Space (~0.9 s) to skip.
 - **Recording**: `?trailer` (desktop `--trailer`) plays the full cut on a
   fixed 1/60 s step without HUD; the desktop app quits after the last frame.
   Options: `&cut=kort` / `--trailer-cut=kort` (the short cut), `&shot=N` /
   `--trailer-shot=N` (only shot N, 1-based; `window.__trailer.list()` prints
-  the list), `--trailer=3840x2160` (page size in device pixels),
-  `--trailer-frames=<dir>` (every frame as a png, for a smooth frame dump on
-  a slow machine), `&stil` / `--stil` (no music). `--trailer` uses a
-  throwaway profile, e.g.
+  the list, `window.__trailer.freeze(N, t)` holds shot N at t seconds),
+  `--trailer=3840x2160` (page size in device pixels),
+  `--trailer-frames=<dir>` (every frame as a png), `&stil` / `--stil` (no
+  sound). `--trailer` uses a throwaway profile, e.g.
   `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-trailer npx electron . --trailer=1920x1080`
+- **Video export**: desktop `--trailer-video[=<file.mp4>]` (default
+  `~/Downloads/GTE-VI-Een-zomer-in-Grunn.mp4`) runs the recording and pipes
+  every captured frame straight into ffmpeg (no frame files on disk), with
+  the theme song and the voice lines mixed in at their times. H.264 yuv420p,
+  CRF 18, 60 fps, AAC 192k, `+faststart`; 1920×1080 unless `--trailer=WxH`
+  (e.g. `--trailer=3840x2160` for 4K). A PNG thumbnail of the aerial shot
+  lands next to it. Needs ffmpeg (`/opt/homebrew/bin/ffmpeg`, else `PATH`).
+  It refuses any output path inside the repository (`*.mp4`, `*.mov` and
+  `trailer-frames/` are in `.gitignore`). Slower than real time; progress is
+  printed per second of video, e.g.
+  `cd desktop && npm run stage && npx electron . --trailer-video`
+  (with `--trailer-cut=kort` for the short cut).
 
 ## Desktop builds and releases
 

@@ -1,6 +1,6 @@
-import { markInstancesDirty } from './util.js';
+import { markInstancesDirty, WATER_Y } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, realBlock } from './countryfield.js';
+import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, realBlock, realWater, rectOutside, SHORE_RW } from './countryfield.js';
 import { REAL, RTILE, roadsInTile, inRealExtent } from './countryreal.js';
 import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
@@ -487,7 +487,10 @@ function stepBoat(b, dt, time) {
   let d = ((target - b.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
   b.yaw += d * Math.min(1, dt * 0.6);
   const [x, y] = boatPos(b);
-  b.g.position.set(x, -0.18 + Math.sin(time * 1.3 + b.bob) * 0.03, y);
+  // on the deep water (countrywater.js) the surface lies at WATER_Y
+  const wy = rectOutside(x, y) > 0 && realWater(x, y) > SHORE_RW ? WATER_Y - 0.13 : -0.18;
+  b.wy = b.wy === undefined ? wy : b.wy + (wy - b.wy) * Math.min(1, dt * 1.5);
+  b.g.position.set(x, b.wy + Math.sin(time * 1.3 + b.bob) * 0.03, y);
   b.g.rotation.set(Math.sin(time * 0.9 + b.bob) * 0.03, -b.yaw, 0, 'YXZ');
 }
 

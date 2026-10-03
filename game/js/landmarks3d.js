@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { GeoBuilder, vcMaterial, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { MUSEUM_ROOMS, rectCorners } from './museumplan.js';
+import { paddepoelBlock, setPaddepoelNight } from './paddepoel3d.js';
 
 // Procedural models for the named Groningen landmarks, one merged
 // vertex-coloured geometry per building (five shared materials). Geometry is
@@ -28,6 +29,7 @@ for (const m of LANDMARK_MATERIALS) m.userData.shared = true;
 // used by ordinary buildings needs per-pane UVs these models don't have).
 export function setLandmarkNight(glow) {
   glassMat.emissiveIntensity = Math.min(0.5, glow * 0.22);
+  setPaddepoelNight(glow);
 }
 
 const C = {
@@ -684,56 +686,72 @@ function academiegebouw(B, ring, srcEdges) {
 
 // --- Goudkantoor -------------------------------------------------------------------
 
+// Two storeys of red brick with sandstone bands and cross windows with
+// shutters; the long east front carries three ornamental topgevels with
+// volutes (the third, from Huis Panser, added 1964), the roof ridge runs
+// along the front.
 function goudkantoor(B, ring, srcEdges) {
-  const F = minAreaFrame(ring);
-  const eave = 8.6, rise = 7.5;
   const edges = edgesOf(ring, partyTester(srcEdges));
-  // ridge between the two ends with the most open wall (the gables)
-  const openAlong = (dx, dy) => edges.filter((e) => !e.party && Math.abs(e.nx * dx + e.ny * dy) > 0.8).reduce((s, e) => s + e.len, 0);
-  const ridgeU = openAlong(F.ux, F.uy) >= openAlong(-F.uy, F.ux);
-  const u0 = F.u0 + 0.1, u1 = F.u1 - 0.1, v0 = F.v0 + 0.1, v1 = F.v1 - 0.1;
+  let main = null;
+  for (const e of edges) if (!e.party && e.len > 4 && (!main || e.nx * e.len > main.nx * main.len)) main = e;
+  if (!main) main = edges.reduce((m, e) => (e.len > m.len ? e : m));
+  const F = frameFrom(main.tx, main.ty, ring);
+  const eave = 8.4, rise = 6.2;
   walls(B, ring, 0, () => eave, C.brick, G_BRICK);
-  const M = ridgeU ? alongU(F) : alongV(F);
-  const [a0, a1, c0, c1] = ridgeU ? [u0, u1, v0, v1] : [v0, v1, u0, u1];
-  roofRect(B, M, a0, a1, c0, c1, eave, rise, C.slateDark, G_TILE, { oh: 0.3 });
+  const u0 = F.u0 + 0.1, u1 = F.u1 - 0.1, v0 = F.v0 + 0.1, v1 = F.v1 - 0.1;
+  roofRect(B, alongU(F), u0, u1, v0, v1, eave, rise, C.slateDark, G_TILE, { oh: 0.3, gable: C.brick });
   band(B, edges, 0, 0.8, 0.1, C.sandstone);
   band(B, edges, 4.2, 0.35, 0.1, C.sandstone);
   band(B, edges, eave - 0.4, 0.4, 0.16, C.sandstone);
   for (const e of edges) {
     if (e.party || e.len < 3) continue;
-    for (const t of slots(e.len, 2.6, 0.7)) {
+    for (const [i, t] of slots(e.len, 2.6, 0.7).entries()) {
       for (const y0 of [1.4, 5.1]) {
         ebox(B, e, t, y0 - 0.12, 1.5, 2.9, 0.06, C.sandstone, G_PLAIN, 0.02);
         ebox(B, e, t, y0, 1.2, 2.65, 0.06, C.glass, G_GLASS, 0.06);
         ebox(B, e, t, y0 + 1.6, 1.2, 0.12, 0.05, C.sandstone, G_PLAIN, 0.12);
         ebox(B, e, t, y0, 0.1, 2.65, 0.05, C.sandstone, G_PLAIN, 0.12);
-        for (const s of [-1, 1]) ebox(B, e, t + s * 0.95, y0 + 0.1, 0.55, 2.4, 0.06, 0xb8342c, G_PLAIN, 0.04);
+        for (const s of [-1, 1]) ebox(B, e, t + s * 0.95, y0 + 0.1, 0.55, 2.4, 0.06, i % 2 ? 0xc0392b : 0x2f6b4a, G_PLAIN, 0.04);
+        // shell ornament in the arch field over the window
+        const x = e.a[0] + e.tx * t + e.nx * 0.05, z = e.a[1] + e.ty * t + e.ny * 0.05;
+        B.geo(new THREE.CylinderGeometry(0.62, 0.62, 0.06, 6, 1, false, 0, Math.PI), new THREE.Matrix4().makeRotationY(-Math.atan2(e.ty, e.tx)).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2)).setPosition(x, y0 + 2.8, z), C.gold, G_PLAIN);
       }
     }
   }
-  // stepped, stone-trimmed gables with pinnacles and a gilded finial
-  const cm = (c0 + c1) / 2, half = (c1 - c0) / 2;
-  for (const [a, dir] of [[a0, -1], [a1, 1]]) {
-    const nSteps = 4;
-    for (let i = 0; i < nSteps; i++) {
-      const c = half * (1 - i / nSteps);
-      const y = eave + (rise * i) / nSteps;
-      const h = rise / nSteps + 0.6;
-      const [x, z] = ridgeU ? F.P(a - dir * 0.3, cm) : F.P(cm, a - dir * 0.3);
-      obox(B, x, z, y, ridgeU ? 0.6 : c * 2, ridgeU ? c * 2 : 0.6, h, F.rot, C.brick, G_BRICK);
-      obox(B, x, z, y + h - 0.25, ridgeU ? 0.8 : c * 2 + 0.3, ridgeU ? c * 2 + 0.3 : 0.8, 0.25, F.rot, C.sandstone, G_PLAIN);
-      for (const s of [-1, 1]) {
-        const [px, pz] = ridgeU ? F.P(a - dir * 0.3, cm + s * c) : F.P(cm + s * c, a - dir * 0.3);
-        cone(B, px, y + h, pz, 0.22, 1.1, 4, C.sandstone, G_PLAIN);
-      }
+  // three topgevels on the front: brick with stone bands, volute shoulders,
+  // a round top with a gilded finial; a small roof runs back to the ridge
+  const n = 3, gw = Math.min(4.2, (main.len - 1.2) / n - 0.5);
+  const rot = Math.atan2(main.ty, main.tx);
+  const P = (s, off, y) => W(main.a[0] + main.tx * s - main.nx * off, y, main.a[1] + main.ty * s - main.ny * off);
+  for (let k = 0; k < n; k++) {
+    const s = main.len * (k + 0.5) / n;
+    const y1 = eave + 1.8, y2 = y1 + 1.9;
+    ebox(B, main, s, eave, gw, 1.8, 0.45, C.brick, G_BRICK, -0.45);
+    ebox(B, main, s, y1 - 0.2, gw + 0.2, 0.22, 0.55, C.sandstone, G_PLAIN, -0.5);
+    ebox(B, main, s, y1, gw * 0.5, 1.9, 0.45, C.brick, G_BRICK, -0.45);
+    ebox(B, main, s, y2 - 0.2, gw * 0.5 + 0.2, 0.22, 0.55, C.sandstone, G_PLAIN, -0.5);
+    for (const sg of [-1, 1]) {
+      const a = P(s + sg * gw / 2, 0, y1), b = P(s + sg * gw * 0.25, 0, y1), c = P(s + sg * gw * 0.25, 0, y1 + 1.5);
+      const a2 = P(s + sg * gw / 2, 0.45, y1), b2 = P(s + sg * gw * 0.25, 0.45, y1), c2 = P(s + sg * gw * 0.25, 0.45, y1 + 1.5);
+      B.tri(a, b, c, C.sandstone, G_PLAIN); B.tri(a2, c2, b2, C.sandstone, G_PLAIN);
+      B.quad(a, c, c2, a2, C.sandstone, G_PLAIN);
+      const p = P(s + sg * gw / 2, 0.22, 0);
+      cone(B, p[0], y1, p[2], 0.16, 0.8, 4, C.sandstone, G_PLAIN);
     }
-    const [x, z] = ridgeU ? F.P(a - dir * 0.3, cm) : F.P(cm, a - dir * 0.3);
-    B.box(x, eave + rise + 1.3, z, 0.5, 0.5, 0.5, C.gold, G_METAL);
-    cone(B, x, eave + rise + 1.5, z, 0.2, 1.4, 4, C.gold, G_METAL);
-    // round shell ornament mid-gable
-    const [ox, oz] = ridgeU ? F.P(a + dir * 0.02, cm) : F.P(cm, a + dir * 0.02);
-    const rotG = ridgeU ? F.rot + Math.PI / 2 : F.rot;
-    B.geo(new THREE.CylinderGeometry(0.9, 0.9, 0.1, 10), new THREE.Matrix4().makeRotationY(-rotG).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).setPosition(ox, eave + rise * 0.45, oz), C.sandstone, G_PLAIN);
+    const [x, , z] = P(s, 0.22, 0);
+    B.geo(new THREE.CylinderGeometry(gw * 0.25, gw * 0.25, 0.45, 8, 1, false, 0, Math.PI), new THREE.Matrix4().makeRotationY(-rot).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2)).setPosition(x, y2, z), C.sandstone, G_PLAIN);
+    cone(B, x, y2 + gw * 0.25, z, 0.14, 1.0, 4, C.gold, G_METAL);
+    B.box(x, y2 + gw * 0.25 + 1.05, z, 0.3, 0.3, 0.3, C.gold, G_METAL);
+    const [ox, , oz] = P(s, -0.02, 0);
+    B.geo(new THREE.CylinderGeometry(0.42, 0.42, 0.08, 10), new THREE.Matrix4().makeRotationY(-rot).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).setPosition(ox, y1 + 0.9, oz), 0x2c4f8a, G_PLAIN);
+    ebox(B, main, s, eave + 0.4, 1.0, 1.1, 0.06, C.glass, G_GLASS, 0.0);
+    // dormer roof from the topgevel back into the main slope
+    const back = Math.min((F.v1 - F.v0) / 2, 4.5);
+    const yR = y1 + 0.6;
+    const L = P(s - gw / 2 + 0.1, 0.45, eave + 0.6), R = P(s + gw / 2 - 0.1, 0.45, eave + 0.6), T = P(s, 0.45, yR);
+    const Lb = P(s - gw / 2 + 0.1, back, eave + 0.6), Rb = P(s + gw / 2 - 0.1, back, eave + 0.6), Tb = P(s, back, yR);
+    B.quad(L, Lb, Tb, T, C.slateDark, G_TILE);
+    B.quad(Rb, R, T, Tb, C.slateDark, G_TILE);
   }
 }
 
@@ -862,57 +880,84 @@ function eikea(B, ring) {
 // --- Stadhuis (Grote Markt) ---------------------------------------------------------
 
 // The OSM outline is a rectangle with sub-metre jags: model the clean frame.
+// Husly's neoclassical front faces east onto the square: Bentheimer sandstone,
+// colossal pilasters, a raised souterrain, and in the middle four colossal
+// columns under a pediment, reached by a bordes; low hipped roof.
 function stadhuis(B, ring) {
   const F = minAreaFrame(ring);
   const k = 0.2, rect = [[F.u0 + k, F.v0 + k], [F.u1 - k, F.v0 + k], [F.u1 - k, F.v1 - k], [F.u0 + k, F.v1 - k]].map(([u, v]) => F.P(u, v));
-  const eave = 15.5, rise = 5, plaster = 0xe4d9bf, plasterShade = 0xd3c6a8, plinth = 0xb9ab8c;
+  const eave = 16, rise = 3.6, stone = 0xdccfa8, stoneShade = 0xc9bb93, plinth = 0xb3a483;
   const edges = edgesOf(rect);
   let main = edges[0];
-  for (const e of edges) if (e.ny < main.ny) main = e;
-  const t = main.len / 2, w = Math.min(18, main.len * 0.5), inset = 2.2;
+  for (const e of edges) if (e.nx > main.nx) main = e;
+  const t = main.len / 2, w = Math.min(13.5, main.len * 0.32), inset = 2.6;
   const at = (e, s, off, y) => W(e.a[0] + e.tx * s - e.nx * off, y, e.a[1] + e.ty * s - e.ny * off);
-  const wall = (e, s0, s1, off, y0, y1, c = plaster) => B.quad(at(e, s0, off, y0), at(e, s1, off, y0), at(e, s1, off, y1), at(e, s0, off, y1), c, G_PLAIN);
+  const wall = (e, s0, s1, off, y0, y1, c = stone) => B.quad(at(e, s0, off, y0), at(e, s1, off, y0), at(e, s1, off, y1), at(e, s0, off, y1), c, G_PLAIN);
+  const top = eave - 1.9;
   for (const e of edges) {
     if (e !== main) { wall(e, 0, e.len, 0, 0, eave); continue; }
     wall(e, 0, t - w / 2, 0, 0, eave);
     wall(e, t + w / 2, e.len, 0, 0, eave);
-    wall(e, t - w / 2, t + w / 2, 0, eave - 1.7, eave);
-    wall(e, t - w / 2, t + w / 2, inset, 0, eave - 1.7, 0xcfc3a6);
-    for (const s of [t - w / 2, t + w / 2]) B.quad(at(e, s, 0, 0), at(e, s, inset, 0), at(e, s, inset, eave - 1.7), at(e, s, 0, eave - 1.7), plasterShade, G_PLAIN);
-    B.quad(at(e, t - w / 2, 0, eave - 1.7), at(e, t + w / 2, 0, eave - 1.7), at(e, t + w / 2, inset, eave - 1.7), at(e, t - w / 2, inset, eave - 1.7), plasterShade, G_PLAIN);
+    wall(e, t - w / 2, t + w / 2, 0, top, eave);
+    wall(e, t - w / 2, t + w / 2, inset, 0, top, 0xd2c59f);
+    for (const s of [t - w / 2, t + w / 2]) B.quad(at(e, s, 0, 0), at(e, s, inset, 0), at(e, s, inset, top), at(e, s, 0, top), stoneShade, G_PLAIN);
+    B.quad(at(e, t - w / 2, 0, top), at(e, t + w / 2, 0, top), at(e, t + w / 2, inset, top), at(e, t - w / 2, inset, top), stoneShade, G_PLAIN);
   }
   cap(B, rect, () => eave, 0x585c60, G_PLAIN);
-  roofRim(B, edges, eave, 5, rise, C.slateDark);
-  band(B, edges, 0, 1.2, 0.1, plinth);
-  band(B, edges, 4.6, 0.4, 0.12, plasterShade);
-  band(B, edges, eave - 1.1, 1.1, 0.22, plasterShade);
+  roofRim(B, edges, eave + 0.3, 6, rise, C.slateDark);
+  band(B, edges, 0, 1.9, 0.12, plinth);
+  band(B, edges, 1.9, 0.3, 0.18, stoneShade);
+  band(B, edges, eave - 1.3, 1.3, 0.34, stoneShade);
+  band(B, edges, eave - 1.6, 0.3, 0.2, C.white);
   for (const e of edges) {
-    for (const s of slots(e.len, 3.6, 1.2)) {
-      if (e === main && Math.abs(s - t) < w / 2 + 1.2) continue;
-      archWindow(B, e, s, 1.8, 1.5, 2.3, { pointed: false, arch: false, frame: C.white });
-      archWindow(B, e, s, 6.0, 1.6, 3.6, { pointed: false, arch: false, frame: C.white, mullion: true });
-      archWindow(B, e, s, 11.2, 1.5, 2.2, { pointed: false, arch: false, frame: C.white });
+    const pos = slots(e.len, 3.8, 1.0);
+    for (const [i, s] of pos.entries()) {
+      const inPortico = e === main && Math.abs(s - t) < w / 2 + 0.9;
+      // colossal pilaster left of every bay (and right of the last)
+      for (const ps of i === pos.length - 1 ? [s - 1.9, s + 1.9] : [s - 1.9]) {
+        if (e === main && Math.abs(ps - t) < w / 2 + 0.4) continue;
+        ebox(B, e, ps, 2.2, 0.75, eave - 3.5, 0.16, stoneShade, G_PLAIN, 0.02);
+        ebox(B, e, ps, eave - 1.6 - 0.45, 1.0, 0.45, 0.26, C.white, G_PLAIN, 0.02);
+      }
+      if (inPortico) continue;
+      archWindow(B, e, s, 0.5, 1.2, 1.1, { pointed: false, arch: false, frame: C.white });
+      archWindow(B, e, s, 3.0, 1.6, 4.3, { pointed: false, arch: false, frame: C.white, mullion: true });
+      ebox(B, e, s, 7.5, 2.2, 0.25, 0.22, stoneShade, G_PLAIN, 0.02);
+      archWindow(B, e, s, 9.4, 1.5, 3.4, { pointed: false, arch: false, frame: C.white, mullion: true });
     }
   }
-  // the loggia: six columns, windows and the door on the back wall
+  // the portico: four colossal columns on the bordes, entablature, pediment
   const rot = Math.atan2(main.ty, main.tx);
-  for (let i = 0; i < 6; i++) {
-    const s = t - w / 2 + 1.1 + (w - 2.2) * i / 5;
-    const [x, , z] = at(main, s, 0.8, 0);
-    obox(B, x, z, 0, 1.3, 1.3, 1.2, rot, plinth, G_PLAIN);
-    cyl(B, x, 1.2, z, 0.42, 0.52, eave - 3.4, 10, C.white, G_PLAIN);
-    obox(B, x, z, eave - 2.2, 1.2, 1.2, 0.5, rot, C.white, G_PLAIN);
+  const lift = 1.5;
+  for (let i = 0; i < 3; i++) {
+    const [lx, , lz] = at(main, t, 0.15 + i * 0.3, 0);
+    obox(B, lx, lz, 0, w - 0.6, 0.3, lift * (i + 1) / 4, rot, plinth, G_PLAIN);
   }
-  for (let i = 0; i < 3; i++) archWindow(B, main, t + (i - 1) * 4.8, 6.2, 1.8, 4.2, { pointed: false, arch: false, frame: C.white, out: -inset });
-  ebox(B, main, t, 0, 2.8, 3.8, 0.06, C.door, G_GLASS, -inset + 0.02);
-  // attic with the city arms, and the flag
-  ebox(B, main, t, eave, w * 0.6, 2.6, 0.9, plaster, G_PLAIN, -0.9);
-  ebox(B, main, t, eave + 2.6, w * 0.6 + 0.4, 0.35, 1.0, plasterShade, G_PLAIN, -0.95);
-  const [ax, , az] = at(main, t, -0.03, 0);
-  B.geo(new THREE.CylinderGeometry(0.9, 0.9, 0.12, 10), new THREE.Matrix4().makeRotationY(-rot).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).setPosition(ax, eave + 1.3, az), C.gold, G_METAL);
+  const [bx, , bz] = at(main, t, (0.9 + inset) / 2, 0);
+  obox(B, bx, bz, 0, w - 0.4, inset - 0.9, lift, rot, plinth, G_PLAIN);
+  for (let i = 0; i < 4; i++) {
+    const s = t - w / 2 + 1.3 + (w - 2.6) * i / 3;
+    const [x, , z] = at(main, s, 1.5, 0);
+    obox(B, x, z, lift, 1.3, 1.3, 0.5, rot, C.white, G_PLAIN);
+    cyl(B, x, lift + 0.5, z, 0.48, 0.58, top - lift - 1.6, 12, C.white, G_PLAIN);
+    obox(B, x, z, top - 1.1, 1.3, 1.3, 1.1, rot, C.white, G_PLAIN);
+  }
+  ebox(B, main, t, top - 0.6, w, 0.6, inset - 0.4, stoneShade, G_PLAIN, -inset + 0.4);
+  for (let i = 0; i < 3; i++) archWindow(B, main, t + (i - 1) * 3.6, 3.4, 1.6, 4.2, { pointed: false, arch: false, frame: C.white, out: -inset });
+  ebox(B, main, t, lift, 2.2, 3.4, 0.06, C.door, G_GLASS, -inset + 0.02);
+  // pediment over the columns, its roof running back into the hip
+  const pw = w + 0.8, ph = 3.4, pd = 3.2;
+  const pa = at(main, t - pw / 2, -0.3, eave), pb = at(main, t + pw / 2, -0.3, eave), pc = at(main, t, -0.3, eave + ph);
+  B.tri(pa, pb, pc, stone, G_PLAIN);
+  const qa = at(main, t - pw / 2, pd, eave), qb = at(main, t + pw / 2, pd, eave), qc = at(main, t, pd, eave + ph);
+  B.quad(pa, qa, qc, pc, C.slateDark, G_TILE);
+  B.quad(qb, pb, pc, qc, C.slateDark, G_TILE);
+  B.quad(at(main, t - pw / 2 - 0.2, -0.45, eave - 0.05), at(main, t + pw / 2 + 0.2, -0.45, eave - 0.05), at(main, t + pw / 2 + 0.2, -0.45, eave + 0.3), at(main, t - pw / 2 - 0.2, -0.45, eave + 0.3), C.white, G_PLAIN);
+  const [ax, , az] = at(main, t, -0.36, 0);
+  B.geo(new THREE.CylinderGeometry(0.75, 0.75, 0.1, 10), new THREE.Matrix4().makeRotationY(-rot).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)).setPosition(ax, eave + 1.2, az), C.gold, G_METAL);
   const [fx, fz] = F.P((F.u0 + F.u1) / 2, (F.v0 + F.v1) / 2);
-  cyl(B, fx, eave, fz, 0.07, 0.09, 11, 4, C.white, G_PLAIN);
-  for (const [i, c] of [0xc8102e, C.white, 0x21468b].entries()) B.box(fx + 0.9, eave + 10.6 - i * 0.4, fz, 1.8, 0.4, 0.04, c, G_PLAIN);
+  cyl(B, fx, eave + rise, fz, 0.07, 0.09, 8, 4, C.white, G_PLAIN);
+  for (const [i, c] of [0xc8102e, C.white, 0x21468b].entries()) B.box(fx + 0.9, eave + rise + 7.6 - i * 0.4, fz, 1.8, 0.4, 0.04, c, G_PLAIN);
 }
 
 // --- Prinsenhof -------------------------------------------------------------------
@@ -1043,6 +1088,7 @@ const BUILDERS = {
   Academiegebouw: (B, b, ring, edges) => academiegebouw(B, ring, edges),
   Goudkantoor: (B, b, ring, edges) => goudkantoor(B, ring, edges),
   Euroborg: (B, b, ring) => euroborgStand(B, b, ring),
+  'Winkelcentrum Paddepoel': (B, b, ring, edges) => paddepoelBlock(B, b, ring, edges),
 };
 
 // Named city buildings that get a model without being a spawn landmark.
@@ -1052,7 +1098,17 @@ const NAMED = {
   Gasuniegebouw: (B, b, ring, edges) => gasunie(B, ring, edges),
   'Rijkskantoor Kempkensberg': (B, b, ring) => duoCruiseschip(B, ring),
 };
-const builderOf = (b) => (b.landmark && BUILDERS[b.landmark]) || (b.name && NAMED[b.name]) || null;
+// Shared with the Grote Markt / Vismarkt models (marktgebouwen.js).
+export const LM = {
+  G: { PLAIN: G_PLAIN, BRICK: G_BRICK, GLASS: G_GLASS, METAL: G_METAL, TILE: G_TILE }, C, W,
+  obox, frameFrom, minAreaFrame, fbox, FW, prism, cone, cyl, roofRect, alongU, alongV, ringArea, triangulate,
+  cap, walls, extrude, clipRing, polyGableRoof, edgesOf, partyTester, ebox, archWindow, slots, band, roofRim,
+};
+// Models other modules add for buildings they tag with b.model (thuis3d.js).
+const MODELS = {};
+export function registerBuildingModel(key, fn) { MODELS[key] = fn; }
+export const modelKit = { obox, fbox, walls, cap, extrude, ebox, edgesOf, partyTester, minAreaFrame, frameFrom, cyl, slots, band, clipRing, grown, triangulate, C, G: { PLAIN: G_PLAIN, BRICK: G_BRICK, GLASS: G_GLASS, METAL: G_METAL, TILE: G_TILE } };
+const builderOf = (b) => (b.model && MODELS[b.model]) || (b.landmark && BUILDERS[b.landmark]) || (b.name && NAMED[b.name]) || null;
 
 export function hasLandmarkModel(b) {
   return !!builderOf(b);
