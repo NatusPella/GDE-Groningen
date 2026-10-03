@@ -68,7 +68,7 @@ export function mayShowTip() {
 export function noteTip() { last.tip = clock(); }
 
 // Phone messages read aloud (phonefeed.js): a character's text always; the
-// Sikkom news feed and the app's own texts at most once per gap, the rest
+// Kiekdoar news feed and the app's own texts at most once per gap, the rest
 // only get the ping.
 const VOICE_GAP = { news: 45, system: 30 };
 const voicedAt = {};

@@ -1747,10 +1747,6 @@
 "src": "h15-pass-touw_0_t_d5d454.mp3",
 "dur": 3.92
 },
-"Anita|Ze weet het al. Het staat op Sikkom.": {
-"src": "h15-pass-touw_1_a_4385ab.mp3",
-"dur": 2.57
-},
 "Tammo|Met foto?": {
 "src": "h15-pass-touw_2_t_c5272c.mp3",
 "dur": 1.0
@@ -3719,17 +3715,9 @@
 "src": "id-peiling_5_t_ac70d0.mp3",
 "dur": 1.15
 },
-"Anita|Sikkom schrijft dat de dieven in het zwart waren.": {
-"src": "id-sikkom_0_a_a58cf1.mp3",
-"dur": 3.86
-},
 "Tammo|Dat waren we ook.": {
 "src": "id-sikkom_1_t_58ff18.mp3",
 "dur": 1.05
-},
-"Anita|Sikkom schrijft nooit iets wat klopt.": {
-"src": "id-sikkom_2_a_2c6f9f.mp3",
-"dur": 2.26
 },
 "Tammo|Nu wel. Dat is pas eng.": {
 "src": "id-sikkom_3_t_50687b.mp3",
@@ -3858,5 +3846,17 @@
 "Anita|Er ligt een kliko in de fontein, Tammo.": {
 "src": "h3-pass-terras_3_a_940b8a.mp3",
 "dur": 2.85
+},
+"Anita|Ze weet het al. Het staat op Kiekdoar.": {
+"src": "h15-pass-touw_1_a_2d0054.mp3",
+"dur": 3.97
+},
+"Anita|Kiekdoar schrijft dat de dieven in het zwart waren.": {
+"src": "id-sikkom_0_a_9ee78a.mp3",
+"dur": 3.89
+},
+"Anita|Kiekdoar schrijft nooit iets wat klopt.": {
+"src": "id-sikkom_2_a_699175.mp3",
+"dur": 3.18
 }
 }

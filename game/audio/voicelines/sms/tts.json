@@ -422,6 +422,303 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Kiekdoar-redactie|\"Hij kwam uit het niets,\" zegt voetganger die midden op straat naar zijn telefoon stond te staren": {
+"src": "kiekdoar_redactie/hij_kwam_uit_het_niets_zegt_voet_0d6cb1b7.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "\"Hij kwam uit het niets,\" zegt voetganger die midden op straat naar zijn telefoon stond te staren",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Bezorger fietst bestelling na bestelling warm door de stad, klanten verbijsterd.": {
+"src": "kiekdoar_redactie/bezorger_fietst_bestelling_na_be_3ffe6f3f.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Bezorger fietst bestelling na bestelling warm door de stad, klanten verbijsterd.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Bloemetjesmarkt! Binnenstad vol touringcars en kamerplanten. Parkeren? Vergeet het maar.": {
+"src": "kiekdoar_redactie/bloemetjesmarkt_binnenstad_vol_t_d8c8db07.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Bloemetjesmarkt! Binnenstad vol touringcars en kamerplanten. Parkeren? Vergeet het maar.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Buslijn 3 rijdt alweer volgens de dienstregeling, reizigers in verwarring.": {
+"src": "kiekdoar_redactie/buslijn_3_rijdt_alweer_volgens_d_cb706a59.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Buslijn 3 rijdt alweer volgens de dienstregeling, reizigers in verwarring.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Die gejatte fiets staat nu ergens anders. Met een ander slot.": {
+"src": "kiekdoar_redactie/die_gejatte_fiets_staat_nu_ergen_bfdbf3f0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Die gejatte fiets staat nu ergens anders. Met een ander slot.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Duif pikt Friese vlag van d'Olle Grieze. Op de vlag stond FOAR MEM. Stadjers juichen, de toren zelf zegt niks.": {
+"src": "kiekdoar_redactie/duif_pikt_friese_vlag_van_d_olle_948b2f7e.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Duif pikt Friese vlag van d'Olle Grieze. Op de vlag stond FOAR MEM. Stadjers juichen, de toren zelf zegt niks.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Duif pikt Friese vlag van d'Olle Grieze. Stadjers juichen, de toren zelf zegt niks.": {
+"src": "kiekdoar_redactie/duif_pikt_friese_vlag_van_d_olle_cb9d3087.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Duif pikt Friese vlag van d'Olle Grieze. Stadjers juichen, de toren zelf zegt niks.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Eerste zon: het Noorderplantsoen ligt vol kleedjes, speakers en wegwerpbarbecues.": {
+"src": "kiekdoar_redactie/eerste_zon_het_noorderplantsoen__6ecf65d2.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Eerste zon: het Noorderplantsoen ligt vol kleedjes, speakers en wegwerpbarbecues.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Er rijdt niets boven Groningen: Stadjers op het podium, Friese trekker op de vluchtstrook.": {
+"src": "kiekdoar_redactie/er_rijdt_niets_boven_groningen_s_a569f409.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Er rijdt niets boven Groningen: Stadjers op het podium, Friese trekker op de vluchtstrook.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen kochten alles op. Contant, oet n klomp. Op de tankwagen stond Us Mem Vet.\"": {
+"src": "kiekdoar_redactie/frituurvet_uitverkocht_in_heel_g_911acd3f.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen kochten alles op. Contant, oet n klomp. Op de tankwagen stond Us Mem Vet.\"",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons.\"": {
+"src": "kiekdoar_redactie/frituurvet_uitverkocht_in_heel_g_e522fa85.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons.\"",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Gejatte fiets duikt op aan de andere kant van de stad. Het zadel is nog warm.": {
+"src": "kiekdoar_redactie/gejatte_fiets_duikt_op_aan_de_an_3da94dc8.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Gejatte fiets duikt op aan de andere kant van de stad. Het zadel is nog warm.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Gevonden: een fiets die gisteren nog ergens anders stond. Niemand weet van niks.": {
+"src": "kiekdoar_redactie/gevonden_een_fiets_die_gisteren__d4220672.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Gevonden: een fiets die gisteren nog ergens anders stond. Niemand weet van niks.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: \"Wij snappen er niks van.\"": {
+"src": "kiekdoar_redactie/gouden_eierbal_foetsie_politie_z_6334e640.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: \"Wij snappen er niks van.\"",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Gouden Eierbal foetsie. Stad in rouw. Museum: \"Wij snappen er niks van, de camera's stonden uit.\"": {
+"src": "kiekdoar_redactie/gouden_eierbal_foetsie_stad_in_r_3ca87f20.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Gouden Eierbal foetsie. Stad in rouw. Museum: \"Wij snappen er niks van, de camera's stonden uit.\"",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Gouden Eierbal terug in het museum. Friese snackkoning proeft Groninger eierbal en zegt niks. Wel twee keer.": {
+"src": "kiekdoar_redactie/gouden_eierbal_terug_in_het_muse_a686db03.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Gouden Eierbal terug in het museum. Friese snackkoning proeft Groninger eierbal en zegt niks. Wel twee keer.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Grunn viert Gronings Ontzet. Vlaggen op de Grote Markt, vanavond vuurwerk.": {
+"src": "kiekdoar_redactie/grunn_viert_gronings_ontzet_vlag_e1929e0e.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Grunn viert Gronings Ontzet. Vlaggen op de Grote Markt, vanavond vuurwerk.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Handhaver ruimt het Stationsplein keer op keer leeg, fietsenrekken voor het eerst ooit halfvol.": {
+"src": "kiekdoar_redactie/handhaver_ruimt_het_stationsplei_847b8ee5.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Handhaver ruimt het Stationsplein keer op keer leeg, fietsenrekken voor het eerst ooit halfvol.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Het Peerd van Ome Loeks staat ergens anders, zeggen bewoners. Gemeente: “Dat moet een ander paard zijn.”": {
+"src": "kiekdoar_redactie/het_peerd_van_ome_loeks_staat_er_47947473.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Het Peerd van Ome Loeks staat ergens anders, zeggen bewoners. Gemeente: “Dat moet een ander paard zijn.”",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|KEI-week! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden.": {
+"src": "kiekdoar_redactie/kei_week_groepjes_nieuwe_stadjer_9dceb980.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "KEI-week! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Kermis op de Grote Markt! Botsauto's, suikerspin en een reuzenrad tot diep in de nacht.": {
+"src": "kiekdoar_redactie/kermis_op_de_grote_markt_botsaut_01d7f5e3.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Kermis op de Grote Markt! Botsauto's, suikerspin en een reuzenrad tot diep in de nacht.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.": {
+"src": "kiekdoar_redactie/noordelijke_snackprijs_naar_grun_8601bb1d.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Peerd van Ome Loeks gezien op een rotonde. Gemeente: “Het beeld staat gewoon op zijn plek.”": {
+"src": "kiekdoar_redactie/peerd_van_ome_loeks_gezien_op_ee_228ed1fb.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Peerd van Ome Loeks gezien op een rotonde. Gemeente: “Het beeld staat gewoon op zijn plek.”",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Rondvaartgids vaart tocht na tocht zonder één toerist overboord.": {
+"src": "kiekdoar_redactie/rondvaartgids_vaart_tocht_na_toc_8945cd1f.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Rondvaartgids vaart tocht na tocht zonder één toerist overboord.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Rotonde heeft ineens een paard. Gemeente ontkent alles, ook het paard.": {
+"src": "kiekdoar_redactie/rotonde_heeft_ineens_een_paard_g_0e5b174a.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Rotonde heeft ineens een paard. Gemeente ontkent alles, ook het paard.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Stadjer aan het werk rijdt voetganger van de sokken, voetganger bestelt daarna gewoon een patatje": {
+"src": "kiekdoar_redactie/stadjer_aan_het_werk_rijdt_voetg_dc519f04.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Stadjer aan het werk rijdt voetganger van de sokken, voetganger bestelt daarna gewoon een patatje",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Stadjer ontdekt dat de rijbaan geen stoep is, getuigen spreken van een leerzaam moment": {
+"src": "kiekdoar_redactie/stadjer_ontdekt_dat_de_rijbaan_g_4cb6c0c7.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Stadjer ontdekt dat de rijbaan geen stoep is, getuigen spreken van een leerzaam moment",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Taxichauffeur rijdt klant na klant keurig naar huis. Centrale denkt aan een storing.": {
+"src": "kiekdoar_redactie/taxichauffeur_rijdt_klant_na_kla_008d3c00.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Taxichauffeur rijdt klant na klant keurig naar huis. Centrale denkt aan een storing.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Traumaheli haalt Gouden Eierbal uit ballon. UMCG: \"Het stond niet in het rooster, maar het was een geslaagde operatie.\"": {
+"src": "kiekdoar_redactie/traumaheli_haalt_gouden_eierbal__40cab23b.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Traumaheli haalt Gouden Eierbal uit ballon. UMCG: \"Het stond niet in het rooster, maar het was een geslaagde operatie.\"",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: \"Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!\"": {
+"src": "kiekdoar_redactie/twee_friese_reuzen_zwemmen_door__576904a8.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: \"Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!\"",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Verhuizer zet student na student heel op hun nieuwe kamer, kamernood officieel een beetje minder.": {
+"src": "kiekdoar_redactie/verhuizer_zet_student_na_student_d1c22726.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Verhuizer zet student na student heel op hun nieuwe kamer, kamernood officieel een beetje minder.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Weer meldingen van het Peerd op een rotonde. Gemeente: “Wij verplaatsen geen paarden.”": {
+"src": "kiekdoar_redactie/weer_meldingen_van_het_peerd_op__2c9ce3d3.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Weer meldingen van het Peerd op een rotonde. Gemeente: “Wij verplaatsen geen paarden.”",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
+"Kiekdoar-redactie|Zomeravond op de Grote Markt: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert. Gewonden: nul. Natte mensen: veel.": {
+"src": "kiekdoar_redactie/zomeravond_op_de_grote_markt_par_fa526aa1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Zomeravond op de Grote Markt: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert. Gewonden: nul. Natte mensen: veel.",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-02"
+},
 "Mem Terpstra|Pas goed op dysels, famke. – M.": {
 "src": "mem_terpstra/pas_goed_op_dysels_famke_m_6c08fe1e.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -482,303 +779,6 @@
 "voice": "Sulafat",
 "input": "Voor een fatsoenlijke bank. Op een krukje denk je niet goed na, jong.",
 "style": "spoken in Dutch with a Groningen accent; oude Groningse oma, warm en stellig. Tone: warm, ontroerd.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|\"Hij kwam uit het niets,\" zegt voetganger die midden op straat naar zijn telefoon stond te staren": {
-"src": "sikkom_redactie/hij_kwam_uit_het_niets_zegt_voet_0d6cb1b7.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "\"Hij kwam uit het niets,\" zegt voetganger die midden op straat naar zijn telefoon stond te staren",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Bezorger fietst bestelling na bestelling warm door de stad, klanten verbijsterd.": {
-"src": "sikkom_redactie/bezorger_fietst_bestelling_na_be_3ffe6f3f.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Bezorger fietst bestelling na bestelling warm door de stad, klanten verbijsterd.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Bloemetjesmarkt! Binnenstad vol touringcars en kamerplanten. Parkeren? Vergeet het maar.": {
-"src": "sikkom_redactie/bloemetjesmarkt_binnenstad_vol_t_d8c8db07.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Bloemetjesmarkt! Binnenstad vol touringcars en kamerplanten. Parkeren? Vergeet het maar.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Buslijn 3 rijdt alweer volgens de dienstregeling, reizigers in verwarring.": {
-"src": "sikkom_redactie/buslijn_3_rijdt_alweer_volgens_d_cb706a59.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Buslijn 3 rijdt alweer volgens de dienstregeling, reizigers in verwarring.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Die gejatte fiets staat nu ergens anders. Met een ander slot.": {
-"src": "sikkom_redactie/die_gejatte_fiets_staat_nu_ergen_bfdbf3f0.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Die gejatte fiets staat nu ergens anders. Met een ander slot.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Duif pikt Friese vlag van d'Olle Grieze. Op de vlag stond FOAR MEM. Stadjers juichen, de toren zelf zegt niks.": {
-"src": "sikkom_redactie/duif_pikt_friese_vlag_van_d_olle_948b2f7e.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Duif pikt Friese vlag van d'Olle Grieze. Op de vlag stond FOAR MEM. Stadjers juichen, de toren zelf zegt niks.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Duif pikt Friese vlag van d'Olle Grieze. Stadjers juichen, de toren zelf zegt niks.": {
-"src": "sikkom_redactie/duif_pikt_friese_vlag_van_d_olle_cb9d3087.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Duif pikt Friese vlag van d'Olle Grieze. Stadjers juichen, de toren zelf zegt niks.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Eerste zon: het Noorderplantsoen ligt vol kleedjes, speakers en wegwerpbarbecues.": {
-"src": "sikkom_redactie/eerste_zon_het_noorderplantsoen__6ecf65d2.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Eerste zon: het Noorderplantsoen ligt vol kleedjes, speakers en wegwerpbarbecues.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Er rijdt niets boven Groningen: Stadjers op het podium, Friese trekker op de vluchtstrook.": {
-"src": "sikkom_redactie/er_rijdt_niets_boven_groningen_s_a569f409.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Er rijdt niets boven Groningen: Stadjers op het podium, Friese trekker op de vluchtstrook.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen kochten alles op. Contant, oet n klomp. Op de tankwagen stond Us Mem Vet.\"": {
-"src": "sikkom_redactie/frituurvet_uitverkocht_in_heel_g_911acd3f.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen kochten alles op. Contant, oet n klomp. Op de tankwagen stond Us Mem Vet.\"",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons.\"": {
-"src": "sikkom_redactie/frituurvet_uitverkocht_in_heel_g_e522fa85.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Frituurvet uitverkocht in heel Grunn. Groothandel: \"Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons.\"",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Gejatte fiets duikt op aan de andere kant van de stad. Het zadel is nog warm.": {
-"src": "sikkom_redactie/gejatte_fiets_duikt_op_aan_de_an_3da94dc8.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Gejatte fiets duikt op aan de andere kant van de stad. Het zadel is nog warm.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Gevonden: een fiets die gisteren nog ergens anders stond. Niemand weet van niks.": {
-"src": "sikkom_redactie/gevonden_een_fiets_die_gisteren__d4220672.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Gevonden: een fiets die gisteren nog ergens anders stond. Niemand weet van niks.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: \"Wij snappen er niks van.\"": {
-"src": "sikkom_redactie/gouden_eierbal_foetsie_politie_z_6334e640.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: \"Wij snappen er niks van.\"",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Gouden Eierbal foetsie. Stad in rouw. Museum: \"Wij snappen er niks van, de camera's stonden uit.\"": {
-"src": "sikkom_redactie/gouden_eierbal_foetsie_stad_in_r_3ca87f20.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Gouden Eierbal foetsie. Stad in rouw. Museum: \"Wij snappen er niks van, de camera's stonden uit.\"",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Gouden Eierbal terug in het museum. Friese snackkoning proeft Groninger eierbal en zegt niks. Wel twee keer.": {
-"src": "sikkom_redactie/gouden_eierbal_terug_in_het_muse_a686db03.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Gouden Eierbal terug in het museum. Friese snackkoning proeft Groninger eierbal en zegt niks. Wel twee keer.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Grunn viert Gronings Ontzet. Vlaggen op de Grote Markt, vanavond vuurwerk.": {
-"src": "sikkom_redactie/grunn_viert_gronings_ontzet_vlag_e1929e0e.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Grunn viert Gronings Ontzet. Vlaggen op de Grote Markt, vanavond vuurwerk.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Handhaver ruimt het Stationsplein keer op keer leeg, fietsenrekken voor het eerst ooit halfvol.": {
-"src": "sikkom_redactie/handhaver_ruimt_het_stationsplei_847b8ee5.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Handhaver ruimt het Stationsplein keer op keer leeg, fietsenrekken voor het eerst ooit halfvol.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Het Peerd van Ome Loeks staat ergens anders, zeggen bewoners. Gemeente: “Dat moet een ander paard zijn.”": {
-"src": "sikkom_redactie/het_peerd_van_ome_loeks_staat_er_47947473.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Het Peerd van Ome Loeks staat ergens anders, zeggen bewoners. Gemeente: “Dat moet een ander paard zijn.”",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|KEI-week! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden.": {
-"src": "sikkom_redactie/kei_week_groepjes_nieuwe_stadjer_9dceb980.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "KEI-week! Groepjes nieuwe Stadjers in de binnenstad en het Noorderplantsoen. Rustig rijden.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Kermis op de Grote Markt! Botsauto's, suikerspin en een reuzenrad tot diep in de nacht.": {
-"src": "sikkom_redactie/kermis_op_de_grote_markt_botsaut_01d7f5e3.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Kermis op de Grote Markt! Botsauto's, suikerspin en een reuzenrad tot diep in de nacht.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.": {
-"src": "sikkom_redactie/noordelijke_snackprijs_naar_grun_8601bb1d.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Noordelijke Snackprijs naar Grunn. Gouden Eierbal terug in het museum, met een tweede naam op het bordje: Gerda Terpstra, 1953.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Peerd van Ome Loeks gezien op een rotonde. Gemeente: “Het beeld staat gewoon op zijn plek.”": {
-"src": "sikkom_redactie/peerd_van_ome_loeks_gezien_op_ee_228ed1fb.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Peerd van Ome Loeks gezien op een rotonde. Gemeente: “Het beeld staat gewoon op zijn plek.”",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Rondvaartgids vaart tocht na tocht zonder één toerist overboord.": {
-"src": "sikkom_redactie/rondvaartgids_vaart_tocht_na_toc_8945cd1f.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Rondvaartgids vaart tocht na tocht zonder één toerist overboord.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Rotonde heeft ineens een paard. Gemeente ontkent alles, ook het paard.": {
-"src": "sikkom_redactie/rotonde_heeft_ineens_een_paard_g_0e5b174a.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Rotonde heeft ineens een paard. Gemeente ontkent alles, ook het paard.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Stadjer aan het werk rijdt voetganger van de sokken, voetganger bestelt daarna gewoon een patatje": {
-"src": "sikkom_redactie/stadjer_aan_het_werk_rijdt_voetg_dc519f04.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Stadjer aan het werk rijdt voetganger van de sokken, voetganger bestelt daarna gewoon een patatje",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Stadjer ontdekt dat de rijbaan geen stoep is, getuigen spreken van een leerzaam moment": {
-"src": "sikkom_redactie/stadjer_ontdekt_dat_de_rijbaan_g_4cb6c0c7.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Stadjer ontdekt dat de rijbaan geen stoep is, getuigen spreken van een leerzaam moment",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Taxichauffeur rijdt klant na klant keurig naar huis. Centrale denkt aan een storing.": {
-"src": "sikkom_redactie/taxichauffeur_rijdt_klant_na_kla_008d3c00.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Taxichauffeur rijdt klant na klant keurig naar huis. Centrale denkt aan een storing.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Traumaheli haalt Gouden Eierbal uit ballon. UMCG: \"Het stond niet in het rooster, maar het was een geslaagde operatie.\"": {
-"src": "sikkom_redactie/traumaheli_haalt_gouden_eierbal__40cab23b.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Traumaheli haalt Gouden Eierbal uit ballon. UMCG: \"Het stond niet in het rooster, maar het was een geslaagde operatie.\"",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: \"Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!\"": {
-"src": "sikkom_redactie/twee_friese_reuzen_zwemmen_door__576904a8.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: \"Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!\"",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: zakelijk voorlezend, met een knipoog.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Verhuizer zet student na student heel op hun nieuwe kamer, kamernood officieel een beetje minder.": {
-"src": "sikkom_redactie/verhuizer_zet_student_na_student_d1c22726.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Verhuizer zet student na student heel op hun nieuwe kamer, kamernood officieel een beetje minder.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Weer meldingen van het Peerd op een rotonde. Gemeente: “Wij verplaatsen geen paarden.”": {
-"src": "sikkom_redactie/weer_meldingen_van_het_peerd_op__2c9ce3d3.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Weer meldingen van het Peerd op een rotonde. Gemeente: “Wij verplaatsen geen paarden.”",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Sikkom-redactie|Zomeravond op de Grote Markt: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert. Gewonden: nul. Natte mensen: veel.": {
-"src": "sikkom_redactie/zomeravond_op_de_grote_markt_par_fa526aa1.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "Zomeravond op de Grote Markt: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert. Gewonden: nul. Natte mensen: veel.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
@@ -998,15 +998,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Geert van de Groote Griet zegt dat Durk en Douwe vanavond in de Poelestraat zijn. Een kroegentocht dus. Voor het onderzoek.": {
-"src": "tammo/geert_van_de_groote_griet_zegt_d_d9d817fe.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Orus",
-"input": "Geert van de Groote Griet zegt dat Durk en Douwe vanavond in de Poelestraat zijn. Een kroegentocht dus. Voor het onderzoek.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
 "Tammo|Geert zegt dat Durk en Douwe aan zijn bar zingen. Poelestraat. Een kroegentocht dus. Voor het onderzoek.": {
 "src": "tammo/geert_zegt_dat_durk_en_douwe_aan_cf245d5f.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1070,14 +1061,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Iedereen kijkt naar Sikkom. Niemand naar ons.": {
-"src": "tammo/iedereen_kijkt_naar_sikkom_niema_2161c823.mp3",
+"Tammo|Iedereen kijkt naar Kiekdoar. Niemand naar ons.": {
+"src": "tammo/iedereen_kijkt_naar_kiekdoar_nie_6339b767.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Orus",
-"input": "Iedereen kijkt naar Sikkom. Niemand naar ons.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
+"input": "Iedereen kijkt naar Kiekdoar. Niemand naar ons.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Tammo|Jelmer wil zijn stunt op de Grote Markt, maar hij leent niks meer uit. Met de poen van Sjabbe koop jij een blaffer bij Pang & Zo.": {
 "src": "tammo/jelmer_wil_zijn_stunt_op_de_grot_f7fd38c5.mp3",
@@ -1157,15 +1148,6 @@
 "voice": "Orus",
 "input": "Niemand heeft ons gezien. En nu weet ik ook hoe we langs die tweeling komen: met een duif.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Tammo|Niemand keek naar ons. Iedereen keek naar Sikkom. En die Jelle heeft het over \"Operaasje Aaibal\".": {
-"src": "tammo/niemand_keek_naar_ons_iedereen_k_b7d4d09d.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Orus",
-"input": "Niemand keek naar ons. Iedereen keek naar Sikkom. En die Jelle heeft het over \"Operaasje Aaibal\".",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },

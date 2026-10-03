@@ -94,7 +94,7 @@ export const FY = {
   'Wie heeft mijn flagge…? In DUIF?! Ik weet wel wie die duif is.': 'Wie heeft mijn vlag…? Een DUIF?! Ik weet wel wie die duif is.',
   'Moai, Grinzers. Kom naar het Stadsbalkon. Ik heb een bod voor jullie.': 'Mooi, Groningers. Kom naar het Stadsbalkon. Ik heb een bod voor jullie.',
   'Moai, Grinzers! Kijk eens omhoog. Wat een aardich tuorke, no.': 'Mooi, Groningers! Kijk eens omhoog. Wat een aardig torentje, nu.',
-  // phone and Sikkom feed (storyarc.js, phone.js, postgame.js)
+  // phone and Kiekdoar feed (storyarc.js, phone.js, postgame.js)
   'Moai, Grinzers! Hier is Jelle. Operaasje Aaibal is begonnen. Oant sjen op Gronings Ontzet!': 'Mooi, Groningers! Hier is Jelle. Operatie Eierbal is begonnen. Tot ziens op Gronings Ontzet!',
   'Dat vet was van mij! No ja. Ik heb meer. Operaasje Aaibal gaat gewoon door, Grinzers.': 'Dat vet was van mij! Nou ja. Ik heb meer. Operatie Eierbal gaat gewoon door, Groningers.',
   '"Op de ringweg, met een eigen auto. As dat jild der is."': '"Op de ringweg, met een eigen auto. Als dat geld er is."',
@@ -300,7 +300,7 @@ export const GRO = {
   'Kon minder!': 'Geweldig! (Gronings: kon minder)',
   '"Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!"': '"Dat heb ik van mijn leven nog niet gezien. Ze zwommen synchroon!"',
   '"Twee reuzen op ain fatbike kochten alles op. Contant, oet n klomp. Kon minder, veur ons."': '"Twee reuzen op één fatbike kochten alles op. Contant, uit een klomp. Prima, voor ons."',
-  // carbid schieten, the botsauto's and Radio Grunn (funlines.js)
+  // carbid schieten, the botsauto's and Radio Proat (funlines.js)
   'Moi! De melkbus ligt kloar. Nait te veul wotter, hè.': 'Hoi! De melkbus ligt klaar. Niet te veel water, hè.',
   'Kom mor gaauw, t wordt al schemerg.': 'Kom maar gauw, het wordt al schemerig.',
   'Te vroug, jong. Dat was n scheetje.': 'Te vroeg, jongen. Dat was een scheetje.',
@@ -326,7 +326,7 @@ export const GRO = {
   'Au, mien nek!': 'Au, mijn nek!',
   'Hé! Kiek toch uut!': 'Hé! Kijk toch uit!',
   'Ik krieg die wel!': 'Ik krijg je wel!',
-  'Radio Grunn. Proatradio veur Stad en Ommeland.': 'Radio Grunn. Praatradio voor Stad en Ommeland.',
+  'Radio Proat. Wie proaten, joe heuren. Veur Stad en Ommeland.': 'Radio Proat. Wij praten, jij luistert. Voor Stad en Ommeland.',
 };
 
 // German and English tourists on the rondvaartboot (rondvaartlines.js)

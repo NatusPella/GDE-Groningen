@@ -59,7 +59,7 @@ const BUMP_LINES = ['Kiek uut!', 'Rot op, joh!', 'Bist betoeterd?', 'Hé, kiek e
 const CAR_BUMP_LINES = ['Kiek uut, joh!', 'Bist betoeterd?', 'Hé! Ik loop hier!'];
 const THEFT_LINES = ['Hé, dat is mien auto!', 'Mien auto! Rot op, joh!', 'Hé! Kom terug mit mien auto!'];
 const BIKE_THEFT_LINES = ['Hé, mien fiets!', 'Dat is mien fiets, joh!'];
-const FILM_LINES = ['Dit gaat op Sikkom!', 'Dit gaat op Sikkom!', 'Moi, dit wordt viraal!'];
+const FILM_LINES = ['Dit gaat op Kiekdoar!', 'Dit gaat op Kiekdoar!', 'Moi, dit wordt viraal!'];
 const COP_LINES = ['Staan blijven! Politie!', 'Handen omhoog!', 'Blijf stoan!', 'Blief stoan, mien jong!', 'Kom mor mit noar t bureau.'];
 const CALL_LINES = {
   shot: 'Hallo, 112? Hier wordt schoten!',

@@ -220,10 +220,10 @@ it fits, with the largest file at 11.7 MB (`citymap.json`).
   route always points to the next step, and every step can be skipped from
   the pause menu, after a failed mission also with O; Jelle Terpstra and the
   twins Durk & Douwe appear in the cutscenes and reach you by voiced calls,
-  livestreams, Sikkom posts and cards; "Eerder in GTE VI" recaps open each
+  livestreams, Kiekdoar posts and cards; "Eerder in GTE VI" recaps open each
   part and "Wat weten we?" in the pause menu lists the clues so far), shops (weapons,
   armour and food are bought, not found on the street; you start with €250),
-  Sikkom news feed and phone notifications. Duif-modus as an in-game
+  Kiekdoar news feed and phone notifications. Duif-modus as an in-game
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,
   Noorderplantsoen, Stationsplein and a duiventil at the volkstuinen) press E
   to become a pigeon, fly and poop over the wijk you are in, and press X (or

@@ -280,7 +280,7 @@ function plantsoen(p) {
     F.plantsoen = want;
     F.plantsoenSet = true;
     // a park that is already full when the game starts is no news
-    if (want && !first && started && world.time >= F.newsFrom && F.plantsoenNewsDay !== F.day && d < 1500) { F.plantsoenNewsDay = F.day; notify('Sikkom', PLANTSOEN_NEWS); }
+    if (want && !first && started && world.time >= F.newsFrom && F.plantsoenNewsDay !== F.day && d < 1500) { F.plantsoenNewsDay = F.day; notify('Kiekdoar', PLANTSOEN_NEWS); }
   }
   if (F.plantsoen && d < PLANTSOEN.r && ready('plantsoen') && Math.random() < 0.1 && bark(p, PLANTSOEN_BARKS)) hold('plantsoen', 35 + Math.random() * 25);
 }
@@ -304,7 +304,7 @@ function cows(p) {
   if (!kind || !ready('cows') || Math.random() > 0.6) return;
   hold('cows', 200 + Math.random() * 120);
   const [cow, line] = pick(COW_FEED[kind]);
-  notify('Sikkom · De Koeien', `${cow}: “${line}”`, { voiced: true });
+  notify('Kiekdoar · De Koeien', `${cow}: “${line}”`, { voiced: true });
   speak('Koe ' + cow, line);
 }
 
@@ -349,7 +349,7 @@ function events(p, step) {
   const ev = EVENT_DAYS[key];
   if (F.announceAt != null && world.time >= F.announceAt) {
     F.announceAt = null;
-    notify('Sikkom', ev.announce);
+    notify('Kiekdoar', ev.announce);
     world.addMessage(ev.card ? `${ev.name}: ${ev.card}` : `Vandaag in Grunn: ${ev.name}`, 6, { kind: 'tip', kicker: 'Vandaag in Grunn', important: true, key: 'event-day' });
   }
   const centre = d2(p, CITY_CENTRE) < CITY_CENTRE.r + 80;
@@ -502,7 +502,7 @@ function peerd(p) {
   if (F.peerdNews) {
     F.peerdNews = false;
     const i = Math.floor(Math.random() * PEERD_NEWS.length);
-    notify('Sikkom', PEERD_NEWS[i].replace('{w}', placeName(F.peerd.x, F.peerd.y)), { say: SMS_SAY.peerd.lines[i] });
+    notify('Kiekdoar', PEERD_NEWS[i].replace('{w}', placeName(F.peerd.x, F.peerd.y)), { say: SMS_SAY.peerd.lines[i] });
   }
   if (d2(p, F.peerd) < 35 && ready('peerd') && Math.random() < 0.2 && bark(F.peerd, PEERD_BARKS, 30)) hold('peerd', 80);
 }
@@ -567,7 +567,7 @@ function stolenBikes(p) {
     b.parked = true;
     world.vehicles.push(b);
     const i = Math.floor(Math.random() * BIKE_RESURFACE.length);
-    notify('Sikkom', BIKE_RESURFACE[i].replace('{a}', r.from).replace('{b}', placeName(x, y)), { say: SMS_SAY.bike.lines[i] });
+    notify('Kiekdoar', BIKE_RESURFACE[i].replace('{a}', r.from).replace('{b}', placeName(x, y)), { say: SMS_SAY.bike.lines[i] });
     F.resurface = null;
     return;
   }
@@ -619,7 +619,7 @@ const debugApi = {
   krol() { F.krolInside = false; cd.krol = 0; krolbrug({ x: KROLBRUG.x, y: KROLBRUG.y }); return F.krolText; },
   peerd() { F.night++; placePeerd(); F.peerdNews = true; return F.peerd; },
   sun(on = true) { F.sunny = on; F.plantsoenSet = false; },
-  cows(kind = 'wreck') { cd.cows = 0; F.cowPrev = null; const [cow, line] = pick(COW_FEED[kind]); notify('Sikkom · De Koeien', `${cow}: “${line}”`, { voiced: true }); return speak('Koe ' + cow, line); },
+  cows(kind = 'wreck') { cd.cows = 0; F.cowPrev = null; const [cow, line] = pick(COW_FEED[kind]); notify('Kiekdoar · De Koeien', `${cow}: “${line}”`, { voiced: true }); return speak('Koe ' + cow, line); },
   gps() { cd.gps = 0; const l = pick(RING_ZUID_GPS); world.addMessage(`Navigatie: “${l}”`, 4); return speak('Navigatie', l); },
   radio() { const l = pick(NACHTSTREEK); world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', at: world.time }; return speak(NARRATOR, l, true); },
   perfect() { world.lastPerfectRun = world.time - 3; },
