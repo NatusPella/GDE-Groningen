@@ -811,8 +811,10 @@ export function updateStory(dt, w) {
     w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"`, 4.5);
     playClueSting();
   }
-  // the next step's text waits until a scene has been over for a moment
-  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE && !storyFunBusy()) {
+  // the next step's text waits until a scene has been over for a moment, and
+  // until the step's character has taken over: its "Bel Rikus" would hold the handover off
+  const handoverDue = !!step.player && w.player.character !== step.player && !isMissionActive();
+  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE && !storyFunBusy() && !handoverDue) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
     const buy = isPurchase(step) && (world.storyGuide && world.storyGuide.buy ? world.storyGuide.name : storyBuyLabel(world));
