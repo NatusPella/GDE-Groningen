@@ -23,7 +23,8 @@ import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } f
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, isRangedWeapon } from './combat.js';
 import { alignPlayerFlash } from './gunfx3d.js';
-import { createWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
+import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
+import { cityShoreFix } from './countrywater.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
 import { sleepingParkedCars } from './parkedcars.js';
 import { syncParkedLayer } from './parked3d.js';
@@ -754,6 +755,8 @@ export function init3D(map) {
   scene.add(skyDome);
   envUpdater = createEnvironmentUpdater(renderer, sunDir);
   scene.environment = envUpdater.update(skyUniforms.uZenith.value, skyUniforms.uHorizon.value, new THREE.Color(0x6e6250), sunDir, skyUniforms.uSunColor.value, 0.45);
+  // one water material for the canals and the Ommeland water (countrywater.js)
+  waterMaterial = sharedWaterMaterial(skyUniforms);
   scene.userData.sky = { uniforms: skyUniforms };
   scene.userData.lightBase = lightBase;
 
@@ -1010,8 +1013,7 @@ function buildPolyGeometry(pts) {
 // once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
 let waterMaterial = null;
 function buildWaterMesh(poly, y, map) {
-  if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map));
-  if (!waterMaterial) waterMaterial = createWaterMaterial(skyUniforms);
+  if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map), cityShoreFix);
   const group = new THREE.Group();
   const mesh = new THREE.Mesh(poly._geoWater, waterMaterial);
   mesh.position.y = y;
@@ -1737,7 +1739,7 @@ export function update3D(dt, world) {
   probe.mark('3d:grass');
   syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, player.x, player.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
-  if (waterMaterial) updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
+  updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
   probe.mark('3d:water');
   syncRoads(world, player.x, player.y);

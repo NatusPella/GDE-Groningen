@@ -22,6 +22,7 @@ import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
 import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
 import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
+import { rebuildChunkWater, dropChunkWater, updateCountryWater, countryWaterStats } from './countrywater.js';
 
 // Endless Ommelanden past the real map: a ground ring that follows the
 // player (same terrain shader, so the feathered edge in terrain3d continues
@@ -781,10 +782,12 @@ function rebuildChunk(ch) {
     markInstancesDirty(mesh.instanceMatrix, off);
     markInstancesDirty(mesh.instanceColor, off);
   }
+  rebuildChunkWater(ch, S.group, TILE, (t) => t.mid);
 }
 
 function dropChunk(ch) {
   for (const mesh of ch.meshes.values()) { S.group.remove(mesh); mesh.dispose(); }
+  dropChunkWater(ch);
   ch.meshes.clear();
   S.chunks.delete(ch.key);
 }
@@ -1018,7 +1021,7 @@ function addReeds(t) {
   const put = (a, b) => {
     const [x, y] = blockToWorld(bx, by, rot, a, b);
     const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
-    if (clump > 0.42 || !openLand(x, y)) return;
+    if (clump > 0.42 || !openLand(x, y) || realWater(x, y) > -0.5) return;
     const p = parcelAt(x, y);
     if (p.road || p.dMain < MAIN_HW * 0.8 || p.dMaar < MAAR_WATER || (p.dDitch < DITCH_HW * 0.72 && p.dMain > MAIN_HW + 0.5)) return;
     if (farmAt(x, y, 0) || inVillage(x, y, 0) || edgeBlocked(x, y, 1)) return;
@@ -1057,7 +1060,7 @@ function addReeds(t) {
         const o = sd * (MAAR_WATER + 0.25 + chash(Math.round(q * 4), sd + 7) * 0.4);
         const x = vert ? c + o : x0 + q, y = vert ? y0 + q : c + o;
         const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
-        if (clump > 0.5 || !openLand(x, y) || parcelAt(x, y).road || farmAt(x, y, 0)) continue;
+        if (clump > 0.5 || !openLand(x, y) || realWater(x, y) > -0.5 || parcelAt(x, y).road || farmAt(x, y, 0)) continue;
         const h = chash(Math.round(x * 3), Math.round(y * 3));
         push(tmp, 'reed', x, y, h * 6.28, 1 + h * 0.3, 0.8 + clump * 1.2, 1 + h * 0.3, 0xffffff, 0.12);
       }
@@ -1431,6 +1434,7 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
     world.countryAudible = [];
   }
   S.idle = !(near || S.tiles.size);
+  updateCountryWater(p.x, p.y, S.idle ? 0 : propRadius(viewDist) - 50, world.time);
   gameplay(dt, world);
   // the skyline leaves out what the props draw, less what it may lag behind
   updateSkyline(dt, world, scene, cam, Math.max(0, propRadius(viewDist) - 250));
@@ -1450,6 +1454,6 @@ export function countrysideStats() {
   return {
     ms: +(S.ms || 0).toFixed(3), maxMs: +(S.maxMs || 0).toFixed(2), genMax: +S.genMax.toFixed(2), tiles: S.tiles.size, queue: S.queue.length, chunks: S.chunks.size, meshes,
     animals: S.animals.length, skinned: S.skinned.size, herd, farms: S.farmCount, flocks: S.flocks.length, pools,
-    skyline: skylineStats(), life: lifeStats(), villages: villageStats(),
+    skyline: skylineStats(), life: lifeStats(), villages: villageStats(), water: countryWaterStats(S.chunks.values()),
   };
 }
