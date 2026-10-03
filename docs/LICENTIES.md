@@ -1,0 +1,444 @@
+# Licenties, rechten en risico's
+
+Stand van 3 oktober 2026. Dit is een inventaris en een advies, geen
+juridisch advies van een advocaat. Waar iets onzeker is staat dat erbij
+(**ONDUIDELIJK** of **RISICO**). Beslissingen voor de eigenaar staan in §9.
+
+Korte versie:
+
+- Code, verhaal en teksten zijn eigen werk. Alles van derden is open
+  source (MIT, OFL) of open data (ODbL) en mag mee, mits de vermeldingen
+  kloppen. Die staan nu in `NOTICE.md`, `licenses/` en in het spel.
+- De kaartdata is ODbL: de JSON-kaartbestanden blijven ODbL, ook als de rest
+  van het project een andere licentie krijgt.
+- Muziek en stemmen komen van Google Gemini. Google claimt geen eigendom,
+  verspreiden in een gratis spel mag. Puur AI-gemaakte audio is in de EU
+  waarschijnlijk niet auteursrechtelijk beschermd, dus een eigen licentie
+  daarop is weinig waard.
+- Het grootste risico is de naam en stijl tegenover GTA (Take-Two). Op
+  Steam wordt dat groter. Zie §6 en §8.
+- Te verwijderen vóór publicatie: `data/satellite_reference.jpg` (Esri-
+  luchtfoto, mag niet herverspreid worden), ook uit de git-historie.
+
+---
+
+## 1. Inventaris: software en lettertypen
+
+| Onderdeel | Waar | Licentie | Wat moet | Status |
+|---|---|---|---|---|
+| **three.js r160** + addons (`GLTFLoader` e.a.) | browser: jsDelivr-CDN via import map en directe URL's; desktop: gekopieerd naar `build/game/vendor/npm` door `desktop/build.mjs` | [MIT](https://github.com/mrdoob/three.js/blob/dev/LICENSE) | copyrightregel + licentietekst bij kopieën | `licenses/MIT-three.js.txt`, gaat nu mee in de desktopbuild |
+| **Bebas Neue** | browser: Google Fonts-CSS; desktop: woff2 in `vendor/fonts`; ook als subset ingebed in `desktop/resources/icon.svg` | [SIL OFL 1.1](https://openfontlicense.org), © 2010 Dharma Type ([bron](https://github.com/dharmatype/Bebas-Neue)) | bij meeleveren: copyright + OFL-tekst; font niet los verkopen | `licenses/OFL-BebasNeue.txt`, gaat mee in de desktopbuild |
+| Systeemlettertypen (Arial, Arial Narrow, Georgia, Segoe Print, Comic Sans, Menlo, Consolas, system-ui) | CSS en canvas-teksten | van het OS van de speler | niets: niet meegeleverd | ok |
+| **Electron** 44 | desktopapp | [MIT](https://github.com/electron/electron/blob/main/LICENSE); Chromium en Node onder eigen licenties | electron-builder zet `LICENSE.electron.txt` en `LICENSES.chromium.html` naast de app | ok, niet weghalen |
+| **electron-builder** 26 | alleen bouwtool | [MIT](https://github.com/electron-userland/electron-builder/blob/master/LICENSE) | niets: zit niet in de app | ok |
+| Python (portable, door `start.bat` van python.org gedownload) | Windows-zip | [PSF License](https://docs.python.org/3/license.html) | niets: de speler downloadt het zelf van python.org | ok |
+| Eigen code | `game/`, `desktop/`, `scripts/` | nog geen licentie (zie §7) | | **beslissing** |
+
+Geen andere vendored code, geen npm-afhankelijkheden in het spel zelf,
+geen `node_modules` in git.
+
+## 2. Inventaris: beeld, 3D en geluid
+
+| Onderdeel | Bron | Rechten | Status |
+|---|---|---|---|
+| Texturen, borden, gevels, alle 3D-modellen behalve de Martinitoren | procedureel in de code (canvas, three.js-geometrie) | eigen werk | ok |
+| `game/models/martinitoren.glb` | gemaakt met **Claude Design** (Anthropic), commit `a30ad76`; prompt in `docs/3d-model-prompts.md`; exporter `THREE.GLTFExporter r184` | Anthropic draagt zijn rechten op output over aan de gebruiker ([Consumer Terms](https://www.anthropic.com/legal/consumer-terms), "Outputs") | ok |
+| Referentiefoto's voor Paddepoel (oogtv.nl, Wikimedia Commons, genoemd in `paddepoel3d.js`) | alleen gebruikt als voorbeeld bij het modelleren | foto's zitten niet in het spel | ok |
+| `data/satellite_reference.jpg` (6,4 MB) | **Esri World Imagery**-export (`scripts/extract_palette.py`) | Esri-beelden mogen niet als los bestand herverspreid worden ([Esri-voorwaarden](https://www.esri.com/en-us/legal/terms/full-master-agreement)); alleen de afgeleide kleurwaarden zitten in het spel | **RISICO**: weghalen uit repo en historie vóór publicatie (zie `docs/PUBLICEREN.md`) |
+| Geluidseffecten (motor, foley, ambience, UI) | gesynthetiseerd in `game/js/sfx/*.js` | eigen werk | ok |
+| Muziek: 14 G-Music-nummers, 2 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
+| Stemmen: ~3.400 clips in `game/audio/voicelines` (gelogd in `tts.json`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe) | Gemini TTS via OpenRouter | zie §4 | ok |
+| Oudere clips zonder `tts.json`: `audio/npc`, `audio/police`, `audio/sikkom`, `audio/gmusic/jingles` | Gemini TTS (o.a. "Gemini 3.1 Flash TTS Preview", commits `f661a12` en `fc4fe8c`) | als hierboven; was een preview-model | **ONDUIDELIJK**: herkomst niet per clip gelogd. Advies: opnieuw inspreken met 3.8 en loggen, dan is alles herleidbaar |
+| App-icoon `desktop/resources/icon.svg/png` | eigen ontwerp met ingebedde Bebas Neue | OFL staat inbedden toe | ok |
+
+## 3. Inventaris: kaart en andere data
+
+| Onderdeel | Bron | Licentie | Wat moet |
+|---|---|---|---|
+| `game/citymap.json`, `game/mapextras.json`, `game/ommeland.json`, `game/ommeland.bin` | OpenStreetMap via Overpass (`scripts/fetch_osm.py`, `fetch_ommeland.py`, `add_*.py`, `build_map.py`) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) | naamsvermelding; deze **afgeleide databases** blijven ODbL als je ze verspreidt (share-alike) |
+| `data/*_raw.json(.gz)`, `data/*.overpass` | Overpass-extracten van OSM | ODbL | idem |
+| Hoogtes van de ring (`add_elevation.py`) | berekend uit OSM-tags (layer, bridge, tunnel) | ODbL | idem; geen AHN- of andere hoogtedata gebruikt |
+| Overpass-servers (overpass-api.de, kumi.systems, private.coffee, maps.mail.ru) | alleen bij het bouwen van de kaart | [gebruiksvoorwaarden](https://dev.overpass-api.de/overpass-doc/en/preface/commons.html): redelijk gebruik | niets voor de speler |
+
+**OSM-vermelding** ([Attribution Guidelines](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines)):
+voor games mag de vermelding in de aftiteling, een splash-scherm of een
+menu, mét de link openstreetmap.org/copyright; op een interactieve kaart
+hoort hij in een hoek van de kaart. Nu in het spel:
+
+- laadscherm (onderaan, met link-tekst);
+- startscherm → **Over**;
+- aftiteling na de finale (kaart `© OpenStreetMap-bijdragers`);
+- grote kaart (M): linksonder `© OpenStreetMap-bijdragers · openstreetmap.org/copyright`.
+
+De minimap heeft geen eigen vermelding; dat mag volgens de richtlijnen
+omdat de vermelding in menu en aftiteling staat en de minimap geen
+zelfstandige kaartdienst is.
+
+**ODbL in gewone taal**: het spel als geheel is een *Produced Work*; daar
+volstaat de naamsvermelding. De JSON- en bin-bestanden zelf zijn een
+*Derivative Database*; wie die publiek verspreidt (repo publiek, of in een
+download), moet ze onder de ODbL aanbieden of de manier om ze opnieuw te
+maken. Dat doen de scripts in `scripts/` al. Gevolg: de licentie van het
+project (§7) moet deze bestanden **uitzonderen**: die blijven ODbL.
+
+**Namen uit OSM in het spel**: horeca (470 echte namen, op de kaart, in
+de zoekfunctie en in meldingen als "Je hebt net al wat gehad bij …"),
+huisartsenposten bij respawn ("Huisarts van de Riet") en de garages
+(die worden in het spel wél vervangen door "Garage Knalpot <wijk>"). Dit is
+feitelijke kaartinformatie, laag risico. Zie §6.3 voor een voorstel.
+
+## 4. Gegenereerde inhoud: Google Gemini en OpenRouter
+
+### Wat de voorwaarden zeggen
+
+| Document | Kern voor GTE VI |
+|---|---|
+| [Google Terms of Service](https://policies.google.com/terms) (van kracht 30 juli 2026) | Google "won't claim ownership" van jouw content, ook AI-output. Verboden: AI-output gebruiken om ML-modellen te trainen, en anderen laten denken dat AI-content door een mens is gemaakt. |
+| [Gemini API Additional Terms](https://ai.google.dev/gemini-api/terms) (bijgewerkt 28 april 2026) | Google claimt geen eigendom van gegenereerde content, maar kan vergelijkbare content voor anderen maken. Gebruiker van de API moet 18+ zijn. Geen concurrerende modellen bouwen. Gratis tier: prompts en output mogen door Google gebruikt worden om producten te verbeteren; betaald niet. Verbod om de **Services** te gebruiken "as part of" een app die gericht is op of waarschijnlijk gebruikt wordt door minderjarigen. |
+| [Generative AI Prohibited Use Policy](https://policies.google.com/terms/generative-ai/use-policy) (17 dec 2024) | Geen imitatie van echte personen zonder duidelijke vermelding om te misleiden, geen inbreuk op IE of privacy, geen seksuele content, geen verheerlijking van geweld of extremisme. Uitzondering mogelijk voor artistieke doeleinden. |
+| [Generative AI Additional Terms](https://policies.google.com/terms/generative-ai) (2023) | **Vervallen** sinds 22 mei 2024 (opgegaan in de Google ToS), tenzij je een zakelijke overeenkomst hebt. |
+| [Gemini Apps: muziek maken](https://support.google.com/gemini/answer/16901237) | Muziek via de Gemini-app (Lyria): 18+, tracks krijgen een onhoorbaar **SynthID**-watermerk. Google positioneert het vooral als persoonlijke expressie. |
+| [OpenRouter Terms](https://openrouter.ai/terms) (31 aug 2026) | Eigendom van output volgt de voorwaarden van het model ("Model Terms"); je moet die voorwaarden van Google ook naleven. OpenRouter voegt geen extra beperking toe. |
+
+### Wat dit betekent voor een gratis spel
+
+1. **Verspreiden mag.** Geen van de documenten verbiedt het verspreiden
+   van gegenereerde muziek of spraak in een (gratis) spel. Er is geen
+   naamsvermeldingsplicht, maar wel het verbod om te doen alsof het door
+   mensen is gemaakt: daarom vermelden credits en NOTICE "gemaakt met
+   Google Gemini".
+2. **Minderjarigen-clausule (API)**: die gaat over het gebruik van de
+   *Services* in een app. Het spel roept Gemini niet aan; het speelt
+   vooraf gemaakte bestanden af. **Lees dit als: geen live TTS of AI in het
+   spel inbouwen**, anders geldt de clausule wel (en ook Steams regels
+   voor live-generated content, §8).
+3. **Muziek via de Gemini-app**: **ONDUIDELIJK** welk product precies is
+   gebruikt (app of API, gratis of betaald abonnement). Bij de app gelden
+   de Google ToS en de app-voorwaarden; commercieel gebruik wordt in
+   berichtgeving alleen genoemd voor betaalde abonnementen (AI Plus/Pro/
+   Ultra). Voor een gratis, niet-commercieel spel is dat geen probleem;
+   bij verkoop of advertenties wel opnieuw nagaan.
+4. **Auteursrecht op de output**: in de EU vereist auteursrecht een
+   "eigen intellectuele schepping" van een mens (HvJ EU, *Infopaq*,
+   *Cofemel*). Puur gegenereerde audio is daarom waarschijnlijk **niet
+   beschermd**: iedereen mag de mp3's in principe hergebruiken, en een
+   CC-licentie daarop kun je moeilijk afdwingen. Wat wél beschermd is: de
+   eigen songteksten, scripts, dialogen en het verhaal.
+5. **Gelijkenis met bestaande muziek**: Google filtert output tegen
+   bestaande opnames, maar dat is geen garantie. Laag risico; Content ID
+   op YouTube kan bij trailers wel eens afgaan.
+6. **Stemmen**: prebuilt Gemini-stemmen, geen kloon van een echt persoon.
+   Ok onder de Prohibited Use Policy.
+7. **Preview-modellen**: oudere clips komen van "Preview"-modellen. De
+   Gemini-API-voorwaarden verbieden productiegebruik van previews niet
+   expliciet; wel "experimental technology". Opnieuw inspreken met het
+   GA-model maakt het netjes (zie §2).
+
+## 5. Privacy
+
+Gecontroleerd in `game/js` en `desktop/`:
+
+- Opslag: alleen `localStorage` (save, instellingen, prestaties,
+  kaartfilters, gezien-versie). Geen cookies, geen IndexedDB-tracking.
+- Netwerk: alle `fetch()`-aanroepen gaan naar eigen bestanden
+  (`manifest.json`'s, `citymap.json`, `ommeland.*`, muziek,
+  `CHANGELOG.md`). **Geen telemetrie, analytics, crashrapportage of
+  update-check.** Geen `speechSynthesis` (die kan in Chrome tekst naar
+  Google sturen).
+- Browserversie: bij het laden haalt de pagina three.js van **jsDelivr**
+  en Bebas Neue van **Google Fonts** (beide zien het IP-adres van de
+  speler). Een Duitse rechter (LG München, 20-01-2022) vond Google Fonts
+  vanaf Google-servers in strijd met de AVG. **Advies voor de
+  browserversie/GitHub Pages**: three.js en het font zelf hosten, net als
+  de desktopbuild al doet (`desktop/build.mjs` stap 1-4 kan dat ook voor
+  een Pages-build).
+- Desktop: na `build.mjs` laadt niets meer van internet (de build checkt
+  dat). Externe links gaan via `shell.openExternal` naar de standaard-
+  browser. `start.bat` downloadt eenmalig Python van python.org.
+
+**Voorgestelde privacyverklaring (één regel)**, staat nu ook in *Over*:
+
+> GTE VI bewaart je voortgang en instellingen alleen op je eigen apparaat; er
+> gaat niets naar een server, geen account, geen tracking, geen statistieken.
+
+(Voor de browserversie, zolang de CDN's blijven: "…, behalve dat de
+browserversie bij het laden three.js en het lettertype ophaalt bij jsDelivr
+en Google Fonts.")
+
+## 6. Parodie, merken en echte personen
+
+### 6.1 GTA / Rockstar / Take-Two (grootste risico)
+
+Take-Two is actief in merkenzaken: honderden oppositions bij het USPTO
+(o.a. tegen "It Takes Two", [Inverse](https://www.inverse.com/gaming/it-takes-two-take-two-interactive-trademark-dispute))
+en DMCA-takedowns tegen GTA-mods en -fanprojecten.
+
+| Element | Bevinding | Risico | Voorstel |
+|---|---|---|---|
+| Naam "Grand Theft Eierbal" | Volgt "Grand Theft Auto" woord voor woord, alleen het laatste woord anders. "Grand Theft Auto" is een geregistreerd EU-merk met reputatie. | **hoog** zodra het commercieel of op Steam staat; gemiddeld als gratis hobbyproject (EU-merkenrecht vereist gebruik "in het economisch verkeer") | Gekozen: "GDE Groningen – Zomer vol misdaad", zie §8.2 |
+| "VI" / "GTE VI" | Kopieert de nummering van het aangekondigde GTA VI; het grote "VI" is het kernelement van het GTA VI-logo. | hoog, samen met de naam | "VI" laten vallen |
+| Logo `.gte-logo` | Bebas Neue, crème-naar-groen verloop, "VI" in een schuin groen blok. Het GTA VI-logo is een groot "VI" in roze/oranje/paars zonsondergangverloop met "Grand Theft Auto" erin. Kleuren en vorm zijn anders. Geen Pricedown. | laag-gemiddeld (alleen door "VI") | blok-"VI" vervangen door de plaatsnaam, zie §8.2 |
+| Fonts | Bebas Neue en Arial Narrow; **geen Pricedown** of andere Rockstar-letter (ook niet in de historie, gezocht op "pricedown") | laag | zo houden |
+| Trailer en naamkaarten | Structuur volgt de GTA VI-trailer (freeze frames met namen, "Tammo & Anita" met gekleurde &, letterbox). Stijl en kleuren zijn eigen. Een opzet of format is niet beschermd. | laag | ok; geen GTA-muziek of -tekst citeren |
+| Teksten/commentaar "GTA-style" | alleen in code-commentaar en `DESIGN_SYSTEM.md` | geen (niet zichtbaar voor spelers) | ok; niet in store-teksten gebruiken |
+| Disclaimer | ontbrak | — | **toegevoegd**: laadscherm, startscherm, *Over*, aftiteling, README, NOTICE |
+
+### 6.2 Merken en bedrijfsnamen in het spel
+
+| Naam | Waar | Echt merk? | Gedaan / voorstel |
+|---|---|---|---|
+| **Sikkom** (146×: nieuwsticker, SMS-afzender, Radio Grunn "Sikkom-nieuws", `audio/sikkom/`, `sikkomfeed.js`) | overal | **ja**: sikkom.nl, Groningse nieuwstitel van Dagblad van het Noorden / Mediahuis ([OOG](https://www.oogtv.nl/2025/11/dagblad-van-het-noorden-moet-bezuinigen-mediahuis-wil-meer-videos-van-sikkom/)). Het spel laat "Sikkom" berichten over geweld en politie brengen. | **RISICO gemiddeld**, niet zelf aangepast omdat de naam in ingesproken audio zit. Voorstel: parodienaam zoals **"Sikkepit"**, **"Stikkom"** of **"Zeg Mor"**, teksten aanpassen en de clips in `audio/sikkom`, `sms/sikkom_redactie` en de Radio Grunn-regels opnieuw inspreken. |
+| **Radio Grunn** | autoradio, 14× in code + audio | lijkt sterk op **Grunn FM** (echte commerciële zender, FM 89.1, [grunn.fm](https://grunn.fm)) | laag-gemiddeld. Voorstel: "Radio Stad" of "Proatradio Grunn"; zit in audio, dus met opnieuw inspreken |
+| **Bakkie Peut** (tankstation Pleiadenlaan, `thuis3d.js`) | bord in de wereld | **ja**: Peut is een echte tankstationketen en "Bakkie Peut" is hun koffie ([peut.nl](https://www.peut.nl/)); groen/limoen huisstijl | **aangepast** naar **"Bakkie Prut"** (alleen bordtekst en commentaar) |
+| "Hema-uitverkoop" (`ownedvehicles.js`, beschrijving klusbus) | tekst | ja | **aangepast** naar "Wiebel-uitverkoop" (de bestaande Wibra-parodie) |
+| Albert Hijgt, DUMBO, Kruidvet, Blokkie, AKZIE, Wiebel, Bakker Bert (`paddepoel3d.js`) | gevelborden | parodieën op AH, Jumbo, Kruidvat, Blokker, Action, Wibra, Bakker Bart | parodie ok. Kleuren liggen dicht op de echte huisstijl (Kruidvet `#e2007a` = Kruidvat-roze, DUMBO geel, Albert Hijgt blauw). Laag risico; desgewenst één kleur verschuiven. "Dumbo" is ook een Disney-naam, maar in een andere betekenis. |
+| EIKEA | woonwarenhuis, blauw | parodie op IKEA | laag. IKEA treedt soms op tegen parodieën; geel-blauw niet combineren. |
+| Fjord Escapade / Fjord Frituur | auto en foodtruck | parodie op Ford Escort | laag; geen Ford-ovaallogo gebruiken |
+| Voertuigmerken (`vehiclenames.js`) | HUD | verzonnen (Dollard, Hunze, Wadden…) | ok |
+| Winkelketens (`shops.js`): Pang & Zo, Nait Duur, Rook & Geluk… | | verzonnen | ok |
+| Nachtstreek | radiozender | niet gevonden als echte zender | ok |
+| Euroborg, Gasuniegebouw, Martinitoren, UMCG, Forum | landmarks | echte gebouwen | ok (openbare gebouwen als decor) |
+| Gronings Ontzet, KEI-week, Noorderzon | evenementen | echte evenementen | ok (feitelijk decor). Noorderzon is een festivalnaam; geen logo gebruiken. |
+
+### 6.3 Echte personen
+
+- Geen bekende levende personen gevonden in code of teksten (gezocht op
+  politici, BN'ers, sporters, burgemeester, koningshuis).
+- **Tammo**: `docs/personages.md` zegt expliciet "Onze Tammo is niet
+
+  Tammo met dialect kan als verwijzing gelezen worden. **RISICO laag-
+  gemiddeld**. Disclaimer "personages verzonnen" helpt; houd uiterlijk en
+  catchphrases ver van hem.
+  **Vraag aan de eigenaar**: zijn Tammo en Anita op echte personen
+  gebaseerd? Zo ja: schriftelijke toestemming vragen. Zo nee: de
+  credit herformuleren (bijv. "als Tammo & Anita").
+- Huisartsenpraktijken uit OSM (bijv. "Huisarts van de Riet") verschijnen
+  als respawnplek. Laag risico; voorstel: in `build_map.py` vervangen door
+  "Huisartsenpost <wijk>".
+- Echte horecanamen (OSM) op de kaart en in meldingen: feitelijk, laag
+  risico. Als je het helemaal schoon wilt: in meldingen "de kroeg"
+  gebruiken in plaats van de echte naam.
+- "Schipper Wiebe", "Bommen Berend" (historisch: de bisschop van Münster,
+  1672): verzonnen of historisch, ok.
+
+## 7. Licentievoorstel (de eigenaar kiest)
+
+Er staat nog **geen** `LICENSE`-bestand; dat komt pas na de keuze.
+
+| Optie | Code | Inhoud (verhaal, teksten, ontwerp) | AI-audio | Kaartdata | Voor | Tegen |
+|---|---|---|---|---|---|---|
+| **A (aanbevolen)** | **MIT** | **CC BY-NC 4.0** | "gemaakt met Google Gemini, geen rechten geclaimd" | ODbL | Code herbruikbaar (sluit aan bij three.js); verhaal en personages niet commercieel te kopiëren; eerlijk over AI | Twee licenties uitleggen |
+| B | MIT | CC BY-NC-SA 4.0 | idem | ODbL | Afgeleide fanwerken moeten ook open blijven | strenger voor remixers |
+| C | GPL-3.0 | CC BY-NC 4.0 | idem | ODbL | Forks moeten open blijven | GPL past minder bij losse webcode; Steam-forks moeten broncode geven |
+| D | Alles voorbehouden ("All rights reserved"), wel publiek zichtbaar | — | — | ODbL | Maximale controle | Niemand mag forken of bijdragen; GitHub-publiek zonder licentie is verwarrend |
+
+Aanbeveling **A**, met deze indeling in een toekomstig `LICENSE`/README:
+
+- `game/js/`, `game/index.html`, `desktop/`, `scripts/` → MIT.
+- `docs/verhaal/`, `docs/personages.md`, dialogen en teksten in
+  `game/js/*lines*.js` en `missionstory.js` → CC BY-NC 4.0. (Teksten
+  staan in JS-bestanden; noem ze expliciet, of laat MIT voor de code gelden
+  en CC voor "verhaal, personages, dialogen en ontwerp".)
+- `game/audio/**` → "gemaakt met Google Gemini; voor zover er rechten op
+  rusten: CC BY-NC 4.0".
+- `game/citymap.json`, `game/mapextras.json`, `game/ommeland.*`,
+  `data/**` → ODbL 1.0, © OpenStreetMap-bijdragers.
+- Merknamen GTE/GDE en het logo: uitgezonderd ("niet onder deze licenties").
+- Derden: zie `NOTICE.md`.
+
+## 8. Steam
+
+Steam Direct kost **$100 per app**, ook voor een gratis spel; die kom je pas
+terug na $1.000 omzet, dus bij een gratis spel nooit
+([Steam Direct](https://partner.steamgames.com/steamdirect)).
+
+### 8.1 Wat Steam juridisch verandert
+
+- **Distributie via een winkel** maakt het moeilijker om "gratis hobby,
+  geen economisch verkeer" te zeggen. Een merkhouder kan bij Valve een
+  klacht indienen; Valve haalt de pagina dan offline tot het is opgelost.
+  Parodie-verweer werkt bij Valve meestal niet (voorbeelden: de
+  Rimworld-mod "Rimdeed", "Piccled Ricc"). De reviewchecklist zelf kijkt
+  niet naar merken ([Review process](https://partner.steamgames.com/doc/store/review_process)),
+  dus het risico komt ná publicatie, via een klacht.
+- In de **Steam Distribution Agreement** garandeer je dat je alle rechten
+  hebt en vrijwaar je Valve. Een Take-Two-klacht is dan jouw probleem.
+- **AI-disclosure** wordt openbaar op de storepagina.
+- **Leeftijdsclassificatie** is verplicht voor Duitsland (anders niet
+  zichtbaar daar) en wordt gemaakt uit de content survey.
+- **Echte naam en adres**: identiteits- en belastingcontrole bij Valve;
+  onder de EU-Digital Services Act kan de status "handelaar" gevraagd
+  worden, met publieke contactgegevens. **ONDUIDELIJK** hoe Steam dit voor
+  gratis spellen van particulieren invult: nagaan tijdens onboarding.
+
+### 8.2 Nieuwe naam: "GDE Groningen – Zomer vol misdaad"
+
+Gekozen door de eigenaar: **GDE** = *Grootste Diefstal Ever*, vaste
+reeksnaam; per deel een plaats of provincie plus ondertitel ("GDE
+Groningen – Zomer vol misdaad", later bijv. "GDE Drenthe", "GDE
+Leeuwarden"). Nog niet doorgevoerd in de code.
+
+**Conflictcheck** (3 okt 2026, via webzoekopdrachten; de registers van
+[EUIPO/TMview](https://www.tmdn.org/tmview/), [BOIP](https://register.boip.int/)
+en [WIPO Global Brand Database](https://branddb.wipo.int) konden niet
+geautomatiseerd doorzocht worden, zie de handmatige stap hieronder):
+
+- **Steam, itch.io, Google Play, App Store**: geen game of app met de naam
+  "GDE" of "Grootste Diefstal Ever" gevonden. Wel vergelijkbare maar andere
+  namen: GDevelop (game-engine, ook op Google Play en itch), "GDeavid"
+  (itch-ontwikkelaar), en Engelse titels met "Greatest … Heist" (*The
+  Greatest Penguin Heist of All Time*, Steam). Geen conflict.
+- **"Grootste Diefstal Ever"**: alleen nieuwskoppen ("grootste diefstal
+  ooit", Bybit, Antwerpse diamantroof). Geen merk, geen spel. Het is een
+  beschrijvende uitdrukking: zelf moeilijk als merk te beschermen, maar ook
+  niet van iemand anders.
+- **"GDE"**: bekend als afkorting van **Google Developer Experts** (een
+  Google-programma, geen spel of software-product). Andere waren/diensten,
+  klein verwarringsrisico. Verder generieke afkortingen.
+- **Handmatige stap vóór registratie of Steam** (15 minuten): in TMview en
+  het BOIP-register zoeken op `GDE`, `G.D.E.`, `Grootste Diefstal` en
+  `Diefstal Ever`, Nice-klassen 9 (software, games) en 41 (entertainment).
+  Let op beeldmerken met "GDE" en woordmerken met "GTA"-achtige
+  drieletter-combinaties.
+
+**Parodierisico t.o.v. GTA**: van **hoog** (nu) naar **laag**.
+
+- Weg: "Grand Theft", Engelse titel, "VI", en de koppeling aan GTA VI.
+  "Grootste Diefstal Ever" is geen vertaling van "Grand Theft Auto" maar
+  een eigen, Nederlands-Engelse uitdrukking.
+- Blijft: drie letters die met G beginnen, plus plaats en ondertitel,
+  lijkt op het GTA-patroon ("GTA: Vice City", "GTA: San Andreas"), en het
+  genre (open-wereld misdaad) is hetzelfde. Genre en patroon zijn niet
+  beschermd; G-D-E en G-T-A verschillen visueel en fonetisch genoeg.
+  Take-Two kan zich beroepen op ongerechtvaardigd voordeel van een merk met
+  reputatie (art. 2.20 lid 1 sub c BVIE, art. 9 lid 2 sub c UMVo), maar
+  zonder woordovereenkomst en met een eigen logo is dat zwak.
+- Het risico stijgt weer door: Pricedown-achtige letters, het
+  GTA-zonsondergangverloop (roze/oranje/paars), een "VI" of ander
+  romeins cijfer, het GTA-stapellogo (klein woord boven groot woord in
+  dezelfde opmaak), artwork in de stijl van de GTA-loadingscreens
+  (handgetekende panelen met dikke zwarte randen), en de woorden "GTA",
+  "Grand Theft" of "Rockstar" in storeteksten, tags of capsules. Ook geen
+  "Grand Theft Eierbal" meer als ondertitel of tagline.
+- Een licht parodie-knipoog mag blijven (bijv. in een trailer), zolang
+  naam en logo op zichzelf staan.
+
+**Logorichting die duidelijk eigen is**:
+
+- **Lettertype**: **Big Shoulders Display** (Black of ExtraBold;
+  [Google Fonts](https://fonts.google.com/specimen/Big+Shoulders+Display),
+  SIL OFL 1.1). Smal en hoekig, gemaakt voor stadsborden (Chicago); totaal
+  anders dan het ronde, zware Pricedown. Past bij Bebas Neue in de UI.
+  Alternatieven onder OFL: **Archivo** (Condensed Black) of **Oswald**
+  (Bold). Vermijd ronde, zware display-letters zoals Bowlby One of
+  Rammetto One: die lijken op Pricedown.
+- **Opbouw**: "GDE" groot als monogram, de plaatsnaam ("GRONINGEN") in een
+  groen balkje of als **Nederlands plaatsnaambord** (rechthoek met
+  afgeronde hoeken, witte rand); de ondertitel "Zomer vol misdaad" klein
+  in een schreefloze cursief. Vervolgdelen wisselen alleen het bord.
+- **Kleur**: de bestaande Gronings-groene huisstijl (`#1e9e56`,
+  `#3fc97a`, crème `#f0ede4`) op donker. Geen zonsondergangverloop.
+- **Eigen beeldelement**: een eierbal als punt of embleem (bijv. de "D"
+  of de stip boven de i in een sublabel), of het silhouet van de
+  Martinitoren. Dat maakt het herkenbaar en duidelijk niet-Rockstar.
+- Nieuwe font meeleveren betekent: OFL-tekst toevoegen in `licenses/` en
+  in `NOTICE.md`, en `desktop/build.mjs` laten vendoren zoals Bebas Neue.
+
+**BOIP-registratie (optioneel)**: online depot Benelux **€244 voor één
+klasse**, 2e klasse +€27, vanaf de 3e +€81 per klasse
+([BOIP](https://support.boip.int/hc/nl/articles/23546410404497-Wat-kost-een-merkregistratie));
+klassen 9 en 41 samen dus ca. **€271**. Geldig 10 jaar in België,
+Nederland en Luxemburg; daarna verlengen. Beschermt: het exclusieve recht
+op het teken voor die klassen, zodat niemand anders een verwarrend gelijke
+spelnaam kan gebruiken; maakt een klacht bij Steam, itch of app stores
+tegen kopieën eenvoudiger. Beschermt **niet** tegen claims van Take-Two
+(registratie is geen vrijbrief), en na publicatie kunnen anderen twee
+maanden oppositie instellen: registratie maakt de naam zichtbaar voor
+merkbewakingsdiensten. Een woordmerk "GDE" (drie letters) en
+"Grootste Diefstal Ever" (beschrijvend) zijn zwak; een **beeldmerk** (het
+logo met "GDE") is het sterkst en het nuttigst voor een reeks. Voor een
+gratis hobbyproject is registratie niet nodig; het wordt nuttig vóór een
+Steam-release of merchandise. Een EU-merk (EUIPO) begint bij €850.
+
+### 8.3 AI-disclosure in de Steam content survey
+
+Valve onderscheidt *pre-generated* (gemaakt tijdens ontwikkeling, zit in
+het spel) en *live-generated* (tijdens het spelen); alleen content die
+spelers zien of horen en marketingmateriaal hoeft gemeld te worden
+([Content Survey](https://partner.steamgames.com/doc/gettingstarted/contentsurvey),
+[PC Gamer, jan 2026](https://www.pcgamer.com/software/ai/steam-updates-ai-disclosure-form-to-specify-that-its-focused-on-ai-generated-content-that-is-consumed-by-players-not-efficiency-tools-used-behind-the-scenes/)).
+GTE VI heeft alleen pre-generated content. Voorstel voor de tekst:
+
+> **Pre-generated:** All music (radio station songs, chase loops and the
+> theme song) was generated with Google Gemini. All character voices were
+> generated with Google Gemini text-to-speech, from scripts written by the
+> developer. One 3D landmark model (the Martini Tower) was generated with
+> Anthropic Claude. Code assistance from AI tools was also used during
+> development. The story, characters, dialogue and lyrics are written by the
+> developer.
+>
+> **Live-generated:** None. The game makes no AI calls while running; all
+> content ships with the game.
+
+(Of het code-hulpje gemeld moet worden: Valve zegt van niet, maar een
+zin erover kan geen kwaad. Als er ook AI-afbeeldingen in de capsules of
+trailer komen, die ook noemen.)
+
+### 8.4 Leeftijdsclassificatie (content survey / IARC-achtige vragen)
+
+Steam doet niet mee met IARC zelf; de content survey levert de ratings
+voor o.a. Duitsland (USK-zelfclassificatie via Valve). Antwoorden die
+voor dit spel waarschijnlijk "ja" zijn (controleren met de eigenaar):
+
+- **Geweld**: realistisch ogende mensen; vuurwapens (wapenwinkel "Pang &
+  Zo", `combat.js`); geweld tegen burgers en politie is mogelijk; bloed en
+  "gore" (`gore3d.js`, ragdolls); explosies; auto's stelen en aanrijden.
+- **Misdaad** als kern van de gameplay (overvallen, heist, politie-
+  achtervolging).
+- **Alcohol/drugs**: biertjes in de kroeg, dronken effect (`drunk.js`),
+  roken/tabak (winkel "Rook & Geluk").
+- **Gokken**: kraskaarten en loten ("Rook & Geluk", `shopui.js`) met
+  in-game geld. Geen echt geld.
+- **Taal**: grof taalgebruik? (nagaan in de dialogen).
+- **Seksuele content**: kus in het verhaal; geen naaktheid (nagaan).
+- **Interactie/aankopen**: geen online, geen chat, geen in-app aankopen,
+  geen gebruikersdata.
+
+Verwachte uitkomst: rond **PEGI 16 / USK 16**, mogelijk 18 vanwege geweld
+tegen politie en burgers met bloed. De Gemini-API-regel over minderjarigen
+(§4) is extra reden om een 16+/18+-advies te geven.
+
+### 8.5 Overeenkomsten, belasting en identiteit (hoog niveau)
+
+- **Steamworks-account** met de **Steam Distribution Agreement** (SDA):
+  licentie aan Valve om te verspreiden, garanties over rechten, vrijwaring,
+  privacy (AVG), support en omzetdeling (30%, n.v.t. bij gratis).
+- **Identiteitscontrole** door een externe partij (2-7 werkdagen) en een
+  **belastinginterview** (voor een Nederlandse particulier: formulier
+  W-8BEN; NL-VS-verdrag, normaal 0% inhouding). Ook bij een gratis spel.
+- **Bank- en betaalgegevens** en de $100 app-fee.
+- Optioneel kan het onder een eenmanszaak (KvK) of als particulier; voor
+  een gratis spel volstaat particulier. Advertenties of verkoop maken het
+  ondernemingsactiviteit (btw, inkomstenbelasting): dan opnieuw kijken.
+- Store-assets moeten de eigen titel tonen; geen GTA-tags of "-achtige"
+  verwijzingen in de beschrijving.
+
+## 9. Beslissingen voor de eigenaar
+
+1. **Licentie** kiezen (§7; advies optie A: MIT + CC BY-NC 4.0 + ODbL
+   voor data). Dan `LICENSE` toevoegen.
+2. **Naam en logo**: gekozen "GDE Groningen – Zomer vol misdaad". Nog
+   doen: handmatige registercheck, logo in eigen stijl (§8.2), dan de
+   naam doorvoeren in spel, desktop-`productName`/`appId`, README en
+   disclaimer ("VI" en "Grand Theft" overal weg).
+3. **Sikkom** en **Radio Grunn** hernoemen + opnieuw inspreken (§6.2).
+4. **Tammo & Anita**: echte mensen of niet? Toestemming of credit
+   herformuleren (§6.3).
+5. **Esri-luchtfoto** weg uit repo en historie (zie `docs/PUBLICEREN.md`).
+6. **Oudere TTS-clips** (`npc`, `police`, `sikkom`, jingles) opnieuw maken
+   met het huidige model en loggen.
+7. **Browserversie**: three.js en Bebas Neue zelf hosten (privacy).
+8. **Muziekbron** vastleggen: Gemini-app of API, welk abonnement (§4.3).
+9. **Steam**: wel of niet ($100), en dan BOIP-registratie wel of niet
+   (ca. €271 voor klassen 9 en 41).
+10. Leeftijdsadvies (16+ of 18+) in README en storepagina.

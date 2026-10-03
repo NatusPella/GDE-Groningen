@@ -526,6 +526,7 @@ export class Player {
   tryKiss(world) {
     const c = world.companion;
     if (!c || c.state === 'dead' || this.inVehicle || c.inVehicle) return false;
+    if (!world.kissUnlocked) return false;
     if (Math.hypot(c.x - this.x, c.y - this.y) > KISS_DIST) return false;
     if (world.time < kissReadyAt) return false;
     kissReadyAt = world.time + KISS_COOLDOWN;
