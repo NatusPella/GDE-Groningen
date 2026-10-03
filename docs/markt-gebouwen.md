@@ -50,7 +50,12 @@ x 150-240, y 40-160. The Vismarkt runs WSW-ENE from the Korenbeurs
   `nataliniGable`, with stone bands per floor, stone corner strips, a
   stone-clad plinth, arched lintels and copper-green roofs. A raised corner
   volume with a copper pyramid sits on the Grote Markt wing. **No source
-  confirmed this tower**, so it stays a modest volume.
+  confirms this tower** (checked 2026-10-03: staatingroningen.nl,
+  architectuur.org, nl.wikipedia Waagstraat, daad.nl, rtvnoord.nl). They all
+  describe three storeys on a tall ground floor under flat or saddle roofs,
+  with gables on the south and west sides, and none mentions a tower,
+  belvedere or raised corner. It stays in the game for now as a modest
+  volume, and the user decides whether to keep it.
 - Sources: https://staatingroningen.nl/collectie/waagstraatcomplex ,
   https://www.architectuur.org/bouwwerk/369/Waagstraatcomplex.html ,
   https://nl.wikipedia.org/wiki/Waagstraat_(Groningen)
@@ -79,16 +84,47 @@ x 150-240, y 40-160. The Vismarkt runs WSW-ENE from the Korenbeurs
   https://archello.com/project/groot-handelshuis
 
 ### East side (the new oostwand, 2014-2020)
-- **Mutua Fides / Vindicat** (2014, De Zwarte Hond), on the corner with the
-  Martinikerkhof. Model (est.): dark brick with gabled plots.
+- **Mutua Fides / Vindicat** (De Zwarte Hond, built 2012-14, opened 21 June
+  2014), on the corner with the Martinikerkhof. It replaced Vegter's
+  building of 1954 and was the first building of the new oostwand.
+  - Ochre-yellow brick, its colour "exactly between the Martinitoren and
+    the Grand Theatre". The renders showed it darker, the brick as built
+    is much lighter.
+  - As tall as the envelope allows. The facade shows and hides the city
+    through a few large windows, with a balcony on the Grote Markt. The
+    ground floor has only three doors (members, staff, goods).
+  - The rear steps down to its neighbours, and a penthouse stands on a roof
+    terrace on the sixth floor. Old gevelstenen were reused.
+  - Model (`Mutua Fides`, h 5):
+    - an ochre brick block;
+    - large deep-set windows with bronze frames in an uneven rhythm;
+    - a steel balcony on the first floor at the square;
+    - a stone base course, doors with a reused gevelsteen and a soldier
+      course;
+    - a set-back penthouse with a glass band behind a railing.
+  - The window pattern is estimated.
 - **Westcord Market Hotel** (about 2020, Müller Reimann): six storeys,
   stepped gables in pale natural stone. Model: 6 storeys, `trap` plots of
   7.5 m in pale stone.
-- **Merckt** (2019-20, Powerhouse Company), south-east corner: a light-brick
-  facade with white piers and gold-coloured frames. Model: `lijstFlat`
-  plots in light brick, white trim, gold frames.
+- **Merckt** (Powerhouse Company, competition 2016, built 2019), south-east
+  corner. "A classic facade with a plinth, midsection and crown":
+  - a public plinth with rows of slender, parametrically designed concrete
+    arches (the food market);
+  - a midsection of pale brick made of Groningen clay, in the colour of the
+    building that stood there before, with vertical gold lines;
+  - 18 homes.
+  - Model (`Merckt`):
+    - a two-storey plinth of tall concrete arches;
+    - a pale brick midsection with window bays and gold fins between them;
+    - a crown storey of smaller arches and a thin cornice.
+  - The crown is estimated.
 - Sources: https://www.gic.nl/nieuws/hoogste-punt-market-hotel-en-merckt-aan-oostwand-grote-markt-groningen ,
-  https://architectenweb.nl/nieuws/artikel.aspx?ID=40042
+  https://architectenweb.nl/nieuws/artikel.aspx?ID=40042 ,
+  https://architectenweb.nl/nieuws/artikel.aspx?id=34946 ,
+  https://dezwartehond.nl/leden-vindicat-hebben-een-nieuwe-kroeg/ ,
+  https://www.gic.nl/nieuws/nieuwbouw-vindicat-grote-markt-baksteen-aanzienlijk-lichter ,
+  https://commons.wikimedia.org/wiki/File:20140401_Soci%C3%ABteit_Vindicat_(Mutua_Fides)_Grote_Markt_Groningen_NL.jpg ,
+  https://www.powerhouse-company.com/merckt , https://www.architectuur.nl/nieuws/powerhouse-company/
 
 ### De Drie Gezusters (Grote Markt 36-39, south side)
 - Nr 36 (Hotel De Doelen): klokgevel of 1730 over a double plot. Model:
@@ -96,7 +132,9 @@ x 150-240, y 40-160. The Vismarkt runs WSW-ENE from the Korenbeurs
 - Nr 37-38 "Groote Griet": straight cornice. Model: two `lijst` plots.
 - Nr 39, on the corner with the Gelkingestraat (the "real" Drie Gezusters):
   an 18th-century classical front with a cornice and pediment, and a
-  hipped roof. Model: a `lijst` plot with a pediment.
+  hipped roof. Model: a `lijst` plot with a pediment and a hipped roof
+  (`hip` in the override: the ridge stops short of both ends and tiled hips
+  slope down to them).
 - The Grand Theatre (1929) to the west gets a plastered `lijstFlat` front.
 - Sources: https://rijksmonumenten.nl/monument/18472/ , https://rijksmonumenten.nl/monument/18469/ ,
   https://nl.wikipedia.org/wiki/Drie_Gezusters_(Groningen)
@@ -135,6 +173,29 @@ x 150-240, y 40-160. The Vismarkt runs WSW-ENE from the Korenbeurs
 - South side (more historic): straight-cornice fronts, a stepped gable at
   nr 34 (1911, Van Gend & Loos, neo-Gothic), and eclectic plastered fronts
   with fake joints and window hoods (nr 26).
+- **Nr 34, Van Gend & Loos** (1911-12, P.M.A. Huurman), rijksmonument 486664:
+  - an expedition office with a dwelling, neo-Gothic, in the closed south
+    wall;
+  - three storeys and four window bays on a rectangular plan, in
+    red-brown brick with natural stone bands;
+  - the east (entrance) bay stands about a metre proud, with a carved
+    wooden panel door in a stone frame and an oval window above it;
+  - both the entrance bay and the main front end in a stepped gable, with
+    a shield-bearing lion on the first one, and the gable top rests on an
+    arched frieze on stone consoles;
+  - a shopfront with leaded upper lights, lion heads beside it and a
+    wooden canopy on carved consoles;
+  - cross windows on the first floor, round-arched ones on the second;
+  - a saddle roof with black pantiles.
+  - Model (`Van Gend & Loos`):
+    - the footprint's jog is the projecting bay;
+    - a stepped gable on the main front and a lower one with the lion on
+      the bay;
+    - a corbel frieze, stone bands, the shopfront with canopy and
+      consoles, cross windows and round-arched windows;
+    - a black saddle roof with its ridge at right angles to the square.
+  - Sources: https://monumentenregister.cultureelerfgoed.nl/monumenten/486664 ,
+    https://www.beeldbankgroningen.nl/beelden/detail/60c60b23-c10a-cc92-a4d6-4579af11f6ea
 - Model: the `historic` mix of plot kinds:
   - `lijst` 30: cornice, a pitched roof along the street and a dormer.
   - `lijstFlat` 18: a plastered 19th-century front with a cornice on
@@ -168,6 +229,9 @@ x 150-240, y 40-160. The Vismarkt runs WSW-ENE from the Korenbeurs
 - Brick in red-brown to plum, plaster in cream, white and light grey, and
   about one plastered front in eight painted dark green, grey or blue-grey.
 - Frames are white, sometimes dark green.
+- A party wall that rises above a lower neighbour (the neighbour's roof
+  height is recorded on the edge as `partyTop`) gets rows of sash windows
+  above that roof, so no blank wall faces the squares.
 - Roofs are red or blue-black pantiles, or slate.
 - Nearly every ground floor on the squares is a shop or café: a glazed
   shopfront with a sign band, and an awning on almost half of them.
