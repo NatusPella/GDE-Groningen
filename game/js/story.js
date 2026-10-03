@@ -32,6 +32,7 @@ import { getEierballen } from './achievementtracker.js';
 import { queueFjordReveal } from './postgame.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy } from './storyfun.js';
+import { THIRD_PARTY_CARDS } from './credits.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -362,6 +363,7 @@ const CREDITS = [
   ['Durk & Douwe', 'twee reuzen, één brein'],
   ['De torenwachter', 'meldde alleen'],
   ['Bert, Sjabbe, Jelmer, Sjoerd, Femke, Harm, Geert, Klaas, Henk en Dokter Dijkstra', 'en de rest van Grunn'],
+  ...THIRD_PARTY_CARDS,
 ];
 
 // A slow climb around d'Olle Grieze for the ending.
