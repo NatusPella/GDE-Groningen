@@ -120,6 +120,59 @@ with the `.dmg` and `.exe`. The apps are unsigned (no Apple Developer ID /
 Windows certificate), so testers confirm them once in macOS Privacy &
 Security or Windows SmartScreen.
 
+## Webversie
+
+The browser version is a static folder, `web-dist/` (gitignored), built
+locally from the same staging as the desktop app. Nothing is published:
+
+```bash
+cd desktop
+npm run web          # build web-dist/
+npm run web:zip      # the same, plus GTE-VI-<version>-web.zip for itch.io
+npm run web:serve    # serve it at http://localhost:8790/gte/ (add -- --log for a request log)
+```
+
+What the web build (`web/build.mjs`) adds on top of `desktop/build.mjs`:
+
+- **Relative paths everywhere** (`GTE_STAGE_RELATIVE=1`), so it runs from any
+  sub path (itch.io, GitHub Pages). three.js and the font are vendored, so no
+  external URL is loaded.
+- **Opus audio**: every clip is also encoded as Opus in WebM (voices 32 kbps
+  mono, music 96 kbps stereo; cached in `web/.cache/`, so only the first
+  build takes ~8 minutes). The game code and manifests keep asking for the
+  `.mp3`/`.wav` names; `web.js` picks Opus when
+  `canPlayType('audio/webm; codecs="opus"')` says `probably` and the original
+  otherwise (Safari before 18.4). `?mp3` forces the originals.
+- **Audio packs**: itch.io takes at most 1000 files, so the ~3,650 short
+  clips are packed per folder (`audio/packs/*.pack`, max 4 MB, named by
+  content hash) with an index in `audio/index.json`. `web.js` reads one clip
+  with a Range request when it plays; a host without Range support gets the
+  whole pack once. Music (G-Music, race/chase, theme) stays one file per
+  track. Nothing is fetched before `play()`, so the 14 G-Music elements the
+  game makes at boot stay empty.
+- **Loading screen**: the map data (citymap, mapextras, ommeland: 15 MB) shows
+  "Grunn downloaden… x / 15,1 MB"; the game starts when the code and the map
+  are in, audio follows when it plays.
+- **Service worker** (`sw.js`, only in the web build; `?nosw` skips it): each
+  file is cached the first time the game uses it, in a cache named
+  `gte-vi-<version>-<content hash>`; a new build installs before the game
+  loads and deletes the old cache. The page itself is network first. A second
+  visit downloads nothing, and offline the game starts with everything heard
+  before (a clip never heard stays silent offline).
+- Desktop-only parts stay off without `window.gteDesktop`: no *Afsluiten* in
+  the title menu or pause menu, no video export or `--` switches; the `?`
+  test switches work as in the browser.
+- Weak devices: the first-run graphics advice (`gfxprofile.js`) already
+  covers this. A weak GPU string plus slow frames suggests Laag.
+
+Sizes (0.22.0): the staging is 172 MB in 3,935 files, 149 MB of it audio.
+Opus brings the audio down to 85 MB (music -50%, voices -28%: they were
+already 48 kbps mono mp3). `web-dist/` holds both formats: 521 files,
+258 MB; the zip is ~242 MB. A browser with Opus downloads ~23 MB before the
+title screen (code 7 MB, map 15 MB) and at most ~108 MB if every clip
+plays. itch.io HTML5 limits (1000 files, 200 MB per file, 500 MB unpacked):
+it fits, with the largest file at 11.7 MB (`citymap.json`).
+
 ## Controls
 
 | Key | On foot | In a vehicle |

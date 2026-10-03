@@ -16,6 +16,9 @@ const THREE = CDN + 'three@0.160.0/build/three.module.js';
 const ADDONS = CDN + 'three@0.160.0/examples/jsm/';
 const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
+// GTE_STAGE_RELATIVE=1 (the web build): vendor paths relative to each file,
+// so the folder works from any sub path (itch.io, GitHub Pages)
+const RELATIVE = process.env.GTE_STAGE_RELATIVE === '1';
 const { version } = JSON.parse(fs.readFileSync(path.join(HERE, 'package.json'), 'utf8'));
 
 async function cached(url, key) {
@@ -94,19 +97,25 @@ async function main() {
     const buf = await cached(u, path.join('fonts', name));
     fs.mkdirSync(path.join(OUT, 'vendor', 'fonts'), { recursive: true });
     fs.writeFileSync(path.join(OUT, 'vendor', 'fonts', name), buf);
-    css = css.split(u).join(`/vendor/fonts/${name}`);
+    css = css.split(u).join(RELATIVE ? name : `/vendor/fonts/${name}`);
   }
   fs.writeFileSync(path.join(OUT, 'vendor', 'fonts', 'bebas.css'), css);
   console.log(`vendored font (${fontUrls.length} files)`);
 
   // 4. point the game at the local copies
+  const vendorDir = (f) => {
+    if (!RELATIVE) return '/vendor/';
+    const rel = path.relative(path.dirname(f), path.join(OUT, 'vendor')).split(path.sep).join('/');
+    return (rel.startsWith('.') ? rel : './' + rel) + '/';
+  };
   for (const f of texts) {
     let src = fs.readFileSync(f, 'utf8');
     const before = src;
-    src = src.split(CDN).join('/vendor/npm/');
+    const vendor = vendorDir(f);
+    src = src.split(CDN).join(vendor + 'npm/');
     if (f.endsWith('index.html')) {
       src = src.replace(/<link[^>]+rel="preconnect"[^>]*>\s*/g, '');
-      src = src.split(FONT_CSS.replace(/&/g, '&amp;')).join('/vendor/fonts/bebas.css').split(FONT_CSS).join('/vendor/fonts/bebas.css');
+      src = src.split(FONT_CSS.replace(/&/g, '&amp;')).join(vendor + 'fonts/bebas.css').split(FONT_CSS).join(vendor + 'fonts/bebas.css');
     }
     if (src !== before) fs.writeFileSync(f, src);
   }
