@@ -1010,7 +1010,7 @@ function buildShots(w) {
     },
     cam(u, t, s) {
       // a slow push-in on the case: the heist is still a plan
-      const c = s.at, k = smooth(u), a = 0.7, R = lerp(3.9, 2.1, k);
+      const c = s.at, k = smooth(u), a = 0.7, R = lerp(4.0, 2.5, k);
       return { position: P(c.x + Math.cos(a) * R, c.y + Math.sin(a) * R, c.z + lerp(1.85, 1.6, k)), lookAt: P(c.x, c.y, c.z + 1.3), fov: lerp(40, 31, k), shake: 0.006 };
     },
   };
