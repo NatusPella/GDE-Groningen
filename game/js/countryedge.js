@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import {
   BLOCK, ROAD_IN, ROAD_W, MAAR_HW, COUNTRY_UNIFORMS, EDGE_TEX_W, EDGE_SLOTS,
   chash, edgeDistance, countryWeight, edgeRoad, maarX, maarY, setEdgeQuery, setCountryMask, realWater,
+  SHORE_RW, rectOutside,
 } from './countryfield.js';
 import { REAL, realBlocked, buildRealSigns } from './countryreal.js';
 
@@ -535,11 +536,19 @@ export function edgeAt(x, y, margin = 0) {
   return _hit.kind ? _hit : null;
 }
 
+// Deep open water past the map edge (countrywater.js draws it at WATER_Y):
+// swum in and sunk in like the city canals; roads over it are bridges.
+export function wideWaterAt(x, y) {
+  if (!REAL.ready || rectOutside(x, y) <= 0 || realWater(x, y) <= SHORE_RW) return false;
+  const h = edgeAt(x, y);
+  return !(h && h.kind === 'road');
+}
+
 function surfaceQuery(x, y) {
   if (!EDGE.segs.length && !REAL.ready) return null;
   const h = edgeAt(x, y);
   if (h && h.kind === 'road') return 'weg';
-  if (REAL.ready && realWater(x, y) > 0.8) return 'sloot';
+  if (REAL.ready && realWater(x, y) > 0.8) return rectOutside(x, y) > 0 ? null : 'sloot';
   if (!h) return null;
   return h.hw - h.d > 0.8 ? 'sloot' : 'gras';
 }

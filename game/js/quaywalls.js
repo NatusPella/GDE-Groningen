@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { SHORE_RW, rectOutside, realWater } from './countryfield.js';
 import { createBrickDetailTexture } from './pixelart3d.js';
 import { onSettingsChange } from './settings.js';
 import { getWaterIndex, addWaterObstacle } from './waterindex.js';
@@ -190,6 +191,8 @@ function shoreRuns(poly, map, index) {
     const rightWet = index.inWater(mx - nx * 0.7, my - ny * 0.7);
     if (leftWet === rightWet) { close(); continue; }
     if (leftWet) { nx = -nx; ny = -ny; }
+    // the cut along the map edge where the canal carries on into the Ommeland
+    if (rectOutside(mx, my) > -0.5 && realWater(mx + nx * 3, my + ny * 3) > SHORE_RW) { close(); continue; }
     const edgeN = [nx, ny];
     const n = Math.max(1, Math.ceil(len / STEP));
     for (let k = 0; k < n; k++) {
