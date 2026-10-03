@@ -451,7 +451,69 @@ function buildTruckMesh(v) {
   for (const x of [hl - 1.1, -hl + 1.4]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
+  if (tank && v.model.livery === 'usmemvet' && !v.wrecked) {
+    // H8: the lettering on both flanks of the tank
+    const bl = L - 2.0;
+    const geoL = cached('usmemvet-panel', () => new THREE.PlaneGeometry(4.1, 0.76));
+    const mat = new THREE.MeshLambertMaterial({ map: usMemVetTexture() });
+    for (const s of [1, -1]) {
+      const panel = new THREE.Mesh(geoL, mat);
+      panel.position.set(-hl + bl / 2, 2.29, s * (hw + 0.012));
+      if (s < 0) panel.rotation.y = Math.PI;
+      group.add(panel);
+    }
+  }
   return group;
+}
+
+// "Us Mem Vet": Jelle's frying-fat brand, after the Frisian flag (blue-white
+// bends, red pompeblêden) and Us Mem, the cow statue in Leeuwarden.
+let usMemVetTex = null;
+function usMemVetTexture() {
+  if (usMemVetTex) return usMemVetTex;
+  const c = document.createElement('canvas');
+  c.width = 1024; c.height = 190;
+  const g = c.getContext('2d');
+  g.fillStyle = '#f4f2ec';
+  g.fillRect(0, 0, 1024, 190);
+  // the flag's bends on the left third
+  g.save();
+  g.beginPath(); g.rect(0, 0, 260, 190); g.clip();
+  g.rotate(0.5);
+  g.fillStyle = '#1d4f9c';
+  for (let i = -6; i < 10; i += 2) g.fillRect(-400, i * 32, 1400, 32);
+  g.restore();
+  g.fillStyle = '#d42a24';
+  const leaf = (x, y, k) => {
+    g.beginPath();
+    g.moveTo(x, y + 14 * k);
+    g.bezierCurveTo(x - 20 * k, y, x - 12 * k, y - 18 * k, x, y - 7 * k);
+    g.bezierCurveTo(x + 12 * k, y - 18 * k, x + 20 * k, y, x, y + 14 * k);
+    g.fill();
+  };
+  for (const [x, y] of [[45, 50], [130, 34], [205, 92], [85, 130], [180, 160]]) leaf(x, y, 1.1);
+  // the cow: Us Mem in profile, black and white
+  g.fillStyle = '#1c1d20';
+  g.beginPath(); g.ellipse(335, 100, 58, 34, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(395, 78, 21, 16, -0.4, 0, Math.PI * 2); g.fill();
+  for (const x of [298, 320, 350, 372]) g.fillRect(x, 118, 10, 46);
+  g.fillStyle = '#f4f2ec';
+  g.beginPath(); g.ellipse(318, 92, 21, 14, 0.3, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(360, 110, 15, 10, -0.2, 0, Math.PI * 2); g.fill();
+  // the lettering
+  g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  g.fillStyle = '#1d4f9c';
+  g.font = 'bold 104px "Arial Black", Arial, sans-serif';
+  g.fillText('US MEM VET', 440, 112, 560);
+  g.fillStyle = '#d42a24';
+  g.font = 'italic bold 34px Georgia, serif';
+  g.fillText('Frituurvet. Foar mem.', 446, 160, 540);
+  g.fillStyle = '#1d4f9c';
+  g.fillRect(0, 0, 1024, 8); g.fillRect(0, 182, 1024, 8);
+  usMemVetTex = new THREE.CanvasTexture(c);
+  usMemVetTex.colorSpace = THREE.SRGBColorSpace;
+  usMemVetTex.anisotropy = 4;
+  return usMemVetTex;
 }
 
 // Jelle Terpstra's trekker-limousine: a tractor up front (big rear wheels,
@@ -1148,6 +1210,12 @@ const HULL_SHAPES = {
     f: (t) => (t < 0.6 ? 0.9 + 0.1 * Math.sin((t / 0.6) * Math.PI / 2) : Math.pow(Math.cos(((t - 0.6) / 0.4) * Math.PI / 2), 0.8)),
     top: (t) => 0.24 + 0.14 * t * t, rise: (t) => Math.max(0, (t - 0.6) / 0.4), chine: -0.06, keel: -0.17, floor: 0.1,
   },
+  // stand-up paddle board: a thin flat board with a little nose rocker
+  sup: {
+    ts: [0, 0.06, 0.2, 0.5, 0.72, 0.86, 0.95, 1],
+    f: (t) => (t < 0.08 ? 0.72 + 0.28 * Math.sin((t / 0.08) * Math.PI / 2) : t < 0.66 ? 1 : Math.pow(Math.cos(((t - 0.66) / 0.34) * Math.PI / 2), 0.6)),
+    top: (t) => 0.1 + 0.06 * Math.max(0, (t - 0.78) / 0.22) ** 2, rise: () => 0, chine: 0.02, keel: -0.04, floor: 0.08, deck: true, chineK: 0.92,
+  },
   // Frisian skûtsje: flat bottom, full round bow with a high sheer, a
   // squarish stern; the hold is decked over with hatches (skutsjeFit)
   skutsje: {
@@ -1157,6 +1225,24 @@ const HULL_SHAPES = {
     rise: (t) => Math.max(0, (t - 0.82) / 0.18), chine: -0.12, keel: -0.26, floor: 0.2, chineK: 0.9,
   },
 };
+
+// Gunwale heights over the waterline at stern, middle and bow (scene3d.js
+// keeps them clear of the swell when the boat pitches and rolls).
+const hullProfiles = new Map();
+export function boatHullProfile(kind, L, W) {
+  const key = kind + '|' + L + '|' + W;
+  let p = hullProfiles.get(key);
+  if (!p) {
+    const S = HULL_SHAPES[kind];
+    if (!S) p = { stern: 0.36, mid: 0.36, bow: 0.36 };
+    else {
+      const st = hullStations(L, W, S);
+      p = { stern: st[0].top, mid: hullAt(st, 0).top, bow: st[st.length - 1].top };
+    }
+    hullProfiles.set(key, p);
+  }
+  return p;
+}
 
 function hullStations(L, W, S) {
   const hl = L / 2;
@@ -1323,6 +1409,13 @@ function kanoFit(B, st, L, W, hull) {
   }
   const h = hullAt(st, 0);
   B.box(0, h.top - 0.02, 0, 0.06, 0.04, h.hw * 2 - 0.06, WOOD);
+}
+
+function supFit(B, st) {
+  // grippy deck pad where the paddler stands
+  const h = hullAt(st, -0.15);
+  B.box(-0.15, h.top + 0.05, 0, 0.9, 0.012, h.hw * 1.5, 0x2a2c2e);
+  B.box(-0.55, h.top + 0.055, 0, 0.12, 0.02, h.hw * 1.5, 0x1e1f21);
 }
 
 function kajakFit(B) {
@@ -1581,6 +1674,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
       case 'rondvaart': rondvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
       case 'kano': kanoFit(B, st, L, W, hull); break;
       case 'kajak': kajakFit(B); break;
+      case 'sup': supFit(B, st); break;
       case 'dinghy': dinghyFit(B, st, L); break;
       case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
       case 'skutsje': skutsjeFit(B, st, L, W); break;
@@ -1589,7 +1683,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
     if (kind === 'kano' || kind === 'kajak') {
       const x = -hl * 0.72;
       B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
-    } else navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
+    } else if (kind !== 'sup') navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
     return B.build();
   });
 }
@@ -1601,7 +1695,7 @@ function buildBoatMesh(v) {
   const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
   const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
   const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
   group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));

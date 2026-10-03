@@ -5,7 +5,7 @@ import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { makeBirds, updateBirds } from './intromontage.js';
-import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting } from './audio.js';
+import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
@@ -92,7 +92,7 @@ const STORY = [
     outroNpc: true,
     outro: [
       ['N', '…Goud.'],
-      ['A', 'Dat is trede twee, Tammo.'],
+      ['A', 'Trede twee van de complimentenladder, Tammo.'],
       ['N', 'Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus.', { clue: true }],
       ['T', 'Wat moet een Fries met jouw bakkie?'],
       ['N', 'Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.'],
@@ -359,7 +359,7 @@ const STORY = [
     outroNpc: true,
     outro: [
       ['N', 'Vet! Valt mie nait of!'],
-      ['A', 'Trede drie, Tammo.'],
+      ['A', 'Trede drie van de complimentenladder, Tammo.'],
       ['T', 'Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten.'],
     ],
     replay: [['N', 'Weer vet in de pannen. Valt mie nait of.']],
@@ -507,7 +507,7 @@ const STORY = [
     outro: [
       ['N', 'Goud. …Valt mie nait of.'],
       ['N', '…Braid noar de zin. …Kon minder.'],
-      ['V', 'Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede. Dat is nog nooit gebeurd.'],
+      ['V', 'Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede van de complimentenladder. Dat is nog nooit gebeurd.'],
       ['trijntje', 'Gerda. Jouw eierbal was beter. In 1953.'],
       ['mem', 'Trijntje. Dat duurde lang.'],
       ['trijntje', 'Ik ben Gronings. Wij zeggen het één keer. Dan is het waar.'],
@@ -608,6 +608,8 @@ function applyPose(m, pose, t, talking) {
   else if (pose === 'hold') { arm(ud.armR, ud.elbowR, 1.35, 1.0, -0.05); ud.head.rotation.z = 0.06; }
   else if (pose === 'lookup') { ud.head.rotation.z = 0.5; ud.chest.rotation.z = 0.08; }
   else if (pose === 'look') ud.head.rotation.y = Math.sin(t * 1.1) * 0.7;
+  else if (pose === 'rail') { arm(ud.armL, ud.elbowL, 0.75, 0.9, 0.15); arm(ud.armR, ud.elbowR, 0.75, 0.9, -0.15); ud.chest.rotation.z = -0.06; }
+  else if (pose === 'toast') { arm(ud.armR, ud.elbowR, ud.toastZ ?? 1.3, ud.toastE ?? 0.6, ud.toastX ?? -0.05); ud.head.rotation.z = ud.toastHead || 0; }
   if (talking && pose !== 'kissT' && pose !== 'kissA') {
     ud.head.rotation.z += Math.sin(t * 8.5) * 0.045;
     if (!pose) arm(ud.armR, ud.elbowR, 0.35 + Math.sin(t * 3.1) * 0.18, 0.9 + Math.sin(t * 2.3) * 0.25, -0.25);
@@ -1374,7 +1376,19 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   group.add(pole);
   // the twins' getaway: both of them on one fatbike, parked behind them
   const bike = fail ? null : fatbikeMesh();
-  const bS = at0(8.5, 6.2), awayA = Math.atan2(-dy, -dx) + 0.5;
+  const bS = at0(8.5, 6.2);
+  // they ride off along open ground (a street, the quay), never through a wall or
+  // into the water: the clearest heading, preferring away from the canal; where
+  // even that runs out they turn the corner out of shot (rideMax)
+  const RIDE_NEED = 12;
+  const away0 = Math.atan2(-dy, -dx) + 0.5;
+  let awayA = away0, rideMax = 0;
+  for (let k = 0; k < 16; k++) {
+    const a = away0 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * (Math.PI / 8);
+    const run = clearRun(w, bS.x, bS.y, a, RIDE_NEED + 2);
+    if (run > rideMax + 0.5) { rideMax = run; awayA = a; }
+    if (run >= RIDE_NEED) break;
+  }
   if (bike) {
     group.add(bike);
     bike.position.set(bS.x, 0, bS.y);
@@ -1463,7 +1477,8 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
         // off they go, slowly, far too heavy for one fatbike
         const s2 = Math.max(0, ft - 1.1);
         const v = Math.min(3.2, 0.6 + s2 * 1.4), d = s2 * (0.6 + Math.min(3.2, s2 * 1.4) * 0.5);
-        rideFatbike(bike, durk, douwe, bS.x + Math.cos(awayA) * d, bS.y + Math.sin(awayA) * d, awayA, t, dt, v);
+        if (d < rideMax - 0.5) rideFatbike(bike, durk, douwe, bS.x + Math.cos(awayA) * d, bS.y + Math.sin(awayA) * d, awayA, t, dt, v);
+        else { bike.visible = false; durk.visible = false; douwe.visible = false; }
       }
       const twinsCam = riding && t > landAt + AFTER - 0.2
         ? pose(camClear(w, P(bS.x + Math.cos(awayA + 1.4) * 5.5 - Math.cos(awayA) * 2, bS.y + Math.sin(awayA + 1.4) * 5.5 - Math.sin(awayA) * 2, 1.9)), P(bike.position.x, bike.position.z, 1.2), 44)
@@ -1987,6 +2002,136 @@ export function playEyeContact(w, { at, heading, onDone = null } = {}) {
       if (t < 5.1) return pose(over(tEnd, dTA, 1.75), P(aEnd.x, aEnd.y, 1.55), 32);
       if (t < 6.3) return pose(over(aEnd, dTA + Math.PI, 1.7), P(tEnd.x, tEnd.y, 1.6), 30);
       return pose(camClear(w, P(mid.x - Math.sin(dTA) * 6, mid.y + Math.cos(dTA) * 6, 2.2)), P(mid.x, mid.y, 1.0), 44);
+    },
+    onDone: (skipped) => { if (onDone) onDone(skipped); },
+  });
+}
+
+// --- H13: a quiet moment on the tour boat's afterdeck ------------------------------------
+// Tammo comes back from the microphone to stand by Anita at the helm; they lean
+// on the rail side by side, a hand's width apart. The camera starts low on
+// their hands and ends on the two of them. Lines use T/A.
+
+export function playDeckMoment(w, { boat, lines = [], kicker = '' } = {}) {
+  if (run || !boat || !lines.length) return false;
+  const a = boat.angle, len = boat.model.len;
+  const anchor = { x: boat.x - Math.cos(a) * len * 0.3, y: boat.y - Math.sin(a) * len * 0.3 };
+  const facing = a + Math.PI / 2;
+  const r = buildRun(w, { anchor, facing, h: DECK_H });
+  if (!r) return false;
+  const f = r.f, n = r.n;
+  // closer than a normal two-shot: shoulder to shoulder at the rail
+  standActor(r.tammo, anchor.x + n.x * 0.27, anchor.y + n.y * 0.27, facing - 0.1, DECK_H);
+  standActor(r.anita, anchor.x - n.x * 0.27, anchor.y - n.y * 0.27, facing + 0.1, DECK_H);
+  r.mid = { x: anchor.x, y: anchor.y };
+  r.shake = 0.015;
+  const tl = timeline(lines.map(([k, t]) => [k, t]), null, 0.5);
+  const firstEnd = tl.lines[0].at + tl.lines[0].dur;
+  return runScene(r, tl, {
+    id: 'mission-scene', kicker, title: '', cardFor: 1.8,
+    poses: () => ({ T: 'rail', A: 'rail' }),
+    camera: (t) => {
+      if (t < firstEnd) {
+        // low, in front of them: the two hands on the rail
+        const k = smooth(t / firstEnd);
+        return pose(P(anchor.x + f.x * lerp(1.5, 1.25, k), anchor.y + f.y * lerp(1.5, 1.25, k), DECK_H + 1.05), P(anchor.x, anchor.y, DECK_H + lerp(0.95, 1.2, k)), 34);
+      }
+      const k = smooth((t - firstEnd) / Math.max(0.5, tl.total - firstEnd));
+      const sx = anchor.x + f.x * lerp(2.2, 1.7, k) + n.x * 0.5, sy = anchor.y + f.y * lerp(2.2, 1.7, k) + n.y * 0.5;
+      return pose(P(sx, sy, DECK_H + 1.6), P(anchor.x, anchor.y, DECK_H + 1.45), lerp(38, 32, k));
+    },
+  });
+}
+
+// --- H11: a toast at every pub (2-4 s, skippable) -----------------------------------
+// They face each other, raise their glasses, clink, drink. `variant` picks the
+// glass and the camera, so four pubs are four different little shots; `lines`
+// is one short line or none.
+
+const GLASS = {
+  beer: { r: 0.038, h: 0.15, color: 0xd99a2b, top: 0xf4efe2, small: false },
+  jenever: { r: 0.022, h: 0.07, color: 0xe8eef0, top: 0xe8eef0, small: true },
+  wine: { r: 0.03, h: 0.11, color: 0x7a1f2b, top: 0x7a1f2b, small: false },
+};
+
+function glassMesh(kind) {
+  const g = GLASS[kind] || GLASS.beer;
+  const m = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(g.r, g.r * 0.82, g.h, 10), new THREE.MeshStandardMaterial({ color: g.color, roughness: 0.2, metalness: 0.1, transparent: true, opacity: 0.85 }));
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(g.r * 1.02, g.r, g.h * 0.18, 10), new THREE.MeshStandardMaterial({ color: g.top, roughness: 0.6 }));
+  top.position.y = g.h * 0.5;
+  m.add(body, top);
+  m.userData.own = [body, top];
+  return m;
+}
+
+const TOAST_SHOTS = 4;
+
+export function playToast(w, { at, facing = 0, lines = [], variant = 0, glass = 'beer', kicker = '', onDone = null } = {}) {
+  if (run || !at) return false;
+  const anchor = freeSpot(w, at.x, at.y);
+  const a = chooseFacing(w, anchor.x, anchor.y, Number.isFinite(facing) ? facing : 0);
+  const r = buildRun(w, { anchor, facing: a });
+  if (!r) return false;
+  // facing each other, offset so their right hands (local -z) meet on the line between them
+  const f = { x: Math.cos(a), y: Math.sin(a) }, R = { x: Math.sin(a), y: -Math.cos(a) };
+  const c = r.mid;
+  standActor(r.tammo, c.x - f.x * 0.42 - R.x * 0.2, c.y - f.y * 0.42 - R.y * 0.2, a);
+  standActor(r.anita, c.x + f.x * 0.42 + R.x * 0.2, c.y + f.y * 0.42 + R.y * 0.2, a + Math.PI);
+  const glasses = [r.tammo, r.anita].map((m) => {
+    const gm = glassMesh(glass);
+    gm.position.set(0.03, -0.3, 0);
+    m.userData.elbowR.add(gm);
+    r.props.push({ kind: 'glass', mesh: gm, attached: true, own: true });
+    return gm;
+  });
+  const tl = timeline(lines, null, 0.15);
+  const CLINK = Math.max(1.0, tl.lines.length ? tl.lines[0].at + Math.min(tl.lines[0].dur, 1.1) : 1.0);
+  tl.total = Math.max(tl.total, CLINK + 1.9);
+  let clinked = false;
+  const v = ((variant % TOAST_SHOTS) + TOAST_SHOTS) % TOAST_SHOTS;
+  const n = { x: -f.y, y: f.x };
+  const side = blocked(w, c.x + n.x * 2.6, c.y + n.y * 2.6) ? -1 : 1;
+  const hands = () => P(c.x, c.y, 1.42);
+  return runScene(r, tl, {
+    id: 'mission-scene', kicker, title: '', cardFor: 1.6,
+    update: (t) => {
+      // raise, touch, drink, lower: arm lift (z), elbow bend and a head tilt back
+      const up = smooth(t / CLINK), drink = smooth((t - CLINK - 0.25) / 0.6), down = smooth((t - CLINK - 1.3) / 0.5);
+      for (const m of [r.tammo, r.anita]) {
+        const ud = m.userData;
+        ud.toastZ = lerp(lerp(lerp(0.9, 1.3, up), 1.25, drink), 0.95, down);
+        ud.toastE = lerp(lerp(lerp(1.1, 0.5, up), 2.05, drink), 1.2, down);
+        ud.toastX = lerp(-0.05, -0.18, drink) * (1 - down);
+        ud.toastHead = 0.32 * drink * (1 - down);
+      }
+      if (!clinked && t >= CLINK) {
+        clinked = true;
+        playGlassClink(GLASS[glass] ? GLASS[glass].small : false);
+        const q = hands();
+        for (let k = 0; k < 6; k++) spawnFxSpark(q.x, q.z, q.y, (Math.random() - 0.5) * 1.2, 0.6 + Math.random() * 0.8, (Math.random() - 0.5) * 1.2, 0.3);
+        for (const gm of glasses) gm.rotation.z = 0.12;
+      }
+    },
+    poses: () => ({ T: 'toast', A: 'toast' }),
+    camera: (t) => {
+      const u = clamp01(t / tl.total), k = smooth(u);
+      if (v === 0) {
+        // side-on two-shot, easing in
+        return pose(camClear(w, P(c.x + n.x * side * lerp(3.1, 2.4, k), c.y + n.y * side * lerp(3.1, 2.4, k), 1.6)), P(c.x, c.y, 1.4), 40);
+      }
+      if (v === 1) {
+        // over Anita's shoulder onto Tammo
+        return pose(camClear(w, P(c.x + f.x * 1.9 + n.x * side * 0.7, c.y + f.y * 1.9 + n.y * side * 0.7, 1.72)), P(c.x - f.x * 0.42, c.y - f.y * 0.42, 1.5), lerp(36, 32, k));
+      }
+      if (v === 2) {
+        // in close on the two glasses, then up to their faces
+        const z = lerp(1.35, 1.62, smooth((t - CLINK) / 1.2));
+        return pose(camClear(w, P(c.x + n.x * side * 1.3, c.y + n.y * side * 1.3, z)), P(c.x, c.y, z - 0.05), lerp(30, 38, k));
+      }
+      // from across the street, a slow drift round them
+      const ang = Math.atan2(n.y * side, n.x * side) + lerp(-0.25, 0.25, k);
+      return pose(camClear(w, P(c.x + Math.cos(ang) * 6.5, c.y + Math.sin(ang) * 6.5, 3.2)), P(c.x, c.y, 1.2), 44);
     },
     onDone: (skipped) => { if (onDone) onDone(skipped); },
   });

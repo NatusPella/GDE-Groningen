@@ -54,6 +54,52 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Nalopen: het Verhaal-menu, Ubbo, het plaatje van de plek in het Overzicht, en het prestatie-advies samen met "Wat is er nieuw" bij een update.
 - [ ] De laadtijd van de kaart meten op een rustige machine: rijen groeperen, woonboten, daken.
 
+## Speelfeedback 3 okt (gaat mee in 0.24)
+
+**Pakket A: verhaalverloop en opening** (`claude/feedback-verhaal`, klaar voor review)
+- [x] Te veel tegelijk: één wachtrij (`narrative.js`) voor telefoontjes, radio, autogesprekken, meldingen, prestaties, HUD-kaarten en cutscenes; kaarten gaan opzij voor ondertitels en de radio.
+- [x] Samen gaan wonen: in de opening huren Tammo en Anita samen een flat in Paddepoel, weg uit de krappe zolder. Daarna is Paddepoel thuis.
+- [x] Onderduiken: een duidelijke bestemming, met drie keuzes (trein, ijsje in het Noorderplantsoen, zonsondergang aan de Hoge der A), elk met een scène.
+- [x] Geen "Kop/Romp/Staart" meer in beeld: "Deel 1: KEI-week", "Deel 2: Noorderzon", "Deel 3: Kermis en Ontzet".
+- [x] Kusjes te vroeg: H13 vooruit spelen zette ze aan. Nu pas als het verhaal bij H13 is.
+- [x] "Huur een boot" in plaats van "koop een huurboot"; de treden van de complimentenladder worden uitgelegd.
+- [x] Een eigen icoon per missie.
+- [ ] Nalopen in een speeltest: de nieuwe intro-shots (camera bij de toren), de drie onderduik-scènes, en of de wachtrij niet te traag voelt.
+
+**Pakket B: missies** (`claude/feedback-missies`)
+- [x] H3: een uitleg vooraf (wat punten oplevert en het doel), een live scorepaneel met voortgangsbalk en combo, een pop-up per actie en "nog X punten" tegen het eind. Het doel is altijd haalbaar.
+- [x] H6: allebei in zwarte kleding. Na de kraak wijst de waypoint naar een kade bij het Hoofdstation, en daar eindigt de missie. In de trein weer gewone kleren.
+- [x] H8: de tankwagen van Us Mem Vet staat bij de groothandel aan de Bornholmstraat, met "US MEM VET" op de tank. Erin springen is de bedoelde route, banden plat kan nog steeds.
+- [x] H5: Anita fietst op haar eigen fiets (zoals in D), dus het oogcontact op het kruispunt klopt.
+- [x] H11: per kroeg een korte, overslaanbare proost (ander glas, ander shot, één zin of geen).
+- [x] H13:
+  - geen plaatsing, maar de medaille: goud was sneller dan de boot kan varen, dus het was bijna altijd brons. Goud en zilver zijn nu haalbaar;
+  - cutscenes bij de brug en bij de boosheid van Wiebe;
+  - Tammo gaat daarna verder als gids;
+  - de kus krijgt opbouw in drie momenten;
+  - een instapshot vanaf het water. Ook de scène aan boord van het skûtsje (H14) filmt nu langs het zeil.
+- [x] H14: de boeven fietsen niet meer door een muur.
+- [ ] Nog in het echt bekijken: H8's groothandel en de kaping, de kade bij het station, de proosts en de scènes op de rondvaartboot (de headless check deed alleen het scorepaneel en de tankwagen).
+
+**Pakket C: wereld, geluid en HUD** (`claude/feedback-wereld`)
+- [x] Voertuigbadge: naam en merk erbij, en conditie met een hartje in plaats van "schade".
+- [x] "Prestaties wachten" staat alleen kort in beeld (net als "meldingen wachten").
+- [x] Een prettiger brommergeluid.
+- [x] Zwemmers in zwemkleding die niet zwaaien als drenkelingen. Meer leven op het water: bootjes, kano's, suppers en zwanen.
+- [x] Betere waterlijn en golfslag voor alle boten. Remsporen liggen op de bovenste weglaag en blijven langer liggen.
+- [x] Cutscenes laden details rond de camera, niet rond de speler. Een rijkere minimap in het Ommeland.
+- [ ] Nog in het echt bekijken: de boten en zwemmers op het water en de ring (de screenshots van die plekken lukten niet).
+
+**Pakket D: heli, carbid en padel** (start zodra er ruimte is)
+- [ ] De heli-missie herbouwen: opstijgen bij Airport Eelde, onderweg een spoedgeval naar het UMCG, dan naar de ballon. Geen tweede heli en een logische landing. De ballonvlucht moet goed te doen zijn.
+- [ ] Nieuwe heli-besturing: WASD voor sturen en vooruit/achteruit, Shift voor snelheid, Spatie voor omhoog en Ctrl voor omlaag.
+- [ ] De kaart draait goed mee tijdens de heli-missie met de cirkels.
+- [ ] Een betere missienaam dan "Spoedeisende duif".
+- [ ] Een route naar carbid en padel in het verhaal. TTS tijdens padel, en geen waypoint naar de volgende missie tijdens het spel.
+- [ ] Een reden waarom je padel speelt tegen Durk en Douwe.
+
+**Ring:** nog steeds zwarte lagen hier en daar. Dat valt onder mesh ronde 4 en 5, die gepauzeerd zijn.
+
 ## 0.24: echte zwakke hardware en de webversie
 
 - [ ] Meten op een echte Intel-laptop (Iris Xe of UHD 620) en een Chromebook of vergelijkbaar toestel. Daarvoor is hardware van Alexander of een kennis nodig.
@@ -80,11 +126,12 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] De IARC-vragenlijst echt invullen.
 - [x] **Geen gesimuleerd gokken meer** (`claude/geen-gokken`). De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
 - [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
-- [ ] Toegankelijkheid:
-  - toetsen opnieuw toewijzen;
-  - volledige controllersupport (ook nodig voor de Steam Deck);
-  - een grootte voor de ondertitels;
-  - markers die werken voor kleurenblinden.
+- [~] Toegankelijkheid (`claude/toegankelijk`, in headless Chrome getest met een nagebootste controller; nog niet op echte hardware):
+  - [x] toetsen en controllerknoppen opnieuw toewijzen, met ruilen bij een conflict en "Standaard herstellen";
+  - [x] volledige controllersupport via de Gamepad API (Xbox, PlayStation, Steam Deck): spel, minigames en alle menu's, hints met de knoppen van je controller, trillen;
+  - [x] een grootte voor de ondertitels, met een vlak erachter;
+  - [x] markers die werken voor kleurenblinden: patronen en vormen, plus drie paletten;
+  - [ ] testen met een echte Xbox-, PlayStation- en Steam Deck-controller (zie de lijst in de PR).
 - [ ] Opt-in foutrapporten of een logbestand om mee te sturen.
 - [ ] Een save-garantie: saves vanaf 1.0 blijven werken, met een migratietest op oude saves.
 - [ ] Feature freeze.
@@ -138,7 +185,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
   - een Nederlandse en een Engelse beschrijving.
 - [ ] Een Steam-build: de Windows-, Mac- en Linux-builds via SteamPipe, met een uploadscript.
 - [ ] De Steam-overlay met Electron en Chromium testen, en oplossen of accepteren.
-- [ ] Steam Deck: volledige controllersupport (zie 0.25), een Linux-build, en de tekstgrootte op 800p.
+- [ ] Steam Deck: een Linux-build en een test op het toestel. De controllersupport (0.25) is er, en de HUD en het menu zijn op 1280×800 nagekeken.
 - [ ] Optioneel: Steam-achievements en cloud-saves via steamworks.js, gekoppeld aan de bestaande prestaties.
 - [ ] De planning: 30 dagen wachten na betaling, minimaal 2 weken "coming soon", en de review van de pagina en de build.
 - [?] Het besluit: $100 betalen en naar Steam (Alexander).

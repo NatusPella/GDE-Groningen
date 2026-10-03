@@ -1,4 +1,5 @@
-import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch } from './hud_panel.js';
+import { onPaletteChange } from './a11y.js';
+import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
@@ -159,10 +160,10 @@ function injectStyles() {
     .mapview-btn[hidden] { display: none; }
     .mapview-btn:focus-visible { outline: 3px solid #f0ede4; outline-offset: 2px; }
     .mapview-route { margin-left: auto; font-size: 16px; color: #f0ede4; white-space: nowrap; }
-    .mapview-route .user { color: ${ROUTE_COLORS.user}; }
-    .mapview-route .mission { color: ${ROUTE_COLORS.mission}; }
-    .mapview-route .job { color: ${ROUTE_COLORS.job}; }
-    .mapview-route .care { color: ${ROUTE_COLORS.care}; }
+    .mapview-route .user { color: var(--mk-user, ${ROUTE_COLORS.user}); }
+    .mapview-route .mission { color: var(--mk-mission, ${ROUTE_COLORS.mission}); }
+    .mapview-route .job { color: var(--mk-job, ${ROUTE_COLORS.job}); }
+    .mapview-route .care { color: var(--mk-care, ${ROUTE_COLORS.care}); }
     .mapview-route > span + span { margin-left: 14px; }
     .mapview-route button { margin-left: 6px; padding: 0 6px; font: inherit; font-size: 13px; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 3px; cursor: pointer; }
     .mapview-footer {
@@ -863,7 +864,7 @@ function drawDynamicMarkers(ctx, world) {
   if (layerOn('klussen') && !job) {
     for (const k of getMissionList()) {
       if (!k.done || (showMission && k.index === m.index) || k.status === 'actief') continue;
-      icon(null, 'missionIdle', k.start.x, k.start.y, k.code ? `${k.code} · ${k.label}` : k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index });
+      icon(null, missionMapKind(k.index, false), k.start.x, k.start.y, k.code ? `${k.code} · ${k.label}` : k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index });
     }
   }
   if (showMission) {
@@ -872,13 +873,18 @@ function drawDynamicMarkers(ctx, world) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), ICON);
       for (const w of wps) icon(null, 'waypoint', w.x, w.y, 'Checkpoint');
     }
-    icon(null, m.phase === 'active' ? 'missionActive' : 'missionIdle', m.marker.x, m.marker.y,
+    icon(null, missionMapKind(m.index, m.phase === 'active'), m.marker.x, m.marker.y,
       m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten', m.phase === 'active' ? null : { todo: 'm:' + m.index });
   }
   // the story's step stays on the map while a goal of your own waits it out
   const sg = world.storyGuide;
   if (sg && !world.storyFreePlay && !(showMission && Math.hypot(m.marker.x - sg.x, m.marker.y - sg.y) < 4) && !(sg.buy && storyTargetShop(world))) {
     icon(null, 'missionIdle', sg.x, sg.y, sg.name, {}, 'Verhaal', { story: true });
+  }
+  // a story step with a choice (Even onderduiken): the other options too
+  for (const c of world.storyChoices || []) {
+    if (sg && Math.hypot(c.x - sg.x, c.y - sg.y) < 4) continue;
+    icon(null, 'missionIdle', c.x, c.y, c.name, {}, 'Verhaal: of dit', { story: true });
   }
 
   for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });
@@ -1348,7 +1354,7 @@ const LEGEND = [
     { kind: 'player', label: 'Jij', note: 'en wie er met je meerijdt' },
     { kind: 'missionIdle', label: 'Verhaal', dyn: 'story' },
     { kind: 'userWaypoint', label: 'Jouw doel', dyn: 'goal' },
-    { kind: 'route', label: 'Route', note: 'paars: jouw doel, geel: verhaal of missie, roze: opknappen of repareren' },
+    { kind: 'route', label: 'Route', note: 'doorgetrokken: verhaal of missie, streepjes: jouw doel, puntjes: klus, streep-punt: opknappen of repareren' },
   ] },
   { group: 'Te doen', rows: [
     { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer)] },
@@ -1426,6 +1432,8 @@ function buildLegend(root) {
       // icons are drawn on a 24 px grid, shown at 30 px
       ctx.setTransform(dpr * 1.25, 0, 0, dpr * 1.25, 0, 0);
       drawLegendIcon(ctx, row.kind);
+      // the colour-blind palettes change the route and marker colours
+      onPaletteChange(() => { ctx.clearRect(0, 0, 24, 24); drawLegendIcon(ctx, row.kind); state.dirty = true; });
       const span = document.createElement('span');
       span.textContent = row.label;
       const n = document.createElement('span');
@@ -1616,8 +1624,14 @@ export function initMapView(world) {
     if (!b) return;
     if (b.dataset.card === 'close') hideCard();
     else cardAction(world, b.dataset.card);
+    if (state.open && !state.card) state.canvas.focus({ preventScroll: true });
   });
   state.canvas.tabIndex = -1;
+  // a controller has no pointer: A picks what is under this crosshair (a11y.css shows it)
+  const reticle = document.createElement('div');
+  reticle.className = 'map-pad-reticle';
+  reticle.innerHTML = '<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="9"/><path d="M17 2v8M17 24v8M2 17h8M24 17h8"/></svg>';
+  state.canvas.parentElement.appendChild(reticle);
   state.searchIndex = buildSearchIndex(world);
   initFog(world);
   buildLegend(overlay.querySelector('.mapview-legend'));
@@ -1729,6 +1743,15 @@ export function initMapView(world) {
 
   window.addEventListener('keydown', (e) => {
     if (!state.open || e.target === si) return;
+    // Enter on the map itself (a controller's A): click under the crosshair
+    if (e.key === 'Enter' && !e.defaultPrevented && !(e.target && e.target.closest && e.target.closest('button, input, a, select, .mapview-card'))) {
+      e.preventDefault();
+      handleClick(world, state.cw / 2, state.ch / 2, false);
+      const b = state.card && state.cardEl.querySelector('button');
+      if (b) b.focus({ preventScroll: true });
+      else state.canvas.focus({ preventScroll: true });
+      return;
+    }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       clearUserWaypoint();
