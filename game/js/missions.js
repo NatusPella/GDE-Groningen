@@ -12,7 +12,7 @@ import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
-import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
+import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, playRondvaartBoarding, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
@@ -426,7 +426,7 @@ function buildDefs(world) {
           near: 'Langszij! Hou hem vast, Tammo springt zo...', lost: 'het skûtsje is weg, met zeil en al',
         },
         {
-          kind: 'scene', label: 'Aan boord', target: { skutsje: true },
+          kind: 'scene', label: 'Aan boord', target: { skutsje: true }, deckCam: true,
           kicker: 'Het skûtsje', big: 'Chocola?!',
           cast: [{ key: 'durk', at: [2.3, 0.35], jump: 'Plons.', jumpSide: 1 }, { key: 'douwe', at: [3.2, -0.35], jump: 'Plons.', jumpSide: -1, jumpDelay: 0.4 }],
           props: [{ kind: 'ball', holder: 'A', from: 'Hier is hij' }],
@@ -924,7 +924,7 @@ function runStats(world, def) {
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
   const rv = def.type === 'boat' ? rondvaartStatus() : null;
-  if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Botsingen', String(rv.bumps)]);
+  if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Verhalen verteld', `${rv.told}/${rv.stops}`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
   if (def.type === 'fatbike') stats.push(['Geschept', String(chain.fatbikeHits || 0)]);
   const su = def.type === 'stunt' ? stuntStatus() : null;
@@ -1677,6 +1677,8 @@ function startMission(world, def) {
     const who = speakerName(world);
     playMissionIntro(world, { kicker, title: `Missie: ${title}`, lines: (def.intro || []).map((text) => ({ speaker: who, text })), objective });
   }
+  // H13: after the intro on the quay, a shot of the boat with the two of them aboard
+  if (def.type === 'boat' && chain.vehicle) playRondvaartBoarding(world, chain.vehicle);
   if (def.say) world.addMessage(def.say, 5);
   chain.seen.add(i);
 }
@@ -2537,6 +2539,15 @@ function playStageScene(world, st, S) {
       const near = Math.hypot(c.x - v.x, c.y - v.y) < 5;
       return { position: { x: v.x + Math.cos(a) * 2.8, y: v.y + Math.sin(a) * 2.8, z: 1.75 }, lookAt: { x: near ? (v.x + c.x) / 2 : v.x, y: near ? (v.y + c.y) / 2 : v.y, z: 1.2 }, fov: 50 };
     };
+  } else if (st.deckCam && chain.skutsje) {
+    // on the skûtsje (H14): from just off the bow quarter, low, looking aft over the deck, so the
+    // sail stands behind the cast instead of between them and the camera; a slow drift along the hull
+    const b = chain.skutsje, ca = Math.cos(b.angle), sa = Math.sin(b.angle), hl = b.model.len / 2;
+    const sd = [1, -1].find((s) => isInWater(world.map, b.x + ca * (hl + 2.5) - sa * s * 3.5, b.y + sa * (hl + 2.5) + ca * s * 3.5)) ?? 1;
+    shot = (u) => {
+      const k = u * u * (3 - 2 * u), fw = hl + 3.2 - k * 1.4, lat = sd * (3.6 - k * 0.8);
+      return { position: { x: b.x + ca * fw - sa * lat, y: b.y + sa * fw + ca * lat, z: 2.5 - k * 0.3 }, lookAt: { x: b.x + ca * 0.6, y: b.y + sa * 0.6, z: 1.7 }, fov: 50 - k * 4 };
+    };
   } else if (st.cam) {
     // a wide shot from the target, looking up at cam.at (e.g. the tower)
     const look = (st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
@@ -2570,7 +2581,7 @@ function playStageScene(world, st, S) {
       at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
       kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo,
       deck: st.target && st.target.skutsje ? chain.skutsje : null,
-      shot: st.reveal || wide ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
+      shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
       props: [...(st.props || []), ...(st.knots ? [{ kind: 'point', name: 'knots', at: flagKnotsFocus }] : [])],
       update: st.dropFlag || st.showFlag ? (t, dt) => updateStoryProps(st.dropFlag ? dt * 0.45 : dt) : st.reveal ? heistRevealUpdate : null,
