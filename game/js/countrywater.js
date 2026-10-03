@@ -4,6 +4,7 @@ import { COUNTRY_UNIFORMS, SHORE_RW, countryRect, rectOutside, realWater } from 
 import { wideWaterAt, openWater } from './countryedge.js';
 import { REAL } from './countryreal.js';
 import { sharedWaterMaterial } from './water3d.js';
+import { setCountryClearance } from './waterindex.js';
 
 // The Ommeland canals, maren and lakes as the city's water: past the map
 // rectangle the real open water (countryreal.js distance field, and the
@@ -179,6 +180,7 @@ function init(group) {
   group.add(bed);
   W = { group, bankMat, bed, chunks: 0, tris: 0 };
   setExtraWater(wideWaterAt);
+  setCountryClearance((x, y, d) => (d < 0 ? (rectOutside(x, y) > -3 ? openWater(x, y) - SHORE_RW : -1) : cityShoreFix(x, y, d)));
 }
 
 function dropMeshes(ch) {
