@@ -1018,6 +1018,7 @@ export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
   setPropVisible(ud, 'phoneProp', false);
   setPropVisible(ud, 'rodProp', false);
   if (spec.arms !== 'paddle') setPropVisible(ud, 'paddleProp', false);
+  setPropVisible(ud, 'supPaddle', false);
   ud.seated = true;
 }
 
@@ -1038,6 +1039,48 @@ export function standBehindPose(mesh) {
   ud.kneeR.rotation.z = -0.1;
   setArm(ud.armL, ud.elbowL, 0.9, 1.1, 0.12);
   setArm(ud.armR, ud.elbowR, 0.9, 1.1, -0.12);
+  if (ud.umbrella) ud.umbrella.visible = false;
+}
+
+// Standing on a paddle board with a long single-blade paddle (held by the
+// chest, so it swings with the body): knees soft, a slow stroke on one side,
+// switching sides every few strokes. Hands stay below the head.
+const SUP_PADDLE_GEO = markShared((() => {
+  const parts = [new THREE.CylinderGeometry(0.014, 0.014, 2.0, 5).translate(0, -1.0, 0), new THREE.BoxGeometry(0.05, 0.03, 0.12).translate(0, 0, 0),
+    new THREE.BoxGeometry(0.02, 0.42, 0.19).translate(0, -1.86, 0)];
+  const pos = [];
+  for (const g of parts) pos.push(...(g.index ? g.toNonIndexed() : g).attributes.position.array);
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.computeVertexNormals();
+  return out;
+})());
+
+export function supPose(mesh, t = 0) {
+  const ud = mesh.userData;
+  if (!ud.pelvis) return;
+  resetSpine(ud);
+  const ph = t * 1.5;
+  const s = Math.sin(ph);
+  const side = Math.sin(ph / 8) >= 0 ? 1 : -1;
+  ud.chest.rotation.set(0, side * (0.15 + 0.1 * s), -0.12 - 0.1 * Math.max(0, s));
+  ud.legL.rotation.set(-0.09, 0, 0.12);
+  ud.legR.rotation.set(0.09, 0, 0.12);
+  ud.kneeL.rotation.z = ud.kneeR.rotation.z = -0.22;
+  // top hand at chin height, the other lower down the shaft on the stroke side
+  const top = side > 0 ? [ud.armL, ud.elbowL, -1] : [ud.armR, ud.elbowR, 1];
+  const low = side > 0 ? [ud.armR, ud.elbowR, 1] : [ud.armL, ud.elbowL, -1];
+  setArm(top[0], top[1], 1.25 + 0.2 * s, 1.15, top[2] * 0.2);
+  setArm(low[0], low[1], 0.75 + 0.35 * s, 0.35, low[2] * 0.15);
+  ud.head.rotation.set(0, 0, 0.1);
+  let p = ud.supPaddle;
+  if (!p) {
+    p = ud.supPaddle = new THREE.Mesh(SUP_PADDLE_GEO, ROD_MAT);
+    ud.chest.add(p);
+  }
+  p.visible = true;
+  p.position.set(0.34, 0.42, side * 0.2);
+  p.rotation.set(-side * 0.12, 0, 0.15 + 0.4 * s);
   if (ud.umbrella) ud.umbrella.visible = false;
 }
 

@@ -1148,6 +1148,12 @@ const HULL_SHAPES = {
     f: (t) => (t < 0.6 ? 0.9 + 0.1 * Math.sin((t / 0.6) * Math.PI / 2) : Math.pow(Math.cos(((t - 0.6) / 0.4) * Math.PI / 2), 0.8)),
     top: (t) => 0.24 + 0.14 * t * t, rise: (t) => Math.max(0, (t - 0.6) / 0.4), chine: -0.06, keel: -0.17, floor: 0.1,
   },
+  // stand-up paddle board: a thin flat board with a little nose rocker
+  sup: {
+    ts: [0, 0.06, 0.2, 0.5, 0.72, 0.86, 0.95, 1],
+    f: (t) => (t < 0.08 ? 0.72 + 0.28 * Math.sin((t / 0.08) * Math.PI / 2) : t < 0.66 ? 1 : Math.pow(Math.cos(((t - 0.66) / 0.34) * Math.PI / 2), 0.6)),
+    top: (t) => 0.1 + 0.06 * Math.max(0, (t - 0.78) / 0.22) ** 2, rise: () => 0, chine: 0.02, keel: -0.04, floor: 0.08, deck: true, chineK: 0.92,
+  },
   // Frisian skûtsje: flat bottom, full round bow with a high sheer, a
   // squarish stern; the hold is decked over with hatches (skutsjeFit)
   skutsje: {
@@ -1323,6 +1329,13 @@ function kanoFit(B, st, L, W, hull) {
   }
   const h = hullAt(st, 0);
   B.box(0, h.top - 0.02, 0, 0.06, 0.04, h.hw * 2 - 0.06, WOOD);
+}
+
+function supFit(B, st) {
+  // grippy deck pad where the paddler stands
+  const h = hullAt(st, -0.15);
+  B.box(-0.15, h.top + 0.05, 0, 0.9, 0.012, h.hw * 1.5, 0x2a2c2e);
+  B.box(-0.55, h.top + 0.055, 0, 0.12, 0.02, h.hw * 1.5, 0x1e1f21);
 }
 
 function kajakFit(B) {
@@ -1581,6 +1594,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
       case 'rondvaart': rondvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
       case 'kano': kanoFit(B, st, L, W, hull); break;
       case 'kajak': kajakFit(B); break;
+      case 'sup': supFit(B, st); break;
       case 'dinghy': dinghyFit(B, st, L); break;
       case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
       case 'skutsje': skutsjeFit(B, st, L, W); break;
@@ -1589,7 +1603,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
     if (kind === 'kano' || kind === 'kajak') {
       const x = -hl * 0.72;
       B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
-    } else navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
+    } else if (kind !== 'sup') navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
     return B.build();
   });
 }
@@ -1601,7 +1615,7 @@ function buildBoatMesh(v) {
   const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
   const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
   const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
   group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));

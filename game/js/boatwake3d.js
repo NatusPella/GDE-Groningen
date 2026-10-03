@@ -232,7 +232,7 @@ function updateWake(w, v, map, time, light) {
     : S;
   const count = Math.min(pts.length, MAX_SAMPLES + 1);
   // paddle and pedal craft leave a faint wake and no propeller churn
-  const soft = v.model.kind === 'kano' || v.model.kind === 'kajak' || v.model.kind === 'waterfiets';
+  const soft = v.model.kind === 'kano' || v.model.kind === 'kajak' || v.model.kind === 'waterfiets' || v.model.kind === 'sup';
   const strength = (s) => Math.min(1, s / 3.5) * (soft ? 0.45 : 1);
   for (const side of [1, -1]) {
     writeRibbon(w, side > 0 ? 0 : 1, count, (i) => {
