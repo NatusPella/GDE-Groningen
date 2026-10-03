@@ -1000,10 +1000,13 @@ function syncPub(world) {
   else if (def.type === 'deliver') target = nextStop(def) || def.dest;
   else if (def.type === 'fatbike') target = def.dest;
   else if (def.type === 'stages') target = stageMarker(world, def);
-  else target = def.waypoints[st.wpIndex];
-  pub.marker.x = target.x;
-  pub.marker.y = target.y;
-  pub.marker.z = Number.isFinite(target.z) && def.type === 'stages' && st.phase === 'active' ? target.z : null;
+  // past the last waypoint (the last pub's toast plays before the outro): the last one
+  else target = def.waypoints[Math.min(st.wpIndex, def.waypoints.length - 1)];
+  if (target) {
+    pub.marker.x = target.x;
+    pub.marker.y = target.y;
+    pub.marker.z = Number.isFinite(target.z) && def.type === 'stages' && st.phase === 'active' ? target.z : null;
+  }
   pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
   pub.armed = !!st.armed;
   pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
@@ -2919,7 +2922,8 @@ export const missionDebug = {
       if (world.wanted) { world.wanted = 0; world.wantedDecayTimer = 0; }
       if (chain.phase === 'active') nextStage(world, def);
     } else if ((def.type === 'checkpoint' || def.type === 'boat') && !chain.race) {
-      reachCheckpoint(world, def);
+      // all waypoints reached, the outro waits for the last toast (updateMissions)
+      if (!chain.finishPending) reachCheckpoint(world, def);
     } else if (def.type === 'deliver' && nextStop(def)) {
       chain.stopIndex++;
     } else succeed(world, def);
