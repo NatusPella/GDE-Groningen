@@ -224,10 +224,15 @@ function shoreRuns(poly, map, index) {
         else cls = 'wall';
       }
       if (!cls) { close(); continue; }
-      if (cur && cur.cls !== cls) close();
+      let prev = null;
+      if (cur && cur.cls !== cls) { prev = cur; close(); }
       const x0 = a[0] + dx * s0, y0 = a[1] + dy * s0, x1 = a[0] + dx * s1, y1 = a[1] + dy * s1;
-      if (!cur) cur = { cls, pts: [[x0, y0]], segN: [] };
-      else {
+      if (!cur) {
+        cur = { cls, pts: [[x0, y0]], segN: [] };
+        // a wall running on into a bank: both mitre their shared end, no
+        // wedge of bare terrain hole between the two at a corner
+        if (prev) { const q = prev.pts[prev.pts.length - 1]; if (Math.hypot(q[0] - x0, q[1] - y0) < 0.01) { prev.nextN = edgeN; cur.prevN = prev.segN[prev.segN.length - 1]; } }
+      } else {
         const last = cur.pts[cur.pts.length - 1];
         if (Math.hypot(last[0] - x0, last[1] - y0) > 0.01) { close(); cur = { cls, pts: [[x0, y0]], segN: [] }; }
       }
@@ -240,8 +245,11 @@ function shoreRuns(poly, map, index) {
     const f = runs[0], l = runs[runs.length - 1];
     const a = l.pts[l.pts.length - 1], b = f.pts[0];
     if (f.cls === l.cls && Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.01) {
-      runs[0] = { cls: f.cls, pts: l.pts.concat(f.pts.slice(1)), segN: l.segN.concat(f.segN) };
+      runs[0] = { cls: f.cls, pts: l.pts.concat(f.pts.slice(1)), segN: l.segN.concat(f.segN), prevN: l.prevN, nextN: f.nextN };
       runs.pop();
+    } else if (Math.hypot(a[0] - b[0], a[1] - b[1]) < 0.01) {
+      l.nextN = f.segN[0];
+      f.prevN = l.segN[l.segN.length - 1];
     }
   } else if (runs.length === 1) {
     const r = runs[0], a = r.pts[r.pts.length - 1], b = r.pts[0];
@@ -255,7 +263,8 @@ function miters(run) {
   const out = [];
   const n = run.pts.length;
   for (let i = 0; i < n; i++) {
-    const a = run.segN[Math.max(0, i - 1)], b = run.segN[Math.min(run.segN.length - 1, i)];
+    const a = i === 0 && run.prevN ? run.prevN : run.segN[Math.max(0, i - 1)];
+    const b = i === n - 1 && run.nextN ? run.nextN : run.segN[Math.min(run.segN.length - 1, i)];
     let mx = a[0] + b[0], my = a[1] + b[1];
     const l = Math.hypot(mx, my);
     if (l < 1e-3) { out.push([b[0], b[1]]); continue; }
