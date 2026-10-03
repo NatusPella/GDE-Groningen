@@ -25,6 +25,7 @@ import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { unseenAchievementCount } from './achievements.js';
+import { isPauseMenuOpen } from './pausemenu.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -131,12 +132,29 @@ export function initCards(w, root) {
   return stackEl;
 }
 
+// The two chips under the cards ("2 meldingen wachten", "1 prestatie wacht")
+// are short notices, not fixtures: each shows for CHIP_SECS when its count
+// goes up, fades and hides. The award chip comes back once, briefly, when a
+// pause ends while something is still unseen.
+const CHIP_SECS = 5;
+const CHIP_FADE = 0.6;
+const CHIP_AFTER_PAUSE = 3.5;
+let waitT = 0;
+let awardT = 0;
+let wasInMenu = false;
+
+function setChip(el, t) {
+  el.hidden = t <= 0;
+  el.classList.toggle('out', t > 0 && t < CHIP_FADE);
+}
+
 // How many cards wait their turn (tips not counted: they may never come).
 function syncWait() {
   const n = queue.filter((q) => q.spec.kind !== 'tip').length;
   if (n === waitN) return;
+  if (n > waitN) waitT = CHIP_SECS;
+  if (!n) waitT = 0;
   waitN = n;
-  waitEl.hidden = !n;
   if (n) waitEl.innerHTML = `<i></i>${n} ${n === 1 ? 'melding wacht' : 'meldingen wachten'}`;
 }
 
@@ -145,9 +163,23 @@ const AWARD_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5
 function syncAward() {
   const n = unseenAchievementCount();
   if (n === awardN) return;
+  if (n > awardN) awardT = CHIP_SECS;
+  if (!n) awardT = 0;
   awardN = n;
-  awardEl.hidden = !n;
   if (n) awardEl.innerHTML = `${AWARD_SVG}${n} ${n === 1 ? 'prestatie wacht' : 'prestaties wachten'}`;
+}
+
+function tickChips(dt, frozen, menuOpen) {
+  if (menuOpen) wasInMenu = true;
+  else if (wasInMenu && !frozen) {
+    wasInMenu = false;
+    if (awardN > 0) awardT = Math.max(awardT, CHIP_AFTER_PAUSE);
+  }
+  if (!frozen) { waitT = Math.max(0, waitT - dt); awardT = Math.max(0, awardT - dt); }
+  // the queue chip only means something next to a card that is up
+  if (!visible.some((c) => !c.leaving)) waitT = Math.min(waitT, CHIP_FADE);
+  setChip(waitEl, frozen ? 0 : waitT);
+  setChip(awardEl, frozen ? 0 : awardT);
 }
 
 // For a running mission/bijbaan the default category is that.
@@ -318,9 +350,11 @@ export function updateCards(dt, w) {
   if (countT > 0 && (countT -= dt) <= 0) countEl.classList.remove('on');
   const frozen = hudHidden() || w.paused || w.uiPaused;
   stackEl.classList.toggle('paused', !!frozen);
-  document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
   syncWait();
   syncAward();
+  tickChips(dt, !!frozen, isPauseMenuOpen());
+  document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
+  document.body.classList.toggle('hud-chip-on', waitT > 0 || awardT > 0);
   if (frozen) return;
   // during a phone call only dangers and the police get a card
   const calling = document.body.classList.contains('hud-call-on');
