@@ -8,6 +8,8 @@ import { vehicleDisplayLabel } from './vehiclenames.js';
 import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
 import { getSettings } from './settings.js';
+import { physicalKey, tokenKey, keyName, PAD_LAYOUTS } from './controls.js';
+import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
 import { isPhoneOpen } from './phone.js';
 import { isPauseMenuOpen } from './pausemenu.js';
@@ -94,20 +96,30 @@ const MOUSE_SVG = (btn) => '<svg class="hud-mouse" data-btn="' + btn + '" viewBo
 const KEY_LABELS = { ' ': 'SPATIE', SPACE: 'SPATIE', SHIFT: 'SHIFT', CTRL: 'CTRL', ESC: 'ESC' };
 
 // Glyph for one control token: a keycap, the WASD cluster, or a mouse icon.
+// `data-gk` names the token, so glyphs.js can show the controller button
+// instead; a rebound key shows the key it is bound to now.
 export function glyphHtml(token, opts = {}) {
   let inner;
+  const gk = esc(token);
   if (token === 'WASD') {
-    inner = '<span class="hud-wasd"><span class="hud-key">W</span><span class="hud-key">A</span><span class="hud-key">S</span><span class="hud-key">D</span></span>';
+    inner = `<span class="hud-wasd" data-gk="${gk}"><span class="hud-key">${keyCap('w')}</span><span class="hud-key">${keyCap('a')}</span><span class="hud-key">${keyCap('s')}</span><span class="hud-key">${keyCap('d')}</span></span>`;
   } else if (token === 'ARROWS') {
-    inner = '<span class="hud-wasd"><span class="hud-key">↑</span><span class="hud-key">←</span><span class="hud-key">↓</span><span class="hud-key">→</span></span>';
+    inner = `<span class="hud-wasd" data-gk="${gk}"><span class="hud-key">↑</span><span class="hud-key">←</span><span class="hud-key">↓</span><span class="hud-key">→</span></span>`;
   } else if (token === 'LMB' || token === 'RMB' || token === 'MOUSE' || token === 'WHEEL') {
-    inner = MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w' }[token]);
+    inner = `<span class="hud-mouse-g" data-gk="${gk}">` + MOUSE_SVG({ LMB: 'l', RMB: 'r', MOUSE: 'move', WHEEL: 'w' }[token]) + '</span>';
   } else {
-    inner = '<span class="hud-key">' + esc(KEY_LABELS[token] || token) + '</span>';
+    const canon = tokenKey(token);
+    const phys = physicalKey(getSettings().keyBinds, canon);
+    const label = phys !== canon ? keyName(phys) : (KEY_LABELS[token] || token);
+    inner = `<span class="hud-key" data-gk="${gk}">` + esc(label) + '</span>';
   }
   if (!opts.ring) return inner;
   return '<span class="hud-hold">' + inner +
     '<svg class="hud-hold-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" class="r-bg"/><circle cx="20" cy="20" r="17" class="r-fg" pathLength="100"/></svg></span>';
+}
+
+function keyCap(k) {
+  return esc(keyName(physicalKey(getSettings().keyBinds, k)));
 }
 
 // Hold-to-interact / cooldown ring around a glyph; p in 0..1.
@@ -566,8 +578,31 @@ const PIC = {
 const pic = (id) => (PIC[id] ? `<svg class="ctx-pic" viewBox="0 0 24 24" aria-hidden="true">${PIC[id]}</svg>` : '');
 
 function tut(id, keys, label, desc, rare = false) {
-  return { id, keys, label, desc, rare, kind: 'tut' };
+  const pd = isPadActive() && PAD_DESC[id];
+  return { id, keys, label, desc: pd ? pd(PAD_LAYOUTS[padState().family] || PAD_LAYOUTS.xbox) : desc, rare, kind: 'tut' };
 }
+
+// The same lessons in controller words (L: the layout's button names).
+const PAD_DESC = {
+  move: () => 'Linkerstick: lopen, indrukken: rennen',
+  look: () => 'De rechterstick draait de camera om je heen',
+  swim: () => 'Linkerstick: zwem de kant op die je kijkt',
+  drive: (L) => `${L.rt} gas, ${L.lt} remmen en achteruit, linkerstick sturen`,
+  handbrake: (L) => `${L.a === 'cross' ? 'Kruisje' : L.a} in een bocht = driften`,
+  radio: (L) => `${L.lb}: volgende zender (G-Music, Nachtstreek, Radio Grunn, uit)`,
+  cinecam: () => 'D-pad omlaag: filmische shots',
+  lookback: () => 'Druk de rechterstick in',
+  heliUp: (L) => `${L.rt} omhoog, ${L.lt} omlaag: landen doe je laag en langzaam`,
+  heliYaw: (L) => `${L.lb}/${L.rb} of de rechterstick draait de neus`,
+  heliFly: () => 'Linkerstick: vooruit, achteruit en opzij',
+  heliHover: () => 'Remt af tot je stil in de lucht hangt',
+  shoot: (L) => `${L.rt} schiet waar de camera kijkt; in de auto ${L.rb}`,
+  aim: (L) => `Houd ${L.lt} vast: richt vanzelf op een doelwit, ${L.rs} wisselt`,
+  scope: (L) => `Houd ${L.lt} vast om in te zoomen, ${L.rt} schiet`,
+  throw: (L) => `Bukken en ${L.rt} zet de bus neer. Wegwezen!`,
+  weapon: (L) => `${L.lb}/${L.rb} wisselen van wapen`,
+  punch: (L) => `${L.rt} om uit te halen`,
+};
 
 function contextRows(world, primary) {
   const p = world.player;
@@ -665,7 +700,7 @@ function admitRows(want, dt, quiet) {
 
 function renderRows(world, primary, dt = 0) {
   const rows = admitRows(contextRows(world, primary), dt, hintsQuiet());
-  const key = rows.map((r) => r.id + ':' + rowState(r)).join('|');
+  const key = rows.map((r) => r.id + ':' + rowState(r)).join('|') + (isPadActive() ? '|pad' : '');
   if (key === rowsKey) return;
   rowsKey = key;
   const keep = new Set(rows.map((r) => r.id));
@@ -685,8 +720,10 @@ function renderRows(world, primary, dt = 0) {
       rowEls.set(r.id, el);
       el.dataset.id = r.id;
     }
-    if (el.dataset.state !== state) {
+    const dev = isPadActive() ? 'pad' : 'keys';
+    if (el.dataset.state !== state || el.dataset.dev !== dev) {
       el.dataset.state = state;
+      el.dataset.dev = dev;
       el.className = 'ctx-row ' + state;
       el.innerHTML = rowHtml(r);
       el.title = r.label;

@@ -18,6 +18,9 @@ import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailer.js';
 import { glyphHtml } from './prompts.js';
+import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
+import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
+import { padGlyphInner } from './glyphs.js';
 import { getUiScale } from './uiscale.js';
 import { DEV } from './devflags.js';
 import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummary, selectTodo } from './todoui.js';
@@ -86,6 +89,7 @@ const CONTROL_GROUPS = [
     [['ESC'], 'Pauzemenu; in het menu: terug'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
+    [['[', ']'], 'In het menu: vorig of volgend tabblad'],
     [['U'], 'Geluid aan/uit'],
     [['O'], 'Verhaalstap overslaan (als dat in beeld staat)'],
     ...(DESKTOP ? [[['F11'], 'Volledig scherm (ook Alt+Enter)']] : []),
@@ -100,11 +104,13 @@ const GROUP_ICONS = {
   duif: '<path d="M3 13c3 0 5-2 7-5 1 3 3 4 6 4l5-3-2 5c-2 4-6 6-10 5l-4 2 1-4c-2-1-3-2-3-4z"/><circle cx="16.5" cy="10.5" r="0.4"/>',
   menu: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10.5 18.5h3"/>',
 };
+// the controller table (controls.js PAD_MAPS) each group shows when a pad is in use
+const GROUP_CTX = { lopen: 'foot', rijden: 'vehicle', vechten: 'foot', heli: 'heli', duif: 'pigeon', menu: 'menu' };
 const MOUSE_WORDS = { LMB: 'linkermuisknop klik', RMB: 'rechtermuisknop', MOUSE: 'muis', WHEEL: 'scrollwiel middelste muisknop', SPACE: 'spatie', CTRL: 'ctrl control', SHIFT: 'shift', ESC: 'esc escape', WASD: 'w a s d wasd', ARROWS: 'pijltjes pijltjestoetsen' };
 
 function controlsHtml() {
   const alt = (a) => a.split('+').map((t) => glyphHtml(t)).join('<span class="pm-k-sep">+</span>');
-  return CONTROL_GROUPS.map(([id, title, rows]) => `<section class="pm-cgroup" data-cgroup="${id}" tabindex="0" aria-label="${esc(title)}">` +
+  return CONTROL_GROUPS.map(([id, title, rows]) => `<section class="pm-cgroup" data-cgroup="${id}" data-pad-ctx="${GROUP_CTX[id] || 'foot'}" tabindex="0" aria-label="${esc(title)}">` +
     `<h3><svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${GROUP_ICONS[id]}</svg>${esc(title)}</h3>` +
     rows.filter(([keys]) => keys[0] !== 'K' || (world && world.kissUnlocked)).map(([keys, desc]) => {
       const words = keys.flatMap((k) => k.split('+')).map((t) => MOUSE_WORDS[t] || t).join(' ');
@@ -172,7 +178,8 @@ const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  settings: [['sound', 'Geluid'], ['video', 'Beeld'], ['camera', 'Camera & muis'], ['display', 'Weergave']],
+  settings: [['sound', 'Geluid'], ['video', 'Beeld'], ['camera', 'Camera & muis'], ['controller', 'Controller'], ['display', 'Weergave'], ['a11y', 'Toegankelijk']],
+  controls: [['overzicht', 'Overzicht'], ['toetsen', 'Toetsenbord'], ['knoppen', 'Controller']],
 };
 
 const FOOTERS = {
@@ -183,7 +190,18 @@ const FOOTERS = {
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
   verhaal: 'Wie je spreekt, komt erbij · <b>Slepen</b> draait het model · niemand verklapt wat nog komt',
   settings: 'Instellingen worden automatisch bewaard',
-  controls: '<b>/</b> zoeken · <b>Toetshints</b> aan of uit onder Instellingen › Weergave',
+  controls: '<b>/</b> zoeken · <b>Toetshints</b> aan of uit onder Instellingen › Weergave · indelen: kies een actie en druk de nieuwe toets',
+};
+// a fixed controller glyph (the menu's own buttons)
+const pg = (slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</span>`;
+// with a controller: the footers in its buttons
+const PAD_FOOTERS = {
+  overzicht: () => `${pg('a')} kiezen · zet iets als <b>doel</b> en de route gaat erheen`,
+  todo: () => `${pg('a')} zet als doel · ${pg('lt')}${pg('rt')} weergave · geklaarde missies kun je opnieuw spelen`,
+  verhaal: () => `${pg('lt')}${pg('rt')} personages of aanwijzingen`,
+  map: () => `${pg('a')} doel onder het kruis · ${pg('x')} doel wissen · ${pg('lt')}${pg('rt')} zoomen · ${pg('lstick')} schuiven · ${pg('y')} naar jezelf`,
+  settings: () => `${pg('lt')}${pg('rt')} tabblad · ${pg('dpad')} kiezen en schuiven · wordt meteen bewaard`,
+  controls: () => `${pg('lt')}${pg('rt')} tabblad · ${pg('a')} een knop of toets indelen`,
 };
 
 const HOME = 'overzicht';
@@ -284,6 +302,21 @@ function settingsHtml() {
       ${toggle('invertY', 'Omhoog/omlaag omkeren')}
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
     </div>
+    <div data-of="settings" data-sub="controller" class="pm-group" hidden>
+      ${segmented('padLayout', 'Knoppen tonen als<small>Automatisch kiest wat er aangesloten is</small>', [['auto', 'Automatisch'], ['xbox', 'Xbox'], ['ps', 'PlayStation'], ['deck', 'Steam Deck']])}
+      ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
+      ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
+      ${toggle('invertY', 'Omhoog/omlaag omkeren', 'Geldt voor de muis en de stick')}
+      <div class="pm-row"><span>Knoppen indelen<small>Onder Besturing › Controller</small></span><button type="button" class="pm-secondary pm-small" data-goto-sub="controls:knoppen">Indelen</button></div>
+      <p class="pm-note">Xbox-, PlayStation- en Steam Deck-controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p>
+    </div>
+    <div data-of="settings" data-sub="a11y" class="pm-group" hidden>
+      ${segmented('subtitleSize', 'Ondertitels<small>Filmpjes, gesprekken, telefoon, radio en naamkaarten</small>', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
+      ${toggle('subtitleBox', 'Vlak achter de ondertitels', 'Een donker vlak maakt ze makkelijker te lezen')}
+      ${segmented('colorBlind', 'Kleurenblind<small>Andere kleuren voor markers, routes, de kaart en de HUD; vormen en patronen helpen altijd</small>', [['uit', 'Uit'], ['deuteranopie', 'Deuter&shy;anopie'], ['protanopie', 'Protan&shy;opie'], ['tritanopie', 'Tritan&shy;opie']])}
+      ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
+      ${toggle('reduceMotion', 'Beweging beperken', 'Staat ook aan als je systeem om minder beweging vraagt.')}
+    </div>
     <div data-of="settings" data-sub="display" class="pm-group" hidden>
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
@@ -352,10 +385,15 @@ export function initPauseMenu(w) {
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-ach"></div></section>
           <section data-panel="settings" class="pm-panel pm-col" hidden><div class="pm-inner pm-narrow">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-cinner">
+            ${subtabsHtml('controls', 'Besturing')}
+            <div data-of="controls" data-sub="overzicht">
             <div class="pm-csearch">${icon('search')}
               <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></div>
             <div class="pm-cgrid">${controlsHtml()}</div>
             <p class="pm-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
+            </div>
+            <div data-of="controls" data-sub="toetsen" class="pm-binds" hidden></div>
+            <div data-of="controls" data-sub="knoppen" class="pm-binds" hidden></div>
           </div></section>
         </div>
       </section>
@@ -374,8 +412,14 @@ export function initPauseMenu(w) {
     if (go) return enterSection(go.dataset.goto);
     const cyc = e.target.closest('[data-cycle]');
     if (cyc) return cycleSection(Number(cyc.dataset.cycle));
+    const gsub = e.target.closest('[data-goto-sub]');
+    if (gsub) { const [sec, sub] = gsub.dataset.gotoSub.split(':'); pref.sub[sec] = sub; enterSection(sec); return; }
+    const rk = e.target.closest('[data-rebind-key]');
+    if (rk) return startKeyRebind(rk);
+    const rp = e.target.closest('[data-rebind-pad]');
+    if (rp) return startPadRebind(rp);
     const st = e.target.closest('[data-subtab]');
-    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); return; }
+    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); return; }
     const seg = e.target.closest('.pm-seg [data-value]');
     if (seg) { setSetting(seg.parentElement.dataset.setting, seg.dataset.value); syncControls(); return; }
     const pre = e.target.closest('[data-preset]');
@@ -439,6 +483,8 @@ export function initPauseMenu(w) {
     new ResizeObserver(() => sheet.toggleAttribute('data-narrow', sheet.clientWidth / getUiScale() < 860)).observe(sheet);
   }
 
+  // the footer hints follow the last used input
+  onPadChange(() => { if (open) syncFooter(); });
   // F11 / the macOS green button also switch modes: keep the checkbox right
   if (DESKTOP) DESKTOP.onFullscreenChange(() => syncDesktopControls());
   // capture: runs before the map's and the input's own key handlers, so a
@@ -477,6 +523,11 @@ function onKey(e) {
     }
     return;
   }
+  if (rebinding) {
+    // Esc while waiting for a key, or a controller's B while waiting for a button
+    if (k === 'Escape' || k === 'Backspace') { consume(e); cancelRebind(); }
+    return;
+  }
   const t = e.target instanceof Element ? e.target : null;
   // text fields (the searches) have their own keys, Escape included
   if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && !['range', 'checkbox'].includes(t.type)))) return;
@@ -493,6 +544,10 @@ function onKey(e) {
   } else if (lower === 'q' || lower === 'e') {
     consume(e);
     cycleSection(lower === 'q' ? -1 : 1);
+  } else if ((k === '[' || k === ']') && SUBTABS[tab]) {
+    // [ and ] (a controller's triggers): the section's previous or next tab
+    consume(e);
+    if (!e.repeat) cycleSubtab(k === '[' ? -1 : 1);
   } else if (k === 'Tab') {
     consume(e);
     if (tab === 'map' && !inRail) cycleSection(e.shiftKey ? -1 : 1);
@@ -566,8 +621,123 @@ function enterSection(id) {
 
 const FOCUSABLE = 'button, input, select, [tabindex]';
 function visibleFocusables(scope) {
-  return [...scope.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]'));
+  // a controller can't type: it skips the search fields
+  const pad = isPadActive();
+  return [...scope.querySelectorAll(FOCUSABLE)].filter((el) => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length && !el.closest('[hidden]') && !(pad && el.type === 'search'));
 }
+
+function cycleSubtab(dir) {
+  const subs = SUBTABS[tab];
+  const cur = pref.sub[tab] || subs[0][0];
+  const i = Math.max(0, subs.findIndex(([id]) => id === cur));
+  const next = subs[(i + dir + subs.length) % subs.length][0];
+  showSubtab(tab, next);
+  if (tab === 'todo') renderTodoPanel();
+  if (tab === 'verhaal') renderVerhaalPanel();
+  if (tab === 'settings') syncControls();
+  if (tab === 'controls') renderBinds();
+  focusEl(root.querySelector(`[data-subtab="${next}"][data-of="${tab}"]`));
+}
+
+// --- Besturing: rebinding keys and buttons (controls.js) ------------------------
+let rebinding = null;
+let bindMsg = '';
+
+function bindRowsKeys() {
+  const binds = getSettings().keyBinds;
+  const groups = KEY_GROUPS.map(([g, title]) => `<h4 class="pm-subhead">${esc(title)}</h4>` + KEY_ACTIONS.filter(([, , gr]) => gr === g).map(([k, desc]) => {
+    const phys = physicalKey(binds, k);
+    const changed = phys !== k;
+    return `<div class="pm-row pm-bind"><span>${esc(desc)}${changed ? `<small>Standaard: ${esc(keyName(k))}</small>` : ''}</span>` +
+      `<button type="button" class="pm-secondary pm-small pm-bindbtn${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen"><span class="hud-key" data-g-raw>${esc(keyName(phys))}</span></button></div>`;
+  }).join('')).join('');
+  return `<p class="pm-note">Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.</p>
+    <p class="pm-status pm-bindmsg" role="status">${esc(bindMsg)}</p>
+    <div class="pm-group">${groups}</div>
+    <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="binds-reset-keys">${icon('restart')}<span>Standaard herstellen</span></button></div>`;
+}
+
+function bindRowsPad() {
+  const binds = getSettings().padBinds;
+  const rows = PAD_REMAPPABLE.map((slot) => {
+    const phys = physicalButton(binds, slot);
+    const changed = phys !== slot;
+    return `<div class="pm-row pm-bind"><span>${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}<small>${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</small></span>` +
+      `<button type="button" class="pm-secondary pm-small pm-bindbtn${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">${pg(phys)}</button></div>`;
+  }).join('');
+  return `<p class="pm-note">Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.</p>
+    <p class="pm-status pm-bindmsg" role="status">${esc(bindMsg)}</p>
+    <div class="pm-group">${rows}</div>
+    <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="binds-reset-pad">${icon('restart')}<span>Standaard herstellen</span></button></div>`;
+}
+
+function renderBinds() {
+  if (!root) return;
+  const a = document.activeElement;
+  const keep = a && root.contains(a) && a.dataset ? (a.dataset.rebindKey || a.dataset.rebindPad || a.dataset.action) : null;
+  const k = root.querySelector('[data-of="controls"][data-sub="toetsen"]');
+  const p = root.querySelector('[data-of="controls"][data-sub="knoppen"]');
+  if (k && !k.hidden) k.innerHTML = bindRowsKeys();
+  if (p && !p.hidden) p.innerHTML = bindRowsPad();
+  if (keep) {
+    const el = root.querySelector(`[data-rebind-key="${CSS.escape(keep)}"], [data-rebind-pad="${CSS.escape(keep)}"], [data-action="${CSS.escape(keep)}"]`);
+    if (el) el.focus({ preventScroll: true });
+  }
+}
+
+function setBindMsg(text) {
+  bindMsg = text;
+  for (const el of root.querySelectorAll('.pm-bindmsg')) el.textContent = text;
+}
+
+const actionWords = (c) => (KEY_ACTIONS.find(([k]) => k === c) || [c, c])[1];
+
+function startKeyRebind(btn) {
+  cancelRebind(true);
+  const canon = btn.dataset.rebindKey;
+  btn.classList.add('pm-waiting');
+  btn.innerHTML = '<span>Druk een toets…</span>';
+  setBindMsg('Druk de nieuwe toets. Esc annuleert.');
+  rebinding = { kind: 'key', canon };
+  input.captureKey = (raw) => {
+    rebinding = null;
+    if (raw === 'escape') { setBindMsg('Niets veranderd.'); renderBinds(); return; }
+    if (!isBindableKey(raw)) { setBindMsg(`${keyName(raw)} kan niet, die ligt vast.`); renderBinds(); return; }
+    const res = bindKey(getSettings().keyBinds, canon, raw);
+    setSetting('keyBinds', res.binds);
+    setBindMsg(res.swapped
+      ? `${keyName(raw)} deed eerst "${actionWords(res.swapped)}"; dat zit nu op ${keyName(physicalKey(res.binds, res.swapped))}.`
+      : `"${actionWords(canon)}" zit nu op ${keyName(raw)}.`);
+    renderBinds();
+  };
+}
+
+function startPadRebind(btn) {
+  cancelRebind(true);
+  const slot = btn.dataset.rebindPad;
+  btn.classList.add('pm-waiting');
+  btn.innerHTML = '<span>Druk een knop…</span>';
+  setBindMsg('Druk op de controller de nieuwe knop. Menu/Start of Esc annuleert.');
+  rebinding = { kind: 'pad', slot };
+  rebinding.cancel = capturePadButton((phys) => {
+    rebinding = null;
+    if (phys === 'start') { setBindMsg('Niets veranderd.'); renderBinds(); return; }
+    const res = bindButton(getSettings().padBinds, slot, phys);
+    setSetting('padBinds', res.binds);
+    setBindMsg(res.swapped ? `Geruild met: ${PAD_SLOT_NAMES[res.swapped].toLowerCase()}.` : 'Opgeslagen.');
+    renderBinds();
+  });
+}
+
+function cancelRebind(quiet = false) {
+  if (!rebinding) return;
+  if (rebinding.cancel) rebinding.cancel();
+  if (input) input.captureKey = null;
+  rebinding = null;
+  if (!quiet) setBindMsg('Niets veranderd.');
+  renderBinds();
+}
+
 
 function focusEl(el) {
   if (!el) return;
@@ -724,6 +894,10 @@ function runAction(a) {
   } else if (a === 'reset') {
     resetSettings();
     syncControls();
+  } else if (a === 'binds-reset-keys' || a === 'binds-reset-pad') {
+    setSetting(a === 'binds-reset-keys' ? 'keyBinds' : 'padBinds', {});
+    setBindMsg('Alles staat weer op de standaard.');
+    renderBinds();
   } else if (a === 'bench-apply' || a === 'bench-dismiss') {
     const res = getBenchResult();
     if (a === 'bench-apply' && res && res.rec) applyPreset(res.rec);
@@ -940,10 +1114,21 @@ function syncSheetSub() {
 }
 
 function keysHtml() {
+  if (isPadActive()) {
+    const back = prestart ? 'terug naar het hoofdmenu' : tab === HOME || origin !== 'home' ? 'terug naar het spel' : 'terug';
+    return `${pg('lb')}${pg('rb')} onderdeel <span class="pm-kgap"></span>${pg('dpad')} kiezen <span class="pm-kgap"></span>${pg('a')} ok <span class="pm-kgap"></span>${pg('b')} ${back}`;
+  }
   if (prestart) return `${key('Q')}${key('E')} onderdeel <span class="pm-kgap"></span>${key('↑')}${key('↓')} kiezen <span class="pm-kgap"></span>${key('Esc')} terug naar het hoofdmenu`;
   const back = tab === HOME || origin !== 'home' ? 'terug naar het spel' : 'terug';
   if (tab === 'map') return `${key('Q')}${key('E')} onderdeel <span class="pm-kgap"></span>${key('M')} sluiten <span class="pm-kgap"></span>${key('Esc')} ${back}`;
   return `${key('Q')}${key('E')} onderdeel <span class="pm-kgap"></span>${key('↑')}${key('↓')}${key('←')}${key('→')} kiezen <span class="pm-kgap"></span>${key('Enter')} ok <span class="pm-kgap"></span>${key('Esc')} ${back}`;
+}
+
+function syncFooter() {
+  if (!root) return;
+  const pad = isPadActive();
+  root.querySelector('.pm-foot-tab').innerHTML = pad && PAD_FOOTERS[tab] ? PAD_FOOTERS[tab]() : prestart ? '' : FOOTERS[tab] || '';
+  root.querySelector('.pm-foot-keys').innerHTML = keysHtml();
 }
 
 function showTab(name, how) {
@@ -963,8 +1148,7 @@ function showTab(name, how) {
   if (world) setMapActive(world, open && name === 'map');
   if (name !== 'garage') disposeGarageViewer();
   if (name !== 'verhaal') disposeVerhaalViewer();
-  root.querySelector('.pm-foot-tab').innerHTML = prestart ? '' : FOOTERS[name] || '';
-  root.querySelector('.pm-foot-keys').innerHTML = keysHtml();
+  syncFooter();
   root.querySelector('#pm-title').textContent = prestart ? 'Menu' : 'Pauze';
   root.querySelector('[data-action="resume"] span').textContent = prestart ? 'Terug' : 'Doorgaan';
   syncNavBadges();
@@ -988,7 +1172,8 @@ function showTab(name, how) {
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
-  if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); }
+  if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'overzicht'); bindMsg = ''; renderBinds(); }
+  if (prev === 'controls' && name !== 'controls') cancelRebind();
   if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'sound'); syncControls(); syncDesktopControls(); }
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
