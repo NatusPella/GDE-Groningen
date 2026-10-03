@@ -1,0 +1,13 @@
+// macOS depot (OS: macOS; universal, Apple Silicon + Intel): everything in
+// ../content/mac/, filled by `node steam/copy-builds.mjs`.
+// Launch option: GDE Groningen.app
+"DepotBuildConfig"
+{
+	"DepotID" "DEPOT_ID_MAC"
+	"FileMapping"
+	{
+		"LocalPath" "mac/*"
+		"DepotPath" "."
+		"recursive" "1"
+	}
+}

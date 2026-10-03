@@ -1,0 +1,18 @@
+// SteamPipe app build for GDE Groningen. Template: replace APP_ID and the
+// DEPOT_ID_* values with the ids from Steamworks (SteamPipe > Depots).
+// Paths are relative to this file. How to upload: ../README.md.
+"AppBuild"
+{
+	"AppID" "APP_ID"
+	"Desc" "GDE Groningen build"
+	"ContentRoot" "../content/"
+	"BuildOutput" "../output/"
+	"SetLive" ""
+	"Preview" "0"
+	"Depots"
+	{
+		"DEPOT_ID_WINDOWS" "depot_build_windows.vdf"
+		"DEPOT_ID_MAC" "depot_build_mac.vdf"
+		"DEPOT_ID_LINUX" "depot_build_linux.vdf"
+	}
+}

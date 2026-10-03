@@ -161,6 +161,16 @@ hiervan komt erboven. Opties (keuze eigenaar):
       open-world parody game, three.js".
 - [ ] Releases: de unsigned-builds-tekst staat al in de release notes;
       SHA-256 van de downloads erbij zetten.
+- [x] Linux-build (AppImage en tar.gz, voor de Steam Deck): optioneel met
+      `npm run release -- <bump> --linux`; staat dan ook in de release
+      notes, met dezelfde "niet ondertekend"-waarschuwing.
+- [ ] De webzip (`--web`) wordt alleen lokaal gemaakt. Waar hij komt
+      (itch.io of GitHub Pages) is nog niet besloten; tot dan uploadt het
+      releasescript hem nergens heen.
+- [ ] Steam: `steam/` heeft de SteamPipe-sjablonen en een kopieerscript
+      (zie `steam/README.md`). Pas na de keuze voor Steam en met een app-id;
+      gebruik voor `steamcmd` een apart Steam-account met alleen
+      buildrechten.
 
 ## 7. Publiceren
 
