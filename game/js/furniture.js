@@ -49,8 +49,8 @@ export const FURNITURE = [
   { id: 'bed', short: 'Sloapstee', label: 'Bed "Sloapstee"', price: 349, desc: 'Tweepersoons, met een dekbed zo dik als pap',
     perk: 'Slapen: +50 pantser, kies zelf hoe laat', stat: ['Uitgerust', 'Pantser 50 en je eigen wekker'], replaces: true,
     at: { x: 8.6, z: 7.6, rot: Math.PI, fit: 'w', size: 1.75 } },
-  { id: 'tv', short: 'Kiekkast', label: 'Tv "Kiekkast"', price: 229, desc: 'Groot scherm, Sikkom TV zit er standaard op',
-    perk: 'Terugkijken en het Sikkom Journaal', stat: ['Sikkom TV', 'Gespeelde verhaalscènes terugkijken'], replaces: true,
+  { id: 'tv', short: 'Kiekkast', label: 'Tv "Kiekkast"', price: 229, desc: 'Groot scherm, Kiekdoar TV zit er standaard op',
+    perk: 'Terugkijken en het Kiekdoar Journaal', stat: ['Kiekdoar TV', 'Gespeelde verhaalscènes terugkijken'], replaces: true,
     at: { x: 3.7, z: 1.0, rot: 0, fit: 'w', size: 1.7 }, use: { x: 5.25, z: 1.35 } },
   { id: 'prikbord', short: 'Woar Bin\'k', label: 'Wandkaart "Woar Bin\'k"', price: 19, desc: 'Heel Grunn aan de muur, punaises erbij',
     perk: 'Kies een bestemming: GPS staat klaar', stat: ['Routeplanner', 'Winkels, klussen, stations'],
@@ -318,7 +318,7 @@ export function furniturePrompt(k, w) {
       if (!state.built.has('kast')) return ['In elkaar zetten', 'Buukenkaas: 238 schroefjes, wat kan er misgaan'];
       return state.read === state.day ? ['Buukenkaas', 'Vandaag al gelezen. Morgen weer tips'] : ['Lezen', `${other(w)} leest zich in: eierbal-tips op de kaart`];
     case 'f-bank': return seat ? ['Opstaan', 'Of loop gewoon weg'] : ['Zitten', 'Even bijkomen op de Zitmoi'];
-    case 'f-tv': return tv ? ['Uitzetten', `Sikkom TV: ${tv.title}`] : ['Tv kijken', 'Sikkom TV: terugkijken en het journaal'];
+    case 'f-tv': return tv ? ['Uitzetten', `Kiekdoar TV: ${tv.title}`] : ['Tv kijken', 'Kiekdoar TV: terugkijken en het journaal'];
     case 'f-prikbord': return ['Wandkaart', 'Kies waar je heen wilt, de GPS doet de rest'];
     case 'f-plant': return state.stek ? ['Stekjes verkopen', `${state.stek} ${state.stek > 1 ? 'dagen' : 'dag'} gegroeid: €${state.stek * STEK_PAY}`] : ['Stekkie', 'Nog geen stekjes. Morgen weer kijken'];
     case 'f-bureau': return ['Pc aan', 'Ubbo zoekt de best betaalde klus'];
@@ -444,7 +444,7 @@ const MOMENT = [
   [11, 'Als we hem vinden, brengen we hem terug. Toch?'],
 ];
 
-// --- Sikkom TV --------------------------------------------------------------------------
+// --- Kiekdoar TV --------------------------------------------------------------------------
 
 function tvMenu(w) {
   const prog = getMissionProgress();
@@ -455,10 +455,10 @@ function tvMenu(w) {
     verb: 'Kijken', price: 0, keepFocus: true, buy() { closeShopMenu(); startTv(w, this.label, storyReplayLines(i)); return 'Kijken maar'; },
   }));
   return {
-    name: 'Sikkom TV', type: 'eikea', color: '#1e3a5a', tagline: 'De enige zender van Grunn. Nait zeuren',
+    name: 'Kiekdoar TV', type: 'eikea', color: '#1e3a5a', tagline: 'De enige zender van Grunn. Nait zeuren',
     sections: () => [
-      { title: 'Journaal', items: [{ id: 'tv-nieuws', label: 'Sikkom Journaal', desc: 'Het laatste nieuws uit Stad, over jullie natuurlijk', verb: 'Kijken', price: 0, keepFocus: true,
-        buy() { closeShopMenu(); startTv(w, 'Sikkom Journaal', newsLines(w)); return 'Journaal'; } }] },
+      { title: 'Journaal', items: [{ id: 'tv-nieuws', label: 'Kiekdoar Journaal', desc: 'Het laatste nieuws uit Stad, over jullie natuurlijk', verb: 'Kijken', price: 0, keepFocus: true,
+        buy() { closeShopMenu(); startTv(w, 'Kiekdoar Journaal', newsLines(w)); return 'Journaal'; } }] },
       { title: 'Terugkijken', note: shows.length ? '' : 'Nog niks gebeurd. Eerst een missie spelen', items: shows },
     ],
   };
@@ -469,7 +469,7 @@ function newsLines(w) {
   const eggs = getEierballen();
   const found = eggs.filter((e) => e.found).length;
   const say = (text) => ({ speaker: 'Nieuwslezer', text, src: null, dur: 0 });
-  const out = [say('Goeienavond Grunn, dit is het Sikkom Journaal.')];
+  const out = [say('Goeienavond Grunn, dit is het Kiekdoar Journaal.')];
   out.push(say(st.missionsDone ? `De mysterieuze klusjesmannen uit Paddepoel hebben al ${st.missionsDone} klussen op hun naam.` : 'Rustig in Stad. Verdacht rustig.'));
   out.push(say(st.playerWrecks ? `Garages juichen: al ${st.playerWrecks} auto's total loss in de stad.` : 'Opvallend: nog geen auto total loss. Garages maken zich zorgen.'));
   if (eggs.length) out.push(say(found ? `Eierbaljager gesignaleerd: ${found} van de ${eggs.length} verstopte eierballen zijn al weg.` : `Ergens in Stad liggen ${eggs.length} eierballen verstopt. Niemand weet waar.`));
@@ -495,7 +495,7 @@ function startTv(w, title, lines) {
   if (!lines.length) return;
   tv = { title, lines, i: -1, t: 0, next: 0.5 };
   const el = ensureTvEl();
-  el.querySelector('h4').textContent = 'Sikkom TV · ' + title;
+  el.querySelector('h4').textContent = 'Kiekdoar TV · ' + title;
   el.querySelector('b').textContent = '';
   el.querySelector('span').textContent = '…';
   el.classList.add('on');
@@ -515,7 +515,7 @@ function updateTv(dt, w) {
   tv.t += dt;
   if (tv.t < tv.next) return;
   tv.i++;
-  if (tv.i >= tv.lines.length) { stopTv(); w.addMessage('Afgelopen. Morgen weer Sikkom TV', 3); return; }
+  if (tv.i >= tv.lines.length) { stopTv(); w.addMessage('Afgelopen. Morgen weer Kiekdoar TV', 3); return; }
   const l = tv.lines[tv.i];
   tv.next = tv.t + (l.src ? Math.max(1.6, l.dur + 0.35) : Math.max(2.4, l.text.length * 0.065));
   if (l.src) { playStoryVoice(l.src); tv.voiced = true; }

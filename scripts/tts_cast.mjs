@@ -13,4 +13,26 @@ export const DUO = {
   Anita: { voice: 'Callirrhoe', who: 'Groningse vrouw, lacherig en ad rem', accent: ACCENT },
 };
 
-export const styleOf = (who, tag, accent = ACCENT) => `${accent}; ${who}.${tag ? ` Tone: ${tag}.` : ''}`;
+// The short clips audio.js plays from fixed paths (tts_barks_lines.mjs), one
+// voice per variant (_v0, _v1, ...). The first news voice is the sms
+// newsreader ('Kiekdoar-redactie' in tts_lines_list.mjs).
+export const CLIP_CAST = {
+  npc: [
+    { speaker: 'Stadjer (man)', voice: 'Sadaltager', who: 'gemoedelijke Groningse man op straat', accent: GRO_ACCENT },
+    { speaker: 'Stadjer (vrouw)', voice: 'Despina', who: 'kletserige Groningse vrouw op straat', accent: GRO_ACCENT },
+    { speaker: 'Stadjer (oud)', voice: 'Enceladus', who: 'oude Groningse man op straat, een beetje schor', accent: GRO_ACCENT },
+  ],
+  police: [
+    { speaker: 'Agent', voice: 'Alnilam', who: 'Groningse politieagent, streng en kortaf' },
+    { speaker: 'Agente', voice: 'Kore', who: 'Groningse politieagente, kordaat en zakelijk' },
+  ],
+  news: [
+    { speaker: 'Kiekdoar-redactie', voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor' },
+    { speaker: 'Kiekdoar-redactie (2)', voice: 'Umbriel', who: 'Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor' },
+  ],
+  jingle: [
+    { speaker: 'G-Music', voice: 'Zephyr', who: 'enthousiaste Groningse radio-dj, de jinglestem van zender G-Music' },
+  ],
+};
+
+export const styleOf =(who, tag, accent = ACCENT) => `${accent}; ${who}.${tag ? ` Tone: ${tag}.` : ''}`;

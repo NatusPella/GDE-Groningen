@@ -11,7 +11,7 @@ import { hold as holdChannel, release as releaseChannel } from './speech.js';
 
 // The phone on the HUD (bottom left, above the street name): notification
 // cards and incoming calls. Both slide up out of the bottom like a phone
-// being raised; the Sikkom app (phone.js) keeps the history.
+// being raised; the Kiekdoar app (phone.js) keeps the history.
 //
 // Notifications: notifyPhone(world, { from, app, title, text, duration }),
 // or push { from, text, duration } onto world.phoneNotifications (the old
@@ -29,9 +29,9 @@ import { hold as holdChannel, release as releaseChannel } from './speech.js';
 // (car banter stops, reactions and bubbles wait, a story scene ends the call).
 // Unvoiced lines stay up for their reading time. `sub` is a second subtitle
 // line (the Dutch for a Frisian or Gronings line). `live: true` makes it a
-// Sikkom livestream card instead of a call. Calls queue (one at a time) and
+// Kiekdoar livestream card instead of a call. Calls queue (one at a time) and
 // wait while a cutscene hides the HUD. The finished call lands in the
-// Sikkom history.
+// Kiekdoar history.
 
 const HOLD_MIN = 6;
 const HOLD_MAX = 13;
@@ -97,15 +97,15 @@ export function initPhoneFeed(w) {
 
 // --- notifications -------------------------------------------------------------------------
 
-// "SIKKOM MELDT: onrust in Grunn, politie op pad" -> app Sikkom, headline
+// "KIEKDOAR MELDT: onrust in Grunn, politie op pad" -> app Kiekdoar, headline
 // "Onrust in Grunn", body "politie op pad".
 function parse(n) {
   let text = String(n.text || '').trim();
   let from = n.from || '';
   let app = n.app || '';
-  const m = /^SIKKOM( MELDT)?:\s*/i.exec(text);
-  if (m) { text = text.slice(m[0].length); from = from || 'Sikkom'; }
-  if (!app) app = /sikkom/i.test(from) || m ? 'sikkom' : /€/.test(text) && !from ? 'geld' : from ? 'bericht' : 'sikkom';
+  const m = /^KIEKDOAR( MELDT)?:\s*/i.exec(text);
+  if (m) { text = text.slice(m[0].length); from = from || 'Kiekdoar'; }
+  if (!app) app = /kiekdoar/i.test(from) || m ? 'sikkom' : /€/.test(text) && !from ? 'geld' : from ? 'bericht' : 'sikkom';
   let title = n.title || '';
   let body = text;
   if (!title && app === 'sikkom') {
@@ -113,7 +113,7 @@ function parse(n) {
     if (c) { title = c[1]; body = c[3]; } else { title = text; body = ''; }
     title = title[0].toUpperCase() + title.slice(1);
   }
-  if (!from) from = app === 'geld' ? 'Bank' : 'Sikkom';
+  if (!from) from = app === 'geld' ? 'Bank' : 'Kiekdoar';
   return { from, app, title, body };
 }
 
@@ -136,7 +136,7 @@ function alreadyShown(w, text) {
 function showNote(w, n) {
   const p = parse(n);
   const full = [p.title, p.body].filter(Boolean).join(': ');
-  remember(w, p.from && p.from !== 'Sikkom' ? `${p.from}: ${n.text}` : n.text);
+  remember(w, p.from && p.from !== 'Kiekdoar' ? `${p.from}: ${n.text}` : n.text);
   if (alreadyShown(w, n.text)) return;
   const el = document.createElement('div');
   el.className = 'pf-card';
@@ -212,7 +212,7 @@ export function hangUp() {
 function callHtml(c) {
   const state = c.live ? '<span class="pf-live">LIVE</span>' : `<span class="pf-state">${c.phase === 'ring' ? 'Inkomend gesprek' : c.phase === 'end' ? 'Opgehangen' : '<i class="pf-dot"></i><b class="pf-clock">0:00</b>'}</span>`;
   return `<div class="pf-call-head"><span class="pf-avatar">${esc(initials(c.from))}</span>` +
-    `<span class="pf-callwho"><small>${c.live ? 'Sikkom Live' : 'Telefoon'}</small><b>${esc(c.from)}</b></span>${state}</div>` +
+    `<span class="pf-callwho"><small>${c.live ? 'Kiekdoar Live' : 'Telefoon'}</small><b>${esc(c.from)}</b></span>${state}</div>` +
     '<div class="pf-line"><span class="pf-speaker"></span><span class="pf-say"></span><span class="pf-sub"></span></div>';
 }
 
