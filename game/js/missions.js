@@ -310,7 +310,9 @@ function buildDefs(world) {
           lines: [['T', 'Instappen! De motor draait al!'], ['A', 'Tammo, sinds wanneer kun jij varen?'], ['T', 'Sinds nu. Vol gas!']],
         },
         {
-          kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.',
+          kind: 'escape', stars: 3, label: 'Naar de kade bij het Hoofdstation', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.',
+          // a mooring on the Verbindingskanaal in front of the station: the run ends there, once the police are gone
+          target: { x: -40, y: 849, label: 'Kade bij het Hoofdstation' }, dock: 14,
           // Nachtstreek, live, while they flee: Jelle calls in
           radio: { caller: 'Een beller uit Ljouwert', lines: [
             ['rikus', 'We hebben een beller. Uit… Ljouwert?'],
@@ -2217,7 +2219,10 @@ function stageProgressBase(world, def) {
   const n = `${list.indexOf(st) + 1}/${list.length}`;
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
-  if (st.kind === 'escape') return `${st.label} · ${'★'.repeat(world.wanted)}`;
+  if (st.kind === 'escape') {
+    if (S.target && !world.wanted) return `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
+    return `${S.target ? 'Schud de politie af' : st.label} · ${'★'.repeat(world.wanted)}`;
+  }
   if (st.kind === 'chase' && S.target) {
     const left = `${st.meter || 'banden'} ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
     return `${st.label} · ${left}${st.clock ? ` · ${st.clock} ${fmtTime((st.time || 180) - S.t)}` : ''}`;
@@ -2642,9 +2647,17 @@ function updateStages(dt, world, def) {
       nextStage(world, def);
       break;
     }
-    case 'escape':
-      if (world.wanted === 0 && S.t > 1) nextStage(world, def);
+    case 'escape': {
+      if (!S.target) { if (world.wanted === 0 && S.t > 1) nextStage(world, def); break; }
+      // H6: lose the police, then moor at the quay (target, within `dock` m, still in the boat)
+      const boat = p.inVehicle && p.inVehicle.isBoat ? p.inVehicle : null;
+      const docked = !!boat && dist(p.x, p.y, S.target.x, S.target.y) < (st.dock || STAGE_RADIUS);
+      if (!docked) break;
+      if (world.wanted > 0) { hint(world, 'Nog pliesie achter ons. Eerst afschudden, dan pas aanleggen.'); break; }
+      boat.speed *= 0.5;
+      nextStage(world, def);
       break;
+    }
     case 'chase': {
       const t = S.target;
       if (S.swarm) { if (S.swarm === 'done') stopChaseVehicle(world, def, st); break; }
