@@ -3,10 +3,9 @@
 // and what happens to anything standing on the track. Rendering lives in
 // railway3d.js, which only reads the state exported here.
 import { requestRespawn } from './world.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { knockOutPed } from './pedestrians.js';
 import { knockDown } from './ragdoll.js';
 import { disableVehicle } from './vehicle.js';
-import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -650,6 +649,8 @@ function hitPlayer(t, car, push, world) {
   if (world.health <= 0) { world.health = 0; requestRespawn(world); }
 }
 
+const COMPANION_DOWN_S = 20;
+
 function hitCompanion(c, t, car, push, world) {
   c.x += push.nx * push.depth;
   c.y += push.ny * push.depth;
@@ -658,7 +659,7 @@ function hitCompanion(c, t, car, push, world) {
   const tv = t.v * t.dir;
   c.health = Math.max(0, (c.health ?? 100) - (25 + t.v * 3.5));
   const dead = c.health <= 0;
-  if (dead) { c.state = 'dead'; c.deadUntil = world.time + DEAD_DURATION; }
+  if (dead) { c.state = 'dead'; c.deadUntil = world.time + COMPANION_DOWN_S; }
   c.vx = 0; c.vy = 0;
   knockDown(c, world, { kind: 'hit', dead, vx: Math.cos(car.angle) * tv * 0.5 + push.nx * 6, vy: Math.sin(car.angle) * tv * 0.5 + push.ny * 6, vz: 4 + Math.min(4, t.v * 0.25), lieFor: 2.5 });
   world.addMessage(`${c.character === 'tammo' ? 'Tammo' : 'Anita'} is aangereden door de trein!`, 3);
@@ -672,14 +673,8 @@ function hitPedestrian(ped, t, car, push, world) {
   ped.knockVX = Math.cos(car.angle) * tv * 0.8 + push.nx * 3;
   ped.knockVY = Math.sin(car.angle) * tv * 0.8 + push.ny * 3;
   ped.angle = Math.atan2(-ped.knockVY, -ped.knockVX);
-  ped.state = 'dead';
-  ped.health = 0;
-  ped._hp = 0;
-  ped.speed = 0;
-  ped.deadUntil = world.time + DEAD_DURATION;
-  if (t.v >= GIB_SPEED && splatterPed(ped, world, { vx: ped.knockVX, vy: ped.knockVY, vz: 3 + t.v * 0.15 })) return;
-  knockDown(ped, world, { kind: 'hit', dead: true, vx: ped.knockVX * 1.1, vy: ped.knockVY * 1.1, vz: 3 + t.v * 0.2 });
-  bleedPed(ped, world);
+  // a knockout, like any other hit (pedestrians.js)
+  knockOutPed(ped, world, { kind: 'hit', vx: ped.knockVX * 0.8, vy: ped.knockVY * 0.8, vz: 2 + Math.min(t.v, 15) * 0.15, k: 1 });
 }
 
 function resolveContacts(world) {

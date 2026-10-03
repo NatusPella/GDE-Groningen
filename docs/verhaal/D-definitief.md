@@ -1,4 +1,4 @@
-# GTE VI: het definitieve script
+# GDE Groningen: het definitieve script
 
 **Wat het is:** de combinatie van de drie varianten.
 - **De ruggengraat uit A:** de heldenreis in drie akten. Een roep, twijfel, de drempel (de kraak), beproevingen, een echt dieptepunt, een keuze en de finale.
@@ -26,7 +26,7 @@ Mem Terpstra wil helemaal niet dat haar zoon dit doet.
 
 ## Een zomerverhaal
 
-GTE VI speelt in **één Groningse zomer**: de laatste twee weken van augustus. Dat is een eigen sfeer, net zoals Vice City altijd zon en neon heeft.
+GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van augustus. Dat is een eigen sfeer, net zoals Vice City altijd zon en neon heeft.
 - **Licht:** lange avonden. Twijduustern (de schemer) valt pas na tienen, en de kraak gebeurt in de kortste nacht die er nog over is. Zonsopgang na een lange nacht ("Net studenten").
 - **Stad in de zomer:** terrassen op de Vismarkt, het Noorderplantsoen vol kleedjes bij het eerste zonnetje, heel Stad aan de Hoornseplas ("Negatief zwemadvies. Iedereen zwemt toch."), ijs dat smelt sneller dan je het eet, en studenten die terugkomen voor de KEI-week.
 - **Groningse zomer, droog gebracht:** een hittegolf van 26 graden ("In Grunn heet dat tropisch"), regen die gewoon doorgaat ("Het regent hier niet. Het is zomer, en een beetje nat."), en wind tegen, ook in augustus.
@@ -122,7 +122,7 @@ GTE VI speelt in **één Groningse zomer**: de laatste twee weken van augustus. 
 - *Flits: een vrouw in een rode jas met een pinautomaat op een aanhanger. Bevroren beeld:* **ANITA**, met "Heeft altijd een plan B. Plan A is ook van haar."
 - *Flits: een man met een pet die een deur openhoudt en schuldig in de camera kijkt. Bevroren beeld:* **TAMMO**, met "Stadjer. Groot hart. Kleine portemonnee."
 - *Flitsen: een duif boven het museum, een trekker-limo op de ring, een tankwagen die slipt, een helikopter met een man aan een touw boven het Oosterpark.*
-- *Titel:* **GTE VI**, met "Er gaat niets boven Grunn. Behalve de Martinitoren." Ondertitel: *Een zomer in Grunn.*
+- *Titel:* het GDE-logo (**GDE**, GRONINGEN op het plaatsnaambord, *Zomer vol misdaad*), met "Er gaat niets boven Grunn. Behalve de Martinitoren." Ondertitel: *Een zomer in Grunn.*
 
 ## Opening (cutscène)
 
@@ -229,7 +229,7 @@ GTE VI speelt in **één Groningse zomer**: de laatste twee weken van augustus. 
 
 *Waarom nu:* de inschrijving voor de Snackprijs kost €150, en zonder de Fjord Frituur kan Anita niet meedoen. Jelmer betaalt voor content. Het is ook de eerste keer dat Jelle zich laat zien.
 
-*De missie verandert:* geen rampage met slachtoffers meer, maar een **zomerse stuntavond zonder slachtoffers**. Sikkom schreef dat de Grote Markt "dood" is, en Jelmer wil hem laten leven. Je haalt punten met:
+*De missie verandert:* geen rampage met slachtoffers meer, maar een **zomerse stuntavond zonder slachtoffers**. Kiekdoar schreef dat de Grote Markt "dood" is, en Jelmer wil hem laten leven. Je haalt punten met:
 - stunts met de Escapade tussen de kramen door;
 - parasols, kliko's en kartonnen reclameborden omverrijden;
 - een duivenzwerm laten opvliegen;
@@ -238,7 +238,7 @@ GTE VI speelt in **één Groningse zomer**: de laatste twee weken van augustus. 
 Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat niet leuk"). Mensen springen opzij, lachen en filmen mee.
 
 **Bel Rikus.**
-- **Jelmer:** Rikus! Jelmer. Sikkom zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!
+- **Jelmer:** Rikus! Jelmer. Kiekdoar zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!
 - **Rikus:** Ik ken twee mensen die het altijd druk maken. Ook als dat niet hoeft. Niemand raken, hè, Jelmer.
 - **Jelmer:** Niemand raken! Alleen spullen. Spullen zijn content.
 
@@ -395,7 +395,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 **Bij een herhaling.** **Anita:** Drie minuten. Hand. **Tammo:** Voor de grip. **Anita:** Natuurlijk.
 
-**Bericht van Sikkom:** Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."
+**Bericht van Kiekdoar:** Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."
 
 ## Overgang (cutscène, Nachtstreek)
 - **Rikus:** Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht. *(Het is nog nooit zo donker geweest, of het werd altijd wel weer licht.)*
@@ -408,7 +408,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 ## Tussendoor: onderduiken met de trein
 - **Anita:** Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.
-- **Tammo (in de trein):** Iedereen kijkt naar Sikkom. Niemand naar ons.
+- **Tammo (in de trein):** Iedereen kijkt naar Kiekdoar. Niemand naar ons.
 
 ---
 
@@ -892,7 +892,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 ## Wat er in de game verandert
 
 **Verhaal en teksten**
-- Alle cutscènes, leads, telefoontjes en Sikkom-berichten volgens dit script. Daarna worden ze ingesproken met de nieuwe stemmen, en dat kost een paar euro.
+- Alle cutscènes, leads, telefoontjes en Kiekdoar-berichten volgens dit script. Daarna worden ze ingesproken met de nieuwe stemmen, en dat kost een paar euro.
 - De naamkaarten in GTA-stijl en de trailer-opening (de intromontage wordt herschreven).
 - "Bel Rikus" vóór elke missie: een kort radiofragment. Dit kan via de bestaande radiostudio en de Nachtstreek-functies (`radiostudio.js`, `playRadioSting`).
 - Een korte outro bij herhaling voor elke missie, als klus.

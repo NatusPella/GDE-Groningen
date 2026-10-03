@@ -59,7 +59,7 @@ async function pool(items, n, fn) {
 }
 
 async function main() {
-  console.log(`web build GTE VI ${version}`);
+  console.log(`web build GDE Groningen ${version}`);
   execFileSync(process.execPath, [path.join(ROOT, 'desktop', 'build.mjs')], {
     stdio: 'inherit', env: { ...process.env, GTE_STAGE_OUT: OUT, GTE_STAGE_RELATIVE: '1' },
   });
@@ -165,7 +165,7 @@ async function main() {
 
   if (ZIP) {
     if (!fits) throw new Error('not zipping: over the itch.io limits');
-    const zip = path.join(ROOT, `GTE-VI-${version}-web.zip`);
+    const zip = path.join(ROOT, `GDE-Groningen-${version}-web.zip`);
     fs.rmSync(zip, { force: true });
     execFileSync('zip', ['-q', '-r', '-X', '-n', '.webm:.mp3:.pack:.bin:.glb:.woff2', zip, '.'], { cwd: OUT, stdio: 'inherit' });
     console.log(`zip: ${path.relative(ROOT, zip)} (${mb(fs.statSync(zip).size)})`);

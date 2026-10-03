@@ -1,6 +1,6 @@
 # Changelog
 
-Alle noemenswaardige wijzigingen in GTE VI, per versie. Nieuwste bovenaan.
+Alle noemenswaardige wijzigingen in GDE Groningen (tot 0.24: GTE VI), per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
@@ -35,6 +35,54 @@ nieuwe functies, `y` voor alleen bugfixes.
   streep-punt; de pijlen aan de rand van de minimap dragen een ring, punt of
   vierkant, en de 3D-missiemarker is een bol als hij wacht en een pijl als de
   missie loopt.
+
+### Veranderd
+- **Geschikt voor 16 jaar (PEGI 16).** Er is geen bloed meer en er vliegen
+  geen ledematen meer rond. Ook de instelling "Bloed en ledematen" is weg.
+  Wie neergaat, krijgt een stofwolkje en sterretjes boven het hoofd.
+- **Niemand gaat meer dood in Grunn.** Wie door een auto of trein wordt
+  geraakt, of naast een ontploffende auto staat, ligt een paar seconden
+  knock-out. Daarna staat hij suf op en scheldt of rent weg. Wie in de
+  gracht belandt, klimt er weer uit.
+- **Wapens zijn alleen voor de politie.** Kogels gaan langs voorbijgangers,
+  en de richthulp kiest alleen agenten. Een klap tegen een voorbijganger is
+  een duw. Je eigen carbidbus blaast mensen alleen omver. Het blijft wel
+  strafbaar: getuigen bellen en je krijgt sterren.
+- **Agenten worden uitgeschakeld** in plaats van doodgeschoten. Na een
+  seconde of negen staan ze weer op en doen ze weer mee.
+- **Dieren die je aanrijdt**, vallen even om en lopen dan weg. Vogels
+  fladderen op en laten een paar veren achter.
+- In de uitslag van een missie staat geen regel "Kills" meer.
+- **De game heet nu GDE Groningen – Zomer vol misdaad.** GDE staat voor
+  Grootste Diefstal Ever. Het nieuwe logo zet GRONINGEN op een groen
+  plaatsnaambord, op het laadscherm, het titelscherm, in het pauzemenu, de
+  trailer, de aftiteling en het app-icoon. "GTE VI" en "Grand Theft" zijn
+  overal weg. Je saves, instellingen en prestaties blijven gewoon staan.
+- De downloads heten nu `GDE-Groningen-<versie>-mac.dmg` en
+  `GDE-Groningen-<versie>-windows-portable.exe`. Op de Mac kun je de oude
+  app "GTE VI" weggooien nadat je de nieuwe hebt geïnstalleerd.
+- **De nieuwssite heet nu Kiekdoar** ("kijk daar"), een eigen parodienaam:
+  de telefoon-app, de pushberichten, Kiekdoar TV en het journaal, de
+  nieuwslezers en wat voetgangers en personages erover zeggen. Het scherm
+  "Sikkom." bij een net mislukte missie blijft: dat is het Groningse woord
+  voor "bijna".
+- **De praatzender heet nu Radio Proat**, met nieuwe idents van Geesje.
+- **Geen kraskaarten en loten meer.** De winkel Rook & Geluk heet nu
+  **Krant & Kauwgom** (kranten, strips, snoep en een eierbal uit de muur).
+  In plaats van gokken krijg je een **spaarkaart**: elke aankoop daar is een
+  stempel, en een volle kaart van 10 stempels lever je in voor €10. Geen
+  inzet en geen geluk nodig. Nieuwe prestatie: "Stempeltje erbij".
+- Alle regels met de oude namen zijn opnieuw ingesproken. De oudere clips
+  van voetgangers, politie, het nieuws en de G-Music-jingles zijn ook
+  opnieuw ingesproken, met dezelfde stemmen als de rest. Nu is van elke
+  stem vastgelegd hoe hij gemaakt is.
+- Cafés heten in meldingen en bij het bestellen nu naar verzonnen zaken,
+  zoals Café De Lallende Koe; de kaart toont nog de echte namen. Ook de
+  kroegentocht doet verzonnen kroegen aan.
+- Na een ziekenhuisrit word je opgelapt bij een "Huisartsenpost" in de wijk,
+  niet meer bij een echte praktijk.
+- De gevels van Kruidvet, Albert Hijgt, DUMBO, Blokkie en Wiebel en het bord
+  van Bakkie Prut hebben eigen kleuren, niet meer die van de echte ketens.
 
 ## [0.23.0] - 2026-10-03
 

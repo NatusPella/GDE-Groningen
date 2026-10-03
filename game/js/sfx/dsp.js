@@ -693,36 +693,16 @@ def('bikebell', 1.1, (c, sr, R) => {
   }
 });
 
-// Cartoony body squelch: a soft thud, a lowpassed slap, a wobbling downward
-// squish and a few bubbly pops. Everything sits under ~2.6 kHz so it stays
-// round and wet rather than piercing.
-function squelch(chs, sr, R) {
-  const d = chs[0];
-  thump(d, sr, 0, 62 + R() * 12, 0.07, 1);
-  addNoiseBurst(d, sr, 0, R, { type: 'lp', f: 700, q: 0.8, tau: 0.06, amp: 1.1 });
-  addNoiseBurst(d, sr, 0.005, R, { f: 1100 + R() * 300, q: 1.2, tau: 0.03, amp: 0.55 });
-  const bp = bq('bp', 900, 3, sr), n = Math.floor(0.34 * sr), s0 = Math.floor(0.03 * sr);
-  for (let i = 0; i < n && s0 + i < d.length; i++) {
-    const u = i / n;
-    if ((i & 31) === 0) bp.set(950 - 600 * u + 120 * Math.sin(u * 23), 3);
-    const wob = 0.55 + 0.45 * Math.sin(TAU * (14 + 10 * u) * i / sr);
-    d[s0 + i] += bp.run(R() * 2 - 1) * 1.1 * wob * Math.sin(Math.PI * Math.min(1, u * 1.4)) * (1 - u);
-  }
-  let t = 0.08;
-  for (let k = 0; k < 5; k++) {
-    t += 0.03 + R() * 0.07;
-    addTone(d, sr, t, 0.05 + R() * 0.03, R, { f0: 520 + R() * 380, f1: 180 + R() * 90, amp: 0.22 + R() * 0.18, attack: 0.003, release: 0.02 });
-  }
-  const lp = bq('lp', 2600, 0.7, sr);
-  for (let i = 0; i < d.length; i++) d[i] = lp.run(d[i]);
-}
-for (let v = 0; v < 3; v++) def(`squelch_${v}`, 0.75, squelch, { peak: 0.8 });
-def('gore_splat', 0.22, (c, sr, R) => {
+// Cartoon "seeing stars" after a knockout: a little rising-and-falling
+// glockenspiel twinkle.
+def('dizzy', 0.9, (c, sr, R) => {
   const d = c[0];
-  thump(d, sr, 0, 110, 0.03, 0.6);
-  addNoiseBurst(d, sr, 0, R, { type: 'lp', f: 1100, q: 0.8, tau: 0.035, amp: 1 });
-  addTone(d, sr, 0.02, 0.06, R, { f0: 420 + R() * 200, f1: 170, amp: 0.3, attack: 0.003, release: 0.02 });
-}, { peak: 0.7 });
+  let t = 0;
+  for (const f of [1568, 2093, 1760, 2349, 1976]) {
+    addPartials(d, sr, t, f * (1 + (R() - 0.5) * 0.02), [[1, 1, 0.16], [2.76, 0.25, 0.05]], 0.5, R);
+    t += 0.095;
+  }
+}, { peak: 0.6 });
 def('poof', 0.45, (c, sr, R) => {
   const d = c[0];
   addNoiseBurst(d, sr, 0, R, { type: 'lp', f: 900, q: 0.7, tau: 0.05, amp: 1 });

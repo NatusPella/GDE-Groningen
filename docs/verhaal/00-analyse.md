@@ -57,7 +57,7 @@ Gelezen: de intro-montage, alle 36 verhaalstappen (leads, waarom-zinnen, telefoo
 
 ## Parodie en introductie
 
-- **De parodie zit er, maar je voelt hem niet bewust.** Een man-vrouw-misdaadduo (Lucia en Jason worden Tammo en Anita), Grunn als Vice City, het Ommeland als Leonida, Jelmer als influencer, Sikkom als "Florida Man"-feed en radio's als Nachtstreek. De pinautomaat in de opening is eigenlijk de knipoog naar de overval uit de eerste GTA VI-trailer, maar zonder context lees je hem als een gat in het verhaal.
+- **De parodie zit er, maar je voelt hem niet bewust.** Een man-vrouw-misdaadduo (Lucia en Jason worden Tammo en Anita), Grunn als Vice City, het Ommeland als Leonida, Jelmer als influencer, Kiekdoar als "Florida Man"-feed en radio's als Nachtstreek. De pinautomaat in de opening is eigenlijk de knipoog naar de overval uit de eerste GTA VI-trailer, maar zonder context lees je hem als een gat in het verhaal.
 - **Tammo en Anita worden niet voorgesteld.** Na de opening weet je niet wie ze zijn, hoe ze elkaar kennen of wat ze willen. De personagebijbel heeft dat allemaal (het Oosterpark, de pet, "Kon minder", de Fjord-droom), maar het spel laat het nauwelijks zien.
 - **Voorstel voor alle scripts:**
   - De opening als bewuste trailer-parodie: Grunn als Vice City (zon op d'Olle Grieze, fietsen in plaats van flamingo's), dan Anita met een bevroren beeld en naamkaart, daarna Tammo, en de overval-knipoog met een logische aanleiding. Daarna begint hun gewone leven.

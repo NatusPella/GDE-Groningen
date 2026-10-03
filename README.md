@@ -1,12 +1,17 @@
-# GTE VI – Grand Theft Eierbal VI
+# GDE Groningen – Zomer vol misdaad
+
+*GDE* stands for *Grootste Diefstal Ever*. GDE is a series name: a place on a
+place-name sign plus a subtitle per game (GDE Groningen now, maybe GDE
+Drenthe later). Until 0.24 the game was called "GTE VI"; see
+[The old name](#the-old-name) for what deliberately keeps it.
 
 Third-person 3D sandbox game set in the real street and building layout of
 Groningen (binnenstad plus surroundings), built from OpenStreetMap data.
 Vanilla JS ES modules and Three.js (r0.160, loaded from a CDN via an import
 map). No build step and no npm dependencies. All in-game text is in Dutch.
 
-> **Fanparodie, niet gelieerd aan of goedgekeurd door Rockstar Games of
-> Take-Two Interactive.** A free, non-commercial fan parody. "Grand Theft
+> **GDE is een fanparodie op GTA, niet gelieerd aan of goedgekeurd door
+> Rockstar Games of Take-Two Interactive.** A free, non-commercial fan parody. "Grand Theft
 > Auto" and "GTA" are trademarks of Take-Two Interactive. Names, characters,
 > brands and events in the game are fictional; real streets and public
 > buildings are only the setting.
@@ -60,7 +65,7 @@ string>]` shows the first-run graphics advice in a test run.
 
 ### Trailer mode
 
-"GTE VI — Een zomer in Grunn": one scripted sequence of 24 shots through
+"GDE Groningen — Een zomer in Grunn": one scripted sequence of 24 shots through
 Grunn (`js/trailer.js`, shot list in `docs/verhaal/E-trailer.md`), ~91 s,
 with name cards over freeze frames (Anita, Tammo, Jelle Terpstra, Durk &
 Douwe), two voice lines (Rikus on the radio, Berend after the logo;
@@ -89,7 +94,7 @@ from the end of the radio intro. Used three ways:
   sound). `--trailer` uses a throwaway profile, e.g.
   `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-trailer npx electron . --trailer=1920x1080`
 - **Video export**: desktop `--trailer-video[=<file.mp4>]` (default
-  `~/Downloads/GTE-VI-Een-zomer-in-Grunn.mp4`) runs the recording and pipes
+  `~/Downloads/GDE-Groningen-Een-zomer-in-Grunn.mp4`) runs the recording and pipes
   every captured frame straight into ffmpeg (no frame files on disk), with
   the theme song and the voice lines mixed in at their times. H.264 yuv420p,
   CRF 18, 60 fps, AAC 192k, `+faststart`; 1920×1080 unless `--trailer=WxH`
@@ -105,7 +110,7 @@ from the end of the radio intro. Used three ways:
 
 `desktop/` wraps the game in Electron: a standalone macOS app (universal,
 Apple Silicon + Intel) and a portable Windows `.exe`, both fully offline
-(three.js and the font are vendored at build time). Built locally, no CI:
+(three.js and the fonts are vendored at build time). Built locally, no CI:
 
 ```bash
 cd desktop && npm install
@@ -116,7 +121,8 @@ npm run release -- patch        # bug fixes:     0.3.1 -> 0.3.2
 
 `release` bumps the version (SemVer, `0.x.y` until the real launch at
 1.0.0), builds both platforms, tags `vX.Y.Z` and publishes a GitHub release
-with the `.dmg` and `.exe`. The apps are unsigned (no Apple Developer ID /
+with `GDE-Groningen-<version>-mac.dmg` and
+`GDE-Groningen-<version>-windows-portable.exe`. The apps are unsigned (no Apple Developer ID /
 Windows certificate), so testers confirm them once in macOS Privacy &
 Security or Windows SmartScreen.
 
@@ -128,14 +134,14 @@ locally from the same staging as the desktop app. Nothing is published:
 ```bash
 cd desktop
 npm run web          # build web-dist/
-npm run web:zip      # the same, plus GTE-VI-<version>-web.zip for itch.io
+npm run web:zip      # the same, plus GDE-Groningen-<version>-web.zip for itch.io
 npm run web:serve    # serve it at http://localhost:8790/gte/ (add -- --log for a request log)
 ```
 
 What the web build (`web/build.mjs`) adds on top of `desktop/build.mjs`:
 
 - **Relative paths everywhere** (`GTE_STAGE_RELATIVE=1`), so it runs from any
-  sub path (itch.io, GitHub Pages). three.js and the font are vendored, so no
+  sub path (itch.io, GitHub Pages). three.js and the fonts are vendored, so no
   external URL is loaded.
 - **Opus audio**: every clip is also encoded as Opus in WebM (voices 32 kbps
   mono, music 96 kbps stereo; cached in `web/.cache/`, so only the first
@@ -261,10 +267,10 @@ minimap's edge arrows carry a ring, a dot or a square.
   route always points to the next step, and every step can be skipped from
   the pause menu, after a failed mission also with O; Jelle Terpstra and the
   twins Durk & Douwe appear in the cutscenes and reach you by voiced calls,
-  livestreams, Sikkom posts and cards; "Eerder in GTE VI" recaps open each
+  livestreams, Kiekdoar posts and cards; "Eerder in GDE" recaps open each
   part and "Wat weten we?" in the pause menu lists the clues so far), shops (weapons,
   armour and food are bought, not found on the street; you start with €250),
-  Sikkom news feed and phone notifications. Duif-modus as an in-game
+  Kiekdoar news feed and phone notifications. Duif-modus as an in-game
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,
   Noorderplantsoen, Stationsplein and a duiventil at the volkstuinen) press E
   to become a pigeon, fly and poop over the wijk you are in, and press X (or
@@ -346,7 +352,8 @@ Map data © OpenStreetMap contributors, available under the
 [Open Database License](https://www.openstreetmap.org/copyright); the map
 files (`game/citymap.json`, `game/mapextras.json`, `game/ommeland.*`,
 `data/`) stay under the ODbL. Music and voices are generated with Google
-Gemini. Third-party software and fonts (three.js, Bebas Neue, Electron) and
+Gemini. Third-party software and fonts (three.js, Bebas Neue, Big Shoulders
+Display, Electron) and
 their licences: [NOTICE.md](NOTICE.md) and `licenses/`. The licence for the
 project's own code and content is not chosen yet; see
 [docs/LICENTIES.md](docs/LICENTIES.md) for the inventory, the options and the
@@ -355,5 +362,26 @@ before the repo goes public.
 
 Privacy: the game keeps progress and settings in the browser's localStorage
 on your own device. No accounts, no telemetry, no analytics. The browser
-version loads three.js from jsDelivr and the font from Google Fonts; the
+version loads three.js from jsDelivr and the fonts from Google Fonts; the
 desktop build loads nothing from the internet.
+
+## The old name
+
+The game was called "GTE VI – Grand Theft Eierbal VI" until 0.24. Everything
+a player sees now says GDE, but identifiers that saves and settings depend on
+keep the old name on purpose:
+
+- localStorage keys (`gte-save-v1`, `gte-settings`, `gte-dev:` and the rest of
+  `gte-*`), the web build's cache names (`gte-vi-*`) and the `gte:` IPC
+  channels;
+- the Electron `appId` (`nl.natuspella.gte-vi`) and the Windows
+  AppUserModelId, and the userData folder: `desktop/main.js` pins it to
+  `GTE VI` (`~/Library/Application Support/GTE VI`, `%APPDATA%\GTE VI`),
+  because the new product name would otherwise start with an empty profile;
+- the npm package name `gte-vi`, the `GTE_*` environment variables, the
+  repo and file names, CSS ids such as `#gte-ahead`, and the `GTE-VI/`
+  folder inside the Windows zip (so `START DE GAME.bat` finds an earlier
+  install);
+- the recorded narrator lines that say "Eerder in GTE VI" (the recaps of
+  part 2 and 3) until they are recorded again.
+

@@ -1,7 +1,7 @@
 # Groningse memes en running gags (inspiratie)
 
 Gebaseerd op een onderzoek (via Copilot, september 2026), samengevat en gefilterd
-op wat past bij GTE VI. Gebruik de culturele kern, nooit de exacte uitvoering:
+op wat past bij GDE Groningen. Gebruik de culturele kern, nooit de exacte uitvoering:
 geen echte fragmenten, songteksten, echte personages of herkenbare levende
 personen. Namen, uiterlijk en formuleringen altijd zelf verzinnen.
 
@@ -18,7 +18,7 @@ personen. Namen, uiterlijk en formuleringen altijd zelf verzinnen.
   radiobericht, NPC-zin, reclamebord, verkeerssituatie en missie-uitkomst.
 
 ## Bruikbaar binnen onze plannen
-| Referentie | Hoe in GTE VI |
+| Referentie | Hoe in GDE Groningen |
 |---|---|
 | *Er gaat niets boven Groningen* (slogan) | Billboards die per missie een eigen parodie tonen (*"Er rijdt niets boven Groningen"*, *"Er bouwt niets trager dan Groningen"*); trailer-caption. |
 | *Kon minder*, *komt goud mien jong*, *nait soezen, deurbroezen*, *moi*, *eem* | Korte NPC-barks, winkelnamen, resultaatschermen. Niet dik aangezet. |
@@ -32,7 +32,7 @@ personen. Namen, uiterlijk en formuleringen altijd zelf verzinnen.
 | Noorderplantsoen bij de eerste zon | Park loopt vol met kleedjes, speakers en wegwerpbarbecues bij mooi weer. |
 | FC Groningen / Oosterpark-nostalgie, *Trots van het Noorden*, *boeren geven nooit op* | Supporters die blijven zingen; oud stadion op oude kaarten; eigen verzonnen ex-speler als easter egg (geen echte naam). |
 | Bommen Berend / Gronings Ontzet (28 augustus) | Past al in het verhaal (finale); NPC's die elk een andere uitleg geven wie er eigenlijk won. |
-| Twee droge commentaarkoeien (à la Blaarkoppen, eigen ontwerp) | Laadschermen of Sikkom-feed die droog commentaar geven op jouw ravage. |
+| Twee droge commentaarkoeien (à la Blaarkoppen, eigen ontwerp) | Laadschermen of Kiekdoar-feed die droog commentaar geven op jouw ravage. |
 | Regionale streekmuziek op de radio (Ede Staal-achtig, fictief) | Buiten de stad een rustig nachtprogramma met verzonnen streekmuziek. |
 | Bloemetjesmarkt (Goede Vrijdag, veel Duitse bezoekers) | Seizoensevent: binnenstad vol touringcars en NPC's met kamerplanten. |
 | KEI-week, kroegen zonder sluitingstijd | Al deels in de game; bij zonsopgang komen dezelfde NPC's nog uit dezelfde kroeg. |

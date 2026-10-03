@@ -11,7 +11,6 @@ import {
   sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
   spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
-import { DEAD_DURATION } from './pedestrians.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateSwimmers3D } from './swimmers3d.js';
@@ -1608,12 +1607,12 @@ function syncPedestrianMeshes(world, player, animDt) {
     ud.fade = Math.min(1, ud.fade + animDt / PED_FADE_TIME);
     const edge = (DRAW_DIST - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
     applyPedFade(mesh, warm ? (FADE_STEPS - 1) / FADE_STEPS : Math.min(ud.fade, edge));
-    if (p.gibbed) { mesh.visible = false; continue; }
     if (p.hideMesh) { mesh.visible = false; ud.fadeLevel = -1; continue; } // fierljep.js draws its own actor
     if (driveRagdoll(p, mesh, world, animDt)) continue;
     if (p.state === 'dead') {
-      // topple backwards over ~0.3s, then lie flat until the ped is removed
-      const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);
+      // knocked out without a ragdoll: topple backwards over ~0.3s, then lie
+      // flat until the ped gets up (pedestrians.js)
+      const fall = Math.min(1, (world.time - (p.koAt ?? world.time - 1)) / 0.3);
       mesh.position.set(p.x, 0.14 * fall + (p.gz || 0), p.y);
       mesh.rotation.set(0, -p.angle, fall * fall * Math.PI / 2);
       ud.shadow.visible = false;

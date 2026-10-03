@@ -38,7 +38,7 @@ def covers(have, want):
 def overpass(query):
     for attempt in range(3):
         for url in URLS:
-            r = subprocess.run(["curl", "-s", "-m", "300", "-A", "GTE-VI-mapbuilder/1.0",
+            r = subprocess.run(["curl", "-s", "-m", "300", "-A", "GDE-Groningen-mapbuilder/1.0",
                                 "--data-urlencode", f"data={query}", url],
                                capture_output=True, text=True)
             txt = r.stdout.strip()

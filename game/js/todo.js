@@ -37,7 +37,7 @@ export const GROUPS = [
   ['nahetverhaal', 'Na het verhaal', 'Jelle wil revanche'],
 ];
 export const STATUS_LABEL = { nu: 'Nu', klaar: 'Klaar', later: 'Later', slot: 'Op slot' };
-const TYPE_LABEL = { deliver: 'Bezorgen', rampage: 'Chaos', stunt: 'Stunts', checkpoint: 'Race', fatbike: 'Overleven', boat: 'Varen', stages: 'Missie' };
+const TYPE_LABEL = { deliver: 'Bezorgen', stunt: 'Stunts', checkpoint: 'Race', fatbike: 'Overleven', boat: 'Varen', stages: 'Missie' };
 const WORLD_ENDS = 12;
 
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
