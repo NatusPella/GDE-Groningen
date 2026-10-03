@@ -1138,7 +1138,7 @@ function buildShots(w) {
   const camAt = (d) => ({ x: padC.x + Math.cos(awayA) * d, y: padC.y + Math.sin(awayA) * d });
   const trauma = {
     label: 'Traumaheli boven het UMCG', cuts: ['vol'], dur: 3.6, clock: 7.2, weather: 'helder', focus: padC,
-    caps: [[0.5, 2.7, 'Spoedeisende duif.']],
+    caps: [[0.5, 2.7, 'Het staat niet in het rooster.']],
     enter(r, s) {
       s.h = pad ? scriptHeli(r.w) : null;
       const c0 = camAt(120), dx = padC.x - c0.x, dy = padC.y - c0.y, dl = Math.hypot(dx, dy) || 1;

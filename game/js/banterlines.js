@@ -586,8 +586,8 @@ export const BANTER = [
     ['T', 'Wij hebben net één fiets gekocht.', 'dry'],
     ['A', 'Met bonnetje. Dat maakt indruk.', 'confident, laughing']] },
   { id: 'st-h15', trigger: 'story:H15', lines: [
-    ['A', 'Laat Dokter Dijkstra ons echt vliegen?', 'unbelieving'],
-    ['T', 'Hij zei "Grunneger noodgeval". Dat is hier een officiële categorie.', 'dry, knowing']] },
+    ['A', 'Rotor Roelf laat ons echt vliegen. Gratis.', 'unbelieving'],
+    ['T', 'Gratis bestaat niet in Eelde. Hij telt de krassen.', 'dry, knowing']] },
   { id: 'st-carbid', trigger: 'story:s-carbid', lines: [
     ['A', 'De echte bal. Op jouw schoot.', 'nervous, excited'],
     ['T', 'Hij is zwaar.', 'dry'],

@@ -7,7 +7,7 @@ import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, getShopsDecluttered, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
-import { getHeliSpotsForRender } from './helirun.js';
+import { getHeliSpotsForRender, getHeliRunMarks } from './helirun.js';
 import { getPadelSpotsForRender } from './padel.js';
 import { activityMapIcons, ACTIVITY_LEGEND } from './activities.js';
 import { getPostgameSpotsForRender } from './postgame.js';
@@ -892,7 +892,33 @@ function drawDynamicMarkers(ctx, world) {
   }
   for (const ps of getPigeonSpotsForRender()) icon('duif', 'pigeon', ps.x, ps.y, ps.name, {}, 'Word een duif', { goal: { kind: 'play', id: 'duif', name: 'Duivenmodus', sub: ps.name, x: ps.x, y: ps.y }, todo: 'mg:duif' });
   const play = (id, name, sub, x, y, todo) => ({ goal: { kind: 'play', id, name, sub, x, y }, todo });
-  for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de traumaheli', play('heli', 'Ballonjacht', hs.name, hs.x, hs.y, 'mg:heli'));
+  for (const hs of getHeliSpotsForRender()) icon('heli', 'heli', hs.x, hs.y, hs.name, {}, 'Ballonjacht met de heli', play('heli', 'Ballonjacht', hs.name, hs.x, hs.y, 'mg:heli'));
+  // a heli run: its rings where they hang, the H to land on and the balloon
+  const hm = getHeliRunMarks();
+  if (hm) {
+    ctx.save();
+    for (const r of hm.rings) {
+      if (r.state === 'done' || r.state === 'miss') continue;
+      const [sx, sy] = toScreen(r.x, r.y);
+      ctx.beginPath();
+      ctx.arc(sx, sy, Math.max(5, 11 * state.scale), 0, Math.PI * 2);
+      ctx.lineWidth = r.state === 'next' ? 3 : 2;
+      ctx.strokeStyle = r.state === 'next' ? '#ffc21a' : 'rgba(255,233,160,0.8)';
+      ctx.stroke();
+    }
+    for (const [q, col] of [[hm.pad, '#1e9e56'], [hm.balloon, '#ff7ab6']]) {
+      if (!q) continue;
+      const [sx, sy] = toScreen(q.x, q.y);
+      ctx.beginPath();
+      ctx.arc(sx, sy, 7, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#f0ede4';
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
   for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid', play('padel', 'Padel', ps.name, ps.x, ps.y, 'mg:padel'));
   const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'] };
   for (const a of activityMapIcons(world)) {

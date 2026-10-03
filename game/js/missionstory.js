@@ -410,13 +410,13 @@ const STORY = [
     fail: [['T', 'Het skûtsje is weg. Met zeil en al.'], ['A', 'Een zeilboot ontsnapt aan een bootje met een bel. Niet vertellen in de kroeg.']],
   },
   {
-    // 14: H15 Spoedeisende duif
-    npc: 'dijkstra', outroPose: 'hips', ask: 0,
+    // 14: H15 Het staat niet in het rooster: Rotor Roelf sends them off from Eelde,
+    // Dokter Dijkstra (who flew along from the UMCG) waits for them on the deck after
+    npc: 'rotor', outroNpcKey: 'dijkstra', outroPose: 'hips', ask: 0,
     intro: [
-      ['N', 'Zij vliegt. Hij hangt.', { card: 'dijkstra' }],
-      ['T', 'Natuurlijk hang ík.'],
-      ['A', 'Ik vraag het, Tammo. Wil je hangen?'],
-      ['T', '…Ja. Dank je dat je het vraagt.'],
+      ['N', 'Volgetankt. Rechtdoor naar het noorden, dan zie je Stad vanzelf.'],
+      ['A', 'En als we iets raken?'],
+      ['N', 'Dan heb je hem gekocht. Moi!'],
     ],
     outroNpc: true,
     outro: [
@@ -427,7 +427,7 @@ const STORY = [
       ['T', '…Hij was mooi.'],
       ['N', 'Die Fries is geland in een weiland bij Ten Boer. Tussen de koeien. Hij was niet blij. De koeien ook niet.'],
     ],
-    replay: [['N', 'Weer een spoedeisende duif? Ik zet het deze keer in het rooster.']],
+    replay: [['N', 'Weer een spoedje? Ik zet het deze keer in het rooster.']],
     fail: [['A', 'Die ballon is sneller dan hij eruitziet.'], ['T', 'Alles van Jelle is sneller dan het eruitziet.']],
   },
   {

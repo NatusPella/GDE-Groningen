@@ -185,8 +185,8 @@ export const CHARACTERS = [
   },
   {
     id: 'dijkstra', name: 'Dokter Dijkstra', speakers: ['Dokter Dijkstra', 'Dijkstra'], model: 'dijkstra',
-    role: 'UMCG. Doet een spoedeisende duif.',
-    bio: 'Traumaarts en heli-piloot. Leent niks uit, maar doet wel een spoedeisende duif.',
+    role: 'UMCG. Het staat niet in het rooster.',
+    bio: 'Traumaarts en heli-piloot. Haar traumaheli staat in onderhoud en haar nachtdienst heeft honger. Ze leent niks uit, maar ze vliegt wel mee.',
     quote: 'Zij vliegt. Hij hangt.',
     relation: 'Vliegt Anita naar de ballon.',
     missions: ['H15'],
