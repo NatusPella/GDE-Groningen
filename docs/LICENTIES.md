@@ -140,7 +140,13 @@ respawn heten "Huisartsenpost <wijk>" (`add_police_stations.py`) en garages
 Gecontroleerd in `game/js` en `desktop/`:
 
 - Opslag: alleen `localStorage` (save, instellingen, prestaties,
-  kaartfilters, gezien-versie). Geen cookies, geen IndexedDB-tracking.
+  kaartfilters, gezien-versie, het foutenlogboek `gte-foutlog`). Geen
+  cookies, geen IndexedDB-tracking.
+- Foutrapport (`errorlog.js`, sinds 0.25): fouten en waarschuwingen in een
+  ringbuffer, alleen lokaal. Per melding de tekst, de stack (paden ingekort
+  tot de map van de game, gebruikersmappen weg), versie, verhaalstap, een
+  paar instellingen en de GPU-klasse. Niets wordt verstuurd; de speler kan
+  het kopiëren of (desktop) als bestand opslaan en zelf meesturen.
 - Netwerk: alle `fetch()`-aanroepen gaan naar eigen bestanden
   (`manifest.json`'s, `citymap.json`, `ommeland.*`, muziek,
   `CHANGELOG.md`). **Geen telemetrie, analytics, crashrapportage of
@@ -161,6 +167,7 @@ Gecontroleerd in `game/js` en `desktop/`:
 
 > GTE VI bewaart je voortgang en instellingen alleen op je eigen apparaat; er
 > gaat niets naar een server, geen account, geen tracking, geen statistieken.
+> Fouten komen in een logboek op je eigen apparaat, dat je zelf kunt kopiëren.
 
 (Voor de browserversie, zolang de CDN's blijven: "…, behalve dat de
 browserversie bij het laden three.js en het lettertype ophaalt bij jsDelivr
@@ -180,7 +187,7 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
 | "VI" / "GTE VI" | Kopieert de nummering van het aangekondigde GTA VI; het grote "VI" is het kernelement van het GTA VI-logo. | hoog, samen met de naam | "VI" laten vallen |
 | Logo (tot 0.24 `.gte-logo`, nu `.gde-logo`) | Was: Bebas Neue, crème-naar-groen verloop, "VI" in een schuin groen blok. Nu: "GDE" in Big Shoulders Display, GRONINGEN op een groen plaatsnaambord, "Zomer vol misdaad" eronder. Geen VI, geen zonsondergang, geen Pricedown. | laag | **gedaan** (0.24), zie §8.2 |
 | Fonts | Bebas Neue en Arial Narrow; **geen Pricedown** of andere Rockstar-letter (ook niet in de historie, gezocht op "pricedown") | laag | zo houden |
-| Trailer en naamkaarten | Structuur volgt de GTA VI-trailer (freeze frames met namen, "Tammo & Anita" met gekleurde &, letterbox). Stijl en kleuren zijn eigen. Een opzet of format is niet beschermd. | laag | ok; geen GTA-muziek of -tekst citeren |
+| Trailer en naamkaarten | Structuur volgt de GTA VI-trailer (freeze frames met namen, "Tammo & Tessa" met gekleurde &, letterbox). Stijl en kleuren zijn eigen. Een opzet of format is niet beschermd. | laag | ok; geen GTA-muziek of -tekst citeren |
 | Teksten/commentaar "GTA-style" | alleen in code-commentaar en `DESIGN_SYSTEM.md` | geen (niet zichtbaar voor spelers) | ok; niet in store-teksten gebruiken |
 | Disclaimer | ontbrak | — | **toegevoegd**: laadscherm, startscherm, *Over*, aftiteling, README, NOTICE |
 
@@ -210,9 +217,9 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
   Tammo met dialect kan als verwijzing gelezen worden. **RISICO laag-
   gemiddeld**. Disclaimer "personages verzonnen" helpt; houd uiterlijk en
   catchphrases ver van hem.
-  **Vraag aan de eigenaar**: zijn Tammo en Anita op echte personen
+  **Vraag aan de eigenaar**: zijn Tammo en Tessa op echte personen
   gebaseerd? Zo ja: schriftelijke toestemming vragen. Zo nee: de
-  credit herformuleren (bijv. "als Tammo & Anita").
+  credit herformuleren (bijv. "als Tammo & Tessa").
 - Huisartsenpraktijken uit OSM (bijv. "Huisarts van de Riet") waren
   respawnplekken. **Opgelost** (3 okt): ze heten nu "Huisartsenpost <wijk>"
   (`add_police_stations.py` en `citymap.json`).
@@ -442,7 +449,7 @@ het aanrijden van burgers (knock-out, slapstick). De Gemini-API-regel over minde
    handmatige registercheck.
 3. ~~**Sikkom** en **Radio Grunn** hernoemen + opnieuw inspreken~~
    **gedaan**: Kiekdoar en Radio Proat (§6.2).
-4. **Tammo & Anita**: echte mensen of niet? Toestemming of credit
+4. **Tammo & Tessa**: echte mensen of niet? Toestemming of credit
    herformuleren (§6.3).
 5. **Esri-luchtfoto** weg uit repo en historie (zie `docs/PUBLICEREN.md`).
 6. ~~**Oudere TTS-clips** opnieuw maken en loggen~~ **gedaan** (§2).

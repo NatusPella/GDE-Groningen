@@ -30,7 +30,7 @@ import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
 import {
   startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
-  heistApproach, heistSpotAt, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate,
+  heistApproach, heistSpotAt, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, REVEAL,
 } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -106,7 +106,7 @@ function buildDefs(world) {
       type: 'deliver',
       label: 'Berend telt de krassen',
       intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.', 'Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.'],
-      outro: 'Berend zei goud. En moi. Tegen Anita.',
+      outro: 'Berend zei goud. En moi. Tegen Tessa.',
       timeLimit: 85,
       reward: 50,
       // Berend takes 50 cents off per percent of damage, down to a quarter of the fee
@@ -135,8 +135,8 @@ function buildDefs(world) {
       outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
       race: 'kei',
       requires: 'bike',
-      // the all-green crossing: Anita comes the other way on her own bike
-      moment: { at: 3, text: 'Alles groen. Anita komt van de andere kant, op haar eigen fiets. Oogcontact. Jullie remmen allebei.' },
+      // the all-green crossing: Tessa comes the other way on her own bike
+      moment: { at: 3, text: 'Alles groen. Tessa komt van de andere kant, op haar eigen fiets. Oogcontact. Jullie remmen allebei.' },
       // each on their own bike (D: she comes the other way at the all-green crossing), so she gets off his
       ownBike: true,
       say: 'Ik fiets zelf, op mijn eigen fiets. Met bonnetje. Zie je op het kruispunt.',
@@ -226,8 +226,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Even pinnen',
-      intro: ['Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita\'s pas erin. De aanhanger bleef achter.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.'],
-      outro: 'Sjabbe gaf Anita haar pas terug. En hij vertelde over het museum.',
+      intro: ['Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa\'s pas erin. De aanhanger bleef achter.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.'],
+      outro: 'Sjabbe gaf Tessa haar pas terug. En hij vertelde over het museum.',
       timeLimit: null,
       reward: 400,
       vehicle: 'car',
@@ -307,8 +307,8 @@ function buildDefs(world) {
         { kind: 'crack', target: { heistSpot: 'stand' }, label: 'Kraak de vitrine', say: 'De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.' },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
-          kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
-          lines: [['A', '"Tige tank! – W."', { clue: true }], ['T', 'Hij bedankt ons.'], ['A', 'Hij. Bedankt. Ons.'], ['T', 'Beleefd, eigenlijk.'], ['A', 'Tammo.']],
+          kicker: 'Groninger Museum, zaal 3',
+          lines: [['A', '"Tige tank! – J."', { clue: true }], ['T', 'Hij bedankt ons.'], ['A', 'Hij. Bedankt. Ons.']],
         },
         {
           kind: 'getaway', stars: 2, target: { heistSpot: 'boot' }, label: 'Alarm! Rennen, naar de boot', say: 'Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!',
@@ -446,8 +446,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Het staat niet in het rooster',
-      intro: ['Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.', 'Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.'],
-      outro: 'Tammo haalde de Eierbal uit de mand en Anita zette de heli netjes op de H. Jelle landde in een weiland, tussen de koeien.',
+      intro: ['Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.', 'Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.'],
+      outro: 'Tammo haalde de Eierbal uit de mand en Tessa zette de heli netjes op de H. Jelle landde in een weiland, tussen de koeien.',
       timeLimit: null,
       reward: 1500,
       // one flight in Rotor Roelf's demo heli: off from his pad on Eelde (resolveSpotStarts)
@@ -466,13 +466,13 @@ function buildDefs(world) {
       reward: 1100,
       vehicle: 'car',
       fjordTrain: true,
-      // Anita alone: Tammo stays behind with the klomp
+      // Tessa alone: Tammo stays behind with the klomp
       solo: true,
       start: drive(-60, 868),
       stages: [
         {
           kind: 'goto', target: { at: [-170, 905], snap: 'walk', label: 'De Westerhaven' }, mode: 'any', radius: 14, label: 'Naar de Westerhaven: daar zag Jelmers chat een rode auto', say: 'Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.',
-          // Mem Terpstra calls Nachtstreek while Anita looks
+          // Mem Terpstra calls Nachtstreek while Tessa looks
           radio: { caller: 'Gerda Terpstra, Ljouwert', lines: [
             ['mem', 'Rikus. Gerda Terpstra, Ljouwert. Myn soan hat dy reade auto op de trein nei Ljouwert set. Zeg tegen dat famke: perron 3.', { card: 'mem', clue: true }],
             ['rikus', 'Mevrouw Terpstra, waarom helpt u ons?'],
@@ -503,10 +503,10 @@ function buildDefs(world) {
         {
           kind: 'train', label: 'Blokkeer de overweg aan de Peizerweg', say: 'Snel, naar de overweg aan de Peizerweg! Ga erbij staan, dan moet de machinist wel stoppen.',
           caught: 'De trein staat stil. Durk en Douwe rijden de Escapade van de wagon en fietsen weg, allebei op één fatbike.',
-          taken: 'Anita rijdt de Escapade zelf van de wagon af. Moai!',
+          taken: 'Tessa rijdt de Escapade zelf van de wagon af. Moai!',
           lost: 'de Escapade staat op de trein naar Ljouwert',
         },
-        { kind: 'board', label: 'Stap in de Escapade', say: 'Hij is terug. Instappen, Anita. Hij rijdt nog. Nauwelijks.' },
+        { kind: 'board', label: 'Stap in de Escapade', say: 'Hij is terug. Instappen, Tessa. Hij rijdt nog. Nauwelijks.' },
       ],
     },
     {
@@ -546,7 +546,7 @@ function buildDefs(world) {
           kicker: 'Gronings Ontzet', big: 'Hij grist de Eierbal!',
           cast: [{ key: 'jelle', pose: 'hold', at: [2.2, 0] }, { key: 'durk', pose: 'arms', at: [3.5, 1.5] }, { key: 'douwe', pose: 'arms', at: [3.5, -1.5] }, { key: 'berend', pose: 'hips', at: [1.3, 2.7] }],
           props: [{ kind: 'ball', holder: 'jelle' }],
-          lines: [['jelle', 'Mem moet hem zien. Vóór de uitslag. Ik bin sa werom!'], ['A', 'Hé! Die staat op de jurytafel!'], ['berend', 'Dit hoort niet bij het naspel.'], ['T', 'Anita, de auto! Ik hou de eierballen warm.']],
+          lines: [['jelle', 'Mem moet hem zien. Vóór de uitslag. Ik bin sa werom!'], ['A', 'Hé! Die staat op de jurytafel!'], ['berend', 'Dit hoort niet bij het naspel.'], ['T', 'Tessa, de auto! Ik hou de eierballen warm.']],
         },
         { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, achter die trekker aan!' },
         {
@@ -1156,7 +1156,7 @@ function removeLeftover(world) {
   if (i >= 0) world.vehicles.splice(i, 1);
 }
 
-// How far the Tammo/Anita story has got for mission i: normally i itself,
+// How far the Tammo/Tessa story has got for mission i: normally i itself,
 // lower when missions were played out of order.
 function storyStage(i) {
   const k = MISSION_STORY_ORDER.indexOf(i);
@@ -2009,7 +2009,7 @@ function raceCarProblem() {
 // More options: goto `limit` (seconds, `late` = the fail reason), `pay` (money taken when
 // the stage is done, `paid` = the toast), hold `ticks` (three progress toasts) and
 // `fireworks` { every: [min, max], hit, cost, hitText } (bangs that knock you down and
-// cost hold time); chase `hero` (the fleeing car is Anita's own Fjord), `clock`, `meter`,
+// cost hold time); chase `hero` (the fleeing car is Tessa's own Fjord), `clock`, `meter`,
 // `half`, `lost`, `gone`, `burned`, `from` [x, y] (spawn on that road instead of the start's),
 // `route` [{ at, radio, say }] (drives point to point, each one's radio report on reaching it,
 // then `flee`) and `swarm` { stall, near, lines } (H18: at half the meter, or after the route
@@ -2132,7 +2132,7 @@ function spawnChaseVehicle(world, def, st) {
   }
   v.health = st.health || 190;
   if (st.hero) {
-    // Anita's own Fjord (H16): the one in the world goes, this one is it now
+    // Tessa's own Fjord (H16): the one in the world goes, this one is it now
     for (let i = world.vehicles.length - 1; i >= 0; i--) {
       const o = world.vehicles[i];
       if (o !== v && o.isHeroCar && o.driver !== 'player' && !o.passenger) world.vehicles.splice(i, 1);
@@ -2518,7 +2518,7 @@ function modeOk(p, mode) {
 function playStageScene(world, st, S) {
   const c = S.target || { x: world.player.x, y: world.player.y };
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
-  let at = 0.6;
+  let at = st.reveal ? REVEAL.card : 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
     const dur = Math.max(1.8, Math.min(3.8, 0.95 + text.length * 0.042));
     const l = { speaker: name(who), text, at, dur };
@@ -2531,8 +2531,7 @@ function playStageScene(world, st, S) {
   };
   let shot = orbit(world.player.angle + 2.4, 9, 3.2);
   if (st.reveal) {
-    // the empty case: a slow push-in over the player's shoulder onto the
-    // cushion, then a slide round to the two of them beside it
+    // the empty case (heist.js lifts the dome on REVEAL's clock)
     const v = vitrineSpot() || c;
     const roofed = (x, y) => world.map.buildingsNear(x, y, 0.5).some((b) => pointInPolygon(x, y, b.pts));
     const open = (a, r) => !roofed(v.x + Math.cos(a) * r, v.y + Math.sin(a) * r);
@@ -2545,13 +2544,23 @@ function playStageScene(world, st, S) {
       if (n > bestN) { bestN = n; a0 = a; }
     }
     const side = [1, -1].find((sd) => open(a0 + sd * 0.9, 2.8) && open(a0 + sd * 0.5, 2.8)) ?? 1;
-    shot = (u) => {
-      if (u < 0.34) {
-        const k0 = u / 0.34, k = k0 * k0 * (3 - 2 * k0);
-        const r = 3.4 - 2.1 * k;
-        return { position: { x: v.x + Math.cos(a0 + 0.12) * r, y: v.y + Math.sin(a0 + 0.12) * r, z: 2.1 - 0.5 * k }, lookAt: { x: v.x, y: v.y, z: 1.08 }, fov: 48 - 10 * k };
+    // push in on the frosted dome in silence, hold while it lifts off the
+    // empty cushion, close in on the card, then round to the two of them
+    const card = { x: v.x + 0.05, y: v.y + 0.04 };
+    const ease = (k) => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); };
+    const cardEnd = REVEAL.card + 1.9;
+    shot = (u, t = 0) => ({ ...revealPose(t), held: true });
+    const revealPose = (t) => {
+      if (t < REVEAL.card) {
+        const k = ease(t / REVEAL.push), h = ease((t - REVEAL.push) / (REVEAL.card - REVEAL.push));
+        const r = 3.4 - 1.9 * k - 0.2 * h;
+        return { position: { x: v.x + Math.cos(a0 + 0.12) * r, y: v.y + Math.sin(a0 + 0.12) * r, z: 2.1 - 0.4 * k }, lookAt: { x: v.x, y: v.y, z: 1.3 - 0.12 * h }, fov: 48 - 10 * k };
       }
-      const k = (u - 0.34) / 0.66, a = a0 + side * (0.35 + 0.55 * k);
+      if (t < cardEnd) {
+        const k = ease((t - REVEAL.card) / 0.8), r = 1.3 - 0.55 * k;
+        return { position: { x: card.x + Math.cos(a0 + 0.12) * r, y: card.y + Math.sin(a0 + 0.12) * r, z: 1.68 - 0.13 * k }, lookAt: { x: card.x, y: card.y, z: 1.09 }, fov: 38 - 4 * k };
+      }
+      const k = ease((t - cardEnd) / 1.2), a = a0 + side * (0.35 + 0.55 * k);
       const near = Math.hypot(c.x - v.x, c.y - v.y) < 5;
       return { position: { x: v.x + Math.cos(a) * 2.8, y: v.y + Math.sin(a) * 2.8, z: 1.75 }, lookAt: { x: near ? (v.x + c.x) / 2 : v.x, y: near ? (v.y + c.y) / 2 : v.y, z: 1.2 }, fov: 50 };
     };
@@ -2588,14 +2597,14 @@ function playStageScene(world, st, S) {
       };
     }
   }
-  // with actors: Tammo and Anita where you stand (on the target for a wide
+  // with actors: Tammo and Tessa where you stand (on the target for a wide
   // shot), plus the stage's cast; the camera shots above lead where given
   if (lines.length && !world.pigeonMode) {
     const wide = !!st.cam;
     const lookTo = (wide && st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
     const staged = playCastScene(world, {
       at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
-      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo,
+      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo, lead: st.reveal ? REVEAL.card : 0.6,
       deck: st.target && st.target.skutsje ? chain.skutsje : null,
       shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
@@ -2606,7 +2615,8 @@ function playStageScene(world, st, S) {
   }
   const ok = playCinematic({
     id: 'mission-scene', priority: 3, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: st.kicker || '', title: st.title || '', cardFor: 2.5, lines, shot,
+    kicker: st.kicker || '', title: st.title || '', cardFor: 2.5, lines,
+    shot: st.reveal ? (u, t) => { heistRevealUpdate(t, 0); return shot(u, t); } : shot,
     onStart: () => { world.cinematicHideNav = true; },
     onEnd: () => { world.cinematicHideNav = false; },
   });

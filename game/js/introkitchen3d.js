@@ -1,10 +1,10 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// Anita's kitchen in the Oosterparkwijk at dawn, for the opening of a new
+// Tessa's kitchen in the Oosterparkwijk at dawn, for the opening of a new
 // game: a closed room staged high above the street (only its inside is ever
 // in view). Plan coordinates: u along world x, v along world y, h up; the
 // table stands at the origin, the window is on the u = -2.2 wall (behind
-// Anita), the door on the v = +1.8 wall.
+// Tessa), the door on the v = +1.8 wall.
 
 export const KITCHEN = {
   seatH: 0.46,
@@ -115,7 +115,7 @@ function paperTex(kind) {
   });
 }
 
-// Anita's drawing: a blue chip van with the hatch open
+// Tessa's drawing: a blue chip van with the hatch open
 function drawingTex() {
   return canvasTex(512, 360, (g, w, h) => {
     g.fillStyle = '#f5f1e6'; g.fillRect(0, 0, w, h);
@@ -154,7 +154,7 @@ export function buildKitchen(x, y, z) {
   const fl = add(keep(new THREE.PlaneGeometry(4.38, 3.58)), keep(new THREE.MeshStandardMaterial({ map: floor, roughness: 0.9 })), 0, 0.005, 0);
   fl.rotation.x = -Math.PI / 2;
 
-  // the window behind Anita, its frame, the sill and the old radio
+  // the window behind Tessa, its frame, the sill and the old radio
   const win = keep(windowTex());
   const wp = add(keep(new THREE.PlaneGeometry(1.5, 1.1)), keep(new THREE.MeshBasicMaterial({ map: win })), -2.19, 1.6, 0);
   wp.rotation.y = Math.PI / 2;
@@ -221,7 +221,7 @@ export function buildKitchen(x, y, z) {
   flat(p0, 0.21, 0.29, -0.42, -0.2, Math.PI / 2 + 0.2);
   flat(p1, 0.21, 0.29, -0.5, 0.22, Math.PI / 2 - 0.3);
   flat(p1, 0.21, 0.29, -0.2, -0.3, Math.PI / 2 + 0.5).position.y += 0.001;
-  // its top points to Anita: readable from Tammo's side of the table
+  // its top points to Tessa: readable from Tammo's side of the table
   const drawing = flat(dr, 0.42, 0.3, KITCHEN.drawing.u, KITCHEN.drawing.v, Math.PI / 2 - 0.08);
   drawing.position.y += 0.003;
   const pen = box(0.14, 0.012, 0.012, std(0x1e9e56), -0.12, KITCHEN.tableH + 0.008, 0.2);
@@ -299,7 +299,7 @@ export function buildKitchen(x, y, z) {
   return { group, kp, holdCups, buzz, reset, dispose, tableCups, hinge, leaf, radio };
 }
 
-// A cash machine on a little two-wheel trailer with a drawbar, for Anita.
+// A cash machine on a little two-wheel trailer with a drawbar, for Tessa.
 export function buildAtmTrailer() {
   const g = new THREE.Group(), own = [];
   const box = (w, h, d, color, x, y, z, emissive = 0) => {

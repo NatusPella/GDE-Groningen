@@ -300,7 +300,7 @@ function deliveredCheck(c) {
 }
 
 // Sjouwen doe je met z'n tweeën: when the player picks something up with
-// Tammo/Anita close by, the companion grabs the next item too, follows along
+// Tammo/Tessa close by, the companion grabs the next item too, follows along
 // with it and puts it down on reaching the van or the new front door.
 function companionFree(world) {
   const cp = world.companion, p = world.player;
@@ -318,7 +318,7 @@ function buddyTake(c, from) {
   it.buddyFrom = from;
   it.mesh = c.addMesh(stackMesh(it));
   cp.carrying = 1;
-  c.msg(`${cp.character === 'anita' ? 'Anita' : 'Tammo'} sjouwt ${it.name} mee`, 2.2);
+  c.msg(`${cp.character === 'anita' ? 'Tessa' : 'Tammo'} sjouwt ${it.name} mee`, 2.2);
 }
 
 function dropBuddy(c, back = true) {

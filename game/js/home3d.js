@@ -3,7 +3,7 @@ import { buildBuildingMesh } from './models3d_buildings.js';
 import { GeoBuilder } from './pixelart3d.js';
 import { LANDMARK_MATERIALS } from './landmarks3d.js';
 
-// Meshes for Tammo and Anita's home (home.js): the private garage in the
+// Meshes for Tammo and Tessa's home (home.js): the private garage in the
 // plinth of their flat, the lobby door with the bike rack, the flat's floor
 // as a cutaway (only while they are upstairs) and the tower below it.
 // Geometry is baked in world coordinates, like the buildings.
@@ -122,7 +122,7 @@ export function buildHomeExterior3D(home) {
   const d = home.garage.door;
   const door = segBox(g, M.door, d.x1, d.y1, d.x2, d.y2, 0.12, 0, H - 0.1);
   g.userData.door = door;
-  const tex = signTexture('Privégarage', 'Tammo & Anita');
+  const tex = signTexture('Privégarage', 'Tammo & Tessa');
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.05), new THREE.MeshBasicMaterial({ map: tex }));
   sign.position.set(d.cx + d.nx * 0.2, H + 0.7, d.cy + d.ny * 0.2);
   sign.rotation.y = -Math.atan2(d.ny, d.nx) + Math.PI / 2;

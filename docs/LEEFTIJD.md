@@ -62,7 +62,7 @@ De criteria van PEGI ([pegi.info](https://pegi.info/what-do-the-labels-mean)):
     toeval.
 - **Wat blijft:** de speler kan neergaan (DOOD) of opgepakt worden
   (OPGEPAKT). Dat telt niet als geweld tegen een weerloos personage. Ook de
-  maat (Tammo of Anita) kan aangereden worden; die komt daarna weer
+  maat (Tammo of Tessa) kan aangereden worden; die komt daarna weer
   terug.
 
 ## Antwoorden op de IARC-vragenlijst

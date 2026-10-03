@@ -53,7 +53,7 @@ Afbeeldingen in de beschrijving (`[img]`) kunnen later; ze moeten eerst als
 
 ```
 [h2]Een zomer in Grunn[/h2]
-Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Anita hebben samen precies genoeg geld voor een patatje. Anita wil een frietwagen. Tammo wil Anita, maar dat zegt hij niet. Al twaalf jaar niet.
+Augustus. KEI-week, Noorderzon, kermis op de Grote Markt en aan het eind Gronings Ontzet. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen. Tammo wil Tessa, maar dat zegt hij niet. Al twaalf jaar niet.
 
 Dan ligt de [b]Gouden Eierbal[/b], de wisseltrofee van de Noordelijke Snackprijs, ineens niet meer in het museum. En er rijdt een Friese snackkoning met een trekker-limo door de binnenstad.
 
@@ -95,7 +95,7 @@ De stad is gebouwd uit OpenStreetMap: de echte straten, grachten, bruggen en geb
 
 ```
 [h2]A summer in Grunn[/h2]
-August in Groningen. Freshers' week, the Noorderzon festival, the fair on the Grote Markt and, to round it off, Gronings Ontzet. Tammo and Anita have just enough money between them for one portion of chips. Anita wants a chip van. Tammo wants Anita, but he hasn't said so. Not in twelve years.
+August in Groningen. Freshers' week, the Noorderzon festival, the fair on the Grote Markt and, to round it off, Gronings Ontzet. Tammo and Tessa have just enough money between them for one portion of chips. Tessa wants a chip van. Tammo wants Tessa, but he hasn't said so. Not in twelve years.
 
 Then the [b]Golden Eierbal[/b], the challenge trophy of the Northern Snack Prize, is suddenly no longer in the museum. And a Frisian snack king is cruising the old town in a tractor limo.
 
@@ -336,11 +336,11 @@ de beschrijving en de content survey zeggen het:
 
 NL:
 
-> Geen gegevens. De game bewaart je voortgang en instellingen alleen op je eigen computer. Er gaat niets naar een server: geen account, geen tracking, geen statistieken, geen advertenties.
+> Geen gegevens. De game bewaart je voortgang en instellingen alleen op je eigen computer. Er gaat niets naar een server: geen account, geen tracking, geen statistieken, geen advertenties. Fouten komen in een logboek op je eigen computer; dat verstuurt niets, je kunt het zelf kopiëren als je een fout meldt.
 
 EN:
 
-> No data collected. Your progress and settings are stored only on your own computer. Nothing is sent to any server: no account, no tracking, no analytics, no ads.
+> No data collected. Your progress and settings are stored only on your own computer. Nothing is sent to any server: no account, no tracking, no analytics, no ads. Errors go into a log on your own computer that sends nothing; you can copy it yourself when you report a bug.
 
 (Steam zelf meet speeltijd en prestaties; dat valt onder het beleid van
 Valve. Als er later Steam Cloud of Steam-achievements bij komen via

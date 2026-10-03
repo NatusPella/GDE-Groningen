@@ -18,7 +18,7 @@ import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 // every evening from 19:00 to 01:00, and all day during the Meikermis
 // (late April to early May), the rest of the kermis joins it: a reuzenrad,
 // stalls, coloured lights, a crowd and a barrel organ. The ride: 75 s in a
-// bumper car against five others (Tammo or Anita in one of them), points
+// bumper car against five others (Tammo or Tessa in one of them), points
 // for every bump you give, more for a fast one or one in a flank, a combo
 // for quick ones in a row. `window.__kermis` debug.
 
@@ -456,7 +456,7 @@ function start(w, { free = false } = {}) {
   const mateLook = p.character === 'anita' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
   const bots = DRIVERS.map((d) => ({ name: d.name, look: { shirt: d.shirt, skin: 0xe2b48c, variant: d.variant, seed: 6400 + d.name.length, look: { age: d.age, hat: null, bag: null, umbrella: null } } }));
   if (story) bots.splice(0, 2, { name: 'Durk', twin: 'durk', look: DURK_LOOK }, { name: 'Douwe', twin: 'douwe', look: DOUWE_LOOK });
-  const riders = [{ look: meLook, name: 'jij' }, { look: mateLook, name: p.character === 'anita' ? 'Tammo' : 'Anita', mate: true }, ...bots];
+  const riders = [{ look: meLook, name: 'jij' }, { look: mateLook, name: p.character === 'anita' ? 'Tammo' : 'Tessa', mate: true }, ...bots];
   const cars = built.cars;
   const starts = [[-6, 0, 0], [6, 0, Math.PI], [-2, -3.5, 0.6], [2, 3.5, -2.4], [-2, 3.5, -0.6], [2, -3.5, 2.4]];
   cars.forEach((car, i) => {

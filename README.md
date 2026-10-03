@@ -71,7 +71,7 @@ main thread).
 
 "GDE Groningen — Een zomer in Grunn": one scripted sequence of 24 shots through
 Grunn (`js/trailer.js`, shot list in `docs/verhaal/E-trailer.md`), ~91 s,
-with name cards over freeze frames (Anita, Tammo, Jelle Terpstra, Durk &
+with name cards over freeze frames (Tessa, Tammo, Jelle Terpstra, Durk &
 Douwe), two voice lines (Rikus on the radio, Berend after the logo;
 `scripts/tts_trailer.py` into `audio/voicelines/trailer/`) and the theme song
 from the end of the radio intro. Used three ways:
@@ -85,7 +85,7 @@ from the end of the radio intro. Used three ways:
   from the title screen on a throwaway profile, logs fps, draw calls and GPU
   memory (`renderer.info`) per shot and quits; add `--profile` for a CPU
   profile.
-- **Short cut** (`kort`, ~38 s, with the Anita and Tammo name cards): the
+- **Short cut** (`kort`, ~38 s, with the Tessa and Tammo name cards): the
   basis for the *Nieuw spel* opening. `?attract` (desktop `--attract`)
   plays it before the menu; hold Space (~0.9 s) to skip.
 - **Recording**: `?trailer` (desktop `--trailer`) plays the full cut on a
@@ -219,7 +219,7 @@ it fits, with the largest file at 11.7 MB (`citymap.json`).
 | H | – | horn |
 | L | – | lights and siren on/off (police car, ambulance): traffic moves aside |
 | R | – | at Spuit & Klaar: new paint; inside a garage or at a gas station: repair / upgrade menu |
-| K | kiss your companion (Tammo/Anita) when next to them | – |
+| K | kiss your companion (Tammo/Tessa) when next to them | – |
 | Left mouse | attack with what you hold (fists, a melee weapon, a gun, a throw); you turn to where the camera looks | shoot from the window (guns and the water pistol) |
 | Right mouse | aim: face the camera direction while moving; with the jachtgeweer, hold to look through the scope | – |
 | 1 | melee: fists, honkbalknuppel, hockeystick, bezem, fietspomp, klomp, polsstok (press again to cycle) | – |
@@ -232,7 +232,7 @@ it fits, with the largest file at 11.7 MB (`citymap.json`).
 | M | city map: click to set a waypoint (GPS route on map and minimap), right-click or Del to clear it, Shift+click to teleport; one legend checkbox per category shows or hides it on both the map and the minimap (destination, route and police are always shown) | |
 | U | sound on/off | |
 | F11 / Alt+Enter | desktop app: fullscreen on/off (Mac also Ctrl+Cmd+F) | |
-| X | as a pigeon: turn back into Tammo/Anita where you are | |
+| X | as a pigeon: turn back into Tammo/Tessa where you are | |
 
 Every key above except Esc, Enter, the arrows and the mouse can be rebound
 under Instellingen › Besturing › Toetsenbord (a key already in use swaps
@@ -291,7 +291,7 @@ minimap's edge arrows carry a ring, a dot or a square.
   firework rockets, all sold at Pang & Zo), wanted level with
   police cars, foot cops, boats and a helicopter, 13 missions in a guided
   story ("Alles voor één eierbal": the Kop and the Romp are playable, the
-  Staart follows; the story decides whether you play Tammo or Anita, the
+  Staart follows; the story decides whether you play Tammo or Tessa, the
   route always points to the next step, and every step can be skipped from
   the pause menu, after a failed mission also with O; Jelle Terpstra and the
   twins Durk & Douwe appear in the cutscenes and reach you by voiced calls,
@@ -302,7 +302,7 @@ minimap's edge arrows carry a ring, a dot or a square.
   activity: at six pigeon signs (Vismarkt, Grote Markt, Martinitoren,
   Noorderplantsoen, Stationsplein and a duiventil at the volkstuinen) press E
   to become a pigeon, fly and poop over the wijk you are in, and press X (or
-  "Duif-modus stoppen" in the menu) to land as Tammo/Anita on the nearest
+  "Duif-modus stoppen" in the menu) to land as Tammo/Tessa on the nearest
   safe street spot. Not while wanted or during a mission. The poop score and
   pigeon achievements are kept in the save.
 - **Audio**: G-Music plays in the city all the time (a shuffled playlist with
@@ -372,7 +372,6 @@ added to `citymap.json` are carried over by `build_map.py`.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.
-- No save/load.
 
 ## Licences and credits
 
@@ -388,8 +387,18 @@ project's own code and content is not chosen yet; see
 open risks, and [docs/PUBLICEREN.md](docs/PUBLICEREN.md) for the checklist
 before the repo goes public.
 
+Saves: progress saves on its own (and with Opslaan in the pause menu) on
+your own device. From 1.0 on, a save keeps working in every later version:
+each save carries a version and older ones are migrated step by step when
+they load (`game/js/savemigrate.js`, checked by
+`node scripts/save_migration_test.mjs` against saves from earlier versions;
+see ARCHITECTURE.md, "Saves and versions").
+
 Privacy: the game keeps progress and settings in the browser's localStorage
-on your own device. No accounts, no telemetry, no analytics. The browser
+on your own device. No accounts, no telemetry, no analytics. Errors and
+warnings go into a local log (Instellingen › Foutrapport, `game/js/errorlog.js`)
+that is never sent: the player can copy it, or save it as a file in the
+desktop app, to pass it on themselves. The browser
 version loads three.js from jsDelivr and the fonts from Google Fonts; the
 desktop build loads nothing from the internet.
 

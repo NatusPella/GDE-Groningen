@@ -41,7 +41,7 @@ const TYPE_LABEL = { deliver: 'Bezorgen', stunt: 'Stunts', checkpoint: 'Race', f
 const WORLD_ENDS = 12;
 
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
-const who = (c) => (c === 'anita' ? 'Anita' : c === 'tammo' ? 'Tammo' : '');
+const who = (c) => (c === 'anita' ? 'Tessa' : c === 'tammo' ? 'Tammo' : '');
 
 // --- icons: the map markers (hud_panel.js drawMapIcon) as small images -----------
 
@@ -167,7 +167,7 @@ function minigameItems(world) {
   const kr = getChallengeRecord('botsauto');
   add({ key: 'mg:botsauto', playId: 'kermis', icon: 'act-kermis', title: "Botsauto's", meta: 'Grote Markt · €3 · kermis 19:00–01:00',
     medal: kr ? kr.medal : 0, record: kr && kr.best != null ? `Record ${kr.best} punten` : 'Nog niet gespeeld',
-    detail: { kicker: 'Minigame · Grote Markt', text: 'Botsen tegen vijf rijders, Tammo of Anita incluis. Van opzij en van achteren telt het dubbel.', rows: [] } }, kermis);
+    detail: { kicker: 'Minigame · Grote Markt', text: 'Botsen tegen vijf rijders, Tammo of Tessa incluis. Van opzij en van achteren telt het dubbel.', rows: [] } }, kermis);
   const heli = getHeliSpotsForRender();
   const best = getStat('heliBest');
   const hr = getChallengeRecord('ballonjacht');

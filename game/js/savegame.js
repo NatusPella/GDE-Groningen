@@ -16,9 +16,14 @@ import { quitPadel } from './padel.js';
 import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
+import { migrateSave, SAVE_VERSION } from './savemigrate.js';
 
+// the key keeps its old name; the version inside the save is what counts (savemigrate.js)
 const KEY = 'gte-save-v1';
-const VERSION = 1;
+const VERSION = SAVE_VERSION;
+// a copy of the save as it was before its first migration, and of a save
+// from a newer game before this one overwrites it
+const BACKUP_KEY = 'gte-save-backup';
 // Autosave follows the permanent state, not the clock: a purchase, repair,
 // upgrade, finished mission, unlocked achievement or side-job payout marks
 // the game dirty (markDirty, or the state check below) and it saves once
@@ -69,11 +74,32 @@ export function estimateLostMoney(d) {
 
 export function readSave() {
   try {
-    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
-    return d && d.v === VERSION ? d : null;
+    const raw = localStorage.getItem(KEY);
+    const m = migrateSave(JSON.parse(raw || 'null'));
+    if (!m) return null;
+    if (m.from !== VERSION) backupOnce(raw, m.from);
+    return m.data;
   } catch (e) {
     return null;
   }
+}
+
+function backupOnce(raw, v) {
+  try {
+    const prev = JSON.parse(localStorage.getItem(BACKUP_KEY) || 'null');
+    if (prev && prev.v === v) return;
+    localStorage.setItem(BACKUP_KEY, JSON.stringify({ v, at: Date.now(), save: raw }));
+  } catch (e) { /* no room: the migration still runs */ }
+}
+
+// A save written by a newer version of the game: kept aside before this
+// version writes its own.
+function keepNewerSave() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    const d = JSON.parse(raw || 'null');
+    if (d && Number.isInteger(d.v) && d.v > VERSION) backupOnce(raw, d.v);
+  } catch (e) { /* ignore */ }
 }
 
 export function hasSave() {
@@ -84,10 +110,11 @@ export function getSaveSummary() {
   const d = readSave();
   if (!d) return null;
   const done = d.missions && Array.isArray(d.missions.completed) ? d.missions.completed.length : 0;
-  return { money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Anita' : 'Tammo' };
+  return { money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo' };
 }
 
 export function clearSave() {
+  keepNewerSave();
   try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
 }
 
@@ -126,6 +153,7 @@ function serialize(w) {
 
 export function saveGame(w = world, { toast = true } = {}) {
   if (!w) return false;
+  keepNewerSave();
   try {
     localStorage.setItem(KEY, JSON.stringify(serialize(w)));
   } catch (e) {
@@ -197,6 +225,8 @@ function placeAt(w, x, y) {
 
 export function applySave(w, d) {
   if (!w || !d) return false;
+  const m = d.v !== VERSION && migrateSave(d);
+  if (m) d = m.data;
   try {
     // a running scene (train trip, intro) would otherwise finish against the loaded state
     skipAllCinematics();

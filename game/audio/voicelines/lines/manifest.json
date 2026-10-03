@@ -7,9 +7,9 @@
 "src": "anita/iemand_uit_friesland_is_mem_terp_1cc2496f.mp3",
 "dur": 4.96
 },
-"Anita|\"Tige tank! – W.\"": {
-"src": "anita/tige_tank_w_4aa1f48f.mp3",
-"dur": 1.57
+"Anita|\"Tige tank! – J.\"": {
+"src": "anita/tige_tank_j_b7986cbd.mp3",
+"dur": 1.31
 },
 "Anita|\"Tige tank.\" Hij bedankt ons. Hij. Bedankt. Ons.": {
 "src": "anita/tige_tank_hij_bedankt_ons_hij_be_4a01c34e.mp3",
@@ -483,9 +483,9 @@
 "src": "anita/eerst_de_stroomkast_dan_de_vitri_eae47907.mp3",
 "dur": 5.23
 },
-"Anita|Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.": {
-"src": "anita/eerst_het_umcg_dan_jelles_ballon_9176345e.mp3",
-"dur": 7.35
+"Anita|Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.": {
+"src": "anita/eerst_het_umcg_dan_jelles_ballon_9df04da3.mp3",
+"dur": 5.38
 },
 "Anita|Eind negentiende eeuw, toen de wallen weg mochten. Nu ligt heel Grunn er in de zomer op een kleedje.": {
 "src": "anita/eind_negentiende_eeuw_toen_de_wa_7a172b00.mp3",
@@ -526,10 +526,6 @@
 "Anita|En om vier uur zegt heel Grunn hier \"nog één\".": {
 "src": "anita/en_om_vier_uur_zegt_heel_grunn_h_29e2b50c.mp3",
 "dur": 4.01
-},
-"Anita|Er ligt een kaartje. \"Tige tank! – W.\"": {
-"src": "anita/er_ligt_een_kaartje_tige_tank_w_3f5bfb50.mp3",
-"dur": 4.16
 },
 "Anita|Er zijn bruggen, Tammo. Eerst de stroomkast bij de fietsenstalling.": {
 "src": "anita/er_zijn_bruggen_tammo_eerst_de_s_382f2b58.mp3",
@@ -918,6 +914,10 @@
 "Anita|Is dat een vraag?": {
 "src": "anita/is_dat_een_vraag_b03323fc.mp3",
 "dur": 1.15
+},
+"Anita|J. Van Jelle. Natuurlijk.": {
+"src": "anita/j_van_jelle_natuurlijk_cdcd1e4a.mp3",
+"dur": 2.19
 },
 "Anita|Ja! Hij piept. Achter het station!": {
 "src": "anita/ja_hij_piept_achter_het_station_2bddcd74.mp3",
@@ -1435,9 +1435,9 @@
 "src": "anita/twee_grote_kerels_durk_en_douwe_89df6b4e.mp3",
 "dur": 3.15
 },
-"Anita|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita's pas erin. De aanhanger bleef achter.": {
-"src": "anita/twee_reuzen_trokken_een_pinautom_5fac08bf.mp3",
-"dur": 7.97
+"Anita|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa's pas erin. De aanhanger bleef achter.": {
+"src": "anita/twee_reuzen_trokken_een_pinautom_93d00a75.mp3",
+"dur": 7.24
 },
 "Anita|Vaar er met je huurboot achteraan, ga langszij en spring aan boord.": {
 "src": "anita/vaar_er_met_je_huurboot_achteraa_391ea6ed.mp3",
@@ -1807,9 +1807,9 @@
 "src": "dokter_dijkstra/jullie_willen_met_mijn_traumahel_a05cadc9.mp3",
 "dur": 5.47
 },
-"Dokter Dijkstra|Lier gaat uit. Rustig, Anita. Naast de mand, niet erop.": {
-"src": "dokter_dijkstra/lier_gaat_uit_rustig_anita_naast_74eceba8.mp3",
-"dur": 3.8
+"Dokter Dijkstra|Lier gaat uit. Rustig, Tessa. Naast de mand, niet erop.": {
+"src": "dokter_dijkstra/lier_gaat_uit_rustig_tessa_naast_c82afb12.mp3",
+"dur": 3.74
 },
 "Dokter Dijkstra|Lier in. Terug naar het UMCG, en netjes op de H.": {
 "src": "dokter_dijkstra/lier_in_terug_naar_het_umcg_en_n_ae07c369.mp3",
@@ -2243,9 +2243,9 @@
 "src": "geert/trouwens_die_grote_aan_de_bar_zi_c7676f04.mp3",
 "dur": 5.17
 },
-"Geert|Vier kroegen, één avond, alles te voet. En Anita: mijn nieuwe barman wil heel graag je nummer.": {
-"src": "geert/vier_kroegen_e_e_n_avond_alles_t_41372117.mp3",
-"dur": 6.94
+"Geert|Vier kroegen, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer.": {
+"src": "geert/vier_kroegen_e_e_n_avond_alles_t_e0849ca9.mp3",
+"dur": 6.88
 },
 "Geert|Vier kroegen? Nog eentje dan.": {
 "src": "geert/vier_kroegen_nog_eentje_dan_140c592f.mp3",
@@ -3643,9 +3643,9 @@
 "src": "rikus/een_wierde_hier_gooiden_ze_een_b_c8987a70.mp3",
 "dur": 5.09
 },
-"Rikus|Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.": {
-"src": "rikus/eerder_in_gde_jelle_kocht_al_het_c0baad5b.mp3",
-"dur": 6.6
+"Rikus|Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Tessa kaapten het terug.": {
+"src": "rikus/eerder_in_gde_jelle_kocht_al_het_3e574851.mp3",
+"dur": 6.68
 },
 "Rikus|Eerder in GDE. Twee Stadjers zonder geld, en één droom met een luik: de Fjord Frituur.": {
 "src": "rikus/eerder_in_gde_twee_stadjers_zond_045fd8bb.mp3",
@@ -3839,10 +3839,6 @@
 "src": "verteller/koeien_sloten_en_een_horizon_ver_49683977.mp3",
 "dur": 3.87
 },
-"Rikus|Maar de vitrine was leeg. Op het kussen lag alleen een kaartje: \"Tige tank! – W.\"": {
-"src": "verteller/maar_de_vitrine_was_leeg_op_het__277b7c82.mp3",
-"dur": 4.92
-},
 "Rikus|Maar niet iedereen in Grunn heeft goud. Sommigen hebben alleen elkaar.": {
 "src": "verteller/maar_niet_iedereen_in_grunn_heef_7f2f2deb.mp3",
 "dur": 3.97
@@ -4027,9 +4023,9 @@
 "src": "verteller/winkelen_wonen_en_de_ringweg_om__9a70f29b.mp3",
 "dur": 2.98
 },
-"Rikus|Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – W.\"": {
-"src": "rikus/ze_wilden_de_gouden_eierbal_hale_d7d8fd31.mp3",
-"dur": 6.31
+"Rikus|Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – J.\"": {
+"src": "rikus/ze_wilden_de_gouden_eierbal_hale_4a263103.mp3",
+"dur": 5.94
 },
 "Rikus|Zo begon het. Niet met een buit, maar met een kaartje. En met een Fries die al lang op ze wachtte.": {
 "src": "verteller/zo_begon_het_niet_met_een_buit_m_9d029297.mp3",
@@ -4275,9 +4271,9 @@
 "src": "tammo_gids/we_varen_nu_over_het_verbindings_d794bcf0.mp3",
 "dur": 5.44
 },
-"Tammo|\"Tige tank foar de auto. – W.\" De Fjord Frituur. Zonder Fjord.": {
-"src": "tammo/tige_tank_foar_de_auto_w_de_fjor_3e46631e.mp3",
-"dur": 5.19
+"Tammo|\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.": {
+"src": "tammo/tige_tank_foar_de_auto_j_de_fjor_ad0e71dc.mp3",
+"dur": 4.6
 },
 "Tammo|\"Vriend.\"": {
 "src": "tammo/vriend_bc3f134f.mp3",
@@ -4327,10 +4323,6 @@
 "src": "tammo/anita_de_auto_achter_hem_aan_e5537890.mp3",
 "dur": 1.97
 },
-"Tammo|Anita, de auto! Ik hou de eierballen warm.": {
-"src": "tammo/anita_de_auto_ik_hou_de_eierball_805eac7b.mp3",
-"dur": 3.03
-},
 "Tammo|Anita, je Fjord heeft toch nog die oude zender van Henk?": {
 "src": "tammo/anita_je_fjord_heeft_toch_nog_di_0ef7854a.mp3",
 "dur": 3.13
@@ -4342,6 +4334,10 @@
 "Tammo|Beleefd, eigenlijk.": {
 "src": "tammo/beleefd_eigenlijk_9c9c9209.mp3",
 "dur": 1.52
+},
+"Tammo|Beleefd.": {
+"src": "tammo/beleefd_031d0dc5.mp3",
+"dur": 0.75
 },
 "Tammo|Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.": {
 "src": "tammo/berend_bos_wil_zijn_bakkie_bij_z_ea684d3f.mp3",
@@ -4575,9 +4571,9 @@
 "src": "tammo/eerst_de_stroomkast_dan_de_vitri_3c4c038a.mp3",
 "dur": 4.71
 },
-"Tammo|Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.": {
-"src": "tammo/eerst_het_umcg_dan_jelles_ballon_e40f0899.mp3",
-"dur": 5.2
+"Tammo|Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.": {
+"src": "tammo/eerst_het_umcg_dan_jelles_ballon_d07b4162.mp3",
+"dur": 5.19
 },
 "Tammo|Eieren van de kippen bij de volkstuin. Die leggen de beste.": {
 "src": "tammo/eieren_van_de_kippen_bij_de_volk_d365dd12.mp3",
@@ -5499,13 +5495,17 @@
 "src": "tammo/te_voet_he_de_hele_poelestraat_s_7f6d72be.mp3",
 "dur": 4.93
 },
+"Tammo|Tessa, de auto! Ik hou de eierballen warm.": {
+"src": "tammo/tessa_de_auto_ik_hou_de_eierball_5e8ed06c.mp3",
+"dur": 3.06
+},
 "Tammo|Twaalf keer het einde van de wereld. En we staan er nog. Kon minder.": {
 "src": "tammo/twaalf_keer_het_einde_van_de_wer_8c8bf3b8.mp3",
 "dur": 4.14
 },
-"Tammo|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita's pas erin. De aanhanger bleef achter.": {
-"src": "tammo/twee_reuzen_trokken_een_pinautom_b6e3c1b5.mp3",
-"dur": 6.82
+"Tammo|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa's pas erin. De aanhanger bleef achter.": {
+"src": "tammo/twee_reuzen_trokken_een_pinautom_96ba3411.mp3",
+"dur": 6.96
 },
 "Tammo|Twee reuzen. Eén fiets. Acht jerrycans.": {
 "src": "tammo/twee_reuzen_ee_n_fiets_acht_jerr_192829d9.mp3",
@@ -6303,9 +6303,9 @@
 "src": "bubbles/f/in_de_flank_tammo_reuzen_kijken__6ab4a945.mp3",
 "dur": 3.2
 },
-"~f|Is dit die van Anita?": {
-"src": "bubbles/f/is_dit_die_van_anita_8c67e6b9.mp3",
-"dur": 1.16
+"~f|Is dit die van Tessa?": {
+"src": "bubbles/f/is_dit_die_van_tessa_09bfbab7.mp3",
+"dur": 1.17
 },
 "~f|Is dit nog steeds hetzelfde water?": {
 "src": "bubbles/f/is_dit_nog_steeds_hetzelfde_wate_e70e2195.mp3",
@@ -7311,9 +7311,9 @@
 "src": "bubbles/m/instappen_instappen_botsen_mag_k_f6781770.mp3",
 "dur": 4.61
 },
-"~m|Is dit die van Anita?": {
-"src": "bubbles/m/is_dit_die_van_anita_222f65b1.mp3",
-"dur": 1.06
+"~m|Is dit die van Tessa?": {
+"src": "bubbles/m/is_dit_die_van_tessa_a5deff07.mp3",
+"dur": 1.14
 },
 "~m|Is dit nou de Grote Markt of het Plantsoen?": {
 "src": "bubbles/m/is_dit_nou_de_grote_markt_of_het_a77cb524.mp3",
