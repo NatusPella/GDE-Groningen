@@ -313,7 +313,7 @@ function summaryText(s) {
 // After the attract intro: the logo appears big in the middle, then glides
 // and shrinks into its place before the menu fades in (CSS .ss-handoff).
 function logoIn(screen) {
-  const logo = screen.querySelector('.ss-logo .gte-logo');
+  const logo = screen.querySelector('.ss-logo .gde-logo');
   screen.classList.add('ss-handoff');
   setTimeout(() => screen.classList.remove('ss-handoff'), 2600);
   if (!logo || !logo.animate) return;
@@ -461,7 +461,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       loadChangelog().then((html) => { if (!news.hidden && newsTitle.textContent === 'Wat is er nieuw') newsBody.innerHTML = html; });
     };
     const openAbout = () => {
-      showPanel('Over GTE VI');
+      showPanel('Over GDE');
       newsBody.innerHTML = ABOUT_HTML;
     };
     const closeNews = () => {

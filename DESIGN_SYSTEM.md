@@ -1,4 +1,4 @@
-# GTE VI - UI Design System
+# GDE Groningen - UI Design System
 
 Small, deliberately simple. Every UI surface in this game (HUD, start screen,
 map view, phone notifications, future menus) should read as *one* system:
@@ -52,6 +52,31 @@ for the mission/waypoint marker (matches the existing GTA-marker language)
   conversational chat text at ~13px reads better in a normal-case body
   font than in a display face like Bebas Neue, which is designed for
   short, large, punchy labels, not sentences.
+
+## Logo
+
+The wordmark is HTML/CSS, never an image: `logoHtml()` in `game/js/logo.js`
+and `.gde-logo` in `game/index.html` (the static copy on the loading and
+title screens must match it). Lockup, top to bottom:
+
+1. **GDE** in Big Shoulders Display Black (900), cream `#f0ede4` fading to
+   `--gron-green-light` at the foot, with a soft green glow.
+2. **The place** (GRONINGEN) on a place-name-sign plate: white Big Shoulders
+   ExtraBold (800) caps on `--gron-green`, rounded corners, an inset white
+   border. A sequel only changes this word and the subtitle.
+3. **The subtitle** (*Zomer vol misdaad*) in italic bold Arial Narrow,
+   `--gron-green-light`.
+4. Optional, title screen only: GROOTSTE DIEFSTAL EVER in tiny spaced caps.
+
+Why a green plate and not the blue of a real Dutch plaatsnaambord: blue
+would be the only blue in the game (this file rules out blue accents), and
+a blue-and-white sign reads as an actual road sign more than as our brand.
+The shape (rounded plate, inset white border, condensed caps) already says
+"place-name sign"; green and white are the colours of the city of Groningen
+and of our UI. Rules: no Pricedown-like round heavy letters, no sunset
+gradient, no roman numeral, no small word stacked over a big word in the
+same style (see docs/LICENTIES.md §8.2). Big Shoulders Display is for the
+logo only; all other UI stays Bebas Neue.
 
 ## Chrome (the "GTA poster" look)
 

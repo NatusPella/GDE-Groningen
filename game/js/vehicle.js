@@ -33,7 +33,7 @@ const MODELS = [
   { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 64, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' },
 ];
 
-// Signature red Ford Escort - GTE VI's hero car, spawned once via
+// Signature red Ford Escort - the game's hero car, spawned once via
 // spawnHeroCarNear rather than picked from MODELS by the regular traffic RNG.
 const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 11, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
@@ -626,7 +626,7 @@ function spawnSpotFree(vehicles, v, clearance = 9) {
   return true;
 }
 
-// The one-off hero car for GTE VI: same placement machinery as a regular
+// The one-off hero car of the game: same placement machinery as a regular
 // traffic spawn (spawnVehicleOnRoad with atPoint), but forces the Escort
 // model regardless of the RNG pick and flags it so it's never swept up by
 // the ambient traffic population manager.

@@ -1,6 +1,6 @@
 // Stages the game for the desktop app: copies ../game to build/game, vendors
 // every CDN module (three.js + the addons it pulls in, crawled recursively)
-// and the Google font, rewrites the URLs to local paths and stamps the
+// and the Google fonts, rewrites the URLs to local paths and stamps the
 // version. Downloads are cached in vendor-cache/ so rebuilds work offline.
 import fs from 'fs';
 import path from 'path';
@@ -14,7 +14,8 @@ const CACHE = path.join(HERE, 'vendor-cache');
 const CDN = 'https://cdn.jsdelivr.net/npm/';
 const THREE = CDN + 'three@0.160.0/build/three.module.js';
 const ADDONS = CDN + 'three@0.160.0/examples/jsm/';
-const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap';
+// Bebas Neue for the UI, Big Shoulders Display for the logo (one variable font)
+const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@700;800;900&display=swap';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 // GTE_STAGE_RELATIVE=1 (the web build): vendor paths relative to each file,
 // so the folder works from any sub path (itch.io, GitHub Pages)
@@ -51,13 +52,13 @@ function resolveSpec(spec, base) {
 }
 
 async function main() {
-  console.log(`staging GTE VI ${version}`);
+  console.log(`staging GDE Groningen ${version}`);
   fs.rmSync(process.env.GTE_STAGE_OUT ? OUT : path.join(HERE, 'build'), { recursive: true, force: true });
   // tts.json records how each voice clip was made; the game never reads it
   fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' });
   // the start screen's "Wat is er nieuw" panel reads the changelog
   fs.copyFileSync(path.join(HERE, '..', 'CHANGELOG.md'), path.join(OUT, 'CHANGELOG.md'));
-  // the vendored three.js and Bebas Neue must ship with their licence texts
+  // the vendored three.js and fonts must ship with their licence texts
   fs.copyFileSync(path.join(HERE, '..', 'NOTICE.md'), path.join(OUT, 'NOTICE.md'));
   fs.cpSync(path.join(HERE, '..', 'licenses'), path.join(OUT, 'licenses'), { recursive: true });
 
@@ -89,18 +90,18 @@ async function main() {
   }
   console.log(`vendored ${done.size} modules`);
 
-  // 3. the Bebas Neue font
-  let css = (await cached(FONT_CSS, 'fonts/bebas.css')).toString('utf8');
+  // 3. the fonts
+  let css = (await cached(FONT_CSS, 'fonts/fonts-v2.css')).toString('utf8');
   const fontUrls = [...new Set([...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)].map((m) => m[1]))];
   for (const [i, u] of fontUrls.entries()) {
-    const name = `bebas-${i}${path.extname(new URL(u).pathname) || '.woff2'}`;
+    const name = `font-${i}${path.extname(new URL(u).pathname) || '.woff2'}`;
     const buf = await cached(u, path.join('fonts', name));
     fs.mkdirSync(path.join(OUT, 'vendor', 'fonts'), { recursive: true });
     fs.writeFileSync(path.join(OUT, 'vendor', 'fonts', name), buf);
     css = css.split(u).join(RELATIVE ? name : `/vendor/fonts/${name}`);
   }
-  fs.writeFileSync(path.join(OUT, 'vendor', 'fonts', 'bebas.css'), css);
-  console.log(`vendored font (${fontUrls.length} files)`);
+  fs.writeFileSync(path.join(OUT, 'vendor', 'fonts', 'fonts.css'), css);
+  console.log(`vendored fonts (${fontUrls.length} files)`);
 
   // 4. point the game at the local copies
   const vendorDir = (f) => {
@@ -115,7 +116,7 @@ async function main() {
     src = src.split(CDN).join(vendor + 'npm/');
     if (f.endsWith('index.html')) {
       src = src.replace(/<link[^>]+rel="preconnect"[^>]*>\s*/g, '');
-      src = src.split(FONT_CSS.replace(/&/g, '&amp;')).join(vendor + 'fonts/bebas.css').split(FONT_CSS).join(vendor + 'fonts/bebas.css');
+      src = src.split(FONT_CSS.replace(/&/g, '&amp;')).join(vendor + 'fonts/fonts.css').split(FONT_CSS).join(vendor + 'fonts/fonts.css');
     }
     if (src !== before) fs.writeFileSync(f, src);
   }
