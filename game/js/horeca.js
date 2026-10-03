@@ -128,24 +128,38 @@ function drawFoodBadge() {
 }
 
 let badgeMaterial = null;
+const badgeTime = { value: 0 };
 
-// withPad false: the pads come from horecaPads3D, one draw for all of them
-export function buildHorecaMarkerMesh3D(withPad = true) {
-  if (!badgeMaterial) badgeMaterial = new THREE.SpriteMaterial({ map: drawFoodBadge(), transparent: true, depthWrite: false, fog: true });
-  const group = new THREE.Group();
-  group.name = 'horeca-marker';
-  if (withPad) {
-    const pad = new THREE.Mesh(padGeometry, padMaterial);
-    pad.position.y = 0.03;
-    group.add(pad);
-  }
-  const badge = new THREE.Sprite(badgeMaterial);
-  badge.scale.set(0.48, 0.48, 1);
-  const phase = Math.random() * Math.PI * 2;
-  badge.onBeforeRender = () => { badge.position.y = 2.3 + Math.sin(performance.now() / 650 + phase) * 0.06; };
-  badge.position.y = 2.3;
-  group.add(badge);
-  return group;
+// The badges of every horeca spot in view as one InstancedMesh: a quad that
+// faces the camera like a sprite, bobbing in the vertex shader (aPhase).
+function badgeMat() {
+  if (badgeMaterial) return badgeMaterial;
+  badgeMaterial = new THREE.MeshBasicMaterial({ map: drawFoodBadge(), transparent: true, depthWrite: false, fog: true });
+  badgeMaterial.onBeforeCompile = (sh) => {
+    sh.uniforms.uBadgeTime = badgeTime;
+    sh.vertexShader = 'uniform float uBadgeTime;\nattribute float aPhase;\n' + sh.vertexShader.replace('#include <project_vertex>', `
+      vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(0.0, 2.3 + sin(uBadgeTime + aPhase) * 0.06, 0.0, 1.0);
+      mvPosition.xy += position.xy;
+      gl_Position = projectionMatrix * mvPosition;`);
+  };
+  badgeMaterial.customProgramCacheKey = () => 'horeca-badge';
+  return badgeMaterial;
+}
+
+export function horecaBadges3D(list) {
+  const geo = new THREE.PlaneGeometry(0.48, 0.48);
+  const phase = new Float32Array(Math.max(1, list.length));
+  geo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(phase, 1));
+  const m = new THREE.InstancedMesh(geo, badgeMat(), list.length);
+  m.count = 0;
+  m.frustumCulled = false;
+  m.name = 'horeca-badges';
+  m.matrixAutoUpdate = false;
+  m.renderOrder = 1;
+  m.userData.spots = list;
+  m.userData.at = null;
+  m.onBeforeRender = () => { badgeTime.value = (performance.now() / 650) % (Math.PI * 2000); };
+  return m;
 }
 
 export function horecaPads3D(list) {
@@ -159,17 +173,22 @@ export function horecaPads3D(list) {
   return m;
 }
 
-// only the pads within r of (px, py), refreshed when the player has moved a bit
+// only the pads (badges) within r of (px, py), refreshed when the player has moved a bit
 const _padM = new THREE.Matrix4();
 export function updateHorecaPads3D(m, px, py, r) {
   const at = m.userData.at;
   if (at && Math.abs(at[0] - px) + Math.abs(at[1] - py) < 10) return;
   m.userData.at = [px, py];
   let n = 0;
-  for (const h of m.userData.spots) {
+  const ph = m.geometry.attributes.aPhase;
+  const spots = m.userData.spots;
+  for (let i = 0; i < spots.length; i++) {
+    const h = spots[i];
     if (Math.abs(h.x - px) > r || Math.abs(h.y - py) > r) continue;
-    m.setMatrixAt(n++, _padM.makeTranslation(h.x, 0.03, h.y));
+    if (ph) ph.array[n] = (i * 2.399) % (Math.PI * 2);
+    m.setMatrixAt(n++, _padM.makeTranslation(h.x, ph ? 0 : 0.03, h.y));
   }
   m.count = n;
   m.instanceMatrix.needsUpdate = true;
+  if (ph) ph.needsUpdate = true;
 }

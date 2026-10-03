@@ -436,6 +436,7 @@ export function buildRoadStructure(r, map) {
       h.keep = a.slice(h.a, h.b);
       for (let i = h.a + 3; i < h.b; i += 3) { a[i] = a[h.a]; a[i + 1] = a[h.a + 1]; a[i + 2] = a[h.a + 2]; }
       pos.needsUpdate = true;
+      h.mesh.geometry.userData.batchVer = (h.mesh.geometry.userData.batchVer || 0) + 1;
     };
     w.restore = () => {
       if (!h.mesh || !h.keep) return;
@@ -443,6 +444,7 @@ export function buildRoadStructure(r, map) {
       pos.array.set(h.keep, h.a);
       h.keep = null;
       pos.needsUpdate = true;
+      h.mesh.geometry.userData.batchVer = (h.mesh.geometry.userData.batchVer || 0) + 1;
     };
   };
   // the ground is cut away (cutmask3d.js, ~1 m texels) a little past the

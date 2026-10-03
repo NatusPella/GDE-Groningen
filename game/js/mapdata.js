@@ -1,4 +1,4 @@
-import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
+import { polygonBounds, closestPointOnSegment, pointInPolygon, pointInStaticPolygon, isInWater } from './util.js';
 import { inPassage, clipWaysInBuildings } from './passages.js';
 import { attachMuseumPlan } from './museumplan.js';
 import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
@@ -10,7 +10,7 @@ class SpatialGrid {
     this.cell = cellSize;
     this.map = new Map();
   }
-  key(cx, cy) { return cx + ',' + cy; }
+  key(cx, cy) { return (cx + 32768) * 65536 + cy + 32768; }
   cellRange(minx, miny, maxx, maxy) {
     return {
       cx0: Math.floor(minx / this.cell), cy0: Math.floor(miny / this.cell),
@@ -30,6 +30,11 @@ class SpatialGrid {
   }
   query(minx, miny, maxx, maxy) {
     const { cx0, cy0, cx1, cy1 } = this.cellRange(minx, miny, maxx, maxy);
+    // one cell: its list as it is (a copy), no dedupe needed
+    if (cx0 === cx1 && cy0 === cy1) {
+      const arr = this.map.get(this.key(cx0, cy0));
+      return arr ? arr.slice() : [];
+    }
     const seen = new Set();
     const out = [];
     for (let cx = cx0; cx <= cx1; cx++) {
@@ -135,7 +140,7 @@ function bridgeStructures(buildings, roads, water) {
   const out = new Set();
   const wet = (x, y) => water.some((w) => {
     const [minx, miny, maxx, maxy] = w.bounds || (w.bounds = polygonBounds(w.pts));
-    return x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, w.pts);
+    return x >= minx && x <= maxx && y >= miny && y <= maxy && pointInStaticPolygon(x, y, w.pts);
   });
   for (const b of crossed) {
     if (b.h > 4 || b.name || b.landmark || b.type === 'houseboat') continue;
@@ -152,6 +157,29 @@ function mooredHouseboats(buildings, water) {
   const dropped = new Set();
   const box = new Map();
   const boundsOf = (b) => box.get(b) || box.set(b, polygonBounds(b.pts)).get(b);
+  // only the footprints near a boat that is (partly) on the bank: a 64 m grid
+  let grid = null;
+  const G = 64;
+  const near = (x0, y0, x1, y1) => {
+    if (!grid) {
+      grid = new Map();
+      for (const o of buildings) {
+        // a boat may still slide up to 8 m
+        const ob = boundsOf(o), e = o.type === 'houseboat' ? 8 : 0;
+        for (let i = Math.floor((ob[0] - e) / G); i <= Math.floor((ob[2] + e) / G); i++) {
+          for (let j = Math.floor((ob[1] - e) / G); j <= Math.floor((ob[3] + e) / G); j++) {
+            const k = i * 100003 + j, c = grid.get(k);
+            if (c) c.push(o); else grid.set(k, [o]);
+          }
+        }
+      }
+    }
+    const out = new Set();
+    for (let i = Math.floor(x0 / G); i <= Math.floor(x1 / G); i++) {
+      for (let j = Math.floor(y0 / G); j <= Math.floor(y1 / G); j++) for (const o of grid.get(i * 100003 + j) || []) out.add(o);
+    }
+    return out;
+  };
   for (const b of boats) {
     const [minx, miny, maxx, maxy] = polygonBounds(b.pts);
     const R = 10;
@@ -159,7 +187,7 @@ function mooredHouseboats(buildings, water) {
       const wb = w.bounds || (w.bounds = polygonBounds(w.pts));
       return wb[0] < maxx + R && wb[2] > minx - R && wb[1] < maxy + R && wb[3] > miny - R;
     });
-    const wet = (x, y) => pools.some((w) => x >= w.bounds[0] && x <= w.bounds[2] && y >= w.bounds[1] && y <= w.bounds[3] && pointInPolygon(x, y, w.pts));
+    const wet = (x, y) => pools.some((w) => x >= w.bounds[0] && x <= w.bounds[2] && y >= w.bounds[1] && y <= w.bounds[3] && pointInStaticPolygon(x, y, w.pts));
     const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
     const samples = b.pts.map(([x, y]) => {
       const dx = cx - x, dy = cy - y, l = Math.hypot(dx, dy) || 1, k = Math.min(0.3, l / 2) / l;
@@ -168,7 +196,7 @@ function mooredHouseboats(buildings, water) {
     for (let x = minx + 0.4; x < maxx; x += 0.8) for (let y = miny + 0.4; y < maxy; y += 0.8) if (pointInPolygon(x, y, b.pts)) samples.push([x, y]);
     const dry = (ox, oy) => samples.reduce((n, [x, y]) => n + (wet(x + ox, y + oy) ? 0 : 1), 0);
     if (dry(0, 0) <= samples.length * 0.03) continue;
-    const others = buildings.filter((o) => {
+    const others = [...near(minx - R, miny - R, maxx + R, maxy + R)].filter((o) => {
       if (o === b || dropped.has(o)) return false;
       const ob = boundsOf(o);
       return ob[0] < maxx + R && ob[2] > minx - R && ob[1] < maxy + R && ob[3] > miny - R;
@@ -280,7 +308,7 @@ function markDryCrossings(map) {
         const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
         for (const w of map.waterNear(x, y, 0.5)) {
           const [minx, miny, maxx, maxy] = w.bounds;
-          if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, w.pts)) { wet = true; break; }
+          if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInStaticPolygon(x, y, w.pts)) { wet = true; break; }
         }
         if (wet) break;
       }
@@ -711,7 +739,8 @@ async function fetchExtras(url) {
   }
 }
 
-const exKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
+// a vertex to the decimetre as one number (|x|, |y| < 100 km)
+const exKey = (p) => (Math.round(p[0] * 10) + 1048576) * 2097152 + Math.round(p[1] * 10) + 1048576;
 
 function polyArea(pts) {
   let a = 0;
@@ -726,26 +755,36 @@ export function applyMapExtras(data, ex) {
   if (!ex) return;
   data.passageWays = ex.passages || [];
   for (const b of ex.buildings || []) data.buildings.push({ ...b });
+  // every footprint's bounds once (patches never move a footprint)
+  const B = data.buildings, bb = new Float64Array(B.length * 4);
+  B.forEach((b, i) => {
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (const q of b.pts) { if (q[0] < minx) minx = q[0]; if (q[0] > maxx) maxx = q[0]; if (q[1] < miny) miny = q[1]; if (q[1] > maxy) maxy = q[1]; }
+    bb[i * 4] = minx; bb[i * 4 + 1] = miny; bb[i * 4 + 2] = maxx; bb[i * 4 + 3] = maxy;
+  });
   for (const p of ex.buildingPatches || []) {
     // `bounds`: the footprint with these bounds (to the metre), not a landmark
     if (p.bounds) {
-      for (const b of data.buildings) {
+      const [p0, p1, p2, p3] = p.bounds;
+      for (let i = 0; i < B.length; i++) {
+        const b = B[i];
         if (b.landmark || b.pts.length < 3) continue;
-        const bb = polygonBounds(b.pts);
-        if (bb.every((v, i) => Math.abs(v - p.bounds[i]) < 0.6)) Object.assign(b, p.set);
+        if (Math.abs(bb[i * 4] - p0) < 0.6 && Math.abs(bb[i * 4 + 1] - p1) < 0.6 && Math.abs(bb[i * 4 + 2] - p2) < 0.6 && Math.abs(bb[i * 4 + 3] - p3) < 0.6) Object.assign(b, p.set);
       }
+      continue;
+    }
+    // `landmark`: every footprint of that landmark
+    if (p.landmark) {
+      for (const b of data.buildings) if (b.landmark === p.landmark) Object.assign(b, p.set);
       continue;
     }
     const [x, y] = p.at;
     let best = null, ba = Infinity;
-    for (const b of data.buildings) {
-      const P = b.pts;
-      if (P.length < 3) continue;
-      let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
-      for (const q of P) { if (q[0] < minx) minx = q[0]; if (q[0] > maxx) maxx = q[0]; if (q[1] < miny) miny = q[1]; if (q[1] > maxy) maxy = q[1]; }
-      if (x < minx || x > maxx || y < miny || y > maxy || !pointInPolygon(x, y, P)) continue;
+    for (let i = 0; i < B.length; i++) {
+      const P = B[i].pts;
+      if (P.length < 3 || x < bb[i * 4] || x > bb[i * 4 + 2] || y < bb[i * 4 + 1] || y > bb[i * 4 + 3] || !pointInPolygon(x, y, P)) continue;
       const a = polyArea(P);
-      if (a < ba) { ba = a; best = b; }
+      if (a < ba) { ba = a; best = B[i]; }
     }
     if (best) Object.assign(best, p.set);
   }

@@ -54,6 +54,9 @@ async function main() {
   fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' });
   // the start screen's "Wat is er nieuw" panel reads the changelog
   fs.copyFileSync(path.join(HERE, '..', 'CHANGELOG.md'), path.join(OUT, 'CHANGELOG.md'));
+  // the vendored three.js and Bebas Neue must ship with their licence texts
+  fs.copyFileSync(path.join(HERE, '..', 'NOTICE.md'), path.join(OUT, 'NOTICE.md'));
+  fs.cpSync(path.join(HERE, '..', 'licenses'), path.join(OUT, 'licenses'), { recursive: true });
 
   // 1. which CDN modules does the game use?
   const texts = walk(OUT).filter((f) => /\.(js|mjs|html)$/.test(f));
