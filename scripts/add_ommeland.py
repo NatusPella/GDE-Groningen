@@ -88,6 +88,46 @@ def main():
         c = cell(x, y)
         return bool(c and cover[c[1], c[0]])
 
+    # ------------------------------------------------------------- cycling
+    # car roads with a painted lane (or a suggestiestrook) get red strips;
+    # a track beside the road, and every fietspad, is its own red path
+    lanes, cycleways = set(), []
+    def cyc(P, hw):
+        for run in outside_runs(P, in_deep):
+            run = simplify(run, 1.0)
+            if len(run) >= 2 and length(run) > 8:
+                cycleways.append({"p": flat(run), "h": hw})
+    for el in raw.get("cycle", []):
+        t = el.get("tags", {})
+        g = el.get("g") or []
+        if len(g) < 2 or t.get("tunnel") in ("yes", "building_passage"):
+            continue
+        P = [proj(a, b) for a, b in g]
+        if t.get("highway") == "cycleway":
+            if t.get("surface") in ("unpaved", "gravel", "fine_gravel", "compacted", "dirt", "ground", "grass", "sand"):
+                continue
+            hw = 1.25
+            try:
+                hw = max(0.9, min(2.5, float(str(t.get("width", "")).replace("m", "").strip()) / 2))
+            except ValueError:
+                pass
+            cyc(P, hw)
+            continue
+        side = {}
+        for k, sd in (("cycleway", "both"), ("cycleway:both", "both"), ("cycleway:left", "left"), ("cycleway:right", "right")):
+            v = t.get(k)
+            if v in ("lane", "shared_lane", "opposite_lane"):
+                lanes.add(el["id"])
+            elif v == "track":
+                side[sd] = True
+        if side:
+            kd = ROAD_KIND.get(t.get("highway"), (0, 6.0))
+            off = kd[1] / 2 + 2.6
+            for sd, sign in (("left", 1), ("right", -1)):
+                if side.get(sd) or side.get("both"):
+                    cyc(offset_line(P, off * sign), 1.1)
+    print(f"cycling: {len(lanes)} roads with lanes, {len(cycleways)} paths")
+
     # ------------------------------------------------------------- roads
     roads = []
     for el in raw["roads"]:
@@ -116,6 +156,8 @@ def main():
                 r["o"] = 1
             if t.get("bridge") and t.get("bridge") != "no":
                 r["b"] = 1
+            if el["id"] in lanes:
+                r["c"] = 1
             roads.append(r)
     print(f"roads: {len(roads)} ({sum(len(r['p']) // 2 - 1 for r in roads)} segments)")
 
@@ -218,7 +260,7 @@ def main():
 
     out = {
         "extent": ext, "water": wmeta, "buildings": len(bld),
-        "roads": roads, "waterways": wlines, "boatways": boatways, "rails": rails, "stations": stations, "routes": routes,
+        "roads": roads, "cycleways": cycleways, "waterways": wlines, "boatways": boatways, "rails": rails, "stations": stations, "routes": routes,
         "places": places, "churches": churches,
     }
     with open(OUT_JSON, "w") as f:
@@ -253,6 +295,17 @@ def simplify(P, tol):
     keep = [False] * len(P)
     keep[0] = keep[-1] = True
     stack = [(0, len(P) - 1)]
+def offset_line(P, d):
+    """P moved d metres to its left (y down: the left of travel is +normal)."""
+    out = []
+    for i in range(len(P)):
+        a, b = P[max(0, i - 1)], P[min(len(P) - 1, i + 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L = math.hypot(dx, dy) or 1
+        out.append((P[i][0] + dy / L * d, P[i][1] - dx / L * d))
+    return out
+
+
     while stack:
         a, b = stack.pop()
         ax, ay = P[a]
