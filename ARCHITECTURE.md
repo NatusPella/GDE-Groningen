@@ -503,9 +503,11 @@ don't collide, and actors are drawn at their height.
   `FACADE_LOW`) skips the brick and roof-tile textures and window frames.
 - The minimap's Ommeland layer (`drawCountryMinimap`) is static: drawn into
   world-aligned 256 px tiles per half-octave zoom step (at most one new tile
-  a frame, LRU of 40) and blitted. Its water and meadow images (the 10 m
-  water field is ~6 M pixels) are filled in row bands a few ms a frame from
-  the title screen on (`warmCountryMaps`), not on the first tile.
+  a frame, LRU of 40) and blitted. While the CPU is the bottleneck
+  (simload.js level 1-2) the minimap redraws every second or third frame.
+  Its water and meadow images (the 10 m water field is ~6 M pixels) are
+  filled in row bands a few ms a frame from the title screen on
+  (`warmCountryMaps`), not on the first tile.
 - Loading: `window.__loadMarks` holds the boot timeline (ms since
   navigation: map, ommeland, init3D, countryEdge, world, systems, title);
   the desktop app's `--profile-load[=ms]` profiles the page load. The

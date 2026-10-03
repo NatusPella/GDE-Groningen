@@ -1,4 +1,5 @@
 import { dualHtml } from './subtitles.js';
+import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
@@ -40,6 +41,7 @@ const MM_SCALE = 1.45; // px per meter (css pixels) when standing still
 const MM_SCALE_FAST = 0.62;
 const MM_FAST_SPEED = 28;
 let mmScale = MM_SCALE;
+let mmSkip = 0, mmDt = 0;
 
 // GTA-style: purple for your own waypoint, yellow for missions, orange for
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
@@ -279,7 +281,13 @@ export function updateHud(dt, world) {
   updateLocation(dt, world);
   updatePrompts(dt, world);
   updateRouteChip(world);
-  drawMinimap(dt, world);
+  // CPU-bound (simload.js level 1-2): the minimap redraws every second or
+  // third frame, its zoom easing over the time in between
+  mmDt += dt;
+  if (mmSkip-- > 0) return;
+  mmSkip = simLevel();
+  drawMinimap(mmDt, world);
+  mmDt = 0;
 }
 
 function updateRouteChip(world) {
