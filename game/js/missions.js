@@ -67,7 +67,7 @@ const CHARGE_EVERY = [3.5, 6];
 const CHARGE_SPEED = 4.6;
 const CHARGE_MAX_T = 4.5;
 const DRUNK_LINES = ['Proost!', 'Nog ééntje dan!', 'Ik hou van jullie allemaal!', 'Waar is mijn fiets?', 'KEI-week! KEI-week!', 'Wie heeft mijn pet?', 'Ik ben niet dronken, ik ben Gronings!', 'Kom, nog één kroeg!'];
-const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Sikkom?', 'Ik ken jou! Van... ergens!', 'Opzij, ik moet naar de wc!', 'Polonaise! Iedereen mee!'];
+const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Kiekdoar?', 'Ik ken jou! Van... ergens!', 'Opzij, ik moet naar de wc!', 'Polonaise! Iedereen mee!'];
 
 
 // The nearest road point, unless that lies inside a building or a closed-off
@@ -117,7 +117,7 @@ function buildDefs(world) {
     {
       type: 'stunt',
       label: 'Iets met de Grote Markt',
-      intro: ['Sikkom kopt: \'Grote Markt saaier dan een lege mensa\'. Jelmer wil een zomeravond vol content.', 'Met de auto over de Grote Markt: parasols, kliko\'s en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.'],
+      intro: ['Kiekdoar kopt: \'Grote Markt saaier dan een lege mensa\'. Jelmer wil een zomeravond vol content.', 'Met de auto over de Grote Markt: parasols, kliko\'s en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.'],
       outro: 'De Grote Markt is weer wakker. Nul gewonden, veel natte mensen.',
       timeLimit: 120,
       reward: 150,
@@ -180,13 +180,13 @@ function buildDefs(world) {
       start: walk(250, 115),
       waypoints: [
         via(walk(304.3, 130.9)),
-        kroeg('Het Concerthuis', 368, 118.6),
+        kroeg('Café De Lallende Koe', 368, 118.6),
         via(walk(416.2, 125.8)),
-        kroeg("'t Pakhuis", 410.5, 170.9),
+        kroeg("Kroeg 't Scheve Toorntje", 410.5, 170.9),
         via(walk(431.2, 182.1)), via(walk(393.9, 194.8)), via(walk(399.8, 210.6)), via(walk(365.9, 223)),
-        kroeg('Nachtcafé Warhol', 352.6, 224.7),
+        kroeg('Nachtcafé De Uil van Half Vier', 352.6, 224.7),
         via(walk(316.1, 243.9)), via(walk(262.2, 128.3)),
-        kroeg('Groote Griet', 213.6, 135.9),
+        kroeg('Café De Dikke Duif', 213.6, 135.9),
       ],
     },
     {
@@ -1688,7 +1688,7 @@ function vehicleProblem(world, def) {
   const v = chain.vehicle;
   const p = world.player;
   if (!v || !world.vehicles.includes(v)) return def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie';
-  if (v.wrecked || v.disabled) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Sikkom heeft al foto\'s';
+  if (v.wrecked || v.disabled) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Kiekdoar heeft al foto\'s';
   if (p.inVehicle === v) { chain.boarded = true; return null; }
   if (def.type === 'boat' && p.inVehicle && p.inVehicle.isBoat) return null;
   if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {

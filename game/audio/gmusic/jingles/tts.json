@@ -1,0 +1,38 @@
+{
+"G-Music|Dit is G-Music, de soundtrack van Grunn.": {
+"src": "station_id.wav",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Dit is G-Music, de soundtrack van Grunn.",
+"style": "spoken in Dutch with a Groningen accent; enthousiaste Groningse radio-dj, de jinglestem van zender G-Music. Tone: vlot en trots, als een radiojingle.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
+"date": "2026-10-03"
+},
+"G-Music|Het is weer druk in Grunn vanavond, hoor ik.": {
+"src": "hoge_wanted.wav",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Het is weer druk in Grunn vanavond, hoor ik.",
+"style": "spoken in Dutch with a Groningen accent; enthousiaste Groningse radio-dj, de jinglestem van zender G-Music. Tone: droog, samenzweerderig, als een radiojingle.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
+"date": "2026-10-03"
+},
+"G-Music|Nog meer bangers zo. Blijf luisteren.": {
+"src": "nummerovergang.wav",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Nog meer bangers zo. Blijf luisteren.",
+"style": "spoken in Dutch with a Groningen accent; enthousiaste Groningse radio-dj, de jinglestem van zender G-Music. Tone: opgewekt, snel, als een radiojingle.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
+"date": "2026-10-03"
+},
+"G-Music|Rustig aan met die snelheid. Grapje, gas erop!": {
+"src": "rij_knipoog.wav",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Zephyr",
+"input": "Rustig aan met die snelheid. Grapje, gas erop!",
+"style": "spoken in Dutch with a Groningen accent; enthousiaste Groningse radio-dj, de jinglestem van zender G-Music. Tone: met een knipoog, eerst rustig dan uitgelaten, als een radiojingle.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
+"date": "2026-10-03"
+}
+}

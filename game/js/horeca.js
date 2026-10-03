@@ -27,7 +27,20 @@ export function initHoreca(world) {
     const r = clearOfReal(h.x, h.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
     if (r) { h.x = r.x; h.y = r.y; }
   }
-  spots = (world.map.meta.horeca || []).map((h) => ({ x: h.x, y: h.y, name: h.name, lastUsed: -Infinity }));
+  spots = (world.map.meta.horeca || []).map((h) => ({ x: h.x, y: h.y, name: cafeName(h), osmName: h.name, lastUsed: -Infinity }));
+}
+
+// The map and the search keep the OSM name; what you order and read about
+// happens in a made-up café, the same one every time for this spot.
+const CAFE_NAMES = [
+  'Café De Lallende Koe', "Kroeg 't Scheve Toorntje", 'Eetcafé De Vette Klomp', 'Café Kon Minder',
+  'Café De Natte Fiets', 'Bar Moi & Proost', "Café 't Kolde Bakkie", 'Café De Dikke Duif',
+  'Eetcafé De Zatte Eierbal', "Café 't Lekke Bandje", 'Café De Stoere Stadjer', "Bar 't Natte Peerd",
+  'Eetcafé Mien Bakkie', 'Café De Wiebelkruk', 'Nachtcafé De Uil van Half Vier', "Café 't Kniepertje",
+];
+function cafeName(h) {
+  const k = Math.abs(Math.round(h.x * 7 + h.y * 13));
+  return CAFE_NAMES[k % CAFE_NAMES.length];
 }
 
 const TOASTS = [
@@ -86,7 +99,7 @@ export function tryHorecaInteract(world) {
   world.health = Math.min(100, world.health + HEAL_AMOUNT);
   const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];
   world.addMessage(toast(name, amount), TOAST_DURATION);
-  recordUnique(world, 'horeca', `${name}@${Math.round(spot.x)},${Math.round(spot.y)}`);
+  recordUnique(world, 'horeca', `${spot.osmName || name}@${Math.round(spot.x)},${Math.round(spot.y)}`);
   return true;
 }
 
