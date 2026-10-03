@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getCamera } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk, seatPerson, seatPose, seatedY, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { vehicleSeat } from './seating3d.js';
 import { Vehicle, MODELS, makeTwoWheeler, spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation, updateTrafficAI, resolveVehicleBuildingCollision } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
@@ -404,16 +405,18 @@ export function stage(m, x, y, a, { h = 0, speed = 0, pose: name = null, dt = 0,
   ud.blob.visible = true;
 }
 
+// Seats a cast member like the game seats anyone (seating3d.js vehicleSeat);
+// the driver's seat then has no generic NPC driver figure drawn on it.
 export function seat(m, v, driver) {
-  const hl = v.model.len / 2, hw = v.model.wid / 2;
-  const sx = -hl * 0.06, sz = (driver ? -1 : 1) * hw * 0.34;
+  const st = vehicleSeat(v, driver);
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   m.visible = true;
   resetArms(m.userData);
-  seatPerson(m, driver);
-  m.position.set(v.x + c * sx - s * sz, -SEATED_DROP, v.y + s * sx + c * sz);
+  seatPose(m, st.pose);
+  m.position.set(v.x + c * st.x - s * st.z, (v.z || 0) + seatedY(m, st.y), v.y + s * st.x + c * st.z);
   m.rotation.set(0, -v.angle, 0);
   m.userData.blob.visible = false;
+  if (driver) v.castDriver = true;
 }
 
 function moveSet(r, x, y) {
