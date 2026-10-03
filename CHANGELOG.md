@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-10-03
+
 ### Nieuw
 - **Over** in het hoofdmenu: credits, licenties en privacy. De kaartdata
   komt van OpenStreetMap; dat staat nu ook op het laadscherm, linksonder op
@@ -50,12 +52,22 @@ nieuwe functies, `y` voor alleen bugfixes.
   eronder zijn niet meer donker. De winkelblokken zijn voor helikopter en
   camera even hoog als ze eruitzien (6,6 m, het nieuwe blok 10,8 m).
 
+- **Sneller opstarten**: van het laden tot het titelmenu duurt nu ongeveer
+  6 seconden in plaats van 10.
+- **Soepeler rijden**: vangrails en muren langs de ring, de horeca-bordjes en
+  de gebouwen worden samengevoegd getekend, ook als je hard rijdt.
+- **Minder flikkerende gevels**: ramen, luifels, lijsten en panelen liggen
+  niet meer precies op de muur, en rijtjeshuizen in het Ommeland vechten
+  niet meer om dezelfde voorgevel.
+- **Minder flikkerende wegen**: stoepen die elkaar net raken op kruispunten,
+  water tegen water en de markering flikkeren niet meer. De Griffeweg sluit
+  netjes aan op de brug, en er zijn minder gaten en naden in spoor en oever.
+
 ### Opgelost
 - **Je garage staat er weer.** Kwam je thuis met de helikopter, als duif of
   na padel of een uitje, dan ontbrak de garage onder de House of Groningen.
   Hij staat er nu altijd, en van ver zie je zijn gevel en dakrand ook.
 
-### Opgelost
 - Chauffeurs zitten weer in de cabine. In de vrachtwagens (ook de
   vettankwagen uit H8 en de tankwagen van de stuntavond) zat de bestuurder
   laag in de laadbak, in de trekker-limo in de dichte limo en in de
