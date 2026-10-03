@@ -22,6 +22,8 @@ nieuwe functies, `y` voor alleen bugfixes.
   een kopie van je oude save.
 
 ### Gewijzigd
+- De disclaimer staat niet meer op het laad- en startscherm, alleen nog in
+  Over, de aftiteling en de README.
 - **Minder toetshints:** lopen, rondkijken, rennen, springen, bukken,
   zwemmen, en gas, handrem, toeter, radio en filmcamera in voertuigen wijzen
   zichzelf. De hints linksonder gaan nu alleen nog over in- en uitstappen,

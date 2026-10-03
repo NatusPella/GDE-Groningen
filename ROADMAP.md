@@ -177,6 +177,19 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Een secrets-scan vlak voor het openbaar maken (de laatste scan, op 3 okt, vond niets).
 - [?] De repo openbaar maken, waarmee Pages, Actions en het bouwen in CI gratis worden.
 
+## YouTube-kanaal
+
+Alles staat in `docs/youtube/kanaal.md` (`claude/youtube-kit`). Er is niets geüpload en niets aangemaakt; kanaal en uploads doet Alexander.
+
+- [x] Kanaalbeelden in `docs/youtube/beelden/`: profielfoto (800×800), banner (2560×1440, veilige zone 1546×423, plus een controleversie met hulplijnen), watermerk (150×150, transparant) en twee thumbnails (1280×720) voor de verhaal- en de gameplaytrailer. Opnieuw te maken met `nice -n 10 node scripts/youtube_images.mjs`, dat de helpers van `scripts/steam_images.mjs` hergebruikt.
+- [x] De thumbnails tonen de Gouden Eierbal in zijn vitrine, nooit de lege vitrine of het kaartje "Tige tank!". De render komt uit de trailer met de bal teruggezet (`__trailer.prop()`).
+- [x] Naam- en handlevoorstellen (advies `@GDEGroningen`), kanaalbeschrijving (NL met een Engelse regel), links, titels, beschrijvingen, tags en hoofdstukken voor beide trailers, de AI-melding (advies: "Nee", maar stemmen en muziek wel noemen), de disclaimer zonder merknamen, "niet voor kinderen", afspeellijsten en een uploadplan voor de eerste week.
+- [ ] Kanaal aanmaken als merkaccount en de branding uploaden (Alexander).
+- [ ] De gameplaytrailer maken (de Steam-cut met HUD, zie `docs/steam/trailer.md`) en de hoofdstuktijden invullen.
+- [ ] De verhaaltrailer opnieuw exporteren met Tessa in plaats van Anita (naamkaart in shot 5).
+- [?] Shot 11 (de lege vitrine met "Tige tank!") in de YouTube-versie houden of eruit knippen (Alexander).
+
+
 ## Steam-klaar (optioneel, na of rond 1.0)
 
 Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.000 omzet. Alexander beslist of hij dat ervoor overheeft; de game maken we in elk geval klaar.

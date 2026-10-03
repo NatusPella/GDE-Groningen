@@ -1329,6 +1329,7 @@ function vitrineRoom(r) {
     const room = buildVitrineRoom();
     room.userData.ball.visible = false;
     const card = noteCard('Tige tank!');
+    card.name = 'tige-tank';
     // propped up on the cushion, facing the push-in (vitrine cam, a = 0.7)
     card.scale.setScalar(1.25);
     card.position.set(0.02, 1.2, 0.03);
@@ -1799,6 +1800,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       freeze: (i, t = 1) => { if (!shots[i - 1]) return false; frozen = { T: starts[i - 1] + Math.min(t, shotDur(r, shots[i - 1]) - 0.05) }; r.T = starts[i - 1] - 0.001; r.idx = -1; return true; },
       play: () => { frozen = null; },
       stop: () => end(true, true),
+      prop: (name) => trailerProps.get(name) || null,
     };
     // a video export starts once main.js has the sound sheet
     Promise.resolve(begun).then(() => requestAnimationFrame((now) => { last = now; loop(now); }));
