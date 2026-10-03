@@ -13,7 +13,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'docs/steam/beelden');
@@ -21,6 +21,7 @@ const SHOTS_DIR = path.join(OUT, 'screenshots');
 const SRC_DIR = path.join(OUT, 'bron');
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const PORT = Number(process.env.STEAM_PORT || 8797);
+const IS_MAIN = process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
 const args = process.argv.slice(2);
 const flag = (f) => args.includes(f);
 const ONLY = (args.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
@@ -357,19 +358,24 @@ async function compose(c) {
   }
 }
 
-const { c, kill } = await launch();
-try {
-  await c.send('Page.addScriptToEvaluateOnNewDocument', { source: SETTINGS_INIT });
-  if (doCapture) {
-    // unnumbered names while capturing, numbered again in compose
-    if (fs.existsSync(SHOTS_DIR)) for (const f of fs.readdirSync(SHOTS_DIR)) if (/^\d\d-/.test(f)) fs.renameSync(path.join(SHOTS_DIR, f), path.join(SHOTS_DIR, f.replace(/^\d\d-/, '')));
-    await captureTrailer(c);
-    await captureGame(c);
+// shared with scripts/youtube_images.mjs
+export { ROOT, launch, evaluate, waitFor, viewport, goto, shoot, frames, sleep, FONTS, LOGO_CSS, logo, SETTINGS_INIT, CLEAN_TRAILER_CSS };
+
+if (IS_MAIN) {
+  const { c, kill } = await launch();
+  try {
+    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: SETTINGS_INIT });
+    if (doCapture) {
+      // unnumbered names while capturing, numbered again in compose
+      if (fs.existsSync(SHOTS_DIR)) for (const f of fs.readdirSync(SHOTS_DIR)) if (/^\d\d-/.test(f)) fs.renameSync(path.join(SHOTS_DIR, f), path.join(SHOTS_DIR, f.replace(/^\d\d-/, '')));
+      await captureTrailer(c);
+      await captureGame(c);
+    }
+    if (doCompose) await compose(c);
+  } finally {
+    c.close();
+    kill();
   }
-  if (doCompose) await compose(c);
-} finally {
-  c.close();
-  kill();
+  const total = execFileSync('du', ['-sk', OUT]).toString().split('\t')[0];
+  console.log(`done, docs/steam/beelden: ${(Number(total) / 1024).toFixed(1)} MB`);
 }
-const total = execFileSync('du', ['-sk', OUT]).toString().split('\t')[0];
-console.log(`done, docs/steam/beelden: ${(Number(total) / 1024).toFixed(1)} MB`);
