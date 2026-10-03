@@ -34,7 +34,7 @@
 | 8 | 0:26–0:30 | De trekker-limo met pompeblêden, in tegenlicht | Lage camera, slowmotion | **JELLE TERPSTRA** — *Snackkoning. Fries. Heel tevreden met zichzelf.* | – |
 | 9 | 0:30–0:33 | Durk en Douwe in een botsauto, allebei met dezelfde blik | Statisch, met een humorpauze | **DURK & DOUWE** — *Twee reuzen. Eén brein.* | – |
 | 10 | 0:33–0:37 | Een duif scheert langs de wijzerplaat van de Martinitoren | Achter de duif | *Kieken van boven.* | licht |
-| 11 | 0:37–0:41 | Het museum bij nacht, een lege vitrine, een kaartje: "Tige tank! – J." | Langzame push-in | – | licht |
+| 11 | 0:37–0:41 | Het museum bij nacht: de Gouden Eierbal nog in zijn vitrine, met een gouden gloed (geen lege vitrine, geen kaartje: dat is een onthulling in H6) | Langzame push-in | *De Gouden Eierbal.* | licht |
 | 12 | 0:41–0:45 | Achtervolging met drie sterren door de binnenstad, zwaailichten | Snelle cuts tussen dak- en bumpercam | *Lange avonden.* | **ja** |
 | 13 | 0:45–0:49 | De ringrace: vijf auto's naast elkaar, een trekker ertussen | Brede zijwaartse track | *Ring Zuid. Laatste fase.* | **ja** |
 | 14 | 0:49–0:50 | Een pion stuitert over het asfalt | Close-up | *Bijna.* | – |
@@ -55,7 +55,14 @@
 - Vervalt: de flitspaal, de explosies in de Oosterstraat en "duif poept op een corpsbal". Die passen niet bij de zomer-toon en de droge humor.
 - Nieuwe stem: één regel van Rikus (shot 1) en één van Berend (shot 24), ingesproken met de bestaande pijplijn.
 
-**Bouwstatus (2 oktober 2026, `game/js/trailer.js`)**
+**Bouwstatus (3 oktober 2026, `game/js/trailer.js`)**
+- Naast `vol` en `kort` zijn er twee Steam-cuts, `gameplay` en `verhaal`, met hun eigen volgorde (`CUT_ORDER`). Shotlijsten en spoilerregels: `docs/steam/trailer.md`. De benchmark blijft de volledige cut.
+- **Opgeloste punten (oktober):**
+  - Shot 11 toont de Eierbal in de vitrine in plaats van de lege vitrine met het kaartje.
+  - De vetdruppels van de tankwagen (shot 15) zijn groter, en de camera staat dichterbij.
+  - Durk zingt in de Poelestraat (shot 20) onder een warme terraslamp; de camera rijdt tot vlak voor hem.
+  - Ondertitels en de regels op de naamkaarten zijn groter bij 1080p.
+  - De zwarte overlay volgt de trailerklok, dus de fades staan ook in de video-export (eerst werden het harde cuts).
 - Alle 24 shots staan erin, ongeveer 91 s. De korte cut (`kort`, ongeveer 38 s) heeft de shots 1, 2, 3, 5, 6, 7, 12, 13, 16, 17, 19 en 22, dus met de naamkaarten van Tessa en Tammo.
 - **Stand-ins** van bestaande of goedkope props:
   - De terrassen: tafels, stoelen en parasols als instanced meshes, met zittende figuranten. Ze staan alleen op het plein, nooit op de straat of het fietspad dwars over de Vismarkt. Rond de terrassen en het plantsoen rijdt geen verkeer.

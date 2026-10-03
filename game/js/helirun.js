@@ -94,6 +94,12 @@ const RING_MATS = {
   miss: new THREE.MeshBasicMaterial({ color: 0xff5a3c, transparent: true, opacity: 0.5, fog: false }),
 };
 
+// The Steam trailer (trailer.js) stages a ring tour with these: the real
+// rings and the real HUD, without a run.
+export function heliTrailerKit() {
+  return { hud, ringGeo: RING_GEO, ringMats: RING_MATS };
+}
+
 function buildRings(leg) {
   const group = new THREE.Group();
   group.name = 'helirun-rings';
