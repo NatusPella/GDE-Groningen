@@ -567,9 +567,10 @@ function buildWalls(elev, map) {
           piece.top = s.covered ? roofTopAt(elev, mx, my, zr) : 0;
           if (!s.covered && joined) {
             // the way alongside lies higher (a slip road climbing out beside
-            // it, overlapping the verge): the wall rises to its surface
+            // it, overlapping the verge): the wall rises to its surface, drawn
+            // only, since that way's lanes run over this edge
             const zn = surfaceZ(elev, mx, my, s.r, zr, 1.6);
-            if (zn !== null && zn > zr + 0.5) { piece.low = true; piece.top = zn; }
+            if (zn !== null && zn > zr + 0.5) { piece.low = true; piece.top = zn; piece.drawOnly = true; }
           }
           if (!s.covered && !joined) {
             // beside another sunken road (a ramp climbing out of the cutting
@@ -619,6 +620,7 @@ function buildWalls(elev, map) {
           elev.brkWalls.push(piece);
         }
         walls.push(piece);
+        if (piece.drawOnly) continue;
         const x0 = Math.min(piece.ax, piece.bx), x1 = Math.max(piece.ax, piece.bx);
         const y0 = Math.min(piece.ay, piece.by), y1 = Math.max(piece.ay, piece.by);
         elev.wallGrid.insert(piece, x0 - 2, y0 - 2, x1 + 2, y1 + 2);
