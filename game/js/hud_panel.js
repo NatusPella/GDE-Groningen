@@ -27,6 +27,7 @@ import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
+import { markerColors, onPaletteChange } from './a11y.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = '#3fc97a';
@@ -41,7 +42,13 @@ let mmScale = MM_SCALE;
 
 // GTA-style: purple for your own waypoint, yellow for missions, orange for
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
+// filled from the palette (a11y.js: the colour-blind settings) below; kept
+// as one object so importers always read the current colours
 export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c', care: '#ff5fb4' };
+// Each route kind also has its own pattern down the middle of the line and
+// its own mark in the minimap's edge arrow, so they never differ by colour
+// alone: verhaal/missie solid, jouw doel dashes, klus dots, opknappen dash-dot.
+const ROUTE_DASH = { mission: null, user: [2.2, 1.6], job: [0.01, 1.7], care: [2.6, 1.2, 0.01, 1.2] };
 export const routeLabel = (r) => (r.kind === 'user' ? 'Doel' : r.kind === 'job' ? 'Klus' : r.kind === 'care' ? (r.target && r.target.why === 'repair' ? 'Garage' : 'Opknappen') : 'Missie');
 
 let els = null;
@@ -804,6 +811,21 @@ const C = {
   greyDark: '#2a2e28',
 };
 
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+function applyPalette(p = markerColors()) {
+  Object.assign(ROUTE_COLORS, { user: p.user, mission: p.mission, job: p.job, care: p.care });
+  C.red = p.danger;
+  C.yellow = p.mission;
+  C.yellowHalf = hexA(p.mission, 0.5);
+  C.policeBlue = p.police;
+}
+applyPalette();
+onPaletteChange(applyPalette);
+
 function outline(ctx, s, color = C.dark, w = 1.2) {
   ctx.lineWidth = w * s;
   ctx.strokeStyle = color;
@@ -1170,7 +1192,9 @@ function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
   ctx.restore();
 }
 
-export function drawEdgeArrow(ctx, x, y, angle, color, s = 1) {
+// mark: what the arrow points at, drawn small inside it (a dot for your
+// goal, a square for a klus, a ring for the story, nothing for your car)
+export function drawEdgeArrow(ctx, x, y, angle, color, s = 1, mark = '') {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
@@ -1184,6 +1208,15 @@ export function drawEdgeArrow(ctx, x, y, angle, color, s = 1) {
   ctx.lineWidth = 1.2 * s;
   ctx.strokeStyle = C.dark;
   ctx.stroke();
+  if (mark) {
+    ctx.fillStyle = C.dark;
+    ctx.strokeStyle = C.dark;
+    ctx.beginPath();
+    if (mark === 'user') ctx.arc(-0.6 * s, 0, 1.5 * s, 0, Math.PI * 2);
+    else if (mark === 'job') ctx.rect(-2 * s, -1.4 * s, 2.8 * s, 2.8 * s);
+    if (mark === 'user' || mark === 'job') ctx.fill();
+    else if (mark === 'mission') { ctx.lineWidth = 0.9 * s; ctx.arc(-0.6 * s, 0, 1.6 * s, 0, Math.PI * 2); ctx.stroke(); }
+  }
   ctx.restore();
 }
 
@@ -1201,7 +1234,7 @@ export function drawRoute(ctx, pts, s = 1) {
 }
 
 // Thick along-the-road route line with a dark casing; pts in screen space.
-export function drawRoadRoute(ctx, pts, color, width = 4) {
+export function drawRoadRoute(ctx, pts, color, width = 4, kind = null) {
   if (pts.length < 2) return;
   ctx.save();
   ctx.beginPath();
@@ -1215,6 +1248,15 @@ export function drawRoadRoute(ctx, pts, color, width = 4) {
   ctx.lineWidth = width;
   ctx.strokeStyle = color;
   ctx.stroke();
+  const k = kind || Object.keys(ROUTE_COLORS).find((n) => ROUTE_COLORS[n] === color);
+  const dash = k && ROUTE_DASH[k];
+  if (dash) {
+    // the pattern in the line's own dark casing colour, scaled to its width
+    ctx.setLineDash(dash.map((d) => d * width));
+    ctx.lineWidth = Math.max(1.2, width * 0.42);
+    ctx.strokeStyle = 'rgba(12, 20, 14, 0.8)';
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -1483,15 +1525,15 @@ function drawMinimap(dt, world) {
   }
   if (jobEdge != null) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
-    drawEdgeArrow(ctx, cx + Math.cos(jobEdge) * edgeR, cy + Math.sin(jobEdge) * edgeR, jobEdge, JOB_TARGET_COLOR, wp ? 0.8 : s);
+    drawEdgeArrow(ctx, cx + Math.cos(jobEdge) * edgeR, cy + Math.sin(jobEdge) * edgeR, jobEdge, ROUTE_COLORS.job || JOB_TARGET_COLOR, wp ? 0.8 : s, 'job');
   }
   if (missionEdge != null) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
-    drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, wp ? 0.8 : s);
+    drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, wp ? 0.8 : s, 'mission');
   }
   if (wpEdge != null) {
     const s = 1 + pulseAt(t) * 0.2;
-    drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, ROUTE_COLORS.user, s);
+    drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, ROUTE_COLORS.user, s, 'user');
   }
 }
 
