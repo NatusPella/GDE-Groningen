@@ -1,6 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { setCountryBounds, setRealZone } from './countryfield.js';
 import { tileWater, chunkWaterArrays, canalWaterFrom, openWaterFrom } from './countrywatergeo.js';
+import { loadMap } from './mapdata.js';
+import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js';
 
 // Geometry jobs that run in the geometry worker (geoworker.js) or, as a
 // fallback, on the main thread (geojobs.js): data in, typed arrays out. Only
@@ -89,4 +91,57 @@ export function setWaterQuery(fn) {
   W.cache.clear();
 }
 
-export const KERNELS = { cityMerge, waterInit, waterChunk };
+// --- city road surfaces (roadsurface.js) ----------------------------------
+
+// A BufferGeometry as plain data and back (attributes, index, groups,
+// bounding sphere); the arrays move as transferables.
+export function plainGeometry(g, transfer) {
+  if (!g) return null;
+  const attrs = {};
+  for (const k in g.attributes) {
+    const a = g.attributes[k];
+    attrs[k] = { array: a.array, itemSize: a.itemSize, normalized: a.normalized };
+    transfer.push(a.array.buffer);
+  }
+  if (g.index) transfer.push(g.index.array.buffer);
+  const s = g.boundingSphere;
+  return { attrs, index: g.index ? g.index.array : null, groups: g.groups.map((q) => ({ ...q })), sphere: s ? [s.center.x, s.center.y, s.center.z, s.radius] : null };
+}
+export function geometryFromPlain(p) {
+  if (!p) return null;
+  const g = new THREE.BufferGeometry();
+  for (const k in p.attrs) { const a = p.attrs[k]; g.setAttribute(k, new THREE.BufferAttribute(a.array, a.itemSize, a.normalized)); }
+  if (p.index) g.setIndex(new THREE.BufferAttribute(p.index, 1));
+  for (const q of p.groups) g.addGroup(q.start, q.count, q.materialIndex);
+  if (p.sphere) g.boundingSphere = new THREE.Sphere(new THREE.Vector3(p.sphere[0], p.sphere[1], p.sphere[2]), p.sphere[3]);
+  return g;
+}
+
+// worker side: its own copy of the map, from the same files, with the roads
+// the main thread has dropped since (home.js) taken out the same way
+const RD = { byKey: null };
+async function roadInit({ url, keys }) {
+  const map = await loadMap(url);
+  const want = new Set(keys);
+  for (let i = map.roads.length - 1; i >= 0; i--) {
+    const r = map.roads[i];
+    if (want.has(roadKey(r))) continue;
+    map.roads.splice(i, 1);
+    for (const arr of map.roadGrid.map.values()) { const j = arr.indexOf(r); if (j >= 0) arr.splice(j, 1); }
+  }
+  setRoadNetwork(map);
+  RD.byKey = new Map(map.roads.map((r) => [roadKey(r), r]));
+  let missing = 0;
+  for (const k of keys) if (!RD.byKey.has(k)) missing++;
+  return { result: { roads: map.roads.length, missing }, transfer: [] };
+}
+
+function roadGeo({ key, detail }) {
+  const r = RD.byKey && RD.byKey.get(key);
+  if (!r) return { result: null, transfer: [] };
+  const g = roadSurfaceGeometries(r, detail);
+  const transfer = [];
+  return { result: { sidewalk: plainGeometry(g.sidewalk, transfer), road: plainGeometry(g.road, transfer), mark: plainGeometry(g.mark, transfer) }, transfer };
+}
+
+export const KERNELS = { cityMerge, waterInit, waterChunk, roadInit, roadGeo };

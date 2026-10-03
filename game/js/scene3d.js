@@ -70,7 +70,7 @@ import { edgeDistance } from './countryfield.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
-import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
+import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -1477,8 +1477,12 @@ function syncRoads(world, px, py) {
   if (missing.length) {
     missing.sort((a, b) => a[0] - b[0]);
     const deadline = performance.now() + (performance.now() < streamBoostUntil ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
-    let built = 0;
+    let built = 0, waiting = false;
     for (const [d, r] of missing) {
+      // surfaces still coming from the geometry worker: the far LOD covers
+      // from the nearest of them on (requested now, nearest first)
+      if (!roadGeometryReady(r)) { if (!waiting) roadDetailR = Math.max(24, d); waiting = true; continue; }
+      if (waiting) continue;
       if (built > 0 && !r._geoRoad && performance.now() > deadline) { roadDetailR = Math.max(24, d); break; }
       coldRoads.delete(r);
       const mesh = freezeStatic(buildRoadGroup(r));

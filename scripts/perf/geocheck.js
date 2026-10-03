@@ -36,7 +36,7 @@ function same(a, b) {
   for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
   return true;
 }
-const report = { city: { cells: 0, buffers: 0, verts: 0, bad: [] }, water: { chunks: 0, buffers: 0, verts: 0, bad: [] } };
+const report = { city: { cells: 0, buffers: 0, verts: 0, bad: [] }, water: { chunks: 0, buffers: 0, verts: 0, bad: [] }, roads: { roads: 0, buffers: 0, verts: 0, bad: [] } };
 
 // ---- city props: the old mergeInstances
 function oldMerge(list) {
@@ -169,6 +169,35 @@ for (const [kx, ky] of chunks) {
     if (!ok(sync) || !ok(work)) report.water.bad.push(`${kx},${ky},${mid}`);
   }
 }
+// ---- city roads: every road's surfaces, main thread vs the worker's own map
+const RS = await import('/js/roadsurface.js');
+const map = w.map;
+RS.setRoadNetwork(map);
+const init = await inWorker('roadInit', { url: new URL('citymap.json', location.href).href, keys: map.roads.map(RS.roadKey) });
+report.roads.workerMap = init;
+const cmpPlain = (geo, p) => {
+  if (!geo || !p) return !geo && !p;
+  if (!same(geo.index && geo.index.array, p.index)) return false;
+  for (const k in geo.attributes) if (!p.attrs[k] || !same(geo.attributes[k].array, p.attrs[k].array) || geo.attributes[k].itemSize !== p.attrs[k].itemSize) return false;
+  const s = geo.boundingSphere;
+  return Object.keys(p.attrs).length === Object.keys(geo.attributes).length && JSON.stringify(geo.groups) === JSON.stringify(p.groups)
+    && [s.center.x, s.center.y, s.center.z, s.radius].every((x, i) => Object.is(x, p.sphere[i]));
+};
+let t = performance.now();
+for (const r of map.roads) {
+  const ref = RS.roadSurfaceGeometries(r, RS.roadDetail());
+  const work = await inWorker('roadGeo', { key: RS.roadKey(r), detail: RS.roadDetail() });
+  report.roads.roads++;
+  let ok = !!work;
+  for (const k of ['sidewalk', 'road', 'mark']) {
+    if (ref[k]) { report.roads.buffers += Object.keys(ref[k].attributes).length + 1; report.roads.verts += ref[k].attributes.position.count; }
+    if (ok && !cmpPlain(ref[k], work[k])) ok = false;
+    if (ref[k]) ref[k].dispose();
+  }
+  if (!ok) report.roads.bad.push(RS.roadKey(r).slice(0, 50));
+  if (performance.now() - t > 2000) { await sleep(0); t = performance.now(); }
+}
+report.roads.bad = report.roads.bad.slice(0, 20).concat(report.roads.bad.length > 20 ? ['... ' + report.roads.bad.length] : []);
 worker.terminate();
-report.ok = !report.city.bad.length && !report.water.bad.length && report.city.cells > 0 && report.water.chunks > 0;
+report.ok = !report.city.bad.length && !report.water.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.city.cells > 0 && report.water.chunks > 0;
 return JSON.stringify(report);

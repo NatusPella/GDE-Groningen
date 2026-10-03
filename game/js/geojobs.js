@@ -16,6 +16,8 @@ let worker = null;
 let failed = !WANT;
 let nextId = 1;
 const open = new Map();
+// set-up jobs that only mean something in the worker (never redone here)
+const WORKER_ONLY = new Set(['waterInit', 'roadInit']);
 const fallbackHooks = [];
 let fellBack = false;
 export const geoStats = { worker: 0, sync: 0, maxRoundTrip: 0 };
@@ -34,7 +36,7 @@ function fail(err) {
   worker = null;
   const jobs = [...open.values()];
   open.clear();
-  for (const j of jobs) if (j.kind !== 'waterInit') runSync(j.kind, j.data, j.done);
+  for (const j of jobs) if (!WORKER_ONLY.has(j.kind)) runSync(j.kind, j.data, j.done);
 }
 
 function getWorker() {
