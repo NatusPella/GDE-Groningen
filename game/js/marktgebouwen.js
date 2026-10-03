@@ -768,7 +768,7 @@ function korenbeurs(B, ring, srcEdges) {
   LM.roofRim(B, fe, frontEave + 0.3, 3.5, 2.2, C.slateDark);
   LM.band(B, fe, 0, 1.2, 0.12, stone);
   LM.band(B, fe, 5.6, 0.35, 0.14, stone);
-  LM.band(B, fe, frontEave - 1.0, 1.0, 0.36, stone);
+  LM.band(B, fe, frontEave - 1.0, 1.02, 0.36, stone);
   let main = fe[0];
   for (const e of fe) if (e.nx * dir * F.ux + e.ny * dir * F.uy > main.nx * dir * F.ux + main.ny * dir * F.uy) main = e;
   const t = main.len / 2, pw = Math.min(11, main.len * 0.48);
@@ -794,7 +794,7 @@ function korenbeurs(B, ring, srcEdges) {
     LM.cyl(B, x, 1.4, z, 0.42, 0.5, frontEave - 3.4, 12, stone, g.PLAIN);
     LM.obox(B, x, z, frontEave - 2.0, 1.15, 1.15, 0.5, rot, 0xe8dfc8, g.PLAIN);
   }
-  ebox2(B, main, t, frontEave - 1.6, pw + 0.6, 1.6, 1.4, stone, -0.2);
+  ebox2(B, main, t, frontEave - 1.6, pw + 0.6, 1.62, 1.4, stone, -0.2);
   // pediment
   const pa = at(t - pw / 2 - 0.3, -0.25, frontEave), pb = at(t + pw / 2 + 0.3, -0.25, frontEave), pc = at(t, -0.25, frontEave + 3.2);
   B.tri(pa, pb, pc, stone, g.PLAIN);
@@ -839,7 +839,7 @@ function grootHandelshuis(B, b, ring, srcEdges) {
   const edges = LM.edgesOf(ring, LM.partyTester(srcEdges));
   LM.walls(B, ring, 0, () => eave, 0x8c9195, g.PLAIN);
   LM.cap(B, ring, () => eave, 0x5d5f62, g.PLAIN);
-  LM.band(B, edges, eave - 0.6, 0.6, 0.25, 0xc4c2bb);
+  LM.band(B, edges, eave - 0.6, 0.62, 0.25, 0xc4c2bb);
   LM.band(B, edges, gf, 0.5, 0.3, 0xc4c2bb);
   for (const e of edges) {
     if (e.party || e.len < 4) continue;
