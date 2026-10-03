@@ -266,7 +266,9 @@ def main():
             continue
         if code == 8 and bw * bl < 30:
             continue
-        if len(b) > 8:
+        # in parts only where the box would be clearly wrong (perf: each part
+        # is another body and roof)
+        if len(b) > 8 and fill < 0.72 and (1 - fill) * bw * bl >= 40:
             for k, (cu, cv, pw, pl) in enumerate(b[8]):
                 bld.append((round(x), round(y), min(32000, pw), min(32000, pl), int(ang) % 180, code, lv, 100, k, cu, cv))
             continue
