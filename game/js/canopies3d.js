@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { closestPointOnSegment } from './util.js';
 import { addStaticCollider } from './breakables.js';
+import { isPaddepoelRoof, buildPaddepoelRoof } from './paddepoel3d.js';
 
 // OSM building=roof footprints are open canopies (market roofs, station and
 // square shelters). They used to render as solid blocks you could spawn in;
@@ -37,6 +38,7 @@ export function buildCanopies(map) {
   const group = new THREE.Group();
   const posts = [];
   for (const c of map.canopies || []) {
+    if (isPaddepoelRoof(c)) { group.add(buildPaddepoelRoof(map)); continue; }
     const pts = c.pts[0][0] === c.pts[c.pts.length - 1][0] && c.pts[0][1] === c.pts[c.pts.length - 1][1] ? c.pts.slice(0, -1) : c.pts;
     if (pts.length < 3) continue;
     const shape = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y)));
