@@ -162,7 +162,7 @@ def main():
     print(f"roads: {len(roads)} ({sum(len(r['p']) // 2 - 1 for r in roads)} segments)")
 
     # ------------------------------------------------------------- water
-    water, wmeta = water_field(raw["water"], proj, ext)
+    water, wmeta, shore = water_field(raw["water"], proj, ext)
     wlines = []
     for el in raw["water"]:
         t = el.get("tags", {})
@@ -175,11 +175,18 @@ def main():
             hw = max(1.5, min(15.0, float(str(t.get("width", "")).replace("m", "").strip()) / 2))
         except ValueError:
             pass
-        # only the stretches the lake/riverbank polygons do not cover already
-        for run in outside_runs(P, lambda x, y: in_deep(x, y) or water_at(water, wmeta, x, y) > -1.0):
+        # the stretches the lake/riverbank polygons do not cover, and those
+        # where the polygon is too narrow for the 10 m field (its shore
+        # would come out in steps): there the line's width is the outline's
+        for run in outside_runs(P, lambda x, y: in_deep(x, y) or water_at(water, wmeta, x, y) > 7.0):
             run = simplify(run, 1.5)
-            if len(run) >= 2 and length(run) > 20:
-                wlines.append({"p": flat(run), "h": hw, **({"n": t["name"]} if t.get("name") else {})})
+            if len(run) < 2 or length(run) <= 20:
+                continue
+            ds = sorted(shore(x, y) for x, y in densify(run, 10.0))
+            h = hw
+            if ds[len(ds) // 2] < 14:
+                h = round(min(8.0, ds[len(ds) // 2] + 0.6), 1)
+            wlines.append({"p": flat(run), "h": h, **({"n": t["name"]} if t.get("name") else {})})
     # centre lines of the wide canals and rivers, for the boats
     boatways = []
     for el in raw["water"]:
@@ -498,11 +505,29 @@ def water_field(els, proj, ext):
     sd = np.where(inside, dist, -dist)
     q = np.clip(np.round(128 + sd * 4), 0, 255).astype(np.uint8)
     print(f"water: {n_poly} rings, {len(edges)} edges, {inside.sum()} wet cells")
-    return q, {"x0": ext[0], "y0": ext[1], "cell": C, "w": W, "h": H}
+    return q, {"x0": ext[0], "y0": ext[1], "cell": C, "w": W, "h": H}, shore
 
 
 def water_at(q, wm, x, y):
     i, j = int((x - wm["x0"]) // wm["cell"]), int((y - wm["y0"]) // wm["cell"])
+    SC = 20.0
+    egrid = {}
+    for e in edges:
+        (ax, ay), (bx, by) = e
+        for i in range(int(min(ax, bx) // SC), int(max(ax, bx) // SC) + 1):
+            for j in range(int(min(ay, by) // SC), int(max(ay, by) // SC) + 1):
+                egrid.setdefault((i, j), []).append(e)
+
+    def shore(x, y):
+        """Metres from (x, y) to the nearest water outline (up to 15)."""
+        best = 15.0
+        for i in range(int(x // SC) - 1, int(x // SC) + 2):
+            for j in range(int(y // SC) - 1, int(y // SC) + 2):
+                for (ax, ay), (bx, by) in egrid.get((i, j), ()):
+                    dx, dy = bx - ax, by - ay
+                    tt = max(0.0, min(1.0, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy or 1e-9)))
+                    best = min(best, math.hypot(x - ax - dx * tt, y - ay - dy * tt))
+        return best
     if 0 <= i < wm["w"] and 0 <= j < wm["h"]:
         return (int(q[j, i]) - 128) / 4
     return -WATER_RANGE
