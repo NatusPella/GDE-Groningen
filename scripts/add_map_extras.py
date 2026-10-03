@@ -457,6 +457,15 @@ PATCHES = [
     {"landmark": "Winkelcentrum Paddepoel", "set": {"h": 2.13}},
     {"at": [-1416.0, -1094.0], "set": {"h": 3.48}},
 ]
+# Height fixes on ways with a height profile (add_elevation.py), applied by
+# mapdata.js applyMapExtras to every profiled road through that vertex.
+ROAD_Z = [
+    # Expositielaan's ramp up to the Leonard Springerlaan crossing: its
+    # sidewalk runs under the west wall of the hall at -772,1922, so the
+    # ramp is down to 0.28 m by then (5% up to the crossing instead of 2%)
+    {"at": [-779.4, 1906.6], "z": 0.28},
+]
+
 
 def bounds_of(p):
     xs, ys = [q[0] for q in p], [q[1] for q in p]
@@ -702,7 +711,7 @@ if __name__ == "__main__":
     padel_raw = cached("data/extras_padel_raw.json", map_bbox(citymap["meta"]), padel_query)
     padel, padel_src = build_padel(padel_raw, citymap["meta"])
     hidden = structure_patches(citymap["buildings"], citymap["roads"])
-    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core + hidden, "fuel": fuel_pts, "passages": passages, "padel": padel}
+    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core + hidden, "fuel": fuel_pts, "passages": passages, "padel": padel, "roadZ": ROAD_Z}
     with open(OUT, "w") as f:
         json.dump(out, f, separators=(",", ":"))
     print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} hidden={len(hidden)} fuel={len(fuel_pts)} passages={len(passages)} padel={len(padel)} ({padel_src})")

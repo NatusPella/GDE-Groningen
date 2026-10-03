@@ -5,6 +5,7 @@ import { wideWaterAt, openWater } from './countryedge.js';
 import { REAL } from './countryreal.js';
 import { sharedWaterMaterial } from './water3d.js';
 import { setCountryClearance } from './waterindex.js';
+import { applyCutMask } from './cutmask3d.js';
 
 // The Ommeland canals, maren and lakes as the city's water: past the map
 // rectangle the real open water (countryreal.js distance field, and the
@@ -172,7 +173,7 @@ function merge(parts, attrs) {
 let W = null;
 function init(group) {
   const bankMat = new THREE.MeshLambertMaterial({ vertexColors: true });
-  const bed = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x1e2a2c }));
+  const bed = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), applyCutMask(new THREE.MeshBasicMaterial({ color: 0x1e2a2c }), null, true));
   bed.position.y = BED_Y;
   bed.renderOrder = 1;
   bed.visible = false;
