@@ -129,12 +129,16 @@ function drawFoodBadge() {
 
 let badgeMaterial = null;
 
-export function buildHorecaMarkerMesh3D() {
+// withPad false: the pads come from horecaPads3D, one draw for all of them
+export function buildHorecaMarkerMesh3D(withPad = true) {
   if (!badgeMaterial) badgeMaterial = new THREE.SpriteMaterial({ map: drawFoodBadge(), transparent: true, depthWrite: false, fog: true });
   const group = new THREE.Group();
-  const pad = new THREE.Mesh(padGeometry, padMaterial);
-  pad.position.y = 0.03;
-  group.add(pad);
+  group.name = 'horeca-marker';
+  if (withPad) {
+    const pad = new THREE.Mesh(padGeometry, padMaterial);
+    pad.position.y = 0.03;
+    group.add(pad);
+  }
   const badge = new THREE.Sprite(badgeMaterial);
   badge.scale.set(0.48, 0.48, 1);
   const phase = Math.random() * Math.PI * 2;
@@ -142,4 +146,30 @@ export function buildHorecaMarkerMesh3D() {
   badge.position.y = 2.3;
   group.add(badge);
   return group;
+}
+
+export function horecaPads3D(list) {
+  const m = new THREE.InstancedMesh(padGeometry, padMaterial, list.length);
+  m.count = 0;
+  m.frustumCulled = false;
+  m.name = 'horeca-pads';
+  m.matrixAutoUpdate = false;
+  m.userData.spots = list;
+  m.userData.at = null;
+  return m;
+}
+
+// only the pads within r of (px, py), refreshed when the player has moved a bit
+const _padM = new THREE.Matrix4();
+export function updateHorecaPads3D(m, px, py, r) {
+  const at = m.userData.at;
+  if (at && Math.abs(at[0] - px) + Math.abs(at[1] - py) < 10) return;
+  m.userData.at = [px, py];
+  let n = 0;
+  for (const h of m.userData.spots) {
+    if (Math.abs(h.x - px) > r || Math.abs(h.y - py) > r) continue;
+    m.setMatrixAt(n++, _padM.makeTranslation(h.x, 0.03, h.y));
+  }
+  m.count = n;
+  m.instanceMatrix.needsUpdate = true;
 }
