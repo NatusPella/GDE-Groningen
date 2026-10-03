@@ -578,24 +578,118 @@ function sharesLayer(r, o) {
   return GROUND_LAYER[r.cat] === GROUND_LAYER[o.cat] || (SIDEWALK_CATS.has(r.cat) && SIDEWALK_CATS.has(o.cat));
 }
 
-// The junction zones round segment i of r: the end of the last one at or
-// before its start and the start of the first one at or after its end (as
-// aSurf.w and aSurfEnd). Inside a zone (and up to a few metres out) the
+// The junction zones round the point at along-distance p of r: the end of the
+// last one centred at or before it and the start of the first one centred at
+// or after it (as aSurf.w and aSurfEnd). Inside a zone (and up to a few metres out) the
 // surface shaders drop the patterns tied to the way's own coordinates (lane
 // wear, gutters, patches, tile courses), so the ribbons of two ways that
 // cross there look the same and cannot flicker against each other.
-function segmentZone(rs, i) {
+function zoneAt(rs, p, zones) {
   // footways and squares are one junction zone from end to end: their paving
   // lies in world space, so the dense paths and outlines of squares that
   // overlap everywhere look the same wherever they do
   if (rs.plain) return [1e4, -1e4];
-  const a = rs.s[i], b = rs.s[i + 1];
   let w = rs.S0, e = rs.S1;
-  for (const [c, hl] of rs.zones) {
-    if (c <= a + 1e-6) w = Math.max(w, c + hl);
-    if (c >= b - 1e-6) e = Math.min(e, c - hl);
+  for (const [c, hl] of zones) {
+    if (c <= p + 1e-6) w = Math.max(w, c + hl);
+    if (c >= p - 1e-6) e = Math.min(e, c - hl);
   }
   return [w, e];
+}
+
+// Zones where r's ribbon ('road' or 'walk') overlaps the ribbon of a way in
+// the same ground layer that it shares no node with there (service roads
+// that nearly touch, a way ending just beside another): [centre s, half
+// length] along r, like the junction zones. Ways lying side by side are cut
+// back by ribbonClip instead.
+const NEAR_STEP = 1;
+function nearZones(r, rs, kind) {
+  const key = kind === 'walk' ? 'nearWalk' : 'nearRoad';
+  if (rs[key]) return rs[key];
+  const out = (rs[key] = []);
+  if (!netMap || rs.plain || r.pts.length < 2) return out;
+  const walk = kind === 'walk';
+  if (walk ? !SIDEWALK_CATS.has(r.cat) : !CARRIAGE.has(r.cat)) return out;
+  const ext = walk ? SIDEWALK_EXTRA : 0;
+  const hr = rs.hw + ext;
+  const P = r.pts, n = P.length;
+  const ok = (o) => o !== r && o.pts.length >= 2 && (walk ? SIDEWALK_CATS.has(o.cat) : GROUND_LAYER[o.cat] === GROUND_LAYER[r.cat]);
+  const mine = new Set(P.map(nodeKey));
+  const sharedOf = new Map();
+  const shared = (o) => {
+    let l = sharedOf.get(o);
+    if (!l) sharedOf.set(o, l = o.pts.filter((p) => mine.has(nodeKey(p))));
+    return l;
+  };
+  let lo = -1, hi = -1;
+  const flush = () => {
+    if (lo >= 0) out.push([(lo + hi) / 2, (hi - lo) / 2 + NEAR_STEP]);
+    lo = hi = -1;
+  };
+  // is side j cut back at both ribbon stations round t on segment i?
+  const clip = walk ? rs.walkClip : roadClip(r, rs);
+  const segLims = new Map();
+  const clipped = (i, t, j) => {
+    if (!clip) return false;
+    let L = segLims.get(i);
+    if (!L) {
+      const m0 = rs.miter[i], m1 = rs.miter[i + 1], p0 = P[i], p1 = P[i + 1];
+      L = [[0, clip.pts[i]]];
+      for (const u of clip.steps(i)) L.push([u, clip.at(p0[0] + (p1[0] - p0[0]) * u, p0[1] + (p1[1] - p0[1]) * u, m0[0] + (m1[0] - m0[0]) * u, m0[1] + (m1[1] - m0[1]) * u, i, u)]);
+      L.push([1, clip.pts[i + 1]]);
+      segLims.set(i, L);
+    }
+    let q = 1;
+    while (q < L.length - 1 && L[q][0] < t) q++;
+    return L[q - 1][1][j] < hr - 1e-3 && L[q][1][j] < hr - 1e-3;
+  };
+  const grid = netMap.roadGrid;
+  for (let i = 0; i < n - 1; i++) {
+    const a = P[i], b = P[i + 1];
+    const len = rs.s[i + 1] - rs.s[i];
+    const bx0 = Math.min(a[0], b[0]) - hr, by0 = Math.min(a[1], b[1]) - hr, bx1 = Math.max(a[0], b[0]) + hr, by1 = Math.max(a[1], b[1]) + hr;
+    // the partner segments within reach of this one: [o, k, ho]
+    const segs = [];
+    if (len > 1e-3) {
+      for (const o of grid.query(bx0 - 12, by0 - 12, bx1 + 12, by1 + 12)) {
+        if (!ok(o)) continue;
+        const ho = o.width / 2 + ext, [ox0, oy0, ox1, oy1] = o.bounds;
+        if (ox0 - ho > bx1 || ox1 + ho < bx0 || oy0 - ho > by1 || oy1 + ho < by0) continue;
+        const Q = o.pts;
+        for (let k = 0; k < Q.length - 1; k++) {
+          const p = Q[k], q = Q[k + 1];
+          if (Math.min(p[0], q[0]) - ho > bx1 || Math.max(p[0], q[0]) + ho < bx0 || Math.min(p[1], q[1]) - ho > by1 || Math.max(p[1], q[1]) + ho < by0) continue;
+          segs.push(o, k, ho);
+        }
+      }
+    }
+    if (!segs.length) { flush(); continue; }
+    const d = dirAt(P, i, 1);
+    const steps = Math.max(1, Math.ceil(len / NEAR_STEP));
+    for (let q = i === 0 ? 0 : 1; q <= steps; q++) {
+      const t = q / steps, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
+      const zr = r.z ? r.z[i] + (r.z[i + 1] - r.z[i]) * t : 0;
+      let hit = false;
+      for (let m = 0; m < segs.length && !hit; m += 3) {
+        const o = segs[m], k = segs[m + 1], reach = hr + segs[m + 2], Q = o.pts;
+        const cp = closestPointOnSegment(x, y, Q[k][0], Q[k][1], Q[k + 1][0], Q[k + 1][1]);
+        if (cp.dist2 >= reach * reach) continue;
+        // (round a node they share the junction zones and mitred joints see to it)
+        if (shared(o).some((p) => (p[0] - x) ** 2 + (p[1] - y) ** 2 < (reach + 1) ** 2)) continue;
+        if ((r.z || o.z) && Math.abs(zr - (o.z ? o.z[k] + (o.z[k + 1] - o.z[k]) * cp.t : 0)) > 0.8) continue;
+        const dist = Math.sqrt(cp.dist2);
+        // side by side ribbonClip stops both halfway, except on the stretch
+        // where the cut-back edge fans out from a station it did not cut
+        const od = dirAt(Q, k, 1), lat = (cp.x - x) * -d[1] + (cp.y - y) * d[0];
+        if (dist > 0.3 && Math.abs(od[0] * d[0] + od[1] * d[1]) >= 0.9 && Math.abs(lat) >= 0.8 * dist && clipped(i, t, lat > 0 ? 0 : 1)) continue;
+        hit = true;
+      }
+      const sv = rs.s[i] + len * t;
+      if (hit) { if (lo < 0) lo = sv; hi = sv; } else flush();
+    }
+  }
+  flush();
+  return out;
 }
 
 function project(rs, pts, x, y) {
@@ -653,7 +747,7 @@ function finishGeometry(pos, nrm, idx, extra) {
 // station every DENSE metres, so the edge follows the quay or the
 // carriageway alongside.
 const DENSE = 3;
-function ribbonInto(r, rs, half, B, surfWidth, clip = null) {
+function ribbonInto(r, rs, half, B, surfWidth, clip = null, near = null) {
   const n = r.pts.length;
   const station = (k, t, zone) => {
     const p = r.pts[k], m = rs.miter[k];
@@ -674,19 +768,32 @@ function ribbonInto(r, rs, half, B, surfWidth, clip = null) {
     }
     return at;
   };
-  // points are shared by consecutive segments unless a junction zone starts or ends there
-  let prev = -1, pz = null;
+  // every station is shared by the triangles either side (a seam of doubled
+  // points is a crack to the audit and a T-joint to the rasteriser); the
+  // zones get stations at their centre and both ends, so the linearly
+  // interpolated range stays exact between stations
+  const zones = near && near.length ? rs.zones.concat(near) : rs.zones;
+  let prev = station(0, 0, zoneAt(rs, 0, zones));
   for (let i = 0; i < n - 1; i++) {
-    const zone = segmentZone(rs, i);
-    let a = prev >= 0 && pz[0] === zone[0] && pz[1] === zone[1] ? prev : station(i, 0, zone);
-    for (const t of clip ? clip.steps(i) : []) {
-      const b = station(i, t, zone);
+    const s0 = rs.s[i], s1 = rs.s[i + 1], len = s1 - s0;
+    const ts = clip ? clip.steps(i).slice() : [];
+    if (len > 0.1 && !rs.plain) {
+      for (const [c, hl] of zones) {
+        for (const sv of [c - hl, c, c + hl]) if (sv > s0 + 0.05 && sv < s1 - 0.05) ts.push((sv - s0) / len);
+      }
+      ts.sort((p, q) => p - q);
+    }
+    let a = prev, last = -1;
+    for (const t of ts) {
+      if (t - last < 0.02 / Math.max(len, 0.02)) continue;
+      last = t;
+      const b = station(i, t, zoneAt(rs, s0 + t * len, zones));
       B.idx.push(a, b, a + 1, a + 1, b, b + 1);
       a = b;
     }
-    const b = station(i + 1, 0, zone);
+    const b = station(i + 1, 0, zoneAt(rs, s1, zones));
     B.idx.push(a, b, a + 1, a + 1, b, b + 1);
-    prev = b; pz = zone;
+    prev = b;
   }
 }
 
@@ -760,6 +867,18 @@ function ribbonClip(r, rs, kind) {
     return res;
   };
   const pts = P.map((p, k) => at(p[0], p[1], rs.miter[k][0], rs.miter[k][1], k, 0));
+  // where a narrower bridge lands on this way at the quay, the end is at
+  // least as wide as the bridge (no notch of water between the two)
+  if (index) {
+    for (const k of [0, n - 1]) {
+      const list = nodeIndex.get(nodeKey(P[k])) || [];
+      if (list.length !== 4) continue;
+      const o = list[0] === r ? list[2] : list[0], oi = list[0] === r ? list[3] : list[1];
+      if (o === r || !o.bridge || (oi !== 0 && oi !== o.pts.length - 1)) continue;
+      const oh = Math.min(half, o.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0));
+      for (let j = 0; j < 2; j++) pts[k][j] = Math.max(pts[k][j], oh);
+    }
+  }
   const cut = (lim) => lim[0] < half - 1e-3 || lim[1] < half - 1e-3;
   const steps = (i) => {
     const k = Math.floor((rs.s[i + 1] - rs.s[i]) / DENSE);
@@ -806,7 +925,7 @@ function bufGeometry(B) {
 function ribbonGeometry(r, half, surfWidth = r.width) {
   const rs = analyse(r);
   const B = newBuf();
-  ribbonInto(r, rs, half, B, surfWidth, roadClip(r, rs));
+  ribbonInto(r, rs, half, B, surfWidth, roadClip(r, rs), surfWidth ? nearZones(r, rs, 'road') : null);
   return bufGeometry(B);
 }
 
@@ -882,7 +1001,7 @@ function sidewalkGeometry(r) {
   const B = newBuf();
   roadClip(r, rs);
   rs.walkClip = ribbonClip(r, rs, 'walk');
-  ribbonInto(r, rs, rs.hw + SIDEWALK_EXTRA, B, r.width, rs.walkClip);
+  ribbonInto(r, rs, rs.hw + SIDEWALK_EXTRA, B, r.width, rs.walkClip, nearZones(r, rs, 'walk'));
   if (hasKerbs(r)) kerbInto(r, rs, B);
   return bufGeometry(B);
 }
@@ -895,6 +1014,9 @@ function markBuf() { return { pos: [], nrm: [], uv: [], idx: [] }; }
 // (bus lane red, then white lines, then manholes, grates and symbols), so the
 // overlaps never fight over the same depth.
 const PAINT_RED = 0, PAINT_WHITE = 0.004, PAINT_DECAL = 0.008;
+// decals of different kinds can lie on one another (a manhole on "BUS", a grate
+// on the edge line of the street alongside): each kind a few mm over the last
+const decalLift = (uv) => PAINT_DECAL + (uv === UV_GRATE ? 0.004 : uv === UV_BIKE ? 0.008 : uv === UV_BUS ? 0.012 : 0);
 
 function stripAlong(r, rs, M, s0, s1, off, half, uvc = UV_WHITE) {
   if (s1 - s0 < 0.05) return;
@@ -986,8 +1108,12 @@ function decal(r, rs, M, sAlong, off, len, wid, uv) {
   const fx = nrmv[1], fy = -nrmv[0];
   const base = M.pos.length / 3;
   const corners = [[-1, -1, uv[0], uv[1]], [1, -1, uv[2], uv[1]], [-1, 1, uv[0], uv[3]], [1, 1, uv[2], uv[3]]];
+  const lift = decalLift(uv);
+  const tmp = [0, 0, 0, 0];
   for (const [u, v, tu, tv] of corners) {
-    M.pos.push(c[0] + fx * u * len / 2 + nrmv[0] * v * wid / 2, c[3] + PAINT_DECAL, c[1] + fy * u * len / 2 + nrmv[1] * v * wid / 2);
+    // (on a ramp the corners follow the road's slope)
+    const z = r.z ? at(r, rs, sAlong + u * len / 2, off, tmp)[3] : c[3];
+    M.pos.push(c[0] + fx * u * len / 2 + nrmv[0] * v * wid / 2, z + lift, c[1] + fy * u * len / 2 + nrmv[1] * v * wid / 2);
     M.nrm.push(0, 1, 0);
     M.uv.push(tu, tv);
   }
@@ -1003,8 +1129,10 @@ function busDecal(r, rs, M, sAlong, off, dir) {
   const len = 1.6, wid = 2.4;
   const base = M.pos.length / 3;
   const [u0, v0, u1, v1] = UV_BUS;
+  const tmp = [0, 0, 0, 0];
   for (const [a, b, tu, tv] of [[-1, -1, u0, v0], [1, -1, u0, v1], [-1, 1, u1, v0], [1, 1, u1, v1]]) {
-    M.pos.push(c[0] + fx * a * len / 2 + rx * b * wid / 2, c[3] + PAINT_DECAL, c[1] + fy * a * len / 2 + ry * b * wid / 2);
+    const z = r.z ? at(r, rs, sAlong + a * dir * len / 2, off, tmp)[3] : c[3];
+    M.pos.push(c[0] + fx * a * len / 2 + rx * b * wid / 2, z + decalLift(UV_BUS), c[1] + fy * a * len / 2 + ry * b * wid / 2);
     M.nrm.push(0, 1, 0);
     M.uv.push(tu, tv);
   }
@@ -1170,8 +1298,9 @@ export function buildRoadGroup(r) {
   // viaduct deck, embankment, cutting walls, tunnel roof / deck over a cutting
   if (netMap && netMap.elev && netMap.elev.has) {
     const struct = r.z ? buildRoadStructure(r, netMap) : buildOverpassDeck(r, netMap);
-    // crash barriers are knocked out of this mesh one by one: never batched
-    if (struct) { struct.userData.noBatch = true; group.add(struct); }
+    // merged with the road's cell; a knocked-out crash barrier bumps its
+    // geometry's batchVer, which redoes the cell
+    if (struct) { struct.userData.batchChildren = true; group.add(struct); }
   }
   return group;
 }

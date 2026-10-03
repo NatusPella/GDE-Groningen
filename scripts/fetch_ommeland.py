@@ -9,9 +9,15 @@ footprints (tags trimmed, coordinates rounded to ~1 m).
 
     python3 scripts/fetch_ommeland.py            # fetch if the cache is missing
     python3 scripts/fetch_ommeland.py --refresh  # refetch
+    python3 scripts/fetch_ommeland.py --layers bld,cycle  # refetch some layers
+
+Buildings are kept as their minimum-area box; an outline that fills its box
+badly (an L, a T, a farm with a wing) also keeps 2-3 rectangles that cover
+it, in the box's own frame.
 """
 import gzip
 import json
+import math
 import os
 import sys
 
@@ -42,7 +48,15 @@ def queries(b):
                    f'node["place"~"^(town|village|hamlet|suburb|quarter)$"]{B};'
                    f'nwr["amenity"="place_of_worship"]{B};'
                    ');out center;'),
-        "bld": f'[out:json][timeout:600][maxsize:1073741824];way["building"]{B};out geom;',
+        "bld": f'[out:json][timeout:180];way["building"]{B};out geom;',
+        # fietspaden, and car roads with a cycle lane or track on them
+        "cycle": ('[out:json][timeout:300];('
+                  f'way["highway"="cycleway"]{B};'
+                  f'way["highway"~"^({HW})$"]["cycleway"~"^(lane|track|shared_lane|opposite_lane)$"]{B};'
+                  f'way["highway"~"^({HW})$"]["cycleway:both"~"^(lane|track|shared_lane)$"]{B};'
+                  f'way["highway"~"^({HW})$"]["cycleway:left"~"^(lane|track|shared_lane)$"]{B};'
+                  f'way["highway"~"^({HW})$"]["cycleway:right"~"^(lane|track|shared_lane)$"]{B};'
+                  ');out geom;'),
     }
 
 
@@ -57,7 +71,9 @@ KEEP = {
     "highway", "name", "ref", "oneway", "junction", "bridge", "tunnel", "layer", "lanes", "width",
     "railway", "service", "usage", "waterway", "natural", "water", "place", "amenity", "religion",
     "building", "building:levels", "height", "type", "alt_name", "name:gos", "population",
+    "cycleway", "cycleway:both", "cycleway:left", "cycleway:right", "segregated", "surface",
 }
+LAYERS = ("roads", "rail", "water", "places", "bld", "cycle")
 R = 5  # decimals (~1 m)
 LAT0, M_LAT, M_LON = 53.2195, 110574.0, 66652.97
 BLD_CODES = {"house": 1, "detached": 1, "semidetached_house": 1, "terrace": 1, "bungalow": 1, "residential": 1,
@@ -133,7 +149,6 @@ def compact_building(e):
     if not b:
         return None
     _, cx, cy, w, l, ux, uy = b
-    import math
     ang = math.degrees(math.atan2(uy, ux)) % 180
     lat = g[0][0] - cy / M_LAT
     lon = g[0][1] + cx / M_LON
@@ -143,7 +158,104 @@ def compact_building(e):
     except (TypeError, ValueError):
         lv = 0
     fill = round(area / max(1.0, w * l), 2)
-    return [round(lat, 6), round(lon, 6), round(w, 1), round(l, 1), round(ang), code, lv, fill]
+    out = [round(lat, 6), round(lon, 6), round(w, 1), round(l, 1), round(ang), code, lv, fill]
+    if fill < 0.8 and area >= 40:
+        parts = rect_parts(P, cx, cy, ux, uy, w, l, area)
+        if parts:
+            out.append(parts)
+    return out
+
+
+def inside(P, x, y):
+    c = False
+    n = len(P)
+    for i in range(n):
+        x0, y0 = P[i]
+        x1, y1 = P[(i + 1) % n]
+        if (y0 > y) != (y1 > y) and x < x0 + (y - y0) * (x1 - x0) / (y1 - y0):
+            c = not c
+    return c
+
+
+def snap(vals, tol):
+    vals = sorted(vals)
+    out = [vals[0]]
+    for v in vals[1:]:
+        if v - out[-1] > tol:
+            out.append(v)
+    return out
+
+
+def rect_parts(P, cx, cy, ux, uy, w, l, area):
+    """2-3 rectangles over the outline P (box frame: u along (ux, uy), v
+    across it, both from the box centre): [[cu, cv, w, l], ...] in
+    decimetres, or None when they would not fit it better than the box."""
+    Q = [((x - cx) * ux + (y - cy) * uy, -(x - cx) * uy + (y - cy) * ux) for x, y in P]
+    us = snap([q[0] for q in Q], 0.8)
+    vs = snap([q[1] for q in Q], 0.8)
+    if len(us) > 11 or len(vs) > 11:
+        return None
+    us[0], us[-1], vs[0], vs[-1] = -w / 2, w / 2, -l / 2, l / 2
+    nu, nv = len(us) - 1, len(vs) - 1
+    if nu < 2 and nv < 2:
+        return None
+    cell = [[inside(Q, (us[i] + us[i + 1]) / 2, (vs[j] + vs[j + 1]) / 2) for j in range(nv)] for i in range(nu)]
+    used = [[False] * nv for _ in range(nu)]
+    rects, covered = [], 0.0
+    for _ in range(3):
+        best = None
+        for i0 in range(nu):
+            for i1 in range(i0, nu):
+                for j0 in range(nv):
+                    gain = 0.0
+                    for j1 in range(j0, nv):
+                        if not all(cell[i][j1] for i in range(i0, i1 + 1)):
+                            break
+                        gain += sum((us[i + 1] - us[i]) * (vs[j1 + 1] - vs[j1]) for i in range(i0, i1 + 1) if not used[i][j1])
+                        a = (us[i1 + 1] - us[i0]) * (vs[j1 + 1] - vs[j0])
+                        # new cover first; an overlap only to square a wing off
+                        score = gain - 0.15 * (a - gain)
+                        if best is None or score > best[0]:
+                            best = (score, gain, i0, i1, j0, j1)
+        if not best or best[1] < max(10.0, area * 0.08):
+            break
+        _, gain, i0, i1, j0, j1 = best
+        for i in range(i0, i1 + 1):
+            for j in range(j0, j1 + 1):
+                used[i][j] = True
+        covered += gain
+        rects.append([us[i0], us[i1 + 1], vs[j0], vs[j1 + 1]])
+    if len(rects) < 2 or covered < 0.85 * area:
+        return None
+    rects = join_wings(rects)
+    return [[round((a + b) * 5), round((c + d) * 5), round((b - a) * 10), round((d - c) * 10)] for a, b, c, d in rects]
+
+
+def join_wings(rects):
+    """Each later rectangle that butts onto an earlier one runs on into it by
+    half its own width, so its roof meets the bigger roof instead of
+    standing a gable against it."""
+    out = [list(r) for r in rects]
+    for k in range(1, len(out)):
+        a0, a1, b0, b1 = out[k]
+        for r in out[:k]:
+            u0, u1, v0, v1 = r
+            ov_v = min(b1, v1) - max(b0, v0)
+            ov_u = min(a1, u1) - max(a0, u0)
+            half_w = (b1 - b0) / 2
+            half_l = (a1 - a0) / 2
+            if ov_v > 0.5 and abs(a1 - u0) < 0.3:
+                out[k][1] = a1 + min(half_w, (u1 - u0) / 2)
+            elif ov_v > 0.5 and abs(a0 - u1) < 0.3:
+                out[k][0] = a0 - min(half_w, (u1 - u0) / 2)
+            elif ov_u > 0.5 and abs(b1 - v0) < 0.3:
+                out[k][3] = b1 + min(half_l, (v1 - v0) / 2)
+            elif ov_u > 0.5 and abs(b0 - v1) < 0.3:
+                out[k][2] = b0 - min(half_l, (v1 - v0) / 2)
+            else:
+                continue
+            break
+    return out
 
 
 def compact_water(e):
@@ -153,6 +265,25 @@ def compact_water(e):
         if len(g) < 4 or poly_area(local(g)) < 600:
             return None
     return e
+
+
+def fetch_layer(key, bbox):
+    # the big layers in pieces, so no single Overpass answer gets huge
+    seen, els = set(), []
+    for b in tiles(bbox, 6 if key == "bld" else 2 if key in ("roads", "water") else 1):
+        print(f"  fetching {key} {b}", flush=True)
+        for e in overpass(queries(b)[key])["elements"]:
+            k = (e["type"], e["id"])
+            if k not in seen:
+                seen.add(k)
+                els.append(e)
+    out = [slim(e) for e in els]
+    if key == "bld":
+        out = [b for b in map(compact_building, out) if b]
+    if key == "water":
+        out = [w for w in map(compact_water, out) if w]
+    print(f"  {key}: {len(els)} elements", flush=True)
+    return out
 
 
 def extend():
@@ -207,28 +338,23 @@ def main():
             json.dump(raw, f, separators=(",", ":"))
         print(f"{DST}: {os.path.getsize(DST) / 1e6:.1f} MB, {len(raw['bld'])} buildings")
         return
+    if "--layers" in sys.argv:
+        with gzip.open(DST, "rt") as f:
+            raw = json.load(f)
+        for key in sys.argv[sys.argv.index("--layers") + 1].split(","):
+            raw[key] = fetch_layer(key, tuple(raw["bbox"]))
+        with gzip.open(DST, "wt", compresslevel=9) as f:
+            json.dump(raw, f, separators=(",", ":"))
+        print(f"{DST}: {os.path.getsize(DST) / 1e6:.1f} MB")
+        return
     if "--refresh" not in sys.argv and os.path.exists(DST):
         with gzip.open(DST, "rt") as f:
             if tuple(json.load(f).get("bbox", ())) == BBOX:
                 print(f"{DST}: cached")
                 return
     raw = {"bbox": list(BBOX)}
-    for key in ("roads", "rail", "water", "places", "bld"):
-        # the big layers in pieces, so no single Overpass answer gets huge
-        seen, els = set(), []
-        for b in tiles(BBOX, 3 if key == "bld" else 2 if key in ("roads", "water") else 1):
-            print(f"  fetching {key} {b}", flush=True)
-            for e in overpass(queries(b)[key])["elements"]:
-                k = (e["type"], e["id"])
-                if k not in seen:
-                    seen.add(k)
-                    els.append(e)
-        raw[key] = [slim(e) for e in els]
-        if key == "bld":
-            raw[key] = [b for b in map(compact_building, raw[key]) if b]
-        if key == "water":
-            raw[key] = [w for w in map(compact_water, raw[key]) if w]
-        print(f"  {key}: {len(els)} elements", flush=True)
+    for key in LAYERS:
+        raw[key] = fetch_layer(key, BBOX)
     with gzip.open(DST, "wt", compresslevel=9) as f:
         json.dump(raw, f, separators=(",", ":"))
     print(f"{DST}: {os.path.getsize(DST) / 1e6:.1f} MB")
