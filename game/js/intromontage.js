@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, getCamera } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk, seatPerson, seatPose, seatedY, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, animatePersonWalk, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { vehicleSeat } from './seating3d.js';
 import { Vehicle, MODELS, makeTwoWheeler, spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation, updateTrafficAI, resolveVehicleBuildingCollision } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
@@ -19,6 +20,7 @@ import { scriptHeli } from './skyprops.js';
 import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { routeAt as canalAt, ROUTE_LENGTH as CANAL_LENGTH } from './rondvaartchase.js';
 import { RING_ROUTE } from './ringroute.js';
+import { smoothPath, pathHeights, cineDrive } from './cinedrive.js';
 import { WATER_Y } from './util.js';
 import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, buildRope } from './introkitchen3d.js';
 
@@ -404,16 +406,18 @@ export function stage(m, x, y, a, { h = 0, speed = 0, pose: name = null, dt = 0,
   ud.blob.visible = true;
 }
 
+// Seats a cast member like the game seats anyone (seating3d.js vehicleSeat);
+// the driver's seat then has no generic NPC driver figure drawn on it.
 export function seat(m, v, driver) {
-  const hl = v.model.len / 2, hw = v.model.wid / 2;
-  const sx = -hl * 0.06, sz = (driver ? -1 : 1) * hw * 0.34;
+  const st = vehicleSeat(v, driver);
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   m.visible = true;
   resetArms(m.userData);
-  seatPerson(m, driver);
-  m.position.set(v.x + c * sx - s * sz, -SEATED_DROP, v.y + s * sx + c * sz);
+  seatPose(m, st.pose);
+  m.position.set(v.x + c * st.x - s * st.z, (v.z || 0) + seatedY(m, st.y), v.y + s * st.x + c * st.z);
   m.rotation.set(0, -v.angle, 0);
   m.userData.blob.visible = false;
+  if (driver) v.castDriver = true;
 }
 
 function moveSet(r, x, y) {
@@ -841,22 +845,25 @@ function buildShots(w) {
   };
 
   // flash: the black trekker-limo on Ring Zuid
-  const ring = polyline(RING_ROUTE.slice(0, 16).map((p) => [p[0], p[1]]));
+  const ring = smoothPath(RING_ROUTE.slice(0, 16));
+  let ringZ = null;
   const limo = {
     minDur: 1.5, clock: 19.6, focus: ring.at(30),
     enter(r, s) {
       clearRoadNear(r, ring, 8);
+      ringZ = ringZ || pathHeights(map, ring, map.spawnZ ? map.spawnZ(RING_ROUTE[0][0], RING_ROUTE[0][1]) : 0);
       s.d = 10;
       s.q = ring.at(s.d);
-      s.z = map.spawnZ ? map.spawnZ(s.q.x, s.q.y) : 0;
+      s.z = ringZ(s.d);
       s.v = tempCar(r, s.q.x, s.q.y, s.q.a, { model: { ...MODELS[0], name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#0d0d0f' } });
+      cineDrive(s.v, map, s.q, 15, 0, s.z);
       sfx(r.w, 'horn', s.q.x, s.q.y);
     },
     tick(r, s, t, dt) {
       s.d += 15 * dt;
       s.q = ring.at(s.d);
-      s.z = map.spawnZ ? map.spawnZ(s.q.x, s.q.y) : 0;
-      if (s.v) Object.assign(s.v, { x: s.q.x, y: s.q.y, angle: s.q.a, speed: 15, z: s.z });
+      s.z = ringZ(s.d);
+      if (s.v) cineDrive(s.v, map, s.q, 15, dt, s.z);
     },
     cams: [[0, (u, t, s) => {
       const q = s.q, f = { x: Math.cos(q.a), y: Math.sin(q.a) };
