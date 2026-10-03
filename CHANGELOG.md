@@ -9,9 +9,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Nieuw
 - **Uitleg voor nieuwe spelers:** korte tips op het moment dat je ze nodig
   hebt, één tegelijk en elk maar één keer: je eerste klus en waar je heen
-  moet, geld en winkels, je telefoon, de kaart en Te doen. Speel je vaker
-  zulke games, zet ze dan uit onder Instellingen › Weergave › "Uitleg voor
-  nieuwe spelers". Wie de toets al gebruikt, krijgt die tip niet meer.
+  moet, geld en winkels, zelf een doel kiezen op de kaart, en Te doen. Speel
+  je vaker zulke games, zet ze dan uit onder Instellingen › Weergave ›
+  "Uitleg voor nieuwe spelers".
 - **Foutrapport** onder Instellingen: gaat er iets mis, dan schrijft het spel
   dat op in een logboek op je eigen apparaat. Je kunt het kopiëren of, in de
   desktopversie, als bestand opslaan om mee te sturen met een melding. Er
@@ -22,6 +22,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   een kopie van je oude save.
 
 ### Gewijzigd
+- **Minder toetshints:** lopen, rondkijken, rennen, springen, bukken,
+  zwemmen, en gas, handrem, toeter, radio en filmcamera in voertuigen wijzen
+  zichzelf. De hints linksonder gaan nu alleen nog over in- en uitstappen,
+  je telefoon, de kaart, het pauzemenu (nieuw), kusjes, wapens en de
+  helikopter en de trein.
 - **H6: de lege vitrine is nu een echte onthulling.** De koepel is van
   matglas met een gouden gloed, dus je ziet pas wat er (niet) op het kussen
   ligt als je het slot gekraakt hebt: de camera schuift in stilte naar binnen,

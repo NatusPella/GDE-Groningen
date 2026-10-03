@@ -50,7 +50,6 @@ let secondary = [];
 let kissUntil = 0;
 let pressFlash = 0;
 let prev = { inVehicle: false, mouseDown: false };
-let lookAccum = 0;
 let lastPrimaryKey = '';
 const admitted = new Set();
 let rowGate = ROWS_DELAY;
@@ -215,6 +214,9 @@ function trackUsage(dt, world) {
 
   if (pressed('m')) used('map');
   if (pressed('t')) used('phone');
+  const menu = isPauseMenuOpen();
+  if (menu && !prev.menu) used('pause');
+  prev.menu = menu;
   if (world.paused || world.uiPaused) { prev.mouseDown = input.mouse.down; return; }
 
   if (world.pigeonMode) { prev.mouseDown = input.mouse.down; return; }
@@ -223,13 +225,11 @@ function trackUsage(dt, world) {
   if (!inV && prev.inVehicle) used('exit');
   prev.inVehicle = inV;
   const swim = !!world.player.swimming;
-  if (swim) used('swim', 0.02);
   if (prev.swimming && !swim && world.player.water !== 'fall') used('climb');
   prev.swimming = swim;
 
   if (pressed('e') || pressed('f')) pressFlash = 0.22;
   if (pressed('c')) used('switch');
-  if (pressed('v')) used('cinecam');
   for (let i = 1; i <= 4; i++) if (pressed(String(i))) used('weapon');
   if (input.mouse.down && !prev.mouseDown) used(isMeleeWeapon(world.weapon) ? 'punch' : world.weapon === 'carbidbus' ? 'throw' : 'shoot');
   prev.mouseDown = input.mouse.down;
@@ -243,20 +243,12 @@ function trackUsage(dt, world) {
     if (pressed('shift')) used('heliBoost');
     return;
   }
-  if (inV) {
+  // the train's own controls (the basics, WASD, mouse, Shift, Space, need no hint)
+  if (world.trainDriving) {
     if (pressed('w') || pressed('s') || pressed('arrowup') || pressed('arrowdown')) used('drive');
     if (pressed(' ')) used('handbrake');
     if (pressed('h')) used('horn');
-    if (pressed('n') || pressed('b')) used('radio');
-    if (pressed('q') || input.mouse.middleDown) used('lookback');
-    return;
   }
-  if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('move');
-  lookAccum += Math.abs(input.mouse.dx || 0);
-  if (lookAccum > 500) { lookAccum = 0; used('look'); }
-  if (pressed('shift') && world.player.moving) used('sprint');
-  if (pressed(' ')) used('jump');
-  if (pressed('control')) used('crouch');
 }
 
 // --- world-anchored prompts -------------------------------------------------
@@ -560,6 +552,7 @@ const PIC = {
   weapon: '<path d="M3 8.5h16l1 3h-7.5l-1.2 2.2H9.5L8.3 19H4.4l1.5-5.3H3z"/>',
   map: '<path d="M3 6.2l6-2.2 6 2.2 6-2.2v13.8l-6 2.2-6-2.2-6 2.2zM9 4v13.8M15 6.2V20"/>',
   phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.3h2"/>',
+  pause: '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>',
   drive: '<circle cx="12" cy="12" r="8.8"/><circle cx="12" cy="12" r="2.4"/><path d="M3.6 10.4l6.2 1M20.4 10.4l-6.2 1M12 14.4v6.4"/>',
   handbrake: '<path d="M5 20c0-8.5 5.5-12.5 13.5-12.5"/><path d="M15 3.8l3.8 3.7-3.8 3.7"/><path d="M3 15.5h2.5M2.5 11.5h2.5" opacity="0.6"/>',
   horn: '<path d="M3 9.8v4.4h4l5 4V5.8l-5 4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18.2 6.4a7.6 7.6 0 0 1 0 11.2"/>',
@@ -621,39 +614,21 @@ function contextRows(world, primary) {
     rows.push(tut('heliBoost', ['SHIFT'], 'Sneller', 'Vol gas vooruit'));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Alleen als je geland bent'));
   } else if (p.inVehicle) {
-    const boat = p.inVehicle.isBoat;
-    rows.push(tut('drive', ['WASD'], boat ? 'Varen' : 'Gas & sturen', boat ? 'W vooruit, S achteruit, A/D sturen' : 'W gas, S remmen en achteruit, A/D sturen'));
-    rows.push(boat ? tut('handbrake', [' '], 'Remmen', 'Afremmen voor een brug of de kade') : tut('handbrake', [' '], 'Handrem', 'Spatie in een bocht = driften'));
-    rows.push(tut('horn', ['H'], 'Toeter', boat ? 'Aan de kant, bootjes!' : 'Aan de kant, fietsers!'));
-    if (!p.inVehicle.isBike && !p.inVehicle.isScooter) rows.push(tut('radio', ['N'], 'Radio', 'N: volgende zender, B: vorige (G-Music, Nachtstreek, Radio Proat, uit)', true));
-    rows.push(tut('cinecam', ['V'], 'Filmcamera', 'Wissel naar filmische shots', true));
-    if (!world.noLookBack) rows.push(tut('lookback', ['Q'], 'Achterom', 'Houd Q of de middelste muisknop vast', true));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd RMB vast om te richten' : 'Vuren vanuit de auto'));
   } else if (p.swimming) {
-    rows.push(tut('swim', ['WASD'], 'Zwemmen', 'Zwem de kant op die je kijkt'));
-    rows.push(tut('swimfast', ['SHIFT'], 'Snel zwemmen', 'Kost adem, dus niet te lang'));
     if (p.canClimbOut) rows.push(tut('climb', ['E'], 'Eruit klimmen', 'Klim de kade op'));
-  } else {
-    rows.push(tut('move', ['WASD'], 'Lopen', 'W vooruit, S achteruit, A/D opzij'));
-    rows.push(tut('look', ['MOUSE'], 'Rondkijken', 'Muis draait de camera om je heen'));
-    // what you carry (or a fight) comes before sprinting and jumping
-    if (armed) {
-      const w = WEAPONS[world.weapon];
-      if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd vast om in te zoomen, klik om te schieten'));
-      else rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, Tab wisselt' : 'Houd vast om te richten'));
-      if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', 'Bukken (Ctrl) en klikken zet de bus neer. Wegwezen!'));
-      else rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
-      rows.push(tut('weapon', ['1-4'], 'Wapen', '1 slaan, 2 pistolen, 3 geweren, 4 knallers; nog eens drukken wisselt, of scrollen'));
-    } else if (world.wanted > 0 || (world.weapon && world.weapon !== 'fists')) {
-      rows.push(tut('punch', ['LMB'], 'Slaan', world.weapon === 'fists' ? 'Vuisten eerst, vragen later' : 'Klik om uit te halen, 1 wisselt'));
-    }
-    if (p.moving) rows.push(tut('sprint', ['SHIFT'], 'Rennen', 'Houd Shift ingedrukt'));
-    rows.push(tut('jump', [' '], 'Springen', 'Over hekjes en paaltjes'));
-    rows.push(tut('crouch', ['CTRL'], 'Bukken', 'Langzaam en klein'));
+  } else if (armed) {
+    const w = WEAPONS[world.weapon];
+    if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd vast om in te zoomen, klik om te schieten'));
+    else rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, Tab wisselt' : 'Houd vast om te richten'));
+    if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', 'Bukken (Ctrl) en klikken zet de bus neer. Wegwezen!'));
+    else rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
+    rows.push(tut('weapon', ['1-4'], 'Wapen', '1 slaan, 2 pistolen, 3 geweren, 4 knallers; nog eens drukken wisselt, of scrollen'));
   }
   rows.push(tut('map', ['M'], 'Kaart', 'Zet een bestemming', true));
   rows.push(tut('phone', ['T'], 'Telefoon', 'Missies, contacten en Kiekdoar', true));
+  rows.push(tut('pause', ['ESC'], 'Pauze', 'Te doen, kaart, garage en instellingen', true));
 
   const out = [];
   for (const r of rows) {

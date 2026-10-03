@@ -1,7 +1,8 @@
 // Uitleg for new players (docs/ONBOARDING.md): a handful of short tip cards,
 // each once, at the moment it is useful: the first goal, money and shops,
-// the phone, the map and Te doen. The key hints (prompts.js) teach the
-// controls themselves; this covers what the HUD cannot say in a key cap.
+// choosing your own goal on the map, and Te doen. About goals and where to
+// go, not about keys: the key hints (prompts.js) only cover what is not
+// obvious (E, T, M, Esc), never walking, running, jumping or the camera.
 //
 // - One at a time: a lesson only starts when everything the narrative
 //   scheduler watches (scenes, radio, story texts, calls, banter, subtitles,
@@ -46,16 +47,10 @@ const LESSONS = [
     card: () => ({ title: 'Geld en winkels', body: `Geld verdien je met missies en bijbaantjes; je saldo staat rechtsboven. Een winkel staat op de kaart: loop naar binnen en druk ${key('e')}.` }),
   },
   {
-    id: 'telefoon',
-    known: () => hintUses('phone') > 0,
-    when: (w, s) => s.has('doel') && !busy(w),
-    card: () => ({ title: 'Je telefoon', body: `Berichten gemist? ${key('t')} opent je telefoon: berichten terugkijken, contacten bellen en Kiekdoar lezen.` }),
-  },
-  {
     id: 'kaart',
     known: () => hintUses('map') > 0,
     when: (w, s) => s.has('doel') && !busy(w),
-    card: () => ({ title: 'De kaart', body: `${key('m')} opent de kaart. Klik op een plek of missie en de gele route gaat erheen. Het verhaal wacht zolang.` }),
+    card: () => ({ title: 'Zelf kiezen', body: `Liever iets anders eerst? Kies op de kaart (${key('m')}) een plek of missie en de gele route gaat erheen. Het verhaal wacht zolang.` }),
   },
   {
     id: 'tedoen',

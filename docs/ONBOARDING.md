@@ -30,7 +30,7 @@ of wat er verder kan.
 | Startscherm | Nieuw spel ("Moi! Stap in en rij"), Wat is er nieuw, Instellingen, Over. Zonder save is Nieuw spel de eerste keuze. | Duidelijk. |
 | Opening | De montage (trailerparodie, de keukentafel, de verhuisdag) met "Houd SPATIE ingedrukt om over te slaan" rechtsonder. | Goed, al is hij lang voor iemand die meteen wil spelen. Overslaan staat in beeld. |
 | Na de opening | De doelregel bovenin: "Berend telt de krassen · Volg de gele route naar de marker", met de gele route op de minimap en een label in de wereld. | Het belangrijkste is er: wat en waarheen. |
-| Besturing | Toetshints linksonder komen één voor één binnen (lopen, rondkijken, rennen, springen); een rij met tekst alleen voor wat je nog leert, daarna alleen het icoon, en weg zodra je hem vaak genoeg gebruikt. Bij de Escapade: "Jouw ouwe Escapade · Loop erheen, dan E". In de auto: gas, handrem, toeter. | Goed: precies op tijd, en het verdwijnt vanzelf. |
+| Besturing | Toetshints linksonder komen één voor één binnen (lopen, rondkijken, rennen, springen, bukken); in de auto gas, handrem, toeter, radio, filmcamera. Bij de Escapade: "Jouw ouwe Escapade · Loop erheen, dan E". | Te veel: WASD en de muis snapt iedereen (Alexander: "daar hoeven niet meer controls uitgelegd te worden"). Ze nemen de plek in van wat wél uitleg nodig heeft. |
 | Het verhaal | Bel Rikus op Radio Nachtstreek vertelt de klus, de tekst van de stap komt als bericht op de telefoon, de partner zegt iets. De narrative-planner (narrative.js) zorgt dat dit na elkaar komt. | Rustig en in volgorde. |
 | Thuis | "Jullie nieuwe flat! Bed: slapen en opslaan. Koelkast: eierbal. Kast: je kleren." | Goed, één kaart. |
 | Eerste aankoop (k-fiets) | "Voor het verhaal: …" als kaart, de route naar Trap & Toeter, "Voor het verhaal: loop naar binnen (E)" op de doelregel, en een voorschot van Sjoerd als je geld tekortkomt. | Goed: niemand komt vast te zitten. |
@@ -62,15 +62,23 @@ of wat er verder kan.
 
 ## 2. Wat er in 0.25 is veranderd
 
-`game/js/onboarding.js`: vijf korte uitlegkaartjes (HUD-kaarten van het soort
-tip, met kicker "Uitleg"), elk één keer, op het moment dat ze nuttig zijn:
+**Toetshints alleen voor wat niet vanzelf spreekt** (`prompts.js`). Weg:
+lopen, rondkijken, rennen, springen, bukken, zwemmen, en in voertuigen gas en
+sturen, handrem, toeter, radio, filmcamera en achterom. Over blijven: in- en
+uitstappen (E), eruit klimmen (E), de telefoon (T), de kaart (M), het
+pauzemenu (Esc, nieuw), kusjes na H13, wapens zodra je er een draagt, en de
+eigen besturing van de helikopter en de trein. Met een controller tonen
+dezelfde rijen de knoppen van je controller.
+
+`game/js/onboarding.js`: vier korte uitlegkaartjes (HUD-kaarten van het soort
+tip, met kicker "Uitleg") over doelen en waar je heen moet, niet over
+toetsen; elk één keer, op het moment dat ze nuttig zijn:
 
 | Kaartje | Wanneer | Tekst (kort) |
 |---|---|---|
-| Je eerste klus | 12 s spelen na de opening, er is een verhaalstap met een route, nog geen missie gehaald | "Bovenin staat je doel. Volg de gele route op de minimap tot in de gele marker. Ken je dit soort games? Esc › Instellingen › Weergave zet de uitleg uit." |
+| Je eerste klus | 12 s spelen na de opening, als alles stil is, er is een verhaalstap met een route, nog geen missie gehaald | "Bovenin staat je doel. Volg de gele route op de minimap tot in de gele marker. Ken je dit soort games? Esc › Instellingen › Weergave zet de uitleg uit." |
 | Geld en winkels | de verhaalstap is een aankoop (k-fiets) | "Geld verdien je met missies en bijbaantjes; je saldo staat rechtsboven. Een winkel staat op de kaart: loop naar binnen en druk [E]." |
-| Je telefoon | na Je eerste klus, als je T nog nooit gebruikte | "Berichten gemist? [T] opent je telefoon: berichten terugkijken, contacten bellen en Kiekdoar lezen." |
-| De kaart | na Je eerste klus, als je M nog nooit gebruikte | "[M] opent de kaart. Klik op een plek of missie en de gele route gaat erheen. Het verhaal wacht zolang." |
+| Zelf kiezen | 30 s na Je eerste klus, als je de kaart nog nooit opende | "Liever iets anders eerst? Kies op de kaart ([M]) een plek of missie en de gele route gaat erheen. Het verhaal wacht zolang." |
 | Te doen | de eerste missie die je in deze sessie haalt, 8 s na afloop | "Missie binnen, en het spel heeft opgeslagen. Alles wat nog openstaat staat onder Esc › Te doen: kies iets en de route gaat erheen." |
 
 De regels:
@@ -82,7 +90,7 @@ De regels:
   gewone HUD-kaart: niets pauzeert, niets wacht op een klik.
 - **Elk één keer, per apparaat** (`gte-uitleg`, net als de toetshints). Een
   tweede playthrough krijgt geen uitleg meer.
-- **Wie het al weet, krijgt het niet:** heb je T of M al gebruikt (de teller
+- **Wie het al weet, krijgt het niet:** heb je de kaart al geopend (de teller
   van prompts.js, `hintUses`), dan telt dat kaartje als gezien.
 - **Overslaan:** Instellingen › Weergave › "Uitleg voor nieuwe spelers" zet
   ze uit. Het eerste kaartje zegt dat in één zin. De toetshints hebben hun
