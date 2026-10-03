@@ -531,7 +531,14 @@ enter/tick/exit for temporary cars, actors, props, and a camera function).
 `runTrailer` owns the frame loop while it runs and drives the world through
 the title screen's `tick`/`render`/`relocate`; the title screen loop idles
 meanwhile. Temporary vehicles carry `cineTemp` (skipped by the title-screen
-traffic AI). `Math.random` is seeded per run and world state (clock,
+traffic AI). Cars that follow a road in a shot go through `cinedrive.js`:
+`smoothPath` (a Catmull-Rom curve, so heading and lane offsets turn
+smoothly), `pathHeights` (the road height along it, followed from the start
+so viaducts and cuttings keep their level) and `cineDrive` (puts the car on
+the point and lets `settleVehicleHeight` give it height, pitch and roll like
+a driven car); `node scripts/cine_ring_check.mjs` samples the ring race shot
+(heading snaps, sideslip, height, pitch, overlaps; `--old` for the motion
+before this). The intro montage's trekker-limo on Ring Zuid uses the same. `Math.random` is seeded per run and world state (clock,
 weather, trains, helis, balloons) is restored afterwards. Modes: `attract`
 (short cut at every launch except test runs, hold Space to skip, the last shot's `continuation()` becomes the
 title screen's first camera move and the logo glides into place),
