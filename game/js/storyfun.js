@@ -32,6 +32,7 @@ import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { getScene } from './scene3d.js';
 import { DURK_LOOK, DOUWE_LOOK, ROTOR_LOOK } from './storycast.js';
 import { STEP_BY_ID } from './storyarc.js';
+import { getPadelSpotsForRender } from './padel.js';
 
 const MEET_R = 9;
 const WALK_UP_R = 45;
@@ -55,7 +56,8 @@ let balloon = null;
 let pending = null;
 let spotTry = -1;
 // scenes started, per kind (the story test checks them)
-const played = { meet: 0, spot: 0, kermis: 0, carbid: 0, lift: 0 };
+const played = { meet: 0, spot: 0, kermis: 0, carbid: 0, lift: 0, court: 0 };
+const COURT_MEET_R = 16;
 
 const groundAt = (w, x, y) => (w.map.groundHeightAt ? w.map.groundHeightAt(x, y, 0) : 0);
 const flightStep = (st) => !!(st && !st.end && st.kind === 'activity' && st.goal && st.goal.type === 'flight');
@@ -241,6 +243,22 @@ function updateMeet(w, st, base) {
   }
 }
 
+// Durk & Douwe waiting at the padel court (s-padel `meet`): why they challenge you.
+function updateCourtMeet(w, st, base) {
+  if (base.met || !st.meet) return;
+  const p = w.player;
+  if (p.inVehicle || p.swimming || w.padelGame || isCinematicActive() || isMissionActive() || isActivityActive() || w.pigeonMode) return;
+  let site = null, bd = COURT_MEET_R;
+  for (const s of getPadelSpotsForRender()) {
+    const d = Math.hypot(s.x - p.x, s.y - p.y);
+    if (d < bd) { bd = d; site = s; }
+  }
+  if (!site) return;
+  base.met = true;
+  const sc = st.meet;
+  if (playCastScene(w, { at: { x: p.x, y: p.y }, lookTo: { x: site.x, y: site.y }, lines: sc.lines, cast: sc.cast || [], props: sc.props || [], kicker: sc.kicker || '' })) played.court++;
+}
+
 // Where a step is done: the bumper-car ride's payoff at the booth (the twins,
 // dizzy, then off on their one fatbike), or Roelf and Hilje at the churn after
 // carbid schieten (the Eierbal goes into the melkbus, a knal sends the twins off).
@@ -344,6 +362,8 @@ export function initStoryFun(w) {
     demo: () => (demo ? demo.v : null),
     // the s-carbid lift right now (far out, nothing to drive): true when the Escapade was dropped off
     lift: (id = 's-carbid') => { const st = STEP_BY_ID.get(id); return !!(st && st.goal && st.goal.lift) && liftNow(world, st); },
+    // the twins' challenge at the nearest padel court (s-padel)
+    court: () => { const base = {}; updateCourtMeet(world, STEP_BY_ID.get('s-padel'), base); return !!base.met; },
     // replay a step's scene where it plays ('r-kermis': the booth, 's-proefvlucht': the balloon, 's-carbid': the churn)
     scene: (id) => {
       const st = STEP_BY_ID.get(id);
@@ -366,6 +386,7 @@ export function updateStoryFun(dt, w, step, base) {
     updateSpotting(w, st, base);
   }
   if (st && st.kind === 'activity' && st.goal && st.goal.type === 'carbid' && base) updateLift(w, st, base);
+  if (st && st.kind === 'activity' && st.goal && st.goal.type === 'padel' && base) updateCourtMeet(w, st, base);
   updatePending(w);
 }
 
