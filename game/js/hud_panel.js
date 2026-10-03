@@ -1386,7 +1386,9 @@ function drawVillageNames(ctx, player, radius, toScreen) {
     const r = radius * 1.5;
     villageCache = { x: player.x, y: player.y, list: villageLabels(player.x - r, player.y - r, player.x + r, player.y + r).filter((v) => VILLAGE_KINDS.has(v.kind)) };
   }
-  const lim = (radius - 14 / mmScale) ** 2;
+  // a village just off the map keeps its name at the rim, towards it
+  const lim = (radius * 1.5) ** 2, rim = MINIMAP_SIZE / 2 - 20;
+  const [cx, cy] = toScreen(player.x, player.y);
   ctx.save();
   ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   ctx.textAlign = 'center';
@@ -1398,7 +1400,9 @@ function drawVillageNames(ctx, player, radius, toScreen) {
   let n = 0;
   for (const v of villageCache.list) {
     if ((v.x - player.x) ** 2 + (v.y - player.y) ** 2 > lim) continue;
-    const [sx, sy] = toScreen(v.x, v.y);
+    let [sx, sy] = toScreen(v.x, v.y);
+    const d = Math.hypot(sx - cx, sy - cy);
+    if (d > rim) { sx = cx + (sx - cx) * rim / d; sy = cy + (sy - cy) * rim / d; }
     const label = v.name.toUpperCase();
     ctx.strokeText(label, sx, sy);
     ctx.fillText(label, sx, sy);
