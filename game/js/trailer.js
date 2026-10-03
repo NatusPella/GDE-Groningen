@@ -592,7 +592,7 @@ function noteCard(text) {
     c.textAlign = 'center';
     c.fillText(text, w / 2, h / 2 + 10);
     c.font = 'italic 26px Georgia, serif';
-    c.fillText('– W.', w * 0.72, h - 22);
+    c.fillText('– J.', w * 0.72, h - 22);
   });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.125), new THREE.MeshBasicMaterial({ map: tex }));
   return m;

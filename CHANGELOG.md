@@ -6,6 +6,18 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Veranderd
+- De disclaimer staat niet meer op het laad- en startscherm, alleen nog in
+  Over, de aftiteling en de README.
+
+### Gewijzigd
+- **H6: de lege vitrine is nu een echte onthulling.** De koepel is van
+  matglas met een gouden gloed, dus je ziet pas wat er (niet) op het kussen
+  ligt als je het slot gekraakt hebt: de camera schuift in stilte naar binnen,
+  de koepel gaat omhoog, een leeg kussen, het kaartje in close-up. Kort en
+  wegklikbaar. Het kaartje is nu getekend "– J.", en na Jelles telefoontje
+  naar Nachtstreek valt bij Anita het kwartje: "J. Van Jelle. Natuurlijk."
+
 ## [0.24.0] - 2026-10-03
 
 ### Nieuw
