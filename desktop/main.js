@@ -401,10 +401,16 @@ async function runProfile(win, ms = 6000) {
   const dbg = win.webContents.debugger;
   if (!dbg.isAttached()) dbg.attach('1.3');
   await dbg.sendCommand('Profiler.enable');
-  await dbg.sendCommand('Profiler.setSamplingInterval', { interval: 200 });
+  // GTE_PROFILE_INTERVAL (µs): coarser sampling keeps --cpu-throttle runs near their real speed
+  await dbg.sendCommand('Profiler.setSamplingInterval', { interval: Number(process.env.GTE_PROFILE_INTERVAL) || 200 });
   await dbg.sendCommand('Profiler.start');
   await new Promise((r) => setTimeout(r, ms));
   const { profile } = await dbg.sendCommand('Profiler.stop');
+  // GTE_PROFILE_OUT=<dir>: also keep the raw profile (scripts/perf/categories.mjs)
+  if (process.env.GTE_PROFILE_OUT) {
+    fsSync.mkdirSync(process.env.GTE_PROFILE_OUT, { recursive: true });
+    fsSync.writeFileSync(path.join(process.env.GTE_PROFILE_OUT, `${Date.now()}.cpuprofile`), JSON.stringify(profile));
+  }
   const byId = new Map(profile.nodes.map((n) => [n.id, n]));
   const self = new Map();
   const dtSum = profile.timeDeltas.reduce((a, b) => a + b, 0);
@@ -436,7 +442,8 @@ async function runProfile(win, ms = 6000) {
   const byFile = new Map();
   for (const [k, us] of self) { const f = k.split(' ').pop().split(':')[0] || '(native)'; byFile.set(f, (byFile.get(f) || 0) + us); }
   for (const [f, us] of [...byFile.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20)) console.log('[profile-file]', (us / dtSum * 100).toFixed(1).padStart(5) + '%', f);
-  dbg.detach();
+  // detaching would also drop --cpu-throttle for the routes after this one
+  if (!(Number(argValue('--cpu-throttle')) > 1)) dbg.detach();
 }
 
 function runStoryTest(win, dir) {

@@ -32,7 +32,8 @@ import { buildShore, updateShore } from './quaywalls.js';
 import { getWaterIndex } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
 import { propsNearInto } from './breakables.js';
-import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
+import { buildTerrainMesh3D, terrainArrays, terrainGroup, createTerrainMaterial, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
+import { runGeo, geoWorkerActive } from './geojobs.js';
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
@@ -66,11 +67,11 @@ import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js'
 import { updateCountryside } from './countryside.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
-import { edgeDistance } from './countryfield.js';
+import { edgeDistance, setCountryBounds } from './countryfield.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
-import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor } from './roadsurface.js';
+import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -113,6 +114,11 @@ const SHADOW_LEVELS = {
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
 let terrainMesh = null;
+let terrainPending = null;
+// resolves once the terrain is in the scene (built in the geometry worker)
+export function terrainReady() {
+  return terrainPending || Promise.resolve();
+}
 let followYaw = 0;
 // orbit radius kept constant so pitch changes swing the camera around the
 // player like a real GTA camera (higher/steeper looking down, lower/flatter
@@ -789,7 +795,20 @@ export function init3D(map) {
   // background right at ground level - looked like holes in the world.
   // Sits below WATER_Y (-0.35) so it never hides water the way the old
   // plane did (that one rendered at y=0, right over water's -0.35).
-  terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
+  // in the geometry worker while the game loads (main.js awaits terrainReady)
+  if (geoWorkerActive()) {
+    setCountryBounds(map.meta.bounds);
+    terrainMesh = new THREE.Group();
+    terrainMesh.material = createTerrainMaterial();
+    const group = terrainMesh;
+    const water = map.water.map((w) => ({ pts: w.pts, bounds: w.bounds }));
+    terrainPending = new Promise((done) => runGeo('terrain', { bounds: map.meta.bounds, water }, (T) => {
+      if (T) terrainGroup(T, group);
+      else terrainGroup(terrainArrays(map.meta.bounds, map.water), group);
+      freezeStatic(group);
+      done();
+    }));
+  } else terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
   scene.add(freezeStatic(terrainMesh));
 
   // Opaque canal bed under the whole map: terrain holes are cut per grid
@@ -1477,8 +1496,12 @@ function syncRoads(world, px, py) {
   if (missing.length) {
     missing.sort((a, b) => a[0] - b[0]);
     const deadline = performance.now() + (performance.now() < streamBoostUntil ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
-    let built = 0;
+    let built = 0, waiting = false;
     for (const [d, r] of missing) {
+      // surfaces still coming from the geometry worker: the far LOD covers
+      // from the nearest of them on (requested now, nearest first)
+      if (!roadGeometryReady(r)) { if (!waiting) roadDetailR = Math.max(24, d); waiting = true; continue; }
+      if (waiting) continue;
       if (built > 0 && !r._geoRoad && performance.now() > deadline) { roadDetailR = Math.max(24, d); break; }
       coldRoads.delete(r);
       const mesh = freezeStatic(buildRoadGroup(r));

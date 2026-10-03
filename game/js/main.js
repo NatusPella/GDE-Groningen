@@ -32,7 +32,8 @@ import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
-import { init3D, update3D, resize3D, getScene, setMenuCover, MENU_FRAME_S, refreshRenderScale } from './scene3d.js';
+import { geoWorkerActive } from './geojobs.js';
+import { init3D, update3D, resize3D, getScene, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady } from './scene3d.js';
 import { noteFrame, hideAdvice } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
@@ -188,6 +189,8 @@ const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 
 async function boot() {
   markLoad('boot');
+  // the geometry worker loads its modules while the map downloads
+  geoWorkerActive();
   initA11y();
   initGlyphs();
   initTheme();
@@ -283,6 +286,8 @@ async function boot() {
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   markLoad('systems');
+  await terrainReady();
+  markLoad('terrain');
   await finishLoading();
   markLoad('title');
   // the minimap's and map's Ommeland water and meadow images, a few ms a frame
