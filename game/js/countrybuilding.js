@@ -199,6 +199,7 @@ export function applyFacade(m, key, extra = null) {
       .replace('#include <color_vertex>', VERT_COLOR);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>\n${FRAG_HEAD}`)
+      .replace('#include <color_fragment>', `#include <color_fragment>\n${FRAG_FACADE}`)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += bGlow;');
   };
   m.customProgramCacheKey = () => 'country-bld-' + key;

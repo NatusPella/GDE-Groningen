@@ -11,6 +11,7 @@ import {
   TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H,
 } from './countrymodels.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
+import { applyFacade, bldCode, STYLE, ROOF_PAL } from './countrybuilding.js';
 import { markInstancesDirty } from './util.js';
 
 // The Ommelanden skyline: church towers, turbine rows, poldermolens, pylon
@@ -75,8 +76,8 @@ ${light ? 'gl_FragColor.rgb *= 0.12 + 0.88 * step(0.35, fract(uTime * 0.5 + 0.2)
 const TYPES = {
   church0: { geo: () => churchGeometry(0), mat: 'tall', cap: 160, shadow: true },
   church1: { geo: () => churchGeometry(1), mat: 'tall', cap: 160, shadow: true },
-  rbSil: { geo: realSilhouetteGeometry, mat: 'belt', cap: 9000 },
-  rbSilFlat: { geo: () => realSilhouetteGeometry(true), mat: 'belt', cap: 3000 },
+  rbSil: { geo: realSilhouetteGeometry, mat: 'bld', cap: 9000 },
+  rbSilFlat: { geo: () => realSilhouetteGeometry(true), mat: 'bld', cap: 3000 },
   turbine: { geo: turbineTowerGeometry, mat: 'tall', cap: 400, shadow: true },
   rotor: { geo: turbineRotorGeometry, mat: 'rotorT', cap: 400 },
   light: { geo: lightGeometry, mat: 'light', cap: 400 },
@@ -104,7 +105,10 @@ function init(scene) {
     rotorT: skyMaterial('rotorT', { rotor: 1.15 }),
     rotorM: skyMaterial('rotorM', { rotor: 0.55 }),
     light: skyMaterial('light', { light: true }),
+    bld: skyMaterial('bld', { belt: true }),
   };
+  // the far real buildings: the belt haze plus the facade (lit windows at night)
+  applyFacade(mats.bld, 'sky', mats.bld.onBeforeCompile);
   const pools = {};
   for (const [k, T] of Object.entries(TYPES)) {
     const mesh = new THREE.InstancedMesh(markShared(T.geo()), mats[T.mat], T.cap);
@@ -127,7 +131,7 @@ function init(scene) {
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color();
 const _e = new THREE.Euler(), _x = new THREE.Vector3(1, 0, 0), _d = new THREE.Vector3();
 
-function put(L, type, x, h, y, rotY, sx, sy, sz, color = 0xffffff) {
+function put(L, type, x, h, y, rotY, sx, sy, sz, color = 0xffffff, code = 0) {
   const list = L[type] || (L[type] = { m: [], c: [] });
   if (list.c.length / 3 >= TYPES[type].cap) return;
   _e.set(0, rotY, 0);
@@ -135,7 +139,7 @@ function put(L, type, x, h, y, rotY, sx, sy, sz, color = 0xffffff) {
   _m.compose(_p.set(x, h, y), _q, _s.set(sx, sy, sz));
   for (let i = 0; i < 16; i++) list.m.push(_m.elements[i]);
   _c.set(color);
-  list.c.push(_c.r, _c.g, _c.b);
+  list.c.push(_c.r + code * 2, _c.g, _c.b);
 }
 
 function putSeg(L, a, b, thick) {
@@ -149,6 +153,7 @@ function putSeg(L, a, b, thick) {
   list.c.push(1, 1, 1);
 }
 
+const SIL_STYLE = { house: STYLE.house, block: STYLE.block, barn: STYLE.barn, shed: STYLE.shed, glass: STYLE.glass };
 const ROOF_TINT = [0xa04a30, 0x5a5e62, 0x8a7a52];
 const SIL_SCALE = { khr: [1, 1, 1], olda: [1.15, 1.15, 1.3], small: [0.5, 0.58, 0.46], dairy: [1.25, 0.62, 1.45] };
 
@@ -203,8 +208,9 @@ function* gatherGen(px, py, nearR) {
         for (const i of B) {
           if (REAL.bw[i] * REAL.bl[i] < 45 || (REAL.bx[i] - px) ** 2 + (REAL.by[i] - py) ** 2 < nr2) continue;
           const m = buildingModel(i);
-          if (m.kind === 'house' || m.kind === 'barn') put(L, 'rbSil', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall + m.roof, m.short, m.kind === 'barn' ? m.roofColor : m.roofColor);
-          else put(L, 'rbSilFlat', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall, m.short, m.color);
+          const style = SIL_STYLE[m.kind];
+          if (m.roof > 0) put(L, 'rbSil', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, (m.wall + m.roof) * 0.98, m.short, m.color, bldCode(style, Math.max(0, ROOF_PAL.indexOf(m.roofColor))));
+          else put(L, 'rbSilFlat', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall, m.short, m.color, bldCode(style));
         }
       }
       if (++k % 60 === 0) yield;

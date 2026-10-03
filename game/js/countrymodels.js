@@ -802,17 +802,18 @@ export function realRoofMidGeometry() {
   return withParts(B.build(), (x, y, z, nx, ny) => (ny > 0.3 ? PART.roof : PART.plain));
 }
 
-// Distant real building: walls to 0.55 and a gable roof to 1 (flat: a box).
+// Distant real building: walls to 0.55 and a gable roof to 1 (flat: a box),
+// tinted with the wall colour; the roof takes its colour from the code.
 export function realSilhouetteGeometry(flat = false) {
   const B = new GeoBuilder();
-  if (flat) {
-    B.box(0, 0.5, 0, 1, 1, 1, 0xffffff);
-    return B.build();
-  }
-  B.box(0, 0.275, 0, 1, 0.55, 1, 0xb88a70);
+  if (flat) return realBodyGeometry();
+  B.quadOut([-0.5, 0, 0.5], [0.5, 0, 0.5], [0.5, 0.55, 0.5], [-0.5, 0.55, 0.5], [0, 0, 1], 0xffffff);
+  B.quadOut([-0.5, 0, -0.5], [-0.5, 0.55, -0.5], [0.5, 0.55, -0.5], [0.5, 0, -0.5], [0, 0, -1], 0xffffff);
   B.quadOut([-0.52, 0.53, 0.54], [0.52, 0.53, 0.54], [0.52, 1, 0], [-0.52, 1, 0], [0, 1, 1], 0xffffff);
   B.quadOut([-0.52, 0.53, -0.54], [-0.52, 1, 0], [0.52, 1, 0], [0.52, 0.53, -0.54], [0, 1, -1], 0xffffff);
-  B.triOut([-0.5, 0.55, 0.5], [-0.5, 0.55, -0.5], [-0.5, 0.98, 0], [-1, 0, 0], 0xb88a70);
-  B.triOut([0.5, 0.55, 0.5], [0.5, 0.98, 0], [0.5, 0.55, -0.5], [1, 0, 0], 0xb88a70);
-  return B.build();
+  B.quadOut([-0.5, 0, -0.5], [-0.5, 0, 0.5], [-0.5, 0.55, 0.5], [-0.5, 0.55, -0.5], [-1, 0, 0], 0xffffff);
+  B.quadOut([0.5, 0, -0.5], [0.5, 0.55, -0.5], [0.5, 0.55, 0.5], [0.5, 0, 0.5], [1, 0, 0], 0xffffff);
+  B.triOut([-0.5, 0.55, 0.5], [-0.5, 0.55, -0.5], [-0.5, 0.98, 0], [-1, 0, 0], 0xffffff);
+  B.triOut([0.5, 0.55, 0.5], [0.5, 0.98, 0], [0.5, 0.55, -0.5], [1, 0, 0], 0xffffff);
+  return withParts(B.build(), (x, y, z, nx, ny) => (ny > 0.3 ? PART.silRoof : PART.silWall));
 }
