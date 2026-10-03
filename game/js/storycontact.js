@@ -391,4 +391,12 @@ export function updateStoryContact(dt, w) {
   if (cur.t >= cur.until) next();
 }
 
-if (typeof window !== 'undefined') window.__storyContact = { queue: queueStoryContact, state: () => cur && { via: cur.c.via, i: cur.i, phase: cur.phase }, pending: () => queue.length };
+// the story test fast-forwards contacts like it skips cutscenes: the current one ends at once (its onDone runs)
+export function skipStoryContact() {
+  if (!cur || cur.phase === 'scene') return false;
+  stopBanterVoice();
+  finish();
+  return true;
+}
+
+if (typeof window !== 'undefined') window.__storyContact = { queue: queueStoryContact, state: () => cur && { via: cur.c.via, i: cur.i, phase: cur.phase }, pending: () => queue.length, skip: skipStoryContact };
