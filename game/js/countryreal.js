@@ -14,7 +14,7 @@ export const RTILE = 160;
 const URBAN_CELL = 40;
 
 export const REAL = {
-  ready: false, ext: null, roads: [], waterways: [], rails: [], places: [], churches: [], stations: [], routes: [],
+  ready: false, ext: null, roads: [], cycleways: [], waterways: [], rails: [], places: [], churches: [], stations: [], routes: [],
   n: 0, bx: null, by: null, bw: null, bl: null, ba: null, code: null, lv: null, fill: null,
   bTiles: new Map(), rTiles: new Map(), signTiles: new Map(), churchTiles: new Map(),
   // village shopfronts: building -> face (1 +x, 2 -x, 3 +z, 4 -z of its
@@ -201,7 +201,8 @@ export function initReal(map, om) {
   const urban = urbanGrid(om.extent);
   REAL.waterField = water;
 
-  REAL.roads = om.roads.map((r) => ({ pts: pairs(r.p), kind: r.k, w: r.w, name: r.n || '', ref: r.r || '', oneway: !!r.o, bridge: !!r.b }));
+  REAL.roads = om.roads.map((r) => ({ pts: pairs(r.p), kind: r.k, w: r.w, name: r.n || '', ref: r.r || '', oneway: !!r.o, bridge: !!r.b, cycle: !!r.c }));
+  REAL.cycleways = (om.cycleways || []).map((c) => ({ pts: pairs(c.p), hw: c.h }));
   REAL.waterways = om.waterways.map((w) => ({ pts: pairs(w.p), hw: w.h, name: w.n || '' }));
   REAL.rails = om.rails.map(pairs);
   REAL.boatways = (om.boatways || []).map((w) => ({ pts: pairs(w.p), hw: w.h })).concat(REAL.waterways.filter((w) => w.pts.length > 3));
