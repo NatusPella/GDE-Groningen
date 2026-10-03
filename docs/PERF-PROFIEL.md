@@ -94,3 +94,40 @@ een worker (`sfx/dspworker.js`).
    datamodules. Per frame is het klein (1 tot 2%) en al over frames
    verdeeld.
 4. **Laadtijd** (stap 3) en de minimap zijn aparte posten; zie hieronder.
+
+## Resultaat stap 2: geometrie-worker (A/B)
+
+A = main (met dezelfde hitchprobe), B = `claude/workers`. Drie paren, om en
+om, Laag + CPU×4 + `--hitch`, één Electron tegelijk. Gemiddeld over 3 runs,
+in ms hoofdthread per frame:
+
+| route | sectie | A | B |
+|-------|--------|--:|--:|
+| foot  | `cityprops` | 4.86 | 1.36 (−72%) |
+| foot  | hele frame (cpu) | 105 | 82 |
+| ring  | `cityprops` | 1.58 | 1.06 |
+| ring  | Ommeland (`3d:rail+country`) | 1.59 | 1.39 |
+| heli  | Ommeland (`3d:rail+country`) | 3.12 | 2.43 (−22%) |
+| heli  | long tasks (bij ~465 frames) | 81 | 56 |
+
+Mediaan (ab.sh): foot p99 200 → 150 ms, longMax 229 → 159 ms; heli p99
+83 → 67 ms. Draw calls gelijk (foot 369/371, ring 233/231, heli 120/120).
+Let op: de load daalde tijdens de reeks en A liep steeds eerst, dus de
+hele-frame-cijfers bevoordelen B wat. De sectiecijfers meten de verplaatste
+code zelf. Bit-gelijk: `geocheck.sh` gaf 240 cellen (2.54 M vertices) en
+197 waterchunks identiek.
+
+## Laadtijd (stap 3, alleen gemeten)
+
+`window.__loadMarks` tot het titelscherm: met CPU×4 25.1 s (kaart 8.7 s,
+init3D 4.9 s, rand van het Ommeland 2.5 s, wereld 5.6 s). Zonder throttle,
+met profiler, 8.0 s. Daarvan: `loadMap` 2.1 s (de `GameMap`-constructor
+1.65 s, waarvan `liftNestedRoofs` 0.46 s), `buildTerrainMesh3D` 0.77 s,
+`initCountryEdge` 0.67 s.
+- Het terrein bakken kost ~10 MB extra download (811k vertices) voor
+  0.8 s: niet doen. Wel kan het in de worker, naast `GameMap`, zonder
+  extra download (geschat ~0.8 s, ~3 s bij CPU×4).
+- De afgeleide kaartdata (`liftNestedRoofs` en indexen) in het bouwscript
+  bakken: ~0.5 s, kleine extra download.
+- Allebei raken ze terrein, water en gebouwen, waar mesh ronde 4 nu aan
+  werkt; daarom nog niet gebouwd. De lat (30 s) wordt nu gehaald.
