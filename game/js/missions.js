@@ -2945,7 +2945,9 @@ export function updateMissionMarker3D(group, time, phase) {
   markerGroundMaterial.color.setHex(hex);
 
   const pulse = 1 + Math.sin(time * 4) * 0.25;
-  group.userData.ring.scale.setScalar(pulse);
+  // flattened (local z is world up): seen edge-on at eye height a round
+  // tube reads as a fat capsule across the beam, a flat band as a thin line
+  group.userData.ring.scale.set(pulse, pulse, pulse * 0.3);
   group.userData.ring.position.y = 2.6 + Math.sin(time * 2) * 0.2;
   group.userData.core.scale.setScalar(0.85 + Math.sin(time * 4) * 0.25);
 }
