@@ -1002,6 +1002,9 @@ function markBuf() { return { pos: [], nrm: [], uv: [], idx: [] }; }
 // (bus lane red, then white lines, then manholes, grates and symbols), so the
 // overlaps never fight over the same depth.
 const PAINT_RED = 0, PAINT_WHITE = 0.004, PAINT_DECAL = 0.008;
+// decals of different kinds can lie on one another (a manhole on "BUS", a grate
+// on the edge line of the street alongside): each kind a few mm over the last
+const decalLift = (uv) => PAINT_DECAL + (uv === UV_GRATE ? 0.004 : uv === UV_BIKE ? 0.008 : uv === UV_BUS ? 0.012 : 0);
 
 function stripAlong(r, rs, M, s0, s1, off, half, uvc = UV_WHITE) {
   if (s1 - s0 < 0.05) return;
@@ -1093,8 +1096,12 @@ function decal(r, rs, M, sAlong, off, len, wid, uv) {
   const fx = nrmv[1], fy = -nrmv[0];
   const base = M.pos.length / 3;
   const corners = [[-1, -1, uv[0], uv[1]], [1, -1, uv[2], uv[1]], [-1, 1, uv[0], uv[3]], [1, 1, uv[2], uv[3]]];
+  const lift = decalLift(uv);
+  const tmp = [0, 0, 0, 0];
   for (const [u, v, tu, tv] of corners) {
-    M.pos.push(c[0] + fx * u * len / 2 + nrmv[0] * v * wid / 2, c[3] + PAINT_DECAL, c[1] + fy * u * len / 2 + nrmv[1] * v * wid / 2);
+    // (on a ramp the corners follow the road's slope)
+    const z = r.z ? at(r, rs, sAlong + u * len / 2, off, tmp)[3] : c[3];
+    M.pos.push(c[0] + fx * u * len / 2 + nrmv[0] * v * wid / 2, z + lift, c[1] + fy * u * len / 2 + nrmv[1] * v * wid / 2);
     M.nrm.push(0, 1, 0);
     M.uv.push(tu, tv);
   }
@@ -1110,8 +1117,10 @@ function busDecal(r, rs, M, sAlong, off, dir) {
   const len = 1.6, wid = 2.4;
   const base = M.pos.length / 3;
   const [u0, v0, u1, v1] = UV_BUS;
+  const tmp = [0, 0, 0, 0];
   for (const [a, b, tu, tv] of [[-1, -1, u0, v0], [1, -1, u0, v1], [-1, 1, u1, v0], [1, 1, u1, v1]]) {
-    M.pos.push(c[0] + fx * a * len / 2 + rx * b * wid / 2, c[3] + PAINT_DECAL, c[1] + fy * a * len / 2 + ry * b * wid / 2);
+    const z = r.z ? at(r, rs, sAlong + a * dir * len / 2, off, tmp)[3] : c[3];
+    M.pos.push(c[0] + fx * a * len / 2 + rx * b * wid / 2, z + decalLift(UV_BUS), c[1] + fy * a * len / 2 + ry * b * wid / 2);
     M.nrm.push(0, 1, 0);
     M.uv.push(tu, tv);
   }
