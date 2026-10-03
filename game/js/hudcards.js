@@ -25,6 +25,8 @@ import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { unseenAchievementCount } from './achievements.js';
+import { mayStart, noteToast, heldBack } from './narrative.js';
+import { missionIconInner } from './missionicons.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 
 // the HUD's attention budget: one prominent card at a time
@@ -99,7 +101,8 @@ let lastVoiceAt = -Infinity;
 const voicedAt = new Map();
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const svg = (kind) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[kind] || ICON.tip}</svg>`;
+// 'm-<i>': the icon of story mission i (missionicons.js)
+const svg = (kind) => `<svg viewBox="0 0 24 24" aria-hidden="true">${(/^m-\d+$/.test(kind) && missionIconInner(+kind.slice(2))) || ICON[kind] || ICON.tip}</svg>`;
 
 export function initCards(w, root) {
   world = w;
@@ -228,7 +231,8 @@ export function showCard(w, spec) {
   if (title && body && title.toLowerCase() === (spec.kicker || CARD_KINDS[kind].label).toLowerCase()) { title = body; body = ''; }
   const all = `${title} ${body}`.trim();
   const secs = Math.min(MAX_TIME, Math.max(MIN_TIME, (spec.duration || 0) * 1.2, readingSeconds(all) * 1.25));
-  const card = { spec: { ...spec, kind, title, body }, secs, key: spec.key || all, at: world ? world.time : 0, age: 0, text: spec.text || all };
+  const icon = spec.icon || (kind === 'missie' ? missionCardIcon(world, `${title} ${body} ${spec.kicker || ''}`) : null);
+  const card = { spec: { ...spec, kind, title, body, icon }, secs, key: spec.key || all, at: world ? world.time : 0, age: 0, text: spec.text || all };
   card.important = kind === 'tip' && (!!spec.important || teaches(all));
   const up = visible.find((c) => c.key === card.key && !c.leaving);
   if (up) { refresh(up, card); return; }
@@ -236,6 +240,16 @@ export function showCard(w, spec) {
   queue.push(card);
   queue.sort((a, b) => CARD_KINDS[b.spec.kind].rank - CARD_KINDS[a.spec.kind].rank || b.important - a.important || a.at - b.at);
   while (queue.length > MAX_QUEUE) queue.pop();
+}
+
+// A mission card shows its mission's icon: the one that runs, else the one
+// the card names (its code, "H3", or its title).
+function missionCardIcon(w, text) {
+  const m = w && w.mission;
+  if (!m || !Number.isInteger(m.index)) return null;
+  if (m.phase === 'active') return 'm-' + m.index;
+  if ((m.code && new RegExp(`\\b${m.code}\\b`).test(text)) || (m.label && text.includes(m.label))) return 'm-' + m.index;
+  return null;
 }
 
 // A key named in a card becomes a key cap: [E], "(E)", "druk (op) E/Spatie".
@@ -339,6 +353,9 @@ function showCount(text, dur) {
   countT = Math.max(0.6, dur);
 }
 
+// Shown even while a story call talks: dangers, the police, and the cards of a running mission or bijbaan.
+const pressing = (q, w) => q.spec.kind === 'politie' || q.spec.kind === 'gevaar' || contextKind(w) !== 'tip';
+
 function hudHidden() {
   const b = document.body.classList;
   return !b.contains('game-started') || b.contains('cine-hide-hud');
@@ -348,7 +365,11 @@ export function updateCards(dt, w) {
   if (!stackEl) return;
   world = w;
   if (countT > 0 && (countT -= dt) <= 0) countEl.classList.remove('on');
-  const frozen = hudHidden() || w.paused || w.uiPaused;
+  // narrative.js: cards wait out every cutscene, not only the ones that hide the HUD
+  // and a card that is up steps aside while a story call or a subtitle shows (not a danger or a mission's own card)
+  const held = heldBack() && !visible.some((c) => !c.leaving && pressing(c, w)) && !(queue.length && pressing(queue[0], w));
+  stackEl.classList.toggle('hc-held', held);
+  const frozen = hudHidden() || w.paused || w.uiPaused || held || !mayStart('card', { urgent: true });
   stackEl.classList.toggle('paused', !!frozen);
   syncWait();
   syncAward();
@@ -365,17 +386,23 @@ export function updateCards(dt, w) {
   }
   // age only counts while a card could be shown; tips wait out the tip gap,
   // an important one (it teaches a key, or says so) much longer
-  for (const q of queue) q.age += dt;
+  // cards held back for a story call do not go stale meanwhile
+  const waiting = !mayStart('card');
+  for (const q of queue) if (!waiting || pressing(q, w)) q.age += dt;
   queue = queue.filter((q) => q.age < (q.spec.kind !== 'tip' ? 30 : q.important ? TIP_KEEP : TIP_STALE));
   if (!queue.length) return;
   const up = visible.filter((c) => !c.leaving);
-  if (calling && CARD_KINDS[queue[0].spec.kind].rank < CARD_PRIORITY.politie) return;
+  const urgent = CARD_KINDS[queue[0].spec.kind].rank >= CARD_PRIORITY.politie;
+  if (calling && !urgent) return;
+  // a story call on the phone or another toast that just popped up: the rest waits
+  if (!pressing(queue[0], w) && !up.length && waiting) return;
   if (up.length < MAX_VISIBLE) {
     // tips are rationed (attention.js); a waiting tip lets others go first
     const i = queue.findIndex((q) => q.spec.kind !== 'tip' || mayShowTip());
     if (i < 0) return;
     const next = queue.splice(i, 1)[0];
     if (next.spec.kind === 'tip') noteTip();
+    noteToast();
     mount(next);
     return;
   }

@@ -48,6 +48,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   width: 32px;
   height: 32px;
   fill: var(--hc);
+  color: var(--hc);
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--hc) 45%, transparent));
 }
 #hud .hc-icon .hc-cut { fill: #0c140e; }
@@ -129,3 +130,6 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hc-wait i { width: 7px; height: 7px; border-radius: 50%; background: #3fc97a; }
 #hud .hc-award svg { width: 14px; height: 14px; fill: none; stroke: #3fc97a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @keyframes hc-wait-in { from { opacity: 0; transform: translateY(-4px); } }
+
+/* narrative.js: steps aside while a cutscene, story call or subtitle is up */
+#hud .hud-cards.hc-held { opacity: 0; transition: opacity 0.2s; }
