@@ -242,8 +242,15 @@ const TARGET_CELL_SIZE_M = 10;
 const TERRAIN_TILE_M = 400;
 
 export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
-  const [minx, miny, maxx, maxy] = bounds;
   setCountryBounds(bounds);
+  return terrainGroup(terrainArrays(bounds, waterPolys, opts));
+}
+
+// The terrain grid as plain arrays (the geometry worker builds it while the
+// game loads, geokernels.js): every vertex, and per 400 m tile its triangles
+// and their extent.
+export function terrainArrays(bounds, waterPolys = [], opts = {}) {
+  const [minx, miny, maxx, maxy] = bounds;
   const width = maxx - minx;
   const depth = maxy - miny;
   const pad = opts.pad ?? Math.max(width, depth) * 0.15;
@@ -361,8 +368,6 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
   // One draw over the whole map would push every vertex through the GPU
   // each frame; square tiles sharing one vertex buffer let frustum culling
   // drop all but the few in view.
-  const posAttr = new THREE.BufferAttribute(allPositions, 3);
-  const normAttr = new THREE.BufferAttribute(normals, 3);
   const tilesX = Math.max(1, Math.ceil(totalW / TERRAIN_TILE_M));
   const tilesZ = Math.max(1, Math.ceil(totalD / TERRAIN_TILE_M));
   const buckets = new Map();
@@ -378,8 +383,7 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
     list.push(a, b, c);
   }
 
-  const material = createTerrainMaterial();
-  const group = new THREE.Group();
+  const tiles = [];
   for (const list of buckets.values()) {
     let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
     for (const i of list) {
@@ -389,10 +393,21 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
       if (z < z0) z0 = z;
       if (z > z1) z1 = z;
     }
+    tiles.push({ index: new Uint32Array(list), box: [x0, z0, x1, z1] });
+  }
+  return { positions: allPositions, normals, tiles, y, droppedTriangles, maxTriangles };
+}
+
+// The terrain meshes from terrainArrays (fill: an existing group, filled in
+// place when the arrays arrive from the worker).
+export function terrainGroup(T, group = new THREE.Group(), material = group.material || createTerrainMaterial()) {
+  const posAttr = new THREE.BufferAttribute(T.positions, 3);
+  const normAttr = new THREE.BufferAttribute(T.normals, 3);
+  for (const { index, box: [x0, z0, x1, z1] } of T.tiles) {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', posAttr);
     geo.setAttribute('normal', normAttr);
-    geo.setIndex(new THREE.BufferAttribute(new Uint32Array(list), 1));
+    geo.setIndex(new THREE.BufferAttribute(index, 1));
     // the shared position buffer spans the whole map, so the bounds come
     // from this tile's own triangles (plus slack for the shader's bump)
     geo.boundingBox = new THREE.Box3(new THREE.Vector3(x0, -1, z0), new THREE.Vector3(x1, 1, z1));
@@ -403,10 +418,10 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
     mesh.userData.isTerrain = true;
     group.add(mesh);
   }
-  group.position.set(0, y, 0);
+  group.position.set(0, T.y, 0);
   group.material = material;
   group.userData.isTerrain = true;
-  group.userData.droppedTriangles = droppedTriangles;
-  group.userData.totalTriangles = maxTriangles;
+  group.userData.droppedTriangles = T.droppedTriangles;
+  group.userData.totalTriangles = T.maxTriangles;
   return group;
 }

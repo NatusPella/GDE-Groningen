@@ -3,6 +3,7 @@ import { setCountryBounds, setRealZone } from './countryfield.js';
 import { tileWater, chunkWaterArrays, canalWaterFrom, openWaterFrom } from './countrywatergeo.js';
 import { loadMap } from './mapdata.js';
 import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js';
+import { terrainArrays } from './terrain3d.js';
 
 // Geometry jobs that run in the geometry worker (geoworker.js) or, as a
 // fallback, on the main thread (geojobs.js): data in, typed arrays out. Only
@@ -144,4 +145,11 @@ function roadGeo({ key, detail }) {
   return { result: { sidewalk: plainGeometry(g.sidewalk, transfer), road: plainGeometry(g.road, transfer), mark: plainGeometry(g.mark, transfer) }, transfer };
 }
 
-export const KERNELS = { cityMerge, waterInit, waterChunk, roadInit, roadGeo };
+// --- terrain (terrain3d.js), while the game loads ----------------------------
+
+function terrain({ bounds, water }) {
+  const T = terrainArrays(bounds, water);
+  return { result: T, transfer: [T.positions.buffer, T.normals.buffer, ...T.tiles.map((t) => t.index.buffer)] };
+}
+
+export const KERNELS = { cityMerge, waterInit, waterChunk, roadInit, roadGeo, terrain };

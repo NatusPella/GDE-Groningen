@@ -36,7 +36,7 @@ function same(a, b) {
   for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
   return true;
 }
-const report = { city: { cells: 0, buffers: 0, verts: 0, bad: [] }, water: { chunks: 0, buffers: 0, verts: 0, bad: [] }, roads: { roads: 0, buffers: 0, verts: 0, bad: [] } };
+const report = { city: { cells: 0, buffers: 0, verts: 0, bad: [] }, water: { chunks: 0, buffers: 0, verts: 0, bad: [] }, roads: { roads: 0, buffers: 0, verts: 0, bad: [] }, terrain: {} };
 
 // ---- city props: the old mergeInstances
 function oldMerge(list) {
@@ -198,6 +198,21 @@ for (const r of map.roads) {
   if (performance.now() - t > 2000) { await sleep(0); t = performance.now(); }
 }
 report.roads.bad = report.roads.bad.slice(0, 20).concat(report.roads.bad.length > 20 ? ['... ' + report.roads.bad.length] : []);
+// ---- terrain: the whole grid, main thread vs worker
+const TR = await import('/js/terrain3d.js');
+{
+  const water = map.water.map((q) => ({ pts: q.pts, bounds: q.bounds }));
+  let t0 = performance.now();
+  const ref = TR.terrainArrays(map.meta.bounds, map.water);
+  const mainMs = performance.now() - t0;
+  t0 = performance.now();
+  const work = await inWorker('terrain', { bounds: map.meta.bounds, water });
+  const workerMs = performance.now() - t0;
+  const ok = same(ref.positions, work.positions) && same(ref.normals, work.normals) && ref.tiles.length === work.tiles.length
+    && ref.tiles.every((q, i) => same(q.index, work.tiles[i].index) && q.box.every((x, k) => Object.is(x, work.tiles[i].box[k])))
+    && ref.y === work.y && ref.droppedTriangles === work.droppedTriangles && ref.maxTriangles === work.maxTriangles;
+  report.terrain = { verts: ref.positions.length / 3, tiles: ref.tiles.length, mainMs: Math.round(mainMs), workerRoundTripMs: Math.round(workerMs), ok };
+}
 worker.terminate();
-report.ok = !report.city.bad.length && !report.water.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.city.cells > 0 && report.water.chunks > 0;
+report.ok = report.terrain.ok && !report.city.bad.length && !report.water.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.city.cells > 0 && report.water.chunks > 0;
 return JSON.stringify(report);
