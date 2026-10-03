@@ -31,7 +31,7 @@ import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { queueFjordReveal } from './postgame.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
-import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy } from './storyfun.js';
+import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices } from './storyfun.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy } from './narrative.js';
@@ -230,9 +230,12 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
   if (!quiet && step.kind === 'activity' && step.done) {
+    // "Even onderduiken": the scene and text of the option the player picked
+    const shown = step.goal && step.goal.type === 'hideout' ? hideoutStep(step, rt.base) : step;
+    if (shown.choice) state.flags.add('onderduik:' + shown.choice);
     // a step with a closing scene (storyfun.js) sends its done text after it
-    const send = () => phone(who(step.done[0]), step.done[1], 5);
-    if (skipped || !storyFunDone(world, step, send)) send();
+    const send = () => phone(who(shown.done[0]), shown.done[1], 5);
+    if (skipped || !storyFunDone(world, shown, send)) send();
   }
   if (!quiet && !skipped && step.kind === 'activity' && isPurchase(step)) {
     const next = currentStep();
@@ -287,7 +290,13 @@ function refreshGuide() {
     why = storyBuyLabel(world, place) || why;
   }
   const shopId = place && place.type && place.id ? place.id : null;
-  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, shopId, buy: !!shopId && isPurchase(step, rt.gate) } : null;
+  // a choice (r-trein): the route goes to the nearest option, the others are named
+  let alt = '';
+  if (step.kind === 'activity' && step.goal.type === 'hideout' && place) {
+    why = `Onderduiken: ${place.name.charAt(0).toLowerCase()}${place.name.slice(1)}`;
+    alt = hideoutChoices(step).filter((c) => c.id !== place.id).map((c) => c.short).join(' of ');
+  }
+  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, shopId, buy: !!shopId && isPurchase(step, rt.gate), alt } : null;
 }
 
 function isPurchase(step, gate) {

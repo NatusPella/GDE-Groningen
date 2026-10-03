@@ -881,6 +881,11 @@ function drawDynamicMarkers(ctx, world) {
   if (sg && !world.storyFreePlay && !(showMission && Math.hypot(m.marker.x - sg.x, m.marker.y - sg.y) < 4) && !(sg.buy && storyTargetShop(world))) {
     icon(null, 'missionIdle', sg.x, sg.y, sg.name, {}, 'Verhaal', { story: true });
   }
+  // a story step with a choice (Even onderduiken): the other options too
+  for (const c of world.storyChoices || []) {
+    if (sg && Math.hypot(c.x - sg.x, c.y - sg.y) < 4) continue;
+    icon(null, 'missionIdle', c.x, c.y, c.name, {}, 'Verhaal: of dit', { story: true });
+  }
 
   for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });
   for (const sh of getShopsDecluttered(z >= NEAR_ZOOM ? 1 : 26 / state.scale)) icon(SHOP_TYPES[sh.type].group, 'shop-' + sh.type, sh.x, sh.y, sh.name, {}, SHOP_TYPES[sh.type].label);

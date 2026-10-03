@@ -88,7 +88,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 | 5 | **H5** Wind tegen, beide kanten op | Voorbereiding | Sjoerd vertelt over de drie minuten zonder camera's | Fietsrace, groen in alle richtingen |
 | | *Kraakspullen en het donker* | | Zwart of een bootje, en wachten bij Henk | |
 | 6 | **H6** Het museum stond er al zo | **De drempel** | Een lege vitrine en Jelles plan | Sluipen op een timer |
-| | *De trein* | Onderduiken | Stad in rouw | Treinreizen |
+| | *Even onderduiken* | Onderduiken | Stad in rouw. Kies: de trein, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A | Treinreizen, de stad verkennen |
 | 7 | **H7** Heel aankomen is ook een kunst | Beproeving | Een alibi. Al het vet is opgekocht | Breekbare lading |
 | 8 | **H8** Al het vet van Grunn | Beproeving | De eerste overwinning op Jelle | Kapen |
 | | *Tuning* | | De Escapade opvoeren bij Knal & Kolder | Garage |
@@ -420,9 +420,35 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 # Akte 2, Romp: "Stad in rouw"
 *Noorderzon. Heel Stad zoekt de bal, en de pliesie zoekt twee mensen in het zwart.*
 
-## Tussendoor: onderduiken met de trein
+## Tussendoor: even onderduiken *(kies iets leuks samen)*
+*Lead (Tammo):* "Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken, wij tweeën. De trein vanaf het Hoofdstation, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A. Kies maar, ze staan op je kaart."
+
+Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze eindigt in een korte scène waarin ze een beetje naar elkaar toe groeien.
+
+**De trein** *(vanaf het Hoofdstation, een rit naar maakt niet uit waar)*
 - **Anita:** Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.
-- **Tammo (in de trein):** Iedereen kijkt naar Kiekdoar. Niemand naar ons.
+- **Anita:** Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken.
+- **Tammo:** Er was geen zee. Alleen een dijk.
+- **Anita:** Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.
+- **Tammo:** Hij ligt er ook. Een beetje.
+- *Bericht (Tammo):* Iedereen kijkt naar Kiekdoar. Niemand naar ons.
+
+**Een ijsje in het Noorderplantsoen**
+- **Anita:** Twee bolletjes. Jij betaalt, ik ben voortvluchtig.
+- **Tammo:** Ik ben ook voortvluchtig.
+- **Anita:** Jij hebt een pet. Dat is een vermomming.
+- **Tammo:** Jouw ijs smelt.
+- **Anita:** Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes.
+- **Tammo:** …Ze zijn lekker, jouw restjes.
+- *Bericht (Tammo):* Niemand zoekt een boef met een ijsje.
+
+**De zonsondergang aan de Hoge der A** *(de klok springt naar de avond)*
+- **Tammo:** Hier zat ik vroeger. Als het thuis te druk was.
+- **Anita:** Alleen?
+- **Tammo:** Met een zakje friet. Dat telt.
+- **Anita:** Je kijkt naar mij, Tammo. De zon is daar.
+- **Tammo:** Die gaat toch onder.
+- *Bericht (Tammo):* Twijduustern. Niemand zoekt ons in het donker.
 
 ---
 
