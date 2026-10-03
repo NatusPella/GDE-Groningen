@@ -117,6 +117,11 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] **Web Workers** voor het opbouwen van stukken stad en Ommeland: geometrie, rijen, wegen en water gaan als buffers naar de hoofdthread. Dat geeft de grootste winst tegen haperingen tijdens het rijden en vliegen.
 - [ ] **Geometrie vooraf bakken** in het bouwscript (binair, of glTF met meshopt), in plaats van alles bij het opstarten uit OSM te genereren. Dat geeft een veel kortere laadtijd.
 - [ ] `BatchedMesh` voor objecten met verschillende vormen maar hetzelfde materiaal.
+- [x] Worker ronde 1 en 2: straatobjecten, Ommeland-water, stadswegen en terrein worden in een worker opgebouwd, byte voor byte gelijk aan de oude code (`scripts/perf/geocheck.sh`).
+- [ ] De worker gebruikt ongeveer 90 MB extra geheugen voor zijn eigen kopie van de kaart. Dat kan krap worden op Chromebooks met 4 GB. De worker moet de gebouwen na het laden weggooien, of alleen het wegennet ontvangen.
+- [ ] Het samenvoegen van wegen per cel uitsmeren over meerdere frames, of in de worker doen. Dat haalt de laatste pieken van 20–25 ms op de ring weg.
+- [ ] Oevers en kademuren naar de worker. Daarna de minimap en HUD van het Ommeland (15–20% van de hoofdthread op de heli- en dorpsroutes).
+- [x] `BatchedMesh` is overgeslagen: in three r160 levert het geen winst op. Opnieuw bekijken na een upgrade van three.js.
 - [ ] Daarna pas: de simulatie (verkeer en voetgangers) in een worker, en WASM voor gemeten hotspots als dat dan nog nodig is.
 - [ ] Na 1.0: WebGPU (de WebGPURenderer van three.js) met WebGL als terugval. Dat vraagt een herschrijving van onze eigen shaders.
 
