@@ -1343,6 +1343,10 @@ function roadWorkerReady() {
   }
   return RW.state === 2 && geoWorkerActive();
 }
+// the worker's map is loaded (quaywalls.js builds the shores there too)
+export function workerMapReady() {
+  return RW.state === 2 && geoWorkerActive();
+}
 export function roadGeometryReady(r) {
   if (r._geoRoad && r._geoMarkQ === qualityVersion) return true;
   if (r._geoMain || !roadWorkerReady()) return true;

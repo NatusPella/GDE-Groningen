@@ -28,7 +28,7 @@ import { cityShoreFix } from './countrywater.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
 import { sleepingParkedCars } from './parkedcars.js';
 import { syncParkedLayer } from './parked3d.js';
-import { buildShore, updateShore } from './quaywalls.js';
+import { requestShore, updateShore } from './quaywalls.js';
 import { getWaterIndex } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
 import { propsNearInto } from './breakables.js';
@@ -1039,8 +1039,14 @@ function buildWaterMesh(poly, y, map) {
   const mesh = new THREE.Mesh(poly._geoWater, waterMaterial);
   mesh.position.y = y;
   group.add(mesh);
-  const shore = buildShore(poly, map, { waterY: y, apronMaterial: terrainMesh.material });
-  if (shore) group.add(shore);
+  // from the geometry worker the banks and quays join the surface a few frames later
+  let sync = true;
+  requestShore(poly, map, { waterY: y, apronMaterial: terrainMesh.material }, (shore) => {
+    if (!shore) return;
+    group.add(shore);
+    if (!sync) freezeStatic(shore);
+  });
+  sync = false;
   return group;
 }
 

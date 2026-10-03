@@ -611,15 +611,24 @@ don't collide, and actors are drawn at their height.
   nearest road still on its way. The civil works (`roadstructures3d.js`)
   stay on the main thread. Until the worker's map is ready, roads build on
   the main thread as before.
+- City shores (`quaywalls.js`): `shoreParts` (walls, banks, aprons,
+  houseboats, bridge decks as geometry, plus the bank seats and houseboat
+  hulls it places) runs on the worker's map once that is loaded; the map
+  rectangle and the real water field go along once (`shoreInit`). A
+  polygon is named by its place in `map.water`. `requestShore` hands the
+  group to `scene3d.js` `buildWaterMesh`, which adds it to the water group
+  when it arrives; the seats (`bankSeatsNear`) and hulls
+  (`addWaterObstacle`) are applied then, on the main thread.
 - Terrain (`terrain3d.js` `terrainArrays` / `terrainGroup`): built in the
   worker while the game loads; `init3D` adds an empty group with the
   material, and `main.js` awaits `terrainReady()` before the title screen.
 - Results must stay identical to the main-thread build:
   `scripts/perf/geocheck.sh` compares the old code, the kernel on the main
   thread and the worker byte for byte (city cells round the centre, ~200
-  water chunks round the map, every road, the terrain). The kernels share
-  their code with the main thread (`geokernels.js`, `countrywatergeo.js`,
-  `roadSurfaceGeometries`, `terrainArrays`), so a change there reaches both;
+  water chunks round the map, every road, every city shore, the terrain).
+  The kernels share their code with the main thread (`geokernels.js`,
+  `countrywatergeo.js`, `roadSurfaceGeometries`, `shoreParts`,
+  `terrainArrays`), so a change there reaches both;
   the check should pass after it.
 
 ## Name and logo
