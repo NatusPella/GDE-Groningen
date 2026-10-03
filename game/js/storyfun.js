@@ -428,7 +428,13 @@ export function initStoryFun(w) {
     // the s-carbid lift right now (far out, nothing to drive): true when the Escapade was dropped off
     lift: (id = 's-carbid') => { const st = STEP_BY_ID.get(id); return !!(st && st.goal && st.goal.lift) && liftNow(world, st); },
     // the twins' challenge at the nearest padel court (s-padel)
-    court: () => { const base = {}; updateCourtMeet(world, STEP_BY_ID.get('s-padel'), base); return !!base.met; },
+    court: () => {
+      const sc = STEP_BY_ID.get('s-padel').meet, p = world.player;
+      const site = getPadelSpotsForRender().reduce((a, q) => (!a || Math.hypot(q.x - p.x, q.y - p.y) < Math.hypot(a.x - p.x, a.y - p.y) ? q : a), null);
+      const ok = !!site && playCastScene(world, { at: { x: p.x, y: p.y }, lookTo: { x: site.x, y: site.y }, lines: sc.lines, cast: sc.cast || [], kicker: sc.kicker || '' });
+      if (ok) played.court++;
+      return ok;
+    },
     // replay a step's scene where it plays ('r-kermis': the booth, 's-proefvlucht': the balloon, 's-carbid': the churn)
     scene: (id) => {
       const st = STEP_BY_ID.get(id);
