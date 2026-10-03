@@ -48,7 +48,7 @@ import { isMissionActive, isNight, getMissionDefs } from './missions.js';
 import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
-import { buildHomeExterior3D, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade } from './home3d.js';
+import { buildHomeExterior3D, buildGarageShell, buildHomeDressing, setGarageCutaway, setGarageDoor, disposeHomeExterior, buildLowerTower3D, buildFlat3D, setFlatFacade } from './home3d.js';
 import { registerHelipad } from './heliflight.js';
 import { isPadelActive } from './padel.js';
 import { isVillageMiniActive } from './dorpsuitjes.js';
@@ -99,6 +99,7 @@ let home = null;
 let tickT = 0;
 let page = 0;
 let exterior = null;
+let garageShell = null;
 let inside = null; // { flatMesh, lowerMesh, facade } while upstairs
 let busy = false;
 let fridgeAt = -Infinity;
@@ -388,6 +389,89 @@ export function isInsideHome() {
   return !!inside;
 }
 
+// --- outdoor dressing ------------------------------------------------------------
+
+// What stands round the towers (wijzigingsplan Atlas en Pleione: the trees
+// along the water kept and new ones planted, a public green zone along the
+// water, indoor bike parking, the entrance "with allure"): trees and hedges
+// in the green strip between the towers and the canal, benches facing the
+// water, park lamps along it, a planter by the lobby. Every spot stays clear
+// of buildings, roads, water, the moorings and the garage, lobby and rack.
+function dressingSpots(map) {
+  const out = [];
+  const door = home.garage.door, L = home.lobby;
+  const doorFront = [door.cx + door.nx * 4, door.cy + door.ny * 4];
+  const near = (pts, x, y) => {
+    let best = Infinity;
+    for (let i = 0; i < pts.length - 1; i++) best = Math.min(best, Math.sqrt(closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]).dist2));
+    return best;
+  };
+  const clear = (x, y, r) => {
+    if (inPoly(PLINTH, x, y, r + 1) || isInWater(map, x, y)) return false;
+    for (const b of map.buildingsNear(x, y, r + 8)) {
+      if (pointInPolygon(x, y, b.pts)) return false;
+      const P = b.pts;
+      for (let i = 0; i < P.length; i++) {
+        const a = P[i], c = P[(i + 1) % P.length];
+        if (closestPointOnSegment(x, y, a[0], a[1], c[0], c[1]).dist2 < (r + 0.8) ** 2) return false;
+      }
+    }
+    for (const rd of map.roadsNear(x, y, 14)) {
+      const w = (rd.cat === 'foot' || rd.cat === 'cycle' ? 1.1 : (rd.width || 5) / 2) + r + 0.4;
+      if (near(rd.pts, x, y) < w) return false;
+    }
+    if (Math.hypot(x - doorFront[0], y - doorFront[1]) < 9 || Math.hypot(x - L.use[0], y - L.use[1]) < 3.5 || Math.hypot(x - L.spawn[0], y - L.spawn[1]) < 3.5) return false;
+    for (const rl of home.rack.rails) if (near([[rl.x1, rl.y1], [rl.x2, rl.y2]], x, y) < r + 2) return false;
+    return near(BANK, x, y) > r + 2.5 && near(KERB, x, y) > r + 3;
+  };
+  const add = (p, r) => { if (clear(p.x, p.y, r)) out.push(p); };
+  // the green strip along the canal: offsets from the bank towards the towers
+  const [b0, b1] = BANK;
+  const bl = Math.hypot(b1[0] - b0[0], b1[1] - b0[1]);
+  const tx = (b1[0] - b0[0]) / bl, ty = (b1[1] - b0[1]) / bl;
+  let nx = -ty, ny = tx;
+  if ((home.center.x - b0[0]) * nx + (home.center.y - b0[1]) * ny < 0) { nx = -nx; ny = -ny; }
+  const at = (t, o) => [b0[0] + tx * t + nx * o, b0[1] + ty * t + ny * o];
+  // a bench's back (local -z) faces away from the water
+  const benchA = Math.atan2(ty, tx) + ((-Math.sin(Math.atan2(ty, tx))) * nx + Math.cos(Math.atan2(ty, tx)) * ny > 0 ? 0 : Math.PI);
+  for (let t = 4; t < bl - 3; t += 9) {
+    const [x, y] = at(t, 7.5);
+    add({ kind: 'tree', x, y, s: 0.9 + ((t * 7) % 5) / 10 }, 1.2);
+    if (Math.round(t / 9) % 2) { const [x2, y2] = at(t + 4.5, 13); add({ kind: 'tree', x: x2, y: y2, s: 1.15 }, 1.2); }
+  }
+  for (let t = 10; t < bl - 6; t += 22) {
+    const [x, y] = at(t, 3.8);
+    add({ kind: 'bench', x, y, angle: benchA }, 1.0);
+    const [hx, hy] = at(t + 9, 4.6);
+    add({ kind: 'hedge', x: hx, y: hy, l: 5, angle: Math.atan2(ty, tx) }, 2.6);
+  }
+  for (let t = 2; t < bl; t += 17) { const [x, y] = at(t, 5.2); add({ kind: 'lamp', x, y }, 0.4); }
+  // the forecourt on the Pleiadenlaan side: young trees in brick planters
+  // along the plinth's blind west wall, lamps and benches along the kerb side
+  const A = PLINTH[0], Hh = PLINTH[7];
+  const wl = Math.hypot(Hh[0] - A[0], Hh[1] - A[1]), wx = (Hh[0] - A[0]) / wl, wy = (Hh[1] - A[1]) / wl;
+  let ox = -wy, oy = wx;
+  if ((home.center.x - A[0]) * ox + (home.center.y - A[1]) * oy > 0) { ox = -ox; oy = -oy; }
+  for (let t = 4; t < wl - 2; t += 8) add({ kind: 'planter', x: A[0] + wx * t + ox * 2.4, y: A[1] + wy * t + oy * 2.4, angle: Math.atan2(wy, wx) }, 1.0);
+  for (let t = 8; t < wl - 2; t += 8) add({ kind: 'tree', x: A[0] + wx * (t - 4) + ox * 6.5, y: A[1] + wy * (t - 4) + oy * 6.5, s: 0.85 }, 1.0);
+  for (let i = 0; i < KERB.length - 1; i++) {
+    const [k0, k1] = [KERB[i], KERB[i + 1]];
+    const kl = Math.hypot(k1[0] - k0[0], k1[1] - k0[1]), kx = (k1[0] - k0[0]) / kl, ky = (k1[1] - k0[1]) / kl;
+    let qx = -ky, qy = kx;
+    if ((home.center.x - k0[0]) * qx + (home.center.y - k0[1]) * qy < 0) { qx = -qx; qy = -qy; }
+    for (let t = 6; t < kl - 3; t += 12) {
+      add({ kind: 'lamp', x: k0[0] + kx * t + qx * 4.5, y: k0[1] + ky * t + qy * 4.5 }, 0.4);
+      add({ kind: 'tree', x: k0[0] + kx * (t + 6) + qx * 6, y: k0[1] + ky * (t + 6) + qy * 6, s: 1.0 }, 1.1);
+    }
+  }
+  // a planter on the other side of the lobby from the rack
+  const T = home.tower;
+  const tp = (u, v) => [T.pts[0][0] + T.X[0] * u + T.Y[0] * v, T.pts[0][1] + T.X[1] * u + T.Y[1] * v];
+  const [px, py] = tp(LOBBY_X - 2.6, T.d + 1.3);
+  if (!inPoly(PLINTH, px, py, 0.8)) out.push({ kind: 'planter', x: px, y: py, angle: Math.atan2(T.X[1], T.X[0]) });
+  return out;
+}
+
 // --- init ----------------------------------------------------------------------
 
 export function initHome(w) {
@@ -402,6 +486,12 @@ export function initHome(w) {
       const t = (i + 0.5) / n;
       addStaticCollider('garagewall', x1 + (x2 - x1) * t, y1 + (y2 - y1) * t, 0.18, l / n / 2, a);
     }
+  }
+  home.dressing = dressingSpots(w.map);
+  for (const d of home.dressing) {
+    if (d.kind === 'bench') addStaticCollider('post', d.x, d.y, 0.3, 0.9, d.angle);
+    else if (d.kind === 'hedge') addStaticCollider('post', d.x, d.y, 0.45, d.l / 2, d.angle);
+    else addStaticCollider('post', d.x, d.y, d.kind === 'planter' ? 0.7 : d.kind === 'tree' ? 0.3 : 0.15);
   }
   for (const r of home.rack.rails) addStaticCollider('rail', (r.x1 + r.x2) / 2, (r.y1 + r.y2) / 2, 0.06, Math.hypot(r.x2 - r.x1, r.y2 - r.y1) / 2, Math.atan2(r.y2 - r.y1, r.x2 - r.x1));
   w.homeActions = { goHome: () => goHome(w), canGoHome: () => canGoHome(w) === '' };
@@ -1056,9 +1146,24 @@ function parkOnPad(w) {
 
 // --- frame -------------------------------------------------------------------------
 
-function streamExterior(w, dt) {
+// Every frame whatever the player is doing (flying the heli home, a pigeon,
+// padel, an activity): the garage streams in near, its merged shell stands
+// in for it further away.
+export function updateHomeExterior(dt, w) {
+  if (!home) return;
+  world = w;
   const scene = getScene();
   if (!scene) return;
+  if (!garageShell) {
+    garageShell = buildGarageShell(home);
+    scene.add(garageShell);
+    if (home.dressing && home.dressing.length) scene.add(buildHomeDressing(home.dressing));
+  }
+  streamExterior(w, dt, scene);
+  garageShell.visible = !exterior;
+}
+
+function streamExterior(w, dt, scene) {
   const p = w.player;
   const d = Math.hypot(p.x - home.center.x, p.y - home.center.y);
   if (!exterior && d < STREAM_IN) {
@@ -1156,7 +1261,6 @@ function crossAt(x0, y0, x1, y1, ax, ay, bx, by) {
 export function updateHome(dt, w) {
   world = w;
   if (!home) return;
-  streamExterior(w, dt);
   updateFurniture(dt, w);
   if (inside) {
     const p = w.player;
