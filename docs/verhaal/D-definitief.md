@@ -100,10 +100,10 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 | 13 | **H13** Alles klopt, behalve de papieren | Liefde, het middenpunt | De kus. Ze zien het skûtsje | Rondvaart |
 | | *Bootje huren* | | | |
 | 14 | **H14** Geleend van de Friezen | Valse overwinning | Een chocoladebal, "foar mem" | Boot achtervolgen en aan boord springen |
-| | *Proefvlucht* | | De ballon in het Oosterpark | Helikopter |
-| 15 | **H15** Spoedeisende duif | Beloning | De echte bal | Aan een touw onder de heli |
+| | *Proefvlucht* | | Rotor Roelf op Eelde | |
+| 15 | **H15** Het staat niet in het rooster | Beloning | Eén vlucht: Eelde, het UMCG, de ballon. De echte bal | Helikopter, aan een touw onder de heli |
 | | *Carbid* | | Verstoppen in de melkbus | Carbid schieten |
-| | *Padel* | Onheil | Durk en Douwe met een autosleutel | Padel |
+| | *Padel* | Onheil | Durk en Douwe moeten jullie een uur bezighouden. Een autosleutel | Padel |
 | 16 | **H16** Iedereen heeft een rode auto gezien | **Het dieptepunt** | De Escapade is gejat. Ruzie. Mem helpt | Zoeken, alleen |
 | 17 | **H17** Het bod viel tegen | **De keuze** | Geld of Grunn | Fragiele boodschappen |
 | 18 | **H18** Ontzet, net als in 1672 | **De finale** | De Snackprijs, de achtervolging, de jury, de vijf woorden | Alles samen |
@@ -728,29 +728,51 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 **Bij een herhaling.** **Anita:** Weer een skûtsje? Laat de chocola deze keer heel, Tammo.
 
 ## Tussendoor: proefvlucht
-*(Rotor Roelfs demoheli: zoek de ballon vanuit de lucht.)*
+*(Naar Rotor Roelf op Eelde. Zijn demoheli staat klaar op het platform.)*
 - **Rotor Roelf:** Moi! Rotor Roelf, van Eelde. De proefvlucht is gratis. Nait tegen d'Olle Grieze aan, hè?
-- **Anita:** Daar. In het Oosterpark. Een ballon, en hij staat al bol.
-- **Tammo:** Mijn Oosterpark. Daar heb ik leren fietsen.
-- **Anita:** Daar heb ik jóu leren fietsen.
-- **Tammo:** …Ook waar.
+- **Anita:** Mooi. We kopen hem misschien. Misschien.
+- **Tammo:** Wij kunnen nog geen fietsbel betalen.
 
 ---
 
-## 15 · H15 · Spoedeisende duif *(de beloning)*
+## 15 · H15 · Het staat niet in het rooster *(de beloning)*
+*Eén vlucht in Rotor Roelfs demoheli: op van Eelde, via het UMCG, naar de ballon, en netjes terug op de H.*
 
 **Bel Rikus.**
-- **Dokter Dijkstra:** Rikus. Dijkstra, UMCG. Ik hoor dat er een Grunneger noodgeval is. Het staat niet in het rooster.
-- **Rikus:** Dokter, leen je een heli uit?
-- **Dokter Dijkstra:** Ik leen niks uit. Ik doe een spoedeisende duif.
+- **Dokter Dijkstra:** Rikus. Dijkstra, UMCG. Mijn traumaheli staat in onderhoud op Eelde. En de nachtdienst heeft honger.
+- **Rikus:** Dokter, wat moet ik daarmee?
+- **Dokter Dijkstra:** Niks. Maar als er vanavond een heli langskomt: het staat niet in het rooster.
 
-**Intro (cutscène, heliplatform).**
-- **Dokter Dijkstra:** Zij vliegt. Hij hangt.
+**Intro (cutscène, het platform op Eelde).**
+- **Rotor Roelf:** Volgetankt. Rechtdoor naar het noorden, dan zie je Stad vanzelf.
+- **Anita:** En als we iets raken?
+- **Rotor Roelf:** Dan heb je hem gekocht. Moi!
+
+**Onderweg (door de helikopterradio).**
+- **Dokter Dijkstra:** Wieken Wubbo, hier Dijkstra, UMCG. Ik heb een spoedje. Mijn traumaheli staat bij Roelf in onderhoud.
+- **Dokter Dijkstra:** Achterin staat een koeltas. Daar zit de lunch van de nachtdienst in. Die hebben twaalf uur niks gehad.
+- **Anita:** Dat is geen noodgeval.
+- **Dokter Dijkstra:** Jij hebt nooit nachtdienst gedaan. Landen op de H van het UMCG, graag.
+
+**Op het helidek van het UMCG.**
+- **Dokter Dijkstra:** Eierballen. Nog warm. Jullie zijn mijn helden.
+- **Dokter Dijkstra:** En nu die ballon. Ik heb een lier. Zij vliegt. Hij hangt.
 - **Tammo:** Natuurlijk hang ík.
 - **Anita:** Ik vraag het, Tammo. Wil je hangen?
 - **Tammo:** …Ja. Dank je dat je het vraagt.
 
-**Outro (cutscène).** *Tammo houdt de bal vast. Hij is zwaar en echt.*
+**Boven Stad.**
+- **Anita:** Daar. In het Oosterpark. Een ballon, en hij staat al bol.
+- **Tammo:** Mijn Oosterpark. Daar heb ik leren fietsen.
+- **Anita:** Daar heb ik jóu leren fietsen.
+- **Tammo:** …Ook waar.
+- **Dokter Dijkstra:** Lier gaat uit. Rustig, Anita. Naast de mand, niet erop.
+- **Tammo:** Ik hang. Ik hang echt.
+- *(Gameplay: naast de mand blijven hangen tot Tammo de bal heeft.)*
+- **Tammo:** Ik heb hem! De echte!
+- **Dokter Dijkstra:** Lier in. Terug naar het UMCG, en netjes op de H.
+
+**Outro (cutscène, het UMCG).** *Tammo houdt de bal vast. Hij is zwaar en echt.*
 - **Tammo:** Ik heb hem. De echte. Hij smelt niet.
 - **Anita:** Je praatte de hele tijd, aan dat touw.
 - **Tammo:** Ik had hoogtevrees.
@@ -758,7 +780,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tammo:** …Hij was mooi.
 - **Dokter Dijkstra:** Die Fries is geland in een weiland bij Ten Boer. Tussen de koeien. Hij was niet blij. De koeien ook niet.
 
-**Bij een herhaling.** **Dokter Dijkstra:** Weer een spoedeisende duif? Ik zet het deze keer in het rooster.
+**Bij een herhaling.** **Dokter Dijkstra:** Weer een spoedje? Ik zet het deze keer in het rooster.
 
 ## Tussendoor: carbid bij boer Roelf
 *De bal moet tot het Ontzet veilig staan. Boer Roelf helpt alleen wie carbid kan schieten.*
@@ -767,6 +789,14 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Boer Roelf:** …Ja. Kon minder. In de melkbus. Doar zuukt gain Fries noar. *(Daar zoekt geen Fries naar.)*
 
 ## Tussendoor: padel *(onheil)*
+*Bij de baan wachten Durk en Douwe. Jelle heeft ze gestuurd.*
+- **Durk:** Tammo. Wij dagen je uit. Padel, wij tegen jullie.
+- **Douwe:** Van Jelle moeten we jullie een uur bezighouden.
+- **Durk:** Douwe. Dat was geheim.
+- **Douwe:** …Hè.
+- **Anita:** Een uur? Waarom een uur?
+- **Durk:** Dat weten wij ook niet. Wij zijn alleen de bezigheid.
+- **Tammo:** Twintig minuten. Dan staat het twee-nul.
 - **Anita:** Even afreageren. Je armen trillen nog van dat touw.
 - **Tammo:** Mijn backhand niet.
 - *Na de partij:* **Anita:** Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?

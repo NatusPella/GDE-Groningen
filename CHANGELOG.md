@@ -7,6 +7,16 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **H15 is één vlucht: "Het staat niet in het rooster"** (was "Spoedeisende
+  duif"). Je stijgt op bij Rotor Roelf op Eelde, onderweg belt Dokter
+  Dijkstra met een spoedje (de nachtdienst heeft honger), je landt op de H
+  van het UMCG, Dijkstra stapt in met de lier, en dan door de ringen naar
+  Jelles ballon in het Oosterpark. Tammo haalt de Eierbal uit de mand en je
+  zet de heli netjes terug op de H. Geen tweede heli meer; de proefvlucht is
+  nu kennismaken met Roelf op Eelde. Nieuwe zinnen, ingesproken.
+- **Padel tegen Durk en Douwe heeft een reden:** bij de baan dagen ze Tammo
+  uit, want Jelle wil dat ze jullie een uur bezighouden. Dat had Douwe niet
+  moeten zeggen.
 - **Samen gaan wonen** in de opening: de zolder in de Korenbloemstraat is te
   klein (en te duur voor één), dus huren Tammo en Anita samen een flat in de
   House of Groningen in Paddepoel. "Als huisgenoten." Met een verhuisdag bij
@@ -66,6 +76,16 @@ nieuwe functies, `y` voor alleen bugfixes.
   pompeblêden, en Us Mem de koe.
 
 ### Verbeterd
+- **Nieuwe heli-besturing:** W/S vooruit en remmen, A/D draaien, Shift
+  sneller, Spatie omhoog en Ctrl omlaag. In Besturing, de hints en op de
+  controller (de linkerstick vliegt, A of RT omhoog, B of LT omlaag, RB
+  sneller). Alles blijft aan te passen.
+- **De ballonjacht is te doen:** je vliegt de heli zelf, met grote ringen, een
+  pijl met afstand en hoogte naar het volgende doel, een lichtzuil op de H,
+  een beetje stuur- en hoogtehulp en een ruimere zone naast de mand. Tegen de
+  ballon botsen kost voortgang, geen mislukte vlucht meer.
+- **Routes het Ommeland in:** de weg naar carbid bij boer Roelf en naar Rotor
+  Roelf op Eelde, en vanaf daar terug de stad in, ook naar een padelbaan.
 - **H6: allebei in het zwart.** Tijdens de kraak dragen Tammo en Anita
   allebei zwart incognito, wie het ook kocht. In de trein bij het onderduiken
   trekken ze hun eigen kleren weer aan.
@@ -101,6 +121,12 @@ nieuwe functies, `y` voor alleen bugfixes.
   complimentenladder", en Tammo telt ze in de auto op.
 
 ### Opgelost
+- De minimap draaide niet mee tijdens de heli-missie en de ringen stonden er
+  niet goed op; nu draait de kaart met de heli en staan de ringen, de H en de
+  ballon op hun plek. In een heli is de route een rechte lijn.
+- Tijdens padel waren de tegenstanders niet te horen. Tijdens padel, carbid
+  en de botsauto's stonden er waypoints en een missiebaken naar de volgende
+  missie; die zijn nu weg tot het spel klaar is.
 - Kusjes konden te vroeg als je "Alles klopt, behalve de papieren" vooruit
   speelde vanuit Te doen. Nu pas als het verhaal er echt is.
 
