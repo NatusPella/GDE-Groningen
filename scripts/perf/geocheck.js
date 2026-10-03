@@ -4,7 +4,8 @@
 // tiles, each three ways: the old code (copied here, three.js on the main
 // thread), the kernel on the main thread (the fallback) and the kernel in a
 // fresh geometry worker; then every road and city shore (main thread vs the
-// worker's own map). Every buffer must match byte for byte.
+// worker's own map) and the road batch cells (finish spread over frames vs
+// the old one-frame finish). Every buffer must match byte for byte.
 for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++) {
   for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); }
   await new Promise((res) => setTimeout(res, 2500));
@@ -235,6 +236,68 @@ const TR = await import('/js/terrain3d.js');
     && ref.y === work.y && ref.droppedTriangles === work.droppedTriangles && ref.maxTriangles === work.maxTriangles;
   report.terrain = { verts: ref.positions.length / 3, tiles: ref.tiles.length, mainMs: Math.round(mainMs), workerRoundTripMs: Math.round(workerMs), ok };
 }
+// ---- road batch cells: the finish spread over frames against the old one-frame finish
+{
+  const SB = await import('/js/staticbatch3d.js');
+  function oldFinish(job) {
+    const out = [];
+    for (const bk of job.buckets.values()) {
+      if (!bk.idx || !bk.chunks.length) continue;
+      const geo = new THREE.BufferGeometry();
+      bk.names.forEach((name, ni) => {
+        const first = bk.chunks[0].data[name];
+        const n = first.length / bk.chunks[0].verts;
+        const o2 = new first.constructor(bk.verts * n);
+        let o = 0;
+        for (const ch of bk.chunks) { o2.set(ch.data[name], o); o += ch.data[name].length; }
+        geo.setAttribute(name, new THREE.BufferAttribute(o2, n, bk.norm[ni]));
+      });
+      const index = new Uint32Array(bk.idx);
+      let base = 0, o = 0;
+      for (const ch of bk.chunks) {
+        for (let i = 0; i < ch.index.length; i++) index[o + i] = ch.index[i] + base;
+        o += ch.index.length;
+        base += ch.verts;
+      }
+      geo.setIndex(new THREE.BufferAttribute(index, 1));
+      geo.computeBoundingSphere();
+      geo.computeBoundingBox();
+      out.push(geo);
+    }
+    return out;
+  }
+  const vec = (v) => [v.x, v.y, v.z];
+  const sameGeo = (a, b) => same(a.index.array, b.index.array) && Object.keys(a.attributes).every((k) => b.attributes[k] && same(a.attributes[k].array, b.attributes[k].array))
+    && Object.keys(a.attributes).length === Object.keys(b.attributes).length
+    && [...vec(a.boundingSphere.center), a.boundingSphere.radius, ...vec(a.boundingBox.min), ...vec(a.boundingBox.max)]
+      .every((x, i) => Object.is(x, [...vec(b.boundingSphere.center), b.boundingSphere.radius, ...vec(b.boundingBox.min), ...vec(b.boundingBox.max)][i]));
+  report.batch = { cells: 0, meshes: 0, verts: 0, bad: [] };
+  for (const [x, y] of [[167, 283], [105, 161], [-300, 400]]) {
+    p.x = x; p.y = y;
+    await sleep(5000);
+    const sc = window.__scene3d.scene;
+    const cells = new Map();
+    const bb = new THREE.Box3(), c = new THREE.Vector3();
+    for (const o of sc.children) {
+      if (o.name !== 'road' || !o.isGroup) continue;
+      bb.setFromObject(o).getCenter(c);
+      const k = Math.floor(c.x / 96) + ',' + Math.floor(c.z / 96);
+      if (!cells.has(k)) cells.set(k, []);
+      cells.get(k).push({ b: o, mesh: o, parts: null });
+    }
+    for (const [k, list] of cells) {
+      if (list.length < 2) continue;
+      const job = SB.mergeAtOnce(list);
+      const ref = oldFinish(job);
+      report.batch.cells++;
+      report.batch.meshes += ref.length;
+      for (const g of ref) report.batch.verts += g.attributes.position.count;
+      if (ref.length !== job.geos.length || !ref.every((g, i) => sameGeo(g, job.geos[i].geo))) report.batch.bad.push(x + ',' + y + ':' + k);
+      for (const g of ref) g.dispose();
+      for (const { geo } of job.geos) geo.dispose();
+    }
+  }
+}
 worker.terminate();
-report.ok = report.shores.polys > 0 && !report.shores.bad.length && report.terrain.ok && !report.city.bad.length && !report.water.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.city.cells > 0 && report.water.chunks > 0;
+report.ok = report.batch.cells > 0 && !report.batch.bad.length && report.shores.polys > 0 && !report.shores.bad.length && report.terrain.ok && !report.city.bad.length && !report.water.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.city.cells > 0 && report.water.chunks > 0;
 return JSON.stringify(report);
