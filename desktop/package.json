@@ -12,7 +12,10 @@
     "dist:mac": "npm run stage && electron-builder --mac --universal",
     "dist:win": "npm run stage && electron-builder --win --x64",
     "dist": "npm run stage && electron-builder --mac --universal && electron-builder --win --x64",
-    "release": "sh release.sh"
+    "release": "sh release.sh",
+    "web": "node ../web/build.mjs",
+    "web:zip": "node ../web/build.mjs --zip",
+    "web:serve": "node ../web/serve.mjs"
   },
   "build": {
     "appId": "nl.natuspella.gte-vi",

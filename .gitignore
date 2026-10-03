@@ -9,3 +9,8 @@ GTE-VI-Windows.zip
 *.mp4
 *.mov
 trailer-frames/
+
+# the web build (desktop: npm run web) and its Opus cache
+web-dist/
+web/.cache/
+GTE-VI-*-web.zip

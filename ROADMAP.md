@@ -56,9 +56,9 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 - [ ] Meten op een echte Intel-laptop (Iris Xe of UHD 620) en een Chromebook of vergelijkbaar toestel. Daarvoor is hardware van Alexander of een kennis nodig.
 - [ ] De lat: Laag haalt 30 fps zonder haperingen op de drukste plekken, en de laadtijd blijft onder de 30 s.
-- [ ] Een webversie bouwen: de offline-staging als website, met een laadscherm met voortgang en caching van de 173 MB.
-- [ ] Audio comprimeren (Opus), wat ongeveer de helft van de download scheelt.
-- [?] Waar de webversie komt: itch.io (een gratis account) of GitHub Pages zodra de repo openbaar is.
+- [~] Een webversie bouwen (`claude/webversie`): `npm run web` in `desktop/` maakt `web-dist/` uit de offline-staging, met relatieve paden, een laadscherm dat de MB's van de kaart telt, een service worker die alles cachet (per versie, ook offline), en audio die pas laadt als hij speelt. Getest in headless Chrome; nog niet in Safari, Firefox en op echte zwakke hardware.
+- [x] Audio comprimeren (Opus) voor de webversie: 149 MB wordt 85 MB (muziek de helft, stemmen 28% kleiner, want die waren al 48 kbps). Safari vóór 18.4 krijgt de mp3's.
+- [?] Waar de webversie komt: itch.io (een gratis account) of GitHub Pages zodra de repo openbaar is. Beide kunnen: de map past binnen de limieten van itch.io (516 van de 1000 bestanden, 257 van de 500 MB), en `npm run web:zip` maakt de zip.
 - [ ] Het releasescript publiceert de webversie mee.
 
 ## 0.25: afwerking voor nieuwe spelers
