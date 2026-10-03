@@ -94,8 +94,8 @@ function medalRows(g, left) {
   const bonus = (m) => { const b = left.find((q) => q.medal === m); return b && b.amount ? ` · +${euro(b.amount)}` : ''; };
   return [
     [1, `Uitspelen${bonus(1)}`],
-    [2, `Binnen ${formatMissionTime(g.silver)}, niet te veel schade${bonus(2)}`],
-    [3, `${g.byPlace ? 'Als eerste over de finish' : `Binnen ${formatMissionTime(g.gold)}, weinig schade`}${g.wanted < 5 ? (g.wanted ? ', hooguit 1 ster' : ', zonder politie') : ''}${bonus(3)}`],
+    [2, `Binnen ${formatMissionTime(g.silver)}, niet te veel schade${g.happy ? `, toeristen minstens ${g.happy[1]}% tevreden` : ''}${bonus(2)}`],
+    [3, `${g.byPlace ? 'Als eerste over de finish' : `Binnen ${formatMissionTime(g.gold)}, weinig schade${g.happy ? `, toeristen minstens ${g.happy[0]}% tevreden` : ''}`}${g.wanted < 5 ? (g.wanted ? ', hooguit 1 ster' : ', zonder politie') : ''}${bonus(3)}`],
   ];
 }
 

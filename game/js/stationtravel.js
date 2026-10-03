@@ -10,6 +10,7 @@ import { manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { isInWater } from './util.js';
 import { VILLAGES } from './ommelandlines.js';
+import { setStoryOutfit, storyOutfit } from './shops.js';
 
 // Fast travel by train between the on-map stations (map.stations): a ticket
 // machine at each, a small menu, a short skippable ride cinematic.
@@ -21,6 +22,7 @@ const HUB = 'Groningen Hoofdstation';
 const SHOT_A = 2.4, SHOT_B = 2.5, SHOT_C = 2.9;
 const DURATION = SHOT_A + SHOT_B + SHOT_C;
 const FADE = 0.28;
+const CHANGE_LINE = 'Op het treintoilet: het zwart uit, hun eigen kleren weer aan';
 
 const BOARD_LINES = [
   'Vertraging door een koe op het spoor',
@@ -475,11 +477,13 @@ function startTrip(w, from, to, legs, info, board) {
   returnStolenTrains();
   const trains = [...new Set(legs.map((l) => l.train))];
   trip = { saved: trains.map(saveTrain), from, to, legs, info, phase: '' };
+  // after the kraak (H6) they travel in black: on the train toilet they change back
+  const change = !!storyOutfit();
   const tA = first.train, tB = midLeg.train, tC = last.train;
   const halfA = tA.halfLen, halfC = tC.halfLen;
   const lines = [
     { at: 0.4, dur: 2.0, speaker: '', text: `${lineLabel(first)} vertrekt van ${spoor(from, first)}` },
-    { at: SHOT_A + 0.3, dur: 2.1, speaker: '', text: legs.length > 1 ? `Overstappen op ${HUB}` : board },
+    { at: SHOT_A + 0.3, dur: 2.1, speaker: '', text: change ? CHANGE_LINE : legs.length > 1 ? `Overstappen op ${HUB}` : board },
     { at: SHOT_A + SHOT_B + 0.3, dur: 2.1, speaker: '', text: `Welkom in ${to.name}` },
   ];
 
@@ -535,12 +539,13 @@ function startTrip(w, from, to, legs, info, board) {
     kicker: 'Met de trein', title: `Naar ${to.name}`, cardFor: 2.2, lines, shot,
     onStart() {
       w.cinematicHidePlayers = true;
+      if (change) setStoryOutfit(null);
       const q = w.audioEvents || (w.audioEvents = []);
       q.push({ kind: 'train_horn', x: A.px, y: A.py });
     },
     onEnd() { arrive(w); },
   });
-  if (!ok) arrive(w);
+  if (!ok) { if (change) setStoryOutfit(null); arrive(w); }
 }
 
 function arrive(w) {
