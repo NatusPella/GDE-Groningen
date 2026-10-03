@@ -843,7 +843,8 @@ function ribbonClip(r, rs, kind) {
     for (const o of partners) {
       const oh = o.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0);
       const [ox0, oy0, ox1, oy1] = o.bounds;
-      if (x < ox0 - reach - oh || x > ox1 + reach + oh || y < oy0 - reach - oh || y > oy1 + reach + oh) continue;
+      const ohs = o.width / 2 + (SIDEWALK_CATS.has(o.cat) ? SIDEWALK_EXTRA : 0.3), ox = Math.max(oh, o.z ? ohs : 0);
+      if (x < ox0 - reach - ox || x > ox1 + reach + ox || y < oy0 - reach - ox || y > oy1 + reach + ox) continue;
       let best = Infinity, bi = 0, bx = 0, by = 0, bt = 0;
       const Q = o.pts;
       for (let i = 0; i < Q.length - 1; i++) {
@@ -852,7 +853,7 @@ function ribbonClip(r, rs, kind) {
       }
       const dist = Math.sqrt(best);
       // no overlap, or a duplicate lying on top
-      if (dist >= reach + oh || dist < 0.3) continue;
+      if (dist >= reach + ox || dist < 0.3) continue;
       const od = dirAt(Q, bi, 1);
       if (Math.abs(od[0] * d[0] + od[1] * d[1]) < 0.9) continue;
       const oz = o.z ? o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt : 0;
@@ -864,7 +865,7 @@ function ribbonClip(r, rs, kind) {
         // an open cutting alongside: this ribbon stops on the middle of its
         // retaining wall (or the wall face closing it) instead of hanging
         // out over the sunken way
-        if (o.z && !o.tunnel && !o.bridge && oz < -0.25 && zr - oz > 0.8) res[j] = Math.min(res[j], Math.max(0, (Math.abs(lat) - oh - 0.225) / ml));
+        if (o.z && !o.tunnel && !o.bridge && oz < -0.25 && zr - oz > 0.8) res[j] = Math.min(res[j], Math.max(0, (Math.abs(lat) - ohs - 0.225) / ml));
         continue;
       }
       res[j] = Math.min(res[j], Math.max(0.5, Math.abs(lat) * reach / (reach + oh) / ml));
