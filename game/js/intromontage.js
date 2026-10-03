@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene } from './scene3d.js';
+import { getScene, getCamera } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatPose, seatedY, SEATED_DROP, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { Vehicle, MODELS, makeTwoWheeler, spawnHeroCarNear, spawnVehicleOnRoad, manageTrafficPopulation, manageBikePopulation, updateTrafficAI, resolveVehicleBuildingCollision } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
@@ -8,6 +8,7 @@ import { updateTrafficLights } from './trafficlights.js';
 import { refreshDayNight } from './daynight.js';
 import { playCinematic } from './cinematics.js';
 import { roofAt } from './camerapath.js';
+import { cellPropSpots, CLUTTER_CELL } from './cityprops.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { dualHtml } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
@@ -123,7 +124,7 @@ const CSS = `
 #intro-montage .im-cap small { display: block; font-size: clamp(14px, 1.4vw, 19px); letter-spacing: 4px; color: #3fc97a; }
 #intro-montage .im-cap span { display: block; margin-top: 2px; font-size: clamp(26px, 3.2vw, 44px); line-height: 1; letter-spacing: 1px; }
 #intro-montage .im-lower .im-role { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(18px, 2vw, 28px); letter-spacing: 0.4px; margin-top: 8px; max-width: min(70vw, 640px); color: rgba(240, 237, 228, 0.92); }
-#intro-montage .im-sub { top: auto; bottom: 5.5vh; left: 50%; right: auto; transform: translate(-50%, 50%); width: min(86vw, 860px); text-align: center; font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
+#intro-montage .im-sub { top: auto; bottom: 2.5vh; left: 50%; right: auto; transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(17px, 1.7vw, 23px); letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
 #intro-montage .im-sub.on { opacity: 1; }
 #intro-montage .im-sub b { color: #3fc97a; margin-right: 6px; }
 body.intro-montage #game3d { filter: contrast(1.08) saturate(1.18) brightness(1.02); }
@@ -163,7 +164,7 @@ function setSub(line) {
   if (line && line.voice) playStoryVoice(line.voice, { radio: !!line.radio });
   setThemeDuck(!!line);
   ui.sub.classList.toggle('on', !!line);
-  if (line) ui.sub.innerHTML = speakerHtml(line.who) + dualHtml(line.text);
+  if (line) ui.sub.innerHTML = speakerHtml(line.who) + dualHtml(line.text, { gloss: true });
 }
 
 function clockText(h) {
@@ -285,8 +286,10 @@ function applyPose(m, name, t) {
 
 // A pigeon flock as two instanced meshes (bodies, wings): a few dozen birds
 // in two draw calls. Scattered, they burst up and wheel round the square.
+// avoid (m): a bubble round the camera the flock keeps out of, so no bird
+// passes the lens as a huge low-poly shape; birds deep inside it are hidden.
 const TONES = [0x7c8088, 0x6a6e76, 0x8e9198, 0x5c5f66, 0xa3a6ab].map((c) => new THREE.Color(c));
-export function makeBirds(group, cx, cy, r, n = BIRDS) {
+export function makeBirds(group, cx, cy, r, n = BIRDS, { avoid = 0 } = {}) {
   const body = new THREE.InstancedMesh(BIRD_GEO, BIRD_MAT, n);
   const wings = new THREE.InstancedMesh(WING_GEO, BIRD_MAT, n * 2);
   body.frustumCulled = wings.frustumCulled = false;
@@ -299,7 +302,7 @@ export function makeBirds(group, cx, cy, r, n = BIRDS) {
     body.setColorAt(i, tone);
     wings.setColorAt(i * 2, tone); wings.setColorAt(i * 2 + 1, tone);
   }
-  return { body, wings, list, dummy: new THREE.Object3D(), cx, cy, spin: Math.random() < 0.5 ? 1 : -1 };
+  return { body, wings, list, dummy: new THREE.Object3D(), cx, cy, spin: Math.random() < 0.5 ? 1 : -1, avoid };
 }
 
 export function scatterBirds(b, fromX, fromY) {
@@ -314,6 +317,8 @@ export function scatterBirds(b, fromX, fromY) {
 export function updateBirds(b, dt, t) {
   const d = b.dummy;
   d.rotation.order = 'YXZ';
+  const cam = b.avoid > 0 ? getCamera() : null;
+  const cp = cam && cam.position;
   b.list.forEach((p, i) => {
     let flap;
     if (p.fly) {
@@ -337,15 +342,28 @@ export function updateBirds(b, dt, t) {
       flap = 0.3;
       p.h += Math.sin(t * 0.7 + p.ph) * dt * 0.8;
     }
+    let size = 1;
+    if (cp) {
+      let dx = p.x - cp.x, dy = p.y - cp.z, dz = p.z - cp.y;
+      let dl = Math.hypot(dx, dy, dz);
+      if (p.fly && dl < b.avoid) {
+        if (dl < 1e-3) { dx = 1; dy = 0; dz = 0; dl = 1; }
+        const push = (b.avoid - dl) * Math.min(1, dt * 5) / dl;
+        p.x += dx * push; p.y += dy * push; p.z = Math.max(0.1, p.z + dz * push);
+        const into = (p.vx * dx + p.vy * dy + p.vz * dz) / dl;
+        if (into < 0) { p.vx -= (dx / dl) * into; p.vy -= (dy / dl) * into; p.vz -= (dz / dl) * into; }
+      }
+      size = clamp01((dl - b.avoid * 0.5) / 0.6);
+    }
     const peck = p.fly ? 0 : Math.max(0, Math.sin(t * 2.2 + p.ph * 3)) * 0.5;
     d.position.set(p.x, p.z + 0.07, p.y);
     d.rotation.set(0, -p.h, -peck);
-    d.scale.set(1, 1, 1);
+    d.scale.set(size, size, size);
     d.updateMatrix();
     b.body.setMatrixAt(i, d.matrix);
     for (const side of [1, -1]) {
       d.rotation.set(flap * side, -p.h, 0);
-      d.scale.set(1, 1, side);
+      d.scale.set(size, size, size * side);
       d.updateMatrix();
       b.wings.setMatrixAt(i * 2 + (side > 0 ? 0 : 1), d.matrix);
     }
@@ -558,6 +576,38 @@ function clearCam(map, q) {
   return top && q.z < top + 1.2 ? P(q.x, q.y, top + 1.2) : q;
 }
 
+// The street clutter (parked bikes, racks, stalls) is merged into static
+// cell meshes, so a low camera can't move it: it moves itself instead.
+const propCells = new Map();
+function propsAround(map, x, y, r) {
+  const out = [];
+  for (let gx = Math.floor((x - r) / CLUTTER_CELL); gx <= Math.floor((x + r) / CLUTTER_CELL); gx++) {
+    for (let gy = Math.floor((y - r) / CLUTTER_CELL); gy <= Math.floor((y + r) / CLUTTER_CELL); gy++) {
+      const k = gx + ',' + gy;
+      if (!propCells.has(k)) propCells.set(k, cellPropSpots(map, gx, gy));
+      for (const q of propCells.get(k)) if (Math.hypot(q.x - x, q.y - y) <= r) out.push(q);
+    }
+  }
+  return out;
+}
+
+// Whether no prop stands in the first `near` metres in front of a camera at
+// pos looking at look (a cone a little wider than the frame).
+function viewClear(map, pos, look, near = 4) {
+  const dx = look.x - pos.x, dy = look.y - pos.y, dl = Math.hypot(dx, dy) || 1;
+  const fx = dx / dl, fy = dy / dl;
+  return propsAround(map, pos.x, pos.y, near + 1).every((q) => {
+    const rx = q.x - pos.x, ry = q.y - pos.y;
+    const f = rx * fx + ry * fy, side = Math.abs(rx * fy - ry * fx);
+    return Math.hypot(rx, ry) > 1.2 && (f < 0 || f > near || side > 0.8 + f * 0.6);
+  });
+}
+
+// The first candidate camera spot with a clear view (or the first one).
+function clearSpot(map, spots, look, near) {
+  return spots.find((q) => viewClear(map, q, look, near)) || spots[0];
+}
+
 // --- shots ---------------------------------------------------------------------
 
 // The theme restarts with the montage: 111 bpm, first beat at 0.33 s, so
@@ -659,12 +709,17 @@ function buildShots(w) {
     }]],
   };
 
-  // a gull steals a frikandel on the Vismarkt; the pigeons scatter
+  // a gull steals a frikandel on the Vismarkt; the pigeons scatter. Shot
+  // from a few metres back, from a side with no bike rack in front of the lens.
   const gullDir = Math.atan2(tower.y - vismarkt.y, tower.x - vismarkt.x);
+  const gullSpot = (a, d) => ({ x: vismarkt.x + Math.cos(a) * d, y: vismarkt.y + Math.sin(a) * d, z: 1.3 });
+  const gullCams = [];
+  for (const d of [7.5, 6, 9]) for (const da of [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05]) gullCams.push(gullSpot(gullDir + 2.1 + da, d));
   const gull = {
     minDur: 1.9, clock: 12.6, focus: vismarkt,
     enter(r, s) {
-      s.birds = makeBirds(r.group, vismarkt.x + 1.5, vismarkt.y, 2.5);
+      s.cam = clearSpot(map, gullCams.filter((q) => !roofAt(map, q.x, q.y)), P(vismarkt.x, vismarkt.y, 0.5), 5);
+      s.birds = makeBirds(r.group, vismarkt.x + 1.5, vismarkt.y, 2.5, BIRDS, { avoid: 7 });
       s.gull = buildPigeonBird('gull');
       s.gull.scale.multiplyScalar(2.2);
       s.snack = buildFrikandel();
@@ -687,11 +742,7 @@ function buildShots(w) {
       s.gull.rotation.set(0, -gullDir, -Math.min(0.5, k * 0.5));
       posePigeonBird(s.gull, { flapPhase: t * 13, amp: k > 0 ? 0.95 : 0, fold: k > 0 ? 0 : 1, grounded: k <= 0 });
     },
-    cams: [[0, (u, t, s) => {
-      const a = gullDir + 2.1;
-      const pos = P(vismarkt.x + Math.cos(a) * 3.4, vismarkt.y + Math.sin(a) * 3.4, 0.7 + u * 0.5);
-      return pose(pos, P(s.p.x, s.p.y, s.p.z + 0.3), 42, t, 0.03);
-    }]],
+    cams: [[0, (u, t, s) => pose(P(s.cam.x, s.cam.y, s.cam.z + u * 0.6), P(s.p.x, s.p.y, s.p.z + 0.3), 36, t, 0.03)]],
   };
 
   // a work boat fishes a bike out of the Diepenring
@@ -730,6 +781,9 @@ function buildShots(w) {
       r.group.add(s.trailer);
       s.d = -2;
       s.q = lane(s.d, 2.4);
+      // the camera keeps to the side of the street with no parked bikes in front of it
+      const clearAt = (d, off) => viewClear(map, lane(d + 4.4, 2.4 + off), lane(d, 2.4), 4.5);
+      s.side = [1.7, 0.4, -0.8, -1.8].find((off) => clearAt(s.d, off) && clearAt(s.d + 1.9, off)) ?? 0.4;
     },
     exit(r, s) { if (s.trailer) disposeOwned(s.trailer); },
     tick(r, s, t, dt) {
@@ -741,7 +795,7 @@ function buildShots(w) {
     },
     cams: [[0, (u, t, s) => {
       const q = s.q, d = lerp(4.6, 4.0, u);
-      return pose(P(q.x + rf.x * d + rn.x * 1.7, q.y + rf.y * d + rn.y * 1.7, 0.9), P(q.x - rf.x * 0.7, q.y - rf.y * 0.7, 1.15), 44, t, 0.02);
+      return pose(P(q.x + rf.x * d + rn.x * s.side, q.y + rf.y * d + rn.y * s.side, 0.9), P(q.x - rf.x * 0.7, q.y - rf.y * 0.7, 1.15), 44, t, 0.02);
     }]],
   };
 
@@ -870,12 +924,29 @@ function buildShots(w) {
 
   // --- opening ---------------------------------------------------------------
 
+  // Early morning, not a red filter: a low sun more gold than orange, cool
+  // blue sky light in the shadows, so the brick terraces read as brick.
+  const DAWN = { sun: new THREE.Color(0xffc48a), sky: new THREE.Color(0x8fa6cc), gnd: new THREE.Color(0x5b5650), fog: new THREE.Color(0xb4bccb), horizon: new THREE.Color(0xe9c3a0), shadow: new THREE.Color(0xc4d6ee) };
+  const dawnMood = (L) => {
+    L.sun.lerp(DAWN.sun, 0.7);
+    L.sunI *= 0.8;
+    L.hemiSky.lerp(DAWN.sky, 0.7);
+    L.hemiGnd.lerp(DAWN.gnd, 0.6);
+    L.hemiI *= 1.1;
+    L.fog.lerp(DAWN.fog, 0.75);
+    L.horizon.lerp(DAWN.horizon, 0.6);
+    L.shadowTint.lerp(DAWN.shadow, 0.6);
+    L.glowI *= 0.45;
+    L.sat = 0.94;
+    L.bloomStr *= 0.6;
+  };
+
   const dateCard = { minDur: 1.6, black: true, card: '<div class="im-kicker">Kop · 14 augustus</div><div class="im-title">Moi, Grunn</div>' };
 
   // sunrise: down along d'Olle Grieze, over the Oosterparkwijk into a narrow
   // street, the red Escapade with a flat tyre at the door, Rikus at his mic
   const dawn = {
-    minDur: 9, clock: 4.8, clockTo: 4.95, stamp: '05:48', focus: home, flare: { x: 82, y: 30, a: 0.8 },
+    minDur: 9, clock: 5.62, clockTo: 5.8, stamp: '05:48', focus: home, flare: { x: 82, y: 30, a: 0.8 },
     caption: ['OOSTERPARKWIJK', 'Korenbloemstraat. Een zolderraam en een lekke band.'], capAt: 'L0+1',
     lead: 0.6,
     lines: [['V', 'Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens.', 'warm, zacht, als nacht-dj op de radio in het laatste uur van de nacht']],
@@ -883,8 +954,12 @@ function buildShots(w) {
       s.car = tempCar(r, car.x, car.y, home.a) || tempCar(r, car.x, car.y, home.a, { model: { ...MODELS[0], color: '#a11f1f' } });
       s.st = buildRadioStudio(home.x + 40, home.y);
       r.group.add(s.st.group);
+      r.w.lightMood = dawnMood;
     },
-    exit(r, s) { if (s.st) { s.st.dispose(); s.st = null; } },
+    exit(r, s) {
+      if (r.w.lightMood === dawnMood) r.w.lightMood = null;
+      if (s.st) { s.st.dispose(); s.st = null; }
+    },
     tick(r, s, t) {
       // sagging on the flat front tyre
       if (s.car) { s.car.roll = 0.06; s.car.pitch = -0.025; }
@@ -919,7 +994,7 @@ function buildShots(w) {
   const tl = Math.hypot(tStand.u - KITCHEN.anitaSeat.u, tStand.v - KITCHEN.anitaSeat.v);
   const toT = { x: (tStand.u - KITCHEN.anitaSeat.u) / tl, y: (tStand.v - KITCHEN.anitaSeat.v) / tl };
   const kitchenIn = {
-    minDur: 6, clock: 5.1, focus: home, kitchen: true, lead: 1.1,
+    minDur: 6, clock: 5.85, focus: home, kitchen: true, lead: 1.1,
     lines: [
       ['T', 'Moi. De bank?', 'droog, slaperig, voorzichtig'],
       ['A', '"Uw plan is sympathiek." Dat betekent nee, met een strikje.', 'ad rem, cynisch, moe'],
@@ -961,7 +1036,7 @@ function buildShots(w) {
 
   // the car: seated across the table, the coffee down, the drawing between them
   const kitchenCar = {
-    minDur: 6, clock: 5.12, focus: home, kitchen: true, lead: 0.4,
+    minDur: 6, clock: 5.88, focus: home, kitchen: true, lead: 0.4,
     lines: [
       ['A', 'Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto.', 'zakelijk, ad rem, een beetje moedeloos'],
       ['T', 'Ik wel. De Escapade.', 'droog, terloops'],
@@ -989,7 +1064,7 @@ function buildShots(w) {
 
   // nobody talks: she looks at him, he looks at his coffee; then a slow push-in on Anita
   const liefste = {
-    minDur: 4, clock: 5.16, focus: home, kitchen: true, lead: 1.5,
+    minDur: 4, clock: 5.92, focus: home, kitchen: true, lead: 1.5,
     lines: [['A', '…Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.', 'zacht, ontroerd, verrast, met een glimlach die ze probeert in te houden']],
     enter(r, s) {
       s.kit = useKitchen(r, KIT);
@@ -1011,7 +1086,7 @@ function buildShots(w) {
 
   // Rikus on the old radio with advice for Tammo, then her phone buzzes
   const radioTip = {
-    minDur: 6, clock: 5.18, focus: home, kitchen: true, lead: 0.4,
+    minDur: 6, clock: 5.95, focus: home, kitchen: true, lead: 0.4,
     gaps: { 1: 1.0 },
     lines: [
       ['V', 'En voor Tammo, als je luistert: ze zegt nooit "kom" tegen iemand die ze niet mee wil hebben. Doe er wat mee.', 'warm, als nacht-dj op de radio, zacht, met een knipoog'],
@@ -1289,7 +1364,7 @@ export function playIntroMontage(w, { startAt = 0, flyShot, onDone } = {}) {
   if (!r.offset) cueTheme(0);
   ui.root.classList.add('on');
   const ok = playCinematic({
-    id: 'intro', priority: 6, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true,
+    id: 'intro', priority: 6, duration: total - r.offset, pause: true, letterbox: true, skippable: true, hideHud: true, realtime: true,
     shot: (u, t) => frame(r, t),
     onEnd: (skipped) => {
       cleanup(r, skipped);
