@@ -5,7 +5,7 @@
 //   call       incoming call: ringing phone, caller ID, then the voiced lines
 //   voicemail  a missed call / pocket dial, played back as a voice message
 //   live       a livestream on the phone screen (portrait, LIVE badge, chat)
-//   post       a Sikkom post with a selfie, read out as a video
+//   post       a Kiekdoar post with a selfie, read out as a video
 //   card       a handwritten card or note, read out in the writer's voice
 //   scene      a 3D cutscene (missionstory.js playLivestream), inside the LIVE frame
 //   radio      Radio Nachtstreek on the phone: a station sting, Rikus and his caller in
@@ -40,7 +40,7 @@ const CHAT = [
   ['stadjer050', 'Wie is dit nou weer'], ['moi_uut_grunn', 'Moai?? Hier zeggen we moi'], ['kiekdeuse', 'Grunn > Fryslân'],
   ['fietsopdediep', 'Is dat een trekker met een limo erachter'], ['olle_grieze_fan', 'Zonnebril op. In het donker.'],
   ['hoornsediep', 'Die twee achter hem zijn echt groot'], ['zuiderpark4life', 'Moi uit Hoogkerk'], ['vismarktvincent', 'Kon minder'],
-  ['sikkom_fan', 'Wie is W?'], ['oosterpoort_oma', 'Ik bel de pliesie. Of mijn kleinzoon.'], ['mem_terpstra', 'Jas aan, jonge.'],
+  ['kiekdoar_fan', 'Wie is W?'], ['oosterpoort_oma', 'Ik bel de pliesie. Of mijn kleinzoon.'], ['mem_terpstra', 'Jas aan, jonge.'],
 ];
 
 let world = null;
@@ -188,7 +188,7 @@ function renderPhone(c) {
     body = `<div class="sc-livebar"><span class="sc-dot">LIVE</span><b>${esc(c.handle || 'JelleWâld')}</b><span style="margin-left:auto">&#128065; ${(c.viewers || 1953).toLocaleString('nl-NL')}</span></div>` +
       '<canvas class="sc-livecanvas"></canvas><div class="sc-chat"></div><div class="sc-bubble"></div>';
   } else if (c.via === 'post') {
-    body = `<div class="sc-post"><div class="sc-posthead"><canvas></canvas><b>${esc(c.handle || 'JelleWâld')}</b><span style="margin-left:auto;color:#3fc97a;font-size:11px">SIKKOM</span></div>` +
+    body = `<div class="sc-post"><div class="sc-posthead"><canvas></canvas><b>${esc(c.handle || 'JelleWâld')}</b><span style="margin-left:auto;color:#3fc97a;font-size:11px">KIEKDOAR</span></div>` +
       `<canvas class="sc-postimg"></canvas><div class="sc-likes">&#9829; ${esc(c.likes || '4.012')} · ${esc(c.caption || 'video')}</div></div><div class="sc-bubble"></div>`;
   } else if (c.via === 'radio') {
     body = `<div class="sc-head"><div class="sc-state">Radio Nachtstreek · live</div><canvas class="sc-portrait"></canvas><div class="sc-name">${esc(c.caller ? 'Bel Rikus' : 'Nachtstreek')}</div>` +
@@ -262,7 +262,7 @@ function lineTime(line) {
 
 function logHistory(c) {
   if (!world) return;
-  const kind = { call: 'belde', voicemail: 'sprak in', live: 'was live', post: 'op Sikkom', card: 'liet een kaartje achter', scene: 'was live', radio: 'op Nachtstreek' }[c.via] || '';
+  const kind = { call: 'belde', voicemail: 'sprak in', live: 'was live', post: 'op Kiekdoar', card: 'liet een kaartje achter', scene: 'was live', radio: 'op Nachtstreek' }[c.via] || '';
   const text = c.lines.map((l) => dutchFor(l[1]) || l[1]).join(' ');
   const h = world.phoneHistory || (world.phoneHistory = []);
   const by = c.via === 'radio' ? 'Rikus' : c.caller || nameOf(c.from || 'jelle');

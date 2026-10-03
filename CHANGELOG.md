@@ -15,6 +15,23 @@ nieuwe functies, `y` voor alleen bugfixes.
 - De downloads heten nu `GDE-Groningen-<versie>-mac.dmg` en
   `GDE-Groningen-<versie>-windows-portable.exe`. Op de Mac kun je de oude
   app "GTE VI" weggooien nadat je de nieuwe hebt geïnstalleerd.
+- **De nieuwssite heet nu Kiekdoar** ("kijk daar"), een eigen parodienaam:
+  de telefoon-app, de pushberichten, Kiekdoar TV en het journaal, de
+  nieuwslezers en wat voetgangers en personages erover zeggen. Het scherm
+  "Sikkom." bij een net mislukte missie blijft: dat is het Groningse woord
+  voor "bijna".
+- **De praatzender heet nu Radio Proat**, met nieuwe idents van Geesje.
+- Alle regels met de oude namen zijn opnieuw ingesproken. De oudere clips
+  van voetgangers, politie, het nieuws en de G-Music-jingles zijn ook
+  opnieuw ingesproken, met dezelfde stemmen als de rest. Nu is van elke
+  stem vastgelegd hoe hij gemaakt is.
+- Cafés heten in meldingen en bij het bestellen nu naar verzonnen zaken,
+  zoals Café De Lallende Koe; de kaart toont nog de echte namen. Ook de
+  kroegentocht doet verzonnen kroegen aan.
+- Na een ziekenhuisrit word je opgelapt bij een "Huisartsenpost" in de wijk,
+  niet meer bij een echte praktijk.
+- De gevels van Kruidvet, Albert Hijgt, DUMBO, Blokkie en Wiebel en het bord
+  van Bakkie Prut hebben eigen kleuren, niet meer die van de echte ketens.
 
 ## [0.23.0] - 2026-10-03
 

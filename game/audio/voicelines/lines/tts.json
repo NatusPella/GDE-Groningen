@@ -2087,6 +2087,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Anita|Kiekdoar kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
+"src": "anita/kiekdoar_kopt_grote_markt_saaier_0838986a.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "Kiekdoar kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geamuseerd, zakelijk.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Anita|Kijk rechts over de daken: d'Olle Grieze, de Martinitoren.": {
 "src": "anita/kijk_rechts_over_de_daken_d_olle_3a91dd35.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -2713,24 +2722,6 @@
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Callirrhoe",
 "input": "Schiet of ram zijn banden stuk, kaap hem en breng het vet naar de Oosterpoort.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geamuseerd, zakelijk.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Anita|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Dat laten we niet op ons zitten.": {
-"src": "anita/sikkom_kopt_grote_markt_saaier_d_5d3cbfee.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Callirrhoe",
-"input": "Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Dat laten we niet op ons zitten.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: samenzweerderig, zacht.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Anita|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
-"src": "anita/sikkom_kopt_grote_markt_saaier_d_4a166f82.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Callirrhoe",
-"input": "Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.",
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geamuseerd, zakelijk.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
@@ -4364,8 +4355,8 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Dan het verkeer.": {
-"src": "geesje_radio_grunn/dan_het_verkeer_8dcbdfea.mp3",
+"Geesje (Radio Proat)|Dan het verkeer.": {
+"src": "geesje_radio_proat/dan_het_verkeer_8dcbdfea.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "Dan het verkeer.",
@@ -4373,17 +4364,17 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Eerst het nieuws, van Sikkom.": {
-"src": "geesje_radio_grunn/eerst_het_nieuws_van_sikkom_2e182e10.mp3",
+"Geesje (Radio Proat)|Eerst het nieuws, van Kiekdoar.": {
+"src": "geesje_radio_proat/eerst_het_nieuws_van_kiekdoar_0ec3e3ef.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
-"input": "Eerst het nieuws, van Sikkom.",
-"style": "spoken in Dutch with a Groningen accent; Groningse radiopresentatrice van praatzender Radio Grunn, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
+"input": "Eerst het nieuws, van Kiekdoar.",
+"style": "spoken in Dutch with a Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
-"Geesje (Radio Grunn)|En dan de koeien. Ja, die hebben ook een mening.": {
-"src": "geesje_radio_grunn/en_dan_de_koeien_ja_die_hebben_o_3e1ebdca.mp3",
+"Geesje (Radio Proat)|En dan de koeien. Ja, die hebben ook een mening.": {
+"src": "geesje_radio_proat/en_dan_de_koeien_ja_die_hebben_o_3e1ebdca.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "En dan de koeien. Ja, die hebben ook een mening.",
@@ -4391,8 +4382,8 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Het weer: droog, met kans op wind. Zoals altijd.": {
-"src": "geesje_radio_grunn/het_weer_droog_met_kans_op_wind__c5cf4a84.mp3",
+"Geesje (Radio Proat)|Het weer: droog, met kans op wind. Zoals altijd.": {
+"src": "geesje_radio_proat/het_weer_droog_met_kans_op_wind__c5cf4a84.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "Het weer: droog, met kans op wind. Zoals altijd.",
@@ -4400,8 +4391,8 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Het weer: regen. Je bent in Grunn, wat had je dan gedacht.": {
-"src": "geesje_radio_grunn/het_weer_regen_je_bent_in_grunn__0c265a3c.mp3",
+"Geesje (Radio Proat)|Het weer: regen. Je bent in Grunn, wat had je dan gedacht.": {
+"src": "geesje_radio_proat/het_weer_regen_je_bent_in_grunn__0c265a3c.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "Het weer: regen. Je bent in Grunn, wat had je dan gedacht.",
@@ -4409,44 +4400,44 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Je luistert naar Radio Grunn. Gewoon weer een dag in Stad.": {
-"src": "geesje_radio_grunn/je_luistert_naar_radio_grunn_gew_45a31e48.mp3",
+"Geesje (Radio Proat)|Je luistert naar Radio Proat. Gewoon weer een dag in Stad.": {
+"src": "geesje_radio_proat/je_luistert_naar_radio_proat_gew_93effb02.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
-"input": "Je luistert naar Radio Grunn. Gewoon weer een dag in Stad.",
-"style": "spoken in Dutch with a Groningen accent; Groningse radiopresentatrice van praatzender Radio Grunn, warm en droog. Tone: droog, met een knipoog, als radiopresentatrice.",
+"input": "Je luistert naar Radio Proat. Gewoon weer een dag in Stad.",
+"style": "spoken in Dutch with a Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
-"Geesje (Radio Grunn)|Nog meer nieuws. Sikkom weet het altijd eerder.": {
-"src": "geesje_radio_grunn/nog_meer_nieuws_sikkom_weet_het__b4e3648c.mp3",
+"Geesje (Radio Proat)|Nog meer nieuws. Kiekdoar weet het altijd eerder.": {
+"src": "geesje_radio_proat/nog_meer_nieuws_kiekdoar_weet_he_017fd16d.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
-"input": "Nog meer nieuws. Sikkom weet het altijd eerder.",
-"style": "spoken in Dutch with a Groningen accent; Groningse radiopresentatrice van praatzender Radio Grunn, warm en droog. Tone: vlot en opgewekt, als radiopresentatrice.",
+"input": "Nog meer nieuws. Kiekdoar weet het altijd eerder.",
+"style": "spoken in Dutch with a Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: vlot en opgewekt, als radiopresentatrice.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
-"Geesje (Radio Grunn)|Radio Grunn. Proatradio veur Stad en Ommeland.": {
-"src": "geesje_radio_grunn/radio_grunn_proatradio_veur_stad_8a09cd10.mp3",
+"Geesje (Radio Proat)|Radio Proat. Wie proaten, joe heuren. Veur Stad en Ommeland.": {
+"src": "geesje_radio_proat/radio_proat_wie_proaten_joe_heur_44bd47c3.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
-"input": "Radio Grunn. Proatradio veur Stad en Ommeland.",
-"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Grunn, warm en droog. Tone: vlot en opgewekt, als radiopresentatrice.",
+"input": "Radio Proat. Wie proaten, joe heuren. Veur Stad en Ommeland.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: droog, met een knipoog, als radiopresentatrice.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
-"Geesje (Radio Grunn)|Radio Grunn. Wij zeggen wat er is, en niet meer dan dat.": {
-"src": "geesje_radio_grunn/radio_grunn_wij_zeggen_wat_er_is_dfb59182.mp3",
+"Geesje (Radio Proat)|Radio Proat. Wij zeggen wat er is, en niet meer dan dat.": {
+"src": "geesje_radio_proat/radio_proat_wij_zeggen_wat_er_is_bbb11f94.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
-"input": "Radio Grunn. Wij zeggen wat er is, en niet meer dan dat.",
-"style": "spoken in Dutch with a Groningen accent; Groningse radiopresentatrice van praatzender Radio Grunn, warm en droog. Tone: droog, met een knipoog, als radiopresentatrice.",
+"input": "Radio Proat. Wij zeggen wat er is, en niet meer dan dat.",
+"style": "spoken in Dutch with a Groningen accent; Groningse radiopresentatrice van praatzender Radio Proat, warm en droog. Tone: warm, ontspannen, als radiopresentatrice.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
-"Geesje (Radio Grunn)|Reclame. De eierbal: rond, heet en Gronings. Bij elke snackbar in Stad.": {
-"src": "geesje_radio_grunn/reclame_de_eierbal_rond_heet_en__0644eb72.mp3",
+"Geesje (Radio Proat)|Reclame. De eierbal: rond, heet en Gronings. Bij elke snackbar in Stad.": {
+"src": "geesje_radio_proat/reclame_de_eierbal_rond_heet_en__0644eb72.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "Reclame. De eierbal: rond, heet en Gronings. Bij elke snackbar in Stad.",
@@ -4454,8 +4445,8 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Reclame. EIKEA: zelf in elkaar zetten, zelf het schroefje zoeken.": {
-"src": "geesje_radio_grunn/reclame_eikea_zelf_in_elkaar_zet_eee4e9bf.mp3",
+"Geesje (Radio Proat)|Reclame. EIKEA: zelf in elkaar zetten, zelf het schroefje zoeken.": {
+"src": "geesje_radio_proat/reclame_eikea_zelf_in_elkaar_zet_eee4e9bf.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "Reclame. EIKEA: zelf in elkaar zetten, zelf het schroefje zoeken.",
@@ -4463,8 +4454,8 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Reclame. Garage Knalpot: wij repareren alles, behalve je rijstijl.": {
-"src": "geesje_radio_grunn/reclame_garage_knalpot_wij_repar_68ee7c05.mp3",
+"Geesje (Radio Proat)|Reclame. Garage Knalpot: wij repareren alles, behalve je rijstijl.": {
+"src": "geesje_radio_proat/reclame_garage_knalpot_wij_repar_68ee7c05.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "Reclame. Garage Knalpot: wij repareren alles, behalve je rijstijl.",
@@ -4472,8 +4463,8 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Reclame. Pomp en Poets: tanken, wassen, en een praatje over het weer.": {
-"src": "geesje_radio_grunn/reclame_pomp_en_poets_tanken_was_96423d89.mp3",
+"Geesje (Radio Proat)|Reclame. Pomp en Poets: tanken, wassen, en een praatje over het weer.": {
+"src": "geesje_radio_proat/reclame_pomp_en_poets_tanken_was_96423d89.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "Reclame. Pomp en Poets: tanken, wassen, en een praatje over het weer.",
@@ -4481,8 +4472,8 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geesje (Radio Grunn)|Rikus van Nachtstreek stuurde ons er nog eentje.": {
-"src": "geesje_radio_grunn/rikus_van_nachtstreek_stuurde_on_59d2268d.mp3",
+"Geesje (Radio Proat)|Rikus van Nachtstreek stuurde ons er nog eentje.": {
+"src": "geesje_radio_proat/rikus_van_nachtstreek_stuurde_on_59d2268d.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Pulcherrima",
 "input": "Rikus van Nachtstreek stuurde ons er nog eentje.",
@@ -5759,14 +5750,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Jelmer|Rikus! Jelmer. Sikkom zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!": {
-"src": "jelmer/rikus_jelmer_sikkom_zegt_dat_de__9ff1182e.mp3",
+"Jelmer|Rikus! Jelmer. Kiekdoar zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!": {
+"src": "jelmer/rikus_jelmer_kiekdoar_zegt_dat_d_15074db6.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Puck",
-"input": "Rikus! Jelmer. Sikkom zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!",
+"input": "Rikus! Jelmer. Kiekdoar zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!",
 "style": "spoken in Dutch with a Groningen accent; jonge Groningse streamer, hyper. Tone: hyper, opgewonden, aan de telefoon op de radio.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Jelmer|Tienduizend kijkers! En kijk: \"JelleWâld\" in de chat. \"Groot Loug. Moai foar in wykein.\"": {
 "src": "jelmer/tienduizend_kijkers_en_kijk_jell_b8fafe1c.mp3",
@@ -6799,15 +6790,6 @@
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Schedar",
 "input": "En op Nachtstreek belde een Fries. Jelle Terpstra. Hij wil hem eerlijk winnen, op Gronings Ontzet.",
-"style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: warm, vertellend, als een terugblik.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Rikus|En op Sikkom lachte een Fries in een blauw colbert. Jelle Terpstra. Operaasje Aaibal was begonnen.": {
-"src": "verteller/en_op_sikkom_lachte_een_fries_in_495208a7.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Schedar",
-"input": "En op Sikkom lachte een Fries in een blauw colbert. Jelle Terpstra. Operaasje Aaibal was begonnen.",
 "style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: warm, vertellend, als een terugblik.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
@@ -9827,6 +9809,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Tammo|Kiekdoar kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
+"src": "tammo/kiekdoar_kopt_grote_markt_saaier_b1fd01f6.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Kiekdoar kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: opgewonden, fluisterend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Tammo|Kijk die rij. Tot aan d'Olle Grieze.": {
 "src": "tammo/kijk_die_rij_tot_aan_d_olle_grie_e0f94799.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -10391,24 +10382,6 @@
 "voice": "Orus",
 "input": "Schiet of ram zijn banden stuk, kaap hem en breng het vet naar de Oosterpoort.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: opgewonden, fluisterend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Tammo|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Dat laten we niet op ons zitten.": {
-"src": "tammo/sikkom_kopt_grote_markt_saaier_d_e45e1897.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Orus",
-"input": "Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Dat laten we niet op ons zitten.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: opgewonden, fluisterend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Tammo|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
-"src": "tammo/sikkom_kopt_grote_markt_saaier_d_f018d7eb.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Orus",
-"input": "Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: samenzweerderig, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
@@ -11519,14 +11492,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"~f|Dit gaat op Sikkom!": {
-"src": "bubbles/f/dit_gaat_op_sikkom_5cd5c7b5.mp3",
+"~f|Dit gaat op Kiekdoar!": {
+"src": "bubbles/f/dit_gaat_op_kiekdoar_f9533292.mp3",
 "model": "google/gemini-3.8-flash-tts",
-"voice": "Laomedeia",
-"input": "Dit gaat op Sikkom!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw. Tone: giechelend, filmend met de telefoon.",
+"voice": "Sulafat",
+"input": "Dit gaat op Kiekdoar!",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw. Tone: lacherig, opgewonden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "~f|Dit heb ik niet besteld!": {
 "src": "bubbles/f/dit_heb_ik_niet_besteld_317f1913.mp3",
@@ -11960,14 +11933,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"~f|HÉ! Jij bent toch die van Sikkom?": {
-"src": "bubbles/f/he_jij_bent_toch_die_van_sikkom_5d6cf5cb.mp3",
+"~f|HÉ! Jij bent toch die van Kiekdoar?": {
+"src": "bubbles/f/he_jij_bent_toch_die_van_kiekdoa_b3f21667.mp3",
 "model": "google/gemini-3.8-flash-tts",
-"voice": "Achernar",
-"input": "HÉ! Jij bent toch die van Sikkom?",
+"voice": "Leda",
+"input": "HÉ! Jij bent toch die van Kiekdoar?",
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw. Tone: lallend, uitgelaten.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "~f|Hé! Dat is mijn fiets! Ik stond er maar vijf minuutjes!": {
 "src": "bubbles/f/he_dat_is_mijn_fiets_ik_stond_er_e9b1790e.mp3",
@@ -13697,14 +13670,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"~m|Dit gaat op Sikkom!": {
-"src": "bubbles/m/dit_gaat_op_sikkom_5b09639a.mp3",
+"~m|Dit gaat op Kiekdoar!": {
+"src": "bubbles/m/dit_gaat_op_kiekdoar_abd19127.mp3",
 "model": "google/gemini-3.8-flash-tts",
-"voice": "Sadaltager",
-"input": "Dit gaat op Sikkom!",
-"style": "spoken in Dutch with a Groningen accent; Groningse man. Tone: lacherig, opgewonden.",
+"voice": "Zubenelgenubi",
+"input": "Dit gaat op Kiekdoar!",
+"style": "spoken in Dutch with a Groningen accent; Groningse man. Tone: giechelend, filmend met de telefoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "~m|Dit heb ik niet besteld!": {
 "src": "bubbles/m/dit_heb_ik_niet_besteld_56b56b1b.mp3",
@@ -14138,14 +14111,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"~m|HÉ! Jij bent toch die van Sikkom?": {
-"src": "bubbles/m/he_jij_bent_toch_die_van_sikkom_cdb87524.mp3",
+"~m|HÉ! Jij bent toch die van Kiekdoar?": {
+"src": "bubbles/m/he_jij_bent_toch_die_van_kiekdoa_b1810080.mp3",
 "model": "google/gemini-3.8-flash-tts",
-"voice": "Iapetus",
-"input": "HÉ! Jij bent toch die van Sikkom?",
+"voice": "Alnilam",
+"input": "HÉ! Jij bent toch die van Kiekdoar?",
 "style": "spoken in Dutch with a Groningen accent; Groningse man. Tone: dronken, overenthousiast, schreeuwend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "~m|Hè? Ik sliep niet, hoor.": {
 "src": "bubbles/m/he_ik_sliep_niet_hoor_f9cd4344.mp3",

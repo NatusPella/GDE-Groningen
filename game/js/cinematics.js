@@ -743,6 +743,7 @@ export function playMissionOutro(w, info) {
 }
 
 export function playMissionFailed(w, info, withShot = true) {
+  // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   showBanner({ kind: 'fail', title: 'Sikkom.', ...info });
   if (!withShot) return false;
   const p = w.player, a = heading(w);

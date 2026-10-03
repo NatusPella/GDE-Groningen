@@ -45,7 +45,7 @@ for the mission/waypoint marker (matches the existing GTA-marker language)
   Narrow` stays in the stack as the immediate fallback (same tall/
   condensed character) if the webfont hasn't loaded yet.
 - Headings / wordmarks: bold, `letter-spacing: 1-2px`, uppercase where it's
-  a label (SIKKOM, station names) not a sentence.
+  a label (KIEKDOAR, station names) not a sentence.
 - Body/HUD text: normal weight is fine, keep letter-spacing subtle (0.3px).
 - Exception: pedestrian speech bubbles (`scene3d.js`'s `syncSpeechBubbles`)
   deliberately stay on plain `'Arial Narrow', Arial, sans-serif` - short

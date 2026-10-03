@@ -259,7 +259,7 @@ function completeRound(c, res = {}) {
   }
   if (c.streak % 5 === 0 && world.phoneNotifications && c.job.sikkom) {
     const say = SMS_SAY['job_' + c.job.id];
-    world.phoneNotifications.push({ text: 'SIKKOM: ' + c.job.sikkom(c), duration: 4, say: say && say.lines[0] });
+    world.phoneNotifications.push({ text: 'KIEKDOAR: ' + c.job.sikkom(c), duration: 4, say: say && say.lines[0] });
   }
   c.timeLeft = null;
   c.nextRoundAt = world.time + NEXT_ROUND_DELAY;
@@ -374,9 +374,9 @@ export function updateSideJobs(dt, w) {
 // any other way (shooting, stealing) still send you home.
 const ACCIDENT_FINE = SIDEJOB_ACCIDENT_FINE;
 const ACCIDENT_LINES = [
-  'SIKKOM: Stadjer aan het werk rijdt voetganger van de sokken, voetganger bestelt daarna gewoon een patatje',
-  'SIKKOM: "Hij kwam uit het niets," zegt voetganger die midden op straat naar zijn telefoon stond te staren',
-  'SIKKOM: Stadjer ontdekt dat de rijbaan geen stoep is, getuigen spreken van een leerzaam moment',
+  'KIEKDOAR: Stadjer aan het werk rijdt voetganger van de sokken, voetganger bestelt daarna gewoon een patatje',
+  'KIEKDOAR: "Hij kwam uit het niets," zegt voetganger die midden op straat naar zijn telefoon stond te staren',
+  'KIEKDOAR: Stadjer ontdekt dat de rijbaan geen stoep is, getuigen spreken van een leerzaam moment',
 ];
 function forgiveAccident(c, w) {
   if (w.time - (w.lastPedHitAt ?? -Infinity) > 3 || w.wanted > 2) return false;
