@@ -40,7 +40,7 @@ export const MISSION_GOALS = [
   { name: 'Ring Zuid, laatste fase', gold: 150, silver: 190, wanted: 5, byPlace: true, extra: ['Netjes ingehaald', 'Win de ringweg-race zonder een rivaal te raken'] },
   { name: 'Nog eentje dan', gold: 95, silver: 120, wanted: 0, extra: ['Laatste ronde', 'Haal alle vier de kroegen met nog een volle minuut op de klok'] },
   { name: 'Fatbikes tellen niet als fiets', gold: 95, silver: 120, wanted: 0, extra: ['Geen bandafdruk', 'Kom van de Grote Markt tot de Noorderhaven zonder één keer geschept te worden'] },
-  { name: 'Alles klopt, behalve de papieren', gold: 510, silver: 610, wanted: 0, happy: [80, 50], extra: ['Glad water', 'Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe'] },
+  { name: 'Alles klopt, behalve de papieren', gold: 660, silver: 800, wanted: 0, happy: [80, 50], extra: ['Glad water', 'Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe'] },
 ];
 export const GOLD_DAMAGE = 25;
 export const SILVER_DAMAGE = 60;

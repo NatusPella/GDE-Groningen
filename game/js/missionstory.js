@@ -608,6 +608,7 @@ function applyPose(m, pose, t, talking) {
   else if (pose === 'hold') { arm(ud.armR, ud.elbowR, 1.35, 1.0, -0.05); ud.head.rotation.z = 0.06; }
   else if (pose === 'lookup') { ud.head.rotation.z = 0.5; ud.chest.rotation.z = 0.08; }
   else if (pose === 'look') ud.head.rotation.y = Math.sin(t * 1.1) * 0.7;
+  else if (pose === 'rail') { arm(ud.armL, ud.elbowL, 0.75, 0.9, 0.15); arm(ud.armR, ud.elbowR, 0.75, 0.9, -0.15); ud.chest.rotation.z = -0.06; }
   else if (pose === 'toast') { arm(ud.armR, ud.elbowR, ud.toastZ ?? 1.3, ud.toastE ?? 0.6, ud.toastX ?? -0.05); ud.head.rotation.z = ud.toastHead || 0; }
   if (talking && pose !== 'kissT' && pose !== 'kissA') {
     ud.head.rotation.z += Math.sin(t * 8.5) * 0.045;
@@ -1990,6 +1991,42 @@ export function playEyeContact(w, { at, heading, onDone = null } = {}) {
       return pose(camClear(w, P(mid.x - Math.sin(dTA) * 6, mid.y + Math.cos(dTA) * 6, 2.2)), P(mid.x, mid.y, 1.0), 44);
     },
     onDone: (skipped) => { if (onDone) onDone(skipped); },
+  });
+}
+
+// --- H13: a quiet moment on the tour boat's afterdeck ------------------------------------
+// Tammo comes back from the microphone to stand by Anita at the helm; they lean
+// on the rail side by side, a hand's width apart. The camera starts low on
+// their hands and ends on the two of them. Lines use T/A.
+
+export function playDeckMoment(w, { boat, lines = [], kicker = '' } = {}) {
+  if (run || !boat || !lines.length) return false;
+  const a = boat.angle, len = boat.model.len;
+  const anchor = { x: boat.x - Math.cos(a) * len * 0.3, y: boat.y - Math.sin(a) * len * 0.3 };
+  const facing = a + Math.PI / 2;
+  const r = buildRun(w, { anchor, facing, h: DECK_H });
+  if (!r) return false;
+  const f = r.f, n = r.n;
+  // closer than a normal two-shot: shoulder to shoulder at the rail
+  standActor(r.tammo, anchor.x + n.x * 0.27, anchor.y + n.y * 0.27, facing - 0.1, DECK_H);
+  standActor(r.anita, anchor.x - n.x * 0.27, anchor.y - n.y * 0.27, facing + 0.1, DECK_H);
+  r.mid = { x: anchor.x, y: anchor.y };
+  r.shake = 0.015;
+  const tl = timeline(lines.map(([k, t]) => [k, t]), null, 0.5);
+  const firstEnd = tl.lines[0].at + tl.lines[0].dur;
+  return runScene(r, tl, {
+    id: 'mission-scene', kicker, title: '', cardFor: 1.8,
+    poses: () => ({ T: 'rail', A: 'rail' }),
+    camera: (t) => {
+      if (t < firstEnd) {
+        // low, in front of them: the two hands on the rail
+        const k = smooth(t / firstEnd);
+        return pose(P(anchor.x + f.x * lerp(1.5, 1.25, k), anchor.y + f.y * lerp(1.5, 1.25, k), DECK_H + 1.05), P(anchor.x, anchor.y, DECK_H + lerp(0.95, 1.2, k)), 34);
+      }
+      const k = smooth((t - firstEnd) / Math.max(0.5, tl.total - firstEnd));
+      const sx = anchor.x + f.x * lerp(2.2, 1.7, k) + n.x * 0.5, sy = anchor.y + f.y * lerp(2.2, 1.7, k) + n.y * 0.5;
+      return pose(P(sx, sy, DECK_H + 1.6), P(anchor.x, anchor.y, DECK_H + 1.45), lerp(38, 32, k));
+    },
   });
 }
 

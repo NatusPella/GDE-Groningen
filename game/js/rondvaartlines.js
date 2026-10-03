@@ -150,3 +150,45 @@ export const TOURIST_REACT = {
   calm: [['E', 'Lovely. Very relaxing.'], ['D', 'So gemütlich hier!'], ['R', 'Dit is leuker dan de grachten thuis. Zeg het niet door.']],
   wiebe: [['E', 'Is this part of the tour?'], ['D', 'Wer ist dieser Mann?']],
 };
+
+// H13's own scenes and moments (rondvaartchase.js). Keys: W Schipper Wiebe
+// through his megaphone, G Tammo at the guide's microphone, t Tammo off the
+// microphone, A Anita.
+export const RV_SCENES = {
+  // why Wiebe is after them: his boat, his paying tourists, one beer
+  why: [
+    ['W', 'Eén biertje! Eén biertje in de kroeg en mien boot is weg! Met mien toeristen, die bij MIJ betaald hebben!'],
+    ['t', 'Klaas zei dat hij tot vieren in de kroeg zat.'],
+    ['A', 'Het is kwart over vier, Tammo.'],
+  ],
+  // under the H.N. Werkmanbrug: he does not duck
+  bonk: [
+    ['W', 'Ik buk voor niemaAU! Mien kop!'],
+    ['A', 'Hij bukt voor niemand.'],
+    ['t', 'Behalve nu.'],
+  ],
+  // the guide picks up where he left off
+  resume: [
+    ['G', 'Goed. Waar was ik. Dames en heren, aan uw rechterhand: Schipper Wiebe. Ook een bezienswaardigheid.'],
+    ['A', 'Vertel nou maar over het museum.'],
+  ],
+  // the build-up to the kiss in the outro, in sailing order
+  glance: [
+    ['A', 'Je bent best een goede gids. Weet je dat?'],
+    ['t', 'Ik lees alles van een bierviltje.'],
+    ['A', 'Dan is het een goed bierviltje.'],
+  ],
+  hands: [
+    ['A', 'Je hand.'],
+    ['t', 'Wat is ermee?'],
+    ['A', 'Die ligt op de mijne.'],
+    ['t', 'Voor de grip.'],
+    ['A', '…Natuurlijk.'],
+  ],
+  later: [
+    ['A', 'Je praat de hele tijd tegen de toeristen.'],
+    ['t', 'Dat is vandaag mijn werk.'],
+    ['A', 'Praat straks eens tegen mij.'],
+    ['t', '…Straks.'],
+  ],
+};
