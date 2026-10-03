@@ -250,9 +250,13 @@ def main():
 
     # ------------------------------------------------------------- buildings
     city_boxes = BoxIndex([b["bounds"] if "bounds" in b else bbox(b["pts"]) for b in city["buildings"]])
+    # one row per box: x, y (m), w, l (dm), angle, code, levels, fill (%),
+    # then for the 2-3 rectangles of a badly boxed outline: how many rows
+    # back its first rectangle is, and its centre (dm) in the outline's box
+    # frame round the shared x, y
     bld = []
     for b in raw["bld"]:
-        la, lo, bw, bl, ang, code, lv, fill = b
+        la, lo, bw, bl, ang, code, lv, fill = b[:8]
         x, y = proj(la, lo)
         if not (ext[0] < x < ext[2] and ext[1] < y < ext[3]):
             continue
@@ -262,8 +266,12 @@ def main():
             continue
         if code == 8 and bw * bl < 30:
             continue
-        bld.append((round(x), round(y), min(32000, round(bw * 10)), min(32000, round(bl * 10)), int(ang) % 180, code, lv, round(fill * 100)))
-    print(f"buildings: {len(bld)}")
+        if len(b) > 8:
+            for k, (cu, cv, pw, pl) in enumerate(b[8]):
+                bld.append((round(x), round(y), min(32000, pw), min(32000, pl), int(ang) % 180, code, lv, 100, k, cu, cv))
+            continue
+        bld.append((round(x), round(y), min(32000, round(bw * 10)), min(32000, round(bl * 10)), int(ang) % 180, code, lv, round(fill * 100), 0, 0, 0))
+    print(f"buildings: {len(bld)} boxes, {sum(1 for b in bld if b[8] == 1)} outlines in parts")
 
     out = {
         "extent": ext, "water": wmeta, "buildings": len(bld),
@@ -274,7 +282,7 @@ def main():
         json.dump(out, f, separators=(",", ":"), ensure_ascii=False)
     body = np.array(bld, dtype=np.int16).tobytes() + water.tobytes()
     with open(OUT_BIN, "wb") as f:
-        f.write(gzip.compress(b"GTEO" + struct.pack("<II", len(bld), 8) + body, 9, mtime=0))
+        f.write(gzip.compress(b"GTEO" + struct.pack("<II", len(bld), 11) + body, 9, mtime=0))
     print(f"{OUT_JSON}: {os.path.getsize(OUT_JSON) / 1e6:.2f} MB, {OUT_BIN}: {os.path.getsize(OUT_BIN) / 1e6:.2f} MB")
 
 
@@ -284,6 +292,17 @@ def flat(P):
     out = []
     for x, y in P:
         out += [round(x, 1), round(y, 1)]
+    return out
+
+
+def offset_line(P, d):
+    """P moved d metres to its left (y down: the left of travel is +normal)."""
+    out = []
+    for i in range(len(P)):
+        a, b = P[max(0, i - 1)], P[min(len(P) - 1, i + 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L = math.hypot(dx, dy) or 1
+        out.append((P[i][0] + dy / L * d, P[i][1] - dx / L * d))
     return out
 
 
@@ -302,17 +321,6 @@ def simplify(P, tol):
     keep = [False] * len(P)
     keep[0] = keep[-1] = True
     stack = [(0, len(P) - 1)]
-def offset_line(P, d):
-    """P moved d metres to its left (y down: the left of travel is +normal)."""
-    out = []
-    for i in range(len(P)):
-        a, b = P[max(0, i - 1)], P[min(len(P) - 1, i + 1)]
-        dx, dy = b[0] - a[0], b[1] - a[1]
-        L = math.hypot(dx, dy) or 1
-        out.append((P[i][0] + dy / L * d, P[i][1] - dx / L * d))
-    return out
-
-
     while stack:
         a, b = stack.pop()
         ax, ay = P[a]
@@ -502,14 +510,6 @@ def water_field(els, proj, ext):
         tt = np.clip(((X - ax) * dx + (Y - ay) * dy) / L2, 0, 1)
         d = np.hypot(X - ax - dx * tt, Y - ay - dy * tt)
         np.minimum(dist[j0:j1, i0:i1], d, out=dist[j0:j1, i0:i1])
-    sd = np.where(inside, dist, -dist)
-    q = np.clip(np.round(128 + sd * 4), 0, 255).astype(np.uint8)
-    print(f"water: {n_poly} rings, {len(edges)} edges, {inside.sum()} wet cells")
-    return q, {"x0": ext[0], "y0": ext[1], "cell": C, "w": W, "h": H}, shore
-
-
-def water_at(q, wm, x, y):
-    i, j = int((x - wm["x0"]) // wm["cell"]), int((y - wm["y0"]) // wm["cell"])
     SC = 20.0
     egrid = {}
     for e in edges:
@@ -528,6 +528,14 @@ def water_at(q, wm, x, y):
                     tt = max(0.0, min(1.0, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy or 1e-9)))
                     best = min(best, math.hypot(x - ax - dx * tt, y - ay - dy * tt))
         return best
+    sd = np.where(inside, dist, -dist)
+    q = np.clip(np.round(128 + sd * 4), 0, 255).astype(np.uint8)
+    print(f"water: {n_poly} rings, {len(edges)} edges, {inside.sum()} wet cells")
+    return q, {"x0": ext[0], "y0": ext[1], "cell": C, "w": W, "h": H}, shore
+
+
+def water_at(q, wm, x, y):
+    i, j = int((x - wm["x0"]) // wm["cell"]), int((y - wm["y0"]) // wm["cell"])
     if 0 <= i < wm["w"] and 0 <= j < wm["h"]:
         return (int(q[j, i]) - 128) / 4
     return -WATER_RANGE
