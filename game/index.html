@@ -2,11 +2,11 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>GTE VI - Grand Theft Eierbal VI</title>
+<title>GDE Groningen – Zomer vol misdaad</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
   html, body { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; }
   #game3d { display: block; width: 100vw; height: 100vh; cursor: none; position: fixed; inset: 0; }
@@ -14,16 +14,17 @@
   :root { --gron-green: #1e9e56; --gron-green-light: #3fc97a; --gron-green-dark: #0f5c30; --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
   @keyframes grain { 0% { background-position: 0 0; } 25% { background-position: -40px 30px; } 50% { background-position: 30px -50px; } 75% { background-position: -60px -20px; } 100% { background-position: 0 0; } }
 
-  .gte-logo { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; line-height: 0.82; letter-spacing: 4px; display: inline-flex; align-items: flex-start; gap: 10px; }
-  .gte-logo .gte {
-    background: linear-gradient(180deg, #f0ede4 0%, #f0ede4 48%, #3fc97a 100%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.7)) drop-shadow(0 0 24px rgba(63,201,122,0.35));
-  }
-  .gte-logo .vi {
-    color: #0c140e; background: linear-gradient(180deg, #3fc97a, #1e9e56); padding: 0.06em 0.12em 0; margin-top: 0.08em;
-    transform: skewX(-8deg); box-shadow: 0 0 26px rgba(63,201,122,0.45), 0 6px 14px rgba(0,0,0,0.6); font-size: 0.62em; letter-spacing: 2px;
-  }
+  /* the GDE wordmark (logo.js): GDE, the place on a place-name sign, the subtitle */
+  .gde-logo { --plate: #1e9e56; display: inline-flex; flex-direction: column; align-items: stretch; text-align: center; font-family: 'Big Shoulders Display', 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: 900; line-height: 1; color: #f0ede4; }
+  .gde-logo .gde-mark { line-height: 0.74; padding-top: 0.05em; letter-spacing: 0.015em; margin-right: -0.015em;
+    background: linear-gradient(180deg, #f0ede4 0%, #f0ede4 52%, #3fc97a 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0.025em 0.05em rgba(0,0,0,0.7)) drop-shadow(0 0 0.1em rgba(63,201,122,0.3)); }
+  .gde-logo .gde-sign { margin-top: 0.3em; padding: 0.2em 0.5em 0.12em; font-size: 0.25em; font-weight: 800; letter-spacing: 0.09em; text-indent: 0.09em; text-transform: uppercase; color: #fff; background: var(--plate); border-radius: 0.2em;
+    box-shadow: inset 0 0 0 0.08em var(--plate), inset 0 0 0 0.17em #fff, 0 0.08em 0.3em rgba(0,0,0,0.55); }
+  .gde-logo .gde-sub { margin-top: 0.5em; font: italic 700 0.13em/1.1 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.03em; color: #3fc97a; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+  #cine .cine-big .gde-logo { position: relative; isolation: isolate; font-size: clamp(100px, 16vw, 210px); letter-spacing: 0; text-shadow: none; }
+  #cine .cine-big .gde-logo::before { content: ''; position: absolute; inset: -35% -60%; z-index: -1; background: radial-gradient(ellipse at center, rgba(6,11,8,0.9) 0%, rgba(6,11,8,0.75) 40%, rgba(6,11,8,0) 72%); }
+  .gde-logo .gde-meaning { margin-top: 0.7em; font-size: 0.065em; font-weight: 700; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; color: rgba(240,237,228,0.55); }
 
   #loading {
     position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
@@ -33,7 +34,7 @@
   #loading::after { content: ''; position: absolute; inset: 0; background-image: var(--grain); opacity: 0.07; pointer-events: none; animation: grain 0.8s steps(4) infinite; }
   #loading.done { opacity: 0; pointer-events: none; }
   #loading .ld-inner { width: min(520px, calc(100vw - 32px)); text-align: center; }
-  #loading .gte-logo { font-size: clamp(72px, 14vw, 120px); margin-bottom: 26px; }
+  #loading .gde-logo { font-size: clamp(96px, 16vw, 150px); margin-bottom: 30px; }
   #loading .ld-bar { height: 6px; background: rgba(240,237,228,0.12); border-radius: 3px; overflow: hidden; }
   #loading .ld-fill { height: 100%; background: linear-gradient(90deg, #1e9e56, #3fc97a); transform-origin: left; transform: scaleX(0.04); box-shadow: 0 0 12px rgba(63,201,122,0.6); transition: transform 0.2s linear; }
   #loading .ld-status { margin-top: 10px; font-size: 18px; letter-spacing: 3px; color: #3fc97a; }
@@ -53,12 +54,11 @@
   @keyframes ss-in { from { opacity: 0; } to { opacity: 1; } }
   #start-screen.visible { display: block; }
   #start-screen.ss-handoff { animation: none; }
-  #start-screen.ss-handoff .ss-sub, #start-screen.ss-handoff .ss-tag, #start-screen.ss-handoff .ss-menu, #start-screen.ss-handoff .ss-foot, #start-screen.ss-handoff .ss-credit { animation: ss-in 0.6s ease 1.8s both; }
+  #start-screen.ss-handoff .ss-tag, #start-screen.ss-handoff .ss-menu, #start-screen.ss-handoff .ss-foot, #start-screen.ss-handoff .ss-credit { animation: ss-in 0.6s ease 1.8s both; }
   #start-screen::after { content: ''; position: absolute; inset: 0; background-image: var(--grain); opacity: 0.06; pointer-events: none; animation: grain 0.8s steps(4) infinite; }
   #start-screen .ss-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 9vh 7vw 6vh; box-sizing: border-box; }
-  #start-screen .gte-logo { font-size: clamp(96px, 17vw, 210px); margin: 0; font-weight: normal; }
-  #start-screen .ss-sub { font-size: clamp(22px, 2.6vw, 34px); letter-spacing: 9px; color: #3fc97a; margin-top: 10px; text-shadow: 0 2px 8px rgba(0,0,0,0.7); }
-  #start-screen .ss-tag { margin: 8px 0 0; font: italic 17px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.8); text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
+  #start-screen .gde-logo { font-size: clamp(110px, 17vw, 220px); margin: 0; }
+  #start-screen .ss-tag { margin: 14px 0 0; font: italic 17px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240,237,228,0.8); text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
   #start-screen .ss-menu { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: min(420px, 100%); }
   #start-screen .ss-item {
     width: 100%; display: flex; flex-direction: column; align-items: flex-start; text-align: left; cursor: pointer;
@@ -165,6 +165,7 @@
   }
   #pause-menu .pm-game [hidden], #pause-menu.prestart .pm-ingame { display: none; }
   #pause-menu .pm-q-head { display: flex; flex-direction: column; gap: 4px; margin: 0 6px 10px; }
+  #pause-menu .pm-logo { font-size: 76px; align-self: flex-start; margin: 0 0 12px; }
   #pause-menu .pm-q-head b { font-weight: normal; font-size: 36px; letter-spacing: 2px; line-height: 0.9; color: var(--pm-acc); text-shadow: 0 0 18px rgba(63,201,122,0.4), 0 3px 0 #0f5c30; }
   #pause-menu .pm-q-info { display: flex; flex-wrap: wrap; gap: 2px 10px; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: var(--pm-dim); }
   #pause-menu .pm-q-info [data-info="money"] { color: var(--pm-acc); }
@@ -509,18 +510,17 @@
 <div id="hud"></div>
 <div id="loading" role="progressbar" aria-label="Grunn laden">
   <div class="ld-inner">
-    <div class="gte-logo" aria-hidden="true"><span class="gte">GTE</span><span class="vi">VI</span></div>
+    <div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div>
     <div class="ld-bar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ld-fill"></div></div>
     <div class="ld-status">Grunn laden…</div>
     <p class="ld-tip">Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.</p>
   </div>
-  <p class="ld-legal">Fanparodie, niet gelieerd aan of goedgekeurd door Rockstar Games of Take-Two Interactive. Namen, personages en gebeurtenissen zijn verzonnen. Kaartdata © OpenStreetMap-bijdragers, openstreetmap.org/copyright.</p>
+  <p class="ld-legal">GDE is een fanparodie op GTA, niet gelieerd aan of goedgekeurd door Rockstar Games of Take-Two Interactive. Namen, personages en gebeurtenissen zijn verzonnen. Kaartdata © OpenStreetMap-bijdragers, openstreetmap.org/copyright.</p>
 </div>
 <div id="start-screen">
   <div class="ss-content">
     <div class="ss-logo">
-      <h1 class="gte-logo" aria-label="GTE VI"><span class="gte">GTE</span><span class="vi">VI</span></h1>
-      <div class="ss-sub">Grand Theft Eierbal</div>
+      <h1 class="gde-logo" aria-label="GDE Groningen – Zomer vol misdaad"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span><span class="gde-meaning">Grootste Diefstal Ever</span></h1>
       <p class="ss-tag">Moi! Welkom in Grunn. Nait soezen, gas geven.</p>
     </div>
     <nav class="ss-menu" role="menu" aria-label="Hoofdmenu"></nav>
@@ -530,7 +530,7 @@
     <div class="ss-news-body" tabindex="0"></div>
   </section>
   <p class="ss-foot"><span class="key">Esc</span> in het spel: menu, kaart &amp; besturing</p>
-  <p class="ss-credit">Made with <span class="heart" aria-label="love">❤️</span> in Groningen, with AI<span class="ss-ver"></span><span class="ss-legal">Fanparodie · niet van Rockstar Games of Take-Two</span></p>
+  <p class="ss-credit">Made with <span class="heart" aria-label="love">❤️</span> in Groningen, with AI<span class="ss-ver"></span><span class="ss-legal">Fanparodie op GTA · niet van Rockstar Games of Take-Two</span></p>
 </div>
 <!-- GLTFLoader.js (used by landmarkmodels.js) imports the bare specifier
      "three" internally rather than a full CDN URL like every other module

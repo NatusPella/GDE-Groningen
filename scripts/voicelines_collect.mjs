@@ -350,8 +350,8 @@ export function collect() {
     for (const c of st.contact || []) for (const [k, t] of c.after || []) sms('Berichten (verhaal)', SWHO(k), t);
     if (st.voorschot) sms('Berichten (verhaal)', st.voorschot.from, st.voorschot.text);
   }
-  for (const t of strings(src('story.js'), /phone\('GTE VI', ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GTE VI', t);
-  for (const t of strings(src('postgame.js'), /from: 'GTE VI', text: ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GTE VI', t);
+  for (const t of strings(src('story.js'), /phone\(SERIES, ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GDE', t);
+  for (const t of strings(src('postgame.js'), /from: 'GDE', text: ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GDE', t);
   for (const { speaker, lines } of Object.values(SMS_SAY)) for (const t of lines) add(speaker === 'Kiekdoar-redactie' ? 'Berichten (Kiekdoar)' : speaker === 'Ubbo' ? 'Berichten (app)' : 'Berichten (verhaal)', 'sms', [speaker], t, tagFor(speaker));
   const fls = src('flavourlines.js');
   for (const t of strings(fls, /export const PLANTSOEN_NEWS = ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (Kiekdoar)', 'Kiekdoar', t);

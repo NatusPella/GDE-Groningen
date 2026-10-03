@@ -8,7 +8,7 @@ const fs = require('fs');
 const os = require('os');
 const { spawn, spawnSync } = require('child_process');
 
-const DEFAULT_NAME = 'GTE-VI-Een-zomer-in-Grunn.mp4';
+const DEFAULT_NAME = 'GDE-Groningen-Een-zomer-in-Grunn.mp4';
 
 function findFfmpeg() {
   for (const p of ['/opt/homebrew/bin/ffmpeg', '/usr/local/bin/ffmpeg']) if (fs.existsSync(p)) return p;

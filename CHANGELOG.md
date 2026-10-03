@@ -1,6 +1,6 @@
 # Changelog
 
-Alle noemenswaardige wijzigingen in GTE VI, per versie. Nieuwste bovenaan.
+Alle noemenswaardige wijzigingen in GDE Groningen (tot 0.24: GTE VI), per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 
@@ -23,6 +23,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Dieren die je aanrijdt**, vallen even om en lopen dan weg. Vogels
   fladderen op en laten een paar veren achter.
 - In de uitslag van een missie staat geen regel "Kills" meer.
+- **De game heet nu GDE Groningen – Zomer vol misdaad.** GDE staat voor
+  Grootste Diefstal Ever. Het nieuwe logo zet GRONINGEN op een groen
+  plaatsnaambord, op het laadscherm, het titelscherm, in het pauzemenu, de
+  trailer, de aftiteling en het app-icoon. "GTE VI" en "Grand Theft" zijn
+  overal weg. Je saves, instellingen en prestaties blijven gewoon staan.
+- De downloads heten nu `GDE-Groningen-<versie>-mac.dmg` en
+  `GDE-Groningen-<versie>-windows-portable.exe`. Op de Mac kun je de oude
+  app "GTE VI" weggooien nadat je de nieuwe hebt geïnstalleerd.
 - **De nieuwssite heet nu Kiekdoar** ("kijk daar"), een eigen parodienaam:
   de telefoon-app, de pushberichten, Kiekdoar TV en het journaal, de
   nieuwslezers en wat voetgangers en personages erover zeggen. Het scherm
