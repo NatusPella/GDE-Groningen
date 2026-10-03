@@ -7,6 +7,22 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Veranderd
+- **Geschikt voor 16 jaar (PEGI 16).** Er is geen bloed meer en er vliegen
+  geen ledematen meer rond. Ook de instelling "Bloed en ledematen" is weg.
+  Wie neergaat, krijgt een stofwolkje en sterretjes boven het hoofd.
+- **Niemand gaat meer dood in Grunn.** Wie door een auto of trein wordt
+  geraakt, of naast een ontploffende auto staat, ligt een paar seconden
+  knock-out. Daarna staat hij suf op en scheldt of rent weg. Wie in de
+  gracht belandt, klimt er weer uit.
+- **Wapens zijn alleen voor de politie.** Kogels gaan langs voorbijgangers,
+  en de richthulp kiest alleen agenten. Een klap tegen een voorbijganger is
+  een duw. Je eigen carbidbus blaast mensen alleen omver. Het blijft wel
+  strafbaar: getuigen bellen en je krijgt sterren.
+- **Agenten worden uitgeschakeld** in plaats van doodgeschoten. Na een
+  seconde of negen staan ze weer op en doen ze weer mee.
+- **Dieren die je aanrijdt**, vallen even om en lopen dan weg. Vogels
+  fladderen op en laten een paar veren achter.
+- In de uitslag van een missie staat geen regel "Kills" meer.
 - **De nieuwssite heet nu Kiekdoar** ("kijk daar"), een eigen parodienaam:
   de telefoon-app, de pushberichten, Kiekdoar TV en het journaal, de
   nieuwslezers en wat voetgangers en personages erover zeggen. Het scherm

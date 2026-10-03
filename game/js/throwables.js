@@ -166,7 +166,7 @@ function stepItem(world, it, dt) {
     let hit = !!wallOnPath(map, x0, y0, it.x, it.y) || it.z <= g + 0.05 || it.t >= it.fuse;
     if (!hit) {
       for (const ped of world.pedestrians) {
-        if (ped.state === 'dead' || Math.abs(ped.x - it.x) > 0.7 || Math.abs(ped.y - it.y) > 0.7) continue;
+        if (!ped.isCop || ped.state === 'dead' || Math.abs(ped.x - it.x) > 0.7 || Math.abs(ped.y - it.y) > 0.7) continue;
         if (it.z < (ped.gz || 0) + 2 && Math.hypot(ped.x - it.x, ped.y - it.y) < ped.radius + 0.25) { hit = true; break; }
       }
     }

@@ -351,7 +351,6 @@ function carDecal(v, x, y, z, nx, ny, glass, size) {
   if (!mesh) return;
   mesh.updateMatrixWorld(true);
   const d = new THREE.Mesh(carHoleGeo, glass ? carCrackMat : carHoleMat);
-  d.userData.goreDecal = true;
   d.renderOrder = 2;
   _p.set(x + nx * 0.015, z, y + ny * 0.015);
   mesh.worldToLocal(_p);
