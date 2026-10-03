@@ -63,22 +63,22 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry, encouraging."
  },
  {
-  "file": "h1-pass-ladder_0_a_cb4de8.mp3",
+  "file": "h1-pass-ladder_0_a_6dac0a.mp3",
   "speaker": "Anita",
-  "text": "Berend zei \"goud\". Dat is trede twee.",
+  "text": "Berend zei \"goud\". Trede twee van de complimentenladder.",
   "tag": "impressed, laughing",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem",
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: impressed, laughing."
  },
  {
-  "file": "h1-pass-ladder_1_t_39b6bc.mp3",
+  "file": "h1-pass-ladder_1_t_997bd7.mp3",
   "speaker": "Tammo",
-  "text": "Er zijn er zes.",
-  "tag": "dry",
+  "text": "Ow, goud, valt mie nait of, braid noar de zin, kon minder. En bovenaan zeg je niks meer. Zes treden.",
+  "tag": "dry, counting on his fingers",
   "voice": "Orus",
   "who": "dry, deadpan man in his thirties",
-  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry."
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry, counting on his fingers."
  },
  {
   "file": "h1-pass-ladder_2_a_f6b03c.mp3",
@@ -4662,22 +4662,22 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: alarmed."
  },
  {
-  "file": "pl-paddepoel_1_a_3c2fd5.mp3",
+  "file": "pl-paddepoel_1_a_c3d4f7.mp3",
   "speaker": "Anita",
-  "text": "Het is vier kilometer van de Grote Markt.",
+  "text": "Je woont hier, Tammo.",
   "tag": "dry",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem",
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: dry."
  },
  {
-  "file": "pl-paddepoel_2_t_f79550.mp3",
+  "file": "pl-paddepoel_2_t_203dac.mp3",
   "speaker": "Tammo",
-  "text": "Precies. Buitenland.",
-  "tag": "firm",
+  "text": "Precies. Ik ben expat.",
+  "tag": "firm, deadpan",
   "voice": "Orus",
   "who": "dry, deadpan man in his thirties",
-  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: firm."
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: firm, deadpan."
  },
  {
   "file": "pl-euroborg_0_a_7fe02d.mp3",
@@ -4896,6 +4896,42 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry."
  },
  {
+  "file": "wk-oosterpark-zolder_0_a_7e902b.mp3",
+  "speaker": "Anita",
+  "text": "De Korenbloemstraat. Mijn oude zolder.",
+  "tag": "nostalgic",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: nostalgic."
+ },
+ {
+  "file": "wk-oosterpark-zolder_1_t_b3c039.mp3",
+  "speaker": "Tammo",
+  "text": "Waar je niet rechtop kon staan.",
+  "tag": "dry",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry."
+ },
+ {
+  "file": "wk-oosterpark-zolder_2_a_2c3b3f.mp3",
+  "speaker": "Anita",
+  "text": "Jij stond altijd scheef. Met twee bakken koffie.",
+  "tag": "teasing, warm",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: teasing, warm."
+ },
+ {
+  "file": "wk-oosterpark-zolder_3_t_d1ba6b.mp3",
+  "speaker": "Tammo",
+  "text": "Nu sta ik recht. Elf hoog.",
+  "tag": "proud, deadpan",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: proud, deadpan."
+ },
+ {
   "file": "wk-oosterpark-stoep_0_t_11b6d6.mp3",
   "speaker": "Tammo",
   "text": "Onze stoep.",
@@ -5013,18 +5049,18 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: impressed."
  },
  {
-  "file": "wk-hereweg_1_t_ac3547.mp3",
+  "file": "wk-hereweg_1_t_59043f.mp3",
   "speaker": "Tammo",
-  "text": "Ons huis heeft ook een naam.",
+  "text": "Onze flat heeft ook een naam.",
   "tag": "proud",
   "voice": "Orus",
   "who": "dry, deadpan man in his thirties",
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: proud."
  },
  {
-  "file": "wk-hereweg_2_a_a29fcc.mp3",
+  "file": "wk-hereweg_2_a_eab02f.mp3",
   "speaker": "Anita",
-  "text": "\"Achterstallig onderhoud\" is geen naam.",
+  "text": "\"House of Groningen\" is geen naam. Dat is een folder.",
   "tag": "dry, laughing",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem",
@@ -5551,6 +5587,69 @@
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem",
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: amused, practical."
+ },
+ {
+  "file": "id-verhuisd_0_a_ab1cf5.mp3",
+  "speaker": "Anita",
+  "text": "Ons eigen huis. Nou ja, van de verhuurder.",
+  "tag": "happy, a bit shy",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: happy, a bit shy."
+ },
+ {
+  "file": "id-verhuisd_1_t_0edb4b.mp3",
+  "speaker": "Tammo",
+  "text": "Met een lift.",
+  "tag": "proud",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: proud."
+ },
+ {
+  "file": "id-verhuisd_2_a_b4b2f2.mp3",
+  "speaker": "Anita",
+  "text": "Dat is de vierde keer dat je die lift noemt.",
+  "tag": "teasing",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: teasing."
+ },
+ {
+  "file": "id-verhuisd_3_t_f5f42e.mp3",
+  "speaker": "Tammo",
+  "text": "Ik heb nog nooit een lift gehad.",
+  "tag": "deadpan, sincere",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, sincere."
+ },
+ {
+  "file": "id-huisgenoten_0_t_817c55.mp3",
+  "speaker": "Tammo",
+  "text": "Wie doet er eigenlijk de afwas? Bij huisgenoten.",
+  "tag": "curious, dry",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: curious, dry."
+ },
+ {
+  "file": "id-huisgenoten_1_a_e0f568.mp3",
+  "speaker": "Anita",
+  "text": "Wie het laatst kookte.",
+  "tag": "quick",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: quick."
+ },
+ {
+  "file": "id-huisgenoten_2_t_af120c.mp3",
+  "speaker": "Tammo",
+  "text": "Ik kook nooit.",
+  "tag": "dry",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry."
  },
  {
   "file": "id-tegenwind_0_t_a3fb17.mp3",
@@ -6903,9 +7002,9 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: laughing."
  },
  {
-  "file": "id-ladder_0_a_b3d0ca.mp3",
+  "file": "id-ladder_0_a_960e76.mp3",
   "speaker": "Anita",
-  "text": "Hoeveel treden heeft die ladder van jullie eigenlijk?",
+  "text": "Hoeveel treden heeft die complimentenladder van jullie eigenlijk?",
   "tag": "curious",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem",

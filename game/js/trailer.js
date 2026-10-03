@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene } from './scene3d.js';
+import { getScene, prewarmStreamAt } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
@@ -1511,6 +1511,12 @@ function frame(r, dt, realMs) {
   let i = r.idx < 0 ? 0 : r.idx;
   while (i < shots.length - 1 && r.T >= r.starts[i + 1]) i++;
   if (i !== r.idx) enterShot(r, i);
+  // the next shot's place is built ahead of its cut
+  const nx = shots[i + 1];
+  if (nx && nx.focus && r.prewarmed !== i + 1 && r.T > r.starts[i + 1] - 2) {
+    r.prewarmed = i + 1;
+    prewarmStreamAt(nx.focus.x, nx.focus.y, 3);
+  }
   const s = shots[i];
   const dur = shotDur(r, s);
   const k = s.dur / dur; // kort plays the same motion faster

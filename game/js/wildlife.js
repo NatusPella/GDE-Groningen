@@ -145,13 +145,14 @@ function waterPointNear(map, px, py, rng, rMin = 8, rMax = 60) {
 function spawnDucks(map, px, py, rng) {
   const spot = waterPointNear(map, px, py, rng);
   if (!spot) return [];
-  const goose = rng() < 0.25;
+  const r = rng();
+  const goose = r < 0.22, swan = r > 0.86;
   const out = [];
   for (let i = 0; i < 2; i++) {
     const x = spot.x + (rng() - 0.5) * 1.5, y = spot.y + (rng() - 0.5) * 1.5;
     if (!pointInPolygon(x, y, spot.poly.pts)) continue;
     out.push({
-      kind: 'duck', variant: goose ? 'goose' : i === 0 ? 'drake' : 'hen',
+      kind: 'duck', variant: swan ? 'swan' : goose ? 'goose' : i === 0 ? 'drake' : 'hen',
       x, y, angle: rng() * Math.PI * 2, speed: 0, poly: spot.poly,
       wanderTarget: { x, y }, waypointTimer: rng() * 4, bobSeed: rng() * Math.PI * 2,
       state: 'swim', stateTimer: 4 + rng() * 8,
@@ -368,7 +369,7 @@ function updateDuck(a, dt) {
       a.waypointTimer = 3 + Math.random() * 6;
     }
     const d = dist(a.x, a.y, a.wanderTarget.x, a.wanderTarget.y);
-    a.speed = d > 0.3 ? (a.variant === 'goose' ? 0.5 : 0.35) : 0;
+    a.speed = d > 0.3 ? (a.variant === 'goose' || a.variant === 'swan' ? 0.5 : 0.35) : 0;
     if (a.speed) {
       const nx = a.x + Math.cos(a.angle) * a.speed * dt, ny = a.y + Math.sin(a.angle) * a.speed * dt;
       if (pointInPolygon(nx, ny, poly.pts)) steer(a, a.wanderTarget.x, a.wanderTarget.y, 2, dt);
@@ -376,7 +377,7 @@ function updateDuck(a, dt) {
     }
     if (a.stateTimer <= 0) {
       const r = Math.random();
-      a.state = r < 0.55 ? 'dabble' : a.variant === 'goose' ? 'preen' : r < 0.8 ? 'dive' : 'preen';
+      a.state = r < 0.55 ? 'dabble' : a.variant === 'goose' || a.variant === 'swan' ? 'preen' : r < 0.8 ? 'dive' : 'preen';
       a.stateTimer = a.state === 'dive' ? 2.2 + Math.random() * 1.5 : 1.8 + Math.random() * 1.6;
       a.speed = 0;
     }
@@ -993,6 +994,8 @@ const DUCK_LOOKS = {
   drake: { body: 0x8f8a82, back: 0x6a5a48, chest: 0x6b3a28, head: 0x1f5a3a, bill: 0xd8b83a, ring: true, speculum: 0x3a4fa0, tail: 0x1c1c1c, scale: 1, neck: 0.05 },
   hen: { body: 0x8a6a48, back: 0x6a4e34, chest: 0x7a5a3c, head: 0x7a5a3c, bill: 0xb8783a, ring: false, speculum: 0x3a4fa0, tail: 0x5a4430, scale: 0.95, neck: 0.05 },
   goose: { body: 0x8a8274, back: 0x6e6658, chest: 0x9a9284, head: 0x7e776a, bill: 0xd9803a, ring: false, speculum: 0x5a5448, tail: 0xe6e1d6, scale: 1.7, neck: 0.11 },
+  // mute swan: all white, long neck, orange bill with the black knob
+  swan: { body: 0xeeece6, back: 0xe2dfd6, chest: 0xf2f0ea, head: 0xf2f0ea, bill: 0xe0702a, ring: false, speculum: 0xe2dfd6, tail: 0xe8e6de, scale: 2.5, neck: 0.2 },
 };
 
 function duckGeometry(variant) {
@@ -1015,6 +1018,7 @@ function duckGeometry(variant) {
   B.geo(new THREE.BoxGeometry(0.06, 0.016, 0.034), composeMatrix(0.205, 0.12 + nk, 0, 0, 0, -0.15), L.bill);
   for (const s of [1, -1]) B.box(0.165, 0.142 + nk, s * 0.03, 0.01, 0.01, 0.008, 0x111111);
   if (variant === 'goose') B.box(0.14, 0.11 + nk, 0, 0.03, 0.02, 0.07, 0xe6e1d6);
+  if (variant === 'swan') B.box(0.178, 0.132 + nk, 0, 0.02, 0.022, 0.02, 0x1a1a1a);
   if (variant === 'hen') for (const s of [1, -1]) B.box(0.155, 0.142 + nk, s * 0.035, 0.05, 0.008, 0.006, 0x4a3422);
   return B.build();
 }

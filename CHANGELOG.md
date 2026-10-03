@@ -6,6 +6,136 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Samen gaan wonen** in de opening: de zolder in de Korenbloemstraat is te
+  klein (en te duur voor één), dus huren Tammo en Anita samen een flat in de
+  House of Groningen in Paddepoel. "Als huisgenoten." Met een verhuisdag bij
+  de toren, en daarna is Paddepoel thuis. Nieuwe autogesprekken over de lift
+  en de afwas.
+- **Even onderduiken** na de kraak heeft nu een duidelijke bestemming en drie
+  keuzes, allemaal op de kaart: de trein vanaf het Hoofdstation, een ijsje in
+  het Noorderplantsoen of de zonsondergang aan de Hoge der A. Elke keuze heeft
+  een korte scène waarin ze naar elkaar toe groeien.
+- **Een eigen icoon per missie** in Te doen, op de kaart en minimap, in de
+  telefoon en op de missiekaart in de HUD.
+- **De complimentenladder** staat uitgelegd in "Wat weten we?" (Ow, Goud,
+  Valt mie nait of, Braid noar de zin, Kon minder en de stilte).
+- **Controllersupport** voor Xbox-, PlayStation- en Steam Deck-controllers:
+  lopen, rennen, springen, bukken, de camera, rijden met gas en rem op de
+  triggers, de handrem, in- en uitstappen, richten en schieten, wapens
+  wisselen, telefoon, kaart, pauzemenu, filmpjes overslaan en kusjes. Ook de
+  helikopter, de duif, de trein, het skûtsje, de Fjord Frituur, padel,
+  carbid, de botsauto's en de andere minigames. Alle menu's werken met de
+  D-pad of de stick: kiezen met A, terug met B, onderdelen op de bumpers en
+  tabbladen op de triggers. Op de kaart zet A een doel onder het kruis.
+- **De hints wisselen vanzelf** tussen toetsen en controllerknoppen, naar wat
+  je het laatst gebruikte. Xbox en Steam Deck krijgen letters, PlayStation de
+  vormen.
+- **Trillen** bij klappen, schoten en botsingen (als de controller dat kan),
+  uit te zetten onder Instellingen › Controller.
+- **Toetsen en knoppen opnieuw indelen** onder Besturing › Toetsenbord en
+  Besturing › Controller. Zit een toets al op iets anders, dan ruilen ze; met
+  "Standaard herstellen" staat alles weer zoals het was.
+- **Toegankelijk** onder Instellingen: ondertitels klein, normaal, groot of
+  extra groot (filmpjes, gesprekken in de auto, de intro, telefoon, radio en
+  naamkaarten), met een donker vlak erachter als je wilt; kleurenblinde
+  paletten (deuteranopie, protanopie, tritanopie) voor markers, routes, de
+  kaart en de HUD.
+- **Meer leven op het water**: suppers (stand-up paddle), meer kano's,
+  kajaks en waterfietsen tussen de sloepen, en hier en daar een paar zwanen.
+  Op Laag varen er wat minder.
+- **Zwemmers in zwemkleding** (zwembroek, badpak of bikini). Ze zwemmen een
+  rustige schoolslag, drijven op hun rug of watertrappelen kalm, en soms zit
+  er iemand op de oever met de voeten in het water. Ze zwaaien niet meer.
+- **Stuntavond (H3) met een scorebord**: vooraf zie je wat punten oplevert
+  en hoeveel je nodig hebt. Daarna toont een paneel je punten tegen het doel
+  met een voortgangsbalk en je combo. Elke actie geeft een pop-up ("+120
+  parasol", "combo x2", "-250 iemand geraakt"), en tegen het eind staat er
+  "nog X punten".
+- **Een proost in elke kroeg (H11)**: een kort, overslaanbaar moment waarin
+  Tammo en Anita klinken en drinken. Elke kroeg heeft een ander glas, een
+  ander shot en één zin of geen.
+- **Meer op de rondvaart (H13)**: een scène waarin Schipper Wiebe zegt
+  waarom hij zo boos is (één biertje, en zijn boot met betalende toeristen
+  was weg), een scène als hij zijn hoofd stoot onder de H.N. Werkmanbrug,
+  en daarna gaat Tammo gewoon verder als gids. Onderweg groeit er iets
+  tussen hen (een blik, hun handen op de reling, "praat straks eens tegen
+  mij") tot aan de kus. Na de intro zie je vanaf het water hoe ze aan boord
+  zijn.
+- **"US MEM VET"** staat in Friese stijl op de tankwagen (H8): de banen en
+  pompeblêden, en Us Mem de koe.
+
+### Verbeterd
+- **H6: allebei in het zwart.** Tijdens de kraak dragen Tammo en Anita
+  allebei zwart incognito, wie het ook kocht. In de trein bij het onderduiken
+  trekken ze hun eigen kleren weer aan.
+- **H6: de vlucht eindigt bij het station.** Na de kraak wijst de waypoint
+  niet meer naar het museum maar naar een kade bij het Hoofdstation. Schud
+  de politie af en leg daar aan.
+- **H8: de tankwagen staat waar het verhaal zegt**, bij de groothandel aan
+  de Bornholmstraat, en rijdt pas weg als je dichtbij komt. Erin springen is
+  de bedoelde route: dan rij je meteen door naar de Oosterpoort. Banden plat
+  schieten kan nog steeds.
+- **H5: ieder op een eigen fiets.** Anita fietst niet meer achterop, dus het
+  oogcontact op het kruispunt waar alles groen is klopt weer.
+- **H13: een eerlijke medaille.** Goud vroeg een snellere tijd dan de boot
+  kan varen, dus je kreeg bijna altijd brons. Goud en zilver zijn nu haalbaar
+  (nog steeds met blije toeristen), en de uitslag toont ook hoeveel verhalen
+  je hebt verteld.
+- **H14: aan boord van het skûtsje** filmt de camera vanaf de boeg, zodat
+  het zeil niet meer voor de scène hangt.
+- **Durk en Douwe fietsen niet meer door muren** na Jelles polsstoksprong
+  (H8, H14): ze nemen de vrije kant op, of slaan buiten beeld de hoek om.
+- **Niet meer alles tegelijk**: één wachtrij voor het verhaal. Telefoontjes,
+  "Bel Rikus" op de radio, autogesprekken, berichten, prestaties en HUD-kaarten
+  komen na elkaar, met een korte pauze ertussen, en nooit tijdens een filmpje.
+  Autogesprekken wachten tot het verhaal klaar is. Kaarten gaan even opzij als
+  er een ondertitel of de radio in beeld is. Een "Bel Rikus" die door een
+  filmpje werd onderbroken, speelt de rest later.
+- **De delen hebben gewone namen**: "Deel 1: KEI-week", "Deel 2: Noorderzon" en
+  "Deel 3: Kermis en Ontzet", in Te doen, het Overzicht, het Verhaal-menu en
+  op de titelkaarten.
+- **"Huur een boot"** in plaats van "koop een huurboot"; boten en dorpsfietsen
+  hebben een knop "Huren voor".
+- **De treden** worden duidelijk: Anita zegt "trede twee van de
+  complimentenladder", en Tammo telt ze in de auto op.
+
+### Opgelost
+- Kusjes konden te vroeg als je "Alles klopt, behalve de papieren" vooruit
+  speelde vanuit Te doen. Nu pas als het verhaal er echt is.
+
+- **Voertuigbadge**: het merk en de naam van je voertuig staan erbij, en de
+  staat ervan is een hartje met een balk die leegloopt bij schade (rood als
+  het slecht gaat), in plaats van "Schade".
+- **"Prestatie wacht" en "meldingen wachten"** staan nog maar een paar
+  seconden in beeld na iets nieuws en vervagen dan. Na het pauzemenu komt
+  "prestatie wacht" nog even terug zolang je hem niet bekeken hebt.
+- **De brommer klinkt prettiger**: zachter, ronder en minder schel, een
+  tweetakt zonder zaaggeluid. De Snorscooter klinkt nu ook als brommer en
+  niet meer als een e-step.
+- **Boten drijven echt**: ze deinen op dezelfde golven als het water,
+  kantelen bij snelheid, remmen en bochten, en hun boord komt nooit meer
+  onder water (ook de achterkant van de rondvaartboot niet).
+- **Hekgolf en boeggolf**: langere zogen achter grote boten, de golfjes in
+  de V, een lichte sliert tussen de armen, en een boeggolf die met de boot
+  meedeint.
+- **Remsporen** volgen het wegdek onder elke band (ook op bruggen, op- en
+  afritten en de verhoogde en verdiepte ring), liggen boven de wegmarkering
+  en blijven veel langer liggen.
+- **Cutscenes, de trailer en het titelscherm** laden de stad rond de camera
+  in plaats van rond de speler: gebouwen, wegen, water, bomen, gras,
+  schaduwen en het Ommeland. De wijkvlucht en de volgende trailershot worden
+  vooraf opgebouwd.
+- **De minimap in het Ommeland** lijkt op die in de stad: wegen in dezelfde
+  kleuren en breedtes, fietspaden rood, gebouwen in de stadskleuren en de
+  namen van dorpen. Tijdens het in- en uitzoomen valt er geen leeg weiland
+  meer in.
+- Routes en markers verschillen nooit alleen in kleur: de verhaalroute is
+  doorgetrokken, je eigen doel gestreept, een klus gestippeld en opknappen
+  streep-punt; de pijlen aan de rand van de minimap dragen een ring, punt of
+  vierkant, en de 3D-missiemarker is een bol als hij wacht en een pijl als de
+  missie loopt.
+
 ### Veranderd
 - **Geschikt voor 16 jaar (PEGI 16).** Er is geen bloed meer en er vliegen
   geen ledematen meer rond. Ook de instelling "Bloed en ledematen" is weg.

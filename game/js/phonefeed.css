@@ -118,3 +118,6 @@
   #hud .pf-card, #hud .pf-callcard { transition: opacity 0.2s; transform: none !important; }
   #hud .pf-callcard.ringing, #hud .pf-callcard.ringing .pf-avatar::after, #hud .pf-line.new { animation: none; }
 }
+
+/* narrative.js: steps aside while a cutscene, story call or subtitle is up */
+#hud .phonefeed.pf-held { opacity: 0; transition: opacity 0.2s; }

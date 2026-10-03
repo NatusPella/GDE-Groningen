@@ -245,6 +245,8 @@ let shops = [];
 const state = {
   outfit: { ...DEFAULT_OUTFIT },
   ownedOutfits: new Set(['tammo:stadjer', 'anita:classic']),
+  // what the story puts both of them in for a while (H6 to the train: black), over their own outfit
+  storyOutfit: null,
   hair: { tammo: { color: 'naturel', style: 'short' }, anita: { color: 'naturel', style: 'long' } },
   vehicles: [], // one per stock key: { key, spec, color, upgrades, v, x, y, angle, lost }
   heroColor: null,
@@ -887,7 +889,7 @@ const RENTALS = [
 
 function bootSections(world, shop) {
   const items = RENTALS.map((r) => ({
-    id: 'r-' + r.id, label: r.label, desc: `${r.desc} · ligt aan de steiger`, price: r.price, disabled: broke(world, r.price),
+    id: 'r-' + r.id, label: r.label, desc: `${r.desc} · ligt aan de steiger`, price: r.price, verb: 'Huren voor', disabled: broke(world, r.price),
     preview: { kind: 'boat', model: r.model, color: r.model.color, nameIdx: r.nameIdx }, stats: vehicleStats(r.model, 'boat'),
     buy() {
       if (!pay(world, r.price)) return null;
@@ -1022,6 +1024,7 @@ function outfitSections(world) {
         if (!owned && !pay(world, o.price)) return null;
         state.ownedOutfits.add(key);
         state.outfit[ch] = o.id;
+        state.storyOutfit = null;
         applyLooks();
         const lost = shakeWanted(world, o.stealth || 1);
         return (owned ? `${o.label} weer aangetrokken` : `${o.label} gekocht en meteen aan`) + (lost ? '. De politie herkent je niet meer zo goed!' : '');
@@ -1304,7 +1307,7 @@ function applyLooks() {
   if (!baseLook) return;
   for (const ch of ['tammo', 'anita']) {
     const app = ch === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
-    const o = OUTFITS[ch].find((x) => x.id === state.outfit[ch]) || OUTFITS[ch][0];
+    const o = OUTFITS[ch].find((x) => x.id === (state.storyOutfit || state.outfit[ch])) || OUTFITS[ch][0];
     const h = state.hair[ch];
     const hc = HAIR_COLORS.find((c) => c.id === h.color);
     Object.assign(app, baseLook[ch], { shirt: o.shirt, pants: o.pants, shoes: o.shoes });
@@ -1472,6 +1475,20 @@ export function storyShopState() {
   };
 }
 
+// Both of them in one outfit for a stretch of the story (id), or back in
+// their own (null). Not bought, not in the wardrobe; saved with the shops.
+export function setStoryOutfit(id) {
+  const next = id && OUTFITS.tammo.some((o) => o.id === id) && OUTFITS.anita.some((o) => o.id === id) ? id : null;
+  if (next === state.storyOutfit) return false;
+  state.storyOutfit = next;
+  applyLooks();
+  return true;
+}
+
+export function storyOutfit() {
+  return state.storyOutfit;
+}
+
 function nearestOfType(world, type) {
   let best = null, bd = Infinity;
   for (const s of shops) {
@@ -1633,6 +1650,7 @@ export function getShopSave() {
     hero: hero ? damageSave(hero) : {},
     outfit: { ...state.outfit },
     ownedOutfits: [...state.ownedOutfits],
+    storyOutfit: state.storyOutfit,
     hair: { tammo: { ...state.hair.tammo }, anita: { ...state.hair.anita } },
     heroColor: state.heroColor,
     heroUpgrades: [...state.heroUpgrades],
@@ -1658,6 +1676,7 @@ export function applyShopSave(world, d) {
     if (h && HAIR_STYLES[ch].some(([id]) => id === h.style)) state.hair[ch].style = h.style;
   }
   if (Array.isArray(d.ownedOutfits)) for (const k of d.ownedOutfits) if (typeof k === 'string') state.ownedOutfits.add(k);
+  state.storyOutfit = OUTFITS.tammo.some((o) => o.id === d.storyOutfit) && OUTFITS.anita.some((o) => o.id === d.storyOutfit) ? d.storyOutfit : null;
   state.heroColor = isColor(d.heroColor) ? d.heroColor : null;
   state.heroUpgrades = Array.isArray(d.heroUpgrades) ? d.heroUpgrades.filter((id) => CAR_UPGRADES.some((u) => u.id === id)) : [];
   state.stamps = Number.isFinite(d.stamps) ? Math.max(0, Math.min(STAMP_CARD, Math.floor(d.stamps))) : 0;

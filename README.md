@@ -206,6 +206,47 @@ it fits, with the largest file at 11.7 MB (`citymap.json`).
 | F11 / Alt+Enter | desktop app: fullscreen on/off (Mac also Ctrl+Cmd+F) | |
 | X | as a pigeon: turn back into Tammo/Anita where you are | |
 
+Every key above except Esc, Enter, the arrows and the mouse can be rebound
+under Instellingen › Besturing › Toetsenbord (a key already in use swaps
+with the old one; "Standaard herstellen" puts them all back).
+
+### Controller (Xbox, PlayStation, Steam Deck)
+
+Any controller the browser sees in the standard layout works, also in the
+menus. The on-screen hints switch to its buttons (Xbox letters, PlayStation
+shapes or the Steam Deck's L1/R1) as soon as you use it, and back to keys on
+the next key press or click.
+
+| Button | On foot | In a vehicle | In menus |
+|---|---|---|---|
+| Left stick | walk (L3: run) | steer (L3: bike sprint) | choose |
+| Right stick | camera | camera (R3: look back) | scroll |
+| RT / LT | attack / aim | gas / brake and reverse | zoom the map (in Te doen and Instellingen: next / previous tab) |
+| A | jump | handbrake | ok |
+| B | crouch (in a minigame: stop) | lights and siren | back |
+| X | F (second use key) | horn | clear the map goal |
+| Y | enter, use, talk | exit | to yourself on the map |
+| LB / RB | previous / next weapon | next radio station / shoot from the window | previous / next section |
+| D-pad | ↑ phone, ↓ kiss, ← skip story step, → paint/garage menu | ↑ phone, ↓ film camera | choose |
+| View / Menu | map / pause menu | map / pause menu | map / close |
+
+The helicopter climbs and descends on RT/LT and turns with LB/RB; a pigeon
+flaps on A, pecks on B, dives on LT and poops on RT or X; the Fjord Frituur
+puts its menu on the D-pad and bumpers. Buttons can be swapped under
+Besturing › Controller; rumble, the button style and the stick speed are under
+Instellingen › Controller.
+
+### Accessibility
+
+Instellingen › Toegankelijk: subtitle size (klein to extra groot, for
+cutscenes, banter, the intro montage, phone calls, the radio and the name
+cards) with an optional dark box behind them; colour-blind palettes
+(deuteranopia, protanopia, tritanopia) for markers, routes, the map and HUD
+states; the interface size; "Beweging beperken" (also on when the OS asks for
+reduced motion). Routes never differ by colour alone: the story route is
+solid, your own goal dashed, a klus dotted and repairs dash-dotted, and the
+minimap's edge arrows carry a ring, a dot or a square.
+
 ## What's in it
 
 - **World**: ~35k real building footprints, roads with sidewalks and
