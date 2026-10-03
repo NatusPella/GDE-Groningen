@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { vcMaterial, markShared } from './pixelart3d.js';
+import { vcMaterial, markShared, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
 
 // The one material of the real Ommelanden buildings (countryreal.js), near,
 // mid and skyline tiers alike. The pieces are unit boxes and roofs scaled
@@ -17,10 +17,19 @@ export const STYLE = { plain: 0, house: 1, block: 2, barn: 3, shed: 4, glass: 5,
 // the skyline silhouettes keep their roof colour index in the door field
 export const ROOF_PAL = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e, 0x3a3e40, 0x4a5a48, 0x6a6e6c];
 
+// the city's brick (0.5 m tile) and pan-tile (1 m) multipliers, sampled
+// with metre coordinates
 const U = {
   uBNight: { value: 0 },
   uBLit: { value: 0 },
+  uBBrick: { value: null },
+  uBTile: { value: null },
 };
+function textures() {
+  if (U.uBBrick.value || typeof document === 'undefined') return;
+  U.uBBrick.value = createBrickDetailTexture();
+  U.uBTile.value = createRoofTileTexture();
+}
 
 // Stamp the part id on every vertex of a piece: fn(x, y, z, nx, ny, nz).
 export function withParts(geo, fn) {
@@ -93,6 +102,7 @@ vBInfo.x = bCode;
 
 const FRAG_HEAD = /* glsl */`
 uniform float uBNight, uBLit;
+uniform sampler2D uBBrick, uBTile;
 varying vec3 vBLoc;
 varying vec3 vBS;
 varying vec3 vBNrm;
@@ -121,6 +131,8 @@ const FRAG_FACADE = /* glsl */`
     float L = xFace ? vBS.z : vBS.x;
     float h = vBInfo.y + vBLoc.y;
     float top = vBInfo.w;
+    if (style < 3.5) diffuseColor.rgb *= texture2D(uBBrick, vec2(u + (xFace ? 0.25 : 0.0), h) * 2.0).rgb * 1.1;
+    else diffuseColor.rgb *= 1.0 - 0.07 * smoothstep(0.35, 0.5, abs(fract(u * 1.25) - 0.5));
     // bay width, window size, storey height, sill: per style
     vec4 S = style < 1.5 ? vec4(2.7, 1.1, 1.35, 2.75) : style < 2.5 ? vec4(3.0, 1.6, 1.45, 3.0) : style < 3.5 ? vec4(5.5, 0.9, 0.6, 99.0) : vec4(9.0, 0.0, 0.0, 99.0);
     float sill = style < 2.5 ? 0.85 : 1.9;
@@ -169,6 +181,13 @@ const FRAG_FACADE = /* glsl */`
         bGlow = warm * mix(step(r, uBLit), uBLit * 0.35, blur) * win * uBNight * 0.85;
       }
     }
+  } else if (part > 1.5 && part < 2.5 && n.y > 0.05) {
+    // pitched roof: pan tiles along the ridge, or a corrugated sheet
+    bool endFace = abs(n.x) > abs(n.z);
+    float ru = endFace ? vBLoc.z : vBLoc.x;
+    float rv = (1.0 - vBLoc.y / vBS.y) * length(vec2(vBS.y, (endFace ? vBS.x : vBS.z) * 0.5));
+    if (style > 6.5) diffuseColor.rgb *= 1.0 - 0.14 * smoothstep(0.3, 0.5, abs(fract(ru * 5.0) - 0.5));
+    else diffuseColor.rgb *= texture2D(uBTile, vec2(ru, rv)).rgb * 1.08;
   } else if (part > 4.5 && part < 5.5 && n.y > 0.5) {
     // flat roof: bitumen with a lighter edge
     float e = min(vBS.x * 0.5 - abs(vBLoc.x), vBS.z * 0.5 - abs(vBLoc.z));
@@ -190,6 +209,7 @@ function hex(c) {
 // Patches a vertex-colour material into the facade material; extra(sh) runs
 // first (the skyline adds its own vertex pull and haze).
 export function applyFacade(m, key, extra = null) {
+  textures();
   m.onBeforeCompile = (sh) => {
     if (extra) extra(sh);
     Object.assign(sh.uniforms, U);
