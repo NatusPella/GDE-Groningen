@@ -200,7 +200,7 @@ export function pilotKeys(v, tgt, mode) {
     else if (fwdV > 1.5) keys.add('s');
   }
   if (d > 400 && Math.abs(err) < 0.3) keys.add('shift');
-  const want = mode === 'pad' ? (d < 6 ? -1e9 : Math.max(tgt.z + 25, Math.min(v.z, tgt.z + 40))) : tgt.z;
+  const want = mode === 'pad' ? (d < Math.max(6, (tgt.r || 6) * 0.8) ? -1e9 : Math.max(tgt.z + 25, Math.min(v.z, tgt.z + 40))) : tgt.z;
   if (want - v.z > 2) keys.add(' ');
   else if (want - v.z < -2) keys.add('control');
   return keys;
