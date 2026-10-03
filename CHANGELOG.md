@@ -40,7 +40,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Trailer: geen lege vitrine meer.** Shot 11 toont de Gouden Eierbal in
   zijn vitrine, gloeiend, ook in de benchmark. De tankwagen laat dikkere
   druppels vet vallen, Durk zingt in de Poelestraat onder een terraslamp, en
-  ondertitels en naamkaarten zijn groter.
+  ondertitels en naamkaarten zijn groter. De fades naar en van zwart staan
+  nu ook in de video-export (dat waren harde cuts).
 - **H6: de lege vitrine is nu een echte onthulling.** De koepel is van
   matglas met een gouden gloed, dus je ziet pas wat er (niet) op het kussen
   ligt als je het slot gekraakt hebt: de camera schuift in stilte naar binnen,
