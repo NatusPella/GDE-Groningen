@@ -6,6 +6,36 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Controllersupport** voor Xbox-, PlayStation- en Steam Deck-controllers:
+  lopen, rennen, springen, bukken, de camera, rijden met gas en rem op de
+  triggers, de handrem, in- en uitstappen, richten en schieten, wapens
+  wisselen, telefoon, kaart, pauzemenu, filmpjes overslaan en kusjes. Ook de
+  helikopter, de duif, de trein, het skûtsje, de Fjord Frituur, padel,
+  carbid, de botsauto's en de andere minigames. Alle menu's werken met de
+  D-pad of de stick: kiezen met A, terug met B, onderdelen op de bumpers en
+  tabbladen op de triggers. Op de kaart zet A een doel onder het kruis.
+- **De hints wisselen vanzelf** tussen toetsen en controllerknoppen, naar wat
+  je het laatst gebruikte. Xbox en Steam Deck krijgen letters, PlayStation de
+  vormen.
+- **Trillen** bij klappen, schoten en botsingen (als de controller dat kan),
+  uit te zetten onder Instellingen › Controller.
+- **Toetsen en knoppen opnieuw indelen** onder Besturing › Toetsenbord en
+  Besturing › Controller. Zit een toets al op iets anders, dan ruilen ze; met
+  "Standaard herstellen" staat alles weer zoals het was.
+- **Toegankelijk** onder Instellingen: ondertitels klein, normaal, groot of
+  extra groot (filmpjes, gesprekken in de auto, de intro, telefoon, radio en
+  naamkaarten), met een donker vlak erachter als je wilt; kleurenblinde
+  paletten (deuteranopie, protanopie, tritanopie) voor markers, routes, de
+  kaart en de HUD.
+
+### Verbeterd
+- Routes en markers verschillen nooit alleen in kleur: de verhaalroute is
+  doorgetrokken, je eigen doel gestreept, een klus gestippeld en opknappen
+  streep-punt; de pijlen aan de rand van de minimap dragen een ring, punt of
+  vierkant, en de 3D-missiemarker is een bol als hij wacht en een pijl als de
+  missie loopt.
+
 ### Veranderd
 - **Geschikt voor 16 jaar (PEGI 16).** Er is geen bloed meer en er vliegen
   geen ledematen meer rond. Ook de instelling "Bloed en ledematen" is weg.

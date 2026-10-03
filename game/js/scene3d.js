@@ -1,4 +1,5 @@
 import { setDualText } from './subtitles.js';
+import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
@@ -3141,7 +3142,7 @@ function updateRouteRibbon3D(dt, world) {
     const lane = route.mode === 'drive' ? keepRight(ahead, world.map) : ahead;
     const pl = world.player;
     routeRibbonMesh.geometry = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]), world.map, pl.inVehicle ? pl.inVehicle.z || 0 : pl.gz || 0);
-    routeRibbonMesh.material.color.setHex(ROUTE_COLOR_3D[route.kind] || ROUTE_COLOR_3D.mission);
+    routeRibbonMesh.material.color.set(markerColors()[route.kind] || markerColors().mission); // a11y.js palette
   }
   routeRibbonMesh.material.map.offset.y -= dt * 0.8;
 }

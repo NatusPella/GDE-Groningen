@@ -1,8 +1,10 @@
+import { normalizeKeyBinds, normalizePadBinds } from './controls.js';
+
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
 
 const STORAGE_KEY = 'gte-settings';
-const SETTINGS_VERSION = 5;
+const SETTINGS_VERSION = 6;
 
 export const QUALITY_PRESETS = {
   laag: { pixelRatio: 1, shadows: true, shadowMapSize: 1024 },
@@ -35,13 +37,28 @@ const DEFAULTS = {
   invertY: false,
   autoAim: true,
   drunkFx: 'aan',
+  // controls (controls.js): rebound keyboard keys and controller buttons,
+  // only the changed ones; the rest of the controller and accessibility
+  keyBinds: {},
+  padBinds: {},
+  padLayout: 'auto',
+  padLookSensitivity: 1,
+  rumble: true,
+  subtitleSize: 'normaal',
+  subtitleBox: false,
+  colorBlind: 'uit',
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
   attractSeen: false,
 };
-const KEEP_ON_RESET = new Set(['attractSeen']);
+// the Besturing screen has its own "Standaard herstellen" for the bindings
+const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds']);
+export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
+export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
+const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'deck'];
 
 function load() {
+  if (typeof localStorage === 'undefined') return { ...DEFAULTS };
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     const out = { ...DEFAULTS };
@@ -58,6 +75,14 @@ function load() {
     if ((raw.v || 0) < 3 && out.sfxVolume === 1) out.sfxVolume = DEFAULTS.sfxVolume;
     // up to v3 'laag' had no shadows whatever the switch said
     if ((raw.v || 0) < 4 && out.quality === 'laag') out.shadows = false;
+    // v6 added the bindings; whatever is stored is checked, a damaged table
+    // falls back to the defaults
+    out.keyBinds = normalizeKeyBinds(out.keyBinds);
+    out.padBinds = normalizePadBinds(out.padBinds);
+    if (!(out.subtitleSize in SUBTITLE_SIZES)) out.subtitleSize = DEFAULTS.subtitleSize;
+    if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
+    if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
+    if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     // v5 removed the blood-and-limbs switch along with the gore itself:
     // drop the stored value so it does not linger in the settings file
     if ((raw.v || 0) < 5 && 'gore' in raw) {
@@ -78,6 +103,7 @@ function urlOverrides(out) {
     const [k, v] = pair.split(':');
     if (!(k in DEFAULTS) || v === undefined) continue;
     const t = typeof DEFAULTS[k];
+    if (t === 'object') continue;
     out[k] = t === 'number' ? Number(v) : t === 'boolean' ? v === 'true' : v;
   }
   return out;

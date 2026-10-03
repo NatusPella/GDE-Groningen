@@ -80,11 +80,12 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] De IARC-vragenlijst echt invullen.
 - [x] **Geen gesimuleerd gokken meer** (`claude/geen-gokken`). De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
 - [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
-- [ ] Toegankelijkheid:
-  - toetsen opnieuw toewijzen;
-  - volledige controllersupport (ook nodig voor de Steam Deck);
-  - een grootte voor de ondertitels;
-  - markers die werken voor kleurenblinden.
+- [~] Toegankelijkheid (`claude/toegankelijk`, in headless Chrome getest met een nagebootste controller; nog niet op echte hardware):
+  - [x] toetsen en controllerknoppen opnieuw toewijzen, met ruilen bij een conflict en "Standaard herstellen";
+  - [x] volledige controllersupport via de Gamepad API (Xbox, PlayStation, Steam Deck): spel, minigames en alle menu's, hints met de knoppen van je controller, trillen;
+  - [x] een grootte voor de ondertitels, met een vlak erachter;
+  - [x] markers die werken voor kleurenblinden: patronen en vormen, plus drie paletten;
+  - [ ] testen met een echte Xbox-, PlayStation- en Steam Deck-controller (zie de lijst in de PR).
 - [ ] Opt-in foutrapporten of een logbestand om mee te sturen.
 - [ ] Een save-garantie: saves vanaf 1.0 blijven werken, met een migratietest op oude saves.
 - [ ] Feature freeze.
@@ -138,7 +139,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
   - een Nederlandse en een Engelse beschrijving.
 - [ ] Een Steam-build: de Windows-, Mac- en Linux-builds via SteamPipe, met een uploadscript.
 - [ ] De Steam-overlay met Electron en Chromium testen, en oplossen of accepteren.
-- [ ] Steam Deck: volledige controllersupport (zie 0.25), een Linux-build, en de tekstgrootte op 800p.
+- [ ] Steam Deck: een Linux-build en een test op het toestel. De controllersupport (0.25) is er, en de HUD en het menu zijn op 1280×800 nagekeken.
 - [ ] Optioneel: Steam-achievements en cloud-saves via steamworks.js, gekoppeld aan de bestaande prestaties.
 - [ ] De planning: 30 dagen wachten na betaling, minimaal 2 weken "coming soon", en de review van de pagina en de build.
 - [?] Het besluit: $100 betalen en naar Steam (Alexander).

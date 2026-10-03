@@ -1,4 +1,5 @@
 import { SMS_SAY } from './smsvoice.js';
+import { markerColors } from './a11y.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear } from './vehicle.js';
@@ -2911,8 +2912,17 @@ export function buildMissionMarker3D() {
   core.position.y = 3.6;
   group.add(core);
 
+  // an active mission's marker is a downward arrow, an idle one a ball:
+  // the two never differ by colour alone
+  const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.3, 4), markerCoreMaterial);
+  arrow.rotation.x = Math.PI;
+  arrow.position.y = 3.7;
+  arrow.visible = false;
+  group.add(arrow);
+
   group.userData.ring = ring;
   group.userData.core = core;
+  group.userData.arrow = arrow;
   return group;
 }
 
@@ -2922,7 +2932,15 @@ export function buildMissionMarker3D() {
 // Mutates the shared marker materials directly - safe since only one marker
 // mesh ever exists at a time.
 export function updateMissionMarker3D(group, time, phase) {
-  const hex = phase === 'active' ? MARKER_COLOR_ACTIVE : MARKER_COLOR_IDLE;
+  const pal = markerColors();
+  const hex = parseInt((phase === 'active' ? pal.missionActive : pal.mission).slice(1), 16);
+  const { core, arrow } = group.userData;
+  if (arrow) {
+    arrow.visible = phase === 'active';
+    core.visible = phase !== 'active';
+    arrow.rotation.y = time * 1.6;
+    arrow.position.y = 3.7 + Math.sin(time * 3) * 0.25;
+  }
   markerBeamMaterial.color.setHex(hex);
   markerRingMaterial.color.setHex(hex);
   markerCoreMaterial.color.setHex(hex);
