@@ -195,7 +195,7 @@ function updateBalloon(w, st, dt) {
 
 // --- scenes ---------------------------------------------------------------------------
 
-// Spotted from the air: a slow orbit round the balloon while Anita and Tammo
+// Spotted from the air: a slow orbit round the balloon while Tessa and Tammo
 // talk over the headsets, the twins waving up at them.
 function playSpotScene(w, st, base) {
   const sc = st.scene || {};

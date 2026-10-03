@@ -133,7 +133,7 @@ export const ACHIEVEMENTS = [
   { id: 'storm', cat: 'spoor', title: 'Code Rood', desc: 'Rij een halve minuut door een storm' },
   { id: 'onweer', cat: 'spoor', title: 'Donder en bliksem', desc: 'Maak een onweersbui mee' },
 
-  { id: 'kusje_1', cat: 'sociaal', title: 'Moi schat', desc: 'Geef Tammo of Anita een kusje', stat: 'kisses', goal: 1, hidden: true },
+  { id: 'kusje_1', cat: 'sociaal', title: 'Moi schat', desc: 'Geef Tammo of Tessa een kusje', stat: 'kisses', goal: 1, hidden: true },
   { id: 'kusje_25', cat: 'sociaal', title: 'Tortelduifjes', desc: 'Geef 25 kusjes', stat: 'kisses', goal: 25, hidden: true },
   { id: 'horeca_5', cat: 'sociaal', title: 'Kroegtijger', desc: 'Eet of drink iets bij 5 verschillende zaken', set: 'horeca', goal: 5 },
   { id: 'horeca_25', cat: 'sociaal', title: 'Bitterbal-sommelier', desc: 'Eet of drink iets bij 25 verschillende zaken', set: 'horeca', goal: 25 },

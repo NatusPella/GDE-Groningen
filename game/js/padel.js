@@ -1075,7 +1075,7 @@ function callOf(g, team) {
 function updateHud(w) {
   const g = game;
   if (!g || !hud) return;
-  const us = w.player.character === 'anita' ? 'Anita & Tammo' : 'Tammo & Anita';
+  const us = w.player.character === 'anita' ? 'Tessa & Tammo' : 'Tammo & Tessa';
   const them = `${g.names[0]} & ${g.names[1]}`;
   const serve = (t) => (g.server === t && g.phase !== 'intro' ? ' •' : '');
   const left = Math.max(0, Math.ceil(MATCH_CAP - g.t));

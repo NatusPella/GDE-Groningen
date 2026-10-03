@@ -1,5 +1,5 @@
 // Shared by the TTS line lists (tts_lines_list, tts_banter_lines,
-// tts_sidejobs_lines): Tammo and Anita's voices and the speech_metadata
+// tts_sidejobs_lines): Tammo and Tessa's voices and the speech_metadata
 // style every job is voiced with (scripts/gemini_tts.py).
 // same as gemini_tts.MODEL: a clip whose tts.json entry has another model is re-recorded
 export const TTS_MODEL = 'google/gemini-3.8-flash-tts';

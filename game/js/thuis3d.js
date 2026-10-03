@@ -3,7 +3,7 @@ import { registerBuildingModel, modelKit, LANDMARK_MATERIALS } from './landmarks
 import { GeoBuilder } from './pixelart3d.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 
-// The real look of Tammo and Anita's two homes, as models for the buildings
+// The real look of Tammo and Tessa's two homes, as models for the buildings
 // home.js tags (b.model):
 //
 // - House of Groningen and Atlas, Pleiadenlaan / Dierenriemstraat (Paddepoel),
