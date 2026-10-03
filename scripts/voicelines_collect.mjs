@@ -10,7 +10,7 @@ import { JELLE, JELLE_LINES, INTROS, FJORD_BUBBLES, FJORD_DUO } from '../game/js
 import { CARD_LINES, COMPANION_CARDS } from '../game/js/cardlines.js';
 import { STEPS, PARTS, SPEAKERS } from '../game/js/storyarc.js';
 import { SMS_SAY, smsSpeaker, smsSpoken, cardSpoken } from '../game/js/smsvoice.js';
-import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT } from '../game/js/rondvaartlines.js';
+import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT, RV_SCENES } from '../game/js/rondvaartlines.js';
 import { DUO as OM_DUO, WORLD_ENDS, WORLD_END_FINAL, VILLAGES, KOE_LINES, KOE_WHO, KOE_CALL } from '../game/js/ommelandlines.js';
 
 // The tourists on the rondvaartboot: one fixed voice each (tts_lines_list.mjs).
@@ -128,6 +128,22 @@ export function collect() {
   for (const l of TOUR_WELCOME) tourLine(l);
   for (const stop of TOUR_STOPS) for (const l of stop.lines) tourLine(l);
   for (const list of Object.values(TOURIST_REACT)) for (const l of list) tourLine(l);
+  // H13's scenes and the build-up to the kiss (rondvaartlines.js RV_SCENES)
+  const RV_WHO = { W: 'Schipper Wiebe (megafoon)', G: 'Tammo (gids)', t: 'Tammo', A: 'Anita' };
+  const RV_TAG = {
+    why: ['verontwaardigd, schreeuwend door een megafoon', 'droog, zacht tegen haar', 'droog, plagend'],
+    bonk: ['schreeuwend, dan pijnlijk kreunend', 'droog, geamuseerd', 'droog, laconiek'],
+    resume: ['door de microfoon van een rondvaartboot, alsof er niks gebeurd is', 'droog, plagend'],
+    glance: ['zacht, verlegen, privé', 'warm, een beetje verlegen'],
+    hands: ['zacht, aarzelend, bijna fluisterend', 'verlegen, zacht'],
+    later: ['zacht, warm, een beetje uitdagend', 'verlegen, zacht'],
+  };
+  for (const [kind, list] of Object.entries(RV_SCENES)) {
+    for (const [k, t] of list) {
+      add('Rondvaart-missie', 'story', [RV_WHO[k]], t, { kind, tag: RV_TAG[kind] });
+      out[out.length - 1].fallback = 'lines';
+    }
+  }
 
   // --- bijbaantjes: intros + boss/duo lines -> jobs manifest
   const sv = src('sidejobvoice.js');
@@ -172,6 +188,8 @@ export function collect() {
   for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);
   // the scenes of activity steps (storyfun.js): where one is done, and Rotor Roelf at his demo heli
   for (const st of STEPS) for (const sc of [st.scene, st.meet]) for (const [k, t, o] of (sc && sc.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, o && o.tag ? { tag: o.tag } : {});
+  // r-trein's choice (storyarc.js HIDEOUTS): each option's scene
+  for (const st of STEPS) for (const o of (st.goal && st.goal.options) || []) for (const [k, t, op] of (o.scene && o.scene.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, op && op.tag ? { tag: op.tag } : {});
   // the trekker-limo pulling up at the museum (missionstory.js playLimoReveal)
   for (const [k, t] of lit(src('missionstory.js'), 'export const LIMO_LINES = ')) add('Missie-cutscenes', 'lines', [nm(k)], t);
   // Jelle on the phone (phone.js jelleTalk)
@@ -345,6 +363,7 @@ export function collect() {
   const SWHO = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
   for (const st of STEPS) {
     for (const f of ['lead', 'done']) if (st[f]) sms('Berichten (verhaal)', SWHO(st[f][0]), st[f][1]);
+    for (const o of (st.goal && st.goal.options) || []) if (o.done) sms('Berichten (verhaal)', SWHO(o.done[0]), o.done[1]);
     if (st.goal && st.goal.lift) sms('Berichten (verhaal)', st.goal.lift[0], st.goal.lift[1]);
     for (const f of ['after', 'beat']) for (const [k, t] of st[f] || []) sms('Berichten (verhaal)', SWHO(k), t);
     for (const c of st.contact || []) for (const [k, t] of c.after || []) sms('Berichten (verhaal)', SWHO(k), t);

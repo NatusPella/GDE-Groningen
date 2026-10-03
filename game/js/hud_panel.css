@@ -810,6 +810,8 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
   background: linear-gradient(180deg, #1e9e56, #0f5c30);
   border: 2px solid #3fc97a;
 }
+#hud .ph-mic { flex: 0 0 30px; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: rgba(12, 20, 14, 0.85); border: 1.5px solid #e8c93a; color: #e8c93a; }
+#hud .ph-mic svg { width: 18px; height: 18px; }
 #hud .ph-avatar.sm { width: 32px; height: 32px; font-size: 16px; border-width: 1px; flex: 0 0 32px; }
 #hud .ph-call { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 16px 12px 10px; gap: 4px; overflow-y: auto; }
 #hud .ph-callname { font-size: 24px; letter-spacing: 1px; margin-top: 6px; }

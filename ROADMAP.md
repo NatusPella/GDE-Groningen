@@ -56,28 +56,30 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 ## Speelfeedback 3 okt (gaat mee in 0.24)
 
-**Pakket A: verhaalverloop en opening** (`claude/feedback-verhaal`)
-- [~] Te veel tegelijk: één wachtrij voor telefoontjes, radio, autogesprekken, meldingen en cutscenes.
-- [~] Samen gaan wonen: in de opening huren Tammo en Anita samen een appartement in Paddepoel, weg uit de krappe studentenkamer. Daarna is Paddepoel thuis.
-- [~] Onderduiken: een duidelijke bestemming, plus 2 à 3 keuzes voor iets leuks samen.
-- [~] Geen "Kop/Romp/Staart" meer in beeld, maar gewone namen voor de delen.
-- [~] Kusjes kunnen soms nog te vroeg, afhankelijk van of je Tammo of Anita speelt.
-- [~] "Koop een huurboot" wordt "huur een boot". De "tredes" worden duidelijk uitgelegd.
-- [~] Een eigen icoon per missie.
+**Pakket A: verhaalverloop en opening** (`claude/feedback-verhaal`, klaar voor review)
+- [x] Te veel tegelijk: één wachtrij (`narrative.js`) voor telefoontjes, radio, autogesprekken, meldingen, prestaties, HUD-kaarten en cutscenes; kaarten gaan opzij voor ondertitels en de radio.
+- [x] Samen gaan wonen: in de opening huren Tammo en Anita samen een flat in Paddepoel, weg uit de krappe zolder. Daarna is Paddepoel thuis.
+- [x] Onderduiken: een duidelijke bestemming, met drie keuzes (trein, ijsje in het Noorderplantsoen, zonsondergang aan de Hoge der A), elk met een scène.
+- [x] Geen "Kop/Romp/Staart" meer in beeld: "Deel 1: KEI-week", "Deel 2: Noorderzon", "Deel 3: Kermis en Ontzet".
+- [x] Kusjes te vroeg: H13 vooruit spelen zette ze aan. Nu pas als het verhaal bij H13 is.
+- [x] "Huur een boot" in plaats van "koop een huurboot"; de treden van de complimentenladder worden uitgelegd.
+- [x] Een eigen icoon per missie.
+- [ ] Nalopen in een speeltest: de nieuwe intro-shots (camera bij de toren), de drie onderduik-scènes, en of de wachtrij niet te traag voelt.
 
 **Pakket B: missies** (`claude/feedback-missies`)
-- [~] H3: duidelijk hoe je punten scoort, met een live score en een doel.
-- [~] H6: allebei in zwarte kleding. Na de kraak wijst de waypoint naar een kade bij het Hoofdstation. In de trein weer gewone kleren.
-- [~] H8: de tankwagen van Us Mem Vet staat op een logische plek, met tekst erop. Kapen is de bedoelde route.
-- [~] H5: geen op elkaar af fietsen terwijl ze samen op één fiets zitten.
-- [~] H11: per kroeg een korte cutscene met een drankje.
-- [~] H13:
-  - de echte uitslag in plaats van altijd 3e;
-  - cutscenes bij de brug en bij de boosheid van de tegenstander;
-  - Tammo gaat verder met zijn feitjes;
-  - de kus krijgt opbouw;
-  - de instapscène is beter in beeld.
-- [~] H14: de boeven fietsen niet meer door een muur.
+- [x] H3: een uitleg vooraf (wat punten oplevert en het doel), een live scorepaneel met voortgangsbalk en combo, een pop-up per actie en "nog X punten" tegen het eind. Het doel is altijd haalbaar.
+- [x] H6: allebei in zwarte kleding. Na de kraak wijst de waypoint naar een kade bij het Hoofdstation, en daar eindigt de missie. In de trein weer gewone kleren.
+- [x] H8: de tankwagen van Us Mem Vet staat bij de groothandel aan de Bornholmstraat, met "US MEM VET" op de tank. Erin springen is de bedoelde route, banden plat kan nog steeds.
+- [x] H5: Anita fietst op haar eigen fiets (zoals in D), dus het oogcontact op het kruispunt klopt.
+- [x] H11: per kroeg een korte, overslaanbare proost (ander glas, ander shot, één zin of geen).
+- [x] H13:
+  - geen plaatsing, maar de medaille: goud was sneller dan de boot kan varen, dus het was bijna altijd brons. Goud en zilver zijn nu haalbaar;
+  - cutscenes bij de brug en bij de boosheid van Wiebe;
+  - Tammo gaat daarna verder als gids;
+  - de kus krijgt opbouw in drie momenten;
+  - een instapshot vanaf het water. Ook de scène aan boord van het skûtsje (H14) filmt nu langs het zeil.
+- [x] H14: de boeven fietsen niet meer door een muur.
+- [ ] Nog in het echt bekijken: H8's groothandel en de kaping, de kade bij het station, de proosts en de scènes op de rondvaartboot (de headless check deed alleen het scorepaneel en de tankwagen).
 
 **Pakket C: wereld, geluid en HUD** (`claude/feedback-wereld`)
 - [x] Voertuigbadge: naam en merk erbij, en conditie met een hartje in plaats van "schade".

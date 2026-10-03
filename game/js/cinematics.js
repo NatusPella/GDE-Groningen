@@ -12,6 +12,7 @@ import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
 import { isIntroPlaying } from './intromontage.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
+import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
 import { getFollowPose, prewarmStreamAt } from './scene3d.js';
 
@@ -91,6 +92,8 @@ export function initCinematics(w) {
   world = w;
   if (els) return;
   setStoryProbe(() => !!active || isIntroPlaying());
+  registerNarrative('scene', { active: () => !!active || isIntroPlaying() || isBannerUp() });
+  registerNarrative('sub-cine', { active: () => !!els && els.root.classList.contains('has-sub') });
   const root = document.createElement('div');
   root.id = 'cine';
   root.setAttribute('aria-live', 'polite');
