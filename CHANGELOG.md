@@ -55,6 +55,27 @@ nieuwe functies, `y` voor alleen bugfixes.
   na padel of een uitje, dan ontbrak de garage onder de House of Groningen.
   Hij staat er nu altijd, en van ver zie je zijn gevel en dakrand ook.
 
+### Opgelost
+- Chauffeurs zitten weer in de cabine. In de vrachtwagens (ook de
+  vettankwagen uit H8 en de tankwagen van de stuntavond) zat de bestuurder
+  laag in de laadbak, in de trekker-limo in de dichte limo en in de
+  geldwagen achter in de laadruimte; nu zitten ze achter het stuur, op
+  hoogte, met het hoofd achter de ruiten. De trekker heeft een glazen
+  cabine gekregen, met een bijrijdersstoeltje. Buschauffeurs en de SUV
+  zitten hoger, met het hoofd in de ruiten in plaats van eronder.
+- In de trailer zit er geen tweede, onbekende bestuurder meer door Tammo
+  heen in de Escapade.
+- De race op de ringweg in de trailer (ook achter het titelscherm) rijdt
+  weer als een race: de auto's draaien vloeiend door de bochten in plaats
+  van bij elk wegstuk een ruk te maken en zijwaarts te verspringen, rijden
+  op de oprit en het viaduct op de weg in plaats van erboven of erin, en
+  kantelen mee met de helling. De trekker rijdt niet meer dwars door twee
+  auto's heen. Ook de trekker-limo op Ring Zuid in de opening van Nieuw
+  spel volgt de weg vloeiend.
+- In de ringweg-race (H9) komt een vastgelopen tegenstander na het
+  terugzetten weer op het viaduct of in de verdiepte ligging terecht, en
+  niet meer op de straat eronder of erboven.
+
 ## [0.22.0] - 2026-10-03
 
 ### Nieuw

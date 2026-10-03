@@ -635,7 +635,7 @@ const crewCtx = {
 // Parked, abandoned and bailed-out cars are empty. Must be a real boolean:
 // an undefined .visible does not hide an Object3D.
 function hasAiDriver(v) {
-  if (v.wrecked || v.parked || v.driver === 'player') return false;
+  if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver) return false;
   if (v.driver) return true;
   if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
   return !!(v.road || v.racer);

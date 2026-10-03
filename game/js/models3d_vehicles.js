@@ -464,13 +464,18 @@ function buildTrekkerLimoMesh(v) {
   const geo = cached(`trekkerlimo|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
     const trL = 2.3, tx0 = hl - trL;
-    // tractor: hood, cab, fenders over the big wheels, exhaust
+    // tractor: hood, cab, fenders over the big wheels, exhaust. The cab is
+    // solid up to the window line and glass above it, so the driver shows.
+    const cz = W * 0.43;
     B.box(hl - 0.55, 1.05, 0, 1.1, 0.8, W * 0.62, tractor);
-    B.box(tx0 + 0.6, 1.55, 0, 1.2, 1.8, W * 0.86, tractor);
+    B.box(tx0 + 0.6, 1.075, 0, 1.2, 0.85, W * 0.86, tractor);
+    B.box(tx0 + 0.6, 2.38, 0, 1.2, 0.16, W * 0.86, tractor);
     B.box(tx0 + 0.6, 2.5, 0, 1.3, 0.08, W * 0.9, shadeHex(tractor, 0.8));
-    B.box(tx0 + 1.21, 1.85, 0, 0.02, 0.8, W * 0.7, GLASS, G_GLASS);
+    B.box(tx0 + 1.19, 1.9, 0, 0.02, 0.8, W * 0.8, GLASS, G_GLASS);
+    B.box(tx0 + 0.01, 1.9, 0, 0.02, 0.8, W * 0.8, GLASS, G_GLASS);
     for (const s of [1, -1]) {
-      B.box(tx0 + 0.6, 1.9, s * (W * 0.43 + 0.01), 0.9, 0.7, 0.02, GLASS, G_GLASS);
+      for (const px of [tx0 + 0.03, tx0 + 1.17]) B.box(px, 1.9, s * (cz - 0.03), 0.06, 0.8, 0.06, tractor);
+      B.box(tx0 + 0.6, 1.9, s * cz, 1.1, 0.8, 0.02, GLASS, G_GLASS);
       B.box(tx0 + 0.55, 1.35, s * (hw - 0.12), 1.3, 0.12, 0.34, shadeHex(tractor, 0.75));
       B.box(hl + 0.01, 0.95, s * (W * 0.2), 0.02, 0.14, 0.2, HEADLAMP, G_LAMP);
       // flag poles with red leaves on white and blue

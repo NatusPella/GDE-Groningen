@@ -918,8 +918,6 @@ function attachUmbrella(ud, color) {
 // forward, footY up; mesh-local, unscaled) and what the arms do.
 export const SEAT_CONTACT = HIP_Y - 0.09;
 export const SEAT_CAR = { recline: 0.26, footX: 0.74, footY: -0.07, arms: 'lap' };
-// car seat cushion 0.38 m above the ground (legacy callers lower the mesh by this)
-export const SEATED_DROP = SEAT_CONTACT - 0.38;
 
 export function seatedY(mesh, seatTop) {
   return seatTop - SEAT_CONTACT * (mesh.scale.y || 1);
