@@ -32,7 +32,8 @@ import { buildShore, updateShore } from './quaywalls.js';
 import { getWaterIndex } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
 import { propsNearInto } from './breakables.js';
-import { buildTerrainMesh3D, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
+import { buildTerrainMesh3D, terrainArrays, terrainGroup, createTerrainMaterial, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
+import { runGeo, geoWorkerActive } from './geojobs.js';
 import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
@@ -66,7 +67,7 @@ import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js'
 import { updateCountryside } from './countryside.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
-import { edgeDistance } from './countryfield.js';
+import { edgeDistance, setCountryBounds } from './countryfield.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
@@ -113,6 +114,11 @@ const SHADOW_LEVELS = {
 
 let renderer = null, scene = null, cam = null, canvas3 = null;
 let terrainMesh = null;
+let terrainPending = null;
+// resolves once the terrain is in the scene (built in the geometry worker)
+export function terrainReady() {
+  return terrainPending || Promise.resolve();
+}
 let followYaw = 0;
 // orbit radius kept constant so pitch changes swing the camera around the
 // player like a real GTA camera (higher/steeper looking down, lower/flatter
@@ -789,7 +795,20 @@ export function init3D(map) {
   // background right at ground level - looked like holes in the world.
   // Sits below WATER_Y (-0.35) so it never hides water the way the old
   // plane did (that one rendered at y=0, right over water's -0.35).
-  terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
+  // in the geometry worker while the game loads (main.js awaits terrainReady)
+  if (geoWorkerActive()) {
+    setCountryBounds(map.meta.bounds);
+    terrainMesh = new THREE.Group();
+    terrainMesh.material = createTerrainMaterial();
+    const group = terrainMesh;
+    const water = map.water.map((w) => ({ pts: w.pts, bounds: w.bounds }));
+    terrainPending = new Promise((done) => runGeo('terrain', { bounds: map.meta.bounds, water }, (T) => {
+      if (T) terrainGroup(T, group);
+      else terrainGroup(terrainArrays(map.meta.bounds, map.water), group);
+      freezeStatic(group);
+      done();
+    }));
+  } else terrainMesh = buildTerrainMesh3D(map.meta.bounds, map.water);
   scene.add(freezeStatic(terrainMesh));
 
   // Opaque canal bed under the whole map: terrain holes are cut per grid

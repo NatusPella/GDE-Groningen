@@ -598,11 +598,26 @@ don't collide, and actors are drawn at their height.
   the map edge becomes ready); per prop chunk the worker samples the tiles
   (kept for the last 160), merges them and computes the bank normals. The
   old meshes stay until the new ones arrive.
+- City road surfaces (`roadsurface.js`): on the first `syncRoads` the worker
+  loads its own copy of the map (`citymap.json` + extras, the same
+  `GameMap`, ~90 MB of worker heap) and drops the roads the main thread no
+  longer has (`home.js`); roads are matched by `roadKey` (class, type,
+  width, points). `roadGeometryReady(r)` requests a road's sidewalk,
+  carriageway and marking geometry (`roadSurfaceGeometries`, the code
+  `buildRoadGroup` uses) and returns false until it is back; `syncRoads`
+  then lets the far LOD cover from the nearest road still on its way. The
+  civil works (`roadstructures3d.js`) stay on the main thread. Until the
+  worker's map is ready, roads build on the main thread as before.
+- Terrain (`terrain3d.js` `terrainArrays` / `terrainGroup`): built in the
+  worker while the game loads; `init3D` adds an empty group with the
+  material, and `main.js` awaits `terrainReady()` before the title screen.
 - Results must stay identical to the main-thread build:
   `scripts/perf/geocheck.sh` compares the old code, the kernel on the main
   thread and the worker byte for byte (city cells round the centre, ~200
-  water chunks round the map). A change to these kernels goes in
-  `geokernels.js` / `countrywatergeo.js`, and the check should pass after it.
+  water chunks round the map, every road, the terrain). The kernels share
+  their code with the main thread (`geokernels.js`, `countrywatergeo.js`,
+  `roadSurfaceGeometries`, `terrainArrays`), so a change there reaches both;
+  the check should pass after it.
 
 ## Name and logo
 
