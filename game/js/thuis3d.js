@@ -30,8 +30,18 @@ import { pointInPolygon, closestPointOnSegment } from './util.js';
 //   doors. Sources: erfgoed.groningen.nl "Wijkbeschrijving Oosterparkwijk"
 //   (Hacquebord & Overbeek), funda listing Korenbloemstraat (bouwjaar 1932).
 
-const K = modelKit;
-const { PLAIN, BRICK, GLASS, METAL, TILE } = K.G;
+// landmarks3d.js and this module import each other: nothing of it may be
+// read while the modules load, so the kit and the model registrations wait
+// for the first call (kitReady, from the tag functions in home.js).
+let K, PLAIN, BRICK, GLASS, METAL, TILE;
+const DEFERRED = [];
+const defer = (key, fn) => DEFERRED.push([key, fn]);
+function kitReady() {
+  if (K) return;
+  K = modelKit;
+  ({ PLAIN, BRICK, GLASS, METAL, TILE } = K.G);
+  for (const [key, fn] of DEFERRED) registerBuildingModel(key, fn);
+}
 const STOREY = 3.1;
 
 const hash = (a, b) => {
@@ -136,7 +146,7 @@ function ensembleTower(B, ring, opt) {
   }
 }
 
-registerBuildingModel('hogToren', (B, b) => {
+defer('hogToren', (B, b) => {
   const f = b.modelFrame;
   ensembleTower(B, f.corners, {
     levels: b.h, crown: !b.modelCut, brick: HOG.brick,
@@ -144,7 +154,7 @@ registerBuildingModel('hogToren', (B, b) => {
     balcony: (e, i, k) => k >= 3 && k <= 9 && e.len > 18 && (i % 3 === 1),
   });
 });
-registerBuildingModel('atlasToren', (B, b, ring) => {
+defer('atlasToren', (B, b, ring) => {
   const f = b.modelFrame;
   ensembleTower(B, ring, { levels: b.h, crown: true, brick: tint(HOG.brick, 0.96), noPlinth: (x, y) => f.closed(x, y) });
 });
@@ -190,6 +200,7 @@ function fasciaTexture() {
 // The canopy over the pumps (a building=roof footprint, drawn instead of the
 // plain canopy slab): returns the mesh and where its columns and islands stand.
 export function buildPeutCanopy(c, map) {
+  kitReady();
   const ring = c.pts[0][0] === c.pts[c.pts.length - 1][0] && c.pts[0][1] === c.pts[c.pts.length - 1][1] ? c.pts.slice(0, -1) : c.pts;
   const F = K.minAreaFrame(ring);
   const B = new GeoBuilder(5);
@@ -270,7 +281,7 @@ function nearestStreet(map, x, y) {
 }
 
 // The shop: white panels, a green band along the top, glass facing the pumps.
-registerBuildingModel('peutShop', (B, b, ring) => {
+defer('peutShop', (B, b, ring) => {
   const H = 4.4;
   const toward = b.modelFrame.toward;
   for (const e of K.edgesOf(ring)) {
@@ -296,7 +307,7 @@ const KB = {
   door: 0x2f5a40, lead: 0x5b6166, lit: 0xf6d38c,
 };
 
-registerBuildingModel('boumaRij', (B, b, ring) => {
+defer('boumaRij', (B, b, ring) => {
   const s = b.modelFrame;
   const F = K.frameFrom(s.dir[0], s.dir[1], ring);
   const vF = s.side > 0 ? F.v1 : F.v0; // the street facade's v
@@ -366,6 +377,7 @@ registerBuildingModel('boumaRij', (B, b, ring) => {
 // one under the opening's attic window (intromontage.js: 9.5 m from the
 // street towards the park) its lit dakkapel.
 export function tagKorenbloemstraat(map) {
+  kitReady();
   const road = map.roads.find((r) => r.name === 'Korenbloemstraat');
   if (!road) return;
   const [a, c] = [road.pts[0], road.pts[road.pts.length - 1]];
@@ -397,6 +409,7 @@ export function tagKorenbloemstraat(map) {
 // The Paddepoel ensemble and the petrol station. tower: home.js's building and
 // layout frame; plinth: the garage polygon; lobby: the lobby door.
 export function tagPleiadenlaan(map, { tower, frame, plinth, lobby }) {
+  kitReady();
   const nearPlinth = (x, y) => {
     for (let i = 0; i < plinth.length; i++) {
       const a = plinth[i], c = plinth[(i + 1) % plinth.length];
