@@ -479,7 +479,7 @@ export function buildRoadStructure(r, map) {
   for (const f of elev.floors || []) {
     if (f.seg.r !== r) continue;
     const ox = -f.nx, oy = -f.ny, i0 = -(WALL_T / 2 + 0.4), i1 = f.reach + 0.3;
-    B.quad('concrete', [f.ax + ox * i0, f.za - 0.03, f.ay + oy * i0], [f.bx + ox * i0, f.zb - 0.03, f.by + oy * i0], [f.bx + ox * i1, f.zb - 0.03, f.by + oy * i1], [f.ax + ox * i1, f.za - 0.03, f.ay + oy * i1]);
+    B.quad('concrete', [f.ax + ox * i0, f.za - 0.03, f.ay + oy * i0], [f.bx + ox * i0, f.zb - 0.03, f.by + oy * i0], [f.bx + ox * i1, (f.fb ?? f.zb) - 0.03, f.by + oy * i1], [f.ax + ox * i1, (f.fa ?? f.za) - 0.03, f.ay + oy * i1]);
   }
   for (const w of elev.walls) {
     if (w.seg.r !== r) continue;
