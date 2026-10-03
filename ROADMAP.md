@@ -133,7 +133,8 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] De IARC-vragenlijst echt invullen.
 - [x] **Geen gesimuleerd gokken meer** (`claude/geen-gokken`). De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
 - [~] Onboarding: de eerste 10 minuten zonder uitleg te snappen (`claude/v025`). Audit en wijzigingen in [docs/ONBOARDING.md](docs/ONBOARDING.md).
-  - [x] uitleg op het moment zelf, één kaartje tegelijk via de narrative-planner en elk één keer: de eerste klus, geld en winkels, de telefoon, de kaart en Te doen (`onboarding.js`);
+  - [x] uitleg over doelen, niet over toetsen: op het moment zelf, één kaartje tegelijk via de narrative-planner en elk één keer: de eerste klus, geld en winkels, zelf kiezen op de kaart en Te doen (`onboarding.js`);
+  - [x] geen toetshints meer voor lopen, kijken, rennen, springen en rijden; alleen E, T, M, Esc, kusjes, wapens, heli en trein;
   - [x] uit te zetten voor ervaren spelers (Instellingen › Weergave), en het eerste kaartje zegt dat;
   - [ ] toetsen met spelers die de game niet kennen (de vragen staan in docs/ONBOARDING.md).
 - [~] Toegankelijkheid (`claude/toegankelijk`, in headless Chrome getest met een nagebootste controller; nog niet op echte hardware):
