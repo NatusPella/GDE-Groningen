@@ -21,7 +21,13 @@ nieuwe functies, `y` voor alleen bugfixes.
   werken in elke latere versie. Voor de eerste bijwerking bewaart het spel
   een kopie van je oude save.
 
-### Veranderd
+### Gewijzigd
+- **H6: de lege vitrine is nu een echte onthulling.** De koepel is van
+  matglas met een gouden gloed, dus je ziet pas wat er (niet) op het kussen
+  ligt als je het slot gekraakt hebt: de camera schuift in stilte naar binnen,
+  de koepel gaat omhoog, een leeg kussen, het kaartje in close-up. Kort en
+  wegklikbaar. Het kaartje is nu getekend "– J.", en na Jelles telefoontje
+  naar Nachtstreek valt bij Anita het kwartje: "J. Van Jelle. Natuurlijk."
 - Oude saves nemen de tellers mee van vóór 0.24 ("kills" heten nu
   knock-outs), in plaats van ze te laten vallen.
 - Een save van een nieuwere versie van het spel wordt niet meer
