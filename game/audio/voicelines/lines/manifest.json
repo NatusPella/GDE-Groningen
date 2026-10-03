@@ -955,6 +955,10 @@
 "src": "anita/kassa_dat_was_een_goeie_dienst_1e5dbc97.mp3",
 "dur": 2.72
 },
+"Anita|Kiekdoar kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
+"src": "anita/kiekdoar_kopt_grote_markt_saaier_0838986a.mp3",
+"dur": 7.53
+},
 "Anita|Kijk rechts over de daken: d'Olle Grieze, de Martinitoren.": {
 "src": "anita/kijk_rechts_over_de_daken_d_olle_3a91dd35.mp3",
 "dur": 3.66
@@ -1242,14 +1246,6 @@
 "Anita|Schiet of ram zijn banden stuk, kaap hem en breng het vet naar de Oosterpoort.": {
 "src": "anita/schiet_of_ram_zijn_banden_stuk_k_80c3f2e7.mp3",
 "dur": 4.16
-},
-"Anita|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Dat laten we niet op ons zitten.": {
-"src": "anita/sikkom_kopt_grote_markt_saaier_d_5d3cbfee.mp3",
-"dur": 5.92
-},
-"Anita|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
-"src": "anita/sikkom_kopt_grote_markt_saaier_d_4a166f82.mp3",
-"dur": 7.19
 },
 "Anita|Spijt van de zomer?": {
 "src": "anita/spijt_van_de_zomer_8f53d298.mp3",
@@ -2063,60 +2059,60 @@
 "src": "geert/vier_kroegen_nog_eentje_dan_140c592f.mp3",
 "dur": 2.54
 },
-"Geesje (Radio Grunn)|Dan het verkeer.": {
-"src": "geesje_radio_grunn/dan_het_verkeer_8dcbdfea.mp3",
+"Geesje (Radio Proat)|Dan het verkeer.": {
+"src": "geesje_radio_proat/dan_het_verkeer_8dcbdfea.mp3",
 "dur": 1.0
 },
-"Geesje (Radio Grunn)|Eerst het nieuws, van Sikkom.": {
-"src": "geesje_radio_grunn/eerst_het_nieuws_van_sikkom_2e182e10.mp3",
-"dur": 1.84
+"Geesje (Radio Proat)|Eerst het nieuws, van Kiekdoar.": {
+"src": "geesje_radio_proat/eerst_het_nieuws_van_kiekdoar_0ec3e3ef.mp3",
+"dur": 2.01
 },
-"Geesje (Radio Grunn)|En dan de koeien. Ja, die hebben ook een mening.": {
-"src": "geesje_radio_grunn/en_dan_de_koeien_ja_die_hebben_o_3e1ebdca.mp3",
+"Geesje (Radio Proat)|En dan de koeien. Ja, die hebben ook een mening.": {
+"src": "geesje_radio_proat/en_dan_de_koeien_ja_die_hebben_o_3e1ebdca.mp3",
 "dur": 3.25
 },
-"Geesje (Radio Grunn)|Het weer: droog, met kans op wind. Zoals altijd.": {
-"src": "geesje_radio_grunn/het_weer_droog_met_kans_op_wind__c5cf4a84.mp3",
+"Geesje (Radio Proat)|Het weer: droog, met kans op wind. Zoals altijd.": {
+"src": "geesje_radio_proat/het_weer_droog_met_kans_op_wind__c5cf4a84.mp3",
 "dur": 3.79
 },
-"Geesje (Radio Grunn)|Het weer: regen. Je bent in Grunn, wat had je dan gedacht.": {
-"src": "geesje_radio_grunn/het_weer_regen_je_bent_in_grunn__0c265a3c.mp3",
+"Geesje (Radio Proat)|Het weer: regen. Je bent in Grunn, wat had je dan gedacht.": {
+"src": "geesje_radio_proat/het_weer_regen_je_bent_in_grunn__0c265a3c.mp3",
 "dur": 3.78
 },
-"Geesje (Radio Grunn)|Je luistert naar Radio Grunn. Gewoon weer een dag in Stad.": {
-"src": "geesje_radio_grunn/je_luistert_naar_radio_grunn_gew_45a31e48.mp3",
+"Geesje (Radio Proat)|Je luistert naar Radio Proat. Gewoon weer een dag in Stad.": {
+"src": "geesje_radio_proat/je_luistert_naar_radio_proat_gew_93effb02.mp3",
+"dur": 4.09
+},
+"Geesje (Radio Proat)|Nog meer nieuws. Kiekdoar weet het altijd eerder.": {
+"src": "geesje_radio_proat/nog_meer_nieuws_kiekdoar_weet_he_017fd16d.mp3",
 "dur": 3.36
 },
-"Geesje (Radio Grunn)|Nog meer nieuws. Sikkom weet het altijd eerder.": {
-"src": "geesje_radio_grunn/nog_meer_nieuws_sikkom_weet_het__b4e3648c.mp3",
-"dur": 2.99
+"Geesje (Radio Proat)|Radio Proat. Wie proaten, joe heuren. Veur Stad en Ommeland.": {
+"src": "geesje_radio_proat/radio_proat_wie_proaten_joe_heur_44bd47c3.mp3",
+"dur": 4.87
 },
-"Geesje (Radio Grunn)|Radio Grunn. Proatradio veur Stad en Ommeland.": {
-"src": "geesje_radio_grunn/radio_grunn_proatradio_veur_stad_8a09cd10.mp3",
-"dur": 3.48
+"Geesje (Radio Proat)|Radio Proat. Wij zeggen wat er is, en niet meer dan dat.": {
+"src": "geesje_radio_proat/radio_proat_wij_zeggen_wat_er_is_bbb11f94.mp3",
+"dur": 3.85
 },
-"Geesje (Radio Grunn)|Radio Grunn. Wij zeggen wat er is, en niet meer dan dat.": {
-"src": "geesje_radio_grunn/radio_grunn_wij_zeggen_wat_er_is_dfb59182.mp3",
-"dur": 3.8
-},
-"Geesje (Radio Grunn)|Reclame. De eierbal: rond, heet en Gronings. Bij elke snackbar in Stad.": {
-"src": "geesje_radio_grunn/reclame_de_eierbal_rond_heet_en__0644eb72.mp3",
+"Geesje (Radio Proat)|Reclame. De eierbal: rond, heet en Gronings. Bij elke snackbar in Stad.": {
+"src": "geesje_radio_proat/reclame_de_eierbal_rond_heet_en__0644eb72.mp3",
 "dur": 6.35
 },
-"Geesje (Radio Grunn)|Reclame. EIKEA: zelf in elkaar zetten, zelf het schroefje zoeken.": {
-"src": "geesje_radio_grunn/reclame_eikea_zelf_in_elkaar_zet_eee4e9bf.mp3",
+"Geesje (Radio Proat)|Reclame. EIKEA: zelf in elkaar zetten, zelf het schroefje zoeken.": {
+"src": "geesje_radio_proat/reclame_eikea_zelf_in_elkaar_zet_eee4e9bf.mp3",
 "dur": 4.63
 },
-"Geesje (Radio Grunn)|Reclame. Garage Knalpot: wij repareren alles, behalve je rijstijl.": {
-"src": "geesje_radio_grunn/reclame_garage_knalpot_wij_repar_68ee7c05.mp3",
+"Geesje (Radio Proat)|Reclame. Garage Knalpot: wij repareren alles, behalve je rijstijl.": {
+"src": "geesje_radio_proat/reclame_garage_knalpot_wij_repar_68ee7c05.mp3",
 "dur": 5.22
 },
-"Geesje (Radio Grunn)|Reclame. Pomp en Poets: tanken, wassen, en een praatje over het weer.": {
-"src": "geesje_radio_grunn/reclame_pomp_en_poets_tanken_was_96423d89.mp3",
+"Geesje (Radio Proat)|Reclame. Pomp en Poets: tanken, wassen, en een praatje over het weer.": {
+"src": "geesje_radio_proat/reclame_pomp_en_poets_tanken_was_96423d89.mp3",
 "dur": 4.91
 },
-"Geesje (Radio Grunn)|Rikus van Nachtstreek stuurde ons er nog eentje.": {
-"src": "geesje_radio_grunn/rikus_van_nachtstreek_stuurde_on_59d2268d.mp3",
+"Geesje (Radio Proat)|Rikus van Nachtstreek stuurde ons er nog eentje.": {
+"src": "geesje_radio_proat/rikus_van_nachtstreek_stuurde_on_59d2268d.mp3",
 "dur": 2.37
 },
 "Harm|De laatste fase. Weer. Ik kom elke keer kijken.": {
@@ -2995,9 +2991,9 @@
 "src": "jelmer/rikus_de_escapade_van_tammo_is_f_24d37ffb.mp3",
 "dur": 4.26
 },
-"Jelmer|Rikus! Jelmer. Sikkom zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!": {
-"src": "jelmer/rikus_jelmer_sikkom_zegt_dat_de__9ff1182e.mp3",
-"dur": 7.74
+"Jelmer|Rikus! Jelmer. Kiekdoar zegt dat de Grote Markt in de zomer saaier is dan een lege mensa. Ik wil content! 150 euro!": {
+"src": "jelmer/rikus_jelmer_kiekdoar_zegt_dat_d_15074db6.mp3",
+"dur": 8.29
 },
 "Jelmer|Tienduizend kijkers! En kijk: \"JelleWâld\" in de chat. \"Groot Loug. Moai foar in wykein.\"": {
 "src": "jelmer/tienduizend_kijkers_en_kijk_jell_b8fafe1c.mp3",
@@ -3478,10 +3474,6 @@
 "Rikus|En op Nachtstreek belde een Fries. Jelle Terpstra. Hij wil hem eerlijk winnen, op Gronings Ontzet.": {
 "src": "rikus/en_op_nachtstreek_belde_een_frie_614782a4.mp3",
 "dur": 6.21
-},
-"Rikus|En op Sikkom lachte een Fries in een blauw colbert. Jelle Terpstra. Operaasje Aaibal was begonnen.": {
-"src": "verteller/en_op_sikkom_lachte_een_fries_in_495208a7.mp3",
-"dur": 7.14
 },
 "Rikus|En op de rondvaartboot kusten ze. Wij tweeën tegen Grunn… of misschien: vóór Grunn.": {
 "src": "verteller/en_op_de_rondvaartboot_kusten_ze_a9319c9d.mp3",
@@ -4879,6 +4871,10 @@
 "src": "tammo/kei_week_eerstejaars_op_fietsen__05179016.mp3",
 "dur": 5.57
 },
+"Tammo|Kiekdoar kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
+"src": "tammo/kiekdoar_kopt_grote_markt_saaier_b1fd01f6.mp3",
+"dur": 7.04
+},
 "Tammo|Kijk die rij. Tot aan d'Olle Grieze.": {
 "src": "tammo/kijk_die_rij_tot_aan_d_olle_grie_e0f94799.mp3",
 "dur": 1.87
@@ -5158,14 +5154,6 @@
 "Tammo|Schiet of ram zijn banden stuk, kaap hem en breng het vet naar de Oosterpoort.": {
 "src": "tammo/schiet_of_ram_zijn_banden_stuk_k_dbdc4972.mp3",
 "dur": 4.52
-},
-"Tammo|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Dat laten we niet op ons zitten.": {
-"src": "tammo/sikkom_kopt_grote_markt_saaier_d_e45e1897.mp3",
-"dur": 5.27
-},
-"Tammo|Sikkom kopt: 'Grote Markt saaier dan een lege mensa'. Jelmer wil een zomeravond vol content.": {
-"src": "tammo/sikkom_kopt_grote_markt_saaier_d_f018d7eb.mp3",
-"dur": 6.96
 },
 "Tammo|Sinds nu.": {
 "src": "tammo/sinds_nu_76c51547.mp3",
@@ -5671,9 +5659,9 @@
 "src": "bubbles/f/die_staat_daar_al_drie_jaar_dat__0097c2eb.mp3",
 "dur": 3.38
 },
-"~f|Dit gaat op Sikkom!": {
-"src": "bubbles/f/dit_gaat_op_sikkom_5cd5c7b5.mp3",
-"dur": 1.5
+"~f|Dit gaat op Kiekdoar!": {
+"src": "bubbles/f/dit_gaat_op_kiekdoar_f9533292.mp3",
+"dur": 2.36
 },
 "~f|Dit heb ik niet besteld!": {
 "src": "bubbles/f/dit_heb_ik_niet_besteld_317f1913.mp3",
@@ -5871,9 +5859,9 @@
 "src": "bubbles/f/hulp_90fd111f.mp3",
 "dur": 0.91
 },
-"~f|HÉ! Jij bent toch die van Sikkom?": {
-"src": "bubbles/f/he_jij_bent_toch_die_van_sikkom_5d6cf5cb.mp3",
-"dur": 2.12
+"~f|HÉ! Jij bent toch die van Kiekdoar?": {
+"src": "bubbles/f/he_jij_bent_toch_die_van_kiekdoa_b3f21667.mp3",
+"dur": 1.99
 },
 "~f|Hé! Dat is mijn fiets! Ik stond er maar vijf minuutjes!": {
 "src": "bubbles/f/he_dat_is_mijn_fiets_ik_stond_er_e9b1790e.mp3",
@@ -6659,9 +6647,9 @@
 "src": "bubbles/m/die_staat_daar_al_drie_jaar_dat__35ebad04.mp3",
 "dur": 2.72
 },
-"~m|Dit gaat op Sikkom!": {
-"src": "bubbles/m/dit_gaat_op_sikkom_5b09639a.mp3",
-"dur": 2.02
+"~m|Dit gaat op Kiekdoar!": {
+"src": "bubbles/m/dit_gaat_op_kiekdoar_abd19127.mp3",
+"dur": 2.59
 },
 "~m|Dit heb ik niet besteld!": {
 "src": "bubbles/m/dit_heb_ik_niet_besteld_56b56b1b.mp3",
@@ -6855,9 +6843,9 @@
 "src": "bubbles/m/hulp_eece267e.mp3",
 "dur": 0.65
 },
-"~m|HÉ! Jij bent toch die van Sikkom?": {
-"src": "bubbles/m/he_jij_bent_toch_die_van_sikkom_cdb87524.mp3",
-"dur": 2.0
+"~m|HÉ! Jij bent toch die van Kiekdoar?": {
+"src": "bubbles/m/he_jij_bent_toch_die_van_kiekdoa_b1810080.mp3",
+"dur": 3.2
 },
 "~m|Hè? Ik sliep niet, hoor.": {
 "src": "bubbles/m/he_ik_sliep_niet_hoor_f9cd4344.mp3",

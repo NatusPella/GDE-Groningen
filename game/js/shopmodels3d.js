@@ -155,7 +155,7 @@ const BUILD = {
     add(g, box(3.4, 1.0, 1.0), mat(0x2a2c30, 0.6), 0, 0.5);
     add(g, box(0.5, 0.5, 0.3), mat(0x1b1c1f, 0.5), 0, 1.25);
     add(g, box(3.6, 2.1, 0.14), mat(0x1b1c1f, 0.4), 0, 2.5);
-    const scr = labelMat([['SIKKOM', 40, 50, '#e8c93a'], ['TV', 50, 100, '#f0ede4']], '#1e3a5a', '#fff', 192, 112);
+    const scr = labelMat([['KIEKDOAR', 34, 50, '#e8c93a'], ['TV', 50, 100, '#f0ede4']], '#1e3a5a', '#fff', 192, 112);
     scr.emissive = new THREE.Color(0x6a8aa8); scr.emissiveMap = scr.map;
     add(g, box(3.4, 1.9, 0.02), scr, 0, 2.5, 0.08);
   },

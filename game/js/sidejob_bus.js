@@ -120,7 +120,7 @@ export default {
       d.prevSpeed = v.speed;
     } else d.prevSpeed = null;
 
-    if (late > LATE_FAIL && !d.dwell) { c.fail('te veel vertraging. Sikkom kopt al: "Lijn 3 rijdt op Gronings tempo"'); return; }
+    if (late > LATE_FAIL && !d.dwell) { c.fail('te veel vertraging. Kiekdoar kopt al: "Lijn 3 rijdt op Gronings tempo"'); return; }
 
     const kerb = stop.kerb;
     if (Math.hypot(kerb.x - p.x, kerb.y - p.y) < SHOW_R && !d.spawnedFor) {

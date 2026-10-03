@@ -112,7 +112,7 @@
 ## H3 · Iets met de Grote Markt
 
 **Bel Rikus (radio).**
-- **Jelmer:** Rikus! Jelmer, streamer. Sikkom schrijft dat de Grote Markt saaier is dan een lege mensa. Ik wil content! Wie maakt het druk?
+- **Jelmer:** Rikus! Jelmer, streamer. Kiekdoar schrijft dat de Grote Markt saaier is dan een lege mensa. Ik wil content! Wie maakt het druk?
 - **Rikus:** Ik ken twee mensen die het altijd druk maken. Ook als dat niet hoeft.
 
 **Intro (cutscène).**
@@ -228,7 +228,7 @@
 
 ## Tussendoor: onderduiken met de trein
 
-- **Rikus (radio):** Sikkom kopt: "Stad in rouw." Ik kopte niks. Ik heb thee gezet.
+- **Rikus (radio):** Kiekdoar kopt: "Stad in rouw." Ik kopte niks. Ik heb thee gezet.
 
 ## H7 · Heel aankomen is ook een kunst
 

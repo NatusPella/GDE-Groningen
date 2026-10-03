@@ -42,8 +42,8 @@ meegeleverd.
   (`game/audio/gmusic`, `game/audio/scenario`, `game/audio/theme`) zijn
   gemaakt met Google Gemini.
 - **Stemmen**: alle stemmen (`game/audio/voicelines`, `npc`, `police`,
-  `sikkom`, G-Music-jingles) zijn gemaakt met Google Gemini TTS
-  (`google/gemini-3.8-flash-tts` en eerdere modellen) via OpenRouter. Per map
+  `nieuws`, G-Music-jingles) zijn gemaakt met Google Gemini TTS
+  (`google/gemini-3.8-flash-tts`) via OpenRouter. Per map
   legt `tts.json` vast hoe elke clip is gemaakt.
 - **Martinitoren-model** (`game/models/martinitoren.glb`): gemaakt met
   Claude Design (Anthropic).

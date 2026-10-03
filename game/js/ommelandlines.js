@@ -27,10 +27,10 @@ export const WORLD_ENDS = [
 ];
 export const WORLD_END_TOTAL = WORLD_ENDS.length;
 
-// All twelve found: the companion's verdict, then a Sikkom headline (a ping only).
+// All twelve found: the companion's verdict, then a Kiekdoar headline (a ping only).
 export const WORLD_END_FINAL = {
   who: DUO, text: 'Twaalf keer het einde van de wereld. En we staan er nog. Kon minder.', tag: 'droog, stiekem trots',
-  news: 'SIKKOM: Stadjer vindt alle twaalf randen van de wereld. Wetenschappers: "Dan is hij dus toch plat."',
+  news: 'KIEKDOAR: Stadjer vindt alle twaalf randen van de wereld. Wetenschappers: "Dan is hij dus toch plat."',
 };
 
 // --- dorpsuitjes ----------------------------------------------------------------
