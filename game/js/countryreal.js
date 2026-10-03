@@ -17,7 +17,16 @@ export const REAL = {
   ready: false, ext: null, roads: [], waterways: [], rails: [], places: [], churches: [], stations: [], routes: [],
   n: 0, bx: null, by: null, bw: null, bl: null, ba: null, code: null, lv: null, fill: null,
   bTiles: new Map(), rTiles: new Map(), signTiles: new Map(), churchTiles: new Map(),
+  // village shopfronts: building -> face (1 +x, 2 -x, 3 +z, 4 -z of its
+  // model), and the countryside's hook that repaints that building
+  shopFace: new Map(), onShop: null,
 };
+
+export function markShop(i, face) {
+  if (REAL.shopFace.get(i) === face) return;
+  REAL.shopFace.set(i, face);
+  if (REAL.onShop) REAL.onShop(i);
+}
 
 const tkey = (tx, ty) => tx * 100003 + ty;
 
