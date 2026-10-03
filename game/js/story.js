@@ -742,9 +742,28 @@ export function initStory(w) {
   window.__story = storyApi;
 }
 
+// Kusjes (K) unlock with the first kiss, at the end of H13; before that the
+// prompt, the key and the Besturing row don't exist (player.js, prompts.js,
+// pausemenu.js read world.kissUnlocked).
+const KISS_STEP = 'H13';
+// H13 itself, not a later mission played ahead
+function kissUnlockedNow() {
+  const step = STEP_BY_ID.get(KISS_STEP);
+  if (!step) return false;
+  const i = missionIdx(step);
+  return state.done.has(KISS_STEP) || state.skipped.has(KISS_STEP) || (i >= 0 && isMissionCompleted(i));
+}
+
 export function updateStory(dt, w) {
   if (!ready) return;
   world = w;
+  if (document.body.classList.contains('game-started')) {
+    // set on the first frame in play (no card for a loaded save), the card
+    // only when it unlocks while playing
+    const kiss = kissUnlockedNow();
+    if (kiss && w.kissUnlocked === false) w.addMessage('Nieuw: geef elkaar een kusje met K', 4, { key: 'kiss-unlock' });
+    w.kissUnlocked = kiss;
+  }
   if (w.devInvuln) { w.health = 100; if (w.pendingRespawn && !w.pendingRespawn.busted) w.pendingRespawn = null; }
   if (!document.body.classList.contains('game-started')) return;
   const cur = currentStep();
