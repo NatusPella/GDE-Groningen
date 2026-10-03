@@ -68,9 +68,9 @@ function ffmpegArgs({ w, h, W, H, out, sheet, gameDir }) {
   const theme = sheet.theme && file(sheet.theme);
   if (theme) {
     args.push('-i', theme);
-    // ducked under the boat shot: down to a fifth with short ramps
-    const duck = (sheet.duck || []).map(([a, b]) => `0.8*clip((t-${a.toFixed(3)})/0.4,0,1)*clip((${b.toFixed(3)}-t)/0.4,0,1)`).join('+') || '0';
-    filters.push(`[${n}:a]aformat=sample_rates=48000:channel_layouts=stereo,adelay=${ms(sheet.themeAt)}:all=1,volume='0.75*(1-(${duck}))':eval=frame[a${n}]`);
+    // ducked under the boat shot (down to a fifth) and the story lines, with short ramps
+    const duck = (sheet.duck || []).map(([a, b, depth = 0.8]) => `${depth}*clip((t-${a.toFixed(3)})/0.4,0,1)*clip((${b.toFixed(3)}-t)/0.4,0,1)`).join('+') || '0';
+    filters.push(`[${n}:a]aformat=sample_rates=48000:channel_layouts=stereo,adelay=${ms(sheet.themeAt)}:all=1,volume='0.75*(1-min(0.85,${duck}))':eval=frame[a${n}]`);
     mix.push(`[a${n}]`);
     n++;
   }
