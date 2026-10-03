@@ -32,6 +32,7 @@ import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
+import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady } from './scene3d.js';
 import { noteFrame, hideAdvice } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
@@ -188,6 +189,8 @@ const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 
 async function boot() {
   markLoad('boot');
+  // the geometry worker loads its modules while the map downloads
+  geoWorkerActive();
   initA11y();
   initGlyphs();
   initTheme();
