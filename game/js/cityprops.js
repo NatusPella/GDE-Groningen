@@ -6,6 +6,7 @@ import { isInWater, dist, SeededRng } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables } from './breakables.js';
 import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
 import { breakableWallsIn } from './elevation.js';
+import { runGeo } from './geojobs.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -31,6 +32,10 @@ let group = null;
 let material = null;
 let protos = null;
 const cells = new Map();
+// the streamed cells (scripts/perf/geocheck.js compares their merged buffers)
+export function cityPropCells() {
+  return cells;
+}
 let genQueue = [];
 let world = null;
 let studentTimer = 20;
@@ -213,37 +218,39 @@ function initProtos() {
   for (const v of Object.values(protos)) for (const g of Array.isArray(v) ? v : [v]) whiteUV(g);
 }
 
-// Colours bake into each proto; GeoBuilder.geo re-colours uniformly, so
-// instances are merged by copying attributes instead.
-function mergeInstances(list) {
-  let total = 0;
-  for (const it of list) total += it.geo.attributes.position.count;
-  if (!total) return null;
-  const pos = new Float32Array(total * 3), nor = new Int8Array(total * 3), col = new Uint8Array(total * 3), uvs = new Uint16Array(total * 2);
-  const v = new THREE.Vector3(), n = new THREE.Vector3(), nm = new THREE.Matrix3();
-  let o = 0;
-  for (const it of list) {
-    const { geo, m } = it;
-    it.v0 = o;
-    it.vn = geo.attributes.position.count;
-    const P = geo.attributes.position, N = geo.attributes.normal, C = geo.attributes.color, U = geo.attributes.uv;
-    nm.getNormalMatrix(m);
-    for (let i = 0; i < P.count; i++) {
-      v.fromBufferAttribute(P, i).applyMatrix4(m);
-      pos[o * 3] = v.x; pos[o * 3 + 1] = v.y; pos[o * 3 + 2] = v.z;
-      n.set(N.getX(i), N.getY(i), N.getZ(i)).applyMatrix3(nm).normalize();
-      nor[o * 3] = Math.round(n.x * 127); nor[o * 3 + 1] = Math.round(n.y * 127); nor[o * 3 + 2] = Math.round(n.z * 127);
-      col[o * 3] = C.array[i * 3]; col[o * 3 + 1] = C.array[i * 3 + 1]; col[o * 3 + 2] = C.array[i * 3 + 2];
-      uvs[o * 2] = Math.round(U.array[i * 2] * 65535); uvs[o * 2 + 1] = Math.round(U.array[i * 2 + 1] * 65535);
-      o++;
-    }
-  }
+// A cell's props are merged into one mesh (geokernels.js mergeInstances, in
+// the geometry worker): the job carries each distinct geometry's attributes
+// and every item's matrix; v0 / vn are the item's vertex range.
+const plainAttr = (a) => ({ array: a.array, itemSize: a.itemSize, normalized: a.normalized });
+function mergeJob(lists) {
+  const ids = new Map(), geos = [];
+  const out = lists.map((list) => {
+    let o = 0;
+    return list.map((it) => {
+      const { geo, m } = it;
+      let gi = ids.get(geo);
+      if (gi === undefined) {
+        const A = geo.attributes;
+        ids.set(geo, gi = geos.length);
+        geos.push({ position: plainAttr(A.position), normal: plainAttr(A.normal), color: plainAttr(A.color), uv: plainAttr(A.uv) });
+      }
+      it.v0 = o;
+      it.vn = geo.attributes.position.count;
+      o += it.vn;
+      return [gi, m.elements];
+    });
+  });
+  return { geos, lists: out };
+}
+
+function mergedGeometry(r) {
+  if (!r) return null;
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  g.setAttribute('normal', new THREE.BufferAttribute(nor, 3, true));
-  g.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
-  g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2, true));
-  g.computeBoundingSphere();
+  g.setAttribute('position', new THREE.BufferAttribute(r.pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(r.nor, 3, true));
+  g.setAttribute('color', new THREE.BufferAttribute(r.col, 3, true));
+  g.setAttribute('uv', new THREE.BufferAttribute(r.uvs, 2, true));
+  g.boundingSphere = new THREE.Sphere(new THREE.Vector3(r.sphere[0], r.sphere[1], r.sphere[2]), r.sphere[3]);
   return g;
 }
 
@@ -597,27 +604,32 @@ function scareSlotPed(slot) {
 
 function buildCellMeshes(cell) {
   cell.props = [];
-  const g = mergeInstances(cell.items);
-  if (g) {
-    cell.mesh = new THREE.Mesh(g, material);
-    cell.mesh.castShadow = true;
-    cell.mesh.receiveShadow = true;
-    group.add(cell.mesh);
-    registerItems(cell, cell.items, cell.mesh);
-  }
-  const mg = mergeInstances(cell.market);
-  if (mg) {
-    cell.marketMesh = new THREE.Mesh(mg, material);
-    cell.marketMesh.castShadow = true;
-    cell.marketMesh.receiveShadow = true;
-    group.add(cell.marketMesh);
-    registerItems(cell, cell.market, cell.marketMesh);
-  }
-  registerWalls(cell);
   cell.active = true;
+  const token = cell.buildToken = (cell.buildToken || 0) + 1;
+  runGeo('cityMerge', mergeJob([cell.items, cell.market]), ([r, mr]) => {
+    if (cell.buildToken !== token || !cell.active) return;
+    const g = mergedGeometry(r);
+    if (g) {
+      cell.mesh = new THREE.Mesh(g, material);
+      cell.mesh.castShadow = true;
+      cell.mesh.receiveShadow = true;
+      group.add(cell.mesh);
+      registerItems(cell, cell.items, cell.mesh);
+    }
+    const mg = mergedGeometry(mr);
+    if (mg) {
+      cell.marketMesh = new THREE.Mesh(mg, material);
+      cell.marketMesh.castShadow = true;
+      cell.marketMesh.receiveShadow = true;
+      group.add(cell.marketMesh);
+      registerItems(cell, cell.market, cell.marketMesh);
+    }
+    registerWalls(cell);
+  });
 }
 
 function dropCell(cell) {
+  cell.buildToken = (cell.buildToken || 0) + 1;
   for (const p of cell.props || []) removeProp(p);
   cell.props = [];
   for (const it of cell.items) it.mesh = null;

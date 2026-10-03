@@ -56,12 +56,16 @@ Flags: `--preset=quality:laag,shadows:false,...` (settings for that run
 only, as key:value pairs), `--cpu-throttle=4` (a slower CPU), `--nobatch`,
 `--hitch`; env `PERF_ONLY=foot,ring,heli,village,pause,sheet`,
 `PERF_PROFILE=<routes>` (CPU profile), `PERF_DIAG=1` (draw calls per owner),
-`PERF_SIM=0-2` (load-adaptive simulation level). `scripts/perf/ab.sh`
+`PERF_SIM=0-2` (load-adaptive simulation level); with `--hitch`, `scripts/perf/sections.py`
+prints main-thread ms per category (`docs/PERF-PROFIEL.md`). `scripts/perf/ab.sh`
 alternates two staged builds (A/B) and prints medians. Map loading:
 `window.__loadMarks` has the boot timeline up to the title screen and the
 desktop flag `--profile-load[=ms]` logs a CPU profile of the page load. `--gfx-advice[=<GPU
 string>]` shows the first-run graphics advice in a test run.
 `node scripts/gfx_profile_test.mjs` checks the GPU classification.
+`scripts/perf/geocheck.sh` checks that the geometry worker builds the same
+buffers as the main thread, byte for byte (`?noworker` keeps it all on the
+main thread).
 
 ### Trailer mode
 

@@ -560,6 +560,16 @@ export function canalWater(x, y) {
   }
   return best;
 }
+// The canal part of segGrid as plain data for the geometry worker
+// (countrywatergeo.js canalWaterFrom): [key, segments] pairs.
+export function canalGridSnapshot() {
+  const grid = [];
+  for (const [k, L] of segGrid) {
+    const c = L.filter((g) => g.kind).map((g) => ({ box: g.box, ax: g.ax, ay: g.ay, bx: g.bx, by: g.by, ha: g.ha, hb: g.hb }));
+    if (c.length) grid.push([k, c]);
+  }
+  return { grid, cell: JS_GRID };
+}
 // The open water past the map edge: the field, and the lines of the
 // narrower canals and maren.
 export function openWater(x, y) {
