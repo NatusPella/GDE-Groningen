@@ -395,7 +395,10 @@ they load (`game/js/savemigrate.js`, checked by
 see ARCHITECTURE.md, "Saves and versions").
 
 Privacy: the game keeps progress and settings in the browser's localStorage
-on your own device. No accounts, no telemetry, no analytics. The browser
+on your own device. No accounts, no telemetry, no analytics. Errors and
+warnings go into a local log (Instellingen › Foutrapport, `game/js/errorlog.js`)
+that is never sent: the player can copy it, or save it as a file in the
+desktop app, to pass it on themselves. The browser
 version loads three.js from jsDelivr and the fonts from Google Fonts; the
 desktop build loads nothing from the internet.
 

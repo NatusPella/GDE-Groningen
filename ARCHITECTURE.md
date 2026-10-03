@@ -673,6 +673,22 @@ every step, `n -> n + 1`, on a copy, before anything reads it.
   progress, the menu's last tab, ...) are read field by field and ignore what
   they do not know, so they need no chain.
 
+## Error log (`js/errorlog.js`)
+
+The first import in main.js, so it is listening before anything else runs.
+`window` `error` and `unhandledrejection` and every `console.error`/`warn`
+go into a ring buffer of 40 entries (the same message counts up on one
+entry), in memory and in localStorage `gte-foutlog`. An entry has the
+message, the stack, the game version, the story step, a settings summary and
+the GPU class (`setErrorContext`, set in main.js from story.js and
+gfxprofile.js `classifyGpu`). `scrub` cuts paths down to the game's own
+folder (`js/story.js:12`) and blanks user folders, so no user name ends up in
+the report. Instellingen › Foutrapport (pausemenu.js) lists the newest
+entries with "Kopieer naar klembord", "Wissen" and, in the desktop app,
+"Opslaan als bestand" (`gteDesktop.saveTextFile`, `gte:save-text`: a save
+dialog in main.js). Nothing is ever sent and there are no network calls;
+the privacy line in Over, the README and docs/LICENTIES.md §5 say so.
+
 ## Name and logo
 
 The title is **GDE Groningen – Zomer vol misdaad** (GDE = Grootste Diefstal

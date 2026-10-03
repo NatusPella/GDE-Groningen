@@ -328,6 +328,13 @@
   #pause-menu .pm-note { color: rgba(240,237,228,0.6); font-size: 13.5px; padding: 6px 0 8px; }
   #pause-menu .pm-game .pm-status { min-height: 0; font-size: 13.5px; color: rgba(63,201,122,0.9); }
   #pause-menu .pm-game .pm-status:empty { display: none; }
+  #pause-menu .pm-errlog-actions { flex-wrap: wrap; margin: 4px 0 8px; }
+  #pause-menu .pm-errlog { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  #pause-menu .pm-errlog li { padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); border-left: 3px solid rgba(217,63,63,0.8); font: 13.5px/1.35 'Arial Narrow', Arial, sans-serif; overflow-wrap: anywhere; }
+  #pause-menu .pm-errlog li.warn { border-left-color: rgba(232,178,58,0.85); }
+  #pause-menu .pm-errlog li.none { border-left-color: rgba(63,201,122,0.7); color: rgba(240,237,228,0.7); }
+  #pause-menu .pm-errlog li small { color: rgba(240,237,228,0.55); }
+  #pause-menu .pm-errlog li span { display: block; margin-top: 2px; }
 
   /* Overzicht and Te doen (todoui.js) */
   #pause-menu .pm-inner h2 + .td-card, #pause-menu .ov-col > .td-card { margin-top: 2px; }

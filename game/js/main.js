@@ -1,3 +1,4 @@
+import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
 import { loadOmmeland, initReal, warmRows } from './countryreal.js';
@@ -16,7 +17,7 @@ import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { initMissions, updateMissions } from './missions.js';
-import { initStory, updateStory } from './story.js';
+import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
 import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
@@ -33,8 +34,8 @@ import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
 import { geoWorkerActive } from './geojobs.js';
-import { init3D, update3D, resize3D, getScene, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady } from './scene3d.js';
-import { noteFrame, hideAdvice } from './gfxprofile.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady } from './scene3d.js';
+import { noteFrame, hideAdvice, classifyGpu, readGpu } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
@@ -256,6 +257,17 @@ async function boot() {
   initPostgame(world);
   initSideJobs(world);
   initStory(world);
+  let gpuClass = '';
+  setErrorContext(() => {
+    const st = getSettings();
+    const step = currentStep();
+    if (!gpuClass) { try { const g = classifyGpu(readGpu(getRenderer().getContext())); gpuClass = `${g.tier} (${g.why})`; } catch (e) { gpuClass = '?'; } }
+    return {
+      step: step ? step.id || (step.end ? 'einde ' + step.end : '') : '',
+      settings: `kwaliteit ${st.quality}, schaduwen ${st.shadows ? 'aan' : 'uit'}, resolutie ${Math.round(st.resolution * 100)}%${st.autoResolution ? ' auto' : ''}, zicht ${st.drawDistance}, ui ${st.uiScale}`,
+      gpu: gpuClass,
+    };
+  });
   initGoal(world);
   initMotion();
   initStoryContact(world);
