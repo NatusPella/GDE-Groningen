@@ -1510,11 +1510,26 @@ function drawNorthIndicator(ctx, cx, cy, screenAngle) {
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  ctx.font = 'bold 10px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('N', 0, 6);
+  // the letter from a cached bitmap: text on the rotated minimap each frame was costly
+  const tf = ctx.getTransform();
+  const dpr = Math.max(1, Math.round(Math.hypot(tf.a, tf.b)));
+  if (!northGlyph || northGlyph.dpr !== dpr || (!northGlyph.font && document.fonts && document.fonts.check('bold 10px "Bebas Neue"'))) northGlyph = makeNorthGlyph(dpr);
+  ctx.drawImage(northGlyph.c, -6, 0, 12, 12);
   ctx.restore();
+}
+
+let northGlyph = null;
+function makeNorthGlyph(dpr) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 12 * dpr;
+  const g = c.getContext('2d');
+  g.scale(dpr, dpr);
+  g.fillStyle = '#3fc97a';
+  g.font = 'bold 10px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText('N', 6, 6);
+  return { c, dpr, font: !!(document.fonts && document.fonts.check('bold 10px "Bebas Neue"')) };
 }
 
 function fillPoly(ctx, pts) {

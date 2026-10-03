@@ -347,6 +347,10 @@
 "src": "anita/drie_minuten_hand_105eb756.mp3",
 "dur": 1.55
 },
+"Anita|Duiven luisteren naar niemand. Behalve naar hem.": {
+"src": "anita/duiven_luisteren_naar_niemand_be_a6a81a2c.mp3",
+"dur": 3.67
+},
 "Anita|Durk en Douwe willen hem op de trein naar Leeuwarden zetten. Over mijn lijk.": {
 "src": "anita/durk_en_douwe_willen_hem_op_de_t_bbbd9d1c.mp3",
 "dur": 6.38
@@ -1007,13 +1011,13 @@
 "src": "anita/links_het_groninger_museum_0c8846cf.mp3",
 "dur": 1.88
 },
-"Anita|Loop de straat door naar Oma Trijntje, bij de Grote Markt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
-"src": "anita/loop_de_straat_door_naar_oma_tri_fbfe6a59.mp3",
-"dur": 7.02
-},
 "Anita|Loop de straat door naar de Vismarkt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
 "src": "anita/loop_de_straat_door_naar_de_vism_523f6a90.mp3",
 "dur": 5.33
+},
+"Anita|Loop de straat uit, over de Ebbingebrug en langs het water naar Oma Trijntje aan de Noorderhaven. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
+"src": "anita/loop_de_straat_uit_over_de_ebbin_22aa2093.mp3",
+"dur": 9.24
 },
 "Anita|Luik open! Grunn heeft honger.": {
 "src": "anita/luik_open_grunn_heeft_honger_a1f0d9e1.mp3",
@@ -2890,6 +2894,10 @@
 "Jelle Terpstra|Wat dan?": {
 "src": "jelle_terpstra/wat_dan_28497e59.mp3",
 "dur": 0.58
+},
+"Jelle Terpstra|Wat is dit?! Ik sjoch neat!": {
+"src": "jelle_terpstra/wat_is_dit_ik_sjoch_neat_7dc764e9.mp3",
+"dur": 2.39
 },
 "Jelle Terpstra|Wie heeft mijn flagge…? In DUIF?! Ik weet wel wie die duif is.": {
 "src": "jelle_terpstra/wie_heeft_mijn_flagge_in_duif_ik_9ec18682.mp3",
@@ -4887,6 +4895,10 @@
 "src": "tammo/kom_op_geertje_naar_huis_d28fdf5d.mp3",
 "dur": 1.81
 },
+"Tammo|Kom op, jongens. Eén keer luisteren.": {
+"src": "tammo/kom_op_jongens_ee_n_keer_luister_fdb507ec.mp3",
+"dur": 2.54
+},
 "Tammo|Kon minder.": {
 "src": "tammo/kon_minder_a00feb0f.mp3",
 "dur": 0.65
@@ -4943,13 +4955,13 @@
 "src": "tammo/links_ziet_u_grunn_rechts_ziet_u_4785840c.mp3",
 "dur": 4.54
 },
-"Tammo|Loop de straat door naar Oma Trijntje, bij de Grote Markt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
-"src": "tammo/loop_de_straat_door_naar_oma_tri_ef0e45de.mp3",
-"dur": 6.85
-},
 "Tammo|Loop de straat door naar de Vismarkt. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
 "src": "tammo/loop_de_straat_door_naar_de_vism_c01b5691.mp3",
 "dur": 5.91
+},
+"Tammo|Loop de straat uit, over de Ebbingebrug en langs het water naar Oma Trijntje aan de Noorderhaven. Geschept worden doet pijn, maar zolang je blijft ademen telt het.": {
+"src": "tammo/loop_de_straat_uit_over_de_ebbin_3ed45cc3.mp3",
+"dur": 9.61
 },
 "Tammo|Luik open. Ik heb een schort om.": {
 "src": "tammo/luik_open_ik_heb_een_schort_om_313e8fb3.mp3",
@@ -5407,6 +5419,10 @@
 "src": "toerist/hoeveel_a0b2c416.mp3",
 "dur": 0.82
 },
+"Torenwachter|Duiven. Boven het vuurwerk. Allemaal tegelijk. Ik meld alleen.": {
+"src": "torenwachter/duiven_boven_het_vuurwerk_allema_041d42f7.mp3",
+"dur": 4.36
+},
 "Torenwachter|Iets Fries. Ik meld alleen.": {
 "src": "torenwachter/iets_fries_ik_meld_alleen_f4dfa1b0.mp3",
 "dur": 1.81
@@ -5427,9 +5443,21 @@
 "src": "torenwachter/tammo_torenwachter_er_staan_mens_6a381a79.mp3",
 "dur": 3.86
 },
+"Torenwachter|Trekker, Boteringebrug. Over het water, de bocht te ruim. Ik meld alleen.": {
+"src": "torenwachter/trekker_boteringebrug_over_het_w_b493a22a.mp3",
+"dur": 5.33
+},
 "Torenwachter|Trekker, Oude Boteringestraat. Ik meld alleen.": {
 "src": "torenwachter/trekker_oude_boteringestraat_ik__8e409e70.mp3",
 "dur": 3.19
+},
+"Torenwachter|Trekker, Oude Ebbingestraat. Terug naar de markt, recht onder het vuurwerk door.": {
+"src": "torenwachter/trekker_oude_ebbingestraat_terug_d44adc22.mp3",
+"dur": 4.86
+},
+"Torenwachter|Trekker, Spilsluizen. Hij rijdt een rondje om de toren. Ik meld alleen.": {
+"src": "torenwachter/trekker_spilsluizen_hij_rijdt_ee_756f90d9.mp3",
+"dur": 4.97
 },
 "Trainer Bouke|Nou ja. De ballenmachine vond het gezellig.": {
 "src": "trainer_bouke/nou_ja_de_ballenmachine_vond_het_5f4bbb46.mp3",

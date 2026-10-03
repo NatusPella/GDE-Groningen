@@ -21,10 +21,10 @@ const FAR = [1e9, 1e9];
 const centreOf = (b) => (b.bounds ? [(b.bounds[0] + b.bounds[2]) / 2, (b.bounds[1] + b.bounds[3]) / 2] : FAR);
 
 // the child meshes of a building that go into its cell's batch
-function partsOf(mesh, withDetail) {
+function partsOf(mesh, withDetail, only = null) {
   const out = [];
-  for (const c of mesh.children) {
-    if (!c.isMesh || c.isInstancedMesh || c.isSkinnedMesh || c.userData.noBatch) continue;
+  for (const c of only ? [only] : mesh.children) {
+    if (!c || !c.isMesh || c.isInstancedMesh || c.isSkinnedMesh || c.userData.noBatch) continue;
     if (!withDetail && c === mesh.userData.facadeDetail) continue;
     const g = c.geometry;
     if (!g.attributes.position || !g.attributes.normal) continue;
@@ -182,10 +182,13 @@ function finishJob(B) {
 
 // --- per frame -------------------------------------------------------------
 
-// opts: { name, eligible(item, mesh), valid(item, mesh, ctx, dist) }: which
-// items may be merged, and whether a merged one may stay merged.
+// opts: { name, eligible(item, mesh), valid(item, mesh, ctx, dist), cell,
+// minMembers, part(mesh) }: which items may be merged, whether a merged one
+// may stay merged, the cell size, the fewest items worth a batch, and the one
+// child mesh to merge instead of all of them.
 export function createStaticBatcher(opts) {
   const B = { name: opts.name, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
+  const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
   const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && opts.valid(m.b, m.mesh, ctx, dist);
 
   // ctx: { scene, meshes (Map item -> group), hidden (Set or null), px, py,
@@ -225,7 +228,7 @@ export function createStaticBatcher(opts) {
       const d = dist(b);
       if (d > inner) continue;
       const [x, y] = centreOf(b);
-      const key = `${Math.floor(x / CELL)},${Math.floor(y / CELL)}`;
+      const key = `${Math.floor(x / cell)},${Math.floor(y / cell)}`;
       let w = want.get(key);
       if (!w) want.set(key, w = { key, d: Infinity, list: [] });
       w.d = Math.min(w.d, d);
@@ -234,7 +237,7 @@ export function createStaticBatcher(opts) {
     for (const c of B.cells.values()) if (c.group && !want.has(c.key)) unmerge(B, c);
     let best = null;
     for (const w of want.values()) {
-      if (w.list.length < MIN_MEMBERS) {
+      if (w.list.length < minMembers) {
         const c = B.cells.get(w.key);
         if (c && c.group) unmerge(B, c);
         continue;
@@ -248,7 +251,7 @@ export function createStaticBatcher(opts) {
     if (!best) return;
     let c = B.cells.get(best.key);
     if (!c) B.cells.set(best.key, c = { key: best.key, group: null, members: [], sig: '', withDetail: ctx.withDetail });
-    for (const m of best.list) m.parts = partsOf(m.mesh, ctx.withDetail);
+    for (const m of best.list) m.parts = opts.part ? partsOf(m.mesh, true, opts.part(m.mesh)) : partsOf(m.mesh, ctx.withDetail);
     startJob(B, c, best.list, ctx.withDetail);
     B.job.sig = best.sig;
   }
@@ -259,7 +262,13 @@ export function createStaticBatcher(opts) {
     return { ...B.stats, meshes: meshesN, job: B.job ? `${B.job.i}/${B.job.pieces.length}` : null };
   }
 
-  return { update, info };
+  // every cell back to its own meshes (the batcher is switched off)
+  function clear() {
+    B.job = null;
+    for (const c of B.cells.values()) if (c.group) unmerge(B, c);
+  }
+
+  return { update, info, clear };
 }
 
 // buildings: never past their detail radius (the far LOD draws them there)
@@ -269,9 +278,22 @@ export const buildingBatcher = createStaticBatcher({
   valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,
 });
 
-// roads: merged while their own meshes are there
+// 'laag' (or a busy CPU) draws facade details only up close: those of the
+// buildings well inside that radius are merged per cell on their own;
+// detailR is the facade detail radius here
+export const facadeBatcher = createStaticBatcher({
+  name: 'facade-batch',
+  part: (mesh) => mesh.userData.facadeDetail,
+  eligible: (b, mesh) => !b.landmark && mesh.position.y === 0 && !!mesh.userData.facadeDetail,
+  valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,
+});
+
+// roads: merged while their own meshes are there; a road (an OSM way) is
+// longer than a building, so the cells are larger and two make a batch
 export const roadBatcher = createStaticBatcher({
   name: 'road-batch',
+  cell: 96,
+  minMembers: 2,
   eligible: () => true,
   valid: () => true,
 });
