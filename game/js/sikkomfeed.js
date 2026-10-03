@@ -2,6 +2,7 @@ import { playSikkomLine } from './audio.js';
 import { syncPlayerWrecks } from './vehicle.js';
 import { isCinematicActive, sinceCinematic } from './cinematics.js';
 
+import { mayStart } from './narrative.js';
 const CHECK_INTERVAL = 0.5;
 // Kiekdoar reacts now and then, not to every star or wreck
 const COOLDOWN = 90;
@@ -95,6 +96,8 @@ export function updateSikkomFeed(dt, world) {
     else if (cur.knockouts > prev.knockouts) { msg = KILL_UP[0]; audioKey = 'kill_up'; kind = 'kill'; }
     else if (cur.missionsDone > prev.missionsDone) { msg = MISSION_UP[0]; audioKey = 'mission_up'; kind = 'mission'; }
     if (msg && (world.time - (lastKindAt[kind] ?? -Infinity) < SAME_KIND_COOLDOWN || Math.random() > CHANCE)) msg = null;
+    // its voice plays right away: not over a cutscene, a story call or a subtitle (narrative.js)
+    if (msg && !mayStart('phone')) msg = null;
 
     if (msg) {
       lastKindAt[kind] = world.time;

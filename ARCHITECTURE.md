@@ -305,6 +305,9 @@ the toasts `phone`, `award` (achievements.js) and `card` (hudcards.js).
   (`storyWaiting`).
 - A step's story text waits for its "Bel Rikus"; a contact lets a story text
   that is being read finish first.
+- Toasts also wait while a subtitle shows (`sub-cine`, `sub-banter`), and the
+  phone and HUD cards that are up step aside meanwhile (`heldBack`); the
+  Kiekdoar news (sikkomfeed.js) is dropped then, since its voice plays at once.
 - Toasts are held while a contact or call talks (HUD dangers, the police and
   the cards of a running mission or bijbaan excepted), and never pop up
   within 1.5 s of each other (`noteToast`).

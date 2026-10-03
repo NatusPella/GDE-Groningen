@@ -92,6 +92,7 @@ export function initCinematics(w) {
   if (els) return;
   setStoryProbe(() => !!active || isIntroPlaying());
   registerNarrative('scene', { active: () => !!active || isIntroPlaying() || isBannerUp() });
+  registerNarrative('sub-cine', { active: () => !!els && els.root.classList.contains('has-sub') });
   const root = document.createElement('div');
   root.id = 'cine';
   root.setAttribute('aria-live', 'polite');

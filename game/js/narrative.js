@@ -15,6 +15,8 @@
 //   phone    any other phone notification (Kiekdoar, the bank, app texts)
 //   award    the achievement toast
 //   card     HUD cards (hudcards.js; dangers and the police are let through)
+//   sub-*    a subtitle on screen (sub-cine: a cutscene's line, sub-banter: car talk);
+//            only watched, toasts wait for it
 //
 // Rules:
 // - Nothing starts while a scene plays. Talk (contact, call, say, banter) waits
@@ -28,6 +30,8 @@
 //   where; a contact or call in turn lets a story text that is up finish.
 // - Toasts are held while a contact or call talks (the phone is busy), except
 //   the HUD's dangers; two toasts never pop up within TOAST_GAP of each other.
+// - Toasts also wait while any subtitle shows (a Rikus line, car talk), and
+//   phone and HUD cards that are already up step aside meanwhile (heldBack).
 
 const AFTER_SCENE = 2.5;
 const TOAST_AFTER_SCENE = 1.2;
@@ -79,6 +83,7 @@ export function updateNarrative() {
 }
 
 const isOn = (kind) => !!was[kind];
+const subtitleOn = () => Object.keys(was).some((k) => k.startsWith('sub-') && was[k]);
 const since = (kind, now) => (isOn(kind) ? 0 : now - (endedAt[kind] ?? -Infinity));
 const sinceAny = (kinds, now) => Math.min(...kinds.map((k) => since(k, now)));
 
@@ -110,7 +115,7 @@ export function mayStart(kind, { urgent = false } = {}) {
   }
   if (TOASTS.includes(kind)) {
     if (since('scene', now) < TOAST_AFTER_SCENE) return false;
-    if (!urgent && (isOn('contact') || isOn('call'))) return false;
+    if (!urgent && (isOn('contact') || isOn('call') || subtitleOn())) return false;
     if (kind === 'text' && probe('contact', 'pending')) return false;
     if (!urgent && now - lastToast < TOAST_GAP) return false;
     return true;
@@ -121,6 +126,12 @@ export function mayStart(kind, { urgent = false } = {}) {
 // A story contact or call is ready and waits: car banter wraps up after its line.
 export function storyWaiting() {
   return probe('contact', 'pending') || probe('call', 'pending');
+}
+
+// Cards already on screen hide (and wait) while a cutscene, a story call or a subtitle is up.
+export function heldBack() {
+  updateNarrative();
+  return isOn('scene') || isOn('contact') || isOn('call') || subtitleOn();
 }
 
 export function noteToast() { lastToast = clock(); }

@@ -8,7 +8,7 @@ import { playCallVoice, playPhoneRing, playSmsVoice, playPhonePing } from './aud
 import { smsVoiceFor, smsKind } from './smsvoice.js';
 import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
-import { registerNarrative, mayStart, noteToast } from './narrative.js';
+import { registerNarrative, mayStart, noteToast, heldBack } from './narrative.js';
 
 // The phone on the HUD (bottom left, above the street name): notification
 // cards and incoming calls. Both slide up out of the bottom like a phone
@@ -325,7 +325,10 @@ export function updatePhoneFeed(dt, w) {
   world = w;
   if (!w.phoneNotifications) w.phoneNotifications = [];
   const visible = hudVisible();
-  if (visible && !w.paused) {
+  // a card that is up steps aside for a cutscene, a story call or a subtitle, and waits (narrative.js)
+  const held = !call && heldBack();
+  stack.classList.toggle('pf-held', held);
+  if (visible && !w.paused && !held) {
     while (w.phoneNotifications.length) {
       const n = w.phoneNotifications.shift();
       // story texts go ahead of the news and app texts that wait
