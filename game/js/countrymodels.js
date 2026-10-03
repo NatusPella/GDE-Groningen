@@ -448,8 +448,14 @@ export function graveGeometry() {
 }
 
 // Romanesque brick church on the terp, tower to the west (-X). variant 0:
-// Groningen saddle-roof tower, 1: needle spire.
+// Groningen saddle-roof tower, 1: needle spire, 2: cruciform with a spire
+// over the crossing, 3: small zaalkerk with a roof turret (dakruiter).
+// CHURCH_SPAN: [x0, x1, width] of each variant's footprint, to fit it to
+// the OSM outline.
+export const CHURCH_SPAN = [[-14.2, 17.5, 11], [-14.2, 17.5, 11], [-14.2, 19, 21], [-8.4, 10.6, 9]];
 export function churchGeometry(variant) {
+  if (variant === 2) return cruciformChurchGeometry();
+  if (variant === 3) return chapelGeometry();
   const B = new GeoBuilder();
   const BR = 0x8a4a36, ROOF = variant ? 0x3e4449 : 0x9a4a30, TR = 0xe8e0d0;
   B.box(2, 4, 0, 20, 8, 11, BR);
@@ -474,6 +480,55 @@ export function churchGeometry(variant) {
     B.box(-11, 38.6, 0, 0.12, 1.4, 0.12, 0xc9a227);
     B.box(-11, 39.1, 0, 0.12, 0.12, 0.8, 0xc9a227);
   }
+  return B.build();
+}
+
+function arches(B, x0, x1, step, z, y, h, s) {
+  for (let x = x0; x <= x1; x += step) {
+    B.box(x, y, z, 1.0, h, 0.1, 0x2a3236);
+    B.geo(new THREE.CircleGeometry(0.5, 6, 0, Math.PI), composeMatrix(x, y + h / 2, z + s * 0.04, 0, s > 0 ? 0 : Math.PI, 0), 0x2a3236);
+  }
+}
+
+function cruciformChurchGeometry() {
+  const B = new GeoBuilder();
+  const BR = 0x84462f, ROOF = 0x3e4449, TR = 0xe8e0d0;
+  B.box(1, 5, 0, 22, 10, 11, BR);
+  gableRoofX(B, -10, 12, 5.5, 10, 16.5, ROOF, BR);
+  B.box(7, 5, 0, 7, 10, 21, BR);
+  gableRoofZ(B, 3.5, 10.5, 10.5, 10, 16.5, ROOF, BR);
+  B.geo(new THREE.CylinderGeometry(5.5, 5.5, 9, 8, 1, false, 0, Math.PI).rotateY(Math.PI / 2), composeMatrix(12, 4.5, 0), BR);
+  B.geo(new THREE.ConeGeometry(5.8, 4.5, 8, 1, true, 0, Math.PI).rotateY(Math.PI / 2), composeMatrix(12, 11.25, 0), ROOF);
+  for (const s of [-1, 1]) {
+    arches(B, -7, 1, 3.2, s * 5.52, 5.6, 4.2, s);
+    B.geo(new THREE.CircleGeometry(1.6, 12), composeMatrix(7, 7.2, s * 10.53, 0, s > 0 ? 0 : Math.PI, 0), 0x2a3236);
+  }
+  // crossing flèche
+  B.box(7, 17.2, 0, 2.2, 2.4, 2.2, ROOF);
+  B.geo(new THREE.ConeGeometry(1.6, 9, 8).rotateY(Math.PI / 8), composeMatrix(7, 22.9, 0), ROOF);
+  // west tower with a spire
+  B.box(-11.2, 13, 0, 6, 26, 6, BR);
+  for (const s of [-1, 1]) { B.box(-11.2, 22, s * 3.02, 1.4, 2.6, 0.1, 0x1e2226); B.box(-11.2 + s * 3.02, 22, 0, 0.1, 2.6, 1.4, 0x1e2226); }
+  B.box(-14.25, 18, 0, 0.1, 1.5, 1.5, TR);
+  B.box(-14.25, 2.2, 0, 0.14, 4.4, 2.2, 0x3a2a22);
+  B.geo(new THREE.ConeGeometry(4.1, 15, 8, 1, true).rotateY(Math.PI / 8), composeMatrix(-11.2, 33.5, 0), ROOF);
+  B.box(-11.2, 41.6, 0, 0.12, 1.4, 0.12, 0xc9a227);
+  return B.build();
+}
+
+function chapelGeometry() {
+  const B = new GeoBuilder();
+  const BR = 0x9a5a40, ROOF = 0x9a4a30, W = 0xece6da;
+  B.box(1, 3.4, 0, 18, 6.8, 9, BR);
+  gableRoofX(B, -8, 10, 4.5, 6.8, 12, ROOF, BR);
+  for (const s of [-1, 1]) arches(B, -5, 7, 3, s * 4.52, 3.8, 3.2, s);
+  B.box(-8.05, 1.3, 0, 0.14, 2.6, 1.6, 0x3a2a22);
+  B.geo(new THREE.CircleGeometry(0.9, 10), composeMatrix(-8.06, 7.8, 0, 0, -Math.PI / 2, 0), 0x2a3236);
+  // dakruiter on the west end of the ridge
+  B.box(-5.5, 12.4, 0, 1.5, 1.8, 1.5, W);
+  B.box(-5.5, 12.6, 0, 1.56, 0.9, 0.9, 0x2a2e30);
+  B.geo(new THREE.ConeGeometry(1.15, 4.2, 8).rotateY(Math.PI / 8), composeMatrix(-5.5, 15.4, 0), 0x3e4449);
+  B.box(-5.5, 17.8, 0, 0.1, 1.0, 0.1, 0xc9a227);
   return B.build();
 }
 

@@ -8,7 +8,7 @@ import {
 import {
   churchGeometry, turbineTowerGeometry, turbineRotorGeometry, lightGeometry, millBodyGeometry, millSailsGeometry,
   pylonGeometry, wireGeometry, flareGeometry, beltGeometry, farmSilhouetteGeometry, clumpGeometry, realSilhouetteGeometry,
-  TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H,
+  TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H, CHURCH_SPAN,
 } from './countrymodels.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
 import { applyFacade, bldCode, STYLE, ROOF_PAL } from './countrybuilding.js';
@@ -76,6 +76,8 @@ ${light ? 'gl_FragColor.rgb *= 0.12 + 0.88 * step(0.35, fract(uTime * 0.5 + 0.2)
 const TYPES = {
   church0: { geo: () => churchGeometry(0), mat: 'tall', cap: 160, shadow: true },
   church1: { geo: () => churchGeometry(1), mat: 'tall', cap: 160, shadow: true },
+  church2: { geo: () => churchGeometry(2), mat: 'tall', cap: 60, shadow: true },
+  church3: { geo: () => churchGeometry(3), mat: 'tall', cap: 60, shadow: true },
   rbSil: { geo: realSilhouetteGeometry, mat: 'bld', cap: 9000 },
   rbSilFlat: { geo: () => realSilhouetteGeometry(true), mat: 'bld', cap: 3000 },
   turbine: { geo: turbineTowerGeometry, mat: 'tall', cap: 400, shadow: true },
@@ -191,7 +193,8 @@ function* gatherGen(px, py, nearR) {
   if (REAL.ready) {
     for (const c of REAL.churches) {
       if ((c.x - px) ** 2 + (c.y - py) ** 2 > rt2) continue;
-      put(L, chash(Math.round(c.x), Math.round(c.y)) < 0.6 ? 'church0' : 'church1', c.x + 1, -0.05, c.y, 0, 1, 1, 1);
+      const f = churchFit(c);
+      put(L, 'church' + f.v, f.x, -0.05, f.y, f.rot, f.sx, f.sy, f.sz);
     }
     yield;
     const n = Math.ceil(R_BELT / RTILE);
@@ -251,6 +254,36 @@ function* gatherGen(px, py, nearR) {
     }
   }
   return { L, missing };
+}
+
+// The OSM church outline (the biggest church box within 35 m of the point)
+// picks the variant and scales and turns it to fit, tower to the west.
+function churchFit(c) {
+  if (c._fit) return c._fit;
+  let best = -1, ba = 0;
+  for (let oy = -1; oy <= 1; oy++) {
+    for (let ox = -1; ox <= 1; ox++) {
+      for (const i of buildingsInTile(Math.floor(c.x / RTILE) + ox, Math.floor(c.y / RTILE) + oy) || []) {
+        if (REAL.code[i] !== 7 || Math.hypot(REAL.bx[i] - c.x, REAL.by[i] - c.y) > 35) continue;
+        const a = REAL.bw[i] * REAL.bl[i];
+        if (a > ba) { ba = a; best = i; }
+      }
+    }
+  }
+  const h = chash(Math.round(c.x), Math.round(c.y));
+  if (best < 0) return (c._fit = { v: h < 0.6 ? 0 : 1, x: c.x + 1, y: c.y, rot: 0, sx: 1, sy: 1, sz: 1 });
+  const w = REAL.bw[best], l = REAL.bl[best];
+  let ang = w >= l ? REAL.ba[best] : REAL.ba[best] + Math.PI / 2;
+  if (Math.cos(ang) < 0) ang += Math.PI;
+  const long = Math.max(w, l), short = Math.min(w, l);
+  const v = ba < 200 ? 3 : ba > 550 && short / long > 0.5 ? 2 : h < 0.6 ? 0 : 1;
+  const [x0, x1, wd] = CHURCH_SPAN[v];
+  const sx = Math.min(1.8, Math.max(0.55, long / (x1 - x0))), sz = Math.min(1.8, Math.max(0.6, short / wd));
+  const sy = Math.min(1.35, Math.max(0.75, Math.sqrt(sx * sz)));
+  // the template's footprint centre onto the outline's centre
+  const mid = ((x0 + x1) / 2) * sx;
+  const x = REAL.bx[best] - Math.cos(ang) * mid, y = REAL.by[best] - Math.sin(ang) * mid;
+  return (c._fit = { v, x, y, rot: -ang, sx, sy, sz });
 }
 
 function rot2(lx, lz, angle) {
