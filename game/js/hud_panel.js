@@ -65,7 +65,7 @@ export function initHud(world) {
           '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit" title="Geluid uit (U)" hidden>🔇</span>' +
         '</div></div>' +
         `<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>` +
-        `<div class="hud-meter ar" role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>` +
+        `<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>` +
       '</div>' +
     '</div>' +
     '<div class="hud-mate" hidden><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></div>';
@@ -89,7 +89,7 @@ export function initHud(world) {
 
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<span class="sp-num"><b></b><span>km/u</span></span><span class="sp-dmg"><small>Schade</small><span class="sp-bar"><i></i></span></span>';
+  speedo.innerHTML = '<span class="sp-pic" aria-hidden="true"><img alt=""></span><span class="sp-num"><b></b><span>km/u</span></span><span class="sp-dmg"><small>Schade</small><span class="sp-bar"><i></i></span></span>';
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -171,6 +171,8 @@ export function initHud(world) {
     speedoDmg: speedo.querySelector('.sp-bar i'),
     speedoDmgLabel: speedo.querySelector('.sp-dmg small'),
     speedoKey: '',
+    speedoPic: speedo.querySelector('.sp-pic img'),
+    speedoPicKey: '',
     weapon: topRight.querySelector('.hud-weapon'),
     mission,
     vehName,
@@ -194,6 +196,25 @@ export function initHud(world) {
     mmCtx: mmCanvas.getContext('2d'),
   };
   initPrompts(root);
+  watchRightStack(root, topRight, race);
+}
+
+// The right column flows under the top-right block: the race panel sits just
+// below it and the story phone (storycontact.js) below both, via
+// --hud-tr-bottom and --hud-stack-top (HUD px, so the uiscale zoom holds).
+function watchRightStack(root, topRight, race) {
+  if (typeof ResizeObserver === 'undefined') return;
+  const GAP = 8;
+  const place = () => {
+    const trBottom = topRight.offsetTop + topRight.offsetHeight;
+    const stack = race.hidden ? trBottom : trBottom + GAP + race.offsetHeight;
+    root.style.setProperty('--hud-tr-bottom', `${trBottom}px`);
+    root.style.setProperty('--hud-stack-top', `${stack + GAP + 2}px`);
+  };
+  const ro = new ResizeObserver(place);
+  ro.observe(topRight);
+  ro.observe(race);
+  place();
 }
 
 const VEH_ICONS = {
@@ -408,7 +429,9 @@ function updateBars(world) {
     setGhostBar(els.armorFill, els.armorFill.previousElementSibling, ar);
     els.arNum.textContent = ar;
     els.arRow.setAttribute('aria-valuenow', ar);
-    els.arRow.classList.toggle('empty', ar <= 0);
+    const wasHidden = els.arRow.hidden;
+    els.arRow.hidden = ar <= 0;
+    if (wasHidden && ar > 0) pop(els.arRow);
   }
 }
 
@@ -502,7 +525,9 @@ function updateSpeedo(world) {
   const was = Number(els.speedoKey.split(':')[1]);
   const fresh = !els.speedoKey.startsWith(v.id + ':');
   els.speedoKey = key;
+  if (fresh) setSpeedoPic(v === world.trainCam ? null : v);
   els.speedo.classList.toggle('no-dmg', dmg < 0);
+  els.speedo.style.setProperty('--dmg', dmg < 0 ? '0' : (dmg / 100).toFixed(2));
   if (dmg < 0) return;
   els.speedo.classList.toggle('hurt', dmg >= 60);
   els.speedoDmgLabel.textContent = dmg >= 60 ? `Schade ${dmg}%` : 'Schade';
@@ -510,6 +535,36 @@ function updateSpeedo(world) {
   els.speedoDmg.style.width = dmg + '%';
   if (fresh) { void els.speedoDmg.offsetWidth; els.speedoDmg.style.transition = ''; }
   else if (dmg > was + 4) pop(els.speedo);
+}
+
+const SPEEDO_PIC_W = 62;
+const SPEEDO_PIC_H = 34;
+const VEH_FLAGS = ['isPolice', 'isBus', 'isTaxi', 'isAmbulance', 'isHeroCar'];
+
+// A still of the vehicle you are in (vehiclepreview.js, cached per model and
+// colour), rendered once on getting in; its damage shows as a CSS filter.
+function setSpeedoPic(v) {
+  const img = els.speedoPic;
+  const m = v && v.model;
+  if (!m || !m.name) { els.speedoPicKey = ''; els.speedo.classList.add('no-pic'); img.classList.remove('on'); return; }
+  const flags = {};
+  for (const f of VEH_FLAGS) if (v[f]) flags[f] = true;
+  const kind = v.isHeli ? 'heli' : v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : 'car';
+  const model = {};
+  for (const [k, val] of Object.entries(m)) if (k !== 'rider' && (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean')) model[k] = val;
+  const spec = { kind, model, color: m.color, nameIdx: 0, flags };
+  const key = JSON.stringify(spec);
+  els.speedo.classList.remove('no-pic');
+  if (els.speedoPicKey === key) return;
+  els.speedoPicKey = key;
+  img.classList.remove('on');
+  const px = Math.min(3, Math.max(2, Math.ceil(hudPixelRatio())));
+  renderSnapshot(spec, SPEEDO_PIC_W * px, SPEEDO_PIC_H * px, (url) => {
+    if (els.speedoPicKey !== key) return;
+    if (!url) { els.speedo.classList.add('no-pic'); return; }
+    img.src = url;
+    img.classList.add('on');
+  }, { angle: 0.75 });
 }
 
 const WEAPON_LABELS = {
@@ -1455,11 +1510,26 @@ function drawNorthIndicator(ctx, cx, cy, screenAngle) {
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  ctx.font = 'bold 10px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('N', 0, 6);
+  // the letter from a cached bitmap: text on the rotated minimap each frame was costly
+  const tf = ctx.getTransform();
+  const dpr = Math.max(1, Math.round(Math.hypot(tf.a, tf.b)));
+  if (!northGlyph || northGlyph.dpr !== dpr || (!northGlyph.font && document.fonts && document.fonts.check('bold 10px "Bebas Neue"'))) northGlyph = makeNorthGlyph(dpr);
+  ctx.drawImage(northGlyph.c, -6, 0, 12, 12);
   ctx.restore();
+}
+
+let northGlyph = null;
+function makeNorthGlyph(dpr) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 12 * dpr;
+  const g = c.getContext('2d');
+  g.scale(dpr, dpr);
+  g.fillStyle = '#3fc97a';
+  g.font = 'bold 10px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText('N', 6, 6);
+  return { c, dpr, font: !!(document.fonts && document.fonts.check('bold 10px "Bebas Neue"')) };
 }
 
 function fillPoly(ctx, pts) {

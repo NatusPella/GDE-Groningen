@@ -12,8 +12,8 @@ const lit = (hex, glow = 0.18) => {
   return m;
 };
 const M = {
-  concrete: lit(0x8d8f8c), floor: lit(0x5d6062, 0.12), wall: lit(0xb7b1a6), roof: lit(0x3f4245),
-  door: lit(0xc2c5c8), trim: lit(0x2f6fb0), line: new THREE.MeshBasicMaterial({ color: 0xe9e6dc }),
+  concrete: lit(0x8d8f8c), floor: lit(0x5d6062, 0.12), wall: lit(0xd39b55, 0.14), roof: lit(0x3f4245),
+  cement: lit(0xe8d9b8, 0.16), party: lit(0xb7b1a6), vent: lit(0x2a2622, 0.05), door: lit(0x5a5f64, 0.12), trim: lit(0x2f6fb0), line: new THREE.MeshBasicMaterial({ color: 0xe9e6dc }),
   hero: lit(0x8e2323, 0.1), lamp: new THREE.MeshBasicMaterial({ color: 0xfff1cf }), steel: lit(0x8a9096, 0.1),
   glass: new THREE.MeshLambertMaterial({ color: 0x9fc4d6, transparent: true, opacity: 0.28, depthWrite: false }),
   frame: lit(0x2b2d30, 0.1), screen: new THREE.MeshBasicMaterial({ color: 0x3fc97a }),
@@ -81,10 +81,31 @@ export function buildHomeExterior3D(home) {
   const H = home.garage.height;
   flatShape(home.garage.poly, 0.035, M.floor, g);
   const walls = new THREE.Group();
-  for (const [x1, y1, x2, y2] of home.garage.walls) segBox(walls, M.wall, x1, y1, x2, y2, 0.3, 0, H);
+  // the parking plinth as built (thuis3d.js has the sources): the towers'
+  // golden cemented brick, a cemented string course, open brick-lattice vents
+  // high in the wall, and on the roof the parking deck's masonry parapet
+  for (const [x1, y1, x2, y2] of home.garage.walls) {
+    segBox(walls, M.wall, x1, y1, x2, y2, 0.3, 0, H);
+    const L = Math.hypot(x2 - x1, y2 - y1);
+    const tx = (x2 - x1) / L, ty = (y2 - y1) / L;
+    const onTower = home.tower && [[x1, y1], [x2, y2]].every(([x, y]) => home.tower.pts.some((p) => Math.hypot(p[0] - x, p[1] - y) < 0.2));
+    const n = onTower ? 0 : Math.floor(L / 3.2);
+    for (let i = 0; i < n; i++) {
+      const t = (L - n * 3.2) / 2 + 3.2 * (i + 0.5);
+      segBox(walls, M.vent, x1 + tx * (t - 1.05), y1 + ty * (t - 1.05), x1 + tx * (t + 1.05), y1 + ty * (t + 1.05), 0.34, H - 1.25, 0.7);
+    }
+    segBox(walls, M.cement, x1, y1, x2, y2, 0.38, H - 0.4, 0.22);
+  }
   g.add(walls);
   const roof = new THREE.Group();
   flatShape(home.garage.poly, H, M.roof, roof, 0.3);
+  for (const [x1, y1, x2, y2] of home.garage.walls) {
+    segBox(roof, M.wall, x1, y1, x2, y2, 0.3, H + 0.3, 1.0);
+    segBox(roof, M.cement, x1, y1, x2, y2, 0.42, H + 1.3, 0.12);
+  }
+  const dr = home.garage.door;
+  segBox(roof, M.wall, dr.x1, dr.y1, dr.x2, dr.y2, 0.3, H + 0.3, 1.0);
+  segBox(roof, M.cement, dr.x1, dr.y1, dr.x2, dr.y2, 0.42, H + 1.3, 0.12);
   for (const l of home.garage.lamps) box(roof, M.lamp, l.x, H - 0.04, l.y, 2.2, 0.05, 0.25, -l.angle);
   g.add(roof);
   // bay markings: one line between each pair of bays, a red floor for the Escapade
@@ -163,7 +184,7 @@ export function disposeHomeExterior(root) {
 export function buildLowerTower3D(tower, levels) {
   const pts = tower.pts.map((p) => [p[0], p[1]]);
   const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
-  return buildBuildingMesh({ pts, h: levels, type: tower.type || 'apartments', bounds: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] });
+  return buildBuildingMesh({ pts, h: levels, type: tower.type || 'apartments', model: tower.model, modelFrame: tower.modelFrame, modelCut: true, bounds: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] });
 }
 
 // Interior in the flat's local frame (x along the facade, z inward, y up),
@@ -177,6 +198,7 @@ export function buildFlat3D(flat, skip = new Set()) {
   const slab = new THREE.Group();
   // one storey of plain wall under the floor hides the roof clutter of the tower below
   box(slab, M.wall, T.w / 2, -1.6, T.d / 2, T.w, 3.2, T.d);
+  box(slab, M.cement, T.w / 2, -0.35, T.d / 2, T.w + 0.12, 0.3, T.d + 0.12);
   box(slab, M.concrete, T.w / 2, -0.1, T.d / 2, T.w + 0.2, 0.2, T.d + 0.2);
   // (no parapet in front of the flat's own glass and garage-side wall)
   for (const [x, z, sx, sz] of [[(W + T.w) / 2, 0, T.w - W, 0.2], [T.w / 2, T.d, T.w, 0.2], [0, (D + T.d) / 2, 0.2, T.d - D], [T.w, T.d / 2, 0.2, T.d]]) box(slab, M.concrete, x, 0.5, z, sx, 1, sz);
@@ -184,7 +206,7 @@ export function buildFlat3D(flat, skip = new Set()) {
   // behind the hall leads to the lift
   const cor = 1.8;
   for (const [x0, z0, x1, z1] of [[W + 0.3, 0.3, T.w - 0.3, T.d * 0.48], [W + 0.3, T.d * 0.48 + 0.3, T.w - 0.3, T.d - 0.3], [0.3, D + cor, W * 0.5, T.d - 0.3], [W * 0.5 + 0.3, D + cor, W + 0.3, T.d - 0.3]]) {
-    box(slab, M.wall, (x0 + x1) / 2, low / 2, (z0 + z1) / 2, x1 - x0, low, z1 - z0);
+    box(slab, M.party, (x0 + x1) / 2, low / 2, (z0 + z1) / 2, x1 - x0, low, z1 - z0);
     box(slab, M.roof, (x0 + x1) / 2, low + 0.01, (z0 + z1) / 2, x1 - x0, 0.02, z1 - z0);
   }
   box(slab, M.tiles, W / 2, 0.01, D + cor / 2, W, 0.02, cor - 0.1);

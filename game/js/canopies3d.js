@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { closestPointOnSegment } from './util.js';
 import { addStaticCollider } from './breakables.js';
+import { isPaddepoelRoof, buildPaddepoelRoof } from './paddepoel3d.js';
 
 // OSM building=roof footprints are open canopies (market roofs, station and
 // square shelters). They used to render as solid blocks you could spawn in;
@@ -37,8 +38,17 @@ export function buildCanopies(map) {
   const group = new THREE.Group();
   const posts = [];
   for (const c of map.canopies || []) {
+    if (isPaddepoelRoof(c)) { group.add(buildPaddepoelRoof(map)); continue; }
     const pts = c.pts[0][0] === c.pts[c.pts.length - 1][0] && c.pts[0][1] === c.pts[c.pts.length - 1][1] ? c.pts.slice(0, -1) : c.pts;
     if (pts.length < 3) continue;
+    // a canopy with its own model (thuis3d.js: the petrol station) brings its own columns
+    if (c.custom) {
+      const own = c.custom(map);
+      group.add(own.group);
+      for (const [x, y] of own.posts) addStaticCollider('post', x, y, 0.3);
+      for (const i of own.islands) addStaticCollider('post', i.p[0], i.p[1], 0.6, i.half, i.angle);
+      continue;
+    }
     const shape = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y)));
     // shape (x, y) + extrude z -> rotateX(90deg) -> (x, -z, y): map y lands on three z
     const geo = new THREE.ExtrudeGeometry(shape, { depth: SLAB, bevelEnabled: false });
