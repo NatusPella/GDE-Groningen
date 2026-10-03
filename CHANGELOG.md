@@ -6,7 +6,90 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-10-03
+
 ### Nieuw
+- **Het definitieve verhaal: een zomer in Grunn.** Twee weken augustus, van
+  de KEI-week via Noorderzon naar de kermis en Gronings Ontzet, met een
+  epiloog in september. Alle cutscènes, telefoontjes en berichten zijn
+  herschreven en opnieuw ingesproken. Jelle wil de Gouden Eierbal eerlijk
+  winnen op de Noordelijke Snackprijs, "foar mem", en Oma Trijntje heeft in
+  1953 iets nooit gezegd.
+- **Nieuw spel** opent als een trailer, met naamkaarten voor Anita en Tammo,
+  en daarna de keukentafel in de Oosterparkwijk, met Nachtstreek op de radio.
+- **Bel Rikus.** Elke missie begint op Nachtstreek: een Stadjer met een
+  probleem belt in. Na missies de rubrieken: de fietstunnel-update, het
+  storingsbericht, de torenwachter en de peiling "Woist ja wel?".
+- **Naamkaarten** in GTA-stijl bij elke eerste ontmoeting, met één droge regel.
+- **Berend telt de krassen** heeft een nieuwe Berend: Berend Bos, die al
+  veertig jaar Bommen Berend speelt. Hij zit in de finale ook in de jury.
+- **Iets met de Grote Markt** is een zomerse stuntavond: punten voor
+  parasols, kliko's, borden, duiven en de waterwagen, strafpunten als je
+  iemand raakt. Er vallen geen slachtoffers meer.
+- Missies die mislukken eindigen met "Sikkom.".
+- Elke missie heeft een korte afsluiter voor als je hem opnieuw speelt als klus.
+
+- **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
+  zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
+  kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
+  Europaweg, carbid in het Ommeland. Met naamkaarten voor Anita, Tammo,
+  Jelle Terpstra en Durk & Douwe, Rikus op de radio en Berend na het logo.
+  Het is ook de benchmark onder Instellingen › Beeld.
+- **Desktop: de trailer als video.** `--trailer-video` maakt er een MP4 van
+  (1080p60, met muziek en stemmen) in je Downloads, plus een thumbnail.
+- **Verhaal in het pauzemenu**: alle personages die je gesproken hebt, met
+  hun 3D-model om rond te draaien, hun bekendste uitspraak, wie ze zijn en
+  welke missies je samen speelt. Wie je nog niet sprak, is een silhouet.
+  Daarnaast alle aanwijzingen per deel van het verhaal.
+- **Kies zelf je doel.** Zet een missie, minigame, bijbaantje of plek als
+  doel en de route gaat erheen; het verhaal wacht. Bovenin staat dan
+  "Doel: …". Klaar of gewist? Dan pakt de route vanzelf het verhaal weer op.
+- **Te doen** in het pauzemenu: het hele verhaal per deel, alles wat er te
+  doen is per soort, en wat er dichtbij is. Met medailles, records en
+  "Zet als doel".
+- **Overzicht**: Esc opent op je verhaalstap, wat er dichtbij te doen is en
+  welke prestaties bijna binnen zijn.
+- **Overzicht laat de plek zien** van de huidige stap: een plaatje uit de
+  stad, met de gele marker, zodra je er in de buurt bent geweest.
+- **Een dag en datum in Grunn.** Overzicht en de telefoon zeggen welke dag
+  het is ("Vrijdag 14 augustus"): elk deel begint op zijn eigen datum, de
+  stappen lopen door de dagen heen tot Gronings Ontzet op vrijdag 28
+  augustus, en na het verhaal is het september. Wie een nacht doorspeelt,
+  gaat een dag verder.
+- **Missies opnieuw spelen** levert klusloon op, en de eerste keer brons,
+  zilver of goud een bonus.
+- **Vooruit spelen mag**, maar het spel vraagt eerst of je dat echt wilt.
+- **HUD: echte gezichten.** Linksboven zie je Tammo of Anita zoals ze er
+  nu bij lopen, en je maat met een eigen fotootje zolang die meerijdt of
+  meeloopt. Tijd, sterren, geld en wapen staan rechtsboven in één blok; in
+  een voertuig staan snelheid en schade onder de minimap. Wachtende
+  meldingen tellen mee onder de kaartjes, en "opgeslagen" staat bij je
+  locatie. Niks in de HUD is klikbaar.
+- **"1 prestatie wacht"** in de HUD tot je Prestaties opent; daar staan de
+  nieuwe dan bovenaan bij Onlangs behaald.
+- **Garage** opnieuw: elk voertuig met een plaatje van het echte model,
+  balkjes voor snelheid en trekkracht, en één viewer die draait.
+- **Prestaties** opnieuw: een overzicht bovenaan, de categorieën links met
+  Bijna binnen eerst, en wat je onlangs behaalde.
+- **Ubbo** opnieuw: wat nu loopt, je verhaalstap, wat er dichtbij te doen
+  is en de bijbaantjes, dichtstbij eerst.
+- **Ballonjacht heeft zilver**: brons voor de ballon, zilver vanaf 2.600 en
+  goud vanaf 3.300 punten, met B/Z/G in Te doen.
+- **Eén klik naar een stand die past.** Merkt de game bij de eerste start
+  dat je computer het zwaar heeft, dan stelt hij rechtsonder een lichtere
+  stand voor: één keer op Toepassen en alles staat goed. Bij Instellingen ›
+  Beeld kies je nu Laag, Gemiddeld of Hoog in één keer, en de benchmark
+  vertelt welke stand het best past, met de fps die je ermee haalt.
+- **Wat is er nieuw na een update.** Open je een nieuwe versie, dan begint
+  het startscherm bij "Wat is er nieuw", met de versies sinds je vorige keer
+  gemarkeerd. De allereerste keer niet.
+- **Het startscherm klinkt als de stad**: gedempt verkeer, meeuwen en
+  fietsbellen, zonder muziek. De themesong begint pas bij Doorgaan of Nieuw
+  spel en speelt één keer de game in.
+- **Geen intro meer vóór het menu**: je ziet meteen de levende stad. De
+  trailer blijft als benchmark onder Instellingen.
+- **Beweging beperken** onder Instellingen › Weergave: geen animaties in
+  menu's en tellers.
 - **Tammo en Anita wonen nu in echte gebouwen.** De House of Groningen aan
   de Pleiadenlaan en buurtoren Atlas zijn goudgeel gecementeerd metselwerk
   met Franse balkons, echte balkons op de lagere verdiepingen en een kroon
@@ -28,87 +111,6 @@ nieuwe functies, `y` voor alleen bugfixes.
   - de Korenbeurs met Mercurius, Neptunus en Ceres;
   - het zwarte Calmershuis;
   - een glazen kiosk.
-- **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
-  zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
-  kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
-  Europaweg, carbid in het Ommeland. Met naamkaarten voor Anita, Tammo,
-  Jelle Terpstra en Durk & Douwe, Rikus op de radio en Berend na het logo.
-  Het is ook de benchmark onder Instellingen › Beeld.
-- **Desktop: de trailer als video.** `--trailer-video` maakt er een MP4 van
-  (1080p60, met muziek en stemmen) in je Downloads, plus een thumbnail.
-- **Het definitieve verhaal: een zomer in Grunn.** Twee weken augustus, van
-  de KEI-week via Noorderzon naar de kermis en Gronings Ontzet, met een
-  epiloog in september. Alle cutscènes, telefoontjes en berichten zijn
-  herschreven en opnieuw ingesproken. Jelle wil de Gouden Eierbal eerlijk
-  winnen op de Noordelijke Snackprijs, "foar mem", en Oma Trijntje heeft in
-  1953 iets nooit gezegd.
-- **Nieuw spel** opent als een trailer, met naamkaarten voor Anita en Tammo,
-  en daarna de keukentafel in de Oosterparkwijk, met Nachtstreek op de radio.
-- **Bel Rikus.** Elke missie begint op Nachtstreek: een Stadjer met een
-  probleem belt in. Na missies de rubrieken: de fietstunnel-update, het
-  storingsbericht, de torenwachter en de peiling "Woist ja wel?".
-- **Naamkaarten** in GTA-stijl bij elke eerste ontmoeting, met één droge regel.
-- **Berend telt de krassen** heeft een nieuwe Berend: Berend Bos, die al
-  veertig jaar Bommen Berend speelt. Hij zit in de finale ook in de jury.
-- **Iets met de Grote Markt** is een zomerse stuntavond: punten voor
-  parasols, kliko's, borden, duiven en de waterwagen, strafpunten als je
-  iemand raakt. Er vallen geen slachtoffers meer.
-- Missies die mislukken eindigen met "Sikkom.".
-- Elke missie heeft een korte afsluiter voor als je hem opnieuw speelt als klus.
-
-- **Verhaal in het pauzemenu**: alle personages die je gesproken hebt, met
-  hun 3D-model om rond te draaien, hun bekendste uitspraak, wie ze zijn en
-  welke missies je samen speelt. Wie je nog niet sprak, is een silhouet.
-  Daarnaast alle aanwijzingen per deel van het verhaal.
-- **HUD: echte gezichten.** Linksboven zie je Tammo of Anita zoals ze er
-  nu bij lopen, en je maat met een eigen fotootje zolang die meerijdt of
-  meeloopt. Tijd, sterren, geld en wapen staan rechtsboven in één blok; in
-  een voertuig staan snelheid en schade onder de minimap. Wachtende
-  meldingen tellen mee onder de kaartjes, en "opgeslagen" staat bij je
-  locatie. Niks in de HUD is klikbaar.
-- **Garage** opnieuw: elk voertuig met een plaatje van het echte model,
-  balkjes voor snelheid en trekkracht, en één viewer die draait.
-- **Prestaties** opnieuw: een overzicht bovenaan, de categorieën links met
-  Bijna binnen eerst, en wat je onlangs behaalde.
-- **Ubbo** opnieuw: wat nu loopt, je verhaalstap, wat er dichtbij te doen
-  is en de bijbaantjes, dichtstbij eerst.
-- **Eén klik naar een stand die past.** Merkt de game bij de eerste start
-  dat je computer het zwaar heeft, dan stelt hij rechtsonder een lichtere
-  stand voor: één keer op Toepassen en alles staat goed. Bij Instellingen ›
-  Beeld kies je nu Laag, Gemiddeld of Hoog in één keer, en de benchmark
-  vertelt welke stand het best past, met de fps die je ermee haalt.
-- **Wat is er nieuw na een update.** Open je een nieuwe versie, dan begint
-  het startscherm bij "Wat is er nieuw", met de versies sinds je vorige keer
-  gemarkeerd. De allereerste keer niet.
-- **Het startscherm klinkt als de stad**: gedempt verkeer, meeuwen en
-  fietsbellen, zonder muziek. De themesong begint pas bij Doorgaan of Nieuw
-  spel en speelt één keer de game in.
-- **Geen intro meer vóór het menu**: je ziet meteen de levende stad. De
-  trailer blijft als benchmark onder Instellingen.
-- **Kies zelf je doel.** Zet een missie, minigame, bijbaantje of plek als
-  doel en de route gaat erheen; het verhaal wacht. Bovenin staat dan
-  "Doel: …". Klaar of gewist? Dan pakt de route vanzelf het verhaal weer op.
-- **Te doen** in het pauzemenu: het hele verhaal per deel, alles wat er te
-  doen is per soort, en wat er dichtbij is. Met medailles, records en
-  "Zet als doel".
-- **Overzicht**: Esc opent op je verhaalstap, wat er dichtbij te doen is en
-  welke prestaties bijna binnen zijn.
-- **Missies opnieuw spelen** levert klusloon op, en de eerste keer brons,
-  zilver of goud een bonus.
-- **Vooruit spelen mag**, maar het spel vraagt eerst of je dat echt wilt.
-- **Beweging beperken** onder Instellingen › Weergave: geen animaties in
-  menu's en tellers.
-- **Een dag en datum in Grunn.** Overzicht en de telefoon zeggen welke dag
-  het is ("Vrijdag 14 augustus"): elk deel begint op zijn eigen datum, de
-  stappen lopen door de dagen heen tot Gronings Ontzet op vrijdag 28
-  augustus, en na het verhaal is het september. Wie een nacht doorspeelt,
-  gaat een dag verder.
-- **Overzicht laat de plek zien** van de huidige stap: een plaatje uit de
-  stad, met de gele marker, zodra je er in de buurt bent geweest.
-- **"1 prestatie wacht"** in de HUD tot je Prestaties opent; daar staan de
-  nieuwe dan bovenaan bij Onlangs behaald.
-- **Ballonjacht heeft zilver**: brons voor de ballon, zilver vanaf 2.600 en
-  goud vanaf 3.300 punten, met B/Z/G in Te doen.
 
 ### Veranderd
 - **Ontzet, net als in 1672:** de achtervolging volgt het script. Jelle scheurt
@@ -116,18 +118,13 @@ nieuwe functies, `y` voor alleen bugfixes.
   Boteringebrug, langs de Spilsluizen en de Oude Ebbingestraat weer terug naar
   de markt, en de torenwachter meldt elke straat. Blijf erbij (rammen helpt):
   dan fluit Tammo en vliegen de duiven van d'Olle Grieze door het vuurwerk op de
-  voorruit van de trekker, nu als scène in plaats van een kaartje.
-- **Wind tegen, beide kanten op:** het oogcontact is nu een echte scène in plaats
-  van een kaartje. Op het kruispunt waar alles groen is komt Anita op haar eigen
+  voorruit van de trekker.
+- **Wind tegen, beide kanten op:** het oogcontact is een echte scène. Op het kruispunt waar alles groen is komt Anita op haar eigen
   fiets van de andere kant, ze kijken elkaar aan en remmen allebei.
 - **Fatbikes tellen niet als fiets** loopt nu zoals in het script: van de Grote
   Markt de Oude Ebbingestraat uit, over de Ebbingebrug en langs het water naar
   Oma Trijntje aan de Noorderhaven. De fatbikes komen overal om je heen, niet
   alleen aan de uiteinden; de klok en de medailletijden zijn langer.
-- **Nieuw spel** is strakker: de opening duurt anderhalve minuut in plaats van
-  bijna twee. Kortere trailerflitsen, de dageraad in de Korenbloemstraat in één
-  beweging van de toren naar de lekke band en de radio, en het stille moment aan
-  de keukentafel loopt over in Anita's zin. Het tweede logo is weg.
 - Minder verplichte aankopen: alleen een fiets, kraakspullen (zwart of een
   bootje) en een huurboot. De eierbal, het pistool, de uzi, de auto, de bank
   en de bijbaantjes zijn geen verhaalstap meer (te koop blijven ze). Tuning
@@ -136,7 +133,6 @@ nieuwe functies, `y` voor alleen bugfixes.
   "Anita's Fjord"). Anita haalt hem alleen terug.
 - H2: Durk en Douwe trekken de pinautomaat uit de muur, met Anita's pas erin.
 - H6: na de stroomkast heb je drie minuten.
-- H12 speelt in de Oude Ebbingestraat in plaats van de Folkingestraat.
 - H18: kraam heel houden, Jelle inhalen en terug naar de jury voordat de
   eierballen koud zijn.
 - De autogesprekken volgen het nieuwe verhaal.
@@ -188,6 +184,16 @@ nieuwe functies, `y` voor alleen bugfixes.
   schade, hoe grauwer hij wordt.
 - Zonder bescherming verdwijnt het lege schildbalkje uit je kaartje
   linksboven; het komt terug zodra je weer bescherming hebt.
+- **Minder haperingen boven het Ommeland**: de minimap tekent het platteland
+  niet meer elk frame opnieuw. Wielen, gevels, wegen en winkelborden in de
+  dorpen worden samengevoegd getekend, en heeft je computer het druk, dan
+  rijdt er tijdelijk wat minder verkeer en lopen er minder mensen.
+- **Wegen sluiten beter aan**: geen kieren meer naast verhoogde wegen en
+  bij op- en afritten, geen flikkerend asfalt op kruispunten, en kademuren
+  steken niet meer door de straat.
+- Gebouwen aan het water staan op een fundering in plaats van te zweven,
+  woonboten liggen in het water in plaats van op de kant, en wegen lopen
+  niet meer dwars door gebouwen.
 
 ### Opgelost
 - Telefoontjes, voicemails en Bel Rikus vallen niet meer over het blok
