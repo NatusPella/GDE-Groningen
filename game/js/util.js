@@ -46,6 +46,43 @@ export function pointInPolygon(px, py, poly) {
   return inside;
 }
 
+// pointInPolygon for large polygons that never change (water): the edges
+// are bucketed by height bands once, a test only walks the band of py.
+// Same crossing rule, so the same answer.
+const pipBands = new WeakMap();
+function bandsOf(poly) {
+  let B = pipBands.get(poly);
+  if (B) return B;
+  const n = poly.length;
+  let y0 = Infinity, y1 = -Infinity;
+  for (const p of poly) { if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  const nb = Math.max(1, Math.min(4096, n >> 2));
+  const bh = (y1 - y0) / nb || 1;
+  const lists = Array.from({ length: nb }, () => []);
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const a = poly[i][1], b = poly[j][1];
+    const k0 = Math.max(0, Math.min(nb - 1, Math.floor((Math.min(a, b) - y0) / bh)));
+    const k1 = Math.max(0, Math.min(nb - 1, Math.floor((Math.max(a, b) - y0) / bh)));
+    for (let k = k0; k <= k1; k++) lists[k].push(i, j);
+  }
+  B = { y0, y1, bh, nb, lists };
+  pipBands.set(poly, B);
+  return B;
+}
+export function pointInStaticPolygon(px, py, poly) {
+  if (poly.length < 48) return pointInPolygon(px, py, poly);
+  const B = bandsOf(poly);
+  if (py < B.y0 || py >= B.y1) return false;
+  const L = B.lists[Math.max(0, Math.min(B.nb - 1, Math.floor((py - B.y0) / B.bh)))];
+  let inside = false;
+  for (let e = 0; e < L.length; e += 2) {
+    const pi = poly[L[e]], pj = poly[L[e + 1]];
+    const xi = pi[0], yi = pi[1], xj = pj[0], yj = pj[1];
+    if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
 // On-foot water test shared by player/companion/peds. The polygon
 // test runs first because map.isOnBridge scans nearby roads and is only
 // needed to veto a hit.
@@ -61,7 +98,7 @@ export function isInWater(map, x, y, z = 0) {
   for (const w of map.waterNear(x, y, 0.5)) {
     const [minx, miny, maxx, maxy] = w.bounds;
     if (x < minx || x > maxx || y < miny || y > maxy) continue;
-    if (pointInPolygon(x, y, w.pts)) {
+    if (pointInStaticPolygon(x, y, w.pts)) {
       if (z < -3 && map.coveredAt && map.coveredAt(x, y)) return false;
       if (z > 1.5) return false;
       return !map.isOnBridge(x, y);

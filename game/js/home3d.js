@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
+import { GeoBuilder } from './pixelart3d.js';
+import { LANDMARK_MATERIALS } from './landmarks3d.js';
 
 // Meshes for Tammo and Anita's home (home.js): the private garage in the
 // plinth of their flat, the lobby door with the bike rack, the flat's floor
@@ -155,6 +157,73 @@ export function buildHomeExterior3D(home) {
 }
 
 // Walls down and roof off while the player is inside the garage.
+// The plinth seen from afar (past the exterior's stream radius): its walls,
+// roof and deck parapet as one merged mesh in the shared landmark materials,
+// so the tower never floats over an empty lot.
+export function buildGarageShell(home) {
+  const B = new GeoBuilder(5);
+  const H = home.garage.height;
+  const ring = home.garage.poly;
+  const W = (x, y, z) => [x, y, z];
+  const wallOf = (x1, y1, x2, y2, y0, y1h, color, g) => B.quad(W(x1, y0, y1), W(x2, y0, y2), W(x2, y1h, y2), W(x1, y1h, y1), color, g);
+  for (let i = 0; i < ring.length; i++) {
+    const [x1, y1] = ring[i], [x2, y2] = ring[(i + 1) % ring.length];
+    wallOf(x1, y1, x2, y2, 0, H + 1.3, 0xd39b55, 1);
+    wallOf(x1, y1, x2, y2, H - 0.4, H - 0.18, 0xe8d9b8, 0);
+    wallOf(x1, y1, x2, y2, H + 1.3, H + 1.42, 0xe8d9b8, 0);
+  }
+  const shape = new THREE.Shape(ring.map(([x, y]) => new THREE.Vector2(x, y)));
+  const tris = THREE.ShapeUtils.triangulateShape(shape.getPoints(), []);
+  for (const [a, b, c] of tris) B.tri(W(ring[a][0], H + 0.3, ring[a][1]), W(ring[b][0], H + 0.3, ring[b][1]), W(ring[c][0], H + 0.3, ring[c][1]), 0x3f4245, 0);
+  const mesh = new THREE.Mesh(B.build(), LANDMARK_MATERIALS);
+  mesh.name = 'homeGarageShell';
+  return mesh;
+}
+
+// The outdoor dressing round the towers (home.js picks the spots): trees and
+// hedges in the green zone along the water, benches facing it, park lamps
+// along the path, planters by the doors. One merged mesh.
+export function buildHomeDressing(props) {
+  const B = new GeoBuilder(5);
+  const ob = (x, z, y0, sx, sz, h, rot, color, g) => {
+    const c = Math.cos(rot), s = Math.sin(rot);
+    const P = (a, b, y) => [x + a * c - b * s, y, z + a * s + b * c];
+    const p = [P(-sx / 2, -sz / 2, y0), P(sx / 2, -sz / 2, y0), P(sx / 2, sz / 2, y0), P(-sx / 2, sz / 2, y0)];
+    const q = p.map(([px, , pz]) => [px, y0 + h, pz]);
+    for (let i = 0; i < 4; i++) B.quad(p[i], p[(i + 1) % 4], q[(i + 1) % 4], q[i], color, g);
+    B.quad(q[0], q[1], q[2], q[3], color, g);
+  };
+  const ico = (x, y, z, r, color) => B.geo(new THREE.IcosahedronGeometry(r, 0), new THREE.Matrix4().makeTranslation(x, y, z), color, 0);
+  for (const p of props) {
+    const { x, y: z, angle: a = 0 } = p;
+    if (p.kind === 'tree') {
+      ob(x, z, 0, 0.28, 0.28, 3.0 * p.s, 0, 0x5b4632, 0);
+      ico(x, 3.0 * p.s + 1.3 * p.s, z, 1.9 * p.s, p.s > 1.1 ? 0x3d7438 : 0x4f8a40);
+      ico(x + 0.6, 3.0 * p.s + 0.5 * p.s, z - 0.4, 1.3 * p.s, 0x447d3a);
+    } else if (p.kind === 'hedge') {
+      ob(x, z, 0, p.l || 4, 0.9, 0.95, a, 0x355f2e, 0);
+    } else if (p.kind === 'bench') {
+      const c = Math.cos(a), s = Math.sin(a);
+      for (const k of [-0.75, 0.75]) ob(x + c * k, z + s * k, 0, 0.08, 0.5, 0.42, a, 0x2c2f33, 3);
+      ob(x, z, 0.42, 1.8, 0.45, 0.06, a, 0x8a6142, 0);
+      ob(x - s * 0.22, z + c * 0.22, 0.48, 1.8, 0.06, 0.4, a, 0x8a6142, 0);
+    } else if (p.kind === 'lamp') {
+      ob(x, z, 0, 0.14, 0.14, 4.2, 0, 0x2c2f33, 3);
+      ob(x, z, 4.2, 0.42, 0.42, 0.22, 0, 0x2c2f33, 3);
+      ob(x, z, 3.95, 0.36, 0.36, 0.25, 0, 0xfff1cf, 2);
+    } else if (p.kind === 'planter') {
+      ob(x, z, 0, 1.3, 1.3, 0.6, a, 0xd39b55, 1);
+      ob(x, z, 0.6, 1.15, 1.15, 0.12, a, 0x3c2f25, 0);
+      ico(x, 1.05, z, 0.62, 0x4c8a3f);
+    }
+  }
+  const mesh = new THREE.Mesh(B.build(), LANDMARK_MATERIALS);
+  mesh.name = 'homeDressing';
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
 export function setGarageCutaway(root, k) {
   const { walls, roof } = root.userData;
   roof.visible = k < 0.5;

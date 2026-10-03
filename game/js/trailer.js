@@ -18,6 +18,7 @@ import { scriptHeli, updateSkyProps, helipadInfo } from './skyprops.js';
 import { getTrains, placeTrain } from './railway.js';
 import { routeAt as canalAt, ROUTE_LENGTH as CANAL_LENGTH } from './rondvaartchase.js';
 import { RING_ROUTE } from './ringroute.js';
+import { smoothPath, pathHeights, cineDrive, groundPose } from './cinedrive.js';
 import { buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { hidePigeonSpots } from './pigeonspots.js';
 import { setPoliceHeliRender } from './police.js';
@@ -345,7 +346,7 @@ function openSpot(map, x, y, r = 24) {
 }
 
 // Stretch of the ring road that runs highest (a viaduct), as a polyline.
-function ringViaduct(map) {
+export function ringViaduct(map) {
   const n = RING_ROUTE.length, span = 9;
   const zs = RING_ROUTE.map(([x, y]) => map.groundHeightAt(x, y, 40));
   let best = 0, bestZ = -1;
@@ -354,9 +355,21 @@ function ringViaduct(map) {
     for (let k = 0; k <= span; k++) lo = Math.min(lo, zs[i + k]);
     if (lo > bestZ) { bestZ = lo; best = i; }
   }
-  const pts = RING_ROUTE.slice(Math.max(0, best - 4), Math.min(n, best + span + 6)).map(([x, y]) => [x, y]);
-  return { path: polyline(pts), deck: Math.max(0, bestZ), half: RING_ROUTE[best + (span >> 1)][2] };
+  const i0 = Math.max(0, best - 4);
+  const path = smoothPath(RING_ROUTE.slice(i0, Math.min(n, best + span + 6)));
+  return { path, deck: Math.max(0, bestZ), half: RING_ROUTE[best + (span >> 1)][2], zAt: pathHeights(map, path, map.groundHeightAt(RING_ROUTE[i0][0], RING_ROUTE[i0][1], zs[i0] + 0.5)) };
 }
+
+// The race shot's pack in three lanes (offset in units of 2.8 m, lag in m
+// behind the leader): no two of them overlap while the lags wobble +-0.6 m,
+// and Jelle's tractor drives in the middle lane between the last cars.
+export const RING_PACK = {
+  cars: [[-1, 0], [1, 1.5], [0, 5.5], [-1, 11], [1, 13]],
+  tractor: [0, 12.5],
+  speed: 31,
+  wobble: 0.6,
+};
+const TRACTOR_HALF = 1.1;
 
 function canalNear(x, y) {
   let best = 0, bd = Infinity;
@@ -992,26 +1005,25 @@ function buildShots(w) {
       clearRoad(r, ring.path, 14);
       s.d = ringS;
       // a staggered pack: side by side the far cars hid behind the near ones
-      // (and touched them, which the collision pass kept resolving)
-      const offs = [-2.8, 0, 2.8, -1.4, 1.4], lags = [0, 5, 1.5, 10, 14];
-      const k = Math.min(1, (ring.half - 1.2) / 3);
-      s.cars = offs.map((off, i) => ({ off: off * k, lag: lags[i], v: tempCar(r, 0, 0, 0, { model: MODELS[(i * 3 + 1) % MODELS.length] }) }));
+      const k = Math.min(1, (ring.half - 1.2) / 3) * 2.8;
+      s.cars = RING_PACK.cars.map(([lane, lag], i) => ({ off: lane * k, lag, v: tempCar(r, 0, 0, 0, { model: MODELS[(i * 3 + 1) % MODELS.length] }) }));
       s.tractor = r.prop('tractor', buildTractor);
-      s.tOff = 1.4 * k;
+      s.tractor.rotation.order = 'YZX';
+      s.tOff = RING_PACK.tractor[0] * k;
     },
     tick(r, s, t, dt) {
-      const v = 31;
+      const v = RING_PACK.speed;
       s.d += v * dt;
       s.q = lane(ring.path, s.d, 0);
-      // the deck height on the centre line: lane offsets can reach the verge
-      s.z = map.groundHeightAt(s.q.x, s.q.y, (s.z ?? ring.deck) + 0.5);
       for (const c of s.cars) {
-        const q = lane(ring.path, s.d - c.lag - Math.sin(t * 0.9 + c.lag) * 0.6, c.off);
-        Object.assign(c.v, { x: q.x, y: q.y, angle: q.a, speed: v, z: s.z });
+        const d = s.d - c.lag - Math.sin(t * 0.9 + c.lag) * RING_PACK.wobble;
+        cineDrive(c.v, map, lane(ring.path, d, c.off), v, dt, ring.zAt(d));
       }
-      const tq = lane(ring.path, s.d - 6.5, -s.tOff);
-      s.tractor.position.set(tq.x, s.z + Math.abs(Math.sin(t * 9)) * 0.04, tq.y);
-      s.tractor.rotation.set(0, -tq.a, Math.sin(t * 7) * 0.02);
+      const td = s.d - RING_PACK.tractor[1];
+      const tq = lane(ring.path, td, s.tOff);
+      const g = groundPose(map, tq.x, tq.y, tq.a, ring.zAt(td), TRACTOR_HALF);
+      s.tractor.position.set(tq.x, g.z + Math.abs(Math.sin(t * 9)) * 0.04, tq.y);
+      s.tractor.rotation.set(Math.sin(t * 7) * 0.02, -tq.a, g.pitch);
     },
     cam(u, t, s) {
       const q = s.q, f = Math.cos(q.a), g = Math.sin(q.a);

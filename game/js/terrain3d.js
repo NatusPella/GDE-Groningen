@@ -324,12 +324,28 @@ export function buildTerrainMesh3D(bounds, waterPolys = [], opts = {}) {
     emit(a, b, c, cand, 0);
   };
 
+  // A quad with no water edge near it is all wet or all dry, and so is a
+  // run of such quads along a row: one water test per run.
+  let quadEdges = false;
+  const anyEdge = () => { quadEdges = true; };
   for (let j = 0; j < segsZ; j++) {
+    let runWet = null;
     for (let i = 0; i < segsX; i++) {
       const a = j * nx + i;
       const b = j * nx + i + 1;
       const c = (j + 1) * nx + i;
       const d = (j + 1) * nx + i + 1;
+      if (index) {
+        quadEdges = false;
+        index.edgesIn(vx(a), vz(a), vx(d), vz(d), anyEdge);
+        if (!quadEdges) {
+          if (runWet === null) runWet = index.inWater((vx(a) + vx(d)) / 2, (vz(a) + vz(d)) / 2);
+          if (runWet) droppedTriangles += 2;
+          else indices.push(a, c, b, b, c, d);
+          continue;
+        }
+        runWet = null;
+      }
       tri(a, c, b);
       tri(b, c, d);
     }

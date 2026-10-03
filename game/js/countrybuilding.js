@@ -11,10 +11,12 @@ import { vcMaterial, markShared, createBrickDetailTexture, createRoofTileTexture
 // side, and at night a random share of the windows lit.
 
 // part ids (aPart): what a face of a building piece is
-export const PART = { plain: 0, wall: 1, roof: 2, ridge: 3, gable: 4, top: 5, silWall: 6, silRoof: 7 };
+export const PART = { plain: 0, wall: 1, roof: 2, ridge: 3, gable: 4, top: 5, silWall: 6, silRoof: 7, churchNave: 8, churchBrick: 11 };
 // styles: how a wall is drawn (instance code)
 export const STYLE = { plain: 0, house: 1, block: 2, barn: 3, shed: 4, glass: 5, tile: 6, sheet: 7 };
-// door side in the piece's local frame: 1 +x, 2 -x, 3 +z, 4 -z
+// door side in the piece's local frame: 1 +x, 2 -x, 3 +z, 4 -z; 5-8 the
+// same faces with a village shopfront on the ground floor (no door, no
+// painted windows behind it)
 // the skyline silhouettes keep their roof colour index in the door field
 export const ROOF_PAL = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e, 0x3a3e40, 0x4a5a48, 0x6a6e6c];
 
@@ -41,9 +43,9 @@ export function withParts(geo, fn) {
   return geo;
 }
 
-// Instance tint with the code folded into red: r + 2 * (style * 8 + door).
+// Instance tint with the code folded into red: r + 2 * (style * 16 + door).
 export function bldCode(style, door = 0) {
-  return style * 8 + door;
+  return style * 16 + door;
 }
 
 export function setCountryNight(glow, litFrac) {
@@ -122,19 +124,43 @@ float bHash(vec3 p) { return fract(sin(dot(p, vec3(41.3, 289.1, 17.7))) * 15731.
 const FRAG_FACADE = /* glsl */`
 {
   float code = vBInfo.x;
-  float style = floor(code / 8.0), door = code - style * 8.0;
+  float style = floor(code / 16.0), door = code - style * 16.0;
+  float shop = 0.0;
+  if (door > 4.5 && door < 8.5 && vBPart < 6.5) { shop = door - 4.0; door = 0.0; }
   float part = vBPart;
   vec3 n = normalize(vBNrm);
   bool wallish = (part > 0.5 && part < 1.5) || (part > 3.5 && part < 4.5) || (part > 5.5 && part < 6.5);
-  if (wallish && abs(n.y) < 0.5 && style > 0.5 && style < 4.5) {
+  if (part > 7.5) {
+    // church (countrymodels.js churchGeometry, unit scale): brick, and on
+    // the nave's long walls a row of round-arched windows in model metres
+    bool xFace = abs(n.x) > abs(n.z);
+    float h = vBInfo.y + vBLoc.y;
+    diffuseColor.rgb *= texture2D(uBBrick, vec2(xFace ? vBLoc.z + 0.25 : vBLoc.x, h) * 2.0).rgb * 1.1;
+    if (part < 10.5) {
+      // x0, step, last bay, window bottom, arch spring, half width
+      vec4 A = part < 8.5 ? vec4(-5.0, 3.5, 4.0, 2.8) : part < 9.5 ? vec4(-7.0, 3.2, 2.0, 3.5) : vec4(-5.0, 3.0, 4.0, 2.2);
+      float spring = part < 8.5 ? 6.4 : part < 9.5 ? 7.7 : 5.4, hw = part < 8.5 ? 0.55 : 0.5;
+      vec2 lp = vBLoc.xy / max(vBS.xy, vec2(1e-3));
+      float k = clamp(floor((lp.x - A.x) / A.y + 0.5), 0.0, A.z);
+      vec2 d = vec2(lp.x - A.x - k * A.y, lp.y);
+      vec2 fw = fwidth(lp) * 1.2;
+      float body = bRect(vec2(d.x, d.y - (A.w + spring) * 0.5), vec2(hw, (spring - A.w) * 0.5), fw);
+      float arch = clamp((hw - length(vec2(d.x, d.y - spring))) / max(fw.x, 1e-4) + 0.5, 0.0, 1.0) * step(spring, d.y);
+      float win = max(body, arch);
+      float lead = 1.0 - (1.0 - smoothstep(0.03, 0.03 + fw.x, abs(d.x))) * 0.7 * step(A.w + 0.4, d.y);
+      diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(0.03, 0.04, 0.05), vec3(0.12, 0.15, 0.18), clamp((d.y - A.w) / (spring - A.w), 0.0, 1.0)) * lead, win);
+    }
+  } else if (wallish && abs(n.y) < 0.5 && style > 0.5 && style < 4.5) {
     bool xFace = abs(n.x) > abs(n.z);
     float face = xFace ? (n.x > 0.0 ? 1.0 : 2.0) : (n.z > 0.0 ? 3.0 : 4.0);
     float u = xFace ? vBLoc.z : vBLoc.x;
     float L = xFace ? vBS.z : vBS.x;
     float h = vBInfo.y + vBLoc.y;
     float top = vBInfo.w;
+#ifndef FACADE_LOW
     if (style < 3.5) diffuseColor.rgb *= texture2D(uBBrick, vec2(u + (xFace ? 0.25 : 0.0), h) * 2.0).rgb * 1.1;
     else diffuseColor.rgb *= 1.0 - 0.07 * smoothstep(0.35, 0.5, abs(fract(u * 1.25) - 0.5));
+#endif
     // bay width, window size, storey height, sill: per style
     vec4 S = style < 1.5 ? vec4(2.7, 1.1, 1.35, 2.75) : style < 2.5 ? vec4(3.0, 1.6, 1.45, 3.0) : style < 3.5 ? vec4(5.5, 0.9, 0.6, 99.0) : vec4(9.0, 0.0, 0.0, 99.0);
     float sill = style < 2.5 ? 0.85 : 1.9;
@@ -159,6 +185,8 @@ const FRAG_FACADE = /* glsl */`
       bool fits = fl * S.w + sill + S.z < top - 0.2;
       win = fits ? bRect(vec2(lu, lv - S.z * 0.5), vec2(S.y, S.z) * 0.5, fw) : 0.0;
     }
+    // a shopfront covers the middle of the ground floor on its face
+    if (face == shop && part < 1.5 && h < 3.7 && abs(u) < min(L - 0.8, 9.0) * 0.5 + 0.3) win = 0.0;
     // the door: middle bay of the street side
     float dm = 0.0;
     if (face == door && part < 1.5) {
@@ -171,8 +199,12 @@ const FRAG_FACADE = /* glsl */`
       diffuseColor.rgb = mix(diffuseColor.rgb, dc, dm);
     }
     if (win > 0.0) {
+#ifdef FACADE_LOW
+      float frame = 0.0;
+#else
       float frame = bRect(vec2(lu, lv - S.z * 0.5), vec2(S.y + 0.16, S.z + 0.16) * 0.5, fw) - win;
       if (part > 3.5) frame = 0.0;
+#endif
       vec3 glass = mix(vec3(0.035, 0.045, 0.055), vec3(0.16, 0.2, 0.24), clamp(lv / max(S.z, 0.5), 0.0, 1.0) * 0.8);
       diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.85, 0.8), max(frame, 0.0) * (style < 2.5 ? 1.0 : 0.4));
       diffuseColor.rgb = mix(diffuseColor.rgb, glass, win);
@@ -189,7 +221,9 @@ const FRAG_FACADE = /* glsl */`
     float ru = endFace ? vBLoc.z : vBLoc.x;
     float rv = (1.0 - vBLoc.y / vBS.y) * length(vec2(vBS.y, (endFace ? vBS.x : vBS.z) * 0.5));
     if (style > 6.5) diffuseColor.rgb *= 1.0 - 0.14 * smoothstep(0.3, 0.5, abs(fract(ru * 5.0) - 0.5));
+#ifndef FACADE_LOW
     else diffuseColor.rgb *= texture2D(uBTile, vec2(ru, rv)).rgb * 1.08;
+#endif
   } else if (part > 4.5 && part < 5.5 && n.y > 0.5) {
     // flat roof: bitumen with a lighter edge
     float e = min(vBS.x * 0.5 - abs(vBLoc.x), vBS.z * 0.5 - abs(vBLoc.z));
@@ -210,11 +244,24 @@ function hex(c) {
 
 // Patches a vertex-colour material into the facade material; extra(sh) runs
 // first (the skyline adds its own vertex pull and haze).
+// 'laag': no brick or tile texture and no window frames (two texture reads
+// and a box test less per pixel of every Ommeland building)
+let facadeLow = false;
+const facadeMats = [];
+export function setCountryFacadeLevel(level) {
+  const low = level === 'laag';
+  if (low === facadeLow) return;
+  facadeLow = low;
+  for (const m of facadeMats) m.needsUpdate = true;
+}
+
 export function applyFacade(m, key, extra = null) {
   textures();
+  facadeMats.push(m);
   m.onBeforeCompile = (sh) => {
     if (extra) extra(sh);
     Object.assign(sh.uniforms, U);
+    if (facadeLow) sh.fragmentShader = '#define FACADE_LOW\n' + sh.fragmentShader;
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', `#include <common>\n${VERT_HEAD}`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>\n${VERT_BEGIN}`)
@@ -224,7 +271,7 @@ export function applyFacade(m, key, extra = null) {
       .replace('#include <color_fragment>', `#include <color_fragment>\n${FRAG_FACADE}`)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += bGlow;');
   };
-  m.customProgramCacheKey = () => 'country-bld-' + key;
+  m.customProgramCacheKey = () => 'country-bld-' + key + (facadeLow ? '-low' : '');
   return m;
 }
 

@@ -444,13 +444,18 @@ PATCHES = [
     {"at": [188.8, 147.7], "set": {"name": "De Drie Gezusters", "markt": "drieGezusters39"}},
     {"at": [167.3, 160.2], "set": {"markt": "grandTheatre"}},
     {"at": [252.0, 78.0], "set": {"name": "Westcord Market Hotel", "markt": "marketHotel", "h": 6}},
-    {"at": [262.0, 110.0], "set": {"markt": "merckt"}},
-    {"at": [236.0, 55.0], "set": {"markt": "mutuaFides"}},
+    {"at": [262.0, 110.0], "set": {"name": "Merckt"}},
+    {"at": [236.0, 55.0], "set": {"name": "Mutua Fides", "h": 5}},
+    {"at": [27.0, 270.0], "set": {"name": "Van Gend & Loos"}},
     {"at": [85.0, -8.0], "set": {"h": 6}},
     {"at": [85.0, 90.0], "set": {"markt": "nataliniTower"}},
     # Prinsenhof and the DUO "Cruiseschip" (landmarks3d.js models) are taller than OSM says
     {"at": [261.0, -151.0], "set": {"h": 4}},
     {"at": [956.0, 1525.0], "set": {"h": 14}},
+    # Winkelcentrum Paddepoel (paddepoel3d.js): the shop blocks are 6.6 m to the
+    # parapet, the 2026 supermarket and gym block 10.8 m; OSM's 3 levels said 9.3
+    {"landmark": "Winkelcentrum Paddepoel", "set": {"h": 2.13}},
+    {"at": [-1416.0, -1094.0], "set": {"h": 3.48}},
 ]
 
 def bounds_of(p):

@@ -21,7 +21,7 @@ import { pointInPolygon, closestPointOnSegment } from './util.js';
 //   brinkmanbaksteencentrum.nl (Atlas & House of Groningen),
 //   dijkhuis-ingenieurs.nl, mwpo.nl, wijzigingsplan Atlas en Pleione.
 // - The petrol station across the service road (Pleiadenlaan 4): a BP with a
-//   shop, car wash and coffee corner; here the parody "Bakkie Peut" in the
+//   shop, car wash and coffee corner; here the parody "Bakkie Prut" in the
 //   same green-and-white canopy livery, no real logo.
 // - Korenbloemstraat (Bloemenbuurt, Oosterparkwijk): municipal workers'
 //   housing by S.J. Bouma (Gemeentewerken), late 1920s / early 1930s:
@@ -159,7 +159,60 @@ defer('atlasToren', (B, b, ring) => {
   ensembleTower(B, ring, { levels: b.h, crown: true, brick: tint(HOG.brick, 0.96), noPlinth: (x, y) => f.closed(x, y) });
 });
 
-// --- Bakkie Peut (the petrol station on the Pleiadenlaan) ------------------------
+// --- the 1960s galerijflats of Paddepoel-Zuid --------------------------------------
+
+// Polluxflat, Castorflat and Morgensterflat (Polluxstraat, Castorstraat,
+// Morgensterlaan, by the Dierenriemstraat): gallery flats of 1969, "10 hoog"
+// in two staggered slabs, 184 homes in the Polluxflat. A concrete frame with
+// brick infill and closed brick end walls, a storage plinth, on one long side
+// the open galleries (renewed with new decks and railings), on the other the
+// window bands with stacked balconies. Sources: zoontjens.nl "Galerijophoging
+// op Polluxflat in Groningen", oogtv.nl (tag Polluxflat), woningnetgroningen.nl
+// listings (Polluxstraat galerijflat). The gallery side (west) and the
+// colours are estimates from the type, not from a source.
+const G60 = { brick: 0xb59a72, plinth: 0x6e5a4a, concrete: 0xdcd8ce, rail: 0x3a4046, glass: 0x34444e, frame: 0xeeece6, door: 0x56606a };
+
+defer('galerij60', (B, b, ring) => {
+  const H = Math.max(2.4, b.h * STOREY), N = Math.max(2, Math.round(b.h) + 1), fh = H / N;
+  K.walls(B, ring, 0, () => H, G60.brick, BRICK);
+  K.cap(B, ring, () => H, 0x5d5f62, PLAIN);
+  for (const e of K.edgesOf(ring)) {
+    if (e.len < 1) continue;
+    K.ebox(B, e, e.len / 2, 0, e.len, fh, 0.04, G60.plinth, BRICK, 0);
+    K.ebox(B, e, e.len / 2, H - 0.45, e.len + 0.1, 0.45, 0.25, G60.concrete, PLAIN, 0);
+    if (e.len < 15) {
+      // the closed end wall: brick between two concrete frame edges
+      for (const t of [0.2, e.len - 0.2]) K.ebox(B, e, t, 0, 0.4, H, 0.08, G60.concrete, PLAIN, 0);
+      continue;
+    }
+    const gallery = e.nx < -0.3;
+    const posts = Math.max(1, Math.round(e.len / 3.6));
+    for (let k = 1; k < N; k++) {
+      const y = k * fh;
+      if (gallery) {
+        // gallery deck, its railing, the front doors and kitchen windows behind it
+        K.ebox(B, e, e.len / 2, y - 0.2, e.len, 0.2, 1.6, G60.concrete, PLAIN, 0);
+        equad(B, e, e.len / 2, y, e.len, 1.05, 1.58, G60.rail, METAL);
+        equad(B, e, e.len / 2, y + 0.9, e.len - 0.6, 1.1, 0.02, G60.glass, GLASS);
+        for (let i = 0; i < posts; i++) equad(B, e, (i + 0.3) * e.len / posts, y + 0.05, 0.95, 2.1, 0.04, G60.door, PLAIN);
+      } else {
+        equad(B, e, e.len / 2, y + 0.75, e.len - 0.6, 1.45, 0.02, G60.glass, GLASS);
+        for (let i = 0; i <= posts; i++) equad(B, e, Math.min(e.len - 0.3, Math.max(0.3, i * e.len / posts)), y + 0.7, 0.14, 1.55, 0.04, G60.frame, PLAIN);
+        // stacked balconies, every other bay
+        for (let i = 0; i < posts; i += 2) {
+          const t = (i + 0.5) * e.len / posts;
+          K.ebox(B, e, t, y - 0.15, e.len / posts - 0.3, 0.15, 1.3, G60.concrete, PLAIN, 0);
+          equad(B, e, t, y, e.len / posts - 0.3, 1.0, 1.28, G60.concrete, PLAIN);
+        }
+      }
+      K.ebox(B, e, e.len / 2, y - 0.2, e.len, 0.2, 0.06, G60.concrete, PLAIN, 0);
+    }
+    // the lift's machine room on the roof, over the gallery side
+    if (gallery) K.ebox(B, e, e.len * 0.5, H, 3.2, 2.4, 3.0, G60.brick, BRICK, -3.2);
+  }
+});
+
+// --- Bakkie Prut (the petrol station on the Pleiadenlaan) ------------------------
 
 const PEUT = { green: 0x0f7a3a, lime: 0x9cc53a, white: 0xf1f2ee, grey: 0xc9ccc8, dark: 0x22262a, glass: 0x34444c, curb: 0xa7a59d };
 
@@ -172,7 +225,7 @@ function peutSignTexture(lines) {
   g.fillStyle = '#0f7a3a';
   g.textAlign = 'center'; g.textBaseline = 'middle';
   g.font = 'bold 50px sans-serif'; g.fillText('BAKKIE', 128, 62);
-  g.font = 'bold 64px sans-serif'; g.fillText('PEUT', 128, 122);
+  g.font = 'bold 64px sans-serif'; g.fillText('PRUT', 128, 122);
   g.fillStyle = '#9cc53a'; g.fillRect(14, 172, 228, 10);
   lines.forEach(([name, price], i) => {
     const y = 214 + i * 74;
@@ -191,7 +244,7 @@ function fasciaTexture() {
   g.fillStyle = '#0f7a3a'; g.fillRect(0, 0, 512, 64);
   g.fillStyle = '#9cc53a'; g.fillRect(0, 52, 512, 6);
   g.fillStyle = '#f1f2ee'; g.font = 'bold 36px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText('BAKKIE PEUT', 256, 27);
+  g.fillText('BAKKIE PRUT', 256, 27);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
@@ -426,6 +479,12 @@ export function tagPleiadenlaan(map, { tower, frame, plinth, lobby }) {
     atlas.model = 'atlasToren';
     atlas.modelFrame = { closed };
     atlas._geo3dParts = null;
+  }
+  // the 1960s gallery flats a few streets north
+  for (const b of map.buildingsNear(-1460, -1385, 160)) {
+    if (b.model || !['Polluxflat', 'Castorflat', 'Morgensterflat'].includes(b.name)) continue;
+    b.model = 'galerij60';
+    b._geo3dParts = null;
   }
   const canopy = (map.canopies || []).find((c) => pointInPolygon(-1314, -1075, c.pts));
   if (canopy) canopy.custom = (m) => buildPeutCanopy(canopy, m);

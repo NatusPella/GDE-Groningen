@@ -97,7 +97,18 @@ export function buildTrack(map, route, edge = EDGE) {
     while (Math.abs(o) > 0.2 && inBuilding(map, x[i] + nx[i] * o, y[i] + ny[i] * o, 1.2)) o *= 0.5;
     off[i] = Math.abs(o) > 0.2 ? o : 0;
   }
-  const track = { n, x, y, hw, s, L, nx, ny, off, lim, v: new Float64Array(n) };
+  // road height at each point, followed from the start in 1 m steps so the
+  // viaducts and cuttings keep their own level (spawnZ takes the nearest road)
+  const z = new Float64Array(n);
+  if (map.groundHeightAt) {
+    let h = map.spawnZ ? map.spawnZ(x[0], y[0]) : 0;
+    for (let i = 0; i < n; i++) {
+      z[i] = h = map.groundHeightAt(x[i], y[i], h);
+      const j = (i + 1) % n, steps = Math.ceil(s[i + 1] - s[i]);
+      for (let k = 1; k < steps; k++) h = map.groundHeightAt(x[i] + (x[j] - x[i]) * k / steps, y[i] + (y[j] - y[i]) * k / steps, h);
+    }
+  }
+  const track = { n, x, y, z, hw, s, L, nx, ny, off, lim, v: new Float64Array(n) };
   const vmax = track.v;
   for (let i = 0; i < n; i++) {
     const p0 = sample(track, s[i] - 10), p2 = sample(track, s[i] + 10);
@@ -137,7 +148,7 @@ function sample(t, sl) {
   nx /= l; ny /= l;
   const off = t.off[i] + (t.off[j] - t.off[i]) * u;
   return {
-    i, x, y, nx, ny, off,
+    i, x, y, nx, ny, off, z: t.z[i] + (t.z[j] - t.z[i]) * u,
     lim: Math.min(t.lim[i], t.lim[j]),
     v: t.v[i] + (t.v[j] - t.v[i]) * u,
     rx: x + nx * off, ry: y + ny * off,
@@ -322,7 +333,7 @@ function respawnOnTrack(r, t, map) {
   const at = sample(t, r.sLap);
   r.v.x = at.x + at.nx * at.off;
   r.v.y = at.y + at.ny * at.off;
-  r.v.z = map.spawnZ ? map.spawnZ(r.v.x, r.v.y) : 0;
+  r.v.z = map.groundHeightAt ? map.groundHeightAt(r.v.x, r.v.y, at.z) : 0;
   r.v.vz = 0;
   r.v.airborne = false;
   r.v.angle = Math.atan2(-at.nx, at.ny);
