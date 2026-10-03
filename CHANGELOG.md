@@ -20,8 +20,9 @@ nieuwe functies, `y` voor alleen bugfixes.
   worden stap voor stap bijgewerkt als je ze laadt. Saves vanaf 1.0 blijven
   werken in elke latere versie. Voor de eerste bijwerking bewaart het spel
   een kopie van je oude save.
-- **Twee Steam-trailers.** `--trailer-cut=gameplay` (~62 s) begint met het
-  logo en laat de game zien met de echte HUD: rijden met de voertuigbadge,
+- **Twee Steam-trailers.** `--trailer-cut=gameplay` (~63 s) begint met het
+  logo en laat in shots van twee seconden zo veel mogelijk missies zien, met
+  de echte HUD: van Berends bakkie en de pinautomaat tot het skûtsje,
   sterren en politie, de heli door de ringen, de stuntavond met zijn score,
   een bijbaantje, Ubbo op de telefoon, dag en nacht, met droge kaarten
   ("Een hele stad. Een heel Ommeland.", "18 missies.", "Gratis ·

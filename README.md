@@ -85,7 +85,7 @@ from the end of the radio intro. Used three ways:
   from the title screen on a throwaway profile, logs fps, draw calls and GPU
   memory (`renderer.info`) per shot and quits; add `--profile` for a CPU
   profile.
-- **Steam cuts**: `gameplay` (~62 s, Steam's first trailer: the logo in
+- **Steam cuts**: `gameplay` (~63 s, Steam's first trailer: the logo in
   the first seconds, then the systems with the real HUD: driving, stars,
   the heli rings, the stunt evening score, a side job, Ubbo on the phone)
   and `verhaal` (~80 s, the story up to the planned museum heist with voiced

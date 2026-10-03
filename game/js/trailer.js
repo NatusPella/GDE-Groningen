@@ -12,7 +12,7 @@ import { spawnPedestriansNear, isOnRoad } from './pedestrians.js';
 import { KERMIS } from './kermis.js';
 import { tractorBodyGeometry, tractorBaseGeometry } from './countrymodels.js';
 import { vcMaterial } from './pixelart3d.js';
-import { Vehicle, MODELS, spawnHeroCarNear } from './vehicle.js';
+import { Vehicle, MODELS, TRAFFIC_MODELS, spawnHeroCarNear } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { scriptHeli, updateSkyProps, helipadInfo } from './skyprops.js';
 import { getTrains, placeTrain } from './railway.js';
@@ -45,7 +45,7 @@ import { trailerPhone } from './phone.js';
 //              trailer (~85 s) with voiced lines from the game
 //   gameplay   ?trailer&cut=gameplay: the Steam gameplay trailer (~60 s),
 //              the logo first, the systems with the real HUD (hud: true)
-//   attract    ?attract: the short cut ('kort', ~38 s, with the Anita and
+//   attract    ?attract: the short cut ('kort', ~38 s, with the Tessa and
 //              Tammo name cards); hold Space to skip; hands its last camera
 //              pose over to the title screen
 // Each shot forces its own clock and weather. The title screen owns the frame
@@ -646,12 +646,13 @@ export const TRAILER_VOICE = {
 
 // The two Steam cuts in their own order: [shot id, seconds in that cut].
 const CUT_ORDER = {
-  verhaal: [['radio', 4.0], ['sunrise', 4.0], ['vismarkt', 3.4], ['anita', 3.0], ['tammo', 3.0], ['plantsoen', 4.6], ['escapade', 3.6],
-    ['pigeon', 3.4], ['vitrine', 6.0], ['jelle', 4.2], ['twins', 3.2], ['chase', 4.2], ['race', 4.0], ['tanker', 4.0], ['boat', 4.0],
-    ['trauma', 3.6], ['kermis', 4.0], ['aerial', 5.6], ['logo', 5.0], ['berend', 3.0]],
-  gameplay: [['steamLogo', 2.8], ['gpCity', 2.8], ['hudDrive', 4.2], ['hudChase', 3.6], ['pigeon', 2.8], ['hudHeli', 3.6], ['boat', 2.8],
-    ['ommeland', 3.4], ['hudStunt', 3.8], ['kermis', 2.8], ['hudJob', 3.4], ['hudPhone', 3.6], ['timelapse', 3.2], ['storm', 2.6],
-    ['race', 2.8], ['tanker', 2.8], ['vismarkt', 2.8], ['aerial', 3.6], ['logo', 4.5]],
+  verhaal: [['radio', 4.0], ['sunrise', 3.6], ['vismarkt', 3.4], ['anita', 3.0], ['tammo', 3.0], ['plantsoen', 4.6], ['escapade', 3.6],
+    ['vitrine', 6.0], ['jelle', 5.4], ['pigeon', 3.8], ['twins', 3.2], ['chase', 4.0], ['race', 3.6], ['tanker', 3.6], ['boat', 4.2],
+    ['kermis', 4.0], ['trauma', 3.6], ['aerial', 5.8], ['logo', 5.0], ['berend', 3.0]],
+  gameplay: [['steamLogo', 2.6], ['gpCity', 2.2], ['gH1', 2.2], ['gH2', 2.0], ['hudStunt', 2.4], ['gH4', 2.0], ['gH5', 2.2],
+    ['vitrine', 2.0], ['gH7', 2.0], ['tanker', 2.2], ['race', 2.2], ['night', 2.0], ['gH12', 2.0], ['boat', 2.2], ['gH14', 2.2],
+    ['hudHeli', 2.4], ['hudChase', 2.2], ['gH18', 2.2], ['kermis', 2.2], ['gTwins', 1.8], ['ommeland', 2.4], ['hudJob', 2.2],
+    ['hudPhone', 2.4], ['timelapse', 2.2], ['storm', 1.8], ['vismarkt', 2.2], ['aerial', 2.4], ['logo', 4.0]],
 };
 
 // Shot fields: label (benchmark results), cuts ('vol' and/or 'kort';
@@ -718,6 +719,8 @@ function buildShots(w) {
   tables.sort((a, b) => a.d - b.d);
   tables.length = Math.min(tables.length, 12);
   const vismarkt = {
+    voice: [[0.5, 'audio/voicelines/banter/h5-pass-groen_1_t_0c64d9.mp3', ['verhaal'], 2.7]],
+    lines: [[0.5, 2.7, 'Tammo', 'Oogcontact. Dat zei Sjoerd.', ['verhaal']]],
     label: 'Terrassen op de Vismarkt', cuts: ['vol', 'kort'], dur: 4.0, kort: 2.6, clock: 13.2, weather: 'helder', focus: vm,
     caps: [[0.6, 3.0, 'Een zomer.', null, ['vol', 'kort', 'verhaal']], [0.4, 3.2, 'Toetsenbord of controller.', 'Nederlands gesproken', ['gameplay']]],
     prep(r) { r.prop('terrace', () => buildTerrace(tables)); for (let i = 0; i < 16; i++) extra(r, i); },
@@ -967,8 +970,8 @@ function buildShots(w) {
 
   const pigeon = {
     label: 'Duif langs de Martinitoren', cuts: ['vol'], dur: 3.4, clock: 16.2, weather: 'helder', focus: tower,
-    voice: [[0.3, 'audio/voicelines/banter/st-end-kop-fjord_0_a_c5a140.mp3', ['verhaal'], 2.37]],
-    lines: [[0.3, 2.5, 'Anita', 'Zonder die Eierbal geen Fjord Frituur.', ['verhaal']]],
+    voice: [[0.2, 'audio/voicelines/lines/jelle_terpstra/moai_grinzers_kijk_eens_omhoog_f_b8143cd9.mp3', ['verhaal'], 3.61]],
+    lines: [[0.2, 3.5, 'Jelle Terpstra', 'Moai, Grinzers! Kijk eens omhoog. Foar mem.', ['verhaal']]],
     caps: [[0.5, 2.6, 'Kieken van boven.', null, ['vol', 'verhaal']], [0.5, 2.6, 'Of ga als duif.', null, ['gameplay']]],
     enter(r, s) {
       s.bird = r.prop('pigeon', () => {
@@ -1160,9 +1163,11 @@ function buildShots(w) {
     },
   };
 
-  // evening light on the Diepenring, Tammo and Anita at the rail
+  // evening light on the Diepenring, Tammo and Tessa at the rail
   const sBoat0 = canalNear(455, -51) - 30;
   const boat = {
+    voice: [[0.9, 'audio/voicelines/lines/anita/praat_straks_eens_tegen_mij_542cf4c3.mp3', ['verhaal'], 1.5], [2.7, 'audio/voicelines/lines/tammo/straks_624071a2.mp3', ['verhaal'], 0.8]],
+    lines: [[0.9, 1.7, 'Anita', 'Praat straks eens tegen mij.', ['verhaal']], [2.7, 1.2, 'Tammo', '…Straks.', ['verhaal']]],
     label: 'Rondvaartboot op de Diepenring', cuts: ['vol', 'kort'], dur: 4.0, kort: 3.0, clock: 18.4, weather: 'helder', focus: canalAt(sBoat0 + 10),
     duck: true,
     enter(r, s) {
@@ -1196,7 +1201,8 @@ function buildShots(w) {
   const camAt = (d) => ({ x: padC.x + Math.cos(awayA) * d, y: padC.y + Math.sin(awayA) * d });
   const trauma = {
     label: 'Traumaheli boven het UMCG', cuts: ['vol'], dur: 3.6, clock: 7.2, weather: 'helder', focus: padC,
-    caps: [[0.5, 2.7, 'Het staat niet in het rooster.']],
+    caps: [[0.5, 2.7, 'Het staat niet in het rooster.', null, ['vol', 'gameplay']]],
+    lines: [[0.0, 3.4, 'Rikus', 'In 1672 hield Stad een bisschop buiten.', ['verhaal']]],
     enter(r, s) {
       s.h = pad ? scriptHeli(r.w) : null;
       const c0 = camAt(120), dx = padC.x - c0.x, dy = padC.y - c0.y, dl = Math.hypot(dx, dy) || 1;
@@ -1313,8 +1319,9 @@ function buildShots(w) {
   };
   const aerial = {
     label: 'Luchtfoto bij zonsondergang', cuts: ['vol', 'kort'], dur: 5.6, kort: 4.6, clock: 19.1, weather: 'helder', focus: tower,
-    lines: [[0.0, 3.3, 'Rikus', 'In 1672 hield Stad een bisschop buiten.', ['verhaal']]],
-    caps: [[0.6, 4.2, 'Er gaat niets boven Grunn.', null, ['vol', 'kort', 'gameplay']], [3.0, 2.4, 'Er gaat niets boven Grunn.', null, ['verhaal']]],
+    voice: [[0.5, 'audio/voicelines/lines/oma_trijntje/die_bal_is_gien_geld_jong_die_ba_400b492d.mp3', ['verhaal'], 5.7]],
+    lines: [[0.5, 5.1, 'Oma Trijntje', 'Die bal is gien geld, jong. Die bal is Grunn. En Grunn geeft nooit op.', ['verhaal']]],
+    caps: [[0.6, 4.2, 'Er gaat niets boven Grunn.', null, ['vol', 'kort', 'gameplay']], [0, 0, null, null, ['verhaal']]],
     thumb: 2.6,
     cam(u) { return aerialPose(u * 5.6); },
     // speed eases from 1 to 0.35 (arc length of that speed curve)
@@ -1653,11 +1660,74 @@ function buildShots(w) {
   // a day over Stad in three seconds: morning to night
   const timelapse = {
     label: 'Dag en nacht', cuts: ['gameplay'], dur: 3.4, clock: 9.0, clockTo: 22.6, weather: 'helder', focus: tower,
-    caps: [[0.3, 2.9, 'Dag en nacht.', 'En dan het weer']],
+    caps: [[0.2, 1.9, 'Dag en nacht.']],
     cam(u) { return aerialPose(1.5 + u * 1.5); },
   };
 
-  const all = { radio, sunrise, vismarkt, plantsoen, anita, tammo, escapade, jelle, twins, pigeon, vitrine, chase, race, bijna, tanker, storm, boat, trauma, kermis, night, ommeland, aerial, logo, berend, steamLogo, gpCity, hudDrive, hudChase, hudHeli, hudStunt, hudJob, hudPhone, timelapse };
+  // --- gameplay cut: the mission types, two seconds each, with the HUD ---
+
+  // the HUD's objective panel as in a mission ("title · sub")
+  const missionHud = (r, text) => { r.w.mission = { ...(r.savedMission || {}), phase: 'active', type: 'trailer', progressText: text, raceHud: null, remainingWaypoints: [], marker: { x: -1e5, y: -1e5, z: -500 }, timeLeft: null }; };
+  // an existing shot as a gameplay shot: no name card or lines, the HUD on
+  const asMission = (base, obj, extra = {}) => ({
+    ...base, freezeAt: undefined, name: undefined, lines: undefined, voice: undefined, caps: [], cuts: [], hud: true,
+    enter(r, s) {
+      if (base.enter) base.enter.call(this, r, s);
+      missionHud(r, obj);
+      hudPlayer(r, s.car || null, s.car || { ...base.focus, angle: base.focus.a ?? 0 });
+    },
+    tick(r, s, t, dt) {
+      if (base.tick) base.tick.call(this, r, s, t, dt);
+      if (s.car) hudPlayer(r, s.car);
+    },
+    ...extra,
+  });
+  const bikeModel = (fat) => TRAFFIC_MODELS().find((m) => m.name === 'bike' && !!m.fat === fat) || MODELS[0];
+  // a pack along a path (road: lane offsets; water: canalAt), the first one is you
+  const ride = (o) => ({
+    label: o.label, cuts: [], dur: 2.2, hud: true, clock: o.clock ?? 12.5, weather: 'helder', focus: o.at(o.d0 + 15, 0),
+    enter(r, s) {
+      if (o.road) clearRoad(r, o.road, 9);
+      s.d = o.d0;
+      s.pack = o.pack.map(([model, dd, off], i) => {
+        const q = o.at(s.d + dd, off);
+        return tempCar(r, q.x, q.y, q.a, { model: model === 'hero' ? null : model, hero: model === 'hero', boat: !!o.water });
+      });
+      s.car = s.pack[0];
+      missionHud(r, o.obj);
+      hudPlayer(r, s.car);
+    },
+    tick(r, s, t, dt) {
+      s.d += o.v * dt;
+      s.pack.forEach((c, i) => {
+        const [, dd, off] = o.pack[i];
+        const q = o.at(s.d + dd + Math.sin(t * 1.3 + i) * 0.6 * i, off + (i ? Math.sin(t * 0.9 + i * 2) * 0.3 : 0));
+        Object.assign(c, { x: q.x, y: q.y, angle: q.a, speed: o.v });
+      });
+      if (!s.car.isBike && !o.water) seat(r.actor('tammo'), s.car, true);
+      hudPlayer(r, s.car);
+    },
+    cam(u, t, s) { return followCam(s.car, o.back ?? 7.4, o.up ?? 2.7, 60); },
+  });
+  const onRoad = (road) => (d, off) => lane(road, d, off);
+  const onCanal = (d) => canalAt(d);
+
+  const gH1 = ride({ label: 'H1: Berends bakkie', road: fjordRoad, at: onRoad(fjordRoad), d0: 30, v: 11, clock: 10.2,
+    pack: [[BAKKIE, 0, 1.6]], obj: 'Breng Berends bakkie naar het Boterdiep · geen krassen' });
+  const gH2 = asMission(anita, 'Rol de pinautomaat naar het busje · niet te hard', { label: 'H2: De pinautomaat', dur: 2.0 });
+  const gH4 = asMission(pigeon, 'Kiek het museum van boven · foto 2/3', { label: 'H4: Duif boven Stad' });
+  const gH5 = ride({ label: 'H5: KEI-race', road: here, at: onRoad(here), d0: 30, v: 6.5, clock: 11.5, back: 4.2, up: 1.9,
+    pack: [[bikeModel(false), 0, 1.0], [bikeModel(false), 3.5, -0.4], [bikeModel(false), 6, 1.6], [bikeModel(false), 9, 0.2], [bikeModel(false), -3, 2.0]], obj: 'KEI-race · Positie 3/6 · Checkpoint 4/9' });
+  const gH7 = ride({ label: 'H7: Decor naar Noorderzon', road: chaseRoad, at: onRoad(chaseRoad), d0: 60, v: 9, clock: 15.5,
+    pack: [[{ ...MODELS[9], color: '#2f6a8a' }, 0, 1.8]], obj: 'Breng het decor naar Noorderzon · niets laten vallen' });
+  const gH12 = ride({ label: 'H12: Fatbikes', road: poele, at: onRoad(poele), d0: 5, v: 8, clock: 16.5,
+    pack: [['hero', 0, 0.0], [bikeModel(true), 9, 1.4], [bikeModel(true), 12, -1.2], [bikeModel(true), 16, 0.6], [bikeModel(true), 20, -0.4]], obj: 'De fatbikes uit de straat · Geschept: 3/8' });
+  const gH14 = ride({ label: 'H14: Het skûtsje', water: true, at: onCanal, d0: sBoat0 - 20, v: 4.5, clock: 17.2, back: 9, up: 3.4,
+    pack: [[BOAT_KINDS.sloep, 0, 0], [BOAT_KINDS.skutsje, 16, 0]], obj: 'Ga langszij bij het skûtsje' });
+  const gH18 = asMission(jelle, 'Achter de trekker-limo aan · hij mag niet weg', { label: 'H18: De trekker-limo', slow: undefined });
+  const gTwins = { ...twins, freezeAt: undefined, name: undefined, cuts: [], label: 'Botsauto’s' };
+
+  const all = { radio, sunrise, vismarkt, plantsoen, anita, tammo, escapade, jelle, twins, pigeon, vitrine, chase, race, bijna, tanker, storm, boat, trauma, kermis, night, ommeland, aerial, logo, berend, steamLogo, gpCity, hudDrive, hudChase, hudHeli, hudStunt, hudJob, hudPhone, timelapse, gH1, gH2, gH4, gH5, gH7, gH12, gH14, gH18, gTwins };
   for (const [id, shot] of Object.entries(all)) shot.id = id;
   return Object.values(all);
 }
@@ -1830,6 +1900,7 @@ function endHudShot(r) {
   r.w.wanted = 0;
   r.w.goal = null;
   r.w.sideJob = null;
+  r.w.mission = r.savedMission;
   hideStuntHud();
   const kit = heliTrailerKit();
   if (kit.hud) kit.hud.root.hidden = true;
@@ -2068,6 +2139,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     const pl = world.player;
     r.savedPlayer = { x: pl.x, y: pl.y, angle: pl.angle, inVehicle: pl.inVehicle || null };
     r.savedCamYaw = world.camYaw;
+    r.savedMission = world.mission;
     for (const s of shots) { starts.push(total); total += shotDur(r, s); }
     r.total = total;
     const group = new THREE.Group();
