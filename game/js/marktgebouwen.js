@@ -195,18 +195,18 @@ function sashWindow(D, e, c, w, y0, y1, S, rank) {
   fq(D, e, c - w / 2, c + w / 2, y0, y1, 0.045, GLASS, F_GLASS, pane(e, rank, PANE_HOME, w, y1 - y0));
   if (S.bars) {
     const m = y0 + (y1 - y0) * 0.55;
-    fq(D, e, c - w / 2, c + w / 2, m - 0.035, m + 0.035, 0.055, S.frame);
-    fq(D, e, c - 0.03, c + 0.03, y0, y1, 0.055, S.frame);
+    fq(D, e, c - w / 2, c + w / 2, m - 0.035, m + 0.035, 0.06, S.frame);
+    fq(D, e, c - 0.03, c + 0.03, y0, y1, 0.06, S.frame);
   }
   fbx(D, e, c - w / 2 - f - 0.05, c + w / 2 + f + 0.05, y0 - f - 0.08, y0 - f, 0, 0.12, S.sill, F_PLAIN, FR | TOP);
   if (S.lintel) {
     if (S.arch) {
       // segmental arch: a low stone wedge over the frame
-      const a = wp(e, c - w / 2 - f - 0.1, y1 + f, 0.015), b = wp(e, c + w / 2 + f + 0.1, y1 + f, 0.015);
-      const m = wp(e, c, y1 + f + 0.38, 0.015), ml = wp(e, c - w / 2 - f - 0.1, y1 + f + 0.22, 0.015), mr = wp(e, c + w / 2 + f + 0.1, y1 + f + 0.22, 0.015);
+      const a = wp(e, c - w / 2 - f - 0.1, y1 + f, 0.025), b = wp(e, c + w / 2 + f + 0.1, y1 + f, 0.025);
+      const m = wp(e, c, y1 + f + 0.38, 0.025), ml = wp(e, c - w / 2 - f - 0.1, y1 + f + 0.22, 0.025), mr = wp(e, c + w / 2 + f + 0.1, y1 + f + 0.22, 0.025);
       D.quadOut(a, b, mr, ml, [e.nx, 0, e.ny], S.lintel);
       D.triOut(ml, mr, m, [e.nx, 0, e.ny], S.lintel);
-    } else fq(D, e, c - w / 2 - f - 0.06, c + w / 2 + f + 0.06, y1 + f, y1 + f + 0.2, 0.015, S.lintel);
+    } else fq(D, e, c - w / 2 - f - 0.06, c + w / 2 + f + 0.06, y1 + f, y1 + f + 0.2, 0.025, S.lintel);
   }
 }
 
@@ -214,13 +214,13 @@ function shopfront(D, e, s0, s1, top, S, r) {
   const span = s1 - s0;
   fbx(D, e, s0, s1, 0, 0.35, 0, 0.06, 0x8f8b84, F_PLAIN, FR | TOP);
   const frameC = r() < 0.5 ? 0x2a2b2d : WHITE;
-  fbx(D, e, s0, s1, 0.35, top, 0, 0.04, frameC, F_PLAIN, FR | SIDES);
+  fbx(D, e, s0, s1, 0.35, top, 0, 0.025, frameC, F_PLAIN, FR | SIDES);
   const n = Math.max(1, Math.round(span / 2.2));
   const bw = span / n, door = Math.floor(r() * n), rank = r();
   for (let i = 0; i < n; i++) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
     const y0 = i === door ? 0.06 : 0.42;
-    fq(D, e, a, b, y0, top - 0.07, 0.05, GLASS, F_GLASS, pane(e, rank, PANE_SHOP, b - a, top - 0.07 - y0, i));
+    fq(D, e, a, b, y0, top - 0.07, 0.045, GLASS, F_GLASS, pane(e, rank, PANE_SHOP, b - a, top - 0.07 - y0, i));
   }
   const sign = pick(r, SIGNS);
   fbx(D, e, s0, s1, top, top + 0.55, 0, 0.1, sign, F_PLAIN, FR | TOP | BOT | SIDES);
@@ -229,7 +229,8 @@ function shopfront(D, e, s0, s1, top, S, r) {
     const a0 = s0 + 0.1, a1 = s1 - 0.1, ya = top - 0.02, yb = top - 0.65, db = 1.3;
     const up = [e.nx * 0.5, 1, e.ny * 0.5];
     D.quadOut(wp(e, a0, ya, 0.1), wp(e, a1, ya, 0.1), wp(e, a1, yb, db), wp(e, a0, yb, db), up, c);
-    D.quadOut(wp(e, a0, ya, 0.1), wp(e, a1, ya, 0.1), wp(e, a1, yb, db), wp(e, a0, yb, db), [-up[0], -1, -up[2]], shade(c, 0.6));
+    const u = 0.03;
+    D.quadOut(wp(e, a0, ya - u, 0.1), wp(e, a1, ya - u, 0.1), wp(e, a1, yb - u, db), wp(e, a0, yb - u, db), [-up[0], -1, -up[2]], shade(c, 0.6));
     fq(D, e, a0, a1, yb - 0.25, yb, db, shade(c, 0.9));
   }
 }
@@ -785,7 +786,7 @@ function korenbeurs(B, ring, srcEdges) {
     const [x, , z] = at(t, 0.3 + i * 0.35, 0);
     LM.obox(B, x, z, 0, pw + 1.6 - i * 0.4, 0.4, 0.3 * (i + 1), rot, 0xb9b2a2, g.PLAIN);
   }
-  ebox2(B, main, t, 0, pw, frontEave - 1.6, 1.6, 0xd2c6a8, -1.6);
+  ebox2(B, main, t, 0, pw, frontEave - 1.6, 1.6, 0xd2c6a8, -1.57);
   for (let i = 0; i < 4; i++) {
     const s = t - pw / 2 + 1.0 + (pw - 2.0) * i / 3;
     const [x, , z] = at(s, 0.6, 0);

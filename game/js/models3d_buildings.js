@@ -479,22 +479,22 @@ function edgePaneUV(e, rank, kind, w, h, bay) {
 
 function addWindow(B, e, c, w, y0, y1, S, seed) {
   const f = 0.07;
-  wallQuad(B, e, c - w / 2 - f, c + w / 2 + f, y0 - f, y1 + f, 0.04, S.frame);
+  wallQuad(B, e, c - w / 2 - f, c + w / 2 + f, y0 - f, y1 + f, 0.03, S.frame);
   const glass = GLASS_TONES[Math.floor(hash2(seed, y0 * 3.1) * GLASS_TONES.length)];
-  wallQuad(B, e, c - w / 2, c + w / 2, y0, y1, 0.056, glass, G_GLASS, edgePaneUV(e, hash2(seed * 1.31, y0 * 7.7 + c), y0 < 2 ? PANE_GROUND : PANE_HOME, w, y1 - y0));
+  wallQuad(B, e, c - w / 2, c + w / 2, y0, y1, 0.045, glass, G_GLASS, edgePaneUV(e, hash2(seed * 1.31, y0 * 7.7 + c), y0 < 2 ? PANE_GROUND : PANE_HOME, w, y1 - y0));
   const tY = y0 + (y1 - y0) * 0.72;
   wallQuad(B, e, c - w / 2, c + w / 2, tY - 0.03, tY + 0.03, 0.06, S.frame);
   if (w > 0.85) wallQuad(B, e, c - 0.03, c + 0.03, y0, tY, 0.06, S.frame);
   wallBox(B, e, c - w / 2 - f - 0.06, c + w / 2 + f + 0.06, y0 - f - 0.07, y0 - f, 0, 0.13, S.sill, G_DETAIL, FACE_FRONT | FACE_TOP);
-  if (S.lintel) wallQuad(B, e, c - w / 2 - f - 0.05, c + w / 2 + f + 0.05, y1 + f, y1 + f + 0.16, 0.012, S.lintel);
+  if (S.lintel) wallQuad(B, e, c - w / 2 - f - 0.05, c + w / 2 + f + 0.05, y1 + f, y1 + f + 0.16, 0.025, S.lintel);
 }
 
 function addDoor(B, e, c, w, S, opts = {}) {
   const h = opts.h ?? 2.2;
   const f = 0.08;
-  wallBox(B, e, c - w / 2 - f, c + w / 2 + f, 0.12, h + 0.5 + f, 0, 0.06, S.frame, G_DETAIL, FACE_FRONT | FACE_SIDES | FACE_TOP);
+  wallBox(B, e, c - w / 2 - f, c + w / 2 + f, 0.12, h + 0.5 + f, 0, 0.05, S.frame, G_DETAIL, FACE_FRONT | FACE_SIDES | FACE_TOP);
   wallQuad(B, e, c - w / 2, c + w / 2, 0.15, h, 0.065, S.door);
-  if (w > 1.3) wallQuad(B, e, c - 0.025, c + 0.025, 0.15, h, 0.07, shade(S.door, 0.7));
+  if (w > 1.3) wallQuad(B, e, c - 0.025, c + 0.025, 0.15, h, 0.08, shade(S.door, 0.7));
   wallQuad(B, e, c - w / 2, c + w / 2, h + 0.08, h + 0.5, 0.065, GLASS_TONES[1], G_GLASS);
   wallBox(B, e, c - w / 2 - 0.2, c + w / 2 + 0.2, 0, 0.15, 0, 0.4, STONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
   if (opts.canopy) wallBox(B, e, c - w / 2 - 0.35, c + w / 2 + 0.35, h + 0.62, h + 0.74, 0, 0.9, TRIM_DARK);
@@ -502,14 +502,14 @@ function addDoor(B, e, c, w, S, opts = {}) {
 
 function addShopfront(B, e, s0, s1, top, S, seed) {
   const span = s1 - s0;
-  wallBox(B, e, s0, s1, 0, 0.4, 0, 0.07, HARDSTONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
+  wallBox(B, e, s0, s1, 0, 0.4, 0, 0.075, HARDSTONE, G_DETAIL, FACE_FRONT | FACE_TOP | FACE_SIDES);
   const frameC = S.shopFrame;
-  wallBox(B, e, s0, s1, 0.4, top, 0, 0.05, frameC, G_DETAIL, FACE_FRONT | FACE_SIDES);
+  wallBox(B, e, s0, s1, 0.4, top, 0, 0.04, frameC, G_DETAIL, FACE_FRONT | FACE_SIDES);
   const n = Math.max(1, Math.round(span / 1.9));
   const bw = span / n;
   const doorBay = Math.floor(hash2(seed, 2.2) * n);
   const shopRank = hash2(seed, 5.5);
-  const shopUV = (s0, s1, y0, y1, bay) => wallQuad(B, e, s0, s1, y0, y1, 0.056, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
+  const shopUV = (s0, s1, y0, y1, bay) => wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
   for (let i = 0; i < n; i++) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
     if (i === doorBay && bw > 1.1) {
@@ -532,7 +532,7 @@ function addShopfront(B, e, s0, s1, top, S, seed) {
       const c = i % 2 ? 0xe3ddd0 : S.awning;
       const p0 = a0 + i * sw, p1 = p0 + sw;
       B.quadOut(wp(e, p0, ya, da), wp(e, p1, ya, da), wp(e, p1, yb, db), wp(e, p0, yb, db), up, c);
-      B.quadOut(wp(e, p0, ya, da), wp(e, p1, ya, da), wp(e, p1, yb, db), wp(e, p0, yb, db), [-up[0], -1, -up[2]], shade(c, 0.6));
+      B.quadOut(wp(e, p0, ya - 0.03, da), wp(e, p1, ya - 0.03, da), wp(e, p1, yb - 0.03, db), wp(e, p0, yb - 0.03, db), [-up[0], -1, -up[2]], shade(c, 0.6));
       wallQuad(B, e, p0, p1, yb - 0.22, yb, db, c);
     }
   }
@@ -1005,9 +1005,9 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
       const dw = Math.min(3.5, e.len * 0.4);
       const c = e.len * (0.3 + 0.4 * r(14));
       const dh = Math.min(3.2, depth - 0.5);
-      wallBox(B, e, c - dw / 2 - 0.1, c + dw / 2 + 0.1, 0, dh + 0.1, 0, 0.05, 0x3a3c3e, G_DETAIL, FACE_FRONT | FACE_SIDES | FACE_TOP);
+      wallBox(B, e, c - dw / 2 - 0.1, c + dw / 2 + 0.1, 0, dh + 0.1, 0, 0.04, 0x3a3c3e, G_DETAIL, FACE_FRONT | FACE_SIDES | FACE_TOP);
       wallQuad(B, e, c - dw / 2, c + dw / 2, 0, dh, 0.055, 0x8a8c8e);
-      for (let k = 1; k < 6; k++) wallQuad(B, e, c - dw / 2, c + dw / 2, (dh * k) / 6 - 0.02, (dh * k) / 6 + 0.02, 0.06, 0x6a6c6e);
+      for (let k = 1; k < 6; k++) wallQuad(B, e, c - dw / 2, c + dw / 2, (dh * k) / 6 - 0.02, (dh * k) / 6 + 0.02, 0.07, 0x6a6c6e);
     } else if (industrial && e === mainEdge) {
       addDoor(B, e, e.len / 2, Math.min(1, e.len - 0.6), S, { h: Math.min(2.1, depth - 0.3) });
     }

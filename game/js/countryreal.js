@@ -109,6 +109,13 @@ function ownModel(i) {
   // a big detached house out in the polder is a farmhouse with a hipped roof
   if (kind === 'house' && !row && !hip && area > 150 && urban < 0.35) { hip = true; wall = Math.min(wall, 3.4); roof = Math.min(8, Math.max(4.5, short * 0.62)); }
   else if (kind === 'house' && !row && !hip && hu < 0.12) hip = true;
+  // row units of one depth and height would share coplanar fronts, backs and
+  // roof slopes where their boxes overlap: every other unit along the row
+  // stands 4 cm proud front and back and 5 cm higher
+  if (row) {
+    const s = REAL.bx[i] * Math.cos(angle) + REAL.by[i] * Math.sin(angle);
+    if (Math.round(s / Math.max(2, long)) & 1) { short += 0.08; wall += 0.05; }
+  }
   return { kind, wall, roof, hip, color, roofColor: rc, long, short, angle, row };
 }
 
