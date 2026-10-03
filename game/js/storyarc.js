@@ -509,7 +509,8 @@ export function computeMoneyTimeline(start = START_MONEY, payShare = 1) {
 
 // "Wat weten we?" (pause menu, Te doen › Verhaal): what Tammo and Anita know so far.
 // A clue shows once its step is done, so the journal never spoils ahead.
-// kind: 'clue' (about Jelle's plan), 'hart' (motivations and turning points).
+// kind: 'clue' (about Jelle's plan), 'hart' (motivations and turning points),
+// 'taal' (Gronings the story leans on: the complimentenladder and its treden).
 export const WHY = {
   kop: 'De Gouden Eierbal halen voordat die Fries het doet. Daarna zien we wel. Voor de Fjord Frituur.',
   romp: 'Uitzoeken waar de bal is, en wat Jelle van plan is met al dat vet.',
@@ -517,6 +518,7 @@ export const WHY = {
 };
 
 export const CLUES = [
+  { step: 'H1', kind: 'taal', title: 'De complimentenladder', text: 'Een Stadjer geeft geen complimenten, hij klimt een ladder. Zes treden: Ow (aardig), Goud (goed), Valt mie nait of (valt niet tegen: heel goed), Braid noar de zin (helemaal tevreden), Kon minder (beter bestaat niet) en bovenaan niks meer, met een kloet in de strotte (een brok in de keel). Berend zei "Goud": trede twee.' },
   { step: 'H1', kind: 'clue', title: 'Een Fries met een klomp', text: 'Berend: een Fries in een blauw colbert wilde zijn bakkie kopen. Contant, uit een klomp. In augustus.' },
   { step: 'H2', kind: 'clue', title: 'De reuzen en het museum', text: 'Sjabbe: twee reuzen kochten alles wat met frituren te maken heeft. Hun baas vroeg waar het museum alarmen heeft. De Gouden Eierbal, achttien karaat.' },
   { step: 'H2', kind: 'hart', title: 'De bal van Grunn', text: 'Tammo\'s opa stond in 1953 op de Grote Markt toen we hem wonnen. Hij huilde. Tammo zegt niks. Dat is ook een antwoord.' },
