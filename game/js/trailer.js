@@ -669,7 +669,7 @@ function buildShots(w) {
     enter(r, s) {
       r.prop('terrace', () => buildTerrace(tables));
       clearAround(r, vm, 70);
-      s.birds = makeBirds(r.group, vm.x + vf.x * 4, vm.y + vf.y * 4, 5.5, 72);
+      s.birds = makeBirds(r.group, vm.x + vf.x * 4, vm.y + vf.y * 4, 5.5, 72, { avoid: 7 });
       s.gone = false;
       s.extraPeds = spawnPedestriansNear(map, vm.x, vm.y, 30, Math.random);
       r.w.pedestrians.push(...s.extraPeds);

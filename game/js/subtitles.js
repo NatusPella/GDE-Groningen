@@ -375,18 +375,52 @@ export function langOf(text) {
 
 const escHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-// HTML for a line plus its Dutch subtitle (both escaped).
-export function dualHtml(text) {
+// A long line that differs from its translation in a word or two only gets
+// those words glossed inline ("twijduustern (de schemer)") instead of the
+// whole line a second time underneath: { pre, word, nl, post } or null.
+export function glossOf(text, nl) {
+  if (!text || !nl) return null;
+  const a = String(text).split(' '), b = String(nl).split(' ');
+  if (a.length < 6) return null;
+  let p = 0;
+  while (p < a.length && p < b.length && a[p] === b[p]) p++;
+  let q = 0;
+  while (q < a.length - p && q < b.length - p && a[a.length - 1 - q] === b[b.length - 1 - q]) q++;
+  const wa = a.slice(p, a.length - q), wb = b.slice(p, b.length - q);
+  if (!wa.length || !wb.length || wa.length > 3 || wb.length > 4) return null;
+  let word = wa.join(' '), dut = wb.join(' '), tail = '';
+  // punctuation both share stays outside the gloss: "Moi, (Hoi,)" -> "Moi (Hoi),"
+  const m = /[.,!?:;…]+$/.exec(word);
+  if (m && dut.endsWith(m[0])) { tail = m[0]; word = word.slice(0, -tail.length); dut = dut.slice(0, -tail.length); }
+  const pre = a.slice(0, p).join(' '), post = a.slice(a.length - q).join(' ');
+  return { pre: pre ? pre + ' ' : '', word, nl: dut, post: tail + (post ? ' ' + post : '') };
+}
+
+// HTML for a line plus its Dutch subtitle (both escaped); gloss: a film
+// subtitle, where a near-identical second line reads as a doubled subtitle.
+export function dualHtml(text, { gloss = false } = {}) {
   const nl = dutchFor(text);
+  const g = gloss && glossOf(text, nl);
+  if (g) return `${escHtml(g.pre + g.word)} <span class="nl-gloss" lang="nl">(${escHtml(g.nl)})</span>${escHtml(g.post)}`;
   return escHtml(text ?? '') + (nl ? `<span class="nl-sub" lang="nl">${escHtml(nl)}</span>` : '');
 }
 
 // Sets an element to a line plus its Dutch subtitle.
-export function setDualText(el, text) {
+export function setDualText(el, text, { gloss = false } = {}) {
   if (!el) return;
   el.textContent = text ?? '';
   const nl = dutchFor(text);
   if (!nl) return;
+  const g = gloss && glossOf(text, nl);
+  if (g) {
+    el.textContent = g.pre + g.word + ' ';
+    const gl = document.createElement('span');
+    gl.className = 'nl-gloss';
+    gl.lang = 'nl';
+    gl.textContent = '(' + g.nl + ')';
+    el.append(gl, g.post);
+    return;
+  }
   const sub = document.createElement('span');
   sub.className = 'nl-sub';
   sub.lang = 'nl';

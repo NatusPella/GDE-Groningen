@@ -19,9 +19,15 @@ import { pointInPolygon } from './util.js';
 // roofs and gables behind them sit on its flat top.
 
 const LEVEL = 3.1;
-const { G, C } = LM;
+// landmarks3d.js and this module meet in an import cycle: LM is read on the
+// first call (lmReady), never while the modules load.
+let G, C, MARKT_FACADE_MATERIALS;
 const F_PLAIN = 0, F_GLASS = 1, F_BRICK = 2, F_METAL = 3, F_TILE = 4;
-export const MARKT_FACADE_MATERIALS = [LANDMARK_MATERIALS[G.PLAIN], glassMaterial, LANDMARK_MATERIALS[G.BRICK], LANDMARK_MATERIALS[G.METAL], LANDMARK_MATERIALS[G.TILE]];
+function lmReady() {
+  if (G) return;
+  ({ G, C } = LM);
+  MARKT_FACADE_MATERIALS = [LANDMARK_MATERIALS[G.PLAIN], glassMaterial, LANDMARK_MATERIALS[G.BRICK], LANDMARK_MATERIALS[G.METAL], LANDMARK_MATERIALS[G.TILE]];
+}
 
 // --- where -------------------------------------------------------------------------
 
@@ -67,6 +73,7 @@ function centroidOf(b) {
 
 // 'model' | 'facade' | null, cached on the building.
 export function marktKind(b) {
+  lmReady();
   if (b._marktKind !== undefined) return b._marktKind;
   let k = null;
   if (b.name && MODELS[b.name]) k = 'model';
@@ -708,6 +715,7 @@ function buildModel(b, ring, edges) {
 
 // The building's group, its geometry cached in `parts` (disposed with them).
 export function buildMarktGroup(b, parts, ring, edges) {
+  lmReady();
   const kind = marktKind(b);
   if (kind === 'model') {
     if (parts.marktModel === undefined) parts.marktModel = buildModel(b, ring, edges);
