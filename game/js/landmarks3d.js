@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { GeoBuilder, vcMaterial, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { MUSEUM_ROOMS, rectCorners } from './museumplan.js';
+import { paddepoelBlock, setPaddepoelNight } from './paddepoel3d.js';
 
 // Procedural models for the named Groningen landmarks, one merged
 // vertex-coloured geometry per building (five shared materials). Geometry is
@@ -28,6 +29,7 @@ for (const m of LANDMARK_MATERIALS) m.userData.shared = true;
 // used by ordinary buildings needs per-pane UVs these models don't have).
 export function setLandmarkNight(glow) {
   glassMat.emissiveIntensity = Math.min(0.5, glow * 0.22);
+  setPaddepoelNight(glow);
 }
 
 const C = {
@@ -1086,6 +1088,7 @@ const BUILDERS = {
   Academiegebouw: (B, b, ring, edges) => academiegebouw(B, ring, edges),
   Goudkantoor: (B, b, ring, edges) => goudkantoor(B, ring, edges),
   Euroborg: (B, b, ring) => euroborgStand(B, b, ring),
+  'Winkelcentrum Paddepoel': (B, b, ring, edges) => paddepoelBlock(B, b, ring, edges),
 };
 
 // Named city buildings that get a model without being a spawn landmark.
