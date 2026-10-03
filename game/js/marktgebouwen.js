@@ -63,6 +63,9 @@ const MODELS = {
   'Het Groot Handelshuis': (B, b, ring, edges) => grootHandelshuis(B, b, ring, edges),
   Calmershuis: (B, b, ring, edges) => calmershuis(B, ring, edges),
   'Kiosk Grote Markt': (B, b, ring) => kiosk(B, ring),
+  'Van Gend & Loos': (B, b, ring, edges) => vanGendLoos(B, b, ring, edges),
+  'Mutua Fides': (B, b, ring, edges) => mutuaFides(B, b, ring, edges),
+  Merckt: (B, b, ring, edges) => merckt(B, b, ring, edges),
 };
 const NO_FACADE = new Set(['church', 'cathedral', 'industrial', 'shed', 'garage', 'garages', 'houseboat', 'roof', 'kiosk', 'carport', 'service', 'construction']);
 
@@ -238,11 +241,14 @@ function lijstRoof(B, D, e, s0, s1, Ep, Hb, depth, S, r) {
   const y1 = Ep + rise;
   const a = 0.25;
   const n = [e.nx, 0, e.ny];
-  B.quadOut(wp(e, s0, Ep, -a), wp(e, s1, Ep, -a), wp(e, s1, y1, -dr), wp(e, s0, y1, -dr), [n[0], 1, n[2]], S.tile, F_TILE);
-  B.quadOut(wp(e, s0, Ep, -back), wp(e, s1, Ep, -back), wp(e, s1, y1, -dr), wp(e, s0, y1, -dr), [-n[0], 1, -n[2]], S.tile, F_TILE);
+  // hipped (schilddak): the ridge stops short of both ends, tiled hips slope down to them
+  const ins = S.hip ? Math.min(dr, (s1 - s0) / 2 - 0.05) : 0;
+  B.quadOut(wp(e, s0, Ep, -a), wp(e, s1, Ep, -a), wp(e, s1 - ins, y1, -dr), wp(e, s0 + ins, y1, -dr), [n[0], 1, n[2]], S.tile, F_TILE);
+  B.quadOut(wp(e, s0, Ep, -back), wp(e, s1, Ep, -back), wp(e, s1 - ins, y1, -dr), wp(e, s0 + ins, y1, -dr), [-n[0], 1, -n[2]], S.tile, F_TILE);
   for (const s of [s0, s1]) {
     const out = s === s0 ? [-e.tx, 0, -e.ty] : [e.tx, 0, e.ty];
-    B.triOut(wp(e, s, Ep, -a), wp(e, s, Ep, -back), wp(e, s, y1, -dr), out, S.wall, S.g);
+    if (ins) B.triOut(wp(e, s, Ep, -a), wp(e, s, Ep, -back), wp(e, s === s0 ? s0 + ins : s1 - ins, y1, -dr), [out[0], 1, out[2]], S.tile, F_TILE);
+    else B.triOut(wp(e, s, Ep, -a), wp(e, s, Ep, -back), wp(e, s, y1, -dr), out, S.wall, S.g);
     if (Ep > Hb + 0.05) B.quadOut(wp(e, s, Hb, 0), wp(e, s, Hb, -back), wp(e, s, Ep, -back), wp(e, s, Ep, 0), out, S.wall, S.g);
   }
   if (Ep > Hb + 0.05) fq(B, e, s0, s1, Hb, Ep, -back, S.wall, S.g);
@@ -420,13 +426,9 @@ const OVERRIDES = {
   // Grote Markt 37-38: "Groote Griet", straight cornice
   drieGezusters37: { kinds: ['lijst', 'lijst'], wall: 0xe4e1d8 },
   // Grote Markt 39: 18th-c classical front, cornice with pediment, hipped roof
-  drieGezusters39: { kinds: ['lijst'], wall: 0xece2c8, pediment: true, single: true },
+  drieGezusters39: { kinds: ['lijst'], wall: 0xece2c8, pediment: true, hip: true, single: true },
   // Westcord Market Hotel: stepped gables in pale natural stone
   marketHotel: { kinds: ['trap'], wall: 0xd8cfbd, frame: 0x50555a, width: 7.5 },
-  // Merckt: light brick, white piers, gold frames
-  merckt: { kinds: ['lijstFlat'], wall: 0xc9a684, wallG: F_BRICK, frame: 0xc8a24a, trim: WHITE, width: 6.5 },
-  // Mutua Fides / Vindicat: dark brick, gabled roofscape
-  mutuaFides: { kinds: ['postwarGable', 'postwarGable', 'postwar'], wall: 0x5e3a30, frame: 0x2a2a2a, width: 7 },
   // Grand Theatre (1929)
   grandTheatre: { kinds: ['lijstFlat'], wall: 0xe6dcc4, single: true },
 };
@@ -451,6 +453,7 @@ function buildFacade(b, ring, edges) {
     if (isFront) front.push(e);
     else {
       fq(B, e, 0, e.len, 0, Hb, 0, base, baseG);
+      if (e.party && e.len >= 3 && e.partyTop < Hb - 2.2) exposedParty(D, e, Hb, r);
       if (!e.party && e.len >= 3) {
         const n = Math.floor(e.len / 3);
         for (let i = 0; i < n; i++) for (let y = 4; y + 1.6 < Hb; y += 3.1) {
@@ -485,6 +488,7 @@ function buildFacade(b, ring, edges) {
         if (ov.frame) S.frame = ov.frame;
         if (ov.trim) S.trim = ov.trim;
         if (ov.pediment) S.pediment = true;
+        if (ov.hip) S.hip = true;
       }
       const post = kind === 'postwar' || kind === 'postwarGable';
       S.Ep = Hb + (post ? 0.3 : 0.4 + r() * 1.5);
@@ -500,6 +504,19 @@ function buildFacade(b, ring, edges) {
   return { shell: B.build(), detail: D.build() };
 }
 
+// The part of a party wall that rises above a lower neighbour faces the
+// square: sash windows in storey rows above the neighbour's roof, like the
+// side fronts of a corner pand.
+function exposedParty(D, e, Hb, r) {
+  const S = { frame: WHITE, sill: STONE, bars: true, lintel: null };
+  const n = Math.floor((e.len - 1.2) / 2.6);
+  if (n < 1) return;
+  const bw = (e.len - 1.2) / n;
+  for (let y = Math.max(e.partyTop + 0.9, 4.2); y + 1.9 < Hb; y += LEVEL) {
+    for (let i = 0; i < n; i++) sashWindow(D, e, 0.6 + (i + 0.5) * bw, 1.1, y, y + 1.65, S, r());
+  }
+}
+
 // Raised corner volume on Natalini's Grote Markt wing (by the Waagstraat).
 function nataliniTower(B, D, front, Hb, r) {
   let e = front[0];
@@ -513,6 +530,201 @@ function nataliniTower(B, D, front, Hb, r) {
   fbx(B, e, s0 - 0.2, s1 + 0.2, top, top + 0.4, -5.7, 0.25, 0xe2d8c0, F_PLAIN, FR | TOP | SIDES | BACK | BOT);
   const [x, z] = wpXZ(e, (s0 + s1) / 2, -2.7);
   LM.prism(B, new THREE.ConeGeometry(4.2, 3.6, 4, 1, true), x, top + 0.4 + 1.8, z, Math.atan2(e.ty, e.tx) + Math.PI / 4, S.tile, F_METAL);
+}
+
+// --- Vismarkt 34: Van Gend & Loos (1911-12, P.M.A. Huurman) ------------------------
+
+// Expedition office with a dwelling, neo-Gothic, in the closed south wall of
+// the Vismarkt: three storeys and four bays of red-brown brick with stone
+// bands; the east (entrance) bay stands a metre proud. Both the entrance bay
+// and the main front end in a stepped gable, a shield-bearing lion on the
+// first; the gable tops sit on an arched corbel frieze. Shopfront with a
+// wooden canopy on consoles, cross windows on the first floor, round-arched
+// ones on the second; a saddle roof of black pantiles behind.
+function vanGendLoos(B, b, ring, srcEdges) {
+  const { G: g } = LM;
+  const brick = 0x8a3f2e, stone = 0xddd2b6, tile = 0x2e3034, frame = 0xece6d8;
+  const eave = 9.4;
+  const edges = LM.edgesOf(ring, LM.partyTester(srcEdges));
+  const front = edges.filter((e) => !e.party && e.len >= 2 && squareDist((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2) < 8);
+  if (!front.length) return false;
+  front.sort((p, q) => q.len - p.len);
+  const main = front[0];
+  // the saddle roof: ridge at right angles to the front
+  const F = LM.frameFrom(-main.nx, -main.ny, ring);
+  const roof = LM.polyGableRoof(B, ring, F, eave, 4.6, 48, tile, brick);
+  const rise = roof.ridge - eave;
+  for (const e of front) {
+    const bay = e !== main;
+    const bays = bay ? 1 : Math.max(1, Math.round(e.len / 2.1));
+    const bw = e.len / bays;
+    // stone bands, shopfront, canopy on consoles
+    LM.ebox(B, e, e.len / 2, 0, e.len, 0.5, 0.08, stone, g.PLAIN, 0);
+    LM.ebox(B, e, e.len / 2, 4.0, e.len, 0.3, 0.1, stone, g.PLAIN, 0);
+    LM.ebox(B, e, e.len / 2, 6.75, e.len, 0.2, 0.08, stone, g.PLAIN, 0);
+    if (bay) {
+      LM.ebox(B, e, e.len / 2, 0.1, 1.5, 2.9, 0.08, stone, g.PLAIN, 0.02);
+      LM.ebox(B, e, e.len / 2, 0.2, 1.1, 2.6, 0.05, 0x5a3b26, g.PLAIN, 0.08);
+      LM.ebox(B, e, e.len / 2, 4.6, 1.1, 1.0, 0.05, C.glass, g.GLASS, 0.03);
+    } else {
+      LM.ebox(B, e, e.len / 2, 0.5, e.len - 0.6, 3.0, 0.05, 0x3a2c22, g.PLAIN, 0.02);
+      LM.ebox(B, e, e.len / 2, 0.6, e.len - 0.9, 2.8, 0.05, C.glass, g.GLASS, 0.05);
+      LM.ebox(B, e, e.len / 2, 3.45, e.len - 0.9, 0.4, 0.05, 0xb35a3a, g.GLASS, 0.06);
+      LM.ebox(B, e, e.len / 2, 3.55, e.len - 0.2, 0.18, 1.1, 0x4a3324, g.PLAIN, 0.05);
+      for (const t of [0.4, e.len - 0.4]) LM.ebox(B, e, t, 3.0, 0.25, 0.55, 0.9, stone, g.PLAIN, 0.05);
+    }
+    for (let i = 0; i < bays; i++) {
+      const t = (i + 0.5) * bw;
+      if (!bay) {
+        // cross window: white frame, mullion and transom
+        LM.ebox(B, e, t, 4.45, 1.3, 2.0, 0.05, frame, g.PLAIN, 0.02);
+        LM.ebox(B, e, t, 4.55, 1.1, 1.8, 0.05, C.glass, g.GLASS, 0.05);
+        LM.ebox(B, e, t, 4.55, 0.08, 1.8, 0.04, frame, g.PLAIN, 0.09);
+        LM.ebox(B, e, t, 5.75, 1.1, 0.08, 0.04, frame, g.PLAIN, 0.09);
+      }
+      LM.archWindow(B, e, t, 7.05, bay ? 0.9 : 1.15, 1.45, { pointed: false, frame: stone });
+    }
+    // arched corbel frieze under the gable, then the stepped gable
+    const half = e.len / 2, top = bay ? eave + rise * 0.55 : eave + rise + 1.4;
+    for (let i = 0; i < Math.max(2, Math.round(e.len / 0.8)); i++) {
+      const t = (i + 0.5) * e.len / Math.max(2, Math.round(e.len / 0.8));
+      LM.ebox(B, e, t, eave - 0.45, 0.16, 0.35, 0.18, stone, g.PLAIN, 0);
+    }
+    LM.ebox(B, e, e.len / 2, eave - 0.1, e.len + 0.1, 0.22, 0.24, stone, g.PLAIN, 0);
+    const steps = bay ? 3 : 5, sh = (top - eave) / steps;
+    for (let k = 0; k < steps; k++) {
+      const y0 = eave + k * sh;
+      const hw = Math.max(0.45, half * (1 - 0.8 * k / steps) + 0.15);
+      LM.ebox(B, e, e.len / 2, y0, hw * 2, sh, 0.4, brick, g.BRICK, bay ? 0 : -0.05);
+      LM.ebox(B, e, e.len / 2, y0 + sh, hw * 2 + 0.1, 0.14, 0.5, stone, g.PLAIN, bay ? -0.05 : -0.1);
+    }
+    if (!bay) {
+      // the gable's attic window and the stone tracery strip
+      LM.archWindow(B, e, e.len / 2, eave + 0.6, 0.8, 1.2, { pointed: false, frame: stone, out: 0.35 });
+    } else {
+      // the shield-bearing lion on the entrance gable
+      const [x, , z] = LM.W(e.a[0] + e.tx * half + e.nx * 0.2, 0, e.a[1] + e.ty * half + e.ny * 0.2);
+      LM.obox(B, x, z, top + 0.14, 0.45, 0.7, 0.55, Math.atan2(e.ty, e.tx), stone, g.PLAIN);
+      LM.obox(B, x + e.tx * 0.1, z + e.ty * 0.1, top + 0.65, 0.3, 0.3, 0.35, Math.atan2(e.ty, e.tx), stone, g.PLAIN);
+      LM.obox(B, x + e.nx * 0.3, z + e.ny * 0.3, top + 0.3, 0.4, 0.08, 0.5, Math.atan2(e.ty, e.tx), 0xc8a24a, g.METAL);
+    }
+  }
+}
+
+// --- Mutua Fides, sociëteit of Vindicat (De Zwarte Hond, 2012-14) ------------------
+
+// The first building of the new oostwand, on the corner with the
+// Martinikerkhof: as tall as the envelope allowed, in ochre-yellow brick
+// "between the Martinitoren and the Grand Theatre"; it shows and hides the
+// city through few, large, deep-set windows, a balcony on the Grote Markt,
+// a closed ground floor with three doors (members, staff, goods) and a
+// penthouse on a roof terrace on the sixth floor.
+function mutuaFides(B, b, ring, srcEdges) {
+  const { G: g } = LM;
+  const brick = 0xc79a55, frame = 0x4a3e30, stone = 0xe3d6b8;
+  const H = Math.max(12, b.h * LEVEL);
+  const edges = LM.edgesOf(ring, LM.partyTester(srcEdges));
+  LM.walls(B, ring, 0, () => H, brick, g.BRICK);
+  LM.cap(B, ring, () => H, 0x6a6660, g.PLAIN);
+  let main = null;
+  for (const e of edges) {
+    if (e.party || e.len < 3) continue;
+    const d = squareDist((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2);
+    if (!main || d < main.d) main = { e, d };
+  }
+  const floors = Math.max(3, Math.round((H - 4.2) / 3.4));
+  const fh = (H - 4.2 - 0.8) / floors;
+  edges.forEach((e, ei) => {
+    if (e.party || e.len < 3) return;
+    const isMain = main && e === main.e;
+    // the plinth: brick, a stone base course, a door in the middle of the longer walls
+    LM.ebox(B, e, e.len / 2, 0, e.len, 0.45, 0.06, stone, g.PLAIN, 0);
+    if (e.len > 9) {
+      LM.ebox(B, e, e.len * 0.5, 0, 1.6, 2.8, 0.08, frame, g.METAL, 0.02);
+      LM.ebox(B, e, e.len * 0.5, 0.1, 1.3, 2.6, 0.05, 0x2c2a28, g.PLAIN, 0.06);
+      // an old gevelsteen re-used beside it
+      LM.ebox(B, e, e.len * 0.5 + 1.5, 2.2, 0.6, 0.6, 0.05, stone, g.PLAIN, 0.02);
+    }
+    // big deep-set windows in an uneven rhythm, two columns kept closed per wall
+    const n = Math.max(1, Math.floor(e.len / 3.6));
+    const bw = e.len / n;
+    for (let f = 0; f < floors; f++) {
+      const y = 4.2 + f * fh;
+      for (let i = 0; i < n; i++) {
+        const h = hash2(ei * 13.1 + i * 3.7, f * 5.3);
+        if (h < 0.28) continue;
+        const wide = h > 0.78 ? 2.6 : 1.5;
+        const t = (i + 0.5) * bw + (hash2(i, ei + f) - 0.5) * 0.6;
+        LM.ebox(B, e, t, y + 0.3, wide + 0.3, fh - 0.5, 0.06, frame, g.METAL, 0.01);
+        LM.ebox(B, e, t, y + 0.42, wide, fh - 0.74, 0.04, C.glass, g.GLASS, 0.04);
+        LM.ebox(B, e, t, y + 0.2, wide + 0.5, 0.14, 0.2, stone, g.PLAIN, 0);
+      }
+    }
+    // the balcony on the Grote Markt: a steel slab with a railing on the first floor
+    if (isMain && e.len > 8) {
+      const t = e.len / 2, y = 4.2;
+      LM.ebox(B, e, t, y - 0.25, 7.2, 0.25, 1.5, 0x3b3833, g.METAL, 0);
+      LM.ebox(B, e, t, y, 7.2, 1.05, 0.05, 0x2f2c29, g.METAL, 1.45);
+      LM.ebox(B, e, t, y + 0.12, 6.4, fh - 0.4, 0.05, frame, g.METAL, 0.01);
+      LM.ebox(B, e, t, y + 0.22, 6.0, fh - 0.6, 0.04, C.glass, g.GLASS, 0.05);
+    }
+    // a soldier course under the roof edge
+    LM.ebox(B, e, e.len / 2, H - 0.35, e.len + 0.04, 0.35, 0.05, shade(brick, 0.88), g.BRICK, 0);
+  });
+  // the penthouse on the sixth floor, set back from the square behind a roof terrace
+  const F = LM.minAreaFrame(ring);
+  const su = (F.u1 - F.u0) * 0.45, sv = (F.v1 - F.v0) * 0.45;
+  let cu = (F.u0 + F.u1) / 2, cv = (F.v0 + F.v1) / 2;
+  if (main) {
+    const mu = F.U(main.e.nx, main.e.ny), mv = F.V(main.e.nx, main.e.ny);
+    cu -= mu * (F.u1 - F.u0) * 0.15; cv -= mv * (F.v1 - F.v0) * 0.15;
+  }
+  const [px, pz] = F.P(cu, cv);
+  if (pointInPolygon(px, pz, ring)) {
+    LM.obox(B, px, pz, H, su, sv, 3.0, F.rot, brick, g.BRICK);
+    LM.obox(B, px, pz, H + 0.4, su + 0.06, sv + 0.06, 2.1, F.rot, C.glass, g.GLASS);
+    LM.obox(B, px, pz, H + 3.0, su + 0.4, sv + 0.4, 0.25, F.rot, 0x5d5f62, g.PLAIN);
+  }
+  for (const e of edges) if (!e.party && e.len > 1) LM.ebox(B, e, e.len / 2, H, e.len, 1.1, 0.05, 0x2f2c29, g.METAL, -0.3);
+}
+
+// --- Merckt (Powerhouse Company, 2016-19), south-east corner -----------------------
+
+// "A classic facade with a plinth, midsection and crown": a public plinth
+// opened up by rows of slender concrete arches (the food market, two
+// storeys), a midsection of pale brick of Groningen clay with vertical gold
+// lines, and a crown of smaller arches under the roof edge.
+function merckt(B, b, ring, srcEdges) {
+  const { G: g } = LM;
+  const brick = 0xdccbaa, concrete = 0xe9e3d4, gold = 0xc9a24a;
+  const H = Math.max(14, b.h * LEVEL), P = 8.0, crown = H - 2.9;
+  const edges = LM.edgesOf(ring, LM.partyTester(srcEdges));
+  LM.walls(B, ring, 0, () => P, concrete, g.PLAIN);
+  LM.walls(B, ring, P, () => crown, brick, g.BRICK);
+  LM.walls(B, ring, crown, () => H, concrete, g.PLAIN);
+  LM.cap(B, ring, () => H, 0x6a6660, g.PLAIN);
+  for (const e of edges) {
+    if (e.party || e.len < 2.6) continue;
+    // plinth arches, two storeys tall
+    for (const t of LM.slots(e.len, 2.7, 0.35)) LM.archWindow(B, e, t, 0.05, 1.9, 6.4, { pointed: false, frame: concrete });
+    LM.ebox(B, e, e.len / 2, P - 0.4, e.len + 0.06, 0.4, 0.22, concrete, g.PLAIN, 0);
+    // midsection: windows per floor, gold lines between the bays
+    const pos = LM.slots(e.len, 2.7, 0.35);
+    const floors = Math.max(1, Math.round((crown - P) / 3.0)), fh = (crown - P) / floors;
+    for (let f = 0; f < floors; f++) {
+      for (const t of pos) {
+        LM.ebox(B, e, t, P + f * fh + 0.5, 1.6, fh - 0.8, 0.04, C.glass, g.GLASS, 0.02);
+        LM.ebox(B, e, t, P + f * fh + 0.38, 1.8, 0.12, 0.16, concrete, g.PLAIN, 0);
+      }
+    }
+    for (let i = 0; i <= pos.length; i++) {
+      const t = i === 0 ? 0.35 : i === pos.length ? e.len - 0.35 : (pos[i - 1] + pos[i]) / 2;
+      LM.ebox(B, e, t, P, 0.12, crown - P, 0.14, gold, g.METAL, 0.01);
+    }
+    // the crown: smaller slender arches, a thin cornice
+    for (const t of pos) LM.archWindow(B, e, t, crown + 0.25, 1.2, 1.7, { pointed: false, frame: concrete });
+    LM.ebox(B, e, e.len / 2, H - 0.3, e.len + 0.2, 0.3, 0.3, concrete, g.PLAIN, 0);
+  }
 }
 
 // --- Korenbeurs (1862-65, J.G. van Beusekom) ---------------------------------------
