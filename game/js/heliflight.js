@@ -1,10 +1,9 @@
 // The own helicopter (the Wieken Wubbo from Rotor Roelf on Eelde, shops.js):
 // a Vehicle with v.isHeli, flown with easy arcade controls.
 //
-//   W / S        climb / descend          A / D       turn (yaw)
-//   Arrow keys   forward, back, sideways  mouse (captured) turns too
-//   Shift        boost (forward at full speed)
-//   Space        hover: brake to a standstill and hold height
+//   W / S        forward / back (S brakes first)   A / D   turn (yaw)
+//   Space / Ctrl up / down                          Shift   boost (more speed)
+//   Arrow keys   forward, back, sideways             mouse (captured) turns too
 //
 // Releasing the keys levels the heli and it drifts to a hover. The body and
 // the rotor are swept against the city's buildings and the real Ommeland
@@ -184,13 +183,13 @@ export function flyHeli(v, dt, w) {
 
   // controls
   const k = (key) => (inp.isDown(key) ? 1 : 0);
-  let up = k('w') - k('s');
+  let up = k(' ') - k('control');
   let yaw = k('d') - k('a');
-  let fwd = k('arrowup') - k('arrowdown');
+  let fwd = Math.max(-1, Math.min(1, k('w') + k('arrowup') - k('s') - k('arrowdown')));
   const side = k('arrowright') - k('arrowleft');
   const boost = k('shift') > 0;
-  const hover = k(' ') > 0;
-  if (boost && fwd <= 0) fwd = 1;
+  // S while still flying forward brakes hard first, then it backs up
+  const hover = fwd < 0 && vx * Math.cos(v.angle) + vy * Math.sin(v.angle) > 2;
   if (dead || held) { up = dead ? -1 : 0; yaw *= dead ? 0.3 : 0; fwd = 0; }
   v.throttle = up;
 
@@ -198,6 +197,7 @@ export function flyHeli(v, dt, w) {
   v.rotor = clamp((v.rotor || 0) + (dead ? -dt / SPOOL_DOWN : dt / SPOOL_UP), 0, 1);
   const ready = v.rotor >= LIFT_SPOOL;
   if (!ready && !dead && up > 0 && v.onGround) say('spool', 'De rotor draait op, nog even...', 1.6, 'tip', 4);
+  else if (v.onGround && ready && !dead && fwd !== 0 && up <= 0) say('takeoff', 'Eerst opstijgen: Spatie', 2.2, 'tip', 8);
 
   // heading: keys build a turn rate, the mouse turns straight
   const want = yaw * YAW_RATE * (v.onGround && !ready ? 0 : 1);
@@ -208,7 +208,7 @@ export function flyHeli(v, dt, w) {
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
 
   // horizontal: towards the speed the keys ask for, in the heli's own frame
-  const fwdSpeed = fwd > 0 ? fwd * (boost ? BOOST : CRUISE) : fwd * BACK;
+  const fwdSpeed = hover ? 0 : fwd > 0 ? fwd * (boost ? BOOST : CRUISE) : fwd * BACK;
   let tvx = c * fwdSpeed - s * side * SIDE, tvy = s * fwdSpeed + c * side * SIDE;
   const steering = fwd !== 0 || side !== 0;
   let rate = hover ? HOVER : steering ? (boost ? BOOST_ACC : ACC) : COAST;
@@ -320,7 +320,7 @@ export function flyHeli(v, dt, w) {
         hurt(v, Math.max(0, impactV - LAND_VZ) * 7 + Math.max(0, hs - LAND_H) * 3, w);
         vz = impactV * 0.3;
         vx *= 0.4; vy *= 0.4;
-        say('hard', 'Harde landing! Rustiger dalen, en eerst stilhangen (spatie)', 3, 'tip', 5);
+        say('hard', 'Harde landing! Eerst stilhangen (W los, S remt), dan rustig dalen met Ctrl', 3, 'tip', 5);
       } else {
         v.onGround = true;
         v.landKind = surf.kind;
@@ -377,7 +377,7 @@ function outsideCity(map, x, y) {
 // '' when the player can climb out, else the reason.
 export function heliExitBlock(v) {
   if (!v || !v.isHeli || v.wrecked || v.sinking) return '';
-  if (!v.onGround) return 'Eerst landen: laag en langzaam boven een vlak stuk, dan S';
+  if (!v.onGround) return 'Eerst landen: laag en langzaam boven een vlak stuk, dan Ctrl';
   if (Math.hypot(v.vx || 0, v.vy || 0) > 2) return 'Eerst stilstaan';
   if (v.landKind === 'roof' || (v.landKind === 'pad' && v.landPad && v.landPad.exit === false)) return 'Hier kun je niet uitstappen: je staat op een dak';
   return '';
@@ -480,15 +480,15 @@ function landingStatus(v) {
     if (v.rotor < LIFT_SPOOL) return ['Rotor draait op...', '#e8c93a'];
     const why = heliExitBlock(v);
     if (v.landKind === 'pad' && v.landPad && v.landPad.label) return [v.landPad.label, '#3fc97a'];
-    return why ? ['Geland op een dak · W om op te stijgen', '#e8c93a'] : ['Geland · E uitstappen, W opstijgen', '#3fc97a'];
+    return why ? ['Geland op een dak · Spatie om op te stijgen', '#e8c93a'] : ['Geland · E uitstappen, Spatie opstijgen', '#3fc97a'];
   }
   const alt = v.z - (v.groundZ ?? 0);
   const hs = Math.hypot(v.vx || 0, v.vy || 0);
   if (v.surfaceKind === 'water' && alt < 12) return ['Onder je is water!', '#ff9a3c'];
   if (alt < 14) {
-    if (hs > LAND_H || -(v.vz || 0) > LAND_VZ) return ['Te snel om te landen: spatie = stilhangen', '#ff9a3c'];
+    if (hs > LAND_H || -(v.vz || 0) > LAND_VZ) return ['Te snel om te landen: W los, S remt', '#ff9a3c'];
     if (v.surfaceKind === 'roof') return ['Dak onder je', '#e8c93a'];
-    return ['Klaar om te landen: S', '#3fc97a'];
+    return ['Klaar om te landen: Ctrl', '#3fc97a'];
   }
   if (v.z >= Z_SOFT) return ['Plafond: hoger mag niet', '#e8c93a'];
   return ['', ''];

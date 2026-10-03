@@ -58,9 +58,17 @@ ok(C.padFamily('Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6
 ok(C.padFamily('Steam Deck Controller (Vendor: 28de)') === 'deck', 'Steam Deck');
 ok(C.padFamily('Xbox Wireless Controller') === 'xbox', 'Xbox');
 
+// the helicopter: WASD flies (stick), Space up, Ctrl down, Shift faster
+ok(C.PAD_MAPS.heli.stick === 'move', 'heli: the left stick flies forward/back and turns');
+ok(C.padSlotFor('W', 'heli') === 'lstick' && C.padSlotFor('A', 'heli') === 'lstick', 'heli: W and A are the left stick');
+ok(C.padSlotFor('SPACE', 'heli') === 'a' && C.padSlotFor('CTRL', 'heli') === 'b', 'heli: up on A, down on B');
+ok(C.PAD_MAPS.heli.rt === ' ' && C.PAD_MAPS.heli.lt === 'control', 'heli: RT up, LT down');
+ok(C.padSlotFor('SHIFT', 'heli') === 'rb', 'heli: faster on RB');
+ok(C.KEY_ACTIONS.some(([k, d]) => k === 'control' && /heli/.test(d)) && C.KEY_ACTIONS.some(([k, d]) => k === ' ' && /heli/.test(d)), 'heli up/down named in the rebind list');
+
 // every situation maps every game key it needs to some button
 const need = { foot: [' ', 'control', 'e', 'f', 'k', 't', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'v', 't', 'm', 'escape', 'n', 'shift', '@fire'],
-  heli: ['w', 's', 'a', 'd', ' ', 'e', 'shift'], pigeon: [' ', 'control', 'f', 'e', 'c', 'q', 'x', 'shift'], menu: ['enter', 'escape', 'q', 'e'], minigame: [' ', 'backspace', 'e'], foodtruck: ['1', '2', '3', '4', '5', '6', ' ', 'backspace'] };
+  heli: [' ', 'control', 'e', 'shift'], pigeon: [' ', 'control', 'f', 'e', 'c', 'q', 'x', 'shift'], menu: ['enter', 'escape', 'q', 'e'], minigame: [' ', 'backspace', 'e'], foodtruck: ['1', '2', '3', '4', '5', '6', ' ', 'backspace'] };
 for (const [ctx, keys] of Object.entries(need)) {
   for (const k of keys) {
     const has = Object.values(C.PAD_MAPS[ctx]).includes(k) || (C.PAD_MAPS[ctx].stick === 'arrows' && false);

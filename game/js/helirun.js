@@ -311,7 +311,7 @@ function initHudDom() {
     <div class="hh-alt"><i class="ring"></i><i class="bal"></i><i class="me"></i><span>0 m</span></div>
     <div class="hh-catch" hidden><div class="lbl"></div><div class="bar"><i></i></div><div class="tips"></div></div>
     <div class="hh-msg"></div>
-    <div class="hh-help"><kbd>W</kbd><kbd>S</kbd> hoogte · <kbd>A</kbd><kbd>D</kbd> opzij · <kbd>SHIFT</kbd> gas · <kbd>SPATIE</kbd> rem</div>
+    <div class="hh-help"><kbd>W</kbd><kbd>S</kbd> gas en rem · <kbd>A</kbd><kbd>D</kbd> sturen · <kbd>SPATIE</kbd> omhoog · <kbd>CTRL</kbd> omlaag</div>
     <div class="hh-card"><h2></h2><p class="sub"></p><div class="medal"></div><p class="rows"></p></div>`;
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
@@ -508,9 +508,9 @@ function syncPlayer() {
 
 function controls(dt) {
   const r = run, inp = world.input;
-  let up = (inp.isDown('w') || inp.isDown('arrowup') ? 1 : 0) - (inp.isDown('s') || inp.isDown('arrowdown') ? 1 : 0);
+  let up = (inp.isDown(' ') ? 1 : 0) - (inp.isDown('control') ? 1 : 0);
   let side = (inp.isDown('d') || inp.isDown('arrowright') ? 1 : 0) - (inp.isDown('a') || inp.isDown('arrowleft') ? 1 : 0);
-  let thr = (inp.isDown('shift') ? 1 : 0) - (inp.isDown(' ') ? 1 : 0);
+  let thr = (inp.isDown('w') || inp.isDown('shift') || inp.isDown('arrowup') ? 1 : 0) - (inp.isDown('s') || inp.isDown('arrowdown') ? 1 : 0);
   if (autopilot) [up, side, thr] = autoInput();
   r.vz = approach(r.vz, up * CLIMB, dt * 30);
   r.voff = approach(r.voff, side * SLIDE, dt * 28);

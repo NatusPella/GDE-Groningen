@@ -67,11 +67,12 @@ const CONTROL_GROUPS = [
     [['WHEEL'], 'Volgend of vorig wapen (scrollen)'],
   ]],
   ['heli', 'Helikopter', [
-    [['W', 'S'], 'Stijgen en dalen; landen: laag en langzaam boven een vlak stuk'],
+    [['W', 'S'], 'Vooruit en achteruit; S remt eerst af tot je stil in de lucht hangt'],
     [['A', 'D'], 'Draaien (de muis draait ook)'],
-    [['ARROWS'], 'Vooruit, achteruit en opzij vliegen'],
-    [['SHIFT'], 'Boost: vol gas vooruit'],
-    [['SPACE'], 'Stilhangen: afremmen tot je stil in de lucht hangt'],
+    [['SHIFT'], 'Sneller: vol gas vooruit'],
+    [['SPACE'], 'Omhoog, opstijgen'],
+    [['CTRL'], 'Omlaag; landen: laag en langzaam boven een vlak stuk'],
+    [['ARROWS'], 'Ook vliegen: pijltjes links en rechts gaan opzij'],
     [['E'], 'Uitstappen (alleen geland); op je helidek: parkeren en naar binnen'],
   ]],
   ['duif', 'Duif', [

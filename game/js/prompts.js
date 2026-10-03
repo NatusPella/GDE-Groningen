@@ -236,11 +236,10 @@ function trackUsage(dt, world) {
   prev.rightDown = input.mouse.rightDown;
 
   if (inV && world.player.inVehicle.isHeli) {
-    if (pressed('w') || pressed('s')) used('heliUp');
+    if (pressed(' ') || pressed('control')) used('heliUp');
     if (pressed('a') || pressed('d')) used('heliYaw');
-    if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('heliFly');
+    if (['w', 's', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].some(pressed)) used('heliFly');
     if (pressed('shift')) used('heliBoost');
-    if (pressed(' ')) used('heliHover');
     return;
   }
   if (inV) {
@@ -593,8 +592,9 @@ const PAD_DESC = {
   cinecam: () => 'D-pad omlaag: filmische shots',
   lookback: () => 'Druk de rechterstick in',
   heliUp: (L) => `${L.rt} omhoog, ${L.lt} omlaag: landen doe je laag en langzaam`,
-  heliYaw: (L) => `${L.lb}/${L.rb} of de rechterstick draait de neus`,
-  heliFly: () => 'Linkerstick: vooruit, achteruit en opzij',
+  heliYaw: () => 'Linkerstick opzij of de rechterstick draait de neus',
+  heliFly: () => 'Linkerstick: vooruit, terugtrekken remt en gaat achteruit',
+  heliBoost: (L) => `${L.rb} of de linkerstick indrukken: sneller`,
   heliHover: () => 'Remt af tot je stil in de lucht hangt',
   shoot: (L) => `${L.rt} schiet waar de camera kijkt; in de auto ${L.rb}`,
   aim: (L) => `Houd ${L.lt} vast: richt vanzelf op een doelwit, ${L.rs} wisselt`,
@@ -613,11 +613,10 @@ function contextRows(world, primary) {
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
   } else if (p.inVehicle && p.inVehicle.isHeli) {
-    rows.push(tut('heliUp', ['W', 'S'], 'Stijgen & dalen', 'W omhoog, S omlaag: landen doe je laag en langzaam'));
+    rows.push(tut('heliUp', [' ', 'CTRL'], 'Omhoog & omlaag', 'Spatie omhoog, Ctrl omlaag: landen doe je laag en langzaam'));
+    rows.push(tut('heliFly', ['W', 'S'], 'Vooruit & remmen', 'W vooruit, S remt af tot je stilhangt, dan achteruit'));
     rows.push(tut('heliYaw', ['A', 'D'], 'Draaien', 'A/D of de muis draait de neus'));
-    rows.push(tut('heliFly', ['ARROWS'], 'Vliegen', 'Pijltje omhoog vooruit, omlaag achteruit, links/rechts opzij'));
-    rows.push(tut('heliBoost', ['SHIFT'], 'Boost', 'Vol gas vooruit'));
-    rows.push(tut('heliHover', [' '], 'Stilhangen', 'Spatie remt af tot je stil in de lucht hangt'));
+    rows.push(tut('heliBoost', ['SHIFT'], 'Sneller', 'Vol gas vooruit'));
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Alleen als je geland bent'));
   } else if (p.inVehicle) {
     const boat = p.inVehicle.isBoat;
