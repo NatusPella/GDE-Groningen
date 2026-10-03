@@ -15,6 +15,16 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Rond de House of Groningen en Atlas** staan nu bomen en hagen langs het
   water, bankjes met uitzicht op de vaart, parklantaarns, jonge bomen in
   bakken langs de garagegevel en lantaarns aan de kant van de Pleiadenlaan.
+- **Grote Markt en Vismarkt kloppen beter.** Mutua Fides (Vindicat) is nu
+  het okergele bakstenen gebouw met grote ramen, een balkon op de markt en
+  een penthouse. Merckt heeft zijn slanke bogen, lichte baksteen met gouden
+  lijnen en een kroon. Van Gend & Loos op de Vismarkt 34 staat er met zijn
+  trapgevels en de leeuw. De Drie Gezusters hebben hun schilddak, en een
+  zijgevel die boven een lagere buurman uitsteekt heeft nu ramen.
+- **De galerijflats van Paddepoel** (Pollux-, Castor- en Morgensterflat)
+  hebben hun galerijen, raamstroken, balkons en dichte kopgevels.
+- **Het Groninger Museum** heeft een gouden toren van panelen, Mendini's
+  gekleurde stippen op het oostpaviljoen en naden in de pastelvleugels.
 - **Winkelcentrum Paddepoel heeft weer daglicht.** Het glazen dak over de
   winkelstraten is nu echt glas: je ziet de lucht erdoor en de straten
   eronder zijn niet meer donker. De winkelblokken zijn voor helikopter en

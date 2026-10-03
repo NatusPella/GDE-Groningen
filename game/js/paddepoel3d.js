@@ -269,7 +269,7 @@ const RISE = 0.55; // ridge height per metre of half width
 // The roof glass: one translucent shared material that casts no shadow, so
 // the covered streets get daylight and the sky shows through from below.
 // One extra draw call for the whole roof; the steel frames keep theirs.
-const roofGlassMat = markShared(vcMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthWrite: false, roughness: 0.15, metalness: 0.1 }));
+const roofGlassMat = markShared(vcMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.5, depthWrite: false, roughness: 0.12, metalness: 0.2 }));
 let glassB = null;
 
 function gable(B, a, b, w, y0, rise, { frames = 3.6, ends = true } = {}) {
@@ -284,6 +284,13 @@ function gable(B, a, b, w, y0, rise, { frames = 3.6, ends = true } = {}) {
     B.quadOut(P(0, s * (w + 0.15), y0 + 0.35), P(L, s * (w + 0.15), y0 + 0.35), P(L, s * (w + 0.15), y0 - 0.2), P(0, s * (w + 0.15), y0 - 0.2), [s * nx, 0, s * ny], C.steel, G_METAL);
   }
   B.quadOut(P(0, -0.12, yr + 0.18), P(L, -0.12, yr + 0.18), P(L, 0.12, yr + 0.18), P(0, 0.12, yr + 0.18), [0, 1, 0], C.steel, G_METAL);
+  // glazing bars along the slopes: from below the panes read as glass, not as open air
+  for (const s of [-1, 1]) {
+    for (const f of [0.25, 0.5, 0.75]) {
+      const sv = s * w * f, yv = y0 + rise * (1 - f) - 0.03;
+      B.quad(P(0, sv - 0.06, yv), P(L, sv - 0.06, yv), P(L, sv + 0.06, yv), P(0, sv + 0.06, yv), C.white, G_PLAIN);
+    }
+  }
   const n = Math.max(1, Math.round(L / frames));
   for (let k = 0; k <= n; k++) {
     const t = Math.min(L - 0.05, Math.max(0.05, k * L / n));
@@ -497,6 +504,7 @@ export function buildPaddepoelRoof(map) {
   roof.receiveShadow = true;
   group.add(roof);
   const glass = new THREE.Mesh(glassB.build(), roofGlassMat);
+  glass.name = 'paddepoelGlass';
   glass.renderOrder = 2;
   glassB = null;
   group.add(glass);
