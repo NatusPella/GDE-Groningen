@@ -1052,7 +1052,11 @@ const NAMED = {
   Gasuniegebouw: (B, b, ring, edges) => gasunie(B, ring, edges),
   'Rijkskantoor Kempkensberg': (B, b, ring) => duoCruiseschip(B, ring),
 };
-const builderOf = (b) => (b.landmark && BUILDERS[b.landmark]) || (b.name && NAMED[b.name]) || null;
+// Models other modules add for buildings they tag with b.model (thuis3d.js).
+const MODELS = {};
+export function registerBuildingModel(key, fn) { MODELS[key] = fn; }
+export const modelKit = { obox, fbox, walls, cap, extrude, ebox, edgesOf, partyTester, minAreaFrame, frameFrom, cyl, slots, band, clipRing, grown, triangulate, C, G: { PLAIN: G_PLAIN, BRICK: G_BRICK, GLASS: G_GLASS, METAL: G_METAL, TILE: G_TILE } };
+const builderOf = (b) => (b.model && MODELS[b.model]) || (b.landmark && BUILDERS[b.landmark]) || (b.name && NAMED[b.name]) || null;
 
 export function hasLandmarkModel(b) {
   return !!builderOf(b);
