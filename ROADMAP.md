@@ -27,11 +27,11 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [?] De hoektoren van het Waagstraatcomplex: houden of weghalen (de agent zoekt uit of hij echt bestaat).
 
 **Voertuigen en cutscenes**
-- [~] Bestuurders op de goede plek, onder andere in de vet-truck (`claude/voertuigen-cutscene`).
-- [~] Auto's op de ring in cutscenes rijden netjes: hoogte, richting, rijstrook, wielen.
+- [x] Bestuurders op de goede plek in alle voertuigtypes, met een controle in `scripts/seat_audit.mjs`.
+- [x] Auto's op de ring in cutscenes rijden netjes (`cinedrive.js`), met een controle in `scripts/cine_ring_check.mjs`.
 
 **Performance**
-- [~] Perf ronde 3 (`claude/perf-ronde3`):
+- [x] Perf ronde 3 (laadtijd tot het titelmenu van ongeveer 10 naar ongeveer 6 s, vangrails samengevoegd, horeca-bordjes in één draw call). Wat oorspronkelijk gepland stond:
   - vangrails samenvoegen;
   - horeca-bordjes;
   - gebouwen samenvoegen op hoge snelheid;
@@ -106,6 +106,9 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] De kleuren van parodiewinkels minder exact maken, zoals het roze van Kruidvet. Echte cafénamen uit OSM in berichten vervangen door verzonnen namen.
 - [ ] Het logo met **Big Shoulders Display** (OFL), de plaatsnaam op een plaatsnaambord-vorm, en Gronings groen. Gaat samen met de nieuwe naam.
 - [ ] Handmatig in het merkenregister zoeken naar "GDE" en "Grootste Diefstal Ever" (EUIPO en BOIP, ongeveer 15 minuten).
+
+  1. **Schriftelijke toestemming** van de maker of makers. Dat is het veiligste, en kan meteen een mooie samenwerking of promotie opleveren. Doe dit vóór elke publieke release, en zeker vóór Steam.
+
 - [?] **Muziek:** met welk Gemini-product en welk abonnement is ze gemaakt? Dat moet in `docs/LICENTIES.md`.
 - [?] BOIP-registratie (ongeveer €244 tot €271): advies is nu niet, want zonder kosten is de afspraak.
 - [x] Het e-mailadres voor nieuwe commits is het GitHub-noreply-adres.
