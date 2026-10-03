@@ -486,7 +486,10 @@ don't collide, and actors are drawn at their height.
   civil works (roadstructures3d.js: decks, walls, barriers) go into its
   road cell; a knocked-out crash barrier bumps its geometry's
   `userData.batchVer`, which redoes the cell. Merging is
-  spread over frames (2 ms budget); the buildings' own meshes stay in the
+  spread over frames (2 ms budget, roads 1 ms): first the pieces, then the
+  merged buffers a chunk at a time (`finishWork`, a generator; the bounds
+  are three's, computed over the chunks), and the cell swaps in when all
+  is ready; the buildings' own meshes stay in the
   scene, hidden, for the camera's ray tests. `?nobatch` turns it off
   (and the wheel instancing below). On 'laag' (or a busy CPU) the facade
   details within their radius get their own batcher (`facadeBatcher`, the
@@ -627,8 +630,9 @@ don't collide, and actors are drawn at their height.
 - Results must stay identical to the main-thread build:
   `scripts/perf/geocheck.sh` compares the old code, the kernel on the main
   thread and the worker byte for byte (city cells round the centre, ~200
-  water chunks round the map, every road, every city shore, the terrain).
-  The kernels share their code with the main thread (`geokernels.js`,
+  water chunks round the map, every road, every city shore, the terrain),
+  and the road batch cells against the old one-frame finish. The kernels
+  share their code with the main thread (`geokernels.js`,
   `countrywatergeo.js`, `roadSurfaceGeometries`, `shoreParts`,
   `terrainArrays`), so a change there reaches both;
   the check should pass after it.
