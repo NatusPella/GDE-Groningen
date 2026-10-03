@@ -25,6 +25,7 @@ import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { unseenAchievementCount } from './achievements.js';
+import { mayStart, noteToast } from './narrative.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -307,6 +308,9 @@ function showCount(text, dur) {
   countT = Math.max(0.6, dur);
 }
 
+// Shown even while a story call talks: dangers, the police, and the cards of a running mission or bijbaan.
+const pressing = (q, w) => q.spec.kind === 'politie' || q.spec.kind === 'gevaar' || contextKind(w) !== 'tip';
+
 function hudHidden() {
   const b = document.body.classList;
   return !b.contains('game-started') || b.contains('cine-hide-hud');
@@ -316,7 +320,8 @@ export function updateCards(dt, w) {
   if (!stackEl) return;
   world = w;
   if (countT > 0 && (countT -= dt) <= 0) countEl.classList.remove('on');
-  const frozen = hudHidden() || w.paused || w.uiPaused;
+  // narrative.js: cards wait out every cutscene, not only the ones that hide the HUD
+  const frozen = hudHidden() || w.paused || w.uiPaused || !mayStart('card', { urgent: true });
   stackEl.classList.toggle('paused', !!frozen);
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
   syncWait();
@@ -331,17 +336,23 @@ export function updateCards(dt, w) {
   }
   // age only counts while a card could be shown; tips wait out the tip gap,
   // an important one (it teaches a key, or says so) much longer
-  for (const q of queue) q.age += dt;
+  // cards held back for a story call do not go stale meanwhile
+  const held = !mayStart('card');
+  for (const q of queue) if (!held || pressing(q, w)) q.age += dt;
   queue = queue.filter((q) => q.age < (q.spec.kind !== 'tip' ? 30 : q.important ? TIP_KEEP : TIP_STALE));
   if (!queue.length) return;
   const up = visible.filter((c) => !c.leaving);
-  if (calling && CARD_KINDS[queue[0].spec.kind].rank < CARD_PRIORITY.politie) return;
+  const urgent = CARD_KINDS[queue[0].spec.kind].rank >= CARD_PRIORITY.politie;
+  if (calling && !urgent) return;
+  // a story call on the phone or another toast that just popped up: the rest waits
+  if (!pressing(queue[0], w) && !up.length && held) return;
   if (up.length < MAX_VISIBLE) {
     // tips are rationed (attention.js); a waiting tip lets others go first
     const i = queue.findIndex((q) => q.spec.kind !== 'tip' || mayShowTip());
     if (i < 0) return;
     const next = queue.splice(i, 1)[0];
     if (next.spec.kind === 'tip') noteTip();
+    noteToast();
     mount(next);
     return;
   }

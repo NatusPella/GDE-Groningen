@@ -6,6 +6,8 @@
 // rations tips. Story cutscenes, mission intros/outros and death/busted
 // are exempt. Pure logic (clock injectable) so it can be tested directly.
 //
+import { narrativeBusy } from './narrative.js';
+
 // Priority: story > wanted/danger > money/achievement > discovery/flavour > tips.
 export const PRIORITY = { story: 5, danger: 4, reward: 3, discovery: 2, tip: 1 };
 
@@ -45,6 +47,8 @@ export function mayInterrupt(kind, w) {
   const now = clock();
   if (busy(w)) return false;
   if (typeof document !== 'undefined' && document.body && document.body.classList.contains('hud-call-on')) return false;
+  // a story call, the radio or car talk is on (narrative.js)
+  if (narrativeBusy()) return false;
   const v = w && w.player && w.player.inVehicle;
   if (!m.fast && v && Math.abs(v.speed || 0) > FAST) return false;
   if (now - (last.groups[m.group] ?? -Infinity) < m.cooldown) return false;

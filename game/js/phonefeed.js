@@ -8,6 +8,7 @@ import { playCallVoice, playPhoneRing, playSmsVoice, playPhonePing } from './aud
 import { smsVoiceFor, smsKind } from './smsvoice.js';
 import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
+import { registerNarrative, mayStart, noteToast } from './narrative.js';
 
 // The phone on the HUD (bottom left, above the street name): notification
 // cards and incoming calls. Both slide up out of the bottom like a phone
@@ -90,6 +91,11 @@ export function initPhoneFeed(w) {
   calls = [];
   call = null;
   notes = [];
+  registerNarrative('call', { active: () => !!call, pending: () => calls.length > 0 });
+  registerNarrative('text', {
+    active: () => cards.some((c) => c.story && !c.leaving),
+    pending: () => notes.some((n) => n.story) || (world && world.phoneNotifications || []).some((n) => n.story),
+  });
   if (typeof window !== 'undefined') {
     window.__phonefeed = { notify: (spec) => notifyPhone(world, spec), call: (spec) => startCall(world, spec), hangUp, state: () => ({ cards: cards.length, call: call && { from: call.from, phase: call.phase, i: call.i }, queued: calls.length }) };
   }
@@ -150,7 +156,7 @@ function showNote(w, n) {
   el.classList.add('on');
   const secs = Math.min(HOLD_MAX, Math.max(HOLD_MIN, (n.duration || 0) + 1, readingSeconds(full) * 1.4));
   el.style.setProperty('--pf-dur', `${secs}s`);
-  const c = { el, left: secs, secs, voice: null, speaking: false, t: 0 };
+  const c = { el, left: secs, secs, voice: null, speaking: false, t: 0, story: !!n.story };
   if (!n.voiced) {
     const v = smsVoiceFor(n, lineVoiceFor);
     const kind = v && (n.story ? 'story' : smsKind(v.speaker));
@@ -281,7 +287,7 @@ function finishCall(cut) {
 function updateCall(dt, w, visible) {
   if (!call) {
     calls = calls.filter((c) => w.time - c.at < CALL_WAIT_MAX);
-    if (calls.length && visible && !w.storyContact && holdChannel('call', 'call')) beginCall(w, calls.shift());
+    if (calls.length && visible && !w.storyContact && mayStart('call') && holdChannel('call', 'call')) beginCall(w, calls.shift());
     return;
   }
   const c = call;
@@ -331,7 +337,8 @@ export function updatePhoneFeed(dt, w) {
       const [n] = notes.splice(i >= 0 ? i : 0, 1);
       remember(w, n.from ? `${n.from}: ${n.text}` : n.text);
     }
-    if (!call && !cards.some((c) => !c.leaving) && notes.length) showNote(w, notes.shift());
+    // narrative.js: not over a cutscene or a story call, a beat apart, story texts after their "Bel Rikus"
+    if (!call && !cards.some((c) => !c.leaving) && notes.length && mayStart(notes[0].story ? 'text' : 'phone')) { noteToast(); showNote(w, notes.shift()); }
     syncCounter();
     for (const c of cards) { c.t += dt; voiceCard(c); if (c.speaking && c.t > 40) c.speaking = false; if (!c.speaking) c.left -= dt; }
     for (const c of cards.filter((k) => k.left <= 0)) {

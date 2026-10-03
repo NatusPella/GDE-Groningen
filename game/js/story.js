@@ -34,6 +34,7 @@ import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy } from './storyfun.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
+import { registerNarrative, mayStart, narrativeBusy } from './narrative.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -500,6 +501,7 @@ function companionSays(w, text) {
   const list = w.extraSpeakers || (w.extraSpeakers = []);
   const dur = Math.max(3, Math.min(6, 1.2 + text.length * 0.06));
   list.push({ x: c.x, y: c.y, h: 2.1, speechText: text, speechUntil: w.time + dur, follow: c, female: c.character === 'anita', speechName: c.character === 'anita' ? 'Anita' : 'Tammo' });
+  rt.sayUntil = w.time + dur;
 }
 
 // --- who plays: Tammo or Anita ----------------------------------------------------------
@@ -533,7 +535,7 @@ function calmForSwap() {
   const card = document.body.classList.contains('hud-card-on');
   rt.cardSince = card ? rt.cardSince || now : 0;
   const reading = card && now - rt.cardSince < SWAP_CARD_WAIT * 1000;
-  if (now - (rt.tickAt || 0) > 250 || isBannerUp() || reading || sinceCinematic() < SWAP_CALM) rt.calmAt = now;
+  if (now - (rt.tickAt || 0) > 250 || isBannerUp() || reading || sinceCinematic() < SWAP_CALM || narrativeBusy()) rt.calmAt = now;
   rt.tickAt = now;
   return now - rt.calmAt > SWAP_CALM * 1000;
 }
@@ -742,6 +744,7 @@ export function initStory(w) {
   setMeetHook(meet);
   initStoryFun(w);
   initSkipUi();
+  registerNarrative('say', { active: () => !!world && (rt.sayUntil || 0) > world.time });
   ready = true;
   window.__story = storyApi;
 }
@@ -780,10 +783,10 @@ export function updateStory(dt, w) {
   updateStoryFun(dt, w, step, rt.base);
   if (!step) return;
   if (step.end) {
-    if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
+    if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
     return;
   }
-  if (rt.recapPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && !w.pendingRespawn) {
+  if (rt.recapPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && !w.pendingRespawn) {
     const part = rt.recapPending;
     rt.recapPending = null;
     if (playRecap(part)) { state.flags.add('recap:' + part); rt.leadAt = w.time + LEAD_DELAY; }
@@ -803,7 +806,7 @@ export function updateStory(dt, w) {
     queueContacts(step, 'lead');
   }
   // the companion's remark follows the lead text instead of talking over it
-  if (rt.sayAt >= 0 && w.time >= rt.sayAt && !isCinematicActive() && !isCallActive()) {
+  if (rt.sayAt >= 0 && w.time >= rt.sayAt && !isCinematicActive() && !isCallActive() && mayStart('say')) {
     rt.sayAt = -1;
     if (step.say) companionSays(w, step.say[1]);
   }
