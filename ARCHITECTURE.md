@@ -497,6 +497,10 @@ don't collide, and actors are drawn at their height.
   frames' breakdown), `scripts/perf/ab.sh` for
   interleaved A/B runs against another staged build (`GTE_STAGE_SRC`,
   `GTE_STAGE_OUT`, `GTE_GAME_DIR`).
+- Main-thread profile per category: `docs/PERF-PROFIEL.md`. With `--hitch`
+  a run also records the ms per frame of each hitchprobe section
+  (`scripts/perf/sections.py` groups them); `GTE_PROFILE_OUT=<dir>` keeps the
+  raw CPU profiles of `PERF_PROFILE` routes for `scripts/perf/categories.mjs`.
 
 ## Hitches and shader warm-up
 
@@ -540,6 +544,33 @@ don't collide, and actors are drawn at their height.
   since disposed source are dropped instead of drawn (a draw would upload it
   again); the per-road and per-water-polygon geometry caches keep only the
   most recently shown ones (LRU, like the building parts).
+
+## Geometry worker
+
+- `geoworker.js` is a module worker that runs the kernels in
+  `geokernels.js`: plain data in, typed arrays out (sent back as
+  transferables). Kernels use three's math and buffer classes only, never
+  the scene or the DOM. `geojobs.js` `runGeo(kind, data, done)` queues a job;
+  the caller only wraps the arrays in a BufferGeometry. Without module
+  workers, under the story test, with `?noworker`, or after a worker error
+  the same kernel runs on the main thread and `done` is called before
+  `runGeo` returns (open jobs are redone that way).
+- `cityprops` cells: the distinct prop geometries and every item's matrix
+  go out; the merged positions, Int8 normals, colours, Uint16 uvs and the
+  bounding sphere come back. The cell's breakable props register when the
+  buffers arrive (`buildToken` drops a stale result).
+- Ommeland water (`countrywater.js`, pure part in `countrywatergeo.js`): the
+  map bounds, the real water and urban fields (`countryfield.js`
+  `countryBounds`, `realZone`) and the canal part of the edge lookup grid
+  (`countryedge.js` `canalGridSnapshot`) go to the worker once (again when
+  the map edge becomes ready); per prop chunk the worker samples the tiles
+  (kept for the last 160), merges them and computes the bank normals. The
+  old meshes stay until the new ones arrive.
+- Results must stay identical to the main-thread build:
+  `scripts/perf/geocheck.sh` compares the old code, the kernel on the main
+  thread and the worker byte for byte (city cells round the centre, ~200
+  water chunks round the map). A change to these kernels goes in
+  `geokernels.js` / `countrywatergeo.js`, and the check should pass after it.
 
 ## Name and logo
 
