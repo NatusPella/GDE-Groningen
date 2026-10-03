@@ -14,7 +14,9 @@ import { vcMaterial, markShared, createBrickDetailTexture, createRoofTileTexture
 export const PART = { plain: 0, wall: 1, roof: 2, ridge: 3, gable: 4, top: 5, silWall: 6, silRoof: 7, churchNave: 8, churchBrick: 11 };
 // styles: how a wall is drawn (instance code)
 export const STYLE = { plain: 0, house: 1, block: 2, barn: 3, shed: 4, glass: 5, tile: 6, sheet: 7 };
-// door side in the piece's local frame: 1 +x, 2 -x, 3 +z, 4 -z
+// door side in the piece's local frame: 1 +x, 2 -x, 3 +z, 4 -z; 5-8 the
+// same faces with a village shopfront on the ground floor (no door, no
+// painted windows behind it)
 // the skyline silhouettes keep their roof colour index in the door field
 export const ROOF_PAL = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e, 0x3a3e40, 0x4a5a48, 0x6a6e6c];
 
@@ -41,9 +43,9 @@ export function withParts(geo, fn) {
   return geo;
 }
 
-// Instance tint with the code folded into red: r + 2 * (style * 8 + door).
+// Instance tint with the code folded into red: r + 2 * (style * 16 + door).
 export function bldCode(style, door = 0) {
-  return style * 8 + door;
+  return style * 16 + door;
 }
 
 export function setCountryNight(glow, litFrac) {
@@ -122,7 +124,9 @@ float bHash(vec3 p) { return fract(sin(dot(p, vec3(41.3, 289.1, 17.7))) * 15731.
 const FRAG_FACADE = /* glsl */`
 {
   float code = vBInfo.x;
-  float style = floor(code / 8.0), door = code - style * 8.0;
+  float style = floor(code / 16.0), door = code - style * 16.0;
+  float shop = 0.0;
+  if (door > 4.5 && door < 8.5 && vBPart < 6.5) { shop = door - 4.0; door = 0.0; }
   float part = vBPart;
   vec3 n = normalize(vBNrm);
   bool wallish = (part > 0.5 && part < 1.5) || (part > 3.5 && part < 4.5) || (part > 5.5 && part < 6.5);
@@ -179,6 +183,8 @@ const FRAG_FACADE = /* glsl */`
       bool fits = fl * S.w + sill + S.z < top - 0.2;
       win = fits ? bRect(vec2(lu, lv - S.z * 0.5), vec2(S.y, S.z) * 0.5, fw) : 0.0;
     }
+    // a shopfront covers the middle of the ground floor on its face
+    if (face == shop && part < 1.5 && h < 3.7 && abs(u) < min(L - 0.8, 9.0) * 0.5 + 0.3) win = 0.0;
     // the door: middle bay of the street side
     float dm = 0.0;
     if (face == door && part < 1.5) {
