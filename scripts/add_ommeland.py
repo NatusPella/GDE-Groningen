@@ -88,6 +88,46 @@ def main():
         c = cell(x, y)
         return bool(c and cover[c[1], c[0]])
 
+    # ------------------------------------------------------------- cycling
+    # car roads with a painted lane (or a suggestiestrook) get red strips;
+    # a track beside the road, and every fietspad, is its own red path
+    lanes, cycleways = set(), []
+    def cyc(P, hw):
+        for run in outside_runs(P, in_deep):
+            run = simplify(run, 1.0)
+            if len(run) >= 2 and length(run) > 8:
+                cycleways.append({"p": flat(run), "h": hw})
+    for el in raw.get("cycle", []):
+        t = el.get("tags", {})
+        g = el.get("g") or []
+        if len(g) < 2 or t.get("tunnel") in ("yes", "building_passage"):
+            continue
+        P = [proj(a, b) for a, b in g]
+        if t.get("highway") == "cycleway":
+            if t.get("surface") in ("unpaved", "gravel", "fine_gravel", "compacted", "dirt", "ground", "grass", "sand"):
+                continue
+            hw = 1.25
+            try:
+                hw = max(0.9, min(2.5, float(str(t.get("width", "")).replace("m", "").strip()) / 2))
+            except ValueError:
+                pass
+            cyc(P, hw)
+            continue
+        side = {}
+        for k, sd in (("cycleway", "both"), ("cycleway:both", "both"), ("cycleway:left", "left"), ("cycleway:right", "right")):
+            v = t.get(k)
+            if v in ("lane", "shared_lane", "opposite_lane"):
+                lanes.add(el["id"])
+            elif v == "track":
+                side[sd] = True
+        if side:
+            kd = ROAD_KIND.get(t.get("highway"), (0, 6.0))
+            off = kd[1] / 2 + 2.6
+            for sd, sign in (("left", 1), ("right", -1)):
+                if side.get(sd) or side.get("both"):
+                    cyc(offset_line(P, off * sign), 1.1)
+    print(f"cycling: {len(lanes)} roads with lanes, {len(cycleways)} paths")
+
     # ------------------------------------------------------------- roads
     roads = []
     for el in raw["roads"]:
@@ -116,11 +156,13 @@ def main():
                 r["o"] = 1
             if t.get("bridge") and t.get("bridge") != "no":
                 r["b"] = 1
+            if el["id"] in lanes:
+                r["c"] = 1
             roads.append(r)
     print(f"roads: {len(roads)} ({sum(len(r['p']) // 2 - 1 for r in roads)} segments)")
 
     # ------------------------------------------------------------- water
-    water, wmeta = water_field(raw["water"], proj, ext)
+    water, wmeta, shore = water_field(raw["water"], proj, ext)
     wlines = []
     for el in raw["water"]:
         t = el.get("tags", {})
@@ -133,11 +175,18 @@ def main():
             hw = max(1.5, min(15.0, float(str(t.get("width", "")).replace("m", "").strip()) / 2))
         except ValueError:
             pass
-        # only the stretches the lake/riverbank polygons do not cover already
-        for run in outside_runs(P, lambda x, y: in_deep(x, y) or water_at(water, wmeta, x, y) > -1.0):
+        # the stretches the lake/riverbank polygons do not cover, and those
+        # where the polygon is too narrow for the 10 m field (its shore
+        # would come out in steps): there the line's width is the outline's
+        for run in outside_runs(P, lambda x, y: in_deep(x, y) or water_at(water, wmeta, x, y) > 7.0):
             run = simplify(run, 1.5)
-            if len(run) >= 2 and length(run) > 20:
-                wlines.append({"p": flat(run), "h": hw, **({"n": t["name"]} if t.get("name") else {})})
+            if len(run) < 2 or length(run) <= 20:
+                continue
+            ds = sorted(shore(x, y) for x, y in densify(run, 10.0))
+            h = hw
+            if ds[len(ds) // 2] < 14:
+                h = round(min(8.0, ds[len(ds) // 2] + 0.6), 1)
+            wlines.append({"p": flat(run), "h": h, **({"n": t["name"]} if t.get("name") else {})})
     # centre lines of the wide canals and rivers, for the boats
     boatways = []
     for el in raw["water"]:
@@ -201,9 +250,13 @@ def main():
 
     # ------------------------------------------------------------- buildings
     city_boxes = BoxIndex([b["bounds"] if "bounds" in b else bbox(b["pts"]) for b in city["buildings"]])
+    # one row per box: x, y (m), w, l (dm), angle, code, levels, fill (%),
+    # then for the 2-3 rectangles of a badly boxed outline: how many rows
+    # back its first rectangle is, and its centre (dm) in the outline's box
+    # frame round the shared x, y
     bld = []
     for b in raw["bld"]:
-        la, lo, bw, bl, ang, code, lv, fill = b
+        la, lo, bw, bl, ang, code, lv, fill = b[:8]
         x, y = proj(la, lo)
         if not (ext[0] < x < ext[2] and ext[1] < y < ext[3]):
             continue
@@ -213,19 +266,25 @@ def main():
             continue
         if code == 8 and bw * bl < 30:
             continue
-        bld.append((round(x), round(y), min(32000, round(bw * 10)), min(32000, round(bl * 10)), int(ang) % 180, code, lv, round(fill * 100)))
-    print(f"buildings: {len(bld)}")
+        # in parts only where the box would be clearly wrong (perf: each part
+        # is another body and roof)
+        if len(b) > 8 and fill < 0.72 and (1 - fill) * bw * bl >= 40:
+            for k, (cu, cv, pw, pl) in enumerate(b[8]):
+                bld.append((round(x), round(y), min(32000, pw), min(32000, pl), int(ang) % 180, code, lv, 100, k, cu, cv))
+            continue
+        bld.append((round(x), round(y), min(32000, round(bw * 10)), min(32000, round(bl * 10)), int(ang) % 180, code, lv, round(fill * 100), 0, 0, 0))
+    print(f"buildings: {len(bld)} boxes, {sum(1 for b in bld if b[8] == 1)} outlines in parts")
 
     out = {
         "extent": ext, "water": wmeta, "buildings": len(bld),
-        "roads": roads, "waterways": wlines, "boatways": boatways, "rails": rails, "stations": stations, "routes": routes,
+        "roads": roads, "cycleways": cycleways, "waterways": wlines, "boatways": boatways, "rails": rails, "stations": stations, "routes": routes,
         "places": places, "churches": churches,
     }
     with open(OUT_JSON, "w") as f:
         json.dump(out, f, separators=(",", ":"), ensure_ascii=False)
     body = np.array(bld, dtype=np.int16).tobytes() + water.tobytes()
     with open(OUT_BIN, "wb") as f:
-        f.write(gzip.compress(b"GTEO" + struct.pack("<II", len(bld), 8) + body, 9, mtime=0))
+        f.write(gzip.compress(b"GTEO" + struct.pack("<II", len(bld), 11) + body, 9, mtime=0))
     print(f"{OUT_JSON}: {os.path.getsize(OUT_JSON) / 1e6:.2f} MB, {OUT_BIN}: {os.path.getsize(OUT_BIN) / 1e6:.2f} MB")
 
 
@@ -235,6 +294,17 @@ def flat(P):
     out = []
     for x, y in P:
         out += [round(x, 1), round(y, 1)]
+    return out
+
+
+def offset_line(P, d):
+    """P moved d metres to its left (y down: the left of travel is +normal)."""
+    out = []
+    for i in range(len(P)):
+        a, b = P[max(0, i - 1)], P[min(len(P) - 1, i + 1)]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L = math.hypot(dx, dy) or 1
+        out.append((P[i][0] + dy / L * d, P[i][1] - dx / L * d))
     return out
 
 
@@ -442,10 +512,28 @@ def water_field(els, proj, ext):
         tt = np.clip(((X - ax) * dx + (Y - ay) * dy) / L2, 0, 1)
         d = np.hypot(X - ax - dx * tt, Y - ay - dy * tt)
         np.minimum(dist[j0:j1, i0:i1], d, out=dist[j0:j1, i0:i1])
+    SC = 20.0
+    egrid = {}
+    for e in edges:
+        (ax, ay), (bx, by) = e
+        for i in range(int(min(ax, bx) // SC), int(max(ax, bx) // SC) + 1):
+            for j in range(int(min(ay, by) // SC), int(max(ay, by) // SC) + 1):
+                egrid.setdefault((i, j), []).append(e)
+
+    def shore(x, y):
+        """Metres from (x, y) to the nearest water outline (up to 15)."""
+        best = 15.0
+        for i in range(int(x // SC) - 1, int(x // SC) + 2):
+            for j in range(int(y // SC) - 1, int(y // SC) + 2):
+                for (ax, ay), (bx, by) in egrid.get((i, j), ()):
+                    dx, dy = bx - ax, by - ay
+                    tt = max(0.0, min(1.0, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy or 1e-9)))
+                    best = min(best, math.hypot(x - ax - dx * tt, y - ay - dy * tt))
+        return best
     sd = np.where(inside, dist, -dist)
     q = np.clip(np.round(128 + sd * 4), 0, 255).astype(np.uint8)
     print(f"water: {n_poly} rings, {len(edges)} edges, {inside.sum()} wet cells")
-    return q, {"x0": ext[0], "y0": ext[1], "cell": C, "w": W, "h": H}
+    return q, {"x0": ext[0], "y0": ext[1], "cell": C, "w": W, "h": H}, shore
 
 
 def water_at(q, wm, x, y):

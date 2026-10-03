@@ -20,6 +20,19 @@ nieuwe functies, `y` voor alleen bugfixes.
   geef elkaar een kusje met K".
 - Het tankstation aan de Pleiadenlaan heet nu Bakkie Prut.
 
+### Verbeterd
+- **Boerderijen en huizen in het Ommeland hebben hun echte vorm.** Een
+  L-vormig huis of een boerderij met een aanbouw was één doos; nu zijn het
+  twee of drie delen met daken die netjes in elkaar overlopen.
+- **Echte fietspaden in het Ommeland**: rode fietspaden en fietsstroken
+  liggen waar ze in het echt liggen, niet meer op elke smalle landweg.
+- **Winkelpuien in de dorpen** staan niet meer voor een geschilderde deur of
+  een raam.
+- **Dorpskerken** hebben bakstenen muren en rondboogramen, en zijn lichter
+  om te tekenen.
+- **Maren en smalle vaarten zijn echt water**, net als de brede kanalen; de
+  oevers van smalle vaarten lopen niet meer in trapjes.
+
 ## [0.22.0] - 2026-10-03
 
 ### Nieuw

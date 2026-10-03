@@ -74,10 +74,10 @@ ${light ? 'gl_FragColor.rgb *= 0.12 + 0.88 * step(0.35, fract(uTime * 0.5 + 0.2)
 }
 
 const TYPES = {
-  church0: { geo: () => churchGeometry(0), mat: 'tall', cap: 160, shadow: true },
-  church1: { geo: () => churchGeometry(1), mat: 'tall', cap: 160, shadow: true },
-  church2: { geo: () => churchGeometry(2), mat: 'tall', cap: 60, shadow: true },
-  church3: { geo: () => churchGeometry(3), mat: 'tall', cap: 60, shadow: true },
+  church0: { geo: () => churchGeometry(0), mat: 'church', cap: 160, shadow: true },
+  church1: { geo: () => churchGeometry(1), mat: 'church', cap: 160, shadow: true },
+  church2: { geo: () => churchGeometry(2), mat: 'church', cap: 60, shadow: true },
+  church3: { geo: () => churchGeometry(3), mat: 'church', cap: 60, shadow: true },
   rbSil: { geo: realSilhouetteGeometry, mat: 'bld', cap: 9000 },
   rbSilFlat: { geo: () => realSilhouetteGeometry(true), mat: 'bld', cap: 3000 },
   turbine: { geo: turbineTowerGeometry, mat: 'tall', cap: 400, shadow: true },
@@ -108,7 +108,10 @@ function init(scene) {
     rotorM: skyMaterial('rotorM', { rotor: 0.55 }),
     light: skyMaterial('light', { light: true }),
     bld: skyMaterial('bld', { belt: true }),
+    church: skyMaterial('church'),
   };
+  // churches: the tall haze plus the facade's brick and painted windows
+  applyFacade(mats.church, 'church', mats.church.onBeforeCompile);
   // the far real buildings: the belt haze plus the facade (lit windows at night)
   applyFacade(mats.bld, 'sky', mats.bld.onBeforeCompile);
   const pools = {};
