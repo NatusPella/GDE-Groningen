@@ -1,4 +1,4 @@
-# 3D-modelprompts voor GTE VI
+# 3D-modelprompts voor GDE Groningen
 
 Kant-en-klare prompts voor Claude Design, om de procedurele wereld uit
 `game/js/models3d_buildings.js` / `models3d_vehicles.js` / `models3d_people.js`

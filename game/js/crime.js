@@ -8,9 +8,10 @@
 //   saw it, or when the heat piles up far past the limit)
 
 const STAR_HEAT = 100;
-const RAMPAGE_HEAT = 220;
+const PILEUP_HEAT = 220;
 const COOL_PER_S = 7;
-const SEVERITY = { pedHit: 45, pedKill: 100, copBump: 40, drunkDriving: 40 };
+// pedKO: someone knocked out cold (pedestrians.js); nobody dies in the game
+const SEVERITY = { pedHit: 45, pedKO: 100, copBump: 40, drunkDriving: 40 };
 
 let heat = 0;
 let heatAt = 0;
@@ -34,7 +35,7 @@ export function reportCrime(world, kind, opts = {}) {
   const seen = opts.seen ?? policeSees(world);
   heat += (SEVERITY[kind] || 50) * (seen ? 2 : 1);
   const serious = heat >= STAR_HEAT;
-  if ((seen && serious) || heat >= RAMPAGE_HEAT) {
+  if ((seen && serious) || heat >= PILEUP_HEAT) {
     world.wanted = Math.min(5, (world.wanted || 0) + 1);
     world.wantedDecayTimer = 0;
     heat = seen ? STAR_HEAT * 0.4 : 0;

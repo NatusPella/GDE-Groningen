@@ -1295,6 +1295,7 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
 
 export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   const s = STORY[i];
+  // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   const banner = { kind: 'fail', title: 'Sikkom.', reason, stats };
   if (!s || run) { showBanner(banner); return false; }
   const v = w.player.inVehicle;
@@ -1991,7 +1992,7 @@ export function playEyeContact(w, { at, heading, onDone = null } = {}) {
   });
 }
 
-// A finished mission's intro and outro as plain lines, for Sikkom TV in the
+// A finished mission's intro and outro as plain lines, for Kiekdoar TV in the
 // flat (furniture.js): { speaker, text, src (voice URL or null), dur }.
 export function storyReplayLines(i) {
   const s = STORY[i];

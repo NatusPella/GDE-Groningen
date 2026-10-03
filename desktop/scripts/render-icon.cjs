@@ -1,6 +1,7 @@
 // Renders resources/icon.svg to resources/icon.png (1024 px) with a real
 // transparent background (Quick Look renders SVGs on white). Run with:
 //   npx electron scripts/render-icon.cjs
+// (a headless Chrome screenshot of the SVG on a transparent background works too)
 const { app, BrowserWindow } = require('electron');
 const fs = require('fs');
 const path = require('path');

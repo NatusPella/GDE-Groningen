@@ -26,8 +26,9 @@ import { roofAt } from './camerapath.js';
 import { kickTheme, setThemeDuck } from './theme.js';
 import { probe } from './hitchprobe.js';
 import { flashScreen } from './postfx3d.js';
+import { logoHtml } from './logo.js';
 
-// Trailer mode: "GTE VI - Een zomer in Grunn" (shot list in
+// Trailer mode: "GDE Groningen - Een zomer in Grunn" (shot list in
 // docs/verhaal/E-trailer.md), one list of staged shots through Grunn, played
 // three ways:
 //   benchmark  the full cut ('vol') in real time with an fps counter
@@ -169,7 +170,7 @@ const CSS = `
 #trailer .tr-title.small { font-size: clamp(38px, 5.8vw, 88px); }
 #trailer .tr-title .amp { color: #3fc97a; }
 /* no card text-shadow here: it shows through the logo's transparent, gradient-clipped letters */
-#trailer .tr-card .gte-logo { font-size: clamp(110px, 20vw, 250px); text-shadow: none; }
+#trailer .tr-card .gde-logo { font-size: clamp(110px, 19vw, 230px); text-shadow: none; }
 #trailer .tr-title.tr-tagline { margin-top: 10px; font-size: clamp(30px, 4.4vw, 64px); letter-spacing: 0.08em; }
 #trailer .tr-radio { font-size: clamp(64px, 11vw, 168px); line-height: 1; color: rgba(240, 237, 228, 0.9); letter-spacing: 0.06em; }
 /* name cards over a freeze frame: lower left, like a character intro */
@@ -1259,7 +1260,7 @@ function buildShots(w) {
   const logo = {
     label: 'Logo', cuts: ['vol'], dur: 5.0, dim: true, keep: true, card: true, fadeOut: 1.0, clock: 19.1, clockTo: 19.35, weather: 'helder', focus: tower,
     cam(u) { return { ...logoCam(u * 5.0), shake: 0.03 }; },
-    caps: [[0.2, 4.0, null, null, null, '<div class="tr-kicker">Grand Theft Eierbal</div><div class="gte-logo"><span class="gte">GTE</span><span class="vi">VI</span></div><div class="tr-title small tr-tagline">Een zomer in Grunn</div>']],
+    caps: [[0.2, 4.0, null, null, null, logoHtml() + '<div class="tr-title small tr-tagline">Een zomer in Grunn</div>']],
   };
 
   // after the logo: Berend finds a scratch on his bakkie

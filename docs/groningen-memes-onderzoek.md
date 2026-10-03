@@ -887,7 +887,7 @@ Een schaal voor NPC-reacties en voor de beoordeling na een missie (van laag naar
 - **Bron:** [Wikipedia NL, Groninger streekproducten](https://nl.wikipedia.org/wiki/Lijst_van_Groninger_streekproducten_en_gerechten)
 
 ### 6.12 Parodienamen voor winkels en merken (voorstel)
-| Echt (alleen ter inspiratie) | Parodie in GTE VI |
+| Echt (alleen ter inspiratie) | Parodie in GDE Groningen |
 |---|---|
 | Hooghoudt jenever | **Hooghoogte** (*Olle Klare*) |
 | Groninger koek | **Olle Grieze Koek** |
