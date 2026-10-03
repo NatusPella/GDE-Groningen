@@ -56,7 +56,7 @@ const MEMES = {
   brommer: 'Zoemt over het fietspad langs de Herestraat. Iedereen kijkt boos, precies de bedoeling.',
   mug: 'Parkeert in elk gaatje, ook in de Folkingestraat.',
   koopman: 'Hond achterin, oma voorin, zondag naar Pieterburen. Kofferbak voor een halve verhuizing.',
-  klusbus: 'Ramt alles opzij, net als een Stadjer bij de Hema-uitverkoop.',
+  klusbus: 'Ramt alles opzij, net als een Stadjer bij de Wiebel-uitverkoop.',
   wervelwind: 'Van de Grote Markt naar Delfzijl voordat je koffie koud is. Flitspalen vinden hem prachtig.',
   wiekenwubbo: 'Geen file op de Ring, geen flitspaal, geen parkeerplek nodig. Wel een plat dak.',
 };
