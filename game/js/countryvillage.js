@@ -4,7 +4,6 @@ import { chash, edgeDistance, realWater } from './countryfield.js';
 import { edgeAt } from './countryedge.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { roundTreeGeometry } from './countrymodels.js';
-import { markInstancesDirty } from './util.js';
 import { Pedestrian } from './pedestrians.js';
 
 // Village centres for the real Ommelanden: the OSM church (drawn by the
@@ -52,7 +51,8 @@ function signAtlas() {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 64 * SHOPS.length * 2;
   const g = c.getContext('2d');
-  SHOPS.forEach((s, i) => {
+  const t = new THREE.CanvasTexture(c);
+  const draw = () => SHOPS.forEach((s, i) => {
     for (let v = 0; v < 2; v++) {
       const y = (i * 2 + v) * 64;
       g.fillStyle = s[3];
@@ -66,8 +66,11 @@ function signAtlas() {
       g.textBaseline = 'middle';
       g.fillText(s[v], 256, y + 34, 480);
     }
+    t.needsUpdate = true;
   });
-  const t = new THREE.CanvasTexture(c);
+  draw();
+  // drawn again once the font is in (the warm-up may come first)
+  if (document.fonts && document.fonts.load) document.fonts.load("40px 'Bebas Neue'").then(draw, () => {});
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
   return t;
@@ -430,12 +433,11 @@ function matOf(T) {
   return MAT;
 }
 
-// Hidden one-instance samples of each material, so the shader warm-up
+// Hidden samples of each material and shadow flag, so the shader warm-up
 // compiles them on the title screen instead of on arrival in a village.
 export function villageWarmMeshes() {
-  return [['bench', true], ['lampHead', false], ['sign00', false]].map(([k, shadow]) => {
-    const m = new THREE.InstancedMesh(geoOf(k), matOf(TYPES[k]), 1);
-    m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(3).fill(1), 3);
+  return [['bench', true], ['slab', false], ['lampHead', false], ['sign00', false]].map(([k, shadow]) => {
+    const m = new THREE.Mesh(geoOf(k), matOf(TYPES[k]));
     m.castShadow = shadow;
     m.receiveShadow = true;
     m.userData.shared = true;
@@ -443,35 +445,79 @@ export function villageWarmMeshes() {
   });
 }
 
-function build(L) {
+// Every item of a village is baked into one mesh per material and shadow
+// flag (four draws instead of one instanced draw per type), a type per step.
+function* build(L) {
   const group = new THREE.Group();
   group.name = 'village:' + L.place.n;
   group.matrixAutoUpdate = false;
   const sphere = new THREE.Sphere(new THREE.Vector3(L.C.x, 5, L.C.y), Math.max(LAMP_R, 160) + 40);
+  const buckets = new Map();
   for (const [k, it] of Object.entries(L.items)) {
     const T = TYPES[k];
-    const n = it.c.length / 3;
     const mat = matOf(T);
-    const mesh = new THREE.InstancedMesh(geoOf(k), mat, n);
-    mesh.instanceMatrix.array.set(it.m);
-    mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(it.c), 3);
-    markInstancesDirty(mesh.instanceMatrix, n);
-    markInstancesDirty(mesh.instanceColor, n);
-    mesh.boundingSphere = sphere;
-    mesh.castShadow = T.shadow;
+    const key = mat.uuid + (T.shadow ? '+s' : '');
+    let bk = buckets.get(key);
+    if (!bk) buckets.set(key, bk = { mat, shadow: T.shadow, parts: [], verts: 0 });
+    const g = geoOf(k);
+    const n = it.c.length / 3;
+    bk.parts.push({ g, it, n });
+    bk.verts += g.attributes.position.count * n;
+  }
+  for (const bk of buckets.values()) {
+    const pos = new Float32Array(bk.verts * 3), nor = new Int8Array(bk.verts * 3);
+    const col = new Uint8Array(bk.verts * 3), uv = new Float32Array(bk.verts * 2);
+    let o = 0;
+    for (const { g, it, n } of bk.parts) {
+      const P = g.attributes.position.array, N = g.attributes.normal.array, C = g.attributes.color.array, U = g.attributes.uv.array;
+      const nv = g.attributes.position.count;
+      for (let i = 0; i < n; i++) {
+        const e = it.m, b = i * 16;
+        const m0 = e[b], m1 = e[b + 1], m2 = e[b + 2], m4 = e[b + 4], m5 = e[b + 5], m6 = e[b + 6], m8 = e[b + 8], m9 = e[b + 9], m10 = e[b + 10];
+        const tx = e[b + 12], ty = e[b + 13], tz = e[b + 14];
+        // normals: the inverse transpose of a rotation times an axis scale
+        const s0 = 1 / (m0 * m0 + m1 * m1 + m2 * m2), s1 = 1 / (m4 * m4 + m5 * m5 + m6 * m6), s2 = 1 / (m8 * m8 + m9 * m9 + m10 * m10);
+        const cr = it.c[i * 3], cg = it.c[i * 3 + 1], cb = it.c[i * 3 + 2];
+        for (let v = 0; v < nv; v++, o++) {
+          const x = P[v * 3], y = P[v * 3 + 1], z = P[v * 3 + 2];
+          pos[o * 3] = m0 * x + m4 * y + m8 * z + tx;
+          pos[o * 3 + 1] = m1 * x + m5 * y + m9 * z + ty;
+          pos[o * 3 + 2] = m2 * x + m6 * y + m10 * z + tz;
+          const a = N[v * 3] * s0, bb = N[v * 3 + 1] * s1, c = N[v * 3 + 2] * s2;
+          const nx = m0 * a + m4 * bb + m8 * c, ny = m1 * a + m5 * bb + m9 * c, nz = m2 * a + m6 * bb + m10 * c;
+          const l = 127 / (Math.hypot(nx, ny, nz) || 1);
+          nor[o * 3] = Math.round(nx * l); nor[o * 3 + 1] = Math.round(ny * l); nor[o * 3 + 2] = Math.round(nz * l);
+          col[o * 3] = Math.round(C[v * 3] * cr); col[o * 3 + 1] = Math.round(C[v * 3 + 1] * cg); col[o * 3 + 2] = Math.round(C[v * 3 + 2] * cb);
+          uv[o * 2] = U[v * 2]; uv[o * 2 + 1] = U[v * 2 + 1];
+        }
+      }
+      yield;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3, true));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    geo.boundingSphere = sphere;
+    const mesh = new THREE.Mesh(geo, bk.mat);
+    mesh.castShadow = bk.shadow;
     mesh.receiveShadow = true;
     mesh.matrixAutoUpdate = false;
-    mesh.userData.shared = true;
-    mesh.userData.kind = 'village:' + k;
+    mesh.userData.kind = 'village';
     group.add(mesh);
   }
   return group;
 }
 
+function* layoutAndBuild(p) {
+  const L = yield* layout(p);
+  return { L, group: yield* build(L) };
+}
+
 function disposeVillage(v) {
   if (v.group) {
     V.scene.remove(v.group);
-    for (const m of v.group.children) m.dispose();
+    for (const m of v.group.children) m.geometry.dispose();
   }
 }
 
@@ -525,7 +571,7 @@ export function updateVillages(dt, world, scene) {
       V.villages.delete(key);
       if (V.job && V.job.key === key) V.job = null;
     } else if (!v && d < pl.r + NEAR_IN && !V.job && !V.failed.has(key)) {
-      V.job = { key, place: pl, steps: layout(pl) };
+      V.job = { key, place: pl, steps: layoutAndBuild(pl) };
     }
   }
   while (V.job && performance.now() - t0 < BUILD_MS) {
@@ -538,7 +584,7 @@ export function updateVillages(dt, world, scene) {
       break;
     }
     if (!r.done) continue;
-    const v = { key: V.job.key, L: r.value, group: build(r.value), pedsAt: -1e9 };
+    const v = { key: V.job.key, L: r.value.L, group: r.value.group, pedsAt: -1e9 };
     scene.add(v.group);
     V.villages.set(v.key, v);
     V.job = null;
