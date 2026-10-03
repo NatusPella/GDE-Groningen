@@ -462,8 +462,12 @@ export function buildRoadStructure(r, map) {
   // covers the edge of the hole (not where a street runs along the top)
   const coping = (w) => {
     if (!w.coping) return;
-    const ox = -w.nx, oy = -w.ny, i0 = -WALL_T / 2, i1 = WALL_T / 2 + COPING;
-    B.quad('wall', [w.ax + ox * i0, 0.04, w.ay + oy * i0], [w.bx + ox * i0, 0.04, w.by + oy * i0], [w.bx + ox * i1, 0.04, w.by + oy * i1], [w.ax + ox * i1, 0.04, w.ay + oy * i1]);
+    const ox = -w.nx, oy = -w.ny, i0 = -WALL_T / 2, i1 = WALL_T / 2 + w.coping;
+    const at = (i, y) => [[w.ax + ox * i, y, w.ay + oy * i], [w.bx + ox * i, y, w.by + oy * i]];
+    const [a0, b0] = at(i0, 0.04), [a1, b1] = at(i1, 0.04);
+    B.quad('wall', a0, b0, b1, a1);
+    // short of a street alongside: sloping down under its ribbon
+    if (w.coping < COPING) { const [a2, b2] = at(i1 + 0.25, 0); B.quad('wall', a1, b1, b2, a2); }
   };
   for (const w of elev.skirts || []) {
     if (w.seg.r !== r) continue;
@@ -501,9 +505,53 @@ export function buildRoadStructure(r, map) {
     }
   }
 
+  for (const [P, a, b] of copingBends(elev)) {
+    if (a.w.seg.r !== r) continue;
+    const r0 = a.off - WALL_T / 2, r1 = a.off + WALL_T / 2 + Math.min(a.w.coping, b.w.coping);
+    let mx = a.n[0] + b.n[0], my = a.n[1] + b.n[1];
+    const ml = Math.hypot(mx, my);
+    mx /= ml; my /= ml;
+    const at = (n, d) => [P[0] + n[0] * d, 0.04, P[1] + n[1] * d];
+    B.quad('wall', at(a.n, r0), at(a.n, r1), at([mx, my], r1), at([mx, my], r0));
+    B.quad('wall', at([mx, my], r0), at([mx, my], r1), at(b.n, r1), at(b.n, r0));
+  }
+
   r._geoStruct = B.group();
   for (const w of elev.walls) if (w.seg.r === r && brkBroken(w)) w.collapse();
   return r._geoStruct;
+}
+
+// Where two coping strips beside an open cutting meet at a bend (the end of
+// one segment, the start of the next), the outside of the bend between their
+// square ends: [joint, end a, end b], a's road draws the wedge.
+function copingBends(elev) {
+  if (elev._copingBends) return elev._copingBends;
+  const ends = new Map(), out = [];
+  const strips = (elev.skirts || []).filter((w) => w.coping)
+    .concat(elev.walls.filter((w) => w.kind === 'cut' && w.coping && !w.parapet && Math.abs(w.top) < 0.05));
+  strips.forEach((w, i) => {
+    const s = w.seg;
+    for (const [px, py, qx, qy, ex, ey] of [[s.ax, s.ay, w.ax, w.ay, s.ux, s.uy], [s.bx, s.by, w.bx, w.by, -s.ux, -s.uy]]) {
+      const dx = qx - px, dy = qy - py;
+      if (Math.abs(dx * ex + dy * ey) > 0.01) continue;
+      const off = Math.hypot(dx, dy);
+      const k = Math.round(px * 20) + ',' + Math.round(py * 20);
+      const list = ends.get(k) || ends.set(k, []).get(k);
+      list.push({ w, i, P: [px, py], q: [qx, qy], n: [dx / off, dy / off], e: [ex, ey], off });
+    }
+  });
+  for (const list of ends.values()) {
+    for (const a of list) {
+      for (const b of list) {
+        if (b.i <= a.i || b.w.seg === a.w.seg) continue;
+        if (a.n[0] * b.n[0] + a.n[1] * b.n[1] < -0.2) continue;
+        const gx = b.q[0] - a.q[0], gy = b.q[1] - a.q[1];
+        if (Math.hypot(gx, gy) < 0.02 || gx * a.e[0] + gy * a.e[1] > 0) continue;
+        out.push([a.P, a, b]);
+      }
+    }
+  }
+  return (elev._copingBends = out);
 }
 
 // ------------------------------------------------------------------ decks over open cuts

@@ -131,7 +131,7 @@ function joinWallEnds(elev) {
     if (!best) continue;
     e.loose = best.loose = false;
     const nx = e.w.nx + best.w.nx, ny = e.w.ny + best.w.ny, l = Math.hypot(nx, ny) || 1;
-    elev.skirts.push({ ax: e.x, ay: e.y, bx: best.x, by: best.y, nx: nx / l, ny: ny / l, za: e.z, zb: best.z, seg: e.w.seg, coping: e.w.coping && best.w.coping });
+    elev.skirts.push({ ax: e.x, ay: e.y, bx: best.x, by: best.y, nx: nx / l, ny: ny / l, za: e.z, zb: best.z, seg: e.w.seg, coping: Math.min(e.w.coping || 0, best.w.coping || 0) });
   }
 }
 
@@ -263,6 +263,16 @@ function onFlatRoad(map, x, y) {
     }
   }
   return false;
+}
+
+// Width of the street-level coping strip beside a cutting's wall at (x, y),
+// outward (nx, ny): up to the edge of a street running alongside the top (it
+// tucks under that street's ribbon), none where the street is over the wall.
+function copingWidth(map, x, y, nx, ny, line) {
+  if (line && onFlatRoad(map, x, y)) return 0;
+  if (!onFlatRoad(map, x + nx * COPING, y + ny * COPING)) return COPING;
+  for (let d = 0.1; d < COPING; d += 0.1) if (onFlatRoad(map, x + nx * d, y + ny * d)) return Math.max(0.05, d + 0.05 - WALL_T / 2);
+  return COPING;
 }
 
 // Where two road ribbons overlap at different heights (a ramp splitting off
@@ -541,7 +551,7 @@ function buildWalls(elev, map) {
             ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
             bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
             nx: -nx, ny: -ny, za: s.za + (s.zb - s.za) * t0, zb: s.za + (s.zb - s.za) * t1, seg: s,
-            coping: !onFlatRoad(map, mx + nx * COPING, my + ny * COPING),
+            coping: copingWidth(map, mx, my, nx, ny, false),
           });
         }
         if (!cut && !raise) {
@@ -622,7 +632,7 @@ function buildWalls(elev, map) {
           if (reach) elev.floors.push({ ...ends, reach });
           else if (onFlatRoad(map, mx, my)) elev.skirts.push({ ...ends, coping: false });
         }
-        if (cut && piece.low && !s.covered) piece.coping = !onFlatRoad(map, mx, my) && !onFlatRoad(map, mx + nx * COPING, my + ny * COPING);
+        if (cut && piece.low && !s.covered) piece.coping = copingWidth(map, mx, my, nx, ny, true);
         if (raise && s.pieces && !joined) {
           const fp = s.pieces[Math.min(s.pieces.length - 1, k * s.pieces.length / n | 0)];
           if (fp && fp.retain[side > 0 ? 0 : 1]) {
