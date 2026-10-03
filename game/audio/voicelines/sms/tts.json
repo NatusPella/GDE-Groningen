@@ -62,6 +62,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Anita|Durk en Douwe dagen je uit. Padel, nu meteen. Ze zeggen dat het van Jelle moet.": {
+"src": "anita/durk_en_douwe_dagen_je_uit_padel_a692967b.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "Durk en Douwe dagen je uit. Padel, nu meteen. Ze zeggen dat het van Jelle moet.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Anita|Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?": {
 "src": "anita/durk_en_douwe_fietsen_weg_met_ee_cea27952.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -457,6 +466,15 @@
 "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Kiekdoar-redactie|Demoheli uit Eelde haalt Gouden Eierbal uit ballon. UMCG: \"Het stond niet in het rooster. De nachtdienst heeft wel gegeten.\"": {
+"src": "kiekdoar_redactie/demoheli_uit_eelde_haalt_gouden__e888e7bd.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Achernar",
+"input": "Demoheli uit Eelde haalt Gouden Eierbal uit ballon. UMCG: \"Het stond niet in het rooster. De nachtdienst heeft wel gegeten.\"",
+"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een nieuwslezer, opgewekt en snel.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
 },
 "Kiekdoar-redactie|Die gejatte fiets staat nu ergens anders. Met een ander slot.": {
 "src": "kiekdoar_redactie/die_gejatte_fiets_staat_nu_ergen_bfdbf3f0.mp3",
@@ -881,6 +899,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-03"
 },
+"Tammo|De rotor draait. Jij vliegt, ik zit achterin. Stap maar in bij Roelf.": {
+"src": "tammo/de_rotor_draait_jij_vliegt_ik_zi_ddf56ad1.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "De rotor draait. Jij vliegt, ik zit achterin. Stap maar in bij Roelf.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Tammo|De tankwagen van Us Mem Vet rijdt over de Europaweg. Durk en Douwe achter het stuur. Tijd voor banden.": {
 "src": "tammo/de_tankwagen_van_us_mem_vet_rijd_c0c84231.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1231,6 +1258,24 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Tammo|Roelf zegt: gratis, als hij heel terugkomt. Jij vliegt.": {
+"src": "tammo/roelf_zegt_gratis_als_hij_heel_t_f0bccd76.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Roelf zegt: gratis, als hij heel terugkomt. Jij vliegt.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
+"Tammo|Rotor Roelf op Eelde geeft een gratis proefvlucht. Kopen hoeft niet. Dan zoeken we die ballon van bovenaf.": {
+"src": "tammo/rotor_roelf_op_eelde_geeft_een_g_6d062220.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Rotor Roelf op Eelde geeft een gratis proefvlucht. Kopen hoeft niet. Dan zoeken we die ballon van bovenaf.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
 },
 "Tammo|Rotor Roelf staat met een demoheli bij het UMCG. Gratis proefvlucht, kopen hoeft niet. Dan zoeken we die ballon van bovenaf.": {
 "src": "tammo/rotor_roelf_staat_met_een_demohe_cc7a685f.mp3",
