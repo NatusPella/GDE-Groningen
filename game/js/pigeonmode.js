@@ -23,11 +23,11 @@ const STORE_KEY = 'gte-duif-v1';
 const COMBO_S = 3.5;
 const BOOST_S = 15;
 const MILESTONES = [
-  [100, 'SIKKOM: mysterieuze duif terroriseert de Grote Markt'],
-  [250, 'SIKKOM: stomerijen in Grunn draaien overuren'],
-  [500, 'SIKKOM: gemeente overweegt duivenparaplu voor de binnenstad'],
-  [1000, 'SIKKOM: "Het was één duif", zegt getuige. "Eén. Duif."'],
-  [2000, 'SIKKOM: Martinitoren krijgt poetsploeg, duif blijft voortvluchtig'],
+  [100, 'KIEKDOAR: mysterieuze duif terroriseert de Grote Markt'],
+  [250, 'KIEKDOAR: stomerijen in Grunn draaien overuren'],
+  [500, 'KIEKDOAR: gemeente overweegt duivenparaplu voor de binnenstad'],
+  [1000, 'KIEKDOAR: "Het was één duif", zegt getuige. "Eén. Duif."'],
+  [2000, 'KIEKDOAR: Martinitoren krijgt poetsploeg, duif blijft voortvluchtig'],
 ];
 const PED_LINES = ['Bah! Een duif!', 'Hé! Mien jas!', 'Kreng van n duuf!', 'Nee hè, net wassen!', 'Dat brengt geluk, zeggen ze…', 'Wie gooit dat?! O. Een duif.'];
 const COP_LINES = ['Hé! Belediging van n ambtenaar!', 'Aanhouden, die duif!', 'Mien pet! Mien nieuwe pet!'];
@@ -526,7 +526,7 @@ function initHudDom() {
     <div class="ph-card" data-card><small></small><b></b><i></i></div>
     <div class="ph-pops" data-pops></div>
     <div class="ph-warn" data-warn></div>
-    <div class="ph-sikkom" data-sikkom><b>Sikkom</b><span></span></div>
+    <div class="ph-sikkom" data-sikkom><b>Kiekdoar</b><span></span></div>
     <div class="ph-hints" data-hints></div>`;
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);

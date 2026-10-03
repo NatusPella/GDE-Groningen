@@ -38,6 +38,13 @@ UMCG_CLEAR = 1200
 CARE_NAME = re.compile(r"huisarts|gezondheidscentrum|spoedpost|ziekenhuis", re.I)
 
 
+def care_name(meta, site):
+    """'Huisartsenpost <wijk>' after the nearest neighbourhood point."""
+    pts = meta.get("neighbourhoodPoints") or []
+    best = min(pts, key=lambda p: math.hypot(p["x"] - site["x"], p["y"] - site["y"]), default=None)
+    return f"Huisartsenpost {best['name']}" if best else "Huisartsenpost"
+
+
 def police_query(bbox):
     return '[out:json][timeout:90];nwr["amenity"="police"]' + bbox_str(bbox) + ';out center tags;'
 
@@ -118,6 +125,9 @@ def main():
     with open(MAP_PATH) as f:
         data = json.load(f)
     data["meta"]["policeStations"] = stations
+    # the game shows these names on respawn: real practices get a generic one
+    for s in care:
+        s["name"] = care_name(data["meta"], s)
     data["meta"]["careSites"] = care
     if hospital:
         data["meta"]["hospital"] = hospital

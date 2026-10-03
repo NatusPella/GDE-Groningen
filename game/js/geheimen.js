@@ -365,7 +365,7 @@ function proximity(w, dt) {
     ufo.leave = 0.001;
     if (!found('ufo')) {
       discover(w, 'ufo', 'Een schotel met lichtjes boven het Zernikecomplex. Hij ziet je, en is weg.');
-      notifyPhone(w, { from: 'Sikkom', app: 'sikkom', text: 'SIKKOM: Studenten zien UFO boven Zernike. Universiteit: "Gewoon een proefje."', voiced: true });
+      notifyPhone(w, { from: 'Kiekdoar', app: 'sikkom', text: 'KIEKDOAR: Studenten zien UFO boven Zernike. Universiteit: "Gewoon een proefje."', voiced: true });
     }
   }
   if (meshes.peerd && meshes.peerd.visible && !found('peerd') && nearP(w, TOWER, 150)) {
