@@ -6,11 +6,13 @@
   "author": "NatusPella",
   "private": true,
   "main": "main.js",
+  "desktopName": "gde-groningen.desktop",
   "scripts": {
     "stage": "node build.mjs",
     "start": "npm run stage && electron .",
     "dist:mac": "npm run stage && electron-builder --mac --universal",
     "dist:win": "npm run stage && electron-builder --win --x64",
+    "dist:linux": "npm run stage && electron-builder --linux",
     "dist": "npm run stage && electron-builder --mac --universal && electron-builder --win --x64",
     "release": "sh release.sh",
     "web": "node ../web/build.mjs",
@@ -70,8 +72,31 @@
       "artifactName": "GDE-Groningen-${version}-windows-portable.exe",
       "unpackDirName": "GDE-Groningen"
     },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/icon.png",
+      "category": "Game",
+      "executableName": "gde-groningen",
+      "synopsis": "Zomer vol misdaad in Groningen",
+      "artifactName": "GDE-Groningen-${version}-linux.${ext}",
+      "syncDesktopName": true
+    },
     "toolsets": {
-      "nsis": "1.2.1"
+      "nsis": "1.2.1",
+      "appimage": "1.0.3"
     },
     "copyright": "© 2026 NatusPella",
     "nsis": {

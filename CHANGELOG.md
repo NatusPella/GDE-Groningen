@@ -74,6 +74,13 @@ nieuwe functies, `y` voor alleen bugfixes.
   zijn.
 - **"US MEM VET"** staat in Friese stijl op de tankwagen (H8): de banen en
   pompeblêden, en Us Mem de koe.
+- **Een Linux-versie, ook voor de Steam Deck** (nog niet op het toestel
+  getest): een AppImage en een tar.gz voor x64, niet ondertekend, net als de
+  Mac- en Windows-versie. Saves en instellingen staan in `~/.config/GTE VI`.
+  Het releasescript bouwt hem mee met `--linux`, en met `--web` de webzip
+  (alleen lokaal, die wordt nergens geüpload). Voor Steam staan er
+  SteamPipe-sjablonen en een kopieerscript klaar in `steam/`; er wordt nog
+  niets naar Steam gestuurd.
 
 ### Verbeterd
 - **Nieuwe heli-besturing:** W/S vooruit en remmen, A/D draaien, Shift

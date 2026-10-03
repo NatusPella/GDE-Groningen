@@ -113,14 +113,17 @@ from the end of the radio intro. Used three ways:
 ## Desktop builds and releases
 
 `desktop/` wraps the game in Electron: a standalone macOS app (universal,
-Apple Silicon + Intel) and a portable Windows `.exe`, both fully offline
-(three.js and the fonts are vendored at build time). Built locally, no CI:
+Apple Silicon + Intel), a portable Windows `.exe` and, optionally, a Linux
+x64 AppImage + tar.gz (for the Steam Deck), all fully offline (three.js and
+the fonts are vendored at build time). Built locally, no CI:
 
 ```bash
 cd desktop && npm install
 npm start                       # run the desktop app from source
+npm run dist:linux              # only the Linux build, in dist/
 npm run release -- minor        # new features:  0.3.1 -> 0.4.0
 npm run release -- patch        # bug fixes:     0.3.1 -> 0.3.2
+npm run release -- minor --linux --web --steam   # optional extras, any combination
 ```
 
 `release` bumps the version (SemVer, `0.x.y` until the real launch at
@@ -128,7 +131,28 @@ npm run release -- patch        # bug fixes:     0.3.1 -> 0.3.2
 with `GDE-Groningen-<version>-mac.dmg` and
 `GDE-Groningen-<version>-windows-portable.exe`. The apps are unsigned (no Apple Developer ID /
 Windows certificate), so testers confirm them once in macOS Privacy &
-Security or Windows SmartScreen.
+Security or Windows SmartScreen. Afterwards it deletes `dist/` and `build/`
+(the builds are on GitHub). Flags:
+
+- `--linux` also builds `GDE-Groningen-<version>-linux.AppImage` and
+  `-linux.tar.gz` and uploads both to the release. This works on macOS
+  without Docker or Rosetta: `toolsets.appimage` is pinned to `1.0.3`
+  (electron-builder's newer, still "beta" AppImage toolset, with native
+  macOS tools and a static runtime that needs no libfuse2). The legacy
+  default (`0.0.0`) ships an x86_64-only `mksquashfs`, which fails on Apple
+  Silicon without Rosetta 2 ("spawn Unknown system error -86"). The AppImage
+  adds `--no-sandbox` itself when the system has no user namespaces.
+- `--web` also runs `npm run web:zip` and leaves
+  `GDE-Groningen-<version>-web.zip` in the repo root (gitignored). It is
+  **not** uploaded or published anywhere; `web-dist/` is deleted after
+  zipping.
+- `--steam` copies the unpacked builds into `steam/content/` before `dist/`
+  is cleaned (see [steam/README.md](steam/README.md)). Nothing contacts
+  Steam.
+
+Disk: each platform build is ~250-300 MB, plus ~450 MB unpacked per
+platform in `dist/`; the web build adds ~500 MB (`web-dist/` + zip). All of
+it is gitignored.
 
 ## Webversie
 
@@ -380,7 +404,8 @@ keep the old name on purpose:
   channels;
 - the Electron `appId` (`nl.natuspella.gte-vi`) and the Windows
   AppUserModelId, and the userData folder: `desktop/main.js` pins it to
-  `GTE VI` (`~/Library/Application Support/GTE VI`, `%APPDATA%\GTE VI`),
+  `GTE VI` (`~/Library/Application Support/GTE VI`, `%APPDATA%\GTE VI`,
+  `~/.config/GTE VI` on Linux),
   because the new product name would otherwise start with an empty profile;
 - the npm package name `gte-vi`, the `GTE_*` environment variables, the
   repo and file names, CSS ids such as `#gte-ahead`, and the `GTE-VI/`
