@@ -22,6 +22,7 @@ import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
 import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
 import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
+import { buildingMaterial, bldCode, STYLE } from './countrybuilding.js';
 
 // Endless Ommelanden past the real map: a ground ring that follows the
 // player (same terrain shader, so the feathered edge in terrain3d continues
@@ -226,7 +227,9 @@ function mulberry(seed) {
 
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _e = new THREE.Euler(), _c = new THREE.Color();
 
-function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.08, yOff = 0) {
+// code: the facade code of a building piece (countrybuilding.js bldCode),
+// folded into the red channel on top of the tint
+function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.08, yOff = 0, code = 0) {
   const list = tile.items[type] || (tile.items[type] = { m: [], c: [] });
   _e.set(0, rotY, 0);
   _q.setFromEuler(_e);
@@ -234,7 +237,7 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
   for (let i = 0; i < 16; i++) list.m.push(_m4.elements[i]);
   _c.set(color);
   const j = 1 + (chash(Math.round(x * 10), Math.round(y * 10)) - 0.5) * jitter * 2;
-  list.c.push(_c.r * j, _c.g * j, _c.b * j);
+  list.c.push(Math.min(1.99, _c.r * j) + code * 2, _c.g * j, _c.b * j);
 }
 
 function okSpot(x, y, clearDitch = 0) {
@@ -419,26 +422,51 @@ function genVillage(tile, v) {
   for (const g of V.graves) if (here(g.x, g.y)) push(tile, 'grave', g.x, g.y, g.rot, g.s, g.s, g.s, 0xffffff, 0.12, M3.TERP_H - 0.1);
 }
 
+// Side of building piece m at (x, y) that faces the nearest road of the
+// tile (1 +x, 2 -x, 3 +z, 4 -z in the piece's frame), for the front door.
+function doorSide(R, x, y, m) {
+  let bd = 3600, qx = 0, qy = 0;
+  if (R) {
+    for (let k = 0; k < R.length; k += 2) {
+      const r = REAL.roads[R[k]];
+      const a = r.pts[R[k + 1]], b = r.pts[R[k + 1] + 1];
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+      const px = a[0] + dx * t - x, py = a[1] + dy * t - y, d = px * px + py * py;
+      if (d < bd) { bd = d; qx = px; qy = py; }
+    }
+  }
+  if (bd >= 3600) return chash(Math.round(x), Math.round(y)) < 0.5 ? 3 : 4;
+  const ca = Math.cos(m.angle), sa = Math.sin(m.angle);
+  const du = qx * ca + qy * sa, dv = -qx * sa + qy * ca;
+  if (Math.abs(du) / m.long > Math.abs(dv) / m.short) return du > 0 ? 1 : 2;
+  return dv > 0 ? 3 : 4;
+}
+
 // The real Ommelanden in this tile: building boxes with their roofs, tree
 // lanes along the country roads, and a bit of farmyard round the barns.
-const REAL_POOL = { house: 'rbBody', block: 'rbBlock', barn: 'rbShed', shed: 'rbShed', glass: 'rbShed' };
+const REAL_STYLE = { house: STYLE.house, block: STYLE.block, barn: STYLE.barn, shed: STYLE.shed, glass: STYLE.glass };
 function* genReal(tile) {
   const L = buildingsInTile(tile.tx, tile.ty);
   if (L) {
     let n = 0;
+    const R = roadsInTile(tile.tx, tile.ty);
     for (const i of L) {
       if (++n % 30 === 0) yield;
       const x = REAL.bx[i], y = REAL.by[i];
       if (REAL.code[i] === 7 && REAL.churchNear && REAL.churchNear(x, y)) continue;
       const m = buildingModel(i);
       const rotY = -m.angle;
-      push(tile, REAL_POOL[m.kind], x, y, rotY, m.long, m.wall, m.short, m.color, 0.05);
-      // the mid tier: a plain box and one closed roof (countryside chunks)
-      push(tile, 'rbBox', x, y, rotY, m.long, m.wall, m.short, m.color, 0.05);
+      const style = REAL_STYLE[m.kind];
+      push(tile, 'rbBody', x, y, rotY, m.long, m.wall, m.short, m.color, 0.05, 0, bldCode(style, style === STYLE.glass ? 0 : doorSide(R, x, y, m)));
       if (m.roof > 0) {
-        push(tile, 'rbRoof', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall);
-        push(tile, 'rbGable', x, y, rotY, m.long, m.roof, m.short, m.color, 0.05, m.wall);
-        push(tile, 'rbRoofMid', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall);
+        const rs = m.kind === 'barn' ? STYLE.sheet : STYLE.tile;
+        if (m.hip) push(tile, 'rbHip', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
+        else {
+          push(tile, 'rbRoof', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
+          push(tile, 'rbGable', x, y, rotY, m.long, m.roof, m.short, m.color, 0.05, m.wall, bldCode(style));
+          push(tile, 'rbRoofMid', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
+        }
       }
       if (m.kind === 'barn' && urbanWeight(x, y) < 0.3) {
         const h = chash(Math.round(x) + 3, Math.round(y) - 5);
@@ -697,16 +725,15 @@ farmGeo(M3.farmOldaGeometry, M3.OLDA_LOOKS).forEach((g, i) => { PROP_TYPES['fold
 farmGeo(M3.farmSmallGeometry, M3.SMALL_LOOKS).forEach((g, i) => { PROP_TYPES['fsmall' + i] = { geo: g, cap: 120, shadow: true }; });
 farmGeo(M3.farmDairyGeometry, M3.FARM_LOOKS).forEach((g, i) => { PROP_TYPES['fdairy' + i] = { geo: g, cap: 120, shadow: true }; });
 for (let k = 0; k < 4; k++) for (let l = 0; l < 2; l++) PROP_TYPES['house' + k + l] = { geo: () => M3.houseGeometry(k, M3.HOUSE_LOOKS[l]), cap: 400, shadow: true };
-// the real buildings in two tiers: detailed near the player, box + roof
-// further out (lod), chosen per tile
+// the real buildings: walls in every tier, roofs with their gable ends near
+// the player and one closed roof further out (lod), chosen per tile; all
+// in the facade material (countrybuilding.js)
 Object.assign(PROP_TYPES, {
-  rbBody: { geo: () => M3.realBodyGeometry(1, true), cap: 9000, shadow: true, lod: 'near' },
-  rbBlock: { geo: () => M3.realBodyGeometry(4, false), cap: 3000, shadow: true, lod: 'near' },
-  rbShed: { geo: M3.realShedGeometry, cap: 6000, shadow: true, lod: 'near' },
-  rbRoof: { geo: M3.realRoofGeometry, cap: 10000, shadow: true, lod: 'near' },
-  rbGable: { geo: M3.realGableGeometry, cap: 10000, shadow: false, lod: 'near' },
-  rbBox: { geo: () => M3.boxGeometry(1, 1, 1, 0xffffff), cap: 9000, shadow: true, lod: 'mid' },
-  rbRoofMid: { geo: M3.realRoofMidGeometry, cap: 9000, shadow: true, lod: 'mid' },
+  rbBody: { geo: M3.realBodyGeometry, cap: 18000, shadow: true, bld: true },
+  rbRoof: { geo: M3.realRoofGeometry, cap: 10000, shadow: true, lod: 'near', bld: true },
+  rbGable: { geo: M3.realGableGeometry, cap: 10000, shadow: false, lod: 'near', bld: true },
+  rbHip: { geo: M3.realHipGeometry, cap: 6000, shadow: true, bld: true },
+  rbRoofMid: { geo: M3.realRoofMidGeometry, cap: 9000, shadow: true, lod: 'mid', bld: true },
 });
 
 // Props are drawn per chunk of CHUNK x CHUNK tiles: one instanced mesh per
@@ -724,7 +751,7 @@ function typeGeo(k) {
 function chunkMesh(ch, k, n) {
   const T = PROP_TYPES[k];
   const cap = Math.ceil(n / 64) * 64;
-  const mesh = new THREE.InstancedMesh(typeGeo(k), T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, cap);
+  const mesh = new THREE.InstancedMesh(typeGeo(k), T.bld ? buildingMaterial() : T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, cap);
   mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
   mesh.count = 0;
   mesh.boundingSphere = ch.sphere;
@@ -855,7 +882,7 @@ function init(scene) {
   // hidden samples of the prop materials for the shader warm-up (scene3d)
   const warm = new THREE.Group();
   warm.visible = false;
-  for (const [k, shadow] of [['tree', true], ['reed', false], ['slab', false]]) {
+  for (const [k, shadow] of [['tree', true], ['reed', false], ['slab', false], ['rbBody', true]]) {
     const m = chunkMesh({ sphere: new THREE.Sphere() }, k, 1);
     m.count = 1;
     m.castShadow = shadow;
