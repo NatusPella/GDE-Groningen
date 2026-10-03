@@ -132,15 +132,19 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - Agenten worden uitgeschakeld en staan later weer op. De alcohol blijft, met een inhoudslabel.
 - [ ] De IARC-vragenlijst echt invullen.
 - [x] **Geen gesimuleerd gokken meer** (`claude/geen-gokken`). De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
-- [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
+- [~] Onboarding: de eerste 10 minuten zonder uitleg te snappen (`claude/v025`). Audit en wijzigingen in [docs/ONBOARDING.md](docs/ONBOARDING.md).
+  - [x] uitleg over doelen, niet over toetsen: op het moment zelf, één kaartje tegelijk via de narrative-planner en elk één keer: de eerste klus, geld en winkels, zelf kiezen op de kaart en Te doen (`onboarding.js`);
+  - [x] geen toetshints meer voor lopen, kijken, rennen, springen en rijden; alleen E, T, M, Esc, kusjes, wapens, heli en trein;
+  - [x] uit te zetten voor ervaren spelers (Instellingen › Weergave), en het eerste kaartje zegt dat;
+  - [ ] toetsen met spelers die de game niet kennen (de vragen staan in docs/ONBOARDING.md).
 - [~] Toegankelijkheid (`claude/toegankelijk`, in headless Chrome getest met een nagebootste controller; nog niet op echte hardware):
   - [x] toetsen en controllerknoppen opnieuw toewijzen, met ruilen bij een conflict en "Standaard herstellen";
   - [x] volledige controllersupport via de Gamepad API (Xbox, PlayStation, Steam Deck): spel, minigames en alle menu's, hints met de knoppen van je controller, trillen;
   - [x] een grootte voor de ondertitels, met een vlak erachter;
   - [x] markers die werken voor kleurenblinden: patronen en vormen, plus drie paletten;
   - [ ] testen met een echte Xbox-, PlayStation- en Steam Deck-controller (zie de lijst in de PR).
-- [ ] Opt-in foutrapporten of een logbestand om mee te sturen.
-- [ ] Een save-garantie: saves vanaf 1.0 blijven werken, met een migratietest op oude saves.
+- [x] **Foutrapport** (`claude/v025`): fouten en waarschuwingen in een lokaal logboek (`errorlog.js`) met versie, verhaalstap, instellingen en GPU-klasse, zonder persoonlijke gegevens. Onder Instellingen › Foutrapport: kopiëren of (desktop) opslaan als bestand. Er wordt niets verstuurd.
+- [x] **Save-garantie** (`claude/v025`): saves en instellingen hebben een versie en worden stap voor stap gemigreerd (`savemigrate.js`); `node scripts/save_migration_test.mjs` laadt saves zoals 0.4, 0.21, 0.22, 0.23 en 0.24 ze schreven. Bij elke release die de save verandert: een migratiestap en een fixture erbij.
 - [ ] Feature freeze.
 
 ## Juridisch en publiceren (vóór 1.0)
