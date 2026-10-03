@@ -118,7 +118,10 @@ function trackFor(v, i) {
 // The top surface under a tyre edge for a car at height z (elevation.js:
 // a deck, ramp or the raised/sunken ring, never the layer above or below).
 function skidSurface(x, y, z) {
-  return fxMap && fxMap.elev && fxMap.elev.has ? fxMap.groundHeightAt(x, y, z + 0.25) : z;
+  if (!fxMap || !fxMap.elev || !fxMap.elev.has) return z;
+  const g = fxMap.groundHeightAt(x, y, z + 0.25);
+  // no surface data near the car's own level (Ommeland terrain): the car's height
+  return Math.abs(g - z) > 1.2 ? z : g;
 }
 
 function skidWheel(v, i, wx, wy, halfW, intensity) {
