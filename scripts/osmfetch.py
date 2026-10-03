@@ -13,6 +13,9 @@ URLS = [
     "https://overpass.kumi.systems/api/interpreter",
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
+# OVERPASS_URL=... puts one endpoint first (when the main one is busy)
+if os.environ.get("OVERPASS_URL"):
+    URLS.insert(0, os.environ["OVERPASS_URL"])
 
 
 def map_bbox(meta, pad=0.001):

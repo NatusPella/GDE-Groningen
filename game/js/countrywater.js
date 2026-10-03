@@ -1,12 +1,13 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { WATER_Y, setExtraWater } from './util.js';
 import { COUNTRY_UNIFORMS, SHORE_RW, countryRect, rectOutside, realWater } from './countryfield.js';
-import { wideWaterAt } from './countryedge.js';
+import { wideWaterAt, openWater } from './countryedge.js';
 import { REAL } from './countryreal.js';
 import { sharedWaterMaterial } from './water3d.js';
 
 // The Ommeland canals, maren and lakes as the city's water: past the map
-// rectangle the real open water (countryreal.js distance field) gets the
+// rectangle the real open water (countryreal.js distance field, and the
+// lines of the narrower canals and maren, countryedge.js) gets the
 // shared water3d surface at WATER_Y over a muddy bank basin, merged per prop
 // chunk (one water + one basin draw per chunk with water). The ground shader
 // opens over it within uWaterNear and paints it beyond, the ditches stay
@@ -54,7 +55,7 @@ function sampleGrid(x0, y0, n, c) {
   let hi = -99;
   for (let j = 0; j <= n; j++) {
     for (let i = 0; i <= n; i++) {
-      const v = realWater(x0 + i * c, y0 + j * c);
+      const v = openWater(x0 + i * c, y0 + j * c);
       rw[j * (n + 1) + i] = v;
       if (v > hi) hi = v;
     }

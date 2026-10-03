@@ -356,7 +356,7 @@ function findPrimary(world) {
     return { id: 'food-' + name, x: food.x, y: food.y, h: 2.75, key: 'E', label: 'Iets bestellen', sub: st === 'broke' ? 'Te weinig geld (min. €12)' : 'Even laten zakken...', ring: true, dim: true };
   }
   const c = world.companion;
-  const kissable = c && c.state !== 'dead' && !c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) <= KISS_DIST;
+  const kissable = !!world.kissUnlocked && c && c.state !== 'dead' && !c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) <= KISS_DIST;
   const kissReady = world.time >= kissUntil;
   if (kissable && kissReady && world.input && world.input.wasPressed('k')) {
     kissUntil = world.time + KISS_COOLDOWN;
