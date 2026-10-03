@@ -26,6 +26,7 @@ import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
 import { unseenAchievementCount } from './achievements.js';
 import { mayStart, noteToast } from './narrative.js';
+import { missionIconInner } from './missionicons.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -99,7 +100,8 @@ let lastVoiceAt = -Infinity;
 const voicedAt = new Map();
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const svg = (kind) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[kind] || ICON.tip}</svg>`;
+// 'm-<i>': the icon of story mission i (missionicons.js)
+const svg = (kind) => `<svg viewBox="0 0 24 24" aria-hidden="true">${(/^m-\d+$/.test(kind) && missionIconInner(+kind.slice(2))) || ICON[kind] || ICON.tip}</svg>`;
 
 export function initCards(w, root) {
   world = w;
@@ -197,7 +199,8 @@ export function showCard(w, spec) {
   if (title && body && title.toLowerCase() === (spec.kicker || CARD_KINDS[kind].label).toLowerCase()) { title = body; body = ''; }
   const all = `${title} ${body}`.trim();
   const secs = Math.min(MAX_TIME, Math.max(MIN_TIME, (spec.duration || 0) * 1.2, readingSeconds(all) * 1.25));
-  const card = { spec: { ...spec, kind, title, body }, secs, key: spec.key || all, at: world ? world.time : 0, age: 0, text: spec.text || all };
+  const icon = spec.icon || (kind === 'missie' ? missionCardIcon(world, `${title} ${body} ${spec.kicker || ''}`) : null);
+  const card = { spec: { ...spec, kind, title, body, icon }, secs, key: spec.key || all, at: world ? world.time : 0, age: 0, text: spec.text || all };
   card.important = kind === 'tip' && (!!spec.important || teaches(all));
   const up = visible.find((c) => c.key === card.key && !c.leaving);
   if (up) { refresh(up, card); return; }
@@ -205,6 +208,16 @@ export function showCard(w, spec) {
   queue.push(card);
   queue.sort((a, b) => CARD_KINDS[b.spec.kind].rank - CARD_KINDS[a.spec.kind].rank || b.important - a.important || a.at - b.at);
   while (queue.length > MAX_QUEUE) queue.pop();
+}
+
+// A mission card shows its mission's icon: the one that runs, else the one
+// the card names (its code, "H3", or its title).
+function missionCardIcon(w, text) {
+  const m = w && w.mission;
+  if (!m || !Number.isInteger(m.index)) return null;
+  if (m.phase === 'active') return 'm-' + m.index;
+  if ((m.code && new RegExp(`\\b${m.code}\\b`).test(text)) || (m.label && text.includes(m.label))) return 'm-' + m.index;
+  return null;
 }
 
 // A key named in a card becomes a key cap: [E], "(E)", "druk (op) E/Spatie".
