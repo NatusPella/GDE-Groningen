@@ -19,6 +19,7 @@
 //   heliExitBlock(v)                    '' when the player may step out, else why not
 //   registerHelipad(pad)                { id, x, y, r, z, name, exit } landable deck (home.js, shops.js)
 //   helipadAt(x, y, slack)              the pad under (x, y) or null
+//   helipadById(id)                     a registered pad ('umcg', 'eelde', 'home') or null
 //   heliSurface(v) -> { kind, pad }     what the landed heli stands on ('ground' | 'roof' | 'pad' | 'water')
 //   updateHelis(dt, world)              main.js: rotor spool, meshes (rotor, shadow), dust, the flight card
 //   parkHeli(v, x, y, z, angle)         put a heli down, rotor off
@@ -88,6 +89,10 @@ export function registerHelipad(pad) {
   const i = pads.findIndex((p) => p.id === pad.id);
   if (i >= 0) pads.splice(i, 1);
   pads.push(pad);
+}
+
+export function helipadById(id) {
+  return pads.find((p) => p.id === id) || null;
 }
 
 export function helipadAt(x, y, slack = 0) {

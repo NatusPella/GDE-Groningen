@@ -448,12 +448,13 @@ function findSecondary(world, primary) {
   for (const c of stationSecondary(world)) add(c, 22);
   for (const c of ommelandSecondary(world)) add(c, 24);
   const m = world.mission;
-  if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active)) {
+  const gameBusy = !!(world.padelGame || world.activityGame || world.heliRun);
+  if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active) && !gameBusy) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, sub: 'Loop of rij de marker in', kind: 'mission' }, 60);
   }
   const g = world.storyGuide;
   const onMarker = m && m.phase === 'idle' && Math.hypot(m.marker.x - g?.x, m.marker.y - g?.y) < 4;
-  if (g && !onMarker && !(m && m.phase === 'active') && !(world.sideJob && world.sideJob.active)) {
+  if (g && !onMarker && !gameBusy && !(m && m.phase === 'active') && !(world.sideJob && world.sideJob.active)) {
     add({ id: 'story', x: g.x, y: g.y, h: 3.2, label: g.name, sub: g.buy ? 'Voor het verhaal: loop naar binnen (E)' : 'Volgende stap in het verhaal', kind: 'mission' }, 80);
   }
   if (!inV && learning('enter') && !primary) {

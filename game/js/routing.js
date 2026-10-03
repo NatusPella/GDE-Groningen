@@ -322,10 +322,17 @@ function travelMode(player) {
   const v = player.inVehicle;
   if (!v) return 'walk';
   if (v.isBoat) return null;
+  // a helicopter flies straight: a line to the target, no roads
+  if (v.isHeli) return 'fly';
   return v.isBike ? 'walk' : 'drive';
 }
 
 function busyTarget(world) {
+  // a heli run (helirun.js) points at its next ring, pad or the balloon
+  const hr = world.heliRunTarget;
+  if (world.heliRun) return hr ? { x: hr.x, y: hr.y, kind: 'mission', name: hr.name || 'Heli' } : null;
+  // a minigame on the spot (padel, carbid, the kermis): no route to anything else meanwhile
+  if (world.padelGame || world.activityGame) return null;
   const job = world.sideJob;
   if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label } : null;
   const m = world.mission;
@@ -495,11 +502,11 @@ export function updateRouting(dt, world) {
   if (!graph) buildGraph(world.map);
   const p = world.player;
 
-  const mode = world.pigeonMode ? 'fly' : travelMode(p);
+  const mode = world.pigeonMode || world.heliRun ? 'fly' : travelMode(p);
   const gt = busyTarget(world) === undefined && !world.challenge ? goalTarget(world) : null;
   updateSlot(world, slots.user, gt ? { x: gt.x, y: gt.y, kind: 'user', name: gt.name } : null, mode);
   updateSlot(world, slots.objective, objectiveTarget(world), mode);
-  const ct = world.pigeonMode ? null : updateCare(world);
+  const ct = world.pigeonMode || world.heliRun || world.padelGame || world.activityGame ? null : updateCare(world);
   // no care route to where you're already standing
   updateSlot(world, slots.care, ct && Math.hypot(ct.x - p.x, ct.y - p.y) > REACH_M * 2 ? ct : null, mode);
   route = slots.user.route || slots.objective.route || slots.care.route;

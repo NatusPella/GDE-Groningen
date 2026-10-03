@@ -1,8 +1,8 @@
 // Story steps around the free-roam extras (storyarc.js): any activity step's
 // closing `scene` (where the player is, once the shop or minigame is done), the bumper-car ride
 // on the Grote Markt where Tammo corners Durk & Douwe (r-kermis, kermis.js),
-// the free demo flight in Rotor Roelf's Wieken Wubbo that spots Jelle's
-// balloon in the Oosterpark (s-proefvlucht, heliflight.js) and carbid
+// Rotor Roelf with his demo Wieken Wubbo on Eelde, where the H15 flight
+// starts (s-proefvlucht: walking up to him plays his `meet` scene) and carbid
 // schieten at boer Roelf's, who hides the Eierbal in his melkbus and scares
 // the twins off with a knal (s-carbid, carbid.js; far out and without a car,
 // Henk drops your own Escapade off for free).
@@ -11,8 +11,10 @@
 // frame and storyFunDone when a step is done. While such a step is current,
 // world.storyActivity is its goal type (kermis.js makes that ride free and
 // puts the twins in it). The demo heli is a missionCar, never owned: it
-// waits at the UMCG with Rotor Roelf, is put back there after a wreck, and
-// leaves with him once the step is over and the player has walked away.
+// waits on Roelf's pad with him, is put back there after a wreck, and leaves
+// with him once the step is over and the player has walked away (H15,
+// helirun.js, flies this same heli). A flight goal with `over` also puts a
+// balloon there and counts flying over it (the older demo flight).
 // Debug: window.__storyFun.
 
 import { getStat } from './achievements.js';
@@ -21,7 +23,7 @@ import { CARBID } from './carbid.js';
 import { placeOwnedVehicleNear, findParkingSpot, isOwnVehicle } from './ownedvehicles.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { flashScreen } from './postfx3d.js';
-import { makeHeli, HELI_MODEL } from './heliflight.js';
+import { makeHeli, HELI_MODEL, helipadById } from './heliflight.js';
 import { playCastScene } from './missionstory.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
 import { isMissionActive } from './missions.js';
@@ -83,8 +85,9 @@ function demoUsable(w) {
 }
 
 function placeDemo(w, st) {
-  const [x, y] = st.goal.heli;
-  const z = groundAt(w, x, y);
+  const pad = st.goal.pad ? helipadById(st.goal.pad) : null;
+  const [x, y] = pad ? [pad.x, pad.y] : st.goal.heli;
+  const z = pad ? pad.z : groundAt(w, x, y);
   const v = makeHeli(x, y, z, -Math.PI / 2, { ...HELI_MODEL, color: '#e8e6e0' });
   v.missionCar = true;
   v.storyDemo = true;
@@ -119,7 +122,7 @@ function updateDemo(w, st, dt) {
         const again = !!old;
         if (old) { const i = w.vehicles.indexOf(old); if (i >= 0 && old.driver !== 'player') w.vehicles.splice(i, 1); }
         placeDemo(w, st);
-        if (again) w.addMessage('Rotor Roelf zet een nieuwe Wieken Wubbo bij het UMCG neer. "De leste, hè."', 4.5, { kind: 'tip' });
+        if (again) w.addMessage('Rotor Roelf zet een nieuwe Wieken Wubbo op zijn pad op Eelde. "De leste, hè."', 4.5, { kind: 'tip' });
       }
     }
   } else if (demo) {
@@ -170,7 +173,7 @@ function animateTwins(t, dt, wave) {
 }
 
 function updateBalloon(w, st, dt) {
-  if (flightStep(st)) {
+  if (flightStep(st) && st.goal.over) {
     if (!balloon) placeBalloon(w, st);
     const b = balloon.b;
     // the burner roars now and then: it is being filled for tonight
@@ -210,7 +213,7 @@ function playSpotScene(w, st, base) {
 }
 
 function updateSpotting(w, st, base) {
-  if (base.spotted || base.spotting) return;
+  if (base.spotted || base.spotting || !st.goal.over) return;
   const p = w.player, v = p.inVehicle;
   const [bx, by] = st.goal.over;
   const x = v ? v.x : p.x, y = v ? v.y : p.y;
@@ -325,10 +328,10 @@ export const FUN_GOALS = {
   },
   flight: {
     begin: (st, b) => { b.spotted = false; b.spotting = false; b.met = false; },
-    met: (st, b) => !!b.spotted,
+    met: (st, b) => (st.goal.over ? !!b.spotted : !!b.met),
     place: (st) => {
       const v = world && world.player.inVehicle;
-      if (v && v.isHeli) return { x: st.goal.over[0], y: st.goal.over[1] };
+      if (v && v.isHeli && st.goal.over) return { x: st.goal.over[0], y: st.goal.over[1] };
       return demo && demo.v ? { x: demo.v.x, y: demo.v.y } : { x: st.goal.heli[0], y: st.goal.heli[1] };
     },
   },
@@ -345,7 +348,8 @@ export function initStoryFun(w) {
     scene: (id) => {
       const st = STEP_BY_ID.get(id);
       if (!st || !st.goal) return false;
-      return st.goal.type === 'flight' ? playSpotScene(world, st, {}) : playDoneScene(world, st);
+      if (st.goal.type === 'flight') return st.goal.over ? playSpotScene(world, st, {}) : false;
+      return playDoneScene(world, st);
     },
   };
 }
