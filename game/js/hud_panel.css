@@ -6,6 +6,9 @@
   --mm-size: 230px;
   /* the minimap steps up for the speed and damage badge in a vehicle */
   --mm-bottom: 16px;
+  /* the right column under the top-right block (hud_panel.js measures it) */
+  --hud-tr-bottom: 200px;
+  --hud-stack-top: 210px;
   /* HUD scale from uiscale.js; vw/vh inside #hud must be divided by it */
   zoom: var(--ui, 1);
 }
@@ -106,7 +109,7 @@
 #hud .hud-meter.low svg, #hud .hud-meter.low b { animation: hud-low 0.9s ease-in-out infinite alternate; }
 #hud .hud-meter.low b { color: #d93f3f; }
 @keyframes hud-low { from { opacity: 1; transform: scale(1); } to { opacity: 0.55; transform: scale(1.12); } }
-#hud .hud-meter.ar.empty { opacity: 0.45; }
+#hud .hud-meter[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-meter.low svg, #hud .hud-meter.low b { animation: none; } }
 #hud .hud-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; min-width: 0; }
 #hud .hud-name-row .hud-character { margin-bottom: 0; }
@@ -205,14 +208,14 @@
 body.hud-in-vehicle #hud { --mm-bottom: 56px; }
 #hud .hud-speedo {
   position: absolute;
-  right: 46px;
+  right: 16px;
   bottom: 14px;
   display: none;
   align-items: center;
-  gap: 12px;
-  width: 170px;
+  gap: 10px;
+  width: 236px;
   box-sizing: border-box;
-  padding: 6px 12px;
+  padding: 3px 12px 3px 6px;
   border-radius: 10px;
   color: #f0ede4;
   background: rgba(10, 19, 13, 0.9);
@@ -221,6 +224,21 @@ body.hud-in-vehicle #hud { --mm-bottom: 56px; }
 }
 #hud .hud-speedo.visible { display: flex; animation: hud-rise var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 @keyframes hud-rise { from { opacity: 0; transform: translateY(8px); } }
+/* the vehicle itself, greying and darkening with its damage (--dmg 0..1) */
+#hud .hud-speedo .sp-pic { flex: 0 0 62px; width: 62px; height: 34px; overflow: hidden; }
+#hud .hud-speedo .sp-pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  /* the still is framed loosely; crop in on the vehicle */
+  transform: scale(1.45);
+  filter: saturate(calc(1 - var(--dmg, 0) * 0.8)) brightness(calc(1 - var(--dmg, 0) * 0.25));
+  transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), filter var(--dur-slow, 320ms) var(--ease-out, ease-out);
+}
+#hud .hud-speedo .sp-pic img.on { opacity: 1; }
+#hud .hud-speedo.no-pic .sp-pic { display: none; }
+#hud .hud-speedo.no-pic { right: 46px; width: 170px; padding: 6px 12px; }
 #hud .hud-speedo .sp-num { display: flex; align-items: baseline; gap: 4px; }
 #hud .hud-speedo b { font-weight: normal; font-size: 30px; line-height: 1; min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
 #hud .hud-speedo .sp-num span { font-size: 13px; color: var(--gron-green-light); }
@@ -233,7 +251,7 @@ body.hud-in-vehicle #hud { --mm-bottom: 56px; }
 #hud .hud-speedo.hurt .sp-bar i { background: #d93f3f; }
 #hud .hud-speedo.no-dmg { width: auto; }
 #hud .hud-speedo.no-dmg .sp-dmg { display: none; }
-body.hide-minimap #hud .hud-speedo { right: 16px; }
+body.hide-minimap #hud .hud-speedo, body.hide-minimap #hud .hud-speedo.no-pic { right: 16px; }
 
 /* savegame.js's toast, moved into the location chip by hud_panel.js */
 #hud .hud-saved {
@@ -652,7 +670,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
   right: 22px;
   bottom: 0;
   width: 270px;
-  height: min(500px, calc(100vh / var(--ui, 1) - 80px));
+  height: min(500px, calc(100vh / var(--ui, 1) - var(--hud-tr-bottom) - 28px));
   transform: translateY(105%);
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   pointer-events: none;
@@ -879,7 +897,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 /* --- race panel (checkpoint races, kroegentocht, rondvaart) ------------ */
 #hud .hud-race {
   position: absolute;
-  top: 200px;
+  top: calc(var(--hud-tr-bottom) + 8px);
   right: 14px;
   width: 232px;
   box-sizing: border-box;
