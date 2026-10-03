@@ -849,6 +849,7 @@ export function applyStorySave(d) {
   const fresh = freshState();
   Object.assign(state, fresh);
   rt = freshRuntime();
+  if (world) world.kissUnlocked = false;
   if (!d || typeof d !== 'object' || d.v !== 1) return;
   const ids = (list) => (Array.isArray(list) ? list.filter((id) => STEP_BY_ID.has(id)) : []);
   state.done = new Set(ids(d.done));
@@ -858,6 +859,8 @@ export function applyStorySave(d) {
   state.cards = new Set((Array.isArray(d.cards) ? d.cards : []).filter((k) => PARTS[k]));
   state.flags = new Set((Array.isArray(d.flags) ? d.flags : []).filter((k) => typeof k === 'string'));
   for (const [id, n] of Object.entries(d.fails || {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) state.fails[id] = n;
+  // no frame with the old save's kisses (player.js runs before updateStory)
+  if (world) world.kissUnlocked = kissUnlockedNow();
 }
 
 // Who Tammo and Anita have met (name cards, namecard.js): a 'met:<key>' flag each.
