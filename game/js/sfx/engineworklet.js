@@ -22,7 +22,9 @@ const PROFILES = [
   { fpr: 2, idle: 800, red: 6200, odd: 0.1, tilt: 0.75, fc: [450, 1500], body: [150, 110, 0.9], exh: [380, 220, 0.8], exhRise: 180, rasp: 0.2, intake: 0.1, mech: 0.012, jit: 0.002, wobble: 0.006, out: 0.5, crank: 0.6 },
   { fpr: 2, idle: 850, red: 6200, odd: 0.2, tilt: 0.7, fc: [420, 1400], body: [135, 100, 1.0], exh: [330, 200, 0.9], exhRise: 160, rasp: 0.28, intake: 0.1, mech: 0.016, jit: 0.004, wobble: 0.012, out: 0.5, crank: 0.8 },
   { fpr: 3, idle: 600, red: 2300, odd: 0.12, tilt: 0.85, fc: [300, 900], body: [95, 70, 1.0], exh: [260, 160, 0.6], exhRise: 90, rasp: 0.14, intake: 0.06, mech: 0.02, jit: 0.002, wobble: 0.005, out: 0.55, crank: 0.9 },
-  { fpr: 1, idle: 1900, red: 9500, odd: 0, tilt: 0.95, fc: [700, 1700], body: [260, 160, 0.4], exh: [700, 300, 0.5], exhRise: 250, rasp: 0.1, intake: 0.05, mech: 0.006, jit: 0.004, wobble: 0.008, out: 0.4, crank: 0.35 },
+  // 3: 50cc two-stroke brommer: a round, muffled burble with a little
+  // ring-ding at idle, not a buzzsaw (steep roll-off, low corner, faint rasp)
+  { fpr: 1, idle: 1700, red: 8000, odd: 0.22, tilt: 1.35, fc: [380, 900], body: [170, 120, 0.8], exh: [420, 200, 0.6], exhRise: 120, rasp: 0.05, intake: 0.04, mech: 0.003, jit: 0.006, wobble: 0.02, out: 0.3, crank: 0.35 },
   { fpr: 2, idle: 900, red: 5500, odd: 0.15, tilt: 0.85, fc: [320, 800], body: [130, 100, 0.6], exh: [300, 160, 0.4], exhRise: 80, rasp: 0.08, intake: 0.03, mech: 0.006, jit: 0.003, wobble: 0.01, out: 0.5, crank: 0.5 },
   { fpr: 4, idle: 750, red: 7000, odd: 0.26, tilt: 0.7, fc: [480, 1700], body: [120, 100, 1.0], exh: [320, 200, 0.9], exhRise: 200, rasp: 0.26, intake: 0.12, mech: 0.01, jit: 0.002, wobble: 0.005, out: 0.5, crank: 0.55 },
   { fpr: 2, idle: 750, red: 4300, odd: 0.08, tilt: 0.8, fc: [380, 1100], body: [140, 110, 0.8], exh: [340, 200, 0.6], exhRise: 120, rasp: 0.15, intake: 0.06, mech: 0.02, jit: 0.002, wobble: 0.005, out: 0.5, crank: 0.8 },
