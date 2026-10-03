@@ -13,7 +13,9 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 **Visueel en wereld**
 - [~] Mesh ronde 3 (`claude/mesh-ronde3`): stoeptegels die flikkeren op kruispunten, water en markering die flikkeren, spoorbedden, de laatste kieren bij verhoogde en verdiepte wegen, 291 gaten, de Griffeweg, zwevende en zinkende gebouwen.
 - [~] Gevels die flikkeren (`claude/gevel-zfight`): een detector en fixes voor materialen die op elkaar liggen.
-- [~] Ommeland ronde 2 (`claude/ommeland-ronde2`): echte plattegronden voor L-vormige gebouwen, OSM-fietspaden, winkelpuien, kerkgevels, maren als echt water, gladdere oevers, stadsboten het Ommeland in.
+- [x] Ommeland ronde 2: echte plattegronden voor L-vormige gebouwen, OSM-fietspaden, winkelpuien, kerkgevels, maren als echt water, gladdere oevers.
+- [ ] Stadsboten kunnen de stad uit varen, het Ommeland in.
+- [x] Kusjes geven kan pas na de eerste kus (H13).
 - [~] Stad visueel (`claude/stad-visueel`):
   - de garage en de aankleding bij de House of Groningen;
   - de blinde zijmuren aan de markten;
@@ -60,9 +62,22 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Audio comprimeren (Opus), wat ongeveer de helft van de download scheelt.
 - [?] Waar de webversie komt: itch.io (een gratis account) of GitHub Pages zodra de repo openbaar is.
 - [ ] Het releasescript publiceert de webversie mee.
+- [ ] Three.js en de lettertypes in de webversie zelf hosten, zonder jsDelivr of Google Fonts, voor privacy en offline gebruik.
+
+**Architectuur (op basis van metingen; eerst een profiel van de hoofdthread maken, op Laag en met een vertraagde CPU)**
+- [ ] **Web Workers** voor het opbouwen van stukken stad en Ommeland: geometrie, rijen, wegen en water gaan als buffers naar de hoofdthread. Dat geeft de grootste winst tegen haperingen tijdens het rijden en vliegen.
+- [ ] **Geometrie vooraf bakken** in het bouwscript (binair, of glTF met meshopt), in plaats van alles bij het opstarten uit OSM te genereren. Dat geeft een veel kortere laadtijd.
+- [ ] `BatchedMesh` voor objecten met verschillende vormen maar hetzelfde materiaal.
+- [ ] Daarna pas: de simulatie (verkeer en voetgangers) in een worker, en WASM voor gemeten hotspots als dat dan nog nodig is.
+- [ ] Na 1.0: WebGPU (de WebGPURenderer van three.js) met WebGL als terugval. Dat vraagt een herschrijving van onze eigen shaders.
 
 ## 0.25: afwerking voor nieuwe spelers
 
+- [ ] **Leeftijdsclassificatie: mik op PEGI 16** (advies). Nu is het waarschijnlijk 18, door het doden van onschuldigen en het bloed.
+  - Bloed en ledematen (`gore3d.js`) helemaal uit de game halen, niet alleen achter een instelling.
+  - Voetgangers raken knock-out, staan op en schelden, maar sterven niet. Ook niet door aanrijdingen of schoten.
+  - Het geweld met de politie, die terugvecht, kan blijven. De alcohol blijft, met een inhoudslabel.
+  - De IARC-vragenlijst invullen met de antwoorden die daarbij horen.
 - [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
 - [ ] Toegankelijkheid:
   - toetsen opnieuw toewijzen;
@@ -80,12 +95,19 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - Het cijfer "VI" en de woorden "Grand Theft" vallen weg.
   - Doorvoeren na de merge van 0.23: het logo met een eigen lettertype, het titelscherm, de trailer en de naamkaarten, de README, de namen van de releasebestanden, de appnaam en de winkelteksten. Interne `gte-*`-sleutels blijven, zodat saves blijven werken.
   - Eerst checkt het juridische agent of de naam al bestaat (de conflictcheck).
-- [~] Inventaris van bronnen en licenties (`claude/juridisch`): `docs/LICENTIES.md` en `docs/PUBLICEREN.md`.
-- [ ] Credits in de game: OpenStreetMap (ODbL), lettertypes, three.js.
-- [ ] Disclaimer: "Fanparodie, niet gelieerd aan Rockstar Games of Take-Two".
-- [ ] Logo, lettertypes en merknamen nalopen op te veel gelijkenis met echte merken.
-- [ ] Muziek en stemmen (alles van Gemini): de voorwaarden van Google en OpenRouter vastleggen.
-- [?] De licentie voor code en content (voorstel: MIT en CC BY-NC 4.0).
+- [x] Inventaris van bronnen en licenties: `docs/LICENTIES.md`, `docs/PUBLICEREN.md`, `NOTICE.md` en `licenses/`.
+- [x] Credits in de game via het menu-item "Over", een vermelding van OpenStreetMap op de kaart, en de eindcredits.
+- [x] Disclaimer op het laad- en startscherm en in de README. Bakkie Peut heet nu Bakkie Prut, en de Hema-uitverkoop is Wiebel.
+- [x] De voorwaarden voor muziek en stemmen (Gemini via OpenRouter) zijn vastgelegd. Ze zijn vrij te verspreiden in een gratis game, met een AI-label, en mogen niet gebruikt worden om modellen te trainen.
+- [ ] **Licentie (advies):** MIT voor de code, CC BY-NC 4.0 voor verhaal, stemmen en art, en ODbL voor de kaartdata. Daarna een `LICENSE`-bestand toevoegen.
+- [ ] **Sikkom** (een echt merk van het DvhN) krijgt een eigen parodienaam, bijvoorbeeld "Sjikkom" of "Grunnfeed". **Radio Grunn** (te dicht bij Grunn FM) wordt bijvoorbeeld "Radio Nachtstreek". Daarna die regels opnieuw inspreken, voor waarschijnlijk minder dan $0,50.
+- [ ] **De Esri-satellietfoto** (`data/satellite_reference.jpg`) uit de repo en uit de geschiedenis halen. Dat gebeurt samen met het herschrijven van het e-mailadres, na akkoord.
+- [ ] De ongelogde, oudere stemclips (npc, politie, sikkom, jingles) opnieuw inspreken en loggen.
+- [ ] De kleuren van parodiewinkels minder exact maken, zoals het roze van Kruidvet. Echte cafénamen uit OSM in berichten vervangen door verzonnen namen.
+- [ ] Het logo met **Big Shoulders Display** (OFL), de plaatsnaam op een plaatsnaambord-vorm, en Gronings groen. Gaat samen met de nieuwe naam.
+- [ ] Handmatig in het merkenregister zoeken naar "GDE" en "Grootste Diefstal Ever" (EUIPO en BOIP, ongeveer 15 minuten).
+- [?] **Muziek:** met welk Gemini-product en welk abonnement is ze gemaakt? Dat moet in `docs/LICENTIES.md`.
+- [?] BOIP-registratie (ongeveer €244 tot €271): advies is nu niet, want zonder kosten is de afspraak.
 - [x] Het e-mailadres voor nieuwe commits is het GitHub-noreply-adres.
 - [?] Het werkadres in de oude geschiedenis vervangen. Dat is een herschrijving plus force push, na de laatste merge en alleen na akkoord.
 - [ ] Een secrets-scan vlak voor het openbaar maken (de laatste scan, op 3 okt, vond niets).
