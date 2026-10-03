@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { REAL, RTILE, buildingsInTile, roadsInTile, buildingAt, buildingModel } from './countryreal.js';
+import { REAL, RTILE, buildingsInTile, roadsInTile, buildingAt, buildingModel, markShop } from './countryreal.js';
 import { chash, edgeDistance, realWater } from './countryfield.js';
 import { edgeAt } from './countryedge.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
@@ -369,6 +369,7 @@ function* layout(p) {
     const rot = Math.atan2(nx, ny);
     const H = Math.min(m.wall - 0.15, 3.4);
     put(L, 'front' + type, fx, fy, rot, width, H, 1);
+    markShop(i, alongLong ? (sgn > 0 ? 3 : 4) : (sgn > 0 ? 1 : 2));
     put(L, 'sign' + type + (hv(i, 5) < 0.5 ? 0 : 1), fx, fy, rot, width, H, 1);
     L.shops.push({ x: fx, y: fy, nx, ny, type, width });
     // bikes against the shop window, a terrace in front of the café

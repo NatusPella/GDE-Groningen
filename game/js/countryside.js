@@ -462,7 +462,9 @@ function* genReal(tile) {
       const m = buildingModel(i);
       const rotY = -m.angle;
       const style = REAL_STYLE[m.kind];
-      push(tile, 'rbBody', x, y, rotY, m.long, m.wall, m.short, m.color, 0.05, 0, bldCode(style, style === STYLE.glass ? 0 : doorSide(R, x, y, m)));
+      const door = style === STYLE.glass || m.wing ? 0 : doorSide(R, x, y, m);
+      push(tile, 'rbBody', x, y, rotY, m.long, m.wall, m.short, m.color, 0.05, 0, bldCode(style, REAL.shopFace.has(i) ? 4 + REAL.shopFace.get(i) : door));
+      (tile.bodies || (tile.bodies = new Map())).set(i, [tile.items.rbBody.c.length / 3 - 1, style, door]);
       if (m.roof > 0) {
         const rs = m.kind === 'barn' ? STYLE.sheet : STYLE.tile;
         if (m.hip) push(tile, 'rbHip', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
@@ -864,6 +866,7 @@ function init(scene) {
     prev: null, surf: null, splashAt: 0,
     audible: [],
   };
+  REAL.onShop = onShop;
   const groundMat = createTerrainMaterial();
   const ground = new THREE.Mesh(new THREE.BufferGeometry(), groundMat);
   ground.position.y = GROUND_Y;
@@ -1004,8 +1007,23 @@ function syncTiles(px, py, viewDist, budgetEnd) {
   }
 }
 
+// A village shopfront put on a real building after its tile was laid out:
+// its body's facade code is set over (no door, no windows behind the shop).
+function shopFront(t, i) {
+  const b = t.bodies && t.bodies.get(i);
+  if (!b || !REAL.shopFace.has(i)) return false;
+  const c = t.items.rbBody.c, o = b[0] * 3;
+  c[o] = (c[o] % 2) + 2 * bldCode(b[1], 4 + REAL.shopFace.get(i));
+  return true;
+}
+function onShop(i) {
+  const t = S && S.tiles.get(Math.floor(REAL.bx[i] / TILE) + ',' + Math.floor(REAL.by[i] / TILE));
+  if (t && shopFront(t, i)) chunkFor(t).dirty = true;
+}
+
 function loadTile(t) {
   t.mid = Math.hypot(t.cx - S.px, t.cy - S.py) > MID_R;
+  if (t.bodies && REAL.shopFace.size) for (const i of t.bodies.keys()) shopFront(t, i);
   const ch = chunkFor(t);
   ch.tiles.add(t);
   ch.dirty = true;

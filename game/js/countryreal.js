@@ -14,10 +14,19 @@ export const RTILE = 160;
 const URBAN_CELL = 40;
 
 export const REAL = {
-  ready: false, ext: null, roads: [], waterways: [], rails: [], places: [], churches: [], stations: [], routes: [],
+  ready: false, ext: null, roads: [], cycleways: [], waterways: [], rails: [], places: [], churches: [], stations: [], routes: [],
   n: 0, bx: null, by: null, bw: null, bl: null, ba: null, code: null, lv: null, fill: null,
   bTiles: new Map(), rTiles: new Map(), signTiles: new Map(), churchTiles: new Map(),
+  // village shopfronts: building -> face (1 +x, 2 -x, 3 +z, 4 -z of its
+  // model), and the countryside's hook that repaints that building
+  shopFace: new Map(), onShop: null,
 };
+
+export function markShop(i, face) {
+  if (REAL.shopFace.get(i) === face) return;
+  REAL.shopFace.set(i, face);
+  if (REAL.onShop) REAL.onShop(i);
+}
 
 const tkey = (tx, ty) => tx * 100003 + ty;
 
@@ -56,8 +65,21 @@ const BRICK_FAMILY = [
 const ROOF_TILE = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e];
 const BARN_ROOF = [0x3a3e40, 0x4a5a48, 0x6a6e6c, 0x3a3e40];
 const SHED_WALL = [0x8a9296, 0x5a6a78, 0xb8b6ae, 0x6f7a6c, 0x9a8a70];
+// A wing of an outline in parts: its first rectangle's model on its own box,
+// the roof scaled to keep the pitch, so the roofs meet in valleys.
+export const isWing = (i) => !!REAL.grp && REAL.grp[i] !== i;
 export function buildingModel(i) {
-  const code = REAL.code[i], w = REAL.bw[i], l = REAL.bl[i], area = w * l * REAL.fill[i];
+  if (isWing(i)) {
+    const m = buildingModel(REAL.grp[i]);
+    const w = REAL.bw[i], l = REAL.bl[i];
+    const short = Math.min(w, l);
+    const roof = m.roof > 0 ? Math.max(1.4, Math.min(m.roof * 1.15, (m.roof * short) / Math.max(1, m.short))) : 0;
+    return { ...m, long: Math.max(w, l), short, angle: w >= l ? REAL.ba[i] : REAL.ba[i] + Math.PI / 2, roof, wing: true };
+  }
+  return ownModel(i);
+}
+function ownModel(i) {
+  const code = REAL.code[i], w = REAL.bw[i], l = REAL.bl[i], area = REAL.grpArea[i] || w * l * REAL.fill[i];
   const root = REAL.row ? REAL.row[i] : i, ax = REAL.rowAxis ? REAL.rowAxis[i] : -1;
   const row = ax >= 0 && REAL.rowN[root] > 1;
   const lv = row ? REAL.rowLv[root] : REAL.lv[i];
@@ -108,7 +130,7 @@ function groupRows() {
   const cellOf = new Int32Array(n).fill(-1), start = new Int32Array(gw * gh + 1);
   for (let i = 0; i < n; i++) {
     const c = REAL.code[i];
-    if ((c !== 0 && c !== 1 && c !== 2) || REAL.fill[i] < 0.6 || W[i] * L[i] < 30) continue;
+    if ((c !== 0 && c !== 1 && c !== 2) || REAL.fill[i] < 0.6 || W[i] * L[i] < 30 || REAL.grp[i] !== i || (i + 1 < n && REAL.grp[i + 1] === i)) continue;
     const gx = Math.floor((X[i] - ex0) / CELL) + 1, gy = Math.floor((Y[i] - ey0) / CELL) + 1;
     if (gx < 1 || gy < 1 || gx >= gw - 1 || gy >= gh - 1) continue;
     cls[i] = c === 2 || REAL.lv[i] >= 3 ? 2 : 1;
@@ -175,11 +197,21 @@ export function initReal(map, om) {
   REAL.n = n;
   REAL.bx = new Float32Array(n); REAL.by = new Float32Array(n); REAL.bw = new Float32Array(n); REAL.bl = new Float32Array(n);
   REAL.ba = new Float32Array(n); REAL.code = new Uint8Array(n); REAL.lv = new Uint8Array(n); REAL.fill = new Float32Array(n);
+  // an outline kept as 2-3 rectangles: every part points at its first one
+  // (grp), whose seed picks the looks; grpArea is the whole footprint there
+  REAL.grp = new Int32Array(n); REAL.grpArea = new Float32Array(n);
   for (let i = 0; i < n; i++) {
     const o = i * stride;
-    REAL.bx[i] = I[o]; REAL.by[i] = I[o + 1]; REAL.bw[i] = I[o + 2] / 10; REAL.bl[i] = I[o + 3] / 10;
+    REAL.bw[i] = I[o + 2] / 10; REAL.bl[i] = I[o + 3] / 10;
     REAL.ba[i] = (I[o + 4] * Math.PI) / 180; REAL.code[i] = I[o + 5]; REAL.lv[i] = I[o + 6]; REAL.fill[i] = Math.max(0.3, I[o + 7] / 100);
-    const k = tkey(Math.floor(I[o] / RTILE), Math.floor(I[o + 1] / RTILE));
+    const back = stride > 8 ? I[o + 8] : 0;
+    REAL.grp[i] = i - back;
+    REAL.grpArea[i - back] += REAL.bw[i] * REAL.bl[i] * REAL.fill[i];
+    if (stride > 8 && (I[o + 9] || I[o + 10])) {
+      const c = Math.cos(REAL.ba[i]), s = Math.sin(REAL.ba[i]), cu = I[o + 9] / 10, cv = I[o + 10] / 10;
+      REAL.bx[i] = I[o] + cu * c - cv * s; REAL.by[i] = I[o + 1] + cu * s + cv * c;
+    } else { REAL.bx[i] = I[o]; REAL.by[i] = I[o + 1]; }
+    const k = tkey(Math.floor(REAL.bx[i] / RTILE), Math.floor(REAL.by[i] / RTILE));
     let a = REAL.bTiles.get(k);
     if (!a) REAL.bTiles.set(k, (a = []));
     a.push(i);
@@ -192,7 +224,8 @@ export function initReal(map, om) {
   const urban = urbanGrid(om.extent);
   REAL.waterField = water;
 
-  REAL.roads = om.roads.map((r) => ({ pts: pairs(r.p), kind: r.k, w: r.w, name: r.n || '', ref: r.r || '', oneway: !!r.o, bridge: !!r.b }));
+  REAL.roads = om.roads.map((r) => ({ pts: pairs(r.p), kind: r.k, w: r.w, name: r.n || '', ref: r.r || '', oneway: !!r.o, bridge: !!r.b, cycle: !!r.c }));
+  REAL.cycleways = (om.cycleways || []).map((c) => ({ pts: pairs(c.p), hw: c.h }));
   REAL.waterways = om.waterways.map((w) => ({ pts: pairs(w.p), hw: w.h, name: w.n || '' }));
   REAL.rails = om.rails.map(pairs);
   REAL.boatways = (om.boatways || []).map((w) => ({ pts: pairs(w.p), hw: w.h })).concat(REAL.waterways.filter((w) => w.pts.length > 3));
