@@ -243,6 +243,12 @@ export function createWaterMaterial(sky = null) {
   return m;
 }
 
+// The one water material the city canals and the Ommeland water share.
+let shared = null;
+export function sharedWaterMaterial(sky = null) {
+  return shared || (shared = createWaterMaterial(sky));
+}
+
 export function updateWaterMaterial(material, time, rain = 0, night = 0) {
   const u = material.uniforms;
   u.uTime.value = time;
@@ -300,7 +306,9 @@ function jitterHash(x, y) {
 
 // Grid inside, exact polygon clip at the boundary cells (quadtree of
 // Sutherland-Hodgman box clips - robust for the Diepenring's slit ring).
-export function buildWaterGeometry(poly, index) {
+// shoreFix(x, y, d): optional correction of the distance to shore, for water
+// that carries on past the polygon (the map edge).
+export function buildWaterGeometry(poly, index, shoreFix = null) {
   const src = [];
   for (const [x, y] of poly.pts) src.push(x, y);
   const [minx, miny, maxx, maxy] = poly.bounds || polygonBounds(poly.pts);
@@ -376,6 +384,7 @@ export function buildWaterGeometry(poly, index) {
     }
     positions[i * 3] = x; positions[i * 3 + 2] = y;
     edge[i] = ns.i >= 0 ? ns.d : 24;
+    if (shoreFix) edge[i] = shoreFix(x, y, edge[i]);
     flow[i * 2] = tx; flow[i * 2 + 1] = ty;
   }
   const geo = new THREE.BufferGeometry();
