@@ -6,6 +6,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- Chauffeurs zitten weer in de cabine. In de vrachtwagens (ook de
+  vettankwagen uit H8 en de tankwagen van de stuntavond) zat de bestuurder
+  laag in de laadbak, in de trekker-limo in de dichte limo en in de
+  geldwagen achter in de laadruimte; nu zitten ze achter het stuur, op
+  hoogte, met het hoofd achter de ruiten. De trekker heeft een glazen
+  cabine gekregen, met een bijrijdersstoeltje. Buschauffeurs en de SUV
+  zitten hoger, met het hoofd in de ruiten in plaats van eronder.
+- In de trailer zit er geen tweede, onbekende bestuurder meer door Tammo
+  heen in de Escapade.
+
 ## [0.22.0] - 2026-10-03
 
 ### Nieuw

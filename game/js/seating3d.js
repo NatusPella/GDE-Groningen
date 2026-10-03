@@ -19,20 +19,28 @@ const _m = new THREE.Matrix4();
 
 function carKind(v) {
   if (v.isBus) return 'bus';
-  if (v.isAmbulance || v.model.name === 'foodtruck') return 'van';
+  const n = v.model.name;
+  if (n === 'truck') return 'truck';
+  if (n === 'trekkerlimo') return 'trekker';
+  if (v.isAmbulance || n === 'foodtruck' || n === 'cashvan') return 'van';
   if (v.isHeroCar) return 'escort';
   if (v.isPolice) return 'wagon';
-  const n = v.model.name;
-  return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' ? n : 'hatch';
+  return n === 'sedan' || n === 'wagon' || n === 'van' || n === 'sport' || n === 'suv' ? n : 'hatch';
 }
 
 // Cushion height and posture per car body: feet stay above the sill (0.3)
 // so no shoe pokes out under the car, heads stay under the roof glass.
+// Truck, tractor and bus drivers sit high, on the cab or deck floor behind
+// the solid lower panels, with the head in the window band.
+const VAN_POSE = { recline: 0.1, footX: 0.5, footY: -0.33, arms: 'lap' };
 const CAR_SEATS = {
   hatch: { y: 0.38, pose: SEAT_CAR },
   sport: { y: 0.3, pose: { recline: 0.42, footX: 0.8, footY: -0.02, arms: 'lap' } },
-  van: { y: 0.72, pose: { recline: 0.1, footX: 0.5, footY: -0.33, arms: 'lap' } },
-  bus: { y: 0.8, pose: { recline: 0.08, footX: 0.45, footY: -0.33, arms: 'lap' } },
+  suv: { y: 0.56, pose: { recline: 0.18, footX: 0.66, footY: -0.18, arms: 'lap' } },
+  van: { y: 0.72, pose: VAN_POSE },
+  truck: { y: 1.22, pose: VAN_POSE },
+  trekker: { y: 1.36, pose: { recline: 0.06, footX: 0.46, footY: -0.4, arms: 'lap' } },
+  bus: { y: 1.5, pose: { recline: 0.08, footX: 0.45, footY: -0.33, arms: 'lap' } },
 };
 
 const seatCache = new WeakMap();
@@ -60,10 +68,17 @@ export function vehicleSeat(v, driver) {
     const hl = v.model.len / 2, hw = v.model.wid / 2;
     const k = carKind(v);
     const spec = CAR_SEATS[k] || CAR_SEATS.hatch;
-    let x = -hl * 0.06, z = (driver ? -1 : 1) * hw * 0.34;
-    if (k === 'bus') { x = hl - 1.3; z = driver ? -hw * 0.45 : hw * 0.3; }
+    let x = -hl * 0.06, y = spec.y, z = (driver ? -1 : 1) * hw * 0.34;
+    if (k === 'bus') { x = hl - 1.2; z = driver ? -hw * 0.45 : hw * 0.3; }
     else if (k === 'van') x = hl - 1.45;
-    seat = { x, z, y: spec.y, face: 0, pose: driver ? { ...spec.pose, arms: 'wheel' } : spec.pose };
+    else if (k === 'truck') { x = hl - 1.0; z = (driver ? -1 : 1) * hw * 0.45; }
+    else if (k === 'trekker') {
+      // one tractor seat in the middle of the cab, a buddy seat beside it
+      x = driver ? hl - 1.78 : hl - 1.55;
+      z = driver ? -0.1 : 0.5;
+      if (!driver) y -= 0.12;
+    }
+    seat = { x, z, y, face: 0, pose: driver ? { ...spec.pose, arms: 'wheel' } : spec.pose };
   }
   c[slot] = seat;
   return seat;
