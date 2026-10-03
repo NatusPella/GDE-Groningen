@@ -1,0 +1,13 @@
+{
+  "_era": "0.4: missions only, no story section, kill counters",
+  "_expect": { "step": "H2", "money": 1234 },
+  "save": {
+    "v": 1, "savedAt": 1758300000000, "money": 1234, "health": 80, "armor": 0, "weapon": "pistol",
+    "ammo": { "fists": "inf", "pistol": 24 },
+    "stats": { "kills": 7, "pedKills": 5, "copKills": 2, "missionsDone": 3, "playerWrecks": 1 },
+    "character": "tammo", "pos": { "x": 120.5, "y": -40.2 },
+    "missions": { "index": 3, "completed": [0, 1, 2], "seen": [0, 1, 2] },
+    "visitedLandmarks": ["martinitoren", "grote-markt"],
+    "shops": null
+  }
+}

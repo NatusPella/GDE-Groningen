@@ -1,0 +1,19 @@
+{
+  "_era": "0.23: money lost to the NaN bug (null, moneyBackup kept; savegame.js restores it), a doel set, kill counters, end of the Kop",
+  "_expect": { "step": "k-fiets", "money": null, "moneyBackup": 610 },
+  "save": {
+    "v": 1, "savedAt": 1759420000000, "money": null, "moneyBackup": 610, "health": 55, "armor": 0, "weapon": "fists",
+    "ammo": { "fists": "inf" },
+    "stats": { "kills": 0, "pedKills": 0, "copKills": 0, "missionsDone": 4, "playerWrecks": 0 },
+    "character": "tammo", "pos": { "x": 12, "y": 8 }, "ctx": "busy",
+    "missions": { "index": 2, "completed": [0, 8, 1, 9], "seen": [0, 1, 8, 9], "medals": {} },
+    "story": { "v": 1, "done": ["H1", "H2", "H3", "H4"], "skipped": [], "fails": {}, "waived": [], "voorschot": [], "cards": [], "flags": ["met:berend"] },
+    "visitedLandmarks": [],
+    "shops": { "hero": {}, "outfit": { "tammo": "stadjer", "anita": "classic" }, "ownedOutfits": [], "storyOutfit": null,
+      "hair": { "tammo": { "color": "naturel", "style": "short" }, "anita": { "color": "naturel", "style": "long" } }, "heroColor": null, "heroUpgrades": [], "vehicles": [] },
+    "prestaties": { "eierballen": [], "geheimen": [], "unlocked": [] },
+    "duif": { "ach": [] }, "bijbaan": { "v": 1, "jobs": {}, "seen": [] }, "postgame": {},
+    "meubels": { "owned": [], "pending": [], "built": [], "day": 0, "read": 0, "stek": 0, "tips": [], "moment": 0 },
+    "doel": { "kind": "place", "id": null, "name": "Trap & Toeter", "sub": "", "x": 40, "y": -12 }
+  }
+}

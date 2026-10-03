@@ -2232,6 +2232,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       freeze: (i, t = 1) => { if (!shots[i - 1]) return false; frozen = { T: starts[i - 1] + Math.min(t, shotDur(r, shots[i - 1]) - 0.05) }; r.T = starts[i - 1] - 0.001; r.idx = -1; return true; },
       play: () => { frozen = null; },
       stop: () => end(true, true),
+      prop: (name) => trailerProps.get(name) || null,
     };
     // A cut that opens on a picture (steam) streams its first place in under
     // the black before the clock starts: frame() at T = 0 enters the shot
