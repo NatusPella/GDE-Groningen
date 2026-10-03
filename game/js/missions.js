@@ -1,4 +1,5 @@
 import { SMS_SAY } from './smsvoice.js';
+import { markerColors } from './a11y.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear } from './vehicle.js';
@@ -6,17 +7,17 @@ import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, storySpeakerName } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
-import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
+import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, playRondvaartBoarding, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
-import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState } from './shops.js';
+import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState, setStoryOutfit } from './shops.js';
 import { getGaragesForRender, garageInside } from './garages.js';
 import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
@@ -86,7 +87,8 @@ function buildDefs(world) {
   const { map } = world;
   const drive = (x, y) => roadSpot(map, x, y, true);
   const walk = (x, y) => roadSpot(map, x, y);
-  const kroeg = (name, x, y) => ({ ...walk(x, y), name });
+  // toast: the short drink at the door (missionstory.js playToast): glass, camera variant, one line or none
+  const kroeg = (name, x, y, toast = null) => ({ ...walk(x, y), name, toast });
   // Route guidance between checkpoints along the streets, so the line to the
   // next marker never runs through a block; passed automatically (see waypointReached).
   const via = (spot) => ({ ...spot, via: true });
@@ -134,6 +136,9 @@ function buildDefs(world) {
       requires: 'bike',
       // the all-green crossing: Anita comes the other way on her own bike
       moment: { at: 3, text: 'Alles groen. Anita komt van de andere kant, op haar eigen fiets. Oogcontact. Jullie remmen allebei.' },
+      // each on their own bike (D: she comes the other way at the all-green crossing), so she gets off his
+      ownBike: true,
+      say: 'Ik fiets zelf, op mijn eigen fiets. Met bonnetje. Zie je op het kruispunt.',
       timeLimit: 35,
       checkpointBonus: 20,
       reward: 550,
@@ -180,13 +185,13 @@ function buildDefs(world) {
       start: walk(250, 115),
       waypoints: [
         via(walk(304.3, 130.9)),
-        kroeg('Café De Lallende Koe', 368, 118.6),
+        kroeg('Café De Lallende Koe', 368, 118.6, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
         via(walk(416.2, 125.8)),
-        kroeg("Kroeg 't Scheve Toorntje", 410.5, 170.9),
+        kroeg("Kroeg 't Scheve Toorntje", 410.5, 170.9, { glass: 'wine', variant: 1, lines: [['T', 'Op Grunn.']] }),
         via(walk(431.2, 182.1)), via(walk(393.9, 194.8)), via(walk(399.8, 210.6)), via(walk(365.9, 223)),
-        kroeg('Nachtcafé De Uil van Half Vier', 352.6, 224.7),
+        kroeg('Nachtcafé De Uil van Half Vier', 352.6, 224.7, { glass: 'jenever', variant: 2, lines: [] }),
         via(walk(316.1, 243.9)), via(walk(262.2, 128.3)),
-        kroeg('Café De Dikke Duif', 213.6, 135.9),
+        kroeg('Café De Dikke Duif', 213.6, 135.9, { glass: 'beer', variant: 3, lines: [['T', 'Op de laatste.']] }),
       ],
     },
     {
@@ -309,7 +314,9 @@ function buildDefs(world) {
           lines: [['T', 'Instappen! De motor draait al!'], ['A', 'Tammo, sinds wanneer kun jij varen?'], ['T', 'Sinds nu. Vol gas!']],
         },
         {
-          kind: 'escape', stars: 3, label: 'Schud de politie af', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.',
+          kind: 'escape', stars: 3, label: 'Naar de kade bij het Hoofdstation', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.',
+          // a mooring on the Verbindingskanaal in front of the station: the run ends there, once the police are gone
+          target: { x: -40, y: 849, label: 'Kade bij het Hoofdstation' }, dock: 14,
           // Nachtstreek, live, while they flee: Jelle calls in
           radio: { caller: 'Een beller uit Ljouwert', lines: [
             ['rikus', 'We hebben een beller. Uit… Ljouwert?'],
@@ -326,22 +333,26 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Al het vet van Grunn',
-      intro: ['De tankwagen van Us Mem Vet rijdt met al het frituurvet van Grunn de stad uit.', 'Schiet of ram zijn banden stuk, kaap hem en breng het vet naar de Oosterpoort.'],
+      intro: ['De tankwagen van Us Mem Vet staat bij de groothandel aan de Bornholmstraat, vol met al het frituurvet van Grunn.', 'Kaap hem: spring erin, of schiet of ram zijn banden stuk. Breng het vet naar de Oosterpoort.'],
       outro: 'Het vet is terug in Grunn. Jelle sprong over de gracht, de tweeling fietste erachteraan.',
       timeLimit: null,
       reward: 950,
       vehicle: 'car',
       start: drive(1149, 422),
       stages: [
-        { kind: 'board', label: 'Stap in de auto', say: 'Instappen, Femke heeft hem voor ons klaargezet. Daar gaat de tankwagen!' },
+        { kind: 'board', label: 'Stap in de auto', say: 'Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.' },
         {
-          kind: 'chase', label: 'Schiet of ram de banden van de tankwagen stuk', say: 'Achter die tankwagen aan! Schieten mag, rammen mag. Maak zijn banden plat.',
-          vehicle: { name: 'truck', tank: true, len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
-          name: 'Tankwagen Us Mem Vet', lead: 48, hits: 70, flee: [-2600, 600], cruise: 15.5, escape: 380, time: 180,
+          // parked at the groothandel until you come close (`parked` m) or hit it; then it flees.
+          // Jumping in (`hijack`) takes it there and then, and the run goes on to the Oosterpoort.
+          kind: 'chase', label: 'Kaap de tankwagen of schiet zijn banden plat', say: 'Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.',
+          vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
+          name: 'Tankwagen Us Mem Vet', from: [1896, 364], lead: 6, hits: 70, flee: [-2600, 600], cruise: 15.5, escape: 380, time: 180,
+          parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Ze zien ons! Daar gaat hij. Erin springen, of de banden plat. Schieten mag, rammen mag.',
           stopped: 'Pang! Banden plat. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
+          hijack: 'Gekaapt! Durk en Douwe rollen eruit en fietsen weg, allebei op één fatbike. Het vet is van ons.',
         },
         { kind: 'board', label: 'Kaap de tankwagen', say: 'Hij staat stil. Instappen, het vet is van ons. Van Grunn, bedoel ik.' },
-        { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.' },
+        { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.', sayHijacked: 'Naar de Oosterpoort, daar wachten de frituurpannen. En rustig, hè: het is een tankwagen.' },
         {
           kind: 'vault', label: 'Jelle',
           lines: [['jelle', 'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.'], ['A', 'Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.'],
@@ -415,7 +426,7 @@ function buildDefs(world) {
           near: 'Langszij! Hou hem vast, Tammo springt zo...', lost: 'het skûtsje is weg, met zeil en al',
         },
         {
-          kind: 'scene', label: 'Aan boord', target: { skutsje: true },
+          kind: 'scene', label: 'Aan boord', target: { skutsje: true }, deckCam: true,
           kicker: 'Het skûtsje', big: 'Chocola?!',
           cast: [{ key: 'durk', at: [2.3, 0.35], jump: 'Plons.', jumpSide: 1 }, { key: 'douwe', at: [3.2, -0.35], jump: 'Plons.', jumpSide: -1, jumpDelay: 0.4 }],
           props: [{ kind: 'ball', holder: 'A', from: 'Hier is hij' }],
@@ -913,7 +924,7 @@ function runStats(world, def) {
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
   const rv = def.type === 'boat' ? rondvaartStatus() : null;
-  if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Botsingen', String(rv.bumps)]);
+  if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Verhalen verteld', `${rv.told}/${rv.stops}`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
   if (def.type === 'fatbike') stats.push(['Geschept', String(chain.fatbikeHits || 0)]);
   const su = def.type === 'stunt' ? stuntStatus() : null;
@@ -1185,6 +1196,8 @@ function succeed(world, def) {
     world.lastPerfectRun = world.time;
   }
   playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats, reason });
+  // a replayed kraak has no train trip after it: their own clothes straight away
+  if (def.heist && replay) setStoryOutfit(null);
   releaseMissionVehicle(world);
   chain.completed.add(chain.index);
   chain.run = null;
@@ -1238,6 +1251,8 @@ function fail(world, def, reason) {
 function endInFailure(world, text) {
   world.addMessage(text, 3.5);
   clearStoryProps();
+  // H6 failed: out of the black again (startMission puts it back on)
+  if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
   if (world.pigeonMode) stopPigeonMode(world);
   // an aborted or skipped H15 must not leave the heli run flying on
   if (isHeliRunActive()) abortHeliRun();
@@ -1613,6 +1628,11 @@ function startMission(world, def) {
   chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
   chain.momentDone = false;
+  chain.hijacked = false;
+  chain.finishPending = false;
+  // the kraak: both in black, whoever bought it (off again on the train, stationtravel.js)
+  // (any other mission: the train was skipped somehow, so their own clothes again)
+  setStoryOutfit(def.heist ? 'incognito' : null);
   if (def.solo) {
     // the companion stays where the mission starts (H16: Tammo with the klomp)
     const p0 = world.player;
@@ -1644,6 +1664,7 @@ function startMission(world, def) {
     chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320, jelle: true });
   } else if (def.race === 'kei') {
     chain.race = createRace(world, KEI_ROUTE, KEI_CHECKPOINTS, { bikes: true, band: 70 });
+    if (def.ownBike) companionOwnBike(world);
   }
   if (def.crowds) spawnCrowds(world, def);
   const i = chain.index;
@@ -1656,8 +1677,25 @@ function startMission(world, def) {
     const who = speakerName(world);
     playMissionIntro(world, { kicker, title: `Missie: ${title}`, lines: (def.intro || []).map((text) => ({ speaker: who, text })), objective });
   }
+  // H13: after the intro on the quay, a shot of the boat with the two of them aboard
+  if (def.type === 'boat' && chain.vehicle) playRondvaartBoarding(world, chain.vehicle);
   if (def.say) world.addMessage(def.say, 5);
   chain.seen.add(i);
+}
+
+// H5: the race is one bike each. The companion gets off the player's bike and
+// stays by the start (it is also the finish) for the race; in the all-green
+// moment (playEyeContact) she comes the other way on her own bike.
+function companionOwnBike(world) {
+  const c = world.companion;
+  if (!c || c.state === 'dead') return;
+  const p = world.player;
+  if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
+  const a = p.angle + Math.PI / 2;
+  const spot = world.map.openSpotNear ? world.map.openSpotNear(p.x + Math.cos(a) * 2.5, p.y + Math.sin(a) * 2.5) : { x: p.x + Math.cos(a) * 2.5, y: p.y + Math.sin(a) * 2.5 };
+  c.x = spot.x; c.y = spot.y; c.vx = 0; c.vy = 0;
+  world.companionHold = { x: spot.x, y: spot.y, face: p.angle, pose: 'phone' };
+  chain.soloHold = true;
 }
 
 // H3 is a stunt evening in the Escapade: when it is not near, Henk parks it at the square.
@@ -1726,11 +1764,13 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   chain.wpIndex++;
   if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
+  if (wp.toast && !isCinematicActive()) playToast(world, { at: { x: world.player.x, y: world.player.y }, facing: world.player.angle, kicker: wp.name, ...wp.toast });
   if (def.moment && !chain.momentDone && chain.wpIndex >= def.moment.at) {
     chain.momentDone = true;
     playMoment(world, def.moment);
   }
   if (chain.wpIndex >= def.waypoints.length) {
+    if (wp.toast && isCinematicActive('mission-scene')) { chain.finishPending = true; return; }
     if (chain.race) {
       const { position, total } = raceStandings(chain.race);
       chain.run.racePos = position;
@@ -1866,8 +1906,10 @@ export function updateMissions(dt, world) {
       } else chain.stopT = 0;
     }
   } else if (def.type === 'stunt') {
-    if (updateStunt(dt, world) === 'done') succeed(world, def);
+    if (updateStunt(dt, world, chain.timeLeft) === 'done') succeed(world, def);
   } else if (def.type === 'checkpoint') {
+    // the last pub's toast first, then the outro (a story scene can't start under it)
+    if (chain.finishPending) { if (!isCinematicActive()) { chain.finishPending = false; succeed(world, def); } return; }
     if (chain.race) {
       updateRace(dt, world, chain.race, chain.wpIndex);
       const r = raceStandings(chain.race);
@@ -2087,6 +2129,8 @@ function spawnChaseVehicle(world, def, st) {
   const first = st.route && st.route[0];
   const goal = (st.toTrain && fjordLoadPoint()) || (first ? { x: first.at[0], y: first.at[1] } : { x: st.flee[0], y: st.flee[1] });
   v.aiOpts = { goal: { x: goal.x, y: goal.y }, chase: true, cruise: st.cruise || 15 };
+  // waiting at the groothandel: off the road graph (so traffic AI leaves it be) until it flees
+  if (st.parked) { v.parkedRoad = v.road; v.parkedAi = v.aiOpts; v.road = null; v.aiOpts = null; v.speed = 0; }
   world.vehicles.push(v);
   return v;
 }
@@ -2128,13 +2172,24 @@ function stopChaseVehicle(world, def, st) {
   nextStage(world, def);
 }
 
-function adoptVehicle(world, v, st) {
+// The player jumped into the chased vehicle (H8's tanker): it is theirs,
+// tyres whole, and the run goes straight on past the 'board' stage.
+function hijackChase(world, def, st, v) {
+  adoptVehicle(world, v, st, true);
+  chain.hijacked = true;
+  chain.boarded = true;
+  world.addMessage(st.hijack, 4.5);
+  if (def.stages[chain.stageIndex + 1] && def.stages[chain.stageIndex + 1].kind === 'board') chain.stageIndex++;
+  nextStage(world, def);
+}
+
+function adoptVehicle(world, v, st, intact = false) {
   v.road = null;
   v.aiOpts = null;
   v.plan = [];
   if (v.driver !== 'player') v.driver = null;
   v.chaseTarget = false;
-  if (!st.hero) v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
+  if (!st.hero && !intact) v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
   v.health = Math.max(v.health, 60);
   const old = chain.vehicle;
   if (old && old !== v) old.missionCar = false;
@@ -2209,7 +2264,11 @@ function stageProgressBase(world, def) {
   const n = `${list.indexOf(st) + 1}/${list.length}`;
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
-  if (st.kind === 'escape') return `${st.label} · ${'★'.repeat(world.wanted)}`;
+  if (st.kind === 'escape') {
+    if (S.target && !world.wanted) return `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
+    return `${S.target ? 'Schud de politie af' : st.label} · ${'★'.repeat(world.wanted)}`;
+  }
+  if (st.kind === 'chase' && S.target && S.target.parkedRoad) return `${st.parkedLabel || st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
   if (st.kind === 'chase' && S.target) {
     const left = `${st.meter || 'banden'} ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
     return `${st.label} · ${left}${st.clock ? ` · ${st.clock} ${fmtTime((st.time || 180) - S.t)}` : ''}`;
@@ -2284,7 +2343,8 @@ function enterStage(world, def, k) {
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chain.timeLeft += st.bonus;
-  if (st.say) world.addMessage(st.say, 4.5);
+  const say = chain.hijacked && st.sayHijacked ? st.sayHijacked : st.say;
+  if (say) world.addMessage(say, 4.5);
   if (st.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...st.radio });
 }
 
@@ -2479,6 +2539,15 @@ function playStageScene(world, st, S) {
       const near = Math.hypot(c.x - v.x, c.y - v.y) < 5;
       return { position: { x: v.x + Math.cos(a) * 2.8, y: v.y + Math.sin(a) * 2.8, z: 1.75 }, lookAt: { x: near ? (v.x + c.x) / 2 : v.x, y: near ? (v.y + c.y) / 2 : v.y, z: 1.2 }, fov: 50 };
     };
+  } else if (st.deckCam && chain.skutsje) {
+    // on the skûtsje (H14): from just off the bow quarter, low, looking aft over the deck, so the
+    // sail stands behind the cast instead of between them and the camera; a slow drift along the hull
+    const b = chain.skutsje, ca = Math.cos(b.angle), sa = Math.sin(b.angle), hl = b.model.len / 2;
+    const sd = [1, -1].find((s) => isInWater(world.map, b.x + ca * (hl + 2.5) - sa * s * 3.5, b.y + sa * (hl + 2.5) + ca * s * 3.5)) ?? 1;
+    shot = (u) => {
+      const k = u * u * (3 - 2 * u), fw = hl + 3.2 - k * 1.4, lat = sd * (3.6 - k * 0.8);
+      return { position: { x: b.x + ca * fw - sa * lat, y: b.y + sa * fw + ca * lat, z: 2.5 - k * 0.3 }, lookAt: { x: b.x + ca * 0.6, y: b.y + sa * 0.6, z: 1.7 }, fov: 50 - k * 4 };
+    };
   } else if (st.cam) {
     // a wide shot from the target, looking up at cam.at (e.g. the tower)
     const look = (st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
@@ -2512,7 +2581,7 @@ function playStageScene(world, st, S) {
       at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
       kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo,
       deck: st.target && st.target.skutsje ? chain.skutsje : null,
-      shot: st.reveal || wide ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
+      shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
       props: [...(st.props || []), ...(st.knots ? [{ kind: 'point', name: 'knots', at: flagKnotsFocus }] : [])],
       update: st.dropFlag || st.showFlag ? (t, dt) => updateStoryProps(st.dropFlag ? dt * 0.45 : dt) : st.reveal ? heistRevealUpdate : null,
@@ -2634,20 +2703,38 @@ function updateStages(dt, world, def) {
       nextStage(world, def);
       break;
     }
-    case 'escape':
-      if (world.wanted === 0 && S.t > 1) nextStage(world, def);
+    case 'escape': {
+      if (!S.target) { if (world.wanted === 0 && S.t > 1) nextStage(world, def); break; }
+      // H6: lose the police, then moor at the quay (target, within `dock` m, still in the boat)
+      const boat = p.inVehicle && p.inVehicle.isBoat ? p.inVehicle : null;
+      const docked = !!boat && dist(p.x, p.y, S.target.x, S.target.y) < (st.dock || STAGE_RADIUS);
+      if (!docked) break;
+      if (world.wanted > 0) { hint(world, 'Nog pliesie achter ons. Eerst afschudden, dan pas aanleggen.'); break; }
+      boat.speed *= 0.5;
+      nextStage(world, def);
       break;
+    }
     case 'chase': {
       const t = S.target;
       if (S.swarm) { if (S.swarm === 'done') stopChaseVehicle(world, def, st); break; }
       if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
-      if (st.route) updateChaseRoute(world, st, S, t);
+      if (st.hijack && p.inVehicle === t) { hijackChase(world, def, st, t); break; }
       const d = dist(p.x, p.y, t.x, t.y);
+      if (t.parkedRoad) {
+        if (d > st.parked && t.health >= S.hp0) break;
+        t.road = t.parkedRoad;
+        t.aiOpts = t.parkedAi;
+        t.parkedRoad = null;
+        t.planAt = 0;
+        S.goAt = S.t;
+        if (st.go) world.addMessage(st.go, 4);
+      }
+      if (st.route) updateChaseRoute(world, st, S, t);
       if (st.swarm && (S.hp0 - t.health >= st.hits / 2 || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
       if (st.toTrain && chaseReachedTrain(world, def, st, S, t, dt)) break;
-      if (d > (st.escape || 380) || S.t > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
+      if (d > (st.escape || 380) || S.t - (S.goAt || 0) > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
       if (S.hp0 - t.health >= st.hits / 2 && !S.half && !st.swarm) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
       break;
     }
@@ -2911,8 +2998,17 @@ export function buildMissionMarker3D() {
   core.position.y = 3.6;
   group.add(core);
 
+  // an active mission's marker is a downward arrow, an idle one a ball:
+  // the two never differ by colour alone
+  const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.3, 4), markerCoreMaterial);
+  arrow.rotation.x = Math.PI;
+  arrow.position.y = 3.7;
+  arrow.visible = false;
+  group.add(arrow);
+
   group.userData.ring = ring;
   group.userData.core = core;
+  group.userData.arrow = arrow;
   return group;
 }
 
@@ -2922,7 +3018,15 @@ export function buildMissionMarker3D() {
 // Mutates the shared marker materials directly - safe since only one marker
 // mesh ever exists at a time.
 export function updateMissionMarker3D(group, time, phase) {
-  const hex = phase === 'active' ? MARKER_COLOR_ACTIVE : MARKER_COLOR_IDLE;
+  const pal = markerColors();
+  const hex = parseInt((phase === 'active' ? pal.missionActive : pal.mission).slice(1), 16);
+  const { core, arrow } = group.userData;
+  if (arrow) {
+    arrow.visible = phase === 'active';
+    core.visible = phase !== 'active';
+    arrow.rotation.y = time * 1.6;
+    arrow.position.y = 3.7 + Math.sin(time * 3) * 0.25;
+  }
   markerBeamMaterial.color.setHex(hex);
   markerRingMaterial.color.setHex(hex);
   markerCoreMaterial.color.setHex(hex);

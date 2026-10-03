@@ -30,7 +30,7 @@ export const SHOP_TYPES = {
   pand: { color: '#7d6a3a', label: 'Pandjeshuis', chain: 'Pand & Poen', tagline: 'Wij kopen alles. Echt alles.', group: 'shopsWapens' },
   kleding: { color: '#7a4fb0', label: 'Kledingwinkel', chain: 'Stoer & Stads', tagline: 'Kleding voor de Stadjer met smaak', group: 'shops' },
   kapper: { color: '#23948a', label: 'Kapper', chain: 'Knip & Kuif', tagline: 'Kapsalon, ook zonder afspraak', group: 'shops' },
-  tabak: { color: '#c23f78', label: 'Tabak & loterij', chain: 'Rook & Geluk', tagline: 'Kraskaarten, loten en een eierbal uit de muur', group: 'shops' },
+  tabak: { color: '#c23f78', label: 'Krant & snoep', chain: 'Krant & Kauwgom', tagline: 'Kranten, snoep, een spaarkaart en een eierbal uit de muur', group: 'shops' },
   super: { color: '#3b8f3b', label: 'Avondwinkel', chain: 'Nait Duur', tagline: 'Open tot laat, goedkoop tot op de cent', group: 'shops' },
   snack: { color: '#d0652a', label: 'Snackbar', chain: 'Frituur Vet & Lekker', tagline: 'Vers uit het vet, met of zonder', group: 'shops' },
   fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, bakfietsen, e-steps en brommers', group: 'shopsVoertuigen' },
@@ -245,12 +245,15 @@ let shops = [];
 const state = {
   outfit: { ...DEFAULT_OUTFIT },
   ownedOutfits: new Set(['tammo:stadjer', 'anita:classic']),
+  // what the story puts both of them in for a while (H6 to the train: black), over their own outfit
+  storyOutfit: null,
   hair: { tammo: { color: 'naturel', style: 'short' }, anita: { color: 'naturel', style: 'long' } },
   vehicles: [], // one per stock key: { key, spec, color, upgrades, v, x, y, angle, lost }
   heroColor: null,
   heroUpgrades: [],
   rental: null,
   lastStealthAt: -Infinity,
+  stamps: 0, // spaarkaart at Krant & Kauwgom
 };
 let baseLook = null;
 let idSeq = 0;
@@ -886,7 +889,7 @@ const RENTALS = [
 
 function bootSections(world, shop) {
   const items = RENTALS.map((r) => ({
-    id: 'r-' + r.id, label: r.label, desc: `${r.desc} · ligt aan de steiger`, price: r.price, disabled: broke(world, r.price),
+    id: 'r-' + r.id, label: r.label, desc: `${r.desc} · ligt aan de steiger`, price: r.price, verb: 'Huren voor', disabled: broke(world, r.price),
     preview: { kind: 'boat', model: r.model, color: r.model.color, nameIdx: r.nameIdx }, stats: vehicleStats(r.model, 'boat'),
     buy() {
       if (!pay(world, r.price)) return null;
@@ -1021,6 +1024,7 @@ function outfitSections(world) {
         if (!owned && !pay(world, o.price)) return null;
         state.ownedOutfits.add(key);
         state.outfit[ch] = o.id;
+        state.storyOutfit = null;
         applyLooks();
         const lost = shakeWanted(world, o.stealth || 1);
         return (owned ? `${o.label} weer aangetrokken` : `${o.label} gekocht en meteen aan`) + (lost ? '. De politie herkent je niet meer zo goed!' : '');
@@ -1153,9 +1157,6 @@ function vehicleSections(world, type, shop) {
   return sections;
 }
 
-const SCRATCH = [[0.002, 500], [0.018, 50], [0.08, 15], [0.2, 5]];
-const LOTTERY = [[0.004, 2500], [0.05, 200]];
-const SCRATCH_SMALL = [[0.01, 150], [0.06, 10], [0.2, 2]];
 const HEADLINES = [
   'Martinitoren staat nog steeds scheef, zegt niemand',
   'Duif steelt eierbal op de Vismarkt, dader voortvoluchtig',
@@ -1167,27 +1168,44 @@ const HEADLINES = [
   'Eierbal uitgeroepen tot werelderfgoed, Drenthe protesteert',
 ];
 
-function draw(table) {
-  let r = Math.random();
-  for (const [p, prize] of table) {
-    if (r < p) return prize;
-    r -= p;
-  }
-  return 0;
+// Spaarkaart: every purchase at Krant & Kauwgom earns a stamp, a full card
+// is traded in for a fixed prize. No stake and no chance.
+const STAMP_CARD = 10;
+const STAMP_PRIZE = 10;
+
+function stamped(item) {
+  const buy = item.buy;
+  return {
+    ...item,
+    buy() {
+      const res = buy.call(this);
+      if (res == null) return res;
+      state.stamps = Math.min(STAMP_CARD, state.stamps + 1);
+      const note = state.stamps >= STAMP_CARD ? 'Spaarkaart vol!' : `Stempel ${state.stamps}/${STAMP_CARD}`;
+      return typeof res === 'string' ? `${res} · ${note}` : { ...res, text: `${res.text} · ${note}` };
+    },
+  };
+}
+
+function stampCardItem(world) {
+  const full = state.stamps >= STAMP_CARD;
+  return {
+    id: 'spaarkaart', preview: productPreview('spaarkaart'), label: 'Volle spaarkaart inleveren',
+    desc: `Elke aankoop hier is een stempel. Bij ${STAMP_CARD} stempels krijg je €${STAMP_PRIZE}`, price: 0, plain: true, verb: `Inleveren voor €${STAMP_PRIZE}`, keepFocus: true,
+    stats: [{ label: 'Stempels', v: state.stamps / STAMP_CARD, to: null, text: `${state.stamps}/${STAMP_CARD}` }],
+    effect: `€${STAMP_PRIZE} bij een volle kaart`,
+    disabled: full ? '' : `Nog ${STAMP_CARD - state.stamps} stempels tot een volle kaart`,
+    buy() {
+      if (state.stamps < STAMP_CARD) return null;
+      state.stamps = 0;
+      world.money += STAMP_PRIZE;
+      recordStat(world, 'stampCards');
+      return { text: `Kaart vol, €${STAMP_PRIZE} voor jou. Hier is een nieuwe`, tone: 'win' };
+    },
+  };
 }
 
 function tabakSections(world) {
-  const gamble = (id, label, desc, price, table, big, look) => ({
-    id, label, desc, price, disabled: broke(world, price), keepFocus: true,
-    preview: productPreview(id), effect: `Hoofdprijs €${big}`, reveal: look,
-    buy() {
-      if (!pay(world, price)) return null;
-      const prize = draw(table);
-      world.money += prize;
-      if (!prize) return { text: 'Niks. Volgende keer beter, jong', tone: 'lose', prize };
-      return { text: prize >= big ? `JACKPOT! €${prize} gewonnen!` : `Joa! €${prize} gewonnen`, tone: prize >= big ? 'jackpot' : 'win', prize };
-    },
-  });
   const snack = (id, label, desc, price, hp) => foodItem(world, id, label, desc, price, hp, id, () => `${label} naar binnen gewerkt`);
   const paper = {
     id: 'krant', preview: productPreview('krant'), label: 'Grunneger Kwebbelkrant', desc: 'De krant van vandaag, met de kop van de dag', price: 2, keepFocus: true,
@@ -1214,18 +1232,14 @@ function tabakSections(world) {
     },
   };
   return [
-    { title: 'Geluk', items: [
-      gamble('scratch', 'Kraskaart "Grunneger Gokje"', 'Krassen maar! Hoofdprijs €500', 5, SCRATCH, 500, { title: 'GRUNNEGER GOKJE', bg: '#c23f78' }),
-      gamble('lot', 'Stadsloterij-lot', 'Trekking meteen. Hoofdprijs €2500', 25, LOTTERY, 2500, { title: 'STADSLOTERIJ', bg: '#b8902a' }),
-      gamble('duif', 'Duivenkraslot', 'Kras de duif vrij. Hoofdprijs €150', 2, SCRATCH_SMALL, 150, { title: 'DUIVENKRASLOT', bg: '#4a6a8a' }),
-    ] },
-    { title: 'Lezen & sturen', items: [paper, strip, card] },
+    { title: 'Lezen & sturen', items: [paper, strip, card].map(stamped) },
     { title: 'Snoep & snacks', items: [
       snack('eierbal', 'Eierbal', 'Warm uit de automaat naast de deur', 6, 10),
       snack('koek', 'Grunneger koek', 'Plak kruidkoek voor onderweg', 4, 6),
       snack('drop', 'Zak zoute drop', 'Dubbelzout, voor de echte Stadjer', 2, 4),
       snack('kauwgom', 'Kauwgom "Frisse Adem"', 'Voor na de eierbal', 1, 1),
-    ] },
+    ].map(stamped) },
+    { title: 'Spaarkaart', note: `${state.stamps}/${STAMP_CARD} stempels`, items: [stampCardItem(world)] },
   ];
 }
 
@@ -1293,7 +1307,7 @@ function applyLooks() {
   if (!baseLook) return;
   for (const ch of ['tammo', 'anita']) {
     const app = ch === 'tammo' ? TAMMO_APPEARANCE : ANITA_APPEARANCE;
-    const o = OUTFITS[ch].find((x) => x.id === state.outfit[ch]) || OUTFITS[ch][0];
+    const o = OUTFITS[ch].find((x) => x.id === (state.storyOutfit || state.outfit[ch])) || OUTFITS[ch][0];
     const h = state.hair[ch];
     const hc = HAIR_COLORS.find((c) => c.id === h.color);
     Object.assign(app, baseLook[ch], { shirt: o.shirt, pants: o.pants, shoes: o.shoes });
@@ -1461,6 +1475,20 @@ export function storyShopState() {
   };
 }
 
+// Both of them in one outfit for a stretch of the story (id), or back in
+// their own (null). Not bought, not in the wardrobe; saved with the shops.
+export function setStoryOutfit(id) {
+  const next = id && OUTFITS.tammo.some((o) => o.id === id) && OUTFITS.anita.some((o) => o.id === id) ? id : null;
+  if (next === state.storyOutfit) return false;
+  state.storyOutfit = next;
+  applyLooks();
+  return true;
+}
+
+export function storyOutfit() {
+  return state.storyOutfit;
+}
+
 function nearestOfType(world, type) {
   let best = null, bd = Infinity;
   for (const s of shops) {
@@ -1622,9 +1650,11 @@ export function getShopSave() {
     hero: hero ? damageSave(hero) : {},
     outfit: { ...state.outfit },
     ownedOutfits: [...state.ownedOutfits],
+    storyOutfit: state.storyOutfit,
     hair: { tammo: { ...state.hair.tammo }, anita: { ...state.hair.anita } },
     heroColor: state.heroColor,
     heroUpgrades: [...state.heroUpgrades],
+    stamps: state.stamps,
     vehicles: state.vehicles.map((o) => {
       const v = o.v;
       const pos = o.lost ? null : v ? { x: round(v.x), y: round(v.y), angle: round(v.angle), ...(v.isHeli ? { z: round(v.onGround ? v.z : v.groundZ ?? 0) } : {}) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
@@ -1646,8 +1676,10 @@ export function applyShopSave(world, d) {
     if (h && HAIR_STYLES[ch].some(([id]) => id === h.style)) state.hair[ch].style = h.style;
   }
   if (Array.isArray(d.ownedOutfits)) for (const k of d.ownedOutfits) if (typeof k === 'string') state.ownedOutfits.add(k);
+  state.storyOutfit = OUTFITS.tammo.some((o) => o.id === d.storyOutfit) && OUTFITS.anita.some((o) => o.id === d.storyOutfit) ? d.storyOutfit : null;
   state.heroColor = isColor(d.heroColor) ? d.heroColor : null;
   state.heroUpgrades = Array.isArray(d.heroUpgrades) ? d.heroUpgrades.filter((id) => CAR_UPGRADES.some((u) => u.id === id)) : [];
+  state.stamps = Number.isFinite(d.stamps) ? Math.max(0, Math.min(STAMP_CARD, Math.floor(d.stamps))) : 0;
   for (const o of state.vehicles) removeFromWorld(world, o.v);
   state.vehicles = [];
   // older saves could hold the same model twice: the last one wins

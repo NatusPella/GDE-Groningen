@@ -3,7 +3,8 @@
 Het doel is PEGI 16, met dezelfde leeftijd bij IARC (Steam, en later
 eventueel consoles). Dit document geeft de antwoorden die we verwachten
 voor de IARC-vragenlijst en de content survey van Steam. Het beschrijft de
-game zoals hij is sinds branch `claude/pegi16` (versie 0.24). Loop het
+game zoals hij is sinds branch `claude/pegi16` (versie 0.24) en
+`claude/geen-gokken` (de kraskaarten en loten zijn weg). Loop het
 opnieuw na als er geweld, gokken of alcohol bij komt.
 
 De criteria van PEGI ([pegi.info](https://pegi.info/what-do-the-labels-mean)):
@@ -45,6 +46,20 @@ De criteria van PEGI ([pegi.info](https://pegi.info/what-do-the-labels-mean)):
     weg. Het werd door geen enkele missie meer gebruikt.
   - De regel "Kills" in de uitslag van een missie is weg.
   - Er waren geen prestaties voor doden.
+- **Geen gokken meer, ook niet gesimuleerd** (`claude/geen-gokken`).
+  - De kraskaarten ("Grunneger Gokje", "Duivenkraslot") en het
+    Stadsloterij-lot zijn weg, net als de kras-animatie in het winkelmenu.
+  - De winkel "Rook & Geluk" (Tabak & loterij) heet nu **"Krant & Kauwgom"**
+    (Krant & snoep). Hij verkoopt kranten, strips, ansichtkaarten en snoep;
+    geen tabak.
+  - In de plaats komt een **spaarkaart**: elke aankoop bij Krant & Kauwgom
+    geeft een stempel, en een volle kaart (10 stempels) lever je in voor
+    vast €10. Je zet niets in en er zit geen toeval in. De prestatie
+    "Stempeltje erbij" hoort erbij.
+  - Er waren geen ingesproken regels, Kiekdoar-berichten of prestaties
+    over gokken. Ander prijzengeld in de game hangt af van wat je kunt
+    (medailles bij de botsauto's, carbidschieten, uitdagingen), nooit van
+    toeval.
 - **Wat blijft:** de speler kan neergaan (DOOD) of opgepakt worden
   (OPGEPAKT). Dat telt niet als geweld tegen een weerloos personage. Ook de
   maat (Tammo of Anita) kan aangereden worden; die komt daarna weer
@@ -64,11 +79,11 @@ De criteria van PEGI ([pegi.info](https://pegi.info/what-do-the-labels-mean)):
 | Grof taalgebruik | Licht | Scheldwoorden in het Gronings ("Bist betoeterd?", "Rot op, joh!"). Geen vloeken of seksuele woorden. |
 | Grove humor | Ja, licht | Duiven die op mensen poepen (duifmodus), een student die in de taxi kotst. |
 | Alcohol | Ja, gebruik | Een kroegentocht in missie H11 "Nog eentje dan", biertjes bij de horeca, en dronken effecten (`drunk.js`). Dronken rijden is een overtreding. |
-| Tabak | Verwijzing | De winkel "Rook & Geluk" heet "Tabak & loterij". Er wordt niet gerookt. |
+| Tabak | Nee | Er wordt niet gerookt en niets met tabak verkocht. De vroegere tabakswinkel heet nu "Krant & Kauwgom". |
 | Drugs | Nee | ("Wiet" is Fries voor "nat".) |
 | Misdaad | Ja | Auto's stelen, voor de politie vluchten, de museumkraak (H6) met zakkenrollen bij een bewaker, en een tankwagen kapen (H8). Het is de kern van de game, met humor. |
 | Gokken met echt geld | Nee | |
-| Gesimuleerd gokken | **Ja** | Kraskaarten en loten bij "Rook & Geluk" (`shops.js`, `shopui.js`), betaald met geld uit de game. Zie het risico hieronder. |
+| Gesimuleerd gokken | Nee | Weg sinds `claude/geen-gokken`. Krant & Kauwgom heeft alleen een spaarkaart: vaste prijs na 10 aankopen, zonder inzet en zonder kans. Prijzengeld bij minigames hangt af van je score. |
 | Angst of horror | Nee | |
 | Discriminatie | Nee | |
 | Interactie tussen spelers, online of chat | Nee | Er is alleen offline singleplayer. |
@@ -78,26 +93,24 @@ De criteria van PEGI ([pegi.info](https://pegi.info/what-do-the-labels-mean)):
 ## Inhoudslabels die we verwachten
 
 - **PEGI 16**: Geweld, Alcohol (en mogelijk Taal).
-- **IARC/ESRB-stijl**: Violence, Use of Alcohol, Crude Humor, Mild Language,
-  en Simulated Gambling als de kraskaarten blijven.
+- **IARC/ESRB-stijl**: Violence, Use of Alcohol, Crude Humor, Mild Language.
+  Geen Simulated Gambling meer.
 - **USK**: 16, met "Gewalt" en "Alkohol".
 
 ## Wat de leeftijd nog boven 16 kan duwen
 
-1. **Gesimuleerd gokken (het grootste risico).** Bij PEGI geven "games of
-   chance that are normally carried out in casinos" 18. Volgens de criteria
-   van juni 2026 hangt het af van hoe realistisch het gokken is.
-   - Kraskaarten en een loterij zijn geen casinospellen. Het blijft wel
-     inzet en een kans op prijzengeld (€2 tot €25, met prijzen tot €2500
-     in de game).
-   - Advies: maak er een prijsvraag zonder inzet van, of haal ze weg. Dan
-     is dit risico weg. Anders vermelden en afwachten.
-2. **Mensen aanrijden en carjacken.** Er is geen bloed en iedereen staat
-   weer op. Toch kan een beoordelaar het "geweld tegen weerloze personages"
+1. **Mensen aanrijden en carjacken (nu het grootste risico).** Er is
+   geen bloed en iedereen staat weer op. Toch kan een beoordelaar het "geweld tegen weerloze personages"
    noemen. Wil je ook dat risico weg, dan kan een aangereden burger alleen
    opzij springen of omvallen, zonder knock-out.
-3. **De rode schaderand van de speler** is gewoon een effect op het scherm,
+2. **De rode schaderand van de speler** is gewoon een effect op het scherm,
    geen bloed. We noemen hem toch, zodat hij niet als bloed wordt gezien.
-4. **De speler gaat dood** (het scherm DOOD). Dat is normaal bij 12 en
+3. **De speler gaat dood** (het scherm DOOD). Dat is normaal bij 12 en
    hoger. Het woord kan ook "Uitgeteld" worden als een beoordelaar daarom
    vraagt; nodig is het niet.
+
+Gesimuleerd gokken staat hier niet meer: bij PEGI geeft dat 18, en sinds
+juni 2026 tellen ook kraskaarten en loten met geld uit de game mee. Ze zijn
+weg (zie hierboven). Komt er ooit iets bij waarbij je inzet en toeval de
+prijs bepaalt (een gokkast, een rad van fortuin, weddenschappen of
+lootboxes), dan komt dit risico terug.

@@ -4,6 +4,10 @@ import { loadOmmeland, initReal, warmRows } from './countryreal.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
+import { initGamepad } from './gamepad.js';
+import { initGlyphs } from './glyphs.js';
+import { initA11y } from './a11y.js';
+import { isPlayAheadOpen } from './todo.js';
 import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
@@ -23,6 +27,7 @@ import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio, setMenuAudio } from './audio.js';
 import { updateBanter } from './banter.js';
+import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
@@ -69,6 +74,11 @@ import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeIntera
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
+import { getSettings } from './settings.js';
+
+// More life on the water: small paddle and pedal craft make up most of the
+// mix (boattypes.js), cheap meshes; Laag keeps a smaller fleet.
+const boatTarget = () => scaledTarget(getSettings().quality === 'laag' ? 5 : 7);
 
 // 3D (scene3d.js) is the only game view - see ARCHITECTURE.md. The old 2D
 // top-down canvas renderer (render2.js, camera2.js) has been fully retired;
@@ -178,6 +188,8 @@ const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 
 async function boot() {
   markLoad('boot');
+  initA11y();
+  initGlyphs();
   initTheme();
   const ommeland = loadOmmeland('citymap.json');
   const map = await loadMap('citymap.json', (f) => setLoadProgress(0.05 + f * 0.45));
@@ -214,7 +226,7 @@ async function boot() {
   manageBikePopulation(world);
   manageBusPopulation(world);
   manageScooterPopulation(world);
-  manageBoatPopulation(world);
+  manageBoatPopulation(world, { target: boatTarget() });
   world.pedestrians = spawnPedestriansNear(map, player.x, player.y, PED_TARGET, Math.random);
   initMissions(world);
   initGarages(world);
@@ -254,6 +266,7 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   document.addEventListener('pointerlockchange', () => {
     if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
   });
@@ -317,6 +330,7 @@ async function boot() {
     const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
     updateAudio(dt, world);
+    updateNarrative();
     updateBanter(world.paused ? 0 : gameDt, world);
     updateStoryContact(world.paused ? 0 : dt, world);
     probe.mark('audio');
@@ -369,7 +383,7 @@ async function boot() {
       manageBikePopulation(world, { target: scaledTarget(16) });
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: scaledTarget(10) });
-      manageBoatPopulation(world);
+      manageBoatPopulation(world, { target: boatTarget() });
       if (simLevel()) thinTraffic(world);
     }
     pedTimer -= dt;

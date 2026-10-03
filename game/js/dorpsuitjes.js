@@ -324,7 +324,7 @@ function rentBike(w, a) {
     type: 'dorp-fiets', icon: shopIconUrl('fietsen', 92), color: '#2f6fb0', name: a.def.name,
     tagline: 'Een fiets voor het Ommeland. Hij rijdt zelf terug naar de stalling.',
     sections: () => [{ title: 'Huren', items: [{
-      id: 'huurfiets', label: 'Huurfiets', desc: 'Stevig, zwaar en met een bel', price: RENT_PRICE, swatch: ['#2f6fb0'],
+      id: 'huurfiets', label: 'Huurfiets', desc: 'Stevig, zwaar en met een bel', price: RENT_PRICE, verb: 'Huren voor', swatch: ['#2f6fb0'],
       disabled: w.money < RENT_PRICE ? 'Te weinig geld' : null,
       buy() {
         if (!pay(w, RENT_PRICE)) return null;

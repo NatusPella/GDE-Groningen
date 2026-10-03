@@ -14,7 +14,7 @@ const THREE = await import('three');
 await import('../game/js/player.js');
 const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
 const { vehicleSeat } = await import('../game/js/seating3d.js');
-const { buildPersonMesh, seatPose, seatedY, standBehindPose, PERSON_RIG } = await import('../game/js/models3d_people.js');
+const { buildPersonMesh, seatPose, seatedY, standBehindPose, supPose, PERSON_RIG } = await import('../game/js/models3d_people.js');
 const { TRAFFIC_MODELS, MOPED_MODEL } = await import('../game/js/vehicle.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
 const VERBOSE = process.argv.includes('--verbose');
@@ -98,7 +98,7 @@ function seatFigure(mesh, v, seat) {
   const p = buildPersonMesh(0x5a6470, 0xd9aa82, { seed: 3 });
   p.userData.isPerson = true;
   p.traverse((o) => { o.userData.person = true; });
-  if (seat.stand) { standBehindPose(p); p.position.set(seat.x, seat.y, seat.z); }
+  if (seat.stand) { if (seat.pose && seat.pose.arms === 'sup') supPose(p, 0); else standBehindPose(p); p.position.set(seat.x, seat.y, seat.z); }
   else { seatPose(p, seat.pose); p.position.set(seat.x, seatedY(p, seat.y), seat.z); }
   p.rotation.y = seat.face || 0;
   (mesh.userData.body || mesh).add(p);

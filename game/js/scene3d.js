@@ -1,8 +1,9 @@
 import { setDualText } from './subtitles.js';
+import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount, boatHullProfile } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -22,7 +23,7 @@ import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } f
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, isRangedWeapon } from './combat.js';
 import { alignPlayerFlash } from './gunfx3d.js';
-import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry } from './water3d.js';
+import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp } from './water3d.js';
 import { cityShoreFix } from './countrywater.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
 import { sleepingParkedCars } from './parkedcars.js';
@@ -1245,7 +1246,7 @@ function syncBuildings(world, px, py) {
   // Build the meshes of buildings just outside the detail radius ahead of
   // time (within a small per-frame budget), so crossing DRAW_DIST only has
   // to add an already built mesh to the scene.
-  for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20) prefetchedBuildings.delete(b);
+  for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;
   const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
   for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
@@ -1279,6 +1280,76 @@ function noteStreamJump(px, py) {
   if (streamLastX === null || Math.hypot(px - streamLastX, py - streamLastY) > STREAM_JUMP) streamBoostUntil = performance.now() + 1500;
   streamLastX = px;
   streamLastY = py;
+}
+
+// Where the world streams in and keeps its detail (buildings, roads, water,
+// trees, the far LOD, shadows): the player, or while a camera override is up
+// (cutscenes, the trailer, the title screen) the point the camera looks at,
+// no further out than STREAM_LOOK_MAX from the eye so what is near the lens
+// stays detailed too. world.streamFocus carries it for grass.js and
+// countryside.js.
+const STREAM_LOOK_MAX = 50;
+const streamFocus = { x: 0, y: 0 };
+const lastOverrideFocus = { x: 0, y: 0 };
+function updateStreamFocus(world) {
+  const o = world.cameraOverride, p = world.player;
+  if (o && o.position && o.lookAt) {
+    const ex = o.position.x, ey = o.position.y;
+    const dx = o.lookAt.x - ex, dy = o.lookAt.y - ey;
+    const d = Math.hypot(dx, dy);
+    const k = d > STREAM_LOOK_MAX ? STREAM_LOOK_MAX / d : 1;
+    streamFocus.x = lastOverrideFocus.x = ex + dx * k;
+    streamFocus.y = lastOverrideFocus.y = ey + dy * k;
+  } else if (overrideBlend > 0) {
+    // easing back out of a cutscene: follow the camera home
+    const t = overrideBlend * overrideBlend * (3 - 2 * overrideBlend);
+    streamFocus.x = p.x + (lastOverrideFocus.x - p.x) * t;
+    streamFocus.y = p.y + (lastOverrideFocus.y - p.y) * t;
+  } else {
+    streamFocus.x = p.x;
+    streamFocus.y = p.y;
+  }
+  world.streamFocus = streamFocus;
+  return streamFocus;
+}
+
+// Prewarm: build the buildings around a place a cutscene is about to cut to
+// (cinematics.js playCinematic({ prewarm })) ahead of time, nearest first
+// within a frame budget, so the first frames there are not the far LOD.
+const PREWARM_MS = 3;
+const PREWARM_R = 110;
+let prewarmSpots = [];
+export function prewarmStreamAt(x, y, secs = 4) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+  const until = performance.now() + secs * 1000;
+  prewarmSpots = prewarmSpots.filter((s) => Math.hypot(s.x - x, s.y - y) > 25 && s.until > performance.now());
+  prewarmSpots.push({ x, y, until, list: null });
+}
+function nearPrewarm(b) {
+  for (const s of prewarmSpots) if (Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y) <= PREWARM_R + 10) return true;
+  return false;
+}
+function stepPrewarm(world) {
+  if (!prewarmSpots.length) return;
+  const now = performance.now();
+  prewarmSpots = prewarmSpots.filter((s) => s.until > now);
+  const end = now + PREWARM_MS;
+  for (const s of prewarmSpots) {
+    if (!s.list) {
+      s.list = world.map.buildingsNear(s.x, s.y, PREWARM_R).filter((b) => !b.landmark)
+        .map((b) => [Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y), b])
+        .sort((a, b) => a[0] - b[0]);
+      s.i = 0;
+    }
+    while (s.i < s.list.length) {
+      if (performance.now() > end) return;
+      const b = s.list[s.i++][1];
+      if (buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
+      const mesh = makeBuildingMesh(b);
+      precompile(mesh);
+      prefetchedBuildings.set(b, mesh);
+    }
+  }
 }
 
 const BUILDING_PREFETCH = 30;
@@ -1722,37 +1793,39 @@ export function update3D(dt, world) {
   // animations freeze with gameplay (pause, cutscenes); the camera keeps using dt
   const animDt = world.paused ? 0 : dt;
   const player = world.player;
+  const focus = updateStreamFocus(world);
 
-  noteStreamJump(player.x, player.y);
-  syncBuildings(world, player.x, player.y);
+  noteStreamJump(focus.x, focus.y);
+  stepPrewarm(world);
+  syncBuildings(world, focus.x, focus.y);
   if (!NO_BATCH) {
-    buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: player.x, py: player.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
+    buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
       withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
     if (facadeDetailDist < DRAW_DIST) {
-      facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: player.x, py: player.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
+      facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
         withDetail: true, budgetMs: 1 });
     } else facadeBatcher.clear();
   }
   probe.mark('3d:buildings');
-  setCutMaskCenter(player.x, player.y, DRAW_DIST - 6);
-  updatePortals(player.x, player.y);
+  setCutMaskCenter(focus.x, focus.y, DRAW_DIST - 6);
+  updatePortals(focus.x, focus.y);
   updateGrass(dt, world, cam, DRAW_DIST);
   probe.mark('3d:grass');
-  syncWater(world.map.waterNear(player.x, player.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, player.x, player.y);
+  syncWater(world.map.waterNear(focus.x, focus.y, Math.max(DRAW_DIST, viewDist)), waterMeshes, WATER_Y, world.map, focus.x, focus.y);
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
   probe.mark('3d:water');
-  syncRoads(world, player.x, player.y);
-  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: null, px: player.x, py: player.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
+  syncRoads(world, focus.x, focus.y);
+  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
   probe.mark('3d:roads');
-  syncTrees(world, player.x, player.y);
+  syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world);
   updateCountryside(dt, world, scene, cam, viewDist);
   probe.mark('3d:rail+country');
 
-  syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, player, DRAW_DIST);
+  syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);
   syncVehicleMeshes(world, player);
   const fireSeenIds = new Set();
   const policeChasing = world.wanted > 0;
@@ -1798,7 +1871,7 @@ export function update3D(dt, world) {
         updateVehicleWheelSpin(mesh, dt > 0 && Math.abs(moved) < 8 ? moved / dt : 0, dt, v.steer || 0);
       } else updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
       if (v.isBoat) {
-        animateBoat(mesh, v, world.time);
+        animateBoat(mesh, v, world, animDt);
         crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);
         syncBoatCrew(mesh, v, crewCtx);
       } else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
@@ -1899,18 +1972,18 @@ export function update3D(dt, world) {
     }
   }
   if (horecaPads) {
-    updateHorecaPads3D(horecaPads, player.x, player.y, DRAW_DIST + 10);
-    updateHorecaPads3D(horecaBadges, player.x, player.y, DRAW_DIST);
+    updateHorecaPads3D(horecaPads, focus.x, focus.y, DRAW_DIST + 10);
+    updateHorecaPads3D(horecaBadges, focus.x, focus.y, DRAW_DIST);
   }
   for (const mesh of staticProps) {
-    mesh.visible = !mesh.userData.broken && Math.abs(mesh.position.x - player.x) < DRAW_DIST && Math.abs(mesh.position.z - player.y) < DRAW_DIST;
+    mesh.visible = !mesh.userData.broken && Math.abs(mesh.position.x - focus.x) < DRAW_DIST && Math.abs(mesh.position.z - focus.y) < DRAW_DIST;
     // hundreds of these exist city-wide; hidden ones need no matrix updates
     mesh.matrixWorldAutoUpdate = mesh.visible;
   }
 
   if (world.wildlife) {
     syncActors(
-      world.wildlife.filter((a) => Math.hypot(a.x - player.x, a.y - player.y) < DRAW_DIST),
+      world.wildlife.filter((a) => Math.hypot(a.x - focus.x, a.y - focus.y) < DRAW_DIST),
       wildlifeMeshes,
       buildWildlifeActor,
       (a) => a
@@ -2042,7 +2115,7 @@ export function update3D(dt, world) {
   probe.mark('3d:env');
   // while streaming catches up after a jump the far LOD stands in closer
   const lodR = viewDist > DRAW_DIST + 20 ? Math.min(DRAW_DIST, buildingDetailR, roadDetailR + 8) : DRAW_DIST;
-  farLod.update(player.x, player.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR);
+  farLod.update(focus.x, focus.y, viewDist, Math.min(viewDist, scene.fog.far) + 20, lodR);
   probe.mark('3d:farlod');
 
   if (player.character !== playerCharacter) {
@@ -2323,23 +2396,23 @@ export function update3D(dt, world) {
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 
   probe.mark('3d:camera');
-  updateSunAndSky(player);
-  limitActorShadows(pedMeshes, player.x, player.y);
-  limitActorShadows(vehicleMeshes, player.x, player.y);
-  limitActorShadows(wildlifeMeshes, player.x, player.y);
+  updateSunAndSky(focus);
+  limitActorShadows(pedMeshes, focus.x, focus.y);
+  limitActorShadows(vehicleMeshes, focus.x, focus.y);
+  limitActorShadows(wildlifeMeshes, focus.x, focus.y);
   if (!NO_WHEEL_INSTANCES) {
     beginWheels(scene);
     wheelFrustum.setFromProjectionMatrix(wheelProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
     for (const mesh of vehicleMeshes.values()) addVehicleWheels(mesh, wheelFrustum);
     endWheels();
   }
-  updateNightLights(world, vehicleMeshes, player.x, player.y, lightState.night || 0, wetness, dt);
+  updateNightLights(world, vehicleMeshes, focus.x, focus.y, lightState.night || 0, wetness, dt);
   probe.mark('3d:lights');
   stepWarmup(world);
   prewarmLightVariants();
   probe.mark('3d:prewarm');
 
-  updateCountryBake(renderer, player.x, player.y, edgeDistance(player.x, player.y) > -700);
+  updateCountryBake(renderer, focus.x, focus.y, edgeDistance(focus.x, focus.y) > -700);
   // behind a menu the world stands still: the shadow map from the first
   // frame is reused
   // a busy CPU (cpuLevel 1+) renders the shadow map every other frame
@@ -2913,12 +2986,66 @@ function buildWildlifeActor(a) {
 // Gentle swell: heave, roll and pitch from world.time plus a bow lift with
 // speed. Needs rotation.order 'YXZ' (set in buildVehicleActor) so roll and
 // pitch stay in the hull's own frame after the yaw.
-function animateBoat(mesh, v, time) {
-  const seed = (v.id || 0) * 1.7;
+// Buoyancy: the hull rides the same swell the water shader draws (sampled
+// at bow, stern and both sides), long hulls averaging it out more; trim
+// from speed (planing craft lift their bow), a dip of the bow when braking,
+// a heel in turns, and per kind a little extra draft or lift. Whatever the
+// pitch and roll, stern, bow and sides stay above the local water level.
+const BOAT_TRIM = { rubberboot: 0.075, sloep: 0.035, dinghy: 0.04, rondvaart: 0.012, skutsje: 0.01, kano: 0.004, kajak: 0.004, sup: 0, waterfiets: 0.01 };
+const BOAT_LIFT = { kano: 0.02, kajak: 0.02, sup: 0.03, rubberboot: 0.015, waterfiets: 0.01 };
+const BOAT_CLEAR = { sup: 0.035, kajak: 0.05, kano: 0.06 };
+function animateBoat(mesh, v, world, dt) {
+  const time = world.time;
+  const kind = v.isPolice ? 'sloep' : v.model.kind || 'sloep';
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const prof = boatHullProfile(kind, L, W);
+  const now = performance.now();
+  let sh = v._shore;
+  if (!sh || now - sh.at > 400 || Math.abs(sh.x - v.x) + Math.abs(sh.y - v.y) > 3) {
+    const idx = world.map ? getWaterIndex(world.map) : null;
+    const ns = idx ? idx.nearestShore(v.x, v.y, 24) : { d: 24, i: -1, tx: 1, ty: 0 };
+    sh = v._shore = { at: now, x: v.x, y: v.y, d: ns.i >= 0 ? ns.d : 24, tx: ns.i >= 0 ? ns.tx : 1, ty: ns.i >= 0 ? ns.ty : 0, open: ns.i < 0 };
+  }
+  const c = Math.cos(v.angle), s = Math.sin(v.angle);
+  const at = (lx, lz) => waterSwellAt(v.x + c * lx - s * lz, v.y + s * lx + c * lz, time, Math.max(0.15, sh.d - Math.abs(lz)), sh.tx, sh.ty);
+  const xb = hl * 0.85;
+  const hB = at(xb, 0), hS = at(-xb, 0), hP = at(0, -hw), hR = at(0, hw), h0 = at(0, 0);
+  const resp = Math.min(1, Math.max(0.25, 3.2 / L));
   const speedT = Math.min(1, Math.abs(v.speed) / (v.model.maxSpeed || 6));
-  mesh.position.y = WATER_Y + Math.sin(time * 1.6 + seed) * 0.05;
-  mesh.rotation.x = Math.sin(time * 1.1 + seed) * 0.045;
-  mesh.rotation.z = Math.sin(time * 1.4 + seed * 0.7) * 0.025 + speedT * 0.06;
+  const st = mesh.userData.buoy || (mesh.userData.buoy = { pitch: 0, roll: 0, heave: 0, speed: v.speed, angle: v.angle, acc: 0, yaw: 0 });
+  const k = dt > 0 ? Math.min(1, dt * 4) : 1;
+  if (dt > 0) {
+    let da = v.angle - st.angle;
+    da = Math.atan2(Math.sin(da), Math.cos(da));
+    st.yaw += (da / dt - st.yaw) * Math.min(1, dt * 3);
+    st.acc += ((v.speed - st.speed) / dt - st.acc) * Math.min(1, dt * 3);
+  }
+  st.angle = v.angle; st.speed = v.speed;
+  const seed = (v.id || 0) * 1.7;
+  const trim = (BOAT_TRIM[kind] ?? 0.03) * speedT * (v.speed >= 0 ? 1 : -0.5) - Math.max(-0.03, Math.min(0.03, st.acc * -0.012 * (v.speed > 0 ? 1 : 0)));
+  const planing = kind === 'rubberboot' ? 1 : -1;
+  const heel = Math.max(-0.08, Math.min(0.08, st.yaw * Math.abs(v.speed) * 0.025 * planing * resp));
+  const pitchT = Math.atan2(hB - hS, 2 * xb) * resp + trim + Math.sin(time * 1.1 + seed) * 0.006;
+  const rollT = Math.atan2(hP - hR, W) * Math.min(1, resp * 1.4) * 0.8 + heel + Math.sin(time * 1.4 + seed * 0.7) * 0.008;
+  const heaveT = (hB + hS + hP + hR + h0 * 2) / 6 * (0.6 + 0.4 * resp) + (BOAT_LIFT[kind] || 0);
+  st.pitch += (pitchT - st.pitch) * k;
+  st.roll += (rollT - st.roll) * k;
+  st.heave += (heaveT - st.heave) * Math.min(1, k * 1.5);
+  // no gunwale under the surface: lift the hull by the worst deficit
+  const clear = (BOAT_CLEAR[kind] ?? 0.1) + (sh.open ? waterSwellAmp() * 0.5 : 0);
+  const sp = Math.sin(st.pitch), sr = Math.sin(st.roll);
+  const deficit = Math.max(
+    hS + clear - (st.heave + prof.stern - sp * hl),
+    hB + clear - (st.heave + prof.bow + sp * hl),
+    hP + clear - (st.heave + prof.mid + sr * hw),
+    hR + clear - (st.heave + prof.mid - sr * hw),
+    0,
+  );
+  mesh.rotation.order = 'YZX';
+  mesh.position.y = WATER_Y + st.heave + deficit;
+  mesh.rotation.z = st.pitch;
+  mesh.rotation.x = st.roll;
+  v._buoyY = mesh.position.y - WATER_Y;
 }
 
 function syncBoatWakes(world) {
@@ -3141,7 +3268,7 @@ function updateRouteRibbon3D(dt, world) {
     const lane = route.mode === 'drive' ? keepRight(ahead, world.map) : ahead;
     const pl = world.player;
     routeRibbonMesh.geometry = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]), world.map, pl.inVehicle ? pl.inVehicle.z || 0 : pl.gz || 0);
-    routeRibbonMesh.material.color.setHex(ROUTE_COLOR_3D[route.kind] || ROUTE_COLOR_3D.mission);
+    routeRibbonMesh.material.color.set(markerColors()[route.kind] || markerColors().mission); // a11y.js palette
   }
   routeRibbonMesh.material.map.offset.y -= dt * 0.8;
 }

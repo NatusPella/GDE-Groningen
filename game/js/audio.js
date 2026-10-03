@@ -1487,6 +1487,15 @@ export function playClueSting() {
   playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
 }
 
+// Two glasses touching (H11's toasts, missionstory.js playToast): a bright
+// ting with a short second ring, softer for small jenever glasses.
+export function playGlassClink(small = false) {
+  if (!ctx || muted || !stingBus) return;
+  const base = small ? 3300 : 2480;
+  for (const [f, g, d] of [[1, 0.045, 0.45], [1.51, 0.022, 0.3], [2.76, 0.012, 0.18]]) playTone({ freq: base * f, type: 'sine', duration: d, gain: g, bus: stingBus, prio: 2 });
+  playTone({ freq: base * 1.04, type: 'sine', duration: 0.25, gain: 0.018, delay: 0.07, bus: stingBus, prio: 2 });
+}
+
 // Tammo whistles up a pigeon (pigeonmode.js): a soft two-note "fuu-fiet".
 function playWhistle() {
   if (!ctx || muted || !uiBus) return;
@@ -1994,16 +2003,16 @@ const ENGINE_SPECS = [
   { idle: 800, red: 6200, shift: 0.18, level: 0.38 },
   { idle: 850, red: 6200, shift: 0.2, level: 0.4 },
   { idle: 600, red: 2300, shift: 0.3, level: 0.38 },
-  { idle: 1900, red: 9500, shift: 0, level: 0.3 },
+  { idle: 1700, red: 8000, shift: 0, level: 0.2 },
   { idle: 900, red: 5500, shift: 0, level: 0.36 },
   { idle: 750, red: 7000, shift: 0.16, level: 0.38 },
   { idle: 750, red: 4300, shift: 0.2, level: 0.38 },
-  { idle: 0, red: 48000, shift: 0, level: 0.3 },
+  { idle: 0, red: 48000, shift: 0, level: 0.24 },
 ];
 
 // Canoes, kayaks and pedalos have no engine: paddle strokes or the pedalo's
 // wheel instead (updatePaddling).
-const HUMAN_BOATS = new Set(['kano', 'kajak', 'waterfiets']);
+const HUMAN_BOATS = new Set(['kano', 'kajak', 'waterfiets', 'sup']);
 function humanPowered(v) {
   return !!(v && v.isBoat && v.model && HUMAN_BOATS.has(v.model.kind));
 }
@@ -2039,7 +2048,7 @@ function updatePaddling(dt, world) {
     if (!st) { st = { t: Math.random() * 0.5 }; paddleState.set(v, st); }
     const top = v.model.maxSpeed || 2.5;
     const frac = clamp(speed / top, 0, 1);
-    const period = v.model.kind === 'waterfiets' ? 0.34 - 0.16 * frac : v.model.kind === 'kajak' ? 0.62 - 0.14 * frac : 0.95 - 0.2 * frac;
+    const period = v.model.kind === 'waterfiets' ? 0.34 - 0.16 * frac : v.model.kind === 'kajak' ? 0.62 - 0.14 * frac : v.model.kind === 'sup' ? 1.1 - 0.2 * frac : 0.95 - 0.2 * frac;
     st.t -= dt;
     if (st.t > 0) continue;
     st.t = period * (0.92 + Math.random() * 0.16);
@@ -2048,9 +2057,10 @@ function updatePaddling(dt, world) {
   }
 }
 
-// Deelsteps are electric (kind 7); the police motor is a real brommer.
+// Deelsteps are electric (kind 7); the police motor and the Snorscooter
+// (model.moped) are a real two-stroke brommer.
 function engineKind(v) {
-  if (v.isScooter) return v.isPolice ? 3 : 7;
+  if (v.isScooter) return v.isPolice || v.model.moped ? 3 : 7;
   if (v.isBoat) return 4;
   if (v.isBus) return 2;
   if (v.isHeroCar) return 1;
@@ -2066,7 +2076,7 @@ function engineRpm(v, st, kind, throttle, t) {
   const speed = Math.abs(v.speed);
   const frac = speed / (v.model.maxSpeed || 30);
   let shifted = 0;
-  if (kind === 3) return { rpm: throttle > 0 ? 5200 + 3600 * Math.min(1, frac) : S.idle + 2300 * Math.min(1, frac), shifted };
+  if (kind === 3) return { rpm: throttle > 0 ? 3800 + 3400 * Math.min(1, frac) : S.idle + 1800 * Math.min(1, frac), shifted };
   if (kind === 7) return { rpm: 2400 + 42000 * Math.min(1, speed / 10), shifted };
   if (kind === 4) return { rpm: S.idle + (S.red - S.idle) * (throttle !== 0 ? 0.35 + 0.6 * Math.min(1, frac) : frac * 0.4), shifted };
   if (v.speed < -0.2) { st.gear = 0; return { rpm: S.idle + (S.red * 0.7 - S.idle) * clamp(speed / (v.model.maxSpeed * 0.25), 0, 1), shifted }; }
@@ -2176,8 +2186,10 @@ function updateEngine(dt, world) {
   let targetGain = 0, targetFreq = 42, cutoff = 300;
   if (motor && v.isScooter) {
     targetGain = speed > 0.2 ? 0.03 + speed * 0.006 : 0;
-    targetFreq = v.isPolice ? 160 + speed * 45 : 300 + speed * 70;
-    cutoff = v.isPolice ? 1600 : 2600;
+    const brommer = v.isPolice || v.model.moped;
+    targetFreq = brommer ? 70 + speed * 12 : 300 + speed * 70;
+    cutoff = brommer ? 700 : 2600;
+    if (brommer) targetGain *= 0.7;
   } else if (motor) {
     const frac = speed / (v.model.maxSpeed || 30);
     const g = v.speed < 0 ? 0 : gearFor(frac, engineState.gear);
@@ -2643,7 +2655,7 @@ function updateSiren(dt, world) {
 function vehicleVoiceParams(v) {
   const s = Math.abs(v.speed);
   if (v.isBoat) return { type: 'sawtooth', freq: 28 + s * 7, cutoff: 240 + s * 40, gain: 0.1 + s * 0.02 };
-  if (v.isScooter) return v.isPolice ? { type: 'square', freq: 95 + s * 9, cutoff: 1100 + s * 40, gain: 0.04 + s * 0.006 } : { type: 'triangle', freq: 260 + s * 70, cutoff: 2600, gain: s > 0.5 ? 0.02 + s * 0.004 : 0 };
+  if (v.isScooter) return v.isPolice || v.model.moped ? { type: 'triangle', freq: 70 + s * 8, cutoff: 600 + s * 25, gain: 0.03 + s * 0.004 } : { type: 'triangle', freq: 260 + s * 70, cutoff: 2600, gain: s > 0.5 ? 0.02 + s * 0.004 : 0 };
   if (v.isBus) return { type: 'sawtooth', freq: 30 + s * 2.4, cutoff: 280 + s * 14, gain: 0.12 + s * 0.008 };
   return { type: 'sawtooth', freq: 40 + s * 3.2, cutoff: 300 + s * 16, gain: 0.06 + s * 0.009 };
 }
@@ -2682,7 +2694,7 @@ function updateTrafficAudio(dt, world) {
       placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
       const d = distToListener(v.x, v.y, 0.7);
       voice.distLp.frequency.setTargetAtTime(clamp(2400 / (1 + d / 10), 250, 2400), t, 0.15);
-      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.2 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.28) : 0.28 + p.load * 0.1;
+      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.16 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.18) : 0.28 + p.load * 0.1;
       fadeVoice(voice, level, dt, 3);
       msg.push({ i, kind: p.kind, rpm: p.rpm, load: p.load, gain: voice.level, pitch, snap: p.snap });
     });
