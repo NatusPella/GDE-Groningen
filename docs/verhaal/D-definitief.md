@@ -36,7 +36,8 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
   - de **Staart** is het einde: kermis, Ontzet en de laatste warme avond.
 - **Epiloog in september:** de terrassen gaan naar binnen, en Rikus ruikt de suikerlucht uit Hoogkerk ("Het ruikt naar suiker. De zomer is op."). Tammo en Anita staan in hun jassen bij de Fjord Frituur, en er staat nog steeds een rij.
 - **Zomerliefde, maar dan Gronings:** een zomer waarin twee vrienden het eindelijk zeggen, en hun liefde houdt het ook als de zomer voorbij is. Het slot speelt daarom in september.
-- **In de game:** het weersysteem staat tijdens het verhaal op "zomer" (meer zon, lange avonden, af en toe een bui), de trailer krijgt als ondertitel "Een zomer in Grunn", en elk deel opent met een titelkaart met de datum ("Kop · 14 augustus").
+- **In de game:** het weersysteem staat tijdens het verhaal op "zomer" (meer zon, lange avonden, af en toe een bui), de trailer krijgt als ondertitel "Een zomer in Grunn", en elk deel opent met een titelkaart met de datum ("Deel 1 · 14 augustus").
+- **Kop, Romp en Staart** zijn werktitels voor dit script. De speler ziet ze nergens: in de game heten de delen "Deel 1: KEI-week", "Deel 2: Noorderzon" en "Deel 3: Kermis en Ontzet".
 
 **De personages, kort.**
 - **Tammo:** Stadjer uit het Oosterpark. Droog, met een groot hart en een kleine portemonnee. Al twaalf jaar verliefd op zijn beste vriendin en zegt het nooit. Hij heeft een rode **Fjord Escapade** die nauwelijks rijdt.
@@ -59,7 +60,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 | **Woist ja wel?** | Peiling onder de luisteraars: zijn ze het of niet? |
 | **Sikkom.** | Het scherm bij een missie die net mislukt, in plaats van "MISSIE MISLUKT" |
 
-**De Groningse complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte* (een brok in de keel).
+**De Groningse complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte* (een brok in de keel). Elke stap heet een **trede**. Omdat niet elke speler de ladder kent, zegt Anita bij de eerste trede (H1) "van de complimentenladder", telt Tammo in het autogesprek daarna alle zes treden op, en staat de ladder vanaf H1 in "Wat weten we?" (pauzemenu, Te doen) met wat elke trede betekent.
 
 **De romance in vijf stappen**
 | Wanneer | Wat |
@@ -87,7 +88,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 | 5 | **H5** Wind tegen, beide kanten op | Voorbereiding | Sjoerd vertelt over de drie minuten zonder camera's | Fietsrace, groen in alle richtingen |
 | | *Kraakspullen en het donker* | | Zwart of een bootje, en wachten bij Henk | |
 | 6 | **H6** Het museum stond er al zo | **De drempel** | Een lege vitrine en Jelles plan | Sluipen op een timer |
-| | *De trein* | Onderduiken | Stad in rouw | Treinreizen |
+| | *Even onderduiken* | Onderduiken | Stad in rouw. Kies: de trein, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A | Treinreizen, de stad verkennen |
 | 7 | **H7** Heel aankomen is ook een kunst | Beproeving | Een alibi. Al het vet is opgekocht | Breekbare lading |
 | 8 | **H8** Al het vet van Grunn | Beproeving | De eerste overwinning op Jelle | Kapen |
 | | *Tuning* | | De Escapade opvoeren bij Knal & Kolder | Garage |
@@ -139,9 +140,22 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 - **Tammo:** Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.
 - *Anita kijkt hem aan. Hij kijkt naar zijn koffie.*
 - **Anita:** …Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.
+- **Tammo:** Alleen: waar laat je hem? Op deze zolder kun je niet eens rechtop staan.
+- **Anita** *(schuift een papier over tafel)*: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.
+- **Tammo:** Paddepoel? Dat is buitenland.
+- **Anita:** Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.
+- **Tammo:** …Samen.
+- **Anita:** Als huisgenoten, Tammo. Teken nou maar.
 - **Rikus (radio):** En voor Tammo, als je luistert: ze zegt nooit "kom" tegen iemand die ze niet mee wil hebben. Doe er wat mee.
 - *Haar telefoon trilt.*
 - **Anita:** Kom. Werk.
+
+**Verhuisdag (cutscène, Paddepoel).** *De House of Groningen aan de Pleiadenlaan, elf hoog. De Escapade met een matras op het dak, Tammo met een verhuisdoos.*
+- **Tammo:** Elf hoog. Met een lift. Ik voel me rijk.
+- **Anita:** Je bent niet rijk, Tammo. Je bent huisgenoot.
+- *De camera zwiept omhoog: "Welkom in Grunn." Het spel begint voor de deur van de flat. Paddepoel is vanaf nu thuis.*
+
+*Waarom:* de zolder in de Korenbloemstraat (Oosterparkwijk) is te klein en te duur voor één. Samen kunnen ze net een flat in Paddepoel huren, "als huisgenoten". Het past bij de romance: ze wonen samen, maar zeggen niks. De eerste autogesprekken gaan over de lift en de afwas; Tammo's eerste bericht begint met "De dozen kunnen wachten."
 
 ---
 
@@ -169,7 +183,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 
 **Outro (cutscène, Boterdiep).**
 - **Berend** *(loopt om het bakkie heen)*: …Goud.
-- **Anita:** Dat is trede twee, Tammo.
+- **Anita:** Trede twee van de complimentenladder, Tammo.
 - **Berend:** Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus.
 - **Tammo:** Wat moet een Fries met jouw bakkie?
 - **Berend:** Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.
@@ -406,9 +420,35 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 # Akte 2, Romp: "Stad in rouw"
 *Noorderzon. Heel Stad zoekt de bal, en de pliesie zoekt twee mensen in het zwart.*
 
-## Tussendoor: onderduiken met de trein
+## Tussendoor: even onderduiken *(kies iets leuks samen)*
+*Lead (Tammo):* "Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken, wij tweeën. De trein vanaf het Hoofdstation, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A. Kies maar, ze staan op je kaart."
+
+Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze eindigt in een korte scène waarin ze een beetje naar elkaar toe groeien.
+
+**De trein** *(vanaf het Hoofdstation, een rit naar maakt niet uit waar)*
 - **Anita:** Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.
-- **Tammo (in de trein):** Iedereen kijkt naar Kiekdoar. Niemand naar ons.
+- **Anita:** Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken.
+- **Tammo:** Er was geen zee. Alleen een dijk.
+- **Anita:** Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.
+- **Tammo:** Hij ligt er ook. Een beetje.
+- *Bericht (Tammo):* Iedereen kijkt naar Kiekdoar. Niemand naar ons.
+
+**Een ijsje in het Noorderplantsoen**
+- **Anita:** Twee bolletjes. Jij betaalt, ik ben voortvluchtig.
+- **Tammo:** Ik ben ook voortvluchtig.
+- **Anita:** Jij hebt een pet. Dat is een vermomming.
+- **Tammo:** Jouw ijs smelt.
+- **Anita:** Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes.
+- **Tammo:** …Ze zijn lekker, jouw restjes.
+- *Bericht (Tammo):* Niemand zoekt een boef met een ijsje.
+
+**De zonsondergang aan de Hoge der A** *(de klok springt naar de avond)*
+- **Tammo:** Hier zat ik vroeger. Als het thuis te druk was.
+- **Anita:** Alleen?
+- **Tammo:** Met een zakje friet. Dat telt.
+- **Anita:** Je kijkt naar mij, Tammo. De zon is daar.
+- **Tammo:** Die gaat toch onder.
+- *Bericht (Tammo):* Twijduustern. Niemand zoekt ons in het donker.
 
 ---
 
@@ -451,7 +491,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 **Outro (cutscène, Oosterpoort).** *Snackbarhouders met lege pannen juichen.*
 - **Snackbarhouder:** Vet! Valt mie nait of! *(Dat valt me niet tegen!)*
-- **Anita:** Trede drie, Tammo.
+- **Anita:** Trede drie van de complimentenladder, Tammo.
 - **Tammo:** Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten.
 - *Anita's telefoon trilt: "Pas op dysels, famke. – M." (Pas op jezelf, meisje.) Ze stopt hem snel weg. Tammo ziet het.*
 
@@ -836,7 +876,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - **Berend** *(bij de Friese eierbal)*: Goud. …Valt mie nait of.
 - **Berend** *(bij de Groninger eierbal)*: …Braid noar de zin. …Kon minder.
 - *Hij zegt niks meer. Hij slikt.*
-- **Rikus:** Berend zegt niks meer. Hij heeft een kloet in de strotte *(een brok in de keel)*. Dat is de hoogste trede. Dat is nog nooit gebeurd.
+- **Rikus:** Berend zegt niks meer. Hij heeft een kloet in de strotte *(een brok in de keel)*. Dat is de hoogste trede van de complimentenladder. Dat is nog nooit gebeurd.
 - **Oma Trijntje en Mem Terpstra** *komen samen naar voren.*
 - **Oma Trijntje:** Gerda. Jouw eierbal was beter. In 1953.
 - **Mem:** Trijntje. Dat duurde lang.

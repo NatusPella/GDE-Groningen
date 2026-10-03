@@ -47,8 +47,8 @@ export const BANTER = [
     ['A', 'Vijftig euro. Dat is een ventieldopje van de Fjord.', 'wistful, dry'],
     ['T', 'Dan hebben we er één. Dat is een begin.', 'dry, encouraging']] },
   { id: 'h1-pass-ladder', trigger: 'after:H1:pass', lines: [
-    ['A', 'Berend zei "goud". Dat is trede twee.', 'impressed, laughing'],
-    ['T', 'Er zijn er zes.', 'dry'],
+    ['A', 'Berend zei "goud". Trede twee van de complimentenladder.', 'impressed, laughing'],
+    ['T', 'Ow, goud, valt mie nait of, braid noar de zin, kon minder. En bovenaan zeg je niks meer. Zes treden.', 'dry, counting on his fingers'],
     ['A', 'Dan hebben we er nog vier.', 'determined, cheerful'],
     ['T', 'Bij Berend? Die haalt niemand.', 'deadpan']] },
   { id: 'h1-fail-tellen', trigger: 'after:H1:fail', lines: [
@@ -734,8 +734,8 @@ export const BANTER = [
     ['T', 'In februari. In je jas.', 'dry']] },
   { id: 'pl-paddepoel', trigger: 'place:Winkelcentrum Paddepoel', lines: [
     ['T', 'Paddepoel. Dit is buitenland.', 'alarmed'],
-    ['A', 'Het is vier kilometer van de Grote Markt.', 'dry'],
-    ['T', 'Precies. Buitenland.', 'firm']] },
+    ['A', 'Je woont hier, Tammo.', 'dry'],
+    ['T', 'Precies. Ik ben expat.', 'firm, deadpan']] },
   { id: 'pl-euroborg', trigger: 'place:Euroborg', lines: [
     ['A', 'Het stadion. De trots van het noorden.', 'proud'],
     ['T', 'Jij bent er nooit geweest.', 'teasing'],
@@ -770,6 +770,11 @@ export const BANTER = [
     ['T', 'Mijn opa zegt dat ze daar harder zongen.', 'proud'],
     ['A', 'Je opa zegt dat alles vroeger harder was.', 'teasing'],
     ['T', 'Behalve de wind. Die is hetzelfde gebleven.', 'dry']] },
+  { id: 'wk-oosterpark-zolder', trigger: 'wijk:Oosterparkwijk', lines: [
+    ['A', 'De Korenbloemstraat. Mijn oude zolder.', 'nostalgic'],
+    ['T', 'Waar je niet rechtop kon staan.', 'dry'],
+    ['A', 'Jij stond altijd scheef. Met twee bakken koffie.', 'teasing, warm'],
+    ['T', 'Nu sta ik recht. Elf hoog.', 'proud, deadpan']] },
   { id: 'wk-oosterpark-stoep', trigger: 'wijk:Oosterparkwijk', lines: [
     ['T', 'Onze stoep.', 'fond, quiet'],
     ['A', 'Jij, ik en Rikus met zijn mengtafel van karton.', 'nostalgic, laughing'],
@@ -787,8 +792,8 @@ export const BANTER = [
     ['T', 'Dat het vroeger beter was. Ook in 1977.', 'deadpan']] },
   { id: 'wk-hereweg', trigger: 'wijk:Herewegbuurt', lines: [
     ['A', 'De Herewegbuurt. Huizen met een naam op het hek.', 'impressed'],
-    ['T', 'Ons huis heeft ook een naam.', 'proud'],
-    ['A', '"Achterstallig onderhoud" is geen naam.', 'dry, laughing']] },
+    ['T', 'Onze flat heeft ook een naam.', 'proud'],
+    ['A', '"House of Groningen" is geen naam. Dat is een folder.', 'dry, laughing']] },
   { id: 'wk-europapark', trigger: 'wijk:Europapark', lines: [
     ['T', 'Europapark. Kantoren en een station waar nooit iemand uitstapt.', 'bored'],
     ['A', 'Behalve als de club speelt.', 'knowing'],
@@ -873,6 +878,17 @@ export const BANTER = [
     ['A', 'Alleen als de snackbar een plat dak heeft.', 'amused, practical']] },
 
   // --- idle chit-chat -----------------------------------------------------------
+  // just moved in (the opening): the flat in Paddepoel is new
+  { id: 'id-verhuisd', trigger: 'idle', until: 'H2', lines: [
+    ['A', 'Ons eigen huis. Nou ja, van de verhuurder.', 'happy, a bit shy'],
+    ['T', 'Met een lift.', 'proud'],
+    ['A', 'Dat is de vierde keer dat je die lift noemt.', 'teasing'],
+    ['T', 'Ik heb nog nooit een lift gehad.', 'deadpan, sincere']] },
+  { id: 'id-huisgenoten', trigger: 'idle', needs: 'H1', until: 'H6', lines: [
+    ['T', 'Wie doet er eigenlijk de afwas? Bij huisgenoten.', 'curious, dry'],
+    ['A', 'Wie het laatst kookte.', 'quick'],
+    ['T', 'Ik kook nooit.', 'dry'],
+    ['A', 'Precies.', 'satisfied, laughing']] },
   { id: 'id-tegenwind', trigger: 'idle', lines: [
     ['T', 'Tegenwind. Alweer.', 'grim'],
     ['A', 'We zitten in een auto, Tammo.', 'patient'],
@@ -1071,7 +1087,7 @@ export const BANTER = [
     ['T', 'Ze hebben overlegd.', 'dry'],
     ['A', 'Eindelijk samenwerking in Stad.', 'laughing']] },
   { id: 'id-ladder', trigger: 'idle', needs: 'H8', until: 'H18', lines: [
-    ['A', 'Hoeveel treden heeft die ladder van jullie eigenlijk?', 'curious'],
+    ['A', 'Hoeveel treden heeft die complimentenladder van jullie eigenlijk?', 'curious'],
     ['T', 'Ow. Goud. Valt mie nait of. Braid noar de zin. Kon minder.', 'counting, dry'],
     ['A', 'Dat zijn er vijf.', 'dry'],
     ['T', 'De zesde zeg je niet.', 'quiet'],
