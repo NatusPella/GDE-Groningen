@@ -553,6 +553,30 @@ export function missionIndexOf(id) {
   return MISSION_IDS.indexOf(id);
 }
 
+// Is step k done? Finished or skipped (doneId), a mission the chain counts as
+// passed, or an activity that a later, passed mission has made moot (old
+// saves, missions played ahead). Shared by story.js and the save migration test.
+export function stepDone(k, doneId, missionPassed) {
+  const passed = (s) => doneId(s.id) || (s.kind === 'mission' && missionIndexOf(s.mission) >= 0 && missionPassed(missionIndexOf(s.mission)));
+  const step = STEPS[k];
+  if (doneId(step.id)) return true;
+  if (step.kind === 'mission') return passed(step);
+  for (let j = k + 1; j < STEPS.length; j++) if (STEPS[j].kind === 'mission' && passed(STEPS[j])) return true;
+  return false;
+}
+
+// The next step to play, or { end: part } where the built story stops.
+export function nextStoryStep(doneId, missionPassed) {
+  let lastPart = 'kop';
+  for (let k = 0; k < STEPS.length; k++) {
+    const s = STEPS[k];
+    if (!stepAvailable(s)) return { end: lastPart, next: s };
+    lastPart = s.part;
+    if (!stepDone(k, doneId, missionPassed)) return s;
+  }
+  return { end: lastPart, next: null, finale: true };
+}
+
 // Mission indices in story order (built or not), for "has the story got
 // this far" checks in the mission dialogue.
 export const MISSION_STORY_ORDER = STEPS.filter((s) => s.kind === 'mission' && s.mission).map((s) => missionIndexOf(s.mission)).filter((i) => i >= 0);
