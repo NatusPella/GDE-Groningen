@@ -167,8 +167,8 @@ What the web build (`web/build.mjs`) adds on top of `desktop/build.mjs`:
 
 Sizes (0.22.0): the staging is 172 MB in 3,935 files, 149 MB of it audio.
 Opus brings the audio down to 85 MB (music -50%, voices -28%: they were
-already 48 kbps mono mp3). `web-dist/` holds both formats: 516 files,
-257 MB; the zip is 242 MB. A browser with Opus downloads ~23 MB before the
+already 48 kbps mono mp3). `web-dist/` holds both formats: 521 files,
+258 MB; the zip is ~242 MB. A browser with Opus downloads ~23 MB before the
 title screen (code 7 MB, map 15 MB) and at most ~108 MB if every clip
 plays. itch.io HTML5 limits (1000 files, 200 MB per file, 500 MB unpacked):
 it fits, with the largest file at 11.7 MB (`citymap.json`).
