@@ -66,7 +66,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
 - [ ] Toegankelijkheid:
   - toetsen opnieuw toewijzen;
-  - controllersupport;
+  - volledige controllersupport (ook nodig voor de Steam Deck);
   - een grootte voor de ondertitels;
   - markers die werken voor kleurenblinden.
 - [ ] Opt-in foutrapporten of een logbestand om mee te sturen.
@@ -85,6 +85,30 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [?] Het werkadres in de oude geschiedenis vervangen. Dat is een herschrijving plus force push, na de laatste merge en alleen na akkoord.
 - [ ] Een secrets-scan vlak voor het openbaar maken (de laatste scan, op 3 okt, vond niets).
 - [?] De repo openbaar maken, waarmee Pages, Actions en het bouwen in CI gratis worden.
+
+## Steam-klaar (optioneel, na of rond 1.0)
+
+Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.000 omzet. Alexander beslist of hij dat ervoor overheeft; de game maken we in elk geval klaar.
+
+- **Geen code signing nodig.** Steam start de game zelf, en macOS zet geen quarantainelabel op downloads via Steam. De ad-hoc-handtekening van electron-builder is genoeg voor Apple Silicon.
+- **AI-melding** in de inhoudsvragenlijst van Valve, die op de winkelpagina komt. Vooraf gegenereerd: alle stemmen (Gemini TTS) en alle muziek (Gemini). Live gegenereerd: niets.
+- [ ] De actuele regels van Steamworks online nalopen: het AI-beleid, de fee, de review en de wachttijden.
+- [ ] **Branding verder van GTA af.** Dit is het grootste risico, want Valve reviewt op IP en Take-Two treedt actief op.
+  - een eigen naam en logo, zonder "VI" in GTA-stijl en zonder het GTA-lettertype;
+  - geen verwijzing naar GTA in de titel;
+  - een duidelijke disclaimer.
+- [ ] Leeftijdsclassificatie (IARC): geweld, schieten, politie en alcohol. Waarschijnlijk 16+ of 18+.
+- [ ] Winkelpagina:
+  - capsule-afbeeldingen in alle Steam-formaten;
+  - screenshots;
+  - de trailer;
+  - een Nederlandse en een Engelse beschrijving.
+- [ ] Een Steam-build: de Windows-, Mac- en Linux-builds via SteamPipe, met een uploadscript.
+- [ ] De Steam-overlay met Electron en Chromium testen, en oplossen of accepteren.
+- [ ] Steam Deck: volledige controllersupport (zie 0.25), een Linux-build, en de tekstgrootte op 800p.
+- [ ] Optioneel: Steam-achievements en cloud-saves via steamworks.js, gekoppeld aan de bestaande prestaties.
+- [ ] De planning: 30 dagen wachten na betaling, minimaal 2 weken "coming soon", en de review van de pagina en de build.
+- [?] Het besluit: $100 betalen en naar Steam (Alexander).
 
 ## 1.0-RC en 1.0.0
 
