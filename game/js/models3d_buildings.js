@@ -1225,6 +1225,7 @@ function touchParts(b) {
 // plane of a quay wall.
 const FOUNDATION_Y = WATER_Y - 0.5;
 const FOUNDATION_INSET = 0.08;
+const BY_WATER_R = 0.8;
 const isWet = (map, e, s, d) => map.inWaterRaw(e.ax + e.tx * s + e.nx * d, e.ay + e.ty * s + e.ny * d);
 export function buildingFoundation(b) {
   if (b._foundation !== undefined) return b._foundation;
@@ -1239,7 +1240,19 @@ export function buildingFoundation(b) {
     }
     return false;
   });
-  return (b._foundation = wet.some(Boolean) ? { y: FOUNDATION_Y, edges, wet } : null);
+  if (!wet.some(Boolean)) return (b._foundation = null);
+  // a wall of a waterside building running along the waterline, the water
+  // just beside it rather than in front: it stands over the quay or bank
+  // sloping down to it
+  edges.forEach((e, i) => {
+    if (wet[i]) return;
+    const n = Math.max(1, Math.round(e.len));
+    for (let k = 0; k < n && !wet[i]; k++) {
+      const s = ((k + 0.5) / n) * e.len, d = 0.3 - BY_WATER_R;
+      wet[i] = isWet(map, e, s, d) || isWet(map, e, s - BY_WATER_R, 0.3) || isWet(map, e, s + BY_WATER_R, 0.3);
+    }
+  });
+  return (b._foundation = { y: FOUNDATION_Y, edges, wet });
 }
 
 function addFoundation(geo, b) {
