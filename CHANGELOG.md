@@ -111,6 +111,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   - de Korenbeurs met Mercurius, Neptunus en Ceres;
   - het zwarte Calmershuis;
   - een glazen kiosk.
+- **Dorpskernen in het Ommeland**: bij de kerk ligt een brink met bankjes,
+  linden, een pomp en een fietsenrek, langs de straten een snackbar, een
+  café met terras, een bakker en meer, met lantaarnpalen, wandelende mensen
+  en geparkeerde auto's.
 
 ### Veranderd
 - **Ontzet, net als in 1672:** de achtervolging volgt het script. Jelle scheurt
@@ -136,6 +140,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 - H18: kraam heel houden, Jelle inhalen en terug naar de jury voordat de
   eierballen koud zijn.
 - De autogesprekken volgen het nieuwe verhaal.
+- **Zomerweer tijdens het verhaal**: langere droge periodes en geen zware
+  stormen meer.
+- H1 levert nu de vijftig euro op die Berend belooft.
 
 ### Verbeterd
 - **Het water in het Ommeland is nu hetzelfde water als in de stad.** De
@@ -194,6 +201,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Gebouwen aan het water staan op een fundering in plaats van te zweven,
   woonboten liggen in het water in plaats van op de kant, en wegen lopen
   niet meer dwars door gebouwen.
+- **Laptops met twee videokaarten** gebruiken nu de snelle.
+- **Nieuwe stukken stad en Ommeland laden in kleine stapjes**, zodat het
+  beeld niet meer hapert als je rijdt of vliegt. Verre boerderijen en
+  dorpen zijn eenvoudiger tot je dichterbij komt.
 
 ### Opgelost
 - Telefoontjes, voicemails en Bel Rikus vallen niet meer over het blok
