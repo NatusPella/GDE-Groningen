@@ -65,6 +65,9 @@ export const COUNTRY_UNIFORMS = {
   uRealBlocks: { value: [1, 1, 0, 0] },
   uRealWater: { value: null },
   uRealWaterRect: { value: [0, 0, 1, 0] },
+  // round the player (x, z, radius) the open water is a real surface at
+  // WATER_Y (countrywater.js): the ground opens over it; w = time
+  uWaterNear: { value: [0, 0, 0, 0] },
   uUrbanTex: { value: null },
   uUrbanRect: { value: [0, 0, 1, 0] },
   // the road / canal distances of cEdge baked round the player (countrybake.js):
@@ -103,6 +106,12 @@ function bilinear(G, x, y, outside) {
 export function realWater(x, y) {
   if (!real) return -99;
   return (bilinear(real.water, x, y, 0) - 128) / 4;
+}
+// Past the map rectangle the real open water from about SHORE_RW in is a
+// water surface at the city's WATER_Y; the city's own polygons cover it inside.
+export const SHORE_RW = 1.0;
+export function rectOutside(x, y) {
+  return Math.max(Math.abs(x - rect.cx) - rect.hx, Math.abs(y - rect.cy) - rect.hy);
 }
 // 0 in open country, 1 in the built-up parts of the real villages.
 export function urbanWeight(x, y) {
@@ -330,6 +339,7 @@ uniform vec4 uMaskSize;
 uniform vec4 uRealBlocks;
 uniform sampler2D uRealWater;
 uniform vec4 uRealWaterRect;
+uniform vec4 uWaterNear;
 uniform sampler2D uUrbanTex;
 uniform vec4 uUrbanRect;
 uniform sampler2D uBake0;
@@ -656,12 +666,18 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float water = max(max(wD, wM), wQ) * smoothstep(0.86, 0.98, max(cw, wC));
   float bank = max(max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert) * keepD, (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - culvM)) * dry * dryE, max((1.0 - smoothstep(C_MAAR_WATER, C_MAAR, dQ)) * dryE, (1.0 - smoothstep(0.0, 2.2, -rw)) * (1.0 - roadM))) * (1.0 - water);
   c = mix(c, cLin(70.0, 72.0, 44.0) * (0.8 + 0.3 * n3), bank * 0.8 * smoothstep(0.86, 0.98, cw));
-  vec3 wc = mix(cLin(22.0, 36.0, 36.0), cLin(30.0, 46.0, 40.0), n2);
-  wc = mix(wc, cLin(52.0, 76.0, 86.0) * (0.9 + 0.2 * n1), wQ);
+  // the open water near the player is the real surface below (countrywater.js)
+  vec2 qR = abs(p - uCountryRect.xy) - uCountryRect.zw;
+  if (rw > 0.0 && roadM < 0.5 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
+  // the city water's shallow / deep tones (water3d.js), glossy so the sky
+  // reflects in it; a slow drifting sheen where it is not weed
+  vec3 wc = mix(cLin(44.0, 74.0, 56.0), cLin(11.0, 36.0, 32.0), 0.35 + 0.4 * n2 + 0.25 * wQ);
   float weed = smoothstep(0.62, 0.8, cNoise(p * 0.35 + 40.0) * 0.7 + n3 * 0.3) * (1.0 - wQ * 0.8);
-  wc = mix(wc, cLin(98.0, 128.0, 44.0), weed * 0.8);
+  wc = mix(wc, cLin(93.0, 127.0, 44.0) * 0.8, weed * 0.75);
+  float sheen = cNoise(p * 0.45 + vec2(uWaterNear.w * 0.21, -uWaterNear.w * 0.17)) * cNoise(p * 0.9 - uWaterNear.w * 0.13);
+  wc *= 0.92 + 0.22 * sheen * (1.0 - weed) * detail;
   c = mix(c, wc, water);
-  sRough -= water * (1.0 - weed) * 0.12;
+  sRough -= water * (1.0 - weed) * 0.86;
   sDip -= water;
   return c;
 }

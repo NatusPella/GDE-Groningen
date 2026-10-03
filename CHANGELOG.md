@@ -7,6 +7,27 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Tammo en Anita wonen nu in echte gebouwen.** De House of Groningen aan
+  de Pleiadenlaan en buurtoren Atlas zijn goudgeel gecementeerd metselwerk
+  met Franse balkons, echte balkons op de lagere verdiepingen en een kroon
+  rond het helidek. De parkeergarage ertussen is van dezelfde steen, met een
+  borstwering op het parkeerdek. Het tankstation ernaast heet Bakkie Peut:
+  groen-witte luifel, pompeilanden, prijsmast en winkel. In de opening staat
+  de Korenbloemstraat er nu uit zoals Bouma hem bouwde: rode baksteen, rode
+  pannen, dakkapellen en één verlicht zolderraam.
+- **De Grote Markt en de Vismarkt lijken nu echt.** De gevelwanden zijn
+  opgedeeld in panden van 5 tot 9 meter, elk met een eigen gevel:
+  lijstgevels, gepleisterde gevels met consoles, trapgevels, klokgevels,
+  winkelpanden van rond 1900 en de wederopbouw aan de noordkant. Ze hebben
+  hoge schuiframen, winkelpuien en markiezen. Nieuw of herbouwd:
+  - het Stadhuis met zijn vier zuilen en fronton op de markt;
+  - het Goudkantoor met drie topgevels;
+  - het Waagstraatcomplex van Natalini;
+  - Het Groot Handelshuis in grijs mozaïek;
+  - De Drie Gezusters, het Market Hotel en Merckt;
+  - de Korenbeurs met Mercurius, Neptunus en Ceres;
+  - het zwarte Calmershuis;
+  - een glazen kiosk.
 - **Nieuwe trailer: "GTE VI — Een zomer in Grunn".** Anderhalve minuut
   zomer: terrassen op de Vismarkt, kleedjes in het Noorderplantsoen, de
   kermis op de Grote Markt bij nacht, een tankwagen vol frituurvet op de
@@ -121,6 +142,20 @@ nieuwe functies, `y` voor alleen bugfixes.
 - De autogesprekken volgen het nieuwe verhaal.
 
 ### Verbeterd
+- **Het water in het Ommeland is nu hetzelfde water als in de stad.** De
+  kanalen, diepen en meren buiten de stad liggen op dezelfde hoogte als de
+  grachten, met dezelfde golfjes, weerspiegeling van de lucht, regen,
+  nachtlichtjes en kroos, tussen modderige oevers. Waar een gracht de stad
+  uit loopt, stroomt hij nu zonder dijkje door het Ommeland in. Je kunt erin
+  vallen en zwemmen, en een auto die erin rijdt zinkt, net als in de stad.
+  Sloten en maren hebben de kleur van het stadswater en glanzen mee.
+- **Winkelcentrum Paddepoel lijkt nu op het echte.** Vanuit je flat kijk je
+  uit op lage winkelblokken met donkere gevels, een glazen kapdak over de
+  winkelstraten en een glazen piramide boven het binnenplein. De ingangen
+  zijn hoge glazen puntgevels met witte "Paddepoel"-letters, langs de
+  buitenkant hangt een glazen luifel met bolle lantaarns en bloembakken.
+  Aan de Eikenlaan wonen mensen boven de winkels, en aan de zuidkant staat
+  het nieuwe blok van aluminium met een supermarkt en een sportschool erop.
 - **De game draait veel soepeler op laptops zonder losse videokaart** en
   op een drukke computer: resolutie en details gaan vanzelf even omlaag
   als het beeld hapert en komen terug als er weer ruimte is.
@@ -139,6 +174,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Tammo heeft een nieuwe stem** en praat nu als een echte Stadjer, met
   hier en daar een Gronings woord ("Mien droom"). Douwe en de
   taxicentralist hebben Tammo's oude stem gekregen.
+- **Snelheid en schade met je voertuig erbij**: het badge onder de minimap
+  toont een plaatje van de auto, fiets of boot waar je in zit. Hoe meer
+  schade, hoe grauwer hij wordt.
+- Zonder bescherming verdwijnt het lege schildbalkje uit je kaartje
+  linksboven; het komt terug zodra je weer bescherming hebt.
+
+### Opgelost
+- Telefoontjes, voicemails en Bel Rikus vallen niet meer over het blok
+  rechtsboven (tijd, sterren, geld, wapen): de telefoon schuift eronder,
+  en ook onder het racepaneel. Is er te weinig ruimte, dan wordt hij
+  compacter of gaat hij ernaast staan, vrij van de minimap.
 
 ## [0.21.0] - 2026-10-01
 
