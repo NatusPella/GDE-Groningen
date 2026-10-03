@@ -451,6 +451,10 @@ PATCHES = [
     # Prinsenhof and the DUO "Cruiseschip" (landmarks3d.js models) are taller than OSM says
     {"at": [261.0, -151.0], "set": {"h": 4}},
     {"at": [956.0, 1525.0], "set": {"h": 14}},
+    # Winkelcentrum Paddepoel (paddepoel3d.js): the shop blocks are 6.6 m to the
+    # parapet, the 2026 supermarket and gym block 10.8 m; OSM's 3 levels said 9.3
+    {"landmark": "Winkelcentrum Paddepoel", "set": {"h": 2.13}},
+    {"at": [-1416.0, -1094.0], "set": {"h": 3.48}},
 ]
 
 def bounds_of(p):
