@@ -1,10 +1,10 @@
 // The car radio. In a car, bus, boat or police car N tunes to the next
 // station and B to the previous one: G-Music (the soundtrack), Radio
 // Nachtstreek (the same records through an old radio, with Rikus talking
-// between them), Radio Grunn (talk: Geesje, the Sikkom news, the traffic,
+// between them), Radio Proat (talk: Geesje, the Kiekdoar news, the traffic,
 // the cows and Rikus's bits, all recordings the game already has) and off.
 // Every vehicle keeps its own station; a stolen one comes with whatever its
-// driver had on (a taxi or bus plays Radio Grunn, a tractor Nachtstreek).
+// driver had on (a taxi or bus plays Radio Proat, a tractor Nachtstreek).
 // On foot or on a bike G-Music plays as always. audio.js does the music
 // side (setRadioStation); the talk goes through the speech channel's
 // 'radio' class, so any other voice cuts it off. `window.__radio` debug.
@@ -17,7 +17,7 @@ import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
 export const STATIONS = [
   { id: 'gmusic', name: 'G-Music', sub: 'Hits uit Grunn' },
   { id: 'nachtstreek', name: 'Radio Nachtstreek', sub: 'Rikus · streekmuziek tot de ochtend' },
-  { id: 'grunn', name: 'Radio Grunn', sub: 'Praatradio · Sikkom-nieuws, verkeer en de koeien' },
+  { id: 'grunn', name: 'Radio Proat', sub: 'Praatradio · Kiekdoar-nieuws, verkeer en de koeien' },
   { id: 'uit', name: 'Radio uit', sub: 'Even stilte' },
 ];
 
@@ -95,7 +95,7 @@ export function updateRadio(dt, w) {
   else if (current === 'nachtstreek') nachtstreek(w);
 }
 
-// --- Radio Grunn: segments of host + content -----------------------------------------------
+// --- Radio Proat: segments of host + content -----------------------------------------------
 
 const ORDER = ['ident', 'news', 'ad', 'traffic', 'news', 'weather', 'cows', 'ad', 'rikus', 'news'];
 
@@ -109,8 +109,8 @@ function news() {
     ...['job_bezorger', 'job_bus', 'job_taxi', 'job_fietsdepot', 'job_rondvaart', 'job_verhuizing'].map((k) => SMS_SAY[k].lines[0]),
     PLANTSOEN_NEWS, ...Object.values(EVENT_DAYS).map((e) => e.announce), KERMIS_NEWS,
   ].filter(Boolean);
-  const t = pick(texts).replace(/^SIKKOM( MELDT)?:\s*/i, '');
-  return { speaker: 'Sikkom-redactie', text: t, voice: () => smsVoiceFor({ from: 'Sikkom', text: t }, lineVoiceFor) };
+  const t = pick(texts).replace(/^KIEKDOAR( MELDT)?:\s*/i, '');
+  return { speaker: 'Kiekdoar-redactie', text: t, voice: () => smsVoiceFor({ from: 'Kiekdoar', text: t }, lineVoiceFor) };
 }
 
 function segment(kind, w) {

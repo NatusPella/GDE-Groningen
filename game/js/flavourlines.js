@@ -102,7 +102,7 @@ export const COW_LOADING = [
   'Aaltje: “Het regent.” Grietje: “Dat is geen nieuws, dat is een seizoen.”',
   'Grietje: “Weer een omleiding.” Aaltje: “Wij lopen gewoon rechtdoor.”',
 ];
-// spoken: the cows in the Sikkom feed, per kind of chaos: [cow, line]
+// spoken: the cows in the Kiekdoar feed, per kind of chaos: [cow, line]
 export const COW_FEED = {
   wreck: [
     ['Aaltje', 'Weer een auto kapot. Ik tel ze niet meer.'],

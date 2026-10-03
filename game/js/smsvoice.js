@@ -10,7 +10,7 @@
 
 // sender shown on the card -> the voice that reads it
 const VOICE_OF = {
-  Sikkom: 'Sikkom-redactie',
+  Kiekdoar: 'Kiekdoar-redactie',
   'GTE VI': 'Ubbo',
   Ubbo: 'Ubbo',
   Bank: 'Ubbo',
@@ -20,20 +20,20 @@ const VOICE_OF = {
   'Henk (Garage Knalpot)': 'Henk',
 };
 
-export const SMS_NEWS = 'Sikkom-redactie';
+export const SMS_NEWS = 'Kiekdoar-redactie';
 export const SMS_SYSTEM = 'Ubbo';
 
 export function smsSpeaker(from) {
-  const f = String(from || 'Sikkom').trim();
+  const f = String(from || 'Kiekdoar').trim();
   if (VOICE_OF[f]) return VOICE_OF[f];
   const base = f.replace(/\s*·.*$/, '').replace(/\s*\(.*\)$/, '').trim();
   return VOICE_OF[base] || base;
 }
 
-// The text as it is spoken: without the "SIKKOM:" app prefix and without a
+// The text as it is spoken: without the "KIEKDOAR:" app prefix and without a
 // trailing amount ("(+€45)").
 export function smsSpoken(text) {
-  return String(text || '').trim().replace(/^SIKKOM( MELDT)?:\s*/i, '').replace(/\s*\(\+?€\s?[\d.,]+\)$/, '').trim();
+  return String(text || '').trim().replace(/^KIEKDOAR( MELDT)?:\s*/i, '').replace(/\s*\(\+?€\s?[\d.,]+\)$/, '').trim();
 }
 
 // Fixed voiced lines for texts with a variable part. { speaker, lines }.
@@ -96,7 +96,7 @@ export function hintVoiceFor(speaker, text) {
 // { speaker, text, src, dur } of the recording for this card, or null.
 // lineVoice: linevoice.js lineVoiceFor (the lines manifest fallback).
 export function smsVoiceFor(n, lineVoice = null) {
-  const speaker = smsSpeaker(n.from || (/^SIKKOM/i.test(n.text || '') ? 'Sikkom' : n.from));
+  const speaker = smsSpeaker(n.from || (/^KIEKDOAR/i.test(n.text || '') ? 'Kiekdoar' : n.from));
   const text = n.say || smsSpoken(n.text);
   if (!text) return null;
   const v = voices && voices[speaker + '|' + text];

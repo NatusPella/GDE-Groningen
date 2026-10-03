@@ -78,7 +78,7 @@ const GMUSIC_JINGLES = {
 };
 const AMBIENT_JINGLE_KEYS = ['station_id', 'nummerovergang', 'rij_knipoog'];
 
-// NPC ambient chatter, police barks, Sikkom phone-feed lines - each key has
+// NPC ambient chatter, police barks, Kiekdoar phone-feed lines - each key has
 // a few voice variants recorded for it; playX() below always picks one at
 // random so the same trigger doesn't sound identical every time.
 const NPC_PHRASE_AUDIO = Array.from({ length: 10 }, (_, i) =>
@@ -91,7 +91,7 @@ const POLICE_CHASE_START_KEYS = ['stop_politie', 'zet_kant', 'verdachte_voertuig
 
 const SIKKOM_AUDIO_KEYS = ['wanted_up_1', 'wanted_up_2', 'wrecked_up_1', 'wrecked_up_2', 'copkill_up', 'pedkill_up', 'kill_up', 'mission_up', 'weather_storm_start', 'weather_storm_end'];
 const SIKKOM_AUDIO = {};
-for (const k of SIKKOM_AUDIO_KEYS) SIKKOM_AUDIO[k] = [0, 1].map((v) => `./audio/sikkom/${k}_v${v}.wav`);
+for (const k of SIKKOM_AUDIO_KEYS) SIKKOM_AUDIO[k] = [0, 1].map((v) => `./audio/nieuws/${k}_v${v}.wav`);
 
 let ctx = null;
 let master = null;
@@ -1144,7 +1144,7 @@ function speakClip(cls, src, { pos = null, guess = 2, owner = null, onEnd = null
   return el;
 }
 
-// Voicelines/police/Sikkom - the event-driven reactions - also keep a
+// Voicelines/police/Kiekdoar - the event-driven reactions - also keep a
 // short cooldown of their own so a burst of events can't chain them.
 const SPOKEN_MIN_GAP = 1.4;
 let lastSpokenAt = -Infinity;
@@ -1591,7 +1591,7 @@ const GMUSIC_ARTISTS = {
   'Onder de Martinitoren': "Lil' Eierbal",
   'Hart van Beton': 'MC Moi Moi',
   'Ivoren Toren in Helpman': 'De Helpman Hustlers',
-  'Staal op staal': 'Sjonnie Sikkom & de Ringweg Crew',
+  'Staal op staal': 'Sjonnie Kiekdoar & de Ringweg Crew',
   'Vismarkt Sprint': 'DJ Kapsalon Kees',
   'Trouw aan het blok': 'Paddepoel Posse',
   'Perfectie kent geen grens': 'Young Kruudmoes',

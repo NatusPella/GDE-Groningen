@@ -145,7 +145,7 @@
 *Waarom nu:* geld voor de Fjord. En het is de eerste keer dat Jelle in beeld komt.
 
 **Intro (cutscène, Grote Markt).** *Jelmer met een ringlamp op een stokje. Er staat een hijskraan, zoals altijd.*
-- **Jelmer:** Moi moi chat! Sikkom zegt dat de Grote Markt saaier is dan een lege mensa. Tijd om dat recht te zetten!
+- **Jelmer:** Moi moi chat! Kiekdoar zegt dat de Grote Markt saaier is dan een lege mensa. Tijd om dat recht te zetten!
 - **Tammo:** Ik ben geen content. Ik ben Tammo.
 - **Anita:** Spreek voor jezelf. Ik ben heel veel content.
 - **Jelmer:** Chat, zeg allemaal moi tegen Tammo!
@@ -269,7 +269,7 @@
 - **Tammo:** Hij heeft hem gestolen om hem eerlijk te winnen.
 - **Anita:** En de camera's van daarnet hebben óns gefilmd.
 
-**Bericht (Sikkom):** Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."
+**Bericht (Kiekdoar):** Gouden Eierbal foetsie. Politie zoekt twee Stadjers in het zwart. Museum: "Wij snappen er niks van."
 
 ## Overgang naar Akte 2 (cutscène, Nachtstreek)
 
@@ -286,7 +286,7 @@
 ## Tussendoor: onderduiken met de trein
 
 - **Anita:** Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur.
-- **Tammo (in de trein):** Iedereen kijkt naar Sikkom. Niemand naar ons.
+- **Tammo (in de trein):** Iedereen kijkt naar Kiekdoar. Niemand naar ons.
 - **Anita:** Wat staat er?
 - **Tammo:** "Stad in rouw." Er staat een foto bij van een lege vitrine. Hij heeft al meer likes dan mijn hele leven.
 

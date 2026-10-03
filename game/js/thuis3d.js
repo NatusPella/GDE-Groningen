@@ -241,8 +241,8 @@ function fasciaTexture() {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 64;
   const g = c.getContext('2d');
-  g.fillStyle = '#0f7a3a'; g.fillRect(0, 0, 512, 64);
-  g.fillStyle = '#9cc53a'; g.fillRect(0, 52, 512, 6);
+  g.fillStyle = '#1d5f73'; g.fillRect(0, 0, 512, 64);
+  g.fillStyle = '#e0a526'; g.fillRect(0, 52, 512, 6);
   g.fillStyle = '#f1f2ee'; g.font = 'bold 36px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText('BAKKIE PRUT', 256, 27);
   const t = new THREE.CanvasTexture(c);
