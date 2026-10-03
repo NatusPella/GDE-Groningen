@@ -3,12 +3,17 @@ import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
 import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
+import { countryReady, snapCountry, countryCosts, countryPath, nodeXY, gatewayCandidates } from './countryroute.js';
 
 const STRAY_M = 25;
 const TELEPORT_M = 150;
 const MIN_RECOMPUTE_S = 2;
 const REACH_M = 8;
 const SNAP_MAX_M = 480;
+// a point further than this from a city street is out in the Ommeland (countryroute.js)
+const CITY_SNAP_OK_M = 150;
+const GATEWAY_BAND_M = 700;
+const GATEWAY_CELL_M = 60;
 
 let graph = null;
 // Up to three routes at once, each its own colour (hud_panel ROUTE_COLORS):
@@ -405,6 +410,66 @@ export function dismissCareRoute() {
   slots.care.key = '';
 }
 
+// City streets meet the Ommeland roads here: points of the country network
+// near the city's edge that lie on a drivable city street (built once).
+let gateways = null;
+function cityGateways(map) {
+  if (gateways) return gateways;
+  gateways = [];
+  const B = map.meta && map.meta.bounds;
+  if (!B) return gateways;
+  const cells = new Set();
+  for (const n of gatewayCandidates(B, GATEWAY_BAND_M)) {
+    const [x, y] = nodeXY(n);
+    const key = Math.floor(x / GATEWAY_CELL_M) * 100003 + Math.floor(y / GATEWAY_CELL_M);
+    if (cells.has(key)) continue;
+    const sn = snapToRoad(map, x, y, true);
+    if (!sn || Math.hypot(sn.x - x, sn.y - y) > 12) continue;
+    cells.add(key);
+    gateways.push({ n, x, y });
+  }
+  return gateways;
+}
+
+// A route with an end outside the city graph: over the Ommeland roads, joined
+// to the city streets at the best gateway. null: the city graph handles it
+// (both ends in town) or there is no way.
+function countryRoute(world, target, from, to, graphMode, driveOnly) {
+  const map = world.map, p = world.player;
+  const pIn = !!from && Math.hypot(from.x - p.x, from.y - p.y) < CITY_SNAP_OK_M;
+  const tIn = !!to && Math.hypot(to.x - target.x, to.y - target.y) < CITY_SNAP_OK_M;
+  if (pIn && tIn) return null;
+  if (!countryReady(map.ommeland)) return null;
+  const pn = pIn ? -1 : snapCountry(p.x, p.y, 900);
+  const tn = tIn ? -1 : snapCountry(target.x, target.y, 900);
+  if ((!pIn && pn < 0) || (!tIn && tn < 0)) return null;
+  if (!pIn && !tIn) {
+    const cp = countryPath(pn, tn);
+    return cp ? [[p.x, p.y], ...cp, [target.x, target.y]] : null;
+  }
+  const gws = cityGateways(map);
+  const outer = pIn ? tn : pn;
+  const cityEnd = pIn ? p : target;
+  const { dist } = countryCosts(outer);
+  let best = null, bc = Infinity;
+  for (const g of gws) {
+    const c = dist[g.n] + Math.hypot(g.x - cityEnd.x, g.y - cityEnd.y) * 1.3;
+    if (c < bc) { bc = c; best = g; }
+  }
+  if (!best || !Number.isFinite(bc)) return null;
+  const gs = snapToRoad(map, best.x, best.y, driveOnly);
+  if (!gs) return null;
+  const cityPart = (a, b) => astar(a, b, graphMode) || (driveOnly ? astar(a, b, 'mixed') : null);
+  const country = countryPath(outer, best.n);
+  if (!country) return null;
+  if (pIn) {
+    const city = cityPart(from, gs);
+    return city ? [...city, ...country.reverse(), [target.x, target.y]] : null;
+  }
+  const city = cityPart(gs, to);
+  return city ? [[p.x, p.y], ...country, ...city] : null;
+}
+
 function computeRoute(world, target, mode) {
   const t0 = performance.now();
   const map = world.map;
@@ -420,7 +485,8 @@ function computeRoute(world, target, mode) {
     if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { graphMode = 'mixed'; to = tw; }
   }
   const from = snapToRoad(map, p.x, p.y, driveOnly);
-  if (from && to) {
+  pts = countryRoute(world, target, from, to, graphMode, driveOnly);
+  if (!pts && from && to) {
     pts = astar(from, to, graphMode);
     if (!pts && driveOnly) {
       const tw = snapToRoad(map, target.x, target.y, false);
