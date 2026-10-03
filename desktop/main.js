@@ -185,12 +185,16 @@ function createWindow() {
     // --nobatch: city buildings drawn one by one (A/B of buildingbatch3d.js)
     process.argv.includes('--nobatch') && 'nobatch',
     argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean).join('&');
+  // --profile-load[=ms]: a CPU profile of the page load (default 20 s from navigation)
+  if (process.argv.some((a) => a === '--profile-load' || a.startsWith('--profile-load='))) {
+    win.webContents.once('did-navigate', () => runProfile(win, Number(argValue('--profile-load')) || 20000).catch((err) => console.log('[profile]', err.message)));
+  }
   // --benchmark --profile: a CPU profile of 30 s of the first run
-  if (BENCH && process.argv.includes('--profile')) win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
+  if (BENCH && process.argv.includes('--profile'))win.webContents.once('did-finish-load', () => setTimeout(() => runProfile(win, 30000), 25000));
   if (BENCH || TRAILER || argValue('--bench-eval')) {
     win.webContents.on('console-message', (e, legacyLevel, legacyMessage) => {
       const message = String(e.message !== undefined ? e.message : legacyMessage);
-      if (message.startsWith('[trailer]') || message.startsWith('[mem]')) console.log(message);
+      if (message.startsWith('[trailer]') || message.startsWith('[mem]') || message.startsWith('[load]')) console.log(message);
     });
   }
   // --bench-eval=<file>: debug script run in the page as soon as it loads
