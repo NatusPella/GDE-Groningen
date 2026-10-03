@@ -50,6 +50,7 @@
 //   scene    { kicker, lines, cast, props }: (activity) a short cutscene where the step is done
 //            (storyfun.js); lines [who, text, { tag, clue }], who 'T' | 'A' | a missionstory.js NPC key
 //   meet     the same, played once when the player reaches the step's starting spot
+//            (Rotor Roelf by his demo heli for a flight goal; Durk & Douwe at the court for padel)
 //
 // GOAL TYPES (story.js GOALS)
 //   { type: 'shop', shop }            enter a shop of that type (shops.js SHOP_TYPES key)
@@ -450,10 +451,22 @@ export const STEPS = [
         ['douwe', 'Durk… ze schieten. Trappen!', { tag: 'geschrokken, traag, trappend' }],
       ] } },
   { id: 's-padel', part: 'staart', kind: 'activity', player: 'tammo', built: true, why: 'Ik speel. Mijn armen trillen nog van dat touw, maar mijn backhand niet.',
-    title: 'Een potje padel', goal: { type: 'padel' },
-    lead: ['A', 'Even afreageren. Je armen trillen nog van dat touw. Een potje padel.'],
+    title: 'Padel tegen Durk en Douwe', goal: { type: 'padel' },
+    lead: ['A', 'Durk en Douwe dagen je uit. Padel, nu meteen. Ze zeggen dat het van Jelle moet.'],
     say: ['A', 'Even afreageren. Je armen trillen nog van dat touw.'],
-    done: ['A', 'Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?'] },
+    done: ['A', 'Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?'],
+    // at the court: Jelle sent the twins to keep the pair busy for an hour (H16: meanwhile the Escapade goes)
+    meet: { kicker: 'De padelbaan',
+      cast: [{ key: 'durk', at: [2.6, 0.9] }, { key: 'douwe', at: [2.4, -1.2] }],
+      lines: [
+        ['durk', 'Tammo. Padel. Wij tegen jullie.', { tag: 'traag, plechtig, uitdagend' }],
+        ['douwe', 'Van Jelle moeten we jullie een uur bezighouden.', { tag: 'traag, eerlijk, behulpzaam' }],
+        ['durk', 'Douwe. Dat was geheim.', { tag: 'traag, verwijtend' }],
+        ['douwe', '…Hè.', { tag: 'beteuterd, traag' }],
+        ['A', 'Een uur? Waarom een uur?', { tag: 'achterdochtig, scherp' }],
+        ['durk', 'Dat weten wij ook niet. Wij zijn alleen de bezigheid.', { tag: 'traag, trots' }],
+        ['T', 'Twintig minuten. Dan staat het twee-nul.', { tag: 'droog, strijdlustig' }],
+      ] } },
   { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', solo: true, built: true, mission: 'fjord', why: 'Ik haal jouw auto wel terug. Alleen.',
     title: 'Iedereen heeft een rode auto gezien', reward: 1100,
     lead: ['T', 'Anita. De Escapade is weg. Op zijn plek staat een klomp.'],
