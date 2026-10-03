@@ -1,5 +1,5 @@
 import { onPaletteChange } from './a11y.js';
-import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch } from './hud_panel.js';
+import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
@@ -864,7 +864,7 @@ function drawDynamicMarkers(ctx, world) {
   if (layerOn('klussen') && !job) {
     for (const k of getMissionList()) {
       if (!k.done || (showMission && k.index === m.index) || k.status === 'actief') continue;
-      icon(null, 'missionIdle', k.start.x, k.start.y, k.code ? `${k.code} · ${k.label}` : k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index });
+      icon(null, missionMapKind(k.index, false), k.start.x, k.start.y, k.code ? `${k.code} · ${k.label}` : k.label, { alpha: 0.5 }, `Klus · opnieuw spelen: €${k.klusloon}`, { todo: 'm:' + k.index });
     }
   }
   if (showMission) {
@@ -873,13 +873,18 @@ function drawDynamicMarkers(ctx, world) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), ICON);
       for (const w of wps) icon(null, 'waypoint', w.x, w.y, 'Checkpoint');
     }
-    icon(null, m.phase === 'active' ? 'missionActive' : 'missionIdle', m.marker.x, m.marker.y,
+    icon(null, missionMapKind(m.index, m.phase === 'active'), m.marker.x, m.marker.y,
       m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten', m.phase === 'active' ? null : { todo: 'm:' + m.index });
   }
   // the story's step stays on the map while a goal of your own waits it out
   const sg = world.storyGuide;
   if (sg && !world.storyFreePlay && !(showMission && Math.hypot(m.marker.x - sg.x, m.marker.y - sg.y) < 4) && !(sg.buy && storyTargetShop(world))) {
     icon(null, 'missionIdle', sg.x, sg.y, sg.name, {}, 'Verhaal', { story: true });
+  }
+  // a story step with a choice (Even onderduiken): the other options too
+  for (const c of world.storyChoices || []) {
+    if (sg && Math.hypot(c.x - sg.x, c.y - sg.y) < 4) continue;
+    icon(null, 'missionIdle', c.x, c.y, c.name, {}, 'Verhaal: of dit', { story: true });
   }
 
   for (const o of getOwnedVehiclesForMap(world)) icon('car', 'own', o.x, o.y, 'Jouw ' + o.label, { vkind: o.kind, color: o.color });

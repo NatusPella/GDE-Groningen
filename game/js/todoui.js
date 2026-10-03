@@ -151,7 +151,7 @@ export function renderOverview(el, world, help) {
 
 // --- Te doen --------------------------------------------------------------------
 
-const ACT_META = { shop: 'Kopen', require: 'Kopen', sideJob: 'Bijbaantje', night: 'Wachten', pigeon: 'Duif', train: 'Trein', egg: 'Zoeken', padel: 'Padel', kermis: 'Kermis', flight: 'Vliegen', carbid: 'Carbid' };
+const ACT_META = { shop: 'Kopen', require: 'Kopen', sideJob: 'Bijbaantje', night: 'Wachten', pigeon: 'Duif', train: 'Trein', hideout: 'Kies: trein, ijsje of zonsondergang', egg: 'Zoeken', padel: 'Padel', kermis: 'Kermis', flight: 'Vliegen', carbid: 'Carbid' };
 
 function stepRow(s) {
   const meta = [ACT_META[s.goal && s.goal.type] || 'Verhaal', s.cost ? `€${s.cost}` : ''].filter(Boolean).join(' · ');

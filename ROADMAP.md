@@ -56,14 +56,15 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 ## Speelfeedback 3 okt (gaat mee in 0.24)
 
-**Pakket A: verhaalverloop en opening** (`claude/feedback-verhaal`)
-- [~] Te veel tegelijk: één wachtrij voor telefoontjes, radio, autogesprekken, meldingen en cutscenes.
-- [~] Samen gaan wonen: in de opening huren Tammo en Anita samen een appartement in Paddepoel, weg uit de krappe studentenkamer. Daarna is Paddepoel thuis.
-- [~] Onderduiken: een duidelijke bestemming, plus 2 à 3 keuzes voor iets leuks samen.
-- [~] Geen "Kop/Romp/Staart" meer in beeld, maar gewone namen voor de delen.
-- [~] Kusjes kunnen soms nog te vroeg, afhankelijk van of je Tammo of Anita speelt.
-- [~] "Koop een huurboot" wordt "huur een boot". De "tredes" worden duidelijk uitgelegd.
-- [~] Een eigen icoon per missie.
+**Pakket A: verhaalverloop en opening** (`claude/feedback-verhaal`, klaar voor review)
+- [x] Te veel tegelijk: één wachtrij (`narrative.js`) voor telefoontjes, radio, autogesprekken, meldingen, prestaties, HUD-kaarten en cutscenes; kaarten gaan opzij voor ondertitels en de radio.
+- [x] Samen gaan wonen: in de opening huren Tammo en Anita samen een flat in Paddepoel, weg uit de krappe zolder. Daarna is Paddepoel thuis.
+- [x] Onderduiken: een duidelijke bestemming, met drie keuzes (trein, ijsje in het Noorderplantsoen, zonsondergang aan de Hoge der A), elk met een scène.
+- [x] Geen "Kop/Romp/Staart" meer in beeld: "Deel 1: KEI-week", "Deel 2: Noorderzon", "Deel 3: Kermis en Ontzet".
+- [x] Kusjes te vroeg: H13 vooruit spelen zette ze aan. Nu pas als het verhaal bij H13 is.
+- [x] "Huur een boot" in plaats van "koop een huurboot"; de treden van de complimentenladder worden uitgelegd.
+- [x] Een eigen icoon per missie.
+- [ ] Nalopen in een speeltest: de nieuwe intro-shots (camera bij de toren), de drie onderduik-scènes, en of de wachtrij niet te traag voelt.
 
 **Pakket B: missies** (`claude/feedback-missies`)
 - [~] H3: duidelijk hoe je punten scoort, met een live score en een doel.

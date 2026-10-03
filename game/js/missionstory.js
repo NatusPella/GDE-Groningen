@@ -92,7 +92,7 @@ const STORY = [
     outroNpc: true,
     outro: [
       ['N', '…Goud.'],
-      ['A', 'Dat is trede twee, Tammo.'],
+      ['A', 'Trede twee van de complimentenladder, Tammo.'],
       ['N', 'Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus.', { clue: true }],
       ['T', 'Wat moet een Fries met jouw bakkie?'],
       ['N', 'Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.'],
@@ -359,7 +359,7 @@ const STORY = [
     outroNpc: true,
     outro: [
       ['N', 'Vet! Valt mie nait of!'],
-      ['A', 'Trede drie, Tammo.'],
+      ['A', 'Trede drie van de complimentenladder, Tammo.'],
       ['T', 'Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten.'],
     ],
     replay: [['N', 'Weer vet in de pannen. Valt mie nait of.']],
@@ -507,7 +507,7 @@ const STORY = [
     outro: [
       ['N', 'Goud. …Valt mie nait of.'],
       ['N', '…Braid noar de zin. …Kon minder.'],
-      ['V', 'Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede. Dat is nog nooit gebeurd.'],
+      ['V', 'Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is de hoogste trede van de complimentenladder. Dat is nog nooit gebeurd.'],
       ['trijntje', 'Gerda. Jouw eierbal was beter. In 1953.'],
       ['mem', 'Trijntje. Dat duurde lang.'],
       ['trijntje', 'Ik ben Gronings. Wij zeggen het één keer. Dan is het waar.'],
