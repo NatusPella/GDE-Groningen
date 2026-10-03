@@ -141,7 +141,7 @@ const CHIP_FADE = 0.6;
 const CHIP_AFTER_PAUSE = 3.5;
 let waitT = 0;
 let awardT = 0;
-let wasFrozen = false;
+let wasInMenu = false;
 
 function setChip(el, t) {
   el.hidden = t <= 0;
@@ -169,9 +169,12 @@ function syncAward() {
   if (n) awardEl.innerHTML = `${AWARD_SVG}${n} ${n === 1 ? 'prestatie wacht' : 'prestaties wachten'}`;
 }
 
-function tickChips(dt, frozen, paused) {
-  if (!frozen && wasFrozen === 'pause' && awardN > 0) awardT = Math.max(awardT, CHIP_AFTER_PAUSE);
-  wasFrozen = frozen ? (paused ? 'pause' : wasFrozen || 'hud') : false;
+function tickChips(dt, frozen, menuOpen) {
+  if (menuOpen) wasInMenu = true;
+  else if (wasInMenu && !frozen) {
+    wasInMenu = false;
+    if (awardN > 0) awardT = Math.max(awardT, CHIP_AFTER_PAUSE);
+  }
   if (!frozen) { waitT = Math.max(0, waitT - dt); awardT = Math.max(0, awardT - dt); }
   // the queue chip only means something next to a card that is up
   if (!visible.some((c) => !c.leaving)) waitT = Math.min(waitT, CHIP_FADE);
