@@ -9,9 +9,9 @@ import { isInWater } from './util.js';
 
 // Places in the city where Tammo, the duivenfluisteraar, can steer a pigeon:
 // a badge + a few pecking pigeons at each; E and he whistles one up (eyes
-// closed, the camera jumps into the bird). The pigeons don't listen to Anita.
+// closed, the camera jumps into the bird). The pigeons don't listen to Tessa.
 
-// What Anita says at a pigeon spot (a bubble in her own voice, "~f|" lines)
+// What Tessa says at a pigeon spot (a bubble in her own voice, "~f|" lines)
 export const ANITA_NO_PIGEON = [
   'Duiven luisteren naar Tammo. Naar mij luistert alleen Tammo.',
   'Tammo! Fluiten! …Hij hoort me niet. De duiven ook niet.',

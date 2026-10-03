@@ -161,7 +161,7 @@ function buildRoom() {
   sc.rotation.y = -Math.PI / 2;
   const notes = canvasTex(256, 192, (c, w, h) => {
     c.fillStyle = '#b8925a'; c.fillRect(0, 0, w, h);
-    const list = [['Eierbal = rond', '#f2e050'], ['Krolbrug fixen?', '#f2a0b0'], ['Tammo + Anita', '#a0d8f2'], ['meer duiven', '#c8f2a0'], ['Kon minder.', '#f2f2f2']];
+    const list = [['Eierbal = rond', '#f2e050'], ['Krolbrug fixen?', '#f2a0b0'], ['Tammo + Tessa', '#a0d8f2'], ['meer duiven', '#c8f2a0'], ['Kon minder.', '#f2f2f2']];
     list.forEach(([t, col], i) => { const x = 14 + (i % 3) * 80, y = 14 + Math.floor(i / 3) * 90; c.fillStyle = col; c.fillRect(x, y, 72, 72); c.fillStyle = '#222'; c.font = '13px Arial'; c.fillText(t, x + 5, y + 36); });
   });
   const nb = add(g, new THREE.PlaneGeometry(1.1, 0.8), basic({ map: notes }), 0.2, 1.65, -1.88);

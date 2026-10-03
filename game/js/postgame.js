@@ -27,7 +27,7 @@ import { findParkingSpot } from './ownedvehicles.js';
 import { Vehicle } from './vehicle.js';
 
 // The post-game: once the story's ending card has played (story.js, read
-// only), Jelle Terpstra challenges Tammo and Anita to three replayable duels
+// only), Jelle Terpstra challenges Tammo and Tessa to three replayable duels
 // and the Fjord Frituur becomes theirs. This module is the hub: it places
 // the start markers (3D badge, map icon, E prompt), runs one challenge at a
 // time, shows Jelle's taunts as voiced subtitles, the result banner and the
@@ -591,7 +591,7 @@ function guideOn() {
 }
 
 // --- the reveal: after the credits the Fjord Frituur comes out from under a sheet ------
-// story.js queues it behind the finale; when it ends (or is skipped) Anita
+// story.js queues it behind the finale; when it ends (or is skipped) Tessa
 // sits in the truck with the engine running and the route points at a spot.
 
 const REVEAL_LINES = [
@@ -645,7 +645,7 @@ export function queueFjordReveal(w = world) {
     lines.push({ speaker: l.speaker, text: l.text, at, dur, radio: !!l.radio, ...(vo && l.voiceKey ? { voice: vo.src } : {}) });
     at += dur + 0.3;
   }
-  // the sheet comes off just before Anita speaks
+  // the sheet comes off just before Tessa speaks
   const liftAt = lines[1].at - 1.4;
   const done = () => {
     if (sheet) { sheet.removeFromParent(); sheet = null; }

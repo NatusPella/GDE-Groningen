@@ -800,8 +800,8 @@ function buildShots(w) {
   const hq = here.at(40);
   const hf = { x: Math.cos(hq.a), y: Math.sin(hq.a) }, hn = { x: -hf.y, y: hf.x };
   const anita = {
-    label: 'Anita', cuts: ['vol', 'kort'], dur: 3.0, clock: 8.1, weather: 'helder', focus: hq,
-    freezeAt: 1.55, name: { at: 1.55, title: 'Anita', line: 'Heeft altijd een plan B. Plan A is ook van haar.' },
+    label: 'Tessa', cuts: ['vol', 'kort'], dur: 3.0, clock: 8.1, weather: 'helder', focus: hq,
+    freezeAt: 1.55, name: { at: 1.55, title: 'Tessa', line: 'Heeft altijd een plan B. Plan A is ook van haar.' },
     enter(r, s) {
       clearRoad(r, here, 6);
       s.atm = r.prop('atm', buildAtm);

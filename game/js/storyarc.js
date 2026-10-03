@@ -84,12 +84,12 @@ export const SPEAKERS = {
   roelf: 'Boer Roelf', hilje: 'Hilje',
 };
 
-// The people Tammo and Anita meet, for the GTA-style name cards (namecard.js:
+// The people Tammo and Tessa meet, for the GTA-style name cards (namecard.js:
 // the name in Bebas, one dry line) and a later "Verhaal" menu: story.js keeps
 // who was met (`met:<key>` flags, getStoryCharacters). bio and quote are for
 // that menu; `step` is where they first turn up.
 export const CHARACTERS = {
-  anita: { name: 'Anita', card: 'Heeft altijd een plan B. Plan A is ook van haar.', step: 'H1', bio: 'Snel, ad rem en de baas van het duo. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.', quote: 'Een frietwagen is een auto met een luik, Tammo.' },
+  anita: { name: 'Tessa', card: 'Heeft altijd een plan B. Plan A is ook van haar.', step: 'H1', bio: 'Snel, ad rem en de baas van het duo. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.', quote: 'Een frietwagen is een auto met een luik, Tammo.' },
   tammo: { name: 'Tammo', card: 'Stadjer. Groot hart. Kleine portemonnee.', step: 'H1', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Al twaalf jaar verliefd op zijn beste vriendin, en sinds de KEI-week haar huisgenoot in Paddepoel. Hij zegt het nooit.', quote: 'Ik zeg niks. Dat is ook een antwoord.' },
   rikus: { name: 'Rikus', card: 'Weet alles. Zegt niks. Behalve op de radio.', step: 'H1', bio: 'De derde van het clubje van de stoep in het Oosterpark. Presenteert Nachtstreek, live, elke nacht. Bel Rikus.', quote: 'Ik zeg niks. Ik draai drie minuten stilte.' },
   berend: { name: 'Berend Bos', card: 'Speelt veertig jaar Bommen Berend. Verliest elk jaar.', step: 'H1', bio: 'Chagrijnige Stadjer uit de Schildersbuurt. Speelt al veertig jaar de bisschop in het naspel van het Ontzet, valt elk jaar de stad aan en verliest elk jaar. Schrijft de gemeente brieven.', quote: 'Ik proef, ik tel, ik oordeel.' },
@@ -107,7 +107,7 @@ export const CHARACTERS = {
   trijntje: { name: 'Oma Trijntje', card: 'Bakte in 1953 de beste eierbal van Stad. Zegt het zelf ook.', step: 'H12', bio: 'Tweeënnegentig. Won in 1953 de Snackprijs, net voor een jonge Friese bakster. De tweede mentor. Zeventig jaar trots, in één zin.', quote: 'Die bal is gien geld, jong. Die bal is Grunn.' },
   klaas: { name: 'Kapitein Klaas', card: 'Vist al dertig jaar fietsen uit de Diepenring.', step: 'H13', bio: 'Oude schipper met een rondvaartboot die even van niemand is.', quote: 'Ik mag alles.' },
   dijkstra: { name: 'Dokter Dijkstra', card: 'UMCG. Het staat niet in het rooster.', step: 'H15', bio: 'Traumaarts en heli-piloot. Zijn traumaheli staat in onderhoud en zijn nachtdienst heeft honger. Hij leent niks uit, maar hij vliegt wel mee.', quote: 'Zij vliegt. Hij hangt.' },
-  mem: { name: 'Mem Terpstra', card: 'Iemand uit Friesland.', step: 'H16', bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Anita stiekem.', quote: 'Dat wie alles wat ik woe.' },
+  mem: { name: 'Mem Terpstra', card: 'Iemand uit Friesland.', step: 'H16', bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Tessa stiekem.', quote: 'Dat wie alles wat ik woe.' },
 };
 
 // The ids kop/romp/staart are internal (saves); players only see `title`
@@ -134,7 +134,7 @@ export const PARTS = {
     recap: [
       ['studio', 'Morgen gooit er een skûtsje los in de Oosterhaven. Ik zeg daar niks over.'],
       ['studio', 'Storingsbericht: achttien bruggen in storing. Niemand merkt verschil.'],
-      ['Noorderplantsoen', 'Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.'],
+      ['Noorderplantsoen', 'Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Tessa kaapten het terug.'],
       ['Martinitoren', 'Een duif pikte zijn vlag van d\'Olle Grieze. Er stond op: foar mem.'],
       ['Grote Markt', 'Oma Trijntje vertelde over 1953. Over Gerda Terpstra. Zeventig jaar trots, in één zin.'],
       [[741, 418], 'En op de rondvaartboot zeiden ze moi. Allebei. Ik zeg niks.'],
@@ -166,7 +166,7 @@ export const MISSION_IDS = [
 // simply drops them (story.js applyStorySave); their purchases stay owned.
 export const RETIRED_STEPS = ['k-eierbal', 'k-wapen', 'k-bijbaan', 'r-uzi', 'r-auto', 'r-bijbaan', 'r-eierbal', 'r-bank'];
 
-// r-trein, "Even onderduiken": after the kraak Tammo and Anita lie low, and
+// r-trein, "Even onderduiken": after the kraak Tammo and Tessa lie low, and
 // the player picks one of these (all three on the map, the route to the
 // nearest). Each ends in a short scene where the two of them grow a little
 // closer (storyfun.js). id is saved; at: 'station' (that station, the train
@@ -472,7 +472,7 @@ export const STEPS = [
       ['T', '…Ook waar.', { tag: 'zacht, gewonnen, door de koptelefoon' }],
     ] },
     { via: 'headset', on: 'flight:hang', from: 'dijkstra', lines: [
-      ['dijkstra', 'Lier gaat uit. Rustig, Anita. Naast de mand, niet erop.', { tag: 'kalm, geconcentreerd, door de koptelefoon' }],
+      ['dijkstra', 'Lier gaat uit. Rustig, Tessa. Naast de mand, niet erop.', { tag: 'kalm, geconcentreerd, door de koptelefoon' }],
       ['T', 'Ik hang. Ik hang echt.', { tag: 'nerveus, buiten adem, in de wind' }],
     ] },
     { via: 'headset', on: 'flight:caught', from: 'T', lines: [
@@ -514,7 +514,7 @@ export const STEPS = [
       ] } },
   { id: 'H16', part: 'staart', kind: 'mission', player: 'anita', solo: true, built: true, mission: 'fjord', why: 'Ik haal jouw auto wel terug. Alleen.',
     title: 'Iedereen heeft een rode auto gezien', reward: 1100,
-    lead: ['T', 'Anita. De Escapade is weg. Op zijn plek staat een klomp.'],
+    lead: ['T', 'Tessa. De Escapade is weg. Op zijn plek staat een klomp.'],
     contact: [belRikus([
       ['jelmer', 'Rikus! De Escapade van Tammo is foetsie! De chat ziet overal rode auto\'s!', { tag: 'opgewonden, paniekerig, aan de telefoon op de radio' }],
       ['rikus', 'Iedereen heeft een rode auto gezien. Ik ook. Ik heb er zelf een.', { tag: 'droog, berustend, als nacht-dj op de radio' }],
@@ -610,7 +610,7 @@ export function computeMoneyTimeline(start = START_MONEY, payShare = 1) {
   return { rows, end: money, low };
 }
 
-// "Wat weten we?" (pause menu, Te doen › Verhaal): what Tammo and Anita know so far.
+// "Wat weten we?" (pause menu, Te doen › Verhaal): what Tammo and Tessa know so far.
 // A clue shows once its step is done, so the journal never spoils ahead.
 // kind: 'clue' (about Jelle's plan), 'hart' (motivations and turning points),
 // 'taal' (Gronings the story leans on: the complimentenladder and its treden).
@@ -626,15 +626,15 @@ export const CLUES = [
   { step: 'H2', kind: 'clue', title: 'De reuzen en het museum', text: 'Sjabbe: twee reuzen kochten alles wat met frituren te maken heeft. Hun baas vroeg waar het museum alarmen heeft. De Gouden Eierbal, achttien karaat.' },
   { step: 'H2', kind: 'hart', title: 'De bal van Grunn', text: 'Tammo\'s opa stond in 1953 op de Grote Markt toen we hem wonnen. Hij huilde. Tammo zegt niks. Dat is ook een antwoord.' },
   { step: 'H3', kind: 'clue', title: 'JelleWâld', text: 'In Jelmers chat: "Groot Loug. Moai foar in wykein." En: "dat famke yn it read: sa\'n leaf gesicht." Een Fries dus. Tammo vond het niet leuk.' },
-  { step: 'H3', kind: 'hart', title: 'De Snackprijs', text: 'De inschrijving voor de Noordelijke Snackprijs is betaald. Zonder Fjord Frituur kan Anita niet meedoen.' },
+  { step: 'H3', kind: 'hart', title: 'De Snackprijs', text: 'De inschrijving voor de Noordelijke Snackprijs is betaald. Zonder Fjord Frituur kan Tessa niet meedoen.' },
   { step: 'H4', kind: 'clue', title: 'De trekker-limo', text: 'Een zwarte trekker met een limousine erachter bij de achteringang van het museum. Vlaggetjes met pompeblêden. Een man in een blauw colbert telde de alarmen.' },
   { step: 'H5', kind: 'clue', title: 'Drie minuten', text: 'Sjoerd: om twaalf uur \'s nachts gaan de camera\'s van het museum drie minuten uit voor een update. Al sinds 2019.' },
   { step: 'H6', kind: 'clue', title: 'De lege vitrine', text: 'Iemand was ons voor. Op het kussen: "Tige tank! – J." Jelle Terpstra belde live naar Nachtstreek: hij heeft hem alvast meegenomen.' },
   { step: 'H6', kind: 'clue', title: 'Artikel 4', text: 'Reglement van de Noordelijke Snackprijs, artikel 4: de trofee gaat naar wie op Gronings Ontzet wint. Hij stal hem om hem eerlijk te winnen.' },
   { step: 'H7', kind: 'clue', title: 'Al het frituurvet', text: 'Femke: twee reuzen kochten al het frituurvet van Stad. "Us Mem Vet" op de tankwagen. Geen vet, geen Grunn in de Snackprijs.' },
-  { step: 'H8', kind: 'hart', title: 'Iemand uit Friesland', text: 'Anita kreeg een appje: "Pas op dysels, famke. – M." Ze stopte haar telefoon snel weg. Tammo zag het.' },
+  { step: 'H8', kind: 'hart', title: 'Iemand uit Friesland', text: 'Tessa kreeg een appje: "Pas op dysels, famke. – M." Ze stopte haar telefoon snel weg. Tammo zag het.' },
   { step: 'H9', kind: 'clue', title: 'Een Fries op de ringweg', text: 'Jelle verloor van de Escapade, en belde: "Dit is net klear, Grinzer."' },
-  { step: 'H10', kind: 'clue', title: 'Foar mem', text: 'Op de vlag aan d\'Olle Grieze stond FOAR MEM. Voor zijn moeder. Lief vandalisme, zegt Anita.' },
+  { step: 'H10', kind: 'clue', title: 'Foar mem', text: 'Op de vlag aan d\'Olle Grieze stond FOAR MEM. Voor zijn moeder. Lief vandalisme, zegt Tessa.' },
   { step: 'r-kermis', kind: 'clue', title: 'De botsauto\'s', text: 'Na één ritje botsauto zei Durk: "Vanavond bier, de Poelestraat. Net fertelle, hè?"' },
   { step: 'H11', kind: 'clue', title: 'Het skûtsje', text: 'Durk, zingend op de bar: "De bal leit op it skûtsje. En mem wil hem niet eens."' },
   { step: 'H12', kind: 'hart', title: 'Oma Trijntje, 1953', text: 'Oma won in 1953. Tweede werd een Fries meisje, Gerda Terpstra. Haar eierbal was beter, en Oma heeft het nooit gezegd. "Die bal is gien geld, jong. Die bal is Grunn."' },
@@ -645,6 +645,6 @@ export const CLUES = [
   { step: 's-carbid', kind: 'clue', title: 'De melkbus', text: 'De echte Eierbal ligt in een melkbus bij boer Roelf aan de Beijumerweg. Doar zuukt gain Fries noar.' },
   { step: 's-padel', kind: 'clue', title: 'Een autosleutel', text: 'Na het padel fietsten Durk en Douwe weg. Met een autosleutel.' },
   { step: 'H16', kind: 'hart', title: 'Mem Terpstra', text: '"Iemand uit Friesland" is Gerda Terpstra. Ze wil dat haar zoon ophoudt. Tammo was jaloers op een moeder. Hij zei sorry. Het klonk goed.' },
-  { step: 'H17', kind: 'hart', title: 'Het bod viel tegen', text: 'Geld voor iets wat geen geld is. Anita zei nee. Jelle zwijgt, voor het eerst. Opa zei het nooit. Hij zei: "Woist ja wel."' },
+  { step: 'H17', kind: 'hart', title: 'Het bod viel tegen', text: 'Geld voor iets wat geen geld is. Tessa zei nee. Jelle zwijgt, voor het eerst. Opa zei het nooit. Hij zei: "Woist ja wel."' },
   { step: 'H18', kind: 'hart', title: 'Vijf woorden', text: 'De Snackprijs naar Grunn, en een tweede naam op het bordje: Gerda Terpstra, 1953. En achter de kraam, eindelijk: "Ik wil bij jou blijven."' },
 ];

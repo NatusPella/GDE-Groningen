@@ -1475,14 +1475,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Hij is terug. Instappen, Anita. Hij rijdt nog. Nauwelijks.": {
-"src": "tammo/hij_is_terug_instappen_anita_hij_65ac767d.mp3",
+"Tammo|Hij is terug. Instappen, Tessa. Hij rijdt nog. Nauwelijks.": {
+"src": "tammo/hij_is_terug_instappen_tessa_hij_d728dcf8.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Orus",
-"input": "Hij is terug. Instappen, Anita. Hij rijdt nog. Nauwelijks.",
+"input": "Hij is terug. Instappen, Tessa. Hij rijdt nog. Nauwelijks.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Tammo|Hij is van ons. Instappen, Anita.": {
 "src": "tammo/hij_is_van_ons_instappen_anita_c323b87d.mp3",
