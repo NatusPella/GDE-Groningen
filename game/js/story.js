@@ -529,9 +529,12 @@ function swapCharacter(w, want) {
 // The step's character, once nothing else is going on: the swap happens at
 // once (never half-way, whatever pauses the game next), under a short fade
 // from black and a line saying who takes over.
-// A step's mission waits until its character has taken over.
+// A step's mission waits until its character has taken over. The proefvlucht
+// (s-proefvlucht) comes first too: H15's trigger lies beside Roelf's demo heli,
+// so walking up to him must not start the flight before he has had his say.
 function swapDone(w, i) {
   const step = currentStep();
+  if (step && !step.end && step.kind === 'activity' && step.goal && step.goal.type === 'flight' && !step.goal.over && !rt.base.met) return false;
   if (!step || step.end || step.kind !== 'mission' || missionIdx(step) !== i || !step.player) return true;
   return w.player.character === step.player;
 }
