@@ -33,6 +33,10 @@ const T0 = Date.now();
 const log = (...a) => { if (!has('json')) console.error(`[${((Date.now() - T0) / 1000).toFixed(1)}s]`, ...a); };
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+// (entered through player.js like the game does: landmarks3d.js, thuis3d.js and
+// marktgebouwen.js import each other round breakables.js, other entries hit a TDZ)
+await import('../game/js/player.js');
+const MB = await import('../game/js/models3d_buildings.js');
 const { pointInPolygon, closestPointOnSegment, WATER_Y } = await import('../game/js/util.js');
 const { buildRoadGroup, setRoadNetwork } = await import('../game/js/roadsurface.js');
 const { buildShore } = await import('../game/js/quaywalls.js');
@@ -42,7 +46,6 @@ const { buildTerrainMesh3D } = await import('../game/js/terrain3d.js');
 const { countryRect } = await import('../game/js/countryfield.js');
 const { openCutMask } = await import('../game/js/elevation.js');
 const { buildRailDecks } = await import('../game/js/roadstructures3d.js');
-const MB = await import('../game/js/models3d_buildings.js');
 const { setBuildingMap, sanitizeFootprint, HOUSEBOAT_BASE_Y } = MB;
 // (older trees: walls always from street level, houseboats sunk)
 const buildingBase = MB.buildingBase || ((b) => (b.type === 'houseboat' ? HOUSEBOAT_BASE_Y : 0));
