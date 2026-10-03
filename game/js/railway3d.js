@@ -168,15 +168,23 @@ const BED_PROFILE = [[-2.1, 0], [-1.4, 0.1], [1.4, 0.1], [2.1, 0]];
 
 function bedGeometry(list) {
   const pos = [], idx = [];
+  // a long run is cut in two at a shared sample (runs): the halves share its
+  // vertices too, or the bed has a seam across it
+  const at = new Map();
   for (const run of list) {
-    const base = pos.length / 3;
-    for (const s of run) {
-      const nx = -s.sy, ny = s.sx;
-      for (const [o, h] of BED_PROFILE) pos.push(s.x + nx * o, BED_Y + h + s.z, s.y + ny * o);
-    }
+    const row = run.map((s) => {
+      let v = at.get(s);
+      if (v === undefined) {
+        v = pos.length / 3;
+        const nx = -s.sy, ny = s.sx;
+        for (const [o, h] of BED_PROFILE) pos.push(s.x + nx * o, BED_Y + h + s.z, s.y + ny * o);
+      }
+      return v;
+    });
+    at.set(run[run.length - 1], row[row.length - 1]);
     for (let i = 0; i < run.length - 1; i++) {
       for (let k = 0; k < 3; k++) {
-        const a = base + i * 4 + k, b = a + 1, c = a + 4, d = a + 5;
+        const a = row[i] + k, b = a + 1, c = row[i + 1] + k, d = c + 1;
         idx.push(a, b, c, b, d, c);
       }
     }
