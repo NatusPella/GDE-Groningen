@@ -118,12 +118,14 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hc-text kbd.hud-key { height: 1.15em; min-width: 1.15em; margin: 0 2px; padding: 0 4px; font: bold 0.72em/1 system-ui, sans-serif; vertical-align: 0.08em; }
 
-/* "2 meldingen wachten": the queue under the cards, information only */
+/* "2 meldingen wachten" / "1 prestatie wacht": brief notices under the cards (hudcards.js tickChips) */
 #hud .hc-chips { order: 99; display: flex; gap: 6px; }
 #hud .hc-chips:not(:has(> :not([hidden]))) { display: none; }
 #hud .hc-wait { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 13px; background: rgba(10, 19, 13, 0.85); border: 1px solid rgba(63, 201, 122, 0.16);
   font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; color: #f0ede4; animation: hc-wait-in var(--dur-base, 200ms) var(--ease-out, ease-out); }
 #hud .hc-wait[hidden] { display: none; }
+#hud .hc-wait { transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+#hud .hc-wait.out { opacity: 0; }
 #hud .hc-wait i { width: 7px; height: 7px; border-radius: 50%; background: #3fc97a; }
 #hud .hc-award svg { width: 14px; height: 14px; fill: none; stroke: #3fc97a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @keyframes hc-wait-in { from { opacity: 0; transform: translateY(-4px); } }
