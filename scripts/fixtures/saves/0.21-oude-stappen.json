@@ -1,0 +1,33 @@
+{
+  "_era": "0.21: story steps that 0.22 retired (k-eierbal, k-wapen, r-uzi, r-auto, r-bank) done, kill counters, owned vehicles and outfits, no doel",
+  "_expect": { "step": "r-trein", "money": 3180 },
+  "save": {
+    "v": 1, "savedAt": 1759100000000, "money": 3180, "moneyBackup": 3180, "health": 100, "armor": 40, "weapon": "uzi",
+    "ammo": { "fists": "inf", "pistol": 60, "uzi": 120 },
+    "stats": { "kills": 41, "pedKills": 30, "copKills": 11, "copCarsWrecked": 3, "missionsDone": 6, "playerWrecks": 4, "spent": 2650 },
+    "character": "anita", "pos": null, "ctx": "home",
+    "missions": { "index": 9, "completed": [0, 8, 1, 9, 2, 10], "seen": [0, 1, 2, 8, 9, 10], "medals": { "0": 2, "1": 1 } },
+    "story": {
+      "v": 1,
+      "done": ["H1", "H2", "H3", "k-eierbal", "H4", "k-fiets", "k-wapen", "H5", "r-uzi", "H6", "r-auto", "r-bank", "k-kraakspullen"],
+      "skipped": ["r-eierbal"], "fails": { "H5": 2, "r-uzi": 1 }, "waived": ["bike"], "voorschot": ["k-fiets"],
+      "cards": ["kop"], "flags": ["met:berend", "met:rikus", "met:jelmer", "met:bert", "recap:kop"]
+    },
+    "visitedLandmarks": ["martinitoren", "grote-markt", "academiegebouw"],
+    "shops": {
+      "hero": { "health": 74 }, "outfit": { "tammo": "groenwit", "anita": "pastel" }, "ownedOutfits": ["groenwit", "pastel", "incognito"],
+      "storyOutfit": null, "hair": { "tammo": { "color": "naturel", "style": "buzz" }, "anita": { "color": "zwart", "style": "ponytail" } },
+      "heroColor": "#c94b3a", "heroUpgrades": ["motor", "grip"],
+      "vehicles": [
+        { "key": "omafiets", "color": "#1c1c1c", "upgrades": [], "x": 101.2, "y": 55.4, "angle": 1.2 },
+        { "key": "mug", "color": "#2e6b9e", "upgrades": ["remmen"], "garage": true, "health": 61 },
+        { "key": "brommer", "color": "#c94b3a", "upgrades": [], "lost": true }
+      ]
+    },
+    "prestaties": { "eierballen": ["eb-1", "eb-4"], "geheimen": [], "unlocked": ["m1_klaar", "m2_klaar", "snel_100"] },
+    "duif": { "ach": [] },
+    "bijbaan": { "v": 1, "jobs": {}, "seen": [] },
+    "postgame": {},
+    "meubels": { "owned": ["bank"], "pending": [], "built": ["bank"], "day": 0, "read": 0, "stek": 0, "tips": [], "moment": 0 }
+  }
+}
