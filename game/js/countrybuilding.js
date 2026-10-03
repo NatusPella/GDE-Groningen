@@ -11,10 +11,12 @@ import { vcMaterial, markShared, createBrickDetailTexture, createRoofTileTexture
 // side, and at night a random share of the windows lit.
 
 // part ids (aPart): what a face of a building piece is
-export const PART = { plain: 0, wall: 1, roof: 2, ridge: 3, gable: 4, top: 5, silWall: 6, silRoof: 7 };
+export const PART = { plain: 0, wall: 1, roof: 2, ridge: 3, gable: 4, top: 5, silWall: 6, silRoof: 7, churchNave: 8, churchBrick: 11 };
 // styles: how a wall is drawn (instance code)
 export const STYLE = { plain: 0, house: 1, block: 2, barn: 3, shed: 4, glass: 5, tile: 6, sheet: 7 };
-// door side in the piece's local frame: 1 +x, 2 -x, 3 +z, 4 -z
+// door side in the piece's local frame: 1 +x, 2 -x, 3 +z, 4 -z; 5-8 the
+// same faces with a village shopfront on the ground floor (no door, no
+// painted windows behind it)
 // the skyline silhouettes keep their roof colour index in the door field
 export const ROOF_PAL = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e, 0x3a3e40, 0x4a5a48, 0x6a6e6c];
 
@@ -41,9 +43,9 @@ export function withParts(geo, fn) {
   return geo;
 }
 
-// Instance tint with the code folded into red: r + 2 * (style * 8 + door).
+// Instance tint with the code folded into red: r + 2 * (style * 16 + door).
 export function bldCode(style, door = 0) {
-  return style * 8 + door;
+  return style * 16 + door;
 }
 
 export function setCountryNight(glow, litFrac) {
@@ -122,11 +124,33 @@ float bHash(vec3 p) { return fract(sin(dot(p, vec3(41.3, 289.1, 17.7))) * 15731.
 const FRAG_FACADE = /* glsl */`
 {
   float code = vBInfo.x;
-  float style = floor(code / 8.0), door = code - style * 8.0;
+  float style = floor(code / 16.0), door = code - style * 16.0;
+  float shop = 0.0;
+  if (door > 4.5 && door < 8.5 && vBPart < 6.5) { shop = door - 4.0; door = 0.0; }
   float part = vBPart;
   vec3 n = normalize(vBNrm);
   bool wallish = (part > 0.5 && part < 1.5) || (part > 3.5 && part < 4.5) || (part > 5.5 && part < 6.5);
-  if (wallish && abs(n.y) < 0.5 && style > 0.5 && style < 4.5) {
+  if (part > 7.5) {
+    // church (countrymodels.js churchGeometry, unit scale): brick, and on
+    // the nave's long walls a row of round-arched windows in model metres
+    bool xFace = abs(n.x) > abs(n.z);
+    float h = vBInfo.y + vBLoc.y;
+    diffuseColor.rgb *= texture2D(uBBrick, vec2(xFace ? vBLoc.z + 0.25 : vBLoc.x, h) * 2.0).rgb * 1.1;
+    if (part < 10.5) {
+      // x0, step, last bay, window bottom, arch spring, half width
+      vec4 A = part < 8.5 ? vec4(-5.0, 3.5, 4.0, 2.8) : part < 9.5 ? vec4(-7.0, 3.2, 2.0, 3.5) : vec4(-5.0, 3.0, 4.0, 2.2);
+      float spring = part < 8.5 ? 6.4 : part < 9.5 ? 7.7 : 5.4, hw = part < 8.5 ? 0.55 : 0.5;
+      vec2 lp = vBLoc.xy / max(vBS.xy, vec2(1e-3));
+      float k = clamp(floor((lp.x - A.x) / A.y + 0.5), 0.0, A.z);
+      vec2 d = vec2(lp.x - A.x - k * A.y, lp.y);
+      vec2 fw = fwidth(lp) * 1.2;
+      float body = bRect(vec2(d.x, d.y - (A.w + spring) * 0.5), vec2(hw, (spring - A.w) * 0.5), fw);
+      float arch = clamp((hw - length(vec2(d.x, d.y - spring))) / max(fw.x, 1e-4) + 0.5, 0.0, 1.0) * step(spring, d.y);
+      float win = max(body, arch);
+      float lead = 1.0 - (1.0 - smoothstep(0.03, 0.03 + fw.x, abs(d.x))) * 0.7 * step(A.w + 0.4, d.y);
+      diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(0.03, 0.04, 0.05), vec3(0.12, 0.15, 0.18), clamp((d.y - A.w) / (spring - A.w), 0.0, 1.0)) * lead, win);
+    }
+  } else if (wallish && abs(n.y) < 0.5 && style > 0.5 && style < 4.5) {
     bool xFace = abs(n.x) > abs(n.z);
     float face = xFace ? (n.x > 0.0 ? 1.0 : 2.0) : (n.z > 0.0 ? 3.0 : 4.0);
     float u = xFace ? vBLoc.z : vBLoc.x;
@@ -161,6 +185,8 @@ const FRAG_FACADE = /* glsl */`
       bool fits = fl * S.w + sill + S.z < top - 0.2;
       win = fits ? bRect(vec2(lu, lv - S.z * 0.5), vec2(S.y, S.z) * 0.5, fw) : 0.0;
     }
+    // a shopfront covers the middle of the ground floor on its face
+    if (face == shop && part < 1.5 && h < 3.7 && abs(u) < min(L - 0.8, 9.0) * 0.5 + 0.3) win = 0.0;
     // the door: middle bay of the street side
     float dm = 0.0;
     if (face == door && part < 1.5) {
