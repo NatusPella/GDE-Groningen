@@ -249,13 +249,32 @@ export function sharedWaterMaterial(sky = null) {
   return shared || (shared = createWaterMaterial(sky));
 }
 
+let swellAmp = 0.12;
 export function updateWaterMaterial(material, time, rain = 0, night = 0) {
   const u = material.uniforms;
   u.uTime.value = time;
   u.uRain.value = rain;
   u.uNight.value = night;
   u.uLight.value = (0.14 + 0.86 * (1 - night)) * (1 - 0.3 * Math.min(1, rain));
-  u.uWave.value = 0.12 + 0.08 * Math.min(1, rain);
+  u.uWave.value = swellAmp = 0.12 + 0.08 * Math.min(1, rain);
+}
+
+// The vertex shader's swell at world (x, z) on the CPU, for floating things
+// (scene3d.js boat buoyancy): edge = distance to the nearest shore, (tx, ty)
+// that shore's direction (the aFlow attribute, buildWaterGeometry).
+export function waterSwellAt(x, z, time, edge, tx, ty) {
+  if (!quality) return 0;
+  if (tx * 0.8 + ty * 0.6 < 0) { tx = -tx; ty = -ty; }
+  const px = x + tx * time * 0.25, pz = z + ty * time * 0.25;
+  const h = Math.sin(px * 0.52 + pz * 0.24 + time * 1.1) * 0.5
+    + Math.sin(-px * 0.27 + pz * 0.58 - time * 0.9) * 0.35
+    + Math.sin(px * 0.83 - pz * 0.66 + time * 1.7) * 0.15;
+  const k = Math.min(1, Math.max(0, (edge - 0.15) / 4.85));
+  return h * k * k * (3 - 2 * k) * swellAmp;
+}
+
+export function waterSwellAmp() {
+  return quality ? swellAmp : 0;
 }
 
 // --- geometry ------------------------------------------------------------

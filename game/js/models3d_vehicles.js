@@ -1164,6 +1164,24 @@ const HULL_SHAPES = {
   },
 };
 
+// Gunwale heights over the waterline at stern, middle and bow (scene3d.js
+// keeps them clear of the swell when the boat pitches and rolls).
+const hullProfiles = new Map();
+export function boatHullProfile(kind, L, W) {
+  const key = kind + '|' + L + '|' + W;
+  let p = hullProfiles.get(key);
+  if (!p) {
+    const S = HULL_SHAPES[kind];
+    if (!S) p = { stern: 0.36, mid: 0.36, bow: 0.36 };
+    else {
+      const st = hullStations(L, W, S);
+      p = { stern: st[0].top, mid: hullAt(st, 0).top, bow: st[st.length - 1].top };
+    }
+    hullProfiles.set(key, p);
+  }
+  return p;
+}
+
 function hullStations(L, W, S) {
   const hl = L / 2;
   return S.ts.map((t) => {
