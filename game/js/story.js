@@ -34,7 +34,7 @@ import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices } from './storyfun.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
-import { registerNarrative, mayStart, narrativeBusy } from './narrative.js';
+import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -529,9 +529,12 @@ function swapCharacter(w, want) {
 // The step's character, once nothing else is going on: the swap happens at
 // once (never half-way, whatever pauses the game next), under a short fade
 // from black and a line saying who takes over.
-// A step's mission waits until its character has taken over.
+// A step's mission waits until its character has taken over. The proefvlucht
+// (s-proefvlucht) comes first too: H15's trigger lies beside Roelf's demo heli,
+// so walking up to him must not start the flight before he has had his say.
 function swapDone(w, i) {
   const step = currentStep();
+  if (step && !step.end && step.kind === 'activity' && step.goal && step.goal.type === 'flight' && !step.goal.over && !rt.base.met) return false;
   if (!step || step.end || step.kind !== 'mission' || missionIdx(step) !== i || !step.player) return true;
   return w.player.character === step.player;
 }
@@ -811,8 +814,10 @@ export function updateStory(dt, w) {
     w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"`, 4.5);
     playClueSting();
   }
-  // the next step's text waits until a scene has been over for a moment
-  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE && !storyFunBusy()) {
+  // the next step's text waits until a scene has been over for a moment, and
+  // until the step's character has taken over: its "Bel Rikus" would hold the handover off
+  const handoverDue = !!step.player && w.player.character !== step.player && !isMissionActive();
+  if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE && !storyFunBusy() && !handoverDue) {
     rt.leadAt = -1;
     if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
     const buy = isPurchase(step) && (world.storyGuide && world.storyGuide.buy ? world.storyGuide.name : storyBuyLabel(world));
@@ -1036,5 +1041,5 @@ export const storyApi = {
   mission: () => missionDebug.state(),
   cardShown: (part = 'kop') => state.cards.has(part),
   character: () => world.player.character,
-  swapInfo: () => ({ want: rt.cur && rt.cur.player, me: world.player.character, comp: world.companion && world.companion.character, paused: !!world.paused, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn }),
+  swapInfo: () => ({ want: rt.cur && rt.cur.player, me: world.player.character, comp: world.companion && world.companion.character, paused: !!world.paused, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn, banner: isBannerUp(), card: document.body.classList.contains('hud-card-on'), narrative: narrativeState() }),
 };
