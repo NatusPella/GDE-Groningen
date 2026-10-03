@@ -583,7 +583,7 @@ function hoofdstation(B, ring) {
     const v1 = kind === 'front' ? v0 + 8 : vBack - 0.06;
     const um = (u0 + u1) / 2, vm = (v0 + v1) / 2;
     fbox(B, F, um, vm, 0, u1 - u0, v1 - v0, eave, C.brick, G_BRICK);
-    fbox(B, F, um, vm, eave - 0.8, u1 - u0 + 0.35, v1 - v0 + 0.35, 0.8, C.stone, G_PLAIN);
+    fbox(B, F, um, vm, eave - 0.8, u1 - u0 + 0.35, v1 - v0 + 0.35, 0.83, C.stone, G_PLAIN);
     // front face windows above the base (blocks taller than the base)
     const e = { a: F.P(u0, v0), tx: F.ux, ty: F.uy, nx: F.uy, ny: -F.ux, len: u1 - u0 };
     if (eave > base + 2 && kind !== 'front') {
@@ -684,7 +684,7 @@ function academiegebouw(B, ring, srcEdges) {
   let y = eave + 3;
   for (const [sw, sh] of steps) {
     ebox(B, main, t, y, sw, sh, 1.2, C.brickBrown, G_BRICK, -1.05);
-    ebox(B, main, t, y + sh - 0.35, sw + 0.35, 0.35, 1.35, C.sandstone, G_PLAIN, -1.1);
+    ebox(B, main, t, y + sh - 0.35, sw + 0.35, 0.38, 1.35, C.sandstone, G_PLAIN, -1.1);
     for (const s of [-1, 1]) {
       const px = main.a[0] + main.tx * (t + s * sw / 2) - main.nx * 0.45, pz = main.a[1] + main.ty * (t + s * sw / 2) - main.ny * 0.45;
       cone(B, px, y + sh, pz, 0.35, 1.8, 4, C.sandstone, G_PLAIN);
@@ -815,7 +815,7 @@ function euroborgStand(B, b, ring) {
   }
   // outer facade: dark panels, glazed band, green club stripe
   for (const e of outerE) {
-    ebox(B, e, e.len / 2, 0, e.len + 0.3, facadeH, 0.8, 0x44494e, G_PLAIN, -0.8);
+    ebox(B, e, e.len / 2, 0, e.len + 0.3, facadeH, 0.8, 0x44494e, G_PLAIN, -0.75);
     ebox(B, e, e.len / 2, 3, e.len - 1, 4.2, 0.06, C.glass, G_GLASS, 0.03);
     ebox(B, e, e.len / 2, 13, e.len - 1, 1.4, 0.06, C.green, G_PLAIN, 0.03);
     for (const t of slots(e.len, 7.5, 1)) ebox(B, e, t, 0, 0.5, facadeH + 0.5, 0.3, C.steel, G_METAL, 0.03);
