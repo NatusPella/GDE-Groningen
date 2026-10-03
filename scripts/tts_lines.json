@@ -1,15 +1,67 @@
 [
  {
-  "key": "Durk|Tammo. Wij dagen je uit. Padel, wij tegen jullie.",
-  "speaker": "Durk",
-  "text": "Tammo. Wij dagen je uit. Padel, wij tegen jullie.",
-  "area": "Verhaal-scènes",
+  "key": "Anita|J. Van Jelle. Natuurlijk.",
+  "speaker": "Anita",
+  "text": "J. Van Jelle. Natuurlijk.",
+  "area": "Missie-cutscenes",
   "out": "lines",
-  "say": "Tammo. Wij dagen je uit. Padel, wij tegen jullie.",
-  "file": "durk/tammo_wij_dagen_je_uit_padel_wij_63065567.mp3",
-  "voice": "Algieba",
-  "who": "grote, trage Friese handlanger, spreekt Nederlands met een zwaar Fries accent",
-  "tag": "plechtig, uitdagend, vlot",
-  "style": "spoken in Dutch with a heavy Frisian accent, slow; grote, trage Friese handlanger, spreekt Nederlands met een zwaar Fries accent. Tone: plechtig, uitdagend, vlot."
+  "say": "J. Van Jelle. Natuurlijk.",
+  "file": "anita/j_van_jelle_natuurlijk_cdcd1e4a.mp3",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "tag": "warm, grinnikend",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, grinnikend."
+ },
+ {
+  "key": "Tammo|Beleefd.",
+  "speaker": "Tammo",
+  "text": "Beleefd.",
+  "area": "Missie-cutscenes",
+  "out": "lines",
+  "say": "Beleefd.",
+  "file": "tammo/beleefd_031d0dc5.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "deadpan, licht verbaasd",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd."
+ },
+ {
+  "key": "Tammo|\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.",
+  "speaker": "Tammo",
+  "text": "\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.",
+  "area": "Missie-cutscenes",
+  "out": "lines",
+  "say": "\"Tige tank foar de auto. – J.\" De Fjord Frituur. Zonder Fjord.",
+  "file": "tammo/tige_tank_foar_de_auto_j_de_fjor_ad0e71dc.mp3",
+  "voice": "Orus",
+  "who": "dry, deadpan man in his thirties",
+  "tag": "droog, laconiek",
+  "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek."
+ },
+ {
+  "key": "Anita|\"Tige tank! – J.\"",
+  "speaker": "Anita",
+  "text": "\"Tige tank! – J.\"",
+  "area": "Missie-scènes",
+  "out": "lines",
+  "say": "\"Tige tank! – J.\"",
+  "file": "anita/tige_tank_j_b7986cbd.mp3",
+  "voice": "Callirrhoe",
+  "who": "Groningse vrouw, lacherig en ad rem",
+  "tag": "enthousiast, snel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
+ },
+ {
+  "key": "Rikus|Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – J.\"",
+  "speaker": "Rikus",
+  "text": "Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – J.\"",
+  "area": "Verhaal-kaarten",
+  "out": "lines",
+  "say": "Ze wilden de Gouden Eierbal halen. De vitrine was leeg. Op het kussen: \"Tige tank! – J.\"",
+  "file": "rikus/ze_wilden_de_gouden_eierbal_hale_4a263103.mp3",
+  "voice": "Schedar",
+  "who": "Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog",
+  "tag": "droog, met een knipoog, samenvattend",
+  "style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog, samenvattend."
  }
 ]
