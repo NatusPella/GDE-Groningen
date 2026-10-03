@@ -370,4 +370,8 @@ Assets* en *Library Assets*, nagekeken op 3 oktober 2026):
 Regels die de beelden volgen: op capsules alleen het logo met de officiële
 ondertitel, geen andere tekst, geen citaten of prijzen; de hero zonder
 tekst; het logo moet leesbaar zijn op de kleinste maat. De screenshots zijn
-opnames uit de game (trailershots zonder kaarten, plus twee met de HUD).
+opnames uit de game: zeven trailershots zonder kaarten en balken, en drie
+met de HUD (missie op de Grote Markt, de ballonjacht in de heli, het
+Ommeland bij zonsondergang). De nummers zijn de volgorde op Steam.
+Achtergronden voor de capsules (3840×2160, ook uit de game) staan in
+`beelden/bron/`.

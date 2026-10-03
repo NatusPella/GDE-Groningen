@@ -54,7 +54,7 @@ Voor de Steam-versie:
 4. **Meer gameplay met HUD**: nu is de hele trailer zonder HUD. Voeg twee of
    drie korte stukjes met HUD toe (rijden met de minimap en de missiekaart,
    de heli met de ringen). Zie `beelden/screenshots/01-missie-hud.jpg` en
-   `04-heli-hud.jpg` voor de beelden.
+   `04-heli-hud.jpg` (en `07-ommeland.jpg`) voor de beelden.
 
 Technisch is dat een nieuwe cut naast `vol` en `kort`, bijv. `steam`
 (`cuts: ['steam']` op de shots, en een logo-shot met `cuts: ['steam']`
