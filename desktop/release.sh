@@ -70,6 +70,11 @@ $CHANGES
 
 ## Installeren
 
+> **Let op: deze bestanden zijn niet ondertekend.** GTE VI is een gratis
+> hobbyproject zonder betaalde Apple- of Microsoft-certificaten. Daarom
+> waarschuwen Windows en macOS de eerste keer; de stappen hieronder laten
+> zien hoe je hem toch opent.
+
 **Windows:** download \`GTE-VI-$VERSION-windows-portable.exe\` en dubbelklik. Geen installatie nodig.
 Zegt Windows "Windows heeft uw pc beveiligd"? Klik op **Meer info** en dan **Toch uitvoeren**.
 
