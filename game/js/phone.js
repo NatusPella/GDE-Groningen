@@ -239,6 +239,13 @@ function setOpen(v) {
   refreshPause();
 }
 
+// The Steam trailer (trailer.js) opens the phone on an app over a gameplay
+// shot (null closes it again).
+export function trailerPhone(app) {
+  setOpen(!!app);
+  if (app) openApp(app);
+}
+
 function refreshPause() {
   if (world) world.uiPaused = open || cinematicPausesGameplay() || isPlayAheadOpen();
 }

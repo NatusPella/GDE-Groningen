@@ -27,6 +27,11 @@ import { kickTheme, setThemeDuck } from './theme.js';
 import { probe } from './hitchprobe.js';
 import { flashScreen } from './postfx3d.js';
 import { logoHtml } from './logo.js';
+import { updateHud } from './hud_panel.js';
+import { showCard as showHudCard } from './hudcards.js';
+import { showStuntHud, hideStuntHud, updateStuntHud } from './stunthud.js';
+import { heliTrailerKit } from './helirun.js';
+import { trailerPhone } from './phone.js';
 
 // Trailer mode: "GDE Groningen - Een zomer in Grunn" (shot list in
 // docs/verhaal/E-trailer.md), one list of staged shots through Grunn, played
@@ -36,6 +41,10 @@ import { logoHtml } from './logo.js';
 //   opname     ?trailer / desktop --trailer: fixed 1/60 s steps for
 //              recordings, no fps counter, the desktop app quits at the end;
 //              desktop --trailer-video pipes those frames into an MP4
+//   verhaal    ?trailer&cut=verhaal / --trailer-cut=verhaal: the story
+//              trailer (~85 s) with voiced lines from the game
+//   gameplay   ?trailer&cut=gameplay: the Steam gameplay trailer (~60 s),
+//              the logo first, the systems with the real HUD (hud: true)
 //   attract    ?attract: the short cut ('kort', ~38 s, with the Anita and
 //              Tammo name cards); hold Space to skip; hands its last camera
 //              pose over to the title screen
@@ -49,12 +58,13 @@ const SKIP_HOLD_S = 0.9;
 const STEP = 1 / 60;
 const MEASURE_AFTER_CUT_S = 0.3;
 const BENCH_RUNS = Q.has('benchmark') ? Math.max(1, Number(Q.get('benchmark')) || 1) : 0;
+const CUTS = ['vol', 'kort', 'verhaal', 'gameplay'];
 
 // What should play before the title menu shows, if anything.
 export function pendingTrailer() {
   if (Q.has('trailer')) {
     const n = Number(Q.get('shot'));
-    return { mode: 'opname', cut: Q.get('cut') === 'kort' ? 'kort' : 'vol', shot: Number.isFinite(n) && n > 0 ? n : null, frames: Q.has('frames') };
+    return { mode: 'opname', cut: CUTS.includes(Q.get('cut')) ? Q.get('cut') : 'vol', shot: Number.isFinite(n) && n > 0 ? n : null, frames: Q.has('frames') };
   }
   // ?attract (desktop --attract) plays the attract intro on request, also in a test run
   if (Q.has('attract')) return { mode: 'attract', cut: 'kort' };
@@ -154,6 +164,9 @@ const CSS = `
 #trailer .tr-bar.top { top: 0; } #trailer .tr-bar.bottom { bottom: 0; }
 #trailer.handoff .tr-bar.top { transform: translateY(-100%); } #trailer.handoff .tr-bar.bottom { transform: translateY(100%); }
 #trailer.handoff .tr-vig { opacity: 0; }
+/* during a run frame() sets the black's opacity from the trailer clock (the
+   fixed-step export would turn these transitions into hard cuts); the
+   classes are for fadeOutTrailer, after the run */
 #trailer .tr-black { inset: 0; background: #050807; opacity: 0; transition: opacity 0.35s; }
 #trailer .tr-black.on { opacity: 1; transition: opacity 0.12s; }
 #trailer .tr-black.fade { opacity: 1; transition: opacity 0.4s; }
@@ -175,11 +188,11 @@ const CSS = `
 #trailer .tr-radio { font-size: clamp(64px, 11vw, 168px); line-height: 1; color: rgba(240, 237, 228, 0.9); letter-spacing: 0.06em; }
 /* name cards over a freeze frame: lower left, like a character intro */
 #trailer .tr-freeze { inset: 0; opacity: 0; background: radial-gradient(ellipse at 30% 60%, rgba(255, 196, 120, 0.08), rgba(8, 18, 12, 0.42) 85%); }
-#trailer .tr-name { left: 6vw; bottom: calc(var(--bar) + 7vh); max-width: min(70vw, 900px); opacity: 0; text-shadow: 0 3px 24px rgba(0, 0, 0, 0.7), 0 1px 3px rgba(0, 0, 0, 0.85); }
+#trailer .tr-name { left: 6vw; bottom: calc(var(--bar) + 7vh); max-width: min(72vw, 1500px); opacity: 0; text-shadow: 0 3px 24px rgba(0, 0, 0, 0.7), 0 1px 3px rgba(0, 0, 0, 0.85); }
 #trailer .tr-name b { display: block; font-weight: normal; font-size: clamp(64px, 10vw, 160px); line-height: 0.88; text-transform: uppercase; letter-spacing: 0.02em; }
 #trailer .tr-name b .amp { color: #3fc97a; }
-#trailer .tr-name i { display: block; margin-top: 0.5vh; border-left: 4px solid #3fc97a; padding-left: 12px; font: italic clamp(19px, 2vw, 30px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: #f0ede4; }
-#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 860px); text-align: center; font: clamp(17px, 1.7vw, 23px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; transition: opacity 0.25s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
+#trailer .tr-name i { display: block; margin-top: 0.5vh; border-left: 0.14em solid #3fc97a; padding-left: 0.4em; font: italic clamp(20px, 2.5vw, 64px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: #f0ede4; }
+#trailer .tr-sub { left: 50%; bottom: calc(var(--bar) + 3vh); transform: translateX(-50%); width: min(86vw, 1500px); text-align: center; font: clamp(18px, 2.3vw, 60px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; opacity: 0; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 0, 0, 0.9); }
 #trailer .tr-sub.on { opacity: 1; }
 #trailer .tr-sub b { color: #3fc97a; margin-right: 6px; }
 #trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; align-items: center; gap: 6px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); opacity: 0; transition: opacity 0.25s; }
@@ -211,7 +224,12 @@ const CSS = `
 #trailer-result button:hover, #trailer-result button:focus-visible { border-color: #5fe39a; color: #5fe39a; outline: none; }
 #trailer-result button.primary:hover, #trailer-result button.primary:focus-visible { color: #0c140e; box-shadow: 0 0 0 2px #f0ede4; }
 #trailer-result button[hidden] { display: none; }
-body.trailer-on #hud, body.trailer-on .prompts, body.trailer-on #cine { display: none !important; }
+body.trailer-on:not(.trailer-hud) #hud, body.trailer-on .prompts, body.trailer-on #cine { display: none !important; }
+/* gameplay shots (hud: true): the real HUD, no bars or vignette over it */
+body.trailer-on.trailer-hud #hud { visibility: visible; }
+body.trailer-hud #hud .hud-prompts, body.trailer-hud #hud .hud-ctx { display: none; }
+#trailer.hudshot .tr-bar, #trailer.hudshot .tr-vig { display: none; }
+body.trailer-heli #hud .hud-top-left { display: none; }
 @media (max-width: 700px) { #trailer-result .tr-nums { gap: 20px; } #trailer-result .tr-nums b { font-size: 42px; } }
 `;
 
@@ -299,8 +317,9 @@ function audible() {
 }
 function playVoice(key) {
   const v = audible();
-  if (SILENT || !v || !TRAILER_VOICE[key]) return;
-  const el = new Audio(new URL('../' + TRAILER_VOICE[key], import.meta.url).href);
+  const src = TRAILER_VOICE[key] || key;
+  if (SILENT || !v || !src) return;
+  const el = new Audio(new URL('../' + src, import.meta.url).href);
   el.volume = v;
   voices.add(el);
   el.addEventListener('ended', () => voices.delete(el), { once: true });
@@ -500,6 +519,27 @@ function buildCone() {
   return g;
 }
 
+// The stunt evening's parasols and kliko's (stuntavond.js's shapes), to knock over.
+function buildStuntProp(kind, k) {
+  const g = new THREE.Group();
+  const top = new THREE.Group();
+  g.add(top);
+  if (kind === 'parasol') {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.3, 6), propMat(0xdddddd));
+    pole.position.y = 1.15;
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(1.2, 0.5, 8), propMat([0x1e9e56, 0xf0ede4, 0xc8102e][k % 3]));
+    cap.position.y = 2.2;
+    top.add(pole, cap);
+  } else {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.05, 0.7), propMat([0x3f7a3a, 0x4a4d50][k % 2]));
+    b.position.y = 0.53;
+    top.add(b);
+  }
+  for (const m of top.children) m.castShadow = true;
+  g.userData.top = top;
+  return g;
+}
+
 // A kermis bumper car (the shape of kermis.js's), big enough for one twin.
 function buildBumperCar() {
   const g = new THREE.Group();
@@ -516,9 +556,9 @@ function buildBumperCar() {
 }
 
 // The vet of Grunn: drops sloshing out of the tanker's hatch.
-const DROPS = 260;
+const DROPS = 420;
 function buildDrops() {
-  const m = new THREE.InstancedMesh(new THREE.SphereGeometry(0.1, 6, 4), new THREE.MeshStandardMaterial({ color: 0xe8b830, roughness: 0.15, metalness: 0.1, emissive: 0x3a2a00, emissiveIntensity: 0.4 }), DROPS);
+  const m = new THREE.InstancedMesh(new THREE.SphereGeometry(0.2, 8, 6), new THREE.MeshStandardMaterial({ color: 0xe8b830, roughness: 0.15, metalness: 0.1, emissive: 0x3a2a00, emissiveIntensity: 0.4 }), DROPS);
   m.frustumCulled = false;
   m.count = 0;
   m.userData.p = Array.from({ length: DROPS }, () => ({ x: 0, y: 0, z: -10, vx: 0, vy: 0, vz: 0, s: 1 }));
@@ -530,7 +570,7 @@ function emitDrops(m, n, x, y, z, vx, vy) {
   const P0 = m.userData.p;
   for (let i = 0; i < n; i++) {
     const d = P0[m.userData.next++ % DROPS];
-    Object.assign(d, { x: x + (Math.random() - 0.5) * 0.8, y: y + (Math.random() - 0.5) * 0.8, z, vx: vx + (Math.random() - 0.5) * 3, vy: vy + (Math.random() - 0.5) * 3, vz: 1.5 + Math.random() * 3, s: 0.6 + Math.random() * 1.2 });
+    Object.assign(d, { x: x + (Math.random() - 0.5) * 0.8, y: y + (Math.random() - 0.5) * 0.8, z, vx: vx + (Math.random() - 0.5) * 3, vy: vy + (Math.random() - 0.5) * 3, vz: 2.5 + Math.random() * 3.5, s: 0.9 + Math.random() * 1.3 });
   }
   m.count = Math.min(DROPS, m.userData.next);
 }
@@ -584,20 +624,6 @@ function buildTractor() {
   return g;
 }
 
-function noteCard(text) {
-  const tex = canvasTexture(256, 160, (c, w, h) => {
-    c.fillStyle = '#f7f2e4'; c.fillRect(0, 0, w, h);
-    c.fillStyle = '#1f2a6a';
-    c.font = 'italic bold 52px "Brush Script MT", "Segoe Script", cursive';
-    c.textAlign = 'center';
-    c.fillText(text, w / 2, h / 2 + 10);
-    c.font = 'italic 26px Georgia, serif';
-    c.fillText('– W.', w * 0.72, h - 22);
-  });
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.125), new THREE.MeshBasicMaterial({ map: tex }));
-  return m;
-}
-
 // Nearest building face from a street point, sideways to the heading a.
 function wallBeside(map, x, y, a) {
   const nx = -Math.sin(a), ny = Math.cos(a);
@@ -618,8 +644,23 @@ export const TRAILER_VOICE = {
   berend: 'audio/voicelines/trailer/berend_kon_minder.mp3',
 };
 
-// Shot fields: label (benchmark results), cuts ('vol' and/or 'kort'), dur
-// (seconds in the full cut; kort: its shorter length, same motion faster),
+// The two Steam cuts in their own order: [shot id, seconds in that cut].
+const CUT_ORDER = {
+  verhaal: [['radio', 4.0], ['sunrise', 4.0], ['vismarkt', 3.4], ['anita', 3.0], ['tammo', 3.0], ['plantsoen', 4.6], ['escapade', 3.6],
+    ['pigeon', 3.4], ['vitrine', 6.0], ['jelle', 4.2], ['twins', 3.2], ['chase', 4.2], ['race', 4.0], ['tanker', 4.0], ['boat', 4.0],
+    ['trauma', 3.6], ['kermis', 4.0], ['aerial', 5.6], ['logo', 5.0], ['berend', 3.0]],
+  gameplay: [['steamLogo', 2.8], ['gpCity', 2.8], ['hudDrive', 4.2], ['hudChase', 3.6], ['pigeon', 2.8], ['hudHeli', 3.6], ['boat', 2.8],
+    ['ommeland', 3.4], ['hudStunt', 3.8], ['kermis', 2.8], ['hudJob', 3.4], ['hudPhone', 3.6], ['timelapse', 3.2], ['storm', 2.6],
+    ['race', 2.8], ['tanker', 2.8], ['vismarkt', 2.8], ['aerial', 3.6], ['logo', 4.5]],
+};
+
+// Shot fields: label (benchmark results), cuts ('vol' and/or 'kort';
+// verhaal and gameplay take theirs from CUT_ORDER), dur (seconds in the full
+// cut; kort: its length there, same motion
+// faster or slower), hud (a gameplay shot: the real HUD, no bars),
+// voice and lines entries may end in a cuts list (only in those cuts); a
+// voice is a TRAILER_VOICE key or a path under game/ ([at, src, cuts, dur]:
+// dur ducks the theme under it in the video),
 // clock/clockTo, weather, focus (where the world streams and populates),
 // caps [[at, dur, title, kicker?, cuts?, html?]], lines [[at, dur, who, text]],
 // voice [[at, key]] (TRAILER_VOICE), sfx [[at, kind]], name {at, title, line}
@@ -678,7 +719,7 @@ function buildShots(w) {
   tables.length = Math.min(tables.length, 12);
   const vismarkt = {
     label: 'Terrassen op de Vismarkt', cuts: ['vol', 'kort'], dur: 4.0, kort: 2.6, clock: 13.2, weather: 'helder', focus: vm,
-    caps: [[0.6, 3.0, 'Een zomer.']],
+    caps: [[0.6, 3.0, 'Een zomer.', null, ['vol', 'kort', 'verhaal']], [0.4, 3.2, 'Toetsenbord of controller.', 'Nederlands gesproken', ['gameplay']]],
     prep(r) { r.prop('terrace', () => buildTerrace(tables)); for (let i = 0; i < 16; i++) extra(r, i); },
     enter(r, s) {
       r.prop('terrace', () => buildTerrace(tables));
@@ -720,6 +761,8 @@ function buildShots(w) {
   const thrower = pAt(-4, 1), catcher = pAt(6, 0.5);
   const plantsoen = {
     label: 'Noorderplantsoen', cuts: ['vol'], dur: 3.0, clock: 15.4, weather: 'helder', focus: pk,
+    voice: [[0.3, 'audio/voicelines/banter/id-fjord-meeuw_0_a_300d42.mp3', ['verhaal'], 4.94]],
+    lines: [[0.3, 4.2, 'Anita', 'De Fjord Frituur. Blauw, met een meeuw erop.', ['verhaal']]],
     prep(r) { r.prop('picnic', () => buildPicnic(blankets, grills)); for (let i = 16; i < 28; i++) extra(r, i); },
     enter(r, s) {
       s.g = r.prop('picnic', () => buildPicnic(blankets, grills));
@@ -815,7 +858,9 @@ function buildShots(w) {
 
   const escapade = {
     label: 'De Escapade in de Herestraat', cuts: ['vol', 'kort'], dur: 4.0, kort: 3.0, clock: 10.5, weather: 'helder', focus: lane(here, 90, 0),
-    caps: [[0.4, 3.2, 'Eén droom op vier wielen.']],
+    voice: [[0.3, 'audio/voicelines/banter/st-bijbaan_1_a_91280b.mp3', ['verhaal'], 3.26]],
+    lines: [[0.3, 3.1, 'Anita', 'Iemand moet de Fjord Frituur betalen.', ['verhaal']]],
+    caps: [[0.4, 3.2, 'Eén droom op vier wielen.', null, ['vol', 'kort']]],
     enter(r, s) {
       clearRoad(r, here, 7);
       const q = lane(here, 20, 0);
@@ -850,6 +895,8 @@ function buildShots(w) {
   const LIMO = { ...MODELS[0], name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#0d0d0f' };
   const jelle = {
     label: 'Jelle Terpstra', cuts: ['vol'], dur: 4.0, clock: 18.9, weather: 'helder', focus: lane(fjordRoad, 70, 2),
+    voice: [[0.05, 'audio/voicelines/banter/h6-pass-aaibal_0_t_60cf31.mp3', ['verhaal'], 2.76]],
+    lines: [[0.05, 2.2, 'Tammo', 'Die man met die trekker was live. Jelle Terpstra.', ['verhaal']]],
     slow: () => 0.45, freezeAt: 2.3, name: { at: 2.3, title: 'Jelle Terpstra', line: 'Snackkoning. Fries. Heel tevreden met zichzelf.' },
     prep(r) { cast(r, 'jelle', JELLE_LOOK); r.prop('flagL', buildFlag); r.prop('flagR', buildFlag); },
     enter(r, s) {
@@ -920,7 +967,9 @@ function buildShots(w) {
 
   const pigeon = {
     label: 'Duif langs de Martinitoren', cuts: ['vol'], dur: 3.4, clock: 16.2, weather: 'helder', focus: tower,
-    caps: [[0.5, 2.6, 'Kieken van boven.']],
+    voice: [[0.3, 'audio/voicelines/banter/st-end-kop-fjord_0_a_c5a140.mp3', ['verhaal'], 2.37]],
+    lines: [[0.3, 2.5, 'Anita', 'Zonder die Eierbal geen Fjord Frituur.', ['verhaal']]],
+    caps: [[0.5, 2.6, 'Kieken van boven.', null, ['vol', 'verhaal']], [0.5, 2.6, 'Of ga als duif.', null, ['gameplay']]],
     enter(r, s) {
       s.bird = r.prop('pigeon', () => {
         const b = buildPigeonBird('pigeon');
@@ -944,12 +993,20 @@ function buildShots(w) {
 
   // the museum at night: the case is empty, a thank-you card on the cushion
   const vitrine = {
-    label: 'De lege vitrine', cuts: ['vol'], dur: 4.0, clock: 23.4, weather: 'helder', focus: museum,
+    label: 'De Gouden Eierbal', cuts: ['vol', 'verhaal'], dur: 4.0, verhaal: 6.0, clock: 23.4, weather: 'helder', focus: museum,
+    caps: [[2.2, 1.7, 'De Gouden Eierbal.', 'Groninger Museum', ['vol']], [4.15, 1.75, 'De Gouden Eierbal.', 'Groninger Museum', ['verhaal']]],
+    voice: [[0.25, 'audio/voicelines/banter/h2-pass-karaat_0_t_739985.mp3', ['verhaal'], 2.8], [2.25, 'audio/voicelines/banter/st-h6_0_a_8d4667.mp3', ['verhaal'], 2.85]],
+    lines: [[0.25, 2.0, 'Tammo', 'Achttien karaat. Hoeveel eierballen is dat?', ['verhaal']], [2.25, 1.75, 'Anita', 'Vannacht. Het museum. Geen zaklamp.', ['verhaal']]],
     prep(r) { vitrineRoom(r); },
     enter(r, s) {
       s.room = vitrineRoom(r);
       s.at = { x: museum.x, y: museum.y, z: 300 };
       s.room.position.set(s.at.x, s.at.z, s.at.y);
+    },
+    tick(r, s, t) {
+      const { ball, glow } = s.room.userData;
+      ball.rotation.y = t * 0.35;
+      glow.material.opacity = 0.42 + Math.sin(t * 2.4) * 0.08;
     },
     cam(u, t, s) {
       const c = s.at, k = smooth(u), a = 0.7, R = lerp(3.6, 1.55, k);
@@ -1000,7 +1057,7 @@ function buildShots(w) {
   const ringS = ring.path.len * 0.25;
   const race = {
     label: 'Race op de ringweg', cuts: ['vol', 'kort'], dur: 4.0, kort: 3.0, clock: 12.8, weather: 'helder', focus: ring.path.at(ringS + 60),
-    caps: [[0.3, 2.6, 'Ring Zuid. Laatste fase.']],
+    caps: [[0.3, 2.6, 'Ring Zuid. Laatste fase.', null, ['vol', 'kort', 'verhaal']], [0.3, 2.6, '18 missies.', 'En een ringweg', ['gameplay']]],
     prep(r) { r.prop('tractor', buildTractor); },
     enter(r, s) {
       clearRoad(r, ring.path, 14);
@@ -1077,15 +1134,15 @@ function buildShots(w) {
       Object.assign(s.truck, { x: q.x, y: q.y, angle: a, speed: v });
       const z = gz(q.x, q.y);
       // the fat sloshes out of the hatches over the outside of the slide
-      if (t > 0.5) for (const off of [-1.8, 0.2]) emitDrops(s.drops, 3, q.x + Math.cos(a) * off + Math.sin(a) * 0.9, q.y + Math.sin(a) * off - Math.cos(a) * 0.9, z + 2.7, Math.cos(q.a) * v * 0.85 + Math.sin(a) * 3.5, Math.sin(q.a) * v * 0.85 - Math.cos(a) * 3.5);
+      if (t > 0.5) for (const off of [-1.8, 0.2]) emitDrops(s.drops, 2, q.x + Math.cos(a) * off + Math.sin(a) * 0.9, q.y + Math.sin(a) * off - Math.cos(a) * 0.9, z + 2.7, Math.cos(q.a) * v * 0.85 + Math.sin(a) * 3.5, Math.sin(q.a) * v * 0.85 - Math.cos(a) * 3.5);
       updateDrops(s.drops, dt, z + 0.02);
       s.q = q; s.a = a;
     },
     cam(u, t, s) {
       const q = s.q, f = Math.cos(q.a), g = Math.sin(q.a);
       // low on the cleared road ahead (the other lane): it slides towards us
-      const c = lane(euro, s.d0 + 64, -3.2);
-      return { position: P(c.x, c.y, gz(c.x, c.y) + 0.7), lookAt: P(q.x, q.y, 1.6), fov: 46, shake: 0.06 };
+      const c = lane(euro, s.d0 + 50, -3.2);
+      return { position: P(c.x, c.y, gz(c.x, c.y) + 0.7), lookAt: P(q.x, q.y, 2.0), fov: lerp(44, 40, u), shake: 0.06 };
     },
   };
 
@@ -1170,7 +1227,9 @@ function buildShots(w) {
   const kermisPeds = { x: 160, y: 85 };
   const kermis = {
     label: 'Kermis op de Grote Markt', cuts: ['vol', 'kort'], dur: 4.0, kort: 3.0, clock: 22.4, weather: 'helder', focus: kermisPeds,
-    caps: [[0.5, 3.0, '28 augustus.', 'Kermis op de Grote Markt']],
+    voice: [[0.2, 'audio/voicelines/lines/rikus/achtentwintig_augustus_gronings__2e7dda33.mp3', ['verhaal'], 7.05]],
+    lines: [[0.2, 3.8, 'Rikus', 'Achtentwintig augustus. Gronings Ontzet.', ['verhaal']]],
+    caps: [[0.5, 3.0, '28 augustus.', 'Kermis op de Grote Markt', ['vol', 'kort', 'verhaal']], [0.4, 3.2, 'Botsauto’s. Padel. Ballonjacht.', 'Even geen missie', ['gameplay']]],
     enter(r, s) {
       kermisTick(r.w, 1);
       s.extraPeds = spawnPedestriansNear(map, kermisPeds.x, kermisPeds.y, 35, Math.random);
@@ -1199,11 +1258,18 @@ function buildShots(w) {
       stage(m, singer.x, singer.y, singer.a + Math.PI - 0.3, { pose: 'kissA', dt, t });
       m.userData.head.rotation.z = 0.25 + Math.sin(t * 3) * 0.08;
       m.userData.chest.rotation.y = Math.sin(t * 2.2) * 0.15;
+      // a terrace lamp over him: the street itself is too dark to see him sing
+      const f = { x: Math.cos(singer.a), y: Math.sin(singer.a) };
+      r.light.position.set(singer.x - f.x * 1.2, 3.1, singer.y - f.y * 1.2 + 0.4);
+      r.light.intensity = 26;
     },
+    exit(r) { r.light.intensity = 0; },
     cam(u) {
-      const q = poele.at(lerp(8, 48, u));
-      const ahead = poele.at(lerp(8, 48, u) + 38);
-      return { position: P(q.x, q.y, 4.0), lookAt: P(ahead.x, ahead.y, 2.0), fov: 56, shake: 0.04 };
+      // down the street onto Durk: he ends up a few metres in front of the lens
+      const k = smooth(u), q = poele.at(lerp(30, 62, k));
+      const ahead = poele.at(lerp(30, 62, k) + 30);
+      const look = { x: lerp(ahead.x, singer.x, k), y: lerp(ahead.y, singer.y, k) };
+      return { position: P(q.x, q.y, lerp(3.6, 2.2, k)), lookAt: P(look.x, look.y, lerp(2.0, 1.6, k)), fov: lerp(56, 46, k), shake: 0.04 };
     },
   };
 
@@ -1246,7 +1312,8 @@ function buildShots(w) {
   };
   const aerial = {
     label: 'Luchtfoto bij zonsondergang', cuts: ['vol', 'kort'], dur: 5.6, kort: 4.6, clock: 19.1, weather: 'helder', focus: tower,
-    caps: [[0.6, 4.2, 'Er gaat niets boven Grunn.']],
+    lines: [[0.0, 3.3, 'Rikus', 'In 1672 hield Stad een bisschop buiten.', ['verhaal']]],
+    caps: [[0.6, 4.2, 'Er gaat niets boven Grunn.', null, ['vol', 'kort', 'gameplay']], [3.0, 2.4, 'Er gaat niets boven Grunn.', null, ['verhaal']]],
     thumb: 2.6,
     cam(u) { return aerialPose(u * 5.6); },
     // speed eases from 1 to 0.35 (arc length of that speed curve)
@@ -1260,7 +1327,10 @@ function buildShots(w) {
   const logo = {
     label: 'Logo', cuts: ['vol'], dur: 5.0, dim: true, keep: true, card: true, fadeOut: 1.0, clock: 19.1, clockTo: 19.35, weather: 'helder', focus: tower,
     cam(u) { return { ...logoCam(u * 5.0), shake: 0.03 }; },
-    caps: [[0.2, 4.0, null, null, null, logoHtml() + '<div class="tr-title small tr-tagline">Een zomer in Grunn</div>']],
+    caps: [
+      [0.2, 4.0, null, null, ['vol', 'verhaal'], logoHtml() + '<div class="tr-title small tr-tagline">Een zomer in Grunn</div>'],
+      [0.2, 4.0, null, null, ['gameplay'], logoHtml() + '<div class="tr-title small tr-tagline">Gratis · Nederlands gesproken</div>'],
+    ],
   };
 
   // after the logo: Berend finds a scratch on his bakkie
@@ -1304,7 +1374,291 @@ function buildShots(w) {
     },
   };
 
-  return [radio, sunrise, vismarkt, plantsoen, anita, tammo, escapade, jelle, twins, pigeon, vitrine, chase, race, bijna, tanker, storm, boat, trauma, kermis, night, ommeland, aerial, logo, berend];
+  // --- the Steam cut: the logo in the first seconds (Steam's microtrailer),
+  // then gameplay with the real HUD, then the name cards and the summer ---
+
+  const steamLogo = {
+    label: 'Logo vooraf', cuts: ['gameplay'], dur: 3.2, dim: true, card: true, clock: 7.2, clockTo: 7.4, weather: 'helder', focus: square,
+    thumb: 1.4,
+    caps: [[0.05, 3.05, null, null, null, logoHtml()]],
+    cam(u, t) { return sunrise.cam(lerp(0.45, 0.62, u), t); },
+  };
+
+  // the game's own chase camera: behind and above, looking past the car
+  const followCam = (c, back = 7.4, up = 2.7, fov = 62) => {
+    const f = Math.cos(c.angle), g = Math.sin(c.angle), z = gz(c.x, c.y);
+    return { position: P(c.x - f * back, c.y - g * back, z + up), lookAt: P(c.x + f * 6, c.y + g * 6, z + 1.0), fov, shake: 0.015 };
+  };
+
+  // up the Herestraat towards the Grote Markt in the Escapade: the vehicle
+  // badge, the speedo, the minimap and a mission card
+  const hudDrive = {
+    label: 'Rijden met de HUD', cuts: ['gameplay'], dur: 5.2, hud: true, clock: 10.8, weather: 'helder', focus: lane(here, 60, 0),
+    enter(r, s) {
+      clearRoad(r, here, 8);
+      s.d = 92;
+      const q = lane(here, s.d, -0.4);
+      s.car = tempCar(r, q.x, q.y, q.a + Math.PI, { hero: true });
+      hudPlayer(r, s.car);
+      r.w.goal = { name: 'Grote Markt', sub: 'Jelmer wacht', x: 168, y: 72 };
+    },
+    tick(r, s, t, dt) {
+      const v = lerp(6, 13, smooth(t / 2));
+      s.d -= v * dt;
+      const q = lane(here, s.d, -0.4);
+      Object.assign(s.car, { x: q.x, y: q.y, angle: q.a + Math.PI, speed: v });
+      seat(r.actor('tammo'), s.car, true);
+      seat(r.actor('anita'), s.car, false);
+      hudPlayer(r, s.car);
+      if (t > 1.3 && !s.card) {
+        s.card = true;
+        showHudCard(r.w, { kind: 'missie', title: 'Iets met de Grote Markt', body: 'Jelmer streamt een stuntavond. Rij naar de Grote Markt.', key: 'trailer-h3' });
+      }
+    },
+    cam(u, t, s) { return followCam(s.car, lerp(6.4, 7.6, smooth(u)), 2.6, 60); },
+  };
+
+  // the stunt evening on the Grote Markt: parasols and kliko's over, pigeons
+  // up, the score panel counting
+  const gm = openSpot(map, 168, 72, 30);
+  const SR = 15;
+  const arcAt = (a) => ({ x: gm.x + Math.cos(a) * SR, y: gm.y + Math.sin(a) * SR, angle: a + Math.PI / 2 });
+  const STUNT_PROPS = [['parasol', 0.75, 0.9], ['kliko', 1.15, -0.8], ['parasol', 1.55, 1.0], ['parasol', 1.95, -0.9], ['kliko', 2.3, 0.8]];
+  const stuntPop = (s, t, text, kind = 'pts') => {
+    // stunthud.js's popup, but cleared on trailer time (stuntPopup uses a timer)
+    const box = document.querySelector('#hud .stunt-pops');
+    if (!box) return;
+    const d = document.createElement('div');
+    d.className = 'stunt-pop' + (kind === 'pts' ? '' : ' ' + kind);
+    const m = /^([+-]\d+)(.*)$/.exec(text);
+    if (m) { const b = document.createElement('b'); b.textContent = m[1]; d.append(b, m[2]); } else d.textContent = text;
+    d.style.top = `${Math.min(box.children.length, 4) * 26}px`;
+    box.appendChild(d);
+    s.pops.push({ el: d, until: t + 1.5 });
+  };
+  const hudStunt = {
+    label: 'Stuntavond met de HUD', cuts: ['gameplay'], dur: 5.4, hud: true, clock: 19.7, weather: 'helder', focus: gm,
+    prep(r) { STUNT_PROPS.forEach(([kind], i) => r.prop('stunt' + i, () => buildStuntProp(kind, i))); },
+    enter(r, s) {
+      clearAround(r, gm, 40);
+      s.a = 0.2;
+      const q = arcAt(s.a);
+      s.car = tempCar(r, q.x, q.y, q.angle, { hero: true });
+      hudPlayer(r, s.car);
+      s.props = STUNT_PROPS.map(([kind, a, off], i) => {
+        const m = r.prop('stunt' + i, () => buildStuntProp(kind, i));
+        const R = SR + off;
+        const x = gm.x + Math.cos(a) * R, y = gm.y + Math.sin(a) * R;
+        m.position.set(x, gz(x, y), y);
+        m.rotation.set(0, i * 1.3, 0);
+        m.userData.top.rotation.set(0, 0, 0);
+        m.userData.top.position.set(0, 0, 0);
+        return { m, kind, x, y, hit: -1, pts: kind === 'parasol' ? 120 : 80 };
+      });
+      s.birds = makeBirds(r.group, gm.x + Math.cos(1.75) * (SR + 3), gm.y + Math.sin(1.75) * (SR + 3), 4.5, 48, { avoid: 6 });
+      s.score = 380; s.combo = 1; s.lastAt = -9; s.pops = [];
+      showStuntHud(2500, [], { hitCost: 250, comboMax: 4, comboS: 3 });
+    },
+    tick(r, s, t, dt) {
+      const v = 11;
+      s.a += (v / SR) * dt;
+      const q = arcAt(s.a);
+      // a little drift: the nose turned into the curve
+      Object.assign(s.car, { x: q.x, y: q.y, angle: q.angle + 0.28 * smooth(t / 1.2), speed: v });
+      seat(r.actor('tammo'), s.car, true);
+      hudPlayer(r, s.car);
+      const add = (pts, label) => {
+        s.combo = t - s.lastAt < 3 ? Math.min(4, s.combo + 1) : 1;
+        s.lastAt = t;
+        const got = pts * s.combo;
+        s.score += got;
+        stuntPop(s, t, `+${got} ${label}`);
+        if (s.combo > 1) stuntPop(s, t, `combo x${s.combo}`, 'combo');
+      };
+      for (const p of s.props) {
+        if (p.hit < 0 && Math.hypot(p.x - s.car.x, p.y - s.car.y) < 2.6) { p.hit = t; add(p.pts, p.kind); }
+        if (p.hit >= 0) {
+          // tipped over away from the car
+          const k = smooth((t - p.hit) / 0.45);
+          p.m.rotation.y = -s.car.angle;
+          p.m.userData.top.rotation.z = -k * 1.45;
+          p.m.userData.top.position.set(k * 1.6, 0, 0);
+        }
+      }
+      if (!s.gone && s.a > 1.6) { s.gone = true; scatterBirds(s.birds, s.car.x, s.car.y); add(150, 'duivenzwerm'); }
+      updateBirds(s.birds, dt, t);
+      for (const p of s.pops) if (p.el && t > p.until) { p.el.remove(); p.el = null; }
+      updateStuntHud(dt, { score: s.score, target: 2500, combo: s.combo, comboLeft: clamp01(1 - (t - s.lastAt) / 3), timeLeft: 74 - t }, true);
+    },
+    exit(r, s) { for (const p of s.pops || []) if (p.el) p.el.remove(); },
+    cam(u, t, s) {
+      const c = s.car;
+      return followCam({ x: c.x, y: c.y, angle: c.angle - 0.28 }, 8.2, 3.4, 62);
+    },
+  };
+
+  // the balloon hunt: the trauma heli through a ring over Stad, the arrow
+  // pointing at the next one
+  const towerDir = Math.atan2(tower.y - padC.y, tower.x - padC.x);
+  const heliStart = { x: tower.x - Math.cos(towerDir) * 330, y: tower.y - Math.sin(towerDir) * 330 };
+  const heliAt = (d) => ({ x: heliStart.x + Math.cos(towerDir) * d, y: heliStart.y + Math.sin(towerDir) * d });
+  const HELI_Z = 58;
+  const RINGS = [[52, 60], [128, 66], [200, 61]];
+  const hudHeli = {
+    label: 'Heli door de ringen', cuts: ['gameplay'], dur: 5.0, hud: true, clock: 18.2, weather: 'helder', focus: heliAt(90),
+    enter(r, s) {
+      document.body.classList.add('trailer-heli');
+      s.h = pad ? scriptHeli(r.w) : null;
+      s.d = 0;
+      s.kit = heliTrailerKit();
+      s.rings = RINGS.map(([d, z]) => {
+        const q = heliAt(d);
+        const m = new THREE.Mesh(s.kit.ringGeo, s.kit.ringMats.later);
+        m.position.set(q.x, z, q.y);
+        m.rotation.y = -towerDir + Math.PI / 2;
+        r.group.add(m);
+        return { m, d, z, x: q.x, y: q.y, done: false };
+      });
+      s.hit = 3;
+      const h = s.kit.hud;
+      if (h) {
+        h.root.hidden = false;
+        h.title.textContent = 'BALLONJACHT';
+        h.help.style.opacity = '0';
+        h.guide.hidden = false;
+      }
+      hudPlayer(r, null, { ...heliAt(0), angle: towerDir });
+    },
+    tick(r, s, t, dt) {
+      const v = 30;
+      s.d += v * dt;
+      const q = heliAt(s.d), z = HELI_Z + Math.sin(t * 0.9) * 1.5;
+      if (s.h) Object.assign(s.h, { x: q.x, y: q.y, z, heading: towerDir, pitch: 0.14, bank: Math.sin(t * 0.7) * 0.05, rotor: 1 });
+      hudPlayer(r, null, { ...q, angle: towerDir });
+      const next = s.rings.find((g) => !g.done && s.d <= g.d);
+      for (const g of s.rings) {
+        if (!g.done && s.d > g.d) { g.done = true; s.hit++; s.msgUntil = t + 0.9; }
+        g.m.material = g.done ? s.kit.ringMats.done : g === next ? s.kit.ringMats.next : s.kit.ringMats.later;
+      }
+      const h = s.kit.hud;
+      if (!h) return;
+      const set = (k, text) => { if (h.vals[k] && h.vals[k].textContent !== text) h.vals[k].textContent = text; };
+      const left = 283 - t;
+      set('time', `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`);
+      set('speed', `${Math.round(v * 3.6)} km/u`);
+      set('rings', `${s.hit}/11`);
+      set('dist', `${(1.4 - s.d / 1000).toFixed(1).replace('.', ',')} km`);
+      set('score', String(300 + (s.hit - 3) * 100));
+      h.msg.textContent = 'Ring!';
+      h.msg.classList.toggle('on', t < (s.msgUntil || 0));
+      const ground = gz(q.x, q.y);
+      h.altMe.style.top = `${(1 - (z - ground) / 130) * 100}%`;
+      h.altBal.style.top = `${(1 - 80 / 130) * 100}%`;
+      h.altLbl.textContent = `${Math.round(z - ground)} m`;
+      h.altRing.style.display = next ? '' : 'none';
+      if (next) {
+        h.altRing.style.top = `${(1 - next.z / 130) * 100}%`;
+        const rel = Math.atan2(next.y - q.y, next.x - q.x) - towerDir + Math.sin(t * 1.3) * 0.12;
+        h.arrow.style.transform = `rotate(${(rel * 180 / Math.PI + 90).toFixed(1)}deg)`;
+        const dz = next.z - z;
+        const hint = dz > 4 ? '<span class="up">▲ hoger</span>' : dz < -4 ? '<span class="down">▼ lager</span>' : 'hoogte goed';
+        h.goal.innerHTML = `Vlieg door de ringen<small>Ring ${s.hit + 1}/11 · ${Math.max(10, Math.round((next.d - s.d) / 10) * 10)} m · ${hint}</small>`;
+      }
+    },
+    exit(r) { if (r.w.skyHeli && r.w.skyHeli.phase === 'scripted') r.w.skyHeli = null; },
+    cam(u, t, s) {
+      const q = heliAt(s.d), f = Math.cos(towerDir), g = Math.sin(towerDir);
+      return { position: P(q.x - f * 17, q.y - g * 17, HELI_Z + 6.5), lookAt: P(q.x + f * 20, q.y + g * 20, HELI_Z - 1), fov: 60, shake: 0.03 };
+    },
+  };
+
+  // a three-star chase through the centre from behind the wheel: the stars,
+  // "Ontsnap aan de politie", the police on the minimap
+  const hudChase = {
+    label: 'Achtervolging met de HUD', cuts: ['gameplay'], dur: 5.4, hud: true, clock: 21.4, weather: 'motregen', focus: chaseRoad.at(150),
+    enter(r, s) {
+      chase.enter(r, s);
+      r.w.wanted = 3;
+      hudPlayer(r, s.car);
+    },
+    tick(r, s, t, dt) {
+      chase.tick(r, s, t, dt);
+      hudPlayer(r, s.car);
+    },
+    exit(r, s) { chase.exit(r, s); },
+    cam(u, t, s) { return followCam(s.car, 8.6, 3.0, 64); },
+  };
+
+
+  // the whole map from high over the Ommeland edge at noon, a text card over it
+  const toLand = Math.atan2(land.y - tower.y, land.x - tower.x);
+  const cityFrom = (u) => ({ x: tower.x + Math.cos(toLand + 0.25 - u * 0.12) * 470, y: tower.y + Math.sin(toLand + 0.25 - u * 0.12) * 470 });
+  const gpCity = {
+    label: 'Stad en Ommeland', cuts: ['gameplay'], dur: 3.0, clock: 13.0, weather: 'helder', focus: cityFrom(0.5),
+    caps: [[0.25, 2.6, 'Een hele stad. Een heel Ommeland.']],
+    cam(u) {
+      const c = cityFrom(u);
+      return { position: P(c.x, c.y, lerp(115, 100, u)), lookAt: P(tower.x, tower.y, 10), fov: 50, shake: 0.02 };
+    },
+  };
+
+  // a bijbaan: Hap & Rap delivering along the Fjord road at noon
+  const hudJob = {
+    label: 'Bijbaantje met de HUD', cuts: ['gameplay'], dur: 4.0, hud: true, clock: 12.6, weather: 'helder', focus: lane(fjordRoad, 80, 0),
+    enter(r, s) {
+      clearRoad(r, fjordRoad, 8);
+      s.d = 40;
+      const q = lane(fjordRoad, s.d, 1.6);
+      s.car = tempCar(r, q.x, q.y, q.a, { model: { ...MODELS[8], color: '#c9541e' } });
+      hudPlayer(r, s.car);
+      r.w.sideJob = { active: true, goal: { label: 'Bezorg bij de Oosterpoort', desc: '' }, progress: 'Hap & Rap · 3/5', timeLeft: 44, dots: [] };
+    },
+    tick(r, s, t, dt) {
+      const v = 12;
+      s.d += v * dt;
+      const q = lane(fjordRoad, s.d, 1.6);
+      Object.assign(s.car, { x: q.x, y: q.y, angle: q.a, speed: v });
+      seat(r.actor('anita'), s.car, true);
+      hudPlayer(r, s.car);
+      r.w.sideJob.timeLeft = 44 - t;
+    },
+    exit(r) { r.w.sideJob = null; },
+    cam(u, t, s) { return followCam(s.car, 7.6, 2.8, 60); },
+  };
+
+  // Ubbo on the phone: what there is to do (Te doen), in a car in the Poelestraat
+  const hudPhone = {
+    label: 'Telefoon met Ubbo', cuts: ['gameplay'], dur: 4.0, hud: true, clock: 14.2, weather: 'helder', focus: poele.at(40),
+    enter(r, s) {
+      s.d = 10;
+      const q = lane(poele, s.d, -1.4);
+      s.car = tempCar(r, q.x, q.y, q.a, { hero: true });
+      hudPlayer(r, s.car);
+      r.w.goal = { name: 'Grote Markt', sub: 'Jelmer wacht', x: 168, y: 72 };
+    },
+    tick(r, s, t, dt) {
+      const v = lerp(5, 0, smooth(t / 1.5));
+      s.d += v * dt;
+      const q = lane(poele, s.d, -1.4);
+      Object.assign(s.car, { x: q.x, y: q.y, angle: q.a, speed: v });
+      seat(r.actor('tammo'), s.car, true);
+      hudPlayer(r, s.car);
+      if (t > 0.7 && !s.open) { s.open = true; try { trailerPhone('ubbo'); } catch (e) { console.warn('trailer phone', e); } }
+    },
+    exit() { try { trailerPhone(null); } catch (e) { /* ignore */ } },
+    cam(u, t, s) { return followCam(s.car, lerp(7.2, 6.2, smooth(u)), 2.5, 58); },
+  };
+
+  // a day over Stad in three seconds: morning to night
+  const timelapse = {
+    label: 'Dag en nacht', cuts: ['gameplay'], dur: 3.4, clock: 9.0, clockTo: 22.6, weather: 'helder', focus: tower,
+    caps: [[0.3, 2.9, 'Dag en nacht.', 'En dan het weer']],
+    cam(u) { return aerialPose(1.5 + u * 1.5); },
+  };
+
+  const all = { radio, sunrise, vismarkt, plantsoen, anita, tammo, escapade, jelle, twins, pigeon, vitrine, chase, race, bijna, tanker, storm, boat, trauma, kermis, night, ommeland, aerial, logo, berend, steamLogo, gpCity, hudDrive, hudChase, hudHeli, hudStunt, hudJob, hudPhone, timelapse };
+  for (const [id, shot] of Object.entries(all)) shot.id = id;
+  return Object.values(all);
 }
 
 function buildDoor() {
@@ -1324,16 +1678,20 @@ function buildDoor() {
   return g;
 }
 
+// The Gouden Eierbal in its case, with a warm glow round it (a sprite).
 function vitrineRoom(r) {
   return r.prop('vitrine', () => {
     const room = buildVitrineRoom();
-    room.userData.ball.visible = false;
-    const card = noteCard('Tige tank!');
-    // propped up on the cushion, facing the push-in (vitrine cam, a = 0.7)
-    card.scale.setScalar(1.25);
-    card.position.set(0.02, 1.2, 0.03);
-    card.rotation.set(-0.3, Math.PI / 2 - 0.7, 0, 'YXZ');
-    room.add(card);
+    const tex = canvasTexture(128, 128, (c, w, h) => {
+      const g = c.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+      g.addColorStop(0, 'rgba(255, 214, 120, 1)'); g.addColorStop(0.35, 'rgba(255, 184, 60, 0.45)'); g.addColorStop(1, 'rgba(255, 160, 40, 0)');
+      c.fillStyle = g; c.fillRect(0, 0, w, h);
+    });
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.45, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.scale.setScalar(0.9);
+    glow.position.set(0, 1.29, 0);
+    room.add(glow);
+    room.userData.glow = glow;
     return room;
   });
 }
@@ -1442,8 +1800,50 @@ function restore(w, s) {
   refreshDayNight(w);
 }
 
+// a cut's own length (kort: 3.0, or from CUT_ORDER) plays the same motion faster or slower
 function shotDur(r, s) {
-  return (r.cut === 'kort' && s.kort) || s.dur;
+  return (r.durs && r.durs.get(s)) || (r.cut === 'kort' && s.kort) || s.dur;
+}
+
+// The black overlay, eased over trailer time.
+function blackAt(r) {
+  const b = r.black;
+  return b.dur > 0 ? lerp(b.from, b.to, clamp01((r.T - b.t0) / b.dur)) : b.to;
+}
+function setBlack(r, to, dur) {
+  r.black = { from: blackAt(r), to, t0: r.T, dur };
+}
+
+// The player as the HUD sees it in a gameplay shot (in, where to put them).
+function hudPlayer(r, v, at = v) {
+  const p = r.w.player;
+  p.inVehicle = v || null;
+  if (at) { p.x = at.x; p.y = at.y; p.angle = at.angle ?? p.angle; r.w.camYaw = p.angle; }
+}
+function endHudShot(r) {
+  const p = r.w.player, s = r.savedPlayer;
+  Object.assign(p, s);
+  r.w.camYaw = r.savedCamYaw;
+  r.w.wanted = 0;
+  r.w.goal = null;
+  r.w.sideJob = null;
+  hideStuntHud();
+  const kit = heliTrailerKit();
+  if (kit.hud) kit.hud.root.hidden = true;
+  document.body.classList.remove('trailer-heli');
+  try { trailerPhone(null); } catch (e) { /* ignore */ }
+}
+
+// CSS animations and transitions in the HUD run on the trailer clock in a
+// recording, so the fixed-step export shows them as they play live.
+function stepHudAnimations(dt) {
+  const roots = [document.getElementById('hud'), document.getElementById('heli-hud')].filter(Boolean);
+  for (const a of document.getAnimations()) {
+    const el = a.effect && a.effect.target;
+    if (!el || !roots.some((h) => h.contains(el))) continue;
+    if (a.playState === 'running') a.pause();
+    a.currentTime = (a.currentTime || 0) + dt * 1000;
+  }
 }
 
 function nextFocus(r, i) {
@@ -1479,14 +1879,17 @@ function enterShot(r, i) {
   if (s.duck) setThemeDuck(true);
   // the song starts after the radio intro (main.js video export: themeAt)
   if (!r.themeKicked && !s.preTheme) { r.themeKicked = true; kickTheme(); }
+  if (r.hudTouched) { r.hudTouched = false; endHudShot(r); }
+  if (s.hud) r.hudTouched = true;
+  document.body.classList.toggle('trailer-hud', !!s.hud);
+  ui.root.classList.toggle('hudshot', !!s.hud);
+  w.cinematicHideNav = !s.hud;
   if (s.black) {
-    ui.black.classList.remove('dim');
-    ui.black.classList.add('on');
+    setBlack(r, 1, 0.12);
     streamNext(r, i);
   } else {
     const wasBlack = !prev || prev.black || prev.fadeOut;
-    ui.black.classList.remove('on', 'fade');
-    ui.black.classList.toggle('dim', !!s.dim);
+    setBlack(r, s.dim ? 0.55 : 0, s.dim ? 0.9 : 0.35);
     if (!wasBlack && !s.keep) flash();
     if (s.focus) r.env.relocate(s.focus.x, s.focus.y);
     if (s.clock != null) setClock(w, s.clock);
@@ -1530,10 +1933,11 @@ function frame(r, dt, realMs) {
   const sdt = dt * slow;
   const w = r.w;
   if (frozen && !r.state.froze) { r.state.froze = true; flash(); }
-  for (const [at, key] of s.voice || []) if (st >= at && !r.state['v' + at]) { r.state['v' + at] = true; if (!r.video) playVoice(key); }
+  for (const [at, key, cuts] of s.voice || []) if ((!cuts || cuts.includes(r.cut)) && st >= at && !r.state['v' + at]) { r.state['v' + at] = true; if (!r.video) playVoice(key); }
   for (const [at, kind] of s.sfx || []) if (st >= at && !r.state['x' + at]) { r.state['x' + at] = true; if (!r.video) playSfx(kind); }
   // fadeOut: the shot ends on black, and the next location streams in there
-  if (s.fadeOut && !r.state.faded && st > s.dur - s.fadeOut) { r.state.faded = true; ui.black.classList.remove('dim'); ui.black.classList.add('fade'); }
+  if (s.fadeOut && !r.state.faded && st > s.dur - s.fadeOut) { r.state.faded = true; setBlack(r, 1, 0.4); }
+  ui.black.style.opacity = blackAt(r).toFixed(3);
   if (s.fadeOut && !r.state.streamed && st > s.dur - s.fadeOut + 0.45) { r.state.streamed = true; streamNext(r, i); }
   if (r.state.streamed) {
     try { r.env.render(dt, 0); } catch (e) { /* ignore */ }
@@ -1553,7 +1957,7 @@ function frame(r, dt, realMs) {
     if (st >= at && st < at + d && (title || html)) { cap = { title: title || '', kicker, html, small: (title || '').length > 18 }; capP = (st - at) / d; if (html) cap.title = html; }
   }
   showCard(cap, capP);
-  if (s.lines) setSub(s.lines.find(([at, d]) => st >= at && st < at + d) || null);
+  if (s.lines) setSub(s.lines.find(([at, d, , , cuts]) => (!cuts || cuts.includes(r.cut)) && st >= at && st < at + d) || null);
   if (s.name) showName(st >= s.name.at ? s.name : null, (st - s.name.at) / Math.max(0.1, s.dur - s.name.at));
 
   let pose = null;
@@ -1586,6 +1990,10 @@ function frame(r, dt, realMs) {
   }
   if (r.countCalls) r.countCalls.n = 0;
   try { r.env.render(frozen ? 0 : sdt > 0 ? sdt : dt, sdt); } catch (e) { console.warn('trailer render', e); }
+  if (s.hud) {
+    try { updateHud(frozen ? 0 : sdt * k, w); } catch (e) { if (!r.hudWarned) { r.hudWarned = true; console.warn('trailer hud', e); } }
+    if (r.mode === 'opname') stepHudAnimations(frozen ? 0 : dt);
+  }
   if (r.countCalls) { r.stats[i].calls = (r.stats[i].calls || 0) + r.countCalls.n; r.stats[i].frames = (r.stats[i].frames || 0) + 1; }
 
   if (r.mode === 'benchmark') {
@@ -1607,7 +2015,12 @@ function soundSheet(r) {
   r.shots.forEach((s, i) => {
     const t0 = r.starts[i], k = s.dur / shotDur(r, s);
     if (sheet.themeAt == null && !s.preTheme) sheet.themeAt = t0;
-    for (const [at, key] of s.voice || []) sheet.voices.push({ src: TRAILER_VOICE[key], at: t0 + at / k });
+    for (const [at, key, cuts, dur] of s.voice || []) {
+      if (cuts && !cuts.includes(r.cut)) continue;
+      sheet.voices.push({ src: TRAILER_VOICE[key] || key, at: t0 + at / k });
+      // the theme dips under a story line (not as deep as under the boat)
+      if (dur) sheet.duck.push([t0 + at / k - 0.15, t0 + at / k + dur + 0.2, 0.5]);
+    }
     for (const [at, kind] of s.sfx || []) sheet.sfx.push({ kind, at: t0 + at / k });
     if (s.duck) sheet.duck.push([t0, t0 + shotDur(r, s)]);
     if (s.thumb != null && sheet.thumbAt == null) sheet.thumbAt = t0 + s.thumb / k;
@@ -1642,17 +2055,26 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
   if (running) return Promise.resolve({ skipped: true, aborted: true });
   ensureUi();
   return new Promise((resolve) => {
-    const all = buildShots(world).filter((s) => s.cuts.includes(cut));
+    const built = buildShots(world);
+    const durs = new Map();
+    const all = CUT_ORDER[cut] ? CUT_ORDER[cut].map(([id, d]) => { const s = built.find((b) => b.id === id); durs.set(s, d); return s; }) : built.filter((s) => s.cuts.includes(cut));
     const shots = shot != null && all[shot - 1] ? [all[shot - 1]] : all;
     const starts = [];
     let total = 0;
-    const r = { w: world, env, mode, cut, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0 };
+    const r = { w: world, env, mode, cut, durs, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 } };
+    const pl = world.player;
+    r.savedPlayer = { x: pl.x, y: pl.y, angle: pl.angle, inVehicle: pl.inVehicle || null };
+    r.savedCamYaw = world.camYaw;
     for (const s of shots) { starts.push(total); total += shotDur(r, s); }
     r.total = total;
     const group = new THREE.Group();
     group.name = 'trailer';
     getScene().add(group);
     r.group = group;
+    // one light for the whole run (dark until a shot uses it): adding or
+    // removing a light mid-run would recompile every material
+    r.light = new THREE.PointLight(0xffb066, 0, 14, 1.4);
+    getScene().add(r.light);
     // actors and props are built once per session and hidden between shots
     r.prop = (name, build) => {
       let o = trailerProps.get(name);
@@ -1694,6 +2116,8 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     ui.fps.textContent = 'BENCHMARK' + (label ? ` · ${label}` : '');
     r.label = label;
     ui.black.classList.add('on');
+    ui.black.style.transition = 'none';
+    ui.black.style.opacity = '1';
     ui.root.classList.add('on');
     hidePigeonSpots(true);
     // props and extra actors are built under the opening black, not on their cut
@@ -1739,6 +2163,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       if (last && last.exit) { try { last.exit(r, r.state); } catch (e) { /* ignore */ } }
       clearShot(r);
       group.removeFromParent();
+      r.light.removeFromParent();
       Math.random = nativeRandom;
       restore(world, saved);
       // the aerial's clock and weather carry on into the title screen
@@ -1753,8 +2178,13 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       showCard(null);
       showName(null);
       setSub(null);
-      ui.root.classList.remove('skippable', 'bench');
-      ui.black.classList.remove('dim');
+      ui.root.classList.remove('skippable', 'bench', 'hudshot');
+      if (r.hudTouched) endHudShot(r);
+      document.body.classList.remove('trailer-hud');
+      ui.black.classList.remove('dim', 'fade');
+      ui.black.classList.toggle('on', blackAt(r) > 0.5);
+      ui.black.style.opacity = '';
+      ui.black.style.transition = '';
       running = null;
       const stats = mode === 'benchmark' ? computeStats(r) : null;
       if (stats) console.log('[trailer] benchmark', JSON.stringify({ avg: +stats.avg.toFixed(1), low: +stats.low.toFixed(1), spikesPerMin: stats.spikes, shots: stats.shots.map((x) => `${x.label}: ${x.fps.toFixed(1)}`) }));
@@ -1800,8 +2230,25 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       play: () => { frozen = null; },
       stop: () => end(true, true),
     };
+    // A cut that opens on a picture (steam) streams its first place in under
+    // the black before the clock starts: frame() at T = 0 enters the shot
+    // and poses the camera, the black stays up.
+    const warm = () => new Promise((res) => {
+      if (shots[0].black) { res(); return; }
+      const f = shots[0].focus;
+      if (f) prewarmStreamAt(f.x, f.y, 4);
+      const t0 = performance.now();
+      let n = 0;
+      const step = () => {
+        if (r.done) { res(); return; }
+        try { frame(r, 0, 16); } catch (e) { /* ignore */ }
+        ui.black.style.opacity = '1';
+        if (++n < 60 || performance.now() - t0 < 2500) requestAnimationFrame(step); else res();
+      };
+      requestAnimationFrame(step);
+    });
     // a video export starts once main.js has the sound sheet
-    Promise.resolve(begun).then(() => requestAnimationFrame((now) => { last = now; loop(now); }));
+    Promise.resolve(begun).then(warm).then(() => requestAnimationFrame((now) => { last = now; loop(now); }));
   });
 }
 
