@@ -454,7 +454,7 @@ function buildTruckMesh(v) {
   if (tank && v.model.livery === 'usmemvet' && !v.wrecked) {
     // H8: the lettering on both flanks of the tank
     const bl = L - 2.0;
-    const geoL = cached('usmemvet-panel', () => new THREE.PlaneGeometry(3.04, 0.76));
+    const geoL = cached('usmemvet-panel', () => new THREE.PlaneGeometry(4.1, 0.76));
     const mat = new THREE.MeshLambertMaterial({ map: usMemVetTexture() });
     for (const s of [1, -1]) {
       const panel = new THREE.Mesh(geoL, mat);
@@ -472,16 +472,16 @@ let usMemVetTex = null;
 function usMemVetTexture() {
   if (usMemVetTex) return usMemVetTex;
   const c = document.createElement('canvas');
-  c.width = 1024; c.height = 256;
+  c.width = 1024; c.height = 190;
   const g = c.getContext('2d');
   g.fillStyle = '#f4f2ec';
-  g.fillRect(0, 0, 1024, 256);
+  g.fillRect(0, 0, 1024, 190);
   // the flag's bends on the left third
   g.save();
-  g.beginPath(); g.rect(0, 0, 300, 256); g.clip();
+  g.beginPath(); g.rect(0, 0, 260, 190); g.clip();
   g.rotate(0.5);
   g.fillStyle = '#1d4f9c';
-  for (let i = -6; i < 10; i += 2) g.fillRect(-400, i * 42, 1400, 42);
+  for (let i = -6; i < 10; i += 2) g.fillRect(-400, i * 32, 1400, 32);
   g.restore();
   g.fillStyle = '#d42a24';
   const leaf = (x, y, k) => {
@@ -491,25 +491,25 @@ function usMemVetTexture() {
     g.bezierCurveTo(x + 12 * k, y - 18 * k, x + 20 * k, y, x, y + 14 * k);
     g.fill();
   };
-  for (const [x, y] of [[60, 70], [160, 46], [230, 120], [110, 170], [210, 210]]) leaf(x, y, 1.4);
+  for (const [x, y] of [[45, 50], [130, 34], [205, 92], [85, 130], [180, 160]]) leaf(x, y, 1.1);
   // the cow: Us Mem in profile, black and white
   g.fillStyle = '#1c1d20';
-  g.beginPath(); g.ellipse(390, 140, 70, 42, 0, 0, Math.PI * 2); g.fill();
-  g.beginPath(); g.ellipse(462, 112, 26, 20, -0.4, 0, Math.PI * 2); g.fill();
-  for (const x of [345, 372, 410, 436]) g.fillRect(x, 160, 12, 58);
+  g.beginPath(); g.ellipse(335, 100, 58, 34, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(395, 78, 21, 16, -0.4, 0, Math.PI * 2); g.fill();
+  for (const x of [298, 320, 350, 372]) g.fillRect(x, 118, 10, 46);
   g.fillStyle = '#f4f2ec';
-  g.beginPath(); g.ellipse(370, 130, 26, 18, 0.3, 0, Math.PI * 2); g.fill();
-  g.beginPath(); g.ellipse(420, 152, 18, 12, -0.2, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(318, 92, 21, 14, 0.3, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(360, 110, 15, 10, -0.2, 0, Math.PI * 2); g.fill();
   // the lettering
   g.textAlign = 'left'; g.textBaseline = 'alphabetic';
   g.fillStyle = '#1d4f9c';
-  g.font = 'bold 116px "Arial Black", Arial, sans-serif';
-  g.fillText('US MEM VET', 510, 150, 500);
+  g.font = 'bold 104px "Arial Black", Arial, sans-serif';
+  g.fillText('US MEM VET', 440, 112, 560);
   g.fillStyle = '#d42a24';
-  g.font = 'italic bold 40px Georgia, serif';
-  g.fillText('Frituurvet. Foar mem.', 516, 212, 490);
+  g.font = 'italic bold 34px Georgia, serif';
+  g.fillText('Frituurvet. Foar mem.', 446, 160, 540);
   g.fillStyle = '#1d4f9c';
-  g.fillRect(0, 0, 1024, 10); g.fillRect(0, 246, 1024, 10);
+  g.fillRect(0, 0, 1024, 8); g.fillRect(0, 182, 1024, 8);
   usMemVetTex = new THREE.CanvasTexture(c);
   usMemVetTex.colorSpace = THREE.SRGBColorSpace;
   usMemVetTex.anisotropy = 4;
