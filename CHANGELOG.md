@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-10-04
+
 ### Nieuw
 - **Uitleg voor nieuwe spelers:** korte tips op het moment dat je ze nodig
   hebt, één tegelijk en elk maar één keer: je eerste klus en waar je heen
@@ -57,6 +59,12 @@ nieuwe functies, `y` voor alleen bugfixes.
   knock-outs), in plaats van ze te laten vallen.
 - Een save van een nieuwere versie van het spel wordt niet meer
   overschreven zonder kopie.
+
+### Verbeterd
+- **Netter Grunn**: stoepen flikkeren niet meer in scherpe bochten, de
+  Osloweg sluit aan, gaten bij kademuren en in verdiepte wegen zijn dicht,
+  geen zwevende gebouwtjes meer aan het water, en minder flikkerende banden
+  op het Stadhuis, de Korenbeurs, het Groot Handelshuis en de A-kerk.
 
 ## [0.24.0] - 2026-10-03
 
