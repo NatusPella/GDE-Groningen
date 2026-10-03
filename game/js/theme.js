@@ -1,6 +1,6 @@
 import { getSettings, onSettingsChange } from './settings.js';
 
-// The GTE VI theme song: silent on the title screen (that one sounds like the
+// The GDE theme song: silent on the title screen (that one sounds like the
 // city, audio.js setMenuAudio), starts with Doorgaan / Nieuw spel, plays once
 // into the game and then hands over to G-Music, which waits for
 // isThemeActive() to end. The benchmark trailer plays it too and rewinds it

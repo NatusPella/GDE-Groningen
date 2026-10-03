@@ -1,4 +1,4 @@
-# GTE VI: het definitieve script
+# GDE Groningen: het definitieve script
 
 **Wat het is:** de combinatie van de drie varianten.
 - **De ruggengraat uit A:** de heldenreis in drie akten. Een roep, twijfel, de drempel (de kraak), beproevingen, een echt dieptepunt, een keuze en de finale.
@@ -26,7 +26,7 @@ Mem Terpstra wil helemaal niet dat haar zoon dit doet.
 
 ## Een zomerverhaal
 
-GTE VI speelt in **één Groningse zomer**: de laatste twee weken van augustus. Dat is een eigen sfeer, net zoals Vice City altijd zon en neon heeft.
+GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van augustus. Dat is een eigen sfeer, net zoals Vice City altijd zon en neon heeft.
 - **Licht:** lange avonden. Twijduustern (de schemer) valt pas na tienen, en de kraak gebeurt in de kortste nacht die er nog over is. Zonsopgang na een lange nacht ("Net studenten").
 - **Stad in de zomer:** terrassen op de Vismarkt, het Noorderplantsoen vol kleedjes bij het eerste zonnetje, heel Stad aan de Hoornseplas ("Negatief zwemadvies. Iedereen zwemt toch."), ijs dat smelt sneller dan je het eet, en studenten die terugkomen voor de KEI-week.
 - **Groningse zomer, droog gebracht:** een hittegolf van 26 graden ("In Grunn heet dat tropisch"), regen die gewoon doorgaat ("Het regent hier niet. Het is zomer, en een beetje nat."), en wind tegen, ook in augustus.
@@ -122,7 +122,7 @@ GTE VI speelt in **één Groningse zomer**: de laatste twee weken van augustus. 
 - *Flits: een vrouw in een rode jas met een pinautomaat op een aanhanger. Bevroren beeld:* **ANITA**, met "Heeft altijd een plan B. Plan A is ook van haar."
 - *Flits: een man met een pet die een deur openhoudt en schuldig in de camera kijkt. Bevroren beeld:* **TAMMO**, met "Stadjer. Groot hart. Kleine portemonnee."
 - *Flitsen: een duif boven het museum, een trekker-limo op de ring, een tankwagen die slipt, een helikopter met een man aan een touw boven het Oosterpark.*
-- *Titel:* **GTE VI**, met "Er gaat niets boven Grunn. Behalve de Martinitoren." Ondertitel: *Een zomer in Grunn.*
+- *Titel:* het GDE-logo (**GDE**, GRONINGEN op het plaatsnaambord, *Zomer vol misdaad*), met "Er gaat niets boven Grunn. Behalve de Martinitoren." Ondertitel: *Een zomer in Grunn.*
 
 ## Opening (cutscène)
 
