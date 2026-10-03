@@ -1,8 +1,8 @@
 {
   "name": "gte-vi",
-  "productName": "GTE VI",
+  "productName": "GDE Groningen",
   "version": "0.23.0",
-  "description": "GTE VI - Grand Theft Eierbal VI",
+  "description": "GDE Groningen – Zomer vol misdaad (GDE: Grootste Diefstal Ever)",
   "author": "NatusPella",
   "private": true,
   "main": "main.js",
@@ -19,7 +19,7 @@
   },
   "build": {
     "appId": "nl.natuspella.gte-vi",
-    "productName": "GTE VI",
+    "productName": "GDE Groningen",
     "directories": {
       "output": "dist",
       "buildResources": "resources"
@@ -50,8 +50,8 @@
       "gatekeeperAssess": false
     },
     "dmg": {
-      "title": "GTE VI ${version}",
-      "artifactName": "GTE-VI-${version}-mac.${ext}"
+      "title": "GDE Groningen ${version}",
+      "artifactName": "GDE-Groningen-${version}-mac.${ext}"
     },
     "win": {
       "target": [
@@ -64,18 +64,18 @@
       ],
       "signExecutable": false,
       "icon": "resources/icon.png",
-      "legalTrademarks": "GTE VI"
+      "legalTrademarks": "GDE Groningen"
     },
     "portable": {
-      "artifactName": "GTE-VI-${version}-windows-portable.exe",
-      "unpackDirName": "GTE-VI"
+      "artifactName": "GDE-Groningen-${version}-windows-portable.exe",
+      "unpackDirName": "GDE-Groningen"
     },
     "toolsets": {
       "nsis": "1.2.1"
     },
     "copyright": "© 2026 NatusPella",
     "nsis": {
-      "shortcutName": "GTE VI"
+      "shortcutName": "GDE Groningen"
     },
     "afterPack": "scripts/adhoc-sign.cjs"
   },

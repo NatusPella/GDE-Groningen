@@ -1,7 +1,8 @@
-# NOTICE — GTE VI (Grand Theft Eierbal VI)
+# NOTICE — GDE Groningen – Zomer vol misdaad
 
-GTE VI is een gratis, niet-commercieel fanproject. **Fanparodie, niet
-gelieerd aan of goedgekeurd door Rockstar Games of Take-Two Interactive.**
+GDE Groningen (tot 0.24: GTE VI) is een gratis, niet-commercieel
+fanproject. **GDE is een fanparodie op GTA, niet gelieerd aan of
+goedgekeurd door Rockstar Games of Take-Two Interactive.**
 "Grand Theft Auto" en "GTA" zijn merken van Take-Two Interactive. Namen,
 personages, merken en gebeurtenissen in het spel zijn verzonnen; echte
 straten en openbare gebouwen zijn alleen decor.
@@ -28,7 +29,8 @@ De afgeleide databases in dit project vallen ook onder de ODbL:
 | Onderdeel | Licentie | Copyright | Tekst |
 |---|---|---|---|
 | three.js r160 (CDN, in de desktopbuild meegeleverd) | MIT | © 2010-2023 three.js authors | [licenses/MIT-three.js.txt](licenses/MIT-three.js.txt) |
-| Bebas Neue (Google Fonts, in de desktopbuild meegeleverd, ook ingebed in `desktop/resources/icon.svg`) | SIL Open Font License 1.1 | © 2010 Dharma Type | [licenses/OFL-BebasNeue.txt](licenses/OFL-BebasNeue.txt) |
+| Bebas Neue (Google Fonts, in de desktop- en webbuild meegeleverd) | SIL Open Font License 1.1 | © 2010 Dharma Type | [licenses/OFL-BebasNeue.txt](licenses/OFL-BebasNeue.txt) |
+| Big Shoulders Display, het logo (Google Fonts, in de desktop- en webbuild meegeleverd, als subset ingebed in `desktop/resources/icon.svg`) | SIL Open Font License 1.1 | © 2019 The Big Shoulders Project Authors | [licenses/OFL-BigShouldersDisplay.txt](licenses/OFL-BigShouldersDisplay.txt) |
 | Electron (alleen desktop) | MIT, met Chromium en Node.js onder hun eigen licenties | © Electron contributors, GitHub Inc. | `LICENSE.electron.txt` en `LICENSES.chromium.html` naast de app |
 | electron-builder (alleen bouwtool) | MIT | © Loopline Systems, Vladimir Krivosheev | wordt niet meegeleverd |
 
@@ -42,8 +44,8 @@ meegeleverd.
   (`game/audio/gmusic`, `game/audio/scenario`, `game/audio/theme`) zijn
   gemaakt met Google Gemini.
 - **Stemmen**: alle stemmen (`game/audio/voicelines`, `npc`, `police`,
-  `sikkom`, G-Music-jingles) zijn gemaakt met Google Gemini TTS
-  (`google/gemini-3.8-flash-tts` en eerdere modellen) via OpenRouter. Per map
+  `nieuws`, G-Music-jingles) zijn gemaakt met Google Gemini TTS
+  (`google/gemini-3.8-flash-tts`) via OpenRouter. Per map
   legt `tts.json` vast hoe elke clip is gemaakt.
 - **Martinitoren-model** (`game/models/martinitoren.glb`): gemaakt met
   Claude Design (Anthropic).

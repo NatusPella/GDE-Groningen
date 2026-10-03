@@ -1,9 +1,10 @@
 #!/bin/sh
-# Builds GTE-VI-Windows.zip: "START DE GAME.bat" + LEESMIJ.txt at the top,
-# the game (git HEAD, no secrets) in GTE-VI/. Usage: scripts/make_windows_zip.sh [out.zip]
+# Builds GDE-Groningen-Windows.zip: "START DE GAME.bat" + LEESMIJ.txt at the top,
+# the game (git HEAD, no secrets) in GTE-VI/ (the old folder
+# name stays, so START DE GAME.bat keeps finding an earlier install). Usage: scripts/make_windows_zip.sh [out.zip]
 set -e
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="${1:-$ROOT/GTE-VI-Windows.zip}"
+OUT="${1:-$ROOT/GDE-Groningen-Windows.zip}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 git -C "$ROOT" archive --format=tar --prefix=GTE-VI/ HEAD | tar -x -C "$TMP"

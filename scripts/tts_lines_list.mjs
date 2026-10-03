@@ -74,10 +74,10 @@ const CAST = {
   'Boer Roelf': { voice: 'Charon', who: 'oude Groningse boer op zijn erf, praat plat Gronings, nuchter en droog', pool: ['nuchter, droog', 'nors, stiekem onder de indruk'], accent: GRO_ACCENT },
   Hilje: { voice: 'Despina', who: 'Groningse boerin op leeftijd, praat plat Gronings, ad rem', pool: ['ad rem, verbaasd', 'nuchter, plagend'], accent: GRO_ACCENT },
   'Rotor Roelf': { voice: 'Achird', who: 'joviale Groningse helikopterverkoper van vliegveld Eelde, verkoperig, praat een beetje Gronings', pool: ['joviaal, verkoperig', 'gemoedelijk, waarschuwend'] },
-  // phone messages read aloud (sms manifest): the Sikkom newsreader and the phone's own app voice
-  'Sikkom-redactie': { voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Sikkom, leest een pushbericht voor', pool: ['als een nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog'] },
-  // Geesje presents the talk station Radio Grunn on the car radio (radiostations.js)
-  Geesje: { voice: 'Pulcherrima', who: 'Groningse radiopresentatrice van praatzender Radio Grunn, warm en droog', pool: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice'] },
+  // phone messages read aloud (sms manifest): the Kiekdoar newsreader and the phone's own app voice
+  'Kiekdoar-redactie': { voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor', pool: ['als een nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog'] },
+  // Geesje presents the talk station Radio Proat on the car radio (radiostations.js)
+  Geesje: { voice: 'Pulcherrima', who: 'Groningse radiopresentatrice van praatzender Radio Proat, warm en droog', pool: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice'] },
   Ubbo: { voice: 'Laomedeia', who: 'de vriendelijke stem van de telefoon-app Ubbo', pool: ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'], accent: 'spoken in standard Dutch, clear and friendly like a phone assistant' },
 };
 const MALE = ['Charon', 'Puck', 'Iapetus', 'Umbriel', 'Alnilam', 'Rasalgethi', 'Enceladus', 'Schedar', 'Sadaltager', 'Zubenelgenubi'];

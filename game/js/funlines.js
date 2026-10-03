@@ -1,6 +1,6 @@
 // What is said at the free-roam activities and on the car radio: carbid
 // schieten (carbid.js), the botsautootjes on the kermis (kermis.js) and the
-// talk station Radio Grunn (radiostations.js). Pure data:
+// talk station Radio Proat (radiostations.js). Pure data:
 // scripts/voicelines_collect.mjs reads these tables in Node. Gronings lines
 // get their Dutch subtitle from subtitles.js GRO.
 
@@ -51,7 +51,7 @@ export const KERMIS_LINES = {
   },
 };
 
-// Sikkom on the first kermis evening of a day (read aloud like other news).
+// Kiekdoar on the first kermis evening of a day (read aloud like other news).
 export const KERMIS_NEWS = "Kermis op de Grote Markt! Botsauto's, suikerspin en een reuzenrad tot diep in de nacht.";
 
 // The other drivers in the bumper cars (bubbles, any voice).
@@ -65,17 +65,17 @@ export const KERMIS_TWINS = {
   douwe: { bumped: ['Durk, ik word misselijk.', 'Baas zei niks over botsen.'], hit: ['Sorry. …Hè.'] },
 };
 
-// Radio Grunn: the talk station on the car radio. Geesje presents; between
-// her bits run the Sikkom news, the traffic, the cows and Rikus's
+// Radio Proat: the talk station on the car radio. Geesje presents; between
+// her bits run the Kiekdoar news, the traffic, the cows and Rikus's
 // Nachtstreek lines that already have a recording.
-export const RADIO_HOST = 'Geesje (Radio Grunn)';
+export const RADIO_HOST = 'Geesje (Radio Proat)';
 export const RADIO_GRUNN = {
   ident: [
-    'Radio Grunn. Proatradio veur Stad en Ommeland.',
-    'Je luistert naar Radio Grunn. Gewoon weer een dag in Stad.',
-    'Radio Grunn. Wij zeggen wat er is, en niet meer dan dat.',
+    'Radio Proat. Wie proaten, joe heuren. Veur Stad en Ommeland.',
+    'Je luistert naar Radio Proat. Gewoon weer een dag in Stad.',
+    'Radio Proat. Wij zeggen wat er is, en niet meer dan dat.',
   ],
-  news: ['Eerst het nieuws, van Sikkom.', 'Nog meer nieuws. Sikkom weet het altijd eerder.'],
+  news: ['Eerst het nieuws, van Kiekdoar.', 'Nog meer nieuws. Kiekdoar weet het altijd eerder.'],
   traffic: ['Dan het verkeer.'],
   cows: ['En dan de koeien. Ja, die hebben ook een mening.'],
   rikus: ['Rikus van Nachtstreek stuurde ons er nog eentje.'],

@@ -707,11 +707,11 @@ function updateLod(w, dt) {
   if (fair) fair.root.visible = on && d < DETAIL_M + 200;
   if (on && d < 140 && (!crowd || crowd.length < CROWD_SPOTS.length)) crowd = buildCrowd(crowd || []);
   else if (crowd && (!on || d > 180)) disposeCrowd();
-  // the first kermis evening of the day gets a Sikkom item
+  // the first kermis evening of the day gets a Kiekdoar item
   const day = w.flavour ? w.flavour.day : 0;
   if (on && day !== lastKermisDay && w.time > 20) {
     lastKermisDay = day;
-    if (!announced || Math.random() < 0.35) notifyPhone(w, { from: 'Sikkom', app: 'sikkom', text: `SIKKOM: ${KERMIS_NEWS}` });
+    if (!announced || Math.random() < 0.35) notifyPhone(w, { from: 'Kiekdoar', app: 'sikkom', text: `KIEKDOAR: ${KERMIS_NEWS}` });
     announced = true;
   }
 }
