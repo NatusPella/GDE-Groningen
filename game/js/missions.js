@@ -7,7 +7,7 @@ import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, storySpeakerName } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
@@ -87,7 +87,8 @@ function buildDefs(world) {
   const { map } = world;
   const drive = (x, y) => roadSpot(map, x, y, true);
   const walk = (x, y) => roadSpot(map, x, y);
-  const kroeg = (name, x, y) => ({ ...walk(x, y), name });
+  // toast: the short drink at the door (missionstory.js playToast): glass, camera variant, one line or none
+  const kroeg = (name, x, y, toast = null) => ({ ...walk(x, y), name, toast });
   // Route guidance between checkpoints along the streets, so the line to the
   // next marker never runs through a block; passed automatically (see waypointReached).
   const via = (spot) => ({ ...spot, via: true });
@@ -184,13 +185,13 @@ function buildDefs(world) {
       start: walk(250, 115),
       waypoints: [
         via(walk(304.3, 130.9)),
-        kroeg('Café De Lallende Koe', 368, 118.6),
+        kroeg('Café De Lallende Koe', 368, 118.6, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
         via(walk(416.2, 125.8)),
-        kroeg("Kroeg 't Scheve Toorntje", 410.5, 170.9),
+        kroeg("Kroeg 't Scheve Toorntje", 410.5, 170.9, { glass: 'wine', variant: 1, lines: [['T', 'Op Grunn.']] }),
         via(walk(431.2, 182.1)), via(walk(393.9, 194.8)), via(walk(399.8, 210.6)), via(walk(365.9, 223)),
-        kroeg('Nachtcafé De Uil van Half Vier', 352.6, 224.7),
+        kroeg('Nachtcafé De Uil van Half Vier', 352.6, 224.7, { glass: 'jenever', variant: 2, lines: [] }),
         via(walk(316.1, 243.9)), via(walk(262.2, 128.3)),
-        kroeg('Café De Dikke Duif', 213.6, 135.9),
+        kroeg('Café De Dikke Duif', 213.6, 135.9, { glass: 'beer', variant: 3, lines: [['T', 'Op de laatste.']] }),
       ],
     },
     {
@@ -1628,6 +1629,7 @@ function startMission(world, def) {
   chain.windowT = 0;
   chain.momentDone = false;
   chain.hijacked = false;
+  chain.finishPending = false;
   // the kraak: both in black, whoever bought it (off again on the train, stationtravel.js)
   // (any other mission: the train was skipped somehow, so their own clothes again)
   setStoryOutfit(def.heist ? 'incognito' : null);
@@ -1760,11 +1762,13 @@ function reachCheckpoint(world, def, k = chain.wpIndex) {
   chain.wpIndex++;
   if (!wp.via) chain.timeLeft += wp.bonus ?? def.checkpointBonus;
   if (def.drunk && wp.name) addDrunk(world, def.drunk);
+  if (wp.toast && !isCinematicActive()) playToast(world, { at: { x: world.player.x, y: world.player.y }, facing: world.player.angle, kicker: wp.name, ...wp.toast });
   if (def.moment && !chain.momentDone && chain.wpIndex >= def.moment.at) {
     chain.momentDone = true;
     playMoment(world, def.moment);
   }
   if (chain.wpIndex >= def.waypoints.length) {
+    if (wp.toast && isCinematicActive('mission-scene')) { chain.finishPending = true; return; }
     if (chain.race) {
       const { position, total } = raceStandings(chain.race);
       chain.run.racePos = position;
@@ -1902,6 +1906,8 @@ export function updateMissions(dt, world) {
   } else if (def.type === 'stunt') {
     if (updateStunt(dt, world, chain.timeLeft) === 'done') succeed(world, def);
   } else if (def.type === 'checkpoint') {
+    // the last pub's toast first, then the outro (a story scene can't start under it)
+    if (chain.finishPending) { if (!isCinematicActive()) { chain.finishPending = false; succeed(world, def); } return; }
     if (chain.race) {
       updateRace(dt, world, chain.race, chain.wpIndex);
       const r = raceStandings(chain.race);

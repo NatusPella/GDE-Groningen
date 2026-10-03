@@ -1487,6 +1487,15 @@ export function playClueSting() {
   playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
 }
 
+// Two glasses touching (H11's toasts, missionstory.js playToast): a bright
+// ting with a short second ring, softer for small jenever glasses.
+export function playGlassClink(small = false) {
+  if (!ctx || muted || !stingBus) return;
+  const base = small ? 3300 : 2480;
+  for (const [f, g, d] of [[1, 0.045, 0.45], [1.51, 0.022, 0.3], [2.76, 0.012, 0.18]]) playTone({ freq: base * f, type: 'sine', duration: d, gain: g, bus: stingBus, prio: 2 });
+  playTone({ freq: base * 1.04, type: 'sine', duration: 0.25, gain: 0.018, delay: 0.07, bus: stingBus, prio: 2 });
+}
+
 // Tammo whistles up a pigeon (pigeonmode.js): a soft two-note "fuu-fiet".
 function playWhistle() {
   if (!ctx || muted || !uiBus) return;
