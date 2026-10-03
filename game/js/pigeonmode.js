@@ -1356,7 +1356,7 @@ function goHome() {
 
 const smooth = (t) => t * t * (3 - 2 * t);
 
-// Intro: over the shoulder of Tammo/Anita at the pigeon, then down behind it.
+// Intro: over the shoulder of Tammo/Tessa at the pigeon, then down behind it.
 // First camera spot from `list` that is outside buildings and sees `to`.
 function openCamSpot(list, to) {
   for (const c of list) {
@@ -1566,7 +1566,7 @@ function beginFlight(w) {
 
 const inMission = (w) => !!(w.mission && w.mission.phase === 'active');
 
-// Where Tammo/Anita reappear: right below the pigeon if that is open, walkable
+// Where Tammo/Tessa reappear: right below the pigeon if that is open, walkable
 // ground; otherwise (roof, water, closed-off courtyard) the nearest street.
 function landingSpot(map) {
   const f = surfaceAt(P.x, P.y, false);
@@ -1639,7 +1639,7 @@ function clearFlightProps() {
   for (let i = decals.length - 1; i >= 0; i--) if (decals[i].v) { scene.remove(decals[i].mesh); decals.splice(i, 1); }
 }
 
-// Ends the pigeon activity: Tammo/Anita (and the companion) step out at the
+// Ends the pigeon activity: Tammo/Tessa (and the companion) step out at the
 // spot below the pigeon and normal play resumes; the pigeon flutters off.
 export function stopPigeonMode(w = world) {
   if (!active) return false;
@@ -1674,7 +1674,7 @@ export function stopPigeonMode(w = world) {
 
   if (flew) {
     outro = { t: 0, x: P.x, y: P.y, z: Math.max(P.z, surfaceAt(P.x, P.y, false).h), yaw: P.yaw };
-    const who = pl.character === 'anita' ? 'Anita' : 'Tammo';
+    const who = pl.character === 'anita' ? 'Tessa' : 'Tammo';
     const wijk = wijkAt(map, spot.x, spot.y);
     // a flight without points (a mission's, or a short hop) needs no score card
     if (score > 0) w.addMessage(`${who} doet de ogen weer open${wijk ? ' in ' + wijk : ''}. ${score} poeppunten deze vlucht (totaal ${store.total}).`, 4.5);
@@ -1765,7 +1765,7 @@ export function getPigeonFlight() {
 export { buildBird as buildPigeonBird, poseBird as posePigeonBird };
 
 // Starts the pigeon activity. With a spot ({ x, y }: where a pigeon sits near
-// Tammo/Anita) there is a short intro before it takes off from there; without
+// Tammo/Tessa) there is a short intro before it takes off from there; without
 // one the pigeon starts in the air above the player.
 export function startPigeonMode(w, spot = null) {
   if (active || !ready) return false;

@@ -83,7 +83,7 @@ export function boatSeats(v) {
         { x: 0.75, z: 0, y: 0.12, face: 0, pose: { recline: 0.08, footX: 0.5, footY: -0.02, splay: 0.35, arms: 'lap' } },
       ];
     case 'kajak':
-      // seat 1: a stowaway on the fore deck, so Tammo and Anita still fit
+      // seat 1: a stowaway on the fore deck, so Tammo and Tessa still fit
       return [
         { x: -0.15, z: 0, y: 0.04, face: 0, pose: { recline: 0.02, ...LEGS_FLOOR, arms: 'paddle' } },
         { x: 0.62, z: 0, y: 0.24, face: 0, pose: { recline: 0.12, footX: 0.78, footY: -0.05, arms: 'lap' } },

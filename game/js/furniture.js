@@ -14,7 +14,7 @@ import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
 import { storyFlag } from './story.js';
 
-// EIKEA furniture for Tammo and Anita's flat (home.js). Bought in the EIKEA
+// EIKEA furniture for Tammo and Tessa's flat (home.js). Bought in the EIKEA
 // (shops.js eikeaSections), delivered "tussen 8 en 18 uur": the next time
 // they come home. Every piece stands at a fixed spot in the flat's frame
 // (x along the facade, z inward), is only built while they are upstairs and
@@ -85,7 +85,7 @@ function blank() {
 }
 
 const has = (id) => state.owned.has(id) && (!BY_ID.get(id).flatpack || state.built.has(id));
-const other = (w) => (w.player.character === 'anita' ? 'Tammo' : 'Anita');
+const other = (w) => (w.player.character === 'anita' ? 'Tammo' : 'Tessa');
 const sayOnce = (w, key, text) => { if (said.has(key)) return; said.add(key); w.addMessage(text, 4, { kind: 'tip' }); };
 
 // --- save ------------------------------------------------------------------------
@@ -451,7 +451,7 @@ function tvMenu(w) {
   const defs = getMissionDefs();
   const done = prog ? [...prog.completed].sort((a, b) => a - b) : [];
   const shows = done.map((i) => ({
-    id: 'tv-' + i, label: (defs[i] && defs[i].label) || `Missie ${i + 1}`, desc: 'Aflevering ' + (i + 1) + ' van "Tammo en Anita: de Gouden Eierbal"',
+    id: 'tv-' + i, label: (defs[i] && defs[i].label) || `Missie ${i + 1}`, desc: 'Aflevering ' + (i + 1) + ' van "Tammo en Tessa: de Gouden Eierbal"',
     verb: 'Kijken', price: 0, keepFocus: true, buy() { closeShopMenu(); startTv(w, this.label, storyReplayLines(i)); return 'Kijken maar'; },
   }));
   return {

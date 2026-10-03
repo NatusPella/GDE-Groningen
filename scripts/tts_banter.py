@@ -1,4 +1,4 @@
-# Voices Tammo and Anita's car banter (game/js/banterlines.js) with Gemini 3.8
+# Voices Tammo and Tessa's car banter (game/js/banterlines.js) with Gemini 3.8
 # Flash TTS (gemini_tts.py) into game/audio/voicelines/banter + manifest.json
 # (what each clip was made from in tts.json),
 # in the same voices as their bijbaantje lines, loudness-normalised (two-pass

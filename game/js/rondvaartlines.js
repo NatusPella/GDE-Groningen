@@ -1,9 +1,9 @@
 // The guided tour, in sailing order, shared by the H13 mission and the
 // relaxed tour (sidejob_rondvaarttour.js). `at` is the thing itself; the
 // story starts where the route passes closest to it. Tammo is the guide at
-// the microphone, Anita (who knows more) chimes in and corrects him; the
+// the microphone, Tessa (who knows more) chimes in and corrects him; the
 // tourists react in short bubbles. Facts are kept to what is well
-// documented; the jokes are clearly jokes. Line keys: T Tammo, A Anita,
+// documented; the jokes are clearly jokes. Line keys: T Tammo, A Tessa,
 // D the German tourist, E the English one, R the one from the Randstad
 // (foreign lines get a Dutch subtitle, subtitles.js INTL).
 export const TOUR_WELCOME = [
@@ -153,7 +153,7 @@ export const TOURIST_REACT = {
 
 // H13's own scenes and moments (rondvaartchase.js). Keys: W Schipper Wiebe
 // through his megaphone, G Tammo at the guide's microphone, t Tammo off the
-// microphone, A Anita.
+// microphone, A Tessa.
 export const RV_SCENES = {
   // why Wiebe is after them: his boat, his paying tourists, one beer
   why: [

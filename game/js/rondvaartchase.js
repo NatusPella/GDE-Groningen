@@ -628,7 +628,7 @@ function say(speaker, text, color, prio = false) {
 
 // One line at a time, through the one talking channel (speech.js via
 // audio.playLineVoice): a line waits until its recording may play, so the
-// guide, Anita, the tourists and Wiebe never talk over each other or over
+// guide, Tessa, the tourists and Wiebe never talk over each other or over
 // a phone call; car banter and the radio give way to the mission's lines.
 function updateSubs(dt) {
   const el = subtitleEl();
@@ -990,7 +990,7 @@ function playBonkScene(world, w) {
   });
 }
 
-// The tour boat at its berth, Tammo and Anita now aboard: from the water,
+// The tour boat at its berth, Tammo and Tessa now aboard: from the water,
 // drifting slowly along the hull so the whole boat and the quay show.
 export function playRondvaartBoarding(world, boat, { queue = true } = {}) {
   if (!boat) return false;

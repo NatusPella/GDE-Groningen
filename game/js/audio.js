@@ -40,7 +40,7 @@ const SIREN_HIGH_FREQ = 587;
 const SIREN_HOLD_MIN = 0.5;
 const SIREN_HOLD_MAX = 0.7;
 
-// Pre-recorded TTS voicelines - Tammo/Anita only, never reused by NPCs/
+// Pre-recorded TTS voicelines - Tammo/Tessa only, never reused by NPCs/
 // police/anyone else. The script is intentionally asymmetric (not every
 // character has every line) - playVoiceline() below just no-ops on a
 // missing key rather than substituting the wrong character's line.

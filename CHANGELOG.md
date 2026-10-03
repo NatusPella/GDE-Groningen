@@ -22,6 +22,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   een kopie van je oude save.
 
 ### Gewijzigd
+- **Anita heet nu Tessa.** Het duo is nu Tammo en Tessa, overal waar je het
+  ziet of hoort: dialogen, ondertitels, naamkaarten, HUD, het Verhaal-menu,
+  prestaties, besturing, aftiteling en trailer. De zinnen waarin haar naam
+  valt zijn opnieuw ingesproken. Je opslag blijft gewoon werken.
 - De disclaimer staat niet meer op het laad- en startscherm, alleen nog in
   Over, de aftiteling en de README.
 - **Minder toetshints:** lopen, rondkijken, rennen, springen, bukken,
@@ -34,7 +38,7 @@ nieuwe functies, `y` voor alleen bugfixes.
   ligt als je het slot gekraakt hebt: de camera schuift in stilte naar binnen,
   de koepel gaat omhoog, een leeg kussen, het kaartje in close-up. Kort en
   wegklikbaar. Het kaartje is nu getekend "– J.", en na Jelles telefoontje
-  naar Nachtstreek valt bij Anita het kwartje: "J. Van Jelle. Natuurlijk."
+  naar Nachtstreek valt bij Tessa het kwartje: "J. Van Jelle. Natuurlijk."
 - Oude saves nemen de tellers mee van vóór 0.24 ("kills" heten nu
   knock-outs), in plaats van ze te laten vallen.
 - Een save van een nieuwere versie van het spel wordt niet meer
