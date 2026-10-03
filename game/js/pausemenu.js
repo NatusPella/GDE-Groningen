@@ -28,6 +28,7 @@ import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummar
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } from './verhaalui.js';
 import { anyFresh } from './characters.js';
+import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
 
@@ -180,7 +181,7 @@ const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  settings: [['sound', 'Geluid'], ['video', 'Beeld'], ['camera', 'Camera & muis'], ['controller', 'Controller'], ['display', 'Weergave'], ['a11y', 'Toegankelijk']],
+  settings: [['sound', 'Geluid'], ['video', 'Beeld'], ['camera', 'Camera & muis'], ['controller', 'Controller'], ['display', 'Weergave'], ['a11y', 'Toegankelijk'], ['fouten', 'Foutrapport']],
   controls: [['overzicht', 'Overzicht'], ['toetsen', 'Toetsenbord'], ['knoppen', 'Controller']],
 };
 
@@ -328,6 +329,16 @@ function settingsHtml() {
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       ${toggle('cinematicMoments', 'Filmische momenten', 'Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.')}
       ${segmented('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
+    </div>
+    <div data-of="settings" data-sub="fouten" class="pm-group" hidden>
+      <p class="pm-note">Gaat er iets mis, dan schrijft het spel dat hier op. Alleen op dit apparaat: er wordt niets verstuurd. Wil je helpen? Kopieer het rapport en stuur het zelf mee met je melding. Er staat niets persoonlijks in: de melding, waar in de code, de versie, je verhaalstap, een paar instellingen en het soort videokaart.</p>
+      <div class="pm-confirm-row pm-errlog-actions">
+        <button type="button" class="pm-secondary pm-small" data-action="errlog-copy">Kopieer naar klembord</button>
+        ${DESKTOP && DESKTOP.saveTextFile ? '<button type="button" class="pm-secondary pm-small" data-action="errlog-save">Opslaan als bestand</button>' : ''}
+        <button type="button" class="pm-secondary pm-small" data-action="errlog-clear">Wissen</button>
+      </div>
+      <p class="pm-status" data-errlog-status role="status"></p>
+      <ol class="pm-errlog" data-errlog></ol>
     </div>
     <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="reset">${icon('restart')}<span>Standaardinstellingen</span></button></div>`;
 }
@@ -892,6 +903,14 @@ function runAction(a) {
       if (world) saveGame(world);
       benchmarkViaReload();
     }
+  } else if (a === 'errlog-copy') {
+    copyText(errorReport()).then((ok) => errlogStatus(ok ? 'Gekopieerd. Plak het in je bericht.' : 'Kopiëren lukte niet. Opslaan als bestand kan wel in de desktopversie.'));
+  } else if (a === 'errlog-save' && DESKTOP && DESKTOP.saveTextFile) {
+    DESKTOP.saveTextFile(`GDE-foutrapport-${new Date().toISOString().slice(0, 10)}.txt`, errorReport())
+      .then((saved) => errlogStatus(saved ? 'Opgeslagen.' : ''), () => errlogStatus('Opslaan lukte niet.'));
+  } else if (a === 'errlog-clear') {
+    clearErrorLog();
+    errlogStatus('Gewist.');
   } else if (a === 'reset') {
     resetSettings();
     syncControls();
@@ -929,6 +948,36 @@ function garageFind(id) {
   setMapView(res.x, res.y, 3);
 }
 
+function errlogStatus(text) {
+  const el = root && root.querySelector('[data-errlog-status]');
+  if (el) el.textContent = text;
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* no permission: the old way */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+function renderErrorLog() {
+  const list = root && root.querySelector('[data-errlog]');
+  if (!list || list.closest('[hidden]')) return;
+  const log = getErrorLog().reverse();
+  list.innerHTML = log.length ? log.slice(0, 25).map((e) => `<li class="${e.level === 'warn' ? 'warn' : 'err'}"><b>${e.level === 'warn' ? 'Waarschuwing' : 'Fout'}${e.count > 1 ? ` · ${e.count}×` : ''}</b> <small>${esc(e.t.slice(0, 16).replace('T', ' '))}${e.step ? ' · ' + esc(e.step) : ''}</small><span>${esc(e.msg)}</span></li>`).join('')
+    : '<li class="none">Geen fouten. Mooi zo.</li>';
+}
+onErrorLogChange(() => renderErrorLog());
+
 function showSubtab(of, name) {
   const subs = SUBTABS[of];
   if (!subs.some(([id]) => id === name)) name = subs[0][0];
@@ -939,6 +988,7 @@ function showSubtab(of, name) {
   if (panel) panel.scrollTop = 0;
   if ((of === 'todo' && name === 'verhaal') || (of === 'verhaal' && name === 'aanwijzingen')) { markCluesSeen(); syncNavBadges(); }
   if (of === 'settings') root.querySelector('[data-bench-confirm]').hidden = true;
+  if (of === 'settings' && name === 'fouten') { errlogStatus(''); renderErrorLog(); }
 }
 
 function syncDesktopControls() {
