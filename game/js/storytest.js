@@ -212,8 +212,12 @@ export async function runStoryTest(world) {
           check(`${cur.id}: no skip offered before a first try`, !S().canSkip() && !S().view().canSkip);
           const before = world.money;
           if (step.goal && step.goal.type === 'padel' && window.__padel) {
-            // a real match at the court the guide points to, ended at once (a loss still counts)
-            const pd = window.__padel;
+            // the twins' challenge at the court, then a real match there, ended at once (a loss still counts)
+            const pd = window.__padel, sf = window.__storyFun;
+            if (sf && sf.court) {
+              check(`${cur.id}: Durk and Douwe challenge you at the court`, sf.court(), JSON.stringify(sf.state()));
+              await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !isCinematicActive(); }, 15000, 200);
+            }
             const started = pd.start();
             await sleep(1500);
             const st = pd.state();
@@ -246,32 +250,18 @@ export async function runStoryTest(world) {
             await sleep(800);
             check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
           } else if (step.goal && step.goal.type === 'flight' && window.__storyFun) {
-            // the free demo flight: Rotor Roelf at his heli, up and over the balloon, back and out
+            // Rotor Roelf with his demo heli on Eelde: walking up plays his scene and completes the step (H15 flies it)
             const sf = window.__storyFun, p = world.player;
+            const guide = world.storyGuide;
+            check(`${cur.id}: the guide points to Eelde`, !!guide && Math.hypot(guide.x - step.goal.heli[0], guide.y - step.goal.heli[1]) < 30, JSON.stringify(guide));
             const v = (await waitFor(() => sf.demo(), 5000)) && sf.demo();
-            check(`${cur.id}: Rotor Roelf's demo heli waits, not owned`, v && v.isHeli && v.missionCar && !v.playerOwned, JSON.stringify(sf.state()));
+            check(`${cur.id}: Rotor Roelf's demo heli waits on his pad, not owned`, v && v.isHeli && v.missionCar && !v.playerOwned && Math.hypot(v.x - step.goal.heli[0], v.y - step.goal.heli[1]) < 12, JSON.stringify(sf.state()));
             if (v) {
               if (p.inVehicle) p.exitVehicle(world.map, world);
-              p.x = v.x + 4; p.y = v.y + 1;
+              p.x = v.x - 6; p.y = v.y + 5;
               check(`${cur.id}: Rotor Roelf's scene plays at his heli`, await waitFor(() => sf.state().played.meet > 0, 8000), JSON.stringify(sf.state()));
-              await drain(world, 300);
-              p.enterVehicle(v, world);
-              const [bx, by] = step.goal.over;
-              Object.assign(v, { x: bx - 120, y: by + 10, z: 40, onGround: false, airborne: true, vx: 0, vy: 0, vz: 0, speed: 0 });
-              await sleep(900);
-              check(`${cur.id}: the balloon stands in the park`, !!sf.state().balloon, JSON.stringify(sf.state()));
-              if (await waitFor(() => sf.state().played.spot > 0 && isCinematicActive(), 15000)) {
-                await sleep(2500);
-                capture(`${String(n).padStart(2, '0')}-${cur.id}-spot`);
-                await sleep(800);
-              }
-              const spotted = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
-              check(`${cur.id}: spotting the balloon from the air completes the step`, spotted && sf.state().played.spot > 0, JSON.stringify(sf.state()));
-              const [hx, hy] = step.goal.heli;
-              const gz = world.map.groundHeightAt ? world.map.groundHeightAt(hx, hy, 0) : 0;
-              Object.assign(v, { x: hx, y: hy, z: gz, groundZ: gz, onGround: true, airborne: false, vx: 0, vy: 0, vz: 0, speed: 0 });
-              await sleep(500);
-              if (p.inVehicle === v) p.exitVehicle(world.map, world);
+              const met = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
+              check(`${cur.id}: meeting Roelf completes the step`, met, JSON.stringify(S().current()));
             }
             check(`${cur.id}: no helicopter bought for the demo flight`, !getOwnedEntries().some((o) => o.spec && o.spec.kind === 'heli'));
           } else if (step.goal && step.goal.type === 'carbid' && window.__carbid && window.__activities && window.__storyFun) {
