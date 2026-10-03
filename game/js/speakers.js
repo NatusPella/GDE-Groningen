@@ -2,7 +2,7 @@
 // banter, the phone). One colour per character, the same as in
 // docs/personages.md. Every colour has a relative luminance of about
 // 0.17-0.30, so the bold name stays readable on the dark subtitle shadow and
-// on the light speech bubble; Tammo (blue) and Anita (orange) are the
+// on the light speech bubble; Tammo (blue) and Tessa (orange) are the
 // Okabe-Ito pair that stays apart for every common colour blindness.
 // Pure data plus two tiny helpers: Node scripts may import it.
 
@@ -40,22 +40,37 @@ export const SPEAKER_COLORS = {
 // generic NPCs, bijbaan bosses, radio and navigation voices
 export const NEUTRAL = '#8a8a8a';
 
+// The one place where a speaker id becomes the name players see. Speaker ids
+// key the voice manifests ("Anita|<text>"), SPEAKER_COLORS and the TTS cast,
+// and the character key 'anita' is in saves, so those stay. On screen she is
+// called Tessa.
+export const DISPLAY_NAME = { Anita: 'Tessa' };
+// character key ('tammo' / 'anita', as in saves) -> the name on screen
+export const CHARACTER_NAME = { tammo: 'Tammo', anita: 'Tessa' };
+export const charName = (key) => CHARACTER_NAME[key] || CHARACTER_NAME.tammo;
+
 // "Tammo (gids)" and "Schipper Wiebe (megafoon)" are still Tammo and Wiebe.
 export const baseSpeaker = (name) => String(name || '').replace(/\s*\(.*\)$/, '');
-export const speakerColor = (name) => SPEAKER_COLORS[baseSpeaker(name)] || NEUTRAL;
+// "Anita" -> "Tessa", "Anita (gids)" -> "Tessa (gids)"; other names as they are
+export const displayName = (name) => {
+  const s = String(name || ''), b = baseSpeaker(s);
+  return DISPLAY_NAME[b] ? DISPLAY_NAME[b] + s.slice(b.length) : s;
+};
+const SPEAKER_ID = Object.fromEntries(Object.entries(DISPLAY_NAME).map(([id, shown]) => [shown, id]));
+export const speakerColor = (name) => SPEAKER_COLORS[baseSpeaker(name)] || SPEAKER_COLORS[SPEAKER_ID[baseSpeaker(name)]] || NEUTRAL;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // `<b class="spk">Tammo:</b> ` in Tammo's colour, or '' without a name.
 export function speakerHtml(name) {
   if (!name) return '';
-  return `<b class="spk" style="color:${speakerColor(name)}">${esc(name)}:</b> `;
+  return `<b class="spk" style="color:${speakerColor(name)}">${esc(displayName(name))}:</b> `;
 }
 
 // Same for an element that only holds the name (textContent + colour).
 export function paintSpeaker(el, name) {
   if (!el) return;
-  el.textContent = name ? name + ':' : '';
+  el.textContent = name ? displayName(name) + ':' : '';
   el.style.color = name ? speakerColor(name) : '';
   el.style.fontWeight = 'bold';
 }

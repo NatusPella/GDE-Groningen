@@ -106,7 +106,7 @@ function buildDefs(world) {
       type: 'deliver',
       label: 'Berend telt de krassen',
       intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.', 'Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.'],
-      outro: 'Berend zei goud. En moi. Tegen Anita.',
+      outro: 'Berend zei goud. En moi. Tegen Tessa.',
       timeLimit: 85,
       reward: 50,
       // Berend takes 50 cents off per percent of damage, down to a quarter of the fee
@@ -135,8 +135,8 @@ function buildDefs(world) {
       outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
       race: 'kei',
       requires: 'bike',
-      // the all-green crossing: Anita comes the other way on her own bike
-      moment: { at: 3, text: 'Alles groen. Anita komt van de andere kant, op haar eigen fiets. Oogcontact. Jullie remmen allebei.' },
+      // the all-green crossing: Tessa comes the other way on her own bike
+      moment: { at: 3, text: 'Alles groen. Tessa komt van de andere kant, op haar eigen fiets. Oogcontact. Jullie remmen allebei.' },
       // each on their own bike (D: she comes the other way at the all-green crossing), so she gets off his
       ownBike: true,
       say: 'Ik fiets zelf, op mijn eigen fiets. Met bonnetje. Zie je op het kruispunt.',
@@ -226,8 +226,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Even pinnen',
-      intro: ['Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita\'s pas erin. De aanhanger bleef achter.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.'],
-      outro: 'Sjabbe gaf Anita haar pas terug. En hij vertelde over het museum.',
+      intro: ['Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa\'s pas erin. De aanhanger bleef achter.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.'],
+      outro: 'Sjabbe gaf Tessa haar pas terug. En hij vertelde over het museum.',
       timeLimit: null,
       reward: 400,
       vehicle: 'car',
@@ -446,8 +446,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Het staat niet in het rooster',
-      intro: ['Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.', 'Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.'],
-      outro: 'Tammo haalde de Eierbal uit de mand en Anita zette de heli netjes op de H. Jelle landde in een weiland, tussen de koeien.',
+      intro: ['Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.', 'Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.'],
+      outro: 'Tammo haalde de Eierbal uit de mand en Tessa zette de heli netjes op de H. Jelle landde in een weiland, tussen de koeien.',
       timeLimit: null,
       reward: 1500,
       // one flight in Rotor Roelf's demo heli: off from his pad on Eelde (resolveSpotStarts)
@@ -466,13 +466,13 @@ function buildDefs(world) {
       reward: 1100,
       vehicle: 'car',
       fjordTrain: true,
-      // Anita alone: Tammo stays behind with the klomp
+      // Tessa alone: Tammo stays behind with the klomp
       solo: true,
       start: drive(-60, 868),
       stages: [
         {
           kind: 'goto', target: { at: [-170, 905], snap: 'walk', label: 'De Westerhaven' }, mode: 'any', radius: 14, label: 'Naar de Westerhaven: daar zag Jelmers chat een rode auto', say: 'Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.',
-          // Mem Terpstra calls Nachtstreek while Anita looks
+          // Mem Terpstra calls Nachtstreek while Tessa looks
           radio: { caller: 'Gerda Terpstra, Ljouwert', lines: [
             ['mem', 'Rikus. Gerda Terpstra, Ljouwert. Myn soan hat dy reade auto op de trein nei Ljouwert set. Zeg tegen dat famke: perron 3.', { card: 'mem', clue: true }],
             ['rikus', 'Mevrouw Terpstra, waarom helpt u ons?'],
@@ -503,10 +503,10 @@ function buildDefs(world) {
         {
           kind: 'train', label: 'Blokkeer de overweg aan de Peizerweg', say: 'Snel, naar de overweg aan de Peizerweg! Ga erbij staan, dan moet de machinist wel stoppen.',
           caught: 'De trein staat stil. Durk en Douwe rijden de Escapade van de wagon en fietsen weg, allebei op één fatbike.',
-          taken: 'Anita rijdt de Escapade zelf van de wagon af. Moai!',
+          taken: 'Tessa rijdt de Escapade zelf van de wagon af. Moai!',
           lost: 'de Escapade staat op de trein naar Ljouwert',
         },
-        { kind: 'board', label: 'Stap in de Escapade', say: 'Hij is terug. Instappen, Anita. Hij rijdt nog. Nauwelijks.' },
+        { kind: 'board', label: 'Stap in de Escapade', say: 'Hij is terug. Instappen, Tessa. Hij rijdt nog. Nauwelijks.' },
       ],
     },
     {
@@ -546,7 +546,7 @@ function buildDefs(world) {
           kicker: 'Gronings Ontzet', big: 'Hij grist de Eierbal!',
           cast: [{ key: 'jelle', pose: 'hold', at: [2.2, 0] }, { key: 'durk', pose: 'arms', at: [3.5, 1.5] }, { key: 'douwe', pose: 'arms', at: [3.5, -1.5] }, { key: 'berend', pose: 'hips', at: [1.3, 2.7] }],
           props: [{ kind: 'ball', holder: 'jelle' }],
-          lines: [['jelle', 'Mem moet hem zien. Vóór de uitslag. Ik bin sa werom!'], ['A', 'Hé! Die staat op de jurytafel!'], ['berend', 'Dit hoort niet bij het naspel.'], ['T', 'Anita, de auto! Ik hou de eierballen warm.']],
+          lines: [['jelle', 'Mem moet hem zien. Vóór de uitslag. Ik bin sa werom!'], ['A', 'Hé! Die staat op de jurytafel!'], ['berend', 'Dit hoort niet bij het naspel.'], ['T', 'Tessa, de auto! Ik hou de eierballen warm.']],
         },
         { kind: 'board', label: 'Stap in de auto', say: 'Henk heeft de auto klaargezet. Instappen, achter die trekker aan!' },
         {
@@ -1156,7 +1156,7 @@ function removeLeftover(world) {
   if (i >= 0) world.vehicles.splice(i, 1);
 }
 
-// How far the Tammo/Anita story has got for mission i: normally i itself,
+// How far the Tammo/Tessa story has got for mission i: normally i itself,
 // lower when missions were played out of order.
 function storyStage(i) {
   const k = MISSION_STORY_ORDER.indexOf(i);
@@ -2009,7 +2009,7 @@ function raceCarProblem() {
 // More options: goto `limit` (seconds, `late` = the fail reason), `pay` (money taken when
 // the stage is done, `paid` = the toast), hold `ticks` (three progress toasts) and
 // `fireworks` { every: [min, max], hit, cost, hitText } (bangs that knock you down and
-// cost hold time); chase `hero` (the fleeing car is Anita's own Fjord), `clock`, `meter`,
+// cost hold time); chase `hero` (the fleeing car is Tessa's own Fjord), `clock`, `meter`,
 // `half`, `lost`, `gone`, `burned`, `from` [x, y] (spawn on that road instead of the start's),
 // `route` [{ at, radio, say }] (drives point to point, each one's radio report on reaching it,
 // then `flee`) and `swarm` { stall, near, lines } (H18: at half the meter, or after the route
@@ -2132,7 +2132,7 @@ function spawnChaseVehicle(world, def, st) {
   }
   v.health = st.health || 190;
   if (st.hero) {
-    // Anita's own Fjord (H16): the one in the world goes, this one is it now
+    // Tessa's own Fjord (H16): the one in the world goes, this one is it now
     for (let i = world.vehicles.length - 1; i >= 0; i--) {
       const o = world.vehicles[i];
       if (o !== v && o.isHeroCar && o.driver !== 'player' && !o.passenger) world.vehicles.splice(i, 1);
@@ -2597,7 +2597,7 @@ function playStageScene(world, st, S) {
       };
     }
   }
-  // with actors: Tammo and Anita where you stand (on the target for a wide
+  // with actors: Tammo and Tessa where you stand (on the target for a wide
   // shot), plus the stage's cast; the camera shots above lead where given
   if (lines.length && !world.pigeonMode) {
     const wide = !!st.cam;

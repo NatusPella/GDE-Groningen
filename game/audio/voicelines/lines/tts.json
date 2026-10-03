@@ -1061,11 +1061,11 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.": {
-"src": "anita/eerst_het_umcg_dan_jelles_ballon_9176345e.mp3",
+"Anita|Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.": {
+"src": "anita/eerst_het_umcg_dan_jelles_ballon_9df04da3.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Callirrhoe",
-"input": "Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.",
+"input": "Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.",
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geamuseerd, zakelijk.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-03"
@@ -3149,14 +3149,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita's pas erin. De aanhanger bleef achter.": {
-"src": "anita/twee_reuzen_trokken_een_pinautom_5fac08bf.mp3",
+"Anita|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa's pas erin. De aanhanger bleef achter.": {
+"src": "anita/twee_reuzen_trokken_een_pinautom_93d00a75.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Callirrhoe",
-"input": "Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita's pas erin. De aanhanger bleef achter.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geamuseerd, zakelijk.",
+"input": "Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa's pas erin. De aanhanger bleef achter.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: opgewonden, fluisterend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Anita|Vaar er met je huurboot achteraan, ga langszij en spring aan boord.": {
 "src": "anita/vaar_er_met_je_huurboot_achteraa_391ea6ed.mp3",
@@ -3950,11 +3950,11 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Dokter Dijkstra|Lier gaat uit. Rustig, Anita. Naast de mand, niet erop.": {
-"src": "dokter_dijkstra/lier_gaat_uit_rustig_anita_naast_74eceba8.mp3",
+"Dokter Dijkstra|Lier gaat uit. Rustig, Tessa. Naast de mand, niet erop.": {
+"src": "dokter_dijkstra/lier_gaat_uit_rustig_tessa_naast_c82afb12.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Sadachbia",
-"input": "Lier gaat uit. Rustig, Anita. Naast de mand, niet erop.",
+"input": "Lier gaat uit. Rustig, Tessa. Naast de mand, niet erop.",
 "style": "spoken in Dutch with a Groningen accent; nuchtere Groningse traumaarts en helikopterpiloot. Tone: kalm, geconcentreerd, door de koptelefoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-03"
@@ -4769,14 +4769,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Geert|Vier kroegen, één avond, alles te voet. En Anita: mijn nieuwe barman wil heel graag je nummer.": {
-"src": "geert/vier_kroegen_e_e_n_avond_alles_t_41372117.mp3",
+"Geert|Vier kroegen, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer.": {
+"src": "geert/vier_kroegen_e_e_n_avond_alles_t_e0849ca9.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Zubenelgenubi",
-"input": "Vier kroegen, één avond, alles te voet. En Anita: mijn nieuwe barman wil heel graag je nummer.",
+"input": "Vier kroegen, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer.",
 "style": "spoken in Dutch with a Groningen accent; Groningse kroegbaas, joviaal. Tone: droog, grinnikend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Geert|Vier kroegen? Nog eentje dan.": {
 "src": "geert/vier_kroegen_nog_eentje_dan_140c592f.mp3",
@@ -7172,11 +7172,11 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Rikus|Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.": {
-"src": "rikus/eerder_in_gde_jelle_kocht_al_het_c0baad5b.mp3",
+"Rikus|Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Tessa kaapten het terug.": {
+"src": "rikus/eerder_in_gde_jelle_kocht_al_het_3e574851.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Schedar",
-"input": "Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Anita kaapten het terug.",
+"input": "Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Tessa kaapten het terug.",
 "style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: droog, met een knipoog, samenvattend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-03"
@@ -8684,15 +8684,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Anita, de auto! Ik hou de eierballen warm.": {
-"src": "tammo/anita_de_auto_ik_hou_de_eierball_805eac7b.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Orus",
-"input": "Anita, de auto! Ik hou de eierballen warm.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
 "Tammo|Anita, je Fjord heeft toch nog die oude zender van Henk?": {
 "src": "tammo/anita_je_fjord_heeft_toch_nog_di_0ef7854a.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -9233,11 +9224,11 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.": {
-"src": "tammo/eerst_het_umcg_dan_jelles_ballon_e40f0899.mp3",
+"Tammo|Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.": {
+"src": "tammo/eerst_het_umcg_dan_jelles_ballon_d07b4162.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Orus",
-"input": "Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.",
+"input": "Eerst het UMCG, dan Jelles ballon: Tessa vliegt, Tammo hangt aan het touw.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: opgewonden, fluisterend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-03"
@@ -11159,6 +11150,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Tammo|Tessa, de auto! Ik hou de eierballen warm.": {
+"src": "tammo/tessa_de_auto_ik_hou_de_eierball_5e8ed06c.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Tessa, de auto! Ik hou de eierballen warm.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: deadpan, licht verbaasd.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Tammo|Twaalf keer het einde van de wereld. En we staan er nog. Kon minder.": {
 "src": "tammo/twaalf_keer_het_einde_van_de_wer_8c8bf3b8.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -11168,14 +11168,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita's pas erin. De aanhanger bleef achter.": {
-"src": "tammo/twee_reuzen_trokken_een_pinautom_b6e3c1b5.mp3",
+"Tammo|Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa's pas erin. De aanhanger bleef achter.": {
+"src": "tammo/twee_reuzen_trokken_een_pinautom_96ba3411.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Orus",
-"input": "Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Anita's pas erin. De aanhanger bleef achter.",
+"input": "Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa's pas erin. De aanhanger bleef achter.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: samenzweerderig, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Tammo|Twee reuzen. Eén fiets. Acht jerrycans.": {
 "src": "tammo/twee_reuzen_ee_n_fiets_acht_jerr_192829d9.mp3",
@@ -12923,14 +12923,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"~f|Is dit die van Anita?": {
-"src": "bubbles/f/is_dit_die_van_anita_8c67e6b9.mp3",
+"~f|Is dit die van Tessa?": {
+"src": "bubbles/f/is_dit_die_van_tessa_09bfbab7.mp3",
 "model": "google/gemini-3.8-flash-tts",
-"voice": "Despina",
-"input": "Is dit die van Anita?",
+"voice": "Achernar",
+"input": "Is dit die van Tessa?",
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw. Tone: ongeduldig, joviaal.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "~f|Is dit nog steeds hetzelfde water?": {
 "src": "bubbles/f/is_dit_nog_steeds_hetzelfde_wate_e70e2195.mp3",
@@ -15155,14 +15155,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"~m|Is dit die van Anita?": {
-"src": "bubbles/m/is_dit_die_van_anita_222f65b1.mp3",
+"~m|Is dit die van Tessa?": {
+"src": "bubbles/m/is_dit_die_van_tessa_a5deff07.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Zubenelgenubi",
-"input": "Is dit die van Anita?",
+"input": "Is dit die van Tessa?",
 "style": "spoken in Dutch with a Groningen accent; Groningse man. Tone: ongeduldig, joviaal.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "~m|Is dit nou de Grote Markt of het Plantsoen?": {
 "src": "bubbles/m/is_dit_nou_de_grote_markt_of_het_a77cb524.mp3",

@@ -17,7 +17,7 @@ daarna de HUD elke twee seconden uitgelezen.
 
 Wat de run liet zien, voor een speler die na de opening niets aanraakt:
 de doelregel staat er meteen ("Berend telt de krassen · Volg de gele route
-naar de marker"), dan een korte scène (de wissel naar Anita), na 10 s de
+naar de marker"), dan een korte scène (de wissel naar Tessa), na 10 s de
 eerste toetshints, van 12 tot 28 s Bel Rikus op de radio, en dan Tammo's
 bericht ("Berend, bij het Martinikerkhof. Jij rijdt, zegt hij"). Daarna was
 het stil: geen foutmeldingen, maar ook niets meer over de telefoon, de kaart

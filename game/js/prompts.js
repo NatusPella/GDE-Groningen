@@ -384,11 +384,11 @@ function findPrimary(world) {
     return { id: 'veh-' + v.id + verb.label, ...a, key: 'E', label: verb.label, sub, learn, ring: true, steal: !!verb.steal };
   }
   if (facingC && kissReady) {
-    const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
+    const name = c.character === 'tammo' ? 'Tammo' : 'Tessa';
     return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: learning('kiss') ? `Geef ${name} een smakkerd: +25 gezondheid` : name, learn: learning('kiss'), ring: true, cooldown: 0 };
   }
   if (facingC) {
-    const name = c.character === 'tammo' ? 'Tammo' : 'Anita';
+    const name = c.character === 'tammo' ? 'Tammo' : 'Tessa';
     return { id: 'kiss-' + name, x: c.x, y: c.y, h: 1.55, key: 'K', label: 'Kusje', sub: 'Even bijkomen...', ring: true, cooldown: (kissUntil - world.time) / KISS_COOLDOWN, dim: true };
   }
   const weapon = world.weapon || 'fists';

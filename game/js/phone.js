@@ -63,7 +63,7 @@ export function isPhoneOpen() {
 }
 
 function buddyName(w) {
-  return w.companion && w.companion.character === 'anita' ? 'Anita' : w.companion ? 'Tammo' : w.player.character === 'tammo' ? 'Anita' : 'Tammo';
+  return w.companion && w.companion.character === 'anita' ? 'Tessa' : w.companion ? 'Tammo' : w.player.character === 'tammo' ? 'Tessa' : 'Tammo';
 }
 
 function contacts(w) {
@@ -161,7 +161,7 @@ function mamTalk() {
     line: pick([
       'Heb je wel een jas aan? Het waait weer flink in Grunn.',
       'Ik zag je op Kiekdoar. Ik zeg niks. Je vader zag het ook.',
-      'Kom je zondag eten? Er is hutspot. En neem die Anita ook mee.',
+      'Kom je zondag eten? Er is hutspot. En neem die Tessa ook mee.',
     ]),
   };
 }

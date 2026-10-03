@@ -28,7 +28,7 @@
 | 2 | 0:04–0:09 | Zonsopgang boven d'Olle Grieze, nevel over het Reitdiep | Langzame kraan omhoog langs de toren | *Grunn.* | licht |
 | 3 | 0:09–0:13 | De Vismarkt: terrassen vol, ijsjes, duiven vliegen op | Laag dolly-shot | *Een zomer.* | **ja** (voetgangers) |
 | 4 | 0:13–0:16 | Het Noorderplantsoen: kleedjes, barbecuetjes, een frisbee | Langzame zijwaartse beweging | – | **ja** |
-| 5 | 0:16–0:19 | De Herestraat, ochtend. Anita sleept een pinautomaat op een aanhanger | Bevroren beeld op het hoogtepunt | **ANITA** — *Heeft altijd een plan B. Plan A is ook van haar.* | – |
+| 5 | 0:16–0:19 | De Herestraat, ochtend. Tessa sleept een pinautomaat op een aanhanger | Bevroren beeld op het hoogtepunt | **TESSA** — *Heeft altijd een plan B. Plan A is ook van haar.* | – |
 | 6 | 0:19–0:22 | Tammo houdt een deur open en kijkt schuldig in de camera | Close-up, dan bevroren beeld | **TAMMO** — *Stadjer. Groot hart. Kleine portemonnee.* | – |
 | 7 | 0:22–0:26 | De rode Escapade scheurt door de Herestraat | Achtervolgcamera laag bij de bumper | *Eén droom op vier wielen.* | **ja** |
 | 8 | 0:26–0:30 | De trekker-limo met pompeblêden, in tegenlicht | Lage camera, slowmotion | **JELLE TERPSTRA** — *Snackkoning. Fries. Heel tevreden met zichzelf.* | – |
@@ -40,7 +40,7 @@
 | 14 | 0:49–0:50 | Een pion stuitert over het asfalt | Close-up | *Bijna.* | – |
 | 15 | 0:50–0:54 | Een tankwagen slipt over de Europaweg en het frituurvet klotst | Laag, slowmotion | *Al het vet van Grunn.* | **ja** (deeltjes) |
 | 16 | 0:54–0:58 | Een zomerstorm: regen en bliksem boven het Forum | Statische groothoek, met de bliksem als cut | *Zomer? Ja.* | **ja** (regen en licht) |
-| 17 | 0:58–1:02 | De rondvaartboot op de Diepenring in het avondlicht; Tammo en Anita aan de reling | Drone hoog, zakt naar het water | – (de muziek valt even stil) | licht |
+| 17 | 0:58–1:02 | De rondvaartboot op de Diepenring in het avondlicht; Tammo en Tessa aan de reling | Drone hoog, zakt naar het water | – (de muziek valt even stil) | licht |
 | 18 | 1:02–1:06 | De traumaheli stijgt op van het UMCG, met een ballon aan de horizon | Omhoog kantelen, de zon laag | *Spoedeisende duif.* | licht |
 | 19 | 1:06–1:10 | De kermis op de Grote Markt bij nacht: reuzenrad, lichtjes, draaiorgel | Langzaam orbit | *28 augustus.* | **ja** (lichten en drukte) |
 | 20 | 1:10–1:13 | De Poelestraat bij nacht: terrassen, studenten, Durk die zingt | Dolly door de straat | *Nog eentje dan.* | **ja** |
@@ -63,12 +63,12 @@
   - Durk zingt in de Poelestraat (shot 20) onder een warme terraslamp; de camera rijdt tot vlak voor hem.
   - Ondertitels en de regels op de naamkaarten zijn groter bij 1080p.
   - De zwarte overlay volgt de trailerklok, dus de fades staan ook in de video-export (eerst werden het harde cuts).
-- Alle 24 shots staan erin, ongeveer 91 s. De korte cut (`kort`, ongeveer 38 s) heeft de shots 1, 2, 3, 5, 6, 7, 12, 13, 16, 17, 19 en 22, dus met de naamkaarten van Anita en Tammo.
+- Alle 24 shots staan erin, ongeveer 91 s. De korte cut (`kort`, ongeveer 38 s) heeft de shots 1, 2, 3, 5, 6, 7, 12, 13, 16, 17, 19 en 22, dus met de naamkaarten van Tessa en Tammo.
 - **Stand-ins** van bestaande of goedkope props:
   - De terrassen: tafels, stoelen en parasols als instanced meshes, met zittende figuranten. Ze staan alleen op het plein, nooit op de straat of het fietspad dwars over de Vismarkt. Rond de terrassen en het plantsoen rijdt geen verkeer.
   - De duiven: zwermen van 64 tot 72 vogels in twee instanced draw calls (`makeBirds` in `intromontage.js`, dus ook in de openingsmontage). Ze vliegen op en cirkelen boven het plein.
   - Het Noorderplantsoen: kleedjes (canvas-ruit), twee barbecues met gloeiende kolen en een frisbee, op een open grasveld in het Noorderplantsoen, meer dan 30 m van elke weg en elk fietspad.
-  - De pinautomaat: de steekwagen uit de eerste openingsmontage (nu `trailerprops.js`, met de vitrinezaal en de vlaggen), geen aanhanger. Anita loopt erachter en duwt hem.
+  - De pinautomaat: de steekwagen uit de eerste openingsmontage (nu `trailerprops.js`, met de vitrinezaal en de vlaggen), geen aanhanger. Tessa loopt erachter en duwt hem.
   - Tammo's deur: een losse deur met kozijn tegen een gevel in de Herestraat.
   - De botsauto van Durk & Douwe: een eigen exemplaar in de tent van `kermis.js`.
   - De pion: een kegel van drie meshes.
@@ -87,7 +87,7 @@
 
 ## De opening van *Nieuw spel*
 
-Dezelfde aanpak in het klein: de trailer uit het definitieve script, van ongeveer 40 seconden, met de naamkaarten van Anita en Tammo. Die gaat over in de radio en de keukentafel. Daardoor is de attract-intro ook overbodig.
+Dezelfde aanpak in het klein: de trailer uit het definitieve script, van ongeveer 40 seconden, met de naamkaarten van Tessa en Tammo. Die gaat over in de radio en de keukentafel. Daardoor is de attract-intro ook overbodig.
 
 ## Video-export naar YouTube
 
