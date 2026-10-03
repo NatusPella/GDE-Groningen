@@ -33,6 +33,7 @@ import { queueFjordReveal } from './postgame.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy } from './storyfun.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
+import { SERIES, GAME_TITLE } from './logo.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -200,7 +201,7 @@ function enter(step) {
   }
   rt.leadAt = world.time + LEAD_DELAY;
   rt.sayAt = -1;
-  // the first step of a later part opens with an "Eerder in GTE VI" recap
+  // the first step of a later part opens with an "Eerder in GDE" recap
   const first = STEPS.find((s) => s.part === step.part && stepAvailable(s));
   if (first === step && PARTS[step.part].recap && !state.flags.has('recap:' + step.part)) rt.recapPending = step.part;
   updateCharacter(world);
@@ -376,7 +377,7 @@ function finaleShot(t0 = 0) {
   };
 }
 
-// "Eerder in GTE VI": the narrator sums up the story so far over slow orbits
+// "Eerder in GDE": the narrator sums up the story so far over slow orbits
 // of the places it happened, when a new part starts.
 function recapPlace(p) {
   if (p === 'studio') return { studio: true, x: 0, y: 0 };
@@ -402,7 +403,7 @@ function playRecap(part) {
   const fallback = recapPlace(P.recap.find(([p]) => p !== 'studio')[0]);
   return playCinematic({
     id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: P.date ? `${P.title.split(':')[0]} · ${P.date}` : 'Eerder in GTE VI', title: P.title, cardFor: 3.2,
+    kicker: P.date ? `${P.title.split(':')[0]} · ${P.date}` : `Eerder in ${SERIES}`, title: P.title, cardFor: 3.2,
     lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur, radio: true })),
     onStart: () => { studio = openStudio(); playRadioSting(); },
     onEnd: () => { if (studio) studio.dispose(); studio = null; },
@@ -467,13 +468,14 @@ function playFinale(part) {
   if (!ok) return false;
   const q = (spec) => playCinematic({ id: 'story-card', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
   const fromStudio = finaleShot(40);
-  q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: 'Grand Theft Eierbal VI · Een zomer in Grunn', shot: (u, t) => ({ ...fromStudio(u, t), cut: t < 0.1 }) });
+  q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: GAME_TITLE, shot: (u, t) => ({ ...fromStudio(u, t), cut: t < 0.1 }) });
   CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
-  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(46 + CREDITS.length * 3.2) });
+  q({ duration: 4.5, logo: true, shot: finaleShot(46 + CREDITS.length * 3.2) });
+  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(50.5 + CREDITS.length * 3.2) });
   // then the Fjord Frituur comes out from under its sheet and Anita drives off in it
   queueFjordReveal(world);
   state.cards.add(part);
-  phone('GTE VI', 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.', 9);
+  phone(SERIES, 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.', 9);
   return true;
 }
 
@@ -486,7 +488,7 @@ function playEndCard(part) {
   });
   if (!ok) return false;
   state.cards.add(part);
-  phone('GTE VI', 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon en in het pauzemenu.', 8);
+  phone(SERIES, 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon en in het pauzemenu.', 8);
   return true;
 }
 

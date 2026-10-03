@@ -7,7 +7,7 @@
    - Het startscherm toont al een levende stad met langzame camerabewegingen, en dat is sfeer genoeg.
    - Wie de game opent, wil spelen en niet wachten. Bovendien verschijnt het prestatie-advies van de eerste start ook op het startscherm, en daar moet het rustig zijn.
    - Bestaande spelers missen niks: de volledige trailer staat onder *Instellingen › Beeld › Benchmark*.
-2. **De benchmark is de officiële trailer:** "GTE VI — Een zomer in Grunn". Eén sequentie voor drie doelen:
+2. **De benchmark is de officiële trailer:** "GDE Groningen — Een zomer in Grunn". Eén sequentie voor drie doelen:
    - de **benchmark** (realtime, met een fps-teller en daarna het advies met "Toepassen");
    - de **YouTube-video** (vaste stap van 1/60 s, zonder teller, geëxporteerd als MP4);
    - de basis voor de **opening van *Nieuw spel*** (dezelfde naamkaarten en dezelfde toon).
@@ -46,7 +46,7 @@
 | 20 | 1:10–1:13 | De Poelestraat bij nacht: terrassen, studenten, Durk die zingt | Dolly door de straat | *Nog eentje dan.* | **ja** |
 | 21 | 1:13–1:17 | Het Ommeland bij zonsondergang, met een carbidbus die knalt | Breed, statisch | – (knal) | licht |
 | 22 | 1:17–1:23 | Een luchtopname bij zonsondergang boven Stad | Hoog en langzaam | *Er gaat niets boven Grunn.* | **ja** (zichtafstand) |
-| 23 | 1:23–1:28 | Logo | – | **GTE VI** — *Een zomer in Grunn* | – |
+| 23 | 1:23–1:28 | Logo | – | het GDE-logo (**GDE**, GRONINGEN, *Zomer vol misdaad*) — *Een zomer in Grunn* | – |
 | 24 | 1:28–1:31 | Na het logo: Berend kijkt naar een kras op zijn bakkie | Close-up | **Berend:** "…Kon minder." | – |
 
 **Wat er verandert ten opzichte van de huidige trailer**
@@ -84,7 +84,7 @@ Dezelfde aanpak in het klein: de trailer uit het definitieve script, van ongevee
 
 ## Video-export naar YouTube
 
-- **Desktop:** `--trailer-video=~/Downloads/GTE-VI-Een-zomer-in-Grunn.mp4`.
+- **Desktop:** `--trailer-video=~/Downloads/GDE-Groningen-Een-zomer-in-Grunn.mp4`.
   - De app schrijft elk frame direct naar ffmpeg via een pipe. Er komen dus geen losse PNG's op schijf: 1080p60 kost anders 15 tot 20 GB, en er is maar 13 GB vrij.
   - De themamuziek wordt er synchroon onder gezet.
   - Formaat: H.264, 1080p60 (of `--trailer=3840x2160` voor 4K), YouTube-vriendelijk, ongeveer 150 tot 300 MB.

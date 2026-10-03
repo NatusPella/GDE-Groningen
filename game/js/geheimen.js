@@ -153,7 +153,7 @@ function buildRoom() {
   for (const [x, z] of [[1.35, -1.7], [2.05, -1.7], [1.35, -0.3], [2.05, -0.3]]) add(g, new THREE.BoxGeometry(0.06, 0.78, 0.06), desk, x, 0.39, z);
   const screen = canvasTex(128, 96, (c, w, h) => {
     c.fillStyle = '#0b1a10'; c.fillRect(0, 0, w, h);
-    c.fillStyle = '#5dff7a'; c.font = 'bold 26px monospace'; c.textAlign = 'center'; c.fillText('GTE VI', w / 2, 40);
+    c.fillStyle = '#5dff7a'; c.font = 'bold 26px monospace'; c.textAlign = 'center'; c.fillText('GDE', w / 2, 40);
     c.font = '13px monospace'; c.fillText('build 0.19 ok', w / 2, 66); c.fillText('> _', w / 2 - 30, 84);
   });
   add(g, new THREE.BoxGeometry(0.45, 0.4, 0.5), basic({ color: 0xd8d0c0 }), 1.85, 1.02, -1.2);

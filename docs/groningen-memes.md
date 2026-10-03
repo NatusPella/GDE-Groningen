@@ -1,7 +1,7 @@
 # Groningse memes en running gags (inspiratie)
 
 Gebaseerd op een onderzoek (via Copilot, september 2026), samengevat en gefilterd
-op wat past bij GTE VI. Gebruik de culturele kern, nooit de exacte uitvoering:
+op wat past bij GDE Groningen. Gebruik de culturele kern, nooit de exacte uitvoering:
 geen echte fragmenten, songteksten, echte personages of herkenbare levende
 personen. Namen, uiterlijk en formuleringen altijd zelf verzinnen.
 
@@ -18,7 +18,7 @@ personen. Namen, uiterlijk en formuleringen altijd zelf verzinnen.
   radiobericht, NPC-zin, reclamebord, verkeerssituatie en missie-uitkomst.
 
 ## Bruikbaar binnen onze plannen
-| Referentie | Hoe in GTE VI |
+| Referentie | Hoe in GDE Groningen |
 |---|---|
 | *Er gaat niets boven Groningen* (slogan) | Billboards die per missie een eigen parodie tonen (*"Er rijdt niets boven Groningen"*, *"Er bouwt niets trager dan Groningen"*); trailer-caption. |
 | *Kon minder*, *komt goud mien jong*, *nait soezen, deurbroezen*, *moi*, *eem* | Korte NPC-barks, winkelnamen, resultaatschermen. Niet dik aangezet. |

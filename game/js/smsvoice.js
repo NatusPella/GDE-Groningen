@@ -11,7 +11,7 @@
 // sender shown on the card -> the voice that reads it
 const VOICE_OF = {
   Sikkom: 'Sikkom-redactie',
-  'GTE VI': 'Ubbo',
+  GDE: 'Ubbo',
   Ubbo: 'Ubbo',
   Bank: 'Ubbo',
   'Fjord Frituur': 'Ubbo',

@@ -5,6 +5,7 @@ __pycache__/
 .env.*
 .python/
 GTE-VI-Windows.zip
+GDE-Groningen-Windows.zip
 # trailer recordings never go in the repo (desktop --trailer-video refuses it too)
 *.mp4
 *.mov
@@ -14,3 +15,4 @@ trailer-frames/
 web-dist/
 web/.cache/
 GTE-VI-*-web.zip
+GDE-Groningen-*-web.zip

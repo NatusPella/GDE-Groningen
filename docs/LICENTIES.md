@@ -27,7 +27,8 @@ Korte versie:
 | Onderdeel | Waar | Licentie | Wat moet | Status |
 |---|---|---|---|---|
 | **three.js r160** + addons (`GLTFLoader` e.a.) | browser: jsDelivr-CDN via import map en directe URL's; desktop: gekopieerd naar `build/game/vendor/npm` door `desktop/build.mjs` | [MIT](https://github.com/mrdoob/three.js/blob/dev/LICENSE) | copyrightregel + licentietekst bij kopieën | `licenses/MIT-three.js.txt`, gaat nu mee in de desktopbuild |
-| **Bebas Neue** | browser: Google Fonts-CSS; desktop: woff2 in `vendor/fonts`; ook als subset ingebed in `desktop/resources/icon.svg` | [SIL OFL 1.1](https://openfontlicense.org), © 2010 Dharma Type ([bron](https://github.com/dharmatype/Bebas-Neue)) | bij meeleveren: copyright + OFL-tekst; font niet los verkopen | `licenses/OFL-BebasNeue.txt`, gaat mee in de desktopbuild |
+| **Bebas Neue** | browser: Google Fonts-CSS; desktop en web: woff2 in `vendor/fonts` | [SIL OFL 1.1](https://openfontlicense.org), © 2010 Dharma Type ([bron](https://github.com/dharmatype/Bebas-Neue)) | bij meeleveren: copyright + OFL-tekst; font niet los verkopen | `licenses/OFL-BebasNeue.txt`, gaat mee in de desktopbuild |
+| **Big Shoulders Display** (het logo) | browser: Google Fonts-CSS (zelfde link als Bebas Neue); desktop en web: woff2 in `vendor/fonts` (`desktop/build.mjs`); als subset (GDERONI) ingebed in `desktop/resources/icon.svg` | [SIL OFL 1.1](https://openfontlicense.org), © 2019 The Big Shoulders Project Authors ([bron](https://github.com/xotypeco/big_shoulders)) | bij meeleveren: copyright + OFL-tekst; font niet los verkopen; geen Reserved Font Name, dus de subset in het icoon mag de naam houden | `licenses/OFL-BigShouldersDisplay.txt`, gaat mee in de desktop- en webbuild |
 | Systeemlettertypen (Arial, Arial Narrow, Georgia, Segoe Print, Comic Sans, Menlo, Consolas, system-ui) | CSS en canvas-teksten | van het OS van de speler | niets: niet meegeleverd | ok |
 | **Electron** 44 | desktopapp | [MIT](https://github.com/electron/electron/blob/main/LICENSE); Chromium en Node onder eigen licenties | electron-builder zet `LICENSE.electron.txt` en `LICENSES.chromium.html` naast de app | ok, niet weghalen |
 | **electron-builder** 26 | alleen bouwtool | [MIT](https://github.com/electron-userland/electron-builder/blob/master/LICENSE) | niets: zit niet in de app | ok |
@@ -49,7 +50,7 @@ geen `node_modules` in git.
 | Muziek: 14 G-Music-nummers, 2 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
 | Stemmen: ~3.400 clips in `game/audio/voicelines` (gelogd in `tts.json`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe) | Gemini TTS via OpenRouter | zie §4 | ok |
 | Oudere clips zonder `tts.json`: `audio/npc`, `audio/police`, `audio/sikkom`, `audio/gmusic/jingles` | Gemini TTS (o.a. "Gemini 3.1 Flash TTS Preview", commits `f661a12` en `fc4fe8c`) | als hierboven; was een preview-model | **ONDUIDELIJK**: herkomst niet per clip gelogd. Advies: opnieuw inspreken met 3.8 en loggen, dan is alles herleidbaar |
-| App-icoon `desktop/resources/icon.svg/png` | eigen ontwerp met ingebedde Bebas Neue | OFL staat inbedden toe | ok |
+| App-icoon `desktop/resources/icon.svg/png` | eigen ontwerp (GDE-logo) met ingebedde subset van Big Shoulders Display | OFL staat inbedden toe | ok |
 
 ## 3. Inventaris: kaart en andere data
 
@@ -177,7 +178,7 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
 |---|---|---|---|
 | Naam "Grand Theft Eierbal" | Volgt "Grand Theft Auto" woord voor woord, alleen het laatste woord anders. "Grand Theft Auto" is een geregistreerd EU-merk met reputatie. | **hoog** zodra het commercieel of op Steam staat; gemiddeld als gratis hobbyproject (EU-merkenrecht vereist gebruik "in het economisch verkeer") | Gekozen: "GDE Groningen – Zomer vol misdaad", zie §8.2 |
 | "VI" / "GTE VI" | Kopieert de nummering van het aangekondigde GTA VI; het grote "VI" is het kernelement van het GTA VI-logo. | hoog, samen met de naam | "VI" laten vallen |
-| Logo `.gte-logo` | Bebas Neue, crème-naar-groen verloop, "VI" in een schuin groen blok. Het GTA VI-logo is een groot "VI" in roze/oranje/paars zonsondergangverloop met "Grand Theft Auto" erin. Kleuren en vorm zijn anders. Geen Pricedown. | laag-gemiddeld (alleen door "VI") | blok-"VI" vervangen door de plaatsnaam, zie §8.2 |
+| Logo (tot 0.24 `.gte-logo`, nu `.gde-logo`) | Was: Bebas Neue, crème-naar-groen verloop, "VI" in een schuin groen blok. Nu: "GDE" in Big Shoulders Display, GRONINGEN op een groen plaatsnaambord, "Zomer vol misdaad" eronder. Geen VI, geen zonsondergang, geen Pricedown. | laag | **gedaan** (0.24), zie §8.2 |
 | Fonts | Bebas Neue en Arial Narrow; **geen Pricedown** of andere Rockstar-letter (ook niet in de historie, gezocht op "pricedown") | laag | zo houden |
 | Trailer en naamkaarten | Structuur volgt de GTA VI-trailer (freeze frames met namen, "Tammo & Anita" met gekleurde &, letterbox). Stijl en kleuren zijn eigen. Een opzet of format is niet beschermd. | laag | ok; geen GTA-muziek of -tekst citeren |
 | Teksten/commentaar "GTA-style" | alleen in code-commentaar en `DESIGN_SYSTEM.md` | geen (niet zichtbaar voor spelers) | ok; niet in store-teksten gebruiken |
@@ -276,7 +277,9 @@ terug na $1.000 omzet, dus bij een gratis spel nooit
 Gekozen door de eigenaar: **GDE** = *Grootste Diefstal Ever*, vaste
 reeksnaam; per deel een plaats of provincie plus ondertitel ("GDE
 Groningen – Zomer vol misdaad", later bijv. "GDE Drenthe", "GDE
-Leeuwarden"). Nog niet doorgevoerd in de code.
+Leeuwarden"). Doorgevoerd in 0.24 (branch `claude/gde-naam`): spel, logo,
+appnaam, releasebestanden, README. Interne sleutels (`gte-*`, appId,
+userData-map `GTE VI`) blijven, zodat saves blijven werken.
 
 **Conflictcheck** (3 okt 2026, via webzoekopdrachten; de registers van
 [EUIPO/TMview](https://www.tmdn.org/tmview/), [BOIP](https://register.boip.int/)
@@ -367,7 +370,7 @@ het spel) en *live-generated* (tijdens het spelen); alleen content die
 spelers zien of horen en marketingmateriaal hoeft gemeld te worden
 ([Content Survey](https://partner.steamgames.com/doc/gettingstarted/contentsurvey),
 [PC Gamer, jan 2026](https://www.pcgamer.com/software/ai/steam-updates-ai-disclosure-form-to-specify-that-its-focused-on-ai-generated-content-that-is-consumed-by-players-not-efficiency-tools-used-behind-the-scenes/)).
-GTE VI heeft alleen pre-generated content. Voorstel voor de tekst:
+GDE Groningen heeft alleen pre-generated content. Voorstel voor de tekst:
 
 > **Pre-generated:** All music (radio station songs, chase loops and the
 > theme song) was generated with Google Gemini. All character voices were
@@ -427,10 +430,11 @@ tegen politie en burgers met bloed. De Gemini-API-regel over minderjarigen
 
 1. **Licentie** kiezen (§7; advies optie A: MIT + CC BY-NC 4.0 + ODbL
    voor data). Dan `LICENSE` toevoegen.
-2. **Naam en logo**: gekozen "GDE Groningen – Zomer vol misdaad". Nog
-   doen: handmatige registercheck, logo in eigen stijl (§8.2), dan de
-   naam doorvoeren in spel, desktop-`productName`/`appId`, README en
-   disclaimer ("VI" en "Grand Theft" overal weg).
+2. **Naam en logo**: gekozen "GDE Groningen – Zomer vol misdaad" en
+   doorgevoerd in 0.24 (logo in Big Shoulders Display met plaatsnaambord,
+   spel, `productName`, releasebestanden, README, disclaimer). De `appId`
+   blijft `nl.natuspella.gte-vi` (anders verweesde saves). Nog doen: de
+   handmatige registercheck.
 3. **Sikkom** en **Radio Grunn** hernoemen + opnieuw inspreken (§6.2).
 4. **Tammo & Anita**: echte mensen of niet? Toestemming of credit
    herformuleren (§6.3).
