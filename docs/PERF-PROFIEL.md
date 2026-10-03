@@ -184,12 +184,71 @@ geometrie één keer (instancing via `addInstance` kwam pas in r166), heeft
 kleur per object. Er is dus geen groep die er duidelijk op vooruitgaat.
 Opnieuw bekijken bij een three-upgrade.
 
+## Ronde 3: geheugen, wegpieken, oevers, minimap
+
+A/B (main tegen `claude/workers3`), Laag + CPU×4 + `--hitch`, om en om,
+één Electron tegelijk onder `nice`, load 11 tot 23. Hoofdthread in ms per
+frame, gemiddeld over 3 runs.
+
+**Geheugen van de worker.** De worker houdt na het laden alleen wat hij
+leest (`mapdata.js slimWorkerMap`): gebouwen alleen als grenzen in hun
+raster, geen overkappingen en bomen. De kopie van de kaart is in Node
+gemeten (zelfde V8, `scripts/perf/mapmem.mjs`, 3 keer): **64 MB → 33 MB
+heap**. Wat overblijft lezen de wegen en oevers: hoogtes 11 MB, wegen
+7 MB, het gebouwraster 6 MB, groen 4 MB. De eerdere "~90 MB" was een
+schatting op de hoofdthread. Renderer-RSS 20 s na de start
+(`scripts/perf/memcheck.sh`, 4 paren): main 1191–1473 MB, branch 948–1353
+MB, gemiddeld −170 MB. Dat is ruis-gevoelig (in de pagina zelf meten lukt
+niet: de hoofdthread maakt te veel afval), maar in elk paar lager.
+
+**Wegpieken op de ring.** `finishJob` vult de buffers van een cel nu stap
+voor stap binnen het budget (`finishWork`, een generator). Dat haalde de
+piek níét weg: die kwam van `syncRoads`. Een weg waarvan de oppervlakken
+al uit de worker terug waren, telde niet mee voor het budget, ook als hij
+kunstwerken heeft (viaducten, taluds, verdiepte stukken, op de hoofdthread
+gebouwd). Na een sprong kwamen de kunstwerken van de ring in één frame
+binnen (42 nieuwe geometrieën). Die wachten nu op het volgende frame.
+Alleen de ring, 3 paren:
+
+| | A | B |
+|---|--:|--:|
+| frames met `3d:roads` ≥ 10 ms | 1 / 4 / 5 | 0 / 0 / 0 |
+| max `3d:roads` (ms) | 15.9 / 38.2 / 51.7 | 6.3 / 8.3 / 4.9 |
+| long tasks (mediaan) | 17 | 11 |
+| langste long task (mediaan, ms) | 92 | 66 |
+| p99 (ms) | 66.7 | 51.8 |
+
+**Oevers en kades.** `quaywalls.js shoreParts` draait op de kaart van de
+worker; de banken om te zitten en de rompen van de woonboten worden op de
+hoofdthread toegepast als de onderdelen terug zijn. Ring, `3d:water`:
+**0.42 → 0.12 ms** per frame (−71%).
+
+**Minimap.** Zolang de CPU de bottleneck is (simload niveau 1–2) tekent
+de minimap elk tweede of derde frame. Sectie `hud`:
+
+| route | A | B |
+|-------|--:|--:|
+| heli | 5.3 | 2.6 (−51%) |
+| village | 4.3 | 2.5 (−42%) |
+| ring | 3.7 | 2.4 |
+| foot | 3.6 | 2.2 |
+
+Op de heli ging het hele frame van 24.7 naar 21.1 ms, de long tasks van
+15/20/5 naar 0/1/1 en p95 van 50.4 naar 35.1 ms.
+
+Draw calls bleven gelijk (ring 226–233, heli 123/124, village 115/116).
+Bit-gelijk (`geocheck.sh`): alle 352 waterpolygonen (2.372 delen, 1,87 M
+vertices, 6.565 zitplekken, 338 rompen) tussen hoofdthread en de
+afgeslankte kaart van de worker; 60 cellen van de wegbatcher (232 meshes)
+tegen de oude afronding in één frame; wegen, terrein, straatmeubels en
+Ommeland-water nog steeds gelijk.
+
 ## Wat nog kan
 
-- `staticbatch3d.js finishJob` over frames verdelen, of in de worker doen.
-  Dat zijn de pieken die nog over zijn op de ring.
-- De oevers en kades (`quaywalls.js buildShore`), het grootste deel van
-  het stadswater.
-- De minimap van het Ommeland en de HUD: 15 tot 20% op heli en village.
+- Op de ring geeft de HUD bij een sprong nog frames van 30 tot 50 ms
+  (`hud`, in A en B gelijk); dat is niet de minimap.
+- De kunstwerken van de wegen (`roadstructures3d.js`) naar de worker.
+- Het gebouwraster in de worker compacter (6 MB), en de hoogtes (11 MB)
+  alleen voor de ringwegen.
 - De Ommeland-tegels (`genTileSteps`), na een splitsing van `countryplan`
   in pure datamodules.
