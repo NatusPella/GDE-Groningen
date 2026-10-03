@@ -361,7 +361,8 @@ const pressing = (q, w) => q.spec.kind === 'politie' || q.spec.kind === 'gevaar'
 
 function hudHidden() {
   const b = document.body.classList;
-  return !b.contains('game-started') || b.contains('cine-hide-hud');
+  // trailer-hud: a gameplay shot in the trailer, before the game has started
+  return !(b.contains('game-started') || b.contains('trailer-hud')) || b.contains('cine-hide-hud');
 }
 
 export function updateCards(dt, w) {

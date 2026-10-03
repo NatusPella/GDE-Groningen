@@ -38,9 +38,9 @@ max. 2 MB, JPG of PNG. Eigen thumbnails vragen een geverifieerd kanaal
 
 **Geen spoilers in de beelden:** de thumbnails tonen de Eierbal op zijn
 kussen in de vitrine. Nooit de lege vitrine en nooit het kaartje "Tige
-tank!". De vitrine-render komt uit de trailer-shot "De lege vitrine", met
-de bal teruggezet en het kaartje verborgen (`__trailer.prop()` in
-`game/js/trailer.js`, alleen voor deze opname).
+tank!". De vitrine-render komt uit de trailer-shot "De Gouden Eierbal"
+(shot 11 van de oude cut, shot 9 van de verhaaltrailer), die de bal sinds
+de Steam-trailers zelf in de vitrine toont.
 
 Templates aanpassen: de teksten staan in `IMAGES` in
 `scripts/youtube_images.mjs` (bijv. een derde thumbnail met een ander label
@@ -92,8 +92,10 @@ Steam-link zodra die er is.
 
 ## Verhaaltrailer
 
-Bron: `game/js/trailer.js`, cut `vol` (~91 s), shotlijst in
-`docs/verhaal/E-trailer.md`, export met `npx electron . --trailer-video`.
+Bron: `game/js/trailer.js`, cut `verhaal` (~80 s), shotlijst in
+`docs/steam/trailer.md`. Bestand: `~/Downloads/GDE-Groningen-trailer-verhaal.mp4`
+(1080p60, H.264, AAC 48 kHz, `+faststart`), export met
+`npx electron . --trailer-cut=verhaal --trailer-video=~/Downloads/GDE-Groningen-trailer-verhaal.mp4`.
 
 **Titel** (max. 100 tekens, de eerste ~60 zijn zichtbaar):
 
@@ -103,19 +105,18 @@ Bron: `game/js/trailer.js`, cut `vol` (~91 s), shotlijst in
 **Beschrijving:**
 
 ```
-Augustus in Grunn. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen. Dan ligt de Gouden Eierbal ineens niet meer in het museum, en rijdt er een Friese snackkoning met een trekker-limo door de binnenstad.
+Augustus in Grunn. Tammo en Tessa hebben samen precies genoeg geld voor een patatje. Tessa wil een frietwagen: de Fjord Frituur. In het Groninger Museum ligt de Gouden Eierbal, achttien karaat. En er rijdt een Friese snackkoning met een trekker-limo door de binnenstad.
 
 GDE Groningen – Zomer vol misdaad is een gratis open-wereld misdaadparodie in de echte straten van Groningen. Achttien verhaalmissies, de ringweg, kermis, kroegen, rondvaart en het Ommeland. Volledig ingesproken in het Nederlands, met een flinke scheut Gronings.
 
 ▶ Steam: (link volgt)
 ▶ itch.io: (link volgt)
 
-00:00 Grunn
-00:16 Tammo en Tessa
-00:37 De Eierbal
-00:41 Lange avonden
-01:06 Kermis en Ommeland
-01:23 GDE Groningen
+00:00 Een zomer in Grunn
+00:11 Tammo, Tessa en de Fjord Frituur
+00:25 De Gouden Eierbal en Jelle Terpstra
+00:43 Lange avonden
+00:59 28 augustus
 
 Gratis · Nederlands · singleplayer · offline · geen aankopen in de game.
 
@@ -126,14 +127,15 @@ GDE staat voor Grootste Diefstal Ever. Een gratis, niet-commerciële fanparodie,
 #GDEGroningen #Groningen #indiegame
 ```
 
-De hoofdstukken zijn plaatshouders op basis van de shotlijst: controleer
-ze tegen de definitieve export. YouTube eist dat het eerste hoofdstuk op
+De hoofdstukken volgen `CUT_ORDER` in `game/js/trailer.js` (de shotgrenzen,
+naar beneden afgerond). YouTube eist dat het eerste hoofdstuk op
 00:00 staat, minstens drie hoofdstukken, elk minstens 10 s.
 
 ## Gameplaytrailer
 
-Nog te maken: de Steam-cut met HUD (`docs/steam/trailer.md`, cut `steam`),
-of een eigen opname van 1–2 minuten gameplay met HUD.
+Bron: `game/js/trailer.js`, cut `gameplay` (~63 s, 28 shots, met de echte HUD), shotlijst in
+`docs/steam/trailer.md`. Bestand: `~/Downloads/GDE-Groningen-trailer-gameplay.mp4`
+(1080p60, H.264, AAC 48 kHz, `+faststart`).
 
 **Titel:**
 
@@ -150,11 +152,11 @@ Rijden, fietsen, varen en vliegen. Missies met Tammo en Tessa, bijbaantjes (taxi
 ▶ Steam: (link volgt)
 ▶ itch.io: (link volgt)
 
-00:00 Intro
-x:xx Missies in de binnenstad
-x:xx Ringrace
-x:xx Heli boven Stad
-x:xx Ommeland
+00:00 Berends bakkie, de pinautomaat en de stuntavond
+00:11 Duif, KEI-race, museum en de tankwagen
+00:21 Ring Zuid, de kroeg, fatbikes en het water
+00:32 Heli, politie en de trekker-limo
+00:43 Carbid, bijbaantjes, Ubbo en het weer
 
 Gratis · Nederlands · singleplayer · offline · toetsenbord en muis of controller.
 
@@ -165,7 +167,7 @@ GDE staat voor Grootste Diefstal Ever. Een gratis, niet-commerciële fanparodie,
 #GDEGroningen #Groningen #gameplay
 ```
 
-Hoofdstuktijden invullen na de montage.
+Hoofdstukken: de shotgrenzen uit `CUT_ORDER`, elk minstens 10 s.
 
 ## Tags (beide trailers)
 
@@ -270,7 +272,7 @@ Niets gaat openbaar tot de eigenaar het besluit.
       aantoonbaar eigen gemaakt (ROADMAP › Juridisch en publiceren, nog
       open). **Advies: tot dan niet openbaar uploaden.** Moet het toch
       eerder, gebruik dan beelden zonder de naamkaarten van Tammo en
-      Tessa (shots 5 en 6 van de verhaaltrailer) en zonder close-ups van
+      Tessa (shots 4 en 5 van de verhaaltrailer) en zonder close-ups van
       hen, bijvoorbeeld de gameplaytrailer met HUD of de korte cut
       zonder die shots.
 - [ ] **Tessa, niet Anita**: de video's tonen de nieuwe naam. De
