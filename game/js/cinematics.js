@@ -306,13 +306,22 @@ function updateSubtitles() {
   els.root.classList.toggle('has-sub', !!l);
   paintSpeaker(els.speaker, l && l.speaker);
   if (l && l.speaker) noteSpoken(world, l.speaker);
-  setDualText(els.line, l ? l.text : '');
+  setDualText(els.line, l ? l.text : '', { gloss: true });
   els.root.classList.toggle('sub-clue', !!(l && l.clue));
   if (l && l.voice) playStoryVoice(l.voice, { radio: !!l.radio });
 }
 
+// realtime cinematics (the opening montage: its lines are timed to their
+// recordings and its cuts to the theme) run on the wall clock: the frame dt
+// is capped at 50 ms, so below 20 fps they would drift behind the audio and
+// hold every subtitle far longer than its line.
+let wallLast = 0;
+
 export function updateCinematics(dt, w) {
   world = w;
+  const now = performance.now();
+  const wallDt = wallLast ? Math.min(0.25, Math.max(0, (now - wallLast) / 1000)) : dt;
+  wallLast = now;
   if (!els) initCinematics(w);
   if (!started && gameStarted() && (introMod || (introWait += dt) > 3)) {
     started = true;
@@ -323,7 +332,7 @@ export function updateCinematics(dt, w) {
   const frozen = isPauseMenuOpen() || isMapOpen();
   if (!frozen) {
     if (active) {
-      active.t += dt;
+      active.t += active.realtime ? Math.max(dt, wallDt) : dt;
       updateSubtitles();
       if (active.t >= active.duration) finish(false);
     }
