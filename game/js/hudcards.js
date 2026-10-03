@@ -349,8 +349,8 @@ export function updateCards(dt, w) {
   syncWait();
   syncAward();
   tickChips(dt, !!frozen, !!(w.paused || w.uiPaused));
-  // the now-playing card steps aside for a card or a chip in the same corner
-  document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving) || waitT > 0 || awardT > 0);
+  document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
+  document.body.classList.toggle('hud-chip-on', waitT > 0 || awardT > 0);
   if (frozen) return;
   // during a phone call only dangers and the police get a card
   const calling = document.body.classList.contains('hud-call-on');
