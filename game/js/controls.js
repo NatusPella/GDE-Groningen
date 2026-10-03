@@ -7,13 +7,13 @@
 // Keyboard keys the player may rebind: [canonical key, what it does, group].
 // Escape, Enter, the arrows and the mouse stay fixed.
 export const KEY_ACTIONS = [
-  ['w', 'Vooruit, gas geven', 'beweging'],
-  ['s', 'Achteruit, remmen', 'beweging'],
-  ['a', 'Links, sturen', 'beweging'],
-  ['d', 'Rechts, sturen', 'beweging'],
-  [' ', 'Springen, handrem, klapwieken', 'beweging'],
-  ['shift', 'Rennen, boost, duiken', 'beweging'],
-  ['control', 'Bukken; duif: pikken en landen', 'beweging'],
+  ['w', 'Vooruit, gas geven; heli: vooruit', 'beweging'],
+  ['s', 'Achteruit, remmen; heli: remmen, achteruit', 'beweging'],
+  ['a', 'Links, sturen; heli: draaien', 'beweging'],
+  ['d', 'Rechts, sturen; heli: draaien', 'beweging'],
+  [' ', 'Springen, handrem, klapwieken; heli: omhoog', 'beweging'],
+  ['shift', 'Rennen, boost, duiken; heli: sneller', 'beweging'],
+  ['control', 'Bukken; duif: pikken en landen; heli: omlaag', 'beweging'],
   ['e', 'Instappen, praten, gebruiken; duif: pikken', 'actie'],
   ['f', 'Instappen (tweede toets); duif: poepen', 'actie'],
   ['k', 'Kusje', 'actie'],
@@ -158,8 +158,8 @@ export function buttonSlots(binds) {
 // button is); '@...' are the mouse stand-ins: @fire (left button), @aim
 // (right button), @wheel+/@wheel- (scroll, the next/previous weapon).
 // stick: what the left stick does - 'move' (analog walk, plus WASD for the
-// minigames), 'arrows' (the helicopter's arrow keys); triggers 'drive'
-// make RT/LT the gas and the brake.
+// minigames and the helicopter: forward/back and turn), 'arrows' (the arrow
+// keys); triggers 'drive' make RT/LT the gas and the brake.
 const FOOT = {
   a: ' ', b: 'control', x: 'f', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
   ls: 'shift', rs: 'tab', up: 't', down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
@@ -168,7 +168,8 @@ export const PAD_MAPS = {
   foot: FOOT,
   vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 't', down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
   skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: 't', down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
-  heli: { a: ' ', b: null, x: null, y: 'e', lb: 'a', rb: 'd', lt: 's', rt: 'w', ls: 'shift', rs: null, up: 't', down: 'v', left: 'o', right: null, view: 'm', start: 'escape', stick: 'arrows' },
+  // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster
+  heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: 't', down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
   pigeon: { a: ' ', b: 'control', x: 'f', y: 'e', lb: 'c', rb: 'q', lt: 'shift', rt: '@fire', ls: 'shift', rs: null, up: null, down: 'x', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   train: { a: ' ', b: null, x: 'h', y: 'e', lb: null, rb: null, lt: 's', rt: 'w', ls: null, rs: null, up: 't', down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game
