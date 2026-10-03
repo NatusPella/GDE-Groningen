@@ -90,13 +90,16 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] Cutscenes laden details rond de camera, niet rond de speler. Een rijkere minimap in het Ommeland.
 - [ ] Nog in het echt bekijken: de boten en zwemmers op het water en de ring (de screenshots van die plekken lukten niet).
 
-**Pakket D: heli, carbid en padel** (start zodra er ruimte is)
-- [ ] De heli-missie herbouwen: opstijgen bij Airport Eelde, onderweg een spoedgeval naar het UMCG, dan naar de ballon. Geen tweede heli en een logische landing. De ballonvlucht moet goed te doen zijn.
-- [ ] Nieuwe heli-besturing: WASD voor sturen en vooruit/achteruit, Shift voor snelheid, Spatie voor omhoog en Ctrl voor omlaag.
-- [ ] De kaart draait goed mee tijdens de heli-missie met de cirkels.
-- [ ] Een betere missienaam dan "Spoedeisende duif".
-- [ ] Een route naar carbid en padel in het verhaal. TTS tijdens padel, en geen waypoint naar de volgende missie tijdens het spel.
-- [ ] Een reden waarom je padel speelt tegen Durk en Douwe.
+**Pakket D: heli, carbid en padel** (`claude/feedback-heli`)
+- [x] De heli-missie is één vlucht in Rotor Roelfs demoheli: opstijgen op Eelde, onderweg belt Dokter Dijkstra met een spoedje (de lunch van de nachtdienst), landen op de H van het UMCG, Dijkstra stapt in met zijn lier, door de ringen naar de ballon in het Oosterpark, en terug op de H. Geen tweede heli; de proefvlucht is nu kennismaken met Roelf op Eelde.
+- [x] De ballonvlucht is te doen: grote ringen, een pijl met afstand en hoogte, een lichtzuil op de H, stuur- en hoogtehulp, meevliegen met de ballon en een ruimere vangzone. `scripts/heli_sim.mjs` vliegt beide heli-runs met het echte vliegmodel.
+- [x] Nieuwe heli-besturing: W/S vooruit en remmen, A/D draaien, Shift sneller, Spatie omhoog, Ctrl omlaag. Ook in Besturing, de hints en op de controller (stick vliegt, A/RT omhoog, B/LT omlaag). Blijft aan te passen.
+- [x] De kaart en minimap draaien mee met de heli; de ringen, de H en de ballon staan op hun echte plek.
+- [x] Nieuwe missienaam: "Het staat niet in het rooster" (andere kandidaten: "Even langs het UMCG", "Vliegen is ook maar rijden").
+- [x] Een route naar carbid, Eelde en terug naar een padelbaan: routes over de wegen van het Ommeland (`countryroute.js`).
+- [x] Padel: de tegenstanders praten hoorbaar, en tijdens padel, carbid en de botsauto's staan er geen waypoints of missiebakens naar iets anders.
+- [x] Durk en Douwe dagen Tammo uit voor padel: Jelle wil dat ze de twee een uur bezighouden (en dat verklapt Douwe).
+- [ ] Nalopen in een speeltest: de hele H15-vlucht (de headless check kwam niet voorbij het openingsfilmpje), de koppeling naar de stad na de kruisvlucht, en het padelfilmpje bij de baan. Ctrl+W sluit in een browser op Windows het tabblad: daar Ctrl liever omleggen.
 
 **Ring:** nog steeds zwarte lagen hier en daar. Dat valt onder mesh ronde 4 en 5, die gepauzeerd zijn.
 
