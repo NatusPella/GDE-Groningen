@@ -21,7 +21,7 @@ import { pointInPolygon, closestPointOnSegment } from './util.js';
 //   brinkmanbaksteencentrum.nl (Atlas & House of Groningen),
 //   dijkhuis-ingenieurs.nl, mwpo.nl, wijzigingsplan Atlas en Pleione.
 // - The petrol station across the service road (Pleiadenlaan 4): a BP with a
-//   shop, car wash and coffee corner; here the parody "Bakkie Peut" in the
+//   shop, car wash and coffee corner; here the parody "Bakkie Prut" in the
 //   same green-and-white canopy livery, no real logo.
 // - Korenbloemstraat (Bloemenbuurt, Oosterparkwijk): municipal workers'
 //   housing by S.J. Bouma (Gemeentewerken), late 1920s / early 1930s:
@@ -212,7 +212,7 @@ defer('galerij60', (B, b, ring) => {
   }
 });
 
-// --- Bakkie Peut (the petrol station on the Pleiadenlaan) ------------------------
+// --- Bakkie Prut (the petrol station on the Pleiadenlaan) ------------------------
 
 const PEUT = { green: 0x0f7a3a, lime: 0x9cc53a, white: 0xf1f2ee, grey: 0xc9ccc8, dark: 0x22262a, glass: 0x34444c, curb: 0xa7a59d };
 
@@ -225,7 +225,7 @@ function peutSignTexture(lines) {
   g.fillStyle = '#0f7a3a';
   g.textAlign = 'center'; g.textBaseline = 'middle';
   g.font = 'bold 50px sans-serif'; g.fillText('BAKKIE', 128, 62);
-  g.font = 'bold 64px sans-serif'; g.fillText('PEUT', 128, 122);
+  g.font = 'bold 64px sans-serif'; g.fillText('PRUT', 128, 122);
   g.fillStyle = '#9cc53a'; g.fillRect(14, 172, 228, 10);
   lines.forEach(([name, price], i) => {
     const y = 214 + i * 74;
@@ -244,7 +244,7 @@ function fasciaTexture() {
   g.fillStyle = '#0f7a3a'; g.fillRect(0, 0, 512, 64);
   g.fillStyle = '#9cc53a'; g.fillRect(0, 52, 512, 6);
   g.fillStyle = '#f1f2ee'; g.font = 'bold 36px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText('BAKKIE PEUT', 256, 27);
+  g.fillText('BAKKIE PRUT', 256, 27);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
