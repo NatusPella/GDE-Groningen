@@ -622,8 +622,8 @@ function buildShots(w) {
 
   // sun on d'Olle Grieze instead of palm trees: a crane up along the tower
   const sun = {
-    minDur: 3.4, clock: 5.4, focus: tower, flare: { x: 78, y: 22, a: 0.9 },
-    card: '<div class="im-title">Grunn.</div>', cardDur: 3,
+    minDur: 2.4, clock: 5.4, focus: tower, flare: { x: 78, y: 22, a: 0.9 },
+    card: '<div class="im-title">Grunn.</div>', cardDur: 2.6,
     cams: [[0, (u, t) => {
       const k = smooth(u), a = toE + Math.PI + 0.5;
       const pos = P(tower.x + Math.cos(a) * 52, tower.y + Math.sin(a) * 52, lerp(16, 70, k));
@@ -636,7 +636,7 @@ function buildShots(w) {
   const bf = { x: Math.cos(bst.a), y: Math.sin(bst.a) }, bn = { x: -bf.y, y: bf.x };
   const blane = (d, off) => ({ x: bst.x + bf.x * d + bn.x * off, y: bst.y + bf.y * d + bn.y * off });
   const bikes = {
-    minDur: 2.4, clock: 9.1, focus: bst,
+    minDur: 1.9, clock: 9.1, focus: bst,
     card: '<div class="im-title">Een zomer.</div>', cardDur: 2.5,
     enter(r, s) {
       clearRoadNear(r, polyline([[bst.x - bf.x * 30, bst.y - bf.y * 30], [bst.x + bf.x * 30, bst.y + bf.y * 30]]), 6);
@@ -662,7 +662,7 @@ function buildShots(w) {
   // a gull steals a frikandel on the Vismarkt; the pigeons scatter
   const gullDir = Math.atan2(tower.y - vismarkt.y, tower.x - vismarkt.x);
   const gull = {
-    minDur: 2.4, clock: 12.6, focus: vismarkt,
+    minDur: 1.9, clock: 12.6, focus: vismarkt,
     enter(r, s) {
       s.birds = makeBirds(r.group, vismarkt.x + 1.5, vismarkt.y, 2.5);
       s.gull = buildPigeonBird('gull');
@@ -698,7 +698,7 @@ function buildShots(w) {
   const bq = canalAt(canalNear(455, -51));
   const cn = { x: -Math.sin(bq.a), y: Math.cos(bq.a) };
   const boat = {
-    minDur: 2.4, clock: 10.4, focus: bq,
+    minDur: 1.9, clock: 10.4, focus: bq,
     enter(r, s) {
       s.boat = tempBoat(r, bq.x, bq.y, bq.a, BOAT_KINDS.sloepGrijs);
       s.bike = buildWetBike();
@@ -722,7 +722,7 @@ function buildShots(w) {
   const rf = { x: Math.cos(here.a), y: Math.sin(here.a) }, rn = { x: -rf.y, y: rf.x };
   const lane = (d, off) => ({ x: here.x + rf.x * d + rn.x * off, y: here.y + rf.y * d + rn.y * off });
   const anitaCard = {
-    minDur: 3.6, clock: 8.4, focus: here, freeze: 1.5,
+    minDur: 3.1, clock: 8.4, focus: here, freeze: 1.2,
     tags: [[1.5, 99, 'Anita', 'Heeft altijd een plan B. Plan A is ook van haar.']],
     enter(r, s) {
       clearRoadNear(r, polyline([[here.x - rf.x * 30, here.y - rf.y * 30], [here.x + rf.x * 30, here.y + rf.y * 30]]), 6);
@@ -748,7 +748,7 @@ function buildShots(w) {
   // Tammo holds the kitchen door open and looks guiltily into the lens: freeze
   const door = KITCHEN.door;
   const tammoCard = {
-    minDur: 3.4, clock: 5.1, focus: home, kitchen: true, freeze: 1.3,
+    minDur: 3.1, clock: 5.1, focus: home, kitchen: true, freeze: 1.1,
     tags: [[1.3, 99, 'Tammo', 'Stadjer. Groot hart. Kleine portemonnee.']],
     enter(r, s) {
       s.kit = useKitchen(r, KIT);
@@ -764,7 +764,7 @@ function buildShots(w) {
 
   // flash: a pigeon past the Groninger Museum
   const pigeon = {
-    minDur: 1.8, clock: 17.3, focus: museum,
+    minDur: 1.5, clock: 17.3, focus: museum,
     enter(r, s) {
       s.bird = buildPigeonBird('pigeon');
       s.bird.scale.multiplyScalar(1.6);
@@ -789,7 +789,7 @@ function buildShots(w) {
   // flash: the black trekker-limo on Ring Zuid
   const ring = polyline(RING_ROUTE.slice(0, 16).map((p) => [p[0], p[1]]));
   const limo = {
-    minDur: 1.8, clock: 19.6, focus: ring.at(30),
+    minDur: 1.5, clock: 19.6, focus: ring.at(30),
     enter(r, s) {
       clearRoadNear(r, ring, 8);
       s.d = 10;
@@ -814,7 +814,7 @@ function buildShots(w) {
   const eu = street(map, 1250, 578);
   const ef = { x: Math.cos(eu.a), y: Math.sin(eu.a) }, en = { x: -ef.y, y: ef.x };
   const tanker = {
-    minDur: 1.8, clock: 14.2, focus: eu,
+    minDur: 1.5, clock: 14.2, focus: eu,
     enter(r, s) {
       clearRoadNear(r, polyline([[eu.x - ef.x * 40, eu.y - ef.y * 40], [eu.x + ef.x * 40, eu.y + ef.y * 40]]), 7);
       s.d = -16;
@@ -834,7 +834,7 @@ function buildShots(w) {
   // flash: a helicopter over the Oosterpark, a man on a rope beneath it
   const HELI_Z = 52;
   const heli = {
-    minDur: 2, clock: 13, focus: park,
+    minDur: 1.6, clock: 13, focus: park,
     enter(r, s) {
       s.prev = r.w.skyHeli || null;
       try { s.h = scriptHeli(r.w); } catch (e) { s.h = null; }
@@ -864,20 +864,20 @@ function buildShots(w) {
   };
 
   const title = {
-    minDur: 4.2, black: true,
+    minDur: 3.6, black: true,
     card: '<div class="gte-logo"><span class="gte">GTE</span><span class="vi">VI</span></div><div class="im-tagline">Er gaat niets boven Grunn. Behalve de Martinitoren.</div><div class="im-kicker">Een zomer in Grunn</div>',
   };
 
   // --- opening ---------------------------------------------------------------
 
-  const dateCard = { minDur: 2, black: true, card: '<div class="im-kicker">Kop · 14 augustus</div><div class="im-title">Moi, Grunn</div>' };
+  const dateCard = { minDur: 1.6, black: true, card: '<div class="im-kicker">Kop · 14 augustus</div><div class="im-title">Moi, Grunn</div>' };
 
   // sunrise: down along d'Olle Grieze, over the Oosterparkwijk into a narrow
-  // street, Rikus at his mic, the red Escapade with a flat tyre at the door
+  // street, the red Escapade with a flat tyre at the door, Rikus at his mic
   const dawn = {
-    minDur: 11.5, clock: 4.8, clockTo: 4.95, stamp: '05:48', focus: home, flare: { x: 82, y: 30, a: 0.8 },
-    caption: ['OOSTERPARKWIJK', 'Korenbloemstraat. Een zolderraam en een lekke band.'], capAt: 'L0+7.6',
-    lead: 1.2,
+    minDur: 9, clock: 4.8, clockTo: 4.95, stamp: '05:48', focus: home, flare: { x: 82, y: 30, a: 0.8 },
+    caption: ['OOSTERPARKWIJK', 'Korenbloemstraat. Een zolderraam en een lekke band.'], capAt: 'L0+1',
+    lead: 0.6,
     lines: [['V', 'Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens.', 'warm, zacht, als nacht-dj op de radio in het laatste uur van de nacht']],
     enter(r, s) {
       s.car = tempCar(r, car.x, car.y, home.a) || tempCar(r, car.x, car.y, home.a, { model: { ...MODELS[0], color: '#a11f1f' } });
@@ -897,19 +897,19 @@ function buildShots(w) {
         const pos = P(tower.x + Math.cos(toE) * 46, tower.y + Math.sin(toE) * 46, lerp(98, 56, k));
         return pose(clearCam(map, pos), P(tower.x, tower.y, lerp(90, 52, k)), 48, t, 0.04);
       }],
-      ['L0+1', (u, t) => {
+      ['L0+0.6', (u, t) => {
         const k = smooth(u);
         const from = P(lerp(park.x, home.x, 0.35), lerp(park.y, home.y, 0.35), 70);
         const to = P(home.x - hn.x * 24 - hf.x * 8, home.y - hn.y * 24 - hf.y * 8, 15);
         const pos = clearCam(map, P(lerp(from.x, to.x, k), lerp(from.y, to.y, k), lerp(from.z, to.z, k)));
         return pose(pos, P(car.x, car.y, lerp(0, 1, k)), lerp(52, 44, k), t, 0.05);
       }],
-      ['L0+4.2', (u, t, s) => ({ ...s.st.shot(0)(u), cut: true })],
-      ['L0+7.4', (u, t) => {
+      ['L0+3.4', (u, t) => {
         const k = smooth(u);
         const pos = clearCam(map, P(car.x - hn.x * 5.2 + hf.x * 3.5, car.y - hn.y * 5.2 + hf.y * 3.5, lerp(1.1, 1.5, k)));
         return pose(pos, P(lerp(car.x, attic.x, k), lerp(car.y, attic.y, k), lerp(0.7, 8.2, k)), lerp(46, 40, k), t, 0.02);
       }],
+      ['L0+5.6', (u, t, s) => ({ ...s.st.shot(0)(u), cut: true })],
     ],
   };
 
@@ -919,7 +919,7 @@ function buildShots(w) {
   const tl = Math.hypot(tStand.u - KITCHEN.anitaSeat.u, tStand.v - KITCHEN.anitaSeat.v);
   const toT = { x: (tStand.u - KITCHEN.anitaSeat.u) / tl, y: (tStand.v - KITCHEN.anitaSeat.v) / tl };
   const kitchenIn = {
-    minDur: 6, clock: 5.1, focus: home, kitchen: true, lead: 1.6,
+    minDur: 6, clock: 5.1, focus: home, kitchen: true, lead: 1.1,
     lines: [
       ['T', 'Moi. De bank?', 'droog, slaperig, voorzichtig'],
       ['A', '"Uw plan is sympathiek." Dat betekent nee, met een strikje.', 'ad rem, cynisch, moe'],
@@ -987,42 +987,32 @@ function buildShots(w) {
     ],
   };
 
-  // nobody talks: she looks at him, he looks at his coffee
-  const look = {
-    minDur: 3.4, clock: 5.14, focus: home, kitchen: true,
-    enter(r, s) {
-      s.kit = useKitchen(r, KIT);
-      for (const c of s.kit.tableCups) c.visible = true;
-    },
-    tick(r) {
-      sitK(r.anita, KITCHEN.anitaSeat, 0, 0.05);
-      sitK(r.tammo, KITCHEN.tammoSeat, Math.PI, -0.42);
-    },
-    cams: [[0, (u, t) => pose(K(0, -1.38, 1.24), K(0, 0, 1.02), 40, t, 0.002)]],
-  };
-
-  // a slow push-in on Anita
+  // nobody talks: she looks at him, he looks at his coffee; then a slow push-in on Anita
   const liefste = {
-    minDur: 4, clock: 5.16, focus: home, kitchen: true, lead: 0.7,
+    minDur: 4, clock: 5.16, focus: home, kitchen: true, lead: 1.5,
     lines: [['A', '…Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.', 'zacht, ontroerd, verrast, met een glimlach die ze probeert in te houden']],
     enter(r, s) {
       s.kit = useKitchen(r, KIT);
       for (const c of s.kit.tableCups) c.visible = true;
     },
     tick(r, s, t) {
-      sitK(r.anita, KITCHEN.anitaSeat, 0, -0.04);
-      sitK(r.tammo, KITCHEN.tammoSeat, Math.PI, t > 2.5 ? -0.1 : -0.38);
+      const L = liefste.timed;
+      sitK(r.anita, KITCHEN.anitaSeat, 0, L[0] && t > L[0].at ? -0.04 : 0.05);
+      sitK(r.tammo, KITCHEN.tammoSeat, Math.PI, L[0] && t > L[0].at + 1.8 ? -0.1 : -0.42);
     },
-    cams: [[0, (u, t) => {
-      const k = smooth(u);
-      return pose(K(lerp(1.7, 0.98, k), lerp(0.38, 0.2, k), lerp(1.32, 1.2, k)), anitaHead, lerp(34, 27, k), t, 0.002);
-    }]],
+    cams: [
+      [0, (u, t) => pose(K(0, -1.38, 1.24), K(0, 0, 1.02), 40, t, 0.002)],
+      ['L0-0.1', (u, t) => {
+        const k = smooth(u);
+        return pose(K(lerp(1.7, 0.98, k), lerp(0.38, 0.2, k), lerp(1.32, 1.2, k)), anitaHead, lerp(34, 27, k), t, 0.002);
+      }],
+    ],
   };
 
   // Rikus on the old radio with advice for Tammo, then her phone buzzes
   const radioTip = {
     minDur: 6, clock: 5.18, focus: home, kitchen: true, lead: 0.4,
-    gaps: { 1: 1.5 },
+    gaps: { 1: 1.0 },
     lines: [
       ['V', 'En voor Tammo, als je luistert: ze zegt nooit "kom" tegen iemand die ze niet mee wil hebben. Doe er wat mee.', 'warm, als nacht-dj op de radio, zacht, met een knipoog'],
       ['A', 'Kom. Werk.', 'kortaf, zakelijk, net te snel'],
@@ -1050,10 +1040,8 @@ function buildShots(w) {
     ],
   };
 
-  const logo = { minDur: 2, black: true, card: '<div class="im-kicker">Grand Theft Eierbal</div><div class="gte-logo"><span class="gte">GTE</span><span class="vi">VI</span></div>', restore: true };
-
   const swoop = {
-    minDur: 6.4, home: true,
+    minDur: 4.6, home: true,
     lower: '<div class="im-kicker">Welkom in</div><div class="im-title">Grunn</div>',
     enter(r, s) { s.shot = r.flyShot(); },
     // soft for the last moment, so the follow camera below has its collision again
@@ -1062,7 +1050,7 @@ function buildShots(w) {
 
   return [
     sun, bikes, gull, boat, anitaCard, tammoCard, pigeon, limo, tanker, heli, title,
-    dateCard, dawn, kitchenIn, kitchenCar, look, liefste, radioTip, logo, swoop,
+    dateCard, dawn, kitchenIn, kitchenCar, liefste, radioTip, swoop,
   ];
 }
 
@@ -1088,8 +1076,8 @@ function timeShots(shots) {
       t += (s.gaps && s.gaps[i]) || 0;
       const who = WHO[k] || k;
       const v = voiceOf(who, text);
-      const l = { who, text, at: t, dur: v ? v.dur + 0.2 : readDur(text), voice: v && v.src, radio: !!s.radio || k === 'V' };
-      t = l.at + l.dur + 0.12;
+      const l = { who, text, at: t, dur: v ? v.dur + 0.12 : readDur(text), voice: v && v.src, radio: !!s.radio || k === 'V' };
+      t = l.at + l.dur + 0.06;
       return l;
     });
     const want = Math.max(s.minDur || 3, t + (s.lines ? 0.3 : 0));
