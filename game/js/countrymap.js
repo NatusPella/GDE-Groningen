@@ -32,29 +32,60 @@ export const MINI_STYLE = {
 
 const C = ROAD_IN + ROAD_W / 2;
 
+// A w x h canvas in one colour whose alpha (0-255) is alpha(k) per pixel,
+// filled in row bands: step(ms) goes on for about that long, finish() does
+// the rest at once. The water field is ~6 M pixels: built in one go it was a
+// ~100 ms frame on the first minimap tile over the Ommeland.
+function alphaCanvas(w, h, color, alpha) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  let band = null;
+  const col = parseInt(color.slice(1), 16);
+  const rgb = (col >> 16) | (col & 0xff00) | ((col & 255) << 16);
+  const ROWS = 32;
+  let y = 0;
+  const job = { c, done: false };
+  job.step = (ms) => {
+    const end = performance.now() + ms;
+    while (y < h) {
+      const rows = Math.min(ROWS, h - y);
+      if (!band || band.height !== rows) band = g.createImageData(w, rows);
+      const px = new Uint32Array(band.data.buffer);
+      px.fill(0);
+      for (let k = 0, o = y * w, n = rows * w; k < n; k++) {
+        const a = alpha(o + k);
+        if (a > 0) px[k] = rgb | (a << 24);
+      }
+      g.putImageData(band, 0, y);
+      y += rows;
+      if (performance.now() > end) break;
+    }
+    if (y >= h) job.done = true;
+    return job.done;
+  };
+  job.finish = () => { if (!job.done) job.step(Infinity); return c; };
+  return job;
+}
+
 // The real water (countryreal.js distance field) as an image per colour.
 const waterCache = new Map();
-function realWaterImage(color) {
-  const zone = REAL.ready && REAL.waterField;
-  if (!zone) return null;
-  let c = waterCache.get(color);
-  if (c) return c;
-  const W = zone;
-  c = document.createElement('canvas');
-  c.width = W.w; c.height = W.h;
-  const g = c.getContext('2d');
-  const img = g.createImageData(W.w, W.h);
-  const col = parseInt(color.slice(1), 16);
-  for (let k = 0; k < W.w * W.h; k++) {
-    const d = (W.data[k] - 128) / 4;
-    if (d < -8) continue;
-    const t = Math.min(1, Math.max(0, (d + 5) / 10));
-    img.data[k * 4] = col >> 16; img.data[k * 4 + 1] = (col >> 8) & 255; img.data[k * 4 + 2] = col & 255;
-    img.data[k * 4 + 3] = Math.round(255 * t);
+function waterJob(color) {
+  const W = REAL.ready && REAL.waterField;
+  if (!W) return null;
+  let j = waterCache.get(color);
+  if (!j) {
+    j = alphaCanvas(W.w, W.h, color, (k) => {
+      const d = (W.data[k] - 128) / 4;
+      return d < -8 ? 0 : Math.round(255 * Math.min(1, Math.max(0, (d + 5) / 10)));
+    });
+    waterCache.set(color, j);
   }
-  g.putImageData(img, 0, 0);
-  waterCache.set(color, c);
-  return c;
+  return j;
+}
+function realWaterImage(color) {
+  const j = waterJob(color);
+  return j ? j.finish() : null;
 }
 
 // Real roads, water, rails and buildings in the window.
@@ -127,26 +158,36 @@ function line(ctx, P) {
 // the ground shader), plain meadow beyond the mask grid. Draw before the
 // city's own layers.
 const meadowCache = new Map();
-function meadowImage(st) {
+function meadowJob(st) {
   const M = countryMask();
   if (!M) return null;
-  let c = meadowCache.get(st.meadow);
-  if (c && c.mask === M) return c;
-  c = document.createElement('canvas');
-  c.width = M.w; c.height = M.h;
-  const g = c.getContext('2d');
-  const img = g.createImageData(M.w, M.h);
-  const col = parseInt(st.meadow.slice(1), 16);
-  for (let k = 0; k < M.w * M.h; k++) {
-    const d = M.data[k];
-    const t = Math.min(1, Math.max(0, (d + 160) / 180));
-    img.data[k * 4] = col >> 16; img.data[k * 4 + 1] = (col >> 8) & 255; img.data[k * 4 + 2] = col & 255;
-    img.data[k * 4 + 3] = Math.round(255 * t * t * (3 - 2 * t));
-  }
-  g.putImageData(img, 0, 0);
-  c.mask = M;
-  meadowCache.set(st.meadow, c);
-  return c;
+  let j = meadowCache.get(st.meadow);
+  if (j && j.mask === M) return j;
+  j = alphaCanvas(M.w, M.h, st.meadow, (k) => {
+    const t = Math.min(1, Math.max(0, (M.data[k] + 160) / 180));
+    return Math.round(255 * t * t * (3 - 2 * t));
+  });
+  j.mask = M;
+  meadowCache.set(st.meadow, j);
+  return j;
+}
+function meadowImage(st) {
+  const j = meadowJob(st);
+  return j ? j.finish() : null;
+}
+
+// The water and meadow images of both maps, built a few ms per frame (on
+// the title screen), before the first minimap tile or map view needs them.
+export function warmCountryMaps(sliceMs = 4) {
+  const jobs = [];
+  for (const st of [MINI_STYLE, MAP_STYLE]) jobs.push(waterJob(st.water), meadowJob(st));
+  const next = () => {
+    const j = jobs.find((q) => q && !q.done);
+    if (!j) return;
+    j.step(sliceMs);
+    requestAnimationFrame(next);
+  };
+  requestAnimationFrame(next);
 }
 
 export function drawCountryBase(ctx, x0, y0, x1, y1, st) {
