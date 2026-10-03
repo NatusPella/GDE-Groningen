@@ -34,8 +34,45 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Zwemmers in zwemkleding** (zwembroek, badpak of bikini). Ze zwemmen een
   rustige schoolslag, drijven op hun rug of watertrappelen kalm, en soms zit
   er iemand op de oever met de voeten in het water. Ze zwaaien niet meer.
+- **Stuntavond (H3) met een scorebord**: vooraf zie je wat punten oplevert
+  en hoeveel je nodig hebt. Daarna toont een paneel je punten tegen het doel
+  met een voortgangsbalk en je combo. Elke actie geeft een pop-up ("+120
+  parasol", "combo x2", "-250 iemand geraakt"), en tegen het eind staat er
+  "nog X punten".
+- **Een proost in elke kroeg (H11)**: een kort, overslaanbaar moment waarin
+  Tammo en Anita klinken en drinken. Elke kroeg heeft een ander glas, een
+  ander shot en één zin of geen.
+- **Meer op de rondvaart (H13)**: een scène waarin Schipper Wiebe zegt
+  waarom hij zo boos is (één biertje, en zijn boot met betalende toeristen
+  was weg), een scène als hij zijn hoofd stoot onder de H.N. Werkmanbrug,
+  en daarna gaat Tammo gewoon verder als gids. Onderweg groeit er iets
+  tussen hen (een blik, hun handen op de reling, "praat straks eens tegen
+  mij") tot aan de kus. Na de intro zie je vanaf het water hoe ze aan boord
+  zijn.
+- **"US MEM VET"** staat in Friese stijl op de tankwagen (H8): de banen en
+  pompeblêden, en Us Mem de koe.
 
 ### Verbeterd
+- **H6: allebei in het zwart.** Tijdens de kraak dragen Tammo en Anita
+  allebei zwart incognito, wie het ook kocht. In de trein bij het onderduiken
+  trekken ze hun eigen kleren weer aan.
+- **H6: de vlucht eindigt bij het station.** Na de kraak wijst de waypoint
+  niet meer naar het museum maar naar een kade bij het Hoofdstation. Schud
+  de politie af en leg daar aan.
+- **H8: de tankwagen staat waar het verhaal zegt**, bij de groothandel aan
+  de Bornholmstraat, en rijdt pas weg als je dichtbij komt. Erin springen is
+  de bedoelde route: dan rij je meteen door naar de Oosterpoort. Banden plat
+  schieten kan nog steeds.
+- **H5: ieder op een eigen fiets.** Anita fietst niet meer achterop, dus het
+  oogcontact op het kruispunt waar alles groen is klopt weer.
+- **H13: een eerlijke medaille.** Goud vroeg een snellere tijd dan de boot
+  kan varen, dus je kreeg bijna altijd brons. Goud en zilver zijn nu haalbaar
+  (nog steeds met blije toeristen), en de uitslag toont ook hoeveel verhalen
+  je hebt verteld.
+- **H14: aan boord van het skûtsje** filmt de camera vanaf de boeg, zodat
+  het zeil niet meer voor de scène hangt.
+- **Durk en Douwe fietsen niet meer door muren** na Jelles polsstoksprong
+  (H8, H14): ze nemen de vrije kant op, of slaan buiten beeld de hoek om.
 - **Voertuigbadge**: het merk en de naam van je voertuig staan erbij, en de
   staat ervan is een hartje met een balk die leegloopt bij schade (rood als
   het slecht gaat), in plaats van "Schade".
