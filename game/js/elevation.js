@@ -549,8 +549,10 @@ function buildWalls(elev, map) {
           // a ramp out of the cutting tucked under the edge of a higher way
           // alongside (a slip road climbing faster): the cut-away ground
           // between them is closed by a wall face up to the other surface
-          const zn = surfaceZ(elev, mx, my, s.r, zr, 1.6);
-          if (zn !== null && zn > zr + 0.5 && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -RAISED) {
+          // (also up to a street-level ribbon overlapping the ramp's edge)
+          const zs = surfaceZ(elev, mx, my, s.r, zr, 1.6);
+          const zn = zs !== null ? zs : onFlatRoad(map, mx, my) ? 0 : null;
+          if (zn !== null && zn > zr + 0.25 && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -RAISED) {
             elev.skirts.push({
               ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
               bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
