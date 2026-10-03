@@ -2823,6 +2823,8 @@ function curveAt(curve, h) {
 
 function applyTimeOfDay(dt, world) {
   const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
+  // a cutscene's own grade on top of the clock's (intromontage.js: the dawn shot)
+  if (world.lightMood) world.lightMood(L);
   const storm = world.weather ? Math.min(1, Math.max(0, world.weather.intensity)) : 0;
 
   sunDir.copy(L.lightDir);
