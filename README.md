@@ -372,7 +372,6 @@ added to `citymap.json` are carried over by `build_map.py`.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.
-- No save/load.
 
 ## Licences and credits
 
@@ -387,6 +386,13 @@ project's own code and content is not chosen yet; see
 [docs/LICENTIES.md](docs/LICENTIES.md) for the inventory, the options and the
 open risks, and [docs/PUBLICEREN.md](docs/PUBLICEREN.md) for the checklist
 before the repo goes public.
+
+Saves: progress saves on its own (and with Opslaan in the pause menu) on
+your own device. From 1.0 on, a save keeps working in every later version:
+each save carries a version and older ones are migrated step by step when
+they load (`game/js/savemigrate.js`, checked by
+`node scripts/save_migration_test.mjs` against saves from earlier versions;
+see ARCHITECTURE.md, "Saves and versions").
 
 Privacy: the game keeps progress and settings in the browser's localStorage
 on your own device. No accounts, no telemetry, no analytics. The browser

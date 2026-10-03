@@ -1,0 +1,21 @@
+{
+  "_era": "0.24: knockout counters (PEGI 16), spaarkaart stamps, the last v1 save",
+  "_expect": { "step": "H12", "money": 8800 },
+  "save": {
+    "v": 1, "savedAt": 1759480000000, "money": 8800, "moneyBackup": 8800, "health": 100, "armor": 100, "weapon": "pistol",
+    "ammo": { "fists": "inf", "pistol": 12 },
+    "stats": { "knockouts": 12, "pedKnockouts": 9, "copKnockouts": 3, "copCarsWrecked": 1, "missionsDone": 11, "playerWrecks": 2, "spent": 4000 },
+    "character": "anita", "pos": { "x": 0, "y": 0 }, "ctx": "home",
+    "missions": { "index": 10, "completed": [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5], "seen": [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12], "medals": { "10": 3 } },
+    "story": { "v": 1, "done": ["H1", "H2", "H3", "H4", "k-fiets", "H5", "H6", "k-kraakspullen", "H7", "H8", "H9", "H10", "H11", "r-trein"],
+      "skipped": [], "fails": {}, "waived": [], "voorschot": [], "cards": ["kop", "deel1"], "flags": ["met:berend", "hideout:ijsje"] },
+    "visitedLandmarks": ["martinitoren"],
+    "shops": { "hero": {}, "outfit": { "tammo": "incognito", "anita": "incognito" }, "ownedOutfits": ["incognito"], "storyOutfit": "incognito",
+      "hair": { "tammo": { "color": "naturel", "style": "short" }, "anita": { "color": "naturel", "style": "bob" } }, "heroColor": null, "heroUpgrades": ["turbo"], "stamps": 7,
+      "vehicles": [ { "key": "wervelwind", "color": "#c9a227", "upgrades": ["turbo"], "garage": true }, { "key": "bakfiets", "color": "#2f4a3a", "upgrades": [], "x": 3, "y": 4, "angle": 0 } ] },
+    "prestaties": { "eierballen": ["eb-2"], "geheimen": [], "unlocked": ["m1_klaar", "spaarkaart"] },
+    "duif": { "ach": [] }, "bijbaan": { "v": 1, "jobs": {}, "seen": [] }, "postgame": {},
+    "meubels": { "owned": [], "pending": [], "built": [], "day": 0, "read": 0, "stek": 0, "tips": [], "moment": 0 },
+    "doel": null
+  }
+}

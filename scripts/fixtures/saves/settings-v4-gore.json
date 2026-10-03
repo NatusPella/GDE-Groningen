@@ -1,0 +1,5 @@
+{
+  "_era": "settings v4 (0.23): the gore switch still stored, a view distance the player chose",
+  "_expect": { "drawDistance": "kort", "sfxVolume": 1, "shadows": true, "gore": null, "quality": "hoog" },
+  "settings": { "v": 4, "sfxVolume": 1, "quality": "hoog", "shadows": true, "drawDistance": "kort", "gore": false }
+}
