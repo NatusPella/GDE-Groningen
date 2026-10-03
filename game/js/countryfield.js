@@ -471,6 +471,7 @@ vec2 cMark(vec2 p, float px) {
     if (d - h < bd) { bd = d - h; dc = d; hw = h; code = floor(W.w / 4096.0); along = W.w - code * 4096.0 + t * L; }
   }
   if (bd >= 0.0) return vec2(0.0);
+  if (code > 31.5) return vec2(0.0, 1.0);
   float kind = mod(code, 8.0);
   bool one = mod(code, 16.0) > 7.5;
   bool lanes = code > 15.5;
@@ -723,7 +724,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   c = mix(c, cLin(70.0, 72.0, 44.0) * (0.8 + 0.3 * n3), bank * 0.8 * smoothstep(0.86, 0.98, cw));
   // the open water near the player is the real surface below (countrywater.js)
   vec2 qR = abs(p - uCountryRect.xy) - uCountryRect.zw;
-  if (rw > 0.0 && roadM < 0.5 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
+  if ((rw > 0.0 || ce.y > 0.5) && roadM < 0.5 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
   // the city water's shallow / deep tones (water3d.js), glossy so the sky
   // reflects in it; a slow drifting sheen where it is not weed
   vec3 wc = mix(cLin(44.0, 74.0, 56.0), cLin(11.0, 36.0, 32.0), 0.35 + 0.4 * n2 + 0.25 * wQ);

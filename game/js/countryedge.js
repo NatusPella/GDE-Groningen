@@ -547,10 +547,29 @@ export function edgeAt(x, y, margin = 0) {
   return _hit.kind ? _hit : null;
 }
 
+// Metres into the water of the real canals and maren drawn from their
+// lines (positive on the water, as realWater), or -99 away from them.
+export function canalWater(x, y) {
+  let best = -99;
+  for (const g of segsNear(x, y, 0)) {
+    if (!g.kind) continue;
+    const b = g.box;
+    if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
+    const [d, t] = segDist(x, y, g);
+    best = Math.max(best, g.ha + (g.hb - g.ha) * t - 1.2 - d);
+  }
+  return best;
+}
+// The open water past the map edge: the field, and the lines of the
+// narrower canals and maren.
+export function openWater(x, y) {
+  return REAL.ready ? Math.max(realWater(x, y), canalWater(x, y)) : -99;
+}
+
 // Deep open water past the map edge (countrywater.js draws it at WATER_Y):
 // swum in and sunk in like the city canals; roads over it are bridges.
 export function wideWaterAt(x, y) {
-  if (!REAL.ready || rectOutside(x, y) <= 0 || realWater(x, y) <= SHORE_RW) return false;
+  if (!REAL.ready || rectOutside(x, y) <= 0 || openWater(x, y) <= SHORE_RW) return false;
   const h = edgeAt(x, y);
   return !(h && h.kind === 'road');
 }
