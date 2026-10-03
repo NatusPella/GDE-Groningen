@@ -528,8 +528,24 @@ function buildHat(B, L) {
   }
 }
 
+// Swimwear: suit colour from the crotch up to the cut (trunks at the waist,
+// a bikini low on the hips, a swimsuit up to the chest), bare skin above; a
+// bikini adds a band round the chest.
+function buildSwimTorso(B, L, skin, rings) {
+  const c = L.pants;
+  const cut = L.swim === 'swimsuit' ? 1.4 : L.swim === 'bikini' ? 0.93 : 1.0;
+  B.bone = W_TORSO;
+  B.geo(loftUp(slice(rings, 0.83, cut), 10), null, c);
+  B.geo(new THREE.CircleGeometry(1, 10).rotateX(Math.PI / 2), composeMatrix(0, 0.83, 0, 0, 0, 0, 0.075, 1, 0.09), c);
+  B.geo(loftUp(slice(rings, cut, 1.485, 1), 10), null, skin);
+  if (L.swim === 'bikini') B.geo(loftGeometry(slice(rings, 1.22, 1.32, 1.035), 10, Math.PI / 10), null, c);
+  else if (L.swim === 'trunks') B.geo(loftGeometry(slice(rings, 0.975, 1.005, 1.03), 10, Math.PI / 10), null, shade(c, 0.8));
+  else B.geo(loftGeometry(slice(rings, 1.37, 1.4, 1.02), 10, Math.PI / 10), null, shade(c, 0.85));
+}
+
 function buildTorso(B, L, skin) {
   const rings = torsoRings(L);
+  if (L.top === 'swim') { buildSwimTorso(B, L, skin, rings); return; }
   const top = L.topColor, pants = L.bottom === 'skirt' ? L.skirtColor : L.pants;
   const long = L.top === 'coat' || L.top === 'raincoat';
   const tucked = L.top === 'blazer' || L.top === 'police' || (L.top === 'longsleeve' && !L.female);
@@ -670,7 +686,7 @@ function buildLegs(B, L, skin) {
   ].map((r) => (L.build === 'heavy' ? { ...r, d: r.d * 1.1, w: r.w * 1.1 } : L.build === 'slim' ? { ...r, d: r.d * 0.93, w: r.w * 0.93 } : r));
   const bare = L.bottom === 'skirt' || L.bottom === 'dress';
   const legColor = bare ? L.tights : L.pants;
-  const hemY = L.bottom === 'shorts' ? 0.6 : bare ? 0.13 : 0.12;
+  const hemY = L.bottom === 'swim' ? (L.swim === 'trunks' ? 0.7 : 0.9) : L.bottom === 'shorts' ? 0.6 : bare ? 0.13 : 0.12;
   const hipZ = f ? 0.084 : 0.088;
   for (let k = 0; k < 2; k++) {
     const s = k === 0 ? 1 : -1;
@@ -687,8 +703,14 @@ function buildLegs(B, L, skin) {
     const top = upper[upper.length - 1];
     B.geo(new THREE.SphereGeometry(Math.max(top.d, top.w) * 0.85, 8, 6), composeMatrix(0, HIP_Y, s * hipZ), legColor);
     B.bone = BONE.knee[k];
-    buildShoe(B, L, M, skin);
+    if (L.bottom === 'swim') buildFoot(B, M, skin);
+    else buildShoe(B, L, M, skin);
   }
+}
+
+function buildFoot(B, M, skin) {
+  B.geo(new THREE.BoxGeometry(0.22, 0.05, 0.08), M.clone().multiply(composeMatrix(0.05, 0.035, 0)), skin);
+  B.geo(new THREE.SphereGeometry(1, 6, 2, 0, Math.PI * 2, 0, Math.PI / 2), M.clone().multiply(composeMatrix(0.13, 0.03, 0, 0, 0, 0, 0.05, 0.035, 0.04)), skin);
 }
 
 function buildShoe(B, L, M, skin) {
@@ -714,7 +736,8 @@ function buildArms(B, L, skin, shZ) {
   ];
   const sleeveColor = L.top === 'raincoat' ? L.raincoatColor : L.topColor;
   let sleeveEnd;
-  if (L.top === 'tee' || L.top === 'dress') sleeveEnd = -0.14;
+  if (L.top === 'swim') sleeveEnd = -0.04;
+  else if (L.top === 'tee' || L.top === 'dress') sleeveEnd = -0.14;
   else if (L.top === 'longsleeve' && L.rolled) sleeveEnd = -0.3;
   else sleeveEnd = -0.5;
   const cuffK = L.top === 'coat' || L.top === 'raincoat' || L.top === 'jacket' || L.top === 'police' || L.top === 'blazer' ? 1.22 : 1.1;
@@ -725,13 +748,13 @@ function buildArms(B, L, skin, shZ) {
     const m = (x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => M.clone().multiply(composeMatrix(x, y, z, rx, ry, rz, sx, sy, sz));
     B.bone = W_ARM(k);
     const sleeve = slice(armRings, sleeveEnd, 0.01, 1.04);
-    if (L.top !== 'tee' && L.top !== 'dress' && !(L.top === 'longsleeve' && L.rolled)) sleeve[0] = { ...sleeve[0], d: sleeve[0].d * 1.12, w: sleeve[0].w * 1.12 };
+    if (L.top !== 'tee' && L.top !== 'dress' && L.top !== 'swim' && !(L.top === 'longsleeve' && L.rolled)) sleeve[0] = { ...sleeve[0], d: sleeve[0].d * 1.12, w: sleeve[0].w * 1.12 };
     B.geo(loftUp(sleeve, 6), M, sleeveColor);
     // round cap around the shoulder pivot so no gap opens in any arm pose
     const capR = sleeve[sleeve.length - 2].d * 1.08;
     B.part(new THREE.SphereGeometry(capR, 10, 6), composeMatrix(0, SHOULDER_Y - 0.012, s * (shZ - 0.024), 0, 0, 0, 1.02, 0.88, 1.12), sleeveColor, BONE.chest);
     B.geo(loftUp(slice(armRings, -0.53, sleeveEnd), 6), M, skin);
-    B.geo(loftGeometry(slice(armRings, sleeveEnd - 0.03, sleeveEnd + 0.005, cuffK), 6), M, shade(sleeveColor, 0.82));
+    if (L.top !== 'swim') B.geo(loftGeometry(slice(armRings, sleeveEnd - 0.03, sleeveEnd + 0.005, cuffK), 6), M, shade(sleeveColor, 0.82));
     if (L.cop) B.geo(loftGeometry(slice(armRings, -0.14, -0.1, 1.09), 6), M, REFLECT_YELLOW);
 
     B.bone = BONE.elbow[k];
@@ -834,6 +857,12 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   }
   // story characters (missionstory.js NPC looks): fixed clothes, hat, build
   if (opts.look) Object.assign(L, opts.look);
+  // swimwear (swimmers3d.js): 'trunks', 'swimsuit' or 'bikini' in opts.swimColor, barefoot
+  if (opts.swim) {
+    Object.assign(L, { top: 'swim', bottom: 'swim', swim: opts.swim, pants: opts.swimColor ?? L.pants, topColor: skin, shoes: skin,
+      hat: null, hoodUp: false, scarf: false, bag: null, umbrella: null, glasses: false, facial: L.facial === 'beard' ? 'stubble' : L.facial });
+    if (L.hairStyle === 'hijab') L.hairStyle = 'bun';
+  }
 
   const shZ = (L.female ? 0.172 : 0.198) * (L.build === 'heavy' ? 1.06 : L.build === 'slim' ? 0.95 : 1) + 0.03;
   const B = new SkinBuilder(1);
@@ -972,6 +1001,11 @@ export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
       setArm(ud.armL, ud.elbowL, 1.05 + lean, 1.2, 0.15);
       setArm(ud.armR, ud.elbowR, 1.05 + lean, 1.2, -0.15);
       break;
+    case 'behind':
+      // leaning back on the hands, palms on the ground behind the hips
+      setArm(ud.armL, ud.elbowL, -0.5 - lean * 0.4, 0.08, -0.22);
+      setArm(ud.armR, ud.elbowR, -0.5 - lean * 0.4, 0.08, 0.22);
+      break;
     case 'rail':
       setArm(ud.armL, ud.elbowL, 0.25 + lean, 0.9, -0.45);
       setArm(ud.armR, ud.elbowR, 0.35 + lean, 1.05);
@@ -1049,28 +1083,50 @@ export function carryOverlay(mesh) {
 }
 
 // Treading water / breaststroke for ambient swimmers: the caller tilts and
-// lowers the mesh like the player's swim (swimDepth in player.js).
+// lowers the mesh like the player's swim (swimDepth in player.js). The
+// stroke stays in front of the chest and under the surface: hands over the
+// head would read as someone in trouble.
 export function swimPose(mesh, t, moving) {
   const ud = mesh.userData;
   if (!ud.pelvis) return;
   resetSpine(ud);
-  const s = Math.sin(t * (moving ? 3.2 : 2.2));
-  const c = Math.cos(t * (moving ? 3.2 : 2.2));
+  const s = Math.sin(t * (moving ? 2.6 : 1.6));
+  const c = Math.cos(t * (moving ? 2.6 : 1.6));
   if (moving) {
-    setArm(ud.armL, ud.elbowL, 2.2 + 0.7 * s, 0.4 + 0.5 * Math.max(0, c), -0.5 - 0.4 * Math.max(0, -s));
-    setArm(ud.armR, ud.elbowR, 2.2 + 0.7 * s, 0.4 + 0.5 * Math.max(0, c), 0.5 + 0.4 * Math.max(0, -s));
-    ud.legL.rotation.set(-0.25 - 0.2 * c, 0, -0.15 + 0.35 * s);
-    ud.legR.rotation.set(0.25 + 0.2 * c, 0, -0.15 + 0.35 * s);
-    ud.kneeL.rotation.z = ud.kneeR.rotation.z = -0.3 - 0.6 * Math.max(0, s);
+    // breaststroke: reach forward, sweep out and round, elbows in, glide
+    const out = Math.max(0, -s);
+    setArm(ud.armL, ud.elbowL, 2.05 + 0.5 * s, 0.25 + 0.7 * Math.max(0, c) * out, -0.35 - 0.45 * out);
+    setArm(ud.armR, ud.elbowR, 2.05 + 0.5 * s, 0.25 + 0.7 * Math.max(0, c) * out, 0.35 + 0.45 * out);
+    ud.legL.rotation.set(-0.15 - 0.25 * Math.max(0, c), 0, -0.1 + 0.3 * Math.max(0, s));
+    ud.legR.rotation.set(0.15 + 0.25 * Math.max(0, c), 0, -0.1 + 0.3 * Math.max(0, s));
+    ud.kneeL.rotation.z = ud.kneeR.rotation.z = -0.15 - 0.9 * Math.max(0, s);
   } else {
-    setArm(ud.armL, ud.elbowL, 0.9 + 0.35 * s, 0.5, -0.9 - 0.25 * c);
-    setArm(ud.armR, ud.elbowR, 0.9 + 0.35 * s, 0.5, 0.9 + 0.25 * c);
-    ud.legL.rotation.set(0, 0, 0.35 + 0.35 * s);
-    ud.legR.rotation.set(0, 0, 0.35 - 0.35 * s);
-    ud.kneeL.rotation.z = -0.6 - 0.4 * s;
-    ud.kneeR.rotation.z = -0.6 + 0.4 * s;
+    // calm treading water: hands sculling low at the sides, a slow bicycle kick
+    setArm(ud.armL, ud.elbowL, 0.7 + 0.18 * s, 0.55, -0.75 - 0.15 * c);
+    setArm(ud.armR, ud.elbowR, 0.7 + 0.18 * s, 0.55, 0.75 + 0.15 * c);
+    ud.legL.rotation.set(0, 0, 0.3 + 0.25 * s);
+    ud.legR.rotation.set(0, 0, 0.3 - 0.25 * s);
+    ud.kneeL.rotation.z = -0.55 - 0.3 * s;
+    ud.kneeR.rotation.z = -0.55 + 0.3 * s;
   }
-  ud.head.rotation.set(0, 0, moving ? 0.55 : 0.2);
+  ud.head.rotation.set(0, 0, moving ? 0.7 : 0.15);
+  if (ud.umbrella) ud.umbrella.visible = false;
+}
+
+// Floating on the back (the caller lays the mesh flat, face up): arms out to
+// the sides, legs a little apart, hands sculling gently.
+export function floatPose(mesh, t) {
+  const ud = mesh.userData;
+  if (!ud.pelvis) return;
+  resetSpine(ud);
+  const s = Math.sin(t * 1.3);
+  setArm(ud.armL, ud.elbowL, -0.2 + 0.06 * s, 0.1, -1.2 - 0.08 * s);
+  setArm(ud.armR, ud.elbowR, -0.2 + 0.06 * s, 0.1, 1.2 + 0.08 * s);
+  ud.legL.rotation.set(-0.14, 0, 0.06);
+  ud.legR.rotation.set(0.14, 0, 0.06);
+  ud.kneeL.rotation.z = -0.12;
+  ud.kneeR.rotation.z = -0.18;
+  ud.head.rotation.set(0, 0, -0.2);
   if (ud.umbrella) ud.umbrella.visible = false;
 }
 
