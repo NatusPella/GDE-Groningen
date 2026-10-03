@@ -36,7 +36,7 @@ const VAN_POSE = { recline: 0.1, footX: 0.5, footY: -0.33, arms: 'lap' };
 const CAR_SEATS = {
   hatch: { y: 0.38, pose: SEAT_CAR },
   sport: { y: 0.3, pose: { recline: 0.42, footX: 0.8, footY: -0.02, arms: 'lap' } },
-  suv: { y: 0.56, pose: { recline: 0.18, footX: 0.66, footY: -0.18, arms: 'lap' } },
+  suv: { y: 0.66, pose: { recline: 0.18, footX: 0.66, footY: -0.18, arms: 'lap' } },
   van: { y: 0.72, pose: VAN_POSE },
   truck: { y: 1.22, pose: VAN_POSE },
   trekker: { y: 1.36, pose: { recline: 0.06, footX: 0.46, footY: -0.4, arms: 'lap' } },
@@ -69,7 +69,7 @@ export function vehicleSeat(v, driver) {
     const k = carKind(v);
     const spec = CAR_SEATS[k] || CAR_SEATS.hatch;
     let x = -hl * 0.06, y = spec.y, z = (driver ? -1 : 1) * hw * 0.34;
-    if (k === 'bus') { x = hl - 1.2; z = driver ? -hw * 0.45 : hw * 0.3; }
+    if (k === 'bus') { x = driver ? hl - 1.0 : hl - 1.9; z = driver ? -hw * 0.45 : hw * 0.3; }
     else if (k === 'van') x = hl - 1.45;
     else if (k === 'truck') { x = hl - 1.0; z = (driver ? -1 : 1) * hw * 0.45; }
     else if (k === 'trekker') {
