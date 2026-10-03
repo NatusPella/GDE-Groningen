@@ -64,8 +64,8 @@ export const FY = {
   'Neat is te breed foar Jelle Terpstra!': 'Niets is te breed voor Jelle Terpstra!',
   'Help! Myn polsstok is brutsen! Ik bin wiet!': 'Help! Mijn polsstok is gebroken! Ik ben nat!',
   'Tige tank, Grinzers. Echt. Hjir, de Eierbal.': 'Hartelijk dank, Groningers. Echt. Hier, de Eierbal.',
-  'Tige tank! – W.': 'Hartelijk dank! – W.',
-  'Tige tank foar de auto. W.': 'Hartelijk dank voor de auto. W.',
+  'Tige tank! – J.': 'Hartelijk dank! – J.',
+  'Tige tank foar de auto. J.': 'Hartelijk dank voor de auto. J.',
   'Priuw, jonge.': 'Proef, jongen.',
   // Mem Terpstra (storyarc.js contact)
   'Pas goed op dysels, famke. – M.': 'Pas goed op jezelf, meisje. – M.',

@@ -151,9 +151,8 @@ export const BANTER = [
     ['A', 'Lucht. We hebben lucht gestolen.', 'bitter, sarcastic'],
     ['T', 'Dure lucht. Museumlucht.', 'deadpan']] },
   { id: 'h6-pass-w', trigger: 'after:H6:pass', lines: [
-    ['A', 'W. Wie tekent er nou met een W?', 'angry, puzzled'],
-    ['T', 'Willem? Wietse? Wubbo?', 'quick, guessing'],
-    ['A', 'Iemand die "tige tank" schrijft, Tammo. Dat is Fries.', 'fuming']] },
+    ['A', 'Een J onder je buit zetten. Wie doet dat nou?', 'angry, fuming'],
+    ['T', 'Iemand met een trekker-limo.', 'deadpan']] },
   { id: 'h6-pass-aaibal', trigger: 'after:H6:pass', lines: [
     ['T', 'Die man met die trekker was live. Jelle Terpstra.', 'stunned'],
     ['A', 'Operaasje Aaibal. Hij kan niet eens eierbal zeggen.', 'outraged, mocking'],
