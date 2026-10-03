@@ -16,7 +16,7 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
+import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
 import { edgeDistance, urbanWeight } from './countryfield.js';
 import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
@@ -96,7 +96,7 @@ export function initHud(world) {
 
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<span class="sp-pic" aria-hidden="true"><img alt=""></span><span class="sp-num"><b></b><span>km/u</span></span><span class="sp-dmg"><small>Schade</small><span class="sp-bar"><i></i></span></span>';
+  speedo.innerHTML = '<span class="sp-pic" aria-hidden="true"><img alt=""></span><span class="sp-num"><b></b><span>km/u</span></span><span class="sp-info"><span class="sp-name"><small></small><em></em></span><span class="sp-hp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5l-1.3-1.2C5.6 14.7 2.5 11.9 2.5 8.4 2.5 5.6 4.7 3.5 7.4 3.5c1.6 0 3.4.8 4.6 2.2 1.2-1.4 3-2.2 4.6-2.2 2.7 0 4.9 2.1 4.9 4.9 0 3.5-3.1 6.3-8.2 10.9z"/></svg><span class="sp-bar" role="meter" aria-label="Staat van het voertuig" aria-valuemin="0" aria-valuemax="100"><i></i></span></span></span>';
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -175,8 +175,10 @@ export function initHud(world) {
     damage,
     speedo,
     speedoValue: speedo.querySelector('b'),
-    speedoDmg: speedo.querySelector('.sp-bar i'),
-    speedoDmgLabel: speedo.querySelector('.sp-dmg small'),
+    speedoHp: speedo.querySelector('.sp-bar i'),
+    speedoHpMeter: speedo.querySelector('.sp-bar'),
+    speedoMake: speedo.querySelector('.sp-name small'),
+    speedoModel: speedo.querySelector('.sp-name em'),
     speedoKey: '',
     speedoPic: speedo.querySelector('.sp-pic img'),
     speedoPicKey: '',
@@ -519,29 +521,38 @@ function updateDamage(dt, world) {
   els.damage.style.opacity = o.toFixed(3);
 }
 
-// Speed and, for a vehicle that can break, its damage under the minimap.
+// Speed, name and, for a vehicle that can break, its condition (a heart and
+// a bar that empties as it takes damage) under the minimap.
 function updateSpeedo(world) {
   const v = world.player.inVehicle || world.trainCam;
   els.speedo.classList.toggle('visible', !!v);
   document.body.classList.toggle('hud-in-vehicle', !!v);
   if (!v) { els.speedoKey = ''; return; }
   els.speedoValue.textContent = String(Math.round(Math.abs(v.speed || 0) * 3.6));
-  const dmg = v === world.trainCam || !Number.isFinite(v.health) ? -1 : Math.round(clampPct(100 - v.health));
-  const key = v.id + ':' + dmg;
+  const isTrain = v === world.trainCam;
+  const hp = isTrain || !Number.isFinite(v.health) ? -1 : Math.round(clampPct(v.health));
+  const key = v.id + ':' + hp;
   if (key === els.speedoKey) return;
   const was = Number(els.speedoKey.split(':')[1]);
   const fresh = !els.speedoKey.startsWith(v.id + ':');
   els.speedoKey = key;
-  if (fresh) setSpeedoPic(v === world.trainCam ? null : v);
-  els.speedo.classList.toggle('no-dmg', dmg < 0);
-  els.speedo.style.setProperty('--dmg', dmg < 0 ? '0' : (dmg / 100).toFixed(2));
-  if (dmg < 0) return;
-  els.speedo.classList.toggle('hurt', dmg >= 60);
-  els.speedoDmgLabel.textContent = dmg >= 60 ? `Schade ${dmg}%` : 'Schade';
-  if (fresh) els.speedoDmg.style.transition = 'none';
-  els.speedoDmg.style.width = dmg + '%';
-  if (fresh) { void els.speedoDmg.offsetWidth; els.speedoDmg.style.transition = ''; }
-  else if (dmg > was + 4) pop(els.speedo);
+  if (fresh) {
+    setSpeedoPic(isTrain ? null : v);
+    const { make, model } = isTrain ? { make: 'Spoor', model: 'Stoptrein' } : vehicleDisplayName(v);
+    els.speedoMake.textContent = make;
+    els.speedoModel.textContent = model;
+    els.speedo.title = make ? `${make} ${model}` : model;
+  }
+  els.speedo.classList.toggle('no-dmg', hp < 0);
+  els.speedo.style.setProperty('--dmg', hp < 0 ? '0' : (1 - hp / 100).toFixed(2));
+  if (hp < 0) return;
+  els.speedo.classList.toggle('hurt', hp <= 35);
+  els.speedo.classList.toggle('worn', hp > 35 && hp <= 65);
+  els.speedoHpMeter.setAttribute('aria-valuenow', String(hp));
+  if (fresh) els.speedoHp.style.transition = 'none';
+  els.speedoHp.style.width = hp + '%';
+  if (fresh) { void els.speedoHp.offsetWidth; els.speedoHp.style.transition = ''; }
+  else if (hp < was - 4) pop(els.speedo);
 }
 
 const SPEEDO_PIC_W = 62;
@@ -1366,6 +1377,40 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   for (const [kind, sx, sy] of drawn) drawMapIcon(ctx, kind, sx, sy, MM_POI_ICON, { t });
 }
 
+// Village and town names on the minimap out in the Ommeland (the list is
+// refreshed when the player has moved a bit), upright over the rotating map.
+const VILLAGE_KINDS = new Set(['town', 'village', 'hamlet', undefined]);
+let villageCache = { x: Infinity, y: Infinity, list: [] };
+function drawVillageNames(ctx, player, radius, toScreen) {
+  if (Math.hypot(player.x - villageCache.x, player.y - villageCache.y) > 25) {
+    const r = radius * 1.5;
+    villageCache = { x: player.x, y: player.y, list: villageLabels(player.x - r, player.y - r, player.x + r, player.y + r).filter((v) => VILLAGE_KINDS.has(v.kind)) };
+  }
+  // a village just off the map keeps its name at the rim, towards it
+  const lim = (radius * 1.5) ** 2, rim = MINIMAP_SIZE / 2 - 20;
+  const [cx, cy] = toScreen(player.x, player.y);
+  ctx.save();
+  ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(12, 20, 14, 0.85)';
+  ctx.fillStyle = '#f0ede4';
+  let n = 0;
+  for (const v of villageCache.list) {
+    if ((v.x - player.x) ** 2 + (v.y - player.y) ** 2 > lim) continue;
+    let [sx, sy] = toScreen(v.x, v.y);
+    const d = Math.hypot(sx - cx, sy - cy);
+    if (d > rim) { sx = cx + (sx - cx) * rim / d; sy = cy + (sy - cy) * rim / d; }
+    const label = v.name.toUpperCase();
+    ctx.strokeText(label, sx, sy);
+    ctx.fillText(label, sx, sy);
+    if (++n >= 3) break;
+  }
+  ctx.restore();
+}
+
 function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
@@ -1435,6 +1480,8 @@ function drawMinimap(dt, world) {
     const dx = x - player.x, dy = y - player.y;
     return [cx + (dx * cosR - dy * sinR) * mmScale, cy + (dx * sinR + dy * cosR) * mmScale];
   };
+
+  if (edgeDistance(player.x, player.y) > -150) drawVillageNames(ctx, player, MM_RADIUS_M, toScreen);
 
   const search = getPoliceSearch(world);
   if (search) {
