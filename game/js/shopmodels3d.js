@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { markShared } from './pixelart3d.js';
 
 // Small procedural shop products for the shop preview (shopui.js via
-// vehiclepreview.js): snacks, drinks, papers, lottery tickets, EIKEA stuff,
+// vehiclepreview.js): snacks, drinks, papers, the stamp card, EIKEA stuff,
 // vests and workshop parts. Units are "table-top": roughly 1 = 10 cm, the
 // preview frames by bounding box. Materials are shared per colour, geometry
 // and label textures belong to the mesh (disposed with it).
@@ -128,9 +128,7 @@ const BUILD = {
   },
   strip(g) { add(g, box(2, 2.6, 0.2), [mat(0xe8e6e0), mat(0xe8e6e0), mat(0xe8e6e0), mat(0xe8e6e0), labelMat([['TAMMO', 28, 30, '#c8261e'], ['en de', 16, 55, '#1b1c1f'], ['EIERBAL', 28, 80, '#c8261e'], ['deel 12', 14, 110, '#1b1c1f']], '#e8c93a', '#000', 128, 160), mat(0x1b1c1f)], 0, 1.3, 0, -0.15); },
   kaart(g) { card(g, 2.6, 1.8, [['Groeten uit', 30, 45, '#1b1c1f'], ['GRUNN', 60, 105, '#1e9e56']], '#9ccbe8', '#000'); },
-  kraskaart(g) { card(g, 1.8, 2.6, [['GRUNNEGER', 26, 40, '#f0ede4'], ['GOKJE', 40, 80, '#e8c93a'], ['▒▒▒ ▒▒▒', 30, 160, '#c8ccd0'], ['▒▒▒ ▒▒▒', 30, 200, '#c8ccd0'], ['€500', 30, 300, '#e8c93a']], '#c23f78', '#fff'); },
-  lot(g) { card(g, 2.8, 1.4, [['STADSLOTERIJ', 26, 30, '#1b1c1f'], ['Nr. 050-1234', 22, 70, '#1b1c1f'], ['€2500', 34, 108, '#c8261e']], '#f0e6b8', '#000'); },
-  duifkaart(g) { card(g, 1.8, 2.2, [['DUIVEN', 30, 40, '#f0ede4'], ['KRASLOT', 26, 74, '#f0ede4'], ['▒▒▒▒▒', 34, 150, '#c8ccd0'], ['€150', 30, 240, '#e8c93a']], '#4a6a8a', '#fff'); },
+  spaarkaart(g) { card(g, 2.8, 1.8, [['KRANT & KAUWGOM', 22, 30, '#f0ede4'], ['SPAARKAART', 30, 64, '#e8c93a'], ['● ● ● ● ●', 28, 104, '#f0ede4'], ['● ● ○ ○ ○', 28, 140, '#f0ede4']], '#c23f78', '#fff'); },
   kast(g) {
     const w = mat(0xe8d8b0, 0.8);
     for (const x of [-1, 1]) add(g, box(0.12, 3.6, 1), w, x, 1.8);
@@ -227,7 +225,7 @@ const ALIAS = {
   f_kroket: 'kroket', f_frikandel: 'frikandel', f_eierbal: 'eierbal', f_oorlog: 'oorlog', f_kapsalon: 'kapsalon',
   f_krentenbol: 'krentenbol', f_koffie: 'koffie', f_drop: 'drop', f_energie: 'energie', f_ehbo: 'ehbo',
   eierbal: 'eierbal', koek: 'koek', drop: 'drop', kauwgom: 'kauwgom', krant: 'krant', strip: 'strip', kaart: 'kaart',
-  scratch: 'kraskaart', lot: 'lot', duif: 'duifkaart', ballen: 'ballen', hotdog: 'hotdog', kast: 'kast', bank: 'bank',
+  spaarkaart: 'spaarkaart', ballen: 'ballen', hotdog: 'hotdog', kast: 'kast', bank: 'bank',
   lamp: 'lamp', tas: 'tas', potlood: 'potlood',
   pakket: 'pakket',
 };

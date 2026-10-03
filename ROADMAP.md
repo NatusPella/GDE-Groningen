@@ -78,7 +78,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - Burgers raken knock-out, staan op en schelden, maar gaan niet dood. Wapens raken ze niet.
   - Agenten worden uitgeschakeld en staan later weer op. De alcohol blijft, met een inhoudslabel.
 - [ ] De IARC-vragenlijst echt invullen.
-- [~] Kraskaarten en loten bij Rook & Geluk zijn gesimuleerd gokken, wat volgens PEGI 18 geeft. Het advies is een spaarkaart zonder inzet, en daar wordt nu aan gewerkt (`claude/geen-gokken`).
+- [x] **Geen gesimuleerd gokken meer** (`claude/geen-gokken`). De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
 - [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
 - [ ] Toegankelijkheid:
   - toetsen opnieuw toewijzen;
