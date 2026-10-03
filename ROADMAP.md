@@ -73,11 +73,12 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 ## 0.25: afwerking voor nieuwe spelers
 
-- [ ] **Leeftijdsclassificatie: mik op PEGI 16** (advies). Nu is het waarschijnlijk 18, door het doden van onschuldigen en het bloed.
-  - Bloed en ledematen (`gore3d.js`) helemaal uit de game halen, niet alleen achter een instelling.
-  - Voetgangers raken knock-out, staan op en schelden, maar sterven niet. Ook niet door aanrijdingen of schoten.
-  - Het geweld met de politie, die terugvecht, kan blijven. De alcohol blijft, met een inhoudslabel.
-  - De IARC-vragenlijst invullen met de antwoorden die daarbij horen.
+- [x] **Leeftijdsclassificatie: mik op PEGI 16** (`claude/pegi16`). De verwachte antwoorden voor de vragenlijst staan in [docs/LEEFTIJD.md](docs/LEEFTIJD.md).
+  - Bloed en ledematen (`gore3d.js`) zijn helemaal uit de game, net als de instelling.
+  - Burgers raken knock-out, staan op en schelden, maar gaan niet dood. Wapens raken ze niet.
+  - Agenten worden uitgeschakeld en staan later weer op. De alcohol blijft, met een inhoudslabel.
+- [ ] De IARC-vragenlijst echt invullen.
+- [?] Kraskaarten en loten bij Rook & Geluk zijn gesimuleerd gokken. Volgens PEGI kan dat 18 geven. Maken we er een prijsvraag zonder inzet van, halen we ze weg, of laten we ze staan? Zie docs/LEEFTIJD.md.
 - [ ] Onboarding: de eerste 10 minuten zonder uitleg te snappen, getoetst met spelers die de game niet kennen.
 - [ ] Toegankelijkheid:
   - toetsen opnieuw toewijzen;
@@ -127,7 +128,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
   - een eigen naam en logo, zonder "VI" in GTA-stijl en zonder het GTA-lettertype;
   - geen verwijzing naar GTA in de titel;
   - een duidelijke disclaimer.
-- [ ] Leeftijdsclassificatie (IARC): geweld, schieten, politie en alcohol. Waarschijnlijk 16+ of 18+.
+- [ ] Leeftijdsclassificatie (IARC): de vragenlijst invullen volgens [docs/LEEFTIJD.md](docs/LEEFTIJD.md). Het doel is 16.
 - [ ] Winkelpagina:
   - capsule-afbeeldingen in alle Steam-formaten;
   - screenshots;

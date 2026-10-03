@@ -19,6 +19,8 @@ const WRECKED_UP = [
   'KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd',
   'KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen',
 ];
+// keys and clips keep their old names (copkill_up, pedkill_up, kill_up);
+// the counters behind them are knockouts now
 const COPKILL_UP = [
   'KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer',
 ];
@@ -48,9 +50,9 @@ function snapshot(world) {
   syncPlayerWrecks(world);
   return {
     wanted: world.wanted,
-    kills: world.stats.kills,
-    pedKills: world.stats.pedKills,
-    copKills: world.stats.copKills,
+    knockouts: world.stats.knockouts + world.stats.copCarsWrecked,
+    pedKnockouts: world.stats.pedKnockouts,
+    copHarm: world.stats.copKnockouts + world.stats.copCarsWrecked,
     missionsDone: world.stats.missionsDone,
     wrecked: world.stats.playerWrecks || 0,
   };
@@ -88,9 +90,9 @@ export function updateSikkomFeed(dt, world) {
     let msg = null, audioKey = null, kind = null;
     if (cur.wanted > prev.wanted) { const [t, i] = pickIndexed(WANTED_UP); msg = t; audioKey = `wanted_up_${i + 1}`; kind = 'wanted'; }
     else if (cur.wrecked > prev.wrecked) { const [t, i] = pickIndexed(WRECKED_UP); msg = t; audioKey = `wrecked_up_${i + 1}`; kind = 'wrecked'; }
-    else if (cur.copKills > prev.copKills) { msg = COPKILL_UP[0]; audioKey = 'copkill_up'; kind = 'copkill'; }
-    else if (cur.pedKills > prev.pedKills) { msg = PEDKILL_UP[0]; audioKey = 'pedkill_up'; kind = 'pedkill'; }
-    else if (cur.kills > prev.kills) { msg = KILL_UP[0]; audioKey = 'kill_up'; kind = 'kill'; }
+    else if (cur.copHarm > prev.copHarm) { msg = COPKILL_UP[0]; audioKey = 'copkill_up'; kind = 'copkill'; }
+    else if (cur.pedKnockouts > prev.pedKnockouts) { msg = PEDKILL_UP[0]; audioKey = 'pedkill_up'; kind = 'pedkill'; }
+    else if (cur.knockouts > prev.knockouts) { msg = KILL_UP[0]; audioKey = 'kill_up'; kind = 'kill'; }
     else if (cur.missionsDone > prev.missionsDone) { msg = MISSION_UP[0]; audioKey = 'mission_up'; kind = 'mission'; }
     if (msg && (world.time - (lastKindAt[kind] ?? -Infinity) < SAME_KIND_COOLDOWN || Math.random() > CHANCE)) msg = null;
 

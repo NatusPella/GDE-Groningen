@@ -392,8 +392,9 @@ voor o.a. Duitsland (USK-zelfclassificatie via Valve). Antwoorden die
 voor dit spel waarschijnlijk "ja" zijn (controleren met de eigenaar):
 
 - **Geweld**: realistisch ogende mensen; vuurwapens (wapenwinkel "Pang &
-  Zo", `combat.js`); geweld tegen burgers en politie is mogelijk; bloed en
-  "gore" (`gore3d.js`, ragdolls); explosies; auto's stelen en aanrijden.
+  Zo", `combat.js`), alleen tegen de politie, die terugvecht; geen bloed,
+  en niemand gaat dood (knock-out, sinds 0.24); explosies; auto's stelen
+  en aanrijden. De volledige antwoorden staan in `docs/LEEFTIJD.md`.
 - **Misdaad** als kern van de gameplay (overvallen, heist, politie-
   achtervolging).
 - **Alcohol/drugs**: biertjes in de kroeg, dronken effect (`drunk.js`),
@@ -405,8 +406,9 @@ voor dit spel waarschijnlijk "ja" zijn (controleren met de eigenaar):
 - **Interactie/aankopen**: geen online, geen chat, geen in-app aankopen,
   geen gebruikersdata.
 
-Verwachte uitkomst: rond **PEGI 16 / USK 16**, mogelijk 18 vanwege geweld
-tegen politie en burgers met bloed. De Gemini-API-regel over minderjarigen
+Verwachte uitkomst: **PEGI 16 / USK 16** (zie `docs/LEEFTIJD.md`). Het
+grootste overgebleven risico op 18 zijn de kraskaarten en loten
+(gesimuleerd gokken). De Gemini-API-regel over minderjarigen
 (§4) is extra reden om een 16+/18+-advies te geven.
 
 ### 8.5 Overeenkomsten, belasting en identiteit (hoog niveau)

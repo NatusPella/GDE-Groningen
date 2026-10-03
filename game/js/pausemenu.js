@@ -293,7 +293,6 @@ function settingsHtml() {
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       ${toggle('cinematicMoments', 'Filmische momenten', 'Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.')}
       ${segmented('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
-      ${toggle('gore', 'Bloed en ledematen', 'Uit: aangereden en neergeschoten mensen vallen gewoon om, zonder bloed of rondvliegende ledematen.')}
     </div>
     <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="reset">${icon('restart')}<span>Standaardinstellingen</span></button></div>`;
 }
