@@ -8,8 +8,13 @@ import { getVehicleMesh, pruneVehicleMeshes, applyVehicleDamage, vehicleDamagePa
 // per-frame paths only write into preallocated typed arrays.
 
 const FX_RANGE = 90;
-const SKID_QUADS = 800;
-const SKID_FADE = 20;
+// Skid marks: one pooled ring buffer of quads (the oldest is reused), held
+// at full strength for SKID_HOLD s, then fading out over SKID_FADE s.
+const SKID_QUADS = 2400;
+const SKID_HOLD = 45;
+const SKID_FADE = 45;
+// over the road layers (asphalt +0.03, markings +0.035 in roadsurface.js)
+const SKID_LIFT = 0.048;
 const SMOKE_MAX = 420;
 const SPARK_MAX = 180;
 const CHUNK_MAX = 140;
@@ -58,14 +63,16 @@ function initSkids(scene) {
   scene.add(skid.mesh);
 }
 
-function writeSkidQuad(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1, alpha, h = 0) {
+// a/b: the quad's back and front edge, each with its own surface heights,
+// so a mark on a ramp, a bridge or the raised/sunken ring follows the deck
+function writeSkidQuad(ax0, ay0, ah0, ax1, ay1, ah1, bx0, by0, bh0, bx1, by1, bh1, alpha) {
   const q = skid.next;
   skid.next = (q + 1) % SKID_QUADS;
-  const p = skid.pos, o = q * 12, y = h + 0.012;
-  p[o] = ax0; p[o + 1] = y; p[o + 2] = ay0;
-  p[o + 3] = ax1; p[o + 4] = y; p[o + 5] = ay1;
-  p[o + 6] = bx0; p[o + 7] = y; p[o + 8] = by0;
-  p[o + 9] = bx1; p[o + 10] = y; p[o + 11] = by1;
+  const p = skid.pos, o = q * 12;
+  p[o] = ax0; p[o + 1] = ah0 + SKID_LIFT; p[o + 2] = ay0;
+  p[o + 3] = ax1; p[o + 4] = ah1 + SKID_LIFT; p[o + 5] = ay1;
+  p[o + 6] = bx0; p[o + 7] = bh0 + SKID_LIFT; p[o + 8] = by0;
+  p[o + 9] = bx1; p[o + 10] = bh1 + SKID_LIFT; p[o + 11] = by1;
   skid.birth[q] = simTime;
   skid.alpha[q] = alpha;
   skid.live = true;
@@ -88,10 +95,9 @@ function updateSkidFade(dt) {
   for (let q = 0; q < SKID_QUADS; q++) {
     if (skid.alpha[q] <= 0) continue;
     live++;
-    const t = (simTime - skid.birth[q]) / SKID_FADE;
-    let a = 0;
-    if (t < 1) a = skid.alpha[q] * (1 - t * t);
-    else skid.alpha[q] = 0;
+    const t = (simTime - skid.birth[q] - SKID_HOLD) / SKID_FADE;
+    let a = skid.alpha[q];
+    if (t >= 1) { a = 0; skid.alpha[q] = 0; } else if (t > 0) a *= 1 - t * t;
     const co = q * 16;
     c[co + 3] = a; c[co + 7] = a; c[co + 11] = a; c[co + 15] = a;
   }
@@ -104,19 +110,27 @@ function trackFor(v, i) {
   let t = v._skidTracks;
   if (!t) {
     t = v._skidTracks = [];
-    for (let k = 0; k < 4; k++) t.push({ on: false, x: 0, y: 0, lx: 0, ly: 0, rx: 0, ry: 0 });
+    for (let k = 0; k < 4; k++) t.push({ on: false, x: 0, y: 0, lx: 0, ly: 0, lh: 0, rx: 0, ry: 0, rh: 0 });
   }
   return t[i];
+}
+
+// The top surface under a tyre edge for a car at height z (elevation.js:
+// a deck, ramp or the raised/sunken ring, never the layer above or below).
+function skidSurface(x, y, z) {
+  return fxMap && fxMap.elev && fxMap.elev.has ? fxMap.groundHeightAt(x, y, z + 0.25) : z;
 }
 
 function skidWheel(v, i, wx, wy, halfW, intensity) {
   const t = trackFor(v, i);
   if (intensity <= 0) { t.on = false; return; }
   const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
+  const z = v.z || 0;
   if (!t.on) {
     t.on = true; t.x = wx; t.y = wy;
     t.lx = wx + sa * halfW; t.ly = wy - ca * halfW;
     t.rx = wx - sa * halfW; t.ry = wy + ca * halfW;
+    t.lh = skidSurface(t.lx, t.ly, z); t.rh = skidSurface(t.rx, t.ry, z);
     return;
   }
   const dx = wx - t.x, dy = wy - t.y;
@@ -127,8 +141,14 @@ function skidWheel(v, i, wx, wy, halfW, intensity) {
   const sideways = Math.abs(ux * sa - uy * ca);
   const w = halfW * (1 + sideways * 0.9);
   const lx = wx + uy * w, ly = wy - ux * w, rx = wx - uy * w, ry = wy + ux * w;
-  writeSkidQuad(t.lx, t.ly, t.rx, t.ry, lx, ly, rx, ry, Math.min(0.62, 0.18 + intensity * 0.5), v.z || 0);
-  t.x = wx; t.y = wy; t.lx = lx; t.ly = ly; t.rx = rx; t.ry = ry;
+  const lh = skidSurface(lx, ly, z), rh = skidSurface(rx, ry, z);
+  // a step to another layer (off a deck edge, onto a ramp's lip): start a new track there
+  if (Math.abs(lh - t.lh) > 0.6 || Math.abs(rh - t.rh) > 0.6 || Math.abs(lh - rh) > 0.6) {
+    t.x = wx; t.y = wy; t.lx = lx; t.ly = ly; t.rx = rx; t.ry = ry; t.lh = lh; t.rh = rh;
+    return;
+  }
+  writeSkidQuad(t.lx, t.ly, t.lh, t.rx, t.ry, t.rh, lx, ly, lh, rx, ry, rh, Math.min(0.62, 0.18 + intensity * 0.5));
+  t.x = wx; t.y = wy; t.lx = lx; t.ly = ly; t.rx = rx; t.ry = ry; t.lh = lh; t.rh = rh;
 }
 
 // --- smoke / dust / spray / exhaust (lit camera-facing puffs) ----------------------
@@ -614,7 +634,9 @@ export function spawnExplosionFx(x, y, z, color, scale = 1) {
   for (let k = 0; k < 4; k++) {
     const a = (k / 4) * Math.PI + Math.random() * 0.4, r = rand(2, 3.2) * scale;
     const ca = Math.cos(a) * r, sa = Math.sin(a) * r;
-    writeSkidQuad(x - ca - sa * 0.6, y - sa + ca * 0.6, x - ca + sa * 0.6, y - sa - ca * 0.6, x + ca - sa * 0.6, y + sa + ca * 0.6, x + ca + sa * 0.6, y + sa - ca * 0.6, 0.42, z);
+    const q = [[x - ca - sa * 0.6, y - sa + ca * 0.6], [x - ca + sa * 0.6, y - sa - ca * 0.6], [x + ca - sa * 0.6, y + sa + ca * 0.6], [x + ca + sa * 0.6, y + sa - ca * 0.6]];
+    const h = q.map(([qx, qy]) => skidSurface(qx, qy, z));
+    writeSkidQuad(q[0][0], q[0][1], h[0], q[1][0], q[1][1], h[1], q[2][0], q[2][1], h[2], q[3][0], q[3][1], h[3], 0.42);
   }
 }
 
