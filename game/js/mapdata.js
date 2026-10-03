@@ -736,6 +736,11 @@ export function applyMapExtras(data, ex) {
       }
       continue;
     }
+    // `landmark`: every footprint of that landmark
+    if (p.landmark) {
+      for (const b of data.buildings) if (b.landmark === p.landmark) Object.assign(b, p.set);
+      continue;
+    }
     const [x, y] = p.at;
     let best = null, ba = Infinity;
     for (const b of data.buildings) {

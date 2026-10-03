@@ -32,6 +32,28 @@ nieuwe functies, `y` voor alleen bugfixes.
   om te tekenen.
 - **Maren en smalle vaarten zijn echt water**, net als de brede kanalen; de
   oevers van smalle vaarten lopen niet meer in trapjes.
+- **Rond de House of Groningen en Atlas** staan nu bomen en hagen langs het
+  water, bankjes met uitzicht op de vaart, parklantaarns, jonge bomen in
+  bakken langs de garagegevel en lantaarns aan de kant van de Pleiadenlaan.
+- **Grote Markt en Vismarkt kloppen beter.** Mutua Fides (Vindicat) is nu
+  het okergele bakstenen gebouw met grote ramen, een balkon op de markt en
+  een penthouse. Merckt heeft zijn slanke bogen, lichte baksteen met gouden
+  lijnen en een kroon. Van Gend & Loos op de Vismarkt 34 staat er met zijn
+  trapgevels en de leeuw. De Drie Gezusters hebben hun schilddak, en een
+  zijgevel die boven een lagere buurman uitsteekt heeft nu ramen.
+- **De galerijflats van Paddepoel** (Pollux-, Castor- en Morgensterflat)
+  hebben hun galerijen, raamstroken, balkons en dichte kopgevels.
+- **Het Groninger Museum** heeft een gouden toren van panelen, Mendini's
+  gekleurde stippen op het oostpaviljoen en naden in de pastelvleugels.
+- **Winkelcentrum Paddepoel heeft weer daglicht.** Het glazen dak over de
+  winkelstraten is nu echt glas: je ziet de lucht erdoor en de straten
+  eronder zijn niet meer donker. De winkelblokken zijn voor helikopter en
+  camera even hoog als ze eruitzien (6,6 m, het nieuwe blok 10,8 m).
+
+### Opgelost
+- **Je garage staat er weer.** Kwam je thuis met de helikopter, als duif of
+  na padel of een uitje, dan ontbrak de garage onder de House of Groningen.
+  Hij staat er nu altijd, en van ver zie je zijn gevel en dakrand ook.
 
 ## [0.22.0] - 2026-10-03
 
