@@ -57,6 +57,7 @@ const ROOF_TILE = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e];
 const BARN_ROOF = [0x3a3e40, 0x4a5a48, 0x6a6e6c, 0x3a3e40];
 const SHED_WALL = [0x8a9296, 0x5a6a78, 0xb8b6ae, 0x6f7a6c, 0x9a8a70];
 export function buildingModel(i) {
+  if (!REAL.row) ensureRows();
   const code = REAL.code[i], w = REAL.bw[i], l = REAL.bl[i], area = w * l * REAL.fill[i];
   const root = REAL.row ? REAL.row[i] : i, ax = REAL.rowAxis ? REAL.rowAxis[i] : -1;
   const row = ax >= 0 && REAL.rowN[root] > 1;
@@ -164,6 +165,19 @@ function groupRows() {
   REAL.row = par; REAL.rowAxis = axis; REAL.rowN = rowN; REAL.rowLv = rowLv; REAL.rowDep = rowDep;
 }
 
+// The rows are grouped on first use or, from the title screen on, when the
+// page is idle (warmRows), not while loading
+export function ensureRows() {
+  if (REAL.row || !REAL.n) return;
+  const tr = performance.now();
+  groupRows();
+  REAL.rowMs = Math.round(performance.now() - tr);
+}
+export function warmRows() {
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 200));
+  idle(() => ensureRows(), { timeout: 3000 });
+}
+
 export function initReal(map, om) {
   if (!om || REAL.ready) return;
   const t0 = performance.now();
@@ -184,9 +198,6 @@ export function initReal(map, om) {
     if (!a) REAL.bTiles.set(k, (a = []));
     a.push(i);
   }
-  const tr = performance.now();
-  groupRows();
-  REAL.rowMs = Math.round(performance.now() - tr);
   const wm = om.water;
   const water = { ...wm, data: new Uint8Array(buf, 12 + n * stride * 2, wm.w * wm.h) };
   const urban = urbanGrid(om.extent);
