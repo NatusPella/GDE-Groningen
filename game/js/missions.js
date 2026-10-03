@@ -30,7 +30,7 @@ import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
 import {
   startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
-  heistApproach, heistSpotAt, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate,
+  heistApproach, heistSpotAt, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, REVEAL,
 } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -307,8 +307,8 @@ function buildDefs(world) {
         { kind: 'crack', target: { heistSpot: 'stand' }, label: 'Kraak de vitrine', say: 'De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.' },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
-          kicker: 'Groninger Museum, zaal 3', big: 'Tige tank! – W.',
-          lines: [['A', '"Tige tank! – W."', { clue: true }], ['T', 'Hij bedankt ons.'], ['A', 'Hij. Bedankt. Ons.'], ['T', 'Beleefd, eigenlijk.'], ['A', 'Tammo.']],
+          kicker: 'Groninger Museum, zaal 3',
+          lines: [['A', '"Tige tank! – W."', { clue: true }], ['T', 'Hij bedankt ons.'], ['A', 'Hij. Bedankt. Ons.']],
         },
         {
           kind: 'getaway', stars: 2, target: { heistSpot: 'boot' }, label: 'Alarm! Rennen, naar de boot', say: 'Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!',
@@ -2518,7 +2518,7 @@ function modeOk(p, mode) {
 function playStageScene(world, st, S) {
   const c = S.target || { x: world.player.x, y: world.player.y };
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
-  let at = 0.6;
+  let at = st.reveal ? REVEAL.card : 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
     const dur = Math.max(1.8, Math.min(3.8, 0.95 + text.length * 0.042));
     const l = { speaker: name(who), text, at, dur };
@@ -2531,8 +2531,7 @@ function playStageScene(world, st, S) {
   };
   let shot = orbit(world.player.angle + 2.4, 9, 3.2);
   if (st.reveal) {
-    // the empty case: a slow push-in over the player's shoulder onto the
-    // cushion, then a slide round to the two of them beside it
+    // the empty case (heist.js lifts the dome on REVEAL's clock)
     const v = vitrineSpot() || c;
     const roofed = (x, y) => world.map.buildingsNear(x, y, 0.5).some((b) => pointInPolygon(x, y, b.pts));
     const open = (a, r) => !roofed(v.x + Math.cos(a) * r, v.y + Math.sin(a) * r);
@@ -2545,13 +2544,23 @@ function playStageScene(world, st, S) {
       if (n > bestN) { bestN = n; a0 = a; }
     }
     const side = [1, -1].find((sd) => open(a0 + sd * 0.9, 2.8) && open(a0 + sd * 0.5, 2.8)) ?? 1;
-    shot = (u) => {
-      if (u < 0.34) {
-        const k0 = u / 0.34, k = k0 * k0 * (3 - 2 * k0);
-        const r = 3.4 - 2.1 * k;
-        return { position: { x: v.x + Math.cos(a0 + 0.12) * r, y: v.y + Math.sin(a0 + 0.12) * r, z: 2.1 - 0.5 * k }, lookAt: { x: v.x, y: v.y, z: 1.08 }, fov: 48 - 10 * k };
+    // push in on the frosted dome in silence, hold while it lifts off the
+    // empty cushion, close in on the card, then round to the two of them
+    const card = { x: v.x + 0.05, y: v.y + 0.04 };
+    const ease = (k) => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); };
+    const cardEnd = REVEAL.card + 1.9;
+    shot = (u, t = 0) => ({ ...revealPose(t), held: true });
+    const revealPose = (t) => {
+      if (t < REVEAL.card) {
+        const k = ease(t / REVEAL.push), h = ease((t - REVEAL.push) / (REVEAL.card - REVEAL.push));
+        const r = 3.4 - 1.9 * k - 0.2 * h;
+        return { position: { x: v.x + Math.cos(a0 + 0.12) * r, y: v.y + Math.sin(a0 + 0.12) * r, z: 2.1 - 0.4 * k }, lookAt: { x: v.x, y: v.y, z: 1.3 - 0.12 * h }, fov: 48 - 10 * k };
       }
-      const k = (u - 0.34) / 0.66, a = a0 + side * (0.35 + 0.55 * k);
+      if (t < cardEnd) {
+        const k = ease((t - REVEAL.card) / 0.8), r = 1.3 - 0.55 * k;
+        return { position: { x: card.x + Math.cos(a0 + 0.12) * r, y: card.y + Math.sin(a0 + 0.12) * r, z: 1.68 - 0.13 * k }, lookAt: { x: card.x, y: card.y, z: 1.09 }, fov: 38 - 4 * k };
+      }
+      const k = ease((t - cardEnd) / 1.2), a = a0 + side * (0.35 + 0.55 * k);
       const near = Math.hypot(c.x - v.x, c.y - v.y) < 5;
       return { position: { x: v.x + Math.cos(a) * 2.8, y: v.y + Math.sin(a) * 2.8, z: 1.75 }, lookAt: { x: near ? (v.x + c.x) / 2 : v.x, y: near ? (v.y + c.y) / 2 : v.y, z: 1.2 }, fov: 50 };
     };
@@ -2595,7 +2604,7 @@ function playStageScene(world, st, S) {
     const lookTo = (wide && st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
     const staged = playCastScene(world, {
       at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
-      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo,
+      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo, lead: st.reveal ? REVEAL.card : 0.6,
       deck: st.target && st.target.skutsje ? chain.skutsje : null,
       shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,
@@ -2606,7 +2615,8 @@ function playStageScene(world, st, S) {
   }
   const ok = playCinematic({
     id: 'mission-scene', priority: 3, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: st.kicker || '', title: st.title || '', cardFor: 2.5, lines, shot,
+    kicker: st.kicker || '', title: st.title || '', cardFor: 2.5, lines,
+    shot: st.reveal ? (u, t) => { heistRevealUpdate(t, 0); return shot(u, t); } : shot,
     onStart: () => { world.cinematicHideNav = true; },
     onEnd: () => { world.cinematicHideNav = false; },
   });
