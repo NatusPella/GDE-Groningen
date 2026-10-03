@@ -735,6 +735,20 @@ for (let tile = 0; tile < TX * TY; tile++) {
     if (si < 0) rasterCover(-1 - si, BINS.outT[q]);
     else rasterSource(si, BINS.outT[q]);
   }
+  // --probe: a top-down map round each point in this tile (# building, letter:
+  // top surface kind, blank: the void)
+  for (const [qx, qy] of PROBE_AT) {
+    if (qx < ox + MARGIN * CS || qy < oy + MARGIN * CS || qx >= ox + (MARGIN + NC) * CS || qy >= oy + (MARGIN + NC) * CS) continue;
+    console.error(`map round ${qx},${qy} (rows +y down, 0.5 m)`);
+    for (let y = qy - 6; y <= qy + 6; y += 0.5) {
+      let row = '';
+      for (let x = qx - 6; x <= qx + 6; x += 0.5) {
+        const c = cellAt(x, y);
+        row += c < 0 ? '?' : cover[c] ? '#' : cellN[c] ? SRC[cellS[c * K]].kind[0] : isHoleTile ? ' ' : 't';
+      }
+      console.error('  ' + row);
+    }
+  }
   // cells of the tile proper
   for (let j = MARGIN; j < MARGIN + NC; j++) {
     for (let i = MARGIN; i < MARGIN + NC; i++) {

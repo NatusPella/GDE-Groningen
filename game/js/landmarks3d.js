@@ -245,8 +245,10 @@ function slots(len, spacing, margin) {
   for (let i = 0; i < n; i++) out.push(margin + step * (i + 0.5));
   return out;
 }
+// a band sits a little into the wall: no face of it in the wall's plane
+const BAND_SINK = 0.03;
 function band(B, edges, y, h, d, color, g = G_PLAIN) {
-  for (const e of edges) if (!e.party && e.len > 0.6) ebox(B, e, e.len / 2, y, e.len + 0.02, h, d, color, g, 0.0);
+  for (const e of edges) if (!e.party && e.len > 0.6) ebox(B, e, e.len / 2, y, e.len + 0.02, h, d + BAND_SINK, color, g, -BAND_SINK);
 }
 
 // --- churches -----------------------------------------------------------------------
@@ -292,7 +294,7 @@ function aKerkTower(B, F, roof) {
   // sandstone corner pilasters and cornices
   for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
     const [px, pz] = F.P(u + a * (w / 2 - 0.35), roof.vm + b * (w / 2 - 0.35));
-    obox(B, px, pz, 0, 0.9, 0.9, 33, r, C.sandstone, G_PLAIN);
+    obox(B, px, pz, 0, 0.9, 0.9, 33.4, r, C.sandstone, G_PLAIN);
   }
   sq(12, w + 0.3, 0.5, C.sandstone, G_PLAIN);
   sq(24, w + 0.3, 0.5, C.sandstone, G_PLAIN);
