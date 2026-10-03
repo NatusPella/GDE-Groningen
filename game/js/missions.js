@@ -329,22 +329,26 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Al het vet van Grunn',
-      intro: ['De tankwagen van Us Mem Vet rijdt met al het frituurvet van Grunn de stad uit.', 'Schiet of ram zijn banden stuk, kaap hem en breng het vet naar de Oosterpoort.'],
+      intro: ['De tankwagen van Us Mem Vet staat bij de groothandel aan de Bornholmstraat, vol met al het frituurvet van Grunn.', 'Kaap hem: spring erin, of schiet of ram zijn banden stuk. Breng het vet naar de Oosterpoort.'],
       outro: 'Het vet is terug in Grunn. Jelle sprong over de gracht, de tweeling fietste erachteraan.',
       timeLimit: null,
       reward: 950,
       vehicle: 'car',
       start: drive(1149, 422),
       stages: [
-        { kind: 'board', label: 'Stap in de auto', say: 'Instappen, Femke heeft hem voor ons klaargezet. Daar gaat de tankwagen!' },
+        { kind: 'board', label: 'Stap in de auto', say: 'Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.' },
         {
-          kind: 'chase', label: 'Schiet of ram de banden van de tankwagen stuk', say: 'Achter die tankwagen aan! Schieten mag, rammen mag. Maak zijn banden plat.',
-          vehicle: { name: 'truck', tank: true, len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
-          name: 'Tankwagen Us Mem Vet', lead: 48, hits: 70, flee: [-2600, 600], cruise: 15.5, escape: 380, time: 180,
+          // parked at the groothandel until you come close (`parked` m) or hit it; then it flees.
+          // Jumping in (`hijack`) takes it there and then, and the run goes on to the Oosterpoort.
+          kind: 'chase', label: 'Kaap de tankwagen of schiet zijn banden plat', say: 'Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.',
+          vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
+          name: 'Tankwagen Us Mem Vet', from: [1896, 364], lead: 6, hits: 70, flee: [-2600, 600], cruise: 15.5, escape: 380, time: 180,
+          parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Ze zien ons! Daar gaat hij. Erin springen, of de banden plat. Schieten mag, rammen mag.',
           stopped: 'Pang! Banden plat. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
+          hijack: 'Gekaapt! Durk en Douwe rollen eruit en fietsen weg, allebei op één fatbike. Het vet is van ons.',
         },
         { kind: 'board', label: 'Kaap de tankwagen', say: 'Hij staat stil. Instappen, het vet is van ons. Van Grunn, bedoel ik.' },
-        { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.' },
+        { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.', sayHijacked: 'Naar de Oosterpoort, daar wachten de frituurpannen. En rustig, hè: het is een tankwagen.' },
         {
           kind: 'vault', label: 'Jelle',
           lines: [['jelle', 'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.'], ['A', 'Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.'],
@@ -1620,6 +1624,7 @@ function startMission(world, def) {
   chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
   chain.momentDone = false;
+  chain.hijacked = false;
   // the kraak: both in black, whoever bought it (off again on the train, stationtravel.js)
   // (any other mission: the train was skipped somehow, so their own clothes again)
   setStoryOutfit(def.heist ? 'incognito' : null);
@@ -2097,6 +2102,8 @@ function spawnChaseVehicle(world, def, st) {
   const first = st.route && st.route[0];
   const goal = (st.toTrain && fjordLoadPoint()) || (first ? { x: first.at[0], y: first.at[1] } : { x: st.flee[0], y: st.flee[1] });
   v.aiOpts = { goal: { x: goal.x, y: goal.y }, chase: true, cruise: st.cruise || 15 };
+  // waiting at the groothandel: off the road graph (so traffic AI leaves it be) until it flees
+  if (st.parked) { v.parkedRoad = v.road; v.parkedAi = v.aiOpts; v.road = null; v.aiOpts = null; v.speed = 0; }
   world.vehicles.push(v);
   return v;
 }
@@ -2138,13 +2145,24 @@ function stopChaseVehicle(world, def, st) {
   nextStage(world, def);
 }
 
-function adoptVehicle(world, v, st) {
+// The player jumped into the chased vehicle (H8's tanker): it is theirs,
+// tyres whole, and the run goes straight on past the 'board' stage.
+function hijackChase(world, def, st, v) {
+  adoptVehicle(world, v, st, true);
+  chain.hijacked = true;
+  chain.boarded = true;
+  world.addMessage(st.hijack, 4.5);
+  if (def.stages[chain.stageIndex + 1] && def.stages[chain.stageIndex + 1].kind === 'board') chain.stageIndex++;
+  nextStage(world, def);
+}
+
+function adoptVehicle(world, v, st, intact = false) {
   v.road = null;
   v.aiOpts = null;
   v.plan = [];
   if (v.driver !== 'player') v.driver = null;
   v.chaseTarget = false;
-  if (!st.hero) v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
+  if (!st.hero && !intact) v.model = { ...v.model, maxSpeed: Math.min(v.model.maxSpeed, 15) };
   v.health = Math.max(v.health, 60);
   const old = chain.vehicle;
   if (old && old !== v) old.missionCar = false;
@@ -2223,6 +2241,7 @@ function stageProgressBase(world, def) {
     if (S.target && !world.wanted) return `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
     return `${S.target ? 'Schud de politie af' : st.label} · ${'★'.repeat(world.wanted)}`;
   }
+  if (st.kind === 'chase' && S.target && S.target.parkedRoad) return `${st.parkedLabel || st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
   if (st.kind === 'chase' && S.target) {
     const left = `${st.meter || 'banden'} ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
     return `${st.label} · ${left}${st.clock ? ` · ${st.clock} ${fmtTime((st.time || 180) - S.t)}` : ''}`;
@@ -2297,7 +2316,8 @@ function enterStage(world, def, k) {
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chain.timeLeft += st.bonus;
-  if (st.say) world.addMessage(st.say, 4.5);
+  const say = chain.hijacked && st.sayHijacked ? st.sayHijacked : st.say;
+  if (say) world.addMessage(say, 4.5);
   if (st.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...st.radio });
 }
 
@@ -2663,12 +2683,22 @@ function updateStages(dt, world, def) {
       if (S.swarm) { if (S.swarm === 'done') stopChaseVehicle(world, def, st); break; }
       if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
-      if (st.route) updateChaseRoute(world, st, S, t);
+      if (st.hijack && p.inVehicle === t) { hijackChase(world, def, st, t); break; }
       const d = dist(p.x, p.y, t.x, t.y);
+      if (t.parkedRoad) {
+        if (d > st.parked && t.health >= S.hp0) break;
+        t.road = t.parkedRoad;
+        t.aiOpts = t.parkedAi;
+        t.parkedRoad = null;
+        t.planAt = 0;
+        S.goAt = S.t;
+        if (st.go) world.addMessage(st.go, 4);
+      }
+      if (st.route) updateChaseRoute(world, st, S, t);
       if (st.swarm && (S.hp0 - t.health >= st.hits / 2 || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
       if (st.toTrain && chaseReachedTrain(world, def, st, S, t, dt)) break;
-      if (d > (st.escape || 380) || S.t > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
+      if (d > (st.escape || 380) || S.t - (S.goAt || 0) > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
       if (S.hp0 - t.health >= st.hits / 2 && !S.half && !st.swarm) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
       break;
     }
