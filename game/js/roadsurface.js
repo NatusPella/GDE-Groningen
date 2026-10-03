@@ -858,6 +858,7 @@ function ribbonClip(r, rs, kind) {
   const at = (x, y, mx, my, k, t) => {
     const ml = Math.hypot(mx, my) || 1, reach = half * ml;
     const d = dirAt(P, Math.min(k, n - 2), 1);
+    const sn = rs.segN[Math.min(k, n - 2)];
     const res = [half, half];
     // (a path drawn out over the water without a bridge: nothing there)
     if (index && index.inWater(x, y)) return [0, 0];
@@ -889,18 +890,25 @@ function ribbonClip(r, rs, kind) {
       const od = dirAt(Q, bi, 1);
       if (Math.abs(od[0] * d[0] + od[1] * d[1]) < 0.9) continue;
       const oz = o.z ? o.z[bi] + (o.z[bi + 1] - o.z[bi]) * bt : 0;
-      // beside the point, not ahead of it (where o ends or joins)
-      const lat = ((bx - x) * mx + (by - y) * my) / ml;
-      if (Math.abs(lat) < 0.8 * dist) continue;
+      // beside the point, not ahead of it (where o ends or joins); between
+      // the points square to the segment, as the miter turns towards a bend
+      const lat = ((bx - x) * mx + (by - y) * my) / ml, lt = (bx - x) * sn[0] + (by - y) * sn[1];
+      if (Math.abs(t > 0 ? lt : lat) < 0.8 * dist) continue;
+      // o lies off square to its own line (two ways meeting at a point share
+      // its miter and see the same), or past o's end square to this one's;
+      // a miter unit reaches mo square to it
+      let off = Math.abs(lat), mo = ml, mr = reach;
+      if (t > 0 && (r.bridge || zr > 0.5) && (o.bridge || oz > 0.5) && bt > 1e-6 && bt < 1 - 1e-6) { off = dist; mo = Math.max(0.4, Math.abs(mx * od[1] - my * od[0])); mr = half; }
+      else if (t > 0) { off = Math.abs(lt); mo = Math.max(0.4, mx * sn[0] + my * sn[1]); mr = half; }
       const j = lat > 0 ? 0 : 1;
       if ((r.z || o.z) && Math.abs(zr - oz) > 0.8) {
         // an open cutting alongside: this ribbon stops on the middle of its
         // retaining wall (or the wall face closing it) instead of hanging
         // out over the sunken way
-        if (o.z && !o.tunnel && !o.bridge && oz < -0.25 && zr - oz > 0.8) res[j] = Math.min(res[j], Math.max(0, (Math.abs(lat) - ohs - 0.225) / ml));
+        if (o.z && !o.tunnel && !o.bridge && oz < -0.25 && zr - oz > 0.8) res[j] = Math.min(res[j], Math.max(0, (off - ohs - 0.225) / mo));
         continue;
       }
-      res[j] = Math.min(res[j], Math.max(0.5, Math.abs(lat) * reach / (reach + oh) / ml));
+      res[j] = Math.min(res[j], Math.max(0.5, off * mr / (mr + oh) / mo));
     }
     const lo = road ? (t === 0 ? road.pts[k] : road.at(x, y, mx, my, k, t)) : null;
     for (let j = 0; j < 2; j++) res[j] = Math.max(res[j], lo ? lo[j] : sidewalk ? rs.hw : 0);
