@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds GTE VI for macOS + Windows and publishes it as a GitHub release.
+# Builds GDE Groningen for macOS + Windows and publishes it as a GitHub release.
 #
 #   npm run release -- patch    0.3.1 -> 0.3.2   bug fixes only
 #   npm run release -- minor    0.3.1 -> 0.4.0   new features
@@ -47,16 +47,16 @@ if [ "$BUMP" != "current" ]; then
   git commit -q -m "Release $TAG"
 fi
 
-echo "Building GTE VI $VERSION ..."
+echo "Building GDE Groningen $VERSION ..."
 rm -rf dist
 npm run dist:mac
 npx electron-builder --win --x64
 
-DMG="dist/GTE-VI-$VERSION-mac.dmg"
-EXE="dist/GTE-VI-$VERSION-windows-portable.exe"
+DMG="dist/GDE-Groningen-$VERSION-mac.dmg"
+EXE="dist/GDE-Groningen-$VERSION-windows-portable.exe"
 [ -f "$DMG" ] && [ -f "$EXE" ] || { echo "Build output missing"; exit 1; }
 
-git tag -a "$TAG" -m "GTE VI $VERSION"
+git tag -a "$TAG" -m "GDE Groningen $VERSION"
 git push -q
 git push -q origin "$TAG"
 
@@ -64,28 +64,31 @@ PRE=""
 case "$VERSION" in 0.*) PRE="--prerelease" ;; esac
 NOTES="$(mktemp)"
 cat > "$NOTES" <<EOF
-## GTE VI $VERSION
+## GDE Groningen – Zomer vol misdaad $VERSION
 
 $CHANGES
 
 ## Installeren
 
-> **Let op: deze bestanden zijn niet ondertekend.** GTE VI is een gratis
+> **Let op: deze bestanden zijn niet ondertekend.** GDE Groningen is een gratis
 > hobbyproject zonder betaalde Apple- of Microsoft-certificaten. Daarom
 > waarschuwen Windows en macOS de eerste keer; de stappen hieronder laten
 > zien hoe je hem toch opent.
 
-**Windows:** download \`GTE-VI-$VERSION-windows-portable.exe\` en dubbelklik. Geen installatie nodig.
+**Windows:** download \`GDE-Groningen-$VERSION-windows-portable.exe\` en dubbelklik. Geen installatie nodig.
 Zegt Windows "Windows heeft uw pc beveiligd"? Klik op **Meer info** en dan **Toch uitvoeren**.
 
-**macOS** (Apple Silicon en Intel): open \`GTE-VI-$VERSION-mac.dmg\` en sleep GTE VI naar Programma's.
+**macOS** (Apple Silicon en Intel): open \`GDE-Groningen-$VERSION-mac.dmg\` en sleep GDE Groningen naar Programma's.
 De eerste keer: open de app, klik **Gereed** bij de melding, ga naar **Systeeminstellingen > Privacy en beveiliging**
 en klik onderaan op **Open toch**. Daarna start hij gewoon.
+
+Speelde je al toen de game nog GTE VI heette? Je saves en instellingen blijven gewoon staan.
+Op de Mac kun je de oude app "GTE VI" daarna uit Programma's weggooien.
 
 EOF
 # create the release first, then upload each build with a few retries:
 # a 300 MB upload sometimes times out on the first try
-gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "GTE VI $VERSION" --notes-file "$NOTES" $PRE
+gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "GDE Groningen $VERSION" --notes-file "$NOTES" $PRE
 for f in "$DMG" "$EXE"; do
   ok=""
   for i in 1 2 3 4; do

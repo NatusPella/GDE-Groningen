@@ -2492,6 +2492,24 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Anita|Kiekdoar schrijft dat de dieven in het zwart waren.": {
+"src": "id-sikkom_0_a_9ee78a.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "Kiekdoar schrijft dat de dieven in het zwart waren.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: reading, amused.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
+"Anita|Kiekdoar schrijft nooit iets wat klopt.": {
+"src": "id-sikkom_2_a_699175.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "Kiekdoar schrijft nooit iets wat klopt.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: puzzled.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Anita|Kijk. Het kan wel.": {
 "src": "q-h13-iets_4_a_83eda3.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -3284,24 +3302,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Sikkom schrijft dat de dieven in het zwart waren.": {
-"src": "id-sikkom_0_a_a58cf1.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Callirrhoe",
-"input": "Sikkom schrijft dat de dieven in het zwart waren.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: reading, amused.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
-"Anita|Sikkom schrijft nooit iets wat klopt.": {
-"src": "id-sikkom_2_a_2c6f9f.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Callirrhoe",
-"input": "Sikkom schrijft nooit iets wat klopt.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: puzzled.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
 "Anita|Smile. Die foto hangt straks naast de wc bij Geert.": {
 "src": "si-flitser_0_a_593b20.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -4004,14 +4004,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Ze weet het al. Het staat op Sikkom.": {
-"src": "h15-pass-touw_1_a_4385ab.mp3",
+"Anita|Ze weet het al. Het staat op Kiekdoar.": {
+"src": "h15-pass-touw_1_a_2d0054.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Callirrhoe",
-"input": "Ze weet het al. Het staat op Sikkom.",
+"input": "Ze weet het al. Het staat op Kiekdoar.",
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: giggling.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-03"
 },
 "Anita|Ze wil dat hij ophoudt. Niet dat hij wint.": {
 "src": "h16-pass-mem_0_a_8eedc6.mp3",

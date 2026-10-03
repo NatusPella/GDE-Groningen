@@ -282,7 +282,7 @@ export function collect() {
   for (const [k, kinds] of Object.entries(lit(fun, 'export const KERMIS_TWINS = '))) for (const list of Object.values(kinds)) for (const t of list) add('Kermis', 'lines', [BUBBLE.m], t, { persona: { ...TWIN_VOICE[k], accent: TWIN_ACCENT }, tag: ['traag, verontwaardigd, in een botsauto', 'sloom, duizelig, in een botsauto'] });
   // the talk station on the car radio (radiostations.js): Geesje; the rest it plays is recorded already
   const RADIO_HOST = fun.match(/export const RADIO_HOST = '([^']+)'/)[1];
-  for (const list of Object.values(lit(fun, 'export const RADIO_GRUNN = '))) for (const t of list) add('Radio Grunn', 'lines', [RADIO_HOST], t, { tag: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice', 'vlot en opgewekt, als radiopresentatrice'] });
+  for (const list of Object.values(lit(fun, 'export const RADIO_GRUNN = '))) for (const t of list) add('Radio Proat', 'lines', [RADIO_HOST], t, { tag: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice', 'vlot en opgewekt, als radiopresentatrice'] });
   for (const t of lit(fl, 'export const KROLBRUG_FAULTS = ')) add('Wereld (radio & navigatie)', 'lines', ['Verkeersinformatie'], t);
   for (const t of lit(fl, 'export const RING_ZUID_GPS = ')) add('Wereld (radio & navigatie)', 'lines', ['Navigatie'], t);
   for (const t of lit(fl, 'export const NACHTSTREEK = ')) add('Wereld (radio & navigatie)', 'lines', [NARRATOR], t, { tag: ['zacht, warm, rustig, laat op de avond, als nacht-dj op de radio', 'warm, ontspannen, droog, als nacht-dj op de radio'] });
@@ -336,9 +336,9 @@ export function collect() {
   // --- phone messages read aloud (phonefeed.js notification cards, smsvoice.js) -> sms manifest
   const NEWS_TAG = ['als een regionale nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog', 'als een nieuwslezer, opgewekt en snel'];
   const APP_TAG = ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'];
-  const tagFor = (sp) => (sp === 'Sikkom-redactie' ? { tag: NEWS_TAG } : sp === 'Ubbo' ? { tag: APP_TAG } : {});
+  const tagFor = (sp) => (sp === 'Kiekdoar-redactie' ? { tag: NEWS_TAG } : sp === 'Ubbo' ? { tag: APP_TAG } : {});
   const sms = (area, from, text, spoken = null) => {
-    const sp = smsSpeaker(from || (/^SIKKOM/i.test(text) ? 'Sikkom' : from));
+    const sp = smsSpeaker(from || (/^KIEKDOAR/i.test(text) ? 'Kiekdoar' : from));
     add(area, 'sms', [sp], spoken || smsSpoken(text), tagFor(sp));
     out[out.length - 1].fallback = 'lines';
   };
@@ -350,15 +350,15 @@ export function collect() {
     for (const c of st.contact || []) for (const [k, t] of c.after || []) sms('Berichten (verhaal)', SWHO(k), t);
     if (st.voorschot) sms('Berichten (verhaal)', st.voorschot.from, st.voorschot.text);
   }
-  for (const t of strings(src('story.js'), /phone\('GTE VI', ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GTE VI', t);
-  for (const t of strings(src('postgame.js'), /from: 'GTE VI', text: ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GTE VI', t);
-  for (const { speaker, lines } of Object.values(SMS_SAY)) for (const t of lines) add(speaker === 'Sikkom-redactie' ? 'Berichten (Sikkom)' : speaker === 'Ubbo' ? 'Berichten (app)' : 'Berichten (verhaal)', 'sms', [speaker], t, tagFor(speaker));
+  for (const t of strings(src('story.js'), /phone\(SERIES, ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GDE', t);
+  for (const t of strings(src('postgame.js'), /from: 'GDE', text: ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (app)', 'GDE', t);
+  for (const { speaker, lines } of Object.values(SMS_SAY)) for (const t of lines) add(speaker === 'Kiekdoar-redactie' ? 'Berichten (Kiekdoar)' : speaker === 'Ubbo' ? 'Berichten (app)' : 'Berichten (verhaal)', 'sms', [speaker], t, tagFor(speaker));
   const fls = src('flavourlines.js');
-  for (const t of strings(fls, /export const PLANTSOEN_NEWS = ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (Sikkom)', 'Sikkom', t);
-  for (const ev of Object.values(lit(fls, 'export const EVENT_DAYS = '))) sms('Berichten (Sikkom)', 'Sikkom', ev.announce);
-  for (const t of lit(fls, 'export const KROLBRUG_FAULTS = ')) sms('Berichten (Sikkom)', 'Gerrit Krolbrug', t);
-  sms('Berichten (Sikkom)', 'Sikkom', evalLit(src('funlines.js').match(/export const KERMIS_NEWS = ("[^"]*")/)[1]));
-  for (const t of lit(src('sidejobs.js'), 'const ACCIDENT_LINES = ')) sms('Berichten (Sikkom)', '', t);
+  for (const t of strings(fls, /export const PLANTSOEN_NEWS = ('(?:[^'\\]|\\.)*')/g)) sms('Berichten (Kiekdoar)', 'Kiekdoar', t);
+  for (const ev of Object.values(lit(fls, 'export const EVENT_DAYS = '))) sms('Berichten (Kiekdoar)', 'Kiekdoar', ev.announce);
+  for (const t of lit(fls, 'export const KROLBRUG_FAULTS = ')) sms('Berichten (Kiekdoar)', 'Gerrit Krolbrug', t);
+  sms('Berichten (Kiekdoar)', 'Kiekdoar', evalLit(src('funlines.js').match(/export const KERMIS_NEWS = ("[^"]*")/)[1]));
+  for (const t of lit(src('sidejobs.js'), 'const ACCIDENT_LINES = ')) sms('Berichten (Kiekdoar)', '', t);
 
   // --- HUD cards that are the companion talking (hudcards.js companionSays) -> hints manifest
   const HINT_TAG = ['kort, alert, tegen de ander naast je', 'aanwijzend, gehaast', 'droog, adviserend'];

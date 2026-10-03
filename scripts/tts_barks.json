@@ -1,6 +1,6 @@
 [
  {
-  "file": "tammo/wapen_opgepakt.wav",
+  "file": "voicelines/tammo/wapen_opgepakt.wav",
   "speaker": "Tammo",
   "text": "Oh, dat werkt wel.",
   "tag": "droog, tevreden",
@@ -8,7 +8,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden."
  },
  {
-  "file": "tammo/wapen_opgepakt_v1.wav",
+  "file": "voicelines/tammo/wapen_opgepakt_v1.wav",
   "speaker": "Tammo",
   "text": "Mooi, die kan ik gebruiken.",
   "tag": "droog, tevreden",
@@ -16,7 +16,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden."
  },
  {
-  "file": "tammo/wapen_opgepakt_v2.wav",
+  "file": "voicelines/tammo/wapen_opgepakt_v2.wav",
   "speaker": "Tammo",
   "text": "Precies wat ik zocht.",
   "tag": "droog, tevreden",
@@ -24,7 +24,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden."
  },
  {
-  "file": "tammo/geld_opgepakt.wav",
+  "file": "voicelines/tammo/geld_opgepakt.wav",
   "speaker": "Tammo",
   "text": "Kassa. Mooi zo.",
   "tag": "droog, stiekem blij",
@@ -32,7 +32,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij."
  },
  {
-  "file": "tammo/geld_opgepakt_v1.wav",
+  "file": "voicelines/tammo/geld_opgepakt_v1.wav",
   "speaker": "Tammo",
   "text": "Ach, dat komt altijd van pas.",
   "tag": "droog, stiekem blij",
@@ -40,7 +40,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij."
  },
  {
-  "file": "tammo/geld_opgepakt_v2.wav",
+  "file": "voicelines/tammo/geld_opgepakt_v2.wav",
   "speaker": "Tammo",
   "text": "Weer een paar euro rijker.",
   "tag": "droog, stiekem blij",
@@ -48,7 +48,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij."
  },
  {
-  "file": "tammo/auto_gejat.wav",
+  "file": "voicelines/tammo/auto_gejat.wav",
   "speaker": "Tammo",
   "text": "Hij staat los. Kom op.",
   "tag": "laconiek, haastig",
@@ -56,7 +56,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig."
  },
  {
-  "file": "tammo/auto_gejat_v1.wav",
+  "file": "voicelines/tammo/auto_gejat_v1.wav",
   "speaker": "Tammo",
   "text": "Nou, die lenen we effe.",
   "tag": "laconiek, haastig",
@@ -64,7 +64,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig."
  },
  {
-  "file": "tammo/auto_gejat_v2.wav",
+  "file": "voicelines/tammo/auto_gejat_v2.wav",
   "speaker": "Tammo",
   "text": "Instappen dan maar.",
   "tag": "laconiek, haastig",
@@ -72,7 +72,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig."
  },
  {
-  "file": "tammo/missie_gestart.wav",
+  "file": "voicelines/tammo/missie_gestart.wav",
   "speaker": "Tammo",
   "text": "Nou, daar gaan we weer.",
   "tag": "berustend, droog",
@@ -80,7 +80,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog."
  },
  {
-  "file": "tammo/missie_gestart_v1.wav",
+  "file": "voicelines/tammo/missie_gestart_v1.wav",
   "speaker": "Tammo",
   "text": "Hup, aan de slag dan.",
   "tag": "berustend, droog",
@@ -88,7 +88,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog."
  },
  {
-  "file": "tammo/missie_gestart_v2.wav",
+  "file": "voicelines/tammo/missie_gestart_v2.wav",
   "speaker": "Tammo",
   "text": "Alweer een klusje.",
   "tag": "berustend, droog",
@@ -96,7 +96,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog."
  },
  {
-  "file": "tammo/missie_gelukt.wav",
+  "file": "voicelines/tammo/missie_gelukt.wav",
   "speaker": "Tammo",
   "text": "Klaar is Kees.",
   "tag": "droog, stiekem trots",
@@ -104,7 +104,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots."
  },
  {
-  "file": "tammo/missie_gelukt_v1.wav",
+  "file": "voicelines/tammo/missie_gelukt_v1.wav",
   "speaker": "Tammo",
   "text": "Nou, dat is dat dan.",
   "tag": "droog, stiekem trots",
@@ -112,7 +112,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots."
  },
  {
-  "file": "tammo/missie_gelukt_v2.wav",
+  "file": "voicelines/tammo/missie_gelukt_v2.wav",
   "speaker": "Tammo",
   "text": "Kon minder.",
   "tag": "droog, stiekem trots",
@@ -120,7 +120,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots."
  },
  {
-  "file": "tammo/missie_mislukt.wav",
+  "file": "voicelines/tammo/missie_mislukt.wav",
   "speaker": "Tammo",
   "text": "Ach, goed. Opnieuw dan.",
   "tag": "zuchtend, laconiek",
@@ -128,7 +128,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek."
  },
  {
-  "file": "tammo/missie_mislukt_v1.wav",
+  "file": "voicelines/tammo/missie_mislukt_v1.wav",
   "speaker": "Tammo",
   "text": "Nou, dat ging even niet.",
   "tag": "zuchtend, laconiek",
@@ -136,7 +136,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek."
  },
  {
-  "file": "tammo/missie_mislukt_v2.wav",
+  "file": "voicelines/tammo/missie_mislukt_v2.wav",
   "speaker": "Tammo",
   "text": "Dat is niks geworden.",
   "tag": "zuchtend, laconiek",
@@ -144,7 +144,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek."
  },
  {
-  "file": "tammo/opgepakt.wav",
+  "file": "voicelines/tammo/opgepakt.wav",
   "speaker": "Tammo",
   "text": "Nee toch. Niet weer de bak in.",
   "tag": "berustend, mopperend",
@@ -152,7 +152,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend."
  },
  {
-  "file": "tammo/opgepakt_v1.wav",
+  "file": "voicelines/tammo/opgepakt_v1.wav",
   "speaker": "Tammo",
   "text": "Daar hebben we hem weer.",
   "tag": "berustend, mopperend",
@@ -160,7 +160,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend."
  },
  {
-  "file": "tammo/opgepakt_v2.wav",
+  "file": "voicelines/tammo/opgepakt_v2.wav",
   "speaker": "Tammo",
   "text": "Kon beter, denk ik.",
   "tag": "berustend, mopperend",
@@ -168,7 +168,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend."
  },
  {
-  "file": "tammo/water_panic.wav",
+  "file": "voicelines/tammo/water_panic.wav",
   "speaker": "Tammo",
   "text": "Water! Water!",
   "tag": "in paniek, proestend, feller dan normaal",
@@ -176,7 +176,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal."
  },
  {
-  "file": "tammo/water_panic_v1.wav",
+  "file": "voicelines/tammo/water_panic_v1.wav",
   "speaker": "Tammo",
   "text": "Nat. Weer nat.",
   "tag": "in paniek, proestend, feller dan normaal",
@@ -184,7 +184,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal."
  },
  {
-  "file": "tammo/water_panic_v2.wav",
+  "file": "voicelines/tammo/water_panic_v2.wav",
   "speaker": "Tammo",
   "text": "Ik zwem echt niet graag, hè!",
   "tag": "in paniek, proestend, feller dan normaal",
@@ -192,7 +192,7 @@
   "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal."
  },
  {
-  "file": "anita/wapen_opgepakt.wav",
+  "file": "voicelines/anita/wapen_opgepakt.wav",
   "speaker": "Anita",
   "text": "Precies wat ik nodig had.",
   "tag": "zelfverzekerd, tevreden",
@@ -200,7 +200,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden."
  },
  {
-  "file": "anita/wapen_opgepakt_v1.wav",
+  "file": "voicelines/anita/wapen_opgepakt_v1.wav",
   "speaker": "Anita",
   "text": "Handig, dat kan ik gebruiken.",
   "tag": "zelfverzekerd, tevreden",
@@ -208,7 +208,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden."
  },
  {
-  "file": "anita/wapen_opgepakt_v2.wav",
+  "file": "voicelines/anita/wapen_opgepakt_v2.wav",
   "speaker": "Anita",
   "text": "Die ziet er gevaarlijk uit. Mooi!",
   "tag": "zelfverzekerd, tevreden",
@@ -216,7 +216,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden."
  },
  {
-  "file": "anita/geld_opgepakt.wav",
+  "file": "voicelines/anita/geld_opgepakt.wav",
   "speaker": "Anita",
   "text": "Mooi! Komt goed van pas!",
   "tag": "enthousiast, snel",
@@ -224,7 +224,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
  },
  {
-  "file": "anita/geld_opgepakt_v1.wav",
+  "file": "voicelines/anita/geld_opgepakt_v1.wav",
   "speaker": "Anita",
   "text": "Mooi! Weer wat extra!",
   "tag": "enthousiast, snel",
@@ -232,7 +232,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
  },
  {
-  "file": "anita/geld_opgepakt_v2.wav",
+  "file": "voicelines/anita/geld_opgepakt_v2.wav",
   "speaker": "Anita",
   "text": "Kassa, zullen we maar zeggen.",
   "tag": "enthousiast, snel",
@@ -240,7 +240,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel."
  },
  {
-  "file": "anita/missie_gestart.wav",
+  "file": "voicelines/anita/missie_gestart.wav",
   "speaker": "Anita",
   "text": "Here we go again.",
   "tag": "enthousiast, plagend",
@@ -248,7 +248,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend."
  },
  {
-  "file": "anita/missie_gestart_v1.wav",
+  "file": "voicelines/anita/missie_gestart_v1.wav",
   "speaker": "Anita",
   "text": "En daar gaan we dan weer.",
   "tag": "enthousiast, plagend",
@@ -256,7 +256,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend."
  },
  {
-  "file": "anita/missie_gestart_v2.wav",
+  "file": "voicelines/anita/missie_gestart_v2.wav",
   "speaker": "Anita",
   "text": "Alweer iets te doen.",
   "tag": "enthousiast, plagend",
@@ -264,7 +264,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend."
  },
  {
-  "file": "anita/missie_gelukt.wav",
+  "file": "voicelines/anita/missie_gelukt.wav",
   "speaker": "Anita",
   "text": "Zo moet het!",
   "tag": "triomfantelijk, lacherig",
@@ -272,7 +272,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig."
  },
  {
-  "file": "anita/missie_gelukt_v1.wav",
+  "file": "voicelines/anita/missie_gelukt_v1.wav",
   "speaker": "Anita",
   "text": "Nou, dat is geregeld!",
   "tag": "triomfantelijk, lacherig",
@@ -280,7 +280,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig."
  },
  {
-  "file": "anita/missie_gelukt_v2.wav",
+  "file": "voicelines/anita/missie_gelukt_v2.wav",
   "speaker": "Anita",
   "text": "Die is weer af!",
   "tag": "triomfantelijk, lacherig",
@@ -288,7 +288,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig."
  },
  {
-  "file": "anita/missie_mislukt.wav",
+  "file": "voicelines/anita/missie_mislukt.wav",
   "speaker": "Anita",
   "text": "Had beter gekund.",
   "tag": "geërgerd, ad rem",
@@ -296,7 +296,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem."
  },
  {
-  "file": "anita/missie_mislukt_v1.wav",
+  "file": "voicelines/anita/missie_mislukt_v1.wav",
   "speaker": "Anita",
   "text": "Dat liep niet zoals gepland.",
   "tag": "geërgerd, ad rem",
@@ -304,7 +304,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem."
  },
  {
-  "file": "anita/missie_mislukt_v2.wav",
+  "file": "voicelines/anita/missie_mislukt_v2.wav",
   "speaker": "Anita",
   "text": "Nou, dat werd niks.",
   "tag": "geërgerd, ad rem",
@@ -312,7 +312,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem."
  },
  {
-  "file": "anita/opgepakt.wav",
+  "file": "voicelines/anita/opgepakt.wav",
   "speaker": "Anita",
   "text": "Serieus, Tammo.",
   "tag": "ongelovig, verwijtend",
@@ -320,7 +320,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend."
  },
  {
-  "file": "anita/opgepakt_v1.wav",
+  "file": "voicelines/anita/opgepakt_v1.wav",
   "speaker": "Anita",
   "text": "Alweer, Tammo!",
   "tag": "ongelovig, verwijtend",
@@ -328,7 +328,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend."
  },
  {
-  "file": "anita/opgepakt_v2.wav",
+  "file": "voicelines/anita/opgepakt_v2.wav",
   "speaker": "Anita",
   "text": "Dit wordt een gewoonte!",
   "tag": "ongelovig, verwijtend",
@@ -336,7 +336,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend."
  },
  {
-  "file": "anita/kus.wav",
+  "file": "voicelines/anita/kus.wav",
   "speaker": "Anita",
   "text": "Doe voorzichtig, ja!",
   "tag": "warm, plagend, zacht",
@@ -344,7 +344,7 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht."
  },
  {
-  "file": "anita/kus_v1.wav",
+  "file": "voicelines/anita/kus_v1.wav",
   "speaker": "Anita",
   "text": "Let een beetje op jezelf.",
   "tag": "warm, plagend, zacht",
@@ -352,11 +352,605 @@
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht."
  },
  {
-  "file": "anita/kus_v2.wav",
+  "file": "voicelines/anita/kus_v2.wav",
   "speaker": "Anita",
   "text": "Doe rustig aan, mien jong!",
   "tag": "warm, plagend, zacht",
   "voice": "Callirrhoe",
   "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht."
+ },
+ {
+  "file": "npc/phrase_0_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Moi!",
+  "say": "Moi!",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_0_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Moi!",
+  "say": "Moi!",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_0_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Moi!",
+  "say": "Moi!",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_1_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Hoi, alles goud?",
+  "say": "Hoi, alles goud?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_1_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Hoi, alles goud?",
+  "say": "Hoi, alles goud?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_1_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Hoi, alles goud?",
+  "say": "Hoi, alles goud?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_2_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "t Is mooi weer vandoag, net?",
+  "say": "t Is mooi weer vandoag, net?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_2_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "t Is mooi weer vandoag, net?",
+  "say": "t Is mooi weer vandoag, net?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_2_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "t Is mooi weer vandoag, net?",
+  "say": "t Is mooi weer vandoag, net?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_3_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Kom, we goan derhen.",
+  "say": "Kom, we goan derhen.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_3_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Kom, we goan derhen.",
+  "say": "Kom, we goan derhen.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_3_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Kom, we goan derhen.",
+  "say": "Kom, we goan derhen.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_4_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Wat bin je aan het doun?",
+  "say": "Wat bin je aan het doun?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_4_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Wat bin je aan het doun?",
+  "say": "Wat bin je aan het doun?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_4_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Wat bin je aan het doun?",
+  "say": "Wat bin je aan het doun?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_5_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Doe mor gewoon.",
+  "say": "Doe mor gewoon.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_5_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Doe mor gewoon.",
+  "say": "Doe mor gewoon.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_5_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Doe mor gewoon.",
+  "say": "Doe mor gewoon.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_6_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Lekker bakkie doen?",
+  "say": "Lekker bakkie doen?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_6_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Lekker bakkie doen?",
+  "say": "Lekker bakkie doen?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_6_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Lekker bakkie doen?",
+  "say": "Lekker bakkie doen?",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_7_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Nou, mag nait klagen, hoor.",
+  "say": "Nou, mag nait klagen, hoor.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_7_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Nou, mag nait klagen, hoor.",
+  "say": "Nou, mag nait klagen, hoor.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_7_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Nou, mag nait klagen, hoor.",
+  "say": "Nou, mag nait klagen, hoor.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_8_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Ligt aan die kolde wind, geleuf ik.",
+  "say": "Ligt aan die kolde wind, geleuf ik.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_8_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Ligt aan die kolde wind, geleuf ik.",
+  "say": "Ligt aan die kolde wind, geleuf ik.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_8_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Ligt aan die kolde wind, geleuf ik.",
+  "say": "Ligt aan die kolde wind, geleuf ik.",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_9_v0.wav",
+  "speaker": "Stadjer (man)",
+  "text": "Tot straks, moi!",
+  "say": "Tot straks, moi!",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Sadaltager",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_9_v1.wav",
+  "speaker": "Stadjer (vrouw)",
+  "text": "Tot straks, moi!",
+  "say": "Tot straks, moi!",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Despina",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "npc/phrase_9_v2.wav",
+  "speaker": "Stadjer (oud)",
+  "text": "Tot straks, moi!",
+  "say": "Tot straks, moi!",
+  "tag": "vriendelijk, terloops, in het voorbijgaan",
+  "voice": "Enceladus",
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan."
+ },
+ {
+  "file": "police/stop_politie_v0.wav",
+  "speaker": "Agent",
+  "text": "Stop! Politie!",
+  "say": "Stop! Politie!",
+  "tag": "luid roepend, streng",
+  "voice": "Alnilam",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: luid roepend, streng."
+ },
+ {
+  "file": "police/stop_politie_v1.wav",
+  "speaker": "Agente",
+  "text": "Stop! Politie!",
+  "say": "Stop! Politie!",
+  "tag": "luid roepend, streng",
+  "voice": "Kore",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: luid roepend, streng."
+ },
+ {
+  "file": "police/zet_kant_v0.wav",
+  "speaker": "Agent",
+  "text": "Zet de auto aan de kant!",
+  "say": "Zet de auto aan de kant!",
+  "tag": "bevelend, door een megafoon",
+  "voice": "Alnilam",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: bevelend, door een megafoon."
+ },
+ {
+  "file": "police/zet_kant_v1.wav",
+  "speaker": "Agente",
+  "text": "Zet de auto aan de kant!",
+  "say": "Zet de auto aan de kant!",
+  "tag": "bevelend, door een megafoon",
+  "voice": "Kore",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: bevelend, door een megafoon."
+ },
+ {
+  "file": "police/verdachte_voertuig_v0.wav",
+  "speaker": "Agent",
+  "text": "Verdacht voertuig, alle eenheden.",
+  "say": "Verdacht voertuig, alle eenheden.",
+  "tag": "zakelijk, over de portofoon",
+  "voice": "Alnilam",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: zakelijk, over de portofoon."
+ },
+ {
+  "file": "police/verdachte_voertuig_v1.wav",
+  "speaker": "Agente",
+  "text": "Verdacht voertuig, alle eenheden.",
+  "say": "Verdacht voertuig, alle eenheden.",
+  "tag": "zakelijk, over de portofoon",
+  "voice": "Kore",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: zakelijk, over de portofoon."
+ },
+ {
+  "file": "police/handen_omhoog_v0.wav",
+  "speaker": "Agent",
+  "text": "Sta stil! Handen omhoog!",
+  "say": "Sta stil! Handen omhoog!",
+  "tag": "schreeuwend, bevelend",
+  "voice": "Alnilam",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: schreeuwend, bevelend."
+ },
+ {
+  "file": "police/handen_omhoog_v1.wav",
+  "speaker": "Agente",
+  "text": "Sta stil! Handen omhoog!",
+  "say": "Sta stil! Handen omhoog!",
+  "tag": "schreeuwend, bevelend",
+  "voice": "Kore",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: schreeuwend, bevelend."
+ },
+ {
+  "file": "police/achtervolging_v0.wav",
+  "speaker": "Agent",
+  "text": "Achtervolging gaande, richting centrum.",
+  "say": "Achtervolging gaande, richting centrum.",
+  "tag": "gehaast, over de portofoon",
+  "voice": "Alnilam",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: gehaast, over de portofoon."
+ },
+ {
+  "file": "police/achtervolging_v1.wav",
+  "speaker": "Agente",
+  "text": "Achtervolging gaande, richting centrum.",
+  "say": "Achtervolging gaande, richting centrum.",
+  "tag": "gehaast, over de portofoon",
+  "voice": "Kore",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: gehaast, over de portofoon."
+ },
+ {
+  "file": "police/aangehouden_v0.wav",
+  "speaker": "Agent",
+  "text": "Verdachte aangehouden.",
+  "say": "Verdachte aangehouden.",
+  "tag": "zakelijk, opgelucht, over de portofoon",
+  "voice": "Alnilam",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: zakelijk, opgelucht, over de portofoon."
+ },
+ {
+  "file": "police/aangehouden_v1.wav",
+  "speaker": "Agente",
+  "text": "Verdachte aangehouden.",
+  "say": "Verdachte aangehouden.",
+  "tag": "zakelijk, opgelucht, over de portofoon",
+  "voice": "Kore",
+  "style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: zakelijk, opgelucht, over de portofoon."
+ },
+ {
+  "file": "nieuws/wanted_up_1_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR MELDT: onrust in Grunn, politie massaal op pad",
+  "say": "Onrust in Grunn, politie massaal op pad.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/wanted_up_1_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR MELDT: onrust in Grunn, politie massaal op pad",
+  "say": "Onrust in Grunn, politie massaal op pad.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/wanted_up_2_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: gierende sirenes in het centrum, politie zit iemand op de hielen",
+  "say": "Gierende sirenes in het centrum, politie zit iemand op de hielen.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/wanted_up_2_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: gierende sirenes in het centrum, politie zit iemand op de hielen",
+  "say": "Gierende sirenes in het centrum, politie zit iemand op de hielen.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/wrecked_up_1_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd",
+  "say": "Auto total loss in het centrum, buurtbewoners verbijsterd.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/wrecked_up_1_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd",
+  "say": "Auto total loss in het centrum, buurtbewoners verbijsterd.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/wrecked_up_2_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen",
+  "say": "Wéér total loss in Groningen, garages wrijven in hun handen.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/wrecked_up_2_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen",
+  "say": "Wéér total loss in Groningen, garages wrijven in hun handen.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/copkill_up_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer",
+  "say": "Agent gewond geraakt tijdens dienst, korps in rep en roer.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/copkill_up_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer",
+  "say": "Agent gewond geraakt tijdens dienst, korps in rep en roer.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/pedkill_up_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties",
+  "say": "Voetganger gewond, buurtapp ontploft van de reacties.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/pedkill_up_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties",
+  "say": "Voetganger gewond, buurtapp ontploft van de reacties.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/kill_up_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister",
+  "say": "Opnieuw onrust in de straten, politie tast in het duister.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/kill_up_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister",
+  "say": "Opnieuw onrust in de straten, politie tast in het duister.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/mission_up_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: mysterieuze klusjesman weer aan het werk in Groningen",
+  "say": "Mysterieuze klusjesman weer aan het werk in Groningen.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/mission_up_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: mysterieuze klusjesman weer aan het werk in Groningen",
+  "say": "Mysterieuze klusjesman weer aan het werk in Groningen.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/weather_storm_start_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: code rood, storm raast over Grunn",
+  "say": "Code rood, storm raast over Grunn.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/weather_storm_start_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: code rood, storm raast over Grunn",
+  "say": "Code rood, storm raast over Grunn.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/weather_storm_end_v0.wav",
+  "speaker": "Kiekdoar-redactie",
+  "text": "KIEKDOAR: storm trekt weg, Groningen droogt weer op",
+  "say": "Storm trekt weg, Groningen droogt weer op.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Achernar",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "nieuws/weather_storm_end_v1.wav",
+  "speaker": "Kiekdoar-redactie (2)",
+  "text": "KIEKDOAR: storm trekt weg, Groningen droogt weer op",
+  "say": "Storm trekt weg, Groningen droogt weer op.",
+  "tag": "als een regionale nieuwslezer, droog, licht ironisch",
+  "voice": "Umbriel",
+  "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
+ },
+ {
+  "file": "gmusic/jingles/station_id.wav",
+  "speaker": "G-Music",
+  "text": "Dit is G-Music, de soundtrack van Grunn.",
+  "say": "Dit is G-Music, de soundtrack van Grunn.",
+  "tag": "vlot en trots, als een radiojingle",
+  "voice": "Zephyr",
+  "style": "spoken in Dutch with a Groningen accent; enthousiaste Groningse radio-dj, de jinglestem van zender G-Music. Tone: vlot en trots, als een radiojingle."
+ },
+ {
+  "file": "gmusic/jingles/nummerovergang.wav",
+  "speaker": "G-Music",
+  "text": "Nog meer bangers zo. Blijf luisteren.",
+  "say": "Nog meer bangers zo. Blijf luisteren.",
+  "tag": "opgewekt, snel, als een radiojingle",
+  "voice": "Zephyr",
+  "style": "spoken in Dutch with a Groningen accent; enthousiaste Groningse radio-dj, de jinglestem van zender G-Music. Tone: opgewekt, snel, als een radiojingle."
+ },
+ {
+  "file": "gmusic/jingles/rij_knipoog.wav",
+  "speaker": "G-Music",
+  "text": "Rustig aan met die snelheid. Grapje, gas erop!",
+  "say": "Rustig aan met die snelheid. Grapje, gas erop!",
+  "tag": "met een knipoog, eerst rustig dan uitgelaten, als een radiojingle",
+  "voice": "Zephyr",
+  "style": "spoken in Dutch with a Groningen accent; enthousiaste Groningse radio-dj, de jinglestem van zender G-Music. Tone: met een knipoog, eerst rustig dan uitgelaten, als een radiojingle."
+ },
+ {
+  "file": "gmusic/jingles/hoge_wanted.wav",
+  "speaker": "G-Music",
+  "text": "Het is weer druk in Grunn vanavond, hoor ik.",
+  "say": "Het is weer druk in Grunn vanavond, hoor ik.",
+  "tag": "droog, samenzweerderig, als een radiojingle",
+  "voice": "Zephyr",
+  "style": "spoken in Dutch with a Groningen accent; enthousiaste Groningse radio-dj, de jinglestem van zender G-Music. Tone: droog, samenzweerderig, als een radiojingle."
  }
 ]

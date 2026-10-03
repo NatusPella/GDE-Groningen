@@ -724,7 +724,6 @@ function missionProgressText(m) {
   if (m.phase !== 'active') return '';
   if (m.progressText) return m.progressText;
   if (m.raceHud) return '';
-  if (m.type === 'rampage' && m.killTarget != null) return `Maak chaos · ${Math.max(0, m.killProgress || 0)}/${m.killTarget} neer`;
   if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) {
     const cp = `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
     return m.racePos ? `Positie ${m.racePos}/${m.raceTotal} · ${cp}` : cp;

@@ -33,7 +33,7 @@ import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
 import { updateFx3D } from './fx3d.js';
-import { updateGore3D } from './gore3d.js';
+import { updateKnockFx3D } from './knockfx3d.js';
 import { updateGunFx3D } from './gunfx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
@@ -111,7 +111,7 @@ function waitForStart(world) {
   // trailer (trailer.js) passes fxDt to play its explosions
   const render = (dt, fxDt = 0) => {
     updateFx3D(fxDt, world, getScene());
-    updateGore3D(fxDt, world, getScene());
+    updateKnockFx3D(fxDt, world, getScene());
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
@@ -323,9 +323,9 @@ async function boot() {
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused ? 0 : gameDt;
     updateFx3D(animDt, world, getScene());
-    updateGore3D(animDt, world, getScene());
+    updateKnockFx3D(animDt, world, getScene());
     updateGunFx3D(animDt, world, getScene());
-    probe.mark('fx+gore');
+    probe.mark('fx+ko');
     updateCityProps(animDt, world, getScene());
     updateFlavour3D(animDt, world);
     probe.mark('cityprops');

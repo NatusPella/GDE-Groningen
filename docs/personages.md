@@ -1,4 +1,4 @@
-# Personages van GTE VI
+# Personages van GDE Groningen
 
 Deze personagebijbel houdt de personages consistent: in dialogen, telefoontjes, gesprekjes in de auto, TTS-tags en cutscenes. Per personage staat hier hoe hij of zij praat, wat ze leuk vinden, wat ze haten, hun running gags, en wat ze nooit zouden zeggen.
 
