@@ -579,6 +579,14 @@ function groundBelow(x, y, h, skip = -1) {
   return isHoleTile ? null : -0.05;
 }
 
+// does the surface of source si lie in the cell at (x, y), level with h?
+function onSource(x, y, si, h) {
+  const c = cellAt(x, y);
+  if (c < 0) return false;
+  for (let q = 0; q < cellN[c]; q++) if (cellS[c * K + q] === si && Math.abs(cellH[c * K + q] - h) < 0.05) return true;
+  return false;
+}
+
 // a near-vertical face at the edge (x, y): hanging below it (h - 0.04 to
 // h - 0.25) or rising beside it (a wall, h + 0.02 to h + 0.3)
 function faceBelow(x, y, h, nx, ny) {
@@ -773,9 +781,14 @@ for (let tile = 0; tile < TX * TY; tile++) {
     const [x, y, h, nx, ny, si, len] = probes[pi];
     const xo = x + nx * 0.12, yo = y + ny * 0.12;
     // something level with the edge beside it (or a few cm over it) closes it
-    const g = groundBelow(xo, yo, h + 0.15, si);
+    // (the 0.25 m cell holding that point can still have its centre on this
+    // surface, a few cm inside the edge: then 0.3 m out, where a slope down
+    // from the edge, like an embankment's, has dropped further)
+    const own = onSource(xo, yo, si, h);
+    const g = own ? groundBelow(x + nx * 0.3, y + ny * 0.3, h + 0.15, si) : groundBelow(xo, yo, h + 0.15, si);
+    if (own && onSource(x + nx * 0.3, y + ny * 0.3, si, h)) continue;
     const drop = h - (g === null ? WATER_Y - 0.5 : g);
-    if (drop < 0.25) continue;
+    if (drop < (own ? 0.48 : 0.25)) continue;
     if (faceBelow(x, y, h, nx, ny)) continue;
     const kind = SRC[si].kind;
     if (PROBE_AT.some(([qx, qy]) => Math.hypot(qx - x, qy - y) < 12)) console.error(`floating ${kind} ${x.toFixed(1)},${y.toFixed(1)} h ${h.toFixed(2)} n ${nx.toFixed(2)},${ny.toFixed(2)} below ${g === null ? 'void' : g.toFixed(2)} ${SRC[si].owner ? (SRC[si].owner.cat || '') + ':' + (SRC[si].owner.type || '') + ' ' + (SRC[si].owner.name || '') + ' ' + JSON.stringify(SRC[si].owner.pts[0]) : ''}`);
