@@ -7,6 +7,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Tammo en Anita wonen nu in echte gebouwen.** De House of Groningen aan
+  de Pleiadenlaan en buurtoren Atlas zijn goudgeel gecementeerd metselwerk
+  met Franse balkons, echte balkons op de lagere verdiepingen en een kroon
+  rond het helidek. De parkeergarage ertussen is van dezelfde steen, met een
+  borstwering op het parkeerdek. Het tankstation ernaast heet Bakkie Peut:
+  groen-witte luifel, pompeilanden, prijsmast en winkel. In de opening staat
+  de Korenbloemstraat er nu uit zoals Bouma hem bouwde: rode baksteen, rode
+  pannen, dakkapellen en één verlicht zolderraam.
 - **De Grote Markt en de Vismarkt lijken nu echt.** De gevelwanden zijn
   opgedeeld in panden van 5 tot 9 meter, elk met een eigen gevel:
   lijstgevels, gepleisterde gevels met consoles, trapgevels, klokgevels,

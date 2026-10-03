@@ -54,6 +54,7 @@ import { isPadelActive } from './padel.js';
 import { isVillageMiniActive } from './dorpsuitjes.js';
 import { isActivityActive } from './activities.js';
 import { buildHelipadMesh } from './heli3d.js';
+import { tagPleiadenlaan, tagKorenbloemstraat } from './thuis3d.js';
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
 
 const NEAR_M = 200;
@@ -274,6 +275,7 @@ export function prepareHomeMap(map) {
     t._ring = null;
     regrid(map.buildingGrid, t, t.bounds);
     home.towerBuilding = t;
+    tagPleiadenlaan(map, { tower: t, frame: [TOWER[0], TOWER[2], TOWER[3], TOWER[4]], plinth: PLINTH, lobby: [home.lobby.x, home.lobby.y] });
     // the helidek in the middle of the roof, along the long side
     const top = Math.max(2.4, (t.h || 3) * LEVEL_HEIGHT) + (t.lift || 0);
     const T = home.tower;
@@ -281,6 +283,8 @@ export function prepareHomeMap(map) {
     home.pad = { id: 'home', x: cx, y: cy, r: PAD_R, z: top + PAD_DECK, roof: top, angle: Math.atan2(T.Y[1], T.Y[0]), name: 'Jouw helidek', exit: false, label: 'Jouw helidek · E: parkeren' };
     registerHelipad(home.pad);
   }
+  // the opening's street (intromontage.js) gets its real houses too
+  tagKorenbloemstraat(map);
   // the parking aisles and the deck ramp inside the plinth are ours now
   for (const r of map.roadsNear(c.x, c.y, 40).slice()) {
     if (!r.pts.every(([x, y]) => inPoly(PLINTH, x, y, 1.2))) continue;
