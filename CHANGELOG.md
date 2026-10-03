@@ -7,6 +7,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Uitleg voor nieuwe spelers:** korte tips op het moment dat je ze nodig
+  hebt, één tegelijk en elk maar één keer: je eerste klus en waar je heen
+  moet, geld en winkels, zelf een doel kiezen op de kaart, en Te doen. Speel
+  je vaker zulke games, zet ze dan uit onder Instellingen › Weergave ›
+  "Uitleg voor nieuwe spelers".
+- **Foutrapport** onder Instellingen: gaat er iets mis, dan schrijft het spel
+  dat op in een logboek op je eigen apparaat. Je kunt het kopiëren of, in de
+  desktopversie, als bestand opslaan om mee te sturen met een melding. Er
+  wordt niets verstuurd.
+- **Save-garantie:** elke save heeft nu een versienummer, en oudere saves
+  worden stap voor stap bijgewerkt als je ze laadt. Saves vanaf 1.0 blijven
+  werken in elke latere versie. Voor de eerste bijwerking bewaart het spel
+  een kopie van je oude save.
 - **Twee Steam-trailers.** `--trailer-cut=gameplay` (~62 s) begint met het
   logo en laat de game zien met de echte HUD: rijden met de voertuigbadge,
   sterren en politie, de heli door de ringen, de stuntavond met zijn score,
@@ -17,6 +30,13 @@ nieuwe functies, `y` voor alleen bugfixes.
   Frituur, de Gouden Eierbal, Jelle, en Rikus over het Ontzet.
 
 ### Gewijzigd
+- De disclaimer staat niet meer op het laad- en startscherm, alleen nog in
+  Over, de aftiteling en de README.
+- **Minder toetshints:** lopen, rondkijken, rennen, springen, bukken,
+  zwemmen, en gas, handrem, toeter, radio en filmcamera in voertuigen wijzen
+  zichzelf. De hints linksonder gaan nu alleen nog over in- en uitstappen,
+  je telefoon, de kaart, het pauzemenu (nieuw), kusjes, wapens en de
+  helikopter en de trein.
 - **Trailer: geen lege vitrine meer.** Shot 11 toont de Gouden Eierbal in
   zijn vitrine, gloeiend, ook in de benchmark. De tankwagen laat dikkere
   druppels vet vallen, Durk zingt in de Poelestraat onder een terraslamp, en
@@ -27,6 +47,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   de koepel gaat omhoog, een leeg kussen, het kaartje in close-up. Kort en
   wegklikbaar. Het kaartje is nu getekend "– J.", en na Jelles telefoontje
   naar Nachtstreek valt bij Anita het kwartje: "J. Van Jelle. Natuurlijk."
+- Oude saves nemen de tellers mee van vóór 0.24 ("kills" heten nu
+  knock-outs), in plaats van ze te laten vallen.
+- Een save van een nieuwere versie van het spel wordt niet meer
+  overschreven zonder kopie.
 
 ## [0.24.0] - 2026-10-03
 

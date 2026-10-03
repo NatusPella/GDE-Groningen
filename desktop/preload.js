@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld('gteDesktop', {
   setFullscreen: (on) => ipcRenderer.send('gte:set-fullscreen', !!on),
   onFullscreenChange: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
   quit: () => ipcRenderer.send('gte:quit'),
+  // Foutrapport (errorlog.js): a save dialog, then the text to that file; true when saved
+  saveTextFile: (name, text) => ipcRenderer.invoke('gte:save-text', String(name), String(text)),
   // only answered in a --trailer-frames run (main.js)
   captureFrame: (n) => ipcRenderer.invoke('gte:capture-frame', n),
   // only in a --trailer-video run: the sound sheet the export mixes

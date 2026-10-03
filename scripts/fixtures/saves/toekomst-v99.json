@@ -1,0 +1,5 @@
+{
+  "_era": "a save from a newer game: never migrated or read, and backed up before this version writes its own",
+  "_expect": { "rejected": true },
+  "save": { "v": 99, "money": 1, "story": { "v": 7 } }
+}

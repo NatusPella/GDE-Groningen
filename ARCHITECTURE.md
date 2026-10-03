@@ -637,6 +637,58 @@ don't collide, and actors are drawn at their height.
   `terrainArrays`), so a change there reaches both;
   the check should pass after it.
 
+## Saves and versions
+
+One savegame (`savegame.js`, localStorage `gte-save-v1`) and one settings file
+(`settings.js`, `gte-settings`), each with a version `v`. `savemigrate.js`
+holds both migration chains (`SAVE_MIGRATIONS`, `SETTINGS_MIGRATIONS`) and
+the generic `runMigrations(data, migrations, to)`: an older file runs through
+every step, `n -> n + 1`, on a copy, before anything reads it.
+
+- **The guarantee:** a save or settings file from 1.0 on keeps loading in
+  every later version. A change to what is saved raises `SAVE_VERSION` (or
+  `SETTINGS_VERSION`) and adds the step from the old version; a released step
+  is never edited. Renamed ids (a step, a vehicle, an outfit) get a mapping
+  in that step, since the section loaders drop ids they do not know.
+- The sections inside the save (`story` `v: 1`, the shops, the bijbaantjes, ...)
+  keep their own tolerant loaders (unknown ids are dropped, missing fields get
+  defaults); their own `v` stays 1. Only the top-level `v` moves.
+- `readSave` migrates, and before the first migration of a save keeps the
+  untouched JSON in `gte-save-backup`. A save from a newer game (`v` above
+  `SAVE_VERSION`) is not read, and is copied to the backup before this
+  version saves over it or Nieuw spel clears it. `applySave` migrates too, so
+  a test can hand it an old save directly.
+- Versions: save 1 (0.2-0.24), 2 (0.25: the kill counters become
+  `knockouts`/`pedKnockouts`/`copKnockouts`, the steps 0.22 retired leave the
+  story save). Settings 1-6: see the comments in `SETTINGS_MIGRATIONS`.
+- `storyarc.js` `nextStoryStep`/`stepDone` are the one rule for "which step is
+  next", used by story.js and by `savedStoryStep(save)`.
+- `node scripts/save_migration_test.mjs` runs every fixture in
+  `scripts/fixtures/saves/` (saves in the shape 0.4, 0.21, 0.22, 0.23 and 0.24
+  wrote them, a save from the future, two old settings files) and checks that
+  each continues at an existing step with money, mission progress, garage,
+  outfits and prestaties intact. Add a fixture for every release that changes
+  the save.
+- The lifetime stores beside the save (prestaties `gte-prestaties-v1`, hint
+  progress, the menu's last tab, ...) are read field by field and ignore what
+  they do not know, so they need no chain.
+
+## Error log (`js/errorlog.js`)
+
+The first import in main.js, so it is listening before anything else runs.
+`window` `error` and `unhandledrejection` and every `console.error`/`warn`
+go into a ring buffer of 40 entries (the same message counts up on one
+entry), in memory and in localStorage `gte-foutlog`. An entry has the
+message, the stack, the game version, the story step, a settings summary and
+the GPU class (`setErrorContext`, set in main.js from story.js and
+gfxprofile.js `classifyGpu`). `scrub` cuts paths down to the game's own
+folder (`js/story.js:12`) and blanks user folders, so no user name ends up in
+the report. Instellingen › Foutrapport (pausemenu.js) lists the newest
+entries with "Kopieer naar klembord", "Wissen" and, in the desktop app,
+"Opslaan als bestand" (`gteDesktop.saveTextFile`, `gte:save-text`: a save
+dialog in main.js). Nothing is ever sent and there are no network calls;
+the privacy line in Over, the README and docs/LICENTIES.md §5 say so.
+
 ## Name and logo
 
 The title is **GDE Groningen – Zomer vol misdaad** (GDE = Grootste Diefstal

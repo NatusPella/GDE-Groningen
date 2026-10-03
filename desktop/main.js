@@ -1,7 +1,7 @@
 // GDE Groningen desktop shell: serves the (offline, vendored) game from app://game/
 // so ES modules, fetch, AudioWorklet and localStorage behave exactly like
 // on http://localhost, without a server or an internet connection.
-const { app, BrowserWindow, Menu, protocol, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, protocol, shell, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs/promises');
 const fsSync = require('fs');
@@ -486,6 +486,16 @@ if (!app.requestSingleInstanceLock()) {
     if (w) w.setFullScreen(!!on);
   });
   ipcMain.on('gte:quit', () => app.quit());
+  ipcMain.handle('gte:save-text', async (e, name, text) => {
+    const w = BrowserWindow.fromWebContents(e.sender);
+    const res = await dialog.showSaveDialog(w, {
+      defaultPath: path.join(app.getPath('documents'), path.basename(name || 'foutrapport.txt')),
+      filters: [{ name: 'Tekst', extensions: ['txt'] }],
+    });
+    if (res.canceled || !res.filePath) return false;
+    await fs.writeFile(res.filePath, String(text).slice(0, 2_000_000), 'utf8');
+    return true;
+  });
   app.whenReady().then(() => {
     app.setAboutPanelOptions({
       applicationName: APP_NAME,

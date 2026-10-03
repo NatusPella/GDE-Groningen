@@ -1,0 +1,29 @@
+{
+  "_era": "0.22: the definitive script, Sikkom-era names in flags and geheimen, kill counters, no spaarkaart stamps yet",
+  "_expect": { "step": "r-tuning", "money": 5420 },
+  "save": {
+    "v": 1, "savedAt": 1759350000000, "money": 5420, "moneyBackup": 5420, "health": 100, "armor": 0, "weapon": "fists",
+    "ammo": { "fists": "inf" },
+    "stats": { "kills": 3, "pedKills": 3, "copKills": 0, "copCarsWrecked": 0, "missionsDone": 8, "playerWrecks": 9, "spent": 900 },
+    "character": "tammo", "pos": { "x": -310, "y": 220.4 }, "ctx": "free",
+    "missions": { "index": 5, "completed": [0, 8, 1, 9, 2, 10, 3, 11], "seen": [0, 1, 2, 3, 8, 9, 10, 11], "medals": {} },
+    "story": {
+      "v": 1,
+      "done": ["H1", "H2", "H3", "H4", "k-fiets", "H5", "H6", "k-kraakspullen", "H7", "H8"],
+      "skipped": [], "fails": {}, "waived": [], "voorschot": [],
+      "cards": ["kop", "deel1"], "flags": ["met:berend", "met:rikus", "met:sikkom", "kiekkast:sikkom-journaal", "recap:kop"]
+    },
+    "visitedLandmarks": ["martinitoren"],
+    "shops": {
+      "hero": {}, "outfit": { "tammo": "stadjer", "anita": "classic" }, "ownedOutfits": ["stadjer", "classic"], "storyOutfit": null,
+      "hair": { "tammo": { "color": "naturel", "style": "short" }, "anita": { "color": "naturel", "style": "long" } },
+      "heroColor": null, "heroUpgrades": [],
+      "vehicles": [ { "key": "stadsfiets", "color": "#1e9e56", "upgrades": [], "garage": true } ]
+    },
+    "prestaties": { "eierballen": [], "geheimen": ["sikkom-tv"], "unlocked": ["m1_klaar"] },
+    "duif": { "ach": [] },
+    "bijbaan": { "v": 1, "jobs": {}, "seen": [] },
+    "postgame": {},
+    "meubels": { "owned": ["tv"], "pending": [], "built": ["tv"], "day": 1, "read": 0, "stek": 0, "tips": [], "moment": 0 }
+  }
+}

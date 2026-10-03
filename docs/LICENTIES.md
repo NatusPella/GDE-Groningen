@@ -140,7 +140,13 @@ respawn heten "Huisartsenpost <wijk>" (`add_police_stations.py`) en garages
 Gecontroleerd in `game/js` en `desktop/`:
 
 - Opslag: alleen `localStorage` (save, instellingen, prestaties,
-  kaartfilters, gezien-versie). Geen cookies, geen IndexedDB-tracking.
+  kaartfilters, gezien-versie, het foutenlogboek `gte-foutlog`). Geen
+  cookies, geen IndexedDB-tracking.
+- Foutrapport (`errorlog.js`, sinds 0.25): fouten en waarschuwingen in een
+  ringbuffer, alleen lokaal. Per melding de tekst, de stack (paden ingekort
+  tot de map van de game, gebruikersmappen weg), versie, verhaalstap, een
+  paar instellingen en de GPU-klasse. Niets wordt verstuurd; de speler kan
+  het kopiëren of (desktop) als bestand opslaan en zelf meesturen.
 - Netwerk: alle `fetch()`-aanroepen gaan naar eigen bestanden
   (`manifest.json`'s, `citymap.json`, `ommeland.*`, muziek,
   `CHANGELOG.md`). **Geen telemetrie, analytics, crashrapportage of
@@ -161,6 +167,7 @@ Gecontroleerd in `game/js` en `desktop/`:
 
 > GTE VI bewaart je voortgang en instellingen alleen op je eigen apparaat; er
 > gaat niets naar een server, geen account, geen tracking, geen statistieken.
+> Fouten komen in een logboek op je eigen apparaat, dat je zelf kunt kopiëren.
 
 (Voor de browserversie, zolang de CDN's blijven: "…, behalve dat de
 browserversie bij het laden three.js en het lettertype ophaalt bij jsDelivr

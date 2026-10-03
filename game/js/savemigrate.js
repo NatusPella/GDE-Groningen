@@ -1,0 +1,99 @@
+// Save versions and their migrations, in one place. The promise (README,
+// "Saves"): a save from 1.0 on keeps loading in every later version.
+//
+// - The savegame (savegame.js, localStorage 'gte-save-v1') carries `v`. A save
+//   with an older `v` runs through SAVE_MIGRATIONS one step at a time
+//   (1 -> 2 -> ...) before the game reads it; a save from a newer game is left
+//   alone. The sections inside it (story `v: 1`, the shops, ...) keep their own
+//   tolerant loaders that drop unknown ids; only the top-level `v` moves.
+// - The settings (settings.js, 'gte-settings') do the same with SETTINGS_MIGRATIONS.
+// - Never change a released migration: add the next one and raise the version.
+// - Pure (no DOM, no three.js): node scripts/save_migration_test.mjs runs the
+//   fixtures in scripts/fixtures/saves/ through it.
+import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
+
+export const SAVE_VERSION = 2;
+export const SETTINGS_VERSION = 6;
+
+const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
+
+// Runs migrations[v] for v = from .. to - 1 on a copy of data. Returns
+// { data, from, steps } or null when the data is newer than `to` or has no
+// usable version. `fallback` is the version of data without `v`.
+export function runMigrations(input, migrations, to, fallback = null) {
+  if (!isObj(input)) return null;
+  const from = Number.isInteger(input.v) ? input.v : fallback;
+  if (!Number.isInteger(from) || from < 1 || from > to) return null;
+  let data = JSON.parse(JSON.stringify(input));
+  const steps = [];
+  for (let v = from; v < to; v++) {
+    const m = migrations[v];
+    if (m) data = m(data) || data;
+    steps.push(`${v}->${v + 1}`);
+  }
+  data.v = to;
+  return { data, from, steps };
+}
+
+// --- the savegame ------------------------------------------------------------------------
+
+// The step from version n to n + 1 is SAVE_MIGRATIONS[n].
+export const SAVE_MIGRATIONS = {
+  // 0.25: the counters of 0.24's PEGI change (kills became knockouts), and the
+  // story steps 0.22 retired dropped from the story save instead of at load.
+  1(d) {
+    if (isObj(d.stats)) {
+      for (const [old, now] of [['kills', 'knockouts'], ['pedKills', 'pedKnockouts'], ['copKills', 'copKnockouts']]) {
+        if (old in d.stats) {
+          if (!Number.isFinite(d.stats[now])) d.stats[now] = Number.isFinite(d.stats[old]) ? d.stats[old] : 0;
+          delete d.stats[old];
+        }
+      }
+    }
+    const st = d.story;
+    if (isObj(st)) {
+      const keep = (list) => (Array.isArray(list) ? list.filter((id) => !RETIRED_STEPS.includes(id)) : []);
+      st.done = keep(st.done);
+      st.skipped = keep(st.skipped);
+      st.voorschot = keep(st.voorschot);
+      if (isObj(st.fails)) for (const id of RETIRED_STEPS) delete st.fails[id];
+    }
+    return d;
+  },
+};
+
+// A save with no `v` never existed (every save since 0.2 had v: 1).
+export function migrateSave(d) {
+  return runMigrations(d, SAVE_MIGRATIONS, SAVE_VERSION);
+}
+
+// Where a (migrated) save stands in the story, the way story.js works it
+// out: the next step, or { end } past the built story.
+export function savedStoryStep(d) {
+  const st = isObj(d.story) && d.story.v === 1 ? d.story : null;
+  const done = new Set(st && Array.isArray(st.done) ? st.done.filter((id) => STEP_BY_ID.has(id)) : []);
+  const passed = new Set(isObj(d.missions) && Array.isArray(d.missions.completed) ? d.missions.completed.filter((i) => Number.isInteger(i) && i >= 0 && i < MISSION_IDS.length) : []);
+  return nextStoryStep((id) => done.has(id), (i) => passed.has(i));
+}
+
+// --- the settings ------------------------------------------------------------------------
+
+export const SETTINGS_MIGRATIONS = {
+  // 2: the long view distance became the default; older files stored the old
+  // default without the player choosing it
+  1(s) { delete s.drawDistance; return s; },
+  // 3: voices got their own slider and effects went down so the music carries;
+  // an untouched 100% effects slider moves to the new default
+  2(s) { if (s.sfxVolume === 1) s.sfxVolume = 0.75; return s; },
+  // 4: up to v3 'laag' had no shadows whatever the switch said
+  3(s) { if (s.quality === 'laag') s.shadows = false; return s; },
+  // 5: the blood-and-limbs switch went with the gore (PEGI 16)
+  4(s) { delete s.gore; return s; },
+  // 6: rebindable keys and buttons; settings.js checks the tables themselves
+  5(s) { return s; },
+};
+
+// Settings files before v2 had no `v`.
+export function migrateSettings(raw) {
+  return runMigrations(raw, SETTINGS_MIGRATIONS, SETTINGS_VERSION, 1);
+}
