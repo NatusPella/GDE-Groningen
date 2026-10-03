@@ -4,6 +4,10 @@ import { loadOmmeland, initReal, warmRows } from './countryreal.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
+import { initGamepad } from './gamepad.js';
+import { initGlyphs } from './glyphs.js';
+import { initA11y } from './a11y.js';
+import { isPlayAheadOpen } from './todo.js';
 import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
@@ -178,6 +182,8 @@ const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
 
 async function boot() {
   markLoad('boot');
+  initA11y();
+  initGlyphs();
   initTheme();
   const ommeland = loadOmmeland('citymap.json');
   const map = await loadMap('citymap.json', (f) => setLoadProgress(0.05 + f * 0.45));
@@ -254,6 +260,7 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   document.addEventListener('pointerlockchange', () => {
     if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
   });

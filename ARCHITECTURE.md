@@ -50,7 +50,7 @@ frame then runs, in order:
 |---|---|
 | Map data | `mapdata.js` (`GameMap`: grid-indexed `buildingsNear`, `roadsNear`, `waterNear`, `nearestRoadPoint`, `isOnBridge`, `escapeBuilding`, `groundHeightAt`), `elevation.js` (ring road heights, walls, open cuts), `util.js` |
 | Ommelanden | `countryreal.js` (the real countryside ~12 km round town from `ommeland.json` + `ommeland.bin`: OSM roads, narrow waterways, a 10 m water distance field, rails, places, churches, stations and building boxes; a built-up mask; carries the city train routes on to the real stations; `REAL`, `buildingsInTile`, `pushOutOfReal`, `realBlocked`; `clearOfReal` moves a shop door, café or padel door that landed in a real building box to its nearest free side, since those boxes are solid in the countryside), `countryfield.js` (field layout shared by JS and the ground shader; inside the real extent the polder blocks lose their procedural roads, maaren and villages), `countryedge.js` (city-edge mask; the real roads and canals as ground-shader segments with a 48 m integer lookup grid), `countryplan.js`, `countryside.js` (streamed 160 m prop tiles, incl. the real buildings, laid out a section per step by a generator; drawn per 2x2-tile chunk, one culled instanced mesh per prop type, the real buildings detailed within ~300 m and as box + closed roof beyond), `countrybake.js` (the real roads' and canals' signed distances rendered round the player into a 0.5 m and a 2 m texture, so the ground shader reads one texel instead of looping over segments; `window.__countryBake.off` switches back), `countryvillage.js` (village centres near the player: a brink by the OSM church with benches, lime trees, pump and bike rack, shopfronts with signs and a café terrace on the houses along the nearest streets, lamp posts, a few anchored pedestrians; kerb slots for parkedcars.js; its furniture is solid through `pushOutOfPlan`), `countryskyline.js` (leaves out what the props draw), `countrylife.js` (traffic on the real roads, boats on the real canals), `countrymap.js`, `countrysigns.js` |
-| Input | `input.js` (`isDown`, `wasPressed`, `axis`, `mouse`) |
+| Input | `input.js` (`isDown`, `wasPressed`, `axis`, `mouse`; rebound keys are translated back to the default key in one capture listener), `controls.js` (the scheme as data: rebindable keys, controller tables per situation, glyph lookup; Node-safe), `gamepad.js` (Gamepad API polling: buttons become key events, sticks and triggers feed `input.js`; last-used device; rumble), `glyphs.js` (every keycap on screen shows the rebound key or the controller button), `a11y.js` + `a11y.css` (subtitle size and box, colour-blind palettes, controller glyph styles) |
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Anita; `world.companionHold` parks them at a spot or in a vehicle for a mission) |
 | Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water; a car at zero health is `disabled` and burns until `explodeVehicle` makes it a wreck); the own helicopter: `heliflight.js` (a Vehicle with `v.isHeli`: arcade flight for the driven one via player.js `flyHeli` (W/S height, A/D or mouse yaw, arrows forward/sideways, Shift boost, Space hover, landing assist near the surface), body and rotor probes against city and real Ommeland buildings, landing only on flat ground, flat roofs and registered helipads (`registerHelipad`: home, Rotor Roelf, UMCG) at low speed, harder touchdowns damage, a crash explodes it; soft wall at the map edge, ceiling 125 m; `updateHelis` (main.js) spools rotors, poses rotor/shadow/dust and runs the flight card in the HUD; airborne helis skip vehicle-vehicle contacts, building collision, water until down on the canal, speed cameras, roadblocks, busts; police heli flies above it; discovery cinematics wait until it lands; `window.__heli`), `heli3d.js` (its mesh, helipads, downwash) |
 | People and animals | `pedestrians.js`, `wildlife.js`. Nobody dies (PEGI 16, docs/LEEFTIJD.md): a car, train or car blast knocks a person out (`knockOutPed`: the `'dead'` state, which every module reads as "out of action", plus `koUntil`), they lie a few seconds and get up groggy (`groggyUntil`) to complain or run; officers stay down longer. Animals hit by a car are stunned (`a.dead` for `STUN_S`) and make off. `knockfx3d.js` draws the dust, the comic stars over a KO'd head and the feathers of a flustered bird |
@@ -744,3 +744,44 @@ New lines: append to `BANTER` (format documented at the top of
 banterlines.js), then `node scripts/tts_banter_lines.mjs && python3
 scripts/tts_banter.py`. Debug: `window.__banter` (state, play, after,
 eligible, anySpeed).
+
+## Controls and accessibility
+
+The game code only knows the default keys (`isDown('e')`, a `keydown` for
+`'t'`). Everything that changes controls sits in front of that:
+
+- **Rebinding** (`controls.js` `bindKey`, settings `keyBinds`, only the changed
+  keys): `input.js` registers a window capture listener before every other
+  key listener; a rebound physical key is swallowed and sent on as a
+  synthetic event with the default key (`__gte = 'remap'`), so menus and
+  minigames that listen for keys directly follow the binding too. Binding a
+  key that is in use swaps the two, so the table stays one key per action;
+  `normalizeKeyBinds` resets a damaged table. Text fields are never remapped.
+- **Controller** (`gamepad.js`): polled per animation frame. The situation
+  (`menu`, `foot`, `vehicle`, `heli`, `pigeon`, `train`, `skutsje`,
+  `foodtruck`, `minigame`) picks a `PAD_MAPS` table. A button sends a key
+  event (`__gte = 'pad'`) to the focused element, held until release, with
+  key repeat for menu directions; input.js keeps those in `padKeys` so
+  `axis()` uses the stick's analog value (`padAxis`) instead. `@fire`/`@aim`
+  are the mouse buttons, `@wheel±` the weapon wheel, `@gas`/`@brake` the
+  triggers as an analog throttle. The right stick adds to `mouse.dx/dy`
+  and sets `padLook`, so the camera turns without pointer lock. Remapped
+  buttons (`padBinds`) are a permutation of physical buttons; Start is fixed.
+  A dialog without own key handling still works: arrows walk its buttons and
+  A clicks the focused one. Rumble follows drops in health and sudden speed
+  changes of your vehicle (`watchFeel`), so no damage code needs a hook.
+- **Glyphs** (`glyphs.js`): a MutationObserver re-renders every `.hud-key`,
+  `<kbd>` and `[data-gk]` (prompts.js `glyphHtml`) when content appears, the
+  device changes or the situation changes. The original is kept and put
+  back; `data-pad-ctx` on an ancestor (the Besturing groups) picks the
+  situation, `data-g-raw` opts out. `html.pad-active` + `data-pad` (xbox, ps,
+  deck) drive the styling and the pause menu's footer.
+- **Accessibility** (`a11y.js`): `sub-<size>` classes and `--sub-scale` on
+  `<html>`, `sub-box`, `cb-<mode>` and `--mk-*` colour tokens. `markerColors()`
+  is the palette for canvas and 3D code (hud_panel.js `ROUTE_COLORS` and the
+  map icons, the 3D mission marker); `onPaletteChange` redraws legends and
+  cached icons. Route kinds also differ by pattern (`ROUTE_DASH`), edge arrows
+  by a mark, and the 3D mission marker by shape (ball idle, arrow active).
+
+`node scripts/controls_test.mjs` checks the rebinding, the swaps, damaged
+tables and the glyph lookup per situation.

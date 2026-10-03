@@ -8,6 +8,7 @@
 // 'later' | 'slot' | ''), medal (0-3, or null without medals), record, x, y,
 // dist, goal (a goal.js spec, 'story' for the current story step, or null),
 // mission (index), detail: { kicker, text, rows: [[label, value]], medals } }.
+import { getSettings } from './settings.js';
 import { getMissionList, getMissionDefs, trackMission, isMissionActive, activeMissionIndex, medalBonusLeft } from './missions.js';
 import { getStorySteps, storyMissionAhead } from './story.js';
 import { STEP_BY_ID } from './storyarc.js';
@@ -46,7 +47,7 @@ const who = (c) => (c === 'anita' ? 'Anita' : c === 'tammo' ? 'Tammo' : '');
 
 const iconUrls = {};
 export function mapIconUrl(kind, px = 40) {
-  const k = kind + ':' + px;
+  const k = kind + ':' + px + ':' + getSettings().colorBlind;
   if (iconUrls[k]) return iconUrls[k];
   if (typeof document === 'undefined') return '';
   const c = document.createElement('canvas');
