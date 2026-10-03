@@ -27,6 +27,10 @@
 "src": "anita/duivenmelker_bert_zit_bij_het_st_860c7a90.mp3",
 "dur": 5.22
 },
+"Anita|Durk en Douwe dagen je uit. Padel, nu meteen. Ze zeggen dat het van Jelle moet.": {
+"src": "anita/durk_en_douwe_dagen_je_uit_padel_a692967b.mp3",
+"dur": 5.62
+},
 "Anita|Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?": {
 "src": "anita/durk_en_douwe_fietsen_weg_met_ee_cea27952.mp3",
 "dur": 6.83
@@ -202,6 +206,10 @@
 "Kiekdoar-redactie|Buslijn 3 rijdt alweer volgens de dienstregeling, reizigers in verwarring.": {
 "src": "kiekdoar_redactie/buslijn_3_rijdt_alweer_volgens_d_cb706a59.mp3",
 "dur": 4.32
+},
+"Kiekdoar-redactie|Demoheli uit Eelde haalt Gouden Eierbal uit ballon. UMCG: \"Het stond niet in het rooster. De nachtdienst heeft wel gegeten.\"": {
+"src": "kiekdoar_redactie/demoheli_uit_eelde_haalt_gouden__e888e7bd.mp3",
+"dur": 8.28
 },
 "Kiekdoar-redactie|Die gejatte fiets staat nu ergens anders. Met een ander slot.": {
 "src": "kiekdoar_redactie/die_gejatte_fiets_staat_nu_ergen_bfdbf3f0.mp3",
@@ -391,6 +399,10 @@
 "src": "tammo/de_dozen_kunnen_wachten_rikus_he_771bb0de.mp3",
 "dur": 6.07
 },
+"Tammo|De rotor draait. Jij vliegt, ik zit achterin. Stap maar in bij Roelf.": {
+"src": "tammo/de_rotor_draait_jij_vliegt_ik_zi_ddf56ad1.mp3",
+"dur": 4.83
+},
 "Tammo|De tankwagen van Us Mem Vet rijdt over de Europaweg. Durk en Douwe achter het stuur. Tijd voor banden.": {
 "src": "tammo/de_tankwagen_van_us_mem_vet_rijd_c0c84231.mp3",
 "dur": 6.62
@@ -546,6 +558,14 @@
 "Tammo|Rikus heeft werk voor ons. Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.": {
 "src": "tammo/rikus_heeft_werk_voor_ons_berend_ab3bf9e3.mp3",
 "dur": 5.03
+},
+"Tammo|Roelf zegt: gratis, als hij heel terugkomt. Jij vliegt.": {
+"src": "tammo/roelf_zegt_gratis_als_hij_heel_t_f0bccd76.mp3",
+"dur": 3.66
+},
+"Tammo|Rotor Roelf op Eelde geeft een gratis proefvlucht. Kopen hoeft niet. Dan zoeken we die ballon van bovenaf.": {
+"src": "tammo/rotor_roelf_op_eelde_geeft_een_g_6d062220.mp3",
+"dur": 5.91
 },
 "Tammo|Rotor Roelf staat met een demoheli bij het UMCG. Gratis proefvlucht, kopen hoeft niet. Dan zoeken we die ballon van bovenaf.": {
 "src": "tammo/rotor_roelf_staat_met_een_demohe_cc7a685f.mp3",

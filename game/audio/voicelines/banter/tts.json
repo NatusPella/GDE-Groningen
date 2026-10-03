@@ -3311,6 +3311,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Anita|Rotor Roelf laat ons echt vliegen. Gratis.": {
+"src": "st-h15_0_a_3a2908.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "Rotor Roelf laat ons echt vliegen. Gratis.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: unbelieving.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Anita|Ruik je dat?": {
 "src": "id-suikerfabriek_0_a_76b2b7.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -6064,6 +6073,15 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: resigned, warm.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Tammo|Gratis bestaat niet in Eelde. Hij telt de krassen.": {
+"src": "st-h15_1_t_06f477.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Gratis bestaat niet in Eelde. Hij telt de krassen.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: dry, knowing.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-16:TP=-1.5:LRA=11:linear=true (two-pass),aresample=24000,asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
 },
 "Tammo|Grip, Anita. Dat heet grip.": {
 "src": "h9-pass-grip_1_t_cf5e99.mp3",

@@ -235,6 +235,10 @@
 "src": "anita/dat_is_geen_boer_dat_is_een_frie_f9004457.mp3",
 "dur": 2.35
 },
+"Anita|Dat is geen noodgeval.": {
+"src": "anita/dat_is_geen_noodgeval_efbed5f9.mp3",
+"dur": 2.66
+},
 "Anita|Dat is trede twee, Tammo.": {
 "src": "anita/dat_is_trede_twee_tammo_52ea7e6c.mp3",
 "dur": 1.94
@@ -447,6 +451,10 @@
 "src": "anita/een_trekker_limo_in_grunn_d1a3bf56.mp3",
 "dur": 2.61
 },
+"Anita|Een uur? Waarom een uur?": {
+"src": "anita/een_uur_waarom_een_uur_50b941e6.mp3",
+"dur": 1.64
+},
 "Anita|Een zeilboot ontsnapt aan een bootje met een bel. Niet vertellen in de kroeg.": {
 "src": "anita/een_zeilboot_ontsnapt_aan_een_bo_c41b74d5.mp3",
 "dur": 5.07
@@ -475,6 +483,10 @@
 "src": "anita/eerst_de_stroomkast_dan_de_vitri_eae47907.mp3",
 "dur": 5.23
 },
+"Anita|Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.": {
+"src": "anita/eerst_het_umcg_dan_jelles_ballon_9176345e.mp3",
+"dur": 7.35
+},
 "Anita|Eind negentiende eeuw, toen de wallen weg mochten. Nu ligt heel Grunn er in de zomer op een kleedje.": {
 "src": "anita/eind_negentiende_eeuw_toen_de_wa_7a172b00.mp3",
 "dur": 5.66
@@ -490,6 +502,10 @@
 "Anita|Elk jaar vissen ze er honderden uit. De rest heeft zich aangepast.": {
 "src": "anita/elk_jaar_vissen_ze_er_honderden__d005a6c0.mp3",
 "dur": 3.81
+},
+"Anita|En als we iets raken?": {
+"src": "anita/en_als_we_iets_raken_1568abc4.mp3",
+"dur": 1.25
 },
 "Anita|En de Fjord Frituur is van ons! Hij staat in de garage. Parkeer hem bij de drukte en open het luik.": {
 "src": "anita/en_de_fjord_frituur_is_van_ons_h_076bd186.mp3",
@@ -1327,6 +1343,10 @@
 "src": "anita/rij_naar_de_drukte_zet_hem_stil__5c31daaf.mp3",
 "dur": 3.14
 },
+"Anita|Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.": {
+"src": "anita/rotor_roelf_leent_zijn_demoheli__1241209c.mp3",
+"dur": 6.42
+},
 "Anita|Rozen, buxus en een zonnewijzer die hier weinig te doen heeft.": {
 "src": "anita/rozen_buxus_en_een_zonnewijzer_d_1674e707.mp3",
 "dur": 4.9
@@ -1747,6 +1767,10 @@
 "src": "bommen_berend/zo_de_noordelijke_snackprijs_ik__218d47cf.mp3",
 "dur": 5.22
 },
+"Dokter Dijkstra|Achterin staat een koeltas. Daar zit de lunch van de nachtdienst in. Die hebben twaalf uur niks gehad.": {
+"src": "dokter_dijkstra/achterin_staat_een_koeltas_daar__13adbfbc.mp3",
+"dur": 4.82
+},
 "Dokter Dijkstra|Die Fries is geland in een weiland bij Ten Boer. Tussen de koeien. Hij was niet blij.": {
 "src": "dokter_dijkstra/die_fries_is_geland_in_een_weila_999f2629.mp3",
 "dur": 5.92
@@ -1763,21 +1787,57 @@
 "src": "dokter_dijkstra/een_grunneger_noodgeval_daar_heb_f28241a8.mp3",
 "dur": 4.71
 },
+"Dokter Dijkstra|Eierballen. Nog warm. Jullie zijn mijn helden.": {
+"src": "dokter_dijkstra/eierballen_nog_warm_jullie_zijn__fa5720df.mp3",
+"dur": 3.72
+},
+"Dokter Dijkstra|En nu die ballon. Ik heb een lier. Zij vliegt. Hij hangt.": {
+"src": "dokter_dijkstra/en_nu_die_ballon_ik_heb_een_lier_b14d8d42.mp3",
+"dur": 3.51
+},
 "Dokter Dijkstra|Ik leen niks uit. Ik doe een spoedeisende duif.": {
 "src": "dokter_dijkstra/ik_leen_niks_uit_ik_doe_een_spoe_4a98d239.mp3",
 "dur": 3.08
+},
+"Dokter Dijkstra|Jij hebt nooit nachtdienst gedaan. Landen op de H van het UMCG, graag.": {
+"src": "dokter_dijkstra/jij_hebt_nooit_nachtdienst_gedaa_c8552790.mp3",
+"dur": 4.09
 },
 "Dokter Dijkstra|Jullie willen met mijn traumaheli achter een ballon aan? Dit is een ziekenhuis, geen kermis.": {
 "src": "dokter_dijkstra/jullie_willen_met_mijn_traumahel_a05cadc9.mp3",
 "dur": 5.47
 },
+"Dokter Dijkstra|Lier gaat uit. Rustig, Anita. Naast de mand, niet erop.": {
+"src": "dokter_dijkstra/lier_gaat_uit_rustig_anita_naast_74eceba8.mp3",
+"dur": 3.8
+},
+"Dokter Dijkstra|Lier in. Terug naar het UMCG, en netjes op de H.": {
+"src": "dokter_dijkstra/lier_in_terug_naar_het_umcg_en_n_ae07c369.mp3",
+"dur": 3.12
+},
+"Dokter Dijkstra|Niks. Maar als er vanavond een heli langskomt: het staat niet in het rooster.": {
+"src": "dokter_dijkstra/niks_maar_als_er_vanavond_een_he_0e2c5e9a.mp3",
+"dur": 4.88
+},
 "Dokter Dijkstra|Rikus. Dijkstra, UMCG. Ik hoor dat er een Grunneger noodgeval is. Het staat niet in het rooster.": {
 "src": "dokter_dijkstra/rikus_dijkstra_umcg_ik_hoor_dat__a243f0ca.mp3",
 "dur": 6.08
 },
+"Dokter Dijkstra|Rikus. Dijkstra, UMCG. Mijn traumaheli staat in onderhoud op Eelde. En de nachtdienst heeft honger.": {
+"src": "dokter_dijkstra/rikus_dijkstra_umcg_mijn_traumah_04f9f2ee.mp3",
+"dur": 6.77
+},
 "Dokter Dijkstra|Weer een spoedeisende duif? Ik zet het deze keer in het rooster.": {
 "src": "dokter_dijkstra/weer_een_spoedeisende_duif_ik_ze_528a6602.mp3",
 "dur": 4.1
+},
+"Dokter Dijkstra|Weer een spoedje? Ik zet het deze keer in het rooster.": {
+"src": "dokter_dijkstra/weer_een_spoedje_ik_zet_het_deze_34c20ef7.mp3",
+"dur": 2.76
+},
+"Dokter Dijkstra|Wieken Wubbo, hier Dijkstra, UMCG. Ik heb een spoedje. Mijn traumaheli staat bij Roelf in onderhoud.": {
+"src": "dokter_dijkstra/wieken_wubbo_hier_dijkstra_umcg__688b7a73.mp3",
+"dur": 6.65
 },
 "Dokter Dijkstra|Zij vliegt, hij hangt aan het touw. Hoogte en snelheid gelijk houden met de mand.": {
 "src": "dokter_dijkstra/zij_vliegt_hij_hangt_aan_het_tou_53199b16.mp3",
@@ -1879,9 +1939,17 @@
 "src": "douwe/plons_2c846bee.mp3",
 "dur": 0.97
 },
+"Douwe|Van Jelle moeten we jullie een uur bezighouden.": {
+"src": "douwe/van_jelle_moeten_we_jullie_een_u_60bc228e.mp3",
+"dur": 4.05
+},
 "Douwe|Ze loopt harder dan de trekker!": {
 "src": "douwe/ze_loopt_harder_dan_de_trekker_0fdefddf.mp3",
 "dur": 2.61
+},
+"Douwe|…Hè.": {
+"src": "douwe/he_f37aa47e.mp3",
+"dur": 0.59
 },
 "Douwe|…draait.": {
 "src": "douwe/draait_50a0f80a.mp3",
@@ -1995,6 +2063,10 @@
 "src": "durk/baas_wy_3d01f7ca.mp3",
 "dur": 1.45
 },
+"Durk|Dat weten wij ook niet. Wij zijn alleen de bezigheid.": {
+"src": "durk/dat_weten_wij_ook_niet_wij_zijn__f9c6dae9.mp3",
+"dur": 3.72
+},
 "Durk|De baas blijft zitten. De baas blijft altijd zitten.": {
 "src": "durk/de_baas_blijft_zitten_de_baas_bl_fd82e724.mp3",
 "dur": 6.76
@@ -2043,6 +2115,10 @@
 "src": "durk/douwe_daar_komt_ien_aan_9a9e1d2f.mp3",
 "dur": 2.1
 },
+"Durk|Douwe. Dat was geheim.": {
+"src": "durk/douwe_dat_was_geheim_91fd3ad2.mp3",
+"dur": 2.62
+},
 "Durk|Douwe. Hij is los.": {
 "src": "durk/douwe_hij_is_los_2c22348f.mp3",
 "dur": 3.05
@@ -2090,6 +2166,10 @@
 "Durk|Stean bliuwe, koe!": {
 "src": "durk/stean_bliuwe_koe_583f7b58.mp3",
 "dur": 2.15
+},
+"Durk|Tammo. Wij dagen je uit. Padel, wij tegen jullie.": {
+"src": "durk/tammo_wij_dagen_je_uit_padel_wij_63065567.mp3",
+"dur": 4.57
 },
 "Durk|Us baas… is slim. De bal… de bal leit op it skûtsje. Hik. Net fertelle, hè?": {
 "src": "durk/us_baas_is_slim_de_bal_de_bal_le_114615e5.mp3",
@@ -3527,6 +3607,10 @@
 "src": "rikus/dokter_leen_je_een_heli_uit_a20ed2c8.mp3",
 "dur": 2.49
 },
+"Rikus|Dokter, wat moet ik daarmee?": {
+"src": "rikus/dokter_wat_moet_ik_daarmee_be8a98b1.mp3",
+"dur": 1.68
+},
 "Rikus|Een duif pikte zijn vlag van d'Olle Grieze, en in de kroeg verklapte een dronken Durk het skûtsje.": {
 "src": "verteller/een_duif_pikte_zijn_vlag_van_d_o_b7a5b8e9.mp3",
 "dur": 5.39
@@ -3951,6 +4035,10 @@
 "src": "verteller/zo_begon_het_niet_met_een_buit_m_9d029297.mp3",
 "dur": 5.93
 },
+"Rotor Roelf|Dan heb je hem gekocht. Moi!": {
+"src": "rotor_roelf/dan_heb_je_hem_gekocht_moi_c0193bb7.mp3",
+"dur": 1.69
+},
 "Rotor Roelf|Moi! Rotor Roelf, van Eelde. De proefvlucht is gratis. Nait tegen d'Olle Grieze aan, hè?": {
 "src": "rotor_roelf/moi_rotor_roelf_van_eelde_de_pro_ca056fe5.mp3",
 "dur": 5.25
@@ -3958,6 +4046,10 @@
 "Rotor Roelf|Moi! Rotor Roelf, van Eelde. Dit is de Wieken Wubbo. De proefvlucht is gratis.": {
 "src": "rotor_roelf/moi_rotor_roelf_van_eelde_dit_is_b176a920.mp3",
 "dur": 5.72
+},
+"Rotor Roelf|Volgetankt. Rechtdoor naar het noorden, dan zie je Stad vanzelf.": {
+"src": "rotor_roelf/volgetankt_rechtdoor_naar_het_no_b76815a5.mp3",
+"dur": 3.69
 },
 "Rotor Roelf|W is omhoog, de pijltjes vooruit. En nait tegen d'Olle Grieze aan, hè?": {
 "src": "rotor_roelf/w_is_omhoog_de_pijltjes_vooruit__5f27eb01.mp3",
@@ -4483,6 +4575,10 @@
 "src": "tammo/eerst_de_stroomkast_dan_de_vitri_3c4c038a.mp3",
 "dur": 4.71
 },
+"Tammo|Eerst het UMCG, dan Jelles ballon: Anita vliegt, Tammo hangt aan het touw.": {
+"src": "tammo/eerst_het_umcg_dan_jelles_ballon_e40f0899.mp3",
+"dur": 5.2
+},
 "Tammo|Eieren van de kippen bij de volkstuin. Die leggen de beste.": {
 "src": "tammo/eieren_van_de_kippen_bij_de_volk_d365dd12.mp3",
 "dur": 3.31
@@ -4851,9 +4947,17 @@
 "src": "tammo/ik_had_hoogtevrees_a8931daf.mp3",
 "dur": 1.2
 },
+"Tammo|Ik hang. Ik hang echt.": {
+"src": "tammo/ik_hang_ik_hang_echt_985c0d01.mp3",
+"dur": 2.29
+},
 "Tammo|Ik heb een heel scherpe snavel. Als duif.": {
 "src": "tammo/ik_heb_een_heel_scherpe_snavel_a_535e9fa2.mp3",
 "dur": 3.34
+},
+"Tammo|Ik heb hem! De echte!": {
+"src": "tammo/ik_heb_hem_de_echte_d564a246.mp3",
+"dur": 3.12
 },
 "Tammo|Ik heb hem. De echte. Hij is zwaar, en hij smelt niet.": {
 "src": "tammo/ik_heb_hem_de_echte_hij_is_zwaar_d4c39f49.mp3",
@@ -5351,6 +5455,10 @@
 "src": "tammo/rikus_niet_doen_a2be5460.mp3",
 "dur": 1.57
 },
+"Tammo|Rotor Roelf leent zijn demoheli uit, op Eelde. Onderweg belt Dokter Dijkstra met een spoedje.": {
+"src": "tammo/rotor_roelf_leent_zijn_demoheli__05190c77.mp3",
+"dur": 5.45
+},
 "Tammo|Rozen, buxus en een zonnewijzer die hier weinig te doen heeft.": {
 "src": "tammo/rozen_buxus_en_een_zonnewijzer_d_e2f30b4a.mp3",
 "dur": 4.41
@@ -5402,6 +5510,10 @@
 "Tammo|Twee reuzen. Eén fiets. Acht jerrycans.": {
 "src": "tammo/twee_reuzen_ee_n_fiets_acht_jerr_192829d9.mp3",
 "dur": 3.14
+},
+"Tammo|Twintig minuten. Dan staat het twee-nul.": {
+"src": "tammo/twintig_minuten_dan_staat_het_tw_0de25dc0.mp3",
+"dur": 2.14
 },
 "Tammo|Vaar er met je huurboot achteraan, ga langszij en spring aan boord.": {
 "src": "tammo/vaar_er_met_je_huurboot_achteraa_a8a18403.mp3",

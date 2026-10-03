@@ -106,7 +106,7 @@ export const CHARACTERS = {
   geert: { name: 'Geert', card: 'Poelestraat. Nog eentje dan.', step: 'H11', bio: 'Kroegbaas in de Poelestraat.', quote: 'Vier kroegen? Nog eentje dan.' },
   trijntje: { name: 'Oma Trijntje', card: 'Bakte in 1953 de beste eierbal van Stad. Zegt het zelf ook.', step: 'H12', bio: 'Tweeënnegentig. Won in 1953 de Snackprijs, net voor een jonge Friese bakster. De tweede mentor. Zeventig jaar trots, in één zin.', quote: 'Die bal is gien geld, jong. Die bal is Grunn.' },
   klaas: { name: 'Kapitein Klaas', card: 'Vist al dertig jaar fietsen uit de Diepenring.', step: 'H13', bio: 'Oude schipper met een rondvaartboot die even van niemand is.', quote: 'Ik mag alles.' },
-  dijkstra: { name: 'Dokter Dijkstra', card: 'UMCG. Het staat niet in het rooster.', step: 'H15', bio: 'Traumaarts en heli-piloot. Haar traumaheli staat in onderhoud en haar nachtdienst heeft honger. Ze leent niks uit, maar ze vliegt wel mee.', quote: 'Zij vliegt. Hij hangt.' },
+  dijkstra: { name: 'Dokter Dijkstra', card: 'UMCG. Het staat niet in het rooster.', step: 'H15', bio: 'Traumaarts en heli-piloot. Zijn traumaheli staat in onderhoud en zijn nachtdienst heeft honger. Hij leent niks uit, maar hij vliegt wel mee.', quote: 'Zij vliegt. Hij hangt.' },
   mem: { name: 'Mem Terpstra', card: 'Iemand uit Friesland.', step: 'H16', bio: 'Gerda Terpstra uit Ljouwert. Werd in 1953 tweede, tegen Trijntje, met de betere eierbal. Wil dat haar zoon ophoudt, en appt Anita stiekem.', quote: 'Dat wie alles wat ik woe.' },
 };
 
@@ -504,7 +504,7 @@ export const STEPS = [
     meet: { kicker: 'De padelbaan',
       cast: [{ key: 'durk', at: [2.6, 0.9] }, { key: 'douwe', at: [2.4, -1.2] }],
       lines: [
-        ['durk', 'Tammo. Padel. Wij tegen jullie.', { tag: 'traag, plechtig, uitdagend' }],
+        ['durk', 'Tammo. Wij dagen je uit. Padel, wij tegen jullie.', { tag: 'plechtig, uitdagend, vlot' }],
         ['douwe', 'Van Jelle moeten we jullie een uur bezighouden.', { tag: 'traag, eerlijk, behulpzaam' }],
         ['durk', 'Douwe. Dat was geheim.', { tag: 'traag, verwijtend' }],
         ['douwe', '…Hè.', { tag: 'beteuterd, traag' }],
