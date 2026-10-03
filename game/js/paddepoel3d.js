@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { GeoBuilder, markShared } from './pixelart3d.js';
+import { GeoBuilder, markShared, vcMaterial } from './pixelart3d.js';
 import { LANDMARK_MATERIALS } from './landmarks3d.js';
 import { closestPointOnSegment, pointInPolygon } from './util.js';
 import { addStaticCollider } from './breakables.js';
@@ -266,13 +266,20 @@ export function paddepoelBlock(B, b, ring, srcEdges) {
 
 const RISE = 0.55; // ridge height per metre of half width
 
+// The roof glass: one translucent shared material that casts no shadow, so
+// the covered streets get daylight and the sky shows through from below.
+// One extra draw call for the whole roof; the steel frames keep theirs.
+const roofGlassMat = markShared(vcMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthWrite: false, roughness: 0.15, metalness: 0.1 }));
+let glassB = null;
+
 function gable(B, a, b, w, y0, rise, { frames = 3.6, ends = true } = {}) {
   const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
   const ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L, nx = -uy, ny = ux;
   const P = (t, s, y) => [a[0] + ux * t + nx * s, y, a[1] + uy * t + ny * s];
   const yr = y0 + rise;
+  const Gl = glassB || B;
   for (const s of [-1, 1]) {
-    B.quadOut(P(0, s * w, y0), P(L, s * w, y0), P(L, 0, yr), P(0, 0, yr), [0, 1, 0], C.roofGlass, G_GLASS);
+    Gl.quadOut(P(0, s * w, y0), P(L, s * w, y0), P(L, 0, yr), P(0, 0, yr), [0, 1, 0], C.roofGlass, glassB ? 0 : G_GLASS);
     // eave beam
     B.quadOut(P(0, s * (w + 0.15), y0 + 0.35), P(L, s * (w + 0.15), y0 + 0.35), P(L, s * (w + 0.15), y0 - 0.2), P(0, s * (w + 0.15), y0 - 0.2), [s * nx, 0, s * ny], C.steel, G_METAL);
   }
@@ -284,7 +291,7 @@ function gable(B, a, b, w, y0, rise, { frames = 3.6, ends = true } = {}) {
     // white tie beam under the glass, seen from the street
     if (k % 2 === 0) B.quadOut(P(t - 0.15, -w, y0 - 0.25), P(t + 0.15, -w, y0 - 0.25), P(t + 0.15, w, y0 - 0.25), P(t - 0.15, w, y0 - 0.25), [0, -1, 0], C.white, G_PLAIN);
   }
-  if (ends) for (const t of [0, L]) B.tri(P(t, -w, y0), P(t, w, y0), P(t, 0, yr), C.roofGlass, G_GLASS);
+  if (ends) for (const t of [0, L]) Gl.tri(P(t, -w, y0), P(t, w, y0), P(t, 0, yr), C.roofGlass, glassB ? 0 : G_GLASS);
   return { L, ux, uy, nx, ny, P };
 }
 
@@ -295,7 +302,7 @@ function lantern(B, x, y, r, y0, h, rot) {
   const top = P(0, 0, y0 + h);
   for (let i = 0; i < 4; i++) {
     const j = (i + 1) % 4;
-    B.triOut(k[i], k[j], top, [0, 1, 0], C.roofGlass, G_GLASS);
+    (glassB || B).triOut(k[i], k[j], top, [0, 1, 0], C.roofGlass, glassB ? 0 : G_GLASS);
     const m = [(k[i][0] + k[j][0]) / 2, y0, (k[i][2] + k[j][2]) / 2];
     B.quad(k[i], k[j], [k[j][0], y0 - 0.5, k[j][2]], [k[i][0], y0 - 0.5, k[i][2]], C.steel, G_METAL);
     B.quad(m, top, [top[0], top[1] + 0.2, top[2]], [m[0], m[1] + 0.2, m[2]], C.steel, G_METAL);
@@ -402,7 +409,7 @@ function porch(B, S, map, s, end) {
   }
   B.quadOut(F.P(Lp - 0.2, -(w + 0.5), y0 - 2.1), F.P(Lp - 0.2, w + 0.5, y0 - 2.1), F.P(Lp - 0.2, w + 0.5, y0), F.P(Lp - 0.2, -(w + 0.5), y0), [ux, 0, uy], C.aubergine, G_PLAIN);
   // glass between the shop roofs and the porch eave
-  B.quadOut(F.P(0.2, -(w + 0.5), EAVE), F.P(0.2, w + 0.5, EAVE), F.P(0.2, w + 0.5, y0), F.P(0.2, -(w + 0.5), y0), [ux, 0, uy], C.roofGlass, G_GLASS);
+  (glassB || B).quadOut(F.P(0.2, -(w + 0.5), EAVE), F.P(0.2, w + 0.5, EAVE), F.P(0.2, w + 0.5, y0), F.P(0.2, -(w + 0.5), y0), [ux, 0, uy], C.roofGlass, glassB ? 0 : G_GLASS);
   const [sx, , sz] = F.P(Lp - 0.2, 0, 0);
   sign(S, 'paddepoel', sx, sz, ux, uy, y0 - 1.75, 1.2, 0.08);
 }
@@ -435,6 +442,7 @@ export function isPaddepoelRoof(c) {
 export function buildPaddepoelRoof(map) {
   const B = new GeoBuilder(5);
   const S = new GeoBuilder(1);
+  glassB = new GeoBuilder(1);
   signMaterial();
   for (const s of STREETS) gable(B, s.a, s.b, s.w + 0.4, EAVE, (s.w + 0.4) * RISE, { ends: !s.open });
   lantern(B, PLAZA.x, PLAZA.y, PLAZA.r, EAVE + 0.4, 6.5, Math.atan2(STREETS[0].b[1] - STREETS[0].a[1], STREETS[0].b[0] - STREETS[0].a[0]));
@@ -488,6 +496,10 @@ export function buildPaddepoelRoof(map) {
   roof.castShadow = true;
   roof.receiveShadow = true;
   group.add(roof);
+  const glass = new THREE.Mesh(glassB.build(), roofGlassMat);
+  glass.renderOrder = 2;
+  glassB = null;
+  group.add(glass);
   const signs = new THREE.Mesh(S.build(), signMat);
   group.add(signs);
   return group;

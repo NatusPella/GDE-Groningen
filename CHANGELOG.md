@@ -6,6 +6,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Winkelcentrum Paddepoel heeft weer daglicht.** Het glazen dak over de
+  winkelstraten is nu echt glas: je ziet de lucht erdoor en de straten
+  eronder zijn niet meer donker. De winkelblokken zijn voor helikopter en
+  camera even hoog als ze eruitzien (6,6 m, het nieuwe blok 10,8 m).
+
 ## [0.22.0] - 2026-10-03
 
 ### Nieuw
