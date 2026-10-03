@@ -136,7 +136,7 @@ Regels die voor iedereen gelden:
   - eierballen, tot hij er een proeft.
 - **Running gags:**
   - elke ontsnapping is een polsstoksprong, en de laatste gaat mis;
-  - hij stuurt kaartjes met "Tige tank! – W.", want de J van Jelle was op;
+  - hij stuurt kaartjes met "Tige tank! – J.", zo beleefd is hij;
   - hij noemt zijn tweeling-handlangers bij de verkeerde naam;
   - zijn livestreams hebben altijd drie kijkers, waarvan één zijn moeder;
   - hij is jaloers op Tammo's duiven: "Friese meeuwen luisteren naar niemand. Ook niet naar mij.";

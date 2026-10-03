@@ -34,7 +34,7 @@
 | 8 | 0:26–0:30 | De trekker-limo met pompeblêden, in tegenlicht | Lage camera, slowmotion | **JELLE TERPSTRA** — *Snackkoning. Fries. Heel tevreden met zichzelf.* | – |
 | 9 | 0:30–0:33 | Durk en Douwe in een botsauto, allebei met dezelfde blik | Statisch, met een humorpauze | **DURK & DOUWE** — *Twee reuzen. Eén brein.* | – |
 | 10 | 0:33–0:37 | Een duif scheert langs de wijzerplaat van de Martinitoren | Achter de duif | *Kieken van boven.* | licht |
-| 11 | 0:37–0:41 | Het museum bij nacht, een lege vitrine, een kaartje: "Tige tank!" | Langzame push-in | – | licht |
+| 11 | 0:37–0:41 | Het museum bij nacht, een lege vitrine, een kaartje: "Tige tank! – J." | Langzame push-in | – | licht |
 | 12 | 0:41–0:45 | Achtervolging met drie sterren door de binnenstad, zwaailichten | Snelle cuts tussen dak- en bumpercam | *Lange avonden.* | **ja** |
 | 13 | 0:45–0:49 | De ringrace: vijf auto's naast elkaar, een trekker ertussen | Brede zijwaartse track | *Ring Zuid. Laatste fase.* | **ja** |
 | 14 | 0:49–0:50 | Een pion stuitert over het asfalt | Close-up | *Bijna.* | – |

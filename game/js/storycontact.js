@@ -223,7 +223,7 @@ function setBubble(line, c = null) {
 }
 
 function showCard(c, line) {
-  const signed = c.sign || (c.from === 'jelle' ? 'W.' : '');
+  const signed = c.sign || (c.from === 'jelle' ? 'J.' : '');
   cardEl.innerHTML = `<div class="sc-cardkick">${esc(c.title || 'Een kaartje')}</div><div class="sc-cardtext">${dualHtml(line[1])}` +
     `</div>${signed ? `<div class="sc-sign">– ${esc(signed)}</div>` : ''}`;
   cardEl.classList.add('show');
