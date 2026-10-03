@@ -128,10 +128,27 @@ const IMAGES = [
     // in-game with the HUD, the vitrine as a small inset (the story's goal, no spoiler)
     name: 'thumbnail_gameplaytrailer', w: 1280, h: 720, ext: 'jpg',
     html: () => page(1280, 720, `
-      <div class="bg" style="background-image:url('${file(path.join(STEAM, 'screenshots/04-heli-hud.jpg'))}');background-position:50% 50%"></div>
+      <div class="bg" style="background-image:url('${file(path.join(STEAM, 'screenshots/09-achtervolging.jpg'))}');background-position:50% 55%"></div>
       <div class="shade" style="background:linear-gradient(0deg, rgba(8,16,11,0.88) 0%, rgba(8,16,11,0.5) 34%, rgba(8,16,11,0) 58%)"></div>
       <div class="inset"></div>
-      <div class="col">${logo('row', false)}<div class="line"><div class="tag">Gameplaytrailer</div><div class="hook">Rijden, varen, vliegen. In het echte Grunn.</div></div></div>`,
+      <div class="col">${logo('row', false)}<div class="line"><div class="tag">Gameplaytrailer</div><div class="hook">Politie op je hielen. In het echte Grunn.</div></div></div>`,
+    `.inset { position: absolute; right: 48px; top: 44px; width: 300px; height: 300px; border-radius: 18px; background: url('${file(path.join(SRC_DIR, 'vitrine.jpg'))}') 50% 56% / 250% auto no-repeat; box-shadow: 0 0 0 6px #1e9e56, 0 0 0 10px #fff, 0 10px 30px rgba(0,0,0,0.6); }
+     .col { position: absolute; left: 56px; right: 56px; bottom: 44px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+     .gde-logo { font-size: 150px; }
+     .gde-logo.row { flex-direction: row; align-items: center; gap: 0.12em; }
+     .gde-logo.row .gde-sign { margin-top: 0; font-size: 0.3em; }
+     .line { display: flex; align-items: center; gap: 26px; }
+     .tag { font-size: 60px; }
+     .hook { font-size: 40px; }`),
+  },
+  {
+    // in-game with the HUD, the vitrine as a small inset (the story's goal, no spoiler)
+    name: 'thumbnail_gameplaytrailer_duif', w: 1280, h: 720, ext: 'jpg',
+    html: () => page(1280, 720, `
+      <div class="bg" style="background-image:url('${file(path.join(STEAM, 'screenshots/10-duif.jpg'))}');background-position:50% 45%"></div>
+      <div class="shade" style="background:linear-gradient(0deg, rgba(8,16,11,0.88) 0%, rgba(8,16,11,0.5) 34%, rgba(8,16,11,0) 58%)"></div>
+      <div class="inset"></div>
+      <div class="col">${logo('row', false)}<div class="line"><div class="tag">Gameplaytrailer</div><div class="hook">Word een duif. Poep op de Martinitoren.</div></div></div>`,
     `.inset { position: absolute; right: 48px; top: 44px; width: 300px; height: 300px; border-radius: 18px; background: url('${file(path.join(SRC_DIR, 'vitrine.jpg'))}') 50% 56% / 250% auto no-repeat; box-shadow: 0 0 0 6px #1e9e56, 0 0 0 10px #fff, 0 10px 30px rgba(0,0,0,0.6); }
      .col { position: absolute; left: 56px; right: 56px; bottom: 44px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
      .gde-logo { font-size: 150px; }
