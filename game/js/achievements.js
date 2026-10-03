@@ -9,6 +9,7 @@
 // also carries a copy of the unlocked ids so a save restores them if the
 // lifetime key was ever cleared.
 import { dualHtml } from './subtitles.js';
+import { mayStart, noteToast } from './narrative.js';
 
 const KEY = 'gte-prestaties-v1';
 const WRITE_DELAY_MS = 2500;
@@ -40,7 +41,7 @@ export const MISSION_GOALS = [
   { name: 'Ring Zuid, laatste fase', gold: 150, silver: 190, wanted: 5, byPlace: true, extra: ['Netjes ingehaald', 'Win de ringweg-race zonder een rivaal te raken'] },
   { name: 'Nog eentje dan', gold: 95, silver: 120, wanted: 0, extra: ['Laatste ronde', 'Haal alle vier de kroegen met nog een volle minuut op de klok'] },
   { name: 'Fatbikes tellen niet als fiets', gold: 95, silver: 120, wanted: 0, extra: ['Geen bandafdruk', 'Kom van de Grote Markt tot de Noorderhaven zonder één keer geschept te worden'] },
-  { name: 'Alles klopt, behalve de papieren', gold: 510, silver: 610, wanted: 0, happy: [80, 50], extra: ['Glad water', 'Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe'] },
+  { name: 'Alles klopt, behalve de papieren', gold: 660, silver: 800, wanted: 0, happy: [80, 50], extra: ['Glad water', 'Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe'] },
 ];
 export const GOLD_DAMAGE = 25;
 export const SILVER_DAMAGE = 60;
@@ -141,6 +142,7 @@ export const ACHIEVEMENTS = [
   { id: 'koop_10', cat: 'sociaal', title: 'Shopaholic', desc: 'Doe 10 aankopen', stat: 'purchases', goal: 10 },
   { id: 'ingericht', cat: 'sociaal', title: 'Helemaal ingericht', desc: 'Zet alle EIKEA-meubels in jullie flat' },
   { id: 'schroefje', cat: 'sociaal', title: 'Eén schroefje te weinig', desc: 'Zet de Buukenkaas zelf in elkaar', hidden: true },
+  { id: 'spaarkaart', cat: 'sociaal', title: 'Stempeltje erbij', desc: 'Lever een volle spaarkaart in bij Krant & Kauwgom', stat: 'stampCards', goal: 1 },
   { id: 'uitgaven', cat: 'sociaal', title: 'Geld moet rollen', desc: 'Geef in winkels in totaal €2.500 uit', stat: 'spent', goal: 2500, unit: '€' },
 
   { id: 'eierbal_1', cat: 'verzamelen', title: 'Eerste eierbal', desc: 'Vind een verstopte eierbal', save: 'eierballen', goal: 1 },
@@ -525,6 +527,8 @@ function queueToast(a) {
 function toastBlocked() {
   const b = document.body;
   if (!b.classList.contains('game-started') || b.classList.contains('cine-hide-hud')) return true;
+  // narrative.js: held during cutscenes and story calls, a beat apart from other toasts
+  if (!mayStart('award')) return true;
   const pm = document.getElementById('pause-menu');
   return !!(pm && pm.classList.contains('visible'));
 }
@@ -540,6 +544,7 @@ function showNextToast() {
   if (!el || !a) { toastUntil = 0; return; }
   const gold = a.medal || a.id === 'alle_goud';
   el.classList.toggle('gold', gold);
+  noteToast();
   const { pct } = getAchievementSummary();
   el.innerHTML = `<span class="ach-ico">${TROPHY_SVG}</span><span class="ach-txt">` +
     `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span></span>` +

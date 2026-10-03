@@ -11,6 +11,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { makeProp, addProp, removeProp } from './breakables.js';
 import { Vehicle } from './vehicle.js';
 import { spawnFxPuff } from './fx3d.js';
+import { isCinematicActive } from './cinematics.js';
+import { showStuntHud, hideStuntHud, updateStuntHud, stuntPopup } from './stunthud.js';
 
 let sceneMod = null;
 import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
@@ -23,12 +25,20 @@ const DRIFT_PER_S = 60;
 const FLOCK = 120;
 const SPRAY = 300;
 const KINDS = [
-  { kind: 'parasol', pts: 120, n: 10, opts: { r: 0.3, h: 2.4, mass: 12, material: 'plastic', breakSpeed: 0.6, breakCost: 0 } },
-  { kind: 'kliko', pts: 80, n: 10, opts: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0, burst: 'litter' } },
-  { kind: 'stoepbord', pts: 60, n: 10, opts: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 } },
+  { kind: 'parasol', label: 'parasol', pts: 120, n: 10, opts: { r: 0.3, h: 2.4, mass: 12, material: 'plastic', breakSpeed: 0.6, breakCost: 0 } },
+  { kind: 'kliko', label: 'kliko', pts: 80, n: 10, opts: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0, burst: 'litter' } },
+  { kind: 'stoepbord', label: 'reclamebord', pts: 60, n: 10, opts: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 } },
 ];
 const SAY_HIT = ['Chat vindt dat niet leuk.', 'Niemand raken, zei ik!', 'Au. Strafpunten.'];
 const SAY_COMBO = ['Combo!', 'Chat gaat los!', 'Dik feest!'];
+// what the brief lists, in this order (stunthud.js)
+const RULES = [
+  ['Parasol omver', 120], ['Kliko omver', 80], ['Reclamebord omver', 60], ['Duivenzwerm de lucht in', FLOCK],
+  ['Waterwagen laten sproeien (één keer)', SPRAY], ['Rakelings langs iemand', NEAR_MISS], ['Driften, per halve seconde', DRIFT_PER_S / 2],
+];
+// the target never asks more than this share of what the square holds, combos not counted
+const REACH_SHARE = 0.55;
+const LATE_HINT_S = 30;
 
 let run = null;
 let seq = 0;
@@ -65,15 +75,19 @@ function disposeGroup(g) {
   g.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
 }
 
-function addPoints(w, pts, label) {
+// label: the popup's word ("parasol"); say: also a card, for the rare moments
+function addPoints(w, pts, label, say = null) {
   const R = run;
   const now = w.time;
+  const was = R.combo;
   R.combo = now - R.lastAt < COMBO_S ? Math.min(COMBO_MAX, R.combo + 1) : 1;
   R.lastAt = now;
   const got = Math.round(pts * R.combo);
   R.score += got;
   R.events++;
-  if (label) w.addMessage(`${label} +${got}${R.combo > 1 ? ` (x${R.combo})` : ''}`, 1.6, { kind: 'missie', key: 'stunt' });
+  stuntPopup(`+${got} ${label}`);
+  if (R.combo > was && R.combo > 1) stuntPopup(`combo x${R.combo}`, 'combo');
+  if (say) w.addMessage(say, 2.2, { kind: 'missie', key: 'stunt' });
   else if (R.combo >= 3 && R.combo !== R.saidCombo) { R.saidCombo = R.combo; w.addMessage(`${SAY_COMBO[R.combo % SAY_COMBO.length]} x${R.combo}`, 1.4, { kind: 'missie', key: 'stunt' }); }
 }
 
@@ -106,7 +120,7 @@ export function startStunt(w, { center, radius = 45, target = 1500 } = {}) {
           mesh.visible = false;
           if (!run || run.group !== group) return;
           run.broken++;
-          addPoints(w, spec.pts, null);
+          addPoints(w, spec.pts, spec.label);
         },
       });
       if (addProp(p)) { run.props.push(p); placed++; } else { group.remove(mesh); disposeGroup(mesh); }
@@ -125,7 +139,10 @@ export function startStunt(w, { center, radius = 45, target = 1500 } = {}) {
     run.truck = v;
     run.truckHp = v.health;
   }
+  const avail = run.props.reduce((n, p) => n + KINDS.find((q) => q.kind === p.kind).pts, 0) + (run.truck ? SPRAY : 0);
+  if (avail && run.target > avail * REACH_SHARE) run.target = Math.max(500, Math.floor((avail * REACH_SHARE) / 50) * 50);
   w.stuntSafe = { x: center.x, y: center.y, r: radius + 25 };
+  showStuntHud(run.target, RULES, { hitCost: HIT_COST, comboMax: COMBO_MAX, comboS: COMBO_S });
   return true;
 }
 
@@ -141,12 +158,19 @@ export function stopStunt(w) {
   }
   w.stuntSafe = null;
   run = null;
+  hideStuntHud();
 }
 
 // Each frame while H3 runs: 'done' once the target is reached, else null.
-export function updateStunt(dt, w) {
+// timeLeft: the mission clock, for the "nog X punten" hint near the end.
+export function updateStunt(dt, w, timeLeft = Infinity) {
   const R = run;
   if (!R) return null;
+  updateStuntHud(dt, { score: R.score, target: R.target, combo: R.combo, comboLeft: Math.max(0, 1 - (w.time - R.lastAt) / COMBO_S), timeLeft }, isCinematicActive());
+  if (!R.lateHint && timeLeft <= LATE_HINT_S && R.score < R.target) {
+    R.lateHint = true;
+    w.addMessage(`Nog ${R.target - R.score} punten in ${LATE_HINT_S} seconden! Parasols en kliko's leveren het meest op.`, 4, { kind: 'missie', key: 'stunt-late' });
+  }
   const p = w.player, v = p.inVehicle;
   const inZone = Math.hypot(p.x - R.center.x, p.y - R.center.y) < R.radius + 10;
   // someone got hit: points off, the combo gone (pedestrians.js keeps them alive)
@@ -158,6 +182,7 @@ export function updateStunt(dt, w) {
       R.combo = 1;
       R.lastAt = -99;
       w.addMessage(`${SAY_HIT[R.hits % SAY_HIT.length]} -${HIT_COST}`, 2, { kind: 'gevaar', key: 'stunt' });
+      stuntPopup(`-${HIT_COST} iemand geraakt`, 'bad');
     }
   }
   if (v && !v.isBoat && inZone) {
@@ -165,21 +190,21 @@ export function updateStunt(dt, w) {
     const slip = Math.hypot(v.driftX || 0, v.driftY || 0);
     if (slip > 2.2 && Math.abs(v.speed) > 6) {
       R.drift += dt;
-      if (R.drift > 0.5) { R.drift = 0; addPoints(w, DRIFT_PER_S * 0.5, null); }
+      if (R.drift > 0.5) { R.drift = 0; addPoints(w, DRIFT_PER_S * 0.5, 'drift'); }
     } else R.drift = 0;
     // near misses: fast past someone, without touching
     if (Math.abs(v.speed) > 8) {
       for (const ped of w.pedestrians) {
         if (ped.state === 'dead' || ped.ragdoll || R.near.has(ped)) continue;
         const d = Math.hypot(ped.x - v.x, ped.y - v.y);
-        if (d < 3.2 && d > 1.6) { R.near.add(ped); addPoints(w, NEAR_MISS, 'Rakelings!'); }
+        if (d < 3.2 && d > 1.6) { R.near.add(ped); addPoints(w, NEAR_MISS, 'rakelings'); }
       }
     }
     // the water truck
     if (R.truck && !R.sprayed && (R.truck.health < R.truckHp - 1 || Math.hypot(R.truck.x - v.x, R.truck.y - v.y) < R.truck.model.len * 0.5)) {
       R.sprayed = true;
       R.sprayT = 4;
-      addPoints(w, SPRAY, 'De waterwagen sproeit het terras nat!');
+      addPoints(w, SPRAY, 'waterwagen', 'De waterwagen sproeit het terras nat!');
     }
   }
   if (R.sprayT > 0 && R.truck) {
@@ -196,7 +221,7 @@ export function updateStunt(dt, w) {
     if (Math.hypot(a.x - R.center.x, a.y - R.center.y) > R.radius + 10) continue;
     if (!(a.fledAt > (w.time - 1))) continue;
     R.flocks.add(a.flock);
-    addPoints(w, FLOCK, 'Duiven de lucht in!');
+    addPoints(w, FLOCK, 'duiven');
   }
   return R.score >= R.target ? 'done' : null;
 }

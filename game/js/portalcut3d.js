@@ -130,10 +130,11 @@ function addDoors(B, doors, depth, base) {
   }
 }
 
-// Ceiling height of a passage in a building `depth` metres tall.
+// Ceiling height of a passage in a building `depth` metres tall (a path
+// through a one-storey shop keeps 2.5 m under a 0.6 m lintel).
 export function passageHeight(cat, depth) {
-  const want = cat === 'foot' || cat === 'cycle' ? 3.2 : 4.3;
-  return Math.max(2.3, Math.min(want, depth - 0.7));
+  const slow = cat === 'foot' || cat === 'cycle';
+  return Math.max(2.3, Math.min(slow ? 3.2 : 4.3, depth - (slow ? 0.6 : 0.7)));
 }
 
 // Span [t0, t1] of segment a->b (length L) whose centreline lies inside the ring.

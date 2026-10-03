@@ -872,6 +872,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Tammo|De dozen kunnen wachten. Rikus heeft werk voor ons: Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.": {
+"src": "tammo/de_dozen_kunnen_wachten_rikus_he_771bb0de.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "De dozen kunnen wachten. Rikus heeft werk voor ons: Berend, bij het Martinikerkhof. Jij rijdt, zegt hij.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, met een stille grijns.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Tammo|De tankwagen van Us Mem Vet rijdt over de Europaweg. Durk en Douwe achter het stuur. Tijd voor banden.": {
 "src": "tammo/de_tankwagen_van_us_mem_vet_rijd_c0c84231.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1006,6 +1015,15 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Tammo|Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken, wij tweeën. De trein vanaf het Hoofdstation, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A. Kies maar, ze staan op je kaart.": {
+"src": "tammo/heel_grunn_zoekt_de_eierbal_en_d_1df34c69.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken, wij tweeën. De trein vanaf het Hoofdstation, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A. Kies maar, ze staan op je kaart.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
 },
 "Tammo|Heel Grunn zoekt de Eierbal, en de pliesie zoekt twee mensen in het zwart. Even onderduiken: pak de trein.": {
 "src": "tammo/heel_grunn_zoekt_de_eierbal_en_d_8c234ceb.mp3",
@@ -1151,6 +1169,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Tammo|Niemand zoekt een boef met een ijsje.": {
+"src": "tammo/niemand_zoekt_een_boef_met_een_i_477a6bc2.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Niemand zoekt een boef met een ijsje.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, met een stille grijns.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
+},
 "Tammo|Nog even dit. Het staat op je kaart, als je zin hebt.": {
 "src": "tammo/nog_even_dit_het_staat_op_je_kaa_8cff249a.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -1213,6 +1240,15 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Tammo|Twijduustern. Niemand zoekt ons in het donker.": {
+"src": "tammo/twijduustern_niemand_zoekt_ons_i_5d961aec.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Twijduustern. Niemand zoekt ons in het donker.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-03"
 },
 "Tammo|Wat we bij het museum zagen, kost geld: spullen, een boot misschien. Sjabbe wil contant. Eén ronde Hap & Rap bezorgen.": {
 "src": "tammo/wat_we_bij_het_museum_zagen_kost_9e70e255.mp3",

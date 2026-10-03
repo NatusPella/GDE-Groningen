@@ -13,11 +13,12 @@ import { buildPersonMesh, seatPose, SEAT_CONTACT } from './models3d_people.js';
 import { boatSeats, BOAT_KINDS } from './boattypes.js';
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { LINE as GIDS_LINE } from './sidejob_rondvaart.js';
-import { isCinematicActive } from './cinematics.js';
+import { isCinematicActive, playCinematic } from './cinematics.js';
 import { setDualText } from './subtitles.js';
 import { playLineVoice } from './audio.js';
 import { lineVoiceFor } from './linevoice.js';
-import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT } from './rondvaartlines.js';
+import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT, RV_SCENES } from './rondvaartlines.js';
+import { playDeckMoment } from './missionstory.js';
 
 // --- route ---------------------------------------------------------------------
 // Clockwise from the Spilsluizen. The eastern arc (Turfsingel, Schuitendiep,
@@ -559,7 +560,7 @@ export function rondvaartStatus() {
   if (!st) return null;
   const w = st.wiebe;
   const near = w && !w.out ? Math.hypot(w.v.x - st.boat.x, w.v.y - st.boat.y) : Infinity;
-  return { joy: Math.round(st.joy), bumps: st.bumps, wiebeDist: near < 90 ? Math.round(near) : null };
+  return { joy: Math.round(st.joy), bumps: st.bumps, wiebeDist: near < 90 ? Math.round(near) : null, told: st.sights.filter((q) => q.done).length, stops: st.sights.length };
 }
 
 export function rondvaartTip() {
@@ -577,7 +578,7 @@ export function rondvaartOutro() {
 
 // --- subtitles & shouts ------------------------------------------------------------------
 
-const SPEAKER = { T: 'Tammo (gids)', A: 'Anita' };
+const SPEAKER = { T: 'Tammo (gids)', G: 'Tammo (gids)', t: 'Tammo', A: 'Anita', W: 'Schipper Wiebe (megafoon)' };
 // the tourists speak in bubbles, recorded per voice sex (linevoice.js)
 const TOURIST = { D: { name: 'Toeriste', female: true }, E: { name: 'Toerist', female: false }, R: { name: 'Toeriste', female: true } };
 const VOICE_WAIT = 5; // s a line waits for the talking channel before it shows without its voice
@@ -907,14 +908,150 @@ function driveWiebe(dt, world, w, aim, vDes) {
   }
 }
 
+// --- H13's scenes: why Wiebe is angry, the bonk, the boarding, the build-up -------------
+
+const SCENE_NAME = { W: WIEBE, G: 'Tammo', t: 'Tammo', A: 'Anita' };
+
+// [key, text] lines -> cinematic lines with their recordings, back to back from `lead`
+function sceneLines(list, lead = 0.4) {
+  let t = lead;
+  const lines = list.map(([k, text]) => {
+    const v = voiceOf(SPEAKER[k] || k, text);
+    const dur = Math.max(1.6, Math.min(4.2, 0.9 + text.length * 0.045), v ? v.dur + 0.25 : 0);
+    const l = { speaker: SCENE_NAME[k] || k, text, at: t, dur, voice: v ? v.src : undefined };
+    t += dur + 0.1;
+    return l;
+  });
+  return { lines, total: t + 0.3 };
+}
+
+// boat-space (x forward, z to the side) to world
+function onBoat(v, lx, lz) {
+  const c = Math.cos(v.angle), s = Math.sin(v.angle);
+  return { x: v.x + c * lx - s * lz, y: v.y + s * lx + c * lz };
+}
+
+// the tour boat from just off its bow, looking back over the benches to the helm
+function tourBoatShot(v, u) {
+  const L = v.model.len;
+  const cam = onBoat(v, L / 2 + 2.2, lerpN(1.6, 0.6, u));
+  const look = onBoat(v, -L / 2 + 1, 0);
+  return { position: { x: cam.x, y: cam.y, z: 2.6 - u * 0.3 }, lookAt: { x: look.x, y: look.y, z: 1.2 }, fov: 50 };
+}
+
+// Wiebe in his sloep, close: the megaphone towards the camera
+function wiebeShot(w, u, push = 0) {
+  const v = w.v;
+  const man = onBoat(v, -v.model.len * 0.22, 0);
+  const cam = onBoat(v, -v.model.len * 0.22 + lerpN(4.2, 3.2 - push, u), 1.4);
+  return { position: { x: cam.x, y: cam.y, z: 1.9 }, lookAt: { x: man.x, y: man.y, z: 1.45 }, fov: 42 };
+}
+
+const lerpN = (a, b, t) => a + (b - a) * clamp(t, 0, 1);
+
+// One of H13's scenes: `wiebeFor` seconds on Wiebe, then the tour boat.
+function playRvScene(world, list, { kicker = '', wiebeFor = 0, animate = null, onEnd = null } = {}) {
+  const { lines, total } = sceneLines(list);
+  const w = st.wiebe;
+  return playCinematic({
+    id: 'rondvaart-scene', priority: 3, duration: total, pause: true, letterbox: true, skippable: true, hideHud: true,
+    kicker, cardFor: 1.6, lines,
+    shot: (u, t) => {
+      if (animate) animate(t);
+      if (w && t < wiebeFor) return { ...wiebeShot(w, t / wiebeFor), cut: true };
+      return { ...tourBoatShot(st.boat, (t - wiebeFor) / Math.max(1, total - wiebeFor)), cut: true };
+    },
+    onEnd: () => { if (onEnd) onEnd(); },
+  });
+}
+
+// When Wiebe turns up: why he is after them (his boat, his paying tourists).
+function playWhyScene(world) {
+  const w = st.wiebe;
+  const g = ensureDecor(w.v, 'rvWiebe', wiebeGroup);
+  if (!g) return false;
+  w.shoutAt = st.t;
+  const first = sceneLines(RV_SCENES.why).lines[0];
+  return playRvScene(world, RV_SCENES.why, {
+    kicker: 'Schipper Wiebe', wiebeFor: first.at + first.dur + 0.1,
+    animate: (t) => animateWiebe(g, w, st.t + Math.min(t, 2)),
+  });
+}
+
+// Under the H.N. Werkmanbrug: BONK, then the guide carries on as if nothing happened.
+function playBonkScene(world, w) {
+  const g = ensureDecor(w.v, 'rvWiebe', wiebeGroup);
+  if (!g) return false;
+  const first = sceneLines(RV_SCENES.bonk).lines[0];
+  return playRvScene(world, RV_SCENES.bonk, {
+    kicker: 'H.N. Werkmanbrug', wiebeFor: first.at + first.dur + 0.3,
+    animate: (t) => animateWiebe(g, w, w.outAt + Math.max(0, t - first.at - 0.9)),
+    onEnd: () => { if (st) sayLines(RV_SCENES.resume, { guide: true }); },
+  });
+}
+
+// The tour boat at its berth, Tammo and Anita now aboard: from the water,
+// drifting slowly along the hull so the whole boat and the quay show.
+export function playRondvaartBoarding(world, boat, { queue = true } = {}) {
+  if (!boat) return false;
+  const map = world.map, a = boat.angle;
+  const L = boat.model.len;
+  // the open water side: away from the quay
+  let side = 1;
+  for (const s of [1, -1]) {
+    const q = onBoat(boat, 0, s * 9);
+    if (inWaterPoly(map, q.x, q.y)) { side = s; break; }
+  }
+  const board = () => {
+    const p = world.player;
+    if (p.inVehicle !== boat) { p.water = null; p.swimming = false; p.z = 0; p.enterVehicle(boat, world); }
+    const c = world.companion;
+    if (c && c.state !== 'dead' && c.inVehicle !== boat && !boat.passenger) { if (c.inVehicle) c.inVehicle.passenger = null; c.inVehicle = boat; boat.passenger = 'companion'; c.x = boat.x; c.y = boat.y; }
+  };
+  return playCinematic({
+    id: 'rondvaart-boarding', priority: 3, duration: 4.2, pause: true, letterbox: true, skippable: true, hideHud: true, queue,
+    kicker: 'De Spilsluizen', title: 'Alle toeristen aan boord',
+    shot: (u) => {
+      const k = u * u * (3 - 2 * u);
+      const cam = onBoat(boat, lerpN(-L * 0.9, L * 0.35, k), side * lerpN(9.5, 7.5, k));
+      const look = onBoat(boat, lerpN(-L * 0.2, L * 0.1, k), 0);
+      return { position: { x: cam.x, y: cam.y, z: lerpN(3.6, 2.6, k) }, lookAt: { x: look.x, y: look.y, z: 1.1 }, fov: 48 };
+    },
+    onStart: board,
+    onEnd: board,
+  }) || (board(), false);
+}
+
+// The build-up to the kiss in the outro, at fixed points of the tour.
+const MOMENTS = [
+  { at: 0.22, key: 'glance' },
+  { at: 0.6, key: 'hands', scene: true },
+  { at: 0.86, key: 'later' },
+];
+
+function updateMoments(world) {
+  const frac = st.ps / ROUTE_LENGTH;
+  const m = MOMENTS[st.moment || 0];
+  if (!m || frac < m.at || isCinematicActive()) return;
+  const busy = st.wiebe && !st.wiebe.out && Math.hypot(st.wiebe.v.x - st.boat.x, st.wiebe.v.y - st.boat.y) < 60;
+  // a guide's story or a chase takes precedence: the moment waits a little
+  if ((busy || st.sub || st.subQueue.length) && frac < m.at + 0.06) return;
+  st.moment = (st.moment || 0) + 1;
+  const lines = RV_SCENES[m.key];
+  if (m.scene && !busy && playDeckMoment(world, { boat: st.boat, lines: lines.map(([k, t]) => [k === 'A' ? 'A' : 'T', t]) })) return;
+  sayLines(lines, { guide: true });
+}
+
 function knockOut(world, w, how) {
   w.out = how;
   w.outAt = st.t;
   st.wiebeGone = true;
   const near = Math.hypot(w.v.x - st.boat.x, w.v.y - st.boat.y) < 90;
   if (how === 'brug') {
-    shout('knock', true);
-    world.addMessage(near ? 'BONK! Wiebe vergat te bukken onder de H.N. Werkmanbrug. Die is pas dertig jaar oud.' : 'In de verte: BONK. Wiebe vergat te bukken onder de H.N. Werkmanbrug.', 4.5);
+    if (!(near && !isCinematicActive() && playBonkScene(world, w))) {
+      shout('knock', true);
+      world.addMessage(near ? 'BONK! Wiebe vergat te bukken onder de H.N. Werkmanbrug. Die is pas dertig jaar oud.' : 'In de verte: BONK. Wiebe vergat te bukken onder de H.N. Werkmanbrug.', 4.5);
+    }
   } else {
     shout('sunk', true);
     world.addMessage('Wiebes sloep geeft de geest. Hij dobbert nog wat na, met z\'n megafoon als peddel.', 4.5);
@@ -1065,6 +1202,7 @@ export function updateRondvaart(dt, world) {
       world.addMessage('De toeristen zwaaien naar de terrassen. Vaar rustig, dan blijven ze blij.', 3.5);
     }
     updateSights(dt, world, speed);
+    if (!st.relaxed) updateMoments(world);
     const calm = st.t - st.lastBumpAt > CALM_AFTER && (!st.wiebe || st.wiebe.out || Math.hypot(st.wiebe.v.x - v.x, st.wiebe.v.y - v.y) > 50);
     if (calm && st.joy < CALM_CAP) st.joy = Math.min(CALM_CAP, st.joy + CALM_RATE * dt);
   }
@@ -1075,8 +1213,11 @@ export function updateRondvaart(dt, world) {
       shout('appear', true);
       touristReact('wiebe', 1, true);
       world.addMessage('Achter je: Schipper Wiebe, de échte eigenaar, in z\'n sloep. Laat hem op een kade knallen of lok hem naar het museum: Wiebe bukt voor niemand.', 6);
+      // a moment later, once his boat is in the world: the scene that says why
+      st.whyAt = st.t + 1.5;
     }
   }
+  if (st.whyAt && st.t > st.whyAt && st.wiebe && !st.wiebe.out && !isCinematicActive()) { if (playWhyScene(world) || st.t > st.whyAt + 5) st.whyAt = 0; }
   if (st.wiebe) updateWiebe(dt, world);
 
   if (!st.relaxed) moodMessages(world);

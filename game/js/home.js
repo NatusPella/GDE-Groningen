@@ -798,7 +798,7 @@ function enterFlat(w) {
     placeCompanion(w);
     if (!introShown) {
       introShown = true;
-      w.addMessage('Thuis! Bed: slapen en opslaan. Koelkast: eierbal. Kast: je kleren', 6, { kind: 'tip' });
+      w.addMessage('Jullie nieuwe flat! Bed: slapen en opslaan. Koelkast: eierbal. Kast: je kleren', 6, { kind: 'tip' });
     }
   });
 }

@@ -786,6 +786,7 @@ for (let tile = 0; tile < TX * TY; tile++) {
       const zs = ow.z, lo = Math.min(...zs), hi = Math.max(...zs);
       bump(floatOffGrade, lo < -1.5 ? 'sunken' : hi > 1.5 ? 'raised' : 'level', len);
       if (lo < -1.5) bump(floatSpots, 'sunken|' + spotKey(x, y), len);
+      else if (hi > 1.5) bump(floatSpots, 'raised|' + spotKey(x, y), len);
     }
     bump(floatSpots, kind + '|' + spotKey(x, y), len);
   }
@@ -829,6 +830,11 @@ function jointGaps() {
     if (list.length !== 2 || nodeAll.get(k) !== 2) continue;
     const [[ra, ea], [rb, eb]] = list;
     if (ra === rb) continue;
+    // a V (both ways leaving the node the same way: merging ramps) is no
+    // joint, each ends square there (roadstructures3d.js jointAway)
+    const dirOf = (r, e) => { const p = r.pts[e], q = r.pts[e ? e - 1 : 1], l = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1; return [(q[0] - p[0]) / l, (q[1] - p[1]) / l]; };
+    const da = dirOf(ra, ea), db = dirOf(rb, eb);
+    if (da[0] * db[0] + da[1] * db[1] > 0.3) continue;
     for (const kind of ['road', 'walk']) {
       const ga = ROAD_SRC.get(ra).find((s) => s && s.kind === kind), gb = ROAD_SRC.get(rb).find((s) => s && s.kind === kind);
       if (!ga || !gb) continue;

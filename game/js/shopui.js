@@ -76,13 +76,10 @@ const SHOP_CSS = `
   #shop-menu .sm-price small.no { color: #d98a3f; }
   #shop-menu .sm-chip { font-size: 13px; letter-spacing: 1px; padding: 1px 6px; border-radius: 3px; border: 1px solid #3fc97a; color: #3fc97a; }
   #shop-menu .sm-status { min-height: 26px; line-height: 1.15; padding: 6px 18px; font-size: 20px; letter-spacing: 1px; text-align: center; color: #3fc97a; border-top: 1px solid rgba(63,201,122,0.2); }
-  #shop-menu .sm-status[data-tone="lose"] { color: rgba(240,237,228,0.7); }
   #shop-menu .sm-status[data-tone="no"] { color: #d98a3f; }
   #shop-menu .sm-status[data-tone="win"] { color: #e8c93a; }
-  #shop-menu .sm-status[data-tone="jackpot"] { color: #e8c93a; animation: sm-jackpot 0.4s ease-in-out 4 alternate; }
   #shop-menu .sm-status.pop { animation: sm-pop 0.28s ease-out; }
   @keyframes sm-pop { from { transform: scale(1.15); } to { transform: none; } }
-  @keyframes sm-jackpot { from { transform: scale(1); text-shadow: none; } to { transform: scale(1.18); text-shadow: 0 0 14px rgba(232,201,58,0.7); } }
   #shop-menu .sm-foot { display: flex; justify-content: space-between; gap: 12px; padding: 8px 18px 12px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
   #shop-menu .sm-foot b { display: inline-block; min-width: 12px; padding: 1px 5px; border: 1px solid rgba(240,237,228,0.45); border-bottom-width: 2px; border-radius: 4px; color: #3fc97a; font: bold 11px/1.2 system-ui, sans-serif; text-align: center; }
   #shop-menu .sm-close { background: transparent; border: 1px solid rgba(63,201,122,0.6); color: #f0ede4; border-radius: 4px; padding: 3px 12px; font: 16px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; cursor: pointer; }
@@ -105,8 +102,6 @@ const SHOP_CSS = `
   #shop-menu .sm-bar em { background: #3fc97a; box-shadow: 0 0 6px rgba(63,201,122,0.8); animation: sm-gain 1.2s ease-in-out infinite alternate; }
   #shop-menu .sm-bar em.down { background: #d98a3f; box-shadow: none; }
   @keyframes sm-gain { from { opacity: 0.55; } to { opacity: 1; } }
-  #shop-menu .sm-scratch { display: none; position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
-  #shop-menu .sm-scratch.on { display: block; }
   #shop-menu .sm-effect { display: inline-block; margin-top: 4px; align-self: flex-start; font: 14px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; padding: 1px 8px; border-radius: 3px; color: #0c140e; background: #3fc97a; }
   #shop-menu .sm-effect:empty { display: none; }
   @media (max-width: 520px) { #shop-menu .sm-stage { height: auto; flex-direction: column; } #shop-menu .sm-preview { flex: 0 0 120px; height: 120px; } #shop-menu .sm-stats { flex: 0 0 auto; padding: 4px 16px 10px; } }
@@ -164,7 +159,7 @@ export function initShopUi(w) {
         <div class="sm-money" aria-label="Jouw geld"></div>
       </header>
       <div class="sm-story" role="note" hidden><i aria-hidden="true">!</i><b></b><span></span><small></small></div>
-      <div class="sm-stage"><canvas class="sm-preview" aria-hidden="true"></canvas><div class="sm-stats" aria-label="Eigenschappen"></div><canvas class="sm-scratch" aria-hidden="true"></canvas></div>
+      <div class="sm-stage"><canvas class="sm-preview" aria-hidden="true"></canvas><div class="sm-stats" aria-label="Eigenschappen"></div></div>
       <div class="sm-list"></div>
       <div class="sm-detail" hidden><div class="sm-dtxt"><b></b><small></small><span class="sm-effect"></span></div><button type="button" class="sm-buy"></button></div>
       <div class="sm-status" role="status" aria-live="polite"></div>
@@ -209,7 +204,6 @@ export function openShopMenu(w, s) {
 export function closeShopMenu() {
   if (!open) return;
   open = false;
-  finishScratch(false);
   setPreview(null);
   root.classList.remove('visible');
   document.body.classList.remove('shop-open');
@@ -325,12 +319,12 @@ function renderStats(it) {
 
 function syncStage() {
   const stage = root.querySelector('.sm-stage');
-  const on = root.querySelector('.sm-preview').classList.contains('on') || !!root.querySelector('.sm-stats').childElementCount || !!scratch;
+  const on = root.querySelector('.sm-preview').classList.contains('on') || !!root.querySelector('.sm-stats').childElementCount;
   stage.classList.toggle('on', on);
 }
 
 function select(id) {
-  if (sel !== id) { armed = null; finishScratch(true); }
+  if (sel !== id) armed = null;
   sel = id;
   const it = currentItems().find((x) => x.id === id);
   setPreview(it && it.preview ? it.preview : null);
@@ -375,12 +369,7 @@ function activate(id) {
     storyDone = true;
     r = { ...r, text: `${String(r.text).replace(/[.!]+$/, '')}. Dit telt voor je missie!`, tone: 'win' };
   }
-  if (it.reveal && root.querySelector('.sm-stage')) {
-    setStatus('Krassen…', '');
-    playScratch(it.reveal, r, () => setStatus(r.text, r.tone));
-  } else {
-    setStatus(r.text, r.tone);
-  }
+  setStatus(r.text, r.tone);
   render();
   if (world.money < before) {
     const m = root.querySelector('.sm-money');
@@ -409,118 +398,8 @@ function setPreview(spec) {
   syncStage();
 }
 
-// --- scratch card / lottery reveal ---------------------------------------------------
-
-let scratch = null;
-const SCRATCH_MS = 1150;
-const SCRATCH_HOLD = 2600;
-
-function finishScratch(hide) {
-  if (!scratch) return;
-  const sc = scratch;
-  if (!sc.done) { sc.done = true; sc.onDone(); }
-  if (hide) {
-    cancelAnimationFrame(sc.raf);
-    clearTimeout(sc.hideTimer);
-    clearTimeout(sc.fallback);
-    root.querySelector('.sm-scratch').classList.remove('on');
-    scratch = null;
-    syncStage();
-  } else {
-    sc.u = 1;
-  }
-}
-
-function playScratch(look, res, onDone) {
-  finishScratch(true);
-  const cv = root.querySelector('.sm-scratch');
-  const sc = { u: 0, done: false, raf: 0, hideTimer: 0, onDone, t0: performance.now() };
-  scratch = sc;
-  syncStage();
-  cv.classList.add('on');
-  const W = cv.clientWidth || 300, H = cv.clientHeight || 150, pr = Math.min(2, hudPixelRatio());
-  cv.width = Math.round(W * pr);
-  cv.height = Math.round(H * pr);
-  const g = cv.getContext('2d');
-  g.setTransform(pr, 0, 0, pr, 0, 0);
-  const cw = Math.min(W - 24, 320), ch = Math.min(H - 20, 150);
-  const x0 = (W - cw) / 2, y0 = (H - ch) / 2;
-  const win = { x: x0 + 16, y: y0 + 44, w: cw - 32, h: ch - 60 };
-  const coat = document.createElement('canvas');
-  coat.width = cv.width;
-  coat.height = cv.height;
-  const cg = coat.getContext('2d');
-  cg.setTransform(pr, 0, 0, pr, 0, 0);
-  const grad = cg.createLinearGradient(win.x, win.y, win.x + win.w, win.y + win.h);
-  grad.addColorStop(0, '#b8bec4'); grad.addColorStop(0.5, '#e4e8ec'); grad.addColorStop(1, '#9aa2a8');
-  cg.fillStyle = grad;
-  cg.fillRect(win.x, win.y, win.w, win.h);
-  cg.fillStyle = 'rgba(80,86,92,0.55)';
-  cg.font = "bold 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
-  cg.textAlign = 'center';
-  cg.textBaseline = 'middle';
-  cg.fillText('KRAS HIER  ✦  KRAS HIER', win.x + win.w / 2, win.y + win.h / 2);
-  cg.globalCompositeOperation = 'destination-out';
-  const prize = res.prize || 0;
-  const big = res.tone === 'jackpot';
-  const rows = 4;
-  let erased = 0;
-  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // zigzag strokes over the window; the coin follows u
-  const pathAt = (u) => {
-    const t = u * rows, row = Math.min(rows - 1, Math.floor(t)), f = t - row;
-    const x = win.x + 6 + (row % 2 ? 1 - f : f) * (win.w - 12);
-    return [x, win.y + 8 + (row + 0.5) * ((win.h - 16) / rows)];
-  };
-  const draw = (now) => {
-    sc.u = reduce ? 1 : Math.max(sc.u, Math.min(1, (now - sc.t0) / SCRATCH_MS));
-    const steps = Math.ceil(sc.u * 160);
-    for (; erased < steps; erased++) {
-      const [x, y] = pathAt(erased / 160);
-      cg.beginPath();
-      cg.arc(x, y, (win.h - 16) / rows * 0.95, 0, Math.PI * 2);
-      cg.fill();
-    }
-    if (sc.u >= 1) cg.fillRect(win.x, win.y, win.w, win.h);
-    g.clearRect(0, 0, W, H);
-    g.fillStyle = 'rgba(0,0,0,0.35)';
-    g.fillRect(x0 + 4, y0 + 6, cw, ch);
-    g.fillStyle = look.bg || '#c23f78';
-    g.beginPath();
-    g.roundRect ? g.roundRect(x0, y0, cw, ch, 8) : g.rect(x0, y0, cw, ch);
-    g.fill();
-    g.fillStyle = '#f0ede4';
-    g.font = "24px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.fillText(look.title || 'KRASLOT', x0 + cw / 2, y0 + 24);
-    g.fillStyle = prize ? '#fff6c8' : '#e8e2d4';
-    g.fillRect(win.x, win.y, win.w, win.h);
-    g.fillStyle = prize ? (big ? '#c8261e' : '#1e7a44') : '#6a6f66';
-    g.font = `${big ? 44 : 38}px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif`;
-    g.fillText(prize ? `€${prize}` : 'HELAAS', win.x + win.w / 2, win.y + win.h / 2 + 2);
-    g.drawImage(coat, 0, 0, W, H);
-    if (sc.u < 1) {
-      const [cx, cy] = pathAt(sc.u);
-      g.fillStyle = '#d8b040';
-      g.beginPath(); g.arc(cx + 10, cy - 8, 11, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = '#9b7a20'; g.lineWidth = 2; g.stroke();
-      sc.raf = requestAnimationFrame(draw);
-      return;
-    }
-    sc.raf = 0;
-    if (!sc.done) { sc.done = true; sc.onDone(); }
-    if (!sc.hideTimer) sc.hideTimer = setTimeout(() => { if (scratch === sc) finishScratch(true); }, SCRATCH_HOLD);
-  };
-  sc.raf = requestAnimationFrame(draw);
-  // the result never waits on frames (hidden window, throttled rAF)
-  sc.fallback = setTimeout(() => { if (!sc.done) { sc.done = true; sc.onDone(); } }, SCRATCH_MS + 300);
-  sc.redraw = () => { if (!sc.raf) sc.raf = requestAnimationFrame(draw); };
-}
-
 function onClick(e) {
   if (e.target === root) { closeShopMenu(); return; }
-  if (e.target.closest('.sm-scratch')) { if (scratch && scratch.u < 1) { finishScratch(false); scratch.redraw(); } else finishScratch(true); return; }
   if (e.target.closest('.sm-close')) { closeShopMenu(); return; }
   if (e.target.closest('.sm-buy')) { if (sel) activate(sel); return; }
   const btn = e.target.closest('.sm-item');

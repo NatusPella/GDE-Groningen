@@ -196,7 +196,7 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
 | EIKEA | woonwarenhuis, blauw | parodie op IKEA | laag. IKEA treedt soms op tegen parodieën; geel-blauw niet combineren. |
 | Fjord Escapade / Fjord Frituur | auto en foodtruck | parodie op Ford Escort | laag; geen Ford-ovaallogo gebruiken |
 | Voertuigmerken (`vehiclenames.js`) | HUD | verzonnen (Dollard, Hunze, Wadden…) | ok |
-| Winkelketens (`shops.js`): Pang & Zo, Nait Duur, Rook & Geluk… | | verzonnen | ok |
+| Winkelketens (`shops.js`): Pang & Zo, Nait Duur, Krant & Kauwgom… | | verzonnen | ok |
 | Nachtstreek | radiozender | niet gevonden als echte zender | ok |
 | Euroborg, Gasuniegebouw, Martinitoren, UMCG, Forum | landmarks | echte gebouwen | ok (openbare gebouwen als decor) |
 | Gronings Ontzet, KEI-week, Noorderzon | evenementen | echte evenementen | ok (feitelijk decor). Noorderzon is een festivalnaam; geen logo gebruiken. |
@@ -400,18 +400,20 @@ voor dit spel waarschijnlijk "ja" zijn (controleren met de eigenaar):
   en aanrijden. De volledige antwoorden staan in `docs/LEEFTIJD.md`.
 - **Misdaad** als kern van de gameplay (overvallen, heist, politie-
   achtervolging).
-- **Alcohol/drugs**: biertjes in de kroeg, dronken effect (`drunk.js`),
-  roken/tabak (winkel "Rook & Geluk").
-- **Gokken**: kraskaarten en loten ("Rook & Geluk", `shopui.js`) met
-  in-game geld. Geen echt geld.
+- **Alcohol/drugs**: biertjes in de kroeg, dronken effect (`drunk.js`).
+  Geen tabak: de vroegere tabakswinkel "Rook & Geluk" heet nu "Krant &
+  Kauwgom" en verkoopt kranten en snoep.
+- **Gokken**: nee, ook niet gesimuleerd. De kraskaarten en loten zijn weg
+  (`claude/geen-gokken`); Krant & Kauwgom heeft een spaarkaart met een vaste
+  prijs, zonder inzet en zonder kans.
 - **Taal**: grof taalgebruik? (nagaan in de dialogen).
 - **Seksuele content**: kus in het verhaal; geen naaktheid (nagaan).
 - **Interactie/aankopen**: geen online, geen chat, geen in-app aankopen,
   geen gebruikersdata.
 
 Verwachte uitkomst: **PEGI 16 / USK 16** (zie `docs/LEEFTIJD.md`). Het
-grootste overgebleven risico op 18 zijn de kraskaarten en loten
-(gesimuleerd gokken). De Gemini-API-regel over minderjarigen
+gesimuleerde gokken, het grootste risico op 18, is weg. Wat overblijft is
+het aanrijden van burgers (knock-out, slapstick). De Gemini-API-regel over minderjarigen
 (§4) is extra reden om een 16+/18+-advies te geven.
 
 ### 8.5 Overeenkomsten, belasting en identiteit (hoog niveau)

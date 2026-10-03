@@ -3,6 +3,7 @@ import { speakerHtml } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay, isCinematicActive } from './cinematics.js';
 import { getMissionList, getNextMission } from './missions.js';
+import { missionIconSvg } from './missionicons.js';
 import { playMission, isPlayAheadOpen, getTodoItems, chooseTodo, placeName } from './todo.js';
 import { setGoal } from './goal.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
@@ -504,7 +505,7 @@ function render() {
       `<span class="ph-rowtext"><b>${esc(c.name)}</b><small>${dualHtml(c.sub)}</small></span></button>`).join('')}</div>`;
   } else if (st.screen === 'missies') {
     html = header('Missies') + `<div class="ph-list">${getMissionList().map((m, i) =>
-      `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-rowtext"><b>${m.code ? esc(m.code) + ' · ' : ''}${esc(m.label)}</b>` +
+      `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-mic">${missionIconSvg(m.index)}</span><span class="ph-rowtext"><b>${m.code ? esc(m.code) + ' · ' : ''}${esc(m.label)}</b>` +
       `<small>${m.done ? `klus · €${m.pay} klusloon` : `€${m.reward}`}</small></span><span class="ph-chip" data-status="${m.status}">${STATUS_LABEL[m.status]}</span></button>`).join('')}</div>` +
       '<div class="ph-foot">Enter: route erheen</div>';
   } else if (st.screen === 'voertuigen') {

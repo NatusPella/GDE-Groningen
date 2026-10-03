@@ -1037,7 +1037,7 @@ function updatePushers(world) {
 
 export function updateGrass(dt, world, cam, drawDist) {
   if (!chunks) return;
-  const p = world.player;
+  const p = world.streamFocus || world.player;
   syncChunks(p.x, p.y, drawDist);
   syncTufts(cam, dt);
   time = world.time || time + dt;

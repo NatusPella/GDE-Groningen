@@ -16,7 +16,7 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap, MINI_STYLE } from './countrymap.js';
+import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
 import { edgeDistance, urbanWeight } from './countryfield.js';
 import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
@@ -27,6 +27,8 @@ import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
+import { markerColors, onPaletteChange } from './a11y.js';
+import { drawMissionGlyph } from './missionicons.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = '#3fc97a';
@@ -41,7 +43,13 @@ let mmScale = MM_SCALE;
 
 // GTA-style: purple for your own waypoint, yellow for missions, orange for
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
+// filled from the palette (a11y.js: the colour-blind settings) below; kept
+// as one object so importers always read the current colours
 export const ROUTE_COLORS = { user: '#c068ff', mission: '#e8c93a', job: '#ff9a3c', care: '#ff5fb4' };
+// Each route kind also has its own pattern down the middle of the line and
+// its own mark in the minimap's edge arrow, so they never differ by colour
+// alone: verhaal/missie solid, jouw doel dashes, klus dots, opknappen dash-dot.
+const ROUTE_DASH = { mission: null, user: [2.2, 1.6], job: [0.01, 1.7], care: [2.6, 1.2, 0.01, 1.2] };
 export const routeLabel = (r) => (r.kind === 'user' ? 'Doel' : r.kind === 'job' ? 'Klus' : r.kind === 'care' ? (r.target && r.target.why === 'repair' ? 'Garage' : 'Opknappen') : 'Missie');
 
 let els = null;
@@ -89,7 +97,7 @@ export function initHud(world) {
 
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<span class="sp-pic" aria-hidden="true"><img alt=""></span><span class="sp-num"><b></b><span>km/u</span></span><span class="sp-dmg"><small>Schade</small><span class="sp-bar"><i></i></span></span>';
+  speedo.innerHTML = '<span class="sp-pic" aria-hidden="true"><img alt=""></span><span class="sp-num"><b></b><span>km/u</span></span><span class="sp-info"><span class="sp-name"><small></small><em></em></span><span class="sp-hp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5l-1.3-1.2C5.6 14.7 2.5 11.9 2.5 8.4 2.5 5.6 4.7 3.5 7.4 3.5c1.6 0 3.4.8 4.6 2.2 1.2-1.4 3-2.2 4.6-2.2 2.7 0 4.9 2.1 4.9 4.9 0 3.5-3.1 6.3-8.2 10.9z"/></svg><span class="sp-bar" role="meter" aria-label="Staat van het voertuig" aria-valuemin="0" aria-valuemax="100"><i></i></span></span></span>';
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -168,8 +176,10 @@ export function initHud(world) {
     damage,
     speedo,
     speedoValue: speedo.querySelector('b'),
-    speedoDmg: speedo.querySelector('.sp-bar i'),
-    speedoDmgLabel: speedo.querySelector('.sp-dmg small'),
+    speedoHp: speedo.querySelector('.sp-bar i'),
+    speedoHpMeter: speedo.querySelector('.sp-bar'),
+    speedoMake: speedo.querySelector('.sp-name small'),
+    speedoModel: speedo.querySelector('.sp-name em'),
     speedoKey: '',
     speedoPic: speedo.querySelector('.sp-pic img'),
     speedoPicKey: '',
@@ -512,29 +522,38 @@ function updateDamage(dt, world) {
   els.damage.style.opacity = o.toFixed(3);
 }
 
-// Speed and, for a vehicle that can break, its damage under the minimap.
+// Speed, name and, for a vehicle that can break, its condition (a heart and
+// a bar that empties as it takes damage) under the minimap.
 function updateSpeedo(world) {
   const v = world.player.inVehicle || world.trainCam;
   els.speedo.classList.toggle('visible', !!v);
   document.body.classList.toggle('hud-in-vehicle', !!v);
   if (!v) { els.speedoKey = ''; return; }
   els.speedoValue.textContent = String(Math.round(Math.abs(v.speed || 0) * 3.6));
-  const dmg = v === world.trainCam || !Number.isFinite(v.health) ? -1 : Math.round(clampPct(100 - v.health));
-  const key = v.id + ':' + dmg;
+  const isTrain = v === world.trainCam;
+  const hp = isTrain || !Number.isFinite(v.health) ? -1 : Math.round(clampPct(v.health));
+  const key = v.id + ':' + hp;
   if (key === els.speedoKey) return;
   const was = Number(els.speedoKey.split(':')[1]);
   const fresh = !els.speedoKey.startsWith(v.id + ':');
   els.speedoKey = key;
-  if (fresh) setSpeedoPic(v === world.trainCam ? null : v);
-  els.speedo.classList.toggle('no-dmg', dmg < 0);
-  els.speedo.style.setProperty('--dmg', dmg < 0 ? '0' : (dmg / 100).toFixed(2));
-  if (dmg < 0) return;
-  els.speedo.classList.toggle('hurt', dmg >= 60);
-  els.speedoDmgLabel.textContent = dmg >= 60 ? `Schade ${dmg}%` : 'Schade';
-  if (fresh) els.speedoDmg.style.transition = 'none';
-  els.speedoDmg.style.width = dmg + '%';
-  if (fresh) { void els.speedoDmg.offsetWidth; els.speedoDmg.style.transition = ''; }
-  else if (dmg > was + 4) pop(els.speedo);
+  if (fresh) {
+    setSpeedoPic(isTrain ? null : v);
+    const { make, model } = isTrain ? { make: 'Spoor', model: 'Stoptrein' } : vehicleDisplayName(v);
+    els.speedoMake.textContent = make;
+    els.speedoModel.textContent = model;
+    els.speedo.title = make ? `${make} ${model}` : model;
+  }
+  els.speedo.classList.toggle('no-dmg', hp < 0);
+  els.speedo.style.setProperty('--dmg', hp < 0 ? '0' : (1 - hp / 100).toFixed(2));
+  if (hp < 0) return;
+  els.speedo.classList.toggle('hurt', hp <= 35);
+  els.speedo.classList.toggle('worn', hp > 35 && hp <= 65);
+  els.speedoHpMeter.setAttribute('aria-valuenow', String(hp));
+  if (fresh) els.speedoHp.style.transition = 'none';
+  els.speedoHp.style.width = hp + '%';
+  if (fresh) { void els.speedoHp.offsetWidth; els.speedoHp.style.transition = ''; }
+  else if (hp < was - 4) pop(els.speedo);
 }
 
 const SPEEDO_PIC_W = 62;
@@ -683,7 +702,8 @@ function currentObjective(world) {
     const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
     const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
     const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
-    const sub = g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
+    const sub = g.alt ? `${near ? 'Je bent er' : 'Volg de gele route'} · of kies: ${g.alt}, op de kaart`
+      : g.buy ? (near ? 'Voor het verhaal: loop naar binnen (E)' : 'Volg de gele route naar de winkel')
       : inside ? 'Stap even uit de marker en weer terug'
       : atMarker ? (near ? 'Loop of rij de gele marker in' : 'Volg de gele route naar de marker') : 'Volg de gele route';
     return { kind: 'story', title: g.name, sub, timer: '' };
@@ -802,6 +822,21 @@ const C = {
   grey: '#c7c7c2',
   greyDark: '#2a2e28',
 };
+
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+function applyPalette(p = markerColors()) {
+  Object.assign(ROUTE_COLORS, { user: p.user, mission: p.mission, job: p.job, care: p.care });
+  C.red = p.danger;
+  C.yellow = p.mission;
+  C.yellowHalf = hexA(p.mission, 0.5);
+  C.policeBlue = p.police;
+}
+applyPalette();
+onPaletteChange(applyPalette);
 
 function outline(ctx, s, color = C.dark, w = 1.2) {
   ctx.lineWidth = w * s;
@@ -1114,8 +1149,37 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind === 'pg-jelle' || kind === 'pg-fjord') drawPostgameMapIcon(ctx, kind.slice(3), s);
       else if (kind === 'station') drawStationMapIcon(ctx, s);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
+      else if (kind.startsWith('mi-') || kind.startsWith('ma-')) drawMissionMapIcon(ctx, kind, s, opts, t);
   }
   ctx.restore();
+}
+
+// A story mission on the map: the yellow ring with the mission's own icon
+// (missionicons.js) on a dark disc; 'ma-<i>' while it runs, 'mi-<i>' else.
+function drawMissionMapIcon(ctx, kind, s, opts, t) {
+  const active = kind[1] === 'a';
+  const pulse = pulseAt(t);
+  const r = (active ? 6.6 + pulse * 0.8 : 6 + pulse * 1.2) * s;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(12,20,14,0.85)';
+  ctx.globalAlpha = opts.alpha ?? 1;
+  ctx.fill();
+  outline(ctx, s, 'rgba(0,0,0,0.6)', 3.4);
+  ctx.globalAlpha = (opts.alpha ?? 1) * (active ? 1 : 0.65 + pulse * 0.35);
+  outline(ctx, s, C.yellow, 2);
+  ctx.globalAlpha = opts.alpha ?? 1;
+  if (!drawMissionGlyph(ctx, +kind.slice(3), 8.4 * s, C.yellow)) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 2.6 * s, 0, Math.PI * 2);
+    ctx.fillStyle = C.yellow;
+    ctx.fill();
+  }
+}
+
+// The map kind for mission i: its icon in the ring, or the plain ring.
+export function missionMapKind(i, active) {
+  return Number.isInteger(i) && i >= 0 ? (active ? 'ma-' : 'mi-') + i : active ? 'missionActive' : 'missionIdle';
 }
 
 // Pulsing red/blue police search ring; (x, y) and r in screen pixels.
@@ -1169,7 +1233,9 @@ function drawCrowLine(ctx, [ax, ay], [bx, by], color) {
   ctx.restore();
 }
 
-export function drawEdgeArrow(ctx, x, y, angle, color, s = 1) {
+// mark: what the arrow points at, drawn small inside it (a dot for your
+// goal, a square for a klus, a ring for the story, nothing for your car)
+export function drawEdgeArrow(ctx, x, y, angle, color, s = 1, mark = '') {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
@@ -1183,6 +1249,15 @@ export function drawEdgeArrow(ctx, x, y, angle, color, s = 1) {
   ctx.lineWidth = 1.2 * s;
   ctx.strokeStyle = C.dark;
   ctx.stroke();
+  if (mark) {
+    ctx.fillStyle = C.dark;
+    ctx.strokeStyle = C.dark;
+    ctx.beginPath();
+    if (mark === 'user') ctx.arc(-0.6 * s, 0, 1.5 * s, 0, Math.PI * 2);
+    else if (mark === 'job') ctx.rect(-2 * s, -1.4 * s, 2.8 * s, 2.8 * s);
+    if (mark === 'user' || mark === 'job') ctx.fill();
+    else if (mark === 'mission') { ctx.lineWidth = 0.9 * s; ctx.arc(-0.6 * s, 0, 1.6 * s, 0, Math.PI * 2); ctx.stroke(); }
+  }
   ctx.restore();
 }
 
@@ -1200,7 +1275,7 @@ export function drawRoute(ctx, pts, s = 1) {
 }
 
 // Thick along-the-road route line with a dark casing; pts in screen space.
-export function drawRoadRoute(ctx, pts, color, width = 4) {
+export function drawRoadRoute(ctx, pts, color, width = 4, kind = null) {
   if (pts.length < 2) return;
   ctx.save();
   ctx.beginPath();
@@ -1214,6 +1289,15 @@ export function drawRoadRoute(ctx, pts, color, width = 4) {
   ctx.lineWidth = width;
   ctx.strokeStyle = color;
   ctx.stroke();
+  const k = kind || Object.keys(ROUTE_COLORS).find((n) => ROUTE_COLORS[n] === color);
+  const dash = k && ROUTE_DASH[k];
+  if (dash) {
+    // the pattern in the line's own dark casing colour, scaled to its width
+    ctx.setLineDash(dash.map((d) => d * width));
+    ctx.lineWidth = Math.max(1.2, width * 0.42);
+    ctx.strokeStyle = 'rgba(12, 20, 14, 0.8)';
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -1324,6 +1408,40 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   for (const [kind, sx, sy] of drawn) drawMapIcon(ctx, kind, sx, sy, MM_POI_ICON, { t });
 }
 
+// Village and town names on the minimap out in the Ommeland (the list is
+// refreshed when the player has moved a bit), upright over the rotating map.
+const VILLAGE_KINDS = new Set(['town', 'village', 'hamlet', undefined]);
+let villageCache = { x: Infinity, y: Infinity, list: [] };
+function drawVillageNames(ctx, player, radius, toScreen) {
+  if (Math.hypot(player.x - villageCache.x, player.y - villageCache.y) > 25) {
+    const r = radius * 1.5;
+    villageCache = { x: player.x, y: player.y, list: villageLabels(player.x - r, player.y - r, player.x + r, player.y + r).filter((v) => VILLAGE_KINDS.has(v.kind)) };
+  }
+  // a village just off the map keeps its name at the rim, towards it
+  const lim = (radius * 1.5) ** 2, rim = MINIMAP_SIZE / 2 - 20;
+  const [cx, cy] = toScreen(player.x, player.y);
+  ctx.save();
+  ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(12, 20, 14, 0.85)';
+  ctx.fillStyle = '#f0ede4';
+  let n = 0;
+  for (const v of villageCache.list) {
+    if ((v.x - player.x) ** 2 + (v.y - player.y) ** 2 > lim) continue;
+    let [sx, sy] = toScreen(v.x, v.y);
+    const d = Math.hypot(sx - cx, sy - cy);
+    if (d > rim) { sx = cx + (sx - cx) * rim / d; sy = cy + (sy - cy) * rim / d; }
+    const label = v.name.toUpperCase();
+    ctx.strokeText(label, sx, sy);
+    ctx.fillText(label, sx, sy);
+    if (++n >= 3) break;
+  }
+  ctx.restore();
+}
+
 function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
@@ -1394,6 +1512,8 @@ function drawMinimap(dt, world) {
     return [cx + (dx * cosR - dy * sinR) * mmScale, cy + (dx * sinR + dy * cosR) * mmScale];
   };
 
+  if (edgeDistance(player.x, player.y) > -150) drawVillageNames(ctx, player, MM_RADIUS_M, toScreen);
+
   const search = getPoliceSearch(world);
   if (search) {
     const [sx, sy] = toScreen(search.x, search.y);
@@ -1455,7 +1575,7 @@ function drawMinimap(dt, world) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), MM_ICON);
       for (const w of wps) icon('waypoint', w.x, w.y);
     }
-    const kind = m.phase === 'active' ? 'missionActive' : 'missionIdle';
+    const kind = missionMapKind(m.index, m.phase === 'active');
     if (!icon(kind, m.marker.x, m.marker.y)) missionEdge = edgeAngle(m.marker.x, m.marker.y);
   }
 
@@ -1482,15 +1602,15 @@ function drawMinimap(dt, world) {
   }
   if (jobEdge != null) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
-    drawEdgeArrow(ctx, cx + Math.cos(jobEdge) * edgeR, cy + Math.sin(jobEdge) * edgeR, jobEdge, JOB_TARGET_COLOR, wp ? 0.8 : s);
+    drawEdgeArrow(ctx, cx + Math.cos(jobEdge) * edgeR, cy + Math.sin(jobEdge) * edgeR, jobEdge, ROUTE_COLORS.job || JOB_TARGET_COLOR, wp ? 0.8 : s, 'job');
   }
   if (missionEdge != null) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
-    drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, wp ? 0.8 : s);
+    drawEdgeArrow(ctx, cx + Math.cos(missionEdge) * edgeR, cy + Math.sin(missionEdge) * edgeR, missionEdge, C.yellow, wp ? 0.8 : s, 'mission');
   }
   if (wpEdge != null) {
     const s = 1 + pulseAt(t) * 0.2;
-    drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, ROUTE_COLORS.user, s);
+    drawEdgeArrow(ctx, cx + Math.cos(wpEdge) * edgeR, cy + Math.sin(wpEdge) * edgeR, wpEdge, ROUTE_COLORS.user, s, 'user');
   }
 }
 

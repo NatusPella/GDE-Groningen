@@ -7,7 +7,7 @@
 // Tammo and Anita trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber } from './storyarc.js';
 import { setMeetHook } from './namecard.js';
 import { queueStoryContact } from './storycontact.js';
 import { isCallActive } from './phonefeed.js';
@@ -31,9 +31,10 @@ import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
 import { queueFjordReveal } from './postgame.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
-import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy } from './storyfun.js';
+import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices } from './storyfun.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
+import { registerNarrative, mayStart, narrativeBusy } from './narrative.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -229,9 +230,12 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
   if (!quiet && step.kind === 'activity' && step.done) {
+    // "Even onderduiken": the scene and text of the option the player picked
+    const shown = step.goal && step.goal.type === 'hideout' ? hideoutStep(step, rt.base) : step;
+    if (shown.choice) state.flags.add('onderduik:' + shown.choice);
     // a step with a closing scene (storyfun.js) sends its done text after it
-    const send = () => phone(who(step.done[0]), step.done[1], 5);
-    if (skipped || !storyFunDone(world, step, send)) send();
+    const send = () => phone(who(shown.done[0]), shown.done[1], 5);
+    if (skipped || !storyFunDone(world, shown, send)) send();
   }
   if (!quiet && !skipped && step.kind === 'activity' && isPurchase(step)) {
     const next = currentStep();
@@ -243,7 +247,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   for (const c of CLUES) {
     if (c.step !== step.id) continue;
     rt.newClues.add(c.title);
-    if (!quiet) rt.clueToasts.push(c.title);
+    if (!quiet) rt.clueToasts.push(c);
   }
 }
 
@@ -286,7 +290,13 @@ function refreshGuide() {
     why = storyBuyLabel(world, place) || why;
   }
   const shopId = place && place.type && place.id ? place.id : null;
-  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, shopId, buy: !!shopId && isPurchase(step, rt.gate) } : null;
+  // a choice (r-trein): the route goes to the nearest option, the others are named
+  let alt = '';
+  if (step.kind === 'activity' && step.goal.type === 'hideout' && place) {
+    why = `Onderduiken: ${place.name.charAt(0).toLowerCase()}${place.name.slice(1)}`;
+    alt = hideoutChoices(step).filter((c) => c.id !== place.id).map((c) => c.short).join(' of ');
+  }
+  world.storyGuide = place ? { x: place.x, y: place.y, name: why, step: step.id, shopId, buy: !!shopId && isPurchase(step, rt.gate), alt } : null;
 }
 
 function isPurchase(step, gate) {
@@ -295,7 +305,7 @@ function isPurchase(step, gate) {
 }
 
 function gateLabel(key) {
-  return { weapon: 'koop een wapen', bike: 'koop een fiets', car: 'koop een auto', heist: 'zwart incognito of een huurboot', night: 'wachten tot het donker is', boat: 'huur een boot' }[key] || key;
+  return { weapon: 'koop een wapen', bike: 'koop een fiets', car: 'koop een auto', heist: 'koop zwart incognito of huur een boot', night: 'wachten tot het donker is', boat: 'huur een boot' }[key] || key;
 }
 
 // Tops up the money for a purchase the step needs, once per step.
@@ -403,7 +413,7 @@ function playRecap(part) {
   const fallback = recapPlace(P.recap.find(([p]) => p !== 'studio')[0]);
   return playCinematic({
     id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    kicker: P.date ? `${P.title.split(':')[0]} · ${P.date}` : `Eerder in ${SERIES}`, title: P.title, cardFor: 3.2,
+    kicker: P.date ? `${partNumber(part)} · ${P.date}` : `Eerder in ${SERIES}`, title: P.name || P.title, cardFor: 3.2,
     lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur, radio: true })),
     onStart: () => { studio = openStudio(); playRadioSting(); },
     onEnd: () => { if (studio) studio.dispose(); studio = null; },
@@ -500,6 +510,7 @@ function companionSays(w, text) {
   const list = w.extraSpeakers || (w.extraSpeakers = []);
   const dur = Math.max(3, Math.min(6, 1.2 + text.length * 0.06));
   list.push({ x: c.x, y: c.y, h: 2.1, speechText: text, speechUntil: w.time + dur, follow: c, female: c.character === 'anita', speechName: c.character === 'anita' ? 'Anita' : 'Tammo' });
+  rt.sayUntil = w.time + dur;
 }
 
 // --- who plays: Tammo or Anita ----------------------------------------------------------
@@ -533,7 +544,7 @@ function calmForSwap() {
   const card = document.body.classList.contains('hud-card-on');
   rt.cardSince = card ? rt.cardSince || now : 0;
   const reading = card && now - rt.cardSince < SWAP_CARD_WAIT * 1000;
-  if (now - (rt.tickAt || 0) > 250 || isBannerUp() || reading || sinceCinematic() < SWAP_CALM) rt.calmAt = now;
+  if (now - (rt.tickAt || 0) > 250 || isBannerUp() || reading || sinceCinematic() < SWAP_CALM || narrativeBusy()) rt.calmAt = now;
   rt.tickAt = now;
   return now - rt.calmAt > SWAP_CALM * 1000;
 }
@@ -742,6 +753,7 @@ export function initStory(w) {
   setMeetHook(meet);
   initStoryFun(w);
   initSkipUi();
+  registerNarrative('say', { active: () => !!world && (rt.sayUntil || 0) > world.time });
   ready = true;
   window.__story = storyApi;
 }
@@ -750,12 +762,18 @@ export function initStory(w) {
 // prompt, the key and the Besturing row don't exist (player.js, prompts.js,
 // pausemenu.js read world.kissUnlocked).
 const KISS_STEP = 'H13';
-// H13 itself, not a later mission played ahead
+// H13 itself, not a later mission played ahead; and only once the story has
+// got there: H13 played ahead from Te doen ("H13 nu al spelen?") left the
+// missions before it open, and whoever you played then (Tammo or Anita,
+// depending on the step you were at) could kiss from H7 on.
 function kissUnlockedNow() {
   const step = STEP_BY_ID.get(KISS_STEP);
   if (!step) return false;
   const i = missionIdx(step);
-  return state.done.has(KISS_STEP) || state.skipped.has(KISS_STEP) || (i >= 0 && isMissionCompleted(i));
+  const passed = state.done.has(KISS_STEP) || state.skipped.has(KISS_STEP) || (i >= 0 && isMissionCompleted(i));
+  if (!passed) return false;
+  const k = STEPS.indexOf(step);
+  return STEPS.slice(0, k).every((s, j) => s.kind !== 'mission' || !stepAvailable(s) || isDone(s, j));
 }
 
 export function updateStory(dt, w) {
@@ -780,17 +798,17 @@ export function updateStory(dt, w) {
   updateStoryFun(dt, w, step, rt.base);
   if (!step) return;
   if (step.end) {
-    if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
+    if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
     return;
   }
-  if (rt.recapPending && !isMissionActive() && !isCinematicActive() && !w.pigeonMode && !w.pendingRespawn) {
+  if (rt.recapPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && !w.pendingRespawn) {
     const part = rt.recapPending;
     rt.recapPending = null;
     if (playRecap(part)) { state.flags.add('recap:' + part); rt.leadAt = w.time + LEAD_DELAY; }
   }
   if (rt.clueToasts.length && !isCinematicActive() && !w.pigeonMode) {
-    const title = rt.clueToasts.shift();
-    w.addMessage(`Nieuwe aanwijzing: ${title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"`, 4.5);
+    const c = rt.clueToasts.shift();
+    w.addMessage(c.kind === 'taal' ? `Gronings geleerd: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"` : `Nieuwe aanwijzing: ${c.title}. Lees terug in het pauzemenu, Te doen: "Wat weten we?"`, 4.5);
     playClueSting();
   }
   // the next step's text waits until a scene has been over for a moment
@@ -803,7 +821,7 @@ export function updateStory(dt, w) {
     queueContacts(step, 'lead');
   }
   // the companion's remark follows the lead text instead of talking over it
-  if (rt.sayAt >= 0 && w.time >= rt.sayAt && !isCinematicActive() && !isCallActive()) {
+  if (rt.sayAt >= 0 && w.time >= rt.sayAt && !isCinematicActive() && !isCallActive() && mayStart('say')) {
     rt.sayAt = -1;
     if (step.say) companionSays(w, step.say[1]);
   }
@@ -840,6 +858,7 @@ export function applyStorySave(d) {
   const fresh = freshState();
   Object.assign(state, fresh);
   rt = freshRuntime();
+  if (world) world.kissUnlocked = false;
   if (!d || typeof d !== 'object' || d.v !== 1) return;
   const ids = (list) => (Array.isArray(list) ? list.filter((id) => STEP_BY_ID.has(id)) : []);
   state.done = new Set(ids(d.done));
@@ -849,6 +868,8 @@ export function applyStorySave(d) {
   state.cards = new Set((Array.isArray(d.cards) ? d.cards : []).filter((k) => PARTS[k]));
   state.flags = new Set((Array.isArray(d.flags) ? d.flags : []).filter((k) => typeof k === 'string'));
   for (const [id, n] of Object.entries(d.fails || {})) if (STEP_BY_ID.has(id) && Number.isFinite(n)) state.fails[id] = n;
+  // no frame with the old save's kisses (player.js runs before updateStory)
+  if (world) world.kissUnlocked = kissUnlockedNow();
 }
 
 // Who Tammo and Anita have met (name cards, namecard.js): a 'met:<key>' flag each.

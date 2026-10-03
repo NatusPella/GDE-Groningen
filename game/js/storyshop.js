@@ -18,8 +18,8 @@ export const REQ_BUY = {
   weapon: { shops: ['wapens', 'pand'], what: 'een wapen', prefer: 'w-pistol', ok: (id) => id === 'b-pistol' || (id.startsWith('w-') && GUNS.has(id.slice(2))) },
   bike: { shops: ['fietsen'], what: 'een fiets', prefer: 'v-omafiets', ok: (id) => { const sp = stockOf(id); return !!sp && sp.kind === 'bike' && !sp.unlock; } },
   car: { shops: ['auto'], what: 'een auto', prefer: 'v-mug', ok: (id) => { const sp = stockOf(id); return !!sp && sp.kind === 'car' && !sp.unlock; } },
-  boat: { shops: ['boot'], what: 'een huurboot', prefer: 'r-sloep', ok: (id) => id.startsWith('r-') },
-  heist: { shops: ['kleding', 'boot'], what: 'zwart incognito of een huurboot', prefer: 'r-sloep', ok: (id) => id === 'o-incognito' || id.startsWith('r-') },
+  boat: { shops: ['boot'], what: 'een huurboot', act: 'huur een boot', prefer: 'r-sloep', ok: (id) => id.startsWith('r-') },
+  heist: { shops: ['kleding', 'boot'], what: 'zwart incognito of een huurboot', act: 'koop zwart incognito of huur een boot', prefer: 'r-sloep', ok: (id) => id === 'o-incognito' || id.startsWith('r-') },
 };
 
 const WHY_NOT = {
@@ -64,7 +64,7 @@ export function storyNeed(world) {
     const g = step.goal;
     if (g.type === 'require' && REQ_BUY[g.req] && !requirementMet(world, g.req)) {
       const r = REQ_BUY[g.req];
-      return fromStep(step, { req: g.req, shops: r.shops, what: r.what, ok: r.ok, prefer: r.prefer, strict: true, whyNot: WHY_NOT[g.req] });
+      return fromStep(step, { req: g.req, shops: r.shops, what: r.what, act: r.act, ok: r.ok, prefer: r.prefer, strict: true, whyNot: WHY_NOT[g.req] });
     }
     if (g.type === 'shop' && g.buy) {
       const ids = new Set([].concat(g.buy));
@@ -79,22 +79,25 @@ export function storyNeed(world) {
     if (gate && REQ_BUY[gate]) {
       const r = REQ_BUY[gate];
       const prev = STEPS.slice(0, k).reverse().find((s) => s.goal && s.goal.req === gate) || step;
-      return fromStep(prev, { stepId: step.id, title: step.title, req: gate, shops: r.shops, what: r.what, ok: r.ok, prefer: r.prefer, strict: true, gate: true, whyNot: WHY_NOT[gate] });
+      return fromStep(prev, { stepId: step.id, title: step.title, req: gate, shops: r.shops, what: r.what, act: r.act, ok: r.ok, prefer: r.prefer, strict: true, gate: true, whyNot: WHY_NOT[gate] });
     }
   }
   return null;
 }
 
-// "Koop een wapen bij Pang & Zo Herestraat", for the route and the HUD.
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+// a boat is rented, not bought: "huur een boot"
+const needAct = (need) => need.act || `koop ${need.what}`;
+
+// "Koop een wapen bij Pang & Zo Herestraat", "Huur een boot bij Bootje Huren", for the route and the HUD.
 export function storyBuyLabel(world, at = null) {
   const need = storyNeed(world);
   if (!need || need.auto) return null;
   const place = at && at.name ? at : need.req ? requirementPlace(world, need.req) : null;
   const name = place ? place.name : SHOP_TYPES[need.shops[0]] ? SHOP_TYPES[need.shops[0]].chain : '';
-  return `Koop ${need.what} bij ${name}`;
+  return `${cap(needAct(need))} bij ${name}`;
 }
 
-const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // The shop menu's sections with the story's need applied (shopType is the
 // shop being shown); returns { sections, banner } where banner is null
@@ -104,7 +107,7 @@ export function markStoryItems(world, shopType, sections) {
   if (!need || !need.shops.includes(shopType)) return { sections, banner: null };
   const vs = need.voorschotId ? storyVoorschotInfo(need.voorschotId) : null;
   const banner = {
-    title: need.auto ? `Voor het verhaal: ${need.title}` : `Voor het verhaal: koop ${need.what}`,
+    title: need.auto ? `Voor het verhaal: ${need.title}` : `Voor het verhaal: ${needAct(need)}`,
     why: need.why || '',
     lead: need.auto ? `Loop naar de gele marker voor de deur: daar reken je €${need.pay} af.` : need.gate ? `Anders start "${need.title}" niet.` : need.optional ? 'Hoeft niet, helpt wel.' : '',
     voorschot: vs ? `${vs.from} schiet het voor${vs.gift ? `: +€${vs.gift}` : ''}` : '',

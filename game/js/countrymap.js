@@ -23,9 +23,12 @@ export const MAP_STYLE = {
   allot: '#2f4f33', sports: '#2f5c36', business: '#333a36', rail: '#55524c', railTie: '#d8d4c8', turbine: '#e8eae8',
   roadMin: 1.4, majorMin: 2.4,
 };
+// the minimap matches the city minimap (hud_panel.js): its road colours and
+// widths (real width, 3 m at least), cycleways in red, buildings in the same
+// varied palette
 export const MINI_STYLE = {
-  meadow: '#3e4c39', park: '#5a8445', ditch: '#3a86a8', water: '#3a86a8', road: '#a8ada2', major: '#f0ede4', minor: '#a8ada2',
-  building: '#b98a6a', church: '#8a8474', tree: '#34562c', village: '#4b5c41',
+  meadow: '#3e4c39', park: '#5a8445', ditch: '#3a86a8', water: '#3a86a8', road: '#a8ada2', major: '#f0ede4', minor: '#a8ada2', cycle: '#c9603f',
+  building: '#b98a6a', buildings: ['#b98a6a', '#9a8a7a', '#c9a876', '#8a96a0', '#a88a9a'], roadMetres: 3, church: '#8a8474', tree: '#34562c', village: '#4b5c41',
   allot: '#55733f', sports: '#5a8445', business: '#8a96a0', rail: '#55524c', railTie: '#d8d4c8', turbine: '#f0f0ee',
   roadMin: 3, majorMin: 3,
 };
@@ -115,12 +118,14 @@ function drawReal(ctx, x0, y0, x1, y1, pxPerM, st) {
   }
   if (pxPerM > 0.2) {
     ctx.fillStyle = st.building;
+    const pal = st.buildings;
     for (let tx = Math.floor(x0 / RTILE); tx <= Math.floor(x1 / RTILE); tx++) {
       for (let ty = Math.floor(y0 / RTILE); ty <= Math.floor(y1 / RTILE); ty++) {
         const L = buildingsInTile(tx, ty);
         if (!L) continue;
         for (const i of L) {
           if (pxPerM < 0.5 && REAL.bw[i] * REAL.bl[i] < 60) continue;
+          if (pal) ctx.fillStyle = pal[Math.floor(chash(REAL.bx[i], REAL.by[i]) * pal.length) % pal.length];
           rotRect(ctx, REAL.bx[i], REAL.by[i], REAL.bw[i], REAL.bl[i], REAL.ba[i]);
         }
       }
@@ -129,12 +134,12 @@ function drawReal(ctx, x0, y0, x1, y1, pxPerM, st) {
   for (const k of ROAD_ORDER) {
     if (k === 7 && pxPerM < 0.12) continue;
     const major = k <= 4;
-    ctx.strokeStyle = major ? st.major : k >= 6 ? st.minor : st.road;
     for (const r of REAL.roads) {
       if (r.kind !== k) continue;
       if (!r.box) r.box = boxOf(r.pts, r.w);
       if (r.box[2] < x0 || r.box[0] > x1 || r.box[3] < y0 || r.box[1] > y1) continue;
-      ctx.lineWidth = Math.max(px(major ? st.majorMin : st.roadMin * (k === 7 ? 0.7 : 1)), r.w);
+      ctx.strokeStyle = r.cycle && st.cycle ? st.cycle : major ? st.major : k >= 6 ? st.minor : st.road;
+      ctx.lineWidth = st.roadMetres ? Math.max(st.roadMetres, r.w) : Math.max(px(major ? st.majorMin : st.roadMin * (k === 7 ? 0.7 : 1)), r.w);
       line(ctx, r.pts);
     }
   }
@@ -493,7 +498,7 @@ export function villageLabels(x0, y0, x1, y1) {
 // layer is static, so it is drawn into world-aligned tiles once per zoom step
 // and blitted (drawing it live cost a fifth of a frame over the Ommeland);
 // at most one new tile per frame, a missing one shows the plain meadow.
-const MINI_TILE_PX = 256, MINI_PAD_PX = 6, MINI_TILES_MAX = 40, MINI_BUILDS = 1;
+const MINI_TILE_PX = 256, MINI_PAD_PX = 6, MINI_TILES_MAX = 56, MINI_BUILDS = 1;
 const miniTiles = new Map();
 
 function miniTile(tx, ty, lvl, T, scale, pxPerM, build) {
@@ -515,26 +520,36 @@ function miniTile(tx, ty, lvl, T, scale, pxPerM, build) {
   return t;
 }
 
-export function drawCountryMinimap(ctx, x0, y0, x1, y1, pxPerM = 1.2) {
-  const m = ctx.getTransform();
-  const dev = Math.hypot(m.a, m.b) || 1;
-  // zoom steps of a half octave, drawn at the next step up
-  const lvl = Math.ceil(Math.log2(dev) * 2);
+// While the minimap zooms (it does with speed) the tiles of the new zoom step
+// are built one per frame; until they are all there, the last complete step
+// is drawn underneath, scaled, so the Ommeland never drops to plain meadow.
+let fullLvl = null;
+function drawLevel(ctx, x0, y0, x1, y1, lvl, dev, pxPerM, build) {
   const scale = 2 ** (lvl / 2);
   const T = MINI_TILE_PX / scale;
-  let built = 0;
-  ctx.save();
-  ctx.imageSmoothingEnabled = true;
   // a hair of overlap so the rotated tiles never show a seam
   const e = 0.6 / dev;
+  let built = 0, missing = 0;
   for (let ty = Math.floor(y0 / T); ty <= Math.floor(y1 / T); ty++) {
     for (let tx = Math.floor(x0 / T); tx <= Math.floor(x1 / T); tx++) {
-      const t = miniTile(tx, ty, lvl, T, scale, pxPerM * scale / dev, built < MINI_BUILDS);
-      if (!t) continue;
+      const t = miniTile(tx, ty, lvl, T, scale, pxPerM * scale / dev, build && built < MINI_BUILDS);
+      if (!t) { missing++; continue; }
       if (t.fresh) { t.fresh = false; built++; }
       const sp = MINI_PAD_PX - e * scale;
       ctx.drawImage(t.c, sp, sp, MINI_TILE_PX + 2 * e * scale, MINI_TILE_PX + 2 * e * scale, tx * T - e, ty * T - e, T + 2 * e, T + 2 * e);
     }
   }
+  return missing;
+}
+
+export function drawCountryMinimap(ctx, x0, y0, x1, y1, pxPerM = 1.2) {
+  const m = ctx.getTransform();
+  const dev = Math.hypot(m.a, m.b) || 1;
+  // zoom steps of a half octave, drawn at the next step up
+  const lvl = Math.ceil(Math.log2(dev) * 2);
+  ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  if (fullLvl !== null && fullLvl !== lvl) drawLevel(ctx, x0, y0, x1, y1, fullLvl, dev, pxPerM, false);
+  if (!drawLevel(ctx, x0, y0, x1, y1, lvl, dev, pxPerM, true)) fullLvl = lvl;
   ctx.restore();
 }
