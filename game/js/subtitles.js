@@ -8,6 +8,7 @@
 //
 // Adding a Frisian line: add `'<exact text>': '<Dutch>'` to FY. voice_coverage
 // fails on any spoken line that reads as Frisian (looksFrisian) without one.
+import { MODS, grunnify } from './cheatmods.js';
 
 export const FY = {
   // the definitive script (docs/verhaal/D-definitief.md)
@@ -402,13 +403,13 @@ export function dualHtml(text, { gloss = false } = {}) {
   const nl = dutchFor(text);
   const g = gloss && glossOf(text, nl);
   if (g) return `${escHtml(g.pre + g.word)} <span class="nl-gloss" lang="nl">(${escHtml(g.nl)})</span>${escHtml(g.post)}`;
-  return escHtml(text ?? '') + (nl ? `<span class="nl-sub" lang="nl">${escHtml(nl)}</span>` : '');
+  return escHtml((MODS.gronings ? grunnify(text) : text) ?? '') + (nl ? `<span class="nl-sub" lang="nl">${escHtml(nl)}</span>` : '');
 }
 
 // Sets an element to a line plus its Dutch subtitle.
 export function setDualText(el, text, { gloss = false } = {}) {
   if (!el) return;
-  el.textContent = text ?? '';
+  el.textContent = (MODS.gronings ? grunnify(text) : text) ?? '';
   const nl = dutchFor(text);
   if (!nl) return;
   const g = gloss && glossOf(text, nl);
