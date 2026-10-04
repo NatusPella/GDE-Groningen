@@ -1486,6 +1486,15 @@ export { repaint as repaintVehicle };
 
 const shopVisits = {};
 
+// What the player has from the shops, for Spullen (spullen.js). Read only.
+export function inventoryShopState() {
+  return {
+    outfit: { ...state.outfit }, ownedOutfits: [...state.ownedOutfits], storyOutfit: state.storyOutfit,
+    heroUpgrades: [...state.heroUpgrades], stamps: state.stamps, stampCard: STAMP_CARD,
+    vehicles: state.vehicles.filter((o) => !o.lost).map((o) => ({ key: o.key, label: o.spec.label, kind: o.spec.kind, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])] })),
+  };
+}
+
 export function getShopVisits(type) {
   return shopVisits[type] || 0;
 }

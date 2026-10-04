@@ -90,6 +90,13 @@ const sayOnce = (w, key, text) => { if (said.has(key)) return; said.add(key); w.
 
 // --- save ------------------------------------------------------------------------
 
+// The furniture you bought, for Spullen (spullen.js): ready (built and in
+// place) or still to be delivered or built.
+export function furnitureOwned() {
+  return FURNITURE.filter((f) => state.owned.has(f.id)).map((f) => ({ ...f, ready: has(f.id), pending: state.pending.has(f.id) }));
+}
+export const FURNITURE_TOTAL = TOTAL;
+
 export function getFurnitureSave() {
   return { owned: [...state.owned], pending: [...state.pending], built: [...state.built], day: state.day, read: state.read, stek: state.stek, tips: [...state.tips], moment: state.moment };
 }

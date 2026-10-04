@@ -11,7 +11,7 @@ w.devInvuln = true;
 teleport(100, 77); await sleep(2000);
 
 await act('pause-tabs', async () => {
-  for (const t of ['game', 'map', 'missions', 'garage', 'prestaties', 'settings', 'controls']) {
+  for (const t of ['game', 'telefoon', 'map', 'missions', 'spullen', 'garage', 'prestaties', 'settings', 'controls']) {
     PM.openPauseMenu(t); await sleep(500);
     if (!PM.isPauseMenuOpen()) issue('pause', `tab ${t} did not open`);
     const sel = document.querySelector(`#pause-menu [data-tab="${t}"][aria-selected="true"]`);
