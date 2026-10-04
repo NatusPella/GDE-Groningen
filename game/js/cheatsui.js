@@ -22,7 +22,8 @@ const CSS = `
   #pause-menu .st-tag.st-yes { color: #3fc97a; }
   #pause-menu .pm-row small em { font-style: normal; color: #3fc97a; }
   #pause-menu .pm-row small i { font-style: normal; color: rgba(240,237,228,0.75); }
-  #pause-menu .st-locked > span:first-child { color: rgba(240,237,228,0.5); letter-spacing: 2px; }
+  #pause-menu .st-locked > span:first-child { color: rgba(240,237,228,0.5); }
+  #pause-menu .pm-streken .pm-row > .pm-secondary { font-size: 19px; letter-spacing: 1px; padding: 8px 16px 6px; min-height: 0; }
   #pause-menu .st-pick { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 12px; }
   #pause-menu .st-pick button { font: 15px 'Arial Narrow', Arial, sans-serif; padding: 7px 12px; border-radius: 8px; color: #f0ede4; cursor: pointer; }
   #pause-menu .st-pick button small { margin-left: 6px; color: rgba(240,237,228,0.55); }
