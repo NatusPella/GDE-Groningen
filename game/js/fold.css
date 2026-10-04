@@ -80,3 +80,5 @@ html.reduce-motion #pause-menu.visible .pm-fold { animation: none; }
   #pause-menu .pm-q-head { margin-bottom: 6px; }
   #pause-menu .pm-q-head b { font-size: 30px; }
 }
+/* the rail scrolls when it is taller than the screen: nothing in it squeezes */
+#pause-menu .pm-game > * { flex-shrink: 0; }

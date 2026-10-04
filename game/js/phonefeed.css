@@ -124,7 +124,9 @@
 
 /* The cards are the folded Pixie Vouw 11: its narrow cover screen, a slim
    bezel, the hinge down the left side and a punch-hole camera on top. */
-#hud .phonefeed { width: min(320px, calc(40vw / var(--ui, 1))); }
+#hud .phonefeed { width: min(276px, calc(40vw / var(--ui, 1))); }
+#hud .pf-callcard { min-height: 132px; }
+#hud .pf-call-head { flex-wrap: wrap; }
 #hud .pf-card, #hud .pf-callcard {
   border: 5px solid #111613;
   border-left: 9px solid #1a201c;
