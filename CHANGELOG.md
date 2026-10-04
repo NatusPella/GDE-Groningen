@@ -24,6 +24,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   konden zo buiten de bouwtekening of in het kanaal belanden. Nu staan ze
   altijd op droge grond langs de route vanaf het startpunt. De verhaaltest
   controleert dat, en ook dat geen enkele filmcamera buiten de wereld staat.
+- **Je auto laten afleveren werkt nu ook in het Ommeland.** De bezorger
+  zocht alleen een parkeerplek in de stad en gaf het buiten de stad op; nu
+  zet hij je auto in de berm van de dichtstbijzijnde landweg. Een auto die
+  je in het Ommeland hebt geparkeerd staat er na het laden ook nog.
 
 ## [0.26.1] - 2026-10-04
 
