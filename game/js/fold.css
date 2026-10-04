@@ -71,3 +71,12 @@ html.reduce-motion #pause-menu.visible .pm-fold { animation: none; }
 #pause-menu .sp-ico .pm-ic { width: 28px; height: 28px; color: var(--pm-acc); opacity: 1; }
 #pause-menu .sp-thumb { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 14px; background: #10261a; border: 1px solid rgba(63, 201, 122, 0.25); }
 #pause-menu .sp-thumb .pm-ic { width: 40px; height: 40px; color: var(--pm-acc); opacity: 1; }
+
+/* two more sections (Telefoon, Spullen) and the phone's frame: a tighter rail on shorter screens */
+@media (max-height: 1100px) {
+  #pause-menu .pm-fold { margin-top: clamp(4px, 1.2vh, 16px); margin-bottom: clamp(4px, 1.2vh, 16px); }
+  #pause-menu .pm-game > button.pm-q-nav { min-height: 37px; padding: 6px 12px 4px; font-size: 19px; }
+  #pause-menu .pm-game > .pm-q-main { min-height: 42px; margin-bottom: 6px; }
+  #pause-menu .pm-q-head { margin-bottom: 6px; }
+  #pause-menu .pm-q-head b { font-size: 30px; }
+}

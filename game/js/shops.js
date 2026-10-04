@@ -1612,7 +1612,7 @@ function claimUnlocks(world) {
   for (const [key, spec] of Object.entries(VEHICLE_STOCK)) {
     if (!spec.unlock || state.vehicles.some((o) => o.key === key) || !unlockMet(spec)) continue;
     state.vehicles.push({ key, spec, color: spec.color, upgrades: [], v: null, lost: false });
-    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat thuis in je garage. Haal hem daar op, of laat hem afleveren via je telefoon (T)`, 6);
+    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat thuis in je garage. Haal hem daar op, of laat hem afleveren via je telefoon (Esc, Garage)`, 6);
   }
 }
 

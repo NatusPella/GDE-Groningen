@@ -284,12 +284,12 @@ export function renderPhonePanel(panel, w, sub) {
   panel.dataset.phSub = sub;
   const list = panel.querySelector(`[data-of="telefoon"][data-sub="${sub}"]`);
   if (sub === 'berichten') {
+    if (thread) markRead(thread);
     const ts = phoneThreads(w);
     if (thread && !ts.some((t) => t.from === thread)) thread = null;
     list.innerHTML = ts.length
       ? `<h2>Berichten <small>nieuwste eerst</small></h2><div class="td-grid ph-grid">${ts.map(threadCard).join('')}</div>`
       : '<p class="pm-note">Nog geen berichten. Grunn is rustig… nog wel.</p>';
-    if (thread) markRead(thread);
   } else {
     list.innerHTML = `<h2>Contacten <small>bel voor een rit, een klus of een praatje</small></h2><div class="td-grid ph-grid">${contacts(w).map(contactCard).join('')}</div>`;
   }
