@@ -340,16 +340,20 @@ export function buildFlat3D(flat, skip = new Set()) {
   box(g, M.steel, k.fridge.x - 0.2, 1.1, k.fridge.z - 0.36, 0.04, 0.5, 0.03);
   box(g, M.wood, k.table.x, 0.75, k.table.z, 1.1, 0.05, 0.8);
   for (const [ex, ez] of [[-0.48, -0.32], [0.48, -0.32], [-0.48, 0.32], [0.48, 0.32]]) box(g, M.wood, k.table.x + ex, 0.37, k.table.z + ez, 0.05, 0.74, 0.05);
-  // bedroom: double bed, wardrobe
+  // two small bedrooms: a single bed and a wardrobe each (the stock beds are an air mattress on a frame)
   if (!skip.has('bed')) {
-    box(g, M.wood, s.bed.x, 0.2, s.bed.z, 1.7, 0.4, 2.1);
-    box(g, M.bed, s.bed.x, 0.48, s.bed.z, 1.6, 0.16, 2.0);
-    box(g, M.duvet, s.bed.x, 0.58, s.bed.z - 0.25, 1.64, 0.08, 1.4);
-    for (const e of [-1, 1]) box(g, M.white, s.bed.x + e * 0.4, 0.62, s.bed.z + 0.75, 0.62, 0.12, 0.36);
-    box(g, M.wood, s.bed.x, 0.75, s.bed.z + 1.02, 1.7, 0.7, 0.08);
+    for (const b of [s.bed, s.bed2]) {
+      box(g, M.wood, b.x, 0.15, b.z, 0.95, 0.3, 2.0);
+      box(g, M.bed, b.x, 0.38, b.z, 0.9, 0.16, 1.92);
+      box(g, M.duvet, b.x, 0.48, b.z - 0.25, 0.92, 0.06, 1.3);
+      box(g, M.white, b.x, 0.52, b.z + 0.72, 0.6, 0.12, 0.34);
+    }
   }
   box(g, M.wood, s.wardrobe.x, 1.0, s.wardrobe.z, 1.6, 2.0, 0.6);
   box(g, M.frame, s.wardrobe.x, 1.0, s.wardrobe.z - 0.31, 0.02, 1.8, 0.01);
+  const w2 = s.wardrobe2;
+  box(g, M.wood, w2.x, 1.0, w2.z, 0.6, 2.0, 1.6);
+  box(g, M.frame, w2.x - 0.31, 1.0, w2.z, 0.01, 1.8, 0.02);
   // a lamp in every room: the flat reads at night too
   for (const r of flat.rooms) box(g, M.lamp, (r.x0 + r.x1) / 2, 2.7, (r.z0 + r.z1) / 2, 0.4, 0.04, 0.4);
   g.position.set(flat.ox, flat.floorY, flat.oy);
