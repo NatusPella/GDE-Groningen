@@ -76,7 +76,7 @@ const CAST = {
   'Rotor Roelf': { voice: 'Achird', who: 'joviale Groningse helikopterverkoper van vliegveld Eelde, verkoperig, praat een beetje Gronings', pool: ['joviaal, verkoperig', 'gemoedelijk, waarschuwend'] },
   // phone messages read aloud (sms manifest): the Kiekdoar newsreader and the phone's own app voice
   'Kiekdoar-redactie': { voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor', pool: ['als een nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog'] },
-  // Geesje presents the talk station Radio Proat on the car radio (radiostations.js)
+  // Geesje presents Radio Proat, the talk programmes on G-Music (radio.js)
   Geesje: { voice: 'Pulcherrima', who: 'Groningse radiopresentatrice van praatzender Radio Proat, warm en droog', pool: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice'] },
   Ubbo: { voice: 'Laomedeia', who: 'de vriendelijke stem van de telefoon-app Ubbo', pool: ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'], accent: 'spoken in standard Dutch, clear and friendly like a phone assistant' },
 };

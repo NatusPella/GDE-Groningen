@@ -158,11 +158,12 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 **UI en geluid** (`claude/maus-ui`)
 - [x] Hoofdmenu, Afsluiten en Opnieuw beginnen in het pauzemenu zijn echte knoppen van 44 px. Opnieuw beginnen staat apart en vraagt om bevestiging. Gecontroleerd op 1920×1080 en 1280×800.
-- [x] Eén radio: G-Music, Nachtstreek, Radio Proat en uit in één lijst. N en B werken overal, LB in een voertuig, en de lijst staat ook in Instellingen › Geluid. De zender blijft in je save (`radio`).
+- [x] Eén radio voor het hele spel, te voet en in elk voertuig. De keuze blijft in je save (`radio`).
+- [x] Eén zender (G-Music) met programma's in plaats van vier zenders: Proat in de ochtend, De hits, Avondproat en vanaf 22:00 Nachtstreek (`PROGRAMMES` in `musicpick.js`). Om de 2 of 3 nummers een praatje van bestaande opnames (Geesje, Kiekdoar-nieuws en `audio/nieuws`, verkeer, weer, de koeien, Rikus). N zet hem aan of uit; `radio` in de save is `on`/`off` (save v3 zet oude zenders op `on`).
 - [x] Muziekkeuze met een geschiedenis (`musicpick.js`): geen herhaling binnen ~60% van de pool, nummers die lang niet speelden wegen zwaarder, nachtnummers 's nachts, een eigen pool per zender en minder jingles. `node scripts/music_pick_test.mjs` test het.
 - [ ] De indeling van Nachtstreek en dag/nacht in `audio/gmusic/manifest.json` naluisteren. Die is nu gekozen op de titels.
-- [ ] Nieuwe muziek maken volgens [docs/MUZIEK.md](docs/MUZIEK.md). Het doel: 40 nummers op G-Music, 20 of meer op Nachtstreek en jingles per zender. Nu zijn het er 14 en 6.
-- [?] Een knop voor de radio te voet op de controller. Alle knoppen zijn daar al bezet, dus het gaat nu via het pauzemenu.
+- [ ] Nieuwe muziek maken volgens [docs/MUZIEK.md](docs/MUZIEK.md). Het doel per programmablok: 40 nummers in de dagpool (waarvan 10 voor de ochtend en 8 voor de avond), 20 of meer voor Nachtstreek, en jingles per blok. Nu zijn het er 14 en 6.
+- [x] De radio op de controller: er is niets meer om tussen te wisselen, alleen aan/uit. Dat doet LB in een voertuig; te voet zijn alle knoppen bezet, dus daar gaat het via Instellingen › Geluid. Geen eigen knop te voet nodig.
 
 ## Juridisch en publiceren (vóór 1.0)
 
