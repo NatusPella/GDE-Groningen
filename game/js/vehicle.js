@@ -306,6 +306,7 @@ function playerTune(v) {
   if (v.isScooter) return { top: 10 * up, accel: 5.5 * upA, brake: 6.5 };
   // Shift on a bike: a short sprint of harder pedalling (player.js sprintT)
   const sprint = v.isBike && v.sprintT > 0 ? BIKE_SPRINT_TOP : 1, sprintA = sprint > 1 ? BIKE_SPRINT_ACCEL : 1;
+  if (v._mount === 'horse') return { top: (v.sprintT > 0 ? 13 : 7.5) * up, accel: (v.sprintT > 0 ? 5.5 : 3.4) * upA, brake: 7 };
   if (v.isBike) return m.fat ? { top: 17 * up * sprint, accel: 7.2 * upA * sprintA, brake: 9 } : { top: 11.5 * up * sprint, accel: 4.6 * upA * sprintA, brake: 8.5 };
   if (MODS.turbo && v.isHeroCar) return { top: Math.min(m.maxSpeed * 1.6, MAX_CAR_SPEED + 12), accel: m.accel * 1.9, brake: m.brake * 1.2 };
   return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel, brake: m.brake };

@@ -12,7 +12,9 @@ import './node3d.mjs';
 
 const THREE = await import('three');
 await import('../game/js/player.js');
-const { buildVehicleMesh } = await import('../game/js/models3d_vehicles.js');
+const { buildVehicleMesh, setHorseMeshBuilder } = await import('../game/js/models3d_vehicles.js');
+const { buildHorseMesh } = await import('../game/js/countryside.js');
+setHorseMeshBuilder(buildHorseMesh);
 const { vehicleSeat } = await import('../game/js/seating3d.js');
 const { buildPersonMesh, seatPose, seatedY, standBehindPose, supPose, PERSON_RIG } = await import('../game/js/models3d_people.js');
 const { TRAFFIC_MODELS, MOPED_MODEL } = await import('../game/js/vehicle.js');
@@ -111,8 +113,9 @@ function seatFigure(mesh, v, seat) {
   const hip = worldOf(ud.pelvis, 0, 0, 0);
   const hands = [ud.elbowL, ud.elbowR].map((e) => worldOf(e, 0, -R.FOREARM, 0));
   const feet = [ud.kneeL, ud.kneeR].map((k) => worldOf(k, 0, -R.SHIN_LEN, 0));
+  const knees = [ud.kneeL, ud.kneeR].map((k) => worldOf(k, 0, 0, 0));
   p.removeFromParent();
-  return { head, headTop, hip, hands, feet };
+  return { head, headTop, hip, hands, feet, knees };
 }
 
 const f2 = (n) => (n >= 0 ? ' ' : '') + n.toFixed(2);
@@ -134,14 +137,27 @@ function check(label, v, driver) {
     if (f.headTop.y > glass.max.y + 0.12) issues.push(`head top ${f.headTop.y.toFixed(2)} through roof ${glass.max.y.toFixed(2)}`);
     if (glass.max.y - f.headTop.y > 0.75) issues.push(`head ${f.headTop.y.toFixed(2)} sunk far below roof ${glass.max.y.toFixed(2)}`);
   }
-  if (!v.isBike && !v.isScooter) {
+  if (seat.horse) {
+    // barrel of countryside.js' horse: centre y 1.33, half height 0.33, half width ~0.27
+    const barrelHalf = (y) => (Math.abs(y - 1.33) >= 0.33 ? 0 : 0.27 * Math.sqrt(1 - ((y - 1.33) / 0.33) ** 2));
+    if (Math.abs(f.hip.y - 1.78) > 0.12) issues.push(`hip y ${f.hip.y.toFixed(2)} not on the saddle`);
+    if (f.hip.x < -0.74 || f.hip.x > 0.4 || Math.abs(f.hip.z) > 0.05) issues.push(`hip x ${f.hip.x.toFixed(2)} off the back`);
+    for (const pt of [...f.knees, ...f.feet]) {
+      if (Math.abs(pt.z) < barrelHalf(pt.y) + 0.03) issues.push(`leg point (${pt.y.toFixed(2)}, z ${pt.z.toFixed(2)}) inside the barrel`);
+    }
+    for (const ft of f.feet) {
+      if (ft.y < 0.6 || ft.y > 1.3) issues.push(`foot y ${ft.y.toFixed(2)} not hanging along the flank`);
+      if (Math.abs(ft.z) > 0.6) issues.push(`foot z ${ft.z.toFixed(2)} sticking out`);
+    }
+    if (f.feet[0].z * f.feet[1].z >= 0) issues.push('both legs on one side (not astride)');
+  } else if (!v.isBike && !v.isScooter) {
     if (driver && !v.isBoat && Math.min(...f.hands.map((h) => h.x)) < f.hip.x + 0.15) issues.push('hands not ahead of the hip');
     for (const ft of f.feet) {
       if (ft.y < (v.isBoat ? -0.3 : 0.25)) issues.push(`foot y ${ft.y.toFixed(2)} below the floor`);
       if (ft.x > body.max.x - 0.05 || ft.x < body.min.x) issues.push(`foot x ${ft.x.toFixed(2)} outside the body`);
     }
   }
-  if (f.hip.x > body.max.x || f.hip.x < body.min.x || Math.abs(f.hip.z) > Math.max(body.max.z, -body.min.z)) issues.push('hip outside the body');
+  if (!seat.horse && (f.hip.x > body.max.x || f.hip.x < body.min.x || Math.abs(f.hip.z) > Math.max(body.max.z, -body.min.z))) issues.push('hip outside the body');
   problems += issues.length ? 1 : 0;
   const tag = `${label.padEnd(24)} ${driver ? 'driver ' : 'passngr'}`;
   const nums = `seat(${f2(seat.x)},${f2(seat.y)},${f2(seat.z)}) head(${f2(f.head.x)},${f2(f.head.y)},${f2(f.head.z)})` + (glass ? ` glass x${f2(glass.min.x)}..${f2(glass.max.x)} y${f2(glass.min.y)}..${f2(glass.max.y)}` : '');
@@ -161,6 +177,8 @@ for (const m of twoWheel) {
 }
 check('brommer', { model: { ...MOPED_MODEL }, isScooter: true }, true);
 check('brommer', { model: { ...MOPED_MODEL }, isScooter: true }, false);
+const HORSE = { name: 'horse', len: 2.4, wid: 0.75, maxSpeed: 9.2, accel: 3.2, brake: 6, turnRate: 3.2, color: '#6b3f22', rider: '#1c3fae', coat: 0 };
+for (const d of [true, false]) check('politiepaard', { model: { ...HORSE }, isBike: true, _mount: 'horse' }, d);
 for (const [k, m] of Object.entries(BOAT_KINDS)) for (const d of [true, false]) check('boat ' + k, { model: { ...m }, isBoat: true }, d);
 check('politieboot', { model: { ...BOAT_KINDS.sloep, cabin: '#12294f' }, isBoat: true, isPolice: true }, true);
 console.log(problems ? `\n${problems} seat(s) with problems` : '\nall seats ok');

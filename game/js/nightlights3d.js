@@ -492,7 +492,7 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
   const cand = [];
   for (const v of world.vehicles) {
     const mesh = vehicleMeshes.get(v.id);
-    if (!mesh) continue;
+    if (!mesh || v._mount === 'horse') continue;
     const on = vehicleLightsOn(v);
     // boats: nav lights only (dim coloured glass by day), no road cones
     const k = v.isBoat ? (on ? 0.45 + lightsOn * 5.5 : 0.45) : on ? glow : v.wrecked ? 0.12 : UNLIT_LAMP;

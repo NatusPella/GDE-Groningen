@@ -262,6 +262,7 @@ function vehicleVerb(v) {
   if (v.isPolice) return { label: 'Jatten', steal: true };
   if (v.parked) return { label: v.isBus ? 'Bus jatten' : 'Auto jatten', steal: true };
   if (v.isBoat) return occupied ? { label: 'Kapen', steal: true } : { label: 'Aan boord' };
+  if (v._mount === 'horse') return occupied ? { label: 'Paard jatten', steal: true } : { label: 'Opstijgen' };
   if (v.isBike) return occupied ? { label: 'Fiets jatten', steal: true } : { label: 'Opstappen' };
   if (v.isScooter) return occupied ? { label: 'Jatten', steal: true } : { label: 'Opstappen' };
   if (v.isBus) return occupied ? { label: 'Bus kapen', steal: true } : { label: 'Instappen' };
