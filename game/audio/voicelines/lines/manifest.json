@@ -107,6 +107,10 @@
 "src": "anita/daar_in_het_oosterpark_een_ballo_963049b4.mp3",
 "dur": 4.1
 },
+"Anita|Daarom weet ik het niet zeker.": {
+"src": "anita/daarom_weet_ik_het_niet_zeker_b2cb757c.mp3",
+"dur": 1.99
+},
 "Anita|Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.": {
 "src": "anita/daarom_paddepoel_elfde_verdiepin_29148dbb.mp3",
 "dur": 5.27
@@ -126,6 +130,10 @@
 "Anita|Dan halen we nieuwe. Die kippen leggen wel door.": {
 "src": "anita/dan_halen_we_nieuwe_die_kippen_l_ed98669e.mp3",
 "dur": 3.59
+},
+"Anita|Dan heb je lang de tijd om het op te zoeken.": {
+"src": "anita/dan_heb_je_lang_de_tijd_om_het_o_f3bfcf7a.mp3",
+"dur": 2.02
 },
 "Anita|Dan is het een goed bierviltje.": {
 "src": "anita/dan_is_het_een_goed_bierviltje_07293442.mp3",
@@ -531,6 +539,10 @@
 "src": "anita/hij_bedankt_ons_425a025f.mp3",
 "dur": 2.16
 },
+"Anita|Hoe hoog is de Martinitoren?": {
+"src": "anita/hoe_hoog_is_de_martinitoren_a2de8cb8.mp3",
+"dur": 1.96
+},
 "Anita|Hoe wist jij dat hij hier was?": {
 "src": "anita/hoe_wist_jij_dat_hij_hier_was_5e049787.mp3",
 "dur": 1.52
@@ -614,6 +626,10 @@
 "Anita|Ik wacht wel bij Henk. Jij valt in slaap in je koffie.": {
 "src": "anita/ik_wacht_wel_bij_henk_jij_valt_i_7ad1251f.mp3",
 "dur": 3.32
+},
+"Anita|Ik wacht wel thuis. Jij valt in slaap op de bank.": {
+"src": "anita/ik_wacht_wel_thuis_jij_valt_in_s_580972ed.mp3",
+"dur": 3.85
 },
 "Anita|In Grunn is tijdelijk een rekbaar begrip.": {
 "src": "anita/in_grunn_is_tijdelijk_een_rekbaa_ed8fcca2.mp3",
@@ -818,6 +834,10 @@
 "Anita|Mooi. We kopen hem misschien. Misschien.": {
 "src": "anita/mooi_we_kopen_hem_misschien_miss_6b7c9ddc.mp3",
 "dur": 2.96
+},
+"Anita|Morgen ben jij de gids op die boot. Wat weet je eigenlijk van Grunn?": {
+"src": "anita/morgen_ben_jij_de_gids_op_die_bo_bdd70ae0.mp3",
+"dur": 3.39
 },
 "Anita|Morgen beter. We moeten nog inbakken.": {
 "src": "anita/morgen_beter_we_moeten_nog_inbak_aaee8cc8.mp3",
@@ -1055,6 +1075,10 @@
 "src": "anita/voor_de_grip_7a6af210.mp3",
 "dur": 1.27
 },
+"Anita|Wachten is het ergste deel van een kraak.": {
+"src": "anita/wachten_is_het_ergste_deel_van_e_ee47022d.mp3",
+"dur": 2.52
+},
 "Anita|Wat?": {
 "src": "anita/wat_8e0c039a.mp3",
 "dur": 0.6
@@ -1099,6 +1123,10 @@
 "src": "anita/welkom_in_friesland_die_pijl_wij_20ef47cd.mp3",
 "dur": 5.38
 },
+"Anita|Welterusten, gids.": {
+"src": "anita/welterusten_gids_f7e69464.mp3",
+"dur": 1.36
+},
 "Anita|Wie de trap op loopt, krijgt uitzicht. En spierpijn.": {
 "src": "anita/wie_de_trap_op_loopt_krijgt_uitz_3636f446.mp3",
 "dur": 4.92
@@ -1122,6 +1150,10 @@
 "Anita|Zeg dat maar niet te hard. Hier zijn ze trots op hun eigen grachten.": {
 "src": "anita/zeg_dat_maar_niet_te_hard_hier_z_3d5aeba9.mp3",
 "dur": 4.07
+},
+"Anita|Zevenennegentig meter.": {
+"src": "anita/zevenennegentig_meter_2de3d87b.mp3",
+"dur": 1.92
 },
 "Anita|Zevenennegentig meter. De langste Stadjer die nooit verhuist.": {
 "src": "anita/zevenennegentig_meter_de_langste_e98edbd5.mp3",
@@ -1611,9 +1643,17 @@
 "src": "harm/wij_zijn_hier_sinds_2019_bezig_n_dc6ff6b8.mp3",
 "dur": 5.6
 },
+"Henk|En ik vraag niet waarom jullie nog op zijn.": {
+"src": "henk/en_ik_vraag_niet_waarom_jullie_n_3fa51516.mp3",
+"dur": 1.83
+},
 "Henk|Eén. Het is geen Ontzet. En ik vraag niet waarom jullie in het zwart zijn.": {
 "src": "henk/ee_n_het_is_geen_ontzet_en_ik_vr_6ae0a313.mp3",
 "dur": 4.29
+},
+"Henk|Henk. Garage Knalpot. Ik bel even of die bak van jullie nog rijdt. Er zit nou een zender in. Voor als hij ooit gejat wordt.": {
+"src": "henk/henk_garage_knalpot_ik_bel_even__0596218f.mp3",
+"dur": 7.23
 },
 "Henk|Jong, je Escapade heeft er een paar karaktertrekjes bij. Kom even langs, dan maak ik hem weer heel.": {
 "src": "henk/jong_je_escapade_heeft_er_een_pa_373f9725.mp3",
@@ -1630,6 +1670,10 @@
 "Henk|Kovvie mit kouke?": {
 "src": "henk/kovvie_mit_kouke_5d407eb5.mp3",
 "dur": 1.19
+},
+"Henk|Neem er een koekje bij. Eén. Het is geen Ontzet.": {
+"src": "henk/neem_er_een_koekje_bij_ee_n_het__44f45a70.mp3",
+"dur": 2.48
 },
 "Henk|Om twaalf uur 's nachts.": {
 "src": "henk/om_twaalf_uur_s_nachts_7d2cdc67.mp3",
@@ -2531,6 +2575,10 @@
 "src": "rikus/in_1977_82c870a7.mp3",
 "dur": 1.89
 },
+"Rikus|In Paddepoel, op de elfde verdieping, brandt 's avonds nog maar in één slaapkamer licht. Ik zeg niks.": {
+"src": "rikus/in_paddepoel_op_de_elfde_verdiep_7ce33cb2.mp3",
+"dur": 7.19
+},
 "Rikus|Jelle, ben jij nu een vaste beller?": {
 "src": "rikus/jelle_ben_jij_nu_een_vaste_belle_4d5c845b.mp3",
 "dur": 2.2
@@ -2927,6 +2975,10 @@
 "src": "tammo/alles_van_jelle_is_sneller_dan_h_80bd06d3.mp3",
 "dur": 2.18
 },
+"Tammo|Alles. Ik woon hier mijn hele leven.": {
+"src": "tammo/alles_ik_woon_hier_mijn_hele_lev_9ade4147.mp3",
+"dur": 2.14
+},
 "Tammo|Behalve nu.": {
 "src": "tammo/behalve_nu_cc056e9e.mp3",
 "dur": 1.17
@@ -2974,6 +3026,10 @@
 "Tammo|Dat weet niemand. Behalve Friezen.": {
 "src": "tammo/dat_weet_niemand_behalve_friezen_d8106c89.mp3",
 "dur": 2.05
+},
+"Tammo|Dat zei ik. Hoog.": {
+"src": "tammo/dat_zei_ik_hoog_a7c2a7a6.mp3",
+"dur": 1.32
 },
 "Tammo|De Grote Markt is voor mij. Spullen omver, mensen niet.": {
 "src": "tammo/de_grote_markt_is_voor_mij_spull_e2eb1996.mp3",
@@ -3223,6 +3279,10 @@
 "src": "tammo/het_is_jouw_droom_jij_kiest_7d48df3a.mp3",
 "dur": 1.76
 },
+"Tammo|Het is negen uur.": {
+"src": "tammo/het_is_negen_uur_1014455b.mp3",
+"dur": 1.29
+},
 "Tammo|Het is vandalisme.": {
 "src": "tammo/het_is_vandalisme_22dfc978.mp3",
 "dur": 1.99
@@ -3311,6 +3371,10 @@
 "src": "tammo/hoe_weet_jij_wat_pompeble_den_zi_14dc7b4a.mp3",
 "dur": 1.95
 },
+"Tammo|Hoog.": {
+"src": "tammo/hoog_f2969033.mp3",
+"dur": 0.63
+},
 "Tammo|Hopelijk rekenen ze niks.": {
 "src": "tammo/hopelijk_rekenen_ze_niks_4282b826.mp3",
 "dur": 1.42
@@ -3358,6 +3422,10 @@
 "Tammo|Ik ga naar Knal & Kolder. Ik weet precies welk geluid ik wil.": {
 "src": "tammo/ik_ga_naar_knal_kolder_ik_weet_p_ebc3d35b.mp3",
 "dur": 2.85
+},
+"Tammo|Ik ga wel naar huis. Iemand moet de afwas doen.": {
+"src": "tammo/ik_ga_wel_naar_huis_iemand_moet__3fa895c5.mp3",
+"dur": 2.47
 },
 "Tammo|Ik had er meer. Die waren minder goed.": {
 "src": "tammo/ik_had_er_meer_die_waren_minder__07a2a32a.mp3",
@@ -3818,6 +3886,10 @@
 "Tammo|We hebben een trein. Dit wordt een lang verhaal.": {
 "src": "tammo/we_hebben_een_trein_dit_wordt_ee_a8af4bcf.mp3",
 "dur": 2.59
+},
+"Tammo|We hebben nog nooit een kraak gedaan.": {
+"src": "tammo/we_hebben_nog_nooit_een_kraak_ge_0807c653.mp3",
+"dur": 1.66
 },
 "Tammo|We varen onder de Herebrug door.": {
 "src": "tammo/we_varen_onder_de_herebrug_door_481908a1.mp3",
@@ -5882,6 +5954,10 @@
 "~m|Tegen t glas, en weg is e!": {
 "src": "bubbles/m/tegen_t_glas_en_weg_is_e_a7bfa40d.mp3",
 "dur": 2.23
+},
+"~m|Thuis wachten. Zoals normale mensen. Normale mensen in het zwart.": {
+"src": "bubbles/m/thuis_wachten_zoals_normale_mens_25f94483.mp3",
+"dur": 3.64
 },
 "~m|Top! Nu alleen nog uitvinden hoe de verwarming werkt.": {
 "src": "bubbles/m/top_nu_alleen_nog_uitvinden_hoe__358456dd.mp3",

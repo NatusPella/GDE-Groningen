@@ -49,6 +49,8 @@
 //            a Frisian line's Dutch subtitle comes from subtitles.js FY (keyed by the text).
 //   scene    { kicker, lines, cast, props }: (activity) a short cutscene where the step is done
 //            (storyfun.js); lines [who, text, { tag, clue }], who 'T' | 'A' | a missionstory.js NPC key
+//   homeScene { big, clock, lines }: (night/home goal) a short scene a moment after the player is up in
+//            the flat (story.js updateHomeWait); clock: the hour it plays at; lines [who, text, { tag }]
 //   meet     the same, played once when the player reaches the step's starting spot
 //            (Rotor Roelf by his demo heli for a flight goal; Durk & Douwe at the court for padel)
 //
@@ -61,7 +63,8 @@
 //                                     (an array routes to the nearest of several types)
 //   { type: 'pigeon', spot, score }   poop score >= score in one flight (spot: pigeonspots.js id)
 //   { type: 'sideJob', job }          one more round of that side job (sidejobs.js id, or an array: any of them)
-//   { type: 'night' }                 wait at a garage until it's dark (or it already is)
+//   { type: 'night' }                 wait at home until it's dark (with a homeScene: until that scene played)
+//   { type: 'home' }                  go home and up to the flat: the step's homeScene plays there
 //   { type: 'train' }                 one train trip (stationtravel.js), routed to the nearest station
 //   { type: 'hideout', options }      one of HIDEOUTS, the player's pick: a train trip or walking up to
 //                                     a spot; its scene and done text follow (storyfun.js)
@@ -149,6 +152,7 @@ export const PARTS = {
       ['Rikus', 'De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en met twee namen op het bordje.'],
       ['Rikus', 'Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs.'],
       ['Rikus', 'De torenwachter belde: "Lange rij bij de Vismarkt. Ik meld alleen."'],
+      ['Rikus', 'In Paddepoel, op de elfde verdieping, brandt \'s avonds nog maar in één slaapkamer licht. Ik zeg niks.'],
       ['Rikus', 'Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen.'],
       ['Rikus', 'En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald.'],
       ['Rikus', 'Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi.']] },
@@ -279,12 +283,24 @@ export const STEPS = [
     voorschot: { from: 'Sjabbe', text: 'Voor het museum wil je niet opvallen. Hier, een voorschot. Ik reken op jullie.' },
     lead: ['T', 'Drie minuten zonder camera\'s, om twaalf uur. Dus niet opvallen: zwart incognito bij Stoer & Stads, of via het water met een bootje van Bootje Huren.'],
     say: ['T', 'Zwart staat jou goed. Mij staat alles slecht, dus dat maakt niet uit.'],
-    done: ['T', 'Nou zijn we echte boeven. Met bonnetje. Nu nog wachten tot middernacht, bij Henk.'] },
-  { id: 'k-nacht', part: 'kop', kind: 'activity', player: 'anita', built: true, why: 'Ik wacht wel bij Henk. Jij valt in slaap in je koffie.',
-    title: 'Wachten bij Henk tot middernacht', goal: { type: 'night' }, waive: 'night',
-    lead: ['T', 'Om twaalf uur gaan de camera\'s uit. Tot die tijd wachten we bij Henk, in de garage.'],
-    say: ['T', 'Henk heeft koffie. Henk vraagt nooit waarom.'],
-    done: ['T', 'Middernacht. Drie minuten. Het is tijd.'] },
+    done: ['T', 'Nou zijn we echte boeven. Met bonnetje. Nu nog wachten tot middernacht, thuis.'] },
+  { id: 'k-nacht', part: 'kop', kind: 'activity', player: 'anita', built: true, why: 'Ik wacht wel thuis. Jij valt in slaap op de bank.',
+    title: 'Thuis wachten tot middernacht', goal: { type: 'night' }, waive: 'night',
+    lead: ['T', 'Om twaalf uur gaan de camera\'s uit. Tot die tijd wachten we thuis. Op de bank, of even slapen.'],
+    say: ['T', 'Thuis wachten. Zoals normale mensen. Normale mensen in het zwart.'],
+    done: ['T', 'Middernacht. Drie minuten. Het is tijd.'],
+    // Henk (Garage Knalpot) calls while they wait: his one koekje, and the tracker H16 needs
+    homeScene: { big: 'Wachten tot middernacht…', lines: [
+      ['A', 'Wachten is het ergste deel van een kraak.', { tag: 'onrustig, op de bank' }],
+      ['T', 'We hebben nog nooit een kraak gedaan.', { tag: 'droog' }],
+      ['A', 'Daarom weet ik het niet zeker.', { tag: 'droog, zenuwachtig' }],
+      ['henk', 'Henk. Garage Knalpot. Ik bel even of die bak van jullie nog rijdt. Er zit nou een zender in. Voor als hij ooit gejat wordt.', { tag: 'gemoedelijk, aan de telefoon op de luidspreker' }],
+      ['henk', 'En ik vraag niet waarom jullie nog op zijn.', { tag: 'gemoedelijk, wetend, aan de telefoon' }],
+      ['T', 'Een begrafenis.', { tag: 'deadpan' }],
+      ['henk', 'Om twaalf uur \'s nachts.', { tag: 'droog, aan de telefoon' }],
+      ['A', 'Een hele late.', { tag: 'droog' }],
+      ['henk', 'Neem er een koekje bij. Eén. Het is geen Ontzet.', { tag: 'gemoedelijk, aan de telefoon, hangt op' }],
+    ] } },
   { id: 'H6', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'museumkraak', why: 'Ik ga voorop. Ik ken de achteringang nog van mijn bijbaantje in het museumcafé.',
     title: 'Het museum stond er al zo', reward: 400,
     lead: ['T', 'Het is zover. Via het Verbindingskanaal, om twaalf uur. Drie minuten.'],
@@ -392,6 +408,21 @@ export const STEPS = [
     ], 'Trijntje, 92')],
     after: [['Oma Trijntje', 'Breng hem thuis, jong. Niet voor het geld. Voor Grunn.']],
     unlocks: 'zitmoi' },
+  { id: 'r-avond', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik ga wel naar huis. Iemand moet de afwas doen.',
+    title: 'Een avond thuis', goal: { type: 'home' },
+    lead: ['A', 'Morgen de rondvaartboot. Vanavond niks. Kom je naar huis? Ik heb eierballen in de vriezer.'],
+    done: ['A', 'Morgen bij de Spilsluizen. Klaas wacht. Jij bent de gids.'],
+    homeScene: { big: 'Een avond thuis', clock: 21, lines: [
+      ['A', 'Morgen ben jij de gids op die boot. Wat weet je eigenlijk van Grunn?', { tag: 'plagend, ontspannen, op de bank' }],
+      ['T', 'Alles. Ik woon hier mijn hele leven.', { tag: 'droog, zelfverzekerd' }],
+      ['A', 'Hoe hoog is de Martinitoren?', { tag: 'plagend, overhorend' }],
+      ['T', 'Hoog.', { tag: 'deadpan' }],
+      ['A', 'Zevenennegentig meter.', { tag: 'droog, met een glimlach' }],
+      ['T', 'Dat zei ik. Hoog.', { tag: 'droog, stiekem trots' }],
+      ['A', 'Welterusten, gids.', { tag: 'zacht, warm, staat op' }],
+      ['T', 'Het is negen uur.', { tag: 'verbaasd, droog' }],
+      ['A', 'Dan heb je lang de tijd om het op te zoeken.', { tag: 'plagend, al bij haar kamerdeur' }],
+    ] } },
   { id: 'H13', part: 'romp', kind: 'mission', player: 'anita', built: true, mission: 'rondvaart', why: 'Ik vaar. Jij bent de gids: jij moet wijzen en praten.',
     title: 'Alles klopt, behalve de papieren', reward: 750,
     lead: ['T', 'Kapitein Klaas heeft een rondvaartboot die even van niemand is. Bij de Spilsluizen.'],

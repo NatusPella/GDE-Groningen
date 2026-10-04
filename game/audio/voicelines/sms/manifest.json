@@ -59,6 +59,14 @@
 "src": "anita/jelle_doet_een_bod_op_de_radio_s_79b49263.mp3",
 "dur": 7.18
 },
+"Anita|Morgen bij de Spilsluizen. Klaas wacht. Jij bent de gids.": {
+"src": "anita/morgen_bij_de_spilsluizen_klaas__837a4158.mp3",
+"dur": 3.99
+},
+"Anita|Morgen de rondvaartboot. Vanavond niks. Kom je naar huis? Ik heb eierballen in de vriezer.": {
+"src": "anita/morgen_de_rondvaartboot_vanavond_9a9a582c.mp3",
+"dur": 6.03
+},
 "Anita|Nog even dit. Het staat op je kaart, als je zin hebt.": {
 "src": "anita/nog_even_dit_het_staat_op_je_kaa_a5161004.mp3",
 "dur": 2.7
@@ -299,9 +307,17 @@
 "src": "tammo/nou_zijn_we_echte_boeven_met_bon_48642c21.mp3",
 "dur": 4.74
 },
+"Tammo|Nou zijn we echte boeven. Met bonnetje. Nu nog wachten tot middernacht, thuis.": {
+"src": "tammo/nou_zijn_we_echte_boeven_met_bon_e8c2e270.mp3",
+"dur": 4.82
+},
 "Tammo|Om twaalf uur gaan de camera's uit. Tot die tijd wachten we bij Henk, in de garage.": {
 "src": "tammo/om_twaalf_uur_gaan_de_camera_s_u_61a6107c.mp3",
 "dur": 4.39
+},
+"Tammo|Om twaalf uur gaan de camera's uit. Tot die tijd wachten we thuis. Op de bank, of even slapen.": {
+"src": "tammo/om_twaalf_uur_gaan_de_camera_s_u_0de8b045.mp3",
+"dur": 5.91
 },
 "Tammo|Roelf zegt: gratis, als hij heel terugkomt. Jij vliegt.": {
 "src": "tammo/roelf_zegt_gratis_als_hij_heel_t_f0bccd76.mp3",

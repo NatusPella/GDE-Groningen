@@ -20,6 +20,22 @@ nieuwe functies, `y` voor alleen bugfixes.
   eerst om bevestiging. Op een Steam Deck (1280×800) past het hele menu
   zonder scrollen.
 
+### Verhaal
+- **Het verhaal brengt je weer thuis.** Wachten tot middernacht voor de
+  museumkraak doe je nu in de flat in Paddepoel, niet meer bij Henk in de
+  garage. Ga naar huis, met de lift naar boven, en even later volgt een
+  kort scènetje op de bank. Even slapen tot de avond mag ook: de scène komt
+  als je wakker wordt. Henk belt tijdens het wachten: hij heeft een zender
+  in de Escapade gezet (die heb je in H16 nodig), vraagt niet waarom jullie
+  nog op zijn en gunt je één koekje. Een missie die het donker nodig heeft,
+  stuurt je voortaan ook naar huis in plaats van naar een garage.
+- **Een avond thuis.** Tussen de fatbikes (H12) en de rondvaartboot (H13)
+  zit een nieuwe, rustige stap: Tessa vraagt of Tammo naar huis komt, en op
+  de bank overhoort ze haar gids voor morgen. Met nieuwe stemmen. Een oude
+  save die al verder is, slaat hem over.
+- **Een klein lampje in september.** In het slot van het verhaal heeft
+  Rikus één zin meer over de elfde verdieping in Paddepoel.
+
 ### Verbeterd
 - **Twee kamers in de flat.** Tammo en Tessa huren de flat als huisgenoten,
   dus nu heeft elk een eigen kleine slaapkamer met een eenpersoonsbed:
