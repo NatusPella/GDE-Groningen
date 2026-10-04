@@ -39,7 +39,7 @@ import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
 import { buildRailDecks } from './roadstructures3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
-import { updateSkyProps3D } from './skyprops3d.js';
+import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
@@ -2763,7 +2763,7 @@ function queueWarmup(world) {
     ped, () => buildPersonActor(0x1f3f8f, 0xd9aa82, { seed: 5 }),
     critter('seagull'), critter('duck', { variant: 'drake' }), critter('pigeon'), critter('cat'), critter('dog'), critter('cow'), critter('sheep'),
     buildVehicleImpactSparkMesh3D, buildVehicleFireMesh3D, buildVehicleExplosionMesh3D, buildSplashMesh3D, buildKissHeartMesh,
-    buildPoliceHeliMesh3D, buildMissionMarker3D, buildWaypointDotMesh3D,
+    buildPoliceHeliMesh3D, buildMissionMarker3D, buildWaypointDotMesh3D, buildBalloonWarmup,
   ];
 }
 
