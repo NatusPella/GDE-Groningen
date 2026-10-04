@@ -60,7 +60,7 @@ import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js'
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
 import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, activityCamera } from './activities.js';
-import { initRadio, updateRadio } from './radiostations.js';
+import { initRadio, updateRadio } from './radio.js';
 import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';

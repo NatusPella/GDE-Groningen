@@ -1,6 +1,8 @@
 import { SMS_SAY } from './smsvoice.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { playLineVoice } from './audio.js';
+import { radioIsOn } from './radio.js';
+import { STATION_NAME } from './musicpick.js';
 import { isCinematicActive } from './cinematics.js';
 import { getActiveRoute } from './routing.js';
 import { getMissionDefs, isMissionCompleted } from './missions.js';
@@ -574,7 +576,7 @@ function stolenBikes(p) {
   r.at = world.time + 30;
 }
 
-// --- regional night radio ------------------------------------------------------------------
+// --- regional night radio: Rikus on G-Music when you drive outside the city at night ------
 
 function outsideCity(p) {
   const b = world.map.meta.bounds;
@@ -583,7 +585,7 @@ function outsideCity(p) {
 
 function nightRadio(p) {
   const night = world.dayNight ? world.dayNight.night : 0;
-  if (night < 0.6 || !inCar() || !outsideCity(p) || !ready('radio') || world.mission) return;
+  if (night < 0.6 || !radioIsOn() || !inCar() || !outsideCity(p) || !ready('radio') || world.mission) return;
   const first = F.radioNight !== F.night;
   // now and then Rikus has news from the story (a mission done, not said yet)
   const defs = getMissionDefs() || [];
@@ -592,7 +594,7 @@ function nightRadio(p) {
   if (!speak(NARRATOR, line, true)) return;
   if (news && line === NACHTSTREEK_STORY[news]) F.radioNews.add(news);
   F.radioNight = F.night;
-  world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', at: world.time };
+  world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', station: STATION_NAME, programme: 'Nachtstreek', at: world.time };
   world.addMessage(`Rikus op Nachtstreek: “${line}”`, 5, { key: 'radio' });
   hold('radio', 300 + Math.random() * 120);
 }
@@ -621,6 +623,6 @@ const debugApi = {
   sun(on = true) { F.sunny = on; F.plantsoenSet = false; },
   cows(kind = 'wreck') { cd.cows = 0; F.cowPrev = null; const [cow, line] = pick(COW_FEED[kind]); notify('Kiekdoar · De Koeien', `${cow}: “${line}”`, { voiced: true }); return speak('Koe ' + cow, line); },
   gps() { cd.gps = 0; const l = pick(RING_ZUID_GPS); world.addMessage(`Navigatie: “${l}”`, 4); return speak('Navigatie', l); },
-  radio() { const l = pick(NACHTSTREEK); world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', at: world.time }; return speak(NARRATOR, l, true); },
+  radio() { const l = pick(NACHTSTREEK); world.nowPlaying = { title: 'Nachtstreek', artist: 'Rikus · streekmuziek tot de ochtend', station: STATION_NAME, programme: 'Nachtstreek', at: world.time }; return speak(NARRATOR, l, true); },
   perfect() { world.lastPerfectRun = world.time - 3; },
 };
