@@ -147,6 +147,7 @@ results.routes.foot = await run('foot', async () => { teleport(FOOT[0][0], FOOT[
 });
 
 const RING = RR.RING_ROUTE.map((q) => [q[0], q[1]]);
+const RING_LEN = pathLen(RING);
 results.routes.ring = await run('ring', async () => {
   teleport(RING[0][0], RING[0][1]);
   const pt = map.nearestRoadPoint(p.x, p.y, 60, true, true);
@@ -156,7 +157,8 @@ results.routes.ring = await run('ring', async () => {
   p.enterVehicle(v, w);
   return { v };
 }, (c, t) => {
-  const q = at(RING, Math.max(0, t) * 22);
+  const s = Math.max(0, t) * 22 + (window.__perfJump ? Math.floor(Math.max(0, t) / window.__perfJump) * 600 : 0);
+  const q = at(RING, s % RING_LEN);
   const v = c.v;
   v.x = q.x; v.y = q.y; v.angle = q.ang; v.speed = t > 0 ? 22 : 0; v.vx = Math.cos(q.ang) * v.speed; v.vy = Math.sin(q.ang) * v.speed;
   w.camYaw = q.ang;

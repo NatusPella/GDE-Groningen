@@ -18,8 +18,8 @@ import { mayStart, narrativeState } from './narrative.js';
 import { isCinematicActive, sinceCinematic } from './cinematics.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { getSettings } from './settings.js';
-import { physicalKey, keyName } from './controls.js';
-import { hintUses } from './prompts.js';
+import { physicalKey, keyName, tokenKey } from './controls.js';
+import { hintUses, glyphHtml } from './prompts.js';
 
 const STORE_KEY = 'gte-uitleg';
 const FIRST_AFTER = 12;
@@ -28,9 +28,14 @@ const AFTER_SCENE = 4;
 const AFTER_MISSION = 8;
 // everything the narrative scheduler watches has been quiet this long
 const QUIET = 4;
-const SKIP_NOTE = 'Ken je dit soort games? Esc › Instellingen › Weergave zet de uitleg uit.';
+const SKIP_NOTE = 'Ken je dit soort games? {ESC} › Instellingen › Weergave zet de uitleg uit.';
 
-const key = (k) => `[${keyName(physicalKey(getSettings().keyBinds || {}, k)).toUpperCase()}]`;
+// {E} in a card is a key glyph (prompts.js glyphHtml): the rebound key, or the
+// controller button when a controller was used last (glyphs.js).
+const KEY_TOKEN = /\{(\w+)\}/g;
+const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const plainKeys = (t) => t.replace(KEY_TOKEN, (m, k) => keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
+const htmlKeys = (t) => t.split(KEY_TOKEN).map((part, i) => (i % 2 ? glyphHtml(part) : escHtml(part))).join('');
 const missionOn = (w) => !!(w.mission && w.mission.phase === 'active');
 const busy = (w) => missionOn(w) || !!(w.sideJob && w.sideJob.active) || !!w.challenge || !!w.padelGame || !!w.activityGame || !!w.heliRun || !!w.pigeonMode;
 
@@ -44,18 +49,18 @@ const LESSONS = [
   {
     id: 'geld',
     when: (w) => !!(w.storyGuide && w.storyGuide.buy) && !busy(w),
-    card: () => ({ title: 'Geld en winkels', body: `Geld verdien je met missies en bijbaantjes; je saldo staat rechtsboven. Een winkel staat op de kaart: loop naar binnen en druk ${key('e')}.` }),
+    card: () => ({ title: 'Geld en winkels', body: `Geld verdien je met missies en bijbaantjes; je saldo staat rechtsboven. Een winkel staat op de kaart: loop naar binnen en druk {E}.` }),
   },
   {
     id: 'kaart',
     known: () => hintUses('map') > 0,
     when: (w, s) => s.has('doel') && !busy(w),
-    card: () => ({ title: 'Zelf kiezen', body: `Liever iets anders eerst? Kies op de kaart (${key('m')}) een plek of missie en de gele route gaat erheen. Het verhaal wacht zolang.` }),
+    card: () => ({ title: 'Zelf kiezen', body: `Liever iets anders eerst? Kies op de kaart ({M}) een plek of missie en de gele route gaat erheen. Het verhaal wacht zolang.` }),
   },
   {
     id: 'tedoen',
     when: (w) => w.stats.missionsDone > startDone && !busy(w),
-    card: () => ({ title: 'Te doen', body: 'Missie binnen, en het spel heeft opgeslagen. Alles wat nog openstaat staat onder Esc › Te doen: kies iets en de route gaat erheen.' }),
+    card: () => ({ title: 'Te doen', body: 'Missie binnen, en het spel heeft opgeslagen. Alles wat nog openstaat staat onder {ESC} › Te doen: kies iets en de route gaat erheen.' }),
   },
 ];
 
@@ -110,7 +115,7 @@ export function updateOnboarding(dt, w) {
     if (!l.when(w, seen)) continue;
     if (!quiet() || cardsBusy() || !mayStart('card')) return;
     const c = l.card();
-    showCard(w, { kind: 'tip', kicker: 'Uitleg', title: c.title, body: c.body, key: 'uitleg-' + l.id, important: true, voice: false, duration: 9 });
+    showCard(w, { kind: 'tip', kicker: 'Uitleg', title: c.title, body: plainKeys(c.body), bodyHtml: htmlKeys(c.body), key: 'uitleg-' + l.id, important: true, voice: false, duration: 9 });
     markSeen(l.id);
     lastAt = playT;
     return;

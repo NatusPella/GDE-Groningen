@@ -229,6 +229,14 @@ function watchRightStack(root, topRight, race) {
   place();
 }
 
+// Restarts a CSS animation: the class goes off now and back on next frame,
+// so the style recalc in between restarts it. (Reading offsetWidth instead
+// forced a full layout in the middle of the frame: 2-10 ms on a busy HUD.)
+function restartClass(el, cls, still = () => true) {
+  el.classList.remove(cls);
+  requestAnimationFrame(() => { if (still()) el.classList.add(cls); });
+}
+
 const VEH_ICONS = {
   car: '<path d="M3.5 15.5v-3l2-4.6A2 2 0 0 1 7.3 6.7h9.4a2 2 0 0 1 1.8 1.2l2 4.6v3z"/><path d="M6 11.5h12" class="ln"/><circle cx="7.3" cy="16.3" r="1.9"/><circle cx="16.7" cy="16.3" r="1.9"/>',
   bus: '<rect x="3.5" y="4.5" width="17" height="12" rx="2"/><path d="M3.5 10h17" class="ln"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/>',
@@ -251,9 +259,7 @@ function updateVehicleName(dt, world) {
       els.vehName.querySelector('b').textContent = model;
       els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isHeli ? 'heli' : v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
       vehNameTimer = 4.5;
-      els.vehName.classList.remove('on');
-      void els.vehName.offsetWidth;
-      els.vehName.classList.add('on');
+      restartClass(els.vehName, 'on', () => vehNameFor === v);
     } else {
       vehNameTimer = 0;
     }
@@ -428,7 +434,7 @@ function updateMate(world) {
   els.mateTxt.textContent = text;
   els.mate.style.setProperty('--spk', HUD_ACCENT);
   setPortrait(els.mateImg, c.character === 'anita' ? 'anita' : 'tammo', 'mateLookKey');
-  if (!was) { els.mate.classList.remove('in'); void els.mate.offsetWidth; els.mate.classList.add('in'); }
+  if (!was) restartClass(els.mate, 'in');
 }
 
 const clampPct = (v) => Math.max(0, Math.min(100, Number.isFinite(v) ? v : 0));
@@ -560,7 +566,7 @@ function updateSpeedo(world) {
   els.speedoHpMeter.setAttribute('aria-valuenow', String(hp));
   if (fresh) els.speedoHp.style.transition = 'none';
   els.speedoHp.style.width = hp + '%';
-  if (fresh) { void els.speedoHp.offsetWidth; els.speedoHp.style.transition = ''; }
+  if (fresh) requestAnimationFrame(() => { els.speedoHp.style.transition = ''; });
   else if (hp < was - 4) pop(els.speedo);
 }
 
@@ -653,9 +659,7 @@ function updateMoneyWeapon(dt, world) {
   if (els.weapon.dataset.key !== weaponKey) {
     els.weapon.dataset.key = weaponKey;
     els.weapon.innerHTML = `<svg class="hud-weapon-icon" viewBox="0 0 48 24" aria-hidden="true">${WEAPON_ICONS[weaponKey]}</svg><span class="hud-weapon-col"><span class="hud-weapon-text"></span><small class="hud-weapon-ammo"></small></span>`;
-    els.weapon.classList.remove('switched');
-    void els.weapon.offsetWidth;
-    els.weapon.classList.add('switched');
+    restartClass(els.weapon, 'switched');
   }
   const label = WEAPON_LABELS[world.weapon] || 'VUISTEN';
   const textEl = els.weapon.querySelector('.hud-weapon-text');
@@ -739,9 +743,7 @@ function updateMission(world) {
     els.mission.dataset.kind = o.kind;
     // a mission's objective stays up in pigeon mode too (H4's photos, H10's knots)
     els.mission.classList.toggle('in-mission', o.kind === 'mission');
-    els.mission.classList.remove('pop');
-    void els.mission.offsetWidth;
-    els.mission.classList.add('pop');
+    restartClass(els.mission, 'pop');
     if (o.kind === 'goal') ring(els.mission);
   }
 }
@@ -801,9 +803,7 @@ function updateNowPlaying(world) {
     els.npShown = np;
     els.npArtist.textContent = np.artist || '';
     els.npTitle.textContent = np.title || '';
-    els.nowPlaying.classList.remove('on');
-    void els.nowPlaying.offsetWidth;
-    els.nowPlaying.classList.add('on');
+    restartClass(els.nowPlaying, 'on', () => els.npShown === np);
   }
   if (np && world.time - np.at > NOW_PLAYING_TIME) {
     els.nowPlaying.classList.remove('on');
