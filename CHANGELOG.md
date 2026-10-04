@@ -7,13 +7,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Veranderd
-- **Eén radio.** Muziek en praatradio zitten nu in één lijst: G-Music,
-  Radio Nachtstreek, Radio Proat en uit. N en B wisselen van zender, te voet
-  en in elk voertuig. Op de controller doet LB dat in een voertuig, en
-  Instellingen › Geluid heeft dezelfde lijst. Je zender gaat mee van auto
-  naar auto en blijft in je save. Een oudere save begint op G-Music. Rikus'
-  telefoontjes onderbreken de praatradio net als eerst. De melding bij een
-  nieuw nummer noemt nu de zender die echt speelt.
+- **Eén radiozender: G-Music.** Geen lijst met zenders meer, maar één
+  station met korte programma's die de klok in het spel volgen: *Proat in
+  de ochtend* (06:00-10:00, vlot, elke twee nummers Geesje met het nieuws,
+  het verkeer of het weer), *De hits* (10:00-18:00, vooral muziek met af en
+  toe Kiekdoar-nieuws), *Avondproat* (18:00-22:00) en vanaf 22:00
+  *Nachtstreek*, met Rikus en zijn rustigere streekmuziek door een oude
+  radio. Alle praatjes zijn bestaande opnames. N zet de radio aan of uit, te
+  voet en in elk voertuig; op de controller is dat LB in een voertuig, en
+  Instellingen › Geluid heeft een knop Aan/Uit naast het volume. B doet
+  niets meer. De melding bij een nieuw nummer noemt de zender en het
+  programma. Rikus' telefoontjes onderbreken een praatje net als eerst. Een
+  save met een oude zender zet de radio aan; stond hij op uit, dan blijft
+  hij uit.
 - **Grotere knoppen onderin het pauzemenu.** Hoofdmenu, Afsluiten en
   Opnieuw beginnen zijn nu echte knoppen in plaats van kleine linkjes.
   Opnieuw beginnen staat apart onder een rode lijn en vraagt nog steeds
@@ -24,7 +30,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Minder herhaling op de radio.** Een nummer dat je net hoorde, komt pas
   terug als ruim de helft van de andere nummers is geweest, ook in een
   nieuwe sessie. Nummers die lang niet speelden, komen eerder. 's Nachts
-  draaien de nachtnummers vaker. Nachtstreek heeft een eigen, rustigere
+  draaien de nachtnummers vaker, en Nachtstreek heeft een eigen, rustigere
   lijst. Er zit niet meer tussen elk nummer een jingle, en nooit twee keer
   dezelfde achter elkaar.
 
