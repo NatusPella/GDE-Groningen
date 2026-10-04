@@ -1,6 +1,6 @@
 // node scripts/gfx_profile_test.mjs: the GPU classification, the first-run
 // advice and the benchmark recommendation (game/js/gfxprofile.js).
-import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges } from '../game/js/gfxprofile.js';
+import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel } from '../game/js/gfxprofile.js';
 
 let fail = 0;
 const eq = (name, got, want) => {
@@ -48,4 +48,25 @@ eq('rec: one measured', recommendPreset({ hoog: 40 }, 'hoog'), null);
 
 eq('describe laag', describePreset('laag'), 'schaduwen uit · resolutie 75%, automatisch · zichtafstand kort');
 eq('changes hoog->laag', describeChanges('laag', { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true }), 'kwaliteit laag · schaduwen uit · zichtafstand kort · resolutie 75%');
+
+// adaptive resolution: frames(i) -> [interval ms, main-thread ms]; the scale
+// steps taken over `secs` seconds of play
+function steps(secs, frames) {
+  resetDynamic();
+  const seen = [];
+  let t = 0;
+  for (let i = 0; t < secs * 1000; i++) {
+    const [ms, cpu] = frames(i);
+    t += ms;
+    if (noteFrame(ms, cpu)) seen.push(`${dynamicScale()}/${cpuLevel()}`);
+  }
+  return seen;
+}
+eq('fast GPU with hitches: no steps', steps(120, (i) => (i % 40 === 0 ? [180, 170] : i % 9 === 0 ? [60, 12] : [7, 4])), []);
+eq('fast GPU, a slow second now and then: no steps', steps(120, (i) => (i % 1000 < 30 ? [34, 6] : [7, 4])), []);
+eq('GPU-bound on hoog: steps after 3 s', steps(4.5, () => [35, 8]), ['0.9/0']);
+eq('CPU-bound: detail first, not resolution', steps(5, () => [35, 30]), ['1/1']);
+// slow for 4 s every 30 s: it settles low; each step back up waits longer
+eq('flapping: at most 9 steps in 3 min', steps(180, (i) => (i % 2350 < 115 ? [35, 8] : [12, 6])).length <= 9, true);
+resetDynamic();
 process.exit(fail ? 1 : 0);
