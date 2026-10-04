@@ -1,0 +1,21 @@
+{
+  "_era": "0.27 (PEGI 16, save v3): knockout counters and police cars wrecked, the last save before 18+ brought the kills back",
+  "_expect": { "step": "H12", "money": 12500, "radio": "on" },
+  "save": {
+    "v": 3, "savedAt": 1759560000000, "money": 12500, "moneyBackup": 12500, "health": 100, "armor": 50, "weapon": "uzi",
+    "ammo": { "fists": "inf", "pistol": 30, "uzi": 60 },
+    "stats": { "knockouts": 20, "pedKnockouts": 14, "copKnockouts": 6, "copCarsWrecked": 2, "missionsDone": 12, "playerWrecks": 5, "spent": 6000 },
+    "character": "tammo", "pos": { "x": 0, "y": 0 }, "ctx": "home", "radio": "on",
+    "missions": { "index": 10, "completed": [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5], "seen": [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12], "medals": { "10": 2 } },
+    "story": { "v": 1, "done": ["H1", "H2", "H3", "H4", "k-fiets", "H5", "H6", "k-kraakspullen", "H7", "H8", "H9", "H10", "H11", "r-trein"],
+      "skipped": [], "fails": {}, "waived": [], "voorschot": [], "cards": ["kop", "deel1"], "flags": ["met:berend", "hideout:ijsje"] },
+    "visitedLandmarks": ["martinitoren", "forum"],
+    "shops": { "hero": {}, "outfit": { "tammo": "incognito", "anita": "incognito" }, "ownedOutfits": ["incognito"], "storyOutfit": "incognito",
+      "hair": { "tammo": { "color": "naturel", "style": "short" }, "anita": { "color": "naturel", "style": "bob" } }, "heroColor": null, "heroUpgrades": ["turbo"], "stamps": 3,
+      "vehicles": [ { "key": "wervelwind", "color": "#c9a227", "upgrades": ["turbo"], "garage": true } ] },
+    "prestaties": { "eierballen": ["eb-2", "eb-7"], "geheimen": [], "unlocked": ["m1_klaar", "spaarkaart"] },
+    "duif": { "ach": [] }, "bijbaan": { "v": 1, "jobs": {}, "seen": [] }, "postgame": {},
+    "meubels": { "owned": [], "pending": [], "built": [], "day": 0, "read": 0, "stek": 0, "tips": [], "moment": 0 },
+    "doel": null
+  }
+}
