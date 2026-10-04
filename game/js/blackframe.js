@@ -1,20 +1,21 @@
-// Black-frame check for testers and perf runs (?zwartcheck, ?dev, or
+// Black-frame check for testers and perf runs (?zwartcheck, or
 // window.__blackCheck = true from a script). At the end of a rAF in which the
 // city was drawn, a 4x4 patch at the centre and near each corner of the
 // canvas is read back; when all five are black, the frame about to be shown
 // is black and the error log gets an entry with what the renderer did just
 // before (resizes, post-chain rebuilds, quality steps, context events) and
-// any dark full-screen overlay at the centre. readPixels stalls the GPU, so
-// it samples every 8th drawn frame plus every frame right after an event.
+// any dark full-screen overlay at the centre. readPixels waits for the GPU
+// to finish the frame (40-80 ms at Hoog on an M1), so it samples every frame
+// right after an event and otherwise one frame every 2 s.
 import { logError } from './errorlog.js';
 
 const EVENT_WINDOW_MS = 1500;
-const EVERY = 8;
+const EVERY = 120;
 const events = [];
 let n = 0, seen = 0;
 const px = new Uint8Array(4 * 4 * 4);
 
-const enabledByUrl = typeof location !== 'undefined' && /[?&](zwartcheck|dev|storytest)\b/.test(location.search);
+const enabledByUrl = typeof location !== 'undefined' && /[?&]zwartcheck\b/.test(location.search);
 const enabled = () => enabledByUrl || (typeof window !== 'undefined' && !!window.__blackCheck);
 
 // Lost WebGL contexts show as a black or frozen view; the error log keeps
