@@ -33,14 +33,6 @@ const BOARD_LINES = [
   'Let op: het stiltecoupé is vandaag het gezelligste coupé',
   'Machinist is nog even een bakkie doen, vertrek volgt',
 ];
-const OFFMAP_JOKES = {
-  Zwolle: 'Daar begint het Westen al zowat',
-  Winschoten: 'Het Oldambt valt net buiten de kaart',
-  Leeuwarden: 'Friesland? Daar heb je een visum voor nodig',
-  Roodeschool: 'Einde van de lijn, einde van de kaart',
-  Delfzijl: 'Daar ruikt het naar zee en naar Eemshaven',
-  Assen: 'Drenthe. Daar zijn ze nog rustiger dan hier',
-};
 
 let world = null;
 let stations = [];
@@ -371,10 +363,6 @@ function spoor(station, leg) {
 
 function menuFor(w, here) {
   const board = BOARD_LINES[Math.floor(Math.random() * BOARD_LINES.length)];
-  const offmap = new Map();
-  for (const st of here.stops) {
-    for (const stop of st.route.stops) if (stop.offmap && !offmap.has(stop.name)) offmap.set(stop.name, st);
-  }
   return {
     type: 'station', icon: stationIcon(), color: BADGE_COLOR,
     name: `Kaartautomaat ${here.short}`,
@@ -400,13 +388,8 @@ function menuFor(w, here) {
           },
         });
       }
-      const far = [...offmap.keys()].map((name) => ({
-        id: 'ver-' + name, label: name, desc: OFFMAP_JOKES[name] || 'Daar houdt de kaart op',
-        price: 0, swatch: ['#6b6f6a'], disabled: 'Buiten het speelgebied',
-      }));
-      const out = [{ title: 'Vertrekken', note: board, items: trips }];
-      if (far.length) out.push({ title: 'Verder weg', items: far });
-      return out;
+      // only stations inside the map: the off-map ends of the lines aren't offered
+      return [{ title: 'Vertrekken', note: board, items: trips }];
     },
   };
 }
