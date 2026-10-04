@@ -54,6 +54,7 @@ export function vehicleDisplayName(v) {
   if (name === 'scooter' && v.model.moped) return { make: 'Snorscooter', model: 'Brommie' };
   if (name === 'trekkerlimo') return { make: 'Terpstra', model: 'Trekker-limo' };
   if (name === 'tractor') return { make: 'Ommelander', model: 'Trekker' };
+  if (name === 'quad') return { make: 'Wierde', model: 'Quad' };
   if (name === 'truck' && v.model.tank) return { make: 'Us Mem Vet', model: 'Tankwagen' };
   if (name === 'bike' && v.model.cargo) return { make: 'Bakfiets', model: 'Kroost-Karretje' };
   if (name === 'bike' && v.model.old) return { make: 'Fiets', model: 'Studentenbarrel' };

@@ -67,11 +67,11 @@ for (const [name, x, y] of SPOTS) {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${cars.length} vehicles ${JSON.stringify(kinds)}, ${bad} misplaced, nearest ${enter}, ${ms} ms`);
 }
 console.log('parked near the spots', JSON.stringify(total));
-// the farm tractors over a 15 x 15 km band past the real data
+// the farm tractors and quads over a 15 x 15 km band past the real data
 const farm = {};
 for (let bx = 14; bx < 30; bx++) for (let by = 14; by < 30; by++) for (const q of P.farmVehicleSpots(bx, by)) farm[q.model.name] = (farm[q.model.name] || 0) + 1;
 console.log('farm vehicles in 256 polder blocks', JSON.stringify(farm));
-if (!farm.tractor) fails++;
+if (!farm.tractor || !farm.quad) fails++;
 
 // moving traffic: within 70 m every road user is a real vehicle, placed on
 // its road each frame; taken over it is let go as an ordinary vehicle

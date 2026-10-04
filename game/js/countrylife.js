@@ -6,7 +6,7 @@ import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
 import { glowMaterial, headlightGeometry } from './countryglow.js';
-import { Vehicle, MODELS, TRACTOR_MODEL, makeTwoWheeler } from './vehicle.js';
+import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL, makeTwoWheeler } from './vehicle.js';
 
 // Life in the Ommelanden: a few slow road users on the polder roads (a
 // tractor, a cyclist, the odd car), boats puttering along the maaren, and
@@ -18,7 +18,7 @@ const MAX_TRAFFIC = 5;
 const MAX_BOATS = 3;
 const LANE = 1.25;
 const FLOCK_R = 230;
-// within this range a car, tractor or bike is a real vehicle (world.vehicles:
+// within this range a car, tractor, quad or bike is a real vehicle (world.vehicles:
 // enter, steal, crash, damage), handed back to the light mesh past RELEASE_R
 const CONVERT_R = 70;
 const RELEASE_R = 110;
@@ -45,6 +45,16 @@ function carGeometry() {
   B.box(2.06, 0.62, 0, 0.04, 0.2, 1.3, 0xe8e6d8);
   B.box(-2.06, 0.7, 0, 0.04, 0.16, 1.4, 0xa02020);
   for (const x of [-1.3, 1.3]) for (const s of [-1, 1]) B.geo(new THREE.CylinderGeometry(0.34, 0.34, 0.24, 10).rotateX(Math.PI / 2), composeMatrix(x, 0.34, s * 0.8), 0x1a1a1a);
+  return B.build();
+}
+
+function quadGeometry() {
+  const B = new GeoBuilder();
+  B.box(0, 0.62, 0, 2.0, 0.3, 1.0, 0xffffff);
+  B.box(-0.2, 0.85, 0, 0.6, 0.12, 0.36, 0x1c1c1c);
+  B.box(0.0, 1.35, 0, 0.3, 0.6, 0.4, 0x5a6a50);
+  B.geo(new THREE.SphereGeometry(0.13, 8, 6), composeMatrix(0.0, 1.78, 0), 0xe0b090);
+  for (const x of [-0.65, 0.65]) for (const s of [-1, 1]) B.geo(new THREE.CylinderGeometry(0.3, 0.3, 0.26, 10).rotateX(Math.PI / 2), composeMatrix(x, 0.3, s * 0.47), 0x1a1a1a);
   return B.build();
 }
 
@@ -169,6 +179,9 @@ function makeTraffic(type, R) {
   } else if (type === 'car') {
     g.add(new THREE.Mesh(cachedGeo('car', carGeometry), tinted([0xd8d8d4, 0x2a2a2e, 0x8a1e1e, 0x2a4a7a, 0x9aa0a4][Math.floor(R() * 5)])));
     vmax = 13 + R() * 5;
+  } else if (type === 'quad') {
+    g.add(new THREE.Mesh(cachedGeo('quad', quadGeometry), tinted([0xb8322a, 0x2f5fa8, 0x3f7d3a, 0xc9a227][Math.floor(R() * 4)])));
+    vmax = 8 + R() * 4;
   } else {
     g.add(new THREE.Mesh(cachedGeo('cyc', cyclistGeometry), tinted([0xd6b43a, 0xb8322a, 0x3a7a4a, 0x2a4a7a, 0xe8e6e0][Math.floor(R() * 5)])));
     vmax = 4 + R() * 1.8;
@@ -207,7 +220,7 @@ function spawnTraffic(px, py, dist) {
     const [wx, wy] = roadPos(a);
     if (!openLand(wx, wy) || Math.hypot(wx - px, wy - py) < dist * 0.8) continue;
     const r = R();
-    const type = r < 0.45 ? 'tractor' : r < 0.72 ? 'cyclist' : 'car';
+    const type = r < 0.4 ? 'tractor' : r < 0.66 ? 'cyclist' : r < 0.74 ? 'quad' : 'car';
     Object.assign(a, { type }, makeTraffic(type, R));
     a.speed = a.vmax * 0.8;
     a.yaw = headingOf(a);
@@ -238,7 +251,7 @@ function realPos(a) {
   const lat = r.oneway ? 0 : Math.min(r.w / 4, 2.2) * a.dir;
   return [A[0] + ux * a.t - uy * lat, A[1] + uy * a.t + ux * lat];
 }
-const realTypes = (kind) => (kind <= 3 ? ['car'] : kind === 7 ? ['car', 'cyclist', 'car'] : ['tractor', 'cyclist', 'car', 'car']);
+const realTypes = (kind) => (kind <= 3 ? ['car'] : kind === 7 ? ['car', 'cyclist', 'car'] : ['tractor', 'cyclist', 'car', 'car', 'tractor', 'cyclist', 'car', 'car', 'quad']);
 
 function spawnRealTraffic(px, py, dist) {
   const R = Math.random;
@@ -293,6 +306,7 @@ function realJunction(a) {
     seen.add(ri);
     const o = REAL.roads[ri];
     if (a.type !== 'car' && o.kind <= 2) continue;
+    if (a.type === 'quad' && o.kind <= 4) continue;
     o.pts.forEach((q, j) => {
       if (Math.abs(q[0] - end[0]) > 1.5 || Math.abs(q[1] - end[1]) > 1.5) return;
       if (j < o.pts.length - 1) opts.push({ ri, si: j, dir: 1 });
@@ -443,11 +457,12 @@ function bodyContact(a, x, y, world) {
   a.speed = 0;
 }
 
-// Near the player a car, tractor or bike is a real vehicle: placed on the
+// Near the player a car, tractor, quad or bike is a real vehicle: placed on the
 // road user's pose every frame while it drives, and let go as an ordinary
 // vehicle (rolling out) the moment someone takes it, hits it or shoves it.
 function trafficModel(a) {
   if (a.type === 'tractor') return { ...TRACTOR_MODEL, color: ['#3f7d3a', '#b8322a', '#2f5fa8', '#3f7d3a'][Math.floor(a.color * 4)] };
+  if (a.type === 'quad') return { ...QUAD_MODEL };
   const cars = MODELS.filter((m) => m.name !== 'sport');
   return cars[Math.floor(a.color * cars.length)];
 }

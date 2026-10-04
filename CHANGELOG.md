@@ -7,6 +7,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Quad.** Bij boerderijen in het Ommeland staan quads die je kunt
+  meenemen, en boeren rijden er soms op over de landwegen. Hij rijdt
+  makkelijk door de wei. Te koop bij de autodealer als Wierde Quad.
 - **Zichtafstand "Heel ver"** (Instellingen › Beeld): op een sterke
   videokaart kijk je nu anderhalf keer zo ver over de stad en het Ommeland:
   900 meter in plaats van 600. Kies je de voorinstelling Hoog, dan krijg je
