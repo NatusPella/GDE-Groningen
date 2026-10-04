@@ -313,6 +313,13 @@ function stepRealTraffic(a, dt, world) {
       return;
     }
   }
+  // country traffic is drawn at ground level: it turns round before the
+  // city's data, where the roads rise onto viaducts and sink into cuttings
+  if (edgeDistance(wx + hx * 8, wy + hy * 8) < 0) {
+    if (REAL.roads[a.ri].oneway) a.gone = true;
+    else { a.dir = -a.dir; a.speed *= 0.3; }
+    return;
+  }
   const rx = ox - wx, ry = oy - wy;
   const ahead = rx * hx + ry * hy, side = Math.abs(-rx * hy + ry * hx);
   let want = a.vmax;

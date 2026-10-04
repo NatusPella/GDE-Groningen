@@ -13,6 +13,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Je kunt in het Ommeland weer rakelings langs tegenliggers rijden.** Auto's,
   trekkers en fietsers daar botsten al op meer dan een meter naast hun
   carrosserie; nu tellen ze, net als in de stad, alleen nog hun echte vorm.
+- **Koplampen en achterlichten blijven aan de auto vast.** In verdiepte en
+  verhoogde stukken van de ring en op hellingen hing de lichtbundel niet meer
+  op straatniveau of in de lucht, maar volgt hij de hoogte en helling van de
+  auto. Verkeer uit het Ommeland keert nu om voor het de stad in rijdt.
 
 ## [0.26.1] - 2026-10-04
 
