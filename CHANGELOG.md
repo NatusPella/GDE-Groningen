@@ -19,6 +19,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   slaat het hele plan-gesprek over en gaat meteen naar de keuze. Op de
   vlucht over het water zit er twee sterren politie achter je in plaats van
   drie.
+- **De camera's bij het museum staan weer op de kaart.** Ze werden
+  geplaatst langs de route vanaf waar je de missie toevallig startte, en
+  konden zo buiten de bouwtekening of in het kanaal belanden. Nu staan ze
+  altijd op droge grond langs de route vanaf het startpunt. De verhaaltest
+  controleert dat, en ook dat geen enkele filmcamera buiten de wereld staat.
 
 ## [0.26.1] - 2026-10-04
 

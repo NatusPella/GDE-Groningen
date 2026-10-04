@@ -2328,7 +2328,9 @@ function enterStage(world, def, k) {
     if (k === 0 && startHeist(world)) {
       placeHeistProps(world, resolveTarget(world, def.heist.fuse, from), resolveTarget(world, def.heist.vitrine, from));
       // the cameras and the guard outside stand from the start (the plan shows them)
-      def.stages.forEach((q, j) => { if (q.watch) guardRoute(world, from, resolveTarget(world, q.target, from), q.watch, j); });
+      // along the walk from the mission's own start, wherever the player happened to trigger it
+      const origin = def.start && dist(from.x, from.y, def.start.x, def.start.y) > 12 ? def.start : from;
+      def.stages.forEach((q, j) => { if (q.watch) guardRoute(world, origin, resolveTarget(world, q.target, origin), q.watch, j); });
     }
     if (st.only && st.only !== heistApproach()) { enterStage(world, def, k + 1); return; }
     if (st.vitrine && vitrineStand()) S.target = { ...vitrineStand(), label: st.label };

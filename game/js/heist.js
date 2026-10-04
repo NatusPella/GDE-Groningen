@@ -384,7 +384,14 @@ function addWatcher(world, q, tan, kind, phase, group) {
       }
     }
     if (!spot) spot = { x: q.x + tan.x * 2, y: q.y + tan.y * 2, onPath: true };
-  } else spot = { x: q.x + nx * 5, y: q.y + ny * 5 };
+  } else {
+    // a pole on dry, open ground beside the route (never in the canal or a wall), inside the blueprint
+    for (const o of [5, -5, 4, -4, 6, -6, 3, -3]) {
+      const x = q.x + nx * o, y = q.y + ny * o;
+      if (inPlan(x, y) && !isInWater(map, x, y) && !solid(map, x, y) && losClear(map, x, y, q.x, q.y)) { spot = { x, y }; break; }
+    }
+    if (!spot) spot = { x: q.x, y: q.y };
+  }
   const center = spot.onPath ? Math.atan2(-tan.y, -tan.x) : Math.atan2(q.y - spot.y, q.x - spot.x);
   const range = spot.onPath ? 8 : dist(spot.x, spot.y, q.x, q.y) + (kind === 'guard' ? 5.5 : 5);
   if (kind === 'guard') return addGuard({ group, x: spot.x, y: spot.y, center, range, amp: 1.1, period: 7, phase });
@@ -725,9 +732,18 @@ function updateDistraction(world) {
 
 // --- the plan -------------------------------------------------------------------------------
 
+// the blueprint's frame (world x0, y0, x1, y1): everything H6 puts outside sits in it
+export const PLAN_BOUNDS = [8, 738, 128, 828];
+const inPlan = (x, y) => x > PLAN_BOUNDS[0] + 1 && x < PLAN_BOUNDS[2] - 1 && y > PLAN_BOUNDS[1] + 1 && y < PLAN_BOUNDS[3] - 1;
+
+// Every guard and camera H6 placed, for the story test.
+export function heistWatchers() {
+  return H ? H.watchers.map((w) => ({ kind: w.kind, x: w.x, y: w.y })) : [];
+}
+
 function planData(world, def) {
   const map = world.map;
-  const bounds = [8, 738, 128, 828];
+  const bounds = PLAN_BOUNDS;
   const inBox = (pts) => pts.some(([x, y]) => x > bounds[0] && x < bounds[2] && y > bounds[1] && y < bounds[3]);
   const water = map.waterNear(70, 780, 110).map((w) => w.pts).filter(inBox);
   const buildings = map.buildingsNear(70, 790, 80).map((b) => b.pts).filter(inBox);
