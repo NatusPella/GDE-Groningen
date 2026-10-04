@@ -79,6 +79,9 @@ nieuwe functies, `y` voor alleen bugfixes.
   zonder scrollen.
 
 ### Verbeterd
+- **Heggen en hekken in het Ommeland houden je tegen.** Je loopt er niet
+  meer dwars doorheen; met Spatie spring je eroverheen, net als over de
+  hekjes in de stad. Door een hek op de dam loop je gewoon het land op.
 - **De weilanden in het Ommeland hebben echte randen.** Langs de sloten
   ligt een lage, donkere grasrand met hier en daar een pol pitrus, de
   weiden staan achter prikkeldraad op houten palen, langs de polderwegen

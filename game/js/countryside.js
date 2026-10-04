@@ -21,6 +21,7 @@ import { EDGE, edgeBlocked, edgeTileItems, roadGap } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
 import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
+import { setTileWalls, clearTileWalls, pushOutOfWalls } from './countrywalls.js';
 import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
 import { buildingMaterial, bldCode, STYLE } from './countrybuilding.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
@@ -253,6 +254,14 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
       const hx = Math.cos(rotY) * sx * 0.5, hy = -Math.sin(rotY) * sx * 0.5;
       if (!clearOfRoad(x + hx, y + hy, clear) || !clearOfRoad(x - hx, y - hy, clear)) return false;
     }
+  }
+  // hedges and wire fences are low walls you vault (countrywalls.js); the
+  // lowest strand stands for the whole fence
+  const wall = type === 'hedge' ? [Math.min(1.25, 1.15 * sy), 0.3 * sz] : type === 'wire' && yOff < 0.62 ? [1.15, 0.08] : null;
+  if (wall && tile.tx !== undefined) {
+    const hl = type === 'hedge' ? 0.5 * sx : sx / 2;
+    const hx = Math.cos(rotY) * hl, hy = -Math.sin(rotY) * hl;
+    (tile.walls || (tile.walls = [])).push(x - hx, y - hy, x + hx, y + hy, wall[0], wall[1]);
   }
   const list = tile.items[type] || (tile.items[type] = { m: [], c: [] });
   _e.set(0, rotY, 0);
@@ -1223,6 +1232,7 @@ function onShop(i) {
 }
 
 function loadTile(t) {
+  setTileWalls(t.tx, t.ty, t.walls);
   t.mid = Math.hypot(t.cx - S.px, t.cy - S.py) > MID_R;
   if (t.bodies && REAL.shopFace.size) for (const i of t.bodies.keys()) shopFront(t, i);
   const ch = chunkFor(t);
@@ -1242,6 +1252,7 @@ function loadTile(t) {
 }
 
 function unloadTile(t) {
+  clearTileWalls(t.tx, t.ty);
   const ch = chunkFor(t);
   ch.tiles.delete(t);
   ch.dirty = true;
@@ -1687,7 +1698,11 @@ function gameplay(dt, world) {
   if (wading && (p.z || 0) <= 0.001 && !(p.vz > 0)) p.z = -0.32;
   else if (!wading && p.z < 0 && !p.water) p.z = 0;
   if (wading && S.surf !== 'sloot') splash(world, p.x, p.y);
-  if (countryWeight(p.x, p.y) > 0.5) pushOutOfPlan(p, p.radius || 0.35);
+  if (countryWeight(p.x, p.y) > 0.5) {
+    pushOutOfPlan(p, p.radius || 0.35);
+    // field hedges and fences: over them only with a vault (player.js)
+    if (!p.vault && (p.gz || 0) < 0.5 && (p.z || 0) < 1) pushOutOfWalls(p, p.radius || 0.35);
+  }
   S.surf = surf;
   S.prev = [p.x, p.y];
 }
