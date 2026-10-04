@@ -13,8 +13,10 @@ const STOP_R = 9;
 const STOP_SPEED = 0.8;
 const DWELL_MIN = 1.2;
 const DWELL_MAX = 3;
-const EARLY_OK = 12;
-const LATE_OK = 10;
+export const EARLY_OK = 12;
+// ahead of the timetable the bus waits at most this long at a halte
+export const MAX_HOLD = 30;
+export const LATE_OK = 10;
 const LATE_FAIL = 75;
 const SHOW_R = 95;
 // timetable: route metres at this pace plus pulling away and braking
@@ -92,6 +94,26 @@ export function legSeconds(map, a) {
   return a.leg / CRUISE + LEG_EXTRA;
 }
 
+// Leaves the halte: a bus ahead of the timetable runs on from here as if on
+// time (no waiting minutes at every next halte). True when the round is done.
+function depart(c) {
+  const d = c.data;
+  const due = d.next >= d.stops.length ? d.dueEnd : d.due[d.next];
+  if (due - d.clock > EARLY_OK) d.clock = due - EARLY_OK;
+  d.hold = null;
+  d.spawnedFor = 0;
+  d.next++;
+  if (d.next <= d.stops.length) return false;
+  const n = d.stops.length;
+  const allOn = d.onTime >= n && d.lateMax <= LATE_OK && !d.earlyDeps;
+  if (allOn) unlockAchievement(c.world, 'sj_bus');
+  const base = n * 11 + d.onTime * 5;
+  const tip = d.comfort >= 80 ? 15 : d.comfort >= 50 ? 5 : 0;
+  const early = d.earlyDeps ? `, ${d.earlyDeps}× te vroeg weg` : '';
+  c.complete({ base, tip, text: allOn ? 'Rondje keurig op tijd!' : `Rondje gereden (${d.onTime}/${n} op tijd${early}).`, flawless: allOn });
+  return true;
+}
+
 export default {
   id: 'bus',
   name: 'Stadsbus lijn 3',
@@ -126,27 +148,23 @@ export default {
   },
 
   round(c) {
-    const d = c.data;
+    const d = c.data, map = c.world.map;
     d.next = 1;
     d.clock = 0;
     d.comfort = 100;
     d.lateMax = 0;
     d.onTime = 0;
     d.dwell = 0;
+    d.hold = null;
+    d.earlyDeps = 0;
     d.waiting = [];
     d.alighting = [];
     d.prevSpeed = null;
     d.hitAt = -Infinity;
-    const slack = Math.max(1, 1.25 - 0.025 * Math.min(c.streak, 8) - 0.02 * (c.level - 1));
+    const slack = Math.max(1, 1.15 - 0.02 * Math.min(c.streak, 5) - 0.02 * (c.level - 1));
     let t = 0;
-    d.due = d.stops.map((s, i) => {
-      if (i === 0) return 0;
-      const p = d.stops[i - 1];
-      t += (Math.hypot(s.x - p.x, s.y - p.y) * 2.2 / 8.5 + 16) * slack;
-      return t;
-    });
-    const back = d.stops[0], last = d.stops[d.stops.length - 1];
-    d.dueEnd = t + (Math.hypot(back.x - last.x, back.y - last.y) * 2.2 / 8.5 + 16) * slack;
+    d.due = d.stops.map((s, i) => (i === 0 ? 0 : (t += legSeconds(map, d.stops[i - 1]) * slack)));
+    d.dueEnd = t + legSeconds(map, d.stops[d.stops.length - 1]) * slack;
     c.timeLeft = null;
     c.msg(c.streak ? `Nieuw rondje lijn 3. Volgende halte: ${d.stops[1].name}.` : `Lijn 3 vertrekt. Eerste halte: ${d.stops[1].name}.`, 3.2);
   },
@@ -171,6 +189,19 @@ export default {
       }
       d.prevSpeed = v.speed;
     } else d.prevSpeed = null;
+
+    if (d.hold != null) {
+      // ahead of the timetable: the bus may wait (at most MAX_HOLD), or go
+      d.hold -= dt;
+      if (inBus && vehicleSpeed(v) > 1.5) {
+        d.earlyDeps++;
+        c.msg(pick(EARLY_LINES), 3);
+        depart(c);
+      } else if ((d.hold <= 0 || due - d.clock <= EARLY_OK) && !depart(c)) {
+        c.msg(`Op schema. Rijden maar! Volgende halte: ${d.stops[d.next % d.stops.length].name}.`, 2.6);
+      }
+      return;
+    }
 
     if (late > LATE_FAIL && !d.dwell) { c.fail('te veel vertraging. Kiekdoar kopt al: "Lijn 3 rijdt op Gronings tempo"'); return; }
 
@@ -220,22 +251,16 @@ export default {
       d.dwell -= dt;
       const boarding = d.waiting.some((ped) => pedAlive(world, ped));
       if (d.dwell > 0 && (boarding || d.dwellT < DWELL_MIN)) return;
-      if (due - d.clock > EARLY_OK && !d.earlyNoted) { d.earlyNoted = true; c.msg(pick(EARLY_LINES), 3); }
       d.dwell = 0;
-      d.earlyNoted = false;
       for (const ped of d.waiting) removePed(world, ped);
       d.waiting = [];
-      d.spawnedFor = 0;
-      d.next++;
-      if (d.next > d.stops.length) {
-        const n = d.stops.length;
-        const allOn = d.onTime >= n && d.lateMax <= LATE_OK;
-        if (allOn) unlockAchievement(world, 'sj_bus');
-        const base = n * 11 + d.onTime * 5;
-        const tip = d.comfort >= 80 ? 15 : d.comfort >= 50 ? 5 : 0;
-        c.complete({ base, tip, text: allOn ? 'Rondje keurig op tijd!' : `Rondje gereden (${d.onTime}/${n} op tijd).`, flawless: allOn });
+      const early = due - d.clock - EARLY_OK;
+      if (early > 1) {
+        d.hold = Math.min(early, MAX_HOLD);
+        c.msg(`Voor op schema: nog ${Math.ceil(d.hold)} s wachten. Of rij door, dan ben je te vroeg.`, 3.2);
         return;
       }
+      if (depart(c)) return;
       c.msg(`Deuren dicht, rijden maar! Volgende halte: ${d.stops[d.next % d.stops.length].name}.`, 2.6);
     }
   },
@@ -249,6 +274,13 @@ export default {
     const due = d.next >= n ? d.dueEnd : d.due[d.next];
     const diff = d.clock - due;
     const sched = diff > 1 ? `${fmtClock(diff)} te laat` : `gepland over ${fmtClock(-diff)}`;
+    if (d.hold != null) {
+      return {
+        marker: { x: stop.x, y: stop.y },
+        progress: `Halte ${stop.name} · voor op schema, vertrek over ${Math.max(1, Math.ceil(d.hold))} s`,
+        goal: { label: `Halte ${stop.name}`, desc: 'Even wachten op de dienstregeling, of te vroeg doorrijden' },
+      };
+    }
     const dots = [];
     for (let k = 1; k <= 2; k++) {
       const s = d.stops[(d.next + k) % n];

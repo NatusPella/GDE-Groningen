@@ -96,6 +96,21 @@ if (legs.length === n) {
   }
   const total = legs.reduce((s, l) => s + l.r.length, 0);
   console.log(`loop ${Math.round(total)} m, ${n} haltes`);
+  // the wait at each halte for a driver averaging pace m/s between haltes
+  // (first round, the roomiest timetable): early departures are rebased, so
+  // each leg stands on its own
+  for (const pace of [7, 8.5, 10, 12]) {
+    const holds = [], lates = [];
+    for (const { a, r } of legs) {
+      const spare = bus.legSeconds(map, a) * 1.15 - (r.length / pace + 8);
+      holds.push(Math.min(bus.MAX_HOLD, Math.max(0, spare - bus.EARLY_OK)));
+      lates.push(Math.max(0, -spare));
+    }
+    const avg = holds.reduce((s, h) => s + h, 0) / holds.length, max = Math.max(...holds), late = Math.max(...lates);
+    console.log(`at ${Math.round(pace * 3.6)} km/h average: wait ${Math.round(avg)} s a halte, at most ${Math.round(max)} s${late > 0 ? `, up to ${Math.round(late)} s late` : ''}`);
+    if (pace === 7 && late > bus.LATE_OK) fails.push(`timetable: ${Math.round(late)} s late at 25 km/h average`);
+    if (max > 90 || avg > 60) fails.push(`timetable: waits of ${Math.round(avg)} s average, ${Math.round(max)} s at most`);
+  }
 }
 if (fails.length) {
   console.log(`\n${fails.length} problem(s):\n  ` + fails.join('\n  '));
