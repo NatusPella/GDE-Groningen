@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import {
   BLOCK, ROAD_IN, ROAD_W, MAAR_HW, COUNTRY_UNIFORMS, EDGE_TEX_W, EDGE_SLOTS,
   chash, edgeDistance, countryWeight, edgeRoad, maarX, maarY, setEdgeQuery, setCountryMask, realWater,
-  SHORE_RW, rectOutside, villageAt, VILLAGE_RING, VILLAGE_X,
+  SHORE_RW, rectOutside, villageAt, VILLAGE_RING, VILLAGE_X, realBlock,
 } from './countryfield.js';
 import { REAL, realBlocked, buildRealSigns } from './countryreal.js';
 
@@ -79,8 +79,130 @@ export function initCountryEdge(map) {
   bucket();
   uploadTexture();
   setEdgeQuery(surfaceQuery);
-  EDGE.initMs = Math.round(performance.now() - t0);
   EDGE.ready = true;
+  if (REAL.ready) EDGE.buildingFix = clearRealBuildings();
+  EDGE.initMs = Math.round(performance.now() - t0);
+}
+
+// Building boxes that stand on a road the ground shader paints (OSM roads
+// are a line and a guessed width, the outlines are boxes, an L-shaped
+// outline is cut into a few): a box whose overlap can be cut off one side
+// keeping most of it is shortened from that side, a wing or a box that
+// would lose too much is dropped from the tiles (so props, skyline, maps
+// and colliders all lose it). Done once, when the roads are known.
+const ON_ROAD = -0.4;
+function boxRoadHits(i) {
+  const c = Math.cos(REAL.ba[i]), s = Math.sin(REAL.ba[i]);
+  const hw = REAL.bw[i] / 2, hl = REAL.bl[i] / 2;
+  const nu = Math.max(2, Math.ceil(REAL.bw[i] / 1.5)), nv = Math.max(2, Math.ceil(REAL.bl[i] / 1.5));
+  const hits = [];
+  for (let a = 0; a <= nu; a++) {
+    for (let b = 0; b <= nv; b++) {
+      const u = -hw + 0.2 + ((2 * hw - 0.4) * a) / nu, v = -hl + 0.2 + ((2 * hl - 0.4) * b) / nv;
+      if (roadGap(REAL.bx[i] + u * c - v * s, REAL.by[i] + u * s + v * c, 1) < ON_ROAD) hits.push(u, v);
+    }
+  }
+  return hits;
+}
+// Liang-Barsky: does a + t d (t in 0..1) pass through |u| < hw, |v| < hl?
+function segThroughRect(au, av, du, dv, hw, hl) {
+  let t0 = 0, t1 = 1;
+  for (let k = 0; k < 4; k++) {
+    const p = k === 0 ? -du : k === 1 ? du : k === 2 ? -dv : dv;
+    const q = k === 0 ? au + hw : k === 1 ? hw - au : k === 2 ? av + hl : hl - av;
+    if (Math.abs(p) < 1e-9) { if (q < 0) return false; continue; }
+    const r = q / p;
+    if (p < 0) t0 = Math.max(t0, r); else t1 = Math.min(t1, r);
+    if (t0 > t1) return false;
+  }
+  return true;
+}
+
+// Quick test: does any road segment come within its half width (less
+// ON_ROAD) of building i's box? Segment against rectangle in the box frame.
+// A lookup cell holds every segment within its half width plus 24 m of it,
+// so the centre's cell is enough for boxes up to 20 m from centre to corner.
+const rectD = (u, v, hw, hl) => Math.hypot(Math.max(0, Math.abs(u) - hw), Math.max(0, Math.abs(v) - hl));
+function boxNearRoad(i) {
+  const c = Math.cos(REAL.ba[i]), s = Math.sin(REAL.ba[i]);
+  const hw = REAL.bw[i] / 2, hl = REAL.bl[i] / 2, X = REAL.bx[i], Y = REAL.by[i];
+  const R = Math.hypot(hw, hl);
+  // out of the real blocks the polder roads and village streets count too
+  if (!realBlock(Math.floor(X / BLOCK), Math.floor(Y / BLOCK)) && (R > 20 || roadGap(X, Y, R + 1) < R)) return true;
+  // big halls reach past the centre's lookup cell: the cells round them too
+  let segs = segsNear(X, Y, 0);
+  if (R > 20) {
+    const set = new Set();
+    for (let u = -hw; u < hw + 16; u += 16) for (let v = -hl; v < hl + 16; v += 16) {
+      const uu = Math.min(u, hw), vv = Math.min(v, hl);
+      for (const g of segsNear(X + uu * c - vv * s, Y + uu * s + vv * c, 0)) set.add(g);
+    }
+    segs = set;
+  }
+  for (const g of segs) {
+    if (g.kind) continue;
+    const b = g.box;
+    if (X + R < b[0] || X - R > b[2] || Y + R < b[1] || Y - R > b[3]) continue;
+    const lim = Math.max(g.ha, g.hb) + ON_ROAD;
+    if (lim <= 0) continue;
+    const au = (g.ax - X) * c + (g.ay - Y) * s, av = -(g.ax - X) * s + (g.ay - Y) * c;
+    const bu = (g.bx - X) * c + (g.by - Y) * s, bv = -(g.bx - X) * s + (g.by - Y) * c;
+    const du = bu - au, dv = bv - av, L2 = du * du + dv * dv || 1;
+    if (segThroughRect(au, av, du, dv, hw, hl)) return true;
+    // no crossing: the closest approach is at a segment end or a corner
+    if (rectD(au, av, hw, hl) < lim || rectD(bu, bv, hw, hl) < lim) return true;
+    for (let k = 0; k < 4; k++) {
+      const cu = k & 1 ? hw : -hw, cv = k & 2 ? hl : -hl;
+      const t = Math.max(0, Math.min(1, ((cu - au) * du + (cv - av) * dv) / L2));
+      if (Math.hypot(au + du * t - cu, av + dv * t - cv) < lim) return true;
+    }
+  }
+  return false;
+}
+
+export function realBuildingRoadHits(i) {
+  return boxRoadHits(i).length / 2;
+}
+function clearRealBuildings() {
+  const out = { checked: 0, sampled: 0, clipped: 0, dropped: 0, ms: 0 };
+  const t0 = performance.now();
+  const drop = new Set();
+  for (let i = 0; i < REAL.n; i++) {
+    if (edgeDistance(REAL.bx[i], REAL.by[i]) < -40) continue;
+    out.checked++;
+    if (!boxNearRoad(i)) continue;
+    out.sampled++;
+    const hits = boxRoadHits(i);
+    if (!hits.length) continue;
+    const hw = REAL.bw[i] / 2, hl = REAL.bl[i] / 2;
+    // the cheapest side to cut from: up to the hit nearest the other side
+    let best = null;
+    for (const [axis, sign] of [[0, 1], [0, -1], [1, 1], [1, -1]]) {
+      const half = axis ? hl : hw;
+      let reach = half;
+      for (let k = 0; k < hits.length; k += 2) reach = Math.min(reach, hits[k + axis] * sign);
+      const cut = half - reach + 1.2;
+      if (!best || cut < best.cut) best = { axis, sign, cut, len: 2 * half };
+    }
+    const keep = best.len - best.cut;
+    if (REAL.grp[i] === i && keep >= 3 && keep >= best.len * 0.6) {
+      const c = Math.cos(REAL.ba[i]), s = Math.sin(REAL.ba[i]);
+      const sh = (-best.sign * best.cut) / 2;
+      if (best.axis) { REAL.bl[i] = keep; REAL.bx[i] -= sh * s; REAL.by[i] += sh * c; }
+      else { REAL.bw[i] = keep; REAL.bx[i] += sh * c; REAL.by[i] += sh * s; }
+      if (!boxRoadHits(i).length) { out.clipped++; continue; }
+    }
+    drop.add(i);
+  }
+  // an outline's wings go with a dropped first box
+  for (let i = 0; i < REAL.n; i++) if (REAL.grp[i] !== i && drop.has(REAL.grp[i])) drop.add(i);
+  out.dropped = drop.size;
+  if (drop.size) for (const [k, L] of REAL.bTiles) REAL.bTiles.set(k, L.filter((i) => !drop.has(i)));
+  REAL.dropped = drop;
+  // rows are grouped from the boxes: group again from the cleaned ones
+  REAL.row = null;
+  out.ms = Math.round(performance.now() - t0);
+  return out;
 }
 
 // Where the real data actually is: roads, buildings and water rasterised
@@ -601,8 +723,10 @@ export function roadGap(x, y, reach = 6) {
       if (gap < best) best = gap;
     }
   }
-  if (countryWeight(x, y) < 0.5) return best;
   const bx = Math.floor(x / BLOCK), by = Math.floor(y / BLOCK);
+  // the real Ommelanden have no polder roads or wierde villages
+  if (realBlock(bx, by) && realBlock(bx + 1, by) && realBlock(bx, by + 1)) return best;
+  if (countryWeight(x, y) < 0.5) return best;
   const lx = x - bx * BLOCK, ly = y - by * BLOCK;
   for (const k of [0, 1]) {
     if (edgeRoad(bx + k, by, 0)) best = Math.min(best, Math.max(ROAD_IN - (lx - k * BLOCK), lx - k * BLOCK - ROAD_IN - ROAD_W));
