@@ -28,6 +28,12 @@ const STRIKE_SPEED = 0.9;
 const GOLD_MARGIN = 12;
 
 let leftover = null;
+// the two skûtsjes moored at the start while you are near it (idle), so the
+// boats Jelle has "klaarliggen" are really there; start() boards them
+let moored = null;
+let startSpot = null;
+const MOOR_NEAR = 90;
+const MOOR_FAR = 150;
 
 // Share of full speed per angle off the wind (0 = head to wind, PI = running).
 // The canal leaves no room to tack, so even close to the wind it keeps way.
@@ -113,6 +119,37 @@ function berthBeside(map, s, side) {
   return { ...best, a: q.a };
 }
 
+function startBerths(map, side) {
+  const s0 = diepenringProgress(FROM[0], FROM[1]).s;
+  return { pb: berthBeside(map, s0, side), jb: berthBeside(map, s0 + 4, -side) };
+}
+
+function playerSkutsje(map, pb) {
+  const boat = new Vehicle(pb.x, pb.y, pb.a, { ...BOAT_KINDS.skutsje, color: '#1b1d1f' });
+  boat.isBoat = true;
+  boat.missionCar = true;
+  boat.waterPoly = waterPolyAt(map, boat.x, boat.y);
+  boat.sailTop = 0;
+  return boat;
+}
+
+function jelleSkutsje(jb) {
+  const jv = new Vehicle(jb.x, jb.y, jb.a, { ...BOAT_KINDS.skutsje, color: '#141a2a' });
+  jv.isBoat = true;
+  jv.scripted = true;
+  jv.missionCar = true;
+  jv.driver = 'jelle';
+  jv.label = 'Skûtsje Us Heit';
+  return jv;
+}
+
+function unmoor(w) {
+  if (!moored) return;
+  removeBoat(w, moored.boat);
+  removeBoat(w, moored.jv);
+  moored = null;
+}
+
 function fmt(s) {
   const t = Math.max(0, s), m = Math.floor(t / 60);
   return `${m}:${(t - m * 60).toFixed(1).padStart(4, '0')}`;
@@ -137,6 +174,7 @@ export const SKUTSJE = {
         const x = q.x + nx * o, y = q.y + ny * o;
         if (isInWater(map, x, y)) continue;
         const [ex, ey] = map.escapeBuilding(x + nx * 1.5, y + ny * 1.5, 0.4);
+        startSpot = { x: ex, y: ey, side };
         return [{ x: ex, y: ey, name: 'Skûtsje-sprint in de Oosterhaven', sub: 'Jelle heeft twee skûtsjes klaarliggen', s, side }];
       }
     }
@@ -155,20 +193,13 @@ export const SKUTSJE = {
     gates.push(s1);
     const cps = gates.map((s) => { const q = routeAt(s); return { s, x: q.x, y: q.y }; });
     const side = run.spot.data.side || 1;
-    const pb = berthBeside(map, s0, side), jb = berthBeside(map, s0 + 4, -side);
-    const boat = new Vehicle(pb.x, pb.y, pb.a, { ...BOAT_KINDS.skutsje, color: '#1b1d1f' });
-    boat.isBoat = true;
-    boat.missionCar = true;
-    boat.waterPoly = waterPolyAt(map, boat.x, boat.y);
-    boat.sailTop = 0;
-    w.vehicles.push(boat);
-    const jv = new Vehicle(jb.x, jb.y, jb.a, { ...BOAT_KINDS.skutsje, color: '#141a2a' });
-    jv.isBoat = true;
-    jv.scripted = true;
-    jv.missionCar = true;
-    jv.driver = 'jelle';
-    jv.label = 'Skûtsje Us Heit';
-    w.vehicles.push(jv);
+    const { pb, jb } = startBerths(map, side);
+    // board the boats that were lying ready, else moor them now
+    const boat = moored ? moored.boat : playerSkutsje(map, pb);
+    const jv = moored ? moored.jv : jelleSkutsje(jb);
+    moored = null;
+    boat.driver = null;
+    for (const v of [boat, jv]) if (!w.vehicles.includes(v)) w.vehicles.push(v);
     const p = w.player;
     p.x = boat.x; p.y = boat.y;
     p.enterVehicle(boat, w);
@@ -261,6 +292,7 @@ export const SKUTSJE = {
     }
   },
   idle(world) {
+    idleMoored(world);
     if (!leftover) return;
     if (world.player.inVehicle === leftover) animateSkutsjeRig(leftover, 0.5, bridgeAhead(world.map, leftover) ? 1 : 0, world.time);
     else if (Math.hypot(leftover.x - world.player.x, leftover.y - world.player.y) > 120) { removeBoat(world, leftover); leftover = null; }
@@ -278,6 +310,27 @@ export const SKUTSJE = {
     return { cp: d.cp, of: d.cps.length, ps: Math.round(d.ps), js: Math.round(d.js), eff: Math.round(d.eff * 100), trim: Math.round(d.trim / DEG) };
   },
 };
+
+// Jelle's two skûtsjes lie at the start while you're near and no race runs.
+function idleMoored(w) {
+  const p = w.player;
+  const near = startSpot && w.postgame && !w.challenge && !leftover && Math.hypot(p.x - startSpot.x, p.y - startSpot.y) < (moored ? MOOR_FAR : MOOR_NEAR);
+  if (!near) { unmoor(w); return; }
+  if (!moored) {
+    prepareDiepenringRoute(w.map);
+    const { pb, jb } = startBerths(w.map, startSpot.side || 1);
+    moored = { boat: playerSkutsje(w.map, pb), jv: jelleSkutsje(jb) };
+    // boarded only by starting the sprint at the marker
+    moored.boat.driver = 'moored';
+  }
+  for (const v of [moored.boat, moored.jv]) {
+    if (!w.vehicles.includes(v)) w.vehicles.push(v);
+    v.speed = 0;
+    // sails furled by the quay: the mast struck back a little, boom amidships
+    animateSkutsjeRig(v, 0.05, 0.25, w.time);
+  }
+  skipperFigure(moored.jv, JELLE_LOOK, 'pgJelle');
+}
 
 function placeJelle(run, dt, wf) {
   const d = run.data, w = run.world, v = d.jv;
