@@ -34,6 +34,7 @@ import { anyFresh } from './characters.js';
 import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
 import { renderPhonePanel, phoneClick, phoneUnread, selectPhoneThread, PHONE_NAME } from './phone.js';
 import { recentNotice } from './phonefeed.js';
+import { storyContactCaller } from './storycontact.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
@@ -621,7 +622,8 @@ function onKey(e) {
     if (e.repeat || !started()) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
       e.preventDefault();
-      const from = k === 'Escape' && !isCinematicActive() ? recentNotice() : null;
+      // a call, a story contact or a text on screen: Esc opens its thread
+      const from = k === 'Escape' ? storyContactCaller() || (!isCinematicActive() ? recentNotice() : null) : null;
       if (from) { selectPhoneThread(from); pref.sub.telefoon = 'berichten'; }
       setOpen(true, k === 'Escape' ? (from ? 'telefoon' : HOME) : 'map', 'direct');
     }

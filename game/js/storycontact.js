@@ -259,6 +259,12 @@ export function isStoryContactActive() {
   return !!cur;
 }
 
+// Who is on the story phone right now (the Berichten thread it lands in), or null.
+export function storyContactCaller() {
+  return cur ? callerOf(cur.c) : null;
+}
+const callerOf = (c) => (c.via === 'radio' ? 'Rikus' : c.caller || nameOf(c.from || 'jelle'));
+
 function lineTime(line) {
   const v = lineVoiceFor(nameOf(line[0]), line[1]);
   return { v, dur: v ? v.dur + 0.45 : Math.max(2.4, readingSeconds(line[1]) * 0.8) };
@@ -269,7 +275,7 @@ function logHistory(c) {
   const kind = { call: 'belde', voicemail: 'sprak in', live: 'was live', post: 'op Kiekdoar', card: 'liet een kaartje achter', scene: 'was live', radio: 'op Nachtstreek' }[c.via] || '';
   const text = c.lines.map((l) => dutchFor(l[1]) || l[1]).join(' ');
   const h = world.phoneHistory || (world.phoneHistory = []);
-  const by = c.via === 'radio' ? 'Rikus' : c.caller || nameOf(c.from || 'jelle');
+  const by = callerOf(c);
   h.unshift({ text: `${by} ${kind}: ${text}`, at: getClockText(world) || '', from: by, body: kind ? `${kind[0].toUpperCase()}${kind.slice(1)}: ${text}` : text });
   if (h.length > 30) h.length = 30;
 }
