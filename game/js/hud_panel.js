@@ -836,7 +836,9 @@ function updateNowPlaying(world) {
   const np = world.nowPlaying;
   if (np && np !== els.npShown) {
     els.npShown = np;
-    els.npStation.textContent = 'NU OP ' + String(np.station || 'G-Music').toUpperCase();
+    // the station and, under a record, the programme it runs in
+    const prog = np.programme && np.programme !== np.title ? ' · ' + np.programme : '';
+    els.npStation.textContent = ('NU OP ' + (np.station || 'G-Music') + prog).toUpperCase();
     els.npArtist.textContent = np.artist || '';
     els.npTitle.textContent = np.title || '';
     restartClass(els.nowPlaying, 'on', () => els.npShown === np);
