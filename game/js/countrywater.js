@@ -51,7 +51,7 @@ function init(group) {
   group.add(bed);
   W = { group, bankMat, bed, chunks: 0, tris: 0 };
   setExtraWater(wideWaterAt);
-  setCountryClearance((x, y, d) => (d < 0 ? (rectOutside(x, y) > -3 ? openWater(x, y) - SHORE_RW : -1) : cityShoreFix(x, y, d)));
+  setCountryClearance(countryClearance);
 }
 
 function dropMeshes(ch) {
@@ -110,6 +110,38 @@ export function updateCountryWater(px, py, radius, time) {
     W.bed.scale.set(radius * 2 + 40, 1, radius * 2 + 40);
     W.bed.updateMatrix();
   }
+}
+
+// Free water for boats (waterindex.js): past the map edge the open-water
+// distance, inside city water by the edge cityShoreFix.
+export function countryClearance(x, y, d) {
+  if (d >= 0) return cityShoreFix(x, y, d);
+  return rectOutside(x, y) > -3 ? openClearance(x, y) - SHORE_RW : -1;
+}
+
+// The water field is a 10 m raster, so a canal not much wider than a cell
+// gets shallow valleys between the cell centres: water on both sides, but
+// near enough to "shore" that a boat's hull can't cross them. A real
+// distance-to-shore has no such valley unless it is a pinch between two
+// banks (then it is a crest the other way), so a valley across one of four
+// directions is lifted toward its sides, by at most SEAM_LIFT.
+const SEAM_S = 4;
+const SEAM_LIFT = 1.5;
+const SEAM_DIRS = [[1, 0], [0, 1], [Math.SQRT1_2, Math.SQRT1_2], [Math.SQRT1_2, -Math.SQRT1_2]];
+function openClearance(x, y) {
+  const f = openWater(x, y);
+  if (f <= SHORE_RW) return f;
+  let out = f;
+  for (const [ux, uy] of SEAM_DIRS) {
+    const a = openWater(x + ux * SEAM_S, y + uy * SEAM_S);
+    if (a <= f) continue;
+    const b = openWater(x - ux * SEAM_S, y - uy * SEAM_S);
+    if (b <= f) continue;
+    const pa = openWater(x - uy * SEAM_S, y + ux * SEAM_S), pb = openWater(x + uy * SEAM_S, y - ux * SEAM_S);
+    if (pa < f - 0.5 && pb < f - 0.5) continue;
+    out = Math.max(out, Math.min(a, b, f + SEAM_LIFT));
+  }
+  return out;
 }
 
 // City water vertices by the map edge where the canal carries on: the

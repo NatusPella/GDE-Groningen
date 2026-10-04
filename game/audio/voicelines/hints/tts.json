@@ -179,14 +179,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken (Ctrl) helpt.": {
-"src": "anita/eerst_de_stroomkast_twee_camera__e2957af3.mp3",
+"Anita|Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken helpt.": {
+"src": "anita/eerst_de_stroomkast_twee_camera__4eb19e6c.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Callirrhoe",
-"input": "Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken (control) helpt.",
+"input": "Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken helpt.",
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-04"
 },
 "Anita|Eerst deze fiets in het busje zetten": {
 "src": "anita/eerst_deze_fiets_in_het_busje_ze_6eabcf3b.mp3",
@@ -431,14 +431,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien, Ctrl omlaag.": {
-"src": "anita/instappen_bij_roelf_spatie_omhoo_210daad1.mp3",
+"Anita|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien. De rest staat in beeld.": {
+"src": "anita/instappen_bij_roelf_spatie_omhoo_196b8237.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Callirrhoe",
-"input": "Instappen bij Roelf. Spatie omhoog, W vooruit, A en D draaien, Ctrl omlaag.",
+"input": "Instappen bij Roelf. Spatie omhoog, W vooruit, A en D draaien. De rest staat in beeld.",
 "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: droog, adviserend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-03"
+"date": "2026-10-04"
 },
 "Anita|Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.": {
 "src": "anita/instappen_femke_heeft_hem_voor_o_236f3cf4.mp3",
@@ -881,14 +881,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Zaal 3. Bukken (Ctrl) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.": {
-"src": "anita/zaal_3_bukken_ctrl_onder_de_hoge_f23af198.mp3",
+"Anita|Zaal 3. Bukken onder de hoge lasers, springen over de lage, en wachten op de knipperende.": {
+"src": "anita/zaal_3_bukken_onder_de_hoge_lase_6c2dad35.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Callirrhoe",
-"input": "Zaal 3. Bukken (control) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: kort, alert, tegen de ander naast je.",
+"input": "Zaal 3. Bukken onder de hoge lasers, springen over de lage, en wachten op de knipperende.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: aanwijzend, gehaast.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-04"
 },
 "Anita|Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.": {
 "src": "anita/ze_rijden_de_escapade_zo_de_goed_5001f153.mp3",
@@ -1079,14 +1079,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken (Ctrl) helpt.": {
-"src": "tammo/eerst_de_stroomkast_twee_camera__0915600b.mp3",
+"Tammo|Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken helpt.": {
+"src": "tammo/eerst_de_stroomkast_twee_camera__85314790.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Orus",
-"input": "Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken (control) helpt.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
+"input": "Eerst de stroomkast. Twee camera's en een bewaker: blijf uit de lichtbundels. Bukken helpt.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: aanwijzend, gehaast.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-04"
 },
 "Tammo|Eerst deze fiets in het busje zetten": {
 "src": "tammo/eerst_deze_fiets_in_het_busje_ze_798a7b41.mp3",
@@ -1340,14 +1340,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien, Ctrl omlaag.": {
-"src": "tammo/instappen_bij_roelf_spatie_omhoo_a5b3da26.mp3",
+"Tammo|Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien. De rest staat in beeld.": {
+"src": "tammo/instappen_bij_roelf_spatie_omhoo_3de27650.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Orus",
-"input": "Instappen bij Roelf. Spatie omhoog, W vooruit, A en D draaien, Ctrl omlaag.",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
+"input": "Instappen bij Roelf. Spatie omhoog, W vooruit, A en D draaien. De rest staat in beeld.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, adviserend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-03"
+"date": "2026-10-04"
 },
 "Tammo|Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.": {
 "src": "tammo/instappen_femke_heeft_hem_voor_o_918d41d0.mp3",
@@ -1781,14 +1781,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Tammo|Zaal 3. Bukken (Ctrl) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.": {
-"src": "tammo/zaal_3_bukken_ctrl_onder_de_hoge_c6d2db7b.mp3",
+"Tammo|Zaal 3. Bukken onder de hoge lasers, springen over de lage, en wachten op de knipperende.": {
+"src": "tammo/zaal_3_bukken_onder_de_hoge_lase_bb190cd6.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Orus",
-"input": "Zaal 3. Bukken (control) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.",
+"input": "Zaal 3. Bukken onder de hoge lasers, springen over de lage, en wachten op de knipperende.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: kort, alert, tegen de ander naast je.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
+"date": "2026-10-04"
 },
 "Tammo|Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.": {
 "src": "tammo/ze_rijden_de_escapade_zo_de_goed_65c1f5eb.mp3",

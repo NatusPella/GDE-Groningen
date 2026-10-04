@@ -286,9 +286,12 @@ snapshotwerk van ~92 ms in drie long tasks naar 55 ms in één.
 - Op de ring geeft de HUD bij een sprong nog frames van 30 tot 50 ms
   (`hud`, in A en B gelijk); dat is niet de minimap. In ronde 4 bleef de
   piek van `hud` onder 10 ms (hoogstens één frame ≥ 8 ms per run).
-- De snapshot van de auto bij de snelheidsmeter (33–55 ms, per model en
-  kleur) en de opwarming van de gedeelde renderer: in de rusttijd tussen
-  frames, of vooraf.
+- ~~De snapshot van de auto bij de snelheidsmeter en de opwarming van de
+  gedeelde renderer~~ (`claude/open-bugs`): snapshots komen nu in de
+  rusttijd (`requestIdleCallback`, timeout 500 ms) in plaats van in een
+  animatieframe. Bij de start wordt de Escapade vooraf gemaakt (dat warmt
+  de renderer op) en elk voertuig waar je binnen 7 m van loopt ook, dus
+  instappen kost geen lang frame meer. Nog niet in Electron gemeten.
 - Het gebouwraster in de worker compacter (6 MB), en de hoogtes (11 MB)
   alleen voor de ringwegen.
 - De Ommeland-tegels (`genTileSteps`), na een splitsing van `countryplan`

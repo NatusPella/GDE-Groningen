@@ -23,10 +23,10 @@ const WRECKED_UP = [
 // keys and clips keep their old names (copkill_up, pedkill_up, kill_up);
 // the counters behind them are knockouts now
 const COPKILL_UP = [
-  'KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer',
+  'KIEKDOAR: agent tegen de vlakte tijdens dienst, korps in rep en roer',
 ];
 const PEDKILL_UP = [
-  'KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties',
+  'KIEKDOAR: voetganger van de sokken gelopen, buurtapp ontploft van de reacties',
 ];
 const KILL_UP = [
   'KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister',
