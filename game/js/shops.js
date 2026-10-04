@@ -493,6 +493,17 @@ export function spawnOwnedEntry(world, o, x, y, angle) {
   return v;
 }
 
+// A vehicle from the stock that is not in the collection (cheats.js
+// Showroom): not saved, never theft. Same placement rules as spawnOwnedEntry.
+export function spawnStockVehicle(world, key, x, y, angle) {
+  const spec = VEHICLE_STOCK[key];
+  if (!spec) return null;
+  const v = spawnOwned(world, { key, spec, color: spec.color, upgrades: [] }, x, y, angle);
+  if (!v) return null;
+  if (!v.isHeli) v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
+  return v;
+}
+
 export function replacementFee(o) {
   return Math.max(40, Math.round(o.spec.price * 0.15 / 5) * 5);
 }
