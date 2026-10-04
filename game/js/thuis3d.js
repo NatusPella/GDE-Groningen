@@ -176,13 +176,16 @@ defer('galerij60', (B, b, ring) => {
   const H = Math.max(2.4, b.h * STOREY), N = Math.max(2, Math.round(b.h) + 1), fh = H / N;
   K.walls(B, ring, 0, () => H, G60.brick, BRICK);
   K.cap(B, ring, () => H, 0x5d5f62, PLAIN);
+  // (boxes on the wall reach into it, each to its own depth: no back face
+  // flush with the wall or with another box's)
+  const eb = (e, t, y0, w, h, d, col, g, emb) => K.ebox(B, e, t, y0, w, h, d + emb, col, g, -emb);
   for (const e of K.edgesOf(ring)) {
     if (e.len < 1) continue;
-    K.ebox(B, e, e.len / 2, 0, e.len, fh, 0.04, G60.plinth, BRICK, 0);
-    K.ebox(B, e, e.len / 2, H - 0.45, e.len + 0.1, 0.45, 0.25, G60.concrete, PLAIN, 0);
+    eb(e, e.len / 2, 0, e.len, fh - 0.2, 0.04, G60.plinth, BRICK, 0.03);
+    eb(e, e.len / 2, H - 0.45, e.len + 0.1, 0.48, 0.25, G60.concrete, PLAIN, 0.02);
     if (e.len < 15) {
       // the closed end wall: brick between two concrete frame edges
-      for (const t of [0.2, e.len - 0.2]) K.ebox(B, e, t, 0, 0.4, H, 0.08, G60.concrete, PLAIN, 0);
+      for (const t of [0.2, e.len - 0.2]) eb(e, t, 0, 0.4, H - 0.45, 0.08, G60.concrete, PLAIN, 0.04);
       continue;
     }
     const gallery = e.nx < -0.3;
@@ -191,7 +194,7 @@ defer('galerij60', (B, b, ring) => {
       const y = k * fh;
       if (gallery) {
         // gallery deck, its railing, the front doors and kitchen windows behind it
-        K.ebox(B, e, e.len / 2, y - 0.2, e.len, 0.2, 1.6, G60.concrete, PLAIN, 0);
+        eb(e, e.len / 2, y - 0.2, e.len, 0.2, 1.6, G60.concrete, PLAIN, 0.05);
         equad(B, e, e.len / 2, y, e.len, 1.05, 1.58, G60.rail, METAL);
         equad(B, e, e.len / 2, y + 0.9, e.len - 0.6, 1.1, 0.02, G60.glass, GLASS);
         for (let i = 0; i < posts; i++) equad(B, e, (i + 0.3) * e.len / posts, y + 0.05, 0.95, 2.1, 0.04, G60.door, PLAIN);
@@ -201,11 +204,11 @@ defer('galerij60', (B, b, ring) => {
         // stacked balconies, every other bay
         for (let i = 0; i < posts; i += 2) {
           const t = (i + 0.5) * e.len / posts;
-          K.ebox(B, e, t, y - 0.15, e.len / posts - 0.3, 0.15, 1.3, G60.concrete, PLAIN, 0);
+          eb(e, t, y - 0.15, e.len / posts - 0.3, 0.15, 1.3, G60.concrete, PLAIN, 0.06);
           equad(B, e, t, y, e.len / posts - 0.3, 1.0, 1.28, G60.concrete, PLAIN);
         }
       }
-      K.ebox(B, e, e.len / 2, y - 0.2, e.len, 0.2, 0.06, G60.concrete, PLAIN, 0);
+      eb(e, e.len / 2, y - 0.2, e.len, 0.2, 0.06, G60.concrete, PLAIN, 0.07);
     }
     // the lift's machine room on the roof, over the gallery side
     if (gallery) K.ebox(B, e, e.len * 0.5, H, 3.2, 2.4, 3.0, G60.brick, BRICK, -3.2);
@@ -339,7 +342,7 @@ defer('peutShop', (B, b, ring) => {
   const toward = b.modelFrame.toward;
   for (const e of K.edgesOf(ring)) {
     const front = (toward[0] - e.a[0]) * e.nx + (toward[1] - e.a[1]) * e.ny > 0 && e.len > 5;
-    equad(B, e, e.len / 2, 0, e.len, H, 0, PEUT.white, PLAIN);
+    equad(B, e, e.len / 2, 0, e.len, H - 0.95, 0, PEUT.white, PLAIN);
     K.ebox(B, e, e.len / 2, H - 0.85, e.len + 0.1, 0.85, 0.12, PEUT.green, PLAIN, 0);
     K.ebox(B, e, e.len / 2, H - 0.95, e.len + 0.1, 0.1, 0.13, PEUT.lime, PLAIN, 0);
     if (front) {
