@@ -791,6 +791,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Ubbo|Alles gedaan. Echt alles. Grunn is van jou. Klap je telefoon open: de aftiteling staat bij Overzicht.": {
+"src": "ubbo/alles_gedaan_echt_alles_grunn_is_6b016f6b.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Laomedeia",
+"input": "Alles gedaan. Echt alles. Grunn is van jou. Klap je telefoon open: de aftiteling staat bij Overzicht.",
+"style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: behulpzame app-assistent, opgewekt.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-04"
+},
 "Ubbo|Goeiemorgen! Gisteren lekker gedraaid. De dagomzet staat op je rekening.": {
 "src": "ubbo/goeiemorgen_gisteren_lekker_gedr_162743a6.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -809,6 +818,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Ubbo|Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.": {
+"src": "ubbo/het_verhaal_gaat_verder_in_een_v_6073138c.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Laomedeia",
+"input": "Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.",
+"style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: vriendelijke, gladde app-stem, kalm.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-04"
+},
 "Ubbo|Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.": {
 "src": "ubbo/het_verhaal_is_uit_grunn_blijft__f59d3890.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -826,6 +844,15 @@
 "style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: vriendelijke, gladde app-stem, kalm.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Ubbo|Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.": {
+"src": "ubbo/je_gps_wijst_nu_naar_de_dichtstb_4a6ac28c.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Laomedeia",
+"input": "Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.",
+"style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: vriendelijke, gladde app-stem, kalm.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-04"
 },
 "Ubbo|Voor deze missie mis je nog iets. Lees even mee op je telefoon.": {
 "src": "ubbo/voor_deze_missie_mis_je_nog_iets_c0278527.mp3",

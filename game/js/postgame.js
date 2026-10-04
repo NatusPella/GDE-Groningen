@@ -574,7 +574,7 @@ function updateGuide(dt, w) {
   w.postgameGuide = g ? { x: g.x, y: g.y, name: g.name, id: g.id, pg: true } : null;
   if (g && !state.guideHinted && !isCinematicActive() && w.phoneNotifications) {
     state.guideHinted = true;
-    w.phoneNotifications.push({ from: 'GDE', text: 'Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart (M): Volgende of Uit; via Ubbo zet je hem weer aan.', duration: 8 });
+    w.phoneNotifications.push({ from: 'GDE', text: 'Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.', duration: 8 });
   }
 }
 

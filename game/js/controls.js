@@ -30,7 +30,6 @@ export const KEY_ACTIONS = [
   ['2', 'Pistool', 'wapens'],
   ['3', 'Geweer', 'wapens'],
   ['4', 'Gooien: carbidbus, vuurwerk', 'wapens'],
-  ['t', 'Telefoon', 'menu'],
   ['m', 'Kaart', 'menu'],
   ['o', 'Verhaalstap overslaan', 'menu'],
   ['n', 'Radio aan of uit (ook te voet)', 'menu'],
@@ -177,16 +176,16 @@ export function buttonSlots(binds) {
 // keys); triggers 'drive' make RT/LT the gas and the brake.
 const FOOT = {
   a: ' ', b: 'control', x: 'f', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
-  ls: 'shift', rs: 'tab', up: 't', down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
+  ls: 'shift', rs: 'tab', up: null, down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
 };
 export const PAD_MAPS = {
   foot: FOOT,
-  vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 't', down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
-  skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: 't', down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
+  vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
+  skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
   // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster
-  heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: 't', down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
+  heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
   pigeon: { a: ' ', b: 'control', x: 'f', y: 'e', lb: 'c', rb: 'q', lt: 'shift', rt: '@fire', ls: 'shift', rs: null, up: null, down: 'x', left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
-  train: { a: ' ', b: null, x: 'h', y: 'e', lb: null, rb: null, lt: 's', rt: 'w', ls: null, rs: null, up: 't', down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
+  train: { a: ' ', b: null, x: 'h', y: 'e', lb: null, rb: null, lt: 's', rt: 'w', ls: null, rs: null, up: null, down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game
   minigame: { ...FOOT, b: 'backspace', lt: '@aim', rt: '@fire', stick: 'move' },
   // the Fjord Frituur: the D-pad and the bumpers pick from the menu
@@ -216,8 +215,8 @@ export function padSlotFor(token, ctx = 'foot') {
   if (map.stick === 'arrows' && k.startsWith('arrow')) return 'lstick';
   const hit = find(map, k);
   if (hit) return hit;
-  // in menus Backspace and the key that opened it (T, M) go back like Esc
-  if (ctx === 'menu' && (k === 'backspace' || k === 't')) return find(map, 'escape');
+  // in menus Backspace goes back like Esc
+  if (ctx === 'menu' && k === 'backspace') return find(map, 'escape');
   // 'f' does what 'e' does in most places (enter, use)
   if (k === 'f') return find(map, 'e');
   return null;
@@ -268,7 +267,7 @@ const ACTION_WORDS = Object.fromEntries(KEY_ACTIONS.map(([k, d]) => [k, d.split(
 Object.assign(ACTION_WORDS, {
   '@fire': 'Aanvallen, schieten', '@aim': 'Richten', '@wheel+': 'Volgend wapen', '@wheel-': 'Vorig wapen', '@gas': 'Gas', '@brake': 'Remmen, achteruit',
   escape: 'Pauzemenu', enter: 'Kiezen', delete: 'Doel wissen', '[': 'Vorig tabblad', ']': 'Volgend tabblad',
-  arrowup: 'Omhoog', arrowdown: 'Omlaag', arrowleft: 'Links', arrowright: 'Rechts', ' ': 'Springen, handrem', q: 'Achterom kijken', e: 'Instappen, gebruiken', f: 'Gebruiken (tweede knop), duif: poepen', m: 'Kaart', t: 'Telefoon',
+  arrowup: 'Omhoog', arrowdown: 'Omlaag', arrowleft: 'Links', arrowright: 'Rechts', ' ': 'Springen, handrem', q: 'Achterom kijken', e: 'Instappen, gebruiken', f: 'Gebruiken (tweede knop), duif: poepen', m: 'Kaart',
 });
 const MENU_WORDS = { enter: 'kiezen', escape: 'terug', delete: 'doel wissen', ' ': 'naar jezelf op de kaart', q: 'vorig onderdeel', e: 'volgend onderdeel', '[': 'vorig tabblad, uitzoomen', ']': 'volgend tabblad, inzoomen', m: 'kaart' };
 export function describe(v) {

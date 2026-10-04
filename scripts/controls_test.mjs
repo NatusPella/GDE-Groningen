@@ -73,7 +73,7 @@ ok(C.padSlotFor('N', 'vehicle') === 'lb' && /radio aan of uit/i.test(C.slotUses(
 ok(JSON.stringify(C.normalizeKeyBinds({ b: 'j', n: 'j' })) === '{"n":"j"}', 'a saved bind for the old B action is dropped, N keeps its own');
 
 // every situation maps every game key it needs to some button
-const need = { foot: [' ', 'control', 'e', 'f', 'k', 't', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'v', 't', 'm', 'escape', 'n', 'shift', '@fire'],
+const need = { foot: [' ', 'control', 'e', 'f', 'k', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'v', 'm', 'escape', 'n', 'shift', '@fire'],
   heli: [' ', 'control', 'e', 'shift'], pigeon: [' ', 'control', 'f', 'e', 'c', 'q', 'x', 'shift'], menu: ['enter', 'escape', 'q', 'e'], minigame: [' ', 'backspace', 'e'], foodtruck: ['1', '2', '3', '4', '5', '6', ' ', 'backspace'] };
 for (const [ctx, keys] of Object.entries(need)) {
   for (const k of keys) {
@@ -81,6 +81,13 @@ for (const [ctx, keys] of Object.entries(need)) {
     ok(has, `${ctx} has a button for "${k}"`);
   }
 }
+
+// the phone is the pause menu (Esc): T is no longer a phone key, on the keyboard or the pad
+ok(!C.KEY_ACTIONS.some(([k]) => k === 't') && !C.KEY_ACTIONS.some(([, d]) => /^telefoon$/i.test(d)), 'no T phone action left');
+ok(Object.values(C.PAD_MAPS).every((m) => !Object.values(m).includes('t')), 'no controller button sends T');
+ok(JSON.stringify(C.normalizeKeyBinds({ t: 'j', m: 'g' })) === '{"m":"g"}', 'a saved bind for the old T phone key is dropped, others stay');
+ok(C.padSlotFor('ESC', 'foot') === 'start' && C.padSlotFor('ESC', 'vehicle') === 'start', 'Esc (the phone) is Start on the pad');
+ok(C.padSlotFor('T', 'menu') === null, 'T means nothing in the menu any more');
 
 // browser defaults: Ctrl+W closes the tab, so Ctrl's action starts on C
 ok(C.physicalKey({}, 'control') === 'control' && C.keyWord({}, 'control') === 'Ctrl', 'desktop keeps Ctrl');
