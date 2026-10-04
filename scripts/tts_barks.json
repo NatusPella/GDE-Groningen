@@ -812,8 +812,8 @@
  {
   "file": "nieuws/copkill_up_v0.wav",
   "speaker": "Kiekdoar-redactie",
-  "text": "KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer",
-  "say": "Agent gewond geraakt tijdens dienst, korps in rep en roer.",
+  "text": "KIEKDOAR: agent tegen de vlakte tijdens dienst, korps in rep en roer",
+  "say": "Agent tegen de vlakte tijdens dienst, korps in rep en roer.",
   "tag": "als een regionale nieuwslezer, droog, licht ironisch",
   "voice": "Achernar",
   "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
@@ -821,8 +821,8 @@
  {
   "file": "nieuws/copkill_up_v1.wav",
   "speaker": "Kiekdoar-redactie (2)",
-  "text": "KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer",
-  "say": "Agent gewond geraakt tijdens dienst, korps in rep en roer.",
+  "text": "KIEKDOAR: agent tegen de vlakte tijdens dienst, korps in rep en roer",
+  "say": "Agent tegen de vlakte tijdens dienst, korps in rep en roer.",
   "tag": "als een regionale nieuwslezer, droog, licht ironisch",
   "voice": "Umbriel",
   "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
@@ -830,8 +830,8 @@
  {
   "file": "nieuws/pedkill_up_v0.wav",
   "speaker": "Kiekdoar-redactie",
-  "text": "KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties",
-  "say": "Voetganger gewond, buurtapp ontploft van de reacties.",
+  "text": "KIEKDOAR: voetganger van de sokken gelopen, buurtapp ontploft van de reacties",
+  "say": "Voetganger van de sokken gelopen, buurtapp ontploft van de reacties.",
   "tag": "als een regionale nieuwslezer, droog, licht ironisch",
   "voice": "Achernar",
   "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
@@ -839,8 +839,8 @@
  {
   "file": "nieuws/pedkill_up_v1.wav",
   "speaker": "Kiekdoar-redactie (2)",
-  "text": "KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties",
-  "say": "Voetganger gewond, buurtapp ontploft van de reacties.",
+  "text": "KIEKDOAR: voetganger van de sokken gelopen, buurtapp ontploft van de reacties",
+  "say": "Voetganger van de sokken gelopen, buurtapp ontploft van de reacties.",
   "tag": "als een regionale nieuwslezer, droog, licht ironisch",
   "voice": "Umbriel",
   "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch."
