@@ -1,6 +1,6 @@
 // node scripts/gfx_profile_test.mjs: the GPU classification, the first-run
 // advice and the benchmark recommendation (game/js/gfxprofile.js).
-import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel } from '../game/js/gfxprofile.js';
+import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx } from '../game/js/gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, propRadius } from '../game/js/viewdist.js';
 
 let fail = 0;
@@ -49,6 +49,11 @@ eq('rec: one measured', recommendPreset({ hoog: 40 }, 'hoog'), null);
 
 eq('describe laag', describePreset('laag'), 'schaduwen uit · resolutie 75%, automatisch · zichtafstand kort');
 eq('describe hoog', describePreset('hoog'), 'schaduwen aan · resolutie 100%, automatisch · zichtafstand heel ver');
+const OLD_HOOG = { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true };
+eq('default (old hoog) is no preset', currentPreset(OLD_HOOG), null);
+eq('default is the default', isDefaultGfx(OLD_HOOG), true);
+eq('hoog is hoog', currentPreset({ ...OLD_HOOG, drawDistance: 'heelver' }), 'hoog');
+eq('hoog is not the default', isDefaultGfx({ ...OLD_HOOG, drawDistance: 'heelver' }), false);
 eq('changes old hoog->hoog', describeChanges('hoog', { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true }), 'zichtafstand heel ver');
 
 // view distance: 'heel ver' only while adaptive quality has not stepped down

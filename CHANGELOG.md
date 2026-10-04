@@ -9,7 +9,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Nieuw
 - **Zichtafstand "Heel ver"** (Instellingen › Beeld): op een sterke
   videokaart kijk je nu anderhalf keer zo ver over de stad en het Ommeland:
-  900 meter in plaats van 600. De voorinstelling Hoog gebruikt hem meteen.
+  900 meter in plaats van 600. Kies je de voorinstelling Hoog, dan krijg je
+  hem meteen; standaard blijft de zichtafstand Ver.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
 
 ## [0.26.1] - 2026-10-04

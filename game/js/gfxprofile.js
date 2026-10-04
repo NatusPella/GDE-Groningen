@@ -44,6 +44,11 @@ export function currentPreset(st = getSettings()) {
   return PRESET_ORDER.find((n) => Object.entries(GFX_PRESETS[n]).every(([k, v]) => st[k] === v)) || null;
 }
 
+// The out-of-the-box graphics: Hoog with 'ver' instead of 'heelver'. Shown
+// as Eigen; the first-run advice treats it like Hoog.
+export const GFX_DEFAULT = { ...GFX_PRESETS.hoog, drawDistance: 'ver' };
+export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).every(([k, v]) => st[k] === v);
+
 // --- benchmark result ---------------------------------------------------
 
 // trailer.js runBenchmarkSuite: the full run on the current settings plus
@@ -192,7 +197,7 @@ export function startGfxAdvisor(gl) {
   const q = location.search;
   if (!/[?&]gfxadvies\b/.test(q)) {
     if (readAdvice() || /[?&](noattract|storytest|trailer|benchmark|stil)\b/.test(q)) return;
-    if (currentPreset() !== 'hoog') return;
+    if (currentPreset() !== 'hoog' && !isDefaultGfx()) return;
   }
   const gpu = classifyGpu(readGpu(gl));
   const times = [];
