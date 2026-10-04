@@ -613,8 +613,17 @@ don't collide, and actors are drawn at their height.
   road's sidewalk, carriageway and marking geometry
   (`roadSurfaceGeometries`, the code `buildRoadGroup` uses) and returns
   false until it is back; `syncRoads` then lets the far LOD cover from the
-  nearest road still on its way. The civil works (`roadstructures3d.js`)
-  stay on the main thread. Until the worker's map is ready, roads build on
+  nearest road still on its way. The first request of a road also brings
+  its civil works (`roadstructures3d.js` `structureArrays` /
+  `overpassDeckArrays`: decks, piers, embankments, retaining walls, fences,
+  crash barriers, tunnel roofs, cutting floors) as positions and normals per
+  material; `structureGroup` wraps them on the main thread and hooks the
+  breakable fence and barrier sections (`w.collapse` / `w.restore`) to the
+  main thread's own wall by its place in `elev.walls` (checked by its first
+  point; on a mismatch the road builds them here). They are kept on the
+  road for good, so later requests leave them out. Collision data
+  (`elev.wallGrid`, the walls) never comes from the worker. Until the
+  worker's map is ready, roads build on
   the main thread as before.
 - City shores (`quaywalls.js`): `shoreParts` (walls, banks, aprons,
   houseboats, bridge decks as geometry, plus the bank seats and houseboat
@@ -630,7 +639,8 @@ don't collide, and actors are drawn at their height.
 - Results must stay identical to the main-thread build:
   `scripts/perf/geocheck.sh` compares the old code, the kernel on the main
   thread and the worker byte for byte (city cells round the centre, ~200
-  water chunks round the map, every road, every city shore, the terrain),
+  water chunks round the map, every road with its civil works, every city
+  shore, the terrain),
   and the road batch cells against the old one-frame finish. The kernels
   share their code with the main thread (`geokernels.js`,
   `countrywatergeo.js`, `roadSurfaceGeometries`, `shoreParts`,

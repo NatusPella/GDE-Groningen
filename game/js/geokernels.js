@@ -4,6 +4,7 @@ import { tileWater, chunkWaterArrays, canalWaterFrom, openWaterFrom } from './co
 import { loadMap, slimWorkerMap } from './mapdata.js';
 import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js';
 import { terrainArrays } from './terrain3d.js';
+import { structureArrays, overpassDeckArrays, structureTransfer } from './roadstructures3d.js';
 import { shoreParts } from './quaywalls.js';
 
 // Geometry jobs that run in the geometry worker (geoworker.js) or, as a
@@ -140,12 +141,18 @@ async function roadInit({ url, keys }) {
   return { result: { roads: map.roads.length, missing }, transfer: [] };
 }
 
-function roadGeo({ key, detail }) {
+// struct: also the civil works (roadstructures3d.js), once per road
+function roadGeo({ key, detail, struct }) {
   const r = RD.byKey && RD.byKey.get(key);
   if (!r) return { result: null, transfer: [] };
   const g = roadSurfaceGeometries(r, detail);
   const transfer = [];
-  return { result: { sidewalk: plainGeometry(g.sidewalk, transfer), road: plainGeometry(g.road, transfer), mark: plainGeometry(g.mark, transfer) }, transfer };
+  const result = { sidewalk: plainGeometry(g.sidewalk, transfer), road: plainGeometry(g.road, transfer), mark: plainGeometry(g.mark, transfer) };
+  if (struct) {
+    const elev = RD.map.elev;
+    result.struct = !elev || !elev.has ? null : structureTransfer(r.z ? structureArrays(r, RD.map) : overpassDeckArrays(r, RD.map), transfer);
+  }
+  return { result, transfer };
 }
 
 // --- city shores (quaywalls.js), on the worker's map -------------------------
