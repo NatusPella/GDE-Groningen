@@ -1,12 +1,13 @@
 // Which record the radio plays next (audio.js). Node-safe, no DOM.
 //
-// A track: { id, stations: ['gmusic', ...], time: 'any' | 'day' | 'night',
+// A track: { id, stations: ['gmusic', ...] (its pools: 'gmusic' for the day
+// programmes, 'nachtstreek' for the night one), time: 'any' | 'day' | 'night',
 // weight, artist }. The manifest (audio/gmusic/manifest.json) may list a
 // track as a plain file name; normalizeTrack fills in the defaults.
 //
-// pickTrack keeps one play history for every station together (newest
-// last), so switching from G-Music to Nachtstreek doesn't land on the record
-// you just heard:
+// pickTrack keeps one play history for both pools together (newest last),
+// so the switch to Nachtstreek at 22:00 doesn't land on the record you just
+// heard:
 // - the last `window` records are never picked again (about 60% of the
 //   pool, at least one);
 // - of the rest, a record that has not played for longer weighs more, one by
@@ -16,7 +17,7 @@
 // - `weight` in the manifest scales all of it (2 = twice as often).
 
 export const MUSIC_STATIONS = ['gmusic', 'nachtstreek'];
-// below this many own records a station borrows the rest, at a lower weight
+// below this many own records a pool borrows the rest, at a lower weight
 export const MIN_POOL = 6;
 const BORROWED = 0.35;
 const HISTORY_MAX = 60;
@@ -94,4 +95,27 @@ export function pickJingle(keys, lastKey, { chance = 0.6, rng = Math.random } = 
   if (!keys.length || rng() >= chance) return null;
   const pool = keys.length > 1 ? keys.filter((k) => k !== lastKey) : keys;
   return pool[Math.floor(rng() * pool.length)];
+}
+
+// --- the programme schedule ---------------------------------------------------------------
+// One station with a programme per part of the game day. `music` is the
+// pool, `every` the records between two talk breaks, `talk` the break kinds
+// in turn (radio.js voices them), `jingles` whether the G-Music jingles run.
+export const STATION_NAME = 'G-Music';
+export const PROGRAMMES = [
+  { id: 'ochtend', from: 6, to: 10, name: 'Proat in de ochtend', sub: 'Geesje met het nieuws, het verkeer en het weer', music: 'gmusic', jingles: true, every: 2, talk: ['ident', 'news', 'traffic', 'weather', 'ad', 'clip', 'traffic', 'cows'] },
+  { id: 'dag', from: 10, to: 18, name: 'De hits', sub: 'Muziek, met af en toe het nieuws', music: 'gmusic', jingles: true, every: 3, talk: ['clip', 'ad', 'news', 'weather', 'cows', 'clip', 'traffic'] },
+  { id: 'avond', from: 18, to: 22, name: 'Avondproat', sub: 'Geesje, de koeien en Kiekdoar', music: 'gmusic', jingles: true, every: 3, talk: ['news', 'cows', 'ad', 'rikus', 'clip', 'weather'] },
+  { id: 'nacht', from: 22, to: 6, name: 'Nachtstreek', sub: 'Rikus draait streekmuziek tot de ochtend', music: 'nachtstreek', jingles: false, every: 2, talk: ['rikus', 'rikus', 'clip'] },
+];
+
+export function programmeAt(hour) {
+  const h = Number.isFinite(hour) ? ((hour % 24) + 24) % 24 : 12;
+  return PROGRAMMES.find((p) => (p.from < p.to ? h >= p.from && h < p.to : h >= p.from || h < p.to)) || PROGRAMMES[1];
+}
+
+// The radio in the save: 'on' or 'off'. 0.26's station ids (and anything
+// unknown) are 'on'; only its 'uit' stays off.
+export function normalizeRadio(v) {
+  return v === 'off' || v === 'uit' ? 'off' : 'on';
 }

@@ -17,7 +17,7 @@ import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { migrateSave, SAVE_VERSION } from './savemigrate.js';
-import { getRadioSave, applyRadioSave } from './radiostations.js';
+import { getRadioSave, applyRadioSave } from './radio.js';
 
 // the key keeps its old name; the version inside the save is what counts (savemigrate.js)
 const KEY = 'gte-save-v1';
@@ -150,7 +150,7 @@ function serialize(w) {
     meubels: getFurnitureSave(),
     thuis: getHomeSave(),
     doel: getGoalSave(),
-    // the radio station you chose; an older save without it starts on G-Music
+    // the radio, 'on' or 'off'; a save without it starts with the radio on
     radio: getRadioSave(),
   };
 }

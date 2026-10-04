@@ -298,7 +298,7 @@ export function collect() {
   const TWIN_ACCENT = 'spoken in Dutch with a heavy Frisian accent, slow';
   const TWIN_VOICE = { durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger Durk, spreekt Nederlands met een zwaar Fries accent' }, douwe: { voice: 'Algenib', who: 'grote, trage Friese handlanger Douwe, tweelingbroer van Durk, spreekt Nederlands met een zwaar Fries accent' } };
   for (const [k, kinds] of Object.entries(lit(fun, 'export const KERMIS_TWINS = '))) for (const list of Object.values(kinds)) for (const t of list) add('Kermis', 'lines', [BUBBLE.m], t, { persona: { ...TWIN_VOICE[k], accent: TWIN_ACCENT }, tag: ['traag, verontwaardigd, in een botsauto', 'sloom, duizelig, in een botsauto'] });
-  // the talk station on the car radio (radiostations.js): Geesje; the rest it plays is recorded already
+  // Radio Proat, the talk on the radio (radio.js): Geesje; the rest it plays is recorded already
   const RADIO_HOST = fun.match(/export const RADIO_HOST = '([^']+)'/)[1];
   for (const list of Object.values(lit(fun, 'export const RADIO_GRUNN = '))) for (const t of list) add('Radio Proat', 'lines', [RADIO_HOST], t, { tag: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice', 'vlot en opgewekt, als radiopresentatrice'] });
   for (const t of lit(fl, 'export const KROLBRUG_FAULTS = ')) add('Wereld (radio & navigatie)', 'lines', ['Verkeersinformatie'], t);

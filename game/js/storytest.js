@@ -12,7 +12,10 @@
 // migrates, and logs a report. `console.log('[storytest-capture] name')`
 // makes the desktop app save a screenshot per step.
 
-import { skipCinematic, isCinematicActive } from './cinematics.js';
+import { skipCinematic, isCinematicActive, cinematicPoseIssues } from './cinematics.js';
+import { heistWatchers, PLAN_BOUNDS } from './heist.js';
+import { isInWater } from './util.js';
+import { deliverOwnedVehicle } from './ownedvehicles.js';
 import { skipStoryContact } from './storycontact.js';
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
@@ -384,6 +387,13 @@ export async function runStoryTest(world) {
           } else {
             for (let k = 0; k < 150 && isMissionActive(); k++) {
               await drain(world, 300);
+              if (cur.id === 'H6' && !entry.watchersChecked && heistWatchers().length) {
+                // the cameras and guards outside: on dry ground, inside the blueprint's frame
+                entry.watchersChecked = true;
+                const [x0, y0, x1, y1] = PLAN_BOUNDS;
+                const bad = heistWatchers().filter((w) => !(w.x > x0 && w.x < x1 && w.y > y0 && w.y < y1) || (w.kind === 'camera' && isInWater(world.map, w.x, w.y)));
+                check('H6: every camera and guard stands on the map', !bad.length, JSON.stringify(bad));
+              }
               if (!isMissionActive()) break;
               const ms = S().mission();
               const def = ms && getMissionDefs()[ms.index];
@@ -430,6 +440,7 @@ export async function runStoryTest(world) {
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
       check('Tammo and Tessa take turns', swaps >= 4, `${swaps} wissels`);
+      check('no cutscene camera off the map', !cinematicPoseIssues().length, JSON.stringify(cinematicPoseIssues().slice(0, 4)));
       check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 
       // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
@@ -472,6 +483,12 @@ export async function runStoryTest(world) {
         const bell = vs.find((v) => v.name === 'Loppersum');
         const used = bell && om.use('Loppersum', 'special');
         check('a dorpsuitje can be done (Loppersum, de klok)', used && await waitFor(() => om.villages().find((v) => v.name === 'Loppersum').done, 4000));
+        // out in the Ommeland your own car can still be delivered (phone, Laten afleveren)
+        world.wanted = 0;
+        world.money = Math.max(world.money, 500);
+        const del = deliverOwnedVehicle(world, 'hero');
+        const hero = world.vehicles.find((v) => v.isHeroCar && !v.wrecked);
+        check('the Escapade is delivered in the Ommeland', del.ok && hero && Math.hypot(hero.x - world.player.x, hero.y - world.player.y) < 160, JSON.stringify({ del, at: hero && [Math.round(hero.x), Math.round(hero.y)], p: [Math.round(world.player.x), Math.round(world.player.y)] }));
         await sleep(500);
         capture('om-dorp');
         await drain(world, 700);

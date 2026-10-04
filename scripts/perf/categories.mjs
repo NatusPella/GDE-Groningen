@@ -8,7 +8,7 @@ import fs from 'fs';
 
 const CATS = [
   ['gc', /^\(garbage collector\)$/],
-  ['audio', /^(audio|ambience|radiostations|radiostudio|scenariomusic|speech|linevoice|smsvoice|sidejobvoice|speakers|banter|subtitles)\.js|^(dsp|foley|sky|ui|dspworker)\.js$/],
+  ['audio', /^(audio|ambience|radio|radiostudio|scenariomusic|speech|linevoice|smsvoice|sidejobvoice|speakers|banter|subtitles)\.js|^(dsp|foley|sky|ui|dspworker)\.js$/],
   ['hud/dom', /^countrymap\.js$/],
   ['hud/dom', /^(hud_panel|hudcards|mapview|mapfilters|prompts|phone|phonefeed|pausemenu|todoui|achievementsui|namecard|uiscale|startscreen|whatsnew|verhaalui|garageui|shopui|heistui|sikkomfeed|settings|credits)\.js$/],
   ['streaming/geometry', /^(country\w*|ommelandprops3d|staticbatch3d|models3d_buildings|landmarks3d|landmarkmodels|roadsurface|roadstructures3d|grass|streetclutter|streetsigns|cityprops|farlod|terrain3d|water3d|waterindex|quaywalls|bridgerails|canopies3d|treeprops|parked3d|railway3d|marktgebouwen|paddepoel3d|museum3d|thuis3d|home3d|interiorglass|portalcut3d|cutmask3d|pixelart3d|furniture|shopmodels3d|storyprops3d|skyprops3d|seating3d|elevation|worldends|junctions|mapdata|flavour3d)\.js$/],
