@@ -38,6 +38,14 @@ nieuwe functies, `y` voor alleen bugfixes.
   Escapade, of zet je hem klem zodat hij een paar tellen stilstaat met jou
   ernaast, dan is hij gestopt: Durk en Douwe vluchten en de trein gaat
   zonder hem. Klem zetten vlak bij de trein laadt hem niet meer alsnog in.
+- **H18, de finale, is te winnen.** Het vuurwerk bij de kraam raakt minder
+  vaak en kost minder tijd. De trekker-limo van Jelle bleef soms eindeloos
+  staan aan het eind van een straat waar zijn route niet verder kwam; nu rijdt
+  hij door. Tammo fluit de duiven al als je een derde van de meter hebt
+  geramd, als je 25 seconden vlak achter de trekker blijft of als je hem
+  klemzet, en dat staat in de opdracht. Geen politie meer tijdens de
+  achtervolging, meer tijd en ruimte om bij te blijven, en vier in plaats van
+  tweeënhalve minuut terug naar de kraam.
 
 ### Veranderd
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
