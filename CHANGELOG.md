@@ -14,6 +14,9 @@ nieuwe functies, `y` voor alleen bugfixes.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
 
 ### Opgelost
+- **Laten afleveren werkt nu ook in het Ommeland.** De bezorger zet je auto
+  in de berm van de dichtstbijzijnde landweg neer, in plaats van te melden
+  dat hij nergens kan parkeren.
 - **Geen huizen en schuren meer midden op de weg in het Ommeland.** Een
   gebouw dat op een weg uitstak wordt aan die kant ingekort, en een aanbouw
   of gebouw dat er echt op stond is weg.
