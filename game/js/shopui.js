@@ -345,7 +345,7 @@ function activate(id) {
   const it = currentItems().find((x) => x.id === id);
   if (!it) return;
   if (it.disabled) {
-    setStatus(it.disabled === 'Te weinig geld' ? 'Te weinig geld. Bijverdienen? Open Ubbo op je telefoon voor klusjes' : it.disabled, 'no');
+    setStatus(it.disabled === 'Te weinig geld' ? 'Te weinig geld. Bijverdienen? Kijk in je telefoon onder Te doen › Dichtbij' : it.disabled, 'no');
     return;
   }
   if (needsConfirm(it) && !(armed && armed.id === id && Date.now() < armed.until)) {

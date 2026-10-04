@@ -1548,6 +1548,10 @@ function updateHeader() {
     const all = [route, ...getRoutes().filter((r) => r !== route).reverse()];
     html = all.map((r) => `<span class="${r.kind}">${routeLabel(r)}: ${formatDistance(r.remaining)}${r.kind === 'care' ? '<button type="button" data-act="care-off" title="Roze route verbergen">Negeren</button>' : ''}${r.target && r.target.pg ? '<button type="button" data-act="pg-next" title="Route naar de volgende uitdaging">Volgende</button><button type="button" data-act="pg-off" title="Automatische route uitzetten">Uit</button>' : ''}</span>`).join('');
   }
+  // after the story the automatic route to the next challenge can be off: one button turns it back on
+  const w = state.world;
+  const pg = w && w.postgame && w.postgameActions && w.postgameActions.guide;
+  if (pg && pg.isOff()) html += '<span class="pg">Route naar uitdagingen: uit<button type="button" data-act="pg-on" title="Automatische route weer aanzetten">Aan</button></span>';
   if (html !== state.routeHtml) {
     state.routeHtml = html;
     state.routeEl.innerHTML = html;
@@ -1672,9 +1676,9 @@ export function initMapView(world) {
     if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
     else if (act === 'clear') clearUserWaypoint();
     else if (act === 'care-off') dismissCareRoute();
-    else if ((act === 'pg-next' || act === 'pg-off') && world.postgameActions) {
+    else if ((act === 'pg-next' || act === 'pg-off' || act === 'pg-on') && world.postgameActions) {
       const g = world.postgameActions.guide;
-      world.addMessage(act === 'pg-next' ? g.next() : g.off(), 3);
+      world.addMessage(act === 'pg-next' ? g.next() : act === 'pg-on' ? g.on() : g.off(), 3);
     }
     else if (act === 'in') zoomAt(1.6, state.cw / 2, state.ch / 2);
     else if (act === 'out') zoomAt(1 / 1.6, state.cw / 2, state.ch / 2);

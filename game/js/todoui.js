@@ -2,7 +2,7 @@
 // shell, keys and focus; this renders their content and handles their
 // clicks). Data comes from todo.js; styles live with the pause menu's in
 // index.html (td-*, ov-*).
-import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL } from './todo.js';
+import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade } from './todo.js';
 import { getStoryView, getStorySteps, getStoryJournal } from './story.js';
 import { PARTS, CLUES, WHY } from './storyarc.js';
 import { getAchievementView, MEDALS } from './achievements.js';
@@ -228,6 +228,8 @@ function detailHtml(world) {
   let btns = '';
   if (it.isGoal) btns += '<button type="button" class="pm-secondary pm-small" data-todo-clear>Doel wissen</button>';
   else if (it.goal) btns += `<button type="button" class="pm-primary pm-small" data-todo-goal="${esc(it.key)}">${story && getGoal() ? 'Terug naar het verhaal' : 'Zet als doel'}</button>`;
+  if (it.upgrade && it.status !== 'klaar') btns += `<button type="button" class="pm-primary pm-small" data-todo-buy="${esc(it.upgrade)}">Kopen (${esc(it.record)})</button>`;
+  if (it.stopJob) btns += '<button type="button" class="pm-danger pm-small" data-todo-stopjob>Dienst stoppen</button>';
   if (it.dist != null) btns += `<button type="button" class="pm-secondary pm-small" data-todo-map="${esc(it.key)}">Op de kaart</button>`;
   if (it.status === 'nu' && sv.canSkip && (story || it.mission != null)) btns += `<button type="button" class="pm-secondary pm-small" data-story-skip>${esc(sv.skipLabel)}</button>`;
   return `<span class="td-thumb"><img src="${mapIconUrl(it.icon, 72)}" alt=""></span>` +
@@ -294,6 +296,13 @@ export function todoClick(e, world, panel, api) {
   const goal = t.closest('[data-todo-goal]');
   if (goal) { chooseTodo(world, byKey.get(goal.dataset.todoGoal), () => api.rerender()); return true; }
   if (t.closest('[data-todo-clear]')) { clearGoal(); api.rerender(); return true; }
+  const buy = t.closest('[data-todo-buy]');
+  if (buy) { world.addMessage(buyFjordUpgrade(world, buy.dataset.todoBuy), 3); api.rerender(); return true; }
+  if (t.closest('[data-todo-stopjob]')) {
+    if (world.sideJobActions && world.sideJobActions.active()) { world.sideJobActions.stop(); world.addMessage('Dienst gestopt', 3); }
+    api.rerender();
+    return true;
+  }
   const map = t.closest('[data-todo-map]');
   if (map) { const it = byKey.get(map.dataset.todoMap); if (it) api.showOnMap(it.x, it.y); return true; }
   const view = t.closest('[data-todo-view]');
