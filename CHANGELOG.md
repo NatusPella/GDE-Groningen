@@ -34,6 +34,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   rechtop bij het klinken, brengen het daarna naar hun mond en nemen een
   flinke slok met het hoofd achterover, in plaats van het glas naast hun
   wang te houden.
+- **H16: de Escapade terugpakken telt.** Stap je zelf in de gestolen
+  Escapade, of zet je hem klem zodat hij een paar tellen stilstaat met jou
+  ernaast, dan is hij gestopt: Durk en Douwe vluchten en de trein gaat
+  zonder hem. Klem zetten vlak bij de trein laadt hem niet meer alsnog in.
 
 ### Veranderd
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
