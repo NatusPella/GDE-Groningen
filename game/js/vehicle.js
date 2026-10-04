@@ -183,14 +183,16 @@ export class Vehicle {
       const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
       const headroom = clamp(1 - absSpeed / lim, 0, 1);
       // player cars pull hard off the line and run out of breath towards top speed
-      const floor = isPlayer && !this.isBike && !this.isScooter && !this.isBoat ? 0.12 : 0.3;
+      const floor = isPlayer && !this.isBike && !this.isScooter && !this.isBoat ? 0.12 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
       this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * headroom) * dt;
     } else {
       const drag = coastDrag(this, isPlayer, absSpeed) * dt;
       if (this.speed > 0) this.speed = Math.max(0, this.speed - drag);
       else this.speed = Math.min(0, this.speed + drag);
     }
-    this.speed = clamp(this.speed, -top * REVERSE_FACTOR, top);
+    // a sail that loses the wind lets the hull glide on rather than stop dead
+    const sailing = isPlayer && this.isBoat && this.sailTop != null;
+    this.speed = clamp(this.speed, -top * REVERSE_FACTOR, sailing ? Math.max(top, absSpeed - SAIL_GLIDE_DECEL * dt) : top);
 
     const target = clamp(steerInput, -1, 1);
     if (isPlayer) {
@@ -275,7 +277,8 @@ const MAX_DRIFT_SPEED = 8; // m/s, safety clamp against pathological multi-hit s
 const MAX_SPIN = 3.5; // rad/s
 
 const BOAT_SLIDE_DECAY_RATE = 1.3; // a player boat carries its sideways momentum on the water
-const REVERSE_FACTOR = 0.25; // top speed in reverse, as a fraction of maxSpeed
+const REVERSE_FACTOR = 0.25;
+const SAIL_GLIDE_DECEL = 0.7; // m/s2: a sailing boat above its wind speed slows this gently // top speed in reverse, as a fraction of maxSpeed
 const PLAYER_STEER_RATE = 5; // 1/s: how fast the wheel follows a digital key
 const PLAYER_STEER_RETURN = 9;
 

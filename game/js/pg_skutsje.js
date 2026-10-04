@@ -14,7 +14,7 @@ import { finish, jelle, setTarget } from './postgame.js';
 // skûtsje barely moves, a beam reach is fastest. The player trims the sail
 // (Q in, Z out) to the ideal angle for the current course; Jelle sails the
 // line with a good but not perfect trim. Under a bridge both strike their
-// mast and slow down. Finish = brons, beat Jelle = zilver, by 12 s = goud.
+// mast and glide through on their way. Finish = brons, beat Jelle = zilver, by 12 s = goud.
 
 const FROM = [744, 390];
 const TO = [-376, 280];
@@ -23,6 +23,7 @@ const LIMIT = 600;
 const DEG = Math.PI / 180;
 const TRIM_RATE = 45 * DEG;
 const JELLE_TRIM = 0.9;
+const STRIKE_SPEED = 0.9;
 const GOLD_MARGIN = 12;
 
 let leftover = null;
@@ -193,7 +194,7 @@ export const SKUTSJE = {
     const trimEff = clamp(1 - ((d.trim - ideal) / (35 * DEG)) ** 2, 0.3, 1);
     const strike = bridgeAhead(map, boat) ? 1 : 0;
     d.eff = sailPolar(theta) * trimEff;
-    boat.sailTop = d.go ? (1.4 + 7.4 * d.eff) * (strike ? 0.5 : 1) : 0;
+    boat.sailTop = d.go ? (1.4 + 7.4 * d.eff) * (strike ? STRIKE_SPEED : 1) : 0;
     animateSkutsjeRig(boat, boomSide(boat.angle, wf) * d.trim, strike, w.time);
     d.strike = strike;
     if (!d.go) {
@@ -271,7 +272,7 @@ function placeJelle(run, dt, wf) {
   const strike = bridgeAhead(w.map, v) ? 1 : 0;
   const gap = d.js - d.ps;
   const band = gap > 80 ? 0.88 : gap < -20 ? 1.06 : 1;
-  const want = d.jfin != null ? 0 : (1.4 + 7.4 * sailPolar(theta) * JELLE_TRIM) * (strike ? 0.5 : 1) * band;
+  const want = d.jfin != null ? 0 : (1.4 + 7.4 * sailPolar(theta) * JELLE_TRIM) * (strike ? STRIKE_SPEED : 1) * band;
   d.jspeed += clamp(want - d.jspeed, -2 * dt, 0.9 * dt);
   d.js += d.jspeed * dt;
   // ease from the berth beside you onto the line
