@@ -104,6 +104,17 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 **Ring:** nog steeds zwarte lagen hier en daar. Dat valt onder mesh ronde 4 en 5, die gepauzeerd zijn.
 
+## Content die je nooit ziet (feedback 4 okt)
+
+- [ ] Inventaris: van elk wapen, voertuig, winkelartikel, minigame en bijbaantje vastleggen waar het in de game voorkomt (`scripts/content_audit.mjs`), en wat nergens of alleen per toeval te vinden is.
+- [ ] Alles wat bestaat een logische plek geven:
+  - een verhaalstap of klus die het voorstelt;
+  - een winkel of verkoper;
+  - een tip van Ubbo;
+  - een plek op de kaart.
+- [ ] Verzamelprestaties (bijvoorbeeld "alle fietsen gereden") met een teller in Garage en Prestaties, zodat je ziet wat er nog is.
+- [ ] Wat geen functie heeft, schrappen of samenvoegen.
+
 ## 0.24: echte zwakke hardware en de webversie
 
 - [ ] Meten op een echte Intel-laptop (Iris Xe of UHD 620) en een Chromebook of vergelijkbaar toestel. Daarvoor is hardware van Alexander of een kennis nodig.
