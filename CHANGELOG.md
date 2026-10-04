@@ -6,7 +6,43 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-10-04
+
+Een grote speeltestronde met Maus. De hoogtepunten:
+- **De telefoon is een vouwtelefoon:** de Pixie Vouw 11. Opengevouwen is het
+  het Escape-menu, dichtgevouwen zie je oproepen en berichten. De oude
+  telefoon onder T is weg.
+- **Spullen:** een inventaris in het menu met alles wat je hebt.
+- **Springen en klimmen:** over hekken en heggen, en op het dak van auto's.
+- **Het Ommeland leeft:** echte auto's, trekkers, fietsers en een quad,
+  navigatie over de landwegen, wegen zoals in de stad, en weilanden met randen.
+- **De game is 18+:** bloed, burgers en agenten die doodgaan, en de krasloten
+  zijn terug.
+- **Streken:** een cheat-onderdeel in het menu.
+- **Natuurlijkere dialogen**, een kortere koeienmissie, en de aftiteling pas
+  helemaal aan het eind.
+- **Snelle boten** met upgrades bij de werf, en een skûtsjerace die te winnen is.
+- **Meer muziek op G-Music:** drill, punk, eurodance en Grunneger rock.
+
 ### Nieuw
+- **De Pixie Vouw 11.** Tammo en Tessa hebben een vouwtelefoon. Esc vouwt
+  hem open: dat is het menu, met de stad wazig erachter, gedempt geluid en
+  G-Music zacht door. Een binnenkomende oproep of een bericht staat op de
+  dichtgevouwen buitenkant; Esc opent dat gesprek. Contacten (Berend, Henk,
+  Mam, Jelle, je maat) en Berichten staan onder Telefoon. De oude telefoon
+  onder T is weg; wat erin zat staat nu in het menu (Te doen, Kaart, Garage).
+- **Spullen.** Een inventaris in het menu: geld, wapens met munitie,
+  werpspul, kleding, meubels thuis met hun voordeel, kaarten en
+  verzamelingen, en upgrades. Wat je nog niet hebt blijft verborgen; per
+  soort zie je hoeveel je er hebt ("12 van 40").
+- **Springen en klimmen.** Met Spatie spring je over hekken, heggen, lage
+  muurtjes en paaltjes, en klim je op het dak van een auto. Van een rijdende
+  auto val je af. Busjes, bussen en muren houden je tegen.
+- **Snelle boten en de werf.** De speedboot haalt 90 km/u, de rubberboot 58.
+  Bij de botenverhuur zit nu een werf: met R koop je een snellere motor,
+  een raceschroef, een groter roer of laat je de romp maken.
+- **Het politiepaard is te berijden.** Je zit in het zadel, met een
+  paardicoon en galop onder Shift.
 - **Quad.** Bij boerderijen in het Ommeland staan quads die je kunt
   meenemen, en boeren rijden er soms op over de landwegen. Hij rijdt
   makkelijk door de wei. Te koop bij de autodealer als Wierde Quad.
@@ -50,6 +86,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Twee drillnummers op G-Music:** "Geen stoplicht houdt ons tegen" (Ringweg Drillers) en "Goud in de Nacht" (Nachtbus Nino, 's nachts ook op Nachtstreek).
 
 ### Veranderd
+- **De bus rijdt als een bus**: kleinere draaicirkel, betere remmen, stabiel
+  in de bocht en een camera verder naar achteren. De busdienst rijdt een
+  rondje zonder keren, en je wacht hooguit een halve minuut bij een halte.
+- **De toeter is harder.**
+- **Duiven met Tessa:** druk E bij de duiven en Tammo neemt het over.
+- **De skûtsje klinkt als een zeilboot**, met kraken, boeggolf en klapperende
+  zeilen in plaats van een motor.
 - **De game is 18+: alles wat voor PEGI 16 weg moest, is terug.** Bloed en
   rondvliegende ledematen in Carmageddon-stijl, met de instelling "Bloed en
   ledematen" (standaard aan). Burgers gaan weer dood door auto's, treinen,
@@ -120,43 +163,18 @@ nieuwe functies, `y` voor alleen bugfixes.
   eerst om bevestiging. Op een Steam Deck (1280×800) past het hele menu
   zonder scrollen.
 
-### Verbeterd
-- **Heggen en hekken in het Ommeland houden je tegen.** Je loopt er niet
-  meer dwars doorheen; met Spatie spring je eroverheen, net als over de
-  hekjes in de stad. Door een hek op de dam loop je gewoon het land op.
-- **De weilanden in het Ommeland hebben echte randen.** Langs de sloten
-  ligt een lage, donkere grasrand met hier en daar een pol pitrus, de
-  weiden staan achter prikkeldraad op houten palen, langs de polderwegen
-  loopt een afrastering achter de berm met af en toe een hek naar het
-  land, en soms staat er een heg of een houtwal tussen twee percelen.
-  Op Laag is het wat kaler, zodat het spel net zo soepel blijft lopen.
-- **Twee kamers in de flat.** Tammo en Tessa huren de flat als huisgenoten,
-  dus nu heeft elk een eigen kleine slaapkamer met een eenpersoonsbed:
-  Tammo's kamer naast de gang, die van Tessa achter de keuken. Lift, gang,
-  woonkamer en de glazen gevel zitten waar ze zaten. Je slaapt in je eigen
-  bed, als Tammo of als Tessa; het andere bed zegt beleefd dat het niet jouw
-  kamer is. Elke kamer heeft een kledingkast. EIKEA's Sloapstee is nu een
-  setje van twee eenpersoonsbedden, met dezelfde bonus.
-- **Je garage laat zien wat je hebt.** De garage onder de flat heeft 18
-  vakken voor auto's (plus het eigen vak van de Escapade). Heb je er meer,
-  dan wachten de rest in de parkeerlift. Het paneel bij de deur heet nu
-  "Kies welke auto's in de garage staan": je ziet welke auto in welk vak
-  staat en welke in de lift wachten, en je haalt er een naar voren. Die
-  keuze blijft in je save. Een vreemde auto in een vak blokkeert dat vak
-  niet meer voor de rest: de volgende auto krijgt een vrij vak. In het
-  Garage-menu staat bij elk eigen voertuig waar het thuis staat: "vak 7",
-  "in de parkeerlift", "langs de stoep", "in het fietsenrek", "aan jullie
-  steiger" of "op het helidek". Voertuigen die nog niet van jou zijn, heten
-  nu duidelijk "Te koop · €…", vrijgespeelde specials "Vrijgespeeld", en de
-  kop telt van jou, te koop en op slot apart.
-- **Minder herhaling op de radio.** Een nummer dat je net hoorde, komt pas
-  terug als ruim de helft van de andere nummers is geweest, ook in een
-  nieuwe sessie. Nummers die lang niet speelden, komen eerder. 's Nachts
-  draaien de nachtnummers vaker, en Nachtstreek heeft een eigen, rustigere
-  lijst. Er zit niet meer tussen elk nummer een jingle, en nooit twee keer
-  dezelfde achter elkaar.
-
 ### Opgelost
+- **De skûtsjerace is te winnen.** Jelle liep altijd uit; met een goede
+  koers win je nu. Beide skûtsjes liggen al klaar bij de start, en onder een
+  brug kruip je niet meer.
+- **Geen vreemde piep meer** bij radio-jingles en oproepen.
+- **Achterom kijken (Q) werkt ook bij hoge snelheid.**
+- **Het hoofdmenu toont de Pleiadenlaan zoals in de game**, met bomen,
+  straatmeubels en naambordjes.
+- **Voetstappen klinken altijd**, op elke ondergrond, met een landingsgeluid na
+  een sprong.
+- **Een overgespoten politieauto krijgt echt de nieuwe kleur.**
+- **De kaart flikkert niet meer bij inzoomen.**
 - **Navigatie in het Ommeland volgt de wegen.** De route op de minikaart,
   de kaart en de lijn op de weg loopt nu over de landwegen en sluit netjes
   aan op de straten van Stad, ook naar boerderijen ver in de polder. Geen
@@ -267,6 +285,42 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Het jachtgeweer schiet waar het vizier staat.** Door de scope vliegt
   de kogel vanaf het oog, recht langs het kruisje: zonder hand-afwijking,
   spreiding of aim assist, en het vizier kijkt waterpas.
+
+### Verbeterd
+- **Heggen en hekken in het Ommeland houden je tegen.** Je loopt er niet
+  meer dwars doorheen; met Spatie spring je eroverheen, net als over de
+  hekjes in de stad. Door een hek op de dam loop je gewoon het land op.
+- **De weilanden in het Ommeland hebben echte randen.** Langs de sloten
+  ligt een lage, donkere grasrand met hier en daar een pol pitrus, de
+  weiden staan achter prikkeldraad op houten palen, langs de polderwegen
+  loopt een afrastering achter de berm met af en toe een hek naar het
+  land, en soms staat er een heg of een houtwal tussen twee percelen.
+  Op Laag is het wat kaler, zodat het spel net zo soepel blijft lopen.
+- **Twee kamers in de flat.** Tammo en Tessa huren de flat als huisgenoten,
+  dus nu heeft elk een eigen kleine slaapkamer met een eenpersoonsbed:
+  Tammo's kamer naast de gang, die van Tessa achter de keuken. Lift, gang,
+  woonkamer en de glazen gevel zitten waar ze zaten. Je slaapt in je eigen
+  bed, als Tammo of als Tessa; het andere bed zegt beleefd dat het niet jouw
+  kamer is. Elke kamer heeft een kledingkast. EIKEA's Sloapstee is nu een
+  setje van twee eenpersoonsbedden, met dezelfde bonus.
+- **Je garage laat zien wat je hebt.** De garage onder de flat heeft 18
+  vakken voor auto's (plus het eigen vak van de Escapade). Heb je er meer,
+  dan wachten de rest in de parkeerlift. Het paneel bij de deur heet nu
+  "Kies welke auto's in de garage staan": je ziet welke auto in welk vak
+  staat en welke in de lift wachten, en je haalt er een naar voren. Die
+  keuze blijft in je save. Een vreemde auto in een vak blokkeert dat vak
+  niet meer voor de rest: de volgende auto krijgt een vrij vak. In het
+  Garage-menu staat bij elk eigen voertuig waar het thuis staat: "vak 7",
+  "in de parkeerlift", "langs de stoep", "in het fietsenrek", "aan jullie
+  steiger" of "op het helidek". Voertuigen die nog niet van jou zijn, heten
+  nu duidelijk "Te koop · €…", vrijgespeelde specials "Vrijgespeeld", en de
+  kop telt van jou, te koop en op slot apart.
+- **Minder herhaling op de radio.** Een nummer dat je net hoorde, komt pas
+  terug als ruim de helft van de andere nummers is geweest, ook in een
+  nieuwe sessie. Nummers die lang niet speelden, komen eerder. 's Nachts
+  draaien de nachtnummers vaker, en Nachtstreek heeft een eigen, rustigere
+  lijst. Er zit niet meer tussen elk nummer een jingle, en nooit twee keer
+  dezelfde achter elkaar.
 
 ### Verhaal
 - **Het verhaal brengt je weer thuis.** Wachten tot middernacht voor de
