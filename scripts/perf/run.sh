@@ -21,8 +21,8 @@ while true; do
 done
 echo "start $(date +%T) load $(sysctl -n vm.loadavg)" >&2
 # PERF_DUR=ms per route (default 20000), PERF_ONLY=foot,ring,heli,pause,sheet,
-# PERF_SIM=0-2 forces the load-adaptive simulation level (simload.js), PERF_DIAG=1 adds draw calls per owner, PERF_PROFILE=<route>[,<route>] a CPU profile of each; --hitch adds slow-frame breakdowns
-{ echo "window.__perfDur = ${PERF_DUR:-20000}; window.__perfOnly = '${PERF_ONLY:-}'; window.__perfDiag = ${PERF_DIAG:-0}; window.__perfProfile = '${PERF_PROFILE:-}'; window.__perfSim = '${PERF_SIM:-}';"; cat $HERE/routes.js; } > $OUT/_$N.js
+# PERF_SIM=0-2 forces the load-adaptive simulation level (simload.js), PERF_JUMP=<s> jumps 600 m along the ring every s seconds, PERF_DIAG=1 adds draw calls per owner, PERF_PROFILE=<route>[,<route>] a CPU profile of each; --hitch adds slow-frame breakdowns
+{ echo "window.__perfDur = ${PERF_DUR:-20000}; window.__perfOnly = '${PERF_ONLY:-}'; window.__perfDiag = ${PERF_DIAG:-0}; window.__perfProfile = '${PERF_PROFILE:-}'; window.__perfSim = '${PERF_SIM:-}'; window.__perfJump = ${PERF_JUMP:-0};"; cat $HERE/routes.js; } > $OUT/_$N.js
 PROFILE=gte-vi-test-perf
 rm -rf "${TMPDIR:-/tmp}/$PROFILE"
 GTE_TEST_PROFILE=$PROFILE ./node_modules/.bin/electron . --windowed --stil --force-device-scale-factor=1 --window-size=1920x1080 \

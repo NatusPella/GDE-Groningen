@@ -496,16 +496,18 @@ export function villageLabels(x0, y0, x1, y1) {
 
 // Minimap entry (replaces the old flat meadow + ditch grid). The country
 // layer is static, so it is drawn into world-aligned tiles once per zoom step
-// and blitted (drawing it live cost a fifth of a frame over the Ommeland);
-// at most one new tile per frame, a missing one shows the plain meadow.
-const MINI_TILE_PX = 256, MINI_PAD_PX = 6, MINI_TILES_MAX = 56, MINI_BUILDS = 1;
+// and blitted (drawing it live cost a fifth of a frame over the Ommeland).
+// A missing tile shows the plain meadow and is built in idle time between
+// frames: built inside the frame, a tile near the city edge cost up to 8 ms
+// (30+ ms on a slow laptop CPU) right after a jump or a zoom step.
+const MINI_TILE_PX = 256, MINI_PAD_PX = 6, MINI_TILES_MAX = 56;
+// an idle slice shorter than this starts no further tile (the first always runs)
+const MINI_IDLE_MS = 6;
 const miniTiles = new Map();
+const miniQueue = new Map();
+let miniIdle = 0;
 
-function miniTile(tx, ty, lvl, T, scale, pxPerM, build) {
-  const key = tx + ',' + ty + ',' + lvl;
-  let t = miniTiles.get(key);
-  if (t) { miniTiles.delete(key); miniTiles.set(key, t); return t; }
-  if (!build) return null;
+function buildMiniTile(key, tx, ty, T, scale, pxPerM) {
   const pad = MINI_PAD_PX / scale;
   const c = document.createElement('canvas');
   c.width = c.height = MINI_TILE_PX + MINI_PAD_PX * 2;
@@ -514,14 +516,39 @@ function miniTile(tx, ty, lvl, T, scale, pxPerM, build) {
   const x0 = tx * T - pad * 2, y0 = ty * T - pad * 2, x1 = (tx + 1) * T + pad * 2, y1 = (ty + 1) * T + pad * 2;
   drawCountryBase(g, x0, y0, x1, y1, MINI_STYLE);
   drawCountryDetail(g, x0, y0, x1, y1, pxPerM, MINI_STYLE);
-  t = { c, fresh: true };
-  miniTiles.set(key, t);
+  miniTiles.set(key, c);
   while (miniTiles.size > MINI_TILES_MAX) miniTiles.delete(miniTiles.keys().next().value);
-  return t;
+}
+
+function buildQueuedTiles(deadline) {
+  miniIdle = 0;
+  let n = 0;
+  for (const [key, a] of miniQueue) {
+    if (n && deadline.timeRemaining() < MINI_IDLE_MS) break;
+    miniQueue.delete(key);
+    if (!miniTiles.has(key)) buildMiniTile(key, ...a);
+    n++;
+  }
+  if (miniQueue.size) scheduleMiniTiles();
+}
+
+function scheduleMiniTiles() {
+  if (miniIdle) return;
+  // a CPU-bound frame rate leaves no idle time: then one tile per 200 ms
+  if (typeof requestIdleCallback === 'function') miniIdle = requestIdleCallback(buildQueuedTiles, { timeout: 200 });
+  else miniIdle = setTimeout(() => buildQueuedTiles({ timeRemaining: () => 0 }), 50);
+}
+
+function miniTile(tx, ty, lvl, T, scale, pxPerM, build) {
+  const key = tx + ',' + ty + ',' + lvl;
+  const c = miniTiles.get(key);
+  if (c) { miniTiles.delete(key); miniTiles.set(key, c); return c; }
+  if (build && !miniQueue.has(key)) miniQueue.set(key, [tx, ty, T, scale, pxPerM]);
+  return null;
 }
 
 // While the minimap zooms (it does with speed) the tiles of the new zoom step
-// are built one per frame; until they are all there, the last complete step
+// are built in idle time; until they are all there, the last complete step
 // is drawn underneath, scaled, so the Ommeland never drops to plain meadow.
 let fullLvl = null;
 function drawLevel(ctx, x0, y0, x1, y1, lvl, dev, pxPerM, build) {
@@ -529,14 +556,13 @@ function drawLevel(ctx, x0, y0, x1, y1, lvl, dev, pxPerM, build) {
   const T = MINI_TILE_PX / scale;
   // a hair of overlap so the rotated tiles never show a seam
   const e = 0.6 / dev;
-  let built = 0, missing = 0;
+  let missing = 0;
   for (let ty = Math.floor(y0 / T); ty <= Math.floor(y1 / T); ty++) {
     for (let tx = Math.floor(x0 / T); tx <= Math.floor(x1 / T); tx++) {
-      const t = miniTile(tx, ty, lvl, T, scale, pxPerM * scale / dev, build && built < MINI_BUILDS);
-      if (!t) { missing++; continue; }
-      if (t.fresh) { t.fresh = false; built++; }
+      const c = miniTile(tx, ty, lvl, T, scale, pxPerM * scale / dev, build);
+      if (!c) { missing++; continue; }
       const sp = MINI_PAD_PX - e * scale;
-      ctx.drawImage(t.c, sp, sp, MINI_TILE_PX + 2 * e * scale, MINI_TILE_PX + 2 * e * scale, tx * T - e, ty * T - e, T + 2 * e, T + 2 * e);
+      ctx.drawImage(c, sp, sp, MINI_TILE_PX + 2 * e * scale, MINI_TILE_PX + 2 * e * scale, tx * T - e, ty * T - e, T + 2 * e, T + 2 * e);
     }
   }
   return missing;
@@ -549,7 +575,10 @@ export function drawCountryMinimap(ctx, x0, y0, x1, y1, pxPerM = 1.2) {
   const lvl = Math.ceil(Math.log2(dev) * 2);
   ctx.save();
   ctx.imageSmoothingEnabled = true;
+  // only the tiles this view still lacks are queued
+  miniQueue.clear();
   if (fullLvl !== null && fullLvl !== lvl) drawLevel(ctx, x0, y0, x1, y1, fullLvl, dev, pxPerM, false);
   if (!drawLevel(ctx, x0, y0, x1, y1, lvl, dev, pxPerM, true)) fullLvl = lvl;
+  if (miniQueue.size) scheduleMiniTiles();
   ctx.restore();
 }
