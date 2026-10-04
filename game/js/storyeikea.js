@@ -66,7 +66,8 @@ function load(w, st, b, v) {
   b.phase = 'carry';
   b.v = v;
   b.boxes = BOXES.slice();
-  b.hitAt = w.time;
+  b.hitAt = -Infinity;
+  b.lastHit = w.lastImpact || null;
   v.roofBoxes = b.boxes.length;
   w.addMessage('Drie dozen op het dak. Rij rustig naar huis: bij een flinke klap valt er een af', 6, { kind: 'missie', key: 'story-eikea' });
 }
@@ -112,8 +113,9 @@ function updateCarry(w, st, b) {
     return;
   }
   const hit = w.lastImpact;
-  if (hit && p.inVehicle === v && hit.time > b.hitAt + KNOCK_GAP && hit.strength >= KNOCK && b.boxes.length) {
-    b.hitAt = hit.time;
+  if (hit && hit !== b.lastHit && p.inVehicle === v && hit.strength >= KNOCK && w.time - b.hitAt > KNOCK_GAP && b.boxes.length) {
+    b.lastHit = hit;
+    b.hitAt = w.time;
     knock(w, b);
   }
   const h = homeSpot();
