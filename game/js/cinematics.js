@@ -191,6 +191,21 @@ function poseFocus(pose) {
   return { x: ex + dx * k, y: ey + dy * k };
 }
 
+// Cutscene camera poses off the world (city plus Ommeland extent) or NaN:
+// one entry per cinematic id, for the story test.
+const WORLD_EXTENT = [-12100, -13300, 12600, 10700];
+const poseIssues = new Map();
+function notePose(id, pose) {
+  const P = pose.position, L = pose.lookAt;
+  const ok = (q) => q && Number.isFinite(q.x) && Number.isFinite(q.y) && q.x > WORLD_EXTENT[0] && q.x < WORLD_EXTENT[2] && q.y > WORLD_EXTENT[1] && q.y < WORLD_EXTENT[3] && (!Number.isFinite(q.z) || (q.z > -10 && q.z < 900));
+  if ((ok(P) && ok(L)) || poseIssues.has(id)) return;
+  poseIssues.set(id, { id, position: P && { x: P.x, y: P.y, z: P.z }, lookAt: L && { x: L.x, y: L.y, z: L.z } });
+  console.warn('cinematic camera off the map', id, JSON.stringify(poseIssues.get(id)));
+}
+export function cinematicPoseIssues() {
+  return [...poseIssues.values()];
+}
+
 export function playCinematic(spec) {
   if (!els) return false;
   prewarmPoints(spec.prewarm);
@@ -377,6 +392,7 @@ export function updateCinematics(dt, w) {
     }
   }
   else if (!active && camMode && w.player.inVehicle) pose = cinemaCamPose(w);
+  if (pose && active) notePose(active.id, pose);
   w.cameraOverride = pose;
 
   const target = active ? active.timeScale : 1;
