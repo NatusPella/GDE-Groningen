@@ -3,7 +3,7 @@
 // clicks). Data comes from todo.js; styles live with the pause menu's in
 // index.html (td-*, ov-*).
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade } from './todo.js';
-import { getStoryView, getStorySteps, getStoryJournal } from './story.js';
+import { getStoryView, getStorySteps, getStoryJournal, requestCredits } from './story.js';
 import { PARTS, CLUES, WHY } from './storyarc.js';
 import { getAchievementView, MEDALS } from './achievements.js';
 import { getGoal, clearGoal, storyWaiting } from './goal.js';
@@ -91,9 +91,15 @@ function nearlyThere() {
 function heroHtml(world) {
   const sv = getStoryView();
   if (sv.end) {
+    const e = sv.ending;
+    const open = e && !e.done ? [...e.challenges.map((c) => c.name), ...e.missions.map((m) => `${m.code} · ${m.title}`)] : [];
+    const text = open.length
+      ? `Nog te doen voor de aftiteling: ${open.join(', ')}. Een overgeslagen missie telt pas als je hem alsnog haalt.`
+      : 'Speel missies opnieuw als klus voor een betere medaille, verdien bij met een bijbaantje of zoek wat er nog verstopt ligt.';
     return `<article class="ov-hero"><span class="ov-tile"><img src="${mapIconUrl('missionIdle', 64)}" alt=""></span><div class="ov-hero-txt">` +
-      `<span class="td-kicker">Het verhaal</span><h3>${esc(sv.title)}</h3><p>Speel missies opnieuw als klus voor een betere medaille, verdien bij met een bijbaantje of zoek wat er nog verstopt ligt.</p>` +
-      `<div class="ov-btns"><button type="button" class="pm-primary pm-small" data-todo-view="alles">Alles te doen</button></div></div></article>`;
+      `<span class="td-kicker">Het verhaal</span><h3>${esc(sv.title)}</h3><p>${esc(text)}</p>` +
+      `<div class="ov-btns"><button type="button" class="pm-primary pm-small" data-todo-view="alles">Alles te doen</button>` +
+      `${e && e.credits ? '<button type="button" class="pm-secondary pm-small" data-story-credits>Aftiteling bekijken</button>' : ''}</div></div></article>`;
   }
   const steps = getStorySteps().filter((s) => s.part === sv.part && s.available);
   const done = steps.filter((s) => s.done).length;
@@ -246,9 +252,11 @@ export function todoSummary(world) {
   const sDone = steps.filter((s) => s.done).length;
   const ms = items.filter((it) => it.group === 'missies');
   const jr = getStoryJournal();
+  const end = getStoryView().ending;
+  const toEnd = end && !end.done ? ` · nog ${end.count} tot het einde` : '';
   return {
     verhaal: `${sDone}/${steps.length}`, alles: String(items.filter((it) => it.group !== 'verhaal').length), dichtbij: '',
-    sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden`,
+    sub: `${sDone} van ${steps.length} verhaalstappen · ${ms.filter((it) => it.status === 'klaar').length} van ${ms.length} missies · ${jr.total - jr.found.length} aanwijzingen te vinden${toEnd}`,
   };
 }
 
@@ -303,6 +311,7 @@ export function todoClick(e, world, panel, api) {
     api.rerender();
     return true;
   }
+  if (t.closest('[data-story-credits]')) { if (requestCredits() && api.close) api.close(); return true; }
   const map = t.closest('[data-todo-map]');
   if (map) { const it = byKey.get(map.dataset.todoMap); if (it) api.showOnMap(it.x, it.y); return true; }
   const view = t.closest('[data-todo-view]');

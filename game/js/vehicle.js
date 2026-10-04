@@ -13,6 +13,7 @@ import { sirenYield } from './emergency.js';
 import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import { pickBoatModel } from './boattypes.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { MODS } from './cheatmods.js';
 
 // every traffic model, for warming their meshes before they first spawn
 export const TRAFFIC_MODELS = () => [...MODELS, ...BUS_MODELS, ...SCOOTER_MODELS, ...FATBIKE_MODELS, ...REGULAR_BIKE_MODELS];
@@ -302,6 +303,7 @@ function playerTune(v) {
   // Shift on a bike: a short sprint of harder pedalling (player.js sprintT)
   const sprint = v.isBike && v.sprintT > 0 ? BIKE_SPRINT_TOP : 1, sprintA = sprint > 1 ? BIKE_SPRINT_ACCEL : 1;
   if (v.isBike) return m.fat ? { top: 17 * up * sprint, accel: 7.2 * upA * sprintA, brake: 9 } : { top: 11.5 * up * sprint, accel: 4.6 * upA * sprintA, brake: 8.5 };
+  if (MODS.turbo && v.isHeroCar) return { top: Math.min(m.maxSpeed * 1.6, MAX_CAR_SPEED + 12), accel: m.accel * 1.9, brake: m.brake * 1.2 };
   return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel, brake: m.brake };
 }
 
@@ -2085,9 +2087,12 @@ export function settleVehicleHeight(v, map, dt) {
   const g0 = map.groundHeightAt(v.x, v.y, z);
   const g = v.airborne ? g0 : wheelbaseGround(v, map, g0, z);
   if (v.airborne) {
-    v.vz -= FALL_G * dt;
+    v.vz -= FALL_G * (v.driver === 'player' ? MODS.grav : 1) * dt;
     v.z = z + v.vz * dt;
-    if (v.z <= g) {
+    if (v.z <= g && MODS.bounce && v.driver === 'player' && v.vz < -2.5) {
+      v.z = g;
+      v.vz = -v.vz * 0.7;
+    } else if (v.z <= g) {
       const hit = -v.vz;
       v.z = g;
       // touching down on a falling road keeps falling with it, no re-launch

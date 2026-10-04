@@ -731,11 +731,22 @@ function playWeaponSfx(e, x, y) {
       playNoiseBurst({ duration: 0.16 / slow, freq: 900 * slow * r, freqEnd: 300, q: 0.9, gain: 0.08, type: 'bandpass', out });
       break;
     }
+    case 'shot': playGunshot(x, y, e.weapon, true); break;
+    case 'empty': {
+      const out = spatialOut(x, y, { ref: 2, rolloff: 1.4, range: 25, prio: 2 });
+      if (!out) return;
+      playTone({ freq: 2400 * r, freqEnd: 1900 * r, type: 'square', duration: 0.025, gain: 0.04, out, prio: 2 });
+      playNoiseBurst({ duration: 0.03, freq: 3800, q: 1.5, gain: 0.08, type: 'bandpass', delay: 0.06, out, prio: 2 });
+      break;
+    }
     case 'hit': {
       const out = spatialOut(x, y, { ref: 4, rolloff: 1.1, range: 60 });
       if (!out) return;
       const m = e.material;
-      if (m === 'metal') {
+      if (m === 'flesh') {
+        playBuf('punch', { out, gain: 0.35, rate: r });
+        playTone({ freq: 140 * r, freqEnd: 60, type: 'sine', duration: 0.08, gain: 0.12, out });
+      } else if (m === 'metal') {
         playTone({ freq: 1350 * r, freqEnd: 1250 * r, type: 'triangle', duration: 0.22, gain: 0.07, out });
         playTone({ freq: 2210 * r, freqEnd: 2100 * r, type: 'sine', duration: 0.16, gain: 0.04, out });
         playBuf('punch', { out, gain: 0.25, rate: 1.2 * r });
@@ -773,14 +784,25 @@ function playWeaponSfx(e, x, y) {
       break;
     }
     case 'launch': {
-      const out = spatialOut(x, y, { ref: 4, rolloff: 1, range: 90 });
+      // the fuse catches, a whoosh off the stick, then the rising whistle
+      const out = spatialOut(x, y, { ref: 5, rolloff: 0.9, range: 140, prio: 2 });
       if (!out) return;
-      playNoiseBurst({ duration: 0.25, freq: 900, freqEnd: 2500, q: 0.8, gain: 0.18, out });
-      playTone({ freq: 1400 * r, freqEnd: 3200 * r, type: 'sine', duration: 1.2, gain: 0.04, delay: 0.1, out });
+      playNoiseBurst({ duration: 0.12, freq: 5200, freqEnd: 4200, q: 0.7, gain: 0.08, type: 'highpass', out, prio: 2 });
+      playNoiseBurst({ duration: 0.4, freq: 700, freqEnd: 2600, q: 0.8, gain: 0.32, delay: 0.05, out, prio: 2 });
+      playTone({ freq: 1300 * r, freqEnd: 3400 * r, type: 'sine', duration: 1.1, gain: 0.11, delay: 0.12, out, prio: 2 });
+      playTone({ freq: 1310 * r, freqEnd: 3430 * r, type: 'triangle', duration: 1.1, gain: 0.04, delay: 0.12, out, prio: 2 });
+      break;
+    }
+    case 'incoming': {
+      // a rocket coming down (H18's misfired fireworks): a falling whistle
+      const out = spatialOut(x, y, { ref: 6, rolloff: 0.9, range: 140, h: 6, prio: 2 });
+      if (!out) return;
+      playTone({ freq: 3200 * r, freqEnd: 1100 * r, type: 'sine', duration: 1.0, gain: 0.1, out, prio: 2 });
+      playNoiseBurst({ duration: 0.9, freq: 2400, freqEnd: 900, q: 1.2, gain: 0.1, out, prio: 2 });
       break;
     }
     case 'burst': {
-      const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, range: 250 });
+      const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, range: 250, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
       if (!out) return;
       playNoiseBurst({ duration: 0.5, freq: 1800, freqEnd: 120, q: 0.6, gain: 0.55, type: 'lowpass', out });
       playTone({ freq: 110, freqEnd: 40, type: 'sine', duration: 0.4, gain: 0.3, out });
@@ -1635,6 +1657,8 @@ const GMUSIC_ARTISTS = {
   'Staal en suiker': 'Beton Bert & de Bietenbende',
   'Wie stoan nait stil': 'De Nait Soezen Crew',
   'Kleur in de Wind': 'Windkracht Wiebke',
+  'Geen stoplicht houdt ons tegen': 'Ringweg Drillers',
+  'Goud in de Nacht': 'Nachtbus Nino',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
@@ -2491,7 +2515,8 @@ function updateScrape(dt, world) {
 
 const MAX_EVENTS_PER_FRAME = 8;
 
-// world.audioEvents: [{kind, x, y, strength?}], drained every frame.
+// world.audioEvents: [{kind, x, y, strength?}], up to MAX_EVENTS_PER_FRAME a
+// frame; returns how many it took (the rest waits for the next frame).
 function playAudioEvents(world) {
   const q = world.audioEvents;
   const n = Math.min(q.length, MAX_EVENTS_PER_FRAME);
@@ -2557,6 +2582,7 @@ function playAudioEvents(world) {
       default: break;
     }
   }
+  return n;
 }
 
 // Bullet impacts by surface; a share of the hard ones whine off as ricochets.
@@ -2767,17 +2793,13 @@ function spatialAt(x, y, opts) {
 function updateWorldEvents(world) {
   const p = world.player;
 
-  let playerFired = false;
   for (const b of world.bullets) {
     if (seenBullets.has(b)) continue;
     seenBullets.add(b);
-    if (b.owner === 'player') { playerFired = true; continue; }
+    // the player's own shots come as 'weapon' events (combat.js fireGun)
+    if (b.owner === 'player') continue;
     const sp = Math.hypot(b.vx, b.vy) || 1;
     playGunshot(b.x - (b.vx / sp) * b.traveled, b.y - (b.vy / sp) * b.traveled, 'pistol');
-  }
-  if (playerFired) {
-    const src = p.inVehicle || p;
-    playGunshot(src.x, src.y, world.weapon, true);
   }
 
   let ricochets = 0;
@@ -2951,8 +2973,12 @@ export function updateAudio(dt, world) {
   const events = world.audioEvents || (world.audioEvents = []);
   if (!ctx || !worldReady) { events.length = 0; return; }
   lastWorld = world;
-  if (!muted) guarded('events', () => playAudioEvents(world));
-  events.length = 0;
+  // a busy frame (shots, footsteps, birds) used to swallow everything past the
+  // first eight (rockets, the jachtgeweer): the rest now plays next frame
+  let played = events.length;
+  if (!muted) guarded('events', () => { played = playAudioEvents(world); });
+  events.splice(0, played);
+  if (events.length > MAX_EVENTS_PER_FRAME * 3) events.splice(0, events.length - MAX_EVENTS_PER_FRAME * 3);
   if (ctx.state !== 'running') resumeCtx('frame');
 
   if (!menuAudio && world.input.wasPressed('u')) {

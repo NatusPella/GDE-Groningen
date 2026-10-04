@@ -835,6 +835,25 @@ function buildRig(L, shZ) {
 }
 
 // Main colours of the look buildPersonMesh(shirt, skin, { seed }) produces.
+// Grote koppen (cheats.js): every head bone, held weakly, so a switch
+// reaches the people already in the city.
+let headScale = 1;
+const heads = new Set();
+function trackHead(bone) {
+  if (typeof WeakRef === 'undefined') return;
+  if (heads.size > 1500) for (const r of heads) if (!r.deref()) heads.delete(r);
+  heads.add(new WeakRef(bone));
+}
+export function setHeadScale(k) {
+  if (k === headScale) return;
+  headScale = k;
+  for (const r of heads) {
+    const b = r.deref();
+    if (b) b.scale.setScalar(k);
+    else heads.delete(r);
+  }
+}
+
 export function personPalette(shirt, skin, seed) {
   const L = resolveLook(shirt, skin, { seed });
   return {
@@ -881,6 +900,8 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   group.updateMatrixWorld(true);
   mesh.bind(new THREE.Skeleton(rig.bones));
 
+  if (headScale !== 1) rig.head.scale.setScalar(headScale);
+  trackHead(rig.head);
   const ud = group.userData;
   ud.pelvis = rig.pelvis;
   ud.chest = rig.chest;
