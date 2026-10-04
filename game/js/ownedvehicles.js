@@ -40,7 +40,7 @@ import {
 } from './shops.js';
 
 import { HERO_REPLACE_FEE } from './economy.js';
-import { getHomeForRender, getHomeMooringForRender, getHomePad } from './home.js';
+import { getHomeForRender, getHomeMooringForRender, getHomePad, homeWhereLabel } from './home.js';
 const DELIVERY_COOLDOWN = 30;
 const HELI_FERRY_FEE = 60;
 const NEAR_M = 200;
@@ -275,10 +275,10 @@ function nameOf(spec, v) {
   return n.make ? { make: n.make, model: n.model, label: `${n.make} ${n.model}` } : { make: '', model: n.model, label: n.model };
 }
 
-function statusOf(world, v, lost, kind) {
+function statusOf(world, v, lost, kind, key) {
   if (lost) return { key: 'lost', label: 'Total loss' };
   if (world.player.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
-  if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: kind === 'heli' ? 'Thuis op het helidek' : kind === 'boat' ? 'Thuis aan jouw steiger' : 'Thuis in de garage' };
+  if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: homeWhereLabel(key) || (kind === 'heli' ? 'Thuis op het helidek' : kind === 'boat' ? 'Thuis aan jouw steiger' : 'Thuis in de garage') };
   const d = Math.hypot(v.x - world.player.x, v.y - world.player.y);
   return d < NEAR_M ? { key: 'near', label: 'In de buurt', dist: d } : { key: 'far', label: 'Ergens in Grunn', dist: d };
 }
@@ -287,7 +287,7 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
   const twoWheel = spec.kind === 'bike' || spec.kind === 'scooter';
   const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
   const perf = perfModel(spec.model, upgrades, twoWheel);
-  const status = statusOf(world, v, lost, spec.kind);
+  const status = statusOf(world, v, lost, spec.kind, hero ? 'hero' : key);
   const where = v && status.key !== 'garage' && status.key !== 'lost'
     ? { street: streetAt(world.map, v.x, v.y), wijk: wijkAt(world.map, v.x, v.y) } : null;
   const fee = hero ? (lost || !v ? HERO_REPLACE_FEE : 0) : lost ? replacementFee({ spec }) : status.key === 'garage' && (spec.kind === 'heli' || spec.kind === 'boat') ? 0 : spec.kind === 'heli' ? HELI_FERRY_FEE : REDELIVERY_FEE;
@@ -339,7 +339,7 @@ export function getGarageCatalog(world) {
   const have = new Set(owned.map((e) => e.key));
   const rest = Object.entries(VEHICLE_STOCK).filter(([key]) => !have.has(key)).map(([key, spec]) => {
     const twoWheel = spec.kind !== 'car';
-    const locked = !!spec.unlock;
+    const locked = !!spec.unlock && !unlockMet(spec);
     const shop = SHOP_NAME[spec.shop] || '';
     return {
       id: key, key, hero: false, owned: false, locked, v: null, spec, ...nameOf(spec, null),
@@ -347,9 +347,9 @@ export function getGarageCatalog(world) {
       upgrades: [], topSpeed: kmh(spec.model.maxSpeed), accel: spec.model.accel,
       accelScore: Math.max(1, Math.min(10, Math.round(perfModel(spec.model, [], twoWheel).accel / 1.2))),
       meme: MEMES[key] || spec.desc, price: spec.price || 0, shop,
-      unlockText: locked ? VEHICLE_UNLOCKS[spec.unlock].text : '',
+      unlockText: spec.unlock ? VEHICLE_UNLOCKS[spec.unlock].text : '',
       status: locked ? 'locked' : 'forsale',
-      statusLabel: locked ? (unlockMet(spec) ? 'Vrijgespeeld: komt zo in je garage' : 'Op slot') : `Te koop bij ${shop}`,
+      statusLabel: spec.unlock ? (locked ? 'Op slot' : 'Vrijgespeeld: staat zo thuis in de garage') : `Te koop bij ${shop}`,
       where: null, fee: 0, feeLabel: '',
     };
   });
