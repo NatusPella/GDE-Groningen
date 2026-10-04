@@ -2239,6 +2239,7 @@ export function update3D(dt, world) {
       playerMesh.rotation.y = -player.angle;
       playerMesh.scale.y = 1;
       playerMesh.userData.crouch = !!player.crouching;
+      playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }

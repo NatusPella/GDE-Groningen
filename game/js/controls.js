@@ -11,7 +11,7 @@ export const KEY_ACTIONS = [
   ['s', 'Achteruit, remmen; heli: remmen, achteruit', 'beweging'],
   ['a', 'Links, sturen; heli: draaien', 'beweging'],
   ['d', 'Rechts, sturen; heli: draaien', 'beweging'],
-  [' ', 'Springen, handrem, klapwieken; heli: omhoog', 'beweging'],
+  [' ', 'Springen, over hek of auto klimmen, handrem, klapwieken; heli: omhoog', 'beweging'],
   ['shift', 'Rennen, boost, duiken; heli: sneller', 'beweging'],
   ['control', 'Bukken; duif: pikken en landen; heli: omlaag', 'beweging'],
   ['e', 'Instappen, praten, gebruiken; duif: pikken', 'actie'],
