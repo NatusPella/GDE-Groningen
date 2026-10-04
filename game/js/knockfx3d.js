@@ -4,13 +4,14 @@ import { spawnFxPuff } from './fx3d.js';
 import { ragdollHead } from './ragdoll.js';
 import { scareAnimal } from './wildlife.js';
 
-// Slapstick feedback for knockouts: a puff of dust where someone or some
-// animal goes down, comic stars circling the head while they lie there and
-// while they stand up groggy, and a few loose feathers when the player drives
-// through a bird (which then flies off). Nothing in here bleeds or breaks.
+// Slapstick feedback for the knockdowns that stay non-lethal (H3's stunt
+// evening, pedestrians.js stuntKnock): a puff of dust where someone goes
+// down, comic stars circling the head while they lie there and while they
+// stand up groggy, and a few loose feathers when the player drives at a bird
+// that gore3d.js did not take (it flies off). The lethal side is gore3d.js.
 //
-// Gameplay calls knockFx(); a KO'd pedestrian carries ped.koUntil (lying)
-// and ped.groggyUntil (back on its feet), a stunned animal a.dead/a.deadAt.
+// Gameplay calls knockFx(); a knocked-down pedestrian carries ped.koUntil
+// (lying) and ped.groggyUntil (back on its feet).
 
 const FX_RANGE = 70;
 const STAR_ACTORS = 10;
@@ -99,19 +100,13 @@ function updateStars(world) {
   };
   for (const ped of world.pedestrians) {
     if (n >= STAR_ACTORS) break;
-    if (!(ped.koUntil > t - 0.2 || ped.groggyUntil > t)) continue;
+    if (ped.state === 'dead' || !(ped.koUntil > t - 0.2 || ped.groggyUntil > t)) continue;
     if (Math.abs(ped.x - pl.x) > FX_RANGE || Math.abs(ped.y - pl.y) > FX_RANGE || ped.hideMesh) continue;
     const seed = ped._lookSeed || 0;
     const h = ragdollHead(ped);
     if (h) head(h[0], h[2], h[1] + 0.32, seed, 1);
-    else if (ped.state === 'dead') head(ped.x, ped.y, (ped.gz || 0) + 0.45, seed, 1);
+    else if (ped.koUntil > t) head(ped.x, ped.y, (ped.gz || 0) + 0.45, seed, 1);
     else head(ped.x, ped.y, (ped.gz || 0) + 2.0, seed, Math.min(1, (ped.groggyUntil - t) / 0.6));
-  }
-  for (const a of world.wildlife || []) {
-    if (n >= STAR_ACTORS) break;
-    if (!a.dead || a.gone || Math.abs(a.x - pl.x) > FX_RANGE || Math.abs(a.y - pl.y) > FX_RANGE) continue;
-    const big = a.kind === 'cow' || a.kind === 'horse';
-    head(a.x, a.y, (big ? 1.0 : 0.45) * (a.size || 1), a.x * 3.1, 1);
   }
   for (let i = n; i < starsShown; i++) for (let s = 0; s < STARS_EACH; s++) starMesh.setMatrixAt(i * STARS_EACH + s, ZERO);
   if (n || starsShown) starMesh.instanceMatrix.needsUpdate = true;

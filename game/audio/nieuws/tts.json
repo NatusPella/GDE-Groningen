@@ -8,14 +8,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
 "date": "2026-10-03"
 },
-"Kiekdoar-redactie (2)|KIEKDOAR: agent tegen de vlakte tijdens dienst, korps in rep en roer": {
+"Kiekdoar-redactie (2)|KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer": {
 "src": "copkill_up_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Umbriel",
-"input": "Agent tegen de vlakte tijdens dienst, korps in rep en roer.",
+"input": "Agent gewond geraakt tijdens dienst, korps in rep en roer.",
 "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-04"
+"date": "2026-10-03"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd": {
 "src": "wrecked_up_1_v1.wav",
@@ -71,14 +71,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
 "date": "2026-10-03"
 },
-"Kiekdoar-redactie (2)|KIEKDOAR: voetganger van de sokken gelopen, buurtapp ontploft van de reacties": {
+"Kiekdoar-redactie (2)|KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties": {
 "src": "pedkill_up_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Umbriel",
-"input": "Voetganger van de sokken gelopen, buurtapp ontploft van de reacties.",
+"input": "Voetganger gewond, buurtapp ontploft van de reacties.",
 "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-04"
+"date": "2026-10-03"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen": {
 "src": "wrecked_up_2_v1.wav",
@@ -98,14 +98,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
 "date": "2026-10-03"
 },
-"Kiekdoar-redactie|KIEKDOAR: agent tegen de vlakte tijdens dienst, korps in rep en roer": {
+"Kiekdoar-redactie|KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer": {
 "src": "copkill_up_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Achernar",
-"input": "Agent tegen de vlakte tijdens dienst, korps in rep en roer.",
+"input": "Agent gewond geraakt tijdens dienst, korps in rep en roer.",
 "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-04"
+"date": "2026-10-03"
 },
 "Kiekdoar-redactie|KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd": {
 "src": "wrecked_up_1_v0.wav",
@@ -161,14 +161,14 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
 "date": "2026-10-03"
 },
-"Kiekdoar-redactie|KIEKDOAR: voetganger van de sokken gelopen, buurtapp ontploft van de reacties": {
+"Kiekdoar-redactie|KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties": {
 "src": "pedkill_up_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Achernar",
-"input": "Voetganger van de sokken gelopen, buurtapp ontploft van de reacties.",
+"input": "Voetganger gewond, buurtapp ontploft van de reacties.",
 "style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-04"
+"date": "2026-10-03"
 },
 "Kiekdoar-redactie|KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen": {
 "src": "wrecked_up_2_v0.wav",

@@ -998,10 +998,14 @@ function fmtTime(s) {
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }
 
+const killCount = (world) => world.stats.pedKills + world.stats.copKills;
+
 function runStats(world, def) {
   const r = chain.run;
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
+  const kills = killCount(world) - r.kills;
+  if (kills > 0 && def.type !== 'stunt') stats.push(['Kills', String(Math.max(0, kills))]);
   const rv = def.type === 'boat' ? rondvaartStatus() : null;
   if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Verhalen verteld', `${rv.told}/${rv.stops}`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
@@ -1784,7 +1788,7 @@ function startMission(world, def) {
   chain.cargoWarn = 100;
   chain.boarded = false;
   chain.hintAt = -Infinity;
-  chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
+  chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
   chain.windowExtended = false;
   chain.momentDone = false;
