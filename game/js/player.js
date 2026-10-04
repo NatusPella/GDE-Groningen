@@ -21,6 +21,7 @@ export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
 const BIKE_SPRINT_REST_S = 4;
+const HORSE_GALLOP_S = 5;
 const RADIUS = 0.35;
 const WALK_SPEED = 4.2;
 const RUN_SPEED = 7.5;
@@ -814,8 +815,10 @@ export class Player {
       v.sprintT = Math.max(0, (v.sprintT || 0) - dt);
       v.sprintRest = Math.max(0, (v.sprintRest || 0) - dt);
       if (input.isDown('shift') && throttle > 0 && !v.sprintRest && !v.disabled) {
-        v.sprintT = BIKE_SPRINT_S;
-        v.sprintRest = BIKE_SPRINT_S + BIKE_SPRINT_REST_S;
+        // a horse gallops for longer than a cyclist can sprint
+        const burst = v._mount === 'horse' ? HORSE_GALLOP_S : BIKE_SPRINT_S;
+        v.sprintT = burst;
+        v.sprintRest = burst + BIKE_SPRINT_REST_S;
       }
     }
     const steerIn = world ? Math.max(-1, Math.min(1, ax + drunkSteer(world, v))) : ax;
