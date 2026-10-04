@@ -49,7 +49,8 @@
 //            a Frisian line's Dutch subtitle comes from subtitles.js FY (keyed by the text).
 //   scene    { kicker, lines, cast, props }: (activity) a short cutscene where the step is done
 //            (storyfun.js); lines [who, text, { tag, clue }], who 'T' | 'A' | a missionstory.js NPC key
-//   homeScene { big, clock, lines }: (night/home goal) a short scene a moment after the player is up in
+//   dock     { kicker, lines }: (eikea goal) the scene at EIKEA's loading dock (storyeikea.js)
+//   homeScene { big, clock, lines }: (night/home/eikea goal) a short scene a moment after the player is up in
 //            the flat (story.js updateHomeWait); clock: the hour it plays at; lines [who, text, { tag }]
 //   meet     the same, played once when the player reaches the step's starting spot
 //            (Rotor Roelf by his demo heli for a flight goal; Durk & Douwe at the court for padel)
@@ -65,6 +66,7 @@
 //   { type: 'sideJob', job }          one more round of that side job (sidejobs.js id, or an array: any of them)
 //   { type: 'night' }                 wait at home until it's dark (with a homeScene: until that scene played)
 //   { type: 'home' }                  go home and up to the flat: the step's homeScene plays there
+//   { type: 'eikea' }                 drive to EIKEA, three boxes on the roof, bring them home, up to the flat (storyeikea.js)
 //   { type: 'train' }                 one train trip (stationtravel.js), routed to the nearest station
 //   { type: 'hideout', options }      one of HIDEOUTS, the player's pick: a train trip or walking up to
 //                                     a spot; its scene and done text follow (storyfun.js)
@@ -227,6 +229,35 @@ export const STEPS = [
       ['berend', 'En daarna elke week. Wie rijdt er voor mij?', { tag: 'nors, ongeduldig, aan de telefoon op de radio' }],
       ['rikus', 'Ik ken iemand.', { tag: 'warm, met een knipoog, als nacht-dj op de radio' }],
     ], 'Berend, Schildersbuurt')] },
+  { id: 'k-eikea', part: 'kop', kind: 'activity', player: 'anita', built: true, why: 'Ik rij naar EIKEA. Jij houdt het lijstje vast, en je houdt je aan het lijstje.',
+    title: 'De flat inrichten bij EIKEA', goal: { type: 'eikea' }, waive: 'eikea',
+    lead: ['T', 'We slapen op een luchtbed en eten van een verhuisdoos. EIKEA, aan de Sontweg. Met de Escapade: de dozen gaan op het dak.'],
+    say: ['T', 'Spanbanden heb ik. Vertrouwen in de spanbanden minder.'],
+    done: ['T', 'Twee bedden en één schroefje over. Ik noem dat een thuis.'],
+    // at the loading dock (storyeikea.js), then three boxes on the roof
+    dock: { kicker: 'EIKEA Grunn · laadperron', lines: [
+      ['A', 'Lijstje. Twee bedden, één boekenkast, één lamp. Verder niks.', { tag: 'bazig, leest voor' }],
+      ['T', 'En die kast met de glazen deurtjes.', { tag: 'droog, hoopvol' }],
+      ['A', 'Die past niet in de lift.', { tag: 'kortaf, beslist' }],
+      ['T', 'Alles past in een lift. Als je hem schuin houdt.', { tag: 'droog, overtuigd' }],
+      ['A', 'Elf verdiepingen schuin, Tammo.', { tag: 'droog, ongeduldig' }],
+      ['T', 'Hij past niet.', { tag: 'deadpan, geeft zich over' }],
+      ['A', 'Wie krijgt de kamer met uitzicht?', { tag: 'plagend, achteloos' }],
+      ['T', 'Ze kijken allebei op de lift.', { tag: 'droog' }],
+      ['A', 'Dan neem ik die bij de koelkast.', { tag: 'snel, zelfverzekerd' }],
+      ['T', 'Daar was ik al bang voor.', { tag: 'zuchtend, droog' }],
+    ] },
+    // upstairs in the flat, once the boxes are carried up
+    homeScene: { big: 'In elkaar zetten…', lines: [
+      ['A', 'Stap één: niet in paniek raken.', { tag: 'leest voor uit een handleiding' }],
+      ['T', 'Er staan alleen plaatjes in.', { tag: 'droog, bladert' }],
+      ['A', 'Dan kijk jij naar de plaatjes. Ik draai.', { tag: 'bazig, vrolijk' }],
+      ['T', 'Klaar. Twee bedden.', { tag: 'tevreden, droog' }],
+      ['A', 'Er blijft één schroefje over.', { tag: 'achterdochtig, houdt het omhoog' }],
+      ['T', 'Reserve. Die Zweden denken overal aan.', { tag: 'droog, stellig' }],
+      ['A', 'Het is een Gronings bedrijf.', { tag: 'droog' }],
+      ['T', 'Dan is hij van de vorige klant.', { tag: 'deadpan' }],
+    ] } },
   { id: 'H2', part: 'kop', kind: 'mission', player: 'anita', built: true, mission: 'pinautomaat', why: 'Geef mij het stuur. Mijn pas zit in die automaat.',
     title: 'Even pinnen', reward: 400,
     lead: ['T', 'Even pinnen in de Herestraat? Ik kom eraan.'],

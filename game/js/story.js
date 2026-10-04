@@ -35,6 +35,7 @@ import { getEierballen } from './achievementtracker.js';
 import { queueFjordReveal } from './postgame.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices } from './storyfun.js';
+import { EIKEA_GOALS, updateStoryEikea, waiveEikea, initStoryEikea } from './storyeikea.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
@@ -279,8 +280,8 @@ function refreshGuide() {
     if (!gate && def && !goalIsMission() && Math.hypot(def.start.x - world.player.x, def.start.y - world.player.y) < 40) setNextMission(world, missionIdx(step));
   } else {
     const g = GOALS[step.goal.type];
-    place = g && g.place(step);
-    why = storyBuyLabel(world, place) || why;
+    place = g && g.place(step, rt.base);
+    why = storyBuyLabel(world, place) || (step.goal.type === 'eikea' && place ? place.name : why);
   }
   const shopId = place && place.type && place.id ? place.id : null;
   // a choice (r-trein): the route goes to the nearest option, the others are named
@@ -692,6 +693,7 @@ export function skipCurrent({ force = false } = {}) {
 function applyWaive(step) {
   if (!step.waive) return;
   if (step.waive === 'night') { setNight(); return; }
+  if (step.waive === 'eikea') { waiveEikea(); return; }
   if (!grantStoryItem(world, step.waive) && step.goal && step.goal.req) state.waived.add(step.goal.req);
 }
 
@@ -765,9 +767,10 @@ function onGated() {
 export function initStory(w) {
   world = w;
   setMissionHooks({ waived: (key) => state.waived.has(key), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
-  Object.assign(GOALS, FUN_GOALS);
+  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS);
   setMeetHook(meet);
   initStoryFun(w);
+  initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
   initSkipUi();
   registerNarrative('say', { active: () => !!world && (rt.sayUntil || 0) > world.time });
   ready = true;
@@ -812,6 +815,7 @@ export function updateStory(dt, w) {
   updateSkipUi();
   updateCharacter(w);
   updateStoryFun(dt, w, step, rt.base);
+  updateStoryEikea(dt, w, step, rt.base);
   if (!step) return;
   if (step.end) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
@@ -988,7 +992,7 @@ export function devJumpTo(id) {
   setMissionProgress(world, { index: prog.index, completed, seen: completed });
   world.money = computeMoneyTimeline().rows[k].before;
   world.wanted = 0;
-  for (const s of prior) if (s.waive && s.waive !== 'night') grantStoryItem(world, s.waive);
+  for (const s of prior) if (s.waive === 'eikea') waiveEikea(); else if (s.waive && s.waive !== 'night') grantStoryItem(world, s.waive);
   const target = STEPS[k];
   const needsNight = target.id === 'H6';
   world.clock = needsNight ? NIGHT_HOUR : target.id === 'k-nacht' ? 14 : 12;

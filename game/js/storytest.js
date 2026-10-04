@@ -21,6 +21,7 @@ import { isVillageMiniActive } from './dorpsuitjes.js';
 import { isActivityActive } from './activities.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
+import { getFurnitureSave } from './furniture.js';
 import { validateSpots } from './spotcheck.js';
 import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
@@ -255,6 +256,52 @@ export async function runStoryTest(world) {
             capture(`${String(n).padStart(2, '0')}-${cur.id}-scene`);
             await sleep(800);
             check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
+          } else if (step.goal && step.goal.type === 'eikea' && window.__storyEikea && window.__home) {
+            // EIKEA: the Escapade at the loading dock, three boxes on the roof, one knock costs one, home, upstairs
+            const se = window.__storyEikea, hm = window.__home, p = world.player;
+            const shop = se.shop();
+            const g0 = world.storyGuide;
+            check(`${cur.id}: the guide points to EIKEA`, !!shop && !!g0 && Math.hypot(g0.x - shop.x, g0.y - shop.y) < 5, JSON.stringify(g0));
+            const car = world.vehicles.find((v) => v.isHeroCar && !v.wrecked);
+            if (shop && car) {
+              if (p.inVehicle) p.exitVehicle(world.map, world);
+              car.x = shop.x; car.y = shop.y; car.speed = 0; car.homeStored = false;
+              p.x = car.x; p.y = car.y;
+              world.teleported = world.time;
+              p.enterVehicle(car, world);
+              const loaded = await waitFor(() => (se.state() || {}).phase === 'carry', 10000);
+              check(`${cur.id}: the dock scene loads three boxes on the roof`, loaded && se.state().boxes.length === 3 && car.roofBoxes === 3, JSON.stringify(se.state()));
+              await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !isCinematicActive(); }, 20000);
+              capture(`${String(n).padStart(2, '0')}-${cur.id}-dak`);
+              world.lastImpact = { strength: 1, time: world.time + 0.01, x: car.x, y: car.y };
+              check(`${cur.id}: a hard knock costs one box`, await waitFor(() => se.state().boxes.length === 2 && car.roofBoxes === 2, 4000), JSON.stringify(se.state()));
+              const d = hm.home.garage.door;
+              car.x = d.cx + d.nx * 6; car.y = d.cy + d.ny * 6; car.speed = 0;
+              p.x = car.x; p.y = car.y;
+              world.teleported = world.time;
+              check(`${cur.id}: the boxes come off at home`, await waitFor(() => (se.state() || {}).phase === 'home', 10000) && !car.roofBoxes, JSON.stringify({ st: se.state(), d: Math.round(Math.hypot(car.x - se.home().x, car.y - se.home().y)) }));
+              p.exitVehicle(world.map, world);
+              await sleep(400);
+              hm.enter();
+              const built = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
+              check(`${cur.id}: the assembly scene upstairs completes the step`, built, JSON.stringify({ st: se.state(), home: hm.state() }));
+              const own = getFurnitureSave().owned;
+              check(`${cur.id}: the carried pieces are in the flat, the lost one is not`, own.includes('bed') && own.includes('kast') && !own.includes('lamp'), JSON.stringify(own));
+              hm.leave();
+              await sleep(1500);
+            } else S().complete();
+          } else if (step.goal && (step.goal.type === 'night' || step.goal.type === 'home') && step.homeScene && window.__home) {
+            // waiting at home: go home, up in the lift, the scene plays and the step is done
+            const hm = window.__home;
+            if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+            hm.goHome();
+            await sleep(1500);
+            hm.enter();
+            const sceneDone = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
+            check(`${cur.id}: the scene at home completes the step`, sceneDone, JSON.stringify({ cur: S().current(), home: hm.state() }));
+            if (step.goal.type === 'night') check(`${cur.id}: it is night after the wait`, (world.clock % 24) >= 21 || (world.clock % 24) < 5, String(world.clock));
+            hm.leave();
+            await sleep(1500);
           } else if (step.goal && step.goal.type === 'flight' && window.__storyFun) {
             // Rotor Roelf with his demo heli on Eelde: walking up plays his scene and completes the step (H15 flies it)
             const sf = window.__storyFun, p = world.player;

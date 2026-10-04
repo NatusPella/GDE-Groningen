@@ -746,6 +746,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-03"
 },
+"Tammo|Twee bedden en één schroefje over. Ik noem dat een thuis.": {
+"src": "tammo/twee_bedden_en_e_e_n_schroefje_o_55f53cc6.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "Twee bedden en één schroefje over. Ik noem dat een thuis.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: mompelend, stiekem trots.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-04"
+},
 "Tammo|Twijduustern. Niemand zoekt ons in het donker.": {
 "src": "tammo/twijduustern_niemand_zoekt_ons_i_5d961aec.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -754,6 +763,15 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-03"
+},
+"Tammo|We slapen op een luchtbed en eten van een verhuisdoos. EIKEA, aan de Sontweg. Met de Escapade: de dozen gaan op het dak.": {
+"src": "tammo/we_slapen_op_een_luchtbed_en_ete_8f5b519c.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Orus",
+"input": "We slapen op een luchtbed en eten van een verhuisdoos. EIKEA, aan de Sontweg. Met de Escapade: de dozen gaan op het dak.",
+"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: sarcastisch, zuchtend.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-04"
 },
 "Tammo|Wij tweeën vóór Grunn. Kon minder, hè?": {
 "src": "tammo/wij_tweee_n_vo_o_r_grunn_kon_min_4d8627db.mp3",
