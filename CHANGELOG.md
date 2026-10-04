@@ -34,6 +34,32 @@ nieuwe functies, `y` voor alleen bugfixes.
   lijst. Er zit niet meer tussen elk nummer een jingle, en nooit twee keer
   dezelfde achter elkaar.
 
+### Opgelost
+- **De ringweg-race (H9) vraagt een snelle auto.** Starten in de
+  frituurvet-tankwagen of op de fiets kan niet meer: je hebt een
+  sportwagen nodig, of een auto die 200 km/u haalt. De Escapade haalt dat
+  pas na een tuning-upgrade bij Knal & Kolder. De stap ervoor wijst de weg:
+  de Escapade halen en opvoeren, of een sportwagen kopen. Kom je in het
+  verkeerde voertuig aan, dan zegt Tessa wat er mis is ("Met die vetwagen
+  win je geen race. Haal je snelste auto.").
+- **De KEI-weekrace (H5) rijd je op een gewone fiets**, niet op een
+  fatbike of te voet. Bij de rondvaart (H13) stap je uit je eigen boot en
+  in de rondvaartboot; de route wijst nu ook echt naar die boot.
+- **Geleende voertuigen gaan terug.** Na H1 rijdt Berend zelf weg in zijn
+  bakkie. De decorauto (H7) en de tankwagen (H8) blijven op hun plek, en
+  de rondvaartboot (H13) blijft aan de kade. Je loopt verder, en de route
+  gaat eerst langs je eigen vervoer als de volgende stap ver weg is.
+- **Vuurwerk en de jachtgeweer maken weer geluid.** Een drukke frame
+  (schoten, voetstappen, vogels) gooide alle geluiden na de eerste acht
+  weg; die spelen nu een frame later. Elk schot is een eigen geluid, ook
+  als de kogel meteen raakt. Vuurpijlen fluiten bij de lancering, het
+  vuurwerk van H18 fluit naar beneden en knalt. Vuisten en een leeg
+  magazijn hebben nu ook een geluid. `node scripts/weapon_audio_test.mjs`
+  controleert dat elk wapen zijn geluiden heeft.
+- **Het jachtgeweer schiet waar het vizier staat.** Door de scope vliegt
+  de kogel vanaf het oog, recht langs het kruisje: zonder hand-afwijking,
+  spreiding of aim assist, en het vizier kijkt waterpas.
+
 ## [0.26.1] - 2026-10-04
 
 ### Opgelost

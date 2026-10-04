@@ -18,7 +18,7 @@ import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import {
   setMissionHooks, setNextMission, isMissionActive, isMissionCompleted, markMissionCompleted, getMissionDefs,
   unmetRequirement, requirementMet, requirementPlace, isNight, setMissionProgress, getMissionProgress, missionDebug,
-  activeMissionIndex, failActiveMission,
+  activeMissionIndex, failActiveMission, rideFirst,
 } from './missions.js';
 import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight } from './pigeonmode.js';
@@ -247,6 +247,9 @@ function queueContacts(step, on) {
 // a mission the player chose as their goal (goal.js) keeps the marker
 const goalIsMission = () => !!(world.goal && world.goal.kind === 'mission');
 
+// on foot further than this from the next place: the route goes past your own ride
+const RIDE_FIRST_M = 300;
+
 function refreshGuide() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) { world.storyGuide = null; return; }
@@ -273,6 +276,17 @@ function refreshGuide() {
     place = g && g.place(step);
     why = storyBuyLabel(world, place) || why;
   }
+  // on foot after a hand-back, or the step needs your car: fetch it first
+  let need = null;
+  if (step.kind === 'mission') {
+    const def = getMissionDefs()[missionIdx(step)];
+    if (def && def.ride === 'racecar') need = rt.gate ? 'car' : 'racecar';
+  } else if (step.goal && step.goal.req === 'racecar') need = 'car';
+  const ride = place ? rideFirst(world, need) : null;
+  if (ride) {
+    const p = world.player, far = Math.hypot(place.x - p.x, place.y - p.y);
+    if ((need || far > RIDE_FIRST_M) && Math.hypot(ride.x - p.x, ride.y - p.y) < far + 40) { why = `Eerst naar ${ride.name}, dan: ${why}`; place = ride; }
+  }
   const shopId = place && place.type && place.id ? place.id : null;
   // a choice (r-trein): the route goes to the nearest option, the others are named
   let alt = '';
@@ -289,7 +303,7 @@ function isPurchase(step, gate) {
 }
 
 function gateLabel(key) {
-  return { weapon: 'koop een wapen', bike: 'koop een fiets', car: 'koop een auto', heist: 'koop zwart incognito of huur een boot', night: 'wachten tot het donker is', boat: 'huur een boot' }[key] || key;
+  return { weapon: 'koop een wapen', bike: 'koop een fiets', car: 'koop een auto', racecar: 'voer de Escapade op of koop een sportwagen', heist: 'koop zwart incognito of huur een boot', night: 'wachten tot het donker is', boat: 'huur een boot' }[key] || key;
 }
 
 // Tops up the money for a purchase the step needs, once per step.

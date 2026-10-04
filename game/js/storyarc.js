@@ -323,8 +323,9 @@ export const STEPS = [
     ], 'Jelle, Ljouwert')],
     after: [['Onbekend nummer (058)', 'Pas op dysels, famke. – M.']] },
   { id: 'r-tuning', part: 'romp', kind: 'activity', player: 'tammo', built: true, why: 'Ik ga naar Knal & Kolder. Ik weet precies welk geluid ik wil.',
-    title: 'De Escapade opvoeren bij Knal & Kolder', goal: { type: 'shop', shop: 'tuning', buy: ['u-motor', 'u-remmen', 'u-grip', 'u-turbo'], what: 'een tuning-upgrade' }, cost: 300, optional: true,
-    lead: ['A', 'Jelle daagt je uit op de ringweg. Rij de Escapade naar Knal & Kolder en druk R, voor wat extra paardjes.'],
+    // done once you own a car that does 200 km/u: the Escapade with the motor upgrade, or a sports car (missions.js racecar)
+    title: 'De Escapade opvoeren bij Knal & Kolder', goal: { type: 'require', req: 'racecar' }, waive: 'racecar', cost: 300, optional: true,
+    lead: ['A', 'Jelle daagt je uit op de ringweg. Daar win je alleen in een snelle auto. Haal de Escapade en laat hem opvoeren bij Knal & Kolder, of koop een sportwagen.'],
     say: ['A', 'Een trekker inhalen. Dat regel ik wel even. Nou ja: jij.'],
     done: ['A', 'Hij klinkt als een boze koelkast. Kom maar op, trekker.'],
     contact: [{ via: 'radio', on: 'lead', from: 'rikus', caller: 'Jelle, Ljouwert', mood: 'night', lines: [
