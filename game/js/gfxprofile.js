@@ -2,11 +2,12 @@
 // resolution. A preset sets every graphics setting at once; the player can
 // still change each one in Instellingen > Beeld.
 import { getSettings, setSetting } from './settings.js';
+import { DRAW_DISTANCE_LABELS } from './viewdist.js';
 
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
   middel: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 1, autoResolution: true },
-  hoog: { quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: true },
+  hoog: { quality: 'hoog', shadows: true, drawDistance: 'heelver', resolution: 1, autoResolution: true },
 };
 export const PRESET_ORDER = ['laag', 'middel', 'hoog'];
 const LABELS = { laag: 'Laag', middel: 'Gemiddeld', hoog: 'Hoog' };
@@ -16,7 +17,7 @@ export const presetLabel = (name) => LABELS[name] || name;
 export function describePreset(name) {
   const p = GFX_PRESETS[name];
   const res = `resolutie ${Math.round(p.resolution * 100)}%${p.autoResolution ? ', automatisch' : ''}`;
-  return [p.shadows ? 'schaduwen aan' : 'schaduwen uit', res, `zichtafstand ${p.drawDistance}`].join(' · ');
+  return [p.shadows ? 'schaduwen aan' : 'schaduwen uit', res, `zichtafstand ${DRAW_DISTANCE_LABELS[p.drawDistance]}`].join(' · ');
 }
 
 const SETTING_WORDS = {
@@ -24,7 +25,7 @@ const SETTING_WORDS = {
   shadows: (v) => (v ? 'schaduwen aan' : 'schaduwen uit'),
   resolution: (v) => `resolutie ${Math.round(v * 100)}%`,
   autoResolution: (v) => (v ? 'automatische resolutie aan' : 'automatische resolutie uit'),
-  drawDistance: (v) => `zichtafstand ${v}`,
+  drawDistance: (v) => `zichtafstand ${DRAW_DISTANCE_LABELS[v] || v}`,
 };
 // what applying a preset changes compared with the current settings
 export function describeChanges(name, st = getSettings()) {

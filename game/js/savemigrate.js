@@ -13,7 +13,7 @@
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
 
 export const SAVE_VERSION = 2;
-export const SETTINGS_VERSION = 6;
+export const SETTINGS_VERSION = 7;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 
@@ -91,6 +91,12 @@ export const SETTINGS_MIGRATIONS = {
   4(s) { delete s.gore; return s; },
   // 6: rebindable keys and buttons; settings.js checks the tables themselves
   5(s) { return s; },
+  // 7: Hoog got the new 'heel ver' view distance; a file that was exactly the
+  // old Hoog preset stays on Hoog, a hand-picked mix keeps 'ver'
+  6(s) {
+    if (s.quality === 'hoog' && s.shadows === true && s.drawDistance === 'ver' && s.resolution === 1 && s.autoResolution === true) s.drawDistance = 'heelver';
+    return s;
+  },
 };
 
 // Settings files before v2 had no `v`.
