@@ -15,6 +15,7 @@
     { "file": "Wie_stoan_nait_stil.mp3", "stations": ["gmusic", "nachtstreek"] },
     { "file": "Kleur_in_de_Wind.mp3", "stations": ["gmusic", "nachtstreek"] },
     { "file": "Geen_stoplicht_houdt_ons_tegen.mp3", "stations": ["gmusic"] },
-    { "file": "Goud_in_de_Nacht.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night" }
+    { "file": "Goud_in_de_Nacht.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night" },
+    { "file": "Hatchback_op_de_Ring.mp3", "stations": ["gmusic"], "time": "day" }
   ]
 }

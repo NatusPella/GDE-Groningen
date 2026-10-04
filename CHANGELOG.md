@@ -44,6 +44,7 @@ nieuwe functies, `y` voor alleen bugfixes.
   Het menu zegt dat er ook bij. Teleporteren, Voertuig hier en de streken
   die alleen het uiterlijk veranderen laten prestaties aan. Na Geld uit de
   muur staan prestaties uit tot je een save laadt.
+- **Punk op G-Music:** "Hatchback op de Ring" van De Uitlaatjes, overdag.
 - **Twee drillnummers op G-Music:** "Geen stoplicht houdt ons tegen" (Ringweg Drillers) en "Goud in de Nacht" (Nachtbus Nino, 's nachts ook op Nachtstreek).
 
 ### Veranderd
