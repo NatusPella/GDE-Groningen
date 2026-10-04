@@ -2364,9 +2364,10 @@ export function update3D(dt, world) {
   camWasInVehicle = !!camVeh;
 
   // vehicles get a longer, higher orbit scaled to their length, so the car
-  // doesn't fill the lower half of the screen
+  // doesn't fill the lower half of the screen; a bus further still, to see
+  // the road ahead over its roof and its tail through a corner
   const veh = camVeh;
-  const camScale = veh ? (veh.isHeli ? 4.4 : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
+  const camScale = veh ? (veh.isHeli ? 4.4 : veh.isBus ? Math.min(4.4, Math.max(3.2, veh.model.len / 2.5)) : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
   const radius = orbitRadius * camScale;
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
