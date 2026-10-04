@@ -115,7 +115,7 @@ export const KOE_LINES = {
     ['A', 'Durk en Douwe. Die fatbike kennen we.', 'zuchtend, ad rem'],
     ['T', 'Wat moeten die nou met een koe?', 'droog, verbaasd'],
     ['J', 'Gain idee. Ze zitten in de olle schuur, verderop in t laand. Hoal heur weer, den krigst wat van mie.', 'smekend, gemoedelijk'],
-    ['J', 'Maak heur lös en loop mit heur noar t erf. Blief wel dichtbie, aans lopt ze nait mit.', 'stellig, duidelijk'],
+    ['J', 'Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.', 'stellig, duidelijk'],
   ],
   outro: [
     ['J', 'Geertje! Mien wicht! Doar bist weer.', 'ontroerd, opgelucht'],
@@ -139,7 +139,6 @@ export const KOE_LINES = {
   // the companion during the escort
   duo: {
     go: ['Kom op, Geertje! Naar huis!'],
-    slow: ['Ze houdt ons bij. Niet te hard, hè!'],
     wait: ['Geertje blijft staan. Terug, ze wacht op ons!'],
     near: ['Die trekker zit vlak achter haar!', 'Ram die trekker! Dan zijn ze even stil.'],
   },

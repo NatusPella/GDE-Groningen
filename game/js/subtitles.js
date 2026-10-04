@@ -241,7 +241,7 @@ export const GRO = {
   'Moi. Geertje is vot. Mien beste kou. Kampioen van t Ommeland, drij joar achter nkander.': 'Hoi. Geertje is weg. Mijn beste koe. Kampioen van het Ommeland, drie jaar achter elkaar.',
   'Twij grote kerels in rooie truien, op ain fiets. Ze proatten zo raar.': 'Twee grote kerels in rode truien, op één fiets. Ze praatten zo raar.',
   'Gain idee. Ze zitten in de olle schuur, verderop in t laand. Hoal heur weer, den krigst wat van mie.': 'Geen idee. Ze zitten in de oude schuur, verderop in het land. Haal haar terug, dan krijg je wat van mij.',
-  'Maak heur lös en loop mit heur noar t erf. Blief wel dichtbie, aans lopt ze nait mit.': 'Maak haar los en loop met haar naar het erf. Blijf wel dichtbij, anders loopt ze niet mee.',
+  'Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.': 'Maak haar los en rij haar naar het erf. Ze rent wel mee. Ze is kampioen.',
   'Geertje! Mien wicht! Doar bist weer.': 'Geertje! Mijn meisje! Daar ben je weer.',
   'Hier, veur de muite. En n stukje kees van t erf.': 'Hier, voor de moeite. En een stukje kaas van het erf.',
   'Moi! Hebben jim mien Geertje ook zain?': 'Hoi! Hebben jullie mijn Geertje ook gezien?',

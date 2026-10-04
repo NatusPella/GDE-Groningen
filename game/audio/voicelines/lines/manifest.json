@@ -1131,10 +1131,6 @@
 "src": "anita/wij_tweee_n_vo_o_r_grunn_e701fd62.mp3",
 "dur": 1.74
 },
-"Anita|Ze houdt ons bij. Niet te hard, hè!": {
-"src": "anita/ze_houdt_ons_bij_niet_te_hard_he_bd8354a1.mp3",
-"dur": 2.67
-},
 "Anita|Ze staat op de Grote Markt, Jelle. Bij de jury. Geef maar.": {
 "src": "anita/ze_staat_op_de_grote_markt_jelle_9332559c.mp3",
 "dur": 3.69
@@ -2315,9 +2311,9 @@
 "src": "ome_jan/hier_veur_de_muite_en_n_stukje_k_0943e69f.mp3",
 "dur": 3.19
 },
-"Ome Jan|Maak heur lös en loop mit heur noar t erf. Blief wel dichtbie, aans lopt ze nait mit.": {
-"src": "ome_jan/maak_heur_lo_s_en_loop_mit_heur__8fdb5678.mp3",
-"dur": 4.55
+"Ome Jan|Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.": {
+"src": "ome_jan/maak_heur_lo_s_en_rij_heur_noar__5950529a.mp3",
+"dur": 4.18
 },
 "Ome Jan|Moi! Hebben jim mien Geertje ook zain?": {
 "src": "ome_jan/moi_hebben_jim_mien_geertje_ook__fc1adb60.mp3",
@@ -4170,10 +4166,6 @@
 "Tammo|Wij tweeën tegen de rest.": {
 "src": "tammo/wij_tweee_n_tegen_de_rest_3561f0e6.mp3",
 "dur": 1.81
-},
-"Tammo|Ze houdt ons bij. Niet te hard, hè!": {
-"src": "tammo/ze_houdt_ons_bij_niet_te_hard_he_318931a8.mp3",
-"dur": 1.78
 },
 "Tammo|Zevenennegentig meter. De langste Stadjer die nooit verhuist.": {
 "src": "tammo/zevenennegentig_meter_de_langste_0b75afcc.mp3",

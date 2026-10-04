@@ -24,11 +24,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **De Koe van Ome Jan is te volgen.** Jelle legt aan de telefoon uit
   waarom Durk en Douwe Geertje meenamen: ze wilden hem toch nog iets laten
   winnen, op de keuring in Ljouwert. Het slot vertelt hoe het met de
-  tweeling afloopt. Ome Jan zegt wat je moet doen, en de HUD geeft het stap voor stap:
-  naar de schuur, Geertje losmaken (E), terug naar het erf. Je ziet of
-  Geertje meeloopt en hoe ver het erf nog is, je telt de rammen tegen de
-  trekker-limo (0/3), en je krijgt een waarschuwing als de trekker vlak
-  achter haar zit.
+  tweeling afloopt. De missie is ook eenvoudiger en
+  korter: de schuur ligt op een minuut rijden van het erf, je maakt Geertje
+  los met E (ook vanuit de auto) en rijdt haar naar huis. Ze rent mee met
+  wat je ook rijdt, en als je wegloopt wacht ze op je. Rammen hoeft niet:
+  na een minuut rijden Durk en Douwe vanzelf de sloot in. De HUD geeft elke
+  stap met een marker, laat zien of Geertje meeloopt, telt de rammen (0/3)
+  en waarschuwt als de trekker vlak achter haar zit.
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
   zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
   meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
