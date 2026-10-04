@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-10-04
+
 ### Veranderd
 - De kaartautomaat op het station toont alleen nog stations waar je echt
   heen kunt; de grijze "Verder weg"-lijst buiten het speelgebied is weg.
@@ -32,6 +34,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   frames gemaakt (je eigen Escapade bij de start, en elk voertuig waar je
   naartoe loopt).
 - De toetsen onder de heli-HUD volgen je eigen toetsindeling.
+
+- **Netter Grunn**: een stoep op een oprit hangt niet meer boven de rijbaan
+  van een lagere oprit, minder gaten langs het water, en de galerijflats in
+  Paddepoel en het tankstation flikkeren niet meer.
 
 ### Opgelost
 - In de browser sloot Ctrl+W het tabblad als je bukte of met de heli
