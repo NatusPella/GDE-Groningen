@@ -30,7 +30,7 @@ import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
 import {
   startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
-  heistApproach, heistSpotAt, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, REVEAL,
+  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, REVEAL,
 } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -270,7 +270,8 @@ function buildDefs(world) {
       reward: 400,
       requires: ['heist', 'night'],
       // midnight: three minutes without cameras, from the fuse box until the case is open
-      window: { after: 'fuse', until: 'crack', secs: 180, label: 'camera\'s uit', late: 'de drie minuten zijn om. De camera\'s staan weer aan' },
+      // once over time: 90 s more (the companion resets the fuse box), then it fails
+      window: { after: 'fuse', until: 'crack', secs: 180, extra: 90, label: 'camera\'s uit', extend: 'De camera\'s gaan weer aan! Ik zet ze nog één keer op herhaling: anderhalve minuut. Opschieten!', late: 'de tijd is om. De camera\'s staan weer aan' },
       start: walk(18, 736),
       heist: { fuse: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
       // heist.js: the plan picks the approach; stages with `only` belong to one of them
@@ -315,7 +316,7 @@ function buildDefs(world) {
           lines: [['T', 'Instappen! De motor draait al!'], ['A', 'Tammo, sinds wanneer kun jij varen?'], ['T', 'Sinds nu. Vol gas!']],
         },
         {
-          kind: 'escape', stars: 3, label: 'Naar de kade bij het Hoofdstation', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.',
+          kind: 'escape', stars: 2, label: 'Naar de kade bij het Hoofdstation', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.',
           // a mooring on the Verbindingskanaal in front of the station: the run ends there, once the police are gone
           target: { x: -40, y: 849, label: 'Kade bij het Hoofdstation' }, dock: 14, mode: 'boat',
           // Nachtstreek, live, while they flee: Jelle calls in
@@ -1631,6 +1632,7 @@ function startMission(world, def) {
   chain.hintAt = -Infinity;
   chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
+  chain.windowExtended = false;
   chain.momentDone = false;
   chain.hijacked = false;
   chain.finishPending = false;
@@ -2638,9 +2640,15 @@ function updateStages(dt, world, def) {
   const S = chain.stage;
   if (!st || !S) return;
   S.t += dt;
-  if (inWindow(def) && !isCinematicActive()) {
+  if (inWindow(def) && !isCinematicActive() && !(def.heist && heistSendingBack())) {
     chain.windowT += dt;
-    if (chain.windowT > def.window.secs) { fail(world, def, def.window.late); return; }
+    const W = def.window;
+    // the first time it runs out the companion puts the cameras on repeat once more
+    if (chain.windowT > W.secs && W.extra && !chain.windowExtended) {
+      chain.windowExtended = true;
+      chain.windowT = W.secs - W.extra;
+      world.addMessage(W.extend, 4.5);
+    } else if (chain.windowT > W.secs) { fail(world, def, W.late); return; }
   }
   if (def.eggs && chain.stageIndex >= def.eggs.from) {
     updateEggs(dt, world, def);

@@ -10,6 +10,15 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **H6: allebei in het zwart.** Koop je zwart incognito, dan trekken Tammo
   en Tessa het meteen allebei aan (ook na het laden van een spel), niet pas
   als je in een voertuig stapt.
+- **H6, de kraak, is eerlijker en duidelijker.** In zaal 3 staat boven je
+  hoofd wat de volgende laser vraagt (bukken met Ctrl, springen met Spatie,
+  wachten of met het gat meelopen), de lasers zijn iets minder streng en na
+  twee keer piepen zet Tessa er al één uit. De drie minuten lopen niet door
+  terwijl je teruggestuurd wordt, en zijn ze toch om, dan zet Tammo de
+  camera's nog één keer anderhalve minuut op herhaling. Een tweede poging
+  slaat het hele plan-gesprek over en gaat meteen naar de keuze. Op de
+  vlucht over het water zit er twee sterren politie achter je in plaats van
+  drie.
 
 ## [0.26.1] - 2026-10-04
 
