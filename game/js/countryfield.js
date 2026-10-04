@@ -422,8 +422,8 @@ vec3 cVillage(int bx, int by) {
   return vec3(x, y, r);
 }
 
-// Roads (x) and canals (y) carried on from the map edge; z = distance to
-// the painted edge line of the nearest such road.
+// Roads (x) and canals (y) carried on from the map edge; z = signed
+// distance to the edge of the asphalt (negative on it, 1e3 far off).
 vec3 cEdge(vec2 p, float px) {
   float road = 0.0, canal = 0.0, line = 1e3;
   vec2 g = (p - uEdgeGridRect.xy) / uEdgeGridRect.z;
@@ -446,10 +446,39 @@ vec3 cEdge(vec2 p, float px) {
     float hw = mix(W.x, W.y, t);
     if (d > hw + 2.5) continue;
     float cov = 1.0 - smoothstep(hw - px - 0.05, hw + px + 0.05, d);
-    if (W.z < 0.5) { road = max(road, cov); line = min(line, abs(d - (hw - 0.3))); }
+    if (W.z < 0.5) { road = max(road, cov); line = min(line, d - hw); }
     else canal = max(canal, 1.0 - smoothstep(hw - 1.2 - px, hw - 1.2 + px, d));
   }
   return vec3(road, canal, line);
+}
+
+// The city's asphalt (roadsurface.js SURF_ASPHALT) for the painted roads:
+// same base colour, macro/fine/aggregate noise and worn wheel tracks. e =
+// metres in from the asphalt edge; rough gets the roughness delta.
+vec3 cAsphalt(vec2 p, float px, float e, float hw, inout float rough) {
+  float macro = cNoise(p * 0.043) * 0.6 + cNoise(p * 0.21 + 3.1) * 0.4;
+  float fine = cNoise(p * 7.0);
+  float a = (0.82 + 0.34 * macro + (fine - 0.5) * 0.14) * (1.0 - smoothstep(0.55, 0.8, cNoise(p * 0.12 + 20.0)) * 0.14);
+  float fa = 1.0 - smoothstep(0.012, 0.05, px);
+  float stone = 0.0;
+  if (fa > 0.0) {
+    stone = smoothstep(0.74, 0.82, cNoise(p * 55.0 + 7.0));
+    a *= 1.0 + ((cNoise(p * 42.0) - 0.5) * 0.14 + stone * 0.22) * fa;
+  }
+  // wheel tracks 0.85 m either side of each lane centre (lanes from the edge in)
+  float lw = hw > 2.4 ? min(hw, 3.5) : hw;
+  float lp = (fract(e / lw) - 0.5) * lw;
+  float track = (1.0 - smoothstep(0.12, 0.45, abs(abs(lp) - 0.85))) * step(0.6, e) * (1.0 - smoothstep(0.2, 1.0, px));
+  a *= 1.0 - track * (0.12 + 0.07 * cNoise(p * 0.5));
+  rough += -0.07 + (fine - 0.5) * 0.1 - stone * 0.08 * fa - track * 0.14;
+  return cLin(75.0, 77.0, 80.0) * a;
+}
+// The city's road paint: white, worn in patches (SURF_MARKING).
+vec3 cPaint(vec3 c, vec2 p, float m) {
+  if (m <= 0.0) return c;
+  float mw = cNoise(p * 2.3) * 0.55 + cNoise(p * 9.0) * 0.3 + cNoise(p * 31.0) * 0.15;
+  m *= smoothstep(0.28, 0.38, mw);
+  return mix(c, vec3(0.86) * (0.78 + 0.22 * smoothstep(0.33, 0.7, mw)), m);
 }
 
 // Road markings of the real road under p (only asked for near the camera,
@@ -493,11 +522,16 @@ vec2 cMark(vec2 p, float px) {
     float dl = kind > 4.5 ? step(fract(along / 2.0), 0.5) : 1.0;
     line = (1.0 - smoothstep(0.06, 0.06 + aa, abs(e - 1.5))) * dl;
     strip = 1.0 - smoothstep(1.45, 1.45 + aa, e);
-    if (kind < 4.5 && !one) line = max(line, (1.0 - smoothstep(0.07, 0.07 + aa, dc)) * step(fract(along / 12.0), 0.25));
-  } else if (kind < 1.5 || (kind > 2.5 && kind < 4.5 && !one)) {
-    // centre line (lane divider on a motorway carriageway): 3 m on, 9 m off
-    float dash = step(fract(along / 12.0), 0.25);
-    line = (1.0 - smoothstep(0.07, 0.07 + aa, dc)) * dash;
+    if (kind < 5.5 && !one) line = max(line, (1.0 - smoothstep(0.05, 0.05 + aa, dc)) * step(fract(along / 9.0), 1.0 / 3.0));
+  } else if (kind < 1.5) {
+    // lane divider on a motorway carriageway: 3 m on, 9 m off (as in the city)
+    line = (1.0 - smoothstep(0.06, 0.06 + aa, dc)) * step(fract(along / 12.0), 0.25);
+  } else if (kind > 2.5 && kind < 3.5 && !one) {
+    // trunk / primary: one solid centre line, like the city's main roads
+    line = 1.0 - smoothstep(0.06, 0.06 + aa, dc);
+  } else if (kind > 3.5 && kind < 5.5 && !one) {
+    // secondary / tertiary: the city's 3 m on, 6 m off
+    line = (1.0 - smoothstep(0.05, 0.05 + aa, dc)) * step(fract(along / 9.0), 1.0 / 3.0);
   }
   return vec2(line, strip);
 }
@@ -544,7 +578,7 @@ bool cBake(vec2 p, out vec4 t) {
 // loop); junctions come out as one outline.
 vec3 cEdgeFrom(vec4 t, float px) {
   float sdR = t.r * 8.0 - 4.0, sdC = t.g * 8.0 - 4.0;
-  return vec3(1.0 - smoothstep(-px - 0.05, px + 0.05, sdR), 1.0 - smoothstep(-px, px, sdC), sdR < 2.5 ? abs(sdR + 0.3) : 1e3);
+  return vec3(1.0 - smoothstep(-px - 0.05, px + 0.05, sdR), 1.0 - smoothstep(-px, px, sdC), sdR < 2.5 ? sdR : 1e3);
 }
 vec3 cEdgeAt(vec2 p, float px) {
   vec4 t;
@@ -670,29 +704,41 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float dCont = min(contV ? drV : 1e3, contH ? drH : 1e3);
   float roadM = 1.0 - smoothstep(C_ROAD_W * 0.5 - px, C_ROAD_W * 0.5 + px, dr);
   float shoulder = (1.0 - smoothstep(C_ROAD_W * 0.5 + 0.2, C_ROAD_W * 0.5 + 0.9, dr)) * (1.0 - roadM);
-  vec3 asphalt = cLin(74.0, 74.0, 76.0) * (0.9 + 0.2 * n3);
-  float edgeLine = (1.0 - smoothstep(0.08, 0.08 + px, abs(dr - (C_ROAD_W * 0.5 - 0.3)))) * detail;
-  asphalt = mix(asphalt, cLin(214.0, 210.0, 198.0), edgeLine * 0.85);
   c = mix(c, cLin(128.0, 116.0, 92.0) * (0.85 + 0.3 * n3), shoulder * 0.8);
-  c = mix(c, asphalt, roadM);
-  sRough -= roadM * 0.1;
+  if (roadM > 0.0) {
+    float ar = 0.0;
+    float edgeLine = (1.0 - smoothstep(0.075, 0.075 + px, abs(dr - (C_ROAD_W * 0.5 - 0.35)))) * detail;
+    vec3 asphalt = cPaint(cAsphalt(p, px, C_ROAD_W * 0.5 - dr, C_ROAD_W * 0.5, ar), p, edgeLine);
+    c = mix(c, asphalt, roadM);
+    sRough += ar * roadM;
+  }
   sDip += roadM * 0.4 - 0.2;
 
   // roads and canals carried on from the city
   vec3 ce = vec3(0.0, 0.0, 1e3);
   if (edD > -20.0) ce = baked ? cEdgeFrom(bk, px) : cEdge(p, px);
+  // verge along the real roads: a gravel berm out in the polder, a kerb
+  // and a strip of the city's pavement tiles in town
+  if (ce.z > 0.0 && ce.z < 2.0 && ce.y < 0.5) {
+    float bw = mix(0.9, 1.6, urb);
+    float berm = (1.0 - smoothstep(bw - 0.6, bw, ce.z)) * (1.0 - ce.x);
+    vec3 bc = mix(cLin(128.0, 116.0, 92.0) * (0.85 + 0.3 * n3), cLin(131.0, 126.0, 116.0) * (0.9 + 0.2 * n3), urb);
+    bc = mix(bc, cLin(168.0, 164.0, 156.0), urb * (1.0 - smoothstep(0.15, 0.15 + px, ce.z)));
+    c = mix(c, bc, berm * mix(0.8, 1.0, urb));
+  }
   if (ce.x > 0.0) {
-    vec3 asph = cLin(74.0, 74.0, 76.0) * (0.9 + 0.2 * n3);
-    float el = (1.0 - smoothstep(0.08, 0.08 + px, ce.z)) * detail;
+    float ar = 0.0;
+    vec3 asph = cAsphalt(p, px, -ce.z, 3.5, ar);
+    float paint = (1.0 - smoothstep(0.075, 0.075 + px, abs(ce.z + 0.35))) * detail;
     if (px < 1.2 && ce.x > 0.5) {
       // the red asphalt carries further out than the white paint
       vec2 mk = cMark(p, px) * vec2(1.0 - smoothstep(0.2, 0.4, px), 1.0 - smoothstep(0.8, 1.2, px));
-      asph = mix(asph, cLin(150.0, 78.0, 66.0) * (0.9 + 0.2 * n3), mk.y * 0.85);
-      asph = mix(asph, cLin(214.0, 210.0, 198.0), mk.x * 0.85);
+      asph = mix(asph, cLin(130.0, 59.0, 45.0) * (0.9 + 0.2 * n3), mk.y * 0.9);
+      paint = max(paint, mk.x);
     }
-    asph = mix(asph, cLin(214.0, 210.0, 198.0), el * 0.85);
+    asph = cPaint(asph, p, paint);
     c = mix(c, asph, ce.x);
-    sRough -= ce.x * 0.1;
+    sRough += ar * ce.x;
     roadM = max(roadM, ce.x);
   }
 
