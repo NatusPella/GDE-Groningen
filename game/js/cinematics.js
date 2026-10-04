@@ -1,4 +1,5 @@
 import { screenFx } from './postfx3d.js';
+import { cutsceneTakesSpace } from './spacegate.js';
 import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
@@ -133,7 +134,7 @@ export function initCinematics(w) {
     if (e.key !== ' ') return;
     if (swallowSpace) { e.preventDefault(); e.stopImmediatePropagation(); return; }
     // a key repeat of a press from before the cutscene (the handbrake) is no skip
-    if (e.repeat || !active || !gameStarted() || isPauseMenuOpen() || isMapOpen()) return;
+    if (!cutsceneTakesSpace(active, { repeat: e.repeat, started: gameStarted(), menuOpen: isPauseMenuOpen() || isMapOpen() })) return;
     e.preventDefault();
     e.stopImmediatePropagation();
     swallowSpace = true;

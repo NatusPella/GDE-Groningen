@@ -76,6 +76,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   stonden Tammo en Tessa midden onder de glazen kap, met hun hoofd erdoorheen.
   Nu staan ze in de open punt voor de kap, op de vloer van de boot, en daar
   leunen ze ook samen over de reling.
+- **Fierljeppen reageert weer op Spatie.** Tijdens het mikken liep er een
+  camerashot, en dat slikte elke Spatie in alsof je een filmpje wilde
+  overslaan (daarom werkte het pas weer na "Zet me vrij"). Dat shot laat
+  Spatie nu door. En een knop die nog focus had van een kaartje of menu
+  maakt van Spatie of Enter geen klik meer zolang je speelt.
 
 ## [0.26.1] - 2026-10-04
 
