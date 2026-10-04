@@ -9,7 +9,7 @@ import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 import { getStorySave, applyStorySave } from './story.js';
 import { getPostgameSave, applyPostgameSave } from './postgame.js';
-import { applyHomeOnLoad, homeSaveContext } from './home.js';
+import { applyHomeOnLoad, homeSaveContext, getHomeSave } from './home.js';
 import { getFurnitureSave, applyFurnitureSave } from './furniture.js';
 import { abortHeliRun } from './helirun.js';
 import { quitPadel } from './padel.js';
@@ -148,6 +148,7 @@ function serialize(w) {
     bijbaan: getSideJobSave(),
     postgame: getPostgameSave(),
     meubels: getFurnitureSave(),
+    thuis: getHomeSave(),
     doel: getGoalSave(),
     // the radio, 'on' or 'off'; a save without it starts with the radio on
     radio: getRadioSave(),
