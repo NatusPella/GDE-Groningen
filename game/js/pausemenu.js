@@ -40,7 +40,7 @@ const CONTROL_GROUPS = [
     [['WASD'], 'Lopen en draaien'],
     [['MOUSE'], 'Camera draaien; laag houden om omhoog te kijken'],
     [['SHIFT'], 'Rennen (vasthouden)'],
-    [['SPACE'], 'Springen'],
+    [['SPACE'], 'Springen, over hekjes en auto\'s'],
     [['CTRL'], 'Bukken'],
     [['E', 'F'], 'Instappen, winkel in, praten, bijbaantje beginnen'],
     [['E'], 'Bij een duivenbord: word een duif'],
