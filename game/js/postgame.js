@@ -349,6 +349,23 @@ export function finish(r, res) {
     banterAfter(`after:${def.banter || def.id}:${res.success ? 'pass' : 'fail'}`);
   } else if (res.reason) w.addMessage(res.reason, 3);
   stopRun();
+  if (!res.aborted && res.success) handOff(w, def);
+}
+
+// After a won challenge: point at what's next (the guide's next spot, not
+// this one), on the phone and on the map.
+function handOff(w, def) {
+  guideSkip.add(def.id);
+  guideT = 0;
+  const list = guideCandidates(w).filter((c) => c.id !== def.id);
+  if (!w.phoneNotifications) return;
+  if (!list.length) {
+    w.phoneNotifications.push({ from: 'GDE', text: 'Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.', duration: 7 });
+    return;
+  }
+  if (state.guideOff) return;
+  w.phoneNotifications.push({ from: 'GDE', text: 'Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.', duration: 7 });
+  w.addMessage(`Volgende: ${list[0].name}`, 4);
 }
 
 function checkJelleAll() {

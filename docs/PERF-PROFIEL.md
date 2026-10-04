@@ -296,3 +296,14 @@ snapshotwerk van ~92 ms in drie long tasks naar 55 ms in één.
   alleen voor de ringwegen.
 - De Ommeland-tegels (`genTileSteps`), na een splitsing van `countryplan`
   in pure datamodules.
+
+## Zichtafstand "heel ver" (Hoog, 0.27)
+
+De preset Hoog staat sinds 0.27 op `drawDistance:heelver` (900 m in plaats
+van 600); de standaardinstellingen blijven op `ver`. Een perf-run met de
+Hoog-preset vergelijkt dus niet meer één-op-één met eerdere runs;
+`--preset=drawDistance:ver` geeft de oude stand. Wat er extra in beeld komt
+telt `node scripts/viewdist_estimate.mjs` (centrum: far-LOD-tegels 22 -> 40,
+~185k -> 324k driehoeken; Ommeland: proptegels 63 -> 111). Nog niet in
+Electron gemeten. Bij een stap omlaag van de automatische resolutie (onder
+90%) of `cpuLevel` > 0 valt "heel ver" terug op 600 m.

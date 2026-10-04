@@ -2,20 +2,17 @@ import { normalizeAngle, pointInPolygon, isInWater, WATER_Y, closestPointOnSegme
 import { requestRespawn } from './world.js';
 import { disableVehicle, surfaceUnder } from './vehicle.js';
 import { knockDown } from './ragdoll.js';
-import { knockOutPed, shovePed } from './pedestrians.js';
+import { bloodSpray, bleedPed } from './gore3d.js';
+import { DEAD_DURATION } from './pedestrians.js';
 import { propOnBulletPath, shootProp } from './breakables.js';
+import { reportCrime } from './crime.js';
 import { gunShotFx, gunImpactFx } from './gunfx3d.js';
 import { updateAim, aimFireAngle, aimedTargetDistance } from './aimassist.js';
+import { scopeShot } from './scopeaim.js';
 import { propsInRadius } from './breakables.js';
 import { getSettings } from './settings.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 
-// Weapons are for the police who fight back, cars and props. Civilians are
-// never a target: bullets miss them, and a swing at one is a shove that
-// makes them stumble, complain and run (still assault: pedHit, wanted).
-// An officer brought to zero health is knocked out ("uitgeschakeld",
-// pedestrians.js knockOutPed) and gets up later; nobody dies.
-//
 // kind: melee (a swing that lands at the end of its wind-up), gun (bullets),
 // water (harmless spray), throw (carbidbus) and rocket (firework); the last
 // three fly in throwables.js. slot is the number key (1 melee, 2 handguns,
@@ -132,8 +129,11 @@ export function updateCombat(dt, world) {
     meleeAttack(world, angle, weapon);
     return;
   }
-  angle = aimFireAngle(world, angle, weapon);
-  if (weapon.kind === 'gun') fireGun(world, angle, weapon);
+  // through the scope the shot goes exactly where the crosshair is: the
+  // camera's heading, no aim assist
+  const scoped = world.scoped && weapon.kind === 'gun' && !p.inVehicle;
+  angle = scoped ? world.camYaw ?? angle : aimFireAngle(world, angle, weapon);
+  if (weapon.kind === 'gun') fireGun(world, angle, weapon, scoped);
   else if (weapon.kind === 'water') {
     effect = { type: 'squirt', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon };
     squirtWater(world, angle, weapon);
@@ -142,6 +142,8 @@ export function updateCombat(dt, world) {
     throwExplosive(world, world.weapon, angle, weapon, aimedTargetDistance(world));
   }
   world.ammo[world.weapon]--;
+  // the last round: the dry click of an empty magazine
+  if (weapon.kind === 'gun' && world.ammo[world.weapon] <= 0) weaponSound(world, { sub: 'empty', weapon: world.weapon, x: p.x, y: p.y });
 }
 
 // Melee soft lock (auto-aim setting): the swing turns to the nearest person
@@ -153,7 +155,7 @@ function meleeLock(world, angle, weapon) {
   const reach = weapon.range + 0.8;
   let best = null, bestScore = Infinity;
   for (const t of world.pedestrians) {
-    if (!t.isCop || t.state === 'dead' || t.scripted || t.hidden) continue;
+    if (t.state === 'dead' || t.scripted || t.hidden) continue;
     const dx = t.x - p.x, dy = t.y - p.y;
     if (Math.abs(dx) > reach || Math.abs(dy) > reach) continue;
     const d = Math.hypot(dx, dy);
@@ -175,7 +177,7 @@ function meleeAttack(world, angle, weapon) {
   angle = meleeLock(world, angle, weapon);
   punchSide = -punchSide;
   effect = { type: 'melee', angle, until: world.time + 0.15, start: world.time, side: punchSide, weapon: world.weapon, swing: weapon.swing };
-  if (weapon.swing !== 'jab') weaponSound(world, { sub: 'swing', weapon: world.weapon, x: world.player.x, y: world.player.y });
+  weaponSound(world, { sub: 'swing', weapon: world.weapon, x: world.player.x, y: world.player.y });
   if (weapon.windup) pendingSwing = { at: world.time + weapon.windup, angle, weapon, key: world.weapon };
   else meleeHit(world, angle, weapon, world.weapon);
 }
@@ -202,8 +204,7 @@ function meleeHit(world, angle, weapon, key) {
   let landed = null;
   for (const t of world.pedestrians) {
     if (t.state === 'dead' || t.scripted || !inReach(t.x, t.y, t === lockedPed ? 0.8 : 0)) continue;
-    if (t.isCop) damagePed(world, t, weapon.damage, true, ca, sa, true, weapon);
-    else shovePed(t, world, ca, sa, weapon.push || 2.6);
+    damagePed(world, t, weapon.damage, true, ca, sa, true, weapon);
     landed = landed || 'flesh';
   }
   for (const v of world.vehicles) {
@@ -222,7 +223,7 @@ function meleeHit(world, angle, weapon, key) {
       landed = landed || 'prop';
     }
   }
-  if (landed && key !== 'fists') weaponSound(world, { sub: 'hit', weapon: key, material: weapon.sound, on: landed, x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
+  if (landed) weaponSound(world, { sub: 'hit', weapon: key, material: weapon.sound, on: landed, x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
   if (landed === 'flesh' || landed === 'car') {
     const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
     kick.yaw += (Math.random() - 0.5) * 0.02 * weapon.knock;
@@ -233,7 +234,7 @@ function meleeHit(world, angle, weapon, key) {
 // Camera recoil per shot: pitch up (rad), sideways jitter, FOV punch (deg).
 const KICK = { pistol: [0.022, 0.008, 1.6], uzi: [0.009, 0.006, 0.6], shotgun: [0.05, 0.014, 3.5], jachtgeweer: [0.075, 0.01, 2.2] };
 
-function fireGun(world, angle, weapon) {
+function fireGun(world, angle, weapon, scoped = false) {
   effect = { type: 'muzzle', angle, until: world.time + 0.06, start: world.time, weapon: world.weapon };
   const p = world.player;
   const v = p.inVehicle;
@@ -243,7 +244,11 @@ function fireGun(world, angle, weapon) {
   const aimZ = base + (v ? 1.1 : p.crouching ? 0.8 : 1.2);
   // right hand: a little to the right of the body line
   const rx = -Math.sin(angle) * 0.2, ry = Math.cos(angle) * 0.2;
-  for (let i = 0; i < shots; i++) {
+  if (scoped && shots === 1) {
+    const s = scopeShot(p, angle, base, weapon.speed);
+    world.bullets.push({ ...s, damage: weapon.damage, owner: 'player', range: weapon.range, traveled: 0, pellet: false, _shotFx: true });
+  }
+  for (let i = scoped && shots === 1 ? shots : 0; i < shots; i++) {
     const a = angle + (weapon.spread ? (Math.random() - 0.5) * weapon.spread : 0) + (Math.random() - 0.5) * 0.02;
     world.bullets.push({
       x: p.x + Math.cos(a) * 0.4 + rx,
@@ -259,6 +264,9 @@ function fireGun(world, angle, weapon) {
       _shotFx: true,
     });
   }
+  // the shot is its own audio event: a bullet that hits on its first step
+  // (a wall in front, a near target) is gone before audio.js sees it
+  weaponSound(world, { sub: 'shot', weapon: world.weapon, x: p.x, y: p.y });
   gunShotFx({ x: p.x + Math.cos(angle) * 0.7 + rx, y: p.y + Math.sin(angle) * 0.7 + ry, z: muzzleZ, angle, weapon: world.weapon, owner: 'player', casing: !v });
   const [kp, ky, kf] = KICK[world.weapon] || KICK.pistol;
   const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
@@ -432,20 +440,19 @@ export function wreckVehicle(world, v, byPlayer) {
   disableVehicle(v, byPlayer, world);
   if (!byPlayer) return;
   if (v.isPolice && !v.hijacked) {
-    world.stats.copCarsWrecked++;
+    world.stats.kills++;
+    world.stats.copKills++;
     world.wanted = Math.min(5, world.wanted + 2);
   }
 }
 
-// Swept along this step (a bullet moves ~1 m per frame, more than a body is
-// wide). Only officers can be hit: the player's bullets are for the police
-// who shoot back, and police bullets are only for the player.
+// Swept along this step (a bullet moves ~1 m per frame, more than a body is wide).
 function hitPedestrians(world, b, x0, y0) {
-  if (b.owner !== 'player') return false;
   let ped = null, bestT = 2;
   const reach = Math.abs(b.x - x0) + Math.abs(b.y - y0) + 1;
   for (const q of world.pedestrians) {
-    if (!q.isCop || q.state === 'dead') continue;
+    if (q.state === 'dead') continue;
+    if (b.owner === 'police' && q.isCop) continue;
     if (Math.abs(q.x - b.x) > reach || Math.abs(q.y - b.y) > reach) continue;
     const r = q.radius + 0.12;
     const c = closestPointOnSegment(q.x, q.y, x0, y0, b.x, b.y);
@@ -461,10 +468,10 @@ function hitPedestrians(world, b, x0, y0) {
   return false;
 }
 
-// Officers only (see the top of this file).
 function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS.fists) {
-  if (ped.state === 'dead') return;
   ped.health -= damage;
+  if (!melee) bloodSpray(world, ped.x, ped.y, dx, dy, ped.state === 'dead' ? 0.25 : 0.45);
+  if (ped.state === 'dead') return;
   const shove = weapon.push || 2.6;
   if (ped.health > 0) {
     if (melee && (ped.ragdoll || Math.random() < weapon.knock)) knockDown(ped, world, { kind: 'punch', vx: dx * shove, vy: dy * shove, lieFor: 0.8 + weapon.knock + Math.random() });
@@ -478,12 +485,20 @@ function damagePed(world, ped, damage, byPlayer, dx, dy, melee, weapon = WEAPONS
     }
     return;
   }
+  ped.state = 'dead';
+  ped.deadUntil = world.time + DEAD_DURATION;
   const fling = melee ? Math.max(3, shove) : damage > 60 ? 4 : 2.4;
-  knockOutPed(ped, world, { kind: melee ? 'punch' : 'shot', vx: dx * fling, vy: dy * fling, vz: 1, k: 0.5 });
+  knockDown(ped, world, { kind: melee ? 'punch' : 'shot', dead: true, vx: dx * fling, vy: dy * fling });
+  bleedPed(ped, world, { size: melee ? 0.7 : 1 });
   if (!byPlayer) return;
-  world.stats.knockouts++;
-  world.stats.copKnockouts++;
-  world.wanted = Math.min(5, world.wanted + 2);
+  world.stats.kills++;
+  if (ped.isCop) {
+    world.stats.copKills++;
+    world.wanted = Math.min(5, world.wanted + 2);
+  } else {
+    world.stats.pedKills++;
+    reportCrime(world, 'pedKill');
+  }
 }
 
 function hitPlayer(world, b) {
@@ -491,7 +506,10 @@ function hitPlayer(world, b) {
   if (Math.hypot(p.x - b.x, p.y - b.y) > p.radius + 0.12) return false;
   damagePlayer(world, b.damage);
   const bl = Math.hypot(b.vx, b.vy) || 1;
-  if (!p.inVehicle) p.hitReact = { t: world.time, dx: b.vx / bl, dy: b.vy / bl, k: 0.7 };
+  if (!p.inVehicle) {
+    p.hitReact = { t: world.time, dx: b.vx / bl, dy: b.vy / bl, k: 0.7 };
+    bloodSpray(world, p.x, p.y, b.vx / bl, b.vy / bl, 0.3);
+  }
   const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
   kick.yaw += (Math.random() - 0.5) * 0.05;
   kick.pitch += 0.015;
