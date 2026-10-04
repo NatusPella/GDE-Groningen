@@ -200,6 +200,7 @@ export function initHud(world) {
     raceRows: Object.fromEntries([...race.querySelectorAll('.hr-row')].map((r) => [r.dataset.k, r])),
     racePos: race.querySelector('.hr-pos'),
     nowPlaying,
+    npStation: nowPlaying.querySelector('small'),
     npArtist: nowPlaying.querySelector('.np-artist'),
     npTitle: nowPlaying.querySelector('.np-title'),
     npShown: null,
@@ -835,6 +836,7 @@ function updateNowPlaying(world) {
   const np = world.nowPlaying;
   if (np && np !== els.npShown) {
     els.npShown = np;
+    els.npStation.textContent = 'NU OP ' + String(np.station || 'G-Music').toUpperCase();
     els.npArtist.textContent = np.artist || '';
     els.npTitle.textContent = np.title || '';
     restartClass(els.nowPlaying, 'on', () => els.npShown === np);

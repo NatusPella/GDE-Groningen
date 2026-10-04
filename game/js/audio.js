@@ -1528,9 +1528,9 @@ export function playSikkomLine(key) {
   playRandomVariant(SIKKOM_AUDIO[key]);
 }
 
-// The car radio's station (radiostations.js): 'gmusic' as always,
-// 'nachtstreek' the same records through an old radio without the G-Music
-// jingles, 'grunn' (talk) and 'uit' hold G-Music like a scenario track does.
+// The radio's station (radiostations.js): 'gmusic' plays its own pool with
+// the jingles, 'nachtstreek' its own pool through an old radio without them,
+// 'grunn' (talk) and 'uit' hold the music like a scenario track does.
 let radioStation = 'gmusic';
 const radioHolds = () => radioStation === 'grunn' || radioStation === 'uit';
 export function setRadioStation(id) {
@@ -2797,7 +2797,8 @@ function updateGMusic(dt, world) {
   }
 
   if (pendingTrackAnnounce) {
-    world.nowPlaying = { title: pendingTrackAnnounce, artist: radioStation === 'nachtstreek' ? 'Radio Nachtstreek · Rikus draait' : trackArtist(pendingTrackAnnounce), at: world.time };
+    const night = radioStation === 'nachtstreek';
+    world.nowPlaying = { title: pendingTrackAnnounce, artist: (night ? 'Rikus draait: ' : '') + trackArtist(pendingTrackAnnounce), station: night ? 'Radio Nachtstreek' : 'G-Music', at: world.time };
     pendingTrackAnnounce = null;
   }
 
