@@ -13,7 +13,7 @@
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
 
 export const SAVE_VERSION = 2;
-export const SETTINGS_VERSION = 6;
+export const SETTINGS_VERSION = 7;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 
@@ -91,6 +91,9 @@ export const SETTINGS_MIGRATIONS = {
   4(s) { delete s.gore; return s; },
   // 6: rebindable keys and buttons; settings.js checks the tables themselves
   5(s) { return s; },
+  // 7: 'heelver' (Hoog). The old Hoog preset is also the default, so a file
+  // matching it keeps 'ver': it cannot tell a chosen Hoog from untouched
+  6(s) { return s; },
 };
 
 // Settings files before v2 had no `v`.
