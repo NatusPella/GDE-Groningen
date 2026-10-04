@@ -154,6 +154,16 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] **Ongebruikte stemopnames weg** (`claude/opruimen`): `node scripts/audio_unused.mjs` vindt opnames en manifestregels die geen regel, lookup of codepad meer gebruikt; `--delete` haalt ze weg. 746 bestanden, 17,3 MB; de stemdekking blijft 1608/1608.
 - [ ] Feature freeze.
 
+## Speeltest Maus 4 okt (0.26.1)
+
+**UI en geluid** (`claude/maus-ui`)
+- [x] Hoofdmenu, Afsluiten en Opnieuw beginnen in het pauzemenu zijn echte knoppen van 44 px. Opnieuw beginnen staat apart en vraagt om bevestiging. Gecontroleerd op 1920×1080 en 1280×800.
+- [x] Eén radio: G-Music, Nachtstreek, Radio Proat en uit in één lijst. N en B werken overal, LB in een voertuig, en de lijst staat ook in Instellingen › Geluid. De zender blijft in je save (`radio`).
+- [x] Muziekkeuze met een geschiedenis (`musicpick.js`): geen herhaling binnen ~60% van de pool, nummers die lang niet speelden wegen zwaarder, nachtnummers 's nachts, een eigen pool per zender en minder jingles. `node scripts/music_pick_test.mjs` test het.
+- [ ] De indeling van Nachtstreek en dag/nacht in `audio/gmusic/manifest.json` naluisteren. Die is nu gekozen op de titels.
+- [ ] Nieuwe muziek maken volgens [docs/MUZIEK.md](docs/MUZIEK.md). Het doel: 40 nummers op G-Music, 20 of meer op Nachtstreek en jingles per zender. Nu zijn het er 14 en 6.
+- [?] Een knop voor de radio te voet op de controller. Alle knoppen zijn daar al bezet, dus het gaat nu via het pauzemenu.
+
 ## Juridisch en publiceren (vóór 1.0)
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).
