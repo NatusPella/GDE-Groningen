@@ -1634,9 +1634,9 @@ function buildShots(w) {
     cam(u, t, s) { return followCam(s.car, 7.6, 2.8, 60); },
   };
 
-  // Ubbo on the phone: what there is to do (Te doen), in a car in the Poelestraat
+  // the unfolded phone on Te doen › Dichtbij, in a car in the Poelestraat
   const hudPhone = {
-    label: 'Telefoon met Ubbo', cuts: ['gameplay'], dur: 4.0, hud: true, clock: 14.2, weather: 'helder', focus: poele.at(40),
+    label: 'Telefoon: dichtbij te doen', cuts: ['gameplay'], dur: 4.0, hud: true, clock: 14.2, weather: 'helder', focus: poele.at(40),
     enter(r, s) {
       s.d = 10;
       const q = lane(poele, s.d, -1.4);
