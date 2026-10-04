@@ -20,7 +20,7 @@ export const BOAT_KINDS = {
   sup: { kind: 'sup', name: 'boat', len: 3.2, wid: 0.8, maxSpeed: 1.9, accel: 0.8, brake: 1.4, turnRate: 1.2, color: '#2a8fb0' },
   supWit: { kind: 'sup', name: 'boat', len: 3.0, wid: 0.78, maxSpeed: 1.8, accel: 0.8, brake: 1.4, turnRate: 1.2, color: '#f2f0ea' },
   // Frisian sailing barge (Jelle's): not in the ambient mix
-  skutsje: { kind: 'skutsje', name: 'boat', len: 10, wid: 2.8, maxSpeed: 7, accel: 0.9, brake: 1.3, turnRate: 0.8, color: '#1b1d1f', cabin: '#8a5a2c' },
+  skutsje: { kind: 'skutsje', name: 'boat', sail: true, len: 10, wid: 2.8, maxSpeed: 7, accel: 0.9, brake: 1.3, turnRate: 0.8, color: '#1b1d1f', cabin: '#8a5a2c' },
 };
 
 // Ambient traffic mix (weights).
