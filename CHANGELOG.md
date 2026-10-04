@@ -6,6 +6,32 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Streken: een beetje vals spelen.** Een nieuw onderdeel in het
+  pauzemenu, tussen Prestaties en Instellingen, met 21 streken. Vanaf het
+  begin: *Overal en nergens* (kies een plek op de kaart en je staat er, op de
+  dichtstbijzijnde weg, in de stad en in het Ommeland, met je auto als je
+  erin zit), *Voertuig hier* (je eigen voertuig meteen naast je, of een
+  stukje opzij als het daar niet past; een boot alleen op het water, de heli
+  alleen met ruimte voor de rotor), lage zwaartekracht, grote koppen,
+  Gronings ondertiteld, altijd zomeravond, nachtstad en geen verkeer. Het
+  verhaal speelt er meer vrij (Fietsenstad, Slow-mo bij botsingen,
+  Duivenstorm, *Zomer? Ja.*, Geen politie, Eeuwige eierbal, Frituurvet-wegen,
+  Turbo-Escapade), prestaties nog een paar (Stuiterwagens, De dag vliegt, Vol
+  magazijn), en na het verhaal Geld uit de muur en Showroom (elk voertuig via
+  Voertuig hier). Wat nog op slot zit, staat er als ??? met een hint; een
+  nieuwe streek krijgt een kaartje. Wat je vrijspeelt blijft in je save en
+  ook voor een nieuw spel.
+- **Streken en missies.** Streken die het spel veranderen, wachten tijdens
+  missies, filmpjes, uitdagingen, bijbaantjes en minigames, en gaan daarna
+  vanzelf weer door. Grote koppen, Gronings ondertiteld en Duivenstorm blijven
+  aan.
+- **Streken en prestaties.** Zolang er een streek aan staat die het spel
+  verandert, kun je geen prestaties halen en tellen je totalen niet door.
+  Het menu zegt dat er ook bij. Teleporteren, Voertuig hier en de streken
+  die alleen het uiterlijk veranderen laten prestaties aan. Na Geld uit de
+  muur staan prestaties uit tot je een save laadt.
+
 ### Veranderd
 - **Eén radiozender: G-Music.** Geen lijst met zenders meer, maar één
   station met korte programma's die de klok in het spel volgen: *Proat in
@@ -37,6 +63,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [0.26.1] - 2026-10-04
 
 ### Opgelost
+- **De kaart in het pauzemenu flikkert niet meer bij het zoomen.** Zolang
+  de tegels van de nieuwe zoomstap nog niet klaar waren, zag je alleen het
+  grove stadsoverzicht op een kale weide, en in het Ommeland helemaal niets.
+  Op een groot scherm met een hoge resolutie paste één beeld niet eens in de
+  tegelcache, waardoor zichtbare tegels elk frame opnieuw getekend werden. Nu
+  blijft het laatste complete beeld eronder liggen, verschoven en geschaald
+  naar de nieuwe stand, en worden zichtbare tegels nooit weggegooid.
 - **Geen zwarte flitsen meer.** Als de automatische resolutie een stap
   zette, was het scherm één frame helemaal zwart. Dat gebeurt niet meer.
 - **De automatische resolutie blijft rustig** op een snelle videokaart: hij

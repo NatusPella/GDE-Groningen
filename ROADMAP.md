@@ -165,6 +165,17 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Nieuwe muziek maken volgens [docs/MUZIEK.md](docs/MUZIEK.md). Het doel per programmablok: 40 nummers in de dagpool (waarvan 10 voor de ochtend en 8 voor de avond), 20 of meer voor Nachtstreek, en jingles per blok. Nu zijn het er 14 en 6.
 - [x] De radio op de controller: er is niets meer om tussen te wisselen, alleen aan/uit. Dat doet LB in een voertuig; te voet zijn alle knoppen bezet, dus daar gaat het via Instellingen › Geluid. Geen eigen knop te voet nodig.
 
+## Streken (cheats), `claude/cheats`
+
+- [x] Pauzemenu › Streken: acties (teleport via de kaart, Voertuig hier met een keuzelijst, Geld uit de muur) en schakelaars in de stijl van Instellingen; ??? met een hint voor wat op slot zit; een kaartje bij een nieuwe streek.
+- [x] 21 streken: 8 vanaf het begin, 8 uit het verhaal (k-fiets, H3 t/m H8, r-tuning), 3 uit prestaties, 2 na het verhaal (`cheatlist.js`).
+- [x] Gameplay-streken wachten tijdens missies, filmpjes, uitdagingen, bijbaantjes en minigames; de uiterlijk-streken blijven aan.
+- [x] Prestaties en totalen staan stil zolang een gameplay-streek aan staat, en na Geld uit de muur tot een save geladen wordt. Teleport en Voertuig hier tellen niet.
+- [x] Per save (`streken`, save v4 geeft een oude save wat het verhaal al vrijspeelde) en voor altijd (lifetime set `streken`).
+- [x] Kaart: zoomen zonder flikkeren (laatste complete beeld eronder, zichtbare tegels nooit weggegooid).
+- [ ] Meer streken die een eigen 3D-aanpassing nodig hebben: Mini-me, Kleine mensjes, Reuzenduif, Disco-zwaailicht, Alles is een kliko, Alleen trekkers, Altijd groen, Spiegelstad, Jelle's trekker-limo spawnen.
+- [ ] Fietsenstad en Zondagochtend laten het verkeer dat er al rijdt uitsterven in plaats van het meteen weg te halen. Naspelen of dat snel genoeg voelt.
+
 ## Juridisch en publiceren (vóór 1.0)
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).
